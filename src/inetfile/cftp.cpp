@@ -7,6 +7,11 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.3  2002/05/26 19:55:20  relnev
+ * unix.h: winsock defines
+ *
+ * cftp.cpp: now compiles!
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -27,9 +32,23 @@
  *
  * $NoKeywords: $
  */
+
+#ifndef PLAT_UNIX
 #include <windows.h>
 #include <process.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+#include "pstypes.h" // unix.h
+#endif
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "cftp.h"
 
@@ -292,7 +311,7 @@ unsigned int CFtpGet::GetFile()
 	if(p)
 	{
 		s = strchr(p,' ');
-		*s = NULL;
+		*s = 0;
 		m_iBytesTotal = atoi(p);
 	}
 	if(m_Aborting)
@@ -320,7 +339,11 @@ unsigned int CFtpGet::IssuePort()
 
 	char szCommandString[200];
 	SOCKADDR_IN listenaddr;					// Socket address structure
+#ifndef PLAT_UNIX	
    int iLength;									// Length of the address structure
+#else
+   socklen_t iLength;
+#endif   
    UINT nLocalPort;							// Local port for listening
 	UINT nReplyCode;							// FTP server reply code
 
@@ -347,6 +370,7 @@ unsigned int CFtpGet::IssuePort()
 	}
 				
 	// Format the PORT command with the correct numbers.
+#ifndef PLAT_UNIX
 	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n", 
 				listenaddr.sin_addr.S_un.S_un_b.s_b1, 
 				listenaddr.sin_addr.S_un.S_un_b.s_b2,
@@ -354,7 +378,16 @@ unsigned int CFtpGet::IssuePort()
 				listenaddr.sin_addr.S_un.S_un_b.s_b4,
 				nLocalPort & 0xFF,	
 				nLocalPort >> 8);
-															
+#else
+	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n",
+				(listenaddr.sin_addr.s_addr >> 0)  & 0x000000FF,
+				(listenaddr.sin_addr.s_addr >> 8)  & 0x0000FF00,
+				(listenaddr.sin_addr.s_addr >> 16) & 0x00FF0000,
+				(listenaddr.sin_addr.s_addr >> 24) & 0xFF000000,
+				nLocalPort & 0xFF,
+				nLocalPort >> 8);
+#endif
+														
 	// Tell the server which port to use for data.
 	nReplyCode = SendFTPCommand(szCommandString);
 	if (nReplyCode != 200)
@@ -459,7 +492,7 @@ unsigned int CFtpGet::ReadFTPServerReply()
 	memset(recv_buffer,0,1000);
 	do
 	{
-		chunk[0]=NULL;
+		chunk[0]=0;
 		iBytesRead = recv(m_ControlSock,chunk,1,0);
 
 		if (iBytesRead == SOCKET_ERROR)
@@ -471,7 +504,7 @@ unsigned int CFtpGet::ReadFTPServerReply()
 		
 		if((chunk[0]==0x0a) || (chunk[0]==0x0d))
 		{
-			if(recv_buffer[0]!=NULL) 
+			if(recv_buffer[0]!=0) 
 			{
 				igotcrlf = 1;	
 			}

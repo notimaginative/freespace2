@@ -109,4 +109,17 @@ extern int MulDiv (int, int, int);
 #define gr_d3d_preload_init gr_opengl_preload_init
 //#define gr_d3d_FOO gr_opengl_FOO
 
+typedef struct channel
+{ 
+        int   sig;			// uniquely
+   	int   snd_id;		// identifies which
+	int   pdsb;			// pointer to the secondary buffer t
+	int   pds3db;		// 3D interface, only used if sound buffer created w
+        int   looping;		// flag to i
+        int   vol;			// in Direct
+	int   priority;	// implementation de
+        bool  is_voice_msg;
+       	int        		last_position;
+} channel;           
+
 #endif

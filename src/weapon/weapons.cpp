@@ -15,6 +15,9 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.7  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.6  2002/06/09 04:41:30  relnev
  * added copyright header
  *
@@ -1535,7 +1538,7 @@ void weapon_render(object *obj)
 				gr_set_bitmap(wip->laser_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.99999f);
 
 				vector headp;
-				vm_vec_scale_add(&headp, &obj->pos, &obj->orient.fvec, wip->laser_length);
+				vm_vec_scale_add(&headp, &obj->pos, &obj->orient.v.fvec, wip->laser_length);
 				wp->weapon_flags &= ~WF_CONSIDER_FOR_FLYBY_SOUND;
 				if ( g3_draw_laser(&headp, wip->laser_head_radius, &obj->pos, wip->laser_tail_radius) ) {
 					wp->weapon_flags |= WF_CONSIDER_FOR_FLYBY_SOUND;
@@ -1548,7 +1551,7 @@ void weapon_render(object *obj)
 				weapon_get_laser_color(&c, obj);
 
 				vector headp2;			
-				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.fvec, wip->laser_length * weapon_glow_scale_l);
+				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.v.fvec, wip->laser_length * weapon_glow_scale_l);
 				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? weapon_glow_alpha_d3d : weapon_glow_alpha_glide);
 				g3_draw_laser_rgb(&headp2, wip->laser_head_radius * weapon_glow_scale_f, &obj->pos, wip->laser_tail_radius * weapon_glow_scale_r, c.red, c.green, c.blue);
 			}						
@@ -1747,7 +1750,7 @@ void find_homing_object(object *weapon_objp, int num)
 				if (objp->type == OBJ_CMEASURE)
 					dist *= 0.5f;
 
-				dot = vm_vec_dot(&vec_to_object, &weapon_objp->orient.fvec);
+				dot = vm_vec_dot(&vec_to_object, &weapon_objp->orient.v.fvec);
 
 				if (dot > wip->fov) {
 					if (dist < best_dist) {
@@ -1811,7 +1814,7 @@ void find_homing_object_cmeasures_1(object *weapon_objp)
 				
 				if (objp->signature != wp->cmeasure_ignore_objnum) {
 
-					dot = vm_vec_dot(&vec_to_object, &weapon_objp->orient.fvec);
+					dot = vm_vec_dot(&vec_to_object, &weapon_objp->orient.v.fvec);
 
 					if (dot > best_dot) {
 						//nprintf(("Jim", "Frame %i: Weapon #%i homing on cmeasure #%i\n", Framecount, weapon_objp-Objects, objp->signature));
@@ -1909,10 +1912,10 @@ void weapon_home(object *obj, int num, float frame_time)
 
 		if (obj->phys_info.speed > wip->max_speed) {
 			obj->phys_info.speed -= frame_time * 4;
-			vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.fvec, obj->phys_info.speed);
+			vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.v.fvec, obj->phys_info.speed);
 		} else if ((obj->phys_info.speed < wip->max_speed/4) && (wip->wi_flags & WIF_HOMING_HEAT)) {
 			obj->phys_info.speed = wip->max_speed/4;
-			vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.fvec, obj->phys_info.speed);
+			vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.v.fvec, obj->phys_info.speed);
 		}
 
 /*	Removed code that makes bombs drop for a bit.  They looked odd and it was confusing.  People wondered where their weapons went.
@@ -2101,7 +2104,7 @@ void weapon_home(object *obj, int num, float frame_time)
 
 				wp->homing_pos = target_pos;
 				Assert( !vm_is_vec_nan(&wp->homing_pos) );
-				// nprintf(("AI", "Attack point = %7.3f %7.3f %7.3f\n", target_pos.x, target_pos.y, target_pos.z));
+				// nprintf(("AI", "Attack point = %7.3f %7.3f %7.3f\n", target_pos.xyz.x, target_pos.xyz.y, target_pos.xyz.z));
 			} else
 				target_pos = wp->homing_pos;
 		}
@@ -2190,17 +2193,17 @@ void weapon_home(object *obj, int num, float frame_time)
 
 		Assert( obj->phys_info.speed > 0.0f );
 
-		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.fvec, obj->phys_info.speed);
+		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.v.fvec, obj->phys_info.speed);
 
 		// turn the missile towards the target only if non-swarm.  Homing swarm missiles choose
 		// a different vector to turn towards, this is done in swarm_update_direction().
 //		if ( !(wip->wi_flags & WIF_SWARM) ) {
 		if ( wp->swarm_index < 0 ) {
-			// nprintf(("AI", "Dot, dist = %7.3f, %7.3f, target pos = %7.3f %7.3f %7.3f\n", old_dot, vm_vec_dist_quick(&obj->pos, &target_pos), target_pos.x, target_pos.y, target_pos.z));
+			// nprintf(("AI", "Dot, dist = %7.3f, %7.3f, target pos = %7.3f %7.3f %7.3f\n", old_dot, vm_vec_dist_quick(&obj->pos, &target_pos), target_pos.xyz.x, target_pos.xyz.y, target_pos.xyz.z));
 			ai_turn_towards_vector(&target_pos, obj, frame_time, wip->turn_time, NULL, NULL, 0.0f, 0, NULL);
 			vel = vm_vec_mag(&obj->phys_info.desired_vel);
 
-			vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->orient.fvec, vel);
+			vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->orient.v.fvec, vel);
 
 		}
 
@@ -2264,13 +2267,13 @@ void weapon_maybe_play_flyby_sound(object *weapon_objp, weapon *wp)
 			vm_vec_normalize(&vec_to_weapon);
 
 			// ensure laser is in front of eye
-			dot = vm_vec_dot(&vec_to_weapon, &Eye_matrix.fvec);
+			dot = vm_vec_dot(&vec_to_weapon, &Eye_matrix.v.fvec);
 			if ( dot < 0.1 ) {
 				return;
 			}
 
 			// ensure that laser is moving in similar direction to fvec
-			dot = vm_vec_dot(&vec_to_weapon, &weapon_objp->orient.fvec);
+			dot = vm_vec_dot(&vec_to_weapon, &weapon_objp->orient.v.fvec);
 			
 //			nprintf(("Alan", "Weapon dot: %.2f\n", dot));
 			if ( (dot < -0.80) && (dot > -0.98) ) {
@@ -2395,7 +2398,7 @@ void weapon_process_post(object * obj, float frame_time)
 				}
 
 				vm_vec_normalized_dir(&tvec, &v0, &Objects[wp->target_num].pos);
-				dot = vm_vec_dot(&tvec, &Objects[wp->target_num].orient.fvec);
+				dot = vm_vec_dot(&tvec, &Objects[wp->target_num].orient.v.fvec);
 				// nprintf(("AI", "Miss dot = %7.3f, dist = %7.3f, lead_scale = %7.3f\n", dot, cur_dist, lead_scale));
 				wp->target_num = -1;
 
@@ -2673,7 +2676,7 @@ int weapon_create( vector * pos, matrix * orient, int weapon_id, int parent_objn
 	objp->phys_info.side_slip_time_const = 0.0f;
 	objp->phys_info.rotdamp = 0.0f;
 	vm_vec_zero(&objp->phys_info.max_vel);
-	objp->phys_info.max_vel.z = wip->max_speed;
+	objp->phys_info.max_vel.xyz.z = wip->max_speed;
 	vm_vec_zero(&objp->phys_info.max_rotvel);
 	objp->shields[0] = wip->damage;
 	if (wip->wi_flags & WIF_BOMB){
@@ -2695,7 +2698,7 @@ int weapon_create( vector * pos, matrix * orient, int weapon_id, int parent_objn
 	//	Note: If you change how speed works here, such as adding in speed of parent ship, you'll need to change the AI code
 	//	that predicts collision points.  See Mike Kulas or Dave Andsager.  (Or see ai_get_weapon_speed().)
 	if (!(wip->wi_flags & WIF_HOMING)) {
-		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.fvec, objp->phys_info.max_vel.z );
+		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.v.fvec, objp->phys_info.max_vel.xyz.z );
 		objp->phys_info.vel = objp->phys_info.desired_vel;
 		objp->phys_info.speed = vm_vec_mag(&objp->phys_info.desired_vel);
 	} else {		
@@ -2703,9 +2706,9 @@ int weapon_create( vector * pos, matrix * orient, int weapon_id, int parent_objn
 		//	Note that it is important to extract the forward component of the parent's velocity to factor out sliding, else
 		//	the missile will not be moving forward.
 		if(parent_objp != NULL){
-			vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.fvec, vm_vec_dot(&parent_objp->phys_info.vel, &parent_objp->orient.fvec) + objp->phys_info.max_vel.z/4 );
+			vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.v.fvec, vm_vec_dot(&parent_objp->phys_info.vel, &parent_objp->orient.v.fvec) + objp->phys_info.max_vel.xyz.z/4 );
 		} else {
-			vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.fvec, objp->phys_info.max_vel.z/4 );
+			vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.v.fvec, objp->phys_info.max_vel.xyz.z/4 );
 		}
 		objp->phys_info.vel = objp->phys_info.desired_vel;
 		objp->phys_info.speed = vm_vec_mag(&objp->phys_info.vel);
@@ -3476,26 +3479,26 @@ void weapon_maybe_spew_particle(object *obj)
 		// spew some particles
 		for(idx=0; idx<Weapon_particle_spew_count; idx++){
 			// get the backward vector of the weapon
-			direct = obj->orient.fvec;
+			direct = obj->orient.v.fvec;
 			vm_vec_negate(&direct);
 
 			//	randomly perturb x, y and z
 			
 			// uvec
 			ang = fl_radian(frand_range(-90.0f, 90.0f));
-			vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.fvec);			
+			vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.v.fvec);			
 			direct = direct_temp;
 			vm_vec_scale(&direct, Weapon_particle_spew_scale);
 
 			// rvec
 			ang = fl_radian(frand_range(-90.0f, 90.0f));
-			vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.rvec);			
+			vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.v.rvec);			
 			direct = direct_temp;
 			vm_vec_scale(&direct, Weapon_particle_spew_scale);
 
 			// fvec
 			ang = fl_radian(frand_range(-90.0f, 90.0f));
-			vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.uvec);			
+			vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.v.uvec);			
 			direct = direct_temp;
 			vm_vec_scale(&direct, Weapon_particle_spew_scale);
 
@@ -3705,7 +3708,7 @@ int weapon_get_expl_handle(int weapon_expl_index, vector *pos, float size)
 		vector temp;
 
 		behind = 1;
-		vm_vec_scale_add(&temp, &Eye_position, &Eye_matrix.fvec, dist);
+		vm_vec_scale_add(&temp, &Eye_position, &Eye_matrix.v.fvec, dist);
 		g3_rotate_vertex(&v, &temp);
 
 		// if still behind, bail and go with default

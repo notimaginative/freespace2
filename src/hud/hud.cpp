@@ -15,6 +15,9 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -1156,7 +1159,7 @@ void HUD_render_forward_icon(object *objp)
 	vertex	v0;
 	vector	p0;
 
-	vm_vec_scale_add(&p0, &objp->pos, &objp->orient.fvec, 100.0f);
+	vm_vec_scale_add(&p0, &objp->pos, &objp->orient.v.fvec, 100.0f);
 	g3_rotate_vertex(&v0, &p0);
 
 	gr_set_color(255, 0, 0);
@@ -2282,7 +2285,7 @@ int hud_support_get_dock_time( int objnum )
 
 		//	When faraway, use max speed, not current speed.  Might not have sped up yet.
 		if (d > 100.0f) {
-			time += (d - 100.0f)/support_objp->phys_info.max_vel.z;
+			time += (d - 100.0f)/support_objp->phys_info.max_vel.xyz.z;
 		}
 
 		//	For mid-range, use current speed.
@@ -3066,7 +3069,7 @@ void HUD_set_offsets(object *viewer_obj, int wiggedy_wack)
 		HUD_offset_x = 0.0f;
 		HUD_offset_y = 0.0f;
 
-		vm_vec_scale_add( &tmp, &Viewer_obj->pos, &Viewer_obj->orient.fvec, 100.0f );
+		vm_vec_scale_add( &tmp, &Viewer_obj->pos, &Viewer_obj->orient.v.fvec, 100.0f );
 		
 		flags = g3_rotate_vertex(&pt,&tmp);
 

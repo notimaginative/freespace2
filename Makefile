@@ -1,7 +1,7 @@
 # Makefile for code module
 # for that freespace 2 thing
 
-CC=g++-3.0
+CC=g++
 AR=ar
 CODE_BINARY=code.a
 FS_BINARY=freespace2

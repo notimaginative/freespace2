@@ -15,6 +15,9 @@
  * C module to provide HUD targeting functions
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -1504,7 +1507,7 @@ void hud_target_missile(object *source_obj, int next_flag)
 	// if no bomb is found, search for bombers
 		ship_obj *start, *so;
 
-		extern ship_obj *Ship_objs;
+		//extern ship_obj *Ship_objs;
 		if ( (aip->target_objnum != -1) && (Objects[aip->target_objnum].type == OBJ_SHIP) && (Ship_info[Ships[Objects[aip->target_objnum].instance].ship_info_index].flags & SIF_BOMBER) ) {
 			int index = Ships[Objects[aip->target_objnum].instance].ship_list_index;
 			start = get_ship_obj_ptr_from_index(index);
@@ -1797,7 +1800,7 @@ void hud_target_live_turret(int next_flag, int auto_advance, int only_player_tar
 					
 					if (!auto_advance && get_closest_turret && !only_player_target) {
 						// if within 3 degrees and not previous subsys, use subsys in front
-						dot = vm_vec_dotprod(&vec_to_subsys, &Player_obj->orient.fvec);
+						dot = vm_vec_dotprod(&vec_to_subsys, &Player_obj->orient.v.fvec);
 						if ((dot > 0.9986) && facing) {
 							use_straigh_ahead_turret = TRUE;
 							break;
@@ -2459,7 +2462,7 @@ void hud_target_in_reticle_new()
 	Reticle_save_timestamp = timestamp(RESET_TARGET_IN_RETICLE);
 
 	//	Get 3d vector through center of reticle
-	vm_vec_scale_add(&terminus, &Eye_position, &Player_obj->orient.fvec, TARGET_IN_RETICLE_DISTANCE);
+	vm_vec_scale_add(&terminus, &Eye_position, &Player_obj->orient.v.fvec, TARGET_IN_RETICLE_DISTANCE);
 
 	mc.model_num = 0;
 	for ( A = GET_FIRST(&obj_used_list); A !=END_OF_LIST(&obj_used_list); A = GET_NEXT(A) ) {
@@ -2574,7 +2577,7 @@ void hud_target_in_reticle_old()
 		}
 
 		dist = vm_vec_normalized_dir(&vec_to_target, &A->pos, &Eye_position);
-		dot = vm_vec_dot(&Player_obj->orient.fvec, &vec_to_target);
+		dot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 		if ( dot > MIN_DOT_FOR_TARGET ) {
 			hud_reticle_list_update(A, dot, 1);
@@ -2638,7 +2641,7 @@ void hud_target_subsystem_in_reticle()
 		get_subsystem_world_pos(targetp, subsys, &subobj_pos);
 
 		dist = vm_vec_normalized_dir(&vec_to_target, &subobj_pos, &Eye_position);
-		dot = vm_vec_dot(&Player_obj->orient.fvec, &vec_to_target);
+		dot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 		if ( dot > best_dot ) {
 			best_dot = dot;
@@ -2680,9 +2683,9 @@ void hud_render_orientation_tee(object *from_objp, object *to_objp, matrix *from
 	// 0 - vectors are perpendicular
 	// 1 - vectors are collinear and in the same direction (target is facing player)
 	// -1 - vectors are collinear and in the opposite direction (target is facing away from player)
-	dot_product = vm_vec_dotprod(&from_orientp->fvec, &target_to_obj);
+	dot_product = vm_vec_dotprod(&from_orientp->v.fvec, &target_to_obj);
 
-	if (vm_vec_dotprod(&from_orientp->rvec, &target_to_obj) >= 0) {
+	if (vm_vec_dotprod(&from_orientp->v.rvec, &target_to_obj) >= 0) {
 		if (dot_product >= 0){
 			dot_product = -PI/2*dot_product + PI;
 		} else {
@@ -4248,7 +4251,7 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	// to range between 0 -> 1.
 	vm_vec_sub(&targ_to_player, &Player_obj->pos, tpos);
 	vm_vec_normalize(&targ_to_player);
-	dist_behind = vm_vec_dot(&Player_obj->orient.fvec, &targ_to_player);
+	dist_behind = vm_vec_dot(&Player_obj->orient.v.fvec, &targ_to_player);
 
 	in_front = 0;
 
@@ -4289,7 +4292,7 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	vertex real_eye_vertex;
 	eye_vertex = &real_eye_vertex;	// this is needed since clip line takes a **vertex
 	vector eye_pos;
-	vm_vec_add( &eye_pos, &Eye_position, &View_matrix.fvec);
+	vm_vec_add( &eye_pos, &Eye_position, &View_matrix.v.fvec);
 	g3_rotate_vertex(eye_vertex, &eye_pos);
 
 	ubyte codes_or;

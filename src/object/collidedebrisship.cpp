@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for ships and debris
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -287,7 +290,7 @@ int collide_debris_ship( obj_pair * pair )
 			ship_max_speed = ship_get_max_speed(shipp);
 		}
 		ship_max_speed = max(ship_max_speed, 10.0f);
-		ship_max_speed = max(ship_max_speed, pship->phys_info.vel.z);
+		ship_max_speed = max(ship_max_speed, pship->phys_info.vel.xyz.z);
 
 		debris_speed = pdebris->phys_info.speed;
 

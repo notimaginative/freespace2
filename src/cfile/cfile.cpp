@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.6  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.5  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -1207,14 +1210,14 @@ void cfread_vector(vector *vec, CFILE *file, int ver, vector *deflt)
 		if (deflt)
 			*vec = *deflt;
 		else
-			vec->x = vec->y = vec->z = 0.0f;
+			vec->xyz.x = vec->xyz.y = vec->xyz.z = 0.0f;
 
 		return;
 	}
 
-	vec->x = cfread_float(file, ver, deflt ? deflt->x : 0.0f);
-	vec->y = cfread_float(file, ver, deflt ? deflt->y : 0.0f);
-	vec->z = cfread_float(file, ver, deflt ? deflt->z : 0.0f);
+	vec->xyz.x = cfread_float(file, ver, deflt ? deflt->xyz.x : 0.0f);
+	vec->xyz.y = cfread_float(file, ver, deflt ? deflt->xyz.y : 0.0f);
+	vec->xyz.z = cfread_float(file, ver, deflt ? deflt->xyz.z : 0.0f);
 }
 	
 void cfread_angles(angles *ang, CFILE *file, int ver, angles *deflt)
@@ -1309,13 +1312,13 @@ int cfwrite_ubyte(ubyte b, CFILE *file)
 
 int cfwrite_vector(vector *vec, CFILE *file)
 {
-	if(!cfwrite_float(vec->x, file)){
+	if(!cfwrite_float(vec->xyz.x, file)){
 		return 0;
 	}
-	if(!cfwrite_float(vec->y, file)){
+	if(!cfwrite_float(vec->xyz.y, file)){
 		return 0;
 	}
-	return cfwrite_float(vec->z, file);
+	return cfwrite_float(vec->xyz.z, file);
 }
 
 int cfwrite_angles(angles *ang, CFILE *file)

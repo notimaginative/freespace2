@@ -15,6 +15,9 @@
  * Code to deal with a ship getting hit by something, be it a missile, dog, or ship.
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -1445,9 +1448,9 @@ void ship_hit_create_sparks(object *ship_obj, vector *hitpos, int submodel_num)
 		vm_vec_sub(&diff, hitpos, &temp_zero);
 
 		// find displacement from submodel origin in submodel RF
-		ship_p->sparks[n].pos.x = vm_vec_dotprod(&diff, &temp_x);
-		ship_p->sparks[n].pos.y = vm_vec_dotprod(&diff, &temp_y);
-		ship_p->sparks[n].pos.z = vm_vec_dotprod(&diff, &temp_z);
+		ship_p->sparks[n].pos.xyz.x = vm_vec_dotprod(&diff, &temp_x);
+		ship_p->sparks[n].pos.xyz.y = vm_vec_dotprod(&diff, &temp_y);
+		ship_p->sparks[n].pos.xyz.z = vm_vec_dotprod(&diff, &temp_z);
 		ship_p->sparks[n].submodel_num = submodel_num;
 		ship_p->sparks[n].end_time = timestamp(-1);
 	} else {
@@ -1472,9 +1475,9 @@ void player_died_start(object *killer_objp)
 	nprintf(("Network", "starting my player death\n"));
 	gameseq_post_event(GS_EVENT_DEATH_DIED);	
 	
-/*	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->pos, &Player_obj->orient.fvec, -10.0f);
-	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->orient.uvec, 3.0f);
-	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->orient.rvec, 5.0f);
+/*	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->pos, &Player_obj->orient.v.fvec, -10.0f);
+	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->orient.v.uvec, 3.0f);
+	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->orient.v.rvec, 5.0f);
 */
 
 	//	Create a good vector for the camera to move along during death sequence.
@@ -1514,9 +1517,9 @@ void player_died_start(object *killer_objp)
 		other_objp = Player_obj;
 	}
 
-	vm_vec_add(&Original_vec_to_deader, &Player_obj->orient.fvec, &Player_obj->orient.rvec);
+	vm_vec_add(&Original_vec_to_deader, &Player_obj->orient.v.fvec, &Player_obj->orient.v.rvec);
 	vm_vec_scale(&Original_vec_to_deader, 2.0f);
-	vm_vec_add2(&Original_vec_to_deader, &Player_obj->orient.uvec);
+	vm_vec_add2(&Original_vec_to_deader, &Player_obj->orient.v.uvec);
 	vm_vec_normalize(&Original_vec_to_deader);
 
 	vector	vec_from_killer;
@@ -1527,7 +1530,7 @@ void player_died_start(object *killer_objp)
 
 	if (Player_obj == other_objp) {
 		dist = 50.0f;
-		vec_from_killer = Player_obj->orient.fvec;
+		vec_from_killer = Player_obj->orient.v.fvec;
 	} else {
 		dist = vm_vec_normalized_dir(&vec_from_killer, &Player_obj->pos, &other_objp->pos);
 	}
@@ -1536,11 +1539,11 @@ void player_died_start(object *killer_objp)
 		dist = 100.0f;
 	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->pos, &vec_from_killer, dist);
 
-	float	dot = vm_vec_dot(&Player_obj->orient.rvec, &vec_from_killer);
+	float	dot = vm_vec_dot(&Player_obj->orient.v.rvec, &vec_from_killer);
 	if (fl_abs(dot) > 0.8f)
-		side_vec = &Player_obj->orient.fvec;
+		side_vec = &Player_obj->orient.v.fvec;
 	else
-		side_vec = &Player_obj->orient.rvec;
+		side_vec = &Player_obj->orient.v.rvec;
 	
 	vm_vec_scale_add2(&Dead_camera_pos, side_vec, 10.0f);
 
@@ -1683,18 +1686,18 @@ void ship_generic_kill_stuff( object *objp, float percent_killed )
 	} else {
 		// if added rotvel is too random, we should decrease the random component, putting a const in front of the rotvel.
 		sp->deathroll_rotvel = objp->phys_info.rotvel;
-		sp->deathroll_rotvel.x += (frand() - 0.5f) * 2.0f * rotvel_mag;
-		saturate_fabs(&sp->deathroll_rotvel.x, 0.75f*DEATHROLL_ROTVEL_CAP);
-		sp->deathroll_rotvel.y += (frand() - 0.5f) * 3.0f * rotvel_mag;
-		saturate_fabs(&sp->deathroll_rotvel.y, 0.75f*DEATHROLL_ROTVEL_CAP);
-		sp->deathroll_rotvel.z += (frand() - 0.5f) * 6.0f * rotvel_mag;
+		sp->deathroll_rotvel.xyz.x += (frand() - 0.5f) * 2.0f * rotvel_mag;
+		saturate_fabs(&sp->deathroll_rotvel.xyz.x, 0.75f*DEATHROLL_ROTVEL_CAP);
+		sp->deathroll_rotvel.xyz.y += (frand() - 0.5f) * 3.0f * rotvel_mag;
+		saturate_fabs(&sp->deathroll_rotvel.xyz.y, 0.75f*DEATHROLL_ROTVEL_CAP);
+		sp->deathroll_rotvel.xyz.z += (frand() - 0.5f) * 6.0f * rotvel_mag;
 		// make z component  2x larger than larger of x,y
-		float largest_mag = max(fl_abs(sp->deathroll_rotvel.x), fl_abs(sp->deathroll_rotvel.y));
-		if (fl_abs(sp->deathroll_rotvel.z) < 2.0f*largest_mag) {
-			sp->deathroll_rotvel.z *= (2.0f * largest_mag / fl_abs(sp->deathroll_rotvel.z));
+		float largest_mag = max(fl_abs(sp->deathroll_rotvel.xyz.x), fl_abs(sp->deathroll_rotvel.xyz.y));
+		if (fl_abs(sp->deathroll_rotvel.xyz.z) < 2.0f*largest_mag) {
+			sp->deathroll_rotvel.xyz.z *= (2.0f * largest_mag / fl_abs(sp->deathroll_rotvel.xyz.z));
 		}
-		saturate_fabs(&sp->deathroll_rotvel.z, 0.75f*DEATHROLL_ROTVEL_CAP);
-		// nprintf(("Physics", "Frame: %i rotvel_mag: %5.2f, rotvel: (%4.2f, %4.2f, %4.2f)\n", Framecount, rotvel_mag, sp->deathroll_rotvel.x, sp->deathroll_rotvel.y, sp->deathroll_rotvel.z));
+		saturate_fabs(&sp->deathroll_rotvel.xyz.z, 0.75f*DEATHROLL_ROTVEL_CAP);
+		// nprintf(("Physics", "Frame: %i rotvel_mag: %5.2f, rotvel: (%4.2f, %4.2f, %4.2f)\n", Framecount, rotvel_mag, sp->deathroll_rotvel.xyz.x, sp->deathroll_rotvel.xyz.y, sp->deathroll_rotvel.xyz.z));
 	}
 
 	
@@ -1924,7 +1927,7 @@ void ship_apply_whack(vector *force, vector *new_pos, object *objp)
 		vector test;
 		vm_vec_unrotate(&test, force, &objp->orient);
 
-		game_whack_apply( -test.x, -test.y );
+		game_whack_apply( -test.xyz.x, -test.xyz.y );
 	}
 					
 	physics_apply_whack(force, new_pos, &objp->phys_info, &objp->orient, objp->phys_info.mass);
@@ -2440,7 +2443,7 @@ void ship_apply_global_damage(object *ship_obj, object *other_obj, vector *force
 		// Since an force_center wasn't specified, this is probably just a debug key
 		// to kill an object.   So pick a shield quadrant and a point on the
 		// radius of the object.   
-		vm_vec_scale_add( &world_hitpos, &ship_obj->pos, &ship_obj->orient.fvec, ship_obj->radius );
+		vm_vec_scale_add( &world_hitpos, &ship_obj->pos, &ship_obj->orient.v.fvec, ship_obj->radius );
 
 		for (int i=0; i<MAX_SHIELD_SECTIONS; i++){
 			ship_do_damage(ship_obj, other_obj, &world_hitpos, damage/MAX_SHIELD_SECTIONS, i);
@@ -2467,7 +2470,7 @@ void ship_apply_wash_damage(object *ship_obj, object *other_obj, float damage)
 	// to kill an object.   So pick a shield quadrant and a point on the
 	// radius of the object
 	vm_vec_rand_vec_quick(&rand_vec);
-	vm_vec_scale_add(&direction_vec, &ship_obj->orient.fvec, &rand_vec, 0.5f);
+	vm_vec_scale_add(&direction_vec, &ship_obj->orient.v.fvec, &rand_vec, 0.5f);
 	vm_vec_normalize_quick(&direction_vec);
 	vm_vec_scale_add( &world_hitpos, &ship_obj->pos, &direction_vec, ship_obj->radius );
 

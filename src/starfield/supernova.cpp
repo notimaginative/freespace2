@@ -15,6 +15,9 @@
  * Include file for nebula stuff
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:27  relnev
  * added copyright header
  *
@@ -341,9 +344,9 @@ void supernova_apply_shake(matrix *eye_orient, float intensity)
 
 	matrix	tm, tm2;
 	vm_angles_2_matrix(&tm, &tangles);
-	Assert(vm_vec_mag(&tm.fvec) > 0.0f);
-	Assert(vm_vec_mag(&tm.rvec) > 0.0f);
-	Assert(vm_vec_mag(&tm.uvec) > 0.0f);
+	Assert(vm_vec_mag(&tm.v.fvec) > 0.0f);
+	Assert(vm_vec_mag(&tm.v.rvec) > 0.0f);
+	Assert(vm_vec_mag(&tm.v.uvec) > 0.0f);
 	vm_matrix_x_matrix(&tm2, eye_orient, &tm);
 	*eye_orient = tm2;	
 }
@@ -378,8 +381,8 @@ void supernova_set_view(vector *eye_pos, matrix *eye_orient)
 	// always set the camera pos
 	matrix whee;
 	vm_vector_2_matrix(&whee, &move, NULL, NULL);
-	vm_vec_scale_add(&Supernova_camera_pos, &Player_obj->pos, &whee.rvec, sn_cam_distance);
-	vm_vec_scale_add2(&Supernova_camera_pos, &whee.uvec, 30.0f);
+	vm_vec_scale_add(&Supernova_camera_pos, &Player_obj->pos, &whee.v.rvec, sn_cam_distance);
+	vm_vec_scale_add2(&Supernova_camera_pos, &whee.v.uvec, 30.0f);
 	*eye_pos = Supernova_camera_pos;
 
 	// if we're no longer moving the camera

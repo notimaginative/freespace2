@@ -15,6 +15,9 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -1049,7 +1052,7 @@ void beam_type_c_move(beam *b)
 	temp = b->targeting_laser_offset;
 	vm_vec_unrotate(&b->last_start, &temp, &b->objp->orient);
 	vm_vec_add2(&b->last_start, &b->objp->pos);	
-	vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->orient.fvec, BEAM_FAR_LENGTH);
+	vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->orient.v.fvec, BEAM_FAR_LENGTH);
 }
 
 // type D functions
@@ -2155,7 +2158,7 @@ void beam_aim(beam *b)
 		temp = b->targeting_laser_offset;	
 		vm_vec_unrotate(&b->last_start, &temp, &b->objp->orient);
 		vm_vec_add2(&b->last_start, &b->objp->pos);
-		vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->orient.fvec, BEAM_FAR_LENGTH);		
+		vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->orient.v.fvec, BEAM_FAR_LENGTH);
 		break;
 
 	case BEAM_TYPE_D:				

@@ -15,6 +15,9 @@
  * Counter measures.  Created by Mike Kulas, May 12, 1997.
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -447,7 +450,7 @@ int cmeasure_create( object * source_obj, vector * pos, int cm_type, int rand_va
 
 	vector vel, rand_vec;
 
-	vm_vec_scale_add(&vel, &source_obj->phys_info.vel, &source_obj->orient.fvec, -25.0f);
+	vm_vec_scale_add(&vel, &source_obj->phys_info.vel, &source_obj->orient.v.fvec, -25.0f);
 
 	static_randvec(arand+1, &rand_vec);
 
@@ -462,8 +465,8 @@ int cmeasure_create( object * source_obj, vector * pos, int cm_type, int rand_va
 	obj->phys_info.side_slip_time_const = 10000.0f;
 
 	vm_vec_zero(&obj->phys_info.max_vel);		// make so he can't turn on his own VOLITION anymore.
-	obj->phys_info.max_vel.z = -25.0f;
-	vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->orient.fvec, obj->phys_info.max_vel.z );
+	obj->phys_info.max_vel.xyz.z = -25.0f;
+	vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->orient.v.fvec, obj->phys_info.max_vel.xyz.z );
 
 	vm_vec_zero(&obj->phys_info.max_rotvel);	// make so he can't change speed on his own VOLITION anymore.
 

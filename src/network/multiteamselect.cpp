@@ -15,6 +15,9 @@
  * Multiplayer Team Selection Code
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -1697,7 +1700,7 @@ void multi_ts_blit_ship_info()
 	// blit the max velocity
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Max Velocity",742));	
-	sprintf(str,XSTR("%d m/s",743),(int)sip->max_vel.z);
+	sprintf(str,XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
 	gr_set_color_fast(&Color_bright);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,str);	
 	y_start += 10;

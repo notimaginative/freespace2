@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.6  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.5  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -1193,16 +1196,16 @@ void create_family_tree(polymodel *obj)
 
 void model_calc_bound_box( vector *box, vector *big_mn, vector *big_mx)
 {
-	box[0].x = big_mn->x; box[0].y = big_mn->y; box[0].z = big_mn->z;
-	box[1].x = big_mx->x; box[1].y = big_mn->y; box[1].z = big_mn->z;
-	box[2].x = big_mx->x; box[2].y = big_mx->y; box[2].z = big_mn->z;
-	box[3].x = big_mn->x; box[3].y = big_mx->y; box[3].z = big_mn->z;
+	box[0].xyz.x = big_mn->xyz.x; box[0].xyz.y = big_mn->xyz.y; box[0].xyz.z = big_mn->xyz.z;
+	box[1].xyz.x = big_mx->xyz.x; box[1].xyz.y = big_mn->xyz.y; box[1].xyz.z = big_mn->xyz.z;
+	box[2].xyz.x = big_mx->xyz.x; box[2].xyz.y = big_mx->xyz.y; box[2].xyz.z = big_mn->xyz.z;
+	box[3].xyz.x = big_mn->xyz.x; box[3].xyz.y = big_mx->xyz.y; box[3].xyz.z = big_mn->xyz.z;
 
 
-	box[4].x = big_mn->x; box[4].y = big_mn->y; box[4].z = big_mx->z;
-	box[5].x = big_mx->x; box[5].y = big_mn->y; box[5].z = big_mx->z;
-	box[6].x = big_mx->x; box[6].y = big_mx->y; box[6].z = big_mx->z;
-	box[7].x = big_mn->x; box[7].y = big_mx->y; box[7].z = big_mx->z;
+	box[4].xyz.x = big_mn->xyz.x; box[4].xyz.y = big_mn->xyz.y; box[4].xyz.z = big_mx->xyz.z;
+	box[5].xyz.x = big_mx->xyz.x; box[5].xyz.y = big_mn->xyz.y; box[5].xyz.z = big_mx->xyz.z;
+	box[6].xyz.x = big_mx->xyz.x; box[6].xyz.y = big_mx->xyz.y; box[6].xyz.z = big_mx->xyz.z;
+	box[7].xyz.x = big_mn->xyz.x; box[7].xyz.y = big_mx->xyz.y; box[7].xyz.z = big_mx->xyz.z;
 }
 
 
@@ -1334,9 +1337,9 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 																	
 						pm->mass = cfread_float(fp);
 						cfread_vector( &pm->center_of_mass, fp );
-						cfread_vector( &pm->moment_of_inertia.rvec, fp );
-						cfread_vector( &pm->moment_of_inertia.uvec, fp );
-						cfread_vector( &pm->moment_of_inertia.fvec, fp );
+						cfread_vector( &pm->moment_of_inertia.v.rvec, fp );
+						cfread_vector( &pm->moment_of_inertia.v.uvec, fp );
+						cfread_vector( &pm->moment_of_inertia.v.fvec, fp );
 					} else {
 						// old code where mass wasn't based on area, so do the calculation manually
 
@@ -1349,14 +1352,14 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 						float mass_ratio = vol_mass / area_mass; 
 							
 						cfread_vector( &pm->center_of_mass, fp );
-						cfread_vector( &pm->moment_of_inertia.rvec, fp );
-						cfread_vector( &pm->moment_of_inertia.uvec, fp );
-						cfread_vector( &pm->moment_of_inertia.fvec, fp );
+						cfread_vector( &pm->moment_of_inertia.v.rvec, fp );
+						cfread_vector( &pm->moment_of_inertia.v.uvec, fp );
+						cfread_vector( &pm->moment_of_inertia.v.fvec, fp );
 
 						// John remove this with change to bspgen
-						vm_vec_scale( &pm->moment_of_inertia.rvec, mass_ratio );
-						vm_vec_scale( &pm->moment_of_inertia.uvec, mass_ratio );
-						vm_vec_scale( &pm->moment_of_inertia.fvec, mass_ratio );
+						vm_vec_scale( &pm->moment_of_inertia.v.rvec, mass_ratio );
+						vm_vec_scale( &pm->moment_of_inertia.v.uvec, mass_ratio );
+						vm_vec_scale( &pm->moment_of_inertia.v.fvec, mass_ratio );
 					}	
 				} else {
 #ifndef NDEBUG
@@ -1370,9 +1373,9 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 					pm->mass = 50.0f;
 					vm_vec_zero( &pm->center_of_mass );
 					vm_set_identity( &pm->moment_of_inertia );
-					vm_vec_scale(&pm->moment_of_inertia.rvec, 0.001f);
-					vm_vec_scale(&pm->moment_of_inertia.uvec, 0.001f);
-					vm_vec_scale(&pm->moment_of_inertia.fvec, 0.001f);
+					vm_vec_scale(&pm->moment_of_inertia.v.rvec, 0.001f);
+					vm_vec_scale(&pm->moment_of_inertia.v.uvec, 0.001f);
+					vm_vec_scale(&pm->moment_of_inertia.v.fvec, 0.001f);
 				}
 
 				// read in cross section info
@@ -1430,7 +1433,7 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 //				cfread_vector(&pm->submodel[n].pnt,fp);
 				cfread_vector(&pm->submodel[n].offset,fp);
 
-//			mprintf(( "Subobj %d, offs = %.1f, %.1f, %.1f\n", n, pm->submodel[n].offset.x, pm->submodel[n].offset.y, pm->submodel[n].offset.z ));
+//			mprintf(( "Subobj %d, offs = %.1f, %.1f, %.1f\n", n, pm->submodel[n].offset.xyz.x, pm->submodel[n].offset.xyz.y, pm->submodel[n].offset.xyz.z ));
 	
 #if defined ( FREESPACE1_FORMAT )
 				pm->submodel[n].rad = cfread_float(fp);		//radius
@@ -1790,7 +1793,7 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 					// check if $Split
 					p = strstr(name, "$split");
 					if (p != NULL) {
-						pm->split_plane[pm->num_split_plane] = pnt.z;
+						pm->split_plane[pm->num_split_plane] = pnt.xyz.z;
 						pm->num_split_plane++;
 						Assert(pm->num_split_plane <= MAX_SPLIT_PLANE);
 					} else if ( ( p = strstr(props, "$special"))!= NULL ) {
@@ -2205,9 +2208,9 @@ int model_load(char *filename, int n_subsystems, model_subsystem *subsystems)
 
 	// Find the core_radius... the minimum of 
 	float rx, ry, rz;
-	rx = fl_abs( pm->submodel[pm->detail[0]].max.x - pm->submodel[pm->detail[0]].min.x );
-	ry = fl_abs( pm->submodel[pm->detail[0]].max.y - pm->submodel[pm->detail[0]].min.y );
-	rz = fl_abs( pm->submodel[pm->detail[0]].max.z - pm->submodel[pm->detail[0]].min.z );
+	rx = fl_abs( pm->submodel[pm->detail[0]].max.xyz.x - pm->submodel[pm->detail[0]].min.xyz.x );
+	ry = fl_abs( pm->submodel[pm->detail[0]].max.xyz.y - pm->submodel[pm->detail[0]].min.xyz.y );
+	rz = fl_abs( pm->submodel[pm->detail[0]].max.xyz.z - pm->submodel[pm->detail[0]].min.xyz.z );
 
 	pm->core_radius = min( rx, min(ry, rz) ) / 2.0f;
 
@@ -2508,10 +2511,10 @@ int model_find_2d_bound(int model_num,matrix *orient, vector * pos,int *x1, int 
 		return 2;
 
 	t = (width * Canv_w2)/pnt.z;
-	w = t*Matrix_scale.x;
+	w = t*Matrix_scale.xyz.x;
 
 	t = (height*Canv_h2)/pnt.z;
-	h = t*Matrix_scale.y;
+	h = t*Matrix_scale.xyz.y;
 
 	if (x1) *x1 = fl2i(pnt.sx - w);
 	if (y1) *y1 = fl2i(pnt.sy - h);
@@ -2546,10 +2549,10 @@ int subobj_find_2d_bound(float radius ,matrix *orient, vector * pos,int *x1, int
 		return 2;
 
 	t = (width * Canv_w2)/pnt.z;
-	w = t*Matrix_scale.x;
+	w = t*Matrix_scale.xyz.x;
 
 	t = (height*Canv_h2)/pnt.z;
-	h = t*Matrix_scale.y;
+	h = t*Matrix_scale.xyz.y;
 
 	if (x1) *x1 = fl2i(pnt.sx - w);
 	if (y1) *y1 = fl2i(pnt.sy - h);
@@ -2839,9 +2842,9 @@ void model_make_turrent_matrix(int model_num, model_subsystem * turret )
 	vm_vec_normalize(&rvec);
 	vm_vec_normalize(&uvec);
 
-	turret->turret_matrix.fvec = fvec;
-	turret->turret_matrix.rvec = rvec;
-	turret->turret_matrix.uvec = uvec;
+	turret->turret_matrix.v.fvec = fvec;
+	turret->turret_matrix.v.rvec = rvec;
+	turret->turret_matrix.v.uvec = uvec;
 
 //	vm_vector_2_matrix(&turret->turret_matrix,&turret->turret_norm,NULL,NULL);
 
@@ -2904,7 +2907,7 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 		gr_set_color(255,0,0);
 		g3_draw_sphere(&dpnt1,1.0f);
 
-		vm_vec_copy_scale( &tmp1, &turret->turret_matrix.fvec, 10.0f );
+		vm_vec_copy_scale( &tmp1, &turret->turret_matrix.v.fvec, 10.0f );
 		model_find_world_point(&tmp, &tmp1, model_num, turret->turret_gun_sobj, orient, pos );
 		g3_rotate_vertex( &dpnt2, &tmp );
 
@@ -2913,14 +2916,14 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 		gr_set_color(0,128,0);
 		g3_draw_sphere(&dpnt2,0.2f);
 
-		vm_vec_copy_scale( &tmp1, &turret->turret_matrix.rvec, 10.0f );
+		vm_vec_copy_scale( &tmp1, &turret->turret_matrix.v.rvec, 10.0f );
 		model_find_world_point(&tmp, &tmp1, model_num, turret->turret_gun_sobj, orient, pos );
 		g3_rotate_vertex( &dpnt2, &tmp );
 
 		gr_set_color(0,0,255);
 		g3_draw_line(&dpnt1,&dpnt2);
 
-		vm_vec_copy_scale( &tmp1, &turret->turret_matrix.uvec, 10.0f );
+		vm_vec_copy_scale( &tmp1, &turret->turret_matrix.v.uvec, 10.0f );
 		model_find_world_point(&tmp, &tmp1, model_num, turret->turret_gun_sobj, orient, pos );
 		g3_rotate_vertex( &dpnt2, &tmp );
 
@@ -2954,11 +2957,11 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 	// Call this the desired_angles
 	angles desired_angles;
 
-	desired_angles.p = (float)acos(of_dst.z);
-	desired_angles.h = PI - atan2_safe(of_dst.x, of_dst.y);
+	desired_angles.p = (float)acos(of_dst.xyz.z);
+	desired_angles.h = PI - atan2_safe(of_dst.xyz.x, of_dst.xyz.y);
 	desired_angles.b = 0.0f;
 
-	//	mprintf(( "Z = %.1f, atan= %.1f\n", of_dst.z, desired_angles.p ));
+	//	mprintf(( "Z = %.1f, atan= %.1f\n", of_dst.xyz.z, desired_angles.p ));
 
 	//------------	
 	// Gradually turn the turret towards the desired angles

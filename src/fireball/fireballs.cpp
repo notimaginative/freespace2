@@ -15,6 +15,9 @@
  * Code to move, render and otherwise deal with fireballs.
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -926,7 +929,7 @@ int fireball_get_lod(vector *pos, fireball_info *fd, float size)
 		vector temp;
 
 		behind = 1;
-		vm_vec_scale_add(&temp, &Eye_position, &Eye_matrix.fvec, dist);
+		vm_vec_scale_add(&temp, &Eye_position, &Eye_matrix.v.fvec, dist);
 		g3_rotate_vertex(&v, &temp);
 
 		// if still behind, bail and go with default
@@ -1093,8 +1096,8 @@ int fireball_create( vector * pos, int fireball_type, int parent_obj, float size
 			if (reverse)	{
 				fb->orient = 1;
 				// if warp out, then reverse the orientation
-				vm_vec_scale( &obj->orient.fvec, -1.0f );	// Reverse the forward vector
-				vm_vec_scale( &obj->orient.rvec, -1.0f );	// Reverse the right vector
+				vm_vec_scale( &obj->orient.v.fvec, -1.0f );	// Reverse the forward vector
+				vm_vec_scale( &obj->orient.v.rvec, -1.0f );	// Reverse the right vector
 			} else {
 				fb->orient = 0;
 			}

@@ -15,6 +15,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -1192,11 +1195,11 @@ int parse_ship()
 	required_string("$Rotation Time:");
 	stuff_vector(&sip->rotation_time);
 
-	sip->srotation_time = (sip->rotation_time.x + sip->rotation_time.y)/2.0f;
+	sip->srotation_time = (sip->rotation_time.xyz.x + sip->rotation_time.xyz.y)/2.0f;
 
-	sip->max_rotvel.x = (2 * PI) / sip->rotation_time.x;
-	sip->max_rotvel.y = (2 * PI) / sip->rotation_time.y;
-	sip->max_rotvel.z = (2 * PI) / sip->rotation_time.z;
+	sip->max_rotvel.xyz.x = (2 * PI) / sip->rotation_time.xyz.x;
+	sip->max_rotvel.xyz.y = (2 * PI) / sip->rotation_time.xyz.y;
+	sip->max_rotvel.xyz.z = (2 * PI) / sip->rotation_time.xyz.z;
 
 	// get the backwards velocity;
 	required_string("$Rear Velocity:");
@@ -1438,9 +1441,9 @@ int parse_ship()
 		required_string("+Aburn Rec Rate:");
 		stuff_float(&sip->afterburner_recover_rate);
 	} else {
-		sip->afterburner_max_vel.x = 0.0f;
-		sip->afterburner_max_vel.y = 0.0f;
-		sip->afterburner_max_vel.z = 0.0f;
+		sip->afterburner_max_vel.xyz.x = 0.0f;
+		sip->afterburner_max_vel.xyz.y = 0.0f;
+		sip->afterburner_max_vel.xyz.z = 0.0f;
 	}
 
 	required_string("$Countermeasures:");
@@ -1879,9 +1882,9 @@ void physics_ship_init(object *objp)
 	pi->mass = pm->mass * sinfo->density;
 	pi->I_body_inv = pm->moment_of_inertia;
 	// scale pm->I_body_inv value by density
-	vm_vec_scale( &pi->I_body_inv.rvec, sinfo->density );
-	vm_vec_scale( &pi->I_body_inv.uvec, sinfo->density );
-	vm_vec_scale( &pi->I_body_inv.fvec, sinfo->density );
+	vm_vec_scale( &pi->I_body_inv.v.rvec, sinfo->density );
+	vm_vec_scale( &pi->I_body_inv.v.uvec, sinfo->density );
+	vm_vec_scale( &pi->I_body_inv.v.fvec, sinfo->density );
 
 	pi->side_slip_time_const = sinfo->damp;
 	pi->rotdamp = sinfo->rotdamp;
@@ -1900,7 +1903,7 @@ void physics_ship_init(object *objp)
 	pi->slide_accel_time_const=sinfo->slide_accel;
 	pi->slide_decel_time_const=sinfo->slide_decel;
 
-	if ( (pi->max_vel.x > 0.000001f) || (pi->max_vel.y > 0.000001f) )
+	if ( (pi->max_vel.xyz.x > 0.000001f) || (pi->max_vel.xyz.y > 0.000001f) )
 		pi->flags |= PF_SLIDE_ENABLED;
 
 	vm_vec_zero(&pi->vel);
@@ -2447,7 +2450,7 @@ void ship_render(object * obj)
 			vector p0,v;
 			vertex v0;
 
-			vm_vec_scale_add( &v, &obj->phys_info.vel, &obj->orient.fvec, 3.0f );
+			vm_vec_scale_add( &v, &obj->phys_info.vel, &obj->orient.v.fvec, 3.0f );
 			vm_vec_normalize( &v );
 			
 					
@@ -3220,8 +3223,8 @@ void ship_dying_frame(object *objp, int ship_num)
 			if ( timestamp_elapsed(Ships[ship_num].next_fireball)) {
 				vector rand_vec, outpnt; // [0-.7 rad] in plane
 				vm_vec_rand_vec_quick(&rand_vec);
-				float scale = -vm_vec_dotprod(&objp->orient.fvec, &rand_vec) * (0.9f + 0.2f * frand());
-				vm_vec_scale_add2(&rand_vec, &objp->orient.fvec, scale);
+				float scale = -vm_vec_dotprod(&objp->orient.v.fvec, &rand_vec) * (0.9f + 0.2f * frand());
+				vm_vec_scale_add2(&rand_vec, &objp->orient.v.fvec, scale);
 				vm_vec_normalize_quick(&rand_vec);
 				scale = objp->radius * frand() * 0.717f;
 				vm_vec_scale(&rand_vec, scale);
@@ -3242,7 +3245,7 @@ void ship_dying_frame(object *objp, int ship_num)
 				pe.vel = objp->phys_info.vel;	// Initial velocity of all the particles
 				pe.min_life = 2.0f;	// How long the particles live
 				pe.max_life = 12.0f;	// How long the particles live
-				pe.normal = objp->orient.uvec;	// What normal the particle emit around
+				pe.normal = objp->orient.v.uvec;	// What normal the particle emit around
 				pe.normal_variance = 2.0f;		//	How close they stick to that normal 0=on normal, 1=180, 2=360 degree
 				pe.min_vel = 50.0f;
 				pe.max_vel = 350.0f;
@@ -3346,7 +3349,7 @@ void ship_dying_frame(object *objp, int ship_num)
 			pe.vel = objp->phys_info.vel;	// Initial velocity of all the particles
 			pe.min_life = 0.5f;				// How long the particles live
 			pe.max_life = 4.0f;				// How long the particles live
-			pe.normal = objp->orient.uvec;	// What normal the particle emit around
+			pe.normal = objp->orient.v.uvec;	// What normal the particle emit around
 			pe.normal_variance = 2.0f;		//	How close they stick to that normal 0=on normal, 1=180, 2=360 degree
 			pe.min_vel = 0.0f;				// How fast the slowest particle can move
 			pe.max_vel = 20.0f;				// How fast the fastest particle can move
@@ -4812,7 +4815,7 @@ int ship_fire_primary_debug(object *objp)
 		if (!stricmp(Weapon_info[i].name, NOX("Debug Laser")))
 			break;
 	
-	vm_vec_add(&wpos, &objp->pos, &(objp->orient.fvec) );
+	vm_vec_add(&wpos, &objp->pos, &(objp->orient.v.fvec) );
 	if (i != MAX_WEAPONS) {
 		int weapon_objnum;
 		weapon_objnum = weapon_create( &wpos, &objp->orient, i, OBJ_INDEX(objp), 0 );
@@ -4876,7 +4879,7 @@ int ship_launch_countermeasure(object *objp, int rand_val)
 	cmeasure_count = shipp->cmeasure_count;
 	shipp->cmeasure_count--;
 
-	vm_vec_scale_add(&pos, &objp->pos, &objp->orient.fvec, -objp->radius/2.0f);
+	vm_vec_scale_add(&pos, &objp->pos, &objp->orient.v.fvec, -objp->radius/2.0f);
 
 	// cmeasure_create fires 1 countermeasure.  returns -1 if not fired, otherwise a non-negative
 	// value
@@ -5237,7 +5240,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 				weapon_set_tracking_info(weapon_objnum, OBJ_INDEX(obj), aip->target_objnum, aip->current_target_is_locked, aip->targeted_subsys);				
 
 				// create the muzzle flash effect
-				shipfx_flash_create( obj, shipp, &pnt, &obj->orient.fvec, 1, weapon );
+				shipfx_flash_create( obj, shipp, &pnt, &obj->orient.v.fvec, 1, weapon );
 
 				// maybe shudder the ship - if its me
 				if((winfo_p->wi_flags & WIF_SHUDDER) && (obj == Player_obj) && !(Game_mode & GM_STANDALONE_SERVER)){
@@ -5787,7 +5790,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 			weapon_set_tracking_info(weapon_num, OBJ_INDEX(obj), aip->target_objnum, aip->current_target_is_locked, aip->targeted_subsys);
 
 			// create the muzzle flash effect
-			shipfx_flash_create( obj, shipp, &pnt, &obj->orient.fvec, 0, weapon );
+			shipfx_flash_create( obj, shipp, &pnt, &obj->orient.v.fvec, 0, weapon );
 
 /*
 			if ( weapon_num != -1 )
@@ -6431,7 +6434,7 @@ void ship_get_eye( vector *eye_pos, matrix *eye_orient, object *obj )
 	//} else {
 	// 	model_find_world_dir( &vec, &ep->norm, shipp->modelnum, ep->parent, &obj->orient, &obj->pos );
 		// kind of bogus, but use the objects uvec to avoid totally stupid looking behavior.
-	//	vm_vector_2_matrix(eye_orient,&vec,&obj->orient.uvec,NULL);
+	//	vm_vector_2_matrix(eye_orient,&vec,&obj->orient.v.uvec,NULL);
 	//}
 
 	//	Modify the orientation based on head orientation.
@@ -7024,7 +7027,7 @@ void ship_assign_sound(ship *sp)
 	sip = &Ship_info[sp->ship_info_index];
 
 	if ( sip->engine_snd != -1 ) {
-		vm_vec_copy_scale(&engine_pos, &objp->orient.fvec, -objp->radius/2.0f);		
+		vm_vec_copy_scale(&engine_pos, &objp->orient.v.fvec, -objp->radius/2.0f);		
 
 		obj_snd_assign(sp->objnum, sip->engine_snd, &engine_pos, 1);
 	}
@@ -8262,12 +8265,12 @@ void ship_maybe_warn_player(ship *enemy_sp, float dist)
 	vm_vec_normalized_dir(&vec_to_target, &Objects[enemy_sp->objnum].pos, &Eye_position);
 
 	// ensure that enemy fighter is oriented towards player
-	fdot = vm_vec_dot(&Objects[enemy_sp->objnum].orient.fvec, &vec_to_target);
+	fdot = vm_vec_dot(&Objects[enemy_sp->objnum].orient.v.fvec, &vec_to_target);
 	if ( fdot > -0.7 ) {
 		return;
 	}
 
-	fdot = vm_vec_dot(&Player_obj->orient.fvec, &vec_to_target);
+	fdot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 	msg_type = -1;
 
@@ -8286,7 +8289,7 @@ void ship_maybe_warn_player(ship *enemy_sp, float dist)
 	}
 
 	// ok, ship is on 3 or 9.  Find out which
-	rdot = vm_vec_dot(&Player_obj->orient.rvec, &vec_to_target);
+	rdot = vm_vec_dot(&Player_obj->orient.v.rvec, &vec_to_target);
 	if ( rdot > 0 ) {
 		on_right = 1;
 	} else {
@@ -8294,7 +8297,7 @@ void ship_maybe_warn_player(ship *enemy_sp, float dist)
 	}
 
 	// now determine if ship is high or low
-	udot = vm_vec_dot(&Player_obj->orient.uvec, &vec_to_target);
+	udot = vm_vec_dot(&Player_obj->orient.v.uvec, &vec_to_target);
 	if ( udot < -0.8 ) {
 		return;	// if ship is attacking from directly below, no warning given
 	}
@@ -9387,9 +9390,9 @@ int check_world_pt_in_expanded_ship_bbox(vector *world_pt, object *objp, float d
 	pm = model_get(Ships[objp->instance].modelnum);
 
 	return (
-			(ship_pt.x > pm->mins.x - delta_box) && (ship_pt.x < pm->maxs.x + delta_box)
-		&& (ship_pt.y > pm->mins.y - delta_box) && (ship_pt.y < pm->maxs.y + delta_box)
-		&& (ship_pt.z > pm->mins.z - delta_box) && (ship_pt.z < pm->maxs.z + delta_box)
+			(ship_pt.xyz.x > pm->mins.xyz.x - delta_box) && (ship_pt.xyz.x < pm->maxs.xyz.x + delta_box)
+		&& (ship_pt.xyz.y > pm->mins.xyz.y - delta_box) && (ship_pt.xyz.y < pm->maxs.xyz.y + delta_box)
+		&& (ship_pt.xyz.z > pm->mins.xyz.z - delta_box) && (ship_pt.xyz.z < pm->maxs.xyz.z + delta_box)
 	);
 }
 
@@ -9419,10 +9422,10 @@ float ship_get_max_speed(ship *shipp)
 	max_speed = Ship_info[ship_info_index].max_overclocked_speed;
 
 	// normal max speed
-	max_speed = max(max_speed, Ship_info[ship_info_index].max_vel.z);
+	max_speed = max(max_speed, Ship_info[ship_info_index].max_vel.xyz.z);
 
 	// afterburn
-	max_speed = max(max_speed, Ship_info[ship_info_index].afterburner_max_vel.z);
+	max_speed = max(max_speed, Ship_info[ship_info_index].afterburner_max_vel.xyz.z);
 
 	return max_speed;
 }
@@ -9469,6 +9472,6 @@ int ship_get_species_by_type(int ship_info_index)
 float ship_get_length(ship* shipp)
 {
 	polymodel *pm = model_get(shipp->modelnum);
-	return (pm->maxs.z - pm->mins.z);
+	return (pm->maxs.xyz.z - pm->mins.xyz.z);
 }
 

@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for weapons and weapons
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -97,7 +100,7 @@ int collide_weapon_weapon( obj_pair * pair )
 
 	//	Only shoot down teammate's missile if not traveling in nearly same direction.
 	if (Weapons[A->instance].team == Weapons[B->instance].team)
-		if (vm_vec_dot(&A->orient.fvec, &B->orient.fvec) > 0.7f)
+		if (vm_vec_dot(&A->orient.v.fvec, &B->orient.v.fvec) > 0.7f)
 			return 1;
 
 	//	Ignore collisions involving a bomb if the bomb is not yet armed.

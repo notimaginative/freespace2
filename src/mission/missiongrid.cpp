@@ -15,6 +15,9 @@
  * C module for grid specific functions
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -118,13 +121,13 @@ void maybe_create_new_grid(grid* gridp, vector *pos, matrix *orient, int force)
 	float	dist_to_plane;
 	float	square_size, ux, uy, uz;
 
-	ux = tplane.A = gridp->gmatrix.uvec.x;
-	uy = tplane.B = gridp->gmatrix.uvec.y;
-	uz = tplane.C = gridp->gmatrix.uvec.z;
+	ux = tplane.A = gridp->gmatrix.v.uvec.xyz.x;
+	uy = tplane.B = gridp->gmatrix.v.uvec.xyz.y;
+	uz = tplane.C = gridp->gmatrix.v.uvec.xyz.z;
 	tplane.D = gridp->planeD;
 
 	compute_point_on_plane(&c, &tplane, pos);
-	dist_to_plane = fl_abs(vm_dist_to_plane(pos, &gridp->gmatrix.uvec, &c));
+	dist_to_plane = fl_abs(vm_dist_to_plane(pos, &gridp->gmatrix.v.uvec, &c));
 	square_size = 1.0f;
 	while (dist_to_plane >= 25.0f)
 	{
@@ -132,9 +135,9 @@ void maybe_create_new_grid(grid* gridp, vector *pos, matrix *orient, int force)
 		dist_to_plane /= 10.0f;
 	}
 	
-	if (fvi_ray_plane(&gpos, &gridp->center, &gridp->gmatrix.uvec, pos, &orient->fvec, 0.0f)<0.0f)	{
+	if (fvi_ray_plane(&gpos, &gridp->center, &gridp->gmatrix.v.uvec, pos, &orient->v.fvec, 0.0f)<0.0f)	{
 		vector p;
-		vm_vec_scale_add(&p,pos,&orient->fvec, 100.0f );
+		vm_vec_scale_add(&p,pos,&orient->v.fvec, 100.0f );
 		compute_point_on_plane(&gpos, &tplane, &p );
 	}
 
@@ -147,16 +150,16 @@ void maybe_create_new_grid(grid* gridp, vector *pos, matrix *orient, int force)
 
 	roundoff = (int) square_size * 10;
 	if (!ux)
-		gpos.x = fl_roundoff(gpos.x, roundoff);
+		gpos.xyz.x = fl_roundoff(gpos.xyz.x, roundoff);
 	if (!uy)
-		gpos.y = fl_roundoff(gpos.y, roundoff);
+		gpos.xyz.y = fl_roundoff(gpos.xyz.y, roundoff);
 	if (!uz)
-		gpos.z = fl_roundoff(gpos.z, roundoff);
+		gpos.xyz.z = fl_roundoff(gpos.xyz.z, roundoff);
 
 	if ((square_size != gridp->square_size) ||
-		(gpos.x != gridp->center.x) ||
-		(gpos.y != gridp->center.y) ||
-		(gpos.z != gridp->center.z) || force)
+		(gpos.xyz.x != gridp->center.xyz.x) ||
+		(gpos.xyz.y != gridp->center.xyz.y) ||
+		(gpos.xyz.z != gridp->center.xyz.z) || force)
 	{
 		gridp->square_size = square_size;
 		gridp->center = gpos;
@@ -213,13 +216,13 @@ grid *create_grid(grid *gridp, vector *forward, vector *right, vector *center, i
 	
 	Assert(!IS_VEC_NULL(&uvec));
 
-	gridp->gmatrix.uvec = uvec;
+	gridp->gmatrix.v.uvec = uvec;
 
-	gridp->planeD = -(center->x * uvec.x + center->y * uvec.y + center->z * uvec.z);
+	gridp->planeD = -(center->xyz.x * uvec.xyz.x + center->xyz.y * uvec.xyz.y + center->xyz.z * uvec.xyz.z);
 	Assert(!_isnan(gridp->planeD));
 
-	gridp->gmatrix.fvec = dfvec;
-	gridp->gmatrix.rvec = drvec;
+	gridp->gmatrix.v.fvec = dfvec;
+	gridp->gmatrix.v.rvec = drvec;
 
 	vm_vec_scale(&dfvec, square_size);
 	vm_vec_scale(&drvec, square_size);
@@ -299,7 +302,7 @@ void rpd_line(vector *v0, vector *v1)
 
 void modify_grid(grid *gridp)
 {
-	create_grid(gridp, &gridp->gmatrix.fvec, &gridp->gmatrix.rvec, &gridp->center,
+	create_grid(gridp, &gridp->gmatrix.v.fvec, &gridp->gmatrix.v.rvec, &gridp->center,
 		gridp->nrows, gridp->ncols, gridp->square_size);
 }
 
@@ -311,17 +314,17 @@ void grid_render_elevation_line(vector *pos, grid* gridp)
 	plane		tplane;
 	vector	*gv;
 	
-	tplane.A = gridp->gmatrix.uvec.x;
-	tplane.B = gridp->gmatrix.uvec.y;
-	tplane.C = gridp->gmatrix.uvec.z;
+	tplane.A = gridp->gmatrix.v.uvec.xyz.x;
+	tplane.B = gridp->gmatrix.v.uvec.xyz.y;
+	tplane.C = gridp->gmatrix.v.uvec.xyz.z;
 	tplane.D = gridp->planeD;
 
 	compute_point_on_plane(&gpos, &tplane, pos);
 
 	dxz = vm_vec_dist(pos, &gpos)/8.0f;
 
-	gv = &gridp->gmatrix.uvec;
-	if (gv->x * pos->x + gv->y * pos->y + gv->z * pos->z < -gridp->planeD)
+	gv = &gridp->gmatrix.v.uvec;
+	if (gv->xyz.x * pos->xyz.x + gv->xyz.y * pos->xyz.y + gv->xyz.z * pos->xyz.z < -gridp->planeD)
 		gr_set_color(127, 127, 127);
 	else
 		gr_set_color(255, 255, 255);   // white
@@ -330,16 +333,16 @@ void grid_render_elevation_line(vector *pos, grid* gridp)
 
 	tpos = gpos;
 
-	vm_vec_scale_add2(&gpos, &gridp->gmatrix.rvec, -dxz/2);
-	vm_vec_scale_add2(&gpos, &gridp->gmatrix.fvec, -dxz/2);
+	vm_vec_scale_add2(&gpos, &gridp->gmatrix.v.rvec, -dxz/2);
+	vm_vec_scale_add2(&gpos, &gridp->gmatrix.v.fvec, -dxz/2);
 	
-	vm_vec_scale_add2(&tpos, &gridp->gmatrix.rvec, dxz/2);
-	vm_vec_scale_add2(&tpos, &gridp->gmatrix.fvec, dxz/2);
+	vm_vec_scale_add2(&tpos, &gridp->gmatrix.v.rvec, dxz/2);
+	vm_vec_scale_add2(&tpos, &gridp->gmatrix.v.fvec, dxz/2);
 	
 	rpd_line(&gpos, &tpos);
 
-	vm_vec_scale_add2(&gpos, &gridp->gmatrix.rvec, dxz);
-	vm_vec_scale_add2(&tpos, &gridp->gmatrix.rvec, -dxz);
+	vm_vec_scale_add2(&gpos, &gridp->gmatrix.v.rvec, dxz);
+	vm_vec_scale_add2(&tpos, &gridp->gmatrix.v.rvec, -dxz);
 
 	rpd_line(&gpos, &tpos);
 }

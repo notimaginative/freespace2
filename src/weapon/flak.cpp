@@ -15,6 +15,9 @@
  * flak functions
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -202,7 +205,7 @@ void flak_jitter_aim(vector *dir, float dist_to_target, float weapon_subsys_stre
 	if(rand_dist <= 0.0f){
 		return;
 	}
-	vm_vec_copy_scale(&rand_twist_pre, &temp.rvec, rand_dist);
+	vm_vec_copy_scale(&rand_twist_pre, &temp.v.rvec, rand_dist);
 
 	// now rotate the twist vector around the x axis (the base aim axis) at a random angle
 	vm_rot_point_around_line(&rand_twist_post, &rand_twist_pre, fl_radian(359.0f * frand_range(0.0f, 1.0f)), &vmd_zero_vector, dir);

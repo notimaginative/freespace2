@@ -16,6 +16,9 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:27  relnev
  * added copyright header
  *
@@ -509,11 +512,11 @@ void stars_level_init()
 	for (i=0; i<MAX_STARS; i++) {
 		dist = dist_max;
 		while (dist >= dist_max) {
-			v.x = (float) ((myrand() & RND_MAX_MASK) - HALF_RND_MAX);
-			v.y = (float) ((myrand() & RND_MAX_MASK) - HALF_RND_MAX);
-			v.z = (float) ((myrand() & RND_MAX_MASK) - HALF_RND_MAX);
+			v.xyz.x = (float) ((myrand() & RND_MAX_MASK) - HALF_RND_MAX);
+			v.xyz.y = (float) ((myrand() & RND_MAX_MASK) - HALF_RND_MAX);
+			v.xyz.z = (float) ((myrand() & RND_MAX_MASK) - HALF_RND_MAX);
 
-			dist = v.x * v.x + v.y * v.y + v.z * v.z;
+			dist = v.xyz.x * v.xyz.x + v.xyz.y * v.xyz.y + v.xyz.z * v.xyz.z;
 		}
 		vm_vec_copy_normalize(&Stars[i].pos, &v);
 	}
@@ -703,7 +706,7 @@ void stars_get_sun_pos(int sun_n, vector *pos)
 
 	// rotate the sun properly
 	temp = vmd_zero_vector;
-	temp.z = 1.0f;
+	temp.xyz.z = 1.0f;
 	
 	// rotation matrix
 	vm_angles_2_matrix(&rot, &Suns[sun_n].ang);
@@ -733,7 +736,7 @@ void stars_draw_sun( int show_sun )
 
 		// get sun pos
 		sun_pos = vmd_zero_vector;
-		sun_pos.y = 1.0f;
+		sun_pos.xyz.y = 1.0f;
 		stars_get_sun_pos(idx, &sun_pos);
 		
 		// get the direction		
@@ -779,7 +782,7 @@ void stars_draw_sun_glow(int sun_n)
 
 	// get sun pos
 	sun_pos = vmd_zero_vector;
-	sun_pos.y = 1.0f;
+	sun_pos.xyz.y = 1.0f;
 	stars_get_sun_pos(sun_n, &sun_pos);	
 
 	// get the direction		
@@ -1087,9 +1090,9 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 			for (sp=Stars,i=0; i<Num_stars; i++, sp++ ) {
 				vertex p2;
 				g3_rotate_faraway_vertex(&p2, &sp->pos);
-				sp->last_star_pos.x = p2.x;
-				sp->last_star_pos.y = p2.y;
-				sp->last_star_pos.z = p2.z;
+				sp->last_star_pos.xyz.x = p2.x;
+				sp->last_star_pos.xyz.y = p2.y;
+				sp->last_star_pos.xyz.z = p2.z;
 			}
 		}
 
@@ -1137,9 +1140,9 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				}
 				ratio *= Star_amount;
 
-				p1.x = p2.x + (sp->last_star_pos.x-p2.x)*ratio;
-				p1.y = p2.y + (sp->last_star_pos.y-p2.y)*ratio;
-				p1.z = p2.z + (sp->last_star_pos.z-p2.z)*ratio;
+				p1.x = p2.x + (sp->last_star_pos.xyz.x-p2.x)*ratio;
+				p1.y = p2.y + (sp->last_star_pos.xyz.y-p2.y)*ratio;
+				p1.z = p2.z + (sp->last_star_pos.xyz.z-p2.z)*ratio;
 
 				p1.flags = 0;	// not projected
 				g3_code_vertex( &p1 );
@@ -1154,9 +1157,9 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				}
 			}
 
-			sp->last_star_pos.x = p2.x;
-			sp->last_star_pos.y = p2.y;
-			sp->last_star_pos.z = p2.z;
+			sp->last_star_pos.xyz.x = p2.x;
+			sp->last_star_pos.xyz.y = p2.y;
+			sp->last_star_pos.xyz.z = p2.z;
 
 			if ( !can_draw )	continue;
 
@@ -1217,9 +1220,9 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 			vertex p;
 
 			if (!d->active)	{
-				d->pos.x = f2fl(myrand() - RAND_MAX/2);
-				d->pos.y = f2fl(myrand() - RAND_MAX/2);
-				d->pos.z = f2fl(myrand() - RAND_MAX/2);
+				d->pos.xyz.x = f2fl(myrand() - RAND_MAX/2);
+				d->pos.xyz.y = f2fl(myrand() - RAND_MAX/2);
+				d->pos.xyz.z = f2fl(myrand() - RAND_MAX/2);
 
 				vm_vec_normalize(&d->pos);
 

@@ -15,6 +15,9 @@
  * Low-level sound code
  *
  * $Log$
+ * Revision 1.8  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.7  2002/06/09 04:41:27  relnev
  * added copyright header
  *
@@ -923,7 +926,7 @@ int snd_play_3d(game_snd *gs, vector *source_pos, vector *listen_pos, float radi
 			pan = 0.0f;
 		}
 		else {
-			pan = vm_vec_dot(&View_matrix.rvec,&vector_to_sound);
+			pan = vm_vec_dot(&View_matrix.v.rvec,&vector_to_sound);
 		}
 		if(looping){
 			handle = snd_play_looping( gs, pan, -1, -1, volume/gs->default_volume, priority, force );
@@ -1009,7 +1012,7 @@ int snd_get_3d_vol_and_pan(game_snd *gs, vector *pos, float* vol, float *pan, fl
 		if ( distance <= 0 )
 			*pan = 0.0f;
 		else
-			*pan = vm_vec_dot(&View_matrix.rvec,&vector_to_sound);
+			*pan = vm_vec_dot(&View_matrix.v.rvec,&vector_to_sound);
 	}
 
 	return 0;

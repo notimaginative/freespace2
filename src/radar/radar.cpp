@@ -15,6 +15,9 @@
  * C module containg functions to display and manage the radar
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -476,13 +479,13 @@ void radar_plot_object( object *objp )
 		return;
 	}
 
-	if ( dist < pos.z ) {
+	if ( dist < pos.xyz.z ) {
 		rscale = 0.0f;
 	} else {
-		rscale = (float) acos( pos.z/dist ) / 3.14159f;		//2.0f;	 
+		rscale = (float) acos( pos.xyz.z/dist ) / 3.14159f;		//2.0f;
 	}
 
-	zdist = fl_sqrt( (pos.x*pos.x)+(pos.y*pos.y) );
+	zdist = fl_sqrt( (pos.xyz.x*pos.xyz.x)+(pos.xyz.y*pos.xyz.y) );
 
 	float new_x_dist, clipped_x_dist;
 	float new_y_dist, clipped_y_dist;
@@ -492,8 +495,8 @@ void radar_plot_object( object *objp )
 		new_y_dist = 0.0f;
 	}
 	else {
-		new_x_dist = (pos.x/zdist) * rscale * radx;
-		new_y_dist = (pos.y/zdist) * rscale * rady;
+		new_x_dist = (pos.xyz.x/zdist) * rscale * radx;
+		new_y_dist = (pos.xyz.y/zdist) * rscale * rady;
 
 		// force new_x_dist and new_y_dist to be inside the radar
 

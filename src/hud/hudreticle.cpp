@@ -15,6 +15,9 @@
  * C module to draw and manage the recticle
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -537,7 +540,7 @@ void hud_show_throttle()
 
 	max_speed = Ships[Player_obj->instance].current_max_speed;
 	if ( max_speed <= 0 ) {
-		max_speed = sip->max_vel.z;
+		max_speed = sip->max_vel.xyz.z;
 	}
 
 	desired_speed = Player->ci.forward * max_speed;
@@ -553,7 +556,7 @@ void hud_show_throttle()
 	percent_aburn_max = 0.0f;
 	if ( percent_max > 1 ) {
 		percent_max = 1.0f;
-		percent_aburn_max = (current_speed - max_speed) / (sip->afterburner_max_vel.z - max_speed);
+		percent_aburn_max = (current_speed - max_speed) / (sip->afterburner_max_vel.xyz.z - max_speed);
 		if ( percent_aburn_max > 1.0f ) {
 			percent_aburn_max = 1.0f;
 		}

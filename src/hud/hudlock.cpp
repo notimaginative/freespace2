@@ -15,6 +15,9 @@
  * C module that controls missile locking
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -634,7 +637,7 @@ void hud_lock_check_if_target_in_lock_cone(vector *lock_world_pos)
 	vector	vec_to_target;
 
 	dist = vm_vec_normalized_dir(&vec_to_target, lock_world_pos, &Player_obj->pos);
-	dot = vm_vec_dot(&Player_obj->orient.fvec, &vec_to_target);
+	dot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 	if ( dot > 0.85) {
 		Player->target_in_lock_cone = 1;
@@ -1174,7 +1177,7 @@ void hud_lock_get_new_lock_pos(object *target_objp, vector *lock_world_pos)
 		lock_in_range = hud_lock_world_pos_in_range(lock_world_pos, &vec_to_lock);
 		vm_vec_normalize(&vec_to_lock);
 		if ( lock_in_range ) {
-			best_lock_dot=vm_vec_dot(&Player_obj->orient.fvec, &vec_to_lock);
+			best_lock_dot=vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_lock);
 		} 
 		// take center if reasonable dot
 		if ( best_lock_dot > 0.95 ) {
@@ -1190,7 +1193,7 @@ void hud_lock_get_new_lock_pos(object *target_objp, vector *lock_world_pos)
 
 			if ( hud_lock_world_pos_in_range(&subsys_world_pos, &vec_to_lock) ) {
 				vm_vec_normalize(&vec_to_lock);
-				lock_dot=vm_vec_dot(&Player_obj->orient.fvec, &vec_to_lock);
+				lock_dot=vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_lock);
 				if ( lock_dot > best_lock_dot ) {
 					best_lock_dot=lock_dot;
 					Player->locking_on_center=0;

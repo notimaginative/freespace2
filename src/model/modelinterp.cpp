@@ -15,6 +15,9 @@
  *	Rendering models, I think.
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -548,10 +551,10 @@ void model_interp_defpoints(ubyte * p, polymodel *pm, bsp_info *sm)
 			// Only scale vertices that aren't on the "base" of 
 			// the effect.  Base is something Adam decided to be
 			// anything under 1.5 meters, hence the 1.5f.
-			if ( src->z < min_thruster_dist )	{
-				tmp.x = src->x * 1.0f;
-				tmp.y = src->y * 1.0f;
-				tmp.z = src->z * Interp_thrust_scale;
+			if ( src->xyz.z < min_thruster_dist )	{
+				tmp.xyz.x = src->xyz.x * 1.0f;
+				tmp.xyz.y = src->xyz.y * 1.0f;
+				tmp.xyz.z = src->xyz.z * Interp_thrust_scale;
 			} else {
 				tmp = *src;
 			}
@@ -587,11 +590,11 @@ void model_interp_defpoints(ubyte * p, polymodel *pm, bsp_info *sm)
 				ct = cos(theta);
 
 				// twist
-				tmp.z = (src->z * ct) - (src->y * st);
-				tmp.y = (src->z * st) + (src->y * ct);
+				tmp.xyz.z = (src->xyz.z * ct) - (src->xyz.y * st);
+				tmp.xyz.y = (src->xyz.z * st) + (src->xyz.y * ct);
 
 				// scale the z a bit
-				tmp.z += Interp_thrust_twist;
+				tmp.xyz.z += Interp_thrust_twist;
 			}			
 	
 			g3_rotate_vertex(dest, &tmp);
@@ -629,15 +632,15 @@ void interp_compute_environment_mapping( vector *nrm, vertex * pnt, vector *vert
 	vm_vec_rotate( &R, nrm, &View_matrix );	
 	vm_vec_normalize(&R);
 
-	a = 2.0f * R.z;
-	R.x = a * R.x;	// reflected R = 2N(N.E) -E;  E = eye
-	R.y = a * R.y;
-	R.z = a * R.z;
+	a = 2.0f * R.xyz.z;
+	R.xyz.x = a * R.xyz.x;	// reflected R = 2N(N.E) -E;  E = eye
+	R.xyz.y = a * R.xyz.y;
+	R.xyz.z = a * R.xyz.z;
 	vm_vec_normalize(&R);
-	a = (float)fl_sqrt( 1.0f - R.y * R.y);
-	pnt->u = (float)atan2( R.x, -R.z) / (2.0f * 3.14159f);
+	a = (float)fl_sqrt( 1.0f - R.xyz.y * R.xyz.y);
+	pnt->u = (float)atan2( R.xyz.x, -R.xyz.z) / (2.0f * 3.14159f);
 	if (pnt->u < 0.0) pnt->u += 1.0f;
-	pnt->v = 1.0f - (float)atan2( a, R.y) / 3.14159f;
+	pnt->v = 1.0f - (float)atan2( a, R.xyz.y) / 3.14159f;
 }
 */
 
@@ -1322,9 +1325,9 @@ void interp_render_arc_segment( vector *v1, vector *v2, int depth )
 		vm_vec_avg( &tmp, v1, v2 );
 	
 		float scaler = 0.30f;
-		tmp.x += (frand()-0.5f)*d*scaler;
-		tmp.y += (frand()-0.5f)*d*scaler;
-		tmp.z += (frand()-0.5f)*d*scaler;
+		tmp.xyz.x += (frand()-0.5f)*d*scaler;
+		tmp.xyz.y += (frand()-0.5f)*d*scaler;
+		tmp.xyz.z += (frand()-0.5f)*d*scaler;
 		
 		interp_render_arc_segment( v1, &tmp, depth+1 );
 		interp_render_arc_segment( &tmp, v2, depth+1 );
@@ -1459,15 +1462,15 @@ int interp_box_offscreen( vector *min, vector *max )
 	}
 
 	vector v[8];
-	v[0].x = min->x; v[0].y = min->y; v[0].z = min->z;
-	v[1].x = max->x; v[1].y = min->y; v[1].z = min->z;
-	v[2].x = max->x; v[2].y = max->y; v[2].z = min->z;
-	v[3].x = min->x; v[3].y = max->y; v[3].z = min->z;
+	v[0].xyz.x = min->xyz.x; v[0].xyz.y = min->xyz.y; v[0].xyz.z = min->xyz.z;
+	v[1].xyz.x = max->xyz.x; v[1].xyz.y = min->xyz.y; v[1].xyz.z = min->xyz.z;
+	v[2].xyz.x = max->xyz.x; v[2].xyz.y = max->xyz.y; v[2].xyz.z = min->xyz.z;
+	v[3].xyz.x = min->xyz.x; v[3].xyz.y = max->xyz.y; v[3].xyz.z = min->xyz.z;
 
-	v[4].x = min->x; v[4].y = min->y; v[4].z = max->z;
-	v[5].x = max->x; v[5].y = min->y; v[5].z = max->z;
-	v[6].x = max->x; v[6].y = max->y; v[6].z = max->z;
-	v[7].x = min->x; v[7].y = max->y; v[7].z = max->z;
+	v[4].xyz.x = min->xyz.x; v[4].xyz.y = min->xyz.y; v[4].xyz.z = max->xyz.z;
+	v[5].xyz.x = max->xyz.x; v[5].xyz.y = min->xyz.y; v[5].xyz.z = max->xyz.z;
+	v[6].xyz.x = max->xyz.x; v[6].xyz.y = max->xyz.y; v[6].xyz.z = max->xyz.z;
+	v[7].xyz.x = min->xyz.x; v[7].xyz.y = max->xyz.y; v[7].xyz.z = max->xyz.z;
 
 	ubyte and_codes = 0xff;
 	ubyte or_codes = 0xff;
@@ -1740,7 +1743,7 @@ int model_cache_calc_coords(vector *pnt,float rad, float *cx, float *cy, float *
 
 			*cx = pt.sx;
 			*cy = pt.sy;
-			*cr = rad*Matrix_scale.x*Canv_w2/pt.z;
+			*cr = rad*Matrix_scale.xyz.x*Canv_w2/pt.z;
 
 			if ( *cr < 1.0f )	{
 				*cr = 1.0f;
@@ -1786,29 +1789,29 @@ int model_get_rotated_bitmap_points(vertex *pnt,float angle, float rad, vertex *
 
 	width = height = rad;
 
-	v[0].x = (-width*ca - height*sa)*Matrix_scale.x + pnt->x;
-	v[0].y = (-width*sa + height*ca)*Matrix_scale.y + pnt->y;
+	v[0].x = (-width*ca - height*sa)*Matrix_scale.xyz.x + pnt->x;
+	v[0].y = (-width*sa + height*ca)*Matrix_scale.xyz.y + pnt->y;
 	v[0].z = pnt->z;
 	v[0].sw = 0.0f;
 	v[0].u = 0.0f;
 	v[0].v = 0.0f;
 
-	v[1].x = (width*ca - height*sa)*Matrix_scale.x + pnt->x;
-	v[1].y = (width*sa + height*ca)*Matrix_scale.y + pnt->y;
+	v[1].x = (width*ca - height*sa)*Matrix_scale.xyz.x + pnt->x;
+	v[1].y = (width*sa + height*ca)*Matrix_scale.xyz.y + pnt->y;
 	v[1].z = pnt->z;
 	v[1].sw = 0.0f;
 	v[1].u = 1.0f;
 	v[1].v = 0.0f;
 
-	v[2].x = (width*ca + height*sa)*Matrix_scale.x + pnt->x;
-	v[2].y = (width*sa - height*ca)*Matrix_scale.y + pnt->y;
+	v[2].x = (width*ca + height*sa)*Matrix_scale.xyz.x + pnt->x;
+	v[2].y = (width*sa - height*ca)*Matrix_scale.xyz.y + pnt->y;
 	v[2].z = pnt->z;
 	v[2].sw = 0.0f;
 	v[2].u = 1.0f;
 	v[2].v = 1.0f;
 
-	v[3].x = (-width*ca + height*sa)*Matrix_scale.x + pnt->x;
-	v[3].y = (-width*sa - height*ca)*Matrix_scale.y + pnt->y;
+	v[3].x = (-width*ca + height*sa)*Matrix_scale.xyz.x + pnt->x;
+	v[3].y = (-width*sa - height*ca)*Matrix_scale.xyz.y + pnt->y;
 	v[3].z = pnt->z;
 	v[3].sw = 0.0f;
 	v[3].u = 0.0f;
@@ -2454,10 +2457,10 @@ JustDrawIt:
 // The box's dimensions from 'min' to 'max'.
 float interp_closest_dist_to_box( vector *hitpt, vector *p0, vector *min, vector *max )
 {
-	float *origin = (float *)&p0->x;
+	float *origin = (float *)&p0->xyz.x;
 	float *minB = (float *)min;
 	float *maxB = (float *)max;
-	float *coord = (float *)&hitpt->x;
+	float *coord = (float *)&hitpt->xyz.x;
 	int inside = 1;
 	int i;
 

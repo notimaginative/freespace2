@@ -15,6 +15,9 @@
  * static random functions.  Return "random" number based on integer inut
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -95,9 +98,9 @@ float static_randf_range(int num, float min, float max)
 
 void static_randvec(int num, vector *vp)
 {
-	vp->x = static_randf(num) - 0.5f;
-	vp->y = static_randf(num+1) - 0.5f;
-	vp->z = static_randf(num+2) - 0.5f;
+	vp->xyz.x = static_randf(num) - 0.5f;
+	vp->xyz.y = static_randf(num+1) - 0.5f;
+	vp->xyz.z = static_randf(num+2) - 0.5f;
 
 	vm_vec_normalize_quick(vp);
 }

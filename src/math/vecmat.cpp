@@ -15,6 +15,9 @@
  * C module containg functions for manipulating vectors and matricies
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -341,9 +344,9 @@ float asqrt(float x)
 
 void vm_set_identity(matrix *m)
 {
-	m->rvec.x = 1.0f;	m->rvec.y = 0.0f;	m->rvec.z = 0.0f;
-	m->uvec.x = 0.0f;	m->uvec.y = 1.0f;	m->uvec.z = 0.0f;
-	m->fvec.x = 0.0f;	m->fvec.y = 0.0f;	m->fvec.z = 1.0f;
+	m->v.rvec.xyz.x = 1.0f;	m->v.rvec.xyz.y = 0.0f;	m->v.rvec.xyz.z = 0.0f;
+	m->v.uvec.xyz.x = 0.0f;	m->v.uvec.xyz.y = 1.0f;	m->v.uvec.xyz.z = 0.0f;
+	m->v.fvec.xyz.x = 0.0f;	m->v.fvec.xyz.y = 0.0f;	m->v.fvec.xyz.z = 1.0f;
 }
 
 //adds two vectors, fills in dest, returns ptr to dest
@@ -351,9 +354,9 @@ void vm_set_identity(matrix *m)
 #ifndef _INLINE_VECMAT
 void vm_vec_add(vector *dest,vector *src0,vector *src1)
 {
-	dest->x = src0->x + src1->x;
-	dest->y = src0->y + src1->y;
-	dest->z = src0->z + src1->z;
+	dest->xyz.x = src0->xyz.x + src1->xyz.x;
+	dest->xyz.y = src0->xyz.y + src1->xyz.y;
+	dest->xyz.z = src0->xyz.z + src1->xyz.z;
 }
 #endif
 
@@ -362,9 +365,9 @@ void vm_vec_add(vector *dest,vector *src0,vector *src1)
 #ifndef _INLINE_VECMAT
 void vm_vec_sub(vector *dest,vector *src0,vector *src1)
 {
-	dest->x = src0->x - src1->x;
-	dest->y = src0->y - src1->y;
-	dest->z = src0->z - src1->z;
+	dest->xyz.x = src0->xyz.x - src1->xyz.x;
+	dest->xyz.y = src0->xyz.y - src1->xyz.y;
+	dest->xyz.z = src0->xyz.z - src1->xyz.z;
 }
 #endif
 
@@ -374,9 +377,9 @@ void vm_vec_sub(vector *dest,vector *src0,vector *src1)
 #ifndef _INLINE_VECMAT
 void vm_vec_add2(vector *dest,vector *src)
 {
-	dest->x += src->x;
-	dest->y += src->y;
-	dest->z += src->z;
+	dest->xyz.x += src->xyz.x;
+	dest->xyz.y += src->xyz.y;
+	dest->xyz.z += src->xyz.z;
 }
 #endif
 
@@ -385,9 +388,9 @@ void vm_vec_add2(vector *dest,vector *src)
 #ifndef _INLINE_VECMAT
 void vm_vec_sub2(vector *dest,vector *src)
 {
-	dest->x -= src->x;
-	dest->y -= src->y;
-	dest->z -= src->z;
+	dest->xyz.x -= src->xyz.x;
+	dest->xyz.y -= src->xyz.y;
+	dest->xyz.z -= src->xyz.z;
 }
 #endif
 
@@ -395,9 +398,9 @@ void vm_vec_sub2(vector *dest,vector *src)
 //dest can equal either source
 vector *vm_vec_avg(vector *dest,vector *src0,vector *src1)
 {
-	dest->x = (src0->x + src1->x) * 0.5f;
-	dest->y = (src0->y + src1->y) * 0.5f;
-	dest->z = (src0->z + src1->z) * 0.5f;
+	dest->xyz.x = (src0->xyz.x + src1->xyz.x) * 0.5f;
+	dest->xyz.y = (src0->xyz.y + src1->xyz.y) * 0.5f;
+	dest->xyz.z = (src0->xyz.z + src1->xyz.z) * 0.5f;
 
 	return dest;
 }
@@ -407,9 +410,9 @@ vector *vm_vec_avg(vector *dest,vector *src0,vector *src1)
 //dest can equal any source
 vector *vm_vec_avg4(vector *dest,vector *src0,vector *src1,vector *src2,vector *src3)
 {
-	dest->x = (src0->x + src1->x + src2->x + src3->x) * 0.25f;
-	dest->y = (src0->y + src1->y + src2->y + src3->y) * 0.25f;
-	dest->z = (src0->z + src1->z + src2->z + src3->z) * 0.25f;
+	dest->xyz.x = (src0->xyz.x + src1->xyz.x + src2->xyz.x + src3->xyz.x) * 0.25f;
+	dest->xyz.y = (src0->xyz.y + src1->xyz.y + src2->xyz.y + src3->xyz.y) * 0.25f;
+	dest->xyz.z = (src0->xyz.z + src1->xyz.z + src2->xyz.z + src3->xyz.z) * 0.25f;
 	return dest;
 }
 
@@ -418,9 +421,9 @@ vector *vm_vec_avg4(vector *dest,vector *src0,vector *src1,vector *src2,vector *
 #ifndef _INLINE_VECMAT
 void vm_vec_scale(vector *dest,float s)
 {
-	dest->x = dest->x * s;
-	dest->y = dest->y * s;
-	dest->z = dest->z * s;
+	dest->xyz.x = dest->xyz.x * s;
+	dest->xyz.y = dest->xyz.y * s;
+	dest->xyz.z = dest->xyz.z * s;
 }
 #endif
 
@@ -429,9 +432,9 @@ void vm_vec_scale(vector *dest,float s)
 #ifndef _INLINE_VECMAT
 void vm_vec_copy_scale(vector *dest,vector *src,float s)
 {
-	dest->x = src->x*s;
-	dest->y = src->y*s;
-	dest->z = src->z*s;
+	dest->xyz.x = src->xyz.x*s;
+	dest->xyz.y = src->xyz.y*s;
+	dest->xyz.z = src->xyz.z*s;
 }
 #endif
 
@@ -440,9 +443,9 @@ void vm_vec_copy_scale(vector *dest,vector *src,float s)
 #ifndef _INLINE_VECMAT
 void vm_vec_scale_add(vector *dest,vector *src1,vector *src2,float k)
 {
-	dest->x = src1->x + src2->x*k;
-	dest->y = src1->y + src2->y*k;
-	dest->z = src1->z + src2->z*k;
+	dest->xyz.x = src1->xyz.x + src2->xyz.x*k;
+	dest->xyz.y = src1->xyz.y + src2->xyz.y*k;
+	dest->xyz.z = src1->xyz.z + src2->xyz.z*k;
 }
 #endif
 
@@ -451,9 +454,9 @@ void vm_vec_scale_add(vector *dest,vector *src1,vector *src2,float k)
 #ifndef _INLINE_VECMAT
 void vm_vec_scale_add2(vector *dest,vector *src,float k)
 {
-	dest->x += src->x*k;
-	dest->y += src->y*k;
-	dest->z += src->z*k;
+	dest->xyz.x += src->xyz.x*k;
+	dest->xyz.y += src->xyz.y*k;
+	dest->xyz.z += src->xyz.z*k;
 }
 #endif
 
@@ -462,9 +465,9 @@ void vm_vec_scale_add2(vector *dest,vector *src,float k)
 #ifndef _INLINE_VECMAT
 void vm_vec_scale_sub2(vector *dest,vector *src,float k)
 {
-	dest->x -= src->x*k;
-	dest->y -= src->y*k;
-	dest->z -= src->z*k;
+	dest->xyz.x -= src->xyz.x*k;
+	dest->xyz.y -= src->xyz.y*k;
+	dest->xyz.z -= src->xyz.z*k;
 }
 #endif
 
@@ -475,9 +478,9 @@ void vm_vec_scale2(vector *dest,float n,float d)
 {	
 	d = 1.0f/d;
 
-	dest->x = dest->x* n * d;
-	dest->y = dest->y* n * d;
-	dest->z = dest->z* n * d;
+	dest->xyz.x = dest->xyz.x* n * d;
+	dest->xyz.y = dest->xyz.y* n * d;
+	dest->xyz.z = dest->xyz.z* n * d;
 }
 #endif
 
@@ -485,7 +488,7 @@ void vm_vec_scale2(vector *dest,float n,float d)
 #ifndef _INLINE_VECMAT
 float vm_vec_dotprod(vector *v0,vector *v1)
 {
-	return (v1->x*v0->x)+(v1->y*v0->y)+(v1->z*v0->z);
+	return (v1->xyz.x*v0->xyz.x)+(v1->xyz.y*v0->xyz.y)+(v1->xyz.z*v0->xyz.z);
 }
 #endif
 
@@ -494,7 +497,7 @@ float vm_vec_dotprod(vector *v0,vector *v1)
 #ifndef _INLINE_VECMAT
 float vm_vec_dot3(float x,float y,float z,vector *v)
 {
-	return (x*v->x)+(y*v->y)+(z*v->z);
+	return (x*v->xyz.x)+(y*v->xyz.y)+(z*v->xyz.z);
 }
 #endif
 
@@ -502,9 +505,9 @@ float vm_vec_dot3(float x,float y,float z,vector *v)
 float vm_vec_mag(vector *v)
 {
 	float x,y,z,mag1, mag2;
-	x = v->x*v->x;
-	y = v->y*v->y;
-	z = v->z*v->z;
+	x = v->xyz.x*v->xyz.x;
+	y = v->xyz.y*v->xyz.y;
+	z = v->xyz.z*v->xyz.z;
 	mag1 = x+y+z;
 	if ( mag1 < 0.0 )
 		Int3();
@@ -518,9 +521,9 @@ float vm_vec_mag(vector *v)
 float vm_vec_mag_squared(vector *v)
 {
 	float x,y,z,mag1;
-	x = v->x*v->x;
-	y = v->y*v->y;
-	z = v->z*v->z;
+	x = v->xyz.x*v->xyz.x;
+	y = v->xyz.y*v->xyz.y;
+	z = v->xyz.z*v->xyz.z;
 	mag1 = x+y+z;
 	return mag1;
 }
@@ -529,9 +532,9 @@ float vm_vec_dist_squared(vector *v0, vector *v1)
 {
 	float dx, dy, dz;
 
-	dx = v0->x - v1->x;
-	dy = v0->y - v1->y;
-	dz = v0->z - v1->z;
+	dx = v0->xyz.x - v1->xyz.x;
+	dy = v0->xyz.y - v1->xyz.y;
+	dz = v0->xyz.z - v1->xyz.z;
 	return dx*dx + dy*dy + dz*dz;
 }
 
@@ -556,20 +559,20 @@ float vm_vec_mag_quick(vector *v)
 {
 	float a,b,c,bc, t;
 
-	if ( v->x < 0.0 )
-		a = -v->x;
+	if ( v->xyz.x < 0.0 )
+		a = -v->xyz.x;
 	else
-		a = v->x;
+		a = v->xyz.x;
 
-	if ( v->y < 0.0 )
-		b = -v->y;
+	if ( v->xyz.y < 0.0 )
+		b = -v->xyz.y;
 	else
-		b = v->y;
+		b = v->xyz.y;
 
-	if ( v->z < 0.0 )
-		c = -v->z;
+	if ( v->xyz.z < 0.0 )
+		c = -v->xyz.z;
 	else
-		c = v->z;
+		c = v->xyz.z;
 
 	if (a < b) {
 		float t=a; a=b; b=t;
@@ -612,18 +615,18 @@ float vm_vec_copy_normalize(vector *dest,vector *src)
 	if (m <= 0.0f) {
 		Warning(LOCATION,	"Null vector in vector normalize.\n"
 								"Trace out of vecmat.cpp and find offending code.\n");
-		dest->x = 1.0f;
-		dest->y = 0.0f;
-		dest->z = 0.0f;
+		dest->xyz.x = 1.0f;
+		dest->xyz.y = 0.0f;
+		dest->xyz.z = 0.0f;
 
 		return 1.0f;
 	}
 
 	float im = 1.0f / m;
 
-	dest->x = src->x * im;
-	dest->y = src->y * im;
-	dest->z = src->z * im;
+	dest->xyz.x = src->xyz.x * im;
+	dest->xyz.y = src->xyz.y * im;
+	dest->xyz.z = src->xyz.z * im;
 	
 	return m;
 }
@@ -648,17 +651,17 @@ float vm_vec_normalize_safe(vector *v)
 
 	//	Mainly here to trap attempts to normalize a null vector.
 	if (m <= 0.0f) {
-		v->x = 1.0f;
-		v->y = 0.0f;
-		v->z = 0.0f;
+		v->xyz.x = 1.0f;
+		v->xyz.y = 0.0f;
+		v->xyz.z = 0.0f;
 		return 1.0f;
 	}
 
 	float im = 1.0f / m;
 
-	v->x *= im;
-	v->y *= im;
-	v->z *= im;
+	v->xyz.x *= im;
+	v->xyz.y *= im;
+	v->xyz.z *= im;
 
 	return m;
 
@@ -668,8 +671,8 @@ float vm_vec_normalize_safe(vector *v)
 //returns approximation of 1/magnitude of a vector
 float vm_vec_imag(vector *v)
 {
-//	return 1.0f / sqrt( (v->x*v->x)+(v->y*v->y)+(v->z*v->z) );	
-	return fl_isqrt( (v->x*v->x)+(v->y*v->y)+(v->z*v->z) );
+//	return 1.0f / sqrt( (v->xyz.x*v->xyz.x)+(v->xyz.y*v->xyz.y)+(v->xyz.z*v->xyz.z) );	
+	return fl_isqrt( (v->xyz.x*v->xyz.x)+(v->xyz.y*v->xyz.y)+(v->xyz.z*v->xyz.z) );
 }
 
 //normalize a vector. returns 1/mag of source vec. uses approx 1/mag
@@ -682,9 +685,9 @@ float vm_vec_copy_normalize_quick(vector *dest,vector *src)
 
 	Assert(im > 0.0f);
 
-	dest->x = src->x*im;
-	dest->y = src->y*im;
-	dest->z = src->z*im;
+	dest->xyz.x = src->xyz.x*im;
+	dest->xyz.y = src->xyz.y*im;
+	dest->xyz.z = src->xyz.z*im;
 
 	return 1.0f/im;
 }
@@ -700,9 +703,9 @@ float vm_vec_normalize_quick(vector *src)
 
 	Assert(im > 0.0f);
 
-	src->x = src->x*im;
-	src->y = src->y*im;
-	src->z = src->z*im;
+	src->xyz.x = src->xyz.x*im;
+	src->xyz.y = src->xyz.y*im;
+	src->xyz.z = src->xyz.z*im;
 
 	return 1.0f/im;
 
@@ -721,9 +724,9 @@ float vm_vec_copy_normalize_quick_mag(vector *dest,vector *src)
 
 	float im = 1.0f / m;
 
-	dest->x = src->x * im;
-	dest->y = src->y * im;
-	dest->z = src->z * im;
+	dest->xyz.x = src->xyz.x * im;
+	dest->xyz.y = src->xyz.y * im;
+	dest->xyz.z = src->xyz.z * im;
 
 	return m;
 
@@ -739,9 +742,9 @@ float vm_vec_normalize_quick_mag(vector *v)
 
 	Assert(m > 0.0f);
 
-	v->x = v->x*m;
-	v->y = v->y*m;
-	v->z = v->z*m;
+	v->xyz.x = v->xyz.x*m;
+	v->xyz.y = v->xyz.y*m;
+	v->xyz.z = v->xyz.z*m;
 
 	return m;
 
@@ -803,9 +806,9 @@ vector *vm_vec_normal(vector *dest,vector *p0,vector *p1,vector *p2)
 //your inputs are ok.
 vector *vm_vec_crossprod(vector *dest,vector *src0,vector *src1)
 {
-	dest->x = (src0->y * src1->z) - (src0->z * src1->y);
-	dest->y = (src0->z * src1->x) - (src0->x * src1->z);
-	dest->z = (src0->x * src1->y) - (src0->y * src1->x);
+	dest->xyz.x = (src0->xyz.y * src1->xyz.z) - (src0->xyz.z * src1->xyz.y);
+	dest->xyz.y = (src0->xyz.z * src1->xyz.x) - (src0->xyz.x * src1->xyz.z);
+	dest->xyz.z = (src0->xyz.x * src1->xyz.y) - (src0->xyz.y * src1->xyz.x);
 
 	return dest;
 }
@@ -813,7 +816,7 @@ vector *vm_vec_crossprod(vector *dest,vector *src0,vector *src1)
 // test if 2 vectors are parallel or not.
 int vm_test_parallel(vector *src0, vector *src1)
 {
-	if ( (fl_abs(src0->x - src1->x) < 1e-4) && (fl_abs(src0->y - src1->y) < 1e-4) && (fl_abs(src0->z - src1->z) < 1e-4) ) {
+	if ( (fl_abs(src0->xyz.x - src1->xyz.x) < 1e-4) && (fl_abs(src0->xyz.y - src1->xyz.y) < 1e-4) && (fl_abs(src0->xyz.z - src1->xyz.z) < 1e-4) ) {
 		return 1;
 	} else {
 		return 0;
@@ -881,18 +884,18 @@ matrix *sincos_2_matrix(matrix *m,float sinp,float cosp,float sinb,float cosb,fl
 	cbsh = cosb*sinh;
 	sbch = sinb*cosh;
 
-	m->rvec.x = cbch + sinp*sbsh;		//m1
-	m->uvec.z = sbsh + sinp*cbch;		//m8
+	m->v.rvec.xyz.x = cbch + sinp*sbsh;		//m1
+	m->v.uvec.xyz.z = sbsh + sinp*cbch;		//m8
 
-	m->uvec.x = sinp*cbsh - sbch;		//m2
-	m->rvec.z = sinp*sbch - cbsh;		//m7
+	m->v.uvec.xyz.x = sinp*cbsh - sbch;		//m2
+	m->v.rvec.xyz.z = sinp*sbch - cbsh;		//m7
 
-	m->fvec.x = sinh*cosp;				//m3
-	m->rvec.y = sinb*cosp;				//m4
-	m->uvec.y = cosb*cosp;				//m5
-	m->fvec.z = cosh*cosp;				//m9
+	m->v.fvec.xyz.x = sinh*cosp;				//m3
+	m->v.rvec.xyz.y = sinb*cosp;				//m4
+	m->v.uvec.xyz.y = cosb*cosp;				//m5
+	m->v.fvec.xyz.z = cosh*cosp;				//m9
 
-	m->fvec.y = -sinp;								//m6
+	m->v.fvec.xyz.y = -sinp;								//m6
 
 
 	return m;
@@ -951,11 +954,11 @@ matrix *vm_vec_ang_2_matrix(matrix *m,vector *v,float a)
 
 	sinb = (float)sin(a); cosb = (float)cos(a);
 
-	sinp = -v->y;
+	sinp = -v->xyz.y;
 	cosp = fl_sqrt(1.0 - sinp*sinp);
 
-	sinh = v->x / cosp;
-	cosh = v->z / cosp;
+	sinh = v->xyz.x / cosp;
+	cosh = v->xyz.z / cosp;
 
 	t = sincos_2_matrix(m,sinp,cosp,sinb,cosb,sinh,cosh);
 
@@ -970,7 +973,7 @@ matrix *vm_vec_ang_2_matrix(matrix *m,vector *v,float a)
 //returns ptr to matrix
 matrix *vm_vector_2_matrix(matrix *m,vector *fvec,vector *uvec,vector *rvec)
 {
-	vector *xvec=&m->rvec,*yvec=&m->uvec,*zvec=&m->fvec;
+	vector *xvec=&m->v.rvec,*yvec=&m->v.uvec,*zvec=&m->v.fvec;
 
 
 	Assert(fvec != NULL);
@@ -988,18 +991,18 @@ matrix *vm_vector_2_matrix(matrix *m,vector *fvec,vector *uvec,vector *rvec)
 bad_vector2:
 	;
 
-			if ((zvec->x==0.0) && (zvec->z==0.0)) {		//forward vec is straight up or down
+			if ((zvec->xyz.x==0.0) && (zvec->xyz.z==0.0)) {		//forward vec is straight up or down
 
-				m->rvec.x = (float)1.0;
-				m->uvec.z = (zvec->y<0.0)?(float)1.0:(float)-1.0;
+				m->v.rvec.xyz.x = (float)1.0;
+				m->v.uvec.xyz.z = (zvec->xyz.y<0.0)?(float)1.0:(float)-1.0;
 
-				m->rvec.y = m->rvec.z = m->uvec.x = m->uvec.y = (float)0.0;
+				m->v.rvec.xyz.y = m->v.rvec.xyz.z = m->v.uvec.xyz.x = m->v.uvec.xyz.y = (float)0.0;
 			}
 			else { 		//not straight up or down
 
-				xvec->x = zvec->z;
-				xvec->y = (float)0.0;
-				xvec->z = -zvec->x;
+				xvec->xyz.x = zvec->xyz.z;
+				xvec->xyz.y = (float)0.0;
+				xvec->xyz.z = -zvec->xyz.x;
 
 				vm_vec_normalize(xvec);
 
@@ -1045,7 +1048,7 @@ bad_vector2:
 //quicker version of vm_vector_2_matrix() that takes normalized vectors
 matrix *vm_vector_2_matrix_norm(matrix *m,vector *fvec,vector *uvec,vector *rvec)
 {
-	vector *xvec=&m->rvec,*yvec=&m->uvec,*zvec=&m->fvec;
+	vector *xvec=&m->v.rvec,*yvec=&m->v.uvec,*zvec=&m->v.fvec;
 
 
 	Assert(fvec != NULL);
@@ -1059,18 +1062,18 @@ matrix *vm_vector_2_matrix_norm(matrix *m,vector *fvec,vector *uvec,vector *rvec
 bad_vector2:
 	;
 
-			if ((zvec->x==0.0) && (zvec->z==0.0)) {		//forward vec is straight up or down
+			if ((zvec->xyz.x==0.0) && (zvec->xyz.z==0.0)) {		//forward vec is straight up or down
 
-				m->rvec.x = (float)1.0;
-				m->uvec.z = (zvec->y<0.0)?(float)1.0:(float)-1.0;
+				m->v.rvec.xyz.x = (float)1.0;
+				m->v.uvec.xyz.z = (zvec->xyz.y<0.0)?(float)1.0:(float)-1.0;
 
-				m->rvec.y = m->rvec.z = m->uvec.x = m->uvec.y = (float)0.0;
+				m->v.rvec.xyz.y = m->v.rvec.xyz.z = m->v.uvec.xyz.x = m->v.uvec.xyz.y = (float)0.0;
 			}
 			else { 		//not straight up or down
 
-				xvec->x = zvec->z;
-				xvec->y = (float)0.0;
-				xvec->z = -zvec->x;
+				xvec->xyz.x = zvec->xyz.z;
+				xvec->xyz.y = (float)0.0;
+				xvec->xyz.z = -zvec->xyz.x;
 
 				vm_vec_normalize(xvec);
 
@@ -1114,9 +1117,9 @@ bad_vector2:
 //dest CANNOT equal source
 vector *vm_vec_rotate(vector *dest,vector *src,matrix *m)
 {
-	dest->x = (src->x*m->rvec.x)+(src->y*m->rvec.y)+(src->z*m->rvec.z);
-	dest->y = (src->x*m->uvec.x)+(src->y*m->uvec.y)+(src->z*m->uvec.z);
-	dest->z = (src->x*m->fvec.x)+(src->y*m->fvec.y)+(src->z*m->fvec.z);
+	dest->xyz.x = (src->xyz.x*m->v.rvec.xyz.x)+(src->xyz.y*m->v.rvec.xyz.y)+(src->xyz.z*m->v.rvec.xyz.z);
+	dest->xyz.y = (src->xyz.x*m->v.uvec.xyz.x)+(src->xyz.y*m->v.uvec.xyz.y)+(src->xyz.z*m->v.uvec.xyz.z);
+	dest->xyz.z = (src->xyz.x*m->v.fvec.xyz.x)+(src->xyz.y*m->v.fvec.xyz.y)+(src->xyz.z*m->v.fvec.xyz.z);
 
 	return dest;
 }
@@ -1136,9 +1139,9 @@ vector *vm_vec_rotate(vector *dest,vector *src,matrix *m)
 
 vector *vm_vec_unrotate(vector *dest,vector *src,matrix *m)
 {
-	dest->x = (src->x*m->rvec.x)+(src->y*m->uvec.x)+(src->z*m->fvec.x);
-	dest->y = (src->x*m->rvec.y)+(src->y*m->uvec.y)+(src->z*m->fvec.y);
-	dest->z = (src->x*m->rvec.z)+(src->y*m->uvec.z)+(src->z*m->fvec.z);
+	dest->xyz.x = (src->xyz.x*m->v.rvec.xyz.x)+(src->xyz.y*m->v.uvec.xyz.x)+(src->xyz.z*m->v.fvec.xyz.x);
+	dest->xyz.y = (src->xyz.x*m->v.rvec.xyz.y)+(src->xyz.y*m->v.uvec.xyz.y)+(src->xyz.z*m->v.fvec.xyz.y);
+	dest->xyz.z = (src->xyz.x*m->v.rvec.xyz.z)+(src->xyz.y*m->v.uvec.xyz.z)+(src->xyz.z*m->v.fvec.xyz.z);
 
 	return dest;
 }
@@ -1148,9 +1151,9 @@ matrix *vm_transpose_matrix(matrix *m)
 {
 	float t;
 
-	t = m->uvec.x;  m->uvec.x = m->rvec.y;  m->rvec.y = t;
-	t = m->fvec.x;  m->fvec.x = m->rvec.z;  m->rvec.z = t;
-	t = m->fvec.y;  m->fvec.y = m->uvec.z;  m->uvec.z = t;
+	t = m->v.uvec.xyz.x;  m->v.uvec.xyz.x = m->v.rvec.xyz.y;  m->v.rvec.xyz.y = t;
+	t = m->v.fvec.xyz.x;  m->v.fvec.xyz.x = m->v.rvec.xyz.z;  m->v.rvec.xyz.z = t;
+	t = m->v.fvec.xyz.y;  m->v.fvec.xyz.y = m->v.uvec.xyz.z;  m->v.uvec.xyz.z = t;
 
 	return m;
 }
@@ -1162,17 +1165,17 @@ matrix *vm_copy_transpose_matrix(matrix *dest,matrix *src)
 
 	Assert(dest != src);
 
-	dest->rvec.x = src->rvec.x;
-	dest->rvec.y = src->uvec.x;
-	dest->rvec.z = src->fvec.x;
+	dest->v.rvec.xyz.x = src->v.rvec.xyz.x;
+	dest->v.rvec.xyz.y = src->v.uvec.xyz.x;
+	dest->v.rvec.xyz.z = src->v.fvec.xyz.x;
 
-	dest->uvec.x = src->rvec.y;
-	dest->uvec.y = src->uvec.y;
-	dest->uvec.z = src->fvec.y;
+	dest->v.uvec.xyz.x = src->v.rvec.xyz.y;
+	dest->v.uvec.xyz.y = src->v.uvec.xyz.y;
+	dest->v.uvec.xyz.z = src->v.fvec.xyz.y;
 
-	dest->fvec.x = src->rvec.z;
-	dest->fvec.y = src->uvec.z;
-	dest->fvec.z = src->fvec.z;
+	dest->v.fvec.xyz.x = src->v.rvec.xyz.z;
+	dest->v.fvec.xyz.y = src->v.uvec.xyz.z;
+	dest->v.fvec.xyz.z = src->v.fvec.xyz.z;
 
 
 	return dest;
@@ -1185,17 +1188,17 @@ matrix *vm_matrix_x_matrix(matrix *dest,matrix *src0,matrix *src1)
 
 	Assert(dest!=src0 && dest!=src1);
 
-	dest->rvec.x = vm_vec_dot3(src0->rvec.x,src0->uvec.x,src0->fvec.x, &src1->rvec);
-	dest->uvec.x = vm_vec_dot3(src0->rvec.x,src0->uvec.x,src0->fvec.x, &src1->uvec);
-	dest->fvec.x = vm_vec_dot3(src0->rvec.x,src0->uvec.x,src0->fvec.x, &src1->fvec);
+	dest->v.rvec.xyz.x = vm_vec_dot3(src0->v.rvec.xyz.x,src0->v.uvec.xyz.x,src0->v.fvec.xyz.x, &src1->v.rvec);
+	dest->v.uvec.xyz.x = vm_vec_dot3(src0->v.rvec.xyz.x,src0->v.uvec.xyz.x,src0->v.fvec.xyz.x, &src1->v.uvec);
+	dest->v.fvec.xyz.x = vm_vec_dot3(src0->v.rvec.xyz.x,src0->v.uvec.xyz.x,src0->v.fvec.xyz.x, &src1->v.fvec);
 
-	dest->rvec.y = vm_vec_dot3(src0->rvec.y,src0->uvec.y,src0->fvec.y, &src1->rvec);
-	dest->uvec.y = vm_vec_dot3(src0->rvec.y,src0->uvec.y,src0->fvec.y, &src1->uvec);
-	dest->fvec.y = vm_vec_dot3(src0->rvec.y,src0->uvec.y,src0->fvec.y, &src1->fvec);
+	dest->v.rvec.xyz.y = vm_vec_dot3(src0->v.rvec.xyz.y,src0->v.uvec.xyz.y,src0->v.fvec.xyz.y, &src1->v.rvec);
+	dest->v.uvec.xyz.y = vm_vec_dot3(src0->v.rvec.xyz.y,src0->v.uvec.xyz.y,src0->v.fvec.xyz.y, &src1->v.uvec);
+	dest->v.fvec.xyz.y = vm_vec_dot3(src0->v.rvec.xyz.y,src0->v.uvec.xyz.y,src0->v.fvec.xyz.y, &src1->v.fvec);
 
-	dest->rvec.z = vm_vec_dot3(src0->rvec.z,src0->uvec.z,src0->fvec.z, &src1->rvec);
-	dest->uvec.z = vm_vec_dot3(src0->rvec.z,src0->uvec.z,src0->fvec.z, &src1->uvec);
-	dest->fvec.z = vm_vec_dot3(src0->rvec.z,src0->uvec.z,src0->fvec.z, &src1->fvec);
+	dest->v.rvec.xyz.z = vm_vec_dot3(src0->v.rvec.xyz.z,src0->v.uvec.xyz.z,src0->v.fvec.xyz.z, &src1->v.rvec);
+	dest->v.uvec.xyz.z = vm_vec_dot3(src0->v.rvec.xyz.z,src0->v.uvec.xyz.z,src0->v.fvec.xyz.z, &src1->v.uvec);
+	dest->v.fvec.xyz.z = vm_vec_dot3(src0->v.rvec.xyz.z,src0->v.uvec.xyz.z,src0->v.fvec.xyz.z, &src1->v.fvec);
 
 
 	return dest;
@@ -1207,24 +1210,24 @@ angles *vm_extract_angles_matrix(angles *a,matrix *m)
 {
 	float sinh,cosh,cosp;
 
-	if (m->fvec.x==0.0 && m->fvec.z==0.0)		//zero head
+	if (m->v.fvec.xyz.x==0.0 && m->v.fvec.xyz.z==0.0)		//zero head
 		a->h = (float)0.0;
 	else
-		// a->h = (float)atan2(m->fvec.z,m->fvec.x);
-		a->h = (float)atan2_safe(m->fvec.x,m->fvec.z);
+		// a->h = (float)atan2(m->v.fvec.xyz.z,m->v.fvec.xyz.x);
+		a->h = (float)atan2_safe(m->v.fvec.xyz.x,m->v.fvec.xyz.z);
 
 	sinh = (float)sin(a->h); cosh = (float)cos(a->h);
 
 	if (fl_abs(sinh) > fl_abs(cosh))				//sine is larger, so use it
-		cosp = m->fvec.x*sinh;
+		cosp = m->v.fvec.xyz.x*sinh;
 	else											//cosine is larger, so use it
-		cosp = m->fvec.z*cosh;
+		cosp = m->v.fvec.xyz.z*cosh;
 
-	if (cosp==0.0 && m->fvec.y==0.0)
+	if (cosp==0.0 && m->v.fvec.xyz.y==0.0)
 		a->p = (float)0.0;
 	else
-		// a->p = (float)atan2(cosp,-m->fvec.y);
-		a->p = (float)atan2_safe(-m->fvec.y, cosp);
+		// a->p = (float)atan2(cosp,-m->v.fvec.xyz.y);
+		a->p = (float)atan2_safe(-m->v.fvec.xyz.y, cosp);
 
 
 	if (cosp == 0.0)	//the cosine of pitch is zero.  we're pitched straight up. say no bank
@@ -1234,8 +1237,8 @@ angles *vm_extract_angles_matrix(angles *a,matrix *m)
 	else {
 		float sinb,cosb;
 
-		sinb = m->rvec.y/cosp;
-		cosb = m->uvec.y/cosp;
+		sinb = m->v.rvec.xyz.y/cosp;
+		cosb = m->v.uvec.xyz.y/cosp;
 
 		if (sinb==0.0 && cosb==0.0)
 			a->b = (float)0.0;
@@ -1255,12 +1258,12 @@ angles *vm_extract_angles_vector_normalized(angles *a,vector *v)
 
 	a->b = 0.0f;		//always zero bank
 
-	a->p = (float)asin(-v->y);
+	a->p = (float)asin(-v->xyz.y);
 
-	if (v->x==0.0f && v->z==0.0f)
+	if (v->xyz.x==0.0f && v->xyz.z==0.0f)
 		a->h = (float)0.0;
 	else
-		a->h = (float)atan2_safe(v->z,v->x);
+		a->h = (float)atan2_safe(v->xyz.z,v->xyz.x);
 
 	return a;
 }
@@ -1326,33 +1329,33 @@ void vm_trackball( int idx, int idy, matrix * RotMat )
 	dxdr = dx/dr;
 	dydr = dy/dr;
 
-	RotMat->rvec.x = cos_theta + (dydr*dydr)*cos_theta1;
-	RotMat->uvec.x = - ((dxdr*dydr)*cos_theta1);
-	RotMat->fvec.x = (dxdr*sin_theta);
+	RotMat->v.rvec.xyz.x = cos_theta + (dydr*dydr)*cos_theta1;
+	RotMat->v.uvec.xyz.x = - ((dxdr*dydr)*cos_theta1);
+	RotMat->v.fvec.xyz.x = (dxdr*sin_theta);
 
-	RotMat->rvec.y = RotMat->uvec.x;
-	RotMat->uvec.y = cos_theta + ((dxdr*dxdr)*cos_theta1);
-	RotMat->fvec.y = (dydr*sin_theta);
+	RotMat->v.rvec.xyz.y = RotMat->v.uvec.xyz.x;
+	RotMat->v.uvec.xyz.y = cos_theta + ((dxdr*dxdr)*cos_theta1);
+	RotMat->v.fvec.xyz.y = (dydr*sin_theta);
 
-	RotMat->rvec.z = -RotMat->fvec.x;
-	RotMat->uvec.z = -RotMat->fvec.y;
-	RotMat->fvec.z = cos_theta;
+	RotMat->v.rvec.xyz.z = -RotMat->v.fvec.xyz.x;
+	RotMat->v.uvec.xyz.z = -RotMat->v.fvec.xyz.y;
+	RotMat->v.fvec.xyz.z = cos_theta;
 }
 
 //	Compute the outer product of A = A * transpose(A).  1x3 vector becomes 3x3 matrix.
 void vm_vec_outer_product(matrix *mat, vector *vec)
 {
-	mat->rvec.x = vec->x * vec->x;
-	mat->rvec.y = vec->x * vec->y;
-	mat->rvec.z = vec->x * vec->z;
+	mat->v.rvec.xyz.x = vec->xyz.x * vec->xyz.x;
+	mat->v.rvec.xyz.y = vec->xyz.x * vec->xyz.y;
+	mat->v.rvec.xyz.z = vec->xyz.x * vec->xyz.z;
 
-	mat->uvec.x = vec->y * vec->x;
-	mat->uvec.y = vec->y * vec->y;
-	mat->uvec.z = vec->y * vec->z;
+	mat->v.uvec.xyz.x = vec->xyz.y * vec->xyz.x;
+	mat->v.uvec.xyz.y = vec->xyz.y * vec->xyz.y;
+	mat->v.uvec.xyz.z = vec->xyz.y * vec->xyz.z;
 
-	mat->fvec.x = vec->z * vec->x;
-	mat->fvec.y = vec->z * vec->y;
-	mat->fvec.z = vec->z * vec->z;
+	mat->v.fvec.xyz.x = vec->xyz.z * vec->xyz.x;
+	mat->v.fvec.xyz.y = vec->xyz.z * vec->xyz.y;
+	mat->v.fvec.xyz.z = vec->xyz.z * vec->xyz.z;
 }
 
 //	Find the point on the line between p0 and p1 that is nearest to int_pnt.
@@ -1405,38 +1408,38 @@ void vm_orthogonalize_matrix(matrix *m_src)
 	matrix tempm;
 	matrix * m = &tempm;
 
-	if (vm_vec_copy_normalize(&m->fvec,&m_src->fvec) == 0.0f) {
+	if (vm_vec_copy_normalize(&m->v.fvec,&m_src->v.fvec) == 0.0f) {
 		Error( LOCATION, "forward vec should not be zero-length" );
 	}
 
-	umag = vm_vec_mag(&m_src->uvec);
-	rmag = vm_vec_mag(&m_src->rvec);
+	umag = vm_vec_mag(&m_src->v.uvec);
+	rmag = vm_vec_mag(&m_src->v.rvec);
 	if (umag <= 0.0f) {  // no up vector to use..
 		if (rmag <= 0.0f) {  // no right vector either, so make something up
-			if (!m->fvec.x && !m->fvec.z && m->fvec.y)  // vertical vector
-				vm_vec_make(&m->uvec, 0.0f, 0.0f, 1.0f);
+			if (!m->v.fvec.xyz.x && !m->v.fvec.xyz.z && m->v.fvec.xyz.y)  // vertical vector
+				vm_vec_make(&m->v.uvec, 0.0f, 0.0f, 1.0f);
 			else
-				vm_vec_make(&m->uvec, 0.0f, 1.0f, 0.0f);
+				vm_vec_make(&m->v.uvec, 0.0f, 1.0f, 0.0f);
 
 		} else {  // use the right vector to figure up vector
-			vm_vec_crossprod(&m->uvec, &m->fvec, &m_src->rvec);
-			if (vm_vec_normalize(&m->uvec) == 0.0f)
+			vm_vec_crossprod(&m->v.uvec, &m->v.fvec, &m_src->v.rvec);
+			if (vm_vec_normalize(&m->v.uvec) == 0.0f)
 				Error( LOCATION, "Bad vector!" );
 		}
 
 	} else {  // use source up vector
-		vm_vec_copy_normalize(&m->uvec, &m_src->uvec);
+		vm_vec_copy_normalize(&m->v.uvec, &m_src->v.uvec);
 	}
 
 	// use forward and up vectors as good vectors to calculate right vector
-	vm_vec_crossprod(&m->rvec, &m->uvec, &m->fvec);
+	vm_vec_crossprod(&m->v.rvec, &m->v.uvec, &m->v.fvec);
 		
 	//normalize new perpendicular vector
-	if (vm_vec_normalize(&m->rvec) == 0.0f)
+	if (vm_vec_normalize(&m->v.rvec) == 0.0f)
 		Error( LOCATION, "Bad vector!" );
 
 	//now recompute up vector, in case it wasn't entirely perpendiclar
-	vm_vec_crossprod(&m->uvec, &m->fvec, &m->rvec);
+	vm_vec_crossprod(&m->v.uvec, &m->v.fvec, &m->v.rvec);
 	*m_src = tempm;
 }
 
@@ -1446,50 +1449,50 @@ void vm_fix_matrix(matrix *m)
 {
 	float fmag, umag, rmag;
 
-	fmag = vm_vec_mag(&m->fvec);
-	umag = vm_vec_mag(&m->uvec);
-	rmag = vm_vec_mag(&m->rvec);
+	fmag = vm_vec_mag(&m->v.fvec);
+	umag = vm_vec_mag(&m->v.uvec);
+	rmag = vm_vec_mag(&m->v.rvec);
 	if (fmag <= 0.0f) {
-		if ((umag > 0.0f) && (rmag > 0.0f) && !vm_test_parallel(&m->uvec, &m->rvec)) {
-			vm_vec_crossprod(&m->fvec, &m->uvec, &m->rvec);
-			vm_vec_normalize(&m->fvec);
+		if ((umag > 0.0f) && (rmag > 0.0f) && !vm_test_parallel(&m->v.uvec, &m->v.rvec)) {
+			vm_vec_crossprod(&m->v.fvec, &m->v.uvec, &m->v.rvec);
+			vm_vec_normalize(&m->v.fvec);
 
 		} else if (umag > 0.0f) {
-			if (!m->uvec.x && !m->uvec.y && m->uvec.z)  // z vector
-				vm_vec_make(&m->fvec, 1.0f, 0.0f, 0.0f);
+			if (!m->v.uvec.xyz.x && !m->v.uvec.xyz.y && m->v.uvec.xyz.z)  // z vector
+				vm_vec_make(&m->v.fvec, 1.0f, 0.0f, 0.0f);
 			else
-				vm_vec_make(&m->fvec, 0.0f, 0.0f, 1.0f);
+				vm_vec_make(&m->v.fvec, 0.0f, 0.0f, 1.0f);
 		}
 
 	} else
-		vm_vec_normalize(&m->fvec);
+		vm_vec_normalize(&m->v.fvec);
 
 	// we now have a valid and normalized forward vector
 
-	if ((umag <= 0.0f) || vm_test_parallel(&m->fvec, &m->uvec)) {  // no up vector to use..
-		if ((rmag <= 0.0f) || vm_test_parallel(&m->fvec, &m->rvec)) {  // no right vector either, so make something up
-			if (!m->fvec.x && m->fvec.y && !m->fvec.z)  // vertical vector
-				vm_vec_make(&m->uvec, 0.0f, 0.0f, -1.0f);
+	if ((umag <= 0.0f) || vm_test_parallel(&m->v.fvec, &m->v.uvec)) {  // no up vector to use..
+		if ((rmag <= 0.0f) || vm_test_parallel(&m->v.fvec, &m->v.rvec)) {  // no right vector either, so make something up
+			if (!m->v.fvec.xyz.x && m->v.fvec.xyz.y && !m->v.fvec.xyz.z)  // vertical vector
+				vm_vec_make(&m->v.uvec, 0.0f, 0.0f, -1.0f);
 			else
-				vm_vec_make(&m->uvec, 0.0f, 1.0f, 0.0f);
+				vm_vec_make(&m->v.uvec, 0.0f, 1.0f, 0.0f);
 
 		} else {  // use the right vector to figure up vector
-			vm_vec_crossprod(&m->uvec, &m->fvec, &m->rvec);
-			vm_vec_normalize(&m->uvec);
+			vm_vec_crossprod(&m->v.uvec, &m->v.fvec, &m->v.rvec);
+			vm_vec_normalize(&m->v.uvec);
 		}
 
 	} else
-		vm_vec_normalize(&m->uvec);
+		vm_vec_normalize(&m->v.uvec);
 
 	// we now have both valid and normalized forward and up vectors
 
-	vm_vec_crossprod(&m->rvec, &m->uvec, &m->fvec);
+	vm_vec_crossprod(&m->v.rvec, &m->v.uvec, &m->v.fvec);
 		
 	//normalize new perpendicular vector
-	vm_vec_normalize(&m->rvec);
+	vm_vec_normalize(&m->v.rvec);
 
 	//now recompute up vector, in case it wasn't entirely perpendiclar
-	vm_vec_crossprod(&m->uvec, &m->fvec, &m->rvec);
+	vm_vec_crossprod(&m->v.uvec, &m->v.fvec, &m->v.rvec);
 }
 
 //Rotates the orient matrix by the angles in tangles and then
@@ -1523,27 +1526,27 @@ void compute_point_on_plane(vector *q, plane *planep, vector *p)
 	float	k, tv;
 	vector	normal;
 
-	normal.x = planep->A;
-	normal.y = planep->B;
-	normal.z = planep->C;
+	normal.xyz.x = planep->A;
+	normal.xyz.y = planep->B;
+	normal.xyz.z = planep->C;
 
 	k = (planep->D + vm_vec_dot(&normal, p)) / vm_vec_dot(&normal, &normal);
 
 	vm_vec_scale_add(q, p, &normal, -k);
 
-	tv = planep->A * q->x + planep->B * q->y + planep->C * q->z + planep->D;
+	tv = planep->A * q->xyz.x + planep->B * q->xyz.y + planep->C * q->xyz.z + planep->D;
 }
 
 
 //	Generate a fairly random vector that's fairly near normalized.
 void vm_vec_rand_vec_quick(vector *rvec)
 {
-	rvec->x = (frand() - 0.5f) * 2;
-	rvec->y = (frand() - 0.5f) * 2;
-	rvec->z = (frand() - 0.5f) * 2;
+	rvec->xyz.x = (frand() - 0.5f) * 2;
+	rvec->xyz.y = (frand() - 0.5f) * 2;
+	rvec->xyz.z = (frand() - 0.5f) * 2;
 
 	if (IS_VEC_NULL(rvec))
-		rvec->x = 1.0f;
+		rvec->xyz.x = 1.0f;
 
 	vm_vec_normalize_quick(rvec);
 }
@@ -1587,9 +1590,9 @@ int vm_vec_cmp( vector * a, vector * b )
 int vm_matrix_cmp( matrix * a, matrix * b )
 {
 	float tmp1,tmp2,tmp3;
-	tmp1 = (float)fl_abs(vm_vec_dot( &a->uvec, &b->uvec ) - 1.0f);
-	tmp2 = (float)fl_abs(vm_vec_dot( &a->fvec, &b->fvec ) - 1.0f);
-	tmp3 = (float)fl_abs(vm_vec_dot( &a->rvec, &b->rvec ) - 1.0f);
+	tmp1 = (float)fl_abs(vm_vec_dot( &a->v.uvec, &b->v.uvec ) - 1.0f);
+	tmp2 = (float)fl_abs(vm_vec_dot( &a->v.fvec, &b->v.fvec ) - 1.0f);
+	tmp3 = (float)fl_abs(vm_vec_dot( &a->v.rvec, &b->v.rvec ) - 1.0f);
 //	mprintf(( "Mat=%.16f, %.16f, %.16f\n", tmp1, tmp2, tmp3 ));
 	 
 	if ( tmp1 > 0.0000005f ) return 1;
@@ -1636,18 +1639,18 @@ void vm_interp_angle( float *h, float desired_angle, float step_size )
 // check a matrix for zero rows and columns
 int vm_check_matrix_for_zeros(matrix *m)
 {
-	if (!m->fvec.x && !m->fvec.y && !m->fvec.z)
+	if (!m->v.fvec.xyz.x && !m->v.fvec.xyz.y && !m->v.fvec.xyz.z)
 		return 1;
-	if (!m->rvec.x && !m->rvec.y && !m->rvec.z)
+	if (!m->v.rvec.xyz.x && !m->v.rvec.xyz.y && !m->v.rvec.xyz.z)
 		return 1;
-	if (!m->uvec.x && !m->uvec.y && !m->uvec.z)
+	if (!m->v.uvec.xyz.x && !m->v.uvec.xyz.y && !m->v.uvec.xyz.z)
 		return 1;
 
-	if (!m->fvec.x && !m->rvec.x && !m->uvec.x)
+	if (!m->v.fvec.xyz.x && !m->v.rvec.xyz.x && !m->v.uvec.xyz.x)
 		return 1;
-	if (!m->fvec.y && !m->rvec.y && !m->uvec.y)
+	if (!m->v.fvec.xyz.y && !m->v.rvec.xyz.y && !m->v.uvec.xyz.y)
 		return 1;
-	if (!m->fvec.z && !m->rvec.z && !m->uvec.z)
+	if (!m->v.fvec.xyz.z && !m->v.rvec.xyz.z && !m->v.uvec.xyz.z)
 		return 1;
 
 	return 0;
@@ -1656,7 +1659,7 @@ int vm_check_matrix_for_zeros(matrix *m)
 // see if two vectors are the same
 int vm_vec_same(vector *v1, vector *v2)
 {
-	if ( v1->x == v2->x && v1->y == v2->y && v1->z == v2->z )
+	if ( v1->xyz.x == v2->xyz.x && v1->xyz.y == v2->xyz.y && v1->xyz.z == v2->xyz.z )
 		return 1;
 
 	return 0;
@@ -1677,23 +1680,23 @@ void vm_quaternion_rotate(matrix *M, float theta, vector *u)
 
 	float a,b,c, s;
 
-	a = (float) (u->x * sin(theta * 0.5f));
-	b = (float) (u->y * sin(theta * 0.5f));
-	c = (float) (u->z * sin(theta * 0.5f));
+	a = (float) (u->xyz.x * sin(theta * 0.5f));
+	b = (float) (u->xyz.y * sin(theta * 0.5f));
+	c = (float) (u->xyz.z * sin(theta * 0.5f));
 	s = (float) cos(theta/2.0);
 
 // 1st ROW vector
-	M->rvec.x = 1.0f - 2.0f*b*b - 2.0f*c*c;
-	M->rvec.y = 2.0f*a*b + 2.0f*s*c;
-	M->rvec.z = 2.0f*a*c - 2.0f*s*b;
+	M->v.rvec.xyz.x = 1.0f - 2.0f*b*b - 2.0f*c*c;
+	M->v.rvec.xyz.y = 2.0f*a*b + 2.0f*s*c;
+	M->v.rvec.xyz.z = 2.0f*a*c - 2.0f*s*b;
 // 2nd ROW vector
-	M->uvec.x = 2.0f*a*b - 2.0f*s*c;
-	M->uvec.y = 1.0f - 2.0f*a*a - 2.0f*c*c;
-	M->uvec.z = 2.0f*b*c + 2.0f*s*a;
+	M->v.uvec.xyz.x = 2.0f*a*b - 2.0f*s*c;
+	M->v.uvec.xyz.y = 1.0f - 2.0f*a*a - 2.0f*c*c;
+	M->v.uvec.xyz.z = 2.0f*b*c + 2.0f*s*a;
 // 3rd ROW vector
-	M->fvec.x = 2.0f*a*c + 2.0f*s*b;
-	M->fvec.y = 2.0f*b*c - 2.0f*s*a;
-	M->fvec.z = 1.0f - 2.0f*a*a - 2.0f*b*b;
+	M->v.fvec.xyz.x = 2.0f*a*c + 2.0f*s*b;
+	M->v.fvec.xyz.y = 2.0f*b*c - 2.0f*s*a;
+	M->v.fvec.xyz.z = 1.0f - 2.0f*a*a - 2.0f*b*b;
 }
 
 // --------------------------------------------------------------------------------------
@@ -1705,17 +1708,17 @@ void vm_quaternion_rotate(matrix *M, float theta, vector *u)
 //
 void rotate_z ( matrix *m, float theta )
 {
-	m->rvec.x = (float) cos (theta);
-	m->rvec.y = (float) sin (theta);
-	m->rvec.z = 0.0f;
+	m->v.rvec.xyz.x = (float) cos (theta);
+	m->v.rvec.xyz.y = (float) sin (theta);
+	m->v.rvec.xyz.z = 0.0f;
 
-	m->uvec.x = -m->rvec.y;
-	m->uvec.y =  m->rvec.x;
-	m->uvec.z = 0.0f;
+	m->v.uvec.xyz.x = -m->v.rvec.xyz.y;
+	m->v.uvec.xyz.y =  m->v.rvec.xyz.x;
+	m->v.uvec.xyz.z = 0.0f;
 
-	m->fvec.x = 0.0f;
-	m->fvec.y = 0.0f;
-	m->fvec.z = 1.0f;
+	m->v.fvec.xyz.x = 0.0f;
+	m->v.fvec.xyz.y = 0.0f;
+	m->v.fvec.xyz.z = 1.0f;
 }
 
 
@@ -1742,9 +1745,9 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 		*theta = float(acos(cos_theta));
 		Assert(!_isnan(*theta));
 
-		rot_axis->x = (m->uvec.z - m->fvec.y);
-		rot_axis->y = (m->fvec.x - m->rvec.z);
-		rot_axis->z = (m->rvec.y - m->uvec.x);
+		rot_axis->xyz.x = (m->v.uvec.xyz.z - m->v.fvec.xyz.y);
+		rot_axis->xyz.y = (m->v.fvec.xyz.x - m->v.rvec.xyz.z);
+		rot_axis->xyz.z = (m->v.rvec.xyz.y - m->v.uvec.xyz.x);
 		vm_vec_normalize(rot_axis);
 	} else { // angle is PI within limits
 		*theta = PI;
@@ -1762,31 +1765,31 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 		switch (largest_diagonal_index) {
 		case 0:
 			float ix;
-			ix = 1.0f / rot_axis->x;
+			ix = 1.0f / rot_axis->xyz.x;
 
-			rot_axis->x = fl_sqrt(m->a2d[0][0] + 1.0f);
-			rot_axis->y = m->a2d[0][1] * ix;
-			rot_axis->z = m->a2d[0][2] * ix;
+			rot_axis->xyz.x = fl_sqrt(m->a2d[0][0] + 1.0f);
+			rot_axis->xyz.y = m->a2d[0][1] * ix;
+			rot_axis->xyz.z = m->a2d[0][2] * ix;
 			vm_vec_normalize(rot_axis);
 			break;
 
 		case 1:
 			float iy;
-			iy = 1.0f / rot_axis->y;
+			iy = 1.0f / rot_axis->xyz.y;
 
-			rot_axis->y = fl_sqrt(m->a2d[1][1] + 1.0f);
-			rot_axis->x = m->a2d[1][0] * iy;
-			rot_axis->z = m->a2d[1][2] * iy;
+			rot_axis->xyz.y = fl_sqrt(m->a2d[1][1] + 1.0f);
+			rot_axis->xyz.x = m->a2d[1][0] * iy;
+			rot_axis->xyz.z = m->a2d[1][2] * iy;
 			vm_vec_normalize(rot_axis);
 			break;
 
 		case 2:
 			float iz;
-			iz = 1.0f / rot_axis->z;
+			iz = 1.0f / rot_axis->xyz.z;
 
-			rot_axis->z = fl_sqrt(m->a2d[2][2] + 1.0f);
-			rot_axis->x = m->a2d[2][0] * iz;
-			rot_axis->y = m->a2d[2][1] * iz;
+			rot_axis->xyz.z = fl_sqrt(m->a2d[2][2] + 1.0f);
+			rot_axis->xyz.x = m->a2d[2][0] * iz;
+			rot_axis->xyz.y = m->a2d[2][1] * iz;
 			break;
 
 		default:
@@ -2004,93 +2007,93 @@ void vm_matrix_interpolate(matrix *goal_orient, matrix *curr_orient, vector *w_i
 	float delta_theta;
 
 	// find rotation about x
-	if (theta_goal.x > 0) {
-		if (w_in->x >= 0) {
-			delta_theta = approach(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
-		} else { // w_in->x < 0
-			delta_theta = away(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
+	if (theta_goal.xyz.x > 0) {
+		if (w_in->xyz.x >= 0) {
+			delta_theta = approach(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
+		} else { // w_in->xyz.x < 0
+			delta_theta = away(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
 		}
-	} else if (theta_goal.x < 0) {
-		if (w_in->x <= 0) {
-			delta_theta = approach(-w_in->x, vel_limit->x, -theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
-		} else { // w_in->x > 0
-			delta_theta = away(-w_in->x, vel_limit->x, -theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
+	} else if (theta_goal.xyz.x < 0) {
+		if (w_in->xyz.x <= 0) {
+			delta_theta = approach(-w_in->xyz.x, vel_limit->xyz.x, -theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
+		} else { // w_in->xyz.x > 0
+			delta_theta = away(-w_in->xyz.x, vel_limit->xyz.x, -theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
 		}
 	} else { // theta_goal == 0
-		if (w_in->x < 0) {
-			delta_theta = away(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
+		if (w_in->xyz.x < 0) {
+			delta_theta = away(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
 		} else {
-			delta_theta = away(-w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
+			delta_theta = away(-w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
 		}
 	}
 
 
 	// find rotation about y
-	if (theta_goal.y > 0) {
-		if (w_in->y >= 0) {
-			delta_theta = approach(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
-		} else { // w_in->y < 0
-			delta_theta = away(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
+	if (theta_goal.xyz.y > 0) {
+		if (w_in->xyz.y >= 0) {
+			delta_theta = approach(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
+		} else { // w_in->xyz.y < 0
+			delta_theta = away(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
 		}
-	} else if (theta_goal.y < 0) {
-		if (w_in->y <= 0) {
-			delta_theta = approach(-w_in->y, vel_limit->y, -theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
-		} else { // w_in->y > 0
-			delta_theta = away(-w_in->y, vel_limit->y, -theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
+	} else if (theta_goal.xyz.y < 0) {
+		if (w_in->xyz.y <= 0) {
+			delta_theta = approach(-w_in->xyz.y, vel_limit->xyz.y, -theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
+		} else { // w_in->xyz.y > 0
+			delta_theta = away(-w_in->xyz.y, vel_limit->xyz.y, -theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
 		}
 	} else { // theta_goal == 0
-		if (w_in->y < 0) {
-			delta_theta = away(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
+		if (w_in->xyz.y < 0) {
+			delta_theta = away(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
 		} else {
-			delta_theta = away(-w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
+			delta_theta = away(-w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
 		}
 	}
 
 	// find rotation about z
-	if (theta_goal.z > 0) {
-		if (w_in->z >= 0) {
-			delta_theta = approach(w_in->z, vel_limit->z, theta_goal.z, acc_limit->z, delta_t, &w_out->z, no_overshoot);
-			theta_end.z = delta_theta;
-		} else { // w_in->z < 0
-			delta_theta = away(w_in->z, vel_limit->z, theta_goal.z, acc_limit->z, delta_t, &w_out->z, no_overshoot);
-			theta_end.z = delta_theta;
+	if (theta_goal.xyz.z > 0) {
+		if (w_in->xyz.z >= 0) {
+			delta_theta = approach(w_in->xyz.z, vel_limit->xyz.z, theta_goal.xyz.z, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
+			theta_end.xyz.z = delta_theta;
+		} else { // w_in->xyz.z < 0
+			delta_theta = away(w_in->xyz.z, vel_limit->xyz.z, theta_goal.xyz.z, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
+			theta_end.xyz.z = delta_theta;
 		}
-	} else if (theta_goal.z < 0) {
-		if (w_in->z <= 0) {
-			delta_theta = approach(-w_in->z, vel_limit->z, -theta_goal.z, acc_limit->z, delta_t, &w_out->z, no_overshoot);
-			theta_end.z = -delta_theta;
-			w_out->z = -w_out->z;
-		} else { // w_in->z > 0
-			delta_theta = away(-w_in->z, vel_limit->z, -theta_goal.z, acc_limit->z, delta_t, &w_out->z, no_overshoot);
-			theta_end.z = -delta_theta;
-			w_out->z = -w_out->z;
+	} else if (theta_goal.xyz.z < 0) {
+		if (w_in->xyz.z <= 0) {
+			delta_theta = approach(-w_in->xyz.z, vel_limit->xyz.z, -theta_goal.xyz.z, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
+			theta_end.xyz.z = -delta_theta;
+			w_out->xyz.z = -w_out->xyz.z;
+		} else { // w_in->xyz.z > 0
+			delta_theta = away(-w_in->xyz.z, vel_limit->xyz.z, -theta_goal.xyz.z, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
+			theta_end.xyz.z = -delta_theta;
+			w_out->xyz.z = -w_out->xyz.z;
 		}
 	} else { // theta_goal == 0
-		if (w_in->z < 0) {
-			delta_theta = away(w_in->z, vel_limit->z, theta_goal.z, acc_limit->z, delta_t, &w_out->z, no_overshoot);
-			theta_end.z = delta_theta;
+		if (w_in->xyz.z < 0) {
+			delta_theta = away(w_in->xyz.z, vel_limit->xyz.z, theta_goal.xyz.z, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
+			theta_end.xyz.z = delta_theta;
 		} else {
-			delta_theta = away(-w_in->z, vel_limit->z, theta_goal.z, acc_limit->z, delta_t, &w_out->z, no_overshoot);
-			theta_end.z = -delta_theta;
-			w_out->z = -w_out->z;
+			delta_theta = away(-w_in->xyz.z, vel_limit->xyz.z, theta_goal.xyz.z, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
+			theta_end.xyz.z = -delta_theta;
+			w_out->xyz.z = -w_out->xyz.z;
 		}
 	}
 
@@ -2105,7 +2108,7 @@ void vm_matrix_interpolate(matrix *goal_orient, matrix *curr_orient, vector *w_i
 	theta = vm_vec_normalize(&rot_axis);
 
 	// arrived at goal?
-	if (theta_end.x == theta_goal.x && theta_end.y == theta_goal.y && theta_end.z == theta_goal.z) {
+	if (theta_end.xyz.x == theta_goal.xyz.x && theta_end.xyz.y == theta_goal.xyz.y && theta_end.xyz.z == theta_goal.xyz.z) {
 		*next_orient = *goal_orient;
 	} else {
 	// otherwise rotate to better position
@@ -2136,9 +2139,9 @@ void get_camera_limits(matrix *start_camera, matrix *end_camera, float time, vec
 	vm_matrix_to_rot_axis_and_angle(&rot_matrix, &theta, &rot_axis);
 
 	// find the rotation about each axis
-	angle.x = theta * rot_axis.x;
-	angle.y = theta * rot_axis.y;
-	angle.z = theta * rot_axis.z;
+	angle.xyz.x = theta * rot_axis.xyz.x;
+	angle.xyz.y = theta * rot_axis.xyz.y;
+	angle.xyz.z = theta * rot_axis.xyz.z;
 
 	// allow for 0 time input
 	if (time <= 1e-5f) {
@@ -2148,15 +2151,15 @@ void get_camera_limits(matrix *start_camera, matrix *end_camera, float time, vec
 
 		// find acceleration limit using  (theta/2) takes (time/2)
 		// and using const accel  theta = 1/2 acc * time^2
-		acc_max->x = 4.0f * (float)fl_abs(angle.x) / (time * time);
-		acc_max->y = 4.0f * (float)fl_abs(angle.y) / (time * time);
-		acc_max->z = 4.0f * (float)fl_abs(angle.z) / (time * time);
+		acc_max->xyz.x = 4.0f * (float)fl_abs(angle.xyz.x) / (time * time);
+		acc_max->xyz.y = 4.0f * (float)fl_abs(angle.xyz.y) / (time * time);
+		acc_max->xyz.z = 4.0f * (float)fl_abs(angle.xyz.z) / (time * time);
 
 		// find angular velocity limits
 		// w_max = acc_max * time / 2
-		w_max->x = acc_max->x * time / 2.0f;
-		w_max->y = acc_max->y * time / 2.0f;
-		w_max->z = acc_max->z * time / 2.0f;
+		w_max->xyz.x = acc_max->xyz.x * time / 2.0f;
+		w_max->xyz.y = acc_max->xyz.y * time / 2.0f;
+		w_max->xyz.z = acc_max->xyz.z * time / 2.0f;
 	}
 }
 
@@ -2188,20 +2191,20 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 	float		bank;					// magnitude of rotation about the forward axis
 	int		no_bank;				// flag set if there is no bank for the object
 	vector	vtemp;				// temp angular velocity before rotation about z
-	float		z_dotprod;			// dotprod of orient->fvec and goal_orient->fvec
-	float		r_dotprod;			// dotprod of orient->rvec and goal_orient->rvec
+	float		z_dotprod;			// dotprod of orient->v.fvec and goal_orient->v.fvec
+	float		r_dotprod;			// dotprod of orient->v.rvec and goal_orient->v.rvec
 	float		delta_bank;
 
 	//	FIND XY ROTATION NEEDED FOR GOAL
-	// rotation vector is (current fvec)  orient->fvec x goal_f
+	// rotation vector is (current fvec)  orient->v.fvec x goal_f
 	// magnitude = asin ( magnitude of crossprod )
-	vm_vec_crossprod ( &rot_axis, &orient->fvec, &goal_orient->fvec );
+	vm_vec_crossprod ( &rot_axis, &orient->v.fvec, &goal_orient->v.fvec );
 
 	float t = vm_vec_mag(&rot_axis);
 	if (t > 1.0f)
 		t = 1.0f;
 
-	z_dotprod = vm_vec_dotprod ( &orient->fvec, &goal_orient->fvec );
+	z_dotprod = vm_vec_dotprod ( &orient->v.fvec, &goal_orient->v.fvec );
 
 	if ( t < SMALLER_NUM )  {
 		if ( z_dotprod > 0.0f )
@@ -2209,7 +2212,7 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 		else  {  // the forward vector is pointing exactly opposite of goal
 					// arbitrarily choose the x axis to rotate around until t becomes large enough
 			theta = PI;
-			rot_axis = orient->rvec;
+			rot_axis = orient->v.rvec;
 		}
 	} else {
 		theta = (float) asin ( t );
@@ -2223,73 +2226,73 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 
 	// find theta to goal
 	vm_vec_copy_scale(&theta_goal, &local_rot_axis, theta);
-	Assert ( fl_abs (theta_goal.z) < 0.001f );		// check for proper rotation
+	Assert ( fl_abs (theta_goal.xyz.z) < 0.001f );		// check for proper rotation
 
 	theta_end = vmd_zero_vector;
 	float delta_theta;
 
 	// find rotation about x
-	if (theta_goal.x > 0) {
-		if (w_in->x >= 0) {
-			delta_theta = approach(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
-		} else { // w_in->x < 0
-			delta_theta = away(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
+	if (theta_goal.xyz.x > 0) {
+		if (w_in->xyz.x >= 0) {
+			delta_theta = approach(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
+		} else { // w_in->xyz.x < 0
+			delta_theta = away(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
 		}
-	} else if (theta_goal.x < 0) {
-		if (w_in->x <= 0) {
-			delta_theta = approach(-w_in->x, vel_limit->x, -theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
-		} else { // w_in->x > 0
-			delta_theta = away(-w_in->x, vel_limit->x, -theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
+	} else if (theta_goal.xyz.x < 0) {
+		if (w_in->xyz.x <= 0) {
+			delta_theta = approach(-w_in->xyz.x, vel_limit->xyz.x, -theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
+		} else { // w_in->xyz.x > 0
+			delta_theta = away(-w_in->xyz.x, vel_limit->xyz.x, -theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
 		}
 	} else { // theta_goal == 0
-		if (w_in->x < 0) {
-			delta_theta = away(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
+		if (w_in->xyz.x < 0) {
+			delta_theta = away(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
 		} else {
-			delta_theta = away(-w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
+			delta_theta = away(-w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
 		}
 	}
 
 	// find rotation about y
-	if (theta_goal.y > 0) {
-		if (w_in->y >= 0) {
-			delta_theta = approach(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
-		} else { // w_in->y < 0
-			delta_theta = away(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
+	if (theta_goal.xyz.y > 0) {
+		if (w_in->xyz.y >= 0) {
+			delta_theta = approach(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
+		} else { // w_in->xyz.y < 0
+			delta_theta = away(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
 		}
-	} else if (theta_goal.y < 0) {
-		if (w_in->y <= 0) {
-			delta_theta = approach(-w_in->y, vel_limit->y, -theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
-		} else { // w_in->y > 0
-			delta_theta = away(-w_in->y, vel_limit->y, -theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
+	} else if (theta_goal.xyz.y < 0) {
+		if (w_in->xyz.y <= 0) {
+			delta_theta = approach(-w_in->xyz.y, vel_limit->xyz.y, -theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
+		} else { // w_in->xyz.y > 0
+			delta_theta = away(-w_in->xyz.y, vel_limit->xyz.y, -theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
 		}
 	} else { // theta_goal == 0
-		if (w_in->y < 0) {
-			delta_theta = away(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
+		if (w_in->xyz.y < 0) {
+			delta_theta = away(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
 		} else {
-			delta_theta = away(-w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
+			delta_theta = away(-w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
 		}
 	}
 
 	// FIND Z ROTATON MATRIX
-	theta_end.z = 0.0f;
+	theta_end.xyz.z = 0.0f;
 	rot_axis = theta_end;
 	Assert(is_valid_vec(&rot_axis));
 
@@ -2309,29 +2312,29 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 
 	// FIND ROTATION ABOUT Z (IF ANY)
 	// no rotation if delta_bank and w_in both 0 or rotational acc in forward is 0
-	no_bank = ( acc_limit->z == 0.0f && vel_limit->z == 0.0f );
+	no_bank = ( acc_limit->xyz.z == 0.0f && vel_limit->xyz.z == 0.0f );
 
 	if ( no_bank )  {	// no rotation on z, so we're done (no rotation of w)
 		*next_orient = M_intermed;
 		vm_orthogonalize_matrix ( next_orient );
 		return;
 	} else {
-	// calculate delta_bank using orient->rvec, goal_orient->rvec
+	// calculate delta_bank using orient->v.rvec, goal_orient->v.rvec
 	//
-		vm_vec_crossprod ( &rot_axis, &orient->rvec, &goal_orient->rvec );
+		vm_vec_crossprod ( &rot_axis, &orient->v.rvec, &goal_orient->v.rvec );
 
 		t = vm_vec_mag(&rot_axis);
 		if (t > 1.0f)
 			t = 1.0f;
 
-		r_dotprod = vm_vec_dotprod ( &orient->rvec, &goal_orient->rvec );
+		r_dotprod = vm_vec_dotprod ( &orient->v.rvec, &goal_orient->v.rvec );
 
 		if ( t < SMALLER_NUM )  {
 			if ( r_dotprod > 0.0f )
 				theta = 0.0f;
 			else  {  // the right vector is pointing exactly opposite of goal, so rotate 180 on z
 				theta = PI;
-				rot_axis = orient->fvec;
+				rot_axis = orient->v.fvec;
 			}
 		} else {
 			theta = (float) asin ( t );
@@ -2343,39 +2346,39 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 		// rotate rot_axis into ship reference frame
 		vm_vec_rotate ( &local_rot_axis, &rot_axis, orient );
 
-		// find theta.z to goal
-		delta_bank = local_rot_axis.z * theta;
-		Assert( fl_abs (local_rot_axis.x) < 0.001f );		// check for proper rotation
+		// find theta.xyz.z to goal
+		delta_bank = local_rot_axis.xyz.z * theta;
+		Assert( fl_abs (local_rot_axis.xyz.x) < 0.001f );		// check for proper rotation
 		bank = 0.0f;
 
 	// end calculate delta_bank
 	// find rotation about z
 	if (delta_bank > 0) {
-		if (w_in->z >= 0) {
-			delta_theta = approach(w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+		if (w_in->xyz.z >= 0) {
+			delta_theta = approach(w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 			bank = delta_theta;
-		} else { // w_in->z < 0
-			delta_theta = away(w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+		} else { // w_in->xyz.z < 0
+			delta_theta = away(w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 			bank = delta_theta;
 		}
 	} else if (delta_bank < 0) {
-		if (w_in->z <= 0) {
-			delta_theta = approach(-w_in->z, vel_limit->z, -delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+		if (w_in->xyz.z <= 0) {
+			delta_theta = approach(-w_in->xyz.z, vel_limit->xyz.z, -delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 			bank = -delta_theta;
-			w_out->z = -w_out->z;
-		} else { // w_in->z > 0
-			delta_theta = away(-w_in->z, vel_limit->z, -delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+			w_out->xyz.z = -w_out->xyz.z;
+		} else { // w_in->xyz.z > 0
+			delta_theta = away(-w_in->xyz.z, vel_limit->xyz.z, -delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 			bank = -delta_theta;
-			w_out->z = -w_out->z;
+			w_out->xyz.z = -w_out->xyz.z;
 		}
 	} else { // theta_goal == 0
-		if (w_in->z < 0) {
-			delta_theta = away(w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+		if (w_in->xyz.z < 0) {
+			delta_theta = away(w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 			bank = delta_theta;
 		} else {
-			delta_theta = away(-w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+			delta_theta = away(-w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 			bank = -delta_theta;
-			w_out->z = -w_out->z;
+			w_out->xyz.z = -w_out->xyz.z;
 		}
 	}
 
@@ -2427,15 +2430,15 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 	float z_dotprod;
 
 	// FIND ROTATION NEEDED FOR GOAL
-	// rotation vector is (current fvec)  orient->fvec x goal_f
+	// rotation vector is (current fvec)  orient->v.fvec x goal_f
 	// magnitude = asin ( magnitude of crossprod )
-	vm_vec_crossprod( &rot_axis, &orient->fvec, goal_f );
+	vm_vec_crossprod( &rot_axis, &orient->v.fvec, goal_f );
 
 	float t = vm_vec_mag(&rot_axis);
 	if (t > 1.0f)
 		t = 1.0f;
 
-	z_dotprod = vm_vec_dotprod( &orient->fvec, goal_f );
+	z_dotprod = vm_vec_dotprod( &orient->v.fvec, goal_f );
 
 	if ( t < SMALLER_NUM )  {
 		if ( z_dotprod > 0.0f )
@@ -2443,7 +2446,7 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 		else  {  // the forward vector is pointing exactly opposite of goal
 					// arbitrarily choose the x axis to rotate around until t becomes large enough
 			theta = PI;
-			rot_axis = orient->rvec;
+			rot_axis = orient->v.rvec;
 		}
 	} else {
 		theta = (float) asin( t );
@@ -2457,73 +2460,73 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 
 	// find theta to goal
 	vm_vec_copy_scale(&theta_goal, &local_rot_axis, theta);
-	Assert(fl_abs(theta_goal.z) < 0.001f);		// check for proper rotation
+	Assert(fl_abs(theta_goal.xyz.z) < 0.001f);		// check for proper rotation
 
 	theta_end = vmd_zero_vector;
 	float delta_theta;
 
 	// find rotation about x
-	if (theta_goal.x > 0) {
-		if (w_in->x >= 0) {
-			delta_theta = approach(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
-		} else { // w_in->x < 0
-			delta_theta = away(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
+	if (theta_goal.xyz.x > 0) {
+		if (w_in->xyz.x >= 0) {
+			delta_theta = approach(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
+		} else { // w_in->xyz.x < 0
+			delta_theta = away(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
 		}
-	} else if (theta_goal.x < 0) {
-		if (w_in->x <= 0) {
-			delta_theta = approach(-w_in->x, vel_limit->x, -theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
-		} else { // w_in->x > 0
-			delta_theta = away(-w_in->x, vel_limit->x, -theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
+	} else if (theta_goal.xyz.x < 0) {
+		if (w_in->xyz.x <= 0) {
+			delta_theta = approach(-w_in->xyz.x, vel_limit->xyz.x, -theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
+		} else { // w_in->xyz.x > 0
+			delta_theta = away(-w_in->xyz.x, vel_limit->xyz.x, -theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
 		}
 	} else { // theta_goal == 0
-		if (w_in->x < 0) {
-			delta_theta = away(w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = delta_theta;
+		if (w_in->xyz.x < 0) {
+			delta_theta = away(w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = delta_theta;
 		} else {
-			delta_theta = away(-w_in->x, vel_limit->x, theta_goal.x, acc_limit->x, delta_t, &w_out->x, no_overshoot);
-			theta_end.x = -delta_theta;
-			w_out->x = -w_out->x;
+			delta_theta = away(-w_in->xyz.x, vel_limit->xyz.x, theta_goal.xyz.x, acc_limit->xyz.x, delta_t, &w_out->xyz.x, no_overshoot);
+			theta_end.xyz.x = -delta_theta;
+			w_out->xyz.x = -w_out->xyz.x;
 		}
 	}
 
 	// find rotation about y
-	if (theta_goal.y > 0) {
-		if (w_in->y >= 0) {
-			delta_theta = approach(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
-		} else { // w_in->y < 0
-			delta_theta = away(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
+	if (theta_goal.xyz.y > 0) {
+		if (w_in->xyz.y >= 0) {
+			delta_theta = approach(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
+		} else { // w_in->xyz.y < 0
+			delta_theta = away(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
 		}
-	} else if (theta_goal.y < 0) {
-		if (w_in->y <= 0) {
-			delta_theta = approach(-w_in->y, vel_limit->y, -theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
-		} else { // w_in->y > 0
-			delta_theta = away(-w_in->y, vel_limit->y, -theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
+	} else if (theta_goal.xyz.y < 0) {
+		if (w_in->xyz.y <= 0) {
+			delta_theta = approach(-w_in->xyz.y, vel_limit->xyz.y, -theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
+		} else { // w_in->xyz.y > 0
+			delta_theta = away(-w_in->xyz.y, vel_limit->xyz.y, -theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
 		}
 	} else { // theta_goal == 0
-		if (w_in->y < 0) {
-			delta_theta = away(w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = delta_theta;
+		if (w_in->xyz.y < 0) {
+			delta_theta = away(w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = delta_theta;
 		} else {
-			delta_theta = away(-w_in->y, vel_limit->y, theta_goal.y, acc_limit->y, delta_t, &w_out->y, no_overshoot);
-			theta_end.y = -delta_theta;
-			w_out->y = -w_out->y;
+			delta_theta = away(-w_in->xyz.y, vel_limit->xyz.y, theta_goal.xyz.y, acc_limit->xyz.y, delta_t, &w_out->xyz.y, no_overshoot);
+			theta_end.xyz.y = -delta_theta;
+			w_out->xyz.y = -w_out->xyz.y;
 		}
 	}
 
 	// no rotation if delta_bank and w_in both 0 or rotational acc in forward is 0
-	no_bank = ( delta_bank == 0.0f && vel_limit->z == 0.0f && acc_limit->z == 0.0f );
+	no_bank = ( delta_bank == 0.0f && vel_limit->xyz.z == 0.0f && acc_limit->xyz.z == 0.0f );
 
 	// do rotation about z
 	bank = 0.0f;
@@ -2533,31 +2536,31 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 
 		// find rotation about z
 		if (delta_bank > 0) {
-			if (w_in->z >= 0) {
-				delta_theta = approach(w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+			if (w_in->xyz.z >= 0) {
+				delta_theta = approach(w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 				bank = delta_theta;
-			} else { // w_in->z < 0
-				delta_theta = away(w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+			} else { // w_in->xyz.z < 0
+				delta_theta = away(w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 				bank = delta_theta;
 			}
 		} else if (delta_bank < 0) {
-			if (w_in->z <= 0) {
-				delta_theta = approach(-w_in->z, vel_limit->z, -delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+			if (w_in->xyz.z <= 0) {
+				delta_theta = approach(-w_in->xyz.z, vel_limit->xyz.z, -delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 				bank = -delta_theta;
-				w_out->z = -w_out->z;
-			} else { // w_in->z > 0
-				delta_theta = away(-w_in->z, vel_limit->z, -delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+				w_out->xyz.z = -w_out->xyz.z;
+			} else { // w_in->xyz.z > 0
+				delta_theta = away(-w_in->xyz.z, vel_limit->xyz.z, -delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 				bank = -delta_theta;
-				w_out->z = -w_out->z;
+				w_out->xyz.z = -w_out->xyz.z;
 			}
 		} else { // theta_goal == 0
-			if (w_in->z < 0) {
-				delta_theta = away(w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+			if (w_in->xyz.z < 0) {
+				delta_theta = away(w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 				bank = delta_theta;
 			} else {
-				delta_theta = away(-w_in->z, vel_limit->z, delta_bank, acc_limit->z, delta_t, &w_out->z, no_overshoot);
+				delta_theta = away(-w_in->xyz.z, vel_limit->xyz.z, delta_bank, acc_limit->xyz.z, delta_t, &w_out->xyz.z, no_overshoot);
 				bank = -delta_theta;
-				w_out->z = -w_out->z;
+				w_out->xyz.z = -w_out->xyz.z;
 			}
 		}
 	}
@@ -2565,7 +2568,7 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 	// the amount of rotation about each axis is determined in 
 	// functions approach and away.  first find the magnitude		
 	// of the rotation and then normalize the axis  (ship coords)
-	theta_end.z = bank;
+	theta_end.xyz.z = bank;
 	rot_axis = theta_end;
 
 	//	normalize rotation axis and determine total rotation angle
@@ -2609,22 +2612,22 @@ void vm_find_bounding_sphere(vector *pnts, int num_pnts, vector *center, float *
 	xmax = vmd_zero_vector;
 	ymax = vmd_zero_vector;
 	zmax = vmd_zero_vector;	
-	xmin.x = ymin.y = zmin.z = BIGNUMBER;
-	xmax.x = ymax.y = zmax.z = -BIGNUMBER;
+	xmin.xyz.x = ymin.xyz.y = zmin.xyz.z = BIGNUMBER;
+	xmax.xyz.x = ymax.xyz.y = zmax.xyz.z = -BIGNUMBER;
 
 	for ( i = 0; i < num_pnts; i++ ) {
 		p = &pnts[i];
-		if ( p->x < xmin.x )
+		if ( p->xyz.x < xmin.xyz.x )
 			xmin = *p;
-		if ( p->x > xmax.x )
+		if ( p->xyz.x > xmax.xyz.x )
 			xmax = *p;
-		if ( p->y < ymin.y )
+		if ( p->xyz.y < ymin.xyz.y )
 			ymin = *p;
-		if ( p->y > ymax.y )
+		if ( p->xyz.y > ymax.xyz.y )
 			ymax = *p;
-		if ( p->z < zmin.z )
+		if ( p->xyz.z < zmin.xyz.z )
 			zmin = *p;
-		if ( p->z > zmax.z )
+		if ( p->xyz.z > zmax.xyz.z )
 			zmax = *p;
 	}
 
@@ -2673,10 +2676,10 @@ void vm_find_bounding_sphere(vector *pnts, int num_pnts, vector *center, float *
 			rad_sq = rad * rad;
 			old_to_new = old_to_p - rad;
 			// calc new center of sphere
-			center->x = (rad*center->x + old_to_new*p->x) / old_to_p;
-			center->y = (rad*center->y + old_to_new*p->y) / old_to_p;
-			center->z = (rad*center->z + old_to_new*p->z) / old_to_p;
-			nprintf(("Alan", "New sphere: cen,rad = %f %f %f  %f\n", center->x, center->y, center->z, rad));
+			center->xyz.x = (rad*center->xyz.x + old_to_new*p->xyz.x) / old_to_p;
+			center->xyz.y = (rad*center->xyz.y + old_to_new*p->xyz.y) / old_to_p;
+			center->xyz.z = (rad*center->xyz.z + old_to_new*p->xyz.z) / old_to_p;
+			nprintf(("Alan", "New sphere: cen,rad = %f %f %f  %f\n", center->xyz.x, center->xyz.y, center->xyz.z, rad));
 		}
 	}
 
@@ -2737,13 +2740,13 @@ void vm_estimate_next_orientation(matrix *last_orient, matrix *current_orient, m
 //	Return true if all elements of *vec are legal, that is, not a NAN.
 int is_valid_vec(vector *vec)
 {
-	return !_isnan(vec->x) && !_isnan(vec->y) && !_isnan(vec->z);
+	return !_isnan(vec->xyz.x) && !_isnan(vec->xyz.y) && !_isnan(vec->xyz.z);
 }
 
 //	Return true if all elements of *m are legal, that is, not a NAN.
 int is_valid_matrix(matrix *m)
 {
-	return is_valid_vec(&m->fvec) && is_valid_vec(&m->uvec) && is_valid_vec(&m->rvec);
+	return is_valid_vec(&m->v.fvec) && is_valid_vec(&m->v.uvec) && is_valid_vec(&m->v.rvec);
 }
 
 // interpolate between 2 vectors. t goes from 0.0 to 1.0. at
@@ -2779,13 +2782,13 @@ void vm_vec_random_cone(vector *out, vector *in, float max_angle, matrix *orient
 	}
 	
 	// axis 1
-	vm_rot_point_around_line(&t1, in, fl_radian(frand_range(-max_angle, max_angle)), &vmd_zero_vector, &rot->fvec);
+	vm_rot_point_around_line(&t1, in, fl_radian(frand_range(-max_angle, max_angle)), &vmd_zero_vector, &rot->v.fvec);
 	
 	// axis 2
-	vm_rot_point_around_line(&t2, &t1, fl_radian(frand_range(-max_angle, max_angle)), &vmd_zero_vector, &rot->rvec);
+	vm_rot_point_around_line(&t2, &t1, fl_radian(frand_range(-max_angle, max_angle)), &vmd_zero_vector, &rot->v.rvec);
 
 	// axis 3
-	vm_rot_point_around_line(out, &t2, fl_radian(frand_range(-max_angle, max_angle)), &vmd_zero_vector, &rot->uvec);
+	vm_rot_point_around_line(out, &t2, fl_radian(frand_range(-max_angle, max_angle)), &vmd_zero_vector, &rot->v.uvec);
 }
 
 // given a start vector, an orientation and a radius, give a point on the plane of the circle
@@ -2795,10 +2798,10 @@ void vm_vec_random_in_circle(vector *out, vector *in, matrix *orient, float radi
 	vector temp;
 
 	// point somewhere in the plane
-	vm_vec_scale_add(&temp, in, &orient->rvec, on_edge ? radius : frand_range(0.0f, radius));
+	vm_vec_scale_add(&temp, in, &orient->v.rvec, on_edge ? radius : frand_range(0.0f, radius));
 
 	// rotate to a random point on the circle
-	vm_rot_point_around_line(out, &temp, fl_radian(frand_range(0.0f, 359.0f)), in, &orient->fvec);
+	vm_rot_point_around_line(out, &temp, fl_radian(frand_range(0.0f, 359.0f)), in, &orient->v.fvec);
 }
 
 // find the nearest point on the line to p. if dist is non-NULL, it is filled in

@@ -144,7 +144,7 @@ int cscrew_create(object *obj)
 
 	// get the "center" pointing vector
 	vector neg;
-	neg = obj->orient.uvec;
+	neg = obj->orient.v.uvec;
 	if(Corkscrew_down_first){
 		vm_vec_negate(&neg);
 	}
@@ -225,7 +225,7 @@ void cscrew_process_post(object *objp)
 	twist_val *= flFrametime;	
 	
 	// rotate the missile position
-	vm_rot_point_around_line(&new_pt, &objp->pos, twist_val, &cen, &objp->orient.fvec);	
+	vm_rot_point_around_line(&new_pt, &objp->pos, twist_val, &cen, &objp->orient.v.fvec);
 	objp->pos = new_pt;
 
 	// rotate the missile itself

@@ -15,6 +15,9 @@
  * Routines for ship effects (as in special)
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -578,8 +581,8 @@ static float shipfx_calculate_effect_radius( object *objp )
 
 	polymodel *pm = model_get( shipp->modelnum );
 
-	w = pm->maxs.x - pm->mins.x;
-	h = pm->maxs.y - pm->mins.y;
+	w = pm->maxs.xyz.x - pm->mins.xyz.x;
+	h = pm->maxs.xyz.y - pm->mins.xyz.y;
 	
 	if ( w > h )	{
 		rad = w / 2.0f;
@@ -595,8 +598,8 @@ static float shipfx_calculate_effect_radius( object *objp )
 		
 		pm = model_get( docked_shipp->modelnum );
 		
-		w = pm->maxs.x - pm->mins.x;
-		h = pm->maxs.y - pm->mins.y;
+		w = pm->maxs.xyz.x - pm->mins.xyz.x;
+		h = pm->maxs.xyz.y - pm->mins.xyz.y;
 		
 		if ( w > h )	{
 			rad += w / 2.0f;
@@ -724,9 +727,9 @@ void shipfx_warpin_start( object *objp )
 		Assert(!(Game_mode & GM_MULTIPLAYER));
 		polymodel *pm;
 		pm = model_get(shipp->modelnum);
-		vm_vec_scale_add(&shipp->warp_effect_pos, &objp->pos, &objp->orient.fvec, -pm->mins.z);
+		vm_vec_scale_add(&shipp->warp_effect_pos, &objp->pos, &objp->orient.v.fvec, -pm->mins.xyz.z);
 	} else {
-		vm_vec_scale_add( &shipp->warp_effect_pos, &objp->pos, &objp->orient.fvec, objp->radius );
+		vm_vec_scale_add( &shipp->warp_effect_pos, &objp->pos, &objp->orient.v.fvec, objp->radius );
 	}
 	
 	// The ending zero mean this is a warp-in effect
@@ -751,10 +754,10 @@ void shipfx_warpin_start( object *objp )
 			return;
 		}
 
-		shipp->warp_effect_fvec = Objects[warp_objnum].orient.fvec;
+		shipp->warp_effect_fvec = Objects[warp_objnum].orient.v.fvec;
 		// maybe negate if special warp effect
 		if (shipp->special_warp_objnum >= 0) {
-			if (vm_vec_dotprod(&shipp->warp_effect_fvec, &objp->orient.fvec) < 0) {
+			if (vm_vec_dotprod(&shipp->warp_effect_fvec, &objp->orient.v.fvec) < 0) {
 				vm_vec_negate(&shipp->warp_effect_fvec);
 			}
 		}
@@ -796,13 +799,13 @@ void shipfx_warpin_frame( object *objp, float frametime )
 
 			// Make ship move at velocity so that it moves two radius's in warp_time seconds.
 			vector vel;
-			vel = objp->orient.fvec;
+			vel = objp->orient.v.fvec;
 			vm_vec_scale( &vel, speed );
 			objp->phys_info.vel = vel;
 			objp->phys_info.desired_vel = vel;
-			objp->phys_info.prev_ramp_vel.x = 0.0f;
-			objp->phys_info.prev_ramp_vel.y = 0.0f;
-			objp->phys_info.prev_ramp_vel.z = speed;
+			objp->phys_info.prev_ramp_vel.xyz.x = 0.0f;
+			objp->phys_info.prev_ramp_vel.xyz.y = 0.0f;
+			objp->phys_info.prev_ramp_vel.xyz.z = speed;
 			objp->phys_info.forward_thrust = 0.0f;		// How much the forward thruster is applied.  0-1.
 
 			shipp->final_warp_time = timestamp(fl2i(warp_time*1000.0f));
@@ -904,17 +907,17 @@ int compute_special_warpout_stuff(object *objp, float *speed, float *warp_time, 
 
 	// get facing normal from knossos
 	vm_vec_sub(&vec_to_knossos, &sp_objp->pos, &objp->pos);
-	facing_normal = sp_objp->orient.fvec;
-	if (vm_vec_dotprod(&vec_to_knossos, &sp_objp->orient.fvec) > 0) {
+	facing_normal = sp_objp->orient.v.fvec;
+	if (vm_vec_dotprod(&vec_to_knossos, &sp_objp->orient.v.fvec) > 0) {
 		vm_vec_negate(&facing_normal);
 	}
 
 	// find position to play the warp ani..
-	dist_to_plane = fvi_ray_plane(warp_pos, &sp_objp->pos, &facing_normal, &objp->pos, &objp->orient.fvec, 0.0f);
+	dist_to_plane = fvi_ray_plane(warp_pos, &sp_objp->pos, &facing_normal, &objp->pos, &objp->orient.v.fvec, 0.0f);
 
 	// calculate distance to warpout point.
 	polymodel *pm = model_get(Ships[objp->instance].modelnum);
-	dist_to_plane += pm->mins.z;
+	dist_to_plane += pm->mins.xyz.z;
 
 	if (dist_to_plane < 0) {
 		mprintf(("warpout started too late\n"));
@@ -927,7 +930,7 @@ int compute_special_warpout_stuff(object *objp, float *speed, float *warp_time, 
 		max_warpout_angle = 0.866f;	// 30 degree half-angle cone for BIG or HUGE
 	}
 
-	if (-vm_vec_dotprod(&objp->orient.fvec, &facing_normal) < max_warpout_angle) {	// within allowed angle
+	if (-vm_vec_dotprod(&objp->orient.v.fvec, &facing_normal) < max_warpout_angle) {	// within allowed angle
 		Int3();
 		mprintf(("special warpout angle exceeded\n"));
 		return -1;
@@ -976,7 +979,7 @@ void compute_warpout_stuff(object *objp, float *speed, float *warp_time, vector 
 	*speed = shipfx_calculate_warp_speed(objp);
 
 	if ( objp == Player_obj )	{
-		*speed = 0.8f*objp->phys_info.max_vel.z;
+		*speed = 0.8f*objp->phys_info.max_vel.xyz.z;
 	}
 
 	// Now we know our speed. Figure out how far the warp effect will be from here.  
@@ -997,10 +1000,10 @@ void compute_warpout_stuff(object *objp, float *speed, float *warp_time, vector 
 	// allow for off center
 	if (Ship_info[Ships[objp->instance].ship_info_index].flags & SIF_HUGE_SHIP) {
 		polymodel *pm = model_get(Ships[objp->instance].modelnum);
-		warp_dist -= pm->mins.z;
+		warp_dist -= pm->mins.xyz.z;
 	}
 
-	vm_vec_scale_add( warp_pos, &center_pos, &objp->orient.fvec, warp_dist );
+	vm_vec_scale_add( warp_pos, &center_pos, &objp->orient.v.fvec, warp_dist );
 }
 
 // JAS - code to start the ship doing the warp out effect
@@ -1080,10 +1083,10 @@ void shipfx_warpout_start( object *objp )
 		return;
 	}
 
-	shipp->warp_effect_fvec = Objects[warp_objnum].orient.fvec;
+	shipp->warp_effect_fvec = Objects[warp_objnum].orient.v.fvec;
 	// maybe negate if special warp effect
 	if (shipp->special_warp_objnum >= 0) {
-		if (vm_vec_dotprod(&shipp->warp_effect_fvec, &objp->orient.fvec) > 0) {
+		if (vm_vec_dotprod(&shipp->warp_effect_fvec, &objp->orient.v.fvec) > 0) {
 			vm_vec_negate(&shipp->warp_effect_fvec);
 		}
 	}
@@ -1107,13 +1110,13 @@ void shipfx_warpout_start( object *objp )
 	// and keeps going 
 	if ( objp != Player_obj )	{
 		vector vel;
-		vel = objp->orient.fvec;
+		vel = objp->orient.v.fvec;
 		vm_vec_scale( &vel, speed );
 		objp->phys_info.vel = vel;
 		objp->phys_info.desired_vel = vel;
-		objp->phys_info.prev_ramp_vel.x = 0.0f;
-		objp->phys_info.prev_ramp_vel.y = 0.0f;
-		objp->phys_info.prev_ramp_vel.z = speed;
+		objp->phys_info.prev_ramp_vel.xyz.x = 0.0f;
+		objp->phys_info.prev_ramp_vel.xyz.y = 0.0f;
+		objp->phys_info.prev_ramp_vel.xyz.z = speed;
 		objp->phys_info.forward_thrust = 1.0f;		// How much the forward thruster is applied.  0-1.
 
 		// special case for HUGE ships
@@ -1845,11 +1848,11 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	split_ship->front_ship.cur_clip_plane_pt = init_clip_plane_dist;
 
 	float dist;
-	dist = (split_ship->front_ship.cur_clip_plane_pt+pm->maxs.z)/2.0f;
-	vm_vec_copy_scale(&split_ship->front_ship.local_pivot, &orient->fvec, dist);
+	dist = (split_ship->front_ship.cur_clip_plane_pt+pm->maxs.xyz.z)/2.0f;
+	vm_vec_copy_scale(&split_ship->front_ship.local_pivot, &orient->v.fvec, dist);
 	vm_vec_make(&split_ship->front_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
-	dist = (split_ship->back_ship.cur_clip_plane_pt +pm->mins.z)/2.0f;
-	vm_vec_copy_scale(&split_ship->back_ship.local_pivot, &orient->fvec, dist);
+	dist = (split_ship->back_ship.cur_clip_plane_pt +pm->mins.xyz.z)/2.0f;
+	vm_vec_copy_scale(&split_ship->back_ship.local_pivot, &orient->v.fvec, dist);
 	vm_vec_make(&split_ship->back_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
 	vm_vec_add2(&split_ship->front_ship.local_pivot, &parent_ship_obj->pos );
 	vm_vec_add2(&split_ship->back_ship.local_pivot,  &parent_ship_obj->pos );
@@ -1861,7 +1864,7 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 		vector tmp1 = pm->submodel[pm->debris_objects[i]].offset;
 		// tmp is world position,  temp_pos is world_pivot,  tmp1 is offset from world_pivot (in ship local coord)
 		model_find_world_point(&tmp, &tmp1, shipp->modelnum, -1, &vmd_identity_matrix, &temp_pos );
-		if (tmp.z > init_clip_plane_dist) {
+		if (tmp.xyz.z > init_clip_plane_dist) {
 			split_ship->front_ship.draw_debris[i] = DEBRIS_DRAW;
 			split_ship->back_ship.draw_debris[i]  = DEBRIS_NONE;
 		} else {
@@ -1888,8 +1891,8 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	split_ship->back_ship.phys_info.rotdamp =  10000.0f;
 
 	// set up explosion vel and relative velocities (assuming mass depends on length)
-	float front_length = pm->maxs.z - split_ship->front_ship.cur_clip_plane_pt;
-	float back_length  = split_ship->back_ship.cur_clip_plane_pt - pm->mins.z;
+	float front_length = pm->maxs.xyz.z - split_ship->front_ship.cur_clip_plane_pt;
+	float back_length  = split_ship->back_ship.cur_clip_plane_pt - pm->mins.xyz.z;
 	float ship_length = front_length + back_length;
 	split_ship->front_ship.length_left = front_length;
 	split_ship->back_ship.length_left  = back_length;
@@ -1911,18 +1914,18 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	// set up rotational vel
 	vector rotvel;
 	vm_vec_rand_vec_quick(&rotvel);
-	rotvel.z = 0.0f;
+	rotvel.xyz.z = 0.0f;
 	vm_vec_normalize(&rotvel);
 	vm_vec_scale(&rotvel, 0.15f / speed_reduction_factor);
 	split_ship->front_ship.phys_info.rotvel = rotvel;
 	vm_vec_copy_scale(&split_ship->back_ship.phys_info.rotvel, &rotvel, -(front_length*front_length)/(back_length*back_length));
-	split_ship->front_ship.phys_info.rotvel.z = parent_ship_obj->phys_info.rotvel.z;
-	split_ship->back_ship.phys_info.rotvel.z  = parent_ship_obj->phys_info.rotvel.z;
+	split_ship->front_ship.phys_info.rotvel.xyz.z = parent_ship_obj->phys_info.rotvel.xyz.z;
+	split_ship->back_ship.phys_info.rotvel.xyz.z  = parent_ship_obj->phys_info.rotvel.xyz.z;
 
 
 	// modify vel of each split ship based on rotvel of parent ship obj
 	vector temp_rotvel = parent_ship_obj->phys_info.rotvel;
-	temp_rotvel.z = 0.0f;
+	temp_rotvel.xyz.z = 0.0f;
 	vector vel_from_rotvel;
 	vm_vec_crossprod(&vel_from_rotvel, &temp_rotvel, &split_ship->front_ship.local_pivot);
 	//	vm_vec_scale_add2(&split_ship->front_ship.phys_info.vel, &vel_from_rotvel, 0.5f);
@@ -1934,8 +1937,8 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	split_ship->back_ship.phys_info.vel  = parent_ship_obj->phys_info.vel;
 	maybe_fireball_wipe(&split_ship->front_ship, (int*)&split_ship->sound_handle);
 	maybe_fireball_wipe(&split_ship->back_ship,  (int*)&split_ship->sound_handle);
-	vm_vec_scale_add2(&split_ship->front_ship.phys_info.vel, &orient->fvec, front_vel);
-	vm_vec_scale_add2(&split_ship->back_ship.phys_info.vel,  &orient->fvec, back_vel);
+	vm_vec_scale_add2(&split_ship->front_ship.phys_info.vel, &orient->v.fvec, front_vel);
+	vm_vec_scale_add2(&split_ship->back_ship.phys_info.vel,  &orient->v.fvec, back_vel);
 
 	// HANDLE LIVE DEBRIS - blow off if not already gone
 	shipfx_maybe_create_live_debris_at_ship_death( parent_ship_obj );
@@ -1977,20 +1980,20 @@ static void half_ship_render_ship_and_debris(clip_ship* half_ship,ship *shipp)
 			int create_debris = 0;
 			// front ship
 			if (half_ship->explosion_vel > 0) {
-				if (half_ship->cur_clip_plane_pt > tmp1.z + pm->submodel[pm->debris_objects[i]].max.z - 0.1f*half_ship->explosion_vel) {
+				if (half_ship->cur_clip_plane_pt > tmp1.xyz.z + pm->submodel[pm->debris_objects[i]].max.xyz.z - 0.1f*half_ship->explosion_vel) {
 					create_debris = 1;
 				}
 				// is the debris visible
-//				if (half_ship->cur_clip_plane_pt > tmp1.z + pm->submodel[pm->debris_objects[i]].min.z - 0.5f*half_ship->explosion_vel) {
+//				if (half_ship->cur_clip_plane_pt > tmp1.xyz.z + pm->submodel[pm->debris_objects[i]].min.xyz.z - 0.5f*half_ship->explosion_vel) {
 //					render_debris = 1;
 //				}
 			// back ship
 			} else {
-				if (half_ship->cur_clip_plane_pt < tmp1.z + pm->submodel[pm->debris_objects[i]].min.z - 0.1f*half_ship->explosion_vel) {
+				if (half_ship->cur_clip_plane_pt < tmp1.xyz.z + pm->submodel[pm->debris_objects[i]].min.xyz.z - 0.1f*half_ship->explosion_vel) {
 					create_debris = 1;
 				}
 				// is the debris visible
-//				if (half_ship->cur_clip_plane_pt < tmp1.z + pm->submodel[pm->debris_objects[i]].max.z - 0.5f*half_ship->explosion_vel) {
+//				if (half_ship->cur_clip_plane_pt < tmp1.xyz.z + pm->submodel[pm->debris_objects[i]].max.xyz.z - 0.5f*half_ship->explosion_vel) {
 //					render_debris = 1;
 //				}
 			}
@@ -2725,13 +2728,13 @@ void shipfx_do_shockwave_stuff(ship *shipp, shockwave_create_info *sci)
 	if(pm == NULL){
 		return;
 	}
-	head.x = pm->submodel[0].offset.x;
-	head.y = pm->submodel[0].offset.y;
-	head.z = pm->maxs.z;
+	head.xyz.x = pm->submodel[0].offset.xyz.x;
+	head.xyz.y = pm->submodel[0].offset.xyz.y;
+	head.xyz.z = pm->maxs.xyz.z;
 
-	tail.x = pm->submodel[0].offset.x;
-	tail.y = pm->submodel[0].offset.y;
-	tail.z = pm->mins.z;
+	tail.xyz.x = pm->submodel[0].offset.xyz.x;
+	tail.xyz.y = pm->submodel[0].offset.xyz.y;
+	tail.xyz.z = pm->mins.xyz.z;
 
 	// transform the vectors into world coords
 	vm_vec_unrotate(&temp, &head, &objp->orient);

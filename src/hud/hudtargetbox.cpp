@@ -15,6 +15,9 @@
  * C module for drawing the target monitor box on the HUD
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -740,7 +743,7 @@ void hud_render_target_jump_node(object *target_objp)
 		factor = target_objp->radius*4.0f;
 
 		// use the player's up vector, and construct the viewers orientation matrix
-		up_vector = Player_obj->orient.uvec;
+		up_vector = Player_obj->orient.v.uvec;
 		vm_vector_2_matrix(&camera_orient,&orient_vec,&up_vector,NULL);
 
 		// normalize the vector from the player to the current target, and scale by a factor to calculate
@@ -1232,10 +1235,10 @@ void hud_render_target_ship(object *target_objp)
 		vm_vec_sub(&orient_vec, &target_objp->pos, &Player_obj->pos);
 		vm_vec_normalize(&orient_vec);
 
-		factor = -target_sip->closeup_pos.z;
+		factor = -target_sip->closeup_pos.xyz.z;
 
 		// use the player's up vector, and construct the viewers orientation matrix
-		up_vector = Player_obj->orient.uvec;
+		up_vector = Player_obj->orient.v.uvec;
 		vm_vector_2_matrix(&camera_orient,&orient_vec,&up_vector,NULL);
 
 		// normalize the vector from the player to the current target, and scale by a factor to calculate
@@ -1322,7 +1325,7 @@ void hud_render_target_debris(object *target_objp)
 		factor = 2*target_objp->radius;
 
 		// use the player's up vector, and construct the viewers orientation matrix
-		up_vector = Player_obj->orient.uvec;
+		up_vector = Player_obj->orient.v.uvec;
 		vm_vector_2_matrix(&camera_orient,&orient_vec,&up_vector,NULL);
 
 		// normalize the vector from the player to the current target, and scale by a factor to calculate
@@ -1414,7 +1417,7 @@ void hud_render_target_weapon(object *target_objp)
 			factor = vm_vec_dist_quick(&viewer_obj->pos, &viewed_obj->pos);
 
 		// use the viewer's up vector, and construct the viewers orientation matrix
-		up_vector = viewer_obj->orient.uvec;
+		up_vector = viewer_obj->orient.v.uvec;
 		vm_vector_2_matrix(&camera_orient,&orient_vec,&up_vector,NULL);
 
 		// normalize the vector from the viewer to the viwed target, and scale by a factor to calculate
@@ -1705,7 +1708,7 @@ void hud_show_target_data(float frametime)
 				dist = vm_vec_dist_quick(&Objects[Player_ai->target_objnum].pos, &Objects[aip->target_objnum].pos);
 				vm_vec_normalized_dir(&v2t,&Objects[aip->target_objnum].pos, &Objects[Player_ai->target_objnum].pos);
 
-				dot = vm_vec_dot(&v2t, &Objects[Player_ai->target_objnum].orient.fvec);
+				dot = vm_vec_dot(&v2t, &Objects[Player_ai->target_objnum].orient.v.fvec);
 
 				// data can be found in target montior
 				// gr_printf(TARGET_WINDOW_X1+TARGET_WINDOW_WIDTH+3, TARGET_WINDOW_Y1+6*h, "Targ dist: %5.1f", dist);
@@ -1753,7 +1756,7 @@ void hud_show_target_data(float frametime)
 							dist = vm_vec_dist_quick(&Enemy_attacker->pos, &Player_obj->pos);
 							vm_vec_normalized_dir(&v2t,&Objects[eaip->target_objnum].pos, &Enemy_attacker->pos);
 
-							dot = vm_vec_dot(&v2t, &Enemy_attacker->orient.fvec);
+							dot = vm_vec_dot(&v2t, &Enemy_attacker->orient.v.fvec);
 
 							gr_printf(sx, sy, "#%i: %s", Enemy_attacker-Objects, Ships[Enemy_attacker->instance].ship_name);
 							sy += dy;

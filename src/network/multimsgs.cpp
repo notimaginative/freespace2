@@ -15,6 +15,9 @@
  * C file that holds functions for the building and processing of multiplayer packets
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -3184,7 +3187,7 @@ void send_turret_fired_packet( int ship_objnum, int subsys_index, int weapon_obj
 
 	// build the fire turret packet.  
 	BUILD_HEADER(FIRE_TURRET_WEAPON);	
-	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.fvec);
+	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.v.fvec);
 	ADD_DATA( has_sig );
 	ADD_DATA( pnet_signature );	
 	if(has_sig){		
@@ -6119,7 +6122,7 @@ void send_shield_explosion_packet( int objnum, int tri_num, vector hit_pos )
 			}
 
 			vm_vec_normalized_dir(&eye_to_obj_vec, &Objects[objnum].pos, &eye_pos);
-			dot = vm_vec_dot(&eye_orient.fvec, &eye_to_obj_vec);
+			dot = vm_vec_dot(&eye_orient.v.fvec, &eye_to_obj_vec);
 
 			if ( dot < OBJ_VISIBILITY_DOT ){
 				continue;
@@ -7687,7 +7690,7 @@ void send_flak_fired_packet(int ship_objnum, int subsys_index, int weapon_objnum
 
 	// build the fire turret packet.  
 	BUILD_HEADER(FLAK_FIRED);	
-	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.fvec);	
+	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.v.fvec);
 	ADD_DATA( pnet_signature );		
 	ADD_DATA( cindex );
 	val = (short)ssp->submodel_info_1.angs.h;

@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for ships and ships
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -1538,12 +1541,12 @@ void maybe_push_little_ship_from_fast_big_ship(object *big, object *small, float
 	if (Ship_info[Ships[big->instance].ship_info_index].flags & (SIF_CAPITAL|SIF_SUPERCAP)) {
 		if (Ship_info[Ships[small->instance].ship_info_index].flags & (SIF_SMALL_SHIP)) {
 			float big_speed = vm_vec_mag_quick(&big->phys_info.vel);
-			if (big_speed > 3*big->phys_info.max_vel.z) {
+			if (big_speed > 3*big->phys_info.max_vel.xyz.z) {
 				// push player away in direction perp to forward of big ship
 				// get perp vec
 				vector temp, perp;
 				vm_vec_sub(&temp, &small->pos, &big->pos);
-				vm_vec_scale_add(&perp, &temp, &big->orient.fvec, -vm_vec_dotprod(&temp, &big->orient.fvec));
+				vm_vec_scale_add(&perp, &temp, &big->orient.v.fvec, -vm_vec_dotprod(&temp, &big->orient.v.fvec));
 				vm_vec_normalize_quick(&perp);
 
 				// don't drive into sfc we just collided with
@@ -1730,10 +1733,10 @@ int collide_ship_ship( obj_pair * pair )
 				if ( Ships[A->instance].team == Ships[B->instance].team ) {
 					vector	collision_vec, right_angle_vec;
 					vm_vec_normalized_dir(&collision_vec, &ship_ship_hit_info.hit_pos, &A->pos);
-					if (vm_vec_dot(&collision_vec, &A->orient.fvec) > 0.999f){
-						right_angle_vec = A->orient.rvec;
+					if (vm_vec_dot(&collision_vec, &A->orient.v.fvec) > 0.999f){
+						right_angle_vec = A->orient.v.rvec;
 					} else {
-						vm_vec_cross(&right_angle_vec, &A->orient.uvec, &collision_vec);
+						vm_vec_cross(&right_angle_vec, &A->orient.v.uvec, &collision_vec);
 					}
 
 					vm_vec_scale_add2( &A->phys_info.vel, &right_angle_vec, +2.0f);

@@ -15,6 +15,9 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.9  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.8  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -67,6 +70,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #include "unix.h" // unix.h
 #endif

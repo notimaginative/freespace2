@@ -15,6 +15,9 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -262,7 +265,7 @@ typedef struct vector {
 	union {
 		struct {
 			float x,y,z;
-		};
+		} xyz;
 		float a1d[3];
 	};
 } vector;
@@ -289,7 +292,7 @@ typedef struct matrix {
 	union {
 		struct {
 			vector	rvec, uvec, fvec;
-		};
+		} v;
 		float a2d[3][3];
 		float a1d[9];
 	};

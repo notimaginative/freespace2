@@ -15,6 +15,9 @@
  * Code to load & display nebulas
  *
  * $Log$
+ * Revision 1.6  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.5  2002/06/09 04:41:27  relnev
  * added copyright header
  *
@@ -194,9 +197,9 @@ void project_2d_onto_sphere( vector *pnt, float u, float v )
 	s = scale_factor * fl_sqrt( 1.0f - z*z );
 	x = s * (float)cos(a);
 	y = s * (float)sin(a);
-	pnt->x = x;
-	pnt->y = y;
-	pnt->z = z;
+	pnt->xyz.x = x;
+	pnt->xyz.y = y;
+	pnt->xyz.z = z;
 }
 
 // Version 199 mean major version=1, minor=99.

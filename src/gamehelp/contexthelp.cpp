@@ -15,6 +15,9 @@
  * Functions to drive the context-sensitive help 
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -515,18 +518,18 @@ void parse_helptbl()
 					for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
 						stuff_int(&a);
 						stuff_int(&b);
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].x = (float)a;
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].y = (float)b;
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].z = 0.0f;
+						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.x = (float)a;
+						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.y = (float)b;
+						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.z = 0.0f;
 						help_overlaylist[overlay_id].plinelist[GR_640][currcount].pvtx[i] = &help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i];
 					}
 					// get 1024x768 vertex coordinates
 					for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
 						stuff_int(&a);
 						stuff_int(&b);
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].x = (float)a;
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].y = (float)b;
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].z = 0.0f;
+						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.x = (float)a;
+						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.y = (float)b;
+						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.z = 0.0f;
 						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].pvtx[i] = &help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i];
 					}
 				}
@@ -673,11 +676,11 @@ void nudgetext_y(int textnum, int amount)
 }
 void nudgepline_x(int plinenum, int plinevert, int amount)
 {
-	help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[plinevert].x += amount;
+	help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[plinevert].xyz.x += amount;
 }
 void nudgepline_y(int plinenum, int plinevert, int amount)
 {
-	help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[plinevert].y += amount;
+	help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[plinevert].xyz.y += amount;
 }
 void nudgerbracket_x(int num, int amount)
 {
@@ -713,7 +716,7 @@ void showplinepos(int plinenum)
 	dc_printf("pline %d on overlay %d vertices are now ", plinenum, current_helpid, help_overlaylist[current_helpid].textlist[gr_screen.res][plinenum].y_coord );
 	for (i=0; i<help_overlaylist[current_helpid].plinelist[GR_640][plinenum].vtxcount; i++)
 	{
-		dc_printf("(%3.0f %3.0f) ", help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[i].x, help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[i].y);
+		dc_printf("(%3.0f %3.0f) ", help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[i].xyz.x, help_overlaylist[current_helpid].plinelist[gr_screen.res][plinenum].vtx[i].xyz.y);
 	}
 }
 

@@ -15,6 +15,9 @@
  * C module that contains functions to drive the Tech Menu user interface
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -771,7 +774,7 @@ void techroom_ships_render(float frametime)
 	// lighting for techroom
 	light_reset();
 	vector light_dir = vmd_zero_vector;
-	light_dir.y = 1.0f;	
+	light_dir.xyz.y = 1.0f;
 	light_add_directional(&light_dir, 0.85f, 1.0f, 1.0f, 1.0f);
 	// light_filter_reset();
 	light_rotate_all();

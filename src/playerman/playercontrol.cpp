@@ -15,6 +15,9 @@
  * Routines to deal with player ship movement
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -1184,7 +1187,7 @@ void read_player_controls(object *objp, float frametime)
 
 	// the ships maximum velocity now depends on the energy flowing to engines
 	if(objp->type != OBJ_OBSERVER){
-		objp->phys_info.max_vel.z = Ships[objp->instance].current_max_speed;
+		objp->phys_info.max_vel.xyz.z = Ships[objp->instance].current_max_speed;
 	} 
 	if(Player_obj->type == OBJ_SHIP){	
 		// only read player control info if player ship is not dead
@@ -1676,7 +1679,7 @@ int player_inspect_cargo(float frametime, char *outstr)
 
 		// check if player is facing cargo, do not proceed with inspection if not
 		vm_vec_normalized_dir(&vec_to_cargo, &cargo_objp->pos, &Player_obj->pos);
-		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.fvec);
+		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.v.fvec);
 		if ( dot < CARGO_MIN_DOT_TO_REVEAL ) {
 			if ( !(cargo_sp->flags & SF_SCANNABLE) )
 				sprintf(outstr,XSTR( "cargo: <unknown>", 86));
@@ -1777,7 +1780,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 
 		// check if player is facing cargo, do not proceed with inspection if not
 		vm_vec_normalized_dir(&vec_to_cargo, &subsys_pos, &Player_obj->pos);
-		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.fvec);
+		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.v.fvec);
 		int hud_targetbox_subsystem_in_view(object *target_objp, int *sx, int *sy);
 		subsys_in_view = hud_targetbox_subsystem_in_view(cargo_objp, &x, &y);
 
@@ -2084,17 +2087,17 @@ void player_get_padlock_orient(matrix *eye_orient)
 	old_eye_orient = *eye_orient;
 
 	if ( Viewer_mode & VM_PADLOCK_UP ) {
-		eye_orient->fvec = old_eye_orient.uvec;
-		vm_vec_copy_scale( &eye_orient->uvec, &old_eye_orient.fvec, -1.0f );
+		eye_orient->v.fvec = old_eye_orient.v.uvec;
+		vm_vec_copy_scale( &eye_orient->v.uvec, &old_eye_orient.v.fvec, -1.0f );
 	} else if ( Viewer_mode & VM_PADLOCK_REAR ) {
-		vm_vec_negate(&eye_orient->fvec);
-		vm_vec_negate(&eye_orient->rvec);
+		vm_vec_negate(&eye_orient->v.fvec);
+		vm_vec_negate(&eye_orient->v.rvec);
 	} else if ( Viewer_mode & VM_PADLOCK_LEFT ) {
-		vm_vec_copy_scale( &eye_orient->fvec, &old_eye_orient.rvec, -1.0f );
-		eye_orient->rvec = old_eye_orient.fvec;
+		vm_vec_copy_scale( &eye_orient->v.fvec, &old_eye_orient.v.rvec, -1.0f );
+		eye_orient->v.rvec = old_eye_orient.v.fvec;
 	} else if ( Viewer_mode & VM_PADLOCK_RIGHT ) {
-		eye_orient->fvec = old_eye_orient.rvec;
-		vm_vec_copy_scale( &eye_orient->rvec, &old_eye_orient.fvec, -1.0f );
+		eye_orient->v.fvec = old_eye_orient.v.rvec;
+		vm_vec_copy_scale( &eye_orient->v.rvec, &old_eye_orient.v.fvec, -1.0f );
 	} else {
 		Int3();
 	}
@@ -2232,11 +2235,11 @@ void player_get_eye(vector *eye_pos, matrix *eye_orient)
 			vm_angles_2_matrix(&tm2, &Viewer_external_info.angles);
 			vm_matrix_x_matrix(&tm, &viewer_obj->orient, &tm2);
 
-			vm_vec_scale_add(eye_pos, &viewer_obj->pos, &tm.fvec, 2.0f * viewer_obj->radius + Viewer_external_info.distance);
+			vm_vec_scale_add(eye_pos, &viewer_obj->pos, &tm.v.fvec, 2.0f * viewer_obj->radius + Viewer_external_info.distance);
 
 			vm_vec_sub(&eye_dir, &viewer_obj->pos, eye_pos);
 			vm_vec_normalize(&eye_dir);
-			vm_vector_2_matrix(eye_orient, &eye_dir, &viewer_obj->orient.uvec, NULL);
+			vm_vector_2_matrix(eye_orient, &eye_dir, &viewer_obj->orient.v.uvec, NULL);
 			viewer_obj = NULL;
 
 			//	Modify the orientation based on head orientation.
@@ -2245,25 +2248,25 @@ void player_get_eye(vector *eye_pos, matrix *eye_orient)
 			vector	move_dir;
 
 			if ( viewer_obj->phys_info.speed < 0.1 ){
-				move_dir = viewer_obj->orient.fvec;
+				move_dir = viewer_obj->orient.v.fvec;
 			} else {
 				move_dir = viewer_obj->phys_info.vel;
 				vm_vec_normalize_safe(&move_dir);
 			}
 
 			vm_vec_scale_add(eye_pos, &viewer_obj->pos, &move_dir, -3.0f * viewer_obj->radius - Viewer_chase_info.distance);
-			vm_vec_scale_add2(eye_pos, &viewer_obj->orient.uvec, 0.75f * viewer_obj->radius);
+			vm_vec_scale_add2(eye_pos, &viewer_obj->orient.v.uvec, 0.75f * viewer_obj->radius);
 			vm_vec_sub(&eye_dir, &viewer_obj->pos, eye_pos);
 			vm_vec_normalize(&eye_dir);
 
 			// JAS: I added the following code because if you slew up using
-			// Descent-style physics, eye_dir and Viewer_obj->orient.uvec are
+			// Descent-style physics, eye_dir and Viewer_obj->orient.v.uvec are
 			// equal, which causes a zero-length vector in the vm_vector_2_matrix
 			// call because the up and the forward vector are the same.   I fixed
 			// it by adding in a fraction of the right vector all the time to the
 			// up vector.
-			vector tmp_up = viewer_obj->orient.uvec;
-			vm_vec_scale_add2( &tmp_up, &viewer_obj->orient.rvec, 0.00001f );
+			vector tmp_up = viewer_obj->orient.v.uvec;
+			vm_vec_scale_add2( &tmp_up, &viewer_obj->orient.v.rvec, 0.00001f );
 
 			vm_vector_2_matrix(eye_orient, &eye_dir, &tmp_up, NULL);
 			viewer_obj = NULL;
@@ -2277,7 +2280,7 @@ void player_get_eye(vector *eye_pos, matrix *eye_orient)
 
 			vm_vec_sub(&eye_dir, &shipp->warp_effect_pos, eye_pos);
 			vm_vec_normalize(&eye_dir);
-			vm_vector_2_matrix(eye_orient, &eye_dir, &Player_obj->orient.uvec, NULL);
+			vm_vector_2_matrix(eye_orient, &eye_dir, &Player_obj->orient.v.uvec, NULL);
 			viewer_obj = NULL;
 		} else {
 			// get an eye position based upon the correct type of object

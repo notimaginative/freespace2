@@ -64,9 +64,9 @@ int observer_create(matrix *orient, vector *pos)
 	
 	
 	// setup some physics parameters
-	pi->max_vel.x = OBS_MAX_VEL_X;
-	pi->max_vel.y = OBS_MAX_VEL_Y;
-	pi->max_vel.z = OBS_MAX_VEL_Z;	
+	pi->max_vel.xyz.x = OBS_MAX_VEL_X;
+	pi->max_vel.xyz.y = OBS_MAX_VEL_Y;
+	pi->max_vel.xyz.z = OBS_MAX_VEL_Z;	
 	vm_vec_zero(&pi->prev_ramp_vel);
 	vm_vec_zero(&pi->desired_vel);
 	vm_vec_zero(&pi->desired_rotvel);

@@ -15,6 +15,9 @@
  * main upper level code for pasring stuff
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -1357,10 +1360,10 @@ void position_ship_for_knossos_warpin(p_object *objp, int shipnum, int objnum)
 
 		// position self for warp on plane of device
 		vector new_point;
-		float dist = fvi_ray_plane(&new_point, &Objects[knossos_num].pos, &Objects[knossos_num].orient.fvec, &objp->pos, &objp->orient.fvec, 0.0f);
+		float dist = fvi_ray_plane(&new_point, &Objects[knossos_num].pos, &Objects[knossos_num].orient.v.fvec, &objp->pos, &objp->orient.v.fvec, 0.0f);
 		polymodel *pm = model_get(Ship_info[Ships[shipnum].ship_info_index].modelnum);
-		float desired_dist = -pm->mins.z;
-		vm_vec_scale_add2(&Objects[objnum].pos, &Objects[objnum].orient.fvec, (dist - desired_dist));
+		float desired_dist = -pm->mins.xyz.z;
+		vm_vec_scale_add2(&Objects[objnum].pos, &Objects[objnum].orient.v.fvec, (dist - desired_dist));
 		// if ship is BIG or HUGE, make it go through the center of the knossos
 		if (Ship_info[Ships[shipnum].ship_info_index].flags & SIF_HUGE_SHIP) {
 			vector offset;
@@ -1698,7 +1701,7 @@ int parse_create_object(p_object *objp)
 		// initial velocities now do not apply to ships which warp in after mission starts
 		if ( !(Game_mode & GM_IN_MISSION) ) {
 			Objects[objnum].phys_info.speed = (float)objp->initial_velocity * sip->max_speed / 100.0f;
-			Objects[objnum].phys_info.vel.z = Objects[objnum].phys_info.speed;
+			Objects[objnum].phys_info.vel.xyz.z = Objects[objnum].phys_info.speed;
 			Objects[objnum].phys_info.prev_ramp_vel = Objects[objnum].phys_info.vel;
 			Objects[objnum].phys_info.desired_vel = Objects[objnum].phys_info.vel;
 		}
@@ -3494,8 +3497,8 @@ void post_process_mission()
 	Player_ai->targeted_subsys_parent = -1;
 
 	// determine if player start has initial velocity and set forward cruise percent to relect this
-	if ( Player_obj->phys_info.vel.z > 0.0f )
-		Player->ci.forward_cruise_percent = Player_obj->phys_info.vel.z / Player_ship->current_max_speed * 100.0f;
+	if ( Player_obj->phys_info.vel.xyz.z > 0.0f )
+		Player->ci.forward_cruise_percent = Player_obj->phys_info.vel.xyz.z / Player_ship->current_max_speed * 100.0f;
 
 	// put in hard coded starting wing names.
 	if((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_TEAM)){
@@ -4130,7 +4133,7 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 			return 0;
 		}
 		Objects[objnum].pos = pos;
-		Objects[objnum].orient.fvec = fvec;
+		Objects[objnum].orient.v.fvec = fvec;
 	} else {
 
 		// AL: ensure dist > 0 (otherwise get errors in vecmat)
@@ -4170,9 +4173,9 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 				r2 = static_rand(Objects[objnum].net_signature+1) < RAND_MAX/2 ? -1 : 1;
 			}
 
-			vm_vec_copy_scale(&t1, &(Objects[anchor_objnum].orient.fvec), x);
-			vm_vec_copy_scale(&t2, &(Objects[anchor_objnum].orient.rvec), (1.0f - x) * r1);
-			vm_vec_copy_scale(&t3, &(Objects[anchor_objnum].orient.uvec), (1.0f - x) * r2);
+			vm_vec_copy_scale(&t1, &(Objects[anchor_objnum].orient.v.fvec), x);
+			vm_vec_copy_scale(&t2, &(Objects[anchor_objnum].orient.v.rvec), (1.0f - x) * r1);
+			vm_vec_copy_scale(&t3, &(Objects[anchor_objnum].orient.v.uvec), (1.0f - x) * r2);
 
 			vm_vec_add(&rand_vec, &t1, &t2);
 			vm_vec_add2(&rand_vec, &t3);
@@ -4841,9 +4844,9 @@ int get_warp_in_pos(vector *pos, object *objp, float x, float y, float z)
 
 	*pos = objp->pos;
 
-	vm_vec_scale_add2( pos, &objp->orient.rvec, x*rand_val*800.0f);
-	vm_vec_scale_add2( pos, &objp->orient.uvec, y*rand_val*800.0f);
-	vm_vec_scale_add2( pos, &objp->orient.fvec, z*rand_val*800.0f);
+	vm_vec_scale_add2( pos, &objp->orient.v.rvec, x*rand_val*800.0f);
+	vm_vec_scale_add2( pos, &objp->orient.v.uvec, y*rand_val*800.0f);
+	vm_vec_scale_add2( pos, &objp->orient.v.fvec, z*rand_val*800.0f);
 
 	return pp_collide_any(&objp->pos, pos, objp->radius, objp, NULL, 1);
 }

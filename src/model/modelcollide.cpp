@@ -15,6 +15,9 @@
  * Routines for detecting collisions of models.
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -333,12 +336,12 @@ int mc_ray_boundingbox( vector *min, vector *max, vector * p0, vector *pdir, vec
 
 		vector sphere_mod_min, sphere_mod_max;
 
-		sphere_mod_min.x = min->x - Mc->radius;
-		sphere_mod_max.x = max->x + Mc->radius;
-		sphere_mod_min.y = min->y - Mc->radius;
-		sphere_mod_max.y = max->y + Mc->radius;
-		sphere_mod_min.z = min->z - Mc->radius;
-		sphere_mod_max.z = max->z + Mc->radius;
+		sphere_mod_min.xyz.x = min->xyz.x - Mc->radius;
+		sphere_mod_max.xyz.x = max->xyz.x + Mc->radius;
+		sphere_mod_min.xyz.y = min->xyz.y - Mc->radius;
+		sphere_mod_max.xyz.y = max->xyz.y + Mc->radius;
+		sphere_mod_min.xyz.z = min->xyz.z - Mc->radius;
+		sphere_mod_max.xyz.z = max->xyz.z + Mc->radius;
 
 		return fvi_ray_boundingbox( &sphere_mod_min, &sphere_mod_max, p0, pdir, hitpos );
 	} else {

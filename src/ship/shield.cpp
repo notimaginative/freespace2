@@ -15,6 +15,9 @@
  *	Stuff pertaining to shield graphical effects, etc.
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -688,7 +691,7 @@ void create_tris_containing(vector *vp, matrix *orient, shield_info *shieldp, ve
 				vector v;
 
 				v = verts[shieldp->tris[i].verts[j]].pos;
-				if ((vp->x == v.x) && (vp->y == v.y) && (vp->z == v.z))
+				if ((vp->xyz.x == v.xyz.x) && (vp->xyz.y == v.xyz.y) && (vp->xyz.z == v.xyz.z))
 					create_shield_from_triangle(i, orient, shieldp, tcp, centerp, radius, rvec, uvec);
 			}
 		}
@@ -883,7 +886,7 @@ void create_shield_low_detail(int objnum, int model_num, matrix *orient, vector 
 	vm_vector_2_matrix(&tom, &shieldp->tris[tr0].norm, NULL, NULL);
 	//rs_compute_uvs( &shieldp->tris[tr0], shieldp->verts, tcp, Objects[objnum].radius, &tom.rvec, &tom.uvec);
 
-	create_low_detail_poly(gi, tcp, &tom.rvec, &tom.uvec);
+	create_low_detail_poly(gi, tcp, &tom.v.rvec, &tom.v.uvec);
 
 }
 
@@ -947,10 +950,10 @@ void create_shield_explosion(int objnum, int model_num, matrix *orient, vector *
 	//vm_vec_sub(&v2c, tcp, &Objects[objnum].pos);
 
 	//	Create the shield from the current triangle, as well as its neighbors.
-	create_shield_from_triangle(tr0, orient, shieldp, tcp, centerp, Objects[objnum].radius, &tom.rvec, &tom.uvec);
+	create_shield_from_triangle(tr0, orient, shieldp, tcp, centerp, Objects[objnum].radius, &tom.v.rvec, &tom.v.uvec);
 	//nprintf(("AI", "\n"));
 	for (i=0; i<3; i++)
-		create_shield_from_triangle(shieldp->tris[tr0].neighbors[i], orient, shieldp, tcp, centerp, Objects[objnum].radius, &tom.rvec, &tom.uvec);
+		create_shield_from_triangle(shieldp->tris[tr0].neighbors[i], orient, shieldp, tcp, centerp, Objects[objnum].radius, &tom.v.rvec, &tom.v.uvec);
 	
 	copy_shield_to_globals(objnum, shieldp);
 	// render_shield(orient, centerp);
@@ -1246,10 +1249,10 @@ int get_quadrant(vector *hit_pnt)
 {
 	int	result = 0;
 
-	if (hit_pnt->x < hit_pnt->z)
+	if (hit_pnt->xyz.x < hit_pnt->xyz.z)
 		result |= 1;
 
-	if (hit_pnt->x < -hit_pnt->z)
+	if (hit_pnt->xyz.x < -hit_pnt->xyz.z)
 		result |= 2;
 
 	return result;

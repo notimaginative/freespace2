@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.19  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.18  2002/06/16 04:46:33  relnev
  * set up correct checksums for demo
  *
@@ -1263,7 +1266,7 @@ void game_sunspot_process(float frametime)
 			vector light_dir;				
 			light_get_global_dir(&light_dir, 0);
 			float dot;
-			dot = vm_vec_dot( &light_dir, &Eye_matrix.fvec );
+			dot = vm_vec_dot( &light_dir, &Eye_matrix.v.fvec );
 			
 			if(dot >= 0.0f){
 				// scale it some more
@@ -1322,7 +1325,7 @@ void game_sunspot_process(float frametime)
 					vector light_dir;				
 					light_get_global_dir(&light_dir, idx);
 
-					float dot = vm_vec_dot( &light_dir, &Eye_matrix.fvec )*0.5f+0.5f;
+					float dot = vm_vec_dot( &light_dir, &Eye_matrix.v.fvec )*0.5f+0.5f;
 
 					Sun_spot_goal += (float)pow(dot,85.0f);
 
@@ -2677,7 +2680,7 @@ void game_show_framerate()
 		int sx, sy;
 		sx = 320;
 		sy = 100;
-		gr_printf(sx, sy, NOX("Player Pos: (%d,%d,%d)"), fl2i(Player_obj->pos.x), fl2i(Player_obj->pos.y), fl2i(Player_obj->pos.z));
+		gr_printf(sx, sy, NOX("Player Pos: (%d,%d,%d)"), fl2i(Player_obj->pos.xyz.x), fl2i(Player_obj->pos.xyz.y), fl2i(Player_obj->pos.xyz.z));
 	}
 
 	MONITOR_INC(NumPolys, modelstats_num_polys);
@@ -3325,7 +3328,7 @@ void apply_hud_shake(matrix *eye_orient)
 			vm_vec_rand_vec_quick(&rand_vec);
 
 			// play the effect
-			joy_ff_play_dir_effect(intensity*rand_vec.x, intensity*rand_vec.y);
+			joy_ff_play_dir_effect(intensity*rand_vec.xyz.x, intensity*rand_vec.xyz.y);
 		}
 
 	
@@ -3350,9 +3353,9 @@ void apply_hud_shake(matrix *eye_orient)
 
 		matrix	tm, tm2;
 		vm_angles_2_matrix(&tm, &tangles);
-		Assert(vm_vec_mag(&tm.fvec) > 0.0f);
-		Assert(vm_vec_mag(&tm.rvec) > 0.0f);
-		Assert(vm_vec_mag(&tm.uvec) > 0.0f);
+		Assert(vm_vec_mag(&tm.v.fvec) > 0.0f);
+		Assert(vm_vec_mag(&tm.v.rvec) > 0.0f);
+		Assert(vm_vec_mag(&tm.v.uvec) > 0.0f);
 		vm_matrix_x_matrix(&tm2, eye_orient, &tm);
 		*eye_orient = tm2;
 	}
@@ -3453,7 +3456,7 @@ void game_render_frame_setup(vector *eye_pos, matrix *eye_orient)
 				Viewer_mode &= ~(VM_EXTERNAL | VM_CHASE);
 				vm_vec_scale_add2(&Dead_camera_pos, &Original_vec_to_deader, 25.0f * flFrametime);
 				Dead_player_last_vel = Player_obj->phys_info.vel;
-				//nprintf(("AI", "Player death roll vel = %7.3f %7.3f %7.3f\n", Player_obj->phys_info.vel.x, Player_obj->phys_info.vel.y, Player_obj->phys_info.vel.z));
+				//nprintf(("AI", "Player death roll vel = %7.3f %7.3f %7.3f\n", Player_obj->phys_info.vel.xyz.x, Player_obj->phys_info.vel.xyz.y, Player_obj->phys_info.vel.xyz.z));
 			} else if (Player_ai->target_objnum != -1) {
 				view_pos = Objects[Player_ai->target_objnum].pos;
 			} else {
@@ -3508,11 +3511,11 @@ void game_render_frame_setup(vector *eye_pos, matrix *eye_orient)
 				vm_angles_2_matrix(&tm2, &Viewer_external_info.angles);
 				vm_matrix_x_matrix(&tm, &Viewer_obj->orient, &tm2);
 
-				vm_vec_scale_add(eye_pos, &Viewer_obj->pos, &tm.fvec, 2.0f * Viewer_obj->radius + Viewer_external_info.distance);
+				vm_vec_scale_add(eye_pos, &Viewer_obj->pos, &tm.v.fvec, 2.0f * Viewer_obj->radius + Viewer_external_info.distance);
 
 				vm_vec_sub(&eye_dir, &Viewer_obj->pos, eye_pos);
 				vm_vec_normalize(&eye_dir);
-				vm_vector_2_matrix(eye_orient, &eye_dir, &Viewer_obj->orient.uvec, NULL);
+				vm_vector_2_matrix(eye_orient, &eye_dir, &Viewer_obj->orient.v.uvec, NULL);
 				Viewer_obj = NULL;
 
 				//	Modify the orientation based on head orientation.
@@ -3522,25 +3525,25 @@ void game_render_frame_setup(vector *eye_pos, matrix *eye_orient)
 				vector	move_dir;
 
 				if ( Viewer_obj->phys_info.speed < 0.1 )
-					move_dir = Viewer_obj->orient.fvec;
+					move_dir = Viewer_obj->orient.v.fvec;
 				else {
 					move_dir = Viewer_obj->phys_info.vel;
 					vm_vec_normalize(&move_dir);
 				}
 
 				vm_vec_scale_add(eye_pos, &Viewer_obj->pos, &move_dir, -3.0f * Viewer_obj->radius - Viewer_chase_info.distance);
-				vm_vec_scale_add2(eye_pos, &Viewer_obj->orient.uvec, 0.75f * Viewer_obj->radius);
+				vm_vec_scale_add2(eye_pos, &Viewer_obj->orient.v.uvec, 0.75f * Viewer_obj->radius);
 				vm_vec_sub(&eye_dir, &Viewer_obj->pos, eye_pos);
 				vm_vec_normalize(&eye_dir);
 
 				// JAS: I added the following code because if you slew up using
-				// Descent-style physics, eye_dir and Viewer_obj->orient.uvec are
+				// Descent-style physics, eye_dir and Viewer_obj->orient.v.uvec are
 				// equal, which causes a zero-length vector in the vm_vector_2_matrix
 				// call because the up and the forward vector are the same.   I fixed
 				// it by adding in a fraction of the right vector all the time to the
 				// up vector.
-				vector tmp_up = Viewer_obj->orient.uvec;
-				vm_vec_scale_add2( &tmp_up, &Viewer_obj->orient.rvec, 0.00001f );
+				vector tmp_up = Viewer_obj->orient.v.uvec;
+				vm_vec_scale_add2( &tmp_up, &Viewer_obj->orient.v.rvec, 0.00001f );
 
 				vm_vector_2_matrix(eye_orient, &eye_dir, &tmp_up, NULL);
 				Viewer_obj = NULL;
@@ -3554,7 +3557,7 @@ void game_render_frame_setup(vector *eye_pos, matrix *eye_orient)
 
 					vm_vec_sub(&eye_dir, &shipp->warp_effect_pos, eye_pos);
 					vm_vec_normalize(&eye_dir);
-					vm_vector_2_matrix(eye_orient, &eye_dir, &Player_obj->orient.uvec, NULL);
+					vm_vector_2_matrix(eye_orient, &eye_dir, &Player_obj->orient.v.uvec, NULL);
 					Viewer_obj = NULL;
 			} else {
 				// get an eye position based upon the correct type of object
@@ -3693,16 +3696,16 @@ void john_debug_stuff(vector *eye_pos, matrix *eye_orient)
 			model_subsystem *turret = tsys->system_info;
 
 			if (turret->type == SUBSYSTEM_TURRET )	{
-				vector fvec, uvec;
+				vector v.fvec, v.uvec;
 				object * tobj = &Objects[Players[Player_num].targeted_subobject_parent];
 
 				ship_model_start(tobj);
 
 				model_find_world_point(eye_pos, &turret->turret_firing_point[0], turret->model_num, turret->turret_gun_sobj, &tobj->orient, &tobj->pos );
-				model_find_world_dir(&fvec, &turret->turret_matrix.fvec, turret->model_num, turret->turret_gun_sobj, &tobj->orient, NULL );
-				model_find_world_dir(&uvec, &turret->turret_matrix.uvec, turret->model_num, turret->turret_gun_sobj, &tobj->orient, NULL );
+				model_find_world_dir(&v.fvec, &turret->turret_matrix.v.fvec, turret->model_num, turret->turret_gun_sobj, &tobj->orient, NULL );
+				model_find_world_dir(&v.uvec, &turret->turret_matrix.v.uvec, turret->model_num, turret->turret_gun_sobj, &tobj->orient, NULL );
 				
-				vm_vector_2_matrix( eye_orient, &fvec, &uvec, NULL );
+				vm_vector_2_matrix( eye_orient, &v.fvec, &v.uvec, NULL );
 
 				ship_model_stop(tobj);
 
@@ -4900,13 +4903,13 @@ void camera_set_orient( matrix *orient )
 
 void camera_set_velocity( vector *vel, int instantaneous )
 {
-	Camera_desired_velocity.x = 0.0f;
-	Camera_desired_velocity.y = 0.0f;
-	Camera_desired_velocity.z = 0.0f;
+	Camera_desired_velocity.xyz.x = 0.0f;
+	Camera_desired_velocity.xyz.y = 0.0f;
+	Camera_desired_velocity.xyz.z = 0.0f;
 
-	vm_vec_scale_add2( &Camera_desired_velocity, &Camera_orient.rvec, vel->x );
-	vm_vec_scale_add2( &Camera_desired_velocity, &Camera_orient.uvec, vel->y );
-	vm_vec_scale_add2( &Camera_desired_velocity, &Camera_orient.fvec, vel->z );
+	vm_vec_scale_add2( &Camera_desired_velocity, &Camera_orient.v.rvec, vel->xyz.x );
+	vm_vec_scale_add2( &Camera_desired_velocity, &Camera_orient.v.uvec, vel->xyz.y );
+	vm_vec_scale_add2( &Camera_desired_velocity, &Camera_orient.v.fvec, vel->xyz.z );
 
 	if ( instantaneous )	{
 		Camera_velocity = Camera_desired_velocity;
@@ -4919,13 +4922,13 @@ void camera_move()
 {
 	vector new_vel, delta_pos;
 
-	apply_physics( Camera_damping, Camera_desired_velocity.x, Camera_velocity.x, flFrametime, &new_vel.x, &delta_pos.x );
-	apply_physics( Camera_damping, Camera_desired_velocity.y, Camera_velocity.y, flFrametime, &new_vel.y, &delta_pos.y );
-	apply_physics( Camera_damping, Camera_desired_velocity.z, Camera_velocity.z, flFrametime, &new_vel.z, &delta_pos.z );
+	apply_physics( Camera_damping, Camera_desired_velocity.xyz.x, Camera_velocity.xyz.x, flFrametime, &new_vel.xyz.x, &delta_pos.xyz.x );
+	apply_physics( Camera_damping, Camera_desired_velocity.xyz.y, Camera_velocity.xyz.y, flFrametime, &new_vel.xyz.y, &delta_pos.xyz.y );
+	apply_physics( Camera_damping, Camera_desired_velocity.xyz.z, Camera_velocity.xyz.z, flFrametime, &new_vel.xyz.z, &delta_pos.xyz.z );
 
 	Camera_velocity = new_vel;
 
-//	mprintf(( "Camera velocity = %.1f,%.1f, %.1f\n", Camera_velocity.x, Camera_velocity.y, Camera_velocity.z ));
+//	mprintf(( "Camera velocity = %.1f,%.1f, %.1f\n", Camera_velocity.xyz.x, Camera_velocity.xyz.y, Camera_velocity.xyz.z ));
 
 	vm_vec_add2( &Camera_pos, &delta_pos );
 
@@ -4936,17 +4939,17 @@ void camera_move()
 	if ( (ot < 0.667f) && ( Camera_time >= 0.667f ) )	{
 		vector tmp;
 		
-		tmp.z = 4.739f;		// always go this fast forward.
+		tmp.xyz.z = 4.739f;		// always go this fast forward.
 
 		// pick x and y velocities so they are always on a 
 		// circle with a 25 m radius.
 
 		float tmp_angle = frand()*PI2;
 	
-		tmp.x = 22.0f * (float)sin(tmp_angle);
-		tmp.y = -22.0f * (float)cos(tmp_angle);
+		tmp.xyz.x = 22.0f * (float)sin(tmp_angle);
+		tmp.xyz.y = -22.0f * (float)cos(tmp_angle);
 
-		//mprintf(( "Angle = %.1f, vx=%.1f, vy=%.1f\n", tmp_angle, tmp.x, tmp.y ));
+		//mprintf(( "Angle = %.1f, vx=%.1f, vy=%.1f\n", tmp_angle, tmp.xyz.x, tmp.xyz.y ));
 
 		//mprintf(( "Changing velocity!\n" ));
 		camera_set_velocity( &tmp, 0 );
@@ -5317,9 +5320,9 @@ void game_process_event( int current_state, int event )
 				vector tmp = Player_obj->pos;
 				matrix tmp_m;
 				ship_get_eye( &tmp, &tmp_m, Player_obj );
-				vm_vec_scale_add2( &tmp, &Player_obj->orient.rvec, 0.0f );
-				vm_vec_scale_add2( &tmp, &Player_obj->orient.uvec, 0.952f );
-				vm_vec_scale_add2( &tmp, &Player_obj->orient.fvec, -1.782f );
+				vm_vec_scale_add2( &tmp, &Player_obj->orient.v.rvec, 0.0f );
+				vm_vec_scale_add2( &tmp, &Player_obj->orient.v.uvec, 0.952f );
+				vm_vec_scale_add2( &tmp, &Player_obj->orient.v.fvec, -1.782f );
 				Camera_time = 0.0f;
 				camera_set_position( &tmp );
 				camera_set_orient( &Player_obj->orient );
@@ -7494,7 +7497,7 @@ void Time_model( int modelnum )
 	eye_orient = model_orient = vmd_identity_matrix;
 	eye_pos = model_pos = vmd_zero_vector;
 
-	eye_pos.z = -pm->rad*2.0f;
+	eye_pos.xyz.z = -pm->rad*2.0f;
 
 	vector eye_to_model;
 

@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -1567,7 +1570,7 @@ int brief_setup_closeup(brief_icon *bi)
 
 	vm_set_identity(&Closeup_orient);
 	vm_vec_make(&tvec, 0.0f, 0.0f, -1.0f);
-	Closeup_orient.fvec = tvec;
+	Closeup_orient.v.fvec = tvec;
 	vm_vec_zero(&Closeup_pos);
 	Closeup_angles.p  = 0.0f;
 	Closeup_angles.b  = 0.0f;
@@ -1794,42 +1797,42 @@ void brief_do_frame(float frametime)
 			}
 
 			case KEY_A:
-				Closeup_cam_pos.z += 1;
+				Closeup_cam_pos.xyz.z += 1;
 				cam_change = 1;
 				break;
 
 			case KEY_A + KEY_SHIFTED:
-				Closeup_cam_pos.z += 10;
+				Closeup_cam_pos.xyz.z += 10;
 				cam_change = 1;
 				break;
 
 			case KEY_Z:
-				Closeup_cam_pos.z -= 1;
+				Closeup_cam_pos.xyz.z -= 1;
 				cam_change = 1;
 				break;
 
 			case KEY_Z + KEY_SHIFTED:
-				Closeup_cam_pos.z -= 10;
+				Closeup_cam_pos.xyz.z -= 10;
 				cam_change = 1;
 				break;
 			
 			case KEY_Y:
-				Closeup_cam_pos.y += 1;
+				Closeup_cam_pos.xyz.y += 1;
 				cam_change = 1;
 				break;
 
 			case KEY_Y + KEY_SHIFTED:
-				Closeup_cam_pos.y += 10;
+				Closeup_cam_pos.xyz.y += 10;
 				cam_change = 1;
 				break;
 
 			case KEY_H:
-				Closeup_cam_pos.y -= 1;
+				Closeup_cam_pos.xyz.y -= 1;
 				cam_change = 1;
 				break;
 
 			case KEY_H + KEY_SHIFTED:
-				Closeup_cam_pos.y -= 10;
+				Closeup_cam_pos.xyz.y -= 10;
 				cam_change = 1;
 				break;
 
@@ -1867,7 +1870,7 @@ void brief_do_frame(float frametime)
 
 #ifndef NDEBUG
 	if ( cam_change ) {
-		nprintf(("General","Camera pos: %.2f, %.2f %.2f // ", Closeup_cam_pos.x, Closeup_cam_pos.y, Closeup_cam_pos.z));
+		nprintf(("General","Camera pos: %.2f, %.2f %.2f // ", Closeup_cam_pos.xyz.x, Closeup_cam_pos.xyz.y, Closeup_cam_pos.xyz.z));
 		nprintf(("General","Camera zoom: %.2f\n", Closeup_zoom));
 	}
 #endif

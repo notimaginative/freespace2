@@ -15,6 +15,9 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.10  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.9  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -1268,9 +1271,9 @@ void gr_pline_helper(vector *out, vector *in1, vector *in2, int thickness)
 		slope = vmd_zero_vector;
 	} else {
 		vm_vec_sub(&slope, in2, in1);
-		float temp = -slope.x;
-		slope.x = slope.y;
-		slope.y = temp;
+		float temp = -slope.xyz.x;
+		slope.xyz.x = slope.xyz.y;
+		slope.xyz.y = temp;
 		vm_vec_normalize(&slope);
 	}
 
@@ -1322,8 +1325,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 		vm_vec_add(&e2, &s2, &dir);										// end 2
 		
 		// stuff coords		
-		v[0].sx = (float)ceil(s1.x);
-		v[0].sy = (float)ceil(s1.y);	
+		v[0].sx = (float)ceil(s1.xyz.x);
+		v[0].sy = (float)ceil(s1.xyz.y);	
 		v[0].sw = 0.0f;
 		v[0].u = 0.5f;
 		v[0].v = 0.5f;
@@ -1333,8 +1336,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 		v[0].g = gr_screen.current_color.green;
 		v[0].b = gr_screen.current_color.blue;
 
-		v[1].sx = (float)ceil(s2.x);
-		v[1].sy = (float)ceil(s2.y);	
+		v[1].sx = (float)ceil(s2.xyz.x);
+		v[1].sy = (float)ceil(s2.xyz.y);	
 		v[1].sw = 0.0f;
 		v[1].u = 0.5f;
 		v[1].v = 0.5f;
@@ -1344,8 +1347,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 		v[1].g = gr_screen.current_color.green;
 		v[1].b = gr_screen.current_color.blue;
 
-		v[2].sx = (float)ceil(e2.x);
-		v[2].sy = (float)ceil(e2.y);
+		v[2].sx = (float)ceil(e2.xyz.x);
+		v[2].sy = (float)ceil(e2.xyz.y);
 		v[2].sw = 0.0f;
 		v[2].u = 0.5f;
 		v[2].v = 0.5f;
@@ -1355,8 +1358,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 		v[2].g = gr_screen.current_color.green;
 		v[2].b = gr_screen.current_color.blue;
 
-		v[3].sx = (float)ceil(e1.x);
-		v[3].sy = (float)ceil(e1.y);
+		v[3].sx = (float)ceil(e1.xyz.x);
+		v[3].sy = (float)ceil(e1.xyz.y);
 		v[3].sw = 0.0f;
 		v[3].u = 0.5f;
 		v[3].v = 0.5f;
@@ -1372,8 +1375,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 		// if we're past the first section, draw a "patch" triangle to fill any gaps
 		if(idx > 0){
 			// stuff coords		
-			v[0].sx = (float)ceil(s1.x);
-			v[0].sy = (float)ceil(s1.y);	
+			v[0].sx = (float)ceil(s1.xyz.x);
+			v[0].sy = (float)ceil(s1.xyz.y);
 			v[0].sw = 0.0f;
 			v[0].u = 0.5f;
 			v[0].v = 0.5f;
@@ -1383,8 +1386,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 			v[0].g = gr_screen.current_color.green;
 			v[0].b = gr_screen.current_color.blue;
 
-			v[1].sx = (float)ceil(s2.x);
-			v[1].sy = (float)ceil(s2.y);	
+			v[1].sx = (float)ceil(s2.xyz.x);
+			v[1].sy = (float)ceil(s2.xyz.y);	
 			v[1].sw = 0.0f;
 			v[1].u = 0.5f;
 			v[1].v = 0.5f;
@@ -1395,8 +1398,8 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 			v[1].b = gr_screen.current_color.blue;
 
 
-			v[2].sx = (float)ceil(last_e2.x);
-			v[2].sy = (float)ceil(last_e2.y);
+			v[2].sx = (float)ceil(last_e2.xyz.x);
+			v[2].sy = (float)ceil(last_e2.xyz.y);
 			v[2].sw = 0.0f;
 			v[2].u = 0.5f;
 			v[2].v = 0.5f;

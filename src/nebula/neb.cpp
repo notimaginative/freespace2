@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.7  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.6  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -748,28 +751,28 @@ int crossed_border()
 	neb2_get_eye_pos(&eye_pos);
 
 	// check left, right (0, and 1, x and -x)
-	if(cube_cen.x - eye_pos.x > ws){
+	if(cube_cen.xyz.x - eye_pos.xyz.x > ws){
 		// -x
 		return 0;
-	} else if(eye_pos.x - cube_cen.x > ws){
+	} else if(eye_pos.xyz.x - cube_cen.xyz.x > ws){
 		// +x
 		return 1;
 	}
 
 	// check up, down (2, and 3, y and -y)
-	if(cube_cen.y - eye_pos.y > hs){
+	if(cube_cen.xyz.y - eye_pos.xyz.y > hs){
 		// -y
 		return 2;
-	} else if(eye_pos.y - cube_cen.y > hs){
+	} else if(eye_pos.xyz.y - cube_cen.xyz.y > hs){
 		// +y
 		return 3;
 	}
 
 	// check front, back (4, and 5, z and -z)
-	if(cube_cen.z - eye_pos.z > ds){
+	if(cube_cen.xyz.z - eye_pos.xyz.z > ds){
 		// -z
 		return 4;
-	} else if(eye_pos.z - cube_cen.z > ds){
+	} else if(eye_pos.xyz.z - cube_cen.xyz.z > ds){
 		// +z
 		return 5;
 	}
@@ -825,18 +828,18 @@ void neb2_gen_slice(int xyz, int src, vector *cube_center)
 	ds = Nd->cube_dim / (float)Neb2_slices;	
 	h_incd = ds / 2.0f;
 	cube_corner = *cube_center;		
-	cube_corner.x -= (Nd->cube_dim / 2.0f);			
-	cube_corner.y -= (Nd->cube_dim / 2.0f);	
-	cube_corner.z -= (Nd->cube_dim / 2.0f);	
+	cube_corner.xyz.x -= (Nd->cube_dim / 2.0f);			
+	cube_corner.xyz.y -= (Nd->cube_dim / 2.0f);	
+	cube_corner.xyz.z -= (Nd->cube_dim / 2.0f);	
 	switch(xyz){
 	case 0:
 		for(idx1=0; idx1<Neb2_slices; idx1++){
 			for(idx2=0; idx2<Neb2_slices; idx2++){
 				v = &Neb2_cubes[src][idx1][idx2].pt;
 
-				v->x = h_incw + (ws * (float)src) + frand_range(-Nd->wj, Nd->wj);
-				v->y = h_inch + (hs * (float)idx1) + frand_range(-Nd->hj, Nd->hj);
-				v->z = h_incd + (ds * (float)idx2) + frand_range(-Nd->dj, Nd->dj);
+				v->xyz.x = h_incw + (ws * (float)src) + frand_range(-Nd->wj, Nd->wj);
+				v->xyz.y = h_inch + (hs * (float)idx1) + frand_range(-Nd->hj, Nd->hj);
+				v->xyz.z = h_incd + (ds * (float)idx2) + frand_range(-Nd->dj, Nd->dj);
 				vm_vec_add2(v, &cube_corner);
 
 				// set the bitmap
@@ -854,9 +857,9 @@ void neb2_gen_slice(int xyz, int src, vector *cube_center)
 			for(idx2=0; idx2<Neb2_slices; idx2++){
 				v = &Neb2_cubes[idx1][src][idx2].pt;
 				
-				v->x = h_incw + (ws * (float)idx1) + frand_range(-Nd->wj, Nd->wj);
-				v->y = h_inch + (hs * (float)src) + frand_range(-Nd->hj, Nd->hj);
-				v->z = h_incd + (ds * (float)idx2) + frand_range(-Nd->dj, Nd->dj);
+				v->xyz.x = h_incw + (ws * (float)idx1) + frand_range(-Nd->wj, Nd->wj);
+				v->xyz.y = h_inch + (hs * (float)src) + frand_range(-Nd->hj, Nd->hj);
+				v->xyz.z = h_incd + (ds * (float)idx2) + frand_range(-Nd->dj, Nd->dj);
 				vm_vec_add2(v, &cube_corner);
 
 				// set the bitmap
@@ -874,9 +877,9 @@ void neb2_gen_slice(int xyz, int src, vector *cube_center)
 			for(idx2=0; idx2<Neb2_slices; idx2++){
 				v = &Neb2_cubes[idx1][idx2][src].pt;
 
-				v->x = h_incw + (ws * (float)idx1) + frand_range(-Nd->wj, Nd->wj);
-				v->y = h_inch + (hs * (float)idx2) + frand_range(-Nd->hj, Nd->hj);
-				v->z = h_incd + (ds * (float)src) + frand_range(-Nd->dj, Nd->dj);
+				v->xyz.x = h_incw + (ws * (float)idx1) + frand_range(-Nd->wj, Nd->wj);
+				v->xyz.y = h_inch + (hs * (float)idx2) + frand_range(-Nd->hj, Nd->hj);
+				v->xyz.z = h_incd + (ds * (float)src) + frand_range(-Nd->dj, Nd->dj);
 				vm_vec_add2(v, &cube_corner);
 				
 				// set the bitmap
@@ -975,7 +978,7 @@ void neb2_render_player()
 			break;
 		// -x
 		case 0 :
-			cube_cen.x -= Nd->cube_dim / (float)Neb2_slices;
+			cube_cen.xyz.x -= Nd->cube_dim / (float)Neb2_slices;
 			for(idx1=Neb2_slices-1; idx1>0; idx1--){
 				neb2_copy(0, idx1-1, idx1);
 			}
@@ -983,7 +986,7 @@ void neb2_render_player()
 			break;
 		// x
 		case 1 :
-			cube_cen.x += Nd->cube_dim / (float)Neb2_slices;
+			cube_cen.xyz.x += Nd->cube_dim / (float)Neb2_slices;
 			for(idx1=0; idx1<Neb2_slices-1; idx1++){
 				neb2_copy(0, idx1+1, idx1);
 			}				
@@ -991,7 +994,7 @@ void neb2_render_player()
 			break;
 		// -y
 		case 2 :			
-			cube_cen.y -= Nd->cube_dim / (float)Neb2_slices;
+			cube_cen.xyz.y -= Nd->cube_dim / (float)Neb2_slices;
 			for(idx1=Neb2_slices-1; idx1>0; idx1--){
 				neb2_copy(1, idx1-1, idx1);
 			}				
@@ -999,7 +1002,7 @@ void neb2_render_player()
 			break;
 		// y
 		case 3 :						
-			cube_cen.y += Nd->cube_dim / (float)Neb2_slices;
+			cube_cen.xyz.y += Nd->cube_dim / (float)Neb2_slices;
 			for(idx1=0; idx1<Neb2_slices-1; idx1++){
 				neb2_copy(1, idx1+1, idx1);
 			}				
@@ -1007,7 +1010,7 @@ void neb2_render_player()
 			break;
 		// -z
 		case 4 :			
-			cube_cen.z -= Nd->cube_dim / (float)Neb2_slices;
+			cube_cen.xyz.z -= Nd->cube_dim / (float)Neb2_slices;
 			for(idx1=Neb2_slices-1; idx1>0; idx1--){
 				neb2_copy(2, idx1-1, idx1);
 			}								
@@ -1015,7 +1018,7 @@ void neb2_render_player()
 			break;
 		// z
 		case 5 :						
-			cube_cen.z += Nd->cube_dim / (float)Neb2_slices;
+			cube_cen.xyz.z += Nd->cube_dim / (float)Neb2_slices;
 			for(idx1=0; idx1<Neb2_slices-1; idx1++){
 				neb2_copy(2, idx1+1, idx1);
 			}												
@@ -1044,7 +1047,7 @@ void neb2_render_player()
 				
 				// optimization 1 - don't draw backfacing poly's
 				// useless
-				if(vm_vec_dot_to_point(&eye_orient.fvec, &eye_pos, &Neb2_cubes[idx1][idx2][idx3].pt) <= 0.0f){
+				if(vm_vec_dot_to_point(&eye_orient.v.fvec, &eye_pos, &Neb2_cubes[idx1][idx2][idx3].pt) <= 0.0f){
 					pneb_tossed_dot++;
 					continue;
 				}
@@ -1771,7 +1774,7 @@ void neb2_process_post(object *objp)
 /*
 // add N poofs to the inner shell of the nebula
 // if orient and ang are specified, generate the poofs so that they are "visible" around
-// the orient fvec in a cone of ang degrees
+// the orient v.fvec in a cone of ang degrees
 void neb2_add_inner(neb2 *neb, int num_poofs, matrix *orient, float ang)
 {	
 	int idx;
@@ -1782,7 +1785,7 @@ void neb2_add_inner(neb2 *neb, int num_poofs, matrix *orient, float ang)
 	for(idx=neb->num_poofs; idx<final_index; idx++){
 		if(orient != NULL){
 			// put a point directly in front of the player, between 0 and inner_radius distance away
-			vm_vec_copy_scale(&pt, &orient->fvec, frand_range(neb->magic_num, neb->inner_radius));
+			vm_vec_copy_scale(&pt, &orient->v.fvec, frand_range(neb->magic_num, neb->inner_radius));
 
 			// rotate the point by -ang <-> ang around the up vector
 			vm_rot_point_around_line(&pt2, &pt, fl_radian(frand_range(-ang, ang)), &vmd_zero_vector, &orient->uvec);
@@ -1793,9 +1796,9 @@ void neb2_add_inner(neb2 *neb, int num_poofs, matrix *orient, float ang)
 			// now add in the center of the nebula so its placed properly (ie, not around the origin)
 			vm_vec_add(&neb->pts[idx], &pt3, &Objects[neb->objnum].pos);
 		} else {
-			neb->pts[idx].x = frand_range(-1.0f * neb->inner_radius, neb->inner_radius) + Objects[neb->objnum].pos.x;
-			neb->pts[idx].y = frand_range(-1.0f * neb->inner_radius, neb->inner_radius) + Objects[neb->objnum].pos.y;
-			neb->pts[idx].z = frand_range(-1.0f * neb->inner_radius, neb->inner_radius) + Objects[neb->objnum].pos.z;
+			neb->pts[idx].xyz.x = frand_range(-1.0f * neb->inner_radius, neb->inner_radius) + Objects[neb->objnum].pos.xyz.x;
+			neb->pts[idx].xyz.y = frand_range(-1.0f * neb->inner_radius, neb->inner_radius) + Objects[neb->objnum].pos.xyz.y;
+			neb->pts[idx].xyz.z = frand_range(-1.0f * neb->inner_radius, neb->inner_radius) + Objects[neb->objnum].pos.xyz.z;
 		}
 
 		neb->bmaps[idx] = (int)frand_range(0.0f, (float)2);
@@ -1805,7 +1808,7 @@ void neb2_add_inner(neb2 *neb, int num_poofs, matrix *orient, float ang)
 
 // add N poofs to the outer shell of the nebula
 // if orient and ang are specified, generate the poofs so that they are "visible" around
-// the orient fvec in a cone of ang degrees
+// the orient v.fvec in a cone of ang degrees
 void neb2_add_outer(neb2 *neb, int num_poofs, matrix *orient, float ang)
 {
 	int idx;
@@ -1817,7 +1820,7 @@ void neb2_add_outer(neb2 *neb, int num_poofs, matrix *orient, float ang)
 	for(idx=neb->num_poofs; idx<final_index; idx++){
 		if(orient != NULL){
 			// put a point directly in front of the player, at outer_radius distance away
-			vm_vec_copy_scale(&pt, &orient->fvec, neb->outer_radius);
+			vm_vec_copy_scale(&pt, &orient->v.fvec, neb->outer_radius);
 
 			// rotate the point by -ang <-> ang around the up vector
 			vm_rot_point_around_line(&pt2, &pt, fl_radian(frand_range(-ang, ang)), &vmd_zero_vector, &orient->uvec);
@@ -1832,9 +1835,9 @@ void neb2_add_outer(neb2 *neb, int num_poofs, matrix *orient, float ang)
 			phi = fl_radian(frand_range(0.0f, 360.0f));
 			theta = fl_radian(frand_range(0.0f, 360.f));
 	
-			neb->pts[idx].x = neb->outer_radius * (float)sin(phi) * (float)cos(theta);
-			neb->pts[idx].y = neb->outer_radius * (float)sin(phi) * (float)sin(theta);
-			neb->pts[idx].z = neb->outer_radius * (float)cos(phi);			
+			neb->pts[idx].xyz.x = neb->outer_radius * (float)sin(phi) * (float)cos(theta);
+			neb->pts[idx].xyz.y = neb->outer_radius * (float)sin(phi) * (float)sin(theta);
+			neb->pts[idx].xyz.z = neb->outer_radius * (float)cos(phi);			
 		}
 
 		// pick a random bitmap and increment the # of poofs

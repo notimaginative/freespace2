@@ -15,6 +15,9 @@
  * Code to setup matrix instancing and viewers
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -169,15 +172,15 @@ void g3_start_frame_func(int zbuffer_flag, char * filename, int lineno)
 	s = aspect*(float)Canvas_height/(float)Canvas_width;
 
 	if (s <= 0) {		//scale x
-		Window_scale.x = s;
-		Window_scale.y = 1.0f;
+		Window_scale.xyz.x = s;
+		Window_scale.xyz.y = 1.0f;
 	}
 	else {
-		Window_scale.y = 1.0f / s;
-		Window_scale.x = 1.0f;
+		Window_scale.xyz.y = 1.0f / s;
+		Window_scale.xyz.x = 1.0f;
 	}
 	
-	Window_scale.z = 1.0f;		//always 1
+	Window_scale.xyz.z = 1.0f;		//always 1
 
 	init_free_points();
 
@@ -222,9 +225,9 @@ void g3_set_view_matrix(vector *view_pos,matrix *view_matrix,float zoom)
 	scale_matrix();
 
 	Light_matrix = vmd_identity_matrix;
-	Light_base.x = 0.0f;
-	Light_base.y = 0.0f;
-	Light_base.z = 0.0f;
+	Light_base.xyz.x = 0.0f;
+	Light_base.xyz.y = 0.0f;
+	Light_base.xyz.z = 0.0f;
 
 }
 
@@ -250,22 +253,21 @@ void scale_matrix(void)
 
 	if (View_zoom <= 1.0) 		//zoom in by scaling z
 
-		Matrix_scale.z =  Matrix_scale.z*View_zoom;
+		Matrix_scale.xyz.z =  Matrix_scale.xyz.z*View_zoom;
 
 	else {			//zoom out by scaling x&y
 
 		float s = (float)1.0 / View_zoom;
 
-		Matrix_scale.x = Matrix_scale.x*s;
-		Matrix_scale.y = Matrix_scale.y*s;
+		Matrix_scale.xyz.x = Matrix_scale.xyz.x*s;
+		Matrix_scale.xyz.y = Matrix_scale.xyz.y*s;
 	}
 
 	//now scale matrix elements
 
-	vm_vec_scale(&View_matrix.rvec,Matrix_scale.x);
-	vm_vec_scale(&View_matrix.uvec,Matrix_scale.y);
-	vm_vec_scale(&View_matrix.fvec,Matrix_scale.z);
-
+	vm_vec_scale(&View_matrix.v.rvec,Matrix_scale.xyz.x);
+	vm_vec_scale(&View_matrix.v.uvec,Matrix_scale.xyz.y);
+	vm_vec_scale(&View_matrix.v.fvec,Matrix_scale.xyz.z);
 }
 
 ubyte g3_rotate_vertex_popped(vertex *dest,vector *src)

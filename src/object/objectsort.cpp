@@ -15,6 +15,9 @@
  * Sorting code for objects.
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -262,7 +265,7 @@ void obj_render_all(void (*render_function)(object *objp) )
 				osp->obj = objp;
 				vector to_obj;
 				vm_vec_sub( &to_obj, &objp->pos, &Eye_position );
-				osp->z = vm_vec_dot( &Eye_matrix.fvec, &to_obj );
+				osp->z = vm_vec_dot( &Eye_matrix.v.fvec, &to_obj );
 /*
 				if ( objp->type == OBJ_SHOCKWAVE )
 					osp->z -= 2*objp->radius;

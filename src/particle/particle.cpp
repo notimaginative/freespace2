@@ -15,6 +15,9 @@
  * Code for particle system
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -781,9 +784,9 @@ void particle_emit( particle_emitter *pe, int type, uint optional_data, float ra
 
 		float life = (( pe->max_life - pe->min_life ) * frand()) + pe->min_life;
 
-		normal.x = pe->normal.x + (frand()*2.0f - 1.0f)*pe->normal_variance;
-		normal.y = pe->normal.y + (frand()*2.0f - 1.0f)*pe->normal_variance;
-		normal.z = pe->normal.z + (frand()*2.0f - 1.0f)*pe->normal_variance;
+		normal.xyz.x = pe->normal.xyz.x + (frand()*2.0f - 1.0f)*pe->normal_variance;
+		normal.xyz.y = pe->normal.xyz.y + (frand()*2.0f - 1.0f)*pe->normal_variance;
+		normal.xyz.z = pe->normal.xyz.z + (frand()*2.0f - 1.0f)*pe->normal_variance;
 		vm_vec_normalize_safe( &normal );
 		vm_vec_scale_add( &tmp_vel, &pe->vel, &normal, speed );
 

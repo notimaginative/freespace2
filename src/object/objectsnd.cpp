@@ -15,6 +15,9 @@
  * C module for managing object-linked persistant sounds
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -739,11 +742,11 @@ void obj_snd_do_frame()
 		speed_vol_multiplier = 1.0f;
 		if ( objp->type == OBJ_SHIP ) {
 			if ( !(Ship_info[Ships[objp->instance].ship_info_index].flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) ) {
-				if ( objp->phys_info.max_vel.z <= 0 ) {
+				if ( objp->phys_info.max_vel.xyz.z <= 0 ) {
 					percent_max = 0.0f;
 				}
 				else
-					percent_max = objp->phys_info.fspeed / objp->phys_info.max_vel.z;
+					percent_max = objp->phys_info.fspeed / objp->phys_info.max_vel.xyz.z;
 
 				if ( percent_max >= 0.5 )
 					speed_vol_multiplier = 1.0f;

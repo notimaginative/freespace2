@@ -15,6 +15,9 @@
  * Code for rendering the warp in effects for ships
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -174,26 +177,26 @@ void warpin_render(matrix *orient, vector *pos, int texture_bitmap_num, float ra
 
 	vector center;
 
-	vm_vec_scale_add( &center, pos, &orient->fvec, -(max_radius/2.5f)/3.0f );
+	vm_vec_scale_add( &center, pos, &orient->v.fvec, -(max_radius/2.5f)/3.0f );
 
 	vector vecs[5];
 	vertex verts[5];
 
-	vm_vec_scale_add( &vecs[0], &center, &orient->uvec, radius );
-	vm_vec_scale_add2( &vecs[0], &orient->rvec, -radius );
-	vm_vec_scale_add2( &vecs[0], &orient->fvec, Grid_depth );
+	vm_vec_scale_add( &vecs[0], &center, &orient->v.uvec, radius );
+	vm_vec_scale_add2( &vecs[0], &orient->v.rvec, -radius );
+	vm_vec_scale_add2( &vecs[0], &orient->v.fvec, Grid_depth );
 
-	vm_vec_scale_add( &vecs[1], &center, &orient->uvec, radius );
-	vm_vec_scale_add2( &vecs[1], &orient->rvec, radius );
-	vm_vec_scale_add2( &vecs[1], &orient->fvec, Grid_depth );
+	vm_vec_scale_add( &vecs[1], &center, &orient->v.uvec, radius );
+	vm_vec_scale_add2( &vecs[1], &orient->v.rvec, radius );
+	vm_vec_scale_add2( &vecs[1], &orient->v.fvec, Grid_depth );
 
-	vm_vec_scale_add( &vecs[2], &center, &orient->uvec, -radius );
-	vm_vec_scale_add2( &vecs[2], &orient->rvec, radius );
-	vm_vec_scale_add2( &vecs[2], &orient->fvec, Grid_depth );
+	vm_vec_scale_add( &vecs[2], &center, &orient->v.uvec, -radius );
+	vm_vec_scale_add2( &vecs[2], &orient->v.rvec, radius );
+	vm_vec_scale_add2( &vecs[2], &orient->v.fvec, Grid_depth );
 
-	vm_vec_scale_add( &vecs[3], &center, &orient->uvec, -radius );
-	vm_vec_scale_add2( &vecs[3], &orient->rvec, -radius );
-	vm_vec_scale_add2( &vecs[3], &orient->fvec, Grid_depth );
+	vm_vec_scale_add( &vecs[3], &center, &orient->v.uvec, -radius );
+	vm_vec_scale_add2( &vecs[3], &orient->v.rvec, -radius );
+	vm_vec_scale_add2( &vecs[3], &orient->v.fvec, Grid_depth );
 
 //	vm_vec_scale_add( &vecs[4], &center, &orient->fvec, -Grid_depth );
 	vecs[4] = center;

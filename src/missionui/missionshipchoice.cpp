@@ -15,6 +15,9 @@
  * C module to allow player ship selection for the mission
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -1358,9 +1361,9 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Max Velocity",742));	
 	y_start += 10;
-	sprintf(str,XSTR("%d m/s",743),(int)sip->max_vel.z);
+	sprintf(str,XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
 	gr_set_color_fast(text);
-	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,str);	
+	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,str);
 	y_start += 10;
 
 	// blit the maneuverability

@@ -15,6 +15,9 @@
  * Code for the pieces of exploding object debris.
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:08  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -1259,25 +1262,24 @@ int debris_get_team(object *objp)
 void calc_debris_physics_properties( physics_info *pi, vector *mins, vector *maxs )
 {
 	float dx, dy, dz, mass;
-	dx = maxs->x - mins->x;
-	dy = maxs->y - mins->y;
-	dz = maxs->z - mins->z;
+	dx = maxs->xyz.x - mins->xyz.x;
+	dy = maxs->xyz.y - mins->xyz.y;
+	dz = maxs->xyz.z - mins->xyz.z;
 
 	// John, with new bspgen, just set pi->mass = mass
 	mass = 0.12f * dx * dy * dz;
 	pi->mass = (float) pow(mass, 0.6666667f) * 4.65f;
 
-	pi->I_body_inv.rvec.x = 12.0f / (pi->mass *  (dy*dy + dz*dz));
-	pi->I_body_inv.rvec.y = 0.0f;
-	pi->I_body_inv.rvec.z = 0.0f;
+	pi->I_body_inv.v.rvec.xyz.x = 12.0f / (pi->mass *  (dy*dy + dz*dz));
+	pi->I_body_inv.v.rvec.xyz.y = 0.0f;
+	pi->I_body_inv.v.rvec.xyz.z = 0.0f;
 
-	pi->I_body_inv.uvec.x = 0.0f;
-	pi->I_body_inv.uvec.y = 12.0f / (pi->mass *  (dx*dx + dz*dz));
-	pi->I_body_inv.uvec.z = 0.0f;
+	pi->I_body_inv.v.uvec.xyz.x = 0.0f;
+	pi->I_body_inv.v.uvec.xyz.y = 12.0f / (pi->mass *  (dx*dx + dz*dz));
+	pi->I_body_inv.v.uvec.xyz.z = 0.0f;
 
-	pi->I_body_inv.fvec.x = 0.0f;
-	pi->I_body_inv.fvec.y = 0.0f;
-	pi->I_body_inv.fvec.z = 12.0f / (pi->mass *  (dx*dx + dy*dy));
+	pi->I_body_inv.v.fvec.xyz.x = 0.0f;
+	pi->I_body_inv.v.fvec.xyz.y = 0.0f;
+	pi->I_body_inv.v.fvec.xyz.z = 12.0f / (pi->mass *  (dx*dx + dy*dy));
 }
-
 

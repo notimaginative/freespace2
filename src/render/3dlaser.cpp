@@ -15,6 +15,9 @@
  * Code to draw 3d looking lasers
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -176,11 +179,11 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 
 	headx = pt1.sx;
 	heady = pt1.sy;
-	headr = (head_width*Matrix_scale.x*Canv_w2*pt1.sw);
+	headr = (head_width*Matrix_scale.xyz.x*Canv_w2*pt1.sw);
 
 	tailx = pt2.sx;
 	taily = pt2.sy;
-	tailr = (tail_width*Matrix_scale.x*Canv_w2*pt2.sw);
+	tailr = (tail_width*Matrix_scale.xyz.x*Canv_w2*pt2.sw);
 
 	float len_2d = fl_sqrt( (tailx-headx)*(tailx-headx) + (taily-heady)*(taily-heady) );
 
@@ -336,11 +339,11 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 
 	headx = pt1.sx;
 	heady = pt1.sy;
-	headr = (head_width*Matrix_scale.x*Canv_w2*pt1.sw);
+	headr = (head_width*Matrix_scale.xyz.x*Canv_w2*pt1.sw);
 
 	tailx = pt2.sx;
 	taily = pt2.sy;
-	tailr = (tail_width*Matrix_scale.x*Canv_w2*pt2.sw);
+	tailr = (tail_width*Matrix_scale.xyz.x*Canv_w2*pt2.sw);
 
 	float len_2d = fl_sqrt( (tailx-headx)*(tailx-headx) + (taily-heady)*(taily-heady) );
 

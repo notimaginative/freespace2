@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -139,7 +142,7 @@ void ssm_get_random_start_pos(vector *out, vector *start, matrix *orient, int ss
 	vm_vec_random_in_circle(&temp, start, orient, s->radius, 1);
 
 	// offset it a bit
-	vm_vec_scale_add(out, &temp, &orient->fvec, s->offset);
+	vm_vec_scale_add(out, &temp, &orient->v.fvec, s->offset);
 }
 
 // level init

@@ -15,6 +15,9 @@
  * Code to calculate dynamic lighting on a vertex.
  *
  * $Log$
+ * Revision 1.3  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.2  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -598,7 +601,7 @@ int light_filter_push( int objnum, vector *pos, float rad )
 
 int is_inside( vector *min, vector *max, vector * p0, float rad )
 {
-	float *origin = (float *)&p0->x;
+	float *origin = (float *)&p0->xyz.x;
 	float *minB = (float *)min;
 	float *maxB = (float *)max;
 	int i;

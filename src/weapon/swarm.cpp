@@ -15,6 +15,9 @@
  * C module for managing swarm missiles
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -338,9 +341,9 @@ void swarm_update_direction(object *objp, float frametime)
 				}
 			}
 
-			vm_vec_scale_add(&swarmp->original_target, &objp->pos, &objp->orient.fvec, SWARM_CONE_LENGTH);
-			swarmp->circle_rvec = objp->orient.rvec;
-			swarmp->circle_uvec = objp->orient.uvec;
+			vm_vec_scale_add(&swarmp->original_target, &objp->pos, &objp->orient.v.fvec, SWARM_CONE_LENGTH);
+			swarmp->circle_rvec = objp->orient.v.rvec;
+			swarmp->circle_uvec = objp->orient.v.uvec;
 
 			swarmp->change_count = 1;
 			swarmp->change_time = fl2i(SWARM_CHANGE_DIR_TIME + SWARM_TIME_VARIANCE*(frand() - 0.5f) * 2);
@@ -365,8 +368,8 @@ void swarm_update_direction(object *objp, float frametime)
 			// Calculate a rvec and uvec that will determine the displacement from the
 			// intended target.  Use crossprod to generate a right vector, from the missile
 			// up vector and the vector connecting missile to the homing object.
-			swarmp->circle_uvec = objp->orient.uvec;
-			swarmp->circle_rvec = objp->orient.rvec;
+			swarmp->circle_uvec = objp->orient.v.uvec;
+			swarmp->circle_rvec = objp->orient.v.rvec;
 
 			missile_speed = pi->speed;
 			missile_dist = missile_speed * swarmp->change_time/1000.0f;
@@ -467,7 +470,7 @@ void swarm_update_direction(object *objp, float frametime)
 
 	ai_turn_towards_vector(&swarmp->new_target, objp, frametime, wip->turn_time, NULL, NULL, 0.0f, 0);
 	vel = vm_vec_mag(&objp->phys_info.desired_vel);
-	vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.fvec, vel);
+	vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.v.fvec, vel);
 }
 
 // ------------------------------------------------------------------

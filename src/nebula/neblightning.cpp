@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:09  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -461,9 +464,9 @@ void nebl_init()
 
 		// flavor
 		required_string("+flavor:");
-		stuff_float(&s->flavor.x);
-		stuff_float(&s->flavor.y);
-		stuff_float(&s->flavor.z);
+		stuff_float(&s->flavor.xyz.x);
+		stuff_float(&s->flavor.xyz.y);
+		stuff_float(&s->flavor.xyz.z);
 
 		// frequencies
 		required_string("+random_freq:");
@@ -804,7 +807,7 @@ void nebl_bolt(int type, vector *start, vector *strike)
 
 	// setup the rest of the important bolt data
 	if(vm_vec_same(&Nebl_bolt_start, &Nebl_bolt_strike)){
-		Nebl_bolt_strike.z += 150.0f;
+		Nebl_bolt_strike.xyz.z += 150.0f;
 	}
 	Nebl_bolt_len = vm_vec_dist(&Nebl_bolt_start, &Nebl_bolt_strike);	
 	vm_vec_sub(&dir, &Nebl_bolt_strike, &Nebl_bolt_start);
@@ -995,9 +998,9 @@ int nebl_gen(vector *left, vector *right, float depth, float max_depth, int chil
 	}
 	
 	float scaler = 0.30f;
-	tmp.x += (frand()-0.5f)*d*scaler;
-	tmp.y += (frand()-0.5f)*d*scaler;
-	tmp.z += (frand()-0.5f)*d*scaler;
+	tmp.xyz.x += (frand()-0.5f)*d*scaler;
+	tmp.xyz.y += (frand()-0.5f)*d*scaler;
+	tmp.xyz.z += (frand()-0.5f)*d*scaler;
 
 	// generate left half
 	l_node *ll = NULL;

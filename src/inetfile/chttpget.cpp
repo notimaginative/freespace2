@@ -15,6 +15,9 @@
 * HTTP Client class (get only)
 *
 * $Log$
+* Revision 1.7  2002/06/17 06:33:09  relnev
+* ryan's struct patch for gcc 2.95
+*
 * Revision 1.6  2002/06/09 04:41:21  relnev
 * added copyright header
 *
@@ -125,6 +128,8 @@
 #include <netdb.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #include "unix.h"
 

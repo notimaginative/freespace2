@@ -15,6 +15,9 @@
  * Code for missile trails
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:11  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -283,9 +286,9 @@ void trail_render( trail * trailp )
 
 			} else {
 				fvec = &tmp_fvec;
-				fvec->x = 0.0f;
-				fvec->y = 0.0f;
-				fvec->z = 1.0f;
+				fvec->xyz.x = 0.0f;
+				fvec->xyz.y = 0.0f;
+				fvec->xyz.z = 1.0f;
 			}
 		} else {
 			vm_vec_sub(&tmp_fvec, &last_pos, &pos );

@@ -9,7 +9,7 @@ Charles Mason <cemason@hotpop.com>
 
 This project is NOT supported by Volition or Interplay.
 
-http://www.icculus.org/projects/freespace2/
+http://www.icculus.org/freespace2/
 
 Based on the Freespace 2 source code:
 Copyright (C) Volition, Inc. 1999.  All rights reserved.
@@ -19,14 +19,11 @@ or otherwise commercially exploit the source or things you created based on
 the source.
 ----------------------------------------------
 
-06/16/2002
+06/17/2002
 
 Current status:
 - It currently uses SDL (http://www.libsdl.org) and OpenAL
 (http://opensource.creative.com)
-
-- The code requires GNU g++ 3.0 or g++ 3.1.  gcc 2.95 and earlier will not
-work.
 
 - The OpenGL code is complete minus one or two things, but it is unoptimized.
 

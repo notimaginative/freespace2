@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for weapons and ships
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -364,7 +367,7 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 
 			vm_vec_normalized_dir(&vec_to_ship, &ship_obj->pos, &weapon_obj->pos);
 
-			if (vm_vec_dot(&vec_to_ship, &weapon_obj->orient.fvec) < 0.0f) {
+			if (vm_vec_dot(&vec_to_ship, &weapon_obj->orient.v.fvec) < 0.0f) {
 				// check if we're colliding against "invisible" ship
 				if (!(Ship_info[shipp->ship_info_index].flags & SIF_DONT_COLLIDE_INVIS)) {
 					wp->lifeleft = 0.001f;
@@ -434,7 +437,7 @@ float estimate_ship_speed_upper_limit( object *ship, float time )
 	float delta_v;
 	float factor;
 
-	delta_v = Ship_info[Ships[ship->instance].ship_info_index].max_vel.z - ship->phys_info.speed;
+	delta_v = Ship_info[Ships[ship->instance].ship_info_index].max_vel.xyz.z - ship->phys_info.speed;
 	if (ship->phys_info.forward_accel_time_const == 0) {
 		return ship->phys_info.speed;
 	}
@@ -467,13 +470,13 @@ int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *p
 	if (max_error < 2)
 		max_error = 2.0f;
 
-	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon->pos)) / (weapon->phys_info.max_vel.z - ship->phys_info.max_vel.z);
+	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon->pos)) / (weapon->phys_info.max_vel.xyz.z - ship->phys_info.max_vel.xyz.z);
 	ship_speed_at_exit_sphere = estimate_ship_speed_upper_limit( ship, time_to_exit_sphere );
 	// update estimated time to exit sphere
-	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon->pos)) / (weapon->phys_info.max_vel.z - ship_speed_at_exit_sphere);
-	vm_vec_scale_add( &error_vel, &ship->phys_info.vel, &weapon->orient.fvec, -vm_vec_dotprod(&ship->phys_info.vel, &weapon->orient.fvec) );
+	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon->pos)) / (weapon->phys_info.max_vel.xyz.z - ship_speed_at_exit_sphere);
+	vm_vec_scale_add( &error_vel, &ship->phys_info.vel, &weapon->orient.v.fvec, -vm_vec_dotprod(&ship->phys_info.vel, &weapon->orient.v.fvec) );
 	error_vel_mag = vm_vec_mag_quick( &error_vel );
-	error_vel_mag += 0.5f * (ship->phys_info.max_vel.z - error_vel_mag)*(time_to_exit_sphere/ship->phys_info.forward_accel_time_const);
+	error_vel_mag += 0.5f * (ship->phys_info.max_vel.xyz.z - error_vel_mag)*(time_to_exit_sphere/ship->phys_info.forward_accel_time_const);
 	// error_vel_mag is now average velocity over period
 	error_at_exit_sphere = error_vel_mag * time_to_exit_sphere;
 	time_to_max_error = max_error / error_at_exit_sphere * time_to_exit_sphere;

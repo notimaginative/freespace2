@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2002/06/17 06:33:10  relnev
+ * ryan's struct patch for gcc 2.95
+ *
  * Revision 1.4  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -193,9 +196,9 @@ void multi_obs_create_observer(net_player *pl)
 	Objects[objnum].net_signature = 0;
 
 	// put it a 1,1,1
-	Objects[objnum].pos.x = 1.0f;
-	Objects[objnum].pos.y = 1.0f;
-	Objects[objnum].pos.z = 1.0f;
+	Objects[objnum].pos.xyz.x = 1.0f;
+	Objects[objnum].pos.xyz.y = 1.0f;
+	Objects[objnum].pos.xyz.z = 1.0f;
 
 	// assign this object to the player
 	pl->player->objnum = objnum;				

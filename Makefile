@@ -236,8 +236,8 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/network/multiutil.cpp \
 	./src/network/psnet.cpp \
 	./src/network/psnet2.cpp \
+	./src/network/stand_gui-unix.cpp \
 	./src/platform/unix.cpp
-#	./src/network/stand_gui.cpp 
 
 FS_SOURCES=./src/freespace2/freespace.cpp \
 	./src/freespace2/levelpaging.cpp \

@@ -247,7 +247,6 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/inetfile/cftp.cpp \
 	./src/inetfile/chttpget.cpp \
 	./src/inetfile/inetgetfile.cpp \
-	./src/exceptionhandler/exceptionhandler.cpp \
 	./src/network/multi.cpp \
 	./src/network/multi_campaign.cpp \
 	./src/network/multi_data.cpp \

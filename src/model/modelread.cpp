@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.7  2003/01/30 19:43:57  relnev
+ * added a missing "not" in the model warning
+ *
  * Revision 1.6  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -2196,7 +2199,7 @@ int model_load(char *filename, int n_subsystems, model_subsystem *subsystems)
 
 		for (j=0; j<sm1->num_details; j++ )	{
 			if ( sm1->details[j] == -1 )	{
-				Warning( LOCATION, "Model '%s' could find all detail levels for submodel '%s'", pm->filename, sm1->name );
+				Warning( LOCATION, "Model '%s' could not find all detail levels for submodel '%s'", pm->filename, sm1->name );
 				sm1->num_details = 0;
 			}
 		}

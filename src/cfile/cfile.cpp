@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.7  2002/12/30 03:23:29  relnev
+ * disable root dir check
+ *
  * Revision 1.6  2002/06/17 06:33:08  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -379,15 +382,13 @@ int cfile_init(char *exe_dir, char *cdrom_dir)
 		strcpy(buf, exe_dir);
 		i = strlen(buf);
 
+#ifndef PLAT_UNIX
 		// are we in a root directory?		
 		if(cfile_in_root_dir(buf)){
-#ifdef PLAT_UNIX
-			fprintf (stderr, "ERROR: Freespace2/Fred2 cannot be run from a drive root directory!\n");
-#else
 			MessageBox((HWND)NULL, "Freespace2/Fred2 cannot be run from a drive root directory!", "Error", MB_OK);
-#endif
 			return 1;
 		}		
+#endif
 
 		while (i--) {
 #ifdef PLAT_UNIX

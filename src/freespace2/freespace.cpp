@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.34  2003/08/09 03:18:03  taylor
+ * fix tips popup not having any tips
+ *
  * Revision 1.33  2003/08/03 15:57:00  taylor
  * simpler mouse usage; default ini settings in os_init(); cleanup
  *
@@ -7335,6 +7338,7 @@ void game_shutdown(void)
 	cutscene_tbl_close();
 	medal_tbl_close();
 	scoring_tbl_close();
+	player_tips_close();
 
 	extern void joy_close();
 	joy_close();

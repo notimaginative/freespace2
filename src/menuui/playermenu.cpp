@@ -15,6 +15,9 @@
  * Code to drive the Player Select initial screen
  *
  * $Log$
+ * Revision 1.7  2003/08/09 03:18:03  taylor
+ * fix tips popup not having any tips
+ *
  * Revision 1.6  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -776,8 +779,6 @@ void player_select_close()
 	if (Player_select_force_bastion) {
 		Player->on_bastion = 1;
 	}
-	
-	player_tips_close();
 }
 
 void player_select_set_input_mode(int n)

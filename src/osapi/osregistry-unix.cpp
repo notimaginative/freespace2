@@ -1,5 +1,6 @@
 #include "pstypes.h"
 #include "osregistry.h"
+#include "cfile.h"
 #undef malloc
 #undef free
 #undef strdup
@@ -14,6 +15,7 @@ char *Osreg_class_name = "Freespace2Class";
 #if defined(FS2_DEMO)
 char *Osreg_app_name = "FreeSpace2Demo";
 char *Osreg_title = "Freespace 2 Demo";
+char *Osreg_user_dir = ".freespace_demo";
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
 char *Osreg_app_name = "FreeSpace2OEM";
@@ -22,6 +24,7 @@ char *Osreg_title = "Freespace 2 OEM";
 #else
 char *Osreg_app_name = "FreeSpace2";
 char *Osreg_title = "Freespace 2";
+char *Osreg_user_dir = ".freespace2";
 #define PROFILE_NAME "FreeSpace2.ini"
 #endif
 
@@ -48,7 +51,7 @@ typedef struct Profile
 	struct Section *sections;
 } Profile;
 
-static char *read_line_from_file(FILE *fp)
+static char *read_line_from_file(CFILE *fp)
 {
 	char *buf, *buf_start;
 	int buflen, len, eol;
@@ -63,7 +66,7 @@ static char *read_line_from_file(FILE *fp)
 			return NULL;
 		}
 		
-		if (fgets(buf_start, 80, fp) == NULL) {
+		if (cfgets(buf_start, 80, fp) == NULL) {
 			if (buf_start == buf) {
 				free(buf);
 				return NULL;
@@ -132,7 +135,7 @@ static char *trim_string(char *str)
 
 static Profile *profile_read(char *file)
 {
-	FILE *fp = fopen(file, "r");
+	CFILE *fp = cfopen(file, "rt", CFILE_NORMAL, CF_TYPE_ROOT);
 	if (fp == NULL)
 		return NULL;
 	
@@ -202,7 +205,7 @@ static Profile *profile_read(char *file)
 		free(str);
 	}
 	
-	fclose(fp);
+	cfclose(fp);
 
 	return profile;
 }
@@ -336,31 +339,36 @@ static char *profile_get_value(Profile *profile, char *section, char *key)
 
 static void profile_save(Profile *profile, char *file)
 {
-	FILE *fp;
+	CFILE *fp;
+	
+	char tmp[MAX_PATH] = "";
+	char tmp2[MAX_PATH] = "";
 	
 	if (profile == NULL)
 		return;
 		
-	fp = fopen(file, "w");
+	fp = cfopen(file, "wt", CFILE_NORMAL, CF_TYPE_ROOT);
 	if (fp == NULL)
 		return;
 	
 	Section *sp = profile->sections;
 	while (sp != NULL) {
-		fprintf(fp, "[%s]\n", sp->name);
+		sprintf(tmp, NOX("[%s]\n"), sp->name);
+		cfputs(tmp, fp);
 		
 		KeyValue *kvp = sp->pairs;
 		while (kvp != NULL) {
-			fprintf(fp, "%s=%s\n", kvp->key, kvp->value);
+			sprintf(tmp2, NOX("%s=%s\n"), kvp->key, kvp->value);
+			cfputs(tmp2, fp);
 			kvp = kvp->next;
 		}
 		
-		fprintf(fp, "\n");
+		cfwrite_char('\n', fp);
 		
 		sp = sp->next;
 	}
 	
-	fclose(fp);
+	cfclose(fp);
 }
 
 static char tmp_string_data[1024];

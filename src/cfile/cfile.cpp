@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.8  2003/02/20 17:41:07  theoddone33
+ * Userdir patch from Taylor Richards
+ *
  * Revision 1.7  2002/12/30 03:23:29  relnev
  * disable root dir check
  *
@@ -208,7 +211,11 @@
 #include "cfilesystem.h"
 #include "cfilearchive.h"
 #include "osapi.h"
+#include "osregistry.h"  // for Osreg_user_dir
 
+#ifdef PLAT_UNIX
+char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
+#endif
 char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
 
 // During cfile_init, verify that Pathtypes[n].index == n for each item
@@ -415,6 +422,9 @@ int cfile_init(char *exe_dir, char *cdrom_dir)
 		// set root directory
 		strncpy(Cfile_root_dir, buf, CFILE_ROOT_DIRECTORY_LEN-1);
 
+#ifdef PLAT_UNIX
+		snprintf(Cfile_user_dir, MAX_PATH, "%s/%s/", detect_home(), Osreg_user_dir);
+#endif
 		for ( i = 0; i < MAX_CFILE_BLOCKS; i++ ) {
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
@@ -751,7 +761,7 @@ void cf_create_directory( int dir_type )
 		cf_create_default_path_string( longname, dir_tree[i], NULL );
 
 #ifdef PLAT_UNIX
-		if ( _mkdir(longname, 0777)==0 )	{
+		if ( _mkdir(longname, 0700)==0 )	{
 			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
 		}
 #else

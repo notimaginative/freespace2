@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.12  2003/02/20 17:41:07  theoddone33
+ * Userdir patch from Taylor Richards
+ *
  * Revision 1.11  2002/07/28 21:45:30  theoddone33
  * Add ctrl-z to iconify window
  *
@@ -169,6 +172,25 @@ void os_deinit();
 //
 
 // initialization/shutdown functions -----------------------------------------------
+
+// detect users home directory
+const char *detect_home(void)
+{
+	return (getenv("HOME"));
+}
+
+void default_registry()
+{	
+	/* set some sane defaults since we don't have a laucher... */
+	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
+		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
+	
+	if (os_config_read_string(NULL, NOX("NetworkConnection"), NULL) == NULL)
+		os_config_write_string(NULL, NOX("NetworkConnection"), NOX("lan"));
+	
+	if (os_config_read_string(NULL, NOX("ConnectionSpeed"), NULL) == NULL)
+		os_config_write_string(NULL, NOX("ConnectionSpeed"), NOX("Slow"));
+}
 
 // If app_name is NULL or ommited, then TITLE is used
 // for the app name, which is where registry keys are stored.

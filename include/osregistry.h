@@ -20,7 +20,9 @@ extern char *Osreg_company_name;
 extern char *Osreg_class_name;
 extern char *Osreg_app_name;
 extern char *Osreg_title;
-
+#ifdef PLAT_UNIX
+extern char *Osreg_user_dir;
+#endif
 
 // ------------------------------------------------------------------------------------------------------------
 // REGISTRY FUNCTIONS

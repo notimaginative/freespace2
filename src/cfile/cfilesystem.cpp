@@ -19,6 +19,9 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.8  2003/02/20 17:41:07  theoddone33
+ * Userdir patch from Taylor Richards
+ *
  * Revision 1.7  2002/06/22 23:57:39  relnev
  * remove writable strings.
  *
@@ -464,6 +467,23 @@ void cf_build_root_list(char *cdrom_dir)
 	Num_roots = 0;
 
 	cf_root	*root;
+
+#ifdef PLAT_UNIX
+	// ================================================================
+	// use users HOME directory as default for loading and saving files
+	root = cf_create_root();
+	strcpy( root->path, Cfile_user_dir );
+
+	// do we already have a slash? as in the case of a root directory install
+	if(strlen(root->path) && (root->path[strlen(root->path)-1] != '/')){
+		strcat(root->path, "/");		// put trailing backslash on for easier path construction
+	}
+	root->roottype = CF_ROOTTYPE_PATH;
+
+   //======================================================
+	// Next, check any VP files under the current directory.
+	cf_build_pack_list(root);
+#endif
 
    //======================================================
 	// First, check the current directory.

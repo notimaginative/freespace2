@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.26  2003/02/20 17:41:07  theoddone33
+ * Userdir patch from Taylor Richards
+ *
  * Revision 1.25  2003/01/30 19:54:10  relnev
  * ini config option for the frames per second counter (Taylor Richards)
  *
@@ -2174,6 +2177,11 @@ void game_init()
 
 	// verify that he has a valid weapons.tbl
 	verify_weapons_tbl();
+
+#ifdef PLAT_UNIX
+	// setup the default osreg values if they don't exist
+	default_registry();
+#endif
 
 	// Output version numbers to registry for auto patching purposes
 	os_config_write_uint(NOX("Version"), NOX("Major"), FS_VERSION_MAJOR);

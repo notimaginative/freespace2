@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.3  2003/02/20 17:41:07  theoddone33
+ * Userdir patch from Taylor Richards
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -418,6 +421,9 @@ extern int (*Get_file_list_filter)(char *filename);
 // cfile directory. valid after cfile_init() returns successfully
 #define CFILE_ROOT_DIRECTORY_LEN			256
 extern char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN];
+#ifdef PLAT_UNIX
+extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
+#endif
 
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program

@@ -1,20 +1,19 @@
+#include <sys/stat.h>
+
 #include "pstypes.h"
 #include "osregistry.h"
+#include "osapi.h"
 
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow);
 void vm_dump();
 
 int main(int argc, char **argv)
 {
-	/* set some sane defaults since we don't have a laucher... */
-	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
-		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
+	char userdir[MAX_PATH];
 	
-	if (os_config_read_string(NULL, NOX("NetworkConnection"), NULL) == NULL)
-		os_config_write_string(NULL, NOX("NetworkConnection"), NOX("lan"));
-	
-	if (os_config_read_string(NULL, NOX("ConnectionSpeed"), NULL) == NULL)
-		os_config_write_string(NULL, NOX("ConnectionSpeed"), NOX("Slow"));		
+	// create user game directory
+	snprintf(userdir, sizeof(userdir), "%s/%s", detect_home(), Osreg_user_dir);
+	_mkdir(userdir, 0700);	
 	
 	char *argptr = NULL;
 	int i;

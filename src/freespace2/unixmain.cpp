@@ -5,10 +5,18 @@
 #include "osapi.h"
 
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow);
+
+#ifdef __APPLE__
+char full_path[1024];
+#endif
+
 void vm_dump();
 
 int main(int argc, char **argv)
 {
+#ifdef __APPLE__
+        strcpy( full_path, *argv );
+#endif
 	char userdir[MAX_PATH];
 	
 	// create user game directory

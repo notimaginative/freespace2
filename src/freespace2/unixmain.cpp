@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
 	/* set some sane defaults since we don't have a laucher... */
 	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
-		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL 640x480"));
+		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
 	
 	if (os_config_read_string(NULL, NOX("NetworkConnection"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("NetworkConnection"), NOX("lan"));

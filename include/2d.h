@@ -15,6 +15,9 @@
  * Header file for 2d primitives.
  *
  * $Log$
+ * Revision 1.4  2005/03/29 23:52:10  taylor
+ * have gr_set_bitmap() use default options again so we don't have to always specify them (copied from fs2_open)
+ *
  * Revision 1.3  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -651,7 +654,11 @@ extern void gr_activate(int active);
 #define gr_get_color			GR_CALL(gr_screen.gf_get_color)
 #define gr_set_color_fast	GR_CALL(gr_screen.gf_set_color_fast)
 
-#define gr_set_bitmap		GR_CALL(gr_screen.gf_set_bitmap)
+//#define gr_set_bitmap		GR_CALL(gr_screen.gf_set_bitmap)
+__inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, int bitbltmode=GR_BITBLT_MODE_NORMAL, float alpha=1.0f, int sx = -1, int sy = -1 )
+{
+	(*gr_screen.gf_set_bitmap)(bitmap_num, alphablend, bitbltmode, alpha, sx, sy);
+}
 
 #define gr_create_shader	GR_CALL(gr_screen.gf_create_shader)
 #define gr_set_shader		GR_CALL(gr_screen.gf_set_shader)

@@ -15,6 +15,9 @@
  * Include file for keyboard reading routines
  *
  * $Log$
+ * Revision 1.9  2002/08/04 02:31:00  relnev
+ * make numlock not overlap with pause
+ *
  * Revision 1.8  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -206,7 +209,12 @@ extern int Key_normal_game;
 #define KEY_TAB         0x0F
 #define KEY_SPACEBAR    0x39
 
+#ifndef PLAT_UNIX
 #define KEY_NUMLOCK     0x45
+#else
+#define KEY_NUMLOCK	0x61	/* remapped to an unused value, since pause is 45 */
+#endif
+
 #define KEY_SCROLLOCK   0x46
 #define KEY_CAPSLOCK    0x3A
 

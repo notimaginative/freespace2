@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.23  2002/08/04 02:31:00  relnev
+ * make numlock not overlap with pause
+ *
  * Revision 1.22  2002/08/02 23:07:03  relnev
  * don't access the mouse in standalone mode
  *
@@ -2347,7 +2350,7 @@ void game_init()
 #ifndef PLAT_UNIX
 		extern char Device_init_error[512];
 		MessageBox( NULL, Device_init_error, "Error intializing Direct3D", MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
-#lse
+#else
 		STUB_FUNCTION;
 #endif		
 		exit(1);

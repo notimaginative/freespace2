@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.19  2002/05/30 08:13:14  relnev
+ * fonts are fixed
+ *
  * Revision 1.18  2002/05/29 23:37:36  relnev
  * fix bitmap bug
  *
@@ -348,10 +351,11 @@ void gr_opengl_set_shader( shader * shade )
 	}
 }
 
+
 void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
 	bitmap * bmp;
-	
+	extern int GL_last_bitmap_id;	
 	bmp = bm_lock( gr_screen.current_bitmap, 16, 0 );
 	
 	int ix, iy, iw, ih;
@@ -363,6 +367,8 @@ void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	int cw = min(bmp->w, w);
 	int ch = min(bmp->h, h);
 
+	GL_last_bitmap_id = -1; /* HACK! */
+	
 	glColor4f(1.0, 1.0, 1.0, 1.0);	
 	glBindTexture(GL_TEXTURE_2D, bitmapTex);
 		
@@ -630,9 +636,9 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	y2 = i2fl(y+h+gr_screen.offset_y);
 
 	if ( gr_screen.current_color.is_alphacolor )	{
-		//glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue,gr_screen.current_color.alpha);
+		glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue,gr_screen.current_color.alpha);
 	} else {
-		//glColor3ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
+		glColor3ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
 	}
 
 	glBegin (GL_QUADS);
@@ -820,10 +826,6 @@ void gr_opengl_string( int sx, int sy, char *s )
 
 		if ( wc < 1 ) continue;
 		if ( hc < 1 ) continue;
-
-		font_char *ch;
-	
-		ch = &Current_font->char_data[letter];
 
 		int u = Current_font->bm_u[letter];
 		int v = Current_font->bm_v[letter];
@@ -1131,6 +1133,7 @@ void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 				verts[i]->sy+gr_screen.offset_y,
 				0.99f);
 	}
+	glEnd();
 }
 
 
@@ -1511,9 +1514,8 @@ void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int
 	tex_w = w_in;
 	tex_h = h_in;
 
-	/*
-	   // DDOI - TODO
-	if ( D3D_pow2_textures )        {
+	
+	if (1)        {
 		int i;
 		for (i=0; i<16; i++ )   {
 			if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )        {
@@ -1529,7 +1531,7 @@ void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int
 			}
 		}
 	}
-	*/
+	
 
 	if ( tex_w < GL_min_texture_width ) {
 		tex_w = GL_min_texture_width;
@@ -1618,16 +1620,20 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 			{
 			int i,j;
 			ubyte *bmp_data = ((ubyte*)data);
-			ushort *texmem = (ushort *) malloc (tex_w*tex_h*2);
-			
+			ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
+			ubyte *texmemp = texmem;
+
 			for (i=0;i<tex_h;i++)
 			{
 				for (j=0;j<tex_w;j++)
 				{
-					if (i < bmap_h && j < bmap_w)
-						*texmem++ = ((bmp_data[i*bmap_w+j]<<8)|0xff);
-					else
-						*texmem++ = 0;
+					if (i < bmap_h && j < bmap_w) {
+						*texmemp++ = 0xff;
+						*texmemp++ = bmp_data[i*bmap_w+j]<<4;
+					} else {
+						*texmemp++ = 0;
+						*texmemp++ = 0;
+					}
 				}
 			}
 
@@ -1889,7 +1895,7 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 		*v_scale = t->v_scale;
 
 		glBindTexture (GL_TEXTURE_2D, t->texture_handle );
-	
+
 		GL_last_bitmap_id = t->bitmap_id;
 		GL_last_bitmap_type = bitmap_type;
 		GL_last_section_x = sx;

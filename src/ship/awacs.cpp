@@ -7,8 +7,11 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:52  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 13    8/25/99 10:50a Dave
@@ -543,3 +546,4 @@ int ship_is_visible_by_team(int ship_num, int team)
 
 
 		
+

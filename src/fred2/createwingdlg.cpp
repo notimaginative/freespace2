@@ -106,3 +106,4 @@ void create_wing_dlg::OnOK()
 
 	CDialog::OnOK();
 }
+

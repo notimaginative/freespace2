@@ -7,8 +7,11 @@
  * Routines for managing the debug console window.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 4     6/04/99 10:35a Dave
@@ -788,3 +791,4 @@ void debug_help()
 	dc_printf( "Typing ? or help will give you help.\n");
 	dc_printf( "F3 selects last command line.\n" );
 }
+

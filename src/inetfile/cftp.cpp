@@ -7,8 +7,11 @@
  * FTP Client class (get only)
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 3     5/04/99 7:34p Dave

@@ -7,8 +7,11 @@
  * Object selection (marking) dialog box handling code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 6:28p Dave
@@ -590,3 +593,4 @@ void ship_select::OnDblclkWingList()
 {
 	OnOK();
 }
+

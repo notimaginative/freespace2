@@ -7,8 +7,11 @@
  * Program to create an archive file for use with cfile stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 2     10/23/98 6:15p Dave
@@ -271,3 +274,4 @@ int main(int argc, char *argv[] )
 	printf( "%d total KB.\n", Total_size/1024 );
 	return 0;
 }
+

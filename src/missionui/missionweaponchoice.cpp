@@ -7,8 +7,11 @@
  * C module for the weapon loadout screen
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 40    11/01/99 11:22a Jefff
@@ -3824,3 +3827,4 @@ void wl_drop(int from_bank,int from_list,int to_bank,int to_list, int ship_slot,
 		send_wss_request_packet(Net_player->player_id, from_bank, from_list, to_bank, to_list, ship_slot, -1, WSS_WEAPON_SELECT);
 	}
 }
+

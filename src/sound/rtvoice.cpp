@@ -7,8 +7,11 @@
  * C module file for real-time voice
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:52  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 10:54a Dave
@@ -696,3 +699,4 @@ int rtvoice_play_uncompressed(int index, unsigned char *data, int size)
 	rval = ds_play(ds_handle, -1, -100, DS_MUST_PLAY, ds_convert_volume(Master_voice_volume), 0, 0);
 	return rval;
 }
+

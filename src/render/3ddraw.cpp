@@ -7,6 +7,9 @@
  * 3D rendering primitives
  *
  * $Log$
+ * Revision 1.3  2002/05/07 03:16:51  theoddone33
+ * The Great Newline Fix
+ *
  * Revision 1.2  2002/05/03 13:34:33  theoddone33
  * More stuff compiles
  *
@@ -1838,3 +1841,4 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 
 	return ret;
 }
+

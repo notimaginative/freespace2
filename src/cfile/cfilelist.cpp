@@ -7,8 +7,11 @@
  * Code for doing directory lists and sorts
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 3     2/22/99 10:31p Andsager
@@ -478,3 +481,4 @@ int cfwrite_compressed(void *param_buf, int param_elsize, int param_nelem, CFILE
 
 	return param_nelem;
 }
+

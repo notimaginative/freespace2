@@ -1327,3 +1327,4 @@ void campaign_tree_view::OnEndOfCampaign()
 		return;
 	}
 }
+

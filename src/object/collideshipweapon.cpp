@@ -7,8 +7,11 @@
  * Routines to detect collisions and do physics, damage, etc for weapons and ships
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:48  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 13    8/30/99 11:06a Andsager
@@ -508,3 +511,4 @@ int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *p
 		}
 	}
 }
+

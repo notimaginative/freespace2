@@ -7,8 +7,11 @@
  * Mission goals editor dialog box handling code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 4     2/17/99 2:11p Dave
@@ -788,3 +791,4 @@ void CMissionGoalsDlg::OnSelchangeTeam()
 	UpdateData(TRUE);
 	m_goals[cur_goal].team = m_team;
 }
+

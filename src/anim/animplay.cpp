@@ -7,8 +7,11 @@
  * C module for playing back anim files
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 9     9/13/99 11:26p Andsager
@@ -1304,3 +1307,4 @@ unsigned char anim_instance_get_byte(anim_instance *ai, int offset)
 		return parent->cache[0];
 	}
 }
+

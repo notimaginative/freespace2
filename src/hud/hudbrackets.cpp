@@ -7,8 +7,11 @@
  * C file that contains functions for drawing target brackets on the HUD
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 6     8/03/99 5:35p Andsager
@@ -765,3 +768,4 @@ void draw_bounding_brackets(int x1, int y1, int x2, int y2, int w_correction, in
 		}
 	}
 }
+

@@ -7,8 +7,11 @@
  * Applet for crypting strings.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 2     10/23/98 6:21p Dave
@@ -70,3 +73,4 @@ char *jcrypt (char *plainstring)
 	cryptstring[i]=0;
 	return ((char *)cryptstring);
 }
+

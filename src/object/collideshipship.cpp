@@ -7,8 +7,11 @@
  * Routines to detect collisions and do physics, damage, etc for ships and ships
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:48  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 31    9/01/99 5:40p Andsager
@@ -1893,3 +1896,4 @@ nprintf(("Physics", "Frame: %i %s info: last_pos: [%4.1f, %4.1f, %4.1f], collide
 #endif
 
 }	
+

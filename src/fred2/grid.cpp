@@ -7,8 +7,11 @@
  * Grid dialog box created by Mike.  Probably will never be used again.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 6:28p Dave
@@ -222,3 +225,4 @@ void CGrid::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 	CDialog::OnVScroll(nSBCode, nPos, pScrollBar);
 }
+

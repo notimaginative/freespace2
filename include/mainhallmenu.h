@@ -7,8 +7,11 @@
  * Header file for main-hall menu code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 4     8/26/99 9:45a Dave
@@ -85,3 +88,4 @@ void main_hall_do_multi_ready();
 void main_hall_vasudan_funny();
 
 #endif
+

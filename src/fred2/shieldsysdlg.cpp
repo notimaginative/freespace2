@@ -8,8 +8,11 @@
  * (on a certain team or of a certain type) have a shield system or not.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 6:28p Dave
@@ -191,3 +194,4 @@ void shield_sys_dlg::set_type()
 	else
 		((CButton *) GetDlgItem(IDC_TYPE_NO))->SetCheck(FALSE);
 }
+

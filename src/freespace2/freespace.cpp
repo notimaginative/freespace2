@@ -7,8 +7,11 @@
  * Freespace main body
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 201   6/16/00 3:15p Jefff
@@ -8558,3 +8561,4 @@ bool game_using_low_mem()
 		return true;
 	}
 }
+

@@ -7,8 +7,11 @@
  * Code to page in all the bitmaps at the beginning of a level.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 4     8/19/99 10:12a Alanl
@@ -102,3 +105,4 @@ void level_page_in()
 	mprintf(( "Ending level bitmap paging...\n" ));
 
 }
+

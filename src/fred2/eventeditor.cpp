@@ -7,8 +7,11 @@
  * Event editor dialog box class and event tree class
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 12    9/13/99 8:03a Andsager
@@ -1589,3 +1592,4 @@ void event_editor::OnDblclkMessageList()
 		m_event_tree.hilite_item(m_last_message_node);
 	}
 }
+

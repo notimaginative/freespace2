@@ -8,8 +8,11 @@
  * the special training window, listing the training objectives, etc.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 10    8/27/99 2:20p Andsager
@@ -1178,3 +1181,4 @@ void training_fail()
 	//	Also ensure that a special failure debriefing is given.  Must mention firing at instructor.
 	//	Ask Sandeep to write it (or you can).
 }
+

@@ -7,8 +7,11 @@
  * Header file for drawing the target monitor box on the HUD
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 4     5/21/99 1:44p Andsager
@@ -163,3 +166,4 @@ void hud_cargo_scan_update(object *targetp, float frametime);
 char *hud_targetbox_truncate_subsys_name(char *outstr);
 
 #endif /* __FREESPACE_HUDTARGETBOX_H__ */
+

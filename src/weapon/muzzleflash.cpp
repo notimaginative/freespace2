@@ -7,8 +7,11 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:53  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 7     7/08/99 10:53a Dave

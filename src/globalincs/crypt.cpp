@@ -7,8 +7,11 @@
  * Files for cypting stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 10:52a Dave
@@ -47,3 +50,4 @@ char *jcrypt (char *plainstring)
 	cryptstring[i]=0;
 	return ((char *)cryptstring);
 }
+

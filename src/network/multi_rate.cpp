@@ -5,8 +5,11 @@
  * $Author$
  * 
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:47  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 6     7/15/99 9:20a Andsager
@@ -251,3 +254,4 @@ void multi_rate_display(int np_index, int x, int y)
 	}
 #endif
 }
+

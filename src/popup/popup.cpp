@@ -7,8 +7,11 @@
  * Code for displaying pop-up dialog boxes
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:51  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 12    10/14/99 2:00p Jefff
@@ -1302,3 +1305,4 @@ void popup_change_text(char *new_text)
 	// recalculate all display information
 	popup_split_lines(&Popup_info,Popup_flags);
 }
+

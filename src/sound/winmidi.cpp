@@ -7,8 +7,11 @@
  * C module for playing and managing MIDI files
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:52  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 10:54a Dave
@@ -22,3 +25,4 @@
  *
  * $NoKeywords: $
  */
+

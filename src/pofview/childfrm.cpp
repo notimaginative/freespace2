@@ -66,3 +66,4 @@ BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
 	
 	return CMDIChildWnd::PreCreateWindow(cs);
 }
+

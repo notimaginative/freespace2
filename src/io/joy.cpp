@@ -7,8 +7,11 @@
  * Code to read the joystick
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 5     7/15/99 9:20a Andsager
@@ -1453,3 +1456,4 @@ int joystick_read_raw_axis_di(int num_axes, int *axis)
 
 	return 1;
 }
+

@@ -7,8 +7,11 @@
  * low level parse routines common to all types of parsers
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:48  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 12    8/10/99 6:54p Dave
@@ -1874,3 +1877,4 @@ int split_str(char *src, int max_pixel_w, int *n_chars, char **p_str, int max_li
 
 	return line_num;
 }
+

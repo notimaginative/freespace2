@@ -7,8 +7,11 @@
  * C module for managing object-linked persistant sounds
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:48  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 11    9/08/99 8:56a Mikek
@@ -1061,3 +1064,4 @@ int obj_snd_return_instance(int index)
 
 	return Objsnds[index].instance;
 }
+

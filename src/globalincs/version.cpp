@@ -6,8 +6,11 @@
  *
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 4     8/09/99 2:21p Andsager
@@ -139,3 +142,4 @@ int version_compare(char *filename, int *u_major, int *u_minor, int *u_build, in
 	// same version
 	return 1;
 }
+

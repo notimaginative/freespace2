@@ -91,3 +91,4 @@ char *ai_get_goal_ship_name(char *name, int *index)
 	*index = i;
 	return Goal_ship_names[i];
 }
+

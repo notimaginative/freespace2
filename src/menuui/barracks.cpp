@@ -7,8 +7,11 @@
  * C file for implementing barracks section
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 42    10/25/99 5:47p Jefff
@@ -1661,3 +1664,4 @@ void barracks_close()
 
 	game_flush();
 }
+

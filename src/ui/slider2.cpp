@@ -7,8 +7,11 @@
  * Implements UI_SLIDER2 control
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:53  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 9     8/16/99 4:06p Dave
@@ -337,3 +340,4 @@ void UI_SLIDER2::forceUp() {
 		currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);
 	}
 }
+

@@ -113,3 +113,4 @@ int CHelpEdDoc::get_line_count()
 	// return line_array size
 	return line_array.GetSize();
 }
+

@@ -7,8 +7,11 @@
  * Multiplayer Team Selection Code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:47  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 27    9/13/99 12:54p Jefff
@@ -3153,3 +3156,4 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 		ss_recalc_multiplayer_slots();
 	}
 }
+

@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:47  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  * 
  * 
  * 24    9/13/99 4:52p Dave
@@ -1014,3 +1017,4 @@ void multi_respawn_place(object *new_obj, int team)
 		}
 	} while(collided);   		
 }
+

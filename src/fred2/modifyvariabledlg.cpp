@@ -483,3 +483,4 @@ void CModifyVariableDlg::OnDropdownModifyVariableName()
 
 	cbox->SetCurSel(m_combo_last_modified_index);
 }
+

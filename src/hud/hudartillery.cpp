@@ -6,6 +6,9 @@
  *
  *
  * $Log$
+ * Revision 1.3  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
  * Revision 1.2  2002/05/03 13:34:33  theoddone33
  * More stuff compiles
  *
@@ -321,3 +324,4 @@ void hud_artillery_render()
 		gr_printf(10, 50, "%f", Player_ai->artillery_lock_time);
 	}
 }
+

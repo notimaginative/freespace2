@@ -7,8 +7,11 @@
  * Campaign display tree window code.  Works very closely with the Campaign editor dialog box.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 3     1/07/99 1:52p Andsager
@@ -562,3 +565,4 @@ void campaign_tree_wnd::OnInitialWeapons()
 	isd.m_initial_items = INITIAL_WEAPONS;
 	isd.DoModal();
 }
+

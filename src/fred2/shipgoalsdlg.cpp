@@ -8,8 +8,11 @@
  * ship and wing initial orders, and can support more if need be without modification.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 4     3/26/99 4:49p Dave
@@ -1376,3 +1379,4 @@ void ShipGoalsDlg::set_object(int item)
 		}
 	}
 }
+

@@ -7,8 +7,11 @@
  * Routines to deal with player ship movement
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:51  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 33    10/13/99 3:42p Jefff

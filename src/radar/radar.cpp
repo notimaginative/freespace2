@@ -7,8 +7,11 @@
  * C module containg functions to display and manage the radar
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:51  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 14    8/23/99 8:38p Andsager
@@ -856,3 +859,4 @@ void radar_page_in()
 {
 	bm_page_in_aabitmap( Radar_gauge.first_frame, Radar_gauge.num_frames );
 }
+

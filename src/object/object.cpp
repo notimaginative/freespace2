@@ -7,8 +7,11 @@
  * Code to manage objects
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:48  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 33    8/27/99 10:36a Dave
@@ -2146,3 +2149,4 @@ void obj_reset_all_collisions()
 		moveup = GET_NEXT(moveup);
 	}		
 }
+

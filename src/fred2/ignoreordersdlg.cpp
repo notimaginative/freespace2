@@ -356,3 +356,4 @@ void ignore_orders_dlg::OnCheck10()
 	else
 		button->SetCheck(1);
 }
+

@@ -7,6 +7,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.3  2002/05/07 03:16:47  theoddone33
+ * The Great Newline Fix
+ *
  * Revision 1.2  2002/05/04 04:36:56  theoddone33
  * More changes, took out a lot of the sound/* stuff which will bite later but
  * I don't care.
@@ -1849,3 +1852,4 @@ float neb2_get_alpha_1shell(neb2 *neb, int poof_index)
 	return 0.0f;
 }
 */
+

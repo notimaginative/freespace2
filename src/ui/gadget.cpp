@@ -7,6 +7,9 @@
  * Functions for the base gadget class
  *
  * $Log$
+ * Revision 1.3  2002/05/07 03:16:53  theoddone33
+ * The Great Newline Fix
+ *
  * Revision 1.2  2002/05/04 04:36:56  theoddone33
  * More changes, took out a lot of the sound/* stuff which will bite later but
  * I don't care.
@@ -747,3 +750,4 @@ void UI_GADGET::set_parent(UI_GADGET *daddy)
 		youngest_sibling->next = this;
 	}
 }
+

@@ -7,8 +7,11 @@
  *  Code to drive the Snazzy User Interface
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 7     7/16/99 1:49p Dave
@@ -469,3 +472,4 @@ void snazzy_menu_close()
 {
 	game_flush();
 }
+

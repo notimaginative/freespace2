@@ -9,8 +9,11 @@
  * application (MFC level at least), processes the INI file.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 6     5/19/99 4:07p Dave
@@ -820,3 +823,4 @@ void CFREDApp::record_window_data(window_data *wndd, CWnd *wnd)
 	wndd->visible = wnd->IsWindowVisible();
 	wndd->valid = TRUE;
 }
+

@@ -7,8 +7,11 @@
  * Code to draw 3d looking lasers
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:51  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 5     7/30/99 7:01p Dave
@@ -459,3 +462,4 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 
 	return depth;
 }
+

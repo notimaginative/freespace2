@@ -7,8 +7,11 @@
  * C module for DirectSoundCapture code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:52  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 10:54a Dave
@@ -362,3 +365,4 @@ int dscap_get_raw_data(unsigned char *outbuf, unsigned int max_size)
 	Dscap_last_capture_offset = read_offset;
 	return (size1+size2);
 }
+

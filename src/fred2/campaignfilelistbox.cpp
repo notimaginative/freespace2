@@ -76,3 +76,4 @@ void campaign_filelist_box::initialize()
 		}
 	}
 }
+

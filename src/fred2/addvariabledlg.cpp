@@ -217,3 +217,4 @@ void CAddVariableDlg::set_variable_type()
 	button_number->SetCheck( m_type_number);
 	button_string->SetCheck(!m_type_number);
 }
+

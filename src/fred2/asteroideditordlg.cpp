@@ -668,3 +668,4 @@ void asteroid_editor::OnFieldAsteroid()
 	((CButton*)GetDlgItem(IDC_FIELD_ASTEROID))->SetCheck(1);
 	((CButton*)GetDlgItem(IDC_FIELD_SHIP))->SetCheck(0);
 }
+

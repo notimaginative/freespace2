@@ -202,3 +202,4 @@ void ShipSpecialDamage::OnOK()
 
 	CDialog::OnOK();
 }
+

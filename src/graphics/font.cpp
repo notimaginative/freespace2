@@ -7,8 +7,11 @@
  * source file for font stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 9     7/09/99 10:32p Dave
@@ -894,3 +897,4 @@ int gr_init_font(char * typeface)
 
 	return Loaded_fontnum;
 }
+

@@ -39,3 +39,4 @@ void HelpEdLine::Draw(CDC *pDC)
 	pDC->MoveTo(line_start);
 	pDC->LineTo(line_end);
 }
+

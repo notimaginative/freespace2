@@ -597,3 +597,4 @@ void initial_status::OnLocked()
 
 	((CButton *) GetDlgItem(IDC_LOCKED))->SetCheck(m_locked);
 }
+

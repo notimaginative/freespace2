@@ -98,3 +98,4 @@ void CHelpEdView::OnLButtonDown(UINT nFlags, CPoint point)
 //DEL {
 //DEL 
 //DEL }
+

@@ -7,8 +7,11 @@
  * file which reads and deciphers POF information
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:47  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 36    7/22/99 2:26p Mattk
@@ -3430,3 +3433,4 @@ int model_get_num_dock_points(int modelnum)
 	pm = model_get(modelnum);
 	return pm->n_docks;
 }
+

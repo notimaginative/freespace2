@@ -7,8 +7,11 @@
  * Controls messaging to player during the mission
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 32    9/12/99 8:09p Dave
@@ -2089,3 +2092,4 @@ void message_pagein_mission_messages()
 		}
 	}
 }
+

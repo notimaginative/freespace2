@@ -7,8 +7,11 @@
  * C++ class implementation for icon UI element
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:53  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 4     12/02/98 5:47p Dave
@@ -143,3 +146,4 @@ void UI_ICON::process(int focus)
 		}
 	}
 }
+

@@ -7,8 +7,11 @@
  * Background space images manager dialog
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 11    7/02/99 4:30p Dave
@@ -878,3 +881,4 @@ void bg_bitmap_dlg::OnBitmapDropdownChange()
 		((CListBox*)GetDlgItem(IDC_SBITMAP_LIST))->InsertString(b_index, (const char*)b_name);
 	}
 }
+

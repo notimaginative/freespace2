@@ -7,8 +7,11 @@
  * Code for software 8-bpp rendering using DirectDraw
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 9     7/14/99 9:42a Dave
@@ -1284,3 +1287,4 @@ NoDDError:
 	Int3();
 #endif
 }
+

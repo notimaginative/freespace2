@@ -7,8 +7,11 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 15    6/16/00 3:15p Jefff
@@ -739,3 +742,4 @@ void cutscenes_screen_do_frame()
 
 	gr_flip();
 }
+

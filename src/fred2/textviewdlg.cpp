@@ -100,3 +100,4 @@ void text_view_dlg::OnSetfocusEdit1()
 {
 	((CEdit *) GetDlgItem(IDC_EDIT1)) -> SetSel(-1, -1);
 }
+

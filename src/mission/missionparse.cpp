@@ -7,8 +7,11 @@
  * main upper level code for pasring stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 63    9/12/99 8:09p Dave
@@ -5114,3 +5117,4 @@ int is_training_mission()
 {
 	return (The_mission.game_type & MISSION_TYPE_TRAINING);
 }
+

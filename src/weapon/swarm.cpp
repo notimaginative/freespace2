@@ -7,8 +7,11 @@
  * C module for managing swarm missiles
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:53  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 8     5/20/99 7:00p Dave
@@ -693,3 +696,4 @@ void turret_swarm_check_validity()
 		}
 	}
 }
+

@@ -71,3 +71,4 @@ void hud_render_observer()
 	// render individual player text
 	hud_obs_render_players_all();
 }
+

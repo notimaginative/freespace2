@@ -7,8 +7,11 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:43  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 37    9/13/99 11:26p Andsager
@@ -2554,3 +2557,4 @@ void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h)
 	*w = sx < (sections->num_x - 1) ? MAX_BMAP_SECTION_SIZE : bw - sections->sx[sx];
 	*h = sy < (sections->num_y - 1) ? MAX_BMAP_SECTION_SIZE : bh - sections->sy[sy];										
 }
+

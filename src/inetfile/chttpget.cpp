@@ -7,8 +7,11 @@
 * HTTP Client class (get only)
 *
 * $Log$
-* Revision 1.1  2002/05/03 03:28:09  root
-* Initial revision
+* Revision 1.2  2002/05/07 03:16:45  theoddone33
+* The Great Newline Fix
+*
+* Revision 1.1.1.1  2002/05/03 03:28:09  root
+* Initial import.
 *
  * 
  * 5     8/24/99 1:49a Dave
@@ -772,3 +775,4 @@ void *http_gethostbynameworker(void *parm)
 	return NULL;
 #endif
 }
+

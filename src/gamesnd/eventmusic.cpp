@@ -7,8 +7,11 @@
  * C module for high-level control of event driven music 
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:45  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 14    8/19/99 9:41a Alanl
@@ -1478,3 +1481,4 @@ void event_music_hostile_ship_destroyed()
 
 
 #pragma optimize("", on)
+

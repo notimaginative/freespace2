@@ -7,8 +7,11 @@
  * Weapon editor dialog box handling code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:44  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 4     4/28/99 11:13p Dave
@@ -665,3 +668,4 @@ void WeaponEditorDlg::OnSelchangeMissile4()
 	m_ammo4 = m_ammo_max4 ? (m_ammo_max4) : 0;
 	change_selection();
 }
+

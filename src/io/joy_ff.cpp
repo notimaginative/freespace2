@@ -7,8 +7,11 @@
  * Code for joystick Force Feedback.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 4     1/06/99 2:24p Dave
@@ -807,3 +810,4 @@ void init_periodic_effect_struct(di_periodic_effect_struct *effect, int type, in
 	effect->effect.cbTypeSpecificParams		= sizeof(effect->periodic_struct);
 	effect->effect.lpvTypeSpecificParams	= &effect->periodic_struct;
 }
+

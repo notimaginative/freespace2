@@ -404,3 +404,4 @@ int CPofViewApp::ExitInstance()
 	
 	return CWinApp::ExitInstance();
 }
+

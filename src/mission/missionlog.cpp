@@ -7,8 +7,11 @@
  * File to deal with Mission logs
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 10    11/01/99 2:13p Jefff
@@ -1008,3 +1011,4 @@ void mission_log_scrollback(int line, int list_x, int list_y, int list_w, int li
 		line++;
 	}
 }
+

@@ -7,8 +7,11 @@
  * Include file for timer stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:46  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 4     5/26/99 3:19p Dave
@@ -581,3 +584,4 @@ void timing_display(int x, int y)
 	}
 #endif
 }
+

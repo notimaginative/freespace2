@@ -7,8 +7,11 @@
  * C file for managing the afterburners
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:51  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 7     9/05/99 11:24p Jimb
@@ -445,3 +448,4 @@ void afterburner_stop_sounds()
 	Player_disengage_timer = 1;
 	Player_afterburner_loop_delay = 0;
 }
+

@@ -63,3 +63,4 @@ void alpha_colors_init()
 	gr_init_alphacolor( &Color_ui_light_pink, 184, 161, 161, 255 );
 	gr_init_alphacolor( &Color_ui_pink, 228, 190, 190, 255 );
 }
+

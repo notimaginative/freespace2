@@ -7,8 +7,11 @@
  * Nebula effect
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/07 03:16:47  theoddone33
+ * The Great Newline Fix
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  * 
  * 
  * 10    8/15/99 3:50p Dave
@@ -1320,3 +1323,4 @@ int nebl_get_storm_index(char *name)
 
 	return -1;
 }
+

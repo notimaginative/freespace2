@@ -10,8 +10,6 @@
 
 #define TRUE 1
 #define FALSE 0
-#define DWORD int
-#define WORD short
 #define _MAX_FNAME 255
 #define _MAX_PATH 255
 #define MAX_PATH 255
@@ -41,6 +39,9 @@
 #define PASCAL
 #define CALLBACK
 
+typedef unsigned long DWORD;
+typedef unsigned short WORD;
+
 extern void strlwr (char *str);
 extern int filelength (int fd);
 extern int MulDiv (int, int, int);
@@ -59,6 +60,8 @@ typedef struct FILETIME_s {
 #define WAVE_FORMAT_PCM		1
 #define WAVE_FORMAT_ADPCM	2
 
+// these structures are packed on WIN32 so do it here too
+#pragma pack(push, 1)
 typedef struct {
 	WORD wFormatTag;
 	WORD nChannels;
@@ -81,6 +84,7 @@ typedef struct {
 	WORD  wBitsPerSample;
 	WORD  cbSize;
 } WAVEFORMATEX;
+#pragma pack(pop)
 
 #define CRITICAL_SECTION SDL_mutex*
 

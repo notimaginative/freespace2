@@ -15,6 +15,13 @@
  * C module for the Hotkey selection screen
  *
  * $Log$
+ * Revision 1.7  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -427,35 +434,30 @@ static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 #pragma warning(default: 4710)
 #endif
 
-#ifdef MAKE_FS1
-#define HOTKEY_NUM_TEXT		0
-#else
+#ifndef MAKE_FS1
 #define HOTKEY_NUM_TEXT		6
-#endif
+
 static UI_XSTR Hotkey_text[GR_NUM_RESOLUTIONS][HOTKEY_NUM_TEXT] = {
 	{ 
 		// GR_640
-#ifndef MAKE_FS1
 		{ "Cancel",		1516,	7,	392,		UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][CANCEL_BUTTON].button },
 		{ "Clear",		1517,	85, 392,		UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][CLEAR_BUTTON].button },
 		{ "Reset",		1518,	159, 392,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][RESET_BUTTON].button },
 		{ "Help",		1519,	500, 440,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][HELP_BUTTON].button },
 		{ "Options",	1520,	479, 464,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][OPTIONS_BUTTON].button },
 		{ "Accept",		1521,	573, 413,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][ACCEPT_BUTTON].button }
-#endif
 	}, 
 	{ 
 		// GR_1024
-#ifndef MAKE_FS1
 		{ "Cancel",		1516,	30, 629,		UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][CANCEL_BUTTON].button },
 		{ "Clear",		1517,	151, 629,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][CLEAR_BUTTON].button },
 		{ "Reset",		1518,	269, 629,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][RESET_BUTTON].button },
 		{ "Help",		1519,	800, 704,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][HELP_BUTTON].button },
 		{ "Options",	1520,	797, 743,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][OPTIONS_BUTTON].button },
 		{ "Accept",		1521,	902, 661,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][ACCEPT_BUTTON].button }	
-#endif
 	}
 };
+#endif
 
 
 
@@ -1153,10 +1155,12 @@ void mission_hotkey_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add all xstr text
 	for(i=0; i<HOTKEY_NUM_TEXT; i++) {
 		Ui_window.add_XSTR(&Hotkey_text[gr_screen.res][i]);
 	}
+#endif
 
 	for (i=0; i<LIST_BUTTONS_MAX; i++) {
 		List_buttons[i].create(&Ui_window, "", 0, 0, 60, 30, (i < 2), 1);

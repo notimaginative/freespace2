@@ -15,6 +15,13 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.10  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.9  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -340,15 +347,11 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-	#define NUM_CUTSCENE_TEXT			0
-#else
-	#define NUM_CUTSCENE_TEXT			6
-#endif
+#ifndef MAKE_FS1
+#define NUM_CUTSCENE_TEXT			6
+
 UI_XSTR Cutscene_text[GR_NUM_RESOLUTIONS][NUM_CUTSCENE_TEXT] = {
 	{ // GR_640
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{"Technical Database",		1055,		37,	7,		UI_XSTR_COLOR_GREEN, -1, &Buttons[0][TECH_DATABASE_BUTTON].button },
 		{"Mission Simulator",		1056,		37,	23,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][SIMULATOR_BUTTON].button },
 		{"Cutscenes",					1057,		37,	38,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][CUTSCENES_BUTTON].button },
@@ -356,11 +359,8 @@ UI_XSTR Cutscene_text[GR_NUM_RESOLUTIONS][NUM_CUTSCENE_TEXT] = {
 		
 		{"Play",							1335,		587,	366,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][PLAY_BUTTON].button },
 		{"Exit",							1419,		587,	413,	UI_XSTR_COLOR_PINK, -1, &Buttons[0][EXIT_BUTTON].button },			
-#endif
 	},
 	{ // GR_1024
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{"Technical Database",		1055,		59,	12,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][TECH_DATABASE_BUTTON].button },
 		{"Mission Simulator",		1056,		59,	37,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][SIMULATOR_BUTTON].button },
 		{"Cutscenes",					1057,		59,	62,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][CUTSCENES_BUTTON].button },
@@ -368,9 +368,9 @@ UI_XSTR Cutscene_text[GR_NUM_RESOLUTIONS][NUM_CUTSCENE_TEXT] = {
 		
 		{"Play",							1335,		940,	586,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][PLAY_BUTTON].button },
 		{"Exit",							1419,		940,	661,	UI_XSTR_COLOR_PINK, -1, &Buttons[1][EXIT_BUTTON].button },			
-#endif
 	}
 };
+#endif
 
 int Cutscene_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
@@ -626,10 +626,12 @@ void cutscenes_screen_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add xstrs
 	for(i=0; i<NUM_CUTSCENE_TEXT; i++){
 		Ui_window.add_XSTR(&Cutscene_text[gr_screen.res][i]);
 	}
+#endif
 
 	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
 	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);

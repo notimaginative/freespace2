@@ -15,6 +15,13 @@
  * Module for Red Alert mission interface and code
  *
  * $Log$
+ * Revision 1.8  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.7  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -263,29 +270,22 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	}
 };
 
-#ifdef MAKE_FS1
-	#define RED_ALERT_NUM_TEXT		0
-#else
-	#define RED_ALERT_NUM_TEXT		3
-#endif
+#ifndef MAKE_FS1
+#define RED_ALERT_NUM_TEXT		3
+
 UI_XSTR Red_alert_text[GR_NUM_RESOLUTIONS][RED_ALERT_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Replay",		1405,	46,	451,	UI_XSTR_COLOR_PINK,	-1, &Buttons[0][RA_REPLAY_MISSION].button },
 		{ "Previous Mission",	1452,	46,	462,	UI_XSTR_COLOR_PINK,	-1, &Buttons[0][RA_REPLAY_MISSION].button },
 		{ "Continue",	1069,	564,	413,	UI_XSTR_COLOR_PINK,	-1, &Buttons[0][RA_CONTINUE].button },
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Replay",		1405,	75,	722,	UI_XSTR_COLOR_PINK,	-1, &Buttons[1][RA_REPLAY_MISSION].button },
 		{ "Previous Mission",	1452,	75,	733,	UI_XSTR_COLOR_PINK,	-1, &Buttons[1][RA_REPLAY_MISSION].button },
 		{ "Continue",	1069,	902,	661,	UI_XSTR_COLOR_PINK,	-1, &Buttons[1][RA_CONTINUE].button },
-#endif
 	}
 };
+#endif
 
 // indicies for coordinates
 #define RA_X_COORD 0
@@ -463,10 +463,12 @@ void red_alert_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// all text
 	for(i=0; i<RED_ALERT_NUM_TEXT; i++){
 		Ui_window.add_XSTR(&Red_alert_text[gr_screen.res][i]);
 	}
+#endif
 
 	// set up red alert hotkeys
 	Buttons[gr_screen.res][RA_CONTINUE].button.set_hotkey(KEY_CTRLED | KEY_ENTER);

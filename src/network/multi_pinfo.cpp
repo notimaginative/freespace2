@@ -13,6 +13,13 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.5  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -181,25 +188,18 @@ ui_button_info Multi_pinfo_buttons[GR_NUM_RESOLUTIONS][MULTI_PINFO_NUM_BUTTONS] 
 	}
 };
 
-#ifdef MAKE_FS1
-#define MULTI_PINFO_NUM_TEXT			0
-#else
+#ifndef MAKE_FS1
 #define MULTI_PINFO_NUM_TEXT			1
-#endif
+
 UI_XSTR Multi_pinfo_text[GR_NUM_RESOLUTIONS][MULTI_PINFO_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Close",		428,	217,	318,	UI_XSTR_COLOR_PINK, -1,	&Multi_pinfo_buttons[0][MPI_EXIT].button },		
-#endif
 	},
 	{ // GR_1024
-		// not needed for fS1
-#ifndef MAKE_FS1
 		{ "Close",		428,	348,	510,	UI_XSTR_COLOR_PINK, -1,	&Multi_pinfo_buttons[1][MPI_EXIT].button },		
-#endif
 	}
 };
+#endif
 
 //XSTR:ON
 
@@ -444,10 +444,12 @@ void multi_pinfo_popup_init(net_player *np)
 		Multi_pinfo_buttons[gr_screen.res][idx].button.link_hotspot(Multi_pinfo_buttons[gr_screen.res][idx].hotspot);
 	}			
 
+#ifndef MAKE_FS1
 	// add xstrs
 	for(idx=0; idx<MULTI_PINFO_NUM_TEXT; idx++){
 		Multi_pinfo_window.add_XSTR(&Multi_pinfo_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// disable medals button for the demo
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
@@ -817,7 +819,9 @@ void multi_pinfo_build_stats()
 	if(sc->last_flown == 0){
 		strcpy(Multi_pinfo_stats_vals[MPI_LAST_FLOWN],XSTR("No missions flown",693));
 	} else {
-		tm *tmr = gmtime(&sc->last_flown);
+		time_t last_flown_tmp;
+		tm *tmr = gmtime(&last_flown_tmp);
+		sc->last_flown = (fs_time_t)last_flown_tmp;
 		if(tmr != NULL){
 			strftime(Multi_pinfo_stats_vals[MPI_LAST_FLOWN],MAX_LABEL_TEXT,"%m/%d/%y %H:%M",tmr);
 		} else {

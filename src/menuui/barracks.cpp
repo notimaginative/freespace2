@@ -15,6 +15,13 @@
  * C file for implementing barracks section
  *
  * $Log$
+ * Revision 1.6  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.5  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -392,31 +399,22 @@ static barracks_buttons Buttons[GR_NUM_RESOLUTIONS][BARRACKS_NUM_BUTTONS] = {
 
 
 // FIXME add to strings.tbl, set correct coords
-#ifdef MAKE_FS1
-	#define BARRACKS_NUM_TEXT			0
-#else
-	#define BARRACKS_NUM_TEXT			2
-#endif
+#ifndef MAKE_FS1
+#define BARRACKS_NUM_TEXT			2
+
 UI_XSTR Barracks_text[GR_NUM_RESOLUTIONS][BARRACKS_NUM_TEXT] = {
 	{ 
 		// GR_640
-#ifdef MAKE_FS1
-		// nothing needed
-#else
 		{ "Barracks",			1434,		17, 7,		UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Pilot Stats",		1435,		17, 180,		UI_XSTR_COLOR_GREEN, -1, NULL }
-#endif
 	}, 
 	{ 
 		// GR_1024
-#ifdef MAKE_FS1
-		// nothing needed
-#else
 		{ "Barracks",			1434,		27, 11,		UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Pilot Stats",		1435,		27, 288,		UI_XSTR_COLOR_GREEN, -1, NULL }
-#endif
 	}
 };
+#endif
 
 
 static int Num_stat_lines;
@@ -1732,22 +1730,22 @@ void barracks_do_frame(float frametime)
 
 #if defined(MAKE_FS1) && !defined(FS1_DEMO)
 	if (PilotWin01 != -1) {
-		gr_set_bitmap(PilotWin01);
+		gr_set_bitmap(PilotWin01, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(447, 18);
 	}
 
 	if (PilotWin02 != -1) {
-		gr_set_bitmap(PilotWin02);
+		gr_set_bitmap(PilotWin02, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(620, 38);
 	}
 
 	if (PilotWin03 != -1) {
-		gr_set_bitmap(PilotWin03);
+		gr_set_bitmap(PilotWin03, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(447, 137);
 	}
 
 	if (PilotWin04 != -1) {
-		gr_set_bitmap(PilotWin04);
+		gr_set_bitmap(PilotWin04, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(447, 36);
 	}
 #endif

@@ -15,6 +15,13 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.11  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.10  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1025,16 +1032,11 @@ ui_button_info Multi_join_buttons[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_BUTTONS] = 
 	}
 };
 
-#ifdef MAKE_FS1
-#define MULTI_JOIN_NUM_TEXT			0
-#else
+#ifndef MAKE_FS1
 #define MULTI_JOIN_NUM_TEXT			13
-#endif
 
 UI_XSTR Multi_join_text[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_TEXT] = {
 	{ // GR_640		
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{"Refresh",							1299, 65,	364,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[0][MJ_REFRESH].button},
 		{"Join as",							1300,	476,	376,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[0][MJ_JOIN_OBSERVER].button},
 		{"Observer",						1301,	467,	385,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[0][MJ_JOIN_OBSERVER].button},
@@ -1048,11 +1050,8 @@ UI_XSTR Multi_join_text[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_TEXT] = {
 		{"Server",							1305,	116,	37,	UI_XSTR_COLOR_GREEN, -1, NULL},
 		{"Players",							1306,	471,	37,	UI_XSTR_COLOR_GREEN,	-1, NULL},
 		{"Ping",								1307,	555,	37,	UI_XSTR_COLOR_GREEN, -1, NULL}
-#endif
 	},
 	{ // GR_1024		
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{"Refresh",							1299, 104,	582,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[1][MJ_REFRESH].button},
 		{"Join as",							1300,	783,	602,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[1][MJ_JOIN_OBSERVER].button},
 		{"Observer",						1301,	774,	611,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[1][MJ_JOIN_OBSERVER].button},		
@@ -1066,9 +1065,9 @@ UI_XSTR Multi_join_text[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_TEXT] = {
 		{"Server",							1305,	186,	60,	UI_XSTR_COLOR_GREEN, -1, NULL},
 		{"Players",							1306,	753,	60,	UI_XSTR_COLOR_GREEN,	-1, NULL},
 		{"Ping",								1307,	888,	60,	UI_XSTR_COLOR_GREEN, -1, NULL}
-#endif
 	}
 };
+#endif
 
 // constants for coordinate look ups
 #define MJ_X_COORD 0
@@ -1405,10 +1404,12 @@ void multi_join_game_init()
 		Multi_join_buttons[gr_screen.res][idx].button.link_hotspot(Multi_join_buttons[gr_screen.res][idx].hotspot);
 	}		
 
+#ifndef MAKE_FS1
 	// create all xstrs
 	for(idx=0; idx<MULTI_JOIN_NUM_TEXT; idx++){
 		Multi_join_window.add_XSTR(&Multi_join_text[gr_screen.res][idx]);
 	}
+#endif
 
 	Multi_join_should_send = -1;
 
@@ -2771,15 +2772,11 @@ ui_button_info Multi_sg_buttons[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_BUTTONS] = {
 	},
 };
 
-#ifdef MAKE_FS1
-#define MULTI_SG_NUM_TEXT			0
-#else
+#ifndef MAKE_FS1
 #define MULTI_SG_NUM_TEXT			11
-#endif
+
 UI_XSTR Multi_sg_text[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{"Open",					1322,		34,	191,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[0][MSG_OPEN_GAME].button},
 //		{"Closed",				1323,		34,	166,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[0][MSG_CLOSED_GAME].button},
 //		{"Restricted",			1324,		34,	191,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[0][MSG_RESTRICTED_GAME].button},
@@ -2793,11 +2790,8 @@ UI_XSTR Multi_sg_text[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_TEXT] = {
 		{"Start Game",			1329,		26,	10,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Title",				1330,		26,	31,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Game Type",			1331,		12,	165,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{"Open",					1322,		51,	307,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[1][MSG_OPEN_GAME].button},
 //		{"Closed",				1323,		51,	267,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[1][MSG_CLOSED_GAME].button},
 //		{"Restricted",			1324,		51,	307,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[1][MSG_RESTRICTED_GAME].button},
@@ -2811,9 +2805,9 @@ UI_XSTR Multi_sg_text[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_TEXT] = {
 		{"Start Game",			1329,		42,	22,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Title",				1330,		42,	50,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Game Type",			1331,		20,	264,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
-#endif
 	}
 };
+#endif
 
 // starting index for displaying ranks
 int Multi_sg_rank_start;
@@ -2902,10 +2896,12 @@ void multi_start_game_init()
 		Multi_sg_buttons[gr_screen.res][idx].button.link_hotspot(Multi_sg_buttons[gr_screen.res][idx].hotspot);
 	}	
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(idx=0; idx<MULTI_SG_NUM_TEXT; idx++){
 		Multi_sg_window.add_XSTR(&Multi_sg_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// load the help overlay
 	help_overlay_load(MULTI_START_OVERLAY);
@@ -5401,7 +5397,7 @@ void multi_create_list_blit_icons(int list_index, int y_start)
 	fb = game_find_builtin_mission(mcip->filename);
 	if((fb != NULL) && (fb->flags & FSB_FROM_MDISK)){
 		if(Multi_common_icons[MICON_MDISK] >= 0){
-			gr_set_bitmap(Multi_common_icons[MICON_MDISK]);
+			gr_set_bitmap(Multi_common_icons[MICON_MDISK], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Mc_icon_silent_coords[gr_screen.res][MC_X_COORD],y_start + Mc_icon_silent_coords[gr_screen.res][MC_Y_COORD]);
 		}
 	}
@@ -6180,15 +6176,11 @@ int Multi_ho_lastframe_input = 0;
 // game information text areas
 
 // ho titles
-#ifdef MAKE_FS1
-#define MULTI_HO_NUM_TITLES					0
-#else
+#ifndef MAKE_FS1
 #define MULTI_HO_NUM_TITLES					14
-#endif
+
 UI_XSTR Multi_ho_titles[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_TITLES] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "AI Orders",				1289,		32,	144, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "End Mission",			1290,		32,	242, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Time Limit",			1291,		32,	347, UI_XSTR_COLOR_GREEN, -1, NULL },
@@ -6203,11 +6195,8 @@ UI_XSTR Multi_ho_titles[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_TITLES] = {
 		{ "sec",						1522,		523,	292, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "sec",						1523,		523,	332, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "Voice Wait",			1298,		437,	313, UI_XSTR_COLOR_GREEN, -1, NULL },
-#endif
 	},
 	{ // GR_1024		
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "AI Orders",				1289,		48,	238, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "End Mission",			1290,		48,	394, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Time Limit",			1291,		50,	568, UI_XSTR_COLOR_GREEN, -1, NULL },
@@ -6222,9 +6211,9 @@ UI_XSTR Multi_ho_titles[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_TITLES] = {
 		{ "sec",						1522,		837,	467, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "sec",						1523,		837,	534, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Voice Wait",			1298,		742,	510, UI_XSTR_COLOR_GREEN, -1, NULL },
-#endif
 	}
 };
+#endif
 
 // mission time limit input box
 int Ho_time_coords[GR_NUM_RESOLUTIONS][4] = {
@@ -6398,10 +6387,12 @@ void multi_host_options_init()
 #endif
 	}		
 
+#ifndef MAKE_FS1
 	// create misc text
 	for(idx=0; idx<MULTI_HO_NUM_TITLES; idx++){
 		Multi_ho_window.add_XSTR(&Multi_ho_titles[gr_screen.res][idx]);
 	}
+#endif
 
 	// create the interface sliders
 	for(idx=0; idx<MULTI_HO_NUM_SLIDERS; idx++){
@@ -7109,16 +7100,11 @@ ui_button_info Multi_jw_buttons[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_BUTTONS] = {
 	}
 };
 
-#ifdef MAKE_FS1
-#define MULTI_JW_NUM_TEXT			0
-#else
+#ifndef MAKE_FS1
 #define MULTI_JW_NUM_TEXT			7
-#endif
 
 UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Team 1",				1308,		20,	272,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[0][MJW_TEAM0].button },
 		{ "Team 2",				1309,		73,	272,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[0][MJW_TEAM1].button },
 		{ "Pilot",				1310,		134,	272,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[0][MJW_PILOT_INFO].button },
@@ -7126,11 +7112,8 @@ UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 		{ "Cancel",				387,		570,	414,	UI_XSTR_COLOR_PINK, -1, &Multi_jw_buttons[0][MJW_CANCEL].button },
 		{ "Players",			1269,		38,	8,		UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Choose Team",		1312,		27,	231,	UI_XSTR_COLOR_GREEN, -1, NULL },
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Team 1",				1308,		47,	435,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[1][MJW_TEAM0].button },
 		{ "Team 2",				1309,		133,	435,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[1][MJW_TEAM1].button },
 		{ "Pilot",				1310,		225,	435,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[1][MJW_PILOT_INFO].button },
@@ -7138,9 +7121,9 @@ UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 		{ "Cancel",				387,		931,	667,	UI_XSTR_COLOR_PINK, -1, &Multi_jw_buttons[1][MJW_CANCEL].button },
 		{ "Players",			1269,		165,	12,	UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Choose Team",		1312,		45,	373,	UI_XSTR_COLOR_GREEN, -1, NULL },
-#endif
 	}
 };
+#endif
 
 int Mjw_players_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
@@ -7258,10 +7241,12 @@ void multi_game_client_setup_init()
 		Multi_jw_sw_checkbox.hide();		
 	}
 
+#ifndef MAKE_FS1
 	// create all xstrs
 	for(idx=0; idx<MULTI_JW_NUM_TEXT; idx++){
 		Multi_jw_window.add_XSTR(&Multi_jw_text[gr_screen.res][idx]);
 	}
+#endif
 	
 	// create the player select list button and hide it
 	Multi_jw_plist_select_button.create(&Multi_jw_window, "", Mjw_players_coords[gr_screen.res][MJW_X_COORD], Mjw_players_coords[gr_screen.res][MJW_Y_COORD], Mjw_players_coords[gr_screen.res][MJW_W_COORD], Mjw_players_coords[gr_screen.res][MJW_H_COORD], 0, 1);
@@ -7842,35 +7827,27 @@ ui_button_info Multi_sync_buttons[GR_NUM_RESOLUTIONS][MULTI_SYNC_NUM_BUTTONS] = 
 };
 
 // text
-#ifdef MAKE_FS1
-#define MULTI_SYNC_NUM_TEXT				0
-#else
+#ifndef MAKE_FS1
 #define MULTI_SYNC_NUM_TEXT				5
-#endif
 #define MST_KICK								0
 #define MST_LAUNCH							2
 UI_XSTR Multi_sync_text[GR_NUM_RESOLUTIONS][MULTI_SYNC_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Kick",		1266,		479,	416,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[0][MS_KICK].button },
 		{ "Cancel",		387,		519,	416,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[0][MS_CANCEL].button },
 		{ "Launch",		801,		577,	416,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[0][MS_LAUNCH].button },
 		{ "Players",	1269,		23,	133,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "Status",		1304,		228,	133,	UI_XSTR_COLOR_GREEN,	-1, NULL }
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Kick",		1266,		766,	667,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[1][MS_KICK].button },
 		{ "Cancel",		387,		831,	667,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[1][MS_CANCEL].button },
 		{ "Launch",		801,		924,	667,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[1][MS_LAUNCH].button },
 		{ "Players",	1269,		38,	214,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "Status",		1304,		366,	214,	UI_XSTR_COLOR_GREEN,	-1, NULL }
-#endif
 	}
 };
+#endif
 
 // player name
 int Ms_status_coords[GR_NUM_RESOLUTIONS][4] = {
@@ -8157,6 +8134,7 @@ void multi_sync_common_init()
 		Multi_sync_buttons[gr_screen.res][idx].button.link_hotspot(Multi_sync_buttons[gr_screen.res][idx].hotspot);
 	}		
 
+#ifndef MAKE_FS1
 	// add xstrs
 	for(idx=0; idx<MULTI_SYNC_NUM_TEXT; idx++) {
 		// don't create the "launch" button text just yet
@@ -8170,6 +8148,7 @@ void multi_sync_common_init()
 
 		Multi_sync_window.add_XSTR(&Multi_sync_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// create the player list select button and hide it
 	Multi_sync_plist_button.create(&Multi_sync_window, "", Ms_status_coords[gr_screen.res][MS_X_COORD], Ms_status_coords[gr_screen.res][MS_Y_COORD], Ms_status_coords[gr_screen.res][MS_W_COORD], Ms_status_coords[gr_screen.res][MS_H_COORD], 0, 1);
@@ -9666,29 +9645,22 @@ ui_button_info Multi_pwd_buttons[GR_NUM_RESOLUTIONS][MULTI_PWD_NUM_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-#define MULTI_PWD_NUM_TEXT				0
-#else
+#ifndef MAKE_FS1
 #define MULTI_PWD_NUM_TEXT				3
-#endif
+
 UI_XSTR Multi_pwd_text[GR_NUM_RESOLUTIONS][MULTI_PWD_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Cancel",			387,	400,	141,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[0][MPWD_CANCEL].button},
 		{ "Commit",			1062,	455,	141,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[0][MPWD_COMMIT].button},
 		{ "Enter Password",	1332,	149,	92,	UI_XSTR_COLOR_GREEN, -1,	NULL},
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Cancel",			387,	649,	225,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[1][MPWD_CANCEL].button},
 		{ "Commit",			1062,	736,	225,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[1][MPWD_COMMIT].button},
 		{ "Enter Password",	1332,	239,	148,	UI_XSTR_COLOR_GREEN, -1,	NULL},
-#endif
 	}
 };
+#endif
 
 // initialize all graphics, etc
 void multi_passwd_init()
@@ -9724,10 +9696,12 @@ void multi_passwd_init()
 		Multi_pwd_buttons[gr_screen.res][idx].button.link_hotspot(Multi_pwd_buttons[gr_screen.res][idx].hotspot);
 	}	
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(idx=0; idx<MULTI_PWD_NUM_TEXT; idx++){
 		Multi_pwd_window.add_XSTR(&Multi_pwd_text[gr_screen.res][idx]);
 	}
+#endif
 	
 	// create the password input box
 	Multi_pwd_passwd.create(&Multi_pwd_window, Mpwd_coords[gr_screen.res][MPWD_X_COORD], Mpwd_coords[gr_screen.res][MPWD_Y_COORD],Mpwd_coords[gr_screen.res][MPWD_W_COORD], MAX_PASSWD_LEN, "", UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_INVIS, -1, &Color_normal);

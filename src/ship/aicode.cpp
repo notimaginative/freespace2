@@ -15,6 +15,13 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.10  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.9  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -2773,6 +2780,23 @@ void evaluate_obj_as_target(object *objp, eval_enemy_obj_struct *eeo)
 			}
 		}
 	} // end ship section
+
+#ifdef MAKE_FS1
+	// check if object is an asteroid attacking the turret parent - taylor
+	if (objp->type == OBJ_ASTEROID) {
+		if ( eeo->turret_parent_objnum == asteroid_collide_objnum(objp) ) {
+			// give priority to the closest asteroid *impact* (ms intervals)
+			dist *= 0.9f + (0.01f * asteroid_time_to_impact(objp));
+
+			if (dist < eeo->nearest_dist ) {
+				if ( (eeo->current_enemy == -1) || object_in_turret_fov(objp, tp, eeo->tvec, eeo->tpos, dist + objp->radius) ) {
+					eeo->nearest_dist = dist;
+					eeo->nearest_objnum = OBJ_INDEX(objp);
+				}
+			}
+		}
+	} // end asteroid selection
+#endif
 }
 
 // return 0 only if objnum is beam protected and turret is beam turret

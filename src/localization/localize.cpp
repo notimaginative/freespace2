@@ -14,6 +14,13 @@
  *
  *
  * $Log$
+ * Revision 1.8  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.7  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -517,16 +524,20 @@ int lcl_get_language()
 // initialize the xstr table
 void lcl_xstr_init()
 {
+	int i;
+#ifndef MAKE_FS1
 	char chr, buf[4096];
 	char language_tag[512];	
-	int i, z, index, rval;
+	int z, index, rval;
 	char *p_offset = NULL;
 	int offset_lo = 0, offset_hi = 0;
+#endif
 
 	for (i=0; i<XSTR_SIZE; i++){
 		Xstr_table[i].str = NULL;
 	}
 
+#ifndef MAKE_FS1
 	if ((rval = setjmp(parse_abort)) != 0) {
 		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", rval));
 	} else {
@@ -639,6 +650,7 @@ void lcl_xstr_init()
 	}
 
 	Xstr_inited = 1;
+#endif
 }
 
 

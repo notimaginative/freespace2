@@ -15,6 +15,13 @@
  * C module that contains functions to drive the Options user interface
  *
  * $Log$
+ * Revision 1.6  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.5  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -650,15 +657,11 @@ void options_detail_do_frame();
 void options_detail_set_level(int level);
 
 // text
-#ifdef MAKE_FS1
-	#define OPTIONS_NUM_TEXT				0
-#else
-	#define OPTIONS_NUM_TEXT				49
-#endif
+#ifndef MAKE_FS1
+#define OPTIONS_NUM_TEXT				49
+
 UI_XSTR Options_text[GR_NUM_RESOLUTIONS][OPTIONS_NUM_TEXT] = {
 	{ // GR_640
-		// nothing needed
-#ifndef MAKE_FS1
 		// common text
 		{ "Options",	1036,		10,	35,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[0][OPTIONS_TAB].button },
 		{ "Multi",		1042,		97,	35,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[0][MULTIPLAYER_TAB].button },
@@ -713,11 +716,8 @@ UI_XSTR Options_text[GR_NUM_RESOLUTIONS][OPTIONS_NUM_TEXT] = {
 		{ "Joystick",			1376,	556,	231,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Sensitivity",		1374,	538,	250,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Deadzone",			1377,	538,	281,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
-#endif
 	},
 	{ // GR_1024
-		// nothing needed
-#ifndef MAKE_FS1
 		// common text
 		{ "Options",	1036,		16,	57,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[1][OPTIONS_TAB].button },
 		{ "Multi",		1042,		172,	57,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[1][MULTIPLAYER_TAB].button },
@@ -772,9 +772,9 @@ UI_XSTR Options_text[GR_NUM_RESOLUTIONS][OPTIONS_NUM_TEXT] = {
 		{ "Joystick",			1376,	891,	370,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Sensitivity",		1374,	861,	400,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Deadzone",			1377,	861,	451,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
-#endif
 	}
 };
+#endif
 
 
 //
@@ -1302,10 +1302,12 @@ void options_menu_init()
 		}
 	}
 
+#ifndef MAKE_FS1
 	// add all xstr text
 	for(i=0; i<OPTIONS_NUM_TEXT; i++){
 		Ui_window.add_XSTR(&Options_text[gr_screen.res][i]);
 	}
+#endif
 
 	// bogus controls
 	Detail_bogus.base_create(&Ui_window, UI_KIND_ICON, 0, 0, 0, 0);

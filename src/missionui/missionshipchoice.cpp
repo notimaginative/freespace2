@@ -15,6 +15,13 @@
  * C module to allow player ship selection for the mission
  *
  * $Log$
+ * Revision 1.6  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.5  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -654,25 +661,18 @@ static ss_buttons Ship_select_buttons[GR_NUM_RESOLUTIONS][NUM_SS_BUTTONS] = {
 };
 
 // ship select text
-#ifdef MAKE_FS1
-	#define SHIP_SELECT_NUM_TEXT			0
-#else
-	#define SHIP_SELECT_NUM_TEXT			1
-#endif
+#ifndef MAKE_FS1
+#define SHIP_SELECT_NUM_TEXT			1
+
 UI_XSTR Ship_select_text[GR_NUM_RESOLUTIONS][SHIP_SELECT_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Reset",			1337,		580,	337,	UI_XSTR_COLOR_GREEN, -1, &Ship_select_buttons[0][SS_BUTTON_RESET].button }
-#endif
 	}, 
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Reset",			1337,		938,	546,	UI_XSTR_COLOR_GREEN, -1, &Ship_select_buttons[1][SS_BUTTON_RESET].button }
-#endif
 	}
 };
+#endif
 
 // Mask bitmap pointer and Mask bitmap_id
 static bitmap*	ShipSelectMaskPtr;		// bitmap pointer to the ship select mask bitmap
@@ -967,10 +967,12 @@ void ship_select_buttons_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(i=0; i<SHIP_SELECT_NUM_TEXT; i++){
 		Ship_select_ui_window.add_XSTR(&Ship_select_text[gr_screen.res][i]);
 	}
+#endif
 
 	// We don't want to have the reset button appear in multiplayer
 	if ( Game_mode & GM_MULTIPLAYER ) {

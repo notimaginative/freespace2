@@ -13,6 +13,13 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.7  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.6  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -373,15 +380,11 @@ ui_button_info Om_pro_buttons[GR_NUM_RESOLUTIONS][OM_PRO_NUM_BUTTONS] = {
 UI_GADGET Om_pro_bogus;
 
 // test
-#ifdef MAKE_FS1
-#define OM_PRO_NUM_TEXT		0
-#else
+#ifndef MAKE_FS1
 #define OM_PRO_NUM_TEXT		12
-#endif
+
 UI_XSTR Om_pro_text[GR_NUM_RESOLUTIONS][OM_PRO_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "TCP",				1378,	38,	70,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_TCP].button },
 		{ "IPX",				1379,	38,	88,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_IPX].button },
 		{ "IP Address",	1380,	30,	128,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
@@ -394,11 +397,8 @@ UI_XSTR Om_pro_text[GR_NUM_RESOLUTIONS][OM_PRO_NUM_TEXT] = {
 		{ "Squadron",		1386,	14,	363,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
 		{ "Voice",			1528,	557,	60,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_VOX_TAB].button },
 		{ "General",		1388,	542,	77,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_GEN_TAB].button },	
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "TCP",				1378,	61,	113,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_TCP].button },
 		{ "IPX",				1379,	61,	141,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_IPX].button },
 		{ "IP Address",	1380,	47,	206,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
@@ -411,9 +411,9 @@ UI_XSTR Om_pro_text[GR_NUM_RESOLUTIONS][OM_PRO_NUM_TEXT] = {
 		{ "Squadron",		1386,	23,	582,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
 		{ "Voice",			1528,	921,	96,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_VOX_TAB].button },
 		{ "General",		1388,	902,	123,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_GEN_TAB].button },	
-#endif
 	}
 };
+#endif
 
 // defines for the tracker input boxes
 int Om_tracker_login_coords[GR_NUM_RESOLUTIONS][4] = {
@@ -622,15 +622,11 @@ ui_button_info Om_gen_buttons[GR_NUM_RESOLUTIONS][OM_GEN_NUM_BUTTONS] = {
 UI_GADGET Om_gen_bogus;
 
 // text
-#ifdef MAKE_FS1
-#define OM_GEN_NUM_TEXT					0
-#else
+#ifndef MAKE_FS1
 #define OM_GEN_NUM_TEXT					14
-#endif
+
 UI_XSTR Om_gen_text[GR_NUM_RESOLUTIONS][OM_GEN_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Object Update",	1391,		511,	104,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Low",					1160,		558,	127,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_OBJ_LOW].button },
 		{ "Medium",				1161,		538,	149,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_OBJ_MED].button },		
@@ -645,11 +641,8 @@ UI_XSTR Om_gen_text[GR_NUM_RESOLUTIONS][OM_GEN_NUM_TEXT] = {
 		{ "Flush Cache",		1399,		529,	334,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Never",				1400,		548,	355,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_FLUSH_NO].button },		
 		{ "Before Game",		1401,		502,	377,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_FLUSH_YES].button },		
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Object Update",	1391,		818,	166,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Low",					1160,		913,	204,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_OBJ_LOW].button },
 		{ "Medium",				1161,		892,	239,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_OBJ_MED].button },		
@@ -664,9 +657,9 @@ UI_XSTR Om_gen_text[GR_NUM_RESOLUTIONS][OM_GEN_NUM_TEXT] = {
 		{ "Flush Cache",		1399,		886,	533,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Never",				1400,		897,	568,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_FLUSH_NO].button },		
 		{ "Before Game",		1401,		849,	603,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_FLUSH_YES].button },		
-#endif
 	}
 };
+#endif
 
 // setting vars
 int Om_gen_obj_update;								// object update level
@@ -740,35 +733,28 @@ ui_button_info Om_vox_buttons[GR_NUM_RESOLUTIONS][OM_VOX_NUM_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-#define OM_VOX_NUM_TEXT					0
-#else
+#ifndef MAKE_FS1
 #define OM_VOX_NUM_TEXT					6
-#endif
+
 UI_XSTR Om_vox_text[GR_NUM_RESOLUTIONS][OM_VOX_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Mic test",				1389,		567,	104,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_TEST].button },
 		{ "Voice Quality",		1531,		439,	149,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "Voice Transmission",	1530,		439,	193,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "On",						1285,		556,	233,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_YES].button },
 		{ "Off",						1286,		604,	233,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_NO].button },
 		{ "Mute",					1390,		594,	381,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_MUTE].button },
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "mic test",				1389,		908,	166,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_TEST].button },
 		{ "Voice Quality",		1531,		703,	239,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "Voice Transmission",	1530,		783,	310,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "On",						1285,		890,	373,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_YES].button },
 		{ "Off",						1286,		967,	373,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_NO].button },
 		{ "Mute",					1390,		950,	609,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_MUTE].button },
-#endif
 	}
 };
+#endif
 
 #define NUM_OM_VOX_SLIDERS				1
 #define OM_VOX_QOS_SLIDER				0
@@ -1016,10 +1002,12 @@ void options_multi_load_protocol_controls()
 		Om_pro_buttons[gr_screen.res][idx].button.link_hotspot(Om_pro_buttons[gr_screen.res][idx].hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// text
 	for(idx=0; idx<OM_PRO_NUM_TEXT; idx++){
 		Om_window->add_XSTR(&Om_pro_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// create the tracker input boxes	
 	Om_tracker_login.create(Om_window, Om_tracker_login_coords[gr_screen.res][0], Om_tracker_login_coords[gr_screen.res][1], Om_tracker_login_coords[gr_screen.res][2], LOGIN_LEN - 1, Multi_tracker_login, UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_NO_BACK);
@@ -1741,10 +1729,12 @@ void options_multi_load_gen_controls()
 		Om_gen_buttons[gr_screen.res][idx].button.link_hotspot(Om_gen_buttons[gr_screen.res][idx].hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// text
 	for(idx=0; idx<OM_GEN_NUM_TEXT; idx++){
 		Om_window->add_XSTR(&Om_gen_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// bogus control
 	Om_gen_bogus.base_create(Om_window, UI_KIND_ICON, 0, 0, 0, 0);
@@ -2025,10 +2015,12 @@ void options_multi_load_vox_controls()
 		Om_vox_buttons[gr_screen.res][idx].button.link_hotspot(Om_vox_buttons[gr_screen.res][idx].hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// text
 	for(idx=0; idx<OM_VOX_NUM_TEXT; idx++){
 		Om_window->add_XSTR(&Om_vox_text[gr_screen.res][idx]);
 	}
+#endif
 	
 	// sliders
 	for ( idx = 0; idx < NUM_OM_VOX_SLIDERS; idx++ ) {

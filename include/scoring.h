@@ -15,6 +15,13 @@
  * Scoring system structures, medals, rank, etc.
  *
  * $Log$
+ * Revision 1.5  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.4  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -270,8 +277,8 @@ typedef struct scoring_struct {
 
 	unsigned int missions_flown;		// total # of missions flown
 	unsigned int flight_time;			// total # of flight hours the player has
-	time_t last_flown;					// last time the player has flown
-	time_t last_backup;					// so we can easily call scoring_level_backout()
+	fs_time_t last_flown;					// last time the player has flown
+	fs_time_t last_backup;					// so we can easily call scoring_level_backout()
 
 	// Mission total
 	int m_medal_earned;					// which medal (if any) earned this mission

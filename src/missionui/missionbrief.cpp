@@ -15,6 +15,13 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.10  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.9  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -580,29 +587,22 @@ brief_buttons	Brief_buttons[GR_NUM_RESOLUTIONS][NUM_BRIEF_BUTTONS] = {
 };
 
 // briefing UI
-#ifdef MAKE_FS1
-	#define BRIEF_SELECT_NUM_TEXT			0
-#else
-	#define BRIEF_SELECT_NUM_TEXT			3
-#endif
+#ifndef MAKE_FS1
+#define BRIEF_SELECT_NUM_TEXT			3
+
 UI_XSTR Brief_select_text[GR_NUM_RESOLUTIONS][BRIEF_SELECT_NUM_TEXT] = {
 	{ // GR_640
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{ "Lock",				1270,	602,	364,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[0][BRIEF_BUTTON_MULTI_LOCK].button },
 		{ "Skip Training",	1442,	467,	7,		UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[0][BRIEF_BUTTON_SKIP_TRAINING].button },
 		{ "Exit Loop",			1477,	490,	7,		UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[0][BRIEF_BUTTON_EXIT_LOOP].button }
-#endif
 	}, 
 	{ // GR_1024
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{ "Lock",				1270,	964,	584,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[1][BRIEF_BUTTON_MULTI_LOCK].button },
 		{ "Skip Training",	1442,	805,	12,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[1][BRIEF_BUTTON_SKIP_TRAINING].button },
 		{ "Exit Loop",			1477,	830,	12,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[1][BRIEF_BUTTON_EXIT_LOOP].button }
-#endif
 	}
 };
+#endif
 
 // coordinates for briefing title -- the x value is for the RIGHT side of the text
 static int Title_coords[GR_NUM_RESOLUTIONS][2] = {
@@ -942,10 +942,12 @@ void brief_buttons_init()
 		b->link_hotspot(Brief_buttons[gr_screen.res][i].hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(i=0; i<BRIEF_SELECT_NUM_TEXT; i++) {
 		Brief_ui_window.add_XSTR(&Brief_select_text[gr_screen.res][i]);
 	}
+#endif
 
 	// Hide the 'skip training' button by default.  Only enable and unhide if we are playing a training
 	// mission
@@ -1500,22 +1502,22 @@ void brief_render(float frametime)
 
 #ifdef MAKE_FS1
 	if (MapWin01 != -1) {
-		gr_set_bitmap(MapWin01);
+		gr_set_bitmap(MapWin01, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(63, 122);
 	}
 
 	if (MapWin02 != -1) {
-		gr_set_bitmap(MapWin02);
+		gr_set_bitmap(MapWin02, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(575, 122);
 	}
 
 	if (MapWin03 != -1) {
-		gr_set_bitmap(MapWin03);
+		gr_set_bitmap(MapWin03, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(63, 350);
 	}
 
 	if (MapWin04 != -1) {
-		gr_set_bitmap(MapWin04);
+		gr_set_bitmap(MapWin04, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(42, 122);
 	}
 #endif

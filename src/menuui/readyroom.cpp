@@ -15,6 +15,13 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.8  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.7  2004/12/15 04:10:45  taylor
  * outwnd_unix.cpp from fs2_open for logging to file in debug mode
  * fixes for default function values
@@ -254,29 +261,21 @@ char *Campaign_mask_filename[GR_NUM_RESOLUTIONS] = {
 };
 
 // misc text. ("Mission" and "Filename"
-#ifdef MAKE_FS1
-	#define NUM_SIM_MISC_TEXT				0
-#else
-	#define NUM_SIM_MISC_TEXT				2
-#endif
+#ifndef MAKE_FS1
+#define NUM_SIM_MISC_TEXT				2
 #define SIM_MISC_TEXT_MISSION			0
 #define SIM_MISC_TEXT_FILENAME		1
 int Sim_misc_text_coords[GR_NUM_RESOLUTIONS][NUM_SIM_MISC_TEXT][2] = {
 	{ // GR_640
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{33, 95},
 		{491, 95}
-#endif
 	}, 
 	{ // GR_1024
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{43, 155},
 		{491, 155}
-#endif
 	}
 };
+#endif
 
 // readyroom text line stuff
 #define READYROOM_LINE_CAMPAIGN	1
@@ -1501,7 +1500,7 @@ void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb, in
 
 #ifdef MAKE_FS1
 	if(is_md && (Mission_icon_bitmaps[MISSION_ICON_MDISK] >= 0)){
-		gr_set_bitmap(Mission_icon_bitmaps[MISSION_ICON_MDISK]);
+		gr_set_bitmap(Mission_icon_bitmaps[MISSION_ICON_MDISK], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Sim_silent_icon_x[gr_screen.res], y_start + MISSION_ICON_MDISK_Y_OFFSET);
 	}
 #endif
@@ -1576,29 +1575,22 @@ ui_button_info Cr_buttons[GR_NUM_RESOLUTIONS][CR_NUM_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-	#define CR_NUM_TEXT			0
-#else
-	#define CR_NUM_TEXT			3
-#endif
+#ifndef MAKE_FS1
+#define CR_NUM_TEXT			3
+
 UI_XSTR Cr_text[GR_NUM_RESOLUTIONS][CR_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Restart",		1403,		569,	326, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[0][CR_RESET_BUTTON].button },
 		{ "Campaign",		1404,		569,	337, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[0][CR_RESET_BUTTON].button },
 		{ "Select",			1409,		568,	413, UI_XSTR_COLOR_PINK,	-1, &Cr_buttons[0][CR_COMMIT_BUTTON].button },
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Restart",		1403,		922,	523, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[1][CR_RESET_BUTTON].button },
 		{ "Campaign",		1404,		922,	538, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[1][CR_RESET_BUTTON].button },
 		{ "Select",			1409,		921,	665, UI_XSTR_COLOR_PINK,	-1, &Cr_buttons[1][CR_COMMIT_BUTTON].button },
-#endif
 	}
 };
+#endif
 
 static int Num_desc_lines;
 static int Desc_scroll_offset;
@@ -1822,10 +1814,12 @@ void campaign_room_init()
 		List_buttons[i].disable();
 	}
 
+#ifndef MAKE_FS1
 	// add xstrs
 	for(i=0; i<CR_NUM_TEXT; i++){
 		Ui_window.add_XSTR(&Cr_text[gr_screen.res][i]);
 	}
+#endif
 
 	// set up sim_rooms for buttons so we draw the correct animation frame when a key is pressed
 	Cr_buttons[gr_screen.res][CR_SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);

@@ -15,6 +15,13 @@
  * C source file for displaying game credits
  *
  * $Log$
+ * Revision 1.9  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.8  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -761,22 +768,22 @@ void credits_do_frame(float frametime)
 
 #ifdef MAKE_FS1
 	if (CreditsWin01 != -1) {
-		gr_set_bitmap(CreditsWin01);
+		gr_set_bitmap(CreditsWin01, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(233, 5);
 	}
 
 	if (CreditsWin02 != -1) {
-		gr_set_bitmap(CreditsWin02);
+		gr_set_bitmap(CreditsWin02, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(616, 8);
 	}
 
 	if (CreditsWin03 != -1) {
-		gr_set_bitmap(CreditsWin03);
+		gr_set_bitmap(CreditsWin03, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(233, 299);
 	}
 
 	if (CreditsWin04 != -1) {
-		gr_set_bitmap(CreditsWin04);
+		gr_set_bitmap(CreditsWin04, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(215, 8);
 	}
 #endif

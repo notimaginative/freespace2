@@ -15,6 +15,13 @@
  * Functions to drive the context-sensitive help 
  *
  * $Log$
+ * Revision 1.8  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.7  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -682,7 +689,7 @@ void help_overlay_blit(int overlay_id)
 	}
 
 	if (Overlay >= 0){
-		gr_set_bitmap(Overlay);
+		gr_set_bitmap(Overlay, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 #else

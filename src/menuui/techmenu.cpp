@@ -15,6 +15,13 @@
  * C module that contains functions to drive the Tech Menu user interface
  *
  * $Log$
+ * Revision 1.9  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.8  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1979,7 +1986,7 @@ void techroom_do_frame(float frametime)
 			// clear & draw bg bitmap
 			GR_MAYBE_CLEAR_RES(Tech_background_bitmap);
 			if (Tech_background_bitmap >= 0) {
-				gr_set_bitmap(Tech_background_bitmap);
+				gr_set_bitmap(Tech_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(0, 0);
 			}
 #endif
@@ -1987,22 +1994,22 @@ void techroom_do_frame(float frametime)
 
 #ifdef MAKE_FS1
 			if (ShipWin01) {
-				gr_set_bitmap(ShipWin01);
+				gr_set_bitmap(ShipWin01, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(223, 104);
 			}
 
 			if (ShipWin02) {
-				gr_set_bitmap(ShipWin02);
+				gr_set_bitmap(ShipWin02, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(621, 124);
 			}
 
 			if (ShipWin03) {
-				gr_set_bitmap(ShipWin03);
+				gr_set_bitmap(ShipWin03, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(223, 338);
 			}
 
 			if (ShipWin04) {
-				gr_set_bitmap(ShipWin04);
+				gr_set_bitmap(ShipWin04, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(218, 124);
 			}
 #endif
@@ -2014,7 +2021,7 @@ void techroom_do_frame(float frametime)
 			// clear & draw bg bitmap
 			GR_MAYBE_CLEAR_RES(Tech_data_background_bitmap);
 			if (Tech_data_background_bitmap >= 0) {
-				gr_set_bitmap(Tech_data_background_bitmap);
+				gr_set_bitmap(Tech_data_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(0, 0);
 			}
 #endif
@@ -2027,7 +2034,7 @@ void techroom_do_frame(float frametime)
 			// clear & draw bg bitmap
 			GR_MAYBE_CLEAR_RES(Tech_data_background_bitmap);
 			if (Tech_data_background_bitmap >= 0) {
-				gr_set_bitmap(Tech_data_background_bitmap);
+				gr_set_bitmap(Tech_data_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(0, 0);
 			}
 #endif

@@ -15,6 +15,13 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.12  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.11  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -686,18 +693,13 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-	#define NUM_DEBRIEF_TEXT			0
-#else
-	#define NUM_DEBRIEF_TEXT			10
-#endif
+#ifndef MAKE_FS1
+#define NUM_DEBRIEF_TEXT			10
 #define MP_TEXT_INDEX_1					4
 #define MP_TEXT_INDEX_2					5
 #define MP_TEXT_INDEX_3					6
 UI_XSTR Debrief_strings[GR_NUM_RESOLUTIONS][NUM_DEBRIEF_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Debriefing",		804,		37,	7,		UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][DEBRIEF_TAB].button },
 		{ "Statistics",		1333,		37,	26,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][STATS_TAB].button },
 		{ "Replay Mission",	444,		49,	447,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[0][REPLAY_MISSION].button },
@@ -708,11 +710,8 @@ UI_XSTR Debrief_strings[GR_NUM_RESOLUTIONS][NUM_DEBRIEF_TEXT] = {
 		{ "Help",				928,		500,	440,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][HELP_BUTTON].button },
 		{ "Options",			1036,		479,	464,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][OPTIONS_BUTTON].button },
 		{ "Accept",				1035,		572,	413,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[0][ACCEPT_BUTTON].button },
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Debriefing",		804,		59,	12,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][DEBRIEF_TAB].button },
 		{ "Statistics",		1333,		59,	47,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][STATS_TAB].button },
 		{ "Replay Mission",	444,		79,	715,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[1][REPLAY_MISSION].button },
@@ -723,9 +722,9 @@ UI_XSTR Debrief_strings[GR_NUM_RESOLUTIONS][NUM_DEBRIEF_TEXT] = {
 		{ "Help",				928,		801,	705,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][HELP_BUTTON].button },
 		{ "Options",			1036,		780,	744,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][OPTIONS_BUTTON].button },
 		{ "Accept",				1035,		917,	672,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[1][ACCEPT_BUTTON].button },
-#endif
 	}
 };
+#endif
 
 
 char Debrief_current_callsign[CALLSIGN_LEN+10];
@@ -1229,6 +1228,7 @@ void debrief_buttons_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(i=0; i<NUM_DEBRIEF_TEXT; i++){
 		// multiplayer specific text
@@ -1243,6 +1243,7 @@ void debrief_buttons_init()
 			Debrief_ui_window.add_XSTR(&Debrief_strings[gr_screen.res][i]);
 		}
 	}
+#endif
 	
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
 	Buttons[gr_screen.res][NEXT_STAGE].button.set_hotkey(KEY_RIGHT);
@@ -2909,17 +2910,17 @@ void debrief_do_frame(float frametime)
 		debrief_draw_award_text();
 #else
 		if (Rank_text_bitmap >= 0) {
-			gr_set_bitmap(Rank_text_bitmap);
+			gr_set_bitmap(Rank_text_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Debrief_rank_text_coords[gr_screen.res][0], Debrief_rank_text_coords[gr_screen.res][1]);
 		}
 
 		if (Medal_text_bitmap >= 0) {
-			gr_set_bitmap(Medal_text_bitmap);
+			gr_set_bitmap(Medal_text_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Debrief_medal_text_coords[gr_screen.res][0], Debrief_medal_text_coords[gr_screen.res][1]);
 		}
 
 		if (Badge_text_bitmap >= 0) {
-			gr_set_bitmap(Badge_text_bitmap);
+			gr_set_bitmap(Badge_text_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Debrief_badge_text_coords[gr_screen.res][0], Debrief_badge_text_coords[gr_screen.res][1]);
 		}
 #endif

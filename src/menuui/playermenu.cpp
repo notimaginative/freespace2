@@ -15,6 +15,13 @@
  * Code to drive the Player Select initial screen
  *
  * $Log$
+ * Revision 1.9  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.8  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -326,25 +333,18 @@ static barracks_buttons Player_select_buttons[GR_NUM_RESOLUTIONS][NUM_PLAYER_SEL
 };
 
 // FIXME add to strings.tbl
-#ifdef MAKE_FS1
-	#define PLAYER_SELECT_NUM_TEXT			0
-#else
-	#define PLAYER_SELECT_NUM_TEXT			1
-#endif
+#ifndef MAKE_FS1
+#define PLAYER_SELECT_NUM_TEXT			1
+
 UI_XSTR Player_select_text[GR_NUM_RESOLUTIONS][PLAYER_SELECT_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Choose Pilot",		1436,		122,	90,	UI_XSTR_COLOR_GREEN, -1, NULL }
-#endif
 	}, 
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Choose Pilot",		1436,		195,	143,	UI_XSTR_COLOR_GREEN, -1, NULL }
-#endif
 	}
 };
+#endif
 
 UI_WINDOW Player_select_window;								// ui window for this screen
 UI_BUTTON Player_select_list_region;						// button for detecting mouse clicks on this screen

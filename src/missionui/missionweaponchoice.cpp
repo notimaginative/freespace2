@@ -15,6 +15,13 @@
  * C module for the weapon loadout screen
  *
  * $Log$
+ * Revision 1.8  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.7  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -865,29 +872,20 @@ static int Wl_new_weapon_desc_coords_multi[GR_NUM_RESOLUTIONS][2] = {
 #endif
 
 // ship select text
-#ifdef MAKE_FS1
-	#define WEAPON_SELECT_NUM_TEXT			0
-#else
-	#define WEAPON_SELECT_NUM_TEXT			2
-#endif
+#ifndef MAKE_FS1
+#define WEAPON_SELECT_NUM_TEXT			2
+
 UI_XSTR Weapon_select_text[GR_NUM_RESOLUTIONS][WEAPON_SELECT_NUM_TEXT] = {
 	{ // GR_640
-#ifdef MAKE_FS1
-		// nothing needed
-#else
 		{ "Reset",			1337,		580,	337,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][WL_BUTTON_RESET].button },
 		{ "Lock",			1270,		602,	364,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][WL_BUTTON_MULTI_LOCK].button }
-#endif
 	}, 
 	{ // GR_1024
-#ifdef MAKE_FS1
-		// nothing needed
-#else
 		{ "Reset",			1337,		938,	546,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][WL_BUTTON_RESET].button },
 		{ "Lock",			1270,		964,	584,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][WL_BUTTON_MULTI_LOCK].button }
-#endif
 	}
 };
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -1201,10 +1199,12 @@ void weapon_buttons_init()
 		Buttons[gr_screen.res][WL_BUTTON_MULTI_LOCK].button.disable();
 	}
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(i=0; i<WEAPON_SELECT_NUM_TEXT; i++) {
 		Weapon_ui_window.add_XSTR(&Weapon_select_text[gr_screen.res][i]);
 	}
+#endif
 
 	Buttons[gr_screen.res][WL_BUTTON_DUMMY].button.hide();
 	Buttons[gr_screen.res][WL_BUTTON_DUMMY].button.disable();	

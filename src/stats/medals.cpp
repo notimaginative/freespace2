@@ -13,6 +13,13 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.14  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.13  2004/09/20 01:31:45  theoddone33
  * GCC 3.4 fixes.
  *
@@ -353,25 +360,18 @@ ui_button_info Medals_buttons[GR_NUM_RESOLUTIONS][MEDALS_NUM_BUTTONS] = {
 	}
 };
 
-#ifdef MAKE_FS1
-	#define MEDALS_NUM_TEXT				0
-#else
-	#define MEDALS_NUM_TEXT				1
-#endif
+#ifndef MAKE_FS1
+#define MEDALS_NUM_TEXT				1
+
 UI_XSTR Medals_text[GR_NUM_RESOLUTIONS][MEDALS_NUM_TEXT] = {
 	{	// GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{"Exit",		1466,		587,	416,	UI_XSTR_COLOR_PINK, -1,	&Medals_buttons[GR_640][MEDALS_EXIT].button },
-#endif
 	},
 	{	// GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{"Exit",		1466,		943,	673,	UI_XSTR_COLOR_PINK, -1,	&Medals_buttons[GR_1024][MEDALS_EXIT].button },
-#endif
 	},
 };
+#endif
 
 static char* Medals_background_filename[GR_NUM_RESOLUTIONS] = {
 	"MedalsDisplayEmpty",
@@ -553,10 +553,12 @@ void medal_main_init(player *pl, int mode)
 		Medals_buttons[gr_screen.res][idx].button.link_hotspot(Medals_buttons[gr_screen.res][idx].hotspot);
 	}	
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for (idx=0; idx<MEDALS_NUM_TEXT; idx++) {
 		Medals_window.add_XSTR(&Medals_text[gr_screen.res][idx]);
 	}
+#endif
 
 
 	Init_flags = 0;	

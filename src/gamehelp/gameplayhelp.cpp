@@ -15,6 +15,13 @@
  * Module for displaying in-game help
  *
  * $Log$
+ * Revision 1.6  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.5  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -209,27 +216,21 @@ static gameplay_help_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 //XSTR:ON
 };
 
-#ifdef MAKE_FS1
-	#define GAME_HELP_NUM_TEXT		0
-#else
-	#define GAME_HELP_NUM_TEXT		2
-#endif
+#ifndef MAKE_FS1
+#define GAME_HELP_NUM_TEXT		2
+
 static UI_XSTR Game_help_text[GR_NUM_RESOLUTIONS][GAME_HELP_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Press ESC to return to the game",	1441,	263,	389,	UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Continue",		1069,		571,	413,	UI_XSTR_COLOR_GREEN, -1, &Buttons[gr_screen.res][CONTINUE_BUTTON].button }
-#endif
 	}, 
 	{ // GR_1024
 		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Press ESC to return to the game",	1441,	421,	622,	UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Continue",		1069,		928,	663,	UI_XSTR_COLOR_GREEN, -1, &Buttons[gr_screen.res][CONTINUE_BUTTON].button }
-#endif
 	}
 };
+#endif
 
 static char *Game_help_filename[GR_NUM_RESOLUTIONS] = {
 	"F1",
@@ -357,11 +358,13 @@ void gameplay_help_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for (i=0; i<GAME_HELP_NUM_TEXT; i++)
 	{
 		Ui_window.add_XSTR(&Game_help_text[gr_screen.res][i]);
 	}
+#endif
 
 	// set the proper last screen # based upon game mode
 	if(Game_mode & GM_MULTIPLAYER){

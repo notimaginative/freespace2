@@ -1,7 +1,28 @@
 /***********************************************************
  * Portions of this file are Copyright (c) Ryan C. Gordon
  ***********************************************************/
-
+ 
+/*
+ * $Logfile: /Freespace2/code/Sound/ACM.cpp $
+ * $Revision$
+ * $Date$
+ * $Author$
+ *
+ * ADPCM decoder
+ *
+ * $Log$
+ * Revision 1.6  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
+ *
+ * $NoKeywords: $
+ */
+ 
+ 
 #include "pstypes.h"
 #include "acm.h"
 
@@ -38,6 +59,11 @@ typedef struct ADPCM_FMT_T {
 	ubyte nibble;
 } adpcm_fmt_t;
 
+typedef struct acm_stream_t {
+	adpcm_fmt_t *fmt;
+	ushort dest_bps;
+	ushort src_bps;
+} acm_stream_t;
 
 // similar to BIAL_IF_MACRO in SDL_sound
 #define IF_ERR(a, b) if (a) { printf("IF_ERR-ACM, function: %s, line %d...\n", __FUNCTION__, __LINE__); return b; }
@@ -317,7 +343,10 @@ int ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, uby
 	}
 
 	// estimate size of uncompressed data
-	new_size = src_len * ( (dest_bps * pwfxSrc->nChannels * pwfxSrc->wBitsPerSample) / 8 );
+	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
+	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
+	new_size = ( src_len * dest_bps ) / pwfxSrc->wBitsPerSample;
+	new_size *= 2;//buffer must be large enough for all data
 
 	// DO NOT free() here, *estimated size*
 	if ( *dest == NULL ) {
@@ -325,7 +354,8 @@ int ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, uby
 		
 		IF_ERR(*dest == NULL, -1);
 		
-		memset(*dest, 0x80, new_size);	// silence (for 8 bits/sec)
+//		memset(*dest, 0x80, new_size);	// silence (for 8 bits/sample)
+		memset(*dest, 0x00, new_size);	// silence (for 16 bits/sample)
 	}
 
 	adpcm_fmt_t *fmt = (adpcm_fmt_t *)malloc(sizeof(adpcm_fmt_t));
@@ -365,10 +395,12 @@ int ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, uby
 	// sanity check, should always be 4
 	if (fmt->adpcm.wav.wBitsPerSample != 4) {
 		adpcm_memory_free(fmt);
+		SDL_RWclose(hdr);
+		SDL_RWclose(rw);
 		return -1;
 	}
 
-	fmt->sample_frame_size = 2;
+	fmt->sample_frame_size = dest_bps/8*pwfxSrc->nChannels;
 
 	if ( !max_dest_bytes ) {
 		max_dest_bytes = new_size;
@@ -383,33 +415,141 @@ int ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, uby
 
 	// cleanup
 	adpcm_memory_free(fmt);
+	SDL_RWclose(hdr);
+	SDL_RWclose(rw);
 
 	return 0;
 }
 
 int ACM_stream_open(WAVEFORMATEX *pwfxSrc, WAVEFORMATEX *pwfxDest, void **stream, int dest_bps)
 {
-	return -1;
+	Assert( pwfxSrc != NULL );
+	Assert( pwfxSrc->wFormatTag == WAVE_FORMAT_ADPCM );
+	Assert( stream != NULL );
+
+	SDL_RWops *hdr = SDL_RWFromMem(pwfxSrc, sizeof(WAVEFORMATEX) + pwfxSrc->cbSize);
+	uint rc;
+
+	if ( ACM_inited == 0 ) {
+		rc = ACM_init();
+		if ( rc != 0 )
+			return -1;
+	}
+
+	adpcm_fmt_t *fmt = (adpcm_fmt_t *)malloc(sizeof(adpcm_fmt_t));
+	IF_ERR(fmt == NULL, -1);
+	memset(fmt, '\0', sizeof(adpcm_fmt_t));
+
+	// wav header info (WAVEFORMATEX)
+	IF_ERR(!read_word(hdr, &fmt->adpcm.wav.wFormatTag), -1);
+	IF_ERR(!read_word(hdr, &fmt->adpcm.wav.nChannels), -1);
+	IF_ERR(!read_dword(hdr, &fmt->adpcm.wav.nSamplesPerSec), -1);
+	IF_ERR(!read_dword(hdr, &fmt->adpcm.wav.nAvgBytesPerSec), -1);
+	IF_ERR(!read_word(hdr, &fmt->adpcm.wav.nBlockAlign), -1);
+	IF_ERR(!read_word(hdr, &fmt->adpcm.wav.wBitsPerSample), -1);
+	IF_ERR(!read_word(hdr, &fmt->adpcm.wav.cbSize), -1);
+	// adpcm specific header info
+	IF_ERR(!read_word_s(hdr, &fmt->adpcm.wSamplesPerBlock), -1);
+	IF_ERR(!read_word_s(hdr, &fmt->adpcm.wNumCoef), -1);
+
+	// allocate memory for COEF struct and fill it
+	fmt->adpcm.aCoef = (ADPCMCOEFSET *)malloc(sizeof(ADPCMCOEFSET) * fmt->adpcm.wNumCoef);
+	IF_ERR(fmt->adpcm.aCoef == NULL, -1);
+
+	for (int i=0; i<fmt->adpcm.wNumCoef; i++) {
+		IF_ERR(!read_short(hdr, &fmt->adpcm.aCoef[i].iCoef1), -1);
+		IF_ERR(!read_short(hdr, &fmt->adpcm.aCoef[i].iCoef2), -1);
+	}
+
+	// allocate memory for the ADPCM block header that's to be filled later
+	fmt->header = (ADPCMBLOCKHEADER *)malloc(sizeof(ADPCMBLOCKHEADER) * fmt->adpcm.wav.nChannels);
+	IF_ERR(fmt->header == NULL, -1);
+
+	// sanity check, should always be 4
+	if (fmt->adpcm.wav.wBitsPerSample != 4) {
+		adpcm_memory_free(fmt);
+		SDL_RWclose(hdr);
+		return -1;
+	}
+
+	fmt->sample_frame_size = dest_bps/8*pwfxSrc->nChannels;
+	
+	acm_stream_t *str = (acm_stream_t *)malloc(sizeof(acm_stream_t));
+	IF_ERR(str == NULL, -1);
+	str->fmt = fmt;
+	str->dest_bps = dest_bps;
+	str->src_bps = pwfxSrc->wBitsPerSample;
+	*stream = str;
+
+	SDL_RWclose(hdr);
+
+	return 0;
 }
 
 int ACM_stream_close(void *stream)
 {
-	return -1;
+	Assert(stream != NULL);
+	acm_stream_t *str = (acm_stream_t *)stream;
+	adpcm_memory_free(str->fmt);
+	free(str);
+	return 0;
 }
 
+/*
+ * How many bytes are needed to get approximately dest_len bytes output?
+ */
 int ACM_query_source_size(void *stream, int dest_len)
 {
-	return -1;
+	Assert(stream != NULL);
+	acm_stream_t *str = (acm_stream_t *)stream;
+	// estimate size of compressed data
+	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
+	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
+	return (dest_len * str->src_bps) / str->dest_bps;
 }
 
+/*
+ * How many output bytes would approximately be produced by src_len bytes input?
+ */
 int ACM_query_dest_size(void *stream, int src_len)
 {
-	return -1;
+	Assert(stream != NULL);
+	acm_stream_t *str = (acm_stream_t *)stream;
+	// estimate size of uncompressed data
+	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
+	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
+	return ( src_len * str->dest_bps ) / str->src_bps;
 }
 
+/*
+ * We are allowed to use fewer bytes than delivered to us
+ */
 int ACM_convert(void *stream, ubyte *src, int src_len, ubyte *dest, int max_dest_bytes, unsigned int *dest_len, unsigned int *src_bytes_used)
 {
-	return -1;
+	Assert(stream != NULL);
+	Assert( src != NULL );
+	Assert( src_len > 0 );
+	Assert( dest_len != NULL );
+	acm_stream_t *str = (acm_stream_t *)stream;
+	uint rc;
+
+	SDL_RWops *rw = SDL_RWFromMem(src, src_len);
+
+	// buffer to estimated size since we have to process the whole thing at once
+	str->fmt->buffer_size = max_dest_bytes;
+	str->fmt->bytes_remaining = src_len;
+	str->fmt->bytes_processed = 0;
+
+	// convert to PCM
+	rc = read_sample_fmt_adpcm(dest, rw, str->fmt);
+
+	// send back actual sizes
+	*dest_len = rc;
+	*src_bytes_used = str->fmt->bytes_processed;
+
+	SDL_RWclose(rw);
+
+	return 0;
 }
 
 // ACM_init() - decoding should always work

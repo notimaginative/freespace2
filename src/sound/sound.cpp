@@ -15,6 +15,13 @@
  * Low-level sound code
  *
  * $Log$
+ * Revision 1.10  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.9  2002/06/22 16:34:40  relnev
  * removed file
  *
@@ -457,14 +464,16 @@ int snd_init(int use_a3d, int use_eax)
 		}
 	}
 
+	if ( ACM_init() == -1 ) {
 #ifndef PLAT_UNIX
 	// Init the Audio Compression Manager
-	if ( ACM_init() == -1 ) {
 		HWND hwnd = (HWND)os_get_window();
 		MessageBox(hwnd, XSTR("Could not properly initialize the Microsoft ADPCM codec.\n\nPlease see the readme.txt file for detailed instructions on installing the Microsoft ADPCM codec.",972), NULL, MB_OK);
 //		Warning(LOCATION, "Could not properly initialize the Microsoft ADPCM codec.\nPlease see the readme.txt file for detailed instructions on installing the Microsoft ADPCM codec.");
-	}
+#else
+		nprintf(( "Sound", "Could not initialize ADPCM codec.\n" ));
 #endif
+	}
 
 	// Init the audio streaming stuff
 	audiostream_init();
@@ -717,9 +726,7 @@ void snd_close(void)
 	snd_stop_all();
 	if (!ds_initialized) return;
 	snd_unload_all();		// free the sound data stored in DirectSound secondary buffers
-#ifndef PLAT_UNIX
 	ACM_close();	// Close the Audio Compression Manager (ACM)
-#endif	
 	ds3d_close();	// Close DirectSound3D
 	dscap_close();	// Close DirectSoundCapture
 	ds_close();		// Close DirectSound off

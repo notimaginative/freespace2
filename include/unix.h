@@ -39,7 +39,11 @@
 #define PASCAL
 #define CALLBACK
 
+#if ( defined(__x86_64__) || defined(_WIN64) )
+typedef unsigned int DWORD;
+#else
 typedef unsigned long DWORD;
+#endif
 typedef unsigned short WORD;
 
 extern void strlwr (char *str);

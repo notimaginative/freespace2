@@ -15,6 +15,13 @@
  * Mission Command Briefing Screen
  *
  * $Log$
+ * Revision 1.7  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -358,29 +365,22 @@ ui_button_info Cmd_brief_buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-	#define CMD_BRIEF_NUM_TEXT		0
-#else
-	#define CMD_BRIEF_NUM_TEXT		3
-#endif
+#ifndef MAKE_FS1
+#define CMD_BRIEF_NUM_TEXT		3
+
 UI_XSTR Cmd_brief_text[GR_NUM_RESOLUTIONS][CMD_BRIEF_NUM_TEXT] = {
 	{ // GR_640
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Help",		928,	500,	440,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[0][HELP_BUTTON].button },
 		{ "Options",	1036,	479,	464,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[0][OPTIONS_BUTTON].button },
 		{ "Continue",	1069,	564,	413,	UI_XSTR_COLOR_PINK,	-1,	&Cmd_brief_buttons[0][ACCEPT_BUTTON].button },
-#endif
 	},
 	{ // GR_1024
-		// not needed for FS1
-#ifndef MAKE_FS1
 		{ "Help",		928,	800,	704,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[1][HELP_BUTTON].button },
 		{ "Options",	1036,	797,	743,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[1][OPTIONS_BUTTON].button },
 		{ "Continue",	1069,	917,	661,	UI_XSTR_COLOR_PINK,	-1,	&Cmd_brief_buttons[1][ACCEPT_BUTTON].button },
-#endif
 	}
 };
+#endif
 
 static UI_WINDOW Ui_window;
 static int Background_bitmap;					// bitmap for the background of the cmd_briefing
@@ -722,10 +722,12 @@ void cmd_brief_init(int team)
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add text
 	for(i=0; i<CMD_BRIEF_NUM_TEXT; i++){
 		Ui_window.add_XSTR(&Cmd_brief_text[gr_screen.res][i]);
 	}
+#endif
 
 	// set up readyrooms for buttons so we draw the correct animation frame when a key is pressed
 	Cmd_brief_buttons[gr_screen.res][FIRST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | KEY_LEFT);

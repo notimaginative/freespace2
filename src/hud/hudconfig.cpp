@@ -15,6 +15,13 @@
  * C module to handle HUD configuration
  *
  * $Log$
+ * Revision 1.7  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -804,15 +811,11 @@ ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 };
 
 // text
-#ifdef MAKE_FS1
-	#define NUM_HUD_TEXT					0
-#else
-	#define NUM_HUD_TEXT					15
-#endif
+#ifndef MAKE_FS1
+#define NUM_HUD_TEXT					15
+
 UI_XSTR HC_text[GR_NUM_RESOLUTIONS][NUM_HUD_TEXT] = {
 	{ // GR_640
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{ "R",				1512,	14,	8,		UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "G",				1513,	37,	8,		UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "B",				1514,	62,	8,		UI_XSTR_COLOR_GREEN,	-1, NULL },
@@ -828,11 +831,8 @@ UI_XSTR HC_text[GR_NUM_RESOLUTIONS][NUM_HUD_TEXT] = {
 		{ "All",				1551,	442,	424,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[0][HCB_SELECT_ALL].button },
 		{ "Reset",			1337,	515,	413,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[0][HCB_RESET].button },
 		{ "Accept",			1035,	573,	413,	UI_XSTR_COLOR_PINK,	-1, &HC_buttons[0][HCB_ACCEPT].button },
-#endif
 	},
 	{ // GR_1024
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{ "R",				1512,	23,	14,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "G",				1513,	60,	14,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "B",				1514,	100,	14,	UI_XSTR_COLOR_GREEN,	-1, NULL },
@@ -848,9 +848,9 @@ UI_XSTR HC_text[GR_NUM_RESOLUTIONS][NUM_HUD_TEXT] = {
 		{ "All",				1551,	760,	682,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[1][HCB_SELECT_ALL].button },
 		{ "Reset",			1337,	850,	669,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[1][HCB_RESET].button },
 		{ "Accept",			1035,	930,	670,	UI_XSTR_COLOR_PINK,	-1, &HC_buttons[1][HCB_ACCEPT].button },
-#endif
 	}
 };
+#endif
 
 void hud_config_set_rgb(int gauge, int r, int g, int b);
 void hud_config_set_alpha(int gauge, int a);
@@ -1048,12 +1048,12 @@ void hud_config_init_ui()
 #endif
 	}
 
+#ifndef MAKE_FS1
 	// add text
 	for(i=0; i<NUM_HUD_TEXT; i++){
 		HC_ui_window.add_XSTR(&HC_text[gr_screen.res][i]);
 	}
 
-#ifndef MAKE_FS1
 	// initialize sliders
 	HC_color_sliders[HCS_RED].create(&HC_ui_window, HC_slider_coords[gr_screen.res][HCS_RED][0], HC_slider_coords[gr_screen.res][HCS_RED][1], HC_slider_coords[gr_screen.res][HCS_RED][2], HC_slider_coords[gr_screen.res][HCS_RED][3],
 										255, HC_slider_fname[gr_screen.res], hud_config_red_slider, hud_config_red_slider, hud_config_red_slider);
@@ -1220,7 +1220,7 @@ void hud_config_render_gauges()
 
 					if ( HC_gauge_regions[gr_screen.res][i].bitmap >= 0 ) {
 						Assert(offset < HC_gauge_regions[gr_screen.res][i].nframes);
-						gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap+offset);
+						gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap+offset, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(HC_gauge_regions[gr_screen.res][i].x, HC_gauge_regions[gr_screen.res][i].y);
 					}
 				}
@@ -1787,7 +1787,7 @@ void hud_config_render_special_bitmaps()
 	int i;
 	for (i=1; i<NUM_HC_SPECIAL_BITMAPS; i++) {
 		if (HC_special_bitmaps[i].bitmap >= 0) {
-			gr_set_bitmap(HC_special_bitmaps[i].bitmap);
+			gr_set_bitmap(HC_special_bitmaps[i].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(HC_special_bitmaps[i].x, HC_special_bitmaps[i].y);
 		}
 	}
@@ -1860,7 +1860,7 @@ void hud_config_do_frame(float frametime)
 #ifdef MAKE_FS1
 	if (HC_special_bitmaps[HC_SPECIAL_RETICLE].bitmap >= 0) {
 		hud_set_default_color();
-		gr_set_bitmap(HC_special_bitmaps[HC_SPECIAL_RETICLE].bitmap);
+		gr_set_bitmap(HC_special_bitmaps[HC_SPECIAL_RETICLE].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_aabitmap(HC_special_bitmaps[HC_SPECIAL_RETICLE].x, HC_special_bitmaps[HC_SPECIAL_RETICLE].y);
 	}
 #endif

@@ -15,6 +15,13 @@
  * C module for keyboard, joystick and mouse configuration
  *
  * $Log$
+ * Revision 1.7  2005/03/29 02:18:47  taylor
+ * Various 64-bit platform fixes
+ * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
+ * Make sure that turrets can fire at asteroids for FS1 (needed for a couple missions)
+ * Streaming audio support (big thanks to Pierre Willenbrock!!)
+ * Removed dependance on strings.tbl for FS1 since we don't actually need it now
+ *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -590,15 +597,12 @@ ui_button_info CC_Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // strings
-#ifdef MAKE_FS1
-	#define CC_NUM_TEXT		0
-#else
-	#define CC_NUM_TEXT		20
-#endif
-UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
-	{ // GR_640
-		// nothing needed for FS1
 #ifndef MAKE_FS1
+#define CC_NUM_TEXT		20
+
+UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
+	// nothing needed for FS1
+	{ // GR_640
 		{ "Targeting",		1340,		17,	384,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][TARGET_TAB].button },
 		{ "Ship",			1341,		103,	384,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][SHIP_TAB].button },
 		{ "Weapons",		1065,		154,	384,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][WEAPON_TAB].button },
@@ -619,11 +623,8 @@ UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
 		{ "All",				1349,		483,	396,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][CLEAR_ALL_BUTTON].button },
 		{ "Clear",			1414,		529,	388,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[0][CLEAR_BUTTON].button },
 		{ "Selected",		1350,		517,	396,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[0][CLEAR_BUTTON].button },
-#endif
 	},
 	{ // GR_1024
-		// nothing needed for FS1
-#ifndef MAKE_FS1
 		{ "Targeting",		1340,		47,	615,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][TARGET_TAB].button },
 		{ "Ship",			1341,		176,	615,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][SHIP_TAB].button },
 		{ "Weapons",		1065,		266,	615,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][WEAPON_TAB].button },
@@ -644,9 +645,9 @@ UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
 		{ "All",				1349,		772,	634,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][CLEAR_ALL_BUTTON].button },
 		{ "Clear",			1414,		871,	619,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[1][CLEAR_BUTTON].button },
 		{ "Selected",		1350,		852,	634,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[1][CLEAR_BUTTON].button },
-#endif
 	}
 };
+#endif
 
 // linked list head of undo items
 config_item_undo *Config_item_undo;
@@ -1626,10 +1627,12 @@ void control_config_init()
 		b->button.link_hotspot(b->hotspot);
 	}	
 
+#ifndef MAKE_FS1
 	// create all text
 	for(i=0; i<CC_NUM_TEXT; i++){
 		Ui_window.add_XSTR(&CC_text[gr_screen.res][i]);
 	}
+#endif
 
 	for (i=0; i<LIST_BUTTONS_MAX; i++) {
 		List_buttons[i].create(&Ui_window, "", 0, 0, 60, 30, 0, 1);

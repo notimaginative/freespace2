@@ -19,6 +19,9 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.3  2003/05/27 03:23:23  taylor
+ * fix second root (gamedir) searching
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -72,7 +75,9 @@ extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
 //          filename  - optional, if set, tacks the filename onto end of path.
 // Output:  path      - Fully qualified pathname.
 void cf_create_default_path_string( char *path, int pathtype, char *filename=NULL, bool localize = false);
+#ifdef PLAT_UNIX
+void cf_create_secondary_path_string( char *path, int pathtype, char *filename=NULL, bool localize = false);
+#endif
 
 
 #endif	//_CFILESYSTEM_H
-

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.51  2002/06/19 04:52:45  relnev
+ * MacOS X updates (Ryan)
+ *
  * Revision 1.50  2002/06/18 23:20:44  relnev
  * fixed _splitpath.
  *
@@ -286,7 +289,12 @@
 #include <windows.h>
 #include <windowsx.h>
 #endif
+
+#ifdef __MACOSX__
+#include <gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 #include "pstypes.h"
 #include "osapi.h"

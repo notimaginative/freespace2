@@ -15,6 +15,9 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.6  2002/06/19 04:52:45  relnev
+ * MacOS X updates (Ryan)
+ *
  * Revision 1.5  2002/06/17 06:33:08  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -226,7 +229,11 @@
 #include <stdio.h>	// For NULL, etc
 #include <stdlib.h>
 #include <memory.h>
+
+#ifndef __MACOSX__
 #include <malloc.h>
+#endif
+
 #include <string.h>
 
 #ifdef PLAT_UNIX
@@ -247,6 +254,10 @@
 #define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(a))
 
 #define LOCAL static			// make module local varilable static.
+
+#ifdef __MACOSX__
+typedef int socklen_t;
+#endif
 
 typedef __int64 longlong;
 typedef long fix;

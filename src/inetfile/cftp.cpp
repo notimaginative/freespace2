@@ -15,6 +15,9 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.10  2002/06/19 04:52:45  relnev
+ * MacOS X updates (Ryan)
+ *
  * Revision 1.9  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -80,6 +83,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "pstypes.h"
 #include "cftp.h"
 
 void FTPObjThread( void * obj )

@@ -6,6 +6,7 @@ Linux port hacked together by:
 Dan Olson <theoddone33@linuxgames.com>
 Steven Fuller <relnev@icculus.org>
 Charles Mason <cemason@hotpop.com>
+Ryan C. Gordon <icculus@clutteredmind.org>
 
 This project is NOT supported by Volition or Interplay.
 
@@ -44,6 +45,11 @@ not tested.
 - The Windows version might still compile, but wasn't tested.  (The
 Linux-specific code is separated by a PLAT_UNIX define).  Fred2, etc., were
 not touched.
+
+- This code builds on MacOS X. Get the latest toolchain from Apple. Flip the
+MACOSX flag in the Makefile to "true" and run "make" from a terminal in the
+root of the source directory. Note that the game compiles and links, but will
+NOT run at this time, due to byte ordering bugs in the source.
 
 For more information about the game and its source code:
 http://www.freespace2.com/

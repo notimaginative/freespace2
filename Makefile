@@ -1,17 +1,26 @@
 # Makefile for code module
 # for that freespace 2 thing
 
+MACOSX=false
+
 CC=g++
 AR=ar
+RANLIB=ranlib
 CODE_BINARY=code.a
 FS_BINARY=freespace2
-LDFLAGS=$(shell sdl-config --libs) -lGL -lopenal
+LDFLAGS=$(shell sdl-config --libs) -lopenal
 CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
 #CFLAGS+=-O2
 #CFLAGS+=-DNDEBUG
 #CFLAGS+=-funroll-loops # -fomit-frame-pointer # not stable?
 #CFLAGS+=-march=pentiumpro -mcpu=pentiumpro # not stable?
-CFLAGS+=-Wno-missing-braces -Wno-multichar
+CFLAGS+=-Wno-missing-braces -Wno-multichar -fsigned-char
+
+ifeq ($(strip $(MACOSX)),true)
+  CFLAGS+=-D__MACOSX__=1 -I/System/Library/Frameworks/AGL.framework/Headers
+else
+  LDFLAGS+= -lGL
+endif
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -261,7 +270,9 @@ all: $(FS_BINARY)
 $(CODE_BINARY): $(CODE_OBJECTS)
 	rm -rf $(CODE_BINARY)
 	$(AR) rc $(CODE_BINARY) $(CODE_OBJECTS)
-#	$(RANLIB) $(CODE_BINARY)
+ifeq ($(strip $(MACOSX)),true)
+	$(RANLIB) $(CODE_BINARY)
+endif
 
 $(FS_BINARY): $(CODE_BINARY) $(FS_OBJECTS)
 	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OBJECTS) $(CODE_BINARY)

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.65  2003/06/19 11:52:47  taylor
+ * fix texture size issue with lower detail settings
+ *
  * Revision 1.64  2003/05/28 06:02:04  taylor
  * fix transparency in green weapon blobs
  *
@@ -2022,9 +2025,20 @@ static void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_o
 		i++;
 	}
 #endif
-	
-	tex_w = 1 << (i+1);
-	tex_h = 1 << (j+1);
+
+	for (i=0; i<16; i++ )	{
+		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )	{
+			tex_w = 1 << (i+1);
+			break;
+		}
+	}
+
+	for (i=0; i<16; i++ )	{
+		if ( (tex_h > (1<<i)) && (tex_h <= (1<<(i+1))) )	{
+			tex_h = 1 << (i+1);
+			break;
+		}
+	}
 
 	if ( tex_w < GL_min_texture_width ) {
 		tex_w = GL_min_texture_width;

@@ -7,6 +7,9 @@
  * Include file for keyboard reading routines
  *
  * $Log$
+ * Revision 1.3  2002/05/29 23:17:49  theoddone33
+ * Non working text code and fixed keys
+ *
  * Revision 1.2  2002/05/29 06:25:12  theoddone33
  * Keyboard input, mouse tracking now work
  *
@@ -69,7 +72,11 @@ extern "C" {
 
 #include "pstypes.h"
 
+#ifndef PLAT_UNIX
 #define NUM_KEYS 256
+#else
+#define NUM_KEYS SDLK_LAST
+#endif
 
 extern int shifted_ascii_table[];
 extern int ascii_table[];

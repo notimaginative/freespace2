@@ -7,8 +7,11 @@
  * <insert description of file here>
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/29 23:17:50  theoddone33
+ * Non working text code and fixed keys
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 6     10/29/99 6:10p Jefff
@@ -665,7 +668,11 @@ void key_mark( uint code, int state, uint latency )
 	// event_time = timeGetTime() - latency;
 
 	// Read in scancode
+#ifndef PLAT_UNIX
 	scancode = code & (NUM_KEYS-1);
+#else
+	scancode = code;
+#endif
 	breakbit = !state;
 	
 	if (breakbit)	{

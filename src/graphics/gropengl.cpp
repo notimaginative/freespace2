@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.17  2002/05/29 23:17:49  theoddone33
+ * Non working text code and fixed keys
+ *
  * Revision 1.16  2002/05/29 19:45:13  theoddone33
  * More changes on texture loading
  *
@@ -594,7 +597,7 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 
 	if ( !gr_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale ) )	{
 		// Couldn't set texture
-		//mprintf(( "GLIDE: Error setting aabitmap texture!\n" ));
+		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
 		return;
 	}
 
@@ -606,6 +609,9 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	int bw, bh;
 
 	bm_get_info( gr_screen.current_bitmap, &bw, &bh );
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	u0 = u_scale*i2fl(sx)/i2fl(bw);
 	v0 = v_scale*i2fl(sy)/i2fl(bh);
@@ -619,12 +625,12 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	y2 = i2fl(y+h+gr_screen.offset_y);
 
 	if ( gr_screen.current_color.is_alphacolor )	{
-			glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue,gr_screen.current_color.alpha);
+		//glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue,gr_screen.current_color.alpha);
 	} else {
-		glColor3ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
+		//glColor3ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
 	}
 
-	glBegin (GL_TRIANGLE_FAN);
+	glBegin (GL_QUADS);
 	  glTexCoord2f (u0, v0);
 	  glVertex3f (x1, y1, 0.99);
 
@@ -1593,9 +1599,6 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		t->v_scale = 1.0f;
 	}
 
-	ushort *bmp_data = (ushort *)data;
-	ubyte *bmp_data_byte = (ubyte*)data;
-
 	glGenTextures (1, &t->texture_handle);
 	glBindTexture (GL_TEXTURE_2D, t->texture_handle);
 
@@ -1604,69 +1607,35 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	ushort xlat[256];
-	int r, g, b, a;
-	int i, j;
-	ushort *texmem = (ushort *)malloc (tex_w*tex_h*2);
 	switch (bitmap_type) {
 
 		case TCACHE_TYPE_AABITMAP:
-			for (i=0; i<16;i++) {
-				r = 255;
-				g = 255;
-				b = 255;
-				a = Gr_gamma_lookup[(i*255)/15];
-				/*
-				r /= Gr_ta_red.scale;
-				g /= Gr_ta_green.scale;
-				b /= Gr_ta_blue.scale;
-				a /= Gr_ta_alpha.scale;
-				*/
-				xlat[i] = (unsigned short)(((a<<Gr_ta_alpha.shift) | (r << Gr_ta_red.shift) | (g << Gr_ta_green.shift) | (b << Gr_ta_blue.shift)));
-			}
-
-			xlat[15] = xlat[1];
-			for ( ; i<256; i++ )    {
-				xlat[i] = xlat[0];
-			}
-
-			for (j = 0; j < tex_h; j++) {
-				for (i = 0; i < tex_w; i++) {
-					if ( (i < bmap_w) && (j<bmap_h) )       {
-						*texmem++ = xlat[(ubyte)bmp_data_byte[j*bmap_w+i]];
-					} else {
+			{
+			int i,j;
+			ubyte *bmp_data = ((ubyte*)data);
+			ushort *texmem = (ushort *) malloc (tex_w*tex_h*2);
+			
+			for (i=0;i<tex_h;i++)
+			{
+				for (j=0;j<tex_w;j++)
+				{
+					if (i < bmap_h && j < bmap_w)
+						*texmem++ = ((bmp_data[i*bmap_w+j]<<8)|0xff);
+					else
 						*texmem++ = 0;
-					}
 				}
 			}
 
-			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
-					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+			glTexImage2D (GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, tex_w, tex_h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, texmem);
 
+			free (texmem);
+			}
 			break;
 		default:
-			fix u, utmp, v, du, dv;
-
-			u = v = 0;
-
-			du = ( (bmap_w-1)*F1_0 ) / tex_w;
-			dv = ( (bmap_h-1)*F1_0 ) / tex_h;
-
-			for (j = 0; j < tex_h; j++) {
-				utmp = u;
-
-				for (i = 0; i < tex_w; i++) {
-					*texmem++ = bmp_data[f2i(v)*bmap_w+f2i(utmp)];
-					utmp += du;
-				}
-				v += dv;
-			}
-				
 			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
-					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
 			break;
 	}
-	free (texmem);
 	
 	t->bitmap_id = texture_handle;
 	t->time_created = GL_frame_count;
@@ -2161,6 +2130,23 @@ void gr_opengl_init()
 	default:
 		Int3();	// Illegal bpp
 	}
+
+	// DDOI - set these so no one else does!
+	Gr_ta_red.mask = 0x0f00;
+	Gr_ta_red.shift = 8;
+	Gr_ta_red.scale = 16;
+
+	Gr_ta_green.mask = 0x00f0;
+	Gr_ta_green.shift = 4;
+	Gr_ta_green.scale = 16;
+	
+	Gr_ta_blue.mask = 0x000f;
+	Gr_ta_blue.shift = 0;
+	Gr_ta_blue.scale = 16;
+
+	Gr_ta_alpha.mask = 0xf000;
+	Gr_ta_alpha.shift = 12;
+	Gr_ta_alpha.scale = 16;
 
 
 	opengl_tcache_init (0);

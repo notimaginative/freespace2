@@ -5,8 +5,11 @@
 //
 // Written by Matthew F. Storch, Ph.D., copyright (c) 1998 Volition Inc.
 
-#include "pstypes.h"
+#ifndef PLAT_UNIX
 #include <windows.h>
+#endif
+
+#include "pstypes.h"
 
 #include <math.h>
 #include <assert.h>
@@ -443,8 +446,13 @@ int Encode(t_Sample* bufIn, t_Sample* bufOut, int sizeIn, int sizeOut,
 // theoretically evil but is not really all that dangerous in practice...
 
 // disable compiler padding of structures
+#ifndef PLAT_UNIX
 #pragma pack(push, packet_declarations)
 #pragma pack(1)
+#define PACKED
+#else
+#define PACKED __attribute__((packed))
+#endif
 
 // most general notion of a packet pair
 struct t_PacketPair
@@ -455,7 +463,7 @@ struct t_PacketPair
     unsigned long Mode0   : 3;
     unsigned long Mode0Ex : 1;
     unsigned long Data0   : 8;
-};
+} PACKED;
 
 // nominal packet pair
 struct t_PacketPairNom
@@ -464,7 +472,7 @@ struct t_PacketPairNom
     unsigned long Data1 : 9;
     unsigned long Mode0 : 3;
     unsigned long Data0 : 9;
-};
+} PACKED;
 
 // run-length packet, case 1 
 struct t_PacketRL1
@@ -472,7 +480,7 @@ struct t_PacketRL1
     unsigned short Mode   : 3;
     unsigned short ModeEx : 1;  // extra mode bit to distinguish RL & HF
     unsigned short Length : 12;
-};
+} PACKED;
 
 // high-frequency packet, case 1
 struct t_PacketHF1
@@ -483,7 +491,7 @@ struct t_PacketHF1
 	unsigned short Data2  : 3; // absolute sample data
 	unsigned short Data1  : 3; // absolute sample data
 	unsigned short Data0  : 3; // absolute sample data
-};
+} PACKED;
 
 // high-frequency data packet, only used immediately after an HF packet, or
 // after another HF data packet
@@ -495,7 +503,7 @@ struct t_PacketHFData
 	unsigned short Data1 : 3; // absolute sample data
 	unsigned short Data0 : 3; // absolute sample data
 	unsigned short DataT : 3; // absolute sample data or lookup table number
-};
+} PACKED;
 
 // run-length packet, case 0
 struct t_PacketRL0
@@ -505,7 +513,7 @@ struct t_PacketRL0
     unsigned long Mode0   : 3; // mode of this packet (always 0)
     unsigned long Mode0Ex : 1; // extra bit to distinguish RL & HF (always 0)
     unsigned long Length  : 8; // length of run
-};
+} PACKED;
 
 // high-frequency packet, case 0
 struct t_PacketHF0
@@ -518,7 +526,7 @@ struct t_PacketHF0
 	unsigned long Data0   : 3; // absolute sample data
 	unsigned long DataT   : 3; // absolute sample data or lookup table number
 	unsigned long Unused  : 1;
-};
+} PACKED;
 
 // medium-frequency packet, case 1
 struct t_PacketMF1
@@ -527,7 +535,7 @@ struct t_PacketMF1
     unsigned short Mult  : 1; // 0 ==> mult data by 1, 1 ==> mult data by 2
     short          Data1 : 6; // total rise or fall over current 4 samples
     short          Data0 : 6; // total rise or fall over next 4 samples
-};
+} PACKED;
 
 // medium-frequency packet, case 0
 struct t_PacketMF0
@@ -538,11 +546,13 @@ struct t_PacketMF0
     unsigned long  Mult  : 1; // 0 ==> mult data by 1, 1 ==> mult data by 2
     long           DataX : 2; // not currently used
     long           Data0 : 6; // total rise or fall over next 4 samples
-};
+} PACKED;
 
 // restore state of compiler padding of structures
+#ifndef PLAT_UNIX
 #pragma pack(pop, packet_declarations)
-
+#endif
+#undef PACKED
 
 
 
@@ -1164,7 +1174,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                         t_PacketRL1 packet;
                         packet.Mode = e_emRL_HF;
                         packet.ModeEx = 0;
-                        packet.Length = unsigned short(len);
+                        packet.Length = (unsigned short)len;
                         *(t_PacketRL1*)out = packet;
                         out += sizeof packet;
                         // packetPos remains at 1
@@ -1350,11 +1360,11 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 packet.Mode = e_emRL_HF;
                 packet.ModeEx = 1;
 				// HF1 packets include table number unconditionally
-				packet.Table = unsigned short(tableNum = table);
-				packet.Data2 = unsigned short(EncTable[table][*in++]);
-				packet.Data1 = unsigned short(EncTable[table][*in++]);
+				packet.Table = (unsigned short)(tableNum = table);
+				packet.Data2 = (unsigned short)(EncTable[table][*in++]);
+				packet.Data1 = (unsigned short)(EncTable[table][*in++]);
 				finalPacketData = 
-				packet.Data0 = unsigned short(EncTable[table][*in]);
+				packet.Data0 = (unsigned short)(EncTable[table][*in]);
 				data0 = *in++;
                 *(t_PacketHF1*)out = packet;
                 out += sizeof packet;
@@ -1432,20 +1442,20 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				if (table > tableNum || table < tableNum-1)
 				{
 					packet.Table = 1;
-					packet.DataT = unsigned short(table);
+					packet.DataT = (unsigned short)(table);
 				}
 				else // use previous table
 				{
 					packet.Table = 0;
 					table = tableNum;
-					packet.DataT = unsigned short(EncTable[table][datat+ZERO]);
+					packet.DataT = (unsigned short)(EncTable[table][datat+ZERO]);
 					in++;
 				}
 
-				packet.Data3 = unsigned short(val3 = EncTable[table][data3+ZERO]);
-				packet.Data2 = unsigned short(val2 = EncTable[table][data2+ZERO]);
-				packet.Data1 = unsigned short(val1 = EncTable[table][data1+ZERO]);
-				packet.Data0 = unsigned short(val0 = EncTable[table][data0+ZERO]);
+				packet.Data3 = (unsigned short)(val3 = EncTable[table][data3+ZERO]);
+				packet.Data2 = (unsigned short)(val2 = EncTable[table][data2+ZERO]);
+				packet.Data1 = (unsigned short)(val1 = EncTable[table][data1+ZERO]);
+				packet.Data0 = (unsigned short)(val0 = EncTable[table][data0+ZERO]);
 
 				// break if the data is relatively smooth or if we encounter
 				// data (two 0's) that would cause us to encode a packet that
@@ -1544,6 +1554,7 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level,
 static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
 #endif
 {
+#ifndef PLAT_UNIX
     int data;
     __asm
     {
@@ -1599,6 +1610,10 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
         mov [data], ebx
     }
     return data;
+#else
+	STUB_FUNCTION;
+	return 0;
+#endif	    
 }
 
 #define VERIFY_ASM

@@ -146,6 +146,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/sound/acm-unix.cpp \
 	./src/sound/audiostr.cpp \
 	./src/sound/ds.cpp \
+	./src/vcodec/codec1.cpp \
 	./src/particle/particle.cpp \
 	./src/pcxutils/pcxutils.cpp \
 	./src/physics/physics.cpp \

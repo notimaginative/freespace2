@@ -15,6 +15,9 @@
  * Header file for the building and sending of multiplayer packets
  *
  * $Log$
+ * Revision 1.5  2003/01/30 19:46:18  relnev
+ * use psnet.h instead of psnet2.h to go inline with everything else (Taylor Richards)
+ *
  * Revision 1.4  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -224,7 +227,7 @@
 #define MULTI_MSGS_H
 
 #include "pstypes.h"
-#include "psnet2.h"
+#include "psnet.h"
 
 struct net_player;
 struct object;

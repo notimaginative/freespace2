@@ -7,6 +7,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.37  2002/06/01 03:32:00  relnev
+ * fix texture loading mistake.
+ *
+ * enable some d3d stuff for opengl also
+ *
  * Revision 1.36  2002/05/31 23:25:03  relnev
  * line fixes
  *
@@ -1358,16 +1363,27 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba);
 	}
 	
+#if 0	
+//glide
+        int x1, y1, x2, y2;
+        x1 = gr_screen.clip_left*16;
+        x2 = gr_screen.clip_right*16+15;
+        y1 = gr_screen.clip_top*16;
+        y2 = gr_screen.clip_bottom*16+15;
+//glide	
+#endif
 	glBegin(GL_TRIANGLE_FAN);
 	for (i = nv-1; i >= 0; i--) {		
 		vertex * va = verts[i];
-		float sx, sy, sz, sw;
+		float sx, sy, sz;
 		float tu, tv;
 		float rhw;
 		int a;
 		
 		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
-			sz = 1.0 - 1.0 / va->z;
+			sz = 1.0 - 1.0 / (1.0 + va->z);
+			//sz = va->z / z_mult;
+			
 			if ( sz > 0.98f ) {
 				sz = 0.98f;
 			}
@@ -1419,22 +1435,38 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		int x, y;
 		x = fl2i(va->sx*16.0f);
 		y = fl2i(va->sy*16.0f);
+
+#if 0
+//glide
+                if ( flags & TMAP_FLAG_CORRECT )        {
+                        // "clip" it
+                        if ( x < x1 ) {
+                                x = x1;
+                        } else if ( x > x2 )    {
+                                x = x2;
+                        }
+                        if ( y < y1 )   {
+                                y = y1;
+                        } else if ( y > y2 )    {
+                                y = y2;
+                        }
+                }
+//glide
+#endif
 		
 		x += gr_screen.offset_x*16;
 		y += gr_screen.offset_y*16;
 		
 		sx = i2fl(x) / 16.0f;
 		sy = i2fl(y) / 16.0f;
-		
+
 		if ( flags & TMAP_FLAG_TEXTURED )       {
 			tu = va->u*u_scale;
 			tv = va->v*v_scale;
 			glTexCoord2d(tu, tv);
 		}
 		
-		sw = 1.0;
-		
-		glVertex4d(sx/rhw, sy/rhw, -sz/rhw, sw/rhw);
+		glVertex4d(sx/rhw, sy/rhw, -sz/rhw, 1.0/rhw);
 	}
 	glEnd();
 }
@@ -2160,6 +2192,7 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 					{
 						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+0];
 						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+1];
+						utmp += du;
 					}
 					v += dv;
 				}
@@ -2614,7 +2647,17 @@ uint gr_opengl_lock()
 void gr_opengl_unlock()
 {
 }
-        
+
+void opengl_zbias(int bias)
+{
+	if (bias) {
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonMode(0, bias);
+	} else {
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+}
+	        
 extern char *Osreg_title;
 void gr_opengl_init()
 {
@@ -2653,6 +2696,7 @@ void gr_opengl_init()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
@@ -2665,12 +2709,7 @@ void gr_opengl_init()
 	glEnable(GL_BLEND);
 	
 	glEnable(GL_TEXTURE_2D);
-
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
 	
-	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, 0.0, 1.0);
 	glDepthRange(0.0, 1.0);
 	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -2684,7 +2723,8 @@ void gr_opengl_init()
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, bitmapMem);
 	
 	D3D_32bit = 1;              // grd3d.cpp
-	
+	extern int D3D_enabled;
+	D3D_enabled = 1;
 	/* 
 	  TODO: set fog_mode to 1 if EXT_secondary_color found and wanted 
 	  1 = use secondary color ext

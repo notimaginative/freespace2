@@ -7,6 +7,11 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.4  2002/06/01 03:32:00  relnev
+ * fix texture loading mistake.
+ *
+ * enable some d3d stuff for opengl also
+ *
  * Revision 1.3  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -1528,7 +1533,7 @@ void weapon_render(object *obj)
 
 				vector headp2;			
 				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.fvec, wip->laser_length * weapon_glow_scale_l);
-				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, gr_screen.mode == GR_DIRECT3D ? weapon_glow_alpha_d3d : weapon_glow_alpha_glide);
+				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? weapon_glow_alpha_d3d : weapon_glow_alpha_glide);
 				g3_draw_laser_rgb(&headp2, wip->laser_head_radius * weapon_glow_scale_f, &obj->pos, wip->laser_tail_radius * weapon_glow_scale_r, c.red, c.green, c.blue);
 			}						
 			break;

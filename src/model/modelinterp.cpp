@@ -7,6 +7,11 @@
  *	Rendering models, I think.
  *
  * $Log$
+ * Revision 1.3  2002/06/01 03:32:00  relnev
+ * fix texture loading mistake.
+ *
+ * enable some d3d stuff for opengl also
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -2505,6 +2510,7 @@ DCF(tiling, "")
 }
 
 extern void d3d_zbias(int bias);
+extern void opengl_zbias(int bias);
 void model_really_render(int model_num, matrix *orient, vector * pos, uint flags, int light_ignore_id )
 {
 	int i, detail_level;
@@ -2670,8 +2676,10 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 		g3_start_instance_matrix(&auto_back, NULL);		
 	}	
 
-	if(gr_screen.mode == GR_DIRECT3D){
+	if (gr_screen.mode == GR_DIRECT3D){
 		d3d_zbias(1);
+	} else if (gr_screen.mode == GR_OPENGL) {
+		opengl_zbias(1);
 	}
 
 	// Draw the subobjects	
@@ -2712,6 +2720,8 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 
 	if(gr_screen.mode == GR_DIRECT3D){
 		d3d_zbias(0);	
+	} else if (gr_screen.mode == GR_OPENGL) {
+		opengl_zbias(0);
 	}
 		
 	// draw the hull of the ship
@@ -2738,14 +2748,19 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 	// render model insignias
 	if(gr_screen.mode == GR_DIRECT3D){
 		d3d_zbias(1);
+	} else if (gr_screen.mode == GR_OPENGL) {
+		opengl_zbias(1);
 	}
+	
 	gr_zbuffer_set(GR_ZBUFF_READ);
 	model_render_insignias(pm, detail_level);	
 
 	// zbias back to 0	
 	if(gr_screen.mode == GR_DIRECT3D){
 		d3d_zbias(0);	
-	}	
+	} else if (gr_screen.mode == GR_OPENGL) {
+		opengl_zbias(0);
+	}
 
 	// Draw the thruster glow
 	if ( (Interp_thrust_glow_bitmap != -1) && (Interp_flags & MR_SHOW_THRUSTERS) /*&& (Detail.engine_glows)*/ )	{

@@ -7,6 +7,11 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.5  2002/06/01 03:32:00  relnev
+ * fix texture loading mistake.
+ *
+ * enable some d3d stuff for opengl also
+ *
  * Revision 1.4  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -415,6 +420,7 @@ void neb2_level_init()
 		Neb_backg_fog_near = NEB_BACKG_FOG_NEAR_GLIDE;
 		Neb_backg_fog_far = NEB_BACKG_FOG_FAR_GLIDE;				
 		break;
+	case GR_OPENGL:
 	case GR_DIRECT3D:
 		Neb_backg_fog_near = NEB_BACKG_FOG_NEAR_D3D;
 		Neb_backg_fog_far = NEB_BACKG_FOG_FAR_D3D;					
@@ -1131,6 +1137,7 @@ void neb2_get_fog_values(float *fnear, float *ffar, object *objp)
 		*ffar = Neb_ship_fog_vals_glide[fog_index][1];
 		break;
 
+	case GR_OPENGL:
 	case GR_DIRECT3D:
 		*fnear = Neb_ship_fog_vals_d3d[fog_index][0];
 		*ffar = Neb_ship_fog_vals_d3d[fog_index][1];
@@ -1488,7 +1495,7 @@ DCF(neb2_fog, "")
 				Neb_ship_fog_vals_glide[index][0] = fnear;
 				Neb_ship_fog_vals_glide[index][1] = ffar;
 			} else {
-				Assert(gr_screen.mode == GR_DIRECT3D);
+				Assert(gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL);
 				Neb_ship_fog_vals_d3d[index][0] = fnear;
 				Neb_ship_fog_vals_d3d[index][1] = ffar;
 			}
@@ -1616,7 +1623,7 @@ DCF(neb2_fog_vals, "")
 		dc_printf("(11)background polys : %f, %f\n\n", Neb_backg_fog_near, Neb_backg_fog_far);
 
 	} else {
-		Assert(gr_screen.mode == GR_DIRECT3D);
+		Assert(gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL);
 		dc_printf("(1)cargo containers : %f, %f\n", Neb_ship_fog_vals_d3d[1][0], Neb_ship_fog_vals_d3d[1][1]);
 		dc_printf("(2)fighters/bombers : %f, %f\n", Neb_ship_fog_vals_d3d[2][0], Neb_ship_fog_vals_d3d[2][1]);
 		dc_printf("(3)cruisers : %f, %f\n", Neb_ship_fog_vals_d3d[3][0], Neb_ship_fog_vals_d3d[3][1]);

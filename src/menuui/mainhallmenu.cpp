@@ -7,6 +7,11 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.4  2002/06/01 03:32:00  relnev
+ * fix texture loading mistake.
+ *
+ * enable some d3d stuff for opengl also
+ *
  * Revision 1.3  2002/05/30 16:55:44  theoddone33
  * now gets to another screen
  *
@@ -807,7 +812,7 @@ void main_hall_init(int main_hall_num)
 	
 	// init tooltip shader
 	float gray_intensity = 0.02f;													// nearly black
-	float c = (gr_screen.mode == GR_DIRECT3D) ? 0.11f : 0.07f;			// adjust for renderer differences
+	float c = (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? 0.11f : 0.07f;			// adjust for renderer differences
 	gr_create_shader(&Main_hall_tooltip_shader, gray_intensity, gray_intensity, gray_intensity, c);
 
 	// load the background bitmap

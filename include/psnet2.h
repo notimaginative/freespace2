@@ -7,6 +7,9 @@
  * Header file for the application level network-interface.
  *
  * $Log$
+ * Revision 1.3  2002/05/26 21:27:53  theoddone33
+ * More progress (I hate psnet2)
+ *
  * Revision 1.2  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -64,12 +67,12 @@
 	#define DEFAULT_GAME_PORT 7808
 #endif
 
-typedef struct net_addr	{
+typedef struct net_addr_s {
 	uint	type;			// See NET_ defines above
 	ubyte	net_id[4];	// used for IPX only
 	ubyte addr[6];		// address (first 4 used when IP, all 6 used when IPX)
 	short port;			
-} net_addr;
+} net_addr_t;
 
 // define these in such a manner that a call to psnet_send_reliable is exactly the same and the new code in unobtrusive
 typedef uint PSNET_SOCKET;
@@ -99,7 +102,7 @@ typedef uint PSNET_SOCKET_RELIABLE;
 #define PSNET_TYPE_GAME_TRACKER			3
 #define PSNET_TYPE_VALIDATION				4
 
-extern net_addr Psnet_my_addr;							// address information of this machine
+extern net_addr_t Psnet_my_addr;							// address information of this machine
 extern uint Psnet_my_ip;
 extern int Psnet_my_addr_valid;
 
@@ -129,7 +132,7 @@ extern ushort Psnet_default_port;
 #define RNF_CONNECTING		4		// We received the connecting message, but haven't told the game yet.
 #define RNF_LIMBO				5		// between connecting and connected
 
-extern uint Unreliable_socket;	// all PXO API modules should use this to send and receive on
+extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send and receive on
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
@@ -167,22 +170,22 @@ int psnet_use_protocol(int type);
 int psnet_get_network_status();
 
 // convert a net_addr to a string
-char *psnet_addr_to_string( char * text, net_addr * address );
+char *psnet_addr_to_string( char * text, net_addr_t * address );
 
 // convert a string to a net addr
-void psnet_string_to_addr( net_addr * address, char * text );
+void psnet_string_to_addr( net_addr_t * address, char * text );
 
 // compare 2 addresses
-int psnet_same( net_addr * a1, net_addr * a2 );
+int psnet_same( net_addr_t * a1, net_addr_t * a2 );
 
 // send data unreliably
-int psnet_send( net_addr * who_to, void * data, int len, int np_index = -1 );
+int psnet_send( net_addr_t * who_to, void * data, int len, int np_index = -1 );
 
 // get data from the unreliable socket
-int psnet_get( void * data, net_addr * from_addr );
+int psnet_get( void * data, net_addr_t * from_addr );
 
 // broadcast data on unreliable socket
-int psnet_broadcast( net_addr * who_to, void * data, int len );
+int psnet_broadcast( net_addr_t * who_to, void * data, int len );
 
 // flush all sockets
 void psnet_flush();
@@ -220,10 +223,10 @@ void psnet_rel_work();
 int psnet_rel_get_status(PSNET_SOCKET_RELIABLE sock);
 
 // check the listen socket for pending reliable connections
-int psnet_rel_check_for_listen(net_addr *addr);
+int psnet_rel_check_for_listen(net_addr_t *addr);
 
 // perform a reliable socket connect to the specified server
-void psnet_rel_connect_to_server(PSNET_SOCKET_RELIABLE *s, net_addr *server_addr);
+void psnet_rel_connect_to_server(PSNET_SOCKET_RELIABLE *s, net_addr_t *server_addr);
 
 #endif
 

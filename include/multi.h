@@ -8,8 +8,11 @@
  * multiplayer functions.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/26 21:27:53  theoddone33
+ * More progress (I hate psnet2)
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 47    8/30/99 5:01p Dave
@@ -688,7 +691,7 @@ typedef struct net_player_info {
 	int				ship_index;							// index into the ship choices in team select/ship select (out of 12 choices)
 	int				ship_class;							// the ship class of the players ship
 	multi_local_options options;						// players options settings	
-	net_addr			addr;
+	net_addr_t			addr;
 	char				pxo_squad_name[LOGIN_LEN];		// PXO squadron name
 } net_player_info;
 
@@ -738,7 +741,7 @@ typedef struct netgame_info {
 														// I'm also using this value to use as a starting base for the net_signature
 														// for object synchronization.
 	float    ping_time;							// ping time to this server
-	net_addr	server_addr;						// address of the server
+	net_addr_t	server_addr;						// address of the server
 	net_player *host;
 	net_player *server;							// pointer to the server		
 
@@ -791,7 +794,7 @@ typedef struct active_game {
 	char		mission_name[NAME_LENGTH+1];
 	char		title[NAME_LENGTH+1];	
 	ubyte		num_players;
-	net_addr	server_addr;	
+	net_addr_t	server_addr;	
 	ushort	flags;								// see above AG_FLAG_* defines
 	ubyte		version,comp_version;			// version and compatible version
 	ping_struct ping;								// ping time to the server
@@ -801,7 +804,7 @@ typedef struct active_game {
 typedef struct server_item {
 	server_item *next, *prev;
 
-	net_addr server_addr;
+	net_addr_t server_addr;
 } server_item;
 
 // sent to the server on a join request with various data
@@ -1016,7 +1019,7 @@ extern server_item* Game_server_head;								// list of permanent game servers t
 
 extern int Multi_restr_query_timestamp;							// timestamp for querying the host to see if he will allow a new player to join ingame
 extern join_request Multi_restr_join_request;					// join request for the query
-extern net_addr Multi_restr_addr;									// net address of the join request
+extern net_addr_t Multi_restr_addr;									// net address of the join request
 extern int Multi_join_restr_mode;									// what mode we're in
 
 // non API master tracker vars

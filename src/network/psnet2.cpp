@@ -7,6 +7,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.4  2002/05/26 21:27:53  theoddone33
+ * More progress (I hate psnet2)
+ *
  * Revision 1.3  2002/05/26 20:49:54  theoddone33
  * More progress
  *
@@ -117,6 +120,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <errno.h>
 #endif
 #include <stdio.h>
 #include <limits.h>
@@ -139,7 +143,7 @@
 //
 
 BOOL		Psnet_my_addr_valid;
-net_addr Psnet_my_addr;
+net_addr_t Psnet_my_addr;
 
 ubyte Null_address[6];
 
@@ -182,7 +186,9 @@ ushort	Psnet_default_port;
 // the naked packet.
 #define MAX_PACKET_BUFFERS		75
 
+#ifndef PLAT_UNIX
 #pragma pack(push, 2)
+#endif
 
 // definition for a non-checksum packet
 typedef struct network_packet
@@ -197,7 +203,7 @@ typedef struct network_packet_buffer
 {
 	int		sequence_number;
 	int		len;	
-	net_addr	from_addr;
+	net_addr_t	from_addr;
 	ubyte		data[MAX_TOP_LAYER_PACKET_SIZE];
 } network_packet_buffer;
 
@@ -209,7 +215,9 @@ typedef struct network_packet_buffer_list {
 	int psnet_highest_id;
 } network_packet_buffer_list;
 
+#ifndef PLAT_UNIX
 #pragma pack(pop)
+#endif
 
 
 #define MAXHOSTNAME			128
@@ -242,8 +250,11 @@ int Nettimeout = NETTIMEOUT;
 #define RNT_HEARTBEAT		6				// Heartbeat -- send every NETHEARTBEATTIME
 #define RNT_I_AM_HERE		7
 
+#ifndef PLAT_UNIX
 #pragma pack(push,r_udp)
 #pragma pack(1)
+#endif
+
 typedef struct {
 	ubyte			type;					// packet type
 	ubyte			compressed;			//
@@ -279,7 +290,7 @@ typedef struct {
 	ushort status;													// Status of this connection
 	unsigned short oursequence;								// This is the next sequence number the application is expecting
 	unsigned short theirsequence;								// This is the next sequence number the peer is expecting
-	net_addr	net_addr;											// A FS2 network address structure
+	net_addr_t	net_addr;											// A FS2 network address structure
 	ubyte connection_type;										// IPX, IP, modem, etc.
 	float pings[MAX_PING_HISTORY];
 	ubyte ping_pos;
@@ -307,7 +318,9 @@ float Last_sent_iamhere = 0;
 
 unsigned int Serverconn = 0xffffffff;
 
+#ifndef PLAT_UNIX
 #pragma pack(pop,r_udp)
+#endif
 //*******************************
 
 // top layer buffers
@@ -350,10 +363,10 @@ void psnet_rel_close();
 void psnet_buffer_init(network_packet_buffer_list *l);
 
 // buffer a packet (maintain order!)
-void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length, net_addr *from);
+void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length, net_addr_t *from);
 
 // get the index of the next packet in order!
-int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *length, net_addr *from);
+int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *length, net_addr_t *from);
 
 
 // -------------------------------------------------------------------------------------------------------
@@ -364,7 +377,7 @@ int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *lengt
 int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type)
 {
 	network_packet_buffer_list *l;
-	net_addr addr;
+	net_addr_t addr;
 	int ret;
 	int ret_len;
 
@@ -385,16 +398,25 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 	// otherwise, stuff the outgoing data
 	switch ( Socket_type ) {
 	case NET_IPX:			
+#ifdef PLAT_UNIX
+		STUB_FUNCTION;
+#else
 		((SOCKADDR_IPX*)from)->sa_socket = htons(addr.port);
 		memcpy(((SOCKADDR_IPX*)from)->sa_nodenum, addr.addr, 6);
 		memcpy(((SOCKADDR_IPX*)from)->sa_netnum, addr.net_id, 4);		
 		((SOCKADDR_IPX*)from)->sa_family = AF_IPX;		
 		*fromlen = sizeof(SOCKADDR_IPX);
+#endif
 		break;
 
 	case NET_TCP:			
 		((SOCKADDR_IN*)from)->sin_port = htons(addr.port);
-		memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
+#ifdef PLAT_UNIX
+		STUB_FUNCTION; // !
+		//memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
+#else
+		//memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
+#endif
 		((SOCKADDR_IN*)from)->sin_family = AF_INET;
 		*fromlen = sizeof(SOCKADDR_IN);
 		break;
@@ -408,8 +430,11 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 	return ret_len;
 }
 
+#ifdef PLAT_UNIX
+#define FAR
+#endif
 // wrappers around select() and recvfrom() for lagging/losing data
-int SELECT(int nfds, fd_set FAR * readfds, fd_set FAR * writefds, fd_set FAR * exceptfds, const struct timeval FAR * timeout, int psnet_type)
+int SELECT(int nfds, fd_set FAR * readfds, fd_set FAR * writefds, fd_set FAR * exceptfds, struct timeval FAR * timeout, int psnet_type)
 {
 	network_packet_buffer_list *l;
 
@@ -454,16 +479,24 @@ void PSNET_TOP_LAYER_PROCESS()
 {
 	// read socket stuff
 	SOCKADDR_IN ip_addr;				// UDP/TCP socket structure
+#ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;			// IPX socket structure
+#endif
 	fd_set	rfds;
 	timeval	timeout;
+#ifndef PLAT_UNIX
 	int		read_len, from_len;
-	net_addr	from_addr;	
+#else
+	socklen_t	read_len, from_len;
+#endif
+	net_addr_t	from_addr;	
 	network_naked_packet packet_read;		
 
 	// clear the addresses to remove compiler warnings
 	memset(&ip_addr, 0, sizeof(SOCKADDR_IN));
+#ifndef PLAT_UNIX
 	memset(&ipx_addr, 0, sizeof(SOCKADDR_IPX));
+#endif
 
 	if ( Network_status != NETWORK_STATUS_RUNNING ) {
 		ml_printf("Network ==> socket not inited in PSNET_TOP_LAYER_PROCESS\n");
@@ -493,8 +526,10 @@ void PSNET_TOP_LAYER_PROCESS()
 		read_len = SOCKET_ERROR;
 		switch ( Socket_type ) {
 		case NET_IPX:
+#ifndef PLAT_UNIX
 			from_len = sizeof(SOCKADDR_IPX);			
 			read_len = recvfrom( Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0,  (SOCKADDR*)&ipx_addr, &from_len);
+#endif
 			break;
 
 		case NET_TCP:
@@ -512,15 +547,22 @@ void PSNET_TOP_LAYER_PROCESS()
 
 		switch ( Socket_type ) {
 		case NET_IPX:			
+#ifndef PLAT_UNIX
 			from_addr.port = ntohs( ipx_addr.sa_socket );			
 			memcpy(from_addr.addr, ipx_addr.sa_nodenum, 6 );
 			memcpy(from_addr.net_id, ipx_addr.sa_netnum, 4 );
+#endif
 			break;
 
 		case NET_TCP:			
 			from_addr.port = ntohs( ip_addr.sin_port );			
 			memset(from_addr.addr, 0x00, 6);
+#ifndef PLAT_UNIX
 			memcpy(from_addr.addr, &ip_addr.sin_addr.S_un.S_addr, 4);
+#else
+			STUB_FUNCTION; // !
+			//memcpy(from_addr.addr, &ip_addr.sin_addr.S_un.S_addr, 4);
+#endif
 			break;
 
 		default:
@@ -556,7 +598,9 @@ void PSNET_TOP_LAYER_PROCESS()
 void psnet_init( int protocol, int port_num )
 {	
 	char *internet_connection;
+#ifndef PLAT_UNIX
 	WSADATA wsa_data; 		
+#endif
 	int idx;
 	Tcp_active = 0;
 	Ipx_active = 0;
@@ -587,9 +631,11 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	Network_status = NETWORK_STATUS_NO_WINSOCK;
+#ifndef PLAT_UNIX
 	if (WSAStartup(0x101, &wsa_data )){
 		return;
 	}
+#endif
 
 	// get the port for running this game on.  Be careful that it cannot be out of bounds
 	Psnet_default_port = DEFAULT_GAME_PORT;
@@ -620,6 +666,7 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	// initialize IPX not
+#ifndef PLAT_UNIX
 	Ipx_active = 1;
 	if(!psnet_init_ipx()){
 		ml_printf("Network", "Error on IPX startup %d\n", Ipx_failure_code);		
@@ -632,6 +679,9 @@ void psnet_init( int protocol, int port_num )
 			Ipx_active = 0;
 		}
 	}
+#else
+	Ipx_active = 0;
+#endif
 
 	// determine if we've successfully initialized the protocol we want
 	if(!Tcp_active && !Ipx_active){	
@@ -670,7 +720,9 @@ void psnet_close()
 		return;
 	}
 
+#ifndef PLAT_UNIX
 	WSACancelBlockingCall();		
+#endif
 
 	if ( TCP_socket != INVALID_SOCKET ) {
 		shutdown( TCP_socket, 1 );
@@ -682,9 +734,11 @@ void psnet_close()
 		closesocket( IPX_socket );
 	}
 
+#ifndef PLAT_UNIX
 	if (WSACleanup())	{
 		//Warning( LOCATION, "Error closing wsock!\n" );
 	}
+#endif
 
 	// close down all reliable sockets - this forces them to
 	// send a disconnect to any remote machines	
@@ -696,8 +750,12 @@ void psnet_close()
 // set the protocol to use
 int psnet_use_protocol( int protocol )
 {
+#ifndef PLAT_UNIX
 	int len;
 	SOCKADDR_IPX	ipx_addr;
+#else
+	socklen_t len;
+#endif
 	SOCKADDR_IN		ip_addr;
 
 	// zero out my address
@@ -711,6 +769,7 @@ int psnet_use_protocol( int protocol )
 
 	switch ( protocol ) {
 	case NET_IPX:		
+#ifndef PLAT_UNIX
 		ml_string("psnet_use_protocol() selecting IPX");
 
 		// assign the IPX_* sockets to the socket values used elsewhere
@@ -733,6 +792,7 @@ int psnet_use_protocol( int protocol )
 		Psnet_my_addr.port = Psnet_default_port;
 
 		ml_printf("Psnet using - NET_IPX\n");
+#endif
 		break;
 
 	case NET_TCP:
@@ -809,7 +869,7 @@ int psnet_get_network_status()
 }
 
 // convert a net_addr to a string
-char* psnet_addr_to_string( char * text, net_addr * address )
+char* psnet_addr_to_string( char * text, net_addr_t * address )
 {
 
 	if ( Network_status != NETWORK_STATUS_RUNNING )		{
@@ -848,7 +908,7 @@ char* psnet_addr_to_string( char * text, net_addr * address )
 }
 
 // convert a string to a net addr
-void psnet_string_to_addr( net_addr * address, char * text )
+void psnet_string_to_addr( net_addr_t * address, char * text )
 {
 	struct hostent *he;
 	char str[255], *c, *port;
@@ -903,18 +963,20 @@ void psnet_string_to_addr( net_addr * address, char * text )
 }
 
 // compare 2 addresses
-int psnet_same( net_addr * a1, net_addr * a2 )
+int psnet_same( net_addr_t * a1, net_addr_t * a2 )
 {
 	return !memcmp(a1->addr, a2->addr, 6);		
 }
 
 // send data unreliably
-int psnet_send( net_addr * who_to, void * data, int len, int np_index )
+int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 {
 	// send data unreliably
 	SOCKET send_sock;
 	SOCKADDR_IN sockaddr;				// UDP/TCP socket structure
+#ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;				// IPX socket structure
+#endif
 	int ret, send_len;
 	ubyte iaddr[6], *send_data;
 	short port;
@@ -970,6 +1032,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int np_index )
 	ret = SOCKET_ERROR;
 	switch ( who_to->type ) {
 		case NET_IPX:
+#ifndef PLAT_UNIX
 			ipx_addr.sa_socket = htons(port);
 			ipx_addr.sa_family = AF_IPX;
 			memcpy(ipx_addr.sa_nodenum, iaddr, 6);
@@ -981,6 +1044,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int np_index )
 			if ( (ret != SOCKET_ERROR) && (ret != send_len) ){
 				// ml_printf("requested to send %d bytes -- sent %d instead!!!\n", send_len, ret);
 			}
+#endif
 			break;
 
 		case NET_TCP:
@@ -1007,7 +1071,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int np_index )
 }
 
 // get data from the unreliable socket
-int psnet_get( void * data, net_addr * from_addr )
+int psnet_get( void * data, net_addr_t * from_addr )
 {					
 	int buffer_size;
 
@@ -1021,7 +1085,7 @@ int psnet_get( void * data, net_addr * from_addr )
 }
 
 // broadcast data on unreliable socket
-int psnet_broadcast( net_addr * who_to, void * data, int len )
+int psnet_broadcast( net_addr_t * who_to, void * data, int len )
 {
 	if ( Network_status != NETWORK_STATUS_RUNNING ) {
 		ml_printf("Network ==> Socket not inited in psnet_broadcast\n");
@@ -1053,7 +1117,7 @@ int psnet_broadcast( net_addr * who_to, void * data, int len )
 void psnet_flush()
 {
 	ubyte data[MAX_TOP_LAYER_PACKET_SIZE + 250];
-	net_addr from_addr;
+	net_addr_t from_addr;
 
 	while ( psnet_get( data, &from_addr ) > 0 ) ;
 }
@@ -1387,7 +1451,7 @@ void psnet_rel_work()
 	}
 
 	ubyte link_type;
-	net_addr d3_rcv_addr;
+	net_addr_t d3_rcv_addr;
 	SOCKADDR_IN *rcvaddr,*rsockaddr;
 	int ipx_has_data = 0;
 	int udp_has_data = 0;
@@ -1407,17 +1471,19 @@ void psnet_rel_work()
 		bytesin = 0;
 		addrlen = sizeof(SOCKADDR);
 		if(ipx_has_data){
+#ifndef PLAT_UNIX
 			SOCKADDR_IPX *ipx_addr = (SOCKADDR_IPX *)&rcv_addr;
-			memset(&d3_rcv_addr,0,sizeof(net_addr));
+			memset(&d3_rcv_addr,0,sizeof(net_addr_t));
 			memset(&rcv_addr,0,sizeof(SOCKADDR));
 			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			memcpy(d3_rcv_addr.addr, ipx_addr->sa_nodenum, 6);
 			memcpy(d3_rcv_addr.net_id, ipx_addr->sa_netnum, 4);				
 			d3_rcv_addr.type = NET_IPX;
 			link_type = NET_IPX;
+#endif
 		} else if(udp_has_data){
 			SOCKADDR_IN *tcp_addr = (SOCKADDR_IN *)&rcv_addr;
-			memset(&d3_rcv_addr,0,sizeof(net_addr));
+			memset(&d3_rcv_addr,0,sizeof(net_addr_t));
 			memset(&rcv_addr,0,sizeof(SOCKADDR));
 			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			memcpy(d3_rcv_addr.addr, &tcp_addr->sin_addr.s_addr, 4);
@@ -1440,7 +1506,7 @@ void psnet_rel_work()
 				for(i=1; i<MAXRELIABLESOCKETS; i++){
 					if( (Reliable_sockets[i].status == RNF_CONNECTED) || (Reliable_sockets[i].status == RNF_LIMBO) ){
 						//if(memcmp(&rcv_addr,&reliable_sockets[i].addr,sizeof(SOCKADDR))==0)
-						if(memcmp(&d3_rcv_addr, &Reliable_sockets[i].net_addr, sizeof(net_addr)) == 0){
+						if(memcmp(&d3_rcv_addr, &Reliable_sockets[i].net_addr, sizeof(net_addr_t)) == 0){
 							//We already have a reliable link to this user, so we will ignore it...
 							ml_printf("Received duplicate connection request. %d\n",i);
 							//reliable_sockets[i].last_packet_received = timer_GetTime();
@@ -1455,7 +1521,7 @@ void psnet_rel_work()
 					if(Reliable_sockets[i].status == RNF_UNUSED){
 						//Add the new connection here.
 						Reliable_sockets[i].connection_type=link_type;
-						memcpy(&Reliable_sockets[i].net_addr, &d3_rcv_addr, sizeof(net_addr));
+						memcpy(&Reliable_sockets[i].net_addr, &d3_rcv_addr, sizeof(net_addr_t));
 						memcpy(&Reliable_sockets[i].addr ,&rcv_addr, sizeof(SOCKADDR));
 						Reliable_sockets[i].ping_pos = 0;
 						Reliable_sockets[i].num_ping_samples = 0;
@@ -1480,7 +1546,7 @@ void psnet_rel_work()
 			rcvaddr = (SOCKADDR_IN *)&rcv_addr;
 			for(i=1; i<MAXRELIABLESOCKETS; i++){
 				rsockaddr = (SOCKADDR_IN *)&Reliable_sockets[i].addr;
-				if(memcmp(&d3_rcv_addr,&Reliable_sockets[i].net_addr,sizeof(net_addr)) == 0){
+				if(memcmp(&d3_rcv_addr,&Reliable_sockets[i].net_addr,sizeof(net_addr_t)) == 0){
 					rsocket=&Reliable_sockets[i];
 					rcvid = i;
 					break;
@@ -1716,10 +1782,12 @@ int psnet_rel_get_status(PSNET_SOCKET_RELIABLE socketid)
 
 // function which checks the Listen_socket for possibly incoming requests to be connected.
 // returns 0 on error or nothing waiting.  1 if we should try to accept
-int psnet_rel_check_for_listen(net_addr *from_addr)
+int psnet_rel_check_for_listen(net_addr_t *from_addr)
 {	
 	SOCKADDR_IN *ip_addr;				// UDP/TCP socket structure
+#ifndef PLAT_UNIX
 	SOCKADDR_IPX *ipx_addr;			// IPX socket structure	
+#endif
 	
 	psnet_rel_work();
 	int i;
@@ -1731,20 +1799,27 @@ int psnet_rel_check_for_listen(net_addr *from_addr)
 			
 			switch ( Reliable_sockets[i].connection_type ){
 			case NET_IPX:
+#ifndef PLAT_UNIX
 				ipx_addr = (SOCKADDR_IPX *)&Reliable_sockets[i].addr;
-				memset(from_addr, 0x00, sizeof(net_addr));
+				memset(from_addr, 0x00, sizeof(net_addr_t));
 				from_addr->port = ntohs( ipx_addr->sa_socket );
 				from_addr->type = NET_IPX;
 				memcpy(from_addr->addr, ipx_addr->sa_nodenum, 6 );
 				memcpy(from_addr->net_id, ipx_addr->sa_netnum, 4 );
+#endif
 				break;
 
 			case NET_TCP:
 				ip_addr = (SOCKADDR_IN *)&Reliable_sockets[i].addr;
-				memset(from_addr, 0x00, sizeof(net_addr));
+				memset(from_addr, 0x00, sizeof(net_addr_t));
 				from_addr->port = ntohs( ip_addr->sin_port );
 				from_addr->type = NET_TCP;
+#ifndef PLAT_UNIX
 				memcpy(from_addr->addr, &ip_addr->sin_addr.S_un.S_addr, 4);
+#else
+				STUB_FUNCTION; // !
+				//memcpy(from_addr->addr, &ip_addr->sin_addr.S_un.S_addr, 4);
+#endif
 				break;
 			
 			default:
@@ -1764,11 +1839,13 @@ int psnet_rel_check_for_listen(net_addr *from_addr)
 
 // attacmpt to connect() to the server's tcp socket.  socket parameter is simply assigned to the
 // Reliable_socket socket created in psnet_init
-void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr *server_addr)
+void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 {	
 	//Send out a RNT_REQ_CONN packet, and wait for it to be acked.
 	SOCKADDR_IN sockaddr;				// UDP/TCP socket structure
+#ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;				// IPX socket structure
+#endif
 	SOCKADDR *addr;						// pointer to SOCKADDR to make coding easier
 	SOCKADDR rcv_addr;
 	int addrlen;
@@ -1839,11 +1916,12 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr *server_addr)
 	memset(&ack_header,0,sizeof(reliable_header));
 	bytesin = 0;
 	SOCKET typeless_sock;
-	net_addr d3_rcv_addr;
-	memset(&d3_rcv_addr,0,sizeof(net_addr));
+	net_addr_t d3_rcv_addr;
+	memset(&d3_rcv_addr,0,sizeof(net_addr_t));
 
 	switch ( server_addr->type ){
 		case NET_IPX:
+#ifndef PLAT_UNIX
 			ipx_addr.sa_family = AF_IPX;
 			memcpy(ipx_addr.sa_nodenum, iaddr, 6);
 			memcpy(ipx_addr.sa_netnum, server_addr->net_id, 4);
@@ -1858,6 +1936,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr *server_addr)
 			memcpy(d3_rcv_addr.addr,ipx_addr.sa_nodenum, 6);
 			memcpy(d3_rcv_addr.net_id,ipx_addr.sa_netnum, 4);				
 			d3_rcv_addr.type = NET_IPX;
+#endif
 			break;
 		case NET_TCP:
 			sockaddr.sin_family = AF_INET; 
@@ -1914,7 +1993,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr *server_addr)
 								//Add the new connection here.
 								memset(&Reliable_sockets[i],0,sizeof(reliable_socket));
 								Reliable_sockets[i].connection_type = (ubyte)server_addr->type;
-								memcpy(&Reliable_sockets[i].net_addr,&d3_rcv_addr,sizeof(net_addr));
+								memcpy(&Reliable_sockets[i].net_addr,&d3_rcv_addr,sizeof(net_addr_t));
 								Reliable_sockets[i].last_packet_received = psnet_get_time();
 								memcpy(&Reliable_sockets[i].addr,&rcv_addr,sizeof(SOCKADDR));
 								Reliable_sockets[i].status = RNF_LIMBO;
@@ -2059,6 +2138,9 @@ int psnet_init_rel_tcp(int port, int should_listen)
 // initialize reliable sockets
 int psnet_init_rel_ipx(int port, int should_listen)
 {	
+#ifdef PLAT_UNIX
+	return 0;
+#else
 	/*
 	SOCKADDR_IPX ipx_addr;		
 
@@ -2092,6 +2174,7 @@ int psnet_init_rel_ipx(int port, int should_listen)
 
 	// success
 	return 1;
+#endif
 }
 
 void psnet_rel_close()
@@ -2132,7 +2215,7 @@ void psnet_buffer_init(network_packet_buffer_list *l)
 }
 
 // buffer a packet (maintain order!)
-void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length, net_addr *from)
+void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length, net_addr_t *from)
 {
 	int idx;
 	int found_buf = 0;
@@ -2152,7 +2235,7 @@ void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length,
 		// copy in the data
 		memcpy(l->psnet_buffers[idx].data, data, length);
 		l->psnet_buffers[idx].len = length;
-		memcpy(&l->psnet_buffers[idx].from_addr, from, sizeof(net_addr));
+		memcpy(&l->psnet_buffers[idx].from_addr, from, sizeof(net_addr_t));
 		l->psnet_buffers[idx].sequence_number = l->psnet_seq_number;
 		
 		// keep track of the highest id#
@@ -2166,7 +2249,7 @@ void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length,
 }
 
 // get the index of the next packet in order!
-int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *length, net_addr *from)
+int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *length, net_addr_t *from)
 {	
 	int idx;
 	int found_buf = 0;
@@ -2191,7 +2274,7 @@ int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *lengt
 	// copy out the buffer data
 	memcpy(data, l->psnet_buffers[idx].data, l->psnet_buffers[idx].len);
 	*length = l->psnet_buffers[idx].len;
-	memcpy(from, &l->psnet_buffers[idx].from_addr, sizeof(net_addr));
+	memcpy(from, &l->psnet_buffers[idx].from_addr, sizeof(net_addr_t));
 
 	// now we need to cleanup the packet list
 
@@ -2273,7 +2356,7 @@ int psnet_is_valid_numeric_ip(char *ip)
 
 // function called from high level FreeSpace code to determine the status of the networking
 // code returns one of a handful of macros
-
+#ifndef PLAT_UNIX
 DWORD (__stdcall *pRasEnumConnections)(LPRASCONN lprasconn, LPDWORD lpcb, LPDWORD lpcConnections) = NULL;
 DWORD (__stdcall *pRasGetConnectStatus)(HRASCONN hrasconn, LPRASCONNSTATUS lprasconnstatus ) = NULL;
 DWORD (__stdcall *pRasGetProjectionInfo)(HRASCONN hrasconn, RASPROJECTION rasprojection, LPVOID lpprojection, LPDWORD lpcb ) = NULL;
@@ -2372,6 +2455,7 @@ unsigned int psnet_ras_status()
 	//The ip of the RAS connection
 	return rasip;
 }
+#endif
  
 // functions to get the status of a RAS connection
 /*
@@ -2466,8 +2550,12 @@ void psnet_ras_status()
 // set some options on a socket
 void psnet_socket_options( SOCKET sock )
 {
-	int broadcast;
-	int ret, cursize, cursizesize, bufsize; 
+	int broadcast, ret;
+#ifndef PLAT_UNIX
+	int cursize, cursizesize, bufsize; 
+#else
+	socklen_t cursize, cursizesize, bufsize; 
+#endif
 
 	// Set the mode of the socket to allow broadcasting.  We need to be able to broadcast
 	// when a game is searched for in IPX mode.
@@ -2520,6 +2608,9 @@ void psnet_socket_options( SOCKET sock )
 // initialize ipx socket
 int psnet_init_ipx()
 {	
+#ifdef PLAT_UNIX
+	return 0;
+#else
 	SOCKADDR_IPX sockaddr;
 
 	IPX_socket = INVALID_SOCKET;	
@@ -2547,6 +2638,7 @@ int psnet_init_ipx()
 
 	// success
 	return 1;
+#endif
 }
 
 // initialize tcp socket
@@ -2600,5 +2692,5 @@ void psnet_mark_received(PSNET_SOCKET_RELIABLE socket)
 	Reliable_sockets[socket].last_packet_received = psnet_get_time();
 }
 
-#endif	// #ifdef PSNET2
+#endif	//  if PSNET2
 

@@ -11,8 +11,17 @@ void ds3d_close()
 
 int ds3d_update_listener(vector *pos, vector *vel, matrix *orient)
 {
-	STUB_FUNCTION;
-	
+	//STUB_FUNCTION;
+	ALfloat posv[] = { pos->x, pos->y, pos->z };
+	ALfloat velv[] = { vel->x, vel->y, vel->z };
+	ALfloat oriv[] = { orient->a1d[0], 
+			orient->a1d[1], orient->a1d[2],
+			orient->a1d[3], orient->a1d[4],
+			orient->a1d[5] };
+	alListenerfv(AL_POSITION, posv);
+	alListenerfv(AL_VELOCITY, velv);
+	alListenerfv(AL_ORIENTATION, oriv);
+
 	return -1;
 }
 

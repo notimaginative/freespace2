@@ -7,6 +7,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.6  2002/06/02 21:11:12  cemason
+ * Few changes
+ *
  * Revision 1.5  2002/06/02 09:50:42  relnev
  * check open status
  *
@@ -660,7 +663,7 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 
 	(*header) = (WAVEFORMATEX *) malloc ( sizeof(WAVEFORMATEX) );
 	(*header)->wFormatTag = fmt;
-	(*header)->nChannels = 1;
+	(*header)->nChannels = chan;
 	(*header)->nSamplesPerSec = freq;
 	(*header)->wBitsPerSample = 16;
 	(*header)->cbSize = len;
@@ -1646,6 +1649,8 @@ void ds_unload_buffer(int sid, int hid)
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
+
+	alSourceStop ((ALuint)hid);
 #else
 	HRESULT	hr;
 

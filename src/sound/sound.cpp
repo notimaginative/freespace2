@@ -7,6 +7,9 @@
  * Low-level sound code
  *
  * $Log$
+ * Revision 1.5  2002/06/02 21:11:12  cemason
+ * Few changes
+ *
  * Revision 1.4  2002/05/27 01:06:01  theoddone33
  * sound.cpp works
  *
@@ -610,6 +613,8 @@ int snd_load( game_snd *gs, int allow_hardware_load )
 	si->bits						= header->wBitsPerSample;	// Read 16-bit bits per sample			
 
 	snd->duration = fl2i(1000.0f * (si->size / (si->bits/8.0f)) / si->sample_rate);
+nprintf(("SOUND", "SOUND ==> duration = %dms (%d %d %d)\n", snd->duration,
+si->size, si->bits, si->sample_rate));
 	type = 0;
 
 	if ( allow_hardware_load ) {

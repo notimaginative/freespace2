@@ -7,6 +7,9 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.7  2002/06/03 09:25:37  relnev
+ * implement mouse cursor and screen save/restore
+ *
  * Revision 1.6  2002/05/30 23:07:08  relnev
  * shh
  *
@@ -1888,6 +1891,8 @@ void bm_get_palette(int handle, ubyte *pal, char *name)
 //
 // returns:			nothing
 
+// opengl hack
+void opengl_free_texture_with_handle(int handle);
 void bm_release(int handle)
 {
 	bitmap_entry	*be;
@@ -1912,6 +1917,11 @@ void bm_release(int handle)
 		nprintf(("BmpMan", "tried to unload %s that has a lock count of %d.. not unloading\n", be->filename, be->ref_count));
 		return;
 	}
+
+// until opengl mode gets a proper texture manager, this will have to do
+#ifdef PLAT_UNIX
+	opengl_free_texture_with_handle(handle);
+#endif
 
 	bm_free_data(n);
 

@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.45  2002/06/03 09:25:37  relnev
+ * implement mouse cursor and screen save/restore
+ *
  * Revision 1.44  2002/06/02 18:46:59  relnev
  * updated
  *
@@ -265,9 +268,6 @@
 
 static int Inited = 0;
 
-//static GLuint bitmapTex;
-//static GLubyte *bitmapMem;
-
 typedef enum gr_texture_source {
 	TEXTURE_SOURCE_NONE,
 	TEXTURE_SOURCE_DECAL,
@@ -294,6 +294,7 @@ volatile int GL_activate = 0;
 volatile int GL_deactivate = 0;
 
 static char *Gr_saved_screen = NULL;
+static int Gr_saved_screen_bitmap;
 
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
@@ -483,6 +484,7 @@ void gr_opengl_clear()
 	glClear ( GL_COLOR_BUFFER_BIT );
 }
 
+void gr_opengl_save_mouse_area(int x, int y, int w, int h);
 void opengl_tcache_frame ();
 void gr_opengl_flip()
 {
@@ -490,8 +492,10 @@ void gr_opengl_flip()
 
 	gr_reset_clip();
 
-#if 0 // TODO - set cursor, save_screen
 	mouse_eval_deltas();
+	
+	extern int Gr_opengl_mouse_saved;
+	Gr_opengl_mouse_saved = 0;
 	
 	if ( mouse_is_visible() )       {
 		int mx, my;
@@ -499,17 +503,15 @@ void gr_opengl_flip()
 	 	gr_reset_clip();
 	 	mouse_get_pos( &mx, &my );
 	 	
-	 	// TODO: implement this when adding the save_screen code
-	 	// gr_opengl_save_mouse_area(mx,my,32,32);
+	 	gr_opengl_save_mouse_area(mx,my,32,32);
 	 	
 	 	if ( Gr_cursor == -1 )  {
 	 		// stuff
 	 	} else {
 	 		gr_set_bitmap(Gr_cursor);
-	 		gr_bitmap( mx, my );
+			gr_bitmap( mx, my );
 	 	}
 	 }
-#endif
 	 
 #ifndef NDEBUG
 	GLenum error = glGetError();
@@ -1948,6 +1950,16 @@ void opengl_tcache_init (int use_sections)
 
 int opengl_free_texture (tcache_slot_opengl *t);
 
+void opengl_free_texture_with_handle(int handle)
+{
+	for(int i=0; i<MAX_BITMAPS; i++ )  {
+		if (Textures[i].bitmap_id == handle) {
+			Textures[i].used_this_frame = 0; // this bmp doesn't even exist any longer...
+			opengl_free_texture ( &Textures[i] );
+		}
+	}
+}
+
 void opengl_tcache_flush ()
 {
 	int i;
@@ -2649,10 +2661,57 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 		glReadBuffer(GL_BACK);
 	}
 	
-	STUB_FUNCTION;
+	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 	
-// TODO
-//	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+	glPixelStorei(GL_PACK_ROW_LENGTH, gr_screen.max_w);
+	
+	if (gr_screen.bits_per_pixel == 15) {
+		glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+	} else if (gr_screen.bits_per_pixel == 32) {
+		glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	
+	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+}
+
+static int Gr_opengl_mouse_saved = 0;
+static int Gr_opengl_mouse_saved_x1 = 0;
+static int Gr_opengl_mouse_saved_y1 = 0;
+static int Gr_opengl_mouse_saved_x2 = 0;
+static int Gr_opengl_mouse_saved_y2 = 0;
+static int Gr_opengl_mouse_saved_w = 0;
+static int Gr_opengl_mouse_saved_h = 0;
+#define MAX_SAVE_SIZE (32*32)
+static ubyte Gr_opengl_mouse_saved_data[MAX_SAVE_SIZE*2];
+
+#define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
+
+void gr_opengl_save_mouse_area(int x, int y, int w, int h)
+{
+	Gr_opengl_mouse_saved_x1 = x;
+	Gr_opengl_mouse_saved_y1 = y;
+	Gr_opengl_mouse_saved_x2 = x+w-1;
+	Gr_opengl_mouse_saved_y2 = y+h-1;
+	
+	CLAMP(Gr_opengl_mouse_saved_x1, gr_screen.clip_left, gr_screen.clip_right );
+	CLAMP(Gr_opengl_mouse_saved_x2, gr_screen.clip_left, gr_screen.clip_right );
+	CLAMP(Gr_opengl_mouse_saved_y1, gr_screen.clip_top, gr_screen.clip_bottom );
+	CLAMP(Gr_opengl_mouse_saved_y2, gr_screen.clip_top, gr_screen.clip_bottom );
+	
+	Gr_opengl_mouse_saved_w = Gr_opengl_mouse_saved_x2 - Gr_opengl_mouse_saved_x1 + 1;
+	Gr_opengl_mouse_saved_h = Gr_opengl_mouse_saved_y2 - Gr_opengl_mouse_saved_y1 + 1;
+
+	if ( Gr_opengl_mouse_saved_w < 1 ) return;
+	if ( Gr_opengl_mouse_saved_h < 1 ) return;
+	
+	Assert( (Gr_opengl_mouse_saved_w*Gr_opengl_mouse_saved_h) <= MAX_SAVE_SIZE );
+
+	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
+	
+	glReadBuffer(GL_BACK);
+	glReadPixels(x, gr_screen.max_h-y-1-h, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_opengl_mouse_saved_data);
+	
+	Gr_opengl_mouse_saved = 1;
 }
 
 int gr_opengl_save_screen()
@@ -2670,11 +2729,46 @@ int gr_opengl_save_screen()
 		return -1;
 	}
 
-	STUB_FUNCTION;
+	char *Gr_saved_screen_tmp = (char*)malloc( gr_screen.max_w * gr_screen.max_h * gr_screen.bytes_per_pixel );
+	if (!Gr_saved_screen_tmp) {
+		mprintf(( "Couldn't get memory for temporary saved screen!\n" ));
+		return -1;
+	}
 	
-	gr_opengl_get_region(1, gr_screen.max_w, gr_screen.max_h, (ubyte *)Gr_saved_screen);
+	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 	
-	return 0;
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_saved_screen_tmp);
+	
+	ubyte *sptr, *dptr;
+	
+	sptr = (ubyte *)&Gr_saved_screen_tmp[gr_screen.max_w*gr_screen.max_h*2];
+	dptr = (ubyte *)Gr_saved_screen;
+	for (int j = 0; j < gr_screen.max_h; j++) {
+		sptr -= gr_screen.max_w*2;
+		memcpy(dptr, sptr, gr_screen.max_w*2);
+		dptr += gr_screen.max_w*2;
+	}
+	
+	free(Gr_saved_screen_tmp);
+	
+	if (Gr_opengl_mouse_saved) {
+		sptr = (ubyte *)Gr_opengl_mouse_saved_data;
+		dptr = (ubyte *)&Gr_saved_screen[2*(Gr_opengl_mouse_saved_x1+(Gr_opengl_mouse_saved_y2+1)*gr_screen.max_w)];
+		for (int i = 0; i < Gr_opengl_mouse_saved_h; i++) {
+			memcpy(dptr, sptr, Gr_opengl_mouse_saved_w*2);
+		
+			sptr += 32*2;
+			dptr -= gr_screen.max_w*2;
+		}
+	}
+
+	// this leaks texture handles, and the opengl doesn't currently 
+	// perform some sort of garbage collection, so a hack was added
+	// to bmpman to make it free textures
+	Gr_saved_screen_bitmap = bm_create(16, gr_screen.max_w, gr_screen.max_h, Gr_saved_screen, 0);
+	
+	return Gr_saved_screen_bitmap;
 }
 
 void gr_opengl_restore_screen(int id)
@@ -2686,14 +2780,16 @@ void gr_opengl_restore_screen(int id)
 		return;
 	}
 
-	STUB_FUNCTION;
+	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 	
-// TODO	
-//	glDrawPixels(gr_screen.max_w, gr_screen.max_h, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_saved_screen);
+	gr_set_bitmap(Gr_saved_screen_bitmap);
+	gr_bitmap(0, 0);		
 }
 
 void gr_opengl_free_screen(int id)
 {
+	bm_release(Gr_saved_screen_bitmap);
+	
 	if ( Gr_saved_screen )  {
 		free( Gr_saved_screen );
 		Gr_saved_screen = NULL;
@@ -2773,6 +2869,7 @@ void gr_opengl_init()
 		exit (1);
 	}		
 
+	SDL_ShowCursor(0);
 	SDL_WM_SetCaption (Osreg_title, "FS2");
 #endif
 	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
@@ -2795,15 +2892,8 @@ void gr_opengl_init()
 	
 	glDepthRange(0.0, 1.0);
 	
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	
-	//glGenTextures(1, &bitmapTex);
-	//glBindTexture(GL_TEXTURE_2D, bitmapTex);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	//bitmapMem = (GLubyte *)malloc(256*256*4);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, bitmapMem);
 	
 	D3D_32bit = 1;              // grd3d.cpp
 	extern int D3D_enabled;
@@ -2823,25 +2913,10 @@ void gr_opengl_init()
 	int bpp = 15;
 	
 	switch( bpp )	{
-	case 8:
-		Gr_red.bits = 8;
-		Gr_red.shift = 16;
-		Gr_red.scale = 1;
-		Gr_red.mask = 0xff0000;
-
-		Gr_green.bits = 8;
-		Gr_green.shift = 8;
-		Gr_green.scale = 1;
-		Gr_green.mask = 0xff00;
-
-		Gr_blue.bits = 8;
-		Gr_blue.shift = 0;
-		Gr_blue.scale = 1;
-		Gr_blue.mask = 0xff;
-		
-		break;
-		
 	case 15:
+		gr_screen.bits_per_pixel = 15;
+		gr_screen.bytes_per_pixel = 2;
+		
 		Gr_red.bits = 5;
 		Gr_red.shift = 10;
 		Gr_red.scale = 8;
@@ -2860,6 +2935,9 @@ void gr_opengl_init()
 		break;
 
 	case 16:
+		gr_screen.bits_per_pixel = 16;
+		gr_screen.bytes_per_pixel = 2;
+		
 		Gr_red.bits = 5;
 		Gr_red.shift = 11;
 		Gr_red.scale = 8;
@@ -2877,8 +2955,10 @@ void gr_opengl_init()
 
 		break;
 
-	case 24:
 	case 32:
+		gr_screen.bits_per_pixel = 32;
+		gr_screen.bytes_per_pixel = 4;
+		
 		Gr_red.bits = 8;
 		Gr_red.shift = 16;
 		Gr_red.scale = 1;

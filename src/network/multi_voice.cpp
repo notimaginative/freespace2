@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2004/06/11 01:46:06  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.4  2003/08/03 16:10:29  taylor
  * cleanup; compile warning fixes
  *
@@ -1154,7 +1157,7 @@ void multi_voice_set_prefs(int pref_flags)
 				ADD_DATA(code);
 
 				// add the player's id
-				ADD_DATA(Net_players[idx].player_id);
+				ADD_DATA_S16(Net_players[idx].player_id);
 			}
 		}
 		// add final stop byte
@@ -1313,18 +1316,18 @@ void multi_voice_player_send_stream()
 		// add the routing data and any necessary targeting information
 		ADD_DATA(msg_mode);
 		if(msg_mode == MULTI_MSG_TARGET){
-			ADD_DATA(Objects[Net_players[target_index].player->objnum].net_signature);
+			ADD_DATA_U16(Objects[Net_players[target_index].player->objnum].net_signature);
 		}
 
 		// add my id#
-		ADD_DATA(Net_player->player_id);
+		ADD_DATA_S16(Net_player->player_id);
 
 		// add the current stream id#
 		ADD_DATA(Multi_voice_stream_id);
 
 		Assert(uncompressed_size < MULTI_VOICE_MAX_BUFFER_SIZE);
 		uc_size = (ushort)uncompressed_size;
-		ADD_DATA(uc_size);
+		ADD_DATA_U16(uc_size);
 
 		// add the chunk index
 		ADD_DATA(chunk_index);
@@ -1335,10 +1338,10 @@ void multi_voice_player_send_stream()
 		} else {
 			chunk_size = (ushort)(sound_size - size_sent);
 		}
-		ADD_DATA(chunk_size);
+		ADD_DATA_U16(chunk_size);
 
 		// add the gain
-		ADD_DATA(gain);
+		ADD_DATA_FL(gain);
 
 		// add the chunk of data		
 		memcpy(data+packet_size, rbuf,chunk_size);		
@@ -1371,12 +1374,12 @@ int multi_voice_process_data(ubyte *data, int player_index,int msg_mode,net_play
 	int offset = 0;
 
 	// read in all packet data except for the sound chunk itself
-	GET_DATA(who_from);
+	GET_DATA_S16(who_from);
 	GET_DATA(stream_id);
-	GET_DATA(uc_size);
+	GET_DATA_U16(uc_size);
 	GET_DATA(chunk_index);
-	GET_DATA(chunk_size);
-	GET_DATA(gain);				
+	GET_DATA_U16(chunk_size);
+	GET_DATA_FL(gain);				
 
 	// if our netgame options are currently set for no voice, ignore the packet
 	if((Netgame.options.flags & MSO_FLAG_NO_VOICE) || !Multi_options_g.std_voice){
@@ -1768,7 +1771,7 @@ void multi_voice_send_dummy_packet()
 	}
 	ADD_DATA(msg_mode);
 	if(msg_mode == MULTI_MSG_TARGET){
-		ADD_DATA(Objects[Net_players[target_index].player->objnum].net_signature);
+		ADD_DATA_U16(Objects[Net_players[target_index].player->objnum].net_signature);
 	}
 
 	// add the voice stream id
@@ -1822,7 +1825,7 @@ int multi_voice_process_player_prefs(ubyte *data,int player_index)
 	// get all muted players
 	GET_DATA(val);
 	while(val != 0xff){
-		GET_DATA(mute_id);
+		GET_DATA_S16(mute_id);
 
 		// get the player to mute
 		mute_index = find_player_id(mute_id);
@@ -1930,7 +1933,7 @@ void multi_voice_process_packet(ubyte *data, header *hinfo)
 		target_index = -1;
 		GET_DATA(msg_mode);
 		if(msg_mode == MULTI_MSG_TARGET){
-			GET_DATA(target_sig);
+			GET_DATA_U16(target_sig);
 			target_index = multi_find_player_by_net_signature(target_sig);
 			Assert(target_index != -1);
 		}
@@ -1952,7 +1955,7 @@ void multi_voice_process_packet(ubyte *data, header *hinfo)
 		target_index = -1;
 		GET_DATA(msg_mode);
 		if(msg_mode == MULTI_MSG_TARGET){
-			GET_DATA(target_sig);
+			GET_DATA_U16(target_sig);
 			target_index = multi_find_player_by_net_signature(target_sig);
 			Assert(target_index != -1);
 		}
@@ -2038,18 +2041,18 @@ void multi_voice_client_send_pending()
 		ADD_DATA(msg_mode);
 		if(msg_mode == MULTI_MSG_TARGET){
 			Assert(Game_mode & GM_IN_MISSION);
-			ADD_DATA(Objects[Net_players[target_index].player->objnum].net_signature);
+			ADD_DATA_U16(Objects[Net_players[target_index].player->objnum].net_signature);
 		}
 
 		// add my address 
-		ADD_DATA(Net_player->player_id);
+		ADD_DATA_S16(Net_player->player_id);
 
 		// add the current stream id#
 		ADD_DATA(Multi_voice_stream_id);
 
 		Assert(str->accum_buffer_usize[sent] < MULTI_VOICE_MAX_BUFFER_SIZE);
 		uc_size = (ushort)str->accum_buffer_usize[sent];
-		ADD_DATA(uc_size);
+		ADD_DATA_U16(uc_size);
 
 		// add the chunk index
 		chunk_index = (ubyte)sent;
@@ -2057,11 +2060,11 @@ void multi_voice_client_send_pending()
 
 		// size of the sound data
 		chunk_size = (ushort)str->accum_buffer_csize[sent];		
-		ADD_DATA(chunk_size);
+		ADD_DATA_U16(chunk_size);
 
 		// add the gain
 		gain = (float)str->accum_buffer_gain[sent];
-		ADD_DATA(gain);
+		ADD_DATA_FL(gain);
 
 		// add the chunk of data		
 		memcpy(data+packet_size, str->accum_buffer[sent],chunk_size);		

@@ -15,6 +15,9 @@
  * Multiplayer Team Selection Code
  *
  * $Log$
+ * Revision 1.6  2004/06/11 01:51:13  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -2971,7 +2974,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 
 	// add the sound to play
 	s_sound = (short)sound;
-	ADD_DATA(s_sound);
+	ADD_DATA_S16(s_sound);
 	
 	// add data based upon the packet code
 	switch(code){
@@ -2999,7 +3002,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 
 				// add the objnum we're working with
 				i_tmp = Multi_ts_team[team].multi_ts_objnum[idx];
-				ADD_DATA(i_tmp);
+				ADD_DATA_S32(i_tmp);
 
 				// add a byte indicating if a player is here or not
 				if(Multi_ts_team[team].multi_ts_player[idx] == NULL){
@@ -3011,7 +3014,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 
 				// if there's a player, add his address
 				if(val){
-					ADD_DATA(Multi_ts_team[team].multi_ts_player[idx]->player_id);
+					ADD_DATA_S16(Multi_ts_team[team].multi_ts_player[idx]->player_id);
 
 					// should also update his p_info settings locally
 					Multi_ts_team[team].multi_ts_player[idx]->p_info.ship_class = Wss_slots_teams[team][idx].ship_class;
@@ -3075,7 +3078,7 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 	team = (int)val;
 
 	// get the sound to play
-	GET_DATA(sound);
+	GET_DATA_S16(sound);
 
 	// process the different opcodes
 	switch(code){
@@ -3120,13 +3123,13 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 			GET_DATA(ship_class);
 
 			// get the objnum
-			GET_DATA(objnum);
+			GET_DATA_S32(objnum);
 	
 			// flag indicating if a player is in this slot
 			GET_DATA(val);
 			if(val){
 				// look the player up
-				GET_DATA(player_id);
+				GET_DATA_S16(player_id);
 				player_index = find_player_id(player_id);
 			
 				// if we couldn't find him

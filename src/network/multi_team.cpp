@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2004/06/11 01:45:13  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -786,8 +789,8 @@ void multi_team_process_packet(unsigned char *data, header *hinfo)
 		Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 		// get the packet data
-		GET_DATA(player_id);
-		GET_DATA(req_team);
+		GET_DATA_U16(player_id);
+		GET_DATA_S32(req_team);
 
 		// if i'm the host of the game, process here		
 		req_index = find_player_id(player_id);
@@ -822,10 +825,10 @@ void multi_team_send_team_request(net_player *pl, int team)
 	ADD_DATA(code);
 
 	// add the address of the guy we want to change
-	ADD_DATA(pl->player_id);
+	ADD_DATA_S16(pl->player_id);
 
 	// add the team I want to be on
-	ADD_DATA(team);
+	ADD_DATA_S32(team);
 
 	// send to the server of the game (will be routed to host if in a standalone situation)	
 	multi_io_send_reliable(Net_player, data, packet_size);
@@ -859,7 +862,7 @@ void multi_team_send_update()
 			ADD_DATA(stop);
 
 			// add this guy's id
-			ADD_DATA(Net_players[idx].player_id);
+			ADD_DATA_S16(Net_players[idx].player_id);
 
 			// pack all his data into a byte
 			val = 0x0;
@@ -904,7 +907,7 @@ int multi_team_process_team_update(ubyte *data)
 	GET_DATA(stop);
 	while(stop != 0xff){
 		// get the net address and flags for the guy
-		GET_DATA(player_id);
+		GET_DATA_S16(player_id);
 		GET_DATA(flags);
 
 		// do a player lookup

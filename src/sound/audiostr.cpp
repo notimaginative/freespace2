@@ -7,6 +7,9 @@
  * Routines to stream large WAV files from disk
  *
  * $Log$
+ * Revision 1.3  2002/05/27 18:42:50  theoddone33
+ * Fix missing audiostr_* symbols
+ *
  * Revision 1.2  2002/05/07 03:16:52  theoddone33
  * The Great Newline Fix
  *
@@ -168,11 +171,13 @@
 
 #include "pstypes.h"
 
+#ifndef PLAT_UNIX
 #include <windows.h>
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <msacm.h>
 #include "vdsound.h"
+#endif
 #include "audiostr.h"
 #include "cfile.h"		// needed for cf_get_path
 #include "timer.h"
@@ -185,6 +190,8 @@
 #define SUCCESS TRUE        // Error returns for all member functions
 #define FAILURE FALSE
 #endif // SUCCESS
+
+#ifndef PLAT_UNIX 
 
 typedef BOOL (*TIMERCALLBACK)(DWORD);
 
@@ -1510,11 +1517,13 @@ BYTE WaveFile::GetSilenceData (void)
 	return (bSilenceData);
 }
 
-int Audiostream_inited = 0;
 AudioStreamServices * m_pass = NULL;   // ptr to AudioStreamServices object
 
 #define MAX_AUDIO_STREAMS	30
 AudioStream Audio_streams[MAX_AUDIO_STREAMS];
+#endif // !PLAT_UNIX
+
+int Audiostream_inited = 0;
 
 void audiostream_init()
 {
@@ -1527,6 +1536,9 @@ void audiostream_init()
 		return;
 	}
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	// Create and initialize AudioStreamServices object.
 	// This must be done once and only once for each window that uses
 	// streaming services.
@@ -1573,6 +1585,7 @@ void audiostream_init()
 	}
 
 	InitializeCriticalSection( &Global_service_lock );
+#endif
 
 	Audiostream_inited = 1;
 }
@@ -1585,6 +1598,9 @@ void audiostream_close()
 	if ( Audiostream_inited == 0 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	for ( i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
 		if ( Audio_streams[i].status == ASF_USED ) {
 			Audio_streams[i].status = ASF_FREE;
@@ -1620,7 +1636,7 @@ void audiostream_close()
 	}
 
 	DeleteCriticalSection( &Global_service_lock );
-
+#endif
 	Audiostream_inited = 0;
 }
 
@@ -1636,6 +1652,10 @@ void audiostream_close()
 //				failure => -1
 int audiostream_open( char * filename, int type )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	int i, rc;
 	if (!Audiostream_inited || !snd_is_inited())
 		return -1;
@@ -1673,6 +1693,7 @@ int audiostream_open( char * filename, int type )
 	}
 	else
 		return i;
+#endif
 }
 
 
@@ -1683,6 +1704,9 @@ void audiostream_close_file(int i, int fade)
 
 	if ( i == -1 )
 		return;
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 
@@ -1694,10 +1718,14 @@ void audiostream_close_file(int i, int fade)
 			Audio_streams[i].Destroy();
 		}
 	}
+#endif
 }
 
 void audiostream_close_all(int fade)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
@@ -1706,6 +1734,7 @@ void audiostream_close_all(int fade)
 
 		audiostream_close_file(i, fade);
 	}
+#endif
 }
 
 extern int ds_convert_volume(float volume);
@@ -1718,6 +1747,9 @@ void audiostream_play(int i, float volume, int looping)
 	if ( i == -1 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	Assert(looping >= 0);
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 
@@ -1734,6 +1766,7 @@ void audiostream_play(int i, float volume, int looping)
 	Assert( Audio_streams[i].status == ASF_USED );
 	Audio_streams[i].Set_Default_Volume(converted_volume);
 	Audio_streams[i].Play(converted_volume, looping);
+#endif
 }
 
 void audiostream_stop(int i, int rewind, int paused)
@@ -1743,6 +1776,9 @@ void audiostream_stop(int i, int rewind, int paused)
 	if ( i == -1 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	Assert( Audio_streams[i].status == ASF_USED );
 
@@ -1750,6 +1786,7 @@ void audiostream_stop(int i, int rewind, int paused)
 		Audio_streams[i].Stop_and_Rewind();
 	else
 		Audio_streams[i].Stop(paused);
+#endif
 }
 
 int audiostream_is_playing(int i)
@@ -1757,16 +1794,24 @@ int audiostream_is_playing(int i)
 	if ( i == -1 )
 		return 0;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	if ( Audio_streams[i].status != ASF_USED )
 		return 0;
 
 	return Audio_streams[i].Is_Playing();
+#endif
 }
 
 
 void audiostream_set_volume_all(float volume, int type)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
@@ -1779,6 +1824,7 @@ void audiostream_set_volume_all(float volume, int type)
 			Audio_streams[i].Set_Volume(converted_volume);
 		}
 	}
+#endif
 }
 
 
@@ -1787,6 +1833,9 @@ void audiostream_set_volume(int i, float volume)
 	if ( i == -1 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	Assert( volume >= 0 && volume <= 1);
 
@@ -1796,6 +1845,7 @@ void audiostream_set_volume(int i, float volume)
 	int converted_volume;
 	converted_volume = ds_convert_volume(volume);
 	Audio_streams[i].Set_Volume(converted_volume);
+#endif
 }
 
 
@@ -1804,6 +1854,10 @@ int audiostream_is_paused(int i)
 	if ( i == -1 )
 		return 0;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	if ( Audio_streams[i].status == ASF_FREE )
 		return -1;
@@ -1811,6 +1865,7 @@ int audiostream_is_paused(int i)
 	BOOL is_paused;
 	is_paused = Audio_streams[i].Is_Paused();
 	return is_paused;
+#endif
 }
 
 
@@ -1819,6 +1874,9 @@ void audiostream_set_byte_cutoff(int i, unsigned int cutoff)
 	if ( i == -1 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	Assert( cutoff > 0 );
 
@@ -1826,6 +1884,7 @@ void audiostream_set_byte_cutoff(int i, unsigned int cutoff)
 		return;
 
 	Audio_streams[i].Set_Byte_Cutoff(cutoff);
+#endif
 }
 
 
@@ -1834,6 +1893,10 @@ unsigned int audiostream_get_bytes_committed(int i)
 	if ( i == -1 )
 		return 0;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 
 	if ( Audio_streams[i].status == ASF_FREE )
@@ -1842,6 +1905,7 @@ unsigned int audiostream_get_bytes_committed(int i)
 	unsigned int num_bytes_committed;
 	num_bytes_committed = Audio_streams[i].Get_Bytes_Committed();
 	return num_bytes_committed;
+#endif
 }
 
 int audiostream_done_reading(int i)
@@ -1849,6 +1913,10 @@ int audiostream_done_reading(int i)
 	if ( i == -1 )
 		return 0;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 
 	if ( Audio_streams[i].status == ASF_FREE )
@@ -1857,6 +1925,7 @@ int audiostream_done_reading(int i)
 	int done_reading;
 	done_reading = Audio_streams[i].Is_Past_Limit();
 	return done_reading;
+#endif
 }
 
 
@@ -1871,6 +1940,9 @@ void audiostream_pause(int i)
 	if ( i == -1 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	if ( Audio_streams[i].status == ASF_FREE )
 		return;
@@ -1878,11 +1950,15 @@ void audiostream_pause(int i)
 	if ( audiostream_is_playing(i) == TRUE ) {
 		audiostream_stop(i, 0, 1);
 	}
+#endif
 }
 
 // pause all audio streams that are currently playing.
 void audiostream_pause_all()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
@@ -1891,6 +1967,7 @@ void audiostream_pause_all()
 
 		audiostream_pause(i);
 	}
+#endif
 }
 
 // unpause the audio stream identified by handle i.
@@ -1901,6 +1978,9 @@ void audiostream_unpause(int i)
 	if ( i == -1 )
 		return;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	if ( Audio_streams[i].status == ASF_FREE )
 		return;
@@ -1909,11 +1989,15 @@ void audiostream_unpause(int i)
 		is_looping = Audio_streams[i].Is_looping();
 		audiostream_play(i, -1.0f, is_looping);
 	}
+#endif
 }
 
 // unpause all audio streams that are currently paused
 void audiostream_unpause_all()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
@@ -1922,5 +2006,6 @@ void audiostream_unpause_all()
 
 		audiostream_unpause(i);
 	}
+#endif
 }
 

@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.16  2003/12/15 06:24:51  theoddone33
+ * Bumpy ride... hang on.
+ *
  * Revision 1.15  2003/08/03 15:56:59  taylor
  * simpler mouse usage; default ini settings in os_init(); cleanup
  *
@@ -345,23 +348,8 @@ void os_poll()
 		}
 	}
 	
-{
-	extern int joy_pollrate;
-	extern void joy_process(int time_delta);
-	
-	static Uint32 lasttic = 0;
-	Uint32 curtic = SDL_GetTicks();
-	Uint32 delta = curtic - lasttic;
-	
-	while (delta >= (uint)joy_pollrate) {
-		joy_process(delta);
-		
-		lasttic += joy_pollrate;
-		
-		delta = curtic - lasttic;
-	}
-}
-
+    extern void joy_read();
+    joy_read();
 }
 
 void debug_int3()

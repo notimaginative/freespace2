@@ -7,6 +7,11 @@
 * HTTP Client class (get only)
 *
 * $Log$
+* Revision 1.3  2002/05/26 20:20:54  relnev
+* unix.h: updated
+*
+* inetfile/*: complete
+*
 * Revision 1.2  2002/05/07 03:16:45  theoddone33
 * The Great Newline Fix
 *
@@ -88,16 +93,30 @@
 * $NoKeywords: $
 */
 
+#ifndef PLAT_UNIX
 // #define WIN32
 
 // #ifdef WIN32
 #include <windows.h>
 #include <process.h>
 // #endif
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+
+#include "unix.h"
+
+#endif
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "inetgetfile.h"
 #include "chttpget.h"
@@ -194,7 +213,8 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	unsigned long arg;
 
 	arg = true;
-#ifndef __LINUX__
+//#ifndef __LINUX__
+#ifndef PLAT_UNIX
 	ioctlsocket( m_DataSock, FIONBIO, &arg );
 #else
 	ioctl( m_DataSock, FIONBIO, &arg );

@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include "SDL.h"
 
+#define TRUE 1
+#define FALSE 0
 #define DWORD int
 #define _MAX_FNAME 255
 #define _MAX_PATH 255
@@ -33,6 +35,8 @@
 #define byte unsigned char
 #define __try try
 #define __except catch
+#define mprintf printf
+#define LPSTR char *
 
 extern void strlwr (char *str);
 extern int filelength (int fd);
@@ -41,6 +45,7 @@ extern int MulDiv (int, int, int);
 extern void Sleep (int miliseconds);
 extern unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList);
 extern void OutputDebugString (const char *);
+extern int WSAGetLastError ();
 
 typedef struct FILETIME_s {
 	    DWORD dwLowDateTime;
@@ -71,5 +76,10 @@ extern int MulDiv (int, int, int);
 #define TIMEVAL struct timeval
 #define SERVENT struct servent
 #define BOOL int
+
+#define WSAEALREADY EALREADY
+#define WSAEINVAL EINVAL
+#define WSAEWOULDBLOCK EWOULDBLOCK
+#define WSAEISCONN EISCONN
 
 #endif

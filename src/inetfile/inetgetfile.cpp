@@ -7,6 +7,11 @@
  * InternetGetFile Class
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:20:54  relnev
+ * unix.h: updated
+ *
+ * inetfile/*: complete
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -32,9 +37,20 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #include <windows.h>
-#include <stdio.h>
 #include <direct.h>
+#else
+#include <sys/stat.h>	// mkdir
+#include <sys/types.h>	// mkdir
+              
+#include "unix.h"
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "cftp.h"
 #include "chttpget.h"
 
@@ -81,7 +97,11 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 		}
 		*end = '\0';
 
+#ifndef PLAT_UNIX
 		if ( _mkdir(dir_name)==0 )	{
+#else
+		if ( _mkdir(dir_name, 0777)==0 )	{
+#endif		
 			mprintf(( "CFILE: Created new directory '%s'\n", dir_name ));
 		}
 	}

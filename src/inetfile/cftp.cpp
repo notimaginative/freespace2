@@ -7,6 +7,11 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.4  2002/05/26 20:20:53  relnev
+ * unix.h: updated
+ *
+ * inetfile/*: complete
+ *
  * Revision 1.3  2002/05/26 19:55:20  relnev
  * unix.h: winsock defines
  *
@@ -43,7 +48,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include "pstypes.h" // unix.h
+#include "unix.h" // unix.h
 #endif
 
 #include <stdio.h>

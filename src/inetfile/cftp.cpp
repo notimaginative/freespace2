@@ -7,6 +7,9 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.6  2002/05/26 21:06:44  relnev
+ * oops
+ *
  * Revision 1.5  2002/05/26 20:32:24  theoddone33
  * Fix some minor stuff
  *
@@ -388,10 +391,10 @@ unsigned int CFtpGet::IssuePort()
 				nLocalPort >> 8);
 #else
 	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n",
-				(listenaddr.sin_addr.s_addr >> 0)  & 0x000000FF,
-				(listenaddr.sin_addr.s_addr >> 8)  & 0x0000FF00,
-				(listenaddr.sin_addr.s_addr >> 16) & 0x00FF0000,
-				(listenaddr.sin_addr.s_addr >> 24) & 0xFF000000,
+				(listenaddr.sin_addr.s_addr >> 0)  & 0xFF,
+				(listenaddr.sin_addr.s_addr >> 8)  & 0xFF,
+				(listenaddr.sin_addr.s_addr >> 16) & 0xFF,
+				(listenaddr.sin_addr.s_addr >> 24) & 0xFF,
 				nLocalPort & 0xFF,
 				nLocalPort >> 8);
 #endif

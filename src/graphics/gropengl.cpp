@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.43  2002/06/02 11:34:00  relnev
+ * adjust z coords
+ *
  * Revision 1.42  2002/06/02 10:28:17  relnev
  * fix texture handle leak
  *
@@ -281,7 +284,6 @@ typedef enum gr_zbuffer_type {
         ZBUFFER_TYPE_FULL,
 } gr_zbuffer_type;
                         
-float z_mult = 30000.0f;
 #define NEBULA_COLORS 20
 
 volatile int GL_activate = 0;
@@ -1457,8 +1459,7 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		int a;
 		
 		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
-			sz = 1.0 - 1.0 / (1.0 + va->z);
-			//sz = va->z / z_mult;
+			sz = 1.0 - 1.0 / (1.0 + va->z / (32768.0 / 256.0));
 			
 			if ( sz > 0.98f ) {
 				sz = 0.98f;
@@ -2740,7 +2741,7 @@ void opengl_zbias(int bias)
 {
 	if (bias) {
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0, bias);
+		glPolygonOffset(0, -bias*2);
 	} else {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}

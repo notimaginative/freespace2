@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.11  2002/07/28 21:45:30  theoddone33
+ * Add ctrl-z to iconify window
+ *
  * Revision 1.10  2002/07/28 21:39:44  theoddone33
  * Add alt-enter to toggle fullscreen and ctrl-g to toggle mouse grabbing
  *
@@ -295,12 +298,23 @@ void os_poll()
 					}
 					break;
 				}
+				if ((e.key.keysym.mod & KMOD_CTRL) &&
+				    (e.key.keysym.sym == SDLK_z))
+				{
+					SDL_WM_IconifyWindow();
+					break;
+				}
+
 				if (SDLtoFS2[e.key.keysym.sym])
 				key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);
 				break;
 			case SDL_KEYUP:
 				if (SDLtoFS2[e.key.keysym.sym])
 				key_mark (SDLtoFS2[e.key.keysym.sym], 0, 0);
+				break;
+			case SDL_ACTIVEEVENT:
+				if (e.active.state == SDL_APPACTIVE)
+					app_active = e.active.gain;
 				break;
 			default:
 				break;

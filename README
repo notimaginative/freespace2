@@ -1,10 +1,23 @@
-Don't have the game?  Where to buy:
-http://shop.store.yahoo.com/softwares4u/ga891.html
+----------------------------------------------
+Freespace 2 (http://www.freespace2.com)
+            - A game by Volition, Inc. (http://www.volition-inc.com)
 
-For more information about the game and its source code:
-http://www.freespace2.com/
-http://dynamic4.gamespy.com/~freespace/forums/
-http://fs2source.warpcore.org/
+Linux port hacked together by:
+Dan Olson <theoddone33@linuxgames.com>
+Steven Fuller <relnev@icculus.org>
+Charles Mason <cemason@hotpop.com>
+
+This project is NOT supported by Volition or Interplay.
+
+http://www.icculus.org/projects/freespace2/
+
+Based on the Freespace 2 source code:
+Copyright (C) Volition, Inc. 1999.  All rights reserved.
+
+All source code herein is the property of Volition, Inc. You may not sell
+or otherwise commercially exploit the source or things you created based on
+the source.
+----------------------------------------------
 
 06/16/2002
 
@@ -35,22 +48,8 @@ not tested.
 Linux-specific code is separated by a PLAT_UNIX define).  Fred2, etc., were
 not touched.
 
-----------------------------------------------
-Freespace 2 (http://www.freespace2.com)
-            - A game by Volition, Inc. (http://www.volition-inc.com)
-
-Linux port hacked together by:
-Dan Olson <theoddone33@linuxgames.com>
-Steven Fuller <relnev@icculus.org>
-Charles Mason <cemason@hotpop.com>
-
-This project is NOT supported by Volition or Interplay.
-
-http://www.icculus.org/projects/freespace2/
-
-Based on the Freespace 2 source code:
-Copyright (C) Volition, Inc. 1999.  All rights reserved.
-
-All source code herein is the property of Volition, Inc. You may not sell
-or otherwise commercially exploit the source or things you created based on
-the source.
+For more information about the game and its source code:
+http://www.freespace2.com/
+http://www.volitionwatch.com/
+http://dynamic4.gamespy.com/~freespace/forums/
+http://fs2source.warpcore.org/

@@ -15,6 +15,9 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.11  2002/06/21 03:04:12  relnev
+ * nothing important
+ *
  * Revision 1.10  2002/06/19 04:52:45  relnev
  * MacOS X updates (Ryan)
  *
@@ -224,7 +227,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	//At this point we should have a nice host,dir and filename
 	
 	//if(NULL==CreateThread(NULL,0,ObjThread,this,0,&m_dwThreadId))
-	if(NULL==_beginthread(FTPObjThread,0,this))
+	if(0==_beginthread(FTPObjThread,0,this))
 	{
 		m_State = FTP_STATE_INTERNAL_ERROR;
 		return;

@@ -15,6 +15,9 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.8  2002/06/21 03:04:12  relnev
+ * nothing important
+ *
  * Revision 1.7  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1460,11 +1463,9 @@ void weapon_init()
 	int rval;
 
 	if ( !Weapons_inited ) {
-#ifndef FS2_DEMO // TODO - this seems to work? unless it's breaking that multiplayer mission...
+#ifndef FS2_DEMO
 		// parse weapon_exp.tbl
 		parse_weapon_expl_tbl();
-#else
-		STUB_FUNCTION;
 #endif
 		// parse weapons.tbl
 		if ((rval = setjmp(parse_abort)) != 0) {

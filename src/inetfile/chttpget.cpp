@@ -15,6 +15,9 @@
 * HTTP Client class (get only)
 *
 * $Log$
+* Revision 1.8  2002/06/21 03:04:12  relnev
+* nothing important
+*
 * Revision 1.7  2002/06/17 06:33:09  relnev
 * ryan's struct patch for gcc 2.95
 *
@@ -291,7 +294,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 		m_szHost[(dirstart-pURL)-1] = '\0';
 	}
 // #ifdef WIN32
-	if(NULL==_beginthread(HTTPObjThread,0,this))
+	if(0==_beginthread(HTTPObjThread,0,this))
 	{
 		m_State = HTTP_STATE_INTERNAL_ERROR;
 		return;

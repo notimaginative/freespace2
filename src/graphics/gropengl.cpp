@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.73  2005/04/02 18:58:08  taylor
+ * attempt to fix garbage at end of GL extension string
+ *
  * Revision 1.72  2005/03/30 01:20:12  taylor
  * Screenshot function filled, will output into ~/.freespace(2)/Data
  * Use glTexSubImage2D on reloaded texture slots, this is only used by ANIs
@@ -2925,7 +2928,11 @@ void gr_opengl_init()
 
 	static const char *OGL_extensions = (const char*)glGetString(GL_EXTENSIONS);
 
-	char *extlist = (char*)malloc(strlen(OGL_extensions));
+	// we use the "+1" here to have an extra NULL char on the end (with the memset())
+	// this is to fix memory errors when the last char in extlist is the same as the token
+	// we are looking for and ultra evil strtok() may still return non-NULL at EOS
+	char *extlist = (char*)malloc(strlen(OGL_extensions) + 1);
+	memset(extlist, 0, strlen(OGL_extensions) + 1);
 
 	if (extlist != NULL) {
 		memcpy(extlist, OGL_extensions, strlen(OGL_extensions));

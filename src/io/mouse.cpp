@@ -7,6 +7,9 @@
  * Routines to read the mouse.
  *
  * $Log$
+ * Revision 1.3  2002/05/29 06:25:13  theoddone33
+ * Keyboard input, mouse tracking now work
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -598,7 +601,8 @@ int mouse_get_pos(int *xpos, int *ypos)
 	}
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	flags = SDL_GetMouseState (&Mouse_x, &Mouse_y);
+	// DDOI - FIXME?
 #else
 	POINT pnt;
 	GetCursorPos(&pnt);
@@ -649,7 +653,7 @@ void mouse_get_real_pos(int *mx, int *my)
 	}
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	SDL_GetMouseState (mx, my);
 #else
 	POINT pnt;
 	GetCursorPos(&pnt);

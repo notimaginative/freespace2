@@ -7,6 +7,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.3  2002/05/29 06:25:13  theoddone33
+ * Keyboard input, mouse tracking now work
+ *
  * Revision 1.2  2002/05/07 03:16:48  theoddone33
  * The Great Newline Fix
  *
@@ -213,6 +216,36 @@ void os_deinit()
 
 void os_poll()
 {
+	SDL_Event e;
+
+	while (SDL_PollEvent (&e)) {
+		switch (e.type) {
+			case SDL_MOUSEBUTTONDOWN:
+				if (e.button.button == SDL_BUTTON_LEFT)
+					mouse_mark_button (MOUSE_LEFT_BUTTON,1);
+				else if (e.button.button == SDL_BUTTON_RIGHT)
+					mouse_mark_button (MOUSE_RIGHT_BUTTON,1);
+				else if (e.button.button == SDL_BUTTON_MIDDLE)
+					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 1);
+				break;
+			case SDL_MOUSEBUTTONUP:
+				if (e.button.button == SDL_BUTTON_LEFT)
+					mouse_mark_button (MOUSE_LEFT_BUTTON,0);
+				else if (e.button.button == SDL_BUTTON_RIGHT)
+					mouse_mark_button (MOUSE_RIGHT_BUTTON,0);
+				else if (e.button.button == SDL_BUTTON_MIDDLE)
+					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 0);
+				break;
+			case SDL_KEYDOWN:
+				key_mark (e.key.keysym.sym, 1, 0);
+				break;
+			case SDL_KEYUP:
+				key_mark (e.key.keysym.sym, 0, 0);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 void debug_int3()

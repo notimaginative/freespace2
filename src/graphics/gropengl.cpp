@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.13  2002/05/29 06:25:13  theoddone33
+ * Keyboard input, mouse tracking now work
+ *
  * Revision 1.12  2002/05/29 04:52:45  relnev
  * bitmap
  *
@@ -750,7 +753,135 @@ void gr_opengl_scaler(vertex *va, vertex *vb )
 
 void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 {
-	STUB_FUNCTION;
+	int i;
+	float u_scale = 1.0f, v_scale = 1.0f;
+	int bw = 1, bh = 1;
+
+	// Make nebula use the texture mapper... this blends the colors better.
+	if ( flags & TMAP_FLAG_NEBULA ){
+		Int3 ();
+	}
+
+	/*
+	gr_texture_source texture_source = (gr_texture_source)-1;
+	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
+	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;
+	
+	if ( gr_zbuffering )    {
+		if ( is_scaler || (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER)   )       {
+			zbuffer_type = ZBUFFER_TYPE_READ;
+		} else {
+			zbuffer_type = ZBUFFER_TYPE_FULL;
+		}
+	} else {
+		zbuffer_type = ZBUFFER_TYPE_NONE;
+	}
+	*/
+
+	int alpha;
+
+	int tmap_type = TCACHE_TYPE_NORMAL;
+
+	int r, g, b;
+
+	if ( flags & TMAP_FLAG_TEXTURED )       {
+		r = g = b = 255;
+	} else {
+		r = gr_screen.current_color.red;
+		g = gr_screen.current_color.green;
+		b = gr_screen.current_color.blue;
+	}
+
+	if ( gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER )        
+	{
+		// Some blend function stuff here - DDOI
+		STUB_FUNCTION;
+
+		float factor = gr_screen.current_alpha;
+
+		alpha = 255;
+
+		if ( factor <= 1.0f )   {
+			int tmp_alpha = fl2i(gr_screen.current_alpha*255.0f);
+			r = (r*tmp_alpha)/255;
+			g = (g*tmp_alpha)/255;
+			b = (b*tmp_alpha)/255;
+		}
+	} else {
+		STUB_FUNCTION;
+		alpha = 255;
+	}
+
+	if ( flags & TMAP_FLAG_TEXTURED )       {
+		if ( !gr_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale, &v_scale, 0, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy ))
+		{
+			mprintf(( "Not rendering a texture because it didn't fit in VRAM!\n" ));
+			return;
+		}
+
+		// use nonfiltered textures for bitmap sections
+		/*
+		if(flags & TMAP_FLAG_BITMAP_SECTION){
+			texture_source = TEXTURE_SOURCE_NO_FILTERING;
+		} else {
+			texture_source = TEXTURE_SOURCE_DECAL;
+		}
+		*/
+	}
+
+	int x1, y1, x2, y2;
+	x1 = gr_screen.clip_left*16;
+	x2 = gr_screen.clip_right*16+15;
+	y1 = gr_screen.clip_top*16;
+	y2 = gr_screen.clip_bottom*16+15;
+
+	float uoffset = 0.0f;
+	float voffset = 0.0f;
+
+	float minu=0.0f, minv=0.0f, maxu=1.0f, maxv=1.0f;
+
+	if ( flags & TMAP_FLAG_TEXTURED )
+	{
+		STUB_FUNCTION;
+	}
+
+	int a;
+
+	STUB_FUNCTION;	// DDOI - this still needs work
+	glBegin (GL_TRIANGLE_FAN);
+	for (i=0;i<nv;i++)
+	{
+		if (flags & TMAP_FLAG_ALPHA) a = verts[i]->a;
+		else a = alpha;
+
+		if (flags & TMAP_FLAG_NEBULA ) {
+			/*
+			int pal = (verts[i]->b*(NEBULA_COLORS-1))/255;
+			r = gr_palette[pal*3+0];
+			g = gr_palette[pal*3+1];
+			b = gr_palette[pal*3+2];
+			*/
+		}else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
+			r = Gr_gamma_lookup[verts[i]->b];
+			g = Gr_gamma_lookup[verts[i]->b];
+			b = Gr_gamma_lookup[verts[i]->b];
+		} else if ( (flags & TMAP_FLAG_RGB)  && (flags & TMAP_FLAG_GOURAUD) )   {
+			// Make 0.75 be 256.0f
+			r = Gr_gamma_lookup[verts[i]->r];
+			g = Gr_gamma_lookup[verts[i]->g];
+			b = Gr_gamma_lookup[verts[i]->b];
+		} else {
+			// use constant RGB values...
+		}
+
+		glColor4i (r,g,b,a);
+
+		// DDOI - FIXME fog stuff
+		// DDOI - FIXME TexCoord stuff
+		glVertex3f (verts[i]->sx+gr_screen.offset_x,
+				verts[i]->sy+gr_screen.offset_y,
+				0.99f);
+	}
 }
 
 

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2004/06/11 01:34:41  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -527,6 +530,12 @@ void multi_options_update_netgame()
 	ADD_DATA(code);
 
 	// add the netgame options
+    Netgame.options.flags = INTEL_INT( Netgame.options.flags );
+    Netgame.options.respawn = INTEL_INT( Netgame.options.respawn );
+    Netgame.options.voice_token_wait = INTEL_INT( Netgame.options.voice_token_wait );
+    Netgame.options.voice_record_time = INTEL_INT( Netgame.options.voice_record_time );
+    Netgame.options.kill_limit= INTEL_INT( Netgame.options.kill_limit );
+    Netgame.options.mission_time_limit = (fix)INTEL_INT( Netgame.options.mission_time_limit );
 	ADD_DATA(Netgame.options);
 
 	// send the packet
@@ -554,6 +563,8 @@ void multi_options_update_local()
 	ADD_DATA(code);
 
 	// add the netgame options
+    Net_player->p_info.options.flags = INTEL_INT( Net_player->p_info.options.flags );
+    Net_players->p_info.options.obj_update_level = INTEL_INT( Net_player->p_info.options.obj_update_level );
 	ADD_DATA(Net_player->p_info.options);
 
 	// send the packet		
@@ -576,8 +587,8 @@ void multi_options_update_start_game(netgame_info *ng)
 
 	// add the start game options
 	ADD_STRING(ng->name);
-	ADD_DATA(ng->mode);
-	ADD_DATA(ng->security);
+	ADD_DATA_S32(ng->mode);
+	ADD_DATA_S32(ng->security);
 
 	// add mode-specific data
 	switch(ng->mode){
@@ -586,7 +597,7 @@ void multi_options_update_start_game(netgame_info *ng)
 		break;
 	case NG_MODE_RANK_ABOVE:
 	case NG_MODE_RANK_BELOW:
-		ADD_DATA(ng->rank_base);
+		ADD_DATA_S32(ng->rank_base);
 		break;
 	}
 
@@ -609,10 +620,10 @@ void multi_options_update_mission(netgame_info *ng, int campaign_mode)
 	ADD_DATA(code);
 
 	// type (coop or team vs. team)
-	ADD_DATA(ng->type_flags);
+	ADD_DATA_S32(ng->type_flags);
 
 	// respawns
-	ADD_DATA(ng->respawn);
+	ADD_DATA_U32(ng->respawn);
 
 	// add the mission/campaign filename
 	code = (ubyte)campaign_mode;
@@ -655,10 +666,10 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		GET_STRING(Netgame.name);		
 
 		// get the netgame mode
-		GET_DATA(Netgame.mode);
+		GET_DATA_S32(Netgame.mode);
 
 		// get the security #
-		GET_DATA(Netgame.security);
+		GET_DATA_S32(Netgame.security);
 
 		// get mode specific data
 		switch(Netgame.mode){
@@ -667,7 +678,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 			break;
 		case NG_MODE_RANK_ABOVE:
 		case NG_MODE_RANK_BELOW:
-			GET_DATA(Netgame.rank_base);
+			GET_DATA_S32(Netgame.rank_base);
 			break;
 		}
 
@@ -687,7 +698,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		Assert(Game_mode & GM_STANDALONE_SERVER);
 
 		// coop or team vs. team mode
-		GET_DATA(ng.type_flags);
+		GET_DATA_S32(ng.type_flags);
 		if((ng.type_flags & NG_TYPE_TEAM) && !(Netgame.type_flags & NG_TYPE_TEAM)){
 			multi_team_reset();
 		}
@@ -698,7 +709,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		Netgame.type_flags = ng.type_flags;
 
 		// new respawn count
-		GET_DATA(Netgame.respawn);
+		GET_DATA_U32(Netgame.respawn);
 
 		// name string
 		memset(str,255,0);
@@ -759,6 +770,12 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 	// get the netgame options
 	case MULTI_OPTION_SERVER:		
 		GET_DATA(Netgame.options);
+        Netgame.options.flags = INTEL_INT( Netgame.options.flags );
+        Netgame.options.respawn = INTEL_INT( Netgame.options.respawn );
+        Netgame.options.voice_token_wait = INTEL_INT( Netgame.options.voice_token_wait );
+        Netgame.options.voice_record_time = INTEL_INT( Netgame.options.voice_record_time );
+        Netgame.options.kill_limit = INTEL_INT( Netgame.options.kill_limit );
+        Netgame.options.mission_time_limit = (fix)INTEL_INT( Netgame.options.mission_time_limit );
 
 		// if we're a standalone set for no sound, do so here
 		if((Game_mode & GM_STANDALONE_SERVER) && !Multi_options_g.std_voice){
@@ -796,9 +813,11 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 	// local netplayer options
 	case MULTI_OPTION_LOCAL:
 		if(player_index == -1){
-			GET_DATA(bogus);
-		} else {
+			GET_DATA(bogus);	//data not used, so don't swap!
+        } else {
 			GET_DATA(Net_players[player_index].p_info.options);
+            Net_players[player_index].p_info.options.flags = INTEL_INT( Net_players[player_index].p_info.options.flags );
+            Net_players[player_index].p_info.options.obj_update_level = INTEL_INT( Net_players[player_index].p_info.options.obj_update_level );            
 		}		
 		break;
 	}

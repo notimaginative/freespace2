@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2004/06/11 01:38:28  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.4  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -727,13 +730,13 @@ void multi_msg_send_squadmsg_packet(net_player *target,net_player *source,int co
 	BUILD_HEADER(SQUADMSG_PLAYER);
 
 	// add the command and targeting data	
-	ADD_DATA(command);
+	ADD_DATA_S32(command);
 
 	// add the id of the guy sending the order
-	ADD_DATA(source->player_id);
+	ADD_DATA_S16(source->player_id);
 
 	// net signature
-	ADD_DATA(net_sig);
+	ADD_DATA_U16(net_sig);
 	
 	// targeted subsytem (or -1 if none)
 	s_val = (char)subsys_type;
@@ -859,9 +862,9 @@ void multi_msg_process_squadmsg_packet(unsigned char *data, header *hinfo)
 	int offset = HEADER_LENGTH;
 
 	// get all packet data
-	GET_DATA(command);
-	GET_DATA(source_id);
-	GET_DATA(net_sig);
+	GET_DATA_S32(command);
+	GET_DATA_S16(source_id);
+	GET_DATA_U16(net_sig);
 	GET_DATA(s_val);
 	PACKET_SET_SIZE();
 

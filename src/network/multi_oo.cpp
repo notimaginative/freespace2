@@ -884,7 +884,7 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 	packet_size = 0;
 	// don't add for clients
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
-		ADD_DATA( objp->net_signature );	
+		ADD_DATA_U16( objp->net_signature );	
 	}
 	ADD_DATA( oo_flags );
 	ADD_DATA( data_size );	
@@ -975,7 +975,7 @@ int multi_oo_unpack_client_data(net_player *pl, ubyte *data)
 	object *tobj;
 
 	// get the data
-	GET_DATA(tnet_sig);
+	GET_DATA_U16(tnet_sig);
 	GET_DATA(t_subsys);
 	GET_DATA(l_subsys);
 
@@ -1025,7 +1025,7 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data, ushort packet_sequence_num
 
 	// add the object's net signature, type and oo_flags
 	if(!(Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-		GET_DATA( net_sig );	
+		GET_DATA_U16( net_sig );	
 	}
 	GET_DATA( oo_flags );	
 	GET_DATA( data_size );	
@@ -1204,8 +1204,8 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data, ushort packet_sequence_num
 		object *target_objp;
 
 		GET_DATA(umode);
-		GET_DATA(submode);
-		GET_DATA( target_signature );		
+		GET_DATA_S16(submode);
+		GET_DATA_U16( target_signature );		
 
 		if(shipp->ai_index > 0){
 			Ai_info[shipp->ai_index].mode = umode;
@@ -1450,8 +1450,8 @@ void multi_oo_process_all(net_player *pl)
 		BUILD_HEADER(OBJECT_UPDATE);
 
 		// add the sequencing #
-		ADD_DATA(Netgame.server_update_seq);
-		ADD_DATA(OO_global_time);
+		ADD_DATA_U16(Netgame.server_update_seq);
+		ADD_DATA_S32(OO_global_time);
 	
 		// get a pointer to the object
 		targ_obj = &Objects[pl->s_info.target_objnum];
@@ -1472,8 +1472,8 @@ void multi_oo_process_all(net_player *pl)
 		BUILD_HEADER(OBJECT_UPDATE);
 
 		// add the sequencing #
-		ADD_DATA(Netgame.server_update_seq);
-		ADD_DATA(OO_global_time);
+		ADD_DATA_U16(Netgame.server_update_seq);
+		ADD_DATA_S32(OO_global_time);
 	}
 		
 	idx = 0;
@@ -1504,8 +1504,8 @@ void multi_oo_process_all(net_player *pl)
 			BUILD_HEADER(OBJECT_UPDATE);
 
 			// add the sequencing #
-			ADD_DATA(Netgame.server_update_seq);
-			ADD_DATA(OO_global_time);
+			ADD_DATA_U16(Netgame.server_update_seq);
+			ADD_DATA_S32(OO_global_time);
 		}
 
 		if(add_size){
@@ -1559,8 +1559,8 @@ void multi_oo_process_update(ubyte *data, header *hinfo)
 	net_player *pl = NULL;
 
 	// process sequencing info here
-	GET_DATA(packet_seq);
-	GET_DATA(server_stamp);
+	GET_DATA_U16(packet_seq);
+	GET_DATA_S32(server_stamp);
 
 	// if this is processed on the server, its a client object update packet
 	player_index = -1;
@@ -1731,8 +1731,8 @@ void multi_oo_send_control_info()
 	BUILD_HEADER(OBJECT_UPDATE);	
 
 	// add the sequencing #
-	ADD_DATA(Netgame.server_update_seq);
-	ADD_DATA(OO_global_time);
+	ADD_DATA_U16(Netgame.server_update_seq);
+	ADD_DATA_S32(OO_global_time);
 
 	oo_flags = (OO_POS_NEW | OO_ORIENT_NEW | OO_EXTRA_PHYSICS);
 

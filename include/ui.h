@@ -7,8 +7,11 @@
  * Include file for our user interface.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 00:38:47  relnev
+ * virtual
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 20    8/16/99 9:45a Jefff
@@ -426,7 +429,7 @@ class UI_GADGET
 		int bmap_ids[MAX_BMAPS_PER_GADGET];
 
 		UI_GADGET();	// constructor
-		~UI_GADGET();	// destructor
+		virtual ~UI_GADGET();	// destructor
 
 		void base_create( UI_WINDOW *wnd, int kind, int x, int y, int w, int h );
 		virtual void draw();

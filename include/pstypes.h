@@ -15,6 +15,9 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.8  2004/06/11 00:15:06  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.7  2002/07/13 19:47:02  theoddone33
  * Fix some more warnings
  *
@@ -235,7 +238,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#ifndef __MACOSX__
+#ifndef __APPLE__
 #include <malloc.h>
 #endif
 
@@ -260,7 +263,7 @@
 
 #define LOCAL static			// make module local varilable static.
 
-#ifdef __MACOSX__
+#ifdef __APPLE__
 typedef int socklen_t;
 #endif
 
@@ -269,6 +272,7 @@ typedef long fix;
 typedef unsigned char ubyte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
+typedef unsigned long ulong;
 
 #define HARDWARE_ONLY
 
@@ -330,10 +334,10 @@ typedef struct vertex {
 	ubyte		pad[2];				// pad structure to be 4 byte aligned.
 } vertex;
 
-#define	BMP_AABITMAP			(1<<0)				// antialiased bitmap
+#define	BMP_AABITMAP		(1<<0)				// antialiased bitmap
 #define	BMP_TEX_XPARENT		(1<<1)				// transparent texture
 #define	BMP_TEX_NONDARK		(1<<2)				// nondarkening texture
-#define	BMP_TEX_OTHER			(1<<3)				// so we can identify all "normal" textures
+#define	BMP_TEX_OTHER		(1<<3)				// so we can identify all "normal" textures
 
 // any texture type
 #define	BMP_TEX_ANY				( BMP_TEX_XPARENT | BMP_TEX_NONDARK | BMP_TEX_OTHER )
@@ -558,13 +562,42 @@ void dc_printf( char *format, ... );
 						((x & 0x0000ff00) << 8) |	\
 						((x & 0x00ff0000) >> 8)		\
 						)
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+inline 
+float SWAPFLOAT( float *x )
+{
+    #if ! defined( __MWERKS__ )
+		//Usage:  void __stwbrx( unsigned int, unsigned int *address, int byteOffsetFromAddress );
+		#define __stwbrx( value, base, index ) \
+			 __asm__ ( "stwbrx %0, %1, %2" :  : "r" (value), "b%" (index), "r" (base) : "memory" )
+	#endif
 
-#ifndef MACINTOSH
+	union
+	{
+		int		i;
+		float		f;
+	}buf;
+	
+	//load the float into the integer unit
+	//unsigned int	a = ((long*) x)[0];
+        register int a = ((int*) x )[0];
+
+	//store it to the transfer union, with byteswapping
+	__stwbrx( a, 0, &buf.i );	
+
+	//load it into the FPU and return it
+	return buf.f;
+}
+#endif
+
+#if SDL_BYTEORDER != SDL_BIG_ENDIAN
 #define INTEL_INT(x)	x
 #define INTEL_SHORT(x)	x
+#define INTEL_FLOAT(x)	x
 #else
 #define INTEL_INT(x)	SWAPINT(x)
 #define INTEL_SHORT(x)	SWAPSHORT(x)
+#define INTEL_FLOAT(x)	SWAPFLOAT(x)
 #endif
 
 #define TRUE	1

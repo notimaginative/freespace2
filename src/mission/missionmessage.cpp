@@ -15,6 +15,9 @@
  * Controls messaging to player during the mission
  *
  * $Log$
+ * Revision 1.6  2004/07/04 11:42:56  taylor
+ * cleanup talking head code a little, fix anim free to work better and prevent crashes, fix test for old anim
+ *
  * Revision 1.5  2003/06/11 18:30:33  taylor
  * plug memory leaks
  *
@@ -826,10 +829,34 @@ void messages_init()
 	memset(Message_times, 0, sizeof(int)*MAX_MISSION_MESSAGES);
 }
 
+// free a loaded avi
+void message_mission_free_avi(int m_index)
+{
+	int count = 0;
+	int i;
+
+	// check for bogus index
+	if ( (m_index < 0) || (m_index > Num_message_avis) )
+		return;
+
+	if (Message_avis[m_index].anim_data != NULL) {
+		// how many tries do we need to make
+		count = Message_avis[m_index].anim_data->ref_count;
+
+		for (i=0; i<count; i++) {
+			if (anim_free(Message_avis[m_index].anim_data) == 0) {
+				// successfully free'd so reset to NULL and get out
+				Message_avis[m_index].anim_data = NULL;
+				break;
+			}
+		}
+	}
+}
+
 // called to do cleanup when leaving a mission
 void message_mission_shutdown()
 {
-	int i, j;
+	int i;
 
 	mprintf(("Unloading in mission messages\n"));
 
@@ -843,13 +870,8 @@ void message_mission_shutdown()
 	}
 
 	// free up remaining anim data
-	for (i=0; i<Num_message_avis; i++) {
-		if (Message_avis[i].anim_data != NULL) {
-			for (j=0; j<Message_avis[i].anim_data->ref_count; j++) {
-				anim_free(Message_avis[i].anim_data);
-			}
-		}
-		Message_avis[i].anim_data = NULL;
+	for ( i = 0; i<Num_message_avis; i++ ) {
+		message_mission_free_avi(i);
 	}
 }
 
@@ -1167,6 +1189,11 @@ void message_play_anim( message_q *q )
 	char				ani_name[MAX_FILENAME_LEN], *p;
 	MissionMessage	*m;
 
+	// don't even bother with this stuff if the gauge is disabled
+	if ( !hud_gauge_active(HUD_TALKING_HEAD) ) {
+		return;
+	}
+
 	m = &Messages[q->message_num];
 
 	// check to see if the avi_index is valid -- try and load/play the avi if so.
@@ -1227,15 +1254,12 @@ void message_play_anim( message_q *q )
 
 	// check to see if the avi has been loaded.  If not, then load the AVI.  On an error loading
 	// the avi, set the top level index to -1 to avoid multiple tries at loading the flick.
-	if ( hud_gauge_active(HUD_TALKING_HEAD) ) {
-		// if there is something already here that's not this same file then go ahead a let go of it
-		if ( (anim_info->anim_data != NULL) && stricmp(ani_name, anim_info->anim_data->name) )
-			anim_free(anim_info->anim_data);
 
-		anim_info->anim_data = anim_load( ani_name, 0 );
-	} else {
-		return;
-	}
+	// if there is something already here that's not this same file then go ahead a let go of it
+	if ( (anim_info->anim_data != NULL) && !strstr(anim_info->anim_data->name, ani_name) )
+		message_mission_free_avi( m->avi_info.index );
+
+	anim_info->anim_data = anim_load( ani_name, 0 );
 
 	if ( anim_info->anim_data == NULL ) {
 		nprintf (("messaging", "Cannot load message avi %s.  Will not play.\n", ani_name));
@@ -1251,20 +1275,18 @@ void message_play_anim( message_q *q )
 			message_kill_all( 0 );
 		}
 
-		if ( hud_gauge_active(HUD_TALKING_HEAD) ) {
-			int anim_start_frame;
-			anim_play_struct aps;
+		int anim_start_frame;
+		anim_play_struct aps;
 
-			// figure out anim start frame
-			anim_start_frame = message_calc_anim_start_frame(Message_wave_duration, anim_info->anim_data, is_death_scream);
-			anim_play_init(&aps, anim_info->anim_data, Head_coords[gr_screen.res][0], Head_coords[gr_screen.res][1]);
-			aps.start_at = anim_start_frame;
+		// figure out anim start frame
+		anim_start_frame = message_calc_anim_start_frame(Message_wave_duration, anim_info->anim_data, is_death_scream);
+		anim_play_init(&aps, anim_info->anim_data, Head_coords[gr_screen.res][0], Head_coords[gr_screen.res][1]);
+		aps.start_at = anim_start_frame;
 			
-			// aps.color = &HUD_color_defaults[HUD_color_alpha];
-			aps.color = &HUD_config.clr[HUD_TALKING_HEAD];
+		// aps.color = &HUD_color_defaults[HUD_color_alpha];
+		aps.color = &HUD_config.clr[HUD_TALKING_HEAD];
 
-			Playing_messages[Num_messages_playing].anim = anim_play(&aps);
-		}
+		Playing_messages[Num_messages_playing].anim = anim_play(&aps);
 	}
 }
 

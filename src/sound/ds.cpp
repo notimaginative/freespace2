@@ -7,6 +7,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.5  2002/06/02 09:50:42  relnev
+ * check open status
+ *
  * Revision 1.4  2002/06/02 07:17:44  cemason
  * Added OpenAL support.
  *
@@ -615,6 +618,11 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 	nprintf (("Sound", "SOUND ==> ds_parse_wave(%s)", filename));
 
 	fp = cfopen (filename, "rb");
+	if ( fp == NULL )	{
+		nprintf(("Error", "Couldn't open '%s'\n", filename ));
+		return -1;
+	}
+	
 	int len; 
 	cfseek (fp, 0, CF_SEEK_END);
 	len = cftell(fp);

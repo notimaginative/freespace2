@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.36  2004/06/12 01:11:35  taylor
+ * x86 compile fixes for OSX patch
+ *
  * Revision 1.35  2004/06/11 00:53:02  tigital
  * OSX: .app name, casts for gcc
  *
@@ -9079,7 +9082,7 @@ void verify_weapons_tbl()
 	Game_weapons_tbl_valid = 1;
 #else
 	*/
-	int file_checksum;	// Game_weapons_tbl_checksums[] is signed, so...		
+	uint file_checksum;
 	int idx;
 
 	// detect if the packfile exists
@@ -9101,7 +9104,7 @@ void verify_weapons_tbl()
 
 	// now compare the checksum/filesize against known #'s
 	for(idx=0; idx<NUM_WEAPONS_TBL_CHECKSUMS; idx++){
-		if(Game_weapons_tbl_checksums[idx] == file_checksum){
+		if(Game_weapons_tbl_checksums[idx] == (int)file_checksum){
 			Game_weapons_tbl_valid = 1;
 			return;
 		}

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.56  2002/08/01 05:03:11  relnev
+ * minor change
+ *
  * Revision 1.55  2002/08/01 04:55:45  relnev
  * experimenting with texture state
  *
@@ -2072,10 +2075,11 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	
-	if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
-		gr_opengl_set_texture_state(GL_current_texture_source);
-	}
+
+	/* this should be set next anyway */	
+//	if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
+//		gr_opengl_set_texture_state(GL_current_texture_source);
+//	}
 	
 	switch (bitmap_type) {
 
@@ -2452,9 +2456,10 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 		
 		glBindTexture (GL_TEXTURE_2D, t->texture_handle );
 
-		if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
-			gr_opengl_set_texture_state(GL_current_texture_source);
-		}
+		/* this should be set next anyway */
+//		if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
+//			gr_opengl_set_texture_state(GL_current_texture_source);
+//		}
 		
 		GL_last_bitmap_id = t->bitmap_id;
 		GL_last_bitmap_type = bitmap_type;

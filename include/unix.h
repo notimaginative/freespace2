@@ -15,6 +15,7 @@
 #define _MAX_DIR 256
 #define MAX_FILENAME_LENGTH 64
 #define _cdecl
+#define __cdecl
 #define __int64 long long
 #define LARGE_INTEGER long long
 #define stricmp strcasecmp
@@ -39,6 +40,7 @@ extern int MulDiv (int, int, int);
 
 extern void Sleep (int miliseconds);
 extern unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList);
+extern void OutputDebugString (const char *);
 
 typedef struct FILETIME_s {
 	    DWORD dwLowDateTime;
@@ -68,5 +70,6 @@ extern int MulDiv (int, int, int);
 #define INVALID_SOCKET -1
 #define TIMEVAL struct timeval
 #define SERVENT struct servent
+#define BOOL int
 
 #endif

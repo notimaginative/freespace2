@@ -76,6 +76,11 @@ void model_calc_bound_box( vector *box, vector *big_mn, vector *big_mx);
 
 void interp_clear_instance();
 
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+// Endian swapping stuff  tigital
+void swap_bsp_data( polymodel * pm, void *model_ptr );
+#endif
+
 #define MAX_POLYGON_VECS	1100		//6500 (7x)
 #define MAX_POLYGON_NORMS	2800		//6500 (3x)
 

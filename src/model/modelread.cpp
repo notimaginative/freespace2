@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.9  2004/06/10 23:55:39  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.8  2003/06/11 18:30:33  taylor
  * plug memory leaks
  *
@@ -709,6 +712,10 @@
 #include "timer.h"
 #include "freespace.h"		// For flFrameTime
 #include "fvi.h"
+
+#ifdef __APPLE__
+#include <stddef.h>		// tigital for offsetof()
+#endif
 
 #define MAX_SUBMODEL_COLLISION_ROT_ANGLE (PI / 6.0f)	// max 30 degrees per frame
 
@@ -1524,6 +1531,9 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 				if ( pm->submodel[n].bsp_data_size > 0 )	{
 					pm->submodel[n].bsp_data = (ubyte *)malloc(pm->submodel[n].bsp_data_size);
 					cfread(pm->submodel[n].bsp_data,1,pm->submodel[n].bsp_data_size,fp);
+                    if (SDL_BYTEORDER == SDL_BIG_ENDIAN)		//tigital
+                        swap_bsp_data( pm, pm->submodel[n].bsp_data );
+                                        
 				} else {
 					pm->submodel[n].bsp_data = NULL;
 				}
@@ -3471,3 +3481,233 @@ int model_get_num_dock_points(int modelnum)
 	return pm->n_docks;
 }
 
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN			// tigital
+void swap_bsp_defpoints(ubyte * p)
+{
+	int n, i;
+	int nverts = INTEL_INT( w(p+8) );
+        w(p+8) = nverts;	
+	int offset = INTEL_INT( w(p+16) );
+        w(p+16) = offset;
+        int n_norms = INTEL_INT( w(p+12) );
+        w(p+12) = n_norms;
+
+	ubyte * normcount = p+20;
+        vector *src = vp(p+offset);
+
+	Assert( nverts < MAX_POLYGON_VECS );
+	// Assert( nnorms < MAX_POLYGON_NORMS );
+
+	for (n=0; n<nverts; n++ )	{
+            src->xyz.x = INTEL_FLOAT( &src->xyz.x );
+            src->xyz.y = INTEL_FLOAT( &src->xyz.y );
+            src->xyz.z = INTEL_FLOAT( &src->xyz.z );
+
+            Interp_verts[n] = src;
+            src++;
+            for (i=0;i<normcount[n];i++){
+                src->xyz.x = INTEL_FLOAT( &src->xyz.x );
+                src->xyz.y = INTEL_FLOAT( &src->xyz.y );
+                src->xyz.z = INTEL_FLOAT( &src->xyz.z );
+                src++;
+            }
+            
+	}
+}
+void swap_bsp_tmappoly( polymodel * pm, ubyte * p )
+{
+	int i, nv;
+	model_tmap_vert *verts;
+        vector * normal = vp(p+8);
+        vector * center = vp(p+20);
+        float radius = INTEL_FLOAT( &fl(p+32) );
+        fl(p+32) = radius;
+        normal->xyz.x = INTEL_FLOAT( &normal->xyz.x );
+        normal->xyz.y = INTEL_FLOAT( &normal->xyz.y );
+        normal->xyz.z = INTEL_FLOAT( &normal->xyz.z );
+        center->xyz.x = INTEL_FLOAT( &center->xyz.x );
+        center->xyz.y = INTEL_FLOAT( &center->xyz.y );
+        center->xyz.z = INTEL_FLOAT( &center->xyz.z );
+
+	nv = INTEL_INT( w(p+36));
+        w(p+36) = nv;
+        int tmap_num = INTEL_INT( w(p+40) );
+        w(p+40) = tmap_num;
+        
+	if ( nv < 0 ) return;
+
+	verts = (model_tmap_vert *)(p+44);
+        for (i=0;i<nv;i++){
+            verts[i].vertnum = INTEL_SHORT( verts[i].vertnum );
+            verts[i].normnum = INTEL_SHORT( verts[i].normnum );
+            verts[i].u = INTEL_FLOAT( &verts[i].u );
+            verts[i].v = INTEL_FLOAT( &verts[i].v );
+        }
+
+	if ( pm->version < 2003 )	{
+		// Set the "normal_point" part of field to be the center of the polygon
+		vector center_point;
+		vm_vec_zero( &center_point );
+
+		for (i=0;i<nv;i++)	{
+			vm_vec_add2( &center_point, Interp_verts[verts[i].vertnum] );
+		}
+
+		center_point.xyz.x /= nv;
+		center_point.xyz.y /= nv;
+		center_point.xyz.z /= nv;
+
+		*vp(p+20) = center_point;
+
+		float rad = 0.0f;
+
+		for (i=0;i<nv;i++)	{
+			float dist = vm_vec_dist( &center_point, Interp_verts[verts[i].vertnum] );
+			if ( dist > rad )	{
+				rad = dist;
+			}
+		}
+		fl(p+32) = rad;
+	}
+}
+void swap_bsp_flatpoly( polymodel * pm, ubyte * p )
+{
+	int i, nv;
+	short *verts;
+        vector * normal = vp(p+8);
+        vector * center = vp(p+20);
+        float radius = INTEL_FLOAT( &fl(p+32) );
+        fl(p+32) = radius; 
+        mprintf(("flatpoly radius = %f\n", radius ));
+        normal->xyz.x = INTEL_FLOAT( &normal->xyz.x );
+        normal->xyz.y = INTEL_FLOAT( &normal->xyz.y );
+        normal->xyz.z = INTEL_FLOAT( &normal->xyz.z );
+        center->xyz.x = INTEL_FLOAT( &center->xyz.x );
+        center->xyz.y = INTEL_FLOAT( &center->xyz.y );
+        center->xyz.z = INTEL_FLOAT( &center->xyz.z );
+
+        nv = INTEL_INT( w(p+36));		//tigital
+        w(p+36) = nv;
+        
+	if ( nv < 0 ) return;
+
+	verts = (short *)(p+44);
+        for (i=0; i<nv*2; i++){
+            verts[i] = INTEL_SHORT( verts[i] );
+        }
+
+	if ( pm->version < 2003 )	{
+		// Set the "normal_point" part of field to be the center of the polygon
+		vector center_point;
+		vm_vec_zero( &center_point );
+
+		for (i=0;i<nv;i++)	{
+			vm_vec_add2( &center_point, Interp_verts[verts[i*2]] );
+		}
+
+		center_point.xyz.x /= nv;
+		center_point.xyz.y /= nv;
+		center_point.xyz.z /= nv;
+
+		*vp(p+20) = center_point;
+
+		float rad = 0.0f;
+
+		for (i=0;i<nv;i++)	{
+			float dist = vm_vec_dist( &center_point, Interp_verts[verts[i*2]] );
+			if ( dist > rad )	{
+				rad = dist;
+			}
+		}
+		fl(p+32) = rad;
+	}
+}
+void swap_bsp_sortnorms( polymodel * pm, ubyte * p )
+{
+    int frontlist = INTEL_INT( w(p+36) );
+    int backlist = INTEL_INT( w(p+40) );
+    int prelist = INTEL_INT( w(p+44) );
+    int postlist = INTEL_INT( w(p+48) );
+    int onlist = INTEL_INT( w(p+52) );
+    w(p+36) = frontlist;
+    w(p+40) = backlist;
+    w(p+44) = prelist;
+    w(p+48) = postlist;
+    w(p+52) = onlist;
+            
+    vector * normal = vp(p+8);
+    vector * center = vp(p+20);
+    int  tmp = INTEL_INT( w(p+32) );
+    w(p+32) = tmp;
+    normal->xyz.x = INTEL_FLOAT( &normal->xyz.x );
+    normal->xyz.y = INTEL_FLOAT( &normal->xyz.y );
+    normal->xyz.z = INTEL_FLOAT( &normal->xyz.z );
+    center->xyz.x = INTEL_FLOAT( &center->xyz.x );
+    center->xyz.y = INTEL_FLOAT( &center->xyz.y );
+    center->xyz.z = INTEL_FLOAT( &center->xyz.z );
+    
+    vector * bmin = vp(p+56);
+    vector * bmax = vp(p+68);
+    bmin->xyz.x = INTEL_FLOAT( &bmin->xyz.x );
+    bmin->xyz.y = INTEL_FLOAT( &bmin->xyz.y );
+    bmin->xyz.z = INTEL_FLOAT( &bmin->xyz.z );
+    bmax->xyz.x = INTEL_FLOAT( &bmax->xyz.x );
+    bmax->xyz.y = INTEL_FLOAT( &bmax->xyz.y );
+    bmax->xyz.z = INTEL_FLOAT( &bmax->xyz.z );
+
+    if (prelist) swap_bsp_data(pm,p+prelist);
+    if (backlist) swap_bsp_data(pm,p+backlist);
+    if (onlist) swap_bsp_data(pm,p+onlist);
+    if (frontlist) swap_bsp_data(pm,p+frontlist);
+    if (postlist) swap_bsp_data(pm,p+postlist);
+}
+void swap_bsp_data( polymodel * pm, void *model_ptr )
+{
+    ubyte *p = (ubyte *)model_ptr;
+    int chunk_type, chunk_size;
+    vector * min;
+    vector * max;
+    
+    chunk_type = INTEL_INT( w(p) );
+    chunk_size = INTEL_INT( w(p+4) );
+    w(p) = chunk_type;
+    w(p+4) = chunk_size;
+	
+    while (chunk_type != OP_EOF)	{
+
+        switch (chunk_type) {
+            case OP_EOF:
+                    return;
+            case OP_DEFPOINTS:
+                    swap_bsp_defpoints(p); 
+                    break;
+            case OP_FLATPOLY:
+                    swap_bsp_flatpoly(pm, p ); break;
+            case OP_TMAPPOLY:
+                    swap_bsp_tmappoly(pm, p ); break;
+            case OP_SORTNORM:
+                    swap_bsp_sortnorms(pm,p ); break;
+            case OP_BOUNDBOX:
+                    min = vp(p+8);
+                    max = vp(p+20);
+                    min->xyz.x = INTEL_FLOAT( &min->xyz.x );
+                    min->xyz.y = INTEL_FLOAT( &min->xyz.y );
+                    min->xyz.z = INTEL_FLOAT( &min->xyz.z );
+                    max->xyz.x = INTEL_FLOAT( &max->xyz.x );
+                    max->xyz.y = INTEL_FLOAT( &max->xyz.y );
+                    max->xyz.z = INTEL_FLOAT( &max->xyz.z );
+                    break;
+        default:
+            mprintf(( "Bad chunk type %d, len=%d in modelread:swap_bsp_data\n", chunk_type, chunk_size ));
+            Int3();		// Bad chunk type!
+            return;
+        }
+        p += chunk_size;
+        chunk_type = INTEL_INT( w(p));
+        chunk_size = INTEL_INT( w(p+4) );
+        w(p) = chunk_type;
+        w(p+4) = chunk_size;
+    }
+    return;
+}
+#endif // SDL_BYTEORDER == SDL_BIG_ENDIAN

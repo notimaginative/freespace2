@@ -15,6 +15,11 @@
  * C module for the weapon loadout screen
  *
  * $Log$
+ * Revision 1.4  2002/06/16 01:43:23  relnev
+ * fixed demo dogfight multiplayer mission
+ *
+ * minor sound changes
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -1205,10 +1210,14 @@ int weapon_allowed_for_game_type(int weapon_flags)
 {
 	int	rval = 0;
 
+/* disable check for demo since it doesn't have "$Allowed Dogfight PBanks" */
+#ifndef FS2_DEMO
 	if ((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT)) {
 		if (weapon_flags & (1 << 1))
 			rval = 1;
-	} else if (weapon_flags & (1 << 0))
+	} else
+#endif	
+	if (weapon_flags & (1 << 0))
 		rval  = 1;
 
 	return rval;

@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
 #include "pstypes.h"
 #include "joy.h"
 #include "fix.h"
@@ -247,67 +255,67 @@ int joystick_read_raw_axis(int num_axes, int *axis)
 
 void joy_ff_adjust_handling(int speed)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_afterburn_off()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_afterburn_on()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_deathroll()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_docked()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_explode()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_fly_by(int mag)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_mission_init(vector v)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_play_dir_effect(float x, float y)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_play_primary_shoot(int gain)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_play_reload_effect()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_play_secondary_shoot(int gain)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_play_vector_effect(vector *v, float scaler)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void joy_ff_stop_effects()

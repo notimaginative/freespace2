@@ -1,6 +1,9 @@
 Don't have the game?  Where to buy:
 http://shop.store.yahoo.com/softwares4u/ga891.html
 
+http://dynamic4.gamespy.com/~freespace/forums/
+http://fs2source.warpcore.org/
+http://www.icculus.org/projects/freespace2/
 
 06/08/2002
 
@@ -10,6 +13,8 @@ it is.
 Current status:
 - It currently uses SDL (http://www.libsdl.org) and OpenAL
 (http://opensource.creative.com)
+
+- Code currently REQUIRES gcc 3.0.  gcc 2.95 and 3.1 won't work.
 
 - The OpenGL code is complete minus one or two things, but it is unoptimized.
 

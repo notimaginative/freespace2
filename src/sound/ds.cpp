@@ -15,6 +15,11 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.11  2002/06/16 01:43:23  relnev
+ * fixed demo dogfight multiplayer mission
+ *
+ * minor sound changes
+ *
  * Revision 1.10  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -516,6 +521,7 @@ typedef struct sound_buffer
 	int bits_per_sample;
 	int nchannels;
 	int nseconds;
+	int nbytes;
 } sound_buffer;
 
 #define MAX_DS_SOFTWARE_BUFFERS	256
@@ -875,6 +881,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	sound_buffers[*sid].bits_per_sample = si->bits;
 	sound_buffers[*sid].nchannels = si->n_channels;
 	sound_buffers[*sid].nseconds = si->size / si->avg_bytes_per_sec;
+	sound_buffers[*sid].nbytes = si->size;
 	
 	OpenAL_ErrorCheck();
 
@@ -2190,6 +2197,7 @@ int ds_create_buffer(int frequency, int bits_per_sample, int nchannels, int nsec
 	sound_buffers[sid].bits_per_sample = bits_per_sample;
 	sound_buffers[sid].nchannels = nchannels;
 	sound_buffers[sid].nseconds = nseconds;
+	sound_buffers[sid].nbytes = nseconds * (bits_per_sample / 8) * nchannels * frequency;
 	
 	return sid;
 #else
@@ -2261,7 +2269,9 @@ int ds_lock_data(int sid, unsigned char *data, int size)
 	} else {
 		return -1;
 	}
-		
+	
+	sound_buffers[sid].nbytes = size;
+	
 	alBufferData(buf_id, format, data, size, sound_buffers[sid].frequency);
 
 	OpenAL_ErrorCheck();
@@ -2356,7 +2366,9 @@ int ds_play_easy(int sid, int volume)
 	
 		Channels[channel].buf_id = sid;
 		
-		/* TODO: volume */
+		ALfloat alvol = (volume != -10000) ? pow(10.0, (float)volume / (-600.0 / log10(.5))): 0.0;
+		
+		alSourcef(source_id, AL_GAIN, alvol);		
 		
 		alSourcei(source_id, AL_LOOPING, AL_FALSE);
 		alSourcePlay(source_id);
@@ -2429,9 +2441,9 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 		/* TODO: pan */
 		// Channels[channel].pdsb->SetPan(pan);
 		
-		/* TODO: volume */
-		// Channels[channel].pdsb->SetVolume(volume);
-
+		ALfloat alvol = (volume != -10000) ? pow(10.0, (float)volume / (-600.0 / log10(.5))): 0.0;
+		alSourcef(Channels[channel].source_id, AL_GAIN, alvol);		
+		
 		Channels[channel].is_voice_msg = is_voice_msg;
 
 		OpenAL_ErrorCheck();
@@ -2481,15 +2493,16 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 				continue;
 			}
 
-			// TODO: this thing
-			// DWORD current_position = ds_get_play_position(i);
-			// if (current_position != 0) {
-			//	if (current_position < Channels[i].last_position) {
-			//		ds_close_channel(i);
-			//	} else {
-			//		Channels[i].last_position = current_position;
-			//	}
-			// }
+#ifndef PLAT_UNIX /* TODO: play position still needs some work */
+			DWORD current_position = ds_get_play_position(i);
+			if (current_position != 0) {
+				if (current_position < Channels[i].last_position) {
+					ds_stop_channel(i);
+				} else {
+					Channels[i].last_position = current_position;
+				}
+			}
+#endif			
 		}
 	}
 
@@ -2600,6 +2613,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 				continue;
 			}
 
+#ifndef PLAT_UNIX /* TODO: play position still needs some work */
 			DWORD current_position = ds_get_play_position(i);
 			if (current_position != 0) {
 				if (current_position < Channels[i].last_position) {
@@ -2608,6 +2622,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 					Channels[i].last_position = current_position;
 				}
 			}
+#endif			
 		}
 	}
 
@@ -2739,7 +2754,13 @@ void ds_stop_channel_all()
 void ds_set_volume( int channel, int vol )
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	ALuint source_id = Channels[channel].source_id;
+	
+	if (source_id != 0) {
+		ALfloat alvol = (vol != -10000) ? pow(10.0, (float)vol / (-600.0 / log10(.5))): 0.0;
+		
+		alSourcef(source_id, AL_GAIN, alvol);
+	}
 #else
 	HRESULT			hr;
 	unsigned long	status;		
@@ -3073,9 +3094,14 @@ void ds_set_position(int channel, DWORD offset)
 DWORD ds_get_play_position(int channel)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	ALint pos;
+
+	/* TODO: does this work ? */	
+	alGetSourceiv(Channels[channel].source_id, AL_BYTE_LOKI, &pos);
 	
-	return 0;
+	if (pos == -1)
+		return 0;
+	return pos;
 #else
 	DWORD play,write;	
 	if ( Channels[channel].pdsb ) {
@@ -3109,8 +3135,12 @@ DWORD ds_get_write_position(int channel)
 int ds_get_channel_size(int channel)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-
+	int buf_id = Channels[channel].buf_id;
+	
+	if (buf_id != -1) {
+		return sound_buffers[buf_id].nbytes;
+	}
+	
 	return 0;
 #else
 	int		size;
@@ -3592,14 +3622,20 @@ void ds_do_frame()
 				continue;
 			}
 
+#ifndef PLAT_UNIX /* TODO: get play position needs some work */
 			int current_position = ds_get_play_position(i);
 			if (current_position != 0) {
 				if (current_position < cp->last_position) {
+#ifdef PLAT_UNIX
+					ds_stop_channel(i);
+#else
 					ds_close_channel(i);
+#endif					
 				} else {
 					cp->last_position = current_position;
 				}
 			}
+#endif			
 		}
 	}
 }

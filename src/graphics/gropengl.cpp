@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.67  2003/08/03 15:59:40  taylor
+ * GL_RGB5_A1 as TexImage internal format; cleaner input grab; min window title; cleanup
+ *
  * Revision 1.66  2003/06/22 12:52:34  taylor
  * more texture size fixin
  *
@@ -1905,14 +1908,13 @@ static void opengl_tcache_cleanup ()
 
 static void opengl_tcache_frame ()
 {
-	int idx, s_idx;
-
 	GL_last_bitmap_id = -1;
 	GL_textures_in_frame = 0;
 
 	GL_frame_count++;
 
 	/*
+	int idx, s_idx;
 	int i;
 	for( i=0; i<MAX_BITMAPS; i++ )  {
 		Textures[i].used_this_frame = 0;
@@ -2185,7 +2187,7 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 				
 				size = tex_w*tex_h*2;
 				
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA,
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA,
 					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
 					
 				free(texmem);
@@ -2219,7 +2221,7 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 
 				size = tex_w*tex_h*2;
 				
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA,
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA,
 					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
 					
 				free(texmem);
@@ -2814,10 +2816,8 @@ void gr_opengl_init()
 	if (!Cmdline_window && ( (os_config_read_uint( NULL, "Fullscreen", 1 ) == 1) || Cmdline_fullscreen ))
 		flags |= SDL_FULLSCREEN;
 
-	// don't automatically grab key/mouse if cmdline says so, else do
-	if(Cmdline_no_grab) {
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
-	} else {
+	// grab mouse/key unless told otherwise, ignore when we are going fullscreen
+	if ( !((flags & SDL_FULLSCREEN) || Cmdline_no_grab) ) {
 		SDL_WM_GrabInput(SDL_GRAB_ON);
 	}
 
@@ -2828,11 +2828,12 @@ void gr_opengl_init()
 	}		
 
 	SDL_ShowCursor(0);
-	SDL_WM_SetCaption (Osreg_title, "FS2");
+	SDL_WM_SetCaption (Osreg_title, NULL);
 	
 	/* might as well put this here */
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
+
 	GL_use_luminance_alpha = os_config_read_uint(NOX("OpenGL"), NOX("UseLuminanceAlpha"), 0);
 
 	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
@@ -2981,10 +2982,10 @@ void gr_opengl_init()
 	gr_opengl_clear();
 
 	Gr_current_red = &Gr_red;
-        Gr_current_blue = &Gr_blue;
+	Gr_current_blue = &Gr_blue;
 	Gr_current_green = &Gr_green;
 	Gr_current_alpha = &Gr_alpha;
-                                
+
 	gr_screen.gf_flip = gr_opengl_flip;
 	gr_screen.gf_flip_window = gr_opengl_flip_window;
 	gr_screen.gf_set_clip = gr_opengl_set_clip;

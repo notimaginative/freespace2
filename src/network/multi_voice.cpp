@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2004/06/11 01:46:06  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -2050,7 +2053,7 @@ void multi_voice_client_send_pending()
 		// add the current stream id#
 		ADD_DATA(Multi_voice_stream_id);
 
-		Assert(str->accum_buffer_usize[sent] < MULTI_VOICE_MAX_BUFFER_SIZE);
+		//Assert(str->accum_buffer_usize[sent] < MULTI_VOICE_MAX_BUFFER_SIZE);	// always true
 		uc_size = (ushort)str->accum_buffer_usize[sent];
 		ADD_DATA_U16(uc_size);
 

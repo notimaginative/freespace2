@@ -15,6 +15,9 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
+ * Revision 1.7  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.6  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -1399,7 +1402,7 @@ void beam_render(beam_weapon_info *bwi, vector *start, vector *shot, float shrin
 		STUFF_VERTICES();		// stuff the beam with creamy goodness (texture coords)
 
 		// set the right texture with additive alpha, and draw the poly
-		gr_set_bitmap(bwi->sections[s_idx].texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.9999f);		
+		gr_set_bitmap(bwi->sections[s_idx].texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.9999f, -1, -1);
 		g3_draw_poly( 4, verts, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT);			
 	}		
 	
@@ -1519,7 +1522,7 @@ void beam_render_muzzle_glow(beam *b)
 
 	// draw the bitmap
 	g3_rotate_vertex(&v, &b->last_start);
-	gr_set_bitmap( bwi->beam_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.8f * pct);	
+	gr_set_bitmap( bwi->beam_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.8f * pct, -1, -1);
 	// draw 1 bitmap
 	g3_draw_bitmap(&v, 0, wip->b_info.beam_muzzle_radius * pct * rand_val, TMAP_FLAG_TEXTURED);
 	

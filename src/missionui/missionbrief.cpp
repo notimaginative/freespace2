@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2004/07/04 11:31:43  taylor
  * amd64 support, compiler warning fixes, don't use software rendering
  *
@@ -1465,13 +1468,13 @@ void brief_render(float frametime)
 		return;
 	}
 
-	gr_set_bitmap(Brief_grid_bitmap);
+	gr_set_bitmap(Brief_grid_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_bitmap(Brief_bmap_coords[gr_screen.res][0], Brief_bmap_coords[gr_screen.res][1]);
 
 	brief_render_map(Current_brief_stage, frametime);
 
 	// draw the frame bitmaps
-	gr_set_bitmap(Brief_text_bitmap);
+	gr_set_bitmap(Brief_text_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_bitmap(Brief_infobox_coords[gr_screen.res][0], Brief_infobox_coords[gr_screen.res][1]);
 	brief_blit_stage_num(Current_brief_stage, Num_brief_stages);
 
@@ -1629,14 +1632,14 @@ int brief_setup_closeup(brief_icon *bi)
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		strcpy(pof_filename, Asteroid_info[ASTEROID_TYPE_BIG].pof_files[0]);
 		strcpy(Closeup_icon->closeup_label, XSTR( "asteroid", 431));
-		vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -334.0f);
+		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -334.0f);
 		Closeup_zoom = 0.5f;
 #endif
 		break;
 	case ICON_JUMP_NODE:
 		strcpy(pof_filename, NOX("subspacenode.pof"));
 		strcpy(Closeup_icon->closeup_label, XSTR( "jump node", 432));
-		vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -2700.0f);
+		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -2700.0f);
 		Closeup_zoom = 0.5f;
 		Closeup_one_revolution_time = ONE_REV_TIME * 3;
 		break;
@@ -1644,7 +1647,7 @@ int brief_setup_closeup(brief_icon *bi)
 	case ICON_UNKNOWN_WING:
 		strcpy(pof_filename, NOX("unknownship.pof"));
 		strcpy(Closeup_icon->closeup_label, XSTR( "unknown", 433));
-		vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -22.0f);
+		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -22.0f);
 		Closeup_zoom = 0.5f;
 		break;
 	default:
@@ -1673,7 +1676,7 @@ int brief_setup_closeup(brief_icon *bi)
 	}
 
 	vm_set_identity(&Closeup_orient);
-	vm_vec_make(&tvec, 0.0f, 0.0f, -1.0f);
+	(void) vm_vec_make(&tvec, 0.0f, 0.0f, -1.0f);
 	Closeup_orient.v.fvec = tvec;
 	vm_vec_zero(&Closeup_pos);
 	Closeup_angles.p  = 0.0f;
@@ -1874,7 +1877,7 @@ void brief_do_frame(float frametime)
 
 					ship_info *sip = &Ship_info[Closeup_icon->ship_class];
 					if (sip->modelnum < 0)
-						sip->modelnum = model_load(sip->pof_file, NULL, NULL);
+						sip->modelnum = model_load(sip->pof_file, 0, NULL);
 
 					mprintf(("Shiptype = %d (%s)\n", Closeup_icon->ship_class, sip->name));
 					mprintf(("Modelnum = %d (%s)\n", sip->modelnum, sip->pof_file));
@@ -1890,7 +1893,7 @@ void brief_do_frame(float frametime)
 
 					ship_info *sip = &Ship_info[Closeup_icon->ship_class];
 					if (sip->modelnum < 0)
-						sip->modelnum = model_load(sip->pof_file, NULL, NULL);
+						sip->modelnum = model_load(sip->pof_file, 0, NULL);
 
 					mprintf(("Shiptype = %d (%s)\n", Closeup_icon->ship_class, sip->name));
 					mprintf(("Modelnum = %d (%s)\n", sip->modelnum, sip->pof_file));
@@ -2082,7 +2085,7 @@ void brief_do_frame(float frametime)
 
 		if (Closeup_icon && (Closeup_bitmap >= 0)) {
 			// blit closeup background
-			gr_set_bitmap(Closeup_bitmap);
+			gr_set_bitmap(Closeup_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Closeup_coords[gr_screen.res][BRIEF_X_COORD], Closeup_coords[gr_screen.res][BRIEF_Y_COORD]);
 		}
 
@@ -2325,7 +2328,7 @@ void brief_maybe_blit_scene_cut(float frametime)
 			framenum = Fade_anim.num_frames-1;
 
 		// Blit the bitmap for this frame
-		gr_set_bitmap(Fade_anim.first_frame + framenum);
+		gr_set_bitmap(Fade_anim.first_frame + framenum, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Fade_anim.sx, Fade_anim.sy);
 #endif
 	}
@@ -2360,7 +2363,7 @@ void brief_maybe_blit_scene_cut(float frametime)
 			framenum = Fade_anim.num_frames-1;
 
 		// Blit the bitmap for this frame
-		gr_set_bitmap(Fade_anim.first_frame + (Fade_anim.num_frames-1) - framenum);
+		gr_set_bitmap(Fade_anim.first_frame + (Fade_anim.num_frames-1) - framenum, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Fade_anim.sx, Fade_anim.sy);
 
 #endif

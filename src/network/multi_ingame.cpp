@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2004/06/11 01:17:50  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -1107,7 +1110,7 @@ void multi_ingame_select_do()
 	gr_reset_clip();	
 	GR_MAYBE_CLEAR_RES(Multi_ingame_bitmap);
 	if(Multi_ingame_bitmap != -1){
-		gr_set_bitmap(Multi_ingame_bitmap);
+		gr_set_bitmap(Multi_ingame_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);
 	}
 	Multi_ingame_window.draw();
@@ -1157,7 +1160,7 @@ void multi_ingame_join_display_ship(object *objp,int y_start)
 	// blit the ship class icon
 	icon_num = multi_ingame_get_ship_class_icon(Ships[objp->instance].ship_info_index);
 	if(icon_num != -1){
-		gr_set_bitmap(Multi_ingame_ship_icon[icon_num].bmaps[0]);
+		gr_set_bitmap(Multi_ingame_ship_icon[icon_num].bmaps[0], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Mi_class_field[gr_screen.res][MI_FIELD_X] + 15, y_start);
 	}
 	

@@ -15,6 +15,9 @@
  * C++ file for controlling and displaying a horizontal slider
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2002/07/13 19:47:02  theoddone33
  * Fix some more warnings
  *
@@ -322,7 +325,7 @@ void UI_DOT_SLIDER::draw()
 		down_button.draw();
 	}
 	Assert((pos >= 0) && (pos <= num_pos));
-	gr_set_bitmap(first_frame + pos);  // draw the dot level
+	gr_set_bitmap(first_frame + pos, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);  // draw the dot level
 	gr_bitmap(x, y);
 }
 

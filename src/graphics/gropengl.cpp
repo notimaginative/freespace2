@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.70  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.69  2004/07/04 11:31:43  taylor
  * amd64 support, compiler warning fixes, don't use software rendering
  *
@@ -520,9 +523,9 @@ int gr_opengl_preload(int bitmap_num, int is_aabitmap)
 
 	int retval;
 	if ( is_aabitmap )      {
-		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 1 );
+		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 1, -1, -1, 0 );
 	} else {
-		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_NORMAL, &u_scale, &v_scale, 1 );
+		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_NORMAL, &u_scale, &v_scale, 1, -1, -1, 0 );
 	}
 
 	if ( !retval )  {
@@ -571,7 +574,7 @@ void gr_opengl_flip()
 	 	if ( Gr_cursor == -1 )  {
 	 		// stuff
 	 	} else {
-	 		gr_set_bitmap(Gr_cursor);
+	 		gr_set_bitmap(Gr_cursor, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap( mx, my );
 	 	}
 	 }
@@ -811,7 +814,7 @@ static void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy
 
 	float u_scale, v_scale;
 
-	if ( !gr_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale ) )	{
+	if ( !gr_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 0, -1, -1, 0 ) )	{
 		// Couldn't set texture
 		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
 		return;
@@ -970,7 +973,7 @@ void gr_opengl_string( int sx, int sy, char *s )
 		return;
 	}
 
-	gr_set_bitmap(Current_font->bitmap_id);
+	gr_set_bitmap(Current_font->bitmap_id, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 
 	x = sx;
 	y = sy;
@@ -1271,7 +1274,7 @@ static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int
 	texture_source = TEXTURE_SOURCE_NONE;
 	
 	if ( flags & TMAP_FLAG_TEXTURED )       {
-		if ( !gr_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale, &v_scale, 0, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy ))
+		if ( !gr_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale, &v_scale, 0, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, 0 ))
 		{
 			mprintf(( "Not rendering a texture because it didn't fit in VRAM!\n" ));
 			return;
@@ -1326,7 +1329,7 @@ static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int
 		ga /= nv;
 		ba /= nv;
 		
-		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba);
+		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
 	}
 	
 	glBegin(GL_TRIANGLE_FAN);
@@ -1688,10 +1691,10 @@ void gr_opengl_filter_set(int filter)
 void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct)
 {
 	if ( pct <= 50 ) {
-		gr_set_bitmap(bmap1);
+		gr_set_bitmap(bmap1, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(x1, y1);
 	} else {
-		gr_set_bitmap(bmap2);
+		gr_set_bitmap(bmap2, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(x2, y2);
 	}		
 }
@@ -1744,7 +1747,7 @@ static void gr_opengl_set_texture_state(gr_texture_source ts)
 		GL_bound_texture = NULL;
 				
 		glBindTexture(GL_TEXTURE_2D, 0);
-		gr_tcache_set(-1, -1, NULL, NULL );
+		gr_tcache_set(-1, -1, NULL, NULL, 0, -1, -1, 0 );
 	} else if (GL_bound_texture &&
 		GL_bound_texture->texture_mode != ts) {
 		switch (ts) {
@@ -2744,7 +2747,7 @@ void gr_opengl_restore_screen(int id)
 
 	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 	
-	gr_set_bitmap(Gr_saved_screen_bitmap);
+	gr_set_bitmap(Gr_saved_screen_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_bitmap(0, 0);		
 }
 

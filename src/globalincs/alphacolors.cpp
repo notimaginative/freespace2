@@ -44,34 +44,34 @@ color *Color_netplayer[12] = {
 void alpha_colors_init()
 {
 	// See the variable declarations above for color usage
-	gr_init_alphacolor( &Color_blue, 93, 93, 128, 255 );
-	gr_init_alphacolor( &Color_bright_blue, 185, 185, 255, 255 );
+	gr_init_alphacolor( &Color_blue, 93, 93, 128, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_bright_blue, 185, 185, 255, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_green, 0, 120, 0, 255 );
-	gr_init_alphacolor( &Color_bright_green, 50, 190, 50, 255 );
+	gr_init_alphacolor( &Color_green, 0, 120, 0, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_bright_green, 50, 190, 50, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_black, 0, 0, 0, 255 );
-	gr_init_alphacolor( &Color_grey, 50, 50, 50, 255 );
+	gr_init_alphacolor( &Color_black, 0, 0, 0, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_grey, 50, 50, 50, 255, AC_TYPE_HUD );
 #ifdef MAKE_FS1
-	gr_init_alphacolor( &Color_white, 185, 185, 185, 255 );
+	gr_init_alphacolor( &Color_white, 185, 185, 185, 255, AC_TYPE_HUD );
 #else
-	gr_init_alphacolor( &Color_white, 105, 105, 105, 255 );
+	gr_init_alphacolor( &Color_white, 105, 105, 105, 255, AC_TYPE_HUD );
 #endif
-	gr_init_alphacolor( &Color_bright_white, 255, 255, 255, 255 );
+	gr_init_alphacolor( &Color_bright_white, 255, 255, 255, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_violet_gray, 160, 144, 160, 255 );
+	gr_init_alphacolor( &Color_violet_gray, 160, 144, 160, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_dim_red, 80, 6, 6, 255 );
-	gr_init_alphacolor( &Color_red, 126, 6, 6, 255 );
-	gr_init_alphacolor( &Color_bright_red, 200, 0, 0, 255 );
+	gr_init_alphacolor( &Color_dim_red, 80, 6, 6, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_red, 126, 6, 6, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_bright_red, 200, 0, 0, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_yellow, 113, 184, 124, 255 );
-	gr_init_alphacolor( &Color_bright_yellow, 162, 210, 162, 255 );
+	gr_init_alphacolor( &Color_yellow, 113, 184, 124, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_bright_yellow, 162, 210, 162, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_ui_light_green, 161, 184, 161, 255 );
-	gr_init_alphacolor( &Color_ui_green, 190, 228, 190, 255 );
+	gr_init_alphacolor( &Color_ui_light_green, 161, 184, 161, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_ui_green, 190, 228, 190, 255, AC_TYPE_HUD );
 
-	gr_init_alphacolor( &Color_ui_light_pink, 184, 161, 161, 255 );
-	gr_init_alphacolor( &Color_ui_pink, 228, 190, 190, 255 );
+	gr_init_alphacolor( &Color_ui_light_pink, 184, 161, 161, 255, AC_TYPE_HUD );
+	gr_init_alphacolor( &Color_ui_pink, 228, 190, 190, 255, AC_TYPE_HUD );
 }
 

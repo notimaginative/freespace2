@@ -15,6 +15,9 @@
  * Campaign Loop briefing screen
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -248,7 +251,7 @@ void loop_brief_do()
 	// clear
 	GR_MAYBE_CLEAR_RES(Loop_brief_bitmap);
 	if (Loop_brief_bitmap >= 0) {
-		gr_set_bitmap(Loop_brief_bitmap);
+		gr_set_bitmap(Loop_brief_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	} 
 	

@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.11  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.10  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -1663,30 +1666,30 @@ void debrief_multi_list_draw()
 				if(np->p_info.team == 0){
 					// draw his "selected" icon
 					if(((np->state == NETPLAYER_STATE_DEBRIEF_ACCEPT) || (np->state == NETPLAYER_STATE_DEBRIEF_REPLAY)) && (Multi_common_icons[MICON_TEAM0_SELECT] != -1)){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM0_SELECT]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM0_SELECT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Debrief_list_coords[gr_screen.res][0], Debrief_list_coords[gr_screen.res][1] + y - 2);
 					} 
 					// draw his "normal" icon
 					else if(Multi_common_icons[MICON_TEAM0] != -1){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM0]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM0], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Debrief_list_coords[gr_screen.res][0], Debrief_list_coords[gr_screen.res][1] + y - 2);
 					}					
 				} else if(np->p_info.team == 1){
 					// draw his "selected" icon
 					if(((np->state == NETPLAYER_STATE_DEBRIEF_ACCEPT) || (np->state == NETPLAYER_STATE_DEBRIEF_REPLAY)) && (Multi_common_icons[MICON_TEAM1_SELECT] != -1)){						
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM1_SELECT]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM1_SELECT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Debrief_list_coords[gr_screen.res][0], Debrief_list_coords[gr_screen.res][1] + y - 2);
 					} 
 					// draw his "normal" icon
 					else if(Multi_common_icons[MICON_TEAM1] != -1){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM1]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM1], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Debrief_list_coords[gr_screen.res][0], Debrief_list_coords[gr_screen.res][1] + y - 2);
 					}					
 				}
 			} else {
 				// draw the team 0 selected icon
 				if(((np->state == NETPLAYER_STATE_DEBRIEF_ACCEPT) || (np->state == NETPLAYER_STATE_DEBRIEF_REPLAY)) && (Multi_common_icons[MICON_TEAM0_SELECT] != -1)){
-					gr_set_bitmap(Multi_common_icons[MICON_TEAM0_SELECT]);
+					gr_set_bitmap(Multi_common_icons[MICON_TEAM0_SELECT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 					gr_bitmap(Debrief_list_coords[gr_screen.res][0], Debrief_list_coords[gr_screen.res][1] + y - 2);
 				}
 			}
@@ -2750,14 +2753,14 @@ void debrief_do_frame(float frametime)
 		// draw the background, etc
 		GR_MAYBE_CLEAR_RES(Background_bitmap);
 		if (Background_bitmap >= 0) {
-			gr_set_bitmap(Background_bitmap);
+			gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(0, 0);
 		}
 
 		Debrief_ui_window.draw();
 		chatbox_render();
 		if ( Debrief_multi_loading_bitmap > -1 ){
-			gr_set_bitmap(Debrief_multi_loading_bitmap);		
+			gr_set_bitmap(Debrief_multi_loading_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap( Please_wait_coords[gr_screen.res][0], Please_wait_coords[gr_screen.res][1] );
 		}
 
@@ -2855,16 +2858,16 @@ void debrief_do_frame(float frametime)
 	// Now do all the rendering for the frame
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if (Background_bitmap >= 0) {
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	} 
 
 	// draw the damn awarded stuff, G
 	if ( Award_active && (Award_bg_bitmap >= 0) ) {
-		gr_set_bitmap(Award_bg_bitmap);
+		gr_set_bitmap(Award_bg_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Debrief_award_wnd_coords[gr_screen.res][0], Debrief_award_wnd_coords[gr_screen.res][1]);
 		if (Rank_bitmap >= 0) {
-			gr_set_bitmap(Rank_bitmap);
+			gr_set_bitmap(Rank_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 #ifdef MAKE_FS1
 			gr_bitmap(Debrief_rank_coords[0], Debrief_rank_coords[1]);
 #else
@@ -2873,12 +2876,12 @@ void debrief_do_frame(float frametime)
 		}
 
 		if (Medal_bitmap >= 0) {
-			gr_set_bitmap(Medal_bitmap);
+			gr_set_bitmap(Medal_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
 		}
 
 		if (Badge_bitmap >= 0) {
-			gr_set_bitmap(Badge_bitmap);
+			gr_set_bitmap(Badge_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 #ifdef MAKE_FS1
 			gr_bitmap(Debrief_badge_coords[0], Debrief_badge_coords[1]);
 #else
@@ -2887,7 +2890,7 @@ void debrief_do_frame(float frametime)
 		}
 
 		if (Wings_bitmap >= 0) {
-			gr_set_bitmap(Wings_bitmap);
+			gr_set_bitmap(Wings_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 #ifdef MAKE_FS1
 			gr_bitmap(Debrief_badge_coords[0], Debrief_badge_coords[1]);
 #else
@@ -2897,7 +2900,7 @@ void debrief_do_frame(float frametime)
 
 		// this isn't used in FS1 but doesn't hurt to leave it
 		if (Crest_bitmap >= 0) {
-			gr_set_bitmap(Crest_bitmap);
+			gr_set_bitmap(Crest_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
 		}
 

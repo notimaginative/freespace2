@@ -15,6 +15,9 @@
  * Prototypes for the variables used internally by the Direct3D renderer
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -192,11 +195,11 @@ void gr_d3d_clear();
 void gr_d3d_set_clip(int x,int y,int w,int h);
 void gr_d3d_reset_clip();
 void gr_d3d_init_color(color *c, int r, int g, int b);
-void gr_d3d_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type );
+void gr_d3d_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type=AC_TYPE_HUD );
 void gr_d3d_set_color( int r, int g, int b );
 void gr_d3d_get_color( int * r, int * g, int * b );
 void gr_d3d_set_color_fast(color *dst);
-void gr_d3d_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx=-1, int sy=-1 );
+void gr_d3d_set_bitmap( int bitmap_num, int alphablend_mode=GR_ALPHABLEND_NONE, int bitblt_mode=GR_BITBLT_MODE_NORMAL, float alpha=1.0f, int sx=-1, int sy=-1 );
 void gr_d3d_bitmap_ex(int x,int y,int w,int h,int sx,int sy);
 void gr_d3d_bitmap(int x, int y);
 void gr_d3d_aabitmap_ex(int x,int y,int w,int h,int sx,int sy);
@@ -212,10 +215,11 @@ void gr_d3d_circle( int xc, int yc, int d );
 void gr_d3d_line(int x1,int y1,int x2,int y2);
 void gr_d3d_aaline(vertex *v1, vertex *v2);
 void gr_d3d_gradient(int x1,int y1,int x2,int y2);
-void gr_d3d_set_palette(ubyte *new_palette, int restrict_alphacolor);
+void gr_d3d_set_palette(ubyte *new_palette, int restrict_alphacolor = 0);
 void gr_d3d_diamond(int x, int y, int width, int height);
 void gr_d3d_print_screen(char *filename);
 
+void gr_d3d_fog_set(int fog_mode, int r, int g, int b, float fog_near = -1.0f, float fog_far = -1.0f);
 
 // Functions used to render.  Calls either DrawPrim or Execute buffer code
 HRESULT d3d_SetRenderState( D3DRENDERSTATETYPE dwRenderStateType,  DWORD dwRenderState );

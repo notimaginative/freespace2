@@ -15,6 +15,9 @@
  * C file for implementing barracks section
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1242,7 +1245,7 @@ void barracks_display_pilot_callsigns(int prospective_pilot)
 
 		gr_printf(Barracks_list_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_list_coords[gr_screen.res][BARRACKS_Y_COORD] + y, Pilots[cur_pilot_idx]);
 #ifndef FS1_DEMO
-		gr_set_bitmap(Rank_pips_bitmaps + Pilot_ranks[cur_pilot_idx]);
+		gr_set_bitmap(Rank_pips_bitmaps + Pilot_ranks[cur_pilot_idx], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Barracks_list_coords[gr_screen.res][BARRACKS_X_COORD] - 34, Barracks_list_coords[gr_screen.res][BARRACKS_Y_COORD] + y);
 #endif
  
@@ -1373,7 +1376,7 @@ void barracks_draw_pilot_pic()
 			// JAS: This code is hacked to allow the animation to use all 256 colors
 			extern int Palman_allow_any_color;
 			Palman_allow_any_color = 1;
-			gr_set_bitmap(Pilot_images[Pic_number]);
+			gr_set_bitmap(Pilot_images[Pic_number], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Barracks_image_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_image_coords[gr_screen.res][BARRACKS_Y_COORD]);
 			Palman_allow_any_color = 0;
 
@@ -1398,7 +1401,7 @@ void barracks_draw_squad_pic()
 			// JAS: This code is hacked to allow the animation to use all 256 colors
 			extern int Palman_allow_any_color;
 			Palman_allow_any_color = 1;
-			gr_set_bitmap(Pilot_squad_images[Pic_squad_number]);
+			gr_set_bitmap(Pilot_squad_images[Pic_squad_number], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Barracks_squad_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_squad_coords[gr_screen.res][BARRACKS_Y_COORD]);
 			Palman_allow_any_color = 0;
 
@@ -1719,7 +1722,7 @@ void barracks_do_frame(float frametime)
 	gr_reset_clip();	
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if (Background_bitmap >= 0) {
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);	
 	}		
 

@@ -15,6 +15,9 @@
  * C module to handle all code for multiplayer chat windows
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -930,7 +933,7 @@ void chatbox_render()
 
 	// draw the background bitmap if we're supposed to
 	if ( (Chatbox_bitmap != -1) && (Chatbox_mode_flags & CHATBOX_FLAG_DRAW_BOX)) {
-		gr_set_bitmap( Chatbox_bitmap );
+		gr_set_bitmap( Chatbox_bitmap , GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Chatbox_x1, Chatbox_y1);		
 	}
 
@@ -1146,14 +1149,14 @@ void chatbox_render_chat_lines()
 				// if he's a team captain
 				if(Net_players[player_num].flags & NETINFO_FLAG_TEAM_CAPTAIN){
 					if(Multi_common_icons[MICON_TEAM0_SELECT] != -1){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM0_SELECT]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM0_SELECT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Chatbox_icon_x,ly-2);
 					} 
 				}
 				// just you're average peon
 				else {
 					if(Multi_common_icons[MICON_TEAM0] != -1){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM0]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM0], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Chatbox_icon_x,ly-2);
 					}
 				}
@@ -1162,14 +1165,14 @@ void chatbox_render_chat_lines()
 				// if he's a team captain
 				if(Net_players[player_num].flags & NETINFO_FLAG_TEAM_CAPTAIN){
 					if(Multi_common_icons[MICON_TEAM1_SELECT] != -1){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM1_SELECT]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM1_SELECT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Chatbox_icon_x,ly-2);
 					}
 				}
 				// just your average peon
 				else {
 					if(Multi_common_icons[MICON_TEAM1] != -1){
-						gr_set_bitmap(Multi_common_icons[MICON_TEAM1]);
+						gr_set_bitmap(Multi_common_icons[MICON_TEAM1], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(Chatbox_icon_x,ly-2);
 					}
 				}

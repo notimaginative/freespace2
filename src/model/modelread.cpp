@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.12  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.11  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -2656,12 +2659,12 @@ void model_get_rotating_submodel_axis(vector *model_axis, vector *world_axis, in
 	Assert(sm->movement_type == MOVEMENT_TYPE_ROT);
 
 	if (sm->movement_axis == MOVEMENT_AXIS_X) {
-		vm_vec_make(model_axis, 1.0f, 0.0f, 0.0f);
+		(void) vm_vec_make(model_axis, 1.0f, 0.0f, 0.0f);
 	} else if (sm->movement_axis == MOVEMENT_AXIS_Y) {
-		vm_vec_make(model_axis, 0.0f, 1.0f, 0.0f);
+		(void) vm_vec_make(model_axis, 0.0f, 1.0f, 0.0f);
 	} else {
 		Assert(sm->movement_axis == MOVEMENT_AXIS_Z);
-		vm_vec_make(model_axis, 0.0f, 0.0f, 1.0f);
+		(void) vm_vec_make(model_axis, 0.0f, 0.0f, 1.0f);
 	}
 
 	model_find_obj_dir(world_axis, model_axis, obj, submodel_num);

@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1086,7 +1089,7 @@ void neb2_render_player()
 				}
 	
 				// set the bitmap and render				
-				gr_set_bitmap(Neb2_cubes[idx1][idx2][idx3].bmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha + Neb2_cubes[idx1][idx2][idx3].flash);
+				gr_set_bitmap(Neb2_cubes[idx1][idx2][idx3].bmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha + Neb2_cubes[idx1][idx2][idx3].flash, -1, -1);
 
 #ifndef NDEBUG
 				this_area = g3_draw_rotated_bitmap_area(&p, fl_radian(Neb2_cubes[idx1][idx2][idx3].rot), Nd->prad, TMAP_FLAG_TEXTURED, max_area);				

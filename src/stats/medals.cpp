@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.13  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.12  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -848,7 +851,7 @@ int medal_main_do()
 	gr_reset_clip();
 	GR_MAYBE_CLEAR_RES(Medals_bitmap);
 	if(Medals_bitmap != -1){
-		gr_set_bitmap(Medals_bitmap);
+		gr_set_bitmap(Medals_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);
 	}
 
@@ -1041,13 +1044,13 @@ void blit_medals()
 
 	for (idx=0; idx<NUM_MEDALS; idx++) {
 		if (Player_score->medals[idx] > 0) {
-			gr_set_bitmap(Medal_bitmaps[idx]);
+			gr_set_bitmap(Medal_bitmaps[idx], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Medal_coords[gr_screen.res][idx][0], Medal_coords[gr_screen.res][idx][1]);
 		}
 	}
 
 	// now blit rank, since that "medal" doesnt get loaded (or drawn) the normal way
-	gr_set_bitmap(Rank_bm);
+	gr_set_bitmap(Rank_bm, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 #ifdef MAKE_FS1
 	gr_bitmap(Rank_coords[0], Rank_coords[1]);
 #else

@@ -15,6 +15,9 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -1183,7 +1186,7 @@ void sim_room_init()
 	// HACK
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if(Background_bitmap != -1){
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 	Ui_window.draw();
@@ -1374,7 +1377,7 @@ void sim_room_do_frame(float frametime)
 
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if (Background_bitmap >= 0) {
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 
@@ -1484,7 +1487,7 @@ void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb, in
 
 	// if the line is flagged as a volition file
 	if(is_from_volition && (Mission_icon_bitmaps[MISSION_ICON_VOLITION] >= 0)){		
-		gr_set_bitmap(Mission_icon_bitmaps[MISSION_ICON_VOLITION]);
+		gr_set_bitmap(Mission_icon_bitmaps[MISSION_ICON_VOLITION], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Sim_volition_icon_x[gr_screen.res], y_start + MISSION_ICON_VOLITION_Y_OFFSET);
 	}	
 
@@ -1982,7 +1985,7 @@ void campaign_room_do_frame(float frametime)
 
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if (Background_bitmap >= 0) {
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 

@@ -15,6 +15,9 @@
  * C module for playing back anim files
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2004/06/11 00:27:06  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -683,7 +686,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 		//       part of the anim_free_list
 	}
 	else {
-		gr_set_bitmap(bitmap_id);
+		gr_set_bitmap(bitmap_id, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		
 		// determine x,y to display the bitmap at
 		if ( instance->world_pos == NULL ) {

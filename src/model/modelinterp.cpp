@@ -15,6 +15,9 @@
  *	Rendering models, I think.
  *
  * $Log$
+ * Revision 1.8  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.7  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -903,7 +906,7 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 			g3_draw_poly( nv, Interp_list, 0 );		
 		} else if (Interp_thrust_scale_subobj)	{
 			if ((Interp_thrust_bitmap>-1)	&& (Interp_thrust_scale > 0.0f) && !Pofview_running) {
-				gr_set_bitmap( Interp_thrust_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.2f );
+				gr_set_bitmap( Interp_thrust_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.2f, -1, -1);
 				g3_draw_poly( nv, Interp_list, TMAP_FLAG_TEXTURED );		
 			} else if(!Pofview_running){
 				if ( !(Interp_flags & MR_SHOW_OUTLINE_PRESET) )	{
@@ -918,7 +921,7 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 			if ( Interp_tmap_flags & TMAP_FLAG_TEXTURED )	{
 				// subspace special case
 				if ( Interp_subspace && D3D_enabled )	{										
-					gr_set_bitmap( pm->textures[w(p+40)], GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.2f );					
+					gr_set_bitmap( pm->textures[w(p+40)], GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.2f, -1, -1);
 				}
 				// all other textures
 				else {					
@@ -933,9 +936,9 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 
 					// muzzle flashes draw xparent
 					if(Interp_flags & MR_ALL_XPARENT){
-						gr_set_bitmap( texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Interp_xparent_alpha );
+						gr_set_bitmap( texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Interp_xparent_alpha, -1, -1);
 					} else {
-						gr_set_bitmap( texture );
+						gr_set_bitmap( texture, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 					}
 				}
 			} else {
@@ -1650,7 +1653,7 @@ void model_render_insignias(polymodel *pm, int detail_level)
 
 	// set the proper texture
 	if(Interp_insignia_bitmap >= 0){		
-		gr_set_bitmap(Interp_insignia_bitmap);
+		gr_set_bitmap(Interp_insignia_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	}
 	// otherwise don't even bother rendering
 	else {
@@ -1991,7 +1994,7 @@ void model_render(int model_num, matrix *orient, vector * pos, uint flags, int o
 
 	// turn off fog after each model renders
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
-		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
 }
 
@@ -2824,10 +2827,10 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 					float w = bank->radius[j]*(scale+Interp_thrust_glow_noise*NOISE_SCALE );
 
 					// disable fogging
-					gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+					gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 
 					g3_rotate_vertex( &p, &bank->pnt[j] );
-					gr_set_bitmap( Interp_thrust_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, d );
+					gr_set_bitmap( Interp_thrust_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, d, -1, -1);
 					{
 #ifndef PLAT_UNIX
 						extern int Gr_scaler_zbuffering;

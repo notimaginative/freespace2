@@ -15,6 +15,9 @@
  * Functions to deal with colors & alphacolors
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -53,7 +56,7 @@ struct alphacolor_old;
 
 void grx_init_alphacolors();
 void grx_init_color( color *clr, int r, int g, int b );
-void grx_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type );
+void grx_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type=AC_TYPE_HUD );
 void grx_set_color( int r, int g, int b );
 void grx_set_color_fast( color *clr );
 void grx_get_color( int *r, int *g, int *b );

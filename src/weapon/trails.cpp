@@ -15,6 +15,9 @@
  * Code for missile trails
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -321,7 +324,7 @@ void trail_render( trail * trailp )
 				vlist[1]->u = 0.0f;  vlist[1]->v = 0.0f;
 				vlist[2]->u = 1.0f;  vlist[2]->v = 0.5f;
 
-				gr_set_bitmap(ti->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, l/255.0f );
+				gr_set_bitmap(ti->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, l/255.0f, -1, -1);
 				if ( D3D_enabled )	{
 					g3_draw_poly( 3, vlist, TMAP_FLAG_TEXTURED|TMAP_FLAG_ALPHA|TMAP_FLAG_GOURAUD );
 				} else {
@@ -341,7 +344,7 @@ void trail_render( trail * trailp )
 				vlist[2]->u = 1.0f;  vlist[2]->v = 1.0f;
 				vlist[3]->u = 0.0f;  vlist[3]->v = 1.0f;
 
-				gr_set_bitmap(ti->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, l/255.0f );
+				gr_set_bitmap(ti->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, l/255.0f, -1, -1);
 				if ( D3D_enabled )	{
 					g3_draw_poly( 4, vlist, TMAP_FLAG_TEXTURED|TMAP_FLAG_ALPHA|TMAP_FLAG_GOURAUD );
 				} else {

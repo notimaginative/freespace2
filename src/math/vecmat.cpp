@@ -15,6 +15,9 @@
  * C module containg functions for manipulating vectors and matricies
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2002/09/04 01:12:11  relnev
  * changes to screen backup/mouse drawing code.  removed a few warnings.
  *
@@ -1743,7 +1746,7 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 	if (cos_theta > 0.999999875f) { // angle is less than 1 milirad (0.057 degrees)
 		*theta = 0.0f;
 
-		vm_vec_make(rot_axis, 1.0f, 0.0f, 0.0f);
+		(void) vm_vec_make(rot_axis, 1.0f, 0.0f, 0.0f);
 	} else if (cos_theta > -0.999999875f) { // angle is within limits between 0 and PI
 		*theta = float(acos(cos_theta));
 		Assert(!_isnan(*theta));
@@ -2148,8 +2151,8 @@ void get_camera_limits(matrix *start_camera, matrix *end_camera, float time, vec
 
 	// allow for 0 time input
 	if (time <= 1e-5f) {
-		vm_vec_make(acc_max, 0.0f, 0.0f, 0.0f);
-		vm_vec_make(w_max, 0.0f, 0.0f, 0.0f);
+		(void) vm_vec_make(acc_max, 0.0f, 0.0f, 0.0f);
+		(void) vm_vec_make(w_max, 0.0f, 0.0f, 0.0f);
 	} else {
 
 		// find acceleration limit using  (theta/2) takes (time/2)

@@ -15,6 +15,9 @@
  * C file for creating and managing shockwaves
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -536,12 +539,12 @@ void shockwave_render(object *objp)
 
 	// turn off fogging
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
-		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
 
 	g3_rotate_vertex(&p, &sw->pos );
 
-	gr_set_bitmap(sw->current_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.3f );
+	gr_set_bitmap(sw->current_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.3f, -1, -1);
 	g3_draw_rotated_bitmap(&p, fl_radian(sw->rot_angle), sw->radius, TMAP_FLAG_TEXTURED);	
 }
 

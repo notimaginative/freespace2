@@ -15,6 +15,9 @@
  * Code for rendering the warp in effects for ships
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/17 06:33:08  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -171,7 +174,7 @@ void warpin_render(matrix *orient, vector *pos, int texture_bitmap_num, float ra
 
 //	gr_zbuffering = 0;
 
-	gr_set_bitmap( texture_bitmap_num, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.0f );
+	gr_set_bitmap( texture_bitmap_num, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1 );
 
 	float Grid_depth = radius/2.5f;
 
@@ -217,7 +220,7 @@ void warpin_render(matrix *orient, vector *pos, int texture_bitmap_num, float ra
 	draw_face( &verts[0], &verts[3], &verts[4] );
 
 	if ( Warp_glow_bitmap != -1 )	{
-		gr_set_bitmap( Warp_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.0f );
+		gr_set_bitmap( Warp_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1 );
 
 		float r = radius;
 

@@ -15,6 +15,9 @@
  * Implements UI_SLIDER2 control
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -110,14 +113,14 @@ void UI_SLIDER2::draw() {
 		gr_reset_clip();
 		switch (slider_mode) {
 		case S2M_ON_ME:
-			gr_set_bitmap(bmap_ids[S2_HIGHLIGHT]);  // draw slider level
+			gr_set_bitmap(bmap_ids[S2_HIGHLIGHT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);  // draw slider level
 			break;
 		case S2M_MOVING:
-			gr_set_bitmap(bmap_ids[S2_PRESSED]);
+			gr_set_bitmap(bmap_ids[S2_PRESSED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			break;
 		case S2M_DEFAULT:
 		default:
-			gr_set_bitmap(bmap_ids[S2_NORMAL]);  // draw slider level
+			gr_set_bitmap(bmap_ids[S2_NORMAL], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);  // draw slider level
 			break;
 		}
 		gr_bitmap(x, y+currentPosition);

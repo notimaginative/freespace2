@@ -15,6 +15,9 @@
  * C module for the weapon loadout screen
  *
  * $Log$
+ * Revision 1.7  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.6  2003/06/11 18:30:33  taylor
  * plug memory leaks
  *
@@ -1250,7 +1253,7 @@ void wl_render_overhead_view(float frametime)
 				return;
 			}
 		}
-		gr_set_bitmap(wl_ship->overhead_bitmap);
+		gr_set_bitmap(wl_ship->overhead_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Wl_overhead_coords[gr_screen.res][0], Wl_overhead_coords[gr_screen.res][1]);
 	}
 
@@ -2477,7 +2480,7 @@ void wl_maybe_flash_button()
 void weapon_select_render(float frametime)
 {
 	if ( !Background_playing ) {
-		gr_set_bitmap(Weapon_select_background_bitmap);
+		gr_set_bitmap(Weapon_select_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 
@@ -2961,7 +2964,7 @@ void weapon_select_do(float frametime)
 
 		if ( Wl_icons[Carried_wl_icon.weapon_class].can_use > 0) {
 			gr_set_color_fast(&Color_blue);
-			gr_set_bitmap(Wl_icons[Carried_wl_icon.weapon_class].icon_bmaps[WEAPON_ICON_FRAME_SELECTED]);
+			gr_set_bitmap(Wl_icons[Carried_wl_icon.weapon_class].icon_bmaps[WEAPON_ICON_FRAME_SELECTED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(sx, sy);
 		}
 
@@ -3171,7 +3174,7 @@ void wl_render_icon(int index, int x, int y, int num, int draw_num_flag, int hot
 	}
 
 	gr_set_color_fast(&Color_blue);
-	gr_set_bitmap(bitmap_id);
+	gr_set_bitmap(bitmap_id, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_bitmap(x, y);
 
 	// draw the number of the item

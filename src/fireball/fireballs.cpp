@@ -15,6 +15,9 @@
  * Code to move, render and otherwise deal with fireballs.
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2004/07/04 11:31:43  taylor
  * amd64 support, compiler warning fixes, don't use software rendering
  *
@@ -573,7 +576,7 @@ void fireball_render(object * obj)
 
 	// turn off fogging
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
-		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
 
 	g3_rotate_vertex(&p, &obj->pos );
@@ -581,7 +584,7 @@ void fireball_render(object * obj)
 	switch( fb->fireball_info_index )	{
 	
 		case FIREBALL_EXPLOSION_MEDIUM:
-			gr_set_bitmap(Fireballs[num].current_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.3f );
+			gr_set_bitmap(Fireballs[num].current_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.3f, -1, -1 );
 			g3_draw_bitmap(&p, fb->orient, obj->radius, TMAP_FLAG_TEXTURED );
 			break;
 
@@ -610,7 +613,7 @@ void fireball_render(object * obj)
 
 		case FIREBALL_ASTEROID:
 			// Make the big explosions rotate with the viewer.
-			gr_set_bitmap(Fireballs[num].current_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.3f );
+			gr_set_bitmap(Fireballs[num].current_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.3f, -1, -1 );
 			g3_draw_rotated_bitmap(&p, (i2fl(fb->orient)*PI)/180.0f, obj->radius, TMAP_FLAG_TEXTURED );
 			break;
 

@@ -15,6 +15,9 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2003/08/03 16:10:30  taylor
  * cleanup; compile warning fixes
  *
@@ -1785,7 +1788,7 @@ void project_point_to_perimeter(vector *perim_point, vector *pos, float radius, 
 
 	if (mag == 0.0f) {
 		Warning(LOCATION, "projectable point is at center of sphere.");
-		vm_vec_make(&v1, 0.0f, radius, 0.0f);
+		(void) vm_vec_make(&v1, 0.0f, radius, 0.0f);
 	} else {
 		vm_vec_normalize(&v1);
 		vm_vec_scale(&v1, 1.1f * radius + 10.0f);

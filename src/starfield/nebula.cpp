@@ -15,6 +15,9 @@
  * Code to load & display nebulas
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2004/06/11 02:07:39  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -360,7 +363,7 @@ void nebula_render()
 
 	// always switch off fogging for good measure
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode == NEB2_RENDER_NONE)){
-		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
 }
 

@@ -15,6 +15,9 @@
  * Header file for 2d primitives.
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -403,7 +406,7 @@ typedef struct screen {
 	void (*gf_flip_window)(uint _hdc, int x, int y, int w, int h );
 
 	// Sets the current palette
-	void (*gf_set_palette)(ubyte * new_pal, int restrict_alphacolor = 0);
+	void (*gf_set_palette)(ubyte * new_pal, int restrict_alphacolor);
 
 	// Fade the screen in/out
 	void (*gf_fade_in)(int instantaneous);
@@ -422,13 +425,13 @@ typedef struct screen {
 	void (*gf_get_color)( int * r, int * g, int * b );
 	void (*gf_init_color)( color * dst, int r, int g, int b );
 
-	void (*gf_init_alphacolor)( color * dst, int r, int g, int b, int alpha, int type=AC_TYPE_HUD );
+	void (*gf_init_alphacolor)( color * dst, int r, int g, int b, int alpha, int type );
 	void (*gf_set_color_fast)( color * dst );
 
 	void (*gf_set_font)(int fontnum);
 
 	// Sets the current bitmap
-	void (*gf_set_bitmap)( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, int bitbltmode=GR_BITBLT_MODE_NORMAL, float alpha=1.0f, int sx = -1, int sy = -1 );
+	void (*gf_set_bitmap)( int bitmap_num, int alphablend, int bitbltmode, float alpha, int sx, int sy );
 
 	// Call this to create a shader.   
 	// This function takes a while, so don't call it once a frame!
@@ -536,7 +539,7 @@ typedef struct screen {
 	void (*gf_get_region)(int front, int w, int h, ubyte *data);
 
 	// set fog attributes
-	void (*gf_fog_set)(int fog_mode, int r, int g, int b, float fog_near = -1.0f, float fog_far = -1.0f);	
+	void (*gf_fog_set)(int fog_mode, int r, int g, int b, float fog_near, float fog_far);	
 
 	// get the current pixel color in the framebuffer 
 	void (*gf_get_pixel)(int x, int y, int *r, int *g, int *b);
@@ -551,7 +554,7 @@ typedef struct screen {
 	void (*gf_filter_set)(int filter);
 
 	// set a texture into cache. for sectioned bitmaps, pass in sx and sy to set that particular section of the bitmap
-	int (*gf_tcache_set)(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full = 0, int sx = -1, int sy = -1, int force = 0);	
+	int (*gf_tcache_set)(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full, int sx, int sy, int force);	
 
 	// set the color to be used when clearing the background
 	void (*gf_set_clear_color)(int r, int g, int b);

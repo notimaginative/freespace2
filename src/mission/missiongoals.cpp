@@ -15,6 +15,9 @@
  * Module for working with Mission goals
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -609,7 +612,7 @@ void goal_list::icons_display(int yoff)
 				- ys / 2;									// center of icon offest
 
 			if ((y >= Goal_screen_text_y - ys / 2) && (y + ys <= Goal_screen_text_y + Goal_screen_text_h + ys / 2)) {
-				gr_set_bitmap(bmp);
+				gr_set_bitmap(bmp, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(Goal_screen_icon_x, y);
 			}
 		}
@@ -881,7 +884,7 @@ void mission_show_goals_do_frame(float frametime)
 
 	GR_MAYBE_CLEAR_RES(Goals_screen_bg_bitmap);
 	if (Goals_screen_bg_bitmap >= 0) {
-		gr_set_bitmap(Goals_screen_bg_bitmap);
+		gr_set_bitmap(Goals_screen_bg_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 	Goals_screen_ui_window.draw();
@@ -1024,23 +1027,23 @@ void ML_render_objectives_key()
 {
 #ifndef MAKE_FS1
 	// display icon key at the bottom
-	gr_set_bitmap(Goal_complete_bitmap);
+	gr_set_bitmap(Goal_complete_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	if (Lcl_gr) {
 		gr_bitmap(Objective_key_icon_coords_gr[gr_screen.res][0][0], Objective_key_icon_coords_gr[gr_screen.res][0][1]);
-		gr_set_bitmap(Goal_incomplete_bitmap);
+		gr_set_bitmap(Goal_incomplete_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Objective_key_icon_coords_gr[gr_screen.res][1][0], Objective_key_icon_coords_gr[gr_screen.res][1][1]);
-		gr_set_bitmap(Goal_failed_bitmap);
+		gr_set_bitmap(Goal_failed_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Objective_key_icon_coords_gr[gr_screen.res][2][0], Objective_key_icon_coords_gr[gr_screen.res][2][1]);
 	
 		gr_string(Objective_key_text_coords_gr[gr_screen.res][0][0], Objective_key_text_coords_gr[gr_screen.res][0][1] , XSTR("Complete",	1437));
 		gr_string(Objective_key_text_coords_gr[gr_screen.res][1][0], Objective_key_text_coords_gr[gr_screen.res][1][1] , XSTR("Incomplete", 1438));
 		gr_string(Objective_key_text_coords_gr[gr_screen.res][2][0], Objective_key_text_coords_gr[gr_screen.res][2][1] , XSTR("Failed",		1439));
 	} else {
-		gr_set_bitmap(Goal_complete_bitmap);
+		gr_set_bitmap(Goal_complete_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Objective_key_icon_coords[gr_screen.res][0][0], Objective_key_icon_coords[gr_screen.res][0][1]);
-		gr_set_bitmap(Goal_incomplete_bitmap);
+		gr_set_bitmap(Goal_incomplete_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Objective_key_icon_coords[gr_screen.res][1][0], Objective_key_icon_coords[gr_screen.res][1][1]);
-		gr_set_bitmap(Goal_failed_bitmap);
+		gr_set_bitmap(Goal_failed_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Objective_key_icon_coords[gr_screen.res][2][0], Objective_key_icon_coords[gr_screen.res][2][1]);
 	
 		gr_string(Objective_key_text_coords[gr_screen.res][0][0], Objective_key_text_coords[gr_screen.res][0][1] , XSTR("Complete",	1437));

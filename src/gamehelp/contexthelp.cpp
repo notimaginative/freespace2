@@ -15,6 +15,9 @@
  * Functions to drive the context-sensitive help 
  *
  * $Log$
+ * Revision 1.7  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.6  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -702,13 +705,13 @@ void help_overlay_blit(int overlay_id)
 
 	// this draws each right bracket
 	for (idx = 0; idx < rbracketcount; idx++) {
-		gr_set_bitmap(help_right_bracket_bitmap);
+		gr_set_bitmap(help_right_bracket_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(help_overlaylist[overlay_id].rbracketlist[gr_screen.res][idx].x_coord, help_overlaylist[overlay_id].rbracketlist[gr_screen.res][idx].y_coord);
 	}
 
 	// this draws each left bracket
 	for (idx = 0; idx < lbracketcount; idx++) {
-		gr_set_bitmap(help_left_bracket_bitmap);
+		gr_set_bitmap(help_left_bracket_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(help_overlaylist[overlay_id].lbracketlist[gr_screen.res][idx].x_coord, help_overlaylist[overlay_id].lbracketlist[gr_screen.res][idx].y_coord);
 	}	
 

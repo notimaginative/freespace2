@@ -15,6 +15,9 @@
  * C module that contains functions to drive the Tech Menu user interface
  *
  * $Log$
+ * Revision 1.8  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.7  2003/08/03 16:10:29  taylor
  * cleanup; compile warning fixes
  *
@@ -723,7 +726,7 @@ void techroom_weapons_render2(float frametime)
 
 	// if our active item has a bitmap instead of an animation, draw it
 	if((Cur_entry > 0) && (Current_list[Cur_entry].animation == NULL) && (Current_list[Cur_entry].bitmap >= 0)){
-		gr_set_bitmap(Current_list[Cur_entry].bitmap);
+		gr_set_bitmap(Current_list[Cur_entry].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Tech_ani_coords[gr_screen.res][0], Tech_ani_coords[gr_screen.res][1]);
 	}
 }
@@ -806,7 +809,7 @@ void techroom_ships_render(float frametime)
 	}
 
 	// turn off fogging
-	gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+	gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 
 	//	reorient ship
 	if (Trackball_active) {
@@ -1016,7 +1019,7 @@ void techroom_weapons_render(float frametime)
 
 	// if our active item has a bitmap instead of an animation, draw it
 	if((Cur_entry >= 0) && (Current_list[Cur_entry].animation == NULL) && (Current_list[Cur_entry].bitmap >= 0)){
-		gr_set_bitmap(Current_list[Cur_entry].bitmap);
+		gr_set_bitmap(Current_list[Cur_entry].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Tech_ani_coords[gr_screen.res][0], Tech_ani_coords[gr_screen.res][1]);
 	}
 }
@@ -1041,7 +1044,7 @@ void techroom_intel_render(float frametime)
 
 	// if our active item has a bitmap instead of an animation, draw it
 	if((Cur_entry >= 0) && (Current_list[Cur_entry].animation == NULL) && (Current_list[Cur_entry].bitmap >= 0)){
-		gr_set_bitmap(Current_list[Cur_entry].bitmap);
+		gr_set_bitmap(Current_list[Cur_entry].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Tech_ani_coords[gr_screen.res][0], Tech_ani_coords[gr_screen.res][1]);
 	}
 }
@@ -1964,7 +1967,7 @@ void techroom_do_frame(float frametime)
 	// clear & draw bg bitmap
 	GR_MAYBE_CLEAR_RES(Tech_background_bitmap);
 	if (Tech_background_bitmap >= 0) {
-		gr_set_bitmap(Tech_background_bitmap);
+		gr_set_bitmap(Tech_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 #endif

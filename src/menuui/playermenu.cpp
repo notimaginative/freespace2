@@ -15,6 +15,9 @@
  * Code to drive the Player Select initial screen
  *
  * $Log$
+ * Revision 1.8  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.7  2003/08/09 03:18:03  taylor
  * fix tips popup not having any tips
  *
@@ -681,7 +684,7 @@ void player_select_do()
 	}	
 
 	// draw the player select pseudo-dialog over it
-	gr_set_bitmap(Player_select_background_bitmap);
+	gr_set_bitmap(Player_select_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_bitmap(0,0);
 
 	// press the accept button

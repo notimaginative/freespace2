@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.7  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.6  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -1106,7 +1109,7 @@ void nebl_render_section(bolt_type *bi, l_section *a, l_section *b)
 		v[3].u = 0.0f; v[3].v = 1.0f;
 
 		// draw
-		gr_set_bitmap(bi->texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Nebl_alpha);
+		gr_set_bitmap(bi->texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Nebl_alpha, -1, -1);
 		g3_draw_poly(4, verts, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT);		
 	}
 
@@ -1123,7 +1126,7 @@ void nebl_render_section(bolt_type *bi, l_section *a, l_section *b)
 	v[3] = b->vex[2];		
 	v[3].u = 0.0f; v[3].v = 1.0f;
 
-	gr_set_bitmap(bi->texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Nebl_alpha);
+	gr_set_bitmap(bi->texture, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Nebl_alpha, -1, -1);
 	g3_draw_poly(4, verts, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT);	
 
 	// draw the glow beam	
@@ -1139,7 +1142,7 @@ void nebl_render_section(bolt_type *bi, l_section *a, l_section *b)
 	verts[3] = &b->glow_vex[0];
 	verts[3]->v = 0.0f; verts[3]->u = 1.0f;
 
-	gr_set_bitmap(bi->glow, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Nebl_glow_alpha);
+	gr_set_bitmap(bi->glow, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, Nebl_glow_alpha, -1, -1);
 	g3_draw_poly(4, verts, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT);	
 }
 

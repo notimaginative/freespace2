@@ -15,6 +15,9 @@
  * Routines to handle UI windows.
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -341,7 +344,7 @@ void UI_WINDOW::draw()
 	gr_set_font(f_id);
 
 	if (foreground_bmap_id >= 0) {
-		gr_set_bitmap(foreground_bmap_id);
+		gr_set_bitmap(foreground_bmap_id, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(x, y);
 	}
 

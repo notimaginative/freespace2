@@ -15,6 +15,9 @@
  * C module to allow player ship selection for the mission
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1321,7 +1324,7 @@ void ss_maybe_flash_button()
 void ship_select_render(float frametime)
 {
 	if ( !Background_playing ) {
-		gr_set_bitmap(Ship_select_background_bitmap);
+		gr_set_bitmap(Ship_select_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 
@@ -1679,7 +1682,7 @@ void ship_select_do(float frametime)
 	if ( ss_icon_being_carried() ) {
 		int mouse_x, mouse_y;
 		mouse_get_pos( &mouse_x, &mouse_y );
-		gr_set_bitmap(Ss_icons[Carried_ss_icon.ship_class].icon_bmaps[ICON_FRAME_SELECTED]);
+		gr_set_bitmap(Ss_icons[Carried_ss_icon.ship_class].icon_bmaps[ICON_FRAME_SELECTED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(mouse_x + Ss_delta_x , mouse_y + Ss_delta_y);
 	}
 
@@ -1846,7 +1849,7 @@ void draw_ship_icon_with_number(int screen_offset, int ship_class)
 	}
 
 	// blit the icon
-	gr_set_bitmap(ss_icon->current_icon_bitmap);
+	gr_set_bitmap(ss_icon->current_icon_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_bitmap(Ship_list_coords[gr_screen.res][screen_offset][0], Ship_list_coords[gr_screen.res][screen_offset][1]);
 
 	// blit the number
@@ -2272,7 +2275,7 @@ void draw_wing_block(int wb_num, int hot_slot, int selected_slot, int class_sele
 
 		
 		if ( bitmap_to_draw != -1 ) {
-			gr_set_bitmap(bitmap_to_draw);
+			gr_set_bitmap(bitmap_to_draw, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(Wing_icon_coords[gr_screen.res][slot_index][0], Wing_icon_coords[gr_screen.res][slot_index][1]);
 		}
 	}
@@ -2322,11 +2325,11 @@ void ss_blit_ship_icon(int x,int y,int ship_class,int bmap_num)
 {
 	// blit the bitmap in the correct location
 	if(ship_class == -1){
-		gr_set_bitmap(Wing_slot_empty_bitmap);
+		gr_set_bitmap(Wing_slot_empty_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	} else {
 		ss_icon_info *icon = &Ss_icons[ship_class];
 		Assert(icon->icon_bmaps[bmap_num] != -1);	
-		gr_set_bitmap(icon->icon_bmaps[bmap_num]);		
+		gr_set_bitmap(icon->icon_bmaps[bmap_num], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	}
 	gr_bitmap(x,y);	
 }

@@ -15,6 +15,9 @@
  * Multiplayer Team Selection Code
  *
  * $Log$
+ * Revision 1.7  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.6  2004/06/11 01:51:13  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -792,7 +795,7 @@ void multi_ts_do()
 	gr_reset_clip();	
 	GR_MAYBE_CLEAR_RES(Multi_ts_bitmap);
 	if(Multi_ts_bitmap != -1){
-		gr_set_bitmap(Multi_ts_bitmap);
+		gr_set_bitmap(Multi_ts_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);
 	}
 	Multi_ts_window.draw();
@@ -1211,12 +1214,12 @@ void multi_ts_blit_locked_button()
 {		
 	// if we're locked down and we have a valid bitmap
 	if((Multi_ts_team[Net_player->p_info.team].multi_players_locked) && (Multi_ts_locked_bitmaps[2] != -1)){
-		gr_set_bitmap(Multi_ts_locked_bitmaps[2]);
+		gr_set_bitmap(Multi_ts_locked_bitmaps[2], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].x, Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].y);
 	}
 	// draw as "not locked" if possible
 	else if(Multi_ts_locked_bitmaps[0] != -1){
-		gr_set_bitmap(Multi_ts_locked_bitmaps[0]);
+		gr_set_bitmap(Multi_ts_locked_bitmaps[0], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap( Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].x, Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].y);
 	}
 }

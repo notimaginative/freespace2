@@ -15,6 +15,9 @@
  * Code to implement input boxes
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -477,7 +480,7 @@ void UI_INPUTBOX::draw()
 				}
 
 				// draw current frame
-				gr_set_bitmap(cursor_first_frame + cursor_current_frame);
+				gr_set_bitmap(cursor_first_frame + cursor_current_frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(text_x + tw + 4, 1);
 			}
 		}

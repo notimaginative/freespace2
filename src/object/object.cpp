@@ -15,6 +15,9 @@
  * Code to manage objects
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -2030,7 +2033,7 @@ int obj_team(object *objp)
 		case OBJ_GHOST:
 		case OBJ_SHOCKWAVE:		
 		case OBJ_BEAM:
-			nprintf(("Warning","Warning => Asking for a team for object type %d\n", Object_type_names[objp->type]));
+			nprintf(("Warning","Warning => Asking for a team for object type %d\n", Object_type_names[(unsigned char)objp->type]));
 			team = -1;
 			break;
 

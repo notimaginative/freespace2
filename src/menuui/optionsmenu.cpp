@@ -15,6 +15,9 @@
  * C module that contains functions to drive the Options user interface
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1475,7 +1478,7 @@ void draw_gamma_box()
 
 		// if we're in bitmap poly mode		
 		int Gamma_bitmap = bm_create( 16, Options_gamma_coords[gr_screen.res][OPTIONS_W_COORD], Options_gamma_coords[gr_screen.res][OPTIONS_H_COORD], Gamma_data );
-		gr_set_bitmap(Gamma_bitmap);
+		gr_set_bitmap(Gamma_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap( Options_gamma_coords[gr_screen.res][OPTIONS_X_COORD], Options_gamma_coords[gr_screen.res][OPTIONS_Y_COORD] );
 
 		bm_release( Gamma_bitmap );
@@ -1565,7 +1568,7 @@ void options_menu_do_frame(float frametime)
 
 	GR_MAYBE_CLEAR_RES(i);
 	if (i >= 0) {
-		gr_set_bitmap(i);
+		gr_set_bitmap(i, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	} 
 

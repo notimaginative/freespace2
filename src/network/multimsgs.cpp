@@ -15,6 +15,9 @@
  * C file that holds functions for the building and processing of multiplayer packets
  *
  * $Log$
+ * Revision 1.8  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.7  2004/06/11 01:49:45  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -2994,7 +2997,7 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 	aip = &Ai_info[shipp->ai_index];
 
 	current_bank = (ubyte)shipp->weapons.current_secondary_bank;
-	Assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );
+	//Assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );	// always true
 
 	// build up the header portion
 	BUILD_HEADER( SECONDARY_FIRED_AI );
@@ -3152,7 +3155,7 @@ void process_secondary_fired_packet(ubyte* data, header* hinfo, int from_player)
 
 	// find out the current bank
 	current_bank = (ubyte)(sinfo & 0x3);
-	Assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );
+	//Assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );	// always true
 	shipp->weapons.current_secondary_bank = current_bank;
 
 	// make it so we can fire this ship's secondary bank immediately!!!
@@ -7950,7 +7953,7 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	mprintf(("PAIN!\n"));
 
 	// get weapon info pointer
-	Assert((windex >= 0) && (windex < Num_weapon_types) && (Weapon_info[windex].subtype == WP_LASER));
+	//Assert((windex >= 0) && (windex < Num_weapon_types) && (Weapon_info[windex].subtype == WP_LASER));	// always true
 	if(! ((windex >= 0) && (windex < Num_weapon_types) && (Weapon_info[windex].subtype == WP_LASER)) ){
 		return;
 	}

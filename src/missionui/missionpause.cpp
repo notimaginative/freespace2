@@ -14,6 +14,9 @@
  * 
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -181,7 +184,7 @@ void pause_do(int multi)
 		//	RENDER A GAME FRAME HERE AS THE BACKGROUND
 		gr_restore_screen(Pause_saved_screen);
 		if (Pause_background_bitmap >= 0) {
-			gr_set_bitmap(Pause_background_bitmap);
+			gr_set_bitmap(Pause_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			if(multi){
 				gr_bitmap(0,0);
 			} else {

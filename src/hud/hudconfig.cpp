@@ -15,6 +15,9 @@
  * C module to handle HUD configuration
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1197,7 +1200,7 @@ void hud_config_render_gauges()
 			} else {			
 				alpha = 150;				
 			}
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			gr_set_color_fast(&use_color);			
 #else
 				// set correct frame if using iff
@@ -1225,13 +1228,13 @@ void hud_config_render_gauges()
 #endif
 		} else {
 			// if its off, make it dark gray
-			gr_init_alphacolor(&use_color, 127, 127, 127, 64);
+			gr_init_alphacolor(&use_color, 127, 127, 127, 64, AC_TYPE_HUD);
 			gr_set_color_fast(&use_color);			
 		}
 
 		// draw
 		if ( HC_gauge_regions[gr_screen.res][i].bitmap >= 0 ) {
-			gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap);
+			gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_aabitmap(HC_gauge_regions[gr_screen.res][i].x, HC_gauge_regions[gr_screen.res][i].y);
 		}
 		
@@ -1367,7 +1370,7 @@ void hud_config_set_color(int color)
 
 	// apply the color to all gauges
 	for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-		gr_init_alphacolor(&HUD_config.clr[idx], HC_colors[color].r, HC_colors[color].g, HC_colors[color].b, (HUD_color_alpha+1)*16);
+		gr_init_alphacolor(&HUD_config.clr[idx], HC_colors[color].r, HC_colors[color].g, HC_colors[color].b, (HUD_color_alpha+1)*16, AC_TYPE_HUD);
 	}
 }
 
@@ -1377,7 +1380,7 @@ void hud_config_stuff_colors(int r, int g, int b)
 
 	// apply the color to all gauges
 	for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-		gr_init_alphacolor(&HUD_config.clr[idx], r, g, b, 255);
+		gr_init_alphacolor(&HUD_config.clr[idx], r, g, b, 255, AC_TYPE_HUD);
 	}
 }
 
@@ -1841,7 +1844,7 @@ void hud_config_do_frame(float frametime)
 	// set the background
 	GR_MAYBE_CLEAR_RES(HC_background_bitmap);
 	if ( HC_background_bitmap > 0 ) {
-		gr_set_bitmap(HC_background_bitmap);
+		gr_set_bitmap(HC_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);
 	}
 
@@ -1922,7 +1925,7 @@ void hud_set_default_hud_config(player *p)
 	HUD_color_blue = HC_colors[HUD_config.main_color].b;
 
 	for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-		gr_init_alphacolor(&HUD_config.clr[idx], HUD_color_red, HUD_color_green, HUD_color_blue, (HUD_color_alpha+1)*16);
+		gr_init_alphacolor(&HUD_config.clr[idx], HUD_color_red, HUD_color_green, HUD_color_blue, (HUD_color_alpha+1)*16, AC_TYPE_HUD);
 	}
 
 	HUD_config.show_flags = HUD_config_default_flags;
@@ -2048,7 +2051,7 @@ void hud_config_alpha_slider_up()
 	if(HC_select_all){
 		hud_config_stuff_colors( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
 	} else {
-		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()), 255);
+		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()), 255, AC_TYPE_HUD);
 	}
 #endif
 }
@@ -2074,7 +2077,7 @@ void hud_config_alpha_slider_down()
 	if(HC_select_all){
 		hud_config_stuff_colors( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
 	} else {
-		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()), 255);
+		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()), 255, AC_TYPE_HUD);
 	}
 #endif
 }
@@ -2097,7 +2100,7 @@ void hud_config_red_slider()
 	// select all ?
 	if(HC_select_all){
 		for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-			gr_init_alphacolor(&HUD_config.clr[idx], pos, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
+			gr_init_alphacolor(&HUD_config.clr[idx], pos, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha, AC_TYPE_HUD);
 		}
 	}
 	// individual gauge
@@ -2107,7 +2110,7 @@ void hud_config_red_slider()
 		}
 
 		// get slider position	
-		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], pos, HUD_config.clr[HC_gauge_selected].green, HUD_config.clr[HC_gauge_selected].blue, HUD_config.clr[HC_gauge_selected].alpha);
+		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], pos, HUD_config.clr[HC_gauge_selected].green, HUD_config.clr[HC_gauge_selected].blue, HUD_config.clr[HC_gauge_selected].alpha, AC_TYPE_HUD);
 	}	
 
 	hud_config_recalc_alpha_slider();
@@ -2123,7 +2126,7 @@ void hud_config_green_slider()
 	// select all ?
 	if(HC_select_all){
 		for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-			gr_init_alphacolor(&HUD_config.clr[idx], HUD_config.clr[idx].red, pos, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
+			gr_init_alphacolor(&HUD_config.clr[idx], HUD_config.clr[idx].red, pos, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha, AC_TYPE_HUD);
 		}
 	}
 	// individual gauge
@@ -2133,7 +2136,7 @@ void hud_config_green_slider()
 		}
 
 		// get slider position	
-		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HUD_config.clr[HC_gauge_selected].red, pos, HUD_config.clr[HC_gauge_selected].blue, HUD_config.clr[HC_gauge_selected].alpha);
+		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HUD_config.clr[HC_gauge_selected].red, pos, HUD_config.clr[HC_gauge_selected].blue, HUD_config.clr[HC_gauge_selected].alpha, AC_TYPE_HUD);
 	}	
 
 	hud_config_recalc_alpha_slider();
@@ -2149,7 +2152,7 @@ void hud_config_blue_slider()
 	// select all ?
 	if(HC_select_all){
 		for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-			gr_init_alphacolor(&HUD_config.clr[idx], HUD_config.clr[idx].red, HUD_config.clr[idx].green, pos, HUD_config.clr[idx].alpha);
+			gr_init_alphacolor(&HUD_config.clr[idx], HUD_config.clr[idx].red, HUD_config.clr[idx].green, pos, HUD_config.clr[idx].alpha, AC_TYPE_HUD);
 		}
 	}
 	// individual gauge
@@ -2159,7 +2162,7 @@ void hud_config_blue_slider()
 		}
 
 		// get slider position	
-		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HUD_config.clr[HC_gauge_selected].red, HUD_config.clr[HC_gauge_selected].green, pos, HUD_config.clr[HC_gauge_selected].alpha);
+		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HUD_config.clr[HC_gauge_selected].red, HUD_config.clr[HC_gauge_selected].green, pos, HUD_config.clr[HC_gauge_selected].alpha, AC_TYPE_HUD);
 	}	
 
 	hud_config_recalc_alpha_slider();

@@ -15,6 +15,9 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -735,7 +738,7 @@ void cutscenes_screen_do_frame()
 
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if (Background_bitmap >= 0) {
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	} 
 

@@ -16,6 +16,9 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2004/07/04 11:40:26  taylor
  * only load those background bitmaps that we are going to use this mission
  *
@@ -774,7 +777,7 @@ void stars_draw_sun( int show_sun )
 		}
 
 		// draw the sun itself, keep track of how many we drew
-		gr_set_bitmap(bm->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.999f);
+		gr_set_bitmap(bm->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.999f, -1, -1);
 		g3_rotate_faraway_vertex(&sun_vex, &sun_pos);
 #ifdef MAKE_FS1
 		// divide by 10 to make normal size
@@ -822,7 +825,7 @@ void stars_draw_sun_glow(int sun_n)
 	}
 
 	// draw the sun itself, keep track of how many we drew
-	gr_set_bitmap(bm->glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.5f);
+	gr_set_bitmap(bm->glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.5f, -1, -1);
 	g3_rotate_faraway_vertex(&sun_vex, &sun_pos);
 #ifdef MAKE_FS1
 	// divide by 10 to make normal size
@@ -858,14 +861,14 @@ void stars_draw_bitmaps( int show_bitmaps )
 	
 		// set the bitmap				
 		if(Fred_running){
-			gr_set_bitmap(Starfield_bitmaps[star_index].bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.9999f);		
+			gr_set_bitmap(Starfield_bitmaps[star_index].bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.9999f, -1, -1);
 			g3_draw_perspective_bitmap(&Starfield_bitmap_instance[idx].ang, Starfield_bitmap_instance[idx].scale_x, Starfield_bitmap_instance[idx].scale_y, Starfield_bitmap_instance[idx].div_x, Starfield_bitmap_instance[idx].div_y, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT);
 		} else {
 			if(Starfield_bitmaps[star_index].xparent){
-				gr_set_bitmap(Starfield_bitmaps[star_index].bitmap);		
+				gr_set_bitmap(Starfield_bitmaps[star_index].bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				g3_draw_perspective_bitmap(&Starfield_bitmap_instance[idx].ang, Starfield_bitmap_instance[idx].scale_x, Starfield_bitmap_instance[idx].scale_y, Starfield_bitmap_instance[idx].div_x, Starfield_bitmap_instance[idx].div_y, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT | TMAP_FLAG_XPARENT);
 			} else {				
-				gr_set_bitmap(Starfield_bitmaps[star_index].bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.9999f);		
+				gr_set_bitmap(Starfield_bitmaps[star_index].bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.9999f, -1, -1);
 				g3_draw_perspective_bitmap(&Starfield_bitmap_instance[idx].ang, Starfield_bitmap_instance[idx].scale_x, Starfield_bitmap_instance[idx].scale_y, Starfield_bitmap_instance[idx].div_x, Starfield_bitmap_instance[idx].div_y, TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT);
 			}
 		}
@@ -1244,7 +1247,7 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 
 		// turn off fogging
 		if(The_mission.flags & MISSION_FLAG_FULLNEB){
-			gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+			gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 		}
 
 		old_debris * d = odebris; 
@@ -1285,9 +1288,9 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				frame %= debris_vclips[d->vclip].nframes;
 
 				if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode != NEB2_RENDER_NONE)){
-					gr_set_bitmap( debris_vclips[d->vclip].bm + frame, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.3f);	
+					gr_set_bitmap( debris_vclips[d->vclip].bm + frame, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.3f, -1, -1);
 				} else {
-					gr_set_bitmap( debris_vclips[d->vclip].bm + frame );						
+					gr_set_bitmap( debris_vclips[d->vclip].bm + frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				}
 					
 				vector tmp;

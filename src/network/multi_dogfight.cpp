@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -311,7 +314,7 @@ void multi_df_debrief_do()
 	// draw the background
 	GR_MAYBE_CLEAR_RES(Multi_df_background_bitmap);
 	if (Multi_df_background_bitmap >= 0) {
-		gr_set_bitmap(Multi_df_background_bitmap);
+		gr_set_bitmap(Multi_df_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	} 
 
@@ -463,7 +466,7 @@ void multi_df_blit_kill_matrix()
 		// draw a check if necessary
 		if(!MULTI_CONNECTED(Net_players[Multi_df_score[idx].np_index]) || (Net_players[Multi_df_score[idx].np_index].state == NETPLAYER_STATE_DEBRIEF_ACCEPT) || (Net_players[Multi_df_score[idx].np_index].state == NETPLAYER_STATE_DEBRIEF_REPLAY)){
 			if(Multi_common_icons[MICON_VALID] != -1){
-				gr_set_bitmap(Multi_common_icons[MICON_VALID]);
+				gr_set_bitmap(Multi_common_icons[MICON_VALID], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(Multi_df_check_coords[gr_screen.res], cy);
 			}
 		}

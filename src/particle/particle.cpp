@@ -15,6 +15,9 @@
  * Code for particle system
  *
  * $Log$
+ * Revision 1.7  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.6  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -606,7 +609,7 @@ void particle_render_all()
 					}
 
 					// set the bitmap
-					gr_set_bitmap( framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha );
+					gr_set_bitmap( framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha, -1, -1);
 
 					// if this is a tracer style particle
 					if(p->tracer_length > 0.0f){					
@@ -635,7 +638,7 @@ void particle_render_all()
 					*/
 
 					// set the bitmap
-					gr_set_bitmap(p->reverse ? Anim_bitmap_id_fire+(Anim_num_frames_fire - framenum - 1) : Anim_bitmap_id_fire+framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha );
+					gr_set_bitmap(p->reverse ? Anim_bitmap_id_fire+(Anim_num_frames_fire - framenum - 1) : Anim_bitmap_id_fire+framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha, -1, -1);
 
 					// if this is a tracer style particle
 					if(p->tracer_length > 0.0f){					
@@ -664,7 +667,7 @@ void particle_render_all()
 					*/
 
 					// set the bitmap
-					gr_set_bitmap(p->reverse ? Anim_bitmap_id_smoke+(Anim_num_frames_smoke - framenum - 1) : Anim_bitmap_id_smoke+framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha );
+					gr_set_bitmap(p->reverse ? Anim_bitmap_id_smoke+(Anim_num_frames_smoke - framenum - 1) : Anim_bitmap_id_smoke+framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha, -1, -1);
 
 					// if this is a tracer style particle
 					if(p->tracer_length > 0.0f){			
@@ -693,7 +696,7 @@ void particle_render_all()
 					*/
 
 					// set the bitmap
-					gr_set_bitmap(p->reverse ? Anim_bitmap_id_smoke2+(Anim_num_frames_smoke2 - framenum - 1) : Anim_bitmap_id_smoke2+framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha );
+					gr_set_bitmap(p->reverse ? Anim_bitmap_id_smoke2+(Anim_num_frames_smoke2 - framenum - 1) : Anim_bitmap_id_smoke2+framenum, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha, -1, -1);
 					
 					// if this is a tracer style particle
 					if(p->tracer_length > 0.0f){					

@@ -15,6 +15,9 @@
  *  Code to drive the Snazzy User Interface
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -276,7 +279,7 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 
 //	if (mouse_down_count(MOUSE_LEFT_BUTTON) )	{
 	if ( !mouse_down(MOUSE_LEFT_BUTTON) && Snazzy_mouse_left_was_down ) {
-		if (pixel_value >= 0)
+		//if (pixel_value >= 0)	// always true
 			//nprintf(("Alan", "pixel val: %d\n", pixel_value));
 			for (i=0; i < num_regions; i++) {
 				if (pixel_value == regions[i].mask) {
@@ -311,14 +314,14 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 	} // end switch
 
 	i = -1;
-	if (pixel_value >= 0) {
+	//if (pixel_value >= 0) {	// always true
 		for (i=0; i<num_regions; i++) {
 			if (pixel_value == regions[i].mask) {
 				mouse_on_choice = regions[i].mask;	
 				break;
 			}
 		}	// end for
-	}
+	//}
 
 	gr_set_color_fast(&Color_white);
 	gr_set_font( FONT1 );

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2004/07/04 11:31:43  taylor
  * amd64 support, compiler warning fixes, don't use software rendering
  *
@@ -914,7 +917,7 @@ int common_select_do(float frametime)
 void common_render(float frametime)
 {
 	if ( !Background_playing ) {
-		gr_set_bitmap(Brief_background_bitmap);
+		gr_set_bitmap(Brief_background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 

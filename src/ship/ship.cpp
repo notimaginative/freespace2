@@ -15,6 +15,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.9  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.8  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -870,13 +873,13 @@ void ship_iff_init_colors()
 		else 
 			alpha = HUD_COLOR_ALPHA_MAX * 16;
 
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_HOSTILE][i],	0xff, 0x00, 0x00, alpha );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_FRIENDLY][i],	0x00, 0xff, 0x00, alpha );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_NEUTRAL][i],	0xff, 0x00, 0x00, alpha );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_UNKNOWN][i],	0xff, 0x00, 0xff, alpha );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_SELECTION][i], 0xff, 0xff, 0xff, alpha );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_MESSAGE][i],	0x7f, 0x7f, 0x7f, alpha );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_TAGGED][i],		0xff, 0xff, 0x00, alpha );
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_HOSTILE][i],	0xff, 0x00, 0x00, alpha, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_FRIENDLY][i],	0x00, 0xff, 0x00, alpha, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_NEUTRAL][i],	0xff, 0x00, 0x00, alpha, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_UNKNOWN][i],	0xff, 0x00, 0xff, alpha, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_SELECTION][i], 0xff, 0xff, 0xff, alpha, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_MESSAGE][i],	0x7f, 0x7f, 0x7f, alpha, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_TAGGED][i],		0xff, 0xff, 0x00, alpha, AC_TYPE_HUD);
 	}
 }
 
@@ -2634,7 +2637,7 @@ void ship_render(object * obj)
 		}
 
 		// always turn off fog after rendering a ship
-		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 
 		light_set_shadow(0);
 

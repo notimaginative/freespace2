@@ -15,6 +15,9 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.11  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.10  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -518,8 +521,8 @@ void mission_brief_common_init()
 	int i,j;
 
 	// setup brief text colors
-	gr_init_alphacolor( &Brief_color_green, 50, 100, 50, 255 );
-	gr_init_alphacolor( &Brief_color_red, 140, 20, 20, 255 );
+	gr_init_alphacolor( &Brief_color_green, 50, 100, 50, 255, AC_TYPE_HUD);
+	gr_init_alphacolor( &Brief_color_red, 140, 20, 20, 255, AC_TYPE_HUD);
 
 	// extra catch to reset anything that's already loaded (ie. mission restart)
 	mission_brief_common_reset();
@@ -708,8 +711,8 @@ void brief_init_screen(int multiplayer_flag)
 void brief_init_icons()
 {
 	if ( Fred_running ) {
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_HOSTILE][0],  0xff, 0x00, 0x00, 15*16 );
-		gr_init_alphacolor( &IFF_colors[IFF_COLOR_FRIENDLY][0], 0x00, 0xff, 0x00, 15*16 );
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_HOSTILE][0],  0xff, 0x00, 0x00, 15*16, AC_TYPE_HUD);
+		gr_init_alphacolor( &IFF_colors[IFF_COLOR_FRIENDLY][0], 0x00, 0xff, 0x00, 15*16, AC_TYPE_HUD);
 	}
 
 	// Load in the bitmaps for the icons from icons.tbl
@@ -881,7 +884,7 @@ void brief_preload_highlight_anim(brief_icon *bi)
 
 	bi->highlight_anim = *ha;
 
-	gr_set_bitmap(ha->first_frame);
+	gr_set_bitmap(ha->first_frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_aabitmap(0, 0);
 }
 
@@ -905,7 +908,7 @@ void brief_preload_fade_anim(brief_icon *bi)
 		Assert(ha->first_frame >= 0);
 	}
 
-	gr_set_bitmap(ha->first_frame);
+	gr_set_bitmap(ha->first_frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_aabitmap(0, 0);
 }
 
@@ -1242,7 +1245,7 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 		}		
 
 		if ( !(bi->flags & BI_FADEIN) ) {
-			gr_set_bitmap(icon_bitmap);
+			gr_set_bitmap(icon_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 
 			if ( Fred_running )	{
 				gr_aascaler(&va, &vb);

@@ -15,6 +15,9 @@
  * Code to implement a listbox gadget.
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -195,13 +198,13 @@ void UI_LISTBOX::draw()
 	if (uses_bmaps) {
 		if (disabled_flag) {
 			if ( bmap_ids[LBOX_DISABLED] >= 0 ) {
-				gr_set_bitmap(bmap_ids[LBOX_DISABLED]);
+				gr_set_bitmap(bmap_ids[LBOX_DISABLED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(x, y);
 			}
 
 		} else {
 			if ( bmap_ids[LBOX_NORMAL] >= 0 ) {
-				gr_set_bitmap(bmap_ids[LBOX_NORMAL]);
+				gr_set_bitmap(bmap_ids[LBOX_NORMAL], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(x, y);
 			}
 		}

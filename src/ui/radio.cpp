@@ -15,6 +15,9 @@
  * Code to handle radio buttons.
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -111,13 +114,13 @@ void UI_RADIO::draw()
 		if ( disabled_flag ) {
 			if ( flag ) {
 				if ( bmap_ids[RADIO_DISABLED_MARKED] != -1 ) {
-					gr_set_bitmap(bmap_ids[RADIO_DISABLED_MARKED]);
+					gr_set_bitmap(bmap_ids[RADIO_DISABLED_MARKED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 					gr_bitmap(x,y);
 				}
 			}
 			else {
 				if ( bmap_ids[RADIO_DISABLED_CLEAR] != -1 ) {
-					gr_set_bitmap(bmap_ids[RADIO_DISABLED_CLEAR]);
+					gr_set_bitmap(bmap_ids[RADIO_DISABLED_CLEAR], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 					gr_bitmap(x,y);
 				}
 			}
@@ -126,13 +129,13 @@ void UI_RADIO::draw()
 			if ( position == 0 )	{	// up
 				if ( flag ) {			// marked
 					if ( bmap_ids[RADIO_UP_MARKED] != -1 ) {
-						gr_set_bitmap(bmap_ids[RADIO_UP_MARKED]);
+						gr_set_bitmap(bmap_ids[RADIO_UP_MARKED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(x,y);
 					}
 				}
 				else {					// not marked
 					if ( bmap_ids[RADIO_UP_CLEAR] != -1 ) {
-						gr_set_bitmap(bmap_ids[RADIO_UP_CLEAR]);
+						gr_set_bitmap(bmap_ids[RADIO_UP_CLEAR], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(x,y);
 					}
 				}
@@ -140,13 +143,13 @@ void UI_RADIO::draw()
 			else {						// down 
 				if ( flag ) {			// marked
 					if ( bmap_ids[RADIO_DOWN_MARKED] != -1 ) {
-						gr_set_bitmap(bmap_ids[RADIO_DOWN_MARKED]);
+						gr_set_bitmap(bmap_ids[RADIO_DOWN_MARKED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(x,y);
 					}
 				}
 				else {					// not marked
 					if ( bmap_ids[RADIO_DOWN_CLEAR] != -1 ) {
-						gr_set_bitmap(bmap_ids[RADIO_DOWN_CLEAR]);
+						gr_set_bitmap(bmap_ids[RADIO_DOWN_CLEAR], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(x,y);
 					}
 				}

@@ -15,6 +15,9 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.8  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.7  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1244,7 +1247,7 @@ void main_hall_do(float frametime)
 	gr_reset_clip();	
 	GR_MAYBE_CLEAR_RES(Main_hall_bitmap);
 	if(Main_hall_bitmap >= 0){
-		gr_set_bitmap(Main_hall_bitmap);
+		gr_set_bitmap(Main_hall_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 	}
 

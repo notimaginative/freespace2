@@ -15,6 +15,9 @@
  * C++ class implementation for icon UI element
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -91,27 +94,27 @@ void UI_ICON::draw()
 		gr_reset_clip();
 		if (disabled_flag) {
 			if (bmap_ids[ICON_DISABLED] != -1) {
-				gr_set_bitmap(bmap_ids[ICON_DISABLED]);
+				gr_set_bitmap(bmap_ids[ICON_DISABLED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(x,y);
 			}
 
 		} else if (this->is_mouse_on()) {
 			if (B1_PRESSED) {
 				if (bmap_ids[ICON_SELECTED] != -1) {
-					gr_set_bitmap(bmap_ids[ICON_SELECTED]);
+					gr_set_bitmap(bmap_ids[ICON_SELECTED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 					gr_bitmap(x, y);
 				}
 
 			} else {
 				if (bmap_ids[ICON_HIGHLIGHT] != -1) {
-					gr_set_bitmap(bmap_ids[ICON_HIGHLIGHT]);
+					gr_set_bitmap(bmap_ids[ICON_HIGHLIGHT], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 					gr_bitmap(x, y);
 				}
 			}
 
 		} else {
 			if (bmap_ids[ICON_NORMAL] != -1) {
-				gr_set_bitmap(bmap_ids[ICON_NORMAL]);
+				gr_set_bitmap(bmap_ids[ICON_NORMAL], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(x, y);
 			}
 		}

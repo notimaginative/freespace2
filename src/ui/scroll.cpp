@@ -15,6 +15,9 @@
  * Code for vertical scrollbars.
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:45  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -201,13 +204,13 @@ void UI_SCROLLBAR::draw()
 		gr_reset_clip();
 		if (disabled_flag) {
 			if ( bmap_ids[SB_DISABLED] != -1 ) {
-				gr_set_bitmap(bmap_ids[SB_DISABLED]);
+				gr_set_bitmap(bmap_ids[SB_DISABLED], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(x,y);
 			}
 
 		} else {
 			if ( bmap_ids[SB_NORMAL] != -1 ) {
-				gr_set_bitmap(bmap_ids[SB_NORMAL]);
+				gr_set_bitmap(bmap_ids[SB_NORMAL], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				gr_bitmap(x,y);
 			}
 		}

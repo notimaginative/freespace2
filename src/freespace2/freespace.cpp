@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.38  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.37  2004/07/04 11:31:43  taylor
  * amd64 support, compiler warning fixes, don't use software rendering
  *
@@ -1966,12 +1969,12 @@ void game_loading_callback(int count)
 
 	if ( cbitmap > -1 )	{
 		if ( Game_loading_background > -1 )	{
-			gr_set_bitmap( Game_loading_background );
+			gr_set_bitmap( Game_loading_background, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 			gr_bitmap(0,0);
 		}
 
 		//mprintf(( "Showing frame %d/%d [ Bitmap=%d ]\n", Game_loading_frame ,  Game_loading_ani->total_frames, cbitmap ));
-		gr_set_bitmap( cbitmap );
+		gr_set_bitmap( cbitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(Game_loading_ani_coords[gr_screen.res][0],Game_loading_ani_coords[gr_screen.res][1]);
 
 		bm_release(cbitmap);
@@ -3302,7 +3305,7 @@ void game_tst_frame()
 		}
 
 		// draw the bitmap
-		gr_set_bitmap(tst_bitmap);
+		gr_set_bitmap(tst_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap((int)tst_x, (int)tst_y);
 
 		if(tst_mode == 1){

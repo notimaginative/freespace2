@@ -15,6 +15,9 @@
  * C module to provide HUD targeting functions
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -5088,7 +5091,7 @@ void hud_auto_target_icon()
 	// draw the text on top
 	if (frame_offset == 1) {
 		color text_color;
-		gr_init_alphacolor(&text_color, 0, 0, 0, Toggle_text_alpha);
+		gr_init_alphacolor(&text_color, 0, 0, 0, Toggle_text_alpha, AC_TYPE_HUD);
 		gr_set_color_fast(&text_color);
 	
 	}
@@ -5116,7 +5119,7 @@ void hud_auto_speed_match_icon()
 	// draw the text on top
 	if (frame_offset == 3) {
 		color text_color;
-		gr_init_alphacolor(&text_color, 0, 0, 0, Toggle_text_alpha);
+		gr_init_alphacolor(&text_color, 0, 0, 0, Toggle_text_alpha, AC_TYPE_HUD);
 		gr_set_color_fast(&text_color);
 	}
 	gr_string(Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_AUTOS][0], Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_AUTOS][1], XSTR("auto", 1463));

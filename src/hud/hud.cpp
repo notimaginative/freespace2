@@ -15,6 +15,9 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.8  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.7  2003/08/03 16:10:29  taylor
  * cleanup; compile warning fixes
  *
@@ -838,7 +841,7 @@ void HUD_init_hud_color_array()
 	int i;
 
 	for ( i = 0; i < HUD_NUM_COLOR_LEVELS; i++ ) {
-		gr_init_alphacolor( &HUD_color_defaults[i], HUD_color_red, HUD_color_green, HUD_color_blue, (i+1)*16 );
+		gr_init_alphacolor( &HUD_color_defaults[i], HUD_color_red, HUD_color_green, HUD_color_blue, (i+1)*16, AC_TYPE_HUD );
 	}
 }
 
@@ -851,7 +854,7 @@ void HUD_init_colors()
 	saturate(&HUD_color_blue, 0, 255);
 	saturate(&HUD_color_alpha, 0, HUD_COLOR_ALPHA_USER_MAX);
 
-	gr_init_alphacolor( &HUD_color_debug, 128, 255, 128, HUD_color_alpha*16 );
+	gr_init_alphacolor( &HUD_color_debug, 128, 255, 128, HUD_color_alpha*16, AC_TYPE_HUD );
 	HUD_init_hud_color_array();
 
 	hud_init_targeting_colors();
@@ -2011,7 +2014,7 @@ int hud_anim_render(hud_anim *ha, float frametime, int draw_alpha, int loop, int
 
 	// Blit the bitmap for this frame
 	if(emp_should_blit_gauge()){
-		gr_set_bitmap(ha->first_frame + framenum);
+		gr_set_bitmap(ha->first_frame + framenum, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		if ( draw_alpha ){
 			gr_aabitmap(ha->sx, ha->sy);
 		} else {
@@ -2162,7 +2165,7 @@ void hud_maybe_show_netlag_icon()
 		} else {
 			hud_set_gauge_color(HUD_LAG_GAUGE);
 		}
-		gr_set_bitmap(Netlag_icon.first_frame);
+		gr_set_bitmap(Netlag_icon.first_frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		break;
 	case 1:
 		// draw the disconnected icon flashing fast
@@ -2171,7 +2174,7 @@ void hud_maybe_show_netlag_icon()
 		} else {
 			hud_set_gauge_color(HUD_LAG_GAUGE);
 		}
-		gr_set_bitmap(Netlag_icon.first_frame+1);
+		gr_set_bitmap(Netlag_icon.first_frame+1, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		break;
 	default:
 		// nothing to draw
@@ -2665,17 +2668,17 @@ void hud_set_gauge_color(int gauge_index, int bright_index)
 		switch(bright_index){
 		case HUD_C_DIM:
 			alpha = HUD_contrast ? HUD_NEW_ALPHA_DIM_HI : HUD_NEW_ALPHA_DIM;
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 
 		case HUD_C_NORMAL:
 			alpha = HUD_contrast ? HUD_NEW_ALPHA_NORMAL_HI : HUD_NEW_ALPHA_NORMAL;
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 
 		case HUD_C_BRIGHT:
 			alpha = HUD_contrast ? HUD_NEW_ALPHA_BRIGHT_HI : HUD_NEW_ALPHA_BRIGHT;
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 
 		// intensity
@@ -2698,22 +2701,22 @@ void hud_set_gauge_color(int gauge_index, int bright_index)
 			if(alpha < 0){
 				alpha = 0;
 			}
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 		}
 	} else {
 		switch(flash_status) {
 		case 0:
 			alpha = HUD_contrast ? HUD_NEW_ALPHA_DIM_HI : HUD_NEW_ALPHA_DIM;
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 		case 1:			
 			alpha = HUD_contrast ? HUD_NEW_ALPHA_BRIGHT_HI : HUD_NEW_ALPHA_BRIGHT;
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 		default:			
 			alpha = HUD_contrast ? HUD_NEW_ALPHA_NORMAL_HI : HUD_NEW_ALPHA_NORMAL;	
-			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
+			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha, AC_TYPE_HUD);
 			break;
 		}
 	}

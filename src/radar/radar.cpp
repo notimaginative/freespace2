@@ -15,6 +15,9 @@
  * C module containg functions to display and manage the radar
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -335,7 +338,7 @@ void radar_init()
 
 	for (i=0; i<MAX_RADAR_LEVELS; i++ )	{
 		for (j=0; j<MAX_RADAR_COLORS; j++ )	{
-			gr_init_alphacolor( &Radar_colors[i][j], Radar_color_rgb[i][j].r, Radar_color_rgb[i][j].g, Radar_color_rgb[i][j].b, 255 );
+			gr_init_alphacolor( &Radar_colors[i][j], Radar_color_rgb[i][j].r, Radar_color_rgb[i][j].g, Radar_color_rgb[i][j].b, 255, AC_TYPE_HUD);
 		}
 	}
 
@@ -867,7 +870,7 @@ void radar_frame_render(float frametime)
 
 void radar_blit_gauge()
 {
-	gr_set_bitmap(Radar_gauge.first_frame+1);
+	gr_set_bitmap(Radar_gauge.first_frame+1, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	gr_aabitmap( Radar_coords[gr_screen.res][0], Radar_coords[gr_screen.res][1] );
 } 
 

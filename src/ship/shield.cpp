@@ -15,6 +15,9 @@
  *	Stuff pertaining to shield graphical effects, etc.
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -635,7 +638,7 @@ void render_shield(int shield_num) //, matrix *orient, vector *centerp)
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
 		alpha *= 0.85f;
 	}
-	gr_set_bitmap(bitmap_id, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha );
+	gr_set_bitmap(bitmap_id, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha, -1, -1);
 
 	if (!D3D_enabled || (Detail.shield_effects == 1) || (Detail.shield_effects == 2)) {
 		if ( bitmap_id != - 1 ) {

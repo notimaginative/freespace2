@@ -15,6 +15,9 @@
  * Sorting code for objects.
  *
  * $Log$
+ * Revision 1.4  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.3  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -337,7 +340,7 @@ void obj_render_all(void (*render_function)(object *objp) )
 
 	// if we're fullneb, switch off the fog effet
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode != NEB2_RENDER_NONE)){
-		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0);
+		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
 
 /*	Show spheres where wingmen should be flying

@@ -15,6 +15,9 @@
  * C module that contains functions to drive the Training user interface
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -197,7 +200,7 @@ void training_menu_do_frame(float frametime)
 	GR_MAYBE_CLEAR_RES(trainingMenuBitmap);	
 	// set the background
 	if(trainingMenuBitmap != -1){
-		gr_set_bitmap(trainingMenuBitmap);
+		gr_set_bitmap(trainingMenuBitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);
 	}
 

@@ -15,6 +15,9 @@
  * C module for the Hotkey selection screen
  *
  * $Log$
+ * Revision 1.6  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1357,7 +1360,7 @@ void mission_hotkey_do_frame(float frametime)
 	}
 
 	if (Background_bitmap >= 0) {
-		gr_set_bitmap(Background_bitmap);
+		gr_set_bitmap(Background_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0, 0);
 
 	} else
@@ -1390,7 +1393,7 @@ void mission_hotkey_do_frame(float frametime)
 				break;
 
 			case HOTKEY_LINE_WING:
-				gr_set_bitmap(Wing_bmp);
+				gr_set_bitmap(Wing_bmp, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 				bm_get_info(Wing_bmp, NULL, &h, NULL);
 				i = y + font_height / 2 - h / 2 - 1;
 				gr_bitmap(Hotkey_wing_icon_x[gr_screen.res], i);

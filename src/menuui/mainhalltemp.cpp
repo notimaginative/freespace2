@@ -15,6 +15,9 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.3  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.2  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -200,7 +203,7 @@ void mht_do()
 	gr_reset_clip();
 	GR_MAYBE_CLEAR_RES(Mht_bitmap);
 	if(Mht_bitmap != -1){		
-		gr_set_bitmap(Mht_bitmap);
+		gr_set_bitmap(Mht_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);
 	}
 	Mht_window.draw();	

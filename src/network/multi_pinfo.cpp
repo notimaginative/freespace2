@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2004/09/20 01:31:44  theoddone33
+ * GCC 3.4 fixes.
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -504,7 +507,7 @@ void multi_pinfo_popup_do()
 		gr_shade(0,0,gr_screen.clip_width, gr_screen.clip_height);
 		
 		// draw the background bitmap
-		gr_set_bitmap(Multi_pinfo_bitmap);
+		gr_set_bitmap(Multi_pinfo_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		gr_bitmap(0,0);		
 
 		// blit the selected pilot image
@@ -599,7 +602,7 @@ void multi_pinfo_blit_pilot_image()
 	} 
 	// otherwise blit the bitmap
 	else {
-		gr_set_bitmap(Mp_pilot.bitmap);
+		gr_set_bitmap(Mp_pilot.bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 
 		// get width and heigh
 		int w, h;
@@ -646,7 +649,7 @@ void multi_pinfo_blit_squadron_logo()
 	} 
 	// otherwise blit the bitmap
 	else {
-		gr_set_bitmap(Mp_squad.bitmap);
+		gr_set_bitmap(Mp_squad.bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		// gr_bitmap(MPI_SQUAD_X, MPI_SQUAD_Y);
 
 		// get width and heigh

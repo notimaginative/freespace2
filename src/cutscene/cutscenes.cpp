@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Cutscene/Cutscenes.cpp $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.5  2002/06/09 04:41:15  relnev
+ * added copyright header
+ *
  * Revision 1.4  2002/06/02 04:26:34  relnev
  * warning cleanup
  *

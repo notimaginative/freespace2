@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Network/MultiUI.h $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * Header file for the UI of the various multiplayer screens
  *
  * $Log$
+ * Revision 1.3  2002/06/09 04:41:14  relnev
+ * added copyright header
+ *
  * Revision 1.2  2002/05/27 00:40:47  theoddone33
  * Fix net_addr vs net_addr_t
  *

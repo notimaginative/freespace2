@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Ship/AiGoals.cpp $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * File to deal with manipulating AI goals, etc.
  *
  * $Log$
+ * Revision 1.4  2002/06/09 04:41:26  relnev
+ * added copyright header
+ *
  * Revision 1.3  2002/05/26 22:06:17  relnev
  * makefile: disable stand_gui for now.
  *

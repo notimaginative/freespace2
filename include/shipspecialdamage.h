@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
 #if !defined(AFX_SHIPSPECIALDAMAGE_H__89610237_C0F4_11D2_A8B6_0060088FAE88__INCLUDED_)
 #define AFX_SHIPSPECIALDAMAGE_H__89610237_C0F4_11D2_A8B6_0060088FAE88__INCLUDED_
 

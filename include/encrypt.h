@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/parse/Encrypt.h $
  * $Revision$
  * $Date$
@@ -7,8 +15,11 @@
  * Header for encryption code common to FreeSpace and related tools
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/06/09 04:41:12  relnev
+ * added copyright header
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 3     3/25/99 11:26a Dave

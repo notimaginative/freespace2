@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Sound/ds.h $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * Header file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.3  2002/06/09 04:41:12  relnev
+ * added copyright header
+ *
  * Revision 1.2  2002/05/27 01:06:01  theoddone33
  * sound.cpp works
  *

@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Sound/rtvoice.cpp $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * C module file for real-time voice
  *
  * $Log$
+ * Revision 1.4  2002/06/09 04:41:27  relnev
+ * added copyright header
+ *
  * Revision 1.3  2002/05/27 04:04:43  relnev
  * 155 undefined references left
  *

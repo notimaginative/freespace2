@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Freespace2/FreeSpace.cpp $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.17  2002/06/09 04:41:17  relnev
+ * added copyright header
+ *
  * Revision 1.16  2002/06/09 03:16:04  relnev
  * added _splitpath.
  *

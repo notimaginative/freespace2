@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Fred2/MainFrm.cpp $
  * $Revision$
  * $Date$
@@ -14,8 +22,11 @@
  * me (Hoffoss) decided to put it here.  I've been putting it all in FredView.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/06/09 04:41:16  relnev
+ * added copyright header
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 8     10/13/99 2:55p Jefff

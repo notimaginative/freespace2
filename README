@@ -1,4 +1,4 @@
-06/05/2002
+06/08/2002
 
 It's not finished, but since people are interested in seeing the code, here
 it is.
@@ -29,8 +29,17 @@ not touched.
 Hope this helps!
 
 ----------------------------------------------
-Freespace 2 - A Linux port hacked together by:
+Freespace 2 (http://www.freespace2.com)
+            - A game by Volition, Inc. (http://www.volition-inc.com)
 
+Linux port hacked together by:
 Dan Olson <theoddone33@linuxgames.com>
 Steven Fuller <relnev@icculus.org>
 Charles Mason <cemason@hotpop.com>
+
+Based on the Freespace 2 source code:
+Copyright (C) Volition, Inc. 1999.  All rights reserved.
+
+All source code herein is the property of Volition, Inc. You may not sell
+or otherwise commercially exploit the source or things you created based on
+the source.

@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/FRED2/ShieldSysDlg.h $
  * $Revision$
  * $Date$
@@ -8,8 +16,11 @@
  * (on a certain team or of a certain type) have a shield system or not.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/06/09 04:41:14  relnev
+ * added copyright header
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 6:28p Dave

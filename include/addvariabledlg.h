@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
 #if !defined(AFX_ADDVARIABLEDLG_H__0F668CB5_AAEE_11D2_A899_0060088FAE88__INCLUDED_)
 #define AFX_ADDVARIABLEDLG_H__0F668CB5_AAEE_11D2_A899_0060088FAE88__INCLUDED_
 

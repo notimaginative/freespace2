@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
  /*
  * $Logfile: /Freespace2/code/Inetfile/inetgetfile.cpp $
  * $Revision$
@@ -7,6 +15,9 @@
  * InternetGetFile Class
  *
  * $Log$
+ * Revision 1.5  2002/06/09 04:41:21  relnev
+ * added copyright header
+ *
  * Revision 1.4  2002/05/26 20:32:24  theoddone33
  * Fix some minor stuff
  *

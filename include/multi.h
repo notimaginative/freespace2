@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/Network/Multi.h $
  * $Revision$
  * $Date$
@@ -8,6 +16,9 @@
  * multiplayer functions.
  *
  * $Log$
+ * Revision 1.4  2002/06/09 04:41:14  relnev
+ * added copyright header
+ *
  * Revision 1.3  2002/06/02 06:02:59  relnev
  * tcp.cfg namefix
  *

@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Volition, Inc. 1999.  All rights reserved.
+ *
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on
+ * the source.
+ */
+
+/*
  * $Logfile: /Freespace2/code/MenuUI/ReadyRoom.cpp $
  * $Revision$
  * $Date$
@@ -7,6 +15,9 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.3  2002/06/09 04:41:22  relnev
+ * added copyright header
+ *
  * Revision 1.2  2002/06/02 04:26:34  relnev
  * warning cleanup
  *

@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.21  2002/07/28 05:05:08  relnev
+ * removed some old stuff
+ *
  * Revision 1.20  2002/07/24 00:20:41  relnev
  * nothing interesting
  *
@@ -561,8 +564,6 @@
 #include "hudets.h"
 #include "hudtarget.h"
 #include "gamesnd.h"
-#include "rbaudio.h"
-#include "winmidi.h"
 #include "eventmusic.h"
 #include "animplay.h"
 #include "missionweaponchoice.h"

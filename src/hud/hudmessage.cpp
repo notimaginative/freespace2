@@ -15,6 +15,9 @@
  * C module that controls and manages the message window on the HUD
  *
  * $Log$
+ * Revision 1.6  2002/07/28 05:05:08  relnev
+ * removed some old stuff
+ *
  * Revision 1.5  2002/07/13 06:46:48  theoddone33
  * Warning cleanups
  *
@@ -415,7 +418,6 @@
 #include "timer.h"
 #include "math.h"
 #include "mouse.h"
-#include "winmidi.h"
 #include "player.h"
 #include "linklist.h"
 #include "missionlog.h"

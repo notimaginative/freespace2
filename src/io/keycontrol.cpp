@@ -15,6 +15,9 @@
  * Routines to read and deal with keyboard input.
  *
  * $Log$
+ * Revision 1.4  2002/07/28 05:05:08  relnev
+ * removed some old stuff
+ *
  * Revision 1.3  2002/06/18 08:58:53  relnev
  * last few struct changes
  *
@@ -299,7 +302,6 @@
 #include "sound.h"
 #include "gamesnd.h"
 #include "bmpman.h"
-#include "rbaudio.h"
 #include "hudsquadmsg.h"
 #include "eventmusic.h"
 #include "animplay.h"

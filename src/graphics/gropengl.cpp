@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.28  2002/05/31 00:06:59  relnev
+ * minor change
+ *
  * Revision 1.27  2002/05/30 23:46:29  theoddone33
  * some minor key changes (not necessarily fixes)
  *
@@ -392,10 +395,7 @@ int gr_opengl_preload(int bitmap_num, int is_aabitmap)
 
 void gr_opengl_pixel(int x, int y)
 {
-	if ( x < gr_screen.clip_left ) return;
-	if ( x > gr_screen.clip_right ) return;
-	if ( y < gr_screen.clip_top ) return;
-	if ( y > gr_screen.clip_bottom ) return;
+	gr_line(x,y,x,y);
 }
 
 void gr_opengl_clear()
@@ -1853,14 +1853,23 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 			ubyte *bmp_data = ((ubyte*)data);
 			ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
 			ubyte *texmemp = texmem;
-
+			ubyte xlat[256];
+			
+			for (i=0; i<16; i++) {
+				xlat[i] = Gr_gamma_lookup[(i*255)/15];
+			}
+			xlat[15] = xlat[1];
+			for ( ; i<256; i++ )    {
+				xlat[i] = xlat[0];
+			}
+			
 			for (i=0;i<tex_h;i++)
 			{
 				for (j=0;j<tex_w;j++)
 				{
 					if (i < bmap_h && j < bmap_w) {
 						*texmemp++ = 0xff;
-						*texmemp++ = bmp_data[i*bmap_w+j]<<4;
+						*texmemp++ = xlat[bmp_data[i*bmap_w+j]];
 					} else {
 						*texmemp++ = 0;
 						*texmemp++ = 0;

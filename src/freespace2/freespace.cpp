@@ -7,6 +7,13 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.16  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.15  2002/06/05 08:05:28  relnev
  * stub/warning removal.
  *
@@ -2375,7 +2382,11 @@ void game_init()
 	}
 
 	// If less than 48MB of RAM, use low memory model.
-	if ( (Freespace_total_ram < 48*1024*1024) || Use_low_mem )	{
+	if ( 
+#ifndef PLAT_UNIX		
+			(Freespace_total_ram < 48*1024*1024) ||
+#endif		
+			 Use_low_mem )	{
 		mprintf(( "Using normal memory settings...\n" ));
 		bm_set_low_mem(1);		// Use every other frame of bitmaps
 	} else {

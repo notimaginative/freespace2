@@ -7,6 +7,13 @@
  * Routines to draw a texture map.
  *
  * $Log$
+ * Revision 1.3  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.2  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -453,20 +460,18 @@ void tmap_scan_generic()
 // just for Z and L.
 inline int tmap_ftol(float f)
 {
-	int x;
 #ifdef PLAT_UNIX
-	//STUB_FUNCTION;
-	
-	__asm__("flds	%1	\n\t"
-		"fistpl	%0	\n\t"
-		: "=m" (x)
-		: "m" (f)
-		);
+	STUB_FUNCTION;
+
+	return 0;
 #else
+	int x;
+	
 	_asm fld f
 	_asm fistp x
+
+	return x;
 #endif
-	return x; 
 }
 
 /*
@@ -889,6 +894,3 @@ void grx_tmapper( int nverts, vertex **verts, uint flags )
 
 
 }
-
-
-

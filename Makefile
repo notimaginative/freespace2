@@ -6,7 +6,8 @@ AR=ar
 CODE_BINARY=code.a
 FS_BINARY=freespace2
 LDFLAGS=$(shell sdl-config --libs) -lGL -lopenal
-CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
+CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
+#CFLAGS+=-O2
 #CFLAGS+=-DNDEBUG
 #CFLAGS+=-funroll-loops # -fomit-frame-pointer # not stable?
 #CFLAGS+=-march=pentiumpro -mcpu=pentiumpro # not stable?

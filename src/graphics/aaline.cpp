@@ -7,6 +7,13 @@
  * Code to draw antialiased lines
  *
  * $Log$
+ * Revision 1.4  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.3  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -240,18 +247,13 @@ void aaline_init_tables()
 // written to simulate exact hardware behavior.
 long int fix_xy_mult(long int oa, fix_xy ob)
 {
-	int retval;
-
 #ifdef PLAT_UNIX
-	//STUB_FUNCTION;
-	
-	__asm__("imul	%2			\n\t"
-		"shrd	$20, %%edx, %%eax	\n\t"
-		: "=a" (retval)
-		: "a" (ob), "q" (oa)
-		: "%edx"
-		);
+	STUB_FUNCTION;
+
+	return 0;	
 #else
+	int retval;
+	
 	_asm {
 		mov	edx, oa
 		mov	eax, ob
@@ -259,8 +261,9 @@ long int fix_xy_mult(long int oa, fix_xy ob)
 		shrd	eax,edx,20
 		mov	retval, eax
 	}
-#endif
+	
 	return retval;
+#endif
 }
 
 

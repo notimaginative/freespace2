@@ -7,6 +7,13 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.4  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.3  2002/06/01 07:12:33  relnev
  * a few NDEBUG updates.
  *
@@ -1097,14 +1104,11 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 	}
 #ifndef NDEBUG
 	if ( !ss_warning_shown) {
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
 		char bname[_MAX_FNAME];
 
 		_splitpath(model_filename, NULL, NULL, bname, NULL);
 		Warning(LOCATION, "A subsystem was found in model %s that does not have a record in ships.tbl.\nA list of subsystems for this ship will be dumped to:\n\ndata\\tables\\%s.subsystems for inclusion\n into ships.tbl.", model_filename, bname);
-#endif
+
 		ss_warning_shown = 1;
 	} else
 #endif

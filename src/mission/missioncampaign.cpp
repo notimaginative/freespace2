@@ -7,6 +7,13 @@
  * source for dealing with campaigns
  *
  * $Log$
+ * Revision 1.3  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.2  2002/06/02 04:26:34  relnev
  * warning cleanup
  *
@@ -701,9 +708,6 @@ void mission_campaign_init()
 // Fill in the root of the campaign save filename
 void mission_campaign_savefile_generate_root(char *filename)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	char base[_MAX_FNAME];
 
 	Assert ( strlen(Campaign.filename) != 0 );
@@ -714,7 +718,6 @@ void mission_campaign_savefile_generate_root(char *filename)
 	Assert ( (strlen(base) + strlen(Player->callsign) + 1) < _MAX_FNAME );
 
 	sprintf( filename, NOX("%s.%s."), Player->callsign, base );
-#endif
 }
 
 // mission_campaign_savefile_save saves the state of the campaign.  This function will probably always be called
@@ -854,9 +857,6 @@ int campaign_savefile_save(char *pname)
 // campaign filename
 void mission_campaign_savefile_delete( char *cfilename, int is_multi )
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	char filename[_MAX_FNAME], base[_MAX_FNAME];
 
 	_splitpath( cfilename, NULL, NULL, base, NULL );
@@ -868,7 +868,6 @@ void mission_campaign_savefile_delete( char *cfilename, int is_multi )
 	sprintf( filename, NOX("%s.%s.csg"), Player->callsign, base );
 
 	cf_delete( filename, CF_TYPE_SINGLE_PLAYERS );
-#endif
 }
 
 void campaign_delete_save( char *cfn, char *pname)
@@ -915,9 +914,6 @@ void mission_campaign_delete_all_savefiles( char *pilot_name, int is_multi )
 // of the information stored in the campaign file.
 void mission_campaign_savefile_load( char *cfilename )
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	char filename[_MAX_FNAME], base[_MAX_FNAME];
 	int id, version, i, num, j, num_stats_blocks;
 	int type_sig;
@@ -1082,8 +1078,6 @@ void mission_campaign_savefile_load( char *cfilename )
 	}
 
 	cfclose(fp);
-
-#endif
 }
 
 // the following code only ever called by CSFE!!!!

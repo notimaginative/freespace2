@@ -5,6 +5,13 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.6  2002/06/09 03:16:05  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.5  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -688,11 +695,8 @@ void init_medal_bitmaps()
 			// for this medal.  if the player has > 1 of these types of medals, then determien
 			// which of the possible version to use based on the player's count of this medal
 			strcpy( filename, Medals[idx].bitmap );
-#ifdef PLAT_UNIX
-			STUB_FUNCTION;
-#else
+
 			_splitpath( filename, NULL, NULL, base, NULL );
-#endif
 
 			num_medals = Player_score->medals[idx];
 

@@ -8,6 +8,13 @@
  * manage the pilot
  *
  * $Log$
+ * Revision 1.3  2002/06/09 03:16:05  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.2  2002/05/07 03:16:50  theoddone33
  * The Great Newline Fix
  *
@@ -265,9 +272,7 @@ void delete_pilot_file( char *pilot_name, int single )
 	char basename[MAX_FILENAME_LEN];
 
 	// get the player file.
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
+
 	_splitpath(pilot_name, NULL, NULL, basename, NULL);
 
 	strcpy( filename, basename );
@@ -280,7 +285,6 @@ void delete_pilot_file( char *pilot_name, int single )
 
 	// we must try and delete the campaign save files for a pilot as well.
 	mission_campaign_delete_all_savefiles( basename, !single );
-#endif
 }
 
 // check if a pilot file is valid or not (i.e. is usable, not out of date, etc)

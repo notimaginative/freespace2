@@ -1,0 +1,36 @@
+06/05/2002
+
+It's not finished, but since people are interested in seeing the code, here
+it is.
+
+Current status:
+- It currently uses SDL (http://www.libsdl.org) and OpenAL
+(http://opensource.creative.com)
+
+- The OpenGL code is complete minus one or two things, but it is unoptimized.
+
+- Keyboard and mouse work.  Joystick code exists but it is not finished.
+
+- Lots of debug messages.  Recompile with NDEBUG defined to get rid of them.
+
+- Only the demo was tested.  The full version may or may not work (edit
+pstypes.h to build the full version).  Mods, etc. have also not been tested.
+
+- Networking (TCP) seems to work OK.
+
+- Sound code is only partially implemented.
+
+- Currently all files need to be in the current working directory.
+
+- The Windows version might still compile, but wasn't tested.  (The
+Linux-specific code is separated by a PLAT_UNIX define).  Fred2, etc., were
+not touched.
+
+Hope this helps!
+
+----------------------------------------------
+Freespace 2 - A Linux port hacked together by:
+
+Dan Olson <theoddone33@linuxgames.com>
+Steven Fuller <relnev@icculus.org>
+Charles Mason <cemason@hotpop.com>

@@ -49,6 +49,7 @@ extern void Sleep (int miliseconds);
 extern unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList);
 extern void OutputDebugString (const char *);
 extern int WSAGetLastError ();
+extern void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ext);
 
 typedef struct FILETIME_s {
 	    DWORD dwLowDateTime;

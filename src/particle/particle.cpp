@@ -7,6 +7,13 @@
  * Code for particle system
  *
  * $Log$
+ * Revision 1.3  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.2  2002/05/07 03:16:48  theoddone33
  * The Great Newline Fix
  *
@@ -225,19 +232,19 @@ void particle_init()
 
 	if ( Anim_bitmap_id_fire == -1 )	{
 		int fps;
-		Anim_bitmap_id_fire = bm_load_animation( "particleexp01", &Anim_num_frames_fire, &fps, 0 );
+		Anim_bitmap_id_fire = bm_load_animation( "particleexp01", &Anim_num_frames_fire, &fps, 1 );
 	}
 		//Anim_bitmap_id = bm_load( "particleglow01" );
 		//Anim_num_frames = 1;
 
 	if ( Anim_bitmap_id_smoke == -1 )	{
 		int fps;
-		Anim_bitmap_id_smoke = bm_load_animation( "particlesmoke01", &Anim_num_frames_smoke, &fps, 0 );
+		Anim_bitmap_id_smoke = bm_load_animation( "particlesmoke01", &Anim_num_frames_smoke, &fps, 1 );
 	}
 
 	if ( Anim_bitmap_id_smoke2 == -1 )	{
 		int fps;
-		Anim_bitmap_id_smoke2 = bm_load_animation( "particlesmoke02", &Anim_num_frames_smoke2, &fps, 0 );
+		Anim_bitmap_id_smoke2 = bm_load_animation( "particlesmoke02", &Anim_num_frames_smoke2, &fps, 1 );
 	}
 
 }

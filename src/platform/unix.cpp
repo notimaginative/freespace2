@@ -48,6 +48,29 @@ int WSAGetLastError()
 	return errno;
 }
 
+void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ext)
+{
+	if (path == NULL)
+		return;
+
+	/* fs2 only uses fname */
+	if (fname != NULL) {
+		const char *ls = strrchr(path, '/');
+		if (ls != NULL) {
+			ls++;		// move past '/'
+		} else {
+			ls = path;
+		}
+	
+		const char *lp = strrchr(path, '.');
+		if (lp == NULL) {
+			lp = ls + strlen(ls);	// move to the end
+		}
+	
+		strncpy(fname, ls, _MAX_FNAME);
+	}
+}
+
 int MulDiv(int a, int b, int c)
 {
 	/* slow long long version */

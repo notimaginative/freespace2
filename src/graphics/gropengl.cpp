@@ -7,6 +7,13 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.47  2002/06/09 03:16:04  relnev
+ * added _splitpath.
+ *
+ * removed unneeded asm, old sdl 2d setup.
+ *
+ * fixed crash caused by opengl_get_region.
+ *
  * Revision 1.46  2002/06/05 04:03:32  relnev
  * finished cfilesystem.
  *
@@ -325,64 +332,82 @@ void d3d_zbias (int a)
 }
 #endif
 
+
+static gr_texture_source GL_current_texture_source = (gr_texture_source) -1;
+static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
+static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
+
 void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt)
 {
-	switch (ts) {
-		case TEXTURE_SOURCE_NONE:
-			glBindTexture(GL_TEXTURE_2D, 0);
-			gr_tcache_set(-1, -1, NULL, NULL );
-			break;
-		case TEXTURE_SOURCE_DECAL:
-			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			break;
-		case TEXTURE_SOURCE_NO_FILTERING:
-			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			break;
-		default:
-			break;
+	/* TODO: this doesn't work unless it's handled at the per-texture level */
+	/* if (ts != GL_current_texture_source) */ {
+		switch (ts) {
+			case TEXTURE_SOURCE_NONE:
+				glBindTexture(GL_TEXTURE_2D, 0);
+				gr_tcache_set(-1, -1, NULL, NULL );
+				break;
+			case TEXTURE_SOURCE_DECAL:
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				// glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				break;
+			case TEXTURE_SOURCE_NO_FILTERING:
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				// glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				break;
+			default:
+				break;
+		}
+		
+		GL_current_texture_source = ts;
 	}
 	
-	switch (ab) {
-		case ALPHA_BLEND_NONE:
-			glBlendFunc(GL_ONE, GL_ZERO);
-			break;
-		case ALPHA_BLEND_ALPHA_ADDITIVE:
-			glBlendFunc(GL_ONE, GL_ONE);
-			break;
-		case ALPHA_BLEND_ALPHA_BLEND_ALPHA:
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			break;
-		case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:
-			glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
-			break;
-		default:
-			break;
+	if (ab != GL_current_alpha_blend) {
+		switch (ab) {
+			case ALPHA_BLEND_NONE:
+				glBlendFunc(GL_ONE, GL_ZERO);
+				break;
+			case ALPHA_BLEND_ALPHA_ADDITIVE:
+				glBlendFunc(GL_ONE, GL_ONE);
+				break;
+			case ALPHA_BLEND_ALPHA_BLEND_ALPHA:
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:
+				glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+				break;
+			default:
+				break;
+		}
+		
+		GL_current_alpha_blend = ab;
 	}
 	
-	switch (zt) {
-		case ZBUFFER_TYPE_NONE:
-			glDepthFunc(GL_ALWAYS);
-			glDepthMask(GL_FALSE);
-			break;
-		case ZBUFFER_TYPE_READ:
-			glDepthFunc(GL_LESS);
-			glDepthMask(GL_FALSE);	
-			break;
-		case ZBUFFER_TYPE_WRITE:
-			glDepthFunc(GL_ALWAYS);
-			glDepthMask(GL_TRUE);
-			break;
-		case ZBUFFER_TYPE_FULL:
-			glDepthFunc(GL_LESS);
-			glDepthMask(GL_TRUE);
-			break;
-		default:
-			break;
-	}		
+	if (zt != GL_current_zbuffer_type) {
+		switch (zt) {
+			case ZBUFFER_TYPE_NONE:
+				glDepthFunc(GL_ALWAYS);
+				glDepthMask(GL_FALSE);
+				break;
+			case ZBUFFER_TYPE_READ:
+				glDepthFunc(GL_LESS);
+				glDepthMask(GL_FALSE);	
+				break;
+			case ZBUFFER_TYPE_WRITE:
+				glDepthFunc(GL_ALWAYS);
+				glDepthMask(GL_TRUE);
+				break;
+			case ZBUFFER_TYPE_FULL:
+				glDepthFunc(GL_LESS);
+				glDepthMask(GL_TRUE);
+				break;
+			default:
+				break;
+		}
+		
+		GL_current_zbuffer_type = zt;
+	}	
 }
 
 void gr_opengl_activate(int active)
@@ -802,7 +827,7 @@ void gr_opengl_bitmap(int x, int y)
 #endif	
 }
 
-void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
+static void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 {
 	int saved_zbuf;
 	vertex v[4];
@@ -898,7 +923,7 @@ void gr_opengl_shade(int x,int y,int w,int h)
         gr_opengl_rect_internal(x, y, w, h, r, g, b, a);	
 }
 
-void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
+static void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
 	if ( w < 1 ) return;
 	if ( h < 1 ) return;
@@ -1056,7 +1081,6 @@ void gr_opengl_aabitmap(int x, int y)
 	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
 	gr_aabitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
 }
-
 
 void gr_opengl_string( int sx, int sy, char *s )
 {
@@ -1267,7 +1291,7 @@ void gr_opengl_circle( int xc, int yc, int d )
 	return;
 }
 
-void gr_opengl_stuff_fog_value(float z, int *r, int *g, int *b, int *a)
+static void gr_opengl_stuff_fog_value(float z, int *r, int *g, int *b, int *a)
 {
 	float f_float;
 	
@@ -1283,7 +1307,7 @@ void gr_opengl_stuff_fog_value(float z, int *r, int *g, int *b, int *a)
 	*a = (int)(f_float * 255.0);
 }
 
-void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
+static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
 {
 	int i;
 	float u_scale = 1.0f, v_scale = 1.0f;
@@ -2159,13 +2183,16 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		return 0;
 	}
 	
+	GL_current_texture_source = (gr_texture_source) -1;
+	
 	glBindTexture (GL_TEXTURE_2D, t->texture_handle);
 
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	
 	switch (bitmap_type) {
 
 		case TCACHE_TYPE_AABITMAP:
@@ -2636,7 +2663,7 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 	
 	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 	
-	glPixelStorei(GL_PACK_ROW_LENGTH, gr_screen.max_w);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, gr_screen.max_w);
 	
 	if (gr_screen.bits_per_pixel == 15) {
 		glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
@@ -2644,7 +2671,7 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 		glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 	
-	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
 static int Gr_opengl_mouse_saved = 0;

@@ -7,6 +7,9 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
+ * Revision 1.3  2002/05/28 04:56:51  theoddone33
+ * runs a little bit now
+ *
  * Revision 1.2  2002/05/28 04:07:28  theoddone33
  * New graphics stubbing arrangement
  *
@@ -385,6 +388,10 @@
 // This structure is the same as LOGPALETTE except that LOGPALETTE
 // requires you to malloc out space for the palette, which just isn't
 // worth the trouble.
+
+#ifdef PLAT_UNIX
+SDL_Surface *soft_surface;
+#endif
 
 #ifndef PLAT_UNIX
 typedef struct {
@@ -1091,6 +1098,7 @@ void grx_flip()
 
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
+	SDL_UpdateRect (soft_surface, 0, 0, 0, 0);
 #else
 	HWND hwnd = (HWND)os_get_window();
 
@@ -1533,6 +1541,7 @@ void gr8_set_gamma(float gamma)
 	gr_screen.signature = Gr_signature++;
 }
 
+
 void gr_soft_init()
 {
 //	int i;
@@ -1547,7 +1556,19 @@ void gr_soft_init()
 
 	// Prepare the window to go full screen
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	if (SDL_InitSubSystem (SDL_INIT_VIDEO) < 0)
+	{
+		fprintf (stderr, "Couldn't initialize SDL: %s", SDL_GetError());
+		exit (1);
+	}
+
+	atexit (SDL_Quit);
+	
+	soft_surface = SDL_SetVideoMode (640,480,8,0);
+	if (soft_surface == NULL) {
+		fprintf (stderr, "Couldn't set 640x480x8 mode: %s", SDL_GetError());
+		exit (1);
+	}
 #else
 	HWND hwnd = (HWND)os_get_window();
 
@@ -1594,7 +1615,8 @@ void gr_soft_init()
 	gr_buffer_create( gr_screen.max_w, gr_screen.max_h, gr_screen.bits_per_pixel );
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	gr_screen.offscreen_buffer = soft_surface->pixels;
+	gr_screen.rowsize = soft_surface->pitch;
 #else
 	gr_screen.offscreen_buffer_base = lpDibBits;
 

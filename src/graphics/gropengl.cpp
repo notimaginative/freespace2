@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.6  2002/05/28 04:56:51  theoddone33
+ * runs a little bit now
+ *
  * Revision 1.5  2002/05/28 04:07:28  theoddone33
  * New graphics stubbing arrangement
  *
@@ -169,6 +172,16 @@ void gr_d3d_preload(int x, int y)
 }
 
 void gr_opengl_activate(int b)
+{
+	STUB_FUNCTION;
+}
+
+void d3d_start_frame()
+{
+	STUB_FUNCTION;
+}
+
+void d3d_stop_frame()
 {
 	STUB_FUNCTION;
 }

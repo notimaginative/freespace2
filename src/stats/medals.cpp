@@ -5,6 +5,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.4  2002/05/28 04:56:51  theoddone33
+ * runs a little bit now
+ *
  * Revision 1.3  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -169,6 +172,7 @@ int Badge_index[MAX_BADGES];
 // the rank section of the screen
 #define RANK_MEDAL_REGION		12			// region number of the rank medal
 
+#warning Find real FS2_DEMO spot for medals
 // coords for indiv medal bitmaps
 int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 	{				// GR_640
@@ -188,8 +192,10 @@ int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 		{ 283, 91 },				// wings
 		{ 372, 76 },				// bronze kills badge
 		{ 403, 76 },				// silver kills badge
+#ifndef FS2_DEMO
 		{ 435, 76 },				// gold kills badge
 		{ 300, 152 },				// SOC unit crest
+#endif
 	},
 	{				// GR_1024
 		{ 143, 75 },				// eps. peg. lib
@@ -208,8 +214,10 @@ int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 		{ 453, 146 },				// wings
 		{ 595, 121 },				// bronze kills badge
 		{ 646, 121 },				// silver kills badge
+#ifndef FS2_DEMO
 		{ 696, 121 },				// gold kills badge
 		{ 480, 244 },				// SOC unit crest
+#endif
 	}
 };
 

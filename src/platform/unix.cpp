@@ -92,9 +92,15 @@ void load_filter_info(void)
 	STUB_FUNCTION;
 }
 
-void outwnd_printf(char*, char*, ...)
+void outwnd_printf(char* id, char* format, ...)
 {
-	STUB_FUNCTION;
+	char tmp[MAX_LINE_WIDTH*4];
+	va_list args;
+
+	va_start (args, format);
+	vsprintf (tmp, format, args);
+	va_end(args);
+	fprintf (stderr, "%s: %s", id, tmp);
 }
 
 void outwnd_printf2(char* format, ...)

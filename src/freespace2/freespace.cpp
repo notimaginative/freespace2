@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.9  2002/05/31 03:05:59  relnev
+ * sane default
+ *
  * Revision 1.8  2002/05/29 02:52:32  theoddone33
  * Enable OpenGL renderer
  *
@@ -2287,9 +2290,11 @@ void game_init()
 	// Set the gamma
 	ptr = os_config_read_string(NULL,NOX("Gamma"),NOX("1.80"));
 	Freespace_gamma = (float)atof(ptr);
-	if ( Freespace_gamma < 0.1f )	{
+	if ( Freespace_gamma == 0.0f ) {
+		Freespace_gamma = 1.80f; 
+	} else if ( Freespace_gamma < 0.1f ) {
 		Freespace_gamma = 0.1f;
-	} else if ( Freespace_gamma > 5.0f )	{
+	} else if ( Freespace_gamma > 5.0f ) {
 		Freespace_gamma = 5.0f;
 	}
 	char tmp_gamma_string[32];

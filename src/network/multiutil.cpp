@@ -7,6 +7,9 @@
  * C file that contains misc. functions to support multiplayer
  *
  * $Log$
+ * Revision 1.5  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.4  2002/05/27 00:40:47  theoddone33
  * Fix net_addr vs net_addr_t
  *
@@ -3380,7 +3383,9 @@ void multi_make_fake_players(int count)
 // PACK UNPACK STUFF
 //
 
+#ifndef PLAT_UNIX
 #pragma optimize("", off)
+#endif
 
 typedef struct bitbuffer {
 	ubyte		mask;
@@ -4059,4 +4064,7 @@ int multi_pack_unpack_desired_rotvel( int write, ubyte *data, matrix *orient, ve
 		return bitbuffer_read_flush(&buf);
 	}
 }
+
+#ifndef PLAT_UNIX
 #pragma optimize("", on)
+#endif

@@ -7,6 +7,9 @@
  * module for running the stats screen
  *
  * $Log$
+ * Revision 1.4  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.3  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -193,25 +196,6 @@
 #include "multi.h"
 #include "hud.h"
 #include "font.h"
-
-#define MISSION_STATS_START_Y 80
-#define ALLTIME_STATS_START_Y 270
-#define MULTIPLAYER_LIST_START 20
-
-static int Mission_stats_start_y[GR_NUM_RESOLUTIONS] = {
-	80,	// GR_640
-	80		// GR_1024
-};
-
-static int Alltime_stats_start_y[GR_NUM_RESOLUTIONS] = {
-	270,	// GR_640
-	270	// GR_1024
-};
-
-static int Multiplayer_list_start[GR_NUM_RESOLUTIONS] = {
-	20,	// GR_640
-	20		// GR_1024
-};
 
 // static UI_WINDOW Player_stats_window;
 

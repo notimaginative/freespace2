@@ -8,6 +8,9 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/07 03:16:52  theoddone33
  * The Great Newline Fix
  *
@@ -927,12 +930,12 @@ DCF(subspace_set,"Set parameters for subspace effect")
 void subspace_render()
 {
 	if ( Subspace_model_inner == -1 )	{
-		Subspace_model_inner = model_load( "subspace_small.pof", NULL, NULL );
+		Subspace_model_inner = model_load( "subspace_small.pof", 0, NULL );
 		Assert(Subspace_model_inner>-1);
 	}
 
 	if ( Subspace_model_outer == -1 )	{
-		Subspace_model_outer = model_load( "subspace_big.pof", NULL, NULL );
+		Subspace_model_outer = model_load( "subspace_big.pof", 0, NULL );
 		Assert(Subspace_model_outer>-1);
 	}
 
@@ -1281,9 +1284,9 @@ void stars_page_in()
 
 	if ( Game_subspace_effect )	{
 
-		Subspace_model_inner = model_load( "subspace_small.pof", NULL, NULL );
+		Subspace_model_inner = model_load( "subspace_small.pof", 0, NULL );
 		Assert(Subspace_model_inner>-1);
-		Subspace_model_outer = model_load( "subspace_big.pof", NULL, NULL );
+		Subspace_model_outer = model_load( "subspace_big.pof", 0, NULL );
 		Assert(Subspace_model_outer>-1);
 
 		polymodel *pm;

@@ -7,6 +7,9 @@
  * C module that contains functions to drive the Tech Menu user interface
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -418,12 +421,10 @@ static UI_WINDOW Ui_window;
 static UI_BUTTON View_window;
 //static int Background_bitmap;
 static int Tech_background_bitmap;
-static int Intel_bg_bitmap;
 static int Tab = 0;
 // static int List_size;
 static int List_offset;
 static int Select_tease_line;
-static int Limit;
 static int Trackball_mode = 1;
 static int Trackball_active = 0;
 static matrix Techroom_ship_orient = IDENTITY_MATRIX;

@@ -7,6 +7,9 @@
  * C module containg functions to display and manage the radar
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/07 03:16:51  theoddone33
  * The Great Newline Fix
  *
@@ -748,7 +751,6 @@ void radar_draw_blips_sorted(int distort)
 	draw_radar_blips(RCOL_TAGGED, 0, distort);
 }
 
-static int test_time = 1;
 void radar_draw_range()
 {
 	char buf[32];

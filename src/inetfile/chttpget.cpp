@@ -7,6 +7,9 @@
 * HTTP Client class (get only)
 *
 * $Log$
+* Revision 1.5  2002/06/02 04:26:34  relnev
+* warning cleanup
+*
 * Revision 1.4  2002/05/26 20:32:24  theoddone33
 * Fix some minor stuff
 *
@@ -548,7 +551,7 @@ int ChttpGet::ConnectSocket()
 
 char *ChttpGet::GetHTTPLine()
 {
-	unsigned int iBytesRead;
+	int iBytesRead;
 	char chunk[2];
 	unsigned int igotcrlf = 0;
 	memset(recv_buffer,0,1000);

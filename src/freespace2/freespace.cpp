@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.13  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.12  2002/06/02 00:31:35  relnev
  * implemented osregistry
  *
@@ -697,7 +700,10 @@ int	Show_cpu = 0;
 int	Show_target_debug_info = 0;
 int	Show_target_weapons = 0;
 int	Game_font = -1;
+
+#ifndef NDEBUG
 static int Show_player_pos = 0;		// debug console command to show player world pos on HUD
+#endif
 
 int Debug_octant = -1;
 
@@ -2293,8 +2299,8 @@ void game_init()
 	// tried d3d ?
 	extern int Gr_inited;
 	if(trying_d3d && !Gr_inited){
+#ifndef PLAT_UNIX
 		extern char Device_init_error[512];
-#ifndef PLAT_UNIX		
 		MessageBox( NULL, Device_init_error, "Error intializing Direct3D", MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
 #lse
 		STUB_FUNCTION;
@@ -6486,8 +6492,9 @@ int game_do_ram_check(int ram_in_bytes)
 
 			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), Freespace_total_ram_MB, Freespace_total_ram_MB);
 
+#ifndef PLAT_UNIX
 			int msgbox_rval;
-#ifndef PLAT_UNIX			
+
 			msgbox_rval = MessageBox( NULL, tmp, XSTR( "Not Enough RAM", 194), MB_OKCANCEL );
 			if ( msgbox_rval == IDCANCEL ) {
 				return -1;

@@ -7,6 +7,9 @@
  * Module for everything to do with jump nodes
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -107,7 +110,7 @@ int jumpnode_create(vector *pos)
 
 	Assert(Num_jump_nodes < MAX_JUMP_NODES);
 
-	Jump_nodes[Num_jump_nodes].modelnum = model_load(NOX("subspacenode.pof"), NULL, NULL);
+	Jump_nodes[Num_jump_nodes].modelnum = model_load(NOX("subspacenode.pof"), 0, NULL);
 	if ( Jump_nodes[Num_jump_nodes].modelnum < 0 ) {
 		Int3();
 		return -1;

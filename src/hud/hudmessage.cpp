@@ -7,6 +7,9 @@
  * C module that controls and manages the message window on the HUD
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/03 13:34:33  theoddone33
  * More stuff compiles
  *
@@ -549,7 +552,6 @@ static int Num_obj_lines;
 static int Scroll_offset;
 static int Scroll_max;
 static int Scrollback_mode = SCROLLBACK_MODE_OBJECTIVES;
-static int Selected_line;
 // static int Status_bitmap;
 static int Background_bitmap;
 static UI_WINDOW Ui_window;

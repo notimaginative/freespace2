@@ -7,6 +7,9 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.7  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.6  2002/05/26 21:06:44  relnev
  * oops
  *
@@ -194,9 +197,9 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	else
 	{
 		strncpy(m_szDir,dirstart,(filestart-dirstart));
-		m_szDir[(filestart-dirstart)] = NULL;
+		m_szDir[(filestart-dirstart)] = 0;
 		strncpy(m_szHost,pURL,(dirstart-pURL));
-		m_szHost[(dirstart-pURL)-1] = NULL;
+		m_szHost[(dirstart-pURL)-1] = 0;
 	}
 	//At this point we should have a nice host,dir and filename
 	
@@ -496,7 +499,7 @@ unsigned int CFtpGet::SendFTPCommand(char *command)
 unsigned int CFtpGet::ReadFTPServerReply()
 {
 	unsigned int rcode;
-	unsigned int iBytesRead;
+	int iBytesRead;
 	char chunk[2];
 	char szcode[5];
 	unsigned int igotcrlf = 0;
@@ -521,7 +524,7 @@ unsigned int CFtpGet::ReadFTPServerReply()
 			}
 		}
 		else
-		{	chunk[1] = NULL;
+		{	chunk[1] = 0;
 			strcat(recv_buffer,chunk);
 		}
 		
@@ -539,7 +542,7 @@ unsigned int CFtpGet::ReadFTPServerReply()
 		return 999;
 	}
 	memcpy(szcode,recv_buffer,3);
-	szcode[3] = NULL;
+	szcode[3] = 0;
 	rcode = atoi(szcode);
     // Extract the reply code from the server reply and return as an integer
 	return(rcode);	            

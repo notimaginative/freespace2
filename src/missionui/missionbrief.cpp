@@ -7,6 +7,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -342,24 +345,6 @@ static int Closeup_coords[GR_NUM_RESOLUTIONS][4] = {
 	},
 	{
 		325, 241, 200, 213	// GR_1024
-	}
-};
-
-static int Closeup_img_h[GR_NUM_RESOLUTIONS] = {
-	{
-		150	// GR_640
-	},
-	{
-		150	// GR_1024
-	}
-};
-
-static int Closeup_text_h[GR_NUM_RESOLUTIONS][4] = {
-	{
-		63		// GR_640
-	},
-	{
-		63		// GR_1024
 	}
 };
 
@@ -1562,7 +1547,7 @@ int brief_setup_closeup(brief_icon *bi)
 	
 	if ( Closeup_icon->modelnum == -1 ) {
 		if ( sip == NULL ) {
-			Closeup_icon->modelnum = model_load(pof_filename, NULL, NULL);
+			Closeup_icon->modelnum = model_load(pof_filename, 0, NULL);
 		} else {
 			Closeup_icon->modelnum = model_load(sip->pof_file, sip->n_subsystems, &sip->subsystems[0]);
 		}

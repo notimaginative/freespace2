@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 20    8/03/99 11:02p Dave
@@ -793,7 +796,6 @@ int Multi_ingame_ship_selected;
 #define INGAME_FINAL_TIMEOUT 4000
 
 ushort Ingame_ship_signatures[MAX_INGAME_SHIPS];
-LOCAL int Ingame_final_timeout;
 
 //XSTR:ON
 

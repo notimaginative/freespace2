@@ -7,6 +7,9 @@
  * Code to deal with a ship getting hit by something, be it a missile, dog, or ship.
  *
  * $Log$
+ * Revision 1.3  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.2  2002/05/03 13:34:34  theoddone33
  * More stuff compiles
  *
@@ -1719,7 +1722,7 @@ void ship_hit_kill(object *ship_obj, object *other_obj, float percent_killed, in
 {
 	ship *sp;
 	char *killer_ship_name;
-	int killer_damage_percent = NULL;
+	int killer_damage_percent = 0;
 	object *killer_objp = NULL;
 
 	sp = &Ships[ship_obj->instance];

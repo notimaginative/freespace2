@@ -7,6 +7,9 @@
  * Routines to read the mouse.
  *
  * $Log$
+ * Revision 1.4  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.3  2002/05/29 06:25:13  theoddone33
  * Keyboard input, mouse tracking now work
  *
@@ -448,7 +451,7 @@ void mouse_force_pos(int x, int y)
 {
 	if (os_foreground()) {  // only mess with windows's mouse if we are in control of it
 #ifdef PLAT_UNIX
-		STUB_FUNCTION;
+		SDL_WarpMouse(x, y);
 #else
 		POINT pnt;
 
@@ -484,7 +487,7 @@ void mouse_eval_deltas()
 	ENTER_CRITICAL_SECTION(&mouse_lock);
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	SDL_GetMouseState (&tmp_x, &tmp_y);
 #else
 	POINT pnt;
 	GetCursorPos(&pnt);

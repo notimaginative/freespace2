@@ -7,6 +7,9 @@
  * Code to load & display nebulas
  *
  * $Log$
+ * Revision 1.4  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.3  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -139,9 +142,6 @@
 #define MAX_TRIS 200
 #define MAX_POINTS 300
 
-static int neb_w = 0, neb_h = 0;
-
-static int nebula_inited = 0;
 static int num_pts = 0;
 
 static vector nebula_vecs[MAX_POINTS];

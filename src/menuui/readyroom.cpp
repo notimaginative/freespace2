@@ -7,8 +7,11 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 20    9/30/99 5:59p Jefff
@@ -244,7 +247,6 @@ static int Campaign_names_inited = 0;
 static int Campaign_mission_names_inited = 0;
 static int Num_standalone_missions;
 static int Num_campaign_missions;
-static int Num_player_missions;
 static int Scroll_offset;
 static int Selected_line;
 static int Num_lines;
@@ -1416,11 +1418,6 @@ UI_XSTR Cr_text[GR_NUM_RESOLUTIONS][CR_NUM_TEXT] = {
 		{ "Select",			1409,		921,	665, UI_XSTR_COLOR_PINK,	-1, &Cr_buttons[1][CR_COMMIT_BUTTON].button },
 	}
 };
-
-static struct {
-	char *text;
-	int len;
-} campaign_desc_lines[MAX_DESC_LINES];
 
 static int Num_desc_lines;
 static int Desc_scroll_offset;

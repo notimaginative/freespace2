@@ -7,8 +7,11 @@
  * source for dealing with campaigns
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 23    9/14/99 4:35a Dave
@@ -212,7 +215,6 @@ int Granted_ships[MAX_SHIP_TYPES];
 int Granted_weapons[MAX_WEAPON_TYPES];
 
 // variables to control the UI stuff for loading campaigns
-LOCAL int Campaign_ui_active = 0;
 LOCAL UI_WINDOW Campaign_window;
 LOCAL UI_LISTBOX Campaign_listbox;
 LOCAL UI_BUTTON Campaign_okb, Campaign_cancelb;

@@ -7,6 +7,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.4  2002/06/02 04:26:34  relnev
+ * warning cleanup
+ *
  * Revision 1.3  2002/05/26 22:06:17  relnev
  * makefile: disable stand_gui for now.
  *
@@ -630,7 +633,6 @@ static int Award_active;
 static int Text_offset;
 static int Num_text_lines = 0;
 static int Num_debrief_lines = 0;
-static int Num_normal_debrief_lines = 0;
 static int Text_type[MAX_TOTAL_DEBRIEF_LINES];
 static char *Text[MAX_TOTAL_DEBRIEF_LINES];
 

@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.6  2003/01/30 19:55:33  relnev
+ * remove second bmpman.h include (Taylor Richards)
+ *
  * Revision 1.5  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -296,7 +299,6 @@
 #include "missionbrief.h"
 #include "missionbriefcommon.h"
 #include "missiongrid.h"
-#include "bmpman.h"
 #include "multimsgs.h"
 #include "cmdline.h"
 #include "contexthelp.h"

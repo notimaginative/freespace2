@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.69  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.68  2004/06/11 01:01:07  tigital
  * added FSAA support: switched on in .ini
  *
@@ -2833,7 +2836,7 @@ void gr_opengl_init()
 	
 	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
 	{
-	    fprintf (stderr, "Couldn't set FSAA video mode: %s\n", SDL_GetError ());
+	    mprintf(( "Couldn't set FSAA video mode: %s\n", SDL_GetError () ));
 	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
 	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
 		
@@ -2843,13 +2846,14 @@ void gr_opengl_init()
 		    exit (1);
 	    }
 	}
-	fprintf(stderr, "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel);
-	fprintf(stderr, "\n");
-	fprintf(stderr,"Vendor     : %s\n", glGetString( GL_VENDOR ) );
-	fprintf(stderr, "Renderer   : %s\n", glGetString( GL_RENDERER ) );
-	fprintf(stderr, "Version    : %s\n", glGetString( GL_VERSION ) );
-	fprintf(stderr, "Extensions : %s\n", glGetString( GL_EXTENSIONS ) );
-	fprintf(stderr, "\n");
+
+	mprintf(( "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel ));
+	mprintf(( "\n" ));
+	mprintf(( "Vendor     : %s\n", glGetString(GL_VENDOR) ));
+	mprintf(( "Renderer   : %s\n", glGetString(GL_RENDERER) ));
+	mprintf(( "Version    : %s\n", glGetString(GL_VERSION) ));
+	mprintf(( "Extensions : %s\n", glGetString(GL_EXTENSIONS) ));
+	mprintf(( "\n" ));
 	
 	int value;
 	int rgb_size[3];
@@ -2857,21 +2861,23 @@ void gr_opengl_init()
 	rgb_size[0]=5;
 	rgb_size[1]=5;
 	rgb_size[2]=5;
+
 	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &value );
-	fprintf(stderr, "SDL_GL_RED_SIZE: requested %d, got %d\n", rgb_size[0],value);
+	mprintf(( "SDL_GL_RED_SIZE: requested %d, got %d\n", rgb_size[0],value ));
 	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &value );
-	fprintf(stderr, "SDL_GL_GREEN_SIZE: requested %d, got %d\n", rgb_size[1],value);
+	mprintf(( "SDL_GL_GREEN_SIZE: requested %d, got %d\n", rgb_size[1],value ));
 	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &value );
-	fprintf(stderr, "SDL_GL_BLUE_SIZE: requested %d, got %d\n", rgb_size[2],value);
+	mprintf(( "SDL_GL_BLUE_SIZE: requested %d, got %d\n", rgb_size[2],value ));
 	SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE, &value );
-	fprintf(stderr, "SDL_GL_DEPTH_SIZE: requested %d, got %d\n", bpp, value );
+	mprintf(( "SDL_GL_DEPTH_SIZE: requested %d, got %d\n", bpp, value ));
 	SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &value );
-	fprintf(stderr, "SDL_GL_DOUBLEBUFFER: requested 1, got %d\n", value );
+	mprintf(( "SDL_GL_DOUBLEBUFFER: requested 1, got %d\n", value ));
+
 	if ( FSAA ) {
 		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLEBUFFERS, &value );
-		fprintf(stderr, "SDL_GL_MULTISAMPLEBUFFERS: requested 1, got %d\n", value );
+		mprintf(( "SDL_GL_MULTISAMPLEBUFFERS: requested 1, got %d\n", value ));
 		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLESAMPLES, &value );
-		fprintf(stderr, "SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", FSAA, value );
+		mprintf(( "SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", FSAA, value ));
 	}
 
 	SDL_ShowCursor(0);

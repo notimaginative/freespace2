@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.37  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.36  2004/06/12 01:11:35  taylor
  * x86 compile fixes for OSX patch
  *
@@ -1717,6 +1720,7 @@ void game_level_close()
 	ct_level_close();
 	beam_level_close();
 	mflash_level_close();
+	mission_brief_common_reset();			// close out parsed briefing/mission stuff
 
 	audiostream_unpause_all();
 	Game_paused = 0;
@@ -7751,7 +7755,9 @@ void game_show_event_debug(float frametime)
 FILE * Time_fp;
 FILE * Texture_fp;
 
+#ifndef PLAT_UNIX
 extern int Tmap_npixels;
+#endif
 
 int Tmap_num_too_big = 0;
 int Num_models_needing_splitting = 0;
@@ -7819,7 +7825,9 @@ void Time_model( int modelnum )
 	ta.p = ta.b = ta.h = 0.0f; 
 	int framecount = 0;
 
+#ifndef PLAT_UNIX
 	Tmap_npixels = 0;
+#endif
 
 	int bitmaps_used_this_frame, bitmaps_new_this_frame;
 		
@@ -7864,11 +7872,16 @@ void Time_model( int modelnum )
 	modelstats_num_polys /= framecount;
 	modelstats_num_verts /= framecount;
 
+#ifndef PLAT_UNIX
 	Tmap_npixels /=framecount;
-
+#endif
 
 	mprintf(( "'%s' is %.2f FPS\n", pof_file, i2fl(framecount)/f2fl(t2-t1) ));
+#ifndef PLAT_UNIX
 	fprintf( Time_fp, "\"%s\"\t%.0f\t%d\t%d\t%d\t%d\n", pof_file, i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts, Tmap_npixels );
+#else
+		fprintf( Time_fp, "\"%s\"\t%.0f\t%d\t%d\t%d\n", pof_file, i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts );
+#endif
 //	fprintf( Time_fp, "%.0f\t%d\t%d\t%d\t%d\n", i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts, Tmap_npixels );
 
 		

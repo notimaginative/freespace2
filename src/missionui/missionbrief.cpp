@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.8  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.7  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1016,9 +1019,9 @@ void brief_buttons_init()
 //	brief_get_closeup_icon()
 //
 //
-uint brief_get_closeup_icon()
+brief_icon *brief_get_closeup_icon()
 {
-	return (uint)Closeup_icon;
+	return Closeup_icon;
 }
 
 // stop showing the closeup view of an icon

@@ -15,6 +15,9 @@
  * Routines for managing the debug console window.
  *
  * $Log$
+ * Revision 1.4  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.3  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -232,17 +235,17 @@ void scanner_init()
 	for (ch='A'; ch<='Z'; ++ch) scanner_char_table[ch] = LETTER;
 	for (ch='a'; ch<='z'; ++ch) scanner_char_table[ch] = LETTER;
 
-	scanner_char_table['.'] = DIGIT;
-	scanner_char_table['-'] = DIGIT;
-	scanner_char_table['+'] = DIGIT;
+	scanner_char_table[(int)'.'] = DIGIT;
+	scanner_char_table[(int)'-'] = DIGIT;
+	scanner_char_table[(int)'+'] = DIGIT;
 	
-	scanner_char_table['_'] = LETTER;
+	scanner_char_table[(int)'_'] = LETTER;
 	scanner_char_table[34] = QUOTE;
 	scanner_char_table[0] = EOF_CODE;
 
 
-	scanner_char_table[':'] = LETTER;
-	scanner_char_table['\\'] = LETTER;
+	scanner_char_table[(int)':'] = LETTER;
+	scanner_char_table[(int)'\\'] = LETTER;
 
 	scanner_ch = 0;
 }
@@ -272,7 +275,7 @@ void scanner_downshift_word()
 
 void scanner_get_word()
 {
-	while( (scanner_char_code(scanner_ch)==LETTER) || (scanner_char_code(scanner_ch)==DIGIT)  )	{
+	while( (scanner_char_code((int)scanner_ch)==LETTER) || (scanner_char_code((int)scanner_ch)==DIGIT)  )	{
 		*scanner_tokenp++ = scanner_ch;
 		scanner_get_char();
 	}
@@ -306,7 +309,7 @@ void scanner_get_token()
 	*scanner_tokenp = 0;
 
 
-	switch( scanner_char_code(scanner_ch) )	{
+	switch( scanner_char_code((int)scanner_ch) )	{
 	case QUOTE:		scanner_get_string();	break;
 	case EOF_CODE:	scanner_token = NO_TOKEN;	break;
 	case DIGIT:
@@ -362,7 +365,7 @@ void dc_get_arg(uint type)
 		num_digits = 0;
 
 		for (i=0; i<len; i++)
-			if ( scanner_char_table[Dc_arg[i]] == DIGIT ) num_digits++;
+			if ( scanner_char_table[(int)Dc_arg[i]] == DIGIT ) num_digits++;
 
 		if ( num_digits==len )	{
 			Dc_arg_type |= ARG_FLOAT;

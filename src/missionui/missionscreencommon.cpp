@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.8  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.7  2003/08/03 16:10:29  taylor
  * cleanup; compile warning fixes
  *
@@ -991,7 +994,7 @@ void common_check_keys(int k)
 		case KEY_ESC: {
 
 			if ( Current_screen == ON_BRIEFING_SELECT ) {
-				if ( brief_get_closeup_icon() != 0 ) {
+				if ( brief_get_closeup_icon() != NULL ) {
 					brief_turn_off_closeup_icon();
 					break;
 				}

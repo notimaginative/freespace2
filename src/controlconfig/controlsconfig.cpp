@@ -15,6 +15,9 @@
  * C module for keyboard, joystick and mouse configuration
  *
  * $Log$
+ * Revision 1.5  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.4  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -789,8 +792,8 @@ void control_config_conflict_check()
 						if (a == b) {
 							Conflicts[i].key = j;
 							Conflicts[j].key = i;
-							Conflicts_tabs[ Control_config[i].tab ] = 1;
-							Conflicts_tabs[ Control_config[j].tab ] = 1;
+							Conflicts_tabs[ (int)Control_config[i].tab ] = 1;
+							Conflicts_tabs[ (int)Control_config[j].tab ] = 1;
 						}
 
 		/*				if ((a >= 0) && (a & KEY_SHIFTED) && (shift >= 0)) {
@@ -825,8 +828,8 @@ void control_config_conflict_check()
 					if ((Control_config[i].joy_id >= 0) && (Control_config[i].joy_id == Control_config[j].joy_id)) {
 						Conflicts[i].joy = j;
 						Conflicts[j].joy = i;
-						Conflicts_tabs[ Control_config[i].tab ] = 1;
-						Conflicts_tabs[ Control_config[j].tab ] = 1;
+						Conflicts_tabs[ (int)Control_config[i].tab ] = 1;
+						Conflicts_tabs[ (int)Control_config[j].tab ] = 1;
 					}
 				}
 			}

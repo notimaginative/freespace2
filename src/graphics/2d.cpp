@@ -15,6 +15,9 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.12  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.11  2002/08/31 01:39:13  theoddone33
  * Speed up the renderer a tad
  *
@@ -530,10 +533,10 @@ void gr_close()
 	palette_flush();
 
 	switch( gr_screen.mode )	{
+#ifndef PLAT_UNIX
 	case GR_SOFTWARE:		
 		gr_soft_cleanup();
-		break;
-#ifndef PLAT_UNIX		
+		break;	
 	case GR_DIRECTDRAW:
 		Int3();
 		gr_directdraw_cleanup();
@@ -890,10 +893,10 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	// If already inited, shutdown the previous graphics
 	if ( Gr_inited )	{
 		switch( gr_screen.mode )	{
+#ifndef PLAT_UNIX
 		case GR_SOFTWARE:			
 			gr_soft_cleanup();
 			break;
-#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			Int3();
 			gr_directdraw_cleanup();
@@ -975,11 +978,11 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	gr_screen.clip_height = gr_screen.max_h;
 
 	switch( gr_screen.mode )	{
+#ifndef PLAT_UNIX
 		case GR_SOFTWARE:
 			Assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
 			gr_soft_init();
 			break;
-#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			Int3();
 			gr_directdraw_init();
@@ -1047,13 +1050,13 @@ void gr_force_windowed()
 	if ( !Gr_inited )	return;
 
 	switch( gr_screen.mode )	{
+#ifndef PLAT_UNIX
 		case GR_SOFTWARE:
 			{				
 				extern void gr_soft_force_windowed();
 				gr_soft_force_windowed();
 			}
 			break;
-#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			{
 				Int3();
@@ -1085,6 +1088,7 @@ void gr_activate(int active)
 	if ( !Gr_inited ) return;
 
 	switch( gr_screen.mode )	{
+#ifndef PLAT_UNIX
 		case GR_SOFTWARE:
 			{				
 				extern void gr_soft_activate(int active);
@@ -1092,7 +1096,6 @@ void gr_activate(int active)
 				return;
 			}
 			break;
-#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			{
 				Int3();
@@ -1215,12 +1218,12 @@ void gr_bitmap(int x, int y)
 
 	// old school bitmaps
 	switch(gr_screen.mode){
+#ifndef PLAT_UNIX
 	case GR_SOFTWARE:
 	case GR_DIRECTDRAW:
 		grx_bitmap(x, y);
 		break;
 
-#ifndef PLAT_UNIX
 	case GR_DIRECT3D:
 		gr_d3d_bitmap(x, y);
 		break;
@@ -1241,11 +1244,12 @@ void gr_bitmap(int x, int y)
 void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy)
 {
 	switch(gr_screen.mode){
+#ifndef PLAT_UNIX
 	case GR_SOFTWARE:
 	case GR_DIRECTDRAW:
 		grx_bitmap_ex(x, y, w, h, sx, sy);
 		break;
-#ifndef PLAT_UNIX
+
 	case GR_DIRECT3D:
 		gr_d3d_bitmap_ex(x, y, w, h, sx, sy);
 		break;

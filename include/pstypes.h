@@ -15,6 +15,9 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.10  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.9  2004/06/11 21:39:44  taylor
  * x86 compile fixes for OSX patch
  *
@@ -276,6 +279,16 @@ typedef unsigned char ubyte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
+typedef int fs_time_t;	// forced 32-bit version of time_t - **don't use this unless required**
+
+// ptr_? is a value matching the size of a pointer on this specific platform
+#if ( defined(__x86_64__) || defined(_WIN64) )
+typedef __int64 ptr_s;
+typedef unsigned __int64 ptr_u;
+#else
+typedef int ptr_s;
+typedef unsigned int ptr_u;
+#endif
 
 #define HARDWARE_ONLY
 
@@ -361,7 +374,7 @@ typedef struct bitmap {
 	short	rowsize;	// What you need to add to go to next row
 	ubyte	bpp;		// How many bits per pixel it is. (7,8,15,16,24,32)
 	ubyte	flags;	// See the BMP_???? defines for values
-	uint	data;		// Pointer to data, or maybe offset into VRAM.
+	ptr_u	data;		// Pointer to data, or maybe offset into VRAM.
 	ubyte *palette;	// If bpp==8, this is pointer to palette.   If the BMP_NO_PALETTE_MAP flag
 							// is not set, this palette just points to the screen palette. (gr_palette)
 

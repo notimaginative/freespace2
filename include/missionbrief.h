@@ -15,6 +15,9 @@
  * Header file for code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.3  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -169,7 +172,7 @@ void brief_init();
 void brief_close();
 void brief_do_frame(float frametime);
 void brief_unhide_buttons();
-uint brief_get_closeup_icon();
+brief_icon *brief_get_closeup_icon();
 void brief_turn_off_closeup_icon();
 
 void briefing_stop_music();

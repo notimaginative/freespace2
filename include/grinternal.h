@@ -15,6 +15,9 @@
  * Include file for our Graphics directory
  *
  * $Log$
+ * Revision 1.3  2004/07/04 11:31:43  taylor
+ * amd64 support, compiler warning fixes, don't use software rendering
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -142,8 +145,8 @@
 
 extern int Gr_cursor;
 
-#define GR_SCREEN_PTR(type,x,y) ((type *)(uint(gr_screen.offscreen_buffer) + uint(((x)+gr_screen.offset_x)*sizeof(type)) + uint(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
-#define GR_SCREEN_PTR_SIZE(bpp,x,y) ((uint)(uint(gr_screen.offscreen_buffer) + uint(((x)+gr_screen.offset_x)*(bpp)) + uint(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
+#define GR_SCREEN_PTR(type,x,y) ((type *)(ptr_u(gr_screen.offscreen_buffer) + ptr_u(((x)+gr_screen.offset_x)*sizeof(type)) + ptr_u(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
+#define GR_SCREEN_PTR_SIZE(bpp,x,y) ((ptr_u)(ptr_u(gr_screen.offscreen_buffer) + ptr_u(((x)+gr_screen.offset_x)*(bpp)) + ptr_u(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
 
 extern ubyte Gr_original_palette[768];		// The palette 
 extern ubyte Gr_current_palette[768];

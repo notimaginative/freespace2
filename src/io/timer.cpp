@@ -7,6 +7,9 @@
  * Include file for timer stuff
  *
  * $Log$
+ * Revision 1.3  2002/05/28 17:26:57  theoddone33
+ * Fill in some timer and palette setting stubs.  Still no display
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -100,7 +103,7 @@ void timer_init()
 {
 	if ( !Timer_inited )	{
 #ifdef PLAT_UNIX
-		STUB_FUNCTION;
+		SDL_InitSubSystem(SDL_INIT_TIMER);
 #else
 		LARGE_INTEGER tmp;
 		QueryPerformanceFrequency(&tmp);
@@ -201,8 +204,7 @@ fix timer_get_approx_seconds()
 int timer_get_milliseconds()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
+	return SDL_GetTicks();
 #else
 	int tmp;
 	LARGE_INTEGER temp_large;

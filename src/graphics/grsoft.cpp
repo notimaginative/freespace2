@@ -7,6 +7,9 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
+ * Revision 1.5  2002/05/28 17:26:57  theoddone33
+ * Fill in some timer and palette setting stubs.  Still no display
+ *
  * Revision 1.4  2002/05/28 17:03:29  theoddone33
  * fs2 gets to the main game loop now
  *
@@ -820,7 +823,7 @@ HPALETTE gr_create_palette_254( ubyte * target_palette )
 void grx_set_palette_internal( ubyte * new_pal )
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	SDL_Color colors[256];
 #else
 	if ( hPalette )	{
 		if (hDibDC)
@@ -830,6 +833,7 @@ void grx_set_palette_internal( ubyte * new_pal )
 		}
 		hPalette = NULL;
 	}
+#endif
 
 
 	// Make sure color 0 is black
@@ -888,6 +892,16 @@ void grx_set_palette_internal( ubyte * new_pal )
 			hPalette = gr_create_palette_254(new_pal);	// All colors except 0 and 255 mapped one-to-one, but changes system colors.  Not pretty in a window.
 		} else {
 */
+#ifdef PLAT_UNIX
+		for (int i = 0; i < 256; i++)
+		{
+			colors[i].r = new_pal[i*3+0];
+			colors[i].g = new_pal[i*3+1];
+			colors[i].b = new_pal[i*3+2];
+		}
+		SDL_SetColors (soft_surface, colors, 0, 256);
+	}
+#else
 		hPalette = gr_create_palette_256(new_pal);	// All 256 mapped one-to-one, but BLT's are slow.
 
 		if ( hDibDC )	{
@@ -913,7 +927,13 @@ void grx_set_palette_internal( ubyte * new_pal )
 void grx_set_palette( ubyte * new_pal, int is_alphacolor )
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	Mouse_hidden++;
+	gr_reset_clip();
+	gr_clear();
+	gr_flip();
+	Mouse_hidden--;
+
+	grx_set_palette_internal(new_pal);
 #else
 	if ( hPalette )	{
 		Mouse_hidden++;
@@ -1110,8 +1130,18 @@ void grx_flip()
 	fix t1, t2, d, t;
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	SDL_UpdateRect (soft_surface, 0, 0, 0, 0);
+	int x = gr_screen.offset_x;
+	int y = gr_screen.offset_y;
+	int w = gr_screen.clip_width;
+	int h = gr_screen.clip_height;
+
+	t1 = timer_get_fixed_seconds();
+
+	SDL_UpdateRect (soft_surface, x, y, w, h);
+
+	t2 = timer_get_fixed_seconds();
+	d = t2 - t1;
+	t = (w*h*gr_screen.bytes_per_pixel)/1024;
 #else
 	HWND hwnd = (HWND)os_get_window();
 
@@ -1628,7 +1658,7 @@ void gr_soft_init()
 	gr_buffer_create( gr_screen.max_w, gr_screen.max_h, gr_screen.bits_per_pixel );
 
 #ifdef PLAT_UNIX
-	gr_screen.offscreen_buffer = soft_surface->pixels;
+	gr_screen.offscreen_buffer_base = gr_screen.offscreen_buffer = soft_surface->pixels;
 	gr_screen.rowsize = soft_surface->pitch;
 #else
 	gr_screen.offscreen_buffer_base = lpDibBits;
@@ -1757,7 +1787,15 @@ void gr_soft_cleanup()
 void grx_change_palette( ubyte * new_pal )
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	int i;
+	SDL_Color colors[256];
+	for (i=0; i<256; i++)
+	{
+		colors[i].r = new_pal[i*3+0];
+		colors[i].g = new_pal[i*3+1];
+		colors[i].b = new_pal[i*3+2];
+	}
+	SDL_SetColors (soft_surface, colors, 0, 256);
 #else
 	if ( hPalette )	{
 		if (hDibDC)

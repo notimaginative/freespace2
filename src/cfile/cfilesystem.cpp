@@ -11,6 +11,9 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.4  2002/05/28 17:26:57  theoddone33
+ * Fill in some timer and palette setting stubs.  Still no display
+ *
  * Revision 1.3  2002/05/28 06:45:38  theoddone33
  * Cleanup some stuff
  *
@@ -1112,7 +1115,35 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 
 	// Search the default directories
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+		DIR *dirp;
+		struct dirent *dir;
+
+		dirp = opendir (filespec);
+		if ( dirp ) {
+			while ((dir = readdir (dirp)) != NULL)
+			{
+
+				if (num_files >= max)
+					break;
+
+
+				if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
+
+					strncpy(arr[num_files], dir->d_name, MAX_FILENAME_LEN - 1 );
+					char *ptr = strrchr(arr[num_files], '.');
+					if ( ptr ) {
+						*ptr = 0;
+					}
+
+					if (info)	{
+						STUB_FUNCTION;
+						//info[num_files].write_time = find.time_write;
+					}
+
+					num_files++;
+				}
+			}
+		}
 #else
 	int find_handle;
 	_finddata_t find;

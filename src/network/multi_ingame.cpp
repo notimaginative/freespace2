@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2004/06/11 01:17:50  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.4  2003/08/03 16:10:29  taylor
  * cleanup; compile warning fixes
  *
@@ -344,6 +347,8 @@
 #include "alphacolors.h"
 #include "timer.h"
 
+extern void get_vector_data(ubyte *data, int *size, vector vec);
+extern void add_vector_data(ubyte *data, int *size, vector vec);
 // --------------------------------------------------------------------------------------------------
 // DAVE's BIGASS INGAME JOIN WARNING/DISCLAIMER
 //
@@ -1305,14 +1310,14 @@ void process_ingame_ships_packet( ubyte *data, header *hinfo )
 		int ship_num, objnum;
 
 		GET_STRING( ship_name );
-		GET_DATA( net_signature );
-		GET_DATA( sflags );
-		GET_DATA( oflags );
-		GET_DATA( team );		
-		GET_DATA( wing_data );
+		GET_DATA_U16( net_signature );
+		GET_DATA_S32( sflags );
+		GET_DATA_S32( oflags );
+		GET_DATA_S32( team );		
+		GET_DATA_S16( wing_data );
 		net_sig_modify = 0;
 		if(wing_data >= 0){
-			GET_DATA(Wings[wing_data].current_wave);			
+			GET_DATA_U32(Wings[wing_data].current_wave);			
 			net_sig_modify = Wings[wing_data].current_wave - 1;
 		}
 
@@ -1429,14 +1434,14 @@ void send_ingame_ships_packet(net_player *player)
 		p_type = INGAME_SHIP_NEXT;
 		ADD_DATA( p_type );
 		ADD_STRING( shipp->ship_name );
-		ADD_DATA( Objects[so->objnum].net_signature );
-		ADD_DATA( shipp->flags );
-		ADD_DATA( Objects[so->objnum].flags );
-		ADD_DATA( shipp->team );
+		ADD_DATA_U16( Objects[so->objnum].net_signature );
+		ADD_DATA_U32( shipp->flags );
+		ADD_DATA_U32( Objects[so->objnum].flags );
+		ADD_DATA_S32( shipp->team );
 		wing_data = (short)shipp->wingnum;
-		ADD_DATA(wing_data);
+		ADD_DATA_S16(wing_data);
 		if(wing_data >= 0){
-			ADD_DATA(Wings[wing_data].current_wave);
+			ADD_DATA_U32(Wings[wing_data].current_wave);
 		}
 
 		// don't send anymore data if we are getting close to the maximum size of this packet.  Send it off and
@@ -1704,28 +1709,29 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 	BUILD_HEADER(INGAME_SHIP_REQUEST);
 
 	// add the code
-	ADD_DATA(code);
+	ADD_DATA_S32(code);
 	
 	// add any code specific data
 	switch(code){
 	case INGAME_SR_REQUEST:
 		// add the net signature of the ship we're requesting
 		signature = (ushort)rdata;
-		ADD_DATA( signature );
+		ADD_DATA_U16( signature );
 		break;
 	case INGAME_SR_CONFIRM:
 		// get a pointer to the ship
 		shipp = &Ships[Objects[rdata].instance];
 
 		// add the most recent position and orientation for the requested ship
-		ADD_DATA(Objects[rdata].pos);
+		//ADD_DATA(Objects[rdata].pos);
+        add_vector_data( data, &packet_size, Objects[rdata].pos );
 		ADD_ORIENT(Objects[rdata].orient);
-		ADD_DATA( Missiontime );
+		ADD_DATA_S32( Missiontime );
 
 		// add the # of respawns this ship has left
 		pobj = mission_parse_get_arrival_ship( Objects[rdata].net_signature );
 		Assert(pobj != NULL);
-		ADD_DATA(pobj->respawn_count);
+		ADD_DATA_U32(pobj->respawn_count);
 
 		// add the ships ets settings
 		val = (ubyte)shipp->weapon_recharge_index;
@@ -1778,9 +1784,9 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 		player_num = NET_PLAYER_NUM(pl);
 		code = INGAME_PLAYER_CHOICE;
 		BUILD_HEADER(INGAME_SHIP_REQUEST);
-		ADD_DATA(code);
-		ADD_DATA(player_num);
-		ADD_DATA(Objects[rdata].net_signature);
+		ADD_DATA_S32(code);
+		ADD_DATA_S32(player_num);
+		ADD_DATA_U16(Objects[rdata].net_signature);
 		for (i = 0; i < MAX_PLAYERS; i++ ) {
 			if(MULTI_CONNECTED(Net_players[i]) && (&Net_players[i] != Net_player) && (i != player_num) ) {				
 				multi_io_send_reliable(&Net_players[i], data, packet_size);
@@ -1840,7 +1846,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 	p_object *pobj;
 
 	// get the code
-	GET_DATA(code);
+	GET_DATA_S32(code);
 
 	switch(code){
 	// a request for a ship from an ingame joiner
@@ -1849,7 +1855,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		ushort sig_request;
 
 		// lookup the player and make sure he doesn't already have an objnum (along with possible error conditions)
-		GET_DATA(sig_request);
+		GET_DATA_U16(sig_request);
 		PACKET_SET_SIZE();
 			
 		player_num = find_player_id(hinfo->id);	
@@ -1927,10 +1933,11 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		Assert(objp != NULL);
 
 		// get its most recent position and orientation
-		GET_DATA(objp->pos);
+		//GET_DATA(objp->pos);
+        get_vector_data( data, &offset, objp->pos );
 		GET_ORIENT(objp->orient);
-		GET_DATA( Missiontime );
-		GET_DATA( respawn_count );
+		GET_DATA_S32( Missiontime );
+		GET_DATA_U32( respawn_count );
 				
 		// tell the server I'm in the mission
 		Net_player->state = NETPLAYER_STATE_IN_MISSION;
@@ -2025,8 +2032,8 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		object *objp;
 
 		// get the player number of this guy, and the net signature of the ship he has chosen
-		GET_DATA(player_num);
-		GET_DATA(net_signature);
+		GET_DATA_S32(player_num);
+		GET_DATA_U16(net_signature);
 		PACKET_SET_SIZE();
 
 		objp = multi_get_network_object(net_signature);
@@ -2082,14 +2089,14 @@ void send_ingame_ship_update_packet(net_player *p,ship *sp)
 	
 	// just send net signature, shield and hull percentages
 	objp = &Objects[sp->objnum];
-	ADD_DATA(objp->net_signature);
-	ADD_DATA(objp->flags);
-	ADD_DATA(objp->hull_strength);
+	ADD_DATA_U16(objp->net_signature);
+	ADD_DATA_U32(objp->flags);
+	ADD_DATA_FL(objp->hull_strength);
 	
 	// shield percentages
 	for(idx=0; idx<MAX_SHIELD_SECTIONS; idx++){
 		f_tmp = objp->shields[idx];
-		ADD_DATA(f_tmp);
+		ADD_DATA_FL(f_tmp);
 	}
 	
 	multi_io_send_reliable(p, data, packet_size);
@@ -2107,17 +2114,17 @@ void process_ingame_ship_update_packet(ubyte *data, header *hinfo)
 	
 	offset = HEADER_LENGTH;
 	// get the net sig for the ship and do a lookup
-	GET_DATA(net_sig);
-	GET_DATA(flags);
+	GET_DATA_U16(net_sig);
+	GET_DATA_S32(flags);
    
 	// get the object
 	lookup = multi_get_network_object(net_sig);
 	if(lookup == NULL){
 		// read in garbage values if we can't find the ship
 		nprintf(("Network","Got ingame ship update for unknown object\n"));
-		GET_DATA(garbage);
+		GET_DATA_FL(garbage);
 		for(idx=0;idx<MAX_SHIELD_SECTIONS;idx++){
-			GET_DATA(garbage);
+			GET_DATA_FL(garbage);
 		}
 
 		PACKET_SET_SIZE();
@@ -2125,9 +2132,9 @@ void process_ingame_ship_update_packet(ubyte *data, header *hinfo)
 	}
 	// otherwise read in the ship values
 	lookup->flags = flags;
- 	GET_DATA(lookup->hull_strength);
+ 	GET_DATA_FL(lookup->hull_strength);
 	for(idx=0;idx<MAX_SHIELD_SECTIONS;idx++){
-		GET_DATA(f_tmp);
+		GET_DATA_FL(f_tmp);
 		lookup->shields[idx] = f_tmp;
 	}
 

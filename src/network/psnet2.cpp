@@ -15,6 +15,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.9  2002/07/27 19:52:54  relnev
+ * add missing structure packing
+ *
  * Revision 1.8  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -273,6 +276,9 @@ int Nettimeout = NETTIMEOUT;
 #ifndef PLAT_UNIX
 #pragma pack(push,r_udp)
 #pragma pack(1)
+#define PACKED
+#else
+#define PACKED __attribute__((packed))
 #endif
 
 typedef struct {
@@ -282,7 +288,7 @@ typedef struct {
 	ushort		data_len;			// length of data
 	float			send_time;			// Time the packet was sent, if an ACK the time the packet being ACK'd was sent.
 	ubyte		data[NETBUFFERSIZE];	// Packet data
-} reliable_header;
+} PACKED reliable_header;
 
 #define RELIABLE_PACKET_HEADER_ONLY_SIZE (sizeof(reliable_header)-NETBUFFERSIZE)
 #define MAX_PING_HISTORY	10
@@ -290,11 +296,11 @@ typedef struct {
 typedef struct {
 	ubyte buffer[NETBUFFERSIZE];
 
-} reliable_net_sendbuffer;
+} PACKED reliable_net_sendbuffer;
 
 typedef struct {
 	ubyte buffer[NETBUFFERSIZE];
-} reliable_net_rcvbuffer;
+} PACKED reliable_net_rcvbuffer;
 
 typedef struct {
 	reliable_net_sendbuffer *sbuffers[MAXNETBUFFERS];	// This is an array of pointers for quick sorting
@@ -341,6 +347,8 @@ unsigned int Serverconn = 0xffffffff;
 #ifndef PLAT_UNIX
 #pragma pack(pop,r_udp)
 #endif
+#undef PACKED
+
 //*******************************
 
 // top layer buffers

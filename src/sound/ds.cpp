@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.21  2005/04/02 18:57:01  taylor
+ * little better error handling, debug output of OpenAL info
+ *
  * Revision 1.20  2005/03/29 07:50:34  taylor
  * Update to newest movie code with much better video support and audio support from
  *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
@@ -1479,18 +1482,63 @@ int ds_init(int use_a3d, int use_eax)
 	nprintf(( "Sound", "SOUND ==> Initializing OpenAL...\n" ));
 
 	// load OpenAL
-	ds_sound_device = alcOpenDevice (initStr);
-		
-	// Create Sound Device
-	ds_sound_context = alcCreateContext (ds_sound_device, attr);
-	alcMakeContextCurrent (ds_sound_context);
+	ds_sound_device = alcOpenDevice( initStr );
 
-	if (alcGetError(ds_sound_device) != ALC_NO_ERROR) {
+	if (ds_sound_device == NULL) {
+		nprintf(("Sound", "SOUND ==> Couldn't open OpenAL device\n"));
+		return -1;
+	}
+
+	// Create Sound Device
+	ds_sound_context = alcCreateContext( ds_sound_device, attr );
+
+	if (ds_sound_context == NULL) {
+		nprintf(("Sound", "SOUND ==> Couldn't create OpenAL context\n"));
+		alcCloseDevice( ds_sound_device );
+		return -1;
+	}
+
+	alcMakeContextCurrent( ds_sound_context );
+
+	if (alcGetError( ds_sound_device ) != ALC_NO_ERROR) {
 		nprintf(("Sound", "SOUND ==> Couldn't initialize OpenAL\n"));
 		return -1;
 	}
 
-	OpenAL_ErrorCheck();
+#ifndef NDEBUG
+	mprintf(( "\n" ));
+	mprintf(( "OpenAL INITED!\n" ));
+	mprintf(( "\n" ));
+	mprintf(( "Vendor     : %s\n", alGetString( AL_VENDOR ) ));
+	mprintf(( "Renderer   : %s\n", alGetString( AL_RENDERER ) ));
+	mprintf(( "Version    : %s\n", alGetString( AL_VERSION ) ));
+	mprintf(( "Extensions : \n" ));
+
+	// print out OpenAL extensions
+	static const char *OAL_extensions=(const char*)alGetString( AL_EXTENSIONS );
+
+	// we use the "+1" here to have an extra NULL char on the end (with the memset())
+	// this is to fix memory errors when the last char in extlist is the same as the token
+	// we are looking for and ultra evil strtok() may still return non-NULL at EOS
+	char *extlist = (char*)malloc( strlen(OAL_extensions) + 1 );
+	memset( extlist, 0, strlen(OAL_extensions) + 1);
+
+	if (extlist != NULL) {
+		memcpy(extlist, OAL_extensions, strlen(OAL_extensions));
+
+		char *curext = strtok(extlist, " ");
+
+		while (curext) {
+			mprintf(( "    %s\n", curext ));
+			curext = strtok(NULL, " ");
+		}
+
+		free(extlist);
+		extlist = NULL;
+	}
+
+	mprintf(( "\n" ));
+#endif
 
 	// make sure we can actually use AL_BYTE_LOKI (Mac OpenAL doesn't have it)
 	AL_play_position = alIsExtensionPresent( (ALubyte*)"AL_LOKI_play_position" );

@@ -15,6 +15,9 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.8  2003/08/03 16:10:30  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.7  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -4137,7 +4140,7 @@ int get_base_path_info(int path_cur, int goal_objnum, model_path **pmp, mp_vert 
 	pnode			*pn = &Path_points[path_cur];
 	ship_info	*sip = &Ship_info[Ships[Objects[goal_objnum].instance].ship_info_index];
 	polymodel	*pm = model_get(sip->modelnum);
-	static		int	debug_last_index = -1;
+	//static	int	debug_last_index = -1;	// no longer used
 	*pmpv = NULL;
 	*pmp = NULL;
 

@@ -15,6 +15,9 @@
  * Module for Red Alert mission interface and code
  *
  * $Log$
+ * Revision 1.6  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -225,6 +228,7 @@ int Ra_flash_y[GR_NUM_RESOLUTIONS] = {
 	200
 };
 
+#ifdef MAKE_FS1
 static int Ra_flash_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
 		61, 108			// GR_640
@@ -233,6 +237,7 @@ static int Ra_flash_coords[GR_NUM_RESOLUTIONS][2] = {
 		61, 108			// GR_1024
 	}
 };
+#endif
 
 #define NUM_BUTTONS						2
 

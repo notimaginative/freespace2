@@ -15,6 +15,9 @@
  * Mission Command Briefing Screen
  *
  * $Log$
+ * Revision 1.5  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -390,9 +393,9 @@ static anim_instance *Cur_anim_instance = NULL;
 static int Last_anim_frame_num;
 
 static int Cmd_brief_last_voice;
-static int Palette_bmp = -1;
+//static int Palette_bmp = -1;		// no longer used
 static ubyte Palette[768];
-static char Palette_name[128];
+//static char Palette_name[128];	// no longer used
 
 void cmd_brief_init_voice()
 {

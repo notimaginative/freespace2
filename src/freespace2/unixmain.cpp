@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	char userdir[MAX_PATH];
 	
 	// create user game directory
-	snprintf(userdir, sizeof(userdir), "%s/%s", detect_home(), Osreg_user_dir);
+	snprintf(userdir, MAX_PATH, "%s/%s", detect_home(), Osreg_user_dir);
 	_mkdir(userdir, 0700);	
 	
 	char *argptr = NULL;

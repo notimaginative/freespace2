@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.11  2003/08/03 16:10:30  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.10  2003/06/11 18:30:33  taylor
  * plug memory leaks
  *
@@ -392,7 +395,7 @@ player *Medals_player;
 
 static bitmap *Medals_mask;
 int Medals_mask_w, Medals_mask_h;
-static int Medal_palette;              // Medal palette bitmap
+//static int Medal_palette;              // Medal palette bitmap - no longer used
 static int Medals_bitmap_mask;         // the mask for the medal case
 static int Medals_bitmap;              // the medal case itself
 static int Medal_bitmaps[NUM_MEDALS];  // bitmaps for the individual medals

@@ -15,6 +15,9 @@
  * File to deal with manipulating AI goals, etc.
  *
  * $Log$
+ * Revision 1.5  2003/08/03 16:10:30  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.4  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -1914,6 +1917,7 @@ void validate_mission_goals(int objnum, ai_info *aip)
 }
 
 //XSTR:OFF
+/* Not used, debugging stuff
 static char *Goal_text[5] = {
 "EVENT_SHIP",
 "EVENT_WING",
@@ -1921,6 +1925,7 @@ static char *Goal_text[5] = {
 "PLAYER_WING",
 "DYNAMIC",
 };
+*/
 //XSTR:ON
 
 extern char *Mode_text[MAX_AI_BEHAVIORS];

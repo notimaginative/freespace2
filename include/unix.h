@@ -82,9 +82,6 @@ typedef struct {
 	WORD  cbSize;
 } WAVEFORMATEX;
 
-extern void strlwr (char *str);
-extern int filelength (int fd);
-extern int MulDiv (int, int, int);
 #define CRITICAL_SECTION SDL_mutex*
 
 #ifndef NDEBUG

@@ -15,6 +15,9 @@
  * Routines to stream large WAV files from disk
  *
  * $Log$
+ * Revision 1.6  2003/08/03 16:10:30  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.5  2002/06/09 04:41:26  relnev
  * added copyright header
  *
@@ -1547,14 +1550,14 @@ int Audiostream_inited = 0;
 
 void audiostream_init()
 {
-	int i;
-
 	if ( Audiostream_inited == 1 )
 		return;
 		
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
 #else
+	int i;
+
 	if ( !ACM_is_inited() ) {
 		return;
 	}
@@ -1614,13 +1617,14 @@ void audiostream_init()
 // be used.
 void audiostream_close()
 {
-	int i;
 	if ( Audiostream_inited == 0 )
 		return;
 
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
 #else
+	int i;
+
 	for ( i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
 		if ( Audio_streams[i].status == ASF_USED ) {
 			Audio_streams[i].status = ASF_FREE;
@@ -1993,14 +1997,14 @@ void audiostream_pause_all()
 // unpause the audio stream identified by handle i.
 void audiostream_unpause(int i)
 {
-	int is_looping;
-
 	if ( i == -1 )
 		return;
 
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
 #else
+	int is_looping;
+
 	Assert( i >= 0 && i < MAX_AUDIO_STREAMS );
 	if ( Audio_streams[i].status == ASF_FREE )
 		return;

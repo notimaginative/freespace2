@@ -15,6 +15,9 @@
  * C module that contains functions to drive the Tech Menu user interface
  *
  * $Log$
+ * Revision 1.7  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.6  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -534,7 +537,7 @@ static int ShipWin03;
 static int ShipWin04;
 #endif
 static ubyte Palette[768];
-static char Palette_name[128];
+//static char Palette_name[128];	// no longer used
 
 static int Ships_loaded = 0;
 static int Weapons_loaded = 0;

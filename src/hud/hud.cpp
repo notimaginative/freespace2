@@ -15,6 +15,9 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.7  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.6  2003/06/03 04:00:40  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -1417,8 +1420,7 @@ void hud_maybe_display_supernova()
 	gr_set_color_fast(&Color_bright_red);
 	if(Lcl_pl) {
 	    gr_printf(Supernova_coords[gr_screen.res][0], Supernova_coords[gr_screen.res][1], "Wybuch supernowej : %.2f s", time_left);
-	}
-	else {
+	} else {
 	    gr_printf(Supernova_coords[gr_screen.res][0], Supernova_coords[gr_screen.res][1], "Supernova Warning : %.2f s", time_left);
 	}
 }

@@ -15,6 +15,9 @@
  * C source file for displaying game credits
  *
  * $Log$
+ * Revision 1.7  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.6  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -716,9 +719,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			sprintf(buf, NOX("2_CrIm%0.2d"), Credits_artwork_index);
+			sprintf(buf, NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			sprintf(buf, NOX("CrIm%0.2d"), Credits_artwork_index);
+			sprintf(buf, NOX("CrIm%.2d"), Credits_artwork_index);
 		}
 		Credits_bmps[Credits_artwork_index] = bm_load(buf);
 	}
@@ -727,9 +730,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			sprintf(buf, NOX("2_CrIm%0.2d"), Credits_artwork_index);
+			sprintf(buf, NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			sprintf(buf, NOX("CrIm%0.2d"), next);
+			sprintf(buf, NOX("CrIm%.2d"), next);
 		}
 		Credits_bmps[next] = bm_load(buf);
 	}

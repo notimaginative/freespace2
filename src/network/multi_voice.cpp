@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -1024,7 +1027,7 @@ void multi_voice_take_token(int stream_index)
 	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 
 	// if the index is -1, the token has probably been released to us "officially" already
-	if((Multi_voice_stream[stream_index].token_status == MULTI_VOICE_TOKEN_INDEX_FREE) || (Multi_voice_stream[stream_index].token_status == MULTI_VOICE_TOKEN_INDEX_RELEASED)){
+	if((Multi_voice_stream[stream_index].token_status == (int)MULTI_VOICE_TOKEN_INDEX_FREE) || (Multi_voice_stream[stream_index].token_status == (int)MULTI_VOICE_TOKEN_INDEX_RELEASED)){
 		Multi_voice_stream[stream_index].token_stamp = -1;
 		return;
 	}

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.7  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.6  2003/06/11 18:30:33  taylor
  * plug memory leaks
  *
@@ -450,7 +453,9 @@ static anim *Background_anim;	// Ids for the anim data that is loaded
 int	Common_team;
 
 // Ids for the instance of the anim that is playing
+#ifdef MAKE_FS1
 static anim_instance *Background_anim_instance;
+#endif
 
 int Wing_slot_empty_bitmap;
 int Wing_slot_disabled_bitmap;

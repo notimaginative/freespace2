@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -381,7 +384,7 @@
 
 
 LOCAL	int	Ingame_ships_deleted = 0;
-LOCAL	int	Ingame_ships_to_delete[MAX_SHIPS];
+//LOCAL	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
 
 
 // --------------------------------------------------------------------------------------------------

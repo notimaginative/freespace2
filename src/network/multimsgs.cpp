@@ -15,6 +15,9 @@
  * C file that holds functions for the building and processing of multiplayer packets
  *
  * $Log$
+ * Revision 1.6  2003/08/03 16:10:29  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.5  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -3523,7 +3526,7 @@ void send_mission_items( net_player *pl )
 		// STANDALONE_ONLY		
 		ADD_DATA( Multi_create_mission_list[i].valid_status );
 
-		if ( packet_size > MAX_MISSION_ITEMS_BYTES ) {
+		if ( packet_size > (int)MAX_MISSION_ITEMS_BYTES ) {
 			stop = 1;
 			ADD_DATA( stop );			
 			multi_io_send_reliable(pl, data, packet_size);
@@ -3548,7 +3551,7 @@ void send_mission_items( net_player *pl )
 		ADD_DATA( Multi_create_campaign_list[i].flags );	
 		ADD_DATA( Multi_create_campaign_list[i].max_players );		
 
-		if ( packet_size > MAX_MISSION_ITEMS_BYTES ) {
+		if ( packet_size > (int)MAX_MISSION_ITEMS_BYTES ) {
 			stop = 1;
 			ADD_DATA( stop );			
 			multi_io_send_reliable(pl, data, packet_size);

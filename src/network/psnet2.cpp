@@ -15,6 +15,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.10  2003/08/03 16:10:30  taylor
+ * cleanup; compile warning fixes
+ *
  * Revision 1.9  2002/07/27 19:52:54  relnev
  * add missing structure packing
  *
@@ -2141,6 +2144,7 @@ int psnet_get_ip()
 		local_address.sin_addr.s_addr = INADDR_ANY;			
 	}
 
+	// NOTE: for memeory checkers, do NOT try to free this
 	ml_printf("psnet_get_ip() reports IP : %s\n", inet_ntoa(local_address.sin_addr));
 	
 	return local_address.sin_addr.s_addr;

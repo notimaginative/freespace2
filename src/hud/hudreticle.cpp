@@ -15,6 +15,9 @@
  * C module to draw and manage the recticle
  *
  * $Log$
+ * Revision 1.5  2003/05/22 15:58:44  taylor
+ * fix missed German build option for auto-lang
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -505,13 +508,13 @@ void hud_render_throttle_speed(float current_speed, int y_end)
 		} else {
 			offset = 3;
 		}
-#if defined(GERMAN_BUILD)
-		// print an m, cuz the voice says its an m.  
-		// its a normal m cuz the german font has no special m (its an a)
-		gr_string(sx+offset, sy + h, "m");
-#else
-		gr_printf(sx+offset, sy + h, "%c", Lcl_special_chars + 3);
-#endif
+		if (Lcl_gr) {
+			// print an m, cuz the voice says its an m.  
+			// its a normal m cuz the german font has no special m (its an a)
+			gr_string(sx+offset, sy + h, "m");
+		} else {
+			gr_printf(sx+offset, sy + h, "%c", Lcl_special_chars + 3);
+		}
 	}
 }
 

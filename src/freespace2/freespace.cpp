@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.35  2004/06/11 00:53:02  tigital
+ * OSX: .app name, casts for gcc
+ *
  * Revision 1.34  2003/08/09 03:18:03  taylor
  * fix tips popup not having any tips
  *
@@ -739,8 +742,30 @@ int	Game_skill_level = DEFAULT_SKILL_LEVEL;
 #define	VIEWER_ZOOM_DEFAULT 0.75f			//	Default viewer zoom, 0.625 as per multi-lateral agreement on 3/24/97
 float Viewer_zoom = VIEWER_ZOOM_DEFAULT;
 
-#define EXE_FNAME			("fs2.exe")
+#ifndef __APPLE__
+#define EXE_FNAME	("fs2.exe")
 #define LAUNCHER_FNAME	("freespace2.exe")
+#elif FS2_DEMO
+#define EXE_FNAME	("Freespace2demo.app")
+#define LAUNCHER_FNAME	("Freespace2demo.app")
+char app_path[] =	"Freespace2demo.app/Contents/MacOS/Freespace2demo";
+#elif FS1_DEMO
+#define EXE_FNAME	("Freespace1demo.app")
+#define LAUNCHER_FNAME	("Freespace1demo.app")
+char app_path[] =	"Freespace1demo.app/Contents/MacOS/Freespace1demo";
+#elif MAKE_FS1
+#define EXE_FNAME	("Freespace1.app")
+#define LAUNCHER_FNAME	("Freespace1.app")
+char app_path[]		="Freespace1.app/Contents/MacOS/Freespace1";
+#else
+#define EXE_FNAME	("Freespace2.app")
+#define LAUNCHER_FNAME	("Freespace2.app")
+char app_path[]		="Freespace2.app/Contents/MacOS/Freespace2";
+#endif
+
+#ifdef __APPLE__
+extern char full_path[1024];
+#endif
 
 // JAS: Code for warphole camera.
 // Needs to be cleaned up.
@@ -2350,6 +2375,9 @@ void game_init()
 #ifndef PLAT_UNIX	
 	GetCurrentDirectory(1024, whee);
 	strcat(whee, "\\");
+#elif __APPLE__
+        full_path[strlen(full_path) - strlen(app_path)] = '\0';
+        strcpy( whee, full_path);
 #else
 	getcwd (whee, 1024);
 	strcat(whee, "/");
@@ -4752,7 +4780,7 @@ void game_set_frametime(int state)
 		if (Frametime < cap) {
 			thistime = cap - Frametime;
 			//mprintf(("Sleeping for %6.3f seconds.\n", f2fl(thistime)));
-			Sleep( DWORD(f2fl(thistime) * 1000.0f) );
+			Sleep( (DWORD)(f2fl(thistime) * 1000.0f) );
 			Frametime = cap;
 			thistime = timer_get_fixed_seconds();
 		}
@@ -9051,7 +9079,7 @@ void verify_weapons_tbl()
 	Game_weapons_tbl_valid = 1;
 #else
 	*/
-	uint file_checksum;		
+	int file_checksum;	// Game_weapons_tbl_checksums[] is signed, so...		
 	int idx;
 
 	// detect if the packfile exists
@@ -9073,7 +9101,7 @@ void verify_weapons_tbl()
 
 	// now compare the checksum/filesize against known #'s
 	for(idx=0; idx<NUM_WEAPONS_TBL_CHECKSUMS; idx++){
-		if(Game_weapons_tbl_checksums[idx] == (int)file_checksum){
+		if(Game_weapons_tbl_checksums[idx] == file_checksum){
 			Game_weapons_tbl_valid = 1;
 			return;
 		}

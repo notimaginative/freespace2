@@ -2,7 +2,8 @@
 # for that freespace 2 thing
 
 CC=g++-3.0
-BINARY=code.so
+CODE_BINARY=code.so
+FS_BINARY=freespace2
 LDFLAGS=$(shell sdl-config --libs)
 CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/
 
@@ -11,7 +12,7 @@ CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 
-SOURCES =./src/anim/animplay.cpp \
+CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/anim/packunpack.cpp \
 	./src/asteroid/asteroid.cpp \
 	./src/bmpman/bmpman.cpp \
@@ -28,7 +29,6 @@ SOURCES =./src/anim/animplay.cpp \
 	./src/debugconsole/console.cpp \
 	./src/fireball/fireballs.cpp \
 	./src/fireball/warpineffect.cpp \
-	./src/freespace2/freespace.cpp \
 	./src/gamehelp/contexthelp.cpp \
 	./src/gamehelp/gameplayhelp.cpp \
 	./src/gamesequence/gamesequence.cpp \
@@ -232,16 +232,23 @@ SOURCES =./src/anim/animplay.cpp \
 	./src/network/psnet.cpp \
 	./src/network/psnet2.cpp \
 	./src/platform/unix.cpp
-
 #	./src/network/stand_gui.cpp 
 
-OBJECTS=$(SOURCES:.cpp=.o)
+FS_SOURCES=./src/freespace2/freespace.cpp \
+	./src/freespace2/levelpaging.cpp
 
 
-all: code
+CODE_OBJECTS=$(CODE_SOURCES:.cpp=.o)
+FS_OBJECTS=$(FS_SOURCES:.cpp=.o)
 
-code: $(OBJECTS)
-	$(CC) -shared -o $(BINARY) $(LDFLAGS) $(OBJECTS)
+
+all: code fs2
+
+code: $(CODE_OBJECTS)
+	$(CC) -shared -o $(CODE_BINARY) $(LDFLAGS) $(CODE_OBJECTS)
+
+fs2: $(FS_OBJECTS)
+	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OJBECTS) $(CODE_BINARY)
 
 clean:
 	rm -rf $(BINARY) $(OBJECTS)

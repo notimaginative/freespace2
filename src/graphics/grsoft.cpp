@@ -7,6 +7,11 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
+ * Revision 1.6  2002/05/28 21:36:10  relnev
+ * some more timer junk.
+ *
+ * tried to fix software mode.
+ *
  * Revision 1.5  2002/05/28 17:26:57  theoddone33
  * Fill in some timer and palette setting stubs.  Still no display
  *
@@ -430,7 +435,7 @@ HPALETTE hOldPalette=NULL, hPalette = NULL;
 
 int Gr_soft_inited = 0;
 
-static volatile int Grsoft_activated = 0;				// If set, that means application got focus, so reset palette
+static volatile int Grsoft_activated = 1;				// If set, that means application got focus, so reset palette
 
 void gr_buffer_release()
 {

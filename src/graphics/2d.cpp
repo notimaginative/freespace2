@@ -7,6 +7,11 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.6  2002/05/28 21:36:10  relnev
+ * some more timer junk.
+ *
+ * tried to fix software mode.
+ *
  * Revision 1.5  2002/05/28 04:18:08  theoddone33
  * Fix some stuff and add -DFS2_DEMO
  *
@@ -868,10 +873,14 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 		case GR_GLIDE:
 #ifndef PLAT_UNIX
 			gr_glide_cleanup();
-#endif
+#else
+			Int3();
+#endif			
 			break;
 		case GR_OPENGL:
+#ifndef PLAT_UNIX		
 			Int3();
+#endif			
 			gr_opengl_cleanup();
 			break;
 		default:
@@ -942,7 +951,9 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 
 	switch( gr_screen.mode )	{
 		case GR_SOFTWARE:
+#ifndef PLAT_UNIX
 			Assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
+#endif			
 			gr_soft_init();
 			break;
 		case GR_DIRECTDRAW:
@@ -973,10 +984,14 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 				Gr_bitmap_poly = 1;
 			}
 			gr_glide_init();
+#else
+			Int3();
 #endif
 			break;
 		case GR_OPENGL:
+#ifndef PLAT_UNIX		
 			Int3();
+#endif			
 			gr_opengl_init();
 			break;
 		default:
@@ -1046,12 +1061,7 @@ void gr_force_windowed()
 	}
 
 	if ( Os_debugger_running )
-#ifdef PLAT_UNIX
-		usleep(1);
-#else
 		Sleep(1000);		
-#endif
-
 }
 
 void gr_activate(int active)
@@ -1087,11 +1097,21 @@ void gr_activate(int active)
 				extern void gr_glide_activate(int active);
 				gr_glide_activate(active);
 				return;
-#endif
+#else
+				Int3();
+#endif				
 			}
 			break;
 		case GR_OPENGL:
+#ifndef PLAT_UNIX
 			Int3();
+#else
+			{	
+				extern void gr_opengl_activate(int active);
+				gr_opengl_activate(active);
+				return;
+			}	
+#endif		
 			break;
 		default:
 			Int3();		// Invalid graphics mode

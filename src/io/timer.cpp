@@ -7,6 +7,11 @@
  * Include file for timer stuff
  *
  * $Log$
+ * Revision 1.4  2002/05/28 21:36:10  relnev
+ * some more timer junk.
+ *
+ * tried to fix software mode.
+ *
  * Revision 1.3  2002/05/28 17:26:57  theoddone33
  * Fill in some timer and palette setting stubs.  Still no display
  *
@@ -154,8 +159,10 @@ static void timer_get(LARGE_INTEGER * out)
 fix timer_get_fixed_seconds()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
+//	STUB_FUNCTION;
+//	return 0;
+
+	return (SDL_GetTicks() << 16) / 1000;
 #else
 	int tmp;
 	LARGE_INTEGER temp_large;
@@ -244,8 +251,10 @@ sub_again:
 int timer_get_microseconds()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
+//	STUB_FUNCTION;
+//	return 0;
+
+	return SDL_GetTicks() * 1000;
 #else
 	int tmp;
 	LARGE_INTEGER temp_large;

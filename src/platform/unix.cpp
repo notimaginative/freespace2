@@ -146,5 +146,5 @@ void Error( char * filename, int line, char * format, ... )
 
 void WinAssert(char * text,char *filename, int line)
 {
-	STUB_FUNCTION;
+	fprintf (stderr, "Assertion: (%s:%d) %s\n", filename, line, text);
 }

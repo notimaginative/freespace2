@@ -7,8 +7,13 @@
  * Code to do software bitblt type stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/28 21:36:10  relnev
+ * some more timer junk.
+ *
+ * tried to fix software mode.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 3     11/30/98 1:07p Dave
@@ -309,7 +314,7 @@ void grx_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 void gr8_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 {
-#if 0
+#if 1
 	MONITOR_INC( Num2dBitmaps, 1 );	
 
 	gr_lock();
@@ -324,8 +329,8 @@ void gr8_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 	//mprintf(( "x=%d, y=%d, w=%d, h=%d\n", x, y, w, h ));
 	//mprintf(( "sx=%d, sy=%d, bw=%d, bh=%d\n", sx, sy, bmp->w, bmp->h ));
-
-	if ( bmp->flags & BMP_XPARENT )	{
+#warning BMP_XPARENT == BMP_TEX_XPARENT ??
+	if ( bmp->flags & BMP_TEX_XPARENT )	{
 		for (i=0; i<h; i++ )	{
 			int j;
 			ubyte c, * sp = sptr;	

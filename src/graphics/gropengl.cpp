@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.30  2002/05/31 03:56:11  theoddone33
+ * Change tmapper polygon winding and enable culling
+ *
  * Revision 1.29  2002/05/31 03:34:02  theoddone33
  * Fix Keyboard
  * Add titlebar
@@ -1171,7 +1174,7 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 	}
 
 	glBegin (GL_TRIANGLE_FAN);
-	for (i=0;i<nv;i++)
+	for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
 	{
 		vertex * va = verts[i];
 		float sx, sy, sz, sw;
@@ -1476,8 +1479,8 @@ void gr_opengl_set_cull(int cull)
 {
 	if (cull) {
 		// DDOI - disabled for debugging purposes
-		//glEnable (GL_CULL_FACE);
-		//glFrontFace (GL_CCW);
+		glEnable (GL_CULL_FACE);
+		glFrontFace (GL_CCW);
 	} else {
 		glDisable (GL_CULL_FACE);
 	}

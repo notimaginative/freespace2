@@ -15,6 +15,9 @@
  * Program to create an archive file for use with cfile stuff
  *
  * $Log$
+ * Revision 1.5  2003/05/04 04:49:48  taylor
+ * improve error handling, instructions
+ *
  * Revision 1.4  2003/01/30 20:01:46  relnev
  * ported (Taylor Richards)
  *
@@ -48,6 +51,9 @@
 #endif
 
 #include "pstypes.h"
+
+static int data_error;
+static int no_dir;
 
 unsigned int Total_size=16; // Start with size of header
 unsigned int Num_files =0;
@@ -212,14 +218,21 @@ void pack_directory( char * filespec)
 	}
 */
 
-	strcpy( tmp1, filespec );
 #ifdef PLAT_UNIX
-	// space for more unfinished things here
-	//
+	char *ts;
+
+	// strip trailing '/'
+	ts = filespec+(strlen(filespec)-1);
+	while(*ts == '/' && ts > filespec)
+		*ts = '\0';
+
+	strcpy( tmp1, filespec );
 
 	add_directory(filespec);
 	strcat( tmp1, "/*.*" );
 #else
+	strcpy( tmp1, filespec );
+
 	add_directory(filespec);
 	strcat( tmp1, "\\*.*" );
 #endif
@@ -285,12 +298,58 @@ void pack_directory( char * filespec)
 			}
 		}
 		closedir(dirp);
+	} else {
+		printf("Error: Source directory does not exist!\n");
+		no_dir = 1;
 	}
 #endif
 	add_directory("..");
 }
 
+int verify_directory( char *filespec )
+{
+	char *ts;
+	char *dd;
 
+	// strip trailing '/'
+	ts = filespec+(strlen(filespec)-1);
+	while(*ts == '/' && ts > filespec)
+		*ts = '\0';
+
+	// make sure last directory is named "data", ignoring case
+	dd = filespec+(strlen(filespec)-4);
+	if ( stricmp( dd, "data" ) )
+		data_error = 1;
+	
+	return data_error;
+}
+
+void print_instructions()
+{
+	printf( "Creates a vp archive out of a FreeSpace data tree.\n\n" );
+	printf( "Usage:		cfilearchiver archive_name src_dir\n");
+	printf( "Example:	cfilearchiver freespace /tmp/freespace/data\n\n");
+	printf( "Directory structure options:\n" );
+	printf( "   Effects                   (.ani .pcx .neb .tga)\n" );
+	printf( "   Fonts                     (.vf)\n" );
+	printf( "   Hud                       (.ani .pcx .tga\n" );
+	printf( "   Interface                 (.pcx .ani .tga)\n" );
+	printf( "   Maps                      (.pcx .ani .tga)\n" );
+	printf( "   Missions                  (.ntl .ssv), FS1(.fsm .fsc), FS2(.fs2 .fc2)\n" );
+	printf( "   Models                    (.pof)\n" );
+	printf( "   Music                     (.wav)\n" );
+	printf( "   Sounds/8b22k              (.wav)\n" );
+	printf( "   Sounds/16b11k             (.wav)\n" );
+	printf( "   Tables                    (.tbl)\n" );
+	printf( "   Voice/Briefing            (.wav)\n" );
+	printf( "   Voice/Command briefings   (.wav)\n" );
+	printf( "   Voice/Debriefing          (.wav)\n" );
+	printf( "   Voice/Personas            (.wav)\n" );
+	printf( "   Voice/Special             (.wav)\n" );
+	printf( "   Voice/Training            (.wav)\n" );
+
+	exit(0);
+}
 
 int main(int argc, char *argv[] )
 {
@@ -304,31 +363,10 @@ int main(int argc, char *argv[] )
 		printf( "Creates an archive named freespace out of the\nfreespace data tree\n" );
 		printf( "Press any key to exit...\n" );
 		getch();
-#else
-		printf( "Creates a vp archive out of a FreeSpace data tree.\n\n" );
-		printf( "Usage: %s archive_name src_dir\n", argv[0] );
-		printf( "Example: %s freespace /tmp/freespace/data\n", argv[0] );
-		printf( "NOTE: last directory must be named \"data\", no trailing \"/\"\n\n" );
-		printf( "Directory structure options:\n" );
-		printf( "   Effects                   (.ani .pcx .neb .tga)\n" );
-		printf( "   Fonts                     (.vf)\n" );
-		printf( "   Hud                       (.ani .pcx .tga\n" );
-		printf( "   Interface                 (.pcx .ani .tga)\n" );
-		printf( "   Maps                      (.pcx .ani .tga)\n" );
-		printf( "   Missions                  (.ntl .ssv), FS1(.fsm .fsc), FS2(.fs2 .fc2)\n" );
-		printf( "   Models                    (.pof)\n" );
-		printf( "   Music                     (.wav)\n" );
-		printf( "   Sounds/8b22k              (.wav)\n" );
-		printf( "   Sounds/16b11k             (.wav)\n" );
-		printf( "   Tables                    (.tbl)\n" );
-		printf( "   Voice/Briefing            (.wav)\n" );
-		printf( "   Voice/Command briefings   (.wav)\n" );
-		printf( "   Voice/Debriefing          (.wav)\n" );
-		printf( "   Voice/Personas            (.wav)\n" );
-		printf( "   Voice/Special             (.wav)\n" );
-		printf( "   Voice/Training            (.wav)\n" );
-#endif
 		return 1;
+#else
+		print_instructions();
+#endif
 	}
 
 	strcpy( archive, argv[1] );
@@ -347,8 +385,10 @@ int main(int argc, char *argv[] )
 #ifndef PLAT_UNIX
 		printf( "Press any key to exit...\n" );
 		getch();
-#endif
 		return 1;
+#else
+		exit(1);
+#endif
 	}
 
 	fp_out_hdr = fopen( archive_hdr, "wb" );
@@ -357,13 +397,24 @@ int main(int argc, char *argv[] )
 #ifndef PLAT_UNIX
 		printf( "Press any key to exit...\n" );
 		getch();
-#endif
 		return 1;
+#else
+		exit(2);
+#endif
+	}
+
+	if ( verify_directory( argv[2] ) != 0 ) {
+		printf("Warning! Last directory must be named \"data\" (not case sensitive)\n");
+		exit(3);
 	}
 
 	write_header();
 
 	pack_directory( argv[2] );
+
+	// in case the directory doesn't exist
+	if ( no_dir )
+		exit(4);
 
 	write_header();
 
@@ -384,4 +435,3 @@ int main(int argc, char *argv[] )
 	printf( "%d total KB.\n", Total_size/1024 );
 	return 0;
 }
-

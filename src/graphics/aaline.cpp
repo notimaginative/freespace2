@@ -7,6 +7,13 @@
  * Code to draw antialiased lines
  *
  * $Log$
+ * Revision 1.3  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -236,7 +243,14 @@ long int fix_xy_mult(long int oa, fix_xy ob)
 	int retval;
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	//STUB_FUNCTION;
+	
+	__asm__("imul	%2			\n\t"
+		"shrd	$20, %%edx, %%eax	\n\t"
+		: "=a" (retval)
+		: "a" (ob), "q" (oa)
+		: "%edx"
+		);
 #else
 	_asm {
 		mov	edx, oa

@@ -7,6 +7,13 @@
  * C module for high-level control of event driven music 
  *
  * $Log$
+ * Revision 1.3  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -122,7 +129,9 @@
 #include "missiongoals.h"
 #include "localize.h"
 
+#ifndef PLAT_UNIX
 #pragma optimize("", off)
+#endif
 
 #define DEFAULT_MASTER_EVENT_MUSIC_VOLUME	0.5f
 
@@ -1479,6 +1488,6 @@ void event_music_hostile_ship_destroyed()
 	Battle_over_timestamp = timestamp(BATTLE_CHECK_INTERVAL);
 }
 
-
+#ifndef PLAT_UNIX
 #pragma optimize("", on)
-
+#endif

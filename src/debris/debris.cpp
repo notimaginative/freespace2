@@ -7,8 +7,15 @@
  * Code for the pieces of exploding object debris.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 16    8/01/99 1:13p Dave
@@ -971,8 +978,10 @@ void debris_hit(object *debris_obj, object *other_obj, vector *hitpos, float dam
 // NOTE: debris_hit_info pointer NULL for debris:weapon collision, otherwise debris:ship collision.
 //	Return true if hit, else return false.
 //
+#ifndef PLAT_UNIX
 #pragma warning ( push )
 #pragma warning ( disable : 4701 )
+#endif
 int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, collision_info_struct *debris_hit_info)
 {
 	mc_info	mc;
@@ -1219,8 +1228,9 @@ int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, c
 		return 0;
 	}
 }
+#ifndef PLAT_UNIX
 #pragma warning ( pop )
-
+#endif
 
 // ---------------------------------------------------------------------------------------
 // debris_get_team()

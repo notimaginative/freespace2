@@ -7,6 +7,13 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.3  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
  * Revision 1.2  2002/05/07 03:16:53  theoddone33
  * The Great Newline Fix
  *
@@ -1429,10 +1436,12 @@ void weapon_init()
 	int rval;
 
 	if ( !Weapons_inited ) {
-
+#ifndef FS2_DEMO
+		STUB_FUNCTION;
+#warning FS2_DEMO HACK! commented out a function call		
 		// parse weapon_exp.tbl
 		parse_weapon_expl_tbl();
-
+#endif
 		// parse weapons.tbl
 		if ((rval = setjmp(parse_abort)) != 0) {
 			Error(LOCATION, "Error parsing 'weapons.tbl'\r\nError code = %i.\r\n", rval);

@@ -7,6 +7,13 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.7  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
  * Revision 1.6  2002/05/28 06:28:20  theoddone33
  * Filesystem mods, actually reads some data files now
  *
@@ -6888,6 +6895,8 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	
 	fprintf(stderr, "WinMain: exceptions shall fall through\n");
 	result = WinMainSub(hInst, hPrev, szCmdLine, nCmdShow);
+	
+	return result;
 #endif	
 }
 
@@ -8279,6 +8288,8 @@ int game_cd_changed()
 	return changed;
 #else
 	STUB_FUNCTION;
+	
+	return 0;
 #endif		
 }
 

@@ -7,8 +7,15 @@
  * Routines to draw a texture map.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 3     12/06/98 3:08p Dave
@@ -448,7 +455,13 @@ inline int tmap_ftol(float f)
 {
 	int x;
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	//STUB_FUNCTION;
+	
+	__asm__("flds	%1	\n\t"
+		"fistpl	%0	\n\t"
+		: "=m" (x)
+		: "m" (f)
+		);
 #else
 	_asm fld f
 	_asm fistp x

@@ -5,6 +5,13 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.5  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
  * Revision 1.4  2002/05/28 04:56:51  theoddone33
  * runs a little bit now
  *
@@ -345,12 +352,17 @@ void parse_medal_tbl()
 			Assert( bi < MAX_BADGES );
 			stuff_int( &Medals[num_medals].kills_needed );
 			Badge_index[bi] = num_medals;
-
+#ifdef FS2_DEMO
+#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
+			required_string("$Wavefile 1:");
+			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+			required_string("$Wavefile 2:");
+			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+			//stuff_string(Badge_info[bi].wave2, F_NAME, NULL, MAX_FILENAME_LEN);
+#else
 			required_string("$Wavefile Base:");
 			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-
-			//required_string("$Wavefile 2:");
-			//stuff_string(Badge_info[bi].wave2, F_NAME, NULL, MAX_FILENAME_LEN);
+#endif			
 
 			required_string("$Promotion Text:");
 			stuff_string(buf, F_MULTITEXT, NULL);

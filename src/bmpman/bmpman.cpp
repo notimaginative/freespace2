@@ -7,6 +7,13 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.3  2002/05/28 08:52:03  relnev
+ * implemented two assembly stubs.
+ *
+ * cleaned up a few warnings.
+ *
+ * added a little demo hackery to make it progress a little farther.
+ *
  * Revision 1.2  2002/05/07 03:16:43  theoddone33
  * The Great Newline Fix
  *
@@ -1713,11 +1720,11 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 	int pal_changed = 0;
 	int rle_changed = 0;
 	int fake_xparent_changed = 0;	
-	if ( (bmp->data == NULL) || (bpp != bmp->bpp) || pal_changed || rle_changed || fake_xparent_changed ) {
+	if ( (bmp->data == 0) || (bpp != bmp->bpp) || pal_changed || rle_changed || fake_xparent_changed ) {
 		Assert(be->ref_count == 1);
 
 		if ( be->type != BM_TYPE_USER ) {
-			if ( bmp->data == NULL ) {
+			if ( bmp->data == 0 ) {
 				nprintf (("BmpMan","Loading %s for the first time.\n", be->filename));
 			} else if ( bpp != bmp->bpp ) {
 				nprintf (("BmpMan","Reloading %s from bitdepth %d to bitdepth %d\n", be->filename, bmp->bpp, bpp));
@@ -2327,6 +2334,13 @@ void BM_SELECT_SCREEN_FORMAT()
 				bm_set_components = bm_set_components_argb_d3d_16_screen;
 			}
 		}
+#warning BM_SELECT_SCREEN_FORMAT: hack correct settings for software/opengl not known
+	} else if(gr_screen.mode == GR_SOFTWARE){
+		STUB_FUNCTION;
+		bm_set_components = bm_set_components_argb;
+	} else if(gr_screen.mode == GR_OPENGL){
+		STUB_FUNCTION;
+		bm_set_components = bm_set_components_argb;
 	}
 }
 
@@ -2350,6 +2364,13 @@ void BM_SELECT_TEX_FORMAT()
 				bm_set_components = bm_set_components_argb_d3d_16_tex;
 			}
 		}
+#warning BM_SELECT_TEX_FORMAT: hack correct settings for software/opengl not known
+	} else if(gr_screen.mode == GR_SOFTWARE){
+		STUB_FUNCTION;
+		bm_set_components = bm_set_components_argb;
+	} else if(gr_screen.mode == GR_OPENGL){
+		STUB_FUNCTION;
+		bm_set_components = bm_set_components_argb;
 	}
 }
 
@@ -2373,6 +2394,13 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 				bm_set_components = bm_set_components_argb_d3d_16_tex;
 			}
 		}
+#warning BM_ALPHA_TEX_FORMAT: hack correct settings for software/opengl not known
+	} else if(gr_screen.mode == GR_SOFTWARE){
+		STUB_FUNCTION;
+		bm_set_components = bm_set_components_argb;
+	} else if(gr_screen.mode == GR_OPENGL){
+		STUB_FUNCTION;
+		bm_set_components = bm_set_components_argb;
 	}
 }
 

@@ -5,6 +5,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "unix.h"
 
@@ -17,11 +19,11 @@ void strlwr (char * str)
 
 int filelength (int fd)
 {
-	FILE *f = fdopen (dup(fd), "r");
-	fseek (f, 0, SEEK_END);
-	int len = ftell (f);
-	fclose (f);
-	return len;
+	struct stat buf;
+	if (fstat (fd, &buf) == -1)
+		return -1;
+		
+	return buf.st_size;
 }
 
 unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList)

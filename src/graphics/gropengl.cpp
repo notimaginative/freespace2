@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.41  2002/06/01 09:00:34  relnev
+ * silly debug memmanager
+ *
  * Revision 1.40  2002/06/01 07:12:33  relnev
  * a few NDEBUG updates.
  *
@@ -243,6 +246,7 @@
 #include "bmpman.h"
 #include "floating.h"
 #include "palman.h"
+#include "systemvars.h"
 #include "grinternal.h"
 #include "gropengl.h"
 #include "line.h"
@@ -2325,17 +2329,17 @@ int opengl_create_texture (int bitmap_handle, int bitmap_type, tcache_slot_openg
 	int max_w = bmp->w;
 	int max_h = bmp->h;
 
-	/*
+	
 	   // DDOI - TODO
 	if ( bitmap_type != TCACHE_TYPE_AABITMAP )      {
-		max_w /= D3D_texture_divider;
-		max_h /= D3D_texture_divider;
+		// max_w /= D3D_texture_divider;
+		// max_h /= D3D_texture_divider;
 
 		// Detail.debris_culling goes from 0 to 4.
-		max_w /= 16 >> Detail.hardware_textures;
-		max_h /= 16 >> Detail.hardware_textures;
+		max_w /= (16 >> Detail.hardware_textures);
+		max_h /= (16 >> Detail.hardware_textures);
 	}
-	*/
+	
 
 	// get final texture size as it will be allocated as a DD surface
 	opengl_tcache_get_adjusted_texture_size(max_w, max_h, &final_w, &final_h); 
@@ -2427,12 +2431,10 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 		return 0;
 	}
 
-	/*
 	if ( GL_last_detail != Detail.hardware_textures )      {
 		GL_last_detail = Detail.hardware_textures;
 		opengl_tcache_flush();
 	}
-	*/
 
 	if (vram_full) {
 		return 0;

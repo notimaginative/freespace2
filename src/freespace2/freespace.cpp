@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.11  2002/06/01 09:00:34  relnev
+ * silly debug memmanager
+ *
  * Revision 1.10  2002/06/01 07:12:32  relnev
  * a few NDEBUG updates.
  *
@@ -2273,7 +2276,7 @@ void game_init()
 	}
 #else
 	if (!Is_standalone /* && ptr && (strstr(ptr, NOX("OpenGL"))) */) {
-		if(strstr(ptr, NOX("(1024x768)"))){
+		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
 			gr_init(GR_1024, GR_OPENGL);
 		} else {
 			gr_init(GR_640, GR_OPENGL);

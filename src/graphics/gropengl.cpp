@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.3  2002/05/27 22:35:01  theoddone33
+ * more symbols
+ *
  * Revision 1.2  2002/05/27 22:32:02  theoddone33
  * throw all d3d stuff at opengl
  *
@@ -124,14 +127,27 @@ static int Inited = 0;
 // Throw in some dummy functions - DDOI
 void gr_opengl_preload_init()
 {
+	STUB_FUNCTION;
 }
 
 void gr_d3d_preload(int x, int y)
 {
+	STUB_FUNCTION;
 }
 
-void gr_opengl_activate( int b)
+void gr_opengl_activate(int b)
 {
+	STUB_FUNCTION;
+}
+
+void d3d_flush ()
+{
+	STUB_FUNCTION;
+}
+
+void d3d_zbias (int a)
+{
+	STUB_FUNCTION;
 }
 #endif
 

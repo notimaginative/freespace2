@@ -7,6 +7,9 @@ CODE_BINARY=code.a
 FS_BINARY=freespace2
 LDFLAGS=$(shell sdl-config --libs) -lGL
 CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
+#CFLAGS+=-DNDEBUG # Not yet stable!
+#CFLAGS+=-funroll-loops # -fomit-frame-pointer
+#CFLAGS+=-march=pentiumpro -mcpu=pentiumpro
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)

@@ -5,6 +5,11 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.3  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -1202,7 +1207,7 @@ void multi_xfer_send_next(xfer_entry *xe)
 	ADD_DATA(data_size);
 	
 	// copy in the data
-	if(cfread(data+packet_size,1,(int)data_size,xe->file) == NULL){
+	if(cfread(data+packet_size,1,(int)data_size,xe->file) == 0){
 		// send a nack to the receiver
 		multi_xfer_send_nak(xe->file_socket, xe->sig);
 

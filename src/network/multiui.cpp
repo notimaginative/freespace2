@@ -7,6 +7,11 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.4  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.3  2002/05/26 20:49:54  theoddone33
  * More progress
  *
@@ -5457,7 +5462,7 @@ int multi_create_ok_to_commit()
 			if(Net_players[idx].player != NULL){
 				sprintf(err_string, "%s %s", Net_players[idx].player->callsign, XSTR("has hacked tables/data", 1271)); 
 			} else {
-				sprintf(err_string, "%s", Net_players[idx].player->callsign, XSTR("has hacked tables/data", 1271)); 
+				sprintf(err_string, "somebody %s", XSTR("has hacked tables/data", 1271)); 
 			}
 			send_game_chat_packet(Net_player, err_string, MULTI_MSG_ALL, NULL, NULL, 1);
 		}

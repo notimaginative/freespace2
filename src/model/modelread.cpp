@@ -7,6 +7,11 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -2622,8 +2627,10 @@ void model_get_rotating_submodel_axis(vector *model_axis, vector *world_axis, in
 
 
 // Does stepped rotation of a submodel
+#ifndef PLAT_UNIX
 #pragma warning ( push )
 #pragma warning (disable : 4701)
+#endif
 void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 {
 	Assert(psub->flags & MSS_FLAG_STEPPED_ROTATE);
@@ -2715,8 +2722,9 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 		sii->cur_turn_rate = 0.0f;
 	}
 }
+#ifndef PLAT_UNIX
 #pragma warning ( pop )
-
+#endif
 
 // Rotates the angle of a submodel.  Use this so the right unlocked axis
 // gets stuffed.

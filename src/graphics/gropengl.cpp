@@ -7,6 +7,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.40  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.39  2002/06/01 05:33:15  relnev
  * copied more code over.
  *
@@ -1527,10 +1532,10 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		if ( flags & TMAP_FLAG_TEXTURED )       {
 			tu = va->u*u_scale;
 			tv = va->v*v_scale;
-			glTexCoord2d(tu, tv);
+			glTexCoord2f(tu, tv);
 		}
 		
-		glVertex4d(sx/rhw, sy/rhw, -sz/rhw, 1.0/rhw);
+		glVertex4f(sx/rhw, sy/rhw, -sz/rhw, 1.0/rhw);
 	}
 	glEnd();
 }

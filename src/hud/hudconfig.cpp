@@ -7,6 +7,11 @@
  * C module to handle HUD configuration
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -415,7 +420,9 @@ int HC_select_all = 0;
 // Module Globals
 //////////////////////////////////////////////////////////////////////////////
 
+#ifndef PLAT_UNIX
 #pragma warning(disable:4710)
+#endif
 
 char *Hud_config_fname[GR_NUM_RESOLUTIONS] = {
 	"HUDConfig",
@@ -533,7 +540,9 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 	}
 };
 
+#ifndef PLAT_UNIX
 #pragma warning(default:4710)
+#endif
 
 int HC_gauge_description_coords[GR_NUM_RESOLUTIONS][3] = {
 	{	// GR_640
@@ -652,7 +661,9 @@ char *HC_gauge_descriptions(int n)
 #define HCB_RESET					18
 #define HCB_ACCEPT				19
 
+#ifndef PLAT_UNIX
 #pragma warning(disable : 4710)
+#endif
 
 ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 	{ // GR_640

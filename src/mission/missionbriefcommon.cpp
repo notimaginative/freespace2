@@ -7,6 +7,11 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -878,8 +883,9 @@ void brief_init_map()
 	Num_fade_icons=0;
 }
 
-
+#ifndef PLAT_UNIX
 #pragma optimize("", off)
+#endif
 
 // render fade-out anim frame
 static int Fade_frame_count[128];			// for debug
@@ -1192,7 +1198,9 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 	}  // end if vertex is projected
 }
 
+#ifndef PLAT_UNIX
 #pragma optimize("", on)
+#endif
 
 // -------------------------------------------------------------------------------------
 // brief_render_icons()

@@ -5,6 +5,11 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -933,7 +938,7 @@ void common_check_keys(int k)
 		case KEY_ESC: {
 
 			if ( Current_screen == ON_BRIEFING_SELECT ) {
-				if ( brief_get_closeup_icon() != NULL ) {
+				if ( brief_get_closeup_icon() != 0 ) {
 					brief_turn_off_closeup_icon();
 					break;
 				}

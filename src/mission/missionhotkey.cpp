@@ -7,6 +7,11 @@
  * C module for the Hotkey selection screen
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -333,9 +338,11 @@ static int Hotkey_ship_x[GR_NUM_RESOLUTIONS] = {
 	448			// GR_1024
 };
 
+#ifndef PLAT_UNIX
 // pragma pair put into place because of compiler warnings about being unable to inline
 // the constructor function of the hotkey_buttons set.
 #pragma warning(disable: 4710)
+#endif
 
 struct hotkey_buttons {
 	char *filename;
@@ -377,7 +384,10 @@ static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	}
 //XSTR:ON
 };
+
+#ifndef PLAT_UNIX
 #pragma warning(default: 4710)
+#endif
 
 #define HOTKEY_NUM_TEXT		6
 static UI_XSTR Hotkey_text[GR_NUM_RESOLUTIONS][HOTKEY_NUM_TEXT] = {

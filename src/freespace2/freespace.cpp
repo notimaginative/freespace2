@@ -7,6 +7,11 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.10  2002/06/01 07:12:32  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.9  2002/05/31 03:05:59  relnev
  * sane default
  *
@@ -2211,7 +2216,8 @@ void game_init()
 	}
 
 	int trying_d3d = 0;
-	
+
+#ifndef PLAT_UNIX	
 	if (!Is_standalone && ptr && (strstr(ptr, NOX("3DFX Glide")))) {
 #ifdef E3_BUILD
 		// always 640 for E3
@@ -2255,24 +2261,28 @@ void game_init()
 			if ( Use_fullscreen_at_startup && !Is_standalone)	{		
 				gr_init(GR_640, GR_DIRECTDRAW);
 			} else {
-#ifdef PLAT_UNIX
-				gr_init(GR_640, GR_OPENGL);
-#else
 				gr_init(GR_640, GR_SOFTWARE);
-#endif
 			}
 		#else
 			if ( !Is_standalone ) {
 				gr_init(GR_640, GR_DIRECTDRAW);
 			} else {
-#ifdef PLAT_UNIX
-				gr_init(GR_640, GR_OPENGL);
-#else
-				gr_init(GR_640, GR_SOFTWAREL);
-#endif
+				gr_init(GR_640, GR_SOFTWARE);
 			}
 		#endif
 	}
+#else
+	if (!Is_standalone /* && ptr && (strstr(ptr, NOX("OpenGL"))) */) {
+		if(strstr(ptr, NOX("(1024x768)"))){
+			gr_init(GR_1024, GR_OPENGL);
+		} else {
+			gr_init(GR_640, GR_OPENGL);
+		}
+	} else {
+		STUB_FUNCTION;
+		gr_init(GR_640, GR_SOFTWARE); 
+	}
+#endif
 
 	// tried d3d ?
 	extern int Gr_inited;

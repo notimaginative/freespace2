@@ -7,6 +7,11 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:32  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/28 06:28:20  theoddone33
  * Filesystem mods, actually reads some data files now
  *
@@ -671,13 +676,13 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-	void *vm_malloc( int size );
+//	void *vm_malloc( int size );
 
 	// 
-	char *vm_strdup( const char *ptr );
+//	char *vm_strdup( const char *ptr );
 
 	// Frees some RAM. 
-	void vm_free( void *ptr );
+//	void vm_free( void *ptr );
 
 	// Frees all RAM.
 	void vm_free_all();
@@ -686,9 +691,12 @@ template <class T> void CAP( T& v, T mn, T mx )
 	#define VM_MALLOC(size) vm_malloc(size)
 	#define VM_FREE(ptr) vm_free(ptr)
 
-	#define malloc(size) vm_malloc(size)
-	#define free(ptr) vm_free(ptr)
-	#define strdup(ptr) vm_strdup(ptr)
+//	#define malloc(size) vm_malloc(size)
+//	#define free(ptr) vm_free(ptr)
+//	#define strdup(ptr) vm_strdup(ptr)
+	#define vm_malloc(size) malloc(size)
+	#define vm_free(ptr) free(ptr)
+	#define vm_strdup(ptr) strdup(ptr)
 #endif
 
 

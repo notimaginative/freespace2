@@ -7,6 +7,11 @@
  * Routines to detect collisions and do physics, damage, etc for ships and ships
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:48  theoddone33
  * The Great Newline Fix
  *
@@ -1393,7 +1398,7 @@ void mcp_1(object *player_objp, object *planet_objp)
 //	Hack: Just checking first six letters of name.
 int is_planet(object *objp)
 {
-	return (strnicmp(Ships[objp->instance].ship_name, NOX("planet"), 6) == NULL);
+	return (strnicmp(Ships[objp->instance].ship_name, NOX("planet"), 6) == 0);
 }
 
 

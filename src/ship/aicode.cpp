@@ -7,6 +7,11 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:34  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/03 13:34:33  theoddone33
  * More stuff compiles
  *
@@ -443,8 +448,10 @@
 #include "awacs.h"
 #include "fvi.h"
 
+#ifndef PLAT_UNIX
 #pragma optimize("", off)
 #pragma auto_inline(off)
+#endif
 
 #define	UNINITIALIZED_VALUE	-99999.9f
 

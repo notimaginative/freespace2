@@ -7,8 +7,13 @@
  * Header file for program exception handling
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/06/01 07:12:32  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 1     6/29/99 7:42p Dave
@@ -20,7 +25,9 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #pragma once		// Include this file only once
+#endif
 
 #ifndef __EXCEPTION_HANDLER_H
 #define __EXCEPTION_HANDLER_H

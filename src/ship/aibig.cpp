@@ -7,6 +7,11 @@
  * C module for AI code related to large ships
  *
  * $Log$
+ * Revision 1.3  2002/06/01 07:12:33  relnev
+ * a few NDEBUG updates.
+ *
+ * removed a few warnings.
+ *
  * Revision 1.2  2002/05/07 03:16:51  theoddone33
  * The Great Newline Fix
  *
@@ -358,8 +363,10 @@
 #include "shiphit.h"
 #include "missionparse.h"
 
+#ifndef PLAT_UNIX
 #pragma optimize("", off)
 #pragma auto_inline(off)
+#endif
 
 #define SCAN_FIGHTERS_INTERVAL	2000		// how often an AI fighter/bomber should scan for enemy fighter/bombers
 														// if sitting still and pounding on a big ship.  If enemy fighters are

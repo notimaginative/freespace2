@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.9  2003/01/30 19:55:01  relnev
+ * add German keys (this is mostly a patch already sent in by someone else that hasn't made it into cvs yet) (Taylor Richards)
+ *
  * Revision 1.8  2002/06/17 23:11:39  relnev
  * enable sdl key repeating.
  *
@@ -281,6 +284,21 @@ void FillSDLArray ()
 	SDLtoFS2[SDLK_y] = KEY_Y;
 	SDLtoFS2[SDLK_z] = KEY_Z;
 
+#ifdef GERMAN_BUILD
+	SDLtoFS2[SDLK_WORLD_63] = KEY_MINUS;
+	SDLtoFS2[SDLK_WORLD_20] = KEY_EQUAL;
+	SDLtoFS2[SDLK_MINUS] = KEY_DIVIDE;
+	SDLtoFS2[SDLK_HASH] = KEY_SLASH;
+	SDLtoFS2[SDLK_COMMA] = KEY_COMMA;
+	SDLtoFS2[SDLK_PERIOD] = KEY_PERIOD;
+	SDLtoFS2[SDLK_WORLD_86] = KEY_SEMICOL;
+
+	SDLtoFS2[SDLK_WORLD_92] = KEY_LBRACKET;
+	SDLtoFS2[SDLK_PLUS] = KEY_RBRACKET;
+
+	SDLtoFS2[SDLK_CARET] = KEY_LAPOSTRO;
+	SDLtoFS2[SDLK_WORLD_68] = KEY_RAPOSTRO;
+#else
 	SDLtoFS2[SDLK_MINUS] = KEY_MINUS;
 	SDLtoFS2[SDLK_EQUALS] = KEY_EQUAL;
 	SDLtoFS2[SDLK_SLASH] = KEY_DIVIDE; // No idea - DDOI
@@ -295,6 +313,7 @@ void FillSDLArray ()
 
 	SDLtoFS2[SDLK_BACKQUOTE] = KEY_LAPOSTRO;
 	SDLtoFS2[SDLK_QUOTE] = KEY_RAPOSTRO;
+#endif
 
 	SDLtoFS2[SDLK_ESCAPE] = KEY_ESC;
 	SDLtoFS2[SDLK_RETURN] = KEY_ENTER;

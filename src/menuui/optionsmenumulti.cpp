@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/06/02 06:02:59  relnev
+ * tcp.cfg namefix
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -388,8 +391,6 @@ static int Om_tracker_focus = 0;
 // ip address list vars
 #define IP_STRING_LEN								255
 #define MAX_IP_ADDRS									100
-
-#define IP_CONFIG_FNAME								NOX("Tcp.cfg")
 
 #define IP_EMPTY_STRING								""
 

@@ -8,6 +8,9 @@
  * multiplayer functions.
  *
  * $Log$
+ * Revision 1.3  2002/06/02 06:02:59  relnev
+ * tcp.cfg namefix
+ *
  * Revision 1.2  2002/05/26 21:27:53  theoddone33
  * More progress (I hate psnet2)
  *
@@ -295,6 +298,9 @@ struct CFILE;
 
 // name of the validated mission file for PXO missions
 #define MULTI_VALID_MISSION_FILE		"mvalid.cfg"
+
+// name of the file which contains known TCP addresses
+#define IP_CONFIG_FNAME				"tcp.cfg"
 
 // server version and compatible version
 // to join a game - your LOCAL.MULTI_FS_SERVER_COMPATIBLE_VERSION must be >= GAME_SERVER.MULTI_FS_SERVER_VERSION

@@ -7,6 +7,9 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.6  2002/06/02 06:02:59  relnev
+ * tcp.cfg namefix
+ *
  * Revision 1.5  2002/06/02 00:31:35  relnev
  * implemented osregistry
  *
@@ -1093,8 +1096,6 @@ int Mj_cd_coords[GR_NUM_RESOLUTIONS] = {
 };
 
 //XSTR:OFF
-#define IP_CONFIG_FNAME				"tcp.cfg"		// name of the file which contains known TCP addresses
-
 // extents of the entire boundable game info region
 // NOTE : these numbers are completely empirical
 #define MJ_PING_GREEN				160

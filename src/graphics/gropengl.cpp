@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.34  2002/05/31 22:15:22  relnev
+ * BGRA
+ *
  * Revision 1.33  2002/05/31 22:04:55  relnev
  * use d3d rect_internal
  *
@@ -2053,7 +2056,7 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 						}
 					}
 				}
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA,
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA,
 					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
 					
 				free(texmem);
@@ -2084,7 +2087,7 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 					v += dv;
 				}
 
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA,
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA,
 					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
 					
 				free(texmem);

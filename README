@@ -14,7 +14,8 @@ Current status:
 - It currently uses SDL (http://www.libsdl.org) and OpenAL
 (http://opensource.creative.com)
 
-- Code currently REQUIRES gcc 3.0.  gcc 2.95 and 3.1 won't work.
+- The code requires GNU g++ 3.0 or g++ 3.1.  gcc 2.95 and earlier will not
+work.
 
 - The OpenGL code is complete minus one or two things, but it is unoptimized.
 

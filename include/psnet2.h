@@ -15,6 +15,9 @@
  * Header file for the application level network-interface.
  *
  * $Log$
+ * Revision 1.6  2002/06/16 05:20:01  relnev
+ * work around some gcc 3.1 weirdness
+ *
  * Revision 1.5  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -152,9 +155,18 @@ extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send 
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
 //
 
+/* sigh */
+#ifdef PLAT_UNIX
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#else
 struct sockaddr;
 struct fd_set;
 struct timeval;
+#endif
 
 // wrappers around select() and recvfrom() for lagging/losing data, and for sorting through different packet types
 int RECVFROM(uint s, char * buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type);

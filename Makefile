@@ -11,6 +11,7 @@ CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ -fwritable-s
 #CFLAGS+=-DNDEBUG
 #CFLAGS+=-funroll-loops # -fomit-frame-pointer # not stable?
 #CFLAGS+=-march=pentiumpro -mcpu=pentiumpro # not stable?
+CFLAGS+=-Wno-missing-braces
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)

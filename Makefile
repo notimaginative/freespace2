@@ -259,6 +259,10 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/network/psnet2.cpp \
 	./src/network/stand_gui-unix.cpp \
 	./src/movie/movie.cpp \
+	./src/movie/mveplayer.cpp \
+	./src/movie/mvelib.cpp \
+	./src/movie/decoder16.cpp \
+	./src/movie/mve_audio.cpp \
 	./src/platform/unix.cpp
 
 FS_SOURCES=./src/freespace2/freespace.cpp \

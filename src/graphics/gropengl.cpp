@@ -7,6 +7,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.14  2002/05/29 08:54:40  relnev
+ * "fixed" bitmap drawing.
+ *
+ * copied more d3d code over.
+ *
  * Revision 1.13  2002/05/29 06:25:13  theoddone33
  * Keyboard input, mouse tracking now work
  *
@@ -154,6 +159,10 @@
 #include "line.h"
 
 static int Inited = 0;
+
+static GLuint bitmapTex;
+static GLubyte *bitmapMem;
+
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
 
@@ -294,11 +303,6 @@ void gr_opengl_reset_clip()
 	STUB_FUNCTION;
 }
 
-void gr_opengl_set_font(int fontnum)
-{
-	STUB_FUNCTION;
-}
-
 void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy )
 {
 	gr_screen.current_alpha = alpha;
@@ -334,42 +338,76 @@ void gr_opengl_set_shader( shader * shade )
 void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
 	bitmap * bmp;
-
+	
 	bmp = bm_lock( gr_screen.current_bitmap, 16, 0 );
-
-//	mprintf(( "x=%d, y=%d, w=%d, h=%d\n", x, y, w, h ));
-//	mprintf(( "sx=%d, sy=%d, bw=%d, bh=%d\n", sx, sy, bmp->w, bmp->h ));
-
-/* ** */
-	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_PIXEL_MODE_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
-	glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
 	
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
+	int ix, iy, iw, ih;
+	int px, py, qx, qy;
+	GLubyte *sptr, *dptr;
+	
+	float s, t;
+	
+	int cw = min(bmp->w, w);
+	int ch = min(bmp->h, h);
+
+	glColor4f(1.0, 1.0, 1.0, 1.0);	
+	glBindTexture(GL_TEXTURE_2D, bitmapTex);
 		
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, bmp->w);
-	glPixelZoom(1, 1);
-	
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	
-	glOrtho(0.0, gr_screen.max_w, 0.0, gr_screen.max_h, -1.0, 1.0);
-	glRasterPos2i(x, gr_screen.max_h-(y+h));
-	
-	glDrawPixels(w, h, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid *)bmp->data);
+	py = y;
+	for (iy = sy; iy < ch; iy += 256) {
+		px = x;
+		ih = min(256, (ch-iy));
+		qy = py+ih;
+		for (ix = sx; ix < cw; ix += 256) {
+			dptr = bitmapMem;
+			sptr = ((unsigned char *)bmp->data) + 2*(iy*bmp->w + ix);
+			
+			iw = min(256, (cw-ix));
+				
+			qx = px+iw;
+			
+			int ihx = ih;
+			while (ihx > 0) {
+				memcpy(dptr, sptr, iw*2);
+				
+				sptr += 2*bmp->w;
+				dptr += 2*iw;
+				
+				ihx--;
+			}			
+			
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, iw, ih, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, bitmapMem);
+			glBegin(GL_QUADS);
+				/* upper left */
+				s = 0.0;
+				t = 0.0;
+				glTexCoord2f(s, t);		
+				glVertex2f(px, py);
+				
+				/* lower left */
+				s = 0.0;
+				t = (float)ih / 256.0;
+				glTexCoord2f(s, t);		
+				glVertex2f(px, qy);
+				
+				/* lower right */
+				s = (float)iw / 256.0;
+				t = (float)ih / 256.0;
+				glTexCoord2f(s, t);		
+				glVertex2f(qx, qy);
+				
+				/* upper left */
+				s = (float)iw / 256.0;
+				t = 0.0;
+				glTexCoord2f(s, t);
+				glVertex2f(qx, py);				
+			glEnd();
+			
+			px = qx;
+		}
 		
-	glPopMatrix();
-	
-	glPopClientAttrib();
-	glPopAttrib();
-/* ** */
-
-	bm_unlock(gr_screen.current_bitmap);
-	
-	STUB_FUNCTION;
+		py = qy;
+	}	
 }
 
 
@@ -488,38 +526,24 @@ static void opengl_scanline(int x1,int x2,int y)
 static void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 {
 	int saved_zbuf;
-	
+
 	saved_zbuf = gr_zbuffer_get();
 	gr_zbuffer_set(GR_ZBUFF_NONE);
 	gr_set_cull(0);
 	
 	glColor4ub(r, g, b, a);
 	glBegin(GL_QUADS);
-		float m, n;
-		float wx, wy;
-		
-		wx = gr_screen.max_w / 2.0;
-		wy = gr_screen.max_h / 2.0;
-		
 		/* upper left */
-		m = -(wx - (float)x) / wx;
-		n = -(wy - (float)y) / wy;
-		glVertex2f(m, n);
+		glVertex2f(x, y);
 		
 		/* lower left */
-		m = -(wx - (float)x) / wx;
-		n = -(wy - (float)(y+h)) / wy;
-		glVertex2f(m, n);
+		glVertex2f(x, y+x);
 	
 		/* lower right */
-		m = -(wx - (float)(x+w)) / wx;
-		n = -(wy - (float)(y+h)) / wy;
-		glVertex2f(m, n);
+		glVertex2f(x+w, y+h);
 		
 		/* upper right */
-		m = -(wx - (float)(x+w)) / wx;
-		n = -(wy - (float)y) / wy;
-		glVertex2f(m, n);
+		glVertex2f(x+w, y);
 	glEnd();
 	
 	gr_zbuffer_set(saved_zbuf);
@@ -550,38 +574,286 @@ void gr_opengl_shade(int x,int y,int w,int h)
         gr_opengl_rect_internal(x, y, w, h, r, g, b, a);	
 }
 
-void opengl_mtext(int x, int y, char *s, int len )
+void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
-	STUB_FUNCTION;
+	if ( w < 1 ) return;
+	if ( h < 1 ) return;
+
+	if ( !gr_screen.current_color.is_alphacolor )	return;
+
+	float u_scale, v_scale;
+
+//	gr_d3d_set_state( TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+
+	if ( !gr_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale ) )	{
+		// Couldn't set texture
+		//mprintf(( "GLIDE: Error setting aabitmap texture!\n" ));
+		return;
+	}
+
+//	LPD3DTLVERTEX src_v;
+//	D3DTLVERTEX d3d_verts[4];
+
+	float u0, u1, v0, v1;
+	float x1, x2, y1, y2;
+	int bw, bh;
+
+	bm_get_info( gr_screen.current_bitmap, &bw, &bh );
+
+	u0 = u_scale*i2fl(sx)/i2fl(bw);
+	v0 = v_scale*i2fl(sy)/i2fl(bh);
+
+	u1 = u_scale*i2fl(sx+w)/i2fl(bw);
+	v1 = v_scale*i2fl(sy+h)/i2fl(bh);
+
+	x1 = i2fl(x+gr_screen.offset_x);
+	y1 = i2fl(y+gr_screen.offset_y);
+	x2 = i2fl(x+w+gr_screen.offset_x);
+	y2 = i2fl(y+h+gr_screen.offset_y);
+
+	uint color;
+
+	if ( gr_screen.current_color.is_alphacolor )	{
+//		color = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue,gr_screen.current_color.alpha);
+			glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue,gr_screen.current_color.alpha);
+//		} else {
+//			int r = (gr_screen.current_color.red*gr_screen.current_color.alpha)/255;
+//			int g = (gr_screen.current_color.green*gr_screen.current_color.alpha)/255;
+//			int b = (gr_screen.current_color.blue*gr_screen.current_color.alpha)/255;
+//		
+//			color = RGBA_MAKE(r,g,b, 255 );
+//			glColor3ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
+//		}
+	} else {
+//		color = RGB_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
+//		glColor3ub(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue);
+	}
+
+#if 0
+	src_v->sz = 0.99f;
+	src_v->rhw = 1.0f;
+	src_v->color = color;	 
+	src_v->specular = 0;
+	src_v->sx = x1;
+	src_v->sy = y1;
+	src_v->tu = u0;
+	src_v->tv = v0;
+	src_v++;
+
+	src_v->sz = 0.99f;
+	src_v->rhw = 1.0f;
+	src_v->color = color;	 
+	src_v->specular = 0;
+	src_v->sx = x2;
+	src_v->sy = y1;
+	src_v->tu = u1;
+	src_v->tv = v0;
+	src_v++;
+
+	src_v->sz = 0.99f;
+	src_v->rhw = 1.0f;
+	src_v->color = color;	 
+	src_v->specular = 0;
+	src_v->sx = x2;
+	src_v->sy = y2;
+	src_v->tu = u1;
+	src_v->tv = v1;
+	src_v++;
+
+	src_v->sz = 0.99f;
+	src_v->rhw = 1.0f;
+	src_v->color = color;	 
+	src_v->specular = 0;
+	src_v->sx = x1;
+	src_v->sy = y2;
+	src_v->tu = u0;
+	src_v->tv = v1;
+
+	d3d_DrawPrimitive(D3DPT_TRIANGLEFAN,D3DVT_TLVERTEX,(LPVOID)d3d_verts,4,NULL);
+#endif	
 }
 
-void gr_opengl_string(int x,int y,char * text)
+void gr_opengl_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
 {
-	char *p, *p1;
+	int reclip;
+	#ifndef NDEBUG
+	int count = 0;
+	#endif
+
+	int dx1=x, dx2=x+w-1;
+	int dy1=y, dy2=y+h-1;
+
+	int bw, bh;
+	bm_get_info( gr_screen.current_bitmap, &bw, &bh, NULL );
+
+	do {
+		reclip = 0;
+		#ifndef NDEBUG
+			if ( count > 1 ) Int3();
+			count++;
+		#endif
+	
+		if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
+		if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
+		if ( dx1 < gr_screen.clip_left ) { sx += gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
+		if ( dy1 < gr_screen.clip_top ) { sy += gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
+		if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
+		if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
+
+		if ( sx < 0 ) {
+			dx1 -= sx;
+			sx = 0;
+			reclip = 1;
+		}
+
+		if ( sy < 0 ) {
+			dy1 -= sy;
+			sy = 0;
+			reclip = 1;
+		}
+
+		w = dx2-dx1+1;
+		h = dy2-dy1+1;
+
+		if ( sx + w > bw ) {
+			w = bw - sx;
+			dx2 = dx1 + w - 1;
+		}
+
+		if ( sy + h > bh ) {
+			h = bh - sy;
+			dy2 = dy1 + h - 1;
+		}
+
+		if ( w < 1 ) return;		// clipped away!
+		if ( h < 1 ) return;		// clipped away!
+
+	} while (reclip);
+
+	// Make sure clipping algorithm works
+	#ifndef NDEBUG
+		Assert( w > 0 );
+		Assert( h > 0 );
+		Assert( w == (dx2-dx1+1) );
+		Assert( h == (dy2-dy1+1) );
+		Assert( sx >= 0 );
+		Assert( sy >= 0 );
+		Assert( sx+w <= bw );
+		Assert( sy+h <= bh );
+		Assert( dx2 >= dx1 );
+		Assert( dy2 >= dy1 );
+		Assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
+		Assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
+		Assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
+		Assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
+	#endif
+
+	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.
+	gr_opengl_aabitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
+}
+
+void gr_opengl_aabitmap(int x, int y)
+{
 	int w, h;
 
-	p1 = text;
-	do {
-		p = strchr( p1, '\n' );
-		if ( p ) { 
-			*p = 0;
-			p++;
-		}
-		gr_get_string_size( &w, &h, p1 );
+	bm_get_info( gr_screen.current_bitmap, &w, &h, NULL );
+	int dx1=x, dx2=x+w-1;
+	int dy1=y, dy2=y+h-1;
+	int sx=0, sy=0;
 
-		if ( x == 0x8000 )
-			opengl_mtext(gr_screen.offset_x+(gr_screen.clip_width-w)/2,y+gr_screen.offset_y,p1,strlen(p1));
-		else
-			opengl_mtext(gr_screen.offset_x+x,y+gr_screen.offset_y,p1,strlen(p1));
+	if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
+	if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
+	if ( dx1 < gr_screen.clip_left ) { sx = gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
+	if ( dy1 < gr_screen.clip_top ) { sy = gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
+	if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
+	if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
 
-		p1 = p;
-		if ( p1 && (strlen(p1) < 1) ) p1 = NULL;
-		y += h;
-	} while(p1!=NULL);
+	if ( sx < 0 ) return;
+	if ( sy < 0 ) return;
+	if ( sx >= w ) return;
+	if ( sy >= h ) return;
+
+	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
+	gr_aabitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
 }
 
 
+void gr_opengl_string( int sx, int sy, char *s )
+{
+	int width, spacing, letter;
+	int x, y;
 
+	if ( !Current_font )	{
+		return;
+	}
+
+	gr_set_bitmap(Current_font->bitmap_id);
+
+	x = sx;
+	y = sy;
+
+	if (sx==0x8000) {			//centered
+		x = get_centered_x(s);
+	} else {
+		x = sx;
+	}
+	
+	spacing = 0;
+
+	while (*s)	{
+		x += spacing;
+
+		while (*s== '\n' )	{
+			s++;
+			y += Current_font->h;
+			if (sx==0x8000) {			//centered
+				x = get_centered_x(s);
+			} else {
+				x = sx;
+			}
+		}
+		if (*s == 0 ) break;
+
+		letter = get_char_width(s[0],s[1],&width,&spacing);
+		s++;
+
+		//not in font, draw as space
+		if (letter<0)	{
+			continue;
+		}
+
+		int xd, yd, xc, yc;
+		int wc, hc;
+
+		// Check if this character is totally clipped
+		if ( x + width < gr_screen.clip_left ) continue;
+		if ( y + Current_font->h < gr_screen.clip_top ) continue;
+		if ( x > gr_screen.clip_right ) continue;
+		if ( y > gr_screen.clip_bottom ) continue;
+
+		xd = yd = 0;
+		if ( x < gr_screen.clip_left ) xd = gr_screen.clip_left - x;
+		if ( y < gr_screen.clip_top ) yd = gr_screen.clip_top - y;
+		xc = x+xd;
+		yc = y+yd;
+
+		wc = width - xd; hc = Current_font->h - yd;
+		if ( xc + wc > gr_screen.clip_right ) wc = gr_screen.clip_right - xc;
+		if ( yc + hc > gr_screen.clip_bottom ) hc = gr_screen.clip_bottom - yc;
+
+		if ( wc < 1 ) continue;
+		if ( hc < 1 ) continue;
+
+		font_char *ch;
+	
+		ch = &Current_font->char_data[letter];
+
+		int u = Current_font->bm_u[letter];
+		int v = Current_font->bm_v[letter];
+
+		gr_opengl_aabitmap_ex_internal( xc, yc, wc, hc, u+xd, v+yd );
+	}
+}
 
 void gr_opengl_circle( int xc, int yc, int d )
 {
@@ -915,6 +1187,21 @@ void gr_opengl_init_color(color *c, int r, int g, int b)
 	c->magic = 0xAC01;
 }
 
+void gr_opengl_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type )
+{
+	if ( r < 0 ) r = 0; else if ( r > 255 ) r = 255;
+	if ( g < 0 ) g = 0; else if ( g > 255 ) g = 255;
+	if ( b < 0 ) b = 0; else if ( b > 255 ) b = 255;
+	if ( alpha < 0 ) alpha = 0; else if ( alpha > 255 ) alpha = 255;
+
+        gr_opengl_init_color( clr, r, g, b );
+
+        clr->alpha = (unsigned char)alpha;
+        clr->ac_type = (ubyte)type;
+	clr->alphacolor = -1;
+	clr->is_alphacolor = 1;
+}
+
 void gr_opengl_set_color( int r, int g, int b )
 {
 	Assert((r >= 0) && (r < 256));
@@ -927,8 +1214,11 @@ void gr_opengl_set_color( int r, int g, int b )
 void gr_opengl_set_color_fast(color *dst)
 {
 	if ( dst->screen_sig != gr_screen.signature )	{
-		gr_init_color( dst, dst->red, dst->green, dst->blue );
-		return;
+		if ( dst->is_alphacolor )       {
+			gr_opengl_init_alphacolor( dst, dst->red, dst->green, dst->blue, dst->alpha, dst->ac_type );
+		} else {
+			gr_opengl_init_color( dst, dst->red, dst->green, dst->blue );
+		}
 	}
 	gr_screen.current_color = *dst;
 }
@@ -996,6 +1286,11 @@ void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, 
 
 int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_ratio, float *v_ratio, int fail_on_full = 0, int sx = -1, int sy = -1, int force = 0)
 {
+	bitmap *bmp = NULL;
+	bmp = bm_lock(bitmap_id, 16, BMP_TEX_XPARENT);
+	bm_unlock(bitmap_id);
+	
+	fprintf(stderr, "DEBUG: %d %d: ", bmp->w, bmp->h);
 	STUB_FUNCTION;
 	
 	return 1;
@@ -1006,22 +1301,7 @@ void gr_opengl_set_clear_color(int r, int g, int b)
 	STUB_FUNCTION;
 }
 
-void gr_opengl_aabitmap(int x, int y)
-{
-	STUB_FUNCTION;
-}
-
-void gr_opengl_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
-{
-	STUB_FUNCTION;
-}
-
 void gr_opengl_aaline(vertex *v1, vertex *v2)
-{
-	STUB_FUNCTION;
-}
-
-void gr_opengl_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type )
 {
 	STUB_FUNCTION;
 }
@@ -1137,9 +1417,36 @@ void gr_opengl_init()
 	{
 		fprintf (stderr, "Couldn't set video mode: %s", SDL_GetError ());
 		exit (1);
-	}
+	}		
 #endif
-	int bpp = 16;
+	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	
+	glEnable(GL_TEXTURE_2D);
+	
+	glGenTextures(1, &bitmapTex);
+	glBindTexture(GL_TEXTURE_2D, bitmapTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, -1.0, 1.0);		
+	
+	bitmapMem = (GLubyte *)malloc(256*256*4);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, bitmapMem);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_CHAR, bitmapMem);
+	
+	glFlush();
+	
+	int bpp = 15;
 	
 	switch( bpp )	{
 	case 8:
@@ -1157,7 +1464,9 @@ void gr_opengl_init()
 		Gr_blue.shift = 0;
 		Gr_blue.scale = 1;
 		Gr_blue.mask = 0xff;
-
+		
+		break;
+		
 	case 15:
 		Gr_red.bits = 5;
 		Gr_red.shift = 10;
@@ -1229,7 +1538,7 @@ void gr_opengl_init()
 	gr_screen.gf_flip_window = gr_opengl_flip_window;
 	gr_screen.gf_set_clip = gr_opengl_set_clip;
 	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
-	gr_screen.gf_set_font = gr_opengl_set_font;
+	gr_screen.gf_set_font = grx_set_font;
 	
 	gr_screen.gf_set_color = gr_opengl_set_color;
 	gr_screen.gf_set_bitmap = gr_opengl_set_bitmap;

@@ -15,6 +15,9 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.10  2004/06/11 00:55:25  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.9  2003/08/03 15:51:58  taylor
  * fix issue with FS1 fonts
  *
@@ -866,6 +869,17 @@ int gr_create_font(char * typeface)
 	cfread( &fnt->char_data_size, sizeof(int), 1, fp );
 	cfread( &fnt->pixel_data_size, sizeof(int), 1, fp );
 
+    fnt->id = INTEL_SHORT( fnt->id );
+    fnt->version = INTEL_INT( fnt->version );
+    fnt->num_chars = INTEL_INT( fnt->num_chars );
+    fnt->first_ascii = INTEL_INT( fnt->first_ascii );
+    fnt->w = INTEL_INT( fnt->w );
+    fnt->h = INTEL_INT( fnt->h );
+    fnt->num_kern_pairs = INTEL_INT( fnt->num_kern_pairs );
+    fnt->kern_data_size = INTEL_INT( fnt->kern_data_size );
+    fnt->char_data_size = INTEL_INT( fnt->char_data_size );
+    fnt->pixel_data_size = INTEL_INT( fnt->pixel_data_size );
+
 	if ( fnt->kern_data_size )	{
 		fnt->kern_data = (font_kernpair *)malloc( fnt->kern_data_size );
 		Assert(fnt->kern_data!=NULL);
@@ -877,6 +891,13 @@ int gr_create_font(char * typeface)
 		fnt->char_data = (font_char *)malloc( fnt->char_data_size );
 		Assert( fnt->char_data != NULL );
 		cfread( fnt->char_data, fnt->char_data_size, 1, fp );
+        for ( int i=0; i<fnt->num_chars; i++){
+            fnt->char_data[i].spacing = INTEL_INT( fnt->char_data[i].spacing );
+            fnt->char_data[i].byte_width = INTEL_INT( fnt->char_data[i].byte_width );
+            fnt->char_data[i].offset = INTEL_INT( fnt->char_data[i].offset );
+            fnt->char_data[i].kerning_entry = INTEL_SHORT( fnt->char_data[i].kerning_entry );
+            fnt->char_data[i].user_data = INTEL_SHORT( fnt->char_data[i].user_data );
+        }
 	} else {
 		fnt->char_data = NULL;
 	}

@@ -15,6 +15,9 @@
  * Tool for creating new fonts
  *
  * $Log$
+ * Revision 1.4  2004/06/11 00:50:40  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.3  2003/01/30 20:03:48  relnev
  * various files ported needed for fonttool.  There is a bug where on exit it segfaults in SDL_GL_SwapBuffers, I'm probably missing something (don't know what) but it works fine otherwise (Taylor Richards)
  *
@@ -444,6 +447,16 @@ void fonttool_read( char *filename, font *fnt )
 	fread( &fnt->kern_data_size, sizeof(int), 1, fp );
 	fread( &fnt->char_data_size, sizeof(int), 1, fp );
 	fread( &fnt->pixel_data_size, sizeof(int), 1, fp );
+
+    fnt->version = INTEL_INT( fnt->version );
+    fnt->num_chars = INTEL_INT( fnt->num_chars );
+    fnt->first_ascii = INTEL_INT( fnt->first_ascii );
+    fnt->w = INTEL_INT( fnt->w );
+    fnt->h = INTEL_INT( fnt->h );
+    fnt->num_kern_pairs = INTEL_INT( fnt->num_kern_pairs );
+    fnt->kern_data_size = INTEL_INT( fnt->kern_data_size );
+    fnt->char_data_size = INTEL_INT( fnt->char_data_size );
+    fnt->pixel_data_size = INTEL_INT( fnt->pixel_data_size );
 
 	if ( fnt->kern_data_size )	{
 		fnt->kern_data = (font_kernpair *)malloc( fnt->kern_data_size );

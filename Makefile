@@ -6,7 +6,7 @@ AR=ar
 CODE_BINARY=code.a
 FS_BINARY=freespace2
 LDFLAGS=$(shell sdl-config --libs)
-CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
+CFLAGS=-DFS2_DEMO -Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)

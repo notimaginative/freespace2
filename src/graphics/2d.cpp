@@ -7,6 +7,9 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.5  2002/05/28 04:18:08  theoddone33
+ * Fix some stuff and add -DFS2_DEMO
+ *
  * Revision 1.4  2002/05/27 22:43:02  theoddone33
  * Fix more glide symbols
  *
@@ -879,12 +882,14 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	}
 
 #if defined(HARDWARE_ONLY)
+#ifndef PLAT_UNIX
 	if(!Fred_running && !Pofview_running && !Nebedit_running && !Is_standalone){
 		if((mode != GR_GLIDE) && (mode != GR_DIRECT3D)){
 			mprintf(("Forcing glide startup!\n"));
 			mode = GR_GLIDE;
 		}	
 	}
+#endif
 #endif
 
 	D3D_enabled = 0;

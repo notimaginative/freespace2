@@ -1,11 +1,14 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
 
 #include "unix.h"
+
+#define MAX_LINE_WIDTH 128
 
 void strlwr (char * str)
 {
@@ -94,9 +97,15 @@ void outwnd_printf(char*, char*, ...)
 	STUB_FUNCTION;
 }
 
-void outwnd_printf2(char*, ...)
+void outwnd_printf2(char* format, ...)
 {
-	STUB_FUNCTION;
+	char tmp[MAX_LINE_WIDTH*4];
+	va_list args;
+
+	va_start (args, format);
+	vsprintf (tmp, format, args);
+	va_end(args);
+	fprintf (stderr, "General: %s", tmp);
 }
 
 void outwnd_close()

@@ -16,6 +16,9 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.8  2004/07/04 11:40:26  taylor
+ * only load those background bitmaps that we are going to use this mission
+ *
  * Revision 1.7  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -1366,13 +1369,18 @@ void stars_page_in()
 	bm_page_in_xparent_texture(Subspace_glow_bitmap);
 
 	// page in starfield bitmaps
-	int idx;
+	int idx, t;
 	idx = 0;
 	while((idx < MAX_STARFIELD_BITMAPS) && (Starfield_bitmaps[idx].bitmap != -1)){	
-		if(Starfield_bitmaps[idx].xparent){
-			bm_page_in_xparent_texture(Starfield_bitmaps[idx].bitmap);
-		} else { 
-			bm_page_in_texture(Starfield_bitmaps[idx].bitmap);
+		// make sure it's used in this mission before loading
+		for (t=0; t<Num_starfield_bitmaps; t++) {
+			if (!stricmp(Starfield_bitmaps[idx].filename, Starfield_bitmap_instance[t].filename)) {
+				if(Starfield_bitmaps[idx].xparent){
+					bm_page_in_xparent_texture(Starfield_bitmaps[idx].bitmap);
+				} else { 
+					bm_page_in_texture(Starfield_bitmaps[idx].bitmap);
+				}
+			}
 		}
 
 		// next;
@@ -1382,8 +1390,13 @@ void stars_page_in()
 	// sun bitmaps and glows
 	idx = 0;
 	while((idx < MAX_STARFIELD_BITMAPS) && (Sun_bitmaps[idx].bitmap != -1) && (Sun_bitmaps[idx].glow_bitmap != -1)){
-		bm_page_in_texture(Sun_bitmaps[idx].bitmap);
-		bm_page_in_texture(Sun_bitmaps[idx].glow_bitmap);
+		// make sure it's used in this mission before loading
+		for (t=0; t<Num_suns; t++) {
+			if (!stricmp(Sun_bitmaps[idx].filename, Suns[t].filename)) {
+				bm_page_in_texture(Sun_bitmaps[idx].bitmap);
+				bm_page_in_texture(Sun_bitmaps[idx].glow_bitmap);
+			}
+		}
 
 		// next 
 		idx++;

@@ -32,8 +32,9 @@ Current status:
 
 - Lots of debug messages.  Recompile with NDEBUG defined to get rid of them.
 
-- The build currently defaults to the demo.  Edit pstypes.h to build the
-full version.  Mods, etc. have not been tested.
+- The build currently defaults to the full version.  To build the demo
+version, edit the Makefile by changing the DEMO flag from "false" to "true".
+Mods, etc. have not been tested.
 
 - Networking (TCP) seems to work OK.  Linux<->Linux works great, Lin<->Win
 not tested.

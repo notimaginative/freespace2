@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.28  2003/05/18 03:55:30  taylor
+ * automatic language selection support
+ *
  * Revision 1.27  2003/03/03 04:54:44  theoddone33
  * Commit Taylor's ShowFPS fix
  *
@@ -1047,6 +1050,9 @@ static char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
 	"2_OEMPreLoad"
 };
 #endif
+
+// auto-lang stuff
+int detect_lang();
 
 // cdrom stuff
 char Game_CDROM_dir[MAX_PATH_LEN];
@@ -2171,7 +2177,7 @@ void game_init()
 
 	// initialize localization module. Make sure this is down AFTER initialzing OS.
 //	int t1 = timer_get_milliseconds();
-	lcl_init();	
+	lcl_init( detect_lang() );
 	lcl_xstr_init();
 //	mprintf(("LCL_INIT() TOOK %d MS\n", timer_get_milliseconds()-t1));
 
@@ -8598,6 +8604,61 @@ int game_do_cd_mission_check(char *filename)
 // ----------------------------------------------------------------
 //
 // CDROM detection code END
+//
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+//
+// Language Autodetection stuff
+//
+
+// this layout order must match Lcl_languages in localize.cpp in order for the
+// correct language to be detected
+int Lang_auto_detect_checksums[LCL_NUM_LANGUAGES] = {
+	589986744,				// English
+	-1132430286,			// German
+	0,						// French
+};
+
+// default setting is "-1" to use config file with English as fall back
+// DO NOT change the default setting here or something uncouth might happen
+// in the localization code
+int detect_lang()
+{
+	uint file_checksum;		
+	int idx;
+
+	// try and open the file to verify
+	CFILE *detect = cfopen("font01.vf", "rb");
+	
+	// will use default setting if something went wrong
+	if (!detect) {
+		return -1;
+	}	
+
+	// get the long checksum of the file
+	file_checksum = 0;
+	cfseek(detect, 0, SEEK_SET);	
+	cf_chksum_long(detect, &file_checksum);
+	cfclose(detect);
+	detect = NULL;	
+
+	// now compare the checksum/filesize against known #'s
+	for (idx=0; idx<LCL_NUM_LANGUAGES; idx++) {
+		if (Lang_auto_detect_checksums[idx] == (int)file_checksum) {
+			return idx;
+		}
+	}
+
+	// notify if a match was not found, include detected checksum
+	printf("ERROR: Unknown Language Checksum: %i\n", (int)file_checksum);
+	printf("Using default language...\n\n");
+	
+	return -1;
+}
+
+//
+// End Auto Lang stuff
 //
 // ----------------------------------------------------------------
 

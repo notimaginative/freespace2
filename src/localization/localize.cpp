@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.4  2003/05/18 03:55:30  taylor
+ * automatic language selection support
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -436,14 +439,11 @@ void lcl_init(int lang_init)
 	// read the language from the registry
 	if(lang_init < 0){
 		memset(lang_string, 0, 128);
-#if defined(GERMAN_BUILD)
-		// defualt lang to German, mein herr
-		ret = os_config_read_string(NULL, "Language", "German");
-#else
+
 		// default to DEFAULT_LANGUAGE (which should be english so we dont have to put German text 
 		// in tstrings in the #default section
 		ret = os_config_read_string(NULL, "Language", DEFAULT_LANGUAGE);
-#endif
+
 		if(ret == NULL){
 			Int3();
 			strcpy(lang_string, DEFAULT_LANGUAGE);
@@ -1066,11 +1066,11 @@ int lcl_ext_lookup(char *out, int id)
 		// found a matching string/id pair
 		case 2 :			
 			// success
-#if defined(GERMAN_BUILD)
-			// this is because tstrings.tbl reads in as ANSI for some reason
-			// opening tstrings with "rb" mode didnt seem to help, so its now still "rt" like before
-			lcl_fix_umlauts(out, LCL_TO_ASCII);		
-#endif
+			if (Lcl_gr) {
+				// this is because tstrings.tbl reads in as ANSI for some reason
+				// opening tstrings with "rb" mode didnt seem to help, so its now still "rt" like before
+				lcl_fix_umlauts(out, LCL_TO_ASCII);		
+			}	
 			return 1;
 
 		// end of language found

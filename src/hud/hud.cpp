@@ -15,6 +15,9 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.4  2003/05/18 03:55:30  taylor
+ * automatic language selection support
+ *
  * Revision 1.3  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -520,25 +523,24 @@ int Kills_text_coords[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 
-#if defined(GERMAN_BUILD)
-	int Kills_text_val_coords[GR_NUM_RESOLUTIONS][2] = {
-		{ // GR_640
-			615, 365
-		},
-		{ // GR_1024
-			984, 628
-		}
-	};
-#else
-	int Kills_text_val_coords[GR_NUM_RESOLUTIONS][2] = {
-		{ // GR_640
-			571, 365
-		},
-		{ // GR_1024
-			954, 628
-		}
-	};
-#endif
+// for German version
+int Kills_text_val_coords_gr[GR_NUM_RESOLUTIONS][2] = {
+	{ // GR_640
+		615, 365
+	},
+	{ // GR_1024
+		984, 628
+	}
+};
+
+int Kills_text_val_coords[GR_NUM_RESOLUTIONS][2] = {
+	{ // GR_640
+		571, 365
+	},
+	{ // GR_1024
+		954, 628
+	}
+};
 
 char Kills_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
 	"kills1",
@@ -2117,7 +2119,11 @@ void hud_show_kills_gauge()
 	sprintf(num_kills_string, "%d", Player->stats.m_kill_count_ok);
 
 	gr_get_string_size(&w, &h, num_kills_string);
-	gr_string(Kills_text_val_coords[gr_screen.res][0]-w, Kills_text_val_coords[gr_screen.res][1], num_kills_string);
+	if (Lcl_gr) {
+		gr_string(Kills_text_val_coords_gr[gr_screen.res][0]-w, Kills_text_val_coords_gr[gr_screen.res][1], num_kills_string);
+	} else {
+		gr_string(Kills_text_val_coords[gr_screen.res][0]-w, Kills_text_val_coords[gr_screen.res][1], num_kills_string);
+	}
 }
 
 // maybe show the netlag icon on the hud

@@ -7,6 +7,9 @@
  * Include file for timer stuff
  *
  * $Log$
+ * Revision 1.5  2002/05/29 21:38:20  relnev
+ * fixed?
+ *
  * Revision 1.4  2002/05/28 21:36:10  relnev
  * some more timer junk.
  *
@@ -162,7 +165,11 @@ fix timer_get_fixed_seconds()
 //	STUB_FUNCTION;
 //	return 0;
 
-	return (SDL_GetTicks() << 16) / 1000;
+//	return (SDL_GetTicks() << 16) / 1000;
+	__extension__ long long a = SDL_GetTicks();
+	
+	a *= 65536;
+	return (fix)(a / 1000);
 #else
 	int tmp;
 	LARGE_INTEGER temp_large;

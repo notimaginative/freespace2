@@ -7,8 +7,8 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
- * Revision 1.35  2002/05/31 22:36:12  relnev
- * improve z
+ * Revision 1.36  2002/05/31 23:25:03  relnev
+ * line fixes
  *
  * Revision 1.34  2002/05/31 22:15:22  relnev
  * BGRA
@@ -439,6 +439,19 @@ void gr_opengl_flip()
 {
 	if (!Inited) return;
 
+#ifndef NDEBUG
+	GLenum error = glGetError();
+	int ic = 0;
+	do {
+		error = glGetError();
+		
+		if (error != GL_NO_ERROR) {
+			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d (%d this frame)\n", error, ic));
+		}
+		ic++;
+	} while (error != GL_NO_ERROR);
+#endif
+	
 	SDL_GL_SwapBuffers ();
 
 	opengl_tcache_frame ();
@@ -1057,12 +1070,48 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 	
 	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+	
+	float sx1, sy1;
+	float sx2, sy2;
+	
+	sx1 = i2fl(x1 + gr_screen.offset_x);
+	sy1 = i2fl(y1 + gr_screen.offset_y);
+	sx2 = i2fl(x2 + gr_screen.offset_x);
+	sy2 = i2fl(y2 + gr_screen.offset_y);
+	
+	if ( x1 == x2 && y1 == y2 ) {
+		glBegin (GL_POINTS);
+		  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
+		  glVertex3f (sx1, sy1, -0.99f);
+		glEnd ();
 		
-	glBegin (GL_LINE);
+		return;
+	}
+	
+	if ( x1 == x2 ) {
+		if ( sy1 < sy2 )    {
+			sy2 += 0.5f;
+		} else {
+			sy1 += 0.5f;
+		}
+	} else if ( y1 == y2 )  {
+		if ( sx1 < sx2 )    {
+			sx2 += 0.5f;
+		} else {
+			sx1 += 0.5f;
+		}
+	}
+	
+	glBegin (GL_LINES);
 	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
-	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), -0.99f);
-	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), -0.99f);
+	  glVertex3f (sx2, sy2, -0.99f);
+	  glVertex3f (sx1, sy1, -0.99f);
 	glEnd ();
+}
+
+void gr_opengl_aaline(vertex *v1, vertex *v2)
+{
+	gr_opengl_line( fl2i(v1->sx), fl2i(v1->sy), fl2i(v2->sx), fl2i(v2->sy) );
 }
 
 void gr_opengl_gradient(int x1,int y1,int x2,int y2)
@@ -1078,11 +1127,36 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 
 	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 
-	glBegin (GL_LINE);
-	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
-	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), -0.99f);
-	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, 0);
-	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), -0.99f);
+	int aa = swapped ? 0 : gr_screen.current_color.alpha;
+	int ba = swapped ? gr_screen.current_color.alpha : 0;
+	
+	float sx1, sy1;
+	float sx2, sy2;
+	
+	sx1 = i2fl(x1 + gr_screen.offset_x);
+	sy1 = i2fl(y1 + gr_screen.offset_y);
+	sx2 = i2fl(x2 + gr_screen.offset_x);
+	sy2 = i2fl(y2 + gr_screen.offset_y);
+	
+	if ( x1 == x2 ) {
+		if ( sy1 < sy2 )    {
+			sy2 += 0.5f;
+		} else {
+			sy1 += 0.5f;
+		}
+	} else if ( y1 == y2 )  {
+		if ( sx1 < sx2 )    {
+			sx2 += 0.5f;
+		} else {
+			sx1 += 0.5f;
+		}
+	}
+	
+	glBegin (GL_LINES);
+	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, ba);
+	  glVertex3f (sx2, sy2, -0.99f);
+	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, aa);
+	  glVertex3f (sx1, sy1, -0.99f);
 	glEnd ();	
 }
 
@@ -2364,11 +2438,6 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 void gr_opengl_set_clear_color(int r, int g, int b)
 {
 	gr_init_color (&gr_screen.current_clear_color, r, g, b);
-}
-
-void gr_opengl_aaline(vertex *v1, vertex *v2)
-{
-	gr_opengl_line( fl2i(v1->sx), fl2i(v1->sy), fl2i(v2->sx), fl2i(v2->sy) );
 }
 
 void gr_opengl_flash(int r, int g, int b)

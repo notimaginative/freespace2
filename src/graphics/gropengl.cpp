@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.35  2002/05/31 22:36:12  relnev
+ * improve z
+ *
  * Revision 1.34  2002/05/31 22:15:22  relnev
  * BGRA
  *
@@ -1290,14 +1293,14 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		int a;
 		
 		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
-			sz = va->z / z_mult;
+			sz = 1.0 - 1.0 / va->z;
 			if ( sz > 0.98f ) {
 				sz = 0.98f;
 			}
 		} else {
 			sz = 0.99f;
 		}
-				
+
 		if ( flags & TMAP_FLAG_CORRECT )        {
 			rhw = va->sw;
 		} else {

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2005/03/31 00:04:25  taylor
+ * fix directory separator (thanks Pierre\!)
+ *
  * Revision 1.3  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -152,7 +155,7 @@ int multi_update_http_init()
 
 	// local file
 	strcpy(local_file, Cfile_root_dir);
-	strcat(local_file, "\\");
+	strcat(local_file, DIR_SEPARATOR_STR);
 	strcat(local_file, VERSION_LOC_FNAME);
 
 	// new file	

@@ -15,6 +15,9 @@
  * C source module for mission loading
  *
  * $Log$
+ * Revision 1.3  2005/03/31 00:04:25  taylor
+ * fix directory separator (thanks Pierre\!)
+ *
  * Revision 1.2  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -237,7 +240,7 @@ void ml_update_recent_missions(char *filename)
 	}
 
 	// get a pointer to just the basename of the filename (including extension)
-	p = strrchr(filename, '\\');
+	p = strrchr(filename, DIR_SEPARATOR_CHAR);
 	if ( p == NULL ) {
 		p = filename;
 	} else {

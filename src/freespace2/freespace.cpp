@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.29  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.28  2003/05/18 03:55:30  taylor
  * automatic language selection support
  *
@@ -838,6 +841,15 @@ int Player_multi_died_check = -1;
 		{ "MPDemo-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI),								""		},
 		{ "Demo-DOG-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI),								""		},
 	};
+#elif defined(FS1_DEMO)
+	int Game_builtin_mission_count = 5;
+	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
+		{ "btmdemo.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
+		{ "demo.fsc",					(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),					""		},
+		{ "demo01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
+		{ "demo02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
+		{ "demo02b.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
+	};
 #elif defined(PD_BUILD)
 	int Game_builtin_mission_count = 4;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
@@ -892,7 +904,168 @@ int Player_multi_died_check = -1;
 		{ "tsm-105.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
 		{ "tsm-106.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	}
 	};
-#else 
+#elif defined(MAKE_FS1) 
+	int Game_builtin_mission_count = 125;
+	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
+		// single player campaign
+		{ "freespace.fsc",				(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),				"" },
+
+		// act 1
+		{ "sm1-01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-10a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+
+		// act 2
+		{ "sm2-01a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-10a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+
+		// act 3
+		{ "sm3-01a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+
+		// gauntlet
+		{ "t-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "v-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "s-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+
+		// training
+		{ "btm-01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "btm-02.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "btm-03.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "btm-04.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "btm-05.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+
+		// multiplayer
+		{ "m-hope.fsc",					(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+		{ "m-altair.fsc",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+
+		{ "m-v-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-va.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-unstoppable.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-t-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-s-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-rescue.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-pain.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-orecovery.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "mm3-01a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "mm3-02a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "mm3-03a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "mm3-04a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "mm3-05a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "mm3-06a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-guardduty.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-gate.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-duel.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-convoyassault.fsm",		(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-clash.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+
+	// SilentThreat missions
+		// Main SilentThreat campaign
+		{ "SilentThreat.fsc",			(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN_FILE),				"" },
+
+		{ "md-01.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-02.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-03.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-04.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-05.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-06.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-07.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-08.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-09.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-10.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-11.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-12.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+
+		// SilentThreat Part 1 - multi-coop
+		{ "ST-Part1.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+
+		{ "stmm-01.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-02.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-03.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+
+		// SilentThreat Part 2 - multi-coop
+		{ "ST-Part2.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+
+		{ "stmm-04.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-05.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-06.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+
+		// SilentThreat Part 3 - multi-coop
+		{ "ST-Part3.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+
+		{ "stmm-07.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-08.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-09.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+
+		// SilentThreat Part 4 - multi-coop
+		{ "ST-Part4.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+
+		{ "stmm-10.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-11.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-12.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+
+		// multiplayer missions
+		{ "mdmm-01.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
+		{ "mdmm-02.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
+		{ "mdmm-03.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
+		{ "mdmm-04.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
+		// user supplied missions
+		{ "mdu-02.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-03.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-04.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-05.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-06.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-07.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-08.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-09.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-10.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-11.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-12.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-13.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-14.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-15.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-16.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-17.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-18.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-19.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-20.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-21.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-22.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-23.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-24.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-25.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-26.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-27.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-28.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-29.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-30.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-31.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdumm-01.fsm",				(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdumm-02.fsm",				(FSB_FROM_MDISK | FSB_MULTI),											"" },
+	};
+#else
 	int Game_builtin_mission_count = 92;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
 		// single player campaign
@@ -1039,9 +1212,13 @@ static char *Game_loading_ani_fname[GR_NUM_RESOLUTIONS] = {
 	"2_Loading.ani"		// GR_1024
 };
 
-#if defined(FS2_DEMO)
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 static char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
+#ifdef FS1_DEMO
+	"DemoTitle1",
+#else
 	"PreLoad",
+#endif  // FS1_DEMO
 	"2_PreLoad"
 };
 #elif defined(OEM_BUILD)
@@ -1634,21 +1811,29 @@ void game_load_palette()
 	char palette_filename[1024];
 
 	// We only use 3 hud colors right now
-	// Assert( HUD_config.color >= 0 );
-	// Assert( HUD_config.color <= 2 );
+#ifdef MAKE_FS1
+	Assert( HUD_config.main_color >= 0 );
+	Assert( HUD_config.main_color <= 2 );
+#endif
 
 	Assert( Mission_palette >= 0 );
 	Assert( Mission_palette <= 98 );
 
-	// if ( The_mission.flags & MISSION_FLAG_SUBSPACE )	{
+#ifdef MAKE_FS1
+	if ( The_mission.flags & MISSION_FLAG_SUBSPACE )	{
 		strcpy( palette_filename, NOX("gamepalette-subspace") );
-	// } else {
-		// sprintf( palette_filename, NOX("gamepalette%d-%02d"), HUD_config.color+1, Mission_palette+1 );
-	// }
+	} else {
+		sprintf( palette_filename, NOX("gamepalette%d-%02d"), HUD_config.main_color+1, Mission_palette+1 );
+	}
 
 	mprintf(( "Loading palette %s\n", palette_filename ));
 
-	// palette_load_table(palette_filename);
+	palette_load_table(palette_filename);
+#else
+	strcpy( palette_filename, NOX("gamepalette-subspace") );
+
+	mprintf(( "Loading palette %s\n", palette_filename ));
+#endif
 }
 
 void game_post_level_init()
@@ -1695,7 +1880,13 @@ int Game_loading_frame=-1;
 
 static int Game_loading_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
+#if defined(FS1_DEMO)
+		133, 337
+#elif defined(MAKE_FS1)
+		118, 316
+#else
 		63, 316  // GR_640
+#endif
 	},
 	{
 		101, 505	// GR_1024
@@ -1747,7 +1938,9 @@ void game_loading_callback_init()
 	Assert( Game_loading_callback_inited==0 );
 
 	Game_loading_background = bm_load(Game_loading_bground_fname[gr_screen.res]);
-	//common_set_interface_palette("InterfacePalette");  // set the interface palette
+#ifdef MAKE_FS1
+	common_set_interface_palette("InterfacePalette");  // set the interface palette
+#endif
 
 
 	Game_loading_ani = anim_load( Game_loading_ani_fname[gr_screen.res]);
@@ -1918,7 +2111,9 @@ int game_start_mission()
 	// the standalone server in multiplayer doesn't do any rendering, so we will not even bother loading the palette
 	if ( !(Game_mode & GM_STANDALONE_SERVER) ) {
 		mprintf(( "=================== LOADING GAME PALETTE ================\n" ));
-		// game_load_palette();
+#ifdef MAKE_FS1
+		game_load_palette();
+#endif
 	}
 
 	load_post_level_init = time(NULL);
@@ -2210,7 +2405,7 @@ void game_init()
 	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), 0 );
 #endif
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	Asteroids_enabled = 1;		
 #endif
 
@@ -2290,6 +2485,7 @@ void game_init()
 	int has_sparky_hi = 0;
 
 	// check if sparky_hi exists -- access mode 0 means does file exist
+#ifndef MAKE_FS1 // shoudn't have it so don't check
 	char dir[128];
 	_getcwd(dir, 128);
 	if ( _access("sparky_hi_fs2.vp", 0) == 0) {
@@ -2297,6 +2493,7 @@ void game_init()
 	} else {
 		mprintf(("No sparky_hi_fs2.vp in directory %s\n", dir));
 	}
+#endif
 
 	// see if we've got 32 bit in the string
 	if(strstr(ptr, "32 bit")){
@@ -2401,7 +2598,7 @@ void game_init()
 
 	gr_set_gamma(Freespace_gamma);
 
-#if defined(FS2_DEMO) || defined(OEM_BUILD)
+#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 	// add title screen
 	if(!Is_standalone){
 		display_title_screen();
@@ -4670,7 +4867,7 @@ int game_check_key()
 	return k;
 }
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 
 #define DEMO_TRAILER_TIMEOUT_MS		45000			// 45 seconds of no input, play trailer
 static int Demo_show_trailer_timestamp = 0;
@@ -4749,7 +4946,7 @@ int game_poll()
 
    k = key_inkey();
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	demo_maybe_show_trailer(k);
 #endif
 
@@ -4836,12 +5033,12 @@ int game_poll()
 
 			// hotkey selection screen -- only valid from briefing and beyond.
 		case KEY_F3:	
-			#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 				if ( (state == GS_STATE_TEAM_SELECT) || (state == GS_STATE_BRIEFING) || (state == GS_STATE_SHIP_SELECT) || (state == GS_STATE_WEAPON_SELECT) || (state == GS_STATE_GAME_PLAY) || (state == GS_STATE_GAME_PAUSED) ) {
 					gameseq_post_event( GS_EVENT_HOTKEY_SCREEN );
 					k = 0;
 				}
-			#endif
+#endif
 			break;
 
 		case KEY_DEBUGGED + KEY_F3:
@@ -5008,7 +5205,7 @@ void camera_move()
 
 void end_demo_campaign_do()
 {
-#if defined(FS2_DEMO)
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	// show upsell screens
 	demo_upsell_show_screens();
 #elif defined(OEM_BUILD)
@@ -5063,7 +5260,11 @@ void game_process_event( int current_state, int event )
 
 		case GS_EVENT_DEBRIEF:
 			// did we end the campaign in the main freespace 2 single player campaign?
+#ifdef MAKE_FS1
+			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !stricmp(Campaign.filename, "freespace")) {
+#else
 			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !stricmp(Campaign.filename, "freespace2")) {
+#endif
 				gameseq_post_event(GS_EVENT_END_CAMPAIGN);
 			} else {
 				gameseq_set_state(GS_STATE_DEBRIEF);		
@@ -5412,9 +5613,9 @@ void game_process_event( int current_state, int event )
 			break;
 
 		case GS_EVENT_GAME_INIT:
-	#if defined(FS2_DEMO) || defined(OEM_BUILD)
+#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 			gameseq_set_state(GS_STATE_INITIAL_PLAYER_SELECT);
-	#else			
+#else			
 			// see if the command line option has been set to use the last pilot, and act acoordingly
 			if( player_select_get_last_pilot() ) {								
 				// always enter the main menu -- do the automatic network startup stuff elsewhere
@@ -5423,7 +5624,7 @@ void game_process_event( int current_state, int event )
 			} else {
 				gameseq_set_state(GS_STATE_INITIAL_PLAYER_SELECT);
 			}
-	#endif
+#endif
 			break;
 
 		case GS_EVENT_MULTI_MISSION_SYNC:
@@ -6928,8 +7129,8 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 	}
 
 	// non-demo, non-standalone, play the intro movie
-	if(!Is_standalone){
 #ifndef DEMO
+	if(!Is_standalone){
 #ifdef RELEASE_REAL
 		char *plist[5];
 		if( (cf_get_file_list(2, plist, CF_TYPE_MULTI_PLAYERS, NOX("*.plr"))	<= 0) && (cf_get_file_list(2, plist, CF_TYPE_SINGLE_PLAYERS, NOX("*.plr"))	<= 0) ){
@@ -6982,7 +7183,7 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 		}
 	} 
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	if(!Is_standalone){
 		demo_upsell_show_screens();
 	}
@@ -7723,7 +7924,7 @@ if ( FS_VERSION_BUILD == 0 ) {
 	sprintf(str,"v%d.%02d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
 }
 
-#if defined (FS2_DEMO)
+#if defined (FS2_DEMO) || defined(FS1_DEMO)
 	strcat(str, " D");
 #elif defined (OEM_BUILD)
 	strcat(str, " (OEM)");
@@ -7955,11 +8156,13 @@ void oem_upsell_show_screens()
 //
 // ----------------------------------------------------------------
 
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+
 #ifdef FS2_DEMO
-
-//#define NUM_DEMO_UPSELL_SCREENS				4
-
 #define NUM_DEMO_UPSELL_SCREENS				2
+#elif FS1_DEMO
+#define NUM_DEMO_UPSELL_SCREENS				4
+#endif
 #define DEMO_UPSELL_SCREEN_DELAY				3000
 
 static int Demo_upsell_bitmaps_loaded = 0;
@@ -7970,12 +8173,25 @@ static int Demo_upsell_show_next_bitmap_time;
 //XSTR:OFF
 static char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] = 
 {
+#ifdef FS1_DEMO
+	{	"DemoUpsell1",
+		"DemoUpsell2",
+		"DemoUpsell3",
+		"DemoUpsell4"
+	},
+	{	"DemoUpsell1",
+		"DemoUpsell2",
+		"DemoUpsell3",
+		"DemoUpsell4"
+	},
+#else
 	{	"UpSell02",
 		"UpSell01",
 	},
 	{	"2_UpSell02",
 		"2_UpSell01",
 	},
+#endif
 	// "DemoUpsell3",
 	// "DemoUpsell4",
 };
@@ -8548,8 +8764,10 @@ int game_do_cd_mission_check(char *filename)
 		cd_num = 1;
 	} else if(!stricmp(m->cd_volume, FS_CDROM_VOLUME_2)){
 		cd_num = 2;
+#ifndef MAKE_FS1
 	} else if(!stricmp(m->cd_volume, FS_CDROM_VOLUME_3)){
 		cd_num = 3; 
+#endif
 	} else {
 		return game_do_cd_check();
 	}
@@ -8615,7 +8833,11 @@ int game_do_cd_mission_check(char *filename)
 // this layout order must match Lcl_languages in localize.cpp in order for the
 // correct language to be detected
 int Lang_auto_detect_checksums[LCL_NUM_LANGUAGES] = {
+#ifdef MAKE_FS1
+	1366105450,				// English
+#else
 	589986744,				// English
+#endif
 	-1132430286,			// German
 	0,						// French
 };
@@ -8667,11 +8889,25 @@ int detect_lang()
 //
 
 // checksums, just keep a list of all valid ones, if it matches any of them, keep it
-#define NUM_SHIPS_TBL_CHECKSUMS		1
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+	#define NUM_SHIPS_TBL_CHECKSUMS		3
+#else
+	#define NUM_SHIPS_TBL_CHECKSUMS		1
+#endif
 
 #ifdef FS2_DEMO
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	1696074201,						// FS2 demo
+};
+#elif FS1_DEMO
+int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
+	1603375034,						// FS1 DEMO
+};
+#elif MAKE_FS1
+int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
+	-129679197,						// FS1 Full 1.06 (US)
+	7762567,						// FS1 SilentThreat
+	1555372475						// FS1 Full 1.06 (German)
 };
 #else
 /*
@@ -8741,11 +8977,25 @@ DCF(shipspew, "display the checksum for the current ships.tbl")
 //
 
 // checksums, just keep a list of all valid ones, if it matches any of them, keep it
-#define NUM_WEAPONS_TBL_CHECKSUMS		1
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+	#define NUM_WEAPONS_TBL_CHECKSUMS		3
+#else
+	#define NUM_WEAPONS_TBL_CHECKSUMS		1
+#endif
 
 #ifdef FS2_DEMO
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-266420030,				// demo 1
+};
+#elif FS1_DEMO
+int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
+	-1246928725,			// FS1 DEMO
+};
+#elif MAKE_FS1
+int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
+	-834598107,				// FS1 1.06 Full (US)
+	-1652231417,			// FS1 SilentThreat
+	720209793				// FS1 1.06 Full (German)
 };
 #else
 /*
@@ -8824,7 +9074,7 @@ int game_hacked_data()
 
 void display_title_screen()
 {
-#if defined(FS2_DEMO) || defined(OEM_BUILD)
+#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 	///int title_bitmap;
 
 	// load bitmap
@@ -8859,7 +9109,7 @@ void display_title_screen()
 	gr_flip();
 
 	bm_unload(title_bitmap);
-#endif  // FS2_DEMO || OEM_BUILD
+#endif  // FS2_DEMO || OEM_BUILD || FS1_DEMO
 }
 
 // return true if the game is running with "low memory", which is less than 48MB
@@ -8871,4 +9121,3 @@ bool game_using_low_mem()
 		return true;
 	}
 }
-

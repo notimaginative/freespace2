@@ -15,6 +15,9 @@
  * source for dealing with campaigns
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/24 00:20:42  relnev
  * nothing interesting
  *
@@ -591,6 +594,12 @@ int mission_campaign_load( char *filename, int load_savefile )
 			stuff_int( &(Campaign.num_players) );
 		}		
 
+#ifdef MAKE_FS1
+		// check if mission disk -
+		// doesn't do anything but prevent non fatal error messages
+		optional_string("+Missiondisk");
+#endif
+		
 		// parse the optional ship/weapon information
 		mission_campaign_get_sw_info();
 
@@ -974,8 +983,8 @@ void mission_campaign_delete_all_savefiles( char *pilot_name, int is_multi )
 void mission_campaign_savefile_load( char *cfilename )
 {
 	char filename[_MAX_FNAME], base[_MAX_FNAME];
-	int id, version, i, num, j, num_stats_blocks;
-	int type_sig;
+	int version, i, num, j, num_stats_blocks;
+	uint id, type_sig;
 	CFILE *fp;
 
 	Assert ( strlen(cfilename) != 0 );
@@ -1526,19 +1535,19 @@ void mission_campaign_close()
 	// we must also free any goal stuff that was from a previous campaign
 	for ( i=0; i<Campaign.num_missions; i++ ) {
 		if ( Campaign.missions[i].name ){
-			free(Campaign.missions[i].name);
+ 			free(Campaign.missions[i].name);
 		}
 
 		if (Campaign.missions[i].notes){
-			free(Campaign.missions[i].notes);
+ 			free(Campaign.missions[i].notes);
 		}
 
 		if ( Campaign.missions[i].num_goals > 0 ){
-			free ( Campaign.missions[i].goals );
+ 			free ( Campaign.missions[i].goals );
 		}
 
 		if ( Campaign.missions[i].num_events > 0 ){
-			free ( Campaign.missions[i].events );
+ 			free ( Campaign.missions[i].events );
 		}
 
 		if ( !Fred_running ){
@@ -1822,17 +1831,23 @@ void mission_campaign_end_do()
 	scoring_level_close();
 	mission_campaign_mission_over();
 
+#ifdef MAKE_FS1
+	movie_play("endgame.mve");
+#else
 	// eventually we'll want to play one of two options (good ending or bad ending)
 	// did the supernova blow?
 	if(Supernova_status == SUPERNOVA_HIT){
 		movie_play_two("endpart1.mve", "endprt2b.mve");			// good ending
 	} else {
 		movie_play_two("endpart1.mve", "endprt2a.mve");			// good ending
-	}	
+	}
+#endif
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	gameseq_post_event( GS_EVENT_END_DEMO );
-#else	
+#elif defined(MAKE_FS1)
+	gameseq_post_event( GS_STATE_END_OF_CAMPAIGN );
+#else
 	gameseq_post_event( GS_EVENT_MAIN_MENU );
 #endif
 }
@@ -1913,9 +1928,15 @@ void mission_campaign_jump_to_mission(char *name)
 	// load in the campaign junk
 	mission_load_up_campaign();
 
+#ifdef MAKE_FS1
+	// tack the .fsm onto the input name
+	strcpy(dest_name, name);
+	strcat(name, ".fsm");
+#else
 	// tack the .fs2 onto the input name
 	strcpy(dest_name, name);
 	strcat(name, ".fs2");
+#endif
 
 	// search for our mission
 	for (i=0; i<Campaign.num_missions; i++) {

@@ -15,6 +15,9 @@
  * C module for drawing the target monitor box on the HUD
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/18 08:58:53  relnev
  * last few struct changes
  *
@@ -786,7 +789,7 @@ void hud_render_target_jump_node(object *target_objp)
 //
 void hud_render_target_asteroid(object *target_objp)
 {
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	vector		obj_pos = {0.0f,0.0f,0.0f};
 	vector		camera_eye = {0.0f,0.0f,0.0f};
 	matrix		camera_orient = IDENTITY_MATRIX;
@@ -838,6 +841,7 @@ void hud_render_target_asteroid(object *target_objp)
 		strcpy(hud_name, NOX("asteroid"));
 		break;
 
+#ifndef MAKE_FS1
 	case DEBRIS_TERRAN_SMALL:
 	case DEBRIS_TERRAN_MEDIUM:
 	case DEBRIS_TERRAN_LARGE:
@@ -855,6 +859,7 @@ void hud_render_target_asteroid(object *target_objp)
 	case DEBRIS_SHIVAN_LARGE:
 		strcpy(hud_name, NOX("shivan debris"));
 		break;
+#endif
 
 	default:
 		Int3();

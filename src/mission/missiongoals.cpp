@@ -15,6 +15,9 @@
  * Module for working with Mission goals
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2003/05/18 03:55:30  taylor
  * automatic language selection support
  *
@@ -394,7 +397,7 @@ static int Goal_screen_icon_xcoord[GR_NUM_RESOLUTIONS] = {
 	72		// GR_1024
 };
 
-
+#ifndef MAKE_FS1  // not used
 // german version gets slightly diff coords
 static int Objective_key_text_coords_gr[GR_NUM_RESOLUTIONS][3][2] = {
 	{
@@ -453,6 +456,7 @@ static int Objective_key_icon_coords[GR_NUM_RESOLUTIONS][3][2] = {
 		{650, 542}
 	}
 };
+#endif // !MAKE_FS1
 
 
 #define NUM_GOAL_SCREEN_BUTTONS			3  // total number of buttons
@@ -1018,6 +1022,7 @@ void ML_objectives_do_frame(int scroll_offset)
 
 void ML_render_objectives_key()
 {
+#ifndef MAKE_FS1
 	// display icon key at the bottom
 	gr_set_bitmap(Goal_complete_bitmap);
 	if (Lcl_gr) {
@@ -1031,6 +1036,7 @@ void ML_render_objectives_key()
 		gr_string(Objective_key_text_coords_gr[gr_screen.res][1][0], Objective_key_text_coords_gr[gr_screen.res][1][1] , XSTR("Incomplete", 1438));
 		gr_string(Objective_key_text_coords_gr[gr_screen.res][2][0], Objective_key_text_coords_gr[gr_screen.res][2][1] , XSTR("Failed",		1439));
 	} else {
+		gr_set_bitmap(Goal_complete_bitmap);
 		gr_bitmap(Objective_key_icon_coords[gr_screen.res][0][0], Objective_key_icon_coords[gr_screen.res][0][1]);
 		gr_set_bitmap(Goal_incomplete_bitmap);
 		gr_bitmap(Objective_key_icon_coords[gr_screen.res][1][0], Objective_key_icon_coords[gr_screen.res][1][1]);
@@ -1041,6 +1047,7 @@ void ML_render_objectives_key()
 		gr_string(Objective_key_text_coords[gr_screen.res][1][0], Objective_key_text_coords[gr_screen.res][1][1] , XSTR("Incomplete", 1438));
 		gr_string(Objective_key_text_coords[gr_screen.res][2][0], Objective_key_text_coords[gr_screen.res][2][1] , XSTR("Failed",		1439));
 	}
+#endif
 }
 
 	
@@ -1706,5 +1713,4 @@ void mission_goal_exit()
 {
 	snd_play( &Snds_iface[SND_USER_SELECT] );
 	gameseq_post_event(GS_EVENT_PREVIOUS_STATE);
-} 
-
+}

@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -337,6 +340,7 @@ int nebl_get_storm_index(char *name);
 // initialize nebula lightning at game startup
 void nebl_init()
 {
+#ifndef MAKE_FS1
 	char name[NAME_LENGTH+10] = "";
 	bolt_type bogus_lightning, *l;
 	storm_type bogus_storm, *s;
@@ -483,6 +487,7 @@ void nebl_init()
 			Num_storm_types++;
 		}
 	}
+#endif
 }
 
 // initialize lightning before entering a level

@@ -15,6 +15,9 @@
  * C source file for displaying game credits
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -196,7 +199,11 @@ static char* Credits_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 
 int Credits_image_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		225, 15, 400, 292
+#else
 		219, 15, 394, 286			// GR_640
+#endif
 	},
 	{
 		351, 25, 629, 455			// GR_1024
@@ -206,7 +213,11 @@ int Credits_image_coords[GR_NUM_RESOLUTIONS][4] = {
 // x, y, w, h
 int Credits_text_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		46, 321, 450, 134
+#else
 		26, 316, 482, 157			// GR_640
+#endif
 	},
 	{
 		144, 507, 568, 249			// GR_640
@@ -223,16 +234,39 @@ struct credits_screen_buttons {
 };
 
 static int Background_bitmap;
-/*
+#ifdef MAKE_FS1
 static int CreditsWin01 = -1;
 static int CreditsWin02 = -1;
 static int CreditsWin03 = -1;
 static int CreditsWin04 = -1;
-*/
+#endif
+
 static UI_WINDOW Ui_window;
 
 static credits_screen_buttons Buttons[NUM_BUTTONS][GR_NUM_RESOLUTIONS] = {
 //XSTR:OFF
+#ifdef MAKE_FS1
+    {
+			credits_screen_buttons("TDB_00", 0, 0, -1, -1, 0),		// GR_640
+			credits_screen_buttons("2_TDB_00", 12, 5, 59, 12, 0)		// GR_1024
+    },
+    {
+			credits_screen_buttons("TDB_01", 0, 19, -1, -1, 1),		// GR_640
+			credits_screen_buttons("2_TDB_01", 12, 31, 59, 37, 1)		// GR_1024
+    },
+    {
+			credits_screen_buttons("TDB_02", 0, 35, -1, -1, 2),		// GR_640
+			credits_screen_buttons("2_TDB_02", 12, 56, 59, 62, 2)		// GR_1024
+    },
+    {
+			credits_screen_buttons("TDB_03", 0, 56, -1, -1, 3),		// GR_640
+			credits_screen_buttons("2_TDB_03", 12, 81, 59, 88, 3)		// GR_1024
+    },
+    {
+			credits_screen_buttons("CRB_04", 561, 411, -1, -1, 4),	// GR_640
+			credits_screen_buttons("2_CRB_04", 914, 681, 953, 68, 4)	// GR_1024
+    }
+#else
 	{
 			credits_screen_buttons("TDB_00", 7, 3, 37, 7, 0),			// GR_640
 			credits_screen_buttons("2_TDB_00", 12, 5, 59, 12, 0)			// GR_1024
@@ -253,6 +287,7 @@ static credits_screen_buttons Buttons[NUM_BUTTONS][GR_NUM_RESOLUTIONS] = {
 			credits_screen_buttons("CRB_04", 571, 425, 588, 413, 4),	// GR_640
 			credits_screen_buttons("2_CRB_04", 914, 681, 953, 668, 4)	// GR_1024
 	}
+#endif
 //XSTR:ON
 };
 
@@ -368,7 +403,28 @@ void credits_init()
 
 		// keep reading everything in
 		strcpy(Credit_text,"");		
-		while(!check_for_string_raw("#end")){			
+#ifndef MAKE_FS1
+		while(!check_for_string_raw("#end")){
+#else
+		char *ugh = Mp;
+		char ch;
+		int line_count = 0;
+
+		// get the line count, probably a crappy way to do it but it's the best way i've
+		// found to step through the credits without crashing problems since there's no
+		// definite end line in FS1
+		while (*ugh && *ugh != EOF_CHAR) {
+			ch = *ugh;
+
+			if (ch == '\n'){
+				line_count++;
+			}
+			ugh++;
+		}
+
+		while(line_count > 0){
+			line_count--;
+#endif
 			stuff_string_line(line, 511);
 			linep1 = line;
 
@@ -513,12 +569,14 @@ void credits_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// add some text
 	Ui_window.add_XSTR("Technical Database", 1055, Buttons[TECH_DATABASE_BUTTON][gr_screen.res].xt,  Buttons[TECH_DATABASE_BUTTON][gr_screen.res].yt, &Buttons[TECH_DATABASE_BUTTON][gr_screen.res].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Mission Simulator", 1056, Buttons[SIMULATOR_BUTTON][gr_screen.res].xt,  Buttons[SIMULATOR_BUTTON][gr_screen.res].yt, &Buttons[SIMULATOR_BUTTON][gr_screen.res].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Cutscenes", 1057, Buttons[CUTSCENES_BUTTON][gr_screen.res].xt,  Buttons[CUTSCENES_BUTTON][gr_screen.res].yt, &Buttons[CUTSCENES_BUTTON][gr_screen.res].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Credits", 1058, Buttons[CREDITS_BUTTON][gr_screen.res].xt,  Buttons[CREDITS_BUTTON][gr_screen.res].yt, &Buttons[CREDITS_BUTTON][gr_screen.res].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Exit", 1420, Buttons[EXIT_BUTTON][gr_screen.res].xt,  Buttons[EXIT_BUTTON][gr_screen.res].yt, &Buttons[EXIT_BUTTON][gr_screen.res].button, UI_XSTR_COLOR_PINK);
+#endif
 
 	if (Player->flags & PLAYER_FLAGS_IS_MULTI) {
 		Buttons[SIMULATOR_BUTTON][gr_screen.res].button.disable();
@@ -533,17 +591,19 @@ void credits_init()
 		Credits_bmps[i] = -1;
 	}
 
-	// CreditsWin01 = bm_load(NOX("CreditsWin01"));
-	// CreditsWin02 = bm_load(NOX("CreditsWin02"));
-	// CreditsWin03 = bm_load(NOX("CreditsWin03"));
-	// CreditsWin04 = bm_load(NOX("CreditsWin04"));
+#ifdef MAKE_FS1
+	CreditsWin01 = bm_load(NOX("CreditsWin01"));
+	CreditsWin02 = bm_load(NOX("CreditsWin02"));
+	CreditsWin03 = bm_load(NOX("CreditsWin03"));
+	CreditsWin04 = bm_load(NOX("CreditsWin04"));
+#endif
 }
 
 void credits_close()
 {	
 	int i;
 
-	/*
+#ifdef MAKE_FS1
 	if (CreditsWin01 != -1){
 		bm_unload(CreditsWin01);
 		CreditsWin01 = -1;
@@ -560,7 +620,7 @@ void credits_close()
 		bm_unload(CreditsWin04);
 		CreditsWin04 = -1;
 	}
-	*/
+#endif
 
 	for (i=0; i<NUM_IMAGES; i++){
 		if (Credits_bmps[i] >= 0){
@@ -689,7 +749,7 @@ void credits_do_frame(float frametime)
 		gr_cross_fade(bm1, bm2, bx1, by1, bx2, by2, (float)percent / 100.0f);
 	}
 
-	/*
+#ifdef MAKE_FS1
 	if (CreditsWin01 != -1) {
 		gr_set_bitmap(CreditsWin01);
 		gr_bitmap(233, 5);
@@ -709,7 +769,7 @@ void credits_do_frame(float frametime)
 		gr_set_bitmap(CreditsWin04);
 		gr_bitmap(215, 8);
 	}
-	*/
+#endif
 
 	Ui_window.draw();
 

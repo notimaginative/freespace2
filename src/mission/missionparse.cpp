@@ -15,6 +15,9 @@
  * main upper level code for pasring stuff
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -507,7 +510,11 @@ char *Icon_names[MAX_BRIEF_ICONS] = {
 	{"Freighter Wing(no cargo)"}, {"Freighter Wing(has cargo)"}, {"Installation"},
 	{"Bomber"}, {"Bomber Wing"}, {"Cruiser"}, {"Cruiser Wing"}, {"Unknown"}, {"Unknown Wing"},
 	{"Player Fighter"}, {"Player Fighter Wing"}, {"Player Bomber"}, {"Player Bomber Wing"}, 
+#ifdef MAKE_FS1
+	{"Jump Node"}
+#else
 	{"Knossos Device"}, {"Transport Wing"}, {"Corvette"}, {"Gas Miner"}, {"Awacs"}, {"Supercap"}, {"Sentry Gun"}, {"Jump Node"}, {"Transport"}
+#endif
 };
 
 //	Translate team mask values like TEAM_FRIENDLY to indices in Team_names array.
@@ -3101,6 +3108,38 @@ void parse_reinforcements(mission *pm)
 
 void parse_bitmap(mission *pm)
 {
+#ifdef MAKE_FS1
+	starfield_bitmap_instance b;
+
+	Num_suns = 0;
+
+	Assert(pm != NULL);
+
+	while(optional_string("$Bitmap:")) {
+		stuff_string(b.filename, F_NAME, NULL);
+	
+		required_string("$Orientation:");
+		stuff_matrix(&b.m);
+
+		required_string("$Rotation rate:");
+		stuff_float(&b.rot);
+
+		required_string("$Distance:");
+		stuff_float(&b.scale_x);		
+		b.scale_y = b.scale_x;
+		b.div_x = 1;
+		b.div_y = 1;
+
+		required_string("$Light:");
+		stuff_int(&b.sun_light);
+
+		if(Num_suns < MAX_STARFIELD_BITMAPS){
+			Suns[Num_suns] = b;
+			strcpy(Suns[Num_suns].filename, b.filename);
+			Num_suns++;
+		}
+	}
+#else
 	/*
 	char name[NAME_LENGTH];
 	int z;
@@ -3139,6 +3178,7 @@ void parse_bitmap(mission *pm)
 	calculate_bitmap_points(ptr);
 	*/
 	Int3();
+#endif
 }
 
 void parse_bitmaps(mission *pm)
@@ -3306,6 +3346,10 @@ void parse_bitmaps(mission *pm)
 		}
 	}
 
+#ifdef MAKE_FS1
+	parse_bitmap(pm);
+#endif
+	
 	if ( optional_string("#Asteroid Fields") ){
 		parse_asteroid_fields(pm);
 	}
@@ -3313,7 +3357,7 @@ void parse_bitmaps(mission *pm)
 
 void parse_asteroid_fields(mission *pm)
 {
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 
 	int i, count, subtype;
 
@@ -3324,9 +3368,12 @@ void parse_asteroid_fields(mission *pm)
 	i = 0;
 	count = 0;
 //	required_string("#Asteroid Fields");
+#ifdef MAKE_FS1
+	while (required_string_either("#", "$Density:")) {
+#else
 	while (required_string_either("#", "$density:")) {
+#endif
 		float speed, density;
-
 
 		Assert(i < 1);
 		required_string("$Density:");

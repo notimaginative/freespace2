@@ -15,6 +15,9 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1852,7 +1855,7 @@ int beam_get_model(object *objp)
 		}
 		return Debris[objp->instance].model_num;		
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	case OBJ_ASTEROID:
 		subtype = Asteroids[objp->instance].asteroid_subtype;
 		Assert(Asteroids[objp->instance].type >= 0);

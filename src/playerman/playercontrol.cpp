@@ -15,6 +15,9 @@
  * Routines to deal with player ship movement
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1611,9 +1614,13 @@ int player_inspect_cargo(float frametime, char *outstr)
 	cargo_sp = &Ships[cargo_objp->instance];
 	cargo_sip = &Ship_info[cargo_sp->ship_info_index];
 
+#ifndef MAKE_FS1
+	// causes a FS1 mission not to finish since the subsytems and not
+	// the ship are scanned
 	if (cargo_sip->flags & SIF_HUGE_SHIP) {
 		return player_inspect_cap_subsys_cargo(frametime, outstr);
 	}
+#endif
 
 	// check if target is ship class that can be inspected
 	// MWA -- 1/27/98 -- added fighters/bombers to this list.  For multiplayer, we

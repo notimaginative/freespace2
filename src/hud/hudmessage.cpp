@@ -15,6 +15,9 @@
  * C module that controls and manages the message window on the HUD
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/28 05:05:08  relnev
  * removed some old stuff
  *
@@ -505,7 +508,8 @@ static int Hud_mission_log_time2_coords[GR_NUM_RESOLUTIONS][2] = {
 //#define HUD_MSG_MAX_PIXEL_W	439	// maximum number of pixels wide message display area is
 //#define HUD_MSG_MAX_PIXEL_W	619	// maximum number of pixels wide message display area is
 
-/* // No Longer Used - DDOI
+#ifdef MAKE_FS1
+// No Longer Used - DDOI
 static int Hud_mission_log_status_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
 		170, 339		// GR_640
@@ -514,7 +518,7 @@ static int Hud_mission_log_status_coords[GR_NUM_RESOLUTIONS][2] = {
 		361, 542		// GR_1024
 	}
 };
-*/
+#endif
 
 struct scrollback_buttons {
 	char *filename;
@@ -570,7 +574,9 @@ static int Num_obj_lines;
 static int Scroll_offset;
 static int Scroll_max;
 static int Scrollback_mode = SCROLLBACK_MODE_OBJECTIVES;
-// static int Status_bitmap;
+#ifdef MAKE_FS1
+static int Status_bitmap;
+#endif
 static int Background_bitmap;
 static UI_WINDOW Ui_window;
 
@@ -579,12 +585,13 @@ static char* Hud_mission_log_fname[GR_NUM_RESOLUTIONS] = {
 	"2_MissionLog"		// GR_1024
 };
 
-/* // No longer used - DDOI
+#ifdef MAKE_FS1
+// No longer used - DDOI
 static char* Hud_mission_log_status_fname[GR_NUM_RESOLUTIONS] = {
 	"MLStatus",		// GR_640
 	"MLStatus"		// GR_1024
 };
-*/
+#endif
 
 static char* Hud_mission_log_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"MissionLog-m",		// GR_640
@@ -594,12 +601,21 @@ static char* Hud_mission_log_mask_fname[GR_NUM_RESOLUTIONS] = {
 static scrollback_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{	// GR_640
 	//XSTR:OFF
+#ifdef MAKE_FS1
+		scrollback_buttons("LB_00",	7,		89,		-1,	-1,	0),		// scroll up
+		scrollback_buttons("LB_01",	7,		133,	-1,	-1,	1),		// scroll down
+		scrollback_buttons("LB_02",	294,	362,	-1,	-1,	2),		// messages
+		scrollback_buttons("LB_03",	402,	362,	-1,	-1,	3),		// events
+		scrollback_buttons("LB_04",	193,	362,	-1,	-1,	4),		// objectives
+		scrollback_buttons("LB_05",	554,	411,	-1,	-1,	5)		// continue
+#else
 		scrollback_buttons("LB_00",	1,		67,	-1,	-1,	0),
 		scrollback_buttons("LB_01",	1,		307,	-1,	-1,	1),
 		scrollback_buttons("LB_02",	111,	376,	108,	413,	2),
 		scrollback_buttons("LB_03",	209,	376,	205,	413,	3),
 		scrollback_buttons("LB_04",	12,	376,	7,		413,	4),
 		scrollback_buttons("CB_05a",	571,	425,	564,	413,	5)
+#endif
 	//XSTR:ON
 	},
 	{	// GR_1024
@@ -1346,17 +1362,21 @@ void hud_scrollback_init()
 	}
 
 	// add all strings	
+#ifndef MAKE_FS1
 	Ui_window.add_XSTR("Continue", 1069, Buttons[gr_screen.res][ACCEPT_BUTTON].xt,  Buttons[gr_screen.res][ACCEPT_BUTTON].yt, &Buttons[gr_screen.res][ACCEPT_BUTTON].button, UI_XSTR_COLOR_PINK);
 	Ui_window.add_XSTR("Events", 1070, Buttons[gr_screen.res][SHOW_EVENTS_BUTTON].xt,  Buttons[gr_screen.res][SHOW_EVENTS_BUTTON].yt, &Buttons[gr_screen.res][SHOW_EVENTS_BUTTON].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Objectives", 1071, Buttons[gr_screen.res][SHOW_OBJS_BUTTON].xt,  Buttons[gr_screen.res][SHOW_OBJS_BUTTON].yt, &Buttons[gr_screen.res][SHOW_OBJS_BUTTON].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Messages", 1072, Buttons[gr_screen.res][SHOW_MSGS_BUTTON].xt,  Buttons[gr_screen.res][SHOW_MSGS_BUTTON].yt, &Buttons[gr_screen.res][SHOW_MSGS_BUTTON].button, UI_XSTR_COLOR_GREEN);
+#endif
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
 	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_UP);
 	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_DOWN);
 
 	Background_bitmap = bm_load(Hud_mission_log_fname[gr_screen.res]);
-	// Status_bitmap = bm_load(Hud_mission_log_status_fname[gr_screen.res]);
+#ifdef MAKE_FS1
+	Status_bitmap = bm_load(Hud_mission_log_status_fname[gr_screen.res]);
+#endif
 
 	message_log_init_scrollback(Hud_mission_log_list_coords[gr_screen.res][2]);
 	if (Scrollback_mode == SCROLLBACK_MODE_EVENT_LOG)
@@ -1376,8 +1396,10 @@ void hud_scrollback_close()
 	message_log_shutdown_scrollback();
 	if (Background_bitmap >= 0)
 		bm_unload(Background_bitmap);
-	//if (Status_bitmap >= 0)
-	//	bm_unload(Status_bitmap);
+#ifdef MAKE_FS1
+	if (Status_bitmap >= 0)
+		bm_unload(Status_bitmap);
+#endif
 
 	Ui_window.destroy();
 	common_free_interface_palette();		// restore game palette
@@ -1470,12 +1492,12 @@ void hud_scrollback_do_frame(float frametime)
 		gr_bitmap(0, 0);
 	}
 
-	/*
+#ifdef MAKE_FS1
 	if ((Scrollback_mode == SCROLLBACK_MODE_OBJECTIVES) && (Status_bitmap >= 0)) {
 		gr_set_bitmap(Status_bitmap);
 		gr_bitmap(Hud_mission_log_status_coords[gr_screen.res][0], Hud_mission_log_status_coords[gr_screen.res][1]);
 	}
-	*/
+#endif
 
 	// draw the objectives key at the bottom of the ingame objectives screen
 	if (Scrollback_mode == SCROLLBACK_MODE_OBJECTIVES) {

@@ -15,6 +15,9 @@
  * Module for displaying in-game help
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -184,9 +187,16 @@ struct gameplay_help_buttons {
 static gameplay_help_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 //XSTR:OFF
 	{
+#ifdef MAKE_FS1
+		gameplay_help_buttons("F1B_00",	71,		373,	0),		// previous
+		gameplay_help_buttons("F1B_01",	121,	373,	1),		// next
+//		gameplay_help_buttons("F1B_02",	447,	452,	2),		// options
+		gameplay_help_buttons("F1B_03",	554,	411,	3),		// continue
+#else
 		gameplay_help_buttons("F1B_00",	15,	389,	0),
 		gameplay_help_buttons("F1B_01",	60,	389,	1),
 		gameplay_help_buttons("F1B_02",	574,	431,	2)
+#endif
 	},
 	{
 		gameplay_help_buttons("2_F1B_00",	24,	622,	0),
@@ -196,15 +206,25 @@ static gameplay_help_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 //XSTR:ON
 };
 
-#define GAME_HELP_NUM_TEXT		2
+#ifdef MAKE_FS1
+	#define GAME_HELP_NUM_TEXT		0
+#else
+	#define GAME_HELP_NUM_TEXT		2
+#endif
 static UI_XSTR Game_help_text[GR_NUM_RESOLUTIONS][GAME_HELP_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Press ESC to return to the game",	1441,	263,	389,	UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Continue",		1069,		571,	413,	UI_XSTR_COLOR_GREEN, -1, &Buttons[gr_screen.res][CONTINUE_BUTTON].button }
+#endif
 	}, 
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Press ESC to return to the game",	1441,	421,	622,	UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Continue",		1069,		928,	663,	UI_XSTR_COLOR_GREEN, -1, &Buttons[gr_screen.res][CONTINUE_BUTTON].button }
+#endif
 	}
 };
 
@@ -490,18 +510,18 @@ void gameplay_help_draw_text()
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset,y_offset, XSTR( "F2", 137), XSTR( "options screen (available anywhere in game)", 138));
 
-			#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset,y_offset, XSTR( "F3", 139), XSTR( "hotkey assignment", 140));
-			#endif
+#endif
 
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset,y_offset, XSTR( "F4", 141), XSTR( "HUD message scroll-back", 142));
 
-			#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset,y_offset, XSTR( "F5...F12", 143), XSTR( "hotkeys", 144));
-			#endif
+#endif
 
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset,y_offset, XSTR( "Shift-Esc", 145), XSTR( "quit FreeSpace 2 immediately", 146));
@@ -654,7 +674,7 @@ void gameplay_help_draw_text()
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,STOP_TARGETING_SUBSYSTEM);
 
-			#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset, y_offset, XSTR( "F5...F12", 143), XSTR( "Select target assigned to that hotkey", 150));
@@ -665,7 +685,7 @@ void gameplay_help_draw_text()
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset, y_offset, XSTR( "Alt-Shift-F5...F12", 153), XSTR( "Clear that hotkey", 154));
 
-			#endif
+#endif
 
 			break;
 
@@ -709,10 +729,10 @@ void gameplay_help_draw_text()
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,WARP_MESSAGE);
 
-			#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 			y_offset += separation;
 			gameplay_help_blit_control_line_raw(x_offset, y_offset, XSTR( "F5...F12", 143), XSTR( "send specified order to these target(s)", 156));
-			#endif
+#endif
 			break;
 
 		case GP_HELP_WEAPON_KEYS:

@@ -23,8 +23,11 @@
 #define OP_BOUNDBOX		5
 
 // change header for freespace2
-//#define FREESPACE1_FORMAT
-#define FREESPACE2_FORMAT
+#ifdef MAKE_FS1
+	#define FREESPACE1_FORMAT
+#else
+	#define FREESPACE2_FORMAT
+#endif
 #if defined( FREESPACE1_FORMAT )
 #elif defined ( FREESPACE2_FORMAT )
 #else

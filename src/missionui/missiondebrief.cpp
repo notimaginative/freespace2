@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/13 06:46:48  theoddone33
  * Warning cleanups
  *
@@ -380,7 +383,11 @@
 // 3rd coord is max width in pixels
 int Debrief_title_coords[GR_NUM_RESOLUTIONS][3] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		38, 120, 161
+#else
 		18, 118, 174
+#endif
 	},
 	{ // GR_1024
 		28, 193, 280
@@ -389,7 +396,11 @@ int Debrief_title_coords[GR_NUM_RESOLUTIONS][3] = {
 
 int Debrief_text_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		38, 156, 342, 260
+#else
 		43, 140, 339, 303			
+#endif
 	},	
 	{	// GR_1024
 		69, 224, 535, 485		
@@ -403,7 +414,11 @@ int Debrief_text_x2[GR_NUM_RESOLUTIONS] = {
 	
 int Debrief_stage_info_coords[GR_NUM_RESOLUTIONS][2] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		379, 156
+#else
 		379, 137		
+#endif
 	},	
 	{	// GR_1024
 		578, 224
@@ -412,7 +427,11 @@ int Debrief_stage_info_coords[GR_NUM_RESOLUTIONS][2] = {
 
 int Debrief_more_coords[GR_NUM_RESOLUTIONS][2] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		323, 418
+#else
 		323, 453	
+#endif
 	},
 	{	// GR_1024
 		323, 453	
@@ -437,23 +456,41 @@ int Debrief_list_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Debrief_award_wnd_coords[GR_NUM_RESOLUTIONS][2] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		391, 134
+#else
 		411, 126
+#endif
 	},
 	{	// GR_1024
 		658, 203	
 	}
 };
 
-
 int Debrief_award_coords[GR_NUM_RESOLUTIONS][2] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		448, 145
+#else
 		416, 140
+#endif
 	},
 	{	// GR_1024
 		666, 224	
 	}
 };
 
+#ifdef MAKE_FS1
+int Debrief_rank_coords[2] = {
+	448, 168
+};
+
+int Debrief_badge_coords[2] = {
+	405, 166
+};
+#endif
+
+#ifndef MAKE_FS1
 // 0=x, 1=y, 2=width of the field
 int Debrief_medal_text_coords[GR_NUM_RESOLUTIONS][3] = {
 	{	// GR_640
@@ -473,6 +510,35 @@ int Debrief_award_text_coords[GR_NUM_RESOLUTIONS][3] = {
 		666, 333, 67
 	}
 };
+#else
+// the medal text in FS1 is a bitmap
+int Debrief_medal_text_coords[GR_NUM_RESOLUTIONS][2] = {
+	{
+		402, 211
+	},
+	{
+		402, 211
+	}
+};
+
+int Debrief_rank_text_coords[GR_NUM_RESOLUTIONS][2] = {
+	{
+		409, 231
+	},
+	{
+		409, 231
+	}
+};
+
+int Debrief_badge_text_coords[GR_NUM_RESOLUTIONS][2] = {
+	{
+		401, 243
+	},
+	{
+		401, 243
+	}
+};
+#endif
 
 // 0 = with medal
 // 1 = without medal (text will use medal space)
@@ -545,6 +611,26 @@ typedef struct {
 
 static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("DB_00",		0,		2,		-1,	-1,	0),			// debriefing
+		ui_button_info("DB_01",		0,		20,		-1,	-1,	1),			// statistics
+		ui_button_info("DB_02",		0,		195,	-1,	-1,	2),			// scroll stats up
+		ui_button_info("DB_03",		0,		232,	-1,	-1,	3),			// scroll stats down
+		ui_button_info("DB_04",		24,		424,	-1,	-1,	4),			// replay mission
+		ui_button_info("DB_05",		30,		451,	-1,	-1,	5),			// recommendations
+		ui_button_info("DB_06",		211,	445,	-1,	-1,	6),			// first page
+		ui_button_info("DB_07",		234,	445,	-1,	-1,	7),			// prev page
+		ui_button_info("DB_08",		259,	445,	-1,	-1,	8),			// next page
+		ui_button_info("DB_09",		283,	445,	-1,	-1,	9),			// last page
+		ui_button_info("DB_21",		441,	384,	-1,	-1,	21),		// pilot info
+		ui_button_info("DB_25",		511,	384,	-1,	-1,	25),		// kick
+		ui_button_info("DB_15",		604,	224,	-1,	-1,	15),		// medals
+		ui_button_info("DB_16",		615,	329,	-1,	-1,	16),		// scroll pilots up
+		ui_button_info("DB_17",		615,	371,	-1,	-1,	17),		// scroll pilots down
+		ui_button_info("DB_10",		469,	428,	-1,	-1,	10),		// help
+		ui_button_info("DB_11",		447,	452,	-1,	-1,	11),		// options
+		ui_button_info("DB_12",		562,	410,	-1,	-1,	12),		// accept
+#else
 		ui_button_info("DB_00",		6,		1,		37,	7,		0),		// debriefing
 		ui_button_info("DB_01",		6,		21,	37,	23,	1),		// statistics
 		ui_button_info("DB_02",		1,		195,	-1,	-1,	2),		// scroll stats up
@@ -563,6 +649,7 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		ui_button_info("DB_15",		538,	431,	500,	440,	15),		// help
 		ui_button_info("DB_16",		538,	455,	479,	464,	16),		// options
 		ui_button_info("DB_17",		573,	432,	572,	413,	17),		// accept
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_DB_00",		10,	1,		59,	12,	0),		// debriefing
@@ -587,12 +674,18 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // text
-#define NUM_DEBRIEF_TEXT				10
+#ifdef MAKE_FS1
+	#define NUM_DEBRIEF_TEXT			0
+#else
+	#define NUM_DEBRIEF_TEXT			10
+#endif
 #define MP_TEXT_INDEX_1					4
 #define MP_TEXT_INDEX_2					5
 #define MP_TEXT_INDEX_3					6
 UI_XSTR Debrief_strings[GR_NUM_RESOLUTIONS][NUM_DEBRIEF_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Debriefing",		804,		37,	7,		UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][DEBRIEF_TAB].button },
 		{ "Statistics",		1333,		37,	26,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][STATS_TAB].button },
 		{ "Replay Mission",	444,		49,	447,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[0][REPLAY_MISSION].button },
@@ -603,8 +696,11 @@ UI_XSTR Debrief_strings[GR_NUM_RESOLUTIONS][NUM_DEBRIEF_TEXT] = {
 		{ "Help",				928,		500,	440,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][HELP_BUTTON].button },
 		{ "Options",			1036,		479,	464,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[0][OPTIONS_BUTTON].button },
 		{ "Accept",				1035,		572,	413,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[0][ACCEPT_BUTTON].button },
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Debriefing",		804,		59,	12,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][DEBRIEF_TAB].button },
 		{ "Statistics",		1333,		59,	47,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][STATS_TAB].button },
 		{ "Replay Mission",	444,		79,	715,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[1][REPLAY_MISSION].button },
@@ -615,6 +711,7 @@ UI_XSTR Debrief_strings[GR_NUM_RESOLUTIONS][NUM_DEBRIEF_TEXT] = {
 		{ "Help",				928,		801,	705,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][HELP_BUTTON].button },
 		{ "Options",			1036,		780,	744,	UI_XSTR_COLOR_GREEN,	-1,	&Buttons[1][OPTIONS_BUTTON].button },
 		{ "Accept",				1035,		917,	672,	UI_XSTR_COLOR_PINK,	-1,	&Buttons[1][ACCEPT_BUTTON].button },
+#endif
 	}
 };
 
@@ -632,9 +729,11 @@ static int Medal_bitmap;
 static int Badge_bitmap;
 static int Wings_bitmap;
 static int Crest_bitmap;
-//static int Rank_text_bitmap;
-//static int Medal_text_bitmap;
-//static int Badge_text_bitmap;
+#ifdef MAKE_FS1
+static int Rank_text_bitmap;
+static int Medal_text_bitmap;
+static int Badge_text_bitmap;
+#endif
 static int Promoted;
 static int Debrief_accepted;
 static int Turned_traitor;
@@ -756,6 +855,27 @@ voice_map Debrief_promotion_voice_mapping[NUM_VOLITION_CAMPAIGNS][MAX_CAMPAIGN_M
 
 #define DB_AWARD_WINGS		0
 #define DB_AWARD_MEDAL		1
+#ifdef MAKE_FS1
+#define DB_AWARD_RANK		2
+#define DB_AWARD_BADGE		3
+#define DB_AWARD_BG			4
+static char* Debrief_award_filename[GR_NUM_RESOLUTIONS][5] = {
+	{
+		"DebriefWings",
+		"DebriefMedal",
+		"DebriefRank",
+		"DebriefBadge",
+		"DebriefAward"
+	},
+	{
+		"2_DebriefWings",
+		"2_DebriefMedal",
+		"2_DebriefRank",
+		"2_DebriefBadge",
+		"2_DebriefAward"
+	}
+};
+#else
 #define DB_AWARD_SOC			2
 #define DB_AWARD_RANK		3
 #define DB_AWARD_BADGE		4
@@ -778,6 +898,7 @@ static char* Debrief_award_filename[GR_NUM_RESOLUTIONS][6] = {
 		"2_DebriefAward"
 	}
 };
+#endif
 
 #define AWARD_TEXT_MAX_LINES				5
 #define AWARD_TEXT_MAX_LINE_LENGTH		128
@@ -1203,14 +1324,30 @@ void debrief_choose_promotion_voice()
 // this is an ugly, nasty, hateful way of doing this, but it saves us changing the missions at this point
 void debrief_choose_badge_voice()
 {
+#ifndef MAKE_FS1
 	int i, j;
+#endif
 
 	if(Campaign.current_mission < 0){
+#ifndef MAKE_FS1
 		// default to petrarch
 		sprintf(Badge_stage.voice, NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+#else
+		// default to FS1 guy
+		sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+#endif
 	}
 
 	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
+#ifdef MAKE_FS1
+		if ( Player->on_bastion ) {
+			sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base2);
+			return;
+		} else {
+			sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+			return;
+		}
+#else
 		// search thru all official campaigns for our current campaign
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
 			if ((Campaign.filename != NULL) && !stricmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
@@ -1224,10 +1361,16 @@ void debrief_choose_badge_voice()
 				}
 			}
 		}
+#endif
 	}
 
+#ifndef MAKE_FS1
 	// default to petrarch
 	sprintf(Badge_stage.voice, NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+#else
+	// default to FS1 guy
+	sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+#endif
 }
 
 
@@ -1244,7 +1387,9 @@ void debrief_award_init()
 	Promoted = -1;
 
 	// be sure there are no old award texts floating around
+#ifndef MAKE_FS1
 	debrief_award_text_clear();
+#endif
 
 	// handle medal earned
 	if (Player->stats.m_medal_earned != -1) {
@@ -1257,15 +1402,18 @@ void debrief_award_init()
 			}
 			sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);		
 			Wings_bitmap = bm_load(buf);
-
+#ifndef MAKE_FS1
 		} else if (Player->stats.m_medal_earned == 17) {  // special hack for the soc crest
 			Crest_bitmap = bm_load(Debrief_award_filename[gr_screen.res][DB_AWARD_SOC]);
+#endif
 		} else {
 			sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
 			Medal_bitmap = bm_load(buf);
 		}
 
+#ifndef MAKE_FS1
 		debrief_add_award_text(Medals[Player->stats.m_medal_earned].name);
+#endif
 	}
 	
 	// handle promotions
@@ -1280,7 +1428,9 @@ void debrief_award_init()
 		// choose appropriate promotion voice for this mission
 		debrief_choose_promotion_voice();
 
+#ifndef MAKE_FS1
 		debrief_add_award_text(Ranks[Promoted].name);
+#endif
 	}
 
 	// handle badge earned
@@ -1296,7 +1446,9 @@ void debrief_award_init()
 		// choose appropriate voice
 		debrief_choose_badge_voice();
 
+#ifndef MAKE_FS1
 		debrief_add_award_text(Medals[Badge_index[i]].name);
+#endif
 	}
 
 	if ((Rank_bitmap >= 0) || (Medal_bitmap >= 0) || (Badge_bitmap >= 0) || (Wings_bitmap >= 0) || (Crest_bitmap >= 0)) {
@@ -1351,12 +1503,14 @@ void debrief_traitor_init()
 		char traitor_voice_file[NAME_LENGTH];
 		stuff_string(traitor_voice_file, F_FILESPEC, NULL);
 
-// DKA 9/13/99	Only 1 traitor msg for FS2
-//		if ( Player->on_bastion ) {
-//			strcpy(stagep->voice, NOX("3_"));
-//		} else {
-//			strcpy(stagep->voice, NOX("1_"));
-//		}
+// DKA 9/13/99 Only 1 traitor msg for FS2
+#ifdef MAKE_FS1
+		if ( Player->on_bastion ) {
+			strcpy(stagep->voice, NOX("3_"));
+		} else {
+			strcpy(stagep->voice, NOX("1_"));
+		}
+#endif
 
 		strcat(stagep->voice, traitor_voice_file);
 
@@ -1658,7 +1812,7 @@ void debrief_accept(int ok_to_post_start_game_event)
 
 				// check if campaign is over
 				if ( Campaign.next_mission == -1 ) {
-	#if defined(FS2_DEMO) || defined(OEM_BUILD)
+	#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 					gameseq_post_event(GS_EVENT_END_DEMO);
 	#else
 					gameseq_post_event(GS_EVENT_MAIN_MENU);
@@ -2219,6 +2373,12 @@ void debrief_init()
 
 	Debrief_multi_voice_loaded = 0;
 
+#ifdef MAKE_FS1
+	Medal_text_bitmap = bm_load(NOX("DebriefText01"));
+	Rank_text_bitmap = bm_load(NOX("DebriefText02"));
+	Badge_text_bitmap = bm_load(NOX("DebriefText03"));
+#endif
+
 	if ( (Game_mode & GM_CAMPAIGN_MODE) && ( !MULTIPLAYER_CLIENT )	) {
 		// MUST store goals and events first - may be used to evaluate next mission
 		// store goals and events
@@ -2370,7 +2530,9 @@ void debrief_close()
 	}
 
 	// unload the overlay bitmap
-//	help_overlay_unload(DEBRIEFING_OVERLAY);
+#ifdef MAKE_FS1
+	help_overlay_unload(DEBRIEFING_OVERLAY);
+#endif
 
 	// clear out award text 
 	Debrief_award_text_num_lines = 0;
@@ -2409,6 +2571,20 @@ void debrief_close()
 	if (Crest_bitmap >= 0) {
 		bm_unload(Crest_bitmap);
 	}
+
+#ifdef MAKE_FS1
+	if (Medal_text_bitmap >= 0) {
+		bm_unload(Medal_text_bitmap);
+	}
+
+	if (Badge_text_bitmap >= 0) {
+		bm_unload(Badge_text_bitmap);
+	}
+
+	if (Rank_text_bitmap >= 0) {
+		bm_unload(Rank_text_bitmap);
+	}
+#endif
 
 	Debrief_ui_window.destroy();
 	common_free_interface_palette();		// restore game palette
@@ -2473,6 +2649,7 @@ void debrief_do_keys(int new_k)
 	}	// end switch
 }
 
+#ifndef MAKE_FS1
 // uuuuuugly
 void debrief_draw_award_text()
 {
@@ -2542,6 +2719,7 @@ void debrief_add_award_text(char *str)
 		Debrief_award_text_num_lines++;		// leave blank line even if it all fits into 1
 	}
 }
+#endif  // !MAKE_FS1: No text for FS1, it's all bitmaps
 
 //	called once per frame to drive all the input reading and rendering
 void debrief_do_frame(float frametime)
@@ -2673,7 +2851,11 @@ void debrief_do_frame(float frametime)
 		gr_bitmap(Debrief_award_wnd_coords[gr_screen.res][0], Debrief_award_wnd_coords[gr_screen.res][1]);
 		if (Rank_bitmap >= 0) {
 			gr_set_bitmap(Rank_bitmap);
+#ifdef MAKE_FS1
+			gr_bitmap(Debrief_rank_coords[0], Debrief_rank_coords[1]);
+#else
 			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
+#endif
 		}
 
 		if (Medal_bitmap >= 0) {
@@ -2683,38 +2865,47 @@ void debrief_do_frame(float frametime)
 
 		if (Badge_bitmap >= 0) {
 			gr_set_bitmap(Badge_bitmap);
+#ifdef MAKE_FS1
+			gr_bitmap(Debrief_badge_coords[0], Debrief_badge_coords[1]);
+#else
 			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
+#endif
 		}
 
 		if (Wings_bitmap >= 0) {
 			gr_set_bitmap(Wings_bitmap);
+#ifdef MAKE_FS1
+			gr_bitmap(Debrief_badge_coords[0], Debrief_badge_coords[1]);
+#else
 			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
+#endif
 		}
 
+		// this isn't used in FS1 but doesn't hurt to leave it
 		if (Crest_bitmap >= 0) {
 			gr_set_bitmap(Crest_bitmap);
 			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
 		}
 
 		//  draw medal/badge/rank labels
+#ifndef MAKE_FS1
 		debrief_draw_award_text();
-
-/*		if (Rank_text_bitmap >= 0) {
+#else
+		if (Rank_text_bitmap >= 0) {
 			gr_set_bitmap(Rank_text_bitmap);
-			gr_bitmap(Debrief_award_coords[gr_screen.res][0], Debrief_award_coords[gr_screen.res][1]);
+			gr_bitmap(Debrief_rank_text_coords[gr_screen.res][0], Debrief_rank_text_coords[gr_screen.res][1]);
 		}
 
-	
 		if (Medal_text_bitmap >= 0) {
 			gr_set_bitmap(Medal_text_bitmap);
-			gr_bitmap(Debrief_award_text_coords[gr_screen.res][0], Debrief_award_text_coords[gr_screen.res][1]);
+			gr_bitmap(Debrief_medal_text_coords[gr_screen.res][0], Debrief_medal_text_coords[gr_screen.res][1]);
 		}
 
 		if (Badge_text_bitmap >= 0) {
 			gr_set_bitmap(Badge_text_bitmap);
-			gr_bitmap(Debrief_award_text_coords[gr_screen.res][0], Debrief_award_text_coords[gr_screen.res][1]);
+			gr_bitmap(Debrief_badge_text_coords[gr_screen.res][0], Debrief_badge_text_coords[gr_screen.res][1]);
 		}
-*/
+#endif
 	}
 	
 	Debrief_ui_window.draw();

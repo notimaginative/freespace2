@@ -15,6 +15,9 @@
  * Routines to keep track of which sound files go where
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -363,6 +366,7 @@ void gamesnd_parse_soundstbl()
 	}
 	required_string("#Interface Sounds End");
 
+#ifndef MAKE_FS1
 	// parse flyby sound section	
 	required_string("#Flyby Sounds Start");
 
@@ -378,6 +382,7 @@ void gamesnd_parse_soundstbl()
 	gamesnd_parse_line(&Snds_flyby[SPECIES_SHIVAN][1], "$Shivan:");
 	
 	required_string("#Flyby Sounds End");
+#endif
 
 	// close localization
 	lcl_ext_close();

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -346,14 +349,24 @@ static int InterfacePaletteBitmap = -1; // PCX file that holds the interface pal
 UI_WINDOW	*Active_ui_window;
 
 brief_common_buttons Common_buttons[3][GR_NUM_RESOLUTIONS][NUM_COMMON_BUTTONS] = {	
+// icons for briefing, ship selection, weapon selection screens	
 	{	// UGH
 		{ // GR_640
+#ifdef MAKE_FS1
+			brief_common_buttons("CB_00",	0,		0,		-1,	-1,	0),	// briefing
+			brief_common_buttons("CB_01",	0,		19,		-1,	-1,	1),	// ship selection
+			brief_common_buttons("CB_02",	0,		33,		-1,	-1,	2),	// weapons loadout
+			brief_common_buttons("CB_05",	562,	411,	-1,	-1,	5),	// commit
+			brief_common_buttons("CB_06",	469,	424,	-1,	-1,	6),	// help
+			brief_common_buttons("CB_07",	447,	452,	-1,	-1,	7),	// options
+#else
 			brief_common_buttons("CB_00",			7,		3,		37,	7,		0),
 			brief_common_buttons("CB_01",			7,		19,	37,	23,	1),
 			brief_common_buttons("CB_02",			7,		35,	37,	39,	2),
 			brief_common_buttons("CB_05",			571,	425,	572,	413,	5),
 			brief_common_buttons("CB_06",			533,	425,	500,	440,	6),
 			brief_common_buttons("CB_07",			533,	455,	479,	464,	7),			
+#endif
 		}, 
 		{ // GR_1024			
 			brief_common_buttons("2_CB_00",		12,	5,		59,	12,	0),
@@ -366,12 +379,21 @@ brief_common_buttons Common_buttons[3][GR_NUM_RESOLUTIONS][NUM_COMMON_BUTTONS] =
 	},	
 	{	// UGH
 		{ // GR_640
+#ifdef MAKE_FS1
+			brief_common_buttons("CB_00",	0,		0,		-1,	-1,	0),	// briefing
+			brief_common_buttons("CB_01",	0,		19,		-1,	-1,	1),	// ship selection
+			brief_common_buttons("CB_02",	0,		33,		-1,	-1,	2),	// weapons loadout
+			brief_common_buttons("CB_05",	562,	411,	-1,	-1,	5),	// commit
+			brief_common_buttons("CB_06",	469,	424,	-1,	-1,	6),	// help
+			brief_common_buttons("CB_07",	447,	452,	-1,	-1,	7),	// options
+#else
 			brief_common_buttons("CB_00",			7,		3,		37,	7,		0),
 			brief_common_buttons("CB_01",			7,		19,	37,	23,	1),
 			brief_common_buttons("CB_02",			7,		35,	37,	39,	2),
 			brief_common_buttons("CB_05",			571,	425,	572,	413,	5),
 			brief_common_buttons("CB_06",			533,	425,	500,	440,	6),
 			brief_common_buttons("CB_07",			533,	455,	479,	464,	7),			
+#endif
 		}, 
 		{ // GR_1024			
 			brief_common_buttons("2_CB_00",		12,	5,		59,	12,	0),
@@ -384,12 +406,21 @@ brief_common_buttons Common_buttons[3][GR_NUM_RESOLUTIONS][NUM_COMMON_BUTTONS] =
 	},	
 	{	// UGH
 		{ // GR_640
+#ifdef MAKE_FS1
+			brief_common_buttons("CB_00",	0,		0,		-1,	-1,	0),	// briefing
+			brief_common_buttons("CB_01",	0,		19,		-1,	-1,	1),	// ship selection
+			brief_common_buttons("CB_02",	0,		33,		-1,	-1,	2),	// weapons loadout
+			brief_common_buttons("CB_05",	562,	411,	-1,	-1,	5),	// commit
+			brief_common_buttons("CB_06",	469,	424,	-1,	-1,	6),	// help
+			brief_common_buttons("CB_07",	447,	452,	-1,	-1,	7),	// options
+#else
 			brief_common_buttons("CB_00",			7,		3,		37,	7,		0),
 			brief_common_buttons("CB_01",			7,		19,	37,	23,	1),
 			brief_common_buttons("CB_02",			7,		35,	37,	39,	2),
 			brief_common_buttons("CB_05",			571,	425,	572,	413,	5),
 			brief_common_buttons("CB_06",			533,	425,	500,	440,	6),
 			brief_common_buttons("CB_07",			533,	455,	479,	464,	7),			
+#endif
 		}, 
 		{ // GR_1024			
 			brief_common_buttons("2_CB_00",		12,	5,		59,	12,	0),
@@ -399,7 +430,7 @@ brief_common_buttons Common_buttons[3][GR_NUM_RESOLUTIONS][NUM_COMMON_BUTTONS] =
 			brief_common_buttons("2_CB_06",		854,	681,	822,	704,	6),
 			brief_common_buttons("2_CB_07",		854,	724,	800,	743,	7),			
 		}
-	}
+	} 
 };
 
 #define COMMON_BRIEFING_BUTTON					0
@@ -498,6 +529,7 @@ void common_buttons_init(UI_WINDOW *ui_window)
 		b->link_hotspot(Common_buttons[Current_screen-1][gr_screen.res][i].hotspot);
 	}	
 
+#ifndef MAKE_FS1
 	// add some text	
 	ui_window->add_XSTR("Briefing", 1504, Common_buttons[Current_screen-1][gr_screen.res][COMMON_BRIEFING_BUTTON].xt, Common_buttons[Current_screen-1][gr_screen.res][COMMON_BRIEFING_BUTTON].yt, &Common_buttons[Current_screen-1][gr_screen.res][COMMON_BRIEFING_BUTTON].button, UI_XSTR_COLOR_GREEN);
 	ui_window->add_XSTR("Ship Selection", 1067, Common_buttons[Current_screen-1][gr_screen.res][COMMON_SS_BUTTON].xt, Common_buttons[Current_screen-1][gr_screen.res][COMMON_SS_BUTTON].yt, &Common_buttons[Current_screen-1][gr_screen.res][COMMON_SS_BUTTON].button, UI_XSTR_COLOR_GREEN);
@@ -505,6 +537,7 @@ void common_buttons_init(UI_WINDOW *ui_window)
 	ui_window->add_XSTR("Commit", 1062, Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].xt, Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].yt, &Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].button, UI_XSTR_COLOR_PINK);
 	ui_window->add_XSTR("Help", 928, Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].xt, Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].yt, &Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].button, UI_XSTR_COLOR_GREEN);
 	ui_window->add_XSTR("Options", 1036, Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].xt, Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].yt, &Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].button, UI_XSTR_COLOR_GREEN);
+#endif
 
 	common_reset_buttons();
 
@@ -601,12 +634,12 @@ void common_set_interface_palette(char *filename)
 	}
 
 	// ugh - we don't need this anymore
-	/*
+#ifdef MAKE_FS1
 	InterfacePaletteBitmap = bm_load(filename);
 	if (InterfacePaletteBitmap < 0) {
 		Error(LOCATION, "Could not load in \"%s\"!", filename);
 	}
-	*/
+#endif
 
 #ifndef HARDWARE_ONLY
 	palette_use_bm_palette(InterfacePaletteBitmap);
@@ -668,7 +701,7 @@ void common_select_init()
 
 	#ifndef DEMO // not for FS2_DEMO
 
-	/*
+#ifdef MAKE_FS1
 	if ( current_detail_level() >= (NUM_DEFAULT_DETAIL_LEVELS-2) ) {
 
 		anim_play_struct aps;
@@ -687,7 +720,8 @@ void common_select_init()
 		Background_anim_instance = anim_play(&aps);
 		Background_playing = 1;		// start playing the Background anim
 	}
-	*/
+#endif
+
 	Current_screen = Next_screen = ON_BRIEFING_SELECT;
 
 	// load in the icons for the wing slots
@@ -815,7 +849,7 @@ int common_select_do(float frametime)
 
 	common_music_do();
 
-	/*
+#ifdef MAKE_FS1
 	if ( Background_playing ) {
 
 		if ( Background_anim_instance->frame_num == BUTTON_SLIDE_IN_FRAME ) {
@@ -831,7 +865,7 @@ int common_select_do(float frametime)
 			Current_screen = Next_screen = ON_BRIEFING_SELECT;
 		}
 	}
-	*/
+#endif
 
 	if ( Current_screen != Next_screen ) {
 		switch( Next_screen ) {
@@ -1135,12 +1169,12 @@ void common_select_close()
 	anim_release_all_instances();
 
 	// free the anim's that were loaded into memory
-	/*
+#ifdef MAKE_FS1
 	if ( Background_anim ) {
 		anim_free(Background_anim);
 		Background_anim = NULL;
 	}
-	*/
+#endif
 
 	common_music_close();
 	Common_select_inited = 0;

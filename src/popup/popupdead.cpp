@@ -15,6 +15,9 @@
  * C module for the death popup
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -114,10 +117,18 @@
 
 
 #define POPUPDEAD_NUM_CHOICES				3		// normal
+#ifdef MAKE_FS1
+#define POPUPDEAD_NUM_CHOICES_RA			3		// Theres on 3 possible in FS1
+#else
 #define POPUPDEAD_NUM_CHOICES_RA			4		// red alert
+#endif
 #define POPUPDEAD_NUM_CHOICES_SKIP		3		// skip mission menu
 
+#ifdef MAKE_FS1
+#define POPUPDEAD_NUM_CHOICES_MAX		3
+#else
 #define POPUPDEAD_NUM_CHOICES_MAX		4
+#endif
 
 #include "ui.h"
 #include "key.h"
@@ -140,32 +151,48 @@ UI_BUTTON	Popupdead_button_regions[POPUPDEAD_NUM_CHOICES_MAX];	// fake buttons u
 int Popupdead_region_coords[GR_NUM_RESOLUTIONS][POPUPDEAD_NUM_CHOICES_MAX][4] =
 {	
 	{	// GR_640
+#ifdef MAKE_FS1
+		{464, 402, 505, 421},		// upper right pixel of text, lower right pixel of button (for tiny popup)
+		{464, 422, 505, 442},
+		{464, 442, 505, 462},
+#else
 		{464, 389, 497, 403},		// upper right pixel of text, lower right pixel of button (for tiny popup)
 		{464, 413, 497, 427},
 		{464, 435, 497, 446},		
 		{464, 457, 497, 466},
+#endif
 	}, 
 	{	// GR_1024
 		{745, 627, 809, 664},
 		{745, 663, 809, 700},		// upper right pixel of text, lower right pixel of button (for tiny popup)
 		{745, 699, 809, 736},		
+#ifndef MAKE_FS1
 		{745, 735, 809, 772},
+#endif
 	}, 
 };
 
 int Popupdead_button_coords[GR_NUM_RESOLUTIONS][POPUPDEAD_NUM_CHOICES_MAX][2] =
 {
 	{	// GR_640
+#ifdef MAKE_FS1
+		{474, 394},		// upper left pixel (tiny popup)
+		{474, 415},
+		{474, 435},
+#else
 		{478, 387},						// upper left pixel (tiny popup)
 		{478, 410},
 		{478, 432},
 		{478, 455},
+#endif
 	},
 	{	// GR_1024
 		{760, 620},						// upper left pixel (tiny popup)
 		{760, 656},
 		{760, 692},
+#ifndef MAKE_FS1
 		{760, 728},
+#endif
 	}
 };
 
@@ -190,13 +217,17 @@ char *Popupdead_button_filenames[GR_NUM_RESOLUTIONS][POPUPDEAD_NUM_CHOICES_MAX] 
 		"PopD_00",				// first choice
 		"PopD_01",				// second choice
 		"PopD_02",				// third choice
+#ifndef MAKE_FS1
 		"PopD_03",				// fourth choice
+#endif
 	},
 	{	// GR_1024
 		"2_PopD_00",			// first choice
 		"2_PopD_01",			// second choice
 		"2_PopD_02",			// third choice
+#ifndef MAKE_FS1
 		"2_PopD_03",			// fourth choice
+#endif
 	}
 };
 
@@ -258,7 +289,9 @@ void popupdead_start()
 			Popupdead_button_text[0] = XSTR( "Quick Start Mission", 105);
 			Popupdead_button_text[1] = XSTR( "Return To Flight Deck", 106);
 			Popupdead_button_text[2] = XSTR( "Return To Briefing", 107);
+#ifndef MAKE_FS1
 			Popupdead_button_text[3] = XSTR( "Replay previous mission", 1432);
+#endif
 			Popupdead_num_choices = POPUPDEAD_NUM_CHOICES_RA;
 		} else {
 			Popupdead_button_text[0] = XSTR( "Quick Start Mission", 105);

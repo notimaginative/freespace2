@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.9  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.8  2003/02/20 17:41:07  theoddone33
  * Userdir patch from Taylor Richards
  *
@@ -231,7 +234,11 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 #ifdef PLAT_UNIX
 	{ CF_TYPE_MAPS,					"Data/Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
 	{ CF_TYPE_TEXT,					"Data/Text",							".txt .net",				CF_TYPE_DATA	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_MISSIONS,				"Data/Missions",						".fsm .fsc .ntl .ssv",	CF_TYPE_DATA	},
+#else
 	{ CF_TYPE_MISSIONS,				"Data/Missions",						".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
+#endif
 	{ CF_TYPE_MODELS,					"Data/Models",						".pof",						CF_TYPE_DATA	},
 	{ CF_TYPE_TABLES,					"Data/Tables",						".tbl",						CF_TYPE_DATA	},
 	{ CF_TYPE_SOUNDS,					"Data/Sounds",						".wav",						CF_TYPE_DATA	},

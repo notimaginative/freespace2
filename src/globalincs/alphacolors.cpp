@@ -52,8 +52,11 @@ void alpha_colors_init()
 
 	gr_init_alphacolor( &Color_black, 0, 0, 0, 255 );
 	gr_init_alphacolor( &Color_grey, 50, 50, 50, 255 );
-	//gr_init_alphacolor( &Color_white, 185, 185, 185, 255 );
+#ifdef MAKE_FS1
+	gr_init_alphacolor( &Color_white, 185, 185, 185, 255 );
+#else
 	gr_init_alphacolor( &Color_white, 105, 105, 105, 255 );
+#endif
 	gr_init_alphacolor( &Color_bright_white, 255, 255, 255, 255 );
 
 	gr_init_alphacolor( &Color_violet_gray, 160, 144, 160, 255 );

@@ -15,6 +15,9 @@
  * header file for dealing with campaigns
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -267,7 +270,7 @@
 #include "scoring.h"
 
 // name of the builtin campaign.
-#if defined(FS2_DEMO)
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define BUILTIN_CAMPAIGN		"demo"
 	#define BUILTIN_CAMPAIGN_NAME	"DEMO Campaign"
 #elif defined(OEM_BUILD)
@@ -276,6 +279,9 @@
 #elif defined(E3_BUILD)
 	#define BUILTIN_CAMPAIGN		"E3"
 	#define BUILTIN_CAMPAIGN_NAME	"E3 Campaign"
+#elif defined(MAKE_FS1)
+    #define BUILTIN_CAMPAIGN		"FreeSpace"
+    #define BUILTIN_CAMPAIGN_NAME	"The Main Freespace Campaign"
 #else
 	#define BUILTIN_CAMPAIGN		"FreeSpace2"
 	#define BUILTIN_CAMPAIGN_NAME	"The Main Freespace2 Campaign"

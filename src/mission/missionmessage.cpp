@@ -15,6 +15,9 @@
  * Controls messaging to player during the mission
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -456,12 +459,12 @@ message_extra Message_waves[MAX_MESSAGE_WAVES];
 
 #define MAX_PLAYING_MESSAGES		2
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_WINGMAN_HEADS			1
 	#define MAX_COMMAND_HEADS			1
 #else
-#define MAX_WINGMAN_HEADS			2
-#define MAX_COMMAND_HEADS			3
+	#define MAX_WINGMAN_HEADS			2
+	#define MAX_COMMAND_HEADS			3
 #endif
 
 //XSTR:OFF

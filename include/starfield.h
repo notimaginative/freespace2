@@ -16,6 +16,9 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -141,6 +144,11 @@ typedef struct starfield_bitmap_instance {
 	float scale_x, scale_y;								// x and y scale
 	int div_x, div_y;										// # of x and y divisions
 	angles ang;												// angles from fred
+#ifdef MAKE_FS1
+	matrix m;			// straight matrix instead of angles to matrix
+	int sun_light;		// FIXME: not sure what this is supposed to do
+	float rot;			// rotation rate - always 0?
+#endif
 } starfield_bitmap_instance;
 
 // background bitmaps

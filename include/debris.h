@@ -15,6 +15,9 @@
  * Code for the pieces of exploding object debris.
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -179,7 +182,7 @@ typedef struct debris {
 #define	DEBRIS_EXPIRE			(1<<1)	// debris can expire (ie hull chunks from small ships)
 
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define	MAX_DEBRIS_PIECES	48
 #else
 	#define	MAX_DEBRIS_PIECES	64

@@ -15,6 +15,9 @@
  * Prototypes for Bitmap Manager functions
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -158,7 +161,7 @@
 
 #include "pstypes.h"
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_BITMAPS 3500
 #else
 	#define MAX_BITMAPS 3500			// How many bitmaps the game can handle

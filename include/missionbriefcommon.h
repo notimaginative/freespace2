@@ -15,6 +15,9 @@
  * Header file for briefing stuff common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -168,7 +171,11 @@
 // names for the icons that can appear in the briefing.  If you modify this list,
 // update the Icons_names[] string array located in MissionParse.cpp
 // ------------------------------------------------------------------------
+#ifdef MAKE_FS1
+#define MAX_BRIEF_ICONS						27
+#else
 #define MAX_BRIEF_ICONS						35		// keep up to date
+#endif
 
 #define ICON_FIGHTER							0
 #define ICON_FIGHTER_WING					1
@@ -196,6 +203,9 @@
 #define ICON_FIGHTERW_PLAYER				23
 #define ICON_BOMBER_PLAYER					24
 #define ICON_BOMBERW_PLAYER				25
+#ifdef MAKE_FS1
+#define ICON_JUMP_NODE					26
+#else
 #define ICON_KNOSSOS_DEVICE				26
 #define ICON_TRANSPORT_WING				27
 #define ICON_CORVETTE						28
@@ -205,6 +215,7 @@
 #define ICON_SENTRYGUN						32
 #define ICON_JUMP_NODE						33
 #define ICON_TRANSPORT						34
+#endif
 
 // ------------------------------------------------------------------------
 // Structures to hold briefing data

@@ -15,6 +15,9 @@
  * main sexpression generator
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:15:25  relnev
  * ryan's struct patch (and cr removal)
  *
@@ -4711,10 +4714,13 @@ void sexp_end_campaign( int n )
 {
 	// post and event to move us to the end-of-campaign state.  There we will play a movie, then
 	// go to debriefing.
-	// gameseq_post_event( GS_EVENT_END_CAMPAIGN );
-
+#ifdef MAKE_FS1
+	// needed to actually end the game
+	gameseq_post_event( GS_EVENT_END_CAMPAIGN );
+#else
 	// in FS2 our ending is a bit wacky. we'll just flag the mission as having ended the campaign	
 	Campaign_ended_in_mission = 1;
+#endif
 }
 
 // sabotage subsystem reduces the strength of a subsystem by the given percentage.  If it is reduced to

@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2003/05/06 07:21:43  taylor
  * add version number for linux/unix client
  *
@@ -119,14 +122,22 @@
 //		1.01	Patch for Win95 volume label bug
 //		1.20	German release version
 
-#if defined (FS2_DEMO)
+#if defined(FS2_DEMO)
 	#define FS_VERSION_MAJOR 01					// Major is 0 for pre-release and 1 for 1.0 release
 	#define FS_VERSION_MINOR 10					// Increase by 1 for minor revs, 10 for major.
 	#define FS_VERSION_BUILD 00					// Build version 
+#elif defined(FS1_DEMO)
+	#define FS_VERSION_MAJOR 01					// Major is 0 for pre-release and 1 for 1.0 release
+ 	#define FS_VERSION_MINOR 20					// Increase by 1 for minor revs, 10 for major.
+ 	#define FS_VERSION_BUILD 00					// Build version
 #elif defined(OEM_BUILD)
 	#define FS_VERSION_MAJOR 01					// Major is 0 for pre-release and 1 for 1.0 release
 	#define FS_VERSION_MINOR 00					// Increase by 1 for minor revs, 10 for major.
 	#define FS_VERSION_BUILD 00					// Build version 
+#elif defined(MAKE_FS1)
+	#define FS_VERSION_MAJOR 01					// Major is 0 for pre-release and 1 for 1.0 release
+	#define FS_VERSION_MINOR 06					// Increase by 1 for minor revs, 10 for major.
+	#define FS_VERSION_BUILD 00					// Build version
 #else
 	#define FS_VERSION_MAJOR 01					// Major is 0 for pre-release and 1 for 1.0 release
 	#define FS_VERSION_MINOR 20					// Increase by 1 for minor revs, 10 for major.

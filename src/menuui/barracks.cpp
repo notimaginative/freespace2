@@ -15,6 +15,9 @@
  * C file for implementing barracks section
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -140,7 +143,11 @@ static int Stat_column2_w[GR_NUM_RESOLUTIONS] =
 // pilot selection field
 static int Barracks_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		58, 42, 400, 105
+#else
 		42, 34, 400, 90
+#endif
 	},
 	{ // GR_1024
 		45, 51, 646, 144
@@ -150,7 +157,11 @@ static int Barracks_list_coords[GR_NUM_RESOLUTIONS][4] = {
 // pilot stats field
 static int Barracks_stats_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		35, 215, 240, 250
+#else
 		32, 212, 240, 250
+#endif
 	},
 	{ // GR_1024
 		42, 351, 240, 400
@@ -169,7 +180,11 @@ static int Barracks_stats2_coords[GR_NUM_RESOLUTIONS][3] = {
 // pilot picture field
 static int Barracks_image_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		460, 33, 160, 120
+#else
 		461, 23, 160, 120
+#endif
 	},
 	{ // GR_1024
 		782, 58, 160, 120
@@ -179,7 +194,15 @@ static int Barracks_image_coords[GR_NUM_RESOLUTIONS][4] = {
 // pilot picture # of # location
 static int Barracks_image_number_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+#ifndef FS1_DEMO
+		489, 171
+#else
+		489, 183
+#endif  // FS1_DEMO
+#else
 		461, 145
+#endif
 	},
 	{ // GR_1024
 		732, 239
@@ -207,7 +230,11 @@ int Barracks_squad_number_coords[GR_NUM_RESOLUTIONS][2] = {
 };
 
 // button defines
-#define BARRACKS_NUM_BUTTONS		19
+#ifdef MAKE_FS1
+	#define BARRACKS_NUM_BUTTONS		17
+#else
+	#define BARRACKS_NUM_BUTTONS		19
+#endif
 
 // pilot selection buttons
 #define B_PILOT_CREATE_BOTTON			0	// B_PILOT_CREATE_BOTTON
@@ -220,9 +247,11 @@ int Barracks_squad_number_coords[GR_NUM_RESOLUTIONS][2] = {
 #define B_PILOT_MULTI_MODE_BUTTON	15	// B_PILOT_MULTI_MODE_BUTTON
 #define B_PILOT_CONVERT_BUTTON		16	// B_PILOT_B_PILOT_CONVERT_BUTTON
 
+#ifndef MAKE_FS1
 // squad logo picture buttons
 #define B_SQUAD_PREV_BUTTON			17
 #define B_SQUAD_NEXT_BUTTON			18
+#endif
 
 // pilot picture buttons
 #define B_PIC_PREV_PILOT_BUTTON		3	// B_PILOT_B_PIC_PREV_PILOT_BUTTON
@@ -271,7 +300,15 @@ struct barracks_buttons {
 	barracks_buttons(char *name, int x1, int y1, int x2, int y2, int h, int r = 0) : filename(name), x(x1), y(y1), text_x(x2), text_y(y2), hotspot(h), repeat(r) {}
 };
 
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+static int Background_bitmap;
+static int PilotWin01 = -1;
+static int PilotWin02 = -1;
+static int PilotWin03 = -1;
+static int PilotWin04 = -1;
+#else
 static int Background_bitmap = -1;
+#endif
 static UI_WINDOW Ui_window;
 static UI_BUTTON List_region;
 static UI_INPUTBOX Inputbox;
@@ -279,6 +316,30 @@ static UI_INPUTBOX Inputbox;
 static barracks_buttons Buttons[GR_NUM_RESOLUTIONS][BARRACKS_NUM_BUTTONS] = {
 //XSTR:OFF
 	{		// GR_640
+#ifdef MAKE_FS1
+			barracks_buttons("BAB_00",	12,		121,	-1,	-1,		0),		// create
+			barracks_buttons("BAB_01",	322,	137,	-1,	-1,	1,	1),		// barracks - arrow up
+			barracks_buttons("BAB_02",	347,	137,	-1,	-1,	2,	1),		// barracks - arrow down
+#ifndef FS1_DEMO
+			barracks_buttons("BAB_03",	570,	140,	-1,	-1,	3,	1),		// pilot window - arrow left
+			barracks_buttons("BAB_04",	591,	140,	-1,	-1,	4,	1),		// pilot window - arrow right
+#else
+			barracks_buttons("BAB_03",	570,	157,	-1,	-1,	3,	1),		// pilot window - arrow left
+			barracks_buttons("BAB_04",	591,	157,	-1,	-1,	4,	1),		// pilot window - arrow right
+#endif
+			barracks_buttons("BAB_05",	562,	410,	-1,	-1,		5),		// accept
+			barracks_buttons("BAB_06",	469,	427,	-1,	-1,		6),		// help
+			barracks_buttons("BAB_07",	447,	452,	-1,	-1,		7),		// options
+			barracks_buttons("BAB_08",	365,	415,	-1,	-1,		8),		// medals
+			barracks_buttons("BAB_09",	0,		225,	-1,	-1,	9,	1),		// pilot stats - arrows down
+			barracks_buttons("BAB_10",	0,		185,	-1,	-1,	10,	1),		// pilot stats - arrows up
+			barracks_buttons("BAB_11",	124,	121,	-1,	-1,		11),	// remove
+			barracks_buttons("BAB_12",	374,	127,	-1,	-1,		12),	// barracks - accept
+			barracks_buttons("BAB_13",	70,		121,	-1,	-1,		13),	// clone
+			barracks_buttons("BAB_14",	329,	13,		-1,	-1,		14),	// single
+			barracks_buttons("BAB_15",	380,	13,		-1,	-1,		15),	// multi
+			barracks_buttons("BAB_16",	183,	121,	-1,	-1,		16)		// convert
+#else
 			barracks_buttons("BAB_00", 8,		122,	11,	157,	0),		
 			barracks_buttons("BAB_01", 323,	130,	0,		0,		1, 1),
 			barracks_buttons("BAB_02", 350,	130,	0,		0,		2,	1),
@@ -298,6 +359,7 @@ static barracks_buttons Buttons[GR_NUM_RESOLUTIONS][BARRACKS_NUM_BUTTONS] = {
 			barracks_buttons("BAB_16", 180,	122,	182,	157,	16),
 			barracks_buttons("BAB_17", 559,	306,	0,		0,		17),
 			barracks_buttons("BAB_18", 598,	306,	0,		0,		18)
+#endif
 	},
 	{		// GR_1024
 			barracks_buttons("2_BAB_00", 14,		196,	35,	252,	0),
@@ -317,25 +379,39 @@ static barracks_buttons Buttons[GR_NUM_RESOLUTIONS][BARRACKS_NUM_BUTTONS] = {
 			barracks_buttons("2_BAB_14", 517,	0,		532,	40,	14),
 			barracks_buttons("2_BAB_15", 596,	0,		614,	40,	15),
 			barracks_buttons("2_BAB_16", 289,	196,	309,	252,	16),
+#ifndef MAKE_FS1
 			barracks_buttons("2_BAB_17", 896,	491,	0,		0,		17),
 			barracks_buttons("2_BAB_18", 958,	491,	0,		0,		18)
+#endif
 	}
 //XSTR:ON
 };
 
 
 // FIXME add to strings.tbl, set correct coords
-#define BARRACKS_NUM_TEXT			2
+#ifdef MAKE_FS1
+	#define BARRACKS_NUM_TEXT			0
+#else
+	#define BARRACKS_NUM_TEXT			2
+#endif
 UI_XSTR Barracks_text[GR_NUM_RESOLUTIONS][BARRACKS_NUM_TEXT] = {
 	{ 
 		// GR_640
+#ifdef MAKE_FS1
+		// nothing needed
+#else
 		{ "Barracks",			1434,		17, 7,		UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Pilot Stats",		1435,		17, 180,		UI_XSTR_COLOR_GREEN, -1, NULL }
+#endif
 	}, 
 	{ 
 		// GR_1024
+#ifdef MAKE_FS1
+		// nothing needed
+#else
 		{ "Barracks",			1434,		27, 11,		UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Pilot Stats",		1435,		27, 288,		UI_XSTR_COLOR_GREEN, -1, NULL }
+#endif
 	}
 };
 
@@ -595,9 +671,13 @@ void barracks_set_callsign_enter_mode(bool set_callsign_enter_mode)
 	// disable/enable all buttons
 	for (int idx=0; idx<BARRACKS_NUM_BUTTONS; idx++) {
 		// don't ever mess with the prev and next squad logo buttons
+#ifdef MAKE_FS1
+		Buttons[gr_screen.res][idx].button.enable(!set_callsign_enter_mode);
+#else
 		if((idx != B_SQUAD_PREV_BUTTON) && (idx != B_SQUAD_NEXT_BUTTON)){
 			Buttons[gr_screen.res][idx].button.enable(!set_callsign_enter_mode);
 		}
+#endif
 	}
 
 	// enable/disable hotkeys
@@ -908,6 +988,7 @@ void barracks_init_player_stuff(int mode)
 	if (mode == PLAYER_SELECT_MODE_SINGLE) {
 		Num_pilots = cf_get_file_list_preallocated(MAX_PILOTS, Pilots_arr, Pilots, CF_TYPE_SINGLE_PLAYERS, NOX("*.plr"), CF_SORT_TIME);
 
+#ifndef MAKE_FS1
 		// disable squad logo switching		
 		Buttons[gr_screen.res][B_SQUAD_PREV_BUTTON].button.hide();
 		Buttons[gr_screen.res][B_SQUAD_PREV_BUTTON].button.disable();
@@ -915,16 +996,19 @@ void barracks_init_player_stuff(int mode)
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.hide();
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.disable();			
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.set_disabled_action(barracks_squad_change_popup);
+#endif
 	}
 	// multiplayer specific stuff
 	else {
 		Num_pilots = cf_get_file_list_preallocated(MAX_PILOTS, Pilots_arr, Pilots, CF_TYPE_MULTI_PLAYERS, NOX("*.plr"), CF_SORT_TIME);
 
+#ifndef MAKE_FS1
 		// enable squad logo switching
 		Buttons[gr_screen.res][B_SQUAD_PREV_BUTTON].button.enable();
 		Buttons[gr_screen.res][B_SQUAD_PREV_BUTTON].button.unhide();
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.enable();
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.unhide();			
+#endif
 	}
 
 	int ranks[MAX_PILOTS];
@@ -976,6 +1060,7 @@ void barracks_button_pressed(int n)
 			barracks_next_pic();
 			break;
 
+#ifndef MAKE_FS1
 		case B_SQUAD_PREV_BUTTON:
 			barracks_prev_squad_pic();
 			break;
@@ -983,6 +1068,7 @@ void barracks_button_pressed(int n)
 		case B_SQUAD_NEXT_BUTTON:
 			barracks_next_squad_pic();
 			break;
+#endif
 
 		case B_PILOT_SET_ACTIVE_BUTTON:
 			if (barracks_new_pilot_selected()){
@@ -1090,7 +1176,7 @@ void barracks_button_pressed(int n)
 			break;
 
 		case B_STATS_MEDAL_BUTTON:
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			game_feature_not_in_demo_popup();
 #else
 			gamesnd_play_iface(SND_SWITCH_SCREENS);
@@ -1155,8 +1241,10 @@ void barracks_display_pilot_callsigns(int prospective_pilot)
 		}
 
 		gr_printf(Barracks_list_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_list_coords[gr_screen.res][BARRACKS_Y_COORD] + y, Pilots[cur_pilot_idx]);
+#ifndef FS1_DEMO
 		gr_set_bitmap(Rank_pips_bitmaps + Pilot_ranks[cur_pilot_idx]);
 		gr_bitmap(Barracks_list_coords[gr_screen.res][BARRACKS_X_COORD] - 34, Barracks_list_coords[gr_screen.res][BARRACKS_Y_COORD] + y);
+#endif
  
 		y += font_height;
 		cur_pilot_idx++;
@@ -1328,7 +1416,9 @@ void barracks_draw_squad_pic()
 // -----------------------------------------------------------------------------
 void barracks_init()
 {
+#ifndef MAKE_FS1
 	UI_WINDOW *w = &Ui_window;
+#endif
 
 	// save current pilot file, so we don't possibly loose it.
 	write_pilot_file();
@@ -1360,6 +1450,7 @@ void barracks_init()
 	}
 
 	// add all strings	
+#ifndef MAKE_FS1
 	w->add_XSTR("Create", 1034, Buttons[gr_screen.res][0].text_x,  Buttons[gr_screen.res][0].text_y, &Buttons[gr_screen.res][0].button, UI_XSTR_COLOR_GREEN);
 	w->add_XSTR("Accept", 1035, Buttons[gr_screen.res][5].text_x,  Buttons[gr_screen.res][5].text_y, &Buttons[gr_screen.res][5].button, UI_XSTR_COLOR_PINK);
 	w->add_XSTR("Help",   928, Buttons[gr_screen.res][6].text_x,  Buttons[gr_screen.res][6].text_y, &Buttons[gr_screen.res][6].button, UI_XSTR_COLOR_GREEN);
@@ -1374,6 +1465,7 @@ void barracks_init()
 	for(int i=0; i<BARRACKS_NUM_TEXT; i++) {
 		w->add_XSTR(&Barracks_text[gr_screen.res][i]);
 	}
+#endif
 
 	// button for selecting pilot
 	List_region.create(&Ui_window, "", Barracks_list_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_list_coords[gr_screen.res][BARRACKS_Y_COORD], Barracks_list_coords[gr_screen.res][BARRACKS_W_COORD], Barracks_list_coords[gr_screen.res][BARRACKS_H_COORD], 0, 1);
@@ -1395,6 +1487,7 @@ void barracks_init()
 	Cur_pilot = &Players[Player_num];
 
 	// disable squad logo selection buttons in single player
+#ifndef MAKE_FS1
 	if(!(Cur_pilot->flags & PLAYER_FLAGS_IS_MULTI)){
 		// squad logo picture buttons		
 		Buttons[gr_screen.res][B_SQUAD_PREV_BUTTON].button.hide();
@@ -1408,12 +1501,15 @@ void barracks_init()
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.enable();
 		Buttons[gr_screen.res][B_SQUAD_NEXT_BUTTON].button.unhide();		
 	}
+#endif
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
 	barracks_set_hotkeys(1);
 
 	// load ramp pips
+#ifndef FS1_DEMO
 	Rank_pips_bitmaps = bm_load_animation("IconRankMini.ani", &Rank_pips_count);	
+#endif
 
 	// load up the pilot pic list
 	pilot_load_pic_list();	
@@ -1447,7 +1543,7 @@ void barracks_init()
 	Buttons[gr_screen.res][B_PILOT_MULTI_MODE_BUTTON].button.hide();
 	Buttons[gr_screen.res][B_PILOT_MULTI_MODE_BUTTON].button.disable();
 #endif
-	
+
 	// base the mode we're in (single or multi) on the status of the currently selected pilot
 #ifdef MULTIPLAYER_BETA_BUILD
 	barracks_init_player_stuff(1);
@@ -1455,6 +1551,13 @@ void barracks_init()
 	barracks_init_player_stuff(0);
 #else
 	barracks_init_player_stuff(is_pilot_multi(Player));	
+#endif
+
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+	PilotWin01 = bm_load(NOX("PilotWin01"));
+	PilotWin02 = bm_load(NOX("PilotWin02"));
+	PilotWin03 = bm_load(NOX("PilotWin03"));
+	PilotWin04 = bm_load(NOX("PilotWin04"));
 #endif
 }
 
@@ -1624,6 +1727,29 @@ void barracks_do_frame(float frametime)
 	barracks_draw_pilot_pic();
 	barracks_draw_squad_pic();
 
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+	if (PilotWin01 != -1) {
+		gr_set_bitmap(PilotWin01);
+		gr_bitmap(447, 18);
+	}
+
+	if (PilotWin02 != -1) {
+		gr_set_bitmap(PilotWin02);
+		gr_bitmap(620, 38);
+	}
+
+	if (PilotWin03 != -1) {
+		gr_set_bitmap(PilotWin03);
+		gr_bitmap(447, 137);
+	}
+
+	if (PilotWin04 != -1) {
+		gr_set_bitmap(PilotWin04);
+		gr_bitmap(447, 36);
+	}
+#endif
+
+
 	// draw the window	
 	Ui_window.draw();	
 
@@ -1650,6 +1776,25 @@ void barracks_do_frame(float frametime)
 // -----------------------------------------------------------------------------
 void barracks_close()
 {
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+    if (PilotWin01 != -1){
+        bm_unload(PilotWin01);
+        PilotWin01 = -1;
+    }
+    if (PilotWin02 != -1){
+        bm_unload(PilotWin02);
+        PilotWin02 = -1;
+    }
+    if (PilotWin03 != -1){
+        bm_unload(PilotWin03);
+        PilotWin03 = -1;
+    }
+    if (PilotWin04 != -1){
+        bm_unload(PilotWin04);
+        PilotWin04 = -1;
+    }
+#endif
+
 	// destroy window
 	Ui_window.destroy();
 

@@ -15,6 +15,9 @@
  * Code for displaying pop-up dialog boxes
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -218,10 +221,12 @@ int Popup_max_display[GR_NUM_RESOLUTIONS] = {
 	19
 };
 
+#ifndef MAKE_FS1  // to avoid trying to find the interface tool
 char *Popup_slider_name[GR_NUM_RESOLUTIONS] = {
 	"slider",
 	"2_slider"
 };
+#endif
 
 int Popup_slider_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
@@ -262,12 +267,18 @@ UI_WINDOW	Popup_window;
 UI_BUTTON	Popup_buttons[POPUP_MAX_CHOICES];			// actual lit buttons
 UI_BUTTON	Popup_button_regions[POPUP_MAX_CHOICES];	// fake buttons used for mouse detection over text
 UI_INPUTBOX	Popup_input;										// input box for the popup
+#ifndef MAKE_FS1
 UI_SLIDER2	Popup_slider;										// if we have more text in the popup than can be displayed at once
+#endif
 
 // extents for message portion of popup
 int Popup_text_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		154, 144, 331, 105
+#else
 		137, 106, 343, 113
+#endif
 	},
 	{ // GR_1024
 		219, 169, 558, 182
@@ -305,11 +316,19 @@ static int Popup_flags;
 static int Title_coords[GR_NUM_RESOLUTIONS][5] =
 {
 	{ // GR_640
+#ifdef MAKE_FS1
+		154,	// x-left
+		144,	// y-top
+		331,	// width
+		26,		// height
+		320		// center
+#else
 		137,		// x-left
 		106,		// y-top
 		343,		// width
 		26,		//	height
 		308		// center
+#endif
 	},
 	{ // GR_1024
 		220,		// x-left
@@ -322,9 +341,15 @@ static int Title_coords[GR_NUM_RESOLUTIONS][5] =
 
 static int Button_regions[GR_NUM_RESOLUTIONS][3][4] = {
 	{ // GR_640		
+#ifdef MAKE_FS1
+		{464, 269, 505, 290},		// upper right pixel of text, lower right pixel of button
+		{464, 297, 505, 320},
+		{464, 323, 505, 342}
+#else
 		{464, 232, 510, 250},		// upper right pixel of text, lower right pixel of button
 		{464, 262, 510, 279},		
 		{464, 292, 510, 308}		
+#endif
 	},
 	{ // GR_1024
 		{752, 373, 806, 406},		// upper right pixel of text, lower right pixel of button
@@ -336,9 +361,15 @@ static int Button_regions[GR_NUM_RESOLUTIONS][3][4] = {
 static int Button_coords[GR_NUM_RESOLUTIONS][3][2] =
 {
 	{ // GR_640
+#ifdef MAKE_FS1
+		{474, 257},		// upper left pixel
+		{474, 291},
+		{474, 318}		
+#else
 		{474, 224},		// upper left pixel
 		{474, 258},
 		{474, 286}		
+#endif
 	},
 	{ // GR_1024
 		{758, 358},		// upper left pixel
@@ -350,9 +381,15 @@ static int Button_coords[GR_NUM_RESOLUTIONS][3][2] =
 static popup_background Popup_background[GR_NUM_RESOLUTIONS][4] = 
 {
 	{ // GR_640
+#ifdef MAKE_FS1
+        {"Pop2a",			131, 122},
+        {"Pop2a",			131, 122},
+        {"Pop3",			131, 122},
+#else
 		{"Pop2",			129, 99},
 		{"Pop2",			129, 99},
 		{"Pop3",			129, 99},		
+#endif
 	},
 	{ // GR_1024
 		{"2_Pop2",		206, 158},
@@ -369,6 +406,19 @@ static popup_background Popup_background[GR_NUM_RESOLUTIONS][4] =
 static char *Popup_button_filenames[GR_NUM_RESOLUTIONS][2][5] = 
 {
 	{ // GR_640
+#ifdef MAKE_FS1
+		{"Pop2a_00",			// negative
+		"Pop2a_01",				// positive
+		"Pop2a_02",				// first generic
+		"Pop2a_03",				// second generic
+		"Pop2a_04"},			// third generic
+
+		{"Pop2a_00",			// negative
+		"Pop2a_01",				// positive
+		"PopD_00",				// first generic
+		"PopD_01",				// second generic
+		"PopD_02"},				// third generic
+#else
 		{"Pop_00",				// negative
 		"Pop_01",				// positive
 		"Pop_02",				// first generic
@@ -380,6 +430,7 @@ static char *Popup_button_filenames[GR_NUM_RESOLUTIONS][2][5] =
 		"PopD_00",				// first generic
 		"PopD_01",				// second generic
 		"PopD_02"},				// third generic
+#endif
 	},
 	{ // GR_1024
 		{"2_Pop_00",			// negative
@@ -719,9 +770,11 @@ int popup_init(popup_info *pi, int flags)
 
 	popup_split_lines(pi, flags);
 
+#ifndef MAKE_FS1
 	// create the popup slider (which we may not need to use
 	Popup_slider.create(&Popup_window, Popup_slider_coords[gr_screen.res][0], Popup_slider_coords[gr_screen.res][1], Popup_slider_coords[gr_screen.res][2], Popup_slider_coords[gr_screen.res][3], pi->nlines > Popup_max_display[gr_screen.res] ? pi->nlines - Popup_max_display[gr_screen.res] : 0,
 								Popup_slider_name[gr_screen.res], popup_slider_bogus, popup_slider_bogus, NULL);
+#endif
 
 	return 0;
 }
@@ -828,8 +881,12 @@ int popup_calc_starting_index(popup_info *pi)
 		return 0;
 	}
 
+#ifndef MAKE_FS1
 	// otherwise, we want to see what item index the slider is on
 	return Popup_slider.get_currentItem();
+#else
+	return 0;
+#endif
 }
 
 // Figure out the y-coord to start drawing the popup text.  The text

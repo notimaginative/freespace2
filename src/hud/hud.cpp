@@ -15,6 +15,9 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2003/05/18 03:55:30  taylor
  * automatic language selection support
  *
@@ -2066,10 +2069,12 @@ void hud_show_text_flash_icon(char *txt, int y, int bright)
 {
 	int w, h;
 
+#ifndef MAKE_FS1
 	// different font size in hi-res
 	if(gr_screen.res != GR_640){
 		gr_set_font(FONT3);
 	}
+#endif
 
 	// set color
 	if(bright){

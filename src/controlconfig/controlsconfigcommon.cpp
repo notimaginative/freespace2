@@ -15,6 +15,9 @@
  * C module for keyboard, joystick and mouse configuration common stuff (between Fred and FreeSpace)
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -543,12 +546,20 @@ config_item Control_config[CCFG_MAX + 1] = {
 
 char *Scan_code_text_german[] = {
 	"",				"Esc",				"1",				"2",				"3",				"4",				"5",				"6",
+#ifndef MAKE_FS1
 	"7",				"8",				"9",				"0",				"Akzent '",				"\xE1",				"R\x81""cktaste",		"Tab",
+#else
+	"7",				"8",				"9",				"0",				"?",				"Akzent '",				"R\x81""cktaste",		"Tab",
+#endif
 	"Q",				"W",				"E",				"R",				"T",				"Z",				"U",				"I",
 	"O",				"P",				"\x9A",				"+",				"Eingabe",			"Strg Links",			"A",				"S",
 
 	"D",				"F",				"G",				"H",				"J",				"K",				"L",				"\x99",
+#ifndef MAKE_FS1
 	"\xAE",				"`",				"Shift",			"#",				"Y",				"X",				"C",				"V",
+#else
+	"\x8E",				"`",				"Shift",			"#",				"Y",				"X",				"C",				"V",
+#endif
 	"B",				"N",				"M",				",",				".",				"-",				"Shift",			"Num *",
 	"Alt",				"Leertaste",			"Hochstell",			"F1",				"F2",				"F3",				"F4",				"F5",
 
@@ -760,6 +771,13 @@ int translate_key_to_index(char *key)
 		if (*key)
 			key++;
 	}
+
+#ifdef MAKE_FS1
+	// fix for German training mission key check
+	if (Lcl_gr && !strcmp(key, "Links Ctrl")) {
+		strncpy(key, "Left Ctrl", 10);
+	}
+#endif
 
 	// look up index for default key
 	if (*key) {

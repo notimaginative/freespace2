@@ -15,6 +15,9 @@
  * C module to draw and manage the recticle
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2003/05/22 15:58:44  taylor
  * fix missed German build option for auto-lang
  *
@@ -211,20 +214,28 @@
 
 static int Reticle_inited = 0;
 
-#define NUM_RETICLE_ANIS			6		// keep up to date when modifying the number of reticle ani files
+#ifdef MAKE_FS1
+	#define NUM_RETICLE_ANIS		11
+#else
+	#define NUM_RETICLE_ANIS			6		// keep up to date when modifying the number of reticle ani files
+#endif
 
 #define RETICLE_TOP_ARC				0
 #define RETICLE_LASER_WARN			1
 #define RETICLE_LOCK_WARN			2
 #define RETICLE_LEFT_ARC			3
 #define RETICLE_RIGHT_ARC			4
-//#define RETICLE_ONE_PRIMARY		5
-//#define RETICLE_TWO_PRIMARY		6
-//#define RETICLE_ONE_SECONDARY		7
-//#define RETICLE_TWO_SECONDARY		8
-//#define RETICLE_THREE_SECONDARY	9
-// #define RETICLE_LAUNCH_LABEL		5
-#define RETICLE_CENTER				5
+#ifdef MAKE_FS1
+#define RETICLE_ONE_PRIMARY		5
+#define RETICLE_TWO_PRIMARY		6
+#define RETICLE_ONE_SECONDARY	7
+#define RETICLE_TWO_SECONDARY	8
+#define RETICLE_THREE_SECONDARY	9
+#define RETICLE_CENTER			10
+// #define RETICLE_LAUNCH_LABEL	11
+#else
+#define RETICLE_CENTER			5
+#endif
 
 int Hud_throttle_frame_h[GR_NUM_RESOLUTIONS] = {
 	85,
@@ -235,15 +246,27 @@ int Hud_throttle_frame_w[GR_NUM_RESOLUTIONS] = {
 	78
 };
 int Hud_throttle_frame_bottom_y[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	330,
+#else
 	325,
+#endif
 	520
 };
 int Hud_throttle_h[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	49,
+#else
 	50,
+#endif
 	80
 };
 int Hud_throttle_bottom_y[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	312,
+#else
 	307,
+#endif
 	491
 };
 int Hud_throttle_aburn_h[GR_NUM_RESOLUTIONS] = {
@@ -273,18 +296,27 @@ char Reticle_frame_names[GR_NUM_RESOLUTIONS][NUM_RETICLE_ANIS][MAX_FILENAME_LEN]
 {
 //XSTR:OFF
 	{ // GR_640
+#ifdef MAKE_FS1
 		"toparc1",
 		"toparc2",
 		"toparc3",
 		"leftarc",
 		"rightarc1",
-/*		"rightarc2",
+		"rightarc2",
 		"rightarc3",
 		"rightarc4",
 		"rightarc5",
-		"rightarc6",	
-		"toparc4",	*/
-		"reticle1",	
+		"rightarc6",
+//		"toparc4",
+		"reticle1",
+#else
+		"toparc1",
+		"toparc2",
+		"toparc3",
+		"leftarc",
+		"rightarc1",
+		"reticle1",
+#endif
 	}, 
 	{ // GR_1024
 		"2_toparc1",
@@ -292,12 +324,14 @@ char Reticle_frame_names[GR_NUM_RESOLUTIONS][NUM_RETICLE_ANIS][MAX_FILENAME_LEN]
 		"2_toparc3",
 		"2_leftarc",
 		"2_rightarc1",
-/*		"2_rightarc2",
+#ifdef MAKE_FS1
+		"2_rightarc2",
 		"2_rightarc3",
 		"2_rightarc4",
 		"2_rightarc5",
 		"2_rightarc6",	
-		"2_toparc4",	*/
+		// "2_toparc4",
+#endif
 		"2_reticle1",	
 	}
 //XSTR:ON
@@ -306,18 +340,27 @@ char Reticle_frame_names[GR_NUM_RESOLUTIONS][NUM_RETICLE_ANIS][MAX_FILENAME_LEN]
 // reticle frame coords
 int Reticle_frame_coords[GR_NUM_RESOLUTIONS][NUM_RETICLE_ANIS][2] = {
 	{ // GR_640
-		{241, 137},
-		{400, 245},
-		{394, 261},
-		{216, 168},
-		{359, 168},
-//		{406, 253},
-//		{406, 253},
-//		{391, 276},
-//		{391, 276},
-//		{391, 276},
-//		{297, 161},
-		{308, 235}
+#ifdef MAKE_FS1
+		{241, 139},		// toparc1
+		{300, 139},		// toparc2
+		{320, 139},		// toparc3
+		{220, 246},		// leftarc
+		{374, 244},		// rightarc1
+		{406, 255},		// rightarc2
+		{406, 255},		// rightarc3
+		{391, 278},		// rightarc4
+		{391, 278},		// rightarc5
+		{391, 278},		// rightarc6
+		// {297, 162},	// toparc4
+		{308, 233}		// reticle1
+#else
+		{241, 137},		// toparc1
+		{400, 245},		// toparc2
+		{394, 261},		// toparc3
+		{216, 168},		// leftarc
+		{359, 168},		// rightarc1
+		{308, 235}		// reticle1
+#endif
 	}, 
 	{ // GR_1024
 		{386, 219},
@@ -325,12 +368,14 @@ int Reticle_frame_coords[GR_NUM_RESOLUTIONS][NUM_RETICLE_ANIS][2] = {
 		{631, 419},
 		{346, 269},
 		{574, 269},
-//		{649, 401},
-//		{649, 401},
-//		{625, 438},
-//		{625, 438},
-//		{625, 438},
+#ifdef MAKE_FS1
+		{649, 401},
+		{649, 401},
+		{625, 438},
+		{625, 438},
+		{625, 438},
 //		{475, 258},
+#endif
 		{493, 370}
 	}
 };
@@ -578,7 +623,9 @@ void hud_show_throttle()
 	}
 
 	// draw left arc (the dark portion of the throttle gauge)
-	// hud_render_throttle_background(y_end);
+#ifdef MAKE_FS1
+	hud_render_throttle_background(y_end);
+#endif
 
 	// draw throttle speed number
 	hud_render_throttle_speed(current_speed, y_end);
@@ -593,7 +640,7 @@ void hud_show_throttle()
 	gr_printf(Zero_speed_coords[gr_screen.res][0], Zero_speed_coords[gr_screen.res][1], XSTR( "0", 292));
 }
 
-/*
+#ifdef MAKE_FS1
 // Draw the primary and secondary weapon indicators along the right arc of the reticle
 void hud_show_reticle_weapons()
 {
@@ -682,7 +729,7 @@ void hud_show_reticle_weapons()
 		GR_AABITMAP(Reticle_gauges[gauge_index].first_frame+frame_offset, Reticle_frame_coords[gr_screen.res][gauge_index][0], Reticle_frame_coords[gr_screen.res][gauge_index][1]);		
 	}
 }
-*/
+#endif
 
 // Draw the lock threat gauge on the HUD.  Use Threat_flags to determine if a 
 // threat exists, and draw flashing frames.
@@ -794,30 +841,32 @@ void hud_show_right_arc()
 {	
 	hud_set_gauge_color(HUD_CENTER_RETICLE);
 
+#ifndef MAKE_FS1
 	GR_AABITMAP(Reticle_gauges[RETICLE_RIGHT_ARC].first_frame+1, Reticle_frame_coords[gr_screen.res][RETICLE_RIGHT_ARC][0], Reticle_frame_coords[gr_screen.res][RETICLE_RIGHT_ARC][1]);		
+#else
 		
 	// draw the weapons indicators in the holes along the right arc
-	/*
 	if ( hud_gauge_active(HUD_WEAPON_LINKING_GAUGE) ) {		
 		// draw right arc with holes in it
 		GR_AABITMAP(Reticle_gauges[RETICLE_RIGHT_ARC].first_frame+1, Reticle_frame_coords[gr_screen.res][RETICLE_RIGHT_ARC][0], Reticle_frame_coords[gr_screen.res][RETICLE_RIGHT_ARC][1]);		
-
 //		the following line was removed by Jasen to get rid of "undeclared identifier"
 //		hehe - DB
-//		hud_show_reticle_weapons();
+		hud_show_reticle_weapons();
 	} else {		
 		// draw right arc without any holes
 		GR_AABITMAP(Reticle_gauges[RETICLE_RIGHT_ARC].first_frame, Reticle_frame_coords[gr_screen.res][RETICLE_RIGHT_ARC][0], Reticle_frame_coords[gr_screen.res][RETICLE_RIGHT_ARC][1]);
 	}
-	*/
+#endif
 }
 
 // Draw the left portion of the reticle
 void hud_show_left_arc()
 {			
+#ifndef MAKE_FS1  // FS1: is drawn another way
 	// draw left arc (the dark portion of the throttle gauge)
 	hud_set_gauge_color(HUD_CENTER_RETICLE);	
 	GR_AABITMAP(Reticle_gauges[RETICLE_LEFT_ARC].first_frame, Reticle_frame_coords[gr_screen.res][RETICLE_LEFT_ARC][0], Reticle_frame_coords[gr_screen.res][RETICLE_LEFT_ARC][1]);			
+#endif
 	
 	// draw the throttle
 	if ( hud_gauge_active(HUD_THROTTLE_GAUGE) ) {

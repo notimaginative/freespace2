@@ -15,6 +15,9 @@
  * C module for keyboard, joystick and mouse configuration
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -345,7 +348,11 @@ char* Conflict_background_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 // control list area
 int Control_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		34, 85, 198, 219
+#else
 		32, 58, 198, 259			// GR_640
+#endif
 	},
 	{
 		32, 94, 904, 424			// GR_1024
@@ -373,7 +380,11 @@ int Control_list_key_w[GR_NUM_RESOLUTIONS] = {
 // display the "more..." text under the control list
 int Control_more_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
+#ifdef MAKE_FS1
+		320, 316
+#else
 		320, 326			// GR_640
+#endif
 	},
 	{
 		500, 542			// GR_1024
@@ -383,7 +394,11 @@ int Control_more_coords[GR_NUM_RESOLUTIONS][2] = {
 // area to display "conflicts with..." text
 int Conflict_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		34, 364, 175, 19
+#else
 		32, 313, 250, 32	// GR_640
+#endif
 	},
 	{
 		48, 508, 354, 46	// GR_1024
@@ -393,7 +408,11 @@ int Conflict_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 // conflict warning anim coords
 int Conflict_warning_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
+#ifdef MAKE_FS1
+		274, 352
+#else
 		-1, 420			// GR_640
+#endif
 	},
 	{
 		-1, 669			// GR_1024
@@ -473,6 +492,10 @@ static struct {
 
 int Conflicts_axes[NUM_JOY_AXIS_ACTIONS];
 
+#ifdef MAKE_FS1
+static hud_anim Conflict_warning_anim;
+#endif
+
 #define TARGET_TAB				0
 #define SHIP_TAB					1
 #define WEAPON_TAB				2
@@ -495,6 +518,27 @@ int Conflicts_axes[NUM_JOY_AXIS_ACTIONS];
 
 ui_button_info CC_Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("CCB_00",	35,		30,		-1,	-1,	0),		// target tab
+		ui_button_info("CCB_01",	121,	30,		-1,	-1,	1),		// ship tab
+		ui_button_info("CCB_02",	176,	30,		-1,	-1,	2),		// weapon tab
+		ui_button_info("CCB_03",	254,	30,		-1,	-1,	3),		// computer/misc tab
+		ui_button_info("CCB_04",	598,	168,	-1,	-1, 4),		// scroll up
+		ui_button_info("CCB_05",	598,	219,	-1,	-1, 5),		// scroll down
+		ui_button_info("CCB_06",	13, 	394,	-1,	-1,	6),		// alt toggle
+		ui_button_info("CCB_07",	58, 	394,	-1,	-1,	7),		// shift toggle
+		ui_button_info("CCB_09",	168,	394,	-1,	-1,	9),		// invert
+		ui_button_info("CCB_10",	456,	341,	-1,	-1, 10),	// cancel
+		ui_button_info("CCB_11",	394,	404,	-1,	-1,	11),	// undo
+		ui_button_info("CCB_12",	501,	26,		-1,	-1, 12),	// default
+		ui_button_info("CCB_13",	513,	331,	-1,	-1, 13),	// search
+		ui_button_info("CCB_14",	572,	331,	-1,	-1, 14),	// bind
+		ui_button_info("CCB_15",	469,	429,	-1,	-1,	15),	// help
+		ui_button_info("CCB_16",	562,	411,	-1,	-1,	16),	// accept
+		ui_button_info("CCB_18",	223,	404,	-1,	-1,	18),	// clear other
+		ui_button_info("CCB_19",	289,	404,	-1,	-1,	19),	// clear all
+		ui_button_info("CCB_20",	333,	404,	-1,	-1,	20),	// clear button
+#else
 		ui_button_info("CCB_00",	32,	348,	17,	384,	0),	// target tab
 		ui_button_info("CCB_01",	101,	348,	103,	384,	1),	// ship tab
 		ui_button_info("CCB_02",	173,	352,	154,	384,	2),	// weapon tab
@@ -514,6 +558,7 @@ ui_button_info CC_Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		ui_button_info("CCB_18",	420,	346,	417,	386,	18),	// clear other 
 		ui_button_info("CCB_19",	476,	346,	474,	386,	19),	// clear all
 		ui_button_info("CCB_20",	524,	346,	529,	386,	20),	// clear button
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_CCB_00",	51,	557,	27,	615,	0),	// target tab
@@ -539,9 +584,15 @@ ui_button_info CC_Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // strings
-#define CC_NUM_TEXT		20
+#ifdef MAKE_FS1
+	#define CC_NUM_TEXT		0
+#else
+	#define CC_NUM_TEXT		20
+#endif
 UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
 	{ // GR_640
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{ "Targeting",		1340,		17,	384,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][TARGET_TAB].button },
 		{ "Ship",			1341,		103,	384,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][SHIP_TAB].button },
 		{ "Weapons",		1065,		154,	384,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][WEAPON_TAB].button },
@@ -562,8 +613,11 @@ UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
 		{ "All",				1349,		483,	396,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[0][CLEAR_ALL_BUTTON].button },
 		{ "Clear",			1414,		529,	388,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[0][CLEAR_BUTTON].button },
 		{ "Selected",		1350,		517,	396,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[0][CLEAR_BUTTON].button },
+#endif
 	},
 	{ // GR_1024
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{ "Targeting",		1340,		47,	615,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][TARGET_TAB].button },
 		{ "Ship",			1341,		176,	615,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][SHIP_TAB].button },
 		{ "Weapons",		1065,		266,	615,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][WEAPON_TAB].button },
@@ -584,6 +638,7 @@ UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
 		{ "All",				1349,		772,	634,	UI_XSTR_COLOR_GREEN, -1, &CC_Buttons[1][CLEAR_ALL_BUTTON].button },
 		{ "Clear",			1414,		871,	619,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[1][CLEAR_BUTTON].button },
 		{ "Selected",		1350,		852,	634,	UI_XSTR_COLOR_PINK, -1, &CC_Buttons[1][CLEAR_BUTTON].button },
+#endif
 	}
 };
 
@@ -634,7 +689,7 @@ int Config_allowed[] = {
 };
 
 
-/*
+#ifdef FS1_DEMO
 // old invalid demo keys
 #define INVALID_DEMO_KEYS_MAX	14
 int Invalid_demo_keys[] = {
@@ -653,10 +708,10 @@ int Invalid_demo_keys[] = {
 	MULTI_MESSAGE_TARGET,
 	MULTI_OBSERVER_ZOOM_TO
 };
-*/
+#else
 #define INVALID_DEMO_KEYS_MAX	0
 int Invalid_demo_keys[INVALID_DEMO_KEYS_MAX+1];		// +1 is only to prevent a 0-size array;
-
+#endif
 
 #ifndef NDEBUG
 int Show_controls_info = 0;
@@ -690,7 +745,7 @@ int control_config_detect_axis()
 
 int control_config_valid_action(int n)
 {
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	int i;
 
 	for (i=0; i<INVALID_DEMO_KEYS_MAX; i++)
@@ -1539,6 +1594,11 @@ void control_config_init()
 	// reset conflict flashing
 	Conflict_stamp = -1;
 
+#ifdef MAKE_FS1
+	hud_anim_init(&Conflict_warning_anim, Conflict_warning_coords[gr_screen.res][0], Conflict_warning_coords[gr_screen.res][1], NOX("ConflictFlash"));
+	hud_anim_load(&Conflict_warning_anim);
+#endif
+
 	for (i=0; i<NUM_BUTTONS; i++) {
 		b = &CC_Buttons[gr_screen.res][i];
 
@@ -1631,6 +1691,10 @@ void control_config_close()
 	if (Background_bitmap){
 		bm_unload(Background_bitmap);
 	}
+
+#ifdef MAKE_FS1
+	hud_anim_release(&Conflict_warning_anim);
+#endif
 
 	Ui_window.destroy();
 	common_free_interface_palette();		// restore game palette
@@ -2077,6 +2141,7 @@ void control_config_do_frame(float frametime)
 			Conflict_stamp = timestamp(CONFLICT_FLASH_TIME);
 		}
 
+#ifndef MAKE_FS1
 		// set color and font
 		gr_set_font(FONT2);
 		if(Conflict_bright){
@@ -2094,6 +2159,9 @@ void control_config_do_frame(float frametime)
 		gr_string((gr_screen.max_w / 2) - (sw / 2), Conflict_warning_coords[gr_screen.res][1], conflict_str);
 
 		gr_set_font(FONT1);
+#else
+		hud_anim_render(&Conflict_warning_anim, frametime);
+#endif
 	} else {
 		// might as well always reset the conflict stamp
 		Conflict_stamp = -1;

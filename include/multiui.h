@@ -15,6 +15,9 @@
  * Header file for the UI of the various multiplayer screens
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -349,7 +352,11 @@ typedef struct {
 } multi_create_info;
 
 // load all common icons
+#ifdef MAKE_FS1
+#define MULTI_NUM_COMMON_ICONS		13
+#else
 #define MULTI_NUM_COMMON_ICONS		12
+#endif
 #define MICON_VOICE_DENIED				0
 #define MICON_VOICE_RECORDING			1
 #define MICON_TEAM0						2
@@ -362,6 +369,9 @@ typedef struct {
 #define MICON_VOLITION					9
 #define MICON_VALID						10
 #define MICON_CD							11
+#ifdef MAKE_FS1
+#define MICON_MDISK						12
+#endif
 
 // common icon stuff
 extern int Multi_common_icons[MULTI_NUM_COMMON_ICONS];

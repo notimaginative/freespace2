@@ -15,6 +15,9 @@
  * Scoring system structures, medals, rank, etc.
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -184,7 +187,10 @@ struct player;
 #ifdef FS2_DEMO
 	#define NUM_MEDALS			16
 	#define NUM_MEDALS_FS1		16
-#else 
+#elif MAKE_FS1
+	#define NUM_MEDALS			16
+	#define NUM_MEDALS_FS1		16
+#else
 	#define NUM_MEDALS			18
 	#define NUM_MEDALS_FS1		16
 #endif

@@ -15,6 +15,9 @@
  * Header file for asteroids
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -131,6 +134,12 @@ struct collision_info_struct;
 #define	MAX_ASTEROIDS			256
 
 // DEBRIS TYPES
+#ifdef MAKE_FS1
+#define MAX_DEBRIS_TYPES			3
+#define ASTEROID_TYPE_SMALL			0
+#define ASTEROID_TYPE_MEDIUM		1
+#define ASTEROID_TYPE_BIG			2
+#else
 #define	MAX_DEBRIS_TYPES			12
 #define	ASTEROID_TYPE_SMALL		0
 #define	ASTEROID_TYPE_MEDIUM		1
@@ -147,6 +156,7 @@ struct collision_info_struct;
 #define	DEBRIS_SHIVAN_SMALL		9
 #define	DEBRIS_SHIVAN_MEDIUM		10
 #define	DEBRIS_SHIVAN_LARGE		11
+#endif
 // END DEBRIS TYPES
 
 typedef struct debris_struct {
@@ -164,7 +174,11 @@ extern asteroid_obj Asteroid_obj_list;
 
 extern debris_struct Field_debris_info[];
 
+#ifdef MAKE_FS1
+#define	MAX_ASTEROID_POFS			2
+#else
 #define	MAX_ASTEROID_POFS			3				// Max number of POFs per asteroid type
+#endif
 
 #define	AF_USED					(1<<0)			//	Set means used.
 

@@ -16,6 +16,9 @@
  * multiplayer functions.
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -332,8 +335,13 @@ struct CFILE;
 // version 43 - 7/30/99
 // version 44 - 8/24/99
 // version 46 - 8/30/99
+// version 70+ for FS1 - 1/16/03
 // STANDALONE_ONLY
+#ifdef MAKE_FS1
+#define MULTI_FS_SERVER_VERSION							70
+#else
 #define MULTI_FS_SERVER_VERSION							46
+#endif
 #define MULTI_FS_SERVER_COMPATIBLE_VERSION			MULTI_FS_SERVER_VERSION
 
 // version defines (i.e. demo, full version, special OEM version

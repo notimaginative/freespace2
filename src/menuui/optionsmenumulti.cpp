@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -229,10 +232,12 @@
 #include "osregistry.h"
 #include "alphacolors.h"
 #include "timer.h"
+#include "gamesequence.h"  // needed for FS1
 
 // general data section ------------------------------------------------
 UI_WINDOW *Om_window = NULL;
 
+#ifndef FS1_DEMO
 static char* Om_background_0_fname[GR_NUM_RESOLUTIONS] = {
 	"OptionsMultiGen",			// GR_640
 	"2_OptionsMultiGen"			// GR_1024
@@ -258,6 +263,7 @@ int Om_mask_0		  = -1;
 
 int Om_background_1 = -1;
 int Om_mask_1       = -1;
+#endif  // FS1_DEMO
 
 // screen modes
 #define OM_MODE_NONE									-1		// no mode (unintialized)
@@ -286,6 +292,22 @@ void options_multi_notify_process();
 
 
 // protocol options section -------------------------------------------
+#ifdef MAKE_FS1
+#define OM_PRO_NUM_BUTTONS							12
+
+#define ABORT_GAME_BUTTON							0
+#define CONTROL_CONFIG_BUTTON						1
+#define HUD_CONFIG_BUTTON							2
+#define OM_PRO_SCROLL_IP_UP							3
+#define OM_PRO_SCROLL_IP_DOWN						4
+#define OM_PRO_ADD_IP								5
+#define OM_PRO_DELETE_IP							6
+#define OM_PRO_LOCAL_BROADCAST_YES					7
+#define OM_PRO_LOCAL_BROADCAST_NO					8
+#define OM_PRO_VMT									9
+#define OM_PRO_VOX_TAB								10
+#define OM_PRO_GEN_TAB								11
+#else
 #define OM_PRO_NUM_BUTTONS								10
 
 #define OM_PRO_TCP										0
@@ -298,9 +320,25 @@ void options_multi_notify_process();
 #define OM_PRO_VMT										7
 #define OM_PRO_VOX_TAB									8
 #define OM_PRO_GEN_TAB									9
+#endif
 
 ui_button_info Om_pro_buttons[GR_NUM_RESOLUTIONS][OM_PRO_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("OPb_04",	6,		377,	-1,	-1,	4),		// Exit Game
+		ui_button_info("OPb_05",	448,	335,	-1,	-1,	5),		// Control Config
+		ui_button_info("OPb_06",	541,	335,	-1,	-1,	6),		// HUD Config
+
+		ui_button_info("OPb_87",	252,	129,	-1,	-1,	87),	// Scroll IP Up
+		ui_button_info("OPb_88",	252,	166,	-1,	-1,	88),	// Scroll IP Down
+		ui_button_info("OPb_85",	26,		131,	-1,	-1,	85),	// Add IP
+		ui_button_info("OPb_86",	26,		166,	-1,	-1,	86),	// Remove IP
+		ui_button_info("OPb_89",	26,		221,	-1,	-1,	89),	// Local Broadcast Yes
+		ui_button_info("OPb_90",	104,	221,	-1,	-1,	90),	// Local Broadcast No
+		ui_button_info("OPb_91",	26,		243,	-1,	-1,	91),	// Parallax Online
+		ui_button_info("OPb_92",	402,	72,	-1,	-1,	92),		// Voice Tab
+		ui_button_info("OPb_93",	487,	72,	-1,	-1,	93),		// General Tab
+#else
 		ui_button_info("OMuB_07",	7,		66,	-1,	-1,	7),
 		ui_button_info("OMuB_08",	7,		84,	-1,	-1,	8),
 		ui_button_info("OMuB_09",	1,		124,	-1,	-1,	9),
@@ -311,6 +349,7 @@ ui_button_info Om_pro_buttons[GR_NUM_RESOLUTIONS][OM_PRO_NUM_BUTTONS] = {
 		ui_button_info("OMuB_14",	9,		282,	-1,	-1,	14),
 		ui_button_info("OMuB_15",	610,	53,	-1,	-1,	15),
 		ui_button_info("OMuB_16",	610,	72,	-1,	-1,	16),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_OMuB_07",	12,	105,	-1,	-1,	7),
@@ -323,15 +362,26 @@ ui_button_info Om_pro_buttons[GR_NUM_RESOLUTIONS][OM_PRO_NUM_BUTTONS] = {
 		ui_button_info("2_OMuB_14",	14,	452,	-1,	-1,	14),
 		ui_button_info("2_OMuB_15",	976,	85,	-1,	-1,	15),
 		ui_button_info("2_OMuB_16",	976,	114,	-1,	-1,	16),
+#ifdef MAKE_FS1
+		// filler for extra FS1 buttons
+		ui_button_info("none",		-1,	-1,	-1,	-1,	-1),
+		ui_button_info("none",		-1,	-1,	-1,	-1,	-1),
+#endif
 	}
 };
 
 UI_GADGET Om_pro_bogus;
 
 // test
+#ifdef MAKE_FS1
+#define OM_PRO_NUM_TEXT		0
+#else
 #define OM_PRO_NUM_TEXT		12
+#endif
 UI_XSTR Om_pro_text[GR_NUM_RESOLUTIONS][OM_PRO_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "TCP",				1378,	38,	70,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_TCP].button },
 		{ "IPX",				1379,	38,	88,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_IPX].button },
 		{ "IP Address",	1380,	30,	128,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
@@ -344,8 +394,11 @@ UI_XSTR Om_pro_text[GR_NUM_RESOLUTIONS][OM_PRO_NUM_TEXT] = {
 		{ "Squadron",		1386,	14,	363,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
 		{ "Voice",			1528,	557,	60,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_VOX_TAB].button },
 		{ "General",		1388,	542,	77,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[0][OM_PRO_GEN_TAB].button },	
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "TCP",				1378,	61,	113,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_TCP].button },
 		{ "IPX",				1379,	61,	141,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_IPX].button },
 		{ "IP Address",	1380,	47,	206,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
@@ -358,13 +411,18 @@ UI_XSTR Om_pro_text[GR_NUM_RESOLUTIONS][OM_PRO_NUM_TEXT] = {
 		{ "Squadron",		1386,	23,	582,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_bogus },
 		{ "Voice",			1528,	921,	96,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_VOX_TAB].button },
 		{ "General",		1388,	902,	123,	UI_XSTR_COLOR_GREEN, -1, &Om_pro_buttons[1][OM_PRO_GEN_TAB].button },	
+#endif
 	}
 };
 
 // defines for the tracker input boxes
 int Om_tracker_login_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		62, 284, 175, -1
+#else
 		19, 322, 226, -1		// GR_640
+#endif
 	},
 	{
 		31, 518, 361, -1		// GR_1024
@@ -372,7 +430,11 @@ int Om_tracker_login_coords[GR_NUM_RESOLUTIONS][4] = {
 };
 int Om_tracker_passwd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		62, 328, 175, -1
+#else
 		19, 350, 226, -1		// GR_640
+#endif
 	},
 	{
 		31, 562, 361, -1		// GR_1024
@@ -410,7 +472,11 @@ static int Om_tracker_focus = 0;
 
 int Ip_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		106, 147, 141, 48
+#else
 		29, 137, 227, 67		// GR_640
+#endif
 	},
 	{
 		46, 220, 364, 106		// GR_1024
@@ -425,7 +491,11 @@ int Ip_list_max_display[GR_NUM_RESOLUTIONS] = {
 
 static int Ip_input_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		107, 138, 140, -1
+#else
 		109, 128, 140, -1		// GR_640
+#endif
 	},
 	{
 		132, 206, 261, -1		// GR_640
@@ -511,6 +581,18 @@ void options_multi_protocol_add_current_ip();
 
 ui_button_info Om_gen_buttons[GR_NUM_RESOLUTIONS][OM_GEN_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("OPb_94",	410,	121,	-1,	-1,	94),
+		ui_button_info("OPb_95",	410,	143,	-1,	-1,	95),
+		ui_button_info("OPb_96",	410,	165,	-1,	-1,	96),
+		ui_button_info("none",		-1,		-1,		-1,	-1,	-1),	// no LAN setting in FS1
+		ui_button_info("OPb_97",	410,	199,	-1,	-1,	97),
+		ui_button_info("OPb_98",	496,	199,	-1,	-1,	98),
+		ui_button_info("OPb_99",	410,	233,	-1,	-1,	99),
+		ui_button_info("OPb_100",	410,	256,	-1,	-1,	100),
+		ui_button_info("OPb_101",	410,	290,	-1,	-1,	101),
+		ui_button_info("OPb_102",	410,	313,	-1,	-1,	102),
+#else
 		ui_button_info("OGB_17",	598,	117,	-1,	-1,	17),
 		ui_button_info("OGB_18",	598,	139,	-1,	-1,	18),
 		ui_button_info("OGB_19",	598,	161,	-1,	-1,	19),
@@ -521,6 +603,7 @@ ui_button_info Om_gen_buttons[GR_NUM_RESOLUTIONS][OM_GEN_NUM_BUTTONS] = {
 		ui_button_info("OGB_24",	598,	307,	-1,	-1,	24),
 		ui_button_info("OGB_25",	598,	347,	-1,	-1,	25),
 		ui_button_info("OGB_26",	598,	368,	-1,	-1,	26),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_OGB_17",	957,	188,	-1,	-1,	17),
@@ -539,9 +622,15 @@ ui_button_info Om_gen_buttons[GR_NUM_RESOLUTIONS][OM_GEN_NUM_BUTTONS] = {
 UI_GADGET Om_gen_bogus;
 
 // text
+#ifdef MAKE_FS1
+#define OM_GEN_NUM_TEXT					0
+#else
 #define OM_GEN_NUM_TEXT					14
+#endif
 UI_XSTR Om_gen_text[GR_NUM_RESOLUTIONS][OM_GEN_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Object Update",	1391,		511,	104,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Low",					1160,		558,	127,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_OBJ_LOW].button },
 		{ "Medium",				1161,		538,	149,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_OBJ_MED].button },		
@@ -556,8 +645,11 @@ UI_XSTR Om_gen_text[GR_NUM_RESOLUTIONS][OM_GEN_NUM_TEXT] = {
 		{ "Flush Cache",		1399,		529,	334,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Never",				1400,		548,	355,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_FLUSH_NO].button },		
 		{ "Before Game",		1401,		502,	377,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[0][OM_GEN_FLUSH_YES].button },		
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Object Update",	1391,		818,	166,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Low",					1160,		913,	204,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_OBJ_LOW].button },
 		{ "Medium",				1161,		892,	239,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_OBJ_MED].button },		
@@ -572,6 +664,7 @@ UI_XSTR Om_gen_text[GR_NUM_RESOLUTIONS][OM_GEN_NUM_TEXT] = {
 		{ "Flush Cache",		1399,		886,	533,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_bogus },		
 		{ "Never",				1400,		897,	568,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_FLUSH_NO].button },		
 		{ "Before Game",		1401,		849,	603,	UI_XSTR_COLOR_GREEN,	-1,	&Om_gen_buttons[1][OM_GEN_FLUSH_YES].button },		
+#endif
 	}
 };
 
@@ -620,12 +713,21 @@ UI_GADGET Om_vox_bogus;
 
 ui_button_info Om_vox_buttons[GR_NUM_RESOLUTIONS][OM_VOX_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("OPb_103",	413,	110,	-1,	-1,	103),
+		ui_button_info("OPb_105",	413,	186,	-1,	-1,	105),
+		ui_button_info("OPb_106",	491,	186,	-1,	-1,	106),
+		ui_button_info("OPb_108",	413,	253,	-1,	-1,	108),
+		ui_button_info("OPb_109",	413,	291,	-1,	-1,	109),
+		ui_button_info("OPb_107",	413,	229,	-1,	-1,	107),
+#else
 		ui_button_info("OVB_17",	562,	118,	-1,	-1,	17),
 		ui_button_info("OVB_19",	551,	208,	-1,	-1,	19),
 		ui_button_info("OVB_20",	599,	208,	-1,	-1,	20),
 		ui_button_info("OVB_21",	614,	256,	-1,	-1,	21),
 		ui_button_info("OVB_22",	614,	290,	-1,	-1,	22),
 		ui_button_info("OVB_23",	599,	354,	-1,	-1,	23),
+#endif
 	},
 	{ // GR_640
 		ui_button_info("2_OVB_17",	900,	189,	-1,	-1,	17),
@@ -638,23 +740,33 @@ ui_button_info Om_vox_buttons[GR_NUM_RESOLUTIONS][OM_VOX_NUM_BUTTONS] = {
 };
 
 // text
+#ifdef MAKE_FS1
+#define OM_VOX_NUM_TEXT					0
+#else
 #define OM_VOX_NUM_TEXT					6
+#endif
 UI_XSTR Om_vox_text[GR_NUM_RESOLUTIONS][OM_VOX_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Mic test",				1389,		567,	104,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_TEST].button },
 		{ "Voice Quality",		1531,		439,	149,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "Voice Transmission",	1530,		439,	193,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "On",						1285,		556,	233,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_YES].button },
 		{ "Off",						1286,		604,	233,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_NO].button },
 		{ "Mute",					1390,		594,	381,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[0][OM_VOX_VOICE_MUTE].button },
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "mic test",				1389,		908,	166,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_TEST].button },
 		{ "Voice Quality",		1531,		703,	239,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "Voice Transmission",	1530,		783,	310,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_bogus },
 		{ "On",						1285,		890,	373,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_YES].button },
 		{ "Off",						1286,		967,	373,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_NO].button },
 		{ "Mute",					1390,		950,	609,	UI_XSTR_COLOR_GREEN,	-1, &Om_vox_buttons[1][OM_VOX_VOICE_MUTE].button },
+#endif
 	}
 };
 
@@ -663,7 +775,11 @@ UI_XSTR Om_vox_text[GR_NUM_RESOLUTIONS][OM_VOX_NUM_TEXT] = {
 
 op_sliders Om_vox_sliders[GR_NUM_RESOLUTIONS][NUM_OM_VOX_SLIDERS] = {
 	{ // GR_640				
+#ifdef MAKE_FS1
+		op_sliders("OPb_104",	413,	151,	-1,	-1,	104,	20,	10,	NULL, -1,	-1,	-1,	NULL,	-1,	-1,	-1),
+#else
 		op_sliders("OVB_18",	429,	162,	-1,	-1,	18,	20,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// voice QOS
+#endif
 	},	
 	{ // GR_1024				
 		op_sliders("2_OVB_18",	686,	259,	-1,	-1,	18,	20,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// voice QOS
@@ -673,7 +789,11 @@ op_sliders Om_vox_sliders[GR_NUM_RESOLUTIONS][NUM_OM_VOX_SLIDERS] = {
 // player list area
 int Om_vox_plist_coords[GR_NUM_RESOLUTIONS][4] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		445, 260, 142, 61
+#else
 		377, 270, 232, 79
+#endif
 	},
 	{	// GR_1024
 		604, 432, 371, 127
@@ -770,6 +890,7 @@ int options_multi_vox_plist_get(net_player *pl);
 // load all background bitmaps
 void options_multi_load_bmaps()
 {
+#ifndef FS1_DEMO
 	// load both background bitmaps
 	Om_background_0 = bm_load(Om_background_0_fname[gr_screen.res]);
 	if(Om_background_0 == -1){
@@ -791,11 +912,13 @@ void options_multi_load_bmaps()
 	if(Om_mask_1 == -1){
 		nprintf(("Network","Error loading options background mask %s\n",Om_background_1_mask_fname[gr_screen.res]));
 	}
+#endif
 }
 
 // unload all the background bitmaps
 void options_multi_unload_bmaps()
 {
+#ifndef FS1_DEMO
 	// unload all background bitmaps
 	if(Om_background_0 != -1){
 		bm_release(Om_background_0);
@@ -815,6 +938,7 @@ void options_multi_unload_bmaps()
 		bm_release(Om_mask_1);
 		Om_mask_1 = -1;
 	}
+#endif
 }
 
 // add a notification message
@@ -1017,7 +1141,13 @@ void options_multi_protocol_do(int key)
 	
 	// force draw the correct "local broadcast" button	
 	if(Om_local_broadcast){
+#ifdef MAKE_FS1
+		Om_pro_buttons[gr_screen.res][OM_PRO_LOCAL_BROADCAST_YES].button.draw_forced(2);
+	} else {
+		Om_pro_buttons[gr_screen.res][OM_PRO_LOCAL_BROADCAST_NO].button.draw_forced(2);
+#else
 		Om_pro_buttons[gr_screen.res][OM_PRO_LOCAL_BROADCAST].button.draw_forced(2);
+#endif
 	}
 
 	// draw the "vmt" button if it is selected
@@ -1084,11 +1214,13 @@ void options_multi_protocol_do(int key)
 	}
 
 	// force draw the proper protocol
+#ifndef MAKE_FS1	// not in FS1 menu
 	if (Om_protocol == NET_IPX) {
 		Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.draw_forced(2);
 	} else {
 		Om_pro_buttons[gr_screen.res][OM_PRO_TCP].button.draw_forced(2);
 	}
+#endif
 
 	// force draw the proper tab button
 	switch (Om_mode) {
@@ -1173,6 +1305,10 @@ void options_multi_protocol_check_buttons()
 // if a button was pressed
 void options_multi_protocol_button_pressed(int n)
 {
+#ifdef MAKE_FS1
+	int choice;
+#endif
+
 	switch(n){
 	// add an ip address
 	case OM_PRO_ADD_IP:
@@ -1202,6 +1338,28 @@ void options_multi_protocol_button_pressed(int n)
 		break;
 
 	// the "local" broadcast button - toggle
+#ifdef MAKE_FS1
+	// Yes and No buttons in FS1
+	case OM_PRO_LOCAL_BROADCAST_YES:
+		if(Om_input_mode){
+			break;
+		}
+
+		Om_local_broadcast = 1;
+
+		gamesnd_play_iface(SND_USER_SELECT);
+		break;
+
+	case OM_PRO_LOCAL_BROADCAST_NO:
+		if(Om_input_mode){
+			break;
+		}
+
+		Om_local_broadcast = 0;
+
+		gamesnd_play_iface(SND_USER_SELECT);
+		break;
+#else
 	case OM_PRO_LOCAL_BROADCAST:
 		// don't process if we're in input mode
 		if(Om_input_mode){
@@ -1216,6 +1374,7 @@ void options_multi_protocol_button_pressed(int n)
 
 		gamesnd_play_iface(SND_USER_SELECT);
 		break;
+#endif
 
 	// scroll ips down
 	case OM_PRO_SCROLL_IP_DOWN:		
@@ -1268,6 +1427,7 @@ void options_multi_protocol_button_pressed(int n)
 		break;
 
 	// general tab button 
+#ifndef FS1_DEMO
 	case OM_PRO_GEN_TAB:	
 		if(Om_mode != OM_MODE_GENERAL){
 			// set the general tab
@@ -1309,8 +1469,10 @@ void options_multi_protocol_button_pressed(int n)
 		gamesnd_play_iface(SND_USER_SELECT);
 
 		break;
+#endif  // FS1_DEMO
 
 	// tcp mode
+#ifndef MAKE_FS1	// not in FS1 option menu
 	case OM_PRO_TCP:
 		Om_protocol = NET_TCP;
 		gamesnd_play_iface(SND_USER_SELECT);
@@ -1323,6 +1485,16 @@ void options_multi_protocol_button_pressed(int n)
 		gamesnd_play_iface(SND_USER_SELECT);
 #endif
 		break;
+#endif
+
+#ifdef MAKE_FS1
+	case ABORT_GAME_BUTTON:
+		gamesnd_play_iface(SND_USER_SELECT);
+		choice = popup( PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR("Exit Game?", 374));
+		if ( choice == 1 )
+			gameseq_post_event(GS_EVENT_QUIT_GAME);
+		break;
+#endif
 	}
 }
 
@@ -2459,6 +2631,7 @@ void options_multi_accept()
 // NOTE : this is different from the initialization function, which is called only when the options menu is started
 void options_multi_select()
 {
+#ifndef FS1_DEMO
 	// set the windows mask bitmap
 	Assert(Om_mask_0 >= 0);
 	Om_window->set_mask_bmap(Om_mask_0, Om_background_0_mask_fname[gr_screen.res]);
@@ -2474,11 +2647,13 @@ void options_multi_select()
 
 	// enable the general tab controls
 	options_multi_enable_gen_controls();
+#endif
 }
 
 // return the bitmap handle of the current background bitmap, or -1 if the multiplayer tab is not active
 int options_multi_background_bitmap()
 {
+#ifndef FS1_DEMO
 	// return the background bitmap mode based upon the current mode
 	switch(Om_mode){
 	case OM_MODE_GENERAL:
@@ -2490,6 +2665,7 @@ int options_multi_background_bitmap()
 
 	// unknown mode of some kind
 	return -1;
+#endif
 }
 
 // called when the multiplayer tab has been switched from

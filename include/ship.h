@@ -15,6 +15,9 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -884,7 +887,7 @@ extern engine_wash_info Engine_wash_info[MAX_ENGINE_WASH_TYPES];
 
 #define MAX_SHIPS_PER_WING	6
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_WINGS				15
 #else
 	#define MAX_WINGS				25

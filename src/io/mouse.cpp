@@ -15,6 +15,9 @@
  * Routines to read the mouse.
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/13 06:46:48  theoddone33
  * Warning cleanups
  *
@@ -264,7 +267,7 @@ void mouse_mark_button( uint flags, int set)
 /// I DON'T WANT TO CALL CRITICAL SECTION CODE EACH FRAME TO CHECK THE LEFT MOUSE BUTTON.
 /// PLEASE SEE ALAN FOR MORE INFORMATION.
 ////////////////////////////
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 					{
 					extern void demo_reset_trailer_timer();
 					demo_reset_trailer_timer();

@@ -15,6 +15,9 @@
  * C module to provide HUD targeting functions
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -450,6 +453,7 @@ char Toggle_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
 #define TOGGLE_TEXT_TARGET		1
 #define TOGGLE_TEXT_AUTOS		2
 #define TOGGLE_TEXT_SPEED		3
+#ifndef MAKE_FS1
 static int Hud_toggle_coords[GR_NUM_RESOLUTIONS][4][2] = {
 	{		// GR_640
 		{ 590, 382 },
@@ -464,6 +468,7 @@ static int Hud_toggle_coords[GR_NUM_RESOLUTIONS][4][2] = {
 		{ 970, 682 }
 	}
 };
+#endif
 
 static int Toggle_text_alpha = 255;
 
@@ -2499,7 +2504,7 @@ void hud_target_in_reticle_new()
 			break;
 		case OBJ_ASTEROID:
 			{
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 			int subtype = 0;
 			subtype = Asteroids[A->instance].asteroid_subtype;
 			mc.model_num = Asteroid_info[Asteroids[A->instance].type].model_num[subtype];
@@ -3433,7 +3438,7 @@ void hud_show_brackets(object *targetp, vertex *projected_v)
 			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
 			break;
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		case OBJ_ASTEROID:
 			{
 			int subtype = 0;
@@ -5079,6 +5084,7 @@ void hud_auto_target_icon()
 	hud_set_gauge_color(HUD_AUTO_TARGET);
 	GR_AABITMAP(Toggle_gauge.first_frame+frame_offset, Toggle_target_gauge_coords[gr_screen.res][0], Toggle_target_gauge_coords[gr_screen.res][1]);	
 
+#ifndef MAKE_FS1  // Text already on bitmap
 	// draw the text on top
 	if (frame_offset == 1) {
 		color text_color;
@@ -5088,6 +5094,7 @@ void hud_auto_target_icon()
 	}
 	gr_string(Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_AUTOT][0], Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_AUTOT][1], XSTR("auto", 1463));
 	gr_string(Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_TARGET][0], Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_TARGET][1], XSTR("target", 1465));
+#endif
 }
 
 // draw auto-speed match icon
@@ -5105,6 +5112,7 @@ void hud_auto_speed_match_icon()
 
 	GR_AABITMAP(Toggle_gauge.first_frame+frame_offset, Toggle_speed_gauge_coords[gr_screen.res][0], Toggle_speed_gauge_coords[gr_screen.res][1]);	
 
+#ifndef MAKE_FS1  // Text already on bitmap
 	// draw the text on top
 	if (frame_offset == 3) {
 		color text_color;
@@ -5113,6 +5121,7 @@ void hud_auto_speed_match_icon()
 	}
 	gr_string(Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_AUTOS][0], Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_AUTOS][1], XSTR("auto", 1463));
 	gr_string(Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_SPEED][0], Hud_toggle_coords[gr_screen.res][TOGGLE_TEXT_SPEED][1], XSTR("speed", 1464));
+#endif
 }
 
 // display the auto-targeting and auto-speed-matching icons on the HUD

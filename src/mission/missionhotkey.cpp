@@ -15,6 +15,9 @@
  * C module for the Hotkey selection screen
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -278,11 +281,15 @@ static char *Hotkey_mask_fname[GR_NUM_RESOLUTIONS] = {
 // coords for entire ship box
 static int Hotkey_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		36, 73, 546, 276
+#else
 		// GR_640
 		29,			// x
 		22,			// y
 		502,			// w
 		315			// h
+#endif
 	},
 	{
 		// GR_1024
@@ -296,11 +303,15 @@ static int Hotkey_list_coords[GR_NUM_RESOLUTIONS][4] = {
 // coords for big "F9" thing in the corner
 static int Hotkey_function_name_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		544, 40, 50, 14
+#else
 		// GR_640
 		570,			// x
 		14,			// y
 		59,			// w
 		22				// h
+#endif
 	},
 	{
 		// GR_1024
@@ -368,6 +379,18 @@ struct hotkey_buttons {
 static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 //XSTR:OFF
 	{
+#ifdef MAKE_FS1
+		hotkey_buttons("HK_00",	0,		87,		0),		// scroll up
+		hotkey_buttons("HK_01",	0,		131,	1),		// scroll down
+		hotkey_buttons("HK_04",	216,	351,	4),		// cancel
+		hotkey_buttons("HK_08",	286,	351,	8),		// clear
+		hotkey_buttons("HK_09",	362,	351,	9),		// reset
+		hotkey_buttons("HK_02",	591,	80,		2),		// add hotkey
+		hotkey_buttons("HK_03",	591,	144,	3),		// remove hotkey
+		hotkey_buttons("HK_06",	469,	424,	6),		// help
+		hotkey_buttons("HK_07",	448,	452,	7),		// options
+		hotkey_buttons("HK_05",	561,	411,	5)		// accept
+#else
 		// GR_640
 		hotkey_buttons("HKB_00",	1,		94,	0),
 		hotkey_buttons("HKB_01",	1,		133,	1),
@@ -379,6 +402,7 @@ static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		hotkey_buttons("HKB_07",	539,	431,	7),
 		hotkey_buttons("HKB_08",	539,	455,	8),
 		hotkey_buttons("HKB_09",	575,	432,	9)
+#endif
 	},
 	{
 		// GR_1024
@@ -400,25 +424,33 @@ static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 #pragma warning(default: 4710)
 #endif
 
+#ifdef MAKE_FS1
+#define HOTKEY_NUM_TEXT		0
+#else
 #define HOTKEY_NUM_TEXT		6
+#endif
 static UI_XSTR Hotkey_text[GR_NUM_RESOLUTIONS][HOTKEY_NUM_TEXT] = {
 	{ 
 		// GR_640
+#ifndef MAKE_FS1
 		{ "Cancel",		1516,	7,	392,		UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][CANCEL_BUTTON].button },
 		{ "Clear",		1517,	85, 392,		UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][CLEAR_BUTTON].button },
 		{ "Reset",		1518,	159, 392,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][RESET_BUTTON].button },
 		{ "Help",		1519,	500, 440,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][HELP_BUTTON].button },
 		{ "Options",	1520,	479, 464,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][OPTIONS_BUTTON].button },
 		{ "Accept",		1521,	573, 413,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_640][ACCEPT_BUTTON].button }
+#endif
 	}, 
 	{ 
 		// GR_1024
+#ifndef MAKE_FS1
 		{ "Cancel",		1516,	30, 629,		UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][CANCEL_BUTTON].button },
 		{ "Clear",		1517,	151, 629,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][CLEAR_BUTTON].button },
 		{ "Reset",		1518,	269, 629,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][RESET_BUTTON].button },
 		{ "Help",		1519,	800, 704,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][HELP_BUTTON].button },
 		{ "Options",	1520,	797, 743,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][OPTIONS_BUTTON].button },
 		{ "Accept",		1521,	902, 661,	UI_XSTR_COLOR_GREEN, -1, &Buttons[GR_1024][ACCEPT_BUTTON].button }	
+#endif
 	}
 };
 
@@ -1167,7 +1199,9 @@ void mission_hotkey_close()
 		bm_unload(Wing_bmp);
 
 	// unload the overlay bitmap
-//	help_overlay_unload(HOTKEY_OVERLAY);
+#ifdef MAKE_FS1
+	help_overlay_unload(HOTKEY_OVERLAY);
+#endif
 
 	// unpause all beam weapon sounds
 	beam_unpause_sounds();

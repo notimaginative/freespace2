@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for weapons and debris
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -110,7 +113,7 @@ int collide_debris_weapon( obj_pair * pair )
 // Returns 1 if all future collisions between these can be ignored
 int collide_asteroid_weapon( obj_pair * pair )
 {
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 
 	if (!Asteroids_enabled)
 		return 0;

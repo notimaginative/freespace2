@@ -15,6 +15,9 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/13 19:47:02  theoddone33
  * Fix some more warnings
  *
@@ -2868,7 +2871,7 @@ int get_nearest_turret_objnum(int turret_parent_objnum, ship_subsys *turret_subs
 	 }
 
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		asteroid_obj *ao;
 	// Asteroid_obj_list
 	for( ao = GET_FIRST(&Asteroid_obj_list); ao != END_OF_LIST(&Asteroid_obj_list); ao = GET_NEXT(ao) ) {

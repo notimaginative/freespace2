@@ -15,6 +15,9 @@
  * Code to read the joystick
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -383,7 +386,7 @@ DWORD joy_process(DWORD lparam)
 /// I DON'T WANT TO CALL CRITICAL SECTION CODE EACH FRAME TO CHECK ALL THE JOYSTICK BUTTONS.
 /// PLEASE SEE ALAN FOR MORE INFORMATION.
 ////////////////////////////
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 					{
 					extern void demo_reset_trailer_timer();
 					demo_reset_trailer_timer();

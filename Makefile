@@ -2,6 +2,7 @@
 # for that freespace 2 thing
 
 MACOSX=false
+FS1=false
 DEMO=false
 MVE=false
 
@@ -25,9 +26,19 @@ else
   LDFLAGS+= -lGL
 endif
 
+ifeq ($(strip $(FS1)), true)
+	FS_BINARY=freespace
+	FS_DEMO_BINARY=freespace_demo
+	CFLAGS += -DMAKE_FS1
+endif
+
 ifeq ($(strip $(DEMO)), true)
 	FS_BINARY=$(FS_DEMO_BINARY)
-	CFLAGS += -DFS2_DEMO
+	ifeq ($(strip $(FS1)), true)
+		CFLAGS += -DFS1_DEMO -DDEMO
+	else
+		CFLAGS += -DFS2_DEMO
+	endif
 else
 	CFLAGS += -DRELEASE_REAL
 endif

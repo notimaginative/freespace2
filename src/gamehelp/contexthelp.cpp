@@ -15,6 +15,9 @@
  * Functions to drive the context-sensitive help 
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -171,6 +174,32 @@ typedef struct {
 	int rbracketcount;
 } help_overlay;
 
+// Added for FS1
+char *Help_overlays[MAX_HELP_OVERLAYS] = {
+	"ship_help_over",
+	"weapon_help_over",
+#ifndef FS1_DEMO
+	"brief_help_over",
+	"main_help_overlay",
+#else
+	"Briefing_Help_Overlay_Demo",
+	"main_help_overlay_demo",
+#endif
+	"barracks_help",
+	"control_help",
+	"debrief_help",
+	"multicreate_help",
+	"multistart_help",
+	"multijoin_help",
+	"main_help_overlay2",
+	"hotkey_help",
+	"campaign_help",
+	"simulator_help",
+	"tech_help",
+//	"tech_help2",
+	"command_help"
+};
+
 // new help.tbl file way
 char *help_overlay_section_names[MAX_HELP_OVERLAYS] = {
 	"$ship",					// ship_help
@@ -199,13 +228,19 @@ shader Grey_shader;
 ////////////////////////////////////////////////////////////////////
 // Module globals
 ////////////////////////////////////////////////////////////////////
+#ifndef MAKE_FS1
 static int help_left_bracket_bitmap;
 static int help_right_bracket_bitmap;
+#endif
 static help_overlay help_overlaylist[MAX_HELP_OVERLAYS];
 
 static int current_helpid = -1;		// the currently active overlay_id, only really used for the debug console funxions
 int Help_overlay_flags;
 static int Source_game_state;			// state from where F1 was pressed
+
+#ifdef MAKE_FS1
+static int Overlay = -1;
+#endif
 
 ////////////////////////////////////////////////////////////////////
 // Public Functions
@@ -245,7 +280,13 @@ void help_overlay_load(int overlay_id)
 // FIXME - leftover from the old bitmap overlay days - prune this out sometime
 void help_overlay_unload(int overlay_id)
 {
+#ifdef MAKE_FS1
+	if (Overlay >= 0) {
+		bm_unload(Overlay);
+	}
+#else
 	return; 
+#endif
 }
 
 // maybe blit a bitmap of a help overlay to the screen
@@ -458,6 +499,7 @@ void launch_context_help()
 // Called once at the beginning of the game to load help bitmaps & data
 void help_overlay_init() 
 {
+#ifndef MAKE_FS1
 	// load right_bracket bitmap
 	help_right_bracket_bitmap = bm_load("right_bracket");
 	if(help_right_bracket_bitmap < 0){
@@ -474,12 +516,14 @@ void help_overlay_init()
 
 	// parse help.tbl
 	parse_helptbl();
+#endif
 }
 
 
 // parses help.tbl and populates help_overlaylist[]
 void parse_helptbl()
 {
+#ifndef MAKE_FS1
 	int overlay_id, currcount;
 	char buf[HELP_MAX_STRING_LENGTH + 1];
 	int i;
@@ -600,6 +644,7 @@ void parse_helptbl()
 
 	// close localization
 	lcl_ext_close();
+#endif
 }
 
 
@@ -607,6 +652,17 @@ void parse_helptbl()
 // draw overlay on the screen
 void help_overlay_blit(int overlay_id) 
 {
+#ifdef MAKE_FS1
+	Overlay = bm_load(Help_overlays[overlay_id]);
+	if (Overlay < 0){
+		Int3();
+	}
+
+	if (Overlay >= 0){
+		gr_set_bitmap(Overlay);
+		gr_bitmap(0, 0);
+	}
+#else
 	int idx, width, height;
 	int plinecount = help_overlaylist[overlay_id].plinecount;
 	int textcount = help_overlaylist[overlay_id].textcount;
@@ -642,6 +698,7 @@ void help_overlay_blit(int overlay_id)
 	for (idx = 0; idx<plinecount; idx++) {
 		gr_pline_special(help_overlaylist[overlay_id].plinelist[gr_screen.res][idx].pvtx	, help_overlaylist[overlay_id].plinelist[GR_640][idx].vtxcount, HELP_PLINE_THICKNESS);
 	}
+#endif  // MAKE_FS1
 }
 
 

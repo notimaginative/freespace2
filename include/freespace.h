@@ -15,6 +15,9 @@
  * FreeSpace, the game, not the project, header information.
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -158,8 +161,13 @@
 //
 														
 // filename extensions
-#define FS_MISSION_FILE_EXT				NOX(".fs2")
-#define FS_CAMPAIGN_FILE_EXT				NOX(".fc2")
+#ifdef MAKE_FS1
+	#define FS_MISSION_FILE_EXT				NOX(".fsm")
+	#define FS_CAMPAIGN_FILE_EXT				NOX(".fsc")
+#else
+	#define FS_MISSION_FILE_EXT				NOX(".fs2")
+	#define FS_CAMPAIGN_FILE_EXT				NOX(".fc2")
+#endif
 
 // CDROM volume names
 #ifdef MULTIPLAYER_BETA_BUILD
@@ -173,9 +181,14 @@
 	#define FS_CDROM_VOLUME_2					NOX("FS2_OEM")
 	#define FS_CDROM_VOLUME_3					NOX("FS2_OEM")
 #else
+#ifdef MAKE_FS1
+    #define FS_CDROM_VOLUME_1					NOX("FREESPACE_1")
+    #define FS_CDROM_VOLUME_2					NOX("FREESPACE_2")
+#else
 	#define FS_CDROM_VOLUME_1					NOX("FREESPACE2_1")
 	#define FS_CDROM_VOLUME_2					NOX("FREESPACE2_2")
 	#define FS_CDROM_VOLUME_3					NOX("FREESPACE2_3")
+#endif
 
 	// old volume names
 	// #define FS_CDROM_VOLUME_1					NOX("FREESPACE_1")
@@ -218,12 +231,19 @@ extern int Game_weapons_tbl_valid;
 
 
 // this is a mission actually designed at Volition
+#ifdef MAKE_FS1
+#define MAX_BUILTIN_MISSIONS					130			// for SilentThreat
+#else
 #define MAX_BUILTIN_MISSIONS					100
+#endif
 #define FSB_FROM_VOLITION						(1<<0)			// we made it in-house
 #define FSB_MULTI									(1<<1)			// is a multiplayer mission
 #define FSB_TRAINING								(1<<2)			// is a training mission
 #define FSB_CAMPAIGN								(1<<3)			// is a campaign mission
 #define FSB_CAMPAIGN_FILE						(1<<4)			// is actually a campaign file
+#ifdef MAKE_FS1
+#define FSB_FROM_MDISK							(1<<5)		// is from FS1 mdisk (SilentThreat)
+#endif
 
 typedef struct fs_builtin_mission {
 	char filename[MAX_FILENAME_LEN];

@@ -16,6 +16,9 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/06/22 23:57:39  relnev
  * remove writable strings.
  *
@@ -489,7 +492,9 @@ void stars_init()
 			strcpy(debris_vclips_nebula[count++].name, filename);
 		}
 	}
+#ifndef MAKE_FS1 // string not used in FS1
 	Assert(count == 4);
+#endif
 }
 
 // call this in game_post_level_init() so we know whether we're running in full nebula mode or not
@@ -538,6 +543,7 @@ void stars_level_init()
 
 	last_stars_filled = 0;
 
+#ifndef MAKE_FS1  // some FS1 missions don't have a sun
 	// if we have no sun instances, create one
 	if(Num_suns <= 0){
 		mprintf(("Adding default sun\n"));
@@ -554,6 +560,7 @@ void stars_level_init()
 		// one sun
 		Num_suns = 1;
 	}		
+#endif
 }
 
 
@@ -701,7 +708,9 @@ extern float Viewer_zoom;
 void stars_get_sun_pos(int sun_n, vector *pos)
 {
 	vector temp;
+#ifndef MAKE_FS1
 	matrix rot;
+#endif
 
 	// sanity
 	Assert(sun_n < Num_suns);
@@ -714,8 +723,13 @@ void stars_get_sun_pos(int sun_n, vector *pos)
 	temp.xyz.z = 1.0f;
 	
 	// rotation matrix
+#ifdef MAKE_FS1
+	// we aleady know what the matrix is so just rotate
+	vm_vec_rotate(pos, &temp, &Suns[sun_n].m);
+#else
 	vm_angles_2_matrix(&rot, &Suns[sun_n].ang);
 	vm_vec_rotate(pos, &temp, &rot);
+#endif
 }
 
 // draw sun
@@ -759,7 +773,12 @@ void stars_draw_sun( int show_sun )
 		// draw the sun itself, keep track of how many we drew
 		gr_set_bitmap(bm->bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.999f);
 		g3_rotate_faraway_vertex(&sun_vex, &sun_pos);
+#ifdef MAKE_FS1
+		// divide by 10 to make normal size
+		if(!g3_draw_bitmap(&sun_vex, 0, 0.05f * (Suns[idx].scale_x / 10) * local_scale, TMAP_FLAG_TEXTURED)){
+#else
 		if(!g3_draw_bitmap(&sun_vex, 0, 0.05f * Suns[idx].scale_x * local_scale, TMAP_FLAG_TEXTURED)){
+#endif
 			Sun_drew++;
 		}
 	}
@@ -802,7 +821,12 @@ void stars_draw_sun_glow(int sun_n)
 	// draw the sun itself, keep track of how many we drew
 	gr_set_bitmap(bm->glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 0.5f);
 	g3_rotate_faraway_vertex(&sun_vex, &sun_pos);
+#ifdef MAKE_FS1
+	// divide by 10 to make normal size
+	g3_draw_bitmap(&sun_vex, 0, 0.10f * (Suns[sun_n].scale_x / 10) * local_scale, TMAP_FLAG_TEXTURED);
+#else
 	g3_draw_bitmap(&sun_vex, 0, 0.10f * Suns[sun_n].scale_x * local_scale, TMAP_FLAG_TEXTURED);	
+#endif
 }
 
 // draw bitmaps

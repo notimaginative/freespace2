@@ -15,6 +15,9 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/24 00:20:41  relnev
  * nothing interesting
  *
@@ -184,6 +187,7 @@ extern int All_movies_enabled;		//	If set, all movies may be viewed.  Keyed off 
 // initialization stuff for cutscenes
 void cutscene_init()
 {
+#ifndef FS1_DEMO  // no cuscenes in FS1 demo
 	char buf[MULTITEXT_LENGTH];
 	int rval;
 
@@ -224,6 +228,7 @@ void cutscene_init()
 
 	// close localization
 	lcl_ext_close();
+#endif  // FS1_DEMO
 }
 
 // function to return 0 based index of which CD a particular movie is on
@@ -280,6 +285,17 @@ static UI_WINDOW Ui_window;
 
 static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("TDB_00",	0,		0,		-1,	-1,	0),		// technical database tab
+		ui_button_info("TDB_01",	0,		19,		-1,	-1,	1),		// mission simulator tab
+		ui_button_info("TDB_02",	0,		35,		-1,	-1,	2),		// cutscenes tab
+		ui_button_info("TDB_03",	0,		56,		-1,	-1,	3),		// credits tab
+
+		ui_button_info("VFB_04",	570,	304,	-1,	-1,	4),		// scroll up
+		ui_button_info("VFB_05",	600,	304,	-1,	-1,	5),		// scroll down
+		ui_button_info("VFB_06",	573,	347,	-1,	-1,	6),		// play
+		ui_button_info("VFB_07",	566,	411,	-1,	-1,	7),		// exit
+#else
 		ui_button_info("TDB_00",	7,		5,		37,	7,		0),			// tech database 1
 		ui_button_info("TDB_01",	7,		19,	37,	23,	1),			// tech database 2
 		ui_button_info("TDB_02",	7,		34,	37,	38,	2),			// tech database 3
@@ -289,6 +305,7 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		ui_button_info("VFB_05",	36,	318,	-1,	-1,	5),			// scroll down
 		ui_button_info("VFB_06",	578,	319,	587,	366,	6),			// play
 		ui_button_info("VFB_07",	574,	431,	587,	413,	7),			// exit
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_TDB_00",	12,	7,		59,	12,	0),			// tech database 1
@@ -304,9 +321,15 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // text
-#define NUM_CUTSCENE_TEXT			6
+#ifdef MAKE_FS1
+	#define NUM_CUTSCENE_TEXT			0
+#else
+	#define NUM_CUTSCENE_TEXT			6
+#endif
 UI_XSTR Cutscene_text[GR_NUM_RESOLUTIONS][NUM_CUTSCENE_TEXT] = {
 	{ // GR_640
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{"Technical Database",		1055,		37,	7,		UI_XSTR_COLOR_GREEN, -1, &Buttons[0][TECH_DATABASE_BUTTON].button },
 		{"Mission Simulator",		1056,		37,	23,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][SIMULATOR_BUTTON].button },
 		{"Cutscenes",					1057,		37,	38,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][CUTSCENES_BUTTON].button },
@@ -314,8 +337,11 @@ UI_XSTR Cutscene_text[GR_NUM_RESOLUTIONS][NUM_CUTSCENE_TEXT] = {
 		
 		{"Play",							1335,		587,	366,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][PLAY_BUTTON].button },
 		{"Exit",							1419,		587,	413,	UI_XSTR_COLOR_PINK, -1, &Buttons[0][EXIT_BUTTON].button },			
+#endif
 	},
 	{ // GR_1024
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{"Technical Database",		1055,		59,	12,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][TECH_DATABASE_BUTTON].button },
 		{"Mission Simulator",		1056,		59,	37,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][SIMULATOR_BUTTON].button },
 		{"Cutscenes",					1057,		59,	62,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][CUTSCENES_BUTTON].button },
@@ -323,12 +349,17 @@ UI_XSTR Cutscene_text[GR_NUM_RESOLUTIONS][NUM_CUTSCENE_TEXT] = {
 		
 		{"Play",							1335,		940,	586,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][PLAY_BUTTON].button },
 		{"Exit",							1419,		940,	661,	UI_XSTR_COLOR_PINK, -1, &Buttons[1][EXIT_BUTTON].button },			
+#endif
 	}
 };
 
 int Cutscene_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		25, 119, 542, 193
+#else
 		9,	117,	621,	198
+#endif
 	},
 	{ // GR_1024
 		14,	188,	994,	316
@@ -337,7 +368,11 @@ int Cutscene_list_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Cutscene_desc_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		19, 356, 465, 40
+#else
 		9,	378, 484, 73
+#endif
 	},
 	{ // GR_1024
 		14, 605, 775, 117

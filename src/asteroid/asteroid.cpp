@@ -15,6 +15,9 @@
  * C module for asteroid code
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/18 08:58:53  relnev
  * last few struct changes
  *
@@ -285,7 +288,7 @@
 #include "localize.h"
 #include "multi.h"
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 
 #define			ASTEROID_OBJ_USED	(1<<0)				// flag used in asteroid_obj struct
 #define			MAX_ASTEROID_OBJS	MAX_ASTEROIDS		// max number of asteroids tracked in asteroid list
@@ -296,10 +299,17 @@ asteroid_obj	Asteroid_obj_list;						// head of linked list of asteroid_obj stru
 // Any changes to this will require changes to the asteroid editor
 debris_struct Field_debris_info[] = {
 	{ -1,							"None", },
+#ifdef MAKE_FS1
+	{ ASTEROID_TYPE_SMALL,		"Small Asteroid", },
+	{ ASTEROID_TYPE_MEDIUM,	"Medium Asteroid", },
+	{ ASTEROID_TYPE_BIG,		"Large Asteroid",},
+#else
 	{ ASTEROID_TYPE_SMALL,		"Asteroid Small", },
 	{ ASTEROID_TYPE_MEDIUM,	"Asteroid Medium", },
 	{ ASTEROID_TYPE_BIG,		"Asteroid Large", },
+#endif
 
+#ifndef MAKE_FS1
 	{ DEBRIS_TERRAN_SMALL,		"Terran Small", },
 	{ DEBRIS_TERRAN_MEDIUM,	"Terran Medium", },
 	{ DEBRIS_TERRAN_LARGE,		"Terran Large", },
@@ -311,6 +321,7 @@ debris_struct Field_debris_info[] = {
 	{ DEBRIS_SHIVAN_SMALL,		"Shivan Small", },
 	{ DEBRIS_SHIVAN_MEDIUM,	"Shivan Medium", },
 	{ DEBRIS_SHIVAN_LARGE,		"Shivan Large" },
+#endif
 };
 
 // used for randomly generating debris type when there are multiple sizes.
@@ -736,6 +747,7 @@ int get_debris_from_same_group(int index) {
 int get_debris_weight(int ship_debris_index)
 {
 	switch (ship_debris_index) {
+#ifndef MAKE_FS1
 	case DEBRIS_TERRAN_SMALL:
 	case DEBRIS_VASUDAN_SMALL:
 	case DEBRIS_SHIVAN_SMALL:
@@ -753,6 +765,7 @@ int get_debris_weight(int ship_debris_index)
 	case DEBRIS_SHIVAN_LARGE:
 		return LARGE_DEBRIS_WEIGHT;
 		break;
+#endif
 
 	default:
 		Int3();
@@ -1488,20 +1501,24 @@ void asteriod_explode_sound(object *objp, int type, int play_loud)
 	switch (type) {
 	case ASTEROID_TYPE_SMALL:
 	case ASTEROID_TYPE_MEDIUM:
+#ifndef MAKE_FS1
 	case DEBRIS_TERRAN_SMALL:
 	case DEBRIS_TERRAN_MEDIUM:
 	case DEBRIS_VASUDAN_SMALL:
 	case DEBRIS_VASUDAN_MEDIUM:
 	case DEBRIS_SHIVAN_SMALL:
 	case DEBRIS_SHIVAN_MEDIUM:
+#endif
 		sound_index = SND_ASTEROID_EXPLODE_SMALL;
 		range_factor = 5.0f;
 		break;
 
 	case ASTEROID_TYPE_BIG:
+#ifndef MAKE_FS1
 	case DEBRIS_TERRAN_LARGE:
 	case DEBRIS_VASUDAN_LARGE:
 	case DEBRIS_SHIVAN_LARGE:
+#endif
 		sound_index = SND_ASTEROID_EXPLODE_BIG;
 		range_factor = 10.0f;
 		break;
@@ -1744,6 +1761,7 @@ void asteroid_maybe_break_up(object *asteroid_obj)
 				break;
 
 			// ship debris does not break up
+#ifndef MAKE_FS1
 			case	DEBRIS_TERRAN_SMALL:
 			case	DEBRIS_TERRAN_MEDIUM:
 			case	DEBRIS_TERRAN_LARGE:
@@ -1754,6 +1772,7 @@ void asteroid_maybe_break_up(object *asteroid_obj)
 			case	DEBRIS_SHIVAN_MEDIUM:
 			case	DEBRIS_SHIVAN_LARGE:
 				break;
+#endif
 
 			default:
 				Int3();
@@ -1976,11 +1995,12 @@ void asteroid_parse_section()
 	required_string( "$POF file2:" );
 	stuff_string_white( asip->pof_files[1] );
 
+#ifndef MAKE_FS1
 	if ( (strstr(asip->name,"Asteroid") != NULL) || (strstr(asip->name, "asteroid") != NULL) ) {
 		required_string( "$POF file3:" );
 		stuff_string_white( asip->pof_files[2] );
 	}
-
+#endif
 	asip->num_detail_levels = 0;
 
 	required_string("$Detail distance:");

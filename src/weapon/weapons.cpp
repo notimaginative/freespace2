@@ -15,6 +15,9 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.9  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.8  2002/06/21 03:04:12  relnev
  * nothing important
  *
@@ -658,6 +661,16 @@ int weapon_info_lookup(char *name)
 {
 	int	i;
 
+#ifdef MAKE_FS1
+	// fix the stupid table stuff - it's non-fatal but annoying error messages
+	if (!strcmp(name, "Disruptor Missile")) {
+		strncpy(name, "D-Missile", MAX_FILENAME_LENGTH);
+	// this one fixes the same issue with a SilentThreat mission
+	} else if (!strcmp(name, "Shield Breaker")) {
+		strncpy(name, "S-Breaker", MAX_FILENAME_LENGTH);
+	}
+#endif
+
 	for (i=0; i<Num_weapon_types; i++)
 		if (!stricmp(name, Weapon_info[i].name))
 			return i;
@@ -744,6 +757,12 @@ void parse_wi_flags(weapon_info *weaponp)
 			weaponp->wi_flags |= WIF_STREAM;
 		else if (!stricmp(NOX("supercap"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_SUPERCAP;
+#ifdef MAKE_FS1
+		else if (!stricmp(NOX("Swarm"), weapon_strings[i]))
+			weaponp->wi_flags |= WIF_SWARM;
+		else if (!stricmp(NOX("No Ship"), weapon_strings[i]))
+			weaponp->wi_flags |= WIF_CHILD;
+#endif 
 		else
 			Warning(LOCATION, "Bogus string in weapon flags: %s\n", weapon_strings[i]);
 	}	
@@ -1073,6 +1092,7 @@ int parse_weapon()
 	char trail_name[MAX_FILENAME_LEN] = "";
 	trail_info *ti = &wip->tr_info;
 	memset(ti, 0, sizeof(trail_info));
+#ifndef MAKE_FS1
 	if(optional_string("$Trail:")){	
 		wip->wi_flags |= WIF_TRAIL;		// missile leaves a trail
 
@@ -1098,6 +1118,34 @@ int parse_weapon()
 		ti->bitmap = bm_load(trail_name);
 		// wip->delta_time = fl2i(1000.0f*wip->max_life)/(NUM_TRAIL_SECTIONS+1);		// time between sections.  max_life / num_sections basically.
 	}
+#else
+	// seemed easier to separate this out from above
+	int has_trail=0;
+	required_string("$Trail:");
+	stuff_boolean(&has_trail);
+
+	if (has_trail == 1) {
+		wip->wi_flags |= WIF_TRAIL;     // missile leaves a trail
+
+		required_string("+Head Width:");
+		stuff_float(&ti->w_start);
+
+		required_string("+Tail Width:");
+		stuff_float(&ti->w_end);
+
+		ti->a_start = 1.0;
+		ti->a_end = 0.0;
+
+		required_string("+Life:");
+		stuff_float(&ti->max_life);
+
+		ti->stamp = fl2i(1000.0f*ti->max_life)/(NUM_TRAIL_SECTIONS+1);
+
+		required_string("+Bitmap:");
+		stuff_string(trail_name, F_NAME, NULL);
+		ti->bitmap = bm_load(trail_name);
+	}
+#endif
 
 	// read in filename for icon that is used in weapons selection
 	wip->icon_filename[0] = 0;
@@ -1463,7 +1511,7 @@ void weapon_init()
 	int rval;
 
 	if ( !Weapons_inited ) {
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		// parse weapon_exp.tbl
 		parse_weapon_expl_tbl();
 #endif

@@ -15,6 +15,9 @@
  * Header file for high-level control of event driven music 
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -127,20 +130,39 @@
 
 // Identifies songs in the Soundtrack_filenames[] structure.  The order matches up with
 // what is in music.tbl.  Do not modify without synching music.tbl.
-#define SONG_NRML_1				0		// Normal Song 1
-#define SONG_AARV_1				1		// Allied Arrival 1
-#define SONG_EARV_1				2		// Enemy Arrival 1
-#define SONG_BTTL_1				3		// Battle Song 1
-#define SONG_BTTL_2				4		// Battle Song 2
-#define SONG_BTTL_3				5		// Battle Song 3
-#define SONG_AARV_2				6		// Allied Arrival 2
-#define SONG_EARV_2				7		// Enemy Arrival 2
-#define SONG_VICT_1				8		// Victory Song 1
-#define SONG_VICT_2				9		// Victory Song 2
-#define SONG_FAIL_1				10		// Goal Failed
-#define SONG_DEAD_1				11		// Death Song 1
+#ifdef MAKE_FS1
+	#define SONG_NRML_1		0		// Normal Song 1
+	#define SONG_NRML_2		1		// Normal Song 2
+	#define SONG_NRML_3		2		// Normal Song 3
+	#define SONG_AARV_1		3		// Allied Arrival 1
+	#define SONG_EARV_1		4		// Enemy Arrival 1
+	#define SONG_BTTL_1		5		// Battle Song 1
+	#define SONG_BTTL_2		6		// Battle Song 2
+	#define SONG_BTTL_3		7		// Battle Song 3
+	#define SONG_AARV_2		8		// Allied Arrival 2
+	#define SONG_EARV_2		9		// Enemy Arrival 2
+	#define SONG_VICT_1		10		// Victory Song 1
+	#define SONG_VICT_2		11		// Victory Song 2
+	#define SONG_FAIL_1		12		// Goal Failed
+	#define SONG_DEAD_1		13		// Death Song 1
 
-#define MAX_PATTERNS	12
+	#define MAX_PATTERNS	14
+#else
+	#define SONG_NRML_1				0		// Normal Song 1
+	#define SONG_AARV_1				1		// Allied Arrival 1
+	#define SONG_EARV_1				2		// Enemy Arrival 1
+	#define SONG_BTTL_1				3		// Battle Song 1
+	#define SONG_BTTL_2				4		// Battle Song 2
+	#define SONG_BTTL_3				5		// Battle Song 3
+	#define SONG_AARV_2				6		// Allied Arrival 2
+	#define SONG_EARV_2				7		// Enemy Arrival 2
+	#define SONG_VICT_1				8		// Victory Song 1
+	#define SONG_VICT_2				9		// Victory Song 2
+	#define SONG_FAIL_1				10		// Goal Failed
+	#define SONG_DEAD_1				11		// Death Song 1
+
+	#define MAX_PATTERNS	12
+#endif
 
 // if player targets a hostile ship at less than this range, switch to battle track 
 #define BATTLE_START_MIN_TARGET_DIST	500	

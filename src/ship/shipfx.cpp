@@ -15,6 +15,9 @@
  * Routines for ship effects (as in special)
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/09/04 01:12:11  relnev
  * changes to screen backup/mouse drawing code.  removed a few warnings.
  *
@@ -2224,13 +2227,13 @@ static void maybe_fireball_wipe(clip_ship* half_ship, int* sound_handle)
 			pe.pos = model_clip_plane_pt;	// Where the particles emit from
 			pe.vel = half_ship->phys_info.vel;		// Initial velocity of all the particles
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			float range = 1.0f + 0.002f*half_ship->parent_obj->radius * 5.0f;
 #else 
 			float range = 1.0f + 0.002f*half_ship->parent_obj->radius;
 #endif
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			pe.min_life = 2.0f*range;				// How long the particles live
 			pe.max_life = 10.0f*range;				// How long the particles live
 #else
@@ -2242,7 +2245,7 @@ static void maybe_fireball_wipe(clip_ship* half_ship, int* sound_handle)
 			pe.min_vel = 0.0f;				// How fast the slowest particle can move
 			pe.max_vel = half_ship->explosion_vel;				// How fast the fastest particle can move
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			float scale = half_ship->parent_obj->radius * 0.02f;
 #else
 			float scale = half_ship->parent_obj->radius * 0.01f;

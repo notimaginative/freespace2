@@ -15,6 +15,9 @@
  * C module to allow player ship selection for the mission
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -476,13 +479,18 @@ UI_WINDOW	Ship_select_ui_window;
 
 static int Ship_anim_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
+#ifdef MAKE_FS1
+		10, 77
+#else
 		257, 84		// GR_640
+#endif
 	},
 	{
 		412, 135	// GR_1024
 	}
 };
 
+#ifndef MAKE_FS1
 static int Ship_info_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
 		28, 78				// GR_640
@@ -491,6 +499,7 @@ static int Ship_info_coords[GR_NUM_RESOLUTIONS][2] = {
 		45, 125				// GR_1024
 	}
 };
+#endif
 
 // coordinate lookup indicies
 #define SHIP_SELECT_X_COORD 0
@@ -500,8 +509,10 @@ static int Ship_info_coords[GR_NUM_RESOLUTIONS][2] = {
 
 
 // NK: changed from 37 to 51 for new FS2 animations
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 #define SHIP_ANIM_LOOP_FRAME	0
+#elif MAKE_FS1
+#define SHIP_ANIM_LOOP_FRAME	36
 #else
 #define SHIP_ANIM_LOOP_FRAME	51
 #endif
@@ -581,8 +592,13 @@ static int SS_active_list_size;
 // Background bitmaps data for ship_select
 //////////////////////////////////////////////////////
 static char* Ship_select_background_fname[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	"Brief",
+	"Brief"
+#else
 	"ShipSelect",
 	"2_ShipSelect"
+#endif
 };
 
 static char* Ship_select_background_mask_fname[GR_NUM_RESOLUTIONS] = {
@@ -614,10 +630,17 @@ struct ss_buttons {
 
 static ss_buttons Ship_select_buttons[GR_NUM_RESOLUTIONS][NUM_SS_BUTTONS] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		ss_buttons("ssb_08",	0,		301,	-1,	-1,	8,	0),	// SCROLL UP
+		ss_buttons("ssb_09",	0,		453,	-1,	-1,	9,	0),	// SCROLL DOWN
+		ss_buttons("ssb_39",	566,	317,	-1,	-1,	39,	0),	// RESET
+		ss_buttons("ssb_39",	0,		0,		-1,	-1,	99,	0)	// dummy for drag n' drop
+#else
 		ss_buttons("ssb_08",		5,			303,	-1,	-1,	8,	0),		// SCROLL UP
 		ss_buttons("ssb_09",		5,			454,	-1,	-1,	9,	0),		// SCROLL DOWN
 		ss_buttons("ssb_39",		571,		347,	-1,	-1,	39,0),		// RESET
 		ss_buttons("ssb_39",		0,			0,		-1,	-1,	99,0)			// dummy for drag n' drop
+#endif
 	},
 	{	// GR_1024
 		ss_buttons("2_ssb_08",	8,			485,	-1,	-1,	8,	0),		// SCROLL UP
@@ -628,13 +651,23 @@ static ss_buttons Ship_select_buttons[GR_NUM_RESOLUTIONS][NUM_SS_BUTTONS] = {
 };
 
 // ship select text
-#define SHIP_SELECT_NUM_TEXT			1
+#ifdef MAKE_FS1
+	#define SHIP_SELECT_NUM_TEXT			0
+#else
+	#define SHIP_SELECT_NUM_TEXT			1
+#endif
 UI_XSTR Ship_select_text[GR_NUM_RESOLUTIONS][SHIP_SELECT_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Reset",			1337,		580,	337,	UI_XSTR_COLOR_GREEN, -1, &Ship_select_buttons[0][SS_BUTTON_RESET].button }
+#endif
 	}, 
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Reset",			1337,		938,	546,	UI_XSTR_COLOR_GREEN, -1, &Ship_select_buttons[1][SS_BUTTON_RESET].button }
+#endif
 	}
 };
 
@@ -1300,6 +1333,7 @@ void ship_select_render(float frametime)
 // blit any active ship information text
 void ship_select_blit_ship_info()
 {
+#ifndef MAKE_FS1
 	int y_start;
 	ship_info *sip;
 	char str[100];
@@ -1425,6 +1459,7 @@ void ship_select_blit_ship_info()
 		y_start += 10;
 	}
 	*/
+#endif
 }
 
 
@@ -1719,6 +1754,10 @@ void ship_select_close()
 	unload_ship_anims();
 
 	Ship_select_ui_window.destroy();
+
+#ifdef MAKE_FS1
+	common_free_interface_palette();
+#endif
 
 	Ship_anim_class = -1;
 	Ship_select_open = 0;	// This game-wide global flag is set to 0 to indicate that the ship

@@ -15,6 +15,9 @@
  * Mission Command Briefing Screen
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -257,7 +260,11 @@ char *Cmd_brief_mask[GR_NUM_RESOLUTIONS] = {
 
 int Cmd_text_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		30, 165, 362, 271
+#else
 		17, 109, 606, 108			// GR_640
+#endif
 	},
 	{
 		28, 174, 969, 174			// GR_1024
@@ -266,13 +273,21 @@ int Cmd_text_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 
 
 int Cmd_stage_y[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	147,
+#else
 	90,		// GR_640
+#endif
 	145		// GR_1024
 };
 
 int Cmd_image_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		424, 140, 197, 148
+#else
 		26, 258, 441, 204				// GR_640
+#endif
 	},
 	{
 		155, 475, 706, 327		// GR_1024
@@ -281,6 +296,16 @@ int Cmd_image_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 
 #define NUM_BUTTONS	8
 
+#ifdef MAKE_FS1
+#define FIRST_STAGE_BUTTON  0
+#define PREV_STAGE_BUTTON   1
+#define NEXT_STAGE_BUTTON   2
+#define LAST_STAGE_BUTTON   3
+#define HELP_BUTTON         4
+#define OPTIONS_BUTTON      5
+#define ACCEPT_BUTTON       6
+#define PAUSE_BUTTON        7
+#else
 #define FIRST_STAGE_BUTTON	0
 #define PREV_STAGE_BUTTON	1
 #define PAUSE_BUTTON			2
@@ -289,10 +314,21 @@ int Cmd_image_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 #define HELP_BUTTON			5
 #define OPTIONS_BUTTON		6
 #define ACCEPT_BUTTON		7
+#endif
 
 // buttons
 ui_button_info Cmd_brief_buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("CBB_00",	144,	442,	-1,	-1,	0),	// vcr - beginning
+		ui_button_info("CBB_01",	169,	442,	-1,	-1,	1),	// vcr - reverse
+		ui_button_info("CBB_02",	221,	442,	-1,	-1,	2),	// vcr - play
+		ui_button_info("CBB_03",	247,	442,	-1,	-1,	3),	// vcr - end
+		ui_button_info("CBB_04",	469,	424,	-1,	-1,	4),	// help
+		ui_button_info("CBB_05",	447,	452,	-1,	-1,	5),	// options
+		ui_button_info("CBB_06",	552,	411,	-1,	-1,	6),	// continue
+		ui_button_info("CBB_07",	195,	442,	-1,	-1,	7),	// vcr - pause
+#else
 		ui_button_info("CBB_00",	504,	221,	-1,	-1,	0),
 		ui_button_info("CBB_01",	527,	221,	-1,	-1,	1),
 		ui_button_info("CBB_02",	555,	221,	-1,	-1,	2),
@@ -301,6 +337,7 @@ ui_button_info Cmd_brief_buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		ui_button_info("CBB_05",	539,	431,	-1,	-1,	5),
 		ui_button_info("CBB_06",	538,	455,	-1,	-1,	6),
 		ui_button_info("CBB_07",	575,	432,	-1,	-1,	7),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_CBB_00",	806,	354,	-1,	-1,	0),
@@ -315,17 +352,27 @@ ui_button_info Cmd_brief_buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 };
 
 // text
-#define CMD_BRIEF_NUM_TEXT		3
+#ifdef MAKE_FS1
+	#define CMD_BRIEF_NUM_TEXT		0
+#else
+	#define CMD_BRIEF_NUM_TEXT		3
+#endif
 UI_XSTR Cmd_brief_text[GR_NUM_RESOLUTIONS][CMD_BRIEF_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Help",		928,	500,	440,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[0][HELP_BUTTON].button },
 		{ "Options",	1036,	479,	464,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[0][OPTIONS_BUTTON].button },
 		{ "Continue",	1069,	564,	413,	UI_XSTR_COLOR_PINK,	-1,	&Cmd_brief_buttons[0][ACCEPT_BUTTON].button },
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Help",		928,	800,	704,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[1][HELP_BUTTON].button },
 		{ "Options",	1036,	797,	743,	UI_XSTR_COLOR_GREEN,	-1,	&Cmd_brief_buttons[1][OPTIONS_BUTTON].button },
 		{ "Continue",	1069,	917,	661,	UI_XSTR_COLOR_PINK,	-1,	&Cmd_brief_buttons[1][ACCEPT_BUTTON].button },
+#endif
 	}
 };
 
@@ -650,6 +697,10 @@ void cmd_brief_init(int team)
 	gr_set_palette(Palette_name, Palette, 1);
 	*/
 
+#ifdef MAKE_FS1
+	common_set_interface_palette("BarracksPalette");
+#endif
+
 	Ui_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);
 	Ui_window.set_mask_bmap(Cmd_brief_mask[gr_screen.res]);
 
@@ -725,6 +776,9 @@ void cmd_brief_close()
 			bm_unload(Palette_bmp);
 		}
 		*/
+#ifdef MAKE_FS1
+		common_free_interface_palette();
+#endif
 
 		game_flush();
 		Cmd_brief_inited = 0;

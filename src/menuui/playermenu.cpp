@@ -15,6 +15,9 @@
  * Code to drive the Player Select initial screen
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2003/05/22 16:13:35  taylor
  * fix missed German build option for auto-lang
  *
@@ -203,7 +206,7 @@
 
 // --------------------------------------------------------------------------------------------------------
 // Demo title screen
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 static int Demo_title_active = 0;
 static int Demo_title_bitmap = -1;
 static int Demo_title_expire_timestamp = 0;
@@ -236,7 +239,11 @@ int Player_select_max_lines[GR_NUM_RESOLUTIONS] = {			// max # of pilots display
 // list text display area
 int Choose_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		130, 140, 379, 68
+#else
 		114, 117, 400, 87
+#endif
 	},
 	{ // GR_1024
 		183, 186, 640, 139
@@ -267,6 +274,16 @@ struct barracks_buttons {
 
 static barracks_buttons Player_select_buttons[GR_NUM_RESOLUTIONS][NUM_PLAYER_SELECT_BUTTONS] = {	
 	{ // GR_640
+#ifdef MAKE_FS1
+		barracks_buttons("CHP_00",		126,	211,	-1,	-1,	0),	// create
+		barracks_buttons("CHP_13",		181,	211,	-1,	-1,	13),	// clone
+		barracks_buttons("CHP_11",		228,	211,	-1,	-1, 11),	// delete
+		barracks_buttons("CHP_01",		423,	232,	-1,	-1,	1),	// scroll up
+		barracks_buttons("CHP_02",		452,	232,	-1,	-1,	2),	// scroll down
+		barracks_buttons("CHP_12",		475,	213,	-1,	-1,	12),	// accept
+		barracks_buttons("CHP_14",		438,	104,	-1,	-1,	14),	// single
+		barracks_buttons("CHP_15",		485,	104,	-1,	-1,	15)	// multi
+#else
 		// create, clone and delete (respectively)
 		barracks_buttons("CPB_00",		114,	205,	117,	240,	0),
 		barracks_buttons("CPB_01",		172,	205,	175,	240,	1),
@@ -280,6 +297,7 @@ static barracks_buttons Player_select_buttons[GR_NUM_RESOLUTIONS][NUM_PLAYER_SEL
 		// single player select and multiplayer select, respectively
 		barracks_buttons("CPB_06",		428,	82,	430,	108,	6),
 		barracks_buttons("CPB_07",		477,	82,	481,	108,	7)
+#endif
 	}, 
 	{ // GR_1024
 		// create, clone and delete (respectively)
@@ -299,13 +317,23 @@ static barracks_buttons Player_select_buttons[GR_NUM_RESOLUTIONS][NUM_PLAYER_SEL
 };
 
 // FIXME add to strings.tbl
-#define PLAYER_SELECT_NUM_TEXT			1
+#ifdef MAKE_FS1
+	#define PLAYER_SELECT_NUM_TEXT			0
+#else
+	#define PLAYER_SELECT_NUM_TEXT			1
+#endif
 UI_XSTR Player_select_text[GR_NUM_RESOLUTIONS][PLAYER_SELECT_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Choose Pilot",		1436,		122,	90,	UI_XSTR_COLOR_GREEN, -1, NULL }
+#endif
 	}, 
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Choose Pilot",		1436,		195,	143,	UI_XSTR_COLOR_GREEN, -1, NULL }
+#endif
 	}
 };
 
@@ -343,12 +371,20 @@ int Player_select_force_bastion = 0;
 // notification text areas
 
 static int Player_select_bottom_text_y[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	280,
+#else
 	314,	// GR_640
+#endif
 	502	// GR_1024
 };
 
 static int Player_select_middle_text_y[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	280,
+#else
 	253,	// GR_640
+#endif
 	404	// GR_1024
 };
 
@@ -399,7 +435,9 @@ void player_select_init()
 {			
 	int i;
 	barracks_buttons *b;   
+#ifndef MAKE_FS1
 	UI_WINDOW *w;
+#endif
 
 	// start a looping ambient sound
 	main_hall_start_ambient();
@@ -425,7 +463,11 @@ void player_select_init()
 	// create the UI window
 	Player_select_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);
 	Player_select_window.set_mask_bmap(Player_select_background_mask_bitmap[gr_screen.res]);
-	
+
+#ifdef MAKE_FS1
+	common_set_interface_palette("ChoosePilotPalette");
+#endif
+
 	// initialize the control buttons
 	for (i=0; i<NUM_PLAYER_SELECT_BUTTONS; i++) {
 		b = &Player_select_buttons[gr_screen.res][i];
@@ -446,6 +488,7 @@ void player_select_init()
 		b->button.link_hotspot(b->hotspot);
 	}		
 
+#ifndef MAKE_FS1
 	// add some text
 	w = &Player_select_window;	
 	w->add_XSTR("Create", 1034, Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].xt, Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].yt, &Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button, UI_XSTR_COLOR_GREEN);	
@@ -458,7 +501,7 @@ void player_select_init()
 	for(i=0; i<PLAYER_SELECT_NUM_TEXT; i++) {
 		w->add_XSTR(&Player_select_text[gr_screen.res][i]);
 	}
-
+#endif
 
 	// create the list button text select region
 	Player_select_list_region.create(&Player_select_window, "", Choose_list_coords[gr_screen.res][0], Choose_list_coords[gr_screen.res][1], Choose_list_coords[gr_screen.res][2], Choose_list_coords[gr_screen.res][3], 0, 1);
@@ -530,7 +573,7 @@ void player_select_init()
 	}	
 }
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 // Display the demo title screen
 void demo_title_blit()
 {
@@ -613,7 +656,11 @@ void player_select_do()
 		// play a little sound
 		gamesnd_play_iface(SND_USER_SELECT);
 		if(Player_select_mode == PLAYER_SELECT_MODE_MULTI){					
+#ifdef MAKE_FS1
+			player_select_set_bottom_text(XSTR( "Single Player Mode", 376));
+#else
 			player_select_set_bottom_text(XSTR( "Single-Player Mode", 376));
+#endif
 				
 			// reinitialize as single player mode
 			player_select_init_player_stuff(PLAYER_SELECT_MODE_SINGLE);
@@ -707,6 +754,10 @@ void player_select_close()
 	// 	bm_release(Player_select_palette);
 		//Player_select_palette = -1;
 	// }
+
+#ifdef MAKE_FS1
+	common_free_interface_palette();
+#endif
 			
 	// setup the player  struct
 	Player_num = 0;
@@ -916,7 +967,7 @@ int player_select_create_new_pilot()
 
 	int play_scroll_sound = 1;
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	if ( Demo_title_active ) {
 		play_scroll_sound = 0;
 	}
@@ -1322,8 +1373,17 @@ void player_select_display_copyright()
 {
 	int	sx, sy, w;
 	char	Copyright_msg1[256], Copyright_msg2[256];
-	
-//	strcpy(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright c 1998, Volition, Inc.", -1));
+
+#ifdef MAKE_FS1
+	gr_set_color_fast(&Color_bright);
+
+	if (Lcl_gr) {
+		sprintf(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\xA8');
+	} else {
+		sprintf(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\x83');
+	}
+	sprintf(Copyright_msg2, XSTR("All Rights Reserved", 385));
+#else
 	gr_set_color_fast(&Color_white);
 
 	sprintf(Copyright_msg1, NOX("FreeSpace 2"));
@@ -1332,6 +1392,7 @@ void player_select_display_copyright()
 	} else {
 		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
 	}
+#endif // MAKE_FS1
 
 	gr_get_string_size(&w, NULL, Copyright_msg1);
 	sx = fl2i((gr_screen.max_w / 2) - w/2.0f + 0.5f);
@@ -1353,7 +1414,11 @@ void player_select_display_all_text()
 		gr_get_string_size(&w, &h, Player_select_bottom_text);
 	
 		w = (gr_screen.max_w - w) / 2;
+#ifdef MAKE_FS1
+		gr_set_color_fast(&Color_bright);
+#else
 		gr_set_color_fast(&Color_bright_white);
+#endif
 		gr_printf(w, Player_select_bottom_text_y[gr_screen.res], Player_select_bottom_text);
 	}
 
@@ -1469,6 +1534,7 @@ int Player_tips_shown = 0;
 // tooltips
 void player_tips_init()
 {
+#ifndef MAKE_FS1
 	Num_player_tips = 0;
 
 	// begin external localization stuff
@@ -1488,9 +1554,11 @@ void player_tips_init()
 
 	// stop externalizing, homey
 	lcl_ext_close();
+#endif
 }
 void player_tips_popup()
 {
+#ifndef MAKE_FS1
 	int tip, ret;	
 	
 	// player has disabled tips
@@ -1531,4 +1599,5 @@ void player_tips_popup()
 			break;
 		}
 	} while(ret > 0);
+#endif
 }

@@ -15,6 +15,9 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/07/24 00:20:42  relnev
  * nothing interesting
  *
@@ -816,6 +819,15 @@ void main_hall_init(int main_hall_num)
 	Main_hall = &Main_hall_defines[gr_screen.res][main_hall_num];	
 
 	// tooltip strings
+#ifdef MAKE_FS1
+	Main_hall->region_descript[0] = XSTR( "Exit Freespace", 353);
+	Main_hall->region_descript[1] = XSTR( "Barracks - Manage your Freespace pilots", 354);
+	Main_hall->region_descript[2] = XSTR( "Ready room - Start or continue a campaign", 355);
+	Main_hall->region_descript[3] = XSTR( "Tech room - View specifications of Freespace ships and weaponry", 356);
+	Main_hall->region_descript[4] = XSTR( "Options - Change your Freespace options", 357);
+	Main_hall->region_descript[5] = XSTR( "Campaign Room - View all available campaigns", 358);
+	Main_hall->region_descript[6] = XSTR( "Multiplayer - Start or join a multiplayer game", 359);
+#else
 	Main_hall->region_descript[0] = XSTR( "Exit FreeSpace 2", 353);
 	Main_hall->region_descript[1] = XSTR( "Barracks - Manage your FreeSpace 2 pilots", 354);
 	Main_hall->region_descript[2] = XSTR( "Ready room - Start or continue a campaign", 355);
@@ -823,11 +835,14 @@ void main_hall_init(int main_hall_num)
 	Main_hall->region_descript[4] = XSTR( "Options - Change your FreeSpace 2 options", 357);
 	Main_hall->region_descript[5] = XSTR( "Campaign Room - View all available campaigns", 358);
 	Main_hall->region_descript[6] = XSTR( "Multiplayer - Start or join a multiplayer game", 359);
+#endif
 	
 	// init tooltip shader
+#ifndef MAKE_FS1
 	float gray_intensity = 0.02f;													// nearly black
 	float c = (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? 0.11f : 0.07f;			// adjust for renderer differences
 	gr_create_shader(&Main_hall_tooltip_shader, gray_intensity, gray_intensity, gray_intensity, c);
+#endif
 
 	// load the background bitmap
 	Main_hall_bitmap = bm_load(Main_hall->bitmap);
@@ -1080,7 +1095,7 @@ void main_hall_do(float frametime)
 
 		// clicked on the tech room region
 		case TECH_ROOM_REGION:
-#if defined(FS2_DEMO)
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
 			game_feature_not_in_demo_popup();
 #else
@@ -1099,7 +1114,7 @@ void main_hall_do(float frametime)
 		case CAMPAIGN_ROOM_REGION:
 #if !defined(MULTIPLAYER_BETA_BUILD) && !defined(E3_BUILD) && !defined(PRESS_TOUR_BUILD)
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
 			{
 			//game_feature_not_in_demo_popup();
@@ -1142,7 +1157,7 @@ void main_hall_do(float frametime)
 		case LOAD_MISSION_REGION:
 #ifdef RELEASE_REAL
 #else
-	#if !(defined(MULTIPLAYER_BETA_BUILD) || defined(FS2_DEMO))
+	#if !(defined(MULTIPLAYER_BETA_BUILD) || defined(FS2_DEMO) || defined(FS1_DEMO)) 
 	//#if !defined(NDEBUG) || defined(INTERPLAYQA)
 				if (Player->flags & PLAYER_FLAGS_IS_MULTI){
 					gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
@@ -1163,7 +1178,7 @@ void main_hall_do(float frametime)
 
 		// quick start a game region
 		case QUICK_START_REGION:
-#if !defined(NDEBUG) && !defined(FS2_DEMO)
+#if !defined(NDEBUG) && !(defined(FS2_DEMO) || defined(FS1_DEMO))
 			if (Player->flags & PLAYER_FLAGS_IS_MULTI){
 				main_hall_set_notify_string(XSTR( "Quick Start not valid for multiplayer pilots", 369));
 			} else {
@@ -1905,14 +1920,21 @@ void main_hall_maybe_blit_tooltips()
 
 	// set the color and blit the string
 	if(!help_overlay_active(Main_hall_overlay_id)) {
+#ifndef MAKE_FS1
 		int shader_y = (Main_hall->region_yval) - Main_hall_tooltip_padding[gr_screen.res];	// subtract more to pull higher
+#endif
 		// get the width of the string
 		gr_get_string_size(&w, NULL, Main_hall->region_descript[text_index]);
 
+#ifndef MAKE_FS1
 		gr_set_shader(&Main_hall_tooltip_shader);
 		gr_shade(0, shader_y, gr_screen.clip_width, (gr_screen.clip_height - shader_y));
-
+#endif
+#ifdef MAKE_FS1
+		gr_set_color_fast(&Color_white);
+#else
 		gr_set_color_fast(&Color_bright_white);
+#endif
 		gr_string((gr_screen.max_w - w)/2, Main_hall->region_yval, Main_hall->region_descript[text_index]);
 	}
 }
@@ -1948,9 +1970,15 @@ void main_hall_process_help_stuff()
 	}
 
 	// set the color and print out text and shader
+#ifndef MAKE_FS1
 	gr_set_color_fast(&Color_bright_white);
 	gr_shade(0, 0, gr_screen.max_w, (2*Main_hall_tooltip_padding[gr_screen.res]) + h - y_anim_offset);
 	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res] - y_anim_offset, str);
+#else
+	gr_set_color_fast(&Color_white);
+	// no shading, no roll off screen
+	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res], str);
+#endif
 }
 
 // what main hall we're on (should be 0 or 1)
@@ -1979,7 +2007,11 @@ void main_hall_read_table()
 	while(!optional_string("#end")){
 
 		// read in 2 resolutions
+#ifndef MAKE_FS1
 		for(m_idx=0; m_idx<GR_NUM_RESOLUTIONS; m_idx++){
+#else  // only read one res for FS1
+		for(m_idx=0; m_idx<1; m_idx++){
+#endif
 			// maybe use a temp main hall stuct
 			if(count >= NUM_MAIN_HALLS){
 				m = &temp;

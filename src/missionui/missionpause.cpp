@@ -14,6 +14,9 @@
  * 
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -59,14 +62,22 @@
 
 // pause bitmap name
 char *Pause_bmp_name[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	"Pause",
+#else
 	"PleaseWait",
+#endif
 	"2_PleaseWait"
 };
 
 // pause bitmap display stuff
 int Please_wait_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		96, 205, 447, 70
+#else
 		152, 217, 316, 26
+#endif
 	},
 	{ // GR_1024
 		247, 346, 510, 36
@@ -157,7 +168,11 @@ void pause_init(int multi)
 void pause_do(int multi)
 {
 	int k;
+#ifdef MAKE_FS1
+	char *pause_str = XSTR(" ", -1);
+#else
 	char *pause_str = XSTR("Paused", 767);
+#endif
 	int str_w, str_h;
 
 	if(Game_mode & GM_STANDALONE_SERVER){

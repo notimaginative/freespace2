@@ -15,6 +15,9 @@
  * Scoring system code, medals, rank, etc.
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:27  relnev
  * added copyright header
  *
@@ -404,7 +407,11 @@ void scoring_eval_rank( scoring_struct *sc )
 
 		// if the player does indeed get promoted, we should change his mission score
 		// to reflect the differce between all time and new rank score
+#ifdef MAKE_FS1
+		if ( sc->rank < MAX_FREESPACE1_RANK ) {
+#else
 		if ( sc->rank < MAX_FREESPACE2_RANK ) {
+#endif
 			new_rank = sc->rank + 1;
 			if ( (sc->m_score + sc->score) < Ranks[new_rank].points )
 				sc->m_score = (Ranks[new_rank].points - sc->score);

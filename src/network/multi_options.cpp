@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -503,9 +506,11 @@ void multi_options_local_load(multi_local_options *options, net_player *pxo_pl)
 	}
 
 	// stuff pxo squad info
+#ifndef MAKE_FS1
 	if(pxo_pl != NULL){
 		strcpy(pxo_pl->p_info.pxo_squad_name, Multi_tracker_squad_name);		
 	}
+#endif
 }
 
 // update everyone on the current netgame options

@@ -15,6 +15,9 @@
  * Code for particle system
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -206,7 +209,7 @@ typedef struct particle {
 	ubyte		reverse;				// play any animations in reverse
 } particle;
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_PARTICLES	500
 #else
 	#define MAX_PARTICLES	2000	//	Reduced from 2000 to 800 by MK on 4/1/98.  Most I ever saw was 400 and the system recovers

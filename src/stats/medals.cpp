@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.8  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.7  2002/06/09 04:41:27  relnev
  * added copyright header
  *
@@ -177,6 +180,7 @@
 #include "gamesnd.h"
 #include "alphacolors.h"
 #include "localize.h"
+#include "missionscreencommon.h"  // for common_set_interface_palette
 
 //#define MAX_MEDAL_TYPES 63 // the # of medals which exist so far
 
@@ -195,12 +199,38 @@ badge_stuff Badge_info[MAX_BADGES];
 int Badge_index[MAX_BADGES];
 
 // the rank section of the screen
-#define RANK_MEDAL_REGION		12			// region number of the rank medal
+#ifdef MAKE_FS1
+	// not in Medal_coords but needs to be set
+	// to not interfere with other medals
+	#define RANK_MEDAL_REGION		16			// region number of the rank medal
+#else
+	#define RANK_MEDAL_REGION		12			// region number of the rank medal
+#endif
 
 #warning Find real FS2_DEMO spot for medals
 // coords for indiv medal bitmaps
 int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 	{				// GR_640
+#ifdef MAKE_FS1
+		{ 108, 74 },				// Conspicuous Gallantry
+		{ 473, 73 },				// Vasudan Alliance
+		{ 146, 150 },				// Distinguished Flying Cross
+		{ 219, 152 },				// Commendation Medal
+		{ 360, 150 },				// Galatea Survivor
+		{ 432, 150 },				// Legion of Merit
+		{ 88, 243 },				// Meritorious Unit
+		{ 168, 243 },				// Medal of Honor
+		{ 248, 250 },				// Galactic Service
+		{ 328, 250 },				// Military Defense
+		{ 406, 244 },				// Good Conduct
+		{ 483, 243 },				// Distinguished Service Cross
+		{ 340, 109 },				// Ace
+		{ 373, 109 },				// Double Ace
+#ifndef FS1_DEMO
+		{ 403, 109 },				// Triple Ace
+#endif // FS1_DEMO
+		{ 287, 186 },				// Wings
+#else
 		{ 89, 47 },					// eps. peg. lib
 		{ 486, 47 },				// imp. order o' vasuda
 		{ 129, 130 },				// dist flying cross
@@ -220,7 +250,8 @@ int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 #ifndef FS2_DEMO
 		{ 435, 76 },				// gold kills badge
 		{ 300, 152 },				// SOC unit crest
-#endif
+#endif  // !FS2_DEMO
+#endif  // MAKE_FS1
 	},
 	{				// GR_1024
 		{ 143, 75 },				// eps. peg. lib
@@ -239,37 +270,89 @@ int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 		{ 453, 146 },				// wings
 		{ 595, 121 },				// bronze kills badge
 		{ 646, 121 },				// silver kills badge
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(MAKE_FS1))
 		{ 696, 121 },				// gold kills badge
 		{ 480, 244 },				// SOC unit crest
 #endif
 	}
 };
 
+#ifdef MAKE_FS1
+// coords for the medal/rank title
+static int Rank_label_coords[2] = {
+	240, 126				// Rank
+};
+
+static int Rank_coords[2] = {
+	208, 113				// Rank
+};
+
+// I couldn't think of a better way to do this so define 
+// the base center point for each medal to center the label on
+//
+// x = the horizontal center point of the bitmap
+// y = the base of the medal bitmap itself
+static int Medals_label_coords[NUM_MEDALS][2] = {
+	// x, y
+	{ 137, 158 },				// Conspicuous Gallantry
+	{ 502, 154 },				// Vasudan Alliance
+	{ 176, 238 },				// Distinguished Flying Cross
+	{ 249, 244 },				// Commendation Medal
+	{ 390, 238 },				// Galatea Survivor
+	{ 462, 237 },				// Legion of Merit
+	{ 121, 345 },				// Meritorious Unit
+	{ 199, 346 },				// Medal of Honor
+	{ 280, 349 },				// Galactic Service
+	{ 360, 350 },				// Military Defense
+	{ 438, 349 },				// Good Conduct
+	{ 517, 353 },				// Distinguished Service Cross
+	{ 352, 129 },				// Ace
+	{ 385, 129 },				// Double Ace
+#ifndef FS1_DEMO
+	{ 415, 129 },				// Triple Ace
+#endif
+	{ 319, 216 },				// Wings
+};
+#else
 // coords for the medal title
 static int Medals_label_coords[GR_NUM_RESOLUTIONS][3] = {
 	{ 241, 458, 300 },			// GR_640 x, y, w
 	{ 386, 734, 480 }				// GR_1024 x, y, w
 };
+#endif
 
 #define MEDALS_NUM_BUTTONS			1
 #define MEDALS_EXIT					0	
 ui_button_info Medals_buttons[GR_NUM_RESOLUTIONS][MEDALS_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("MX_17",	561,	411,	-1,	-1,	17),
+#else
 		ui_button_info("MEB_18",	574,	432,	-1,	-1,	18),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_MEB_18",	919,	691,	-1,	-1,	18),
 	}
 };
 
-#define MEDALS_NUM_TEXT				1
+#ifdef MAKE_FS1
+	#define MEDALS_NUM_TEXT				0
+#else
+	#define MEDALS_NUM_TEXT				1
+#endif
 UI_XSTR Medals_text[GR_NUM_RESOLUTIONS][MEDALS_NUM_TEXT] = {
 	{	// GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Exit",		1466,		587,	416,	UI_XSTR_COLOR_PINK, -1,	&Medals_buttons[GR_640][MEDALS_EXIT].button },
+#endif
 	},
 	{	// GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Exit",		1466,		943,	673,	UI_XSTR_COLOR_PINK, -1,	&Medals_buttons[GR_1024][MEDALS_EXIT].button },
+#endif
 	},
 };
 
@@ -284,7 +367,11 @@ static char* Medals_mask_filename[GR_NUM_RESOLUTIONS] = {
 };
 
 static int Medals_callsign_y[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	79, 89
+#else
 	54, 89
+#endif
 };
 
 scoring_struct *Player_score=NULL;
@@ -370,7 +457,12 @@ void parse_medal_tbl()
 			Assert( bi < MAX_BADGES );
 			stuff_int( &Medals[num_medals].kills_needed );
 			Badge_index[bi] = num_medals;
-#ifdef FS2_DEMO
+#ifdef MAKE_FS1
+			required_string("$Wavefile 1:");
+			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+			required_string("$Wavefile 2:");
+			stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
+#elif FS2_DEMO
 #warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
 			required_string("$Wavefile 1:");
 			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
@@ -415,14 +507,14 @@ void medal_main_init(player *pl, int mode)
 
    Player_score = &Medals_player->stats;
 
-	#ifndef NDEBUG
+#ifndef NDEBUG
 	if(Cmdline_gimme_all_medals){
 		//int idx;
 		for(idx=0; idx < NUM_MEDALS; idx++){
 			Medals_player->stats.medals[idx] = 1;		
 		}
 	}
-	#endif
+#endif
 
 	Medals_mode = mode;
 
@@ -453,6 +545,9 @@ void medal_main_init(player *pl, int mode)
 	Init_flags = 0;	
 
 	//init_medal_palette();
+#ifdef MAKE_FS1
+	common_set_interface_palette("MedalsPalette");
+#endif
 	
 	Medals_bitmap = bm_load(Medals_background_filename[gr_screen.res]);
 	if (Medals_bitmap < 0) {
@@ -484,6 +579,59 @@ void medal_main_init(player *pl, int mode)
 // which would break stuff
 void medals_translate_name(char *name, int max_len)
 {
+#ifdef MAKE_FS1
+	if (!strcmp(name, "Conspicuous Gallantry")) {
+		strncpy(name, "Tapferkeitsmedaille", max_len);
+
+	} else if (!strcmp(name, "Vasudan Alliance")) {
+		strncpy(name, "Vasudanischen Allianz", max_len);
+
+	} else if (!strcmp(name, "Distinguished Flying Cross")) {
+		strncpy(name, "Kreuz f\x81r Fliegerleistungen", max_len);
+
+	} else if (!strcmp(name, "Commendation Medal")) {
+		strncpy(name, "Anerkennungsmedaille", max_len);
+
+	} else if (!strcmp(name, "Galatea Survivor")) {
+		strncpy(name, "Galatea-\x9A""berlebender", max_len);
+
+	} else if (!strcmp(name, "Legion of Merit")) {
+		strncpy(name, "Verdienstlegion", max_len);
+
+	} else if (!strcmp(name, "Meritorious Unit")) {
+		strncpy(name, "Verdienstmedaille", max_len);
+
+	} else if (!strcmp(name, "Medal of Honor")) {
+		strncpy(name, "Ehrenmedaille", max_len);
+
+	} else if (!strcmp(name, "Galactic Service")) {
+		strncpy(name, "Galaktischer Dienst", max_len);
+
+	} else if (!strcmp(name, "Military Defense")) {
+		strncpy(name, "Verteidigungsmedaille", max_len);
+
+	} else if (!strcmp(name, "Good Conduct")) {
+		strncpy(name, "Medaille f\x81r gute F\x81hrung", max_len);
+
+	} else if (!strcmp(name, "Distinguished Service Cross")) {
+		strncpy(name, "Kreuz f\x81r Einsatz", max_len);
+
+	} else if (!strcmp(name, "Ace")) {
+		strncpy(name, "Bronzener Stern", max_len);
+
+	} else if (!strcmp(name, "Double Ace")) {
+		strncpy(name, "Silberner Stern", max_len);
+
+	} else if (!strcmp(name, "Triple Ace")) {
+		strncpy(name, "Goldener Stern", max_len);
+
+	} else if (!strcmp(name, "Wings")) {
+		strncpy(name, "Pilotenabzeichen", max_len);
+
+	} else if (!strcmp(name, "Rank")) {
+		strncpy(name, "Dienstgrad", max_len);
+	}
+#else
 	if (!strcmp(name, "Epsilon Pegasi Liberation")) {
 		strncpy(name, "Epsilon Pegasi Befreiungsmedaille", max_len);
 
@@ -527,20 +675,25 @@ void medals_translate_name(char *name, int max_len)
 		strncpy(name, "Fliegerspange", max_len);
 
 	} else if (!strcmp(name, "Ace")) {
-		strncpy(name, "Flieger-As", max_len);	
+		strncpy(name, "Flieger-As", max_len);
 
 	} else if (!strcmp(name, "Double Ace")) {
 		strncpy(name, "Doppel-As ", max_len);
 
 	} else if (!strcmp(name, "Triple Ace")) {
 		strncpy(name, "Dreifach-As ", max_len);
-		
+
 	} else if (!strcmp(name, "SOC Unit Crest")) {
-		strncpy(name, "SEK-Abzeichen ", max_len);	
+		strncpy(name, "SEK-Abzeichen ", max_len);
 	}
+#endif
 }
 
+#ifdef MAKE_FS1
+void blit_label(char *label, int *coordsx, int *coordsy, int num)
+#else
 void blit_label(char *label, int *coords, int num)
+#endif
 {
 	int x, y, sw;
 	char text[256];
@@ -559,7 +712,7 @@ void blit_label(char *label, int *coords, int num)
 			sprintf( text, NOX("%s (%d)"), translated_label, num );
 		} else {
 			sprintf( text, "%s", translated_label );
-		}		
+		}
 	} else {
 		// set correct string
 		if ( num > 1 ) {
@@ -571,8 +724,13 @@ void blit_label(char *label, int *coords, int num)
 
 	// find correct coords
 	gr_get_string_size(&sw, NULL, text);
+#ifdef MAKE_FS1
+	x = *coordsx - sw / 2;
+	y = *coordsy + 8;
+#else
 	x = Medals_label_coords[gr_screen.res][0] + (Medals_label_coords[gr_screen.res][2] - sw) / 2;
 	y = Medals_label_coords[gr_screen.res][1];
+#endif
 
 	// do it
 	gr_string(x, y, text);
@@ -580,7 +738,11 @@ void blit_label(char *label, int *coords, int num)
 
 void blit_callsign()
 {
+#ifdef MAKE_FS1
+	gr_set_color_fast(&Color_bright_blue);
+#else
 	gr_set_color_fast(&Color_normal);
+#endif
 
 	// nothing special, just do it.
 	gr_string(0x8000, Medals_callsign_y[gr_screen.res], Medals_player->callsign);
@@ -632,7 +794,11 @@ int medal_main_do()
 			break;
 
 		case RANK_MEDAL_REGION :
+#ifdef MAKE_FS1
+			blit_label(Ranks[Player_score->rank].name, &Rank_label_coords[0], &Rank_label_coords[1], 1);
+#else
 			blit_label(Ranks[Player_score->rank].name, &Medal_coords[gr_screen.res][region][0], 1);
+#endif
 			break;
 
 		case -1:
@@ -640,7 +806,11 @@ int medal_main_do()
 
 		default :
       	if (Player_score->medals[region] > 0){
+#ifdef MAKE_FS1
+				blit_label(Medals[region].name, &Medals_label_coords[region][0], &Medals_label_coords[region][1], Player_score->medals[region] );
+#else
 				blit_label(Medals[region].name, &Medal_coords[gr_screen.res][region][0], Player_score->medals[region] );
+#endif
 			}
 			break;
 	} // end switch
@@ -671,6 +841,11 @@ void medal_main_close()
 
    Player_score = NULL;
 	Medals_window.destroy();
+
+#ifdef MAKE_FS1
+	common_free_interface_palette();
+#endif
+
 	snazzy_menu_close();
 	palette_restore_palette();
 }
@@ -775,6 +950,9 @@ void blit_medals()
 
 	// now blit rank, since that "medal" doesnt get loaded (or drawn) the normal way
 	gr_set_bitmap(Rank_bm);
+#ifdef MAKE_FS1
+	gr_bitmap(Rank_coords[0], Rank_coords[1]);
+#else
 	gr_bitmap(Medal_coords[gr_screen.res][RANK_MEDAL_REGION][0], Medal_coords[gr_screen.res][RANK_MEDAL_REGION][1]);
+#endif
 }
-

@@ -15,6 +15,9 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.8  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.7  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -518,7 +521,11 @@
 // text crap :)
 int Multi_common_text_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		47, 405, 374, 58
+#else
 		29, 396, 393, 76
+#endif
 	},
 	{ // GR_1024
 		47, 634, 630, 122
@@ -526,7 +533,11 @@ int Multi_common_text_coords[GR_NUM_RESOLUTIONS][4] = {
 };
 
 int Multi_common_text_max_display[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	6,
+#else
 	8,		// GR_640
+#endif
 	12,	// GR_1024
 };
 
@@ -753,7 +764,12 @@ char *Multi_common_icon_names[MULTI_NUM_COMMON_ICONS] = {
 	"mp_furball",			// furball mission
 	"icon-volition",		// volition mission	
 	"icon-valid",			// mission is valid
+#ifndef MAKE_FS1
 	"cd"						// cd icon
+#else
+	"cd",					// cd icon
+	"icon-silent"			// SilentThreat
+#endif
 };
 //XSTR:ON
 // width and height of the icons
@@ -769,7 +785,12 @@ int Multi_common_icon_dims[MULTI_NUM_COMMON_ICONS][2] = {
 	{18, 11},				// mp furball
 	{9, 9},					// volition mission	
 	{8, 8},					// mission is valid
+#ifndef MAKE_FS1
 	{8, 8}					// cd icon
+#else
+	{8, 8},					// cd icon
+	{16, 7}					// silent threat
+#endif
 };
 
 void multi_load_common_icons()
@@ -879,7 +900,11 @@ void multi_common_verify_cd()
 #ifdef GAME_CD_CHECK
 	// otherwise, call the freespace function to determine if we have a cd
 	Multi_has_cd = 0;
+#ifdef MAKE_FS1
+	if((find_freespace_cd(FS_CDROM_VOLUME_1) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_2) >= 0) ){
+#else
 	if((find_freespace_cd(FS_CDROM_VOLUME_1) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_2) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_3) >= 0) ){
+#endif
 		Multi_has_cd = 1;
 	} 
 #else
@@ -911,6 +936,7 @@ static char *Multi_join_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 //XSTR:ON
 
 // slider
+#ifndef MAKE_FS1
 char *Mj_slider_name[GR_NUM_RESOLUTIONS] = {
 	"slider",
 	"2_slider"
@@ -923,6 +949,7 @@ int Mj_slider_coords[GR_NUM_RESOLUTIONS][4] = {
 		8, 147, 30, 322
 	}
 };
+#endif
 
 // button defs
 #define MJ_SCROLL_UP				0
@@ -944,11 +971,26 @@ int Multi_join_glr_stamp;
 int Multi_join_ping_stamp;
 UI_WINDOW Multi_join_window;											// the window object for the join screen
 UI_BUTTON Multi_join_select_button;									// for selecting list items
+#ifndef MAKE_FS1
 UI_SLIDER2 Multi_join_slider;											// handy dandy slider
+#endif
 int Multi_join_bitmap;													// the background bitmap
 
 ui_button_info Multi_join_buttons[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("MJ_00",		0,		85,		-1,	-1,	0),
+		ui_button_info("MJ_01",		0,		125,	-1,	-1,	1),
+		ui_button_info("MJ_03",		20,		324,	-1,	-1,	3),
+		ui_button_info("MJ_04",		0,		399,	-1,	-1,	4),
+		ui_button_info("MJ_05",		0,		436,	-1,	-1,	5),
+		ui_button_info("MJ_15",		450,	323,	-1,	-1,	15),
+		ui_button_info("MJ_10",		519,	323,	-1,	-1,	10),
+		ui_button_info("MJ_06",		574,	323,	-1,	-1,	6),
+		ui_button_info("MJ_08",		470,	427,	-1,	-1,	8),
+		ui_button_info("MJ_09",		448,	454,	-1,	-1,	9),
+		ui_button_info("MJ_07",		563,	411,	-1,	-1,	7),
+#else
 		ui_button_info( "MJ_00",	1,		57,	-1,	-1,	0 ),						// scroll up
 		ui_button_info( "MJ_02",	1,		297,	-1,	-1,	2 ),						// scroll down
 		ui_button_info( "MJ_03",	10,	338,	65,	364,	3 ),						// refresh
@@ -960,6 +1002,7 @@ ui_button_info Multi_join_buttons[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_BUTTONS] = 
 		ui_button_info( "MJ_09",	534,	426,	-1,	-1,	9 ),						// help
 		ui_button_info( "MJ_10",	534,	454,	-1,	-1,	10 ),						// options
 		ui_button_info( "MJ_11",	571,	426,	589,	416,	11 ),						// join
+#endif
 	},
 	{ // GR_1024
 		ui_button_info( "2_MJ_00",	2,		92,	-1,	-1,	0 ),						// scroll up
@@ -976,10 +1019,16 @@ ui_button_info Multi_join_buttons[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_BUTTONS] = 
 	}
 };
 
+#ifdef MAKE_FS1
+#define MULTI_JOIN_NUM_TEXT			0
+#else
 #define MULTI_JOIN_NUM_TEXT			13
+#endif
 
 UI_XSTR Multi_join_text[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_TEXT] = {
 	{ // GR_640		
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Refresh",							1299, 65,	364,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[0][MJ_REFRESH].button},
 		{"Join as",							1300,	476,	376,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[0][MJ_JOIN_OBSERVER].button},
 		{"Observer",						1301,	467,	385,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[0][MJ_JOIN_OBSERVER].button},
@@ -993,8 +1042,11 @@ UI_XSTR Multi_join_text[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_TEXT] = {
 		{"Server",							1305,	116,	37,	UI_XSTR_COLOR_GREEN, -1, NULL},
 		{"Players",							1306,	471,	37,	UI_XSTR_COLOR_GREEN,	-1, NULL},
 		{"Ping",								1307,	555,	37,	UI_XSTR_COLOR_GREEN, -1, NULL}
+#endif
 	},
 	{ // GR_1024		
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Refresh",							1299, 104,	582,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[1][MJ_REFRESH].button},
 		{"Join as",							1300,	783,	602,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[1][MJ_JOIN_OBSERVER].button},
 		{"Observer",						1301,	774,	611,	UI_XSTR_COLOR_GREEN, -1, &Multi_join_buttons[1][MJ_JOIN_OBSERVER].button},		
@@ -1008,6 +1060,7 @@ UI_XSTR Multi_join_text[GR_NUM_RESOLUTIONS][MULTI_JOIN_NUM_TEXT] = {
 		{"Server",							1305,	186,	60,	UI_XSTR_COLOR_GREEN, -1, NULL},
 		{"Players",							1306,	753,	60,	UI_XSTR_COLOR_GREEN,	-1, NULL},
 		{"Ping",								1307,	888,	60,	UI_XSTR_COLOR_GREEN, -1, NULL}
+#endif
 	}
 };
 
@@ -1209,9 +1262,11 @@ DCF(mj_make, "")
 
 void multi_join_notify_new_game()
 {	
+#ifndef MAKE_FS1
 	// reset the # of items	
 	Multi_join_slider.set_numberItems(Active_game_count > Mj_max_game_items[gr_screen.res] ? Active_game_count - Mj_max_game_items[gr_screen.res] : 0);
 	Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 }
 
 int multi_join_autojoin_do()
@@ -1274,7 +1329,9 @@ void multi_join_game_init()
 	game_flush();
 
 	// set the palette
-	// common_set_interface_palette(MULTI_JOIN_PALETTE);
+#ifdef MAKE_FS1
+	common_set_interface_palette(MULTI_JOIN_PALETTE);
+#endif
 
 	// destroy any chatbox contents which previously existed (from another game)
 	chatbox_clear();
@@ -1356,8 +1413,10 @@ void multi_join_game_init()
 	Multi_join_select_button.create(&Multi_join_window, "", Mj_list_area_coords[gr_screen.res][MJ_X_COORD], Mj_list_area_coords[gr_screen.res][MJ_Y_COORD], Mj_list_area_coords[gr_screen.res][MJ_W_COORD], Mj_list_area_coords[gr_screen.res][MJ_H_COORD], 0, 1);
 	Multi_join_select_button.hide();
 
+#ifndef MAKE_FS1
 	// slider
 	Multi_join_slider.create(&Multi_join_window, Mj_slider_coords[gr_screen.res][MJ_X_COORD], Mj_slider_coords[gr_screen.res][MJ_Y_COORD], Mj_slider_coords[gr_screen.res][MJ_W_COORD], Mj_slider_coords[gr_screen.res][MJ_H_COORD], 0, Mj_slider_name[gr_screen.res], &multi_join_list_scroll_up, &multi_join_list_scroll_down, NULL);
+#endif
 
 	// if starting a network game, then go to the create game screen
 	if ( Cmdline_start_netgame ) {
@@ -1467,7 +1526,9 @@ void multi_join_game_do_frame()
 	// page up the game list
 	case KEY_PAGEUP:
 		multi_join_list_page_up();	
+#ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 		break;
 
 	case KEY_T:
@@ -1477,7 +1538,9 @@ void multi_join_game_do_frame()
 	// page down the game list
 	case KEY_PAGEDOWN:
 		multi_join_list_page_down();
+#ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 		break;
 
 	// send out a ping-all
@@ -1494,13 +1557,17 @@ void multi_join_game_do_frame()
 	// scroll the game list up
 	case KEY_UP:
 		multi_join_list_scroll_up();
+#ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 		break;
 
 	// scroll the game list down
 	case KEY_DOWN:
 		multi_join_list_scroll_down();
+#ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 		break;
 	}	
 
@@ -1569,6 +1636,10 @@ void multi_join_game_close()
 	
 	// destroy the UI_WINDOW
 	Multi_join_window.destroy();
+
+#ifdef MAKE_FS1
+	common_free_interface_palette();
+#endif
 }
 
 void multi_join_check_buttons()
@@ -1634,13 +1705,17 @@ void multi_join_button_pressed(int n)
 	// scroll the game list up
 	case MJ_SCROLL_UP:
 		multi_join_list_scroll_up();
+#ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 		break;
 
 	// scroll the game list down
 	case MJ_SCROLL_DOWN:
 		multi_join_list_scroll_down();
+#ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
+#endif
 		break;
 
 	// scroll the info text box up
@@ -1821,12 +1896,14 @@ void multi_join_blit_game_status(active_game *game, int y)
 		break;	
 
 	// dogfight game
+#ifndef MAKE_FS1
 	case AG_FLAG_DOGFIGHT:
 		if(Multi_common_icons[MICON_DOGFIGHT] != -1){
 			gr_set_bitmap(Multi_common_icons[MICON_DOGFIGHT]);
 			draw = 1;
 		} 
 		break;	
+#endif
 	}
 	// if we're supposed to draw a bitmap
 	if(draw){
@@ -2224,8 +2301,10 @@ void multi_join_handle_item_cull(active_game *item, int item_index)
 	if(item->next == item){
 		Multi_join_list_selected = -1;
 		Multi_join_selected_item = NULL;
-		
+	
+#ifndef MAKE_FS1
 		Multi_join_slider.set_numberItems(0);
+#endif
 		MJ_LIST_START_SET(-1);
 		Multi_join_list_start_item = NULL;
 
@@ -2286,8 +2365,10 @@ void multi_join_handle_item_cull(active_game *item, int item_index)
 	}	
 
 	// set slider location
+#ifndef MAKE_FS1
 	Multi_join_slider.set_numberItems(Active_game_count > Mj_max_game_items[gr_screen.res] ? Active_game_count - Mj_max_game_items[gr_screen.res] : 0);
 	Multi_join_slider.force_currentItem(Multi_join_list_start);	
+#endif
 }
 
 void multi_join_send_join_request(int as_observer)
@@ -2319,9 +2400,11 @@ void multi_join_send_join_request(int as_observer)
 	if(strlen(Player->image_filename) > 0){
 		strcpy(Multi_join_request.image_filename, Player->image_filename);
 	}	
+#ifndef MAKE_FS1
 	if(strlen(Player->squad_filename) > 0){
 		strcpy(Multi_join_request.squad_filename, Player->squad_filename);
 	}
+#endif
 
 	// tracker id (if any)
 	Multi_join_request.tracker_id = Multi_tracker_id;
@@ -2341,7 +2424,9 @@ void multi_join_send_join_request(int as_observer)
 	}
 	
 	// pxo squad info
+#ifndef MAKE_FS1
 	strncpy(Multi_join_request.pxo_squad_name, Multi_tracker_squad_name, LOGIN_LEN);
+#endif
 
 	// version of this server
 	Multi_join_request.version = MULTI_FS_SERVER_VERSION;
@@ -2539,7 +2624,11 @@ int Multi_sg_rank_max_display[GR_NUM_RESOLUTIONS] = {
 // input password field
 int Msg_passwd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		247, 179, 285, 9
+#else
 		36, 236, 408, 20
+#endif
 	},
 	{ // GR_1024
 		58, 377, 652, 32
@@ -2549,7 +2638,11 @@ int Msg_passwd_coords[GR_NUM_RESOLUTIONS][4] = {
 // input game title field
 int Msg_title_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		178, 66, 354, 9
+#else
 		29, 49, 415, 23
+#endif
 	},
 	{ // GR_1024
 		46, 78, 664, 36
@@ -2559,7 +2652,11 @@ int Msg_title_coords[GR_NUM_RESOLUTIONS][4] = {
 // rank selected field
 int Msg_rank_sel_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		241, 253, 129, 10
+#else
 		242, 254, 126, 12
+#endif
 	},
 	{ // GR_1024
 		242, 254, 126, 12
@@ -2569,7 +2666,11 @@ int Msg_rank_sel_coords[GR_NUM_RESOLUTIONS][4] = {
 // rank list field
 int Msg_rank_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		241, 285, 129, 51
+#else
 		37, 297, 131, 16
+#endif
 	},
 	{ // GR_1024
 		60, 469, 652, 32
@@ -2578,6 +2679,21 @@ int Msg_rank_list_coords[GR_NUM_RESOLUTIONS][4] = {
 
 
 // button defs
+#ifdef MAKE_FS1
+#define MULTI_SG_NUM_BUTTONS	12
+#define MSG_OPEN_GAME			0
+#define MSG_CLOSED_GAME			1
+#define MSG_PASSWD_GAME			2
+#define MSG_RESTRICTED_GAME		3
+#define MSG_RANK_SET_GAME		4
+#define MSG_RANK_SCROLL_UP		5
+#define MSG_RANK_SCROLL_DOWN	6
+#define MSG_RANK_ABOVE			7
+#define MSG_RANK_BELOW			8
+#define MSG_HELP				9
+#define MSG_OPTIONS				10
+#define MSG_ACCEPT				11
+#else
 #define MULTI_SG_NUM_BUTTONS	10
 #define MSG_OPEN_GAME			0
 //#define MSG_CLOSED_GAME			1
@@ -2591,6 +2707,7 @@ int Msg_rank_list_coords[GR_NUM_RESOLUTIONS][4] = {
 #define MSG_HELP					7
 #define MSG_OPTIONS				8
 #define MSG_ACCEPT				9
+#endif
 
 UI_WINDOW Multi_sg_window;												// the window object for the join screen
 UI_BUTTON Multi_sg_rank_button;										// for selecting the rank marker
@@ -2600,6 +2717,20 @@ int Multi_sg_bitmap;														// the background bitmap
 
 ui_button_info Multi_sg_buttons[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("MSG_00",	75,		111,	-1,	-1,	0),
+		ui_button_info("MSG_01",	75,		139,	-1,	-1,	1),
+		ui_button_info("MSG_02",	75,		164,	-1,	-1,	2),
+		ui_button_info("MSG_03",	75,		199,	-1,	-1,	3),
+		ui_button_info("MSG_04",	75,		243,	-1,	-1,	4),
+		ui_button_info("MSG_05",	376,	231,	-1,	-1,	5),
+		ui_button_info("MSG_06",	376,	258,	-1,	-1,	6),
+		ui_button_info("MSG_07",	376,	291,	-1,	-1,	7),
+		ui_button_info("MSG_08",	376,	320,	-1,	-1,	8),
+		ui_button_info("MSG_09",	469,	427,	-1,	-1,	9),
+		ui_button_info("MSG_10",	447,	452,	-1,	-1,	10),
+		ui_button_info("MSG_11",	561,	411,	-1,	-1,	11),
+#else
 		ui_button_info("MSG_00",	1,		184,	34,	191,	2),		// open
 //		ui_button_info("MSG_01",	1,		159,	34,	166,	1),		// closed
 //		ui_button_info("MSG_02",	1,		184,	34,	191,	2),		// restricted
@@ -2612,6 +2743,7 @@ ui_button_info Multi_sg_buttons[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_BUTTONS] = {
 		ui_button_info("MSG_09",	536,	429,	500,	440,	9),		// help
 		ui_button_info("MSG_10",	536,	454,	479,	464,	10),		// options
 		ui_button_info("MSG_11",	576,	432,	571,	415,	11),		// accept
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_MSG_00",	2,		295,	51,	307,	2),		// open
@@ -2626,12 +2758,22 @@ ui_button_info Multi_sg_buttons[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_BUTTONS] = {
 		ui_button_info("2_MSG_09",	858,	687,	817,	706,	9),		// help
 		ui_button_info("2_MSG_10",	858,	728,	797,	743,	10),		// options
 		ui_button_info("2_MSG_11",	921,	692,	921,	664,	11),		// accept
+#ifdef MAKE_FS1		// filler for extra FS1 buttons
+		ui_button_info("none",	-1,	-1,	-1,	-1,	-1),
+		ui_button_info("none",  -1, -1, -1, -1, -1),
+#endif
 	},
 };
 
+#ifdef MAKE_FS1
+#define MULTI_SG_NUM_TEXT			0
+#else
 #define MULTI_SG_NUM_TEXT			11
+#endif
 UI_XSTR Multi_sg_text[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Open",					1322,		34,	191,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[0][MSG_OPEN_GAME].button},
 //		{"Closed",				1323,		34,	166,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[0][MSG_CLOSED_GAME].button},
 //		{"Restricted",			1324,		34,	191,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[0][MSG_RESTRICTED_GAME].button},
@@ -2645,8 +2787,11 @@ UI_XSTR Multi_sg_text[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_TEXT] = {
 		{"Start Game",			1329,		26,	10,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Title",				1330,		26,	31,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Game Type",			1331,		12,	165,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Open",					1322,		51,	307,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[1][MSG_OPEN_GAME].button},
 //		{"Closed",				1323,		51,	267,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[1][MSG_CLOSED_GAME].button},
 //		{"Restricted",			1324,		51,	307,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_sg_buttons[1][MSG_RESTRICTED_GAME].button},
@@ -2660,6 +2805,7 @@ UI_XSTR Multi_sg_text[GR_NUM_RESOLUTIONS][MULTI_SG_NUM_TEXT] = {
 		{"Start Game",			1329,		42,	22,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Title",				1330,		42,	50,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
 		{"Game Type",			1331,		20,	264,	UI_XSTR_COLOR_GREEN,	-1,	NULL},
+#endif
 	}
 };
 
@@ -2695,7 +2841,11 @@ void multi_sg_select_rank_default();
 int multi_start_game_rank_from_name( char *rank ) {
 	int i;
 
+#ifdef MAKE_FS1
+	for ( i = 0; i <= MAX_FREESPACE1_RANK; i++ ) {
+#else
 	for ( i = 0; i <= MAX_FREESPACE2_RANK; i++ ) {
+#endif
 		if ( !stricmp(Ranks[i].name, rank) ) {
 			return i;
 		}
@@ -2959,7 +3109,7 @@ void multi_sg_button_pressed(int n)
 		}
 		break;
 
-		/*
+#ifdef MAKE_FS1
 	// the open button was pressed
 	case MSG_CLOSED_GAME:		
 		// if the closed option is selected
@@ -2976,7 +3126,8 @@ void multi_sg_button_pressed(int n)
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		}
 		break;
-*/
+#endif
+
 	// toggle password protection
 	case MSG_PASSWD_GAME:		
 		// if we selected it
@@ -2996,7 +3147,7 @@ void multi_sg_button_pressed(int n)
 		}			
 		break;
 
-/*
+#ifdef MAKE_FS1
 	// toggle "restricted" on or off
 	case MSG_RESTRICTED_GAME:
 		if(Multi_sg_netgame->mode != NG_MODE_RESTRICTED){
@@ -3009,7 +3160,8 @@ void multi_sg_button_pressed(int n)
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		}
 		break;
-*/
+#endif
+
 	// turn off all rank requirements
 	case MSG_RANK_SET_GAME:		
 		// if either is set, then turn then both off
@@ -3213,18 +3365,23 @@ void multi_sg_draw_radio_buttons()
 	case NG_MODE_OPEN:
 		Multi_sg_buttons[gr_screen.res][MSG_OPEN_GAME].button.draw_forced(2);
 		break;
-/*
+
+#ifdef MAKE_FS1
 	case NG_MODE_CLOSED:
 		Multi_sg_buttons[gr_screen.res][MSG_CLOSED_GAME].button.draw_forced(2);
 		break;
-		*/
+#endif
+
 	case NG_MODE_PASSWORD:
 		Multi_sg_buttons[gr_screen.res][MSG_PASSWD_GAME].button.draw_forced(2);
 		break;
-/*	case NG_MODE_RESTRICTED:
+
+#ifdef MAKE_FS1
+	case NG_MODE_RESTRICTED:
 		Multi_sg_buttons[gr_screen.res][MSG_RESTRICTED_GAME].button.draw_forced(2);
 		break;
-		*/
+#endif
+
 	case NG_MODE_RANK_ABOVE:
 		Multi_sg_buttons[gr_screen.res][MSG_RANK_SET_GAME].button.draw_forced(2);
 		Multi_sg_buttons[gr_screen.res][MSG_RANK_ABOVE].button.draw_forced(2);
@@ -3299,11 +3456,11 @@ void multi_sg_rank_display_stuff()
 	}
 
 	// display the selected rank
-	/*
+#ifdef MAKE_FS1
 	gr_set_color_fast(&Color_bright);
 	multi_sg_rank_build_name(Ranks[Multi_sg_netgame->rank_base].name,rank_name);
 	gr_string(Msg_rank_sel_coords[gr_screen.res][MSG_X_COORD],Msg_rank_sel_coords[gr_screen.res][MSG_Y_COORD],rank_name);
-	*/
+#endif
 }
 
 void multi_sg_rank_process_select()
@@ -3490,6 +3647,32 @@ UI_SLIDER2 Multi_create_slider;										// for create list
 
 ui_button_info Multi_create_buttons[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS] = {	
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("MC_18",	34,		131,	-1,	-1,	18),	// all
+		ui_button_info("MC_19",	72,		131,	-1,	-1,	19),	// coop
+		ui_button_info("MC_20",	120,	131,	-1,	-1,	20),	// team
+//		ui_button_info("MC_21",	166,	131,	-1,	-1,	21),	// dogfight
+		ui_button_info("none",	-1,		-1,		-1,	-1,	-1),	// dogfight (not used)
+		ui_button_info("none",	-1,		-1,		-1,	-1,	-1),	// pxo?
+		ui_button_info("MC_26",	540,	114,	-1,	-1,	26),	// pilot info
+		ui_button_info("MC_03",	0,		187,	-1,	-1,	2),	// scroll list up
+		ui_button_info("MC_02", 0,		227,	-1,	-1,	3),	// scroll list down
+		ui_button_info("MC_04",	611,	182,	-1,	-1,	4),	// scroll players up
+		ui_button_info("MC_05",	611,	221,	-1,	-1,	5),	// scroll players down
+		ui_button_info("MC_06",	18,		322,	-1,	-1,	6),	// mission filter
+		ui_button_info("MC_07",	18,		344,	-1,	-1,	7),	// campaign filter
+		ui_button_info("MC_10",	317,	339,	-1,	-1,	10),	// cancel
+		ui_button_info("MC_14",	464,	350,	-1,	-1,	14),	// team 1
+		ui_button_info("MC_15",	498,	350,	-1,	-1,	15),	// team 2
+		ui_button_info("MC_16",	527,	346,	-1,	-1,	16),	// kick
+		ui_button_info("MC_17",	572,	346,	-1,	-1,	17),	// close
+		ui_button_info("MC_08",	0,		398,	-1,	-1,	8),	// scroll mission info up
+		ui_button_info("MC_09",	0,		435,	-1,	-1,	9),	// scroll mission info down
+		ui_button_info("MC_27",	447,	402,	-1,	-1,	27),	// host options
+		ui_button_info("MC_11",	510,	428,	-1,	-1,	11),	// help
+		ui_button_info("MC_12",	510,	453,	-1,	-1,	12),	// options
+		ui_button_info("Mc_13",	562,	412,	-1,	-1,	13),	// commit
+#else
 		ui_button_info("MC_00", 32,	129,	36,	158,	0),		// show all missions
 		ui_button_info("MC_01", 76,	129,	71,	158,	1),		// show coop missions
 		ui_button_info("MC_02", 121,	129,	119,	158,	2),		// show team missions
@@ -3513,6 +3696,7 @@ ui_button_info Multi_create_buttons[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS
 		ui_button_info("MC_21", 534,	426,	-1,	-1,	21),		// help
 		ui_button_info("MC_22", 534,	452,	-1,	-1,	22),		// options
 		ui_button_info("MC_23", 571,	426,	572,	413,	23),		// commit
+#endif
 	}, 	
 	{ // GR_1024
 		ui_button_info("2_MC_00", 51,		207,	61,	253,	0),		// show all missions
@@ -3541,9 +3725,15 @@ ui_button_info Multi_create_buttons[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS
 	}, 	
 };
 
+#ifdef MAKE_FS1
+#define MULTI_CREATE_NUM_TEXT				0
+#else
 #define MULTI_CREATE_NUM_TEXT				15
+#endif
 UI_XSTR Multi_create_text[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"All",					1256,		36,	158,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[0][MC_SHOW_ALL].button},
 		{"Coop",					1257,		71,	158,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[0][MC_SHOW_COOP].button},
 		{"Team",					1258,		119,	158,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[0][MC_SHOW_TEAM].button},
@@ -3559,8 +3749,11 @@ UI_XSTR Multi_create_text[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS] = {
 		{"Close",				1508,		582,	381,	UI_XSTR_COLOR_PINK,	-1,	&Multi_create_buttons[0][MC_CLOSE].button},	
 		{"Host Options",		1267,		436,	423,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[0][MC_HOST_OPTIONS].button},		
 		{"Commit",				1062,		572,	413,	UI_XSTR_COLOR_PINK,	-1,	&Multi_create_buttons[0][MC_ACCEPT].button}
+#endif
 	},		
 	{ // GR_1024		
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"All",					1256,		61,	253,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[1][MC_SHOW_ALL].button},
 		{"Coop",					1257,		124,	253,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[1][MC_SHOW_COOP].button},
 		{"Team",					1258,		194,	253,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[1][MC_SHOW_TEAM].button},
@@ -3576,6 +3769,7 @@ UI_XSTR Multi_create_text[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS] = {
 		{"Close",				1508,		949,	610,	UI_XSTR_COLOR_PINK,	-1,	&Multi_create_buttons[1][MC_CLOSE].button},	
 		{"Host Options",		1267,		755,	683,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_create_buttons[1][MC_HOST_OPTIONS].button},		
 		{"Commit",				1062,		932,	667,	UI_XSTR_COLOR_PINK,	-1,	&Multi_create_buttons[1][MC_ACCEPT].button}
+#endif
 	},
 };
 
@@ -3605,7 +3799,11 @@ int Multi_create_sw_checkbox_text[GR_NUM_RESOLUTIONS][2] = {
 // game information text areas
 int Mc_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		105, 170, 315, 146
+#else
 		105, 173, 311, 152
+#endif
 	},
 	{ // GR_1024
 		62, 275, 600, 262
@@ -3614,7 +3812,11 @@ int Mc_list_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Mc_players_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		465, 163, 138, 172
+#else
 		463, 164, 144, 180
+#endif
 	},
 	{ // GR_1024
 		741, 262, 144, 180
@@ -3623,7 +3825,11 @@ int Mc_players_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Mc_info_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		49, 407, 372, 56
+#else
 		47, 405, 363, 59
+#endif
 	},
 	{ // GR_1024
 		75, 648, 363, 59
@@ -3880,8 +4086,10 @@ void multi_create_setup_list_data(int mode)
 		qsort(Multi_create_file_list, Multi_create_list_count, sizeof(multi_create_info), multi_create_sort_func);		
 	}
 
+#ifndef MAKE_FS1
 	// reset the slider
 	Multi_create_slider.set_numberItems(Multi_create_list_count > Multi_create_list_max_display[gr_screen.res] ? Multi_create_list_count-Multi_create_list_max_display[gr_screen.res] : 0);
+#endif
 }
 
 void multi_create_game_init()
@@ -3985,7 +4193,9 @@ void multi_create_game_init()
 	Multi_create_list_select = -1;
 	Multi_create_list_count = 0;
 
+#ifndef MAKE_FS1
 	Multi_create_slider.create(&Multi_create_window, Mc_slider_coords[gr_screen.res][MC_X_COORD], Mc_slider_coords[gr_screen.res][MC_Y_COORD], Mc_slider_coords[gr_screen.res][MC_W_COORD],Mc_slider_coords[gr_screen.res][MC_H_COORD], MULTI_CREATE_MAX_LIST_ITEMS, Mc_slider_bitmap[gr_screen.res], &multi_create_list_scroll_up, &multi_create_list_scroll_down, NULL);
+#endif
 
 	// create the player list select button
 	Multi_create_player_select_button.create(&Multi_create_window, "", Mc_players_coords[gr_screen.res][MC_X_COORD], Mc_players_coords[gr_screen.res][MC_Y_COORD], Mc_players_coords[gr_screen.res][MC_W_COORD], Mc_players_coords[gr_screen.res][MC_H_COORD], 0, 1);
@@ -4017,8 +4227,10 @@ void multi_create_game_init()
 void multi_create_game_do()
 {
 	int player_index;
+#ifndef MAKE_FS1
 	char *loading_str = XSTR("Loading", 1336);
 	int str_w, str_h;
+#endif
 
 	// set this if we want to show the pilot info popup
 	Multi_create_should_show_popup = 0;
@@ -4047,11 +4259,13 @@ void multi_create_game_do()
 			gr_bitmap( Please_wait_coords[gr_screen.res][MC_X_COORD], Please_wait_coords[gr_screen.res][MC_Y_COORD] );
 
 			// draw "Loading" on it
+#ifndef MAKE_FS1
 			gr_set_color_fast(&Color_normal);
 			gr_set_font(FONT2);
 			gr_get_string_size(&str_w, &str_h, loading_str);
 			gr_string((gr_screen.max_w - str_w) / 2, (gr_screen.max_h - str_h) / 2, loading_str);
 			gr_set_font(FONT1);
+#endif
 
 			gr_flip();
 
@@ -4131,6 +4345,7 @@ void multi_create_game_do()
 
 	gr_set_color_fast(&Color_normal);
 
+#ifndef MAKE_FS1
 	// draw Create Game text
 	gr_string(Mc_create_game_text[gr_screen.res][MC_X_COORD], Mc_create_game_text[gr_screen.res][MC_Y_COORD], XSTR("Create Game", 1268));
 
@@ -4139,6 +4354,7 @@ void multi_create_game_do()
 
 	// draw players text
 	gr_string(Mc_team_text[gr_screen.res][MC_X_COORD], Mc_team_text[gr_screen.res][MC_Y_COORD], XSTR("Team", 1258));
+#endif
 
 	// process and display the player list	
 	// NOTE : this must be done before the buttons are checked to insure that a player hasn't dropped 
@@ -4299,13 +4515,17 @@ void multi_create_button_pressed(int n)
 	// scroll the game/campaign list up
 	case MC_SCROLL_LIST_UP:
 		multi_create_list_scroll_up();
+#ifndef MAKE_FS1
 		Multi_create_slider.forceUp();	// move slider up
+#endif
 		break;
 
 	// scroll the game/campaign list down
 	case MC_SCROLL_LIST_DOWN:
 		multi_create_list_scroll_down();
+#ifndef MAKE_FS1
 		Multi_create_slider.forceDown();	// move slider down
+#endif
 		break;
 
 	// go to the options screen
@@ -4348,6 +4568,7 @@ void multi_create_button_pressed(int n)
 		break;	
 
 	// show dogfight missions
+#ifndef MAKE_FS1
 	case MC_SHOW_DOGFIGHT:
 		if (Multi_create_filter != MISSION_TYPE_MULTI_DOGFIGHT){
 			gamesnd_play_iface(SND_USER_SELECT);
@@ -4357,6 +4578,7 @@ void multi_create_button_pressed(int n)
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		}
 		break;
+#endif
 
 	// toggle temporary netgame closed on/off
 	case MC_CLOSE:
@@ -4809,7 +5031,9 @@ void multi_create_list_load_missions()
 		}
 	}
 
+#ifndef MAKE_FS1
 	Multi_create_slider.set_numberItems(Multi_create_mission_count > Multi_create_list_max_display[gr_screen.res] ? Multi_create_mission_count-Multi_create_list_max_display[gr_screen.res] : 0);
+#endif
 
 	// maybe create a standalone dialog
 	if(Game_mode & GM_STANDALONE_SERVER){
@@ -5165,6 +5389,17 @@ void multi_create_list_blit_icons(int list_index, int y_start)
 			gr_bitmap(Mc_icon_volition_coords[gr_screen.res][MC_X_COORD],y_start + Mc_icon_volition_coords[gr_screen.res][MC_Y_COORD]);
 		}
 	}	
+
+#ifdef MAKE_FS1
+	// check for mdisk mission
+	fb = game_find_builtin_mission(mcip->filename);
+	if((fb != NULL) && (fb->flags & FSB_FROM_MDISK)){
+		if(Multi_common_icons[MICON_MDISK] >= 0){
+			gr_set_bitmap(Multi_common_icons[MICON_MDISK]);
+			gr_bitmap(Mc_icon_silent_coords[gr_screen.res][MC_X_COORD],y_start + Mc_icon_silent_coords[gr_screen.res][MC_Y_COORD]);
+		}
+	}
+#endif
 }
 
 void multi_create_accept_hit()
@@ -5766,6 +6001,29 @@ int Multi_ho_bitmap;														// the background bitmap
 
 ui_button_info Multi_ho_buttons[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_BUTTONS] = {	
 	{ // GR_640
+#ifdef MAKE_FS1
+		// who is allowed to message
+		ui_button_info("MH_00",	13,		157,	-1,	-1,	0),		// highest rank
+		ui_button_info("MH_01",	13,		179,	-1,	-1,	1),		// team/wing leader
+		ui_button_info("MH_02",	13,		200,	-1,	-1,	2),		// any
+		ui_button_info("MH_03",	13,		223,	-1,	-1,	3),		// host
+		
+		// who is allowed to end the mission
+		ui_button_info("MH_09",	13,		273,	-1,	-1,	9),		// highest rank
+		ui_button_info("MH_10",	13,		295,	-1,	-1,	10),		// team/wing leader
+		ui_button_info("MH_11",	13,		317,	-1,	-1,	11),		// any
+		ui_button_info("MH_12",	13,		339,	-1,	-1,	12),		// host		
+
+		// voice on/off button
+		ui_button_info("MH_14",	396,	156,	-1,	-1,	14),	
+		ui_button_info("MH_15",	453,	156,	-1,	-1,	15),	
+
+		// host modifies ships
+		ui_button_info("MH_19",	215,	410,	-1,	-1,	19),	
+
+		// exit
+		ui_button_info("MH_18",	560,	411,	-1,	-1,	18),
+#else
 		// who is allowed to message
 		ui_button_info("MH_00",	3,	160,	46,	166,	0),		// highest rank
 		ui_button_info("MH_01",	3,	179,	46,	185,	1),		// team/wing leader
@@ -5787,6 +6045,7 @@ ui_button_info Multi_ho_buttons[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_BUTTONS] = {
 
 		// exit
 		ui_button_info("MH_14",	572,	428,	580,	414,	14),	
+#endif
 	},
 	{ // GR_1024
 		// who is allowed to message
@@ -5814,6 +6073,8 @@ ui_button_info Multi_ho_buttons[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_BUTTONS] = {
 };
 UI_XSTR Multi_ho_text[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_BUTTONS] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Highest rank",					1280,	46,	166,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[0][MULTI_HO_MSG_RANK].button},
 		{"Team / wing-leader",			1281, 46,	185,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[0][MULTI_HO_MSG_LEADER].button},
 		{"Any",								1282, 46,	203,	UI_XSTR_COLOR_GREEN,	-1, &Multi_ho_buttons[0][MULTI_HO_MSG_ANY].button},
@@ -5826,8 +6087,11 @@ UI_XSTR Multi_ho_text[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_BUTTONS] = {
 		{"Off",								1286,	604,	185,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[0][MULTI_HO_VOICE_OFF].button},
 		{"Host modifies ships",			1287,	437,	363,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[0][MULTI_HO_HOST_MODIFIES].button},
 		{"Exit",								1417,	572,	418,	UI_XSTR_COLOR_PINK,	-1, &Multi_ho_buttons[0][MULTI_HO_ACCEPT].button},
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{"Highest rank",					1280,	62,	269,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[1][MULTI_HO_MSG_RANK].button},
 		{"Team / wing-leader",			1281, 62,	297,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[1][MULTI_HO_MSG_LEADER].button},
 		{"Any",								1282, 62,	325,	UI_XSTR_COLOR_GREEN,	-1, &Multi_ho_buttons[1][MULTI_HO_MSG_ANY].button},
@@ -5840,6 +6104,7 @@ UI_XSTR Multi_ho_text[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_BUTTONS] = {
 		{"Off",								1286,	967,	293,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[1][MULTI_HO_VOICE_OFF].button},
 		{"Host modifies ships",			1287,	869,	589,	UI_XSTR_COLOR_GREEN, -1, &Multi_ho_buttons[1][MULTI_HO_HOST_MODIFIES].button},
 		{"Exit",								1417,	953,	672,	UI_XSTR_COLOR_PINK,	-1, &Multi_ho_buttons[1][MULTI_HO_ACCEPT].button},
+#endif
 	}
 };
 
@@ -5882,9 +6147,15 @@ struct ho_sliders {
 };
 ho_sliders Multi_ho_sliders[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_SLIDERS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ho_sliders("MH_16",	396,	210,	-1,	-1,	16,	19,	10),			// voice qos
+		ho_sliders("MH_17",	396,	263,	-1,	-1,	17,	19,	10),			// voice duration
+		ho_sliders("MH_13",	10,		387,	-1,	-1,	13,	36,	5),				// skill level
+#else
 		ho_sliders("MH_11",	428,	214,	437,	199,	11,	19,	10),			// voice qos
 		ho_sliders("MH_12",	428,	261,	437,	246,	12,	19,	10),			// voice duration
 		ho_sliders("MH_08",	237,	454,	230,	411,	8,		36,	5),			// skill level
+#endif
 	},
 	{ // GR_1024		
 		ho_sliders("2_MH_11",	684,	343,	690,	323,	11,	32,	10),			// voice qos
@@ -5903,9 +6174,15 @@ int Multi_ho_lastframe_input = 0;
 // game information text areas
 
 // ho titles
+#ifdef MAKE_FS1
+#define MULTI_HO_NUM_TITLES					0
+#else
 #define MULTI_HO_NUM_TITLES					14
+#endif
 UI_XSTR Multi_ho_titles[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_TITLES] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "AI Orders",				1289,		32,	144, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "End Mission",			1290,		32,	242, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Time Limit",			1291,		32,	347, UI_XSTR_COLOR_GREEN, -1, NULL },
@@ -5920,8 +6197,11 @@ UI_XSTR Multi_ho_titles[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_TITLES] = {
 		{ "sec",						1522,		523,	292, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "sec",						1523,		523,	332, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "Voice Wait",			1298,		437,	313, UI_XSTR_COLOR_GREEN, -1, NULL },
+#endif
 	},
 	{ // GR_1024		
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "AI Orders",				1289,		48,	238, UI_XSTR_COLOR_GREEN, -1, NULL },		
 		{ "End Mission",			1290,		48,	394, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Time Limit",			1291,		50,	568, UI_XSTR_COLOR_GREEN, -1, NULL },
@@ -5936,13 +6216,18 @@ UI_XSTR Multi_ho_titles[GR_NUM_RESOLUTIONS][MULTI_HO_NUM_TITLES] = {
 		{ "sec",						1522,		837,	467, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "sec",						1523,		837,	534, UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Voice Wait",			1298,		742,	510, UI_XSTR_COLOR_GREEN, -1, NULL },
+#endif
 	}
 };
 
 // mission time limit input box
 int Ho_time_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		217, 239, 41, 9
+#else
 		36, 362, 36, 17
+#endif
 	},
 	{ // GR_1024
 		58, 581, 57, 27
@@ -5952,7 +6237,11 @@ int Ho_time_coords[GR_NUM_RESOLUTIONS][4] = {
 // furball kill limit input box
 int Ho_kill_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		217, 364, 70, 9
+#else
 		36, 425, 45, 17
+#endif
 	},
 	{ // GR_1024
 		58, 684, 72, 27
@@ -5962,7 +6251,11 @@ int Ho_kill_coords[GR_NUM_RESOLUTIONS][4] = {
 // voice recording duration text display area
 int Ho_vd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		419, 300, 39, 9
+#else
 		467, 292, 55, 15
+#endif
 	},
 	{ // GR_1024
 		750, 467, 85, 28
@@ -5972,7 +6265,11 @@ int Ho_vd_coords[GR_NUM_RESOLUTIONS][4] = {
 // voice token wait input box
 int Ho_vw_coords[GR_NUM_RESOLUTIONS][6] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		419, 366, 39, 9
+#else
 		467, 332, 55, 15
+#endif
 	},
 	{ // GR_1024
 		750, 534, 85, 28
@@ -5982,7 +6279,11 @@ int Ho_vw_coords[GR_NUM_RESOLUTIONS][6] = {
 // observer count input box
 int Ho_obs_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		217, 176, 70, 9
+#else
 		36, 457, 45, 17
+#endif
 	},
 	{ // GR_1024
 		58, 733, 72, 27
@@ -5992,7 +6293,11 @@ int Ho_obs_coords[GR_NUM_RESOLUTIONS][4] = {
 // skill text description area
 int Ho_st_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		40, 426, 167, 9
+#else
 		249, 435, 172, 10
+#endif
 	},
 	{ // GR_1024
 		403, 699, 172, 10
@@ -6002,7 +6307,11 @@ int Ho_st_coords[GR_NUM_RESOLUTIONS][4] = {
 // respawn input box
 int Ho_rsp_coords[GR_NUM_RESOLUTIONS][6] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		217, 301, 70, 9,
+#else
 		36, 394, 45, 17, 
+#endif
 	},
 	{ // GR_1024
 		58, 632, 72, 27
@@ -6012,7 +6321,11 @@ int Ho_rsp_coords[GR_NUM_RESOLUTIONS][6] = {
 // respawn max text area
 int Ho_max_rsp_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		305, 301
+#else
 		150, 378
+#endif
 	},
 	{ // GR_1024
 		190, 618
@@ -6074,7 +6387,9 @@ void multi_host_options_init()
 		Multi_ho_buttons[gr_screen.res][idx].button.link_hotspot(Multi_ho_buttons[gr_screen.res][idx].hotspot);
 
 		// add xstr text
+#ifndef MAKE_FS1
 		Multi_ho_window.add_XSTR(&Multi_ho_text[gr_screen.res][idx]);
+#endif
 	}		
 
 	// create misc text
@@ -6788,10 +7103,16 @@ ui_button_info Multi_jw_buttons[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_BUTTONS] = {
 	}
 };
 
+#ifdef MAKE_FS1
+#define MULTI_JW_NUM_TEXT			0
+#else
 #define MULTI_JW_NUM_TEXT			7
+#endif
 
 UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Team 1",				1308,		20,	272,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[0][MJW_TEAM0].button },
 		{ "Team 2",				1309,		73,	272,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[0][MJW_TEAM1].button },
 		{ "Pilot",				1310,		134,	272,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[0][MJW_PILOT_INFO].button },
@@ -6799,8 +7120,11 @@ UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 		{ "Cancel",				387,		570,	414,	UI_XSTR_COLOR_PINK, -1, &Multi_jw_buttons[0][MJW_CANCEL].button },
 		{ "Players",			1269,		38,	8,		UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Choose Team",		1312,		27,	231,	UI_XSTR_COLOR_GREEN, -1, NULL },
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Team 1",				1308,		47,	435,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[1][MJW_TEAM0].button },
 		{ "Team 2",				1309,		133,	435,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[1][MJW_TEAM1].button },
 		{ "Pilot",				1310,		225,	435,	UI_XSTR_COLOR_GREEN, -1, &Multi_jw_buttons[1][MJW_PILOT_INFO].button },
@@ -6808,6 +7132,7 @@ UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 		{ "Cancel",				387,		931,	667,	UI_XSTR_COLOR_PINK, -1, &Multi_jw_buttons[1][MJW_CANCEL].button },
 		{ "Players",			1269,		165,	12,	UI_XSTR_COLOR_GREEN, -1, NULL },
 		{ "Choose Team",		1312,		45,	373,	UI_XSTR_COLOR_GREEN, -1, NULL },
+#endif
 	}
 };
 
@@ -7487,11 +7812,19 @@ int Multi_sync_bitmap;														// the background bitmap
 #define MS_LAUNCH								4
 ui_button_info Multi_sync_buttons[GR_NUM_RESOLUTIONS][MULTI_SYNC_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("MS_00",		0,		396,	-1,	-1,	0),
+		ui_button_info("MS_01",		0,		435,	-1,	-1,	1),
+		ui_button_info("MS_02",		496,	411,	-1,	-1,	2),
+		ui_button_info("MS_04",		436,	403,	-1,	-1,	4),
+		ui_button_info("MS_03",		556,	398,	-1,	-1,	3),
+#else
 		ui_button_info("MS_00",		1,		404,	-1,	-1,	0),
 		ui_button_info("MS_01",		1,		446,	-1,	-1,	1),
 		ui_button_info("MS_03",		518,	426,	519,	416,	3),
 		ui_button_info("MS_02",		469,	426,	479,	416,	2),		
 		ui_button_info("MS_04",		571,	420,	577,	416,	4),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_MS_00",		2,		647,	-1,	-1,	0),
@@ -7503,23 +7836,33 @@ ui_button_info Multi_sync_buttons[GR_NUM_RESOLUTIONS][MULTI_SYNC_NUM_BUTTONS] = 
 };
 
 // text
+#ifdef MAKE_FS1
+#define MULTI_SYNC_NUM_TEXT				0
+#else
 #define MULTI_SYNC_NUM_TEXT				5
+#endif
 #define MST_KICK								0
 #define MST_LAUNCH							2
 UI_XSTR Multi_sync_text[GR_NUM_RESOLUTIONS][MULTI_SYNC_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Kick",		1266,		479,	416,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[0][MS_KICK].button },
 		{ "Cancel",		387,		519,	416,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[0][MS_CANCEL].button },
 		{ "Launch",		801,		577,	416,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[0][MS_LAUNCH].button },
 		{ "Players",	1269,		23,	133,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "Status",		1304,		228,	133,	UI_XSTR_COLOR_GREEN,	-1, NULL }
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Kick",		1266,		766,	667,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[1][MS_KICK].button },
 		{ "Cancel",		387,		831,	667,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[1][MS_CANCEL].button },
 		{ "Launch",		801,		924,	667,	UI_XSTR_COLOR_PINK,	-1, &Multi_sync_buttons[1][MS_LAUNCH].button },
 		{ "Players",	1269,		38,	214,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "Status",		1304,		366,	214,	UI_XSTR_COLOR_GREEN,	-1, NULL }
+#endif
 	}
 };
 
@@ -8780,8 +9123,10 @@ void multi_sync_create_launch_button()
 		// hotkey
 		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
 
+#ifndef MAKE_FS1
 		// create the text for the button
 		Multi_sync_window.add_XSTR(&Multi_sync_text[gr_screen.res][MST_LAUNCH]);
+#endif
 
 		// increment the button count so we start checking this one
 		Multi_sync_button_count++;
@@ -9279,7 +9624,11 @@ static char *Multi_pwd_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 // password area defs
 int Mpwd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		147, 114, 343, 13
+#else
 		134, 112, 367, 15
+#endif
 	},
 	{ // GR_1024
 		215, 190, 587, 24
@@ -9296,8 +9645,13 @@ int Multi_passwd_running = 0;
 // password buttons
 ui_button_info Multi_pwd_buttons[GR_NUM_RESOLUTIONS][MULTI_PWD_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("PWB_00",	402,	134,	-1,	-1,	0),
+		ui_button_info("PWB_01",	450,	134,	-1,	-1,	1),
+#else
 		ui_button_info("PWB_00",	411,	151,	405,	141,	0),
 		ui_button_info("PWB_01",	460,	151,	465,	141,	1),
+#endif
 	}, 
 	{ // GR_1024
 		ui_button_info("2_PWB_00",	659,	242,	649,	225,	0),
@@ -9306,17 +9660,27 @@ ui_button_info Multi_pwd_buttons[GR_NUM_RESOLUTIONS][MULTI_PWD_NUM_BUTTONS] = {
 };
 
 // text
+#ifdef MAKE_FS1
+#define MULTI_PWD_NUM_TEXT				0
+#else
 #define MULTI_PWD_NUM_TEXT				3
+#endif
 UI_XSTR Multi_pwd_text[GR_NUM_RESOLUTIONS][MULTI_PWD_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Cancel",			387,	400,	141,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[0][MPWD_CANCEL].button},
 		{ "Commit",			1062,	455,	141,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[0][MPWD_COMMIT].button},
 		{ "Enter Password",	1332,	149,	92,	UI_XSTR_COLOR_GREEN, -1,	NULL},
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Cancel",			387,	649,	225,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[1][MPWD_CANCEL].button},
 		{ "Commit",			1062,	736,	225,	UI_XSTR_COLOR_GREEN, -1,	&Multi_pwd_buttons[1][MPWD_COMMIT].button},
 		{ "Enter Password",	1332,	239,	148,	UI_XSTR_COLOR_GREEN, -1,	NULL},
+#endif
 	}
 };
 

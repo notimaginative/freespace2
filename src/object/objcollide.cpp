@@ -16,6 +16,9 @@
  * Also keeps track of all the object pairs.
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -243,7 +246,7 @@
 #include "multi.h"
 #include "beam.h"
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_PAIRS 3000
 #else
 	#define MAX_PAIRS 8000	//	Reduced from 10,000 to 6,000 by MK on 4/1/98.

@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -80,6 +83,9 @@ typedef struct medal_stuff {
 
 typedef struct badge_stuff {
 	char voice_base[MAX_FILENAME_LEN + 1];
+#ifdef MAKE_FS1
+	char voice_base2[MAX_FILENAME_LEN + 1];
+#endif
 	char *promotion_text;
 } badge_stuff;
 
@@ -104,7 +110,11 @@ void medal_main_close();
 void init_medal_bitmaps();
 void init_snazzy_regions();
 void blit_medals();
+#ifdef MAKE_FS1
+void blit_label(char *label,int *coordsx,int *coordsy);
+#else
 void blit_label(char *label,int *coords);
+#endif
 void blit_callsign();
 
 // individual medals 

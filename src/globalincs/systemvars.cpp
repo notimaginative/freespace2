@@ -15,6 +15,9 @@
  * Variables and constants common to FreeSpace and Fred.
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -553,6 +556,9 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		0,			//	targetview_model;			// 0=off, 1=on		
 		0,			//	planets_suns;				// 0=off, 1=on		
 		0,			// weapon_extras
+#ifdef MAKE_FS1
+		0,			// engine_glows;
+#endif
 	},
 	{				// Medium
 		1,			// setting
@@ -570,6 +576,9 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		1,			//	targetview_model;			// 0=off, 1=on		
 		1,			//	planets_suns;				// 0=off, 1=on
 		1,			// weapon extras				
+#ifdef MAKE_FS1
+		1,			// engine_glows;
+#endif
 	},
 	{				// High level
 		2,			// setting
@@ -587,6 +596,9 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		1,			//	targetview_model;			// 0=off, 1=on		
 		1,			//	planets_suns;				// 0=off, 1=on
 		1,			// weapon_extras
+#ifdef MAKE_FS1
+		1,			// engine_glows;
+#endif
 	},
 	{				// Highest level
 		3,			// setting
@@ -604,6 +616,9 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		1,			//	targetview_model;			// 0=off, 1=on		
 		1,			//	planets_suns;				// 0=off, 1=on
 		1,			// weapon_extras
+#ifdef MAKE_FS1
+		1,			// engine_glows;
+#endif
 	},
 };
 

@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -401,7 +404,7 @@ typedef struct weapon {
 } weapon;
 
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_WEAPONS	100
 #else
 	// upped 5/6/98 from 200 - DB

@@ -15,6 +15,9 @@
  * C module that controls missile locking
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -325,7 +328,11 @@ float Lock_triangle_height[GR_NUM_RESOLUTIONS] = {
 };
 
 int Lock_gauge_half_w[GR_NUM_RESOLUTIONS] = {
-	17,
+#ifdef MAKE_FS1
+	15,
+#else
+	17,	
+#endif
 	28
 };
 int Lock_gauge_half_h[GR_NUM_RESOLUTIONS] = {
@@ -341,11 +348,19 @@ int Lock_gauge_draw_stamp = -1;
 #define LOCK_GAUGE_BLINK_RATE			5			// blinks/sec
 
 int Lockspin_half_w[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	16,
+#else
 	31,
+#endif
 	50
 };
 int Lockspin_half_h[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	16,
+#else
 	32, 
+#endif
 	52
 };
 hud_anim	Lock_anim;
@@ -835,7 +850,12 @@ void hud_draw_lock_triangles(int center_x, int center_y, float frametime)
 
 		// if its still animating
 		if(Lock_anim.time_elapsed < Lock_anim.total_time){
+#ifdef MAKE_FS1
+			// loop it
+			hud_anim_render(&Lock_anim, frametime, 1, 1, 0);
+#else
 			hud_anim_render(&Lock_anim, frametime, 1, 0, 1);
+#endif
 		} else {
 			// if the timestamp is unset or expired
 			if((Lock_gauge_draw_stamp < 0) || timestamp_elapsed(Lock_gauge_draw_stamp)){
@@ -849,7 +869,12 @@ void hud_draw_lock_triangles(int center_x, int center_y, float frametime)
 			// maybe draw the anim
 			Lock_gauge.time_elapsed = 0.0f;			
 			if(Lock_gauge_draw){
+#ifdef MAKE_FS1
+				// loop it
+				hud_anim_render(&Lock_anim, frametime, 1, 1, 0);
+#else
 				hud_anim_render(&Lock_anim, frametime, 1, 0, 1);
+#endif
 			}			
 		}		
 	}

@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2003/01/30 19:55:33  relnev
  * remove second bmpman.h include (Taylor Richards)
  *
@@ -321,7 +324,11 @@
 
 static int Brief_goals_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		68, 138, 504, 208
+#else
 		65,152,508,211		// GR_640
+#endif
 	},
 	{
 		104,243,813,332		// GR_1024
@@ -366,7 +373,11 @@ static int Closeup_coords[GR_NUM_RESOLUTIONS][4] = {
 
 static int Brief_infobox_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		0, 397
+#else
 		0, 391
+#endif
 	},
 	{ // GR_1024
 		0, 627
@@ -384,7 +395,11 @@ static char *Brief_filename[GR_NUM_RESOLUTIONS] = {
 };
 
 static char *Brief_multi_filename[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	"Brief",	// use the standard bitmap and slap the chatbox on later
+#else
 	"BriefMulti",
+#endif
 	"2_BriefMulti"
 };
 
@@ -400,8 +415,13 @@ static char *Brief_multi_mask_filename[GR_NUM_RESOLUTIONS] = {
 
 
 static char *Brief_win_filename[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	"mapwin",
+	"mapwin"
+#else
 	"Briefwin",
 	"2_Briefwin"
+#endif
 };
 
 // coordinate inidices
@@ -501,6 +521,13 @@ int	Brief_text_bitmap = -1;
 int	Brief_multitext_bitmap = -1;
 int	Brief_background_bitmap =-1;
 
+#ifdef MAKE_FS1
+	static int MapWin01 = -1;
+	static int MapWin02 = -1;
+	static int MapWin03 = -1;
+	static int MapWin04 = -1;
+#endif
+
 UI_WINDOW Brief_ui_window;
 
 // Briefing specific buttons
@@ -508,6 +535,18 @@ UI_WINDOW Brief_ui_window;
 
 brief_buttons	Brief_buttons[GR_NUM_RESOLUTIONS][NUM_BRIEF_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		brief_buttons("BRB_08",		356,	351,	-1,	-1,	8),		// vcr - fastforward
+		brief_buttons("BRB_09",		331,	351,	-1,	-1,	9),		// vcr - play forwards
+		brief_buttons("BRB_10",		277,	351,	-1,	-1,	10),	// vcr - play backwards
+		brief_buttons("BRB_11",		253,	351,	-1,	-1,	11),	// vcr - reverse
+		brief_buttons("BRB_12",		0,		400,	-1,	-1,	12),	// scroll up
+		brief_buttons("BRB_13",		0,		442,	-1,	-1,	13),	// scroll down
+		brief_buttons("BRB_15",		562,	0,		-1,	-1,	15),	// skip training
+		brief_buttons("BRB_16",		304,	351,	-1,	-1,	16),	// vcr - pause
+		brief_buttons("TSB_34",		601,	344,	-1,	-1,	50),	// multi lock
+		brief_buttons("BRB_15",		562,	0,		-1,	-1,	15)		// exit loop
+#else
 		brief_buttons("BRB_08",		110,	116,	117,	157,	8),
 		brief_buttons("BRB_09",		84,	116,	117,	157,	9),
 		brief_buttons("BRB_10",		29,	116,	117,	157,	10),
@@ -518,6 +557,7 @@ brief_buttons	Brief_buttons[GR_NUM_RESOLUTIONS][NUM_BRIEF_BUTTONS] = {
 		brief_buttons("BRB_16",		56,	116,	117,	157,	16),
 		brief_buttons("TSB_34",		603,	374,	117,	157,	34),	
 		brief_buttons("BRB_15",		562,	0,		117,	157,	15)			// exit loop	
+#endif
 	}, 
 	{ // GR_1024
 		brief_buttons("2_BRB_08",		175,	187,	117,	157,	8),
@@ -534,30 +574,48 @@ brief_buttons	Brief_buttons[GR_NUM_RESOLUTIONS][NUM_BRIEF_BUTTONS] = {
 };
 
 // briefing UI
-#define BRIEF_SELECT_NUM_TEXT			3
+#ifdef MAKE_FS1
+	#define BRIEF_SELECT_NUM_TEXT			0
+#else
+	#define BRIEF_SELECT_NUM_TEXT			3
+#endif
 UI_XSTR Brief_select_text[GR_NUM_RESOLUTIONS][BRIEF_SELECT_NUM_TEXT] = {
 	{ // GR_640
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{ "Lock",				1270,	602,	364,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[0][BRIEF_BUTTON_MULTI_LOCK].button },
 		{ "Skip Training",	1442,	467,	7,		UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[0][BRIEF_BUTTON_SKIP_TRAINING].button },
 		{ "Exit Loop",			1477,	490,	7,		UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[0][BRIEF_BUTTON_EXIT_LOOP].button }
+#endif
 	}, 
 	{ // GR_1024
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{ "Lock",				1270,	964,	584,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[1][BRIEF_BUTTON_MULTI_LOCK].button },
 		{ "Skip Training",	1442,	805,	12,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[1][BRIEF_BUTTON_SKIP_TRAINING].button },
 		{ "Exit Loop",			1477,	830,	12,	UI_XSTR_COLOR_GREEN, -1, &Brief_buttons[1][BRIEF_BUTTON_EXIT_LOOP].button }
+#endif
 	}
 };
 
 // coordinates for briefing title -- the x value is for the RIGHT side of the text
 static int Title_coords[GR_NUM_RESOLUTIONS][2] = {
+#ifdef MAKE_FS1
+	{577, 387},
+#else
 	{575, 117},		// GR_640
+#endif
 	{918, 194}		// GR_1024
 };
 
 // coordinates for briefing title in multiplayer briefings -- the x value is for the LEFT side of the text
 // third coord is max width of area for it to fit into (it is force fit there)
 static int Title_coords_multi[GR_NUM_RESOLUTIONS][3] = {
+#ifdef MAKE_FS1
+	{577, 387, 190},
+#else
 	{1, 105, 190},		// GR_640
+#endif
 	{1, 174, 304}		// GR_1024
 };
 
@@ -622,7 +680,7 @@ void brief_skip_training_pressed()
 	}
 }
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	extern void demo_reset_trailer_timer();
 #endif
 // --------------------------------------------------------------------------------------
@@ -638,7 +696,7 @@ void brief_do_next_pressed(int play_sound)
 		return;
 	}
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	demo_reset_trailer_timer();
 #endif
 
@@ -987,6 +1045,13 @@ void brief_load_bitmaps()
 	if ( Closeup_bitmap == -1 ) {
 		Closeup_bitmap = bm_load(Closeup_background_filename[gr_screen.res]);
 	}
+
+#ifdef MAKE_FS1
+	MapWin01 = bm_load(NOX("MapWin01"));
+	MapWin02 = bm_load(NOX("MapWin02"));
+	MapWin03 = bm_load(NOX("MapWin03"));
+	MapWin04 = bm_load(NOX("MapWin04"));
+#endif
 }
 
 // --------------------------------------------------------------------------------------
@@ -1103,7 +1168,7 @@ void brief_init()
 {
 	// Since first stage of briefing can take some time to arrive and play, 
 	// reset the trailer timer on briefing init.
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	demo_reset_trailer_timer();
 #endif
 
@@ -1161,7 +1226,7 @@ void brief_init()
 	// init the scene-cut data
 	brief_transition_reset();
 
-#ifndef FS2_DEMO	
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	hud_anim_init(&Fade_anim, Brief_static_coords[gr_screen.res][0], Brief_static_coords[gr_screen.res][1], Brief_static_name[gr_screen.res]);
 	hud_anim_load(&Fade_anim);
 #endif
@@ -1194,8 +1259,10 @@ void brief_init()
 	Num_briefing_regions = 0;
 
 	snazzy_menu_add_region(&Briefing_select_region[Num_briefing_regions++], "",	COMMON_BRIEFING_REGION,				0);
+#ifndef FS1_DEMO  // not available in demo
 	snazzy_menu_add_region(&Briefing_select_region[Num_briefing_regions++], "",	COMMON_SS_REGION,						0);
 	snazzy_menu_add_region(&Briefing_select_region[Num_briefing_regions++], "",	COMMON_WEAPON_REGION,				0);
+#endif
 	snazzy_menu_add_region(&Briefing_select_region[Num_briefing_regions++], "",	COMMON_COMMIT_REGION,				0);
 	snazzy_menu_add_region(&Briefing_select_region[Num_briefing_regions++], "",	COMMON_HELP_REGION,					0);
 	snazzy_menu_add_region(&Briefing_select_region[Num_briefing_regions++], "",	COMMON_OPTIONS_REGION,				0);
@@ -1425,6 +1492,28 @@ void brief_render(float frametime)
 
 	brief_maybe_blit_scene_cut(frametime);	
 
+#ifdef MAKE_FS1
+	if (MapWin01 != -1) {
+		gr_set_bitmap(MapWin01);
+		gr_bitmap(63, 122);
+	}
+
+	if (MapWin02 != -1) {
+		gr_set_bitmap(MapWin02);
+		gr_bitmap(575, 122);
+	}
+
+	if (MapWin03 != -1) {
+		gr_set_bitmap(MapWin03);
+		gr_bitmap(63, 350);
+	}
+
+	if (MapWin04 != -1) {
+		gr_set_bitmap(MapWin04);
+		gr_bitmap(42, 122);
+	}
+#endif
+
 #if !defined(NDEBUG) || defined(INTERPLAYQA)
 	gr_set_color_fast(&Color_normal);
 	int title_y_offset = (Game_mode & GM_MULTIPLAYER) ? 20 : 10;
@@ -1432,12 +1521,22 @@ void brief_render(float frametime)
 #endif
 
 	// output mission title
+#ifndef MAKE_FS1
 	gr_set_color_fast(&Color_bright_white);
+#else
+	gr_set_color_fast(&Color_bright_blue);
+#endif
 	if (Game_mode & GM_MULTIPLAYER) {
 		char buf[256];
 		strncpy(buf, The_mission.name, 256);
 		gr_force_fit_string(buf, 255, Title_coords_multi[gr_screen.res][2]);
+#ifdef MAKE_FS1
+		// align from the end of the string instead of the beginning
+		gr_get_string_size(&w, NULL, buf);
+		gr_string(Title_coords_multi[gr_screen.res][0] - w, Title_coords_multi[gr_screen.res][1], buf);
+#else
 		gr_string(Title_coords_multi[gr_screen.res][0], Title_coords_multi[gr_screen.res][1], buf);
+#endif
 	} else {
 		gr_get_string_size(&w, NULL, The_mission.name);
 		gr_string(Title_coords[gr_screen.res][0] - w, Title_coords[gr_screen.res][1], The_mission.name);
@@ -1524,7 +1623,7 @@ int brief_setup_closeup(brief_icon *bi)
 		*/
 		break;
 	case ICON_ASTEROID_FIELD:
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		strcpy(pof_filename, Asteroid_info[ASTEROID_TYPE_BIG].pof_files[0]);
 		strcpy(Closeup_icon->closeup_label, XSTR( "asteroid", 431));
 		vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -334.0f);
@@ -1699,7 +1798,7 @@ void brief_maybe_flash_button()
 		if ( Current_brief_stage == (Num_brief_stages-1) ) {
 
 			// AL 4-4-98: Don't flash ship selection button on briefing in demo build
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 				return;
 #else
 			// AL 30-3-98: Don't flash ship selection button if in a training mission, 
@@ -2073,6 +2172,28 @@ void brief_unload_bitmaps()
 		Brief_background_bitmap = -1;
 	}
 
+#ifdef MAKE_FS1
+	if (MapWin01 != -1){
+		bm_unload(MapWin01);
+		MapWin01 = -1;
+	}
+
+	if (MapWin02 != -1){
+		bm_unload(MapWin02);
+		MapWin02 = -1;
+	}
+
+	if (MapWin03 != -1){
+		bm_unload(MapWin03);
+		MapWin03 = -1;
+	}
+
+	if (MapWin04 != -1){
+		bm_unload(MapWin04);
+		MapWin04 = -1;
+	}
+#endif
+
 	help_overlay_unload(BR_OVERLAY);
 }
 
@@ -2094,7 +2215,7 @@ void brief_close()
 	// unload the audio streams used for voice playback
 	brief_voice_unload_all();
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	hud_anim_release(&Fade_anim);
 #endif
 
@@ -2102,6 +2223,11 @@ void brief_close()
 	bm_unlock(BriefingMaskBitmap);
 
 	Brief_ui_window.destroy();
+
+#ifdef MAKE_FS1
+	// restore palette
+	common_free_interface_palette();
+#endif
 
 	// unload the bitmaps
 	brief_unload_bitmaps();
@@ -2152,7 +2278,7 @@ void brief_maybe_blit_scene_cut(float frametime)
 {
 	if ( Start_fade_up_anim ) {
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 		Fade_anim.time_elapsed = 0.0f;
 		Start_fade_up_anim = 0;
 		Start_fade_down_anim = 1;
@@ -2205,7 +2331,7 @@ void brief_maybe_blit_scene_cut(float frametime)
 	Fade_down_anim_start:
 	if ( Start_fade_down_anim ) {
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 		Fade_anim.time_elapsed = 0.0f;
 		Start_fade_up_anim = 0;
 		Start_fade_down_anim = 0;

@@ -15,6 +15,9 @@
  * Routines to read and deal with keyboard input.
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/07/28 05:05:08  relnev
  * removed some old stuff
  *
@@ -339,6 +342,7 @@
 #include "missionmessage.h"
 #include "mainhallmenu.h"
 #include "aigoals.h"
+#include "localize.h"
 
 // --------------------------------------------------------------
 // Global to file 
@@ -360,8 +364,12 @@ typedef	struct asteroid_field {
 
 char CheatBuffer[CHEAT_BUFFER_LEN+1];
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO)
 	char *Cheat_code_demo = NOX("33BE^(8]C01(:=BHt");
+#elif defined(MAKE_FS1)
+	char *Cheat_code_gr = NOX("BNdEgDB\\s?0XD1?0)");		// de:www.volition-inc.com
+	char *Cheat_code = NOX("E5B?(\"=H'5UTE$o%D");			// www.volition-inc.com
+	char *Cheat_code_movies = NOX("iC:1C06,'00SoXyY6");		// freespacestandsalone
 #else
 	char *Cheat_code = NOX("33BE^(8]C01(:=BHt");					// www.freespace2.com
 	char *Cheat_code_fish = NOX("bDc9y+$;#AIDRoouM");			// vasudanswuvfishes
@@ -983,7 +991,9 @@ void process_debug_keys(int k)
 			break;
 
 		case KEY_DEBUGGED + KEY_O:
-		// case KEY_DEBUGGED1 + KEY_O:
+#ifdef MAKE_FS1
+		case KEY_DEBUGGED1 + KEY_O:
+#endif
 			toggle_player_object();
 			break;				
 
@@ -1028,17 +1038,23 @@ void process_debug_keys(int k)
 			break;
 
 		case KEY_DEBUGGED + KEY_G:
-		// case KEY_DEBUGGED1 + KEY_G:
+#ifdef MAKE_FS1
+		case KEY_DEBUGGED1 + KEY_G:
+#endif
 			mission_goal_mark_all_true( PRIMARY_GOAL );
 			break;
 
 		case KEY_DEBUGGED + KEY_G + KEY_SHIFTED:
-		// case KEY_DEBUGGED1 + KEY_G + KEY_SHIFTED:
+#ifdef MAKE_FS1
+		case KEY_DEBUGGED1 + KEY_G + KEY_SHIFTED:
+#endif
 			mission_goal_mark_all_true( SECONDARY_GOAL );
 			break;
 
 		case KEY_DEBUGGED + KEY_G + KEY_ALTED:
-		// case KEY_DEBUGGED1 + KEY_G + KEY_ALTED:
+#ifdef MAKE_FS1
+		case KEY_DEBUGGED1 + KEY_G + KEY_ALTED:
+#endif
 			mission_goal_mark_all_true( BONUS_GOAL );
 			break;
 
@@ -1055,7 +1071,7 @@ void process_debug_keys(int k)
 			break;
 		}
 
-			/*
+#ifdef MAKE_FS1
 		case KEY_DEBUGGED + KEY_SHIFTED + KEY_9: {
 		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_9:
 			ship* shipp;
@@ -1068,9 +1084,9 @@ void process_debug_keys(int k)
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Secondary Weapon forced to %s", 18), Weapon_info[shipp->weapons.secondary_bank_weapons[shipp->weapons.current_secondary_bank]].name);
 			break;
 		}
-		*/
+#endif
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		case KEY_DEBUGGED + KEY_U: {
 		case KEY_DEBUGGED1 + KEY_U:
 			// launch asteroid
@@ -1260,9 +1276,11 @@ void process_debug_keys(int k)
 		case KEY_DEBUGGED + KEY_SHIFTED + KEY_8:
 			beam_test(8);
 			break;		
+#ifndef MAKE_FS1
 		case KEY_DEBUGGED + KEY_SHIFTED + KEY_9:
 			beam_test(9);
 			break;				
+#endif
 
 		case KEY_DEBUGGED + KEY_CTRLED + KEY_1:
 			beam_test_new(1);
@@ -1358,7 +1376,7 @@ void process_debug_keys(int k)
 void ppsk_hotkeys(int k)
 {
 
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 
 	// use k to check for keys that can have Shift,Ctrl,Alt,Del status
 	int hotkey_set;
@@ -1627,7 +1645,7 @@ void game_process_cheats(int k)
 
 	cryptstring=jcrypt(&CheatBuffer[CHEAT_BUFFER_LEN - CRYPT_STRING_LENGTH]);		
 
-#ifdef FS2_DEMO	
+#if defined(FS2_DEMO)
 	if ( !strcmp(Cheat_code_demo, cryptstring) ) {
 		HUD_printf(XSTR( "Cheats enabled.", 31));
 		Cheats_enabled = 1;
@@ -1637,10 +1655,28 @@ void game_process_cheats(int k)
 	}
 	
 #else
+
+#ifdef MAKE_FS1
+	// two possible cheat codes for FS1, German and English
+	if (Lcl_gr) {
+		if( !strcmp(Cheat_code_gr, cryptstring) && !(Game_mode & GM_MULTIPLAYER)){
+			Cheats_enabled = 1;
+			HUD_printf("Cheats enabled");
+		}
+	} else {
+		if( !strcmp(Cheat_code, cryptstring) && !(Game_mode & GM_MULTIPLAYER)){
+			Cheats_enabled = 1;
+			HUD_printf("Cheats enabled");
+		}
+	}
+#else
 	if( !strcmp(Cheat_code, cryptstring) && !(Game_mode & GM_MULTIPLAYER)){
 		Cheats_enabled = 1;
 		HUD_printf("Cheats enabled");
 	}
+#endif
+
+#ifndef MAKE_FS1
 	if( !strcmp(Cheat_code_fish, cryptstring) ){
 		// only enable in the main hall
 		if((gameseq_get_state() == GS_STATE_MAIN_MENU) && (main_hall_id() == 1)){
@@ -1717,8 +1753,20 @@ void game_process_cheats(int k)
 			}
 		}
 	}
+#endif  // !MAKE_FS1
 #endif
-	/*
+
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
+	if ( !strcmp(Cheat_code_movies, cryptstring) ) {
+		HUD_printf(XSTR( "All movies available in Tech Room", 32));
+		All_movies_enabled = 1;
+		if (Player->flags & PLAYER_FLAGS_MSG_MODE){
+			hud_squadmsg_toggle();
+		}
+	}
+#endif
+
+/*
 //#ifdef INTERPLAYQA
 	if ( !strcmp(Cheat_code_in_game, cryptstring) ) {
 		HUD_printf(XSTR( "Cheats enabled.", 31));
@@ -2867,6 +2915,4 @@ void button_strip_noncritical_keys(button_info *bi)
 	for(idx=0;idx<Non_critical_key_set_size;idx++){
 		button_info_unset(bi,Non_critical_key_set[idx]);
 	}
-} 
-
-
+}

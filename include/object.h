@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -324,7 +327,7 @@
  *		CONSTANTS
  */
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_OBJECTS			300		
 #else
 	#define MAX_OBJECTS			1000		

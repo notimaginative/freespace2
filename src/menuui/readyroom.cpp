@@ -15,6 +15,9 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -107,7 +110,11 @@
 
 int Mission_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		82, 108, 409, 277
+#else
 		33, 108, 402, 279
+#endif
 	},
 	{ // GR_1024
 		43, 175, 402, 279
@@ -116,7 +123,11 @@ int Mission_list_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Campaign_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+	    	491, 108, 113, 277
+#else
 		491, 108, 115, 279
+#endif
 	},
 	{ // GR_1024
 		491, 175, 115, 279
@@ -165,6 +176,20 @@ struct sim_room_buttons {
 static sim_room_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 //XSTR:OFF
 	{		// GR_640
+#ifdef MAKE_FS1
+		sim_room_buttons("LMB_04",		7,		135,	-1, -1, 4),		// up arrows
+		sim_room_buttons("LMB_05",		7,		182,	-1, -1, 5),		// down arrows
+		sim_room_buttons("LMB_06",		23,		396,	-1, -1, 6),		// single missions
+		sim_room_buttons("LMB_07",		198,	396,	-1, -1, 7),		// campaign missions
+		sim_room_buttons("LMB_08",		469,	427,	-1, -1, 8),		// help
+		sim_room_buttons("LMB_09",		554,	411,	-1, -1, 9),		// commit
+		sim_room_buttons("LMB_10",		447,	452,	-1,	-1, 10),	// options
+
+		sim_room_buttons("TDB_00",		0,		0,		-1, -1, 0),		// technical database
+		sim_room_buttons("TDB_01",		0,		19,		-1, -1, 1),		// mission simulator
+		sim_room_buttons("TDB_02",		0,		35,		-1, -1, 2),		// cutscenes
+		sim_room_buttons("TDB_03",		0,		56,		-1,	-1,	3),		// credits
+#else
 		sim_room_buttons("LMB_04",		1,		99,	-1,	-1,	4),
 		sim_room_buttons("LMB_05",		1,		381,	-1,	-1,	5),
 		sim_room_buttons("LMB_06",		6,		438,	40,	445,	6),
@@ -177,6 +202,7 @@ static sim_room_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		sim_room_buttons("TDB_01",		7,		18,	37,	23,	1),
 		sim_room_buttons("TDB_02",		7,		34,	37,	38,	2),
 		sim_room_buttons("TDB_03",		7,		49,	37,	54,	3),
+#endif
 	},
 	{		// GR_1024
 		sim_room_buttons("2_LMB_04",	2,		159,	-1,	-1,	4),
@@ -214,17 +240,27 @@ char *Campaign_mask_filename[GR_NUM_RESOLUTIONS] = {
 };
 
 // misc text. ("Mission" and "Filename"
-#define NUM_SIM_MISC_TEXT				2
+#ifdef MAKE_FS1
+	#define NUM_SIM_MISC_TEXT				0
+#else
+	#define NUM_SIM_MISC_TEXT				2
+#endif
 #define SIM_MISC_TEXT_MISSION			0
 #define SIM_MISC_TEXT_FILENAME		1
 int Sim_misc_text_coords[GR_NUM_RESOLUTIONS][NUM_SIM_MISC_TEXT][2] = {
 	{ // GR_640
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{33, 95},
 		{491, 95}
+#endif
 	}, 
 	{ // GR_1024
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{43, 155},
 		{491, 155}
+#endif
 	}
 };
 
@@ -234,6 +270,9 @@ int Sim_misc_text_coords[GR_NUM_RESOLUTIONS][NUM_SIM_MISC_TEXT][2] = {
 #define READYROOM_LINE_MISSION	3
 
 #define READYROOM_FLAG_FROM_VOLITION			(1<<0)			// volition made
+#ifdef MAKE_FS1
+#define READYROOM_FLAG_FROM_MDISK				(1<<1)			// mission disk
+#endif
 static struct {	
 	int type;					// see READYROOM_LINE_* defines above
 	char *name;
@@ -282,24 +321,50 @@ static hash_node *Campaign_mission_hash_table[CAMPAIGN_MISSION_HASH_SIZE];
 static int Hash_table_inited;
 
 // special icons (1.04 + stuff)
+#ifdef MAKE_FS1
+#define NUM_MISSION_ICONS			2
+#else
 #define NUM_MISSION_ICONS			1
+#endif
 #define MISSION_ICON_VOLITION		0				// mini volition death's head :)
+#ifdef MAKE_FS1
+#define MISSION_ICON_MDISK			1				// Silent Threat mini icon
+#endif
 
 // icon offsets (see LIST_ defines above
 //#define MISSION_ICON_VOLITION_X				(46)
 #define MISSION_ICON_VOLITION_Y_OFFSET		(-1)
+#ifdef MAKE_FS1
+#define MISSION_ICON_MDISK_Y_OFFSET			(0)
+#endif
 
 // icon offsets
 static int Sim_volition_icon_x[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	45,
+#else
 	38,
+#endif
 	49
 };
+
+#ifdef MAKE_FS1
+static int Sim_silent_icon_x[GR_NUM_RESOLUTIONS] = {
+	58,
+	58
+};
+#endif
 
 // special icons themselves
 int Mission_icon_bitmaps[NUM_MISSION_ICONS];
 //XSTR:OFF
 char *Mission_icon_bitmap_filenames[NUM_MISSION_ICONS] = {
+#ifdef MAKE_FS1
+	"icon-volition",
+	"icon-silent"
+#else
 	"icon-volition"	
+#endif
 };
 //XSTR:ON
 void sim_room_load_mission_icons();
@@ -548,6 +613,11 @@ int build_standalone_mission_list_do_frame()
 				if((fb != NULL) && (fb->flags & FSB_FROM_VOLITION)){
 					flags |= READYROOM_FLAG_FROM_VOLITION;
 				}				
+#ifdef MAKE_FS1
+				if((fb != NULL) && (fb->flags & FSB_FROM_MDISK)){
+					flags |= READYROOM_FLAG_FROM_MDISK;
+				}
+#endif
 
 				// add the line
 				sim_room_line_add(READYROOM_LINE_MISSION, Standalone_mission_names[Num_standalone_missions_with_info], Mission_filenames[Num_standalone_missions_with_info], list_x1 + M_TEXT_X, y, flags);			
@@ -604,6 +674,12 @@ int build_campaign_mission_list_do_frame()
 			if((fb != NULL) && (fb->flags & FSB_FROM_VOLITION)){
 				flags |= READYROOM_FLAG_FROM_VOLITION;
 			}				
+
+#ifdef MAKE_FS1
+			if((fb != NULL) && (fb->flags & FSB_FROM_MDISK)){
+				flags |= READYROOM_FLAG_FROM_MDISK;
+			}
+#endif
 	
 			sim_room_line_add(READYROOM_LINE_CMISSION, Campaign_mission_names[Num_campaign_missions_with_info], Campaign.missions[Num_campaign_missions_with_info].name, list_x1 + C_SUBTEXT_X, y, flags);
 		}
@@ -648,6 +724,12 @@ void sim_room_build_listing()
 						if((fb != NULL) && (fb->flags & FSB_FROM_VOLITION)){
 							flags |= READYROOM_FLAG_FROM_VOLITION;
 						}
+
+#ifdef MAKE_FS1
+						if((fb != NULL) && (fb->flags & FSB_FROM_MDISK)){
+							flags |= READYROOM_FLAG_FROM_MDISK;
+						}
+#endif
 						
 						sim_room_line_add(READYROOM_LINE_MISSION, Standalone_mission_names[i], Mission_filenames[i], list_x1 + M_TEXT_X, y, flags);
 						y += font_height + 2;
@@ -674,6 +756,12 @@ void sim_room_build_listing()
 					if((fb != NULL) && (fb->flags & FSB_FROM_VOLITION)){
 						flags |= READYROOM_FLAG_FROM_VOLITION;
 					}					
+
+#ifdef MAKE_FS1
+					if((fb != NULL) && (fb->flags & FSB_FROM_MDISK)){
+						flags |= READYROOM_FLAG_FROM_MDISK;
+					}
+#endif
 
 					sim_room_line_add(READYROOM_LINE_CMISSION, Campaign_mission_names[i], Campaign.missions[i].name, list_x1 + C_SUBTEXT_X, y, flags);
 					y += font_height;
@@ -880,7 +968,7 @@ int readyroom_continue_campaign()
 {
 	if (mission_campaign_next_mission()) {  // is campaign and next mission valid?
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 		int reset_campaign = 0;
 		reset_campaign = popup(PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Demo Campaign Is Over.  Would you like to play the campaign again?", 111) );
 		if ( reset_campaign == 1 ) {
@@ -892,7 +980,12 @@ int readyroom_continue_campaign()
 		}
 #else
 		gamesnd_play_iface(SND_GENERAL_FAIL);
+#ifdef MAKE_FS1
+		// make it the bottom button so that the graphic looks right
+		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR( "The campaign is over.  To replay the campaign, either create a new pilot or restart the campaign in the campaign room.", 112) );
+#else
 		popup(0, 1, POPUP_OK, XSTR( "The campaign is over.  To replay the campaign, either create a new pilot or restart the campaign in the campaign room.", 112) );
+#endif
 		return -1;
 #endif
 	}
@@ -1030,6 +1123,7 @@ void sim_room_init()
 		b->button.link_hotspot(b->hotspot);
 	}
 
+#ifndef MAKE_FS1
 	// screen/button specific text
 	Ui_window.add_XSTR("Single Missions", 1060, Buttons[gr_screen.res][MISSION_TAB].xt, Buttons[gr_screen.res][MISSION_TAB].yt, &Buttons[gr_screen.res][MISSION_TAB].button, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Campaign Missions", 1061, Buttons[gr_screen.res][CAMPAIGN_TAB].xt, Buttons[gr_screen.res][CAMPAIGN_TAB].yt, &Buttons[gr_screen.res][CAMPAIGN_TAB].button, UI_XSTR_COLOR_GREEN);
@@ -1046,6 +1140,7 @@ void sim_room_init()
 	// misc text - not associated with any buttons
 	Ui_window.add_XSTR("Mission", 1063, Sim_misc_text_coords[gr_screen.res][SIM_MISC_TEXT_MISSION][0], Sim_misc_text_coords[gr_screen.res][SIM_MISC_TEXT_MISSION][1], NULL, UI_XSTR_COLOR_GREEN);
 	Ui_window.add_XSTR("Filename", 1064, Sim_misc_text_coords[gr_screen.res][SIM_MISC_TEXT_FILENAME][0], Sim_misc_text_coords[gr_screen.res][SIM_MISC_TEXT_FILENAME][1], NULL, UI_XSTR_COLOR_GREEN);
+#endif
 
 	for (i=0; i<LIST_BUTTONS_MAX; i++) {
 		List_buttons[i].create(&Ui_window, "", 0, 0, 60, 30, 0, 1);
@@ -1353,8 +1448,14 @@ void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb, in
 	// determine icon status
 	if(fb == NULL){
 		is_from_volition = (sim_room_lines[line_index].flags & READYROOM_FLAG_FROM_VOLITION) ? 1 : 0;		
+#ifdef MAKE_FS1
+		is_md = (sim_room_lines[line_index].flags & READYROOM_FLAG_FROM_MDISK) ? 1 : 0;
+#endif
 	} else {
 		is_from_volition = (fb->flags & FSB_FROM_VOLITION) ? 1 : 0;		
+#ifdef MAKE_FS1
+		is_md = (fb->flags & FSB_FROM_MDISK) ? 1 : 0;
+#endif
 	}
 
 	// if the line is flagged as a volition file
@@ -1362,12 +1463,23 @@ void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb, in
 		gr_set_bitmap(Mission_icon_bitmaps[MISSION_ICON_VOLITION]);
 		gr_bitmap(Sim_volition_icon_x[gr_screen.res], y_start + MISSION_ICON_VOLITION_Y_OFFSET);
 	}	
+
+#ifdef MAKE_FS1
+	if(is_md && (Mission_icon_bitmaps[MISSION_ICON_MDISK] >= 0)){
+		gr_set_bitmap(Mission_icon_bitmaps[MISSION_ICON_MDISK]);
+		gr_bitmap(Sim_silent_icon_x[gr_screen.res], y_start + MISSION_ICON_MDISK_Y_OFFSET);
+	}
+#endif
 }
 
 ///  Campaign room stuff below
 int Cr_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		47, 55, 561, 195
+#else
 		47, 21, 565, 233
+#endif
 	},
 	{ // GR_1024
 		64, 34, 916, 373
@@ -1376,7 +1488,11 @@ int Cr_list_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Cr_info_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		64, 280, 407, 75
+#else
 		28, 267, 476, 103
+#endif
 	},
 	{ // GR_1024
 		45, 427, 761, 165
@@ -1398,12 +1514,21 @@ int Cr_info_coords[GR_NUM_RESOLUTIONS][4] = {
 
 ui_button_info Cr_buttons[GR_NUM_RESOLUTIONS][CR_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("CAB_00",	0,		95,		-1,	-1,	0),		// scroll up
+		ui_button_info("CAB_01",	0,		142,	-1,	-1,	1),		// scroll down
+		ui_button_info("CAB_02",	17,		259,	-1,	-1,	2),		// info scroll up
+		ui_button_info("CAB_03",	17,		307,	-1,	-1,	3),		// info scroll down
+		ui_button_info("CAB_07",	545,	323,	-1,	-1,	7),		// reset
+		ui_button_info("CAB_04",	561,	411,	-1,	-1,	4),		// select
+#else
 		ui_button_info("CAB_00",	2,		42,	-1,	-1,	0),
 		ui_button_info("CAB_01",	2,		89,	-1,	-1,	1),
 		ui_button_info("CAB_02",	2,		279,	-1,	-1,	2),
 		ui_button_info("CAB_03",	2,		325,	-1,	-1,	3),
 		ui_button_info("CAB_04",	579,	353,	-1,	-1,	4),
 		ui_button_info("CAB_05",	575,	434,	-1,	-1,	5),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_CAB_00",	3,		68,	-1,	-1,	0),
@@ -1416,17 +1541,27 @@ ui_button_info Cr_buttons[GR_NUM_RESOLUTIONS][CR_NUM_BUTTONS] = {
 };
 
 // text
-#define CR_NUM_TEXT			3
+#ifdef MAKE_FS1
+	#define CR_NUM_TEXT			0
+#else
+	#define CR_NUM_TEXT			3
+#endif
 UI_XSTR Cr_text[GR_NUM_RESOLUTIONS][CR_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Restart",		1403,		569,	326, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[0][CR_RESET_BUTTON].button },
 		{ "Campaign",		1404,		569,	337, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[0][CR_RESET_BUTTON].button },
 		{ "Select",			1409,		568,	413, UI_XSTR_COLOR_PINK,	-1, &Cr_buttons[0][CR_COMMIT_BUTTON].button },
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Restart",		1403,		922,	523, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[1][CR_RESET_BUTTON].button },
 		{ "Campaign",		1404,		922,	538, UI_XSTR_COLOR_GREEN,	-1, &Cr_buttons[1][CR_RESET_BUTTON].button },
 		{ "Select",			1409,		921,	665, UI_XSTR_COLOR_PINK,	-1, &Cr_buttons[1][CR_COMMIT_BUTTON].button },
+#endif
 	}
 };
 
@@ -1476,6 +1611,11 @@ void campaign_room_build_listing()
 				if(fb->flags & FSB_FROM_VOLITION){
 					flags |= READYROOM_FLAG_FROM_VOLITION;
 				}				
+#ifdef MAKE_FS1
+				if(fb->flags & FSB_FROM_MDISK){
+					flags |= READYROOM_FLAG_FROM_MDISK;
+				}
+#endif
 			}
 
 			sim_room_line_add(READYROOM_LINE_CAMPAIGN, Campaign_names[c], Campaign_file_names[c], Cr_list_coords[gr_screen.res][0], y, flags);
@@ -1625,7 +1765,9 @@ void campaign_room_init()
 
 	list_h = Mission_list_coords[gr_screen.res][3];
 
-	// common_set_interface_palette("InterfacePalette");  // set the interface palette
+#ifdef MAKE_FS1
+	common_set_interface_palette("InterfacePalette");  // set the interface palette
+#endif
 	Ui_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);
 	Ui_window.set_mask_bmap(Campaign_mask_filename[gr_screen.res]);
 

@@ -15,6 +15,9 @@
  * C module to handle HUD configuration
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -465,6 +468,47 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 {
 	{ // GR_640
 	//XSTR:OFF
+#ifdef MAKE_FS1
+		HC_gauge_region("HG_07",	377,	106,	7,	1,  0,  -1, 4,  2),	 // lead indicator
+		HC_gauge_region("HG_08",	288,	153,	8,	1,  0,  -1, 4,  2),	 // orientation tee
+		HC_gauge_region("HG_09",	312,	141,	9,	1,  0,  -1, 4,  1),	 // hostile triangle
+		HC_gauge_region("HG_11",	362,	141,	11,	1,  0,  -1, 4,  2),	 // target triangle
+		HC_gauge_region("HG_41",	530,	364,	41,	0,  0,  -1, 0,  0),	 // mission time
+		HC_gauge_region("none",		-1,		-1,		0,	0,  0,  -1, 0,  0),	 // reticle circle?
+		HC_gauge_region("HG_14",	272,	218,	14,	0,  0,  -1, 0,  0),	 // throttle gauge
+		HC_gauge_region("HG_20",	301,	307,	20,	0,  0,  -1, 0,  0),	 // radar
+		HC_gauge_region("HG_04",	126,	271,	4,	0,  0,  -1, 0,  0),	 // target monitor
+		HC_gauge_region("HG_12",	335,	212,	12,	0,  0,  -1, 0,  0),	 // center of reticle
+		HC_gauge_region("HG_03",	126,	246,	3,	0,  0,  -1, 0,  0),	 // extra target data
+		HC_gauge_region("HG_19",	224,	322,	19,	0,  0,  -1, 0,  0),	 // target shield icon
+		HC_gauge_region("HG_21",	403,	322,	21,	0,  0,  -1, 0,  0),	 // player shield icon
+		HC_gauge_region("HG_24",	485,	315,	24,	0,  1,  -1, 0,  0),	 // ets gauge
+		HC_gauge_region("HG_25",	523,	315,	25,	0,  1,  -1, 0,  0),	 // auto target
+		HC_gauge_region("HG_26",	523,	332,	26,	0,  1,  -1, 0,  0),	 // auto speed
+		HC_gauge_region("HG_23",	467,	241,	23,	0,  1,  -1, 0,  0),	 // weapons gauge
+		HC_gauge_region("HG_22",	460,	196,	22,	0,  1,  -1, 0,  0),	 // escort view
+		HC_gauge_region("HG_02",	126,	175,	2,	0,  0,  -1, 0,  0),	 // directives view
+		HC_gauge_region("HG_10",	331,	149,	10,	0,  0,  -1, 0,  0),	 // threat gauge
+		HC_gauge_region("HG_13",	241,	235,	13,	0,  0,  -1, 0,  0),	 // afterburner energy
+		HC_gauge_region("HG_17",	412,	235,	17,	0,  0,  -1, 0,  0),	 // weapons energy
+		HC_gauge_region("HG_16",	396,	226,	16,	0,  0,  -1, 0,  0),	 // weapon linking
+		HC_gauge_region("HG_15",	333,	253,	15,	0,  1,  -1, 0,  0),	 // target mini icon (shield)
+		HC_gauge_region("HG_05",	405,	52,		5,	1,  0,  -1, 4,  2),	 // offscreen indicator
+		HC_gauge_region("HG_01",	126,	76,		1,	0,  0,  -1, 0,  0),	 // talking head
+		HC_gauge_region("HG_06",	292,	78,		6,	0,  1,  -1, 0,  0),	 // damage gauge
+		HC_gauge_region("HG_00",	126,	63,		0,	0,  0,  -1, 0,  0),	 // message lines
+		HC_gauge_region("HG_18",	313,	283,	18,	1,  0,  -1, 4,  3),	 // locked missile direction
+		HC_gauge_region("HG_40",	467,	291,	40,	0,  1,  -1, 0,  0),	 // cmeasure gauge
+		HC_gauge_region("none",		-1,		-1,		-1,	0,  0,  -1, 0,  0),	 // objectives notify gauge
+		HC_gauge_region("HG_39",	504,	153,	39,	0,  0,  -1, 0,  0),	 // wingman status gauge
+		HC_gauge_region("HG_38",	405,	59,		38,	1,  0,  -1, 4,  2),	 // offscreen indicator range
+		HC_gauge_region("HG_42",	467,	303,	42,	0,  1,  -1, 0,  0),	 // kills gauge
+		HC_gauge_region("HG_45",	317,	106,	45,	1,  0,  -1, 4,  1),	 // attacking target count
+		HC_gauge_region("none",		-1,		-1,		-1,	0,  0,  -1, 0,  0),	 // text flash gauge
+		HC_gauge_region("none",		-1,		-1,		-1,	0,  0,  -1, 0,  0),	 // comm menu
+		HC_gauge_region("none",		-1,		-1,		-1,	0,  0,  -1, 0,  0),	 // support view gauge
+		HC_gauge_region("none",		-1,		-1,		-1,	0,  0,  -1, 0,  0),	 // netlag icon gauge
+#else
 		HC_gauge_region("HCB_35",	407,	69,	35,	1,	0,	-1, 0,	2),			// lead indicator
 		HC_gauge_region("HCB_36",	305,	119,	36,	1,	0,	-1, 0,	2),			// orientation tee
 		HC_gauge_region("none",		1,		1,		-1,	1,	0,	-1, 0,	0),			// hostile triangle
@@ -504,6 +548,7 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 		HC_gauge_region("HCB_52",	465,	8,		52,	0,	0,	-1, 0,	0),			// comm menu
 		HC_gauge_region("HCB_46",	324,	264,	46,	0,	0,	-1, 0,	0),			// support view gauge
 		HC_gauge_region("HCB_47",	418,	262,	47,	0,	0,	-1, 0,	0),			// netlag icon gauge
+#endif
 	//XSTR:ON
 	},
 	{ // GR_1024
@@ -557,7 +602,11 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 
 int HC_gauge_description_coords[GR_NUM_RESOLUTIONS][3] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		186, 410, 185
+#else
 		35, 397, 197
+#endif
 	},
 	{	// GR_1024
 		56, 632, 307
@@ -649,8 +698,13 @@ char *HC_gauge_descriptions(int n)
 	return NULL;
 }
 
-#define NUM_HUD_BUTTONS			20
+#ifdef MAKE_FS1
+	#define NUM_HUD_BUTTONS			8
+#else
+	#define NUM_HUD_BUTTONS			20
+#endif
 
+#ifndef MAKE_FS1
 #define HCB_RED_UP				0
 #define HCB_GREEN_UP				1
 #define HCB_BLUE_UP				2
@@ -671,6 +725,16 @@ char *HC_gauge_descriptions(int n)
 #define HCB_SELECT_ALL			17
 #define HCB_RESET					18
 #define HCB_ACCEPT				19
+#else
+#define HCB_AMBER				0
+#define HCB_BLUE				1
+#define HCB_GREEN				2
+#define HCB_ON					3
+#define HCB_OFF					4
+#define HCB_POPUP				5
+#define HCB_RESET				6
+#define HCB_ACCEPT				7
+#endif
 
 #ifndef PLAT_UNIX
 #pragma warning(disable : 4710)
@@ -678,6 +742,16 @@ char *HC_gauge_descriptions(int n)
 
 ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("HG_27",			31,		92,		-1,	-1,	27),	// amber
+		ui_button_info("HG_28",			31,		113,	-1,	-1,	28),	// blue
+		ui_button_info("HG_29",			31,		133,	-1,	-1,	29),	// green
+		ui_button_info("HG_30",			31,		385,	-1,	-1,	30),	// on
+		ui_button_info("HG_31",			31,		405,	-1,	-1,	31),	// off
+		ui_button_info("HG_32",			31,		424,	-1,	-1,	32),	// popup
+		ui_button_info("HG_36",			504,	411,	-1,	-1,	36),	// reset
+		ui_button_info("HG_37",			561,	411,	-1,	-1,	37),	// accept
+#else
 		ui_button_info("HCB_00",		6,		27,	-1,	-1,	0),
 		ui_button_info("HCB_01",		30,	27,	-1,	-1,	1),
 		ui_button_info("HCB_02",		55,	27,	-1,	-1,	2),
@@ -698,6 +772,7 @@ ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 		ui_button_info("HCB_24",		472,	436,	-1,	-1,	24),
 		ui_button_info("HCB_25",		523,	433,	-1,	-1,	25),
 		ui_button_info("HCB_26",		576,	434,	-1,	-1,	26),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_HCB_00",		9,		44,	-1,	-1,	0),
@@ -708,6 +783,7 @@ ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 		ui_button_info("2_HCB_09",		48,	466,	-1,	-1,	9),
 		ui_button_info("2_HCB_10",		88,	466,	-1,	-1,	10),
 		ui_button_info("2_HCB_11",		127,	466,	-1,	-1,	11),
+#ifndef MAKE_FS1
 		ui_button_info("2_HCB_12",		6,		526,	-1,	-1,	12),
 		ui_button_info("2_HCB_13",		6,		556,	-1,	-1,	13),
 		ui_button_info("2_HCB_14",		6,		586,	-1,	-1,	14),
@@ -720,13 +796,20 @@ ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 		ui_button_info("2_HCB_24",		755,	698,	-1,	-1,	24),
 		ui_button_info("2_HCB_25",		837,	693,	-1,	-1,	25),
 		ui_button_info("2_HCB_26",		922,	695,	-1,	-1,	26),
+#endif
 	},
 };
 
 // text
-#define NUM_HUD_TEXT					15
+#ifdef MAKE_FS1
+	#define NUM_HUD_TEXT					0
+#else
+	#define NUM_HUD_TEXT					15
+#endif
 UI_XSTR HC_text[GR_NUM_RESOLUTIONS][NUM_HUD_TEXT] = {
 	{ // GR_640
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{ "R",				1512,	14,	8,		UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "G",				1513,	37,	8,		UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "B",				1514,	62,	8,		UI_XSTR_COLOR_GREEN,	-1, NULL },
@@ -742,8 +825,11 @@ UI_XSTR HC_text[GR_NUM_RESOLUTIONS][NUM_HUD_TEXT] = {
 		{ "All",				1551,	442,	424,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[0][HCB_SELECT_ALL].button },
 		{ "Reset",			1337,	515,	413,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[0][HCB_RESET].button },
 		{ "Accept",			1035,	573,	413,	UI_XSTR_COLOR_PINK,	-1, &HC_buttons[0][HCB_ACCEPT].button },
+#endif
 	},
 	{ // GR_1024
+		// nothing needed for FS1
+#ifndef MAKE_FS1
 		{ "R",				1512,	23,	14,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "G",				1513,	60,	14,	UI_XSTR_COLOR_GREEN,	-1, NULL },
 		{ "B",				1514,	100,	14,	UI_XSTR_COLOR_GREEN,	-1, NULL },
@@ -759,13 +845,14 @@ UI_XSTR HC_text[GR_NUM_RESOLUTIONS][NUM_HUD_TEXT] = {
 		{ "All",				1551,	760,	682,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[1][HCB_SELECT_ALL].button },
 		{ "Reset",			1337,	850,	669,	UI_XSTR_COLOR_GREEN,	-1, &HC_buttons[1][HCB_RESET].button },
 		{ "Accept",			1035,	930,	670,	UI_XSTR_COLOR_PINK,	-1, &HC_buttons[1][HCB_ACCEPT].button },
+#endif
 	}
 };
 
 void hud_config_set_rgb(int gauge, int r, int g, int b);
 void hud_config_set_alpha(int gauge, int a);
 
-/*
+#ifdef MAKE_FS1
 #define NUM_HC_SPECIAL_BITMAPS	2
 #define HC_SPECIAL_RETICLE			0
 #define HC_SPECIAL_TEXT				1
@@ -783,7 +870,7 @@ HC_special_bitmap HC_special_bitmaps[NUM_HC_SPECIAL_BITMAPS] =
 	{"HG_04a", 132, 271, -1},
 //XSTR:ON
 };
-*/
+#endif // MAKE_FS1
 
 static int							HC_background_bitmap;
 static UI_WINDOW					HC_ui_window;
@@ -792,7 +879,7 @@ static int							HC_gauge_hot;			// mouse is over this gauge
 static int							HC_gauge_selected;	// gauge is selected
 
 // slider controls
-/*
+#ifdef MAKE_FS1
 #define HC_NUM_SLIDERS							1
 #define HC_BRIGHTNESS_SLIDER					0
 struct hc_sliders {
@@ -818,9 +905,15 @@ struct hc_sliders {
 
 hc_sliders HC_sliders[GR_NUM_RESOLUTIONS][HC_NUM_SLIDERS] = {
 	{ // GR_640
-		hc_sliders(	"HCB_22",	419,	379,	-1,	-1,	22,	20,	10,							
+		/*
+		hc_sliders( "HCB_22",	419,	379,	-1,	-1,	22,	20,	10,
 						"HCB_23",	23,	611,	379,
 						"HCB_21",	21,	391,	379)
+		*/
+		// ten dots but 11 frames, use frame count
+		hc_sliders(	"HG_34",	373,	21,		-1,	-1,	34,	20,	11,							
+						"HG_35",	35,	565,	20,
+						"HG_33",	33,	349,	20)
 	},
 	{ // GR_1024
 		hc_sliders(	"2_HCB_22",	670,	606,	-1,	-1,	22,	32,	10,							
@@ -828,7 +921,7 @@ hc_sliders HC_sliders[GR_NUM_RESOLUTIONS][HC_NUM_SLIDERS] = {
 						"2_HCB_21",	21,	625,	606),
 	}	
 };
-*/
+#endif  // MAKE_FS1
 
 
 // HUD colors
@@ -886,23 +979,30 @@ char *HC_slider_fname[GR_NUM_RESOLUTIONS] = {
 // sync sliders
 void hud_config_synch_sliders(int i)
 {
+#ifndef MAKE_FS1
 	if(i >= 0){
 		HC_color_sliders[HCS_RED].force_currentItem( HCS_CONV(HUD_config.clr[i].red) );
 		HC_color_sliders[HCS_GREEN].force_currentItem( HCS_CONV(HUD_config.clr[i].green) );
 		HC_color_sliders[HCS_BLUE].force_currentItem( HCS_CONV(HUD_config.clr[i].blue) );
 		HC_color_sliders[HCS_ALPHA].force_currentItem( HCS_CONV(HUD_config.clr[i].alpha) );
 	}
+#endif
 }
 
 // reset some ui components based on HUD config data
 void hud_config_synch_ui()
 {
-	// game_load_palette();
+#ifdef MAKE_FS1
+	game_load_palette();
+#endif
 	HUD_init_hud_color_array();
-	// HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos = HUD_color_alpha-3;		// convert to value from 0-10	
+#ifdef MAKE_FS1
+	HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos = HUD_color_alpha -3;		// convert to value from 0-10	
+#else
 
 	// sync sliders to currently selected gauge
 	hud_config_synch_sliders(HC_gauge_selected);
+#endif
 }
 
 // Init the UI components
@@ -912,7 +1012,9 @@ void hud_config_init_ui()
 	struct HC_gauge_region	*hg;
 	struct ui_button_info			*hb;
 
-//	common_set_interface_palette("HUDConfigPalette");  // set the interface palette
+#ifdef MAKE_FS1
+	common_set_interface_palette("HUDConfigPalette");  // set the interface palette
+#endif
 	hud_config_synch_ui();
 	HC_background_bitmap = bm_load(Hud_config_fname[gr_screen.res]);
 
@@ -930,12 +1032,17 @@ void hud_config_init_ui()
 		hg->button.hide();
 		hg->button.link_hotspot(hg->hotspot);
 
-		// if ( hg->use_iff ) {
-// 			hg->bitmap = bm_load_animation(hg->filename, &hg->nframes);
-	// 	} else {
+#ifdef MAKE_FS1
+		if ( hg->use_iff ) {
+ 			hg->bitmap = bm_load_animation(hg->filename, &hg->nframes);
+	 	} else {
 			hg->bitmap = bm_load(hg->filename);
 			hg->nframes = 1;
-		// }
+		}
+#else
+			hg->bitmap = bm_load(hg->filename);
+			hg->nframes = 1;
+#endif
 	}
 
 	// add text
@@ -943,6 +1050,7 @@ void hud_config_init_ui()
 		HC_ui_window.add_XSTR(&HC_text[gr_screen.res][i]);
 	}
 
+#ifndef MAKE_FS1
 	// initialize sliders
 	HC_color_sliders[HCS_RED].create(&HC_ui_window, HC_slider_coords[gr_screen.res][HCS_RED][0], HC_slider_coords[gr_screen.res][HCS_RED][1], HC_slider_coords[gr_screen.res][HCS_RED][2], HC_slider_coords[gr_screen.res][HCS_RED][3],
 										255, HC_slider_fname[gr_screen.res], hud_config_red_slider, hud_config_red_slider, hud_config_red_slider);
@@ -955,6 +1063,7 @@ void hud_config_init_ui()
 
 	HC_color_sliders[HCS_ALPHA].create(&HC_ui_window, HC_slider_coords[gr_screen.res][HCS_ALPHA][0], HC_slider_coords[gr_screen.res][HCS_ALPHA][1], HC_slider_coords[gr_screen.res][HCS_ALPHA][2], HC_slider_coords[gr_screen.res][HCS_ALPHA][3],
 										255, HC_slider_fname[gr_screen.res], hud_config_alpha_slider_up, hud_config_alpha_slider_down, NULL);
+#endif
 	
 	hud_config_color_init();
 
@@ -971,14 +1080,12 @@ void hud_config_init_ui()
 	HC_fname_input.create(&HC_ui_window, HC_fname_coords[gr_screen.res][0], HC_fname_coords[gr_screen.res][1], HC_fname_coords[gr_screen.res][2], MAX_FILENAME_LEN, "", UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_FOC);	
 	HC_fname_input.set_text("");
 
-	/*
+#ifdef MAKE_FS1
 	for (i=0; i<NUM_HC_SPECIAL_BITMAPS; i++) {
 		HC_special_bitmaps[i].bitmap = bm_load(HC_special_bitmaps[i].filename);
 	}
-	*/
 
 	// create sliders
-	/*
 	for(i=0; i<HC_NUM_SLIDERS; i++){
 		HC_sliders[gr_screen.res][i].slider.create(&HC_ui_window, HC_sliders[gr_screen.res][i].x, HC_sliders[gr_screen.res][i].y,
 																		HC_sliders[gr_screen.res][i].dots, HC_sliders[gr_screen.res][i].filename,
@@ -987,7 +1094,7 @@ void hud_config_init_ui()
 																		HC_sliders[gr_screen.res][i].dot_w);
 	}
 	HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos = HUD_color_alpha - 3;
-	*/
+#endif
 	
 	
 	HC_gauge_hot = -1;
@@ -1065,7 +1172,9 @@ void hud_config_render_gauges()
 {
 	int i;
 	color use_color;
+#ifndef MAKE_FS1
 	int alpha;
+#endif
 
 	for ( i=0; i<NUM_HUD_GAUGES; i++ ) {
 		if ( (hud_config_show_flag_is_set(i)) ) {
@@ -1073,6 +1182,7 @@ void hud_config_render_gauges()
 			if(!HC_gauge_regions[gr_screen.res][i].use_iff){
 				use_color = HUD_config.clr[i];			
 			} else {
+#ifndef MAKE_FS1
 				if(HC_gauge_regions[gr_screen.res][i].color == 1){
 					use_color = IFF_colors[IFF_COLOR_TAGGED][0];
 				} else {
@@ -1089,6 +1199,30 @@ void hud_config_render_gauges()
 			}
 			gr_init_alphacolor(&use_color, use_color.red, use_color.green, use_color.blue, alpha);
 			gr_set_color_fast(&use_color);			
+#else
+				// set correct frame if using iff
+				if ( HC_gauge_regions[gr_screen.res][i].use_iff ) {
+					int offset=0;
+					
+					if ( HC_gauge_selected == i ) {
+						offset=2;
+					} else if ( HC_gauge_hot == i ) {
+						offset=1;
+					}	
+	
+					// If gauge is disabled, then draw disabled frame
+					if ( !(hud_config_show_flag_is_set(i)) ) {
+						offset=3;
+					}
+
+					if ( HC_gauge_regions[gr_screen.res][i].bitmap >= 0 ) {
+						Assert(offset < HC_gauge_regions[gr_screen.res][i].nframes);
+						gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap+offset);
+						gr_bitmap(HC_gauge_regions[gr_screen.res][i].x, HC_gauge_regions[gr_screen.res][i].y);
+					}
+				}
+			}
+#endif
 		} else {
 			// if its off, make it dark gray
 			gr_init_alphacolor(&use_color, 127, 127, 127, 64);
@@ -1159,6 +1293,7 @@ void hud_config_check_regions()
 			hud_config_select_all_toggle(0);			
 			
 			// maybe setup rgb sliders
+#ifndef MAKE_FS1
 			if(HC_gauge_regions[gr_screen.res][i].use_iff){
 				HC_color_sliders[HCS_RED].hide();
 				HC_color_sliders[HCS_GREEN].hide();
@@ -1185,6 +1320,7 @@ void hud_config_check_regions()
 				HC_color_sliders[HCS_BLUE].force_currentItem( HCS_CONV(HUD_config.clr[i].blue) );
 				HC_color_sliders[HCS_ALPHA].force_currentItem( HCS_CONV(HUD_config.clr[i].alpha) );
 			}
+#endif
 
 			// recalc alpha slider
 			hud_config_recalc_alpha_slider();
@@ -1223,7 +1359,9 @@ void hud_config_set_color(int color)
 
 	hud_config_record_color(color);
 
-	// game_load_palette();
+#ifdef MAKE_FS1
+	game_load_palette();
+#endif
 
 	HUD_init_hud_color_array();
 
@@ -1304,8 +1442,10 @@ void hud_config_handle_keypresses(int k)
 // Handlers for when buttons get pressed
 void hud_config_button_do(int n)
 {
+#ifndef MAKE_FS1
 	int idx;
 	char name[256] = "";
+#endif
 
 	switch (n) {
 	case HCB_AMBER:
@@ -1352,6 +1492,7 @@ void hud_config_button_do(int n)
 		break;
 
 	// new stuff
+#ifndef MAKE_FS1
 	case HCB_RED_UP:
 		if( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()) >= 255){
 			gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1513,6 +1654,7 @@ void hud_config_button_do(int n)
 	case HCB_SELECT_ALL:				
 		hud_config_select_all_toggle(!HC_select_all);
 		break;	
+#endif  // MAKE_FS1
 
 	default:
 		Int3();
@@ -1638,7 +1780,7 @@ void hud_config_render_description()
 
 void hud_config_render_special_bitmaps()
 {
-	/*
+#ifdef MAKE_FS1
 	int i;
 	for (i=1; i<NUM_HC_SPECIAL_BITMAPS; i++) {
 		if (HC_special_bitmaps[i].bitmap >= 0) {
@@ -1646,15 +1788,17 @@ void hud_config_render_special_bitmaps()
 			gr_bitmap(HC_special_bitmaps[i].x, HC_special_bitmaps[i].y);
 		}
 	}
-	*/
+#endif
 }
 
 // update HUD_color_alpha based on brightness slider
 void hud_config_update_brightness()
 {
-	// HUD_color_alpha = HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos+3;
-	// Assert(HUD_color_alpha >= HUD_COLOR_ALPHA_USER_MIN);
-	// Assert(HUD_color_alpha <= HUD_COLOR_ALPHA_USER_MAX);
+#ifdef MAKE_FS1
+	HUD_color_alpha = HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos+3;
+	Assert(HUD_color_alpha >= HUD_COLOR_ALPHA_USER_MIN);
+	Assert(HUD_color_alpha <= HUD_COLOR_ALPHA_USER_MAX);
+#endif
 }
 
 // redraw any pressed buttons, needed since the glow on pressed buttons might get clipped off by
@@ -1710,18 +1854,20 @@ void hud_config_do_frame(float frametime)
 	hud_config_draw_gauge_status();
 	hud_config_draw_color_status();
 
-	/*
+#ifdef MAKE_FS1
 	if (HC_special_bitmaps[HC_SPECIAL_RETICLE].bitmap >= 0) {
 		hud_set_default_color();
 		gr_set_bitmap(HC_special_bitmaps[HC_SPECIAL_RETICLE].bitmap);
 		gr_aabitmap(HC_special_bitmaps[HC_SPECIAL_RETICLE].x, HC_special_bitmaps[HC_SPECIAL_RETICLE].y);
 	}
-	*/
+#endif
 
 	// maybe force draw the select all button
+#ifndef MAKE_FS1
 	if(HC_select_all){
 		HC_buttons[gr_screen.res][HCB_SELECT_ALL].button.draw_forced(2);
 	}
+#endif
 
 	hud_config_render_gauges();
 	hud_config_render_special_bitmaps();
@@ -1753,7 +1899,9 @@ void hud_config_unload_gauges()
 //
 void hud_config_close()
 {
-//	common_free_interface_palette();		// restore game palette
+#ifdef MAKE_FS1
+	common_free_interface_palette();		// restore game palette
+#endif
 	hud_config_unload_gauges();
 	hud_init_popup_timers();				// ensure no popup gauges are active
 
@@ -1881,6 +2029,7 @@ void hud_config_color_load(char *name)
 
 void hud_config_alpha_slider_up()
 {	
+#ifndef MAKE_FS1
 	int pos = HCS_CONV(HC_color_sliders[HCS_ALPHA].get_currentItem());
 	int max = max(max( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
 
@@ -1901,10 +2050,12 @@ void hud_config_alpha_slider_up()
 	} else {
 		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()), 255);
 	}
+#endif
 }
 
 void hud_config_alpha_slider_down()
 {	
+#ifndef MAKE_FS1
 	int pos = HCS_CONV(HC_color_sliders[HCS_ALPHA].get_currentItem());
 	int min = min(min( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
 
@@ -1925,17 +2076,21 @@ void hud_config_alpha_slider_down()
 	} else {
 		gr_init_alphacolor(&HUD_config.clr[HC_gauge_selected], HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()), 255);
 	}
+#endif
 }
 
 void hud_config_recalc_alpha_slider()
 {
+#ifndef MAKE_FS1
 	int avg =HC_color_sliders[HCS_RED].get_currentItem() + HC_color_sliders[HCS_GREEN].get_currentItem() + HC_color_sliders[HCS_BLUE].get_currentItem();
 	avg /= 3;
 	HC_color_sliders[HCS_ALPHA].force_currentItem( avg );
+#endif
 }
 
 void hud_config_red_slider()
 {
+#ifndef MAKE_FS1
 	int idx;
 	int pos = HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()) ;
 
@@ -1956,10 +2111,12 @@ void hud_config_red_slider()
 	}	
 
 	hud_config_recalc_alpha_slider();
+#endif
 }
 
 void hud_config_green_slider()
 {
+#ifndef MAKE_FS1
 	int idx;
 	int pos = HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ;
 
@@ -1980,10 +2137,12 @@ void hud_config_green_slider()
 	}	
 
 	hud_config_recalc_alpha_slider();
+#endif
 }
 
 void hud_config_blue_slider()
 {
+#ifndef MAKE_FS1
 	int idx;
 	int pos = HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem());
 
@@ -2004,6 +2163,7 @@ void hud_config_blue_slider()
 	}	
 
 	hud_config_recalc_alpha_slider();
+#endif
 }
 
 void hud_config_process_colors()
@@ -2034,6 +2194,7 @@ void hud_config_color_close()
 
 void hud_config_select_all_toggle(int toggle)
 {	
+#ifndef MAKE_FS1
 	int r, g, b, a;
 
 	// if we're turning off
@@ -2087,5 +2248,5 @@ void hud_config_select_all_toggle(int toggle)
 
 		HC_select_all = 1;
 	}
+#endif
 }
-

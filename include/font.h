@@ -15,6 +15,9 @@
  * header file for font stuff
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -90,7 +93,11 @@
 
 #include "pstypes.h"
 
-#define MAX_FONTS 3
+#ifdef MAKE_FS1
+	#define MAX_FONTS 2
+#else
+	#define MAX_FONTS 3
+#endif
 
 #define FONT_VERSION 0
 #define WIDEST_DIGIT	"4"  // the widest number character
@@ -141,7 +148,9 @@ extern font *Current_font;
 
 #define FONT1				0				// font01.vf
 #define FONT2				1				// font02.vf
+#ifndef MAKE_FS1
 #define FONT3				2				// font03.vf
+#endif
 
 // extern definitions for basic font functions
 extern void grx_set_font(int fontnum);

@@ -15,6 +15,9 @@
  * C file that contains misc. functions to support multiplayer
  *
  * $Log$
+ * Revision 1.9  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.8  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -2563,8 +2566,10 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		}
 
 		// copy his pilot squad filename
+#ifndef MAKE_FS1
 		Net_players[net_player_num].player->insignia_texture = -1;
 		player_set_squad_bitmap(Net_players[net_player_num].player, jr->squad_filename);		
+#endif
 
 		// clear his multi_data info
 		multi_data_handle_join(net_player_num);
@@ -2579,11 +2584,13 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		Net_players[net_player_num].tracker_player_id = jr->tracker_id;
 
 		// store pxo info
+#ifndef MAKE_FS1
 		if(strlen(jr->pxo_squad_name) > 0){
 			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name);
 		} else {
 			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, "");
 		}		
+#endif
 
 		// if he's using hacked data
 		if(jr->flags & JOIN_FLAG_HAXOR){
@@ -2609,8 +2616,10 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		}
 
 		// copy his pilot squad filename		
+#ifndef MAKE_FS1
 		Net_players[net_player_num].player->insignia_texture = -1;
 		player_set_squad_bitmap(Net_players[net_player_num].player, jr->squad_filename);				
+#endif
 
 		// clear his multi_data info
 		multi_data_handle_join(net_player_num);
@@ -2625,11 +2634,13 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		Net_players[net_player_num].player_id = id_num;
 
 		// store pxo info
+#ifndef MAKE_FS1
 		if(strlen(jr->pxo_squad_name) > 0){
 			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name);
 		} else {
 			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, "");
 		}		
+#endif
 
 		// if he's using hacked data
 		if(jr->flags & JOIN_FLAG_HAXOR){

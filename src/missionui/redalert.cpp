@@ -15,6 +15,9 @@
  * Module for Red Alert mission interface and code
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -238,8 +241,13 @@ static int Ra_flash_coords[GR_NUM_RESOLUTIONS][2] = {
 
 static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		ui_button_info("RAB_05",	0,		435,	-1,	-1,	5),		// Replay
+		ui_button_info("RAB_04",	553,	411,	-1,	-1,	4),		// Exit
+#else
 		ui_button_info("RAB_00",	2,		445,	-1,	-1, 0),
 		ui_button_info("RAB_01",	575,	432,	-1,	-1, 1),
+#endif
 	},	
 	{	// GR_1024
 		ui_button_info("2_RAB_00",	4,		712,	-1,	-1, 0),
@@ -247,17 +255,27 @@ static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	}
 };
 
-#define RED_ALERT_NUM_TEXT		3
+#ifdef MAKE_FS1
+	#define RED_ALERT_NUM_TEXT		0
+#else
+	#define RED_ALERT_NUM_TEXT		3
+#endif
 UI_XSTR Red_alert_text[GR_NUM_RESOLUTIONS][RED_ALERT_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Replay",		1405,	46,	451,	UI_XSTR_COLOR_PINK,	-1, &Buttons[0][RA_REPLAY_MISSION].button },
 		{ "Previous Mission",	1452,	46,	462,	UI_XSTR_COLOR_PINK,	-1, &Buttons[0][RA_REPLAY_MISSION].button },
 		{ "Continue",	1069,	564,	413,	UI_XSTR_COLOR_PINK,	-1, &Buttons[0][RA_CONTINUE].button },
+#endif
 	},
 	{ // GR_1024
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Replay",		1405,	75,	722,	UI_XSTR_COLOR_PINK,	-1, &Buttons[1][RA_REPLAY_MISSION].button },
 		{ "Previous Mission",	1452,	75,	733,	UI_XSTR_COLOR_PINK,	-1, &Buttons[1][RA_REPLAY_MISSION].button },
 		{ "Continue",	1069,	902,	661,	UI_XSTR_COLOR_PINK,	-1, &Buttons[1][RA_CONTINUE].button },
+#endif
 	}
 };
 
@@ -272,7 +290,11 @@ static int Text_delay;
 
 int Ra_brief_text_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		117, 169, 406, 283
+#else
 		14, 151, 522, 289
+#endif
 	},
 	{
 		52, 241, 785, 463
@@ -280,7 +302,9 @@ int Ra_brief_text_wnd_coords[GR_NUM_RESOLUTIONS][4] = {
 };
 
 static UI_WINDOW Ui_window;
-// static hud_anim Flash_anim;
+#ifdef MAKE_FS1
+static hud_anim Flash_anim;
+#endif
 static int Background_bitmap;
 static int Red_alert_inited = 0;
 
@@ -388,9 +412,11 @@ void red_alert_blit_title()
 	}
 
 	// draw
+#ifndef MAKE_FS1
 	gr_set_color_fast(&flash_color);
 	gr_string(Ra_brief_text_wnd_coords[gr_screen.res][0] + ((Ra_brief_text_wnd_coords[gr_screen.res][2] - w) / 2), Ra_flash_y[gr_screen.res] - h - 5, str);
 	gr_set_color_fast(&Color_normal);	
+#endif
 
 	// increment flash time
 	Ra_flash_time += flFrametime;
@@ -413,7 +439,9 @@ void red_alert_init()
 		return;
 	}
 
-	// common_set_interface_palette("ControlConfigPalette");  // set the interface palette
+#ifdef MAKE_FS1
+	common_set_interface_palette("ControlConfigPalette");  // set the interface palette
+#endif
 	Ui_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);
 	Ui_window.set_mask_bmap(Red_alert_mask[gr_screen.res]);
 
@@ -437,9 +465,11 @@ void red_alert_init()
 
 	// load in background image and flashing red alert animation
 	Background_bitmap = bm_load(Red_alert_fname[gr_screen.res]);
-	
-	// hud_anim_init(&Flash_anim, Ra_flash_coords[gr_screen.res][RA_X_COORD], Ra_flash_coords[gr_screen.res][RA_Y_COORD], NOX("AlertFlash"));
-	// hud_anim_load(&Flash_anim);
+
+#ifdef MAKE_FS1
+	hud_anim_init(&Flash_anim, Ra_flash_coords[gr_screen.res][RA_X_COORD], Ra_flash_coords[gr_screen.res][RA_Y_COORD], NOX("AlertFlash"));
+	hud_anim_load(&Flash_anim);
+#endif
 
 	Red_alert_voice = -1;
 
@@ -473,7 +503,9 @@ void red_alert_close()
 		}
 		
 		Ui_window.destroy();
-		// hud_anim_release(&Flash_anim);
+#ifdef MAKE_FS1
+		hud_anim_release(&Flash_anim);
+#endif
 		common_free_interface_palette();		// restore game palette
 		game_flush();
 	}
@@ -513,7 +545,9 @@ void red_alert_do_frame(float frametime)
 	} 
 
 	Ui_window.draw();
-	// hud_anim_render(&Flash_anim, frametime);
+#ifdef MAKE_FS1
+	hud_anim_render(&Flash_anim, frametime);
+#endif
 
 	gr_set_font(FONT1);
 

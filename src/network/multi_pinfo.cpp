@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -123,7 +126,11 @@ char *Multi_pinfo_bitmap_mask[GR_NUM_RESOLUTIONS] = {
 // pilot image area defs
 int Multi_pinfo_pilot_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		22, 165, 154, 122
+#else
 		22, 159, 160, 120
+#endif
 	},
 	{ // GR_1024
 		35, 254, 256, 192
@@ -151,10 +158,17 @@ UI_BUTTON Multi_pinfo_select_button;								// for selecting list items
 int Multi_pinfo_bitmap;													// the background bitmap
 ui_button_info Multi_pinfo_buttons[GR_NUM_RESOLUTIONS][MULTI_PINFO_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("PIB_00",	180,	209,	-1,	-1,	0),
+		ui_button_info("PIB_01",	180,	252,	-1,	-1,	1),
+		ui_button_info("PIB_02",	136,	295,	-1,	-1,	2),
+		ui_button_info("PIB_03",	583,	326,	-1,	-1,	3),
+#else
 		ui_button_info("PIB_00",	617,	256,	-1,	-1,	0),
 		ui_button_info("PIB_01",	617,	298,	-1,	-1,	1),
 		ui_button_info("PIB_02",	172,	322,	-1,	-1,	2),
 		ui_button_info("PIB_03",	219,	332,	217,	318,	3)
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_PIB_00",	988,	410,	-1,	-1,	0),
@@ -164,13 +178,23 @@ ui_button_info Multi_pinfo_buttons[GR_NUM_RESOLUTIONS][MULTI_PINFO_NUM_BUTTONS] 
 	}
 };
 
+#ifdef MAKE_FS1
+#define MULTI_PINFO_NUM_TEXT			0
+#else
 #define MULTI_PINFO_NUM_TEXT			1
+#endif
 UI_XSTR Multi_pinfo_text[GR_NUM_RESOLUTIONS][MULTI_PINFO_NUM_TEXT] = {
 	{ // GR_640
+		// not needed for FS1
+#ifndef MAKE_FS1
 		{ "Close",		428,	217,	318,	UI_XSTR_COLOR_PINK, -1,	&Multi_pinfo_buttons[0][MPI_EXIT].button },		
+#endif
 	},
 	{ // GR_1024
+		// not needed for fS1
+#ifndef MAKE_FS1
 		{ "Close",		428,	348,	510,	UI_XSTR_COLOR_PINK, -1,	&Multi_pinfo_buttons[1][MPI_EXIT].button },		
+#endif
 	}
 };
 
@@ -202,7 +226,11 @@ int Multi_pinfo_stats_label_offsets[MULTI_PINFO_NUM_STATS_LABELS] = {
 // stats area defs
 int Multi_pinfo_stats_area_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		213, 177, 404, 145
+#else
 		215, 163, 414, 155
+#endif
 	},
 	{ // GR_1024
 		335, 261, 662, 248
@@ -419,7 +447,7 @@ void multi_pinfo_popup_init(net_player *np)
 	}
 
 	// disable medals button for the demo
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	Multi_pinfo_buttons[gr_screen.res][MPI_MEDALS].button.hide();
 	Multi_pinfo_buttons[gr_screen.res][MPI_MEDALS].button.disable();
 #endif
@@ -586,6 +614,7 @@ void multi_pinfo_blit_pilot_image()
 // blit the pilot squadron logo
 void multi_pinfo_blit_squadron_logo()
 {
+#ifndef MAKE_FS1  // no squads in FS1
 	char place_text[100];	
 	int w;
 	player *p = Multi_pinfo_popup_player->player;
@@ -628,6 +657,7 @@ void multi_pinfo_blit_squadron_logo()
 					 Multi_pinfo_squad_coords[gr_screen.res][1] + ((Multi_pinfo_squad_coords[gr_screen.res][3] - h)/2));
 		// g3_draw_2d_poly_bitmap(Multi_pinfo_squad_coords[gr_screen.res][0], Multi_pinfo_squad_coords[gr_screen.res][1], Multi_pinfo_squad_coords[gr_screen.res][2], Multi_pinfo_squad_coords[gr_screen.res][3]);
 	}
+#endif
 }
 
 // blit the player statistics

@@ -15,6 +15,9 @@
  * low level parse routines common to all types of parsers
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/06/17 06:15:25  relnev
  * ryan's struct patch (and cr removal)
  *
@@ -291,6 +294,11 @@ int get_line_num()
 			multiline = 0;
 			incomment = 0;
 		}
+
+#ifdef MAKE_FS1
+		if ( !incomment && (*p == '/') && (*(p+1) == '/') )
+			incomment = 1;
+#endif
 
 		if (*p++ == EOLN) {
 			if ( !multiline && incomment )
@@ -940,6 +948,13 @@ int strip_comments(char *readp, int in_comment)
 			return in_comment;
 		}
 
+#ifdef MAKE_FS1
+		if (!in_comment && (*readp == '/') && (*(readp+1) == '/')) {
+			*writep = 0;
+			return in_comment;
+		}
+#endif
+
 		if (!in_comment) {
 			// time to do some special foreign character conversion			
 			switch (ch) {
@@ -1057,13 +1072,13 @@ int strip_comments(char *readp, int in_comment)
 	return in_comment;	
 }
 
-#if 0
+#ifdef MAKE_FS1
 void strip_all_comments( char *readp, char *writep )
 {
 	int	ch;
 	//char	*writep = readp;
 
-	while ( *readp != EOF_CHAR ) {
+	while ( *readp && *readp != EOF_CHAR ) {
 		ch = *readp;
 		if ( ch == COMMENT_CHAR ) {
 			while ( *readp != EOLN )
@@ -1089,7 +1104,7 @@ void strip_all_comments( char *readp, char *writep )
 			}
 		} else {
 			*writep = (char)ch;
-			*writep++;
+			writep++;
 			readp++;
 		}
 	}
@@ -1180,7 +1195,11 @@ void read_file_text(char *filename, int mode)
 
 	int num_chars_read = 0;
 
+#ifndef MAKE_FS1
 	mp2 = Mission_text_raw;
+#else
+	strip_all_comments(Mission_text_raw, mp2);
+#endif
 	while ( (num_chars_read = parse_get_line(outbuf, BUF_SIZE, Mission_text_raw, file_len, mp2)) != 0 ) {
 		mp2 += num_chars_read;
 

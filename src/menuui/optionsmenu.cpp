@@ -15,6 +15,9 @@
  * C module that contains functions to drive the Options user interface
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -245,7 +248,11 @@
 #define OPTIONS_NOTIFY_TIME			3500
 #define OPTIONS_NOTIFY_Y            450
 
+#ifdef MAKE_FS1
+#define NUM_BUTTONS 26
+#else
 #define NUM_BUTTONS	24
+#endif
 #define NUM_ANIS		4
 #define NUM_TABS		3
 #define NUM_COMMONS	10
@@ -275,6 +282,11 @@
 #define WEAPON_EXTRAS_ON				17
 #define WEAPON_EXTRAS_OFF				18
 
+#ifdef MAKE_FS1
+#define ENGINE_GLOWS_ON					24
+#define ENGINE_GLOWS_OFF				25
+#endif
+
 #define LOW_DETAIL_N						19
 #define MEDIUM_DETAIL_N					20
 #define HIGH_DETAIL_N					21
@@ -303,6 +315,38 @@ struct options_buttons {
 
 static options_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		options_buttons("OPa_00",	84,		25,		0,	-1),	// options tab
+		options_buttons("OPa_01",	173,	25,		1,	-1),	// multiplayer tab
+		options_buttons("OPa_02",	256,	25,		2,	-1),	// detail levels tab
+		options_buttons("OPa_03",	6,		380,	3,	-1),	// abort game button
+		options_buttons("OPa_05",	448,	335,	5,	-1),	// control config button
+		options_buttons("OPa_06",	541,	335,	6,	-1),	// hud config
+		options_buttons("OPa_07",	560,	411,	7,	-1),	// accept button                
+
+		options_buttons("OPa_58",	39,		99,		58,	OPTIONS_TAB,	2),	// Briefing / debriefing voice toggle off
+		options_buttons("OPa_59",	104,	99,		59,	OPTIONS_TAB,	2),	// Briefing / debriefing voice toggle on
+		options_buttons("OPa_62",	359,	274,	62,	OPTIONS_TAB,	2),	// Mouse off
+		options_buttons("OPa_63",	424,	274,	63,	OPTIONS_TAB,	2),	// Mouse on
+		options_buttons("OPa_56",	451,	79,		56,	OPTIONS_TAB,	1),	// Gamma Down
+		options_buttons("OPa_57",	484,	79,		57,	OPTIONS_TAB,	1),	// Gamma Up
+        
+		options_buttons("OPc_40",	321,	237,	40,	DETAIL_LEVELS_TAB,	2),	// Planets On (Nebula)
+		options_buttons("OPc_39",	264,	237,	39,	DETAIL_LEVELS_TAB,	2),	// Planets Off (Nebula)
+		options_buttons("OPc_42",	321,	284,	42,	DETAIL_LEVELS_TAB,	2),	// Target View Rendering On
+		options_buttons("OPc_41",	264,	284,	41,	DETAIL_LEVELS_TAB,	2),	// Target View Rendering Off
+		options_buttons("OPc_44",	321,	331,	44,	DETAIL_LEVELS_TAB,	2),	// Weapon Extras On
+		options_buttons("OPc_43",	264,	331,	43,	DETAIL_LEVELS_TAB,	2),	// Weapon Extras Off
+
+		options_buttons("OPc_50",	516,	194,	50,	DETAIL_LEVELS_TAB,	2),	// Low Preset Detail
+		options_buttons("OPc_51",	516,	213,	51,	DETAIL_LEVELS_TAB,	2),	// Medium Preset Detail
+		options_buttons("OPc_52",	516,	232,	52,	DETAIL_LEVELS_TAB,	2),	// High Preset Detail
+		options_buttons("OPc_53",	498,	251,	53,	DETAIL_LEVELS_TAB,	2),	// Highest Preset Detail
+		options_buttons("OPc_54",	516,	270,	54,	DETAIL_LEVELS_TAB,	2),	// Custom Detail
+
+		options_buttons("OPc_38",	321,	190,	38,	DETAIL_LEVELS_TAB,	2),	// Engine Glow On
+		options_buttons("OPc_37",	264,	190,	37,	DETAIL_LEVELS_TAB,	2),	// Engine Glow Off
+#else
 		options_buttons("OPT_00",	17,	2,		0,		-1),							// options tab
 		options_buttons("OPT_01",	102,	2,		1,		-1),							// multiplayer tab
 		options_buttons("OPT_02",	170,	2,		2,		-1),							// detail levels tab
@@ -330,6 +374,7 @@ static options_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		options_buttons("ODB_16",	614,	114,	16,	DETAIL_LEVELS_TAB, 2),	// High Preset Detail
 		options_buttons("ODB_17",	614,	133,	17,	DETAIL_LEVELS_TAB, 2),	// Highest Preset Detail
 		options_buttons("ODB_18",	614,	152,	18,	DETAIL_LEVELS_TAB, 2),	// Custom Detail
+#endif
 	},
 	{	// GR_1024
 		options_buttons("2_OPT_00",	27,	4,		0,		-1),						// options tab
@@ -359,6 +404,10 @@ static options_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		options_buttons("2_ODB_16",	983,	183,	16,	DETAIL_LEVELS_TAB, 2),	// High Preset Detail
 		options_buttons("2_ODB_17",	983,	213,	17,	DETAIL_LEVELS_TAB, 2),	// Highest Preset Detail
 		options_buttons("2_ODB_18",	983,	243,	18,	DETAIL_LEVELS_TAB, 2),	// Custom Detail
+#ifdef MAKE_FS1 // just filler
+		options_buttons("OPc_38",	321,	290,	38,	DETAIL_LEVELS_TAB,	2),	// Engine Glow On
+		options_buttons("OPc_37",	264,	290,	37,	DETAIL_LEVELS_TAB,	2),	// Engine Glow Off
+#endif
 	}	
 };
 
@@ -373,6 +422,23 @@ static options_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 
 op_sliders Options_sliders[GR_NUM_RESOLUTIONS][NUM_OPTIONS_SLIDERS] = {
 	{ // GR_640		
+#ifdef MAKE_FS1
+// slider, right arrow, left arrow
+// s(name), s(x), s(y), s(?), s(?), s(h), s(?), s(?), ra(name), ra(h), ra(x), ra(y), la(name), la(h), la(x), la(y)
+		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	20,	10,
+					"OPa_10",	10,	245,	159,
+					"OPa_08",	8,	29,		159),	// sound fx volume slider
+		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	20,	10,
+					"OPa_18",	18,	245,	194,
+					"OPa_16",	16,	29,		194),	// music volume slider
+		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	20,	10,
+					"OPa_21",	21,	245,	228,
+					"OPa_19",	19,	29,		228),	// voice volume slider
+		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity    
+		op_sliders("OPa_60",	358,	194,	-1,	-1,	60,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick sensitivity
+		op_sliders("OPa_61",	358,	226,	-1,	-1,	61,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick deadzone
+		op_sliders("OPa_11",	28,		285,	-1,	-1,	11,	42,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1)		// skill
+#else
 		op_sliders("OMB_10",		31,	139,	-1,	-1,	10,	20,	10,
 					  "OMB_11",		11,	226,	137,
 					  "OMB_09",		9,		4,		137 ),								// sound fx volume slider
@@ -386,6 +452,7 @@ op_sliders Options_sliders[GR_NUM_RESOLUTIONS][NUM_OPTIONS_SLIDERS] = {
 		op_sliders("OMB_28",		440,	259,	-1,	-1,	28,	20,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// joystick sensitivity
 		op_sliders("OMB_29",		440,	290,	-1,	-1,	29,	20,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// joystick deadzone
 		op_sliders("OMB_21",		440,	75,	-1,	-1,	21,	36,	5,	NULL, -1, -1, -1, NULL, -1, -1, -1)
+#endif  // MAKE_FS1
 	},	
 	{ // GR_1024		
 		op_sliders("2_OMB_10",		50,	223,	-1,	-1,	10,	32,	10,
@@ -462,7 +529,11 @@ void options_notify_do_frame();
 
 int Options_gamma_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		376, 116, 203, 34
+#else
 		435, 179, 195,	28	// GR_640
+#endif  // MAKE_FS1
 	},
 	{
 		692, 287, 308, 44		// GR_1024
@@ -473,7 +544,11 @@ int Options_gamma_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Options_gamma_num_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		390, 87, 45, 10
+#else
 		489, 159, 65, 17		// GR_640
+#endif  // MAKE_FS1
 	},
 	{
 		779, 254, 65, 17		// GR_1024
@@ -482,7 +557,11 @@ int Options_gamma_num_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Options_skills_text_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
+#ifdef MAKE_FS1
+		41, 326, 186, 10
+#else
 		468, 104, 155, 10		// GR_640
+#endif
 	},
 	{
 		750, 169, 246, 21		// GR_1024
@@ -494,7 +573,11 @@ int Options_skills_text_coords[GR_NUM_RESOLUTIONS][4] = {
 // DETAIL LEVEL OPTIONS definitions  BEGIN
 //
 
-#define NUM_DETAIL_SLIDERS			8
+#ifdef MAKE_FS1
+	#define NUM_DETAIL_SLIDERS		9
+#else
+	#define NUM_DETAIL_SLIDERS		8
+#endif
 
 /*
 #define DETAIL_DISTANCE_SLIDER	0
@@ -514,8 +597,22 @@ int Options_skills_text_coords[GR_NUM_RESOLUTIONS][4] = {
 #define SHIELD_DETAIL_SLIDER		5
 #define NUM_STARS_SLIDER			6
 #define LIGHTING_SLIDER				7
+#ifdef MAKE_FS1
+#define WEAPON_REDNERING_SLIDER		8
+#endif
 op_sliders Detail_sliders[GR_NUM_RESOLUTIONS][NUM_DETAIL_SLIDERS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		op_sliders("OPc_29",	38,		96,		-1,	-1,	29,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// model detail
+		op_sliders("OPc_30",	38,		143,	-1,	-1,	30,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// nebula detail
+		op_sliders("OPc_31",	38,		176,	-1,	-1,	31,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// textures
+		op_sliders("OPc_36",	273,	143,	-1,	-1,	36,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// particles
+		op_sliders("Opc_33",	38,		284,	-1,	-1,	33,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// impact effects
+		op_sliders("OPc_34",	38,		333,	-1,	-1,	34,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// shield hit
+		op_sliders("OPc_35",	273,	96,		-1,	-1,	35,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// stars
+		op_sliders("OPc_45",	496,	96,		-1,	-1,	45,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// lighting
+		op_sliders("OPc_32",	38,		223,	-1,	-1,	32,	20,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// weapon rendering - doesn't actually do anything
+#else
 		op_sliders("ODB_07",	21,	71,	-1,	-1,	7,		20,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),			// model detail
 		op_sliders("ODB_08",	21,	119,	-1,	-1,	8,		20,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),			// nebula detail
 		op_sliders("ODB_09",	21,	166,	-1,	-1,	9,		20,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),			// textures
@@ -524,6 +621,7 @@ op_sliders Detail_sliders[GR_NUM_RESOLUTIONS][NUM_DETAIL_SLIDERS] = {
 		op_sliders("ODB_12",	21,	307,	-1,	-1,	12,	20,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),			// shield hit
 		op_sliders("ODB_13",	21,	354,	-1,	-1,	13,	20,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),			// stars
 		op_sliders("ODB_19",	518,	212,	-1,	-1,	19,	20,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),			// lighting		
+#endif
 	},	
 	{ // GR_1024
 		op_sliders("2_ODB_07",	34,	114,	-1,	-1,	7,		32,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),		// model detail
@@ -534,6 +632,9 @@ op_sliders Detail_sliders[GR_NUM_RESOLUTIONS][NUM_DETAIL_SLIDERS] = {
 		op_sliders("2_ODB_12",	34,	492,	-1,	-1,	12,	32,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),		// shield hit
 		op_sliders("2_ODB_13",	34,	567,	-1,	-1,	13,	32,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),		// stars
 		op_sliders("2_ODB_19",	829,	340,	-1,	-1,	19,	32,	5, NULL, -1, -1, -1, NULL, -1, -1, -1),		// lighting
+#ifdef MAKE_FS1 // filler
+		op_sliders("none",		-1,	-1,		-1,	-1,	-1,	-1,	-1,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),
+#endif
 	}
 };
 int Detail_slider_pos[NUM_DETAIL_SLIDERS];
@@ -546,9 +647,15 @@ void options_detail_do_frame();
 void options_detail_set_level(int level);
 
 // text
-#define OPTIONS_NUM_TEXT				49
+#ifdef MAKE_FS1
+	#define OPTIONS_NUM_TEXT				0
+#else
+	#define OPTIONS_NUM_TEXT				49
+#endif
 UI_XSTR Options_text[GR_NUM_RESOLUTIONS][OPTIONS_NUM_TEXT] = {
 	{ // GR_640
+		// nothing needed
+#ifndef MAKE_FS1
 		// common text
 		{ "Options",	1036,		10,	35,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[0][OPTIONS_TAB].button },
 		{ "Multi",		1042,		97,	35,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[0][MULTIPLAYER_TAB].button },
@@ -603,9 +710,12 @@ UI_XSTR Options_text[GR_NUM_RESOLUTIONS][OPTIONS_NUM_TEXT] = {
 		{ "Joystick",			1376,	556,	231,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Sensitivity",		1374,	538,	250,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Deadzone",			1377,	538,	281,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
+#endif
 	},
 	{ // GR_1024
-			// common text
+		// nothing needed
+#ifndef MAKE_FS1
+		// common text
 		{ "Options",	1036,		16,	57,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[1][OPTIONS_TAB].button },
 		{ "Multi",		1042,		172,	57,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[1][MULTIPLAYER_TAB].button },
 		{ "Detail",		1351,		283,	57,	UI_XSTR_COLOR_GREEN,	-1, &Buttons[1][DETAIL_LEVELS_TAB].button },
@@ -659,6 +769,7 @@ UI_XSTR Options_text[GR_NUM_RESOLUTIONS][OPTIONS_NUM_TEXT] = {
 		{ "Joystick",			1376,	891,	370,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Sensitivity",		1374,	861,	400,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
 		{ "Deadzone",			1377,	861,	451,	UI_XSTR_COLOR_GREEN,	-1, &Options_bogus },
+#endif
 	}
 };
 
@@ -764,10 +875,11 @@ void options_tab_setup(int set_palette)
 		case MULTIPLAYER_TAB:
 #if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
 			options_multi_select();
-			
+#ifdef MAKE_FS1		
 			// need to hide the hud config and control config buttons
-			// Buttons[gr_screen.res][CONTROL_CONFIG_BUTTON].button.hide();
-			// Buttons[gr_screen.res][HUD_CONFIG_BUTTON].button.hide();
+			Buttons[gr_screen.res][CONTROL_CONFIG_BUTTON].button.hide();
+			Buttons[gr_screen.res][HUD_CONFIG_BUTTON].button.hide();
+#endif // MAKE_FS1
 #endif // DEMO
 			break;
 
@@ -945,7 +1057,7 @@ void options_button_pressed(int n)
 			break;				
 
 		case HUD_CONFIG_BUTTON:
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			game_feature_not_in_demo_popup();
 #else
 			// can't go to the hud config screen when a multiplayer observer
@@ -995,6 +1107,18 @@ void options_button_pressed(int n)
 			Detail.weapon_extras = 0;
 			gamesnd_play_iface(SND_USER_SELECT);
 			break;		
+
+#ifdef MAKE_FS1
+		case ENGINE_GLOWS_ON:
+			Detail.engine_glows = 1;
+			gamesnd_play_iface(SND_USER_SELECT);
+			break;
+		
+		case ENGINE_GLOWS_OFF:
+			Detail.engine_glows = 0;
+			gamesnd_play_iface(SND_USER_SELECT);
+			break;
+#endif
 
 		case LOW_DETAIL_N:
 			options_detail_set_level(0);
@@ -1694,6 +1818,16 @@ void options_detail_do_frame()
 		options_force_button_frame(WEAPON_EXTRAS_OFF, 2);
 		options_force_button_frame(WEAPON_EXTRAS_ON, 0);
 	}	
+
+#ifdef MAKE_FS1
+	if ( Detail.engine_glows) {
+		options_force_button_frame(ENGINE_GLOWS_ON, 2);
+		options_force_button_frame(ENGINE_GLOWS_OFF, 0);
+	} else {
+		options_force_button_frame(ENGINE_GLOWS_OFF, 2);
+		options_force_button_frame(ENGINE_GLOWS_ON, 0);
+	}
+#endif
 
 	int current_detail;
 

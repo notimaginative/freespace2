@@ -15,6 +15,9 @@
  * Variables and constants common to FreeSpace and Fred.
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -269,6 +272,9 @@ extern int Game_detail_level;
 #define DETAIL_FLAG_HUD				(1<<7)	// draw hud stuff
 #define DETAIL_FLAG_FIREBALLS		(1<<8)	// draw fireballs
 #define DETAIL_FLAG_COLLISION		(1<<9)	// use good collision detection
+#ifdef MAKE_FS1
+#define DETAIL_FLAG_ENGINE_GLOWS	(1<<10)	// engine glows
+#endif
 
 
 extern uint Game_detail_flags;
@@ -325,6 +331,9 @@ typedef struct detail_levels {
 	int		targetview_model;			// 0=off, 1=on	
 	int		planets_suns;				// 0=off, 1=on			
 	int		weapon_extras;				// extra weapon details. trails, glows
+#ifdef MAKE_FS1
+	int		engine_glows;				// 0=off, 1=on
+#endif
 } detail_levels;
 
 // Global values used to access detail levels in game and libs

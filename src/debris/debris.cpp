@@ -15,6 +15,9 @@
  * Code for the pieces of exploding object debris.
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:08  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -339,7 +342,9 @@ void debris_page_in()
 		Debris_num_submodels = pm->n_models;
 	}
 
+#ifndef MAKE_FS1
 	Debris_vaporize_model = model_load( NOX("debris02.pof"), 0, NULL );
+#endif
 
 	for (i=0; i<MAX_SPECIES_NAMES; i++ )	{
 		nprintf(( "Paging", "Paging in debris texture '%s'\n", Debris_texture_files[i] ));

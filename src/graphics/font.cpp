@@ -15,6 +15,9 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/07/13 06:46:47  theoddone33
  * Warning cleanups
  *
@@ -899,7 +902,9 @@ void gr_font_init()
 {
 	gr_init_font( NOX("font01.vf") );
 	gr_init_font( NOX("font02.vf") );
+#ifndef MAKE_FS1
 	gr_init_font( NOX("font03.vf") );
+#endif
 }
 
 // Returns -1 if couldn't init font, otherwise returns the

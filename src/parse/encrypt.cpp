@@ -15,6 +15,9 @@
  * Module for encryption code common to FreeSpace and related tools
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -61,7 +64,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#define	ENCRYPT_NEW													// new, better encryption scheme
+#ifndef MAKE_FS1
+	#define	ENCRYPT_NEW													// new, better encryption scheme
+#endif
 
 #include "pstypes.h"
 #include "encrypt.h"

@@ -15,6 +15,9 @@
  * header for sexpression parsing
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -294,7 +297,7 @@
 #define	OPERATOR_LENGTH	24  // if this ever exceeds TOKEN_LENGTH, let JasonH know!
 #define	TOKEN_LENGTH		32
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define	MAX_SEXP_NODES	1600
 #else
 	#define	MAX_SEXP_NODES	2200	// Reduced from 2000 to 1200 by MK on 4/1/98.

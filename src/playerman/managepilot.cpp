@@ -16,6 +16,9 @@
  * manage the pilot
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -230,9 +233,20 @@
 #include "bmpman.h"
 
 // update this when altering data that is read/written to .PLR file
-#define CURRENT_PLAYER_FILE_VERSION					140
+#ifndef MAKE_FS1
+#define CURRENT_PLAYER_FILE_VERSION				140
+#else
+// 141: add more FS1 detail settings
+// 142: HUD config settings (brightness)
+#define CURRENT_PLAYER_FILE_VERSION				142
+#define PREVIOUS_PLAYER_FILE_VERSION			140
+#endif
 #define FS2_DEMO_PLAYER_FILE_VERSION				135
+#ifndef MAKE_FS1
 #define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	CURRENT_PLAYER_FILE_VERSION			// demo plr files should work in final
+#else
+#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	PREVIOUS_PLAYER_FILE_VERSION
+#endif
 
 // keep track of pilot file changes here 
 // version 2	: Added squad logo filename
@@ -653,12 +667,16 @@ int read_pilot_file(char *callsign, int single, player *p)
 	HUD_config.num_msg_window_lines = cfread_ubyte(file);			
 	HUD_config.rp_flags = cfread_int(file);
 	HUD_config.rp_dist =	cfread_int(file);
-	// HUD_config.color = cfread_int( file );
-	// HUD_color_alpha = cfread_int( file );
-	// if ( HUD_color_alpha < HUD_COLOR_ALPHA_USER_MIN ) {
-		// HUD_color_alpha = HUD_COLOR_ALPHA_DEFAULT;
-	// }
-	// hud_config_record_color(HUD_config.color);
+#ifdef MAKE_FS1
+	if(Player_file_version >= 142){
+		HUD_config.main_color = cfread_int(file);
+		HUD_color_alpha = cfread_int(file);
+	}
+	if ( HUD_color_alpha < HUD_COLOR_ALPHA_USER_MIN ) {
+		HUD_color_alpha = HUD_COLOR_ALPHA_DEFAULT;
+	}
+	hud_config_record_color(HUD_config.main_color);
+#endif
 
 	// added 2 gauges with version 137
 	if(Player_file_version < 137){
@@ -691,7 +709,16 @@ int read_pilot_file(char *callsign, int single, player *p)
 		Event_music_enabled = 0;
 	}
 
+#ifdef MAKE_FS1
+	// add in extra detail settings
+	if(Player_file_version < 141){
+		cfread( &Detail, sizeof(detail_levels) - sizeof(Detail.engine_glows), 1, file );
+	} else {
+		cfread( &Detail, sizeof(detail_levels), 1, file );
+	}
+#else
 	cfread( &Detail, sizeof(detail_levels), 1, file );
+#endif
 
 	// restore list of most recently played missions
 	Num_recent_missions = cfread_int( file );
@@ -942,8 +969,10 @@ int write_pilot_file_core(player *p)
 	cfwrite_ubyte( (ubyte) HUD_config.num_msg_window_lines, file );
 	cfwrite_int( HUD_config.rp_flags, file );
 	cfwrite_int( HUD_config.rp_dist, file );
-	// cfwrite_int( HUD_config.color, file );
-	// cfwrite_int( HUD_color_alpha, file );
+#ifdef MAKE_FS1
+	cfwrite_int( HUD_config.main_color, file );
+	cfwrite_int( HUD_color_alpha, file );
+#endif
 	for(idx=0; idx<NUM_HUD_GAUGES; idx++){
 		cfwrite(&HUD_config.clr[idx], sizeof(color), 1, file);
 	}

@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.8  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.7  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -331,6 +334,7 @@ void neb2_regen();
 // initialize neb2 stuff at game startup
 void neb2_init()
 {	
+#ifndef MAKE_FS1
 	char name[255] = "";
 
 	// read in the nebula.tbl
@@ -363,6 +367,7 @@ void neb2_init()
 
 	// should always have 6 neb poofs
 	Assert(Neb2_poof_count == 6);
+#endif
 }
 
 // set detail level

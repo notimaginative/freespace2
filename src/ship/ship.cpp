@@ -15,6 +15,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -728,7 +731,7 @@
 #include "staticrand.h"
 #include "missionshipchoice.h"
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_SHIP_SUBOBJECTS		360
 #else
 	#define MAX_SHIP_SUBOBJECTS		700			//	Reduced from 1000 to 400 by MK on 4/1/98.  
@@ -1496,6 +1499,7 @@ int parse_ship()
 		sip->flags |= SIF_STEALTH;
 	}
 
+#ifndef MAKE_FS1
 	// parse contrail info
 	char trail_name[MAX_FILENAME_LEN] = "";
 	trail_info *ci;
@@ -1532,6 +1536,7 @@ int parse_ship()
 		stuff_string(trail_name, F_NAME, NULL);
 		ci->bitmap = bm_load(trail_name);
 	}
+#endif
 
 	while (cont_flag) {
 		int r = required_string_3("#End", "$Subsystem:", "$Name" );
@@ -1673,15 +1678,20 @@ void parse_shiptbl()
 	read_file_text("ships.tbl");
 	reset_parse();
 
+#ifndef MAKE_FS1
 	// parse default ship
 	required_string("#Default Player Ship");
 	required_string("$Name:");
 	stuff_string(default_player_ship, F_NAME, NULL, 254);
 	required_string("#End");
+#endif
 
+#ifndef MAKE_FS1
 	Num_engine_wash_types = 0;
+#endif
 	Num_ship_types = 0;
 
+#ifndef MAKE_FS1
 	required_string("#Engine Wash Info");
 	while (required_string_either("#End", "$Name:")) {
 		Assert( Num_engine_wash_types < MAX_ENGINE_WASH_TYPES );
@@ -1691,6 +1701,7 @@ void parse_shiptbl()
 	}
 
 	required_string("#End");
+#endif
 	required_string("#Ship Classes");
 
 	while (required_string_either("#End","$Name:")) {
@@ -9276,7 +9287,7 @@ DCF(art, "")
 }
 void ship_update_artillery_lock()
 {
-#if defined(MULTIPLAYER_BETA_BUILD) || defined(FS2_DEMO)
+#if defined(MULTIPLAYER_BETA_BUILD) || defined(FS2_DEMO) || defined(FS1_DEMO)
 	return;
 #else
 	ai_info *aip = NULL;

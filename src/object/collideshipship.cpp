@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for ships and ships
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1064,7 +1067,7 @@ int ship_ship_check_collision(collision_info_struct *ship_ship_hit_info, vector 
 // returns 1 if modified mass is larger than given mass, 0 otherwise 
 int check_special_cruiser_asteroid_collision(object *heavy, object *light, float *cruiser_mass, int *cruiser_light)
 {
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	int asteroid_type;
 
 	if (heavy->type == OBJ_ASTEROID) {

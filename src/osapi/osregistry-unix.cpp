@@ -11,16 +11,30 @@
 #include <ctype.h>
 
 char *Osreg_company_name = "Volition";
+#if defined(MAKE_FS1)
+char *Osreg_class_name = "FreespaceClass";
+#else
 char *Osreg_class_name = "Freespace2Class";
-#if defined(FS2_DEMO)
+#endif
+#if defined(FS1_DEMO)
+char *Osreg_app_name = "FreeSpaceDemo";
+char *Osreg_title = "Freespace Demo";
+char *Osreg_user_dir = ".freespace_demo";
+#define PROFILE_NAME "FreeSpaceDemo.ini"
+#elif defined(FS2_DEMO)
 char *Osreg_app_name = "FreeSpace2Demo";
 char *Osreg_title = "Freespace 2 Demo";
-char *Osreg_user_dir = ".freespace_demo";
+char *Osreg_user_dir = ".freespace2_demo";
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
 char *Osreg_app_name = "FreeSpace2OEM";
 char *Osreg_title = "Freespace 2 OEM";
 #define PROFILE_NAME "FreeSpace2OEM.ini"
+#elif defined(MAKE_FS1)
+char *Osreg_app_name = "FreeSpace";
+char *Osreg_title = "FreeSpace";
+char *Osreg_user_dir = ".freespace";
+#define PROFILE_NAME "FreeSpace.ini"
 #else
 char *Osreg_app_name = "FreeSpace2";
 char *Osreg_title = "Freespace 2";

@@ -15,6 +15,9 @@
  *	Rendering models, I think.
  *
  * $Log$
+ * Revision 1.6  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.5  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -2777,7 +2780,11 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 	}
 
 	// Draw the thruster glow
+#ifndef MAKE_FS1
 	if ( (Interp_thrust_glow_bitmap != -1) && (Interp_flags & MR_SHOW_THRUSTERS) /*&& (Detail.engine_glows)*/ )	{
+#else
+	if ( (Interp_thrust_glow_bitmap != -1) && (Interp_flags & MR_SHOW_THRUSTERS) && (Detail.engine_glows) )	{
+#endif
 
 		for (i = 0; i < pm->n_thrusters; i++ ) {
 			thruster_bank *bank = &pm->thrusters[i];

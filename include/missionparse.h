@@ -15,6 +15,9 @@
  * main header file for parsing code  
  *
  * $Log$
+ * Revision 1.3  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -298,7 +301,7 @@ extern int Mission_alt_type_count;
 #define	SPECIES_SHIVAN			2
 #define	SPECIES_NONE			3
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_SUBSYS_STATUS		125
 #else
 	#define MAX_SUBSYS_STATUS		250
@@ -457,7 +460,7 @@ typedef struct p_object {
 
 extern p_object ship_arrival_list;			// used by sexpression parser
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 	#define MAX_SHIP_ARRIVALS		45
 	#define MAX_WING_ARRIVALS		10
 #else 

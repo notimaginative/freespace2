@@ -15,6 +15,9 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:42  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -214,7 +217,11 @@ char *Brief_static_name[GR_NUM_RESOLUTIONS] = {
 
 int Brief_static_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		42, 122
+#else
 		10, 130
+#endif
 	},
 	{ // GR_1024
 		15, 208
@@ -223,7 +230,11 @@ int Brief_static_coords[GR_NUM_RESOLUTIONS][2] = {
 
 int Brief_bmap_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		42, 122
+#else
 		0, 115
+#endif
 	},
 	{ // GR_1024
 		0, 184
@@ -232,7 +243,11 @@ int Brief_bmap_coords[GR_NUM_RESOLUTIONS][2] = {
 
 int Brief_grid_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		54, 133, 530, 239
+#else
 		19, 147, 555, 232
+#endif
 	},
 	{ // GR_1024
 		30, 235, 888, 371
@@ -241,7 +256,11 @@ int Brief_grid_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Brief_text_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		49, 415, 374, 56
+#else
 		28, 399, 395, 74
+#endif
 	},
 	{ // GR_1024
 		46, 637, 630, 120
@@ -250,7 +269,11 @@ int Brief_text_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Brief_stage_text_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		61, 387
+#else
 		138, 117
+#endif
 	},
 	{ // GR_1024
 		227, 194
@@ -259,7 +282,11 @@ int Brief_stage_text_coords[GR_NUM_RESOLUTIONS][2] = {
 
 int Brief_stage_text_coords_multi[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		61, 387
+#else
 		479, 385
+#endif
 	},
 	{ // GR_1024
 		821, 616
@@ -668,13 +695,22 @@ void brief_init_icons()
 // Reset the highlight and fade anims... call before brief_parse_icon_tbl();
 void brief_init_anims()
 {
-	int i, idx;
+#ifndef MAKE_FS1
+	int idx;
+#endif
+	int i;
 
 	for (i=0; i<MAX_BRIEF_ICONS; i++) {
+#ifndef MAKE_FS1
 		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
 			Icon_highlight_anims[i][idx].num_frames=0;
 			Icon_fade_anims[i][idx].num_frames=0;
 		}
+#else
+		// one set of icons for all species in FS1
+		Icon_highlight_anims[i][1].num_frames=0;
+		Icon_fade_anims[i][1].num_frames=0;
+#endif
 	}
 }
 
@@ -940,7 +976,12 @@ void brief_render_fade_outs(float frametime)
 			if ( fi->fade_anim.first_frame >= 0 ) {
 				fi->fade_anim.sx = bx;
 				fi->fade_anim.sy = by;
+#ifdef MAKE_FS1
+				// FS1 has the anis reversed from FS2 so play them backwards
+				hud_anim_render(&fi->fade_anim, frametime, 1, 0, 0, 1);
+#else			
 				hud_anim_render(&fi->fade_anim, frametime, 1, 0, 0, 0);
+#endif
 			}
 		}
 	}
@@ -1162,7 +1203,12 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 //				hud_set_iff_color(bi->team);
 				brief_set_icon_color(bi->team);
 
+#ifdef MAKE_FS1
+				// FS1 has the anims backwards from FS2 so play in reverse
+				if ( hud_anim_render(ha, frametime, 1, 0, 0, 0) == 0 ) {
+#else
 				if ( hud_anim_render(ha, frametime, 1, 0, 0, 1) == 0 ) {
+#endif
 					bi->flags &= ~BI_FADEIN;
 				}
 			} else {
@@ -1287,7 +1333,9 @@ void brief_render_map(int stage_num, float frametime)
 	gr_set_clip(bscreen.map_x1 + 1, bscreen.map_y1 + 1, bscreen.map_x2 - bscreen.map_x1 - 1, bscreen.map_y2 - bscreen.map_y1 - 2);
 	
 	// REMOVED by neilk: removed gr_clear for FS2 because interface no longer calls for black background on grid
-	//	gr_clear();
+#ifdef MAKE_FS1
+	gr_clear();
+#endif
 
   if (stage_num >= Briefing->num_stages) {
 		gr_reset_clip();
@@ -1364,7 +1412,11 @@ void brief_blit_stage_num(int stage_num, int stage_max)
 	// int w;
 
 	Assert( Briefing != NULL );
+#ifdef MAKE_FS1
+	gr_set_color_fast(&Color_bright_blue);
+#else
 	gr_set_color_fast(&Color_text_heading);
+#endif
 	sprintf(buf, XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
 	if (Game_mode & GM_MULTIPLAYER) {
 		gr_printf(Brief_stage_text_coords_multi[gr_screen.res][0], Brief_stage_text_coords_multi[gr_screen.res][1], buf);
@@ -2379,13 +2431,22 @@ void brief_modify_grid(grid *gridp)
 
 void brief_unload_anims()
 {
-	int i, idx;
+#ifndef MAKE_FS1
+	int idx;
+#endif
+	int i;
 	
 	for (i=0; i<MAX_BRIEF_ICONS; i++) {
+#ifndef MAKE_FS1
 		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
 			hud_anim_release(&Icon_highlight_anims[i][idx]);
 			hud_anim_release(&Icon_fade_anims[i][idx]);
 		}
+#else
+		// one set of icons in FS1
+		hud_anim_release(&Icon_highlight_anims[i][1]);
+		hud_anim_release(&Icon_fade_anims[i][1]);
+#endif
 	}
 }
 

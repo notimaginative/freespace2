@@ -15,6 +15,9 @@
  * C module for the weapon loadout screen
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/16 01:43:23  relnev
  * fixed demo dogfight multiplayer mission
  *
@@ -516,8 +519,10 @@ typedef struct wl_bitmap_group
 	int num_frames;
 } wl_bitmap_group;
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 #define WEAPON_ANIM_LOOP_FRAME				1
+#elif MAKE_FS1
+#define WEAPON_ANIM_LOOP_FRAME				32
 #else
 #define WEAPON_ANIM_LOOP_FRAME				52			// frame (from 0) to loop weapon anim
 #endif
@@ -556,13 +561,23 @@ static char *Wl_loadout_select_mask[GR_NUM_RESOLUTIONS] = {
 
 
 static char *Weapon_select_background_fname[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	"Brief",
+	"Brief"
+#else
 	"WeaponLoadout",
 	"2_WeaponLoadout"
+#endif
 };
 
 static char *Weapon_select_multi_background_fname[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	"Brief",
+	"Brief"
+#else
 	"WeaponLoadoutMulti",
 	"2_WeaponLoadoutMulti"
+#endif
 };
 
 int Weapon_select_background_bitmap;	// bitmap for weapon select brackground
@@ -589,6 +604,15 @@ struct wl_buttons {
 
 static wl_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_WEAPON_BUTTONS] = {
 	{
+#ifdef MAKE_FS1
+		wl_buttons("WLB_26",	0,		123,	-1,	-1,	26),
+		wl_buttons("WLB_27",	0,		272,	-1,	-1,	27),
+		wl_buttons("WLB_26",	0,		302,	-1,	-1,	8),
+		wl_buttons("WLB_27",	0,		452,	-1,	-1,	9),
+		wl_buttons("ssb_39",	566,	317,	-1,	-1,	39),
+		wl_buttons("ssb_39",	0,		0,		-1,	-1,	99),
+		wl_buttons("TSB_34",	601,	344,	-1,	-1,	50)
+#else
 		wl_buttons("WLB_26",		24,	125,		-1,		-1,	26),
 		wl_buttons("WLB_27",		24,	276,		-1,		-1,	27),
 		wl_buttons("WLB_08",		24,	303,		-1,		-1,	8),
@@ -596,6 +620,7 @@ static wl_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_WEAPON_BUTTONS] = {
 		wl_buttons("ssb_39",		571,	347,		-1,		-1,	39),
 		wl_buttons("ssb_39",		0,		0,			-1,		-1,	99),
 		wl_buttons("TSB_34",		603,	374,		-1,		-1,	34)
+#endif
 	},
 	{
 		wl_buttons("2_WLB_26",	39,	200,		-1,		-1,	26),
@@ -643,6 +668,15 @@ static int Wl_weapon_icon_coords[GR_NUM_RESOLUTIONS][MAX_WEAPON_ICONS_ON_SCREEN]
 
 static int Wl_bank_coords[GR_NUM_RESOLUTIONS][MAX_WL_WEAPONS][2] = {
 	{
+#ifdef MAKE_FS1
+		{106,127},
+		{106,154},
+		{106,181},
+		{324,127},
+		{324,154},
+		{324,181},
+		{324,208},
+#else
 		{106,127},
 		{106,158},
 		{106,189},
@@ -650,6 +684,7 @@ static int Wl_bank_coords[GR_NUM_RESOLUTIONS][MAX_WL_WEAPONS][2] = {
 		{322,158},
 		{322,189},
 		{322,220},
+#endif
 	},
 	{
 		{170,203},
@@ -674,7 +709,11 @@ static int Last_wl_ship_class;
 static int Wl_overhead_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
 		// GR_640
+#ifdef MAKE_FS1
+		93, 117
+#else
 		91, 117
+#endif
 	},			
 	{
 		// GR_1024
@@ -684,7 +723,11 @@ static int Wl_overhead_coords[GR_NUM_RESOLUTIONS][2] = {
 
 static int Wl_weapon_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
+#ifdef MAKE_FS1
+		384, 116
+#else
 		408, 82			// GR_640
+#endif
 	},
 	{
 		648, 128			// GR_1024
@@ -693,7 +736,11 @@ static int Wl_weapon_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 
 static int Wl_weapon_ani_coords_multi[GR_NUM_RESOLUTIONS][2] = {
 	{
+#ifdef MAKE_FS1
+		385, 118
+#else
 		408, 143			// GR_640
+#endif
 	},
 	{
 		648, 226			// GR_1024
@@ -763,6 +810,7 @@ static int Wl_mouse_down_on_region = -1;
 
 
 // weapon desc stuff
+#ifndef MAKE_FS1
 #define WEAPON_DESC_WIPE_TIME			1.5f			// time in seconds for wipe to occur (over WEAPON_DESC_MAX_LENGTH number of chars)
 #define WEAPON_DESC_MAX_LINES			7				// max lines in the description incl. title
 #define WEAPON_DESC_MAX_LENGTH		50				// max chars per line of description text
@@ -808,17 +856,30 @@ static int Wl_new_weapon_desc_coords_multi[GR_NUM_RESOLUTIONS][2] = {
 		648, 493		// GR_1024
 	}
 };
+#endif
 
 // ship select text
-#define WEAPON_SELECT_NUM_TEXT			2
+#ifdef MAKE_FS1
+	#define WEAPON_SELECT_NUM_TEXT			0
+#else
+	#define WEAPON_SELECT_NUM_TEXT			2
+#endif
 UI_XSTR Weapon_select_text[GR_NUM_RESOLUTIONS][WEAPON_SELECT_NUM_TEXT] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		// nothing needed
+#else
 		{ "Reset",			1337,		580,	337,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][WL_BUTTON_RESET].button },
 		{ "Lock",			1270,		602,	364,	UI_XSTR_COLOR_GREEN, -1, &Buttons[0][WL_BUTTON_MULTI_LOCK].button }
+#endif
 	}, 
 	{ // GR_1024
+#ifdef MAKE_FS1
+		// nothing needed
+#else
 		{ "Reset",			1337,		938,	546,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][WL_BUTTON_RESET].button },
 		{ "Lock",			1270,		964,	584,	UI_XSTR_COLOR_GREEN, -1, &Buttons[1][WL_BUTTON_MULTI_LOCK].button }
+#endif
 	}
 };
 
@@ -1211,7 +1272,7 @@ int weapon_allowed_for_game_type(int weapon_flags)
 	int	rval = 0;
 
 /* disable check for demo since it doesn't have "$Allowed Dogfight PBanks" */
-#ifndef FS2_DEMO
+#if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	if ((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT)) {
 		if (weapon_flags & (1 << 1))
 			rval = 1;
@@ -1653,16 +1714,15 @@ void wl_maybe_reset_selected_weapon_class()
 // start an overhead animation, since selected slot has changed
 void wl_start_slot_animation(int n)
 {
-	#ifndef DEMO // not for FS2_DEMO
+#ifndef DEMO // not for FS2_DEMO
 
 	// don't use ani's
 	// fallback code in wl_render_overhead_view() will 
 	// use the .pcx files
 	// should prolly scrub out the 1e06 lines of dead code this leaves
+#ifndef MAKE_FS1
 	return;
-
-	/*
-
+#else
 	int						ship_class;
 	wl_ship_class_info	*wl_ship;
 	anim_play_struct		aps;
@@ -1700,8 +1760,8 @@ void wl_start_slot_animation(int n)
 	aps.framerate_independent = 1;
 	aps.skip_frames = 0;
 	wl_ship->anim_instance = anim_play(&aps);
-*/
-	#endif
+#endif // !MAKE_FS1
+#endif // !DEMO
 }
 
 // Call when Selected_wl_slot needs to be changed
@@ -2415,6 +2475,7 @@ void weapon_select_render(float frametime)
 // this wipes in
 void wl_render_weapon_desc(float frametime)
 {
+#ifndef MAKE_FS1
 	int *weapon_desc_coords;
 	int *weapon_title_coords;
 
@@ -2510,6 +2571,7 @@ void wl_render_weapon_desc(float frametime)
 		gr_string(weapon_desc_coords[0], weapon_desc_coords[1] + 20, Weapon_desc_lines[4]);
 		gr_string(weapon_desc_coords[0], weapon_desc_coords[1] + 30, Weapon_desc_lines[5]);
 	}
+#endif
 }
 
 
@@ -2517,6 +2579,7 @@ void wl_render_weapon_desc(float frametime)
 // re-inits wiping vars and causes the current text to wipe in again
 void wl_weapon_desc_start_wipe()
 {
+#ifndef MAKE_FS1
 	int currchar_src = 0, currline_dest = 2, currchar_dest = 0, i;
 	int w, h;
 	int title_len = strlen(Weapon_info[Selected_wl_class].title);
@@ -2573,6 +2636,7 @@ void wl_weapon_desc_start_wipe()
 	for (i=currline_dest+1; i<WEAPON_DESC_MAX_LINES; i++) {
 		Weapon_desc_lines[i][0] = '\0';
 	}
+#endif
 }
 
 
@@ -2992,6 +3056,10 @@ void weapon_select_close()
 
 	Weapon_ui_window.destroy();
 
+#ifdef MAKE_FS1
+	common_free_interface_palette();
+#endif
+
 	// unload bitmaps
 	help_overlay_unload(WL_OVERLAY);
 
@@ -3026,7 +3094,12 @@ void wl_render_icon_count(int num, int x, int y)
 
 	// render
 	gr_set_color_fast(&Color_white);
+#ifdef MAKE_FS1
+	// strict left align
+	gr_string(x-21, y+8, buf);
+#else
 	gr_string(x-num_w-4, y+8, buf);
+#endif
 }
 
 
@@ -3089,8 +3162,17 @@ void wl_render_icon(int index, int x, int y, int num, int draw_num_flag, int hot
 
 	// draw the number of the item
 	// now, right justified
-	if ( draw_num_flag != 0 ) {
+	if ( draw_num_flag != 0 ) {		
+#ifdef MAKE_FS1
+		// add a little extra text padding for secondary weapons
+		if ( hot_mask > 3 ) {
+			wl_render_icon_count(num, x-9, y);
+		} else {
+			wl_render_icon_count(num, x, y);
+		}
+#else
 		wl_render_icon_count(num, x, y);
+#endif
 	}
 }
 

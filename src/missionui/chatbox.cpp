@@ -15,6 +15,9 @@
  * C module to handle all code for multiplayer chat windows
  *
  * $Log$
+ * Revision 1.4  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -319,7 +322,11 @@ char* Chatbox_small_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 // chatbox coords
 int Chatbox_small_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		199, 2
+#else
 		192, 0
+#endif
 	},
 	{ // GR_1024
 		308, 0			 // ?
@@ -329,7 +336,11 @@ int Chatbox_small_coords[GR_NUM_RESOLUTIONS][2] = {
 // display area coods
 int Chatbox_small_display_coords[GR_NUM_RESOLUTIONS][4] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		214 + CHATBOX_TEAM_ICON_SPACE, 16, 380 - CHATBOX_TEAM_ICON_SPACE, 56
+#else
 		196 + CHATBOX_TEAM_ICON_SPACE, 13, 410 - CHATBOX_TEAM_ICON_SPACE, 74
+#endif
 	},
 	{	// GR_1024
 		315 + CHATBOX_TEAM_ICON_SPACE, 22, 654 - CHATBOX_TEAM_ICON_SPACE, 116
@@ -339,7 +350,11 @@ int Chatbox_small_display_coords[GR_NUM_RESOLUTIONS][4] = {
 // input box coords
 int Chatbox_small_input_coords[GR_NUM_RESOLUTIONS][4] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		219, 93, 267, 12
+#else
 		204, 100, 371, 22
+#endif
 	},
 	{	// GR_1024
 		328, 163, 591, 34
@@ -348,7 +363,11 @@ int Chatbox_small_input_coords[GR_NUM_RESOLUTIONS][4] = {
 
 // max # of lines
 int Chatbox_small_max_lines[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	6,
+#else
 	7,				// GR_640
+#endif
 	12				// GR_1024
 };
 
@@ -369,7 +388,11 @@ char* Chatbox_big_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 // chatbox coords
 int Chatbox_big_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		199, 2
+#else
 		192, 0
+#endif
 	},
 	{ // GR_1024
 		307, 0
@@ -379,7 +402,11 @@ int Chatbox_big_coords[GR_NUM_RESOLUTIONS][2] = {
 // display area coords
 int Chatbox_big_display_coords[GR_NUM_RESOLUTIONS][4] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		214 + CHATBOX_TEAM_ICON_SPACE, 16, 410 - CHATBOX_TEAM_ICON_SPACE, 326
+#else
 		196 + CHATBOX_TEAM_ICON_SPACE, 13, 410 - CHATBOX_TEAM_ICON_SPACE, 326
+#endif
 	},
 	{	// GR_1024
 		315 + CHATBOX_TEAM_ICON_SPACE, 22, 654 - CHATBOX_TEAM_ICON_SPACE, 519
@@ -389,7 +416,11 @@ int Chatbox_big_display_coords[GR_NUM_RESOLUTIONS][4] = {
 // input box coords
 int Chatbox_big_input_coords[GR_NUM_RESOLUTIONS][4] = {
 	{	// GR_640
+#ifdef MAKE_FS1
+		220, 343, 267, 12
+#else
 		204, 352, 371, 22
+#endif
 	},
 	{	// GR_1024
 		328, 565, 591, 34
@@ -398,7 +429,11 @@ int Chatbox_big_input_coords[GR_NUM_RESOLUTIONS][4] = {
 
 // max # of lines
 int Chatbox_big_max_lines[GR_NUM_RESOLUTIONS] = {
+#ifdef MAKE_FS1
+	31,
+#else
 	32,			// GR_640
+#endif
 	51				// GR_1024
 };
 
@@ -518,10 +553,17 @@ UI_BUTTON Chat_enter_text;
 // chatbox buttons
 ui_button_info Chatbox_buttons[GR_NUM_RESOLUTIONS][CHATBOX_NUM_BUTTONS+1] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("CHB_00b",	616,	8,	-1,	-1,	0),
+		ui_button_info("CHB_01b",	616,	47,	-1,	-1,	1),
+		ui_button_info("CHB_02a",	595,	69,	-1,	-1,	2),
+		ui_button_info("CHB_02b",	595,	69,	-1,	-1,	2),
+#else
 		ui_button_info("CHB_00",	613,	3,		-1,	-1,	0),
 		ui_button_info("CHB_01",	613,	41,	-1,	-1,	1),
 		ui_button_info("CHB_02a",	607,	74,	-1,	-1,	2),
 		ui_button_info("CHB_02b",	607,	74,	-1,	-1,	2),
+#endif
 	},	
 	{ // GR_1024
 		ui_button_info("2_CHB_00",		981,	5,		-1,	-1,	0),

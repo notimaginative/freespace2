@@ -15,6 +15,9 @@
  * Functions for the base gadget class
  *
  * $Log$
+ * Revision 1.7  2003/05/25 02:30:44  taylor
+ * Freespace 1 support
+ *
  * Revision 1.6  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -220,11 +223,14 @@ void UI_GADGET::link_hotspot(int num)
 int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 {
 	int first_frame, i;	
+#ifndef MAKE_FS1
 	char full_name[MAX_FILENAME_LEN] = "";
 	char tmp[10];
-	int idx, s_idx;	
 	int num_digits;
 	int its_all_good = 0;
+	int s_idx;
+#endif
+	int idx;	
 	
 	// clear out all frames
 	for(idx=0; idx<MAX_BMAPS_PER_GADGET; idx++){
@@ -236,6 +242,9 @@ int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 
 	Assert(nframes < MAX_BMAPS_PER_GADGET);		
 	m_num_frames = nframes;		
+#ifndef MAKE_FS1
+	// FS1 uses real anis instead of frame based pcxs so this code just slows down
+	// searching and therefore loading
 	for(idx=start_frame; idx<nframes; idx++){
 		// clear the string
 		strcpy(full_name, "");
@@ -273,6 +282,7 @@ int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 		uses_bmaps = 1;		
 		return 0;
 	}
+#endif
 
 	// no go, so try and load as an ani. try and load as an .ani	
 	first_frame = bm_load_animation(ani_fname, &m_num_frames);	

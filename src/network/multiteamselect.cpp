@@ -15,6 +15,9 @@
  * Multiplayer Team Selection Code
  *
  * $Log$
+ * Revision 1.5  2003/05/25 02:30:43  taylor
+ * Freespace 1 support
+ *
  * Revision 1.4  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -237,6 +240,15 @@ char *Multi_ts_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 
 ui_button_info Multi_ts_buttons[GR_NUM_RESOLUTIONS][MULTI_TS_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("CB_00",		0,		0,		-1,	-1,	0),
+		ui_button_info("CB_01",		0,		19,		-1,	-1,	1),
+		ui_button_info("CB_02",		0,		33,		-1,	-1,	2),
+		ui_button_info("TSB_03",	0,		302,	-1,	-1,	3),
+		ui_button_info("TSB_04",	0,		453,	-1,	-1,	4),
+		ui_button_info("TSB_09",	559,	409,	-1,	-1,	9),
+		ui_button_info("TSB_34",	601,	344,	-1,	-1,	50),
+#else
 		ui_button_info("CB_00",	7,		3,		37,	7,		0),
 		ui_button_info("CB_01",	7,		19,	37,	23,	1),
 		ui_button_info("CB_02",	7,		35,	37,	39,	2),
@@ -244,6 +256,7 @@ ui_button_info Multi_ts_buttons[GR_NUM_RESOLUTIONS][MULTI_TS_NUM_BUTTONS] = {
 		ui_button_info("TSB_04",	5,		454,	-1,	-1,	4),
 		ui_button_info("TSB_09",	571,	425,	572,	413,	9),
 		ui_button_info("TSB_34",	603,	374,	602,	364,	34)
+#endif
 	},
 	{ // GR_1024
 
@@ -658,7 +671,9 @@ void multi_ts_init()
 	multi_common_set_palette();
 
 	// set the interface palette
-	// common_set_interface_palette(MULTI_TS_PALETTE);
+#ifdef MAKE_FS1
+	common_set_interface_palette(MULTI_TS_PALETTE);
+#endif
 
 	Net_player->state = NETPLAYER_STATE_SHIP_SELECT;
 
@@ -852,6 +867,10 @@ void multi_ts_close()
 	
 	// destroy the UI_WINDOW
 	Multi_ts_window.destroy();
+
+#ifdef MAKE_FS1
+	common_free_interface_palette();
+#endif
 }
 
 // is the given slot disabled for the specified player
@@ -1354,12 +1373,14 @@ void multi_ts_init_graphics()
 		Multi_ts_buttons[gr_screen.res][idx].button.link_hotspot(Multi_ts_buttons[gr_screen.res][idx].hotspot);
 	}		
 
+#ifndef MAKE_FS1
 	// add some text	
 	Multi_ts_window.add_XSTR("Briefing", 765, Multi_ts_buttons[gr_screen.res][MULTI_TS_BRIEFING].xt, Multi_ts_buttons[gr_screen.res][MULTI_TS_BRIEFING].yt, &Multi_ts_buttons[gr_screen.res][MULTI_TS_BRIEFING].button, UI_XSTR_COLOR_GREEN);
 	Multi_ts_window.add_XSTR("Ship Selection", 1067, Multi_ts_buttons[gr_screen.res][MULTI_TS_SHIP_SELECT].xt, Multi_ts_buttons[gr_screen.res][MULTI_TS_SHIP_SELECT].yt, &Multi_ts_buttons[gr_screen.res][MULTI_TS_SHIP_SELECT].button, UI_XSTR_COLOR_GREEN);
 	Multi_ts_window.add_XSTR("Weapon Loadout", 1068, Multi_ts_buttons[gr_screen.res][MULTI_TS_WEAPON_SELECT].xt, Multi_ts_buttons[gr_screen.res][MULTI_TS_WEAPON_SELECT].yt, &Multi_ts_buttons[gr_screen.res][MULTI_TS_WEAPON_SELECT].button, UI_XSTR_COLOR_GREEN);
 	Multi_ts_window.add_XSTR("Commit", 1062, Multi_ts_buttons[gr_screen.res][MULTI_TS_COMMIT].xt, Multi_ts_buttons[gr_screen.res][MULTI_TS_COMMIT].yt, &Multi_ts_buttons[gr_screen.res][MULTI_TS_COMMIT].button, UI_XSTR_COLOR_PINK);
 	Multi_ts_window.add_XSTR("Lock", 1270, Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].xt, Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].yt, &Multi_ts_buttons[gr_screen.res][MULTI_TS_LOCK].button, UI_XSTR_COLOR_GREEN);
+#endif
 
 //	Multi_ts_window.add_XSTR("Help", 928, Multi_ts_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].xt, Multi_ts_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].yt, &Multi_ts_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].button, UI_XSTR_COLOR_GREEN);
 //	Multi_ts_window.add_XSTR("Options", 1036, Multi_ts_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].xt, Multi_ts_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].yt, &Multi_ts_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].button, UI_XSTR_COLOR_GREEN);

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.53  2002/06/22 17:08:16  relnev
+ * more fixes to unused alpha code
+ *
  * Revision 1.52  2002/06/21 23:59:14  relnev
  * moved a gr_opengl_set_state to after the gr_tcache_set
  *
@@ -324,6 +327,7 @@ typedef enum gr_texture_source {
 
 typedef enum gr_alpha_blend {
         ALPHA_BLEND_NONE,			// 1*SrcPixel + 0*DestPixel
+        ALPHA_BLEND_ADDITIVE,			// 1*SrcPixel + 1*DestPixel
         ALPHA_BLEND_ALPHA_ADDITIVE,             // Alpha*SrcPixel + 1*DestPixel
         ALPHA_BLEND_ALPHA_BLEND_ALPHA,          // Alpha*SrcPixel + (1-Alpha)*DestPixel
         ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR,      // Alpha*SrcPixel + (1-SrcPixel)*DestPixel
@@ -397,17 +401,20 @@ void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_typ
 	
 	if (ab != GL_current_alpha_blend) {
 		switch (ab) {
-			case ALPHA_BLEND_NONE:
+			case ALPHA_BLEND_NONE:			// 1*SrcPixel + 0*DestPixel
 				glBlendFunc(GL_ONE, GL_ZERO);
 				break;
-			case ALPHA_BLEND_ALPHA_ADDITIVE:
+			case ALPHA_BLEND_ADDITIVE:		// 1*SrcPixel + 1*DestPixel
 				glBlendFunc(GL_ONE, GL_ONE);
 				break;
-			case ALPHA_BLEND_ALPHA_BLEND_ALPHA:
+			case ALPHA_BLEND_ALPHA_ADDITIVE:	// Alpha*SrcPixel + 1*DestPixel
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				break;
+			case ALPHA_BLEND_ALPHA_BLEND_ALPHA:	// Alpha*SrcPixel + (1-Alpha)*DestPixel
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				break;
-			case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:
-				glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+			case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:	// Alpha*SrcPixel + (1-SrcPixel)*DestPixel
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
 				break;
 			default:
 				break;

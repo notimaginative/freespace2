@@ -15,6 +15,9 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.9  2003/08/03 15:51:58  taylor
+ * fix issue with FS1 fonts
+ *
  * Revision 1.8  2003/06/19 11:51:41  taylor
  * adjustments to memory leak fixes
  *
@@ -316,7 +319,12 @@ int get_char_width(ubyte c1,ubyte c2,int *width,int *spacing)
 
 			letter2 = c2-Current_font->first_ascii;
 
+#ifndef MAKE_FS1
 			if ((letter2>=0) && (letter2<Current_font->num_chars) ) {				//not in font, draw as space
+#else
+			// umm, not sure about this, issue with FS1 fonts that's no longer handled apparently
+			if ((letter2>=0) && (letter2<Current_font->num_chars) && (Current_font->num_kern_pairs != 159) ) {	//not in font, draw as space
+#endif
 				font_kernpair	*k = &Current_font->kern_data[i];
 				while( (k->c1 == letter) && (k->c2<letter2) && (i<Current_font->num_kern_pairs) )	{
 					i++;

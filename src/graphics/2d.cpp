@@ -7,6 +7,9 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.3  2002/05/27 22:39:21  theoddone33
+ * Remove glide symbols
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -440,7 +443,9 @@
 // Includes for different rendering systems
 #include "grsoft.h"
 #include "grd3d.h"
+#ifndef PLAT_UNIX
 #include "grglide.h"
+#endif
 #include "gropengl.h"
 #include "grdirectdraw.h"
 
@@ -492,7 +497,9 @@ void gr_close()
 		gr_d3d_cleanup();
 		break;
 	case GR_GLIDE:
+#ifndef PLAT_UNIX
 		gr_glide_cleanup();
+#endif
 		break;
 	case GR_OPENGL:
 		Int3();
@@ -525,7 +532,9 @@ DCF(gr,"Changes graphics mode")
 		} else if ( !strcmp( Dc_arg, "d"))	{
 			mode = GR_DIRECT3D;
 		} else if ( !strcmp( Dc_arg, "g"))	{
+#ifndef PLAT_UNIX
 			mode = GR_GLIDE;
+#endif
 		} else if ( !strcmp( Dc_arg, "o"))	{
 			Int3();
 			mode = GR_OPENGL;
@@ -570,7 +579,9 @@ DCF(gr,"Changes graphics mode")
 			dc_printf( "Direct3D\n" );
 			break;
 		case GR_GLIDE:
+#ifndef PLAT_UNIX
 			dc_printf( "3Dfx Glide\n" );
+#endif
 			break;
 		case GR_OPENGL:
 			Int3();
@@ -849,7 +860,9 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 			gr_d3d_cleanup();
 			break;
 		case GR_GLIDE:
+#ifndef PLAT_UNIX
 			gr_glide_cleanup();
+#endif
 			break;
 		case GR_OPENGL:
 			Int3();
@@ -947,10 +960,12 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 			break;
 		case GR_GLIDE:
 			// if we're in high-res. force polygon interface
+#ifndef PLAT_UNIX
 			if(gr_screen.res == GR_1024){
 				Gr_bitmap_poly = 1;
 			}
 			gr_glide_init();
+#endif
 			break;
 		case GR_OPENGL:
 			Int3();
@@ -1168,7 +1183,9 @@ void gr_bitmap(int x, int y)
 		break;
 	
 	case GR_GLIDE:		
+#ifndef PLAT_UNIX
 		gr_glide_bitmap(x, y);		
+#endif
 		break;
 
 	case GR_OPENGL:
@@ -1190,7 +1207,9 @@ void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy)
 		break;
 
 	case GR_GLIDE:
+#ifndef PLAT_UNIX
 		gr_glide_bitmap_ex(x, y, w, h, sx, sy);
+#endif
 		break;
 
 	case GR_OPENGL:

@@ -7,6 +7,9 @@
  * Functions for the base gadget class
  *
  * $Log$
+ * Revision 1.5  2002/05/28 21:03:38  relnev
+ * implemented stub
+ *
  * Revision 1.4  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -235,7 +238,8 @@ int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 			strcat(full_name, NOX("0"));
 		}
 #ifdef PLAT_UNIX
-		STUB_FUNCTION;
+		sprintf(tmp, "%d", idx);
+		strcat(full_name, tmp);
 #else
 		strcat(full_name, itoa(idx, tmp, 10));		
 #endif

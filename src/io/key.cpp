@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.12  2004/06/11 01:14:12  tigital
+ * OSX: switched to __APPLE__
+ *
  * Revision 1.11  2003/05/18 03:57:08  taylor
  * do not swap German z and y keys if they are already swapped
  *
@@ -826,7 +829,7 @@ void key_mark( uint code, int state, uint latency )
 			code = KEY_SEMICOL;
 			break;
 		}
-#if !defined(PLAT_UNIX) || defined(__MACOSX__)
+#if !defined(PLAT_UNIX) || defined(__APPLE__)
 	} else if(Lcl_gr){
 		switch (code) {
 		case KEY_Y:

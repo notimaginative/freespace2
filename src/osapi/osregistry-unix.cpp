@@ -93,6 +93,9 @@ static char *trim_string(char *str)
 	ptr = strchr(str, ';');
 	if (ptr)
 		*ptr = 0;
+	ptr = strchr(str, '#');
+	if (ptr)
+		*ptr = 0;
 	
 	ptr = str+strlen(str)-1;
 	while (*ptr && isspace(*ptr)) {

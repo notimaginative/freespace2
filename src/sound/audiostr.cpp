@@ -7,6 +7,15 @@
  * Routines to stream large WAV files from disk
  *
  * $Log$
+ * Revision 1.4  2002/06/05 04:03:33  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.3  2002/05/27 18:42:50  theoddone33
  * Fix missing audiostr_* symbols
  *
@@ -1531,14 +1540,14 @@ void audiostream_init()
 
 	if ( Audiostream_inited == 1 )
 		return;
-
+		
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if ( !ACM_is_inited() ) {
 		return;
 	}
 
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	// Create and initialize AudioStreamServices object.
 	// This must be done once and only once for each window that uses
 	// streaming services.

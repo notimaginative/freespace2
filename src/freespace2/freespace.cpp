@@ -7,6 +7,15 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.14  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.13  2002/06/02 04:26:34  relnev
  * warning cleanup
  *
@@ -8685,11 +8694,13 @@ void display_title_screen()
 		return;
 	}
 
-	// d3d	
+#ifndef PLAT_UNIX
+	// d3d		
 	if((gr_screen.mode == GR_DIRECT3D) && (Gr_bitmap_poly)){
 		extern void d3d_start_frame();
 		d3d_start_frame();
 	}
+#endif
 
 	// set
 	gr_set_bitmap(title_bitmap);
@@ -8697,11 +8708,13 @@ void display_title_screen()
 	// draw
 	gr_bitmap(0, 0);
 
+#ifndef PLAT_UNIX
 	// d3d	
 	if((gr_screen.mode == GR_DIRECT3D) && (Gr_bitmap_poly)){
 		extern void d3d_stop_frame();
 		d3d_stop_frame();
 	}
+#endif
 
 	// flip
 	gr_flip();

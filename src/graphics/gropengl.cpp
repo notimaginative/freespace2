@@ -7,6 +7,15 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.46  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.45  2002/06/03 09:25:37  relnev
  * implement mouse cursor and screen save/restore
  *
@@ -304,42 +313,6 @@ int D3D_fog_mode = -1;		// grd3d.cpp
 int D3D_inited = 0;		// grd3d.cpp
 int D3D_zbias = 1;		// grd3d.cpp
 int D3d_rendition_uvs = 0;	// grd3d.cpp
-
-void gr_dd_activate(int active)		// grdirectdraw.cpp
-{
-	STUB_FUNCTION;
-}
-
-void gr_directdraw_cleanup()		// grdirectdraw.cpp
-{
-	STUB_FUNCTION;
-}
-
-void gr_directdraw_force_windowed()	// grdirectdraw.cpp
-{
-	STUB_FUNCTION;
-}
-
-void gr_directdraw_init()
-{
-	STUB_FUNCTION;
-}
-
-extern int gr_opengl_preload (int x, int y);
-int gr_d3d_preload (int x, int y)
-{
-	return gr_opengl_preload(x, y);
-}
-
-void d3d_start_frame()
-{
-	STUB_FUNCTION;
-}
-
-void d3d_stop_frame()
-{
-	STUB_FUNCTION;
-}
 
 void d3d_flush ()
 {
@@ -2754,7 +2727,7 @@ int gr_opengl_save_screen()
 	
 	if (Gr_opengl_mouse_saved) {
 		sptr = (ubyte *)Gr_opengl_mouse_saved_data;
-		dptr = (ubyte *)&Gr_saved_screen[2*(Gr_opengl_mouse_saved_x1+(Gr_opengl_mouse_saved_y2+1)*gr_screen.max_w)];
+		dptr = (ubyte *)&Gr_saved_screen[2*(Gr_opengl_mouse_saved_x1+(Gr_opengl_mouse_saved_y2)*gr_screen.max_w)];
 		for (int i = 0; i < Gr_opengl_mouse_saved_h; i++) {
 			memcpy(dptr, sptr, Gr_opengl_mouse_saved_w*2);
 		
@@ -2765,7 +2738,7 @@ int gr_opengl_save_screen()
 
 	// this leaks texture handles, and the opengl doesn't currently 
 	// perform some sort of garbage collection, so a hack was added
-	// to bmpman to make it free textures
+	// to bmpman to make it free textures when released
 	Gr_saved_screen_bitmap = bm_create(16, gr_screen.max_w, gr_screen.max_h, Gr_saved_screen, 0);
 	
 	return Gr_saved_screen_bitmap;

@@ -7,6 +7,15 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.8  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.7  2002/06/03 09:25:37  relnev
  * implement mouse cursor and screen save/restore
  *
@@ -2155,8 +2164,12 @@ void bm_page_in_start()
 
 }
 
+#ifndef PLAT_UNIX
 extern void gr_d3d_preload_init();
 extern int gr_d3d_preload(int bitmap_num, int is_aabitmap );
+#endif
+extern void gr_opengl_preload_init();
+extern int gr_opengl_preload(int bitmap_num, int is_aabitmap );
 
 void bm_page_in_stop()
 {	
@@ -2174,7 +2187,14 @@ void bm_page_in_stop()
 
 	int d3d_preloading = 1;
 
-	gr_d3d_preload_init();
+#ifndef PLAT_UNIX
+	if (gr_screen.mode == GR_DIRECT3D) {
+		gr_d3d_preload_init();
+	} else
+#endif	
+	if (gr_screen.mode == GR_OPENGL) {
+		gr_opengl_preload_init();
+	}
 
 	for (i = 0; i < MAX_BITMAPS; i++)	{
 		if ( bm_bitmaps[i].type != BM_TYPE_NONE )	{
@@ -2203,12 +2223,22 @@ void bm_page_in_stop()
 				bm_unlock( bm_bitmaps[i].handle );
 
 				if ( d3d_preloading )	{
-					if ( !gr_d3d_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
-						mprintf(( "Out of VRAM.  Done preloading.\n" ));
-						d3d_preloading = 0;
+#ifndef PLAT_UNIX
+					if (gr_screen.mode == GR_DIRECT3D) {
+						if ( !gr_d3d_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
+							mprintf(( "Out of VRAM.  Done preloading.\n" ));
+							d3d_preloading = 0;
+						}
+					} else 
+#endif					
+					if (gr_screen.mode == GR_OPENGL) {
+						if ( !gr_opengl_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
+							mprintf(( "Out of VRAM.  Done preloading.\n" ));
+							d3d_preloading = 0;
+						}
 					}
 				}
-
+				
 				n++;
 				#ifdef BMPMAN_NDEBUG
 				if ( Bm_ram_freed )	{

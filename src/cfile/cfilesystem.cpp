@@ -11,6 +11,15 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.5  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.4  2002/05/28 17:26:57  theoddone33
  * Fill in some timer and palette setting stubs.  Still no display
  *
@@ -95,6 +104,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 #include "pstypes.h"
@@ -243,6 +254,7 @@ int cf_get_packfile_count(cf_root *root)
 				if (!fnmatch ("*.vp", dir->d_name, 0))
 					packfile_count++;
 			}
+			closedir(dirp);
 		}
 #else
 		strcpy( filespec, root->path );
@@ -335,6 +347,19 @@ void cf_build_pack_list( cf_root *root )
 				{
 					Assert(root_index < temp_root_count);
 
+					char fn[MAX_PATH];
+					snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
+					fn[MAX_PATH-1] = 0;
+							
+					struct stat buf;
+					if (stat(fn, &buf) == -1) {
+						continue;
+					}
+					
+					if (!S_ISREG(buf.st_mode)) {
+						continue;
+					}
+					
 					// get a temp pointer
 					rptr_sort = &temp_roots_sort[root_index++];
 
@@ -351,6 +376,7 @@ void cf_build_pack_list( cf_root *root )
 					rptr_sort->cf_type = i;
 				}
 			}
+			closedir(dirp);
 		}
 #else
 		strcpy( filespec, root->path );
@@ -492,7 +518,7 @@ void cf_search_root_path(int root_index)
 
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 
-#ifdef STUB_FUNCTION
+#ifdef PLAT_UNIX
 		DIR *dirp;
 		struct dirent *dir;
 
@@ -509,6 +535,19 @@ void cf_search_root_path(int root_index)
 			{
 				if (!fnmatch ("*.*", dir->d_name, 0))
 				{
+					char fn[MAX_PATH];
+					snprintf(fn, MAX_PATH-1, "%s/%s", search_path, dir->d_name);
+					fn[MAX_PATH-1] = 0;
+							
+					struct stat buf;
+					if (stat(fn, &buf) == -1) {
+						continue;
+					}
+					
+					if (!S_ISREG(buf.st_mode)) {
+						continue;
+					}
+					
 					char *ext = strchr( dir->d_name, '.' );
 					if ( ext )	{
 						if ( is_ext_in_list( Pathtypes[i].extensions, ext ) )	{
@@ -518,12 +557,11 @@ void cf_search_root_path(int root_index)
 							strcpy( file->name_ext, dir->d_name );
 							file->root_index = root_index;
 							file->pathtype_index = i;
-#if 0
-							file->write_time = find.time_write;
-							file->size = find.size;
-#else
-							STUB_FUNCTION;
-#endif
+
+
+							file->write_time = buf.st_mtime;
+							file->size = buf.st_size;
+
 							file->pack_offset = 0;			// Mark as a non-packed file
 
 							//mprintf(( "Found file '%s'\n", file->name_ext ));
@@ -531,6 +569,7 @@ void cf_search_root_path(int root_index)
 					}
 				}
 			}
+			closedir(dirp);
 		}
 #else
 		strcpy( search_path, root->path );
@@ -950,8 +989,9 @@ int cf_file_already_in_list( int num_files, char **list, char *filename )
 int cf_get_file_list( int max, char **list, int pathtype, char *filter, int sort, file_list_info *info )
 {
 	char *ptr;
-	int i, l, find_handle, num_files = 0, own_flag = 0;
+	int i, l, num_files = 0, own_flag = 0;
 #ifndef PLAT_UNIX
+	int find_handle;
 	_finddata_t find;
 #endif
 
@@ -969,11 +1009,57 @@ int cf_get_file_list( int max, char **list, int pathtype, char *filter, int sort
 
 	char filespec[MAX_PATH_LEN];
 
-	cf_create_default_path_string( filespec, pathtype, filter );
-
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	cf_create_default_path_string( filespec, pathtype, NULL );
+
+		DIR *dirp;
+		struct dirent *dir;
+
+		dirp = opendir (filespec);
+		if ( dirp ) {
+			while ((dir = readdir (dirp)) != NULL)
+			{
+				if (num_files >= max)
+					break;
+				
+				if (fnmatch(filter, dir->d_name, 0) != 0)
+					continue;
+				
+				char fn[MAX_PATH];
+				snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
+				fn[MAX_PATH-1] = 0;
+							
+				struct stat buf;
+				if (stat(fn, &buf) == -1) {
+					continue;
+				}
+				
+				if (!S_ISREG(buf.st_mode)) {
+					continue;
+				}
+				
+				if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
+					ptr = strrchr(dir->d_name, '.');
+					if (ptr)
+						l = ptr - dir->d_name;
+					else
+						l = strlen(dir->d_name);
+
+					list[num_files] = (char *)malloc(l + 1);
+					strncpy(list[num_files], dir->d_name, l);
+					list[num_files][l] = 0;
+					if (info)
+						info[num_files].write_time = buf.st_mtime;
+
+					num_files++;
+				}
+			}
+			
+			closedir(dirp);
+		}
 #else
+	cf_create_default_path_string( filespec, pathtype, filter );
+	
 	find_handle = _findfirst( filespec, &find );
 	if (find_handle != -1) {
 		do {
@@ -1111,10 +1197,10 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 
 	char filespec[MAX_PATH_LEN];
 
-	cf_create_default_path_string( filespec, pathtype, filter );
-
 	// Search the default directories
 #ifdef PLAT_UNIX
+	cf_create_default_path_string( filespec, pathtype, NULL );
+	
 		DIR *dirp;
 		struct dirent *dir;
 
@@ -1122,11 +1208,25 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 		if ( dirp ) {
 			while ((dir = readdir (dirp)) != NULL)
 			{
-
 				if (num_files >= max)
 					break;
-
-
+				
+				if (fnmatch(filter, dir->d_name, 0) != 0)
+					continue;
+				
+				char fn[MAX_PATH];
+				snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
+				fn[MAX_PATH-1] = 0;
+							
+				struct stat buf;
+				if (stat(fn, &buf) == -1) {
+					continue;
+				}
+				
+				if (!S_ISREG(buf.st_mode)) {
+					continue;
+				}
+				
 				if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
 
 					strncpy(arr[num_files], dir->d_name, MAX_FILENAME_LEN - 1 );
@@ -1136,15 +1236,17 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 					}
 
 					if (info)	{
-						STUB_FUNCTION;
-						//info[num_files].write_time = find.time_write;
+						info[num_files].write_time = buf.st_mtime;
 					}
 
 					num_files++;
 				}
 			}
+			closedir(dirp);
 		}
 #else
+	cf_create_default_path_string( filespec, pathtype, filter );
+	
 	int find_handle;
 	_finddata_t find;
 	

@@ -7,6 +7,15 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.7  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.6  2002/05/31 03:34:02  theoddone33
  * Fix Keyboard
  * Add titlebar
@@ -263,5 +272,6 @@ void os_poll()
 
 void debug_int3()
 {
+	STUB_FUNCTION;
 }
 

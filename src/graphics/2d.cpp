@@ -7,6 +7,15 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.8  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.7  2002/05/30 21:44:48  relnev
  * implemented some missing texture stuff.
  *
@@ -507,6 +516,7 @@ void gr_close()
 	case GR_SOFTWARE:		
 		gr_soft_cleanup();
 		break;
+#ifndef PLAT_UNIX		
 	case GR_DIRECTDRAW:
 		Int3();
 		gr_directdraw_cleanup();
@@ -515,10 +525,9 @@ void gr_close()
 		gr_d3d_cleanup();
 		break;
 	case GR_GLIDE:
-#ifndef PLAT_UNIX
 		gr_glide_cleanup();
-#endif
 		break;
+#endif		
 	case GR_OPENGL:
 		gr_opengl_cleanup();
 		break;
@@ -867,6 +876,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 		case GR_SOFTWARE:			
 			gr_soft_cleanup();
 			break;
+#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			Int3();
 			gr_directdraw_cleanup();
@@ -875,16 +885,10 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 			gr_d3d_cleanup();
 			break;
 		case GR_GLIDE:
-#ifndef PLAT_UNIX
 			gr_glide_cleanup();
-#else
-			Int3();
-#endif			
 			break;
-		case GR_OPENGL:
-#ifndef PLAT_UNIX		
-			Int3();
 #endif			
+		case GR_OPENGL:
 			gr_opengl_cleanup();
 			break;
 		default:
@@ -897,7 +901,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 #if defined(HARDWARE_ONLY)
 #ifndef PLAT_UNIX
 	if(!Fred_running && !Pofview_running && !Nebedit_running && !Is_standalone){
-		if((mode != GR_GLIDE) && (mode != GR_DIRECT3D)){
+		if((mode != GR_GLIDE) && (mode != GR_DIRECT3D) && (mode != GR_OPENGL)){
 			mprintf(("Forcing glide startup!\n"));
 			mode = GR_GLIDE;
 		}	
@@ -955,11 +959,10 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 
 	switch( gr_screen.mode )	{
 		case GR_SOFTWARE:
-#ifndef PLAT_UNIX
 			Assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
-#endif			
 			gr_soft_init();
 			break;
+#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			Int3();
 			gr_directdraw_init();
@@ -983,19 +986,13 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 			break;
 		case GR_GLIDE:
 			// if we're in high-res. force polygon interface
-#ifndef PLAT_UNIX
 			if(gr_screen.res == GR_1024){
 				Gr_bitmap_poly = 1;
 			}
 			gr_glide_init();
-#else
-			Int3();
-#endif
 			break;
-		case GR_OPENGL:
-#ifndef PLAT_UNIX		
-			Int3();
 #endif			
+		case GR_OPENGL:
 			gr_opengl_init();
 			break;
 		default:
@@ -1039,6 +1036,7 @@ void gr_force_windowed()
 				gr_soft_force_windowed();
 			}
 			break;
+#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			{
 				Int3();
@@ -1050,18 +1048,13 @@ void gr_force_windowed()
 			break;
 		case GR_GLIDE:
 			{
-#ifndef PLAT_UNIX
 				extern void gr_glide_force_windowed();
 				gr_glide_force_windowed();
-#endif
 			}
 			break;
-		case GR_OPENGL:
-#ifndef PLAT_UNIX		
-			Int3();
 #endif			
+		case GR_OPENGL:
 			break;
-
 		default:
 			Int3();		// Invalid graphics mode
 	}
@@ -1082,6 +1075,7 @@ void gr_activate(int active)
 				return;
 			}
 			break;
+#ifndef PLAT_UNIX			
 		case GR_DIRECTDRAW:
 			{
 				Int3();
@@ -1099,25 +1093,18 @@ void gr_activate(int active)
 			break;
 		case GR_GLIDE:
 			{
-#ifndef PLAT_UNIX
 				extern void gr_glide_activate(int active);
 				gr_glide_activate(active);
 				return;
-#else
-				Int3();
-#endif				
 			}
 			break;
+#endif			
 		case GR_OPENGL:
-#ifndef PLAT_UNIX
-			Int3();
-#else
 			{	
 				extern void gr_opengl_activate(int active);
 				gr_opengl_activate(active);
 				return;
 			}	
-#endif		
 			break;
 		default:
 			Int3();		// Invalid graphics mode
@@ -1216,19 +1203,21 @@ void gr_bitmap(int x, int y)
 		grx_bitmap(x, y);
 		break;
 
+#ifndef PLAT_UNIX
 	case GR_DIRECT3D:
 		gr_d3d_bitmap(x, y);
 		break;
 	
 	case GR_GLIDE:		
-#ifndef PLAT_UNIX
 		gr_glide_bitmap(x, y);		
+		break;
 #endif
-		break;
-
-	case GR_OPENGL:
-		gr_opengl_bitmap(x, y);
-		break;
+	/* don't want opengl bitmap to be called -- slow! */
+	//case GR_OPENGL:
+	//	gr_opengl_bitmap(x, y);
+	//	break;
+	default:
+		Int3();
 	}
 }
 
@@ -1239,21 +1228,21 @@ void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy)
 	case GR_DIRECTDRAW:
 		grx_bitmap_ex(x, y, w, h, sx, sy);
 		break;
-
+#ifndef PLAT_UNIX
 	case GR_DIRECT3D:
 		gr_d3d_bitmap_ex(x, y, w, h, sx, sy);
 		break;
 
 	case GR_GLIDE:
-#ifndef PLAT_UNIX
 		gr_glide_bitmap_ex(x, y, w, h, sx, sy);
+		break;
 #endif
-		break;
-
-	case GR_OPENGL:
-		gr_opengl_bitmap_ex(x, y, w, h, sx, sy);
-		break;
+	/* slow! */
+	//case GR_OPENGL:
+	//	gr_opengl_bitmap_ex(x, y, w, h, sx, sy);
+	//	break;
 	default:
+		Int3();
 		break;
 	}
 }

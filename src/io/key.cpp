@@ -7,6 +7,15 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.6  2002/06/05 04:03:32  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.5  2002/05/31 03:34:02  theoddone33
  * Fix Keyboard
  * Add titlebar
@@ -358,7 +367,7 @@ int key_numlock_is_on()
 void key_turn_off_numlock()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+//	STUB_FUNCTION; /* sdl doesn't support this */
 #else
 	unsigned char keys[256];
 	GetKeyboardState(keys);
@@ -370,7 +379,7 @@ void key_turn_off_numlock()
 void key_turn_on_numlock()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+//	STUB_FUNCTION; /* sdl doesn't support this */
 #else
 	unsigned char keys[256];
 	GetKeyboardState(keys);
@@ -926,7 +935,7 @@ void key_close()
 
 	key_inited = 0;
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+//	STUB_FUNCTION; /* don't need this? */
 #else
 	DeleteCriticalSection( &key_lock );
 #endif
@@ -940,7 +949,7 @@ void key_init()
 
 #ifdef PLAT_UNIX
 	FillSDLArray ();
-	STUB_FUNCTION;
+//	STUB_FUNCTION; /* don't need this */
 #else
 	InitializeCriticalSection( &key_lock );
 
@@ -958,7 +967,7 @@ void key_init()
 	key_clear_filter();
 
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+//	STUB_FUNCTION; /* don't need this */
 #else
 	LEAVE_CRITICAL_SECTION(&key_lock);		
 

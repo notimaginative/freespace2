@@ -7,6 +7,15 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.8  2002/06/05 04:03:33  relnev
+ * finished cfilesystem.
+ *
+ * removed some old code.
+ *
+ * fixed mouse save off-by-one.
+ *
+ * sound cleanups.
+ *
  * Revision 1.7  2002/06/02 22:31:37  cemason
  * Changes
  *
@@ -572,29 +581,6 @@ float ds_get_percentage_vol(int ds_vol)
 	return (float)vol;
 }
 
-static unsigned char *Force8to16 (unsigned char *buf, unsigned int *len)
-{
- 	unsigned char *nbuf;
- 	unsigned int i;
- 	
- 	nbuf = (unsigned char *) malloc (*len * 2);
- 	
- 	for (i = 0; i < *len; i++) {
-                short int x = ((buf[i] << 8) | buf[i]) ^ 0x8000;
-                nbuf[i*2+0] = (x & 0x00ff);
-                nbuf[i*2+1] = (x >> 8) & 0xff;
-        }
-         
-        *len *= 2;
-        return nbuf;
-}
-
-// In libopenal
-extern "C" {
-extern void *acLoadWAV (void *data, ALuint *size, void **udata,
-			ALushort *fmt, ALushort *chan, ALushort *freq);
-}
-
 // ---------------------------------------------------------------------------------------
 // ds_parse_wave() 
 //
@@ -613,67 +599,6 @@ extern void *acLoadWAV (void *data, ALuint *size, void **udata,
 //
 int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **header)
 {
-#ifdef PLAT_UNIX
-	CFILE *fp;
-	ALuint size, pi;
-	ALushort fmt;
-	ALushort freq, chan;
-	ALvoid *data, *my_data;
-	unsigned char *nb;
-
-	nprintf (("Sound", "SOUND ==> ds_parse_wave(%s)", filename));
-
-	fp = cfopen (filename, "rb");
-	if ( fp == NULL )	{
-		nprintf(("Error", "Couldn't open '%s'\n", filename ));
-		return -1;
-	}
-	
-	int len; 
-	cfseek (fp, 0, CF_SEEK_END);
-	len = cftell(fp);
-	cfclose(fp);
-	fp = cfopen (filename, "rb");
-	data = (ALvoid *) malloc(len);
-	cfread(data, len, 1, fp);
-	cfclose(fp);
-
-	if (acLoadWAV (data, &size, &my_data, &fmt, &chan, &freq) == NULL)
-		return -1;
-
-	len = size;
-
-	if((fmt == AUDIO_U8)) {
-		nb = Force8to16 ((unsigned char *)my_data, (unsigned int *)&len);
-		fmt = AUDIO_S16LSB;
-		free (my_data);
-		my_data = nb;
-	}
-
-	if (fmt == AUDIO_S16LSB || fmt == AUDIO_S16MSB) {
-		if(chan == 2) {
-			fmt = AL_FORMAT_STEREO16;
-		} else { 
-			fmt = AL_FORMAT_MONO16;
-		} 
-	} else return -1;
-
-	(*dest) = (ubyte *)malloc(sizeof(ALuint));
-	alGenBuffers (1, &pi);
-	alBufferData (pi, fmt, my_data, len, freq);
-	*((ALuint*)(*dest)) = (pi);
-	*dest_size = len;
-
-	(*header) = (WAVEFORMATEX *) malloc ( sizeof(WAVEFORMATEX) );
-	(*header)->wFormatTag = fmt;
-	(*header)->nChannels = chan;
-	(*header)->nSamplesPerSec = freq;
-	(*header)->wBitsPerSample = 16;
-	(*header)->cbSize = len;
-
-	free (my_data);
-	return 0;
-#else
 	CFILE				*fp;
 	PCMWAVEFORMAT	PCM_header;
 	int				cbExtra = 0;
@@ -736,7 +661,6 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 		cfseek( fp, next_chunk, CF_SEEK_SET );
 	}
 	cfclose(fp);
-#endif
 
 	return 0;
 }
@@ -771,12 +695,12 @@ int ds_get_sid()
 // ---------------------------------------------------------------------------------------
 // ds_get_hid()
 //
-//	
+// not used
 int ds_get_hid()
 {
 #ifdef PLAT_UNIX
-	// this function is unused in linux
 	STUB_FUNCTION;
+
 	return -1;
 #else
 	int i;
@@ -828,8 +752,52 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	Assert( si->data != NULL );
 
 	// All sounds are required to have a software buffer
-	ALuint pi = *((ALuint*)si->data);	// Buffer
-
+	
+	
+	ALuint pi;
+	alGenBuffers (1, &pi);
+	
+	ALenum format;
+	ALsizei size;
+	ALuint frequency;
+	ALvoid *data;
+	
+	switch (si->format) {
+		case WAVE_FORMAT_PCM:
+			size = si->size;
+			data = si->data;
+			break;
+		default:
+			return -1;
+	}
+	
+	/* format is now in pcm */
+	frequency = si->sample_rate;
+	
+	if (si->bits == 16) {
+		if (si->n_channels == 2) {
+			format = AL_FORMAT_STEREO16;
+		} else if (si->n_channels == 1) {
+			format = AL_FORMAT_MONO16;
+		} else {
+			return -1;
+		}
+	} else if (si->bits == 8) {
+		if (si->n_channels == 2) {
+			format = AL_FORMAT_STEREO8;
+		} else if (si->n_channels == 1) {
+			format = AL_FORMAT_MONO8;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+	
+	*final_size = size;
+	
+	alBufferData (pi, format, data, size, frequency);
+	
 	(*sid) = Channels[channel].pds3db = (int)pi;
 
 	if ( *sid == -1 ) {
@@ -1337,7 +1305,7 @@ int ds_init(int use_a3d, int use_eax)
 
 	Ds_use_a3d = 0;
 	Ds_use_eax = 0;
-	Ds_use_ds3d = 1;
+	Ds_use_ds3d = 0;
 
 	nprintf(( "Sound", "SOUND ==> Initializing DirectSound...\n" ));
 
@@ -1359,8 +1327,8 @@ int ds_init(int use_a3d, int use_eax)
 	// Initialize DirectSound3D.  Since software performance of DirectSound3D is unacceptably
 	// slow, we require the voice manger (a DirectSound extension) to be present.  The 
 	// exception is when A3D is being used, since A3D has a resource manager built in.
-	if (Ds_use_ds3d && ds3d_init(0) != 0) 
-		Ds_use_ds3d = 0;
+//	if (Ds_use_ds3d && ds3d_init(0) != 0) 
+//		Ds_use_ds3d = 0;
 
 	ds_build_vol_lookup();
 	ds_init_channels();
@@ -1520,7 +1488,10 @@ char *get_DSERR_text(int DSResult)
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
-	return "Linux rocks";
+	
+	static char buf[20];
+	snprintf(buf, 19, "unknown %d", DSResult);
+	return buf;
 #else
 	switch( DSResult ) {
 
@@ -2784,16 +2755,18 @@ void ds_set_position(int channel, DWORD offset)
 DWORD ds_get_play_position(int channel)
 {
 #ifdef PLAT_UNIX
-	int play;
+	int play = 0;
 	int value;
+	
 	if( Channels[channel].pdsb ) {
 		// get source position
 		alGetSourceiv(Channels[channel].pdsb, AL_SOURCE_STATE, &value);
-		if(!(value & AL_PLAYING)) 
-			return 0;
+		
+		play = (value == AL_PLAYING) ? 1 : 0;
 	} else {
-		play = 1;
+		play = 0;
 	}
+	
 	return play;
 #else
 	DWORD play,write;	

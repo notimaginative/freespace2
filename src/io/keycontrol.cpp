@@ -15,6 +15,9 @@
  * Routines to read and deal with keyboard input.
  *
  * $Log$
+ * Revision 1.3  2002/06/18 08:58:53  relnev
+ * last few struct changes
+ *
  * Revision 1.2  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -1073,7 +1076,7 @@ void process_debug_keys(int k)
 			object *asteroid_create(asteroid_field *asfieldp, int asteroid_type, int subtype);
 			object *objp = asteroid_create(&Asteroid_field, 0, 0);
 			vector vel;
-			vm_vec_copy_scale(&vel, &Player_obj->orient.fvec, 50.0f);
+			vm_vec_copy_scale(&vel, &Player_obj->orient.v.fvec, 50.0f);
 			objp->phys_info.vel = vel;
 			objp->phys_info.desired_vel = vel;
 			objp->pos = Player_obj->pos;
@@ -1567,7 +1570,7 @@ void game_process_pause_key()
 		vector gpos; \
 		vm_vec_sub2(&temp, &hit_check->pos); \
 		vm_vec_rotate(&gpos, &temp, &hit_check->orient); \
-		if((gpos.x >= pm->mins.x * scale) && (gpos.y >= pm->mins.y * scale) && (gpos.z >= pm->mins.z * scale) && (gpos.x <= pm->maxs.x * scale) && (gpos.y <= pm->maxs.y * scale) && (gpos.z <= pm->maxs.z * scale)) { \
+		if((gpos.xyz.x >= pm->mins.xyz.x * scale) && (gpos.xyz.y >= pm->mins.xyz.y * scale) && (gpos.xyz.z >= pm->mins.xyz.z * scale) && (gpos.xyz.x <= pm->maxs.xyz.x * scale) && (gpos.xyz.y <= pm->maxs.xyz.y * scale) && (gpos.xyz.z <= pm->maxs.xyz.z * scale)) { \
 			collided = 1; \
 		} \
 	} \
@@ -1578,19 +1581,19 @@ void game_process_pause_key()
 	if(pm != NULL){ \
 		switch((int)frand_range(0.0f, 3.9f)){ \
 		case 0: \
-			new_obj->pos.x += 200.0f; \
+			new_obj->pos.xyz.x += 200.0f; \
 			break; \
 		case 1: \
-			new_obj->pos.x -= 200.0f; \
+			new_obj->pos.xyz.x -= 200.0f; \
 			break; \
 		case 2: \
-			new_obj->pos.y += 200.0f; \
+			new_obj->pos.xyz.y += 200.0f; \
 			break; \
 		case 3: \
-			new_obj->pos.y -= 200.0f; \
+			new_obj->pos.xyz.y -= 200.0f; \
 			break; \
 		default : \
-			new_obj->pos.z -= 200.0f; \
+			new_obj->pos.xyz.z -= 200.0f; \
 			break; \
 		} \
 	} \
@@ -1659,9 +1662,9 @@ void game_process_cheats(int k)
 		
 		for(int idx=0; idx<1; idx++){
 			vector add = Player_obj->pos;
-			add.x += frand_range(-700.0f, 700.0f);
-			add.y += frand_range(-700.0f, 700.0f);
-			add.z += frand_range(-700.0f, 700.0f);
+			add.xyz.x += frand_range(-700.0f, 700.0f);
+			add.xyz.y += frand_range(-700.0f, 700.0f);
+			add.xyz.z += frand_range(-700.0f, 700.0f);
 
 			int objnum = ship_create(&vmd_identity_matrix, &add, Num_ship_types - 1);
 
@@ -1690,7 +1693,7 @@ void game_process_cheats(int k)
 							
 							// just to make sure we don't get any strange magnitude errors
 							if(vm_vec_same(&hit_check->pos, &Objects[objnum].pos)){
-								Objects[objnum].pos.x += 1.0f;
+								Objects[objnum].pos.xyz.x += 1.0f;
 							}
 							
 							WITHIN_BBOX();				

@@ -19,7 +19,7 @@ or otherwise commercially exploit the source or things you created based on
 the source.
 ----------------------------------------------
 
-06/17/2002
+06/18/2002
 
 Current status:
 - It currently uses SDL (http://www.libsdl.org) and OpenAL
@@ -31,8 +31,8 @@ Current status:
 
 - Lots of debug messages.  Recompile with NDEBUG defined to get rid of them.
 
-- Only the demo was tested.  The full version may or may not work (edit
-pstypes.h to build the full version).  Mods, etc. have also not been tested.
+- The build currently defaults to the demo.  Edit pstypes.h to build the
+full version.  Mods, etc. have not been tested.
 
 - Networking (TCP) seems to work OK.  Linux<->Linux works great, Lin<->Win
 not tested.

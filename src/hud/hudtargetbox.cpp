@@ -15,6 +15,9 @@
  * C module for drawing the target monitor box on the HUD
  *
  * $Log$
+ * Revision 1.5  2002/06/18 08:58:53  relnev
+ * last few struct changes
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -807,7 +810,7 @@ void hud_render_target_asteroid(object *target_objp)
 		factor = 2*target_objp->radius;
 
 		// use the player's up vector, and construct the viewers orientation matrix
-		up_vector = Player_obj->orient.uvec;
+		up_vector = Player_obj->orient.v.uvec;
 		vm_vector_2_matrix(&camera_orient,&orient_vec,&up_vector,NULL);
 
 		// normalize the vector from the player to the current target, and scale by a factor to calculate

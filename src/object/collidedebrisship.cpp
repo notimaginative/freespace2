@@ -15,6 +15,9 @@
  * Routines to detect collisions and do physics, damage, etc for ships and debris
  *
  * $Log$
+ * Revision 1.5  2002/06/18 08:58:53  relnev
+ * last few struct changes
+ *
  * Revision 1.4  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -363,7 +366,7 @@ int collide_asteroid_ship( obj_pair * pair )
 				return 0;
 
 			// limit damage from impulse by making max impulse (for damage) 2*m*v_max_relative
-			float max_ship_impulse = (2.0f*pship->phys_info.max_vel.z+vm_vec_mag_quick(&asteroid_vel)) * 
+			float max_ship_impulse = (2.0f*pship->phys_info.max_vel.xyz.z+vm_vec_mag_quick(&asteroid_vel)) * 
 				(pship->phys_info.mass*pasteroid->phys_info.mass) / (pship->phys_info.mass + pasteroid->phys_info.mass);
 
 			if (asteroid_hit_info.impulse > max_ship_impulse) {
@@ -441,7 +444,7 @@ int collide_asteroid_ship( obj_pair * pair )
 			ship_max_speed = ship_get_max_speed(shipp);
 		}
 		ship_max_speed = max(ship_max_speed, 10.0f);
-		ship_max_speed = max(ship_max_speed, pship->phys_info.vel.z);
+		ship_max_speed = max(ship_max_speed, pship->phys_info.vel.xyz.z);
 
 
 		time = 1000.0f * (dist - pship->radius - pasteroid->radius - 10.0f) / (asteroid_max_speed + ship_max_speed);		// 10.0f is a safety factor

@@ -11,6 +11,7 @@
 #define TRUE 1
 #define FALSE 0
 #define DWORD int
+#define WORD short
 #define _MAX_FNAME 255
 #define _MAX_PATH 255
 #define MAX_PATH 255
@@ -53,6 +54,15 @@ typedef struct FILETIME_s {
 	    DWORD dwHighDateTime;
 } FILETIME, *PFILETIME;
 
+typedef struct {
+	WORD  wFormatTag;
+	WORD  nChannels;
+	DWORD nSamplesPerSec;
+	DWORD nAvgBytesPerSec;
+	WORD  nBlockAlign;
+	WORD  wBitsPerSample;
+	WORD  cbSize;
+} WAVEFORMATEX;
 extern void strlwr (char *str);
 extern int filelength (int fd);
 extern int MulDiv (int, int, int);
@@ -63,7 +73,6 @@ extern int MulDiv (int, int, int);
 #define closesocket(A) close(A)
 #define CopyMemory(A,B,C) memcpy(A,B,C)
 #define UINT unsigned int
-#define WORD unsigned short
 #define SOCKET int
 #define SOCKADDR_IN struct sockaddr_in
 #define SOCKADDR struct sockaddr

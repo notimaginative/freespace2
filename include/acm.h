@@ -7,8 +7,11 @@
  * Header file for interface to Audio Compression Manager functions
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 01:06:01  theoddone33
+ * sound.cpp works
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 2     10/07/98 10:53a Dave
@@ -36,8 +39,10 @@
 #ifndef __FREESPACE_ACM_H__
 #define __FREESPACE_ACM_H__
 
+#ifndef PLAT_UNIX
 #include <mmreg.h>
 #include <msacm.h>
+#endif
 #include "pstypes.h"
 
 int	ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int max_dest_bytes, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps=16);

@@ -7,8 +7,11 @@
  * Header file for interface to DirectSound
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 01:06:01  theoddone33
+ * sound.cpp works
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 5     8/27/99 6:38p Alanl
@@ -96,9 +99,11 @@
 #ifndef __DS_H__
 #define __DS_H__
 
+#ifndef PLAT_UNIX
 #include <windows.h>
 #include <mmreg.h>
 #include "vdsound.h"
+#endif
 #include "pstypes.h"
 
 #define DS_HARDWARE	(1<<0)
@@ -132,10 +137,12 @@ typedef struct sound_info {
 } sound_info;
 
 extern int							ds_initialized;
+#ifndef PLAT_UNIX
 extern LPDIRECTSOUNDBUFFER		pPrimaryBuffer;
 extern LPDIRECTSOUND				pDirectSound;
 
 extern HRESULT (__stdcall *pfn_DirectSoundCaptureCreate)(LPGUID lpGUID, LPDIRECTSOUNDCAPTURE *lplpDSC, LPUNKNOWN pUnkOuter);
+#endif
 
 int	ds_init(int use_a3d, int use_eax);
 void	ds_close();
@@ -191,11 +198,13 @@ void ds_do_frame();
 // --------------------
 
 // EAX (listener) reverb property set {4a4e6fc1-c341-11d1-b73a-444553540000}
+#ifndef PLAT_UNIX
 DEFINE_GUID(DSPROPSETID_EAX_ReverbProperties, 
     0x4a4e6fc1,
     0xc341,
     0x11d1,
     0xb7, 0x3a, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+#endif
 
 typedef enum 
 {
@@ -253,11 +262,13 @@ enum
 #define EAX_MAX_ENVIRONMENT (EAX_ENVIRONMENT_COUNT - 1)
 
 // EAX buffer reverb property set {4a4e6fc0-c341-11d1-b73a-444553540000}
+#ifndef PLAT_UNIX
 DEFINE_GUID(DSPROPSETID_EAXBUFFER_ReverbProperties, 
     0x4a4e6fc0,
     0xc341,
     0x11d1,
     0xb7, 0x3a, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+#endif
 
 typedef enum 
 {

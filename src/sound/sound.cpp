@@ -7,6 +7,9 @@
  * Low-level sound code
  *
  * $Log$
+ * Revision 1.4  2002/05/27 01:06:01  theoddone33
+ * sound.cpp works
+ *
  * Revision 1.3  2002/05/27 00:40:47  theoddone33
  * Fix net_addr vs net_addr_t
  *
@@ -312,12 +315,10 @@
 #include "gamesnd.h"
 #include "alphacolors.h"
 
-#ifndef PLAT_UNIX
 #include "ds.h"
 #include "ds3d.h"
 #include "acm.h"
 #include "dscap.h"
-#endif
 		
 #define SND_F_USED			(1<<0)		// Sounds[] element is used
 
@@ -350,6 +351,7 @@ int ds_priority(int priority)
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
+	return 1;
 #else
 	switch(priority){
 		case SND_PRIORITY_MUST_PLAY:
@@ -423,7 +425,11 @@ int snd_init(int use_a3d, int use_eax)
 
 		if ( num_tries++ > 5 ) {
 			if ( !gave_warning ) {
+#ifndef PLAT_UNIX
 				MessageBox(NULL, XSTR("DirectSound could not be initialized.  If you are running any applications playing sound in the background, you should stop them before continuing.",971), NULL, MB_OK);
+#else
+				fprintf (stderr, "Sound could not be initialized\n");
+#endif
 				gave_warning = 1;
 			} else {
 				goto Failure;
@@ -433,8 +439,12 @@ int snd_init(int use_a3d, int use_eax)
 
 	// Init the Audio Compression Manager
 	if ( ACM_init() == -1 ) {
+#ifndef PLAT_UNIX
 		HWND hwnd = (HWND)os_get_window();
 		MessageBox(hwnd, XSTR("Could not properly initialize the Microsoft ADPCM codec.\n\nPlease see the readme.txt file for detailed instructions on installing the Microsoft ADPCM codec.",972), NULL, MB_OK);
+#else
+		fprintf (stderr, "ACM_init failed\n");
+#endif
 //		Warning(LOCATION, "Could not properly initialize the Microsoft ADPCM codec.\nPlease see the readme.txt file for detailed instructions on installing the Microsoft ADPCM codec.");
 	}
 
@@ -1266,7 +1276,12 @@ void snd_stop_all()
 //
 uint sound_get_ds()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	return (uint)pDirectSound;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------

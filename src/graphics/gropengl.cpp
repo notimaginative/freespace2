@@ -7,8 +7,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/27 22:32:02  theoddone33
+ * throw all d3d stuff at opengl
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 10    7/14/99 9:42a Dave
@@ -117,6 +120,20 @@
 #include "line.h"
 
 static int Inited = 0;
+#ifdef PLAT_UNIX
+// Throw in some dummy functions - DDOI
+void gr_opengl_preload_init()
+{
+}
+
+void gr_d3d_preload(int x, int y)
+{
+}
+
+void gr_opengl_activate( int b)
+{
+}
+#endif
 
 void gr_opengl_pixel(int x, int y)
 {

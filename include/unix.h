@@ -96,4 +96,13 @@ extern int MulDiv (int, int, int);
 #define WSAECONNABORTED ECONNABORTED
 #define WSAESHUTDOWN ESHUTDOWN
 
+// Testing - DDOI
+#define gr_d3d_bitmap gr_opengl_bitmap
+#define gr_d3d_init gr_opengl_init
+#define gr_d3d_activate gr_opengl_activate
+#define gr_d3d_cleanup gr_opengl_cleanup
+#define gr_d3d_bitmap_ex gr_opengl_bitmap_ex
+#define gr_d3d_preload_init gr_opengl_preload_init
+//#define gr_d3d_FOO gr_opengl_FOO
+
 #endif

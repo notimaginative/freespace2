@@ -7,6 +7,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.4  2002/05/30 23:46:29  theoddone33
+ * some minor key changes (not necessarily fixes)
+ *
  * Revision 1.3  2002/05/30 16:50:24  theoddone33
  * Keyboard partially fixed
  *
@@ -256,11 +259,7 @@ int key_to_ascii(int keycode )
 	if ( !key_inited ) return 255;
 
 	shifted = keycode & KEY_SHIFTED;
-#ifdef PLAT_UNIX
-	keycode &= 0xffff;
-#else
-	keycode &= 0xFF;
-#endif
+	keycode &= KEY_MASK;
 
 	if ( keycode>=127 )
 		return 255;
@@ -287,9 +286,6 @@ void key_flush()
 
 	if ( !key_inited ) return;
 
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	ENTER_CRITICAL_SECTION(&key_lock);	
 
 	key_data.keyhead = key_data.keytail = 0;
@@ -315,7 +311,6 @@ void key_flush()
 	}
 
 	LEAVE_CRITICAL_SECTION(&key_lock);	
-#endif
 }
 
 //	A nifty function which performs the function:
@@ -498,6 +493,10 @@ float key_down_timef(uint scancode)
 
 	if ( !key_inited ) return 0.0f;
 
+#ifdef PLAT_UNIX
+	scancode &= KEY_MASK;
+#endif
+
 	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0.0f;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
@@ -577,6 +576,10 @@ int key_down_count(int scancode)
 	int n;
 
 	if ( !key_inited ) return 0;
+
+#ifdef PLAT_UNIX
+	scancode &= KEY_MASK;
+#endif
 	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
@@ -596,6 +599,9 @@ int key_up_count(int scancode)
 	int n;
 
 	if ( !key_inited ) return 0;
+#ifdef PLAT_UNIX
+	scancode &= KEY_MASK;
+#endif
 	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
@@ -625,6 +631,9 @@ void key_mark( uint code, int state, uint latency )
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
 
+#ifdef PLAT_UNIX
+	code &= KEY_MASK;
+#endif
 	// If running in the UK, need to translate their wacky slash scancode to ours
 	if ( code == KEY_SLASH_UK ) {
 		code = KEY_SLASH;

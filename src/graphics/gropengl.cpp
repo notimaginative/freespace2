@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.27  2002/05/30 23:46:29  theoddone33
+ * some minor key changes (not necessarily fixes)
+ *
  * Revision 1.26  2002/05/30 23:33:12  relnev
  * implemented a few more functions.
  *
@@ -1243,7 +1246,7 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		if(flags & TMAP_FLAG_PIXEL_FOG){
 			// TODO
 		}
-		glVertex4f(sx, sy, sz, sw);
+		glVertex4f(sx, sy, -sz, sw);
 	}
 	glEnd();
 }

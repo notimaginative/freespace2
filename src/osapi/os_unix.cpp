@@ -7,6 +7,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.5  2002/05/30 23:46:29  theoddone33
+ * some minor key changes (not necessarily fixes)
+ *
  * Revision 1.4  2002/05/30 16:50:24  theoddone33
  * Keyboard partially fixed
  *
@@ -167,11 +170,11 @@ void os_cleanup()
 
 // window management -----------------------------------------------------------------
 
+static int app_active = 1;
 // Returns 1 if app is not the foreground app.
 int os_foreground()
 {
-	STUB_FUNCTION;
-	return 0;
+	return app_active;
 }
 
 // Returns the handle to the main window

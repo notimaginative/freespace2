@@ -7,6 +7,9 @@
  * Include file for keyboard reading routines
  *
  * $Log$
+ * Revision 1.6  2002/05/30 23:46:29  theoddone33
+ * some minor key changes (not necessarily fixes)
+ *
  * Revision 1.5  2002/05/30 22:02:30  theoddone33
  * More gl changes
  *
@@ -130,7 +133,7 @@ extern int Key_normal_game;
 #define KEY_CTRLED      0xc00000	//(KMOD_CTRL)<<16;
 #define KEY_DEBUGGED	0x010000	// Dummy
 #define KEY_DEBUGGED1	0x2000000	// Dummy
-#define KEY_MASK			0x00ff
+#define KEY_MASK			0xffff
 
 #define KEY_DEBUG_KEY	0x29			//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
 

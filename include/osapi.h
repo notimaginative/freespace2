@@ -39,7 +39,6 @@ extern int Os_debugger_running;
 
 #ifdef PLAT_UNIX
 extern const char *detect_home(void);
-void default_registry();
 #endif
 
 // If app_name is NULL or ommited, then TITLE is used

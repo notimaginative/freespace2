@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.15  2003/08/03 15:56:59  taylor
+ * simpler mouse usage; default ini settings in os_init(); cleanup
+ *
  * Revision 1.14  2003/05/09 05:04:15  taylor
  * better window min/max/focus support
  *
@@ -144,10 +147,10 @@
 
 // os-wide globals
 static int			fAppActive = 1;
-static int			main_window_inited = 0;
-static char			szWinTitle[128];
-static char			szWinClass[128];
-static int			WinX, WinY, WinW, WinH;
+//static int		main_window_inited = 0;		// not used (here)
+//static char		szWinTitle[128];			// not used (here)
+//static char		szWinClass[128];			// not used (here)
+//static int		WinX, WinY, WinW, WinH;		// not used (grsoft.cpp) in UNIX build
 static int			Os_inited = 0;
 
 static CRITICAL_SECTION Os_lock;
@@ -185,8 +188,10 @@ const char *detect_home(void)
 	return (getenv("HOME"));
 }
 
-void default_registry()
-{	
+// If app_name is NULL or ommited, then TITLE is used
+// for the app name, which is where registry keys are stored.
+void os_init(char * wclass, char * title, char *app_name, char *version_string )
+{
 	/* set some sane defaults since we don't have a laucher... */
 	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
@@ -196,15 +201,10 @@ void default_registry()
 	
 	if (os_config_read_string(NULL, NOX("ConnectionSpeed"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("ConnectionSpeed"), NOX("Slow"));
-}
-
-// If app_name is NULL or ommited, then TITLE is used
-// for the app name, which is where registry keys are stored.
-void os_init(char * wclass, char * title, char *app_name, char *version_string )
-{
-	STUB_FUNCTION;
 
 	Os_inited = 1;
+
+	Os_lock = SDL_CreateMutex();
 
 	// check to see if we're running under msdev
 	os_check_debugger();
@@ -215,7 +215,7 @@ void os_init(char * wclass, char * title, char *app_name, char *version_string )
 // set the main window title
 void os_set_title( char * title )
 {
-	STUB_FUNCTION;
+	// the title is already set by SDL in gropengl.cpp
 }
 
 // call at program end
@@ -223,15 +223,15 @@ void os_cleanup()
 {
 	STUB_FUNCTION;
 	
-	#ifndef NDEBUG
+#ifndef NDEBUG
 		outwnd_close();
-	#endif
+#endif
 }
 
 
 // window management -----------------------------------------------------------------
 
-// Returns 1 if app is not the foreground app.
+// Returns 0 if app is not the foreground app.
 int os_foreground()
 {
 	return fAppActive;
@@ -240,7 +240,7 @@ int os_foreground()
 // Returns the handle to the main window
 uint os_get_window()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;	// not used/needed with UNIX builds?
 	return 0;
 }
 
@@ -278,6 +278,8 @@ void os_check_debugger()
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()
 {
+	SDL_DestroyMutex(Os_lock);
+
 	SDL_Quit();
 }
 
@@ -289,20 +291,9 @@ void os_poll()
 	while (SDL_PollEvent (&e)) {
 		switch (e.type) {
 			case SDL_MOUSEBUTTONDOWN:
-				if (e.button.button == SDL_BUTTON_LEFT)
-					mouse_mark_button (MOUSE_LEFT_BUTTON,1);
-				else if (e.button.button == SDL_BUTTON_RIGHT)
-					mouse_mark_button (MOUSE_RIGHT_BUTTON,1);
-				else if (e.button.button == SDL_BUTTON_MIDDLE)
-					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 1);
-				break;
 			case SDL_MOUSEBUTTONUP:
-				if (e.button.button == SDL_BUTTON_LEFT)
-					mouse_mark_button (MOUSE_LEFT_BUTTON,0);
-				else if (e.button.button == SDL_BUTTON_RIGHT)
-					mouse_mark_button (MOUSE_RIGHT_BUTTON,0);
-				else if (e.button.button == SDL_BUTTON_MIDDLE)
-					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 0);
+				if (e.button.button <= HIGHEST_MOUSE_BUTTON)
+					mouse_mark_button(e.button.button, e.button.state);
 				break;
 			case SDL_KEYDOWN:
 				if ((e.key.keysym.mod & KMOD_ALT) &&
@@ -334,11 +325,11 @@ void os_poll()
 				}
 
 				if (SDLtoFS2[e.key.keysym.sym])
-				key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);
+					key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);
 				break;
 			case SDL_KEYUP:
 				if (SDLtoFS2[e.key.keysym.sym])
-				key_mark (SDLtoFS2[e.key.keysym.sym], 0, 0);
+					key_mark (SDLtoFS2[e.key.keysym.sym], 0, 0);
 				break;
 			case SDL_ACTIVEEVENT:
 				if (e.active.state & SDL_APPACTIVE) {
@@ -362,7 +353,7 @@ void os_poll()
 	Uint32 curtic = SDL_GetTicks();
 	Uint32 delta = curtic - lasttic;
 	
-	while (delta >= joy_pollrate) {
+	while (delta >= (uint)joy_pollrate) {
 		joy_process(delta);
 		
 		lasttic += joy_pollrate;

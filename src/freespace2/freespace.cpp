@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.33  2003/08/03 15:57:00  taylor
+ * simpler mouse usage; default ini settings in os_init(); cleanup
+ *
  * Revision 1.32  2003/06/19 11:51:41  taylor
  * adjustments to memory leak fixes
  *
@@ -2391,11 +2394,6 @@ void game_init()
 	// verify that he has a valid weapons.tbl
 	verify_weapons_tbl();
 
-#ifdef PLAT_UNIX
-	// setup the default osreg values if they don't exist
-	default_registry();
-#endif
-
 	// Output version numbers to registry for auto patching purposes
 	os_config_write_uint(NOX("Version"), NOX("Major"), FS_VERSION_MAJOR);
 	os_config_write_uint(NOX("Version"), NOX("Minor"), FS_VERSION_MINOR);
@@ -2522,12 +2520,12 @@ void game_init()
 		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
 #else
 		if(strstr(ptr, NOX("(1024x768)"))){
-#endif
+#endif // NDEBUG
 			gr_init(GR_1024, GR_GLIDE);
 		} else {			
 			gr_init(GR_640, GR_GLIDE);
 		}
-#endif
+#endif // E3_BUILD
 	} else if (!Is_standalone && ptr && (strstr(ptr, NOX("Direct 3D -") )))	{
 #ifdef E3_BUILD		
 		// always 640 for E3
@@ -2539,7 +2537,7 @@ void game_init()
 		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
 #else
 		if(strstr(ptr, NOX("(1024x768)"))){
-#endif
+#endif // NDEBUG
 			// Direct 3D
 			trying_d3d = 1;
 			gr_init(GR_1024, GR_DIRECT3D, depth);
@@ -2548,22 +2546,22 @@ void game_init()
 			trying_d3d = 1;
 			gr_init(GR_640, GR_DIRECT3D, depth);
 		}
-#endif
+#endif // E3_BUILD
 	} else {
 		// Software
-		#ifndef NDEBUG
+#ifndef NDEBUG
 			if ( Use_fullscreen_at_startup && !Is_standalone)	{		
 				gr_init(GR_640, GR_DIRECTDRAW);
 			} else {
 				gr_init(GR_640, GR_SOFTWARE);
 			}
-		#else
+#else
 			if ( !Is_standalone ) {
 				gr_init(GR_640, GR_DIRECTDRAW);
 			} else {
 				gr_init(GR_640, GR_SOFTWARE);
 			}
-		#endif
+#endif // !NDEBUG
 	}
 #else
 	if (!Is_standalone /* && ptr && (strstr(ptr, NOX("OpenGL"))) */) {
@@ -2576,7 +2574,7 @@ void game_init()
 		STUB_FUNCTION;
 		gr_init(GR_640, GR_SOFTWARE); 
 	}
-#endif
+#endif // !PLAT_UNIX
 
 	// tried d3d ?
 	extern int Gr_inited;
@@ -7163,19 +7161,19 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 				plist[i] = NULL;
 			}
 		}
-#endif
+#endif // RELEASE_REAL
 	}
 
 	if ( !Is_standalone ) {
 
 		// release -- movies always play
-		#if defined(NDEBUG)
+#if defined(NDEBUG)
 
 		// in RELEASE_REAL builds make the user stick in CD2 if there are no pilots on disk so that we guarantee he plays the movie
 		movie_play( NOX("intro.mve"), 0 );
 
 		// debug version, movie will only play with -showmovies
-		#elif !defined(NDEBUG)
+#elif !defined(NDEBUG)
 		
 		movie_play( NOX("intro.mve"), 0);
 /*
@@ -7184,10 +7182,10 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 			movie_play( NOX("intro.mve"), 0 );
 #endif
 */
-		#endif
+#endif // NDEBUG
 	}
 
-#endif	
+#endif // DEMO
 
 	if (Is_standalone){
 		gameseq_post_event(GS_EVENT_STANDALONE_MAIN);
@@ -8589,7 +8587,7 @@ int init_cdrom()
 
 	rval = 1;
 
-	#ifndef DEMO
+#ifndef DEMO
 	i = find_freespace_cd();
 
 	rval = set_cdrom_path(i);
@@ -8601,7 +8599,7 @@ int init_cdrom()
 		nprintf(("CD", "FreeSpace CD not found\n"));
 	}
 	*/
-	#endif
+#endif
 
 	return rval;
 }

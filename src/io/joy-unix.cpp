@@ -354,7 +354,7 @@ void joy_process(int time_delta)
 
 int joy_init()
 {
-	int i, n, count;
+	int i, n;
 
 	if (Joy_inited)
 		return 0;
@@ -388,10 +388,11 @@ int joy_init()
 
 	// Fake a calibration
 	if (joy_num_sticks > 0) {
-		joy_set_cen();
+		// joy_set_cen();
 		for (i=0; i<4; i++) {
+			joystick.axis_center[i] = 32768;
 			joystick.axis_min[i] = 0;
-			joystick.axis_max[i] = joystick.axis_center[i]*2;
+			joystick.axis_max[i] = 65536;
 		}
 	}
 
@@ -415,7 +416,7 @@ int joystick_read_raw_axis(int num_axes, int *axis)
 	
 	for (i = 0; i < num_axes; i++) {
 		if (i < num) {
-			axis[i] = SDL_JoystickGetAxis(sdljoy, i);
+			axis[i] = SDL_JoystickGetAxis(sdljoy, i) + 32768;
 		} else {
 			axis[i] = 32768;
 		}

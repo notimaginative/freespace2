@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.12  2002/07/28 05:19:44  relnev
+ * more housecleaning
+ *
  * Revision 1.11  2002/06/16 01:43:23  relnev
  * fixed demo dogfight multiplayer mission
  *
@@ -364,8 +367,6 @@
 #ifndef PLAT_UNIX
 #include <objbase.h>
 #include <initguid.h>
-#include "ia3d.h"
-#include "verifya3d.h"
 #else
 #include <AL/al.h>
 #include <AL/alc.h>

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.60  2003/02/02 20:20:03  relnev
+ * add large texture support (Taylor Richards)
+ *
  * Revision 1.59  2002/09/04 01:38:09  relnev
  * revert
  *
@@ -1740,6 +1743,13 @@ static void gr_opengl_set_texture_state(gr_texture_source ts)
 	GL_current_texture_source = ts;
 }
 
+int gr_opengl_max_tex_size_get()
+{
+	GLint max_texture_size = 0;
+	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size );
+	return max_texture_size;
+}
+
 void opengl_tcache_init (int use_sections)
 {
 	int i, idx, s_idx;
@@ -1762,8 +1772,17 @@ void opengl_tcache_init (int use_sections)
 
 	GL_min_texture_width = 16;
 	GL_min_texture_height = 16;
+
+	if ( !os_config_read_uint( NULL, NOX("UseLargeTextures"), 0 ))	{
 	GL_max_texture_width = 256;
 	GL_max_texture_height = 256;
+	} else {
+		GL_max_texture_width = gr_opengl_max_tex_size_get();
+		GL_max_texture_height = gr_opengl_max_tex_size_get();
+#ifndef NDEBUG
+		mprintf(( "Large textures enabled!  Size: %i\n", GL_max_texture_width ));
+#endif
+	}
 
 	GL_square_textures = 1;
 

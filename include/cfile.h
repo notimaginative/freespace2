@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.4  2004/07/04 11:26:21  taylor
+ * cleanup CFILE code a little, warning fixes, remove redundant dir checks
+ *
  * Revision 1.3  2003/02/20 17:41:07  theoddone33
  * Userdir patch from Taylor Richards
  *
@@ -338,6 +341,15 @@
 
 #include <time.h>
 #include "pstypes.h"
+
+// same thing that's in FS2_Open (credit: Mike Harris)
+#ifdef PLAT_UNIX
+#define DIR_SEPARATOR_CHAR '/'
+#define DIR_SEPARATOR_STR "/"
+#else
+#define DIR_SEPARATOR_CHAR '\\'
+#define DIR_SEPARATOR_STR "\\"
+#endif
 
 #define CF_EOF (-1)
 

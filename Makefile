@@ -4,7 +4,6 @@
 MACOSX=false
 DEMO=false
 MVE=false
-GERMAN=false
 
 CC=g++
 AR=ar
@@ -35,10 +34,6 @@ endif
 
 ifeq ($(strip $(MVE)),true)
 	CFLAGS += -DMVE
-endif
-
-ifeq ($(strip $(GERMAN)),true)
-	CFLAGS += -DGERMAN_BUILD
 endif
 
 %.o: %.cpp

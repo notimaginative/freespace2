@@ -165,7 +165,7 @@ static Profile *profile_read(char *file)
 					value = ptr;
 				} // else { /* random garbage! */ }
 				
-				if (key && *key && value && *value) {
+				if (key && *key && value /* && *value */) {
 					if (sp != NULL) {
 						KeyValue *kvp = (KeyValue *)malloc(sizeof(KeyValue));
 						

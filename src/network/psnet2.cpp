@@ -7,6 +7,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.6  2002/06/02 02:29:39  relnev
+ * net fixes
+ *
  * Revision 1.5  2002/05/27 04:04:43  relnev
  * 155 undefined references left
  *
@@ -487,10 +490,11 @@ void PSNET_TOP_LAYER_PROCESS()
 #endif
 	fd_set	rfds;
 	timeval	timeout;
-#ifndef PLAT_UNIX
-	int		read_len, from_len;
+	int read_len;
+#ifndef PLAT_UNIX	
+	int from_len;
 #else
-	socklen_t	read_len, from_len;
+	socklen_t from_len;
 #endif
 	net_addr_t	from_addr;	
 	network_naked_packet packet_read;		
@@ -515,7 +519,11 @@ void PSNET_TOP_LAYER_PROCESS()
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 0;
 
+#ifndef PLAT_UNIX
 		if ( select( -1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#else
+		if ( select( Unreliable_socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {		
+#endif		
 			ml_printf("Error %d doing a socket select on read\n", WSAGetLastError());
 			break;
 		}
@@ -1022,7 +1030,11 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
+#ifndef PLAT_UNIX
 	if ( SELECT( -1, NULL, &wfds, NULL, &timeout, PSNET_TYPE_UNRELIABLE) == SOCKET_ERROR ) {
+#else
+	if ( SELECT( send_sock+1, NULL, &wfds, NULL, &timeout, PSNET_TYPE_UNRELIABLE) == SOCKET_ERROR ) {	
+#endif
 		ml_printf("Error on blocking select for write %d\n", WSAGetLastError() );
 		return 0;
 	}
@@ -1464,12 +1476,20 @@ void psnet_rel_work()
 		if(Ipx_active && (Socket_type == NET_IPX)){
 			FD_ZERO(&read_fds);
 			FD_SET(Unreliable_socket, &read_fds);    
+#ifndef PLAT_UNIX			
 			ipx_has_data = SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
+#else
+			ipx_has_data = SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
+#endif			
 		}
 		if(Tcp_active && (Socket_type == NET_TCP)){
 			FD_ZERO(&read_fds);
-			FD_SET(Unreliable_socket, &read_fds);    
+			FD_SET(Unreliable_socket, &read_fds);
+#ifndef PLAT_UNIX			
 			udp_has_data = SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
+#else
+			udp_has_data = SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
+#endif			
 		}
 		bytesin = 0;
 		addrlen = sizeof(SOCKADDR);
@@ -1886,7 +1906,11 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 	if(Tcp_active && (Socket_type == NET_TCP)){
 		FD_ZERO(&read_fds);
 		FD_SET(Unreliable_socket, &read_fds);    
+#ifndef PLAT_UNIX		
 		while(SELECT(0, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE)){
+#else
+		while(SELECT(Unreliable_socket+1, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE)){		
+#endif		
 			addrlen = sizeof(SOCKADDR);
 			bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			if(bytesin==-1){
@@ -1902,7 +1926,11 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 	if(Ipx_active && (Socket_type == NET_IPX)){
 		FD_ZERO(&read_fds);
 		FD_SET(Unreliable_socket, &read_fds);    
+#ifndef PLAT_UNIX		
 		while(SELECT(0, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE))
+#else
+		while(SELECT(Unreliable_socket+1, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE))		
+#endif		
 		{
 			addrlen = sizeof(SOCKADDR);
 			bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
@@ -1973,8 +2001,12 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 		PSNET_TOP_LAYER_PROCESS();
 
 		FD_ZERO(&read_fds);
-		FD_SET(typeless_sock, &read_fds);    		
+		FD_SET(typeless_sock, &read_fds);
+#ifndef PLAT_UNIX		
 		if(SELECT(0, &read_fds, NULL,NULL,&timeout, PSNET_TYPE_RELIABLE)){
+#else
+		if(SELECT(typeless_sock+1, &read_fds, NULL,NULL,&timeout, PSNET_TYPE_RELIABLE)){
+#endif		
 			ml_string("selected() in psnet_rel_connect_to_server()");
 
 			addrlen = sizeof(SOCKADDR);

@@ -7,6 +7,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.4  2002/06/02 02:29:39  relnev
+ * net fixes
+ *
  * Revision 1.3  2002/05/26 20:49:54  theoddone33
  * More progress
  *
@@ -1189,8 +1192,11 @@ void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr *server_addr)
 				FD_SET( Reliable_socket, &wfds );
 				timeout.tv_sec = 0;
 				timeout.tv_usec = 500000;			//500000 micro seconds is 1/2 second
-
+#ifndef PLAT_UNIX
 				is_set = select( -1, NULL, &wfds, NULL, &timeout);
+#else
+				is_set = select( Reliable_socket+1, NULL, &wfds, NULL, &timeout);
+#endif				
 				// check for error on select first
 				if ( is_set == SOCKET_ERROR ) {
 					nprintf(("Network", "Error on select for connect %d\n", WSAGetLastError() ));
@@ -1396,7 +1402,11 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 0;
 
+#ifndef PLAT_UNIX
 		if ( select( -1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#else
+		if ( select( socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#endif		
 			nprintf(("Network", "Error %d doing a socket select on read\n", WSAGetLastError()));
 			break;
 		}
@@ -1661,7 +1671,11 @@ int psnet_send( net_addr * who_to, void * data, int len, int flags, int reliable
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
+#ifndef PLAT_UNIX
 	if ( select( -1, NULL, &wfds, NULL, &timeout) == SOCKET_ERROR ) {
+#else
+	if ( select( send_sock+1, NULL, &wfds, NULL, &timeout) == SOCKET_ERROR ) {
+#endif	
 		nprintf(("Network", "Error on blocking select for write %d\n", WSAGetLastError() ));
 		return 0;
 	}
@@ -1808,7 +1822,11 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
+#ifndef PLAT_UNIX
 	if ( select( -1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#else
+	if ( select( socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#endif	
 		nprintf(("Network", "Error on select for read reliable: %d\n", WSAGetLastError() ));
 		return 0;
 	}
@@ -1949,7 +1967,12 @@ int psnet_rel_check_for_listen(net_addr *from_addr)
 	FD_SET( Listen_socket, &rfds );
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
+
+#ifndef PLAT_UNIX	
 	if ( select(-1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#else
+	if ( select(Listen_socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#endif	
 		nprintf(("Network", "Error %d doing select on listen socket\n", WSAGetLastError() ));
 		return 0;
 	}
@@ -2017,7 +2040,11 @@ int psnet_get( void * data, net_addr* from_addr, int flags )
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
+#ifndef PLAT_UNIX
 	if ( select( -1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#else
+	if ( select( Unreliable_socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+#endif	
 		nprintf(("Network", "Error %d doing a socket select on read\n", WSAGetLastError()));
 		return 0;
 	}

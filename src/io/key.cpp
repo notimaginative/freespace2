@@ -15,6 +15,11 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.8  2002/06/17 23:11:39  relnev
+ * enable sdl key repeating.
+ *
+ * swap '/` keys.
+ *
  * Revision 1.7  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -288,8 +293,8 @@ void FillSDLArray ()
 	SDLtoFS2[SDLK_LEFTBRACKET] = KEY_LBRACKET;
 	SDLtoFS2[SDLK_RIGHTBRACKET] = KEY_RBRACKET;
 
-	SDLtoFS2[SDLK_BACKQUOTE] = KEY_RAPOSTRO;
-	SDLtoFS2[SDLK_QUOTE] = KEY_LAPOSTRO;
+	SDLtoFS2[SDLK_BACKQUOTE] = KEY_LAPOSTRO;
+	SDLtoFS2[SDLK_QUOTE] = KEY_RAPOSTRO;
 
 	SDLtoFS2[SDLK_ESCAPE] = KEY_ESC;
 	SDLtoFS2[SDLK_RETURN] = KEY_ENTER;

@@ -15,6 +15,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.49  2002/06/17 23:11:39  relnev
+ * enable sdl key repeating.
+ *
+ * swap '/` keys.
+ *
  * Revision 1.48  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -2882,6 +2887,9 @@ void gr_opengl_init()
 
 	SDL_ShowCursor(0);
 	SDL_WM_SetCaption (Osreg_title, "FS2");
+	
+	/* might as well put this here */
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
 	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 

@@ -37,7 +37,8 @@ version, edit the Makefile by changing the DEMO flag from "false" to "true".
 Mods, etc. have not been tested.
 
 - Networking (TCP) seems to work OK.  Linux<->Linux works great, Lin<->Win
-not tested.
+tested a little (with Linux client acting as the server, Windows server may
+cause problems with filenames and transferred files).
 
 - Sound code is only partially implemented.
 

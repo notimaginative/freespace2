@@ -15,6 +15,9 @@
  * Routines to read the mouse.
  *
  * $Log$
+ * Revision 1.6  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.5  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -153,7 +156,9 @@ LOCAL int Mouse_mode = MOUSE_MODE_WIN;
 #endif
 
 LOCAL int mouse_inited = 0;
+#ifndef PLAT_UNIX
 LOCAL int Di_mouse_inited = 0;
+#endif
 LOCAL int Mouse_x;
 LOCAL int Mouse_y;
 

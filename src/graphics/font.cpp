@@ -15,6 +15,9 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.5  2002/07/13 06:46:47  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.4  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -353,9 +356,9 @@ void gr_print_timestamp(int x, int y, int timestamp)
 	int w, c;
 
 	// format the time information into strings
-	sprintf(h, "%0.1d", (timestamp / 3600000) % 10);
-	sprintf(m, "%0.2d", (timestamp / 60000) % 60);
-	sprintf(s, "%0.2d", (timestamp / 1000) % 60);
+	sprintf(h, "%.1d", (timestamp / 3600000) % 10);
+	sprintf(m, "%.2d", (timestamp / 60000) % 60);
+	sprintf(s, "%.2d", (timestamp / 1000) % 60);
 
 	gr_get_string_size(&w, NULL, "0");
 	gr_get_string_size(&c, NULL, ":");

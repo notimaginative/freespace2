@@ -15,6 +15,9 @@
  * C module that controls and manages the message window on the HUD
  *
  * $Log$
+ * Revision 1.5  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.4  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -500,6 +503,7 @@ static int Hud_mission_log_time2_coords[GR_NUM_RESOLUTIONS][2] = {
 //#define HUD_MSG_MAX_PIXEL_W	439	// maximum number of pixels wide message display area is
 //#define HUD_MSG_MAX_PIXEL_W	619	// maximum number of pixels wide message display area is
 
+/* // No Longer Used - DDOI
 static int Hud_mission_log_status_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
 		170, 339		// GR_640
@@ -508,6 +512,7 @@ static int Hud_mission_log_status_coords[GR_NUM_RESOLUTIONS][2] = {
 		361, 542		// GR_1024
 	}
 };
+*/
 
 struct scrollback_buttons {
 	char *filename;
@@ -572,10 +577,12 @@ static char* Hud_mission_log_fname[GR_NUM_RESOLUTIONS] = {
 	"2_MissionLog"		// GR_1024
 };
 
+/* // No longer used - DDOI
 static char* Hud_mission_log_status_fname[GR_NUM_RESOLUTIONS] = {
 	"MLStatus",		// GR_640
 	"MLStatus"		// GR_1024
 };
+*/
 
 static char* Hud_mission_log_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"MissionLog-m",		// GR_640

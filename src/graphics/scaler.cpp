@@ -15,6 +15,9 @@
  * Routines to scale a bitmap.
  *
  * $Log$
+ * Revision 1.4  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.3  2002/06/09 04:41:18  relnev
  * added copyright header
  *
@@ -1095,7 +1098,7 @@ void gr8_aascaler(vertex *va, vertex *vb )
 
 #ifdef USE_COMPILED_CODE		
 		// uint lookup = (uint)&Current_alphacolor->table.lookup[0][0];
-		uint lookup = (uint)&old_alphac.table.lookup[0][0];
+		//uint lookup = (uint)&old_alphac.table.lookup[0][0];	// Unused - DDOI
 		
 		// Call the compiled code to draw one scanline
 		if ( Gr_scaler_zbuffering  && gr_zbuffering )	{

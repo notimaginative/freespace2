@@ -15,6 +15,9 @@
  * C file for the display and management of the HUD shield
  *
  * $Log$
+ * Revision 1.4  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.3  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -392,7 +395,10 @@ void hud_shield_show(object *objp)
 	}
 
 	// load in shield frames if not already loaded
-	Assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
+	// DDOI - shield_icon_index is unsigned
+	// Assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
+	Assert(sip->shield_icon_index < Hud_shield_filename_count);
+	
 	sgp = &Shield_gauges[sip->shield_icon_index];
 
 	if ( sgp->first_frame == -1 ) {
@@ -482,7 +488,9 @@ void hud_ship_icon_page_in(ship_info *sip)
 	}
 
 	// load in shield frames if not already loaded
-	Assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
+	// DDOI - shield_icon_index is unsigned
+	// Assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
+	Assert(sip->shield_icon_index < Hud_shield_filename_count);
 	sgp = &Shield_gauges[sip->shield_icon_index];
 
 	if ( sgp->first_frame == -1 ) {

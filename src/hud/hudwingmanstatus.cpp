@@ -15,6 +15,9 @@
  * Module for the wingman status gauge
  *
  * $Log$
+ * Revision 1.3  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.2  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -618,7 +621,9 @@ void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wing
 {
 	int i, sx, sy, is_bright, bitmap = -1, screen_pos;
 
+	/* // Uh - DDOI
 	Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame;
+	*/
 
 	if ( Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame < 0 ) {
 		return;

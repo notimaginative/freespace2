@@ -15,6 +15,9 @@
  * File to control sqaudmate messaging
  *
  * $Log$
+ * Revision 1.4  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.3  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -2559,7 +2562,9 @@ int hud_squadmsg_hotkey_select( int k )
 			continue;
 
 		// be sure that this ship can accept this command
-		if ( !(Msg_shortcut_command, Ships[objp->instance].orders_accepted) )
+		// DDOI - I changed this , to & which seeems to be in keeping
+		// with similar code.
+		if ( !(Msg_shortcut_command & Ships[objp->instance].orders_accepted) )
 			continue;
 
 		hud_squadmsg_send_ship_command( objp->instance, Msg_shortcut_command, send_message );

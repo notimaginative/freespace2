@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.6  2002/07/13 06:46:48  theoddone33
+ * Warning cleanups
+ *
  * Revision 1.5  2002/06/09 04:41:23  relnev
  * added copyright header
  *
@@ -1252,13 +1255,13 @@ void debrief_award_init()
 			} else {
 				ver = 0;
 			}
-			sprintf(buf, NOX("%s%0.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);		
+			sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);		
 			Wings_bitmap = bm_load(buf);
 
 		} else if (Player->stats.m_medal_earned == 17) {  // special hack for the soc crest
 			Crest_bitmap = bm_load(Debrief_award_filename[gr_screen.res][DB_AWARD_SOC]);
 		} else {
-			sprintf(buf, NOX("%s%0.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
+			sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
 			Medal_bitmap = bm_load(buf);
 		}
 
@@ -1268,7 +1271,7 @@ void debrief_award_init()
 	// handle promotions
 	if ( Player->stats.m_promotion_earned != -1 ) {
 		Promoted = Player->stats.m_promotion_earned;
-		sprintf(buf, NOX("%s%0.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_RANK], Promoted + 1);
+		sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_RANK], Promoted + 1);
 		Rank_bitmap = bm_load(buf);
 
 		Promotion_stage.new_text = Ranks[Promoted].promotion_text;
@@ -1284,7 +1287,7 @@ void debrief_award_init()
 	// only grant badge if earned and allowed.  (no_promotion really means no promotion and no badges)
 	if ( Player->stats.m_badge_earned != -1 ) {
 		i = Player->stats.m_badge_earned;
-		sprintf(buf, NOX("%s%0.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_BADGE], i + 1);
+		sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_BADGE], i + 1);
 		Badge_bitmap = bm_load(buf);
 
 		Badge_stage.new_text = Badge_info[i].promotion_text;

@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.27  2003/03/03 04:54:44  theoddone33
+ * Commit Taylor's ShowFPS fix
+ *
  * Revision 1.26  2003/02/20 17:41:07  theoddone33
  * Userdir patch from Taylor Richards
  *
@@ -746,7 +749,7 @@ float frametotal = 0.0f;
 float flFrametime;
 
 #ifdef RELEASE_REAL
-	int	Show_framerate = os_config_read_uint( NULL, "ShowFPS", 0 );
+	int	Show_framerate = 0;
 #else 
 	int	Show_framerate = 1;
 #endif
@@ -2194,6 +2197,11 @@ void game_init()
 
 #ifndef NDEBUG
 	Use_fullscreen_at_startup = os_config_read_uint( NULL, NOX("ForceFullscreen"), 1 );
+#endif
+
+#if defined (PLAT_UNIX) && defined(RELEASE_REAL)
+	// show the FPS counter if the config file says so
+	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), 0 );
 #endif
 
 #ifndef FS2_DEMO

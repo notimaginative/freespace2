@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2003/06/22 12:51:02  taylor
+ * lower case file transfers
+ *
  * Revision 1.5  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -1119,7 +1122,15 @@ void multi_xfer_process_header(ubyte *data, PSNET_SOCKET_RELIABLE who, ushort si
 	xe->sig = sig;
 
 	// copy the filename and get the prefixed xfer filename
+#ifdef PLAT_UNIX
+	// lower case all filenames to avoid case issues
+	char *tmp_filename = filename;
+	
+	strlwr(tmp_filename);
+	strcpy(xe->filename, tmp_filename);
+#else
 	strcpy(xe->filename, filename);
+#endif
 	multi_xfer_conv_prefix(xe->filename, xe->ex_filename);
 #ifdef MULTI_XFER_VERBOSE
 	nprintf(("Network","MULTI XFER : converted filename %s to %s\n",xe->filename, xe->ex_filename));

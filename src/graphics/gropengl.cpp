@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.66  2003/06/22 12:52:34  taylor
+ * more texture size fixin
+ *
  * Revision 1.65  2003/06/19 11:52:47  taylor
  * fix texture size issue with lower detail settings
  *
@@ -1787,9 +1790,6 @@ static void opengl_tcache_init (int use_sections)
 	GL_max_texture_width = opengl_max_tex_size_get();
 	GL_max_texture_height = opengl_max_tex_size_get();
 
-	/* TODO: why don't textures work correctly when this is disabled? */
-	GL_square_textures = 1;
-
 	Textures = (tcache_slot_opengl *)malloc(MAX_BITMAPS*sizeof(tcache_slot_opengl));
 	if ( !Textures )        {
 		exit(1);
@@ -1845,7 +1845,7 @@ static void opengl_tcache_init (int use_sections)
 
 	GL_texture_sections = use_sections;
 
-	//GL_last_detail = Detail.hardware_textures;
+	GL_last_detail = Detail.hardware_textures;
 	GL_last_bitmap_id = -1;
 	GL_last_bitmap_type = -1;
 
@@ -1988,7 +1988,7 @@ static int opengl_free_texture ( tcache_slot_opengl *t )
 static void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int *h_out)
 {
 	int tex_w, tex_h;
-	int i, j;
+	int i;
 	
 	// bogus
 	if((w_out == NULL) ||  (h_out == NULL)){
@@ -1999,33 +1999,7 @@ static void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_o
 	tex_w = w_in;
 	tex_h = h_in;
 
-	for (i=0; i<16; i++ )   {
-		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )        {
-			break;
-		}
-	}
-
-	for (j=0; j<16; j++ )   {
-		if ( (tex_h > (1<<j)) && (tex_h <= (1<<(j+1))) )        {
-			break;
-		}
-	}
-
-	/* make i the smaller one */
-	if (j > i) {
-		int t = j;
-		j = i;
-		i = t;
-	}
-
-#if 0
-	/* try to keep a 8:1 ratio */
-	while ((j-i) > 8) {
-		/* increase i, or decrease j? */
-		i++;
-	}
-#endif
-
+	// set height and width to a power of 2
 	for (i=0; i<16; i++ )	{
 		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )	{
 			tex_w = 1 << (i+1);
@@ -2039,6 +2013,12 @@ static void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_o
 			break;
 		}
 	}
+
+	// try to keep an 8:1 size ratio
+	if (tex_w/tex_h > 8)
+		tex_h = tex_w/8;
+	if (tex_h/tex_w > 8)
+		tex_w = tex_h/8;
 
 	if ( tex_w < GL_min_texture_width ) {
 		tex_w = GL_min_texture_width;

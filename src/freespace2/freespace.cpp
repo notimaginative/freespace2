@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.32  2003/06/19 11:51:41  taylor
+ * adjustments to memory leak fixes
+ *
  * Revision 1.31  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -7154,7 +7157,7 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 #endif // defined(OEM_BUILD)
 		}
 
-		for (int i=0; i<2; i++) {
+		for (int i=0; i<5; i++) {
 			if (plist[i] != NULL) {
 				free(plist[i]);
 				plist[i] = NULL;

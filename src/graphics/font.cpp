@@ -15,6 +15,9 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.8  2003/06/19 11:51:41  taylor
+ * adjustments to memory leak fixes
+ *
  * Revision 1.7  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -774,27 +777,33 @@ void gr_font_close()
 	for (i=0; i<Num_fonts; i++) {
 		if (fnt->kern_data) {
 			free(fnt->kern_data);
+			fnt->kern_data = NULL;
 		}
 
 		if (fnt->char_data) {
 			free(fnt->char_data);
+			fnt->char_data = NULL;
 		}
 
 		if (fnt->pixel_data) {
 			free(fnt->pixel_data);
+			fnt->pixel_data = NULL;
 		}
 
 		if (fnt->bm_data) {
 			free(fnt->bm_data);
+			fnt->bm_data = NULL;
 		}
 
 
 		if (fnt->bm_u) {
 			free(fnt->bm_u);
+			fnt->bm_u = NULL;
 		}
 
 		if (fnt->bm_v) {
 			free(fnt->bm_v);
+			fnt->bm_v = NULL;
 		}
 
 		fnt++;

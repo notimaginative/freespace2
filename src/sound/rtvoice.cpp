@@ -7,6 +7,9 @@
  * C module file for real-time voice
  *
  * $Log$
+ * Revision 1.3  2002/05/27 04:04:43  relnev
+ * 155 undefined references left
+ *
  * Revision 1.2  2002/05/07 03:16:52  theoddone33
  * The Great Newline Fix
  *
@@ -271,7 +274,11 @@ void rtvoice_stop_recording()
 	dscap_stop_record();
 
 	if ( Rtv_record_timer_id ) {
+#ifndef PLAT_UNIX
 		timeKillEvent(Rtv_record_timer_id);
+#else
+		STUB_FUNCTION;
+#endif		
 		Rtv_record_timer_id = 0;
 	}
 
@@ -328,7 +335,13 @@ int rtvoice_start_recording( void (*user_callback)(), int callback_time )
 	}
 
 	if ( user_callback ) {
+#ifndef PLAT_UNIX
 		Rtv_record_timer_id = timeSetEvent(callback_time, callback_time, TimeProc, 0, TIME_PERIODIC);
+#else
+		STUB_FUNCTION;
+		
+		return -1;
+#endif		
 		if ( !Rtv_record_timer_id ) {
 			dscap_stop_record();
 			return -1;

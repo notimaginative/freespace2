@@ -39,6 +39,7 @@
 #define __except catch
 #define LPSTR char *
 #define PASCAL
+#define CALLBACK
 
 extern void strlwr (char *str);
 extern int filelength (int fd);

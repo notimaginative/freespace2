@@ -7,6 +7,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.5  2002/05/27 04:04:43  relnev
+ * 155 undefined references left
+ *
  * Revision 1.4  2002/05/26 21:27:53  theoddone33
  * More progress (I hate psnet2)
  *
@@ -2454,6 +2457,13 @@ unsigned int psnet_ras_status()
 
 	//The ip of the RAS connection
 	return rasip;
+}
+#else
+unsigned int psnet_ras_status()
+{
+	STUB_FUNCTION;
+	
+	return INADDR_ANY;
 }
 #endif
  

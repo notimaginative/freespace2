@@ -135,10 +135,12 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/object/objectsort.cpp \
 	./src/observer/observer.cpp \
 	./src/osapi/os_unix.cpp \
+	./src/osapi/osregistry-unix.cpp \
 	./src/palman/palman.cpp \
 	./src/parse/encrypt.cpp \
 	./src/parse/parselo.cpp \
 	./src/parse/sexp.cpp \
+	./src/sound/rtvoice.cpp \
 	./src/sound/sound.cpp \
 	./src/particle/particle.cpp \
 	./src/pcxutils/pcxutils.cpp \
@@ -236,7 +238,8 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 #	./src/network/stand_gui.cpp 
 
 FS_SOURCES=./src/freespace2/freespace.cpp \
-	./src/freespace2/levelpaging.cpp
+	./src/freespace2/levelpaging.cpp \
+	src/freespace2/unixmain.cpp
 
 
 CODE_OBJECTS=$(CODE_SOURCES:.cpp=.o)

@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <errno.h>
 
@@ -18,6 +19,13 @@ int filelength (int fd)
 	int len = ftell (f);
 	fclose (f);
 	return len;
+}
+
+unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList)
+{
+	STUB_FUNCTION;
+	
+	return 0;
 }
 
 void Sleep (int mili)
@@ -48,4 +56,65 @@ int MulDiv(int a, int b, int c)
 	int retr = (int) ee;
 	
 	return retr;
+}
+
+/* mem debug junk */
+int TotalRam = 0;
+
+void vm_free(void* ptr, char*, int)
+{
+	free(ptr);
+}
+
+void *vm_malloc(int size, char*, int)
+{
+	return malloc(size);
+}
+
+char *vm_strdup(char const* str, char*, int)
+{
+	return strdup(str);
+}
+
+void windebug_memwatch_init()
+{
+	TotalRam = 0;
+}
+
+/* error message debugging junk */
+int Log_debug_output_to_file = 0;
+
+void load_filter_info(void)
+{
+	STUB_FUNCTION;
+}
+
+void outwnd_printf(char*, char*, ...)
+{
+	STUB_FUNCTION;
+}
+
+void outwnd_printf2(char*, ...)
+{
+	STUB_FUNCTION;
+}
+
+void outwnd_close()
+{
+	STUB_FUNCTION;
+}
+
+void Warning( char * filename, int line, char * format, ... )
+{
+	STUB_FUNCTION;
+}
+
+void Error( char * filename, int line, char * format, ... )
+{
+	STUB_FUNCTION;
+}
+
+void WinAssert(char * text,char *filename, int line)
+{
+	STUB_FUNCTION;
 }

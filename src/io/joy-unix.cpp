@@ -50,7 +50,11 @@ void joy_close()
 
 	Joy_inited = 0;
 	joy_num_sticks = 0;
-
+	
+	if (sdljoy)
+		SDL_JoystickClose(sdljoy);
+	sdljoy = NULL;
+	
 	SDL_QuitSubSystem (SDL_INIT_JOYSTICK);
 }
 
@@ -154,23 +158,119 @@ void joy_flush()
 	}
 }
 
+int joy_get_unscaled_reading(int raw, int axn)
+{
+	int rng;
+
+	// Make sure it's calibrated properly.
+	if (joystick.axis_center[axn] - joystick.axis_min[axn] < 5)
+		return 0;
+
+	if (joystick.axis_max[axn] - joystick.axis_center[axn] < 5)
+		return 0;
+
+	rng = joystick.axis_max[axn] - joystick.axis_min[axn];
+	raw -= joystick.axis_min[axn];  // adjust for linear range starting at 0
+	
+	// cap at limits
+	if (raw < 0)
+		raw = 0;
+	if (raw > rng)
+		raw = rng;
+
+	return (int) ((unsigned int) raw * (unsigned int) F1_0 / (unsigned int) rng);  // convert to 0 - F1_0 range.
+}
+
+// --------------------------------------------------------------
+//	joy_get_scaled_reading()
+//
+//	input:	raw	=>	the raw value for an axis position
+//				axn	=>	axis number, numbered starting at 0
+//
+// return:	joy_get_scaled_reading will return a value that represents
+//				the joystick pos from -1 to +1 for the specified axis number 'axn', and
+//				the raw value 'raw'
+//
+int joy_get_scaled_reading(int raw, int axn)
+{
+	int x, d, dead_zone, rng;
+	float percent, sensitivity_percent, non_sensitivity_percent;
+
+	// Make sure it's calibrated properly.
+	if (joystick.axis_center[axn] - joystick.axis_min[axn] < 5)
+		return 0;
+
+	if (joystick.axis_max[axn] - joystick.axis_center[axn] < 5)
+		return 0;
+
+	raw -= joystick.axis_center[axn];
+
+	dead_zone = (joystick.axis_max[axn] - joystick.axis_min[axn]) * Dead_zone_size / 100;
+
+	if (raw < -dead_zone) {
+		rng = joystick.axis_center[axn] - joystick.axis_min[axn] - dead_zone;
+		d = -raw - dead_zone;
+
+	} else if (raw > dead_zone) {
+		rng = joystick.axis_max[axn] - joystick.axis_center[axn] - dead_zone;
+		d = raw - dead_zone;
+
+	} else
+		return 0;
+
+	if (d > rng)
+		d = rng;
+
+	Assert(Joy_sensitivity >= 0 && Joy_sensitivity <= 9);
+
+	// compute percentages as a range between 0 and 1
+	sensitivity_percent = (float) Joy_sensitivity / 9.0f;
+	non_sensitivity_percent = (float) (9 - Joy_sensitivity) / 9.0f;
+
+	// find percent of max axis is at
+	percent = (float) d / (float) rng;
+
+	// work sensitivity on axis value
+	percent = (percent * sensitivity_percent + percent * percent * percent * percent * percent * non_sensitivity_percent);
+
+	x = (int) ((float) F1_0 * percent);
+
+	//nprintf(("AI", "d=%6i, sens=%3i, percent=%6.3f, val=%6i, ratio=%6.3f\n", d, Joy_sensitivity, percent, (raw<0) ? -x : x, (float) d/x));
+
+	if (raw < 0)
+		return -x;
+
+	return x;
+}
+
+// --------------------------------------------------------------
+//	joy_get_pos()
+//
+//	input:	x		=>		OUTPUT PARAMETER: x-axis position of stick (-1 to 1)
+//				y		=>		OUTPUT PARAMETER: y-axis position of stick (-1 to 1)
+//				z		=>		OUTPUT PARAMETER: z-axis (throttle) position of stick (-1 to 1)
+//				r		=>		OUTPUT PARAMETER: rudder position of stick (-1 to 1)
+//
+//	return:	success	=> 1
+//				failure	=> 0
+//
 int joy_get_pos(int *x, int *y, int *z, int *rx)
 {
 	int axis[JOY_NUM_AXES];
-	
+
 	if (x) *x = 0;
 	if (y) *y = 0;
 	if (z) *z = 0;
 	if (rx) *rx = 0;
-        
+
 	if (joy_num_sticks < 1) return 0;
 
 	joystick_read_raw_axis( 6, axis );
 
-	//      joy_get_scaled_reading will return a value represents the joystick pos from -1 to +1
+	//	joy_get_scaled_reading will return a value represents the joystick pos from -1 to +1
 	if (x && joystick.axis_valid[0])
 		*x = joy_get_scaled_reading(axis[0], 0);
-	if (y && joystick.axis_valid[1])
+	if (y && joystick.axis_valid[1]) 
 		*y = joy_get_scaled_reading(axis[1], 1);
 	if (z && joystick.axis_valid[2])
 		*z = joy_get_unscaled_reading(axis[2], 2);
@@ -181,23 +281,75 @@ int joy_get_pos(int *x, int *y, int *z, int *rx)
 		Joy_last_x_reading = *x;
 
 	if (y)
-		Joy_last_x_reading = *y;
+		Joy_last_y_reading = *y;
 
 	return 1;
 }
 
-int joy_get_scaled_reading(int raw, int axn)
+void joy_process(int time_delta)
 {
-	STUB_FUNCTION;
+	int i;
 	
-	return 0;
-}
-
-int joy_get_unscaled_reading(int raw, int axn)
-{
-	STUB_FUNCTION;
+	if (!Joy_inited)
+		return;
+	if (sdljoy == NULL)
+		return;
 	
-	return 0;
+	int buttons = SDL_JoystickNumButtons(sdljoy);
+	int hat = SDL_JoystickGetHat(sdljoy, 0);
+	
+	for (i=0; i < JOY_TOTAL_BUTTONS; i++) {
+		int state = 0;
+		
+		if (i < JOY_NUM_BUTTONS) {
+			if (i < buttons) {
+				state = SDL_JoystickGetButton(sdljoy, i);
+			}
+		} else { 
+			switch (i) {
+				case JOY_HATBACK:
+					state = (hat & SDL_HAT_DOWN) ? 1 : 0;
+					break;
+				case JOY_HATFORWARD:
+					state = (hat & SDL_HAT_UP) ? 1 : 0;
+					break;
+				case JOY_HATLEFT:
+					state = (hat & SDL_HAT_LEFT) ? 1 : 0;
+					break;
+				case JOY_HATRIGHT:
+					state = (hat & SDL_HAT_RIGHT) ? 1 : 0;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		if (state != joy_buttons[i].actual_state) {
+			// Button position physically changed.
+			joy_buttons[i].actual_state = state;
+			
+			if ( state )    {
+				// went from up to down
+				joy_buttons[i].down_count++;
+				joy_buttons[i].down_time = 0;
+				
+				joy_buttons[i].state = 1;
+			} else {
+				// went from down to up
+				if ( joy_buttons[i].state )     {
+					joy_buttons[i].up_count++;
+				}
+				
+				joy_buttons[i].state = 0;
+			}
+		} else {
+			// Didn't move... increment time down if down.
+			if (joy_buttons[i].state) {
+				//joy_buttons[i].down_time += joy_pollrate;
+				joy_buttons[i].down_time += time_delta;
+			}
+		}	
+	}
 }
 
 int joy_init()
@@ -216,17 +368,20 @@ int joy_init()
 	Joy_inited = 1;
 	n = SDL_NumJoysticks ();
 
-	// DDOI - FIXME
-	//Cur_joystick = os_config_read_unit (NULL, "CurrentJoystick", JOYSTICKID1);
-	Cur_joystick = 0;
+	Cur_joystick = os_config_read_uint (NULL, "CurrentJoystick", JOYSTICKID1);
 
 	joy_get_caps(n);
 
 	if (n < 1) {
-		mprintf(("No joystick driver detected\n"));
+		mprintf(("No joysticks found\n"));
 		return 0;
 	}
 
+	sdljoy = SDL_JoystickOpen(Cur_joystick);
+	if (sdljoy == NULL) {
+		mprintf(("Unable to init joystick %d\n", Cur_joystick));
+	}
+	
 	joy_flush ();
 
 	joy_num_sticks = n;
@@ -250,7 +405,23 @@ void joy_set_cen()
 
 int joystick_read_raw_axis(int num_axes, int *axis)
 {
-	return 0;
+	int i;
+	int num;
+	
+	if (sdljoy == NULL)
+		return 0;
+	
+	num = SDL_JoystickNumAxes(sdljoy);
+	
+	for (i = 0; i < num_axes; i++) {
+		if (i < num) {
+			axis[i] = SDL_JoystickGetAxis(sdljoy, i);
+		} else {
+			axis[i] = 32768;
+		}
+	}
+	
+	return 1;
 }
 
 void joy_ff_adjust_handling(int speed)

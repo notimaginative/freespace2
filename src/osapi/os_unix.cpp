@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.9  2002/06/16 23:59:31  relnev
+ * untested joystick code
+ *
  * Revision 1.8  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -279,6 +282,24 @@ void os_poll()
 				break;
 		}
 	}
+	
+{
+	extern int joy_pollrate;
+	extern void joy_process(int time_delta);
+	
+	static Uint32 lasttic = 0;
+	Uint32 curtic = SDL_GetTicks();
+	Uint32 delta = curtic - lasttic;
+	
+	while (delta >= joy_pollrate) {
+		joy_process(delta);
+		
+		lasttic += joy_pollrate;
+		
+		delta = curtic - lasttic;
+	}
+}
+
 }
 
 void debug_int3()

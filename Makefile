@@ -76,6 +76,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/hud/hudwingmanstatus.cpp \
 	./src/io/key.cpp \
 	./src/io/keycontrol.cpp \
+	./src/io/joy-unix.cpp \
 	./src/io/mouse.cpp \
 	./src/io/timer.cpp \
 	./src/jumpnode/jumpnode.cpp \

@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.24  2002/08/31 01:39:13  theoddone33
+ * Speed up the renderer a tad
+ *
  * Revision 1.23  2002/08/04 02:31:00  relnev
  * make numlock not overlap with pause
  *
@@ -3839,14 +3842,20 @@ extern int Player_dead_state;
 //	Flip the page and time how long it took.
 void game_flip_page_and_time_it()
 {	
+#ifndef NDEBUG
 	fix t1, t2,d;
 	int t;
 	t1 = timer_get_fixed_seconds();
 	gr_flip();
 	t2 = timer_get_fixed_seconds();
 	d = t2 - t1;
-	t = (gr_screen.max_w*gr_screen.max_h*gr_screen.bytes_per_pixel)/1024;
-	sprintf( transfer_text, NOX("%ld MB/s"), fixmuldiv(t,65,d) );
+	if (d != 0) {
+		t = (gr_screen.max_w*gr_screen.max_h*gr_screen.bytes_per_pixel)/1024;
+		sprintf( transfer_text, NOX("%ld MB/s"), fixmuldiv(t,65,d) );
+	}
+#else
+	gr_flip ();
+#endif
 }
 
 void game_simulation_frame()

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.57  2002/08/31 01:39:13  theoddone33
+ * Speed up the renderer a tad
+ *
  * Revision 1.56  2002/08/01 05:03:11  relnev
  * minor change
  *
@@ -1670,7 +1673,7 @@ typedef struct tcache_slot_opengl {
 	float	u_scale, v_scale;
 	int	bitmap_id;
 	int	size;
-	char	used_this_frame;
+	int	used_this_frame;
 	int	time_created;
 	ushort	w,h;
 
@@ -1883,6 +1886,7 @@ void opengl_tcache_frame ()
 
 	GL_frame_count++;
 
+	/*
 	int i;
 	for( i=0; i<MAX_BITMAPS; i++ )  {
 		Textures[i].used_this_frame = 0;
@@ -1901,6 +1905,7 @@ void opengl_tcache_frame ()
 			}
 		}
 	}
+	*/
 
 	if ( vram_full )        {
 		opengl_tcache_flush();
@@ -1916,12 +1921,12 @@ int opengl_free_texture ( tcache_slot_opengl *t )
 	// Bitmap changed!!     
 	if ( t->bitmap_id > -1 )        {
 		// if I, or any of my children have been used this frame, bail  
-		if(t->used_this_frame){
+		if(t->used_this_frame == GL_frame_count){
 			return 0;
 		}
 		for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
 			for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
-				if((t->data_sections[idx][s_idx] != NULL) && (t->data_sections[idx][s_idx]->used_this_frame)){
+				if((t->data_sections[idx][s_idx] != NULL) && (t->data_sections[idx][s_idx]->used_this_frame == GL_frame_count)){
 					return 0;
 				}
 			}
@@ -2027,7 +2032,7 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		return 0;
 	}
 
-	if ( t->used_this_frame )       {
+	if ( t->used_this_frame == GL_frame_count )       {
 		mprintf(( "ARGHH!!! Texture already used this frame!  Cannot free it!\n" ));
 		return 0;
 	}
@@ -2375,14 +2380,14 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 	tcache_slot_opengl *t = &Textures[n];
 
 	if ( (GL_last_bitmap_id == bitmap_id) && (GL_last_bitmap_type==bitmap_type) && (t->bitmap_id == bitmap_id) && (GL_last_section_x == sx) && (GL_last_section_y == sy))       {
-		t->used_this_frame++;
+		t->used_this_frame = GL_frame_count;
 
 		// mark all children as used
 		if(GL_texture_sections){
 			for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
 				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
 					if(t->data_sections[idx][s_idx] != NULL){
-						t->data_sections[idx][s_idx]->used_this_frame++;
+						t->data_sections[idx][s_idx]->used_this_frame = GL_frame_count;
 					}
 				}
 			}
@@ -2466,7 +2471,7 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 		GL_last_section_x = sx;
 		GL_last_section_y = sy;
 
-		t->used_this_frame++;
+		t->used_this_frame = GL_frame_count;
 	}
 	// gah
 	else {

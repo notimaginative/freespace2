@@ -15,6 +15,9 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.11  2002/08/31 01:39:13  theoddone33
+ * Speed up the renderer a tad
+ *
  * Revision 1.10  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1228,8 +1231,8 @@ void gr_bitmap(int x, int y)
 #endif
 	/* don't want opengl bitmap to be called -- slow! */
 	//case GR_OPENGL:
-	//	gr_opengl_bitmap(x, y);
-	//	break;
+		//gr_opengl_bitmap(x, y);
+		//break;
 	default:
 		Int3();
 	}

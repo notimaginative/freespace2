@@ -67,7 +67,12 @@ void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ex
 			lp = ls + strlen(ls);	// move to the end
 		}
 	
-		strncpy(fname, ls, _MAX_FNAME);
+		int dist = lp-ls;
+		if (dist > (_MAX_FNAME-1))
+			dist = _MAX_FNAME-1;
+			
+		strncpy(fname, ls, dist);
+		fname[_MAX_FNAME-1] = 0;
 	}
 }
 

@@ -15,6 +15,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.50  2002/06/18 23:20:44  relnev
+ * fixed _splitpath.
+ *
+ * adjusted line offsets.
+ *
  * Revision 1.49  2002/06/17 23:11:39  relnev
  * enable sdl key repeating.
  *
@@ -1182,10 +1187,10 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 	float sx1, sy1;
 	float sx2, sy2;
 	
-	sx1 = i2fl(x1 + gr_screen.offset_x);
-	sy1 = i2fl(y1 + gr_screen.offset_y);
-	sx2 = i2fl(x2 + gr_screen.offset_x);
-	sy2 = i2fl(y2 + gr_screen.offset_y);
+	sx1 = i2fl(x1 + gr_screen.offset_x)+0.5;
+	sy1 = i2fl(y1 + gr_screen.offset_y)+0.5;
+	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5;
+	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5;
 	
 	if ( x1 == x2 && y1 == y2 ) {
 		glBegin (GL_POINTS);
@@ -1241,11 +1246,11 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 	float sx1, sy1;
 	float sx2, sy2;
 	
-	sx1 = i2fl(x1 + gr_screen.offset_x);
-	sy1 = i2fl(y1 + gr_screen.offset_y);
-	sx2 = i2fl(x2 + gr_screen.offset_x);
-	sy2 = i2fl(y2 + gr_screen.offset_y);
-	
+	sx1 = i2fl(x1 + gr_screen.offset_x)+0.5;
+	sy1 = i2fl(y1 + gr_screen.offset_y)+0.5;
+	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5;
+	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5;
+
 	if ( x1 == x2 ) {
 		if ( sy1 < sy2 )    {
 			sy2 += 0.5f;

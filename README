@@ -23,6 +23,11 @@ the source.
 06/18/2002
 
 Current status:
+- You need data files to run this.  You can use the Freespace 2 demo or
+install the full game with wine.  If your commercial version of Freespace 2
+is not the Game of the Year edition, you'll need to update to the latest
+patch before copying the data files over.
+
 - It currently uses SDL (http://www.libsdl.org) and OpenAL
 (http://opensource.creative.com)
 
@@ -56,5 +61,4 @@ NOT run at this time, due to byte ordering bugs in the source.
 For more information about the game and its source code:
 http://www.freespace2.com/
 http://www.volitionwatch.com/
-http://dynamic4.gamespy.com/~freespace/forums/
 http://fs2source.warpcore.org/

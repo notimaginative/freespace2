@@ -4,12 +4,14 @@
 MACOSX=false
 DEMO=false
 MVE=false
+GERMAN=false
 
 CC=g++
 AR=ar
 RANLIB=ranlib
 CODE_BINARY=code.a
 FS_BINARY=freespace2
+FS_DEMO_BINARY=freespace2_demo
 LDFLAGS=$(shell sdl-config --libs) -lopenal
 CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ # -fwritable-strings
 #CFLAGS+=-O2
@@ -25,12 +27,20 @@ else
 endif
 
 ifeq ($(strip $(DEMO)), true)
+	FS_BINARY=$(FS_DEMO_BINARY)
 	CFLAGS += -DFS2_DEMO
+else
+	CFLAGS += -DRELEASE_REAL
 endif
 
 ifeq ($(strip $(MVE)),true)
 	CFLAGS += -DMVE
 endif
+
+ifeq ($(strip $(GERMAN)),true)
+	CFLAGS += -DGERMAN_BUILD
+endif
+
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 	
@@ -277,10 +287,14 @@ FS_SOURCES=./src/freespace2/freespace.cpp \
 	./src/freespace2/levelpaging.cpp \
 	src/freespace2/unixmain.cpp
 
+FONTTOOL_SOURCES=./src/fonttool/fontstubs.cpp \
+	./src/fonttool/fontcreate.cpp \
+	./src/fonttool/fontkern.cpp \
+	./src/fonttool/fontkerncopy.cpp
 
 CODE_OBJECTS=$(CODE_SOURCES:.cpp=.o)
 FS_OBJECTS=$(FS_SOURCES:.cpp=.o)
-
+FONTTOOL_OBJECTS=$(FONTTOOL_SOURCES:.cpp=.o)
 
 all: $(FS_BINARY)
 
@@ -294,5 +308,25 @@ endif
 $(FS_BINARY): $(CODE_BINARY) $(FS_OBJECTS)
 	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OBJECTS) $(CODE_BINARY)
 
+cryptstring:
+	$(CC) -o cryptstring $(CFLAGS) src/cryptstring/cryptstring.cpp
+
+scramble:
+	$(CC) -c -o ./src/platform/unix.o $(CFLAGS) ./src/platform/unix.cpp
+	$(CC) -c -o ./src/parse/encrypt.o $(CFLAGS) ./src/parse/encrypt.cpp
+	$(CC) -o scramble $(CFLAGS) ./src/scramble/scramble.cpp \
+		./src/platform/unix.o ./src/parse/encrypt.o
+
+cfilearchiver:
+	$(CC) -o cfilearchiver $(CFLAGS) ./src/cfilearchiver/cfilearchiver.cpp
+
+fonttool: $(CODE_OBJECTS) $(FONTTOOL_OBJECTS)
+	$(CC) -o fonttool $(LDFLAGS) $(CFLAGS) $(CODE_OBJECTS) $(FONTTOOL_OBJECTS) \
+		./src/fonttool/fonttool.cpp
+
+tools: scramble cryptstring cfilearchiver fonttool
+
 clean:
 	rm -rf $(FS_BINARY) $(FS_OBJECTS) $(CODE_BINARY) $(CODE_OBJECTS)
+	rm -rf $(FONTTOOL_OBJECTS)
+	rm -f cryptstring scramble cfilearchiver fonttool

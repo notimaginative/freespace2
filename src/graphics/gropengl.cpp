@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.52  2002/06/21 23:59:14  relnev
+ * moved a gr_opengl_set_state to after the gr_tcache_set
+ *
  * Revision 1.51  2002/06/19 04:52:45  relnev
  * MacOS X updates (Ryan)
  *
@@ -961,14 +964,14 @@ static void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy
 
 	float u_scale, v_scale;
 
-	gr_opengl_set_state( TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
-
 	if ( !gr_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale ) )	{
 		// Couldn't set texture
 		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
 		return;
 	}
 
+	gr_opengl_set_state( TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+	
 	float u0, u1, v0, v1;
 	float x1, x2, y1, y2;
 	int bw, bh;

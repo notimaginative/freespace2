@@ -7,6 +7,9 @@
  * Low-level floating point math routines
  *
  * $Log$
+ * Revision 1.3  2002/05/31 00:29:32  theoddone33
+ * Fix frand()
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -145,7 +148,7 @@ float fl_roundoff(float x, int multiple)
 float frand()
 {
 	float rval;
-	rval = ((float) myrand()) / (RAND_MAX + 1);
+	rval = fabsf(((float) myrand()) / (RAND_MAX + 1));
 	return rval;
 }
 

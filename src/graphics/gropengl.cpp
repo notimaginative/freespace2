@@ -7,6 +7,10 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.29  2002/05/31 03:34:02  theoddone33
+ * Fix Keyboard
+ * Add titlebar
+ *
  * Revision 1.28  2002/05/31 00:06:59  relnev
  * minor change
  *
@@ -2345,6 +2349,7 @@ void gr_opengl_unlock()
 {
 }
         
+extern char *Osreg_title;
 void gr_opengl_init()
 {
 	if ( Inited )	{
@@ -2370,11 +2375,13 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	                                        
-	if (SDL_SetVideoMode (640, 480, 0, SDL_OPENGL) == NULL)
+	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,SDL_OPENGL) == NULL)
 	{
 		fprintf (stderr, "Couldn't set video mode: %s", SDL_GetError ());
 		exit (1);
 	}		
+
+	SDL_WM_SetCaption (Osreg_title, "FS2");
 #endif
 	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 

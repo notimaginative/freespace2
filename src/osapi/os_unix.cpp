@@ -7,6 +7,10 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.6  2002/05/31 03:34:02  theoddone33
+ * Fix Keyboard
+ * Add titlebar
+ *
  * Revision 1.5  2002/05/30 23:46:29  theoddone33
  * some minor key changes (not necessarily fixes)
  *
@@ -220,6 +224,7 @@ void os_deinit()
 {
 }
 
+extern int SDLtoFS2[SDLK_LAST];
 void os_poll()
 {
 	SDL_Event e;
@@ -243,10 +248,12 @@ void os_poll()
 					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 0);
 				break;
 			case SDL_KEYDOWN:
-				key_mark ((e.key.keysym.mod<<16) | e.key.keysym.sym, 1, 0);
+				if (SDLtoFS2[e.key.keysym.sym])
+				key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);
 				break;
 			case SDL_KEYUP:
-				key_mark ((e.key.keysym.mod<<16) | e.key.keysym.sym, 0, 0);
+				if (SDLtoFS2[e.key.keysym.sym])
+				key_mark (SDLtoFS2[e.key.keysym.sym], 0, 0);
 				break;
 			default:
 				break;

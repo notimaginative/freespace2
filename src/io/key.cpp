@@ -7,6 +7,10 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.5  2002/05/31 03:34:02  theoddone33
+ * Fix Keyboard
+ * Add titlebar
+ *
  * Revision 1.4  2002/05/30 23:46:29  theoddone33
  * some minor key changes (not necessarily fixes)
  *
@@ -174,6 +178,10 @@ CRITICAL_SECTION key_lock;
 								// when typing in your pilots callsign.  This global flag is checked before execution
 								// is stopped.
 
+#ifdef PLAT_UNIX
+int SDLtoFS2[SDLK_LAST];
+#endif
+
 int ascii_table[128] = 
 { 255, 255, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',255,255,
   'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 255, 255,
@@ -206,6 +214,128 @@ static int Key_running_NT = 0;		// NT is the OS
 
 int Cheats_enabled = 0;
 int Key_normal_game = 0;
+
+#ifdef PLAT_UNIX
+void FillSDLArray ()
+{
+	SDLtoFS2[SDLK_0] = KEY_0;
+	SDLtoFS2[SDLK_1] = KEY_1;
+	SDLtoFS2[SDLK_2] = KEY_2;
+	SDLtoFS2[SDLK_3] = KEY_3;
+	SDLtoFS2[SDLK_4] = KEY_4;
+	SDLtoFS2[SDLK_5] = KEY_5;
+	SDLtoFS2[SDLK_6] = KEY_6;
+	SDLtoFS2[SDLK_7] = KEY_7;
+	SDLtoFS2[SDLK_8] = KEY_8;
+	SDLtoFS2[SDLK_9] = KEY_9;
+
+	SDLtoFS2[SDLK_a] = KEY_A;
+	SDLtoFS2[SDLK_b] = KEY_B;
+	SDLtoFS2[SDLK_c] = KEY_C;
+	SDLtoFS2[SDLK_d] = KEY_D;
+	SDLtoFS2[SDLK_e] = KEY_E;
+	SDLtoFS2[SDLK_f] = KEY_F;
+	SDLtoFS2[SDLK_g] = KEY_G;
+	SDLtoFS2[SDLK_h] = KEY_H;
+	SDLtoFS2[SDLK_i] = KEY_I;
+	SDLtoFS2[SDLK_j] = KEY_J;
+	SDLtoFS2[SDLK_k] = KEY_K;
+	SDLtoFS2[SDLK_l] = KEY_L;
+	SDLtoFS2[SDLK_m] = KEY_M;
+	SDLtoFS2[SDLK_n] = KEY_N;
+	SDLtoFS2[SDLK_o] = KEY_O;
+	SDLtoFS2[SDLK_p] = KEY_P;
+	SDLtoFS2[SDLK_q] = KEY_Q;
+	SDLtoFS2[SDLK_r] = KEY_R;
+	SDLtoFS2[SDLK_s] = KEY_S;
+	SDLtoFS2[SDLK_t] = KEY_T;
+	SDLtoFS2[SDLK_u] = KEY_U;
+	SDLtoFS2[SDLK_v] = KEY_V;
+	SDLtoFS2[SDLK_w] = KEY_W;
+	SDLtoFS2[SDLK_x] = KEY_X;
+	SDLtoFS2[SDLK_y] = KEY_Y;
+	SDLtoFS2[SDLK_z] = KEY_Z;
+
+	SDLtoFS2[SDLK_MINUS] = KEY_MINUS;
+	SDLtoFS2[SDLK_EQUALS] = KEY_EQUAL;
+	SDLtoFS2[SDLK_SLASH] = KEY_DIVIDE; // No idea - DDOI
+	SDLtoFS2[SDLK_BACKSLASH] = KEY_SLASH;
+	//SDLtoFS2[SDLK_BACKSLASH] = KEY_SLASH_UK; // ?
+	SDLtoFS2[SDLK_COMMA] = KEY_COMMA;
+	SDLtoFS2[SDLK_PERIOD] = KEY_PERIOD;
+	SDLtoFS2[SDLK_SEMICOLON] = KEY_SEMICOL;
+
+	SDLtoFS2[SDLK_LEFTBRACKET] = KEY_LBRACKET;
+	SDLtoFS2[SDLK_RIGHTBRACKET] = KEY_RBRACKET;
+
+	SDLtoFS2[SDLK_BACKQUOTE] = KEY_RAPOSTRO;
+	SDLtoFS2[SDLK_QUOTE] = KEY_LAPOSTRO;
+
+	SDLtoFS2[SDLK_ESCAPE] = KEY_ESC;
+	SDLtoFS2[SDLK_RETURN] = KEY_ENTER;
+	SDLtoFS2[SDLK_BACKSPACE] = KEY_BACKSP;
+	SDLtoFS2[SDLK_TAB] = KEY_TAB;
+	SDLtoFS2[SDLK_SPACE] = KEY_SPACEBAR;
+
+	SDLtoFS2[SDLK_NUMLOCK] = KEY_NUMLOCK;
+	SDLtoFS2[SDLK_SCROLLOCK] = KEY_SCROLLOCK;
+	SDLtoFS2[SDLK_CAPSLOCK] = KEY_CAPSLOCK;
+
+	SDLtoFS2[SDLK_LSHIFT] = KEY_LSHIFT;
+	SDLtoFS2[SDLK_RSHIFT] = KEY_RSHIFT;
+
+	SDLtoFS2[SDLK_LALT] = KEY_LALT;
+	SDLtoFS2[SDLK_RALT] = KEY_RALT;
+
+	SDLtoFS2[SDLK_LCTRL] = KEY_LCTRL;
+	SDLtoFS2[SDLK_RCTRL] = KEY_RCTRL;
+
+	SDLtoFS2[SDLK_F1] = KEY_F1;
+	SDLtoFS2[SDLK_F2] = KEY_F2;
+	SDLtoFS2[SDLK_F3] = KEY_F3;
+	SDLtoFS2[SDLK_F4] = KEY_F4;
+	SDLtoFS2[SDLK_F5] = KEY_F5;
+	SDLtoFS2[SDLK_F6] = KEY_F6;
+	SDLtoFS2[SDLK_F7] = KEY_F7;
+	SDLtoFS2[SDLK_F8] = KEY_F8;
+	SDLtoFS2[SDLK_F9] = KEY_F9;
+	SDLtoFS2[SDLK_F10] = KEY_F10;
+	SDLtoFS2[SDLK_F11] = KEY_F11;
+	SDLtoFS2[SDLK_F12] = KEY_F12;
+
+	SDLtoFS2[SDLK_KP0] = KEY_PAD0;
+	SDLtoFS2[SDLK_KP1] = KEY_PAD1;
+	SDLtoFS2[SDLK_KP2] = KEY_PAD2;
+	SDLtoFS2[SDLK_KP3] = KEY_PAD3;
+	SDLtoFS2[SDLK_KP4] = KEY_PAD4;
+	SDLtoFS2[SDLK_KP5] = KEY_PAD5;
+	SDLtoFS2[SDLK_KP6] = KEY_PAD6;
+	SDLtoFS2[SDLK_KP7] = KEY_PAD7;
+	SDLtoFS2[SDLK_KP8] = KEY_PAD8;
+	SDLtoFS2[SDLK_KP9] = KEY_PAD9;
+	SDLtoFS2[SDLK_KP_MINUS] = KEY_PADMINUS;
+	SDLtoFS2[SDLK_KP_PLUS] = KEY_PADPLUS;
+	SDLtoFS2[SDLK_KP_PERIOD] = KEY_PADPERIOD;
+	SDLtoFS2[SDLK_KP_DIVIDE] = KEY_PADDIVIDE;
+	SDLtoFS2[SDLK_KP_MULTIPLY] = KEY_PADMULTIPLY;
+	SDLtoFS2[SDLK_KP_ENTER] = KEY_PADENTER;
+
+	SDLtoFS2[SDLK_INSERT] = KEY_INSERT;
+	SDLtoFS2[SDLK_HOME] = KEY_HOME;
+	SDLtoFS2[SDLK_PAGEUP] = KEY_PAGEUP;
+	SDLtoFS2[SDLK_DELETE] = KEY_DELETE;
+	SDLtoFS2[SDLK_END] = KEY_END;
+	SDLtoFS2[SDLK_PAGEDOWN] = KEY_PAGEDOWN;
+	SDLtoFS2[SDLK_UP] = KEY_UP;
+	SDLtoFS2[SDLK_DOWN] = KEY_DOWN;
+	SDLtoFS2[SDLK_LEFT] = KEY_LEFT;
+	SDLtoFS2[SDLK_RIGHT] = KEY_RIGHT;
+
+	SDLtoFS2[SDLK_PRINT] = KEY_PRINT_SCRN;
+	SDLtoFS2[SDLK_PAUSE] = KEY_PAUSE;
+	SDLtoFS2[SDLK_BREAK] = KEY_BREAK;
+}
+#endif
 
 int key_numlock_is_on()
 {
@@ -264,17 +394,10 @@ int key_to_ascii(int keycode )
 	if ( keycode>=127 )
 		return 255;
 
-#ifdef PLAT_UNIX
-	if (shifted)
-		return toupper (keycode);
-	else
-		return keycode;
-#else
 	if (shifted)
 		return shifted_ascii_table[keycode];
 	else
 		return ascii_table[keycode];
-#endif
 }
 
 //	Flush the keyboard buffer.
@@ -493,10 +616,6 @@ float key_down_timef(uint scancode)
 
 	if ( !key_inited ) return 0.0f;
 
-#ifdef PLAT_UNIX
-	scancode &= KEY_MASK;
-#endif
-
 	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0.0f;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
@@ -577,9 +696,6 @@ int key_down_count(int scancode)
 
 	if ( !key_inited ) return 0;
 
-#ifdef PLAT_UNIX
-	scancode &= KEY_MASK;
-#endif
 	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
@@ -599,9 +715,6 @@ int key_up_count(int scancode)
 	int n;
 
 	if ( !key_inited ) return 0;
-#ifdef PLAT_UNIX
-	scancode &= KEY_MASK;
-#endif
 	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
@@ -631,9 +744,6 @@ void key_mark( uint code, int state, uint latency )
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
 
-#ifdef PLAT_UNIX
-	code &= KEY_MASK;
-#endif
 	// If running in the UK, need to translate their wacky slash scancode to ours
 	if ( code == KEY_SLASH_UK ) {
 		code = KEY_SLASH;
@@ -692,11 +802,7 @@ void key_mark( uint code, int state, uint latency )
 	// event_time = timeGetTime() - latency;
 
 	// Read in scancode
-#ifndef PLAT_UNIX
 	scancode = code & (NUM_KEYS-1);
-#else
-	scancode = code;
-#endif
 	breakbit = !state;
 	
 	if (breakbit)	{
@@ -833,6 +939,7 @@ void key_init()
 	key_inited = 1;
 
 #ifdef PLAT_UNIX
+	FillSDLArray ();
 	STUB_FUNCTION;
 #else
 	InitializeCriticalSection( &key_lock );

@@ -7,6 +7,10 @@
  * Include file for keyboard reading routines
  *
  * $Log$
+ * Revision 1.7  2002/05/31 03:34:02  theoddone33
+ * Fix Keyboard
+ * Add titlebar
+ *
  * Revision 1.6  2002/05/30 23:46:29  theoddone33
  * some minor key changes (not necessarily fixes)
  *
@@ -81,11 +85,7 @@ extern "C" {
 
 #include "pstypes.h"
 
-#ifndef PLAT_UNIX
 #define NUM_KEYS 256
-#else
-#define NUM_KEYS SDLK_LAST
-#endif
 
 extern int shifted_ascii_table[];
 extern int ascii_table[];
@@ -127,133 +127,6 @@ void key_clear_filter();
 extern int Cheats_enabled;
 extern int Key_normal_game;
 
-#ifdef PLAT_UNIX
-#define KEY_SHIFTED     0x30000		//(KMOD_SHIFT)<<16;
-#define KEY_ALTED       0x3000000	//(KMOD_ALT)<<16;
-#define KEY_CTRLED      0xc00000	//(KMOD_CTRL)<<16;
-#define KEY_DEBUGGED	0x010000	// Dummy
-#define KEY_DEBUGGED1	0x2000000	// Dummy
-#define KEY_MASK			0xffff
-
-#define KEY_DEBUG_KEY	0x29			//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
-
-#define KEY_0           SDLK_0
-#define KEY_1           SDLK_1
-#define KEY_2           SDLK_2
-#define KEY_3           SDLK_3
-#define KEY_4           SDLK_4
-#define KEY_5           SDLK_5
-#define KEY_6           SDLK_6
-#define KEY_7           SDLK_7
-#define KEY_8           SDLK_8
-#define KEY_9           SDLK_9
-
-#define KEY_A           SDLK_a
-#define KEY_B           SDLK_b
-#define KEY_C           SDLK_c
-#define KEY_D           SDLK_d
-#define KEY_E           SDLK_e
-#define KEY_F           SDLK_f
-#define KEY_G           SDLK_g
-#define KEY_H           SDLK_h
-#define KEY_I           SDLK_i
-#define KEY_J           SDLK_j
-#define KEY_K           SDLK_k
-#define KEY_L           SDLK_l
-#define KEY_M           SDLK_m
-#define KEY_N           SDLK_n
-#define KEY_O           SDLK_o
-#define KEY_P           SDLK_p
-#define KEY_Q           SDLK_q
-#define KEY_R           SDLK_r
-#define KEY_S           SDLK_s
-#define KEY_T           SDLK_t
-#define KEY_U          SDLK_u
-#define KEY_V           SDLK_v
-#define KEY_W           SDLK_w
-#define KEY_X           SDLK_x
-#define KEY_Y           SDLK_y
-#define KEY_Z           SDLK_z
-
-#define KEY_MINUS      SDLK_MINUS
-#define KEY_EQUAL      SDLK_EQUALS
-#define KEY_DIVIDE    SDLK_SLASH
-#define KEY_SLASH       SDLK_SLASH
-#define KEY_SLASH_UK	SDLK_SLASH
-#define KEY_COMMA       SDLK_COMMA
-#define KEY_PERIOD      SDLK_PERIOD
-#define KEY_SEMICOL     SDLK_SEMICOLON
-
-#define KEY_LBRACKET    SDLK_LEFTBRACKET
-#define KEY_RBRACKET   SDLK_RIGHTBRACKET
-
-#define KEY_RAPOSTRO    SDLK_BACKQUOTE
-#define KEY_LAPOSTRO    SDLK_QUOTE
-
-#define KEY_ESC         SDLK_ESCAPE
-#define KEY_ENTER       SDLK_RETURN
-#define KEY_BACKSP      SDLK_BACKSPACE
-#define KEY_TAB         SDLK_TAB
-#define KEY_SPACEBAR    SDLK_SPACE
-
-#define KEY_NUMLOCK     SDLK_NUMLOCK
-#define KEY_SCROLLOCK   SDLK_SCROLLOCK
-#define KEY_CAPSLOCK    SDLK_CAPSLOCK
-
-#define KEY_LSHIFT      SDLK_LSHIFT
-#define KEY_RSHIFT      SDLK_RSHIFT
-
-#define KEY_LALT        SDLK_LALT
-#define KEY_RALT        SDLK_RALT
-
-#define KEY_LCTRL      SDLK_LCTRL
-#define KEY_RCTRL       SDLK_RCTRL
-
-#define KEY_F1          SDLK_F1
-#define KEY_F2          SDLK_F2
-#define KEY_F3          SDLK_F3
-#define KEY_F4          SDLK_F4
-#define KEY_F5          SDLK_F5
-#define KEY_F6          SDLK_F6
-#define KEY_F7          SDLK_F7
-#define KEY_F8          SDLK_F8
-#define KEY_F9          SDLK_F9
-#define KEY_F10         SDLK_F10
-#define KEY_F11         SDLK_F11
-#define KEY_F12         SDLK_F12
-
-#define KEY_PAD0        SDLK_KP0
-#define KEY_PAD1        SDLK_KP1
-#define KEY_PAD2        SDLK_KP2
-#define KEY_PAD3        SDLK_KP3
-#define KEY_PAD4        SDLK_KP4
-#define KEY_PAD5        SDLK_KP5
-#define KEY_PAD6        SDLK_KP6
-#define KEY_PAD7        SDLK_KP7
-#define KEY_PAD8        SDLK_KP8
-#define KEY_PAD9        SDLK_KP9
-#define KEY_PADMINUS    SDLK_KP_MINUS
-#define KEY_PADPLUS     SDLK_KP_PLUS
-#define KEY_PADPERIOD   SDLK_KP_PERIOD
-#define KEY_PADDIVIDE   SDLK_KP_DIVIDE
-#define KEY_PADMULTIPLY SDLK_KP_MULTIPLY
-#define KEY_PADENTER    SDLK_KP_ENTER
-
-#define KEY_INSERT      SDLK_INSERT
-#define KEY_HOME        SDLK_HOME
-#define KEY_PAGEUP      SDLK_PAGEUP
-#define KEY_DELETE      SDLK_DELETE
-#define KEY_END         SDLK_END
-#define KEY_PAGEDOWN    SDLK_PAGEDOWN
-#define KEY_UP          SDLK_UP
-#define KEY_DOWN        SDLK_DOWN
-#define KEY_LEFT        SDLK_LEFT
-#define KEY_RIGHT       SDLK_RIGHT
-
-#define KEY_PRINT_SCRN	SDLK_PRINT
-#define KEY_PAUSE       SDLK_PAUSE
-#define KEY_BREAK	SDLK_BREAK
-#else
 #define KEY_SHIFTED     0x1000
 #define KEY_ALTED       0x2000
 #define KEY_CTRLED      0x4000
@@ -380,7 +253,6 @@ extern int Key_normal_game;
 #define KEY_PAUSE			0x45	//DOS: 0x61
 #define KEY_BREAK			0xc6
 
-#endif
 /*
 #ifdef __cplusplus
 }

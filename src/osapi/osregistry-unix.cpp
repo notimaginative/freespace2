@@ -5,6 +5,7 @@
 #undef strdup
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -31,20 +32,20 @@ typedef struct KeyValue
 	char *key;
 	char *value;
 	
-	KeyValue *next;
+	struct KeyValue *next;
 } KeyValue;
 
 typedef struct Section
 {
 	char *name;
 	
-	KeyValue *pairs;
-	Section *next;
+	struct KeyValue *pairs;
+	struct Section *next;
 } Section;
 	
 typedef struct Profile
 {
-	Section *sections;
+	struct Section *sections;
 } Profile;
 
 static char *read_line_from_file(FILE *fp)
@@ -58,11 +59,19 @@ static char *read_line_from_file(FILE *fp)
 	eol = 0;
 	
 	do {
-		if (buf == NULL)
+		if (buf == NULL) {
 			return NULL;
+		}
 		
-		if (fgets(buf_start, 80, fp) == NULL)
-			return NULL;
+		if (fgets(buf_start, 80, fp) == NULL) {
+			if (buf_start == buf) {
+				free(buf);
+				return NULL;
+			} else {
+				*buf_start = 0;
+				return buf;
+			}
+		}
 		
 		len = strlen(buf_start);
 		
@@ -85,6 +94,7 @@ static char *read_line_from_file(FILE *fp)
 static char *trim_string(char *str)
 {
 	char *ptr;
+	int len;
 	
 	if (str == NULL)
 		return NULL;
@@ -97,12 +107,17 @@ static char *trim_string(char *str)
 	if (ptr)
 		*ptr = 0;
 	
-	ptr = str+strlen(str)-1;
-	while (ptr >= str && isspace(*ptr)) {
+	ptr = str;
+	len = strlen(str);
+	if (len > 0) {
+		ptr += len-1;
+	}
+	
+	while ((ptr > str) && isspace(*ptr)) {
 		ptr--;
 	}
 	
-	if (ptr >= str) {
+	if (*ptr) {
 		ptr++;
 		*ptr = 0;
 	}
@@ -242,7 +257,14 @@ static Profile *profile_update(Profile *profile, char *section, char *key, char 
 				if (strcmp(key, kvp->key) == 0) {
 					free(kvp->value);
 					
-					kvp->value = strdup(value);
+					if (value == NULL) {
+						*kvp_ptr = kvp->next;
+						
+						free(kvp->key);
+						free(kvp);
+					} else {
+						kvp->value = strdup(value);
+					}
 					
 					/* all done */
 					return profile;
@@ -252,12 +274,14 @@ static Profile *profile_update(Profile *profile, char *section, char *key, char 
 				kvp = kvp->next;
 			}
 			
-			/* key not found */
-			kvp = (KeyValue *)malloc(sizeof(KeyValue));
-			kvp->next = NULL;
-			kvp->key = strdup(key);
-			kvp->value = strdup(value);
-			
+			if (value != NULL) {
+				/* key not found */
+				kvp = (KeyValue *)malloc(sizeof(KeyValue));
+				kvp->next = NULL;
+				kvp->key = strdup(key);
+				kvp->value = strdup(value);
+			}
+					
 			*kvp_ptr = kvp;
 			
 			/* all done */

@@ -70,9 +70,9 @@ void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ex
 		int dist = lp-ls;
 		if (dist > (_MAX_FNAME-1))
 			dist = _MAX_FNAME-1;
-			
+		
+		memset(fname, 0, _MAX_FNAME);	
 		strncpy(fname, ls, dist);
-		fname[_MAX_FNAME-1] = 0;
 	}
 }
 

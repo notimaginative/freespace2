@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.9  2002/05/29 03:35:51  relnev
+ * added rest of init
+ *
  * Revision 1.8  2002/05/29 03:30:05  relnev
  * update opengl stubs
  *
@@ -918,12 +921,97 @@ void gr_opengl_init()
 
 	atexit (SDL_Quit);
 
-	if (SDL_SetVideoMode (640, 480, 16, SDL_OPENGL) == NULL)
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	                                        
+	if (SDL_SetVideoMode (640, 480, 0, SDL_OPENGL) == NULL)
 	{
 		fprintf (stderr, "Couldn't set video mode: %s", SDL_GetError ());
 		exit (1);
 	}
 #endif
+	int bpp = 16;
+	
+	switch( bpp )	{
+	case 8:
+		Gr_red.bits = 8;
+		Gr_red.shift = 16;
+		Gr_red.scale = 1;
+		Gr_red.mask = 0xff0000;
+
+		Gr_green.bits = 8;
+		Gr_green.shift = 8;
+		Gr_green.scale = 1;
+		Gr_green.mask = 0xff00;
+
+		Gr_blue.bits = 8;
+		Gr_blue.shift = 0;
+		Gr_blue.scale = 1;
+		Gr_blue.mask = 0xff;
+
+	case 15:
+		Gr_red.bits = 5;
+		Gr_red.shift = 10;
+		Gr_red.scale = 8;
+		Gr_red.mask = 0x7C00;
+
+		Gr_green.bits = 5;
+		Gr_green.shift = 5;
+		Gr_green.scale = 8;
+		Gr_green.mask = 0x3E0;
+
+		Gr_blue.bits = 5;
+		Gr_blue.shift = 0;
+		Gr_blue.scale = 8;
+		Gr_blue.mask = 0x1F;
+
+		break;
+
+	case 16:
+		Gr_red.bits = 5;
+		Gr_red.shift = 11;
+		Gr_red.scale = 8;
+		Gr_red.mask = 0xF800;
+
+		Gr_green.bits = 6;
+		Gr_green.shift = 5;
+		Gr_green.scale = 4;
+		Gr_green.mask = 0x7E0;
+
+		Gr_blue.bits = 5;
+		Gr_blue.shift = 0;
+		Gr_blue.scale = 8;
+		Gr_blue.mask = 0x1F;
+
+		break;
+
+	case 24:
+	case 32:
+		Gr_red.bits = 8;
+		Gr_red.shift = 16;
+		Gr_red.scale = 1;
+		Gr_red.mask = 0xff0000;
+
+		Gr_green.bits = 8;
+		Gr_green.shift = 8;
+		Gr_green.scale = 1;
+		Gr_green.mask = 0xff00;
+
+		Gr_blue.bits = 8;
+		Gr_blue.shift = 0;
+		Gr_blue.scale = 1;
+		Gr_blue.mask = 0xff;
+
+		break;
+
+	default:
+		Int3();	// Illegal bpp
+	}
+
+
 	gr_opengl_clear();
 
 	Gr_current_red = &Gr_red;

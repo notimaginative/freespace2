@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2003/05/06 07:20:14  taylor
+ * implement command line options
+ *
  * Revision 1.4  2002/06/21 03:34:05  relnev
  * implemented a stub and fixed a path
  *
@@ -203,6 +206,9 @@
 #include "systemvars.h"
 #include "multi.h"
 #include "cfile.h"
+#include "osapi.h"
+#include "osregistry.h"
+#include "version.h"
 
 // variables
 class cmdline_parm {
@@ -222,6 +228,7 @@ public:
 };
 
 // here are the command line parameters that we will be using for FreeSpace
+#ifndef PLAT_UNIX
 cmdline_parm standalone_arg("-standalone", NULL);
 cmdline_parm nosound_arg("-nosound", NULL);
 cmdline_parm nomusic_arg("-nomusic", NULL);
@@ -242,6 +249,58 @@ cmdline_parm d3d_32bit("-32bit", NULL);
 cmdline_parm mouse_coords("-coords", NULL);
 cmdline_parm timeout("-timeout", NULL);
 cmdline_parm d3d_window("-window", NULL);
+#else
+// double hyphens on Unix options
+cmdline_parm standalone_arg("--standalone", NULL);
+cmdline_parm nosound_arg("--nosound", NULL);
+cmdline_parm nomusic_arg("--nomusic", NULL);
+cmdline_parm startgame_arg("--startgame", NULL);
+cmdline_parm gamename_arg("--gamename", NULL);
+cmdline_parm gamepassword_arg("--password", NULL);
+cmdline_parm gameclosed_arg("--closed", NULL);
+cmdline_parm gamerestricted_arg("--restricted", NULL);
+cmdline_parm allowabove_arg("--allowabove", NULL);
+cmdline_parm allowbelow_arg("--allowbelow", NULL);
+cmdline_parm port_arg("--port", NULL);
+cmdline_parm connect_arg("--connect", NULL);
+cmdline_parm multilog_arg("--multilog", NULL);
+cmdline_parm server_firing_arg("--oldfire", NULL);
+cmdline_parm client_dodamage("--clientdamage", NULL);
+cmdline_parm pof_spew("--pofspew", NULL);
+cmdline_parm mouse_coords("--coords", NULL);
+cmdline_parm timeout("--timeout", NULL);
+cmdline_parm d3d_window("--window", NULL);
+cmdline_parm d3d_fullscreen("--fullscreen", NULL);
+cmdline_parm help("--help", NULL);
+cmdline_parm no_grab("--nograb", NULL);
+cmdline_parm fs_version("--version", NULL);
+cmdline_parm no_movies("--nomovies", NULL);
+
+// single letter version of above options
+cmdline_parm standalone_arg_s("-d", NULL);
+cmdline_parm nosound_arg_s("-s", NULL);
+cmdline_parm startgame_arg_s("-S", NULL);
+cmdline_parm gamename_arg_s("-N", NULL);
+cmdline_parm gamepassword_arg_s("-p", NULL);
+cmdline_parm gameclosed_arg_s("-c", NULL);
+cmdline_parm gamerestricted_arg_s("-r", NULL);
+cmdline_parm allowabove_arg_s("-a", NULL);
+cmdline_parm allowbelow_arg_s("-b", NULL);
+cmdline_parm port_arg_s("-o", NULL);
+cmdline_parm connect_arg_s("-C", NULL);
+cmdline_parm multilog_arg_s("-m", NULL);
+cmdline_parm server_firing_arg_s("-F", NULL);
+cmdline_parm client_dodamage_s("-D", NULL);
+cmdline_parm pof_spew_s("-P", NULL);
+cmdline_parm mouse_coords_s("-M", NULL);
+cmdline_parm timeout_s("-t", NULL);
+cmdline_parm d3d_window_s("-w", NULL);
+cmdline_parm d3d_fullscreen_s("-f", NULL);
+cmdline_parm help_s("-h", NULL);
+cmdline_parm no_grab_s("-g", NULL);
+cmdline_parm fs_version_s("-v", NULL);
+cmdline_parm no_movies_s("-n", NULL);
+#endif
 
 int Cmdline_multi_stream_chat_to_file = 0;
 int Cmdline_freespace_no_sound = 0;
@@ -266,12 +325,20 @@ int Cmdline_spew_pof_info = 0;
 int Cmdline_force_32bit = 0;
 int Cmdline_mouse_coords = 0;
 int Cmdline_timeout = -1;
+#ifdef PLAT_UNIX
+int Cmdline_no_grab = 0;
+int Cmdline_play_movies = 1;
+int Cmdline_fullscreen = 0;
+#endif
 
 int Cmdline_window = 0;
 
 static cmdline_parm Parm_list(NULL, NULL);
 static int Parm_list_inited = 0;
 
+#ifdef PLAT_UNIX
+void print_instructions();
+#endif
 
 //	Return true if this character is an extra char (white space and quotes)
 int is_extra_space(char ch)
@@ -349,7 +416,12 @@ void os_parse_parms(char *cmdline)
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		cmdline_offset = strstr(cmdline, parmp->name);
+#ifdef PLAT_UNIX
+		// verify that one hyphen and two hypen options don't collide
+		if (cmdline_offset && (*(cmdline_offset-1) != '-')) {
+#else
 		if (cmdline_offset) {
+#endif
 			parmp->name_found = 1;
 			parm_stuff_args(parmp, cmdline_offset);
 		}
@@ -367,8 +439,9 @@ void os_validate_parms(char *cmdline)
 
    token = strtok(cmdline, seps);
    while(token != NULL) {
-	
-		if (token[0] == '-') {
+#ifdef PLAT_UNIX
+		// make sure double hypens are checked first to avoid clashing with single args
+		if (token[0] == '-' && token[1] == '-') {
 			parm_found = 0;
 			for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 				if (!stricmp(parmp->name, token)) {
@@ -378,7 +451,26 @@ void os_validate_parms(char *cmdline)
 			}
 
 			if (parm_found == 0) {
+				print_instructions();
+			}
+		} else if (token[0] == '-' && token[1] != '-') {
+#else
+		if (token[0] == '-') {
+#endif
+			parm_found = 0;
+			for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
+				if (!stricmp(parmp->name, token)) {
+					parm_found = 1;
+					break;
+				}
+			}
+
+			if (parm_found == 0) {
+#ifndef PLAT_UNIX
 				Error(LOCATION,"Unrecogzined command line parameter %s", token);
+#else
+				print_instructions();
+#endif
 			}
 		}
 
@@ -398,7 +490,15 @@ void os_init_cmdline(char *cmdline)
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
 	// the command line will take precedence
 #ifdef PLAT_UNIX
-	fp = fopen("Data/cmdline.cfg", "rt");
+	char cmdname[MAX_FILENAME_LENGTH];
+
+	snprintf(cmdname, MAX_FILENAME_LENGTH, "%s/%s/Data/cmdline.cfg", detect_home(), Osreg_user_dir);
+	fp = fopen(cmdname, "rt");
+	
+	if (!fp) {
+		// if not already found check exec directory
+		fp = fopen("Data/cmdline.cfg", "rt");
+	}
 #else
 	fp = fopen("data\\cmdline.cfg", "rt");
 #endif
@@ -426,6 +526,44 @@ void os_init_cmdline(char *cmdline)
 
 }
 
+#ifdef PLAT_UNIX
+// help for available cmdline options
+void print_instructions()
+{
+	printf("http://icculus.org/freespace2\n");
+	printf("Support - FAQ: http://icculus.org/lgfaq\n");
+	printf("          Web: http://bugzilla.icculus.org\n\n");
+
+	printf("Usage: freespace2 [options]\n");
+	printf("     [-h | --help]           Show this help message\n");
+	printf("     [-v | --version]        Show game version\n");
+	printf("     [-s | --nosound]        Do no access the sound card\n");
+	printf("     [-f | --fullscreen]     Run the game fullscreen\n");
+	printf("     [-w | --window]         Run the game in a window\n");
+	printf("     [-g | --nograb]         Do not automatically grab mouse\n");
+	printf("     [-n | --nomovies]       Do not play movies\n");
+	printf("     [-d | --standalone]     Run as a dedicated server\n");
+	printf("     [-S | --startgame]      Start a multiplayer game\n");
+	printf("     [-N | --gamename]       Name of the multiplayer game\n");
+	printf("     [-p | --password]       Use this password to connect\n");
+	printf("     [-c | --closed]         Closed multiplayer game\n");
+	printf("     [-r | --restricted]     Restricted multiplayer game\n");
+	printf("     [-a | --allowabove]     Only allow above certain rank\n");
+	printf("     [-b | --allowbelow]     Only allow below certain rank\n");
+	printf("     [-o | --port]           Port to use for multiplayer games\n");
+	printf("     [-C | --connect]        Connect to particular IP address\n");
+	printf("     [-m | --multilog]       Log multiplayer events\n");
+	printf("     [-F | --oldfire]        Server side firing\n");
+	printf("     [-D | --clientdamage]   Client does damage\n");
+	printf("     [-t | --timeout]        Multiplayer game timeout\n");
+	printf("     [-P | --pofspew]        Save model info to pofspew.txt\n");
+	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n\n");
+
+	printf("Freespace 2 v%d.%02d -- Linux Client v%d.%02d\n\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_UNIX_VERSION_MAJOR, FS_UNIX_VERSION_MINOR);
+
+	exit(0);
+}
+#endif
 
 // arg constructor
 // name_ - name of the parameter, must start with '-' character
@@ -494,12 +632,20 @@ int parse_cmdline(char *cmdline)
 	os_init_cmdline(cmdline);
 
 	// is this a standalone server??
+#ifdef PLAT_UNIX
+	if (standalone_arg.found() || standalone_arg_s.found()) {
+#else
 	if (standalone_arg.found()) {
+#endif
 		Is_standalone = 1;
 	}
 
 	// run with no sound
+#ifdef PLAT_UNIX
+	if ( nosound_arg.found() || nosound_arg_s.found() ) {
+#else
 	if ( nosound_arg.found() ) {
+#endif
 		Cmdline_freespace_no_sound = 1;
 	}
 
@@ -509,24 +655,54 @@ int parse_cmdline(char *cmdline)
 	}
 
 	// should we start a network game
+#ifdef PLAT_UNIX
+	if ( startgame_arg.found() || startgame_arg_s.found() ) {
+#else
 	if ( startgame_arg.found() ) {
+#endif
 		Cmdline_use_last_pilot = 1;
 		Cmdline_start_netgame = 1;
 	}
 
 	// closed network game
+#ifdef PLAT_UNIX
+	if ( gameclosed_arg.found() || gameclosed_arg_s.found() ) {
+#else
 	if ( gameclosed_arg.found() ) {
+#endif
 		Cmdline_closed_game = 1;
 	}
 
 	// restircted network game
+#ifdef PLAT_UNIX
+	if ( gamerestricted_arg.found() || gamerestricted_arg_s.found() ) {
+#else
 	if ( gamerestricted_arg.found() ) {
+#endif
 		Cmdline_restricted_game = 1;
 	}
 
 	// get the name of the network game
+#ifdef PLAT_UNIX
+	if ( gamename_arg.found() || gamename_arg_s.found() ) {
+		// be sure both options get checked if needed
+		if ( gamename_arg.found() ) {
+			Cmdline_game_name = gamename_arg.str();
+		} else {
+			Cmdline_game_name = gamename_arg_s.str();
+		}
+#else
 	if ( gamename_arg.found() ) {
 		Cmdline_game_name = gamename_arg.str();
+#endif
+
+#ifdef PLAT_UNIX
+		// if there wasn't an argument then complain and exit
+		if ( !(strlen(Cmdline_game_name) > 0) ) {
+			fprintf(stderr, "ERROR: The --gamename (-N) option requires an additional argument!\n");
+			exit(0);
+		}
+#endif
 
 		// be sure that this string fits in our limits
 		if ( strlen(Cmdline_game_name) > MAX_GAMENAME_LEN ) {
@@ -535,74 +711,196 @@ int parse_cmdline(char *cmdline)
 	}
 
 	// get the password for a pssword game
+#ifdef PLAT_UNIX
+	if ( gamepassword_arg.found() || gamepassword_arg_s.found() ) {
+		// be sure both options get checked if needed
+		if ( gamepassword_arg.found() ) {
+			Cmdline_game_password = gamepassword_arg.str();
+		} else {
+			Cmdline_game_password = gamepassword_arg_s.str();
+		}
+#else
 	if ( gamepassword_arg.found() ) {
 		Cmdline_game_password = gamepassword_arg.str();
+#endif
+
+#ifdef PLAT_UNIX
+		// if there wasn't an argument then complain and exit
+		if ( !(strlen(Cmdline_game_password) > 0) ) {
+			fprintf(stderr, "ERROR: The --password (-p) option requires an additional argument!\n");
+			exit(0);
+		}
+#endif
 
 		// be sure that this string fits in our limits
-		if ( strlen(Cmdline_game_name) > MAX_PASSWD_LEN ) {
-			Cmdline_game_name[MAX_PASSWD_LEN-1] = '\0';
+		if ( strlen(Cmdline_game_password) > MAX_PASSWD_LEN ) {
+			Cmdline_game_password[MAX_PASSWD_LEN-1] = '\0';
 		}
 	}
 
 	// set the rank above/below arguments
+#ifdef PLAT_UNIX
+	if ( allowabove_arg.found() || allowabove_arg_s.found() ) {
+		Cmdline_rank_above = allowabove_arg.str();
+	}
+	if ( allowbelow_arg.found() || allowbelow_arg_s.found() ) {
+		Cmdline_rank_below = allowbelow_arg.str();
+	}
+#else
 	if ( allowabove_arg.found() ) {
 		Cmdline_rank_above = allowabove_arg.str();
 	}
 	if ( allowbelow_arg.found() ) {
 		Cmdline_rank_below = allowbelow_arg.str();
 	}
+#endif
 
 	// get the port number for games
+#ifdef PLAT_UNIX
+	if ( port_arg.found() || port_arg_s.found() ) {
+		// be sure both options get checked if needed
+		if ( port_arg.found() ) {
+			Cmdline_network_port = port_arg.get_int();
+		} else {
+			Cmdline_network_port = port_arg_s.get_int();
+		}
+#else
 	if ( port_arg.found() ) {
 		Cmdline_network_port = port_arg.get_int();
+#endif
+
+#ifdef PLAT_UNIX
+		// if there wasn't an argument then complain and exit
+		if ( !Cmdline_network_port ) {
+			fprintf(stderr, "ERROR: The --port (-P) option requires an additional argument!\n");
+			exit(0);
+		}
+#endif
 	}
 
 	// the connect argument specifies to join a game at this particular address
+#ifdef PLAT_UNIX
+	if ( connect_arg.found() || connect_arg_s.found() ) {
+		Cmdline_use_last_pilot = 1;
+		// be sure both options get checked it needed
+		if ( connect_arg.found() ) {
+			Cmdline_connect_addr = connect_arg.str();
+		} else {
+			Cmdline_connect_addr = connect_arg_s.str();
+		}
+#else
 	if ( connect_arg.found() ) {
 		Cmdline_use_last_pilot = 1;
 		Cmdline_connect_addr = connect_arg.str();
+#endif
+
+#ifdef PLAT_UNIX
+		// if there wasn't an argument then complain and exit
+		if ( !(strlen(Cmdline_connect_addr) > 0) ) {
+			fprintf(stderr, "ERROR: The --connect (-C) option requires an additional argument!\n");
+			exit(0);
+		}
+#endif
 	}
 
 	// see if the multilog flag was set
+#ifdef PLAT_UNIX
+	if ( multilog_arg.found() || multilog_arg_s.found() ){
+#else
 	if ( multilog_arg.found() ){
+#endif
 		Cmdline_multi_log = 1;
 	}	
 
 	// maybe use old-school server-side firing
+#ifdef PLAT_UNIX
+	if (server_firing_arg.found() || server_firing_arg_s.found() ){
+#else
 	if (server_firing_arg.found() ){
+#endif
 		Cmdline_server_firing = 1;
 	}
 
 	// maybe use old-school client damage
+#ifdef PLAT_UNIX
+	if(client_dodamage.found() || client_dodamage_s.found()){
+#else
 	if(client_dodamage.found()){
+#endif
 		Cmdline_client_dodamage = 1;
 	}	
 
 	// spew pof info
+#ifdef PLAT_UNIX
+	if(pof_spew.found() || pof_spew_s.found()){
+#else
 	if(pof_spew.found()){
+#endif
 		Cmdline_spew_pof_info = 1;
 	}
 
+#ifndef PLAT_UNIX
 	// 32 bit
 	if(d3d_32bit.found()){
 		Cmdline_force_32bit = 1;
 	}
+#endif
 
 	// mouse coords
+#ifdef PLAT_UNIX
+	if(mouse_coords.found() || mouse_coords_s.found()){
+#else
 	if(mouse_coords.found()){
+#endif
 		Cmdline_mouse_coords = 1;
 	}
 
 	// net timeout
+#ifdef PLAT_UNIX
+	if(timeout.found() || timeout_s.found()){
+#else
 	if(timeout.found()){
+#endif
 		Cmdline_timeout = timeout.get_int();
 	}
 
 	// d3d windowed
+#ifdef PLAT_UNIX
+	if(d3d_window.found() || d3d_window_s.found()){
+#else
 	if(d3d_window.found()){
+#endif
 		Cmdline_window = 1;
 	}
 
+#ifdef PLAT_UNIX
+	// run fullscreen
+	if(d3d_fullscreen.found() || d3d_fullscreen_s.found()){
+		Cmdline_fullscreen = 1;
+	}
+
+	// help!!
+	if(help.found() || help_s.found()){
+		print_instructions();
+	}
+
+	// no key/mouse grab
+	if(no_grab.found() || no_grab_s.found()){
+		Cmdline_no_grab = 1;
+	}
+
+	// play movies?
+	if(no_movies.found() || no_movies_s.found()){
+		Cmdline_play_movies = 0;
+	}
+
+	// display game version
+	if(fs_version.found() || fs_version_s.found()){
+		printf("Freespace 2 version:  %d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+		printf("Linux client version:  %d.%02d\n", FS_UNIX_VERSION_MAJOR, FS_UNIX_VERSION_MINOR);
+		exit(0);
+	}
+#endif
+
 	return 1;
 }
-

@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.18  2002/06/16 04:46:33  relnev
+ * set up correct checksums for demo
+ *
  * Revision 1.17  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -8563,6 +8566,12 @@ int game_do_cd_mission_check(char *filename)
 
 // checksums, just keep a list of all valid ones, if it matches any of them, keep it
 #define NUM_SHIPS_TBL_CHECKSUMS		1
+
+#ifdef FS2_DEMO
+int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
+	1696074201,						// FS2 demo
+};
+#else
 /*
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	-463907578,						// US - beta 1
@@ -8573,6 +8582,7 @@ int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 //	-1022810006,					// 1.0 FULL
 	-1254285366						// 1.2 FULL (German)
 };
+#endif
 
 void verify_ships_tbl()
 {	
@@ -8630,6 +8640,12 @@ DCF(shipspew, "display the checksum for the current ships.tbl")
 
 // checksums, just keep a list of all valid ones, if it matches any of them, keep it
 #define NUM_WEAPONS_TBL_CHECKSUMS		1
+
+#ifdef FS2_DEMO
+int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
+	-266420030,				// demo 1
+};
+#else
 /*
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	141718090,				// US - beta 1
@@ -8640,6 +8656,7 @@ int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 //	399297860,				// 1.0 FULL	
 	-553984927				// 1.2 FULL (german)
 };
+#endif
 
 void verify_weapons_tbl()
 {	

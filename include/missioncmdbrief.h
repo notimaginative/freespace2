@@ -15,6 +15,9 @@
  * Mission Command Briefing Screen
  *
  * $Log$
+ * Revision 1.3  2003/01/22 18:23:02  relnev
+ * added missing include guard
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -54,6 +57,9 @@
  * $NoKeywords: $
  */
 
+#ifndef MISSIONCMDBRIEF_H
+#define MISSIONCMDBRIEF_H
+
 #define CMD_BRIEF_TEXT_MAX		16384
 #define CMD_BRIEF_STAGES_MAX	10
 
@@ -81,3 +87,4 @@ void cmd_brief_do_frame(float frametime);
 void cmd_brief_hold();
 void cmd_brief_unhold();
 
+#endif

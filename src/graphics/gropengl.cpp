@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.44  2002/06/02 18:46:59  relnev
+ * updated
+ *
  * Revision 1.43  2002/06/02 11:34:00  relnev
  * adjust z coords
  *
@@ -258,6 +261,7 @@
 #include "line.h"
 #include "neb.h"
 #include "mouse.h"
+#include "osregistry.h"
 
 static int Inited = 0;
 
@@ -540,7 +544,7 @@ void gr_opengl_flip()
 
 void gr_opengl_flip_window(uint _hdc, int x, int y, int w, int h )
 {
-	STUB_FUNCTION;
+	// Not used.
 }
 
 void gr_opengl_set_clip(int x,int y,int w,int h)
@@ -712,6 +716,8 @@ void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 
 void gr_opengl_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 {
+	STUB_FUNCTION; /* who called me? */
+#if 0
 	int reclip;
 	#ifndef NDEBUG
 	int count = 0;
@@ -789,10 +795,13 @@ void gr_opengl_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
 
 	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
+#endif	
 }
 
 void gr_opengl_bitmap(int x, int y)
 {
+	STUB_FUNCTION; /* who called me? */
+#if 0
 	int w, h;
 
 	bm_get_info( gr_screen.current_bitmap, &w, &h, NULL );
@@ -814,7 +823,8 @@ void gr_opengl_bitmap(int x, int y)
 
 	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
 
-	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);	
+	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
+#endif	
 }
 
 void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
@@ -1441,15 +1451,6 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba);
 	}
 	
-#if 0	
-//glide
-        int x1, y1, x2, y2;
-        x1 = gr_screen.clip_left*16;
-        x2 = gr_screen.clip_right*16+15;
-        y1 = gr_screen.clip_top*16;
-        y2 = gr_screen.clip_bottom*16+15;
-//glide	
-#endif
 	glBegin(GL_TRIANGLE_FAN);
 	for (i = nv-1; i >= 0; i--) {		
 		vertex * va = verts[i];
@@ -1513,24 +1514,6 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		x = fl2i(va->sx*16.0f);
 		y = fl2i(va->sy*16.0f);
 
-#if 0
-//glide
-                if ( flags & TMAP_FLAG_CORRECT )        {
-                        // "clip" it
-                        if ( x < x1 ) {
-                                x = x1;
-                        } else if ( x > x2 )    {
-                                x = x2;
-                        }
-                        if ( y < y1 )   {
-                                y = y1;
-                        } else if ( y > y2 )    {
-                                y = y2;
-                        }
-                }
-//glide
-#endif
-		
 		x += gr_screen.offset_x*16;
 		y += gr_screen.offset_y*16;
 		
@@ -1805,7 +1788,7 @@ void gr_opengl_fog_set(int fog_mode, int r, int g, int b, float fog_near, float 
 
 void gr_opengl_get_pixel(int x, int y, int *r, int *g, int *b)
 {
-	STUB_FUNCTION;
+	// Not used.
 }
 
 void gr_opengl_set_cull(int cull)
@@ -1825,7 +1808,13 @@ void gr_opengl_filter_set(int filter)
 // cross fade
 void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct)
 {
-	STUB_FUNCTION;
+	if ( pct <= 50 ) {
+		gr_set_bitmap(bmap1);
+		gr_bitmap(x1, y1);
+	} else {
+		gr_set_bitmap(bmap2);
+		gr_bitmap(x2, y2);
+	}		
 }
 
 
@@ -2741,7 +2730,7 @@ void opengl_zbias(int bias)
 {
 	if (bias) {
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0, -bias*2);
+		glPolygonOffset(0.0, -bias);
 	} else {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
@@ -2758,7 +2747,7 @@ void gr_opengl_init()
 	mprintf(( "Initializing opengl graphics device...\n" ));
 	Inited = 1;
 
-#ifdef PLAT_UNIX
+#ifdef PLAT_UNIX	
 	if (SDL_InitSubSystem (SDL_INIT_VIDEO) < 0)
 	{
 		fprintf (stderr, "Couldn't init SDL: %s", SDL_GetError());
@@ -2772,8 +2761,13 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	                                        
-	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,SDL_OPENGL) == NULL)
+	
+	int flags = SDL_OPENGL;
+	
+	if (os_config_read_uint( NULL, "Fullscreen", 0 ) == 1)
+		flags |= SDL_FULLSCREEN;
+
+	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
 	{
 		fprintf (stderr, "Couldn't set video mode: %s", SDL_GetError ());
 		exit (1);

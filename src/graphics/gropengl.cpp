@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.8  2002/05/29 03:30:05  relnev
+ * update opengl stubs
+ *
  * Revision 1.7  2002/05/29 02:52:32  theoddone33
  * Enable OpenGL renderer
  *
@@ -164,17 +167,8 @@ void gr_directdraw_init()
 	STUB_FUNCTION;
 }
 
-void gr_opengl_preload_init()
-{
-	STUB_FUNCTION;
-}
 
 void gr_d3d_preload(int x, int y)
-{
-	STUB_FUNCTION;
-}
-
-void gr_opengl_activate(int b)
 {
 	STUB_FUNCTION;
 }
@@ -200,6 +194,16 @@ void d3d_zbias (int a)
 }
 #endif
 
+void gr_opengl_activate(int b)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_preload_init()
+{
+	STUB_FUNCTION;
+}
+
 void gr_opengl_pixel(int x, int y)
 {
 	if ( x < gr_screen.clip_left ) return;
@@ -210,8 +214,8 @@ void gr_opengl_pixel(int x, int y)
 
 void gr_opengl_clear()
 {
+	STUB_FUNCTION;
 }
-
 
 void gr_opengl_flip()
 {
@@ -222,6 +226,7 @@ void gr_opengl_flip()
 
 void gr_opengl_flip_window(uint _hdc, int x, int y, int w, int h )
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_clip(int x,int y,int w,int h)
@@ -255,6 +260,8 @@ void gr_opengl_set_clip(int x,int y,int w,int h)
 	gr_screen.clip_bottom = h-1;
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_reset_clip()
@@ -267,10 +274,13 @@ void gr_opengl_reset_clip()
 	gr_screen.clip_bottom = gr_screen.max_h - 1;
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_font(int fontnum)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_color( int r, int g, int b )
@@ -282,6 +292,9 @@ void gr_opengl_set_color( int r, int g, int b )
 	gr_screen.current_color.red = (unsigned char)r;
 	gr_screen.current_color.green = (unsigned char)g;
 	gr_screen.current_color.blue = (unsigned char)b;
+	
+//	STUB_FUNCTION;
+#warning STUB_FUNCTION: gr_opengl_set_color
 }
 
 void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy )
@@ -293,6 +306,8 @@ void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode,
 
 	gr_screen.current_bitmap_sx = sx;
 	gr_screen.current_bitmap_sy = sy;
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_create_shader(shader * shade, float r, float g, float b, float c )
@@ -302,6 +317,8 @@ void gr_opengl_create_shader(shader * shade, float r, float g, float b, float c 
 	shade->g = g;
 	shade->b = b;
 	shade->c = c;
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_shader( shader * shade )
@@ -314,6 +331,8 @@ void gr_opengl_set_shader( shader * shade )
 	} else {
 		gr_create_shader( &gr_screen.current_shader, 0.0f, 0.0f, 0.0f, 0.0f );
 	}
+	
+	STUB_FUNCTION;
 }
 
 
@@ -337,6 +356,8 @@ void gr_opengl_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 		sptr += bmp->w;
 	}
 	bm_unlock(gr_screen.current_bitmap);
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_bitmap(int x, int y)
@@ -362,11 +383,12 @@ void gr_opengl_bitmap(int x, int y)
 
 	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
 
-	gr_bitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
+	gr_bitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);	
 }
 
 static void opengl_scanline(int x1,int x2,int y)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_rect(int x,int y,int w,int h)
@@ -405,15 +427,19 @@ void gr_opengl_rect(int x,int y,int w,int h)
 
 	for (i=0; i<h; i++ )
 		opengl_scanline( x1, x2, y1+i );
+		
+	STUB_FUNCTION;
 }
 
 
 void gr_opengl_shade(int x,int y,int w,int h)
 {
+	STUB_FUNCTION;
 }
 
 void opengl_mtext(int x, int y, char *s, int len )
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_string(int x,int y,char * text)
@@ -534,6 +560,8 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
       }
 
    }
+   
+   STUB_FUNCTION;
 }
 
 #define FIND_SCALED_NUM(x,x0,x1,y0,y1) (((((x)-(x0))*((y1)-(y0)))/((x1)-(x0)))+(y0))
@@ -645,21 +673,25 @@ void gr_opengl_scaler(vertex *va, vertex *vb )
 
 	bm_unlock(gr_screen.current_bitmap);
 
+	STUB_FUNCTION;
 }
 
 
 
 void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 {
+	STUB_FUNCTION;
 }
 
 
 void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_palette(ubyte *new_palette, int is_alphacolor)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_get_color( int * r, int * g, int * b )
@@ -667,6 +699,8 @@ void gr_opengl_get_color( int * r, int * g, int * b )
 	if (r) *r = gr_screen.current_color.red;
 	if (g) *g = gr_screen.current_color.green;
 	if (b) *b = gr_screen.current_color.blue;
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_init_color(color *c, int r, int g, int b)
@@ -675,6 +709,8 @@ void gr_opengl_init_color(color *c, int r, int g, int b)
 	gr_screen.current_color.red = (unsigned char)r;
 	gr_screen.current_color.green = (unsigned char)g;
 	gr_screen.current_color.blue = (unsigned char)b;
+	
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_color_fast(color *dst)
@@ -684,22 +720,26 @@ void gr_opengl_set_color_fast(color *dst)
 		return;
 	}
 	gr_screen.current_color = *dst;
+	
+	STUB_FUNCTION;
 }
-
-
 
 void gr_opengl_print_screen(char *filename)
 {
-
+	STUB_FUNCTION;
 }
 
 int gr_opengl_supports_res_ingame(int res)
 {
+	STUB_FUNCTION;
+	
 	return 1;
 }
 
 int gr_opengl_supports_res_interface(int res)
 {
+	STUB_FUNCTION;
+	
 	return 1;
 }
 
@@ -716,38 +756,149 @@ void gr_opengl_cleanup()
 
 void gr_opengl_fog_set(int fog_mode, int r, int g, int b, float near, float far)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_get_pixel(int x, int y, int *r, int *g, int *b)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_get_region(int front, int w, int g, ubyte *data)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_set_cull(int cull)
 {
+	STUB_FUNCTION;
 }
 
 void gr_opengl_filter_set(int filter)
 {
+	STUB_FUNCTION;
 }
 
 // cross fade
 void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct)
 {
+	STUB_FUNCTION;
 }
 
 int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_ratio, float *v_ratio, int fail_on_full = 0, int sx = -1, int sy = -1, int force = 0)
 {
+	STUB_FUNCTION;
+	
 	return 1;
 }
 
 void gr_opengl_set_clear_color(int r, int g, int b)
 {
+	STUB_FUNCTION;
 }
 
+void gr_opengl_aabitmap(int x, int y)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_aaline(vertex *v1, vertex *v2)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type )
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_flash(int r, int g, int b)
+{
+	STUB_FUNCTION;
+}
+
+int gr_opengl_zbuffer_get()
+{
+	STUB_FUNCTION;
+	
+	return GR_ZBUFF_NONE;
+}
+
+int gr_opengl_zbuffer_set(int mode)
+{
+	STUB_FUNCTION;
+	
+	return GR_ZBUFF_NONE;
+}
+
+void gr_opengl_zbuffer_clear(int mode)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_set_gamma(float gamma)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_fade_in(int instantaneous)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_fade_out(int instantaneous)
+{
+	STUB_FUNCTION;
+}
+
+int gr_opengl_save_screen()
+{
+	STUB_FUNCTION;
+	
+	return -1;
+}
+
+void gr_opengl_restore_screen(int id)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_free_screen(int id)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_dump_frame_start(int first_frame, int frames_between_dumps)
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_dump_frame_stop()
+{
+	STUB_FUNCTION;
+}
+
+void gr_opengl_dump_frame()
+{
+	STUB_FUNCTION;
+}
+
+uint gr_opengl_lock()
+{
+	STUB_FUNCTION;
+	
+	return 1;
+}
+        
+void gr_opengl_unlock()
+{
+}
+        
 void gr_opengl_init()
 {
 	if ( Inited )	{
@@ -775,11 +926,17 @@ void gr_opengl_init()
 #endif
 	gr_opengl_clear();
 
+	Gr_current_red = &Gr_red;
+        Gr_current_blue = &Gr_blue;
+	Gr_current_green = &Gr_green;
+	Gr_current_alpha = &Gr_alpha;
+                                
 	gr_screen.gf_flip = gr_opengl_flip;
 	gr_screen.gf_flip_window = gr_opengl_flip_window;
 	gr_screen.gf_set_clip = gr_opengl_set_clip;
 	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 	gr_screen.gf_set_font = gr_opengl_set_font;
+	
 	gr_screen.gf_set_color = gr_opengl_set_color;
 	gr_screen.gf_set_bitmap = gr_opengl_set_bitmap;
 	gr_screen.gf_create_shader = gr_opengl_create_shader;
@@ -787,12 +944,16 @@ void gr_opengl_init()
 	gr_screen.gf_clear = gr_opengl_clear;
 	// gr_screen.gf_bitmap = gr_opengl_bitmap;
 	// gr_screen.gf_bitmap_ex = gr_opengl_bitmap_ex;
+	gr_screen.gf_aabitmap = gr_opengl_aabitmap;
+	gr_screen.gf_aabitmap_ex = gr_opengl_aabitmap_ex;
+	
 	gr_screen.gf_rect = gr_opengl_rect;
 	gr_screen.gf_shade = gr_opengl_shade;
 	gr_screen.gf_string = gr_opengl_string;
 	gr_screen.gf_circle = gr_opengl_circle;
 
 	gr_screen.gf_line = gr_opengl_line;
+	gr_screen.gf_aaline = gr_opengl_aaline;
 	gr_screen.gf_pixel = gr_opengl_pixel;
 	gr_screen.gf_scaler = gr_opengl_scaler;
 	gr_screen.gf_tmapper = gr_opengl_tmapper;
@@ -802,9 +963,31 @@ void gr_opengl_init()
 	gr_screen.gf_set_palette = gr_opengl_set_palette;
 	gr_screen.gf_get_color = gr_opengl_get_color;
 	gr_screen.gf_init_color = gr_opengl_init_color;
+	gr_screen.gf_init_alphacolor = gr_opengl_init_alphacolor;
 	gr_screen.gf_set_color_fast = gr_opengl_set_color_fast;
 	gr_screen.gf_print_screen = gr_opengl_print_screen;
 
+	gr_screen.gf_fade_in = gr_opengl_fade_in;
+	gr_screen.gf_fade_out = gr_opengl_fade_out;
+	gr_screen.gf_flash = gr_opengl_flash;
+	
+	gr_screen.gf_zbuffer_get = gr_opengl_zbuffer_get;
+	gr_screen.gf_zbuffer_set = gr_opengl_zbuffer_set;
+	gr_screen.gf_zbuffer_clear = gr_opengl_zbuffer_clear;
+	
+	gr_screen.gf_save_screen = gr_opengl_save_screen;
+	gr_screen.gf_restore_screen = gr_opengl_restore_screen;
+	gr_screen.gf_free_screen = gr_opengl_free_screen;
+	
+	gr_screen.gf_dump_frame_start = gr_opengl_dump_frame_start;
+	gr_screen.gf_dump_frame_stop = gr_opengl_dump_frame_stop;
+	gr_screen.gf_dump_frame = gr_opengl_dump_frame;
+	
+	gr_screen.gf_set_gamma = gr_opengl_set_gamma;
+	
+	gr_screen.gf_lock = gr_opengl_lock;
+	gr_screen.gf_unlock = gr_opengl_unlock;
+	
 	gr_screen.gf_fog_set = gr_opengl_fog_set;	
 
 	gr_screen.gf_get_region = gr_opengl_get_region;
@@ -821,6 +1004,4 @@ void gr_opengl_init()
 
 	gr_screen.gf_set_clear_color = gr_opengl_set_clear_color;
 }
-
-
 

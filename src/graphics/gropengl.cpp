@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.55  2002/08/01 04:55:45  relnev
+ * experimenting with texture state
+ *
  * Revision 1.54  2002/07/30 15:00:15  relnev
  * not use luminance alpha by default
  *
@@ -373,36 +376,14 @@ void d3d_zbias (int a)
 }
 #endif
 
+static void gr_opengl_set_texture_state(gr_texture_source ts);
 
-static gr_texture_source GL_current_texture_source = (gr_texture_source) -1;
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
 
-void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt)
+static void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt)
 {
-	/* TODO: this doesn't work unless it's handled at the per-texture level */
-	/* if (ts != GL_current_texture_source) */ {
-		switch (ts) {
-			case TEXTURE_SOURCE_NONE:
-				glBindTexture(GL_TEXTURE_2D, 0);
-				gr_tcache_set(-1, -1, NULL, NULL );
-				break;
-			case TEXTURE_SOURCE_DECAL:
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				// glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				break;
-			case TEXTURE_SOURCE_NO_FILTERING:
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				// glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				break;
-			default:
-				break;
-		}
-		
-		GL_current_texture_source = ts;
-	}
+	gr_opengl_set_texture_state(ts);
 	
 	if (ab != GL_current_alpha_blend) {
 		switch (ab) {
@@ -678,197 +659,17 @@ void gr_opengl_set_shader( shader * shade )
 void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
 	STUB_FUNCTION; /* who called me? */
-#if 0
-	bitmap * bmp;
-	extern int GL_last_bitmap_id;	
-	bmp = bm_lock( gr_screen.current_bitmap, 16, 0 );
-	
-	int ix, iy, iw, ih;
-	int px, py, qx, qy;
-	GLubyte *sptr, *dptr;
-	
-	float s, t;
-	
-	int cw = min(bmp->w, w);
-	int ch = min(bmp->h, h);
-
-	GL_last_bitmap_id = -1; /* HACK! */
-	
-	glColor4f(1.0, 1.0, 1.0, 1.0);	
-	glBindTexture(GL_TEXTURE_2D, bitmapTex);
-		
-	py = y;
-	for (iy = sy; iy < ch; iy += 256) {
-		px = x;
-		ih = min(256, (ch-iy));
-		qy = py+ih;
-		for (ix = sx; ix < cw; ix += 256) {
-			dptr = bitmapMem;
-			sptr = ((unsigned char *)bmp->data) + 2*(iy*bmp->w + ix);
-			
-			iw = min(256, (cw-ix));
-				
-			qx = px+iw;
-			
-			int ihx = ih;
-			while (ihx > 0) {
-				memcpy(dptr, sptr, iw*2);
-				
-				sptr += 2*bmp->w;
-				dptr += 2*iw;
-				
-				ihx--;
-			}			
-			
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, iw, ih, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, bitmapMem);
-			glBegin(GL_QUADS);
-				/* upper left */
-				s = 0.0;
-				t = 0.0;
-				glTexCoord2f(s, t);
-				glVertex2i(px, py);
-				
-				/* lower left */
-				s = 0.0;
-				t = (float)ih / 256.0;
-				glTexCoord2f(s, t);
-				glVertex2i(px, qy);
-				
-				/* lower right */
-				s = (float)iw / 256.0;
-				t = (float)ih / 256.0;
-				glTexCoord2f(s, t);
-				glVertex2i(qx, qy);
-				
-				/* upper left */
-				s = (float)iw / 256.0;
-				t = 0.0;
-				glTexCoord2f(s, t);
-				glVertex2i(qx, py);
-			glEnd();
-			
-			px = qx;
-		}
-		
-		py = qy;
-	}
-	
-	bm_unlock(gr_screen.current_bitmap);
-#endif	
 }
 
 
 void gr_opengl_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 {
 	STUB_FUNCTION; /* who called me? */
-#if 0
-	int reclip;
-	#ifndef NDEBUG
-	int count = 0;
-	#endif
-
-	int dx1=x, dx2=x+w-1;
-	int dy1=y, dy2=y+h-1;
-
-	int bw, bh;
-	bm_get_info( gr_screen.current_bitmap, &bw, &bh, NULL );
-
-	do {
-		reclip = 0;
-		#ifndef NDEBUG
-			if ( count > 1 ) Int3();
-			count++;
-		#endif
-	
-		if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
-		if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
-		if ( dx1 < gr_screen.clip_left ) { sx += gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
-		if ( dy1 < gr_screen.clip_top ) { sy += gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
-		if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
-		if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
-
-		if ( sx < 0 ) {
-			dx1 -= sx;
-			sx = 0;
-			reclip = 1;
-		}
-
-		if ( sy < 0 ) {
-			dy1 -= sy;
-			sy = 0;
-			reclip = 1;
-		}
-
-		w = dx2-dx1+1;
-		h = dy2-dy1+1;
-
-		if ( sx + w > bw ) {
-			w = bw - sx;
-			dx2 = dx1 + w - 1;
-		}
-
-		if ( sy + h > bh ) {
-			h = bh - sy;
-			dy2 = dy1 + h - 1;
-		}
-
-		if ( w < 1 ) return;		// clipped away!
-		if ( h < 1 ) return;		// clipped away!
-
-	} while (reclip);
-
-	// Make sure clipping algorithm works
-	#ifndef NDEBUG
-		Assert( w > 0 );
-		Assert( h > 0 );
-		Assert( w == (dx2-dx1+1) );
-		Assert( h == (dy2-dy1+1) );
-		Assert( sx >= 0 );
-		Assert( sy >= 0 );
-		Assert( sx+w <= bw );
-		Assert( sy+h <= bh );
-		Assert( dx2 >= dx1 );
-		Assert( dy2 >= dy1 );
-		Assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
-		Assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
-		Assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
-		Assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
-	#endif
-
-	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.
-	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
-
-	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
-#endif	
 }
 
 void gr_opengl_bitmap(int x, int y)
 {
 	STUB_FUNCTION; /* who called me? */
-#if 0
-	int w, h;
-
-	bm_get_info( gr_screen.current_bitmap, &w, &h, NULL );
-	int dx1=x, dx2=x+w-1;
-	int dy1=y, dy2=y+h-1;
-	int sx=0, sy=0;
-
-	if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
-	if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
-	if ( dx1 < gr_screen.clip_left ) { sx = gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
-	if ( dy1 < gr_screen.clip_top ) { sy = gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
-	if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
-	if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
-
-	if ( sx < 0 ) return;
-	if ( sy < 0 ) return;
-	if ( sx >= w ) return;
-	if ( sy >= h ) return;
-
-	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
-
-	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
-#endif	
 }
 
 static void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
@@ -1873,10 +1674,14 @@ typedef struct tcache_slot_opengl {
 	// sections
 	tcache_slot_opengl	*data_sections[MAX_BMAP_SECTIONS_X][MAX_BMAP_SECTIONS_Y];
 	tcache_slot_opengl	*parent;
+	
+	gr_texture_source	texture_mode;
 } tcache_slot_opengl;
 
 static void *Texture_sections = NULL;
-tcache_slot_opengl *Textures = NULL;
+static tcache_slot_opengl *Textures = NULL;
+
+static tcache_slot_opengl *GL_bound_texture;
 
 int GL_texture_sections = 0;
 int GL_texture_ram = 0;
@@ -1895,6 +1700,36 @@ int GL_last_section_x = -1;
 int GL_last_section_y = -1;
 
 int vram_full = 0;
+
+static gr_texture_source GL_current_texture_source = (gr_texture_source) -1;
+
+static void gr_opengl_set_texture_state(gr_texture_source ts)
+{
+	if (ts == TEXTURE_SOURCE_NONE) {
+		GL_bound_texture = NULL;
+				
+		glBindTexture(GL_TEXTURE_2D, 0);
+		gr_tcache_set(-1, -1, NULL, NULL );
+	} else if (GL_bound_texture &&
+		GL_bound_texture->texture_mode != ts) {
+		switch (ts) {
+			case TEXTURE_SOURCE_DECAL:
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				break;
+			case TEXTURE_SOURCE_NO_FILTERING:
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				break;
+			default:
+				break;
+		}
+			
+		GL_bound_texture->texture_mode = ts;
+	}
+	
+	GL_current_texture_source = ts;
+}
 
 void opengl_tcache_init (int use_sections)
 {
@@ -2090,6 +1925,7 @@ int opengl_free_texture ( tcache_slot_opengl *t )
 		}
 
 		// ok, now we know its legal to free everything safely
+		t->texture_mode = (gr_texture_source) -1;
 		glDeleteTextures (1, &t->texture_handle);
 		t->texture_handle = 0;
 
@@ -2226,16 +2062,20 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		nprintf(("Error", "!!DEBUG!! t->texture_handle == 0"));
 		return 0;
 	}
+		
+	GL_bound_texture = t;
 	
-	GL_current_texture_source = (gr_texture_source) -1;
+	GL_bound_texture->texture_mode = (gr_texture_source) -1;
 	
 	glBindTexture (GL_TEXTURE_2D, t->texture_handle);
-
+	
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	
+	if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
+		gr_opengl_set_texture_state(GL_current_texture_source);
+	}
 	
 	switch (bitmap_type) {
 
@@ -2608,8 +2448,14 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 		*u_scale = t->u_scale;
 		*v_scale = t->v_scale;
 
+		GL_bound_texture = t;
+		
 		glBindTexture (GL_TEXTURE_2D, t->texture_handle );
 
+		if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
+			gr_opengl_set_texture_state(GL_current_texture_source);
+		}
+		
 		GL_last_bitmap_id = t->bitmap_id;
 		GL_last_bitmap_type = bitmap_type;
 		GL_last_section_x = sx;
@@ -2619,6 +2465,14 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 	}
 	// gah
 	else {
+		GL_last_bitmap_id = -1;
+		GL_last_bitmap_type = -1;
+
+		GL_last_section_x = -1;
+		GL_last_section_y = -1;
+
+		GL_bound_texture = NULL;
+		
 		glBindTexture (GL_TEXTURE_2D, 0);	// test - DDOI
 		return 0;
 	}

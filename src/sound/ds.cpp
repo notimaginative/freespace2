@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.14  2002/08/01 04:55:45  relnev
+ * experimenting with texture state
+ *
  * Revision 1.13  2002/07/30 05:24:38  relnev
  * command line
  *
@@ -3173,6 +3176,10 @@ int ds_get_number_channels()
 #ifdef PLAT_UNIX
 	int i,n;
 
+	if (!ds_initialized) {
+		return 0;
+	}
+	
 	n = 0;
 	for ( i = 0; i < MAX_CHANNELS; i++ ) {
 		if ( Channels[i].source_id ) {

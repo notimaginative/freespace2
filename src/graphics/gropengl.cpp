@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.62  2003/05/04 04:56:53  taylor
+ * move SDL_Quit to os_deinit to fix fonttool segfault
+ *
  * Revision 1.61  2003/02/02 21:13:27  relnev
  * minor updates (made functions static, tried to improve texture sizes)
  *
@@ -2800,8 +2803,6 @@ void gr_opengl_init()
 		fprintf (stderr, "Couldn't init SDL: %s", SDL_GetError());
 		exit (1);
 	}
-
-	atexit (SDL_Quit);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);

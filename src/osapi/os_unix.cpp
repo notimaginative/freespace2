@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.13  2003/05/04 04:56:53  taylor
+ * move SDL_Quit to os_deinit to fix fonttool segfault
+ *
  * Revision 1.12  2003/02/20 17:41:07  theoddone33
  * Userdir patch from Taylor Richards
  *
@@ -273,6 +276,7 @@ void os_check_debugger()
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()
 {
+	SDL_Quit();
 }
 
 extern int SDLtoFS2[SDLK_LAST];

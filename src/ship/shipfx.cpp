@@ -15,6 +15,9 @@
  * Routines for ship effects (as in special)
  *
  * $Log$
+ * Revision 1.5  2002/09/04 01:12:11  relnev
+ * changes to screen backup/mouse drawing code.  removed a few warnings.
+ *
  * Revision 1.4  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1850,10 +1853,10 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	float dist;
 	dist = (split_ship->front_ship.cur_clip_plane_pt+pm->maxs.xyz.z)/2.0f;
 	vm_vec_copy_scale(&split_ship->front_ship.local_pivot, &orient->v.fvec, dist);
-	vm_vec_make(&split_ship->front_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
+	(void) vm_vec_make(&split_ship->front_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
 	dist = (split_ship->back_ship.cur_clip_plane_pt +pm->mins.xyz.z)/2.0f;
 	vm_vec_copy_scale(&split_ship->back_ship.local_pivot, &orient->v.fvec, dist);
-	vm_vec_make(&split_ship->back_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
+	(void) vm_vec_make(&split_ship->back_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
 	vm_vec_add2(&split_ship->front_ship.local_pivot, &parent_ship_obj->pos );
 	vm_vec_add2(&split_ship->back_ship.local_pivot,  &parent_ship_obj->pos );
 	
@@ -2045,7 +2048,7 @@ static void half_ship_render_ship_and_debris(clip_ship* half_ship,ship *shipp)
 
 	// get model clip plane pt and draw model
 	vector temp;
-	vm_vec_make(&temp, 0.0f, 0.0f, half_ship->cur_clip_plane_pt);
+	(void) vm_vec_make(&temp, 0.0f, 0.0f, half_ship->cur_clip_plane_pt);
 	vm_vec_unrotate(&model_clip_plane_pt, &temp, &half_ship->orient);
 	vm_vec_add2(&model_clip_plane_pt, &orig_ship_world_center);
 	g3_start_user_clip_plane( &model_clip_plane_pt, &clip_plane_norm );
@@ -2181,7 +2184,7 @@ static void maybe_fireball_wipe(clip_ship* half_ship, int* sound_handle)
 			vm_vec_unrotate(&orig_ship_world_center, &half_ship->model_center_disp_to_orig_center, &half_ship->orient);
 			vm_vec_add2(&orig_ship_world_center, &half_ship->local_pivot);
 
-			vm_vec_make(&temp, 0.0f, 0.0f, half_ship->cur_clip_plane_pt);
+			(void) vm_vec_make(&temp, 0.0f, 0.0f, half_ship->cur_clip_plane_pt);
 			vm_vec_unrotate(&model_clip_plane_pt, &temp, &half_ship->orient);
 			vm_vec_add2(&model_clip_plane_pt, &orig_ship_world_center);
 			vm_vec_rand_vec_quick(&temp);

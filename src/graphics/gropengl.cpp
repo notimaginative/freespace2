@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.58  2002/09/04 01:12:11  relnev
+ * changes to screen backup/mouse drawing code.  removed a few warnings.
+ *
  * Revision 1.57  2002/08/31 01:39:13  theoddone33
  * Speed up the renderer a tad
  *
@@ -359,8 +362,7 @@ volatile int GL_deactivate = 0;
 
 static int GL_use_luminance_alpha;
 
-static char *Gr_saved_screen = NULL;
-static int Gr_saved_screen_bitmap;
+static int GL_single_buffer = 0;
 
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
@@ -513,7 +515,6 @@ void gr_opengl_clear()
 	glClear ( GL_COLOR_BUFFER_BIT );
 }
 
-void gr_opengl_save_mouse_area(int x, int y, int w, int h);
 void opengl_tcache_frame ();
 void gr_opengl_flip()
 {
@@ -523,25 +524,6 @@ void gr_opengl_flip()
 
 	mouse_eval_deltas();
 	
-	extern int Gr_opengl_mouse_saved;
-	Gr_opengl_mouse_saved = 0;
-	
-	if ( mouse_is_visible() )       {
-		int mx, my;
-		
-	 	gr_reset_clip();
-	 	mouse_get_pos( &mx, &my );
-	 	
-	 	gr_opengl_save_mouse_area(mx,my,32,32);
-	 	
-	 	if ( Gr_cursor == -1 )  {
-	 		// stuff
-	 	} else {
-	 		gr_set_bitmap(Gr_cursor);
-			gr_bitmap( mx, my );
-	 	}
-	 }
-	 
 #ifndef NDEBUG
 	GLenum error = glGetError();
 	int ic = 0;
@@ -555,10 +537,33 @@ void gr_opengl_flip()
 	} while (error != GL_NO_ERROR);
 #endif
 	
-	SDL_GL_SwapBuffers ();
+	if (GL_single_buffer) {
+		glDrawBuffer(GL_FRONT);
+		glReadBuffer(GL_BACK);
+		glCopyPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_COLOR);
+		glDrawBuffer(GL_BACK);
+	} else {
+		SDL_GL_SwapBuffers ();
+	}
 
-	opengl_tcache_frame ();
-	
+	if ( mouse_is_visible() )       {
+		int mx, my;
+		
+	 	gr_reset_clip();
+	 	mouse_get_pos( &mx, &my );
+	 	
+	 	glDrawBuffer(GL_FRONT);
+	 	
+	 	if ( Gr_cursor == -1 )  {
+	 		// stuff
+	 	} else {
+	 		gr_set_bitmap(Gr_cursor);
+			gr_bitmap( mx, my );
+	 	}
+	 	
+	 	glDrawBuffer(GL_BACK);
+	 }
+
 	int cnt = GL_activate;
 	if ( cnt )      {
 		GL_activate-=cnt;
@@ -571,6 +576,8 @@ void gr_opengl_flip()
 		GL_deactivate-=cnt;
 		// gr_opengl_clip_cursor(0);  /* mouse grab, see opengl_activate */
 	}
+	
+	opengl_tcache_frame ();
 }
 
 void gr_opengl_flip_window(uint _hdc, int x, int y, int w, int h )
@@ -1691,7 +1698,7 @@ static tcache_slot_opengl *GL_bound_texture;
 
 int GL_texture_sections = 0;
 int GL_texture_ram = 0;
-int GL_frame_count = 0;
+int GL_frame_count = 1;
 int GL_min_texture_width = 0;
 int GL_max_texture_width = 0;
 int GL_min_texture_height = 0;
@@ -1779,13 +1786,8 @@ void opengl_tcache_init (int use_sections)
 
 	// Init the texture structures
 	int section_count = 0;
-	for( i=0; i<MAX_BITMAPS; i++ )  {
-		/*
-		Textures[i].vram_texture = NULL;
-		Textures[i].vram_texture_surface = NULL;
-		*/
+	for( i=0; i<MAX_BITMAPS; i++ )  {		
 		Textures[i].texture_handle = 0;
-
 		Textures[i].bitmap_id = -1;
 		Textures[i].size = 0;
 		Textures[i].used_this_frame = 0;
@@ -1798,10 +1800,6 @@ void opengl_tcache_init (int use_sections)
 				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
 					Textures[i].data_sections[idx][s_idx] = &((tcache_slot_opengl*)Texture_sections)[section_count++];
 					Textures[i].data_sections[idx][s_idx]->parent = &Textures[i];
-					/*
-					Textures[i].data_sections[idx][s_idx]->vram_texture = NULL;
-					Textures[i].data_sections[idx][s_idx]->vram_texture_surface = NULL;
-					*/
 					Textures[i].data_sections[idx][s_idx]->texture_handle = 0;
 					Textures[i].data_sections[idx][s_idx]->bitmap_id = -1;
 					Textures[i].data_sections[idx][s_idx]->size = 0;
@@ -1879,33 +1877,14 @@ void opengl_tcache_cleanup ()
 
 void opengl_tcache_frame ()
 {
-	int idx, s_idx;
-
 	GL_last_bitmap_id = -1;
 	GL_textures_in_frame = 0;
 
-	GL_frame_count++;
-
-	/*
-	int i;
-	for( i=0; i<MAX_BITMAPS; i++ )  {
-		Textures[i].used_this_frame = 0;
-
-		// data sections
-		if(Textures[i].data_sections[0][0] != NULL){
-			Assert(GL_texture_sections);
-			if(GL_texture_sections){
-				for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
-					for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
-						if(Textures[i].data_sections[idx][s_idx] != NULL){
-							Textures[i].data_sections[idx][s_idx]->used_this_frame = 0;
-						}
-					}
-				}
-			}
-		}
+	if ((unsigned)GL_frame_count == 0xFFFFFFFF) {
+		mprintf(("TODO: unhandled wraparound..."));
 	}
-	*/
+	
+	GL_frame_count++;
 
 	if ( vram_full )        {
 		opengl_tcache_flush();
@@ -1917,7 +1896,6 @@ int opengl_free_texture ( tcache_slot_opengl *t )
 {
 	int idx, s_idx;
 	
-
 	// Bitmap changed!!     
 	if ( t->bitmap_id > -1 )        {
 		// if I, or any of my children have been used this frame, bail  
@@ -1934,8 +1912,10 @@ int opengl_free_texture ( tcache_slot_opengl *t )
 
 		// ok, now we know its legal to free everything safely
 		t->texture_mode = (gr_texture_source) -1;
-		glDeleteTextures (1, &t->texture_handle);
-		t->texture_handle = 0;
+		if (t->texture_handle) {
+			glDeleteTextures (1, &t->texture_handle);
+			t->texture_handle = 0;
+		}
 
 		if ( GL_last_bitmap_id == t->bitmap_id )       {
 			GL_last_bitmap_id = -1;
@@ -2036,6 +2016,7 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		mprintf(( "ARGHH!!! Texture already used this frame!  Cannot free it!\n" ));
 		return 0;
 	}
+
 	if ( !reload )  {
 		// gah
 		if(!opengl_free_texture(t)){
@@ -2288,12 +2269,12 @@ int opengl_create_texture (int bitmap_handle, int bitmap_type, tcache_slot_openg
 	else if (tslot->bitmap_id != bitmap_handle)     {
 		if((final_w == tslot->w) && (final_h == tslot->h)){
 			reload = 1;
-			//ml_printf("Reloading texture %d\n", bitmap_handle);
+			// mprintf(("Reloading texture %d\n", bitmap_handle));
 		} else {
 			reload = 0;
 		}
 	}
-
+	
 	// call the helper
 	int ret_val = opengl_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, 0, 0, bmp->w, bmp->h, bmp->w, bmp->h, max_w, max_h, tslot, reload, fail_on_full);
 
@@ -2432,10 +2413,6 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 			t->texture_handle = 0;
 			t->time_created = t->data_sections[sx][sy]->time_created;
 			t->used_this_frame = 0;
-			/*
-			t->vram_texture = NULL;
-			t->vram_texture_surface = NULL
-			*/
 		}
 
 		// argh. we failed to upload. free anything we can
@@ -2613,126 +2590,25 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
-static int Gr_opengl_mouse_saved = 0;
-static int Gr_opengl_mouse_saved_x1 = 0;
-static int Gr_opengl_mouse_saved_y1 = 0;
-static int Gr_opengl_mouse_saved_x2 = 0;
-static int Gr_opengl_mouse_saved_y2 = 0;
-static int Gr_opengl_mouse_saved_w = 0;
-static int Gr_opengl_mouse_saved_h = 0;
-#define MAX_SAVE_SIZE (32*32)
-static ubyte Gr_opengl_mouse_saved_data[MAX_SAVE_SIZE*2];
-
-#define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
-
-void gr_opengl_save_mouse_area(int x, int y, int w, int h)
-{
-	Gr_opengl_mouse_saved_x1 = x;
-	Gr_opengl_mouse_saved_y1 = y;
-	Gr_opengl_mouse_saved_x2 = x+w-1;
-	Gr_opengl_mouse_saved_y2 = y+h-1;
-	
-	CLAMP(Gr_opengl_mouse_saved_x1, gr_screen.clip_left, gr_screen.clip_right );
-	CLAMP(Gr_opengl_mouse_saved_x2, gr_screen.clip_left, gr_screen.clip_right );
-	CLAMP(Gr_opengl_mouse_saved_y1, gr_screen.clip_top, gr_screen.clip_bottom );
-	CLAMP(Gr_opengl_mouse_saved_y2, gr_screen.clip_top, gr_screen.clip_bottom );
-	
-	Gr_opengl_mouse_saved_w = Gr_opengl_mouse_saved_x2 - Gr_opengl_mouse_saved_x1 + 1;
-	Gr_opengl_mouse_saved_h = Gr_opengl_mouse_saved_y2 - Gr_opengl_mouse_saved_y1 + 1;
-
-	if ( Gr_opengl_mouse_saved_w < 1 ) return;
-	if ( Gr_opengl_mouse_saved_h < 1 ) return;
-	
-	Assert( (Gr_opengl_mouse_saved_w*Gr_opengl_mouse_saved_h) <= MAX_SAVE_SIZE );
-
-	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-	
-	glReadBuffer(GL_BACK);
-	glReadPixels(x, gr_screen.max_h-y-1-h, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_opengl_mouse_saved_data);
-	
-	Gr_opengl_mouse_saved = 1;
-}
-
+/* TODO - screen isn't really restored... */
 int gr_opengl_save_screen()
 {
-	gr_reset_clip();
+	if (GL_single_buffer) {
+		mprintf(("gr_opengl_save_screen: screen already saved...\n"));
+	}
+	
+	GL_single_buffer = 1;
 
-	if ( Gr_saved_screen )  {
-		mprintf(( "Screen alread saved!\n" ));
-		return -1;
-	}
-
-	Gr_saved_screen = (char*)malloc( gr_screen.max_w * gr_screen.max_h * gr_screen.bytes_per_pixel );
-	if (!Gr_saved_screen) {
-		mprintf(( "Couldn't get memory for saved screen!\n" ));
-		return -1;
-	}
-
-	char *Gr_saved_screen_tmp = (char*)malloc( gr_screen.max_w * gr_screen.max_h * gr_screen.bytes_per_pixel );
-	if (!Gr_saved_screen_tmp) {
-		mprintf(( "Couldn't get memory for temporary saved screen!\n" ));
-		return -1;
-	}
-	
-	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-	
-	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_saved_screen_tmp);
-	
-	ubyte *sptr, *dptr;
-	
-	sptr = (ubyte *)&Gr_saved_screen_tmp[gr_screen.max_w*gr_screen.max_h*2];
-	dptr = (ubyte *)Gr_saved_screen;
-	for (int j = 0; j < gr_screen.max_h; j++) {
-		sptr -= gr_screen.max_w*2;
-		memcpy(dptr, sptr, gr_screen.max_w*2);
-		dptr += gr_screen.max_w*2;
-	}
-	
-	free(Gr_saved_screen_tmp);
-	
-	if (Gr_opengl_mouse_saved) {
-		sptr = (ubyte *)Gr_opengl_mouse_saved_data;
-		dptr = (ubyte *)&Gr_saved_screen[2*(Gr_opengl_mouse_saved_x1+(Gr_opengl_mouse_saved_y2)*gr_screen.max_w)];
-		for (int i = 0; i < Gr_opengl_mouse_saved_h; i++) {
-			memcpy(dptr, sptr, Gr_opengl_mouse_saved_w*2);
-		
-			sptr += 32*2;
-			dptr -= gr_screen.max_w*2;
-		}
-	}
-
-	// this leaks texture handles, and the opengl doesn't currently 
-	// perform some sort of garbage collection, so a hack was added
-	// to bmpman to make it free textures when released
-	Gr_saved_screen_bitmap = bm_create(16, gr_screen.max_w, gr_screen.max_h, Gr_saved_screen, 0);
-	
-	return Gr_saved_screen_bitmap;
+	return 0;
 }
 
 void gr_opengl_restore_screen(int id)
 {
-	gr_reset_clip();
-	
-	if ( !Gr_saved_screen ) {
-		gr_clear();
-		return;
-	}
-
-	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-	
-	gr_set_bitmap(Gr_saved_screen_bitmap);
-	gr_bitmap(0, 0);		
+	GL_single_buffer = 0;
 }
 
 void gr_opengl_free_screen(int id)
 {
-	bm_release(Gr_saved_screen_bitmap);
-	
-	if ( Gr_saved_screen )  {
-		free( Gr_saved_screen );
-		Gr_saved_screen = NULL;
-	}
 }
 
 void gr_opengl_dump_frame_start(int first_frame, int frames_between_dumps)
@@ -2838,6 +2714,7 @@ void gr_opengl_init()
 	
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	
 	D3D_32bit = 1;              // grd3d.cpp
 	extern int D3D_enabled;

@@ -15,6 +15,9 @@
  * C module containg functions for manipulating vectors and matricies
  *
  * $Log$
+ * Revision 1.5  2002/09/04 01:12:11  relnev
+ * changes to screen backup/mouse drawing code.  removed a few warnings.
+ *
  * Revision 1.4  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -1417,9 +1420,9 @@ void vm_orthogonalize_matrix(matrix *m_src)
 	if (umag <= 0.0f) {  // no up vector to use..
 		if (rmag <= 0.0f) {  // no right vector either, so make something up
 			if (!m->v.fvec.xyz.x && !m->v.fvec.xyz.z && m->v.fvec.xyz.y)  // vertical vector
-				vm_vec_make(&m->v.uvec, 0.0f, 0.0f, 1.0f);
+				(void) vm_vec_make(&m->v.uvec, 0.0f, 0.0f, 1.0f);
 			else
-				vm_vec_make(&m->v.uvec, 0.0f, 1.0f, 0.0f);
+				(void) vm_vec_make(&m->v.uvec, 0.0f, 1.0f, 0.0f);
 
 		} else {  // use the right vector to figure up vector
 			vm_vec_crossprod(&m->v.uvec, &m->v.fvec, &m_src->v.rvec);
@@ -1459,9 +1462,9 @@ void vm_fix_matrix(matrix *m)
 
 		} else if (umag > 0.0f) {
 			if (!m->v.uvec.xyz.x && !m->v.uvec.xyz.y && m->v.uvec.xyz.z)  // z vector
-				vm_vec_make(&m->v.fvec, 1.0f, 0.0f, 0.0f);
+				(void) vm_vec_make(&m->v.fvec, 1.0f, 0.0f, 0.0f);
 			else
-				vm_vec_make(&m->v.fvec, 0.0f, 0.0f, 1.0f);
+				(void) vm_vec_make(&m->v.fvec, 0.0f, 0.0f, 1.0f);
 		}
 
 	} else
@@ -1472,9 +1475,9 @@ void vm_fix_matrix(matrix *m)
 	if ((umag <= 0.0f) || vm_test_parallel(&m->v.fvec, &m->v.uvec)) {  // no up vector to use..
 		if ((rmag <= 0.0f) || vm_test_parallel(&m->v.fvec, &m->v.rvec)) {  // no right vector either, so make something up
 			if (!m->v.fvec.xyz.x && m->v.fvec.xyz.y && !m->v.fvec.xyz.z)  // vertical vector
-				vm_vec_make(&m->v.uvec, 0.0f, 0.0f, -1.0f);
+				(void) vm_vec_make(&m->v.uvec, 0.0f, 0.0f, -1.0f);
 			else
-				vm_vec_make(&m->v.uvec, 0.0f, 1.0f, 0.0f);
+				(void) vm_vec_make(&m->v.uvec, 0.0f, 1.0f, 0.0f);
 
 		} else {  // use the right vector to figure up vector
 			vm_vec_crossprod(&m->v.uvec, &m->v.fvec, &m->v.rvec);

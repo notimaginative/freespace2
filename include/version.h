@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.3  2003/05/06 07:21:43  taylor
+ * add version number for linux/unix client
+ *
  * Revision 1.2  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -128,6 +131,11 @@
 	#define FS_VERSION_MAJOR 01					// Major is 0 for pre-release and 1 for 1.0 release
 	#define FS_VERSION_MINOR 20					// Increase by 1 for minor revs, 10 for major.
 	#define FS_VERSION_BUILD 00					// Build version 
+#endif
+
+#ifdef PLAT_UNIX
+	#define FS_UNIX_VERSION_MAJOR 00
+	#define FS_UNIX_VERSION_MINOR 92
 #endif
 
 #define VERSION_LOC_FNAME			"version.nfo"

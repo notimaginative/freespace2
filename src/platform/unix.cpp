@@ -100,8 +100,7 @@ void outwnd_printf(char* id, char* format, ...)
 	va_start (args, format);
 	vsprintf (tmp, format, args);
 	va_end(args);
-	fprintf (stderr, "%s: %s", id, tmp);
-	if (!strcmp ("Error", id)) exit (1);
+	fprintf (stderr, "%s: %s\n", id, tmp);
 }
 
 void outwnd_printf2(char* format, ...)
@@ -122,12 +121,25 @@ void outwnd_close()
 
 void Warning( char * filename, int line, char * format, ... )
 {
-	STUB_FUNCTION;
+	char tmp[MAX_LINE_WIDTH*4];
+	va_list args;
+
+	va_start (args, format);
+	vsprintf (tmp, format, args);
+	va_end(args);
+	fprintf (stderr, "Warning: (%s:%d): %s\n", filename, line, tmp);
 }
 
 void Error( char * filename, int line, char * format, ... )
 {
-	STUB_FUNCTION;
+	char tmp[MAX_LINE_WIDTH*4];
+	va_list args;
+
+	va_start (args, format);
+	vsprintf (tmp, format, args);
+	va_end(args);
+	fprintf (stderr, "Error: (%s:%d): %s\n", filename, line, tmp);
+	exit (1);
 }
 
 void WinAssert(char * text,char *filename, int line)

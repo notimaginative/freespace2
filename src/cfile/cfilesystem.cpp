@@ -11,6 +11,9 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.3  2002/05/28 06:45:38  theoddone33
+ * Cleanup some stuff
+ *
  * Revision 1.2  2002/05/28 06:28:20  theoddone33
  * Filesystem mods, actually reads some data files now
  *
@@ -317,7 +320,6 @@ void cf_build_pack_list( cf_root *root )
 			strcat( filespec, Pathtypes[i].path );		
 			strcat( filespec, "/" );
 		}
-		fprintf (stderr, "DDOI: searching |%s|\n", filespec);
 
 		DIR *dirp;
 		struct dirent *dir;
@@ -497,8 +499,6 @@ void cf_search_root_path(int root_index)
 			strcat( search_path, Pathtypes[i].path );
 			strcat( search_path, "/" );
 		} 
-
-		fprintf (stderr, "DDOI: we're searching |%s|\n", search_path);
 
 		dirp = opendir (search_path);
 		if ( dirp ) {

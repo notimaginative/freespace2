@@ -9,7 +9,7 @@ int ACM_init()
 {
 	STUB_FUNCTION;
 	
-	return -1;
+	return 0;
 }
 
 int ACM_is_inited()

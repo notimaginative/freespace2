@@ -15,6 +15,9 @@
  * Tool for creating/kerning fonts
  *
  * $Log$
+ * Revision 1.4  2003/01/30 20:03:48  relnev
+ * various files ported needed for fonttool.  There is a bug where on exit it segfaults in SDL_GL_SwapBuffers, I'm probably missing something (don't know what) but it works fine otherwise (Taylor Richards)
+ *
  * Revision 1.3  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -45,10 +48,11 @@
  */
 
 #include <stdlib.h>
-#include <stdlib.h>
 #include <stdio.h>
+#ifndef PLAT_UNIX
 #include <io.h>
 #include <conio.h>
+#endif
 
 #include "pstypes.h"
 #include "osapi.h"
@@ -127,7 +131,11 @@ int main(int argc, char *argv[] )
 	else if ( (t1==PCX) && (t2==FONT) )
 		fonttool_create_font( argv[1], argv[2] );
 	else if ( (t1==FONT) && (t2==NONE) )
+#ifdef PLAT_UNIX
+		fonttool_edit_kerning( argv[1], NULL );
+#else
 		fonttool_edit_kerning( argv[1] );
+#endif
 	else if ( (t1==FONT) && (t2==FONT) )
 		fonttool_kerning_copy( argv[1], argv[2] );
 	else

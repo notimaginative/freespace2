@@ -15,6 +15,9 @@
  * Tool for interactively kerning fonts
  *
  * $Log$
+ * Revision 1.3  2003/01/30 20:03:48  relnev
+ * various files ported needed for fonttool.  There is a bug where on exit it segfaults in SDL_GL_SwapBuffers, I'm probably missing something (don't know what) but it works fine otherwise (Taylor Richards)
+ *
  * Revision 1.2  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -96,12 +99,16 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #include <windows.h>
-#include <stdlib.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#ifndef PLAT_UNIX
 #include <io.h>
 #include <conio.h>
+#endif
 
 #include "pstypes.h"
 #include "osapi.h"
@@ -297,7 +304,7 @@ void fonttool_remove_kerning( font *fnt )
 }
 
 
-void fonttool_edit_kerning(char *fname1)
+void fonttool_edit_kerning(char *fname1, char *argv[])
 {
 	int i, k,x;
 	int done;
@@ -325,14 +332,26 @@ void fonttool_edit_kerning(char *fname1)
 	//Assert(c != NULL);
 	//char *tok = strtok(c, " ");
 	//Assert(tok != NULL);	
-	cfile_init(__argv[0]);
+#ifdef PLAT_UNIX
+	char whee[1024];
+	getcwd (whee, 1024);
+	strcat(whee, "/");
+	strcat(whee, fname1);
+	cfile_init(whee);
+#else
+	cfile_init(argv[0]);
+#endif
 
 	os_init( "FontTool", "FontTool - Kerning Table Editor" );
 	// init the registry
+#ifndef PLAT_UNIX
 	os_init_registry_stuff(Osreg_company_name, Osreg_app_name,NULL);
+#endif
 	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);	
 	if((ptr == NULL) || !stricmp(ptr, "Aucune accélération 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
+#ifndef PLAT_UNIX
 		MessageBox((HWND)os_get_window(), "Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it", "Warning", MB_OK);		
+#endif
 		exit(1);
 	}
 
@@ -342,12 +361,19 @@ void fonttool_edit_kerning(char *fname1)
 	} else if (strstr(ptr, NOX("Direct 3D -"))){
 		// Direct 3D
 		gr_init(GR_640, GR_DIRECT3D);
+	} else if (strstr(ptr, NOX("OpenGL"))){
+		// OpenGL
+		gr_init(GR_640, GR_OPENGL);
 	} else {
 		Int3();
 	}	
 
 	gr_set_palette("none",NULL);
+#ifndef PLAT_UNIX
 	bkg = bm_load( "code\\fonttool\\FontTool" );
+#else
+	bkg = bm_load( "fonttool" );
+#endif
 	if ( bkg < 0 )	{
 		printf("Error loading FontTool\n" );
 		myexit(1);
@@ -367,6 +393,8 @@ void fonttool_edit_kerning(char *fname1)
 
 	done = 0;
 	while (!done)	{
+		
+		os_poll();
 		k = key_inkey();
 		switch(k)	{		
 		case KEY_F5:
@@ -599,6 +627,11 @@ void fonttool_edit_kerning(char *fname1)
 
 		gr_flip();
 
+	}
+
+	// cleanup
+	if (bkg >= -1) {
+		bm_unload(bkg);
 	}
 
 

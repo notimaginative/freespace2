@@ -15,6 +15,9 @@
  * Tool for creating new fonts
  *
  * $Log$
+ * Revision 1.3  2003/01/30 20:03:48  relnev
+ * various files ported needed for fonttool.  There is a bug where on exit it segfaults in SDL_GL_SwapBuffers, I'm probably missing something (don't know what) but it works fine otherwise (Taylor Richards)
+ *
  * Revision 1.2  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -48,10 +51,11 @@
  */
 
 #include <stdlib.h>
-#include <stdlib.h>
 #include <stdio.h>
+#ifndef PLAT_UNIX
 #include <io.h>
 #include <conio.h>
+#endif
 
 #include "pstypes.h"
 #include "osapi.h"
@@ -444,7 +448,7 @@ void fonttool_read( char *filename, font *fnt )
 	if ( fnt->kern_data_size )	{
 		fnt->kern_data = (font_kernpair *)malloc( fnt->kern_data_size );
 		if (!fnt->kern_data)	{
-			printf( "Out of memory reading %d bytes of font data from %s\n", tmp_name );
+			mprintf(( "Out of memory reading %d bytes of font data from %s\n", tmp_name ));
 			myexit(1);
 		}
 		fread( fnt->kern_data, fnt->kern_data_size, 1, fp );
@@ -454,7 +458,7 @@ void fonttool_read( char *filename, font *fnt )
 	if ( fnt->char_data_size )	{
 		fnt->char_data = (font_char *)malloc( fnt->char_data_size );
 		if (!fnt->char_data)	{
-			printf( "Out of memory reading %d bytes of font data from %s\n", tmp_name );
+			mprintf(( "Out of memory reading %d bytes of font data from %s\n", tmp_name ));
 			myexit(1);
 		}
 		fread( fnt->char_data, fnt->char_data_size, 1, fp );
@@ -464,7 +468,7 @@ void fonttool_read( char *filename, font *fnt )
 	if ( fnt->pixel_data_size )	{
 		fnt->pixel_data = (ubyte *)malloc( fnt->pixel_data_size );
 		if (!fnt->pixel_data)	{
-			printf( "Out of memory reading %d bytes of font data from %s\n", tmp_name );
+			mprintf(( "Out of memory reading %d bytes of font data from %s\n", tmp_name ));
 			myexit(1);
 		}
 		fread( fnt->pixel_data, fnt->pixel_data_size, 1, fp );
@@ -512,7 +516,7 @@ void fonttool_read( char *filename, font *fnt )
 			for (x1=0; x1<fnt->char_data[i].byte_width; x1++ )	{
 				uint c = *fp++;
 				if ( c > 14 ) c = 14;
-				fnt->bm_data[(x+x1)+(y+y1)*fnt->bm_w] = unsigned char(c);	
+				fnt->bm_data[(x+x1)+(y+y1)*fnt->bm_w] = (unsigned char)(c);	
 			}
 		}
 		x += fnt->char_data[i].byte_width;
@@ -536,7 +540,7 @@ void fonttool_copy_kern( font *src, font *dst )
 	}
 	dst->kern_data = (font_kernpair *)malloc( src->kern_data_size );
 	if (!dst->kern_data)	{
-		printf( "Out of memory copying %d bytes of font data.\n" );
+		mprintf(( "Out of memory copying %d bytes of font data.\n" ));
 		myexit(1);
 	}
 	memcpy( dst->kern_data, src->kern_data, src->kern_data_size );

@@ -15,6 +15,9 @@
  * Tool for copying font kerning info
  *
  * $Log$
+ * Revision 1.3  2003/01/30 20:03:48  relnev
+ * various files ported needed for fonttool.  There is a bug where on exit it segfaults in SDL_GL_SwapBuffers, I'm probably missing something (don't know what) but it works fine otherwise (Taylor Richards)
+ *
  * Revision 1.2  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -35,10 +38,11 @@
  */
 
 #include <stdlib.h>
-#include <stdlib.h>
 #include <stdio.h>
+#ifndef PLAT_UNIX
 #include <io.h>
 #include <conio.h>
+#endif
 
 #include "pstypes.h"
 #include "osapi.h"

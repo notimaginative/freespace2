@@ -3,6 +3,7 @@
 
 Joy_info joystick;
 int Joy_sensitivity = 9;
+int Dead_zone_size = 10;
 
 void joy_close()
 {

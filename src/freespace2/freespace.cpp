@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.4  2002/05/27 22:46:52  theoddone33
+ * Remove more undefined symbols
+ *
  * Revision 1.3  2002/05/26 23:31:18  relnev
  * added a few files that needed to be compiled
  *
@@ -2481,6 +2484,7 @@ void game_show_framerate()
 		gr_set_color_fast(&HUD_color_debug);
 
 		{
+#ifndef PLAT_UNIX
 			extern int D3D_textures_in;
 			extern int D3D_textures_in_frame;
 			extern int Glide_textures_in;
@@ -2492,6 +2496,9 @@ void game_show_framerate()
 			sy += dy;
 			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
 			sy += dy;
+#else
+			STUB_FUNCTION;
+#endif
 		}
 //		gr_printf( sx, sy, "BPP: %d", gr_screen.bits_per_pixel );
 //		sy += dy;
@@ -2562,6 +2569,7 @@ void game_show_framerate()
 		gr_printf( sx, sy, NOX("S-HRAM: %d KB\n"), Snd_hram/1024 );		// mem used to store game sound
 		sy += dy;
 		{
+#ifndef PLAT_UNIX
 			extern int D3D_textures_in;
 			extern int Glide_textures_in;
 			extern int Glide_textures_in_frame;
@@ -2572,6 +2580,9 @@ void game_show_framerate()
 			sy += dy;
 			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
 			sy += dy;
+#else
+			STUB_FUNCTION;
+#endif
 		}
 	}
 

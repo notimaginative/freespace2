@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.17  2003/12/02 03:24:47  taylor
+ * MS-ADPCM support, fix file parser with OSX support
+ *
  * Revision 1.16  2003/08/03 16:03:53  taylor
  * working play position; 2D pan; pitch; cleanup
  *
@@ -692,7 +695,7 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 {
 	CFILE				*fp;
 	PCMWAVEFORMAT	PCM_header;
-	int				cbExtra = 0;
+	ushort			cbExtra = 0;
 	unsigned int	tag, size, next_chunk;
 
 	fp = cfopen( filename, "rb" );
@@ -719,16 +722,22 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 		switch( tag )	{
 		case 0x20746d66:		// The 'fmt ' tag
 			//nprintf(("Sound", "SOUND => size of fmt block: %d\n", size));
-			cfread( &PCM_header, sizeof(PCMWAVEFORMAT), 1, fp );
+			PCM_header.wf.wFormatTag		= cfread_ushort(fp);
+			PCM_header.wf.nChannels			= cfread_ushort(fp);
+			PCM_header.wf.nSamplesPerSec	= cfread_uint(fp);
+			PCM_header.wf.nAvgBytesPerSec	= cfread_uint(fp);
+			PCM_header.wf.nBlockAlign		= cfread_ushort(fp);
+			PCM_header.wBitsPerSample		= cfread_ushort(fp);
+
 			if ( PCM_header.wf.wFormatTag != WAVE_FORMAT_PCM ) {
-				cbExtra = cfread_short(fp);
+				cbExtra = cfread_ushort(fp);
 			}
 
 			// Allocate memory for WAVEFORMATEX structure + extra bytes
 			if ( (*header = (WAVEFORMATEX *) malloc ( sizeof(WAVEFORMATEX)+cbExtra )) != NULL ){
 				// Copy bytes from temporary format structure
 				memcpy (*header, &PCM_header, sizeof(PCM_header));
-				(*header)->cbSize = (unsigned short)cbExtra;
+				(*header)->cbSize = cbExtra;
 
 				// Read those extra bytes, append to WAVEFORMATEX structure
 				if (cbExtra != 0) {
@@ -860,13 +869,44 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	
 	ALenum format;
 	ALsizei size;
+	ALint bits, bps;
 	ALuint frequency;
-	ALvoid *data;
-	
+	ALvoid *data = NULL;
+
+	// the below two covnert_ variables are only used when the wav format is not 
+	// PCM.  DirectSound only takes PCM sound data, so we must convert to PCM if required
+	ubyte *convert_buffer = NULL;		// storage for converted wav file 
+	int	convert_len;					// num bytes of converted wav file
+	uint src_bytes_used;				// number of source bytes actually converted (should always be equal to original size)
+	int rc;
+	WAVEFORMATEX *pwfx = (WAVEFORMATEX *)header;
+
 	switch (si->format) {
 		case WAVE_FORMAT_PCM:
+			bits = si->bits;
+			bps  = si->avg_bytes_per_sec;
 			size = si->size;
 			data = si->data;
+			break;
+		case WAVE_FORMAT_ADPCM:
+			// this ADPCM decoder decodes to 16-bit only so keep that in mind
+			nprintf(( "Sound", "SOUND ==> converting sound from ADPCM to PCM\n" ));
+			rc = ACM_convert_ADPCM_to_PCM(pwfx, si->data, si->size, &convert_buffer, 0, &convert_len, &src_bytes_used, 16);
+
+			if ( rc == -1 ) {
+				return -1;
+			}
+
+			if (src_bytes_used != si->size) {
+				return -1;	// ACM conversion failed?
+			}
+
+			bits = 16;
+			bps  = (((si->n_channels * bits) / 8) * si->sample_rate);
+			size = convert_len;
+			data = convert_buffer;
+
+			nprintf(( "Sound", "SOUND ==> Coverted sound from ADPCM to PCM successfully\n" ));
 			break;
 		default:
 			STUB_FUNCTION;
@@ -876,7 +916,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	/* format is now in pcm */
 	frequency = si->sample_rate;
 	
-	if (si->bits == 16) {
+	if (bits == 16) {
 		if (si->n_channels == 2) {
 			format = AL_FORMAT_STEREO16;
 		} else if (si->n_channels == 1) {
@@ -884,7 +924,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 		} else {
 			return -1;
 		}
-	} else if (si->bits == 8) {
+	} else if (bits == 8) {
 		if (si->n_channels == 2) {
 			format = AL_FORMAT_STEREO8;
 		} else if (si->n_channels == 1) {
@@ -903,12 +943,16 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	sound_buffers[*sid].buf_id = pi;
 	sound_buffers[*sid].source_id = -1;
 	sound_buffers[*sid].frequency = frequency;
-	sound_buffers[*sid].bits_per_sample = si->bits;
+	sound_buffers[*sid].bits_per_sample = bits;
 	sound_buffers[*sid].nchannels = si->n_channels;
-	sound_buffers[*sid].nseconds = si->size / si->avg_bytes_per_sec;
-	sound_buffers[*sid].nbytes = si->size;
+	sound_buffers[*sid].nseconds = size / bps;
+	sound_buffers[*sid].nbytes = size;
+
 	
 	OpenAL_ErrorCheck();
+
+	if ( convert_buffer )
+		free( convert_buffer );
 
 	return 0;
 
@@ -3717,7 +3761,7 @@ void ds_do_frame()
 				continue;
 			}
 
-			int current_position = ds_get_play_position(i);
+			DWORD current_position = ds_get_play_position(i);
 			if (current_position != 0) {
 				if (current_position < cp->last_position) {
 #ifdef PLAT_UNIX

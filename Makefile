@@ -242,13 +242,13 @@ CODE_OBJECTS=$(CODE_SOURCES:.cpp=.o)
 FS_OBJECTS=$(FS_SOURCES:.cpp=.o)
 
 
-all: code fs2
+all: fs2
 
-code: $(CODE_OBJECTS)
+code.so: $(CODE_OBJECTS)
 	$(CC) -shared -o $(CODE_BINARY) $(LDFLAGS) $(CODE_OBJECTS)
 
-fs2: $(FS_OBJECTS)
-	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OJBECTS) $(CODE_BINARY)
+fs2: code.so $(FS_OBJECTS)
+	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OBJECTS) $(CODE_BINARY)
 
 clean:
 	rm -rf $(BINARY) $(OBJECTS)

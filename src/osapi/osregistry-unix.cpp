@@ -98,11 +98,11 @@ static char *trim_string(char *str)
 		*ptr = 0;
 	
 	ptr = str+strlen(str)-1;
-	while (*ptr && isspace(*ptr)) {
+	while (ptr >= str && isspace(*ptr)) {
 		ptr--;
 	}
 	
-	if (*ptr) {
+	if (ptr >= str) {
 		ptr++;
 		*ptr = 0;
 	}

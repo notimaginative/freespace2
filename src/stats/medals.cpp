@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.12  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.11  2003/08/03 16:10:30  taylor
  * cleanup; compile warning fixes
  *
@@ -216,7 +219,9 @@ int Badge_index[MAX_BADGES];
 	#define RANK_MEDAL_REGION		12			// region number of the rank medal
 #endif
 
+#ifdef FS2_DEMO
 #warning Find real FS2_DEMO spot for medals
+#endif
 // coords for indiv medal bitmaps
 int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 	{				// GR_640

@@ -15,6 +15,9 @@
  * Nebula effect
  *
  * $Log$
+ * Revision 1.6  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -554,7 +557,7 @@ void nebl_render_all()
 				b->used = 0;
 				continue;
 			}
-			bi = &Bolt_types[b->type];
+			bi = &Bolt_types[(int)b->type];
 
 			// if this guy is still on a delay
 			if(b->delay != -1){
@@ -1297,7 +1300,7 @@ void nebl_jitter(l_bolt *b)
 	if((b->type < 0) || ((b->type >= Num_bolt_types) && (b->type != DEBUG_BOLT)) ){
 		return;		
 	}
-	bi = &Bolt_types[b->type];
+	bi = &Bolt_types[(int)b->type];
 
 	// get the bolt direction
 	vm_vec_sub(&temp, &b->strike, &b->start);

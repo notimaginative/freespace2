@@ -15,6 +15,9 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.9  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.8  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -8687,7 +8690,7 @@ void multi_sync_pre_close()
 		nprintf(("Network","WARNING - killing file xfer while leaving mission sync state!!!\n"));
 
 		multi_xfer_abort(Net_player->s_info.xfer_handle);
-		Net_player->s_info.xfer_handle;
+		Net_player->s_info.xfer_handle = -1;
 	}
 }
 

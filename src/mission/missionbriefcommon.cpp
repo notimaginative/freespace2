@@ -15,6 +15,9 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.10  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.9  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -191,6 +194,7 @@
 #include "missiondebrief.h"
 #include "alphacolors.h"
 #include "localize.h"
+#include "vecmat.h"
 
 // --------------------------------------------------------------------------------------
 // briefing icons
@@ -517,6 +521,10 @@ void mission_brief_common_init()
 	gr_init_alphacolor( &Brief_color_green, 50, 100, 50, 255 );
 	gr_init_alphacolor( &Brief_color_red, 140, 20, 20, 255 );
 
+	// extra catch to reset anything that's already loaded (ie. mission restart)
+	mission_brief_common_reset();
+	mission_debrief_common_reset();
+
 	if ( Fred_running )	{
 		// If Fred is running malloc out max space
 		for (i=0; i<MAX_TEAMS; i++ )	{
@@ -594,6 +602,16 @@ void mission_brief_common_reset()
 			}
 		}
 	}
+}
+
+// split from above since we need to clear them separately
+void mission_debrief_common_reset()
+{
+	int i, j;
+
+	if ( Fred_running ) {
+		return;						// Don't free these under Fred.
+	}
 
 	for (i=0; i<MAX_TEAMS; i++ )	{
 		for (j=0; j<MAX_DEBRIEF_STAGES; j++ )	{
@@ -601,13 +619,13 @@ void mission_brief_common_reset()
 				free(Debriefings[i].stages[j].new_text);
 				Debriefings[i].stages[j].new_text = NULL;
 			}
+
 			if ( Debriefings[i].stages[j].new_recommendation_text )	{
 				free(Debriefings[i].stages[j].new_recommendation_text);
 				Debriefings[i].stages[j].new_recommendation_text = NULL;
 			}
 		}
-	}
-		
+	}		
 }
 
 
@@ -1133,7 +1151,8 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 
 		brief_common_get_icon_dimensions(&icon_w, &icon_h, bi->type, bi->ship_class);
 
-		closeup_icon = (brief_icon*)brief_get_closeup_icon();
+		closeup_icon = brief_get_closeup_icon();
+
 		if ( bi == closeup_icon || selected ) {
 			icon_bitmap=ib->first_frame+1;
 //			gr_set_bitmap(ib->first_frame+1);
@@ -1896,6 +1915,7 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 	brief_stage		*newb, *cb;	
 	icon_move_info	*imi;	
 	int				i,j,k,num_movers,is_gone=0;
+	vector			zero_v = ZERO_VECTOR;
 
 	Assert(new_stage != current_stage);
 	
@@ -1929,7 +1949,7 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 					imi->accel = 4*imi->total_dist/(time*time);
 					imi->last_dist=0.0f;
 					imi->reached_dest=0;
-					imi->direction;
+					imi->direction = zero_v;
 
 					vm_vec_sub(&imi->direction, &imi->finish, &imi->start);
 					if ( !IS_VEC_NULL(&imi->direction) ) {
@@ -2466,7 +2486,6 @@ void brief_common_close()
 {
 	brief_close_map();
 	brief_unload_anims();
-	mission_brief_common_reset();
 }
 
 
@@ -2645,7 +2664,8 @@ int brief_time_to_advance(int stage_num, float frametime)
 	int voice_active, advance = 0;
 	brief_icon *closeup_icon;
 
-	closeup_icon = (brief_icon*)brief_get_closeup_icon();
+	closeup_icon = brief_get_closeup_icon();
+
 	if ( closeup_icon ) {
 		return 0;
 	}

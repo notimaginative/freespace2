@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.11  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.10  2004/06/11 21:39:44  taylor
  * x86 compile fixes for OSX patch
  *
@@ -716,9 +719,6 @@
 #include "freespace.h"		// For flFrameTime
 #include "fvi.h"
 
-#ifdef __APPLE__
-#include <stddef.h>		// tigital for offsetof()
-#endif
 
 #define MAX_SUBMODEL_COLLISION_ROT_ANGLE (PI / 6.0f)	// max 30 degrees per frame
 
@@ -1274,7 +1274,7 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 
 	id = cfread_int(fp);
 
-	if (id!='OPSP')
+	if (id != ID_PSPO)
 		Error( LOCATION, "Bad ID in model file <%s>",filename);
 
 	// Version is major*100+minor
@@ -2693,7 +2693,7 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 	sii->prev_angs = sii->angs;
 
 	// float pointer into struct to get angle (either p,b,h)
-	float *ang_prev, *ang_next;
+	float *ang_prev = NULL, *ang_next = NULL;
 	switch( sm->movement_axis ) {
 	case MOVEMENT_AXIS_X:
 		ang_prev = &sii->prev_angs.p;

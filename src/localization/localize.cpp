@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.7  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.6  2003/06/11 18:30:32  taylor
  * plug memory leaks
  *
@@ -712,13 +715,13 @@ void lcl_add_dir(char *current_path)
 	last_char = current_path[path_len - 1];
 
 	// if the last char is a slash, just copy in the disk extension
-	if (last_char == '\\') {
+	if (last_char == DIR_SEPARATOR_CHAR) {
 		strcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext);
-		strcat(current_path, "\\");
+		strcat(current_path, DIR_SEPARATOR_STR);
 	} 
 	// otherwise add a slash, then copy in the disk extension
 	else {
-		strcat(current_path, "\\");
+		strcat(current_path, DIR_SEPARATOR_STR);
 		strcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext);
 	}
 }
@@ -735,7 +738,7 @@ void lcl_add_dir_to_path_with_filename(char *current_path)
 
 	// find position of last slash and copy rest of filename (not counting slash) to temp
 	// mark end of current path with '\0', so strcat will work
-	char *last_slash = strrchr(current_path, '\\');
+	char *last_slash = strrchr(current_path, DIR_SEPARATOR_CHAR);
 	if (last_slash == NULL) {
 		strcpy(temp, current_path);
 		current_path[0] = '\0';
@@ -746,7 +749,7 @@ void lcl_add_dir_to_path_with_filename(char *current_path)
 
 	// add extension
 	strcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext);
-	strcat(current_path, "\\");
+	strcat(current_path, DIR_SEPARATOR_STR);
 
 	// copy rest of filename from temp
 	strcat(current_path, temp);
@@ -1078,7 +1081,7 @@ int lcl_ext_lookup(char *out, int id)
 	// reset parsing vars and go to town
 	Ts_current_state = TS_SCANNING;
 	Ts_id_text_size = 0;
-	Ts_text_size;
+	Ts_text_size = 0;
 	memset(Ts_text, 0, PARSE_TEXT_STRING_LEN);
 	memset(Ts_id_text, 0, PARSE_ID_STRING_LEN);
 	while((cftell(Lcl_ext_file) < Lcl_pointers[Lcl_pointer_count - 1]) && cfgets(text, 1024, Lcl_ext_file)){

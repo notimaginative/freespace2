@@ -15,6 +15,9 @@
  * Palette manager routines
  *
  * $Log$
+ * Revision 1.4  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -457,7 +460,7 @@ uint palette_find( int r, int g, int b )
 // version 18 - fixed bug with blue nondarkening colors
 // version 19 - fixed bug where only colors divisible by 4 got used.
 // version 20 - added flag to only use lower 128 colors for palette.
-#define PAL_ID 'LAPV'			// VPAL (Volition Palette)
+#define PAL_ID 0x4c415056			// LAPV, VPAL (Volition Palette)
 #define PAL_VERSION  20
 #define PAL_LAST_COMPATIBLE_VERSION 20
 

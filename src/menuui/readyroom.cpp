@@ -15,6 +15,9 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.5  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.4  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1209,37 +1212,58 @@ void sim_room_close()
 {
 	int i;
 
-	for (i=0; i<Num_campaign_missions; i++)
-		if (Campaign_missions[i])
+	for (i=0; i<Num_campaign_missions; i++) {
+		if (Campaign_missions[i] != NULL) {
 			free(Campaign_missions[i]);
+			Campaign_missions[i] = NULL;
+		}
+	}
 
 	if (Background_bitmap >= 0)
 		bm_unload(Background_bitmap);
 
 	if (Standalone_mission_names_inited){
 		for (i=0; i<Num_standalone_missions; i++){
-			if (Standalone_mission_names[i]){
+			if (Standalone_mission_names[i] != NULL) {
 				free(Standalone_mission_names[i]);
+				Standalone_mission_names[i] = NULL;
 			}
 			Standalone_mission_flags[i] = 0;
 		}
 	}
 
-	if (Campaign_names_inited)
-		for (i=0; i<Num_campaigns; i++)
-			if (Campaign_names[i])
+	if (Campaign_names_inited) {
+		for (i=0; i<Num_campaigns; i++) {
+			if (Campaign_names[i] != NULL) {
 				free(Campaign_names[i]);
+				Campaign_names[i] = NULL;
+			}
+		}
+	}
 
-	if (Campaign_mission_names_inited)
-		for (i=0; i<Campaign.num_missions; i++)
-			if (Campaign_mission_names[i])
+	if (Campaign_mission_names_inited) {
+		for (i=0; i<Campaign.num_missions; i++) {
+			if (Campaign_mission_names[i] != NULL) {
 				free(Campaign_mission_names[i]);
+				Campaign_mission_names[i] = NULL;
+			}
+		}
+	}
 
-	for (i=0; i<Num_campaigns; i++)
-		free(Campaign_file_names[i]);
+	for (i=0; i<Num_campaigns; i++) {
+		if (Campaign_file_names[i] != NULL) {
+			free(Campaign_file_names[i]);
+			Campaign_file_names[i] = NULL;
+		}
+	}
+	
 
-	for (i=0; i<Num_standalone_missions; i++)
-		free(Mission_filenames[i]);
+	for (i=0; i<Num_standalone_missions; i++) {
+		if (Mission_filenames[i] != NULL) {
+			free(Mission_filenames[i]);
+			Mission_filenames[i] = NULL;
+		}
+	}
 
 	// unload the overlay bitmap
 	help_overlay_unload(SIM_ROOM_OVERLAY);

@@ -15,6 +15,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.8  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.7  2003/06/11 18:30:33  taylor
  * plug memory leaks
  *
@@ -4503,7 +4506,7 @@ void show_ship_subsys_count()
 
 	for ( objp = GET_FIRST(&obj_used_list); objp != END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
 		if (objp->type == OBJ_SHIP) {
-			count += Ship_info[Ships[objp->type].ship_info_index].n_subsystems;
+			count += Ship_info[Ships[(int)objp->type].ship_info_index].n_subsystems;
 		}
 	}
 
@@ -5418,7 +5421,7 @@ void ship_process_targeting_lasers()
 
 			// fire a targeting laser
 			fire_info.accuracy = 0.0f;
-			fire_info.beam_info_index = shipp->weapons.primary_bank_weapons[shipp->targeting_laser_bank];
+			fire_info.beam_info_index = shipp->weapons.primary_bank_weapons[(int)shipp->targeting_laser_bank];
 			fire_info.beam_info_override = NULL;
 			fire_info.shooter = &Objects[shipp->objnum];
 			fire_info.target = NULL;

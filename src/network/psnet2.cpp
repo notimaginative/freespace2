@@ -15,6 +15,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.12  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.11  2004/06/11 01:52:15  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -761,12 +764,12 @@ void psnet_close()
 	WSACancelBlockingCall();		
 #endif
 
-	if ( TCP_socket != INVALID_SOCKET ) {
+	if ( TCP_socket != (int)INVALID_SOCKET ) {
 		shutdown( TCP_socket, 1 );
 		closesocket( TCP_socket );
 	}
 
-	if ( IPX_socket != INVALID_SOCKET ) {
+	if ( IPX_socket != (int)INVALID_SOCKET ) {
 		shutdown( IPX_socket, 1 );
 		closesocket( IPX_socket );
 	}
@@ -2728,7 +2731,7 @@ int psnet_init_tcp()
 	TCP_socket = INVALID_SOCKET;	
 	
 	TCP_socket = socket( AF_INET, SOCK_DGRAM, 0 );
-	if ( TCP_socket == INVALID_SOCKET ) {
+	if ( TCP_socket == (int)INVALID_SOCKET ) {
 		Tcp_failure_code = WSAGetLastError();
 		ml_printf("Error on TCP startup %d\n", Tcp_failure_code);
 		return 0;

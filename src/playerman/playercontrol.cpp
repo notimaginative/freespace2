@@ -15,6 +15,9 @@
  * Routines to deal with player ship movement
  *
  * $Log$
+ * Revision 1.6  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1473,7 +1476,7 @@ void player_level_init()
 	Player->locking_subsys_parent=-1;
 
 	Player->killer_objtype=-1;					// type of object that killed player
-	Player->killer_weapon_index;				// weapon used to kill player (if applicable)
+	Player->killer_weapon_index=-1;				// weapon used to kill player (if applicable)
 	Player->killer_parent_name[0]=0;			// name of parent object that killed the player
 
 	Player_all_alone_msg_inited=0;

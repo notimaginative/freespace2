@@ -15,6 +15,9 @@
  *	Rendering models, I think.
  *
  * $Log$
+ * Revision 1.7  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.6  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -2826,11 +2829,15 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 					g3_rotate_vertex( &p, &bank->pnt[j] );
 					gr_set_bitmap( Interp_thrust_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, d );
 					{
+#ifndef PLAT_UNIX
 						extern int Gr_scaler_zbuffering;
 						Gr_scaler_zbuffering = 1;
 						g3_draw_bitmap(&p,0,w*0.5f, TMAP_FLAG_TEXTURED );
 						//g3_draw_rotated_bitmap(&p,0.0f,w,w, TMAP_FLAG_TEXTURED );
 						Gr_scaler_zbuffering = 0;
+#else
+						g3_draw_bitmap(&p,0,w*0.5f, TMAP_FLAG_TEXTURED );
+#endif
 					}
 				}
 

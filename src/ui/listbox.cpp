@@ -15,6 +15,9 @@
  * Code to implement a listbox gadget.
  *
  * $Log$
+ * Revision 1.4  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -418,7 +421,7 @@ void UI_LISTBOX::process(int focus)
 						
 						current_text = get_string(i);
 						for (j=0; j<key_buffer_count; j++)
-							if ( (current_text[j] != ascii_table[key_buffer[j]]) && (current_text[j] != shifted_ascii_table[key_buffer[j]]) )
+							if ( (current_text[j] != ascii_table[(int)key_buffer[j]]) && (current_text[j] != shifted_ascii_table[(int)key_buffer[j]]) )
 								break;
 
 						if (j == key_buffer_count) {

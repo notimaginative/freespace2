@@ -15,6 +15,9 @@
  * Routines for ship effects (as in special)
  *
  * $Log$
+ * Revision 1.7  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.6  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -2872,7 +2875,7 @@ void engine_wash_ship_process(ship *shipp)
 				}
 			}
 
-			engine_wash_info *ewp = &Engine_wash_info[bank->wash_info_index];
+			engine_wash_info *ewp = &Engine_wash_info[(int)bank->wash_info_index];
 			half_angle = ewp->angle;
 			radius_mult = ewp->radius_mult;
 

@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.19  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.18  2004/06/11 02:07:01  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -884,6 +887,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	ALint bits, bps;
 	ALuint frequency;
 	ALvoid *data = NULL;
+	uint i;
 
 	// the below two covnert_ variables are only used when the wav format is not 
 	// PCM.  DirectSound only takes PCM sound data, so we must convert to PCM if required
@@ -901,7 +905,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
                         
             if(bits == 16){
                 ushort *swap_tmp;
-                for (uint i=0; i<size; i=i+2)
+                for (i=0; i<(uint)size; i=i+2)
                 {
                    swap_tmp = (ushort*)(si->data+i);
                    *swap_tmp = INTEL_SHORT(*swap_tmp);

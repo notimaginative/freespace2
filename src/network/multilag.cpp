@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.5  2002/06/09 04:41:24  relnev
  * added copyright header
  *
@@ -355,7 +358,7 @@ int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *f
 	moveup=GET_FIRST(&Lag_used_list);
 	while ( moveup!=END_OF_LIST(&Lag_used_list) )	{		
 		// if the timestamp has elapsed
-		if((s == (SOCKET)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
+		if(((int)s == (SOCKET)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
 			item = moveup;
 			break;
 		}

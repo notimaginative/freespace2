@@ -113,7 +113,7 @@ extern "C"
 #define ConvertFromLPC10(bufIn, bufOut, size)
 #define lpc10init()
 #define lpc10encode(in, out, inlen) 0
-#define lpc10decode(in, out, inlen) 0
+#define lpc10decode(in, out, inlen) { out = 0; }
 #define AssertLPC10Available() assert(0)
 #endif // defined(USE_LPC10)
 

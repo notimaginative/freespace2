@@ -15,6 +15,9 @@
  * Header file for briefing stuff common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.4  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.3  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -325,6 +328,7 @@ void mission_brief_common_init();
 // Frees all the memory allocated in the briefing and debriefing structures
 // and sets all pointers to NULL.
 void mission_brief_common_reset();
+void mission_debrief_common_reset();
 
 
 // --------------------------------------------------------------------------------------

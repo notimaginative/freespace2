@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.10  2004/07/04 11:39:06  taylor
+ * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
+ *
  * Revision 1.9  2003/08/03 16:10:29  taylor
  * cleanup; compile warning fixes
  *
@@ -2534,6 +2537,9 @@ void debrief_close()
 			}
 		}
 	}
+
+	// clear out debrief info parsed from mission file
+	mission_debrief_common_reset();
 
 	// unload the overlay bitmap
 #ifdef MAKE_FS1

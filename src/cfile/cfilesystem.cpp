@@ -19,6 +19,9 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.10  2004/06/11 00:29:22  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.9  2003/05/27 03:03:11  taylor
  * fix second root (gamedir) searching
  *
@@ -694,6 +697,10 @@ void cf_search_root_pack(int root_index)
 	Assert( sizeof(VP_header) == 16 );
 	fread(&VP_header, 1, sizeof(VP_header), fp);
 
+    VP_header.version = INTEL_INT( VP_header.version);
+    VP_header.index_offset = INTEL_INT( VP_header.index_offset);
+    VP_header.num_files = INTEL_INT( VP_header.num_files);
+        
 	// Read index info
 	fseek(fp, VP_header.index_offset, SEEK_SET);
 
@@ -706,6 +713,10 @@ void cf_search_root_pack(int root_index)
 		VP_FILE find;
 
 		fread( &find, sizeof(VP_FILE), 1, fp );
+
+        find.offset = INTEL_INT( find.offset );
+        find.size = INTEL_INT( find.size );
+		find.write_time = INTEL_INT(find.write_time);
 
 		if ( find.size == 0 )	{
 			if ( !stricmp( find.filename, ".." ))	{

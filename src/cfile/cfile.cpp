@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.10  2004/06/11 00:28:39  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.9  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1138,6 +1141,9 @@ void cf_set_version( CFILE * cfile, int version )
 
 // routines to read basic data types from CFILE's.  Put here to
 // simplify mac/pc reading from cfiles.
+#ifdef __APPLE__
+#include <stddef.h>
+#endif
 
 float cfread_float(CFILE *file, int ver, float deflt)
 {
@@ -1149,7 +1155,7 @@ float cfread_float(CFILE *file, int ver, float deflt)
 	if (cfread( &f, sizeof(f), 1, file) != 1)
 		return deflt;
 
-//	i = INTEL_INT(i);			//  hmm, not sure what to do here
+    f = INTEL_FLOAT(&f);
 	return f;
 }
 
@@ -1295,7 +1301,7 @@ void cfread_string_len(char *buf,int n, CFILE *file)
 
 int cfwrite_float(float f, CFILE *file)
 {
-//	i = INTEL_INT(i);			//  hmm, not sure what to do here
+    f = INTEL_FLOAT(&f);
 	return cfwrite(&f, sizeof(f), 1, file);
 }
 

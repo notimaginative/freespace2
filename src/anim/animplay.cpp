@@ -15,6 +15,9 @@
  * C module for playing back anim files
  *
  * $Log$
+ * Revision 1.4  2004/06/11 00:27:06  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.3  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -791,13 +794,13 @@ void anim_release_all_instances(int screen_id)
 //	2			|	version number
 //	2			|	fps
 //	1			|	transparent red value
-// 1			|	transparent green value
+// 	1			|	transparent green value
 //	1			|	transparent blue value
 //	2			|	width
 //	2			|	height
 //	2			|	number of frames
 //	2			|	packer code
-//	763		|	palette
+//	763			|	palette
 //	2			|	number of key frames
 //	2			|	key frame number	}		repeats
 //	4			|	key frame offset	}		repeats
@@ -859,6 +862,7 @@ void anim_read_header(anim *ptr, CFILE *fp)
 
 	ptr->total_frames = cfread_short(fp);
 	cfread(&ptr->packer_code, 1, 1, fp);
+	ptr->packer_code = INTEL_SHORT(ptr->packer_code);
 	cfread(&ptr->palette, 256, 3, fp);
 	ptr->num_keys = cfread_short(fp);
 
@@ -946,6 +950,8 @@ anim *anim_load(char *real_filename, int file_mapped)
 			ptr->keys[idx].frame_num = 0;
 			cfread(&ptr->keys[idx].frame_num, 2, 1, fp);
 			cfread(&ptr->keys[idx].offset, 4, 1, fp);
+            ptr->keys[idx].frame_num = INTEL_INT( ptr->keys[idx].frame_num );
+            ptr->keys[idx].offset = INTEL_INT( ptr->keys[idx].offset );
 		}
 
 		/*prev_keyp = &ptr->keys;
@@ -961,6 +967,7 @@ anim *anim_load(char *real_filename, int file_mapped)
 			cfread(&keyp->offset, 4, 1, fp);
 		}*/
 		cfread(&count, 4, 1, fp);	// size of compressed data
+        count = INTEL_INT( count );
 
 		ptr->cfile_ptr = NULL;
 

@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.24  2002/05/30 22:12:57  relnev
+ * finish default texture case
+ *
  * Revision 1.23  2002/05/30 22:02:30  theoddone33
  * More gl changes
  *
@@ -326,7 +329,11 @@ void gr_opengl_pixel(int x, int y)
 
 void gr_opengl_clear()
 {
-	glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(gr_screen.current_clear_color.red / 255.0, 
+		gr_screen.current_clear_color.red / 255.0, 
+		gr_screen.current_clear_color.red / 255.0, 1.0);
+
+	glClear ( GL_COLOR_BUFFER_BIT );
 }
 
 void opengl_tcache_frame ();
@@ -375,6 +382,8 @@ void gr_opengl_set_clip(int x,int y,int w,int h)
 	gr_screen.clip_bottom = h-1;
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
+	
+//	glViewport(x, y, w, h);
 }
 
 void gr_opengl_reset_clip()
@@ -387,6 +396,8 @@ void gr_opengl_reset_clip()
 	gr_screen.clip_bottom = gr_screen.max_h - 1;
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
+	
+//	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 }
 
 void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy )
@@ -1844,8 +1855,36 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 				break;
 			}
 		default:
-			// glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
-			//		GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+			{
+				int i,j;
+				ubyte *bmp_data = ((ubyte*)data);
+				ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
+				ubyte *texmemp = texmem;
+				
+				fix u, utmp, v, du, dv;
+				
+				u = v = 0;
+				
+				du = ( (bmap_w-1)*F1_0 ) / tex_w;
+				dv = ( (bmap_h-1)*F1_0 ) / tex_h;
+				
+				for (j=0;j<tex_h;j++)
+				{
+					utmp = u;
+					for (i=0;i<tex_w;i++)
+					{
+						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+0];
+						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+1];
+					}
+					v += dv;
+				}
+
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA,
+					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					
+				free(texmem);
+				break;
+			}
 			break;
 	}
 	

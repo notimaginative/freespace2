@@ -7,6 +7,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.4  2002/06/02 07:17:44  cemason
+ * Added OpenAL support.
+ *
  * Revision 1.3  2002/05/28 17:03:29  theoddone33
  * fs2 gets to the main game loop now
  *
@@ -324,6 +327,11 @@
 #include <initguid.h>
 #include "ia3d.h"
 #include "verifya3d.h"
+#else
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alut.h>
+#include <SDL/SDL_audio.h>
 #endif
 
 #ifndef PLAT_UNIX
@@ -450,12 +458,20 @@ GUID DSPROPSETID_EAXBUFFER_ReverbProperties_Def = {0x4a4e6fc0, 0xc341, 0x11d1, {
 //----------------------------------------------------------------
 // prototypes 
 void ds_get_soundcard_caps(DSCAPS *dscaps);
-#endif // !PLAT_UNIX
+#else // !PLAT_UNIX
+static int Ds_use_ds3d = 0;
+static int Ds_use_a3d = 0;
+static int Ds_use_eax = 0;
+
+ALCdevice *ds_sound_device;
+void *ds_sound_context = (void *)0;
+
+#endif // PLAT_UNIX 
+
 static int MAX_CHANNELS = 0;		// initialized properly in ds_init_channels()
 
 int ds_vol_lookup[101];						// lookup table for direct sound volumes
 int ds_initialized = FALSE;
-
 
 
 //--------------------------------------------------------------------------
@@ -547,18 +563,41 @@ float ds_get_percentage_vol(int ds_vol)
 	return (float)vol;
 }
 
+static unsigned char *Force8to16 (unsigned char *buf, unsigned int *len)
+{
+ 	unsigned char *nbuf;
+ 	unsigned int i;
+ 	
+ 	nbuf = (unsigned char *) malloc (*len * 2);
+ 	
+ 	for (i = 0; i < *len; i++) {
+                short int x = ((buf[i] << 8) | buf[i]) ^ 0x8000;
+                nbuf[i*2+0] = (x & 0x00ff);
+                nbuf[i*2+1] = (x >> 8) & 0xff;
+        }
+         
+        *len *= 2;
+        return nbuf;
+}
+
+// In libopenal
+extern "C" {
+extern void *acLoadWAV (void *data, ALuint *size, void **udata,
+			ALushort *fmt, ALushort *chan, ALushort *freq);
+}
+
 // ---------------------------------------------------------------------------------------
 // ds_parse_wave() 
 //
 // Parse a wave file.
 //
-// parameters:		filename			=> file of sound to parse
-//						dest				=> address of pointer of where to store raw sound data (output parm)
-//						dest_size		=> number of bytes of sound data stored (output parm)
-//						header			=> address of pointer to a WAVEFORMATEX struct (output parm)
+// parameters:	filename	=> file of sound to parse
+//		dest		=> address of pointer of where to store raw sound data (output parm)
+//		dest_size	=> number of bytes of sound data stored (output parm)
+//		header		=> address of pointer to a WAVEFORMATEX struct (output parm)
 //
-// returns:			0					=> wave file successfully parsed
-//						-1					=> error
+// returns:	0		=> wave file successfully parsed
+//		-1		=> error
 //
 //	NOTE: memory is malloced for the header and dest in this function.  It is the responsibility
 //			of the caller to free this memory later.
@@ -566,8 +605,60 @@ float ds_get_percentage_vol(int ds_vol)
 int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **header)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return -1;
+	CFILE *fp;
+	ALuint size, pi;
+	ALushort fmt;
+	ALushort freq, chan;
+	ALvoid *data, *my_data;
+	unsigned char *nb;
+
+	nprintf (("Sound", "SOUND ==> ds_parse_wave(%s)", filename));
+
+	fp = cfopen (filename, "rb");
+	int len; 
+	cfseek (fp, 0, CF_SEEK_END);
+	len = cftell(fp);
+	cfclose(fp);
+	fp = cfopen (filename, "rb");
+	data = (ALvoid *) malloc(len);
+	cfread(data, len, 1, fp);
+	cfclose(fp);
+
+	if (acLoadWAV (data, &size, &my_data, &fmt, &chan, &freq) == NULL)
+		return -1;
+
+	len = size;
+
+	if((fmt == AUDIO_U8)) {
+		nb = Force8to16 ((unsigned char *)my_data, (unsigned int *)&len);
+		fmt = AUDIO_S16LSB;
+		free (my_data);
+		my_data = nb;
+	}
+
+	if (fmt == AUDIO_S16LSB || fmt == AUDIO_S16MSB) {
+		if(chan == 2) {
+			fmt = AL_FORMAT_STEREO16;
+		} else { 
+			fmt = AL_FORMAT_MONO16;
+		} 
+	} else return -1;
+
+	(*dest) = (ubyte *)malloc(sizeof(ALuint));
+	alGenBuffers (1, &pi);
+	alBufferData (pi, fmt, my_data, len, freq);
+	*((ALuint*)(*dest)) = (pi);
+	*dest_size = len;
+
+	(*header) = (WAVEFORMATEX *) malloc ( sizeof(WAVEFORMATEX) );
+	(*header)->wFormatTag = fmt;
+	(*header)->nChannels = 1;
+	(*header)->nSamplesPerSec = freq;
+	(*header)->wBitsPerSample = 16;
+	(*header)->cbSize = len;
+
+	free (my_data);
+	return 0;
 #else
 	CFILE				*fp;
 	PCMWAVEFORMAT	PCM_header;
@@ -711,8 +802,36 @@ int ds_get_hid()
 int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info *si, int flags)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return -1;
+	Assert( final_size != NULL );
+	Assert( header != NULL );
+	Assert( si != NULL );
+	Assert( si->data != NULL );
+
+	// All sounds are required to have a software buffer
+	ALuint pi = *((ALuint*)si->data);	// Buffer
+
+	(*sid) = (int) pi;
+	if ( *sid == -1 ) {
+		nprintf(("Sound","SOUND ==> Weird!\n"));
+		return -1;
+	}
+
+	ALfloat pos[] = { 0, 0, 0 };
+	ALfloat vel[] = { 0, 0, 0 };
+
+	alGenSources (1, (ALuint*)hid);
+	alSourcef(*((ALuint*)hid), AL_PITCH, 1.0f);
+	alSourcef(*((ALuint*)hid), AL_GAIN, 1.0f);
+	alSourcefv(*((ALuint*)hid), AL_POSITION, pos);
+	alSourcefv(*((ALuint*)hid), AL_VELOCITY, vel);
+
+	int i = alGetError();
+	if(i != AL_NO_ERROR) {
+		printf("%s|||errorC!\n", alGetString(i));
+		return -1;
+	}
+
+	return 0;
 #else
 	Assert( final_size != NULL );
 	Assert( header != NULL );
@@ -865,7 +984,8 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 void ds_init_channels()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	//	STUB_FUNCTION; // not needed with openal (CM)
+	return;
 #else
 	int i;
 
@@ -908,7 +1028,8 @@ void ds_init_channels()
 void ds_init_software_buffers()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	//	STUB_FUNCTION; // not needed with openal (CM)
+	return;
 #else
 	int i;
 
@@ -926,7 +1047,8 @@ void ds_init_software_buffers()
 void ds_init_hardware_buffers()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	//	STUB_FUNCTION;	// not needed with openal (CM)
+	return;
 #else
 	int i;
 
@@ -1043,7 +1165,7 @@ int ds_dll_load()
 }
 
 
-static int ds_init_a3d()
+int ds_init_a3d()
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
@@ -1176,7 +1298,40 @@ int ds_init_property_set()
 int ds_init(int use_a3d, int use_eax)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+// NOTE: A3D and EAX are unused in OpenAL
+	const ALubyte *initStr = (const ALubyte *)"\'( (sampling-rate 22050 ))";
+	int attr[] = { ALC_FREQUENCY, 22050, ALC_SYNC, AL_FALSE, 0 };
+
+	Ds_use_a3d = 0;
+	Ds_use_eax = 0;
+	Ds_use_ds3d = 1;
+
+	nprintf(( "Sound", "SOUND ==> Initializing DirectSound...\n" ));
+
+	// load OpenAl
+	ds_sound_device = alcOpenDevice (initStr);
+		
+	// Create Sound Device
+	ds_sound_context = alcCreateContext (ds_sound_device, attr);
+	alcMakeContextCurrent (ds_sound_context);
+
+	if (alGetError() != AL_NO_ERROR) {
+		nprintf(("Sound", "SOUND ==> Cannot initiate OpenAL\n"));
+		return -1;
+	}
+
+	// Get the primary buffer format
+	//ds_get_primary_format(&wave_format);
+
+	// Initialize DirectSound3D.  Since software performance of DirectSound3D is unacceptably
+	// slow, we require the voice manger (a DirectSound extension) to be present.  The 
+	// exception is when A3D is being used, since A3D has a resource manager built in.
+	if (Ds_use_ds3d && ds3d_init(0) != 0) 
+		Ds_use_ds3d = 0;
+
+	ds_build_vol_lookup();
+	ds_init_channels();
+	ds_init_buffers();
 #else
 	HRESULT			hr;
 	HWND				hwnd;
@@ -1968,17 +2123,17 @@ int ds_play_easy(int sid, int volume)
 // Play a DirectSound secondary buffer.  
 // 
 //
-// parameters:  
-//					sid			=> software id of sound
-//					hid			=> hardware id of sound ( -1 if not in hardware )
-//					snd_id		=>	what kind of sound this is
-//					priority		=>		DS_MUST_PLAY
-//											DS_LIMIT_ONE
-//											DS_LIMIT_TWO
-//											DS_LIMIT_THREE
-//					volume      => volume of sound effect in DirectSound units
-//					pan         => pan of sound in DirectSound units
-//             looping     => whether the sound effect is looping or not
+// parameters:
+//		sid			=> software id of sound
+//		hid			=> hardware id of sound ( -1 if not in hardware )
+//		snd_id			=> what kind of sound this is
+//		priority		=>	DS_MUST_PLAY
+//						DS_LIMIT_ONE
+//						DS_LIMIT_TWO
+//						DS_LIMIT_THREE
+//		volume      => volume of sound effect in DirectSound units
+//		pan         => pan of sound in DirectSound units
+//              looping     => whether the sound effect is looping or not
 //
 // returns:    -1          => sound effect could not be started
 //              >=0        => sig for sound effect successfully started
@@ -1986,7 +2141,27 @@ int ds_play_easy(int sid, int volume)
 int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int looping, bool is_voice_msg)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	if(sid < 0)
+		return -1;
+
+	alSourcei (hid, AL_BUFFER, sid);
+	alSourcei (hid, AL_LOOPING, (looping) ? AL_TRUE : AL_FALSE);
+	alSourcei (hid, AL_SOURCE_RELATIVE, AL_TRUE);
+
+	// set pan, volume, etc
+	alSourcePlay (hid);
+
+	if(looping) {
+		nprintf(("Sound","SOUND ==> Playing sound %d looping\n", sid));
+	} else nprintf(("Sound", "SOUND ==> Playing sound %d not looping\n", sid));
+
+	int i = alGetError();
+	if(i != AL_NO_ERROR) {
+		printf("%s|||error!\n", alGetString(i));
+		return -1;
+	}
+
+	return 0;
 #else
 	int				channel;
 	HRESULT			DSResult;
@@ -2594,6 +2769,7 @@ int ds_get_number_channels()
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
+	return 0;
 #else
 	int i,n;
 
@@ -2676,11 +2852,7 @@ int ds_get_size(int sid, int *size)
 
 int ds_using_ds3d()
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	return Ds_use_ds3d;
-#endif
 }
 
 // Return the primary buffer interface.  Note that we cast to a uint to avoid
@@ -2856,6 +3028,7 @@ int ds_eax_set_preset(unsigned long envid)
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
+	return -1;
 #else
 	HRESULT hr;
 

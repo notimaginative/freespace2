@@ -15,6 +15,10 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.72  2005/03/30 01:20:12  taylor
+ * Screenshot function filled, will output into ~/.freespace(2)/Data
+ * Use glTexSubImage2D on reloaded texture slots, this is only used by ANIs
+ *
  * Revision 1.71  2004/12/15 04:10:45  taylor
  * outwnd_unix.cpp from fs2_open for logging to file in debug mode
  * fixes for default function values
@@ -373,6 +377,7 @@
 #include "mouse.h"
 #include "osregistry.h"
 #include "cmdline.h"
+#include "cfile.h"
 
 static int Inited = 0;
 
@@ -1590,7 +1595,47 @@ void gr_opengl_set_color_fast(color *dst)
 
 void gr_opengl_print_screen(char *filename)
 {
-	STUB_FUNCTION;
+#ifdef GL_VERSION_1_2
+	char tmp[MAX_FILENAME_LEN];
+	ubyte *buf = NULL;
+
+	strcpy( tmp, filename );
+	strcat( tmp, NOX(".tga"));
+
+	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
+
+	if (f == NULL)
+		return;
+
+	// Write the TGA header
+	cfwrite_ubyte( 0, f );	//	IDLength;
+	cfwrite_ubyte( 0, f );	//	ColorMapType;
+	cfwrite_ubyte( 2, f );	//	ImageType;		// 2 = 24bpp, uncompressed, 10=24bpp rle compressed
+	cfwrite_ushort( 0, f );	// CMapStart;
+	cfwrite_ushort( 0, f );	//	CMapLength;
+	cfwrite_ubyte( 0, f );	// CMapDepth;
+	cfwrite_ushort( 0, f );	//	XOffset;
+	cfwrite_ushort( 0, f );	//	YOffset;
+	cfwrite_ushort( (ushort)gr_screen.max_w, f );	//	Width;
+	cfwrite_ushort( (ushort)gr_screen.max_h, f );	//	Height;
+	cfwrite_ubyte( 24, f );	//PixelDepth;
+	cfwrite_ubyte( 0, f );	//ImageDesc;
+
+	buf = (ubyte*)malloc(gr_screen.max_w * gr_screen.max_h * 3);
+
+	if (buf == NULL)
+		return;
+
+	memset(buf, 0, gr_screen.max_w * gr_screen.max_h * 3);
+
+	glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_BGR, GL_UNSIGNED_BYTE, buf);
+
+	cfwrite(buf, gr_screen.max_w * gr_screen.max_h * 3, 1, f);
+
+	cfclose(f);
+
+	free(buf);
+#endif
 }
 
 int gr_opengl_supports_res_ingame(int res)
@@ -2176,7 +2221,11 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 
 			size = tex_w*tex_h;
 			
-			glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+			if (!reload) {
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+			} else {
+				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+			}
 
 			free (texmem);
 
@@ -2205,9 +2254,12 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 				
 				size = tex_w*tex_h*2;
 				
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA,
-					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
-					
+				if (!reload) {
+					glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+				} else {
+					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+				}
+
 				free(texmem);
 				break;
 			}
@@ -2239,8 +2291,11 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 
 				size = tex_w*tex_h*2;
 				
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA,
-					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+				if (!reload) {
+					glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+				} else {
+					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+				}
 					
 				free(texmem);
 				break;

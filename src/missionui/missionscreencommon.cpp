@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1153,6 +1156,9 @@ void common_select_close()
 
 	nprintf(("Alan","entering common_select_close()\n"));
 	
+	// catch open anims that weapon_select_init_team() opened when not in weapon_select
+	weapon_select_close_team();
+
 	weapon_select_close();
 	if(Game_mode & GM_MULTIPLAYER){
 		multi_ts_close();

@@ -15,6 +15,9 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.3  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.2  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -73,6 +76,7 @@ extern int Cutscenes_viewable;
 
 // initializa table data
 void cutscene_init();
+void cutscene_tbl_close();
 int cutscene_get_cd_num(char *filename);
 
 

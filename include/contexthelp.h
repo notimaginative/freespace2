@@ -54,6 +54,7 @@ void	help_overlay_unload(int overlay_id);
 void	help_overlay_maybe_blit(int overlay_id);
 
 void context_help_init();			// called once at game startup
+void context_help_close();			// called once at game shutdown
 void context_help_grey_screen();	// call to grey out a screen (normally when applying a help overlay)
 
 void launch_context_help();

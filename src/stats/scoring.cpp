@@ -15,6 +15,9 @@
  * Scoring system code, medals, rank, etc.
  *
  * $Log$
+ * Revision 1.5  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.4  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -277,6 +280,19 @@ void parse_rank_tbl()
 
 	// close localization
 	lcl_ext_close();
+}
+
+// free memory from table parsing
+void scoring_tbl_close()
+{
+	int i;
+	
+	for (i=0; i<NUM_RANKS; i++) {
+		if (Ranks[i].promotion_text) {
+			free(Ranks[i].promotion_text);
+			Ranks[i].promotion_text = NULL;
+		}
+	}
 }
 
 // initialize a nice blank scoring element

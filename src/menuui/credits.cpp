@@ -15,6 +15,9 @@
  * C source file for displaying game credits
  *
  * $Log$
+ * Revision 1.6  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -394,6 +397,7 @@ void credits_init()
 		int size;
 		size = cfilelength(fp);
 		Credit_text = (char *) malloc(size + 200);
+		Credit_text_malloced = 1;
 		cfclose(fp);
 
 		// open localization and parse

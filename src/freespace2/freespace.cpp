@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.31  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.30  2003/06/03 04:00:39  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -1659,13 +1662,13 @@ void game_flash_diminish(float frametime)
 void game_level_close()
 {
 	// De-Initialize the game subsystems
-	message_mission_shutdown();
 	event_music_level_close();
 	game_stop_looped_sounds();
 	snd_stop_all();
 	obj_snd_level_close();					// uninit object-linked persistant sounds
 	gamesnd_unload_gameplay_sounds();	// unload gameplay sounds from memory
 	anim_level_close();						// stop and clean up any anim instances
+	message_mission_shutdown();				// called after anim_level_close() to make sure anim instances are free
 	shockwave_level_close();
 	fireball_level_close();	
 	shield_hit_close();
@@ -6970,7 +6973,7 @@ DCF(pofspew, "")
 
 int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
 {
-	int state;		
+	int state, i;		
 
 #ifndef PLAT_UNIX
 	// Don't let more than one instance of Freespace run.
@@ -7136,6 +7139,12 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 	if(!Is_standalone){
 #ifdef RELEASE_REAL
 		char *plist[5];
+
+		// to avoid crashes on debug build
+		for (i=0; i<5; i++) {
+			plist[i] = NULL;
+		}
+
 		if( (cf_get_file_list(2, plist, CF_TYPE_MULTI_PLAYERS, NOX("*.plr"))	<= 0) && (cf_get_file_list(2, plist, CF_TYPE_SINGLE_PLAYERS, NOX("*.plr"))	<= 0) ){
 			// prompt for cd 2
 #if defined(OEM_BUILD)
@@ -7143,6 +7152,13 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 #else
 			game_do_cd_check_specific(FS_CDROM_VOLUME_2, 2);
 #endif // defined(OEM_BUILD)
+		}
+
+		for (int i=0; i<2; i++) {
+			if (plist[i] != NULL) {
+				free(plist[i]);
+				plist[i] = NULL;
+			}
 		}
 #endif
 	}
@@ -7293,10 +7309,12 @@ void game_shutdown(void)
 	shockwave_close();			// release any memory used by shockwave system	
 	fireball_close();				// free fireball system
 	ship_close();					// free any memory that was allocated for the ships
+	weapon_close();					// free any memory that was allocated for the weapons
 	hud_free_scrollback_list();// free space allocated to store hud messages in hud scrollback
 	unload_animating_pointer();// frees the frames used for the animating mouse pointer
 	bm_unload_all();				// free bitmaps
 	mission_campaign_close();	// close out the campaign stuff
+	mission_campaign_shutdown();	// get anything that mission_campaign_close can't do
 	multi_voice_close();			// close down multiplayer voice (including freeing buffers, etc)
 	multi_log_close();
 #ifdef MULTI_USE_LAG
@@ -7307,8 +7325,15 @@ void game_shutdown(void)
 #if !defined(PRESS_TOUR_BUILD) && !defined(PD_BUILD)
 	main_hall_close();
 #endif
+	context_help_close();		// close out help system
 	training_menu_close();
+	lcl_close();				// be sure localization is closed out
 	gr_close();
+
+	// free left-over memory from parsed tables
+	cutscene_tbl_close();
+	medal_tbl_close();
+	scoring_tbl_close();
 
 	extern void joy_close();
 	joy_close();

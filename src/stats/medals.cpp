@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.10  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.9  2003/06/03 04:00:40  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -922,6 +925,19 @@ void medal_main_close()
 
 	snazzy_menu_close();
 	palette_restore_palette();
+}
+
+// free up memory from table parsing
+void medal_tbl_close()
+{
+	int i;
+	
+	for (i=0; i<MAX_BADGES; i++) {
+		if (Badge_info[i].promotion_text) {
+			free(Badge_info[i].promotion_text);
+			Badge_info[i].promotion_text = NULL;
+		}
+	}
 }
 
 /*

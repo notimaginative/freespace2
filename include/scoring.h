@@ -15,6 +15,9 @@
  * Scoring system structures, medals, rank, etc.
  *
  * $Log$
+ * Revision 1.4  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.3  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -299,6 +302,7 @@ extern rank_stuff Ranks[NUM_RANKS];
 void init_scoring_element(scoring_struct *s);
 
 void parse_rank_tbl();
+void scoring_tbl_close();
 void scoring_level_init( scoring_struct *score );
 void scoring_level_close(int accepted = 1);
 void scoring_backout_accept( scoring_struct *score );

@@ -15,6 +15,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.4  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.3  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -616,5 +619,6 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target);
 // return handle to explosion ani
 int weapon_get_expl_handle(int weapon_expl_index, vector *pos, float size);
 
-#endif
+void weapon_close();	// called in game_shutdown() to free malloc'd memory
 
+#endif

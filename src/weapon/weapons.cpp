@@ -15,6 +15,9 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.10  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.9  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -3804,4 +3807,27 @@ int weapon_get_expl_handle(int weapon_expl_index, vector *pos, float size)
 
 	best_lod = min(best_lod, wei->lod_count - 1);
 	return wei->lod[best_lod].bitmap_id;
+}
+
+// -------------------------------------------------------------------------------------------------
+// weapon_close()
+//
+// called in game_shutdown() to free malloced memory
+//
+// NOTE: do not call this function.  It is only called from game_shutdown()
+void weapon_close()
+{
+	int i;
+	
+	// free info from parsed table data
+	for (i=0; i<MAX_WEAPON_TYPES; i++) {
+		if ( Weapon_info[i].desc != NULL ) {
+			free(Weapon_info[i].desc);
+			Weapon_info[i].desc = NULL;
+		}
+		if ( Weapon_info[i].tech_desc != NULL ) {
+			free(Weapon_info[i].tech_desc);
+			Weapon_info[i].tech_desc = NULL;
+		}
+	}
 }

@@ -15,6 +15,9 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.7  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.6  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -763,7 +766,39 @@ void _cdecl gr_printf( int x, int y, char * format, ... )
 
 void gr_font_close()
 {
+	font *fnt;
+	int i;
 
+	fnt = Fonts;
+
+	for (i=0; i<Num_fonts; i++) {
+		if (fnt->kern_data) {
+			free(fnt->kern_data);
+		}
+
+		if (fnt->char_data) {
+			free(fnt->char_data);
+		}
+
+		if (fnt->pixel_data) {
+			free(fnt->pixel_data);
+		}
+
+		if (fnt->bm_data) {
+			free(fnt->bm_data);
+		}
+
+
+		if (fnt->bm_u) {
+			free(fnt->bm_u);
+		}
+
+		if (fnt->bm_v) {
+			free(fnt->bm_v);
+		}
+
+		fnt++;
+	}
 }
 
 // Returns -1 if couldn't init font, otherwise returns the

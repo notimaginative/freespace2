@@ -15,6 +15,9 @@
  * header file for dealing with campaigns
  *
  * $Log$
+ * Revision 1.4  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.3  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -424,7 +427,8 @@ extern int mission_campaign_next_mission( void );
 extern void mission_campaign_mission_over( void );
 
 // frees all memory at game close time
-extern void mission_campaign_close( void );
+extern void mission_campaign_close( void );		// gets called in more than game close
+extern void mission_campaign_shutdown( void );	// only called in game close
 
 // read in a campaign file.  Used by Fred.
 int mission_campaign_load_fred(char *filename, char *name_verify = NULL);

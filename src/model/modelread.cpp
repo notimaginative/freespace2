@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.8  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.7  2003/01/30 19:43:57  relnev
  * added a missing "not" in the model warning
  *
@@ -793,6 +796,11 @@ static void model_unload(int modelnum)
 		free(pm->docking_bays);
 	}
 
+	// this is from ship.cpp but we don't get the polymodel there so free here
+	if ( pm->ship_bay != NULL ) {
+		free(pm->ship_bay);
+		pm->ship_bay = NULL;
+	}
 
 	if ( pm->thrusters )	{
 		free(pm->thrusters);

@@ -15,6 +15,9 @@
  * Code to drive the Player Select initial screen
  *
  * $Log$
+ * Revision 1.6  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -773,6 +776,8 @@ void player_select_close()
 	if (Player_select_force_bastion) {
 		Player->on_bastion = 1;
 	}
+	
+	player_tips_close();
 }
 
 void player_select_set_input_mode(int n)
@@ -1556,6 +1561,21 @@ void player_tips_init()
 	lcl_ext_close();
 #endif
 }
+
+void player_tips_close()
+{
+#ifndef MAKE_FS1
+	int i;
+	
+	for (i=0; i<MAX_PLAYER_TIPS; i++) {
+		if (Player_tips[i]) {
+			free(Player_tips[i]);
+			Player_tips[i] = NULL;
+		}
+	}
+#endif
+}
+
 void player_tips_popup()
 {
 #ifndef MAKE_FS1

@@ -15,6 +15,9 @@
  * Controls messaging to player during the mission
  *
  * $Log$
+ * Revision 1.5  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -826,7 +829,7 @@ void messages_init()
 // called to do cleanup when leaving a mission
 void message_mission_shutdown()
 {
-	int i;
+	int i, j;
 
 	mprintf(("Unloading in mission messages\n"));
 
@@ -839,6 +842,15 @@ void message_mission_shutdown()
 		}
 	}
 
+	// free up remaining anim data
+	for (i=0; i<Num_message_avis; i++) {
+		if (Message_avis[i].anim_data != NULL) {
+			for (j=0; j<Message_avis[i].anim_data->ref_count; j++) {
+				anim_free(Message_avis[i].anim_data);
+			}
+		}
+		Message_avis[i].anim_data = NULL;
+	}
 }
 
 // functions to deal with queuing messages to the message system.
@@ -1216,6 +1228,10 @@ void message_play_anim( message_q *q )
 	// check to see if the avi has been loaded.  If not, then load the AVI.  On an error loading
 	// the avi, set the top level index to -1 to avoid multiple tries at loading the flick.
 	if ( hud_gauge_active(HUD_TALKING_HEAD) ) {
+		// if there is something already here that's not this same file then go ahead a let go of it
+		if ( (anim_info->anim_data != NULL) && stricmp(ani_name, anim_info->anim_data->name) )
+			anim_free(anim_info->anim_data);
+
 		anim_info->anim_data = anim_load( ani_name, 0 );
 	} else {
 		return;

@@ -15,6 +15,9 @@
  * Functions to drive the context-sensitive help 
  *
  * $Log$
+ * Revision 1.6  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -326,6 +329,23 @@ void context_help_init()
 	create_grey_shader();
 	help_overlay_reset_all();
 	help_overlay_init();
+}
+
+// called in game_shutdown() to clean up help stuff
+void context_help_close()
+{
+#ifndef MAKE_FS1
+	int i, j;
+
+	for (i=0; i<MAX_HELP_OVERLAYS; i++) {
+		for (j=0; j<HELP_MAX_ITEM; j++) {
+			if (help_overlaylist[i].textlist[GR_640][j].string != NULL) {
+				free(help_overlaylist[i].textlist[GR_640][j].string);
+				help_overlaylist[i].textlist[GR_640][j].string = NULL;
+			}
+		}
+	}
+#endif
 }
 
 void context_help_grey_screen()

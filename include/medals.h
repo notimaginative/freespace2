@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.5  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.4  2003/06/03 04:00:39  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -108,6 +111,7 @@ void medal_main_init(player *pl,int mode = MM_NORMAL);
 // return 0 if the screen should close (used for MM_POPUP mode)
 int medal_main_do();
 void medal_main_close();
+void medal_tbl_close();
 
 //void init_medal_palette();
 void init_medal_bitmaps();

@@ -15,6 +15,9 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.8  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.7  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -229,6 +232,19 @@ void cutscene_init()
 	// close localization
 	lcl_ext_close();
 #endif  // FS1_DEMO
+}
+
+// free up memory from table parsing
+void cutscene_tbl_close()
+{
+	int i;
+	
+	for (i=0; i<MAX_CUTSCENES; i++) {
+		if (Cutscenes[i].description) {
+			free(Cutscenes[i].description);
+			Cutscenes[i].description = NULL;
+		}
+	}
 }
 
 // function to return 0 based index of which CD a particular movie is on

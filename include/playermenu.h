@@ -8,10 +8,13 @@
 
 /*
  * $Logfile: /Freespace2/code/MenuUI/PlayerMenu.h $
- * $Revision$Date: 2002/05/03 03:28:12 $
+ * $Revision$Date: 2002/06/09 04:41:14 $
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.2  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -73,6 +76,7 @@ int player_select_get_last_pilot();
 
 // tooltips
 void player_tips_init();
+void player_tips_close();
 void player_tips_popup();
 
 #endif

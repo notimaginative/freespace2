@@ -15,6 +15,9 @@
  * source for dealing with campaigns
  *
  * $Log$
+ * Revision 1.8  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.7  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1550,12 +1553,43 @@ void mission_campaign_close()
  			free ( Campaign.missions[i].events );
 		}
 
+		// the next three are strdup'd return values from parselo.cpp
+		if (Campaign.missions[i].mission_loop_desc) {
+			free(Campaign.missions[i].mission_loop_desc);
+		}
+
+		if (Campaign.missions[i].mission_loop_brief_anim) {
+			free(Campaign.missions[i].mission_loop_brief_anim);
+		}
+
+		if (Campaign.missions[i].mission_loop_brief_sound) {
+			free(Campaign.missions[i].mission_loop_brief_sound);
+		}
+
 		if ( !Fred_running ){
 			sexp_unmark_persistent(Campaign.missions[i].formula);		// free any sexpression nodes used by campaign.
 		}
 
 		Campaign.missions[i].num_goals = 0;
 		Campaign.missions[i].num_events = 0;
+	}
+}
+
+// call from game_shutdown() ONLY!!!
+void mission_campaign_shutdown()
+{
+	int i;
+	
+	for (i=0; i<MAX_CAMPAIGNS; i++) {
+		if (Campaign_names[i] != NULL) {
+			free(Campaign_names[i]);
+			Campaign_names[i] = NULL;
+		}
+
+		if (Campaign_file_names[i] != NULL) {
+			free(Campaign_file_names[i]);
+			Campaign_file_names[i] = NULL;
+		}
 	}
 }
 

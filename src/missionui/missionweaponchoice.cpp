@@ -15,6 +15,9 @@
  * C module for the weapon loadout screen
  *
  * $Log$
+ * Revision 1.6  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -2116,6 +2119,17 @@ void weapon_select_init_team(int team_num)
 	wl_load_all_anims();
 
 	wl_fill_slots();
+}
+
+// close out what weapon_select_init_team() set up but only when we are not acutally
+// in the weapon select screen
+void weapon_select_close_team()
+{
+	if (Weapon_select_open)
+		return;
+
+	wl_unload_all_anim_instances();
+	wl_unload_all_anims();
 }
 
 // This init is called even before the weapons loadout screen is entered.  It is called when the

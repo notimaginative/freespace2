@@ -15,6 +15,9 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.9  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.8  2003/06/03 04:00:40  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -2463,6 +2466,7 @@ void brief_common_close()
 {
 	brief_close_map();
 	brief_unload_anims();
+	mission_brief_common_reset();
 }
 
 

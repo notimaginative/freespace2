@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.6  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.5  2003/06/03 04:00:40  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -487,9 +490,18 @@ void lcl_init(int lang_init)
 // shutdown localization
 void lcl_close()
 {
+	int i;
+
 	// if the filename exists, free it up
 	if(Lcl_ext_filename != NULL){
 		free(Lcl_ext_filename);
+	}
+
+	// free the Xstr_table
+	for (i=0; i<XSTR_SIZE; i++) {
+		if (Xstr_table[i].str != NULL) {
+			free(Xstr_table[i].str);
+		}
 	}
 };
 

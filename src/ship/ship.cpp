@@ -15,6 +15,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.7  2003/06/11 18:30:33  taylor
+ * plug memory leaks
+ *
  * Revision 1.6  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -7016,6 +7019,50 @@ void ship_close()
 			free(Ship_info[i].subsystems);
 		}
 	}
+
+	// free info from parsed table data
+	for (i=0; i<MAX_SHIP_TYPES; i++) {
+		if(Ship_info[i].type_str != NULL){
+			free(Ship_info[i].type_str);
+			Ship_info[i].type_str = NULL;
+		}
+		if(Ship_info[i].maneuverability_str != NULL){
+			free(Ship_info[i].maneuverability_str);
+			Ship_info[i].maneuverability_str = NULL;
+		}
+		if(Ship_info[i].armor_str != NULL){
+			free(Ship_info[i].armor_str);
+			Ship_info[i].armor_str = NULL;
+		}
+		if(Ship_info[i].manufacturer_str != NULL){
+			free(Ship_info[i].manufacturer_str);
+			Ship_info[i].manufacturer_str = NULL;
+		}
+		if(Ship_info[i].desc != NULL){
+			free(Ship_info[i].desc);
+			Ship_info[i].desc = NULL;
+		}
+		if(Ship_info[i].tech_desc != NULL){
+			free(Ship_info[i].tech_desc);
+			Ship_info[i].tech_desc = NULL;
+		}
+		if(Ship_info[i].ship_length != NULL){
+			free(Ship_info[i].ship_length);
+			Ship_info[i].ship_length = NULL;
+		}
+		if(Ship_info[i].gun_mounts != NULL){
+			free(Ship_info[i].gun_mounts);
+			Ship_info[i].gun_mounts = NULL;
+		}
+		if(Ship_info[i].missile_banks != NULL){
+			free(Ship_info[i].missile_banks);
+			Ship_info[i].missile_banks = NULL;
+		}
+	}
+	
+	// NOTE: pm->ship_bay is free'd is modelread.cpp, model_unload().
+
+		
 }	
 
 // -------------------------------------------------------------------------------------------------

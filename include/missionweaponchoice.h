@@ -15,6 +15,9 @@
  * Header file for the weapon loadout screen
  *
  * $Log$
+ * Revision 1.3  2003/06/11 18:30:32  taylor
+ * plug memory leaks
+ *
  * Revision 1.2  2002/06/09 04:41:14  relnev
  * added copyright header
  *
@@ -159,6 +162,7 @@ void weapon_select_init();
 void weapon_select_common_init();
 void weapon_select_do(float frametime);
 void weapon_select_close();
+void weapon_select_close_team();
 
 void	wl_update_parse_object_weapons(p_object *pobjp, wss_unit *slot);
 int	wl_update_ship_weapons(int objnum, wss_unit *slot);

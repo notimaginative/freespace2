@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.68  2004/06/11 01:01:07  tigital
+ * added FSAA support: switched on in .ini
+ *
  * Revision 1.67  2003/08/03 15:59:40  taylor
  * GL_RGB5_A1 as TexImage internal format; cleaner input grab; min window title; cleanup
  *
@@ -335,8 +338,8 @@
 #include <windowsx.h>
 #endif
 
-#ifdef __MACOSX__
-#include <gl.h>
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -386,6 +389,7 @@ volatile int GL_activate = 0;
 volatile int GL_deactivate = 0;
 
 static int GL_use_luminance_alpha;
+static int FSAA;
 
 static char *Gr_saved_screen = NULL;
 static int Gr_saved_screen_bitmap;
@@ -2821,11 +2825,54 @@ void gr_opengl_init()
 		SDL_WM_GrabInput(SDL_GRAB_ON);
 	}
 
+	FSAA = os_config_read_uint( NULL, "FSAA", 1 );
+	if ( FSAA ) {
+	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
+	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, FSAA );
+	}
+	
 	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
 	{
-		fprintf (stderr, "Couldn't set video mode: %s", SDL_GetError ());
-		exit (1);
-	}		
+	    fprintf (stderr, "Couldn't set FSAA video mode: %s\n", SDL_GetError ());
+	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
+	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
+		
+	    if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
+	    {
+		    fprintf (stderr, "Couldn't set video mode: %s\n", SDL_GetError ());
+		    exit (1);
+	    }
+	}
+	fprintf(stderr, "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel);
+	fprintf(stderr, "\n");
+	fprintf(stderr,"Vendor     : %s\n", glGetString( GL_VENDOR ) );
+	fprintf(stderr, "Renderer   : %s\n", glGetString( GL_RENDERER ) );
+	fprintf(stderr, "Version    : %s\n", glGetString( GL_VERSION ) );
+	fprintf(stderr, "Extensions : %s\n", glGetString( GL_EXTENSIONS ) );
+	fprintf(stderr, "\n");
+	
+	int value;
+	int rgb_size[3];
+	int bpp = 15;
+	rgb_size[0]=5;
+	rgb_size[1]=5;
+	rgb_size[2]=5;
+	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &value );
+	fprintf(stderr, "SDL_GL_RED_SIZE: requested %d, got %d\n", rgb_size[0],value);
+	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &value );
+	fprintf(stderr, "SDL_GL_GREEN_SIZE: requested %d, got %d\n", rgb_size[1],value);
+	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &value );
+	fprintf(stderr, "SDL_GL_BLUE_SIZE: requested %d, got %d\n", rgb_size[2],value);
+	SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE, &value );
+	fprintf(stderr, "SDL_GL_DEPTH_SIZE: requested %d, got %d\n", bpp, value );
+	SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &value );
+	fprintf(stderr, "SDL_GL_DOUBLEBUFFER: requested 1, got %d\n", value );
+	if ( FSAA ) {
+		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLEBUFFERS, &value );
+		fprintf(stderr, "SDL_GL_MULTISAMPLEBUFFERS: requested 1, got %d\n", value );
+		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLESAMPLES, &value );
+		fprintf(stderr, "SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", FSAA, value );
+	}
 
 	SDL_ShowCursor(0);
 	SDL_WM_SetCaption (Osreg_title, NULL);
@@ -2873,8 +2920,6 @@ void gr_opengl_init()
 	
 	Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
 	Gr_bitmap_poly = 1;
-	
-	int bpp = 15;
 	
 	switch( bpp )	{
 	case 15:

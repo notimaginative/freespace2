@@ -7,6 +7,13 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.5  2002/05/30 21:44:48  relnev
+ * implemented some missing texture stuff.
+ *
+ * enable bitmap polys for opengl.
+ *
+ * work around greenness in bitmaps.
+ *
  * Revision 1.4  2002/05/28 17:03:29  theoddone33
  * fs2 gets to the main game loop now
  *
@@ -2254,8 +2261,12 @@ void bm_set_components_argb(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
 	*((ushort*)pixel) &= ~(0x8000);
-	if(*av){
-		*((ushort*)pixel) |= 0x8000;
+	if (*((ushort*)pixel) == (ushort)Gr_current_green->mask) {
+		*((ushort*)pixel) = 0;
+	} else {
+		if(*av){
+			*((ushort*)pixel) |= 0x8000;
+		}
 	}
 }
 

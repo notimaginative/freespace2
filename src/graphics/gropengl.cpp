@@ -7,6 +7,13 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.22  2002/05/30 21:44:48  relnev
+ * implemented some missing texture stuff.
+ *
+ * enable bitmap polys for opengl.
+ *
+ * work around greenness in bitmaps.
+ *
  * Revision 1.21  2002/05/30 17:29:30  theoddone33
  * Fix some more stubs, change at least one polygon winding since culling is now
  * enabled.
@@ -184,6 +191,29 @@ static int Inited = 0;
 
 static GLuint bitmapTex;
 static GLubyte *bitmapMem;
+
+typedef enum gr_texture_source {
+	TEXTURE_SOURCE_NONE,
+	TEXTURE_SOURCE_DECAL,
+	TEXTURE_SOURCE_NO_FILTERING,
+} gr_texture_source;
+
+typedef enum gr_alpha_blend {
+        ALPHA_BLEND_NONE,			// 1*SrcPixel + 0*DestPixel
+        ALPHA_BLEND_ALPHA_ADDITIVE,             // Alpha*SrcPixel + 1*DestPixel
+        ALPHA_BLEND_ALPHA_BLEND_ALPHA,          // Alpha*SrcPixel + (1-Alpha)*DestPixel
+        ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR,      // Alpha*SrcPixel + (1-SrcPixel)*DestPixel
+} gr_alpha_blend;
+
+typedef enum gr_zbuffer_type {
+        ZBUFFER_TYPE_NONE,
+        ZBUFFER_TYPE_READ,
+        ZBUFFER_TYPE_WRITE,
+        ZBUFFER_TYPE_FULL,
+} gr_zbuffer_type;
+                        
+float z_mult = 30000.0f;
+#define NEBULA_COLORS 20
 
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
@@ -1007,18 +1037,16 @@ void gr_opengl_scaler(vertex *va, vertex *vb )
 	STUB_FUNCTION;
 }
 
-void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
+void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
 {
 	int i;
 	float u_scale = 1.0f, v_scale = 1.0f;
-	int bw = 1, bh = 1;
 
 	// Make nebula use the texture mapper... this blends the colors better.
 	if ( flags & TMAP_FLAG_NEBULA ){
 		Int3 ();
 	}
 
-	/*
 	gr_texture_source texture_source = (gr_texture_source)-1;
 	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
 	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;
@@ -1032,8 +1060,7 @@ void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 	} else {
 		zbuffer_type = ZBUFFER_TYPE_NONE;
 	}
-	*/
-
+	
 	int alpha;
 
 	int tmap_type = TCACHE_TYPE_NORMAL;
@@ -1050,24 +1077,50 @@ void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 
 	if ( gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER )        
 	{
-		// Some blend function stuff here - DDOI
-		STUB_FUNCTION;
-
-		float factor = gr_screen.current_alpha;
-
-		alpha = 255;
-
-		if ( factor <= 1.0f )   {
-			int tmp_alpha = fl2i(gr_screen.current_alpha*255.0f);
-			r = (r*tmp_alpha)/255;
-			g = (g*tmp_alpha)/255;
-			b = (b*tmp_alpha)/255;
+		if (1) {
+			tmap_type = TCACHE_TYPE_NORMAL;
+			alpha_blend = ALPHA_BLEND_ALPHA_ADDITIVE;
+			
+			// Blend with screen pixel using src*alpha+dst
+			float factor = gr_screen.current_alpha;
+			
+			alpha = 255;
+			
+			if ( factor <= 1.0f )   {
+				int tmp_alpha = fl2i(gr_screen.current_alpha*255.0f);
+				r = (r*tmp_alpha)/255;
+				g = (g*tmp_alpha)/255;
+				b = (b*tmp_alpha)/255;
+			}
+		} else {
+			tmap_type = TCACHE_TYPE_XPARENT;
+			
+			alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
+			
+			// Blend with screen pixel using src*alpha+dst
+			float factor = gr_screen.current_alpha;
+				
+			if ( factor > 1.0f )    {
+				alpha = 255;
+			} else {
+				alpha = fl2i(gr_screen.current_alpha*255.0f);
+			}
 		}
 	} else {
-		STUB_FUNCTION;
+		if(Bm_pixel_format == BM_PIXEL_FORMAT_ARGB) {
+			alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
+		} else {
+			alpha_blend = ALPHA_BLEND_NONE;
+		}
 		alpha = 255;
 	}
 
+	if(flags & TMAP_FLAG_BITMAP_SECTION){
+		tmap_type = TCACHE_TYPE_BITMAP_SECTION;
+	}
+	
+	texture_source = TEXTURE_SOURCE_NONE;
+	
 	if ( flags & TMAP_FLAG_TEXTURED )       {
 		if ( !gr_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale, &v_scale, 0, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy ))
 		{
@@ -1076,48 +1129,57 @@ void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 		}
 
 		// use nonfiltered textures for bitmap sections
-		/*
 		if(flags & TMAP_FLAG_BITMAP_SECTION){
 			texture_source = TEXTURE_SOURCE_NO_FILTERING;
 		} else {
 			texture_source = TEXTURE_SOURCE_DECAL;
 		}
-		*/
 	}
 
-	int x1, y1, x2, y2;
-	x1 = gr_screen.clip_left*16;
-	x2 = gr_screen.clip_right*16+15;
-	y1 = gr_screen.clip_top*16;
-	y2 = gr_screen.clip_bottom*16+15;
-
-	float uoffset = 0.0f;
-	float voffset = 0.0f;
-
-	float minu=0.0f, minv=0.0f, maxu=1.0f, maxv=1.0f;
-
+	// gr_d3d_set_state( texture_source, alpha_blend, zbuffer_type );
+	
 	if ( flags & TMAP_FLAG_TEXTURED )
 	{
-		STUB_FUNCTION;
+		// rendition junk
+		// STUB_FUNCTION;
 	}
 
-	int a;
-
-	STUB_FUNCTION;	// DDOI - this still needs work
 	glBegin (GL_TRIANGLE_FAN);
 	for (i=0;i<nv;i++)
 	{
-		if (flags & TMAP_FLAG_ALPHA) a = verts[i]->a;
-		else a = alpha;
+		vertex * va = verts[i];
+		float sx, sy, sz, sw;
+		float tu, tv;
+		float rhw;
+		int a;
+		
+		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
+			sz = va->z / z_mult;
+			if ( sz > 0.98f ) {
+				sz = 0.98f;
+			}
+		} else {
+			sz = 0.99f;
+		}
+				
+		if ( flags & TMAP_FLAG_CORRECT )        {
+			rhw = va->sw;
+		} else {
+			rhw = 1.0f;
+		}
+		
+		if (flags & TMAP_FLAG_ALPHA) {
+			a = verts[i]->a;
+		} else {
+			a = alpha;
+		}
 
 		if (flags & TMAP_FLAG_NEBULA ) {
-			/*
 			int pal = (verts[i]->b*(NEBULA_COLORS-1))/255;
 			r = gr_palette[pal*3+0];
 			g = gr_palette[pal*3+1];
 			b = gr_palette[pal*3+2];
-			*/
-		}else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
+		} else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
 			r = Gr_gamma_lookup[verts[i]->b];
 			g = Gr_gamma_lookup[verts[i]->b];
 			b = Gr_gamma_lookup[verts[i]->b];
@@ -1130,17 +1192,48 @@ void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 			// use constant RGB values...
 		}
 
-		glColor4i (r,g,b,a);
+		glColor4ub (r,g,b,a);
 
-		// DDOI - FIXME fog stuff
-		// DDOI - FIXME TexCoord stuff
-		glVertex3f (verts[i]->sx+gr_screen.offset_x,
-				verts[i]->sy+gr_screen.offset_y,
-				0.99f);
+		if((gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (D3D_fog_mode == 1)){
+			// gr_d3d_stuff_fog_value(va->z, &src_v->specular);
+		} else {
+			// i hate you, specular color
+		}
+		
+		int x, y;
+		x = fl2i(va->sx*16.0f);
+		y = fl2i(va->sy*16.0f);
+		
+		x += gr_screen.offset_x*16;
+		y += gr_screen.offset_y*16;
+		
+		sx = i2fl(x) / 16.0f;
+		sy = i2fl(y) / 16.0f;
+		
+		if ( flags & TMAP_FLAG_TEXTURED )       {
+			tu = va->u*u_scale;
+			tv = va->v*v_scale;
+			
+			glTexCoord2d(tu, tv);
+		}
+		
+		sx /= rhw;
+		sy /= rhw;
+		sz /= rhw;
+		sw = 1.0 / rhw;
+
+		if(flags & TMAP_FLAG_PIXEL_FOG){
+			// TODO
+		}
+		glVertex4f(sx, sy, sz, sw);
 	}
 	glEnd();
 }
 
+void gr_opengl_tmapper( int nverts, vertex **verts, uint flags )
+{
+	gr_opengl_tmapper_internal( nverts, verts, flags, 0 );
+}
 
 void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 {
@@ -1670,9 +1763,35 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 			free (texmem);
 			}
 			break;
+		case TCACHE_TYPE_BITMAP_SECTION:
+			{
+				int i,j;
+				ubyte *bmp_data = ((ubyte*)data);
+				ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
+				ubyte *texmemp = texmem;
+				
+				for (i=0;i<tex_h;i++)
+				{
+					for (j=0;j<tex_w;j++)
+					{
+						if (i < src_h && j < src_w) {
+							*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+0];
+							*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+1];
+						} else {
+							*texmemp++ = 0;
+							*texmemp++ = 0;
+						}
+					}
+				}
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA,
+					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					
+				free(texmem);
+				break;
+			}
 		default:
-			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
-					GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+			// glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
+			//		GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
 			break;
 	}
 	
@@ -1788,7 +1907,7 @@ int opengl_create_texture_sectioned(int bitmap_handle, int bitmap_type, tcache_s
 	// determine the width and height of this section
 	bm_get_section_size(bitmap_handle, sx, sy, &section_x, &section_y);
 
-	// get final texture size as it will be allocated as a DD surface
+	// get final texture size as it will be allocated as an opengl texture
 	opengl_tcache_get_adjusted_texture_size(section_x, section_y, &final_w, &final_h);
 
 	// if this tcache slot has no bitmap
@@ -1977,7 +2096,18 @@ int gr_opengl_zbuffer_set(int mode)
 
 void gr_opengl_zbuffer_clear(int mode)
 {
-	STUB_FUNCTION;
+	if (mode) {
+		gr_zbuffering = 1;
+		gr_zbuffering_mode = GR_ZBUFF_FULL;
+		gr_global_zbuffering = 1;
+		
+		// gr_d3d_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
+		glClear(GL_DEPTH_BUFFER_BIT);
+	} else {
+		gr_zbuffering = 0;
+		gr_zbuffering_mode = GR_ZBUFF_NONE;
+		gr_global_zbuffering = 0;
+	}
 }
 
 void gr_opengl_set_gamma(float gamma)
@@ -2118,7 +2248,7 @@ void gr_opengl_init()
 	glPushMatrix();
 	glLoadIdentity();
 	
-	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, -1.0, 1.0);		
+	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, 1.0, -1.0);		
 	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
@@ -2127,6 +2257,9 @@ void gr_opengl_init()
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_CHAR, bitmapMem);
 	
 	glFlush();
+	
+	Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
+	Gr_bitmap_poly = 1;
 	
 	int bpp = 15;
 	
@@ -2226,7 +2359,7 @@ void gr_opengl_init()
 	Gr_ta_alpha.scale = 16;
 
 
-	opengl_tcache_init (0);
+	opengl_tcache_init (1);
 	gr_opengl_clear();
 
 	Gr_current_red = &Gr_red;

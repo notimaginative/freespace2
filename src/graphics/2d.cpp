@@ -7,6 +7,13 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.7  2002/05/30 21:44:48  relnev
+ * implemented some missing texture stuff.
+ *
+ * enable bitmap polys for opengl.
+ *
+ * work around greenness in bitmaps.
+ *
  * Revision 1.6  2002/05/28 21:36:10  relnev
  * some more timer junk.
  *
@@ -513,7 +520,6 @@ void gr_close()
 #endif
 		break;
 	case GR_OPENGL:
-		Int3();
 		gr_opengl_cleanup();
 		break;
 	default:
@@ -547,7 +553,6 @@ DCF(gr,"Changes graphics mode")
 			mode = GR_GLIDE;
 #endif
 		} else if ( !strcmp( Dc_arg, "o"))	{
-			Int3();
 			mode = GR_OPENGL;
 		} else {
 			// print usage, not stats
@@ -595,7 +600,6 @@ DCF(gr,"Changes graphics mode")
 #endif
 			break;
 		case GR_OPENGL:
-			Int3();
 			dc_printf( "OpenGl\n" );
 			break;
 		default:
@@ -1053,7 +1057,9 @@ void gr_force_windowed()
 			}
 			break;
 		case GR_OPENGL:
+#ifndef PLAT_UNIX		
 			Int3();
+#endif			
 			break;
 
 		default:
@@ -1174,7 +1180,7 @@ void gr_bitmap(int x, int y)
 	int w, h;
 
 	// d3d and glide support texture poly shiz
-	if(((gr_screen.mode == GR_DIRECT3D) || (gr_screen.mode == GR_GLIDE)) && Gr_bitmap_poly){		
+	if(((gr_screen.mode == GR_DIRECT3D) || (gr_screen.mode == GR_GLIDE) || (gr_screen.mode == GR_OPENGL)) && Gr_bitmap_poly){
 		int idx, s_idx;
 		// float u_scale, v_scale;
 		bitmap_section_info *sections;			
@@ -1246,6 +1252,9 @@ void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy)
 
 	case GR_OPENGL:
 		gr_opengl_bitmap_ex(x, y, w, h, sx, sy);
+		break;
+	default:
+		break;
 	}
 }
 

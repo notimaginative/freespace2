@@ -15,6 +15,9 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.6  2002/07/24 00:20:42  relnev
+ * nothing interesting
+ *
  * Revision 1.5  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -1019,15 +1022,13 @@ void main_hall_do(float frametime)
 	case KEY_ENTER:
 		snazzy_action = SNAZZY_CLICKED;	
 		break;
-	
-#ifndef NDEBUG	
+
+#if 0 //#ifndef NDEBUG	
 	case KEY_1:		
-		// no soup for you!
-		// movie_play("endprt2b.mve", 0);
+		movie_play("endprt2b.mve", 0);
 		break;
 	case KEY_2:		
-		// no soup for you!
-		// movie_play_two("endprt2a.mve", "endprt2b.mve", 0);
+		movie_play_two("endprt2a.mve", "endprt2b.mve", 0);
 		break;
 	case KEY_3:		
 		main_hall_campaign_cheat();	

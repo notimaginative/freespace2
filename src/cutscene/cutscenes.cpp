@@ -15,6 +15,9 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.6  2002/07/24 00:20:41  relnev
+ * nothing interesting
+ *
  * Revision 1.5  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -156,7 +159,7 @@
 #include "freespace.h"
 #include "key.h"
 #include "bmpman.h"
-// #include "movie.h"
+#include "movie.h"
 #include "popup.h"
 #include "mainhallmenu.h"
 #include "alphacolors.h"
@@ -436,8 +439,6 @@ void cutscenes_screen_play()
 	strcpy(name, Cutscenes[which_cutscene].filename );
 	full_name = cf_add_ext(name, NOX(".mve"));
 
-	// no soup for you!
-	/*
 	int rval = movie_play(full_name);
 	if ( !rval ) {
 		char str[256];
@@ -445,7 +446,6 @@ void cutscenes_screen_play()
 		sprintf(str, XSTR( "Unable to play movie %s.", 204), Cutscenes[which_cutscene].name );
 		popup(0, 1, POPUP_OK, str );
 	}
-	*/
 }
 
 void cutscenes_screen_scroll_line_up()

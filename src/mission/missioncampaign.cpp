@@ -15,6 +15,9 @@
  * source for dealing with campaigns
  *
  * $Log$
+ * Revision 1.6  2002/07/24 00:20:42  relnev
+ * nothing interesting
+ *
  * Revision 1.5  2002/06/21 03:34:05  relnev
  * implemented a stub and fixed a path
  *
@@ -204,7 +207,7 @@
 #include "cfile.h"
 #include "player.h"
 #include "missiongoals.h"
-// #include "movie.h"
+#include "movie.h"
 #include "multi.h"
 #include "techmenu.h"
 #include "eventmusic.h"
@@ -1746,8 +1749,7 @@ void mission_campaign_maybe_play_movie(int type)
 	if ( !filename )
 		return;
 
-	// no soup for you!
-	// movie_play( filename );
+	movie_play( filename );
 }
 
 // return nonzero if the passed filename is a multiplayer campaign, 0 otherwise
@@ -1823,11 +1825,9 @@ void mission_campaign_end_do()
 	// eventually we'll want to play one of two options (good ending or bad ending)
 	// did the supernova blow?
 	if(Supernova_status == SUPERNOVA_HIT){
-		// no soup for you!
-		// movie_play_two("endpart1.mve", "endprt2b.mve");			// good ending
+		movie_play_two("endpart1.mve", "endprt2b.mve");			// good ending
 	} else {
-		// no soup for you!
-		// movie_play_two("endpart1.mve", "endprt2a.mve");			// good ending
+		movie_play_two("endpart1.mve", "endprt2a.mve");			// good ending
 	}	
 
 #ifdef FS2_DEMO

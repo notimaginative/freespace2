@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.20  2002/07/24 00:20:41  relnev
+ * nothing interesting
+ *
  * Revision 1.19  2002/06/17 06:33:08  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -613,7 +616,7 @@
 #include "multi_endgame.h"
 #include "cutscenes.h"
 #include "multi_respawn.h"
-// #include "movie.h"
+#include "movie.h"
 #include "multi_obj.h"
 #include "multi_log.h"
 #include "emp.h"
@@ -6903,14 +6906,12 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 		#if defined(NDEBUG)
 
 		// in RELEASE_REAL builds make the user stick in CD2 if there are no pilots on disk so that we guarantee he plays the movie
-		// no soup for you!
-		// movie_play( NOX("intro.mve"), 0 );
+		movie_play( NOX("intro.mve"), 0 );
 
 		// debug version, movie will only play with -showmovies
 		#elif !defined(NDEBUG)
 		
-		// no soup for you!
-		// movie_play( NOX("intro.mve"), 0);
+		movie_play( NOX("intro.mve"), 0);
 /*
 #ifndef NDEBUG
 		if ( Cmdline_show_movies )

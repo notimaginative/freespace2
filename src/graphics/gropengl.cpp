@@ -7,6 +7,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.39  2002/06/01 05:33:15  relnev
+ * copied more code over.
+ *
+ * added scissor clipping.
+ *
  * Revision 1.38  2002/06/01 03:35:27  relnev
  * fix typo
  *
@@ -237,6 +242,7 @@
 #include "gropengl.h"
 #include "line.h"
 #include "neb.h"
+#include "mouse.h"
 
 static int Inited = 0;
 
@@ -265,6 +271,9 @@ typedef enum gr_zbuffer_type {
                         
 float z_mult = 30000.0f;
 #define NEBULA_COLORS 20
+
+volatile int GL_activate = 0;
+volatile int GL_deactivate = 0;
 
 static char *Gr_saved_screen = NULL;
 
@@ -384,8 +393,22 @@ void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_typ
 	}		
 }
 
-void gr_opengl_activate(int b)
+void gr_opengl_activate(int active)
 {
+	if (active) {
+		GL_activate++;
+		
+		/* TODO:
+		   make sure window is active and mouse grabbed
+		 */
+	} else {
+		GL_deactivate++;
+		
+		/* TODO:
+		   make sure mouse is not grabbed and window minimized
+		 */
+	}
+	
 	STUB_FUNCTION;
 }
 
@@ -436,8 +459,8 @@ void gr_opengl_pixel(int x, int y)
 void gr_opengl_clear()
 {
 	glClearColor(gr_screen.current_clear_color.red / 255.0, 
-		gr_screen.current_clear_color.red / 255.0, 
-		gr_screen.current_clear_color.red / 255.0, 1.0);
+		gr_screen.current_clear_color.green / 255.0, 
+		gr_screen.current_clear_color.blue / 255.0, 1.0);
 
 	glClear ( GL_COLOR_BUFFER_BIT );
 }
@@ -447,6 +470,29 @@ void gr_opengl_flip()
 {
 	if (!Inited) return;
 
+	gr_reset_clip();
+
+#if 0 // TODO - set cursor, save_screen
+	mouse_eval_deltas();
+	
+	if ( mouse_is_visible() )       {
+		int mx, my;
+		
+	 	gr_reset_clip();
+	 	mouse_get_pos( &mx, &my );
+	 	
+	 	// TODO: implement this when adding the save_screen code
+	 	// gr_opengl_save_mouse_area(mx,my,32,32);
+	 	
+	 	if ( Gr_cursor == -1 )  {
+	 		// stuff
+	 	} else {
+	 		gr_set_bitmap(Gr_cursor);
+	 		gr_bitmap( mx, my );
+	 	}
+	 }
+#endif
+	 
 #ifndef NDEBUG
 	GLenum error = glGetError();
 	int ic = 0;
@@ -463,6 +509,19 @@ void gr_opengl_flip()
 	SDL_GL_SwapBuffers ();
 
 	opengl_tcache_frame ();
+	
+	int cnt = GL_activate;
+	if ( cnt )      {
+		GL_activate-=cnt;
+		opengl_tcache_flush();
+		// gr_opengl_clip_cursor(1); /* mouse grab, see opengl_activate */
+	}
+	
+	cnt = GL_deactivate;
+	if ( cnt )      {
+		GL_deactivate-=cnt;
+		// gr_opengl_clip_cursor(0);  /* mouse grab, see opengl_activate */
+	}
 }
 
 void gr_opengl_flip_window(uint _hdc, int x, int y, int w, int h )
@@ -502,7 +561,8 @@ void gr_opengl_set_clip(int x,int y,int w,int h)
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
 	
-//	glViewport(x, y, w, h);
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(x, gr_screen.max_h-y-h, w, h);
 }
 
 void gr_opengl_reset_clip()
@@ -516,7 +576,8 @@ void gr_opengl_reset_clip()
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
 	
-//	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+	glDisable(GL_SCISSOR_TEST);
+//	glScissor(0, 0, gr_screen.max_w, gr_screen.max_h);
 }
 
 void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy )
@@ -2534,7 +2595,7 @@ void gr_opengl_zbuffer_clear(int mode)
 		gr_global_zbuffering = 1;
 		
 		gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClear ( GL_DEPTH_BUFFER_BIT );
 	} else {
 		gr_zbuffering = 0;
 		gr_zbuffering_mode = GR_ZBUFF_NONE;
@@ -2580,6 +2641,9 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 	} else {
 		glReadBuffer(GL_BACK);
 	}
+	
+	STUB_FUNCTION;
+	
 // TODO
 //	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
 }
@@ -2599,6 +2663,8 @@ int gr_opengl_save_screen()
 		return -1;
 	}
 
+	STUB_FUNCTION;
+	
 	gr_opengl_get_region(1, gr_screen.max_w, gr_screen.max_h, (ubyte *)Gr_saved_screen);
 	
 	return 0;
@@ -2613,6 +2679,8 @@ void gr_opengl_restore_screen(int id)
 		return;
 	}
 
+	STUB_FUNCTION;
+	
 // TODO	
 //	glDrawPixels(gr_screen.max_w, gr_screen.max_h, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_saved_screen);
 }
@@ -2918,5 +2986,10 @@ void gr_opengl_init()
 	gr_screen.gf_tcache_set = gr_opengl_tcache_set;
 
 	gr_screen.gf_set_clear_color = gr_opengl_set_clear_color;
+	
+	Mouse_hidden++;
+	gr_reset_clip();
+	gr_clear();
+	gr_flip();
+	Mouse_hidden--;
 }
-

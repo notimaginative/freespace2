@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.16  2003/08/03 16:03:53  taylor
+ * working play position; 2D pan; pitch; cleanup
+ *
  * Revision 1.15  2003/03/15 05:12:56  theoddone33
  * Fix OpenAL cleanup (Taylor)
  *
@@ -546,6 +549,13 @@ static int Ds_use_ds3d = 0;
 static int Ds_use_a3d = 0;
 static int Ds_use_eax = 0;
 
+static int AL_play_position = 0;
+
+#ifndef AL_BYTE_LOKI
+// in case it's not defined by older/other drivers
+#define AL_BYTE_LOKI	0x100C
+#endif
+
 ALCdevice *ds_sound_device;
 void *ds_sound_context = (void *)0;
 
@@ -604,6 +614,11 @@ int ds_is_3d_buffer(int sid)
 		return ds_is_3d_buffer(ds_software_buffers[sid].pdsb);
 	}
 #else
+	// they are all 3d
+	if ( sid >= 0 ) {
+		return 1;
+	}
+
 	return 0;
 #endif
 }
@@ -1402,12 +1417,22 @@ int ds_init(int use_a3d, int use_eax)
 	}
 
 	OpenAL_ErrorCheck();
-	
+
+	// make sure we can actually use AL_BYTE_LOKI (Mac OpenAL doesn't have it)
+	AL_play_position = alIsExtensionPresent( (ALubyte*)"AL_LOKI_play_position" );
+
 	// Initialize DirectSound3D.  Since software performance of DirectSound3D is unacceptably
 	// slow, we require the voice manger (a DirectSound extension) to be present.  The 
 	// exception is when A3D is being used, since A3D has a resource manager built in.
 //	if (Ds_use_ds3d && ds3d_init(0) != 0) 
 //		Ds_use_ds3d = 0;
+
+	// setup default listener position/orientation
+	// this is needed for 2D pan
+	alListener3f(AL_POSITION, 0.0, 0.0, 0.0);
+	
+	ALfloat list_orien[] = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
+	alListenerfv(AL_ORIENTATION, list_orien);
 
 	ds_build_vol_lookup();
 	ds_init_channels();
@@ -1971,7 +1996,7 @@ int ds_get_free_channel(int new_volume, int snd_id, int priority)
 			continue;
 		}
 
-		alGetSourceiv(chp->source_id, AL_SOURCE_STATE, &status);
+		alGetSourcei(chp->source_id, AL_SOURCE_STATE, &status);
 	
 		OpenAL_ErrorCheck();
 			
@@ -2455,9 +2480,25 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 		Channels[channel].looping = looping;
 		Channels[channel].priority = priority;
 
-		/* TODO: pan */
-		// Channels[channel].pdsb->SetPan(pan);
-		
+		// set new position for pan or zero out if none
+		ALfloat alpan = (float)pan / MAX_PAN;
+
+		if ( alpan ) {
+			alSource3f(Channels[channel].source_id, AL_POSITION, alpan, 0.0, 1.0);
+		} else {
+			alSource3f(Channels[channel].source_id, AL_POSITION, 0.0, 0.0, 0.0);
+		}
+
+		OpenAL_ErrorCheck();
+
+		alSource3f(Channels[channel].source_id, AL_VELOCITY, 0.0, 0.0, 0.0);
+
+		OpenAL_ErrorCheck();
+
+		alSourcef(Channels[channel].source_id, AL_PITCH, 1.0);
+
+		OpenAL_ErrorCheck();
+
 		ALfloat alvol = (volume != -10000) ? pow(10.0, (float)volume / (-600.0 / log10(.5))): 0.0;
 		alSourcef(Channels[channel].source_id, AL_GAIN, alvol);		
 		
@@ -2466,7 +2507,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 		OpenAL_ErrorCheck();
 		
 		ALint status;
-		alGetSourceiv(Channels[channel].source_id, AL_SOURCE_STATE, &status);
+		alGetSourcei(Channels[channel].source_id, AL_SOURCE_STATE, &status);
 		
 		OpenAL_ErrorCheck();
 		
@@ -2510,7 +2551,6 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 				continue;
 			}
 
-#ifndef PLAT_UNIX /* TODO: play position still needs some work */
 			DWORD current_position = ds_get_play_position(i);
 			if (current_position != 0) {
 				if (current_position < Channels[i].last_position) {
@@ -2518,8 +2558,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 				} else {
 					Channels[i].last_position = current_position;
 				}
-			}
-#endif			
+			}	
 		}
 	}
 
@@ -2630,7 +2669,6 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 				continue;
 			}
 
-#ifndef PLAT_UNIX /* TODO: play position still needs some work */
 			DWORD current_position = ds_get_play_position(i);
 			if (current_position != 0) {
 				if (current_position < Channels[i].last_position) {
@@ -2638,8 +2676,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 				} else {
 					Channels[i].last_position = current_position;
 				}
-			}
-#endif			
+			}	
 		}
 	}
 
@@ -2692,7 +2729,7 @@ int ds_is_channel_playing(int channel)
 	if ( Channels[channel].source_id != 0 ) {
 		ALint status;
 		
-		alGetSourceiv(Channels[channel].source_id, AL_SOURCE_STATE, &status);
+		alGetSourcei(Channels[channel].source_id, AL_SOURCE_STATE, &status);
 		OpenAL_ErrorCheck();
 		
 		return (status == AL_PLAYING);
@@ -2802,7 +2839,14 @@ void ds_set_volume( int channel, int vol )
 void ds_set_pan( int channel, int pan )
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	ALint state;
+
+	alGetSourcei(Channels[channel].source_id, AL_SOURCE_STATE, &state);
+
+	if (state == AL_PLAYING) {
+		ALfloat alpan = (pan != 0) ? ((float)pan / MAX_PAN) : 0.0;
+		alSource3f(Channels[channel].source_id, AL_POSITION, alpan, 0.0, 1.0);
+	}
 #else
 	HRESULT			hr;
 	unsigned long	status;		
@@ -2827,9 +2871,19 @@ void ds_set_pan( int channel, int pan )
 int ds_get_pitch(int channel)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	ALint status;
+	ALfloat alpitch = 0;
+	int pitch;
 
-	return -1;
+	alGetSourcei(Channels[channel].source_id, AL_SOURCE_STATE, &status);
+
+	if (status == AL_PLAYING)
+		alGetSourcef(Channels[channel].source_id, AL_PITCH, &alpitch);
+
+	// convert OpenAL values to DirectSound values and return
+	pitch = fl2i( pow(10.0, (alpitch + 2.0)) );
+
+	return pitch;
 #else
 	unsigned long	status, pitch = 0;
 	HRESULT			hr;
@@ -2861,7 +2915,20 @@ int ds_get_pitch(int channel)
 void ds_set_pitch(int channel, int pitch)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	ALint status;
+
+	if ( pitch < MIN_PITCH )
+		pitch = MIN_PITCH;
+
+	if ( pitch > MAX_PITCH )
+		pitch = MAX_PITCH;
+
+	alGetSourcei(Channels[channel].source_id, AL_SOURCE_STATE, &status);
+
+	if (status == AL_PLAYING) {
+		ALfloat alpitch = log10(pitch) - 2.0;
+		alSourcef(Channels[channel].source_id, AL_PITCH, alpitch);
+	}
 #else
 	unsigned long	status;
 	HRESULT			hr;
@@ -3113,11 +3180,14 @@ DWORD ds_get_play_position(int channel)
 #ifdef PLAT_UNIX
 	ALint pos;
 
-	/* TODO: does this work ? */	
-	alGetSourceiv(Channels[channel].source_id, AL_BYTE_LOKI, &pos);
-	
-	if (pos == -1)
+	if (!AL_play_position)
 		return 0;
+
+	alGetSourcei(Channels[channel].source_id, AL_BYTE_LOKI, &pos);
+
+	if ( pos < 0 )
+		pos = 0;
+
 	return pos;
 #else
 	DWORD play,write;	
@@ -3642,12 +3712,11 @@ void ds_do_frame()
 		
 	for (int i=0; i<MAX_CHANNELS; i++) {
 		cp = &Channels[i];
-		if (cp->is_voice_msg) {
+		if (cp->is_voice_msg == true) {
 			if (cp->source_id == 0) {
 				continue;
 			}
 
-#ifndef PLAT_UNIX /* TODO: get play position needs some work */
 			int current_position = ds_get_play_position(i);
 			if (current_position != 0) {
 				if (current_position < cp->last_position) {
@@ -3660,7 +3729,6 @@ void ds_do_frame()
 					cp->last_position = current_position;
 				}
 			}
-#endif			
 		}
 	}
 }

@@ -15,6 +15,9 @@
  * low level parse routines common to all types of parsers
  *
  * $Log$
+ * Revision 1.6  2002/06/17 06:15:25  relnev
+ * ryan's struct patch (and cr removal)
+ *
  * Revision 1.5  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -1539,9 +1542,9 @@ void mark_int_list(int *ilp, int max_ints, int lookup_type)
 //	Stuff a vector, which is 3 floats.
 void stuff_vector(vector *vp)
 {
-	stuff_float(&vp->x);
-	stuff_float(&vp->y);
-	stuff_float(&vp->z);
+	stuff_float(&vp->xyz.x);
+	stuff_float(&vp->xyz.y);
+	stuff_float(&vp->xyz.z);
 }
 
 void stuff_parenthesized_vector(vector *vp)
@@ -1600,9 +1603,9 @@ int stuff_vector_list(vector *vlp, int max_vecs)
 //	Stuff a matrix, which is 3 vectors.
 void stuff_matrix(matrix *mp)
 {
-	stuff_vector(&mp->rvec);
-	stuff_vector(&mp->uvec);
-	stuff_vector(&mp->fvec);
+	stuff_vector(&mp->v.rvec);
+	stuff_vector(&mp->v.uvec);
+	stuff_vector(&mp->v.fvec);
 }
 
 

@@ -15,6 +15,9 @@
  * main sexpression generator
  *
  * $Log$
+ * Revision 1.4  2002/06/17 06:15:25  relnev
+ * ryan's struct patch (and cr removal)
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -3224,16 +3227,16 @@ int sexp_special_warp_dist( int n)
 	}
 
 	// check if within 45 degree half-angle cone of facing 
-	float dot = fl_abs(vm_vec_dotprod(&warp_objp->orient.fvec, &ship_objp->orient.fvec));
+	float dot = fl_abs(vm_vec_dotprod(&warp_objp->orient.v.fvec, &ship_objp->orient.v.fvec));
 	if (dot < 0.707f) {
 		return SEXP_NAN;
 	}
 
 	// get distance
 	vector hit_pt;
-	float dist = fvi_ray_plane(&hit_pt, &warp_objp->pos, &warp_objp->orient.fvec, &ship_objp->pos, &ship_objp->orient.fvec, 0.0f);
+	float dist = fvi_ray_plane(&hit_pt, &warp_objp->pos, &warp_objp->orient.v.fvec, &ship_objp->pos, &ship_objp->orient.v.fvec, 0.0f);
 	polymodel *pm = model_get(Ships[shipnum].modelnum);
-	dist += pm->mins.z;
+	dist += pm->mins.xyz.z;
 
 	// return as a percent of length
 	return (int) (100.0f * dist / ship_get_length(&Ships[shipnum]));
@@ -6012,7 +6015,7 @@ int sexp_facing(int node)
 	}
 
 	obj = Ships[sh].objnum;
-	v1 = Player_obj->orient.fvec;
+	v1 = Player_obj->orient.v.fvec;
 	vm_vec_normalize(&v1);
 	vm_vec_sub(&v2, &Objects[obj].pos, &Player_obj->pos);
 	vm_vec_normalize(&v2);
@@ -6038,7 +6041,7 @@ int sexp_facing2(int node)
 	}
 
 	// get player fvec
-	v1 = Player_obj->orient.fvec;
+	v1 = Player_obj->orient.v.fvec;
 	vm_vec_normalize(&v1);
 
 	// get waypoint name

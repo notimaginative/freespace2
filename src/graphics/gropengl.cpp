@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.42  2002/06/02 10:28:17  relnev
+ * fix texture handle leak
+ *
  * Revision 1.41  2002/06/01 09:00:34  relnev
  * silly debug memmanager
  *
@@ -1807,7 +1810,6 @@ void gr_opengl_get_pixel(int x, int y, int *r, int *g, int *b)
 void gr_opengl_set_cull(int cull)
 {
 	if (cull) {
-		// DDOI - disabled for debugging purposes
 		glEnable (GL_CULL_FACE);
 		glFrontFace (GL_CCW);
 	} else {
@@ -2173,7 +2175,15 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		t->v_scale = 1.0f;
 	}
 
-	glGenTextures (1, &t->texture_handle);
+	if (!reload) {
+		glGenTextures (1, &t->texture_handle);
+	}
+	
+	if (t->texture_handle == 0) {
+		nprintf(("Error", "!!DEBUG!! t->texture_handle == 0"));
+		return 0;
+	}
+	
 	glBindTexture (GL_TEXTURE_2D, t->texture_handle);
 
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.23  2002/05/30 22:02:30  theoddone33
+ * More gl changes
+ *
  * Revision 1.22  2002/05/30 21:44:48  relnev
  * implemented some missing texture stuff.
  *
@@ -245,9 +248,36 @@ void gr_directdraw_init()
 }
 
 
-void gr_d3d_preload(int x, int y)
+int GL_should_preload = 0;
+int gr_opengl_preload(int bitmap_num, int is_aabitmap)
 {
-	STUB_FUNCTION;
+	if ( gr_screen.mode != GR_OPENGL) {
+		return 0;
+	}
+
+	if ( !GL_should_preload )      {
+		return 0;
+	}
+
+	float u_scale, v_scale;
+
+	int retval;
+	if ( is_aabitmap )      {
+		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 1 );
+	} else {
+		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_NORMAL, &u_scale, &v_scale, 1 );
+	}
+
+	if ( !retval )  {
+		mprintf(("Texture upload failed!\n" ));
+	}
+
+	return retval;
+}
+
+int gr_d3d_preload (int x, int y)
+{
+	return gr_opengl_preload(x, y);
 }
 
 void d3d_start_frame()
@@ -276,9 +306,14 @@ void gr_opengl_activate(int b)
 	STUB_FUNCTION;
 }
 
+void opengl_tcache_flush ();
 void gr_opengl_preload_init()
 {
-	STUB_FUNCTION;
+	if (gr_screen.mode != GR_OPENGL) {
+		return;
+	}
+
+	opengl_tcache_flush ();
 }
 
 void gr_opengl_pixel(int x, int y)
@@ -678,16 +713,16 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 
 	glBegin (GL_QUADS);
 	  glTexCoord2f (u0, v1);
-	  glVertex3f (x1, y2, 0.99);
+	  glVertex3f (x1, y2, -0.99);
 
 	  glTexCoord2f (u1, v1);
-	  glVertex3f (x2, y2, 0.99);
+	  glVertex3f (x2, y2, -0.99);
 
 	  glTexCoord2f (u1, v0);
-	  glVertex3f (x2, y1, 0.99);
+	  glVertex3f (x2, y1, -0.99);
 
 	  glTexCoord2f (u0, v0);
-	  glVertex3f (x1, y1, 0.99);
+	  glVertex3f (x1, y1, -0.99);
 	glEnd ();
 }
 
@@ -920,8 +955,8 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 		
 	glBegin (GL_LINE);
 	  glColor4f (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
-	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), 0.99f);
-	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), 0.99f);
+	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), -0.99f);
+	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), -0.99f);
 	glEnd ();
 }
 
@@ -1136,6 +1171,12 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		}
 	}
 
+	int x1, y1, x2, y2;
+	x1 = gr_screen.clip_left*16;
+	x2 = gr_screen.clip_right*16+15;
+	y1 = gr_screen.clip_top*16;
+	y2 = gr_screen.clip_bottom*16+15;
+
 	// gr_d3d_set_state( texture_source, alpha_blend, zbuffer_type );
 	
 	if ( flags & TMAP_FLAG_TEXTURED )
@@ -1191,7 +1232,6 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		} else {
 			// use constant RGB values...
 		}
-
 		glColor4ub (r,g,b,a);
 
 		if((gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (D3D_fog_mode == 1)){
@@ -1374,8 +1414,9 @@ void gr_opengl_get_region(int front, int w, int g, ubyte *data)
 void gr_opengl_set_cull(int cull)
 {
 	if (cull) {
-		glEnable (GL_CULL_FACE);
-		glFrontFace (GL_CCW);
+		// DDOI - disabled for debugging purposes
+		//glEnable (GL_CULL_FACE);
+		//glFrontFace (GL_CCW);
 	} else {
 		glDisable (GL_CULL_FACE);
 	}
@@ -1383,7 +1424,6 @@ void gr_opengl_set_cull(int cull)
 
 void gr_opengl_filter_set(int filter)
 {
-	STUB_FUNCTION;
 }
 
 // cross fade
@@ -1433,6 +1473,20 @@ void opengl_tcache_init (int use_sections)
 	int i, idx, s_idx;
 
 	// DDOI - FIXME skipped a lot of stuff here
+	GL_should_preload = 0;
+
+	STUB_FUNCTION;
+	//uint tmp_pl = os_config_read_uint( NULL, NOX("D3DPreloadTextures"), 255 );
+	uint tmp_pl = 1;	// Enabling preloading segfaults it somehow - DDOI
+
+	if ( tmp_pl == 0 )      {
+		GL_should_preload = 0;
+	} else if ( tmp_pl == 1 )       {
+		GL_should_preload = 1;
+	} else {
+		STUB_FUNCTION;
+	}
+
 	STUB_FUNCTION;
 
 	GL_min_texture_width = 16;
@@ -2064,7 +2118,7 @@ void gr_opengl_set_clear_color(int r, int g, int b)
 
 void gr_opengl_aaline(vertex *v1, vertex *v2)
 {
-	STUB_FUNCTION;
+	gr_opengl_line( fl2i(v1->sx), fl2i(v1->sy), fl2i(v2->sx), fl2i(v2->sy) );
 }
 
 void gr_opengl_flash(int r, int g, int b)

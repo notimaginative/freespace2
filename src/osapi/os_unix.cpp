@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.10  2002/07/28 21:39:44  theoddone33
+ * Add alt-enter to toggle fullscreen and ctrl-g to toggle mouse grabbing
+ *
  * Revision 1.9  2002/06/16 23:59:31  relnev
  * untested joystick code
  *
@@ -271,6 +274,27 @@ void os_poll()
 					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 0);
 				break;
 			case SDL_KEYDOWN:
+				if ((e.key.keysym.mod & KMOD_ALT) &&
+				    (e.key.keysym.sym == SDLK_RETURN))
+				{
+					if (!(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
+						SDL_WM_GrabInput (SDL_GRAB_ON);
+					SDL_WM_ToggleFullScreen (SDL_GetVideoSurface());
+					break;
+				}
+				if ((e.key.keysym.mod & KMOD_CTRL) &&
+				    (e.key.keysym.sym == SDLK_g))
+				{
+					/* DDOI - ignore grab changes when fullscreen */
+					if (!(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
+					{
+						if (SDL_WM_GrabInput(SDL_GRAB_QUERY)==SDL_GRAB_ON)
+							SDL_WM_GrabInput (SDL_GRAB_OFF);
+						else
+							SDL_WM_GrabInput (SDL_GRAB_ON);
+					}
+					break;
+				}
 				if (SDLtoFS2[e.key.keysym.sym])
 				key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);
 				break;

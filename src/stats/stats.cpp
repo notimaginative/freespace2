@@ -7,8 +7,11 @@
  * module for running the stats screen
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
  * Revision 1.2  2002/05/04 04:36:56  theoddone33
- * More changes, took out a lot of the sound/* stuff which will bite later but
+ * More changes, took out a lot of the sound stuff which will bite later but
  * I don't care.
  *
  * Revision 1.1.1.1  2002/05/03 03:28:10  root

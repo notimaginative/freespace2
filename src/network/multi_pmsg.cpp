@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -114,6 +117,7 @@
  * $NoKeywords: $
  */
 
+#include <ctype.h>
 #include "multi.h"
 #include "multimsgs.h"
 #include "multiutil.h"

@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  * 
  * 
  * 22    8/27/99 12:32a Dave
@@ -175,7 +178,9 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #include <windows.h>
+#endif
 #include "cmdline.h"
 #include "osregistry.h"
 #include "multi.h"
@@ -312,8 +317,12 @@ void multi_options_read_config()
 					strncpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
 
 					// yuck
+#ifdef PLAT_UNIX
+					STUB_FUNCTION;
+#else
 					extern HWND Multi_std_host_passwd;
 					SetWindowText(Multi_std_host_passwd, Multi_options_g.std_passwd);
+#endif
 				}
 			} else 
 			if(SETTING("+low_update")){

@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 5     12/14/98 4:01p Dave
@@ -65,6 +68,8 @@
 
 #ifndef _FREESPACE_FILE_TRANSFER_HEADER
 #define _FREESPACE_FILE_TRANSFER_HEADER
+
+#include "pstypes.h"
 
 // ------------------------------------------------------------------------------------------
 // MULTI XFER DEFINES/VARS

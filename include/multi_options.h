@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  * 
  * 
  * 6     4/20/99 6:39p Dave
@@ -84,6 +87,8 @@
 
 #ifndef _MULTI_NETGAME_OPTIONS_HEADER_FILE
 #define _MULTI_NETGAME_OPTIONS_HEADER_FILE
+
+#include "pstypes.h"
 
 // ----------------------------------------------------------------------------------
 // MULTI OPTIONS DEFINES/VARS

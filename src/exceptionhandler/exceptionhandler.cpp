@@ -7,6 +7,9 @@
  * Main file for dealing with exception handling
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
  * Revision 1.2  2002/05/07 03:16:43  theoddone33
  * The Great Newline Fix
  *
@@ -35,7 +38,12 @@ on how to hook it in.
 */
 
 
+#ifndef PLAT_UNIX
 #include <windows.h>
+#else
+#include <stdarg.h>
+#include "pstypes.h"
+#endif
 
 // --------------------
 //
@@ -99,6 +107,9 @@ const int StackColumns = 8;		// Number of columns in stack dump.
 // therefore hprintf, cannot handle floating point numbers.
 static void hprintf(HANDLE LogFile, char* Format, ...)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	char buffer[2000];	// wvsprintf never prints more than one K.
 
 	va_list arglist;
@@ -108,12 +119,16 @@ static void hprintf(HANDLE LogFile, char* Format, ...)
 
 	DWORD NumBytes;
 	WriteFile(LogFile, buffer, lstrlen(buffer), &NumBytes, 0);
+#endif
 }
 
 // Print the specified FILETIME to output in a human readable format,
 // without using the C run time.
 static void PrintTime(char *output, FILETIME TimeToPrint)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	WORD Date, Time;
 	if (FileTimeToLocalFileTime(&TimeToPrint, &TimeToPrint) &&
 				FileTimeToDosDateTime(&TimeToPrint, &Date, &Time))
@@ -126,12 +141,16 @@ static void PrintTime(char *output, FILETIME TimeToPrint)
 	} else {
 		output[0] = 0;
 	}
+#endif
 }
 
 // Print information about a code module (DLL or EXE) such as its size,
 // location, time stamp, etc.
 static void ShowModuleInfo(HANDLE LogFile, HINSTANCE ModuleHandle)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	char ModName[MAX_PATH];
 	__try {
 		if (GetModuleFileName(ModuleHandle, ModName, sizeof(ModName)) > 0) {
@@ -173,6 +192,7 @@ static void ShowModuleInfo(HANDLE LogFile, HINSTANCE ModuleHandle)
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
+#endif
 }
 
 // Scan memory looking for code modules (DLLs or EXEs). VirtualQuery is used
@@ -182,6 +202,9 @@ static void ShowModuleInfo(HANDLE LogFile, HINSTANCE ModuleHandle)
 
 static void RecordModuleList(HANDLE LogFile)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	hprintf(LogFile, "\r\n"
 					 "\tModule list: names, addresses, sizes, time stamps "
 			"and file times:\r\n");
@@ -216,6 +239,7 @@ static void RecordModuleList(HANDLE LogFile)
 			pageNum += SIXTYFOURK / PageSize;
 		}
 	}
+#endif
 }
 
 // Record information about the user's system, such as processor type, amount
@@ -223,6 +247,9 @@ static void RecordModuleList(HANDLE LogFile)
 
 static void RecordSystemInformation(HANDLE LogFile)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	FILETIME	CurrentTime;
 	GetSystemTimeAsFileTime(&CurrentTime);
 	char TimeBuffer[100];
@@ -250,6 +277,7 @@ static void RecordSystemInformation(HANDLE LogFile)
 	// Print out the amount of physical memory, rounded up.
 	hprintf(LogFile, "%d MBytes physical memory.\r\n", (MemInfo.dwTotalPhys +
 				ONEM - 1) / ONEM);
+#endif
 }
 
 // Translate the exception code into something human readable.
@@ -326,6 +354,7 @@ static char* GetFilePart(char *source)
 //
 // returns: 
 //
+#ifndef PLAT_UNIX
 int __cdecl RecordExceptionInfo(PEXCEPTION_POINTERS data, const char *Message)
 {
 	static bool BeenHere = false;
@@ -503,4 +532,5 @@ int __cdecl RecordExceptionInfo(PEXCEPTION_POINTERS data, const char *Message)
 	// normal.
 	return EXCEPTION_CONTINUE_SEARCH;
 }
+#endif
 

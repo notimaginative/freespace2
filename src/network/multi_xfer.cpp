@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -165,8 +168,10 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #include <winsock.h>
 #include <io.h>
+#endif
 #include "multi_xfer.h"
 #include "cfile.h"
 #include "multimsgs.h"

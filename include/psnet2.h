@@ -7,8 +7,11 @@
  * Header file for the application level network-interface.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/26 20:22:48  theoddone33
+ * Most of network/ works
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 9     8/16/99 4:06p Dave
@@ -41,6 +44,8 @@
 
 #ifndef _PSNET2_H
 #define _PSNET2_H
+
+#include "pstypes.h"
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 DEFINES/VARS

@@ -1,6 +1,8 @@
 #ifndef _FS2_REGISTRY_HEADER_FILE
 #define _FS2_REGISTRY_HEADER_FILE
 
+#include <stdlib.h>
+
 // ------------------------------------------------------------------------------------------------------------
 // REGISTRY DEFINES/VARS
 //

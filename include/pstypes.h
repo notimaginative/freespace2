@@ -7,8 +7,11 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/28 06:28:20  theoddone33
+ * Filesystem mods, actually reads some data files now
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 34    6/16/00 3:16p Jefff
@@ -169,11 +172,11 @@
 // #define MULTIPLAYER_BETA_BUILD				// enable for multiplayer beta build
 // #define E3_BUILD							// enable for 3dfx E3 build						
 // #define PRESS_TOUR_BUILD			// enable for press tour build
-// #define FS2_DEMO					// enable demo build for FS2
+#define FS2_DEMO					// enable demo build for FS2
 // #define PD_BUILD						// fred documentation/evaluation build
 //	#define FRENCH_BUILD				// build for French (obsolete)
 // #define GERMAN_BUILD				// build for German (this is now used)
-#define RELEASE_REAL					// this means that it is an actual release candidate, not just an optimized/release build
+//#define RELEASE_REAL					// this means that it is an actual release candidate, not just an optimized/release build
 
 // uncomment this #define for DVD version (makes popups say DVD instead of CD 2 or whatever): JCF 5/10/2000
 // #define DVD_MESSAGE_HACK

@@ -101,6 +101,7 @@ void outwnd_printf(char* id, char* format, ...)
 	vsprintf (tmp, format, args);
 	va_end(args);
 	fprintf (stderr, "%s: %s", id, tmp);
+	if (!strcmp ("Error", id)) exit (1);
 }
 
 void outwnd_printf2(char* format, ...)

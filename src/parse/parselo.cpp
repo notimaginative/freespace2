@@ -7,6 +7,9 @@
  * low level parse routines common to all types of parsers
  *
  * $Log$
+ * Revision 1.3  2002/05/28 06:28:20  theoddone33
+ * Filesystem mods, actually reads some data files now
+ *
  * Revision 1.2  2002/05/07 03:16:48  theoddone33
  * The Great Newline Fix
  *
@@ -1125,6 +1128,10 @@ void read_file_text(char *filename, int mode)
 	mf = cfopen(filename, "rb", CFILE_NORMAL, mode);
 	if (mf == NULL) {
 		nprintf(("Error", "Wokka!  Error opening mission.txt!\n"));
+#ifdef PLAT_UNIX
+		nprintf (("DDOI", "Which is really %s!\n",filename));
+		exit (1);
+#endif
 		longjmp(parse_abort, 5);
 	}
 

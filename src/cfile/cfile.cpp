@@ -7,8 +7,11 @@
  * Utilities for operating on files
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/28 06:28:20  theoddone33
+ * Filesystem mods, actually reads some data files now
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 20    9/08/99 10:01p Dave
@@ -189,6 +192,41 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	// Root must be index 1!!	
 	{ CF_TYPE_ROOT,					"",										".mve",							CF_TYPE_ROOT	},
 	{ CF_TYPE_DATA,					"Data",									".cfg .log .txt",			CF_TYPE_ROOT	},
+#ifdef PLAT_UNIX
+	{ CF_TYPE_MAPS,					"Data/Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
+	{ CF_TYPE_TEXT,					"Data/Text",							".txt .net",				CF_TYPE_DATA	},
+	{ CF_TYPE_MISSIONS,				"Data/Missions",						".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
+	{ CF_TYPE_MODELS,					"Data/Models",						".pof",						CF_TYPE_DATA	},
+	{ CF_TYPE_TABLES,					"Data/Tables",						".tbl",						CF_TYPE_DATA	},
+	{ CF_TYPE_SOUNDS,					"Data/Sounds",						".wav",						CF_TYPE_DATA	},
+	{ CF_TYPE_SOUNDS_8B22K,			"Data/Sounds/8b22k",				".wav",						CF_TYPE_SOUNDS	},
+	{ CF_TYPE_SOUNDS_16B11K,		"Data/Sounds/16b11k",				".wav",						CF_TYPE_SOUNDS	},
+	{ CF_TYPE_VOICE,					"Data/Voice",							"",							CF_TYPE_DATA	},
+	{ CF_TYPE_VOICE_BRIEFINGS,		"Data/Voice/Briefing",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_CMD_BRIEF,		"Data/Voice/Command_briefings",".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data/Voice/Debriefing",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_PERSONAS,		"Data/Voice/Personas",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_SPECIAL,		"Data/Voice/Special",				".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_TRAINING,		"Data/Voice/Training",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_MUSIC,					"Data/Music",							".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_MOVIES,					"Data/Movies",						".mve .msb",				CF_TYPE_DATA	},
+	{ CF_TYPE_INTERFACE,				"Data/Interface",					".pcx .ani .tga",			CF_TYPE_DATA	},
+	{ CF_TYPE_FONT,					"Data/Fonts",							".vf",						CF_TYPE_DATA	},
+	{ CF_TYPE_EFFECTS,				"Data/Effects",						".ani .pcx .neb .tga",	CF_TYPE_DATA	},
+	{ CF_TYPE_HUD,						"Data/Hud",							".ani .pcx .tga",			CF_TYPE_DATA	},
+	{ CF_TYPE_PLAYER_MAIN,			"Data/Players",						"",							CF_TYPE_DATA	},
+	{ CF_TYPE_PLAYER_IMAGES_MAIN,	"Data/Players/Images",			".pcx",						CF_TYPE_PLAYER_MAIN	},
+	{ CF_TYPE_CACHE,					"Data/Cache",							".clr .tmp",				CF_TYPE_DATA	}, 	//clr=cached color
+	{ CF_TYPE_PLAYERS,				"Data/Players",						".hcf",						CF_TYPE_DATA	},	
+	{ CF_TYPE_SINGLE_PLAYERS,		"Data/Players/Single",			".plr .csg .css",			CF_TYPE_PLAYERS	},
+ 	{ CF_TYPE_MULTI_PLAYERS,		"Data/Players/Multi",				".plr",						CF_TYPE_DATA	},
+	{ CF_TYPE_MULTI_CACHE,			"Data/MultiData",					".pcx .fs2",				CF_TYPE_DATA	},
+	{ CF_TYPE_CONFIG,					"Data/Config",						".cfg",						CF_TYPE_DATA	},
+	{ CF_TYPE_SQUAD_IMAGES_MAIN,	"Data/Players/Squads",			".pcx",						CF_TYPE_DATA	},
+	{ CF_TYPE_DEMOS,					"Data/Demos",							".fsd",						CF_TYPE_DATA	},
+	{ CF_TYPE_CBANIMS,				"Data/CBAnims",						".ani",						CF_TYPE_DATA	},
+	{ CF_TYPE_INTEL_ANIMS,			"Data/IntelAnims",					".ani",						CF_TYPE_DATA	},
+#else
 	{ CF_TYPE_MAPS,					"Data\\Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
 	{ CF_TYPE_TEXT,					"Data\\Text",							".txt .net",				CF_TYPE_DATA	},
 	{ CF_TYPE_MISSIONS,				"Data\\Missions",						".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
@@ -222,6 +260,7 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	{ CF_TYPE_DEMOS,					"Data\\Demos",							".fsd",						CF_TYPE_DATA	},
 	{ CF_TYPE_CBANIMS,				"Data\\CBAnims",						".ani",						CF_TYPE_DATA	},
 	{ CF_TYPE_INTEL_ANIMS,			"Data\\IntelAnims",					".ani",						CF_TYPE_DATA	},
+#endif
 };
 
 
@@ -268,13 +307,21 @@ int cfile_in_root_dir(char *exe_path)
 	strncpy(path_copy, exe_path, 2047);
 
 	// count how many slashes there are in the path
+#ifdef PLAT_UNIX
+	tok = strtok(path_copy, "/");
+#else
 	tok = strtok(path_copy, "\\");
+#endif
 	if(tok == NULL){
 		return 1;
 	}	
 	do {
 		token_count++;
+#ifdef PLAT_UNIX
+		tok = strtok(NULL, "/");
+#else
 		tok = strtok(NULL, "\\");
+#endif
 	} while(tok != NULL);
 		
 	// root directory if we have <= 1 slash
@@ -309,7 +356,7 @@ int cfile_init(char *exe_dir, char *cdrom_dir)
 		// are we in a root directory?		
 		if(cfile_in_root_dir(buf)){
 #ifdef PLAT_UNIX
-			fprintf (stderr, "ERROR: Freespace2/Fred2 cannot be run from a drive root directory!");
+			fprintf (stderr, "ERROR: Freespace2/Fred2 cannot be run from a drive root directory!\n");
 #else
 			MessageBox((HWND)NULL, "Freespace2/Fred2 cannot be run from a drive root directory!", "Error", MB_OK);
 #endif
@@ -317,7 +364,11 @@ int cfile_init(char *exe_dir, char *cdrom_dir)
 		}		
 
 		while (i--) {
+#ifdef PLAT_UNIX
+			if (buf[i] == '/'){
+#else
 			if (buf[i] == '\\'){
+#endif
 				break;
 			}
 		}						
@@ -406,6 +457,7 @@ int cfile_push_chdir(int type)
 
 	cf_create_default_path_string( dir, type, NULL );
 	_strlwr(dir);
+#ifndef PLAT_UNIX
 	Drive = strchr(dir, ':');
 
 	if (Drive) {
@@ -414,7 +466,9 @@ int cfile_push_chdir(int type)
 
 		Path = Drive+1;
 
-	} else {
+	} else 
+#endif
+	{
 		Path = dir;
 	}
 
@@ -443,6 +497,7 @@ int cfile_chdir(char *dir)
 	_getcwd(OriginalDirectory, 127);
 	_strlwr(dir);
 
+#ifndef PLAT_UNIX
 	Drive = strchr(dir, ':');
 	if (Drive)	{
 		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
@@ -450,7 +505,9 @@ int cfile_chdir(char *dir)
 
 		Path = Drive+1;
 
-	} else {
+	} else 
+#endif
+	{
 		Path = dir;
 	}
 

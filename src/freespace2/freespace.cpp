@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.6  2002/05/28 06:28:20  theoddone33
+ * Filesystem mods, actually reads some data files now
+ *
  * Revision 1.5  2002/05/28 04:07:28  theoddone33
  * New graphics stubbing arrangement
  *
@@ -2040,12 +2043,11 @@ void game_init()
 	char whee[1024];
 #ifndef PLAT_UNIX	
 	GetCurrentDirectory(1024, whee);
-#else
-	strcpy(whee, ".");
-	strcpy(whee,".\\.");
-	STUB_FUNCTION;
-#endif
 	strcat(whee, "\\");
+#else
+	getcwd (whee, 1024);
+	strcat(whee, "/");
+#endif
 	strcat(whee, EXE_FNAME);
 
 	//Initialize the libraries

@@ -11,8 +11,11 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:08  root
- * Initial revision
+ * Revision 1.2  2002/05/28 06:28:20  theoddone33
+ * Filesystem mods, actually reads some data files now
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:08  root
+ * Initial import.
  *
  * 
  * 6     9/08/99 10:01p Dave
@@ -82,6 +85,10 @@
 #include <direct.h>
 #include <windows.h>
 #include <winbase.h>		/* needed for memory mapping of file functions */
+#else
+#include <sys/types.h>
+#include <dirent.h>
+#include <fnmatch.h>
 #endif
 
 #include "pstypes.h"
@@ -212,6 +219,26 @@ int cf_get_packfile_count(cf_root *root)
 	// count up how many packfiles we're gonna have
 	packfile_count = 0;
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
+#ifdef PLAT_UNIX
+		strcpy( filespec, root->path );
+
+		if(strlen(Pathtypes[i].path)){
+			strcat( filespec, Pathtypes[i].path );
+			strcat( filespec, "/" );
+		}
+
+		DIR *dirp;
+		struct dirent *dir;
+
+		dirp = opendir (filespec);
+		if ( dirp ) {
+			while ((dir = readdir (dirp)) != NULL)
+			{
+				if (!fnmatch ("*.vp", dir->d_name, 0))
+					packfile_count++;
+			}
+		}
+#else
 		strcpy( filespec, root->path );
 
 		if(strlen(Pathtypes[i].path)){
@@ -221,9 +248,6 @@ int cf_get_packfile_count(cf_root *root)
 
 		strcat( filespec, "*.vp" );
 
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
 		int find_handle;
 		_finddata_t find;
 		
@@ -285,6 +309,45 @@ void cf_build_pack_list( cf_root *root )
 	// now just setup all the root info
 	root_index = 0;
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
+
+#ifdef PLAT_UNIX
+		strcpy( filespec, root->path );
+
+		if(strlen(Pathtypes[i].path)){
+			strcat( filespec, Pathtypes[i].path );		
+			strcat( filespec, "/" );
+		}
+		fprintf (stderr, "DDOI: searching |%s|\n", filespec);
+
+		DIR *dirp;
+		struct dirent *dir;
+
+		dirp = opendir (filespec);
+		if ( dirp ) {
+			while ((dir = readdir (dirp)) != NULL)
+			{
+				if (!fnmatch ("*.vp", dir->d_name, 0))
+				{
+					Assert(root_index < temp_root_count);
+
+					// get a temp pointer
+					rptr_sort = &temp_roots_sort[root_index++];
+
+					// fill in all the proper info
+					strcpy(rptr_sort->path, root->path);
+
+					if(strlen(Pathtypes[i].path)){
+						strcat(rptr_sort->path, Pathtypes[i].path );					
+						strcat(rptr_sort->path, "/");
+					}
+
+					strcat(rptr_sort->path, dir->d_name );
+					rptr_sort->roottype = CF_ROOTTYPE_PACK;
+					rptr_sort->cf_type = i;
+				}
+			}
+		}
+#else
 		strcpy( filespec, root->path );
 
 		if(strlen(Pathtypes[i].path)){
@@ -292,10 +355,6 @@ void cf_build_pack_list( cf_root *root )
 			strcat( filespec, "\\" );
 		}
 		strcat( filespec, "*.vp" );
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
 		int find_handle;
 		_finddata_t find;
 		
@@ -370,8 +429,13 @@ void cf_build_root_list(char *cdrom_dir)
 	}
 
 	// do we already have a slash? as in the case of a root directory install
+#ifdef PLAT_UNIX
+	if(strlen(root->path) && (root->path[strlen(root->path)-1] != '/')){
+		strcat(root->path, "/");		// put trailing backslash on for easier path construction
+#else
 	if(strlen(root->path) && (root->path[strlen(root->path)-1] != '\\')){
 		strcat(root->path, "\\");		// put trailing backslash on for easier path construction
+#endif
 	}
 	root->roottype = CF_ROOTTYPE_PATH;
 
@@ -423,6 +487,49 @@ void cf_search_root_path(int root_index)
 
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 
+#ifdef STUB_FUNCTION
+		DIR *dirp;
+		struct dirent *dir;
+
+		strcpy( search_path, root->path );
+
+		if(strlen(Pathtypes[i].path)){
+			strcat( search_path, Pathtypes[i].path );
+			strcat( search_path, "/" );
+		} 
+
+		fprintf (stderr, "DDOI: we're searching |%s|\n", search_path);
+
+		dirp = opendir (search_path);
+		if ( dirp ) {
+			while ((dir = readdir (dirp)) != NULL)
+			{
+				if (!fnmatch ("*.*", dir->d_name, 0))
+				{
+					char *ext = strchr( dir->d_name, '.' );
+					if ( ext )	{
+						if ( is_ext_in_list( Pathtypes[i].extensions, ext ) )	{
+							// Found a file!!!!
+							cf_file *file = cf_create_file();
+
+							strcpy( file->name_ext, dir->d_name );
+							file->root_index = root_index;
+							file->pathtype_index = i;
+#if 0
+							file->write_time = find.time_write;
+							file->size = find.size;
+#else
+							STUB_FUNCTION;
+#endif
+							file->pack_offset = 0;			// Mark as a non-packed file
+
+							//mprintf(( "Found file '%s'\n", file->name_ext ));
+						}
+					}
+				}
+			}
+		}
+#else
 		strcpy( search_path, root->path );
 
 		if(strlen(Pathtypes[i].path)){
@@ -432,9 +539,6 @@ void cf_search_root_path(int root_index)
 
 		strcat( search_path, "*.*" );
 
-#ifdef STUB_FUNCTION
-		STUB_FUNCTION;
-#else
 		int find_handle;
 		_finddata_t find;
 		
@@ -526,13 +630,21 @@ void cf_search_root_pack(int root_index)
 			if ( !stricmp( find.filename, ".." ))	{
 				int l = strlen(search_path);
 				char *p = &search_path[l-1];
+#ifdef PLAT_UNIX
+				while( (p > search_path) && (*p != '/') )	{
+#else
 				while( (p > search_path) && (*p != '\\') )	{
+#endif
 					p--;
 				}
 				*p = 0;
 			} else {
 				if ( strlen(search_path)	)	{
+#ifdef PLAT_UNIX
+					strcat( search_path,	"/" );
+#else
 					strcat( search_path,	"\\" );
+#endif
 				}
 				strcat( search_path, find.filename );
 			}
@@ -743,7 +855,11 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 						strcpy( pack_filename, r->path );
 						if ( f->pack_offset < 1 )	{
 							strcat( pack_filename, Pathtypes[f->pathtype_index].path );
+#ifdef PLAT_UNIX
+							strcat( pack_filename, "/" );
+#else
 							strcat( pack_filename, "\\" );
+#endif
 							strcat( pack_filename, f->name_ext );
 						}
 					}				
@@ -765,7 +881,11 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 
 						if(strlen(Pathtypes[f->pathtype_index].path)){
 							strcat( pack_filename, Pathtypes[f->pathtype_index].path );
+#ifdef PLAT_UNIX
+							strcat( pack_filename, "/" );
+#else
 							strcat( pack_filename, "\\" );
+#endif
 						}
 
 						strcat( pack_filename, f->name_ext );
@@ -1092,7 +1212,11 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 // Output:  path      - Fully qualified pathname.
 void cf_create_default_path_string( char *path, int pathtype, char *filename, bool localize )
 {
+#ifdef PLAT_UNIX
+	if ( filename && strpbrk(filename,"/")  ) {  
+#else
 	if ( filename && strpbrk(filename,"/\\:")  ) {  
+#endif
 		// Already has full path
 		strcpy( path, filename );
 
@@ -1111,7 +1235,11 @@ void cf_create_default_path_string( char *path, int pathtype, char *filename, bo
 
 		// Don't add slash for root directory
 		if (Pathtypes[pathtype].path[0] != '\0') {
+#ifdef PLAT_UNIX
+			strcat(path, "/");
+#else
 			strcat(path, "\\");
+#endif
 		}
 
 		// add filename

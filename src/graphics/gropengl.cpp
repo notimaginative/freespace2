@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.11  2002/05/29 04:29:56  relnev
+ * removed some unncessary stubbing, implemented opengl rect
+ *
  * Revision 1.10  2002/05/29 04:13:27  theoddone33
  * enable opengl_line
  *
@@ -290,20 +293,6 @@ void gr_opengl_set_font(int fontnum)
 	STUB_FUNCTION;
 }
 
-void gr_opengl_set_color( int r, int g, int b )
-{
-	Assert((r >= 0) && (r < 256));
-	Assert((g >= 0) && (g < 256));
-	Assert((b >= 0) && (b < 256));
-
-	gr_screen.current_color.red = (unsigned char)r;
-	gr_screen.current_color.green = (unsigned char)g;
-	gr_screen.current_color.blue = (unsigned char)b;
-	
-//	STUB_FUNCTION;
-#warning STUB_FUNCTION: gr_opengl_set_color
-}
-
 void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy )
 {
 	gr_screen.current_alpha = alpha;
@@ -313,8 +302,6 @@ void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode,
 
 	gr_screen.current_bitmap_sx = sx;
 	gr_screen.current_bitmap_sy = sy;
-	
-	STUB_FUNCTION;
 }
 
 void gr_opengl_create_shader(shader * shade, float r, float g, float b, float c )
@@ -323,9 +310,7 @@ void gr_opengl_create_shader(shader * shade, float r, float g, float b, float c 
 	shade->r = r;
 	shade->g = g;
 	shade->b = b;
-	shade->c = c;
-	
-	STUB_FUNCTION;
+	shade->c = c;	
 }
 
 void gr_opengl_set_shader( shader * shade )
@@ -338,8 +323,6 @@ void gr_opengl_set_shader( shader * shade )
 	} else {
 		gr_create_shader( &gr_screen.current_shader, 0.0f, 0.0f, 0.0f, 0.0f );
 	}
-	
-	STUB_FUNCTION;
 }
 
 
@@ -398,50 +381,69 @@ static void opengl_scanline(int x1,int x2,int y)
 	STUB_FUNCTION;
 }
 
-void gr_opengl_rect(int x,int y,int w,int h)
+static void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 {
-	int i, swapped=0;
-	int x1 = x, x2;
-	int y1 = y, y2;
-
-	if ( w > 0 )
-		 x2 = x + w - 1;
-	else
-		 x2 = x + w + 1;
-
-	if ( h > 0 )
-		y2 = y + h - 1;
-	else
-		y2 = y + h + 1;
+	int saved_zbuf;
+	
+	saved_zbuf = gr_zbuffer_get();
+	gr_zbuffer_set(GR_ZBUFF_NONE);
+	gr_set_cull(0);
+	
+	glColor4ub(r, g, b, a);
+	glBegin(GL_QUADS);
+		float m, n;
+		float wx, wy;
 		
-	if ( x2 < x1 )	{
-		int tmp;	
-		tmp = x1;
-		x1 = x2;
-		x2 = tmp;
-		w = -w;
-		swapped = 1;
-	}
-
-	if ( y2 < y1 )	{
-		int tmp;	
-		tmp = y1;
-		y1 = y2;
-		y2 = tmp;
-		h = -h;
-		swapped = 1;
-	}
-
-	for (i=0; i<h; i++ )
-		opengl_scanline( x1, x2, y1+i );
+		wx = gr_screen.max_w / 2.0;
+		wy = gr_screen.max_h / 2.0;
 		
-	STUB_FUNCTION;
+		/* upper left */
+		m = -(wx - (float)x) / wx;
+		n = -(wy - (float)y) / wy;
+		glVertex2f(m, n);
+		
+		/* lower left */
+		m = -(wx - (float)x) / wx;
+		n = -(wy - (float)(y+h)) / wy;
+		glVertex2f(m, n);
+	
+		/* lower right */
+		m = -(wx - (float)(x+w)) / wx;
+		n = -(wy - (float)(y+h)) / wy;
+		glVertex2f(m, n);
+		
+		/* upper right */
+		m = -(wx - (float)(x+w)) / wx;
+		n = -(wy - (float)y) / wy;
+		glVertex2f(m, n);
+	glEnd();
+	
+	gr_zbuffer_set(saved_zbuf);
+	gr_set_cull(1);
 }
 
+void gr_opengl_rect(int x,int y,int w,int h)
+{
+	gr_opengl_rect_internal(x, y, w, h, gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
+}
 
 void gr_opengl_shade(int x,int y,int w,int h)
 {
-	STUB_FUNCTION;
+	int r,g,b,a;
+	
+	float shade1 = 1.0f;
+	float shade2 = 6.0f;
+
+	r = fl2i(gr_screen.current_shader.r*255.0f*shade1);
+	if ( r < 0 ) r = 0; else if ( r > 255 ) r = 255;
+	g = fl2i(gr_screen.current_shader.g*255.0f*shade1);
+	if ( g < 0 ) g = 0; else if ( g > 255 ) g = 255;
+	b = fl2i(gr_screen.current_shader.b*255.0f*shade1);
+	if ( b < 0 ) b = 0; else if ( b > 255 ) b = 255;
+	a = fl2i(gr_screen.current_shader.c*255.0f*shade2);
+	if ( a < 0 ) a = 0; else if ( a > 255 ) a = 255;
+
+        gr_opengl_rect_internal(x, y, w, h, r, g, b, a);	
 }
 
 void opengl_mtext(int x, int y, char *s, int len )
@@ -645,8 +647,6 @@ void gr_opengl_scaler(vertex *va, vertex *vb )
 	STUB_FUNCTION;
 }
 
-
-
 void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 {
 	STUB_FUNCTION;
@@ -668,18 +668,28 @@ void gr_opengl_get_color( int * r, int * g, int * b )
 	if (r) *r = gr_screen.current_color.red;
 	if (g) *g = gr_screen.current_color.green;
 	if (b) *b = gr_screen.current_color.blue;
-	
-	STUB_FUNCTION;
 }
 
 void gr_opengl_init_color(color *c, int r, int g, int b)
 {
-	gr_screen.current_color.screen_sig = gr_screen.signature;
-	gr_screen.current_color.red = (unsigned char)r;
-	gr_screen.current_color.green = (unsigned char)g;
-	gr_screen.current_color.blue = (unsigned char)b;
-	
-	STUB_FUNCTION;
+	c->screen_sig = gr_screen.signature;
+	c->red = (unsigned char)r;
+	c->green = (unsigned char)g;
+	c->blue = (unsigned char)b;
+	c->alpha = 255;
+	c->ac_type = AC_TYPE_NONE;
+	c->alphacolor = -1;
+	c->is_alphacolor = 0;
+	c->magic = 0xAC01;
+}
+
+void gr_opengl_set_color( int r, int g, int b )
+{
+	Assert((r >= 0) && (r < 256));
+	Assert((g >= 0) && (g < 256));
+	Assert((b >= 0) && (b < 256));
+
+	gr_opengl_init_color( &gr_screen.current_color, r, g, b );	
 }
 
 void gr_opengl_set_color_fast(color *dst)

@@ -15,6 +15,11 @@
  * Physics stuff
  *
  * $Log$
+ * Revision 1.5  2002/07/13 19:47:02  theoddone33
+ * Fix some more warnings
+ *
+ * Change demo building, edit Makefile if you want the demo.
+ *
  * Revision 1.4  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -432,9 +437,9 @@ void physics_init( physics_info * pi )
 	pi->flags = 0;
 
 	// default values for moment of inetaia
-	vm_vec_make( &pi->I_body_inv.v.rvec, 1e-5f, 0.0f, 0.0f );
-	vm_vec_make( &pi->I_body_inv.v.uvec, 0.0f, 1e-5f, 0.0f );
-	vm_vec_make( &pi->I_body_inv.v.fvec, 0.0f, 0.0f, 1e-5f );
+	(void) vm_vec_make( &pi->I_body_inv.v.rvec, 1e-5f, 0.0f, 0.0f );
+	(void) vm_vec_make( &pi->I_body_inv.v.uvec, 0.0f, 1e-5f, 0.0f );
+	(void) vm_vec_make( &pi->I_body_inv.v.fvec, 0.0f, 0.0f, 1e-5f );
 
 }
 
@@ -675,12 +680,12 @@ void physics_sim_vel(vector * position, physics_info * pi, float sim_time, matri
 	// ie. shockwave, collision, weapon, dead
 	if (pi->flags & PF_DEAD_DAMP) {
 		// side_slip_time_const is already quite large and now needs to be applied in all directions
-		vm_vec_make( &damp, pi->side_slip_time_const, pi->side_slip_time_const, pi->side_slip_time_const );
+		(void) vm_vec_make( &damp, pi->side_slip_time_const, pi->side_slip_time_const, pi->side_slip_time_const );
 
 	} else if (pi->flags & PF_REDUCED_DAMP) {
 		// case of shock, weapon, collide, etc.
 		if ( timestamp_elapsed(pi->reduced_damp_decay) ) {
-			vm_vec_make( &damp, pi->side_slip_time_const, pi->side_slip_time_const, 0.0f );
+			(void) vm_vec_make( &damp, pi->side_slip_time_const, pi->side_slip_time_const, 0.0f );
 		} else {
 			// damp is multiplied by fraction and not fraction^2, gives better collision separation
 			float reduced_damp_fraction_time_left = timestamp_until( pi->reduced_damp_decay ) / (float) REDUCED_DAMP_TIME;
@@ -690,7 +695,7 @@ void physics_sim_vel(vector * position, physics_info * pi, float sim_time, matri
 		}
 	} else {
 		// regular damping
-		vm_vec_make( &damp, pi->side_slip_time_const, pi->side_slip_time_const, 0.0f );
+		(void) vm_vec_make( &damp, pi->side_slip_time_const, pi->side_slip_time_const, 0.0f );
 	}
 
 	// Note: CANNOT maintain a *local velocity* since a rotation can occur in this frame. 
@@ -1182,7 +1187,7 @@ void physics_apply_shock(vector *direction_vec, float pressure, physics_info *pi
 	sin.xyz.y = fl_sqrt( fl_abs(1.0f - normal.xyz.y*normal.xyz.y) );
 	sin.xyz.z = fl_sqrt( fl_abs(1.0f - normal.xyz.z*normal.xyz.z) );	
 
-	vm_vec_make( &torque, 0.0f, 0.0f, 0.0f );
+	(void) vm_vec_make( &torque, 0.0f, 0.0f, 0.0f );
 
 	// find the torque exerted due to the shockwave hitting each face
 	//  model the effect of the shockwave as if the shockwave were a plane of projectiles,

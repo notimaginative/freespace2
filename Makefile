@@ -2,6 +2,7 @@
 # for that freespace 2 thing
 
 MACOSX=false
+DEMO=false
 
 CC=g++
 AR=ar
@@ -20,6 +21,10 @@ ifeq ($(strip $(MACOSX)),true)
   CFLAGS+=-D__MACOSX__=1 -I/System/Library/Frameworks/AGL.framework/Headers
 else
   LDFLAGS+= -lGL
+endif
+
+ifeq ($(strip $(DEMO)), true)
+	CFLAGS += -DFS2_DEMO
 endif
 
 %.o: %.cpp

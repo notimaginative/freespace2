@@ -15,6 +15,11 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.6  2002/07/13 19:47:02  theoddone33
+ * Fix some more warnings
+ *
+ * Change demo building, edit Makefile if you want the demo.
+ *
  * Revision 1.5  2002/06/17 06:33:10  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -11802,7 +11807,7 @@ int ai_formation()
 			} else if (dist_to_goal > 10.0f) {
 				float	dv;
 
-				future_goal_point_2;
+				//future_goal_point_2;
 
 				turn_towards_point(Pl_objp, &future_goal_point_2, NULL, 0.0f);
 

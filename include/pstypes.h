@@ -15,6 +15,11 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.7  2002/07/13 19:47:02  theoddone33
+ * Fix some more warnings
+ *
+ * Change demo building, edit Makefile if you want the demo.
+ *
  * Revision 1.6  2002/06/19 04:52:45  relnev
  * MacOS X updates (Ryan)
  *
@@ -194,7 +199,7 @@
 // #define MULTIPLAYER_BETA_BUILD				// enable for multiplayer beta build
 // #define E3_BUILD							// enable for 3dfx E3 build						
 // #define PRESS_TOUR_BUILD			// enable for press tour build
-#define FS2_DEMO					// enable demo build for FS2
+//#define FS2_DEMO					// enable demo build for FS2
 // #define PD_BUILD						// fred documentation/evaluation build
 //	#define FRENCH_BUILD				// build for French (obsolete)
 // #define GERMAN_BUILD				// build for German (this is now used)

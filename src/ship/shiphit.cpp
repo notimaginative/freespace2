@@ -15,6 +15,11 @@
  * Code to deal with a ship getting hit by something, be it a missile, dog, or ship.
  *
  * $Log$
+ * Revision 1.6  2002/07/13 19:47:02  theoddone33
+ * Fix some more warnings
+ *
+ * Change demo building, edit Makefile if you want the demo.
+ *
  * Revision 1.5  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -502,7 +507,7 @@ bool is_subsys_destroyed(ship *shipp, int submodel)
 	ship_subsys *subsys;
 
 	if (submodel == -1) {
-		false;
+		return false;
 	}
 
 	for ( subsys=GET_FIRST(&shipp->subsys_list); subsys != END_OF_LIST(&shipp->subsys_list); subsys = GET_NEXT(subsys) ) {

@@ -7,6 +7,9 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.6  2002/05/30 23:07:08  relnev
+ * shh
+ *
  * Revision 1.5  2002/05/30 21:44:48  relnev
  * implemented some missing texture stuff.
  *
@@ -2350,12 +2353,9 @@ void BM_SELECT_SCREEN_FORMAT()
 				bm_set_components = bm_set_components_argb_d3d_16_screen;
 			}
 		}
-#warning BM_SELECT_SCREEN_FORMAT: hack correct settings for software/opengl not known
 	} else if(gr_screen.mode == GR_SOFTWARE){
-		STUB_FUNCTION;
 		bm_set_components = bm_set_components_argb;
 	} else if(gr_screen.mode == GR_OPENGL){
-		STUB_FUNCTION;
 		bm_set_components = bm_set_components_argb;
 	}
 }
@@ -2383,12 +2383,9 @@ void BM_SELECT_TEX_FORMAT()
 				bm_set_components = bm_set_components_argb_d3d_16_tex;
 			}
 		}
-#warning BM_SELECT_TEX_FORMAT: hack correct settings for software/opengl not known
 	} else if(gr_screen.mode == GR_SOFTWARE){
-		STUB_FUNCTION;
 		bm_set_components = bm_set_components_argb;
 	} else if(gr_screen.mode == GR_OPENGL){
-		STUB_FUNCTION;
 		bm_set_components = bm_set_components_argb;
 	}
 }
@@ -2413,12 +2410,9 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 				bm_set_components = bm_set_components_argb_d3d_16_tex;
 			}
 		}
-#warning BM_ALPHA_TEX_FORMAT: hack correct settings for software/opengl not known
 	} else if(gr_screen.mode == GR_SOFTWARE){
-		STUB_FUNCTION;
 		bm_set_components = bm_set_components_argb;
 	} else if(gr_screen.mode == GR_OPENGL){
-		STUB_FUNCTION;
 		bm_set_components = bm_set_components_argb;
 	}
 }

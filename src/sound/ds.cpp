@@ -7,8 +7,11 @@
  * C file for interface to DirectSound
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/27 21:35:50  theoddone33
+ * Stub out dsound backend
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 18    10/25/99 5:56p Jefff
@@ -302,20 +305,25 @@
  */
 
 #include "pstypes.h"
+#ifndef PLAT_UNIX
 #include <windows.h>
+#include "channel.h"
+#endif
 #include "cfile.h"
 #include "ds.h"
-#include "channel.h"
 #include "ds3d.h"
 #include "acm.h"
 #include "osapi.h"
 #include "dscap.h"
 
+#ifndef PLAT_UNIX
 #include <objbase.h>
 #include <initguid.h>
 #include "ia3d.h"
 #include "verifya3d.h"
+#endif
 
+#ifndef PLAT_UNIX
 // Pointers to functions contained in DSOUND.dll
 HRESULT (__stdcall *pfn_DirectSoundCreate)(LPGUID lpGuid, LPDIRECTSOUND *ppDS, IUnknown FAR *pUnkOuter) = NULL;
 HRESULT (__stdcall *pfn_DirectSoundCaptureCreate)(LPGUID lpGUID, LPDIRECTSOUNDCAPTURE *lplpDSC, LPUNKNOWN pUnkOuter) = NULL;
@@ -349,9 +357,6 @@ ds_sound_buffer ds_software_buffers[MAX_DS_SOFTWARE_BUFFERS];
 #define MAX_DS_HARDWARE_BUFFERS	32
 ds_sound_buffer ds_hardware_buffers[MAX_DS_HARDWARE_BUFFERS];
 
-int ds_vol_lookup[101];						// lookup table for direct sound volumes
-int ds_initialized = FALSE;
-
 static DSCAPS Soundcard_caps;					// current soundcard capabilities
 
 extern int Snd_sram;					// mem (in bytes) used up by storing sounds in system memory
@@ -366,7 +371,6 @@ GUID CLSID_A3d_Def = {0xd8f1eee0, 0xf634, 0x11cf, {0x87, 0x0, 0x0, 0xa0, 0x24, 0
 
 static bool Stop_logging_sounds = false;
 
-static int MAX_CHANNELS = 0;		// initialized properly in ds_init_channels()
 
 ///////////////////////////
 //
@@ -443,7 +447,11 @@ GUID DSPROPSETID_EAXBUFFER_ReverbProperties_Def = {0x4a4e6fc0, 0xc341, 0x11d1, {
 //----------------------------------------------------------------
 // prototypes 
 void ds_get_soundcard_caps(DSCAPS *dscaps);
+#endif // !PLAT_UNIX
+static int MAX_CHANNELS = 0;		// initialized properly in ds_init_channels()
 
+int ds_vol_lookup[101];						// lookup table for direct sound volumes
+int ds_initialized = FALSE;
 
 
 
@@ -452,6 +460,7 @@ void ds_get_soundcard_caps(DSCAPS *dscaps);
 //
 // Determine if a secondary buffer is a 3d secondary buffer.
 //
+#ifndef PLAT_UNIX
 int ds_is_3d_buffer(LPDIRECTSOUNDBUFFER pdsb)
 {
 	DSBCAPS			dsbc;
@@ -466,6 +475,7 @@ int ds_is_3d_buffer(LPDIRECTSOUNDBUFFER pdsb)
 		return FALSE;
 	}
 }
+#endif
 
 //--------------------------------------------------------------------------
 // ds_is_3d_buffer()
@@ -474,9 +484,13 @@ int ds_is_3d_buffer(LPDIRECTSOUNDBUFFER pdsb)
 //
 int ds_is_3d_buffer(int sid)
 {
+#ifndef PLAT_UNIX
 	if ( sid >= 0 ) {
 		return ds_is_3d_buffer(ds_software_buffers[sid].pdsb);
 	}
+#else
+	STUB_FUNCTION;
+#endif
 
 	return 0;
 }
@@ -548,6 +562,9 @@ float ds_get_percentage_vol(int ds_vol)
 //
 int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **header)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	CFILE				*fp;
 	PCMWAVEFORMAT	PCM_header;
 	int				cbExtra = 0;
@@ -610,6 +627,7 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 		cfseek( fp, next_chunk, CF_SEEK_SET );
 	}
 	cfclose(fp);
+#endif
 
 	return 0;
 }
@@ -621,6 +639,10 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 //	
 int ds_get_sid()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_DS_SOFTWARE_BUFFERS; i++ ) {
@@ -633,6 +655,7 @@ int ds_get_sid()
 	}
 
 	return i;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -641,6 +664,10 @@ int ds_get_sid()
 //	
 int ds_get_hid()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_DS_HARDWARE_BUFFERS; i++ ) {
@@ -653,6 +680,7 @@ int ds_get_hid()
 	}
 
 	return i;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -678,6 +706,10 @@ int ds_get_hid()
 //
 int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info *si, int flags)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	Assert( final_size != NULL );
 	Assert( header != NULL );
 	Assert( si != NULL );
@@ -818,6 +850,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	if ( convert_buffer )
 		free( convert_buffer );
 	return DSOUND_load_buffer_result;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -827,6 +860,9 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 //
 void ds_init_channels()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	// detect how many channels we can support
@@ -857,6 +893,7 @@ void ds_init_channels()
 	}
 
 	mprintf(("** MAX_CHANNELS set to %d.  DS reported %d.\n", MAX_CHANNELS, dbg_channels));
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -866,11 +903,15 @@ void ds_init_channels()
 //
 void ds_init_software_buffers()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_DS_SOFTWARE_BUFFERS; i++ ) {
 		ds_software_buffers[i].pdsb = NULL;
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -880,11 +921,15 @@ void ds_init_software_buffers()
 //
 void ds_init_hardware_buffers()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_DS_HARDWARE_BUFFERS; i++ ) {
 		ds_hardware_buffers[i].pdsb = NULL;
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -899,6 +944,7 @@ void ds_init_buffers()
 }
 
 // Get the current soundcard capabilities
+#ifndef PLAT_UNIX
 void ds_get_soundcard_caps(DSCAPS *dscaps)
 {
 	HRESULT	hr;
@@ -946,10 +992,14 @@ void ds_show_caps(DSCAPS *dscaps)
 	nprintf(("Sound", "Number of free hw bytes: %d\n", dscaps->dwFreeHwMemBytes ));
 	nprintf(("Sound", "================================\n"));
 }
+#endif
 
 // Fill in the waveformat struct with the primary buffer characteristics.
 void ds_get_primary_format(WAVEFORMATEX *wfx)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	// Set 16 bit / 22KHz / mono
 	wfx->wFormatTag = WAVE_FORMAT_PCM;
 	wfx->nChannels = 2;
@@ -965,6 +1015,7 @@ void ds_dll_get_functions()
 {
 	pfn_DirectSoundCreate = (HRESULT(__stdcall *)(LPGUID lpGuid, LPDIRECTSOUND *ppDS, IUnknown FAR *pUnkOuter))GetProcAddress(Ds_dll_handle,"DirectSoundCreate");
 	pfn_DirectSoundCaptureCreate = (HRESULT(__stdcall *)(LPGUID lpGuid, LPDIRECTSOUNDCAPTURE *lplpDSC, IUnknown FAR *pUnkOuter))GetProcAddress(Ds_dll_handle,"DirectSoundCaptureCreate");
+#endif
 }
 
 // Load the dsound.dll, and get funtion pointers
@@ -972,6 +1023,9 @@ void ds_dll_get_functions()
 //			!0	->	dll could not be loaded
 int ds_dll_load()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if ( !Ds_dll_loaded ) {
 		Ds_dll_handle = LoadLibrary("dsound.dll");
 		if ( !Ds_dll_handle ) {
@@ -980,12 +1034,16 @@ int ds_dll_load()
 		ds_dll_get_functions();
 		Ds_dll_loaded=1;
 	}
+#endif
 	return 0;
 }
 
 
 static int ds_init_a3d()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HINSTANCE a3d_handle;
 	HRESULT hr;
 
@@ -1048,7 +1106,7 @@ static int ds_init_a3d()
 	}
 
 	pIA3d2->SetResourceManagerMode(A3D_RESOURCE_MODE_DYNAMIC_LOOPERS);
-
+#endif
 	return 0;
 }
 
@@ -1060,6 +1118,9 @@ static int ds_init_a3d()
 //
 int ds_init_property_set()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT hr;
 
 	// Create the secondary buffer required for EAX initialization
@@ -1098,6 +1159,7 @@ int ds_init_property_set()
 	if ((FAILED(hr)) || (pPropertySet == NULL)) {
 		return -1;
 	}
+#endif
 
 	return 0;
 }
@@ -1109,6 +1171,9 @@ int ds_init_property_set()
 //               0           => init success
 int ds_init(int use_a3d, int use_eax)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT			hr;
 	HWND				hwnd;
 	WAVEFORMATEX	wave_format;
@@ -1249,6 +1314,7 @@ int ds_init(int use_a3d, int use_eax)
 	ds_init_buffers();
 
 	ds_show_caps(&Soundcard_caps);
+#endif
 
 	return 0;
 }
@@ -1260,6 +1326,10 @@ int ds_init(int use_a3d, int use_eax)
 //
 char *get_DSERR_text(int DSResult)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return "Linux rocks";
+#else
 	switch( DSResult ) {
 
 		case DS_OK:
@@ -1330,6 +1400,7 @@ char *get_DSERR_text(int DSResult)
 			return "unknown";
 			break;
 	}
+#endif
 }
 
 
@@ -1340,6 +1411,9 @@ char *get_DSERR_text(int DSResult)
 //
 void ds_close_channel(int i)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT	hr;
 
 	// If a 3D interface exists, free it
@@ -1378,6 +1452,7 @@ void ds_close_channel(int i)
 
 		Channels[i].pdsb = NULL;
 	}
+#endif
 }
 
 
@@ -1402,6 +1477,9 @@ void ds_close_all_channels()
 //
 void ds_unload_buffer(int sid, int hid)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT	hr;
 
 	if ( sid != -1 ) {
@@ -1425,6 +1503,7 @@ void ds_unload_buffer(int sid, int hid)
 			ds_hardware_buffers[hid].pdsb = NULL;
 		}
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1433,6 +1512,9 @@ void ds_unload_buffer(int sid, int hid)
 //
 void ds_close_software_buffers()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int		i;
 	HRESULT	hr;
 
@@ -1446,6 +1528,7 @@ void ds_close_software_buffers()
 			ds_software_buffers[i].pdsb = NULL;
 		}
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1454,6 +1537,9 @@ void ds_close_software_buffers()
 //
 void ds_close_hardware_buffers()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int		i;
 	HRESULT	hr;
 
@@ -1467,6 +1553,7 @@ void ds_close_hardware_buffers()
 			ds_hardware_buffers[i].pdsb = NULL;
 		}
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1490,6 +1577,9 @@ void ds_close()
 	ds_close_all_channels();
 	ds_close_buffers();
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if (pPropertySet != NULL) {
 		pPropertySet->Release();
 		pPropertySet = NULL;
@@ -1532,6 +1622,7 @@ void ds_close()
 	// free the Channels[] array, since it was dynamically allocated
 	free(Channels);
 	Channels = NULL;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1542,6 +1633,7 @@ void ds_close()
 // If the secondary buffer wasn't created with a DSBCAPS_CTRL3D flag, then no 3d interface
 // exists
 //
+#ifndef PLAT_UNIX
 void ds_get_3d_interface(LPDIRECTSOUNDBUFFER pdsb, LPDIRECTSOUND3DBUFFER *ppds3db)
 {
 	DSBCAPS			dsbc;
@@ -1556,6 +1648,7 @@ void ds_get_3d_interface(LPDIRECTSOUNDBUFFER pdsb, LPDIRECTSOUND3DBUFFER *ppds3d
 		}
 	}
 }
+#endif
 
 
 // ---------------------------------------------------------------------------------------
@@ -1581,6 +1674,10 @@ void ds_get_3d_interface(LPDIRECTSOUNDBUFFER pdsb, LPDIRECTSOUND3DBUFFER *ppds3d
 
 int ds_get_free_channel(int new_volume, int snd_id, int priority)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	int				i, first_free_channel, limit;
 	int				lowest_vol = 0, lowest_vol_index = -1;
 	int				instance_count;	// number of instances of sound already playing
@@ -1676,6 +1773,7 @@ int ds_get_free_channel(int new_volume, int snd_id, int priority)
 	}
 
 	return first_free_channel;
+#endif
 }
 
 
@@ -1688,6 +1786,7 @@ int ds_get_free_channel(int new_volume, int snd_id, int priority)
 // returns:		0		=>		dup was successful
 //					-1		=>		dup failed (Channels[channel].pdsb will be NULL)
 //
+#ifndef PLAT_UNIX
 int ds_channel_dup(LPDIRECTSOUNDBUFFER pdsb, int channel, int use_ds3d)
 {
 	HRESULT DSResult;
@@ -1725,10 +1824,15 @@ void ds_restore_buffer(LPDIRECTSOUNDBUFFER pdsb)
 		nprintf(("Sound", "Sound ==> Lost a buffer, tried restoring but got %s\n", get_DSERR_text(hr) ));
 	}
 }
+#endif
 
 // Create a direct sound buffer in software, without locking any data in
 int ds_create_buffer(int frequency, int bits_per_sample, int nchannels, int nseconds)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	HRESULT			dsrval;
 	DSBUFFERDESC	dsbd;
 	WAVEFORMATEX	wfx;
@@ -1766,11 +1870,15 @@ int ds_create_buffer(int frequency, int bits_per_sample, int nchannels, int nsec
 
 	ds_software_buffers[sid].desc = dsbd;
 	return sid;
+#endif
 }
 
 // Lock data into an existing buffer
 int ds_lock_data(int sid, unsigned char *data, int size)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT					dsrval;
 	LPDIRECTSOUNDBUFFER	pdsb;
 	DSBCAPS					caps;
@@ -1803,6 +1911,7 @@ int ds_lock_data(int sid, unsigned char *data, int size)
 	if ( dsrval != DS_OK ) {
 		return -1;
 	}
+#endif
 
 	return 0;
 }
@@ -1810,12 +1919,16 @@ int ds_lock_data(int sid, unsigned char *data, int size)
 // Stop a buffer from playing directly
 void ds_stop_easy(int sid)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT					dsrval;
 	LPDIRECTSOUNDBUFFER	pdsb;
 
 	Assert(sid >= 0);
 	pdsb = ds_software_buffers[sid].pdsb;
 	dsrval = pdsb->Stop();
+#endif
 }
 
 //	Play a sound without the usual baggage (used for playing back real-time voice)
@@ -1825,6 +1938,9 @@ void ds_stop_easy(int sid)
 //					volume      => volume of sound effect in DirectSound units
 int ds_play_easy(int sid, int volume)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT					dsrval;
 	LPDIRECTSOUNDBUFFER	pdsb;
 
@@ -1836,6 +1952,7 @@ int ds_play_easy(int sid, int volume)
 	if ( dsrval != DS_OK ) {
 		return -1;
 	}
+#endif
 
 	return 0;
 }
@@ -1864,6 +1981,9 @@ int ds_play_easy(int sid, int volume)
 //
 int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int looping, bool is_voice_msg)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int				channel;
 	HRESULT			DSResult;
 
@@ -1981,6 +2101,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 	}
 
 	return Channels[channel].sig;
+#endif
 }
 
 
@@ -1992,6 +2113,9 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 //
 int ds_get_channel(int sig)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i = 0; i < MAX_CHANNELS; i++ ) {
@@ -2001,6 +2125,7 @@ int ds_get_channel(int sig)
 			}
 		}
 	}
+#endif
 	return -1;
 }
 
@@ -2010,6 +2135,10 @@ int ds_get_channel(int sig)
 //
 int ds_is_channel_playing(int channel)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT			hr;
 	unsigned long	status;		
 
@@ -2027,6 +2156,7 @@ int ds_is_channel_playing(int channel)
 		return TRUE;
 	else
 		return FALSE;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2044,6 +2174,9 @@ void ds_stop_channel(int channel)
 //	
 void ds_stop_channel_all()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i;
 
 	for ( i=0; i<MAX_CHANNELS; i++ )	{
@@ -2051,6 +2184,7 @@ void ds_stop_channel_all()
 			ds_stop_channel(i);
 		}
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2063,6 +2197,9 @@ void ds_stop_channel_all()
 //
 void ds_set_volume( int channel, int vol )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT			hr;
 	unsigned long	status;		
 
@@ -2075,6 +2212,7 @@ void ds_set_volume( int channel, int vol )
 	if ( status & DSBSTATUS_PLAYING ) {
 		Channels[channel].pdsb->SetVolume(vol);
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2084,6 +2222,9 @@ void ds_set_volume( int channel, int vol )
 //
 void ds_set_pan( int channel, int pan )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT			hr;
 	unsigned long	status;		
 
@@ -2096,6 +2237,7 @@ void ds_set_pan( int channel, int pan )
 	if ( status & DSBSTATUS_PLAYING ) {
 		Channels[channel].pdsb->SetPan(pan);
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2105,6 +2247,10 @@ void ds_set_pan( int channel, int pan )
 //
 int ds_get_pitch(int channel)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	unsigned long	status, pitch = 0;
 	HRESULT			hr;
 
@@ -2124,6 +2270,7 @@ int ds_get_pitch(int channel)
 	}
 
 	return (int)pitch;
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2133,6 +2280,9 @@ int ds_get_pitch(int channel)
 //
 void ds_set_pitch(int channel, int pitch)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	unsigned long	status;
 	HRESULT			hr;
 
@@ -2151,6 +2301,7 @@ void ds_set_pitch(int channel, int pitch)
 	if ( status & DSBSTATUS_PLAYING )	{
 		Channels[channel].pdsb->SetFrequency((unsigned long)pitch);
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2159,6 +2310,9 @@ void ds_set_pitch(int channel, int pitch)
 //	
 void ds_chg_loop_status(int channel, int loop)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	unsigned long	status;
 	HRESULT			hr;
 
@@ -2187,6 +2341,7 @@ void ds_chg_loop_status(int channel, int loop)
 			hr = Channels[channel].pdsb->Play(0,0,DSBPLAY_LOOPING);
 		}
 	}
+#endif
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2216,6 +2371,10 @@ void ds_chg_loop_status(int channel, int loop)
 //
 int ds3d_play(int sid, int hid, int snd_id, vector *pos, vector *vel, int min, int max, int looping, int max_volume, int estimated_vol, int priority )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return -1;
+#else
 	int				channel;
 	HRESULT			hr;
 
@@ -2353,16 +2512,25 @@ int ds3d_play(int sid, int hid, int snd_id, vector *pos, vector *vel, int min, i
 		channel_next_sig = 1;
 	}
 	return Channels[channel].sig;
+#endif
 }
 
 void ds_set_position(int channel, DWORD offset)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	// set the position of the sound buffer
 	Channels[channel].pdsb->SetCurrentPosition(offset);
+#endif
 }
 
 DWORD ds_get_play_position(int channel)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	DWORD play,write;	
 	if ( Channels[channel].pdsb ) {
 		Channels[channel].pdsb->GetCurrentPosition((LPDWORD)&play,(LPDWORD)&write);
@@ -2371,10 +2539,15 @@ DWORD ds_get_play_position(int channel)
 	}
 
 	return play;
+#endif
 }
 
 DWORD ds_get_write_position(int channel)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	DWORD play,write;	
 	if ( Channels[channel].pdsb ) {
 		Channels[channel].pdsb->GetCurrentPosition((LPDWORD)&play,(LPDWORD)&write);
@@ -2383,10 +2556,15 @@ DWORD ds_get_write_position(int channel)
 	}
 
 	return write;
+#endif
 }
 
 int ds_get_channel_size(int channel)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	int		size;
 	DSBCAPS	caps;
 	HRESULT	dsrval;
@@ -2404,11 +2582,15 @@ int ds_get_channel_size(int channel)
 	}
 
 	return size;
+#endif
 }
 
 // Returns the number of channels that are actually playing
 int ds_get_number_channels()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	int i,n;
 
 	n = 0;
@@ -2421,11 +2603,15 @@ int ds_get_number_channels()
 	}
 
 	return n;
+#endif
 }
 
 // retreive raw data from a sound buffer
 int ds_get_data(int sid, char *data)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT					dsrval;
 	LPDIRECTSOUNDBUFFER	pdsb;
 	DSBCAPS					caps;
@@ -2454,6 +2640,7 @@ int ds_get_data(int sid, char *data)
 	if ( dsrval != DS_OK ) {
 		return -1;
 	}
+#endif
 
 	return 0;
 }
@@ -2461,6 +2648,9 @@ int ds_get_data(int sid, char *data)
 // return the size of the raw sound data
 int ds_get_size(int sid, int *size)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT					dsrval;
 	LPDIRECTSOUNDBUFFER	pdsb;
 	DSBCAPS					caps;
@@ -2476,12 +2666,17 @@ int ds_get_size(int sid, int *size)
 	}
 
 	*size = caps.dwBufferBytes;
+#endif
 	return 0;
 }
 
 int ds_using_ds3d()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	return Ds_use_ds3d;
+#endif
 }
 
 // Return the primary buffer interface.  Note that we cast to a uint to avoid
@@ -2489,19 +2684,34 @@ int ds_using_ds3d()
 //
 uint ds_get_primary_buffer_interface()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	return (uint)pPrimaryBuffer;
+#endif
 }
 
 // Return the DirectSound Interface.
 //
 uint ds_get_dsound_interface()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	return (uint)pDirectSound;
+#endif
 }
 
 uint ds_get_property_set_interface()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	return (uint)pPropertySet;
+#endif
 }
 
 // --------------------
@@ -2518,6 +2728,10 @@ uint ds_get_property_set_interface()
 //
 int ds_eax_set_volume(float volume)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT hr;
 
 	if (Ds_eax_inited == 0) {
@@ -2534,6 +2748,7 @@ int ds_eax_set_volume(float volume)
 	} else {
 		return -1;
 	}
+#endif
 }
 
 // Set the decay time for the EAX environment (ie all sound sources)
@@ -2544,6 +2759,10 @@ int ds_eax_set_volume(float volume)
 //
 int ds_eax_set_decay_time(float seconds)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT hr;
 
 	if (Ds_eax_inited == 0) {
@@ -2560,6 +2779,7 @@ int ds_eax_set_decay_time(float seconds)
 	} else {
 		return -1;
 	}
+#endif
 }
 
 // Set the damping value for the EAX environment (ie all sound sources)
@@ -2570,6 +2790,10 @@ int ds_eax_set_decay_time(float seconds)
 //
 int ds_eax_set_damping(float damp)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT hr;
 
 	if (Ds_eax_inited == 0) {
@@ -2586,6 +2810,7 @@ int ds_eax_set_damping(float damp)
 	} else {
 		return -1;
 	}
+#endif
 }
 
 // Set up the environment type for all sound sources.
@@ -2596,6 +2821,10 @@ int ds_eax_set_damping(float damp)
 //
 int ds_eax_set_environment(unsigned long envid)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT hr;
 
 	if (Ds_eax_inited == 0) {
@@ -2610,6 +2839,7 @@ int ds_eax_set_environment(unsigned long envid)
 	} else {
 		return -1;
 	}
+#endif
 }
 
 // Set up a predefined environment for EAX
@@ -2620,6 +2850,9 @@ int ds_eax_set_environment(unsigned long envid)
 //
 int ds_eax_set_preset(unsigned long envid)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT hr;
 
 	if (Ds_eax_inited == 0) {
@@ -2635,6 +2868,7 @@ int ds_eax_set_preset(unsigned long envid)
 	} else {
 		return -1;
 	}
+#endif
 }
 
 
@@ -2649,6 +2883,10 @@ int ds_eax_set_preset(unsigned long envid)
 //
 int ds_eax_set_all(unsigned long id, float vol, float damping, float decay)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT hr;
 
 	if (Ds_eax_inited == 0) {
@@ -2671,6 +2909,7 @@ int ds_eax_set_all(unsigned long id, float vol, float damping, float decay)
 	} else {
 		return -1;
 	}
+#endif
 }
 
 // Get up the parameters for the current environment
@@ -2681,6 +2920,10 @@ int ds_eax_set_all(unsigned long id, float vol, float damping, float decay)
 //
 int ds_eax_get_all(EAX_REVERBPROPERTIES *er)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	HRESULT hr;
 	unsigned long outsize;
 
@@ -2696,18 +2939,22 @@ int ds_eax_get_all(EAX_REVERBPROPERTIES *er)
 	} else {
 		return -1;
 	}
-
+#endif
 }
 
 // Close down EAX, freeing any allocated resources
 //
 void ds_eax_close()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if (Ds_eax_inited == 0) {
 		return;
 	}
 
 	Ds_eax_inited = 0;
+#endif
 }
 
 // Initialize EAX
@@ -2716,6 +2963,9 @@ void ds_eax_close()
 //
 int ds_eax_init()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HRESULT hr;
 	unsigned long driver_support = 0;
 
@@ -2753,28 +3003,42 @@ ds_eax_init_failed:
 	}
 
 	Ds_eax_inited = 0;
+#endif
 
 	return -1;
 }
 
 int ds_eax_is_inited()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return 0;
+#else
 	return Ds_eax_inited;
+#endif
 }
 
 bool ds_using_a3d()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+	return false;
+#else
 	if (Ds_use_a3d == 0) {
 		return false;
 	} else {
 		return true;
 	}
+#endif
 }
 
 // Called once per game frame to make sure voice messages aren't looping
 //
 void ds_do_frame()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	channel *cp;
 
 	for (int i=0; i<MAX_CHANNELS; i++) {
@@ -2794,5 +3058,6 @@ void ds_do_frame()
 			}
 		}
 	}
+#endif
 }
 

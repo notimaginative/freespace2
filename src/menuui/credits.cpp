@@ -7,6 +7,9 @@
  * C source file for displaying game credits
  *
  * $Log$
+ * Revision 1.3  2002/05/27 22:43:02  theoddone33
+ * Fix more glide symbols
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -722,8 +725,10 @@ void credits_do_frame(float frametime)
 
 	// HACK - I don't want to change the string code, so we'll just use a special version here
 	if(gr_screen.mode == GR_GLIDE){
+#ifndef PLAT_UNIX
 		extern void gr_glide_string_hack(int sx, int sy, char *s);
 		gr_glide_string_hack(0x8000, sy, Credit_text);
+#endif
 	} else {
 		gr_string(0x8000, sy, Credit_text);
 	}

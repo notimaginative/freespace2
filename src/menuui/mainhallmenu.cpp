@@ -7,8 +7,11 @@
  * Header file for main-hall menu code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/27 22:43:02  theoddone33
+ * Fix more glide symbols
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 62    10/28/99 2:04a Jefff
@@ -1263,10 +1266,12 @@ void main_hall_do(float frametime)
 		// extern void d3d_test();
 		// d3d_test();
 	} else if(gr_screen.mode == GR_GLIDE){
+#ifndef PLAT_UNIX
 		extern int Glide_voodoo3;
 		if(Glide_voodoo3){
 			gr_string(320, gr_screen.max_h - 20, "VOODOO 3");
 		}
+#endif
 	}
 #endif	
 

@@ -7,6 +7,9 @@
  * Main file for 2d primitives.
  *
  * $Log$
+ * Revision 1.4  2002/05/27 22:43:02  theoddone33
+ * Fix more glide symbols
+ *
  * Revision 1.3  2002/05/27 22:39:21  theoddone33
  * Remove glide symbols
  *
@@ -1023,8 +1026,10 @@ void gr_force_windowed()
 			break;
 		case GR_GLIDE:
 			{
+#ifndef PLAT_UNIX
 				extern void gr_glide_force_windowed();
 				gr_glide_force_windowed();
+#endif
 			}
 			break;
 		case GR_OPENGL:
@@ -1073,9 +1078,11 @@ void gr_activate(int active)
 			break;
 		case GR_GLIDE:
 			{
+#ifndef PLAT_UNIX
 				extern void gr_glide_activate(int active);
 				gr_glide_activate(active);
 				return;
+#endif
 			}
 			break;
 		case GR_OPENGL:

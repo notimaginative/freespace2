@@ -35,7 +35,7 @@ unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, vo
 
 void Sleep (int mili)
 {
-	usleep (mili * 1000);
+	SDL_Delay( long(mili) );
 }
 
 void OutputDebugString (const char *str)

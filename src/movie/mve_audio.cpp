@@ -1,3 +1,23 @@
+/*
+ * $Logfile: /Freespace2/src/movie/mve_audio.cpp $
+ * $Revision$
+ * $Date$
+ * $Author$
+ *
+ * Handles compressed audio data in MVE files
+ *
+ * $Log$
+ * Revision 1.2  2005/03/29 07:50:34  taylor
+ * Update to newest movie code with much better video support and audio support from
+ *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
+ *   and but can be skipped with the "--nomovies" or "-n" cmdline options.
+ *
+ *
+ *
+ * $NoKeywords: $
+ *
+ */
+
 static int audio_exp_table[256] =
 {
          0,      1,      2,      3,      4,      5,      6,      7,      8,      9,     10,     11,     12,     13,     14,     15,

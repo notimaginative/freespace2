@@ -15,6 +15,11 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.20  2005/03/29 07:50:34  taylor
+ * Update to newest movie code with much better video support and audio support from
+ *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
+ *   and but can be skipped with the "--nomovies" or "-n" cmdline options.
+ *
  * Revision 1.19  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -1463,8 +1468,9 @@ int ds_init(int use_a3d, int use_eax)
 {
 #ifdef PLAT_UNIX
 // NOTE: A3D and EAX are unused in OpenAL
-	ALCubyte *initStr = (ubyte *)"\'( (sampling-rate 22050 ))";
-	int attr[] = { ALC_FREQUENCY, 22050, ALC_SYNC, AL_FALSE, 0 };
+	// changed from 22050 to 44100 so that movies don't sound like crap
+	ALCubyte *initStr = (ubyte *)"\'( (sampling-rate 44100 ))";
+	int attr[] = { ALC_FREQUENCY, 44100, ALC_SYNC, AL_FALSE, 0 };
 
 	Ds_use_a3d = 0;
 	Ds_use_eax = 0;

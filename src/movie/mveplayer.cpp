@@ -1,487 +1,460 @@
-#include <string.h>
-#include <errno.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/time.h>
+/*
+ * $Logfile: /Freespace2/code/movie/mveplayer.cpp $
+ * $Revision$
+ * $Date$
+ * $Author$
+ *
+ * MVE movie playing routines
+ *
+ * $Log$
+ * Revision 1.3  2005/03/29 07:50:34  taylor
+ * Update to newest movie code with much better video support and audio support from
+ *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
+ *   and but can be skipped with the "--nomovies" or "-n" cmdline options.
+ *
+ *
+ * $NoKeywords: $
+ */
+ 
+#ifdef PLAT_UNIX
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <al.h>
+#include <alc.h>
+#include <alut.h>
+#else
+#include <GL/gl.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alut.h>
+#endif	// __APPLE__
+#endif	// PLAT_UNIX
 
+#include "pstypes.h"
 #include "mvelib.h"
-#include "bmpman.h"
+#include "movie.h"
 #include "2d.h"
-#include "mve_audio.h"
 #include "key.h"
 #include "osapi.h"
+#include "timer.h"
+#include "sound.h"
+#include "bmpman.h"
 
-#ifndef MIN
-#define MIN(a,b) ((a)<(b)?(a):(b))
+
+static int mve_playing;
+
+// timer variables
+static int g_spdFactorNum = 0;
+static int g_spdFactorDenom = 10;
+static int micro_frame_delay = 0;
+static int timer_started = 0;
+static fix timer_expire;
+
+// audio variables
+#define MVE_AUDIO_BUFFERS 64  // total buffers to interact with stream
+static int mve_audio_curbuf_curpos = 0;
+static int mve_audio_bufhead = 0;
+static int mve_audio_buftail = 0;
+static int mve_audio_playing = 0;
+static int mve_audio_canplay = 0;
+static int mve_audio_compressed = 0;
+static int audiobuf_created;
+
+#ifdef PLAT_UNIX
+
+// struct for the audio stream information
+typedef struct MVE_AUDIO_T {
+	ALenum format;
+	int sample_rate;
+	int bytes_per_sec;
+	int channels;
+	int bitsize;
+	ALuint audio_data[MVE_AUDIO_BUFFERS];
+	ALuint source_id;
+	ALuint audio_buffer[MVE_AUDIO_BUFFERS];
+} mve_audio_t;
+
+mve_audio_t *mas;  // mve_audio_stream
+
+#ifndef NDEBUG
+#define OpenAL_ErrorCheck(errcode)	do {		\
+	int i = alGetError();			\
+	if (i != AL_NO_ERROR) {			\
+		while(i != AL_NO_ERROR) {	\
+			fprintf(stderr, "%s/%s:%d - OpenAL error %s\n", __FUNCTION__, __FILE__, __LINE__, alGetString(i)); \
+			i = alGetError();	\
+		}				\
+		errcode;			\
+	} 					\
+} while (0);
+#else
+#define OpenAL_ErrorCheck(errocode)
+#endif	// !NDEBUG
+
+#endif	// PLAT_UNIX
+
+
+// video variables
+int g_width, g_height;
+void *g_vBuffers = NULL;
+void *g_vBackBuf1, *g_vBackBuf2;
+ushort *pixelbuf = NULL;
+static int g_screenWidth, g_screenHeight;
+static ubyte g_palette[768];
+static ubyte *g_pCurMap=NULL;
+static int g_nMapLength=0;
+static int videobuf_created, video_inited;
+static int hp2, wp2;
+static uint mve_video_skiptimer = 0;
+#ifdef PLAT_UNIX
+static GLuint tex = 0;
 #endif
 
-
-static int g_spdFactorNum=0;
-static int g_spdFactorDenom=10;
-static int playing = 1;
-
-void initializeMovie(MVESTREAM *mve);
-void playMovie(MVESTREAM *mve);
-void shutdownMovie(MVESTREAM *mve);
-
-#if 0
-static int doPlay(const char *filename)
-{
-    MVESTREAM *mve = mve_open(filename);
-    if (mve == NULL)
-    {
-        fprintf(stderr, "can't open MVE file '%s'\n", filename);
-        return 1;
-    }
-
-    initializeMovie(mve);
-    playMovie(mve);
-    shutdownMovie(mve);
-
-    mve_close(mve);
-
-    return 0;
-}
-#endif
-
-static short get_short(unsigned char *data)
-{
-    short value;
-    value = data[0] | (data[1] << 8);
-    return value;
-}
-
-static unsigned short get_ushort(unsigned char *data)
-{
-    unsigned short value;
-    value = data[0] | (data[1] << 8);
-    return value;
-}
-
-static int get_int(unsigned char *data)
-{
-    int value;
-    value = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
-    return value;
-}
-
-static int default_seg_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
-{
-/*    fprintf(stderr, "unknown chunk type %02x/%02x\n", major, minor); */
-    return 1;
-}
+// the decoder
+void decodeFrame16(ubyte *pFrame, ubyte *pMap, int mapRemain, ubyte *pData, int dataRemain);
 
 /*************************
  * general handlers
  *************************/
-static int end_movie_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+void mve_end_movie()
 {
-    return 0;
+	mve_playing = 0;
 }
 
 /*************************
  * timer handlers
  *************************/
 
-/*
- * timer variables
- */
-static int micro_frame_delay=0;
-static int timer_started=0;
-static struct timeval timer_expire = {0, 0};
-
-static int create_timer_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+int mve_timer_create(ubyte *data)
 {
-    __extension__ long long temp;
-    micro_frame_delay = get_int(data) * (int)get_short(data+4);
-    if (g_spdFactorNum != 0)
-    {
-        temp = micro_frame_delay;
-        temp *= g_spdFactorNum;
-        temp /= g_spdFactorDenom;
-        micro_frame_delay = (int)temp;
-    }
+	longlong temp;
 
-    return 1;
+	micro_frame_delay = mve_get_int(data) * (int)mve_get_short(data+4);
+
+	if (g_spdFactorNum != 0) {
+		temp = micro_frame_delay;
+		temp *= g_spdFactorNum;
+		temp /= g_spdFactorDenom;
+		micro_frame_delay = (int)temp;
+	}
+
+	return 1;
 }
 
 static void timer_start(void)
 {
-    int nsec=0;
-    gettimeofday(&timer_expire, NULL);
-    timer_expire.tv_usec += micro_frame_delay;
-    if (timer_expire.tv_usec > 1000000)
-    {
-        nsec = timer_expire.tv_usec / 1000000;
-        timer_expire.tv_sec += nsec;
-        timer_expire.tv_usec -= nsec*1000000;
-    }
-    timer_started=1;
+	timer_expire = timer_get_microseconds();
+	timer_expire += micro_frame_delay;
+
+	timer_started=1;
 }
 
 static void do_timer_wait(void)
 {
-    int nsec=0;
-    struct timespec ts, tsRem;
-    struct timeval tv;
-    if (! timer_started)
-        return;
+	fix tv, ts, ts2;
 
-    gettimeofday(&tv, NULL);
-    if (tv.tv_sec > timer_expire.tv_sec)
-        goto end;
-    else if (tv.tv_sec == timer_expire.tv_sec  &&  tv.tv_usec >= timer_expire.tv_usec)
-        goto end;
+	tv = timer_get_microseconds();
 
-    ts.tv_sec = timer_expire.tv_sec - tv.tv_sec;
-    ts.tv_nsec = 1000 * (timer_expire.tv_usec - tv.tv_usec);
-    if (ts.tv_nsec < 0)
-    {
-        ts.tv_nsec += 1000000000UL;
-        --ts.tv_sec;
-    }
-    if (nanosleep(&ts, &tsRem) == -1  &&  errno == EINTR)
-       exit(1);
+	if (tv > timer_expire)
+		goto end;
+
+	ts = timer_expire - tv;
+
+	ts2 = ts/1000;
+
+	Sleep(ts2);
 
 end:
-    timer_expire.tv_usec += micro_frame_delay;
-    if (timer_expire.tv_usec > 1000000)
-    {
-        nsec = timer_expire.tv_usec / 1000000;
-        timer_expire.tv_sec += nsec;
-        timer_expire.tv_usec -= nsec*1000000;
-    }
+	timer_expire += micro_frame_delay;
 }
 
 /*************************
  * audio handlers
  *************************/
-static void mve_audio_callback(void *userdata, unsigned char *stream, int len); 
-static short *mve_audio_buffers[64];
-static int    mve_audio_buflens[64];
-static int    mve_audio_curbuf_curpos=0;
-static int mve_audio_bufhead=0;
-static int mve_audio_buftail=0;
-static int mve_audio_playing=0;
-static int mve_audio_canplay=0;
-#if 0
-static SDL_AudioSpec *mve_audio_spec=NULL;
-#endif
-static int mve_audio_compressed = 0;
 
-static void mve_audio_callback(void *userdata, unsigned char *stream, int len)
+// setup the audio information from the data stream
+void mve_audio_createbuf(ubyte minor, ubyte *data)
 {
-#if 0
-    int total=0;
-    int length;
-    if (mve_audio_bufhead == mve_audio_buftail)
-        return /* 0 */;
+	if (audiobuf_created)
+		return;
 
-//fprintf(stderr, "+ <%d (%d), %d, %d>\n", mve_audio_bufhead, mve_audio_curbuf_curpos, mve_audio_buftail, len);
+	// if game sound disabled don't try and play movie audio
+	if (!Sound_enabled) {
+		mve_audio_canplay = 0;
+		return;
+	}
 
-    while (mve_audio_bufhead != mve_audio_buftail                                       /* while we have more buffers  */
-            &&  len > (mve_audio_buflens[mve_audio_bufhead]-mve_audio_curbuf_curpos))   /* and while we need more data */
-    {
-        length = mve_audio_buflens[mve_audio_bufhead]-mve_audio_curbuf_curpos;
-        memcpy(stream,                                                        /* cur output position */
-                ((unsigned char *)mve_audio_buffers[mve_audio_bufhead])+mve_audio_curbuf_curpos,           /* cur input position  */
-                length);                                                                /* cur input length    */
+#ifdef PLAT_UNIX
+    int i, flags, desired_buffer, sample_rate;
 
-        total += length;
-        stream += length;                                                               /* advance output */
-        len -= length;                                                                  /* decrement avail ospace */
-        free(mve_audio_buffers[mve_audio_bufhead]);                                     /* free the buffer */
-        mve_audio_buffers[mve_audio_bufhead]=NULL;                                      /* free the buffer */
-        mve_audio_buflens[mve_audio_bufhead]=0;                                         /* free the buffer */
+    mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
+	memset(mas, 0, sizeof(mve_audio_t));
 
-        if (++mve_audio_bufhead == 64)                                                  /* next buffer */
-            mve_audio_bufhead = 0;
-        mve_audio_curbuf_curpos = 0;
-    }
+	mas->format = AL_INVALID;
 
-//fprintf(stderr, "= <%d (%d), %d, %d>: %d\n", mve_audio_bufhead, mve_audio_curbuf_curpos, mve_audio_buftail, len, total);
-/*    return total; */
+    flags = mve_get_ushort(data + 2);
+    sample_rate = mve_get_ushort(data + 4);
+    desired_buffer = mve_get_int(data + 6);
 
-    if (len != 0                                                                        /* ospace remaining  */
-            &&  mve_audio_bufhead != mve_audio_buftail)                                 /* buffers remaining */
-    {
-        memcpy(stream,                                                        /* dest */
-                ((unsigned char *)mve_audio_buffers[mve_audio_bufhead]) + mve_audio_curbuf_curpos,         /* src */
-                len);                                                                   /* length */
+    mas->channels = (flags & 0x0001) ? 2 : 1;
+	mas->bitsize = (flags & 0x0002) ? 16 : 8;
 
-        mve_audio_curbuf_curpos += len;                                                 /* advance input */
-        stream += len;                                                                  /* advance output (unnecessary) */
-        len -= len;                                                                     /* advance output (unnecessary) */
+	mas->sample_rate = sample_rate;
 
-        if (mve_audio_curbuf_curpos >= mve_audio_buflens[mve_audio_bufhead])            /* if this ends the current chunk */
-        {
-            free(mve_audio_buffers[mve_audio_bufhead]);                                 /* free buffer */
-            mve_audio_buffers[mve_audio_bufhead]=NULL;
-            mve_audio_buflens[mve_audio_bufhead]=0;
-
-            if (++mve_audio_bufhead == 64)                                              /* next buffer */
-                mve_audio_bufhead = 0;
-            mve_audio_curbuf_curpos = 0;
-        }
-    }
-
-//fprintf(stderr, "- <%d (%d), %d, %d>\n", mve_audio_bufhead, mve_audio_curbuf_curpos, mve_audio_buftail, len);
-#endif
-}
-
-static int create_audiobuf_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
-{
-#if 0
-    int flags;
-    int sample_rate;
-    int desired_buffer;
-	
-    int stereo;
-    int bitsize;
-    int compressed;
-    
-    int format;
-    
-    flags = get_ushort(data + 2);
-    sample_rate = get_ushort(data + 4);
-    desired_buffer = get_int(data + 6);
-    
-    stereo = (flags & 0x0001) ? 1 : 0;
-    bitsize = (flags & 0x0002) ? 1 : 0;
-    
     if (minor > 0) {
-    	compressed = flags & 0x0004 ? 1 : 0;
+    	mve_audio_compressed = flags & 0x0004 ? 1 : 0;
     } else {
-	compressed = 0;
+		mve_audio_compressed = 0;
     }
 
-    mve_audio_compressed = compressed;
-        
-    if (bitsize == 1) {
-    	format = AUDIO_S16LSB;
-    } else {
-    	format = AUDIO_U8;
-    }
-    
-    fprintf(stderr, "creating audio buffers:\n");
-    fprintf(stderr, "sample rate = %d, stereo = %d, bitsize = %d, compressed = %d\n", 
-    	sample_rate, stereo, bitsize ? 16 : 8, compressed);
-    
-    mve_audio_spec = (SDL_AudioSpec *)malloc(sizeof(SDL_AudioSpec));
-    mve_audio_spec->freq = sample_rate;
-    mve_audio_spec->format = format;
-    mve_audio_spec->channels = (stereo) ? 2 : 1;
-    mve_audio_spec->samples = 4096;
-    mve_audio_spec->callback = mve_audio_callback;
-    mve_audio_spec->userdata = NULL;
-    if (SDL_OpenAudio(mve_audio_spec, NULL) >= 0)
-    {
-fprintf(stderr, "   success\n");
-        mve_audio_canplay = 1;
-    }
-    else
-    {
-fprintf(stderr, "   failure : %s\n", SDL_GetError());
+    if (mas->bitsize == 16) {
+		if (mas->channels == 2) {
+			mas->format = AL_FORMAT_STEREO16;
+		} else if (mas->channels == 1) {
+			mas->format = AL_FORMAT_MONO16;
+		}
+	} else if (mas->bitsize == 8) {
+		if (mas->channels == 2) {
+			mas->format = AL_FORMAT_STEREO8;
+		} else if (mas->channels == 1) {
+			mas->format = AL_FORMAT_MONO8;
+		}
+	}
+
+	// somethings wrong, bail now
+	if (mas->format == AL_INVALID) {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
+
+    alGenSources(1, &mas->source_id);
+
+    if ((i = alGetError()) == AL_NO_ERROR) {
+		mve_audio_canplay = 1;
+	} else {
         mve_audio_canplay = 0;
     }
 
-    memset(mve_audio_buffers, 0, sizeof(mve_audio_buffers));
-    memset(mve_audio_buflens, 0, sizeof(mve_audio_buflens));
+	alSourcef(mas->source_id, AL_GAIN, 1.0f);
+	alSource3f(mas->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
+	alSource3f(mas->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+	alSource3f(mas->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+	alSourcef(mas->source_id, AL_ROLLOFF_FACTOR, 0.0f );
+	alSourcei(mas->source_id, AL_SOURCE_RELATIVE, AL_TRUE );
 
+	memset(mas->audio_buffer, 0, MVE_AUDIO_BUFFERS * sizeof(ALuint));
+
+    mve_audio_bufhead = 0;
+    mve_audio_buftail = 0;
+
+	audiobuf_created = 1;
 #endif
-    return 1;
 }
 
-static int play_audio_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+// play and stream the audio
+void mve_audio_play()
 {
-#if 0
-    if (mve_audio_canplay  &&  !mve_audio_playing  &&  mve_audio_bufhead != mve_audio_buftail)
-    {
-        SDL_PauseAudio(0);
-        mve_audio_playing = 1;
-    }
+#ifdef PLAT_UNIX
+	if (mve_audio_canplay) {
+		ALint status, bqueued;
+
+		alGetSourceiv(mas->source_id, AL_SOURCE_STATE, &status);
+
+		OpenAL_ErrorCheck(return);
+	
+		alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued);
+
+		OpenAL_ErrorCheck(return);
+	
+		mve_audio_playing = 1;
+
+		if (status != AL_PLAYING && bqueued > 0) {
+			alSourcePlay(mas->source_id);
+
+			OpenAL_ErrorCheck(return);
+		}
+	}
 #endif
-    return 1;
 }
 
-static int audio_data_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+// call this in shutdown to stop and close audio
+static void mve_audio_stop()
 {
-#if 0
-    static const int selected_chan=1;
-    int chan;
-    int nsamp;
-    if (mve_audio_canplay)
-    {
-        if (mve_audio_playing)
-            SDL_LockAudio();
+	if (!audiobuf_created)
+		return;
 
-        chan = get_ushort(data + 2);
-        nsamp = get_ushort(data + 4);
-        if (chan & selected_chan)
-        {
-            /* HACK: +4 mveaudio_uncompress adds 4 more bytes */
-            if (major == 8) {
-                if (mve_audio_compressed) {
-                	nsamp += 4;
-                	
-                        mve_audio_buflens[mve_audio_buftail] = nsamp;
-                        mve_audio_buffers[mve_audio_buftail] = (short *)malloc(nsamp);
-	                mveaudio_uncompress(mve_audio_buffers[mve_audio_buftail], data, -1); /* XXX */
-		} else {
-			nsamp -= 8;
-			data += 8;
-			
-              		mve_audio_buflens[mve_audio_buftail] = nsamp;
-                        mve_audio_buffers[mve_audio_buftail] = (short *)malloc(nsamp);
-			memcpy(mve_audio_buffers[mve_audio_buftail], data, nsamp);
-		}	              
-            } else {
-                mve_audio_buflens[mve_audio_buftail] = nsamp;
-                mve_audio_buffers[mve_audio_buftail] = (short *)malloc(nsamp);
-                
-                memset(mve_audio_buffers[mve_audio_buftail], 0, nsamp); /* XXX */
-	    }
+#ifdef PLAT_UNIX
+	mve_audio_playing = 0;
+
+	alSourceStop(mas->source_id);
+	alSourceUnqueueBuffers(mas->source_id, MVE_AUDIO_BUFFERS, mas->audio_buffer);
+	alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->audio_buffer);
+	alDeleteSources(1, &mas->source_id);
+
+	if (mas != NULL) {
+		free(mas);
+		mas = NULL;
+	}
+#endif
+}
+
+int mve_audio_data(ubyte major, ubyte *data)
+{
+#ifdef PLAT_UNIX
+	static const int selected_chan=1;
+	int chan;
+	int nsamp;
+
+	if (mve_audio_canplay) {
+		chan = mve_get_ushort(data + 2);
+		nsamp = mve_get_ushort(data + 4);
+
+		if (chan & selected_chan) {
+			ALint bprocessed, bqueued, status;
+			ALuint bid;
+
+			alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &bprocessed);
+
+			OpenAL_ErrorCheck(return 0);
+
+			while (bprocessed-- > 2) {
+				alSourceUnqueueBuffers(mas->source_id, 1, &bid);
+			//	fprintf(stderr,"Unqueued buffer %d(%d)\n", mve_audio_bufhead, bid);
+		
+				if (++mve_audio_bufhead == MVE_AUDIO_BUFFERS)
+					mve_audio_bufhead = 0;
+			}
+
+			alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued);
+
+			OpenAL_ErrorCheck(return 0);
+		    
+			if (bqueued == 0) 
+				mprintf(("MVE: Buffer underun (First is normal)\n"));
+
+			alGetSourceiv(mas->source_id, AL_SOURCE_STATE, &status);
+
+			OpenAL_ErrorCheck(return 0);
+
+			if (mve_audio_playing && status != AL_PLAYING && bqueued > 0) {
+				alSourcePlay(mas->source_id);
+
+				OpenAL_ErrorCheck(return 0);
+			}
+
+			if (bqueued < MVE_AUDIO_BUFFERS) {
+				short *buf = NULL;
+
+				/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
+				if (major == 8) {
+				    if (mve_audio_compressed) {
+						nsamp += 4;
+
+						buf = (short *)malloc(nsamp);
+						mveaudio_uncompress(buf, data, -1); /* XXX */
+					} else {
+						nsamp -= 8;
+						data += 8;
+
+						buf = (short *)malloc(nsamp);
+						memcpy(buf, data, nsamp);
+					}	              
+				} else {
+					buf = (short *)malloc(nsamp);
+
+					memset(buf, 0, nsamp); /* XXX */
+				}
+
+
+				if (!mas->audio_buffer[mve_audio_buftail]) {
+					alGenBuffers(1,&mas->audio_buffer[mve_audio_buftail]);
+
+					OpenAL_ErrorCheck( {free(buf); return 0;} );
+				}
+
+				alBufferData(mas->audio_buffer[mve_audio_buftail], mas->format, buf, nsamp, mas->sample_rate);
+
+				OpenAL_ErrorCheck( {free(buf); return 0;} );
 	    
-            if (++mve_audio_buftail == 64)
-                mve_audio_buftail = 0;
+				alSourceQueueBuffers(mas->source_id, 1, &mas->audio_buffer[mve_audio_buftail]);
 
-            if (mve_audio_buftail == mve_audio_bufhead)
-                fprintf(stderr, "d'oh!  buffer ring overrun (%d)\n", mve_audio_bufhead);
-        }
+			//	fprintf(stderr,"Queued buffer %d(%d)\n", mve_audio_buftail, mas->audio_buffer[mve_audio_buftail]);
+				OpenAL_ErrorCheck( {free(buf); return 0;} );
 
-        if (mve_audio_playing)
-            SDL_UnlockAudio();
-    }
+				if (++mve_audio_buftail == MVE_AUDIO_BUFFERS)
+					mve_audio_buftail = 0;
+
+				bqueued++;
+				free(buf);
+			} else {
+				mprintf(("MVE: Buffer overrun: Queue full\n"));
+			}
+
+		//	fprintf(stderr,"Buffers queued: %d\n", bqueued);
+		}
+	}
 #endif
 
-    return 1;
+	return 1;
 }
 
 /*************************
  * video handlers
  *************************/
-int g_width, g_height;
-void *g_vBackBuf1, *g_vBackBuf2;
 
-#if 0
-static SDL_Surface *g_screen;
-#endif
-static int g_screenWidth, g_screenHeight;
-static unsigned char g_palette[768];
-static unsigned char *g_pCurMap=NULL;
-static int g_nMapLength=0;
-static int g_truecolor;
-
-static int create_videobuf_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+int mve_video_createbuf(ubyte minor, ubyte *data)
 {
-    short w, h;
-    short count, truecolor;
-    w = get_short(data);
-    h = get_short(data+2);
-    
-    if (minor > 0) {
-	    count = get_short(data+4);
-    } else {
-    	count = 1;
-    }
-    
-    if (minor > 1) {
-    	truecolor = get_short(data+6);
-    } else {
-        truecolor = 0;
-    }
-    
-    g_width = w << 3;
-    g_height = h << 3;
-    
-    /* TODO: * 4 causes crashes on some files */
-    g_vBackBuf1 = malloc(g_width * g_height * 8);
-    if (truecolor) {
-    	g_vBackBuf2 = (unsigned short *)g_vBackBuf1 + (g_width * g_height);
-    } else {
-    	g_vBackBuf2 = (unsigned char *)g_vBackBuf1 + (g_width * g_height);
-    }
-        
-    memset(g_vBackBuf1, 0, g_width * g_height * 4);
-    
-    fprintf(stderr, "DEBUG: w,h=%d,%d count=%d, tc=%d\n", w, h, count, truecolor);
-    
-    g_truecolor = truecolor;
-    
-    return 1;
-}
+	if (videobuf_created)
+		return 1;
 
-#if 0
-static int do_sdl_events()
-{
-	SDL_Event event;
-	int retr = 0;
-	while (SDL_PollEvent(&event)) {
-		switch(event.type) {
-			case SDL_QUIT:
-				exit(0);
-			case SDL_KEYDOWN:
-				if (event.key.keysym.sym == SDLK_ESCAPE)
-					exit(0);
-				break;
-			case SDL_KEYUP:
-				retr = 1;
-				break;
-			case SDL_MOUSEBUTTONDOWN:
-/*
-				if (event.button.button == SDL_BUTTON_LEFT) {
-					printf("GRID: %d,%d (pix:%d,%d)\n", 
-					event.button.x / 16, event.button.y / 8,
-					 event.button.x, event.button.y);
-				}
-*/
-				break;
-			default:
-				break;
-		}
+	short w, h;
+	short count, truecolor;
+	w = mve_get_short(data);
+	h = mve_get_short(data+2);
+	
+	if (minor > 0) {
+		count = mve_get_short(data+4);
+	} else {
+		count = 1;
 	}
 	
-	return retr;
-}
-#endif
-
-static unsigned short stab[65536];
-static unsigned int itab[65536];
-static int table_inited;
-
-unsigned short *pixelbuf;
-static void ConvertAndDraw()
-{
-    int i;
-    
-    unsigned short *pDests;
-    unsigned int *pDesti;
-    unsigned short *pSrcs;
-    unsigned char *pixels = (unsigned char *)g_vBackBuf1;
-    int x, y;
-
-if (g_truecolor) {
-	pSrcs = (unsigned short *)pixels;
-	
-	/*
-	if (table_inited == 0) {
-		int r, g, b;
-		
-		table_inited = 1;
-		
-		for (i = 0; i < 65536; i++) {
-			r = (i & 0x7c00) >> 10;
-			g = (i & 0x03e0) >> 5;
-			b = (i & 0x001f) >> 0;
-			
-			stab[i]  = 1 << 15;
-			stab[i] |= (r << 10)&0x7c00;
-			stab[i] |= (g <<  5)&0x03e0;
-			stab[i] |= (b <<  0)&0x001f;
-		}
+	if (minor > 1) {
+		truecolor = mve_get_short(data+6);
+	} else {
+		truecolor = 0;
 	}
-	*/
-	
+
+	g_width = w << 3;
+	g_height = h << 3;
+
+	/* TODO: * 4 causes crashes on some files */
+	g_vBackBuf1 = g_vBuffers = malloc(g_width * g_height * 8);
+
+	if (g_vBackBuf1 == NULL) {
+		mprintf(("MOVIE", "ERROR: Can't allocate video buffer"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	g_vBackBuf2 = (ushort *)g_vBackBuf1 + (g_width * g_height);
+		
+	memset(g_vBackBuf1, 0, g_width * g_height * 8);
+
+	videobuf_created = 1;
+
+	return 1;
+}
+
+static void mve_convert_and_draw()
+{
+	ushort *pDests;
+	ushort *pSrcs;
+	ushort *pixels = (ushort *)g_vBackBuf1;
+	int x, y;
+
+	pSrcs = pixels;
+
 	pDests = pixelbuf;
 
 	if (g_screenWidth > g_width) {
@@ -493,202 +466,297 @@ if (g_truecolor) {
 
 	for (y=0; y<g_height; y++) {
 		for (x = 0; x < g_width; x++) {
-			//pDests[x] = stab[*pSrcs];
 			pDests[x] = (1<<15)|*pSrcs;
-		
+
 			pSrcs++;
 		}
 		pDests += g_screenWidth;
 	}
-} else {
-#if 0
-/* original slow 8 bit code */
-    int i;
-    unsigned char *pal = g_palette;
-    unsigned char *pDest;
-    unsigned char *pixels = g_vBackBuf1;
-    SDL_Surface *screenSprite, *initSprite;
-    SDL_Rect renderArea;
-    int x, y;
-
-       initSprite = SDL_CreateRGBSurface(SDL_SWSURFACE, g_width, g_height, 8, 0, 0, 0, 0);
-
-    if (!g_truecolor) {
-    	for(i = 0; i < 256; i++)
-	    {
-	        initSprite->format->palette->colors[i].r = (*pal++) << 2;
-	        initSprite->format->palette->colors[i].g = (*pal++) << 2;
-	        initSprite->format->palette->colors[i].b = (*pal++) << 2;
-	        initSprite->format->palette->colors[i].unused = 0;
-	    }    
-    }
-    
-    pDest = initSprite->pixels;
-    for (i=0; i<g_height; i++)
-    {
-        memcpy(pDest, pixels, g_width * (g_truecolor?2:1));
-        pixels += g_width* (g_truecolor?2:1);
-        pDest += initSprite->pitch;
-    }
-
-    screenSprite = SDL_DisplayFormat(initSprite);
-    SDL_FreeSurface(initSprite);
-
-    if (g_screenWidth > screenSprite->w) x = (g_screenWidth - screenSprite->w) >> 1;
-    else x=0;
-    if (g_screenHeight > screenSprite->h) y = (g_screenHeight - screenSprite->h) >> 1;
-    else y=0;
-    renderArea.x = x;
-    renderArea.y = y;
-    renderArea.w = MIN(g_screenWidth  - x, screenSprite->w);
-    renderArea.h = MIN(g_screenHeight - y, screenSprite->h);
-    SDL_BlitSurface(screenSprite, NULL, g_screen, &renderArea);
-
-	SDL_FreeSurface(screenSprite);
-#endif
 }
 
-}
-
-static int display_video_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+void mve_video_display()
 {
-	ConvertAndDraw();
-#if 0
-		
-	SDL_Flip(g_screen);
+	fix t1 = timer_get_fixed_seconds();
+	mve_convert_and_draw();
 	
-	do_sdl_events();
-#endif
-	/* DDOI - This is probably really fricking slow */
-	int bitmap = bm_create (16, g_screenWidth, g_screenHeight, pixelbuf, 0);
+	// centers on 1024x768, fills on 640x480
+	int x = ((gr_screen.max_w - g_screenWidth) / 2);
+	int y = ((gr_screen.max_h - g_screenHeight) / 2);
+	int h = g_screenHeight;
+	int w = g_screenWidth;
+
+#ifdef PLAT_UNIX
+	// micro_frame_delay is divided by 10 to match mve_video_skiptimer overflow catch
+	if ( mve_video_skiptimer > (uint)(micro_frame_delay/10) ) {
+		// we are running slow so subtract desired time from actual and skip this frame
+		mve_video_skiptimer -= (micro_frame_delay/10);
+		return;
+	} else {
+		// zero out so we can get a new count
+		mve_video_skiptimer = 0;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, tex);
+	
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
+
+	// 0, 0
+	glBegin(GL_QUADS);
+		glTexCoord2f(0,0);										glVertex2i(x,y);
+		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
+	glEnd();
+
+	// 0, 256
+	glBegin(GL_QUADS);
+		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
+		glTexCoord2f(0,i2fl(h)/i2fl(hp2));						glVertex2i(x,y+h);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
+	glEnd();
+
+	// 256, 0
+	glBegin(GL_QUADS);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
+	glEnd();
+
+	// 256, 256
+	glBegin(GL_QUADS);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
+		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
+	glEnd();
+
+	// 512, 0
+	glBegin(GL_QUADS);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
+		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
+		glTexCoord2f(i2fl(w)/i2fl(wp2),0);						glVertex2i(x+w,y);
+	glEnd();
+
+	// 512, 256
+	glBegin(GL_QUADS);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
+		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
+		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(h)/i2fl(hp2));		glVertex2i(x+w,y+h);
+		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
+	glEnd();
+#else 
+	// DDOI - This is probably really fricking slow
+	int bitmap = bm_create (16, w, h, pixelbuf, 0);
 	gr_set_bitmap (bitmap);
-	gr_bitmap (0, 0);
+	gr_bitmap (x, y);
 	bm_release (bitmap);
+#endif
+
 	gr_flip ();
 #ifdef PLAT_UNIX
 	os_poll ();	/* DDOI - run event loop(s) */
 #endif
-	if (key_check (KEY_ESC)) playing = 0;
+
+	fix t2 = timer_get_fixed_seconds();
+
+	// only get a new count if we are definitely through with old count
+	if ( mve_video_skiptimer == 0 ) {
+		// for a more accurate count convert the frame rate to a float and multiply
+		// by one-hundred-thousand before converting to an uint.
+		mve_video_skiptimer = (uint)(f2fl(t2-t1) * 100000);
+	}
+
+	int k = key_inkey();
+	if ( k == KEY_ESC ) {
+		mve_playing = 0;
+	}
+
+//	fprintf(stderr, "mve frame took this long: %.6f\n", f2fl(t2-t1));
+}
+
+int mve_video_init(ubyte *data)
+{
+	if (video_inited)
+		return 1;
+
+	short width, height;
+
+	width = mve_get_short(data);
+	height = mve_get_short(data+2);
+
+	// DDOI - Allocate RGB565 pixel buffer
+	pixelbuf = (ushort *)malloc (width * height * 2);
+
+	if (pixelbuf == NULL) {
+		mprintf(("MOVIE", "ERROR: Can't allocate memory for pixelbuf"));
+		video_inited = 1;
+		return 0;
+	}
+
+	memset(pixelbuf, 0, width * height * 2);
+
+	g_screenWidth = width;
+	g_screenHeight = height;
+
+#ifdef PLAT_UNIX
+	int i, tex_w, tex_h;
+
+	tex_w = g_screenWidth;
+	tex_h = g_screenHeight;
+
+	// set height and width to a power of 2
+	for (i=0; i<16; i++ )	{
+		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )	{
+			tex_w = 1 << (i+1);
+			break;
+		}
+	}
+
+	for (i=0; i<16; i++ )	{
+		if ( (tex_h > (1<<i)) && (tex_h <= (1<<(i+1))) )	{
+			tex_h = 1 << (i+1);
+			break;
+		}
+	}
+
+	// try to keep an 8:1 size ratio
+	if (tex_w/tex_h > 8)
+		tex_h = tex_w/8;
+	if (tex_h/tex_w > 8)
+		tex_w = tex_h/8;
+
+	wp2 = tex_w;
+	hp2 = tex_h;
+
+	glGenTextures(1, &tex);
+
+	Assert(tex != 0);
+
+	if ( tex == 0 ) {
+		mprintf(("MOVIE", "ERROR: Can't create a GL texture"));
+		video_inited = 1;
+		return 0;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, tex);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthFunc(GL_ALWAYS);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// NOTE: using NULL instead of pixelbuf crashes some drivers, but then so does pixelbuf so less of two evils...
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, wp2, hp2, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
+#endif
+
+	memset(g_palette, 0, 768);
+	
+	video_inited = 1;
 	
 	return 1;
 }
 
-static int init_video_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
+void mve_video_palette(ubyte *data)
 {
-    short width, height;
-    width = get_short(data);
-    height = get_short(data+2);
-#if 0
-    g_screen = SDL_SetVideoMode(width, height, 16, SDL_ANYFORMAT|SDL_DOUBLEBUF);
+	short start, count;
+	start = mve_get_short(data);
+	count = mve_get_short(data+2);
+	memcpy(g_palette + 3*start, data+4, 3*count);
+}
+
+void mve_video_codemap(ubyte *data, int len)
+{
+	g_pCurMap = data;
+	g_nMapLength = len;
+}
+
+void mve_video_data(ubyte *data, int len)
+{
+	short nFrameHot, nFrameCold;
+	short nXoffset, nYoffset;
+	short nXsize, nYsize;
+	ushort nFlags;
+	ubyte *temp;
+
+	nFrameHot = mve_get_short(data);
+	nFrameCold = mve_get_short(data+2);
+	nXoffset = mve_get_short(data+4);
+	nYoffset = mve_get_short(data+6);
+	nXsize = mve_get_short(data+8);
+	nYsize = mve_get_short(data+10);
+	nFlags = mve_get_ushort(data+12);
+
+	if (nFlags & 1) {
+		temp = (ubyte *)g_vBackBuf1;
+		g_vBackBuf1 = g_vBackBuf2;
+		g_vBackBuf2 = temp;
+	}
+
+	decodeFrame16((ubyte *)g_vBackBuf1, g_pCurMap, g_nMapLength, data+14, len-14);
+}
+
+void mve_end_chunk()
+{
+	g_pCurMap = NULL;
+}
+
+void mve_init(MVESTREAM *mve)
+{
+	// reset to default values
+	mve_audio_curbuf_curpos = 0;
+	mve_audio_bufhead = 0;
+	mve_audio_buftail = 0;
+	mve_audio_playing = 0;
+	mve_audio_canplay = 0;
+	mve_audio_compressed = 0;
+	audiobuf_created = 0;
+
+	videobuf_created = 0;
+	video_inited = 0;
+
+	mve_playing = 1;
+}
+
+void mve_play(MVESTREAM *mve)
+{
+	int init_timer = 0;
+	int cont = 1;
+	
+	if (micro_frame_delay && !init_timer) {
+		timer_start();
+		init_timer = 1;
+	}
+
+	while (cont && mve_playing) {
+		cont = mve_play_next_chunk(mve);
+
+		do_timer_wait();
+	}
+}
+
+void mve_shutdown()
+{
+	mve_audio_stop();
+
+	if (pixelbuf != NULL) {
+		free(pixelbuf);
+		pixelbuf = NULL;
+	}
+
+	if (g_vBuffers != NULL) {
+		free(g_vBuffers);
+		g_vBuffers = NULL;
+	}
+
+#ifdef PLAT_UNIX
+	glDeleteTextures(1, &tex);
+	tex = 0;
+	
+	glEnable(GL_DEPTH_TEST);
 #endif
-    // DDOI - Allocate RGB565 pixel buffer
-    pixelbuf = (unsigned short *)malloc (width * height * 2);
-    g_screenWidth = width;
-    g_screenHeight = height;
-    memset(g_palette, 0, 768);
-    return 1;
-}
-
-static int video_palette_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
-{
-    short start, count;
-    start = get_short(data);
-    count = get_short(data+2);
-    memcpy(g_palette + 3*start, data+4, 3*count);
-    return 1;
-}
-
-static int video_codemap_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
-{
-    g_pCurMap = data;
-    g_nMapLength = len;
-    return 1;
-}
-
-void decodeFrame16(unsigned char *pFrame, unsigned char *pMap, int mapRemain, unsigned char *pData, int dataRemain);
-
-static int video_data_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
-{
-    short nFrameHot, nFrameCold;
-    short nXoffset, nYoffset;
-    short nXsize, nYsize;
-    unsigned short nFlags;
-    unsigned char *temp;
-
-    nFrameHot  = get_short(data);
-    nFrameCold = get_short(data+2);
-    nXoffset   = get_short(data+4);
-    nYoffset   = get_short(data+6);
-    nXsize     = get_short(data+8);
-    nYsize     = get_short(data+10);
-    nFlags     = get_ushort(data+12);
-
-    if (nFlags & 1)
-    {
-        temp = (unsigned char *)g_vBackBuf1;
-        g_vBackBuf1 = g_vBackBuf2;
-        g_vBackBuf2 = temp;
-    }
-
-    /* convert the frame */
-    if (g_truecolor) {
-	decodeFrame16((unsigned char *)g_vBackBuf1, g_pCurMap, g_nMapLength, data+14, len-14);
-#if 0
-    } else {
-    	decodeFrame8(g_vBackBuf1, g_pCurMap, g_nMapLength, data+14, len-14);
-#endif
-    }
-
-    return 1;
-}
-
-static int end_chunk_handler(unsigned char major, unsigned char minor, unsigned char *data, int len, void *context)
-{
-    g_pCurMap=NULL;
-    return 1;
-}
-
-void initializeMovie(MVESTREAM *mve)
-{
-    int i;
-    
-    for (i = 0; i < 32; i++) {
-    	mve_set_handler(mve, i, default_seg_handler);
-    }
-    
-    mve_set_handler(mve, 0x00, end_movie_handler);
-    mve_set_handler(mve, 0x01, end_chunk_handler);
-    mve_set_handler(mve, 0x02, create_timer_handler);
-    mve_set_handler(mve, 0x03, create_audiobuf_handler);
-    mve_set_handler(mve, 0x04, play_audio_handler);
-    mve_set_handler(mve, 0x05, create_videobuf_handler);
-    mve_set_handler(mve, 0x07, display_video_handler);
-    mve_set_handler(mve, 0x08, audio_data_handler);
-    mve_set_handler(mve, 0x09, audio_data_handler);
-    mve_set_handler(mve, 0x0a, init_video_handler);
-    mve_set_handler(mve, 0x0c, video_palette_handler);
-    mve_set_handler(mve, 0x0f, video_codemap_handler);
-    mve_set_handler(mve, 0x11, video_data_handler);
-}
-
-void playMovie(MVESTREAM *mve)
-{
-    int init_timer=0;
-    int cont=1;
-    while (cont && playing)
-    {
-        cont = mve_play_next_chunk(mve);
-        if (micro_frame_delay  &&  !init_timer)
-        {
-            timer_start();
-            init_timer = 1;
-        }
-
-        do_timer_wait();
-    }
-}
-
-void shutdownMovie(MVESTREAM *mve)
-{
-	free (pixelbuf);
 }

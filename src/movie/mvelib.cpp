@@ -1,449 +1,407 @@
-#include <string.h>
+/*
+ * $Logfile: /Freespace2/src/movie/mvelib.cpp $
+ * $Revision$
+ * $Date$
+ * $Author$
+ *
+ * Lib functions for MVE player
+ *
+ * $Log$
+ * Revision 1.2  2005/03/29 07:50:34  taylor
+ * Update to newest movie code with much better video support and audio support from
+ *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
+ *   and but can be skipped with the "--nomovies" or "-n" cmdline options.
+ *
+ *
+ *
+ * $NoKeywords: $
+ *
+ */
+ 
+#include "pstypes.h"
 #include "mvelib.h"
+#include "cfile.h"
 
-static const char  MVE_HEADER[]  = "Interplay MVE File\x1A";
+
+static const char MVE_HEADER[]  = "Interplay MVE File\x1A";
 static const short MVE_HDRCONST1 = 0x001A;
 static const short MVE_HDRCONST2 = 0x0100;
 static const short MVE_HDRCONST3 = 0x1133;
 
-/*
- * private utility functions
- */
-static short _mve_get_short(unsigned char *data);
-static unsigned short _mve_get_ushort(unsigned char *data);
 
-/*
- * private functions for mvefile
- */
-static MVEFILE *_mvefile_alloc(void);
-static void _mvefile_free(MVEFILE *movie);
-static int _mvefile_open(MVEFILE *movie, const char *filename);
-static int  _mvefile_read_header(MVEFILE *movie);
-static void _mvefile_set_buffer_size(MVEFILE *movie, int buf_size);
-static int _mvefile_fetch_next_chunk(MVEFILE *movie);
+// -----------------------------------------------------------
+// public MVEFILE functions
+// -----------------------------------------------------------
 
-/*
- * private functions for mvestream
- */
-static MVESTREAM *_mvestream_alloc(void);
-static void _mvestream_free(MVESTREAM *movie);
-static int _mvestream_open(MVESTREAM *movie, const char *filename);
-
-/************************************************************
- * public MVEFILE functions
- ************************************************************/
-
-/*
- * open an MVE file
- */
-MVEFILE *mvefile_open(const char *filename)
+// utility functions for mvefile and mveplayer
+short mve_get_short(ubyte *data)
 {
-    MVEFILE *file;
-
-    /* create the file */
-    file = _mvefile_alloc();
-    if (! _mvefile_open(file, filename))
-    {
-        _mvefile_free(file);
-        return NULL;
-    }
-
-    /* initialize the file */
-    _mvefile_set_buffer_size(file, 1024);
-
-    /* verify the file's header */
-    if (! _mvefile_read_header(file))
-    {
-        _mvefile_free(file);
-        return NULL;
-    }
-
-    /* now, prefetch the next chunk */
-    _mvefile_fetch_next_chunk(file);
-
-    return file;
+	short value;
+	value = data[0] | (data[1] << 8);
+	return value;
 }
 
-/*
- * close a MVE file
- */
-void mvefile_close(MVEFILE *movie)
+ushort mve_get_ushort(ubyte *data)
 {
-    _mvefile_free(movie);
+	ushort value;
+	value = data[0] | (data[1] << 8);
+	return value;
 }
 
-/*
- * get the size of the next segment
- */
-int mvefile_get_next_segment_size(MVEFILE *movie)
+int mve_get_int(ubyte *data)
 {
-    /* if nothing is cached, fail */
-    if (movie->cur_chunk == NULL  ||  movie->next_segment >= movie->cur_fill)
-        return -1;
-
-    /* if we don't have enough data to get a segment, fail */
-    if (movie->cur_fill - movie->next_segment < 4)
-        return -1;
-
-    /* otherwise, get the data length */
-    return _mve_get_short(movie->cur_chunk + movie->next_segment);
+	int value;
+	value = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+	return value;
 }
 
-/*
- * get type of next segment in chunk (0xff if no more segments in chunk)
- */
-unsigned char mvefile_get_next_segment_major(MVEFILE *movie)
+// open an MVE file
+MVEFILE *mvefile_open(char *filename)
 {
-    /* if nothing is cached, fail */
-    if (movie->cur_chunk == NULL  ||  movie->next_segment >= movie->cur_fill)
-        return 0xff;
+	int cf_opened = 0;
+	int mve_valid = 1;
+	char lower_name[MAX_FILENAME_LEN];
+	char upper_name[MAX_FILENAME_LEN];
+	char buffer[20];
+	MVEFILE *file;
 
-    /* if we don't have enough data to get a segment, fail */
-    if (movie->cur_fill - movie->next_segment < 4)
-        return 0xff;
+	// create the file
+	file = (MVEFILE *)malloc(sizeof(MVEFILE));
 
-    /* otherwise, get the data length */
-    return movie->cur_chunk[movie->next_segment + 2];
+	// set defaults
+	file->stream = NULL;
+	file->cur_chunk = NULL;
+	file->buf_size = 0;
+	file->cur_fill = 0;
+	file->next_segment = 0;
+
+	// lower case filename for checking
+	strncpy(lower_name, filename, strlen(filename)+1);
+	strlwr(lower_name);
+	// upper case filename for checking
+	strncpy(upper_name, filename, strlen(filename)+1);
+	strupr(upper_name);
+
+	// NOTE: CF_TYPE *must* be ANY to get movies off of the CDs
+	while (1) {
+		// lower case filename check - off of HD/CD-ROM
+		if ( (file->stream = cfopen(lower_name, "rb", CFILE_NORMAL, CF_TYPE_MOVIES)) ) {
+			cf_opened = 1;
+			break;
+		}
+
+		// upper case filename check - off of CD-ROM (or HD if case not changed)
+		if ( (file->stream = cfopen(upper_name, "rb", CFILE_NORMAL, CF_TYPE_ANY)) ) {
+			cf_opened = 1;
+			break;
+		}
+
+		// passed filename check - just because
+		if ( (file->stream = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_ANY)) ) {
+			cf_opened = 1;
+			break;
+		}
+		
+		// uh-oh, couldn't open
+		cf_opened = 0;
+		break;
+	}
+
+	if (!cf_opened) {
+		mvefile_close(file);
+		return NULL;
+	}
+
+	// initialize the buffer
+	file->cur_chunk = (ubyte *)malloc(100 + 1024);
+	file->buf_size = 100 + 1024;
+
+	// verify the file's header
+	cfread_string(buffer, 20, file->stream);
+	
+	if (strcmp(buffer, MVE_HEADER))
+		mve_valid = 0;
+
+	if (cfread_short(file->stream) != MVE_HDRCONST1)
+		mve_valid = 0;
+
+	if (cfread_short(file->stream) != MVE_HDRCONST2)
+		mve_valid = 0;
+
+	if (cfread_short(file->stream) != MVE_HDRCONST3)
+		mve_valid = 0;
+
+	if (!mve_valid) {
+		mvefile_close(file);
+		return NULL;
+	}
+
+	// now, prefetch the next chunk
+	mvefile_fetch_next_chunk(file);
+
+	return file;
 }
 
-/*
- * get subtype (version) of next segment in chunk (0xff if no more segments in
- * chunk)
- */
-unsigned char mvefile_get_next_segment_minor(MVEFILE *movie)
+// close a MVE file
+void mvefile_close(MVEFILE *file)
 {
-    /* if nothing is cached, fail */
-    if (movie->cur_chunk == NULL  ||  movie->next_segment >= movie->cur_fill)
-        return 0xff;
+	// free the stream
+	if (file->stream)
+		cfclose(file->stream);
 
-    /* if we don't have enough data to get a segment, fail */
-    if (movie->cur_fill - movie->next_segment < 4)
-        return 0xff;
+	file->stream = NULL;
 
-    /* otherwise, get the data length */
-    return movie->cur_chunk[movie->next_segment + 3];
+	// free the buffer
+	if (file->cur_chunk)
+		free(file->cur_chunk);
+
+	file->cur_chunk = NULL;
+
+	// not strictly necessary
+	file->buf_size = 0;
+	file->cur_fill = 0;
+	file->next_segment = 0;
+
+	// free the struct
+	free(file);
 }
 
-/*
- * see next segment (return NULL if no next segment)
- */
-unsigned char *mvefile_get_next_segment(MVEFILE *movie)
+// get the size of the next segment
+int mvefile_get_next_segment_size(MVEFILE *file)
 {
-    /* if nothing is cached, fail */
-    if (movie->cur_chunk == NULL  ||  movie->next_segment >= movie->cur_fill)
-        return NULL;
+	// if nothing is cached, fail
+	if (file->cur_chunk == NULL || file->next_segment >= file->cur_fill)
+		return -1;
 
-    /* if we don't have enough data to get a segment, fail */
-    if (movie->cur_fill - movie->next_segment < 4)
-        return NULL;
+	// if we don't have enough data to get a segment, fail
+	if (file->cur_fill - file->next_segment < 4)
+		return -1;
 
-    /* otherwise, get the data length */
-    return movie->cur_chunk + movie->next_segment + 4;
+	// otherwise, get the data length
+	return mve_get_short(file->cur_chunk + file->next_segment);
 }
 
-/*
- * advance to next segment
- */
-void mvefile_advance_segment(MVEFILE *movie)
+// get type of next segment in chunk (0xff if no more segments in chunk)
+ubyte mvefile_get_next_segment_major(MVEFILE *file)
 {
-    /* if nothing is cached, fail */
-    if (movie->cur_chunk == NULL  ||  movie->next_segment >= movie->cur_fill)
-        return;
+	// if nothing is cached, fail
+	if (file->cur_chunk == NULL || file->next_segment >= file->cur_fill)
+		return 0xff;
 
-    /* if we don't have enough data to get a segment, fail */
-    if (movie->cur_fill - movie->next_segment < 4)
-        return;
+	// if we don't have enough data to get a segment, fail
+	if (file->cur_fill - file->next_segment < 4)
+		return 0xff;
 
-    /* else, advance to next segment */
-    movie->next_segment +=
-        (4 + _mve_get_ushort(movie->cur_chunk + movie->next_segment));
+	// otherwise, get the data length
+	return file->cur_chunk[file->next_segment + 2];
 }
 
-/*
- * fetch the next chunk (return 0 if at end of stream)
- */
-int mvefile_fetch_next_chunk(MVEFILE *movie)
+// get subtype (version) of next segment in chunk (0xff if no more segments in chunk)
+ubyte mvefile_get_next_segment_minor(MVEFILE *file)
 {
-    return _mvefile_fetch_next_chunk(movie);
+	// if nothing is cached, fail
+	if (file->cur_chunk == NULL || file->next_segment >= file->cur_fill)
+		return 0xff;
+
+	// if we don't have enough data to get a segment, fail
+	if (file->cur_fill - file->next_segment < 4)
+		return 0xff;
+
+	// otherwise, get the data length
+	return file->cur_chunk[file->next_segment + 3];
 }
 
-/************************************************************
- * public MVESTREAM functions
- ************************************************************/
-
-/*
- * open an MVE stream
- */
-MVESTREAM *mve_open(const char *filename)
+// see next segment (return NULL if no next segment)
+ubyte *mvefile_get_next_segment(MVEFILE *file)
 {
-    MVESTREAM *movie;
+	// if nothing is cached, fail
+	if (file->cur_chunk == NULL || file->next_segment >= file->cur_fill)
+		return NULL;
 
-    /* allocate */
-    movie = _mvestream_alloc();
+	// if we don't have enough data to get a segment, fail
+	if (file->cur_fill - file->next_segment < 4)
+		return NULL;
 
-    /* open */
-    if (! _mvestream_open(movie, filename))
-    {
-        _mvestream_free(movie);
-        return NULL;
-    }
-
-    return movie;
+	// otherwise, get the data length
+	return file->cur_chunk + file->next_segment + 4;
 }
 
-/*
- * close an MVE stream
- */
-void mve_close(MVESTREAM *movie)
+// advance to next segment
+void mvefile_advance_segment(MVEFILE *file)
 {
-    _mvestream_free(movie);
+	// if nothing is cached, fail
+	if (file->cur_chunk == NULL || file->next_segment >= file->cur_fill)
+		return;
+
+	// if we don't have enough data to get a segment, fail
+	if (file->cur_fill - file->next_segment < 4)
+		return;
+
+	// else, advance to next segment
+	file->next_segment += (4 + mve_get_ushort(file->cur_chunk + file->next_segment));
 }
 
-/*
- * set segment type handler
- */
-void mve_set_handler(MVESTREAM *movie, unsigned char major, MVESEGMENTHANDLER handler)
+// fetch the next chunk (return 0 if at end of stream)
+int mvefile_fetch_next_chunk(MVEFILE *file)
 {
-    if (major < 32)
-        movie->handlers[major] = handler;
+	ubyte buffer[4];
+	ubyte *new_buffer;
+	ushort length;
+
+	// fail if not open
+	if (file->stream == NULL)
+		return 0;
+
+	// fail if we can't read the next segment descriptor
+	if (cfread(buffer, 1, 4, file->stream) != 4)
+		return 0;
+
+	// pull out the next length
+	length = mve_get_ushort(buffer);
+
+	// setup a new buffer if needed --
+	// only allocate new buffer is old one is too small
+	if (length > file->buf_size) {
+		// allocate new buffer
+		new_buffer = (ubyte *)malloc(100 + length);
+
+		// copy old data
+		if (file->cur_chunk && file->cur_fill)
+			memcpy(new_buffer, file->cur_chunk, file->cur_fill);
+
+		// free old buffer
+		if (file->cur_chunk) {
+			free(file->cur_chunk);
+			file->cur_chunk = NULL;
+		}
+
+		// install new buffer
+		file->cur_chunk = new_buffer;
+		file->buf_size = 100 + length;
+	}
+
+	// read the chunk
+	if (length > 0) {
+		if (cfread(file->cur_chunk, 1, length, file->stream) != length)
+			return 0;
+	}
+
+	file->cur_fill = length;
+	file->next_segment = 0;
+
+	return 1;
 }
 
-/*
- * set segment handler context
- */
-void mve_set_handler_context(MVESTREAM *movie, void *context)
+// -----------------------------------------------------------
+// public MVESTREAM functions
+// -----------------------------------------------------------
+
+// open an MVE stream
+MVESTREAM *mve_open(char *filename)
 {
-    movie->context = context;
+	MVESTREAM *stream;
+
+	// allocate
+	stream = (MVESTREAM *)malloc(sizeof(MVESTREAM));
+
+	// defaults
+	stream->movie = NULL;
+
+	// open
+	stream->movie = mvefile_open(filename);
+
+	if (stream->movie == NULL) {
+		mve_close(stream);
+		return NULL;
+	}
+
+	return stream;
 }
 
-/*
- * play next chunk
- */
-int mve_play_next_chunk(MVESTREAM *movie)
+// close an MVE stream
+void mve_close(MVESTREAM *stream)
 {
-    unsigned char major, minor;
-    unsigned char *data;
-    int len;
+	// close MVEFILE
+	if (stream->movie)
+		mvefile_close(stream->movie);
 
-    /* loop over segments */
-    major = mvefile_get_next_segment_major(movie->movie);
-    while (major != 0xff)
-    {
-        /* check whether to handle the segment */
-        if (major < 32  &&  movie->handlers[major] != NULL)
-        {
-            minor = mvefile_get_next_segment_minor(movie->movie);
-            len = mvefile_get_next_segment_size(movie->movie);
-            data = mvefile_get_next_segment(movie->movie);
+	stream->movie = NULL;
 
-            if (! movie->handlers[major](major, minor, data, len, movie->context))
-                return 0;
-        }
-
-        /* advance to next segment */
-        mvefile_advance_segment(movie->movie);
-        major = mvefile_get_next_segment_major(movie->movie);
-    }
-
-    if (! mvefile_fetch_next_chunk(movie->movie))
-        return 0;
-
-    /* return status */
-    return 1;
+	free(stream);
 }
 
-/************************************************************
- * private functions
- ************************************************************/
-
-/*
- * allocate an MVEFILE
- */
-static MVEFILE *_mvefile_alloc(void)
+// play next chunk
+int mve_play_next_chunk(MVESTREAM *stream)
 {
-    MVEFILE *file = (MVEFILE *)malloc(sizeof(MVEFILE));
-    file->stream = NULL;
-    file->cur_chunk = NULL;
-    file->buf_size = 0;
-    file->cur_fill = 0;
-    file->next_segment = 0;
+	ubyte major, minor;
+	ubyte *data;
+	int len;
 
-    return file;
-}
+	// loop over segments
+	major = mvefile_get_next_segment_major(stream->movie);
 
-/*
- * free an MVE file
- */
-static void _mvefile_free(MVEFILE *movie)
-{
-    /* free the stream */
-    if (movie->stream)
-        fclose(movie->stream);
-    movie->stream = NULL;
+	while (major != 0xff) {
+		// check whether to handle the segment
+		if (major < 32) {
+			minor = mvefile_get_next_segment_minor(stream->movie);
+			len = mvefile_get_next_segment_size(stream->movie);
+			data = mvefile_get_next_segment(stream->movie);
 
-    /* free the buffer */
-    if (movie->cur_chunk)
-        free(movie->cur_chunk);
-    movie->cur_chunk = NULL;
+			switch (major) {
+				case 0x00:
+					mve_end_movie();
+					break;
+				case 0x01:
+					mve_end_chunk();
+					break;
+				case 0x02:
+					mve_timer_create(data);
+					break;
+				case 0x03:
+					mve_audio_createbuf(minor, data);
+					break;
+				case 0x04:
+					mve_audio_play();
+					break;
+				case 0x05:
+					if (!mve_video_createbuf(minor, data))
+						return 0;
+					break;
+				case 0x07:
+					mve_video_display();
+					break;
+				case 0x08:
+					mve_audio_data(major, data);
+					break;
+				case 0x09:
+					mve_audio_data(major, data);
+					break;
+				case 0x0a:
+					if (!mve_video_init(data))
+						return 0;
+					break;
+				case 0x0c:
+					mve_video_palette(data);
+					break;
+				case 0x0f:
+					mve_video_codemap(data, len);
+					break;
+				case 0x11:
+					mve_video_data(data, len);
+					break;
+				default:
+					break;
+			}
+		}
 
-    /* not strictly necessary */
-    movie->buf_size = 0;
-    movie->cur_fill = 0;
-    movie->next_segment = 0;
+		// advance to next segment
+		mvefile_advance_segment(stream->movie);
+		major = mvefile_get_next_segment_major(stream->movie);
+	}
 
-    /* free the struct */
-    free(movie);
-}
+	if (!mvefile_fetch_next_chunk(stream->movie))
+		return 0;
 
-/*
- * open the file stream in thie object
- */
-static int _mvefile_open(MVEFILE *file, const char *filename)
-{
-    if (! (file->stream = fopen(filename, "rb")))
-        return 0;
-
-    return 1;
-}
-
-/*
- * read and verify the header of the recently opened file
- */
-static int _mvefile_read_header(MVEFILE *movie)
-{
-    unsigned char buffer[26];
-
-    /* check the file is open */
-    if (movie->stream == NULL)
-        return 0;
-
-    /* check the file is long enough */
-    if (fread(buffer, 1, 26, movie->stream) < 26)
-        return 0;
-
-    /* check the signature */
-    if (memcmp(buffer, MVE_HEADER, 20))
-        return 0;
-
-    /* check the hard-coded constants */
-    if (_mve_get_short(buffer+20) != MVE_HDRCONST1)
-        return 0;
-    if (_mve_get_short(buffer+22) != MVE_HDRCONST2)
-        return 0;
-    if (_mve_get_short(buffer+24) != MVE_HDRCONST3)
-        return 0;
-
-    return 1;
-}
-
-static void _mvefile_set_buffer_size(MVEFILE *movie, int buf_size)
-{
-    unsigned char *new_buffer;
-    int new_len;
-
-    /* check if this would be a redundant operation */
-    if (buf_size  <=  movie->buf_size)
-        return;
-
-    /* allocate new buffer */
-    new_len = 100 + buf_size;
-    new_buffer = (unsigned char *)malloc(new_len);
-
-    /* copy old data */
-    if (movie->cur_chunk  &&  movie->cur_fill)
-        memcpy(new_buffer, movie->cur_chunk, movie->cur_fill);
-
-    /* free old buffer */
-    if (movie->cur_chunk)
-    {
-        free(movie->cur_chunk);
-        movie->cur_chunk = 0;
-    }
-
-    /* install new buffer */
-    movie->cur_chunk = new_buffer;
-    movie->buf_size = new_len;
-}
-
-static int _mvefile_fetch_next_chunk(MVEFILE *movie)
-{
-    unsigned char buffer[4];
-    unsigned short length;
-
-    /* fail if not open */
-    if (movie->stream == NULL)
-        return 0;
-
-    /* fail if we can't read the next segment descriptor */
-    if (fread(buffer, 1, 4, movie->stream) < 4)
-        return 0;
-
-    /* pull out the next length */
-    length = _mve_get_short(buffer);
-
-    /* make sure we've got sufficient space */
-    _mvefile_set_buffer_size(movie, length);
-
-    /* read the chunk */
-    if (fread(movie->cur_chunk, 1, length, movie->stream) < length)
-        return 0;
-    movie->cur_fill = length;
-    movie->next_segment = 0;
-
-    return 1;
-}
-
-static short _mve_get_short(unsigned char *data)
-{
-    short value;
-    value = data[0] | (data[1] << 8);
-    return value;
-}
-
-static unsigned short _mve_get_ushort(unsigned char *data)
-{
-    unsigned short value;
-    value = data[0] | (data[1] << 8);
-    return value;
-}
-
-/*
- * allocate an MVESTREAM
- */
-static MVESTREAM *_mvestream_alloc(void)
-{
-    MVESTREAM *movie;
-
-    /* allocate and zero-initialize everything */
-    movie = (MVESTREAM *)malloc(sizeof(MVESTREAM));
-    movie->movie = NULL;
-    movie->context = 0;
-    memset(movie->handlers, 0, sizeof(movie->handlers));
-
-    return movie;
-}
-
-/*
- * free an MVESTREAM
- */
-static void _mvestream_free(MVESTREAM *movie)
-{
-    /* close MVEFILE */
-    if (movie->movie)
-        mvefile_close(movie->movie);
-    movie->movie = NULL;
-
-    /* clear context and handlers */
-    movie->context = NULL;
-    memset(movie->handlers, 0, sizeof(movie->handlers));
-}
-
-/*
- * open an MVESTREAM object
- */
-static int _mvestream_open(MVESTREAM *movie, const char *filename)
-{
-    movie->movie = mvefile_open(filename);
-
-    return (movie->movie == NULL) ? 0 : 1;
+	// return status
+	return 1;
 }

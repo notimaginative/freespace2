@@ -4,7 +4,6 @@
 MACOSX=false
 FS1=false
 DEMO=false
-MVE=false
 
 CC=g++
 AR=ar
@@ -146,6 +145,11 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/model/modelinterp.cpp \
 	./src/model/modeloctant.cpp \
 	./src/model/modelread.cpp \
+	./src/movie/movie.cpp \
+	./src/movie/mveplayer.cpp \
+	./src/movie/mvelib.cpp \
+	./src/movie/decoder16.cpp \
+	./src/movie/mve_audio.cpp \
 	./src/object/collidedebrisship.cpp \
 	./src/object/collidedebrisweapon.cpp \
 	./src/object/collideshipship.cpp \
@@ -261,16 +265,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/network/psnet.cpp \
 	./src/network/psnet2.cpp \
 	./src/network/stand_gui-unix.cpp \
-	./src/movie/movie.cpp \
 	./src/platform/unix.cpp
-
-ifeq ($(strip $(MVE)),true)
-CODE_SOURCES += \
-	./src/movie/mveplayer.cpp \
-	./src/movie/mvelib.cpp \
-	./src/movie/decoder16.cpp \
-	./src/movie/mve_audio.cpp
-endif
 
 ## Only used for software rendering
 ##CODE_SOURCES += \

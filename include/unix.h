@@ -47,6 +47,7 @@ typedef unsigned long DWORD;
 typedef unsigned short WORD;
 
 extern void strlwr (char *str);
+extern void strupr (char *str);
 extern int filelength (int fd);
 extern int MulDiv (int, int, int);
 

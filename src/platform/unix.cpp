@@ -23,6 +23,11 @@ void strlwr (char * str)
 	while (*str) {*str = tolower (*str); str++; }
 }
 
+void strupr (char * str)
+{
+	while (*str) {*str = toupper (*str); str++; }
+}
+
 int filelength (int fd)
 {
 	struct stat buf;

@@ -15,6 +15,9 @@
  * Program to create an archive file for use with cfile stuff
  *
  * $Log$
+ * Revision 1.4  2003/01/30 20:01:46  relnev
+ * ported (Taylor Richards)
+ *
  * Revision 1.3  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -32,10 +35,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#ifndef PLAT_UNIX
 #include <direct.h>
 #include <io.h>
-#include <string.h>
 #include <conio.h>
+#else
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
+
+#include "pstypes.h"
 
 unsigned int Total_size=16; // Start with size of header
 unsigned int Num_files =0;
@@ -116,9 +128,17 @@ void pack_file( char *filespec, char *filename, int filesize, time_t time_write 
 
 	Total_size += filesize;
 	Num_files++;
+#ifndef PLAT_UNIX
 	printf( "Packing %s\\%s...", filespec, filename );
 
+	
 	sprintf( path, "%s\\%s", filespec, filename );
+#else
+	printf( "Packing %s/%s...", filespec, filename );
+
+
+	sprintf( path, "%s/%s", filespec, filename );
+#endif
 
 	FILE *fp = fopen( path, "rb" );
 	
@@ -155,7 +175,11 @@ void add_directory( char * dirname)
 	int i = 0;
 	fwrite(&i, 1, 4, fp_out_hdr);
 	// strip out any directories that this dir is a subdir of
+#ifndef PLAT_UNIX
 	while ((tmpptr = strchr(pathptr, '\\')) != NULL) {
+#else
+	while ((tmpptr = strchr(pathptr, '/')) != NULL) {
+#endif
 		pathptr = tmpptr+1;
 	}
 	fwrite(pathptr, 1, 32, fp_out_hdr);
@@ -165,8 +189,10 @@ void add_directory( char * dirname)
 
 void pack_directory( char * filespec)
 {
+#ifndef PLAT_UNIX
 	int find_handle;
 	_finddata_t find;
+#endif
 	char tmp[512];
 	char tmp1[512];
 
@@ -187,11 +213,20 @@ void pack_directory( char * filespec)
 */
 
 	strcpy( tmp1, filespec );
+#ifdef PLAT_UNIX
+	// space for more unfinished things here
+	//
+
+	add_directory(filespec);
+	strcat( tmp1, "/*.*" );
+#else
 	add_directory(filespec);
 	strcat( tmp1, "\\*.*" );
+#endif
 	
 	printf( "In dir '%s'\n", tmp1 );
 
+#ifndef PLAT_UNIX
 	find_handle = _findfirst( tmp1, &find );
 	if( find_handle != -1 )	{
 		if ( find.attrib & _A_SUBDIR )	{
@@ -219,6 +254,39 @@ void pack_directory( char * filespec)
 			}
 		}
 	}
+#else
+	DIR *dirp;
+	struct dirent *dir;
+
+	dirp = opendir (filespec);
+	if ( dirp ) {
+		while ((dir = readdir(dirp)) != NULL) {
+
+			char fn[MAX_PATH];
+			snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
+			fn[MAX_PATH-1] = 0;
+			
+			struct stat buf;
+			if (stat(fn, &buf) == -1) {
+				continue;
+			}
+
+			if ( (strcmp(dir->d_name, ".") == 0) || (strcmp(dir->d_name, "..") == 0) ) {
+				continue;
+			}
+
+			if (S_ISDIR(buf.st_mode)) {
+				strcpy( tmp, filespec );
+				strcat( tmp, "/" );
+				strcat( tmp, dir->d_name );
+				pack_directory(tmp);
+			} else {
+				pack_file( filespec, dir->d_name, buf.st_size, buf.st_mtime );
+			}
+		}
+		closedir(dirp);
+	}
+#endif
 	add_directory("..");
 }
 
@@ -230,11 +298,36 @@ int main(int argc, char *argv[] )
 	char *p;
 
 	if ( argc < 3 )	{
+#ifndef PLAT_UNIX
 		printf( "Usage: %s archive_name src_dir\n", argv[0] );
 		printf( "Example: %s freespace c:\\freespace\\data\n", argv[0] );
 		printf( "Creates an archive named freespace out of the\nfreespace data tree\n" );
 		printf( "Press any key to exit...\n" );
 		getch();
+#else
+		printf( "Creates a vp archive out of a FreeSpace data tree.\n\n" );
+		printf( "Usage: %s archive_name src_dir\n", argv[0] );
+		printf( "Example: %s freespace /tmp/freespace/data\n", argv[0] );
+		printf( "NOTE: last directory must be named \"data\", no trailing \"/\"\n\n" );
+		printf( "Directory structure options:\n" );
+		printf( "   Effects                   (.ani .pcx .neb .tga)\n" );
+		printf( "   Fonts                     (.vf)\n" );
+		printf( "   Hud                       (.ani .pcx .tga\n" );
+		printf( "   Interface                 (.pcx .ani .tga)\n" );
+		printf( "   Maps                      (.pcx .ani .tga)\n" );
+		printf( "   Missions                  (.ntl .ssv), FS1(.fsm .fsc), FS2(.fs2 .fc2)\n" );
+		printf( "   Models                    (.pof)\n" );
+		printf( "   Music                     (.wav)\n" );
+		printf( "   Sounds/8b22k              (.wav)\n" );
+		printf( "   Sounds/16b11k             (.wav)\n" );
+		printf( "   Tables                    (.tbl)\n" );
+		printf( "   Voice/Briefing            (.wav)\n" );
+		printf( "   Voice/Command briefings   (.wav)\n" );
+		printf( "   Voice/Debriefing          (.wav)\n" );
+		printf( "   Voice/Personas            (.wav)\n" );
+		printf( "   Voice/Special             (.wav)\n" );
+		printf( "   Voice/Training            (.wav)\n" );
+#endif
 		return 1;
 	}
 
@@ -251,16 +344,20 @@ int main(int argc, char *argv[] )
 	fp_out = fopen( archive_dat, "wb" );
 	if ( !fp_out )	{
 		printf( "Couldn't open '%s'!\n", archive_dat );
+#ifndef PLAT_UNIX
 		printf( "Press any key to exit...\n" );
 		getch();
+#endif
 		return 1;
 	}
 
 	fp_out_hdr = fopen( archive_hdr, "wb" );
 	if ( !fp_out_hdr )	{
 		printf( "Couldn't open '%s'!\n", archive_hdr );
+#ifndef PLAT_UNIX
 		printf( "Press any key to exit...\n" );
 		getch();
+#endif
 		return 1;
 	}
 
@@ -277,8 +374,10 @@ int main(int argc, char *argv[] )
 
 	if (!write_index(archive_hdr, archive_dat)) {
 		printf("Error appending index!\n");
+#ifndef PLAT_UNIX
 		printf("Press any key to exit...\n");
 		getch();
+#endif
 		return 1;
 	}
 	

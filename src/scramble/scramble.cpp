@@ -15,6 +15,9 @@
  * Module for file scrambler
  *
  * $Log$
+ * Revision 1.3  2003/01/30 20:05:01  relnev
+ * ported (Taylor Richards)
+ *
  * Revision 1.2  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -54,15 +57,20 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#ifndef PLAT_UNIX
 #include <io.h>
+#endif
 #include <string.h>
 
+#include "pstypes.h"
 #include "encrypt.h"
 #include "scramble.h"
 
 #define MAX_LINE_LEN	512
 
-static int Use_8bit = 0;	// set to 1 to disable 7bit character packing
+//static int Use_8bit = 0;	// set to 1 to disable 7bit character packing
+static int Use_8bit = 1;
+
 
 // strip out any ships tbl data not used in demo (ie entries without @ preceding name)
 void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
@@ -74,7 +82,11 @@ void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
 	char	seps[]   = " ,\t\n";
 	char	*token;
 
+#ifndef PLAT_UNIX
 	*text_len = _filelength(fileno(fp));
+#else
+	*text_len = filelength(fileno(fp));
+#endif
 	*text = (char*)malloc(*text_len+1);
 
 	dest = *text;
@@ -130,7 +142,11 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 	char	seps[]   = " ,\t\n";
 	char	*token = NULL;
 
+#ifndef PLAT_UNIX
 	*text_len = _filelength(fileno(fp));
+#else
+	*text_len = filelength(fileno(fp));
+#endif
 	*text = (char*)malloc(*text_len+1);
 
 	dest = *text;
@@ -177,7 +193,11 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 
 void scramble_read_default(char **text, int *text_len, FILE *fp)
 {
+#ifndef PLAT_UNIX
 	*text_len = _filelength(fileno(fp));
+#else
+	*text_len = filelength(fileno(fp));
+#endif
 	*text = (char*)malloc(*text_len+1);
 	fread( *text, *text_len, 1, fp );
 }
@@ -252,7 +272,11 @@ void unscramble_file(char *src_filename, char *dest_filename)
 	}
 
 	// read in the scrambled data
+#ifndef PLAT_UNIX
 	scramble_len = _filelength(fileno(fp));
+#else
+	scramble_len = filelength(fileno(fp));
+#endif
 	scramble_text = (char*)malloc(scramble_len+1);
 	fread( scramble_text, scramble_len, 1, fp );
 	fclose(fp);
@@ -286,7 +310,11 @@ void print_instructions()
 	printf("Decrypt: scramble -u <filename_in> [filename_out] \n");
 }
 
+#ifndef PLAT_UNIX
 void main(int argc, char *argv[])
+#else
+int main(int argc, char *argv[])
+#endif
 {
 	switch (argc) {
 	case 2:
@@ -319,7 +347,11 @@ void main(int argc, char *argv[])
 		break;
 	default:
 		print_instructions();
+#ifndef PLAT_UNIX
 		return;
+#else
+		return 1;
+#endif
 	}
 }
 

@@ -7,6 +7,10 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.21  2002/05/30 17:29:30  theoddone33
+ * Fix some more stubs, change at least one polygon winding since culling is now
+ * enabled.
+ *
  * Revision 1.20  2002/05/30 16:50:24  theoddone33
  * Keyboard partially fixed
  *
@@ -306,8 +310,6 @@ void gr_opengl_set_clip(int x,int y,int w,int h)
 	gr_screen.clip_bottom = h-1;
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
-	
-	STUB_FUNCTION;
 }
 
 void gr_opengl_reset_clip()
@@ -645,17 +647,17 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	}
 
 	glBegin (GL_QUADS);
-	  glTexCoord2f (u0, v0);
-	  glVertex3f (x1, y1, 0.99);
-
-	  glTexCoord2f (u1, v0);
-	  glVertex3f (x2, y1, 0.99);
+	  glTexCoord2f (u0, v1);
+	  glVertex3f (x1, y2, 0.99);
 
 	  glTexCoord2f (u1, v1);
 	  glVertex3f (x2, y2, 0.99);
 
-	  glTexCoord2f (u0, v1);
-	  glVertex3f (x1, y2, 0.99);
+	  glTexCoord2f (u1, v0);
+	  glVertex3f (x2, y1, 0.99);
+
+	  glTexCoord2f (u0, v0);
+	  glVertex3f (x1, y1, 0.99);
 	glEnd ();
 }
 
@@ -1142,12 +1144,33 @@ void gr_opengl_tmapper( int nv, vertex * verts[], uint flags )
 
 void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 {
+	// DDOI - needs opengl_make_rect
+	/*
+	int clipped = 0, swapped=0;
+
+	if ( !gr_screen.current_color.is_alphacolor )   {
+		gr_line( x1, y1, x2, y2 );
+		return;
+	}
+
+	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+
+	uint color1, color2;
+
+	glShadeModel (GL_FLAT);
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_DST_ALPHA);
+
+	// DDOI - may not be right
+	color1 = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha );
+	color2 = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, 0 );
+
+	*/
 	STUB_FUNCTION;
 }
 
 void gr_opengl_set_palette(ubyte *new_palette, int is_alphacolor)
 {
-	STUB_FUNCTION;
 }
 
 void gr_opengl_get_color( int * r, int * g, int * b )
@@ -1257,7 +1280,12 @@ void gr_opengl_get_region(int front, int w, int g, ubyte *data)
 
 void gr_opengl_set_cull(int cull)
 {
-	STUB_FUNCTION;
+	if (cull) {
+		glEnable (GL_CULL_FACE);
+		glFrontFace (GL_CCW);
+	} else {
+		glDisable (GL_CULL_FACE);
+	}
 }
 
 void gr_opengl_filter_set(int filter)
@@ -1659,8 +1687,6 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		GL_textures_in += t->size;
 	}
 
-	STUB_FUNCTION;
-
 	return ret_val;
 }
 
@@ -1914,7 +1940,7 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 
 void gr_opengl_set_clear_color(int r, int g, int b)
 {
-	STUB_FUNCTION;
+	gr_init_color (&gr_screen.current_clear_color, r, g, b);
 }
 
 void gr_opengl_aaline(vertex *v1, vertex *v2)
@@ -1929,16 +1955,24 @@ void gr_opengl_flash(int r, int g, int b)
 
 int gr_opengl_zbuffer_get()
 {
-	STUB_FUNCTION;
-	
-	return GR_ZBUFF_NONE;
+	if ( !gr_global_zbuffering )    {
+		return GR_ZBUFF_NONE;
+	}
+	return gr_zbuffering_mode;
 }
 
 int gr_opengl_zbuffer_set(int mode)
 {
-	STUB_FUNCTION;
-	
-	return GR_ZBUFF_NONE;
+	int tmp = gr_zbuffering_mode;
+
+	gr_zbuffering_mode = mode;
+
+	if (gr_zbuffering_mode == GR_ZBUFF_NONE )      {
+		gr_zbuffering = 0;
+	} else {
+		gr_zbuffering = 1;
+	}
+	return tmp;
 }
 
 void gr_opengl_zbuffer_clear(int mode)
@@ -1948,23 +1982,53 @@ void gr_opengl_zbuffer_clear(int mode)
 
 void gr_opengl_set_gamma(float gamma)
 {
-	STUB_FUNCTION;
+	Gr_gamma = gamma;
+	Gr_gamma_int = int (Gr_gamma*10);
+
+	// Create the Gamma lookup table
+	int i;
+	for (i=0;i<256; i++) {
+		int v = fl2i(pow(i2fl(i)/255.0f, 1.0f/Gr_gamma)*255.0f);
+		if ( v > 255 ) {
+			v = 255;
+		} else if ( v < 0 )     {
+			v = 0;
+		}
+		Gr_gamma_lookup[i] = v;
+	}
+
+	// Flush any existing textures
+	opengl_tcache_flush();
 }
 
 void gr_opengl_fade_in(int instantaneous)
 {
-	STUB_FUNCTION;
+	// Empty - DDOI
 }
 
 void gr_opengl_fade_out(int instantaneous)
 {
-	STUB_FUNCTION;
+	// Empty - DDOI
 }
 
 int gr_opengl_save_screen()
 {
+	/*
+	gr_reset_clip();
+
+	if ( Gr_saved_screen )  {
+		mprintf(( "Screen alread saved!\n" ));
+		return -1;
+	}
+
+	Gr_saved_screen = (char*)malloc( gr_screen.max_w * gr_screen.max_h * gr_screen.bytes_per_pixel );
+	if (!Gr_saved_screen) {
+		mprintf(( "Couldn't get memory for saved screen!\n" ));
+		return -1;
+	}
+	*/
 	STUB_FUNCTION;
-	
+
 	return -1;
 }
 

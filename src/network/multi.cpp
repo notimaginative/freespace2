@@ -7,6 +7,9 @@
  * C file that contains high-level multiplayer functions
  *
  * $Log$
+ * Revision 1.4  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.3  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -328,7 +331,7 @@ LOCAL ubyte Multi_read_count;
 
 int Multi_restr_query_timestamp = -1;
 join_request Multi_restr_join_request;
-net_addr Multi_restr_addr;				
+net_addr_t Multi_restr_addr;				
 int Multi_join_restr_mode = -1;
 
 LOCAL fix Multi_server_wait_start;				// variable to hold start time when waiting to reestablish with server
@@ -513,7 +516,7 @@ void multi_level_init()
 void multi_check_listen()
 {
 	int i;
-	net_addr addr;
+	net_addr_t addr;
 	PSNET_SOCKET_RELIABLE sock = INVALID_SOCKET;
 
 	// call psnet routine which calls select to see if we need to check for a connect from a client
@@ -1092,7 +1095,7 @@ void process_packet_normal(ubyte* data, header *header_info)
 //  --------------------^
 // this should be process_packet() I think, or with the new code
 // process_tracker_packet() as defined in MultiTracker.[h,cpp]
-void multi_process_bigdata(ubyte *data, int len, net_addr *from_addr, int reliable)
+void multi_process_bigdata(ubyte *data, int len, net_addr_t *from_addr, int reliable)
 {
 	int type, bytes_processed;
 	int player_num;
@@ -1217,7 +1220,7 @@ void multi_process_incoming()
 {
 	int size;
 	ubyte *data, *savep;
-	net_addr from_addr;	
+	net_addr_t from_addr;	
 
 	Assert( Multi_read_count < NUM_REENTRANT_LEVELS );
 	savep = net_buffer[Multi_read_count];

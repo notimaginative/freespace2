@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -116,7 +119,7 @@
 #define MULTI_KICK_RESPONSE_TIME						4000		// if someone who has been kicked has not responded in this time, disconnect him hard
 
 #define MAX_BAN_SLOTS		30
-net_addr Multi_kick_ban_slots[MAX_BAN_SLOTS];				// banned addresses
+net_addr_t Multi_kick_ban_slots[MAX_BAN_SLOTS];				// banned addresses
 int Multi_kick_num_ban_slots;										// the # of banned addresses
 							 
 // ----------------------------------------------------------------------------------
@@ -130,7 +133,7 @@ void send_player_kick_packet(int player_index, int ban = 1, int reason = KICK_RE
 void process_player_kick_packet(ubyte *data, header *hinfo);
 
 // add a net address to the banned list
-void multi_kick_add_ban(net_addr *addr);
+void multi_kick_add_ban(net_addr_t *addr);
 
 // can the given player perform a kick
 int multi_kick_can_kick(net_player *player);
@@ -144,7 +147,7 @@ int multi_kick_can_kick(net_player *player);
 void multi_kick_init()
 {
 	// blast all the ban slots
-	memset(Multi_kick_ban_slots,0,sizeof(net_addr)*MAX_BAN_SLOTS);
+	memset(Multi_kick_ban_slots,0,sizeof(net_addr_t)*MAX_BAN_SLOTS);
 	Multi_kick_num_ban_slots = 0;
 }
 
@@ -206,7 +209,7 @@ void multi_kick_player(int player_index, int ban, int reason)
 }
 
 // is this net address currently kicked and banded
-int multi_kick_is_banned(net_addr *addr)
+int multi_kick_is_banned(net_addr_t *addr)
 {
 	int idx;
 	
@@ -283,11 +286,11 @@ void multi_kick_get_text(net_player *pl, int reason, char *str)
 //
 
 // add a net address to the banned list
-void multi_kick_add_ban(net_addr *addr)
+void multi_kick_add_ban(net_addr_t *addr)
 {
 	// if we still have any slots left
 	if(Multi_kick_num_ban_slots < (MAX_BAN_SLOTS - 1)){
-		memcpy(&Multi_kick_ban_slots[Multi_kick_num_ban_slots++],addr,sizeof(net_addr));
+		memcpy(&Multi_kick_ban_slots[Multi_kick_num_ban_slots++],addr,sizeof(net_addr_t));
 	}
 }
 

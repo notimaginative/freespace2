@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -105,7 +108,7 @@
 //
 
 // create a _permanent_ observer player 
-int multi_obs_create_player(int player_num,char *name,net_addr *addr,player *pl)
+int multi_obs_create_player(int player_num,char *name,net_addr_t *addr,player *pl)
 {	
 	// blast the player struct
 	memset(&Net_players[player_num],0,sizeof(net_player));

@@ -139,6 +139,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/parse/encrypt.cpp \
 	./src/parse/parselo.cpp \
 	./src/parse/sexp.cpp \
+	./src/sound/sound.cpp \
 	./src/particle/particle.cpp \
 	./src/pcxutils/pcxutils.cpp \
 	./src/physics/physics.cpp \

@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *  
  * 
  * 3     11/05/98 5:55p Dave
@@ -38,7 +41,6 @@
 // KICK DEFINES/VARS
 //
 
-struct net_addr;
 struct net_player;
 
 // special reasons for kicking players
@@ -62,7 +64,7 @@ void multi_kick_process();
 void multi_kick_player(int player_index, int ban = 1, int reason = KICK_REASON_NORM);
 
 // is this net address currently kicked and banded
-int multi_kick_is_banned(net_addr *addr);
+int multi_kick_is_banned(net_addr_t *addr);
 
 // debug console function called to determine which player to kick
 void multi_dcf_kick();

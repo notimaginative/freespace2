@@ -7,8 +7,11 @@
  * Header file for the UI of the various multiplayer screens
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 8     7/15/99 9:20a Andsager
@@ -389,7 +392,7 @@ void multi_sg_rank_build_name(char *in,char *out);
 void multi_join_game_init();
 void multi_join_game_close();
 void multi_join_game_do_frame();
-void multi_join_eval_pong(net_addr *addr, fix pong_time);
+void multi_join_eval_pong(net_addr_t *addr, fix pong_time);
 void multi_join_reset_join_stamp();
 void multi_join_clear_game_list();
 void multi_join_notify_new_game();

@@ -7,8 +7,11 @@
  * Header file to support misc. multiplayer support functions
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 13    9/15/99 1:45a Dave
@@ -134,7 +137,6 @@
 
 // prototypes instead of headers :)
 struct net_player;
-struct net_addr;
 struct player;
 struct button_info;
 struct join_request;
@@ -155,9 +157,9 @@ extern ushort multi_assign_network_signature( int what_kind );
 extern ushort multi_get_next_network_signature( int what_kind );
 extern void multi_set_network_signature( ushort signature, int what_kind );
 
-extern void stuff_netplayer_info( net_player *nplayer, net_addr *addr, int ship_class, player *pplayer );
-extern int find_player(net_addr* addr);
-extern int find_player_no_port(net_addr *addr);
+extern void stuff_netplayer_info( net_player *nplayer, net_addr_t *addr, int ship_class, player *pplayer );
+extern int find_player(net_addr_t* addr);
+extern int find_player_no_port(net_addr_t *addr);
 extern int find_player_id(short player_id);
 extern int find_player_socket(PSNET_SOCKET_RELIABLE sock);	// note this is only valid to do on a server!
 extern int multi_find_player_by_object( object *obj );
@@ -165,7 +167,7 @@ extern int multi_find_player_by_signature( int signature );
 extern int multi_find_player_by_callsign(char *callsign);
 extern int multi_find_player_by_net_signature(ushort net_signature);
 extern int multi_find_player_by_ship_name(char *ship_name);
-extern int multi_create_player(int player_num, player *pl,char* name, net_addr* addr, int ship_class, short id);
+extern int multi_create_player(int player_num, player *pl,char* name, net_addr_t* addr, int ship_class, short id);
 extern int multi_find_open_netplayer_slot();
 extern int multi_find_open_player_slot();
 extern void delete_player(int player_num, int kicked_reason = -1);
@@ -180,7 +182,7 @@ extern char* multi_random_chat_start();
 
 extern int multi_ship_class_lookup(char* ship_name);
 extern ushort netmisc_calc_checksum( void * vptr, int len );
-extern void fill_net_addr(net_addr* addr, ubyte* address, ubyte* net_id, ushort port);
+extern void fill_net_addr(net_addr_t* addr, ubyte* address, ubyte* net_id, ushort port);
 extern char* get_text_address( char * text, ubyte * address );
 
 extern object *multi_get_network_object( ushort net_signature );		// find a network object
@@ -251,7 +253,7 @@ void multi_free_server_list();
 int multi_can_message(net_player *p);
 int multi_can_end_mission(net_player *p);
 
-int multi_eval_join_request(join_request *jr,net_addr *addr);
+int multi_eval_join_request(join_request *jr,net_addr_t *addr);
 
 // called by any machine (client, host, server, standalone, etc), to begin warping out all player objects
 void multi_warpout_all_players();
@@ -272,7 +274,7 @@ void multi_file_xfer_notify(int handle);
 int multi_query_lag_status();
 
 // process a valid join request
-void multi_process_valid_join_request(join_request *jr, net_addr *who_from, int ingame_join_team = -1);
+void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, int ingame_join_team = -1);
 
 // if a player is trying to join a restricted game, evaluate the keypress (accept or not, etc)
 int multi_process_restricted_keys(int k);

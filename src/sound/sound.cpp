@@ -7,6 +7,9 @@
  * Low-level sound code
  *
  * $Log$
+ * Revision 1.3  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.2  2002/05/07 03:16:52  theoddone33
  * The Great Newline Fix
  *
@@ -293,9 +296,11 @@
  */
 #include "pstypes.h"
 
+#ifndef PLAT_UNIX
 #include <windows.h>
 #include <mmreg.h>
 #include "vdsound.h"
+#endif
 
 #include "3dinternal.h"
 #include "sound.h"
@@ -307,10 +312,12 @@
 #include "gamesnd.h"
 #include "alphacolors.h"
 
+#ifndef PLAT_UNIX
 #include "ds.h"
 #include "ds3d.h"
 #include "acm.h"
 #include "dscap.h"
+#endif
 		
 #define SND_F_USED			(1<<0)		// Sounds[] element is used
 
@@ -341,6 +348,9 @@ static int snd_next_sig	= 1;
 // convert the game level sound priorities to the DirectSound priority descriptions
 int ds_priority(int priority)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	switch(priority){
 		case SND_PRIORITY_MUST_PLAY:
 			return DS_MUST_PLAY;
@@ -354,6 +364,7 @@ int ds_priority(int priority)
 			Int3();
 			return DS_MUST_PLAY;
 	};
+#endif
 }
 
 void snd_clear()

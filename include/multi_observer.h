@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *  
  * 
  * 3     11/05/98 5:55p Dave
@@ -35,7 +38,6 @@
 // MULTI OBSERVER DEFINES/VARS
 //
 
-struct net_addr;
 struct player;
 struct net_player; 
 
@@ -44,7 +46,7 @@ struct net_player;
 //
 
 // create a _permanent_ observer player 
-int multi_obs_create_player(int player_num,char *name,net_addr *addr,player *pl);
+int multi_obs_create_player(int player_num,char *name,net_addr_t *addr,player *pl);
 
 // create an explicit observer object and assign it to the passed player
 void multi_obs_create_observer(net_player *pl);

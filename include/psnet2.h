@@ -7,6 +7,9 @@
  * Header file for the application level network-interface.
  *
  * $Log$
+ * Revision 1.4  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.3  2002/05/26 21:27:53  theoddone33
  * More progress (I hate psnet2)
  *
@@ -67,7 +70,7 @@
 	#define DEFAULT_GAME_PORT 7808
 #endif
 
-typedef struct net_addr_s {
+typedef struct net_addr {
 	uint	type;			// See NET_ defines above
 	ubyte	net_id[4];	// used for IPX only
 	ubyte addr[6];		// address (first 4 used when IP, all 6 used when IPX)

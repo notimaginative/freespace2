@@ -5,8 +5,11 @@
  * $Author$
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *  
  * 
  * 2     10/07/98 10:53a Dave
@@ -34,7 +37,6 @@
 //
 
 struct header;
-struct net_addr;
 struct net_player;
 
 // the max ping we'll store to calculate the average
@@ -70,7 +72,7 @@ void multi_ping_eval_pong(ping_struct *ps);
 void multi_ping_send(net_player *p);
 
 // send a ping to the specified address
-void multi_ping_send(net_addr *addr,ping_struct *ps);
+void multi_ping_send(net_addr_t *addr,ping_struct *ps);
 
 // send a ping to all players
 void multi_ping_send_all();

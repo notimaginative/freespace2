@@ -7,6 +7,9 @@
  * Header file for the building and sending of multiplayer packets
  *
  * $Log$
+ * Revision 1.3  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.2  2002/05/26 20:49:54  theoddone33
  * More progress
  *
@@ -210,9 +213,9 @@
 #define MULTI_MSGS_H
 
 #include "pstypes.h"
+#include "psnet2.h"
 
 struct net_player;
-struct net_addr;
 struct object;
 struct ship;
 struct wing;
@@ -419,7 +422,7 @@ void process_client_update_packet(ubyte *data, header *hinfo);
 void process_countdown_packet(ubyte *data, header *hinfo);
 
 // send a join packet request to the specified address (should be a server)
-void send_join_packet(net_addr* addr,join_request *jr);
+void send_join_packet(net_addr_t* addr,join_request *jr);
 
 // send an accept packet to a client in response to a request to join the game
 void send_accept_packet(int new_player_num, int code, int ingame_join_team = -1);
@@ -452,7 +455,7 @@ void send_ship_status_packet(net_player *pl, button_info *bi, int id);
 void send_player_order_packet(int type, int index, int command);
 
 // send a request or a reply for mission description, if code == 0, request, if code == 1, reply
-void send_netgame_descript_packet(net_addr *addr, int code);
+void send_netgame_descript_packet(net_addr_t *addr, int code);
 
 // send object update packet sends object updates for all objects in the game.  This function will be smart
 // about sending only certain objects to certain players based on the players distance from an object, whether
@@ -481,17 +484,17 @@ void send_mission_message_packet(int id, char *who_from, int priority, int timin
 void broadcast_game_query();
 
 // send an individual query to an address to see if there is an active game
-void send_server_query(net_addr *addr);
+void send_server_query(net_addr_t *addr);
 
 // broadcast a hud message to all players
 void send_hud_msg_to_all( char* msg );
 void send_heartbeat();
 
 // send a ping packet
-void send_ping(net_addr *addr);
+void send_ping(net_addr_t *addr);
 
 // send a pong packet
-void send_pong(net_addr *addr);
+void send_pong(net_addr_t *addr);
 
 // sent from host to master. give me the list of missions you have.
 // this will be used only in a standalone mode
@@ -594,7 +597,7 @@ void send_mission_goal_info_packet(int goal_num, int new_status, int valid);
 
 void send_player_settings_packet(net_player *p = NULL);
 
-void send_deny_packet(net_addr *addr, int code);
+void send_deny_packet(net_addr_t *addr, int code);
 
 void send_post_sync_data_packet(net_player *p = NULL, int std_request = 1);
 
@@ -611,7 +614,7 @@ void send_netgame_end_error_packet(int notify_code, int err_code);
 void send_client_update_packet(net_player *pl);
 
 // send information about this currently active game to the specified address
-void send_game_active_packet(net_addr* addr);
+void send_game_active_packet(net_addr_t* addr);
 
 void send_ai_info_update_packet(object *objp, char what);
 void process_ai_info_update_packet(ubyte *data, header *hinfo);

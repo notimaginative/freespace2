@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.3  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -134,7 +137,7 @@ void multi_ping_send(net_player *p)
 }
 
 // send a ping to the specified address
-void multi_ping_send(net_addr *addr,ping_struct *ps)
+void multi_ping_send(net_addr_t *addr,ping_struct *ps)
 {
 	multi_ping_start(ps);
 	send_ping(addr);

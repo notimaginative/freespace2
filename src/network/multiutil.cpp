@@ -7,6 +7,9 @@
  * C file that contains misc. functions to support multiplayer
  *
  * $Log$
+ * Revision 1.4  2002/05/27 00:40:47  theoddone33
+ * Fix net_addr vs net_addr_t
+ *
  * Revision 1.3  2002/05/26 20:49:54  theoddone33
  * More progress
  *
@@ -589,7 +592,7 @@ int multi_ship_class_lookup(char* ship_name)
 //
 //
 
-int find_player( net_addr* addr )
+int find_player( net_addr_t* addr )
 {
 	int i;
 
@@ -606,7 +609,7 @@ int find_player( net_addr* addr )
 }
 
 // so that we can lookup on the admin port transparently
-int find_player_no_port(net_addr *addr)
+int find_player_no_port(net_addr_t *addr)
 {
 	int i;
 	int len;
@@ -801,7 +804,7 @@ int multi_find_open_player_slot()
 // stuff_netplayer_info stuffs information into the given Net_player structure.  It is called when
 // a new person is entering the game.  The state of the Net_player is set to it's basic starting
 // state
-void stuff_netplayer_info( net_player *nplayer, net_addr *addr, int ship_class, player *pplayer )
+void stuff_netplayer_info( net_player *nplayer, net_addr_t *addr, int ship_class, player *pplayer )
 {
 	nplayer->p_info.addr = *addr;
 	nplayer->flags |= NETINFO_FLAG_CONNECTED;
@@ -866,7 +869,7 @@ void multi_assign_player_ship( int net_player, object *objp,int ship_class )
 // depends on the parameter ship_class.  Note that if ship_class is invalid, the ship default_player_ship
 // is used.  Returns 1 on success, 0 otherwise
 
-int multi_create_player( int net_player_num, player *pl, char* name, net_addr* addr, int ship_class, short id)
+int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t* addr, int ship_class, short id)
 {
 	int player_ship_class = ship_class;
 	int i,current_player_count;
@@ -1197,7 +1200,7 @@ ushort netmisc_calc_checksum( void * vptr, int len )
 //
 //
 
-void fill_net_addr(net_addr* addr, ubyte* address, ubyte* net_id, ushort port)
+void fill_net_addr(net_addr_t* addr, ubyte* address, ubyte* net_id, ushort port)
 {
 	Assert(addr != NULL);
 	Assert(address != NULL);
@@ -1834,7 +1837,7 @@ active_game *multi_update_active_games(active_game *ag)
 			// gp->ping_time = -1.0f;			
 
 			// copy in the game information
-			memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr));
+			memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
 			strcpy(gp->name,ag->name);
 			strcpy(gp->mission_name,ag->mission_name);
 			strcpy(gp->title,ag->title);			
@@ -1866,7 +1869,7 @@ active_game *multi_update_active_games(active_game *ag)
 		// gp->ping_time = -1.0f;		
 
 		// copy in the game information	
-		memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr));
+		memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
 		strcpy(gp->name,ag->name);
 		strcpy(gp->mission_name,ag->mission_name);
 		strcpy(gp->title,ag->title);		
@@ -2101,7 +2104,7 @@ int multi_can_end_mission(net_player *p)
 	return 1;
 }
 
-int multi_eval_join_request(join_request *jr,net_addr *addr)
+int multi_eval_join_request(join_request *jr,net_addr_t *addr)
 {	
 	int team0_avail,team1_avail;
 
@@ -2515,7 +2518,7 @@ int multi_query_lag_status()
 }
 
 // process a valid join request
-void multi_process_valid_join_request(join_request *jr, net_addr *who_from, int ingame_join_team)
+void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, int ingame_join_team)
 {
 	int net_player_num,player_num;
 	short id_num;

@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.32  2002/05/31 06:28:23  relnev
+ * more stuff
+ *
  * Revision 1.31  2002/05/31 06:04:39  relnev
  * fog
  *
@@ -243,6 +246,8 @@ typedef enum gr_zbuffer_type {
                         
 float z_mult = 30000.0f;
 #define NEBULA_COLORS 20
+
+static char *Gr_saved_screen = NULL;
 
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
@@ -1565,11 +1570,6 @@ void gr_opengl_get_pixel(int x, int y, int *r, int *g, int *b)
 	STUB_FUNCTION;
 }
 
-void gr_opengl_get_region(int front, int w, int g, ubyte *data)
-{
-	STUB_FUNCTION;
-}
-
 void gr_opengl_set_cull(int cull)
 {
 	if (cull) {
@@ -2318,7 +2318,30 @@ void gr_opengl_aaline(vertex *v1, vertex *v2)
 
 void gr_opengl_flash(int r, int g, int b)
 {
-	STUB_FUNCTION;
+	CAP(r,0,255);
+	CAP(g,0,255);
+	CAP(b,0,255);
+	
+	if ( r || g || b ) {
+		gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_ADDITIVE, ZBUFFER_TYPE_NONE );
+		
+		float x1, x2, y1, y2;
+		x1 = i2fl(gr_screen.clip_left+gr_screen.offset_x);
+		y1 = i2fl(gr_screen.clip_top+gr_screen.offset_y);
+		x2 = i2fl(gr_screen.clip_right+gr_screen.offset_x);
+		y2 = i2fl(gr_screen.clip_bottom+gr_screen.offset_y);
+		
+		glColor4ub(r, g, b, 255);
+		glBegin (GL_QUADS);
+		  glVertex3f (x1, y2, -0.99);
+
+		  glVertex3f (x2, y2, -0.99);
+
+		  glVertex3f (x2, y1, -0.99);
+
+		  glVertex3f (x1, y1, -0.99);
+		glEnd ();	  
+	}
 }
 
 int gr_opengl_zbuffer_get()
@@ -2390,9 +2413,19 @@ void gr_opengl_fade_out(int instantaneous)
 	// Empty - DDOI
 }
 
+void gr_opengl_get_region(int front, int w, int h, ubyte *data)
+{
+	if (front) {
+		glReadBuffer(GL_FRONT);
+	} else {
+		glReadBuffer(GL_BACK);
+	}
+// TODO
+//	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+}
+
 int gr_opengl_save_screen()
 {
-	/*
 	gr_reset_clip();
 
 	if ( Gr_saved_screen )  {
@@ -2405,20 +2438,31 @@ int gr_opengl_save_screen()
 		mprintf(( "Couldn't get memory for saved screen!\n" ));
 		return -1;
 	}
-	*/
-	STUB_FUNCTION;
 
-	return -1;
+	gr_opengl_get_region(1, gr_screen.max_w, gr_screen.max_h, (ubyte *)Gr_saved_screen);
+	
+	return 0;
 }
 
 void gr_opengl_restore_screen(int id)
 {
-	STUB_FUNCTION;
+	gr_reset_clip();
+	
+	if ( !Gr_saved_screen ) {
+		gr_clear();
+		return;
+	}
+
+// TODO	
+//	glDrawPixels(gr_screen.max_w, gr_screen.max_h, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_saved_screen);
 }
 
 void gr_opengl_free_screen(int id)
 {
-	STUB_FUNCTION;
+	if ( Gr_saved_screen )  {
+		free( Gr_saved_screen );
+		Gr_saved_screen = NULL;
+	}
 }
 
 void gr_opengl_dump_frame_start(int first_frame, int frames_between_dumps)

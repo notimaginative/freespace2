@@ -7,8 +7,11 @@
  * Multiplayer Team Selection Code header
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/26 20:49:54  theoddone33
+ * More progress
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 3     11/05/98 5:55p Dave
@@ -110,6 +113,8 @@
 
 #ifndef _MULTITEAMSELECT_H
 #define _MULTITEAMSELECT_H
+
+#include "pstypes.h"
 
 // ------------------------------------------------------------------------------------------------------
 // TEAM SELECT DEFINES/VARS

@@ -7,6 +7,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:49:54  theoddone33
+ * More progress
+ *
  * Revision 1.2  2002/05/07 03:16:48  theoddone33
  * The Great Newline Fix
  *
@@ -100,14 +103,22 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #include <windows.h>
 #include <windowsx.h>
-#include <stdio.h>
 #include <winsock.h>
 #include <wsipx.h>
 #include <process.h>
 #include <ras.h>
 #include <raserror.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+#include <stdio.h>
 #include <limits.h>
 
 #include "pstypes.h"

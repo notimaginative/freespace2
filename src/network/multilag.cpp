@@ -5,6 +5,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2002/05/26 20:49:54  theoddone33
+ * More progress
+ *
  * Revision 1.3  2002/05/26 20:22:48  theoddone33
  * Most of network/ works
  *
@@ -251,6 +254,9 @@ void multi_lag_close()
 // select for multi_lag
 int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except_fds, timeval *timeout)
 {		
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	char t_buf[1024];
 	int t_from_len;
 	SOCKADDR_IN ip_addr;
@@ -323,6 +329,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 		moveup = GET_NEXT(moveup);
 	}
 
+#endif
 	// no data
 	return 0;
 }

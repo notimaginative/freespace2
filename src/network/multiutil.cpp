@@ -7,6 +7,9 @@
  * C file that contains misc. functions to support multiplayer
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:49:54  theoddone33
+ * More progress
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -192,7 +195,16 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX
 #include <winsock.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+#include <ctype.h>
 #include "multiutil.h"
 #include "multimsgs.h"
 #include "multi.h"
@@ -1662,6 +1674,9 @@ int multi_netplayer_flag_check(int flags,int ignore_standalone)
 // is no longer there.
 void multi_eval_socket_error(PSNET_SOCKET sock, int error)
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if ( error == WSAENOTSOCK ){
 		nprintf(("Network","Socket connection terminated and/or nonexistent, bailing..\n"));
 
@@ -1701,6 +1716,7 @@ void multi_eval_socket_error(PSNET_SOCKET sock, int error)
 		nprintf(("Network", "Communications to server lost -- quitting game\n"));
 		multi_quit_game(PROMPT_NONE, MULTI_END_NOTIFY_NONE, MULTI_END_ERROR_CONTACT_LOST);
 	}
+#endif
 }
 
 // send a repair info packet with code == code to a player if his object is the one being acted upon

@@ -7,6 +7,9 @@
  * C file that holds functions for the building and processing of multiplayer packets
  *
  * $Log$
+ * Revision 1.3  2002/05/26 20:49:54  theoddone33
+ * More progress
+ *
  * Revision 1.2  2002/05/07 03:16:47  theoddone33
  * The Great Newline Fix
  *
@@ -332,7 +335,9 @@
  */
 
 #include <limits.h>
+#ifndef PLAT_UNIX
 #include <io.h>         // for findfirst/findnext, etc
+#endif
 #include "osapi.h"
 #include "multimsgs.h"
 #include "multiutil.h"

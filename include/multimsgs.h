@@ -7,8 +7,11 @@
  * Header file for the building and sending of multiplayer packets
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/26 20:49:54  theoddone33
+ * More progress
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 31    8/26/99 8:51p Dave
@@ -205,6 +208,8 @@
 
 #ifndef MULTI_MSGS_H
 #define MULTI_MSGS_H
+
+#include "pstypes.h"
 
 struct net_player;
 struct net_addr;

@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.5  2003/06/03 04:00:40  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.4  2003/05/18 03:55:30  taylor
  * automatic language selection support
  *
@@ -314,6 +317,7 @@ lang_info Lcl_languages[LCL_NUM_LANGUAGES] = {
 	{ "English",		"" },									// english
 	{ "German",			"gr" },								// german
 	{ "French",			"fr" },								// french
+	{ "Polish",			"pl" },								// polish
 };
 
 //#if defined(GERMAN_BUILD)
@@ -325,6 +329,7 @@ lang_info Lcl_languages[LCL_NUM_LANGUAGES] = {
 // following is the offset where special characters start in our font
 #define LCL_SPECIAL_CHARS_FR	164
 #define LCL_SPECIAL_CHARS_GR	164
+#define LCL_SPECIAL_CHARS_PL	127
 #define LCL_SPECIAL_CHARS		127
 int Lcl_special_chars;
 
@@ -332,6 +337,7 @@ int Lcl_special_chars;
 // only 1 will be active at a time
 int Lcl_fr = 0;
 int Lcl_gr = 0 ;
+int Lcl_pl = 0;
 int Lcl_english = 1;
 
 
@@ -529,6 +535,11 @@ void lcl_xstr_init()
 
 			stuff_int(&index);
 			stuff_string(buf, F_NAME, NULL, 4096);
+
+			if(Lcl_pl) {
+			    lcl_fix_polish(buf);
+			}
+
 			i = strlen(buf);
 			while (i--) {
 				if (!isspace(buf[i])) {
@@ -638,6 +649,7 @@ void lcl_set_language(int lang)
 	// flag the proper language as being active
 	Lcl_fr = 0;
 	Lcl_gr = 0;
+	Lcl_pl = 0;
 	Lcl_english = 0;
 	switch(lang){
 	case LCL_ENGLISH:
@@ -651,6 +663,10 @@ void lcl_set_language(int lang)
 	case LCL_GERMAN:
 		Lcl_gr = 1;
 		Lcl_special_chars = LCL_SPECIAL_CHARS_GR;
+		break;
+	case LCL_POLISH:
+		Lcl_pl = 1;
+		Lcl_special_chars = LCL_SPECIAL_CHARS_PL;
 		break;
 	}
 
@@ -951,6 +967,10 @@ int lcl_ext_get_text(char *xstr, char *out)
 
 	// now that we know the boundaries of the actual string in the XSTR() tag. copy it
 	memcpy(out, xstr + str_start, str_end - str_start);	
+
+	if(Lcl_pl) {
+	    lcl_fix_polish(out);
+	}
 
 	// success
 	return 1;
@@ -1395,6 +1415,15 @@ char* lcl_fix_umlauts(char *str, int which_way)
 	return str;
 }
 
+// convert some of the polish characters
+void lcl_fix_polish(char *str)
+{
+    for(;*str;str++) {
+	if(*str == '\xA2') *str = '\xF3';
+	else if(*str == '\x88') *str = '\xEA';
+    }
+}
+
 // ------------------------------------------------------------------
 // lcl_translate_wep_name()
 //
@@ -1561,6 +1590,93 @@ void lcl_translate_brief_icon_name(char *name)
 	}
 }
 
+// ------------------------------------------------------------------
+// lcl_translate_brief_icon_name_pl()
+//
+// For displaying ship names in polish version
+// since we cant actually just change them outright.
+//
+void lcl_translate_brief_icon_name_pl(char *name)
+{
+	char *pos;
+	char buf[128];
+
+	if (!stricmp(name, "Subspace Portal")) {	
+		strcpy(name, "Portal podprz.");
+
+	} else if (!stricmp(name, "Alpha Wing")) {
+		strcpy(name, "Alfa");
+
+	} else if (!stricmp(name, "Beta Wing")) {
+		strcpy(name, "Beta");
+
+	} else if (!stricmp(name, "Zeta Wing")) {
+		strcpy(name, "Zeta");
+
+	} else if (!stricmp(name, "Capella Node")) {
+		strcpy(name, "Capella");
+
+	} else if (!stricmp(name, "Hostile")) {
+		strcpy(name, "Wr\xF3g");
+
+	} else if (!stricmp(name, "Hostile Craft")) {
+		strcpy(name, "Wr\xF3g");
+
+	} else if (!stricmp(name, "Rebel Wing")) {
+		strcpy(name, "Rebelianci");
+
+	} else if (!stricmp(name, "Rebel Fleet")) {
+		strcpy(name, "Flota Rebelii");
+
+	} else if (!stricmp(name, "Sentry Gun")) {
+		strcpy(name, "Dzia\xB3o str.");
+
+	} else if (!stricmp(name, "Cargo")) {
+		strcpy(name, "\xA3\x61\x64unek");
+
+	} else if (!stricmp(name, "Knossos Device")) {
+		strcpy(name, "Urz. Knossos");
+	
+	} else if (!stricmp(name, "Support")) {
+		strcpy(name, "Wsparcie");
+
+	} else if (!stricmp(name, "Unknown")) {
+		strcpy(name, "Nieznany");
+
+	} else if (!stricmp(name, "Instructor")) {
+		strcpy(name, "Instruktor");
+	
+	} else if (!stricmp(name, "Jump Node")) {
+		strcpy(name, "W\xEAze\xB3 skokowy");
+
+	} else if (!stricmp(name, "Escort")) {
+		strcpy(name, "Eskorta");
+
+	} else if (!stricmp(name, "Asteroid Field")) {
+		strcpy(name, "Pole asteroid");
+
+	} else if (!stricmp(name, "Enif Station")) {
+		strcpy(name, "Stacja Enif");
+
+	} else if (!stricmp(name, "Rally Point")) {
+		strcpy(name, "Pkt zborny");
+
+	} else if ((pos = strstr(name, "Transport")) != NULL) {
+		pos += 9;		// strlen of "transport"
+		strcpy(buf, "Transporter");
+		strcat(buf, pos);
+		strcpy(name, buf);
+
+	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
+		pos += 9;		// strlen of "jump node"
+		strcpy(buf, "W\xEAze\xB3 skokowy");
+		strcat(buf, pos);
+		strcpy(name, buf);
+	
+	} else if (!stricmp(name, "Orion under repair")) {
+		strcpy(name, "Naprawiany Orion");
+	}
+}
 
 // ------------------------------------------------------------------
 // lcl_translate_ship_name()
@@ -1627,3 +1743,54 @@ void lcl_translate_targetbox_name(char *name)
 	}
 }
 
+// ------------------------------------------------------------------
+// lcl_translate_targetbox_name_pl()
+//
+// For displaying ship names in polish version in the targetbox
+// since we cant actually just change them outright.
+//
+void lcl_translate_targetbox_name_pl(char *name)
+{
+	char *pos;
+	char buf[128];
+	
+	if ((pos = strstr(name, "Sentry")) != NULL) {
+		pos += 6;		// strlen of "sentry"
+		strcpy(buf, "Stra\xBFnik");
+		strcat(buf, pos);
+		strcpy(name, buf);
+
+	} else if ((pos = strstr(name, "Support")) != NULL) {
+		pos += 7;		// strlen of "support"
+		strcpy(buf, "Wsparcie");
+		strcat(buf, pos);
+		strcpy(name, buf);
+
+	} else if ((pos = strstr(name, "Unknown")) != NULL) {
+		pos += 7;		// strlen of "unknown"
+		strcpy(buf, "Nieznany");
+		strcat(buf, pos);
+		strcpy(name, buf);
+
+	} else if ((pos = strstr(name, "Drone")) != NULL) {
+		pos += 5;		// strlen of "drone"
+		strcpy(buf, "Sonda");
+		strcat(buf, pos);
+		strcpy(name, buf);
+
+	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
+		pos += 9;		// strlen of "jump node"
+		strcpy(buf, "W\xEAze\xB3 skokowy");
+		strcat(buf, pos);
+		strcpy(name, buf);
+
+	} else if (!stricmp(name, "Instructor")) {
+		strcpy(name, "Instruktor");
+
+	} else if (!stricmp(name, "NTF Vessel")) {
+		strcpy(name, "Okr\xEAt NTF");
+
+	} else if (!stricmp(name, "Enif Station")) {
+		strcpy(name, "Stacja Enif");
+	}
+}

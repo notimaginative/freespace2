@@ -15,6 +15,9 @@
  * C module for drawing the target monitor box on the HUD
  *
  * $Log$
+ * Revision 1.7  2003/06/03 04:00:40  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.6  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -432,7 +435,35 @@ char *hud_targetbox_truncate_subsys_name(char *outstr)
 		} else if ( strstr(outstr, "laser") || strstr(outstr, "turret") || strstr(outstr, "missile") ) {
 			strcpy(outstr, "tourelle");
 		} 
-	} else {	
+	} else if(Lcl_pl){	
+		if ( strstr(outstr, "communication") )	{
+			strcpy(outstr, "komunikacja");
+		} else if ( !stricmp(outstr, "weapons") ) {
+			strcpy(outstr, "uzbrojenie");
+		} else if ( strstr(outstr, "engine") || strstr(outstr, "Engine")) {
+			strcpy(outstr, "silnik");
+		} else if ( !stricmp(outstr, "sensors") ) {
+			strcpy(outstr, "sensory");
+		} else if ( strstr(outstr, "navigat") ) {
+			strcpy(outstr, "nawigacja");
+		} else if ( strstr(outstr, "fighterbay") || strstr(outstr, "Fighterbay") ) {
+			strcpy(outstr, "dok my\x9Cliw.");
+		} else if ( strstr(outstr, "missile") ) {
+			strcpy(outstr, "wie\xBF. rakiet.");
+		} else if ( strstr(outstr, "laser") || strstr(outstr, "turret") ) {
+			strcpy(outstr, "wie\xBFyczka");
+		} else if ( strstr(outstr, "Command Tower") || strstr(outstr, "Bridge") ) {
+			strcpy(outstr, "mostek");
+		} else if ( strstr(outstr, "Barracks") ) {
+			strcpy(outstr, "koszary");
+		} else if ( strstr(outstr, "Reactor") ) {
+			strcpy(outstr, "reaktor");
+		} else if ( strstr(outstr, "RadarDish") ) {
+			strcpy(outstr, "antena radaru");
+		} else if (!stricmp(outstr, "Gas Collector")) {
+			strcpy(outstr, "zbieracz gazu");
+		} 
+	} else {
 		if (!strnicmp(outstr, XSTR( "communication", 333), 3))	{
 			strcpy( outstr, XSTR( "comm", 334) );
 		} else if (!strnicmp(outstr, XSTR( "navigation", 335), 3))	{
@@ -943,6 +974,9 @@ void hud_render_target_ship_info(object *target_objp)
 	if (Lcl_gr) {
 		lcl_translate_targetbox_name(outstr);
 	}
+	else if(Lcl_pl) {
+		lcl_translate_targetbox_name_pl(outstr);
+	}
 	emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_NAME][0], Targetbox_coords[gr_screen.res][TBOX_NAME][1], EG_TBOX_NAME, outstr);	
 
 	// print out ship class
@@ -961,6 +995,9 @@ void hud_render_target_ship_info(object *target_objp)
 
 	if (Lcl_gr) {
 		lcl_translate_targetbox_name(temp_name);
+	}
+	else if(Lcl_pl) {
+		lcl_translate_targetbox_name_pl(temp_name);
 	}
 	emp_hud_printf(Targetbox_coords[gr_screen.res][TBOX_CLASS][0], Targetbox_coords[gr_screen.res][TBOX_CLASS][1], EG_TBOX_CLASS, temp_name);
 

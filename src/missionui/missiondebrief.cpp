@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.8  2003/06/03 04:00:40  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.7  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -2705,6 +2708,9 @@ void debrief_add_award_text(char *str)
 	// maybe translate for displaying
 	if (Lcl_gr) {
 		medals_translate_name(Debrief_award_text[Debrief_award_text_num_lines], AWARD_TEXT_MAX_LINE_LENGTH);
+	}
+	else if(Lcl_pl) {
+		medals_translate_name_pl(Debrief_award_text[Debrief_award_text_num_lines], AWARD_TEXT_MAX_LINE_LENGTH);
 	}
 
 	Debrief_award_text_num_lines++;

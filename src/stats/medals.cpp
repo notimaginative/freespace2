@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.9  2003/06/03 04:00:40  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.8  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -689,6 +692,66 @@ void medals_translate_name(char *name, int max_len)
 #endif
 }
 
+// this is just a hack to display translated names without actually changing the names, 
+// which would break stuff
+void medals_translate_name_pl(char *name, int max_len)
+{
+	if (!strcmp(name, "Epsilon Pegasi Liberation")) {
+		strncpy(name, "Order Wyzwolenia Epsilon Pegasi", max_len);
+
+	} else if (!strcmp(name, "Imperial Order of Vasuda")) {
+		strncpy(name, "Imperialny Order Vasudy", max_len);
+
+	} else if (!strcmp(name, "Distinguished Flying Cross")) {
+		strncpy(name, "Krzy\xBF Wybitnego Pilota", max_len);
+
+	} else if (!strcmp(name, "SOC Service Medallion")) {
+		strncpy(name, "Krzy\xBF S\xB3u\xBF\x62 Specjalnych", max_len);
+
+	} else if (!strcmp(name, "Intelligence Cross")) {
+		strncpy(name, "Krzy\xBF Wywiadu", max_len);
+
+	} else if (!strcmp(name, "Order of Galatea")) {
+		strncpy(name, "Order Galatei", max_len);
+
+	} else if (!strcmp(name, "Meritorious Unit Commendation")) {
+		strncpy(name, "Medal Pochwalny", max_len);
+
+	} else if (!strcmp(name, "Medal of Valor")) {
+		strncpy(name, "Medal za Odwag\xEA", max_len);
+
+	} else if (!strcmp(name, "GTVA Legion of Honor")) {
+		strncpy(name, "Legia Honorowa GTVA", max_len);
+
+	} else if (!strcmp(name, "Allied Defense Citation")) {
+		strncpy(name, "Order za Obron\xEA Sojuszu", max_len);
+
+	} else if (!strcmp(name, "Nebula Campaign Victory Star")) {
+		strncpy(name, "Gwiazda Wiktorii Kampanii w Mg\xB3\x61wicy", max_len);
+
+	} else if (!strcmp(name, "NTF Campaign Victory Star")) {
+		strncpy(name, "Gwiazda Wiktorii Kampanii NTF", max_len);
+
+	} else if (!strcmp(name, "Rank")) {
+		strncpy(name, "Ranga", max_len);
+
+	} else if (!strcmp(name, "Wings")) {
+		strncpy(name, "Skrzyd\xB3\x61", max_len);
+
+	} else if (!strcmp(name, "Ace")) {
+		strncpy(name, "As", max_len);	
+
+	} else if (!strcmp(name, "Double Ace")) {
+		strncpy(name, "Podw\xF3jny As", max_len);
+
+	} else if (!strcmp(name, "Triple Ace")) {
+		strncpy(name, "Potr\xF3jny As", max_len);
+		
+	} else if (!strcmp(name, "SOC Unit Crest")) {
+		strncpy(name, "Tarcza S\xB3u\xBF\x62 Specjalnych", max_len);	
+	}
+}
+
 #ifdef MAKE_FS1
 void blit_label(char *label, int *coordsx, int *coordsy, int num)
 #else
@@ -706,6 +769,17 @@ void blit_label(char *label, int *coords, int num)
 		char translated_label[256];
 		strncpy(translated_label, label, 256);
 		medals_translate_name(translated_label, 256);
+
+		// set correct string
+		if ( num > 1 ) {
+			sprintf( text, NOX("%s (%d)"), translated_label, num );
+		} else {
+			sprintf( text, "%s", translated_label );
+		}
+	} else if(Lcl_pl) {
+		char translated_label[256];
+		strncpy(translated_label, label, 256);
+		medals_translate_name_pl(translated_label, 256);
 
 		// set correct string
 		if ( num > 1 ) {

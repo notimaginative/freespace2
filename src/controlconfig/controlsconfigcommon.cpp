@@ -15,6 +15,9 @@
  * C module for keyboard, joystick and mouse configuration common stuff (between Fred and FreeSpace)
  *
  * $Log$
+ * Revision 1.5  2003/06/03 04:00:39  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.4  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -706,6 +709,57 @@ char *Joy_button_text_english[] = {
 	"Button 31",	"Button 32",	"Hat Back",		"Hat Forward",	"Hat Left",		"Hat Right"
 };
 
+char *Scan_code_text_polish[] = {
+	"",				"Esc",			"1",				"2",				"3",				"4",				"5",				"6",
+	"7",				"8",				"9",				"0",				"-",				"=",				"Backspace",	"Tab",
+	"Q",				"W",				"E",				"R",				"T",				"Y",				"U",				"I",
+	"O",				"P",				"[",				"]",				"Enter",			"Lewy Ctrl",	"A",				"S",
+
+	"D",				"F",				"G",				"H",				"J",				"K",				"L",				";",
+	"'",				"`",				"LShift",			"\\",				"Z",				"X",				"C",				"V",
+	"B",				"N",				"M",				",",				".",				"/",				"PShift",			"Num *",
+	"Alt",			"Spacja",		"CapsLock",	"F1",				"F2",				"F3",				"F4",				"F5",
+
+	"F6",				"F7",				"F8",				"F9",				"F10",			"Pause",			"Scrlock",	"Num 7",
+	"Num 8",			"Num 9",			"Num -",			"Num 4",			"Num 5",			"Num 6",			"Num +",			"Num 1",
+	"Num 2",			"Num 3",			"Num 0",			"Num .",			"",				"",				"",				"F11",
+	"F12",			"",				"",				"",				"",				"",				"",				"",
+
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"Num Enter",	"Prawy Ctrl",	"",				"",
+
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"Num /",			"",				"PrntScr",
+	"Alt",			"",				"",				"",				"",				"",				"",				"",
+
+	"",				"",				"",				"",				"",				"Num Lock",		"",				"Home",
+	"Kursor G\xF3ra",		"Page Up",		"",				"Kursor Lewo",	"",				"Kursor Prawo",	"",				"End",
+	"Kursor D\xF3\xB3",  "Page Down",	"Insert",		"Delete",		"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+	"",				"",				"",				"",				"",				"",				"",				"",
+};
+
+char *Joy_button_text_polish[] = {
+	"Przyc.1",		"Przyc.2",		"Przyc.3",		"Przyc.4",		"Przyc.5",		"Przyc.6",
+	"Przyc.7",		"Przyc.8",		"Przyc.9",		"Przyc.10",	"Przyc.11",	"Przyc.12",
+	"Przyc.13",	"Przyc.14",	"Przyc.15",	"Przyc.16",	"Przyc.17",	"Przyc.18",
+	"Przyc.19",	"Przyc.20",	"Przyc.21",	"Przyc.22",	"Przyc.23",	"Przyc.24",
+	"Przyc.25",	"Przyc.26",	"Przyc.27",	"Przyc.28",	"Przyc.29",	"Przyc.30",
+	"Przyc.31",	"Przyc.32",	"Hat Ty\xB3",		"Hat Prz\xF3\x64",	"Hat Lewo",		"Hat Prawo"
+};
+
 char **Scan_code_text = Scan_code_text_english;
 char **Joy_button_text = Joy_button_text_english;
 
@@ -742,6 +796,8 @@ int translate_key_to_index(char *key)
 		max_scan_codes = sizeof(Scan_code_text_german) / sizeof(char *);
 	} else if (Lcl_fr) {
 		max_scan_codes = sizeof(Scan_code_text_french) / sizeof(char *);
+	} else if (Lcl_pl) {
+		max_scan_codes = sizeof(Scan_code_text_polish) / sizeof(char *);
 	} else {
 		max_scan_codes = sizeof(Scan_code_text_english) / sizeof(char *);
 	}
@@ -883,6 +939,9 @@ void control_config_common_init()
 	} else if(Lcl_fr){
 		Scan_code_text = Scan_code_text_french;
 		Joy_button_text = Joy_button_text_french;
+	} else if(Lcl_pl){
+		Scan_code_text = Scan_code_text_polish;
+		Joy_button_text = Joy_button_text_polish;
 	} else {
 		Scan_code_text = Scan_code_text_english;
 		Joy_button_text = Joy_button_text_english;

@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.3  2003/06/03 04:00:39  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -60,10 +63,11 @@
 //
 
 // language defines
-#define LCL_NUM_LANGUAGES				3							// keep this up to date
+#define LCL_NUM_LANGUAGES				4							// keep this up to date
 #define LCL_ENGLISH						0
 #define LCL_GERMAN						1
 #define LCL_FRENCH						2
+#define LCL_POLISH						3
 
 #define LCL_DEFAULT_LANGUAGE			LCL_ENGLISH
 
@@ -77,6 +81,7 @@ extern int Lcl_special_chars;
 // only 1 will be active at a time
 extern int Lcl_fr;
 extern int Lcl_gr;
+extern int Lcl_pl;
 extern int Lcl_english;
 
 
@@ -142,6 +147,9 @@ int lcl_get_xstr_offset(int index, int res);
 #define LCL_TO_ASCII	1
 char* lcl_fix_umlauts(char *str, int which_way);
 
+// covert some polish characters
+void lcl_fix_polish(char *str);
+
 // macro for launcher xstrs
 #if defined(GERMAN_BUILD)
 #define LXSTR(str, i)		(lcl_fix_umlauts(XSTR(str, i), LCL_TO_ANSI))
@@ -152,7 +160,9 @@ char* lcl_fix_umlauts(char *str, int which_way);
 void lcl_translate_wep_name(char *name);
 void lcl_translate_ship_name(char *name);
 void lcl_translate_brief_icon_name(char *name);
+void lcl_translate_brief_icon_name_pl(char *name);
 void lcl_translate_targetbox_name(char *name);
+void lcl_translate_targetbox_name_pl(char *name);
 
 #endif	// defined __FREESPACE2_LOCALIZATION_UTILITIES_HEADER_FILE
 

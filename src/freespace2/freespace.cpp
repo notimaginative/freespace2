@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.30  2003/06/03 04:00:39  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.29  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -8840,6 +8843,7 @@ int Lang_auto_detect_checksums[LCL_NUM_LANGUAGES] = {
 #endif
 	-1132430286,			// German
 	0,						// French
+	-1131728960,					// Polish
 };
 
 // default setting is "-1" to use config file with English as fall back

@@ -15,6 +15,9 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.6  2003/06/03 04:00:40  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.5  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1412,7 +1415,12 @@ void hud_maybe_display_supernova()
 	}
 
 	gr_set_color_fast(&Color_bright_red);
-	gr_printf(Supernova_coords[gr_screen.res][0], Supernova_coords[gr_screen.res][1], "Supernova Warning : %.2f s", time_left);
+	if(Lcl_pl) {
+	    gr_printf(Supernova_coords[gr_screen.res][0], Supernova_coords[gr_screen.res][1], "Wybuch supernowej : %.2f s", time_left);
+	}
+	else {
+	    gr_printf(Supernova_coords[gr_screen.res][0], Supernova_coords[gr_screen.res][1], "Supernova Warning : %.2f s", time_left);
+	}
 }
 
 // render multiplayer ping time to the server if appropriate

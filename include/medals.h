@@ -13,6 +13,9 @@
  * $Author$
  * 
  * $Log$
+ * Revision 1.4  2003/06/03 04:00:39  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.3  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -124,6 +127,7 @@ extern int Medal_ID;       // ID of the medal to display in this screen. Should 
 void blit_text();
 
 void medals_translate_name(char *name, int max_len);
+void medals_translate_name_pl(char *name, int max_len);
 
 #endif
 

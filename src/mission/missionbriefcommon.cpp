@@ -15,6 +15,9 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.8  2003/06/03 04:00:40  taylor
+ * Polish language support (Janusz Dziemidowicz)
+ *
  * Revision 1.7  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -1236,6 +1239,12 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 					char buf[128];
 					strcpy(buf, bi->label);
 					lcl_translate_brief_icon_name(buf);
+					gr_get_string_size(&w, &h, buf);
+					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
+				} else if(Lcl_pl) {
+					char buf[128];
+					strcpy(buf, bi->label);
+					lcl_translate_brief_icon_name_pl(buf);
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else {

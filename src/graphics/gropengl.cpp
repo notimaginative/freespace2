@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.64  2003/05/28 06:02:04  taylor
+ * fix transparency in green weapon blobs
+ *
  * Revision 1.63  2003/05/09 05:05:52  taylor
  * improve gr_(de)activate, mouse grab, default fullscreen
  *
@@ -2947,6 +2950,22 @@ void gr_opengl_init()
 	}
 
 	// DDOI - set these so no one else does!
+	Gr_t_red.mask = Gr_red.mask;
+	Gr_t_red.shift = Gr_red.shift;
+	Gr_t_red.scale = Gr_red.scale;
+
+	Gr_t_green.mask = Gr_green.mask;
+	Gr_t_green.shift = Gr_green.shift;
+	Gr_t_green.scale = Gr_green.scale;
+	
+	Gr_t_blue.mask = Gr_blue.mask;
+	Gr_t_blue.shift = Gr_blue.shift;
+	Gr_t_blue.scale = Gr_blue.scale;
+	
+	Gr_t_alpha.mask = 0x8000;
+	Gr_t_alpha.scale = 255;
+	Gr_t_alpha.shift = 15;
+
 	Gr_ta_red.mask = 0x0f00;
 	Gr_ta_red.shift = 8;
 	Gr_ta_red.scale = 16;

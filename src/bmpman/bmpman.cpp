@@ -15,6 +15,9 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.10  2003/05/28 06:02:04  taylor
+ * fix transparency in green weapon blobs
+ *
  * Revision 1.9  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -2407,13 +2410,12 @@ void BM_SELECT_SCREEN_FORMAT()
 	} else if(gr_screen.mode == GR_SOFTWARE){
 		bm_set_components = bm_set_components_argb;
 	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb;
+		bm_set_components = bm_set_components_argb_d3d_32_screen;
 	}
 }
 
 void BM_SELECT_TEX_FORMAT()
 {
-#ifndef PLAT_UNIX
 	Gr_current_red = &Gr_t_red; 
 	Gr_current_green = &Gr_t_green; 
 	Gr_current_blue = &Gr_t_blue; 
@@ -2422,9 +2424,7 @@ void BM_SELECT_TEX_FORMAT()
 	// setup pointers
 	if(gr_screen.mode == GR_GLIDE){
 		bm_set_components = bm_set_components_argb;
-	} else
-#endif
-	if(gr_screen.mode == GR_DIRECT3D){
+	} else if(gr_screen.mode == GR_DIRECT3D){
 		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
 			bm_set_components = bm_set_components_d3d;
 		} else {
@@ -2437,7 +2437,7 @@ void BM_SELECT_TEX_FORMAT()
 	} else if(gr_screen.mode == GR_SOFTWARE){
 		bm_set_components = bm_set_components_argb;
 	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb;
+		bm_set_components = bm_set_components_argb_d3d_32_tex;
 	}
 }
 
@@ -2464,7 +2464,7 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 	} else if(gr_screen.mode == GR_SOFTWARE){
 		bm_set_components = bm_set_components_argb;
 	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb;
+		bm_set_components = bm_set_components_argb_d3d_32_tex;
 	}
 }
 

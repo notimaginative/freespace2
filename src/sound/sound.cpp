@@ -7,6 +7,11 @@
  * Low-level sound code
  *
  * $Log$
+ * Revision 1.6  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.5  2002/06/02 21:11:12  cemason
  * Few changes
  *
@@ -352,10 +357,6 @@ static int snd_next_sig	= 1;
 // convert the game level sound priorities to the DirectSound priority descriptions
 int ds_priority(int priority)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 1;
-#else
 	switch(priority){
 		case SND_PRIORITY_MUST_PLAY:
 			return DS_MUST_PLAY;
@@ -368,8 +369,7 @@ int ds_priority(int priority)
 		default:
 			Int3();
 			return DS_MUST_PLAY;
-	};
-#endif
+	}
 }
 
 void snd_clear()
@@ -1282,7 +1282,7 @@ void snd_stop_all()
 uint sound_get_ds()
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	// unused
 	return 0;
 #else
 	return (uint)pDirectSound;

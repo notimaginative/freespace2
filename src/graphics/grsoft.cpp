@@ -7,6 +7,11 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
+ * Revision 1.7  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.6  2002/05/28 21:36:10  relnev
  * some more timer junk.
  *
@@ -465,8 +470,6 @@ void gr_buffer_release()
 
 void gr_buffer_create( int w, int h, int bpp )
 {
-	int i;
-
 	if (w & 3) {
 		Int3();	// w must be multiple 4
 		return;
@@ -503,7 +506,7 @@ void gr_buffer_create( int w, int h, int bpp )
 #ifndef PLAT_UNIX
 		DibInfo.Header.biCompression = BI_RGB; 
 		DibInfo.Header.biBitCount = 8; 
-		for (i=0; i<256; i++ )	{
+		for (int i=0; i<256; i++ )	{
 			DibInfo.Colors.aColors[i].rgbRed = 0;
 			DibInfo.Colors.aColors[i].rgbGreen = 0;
 			DibInfo.Colors.aColors[i].rgbBlue = 0;
@@ -1855,8 +1858,9 @@ void grx_flash( int r, int g, int b )
 	grx_change_palette( new_pal );
 }
 
-
+#ifndef HARDWARE_ONLY
 static int gr_palette_faded_out = 0;
+#endif
 
 #define FADE_TIME (F1_0/4)		// How long to fade out
 

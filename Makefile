@@ -149,8 +149,6 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/sound/acm-unix.cpp \
 	./src/sound/audiostr.cpp \
 	./src/sound/ds.cpp \
-	./src/sound/ds3d-unix.cpp \
-	./src/sound/dscap-unix.cpp \
 	./src/vcodec/codec1.cpp \
 	./src/particle/particle.cpp \
 	./src/pcxutils/pcxutils.cpp \

@@ -7,8 +7,13 @@
  * Routines to scale a bitmap.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 9     7/20/99 1:49p Dave
@@ -200,7 +205,9 @@
 
 ubyte compiled_code[MAX_CODE_SIZE];
 
+#ifdef FIND_MAX_SIZE
 static int Max_size = 0;
+#endif
 
 /*
 void test_code()
@@ -1074,10 +1081,11 @@ void gr8_aascaler(vertex *va, vertex *vb )
 	for (y=dy0; y<=dy1; y++ )			{
 		sbits = &spixels[bp->rowsize*(v>>16)];
 		dbits = GR_SCREEN_PTR(ubyte,dx0,y);
+
+#ifdef USE_COMPILED_CODE		
 		// uint lookup = (uint)&Current_alphacolor->table.lookup[0][0];
 		uint lookup = (uint)&old_alphac.table.lookup[0][0];
 		
-#ifdef USE_COMPILED_CODE
 		// Call the compiled code to draw one scanline
 		if ( Gr_scaler_zbuffering  && gr_zbuffering )	{
 			int x, tmp_u;

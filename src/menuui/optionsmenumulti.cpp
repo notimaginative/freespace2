@@ -5,6 +5,11 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.3  2002/06/02 06:02:59  relnev
  * tcp.cfg namefix
  *
@@ -198,9 +203,7 @@
 #include "bmpman.h"
 #include "cfile.h"
 #include "key.h"
-#ifndef PLAT_UNIX
 #include "ds.h"
-#endif
 #include "font.h"
 #include "gamesnd.h"
 #include "freespace.h"
@@ -2043,9 +2046,6 @@ void options_multi_vox_do()
 	
 	case OM_VOX_TEST_PLAYBACK:			
 		// if we were playing a sound back, but now the sound is done
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
 		if((Om_vox_playback_handle != -1) && (ds_get_play_position(ds_get_channel(Om_vox_playback_handle)) >= (DWORD)Om_vox_voice_comp_size)){
 			// flush all playing sounds safely
 			rtvoice_stop_playback_all();
@@ -2060,7 +2060,6 @@ void options_multi_vox_do()
 			// free the status up
 			Om_vox_test_status = OM_VOX_TEST_NONE;
 		}
-#endif
 		break;
 	}
 }
@@ -2212,9 +2211,6 @@ void options_multi_vox_process_waveform()
 
 	case OM_VOX_TEST_PLAYBACK:
 		// get the offset into the playing direct sound buffer
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
 		buf_offset = ds_get_play_position(ds_get_channel(Om_vox_playback_handle));		
 
 		// get the # of samples we'll average for one line
@@ -2237,7 +2233,6 @@ void options_multi_vox_process_waveform()
 			running_avg /= avg_len;			
 			gr_line((gr_screen.max_w - OM_VOX_WAVE_WIDTH)/2 + idx, OM_VOX_WAVE_Y, (gr_screen.max_w - OM_VOX_WAVE_WIDTH)/2 + idx, OM_VOX_WAVE_Y + running_avg);
 		}				
-#endif
 		break;
 	}
 }

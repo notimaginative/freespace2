@@ -7,6 +7,11 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.15  2002/06/05 08:05:28  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.14  2002/06/05 04:03:32  relnev
  * finished cfilesystem.
  *
@@ -2556,8 +2561,6 @@ void game_show_framerate()
 			sy += dy;
 			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
 			sy += dy;
-#else
-			STUB_FUNCTION;
 #endif
 		}
 //		gr_printf( sx, sy, "BPP: %d", gr_screen.bits_per_pixel );
@@ -2640,8 +2643,6 @@ void game_show_framerate()
 			sy += dy;
 			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
 			sy += dy;
-#else
-			STUB_FUNCTION;
 #endif
 		}
 	}
@@ -6731,8 +6732,6 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 
 	free(tmp_mem);
 	tmp_mem = NULL;
-#else
-	STUB_FUNCTION;
 #endif
 	
 /* this code doesn't work, and we will hit an error about being unable to load the direct draw
@@ -6941,9 +6940,8 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	}
 	return result;
 #else
-	STUB_FUNCTION;
+	nprintf(("WinMain", "exceptions shall fall through"));
 	
-	fprintf(stderr, "WinMain: exceptions shall fall through\n");
 	result = WinMainSub(hInst, hPrev, szCmdLine, nCmdShow);
 	
 	return result;

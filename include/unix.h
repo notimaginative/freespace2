@@ -116,18 +116,6 @@ extern int MulDiv (int, int, int);
 #define WSAECONNRESET ECONNRESET
 #define WSAECONNABORTED ECONNABORTED
 #define WSAESHUTDOWN ESHUTDOWN
-
-typedef struct channel
-{ 
-        int   sig;			// uniquely
-   	int   snd_id;		// identifies which
-	int   pdsb;			// pointer to the secondary buffer t
-	int   pds3db;		// 3D interface, only used if sound buffer created w
-        int   looping;		// flag to i
-        int   vol;			// in Direct
-	int   priority;	// implementation de
-        bool  is_voice_msg;
-       	int        		last_position;
-} channel;           
+#define WSAENOTSOCK ENOTSOCK
 
 #endif

@@ -7,6 +7,11 @@
  * Low-level floating point math routines
  *
  * $Log$
+ * Revision 1.4  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.3  2002/05/31 00:29:32  theoddone33
  * Fix frand()
  *
@@ -74,9 +79,6 @@ typedef float FLOAT;
 #define GET_EMANT(a)	(((a) >> LOOKUP_POS) & LOOKUP_MASK )
 #define SET_MANTSEED(a)	(((unsigned long)(a)) << SEED_POS )
 
-static unsigned char iSqrt[TABLE_SIZE];
-static int iSqrt_inited = 0;
-
 int fl_magic = 0x59C00000;		//representation of 2^51 + 2^52
 const float *p_fl_magic = (const float *)&fl_magic;
 
@@ -86,6 +88,9 @@ union _flint {
 } fi, fo;
 
 /*
+static unsigned char iSqrt[TABLE_SIZE];
+static int iSqrt_inited = 0;
+
 static void MakeInverseSqrtLookupTable()
 {
 	long f;

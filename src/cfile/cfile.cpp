@@ -7,6 +7,11 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.4  2002/06/05 08:05:28  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.3  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -455,7 +460,7 @@ int cfile_push_chdir(int type)
 	int e;
 	char dir[128];
 	char OriginalDirectory[128];
-	char *Drive, *Path;
+	char *Path;
 	char NoDir[] = "\\.";
 
 	_getcwd(OriginalDirectory, 127);
@@ -465,7 +470,7 @@ int cfile_push_chdir(int type)
 	cf_create_default_path_string( dir, type, NULL );
 	_strlwr(dir);
 #ifndef PLAT_UNIX
-	Drive = strchr(dir, ':');
+	char *Drive = strchr(dir, ':');
 
 	if (Drive) {
 		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
@@ -498,14 +503,14 @@ int cfile_chdir(char *dir)
 {
 	int e;
 	char OriginalDirectory[128];
-	char *Drive, *Path;
+	char *Path;
 	char NoDir[] = "\\.";
 
 	_getcwd(OriginalDirectory, 127);
 	_strlwr(dir);
 
 #ifndef PLAT_UNIX
-	Drive = strchr(dir, ':');
+	char *Drive = strchr(dir, ':');
 	if (Drive)	{
 		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
 			return 1;

@@ -7,6 +7,11 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.5  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.4  2002/06/01 03:32:00  relnev
  * fix texture loading mistake.
  *
@@ -1441,11 +1446,11 @@ void weapon_init()
 	int rval;
 
 	if ( !Weapons_inited ) {
-#ifndef FS2_DEMO
-		STUB_FUNCTION;
-#warning FS2_DEMO HACK! commented out a function call		
+#ifndef FS2_DEMO // TODO - this seems to work? unless it's breaking that multiplayer mission...
 		// parse weapon_exp.tbl
 		parse_weapon_expl_tbl();
+#else
+		STUB_FUNCTION;
 #endif
 		// parse weapons.tbl
 		if ((rval = setjmp(parse_abort)) != 0) {

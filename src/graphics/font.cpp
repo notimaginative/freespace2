@@ -7,6 +7,11 @@
  * source file for font stuff
  *
  * $Log$
+ * Revision 1.3  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -633,7 +638,7 @@ extern HDC hDibDC;
 void gr_string_win(int x, int y, char *s)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 #else
 	char *ptr;
 	SIZE size;
@@ -692,7 +697,7 @@ void gr_string_win(int x, int y, char *s)
 void gr_get_string_size_win(int *w, int *h, char *text)
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 #else
 	char *ptr;
 	SIZE size;

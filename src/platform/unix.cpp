@@ -186,7 +186,7 @@ int Log_debug_output_to_file = 0;
 
 void load_filter_info(void)
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void outwnd_printf(char* id, char* format, ...)
@@ -213,7 +213,7 @@ void outwnd_printf2(char* format, ...)
 
 void outwnd_close()
 {
-	STUB_FUNCTION;
+//	STUB_FUNCTION;
 }
 
 void Warning( char * filename, int line, char * format, ... )
@@ -242,4 +242,5 @@ void Error( char * filename, int line, char * format, ... )
 void WinAssert(char * text,char *filename, int line)
 {
 	fprintf (stderr, "Assertion: (%s:%d) %s\n", filename, line, text);
+//	exit(1);
 }

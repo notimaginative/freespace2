@@ -7,6 +7,11 @@
  * C module for managing object-linked persistant sounds
  *
  * $Log$
+ * Revision 1.3  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.2  2002/05/07 03:16:48  theoddone33
  * The Great Newline Fix
  *
@@ -239,9 +244,7 @@
 #include "linklist.h"
 #include "ship.h"
 #include "gamesnd.h"
-#ifndef PLAT_UNIX
 #include "ds.h"
-#endif
 #include "ds3d.h"
 #include "timer.h"
 #include "3d.h"
@@ -770,9 +773,6 @@ void obj_snd_do_frame()
 				} // end switch
 
 				if ( go_ahead_flag ) {
-#ifdef PLAT_UNIX
-					STUB_FUNCTION;
-#else
 					if ( ds_using_ds3d() ) {
 						osp->instance = snd_play_3d(gs, &source_pos, &View_position, add_distance, &objp->phys_info.vel, 1, 1.0f, SND_PRIORITY_TRIPLE_INSTANCE);
 						if ( osp->instance != -1 ) {
@@ -787,7 +787,6 @@ void obj_snd_do_frame()
 							Num_obj_sounds_playing++;
 						}
 					}
-#endif
 				}
 				Assert(Num_obj_sounds_playing <= MAX_OBJ_SOUNDS_PLAYING);
 
@@ -818,10 +817,6 @@ void obj_snd_do_frame()
 		if ( objp->type == OBJ_SHIP )
 			sp = &Ships[objp->instance];
 
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
 		if (ds_using_ds3d()) {
 			channel = ds_get_channel(osp->instance);
 			// for DirectSound3D sounds, re-establish the maximum speed based on the
@@ -867,7 +862,6 @@ void obj_snd_do_frame()
 			else
 				snd_set_volume( osp->instance, 0.0f );
 		}
-#endif
 	}	// end for
 
 	// see if we want to play a flyby sound

@@ -7,6 +7,11 @@
  * Include file for timer stuff
  *
  * $Log$
+ * Revision 1.6  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.5  2002/05/29 21:38:20  relnev
  * fixed?
  *
@@ -88,19 +93,20 @@
 	#define USE_TIMING
 #endif
 
+#ifndef PLAT_UNIX
 static longlong Timer_last_value, Timer_base;
 static uint Timer_freq=0;
+static CRITICAL_SECTION Timer_lock;
+#endif
 
 static int Timer_inited = 0;
-
-static CRITICAL_SECTION Timer_lock;
 
 void timer_close()
 {
 	if ( Timer_inited )	{
 		Timer_inited = 0;
 #ifdef PLAT_UNIX
-		STUB_FUNCTION;
+//		STUB_FUNCTION;
 #else
 		DeleteCriticalSection( &Timer_lock );
 #endif
@@ -111,7 +117,7 @@ void timer_init()
 {
 	if ( !Timer_inited )	{
 #ifdef PLAT_UNIX
-		SDL_InitSubSystem(SDL_INIT_TIMER);
+//		SDL_InitSubSystem(SDL_INIT_TIMER);
 #else
 		LARGE_INTEGER tmp;
 		QueryPerformanceFrequency(&tmp);
@@ -130,12 +136,10 @@ void timer_init()
 	}
 }
 
+#ifndef PLAT_UNIX
 // Fills Time_now with the ticks since program start
 static void timer_get(LARGE_INTEGER * out)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
 	EnterCriticalSection(&Timer_lock);
 
 	longlong time_tmp;
@@ -156,16 +160,12 @@ static void timer_get(LARGE_INTEGER * out)
 	out->QuadPart = Time_now;
 
 	LeaveCriticalSection(&Timer_lock);
-#endif
 }
+#endif
 
 fix timer_get_fixed_seconds()
 {
 #ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-//	return 0;
-
-//	return (SDL_GetTicks() << 16) / 1000;
 	__extension__ long long a = SDL_GetTicks();
 	
 	a *= 65536;
@@ -258,9 +258,6 @@ sub_again:
 int timer_get_microseconds()
 {
 #ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-//	return 0;
-
 	return SDL_GetTicks() * 1000;
 #else
 	int tmp;
@@ -602,4 +599,3 @@ void timing_display(int x, int y)
 	}
 #endif
 }
-

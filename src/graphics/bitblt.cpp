@@ -7,6 +7,11 @@
  * Code to do software bitblt type stuff
  *
  * $Log$
+ * Revision 1.3  2002/06/05 08:05:29  relnev
+ * stub/warning removal.
+ *
+ * reworked the sound code.
+ *
  * Revision 1.2  2002/05/28 21:36:10  relnev
  * some more timer junk.
  *
@@ -314,7 +319,7 @@ void grx_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 void gr8_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 {
-#if 1
+#if 0
 	MONITOR_INC( Num2dBitmaps, 1 );	
 
 	gr_lock();
@@ -329,8 +334,8 @@ void gr8_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 	//mprintf(( "x=%d, y=%d, w=%d, h=%d\n", x, y, w, h ));
 	//mprintf(( "sx=%d, sy=%d, bw=%d, bh=%d\n", sx, sy, bmp->w, bmp->h ));
-#warning BMP_XPARENT == BMP_TEX_XPARENT ??
-	if ( bmp->flags & BMP_TEX_XPARENT )	{
+
+	if ( bmp->flags & BMP_XPARENT )	{
 		for (i=0; i<h; i++ )	{
 			int j;
 			ubyte c, * sp = sptr;	

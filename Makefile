@@ -28,6 +28,7 @@ SOURCES =./src/anim/animplay.cpp \
 	./src/debugconsole/console.cpp \
 	./src/fireball/fireballs.cpp \
 	./src/fireball/warpineffect.cpp \
+	./src/freespace2/freespace.cpp \
 	./src/gamehelp/contexthelp.cpp \
 	./src/gamehelp/gameplayhelp.cpp \
 	./src/gamesequence/gamesequence.cpp \
@@ -136,6 +137,8 @@ SOURCES =./src/anim/animplay.cpp \
 	./src/osapi/os_unix.cpp \
 	./src/palman/palman.cpp \
 	./src/parse/encrypt.cpp \
+	./src/parse/parselo.cpp \
+	./src/parse/sexp.cpp \
 	./src/particle/particle.cpp \
 	./src/pcxutils/pcxutils.cpp \
 	./src/physics/physics.cpp \

@@ -32,10 +32,12 @@
 #define _unlink unlink
 #define _mkdir mkdir
 #define _hypot hypot
+#define _access access
 #define byte unsigned char
 #define __try try
 #define __except catch
 #define LPSTR char *
+#define PASCAL
 
 extern void strlwr (char *str);
 extern int filelength (int fd);

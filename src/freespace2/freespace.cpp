@@ -7,6 +7,11 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.3  2002/05/26 23:31:18  relnev
+ * added a few files that needed to be compiled
+ *
+ * freespace.cpp: now compiles
+ *
  * Revision 1.2  2002/05/07 03:16:44  theoddone33
  * The Great Newline Fix
  *
@@ -411,12 +416,17 @@
  * 
  */
 
+#ifndef PLAT_UNIX
 #include <windows.h>
-
-#include <stdlib.h>
 #include <process.h>
-#include <time.h>
 #include <direct.h>
+#include <io.h>
+#else
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "pstypes.h"
 #include "systemvars.h"
@@ -554,10 +564,11 @@
 #include "version.h"
 #include "mainhalltemp.h"
 #include "exceptionhandler.h"
+#ifndef PLAT_UNIX
 #include "glide.h"
+#endif
 #include "supernova.h"
 #include "hudshield.h"
-#include <io.h>
 // #include "names.h"
 #include "shiphit.h"
 #include "missionloopbrief.h"
@@ -1013,6 +1024,7 @@ void game_framerate_check_init()
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
 		// if this is a glide card
 		if(gr_screen.mode == GR_GLIDE){
+#ifndef PLAT_UNIX		
 			extern GrHwConfiguration hwconfig;
 
 			// voodoo 2/3
@@ -1023,6 +1035,11 @@ void game_framerate_check_init()
 			else {
 				Gf_critical = 10.0f;
 			}
+#else
+			STUB_FUNCTION;
+			
+			Gf_critical = 15.0f;
+#endif						
 		}
 		// d3d. only care about good cards here I guess (TNT)
 		else {
@@ -1031,6 +1048,7 @@ void game_framerate_check_init()
 	} else {
 		// if this is a glide card
 		if(gr_screen.mode == GR_GLIDE){
+#ifndef PLAT_UNIX		
 			extern GrHwConfiguration hwconfig;
 
 			// voodoo 2/3
@@ -1041,6 +1059,11 @@ void game_framerate_check_init()
 			else {
 				Gf_critical = 20.0f;
 			}
+#else
+			STUB_FUNCTION;
+			
+			Gf_critical = 25.0f;
+#endif						
 		}
 		// d3d. only care about good cards here I guess (TNT)
 		else {
@@ -1311,7 +1334,7 @@ void game_flash_diminish(float frametime)
 	
 	if ( Use_palette_flash )	{
 		int r,g,b;
-		static int or=0, og=0, ob=0;
+//		static int or=0, og=0, ob=0;
 
 		// Change the 200 to change the color range of colors.
 		r = fl2i( Game_flash_red*128.0f );  
@@ -1339,9 +1362,9 @@ void game_flash_diminish(float frametime)
 
 			//mprintf(( "Flash! %d,%d,%d\n", r, g, b ));
 
-			or = r;
-			og = g;
-			ob = b;
+//			or = r;
+//			og = g;
+//			ob = b;
 		}
 	}
 	
@@ -2009,7 +2032,12 @@ void game_init()
 	// int s2, e2;
 
 	char whee[1024];
+#ifndef PLAT_UNIX	
 	GetCurrentDirectory(1024, whee);
+#else
+	strcpy(whee, ".");
+	STUB_FUNCTION;
+#endif
 	strcat(whee, "\\");
 	strcat(whee, EXE_FNAME);
 
@@ -2098,8 +2126,9 @@ void game_init()
 // SOUND INIT END
 /////////////////////////////
 	
-	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);	
+	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);
 	if (ptr == NULL) {
+#ifndef PLAT_UNIX	
 		MessageBox((HWND)os_get_window(), XSTR("Please configure your system in the Launcher before running FS2.\n\n The Launcher will now be started!", 1446), XSTR("Attention!", 1447), MB_OK);
 
 		// fire up the UpdateLauncher executable
@@ -2125,13 +2154,19 @@ void game_init()
 		if (!ret) {
 			MessageBox((HWND)os_get_window(), XSTR("The Launcher could not be restarted.", 1450), XSTR("Error", 1451), MB_OK);
 		}
+#else
+		STUB_FUNCTION;
+#endif		
 		exit(1);
 	}
 
 	if(!Is_standalone){
-		
 		if(!stricmp(ptr, "Aucune accélération 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
-			MessageBox((HWND)os_get_window(), XSTR("Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it.", 1448), XSTR("Warning", 1449), MB_OK);		
+#ifndef PLAT_UNIX		
+			MessageBox((HWND)os_get_window(), XSTR("Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it.", 1448), XSTR("Warning", 1449), MB_OK);
+#else
+			STUB_FUNCTION;
+#endif						
 			exit(1);
 		}
 	}
@@ -2212,8 +2247,12 @@ void game_init()
 	// tried d3d ?
 	extern int Gr_inited;
 	if(trying_d3d && !Gr_inited){
-		extern char Device_init_error[512];		
+		extern char Device_init_error[512];
+#ifndef PLAT_UNIX		
 		MessageBox( NULL, Device_init_error, "Error intializing Direct3D", MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
+#lse
+		STUB_FUNCTION;
+#endif		
 		exit(1);
 		return;
 	}
@@ -2343,7 +2382,9 @@ void game_init()
 //	Game_music_paused = 0;
 	Game_paused = 0;
 
+#ifndef PLAT_UNIX
 	timeBeginPeriod(1);	
+#endif
 
 	nprintf(("General", "Ships.tbl is : %s\n", Game_ships_tbl_valid ? "VALID" : "INVALID!!!!"));
 	nprintf(("General", "Weapons.tbl is : %s\n", Game_weapons_tbl_valid ? "VALID" : "INVALID!!!!"));
@@ -4695,7 +4736,7 @@ int game_poll()
 
 		case KEY_PRINT_SCRN: 
 			{
-				static counter = 0;
+				static int counter = 0;
 				char tmp_name[127];
 
 				game_stop_time();
@@ -6388,14 +6429,21 @@ int game_do_ram_check(int ram_in_bytes)
 			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), Freespace_total_ram_MB, Freespace_total_ram_MB);
 
 			int msgbox_rval;
+#ifndef PLAT_UNIX			
 			msgbox_rval = MessageBox( NULL, tmp, XSTR( "Not Enough RAM", 194), MB_OKCANCEL );
 			if ( msgbox_rval == IDCANCEL ) {
 				return -1;
 			}
-
+#else
+			STUB_FUNCTION;
+#endif			
 		} else {
 			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n", 195), Freespace_total_ram_MB, Freespace_total_ram_MB);
+#ifndef PLAT_UNIX
 			MessageBox( NULL, tmp, XSTR( "Not Enough RAM", 194), MB_OK );
+#else
+			STUB_FUNCTION;
+#endif			
 			return -1;
 		}
 	}
@@ -6407,6 +6455,7 @@ int game_do_ram_check(int ram_in_bytes)
 // If so, copy it over and remove the update directory.
 void game_maybe_update_launcher(char *exe_dir)
 {
+#ifndef PLAT_UNIX
 	char src_filename[MAX_PATH];
 	char dest_filename[MAX_PATH];
 
@@ -6440,6 +6489,9 @@ void game_maybe_update_launcher(char *exe_dir)
 	strcpy(update_dir, exe_dir);
 	strcat(update_dir, NOX("\\update"));
 	RemoveDirectory(update_dir);
+#else
+	STUB_FUNCTION;
+#endif	
 }
 
 void game_spew_pof_info_sub(int model_num, polymodel *pm, int sm, CFILE *out, int *out_total, int *out_destroyed_total)
@@ -6567,14 +6619,17 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 {
 	int state;		
 
+#ifndef PLAT_UNIX
 	// Don't let more than one instance of Freespace run.
 	HWND hwnd = FindWindow( NOX( "FreeSpaceClass" ), NULL );
 	if ( hwnd )	{
 		SetForegroundWindow(hwnd);
 		return 0;
 	}
+#endif
 
 	// Find out how much RAM is on this machine
+#ifndef PLAT_UNIX
 	MEMORYSTATUS ms;
 	ms.dwLength = sizeof(MEMORYSTATUS);
 	GlobalMemoryStatus(&ms);
@@ -6602,7 +6657,10 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 
 	free(tmp_mem);
 	tmp_mem = NULL;
-
+#else
+	STUB_FUNCTION;
+#endif
+	
 /* this code doesn't work, and we will hit an error about being unable to load the direct draw
 	dll before we get here anyway if it's not installed (unless we load it manually, which doesn't
 	seem worth bothering with.
@@ -6669,6 +6727,7 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 */
 	//=====================================================
 	// Make sure we're running in the right directory.
+#ifndef PLAT_UNIX
 	char exe_dir[1024];
 
 	if ( GetModuleFileName( hInst, exe_dir, 1023 ) > 0 )	{
@@ -6688,7 +6747,9 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 		// check for updated freespace.exe
 		game_maybe_update_launcher(exe_dir);
 	}
-
+#else
+	STUB_FUNCTION;
+#endif
 	
 	#ifndef NDEBUG				
 	{
@@ -6745,7 +6806,7 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 		// movie_play( NOX("intro.mve"), 0 );
 
 		// debug version, movie will only play with -showmovies
-		#else if !defined(NDEBUG)
+		#elif !defined(NDEBUG)
 		
 		// no soup for you!
 		// movie_play( NOX("intro.mve"), 0);
@@ -6792,7 +6853,7 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
 {
 	int result = -1;
-
+#ifndef PLAT_UNIX
 	__try
 	{
 		result = WinMainSub(hInst, hPrev, szCmdLine, nCmdShow);
@@ -6805,11 +6866,18 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 		// the __except clause.
 	}
 	return result;
+#else
+	STUB_FUNCTION;
+	
+	fprintf(stderr, "WinMain: exceptions shall fall through\n");
+	result = WinMainSub(hInst, hPrev, szCmdLine, nCmdShow);
+#endif	
 }
 
 // launcher the fslauncher program on exit
 void game_launch_launcher_on_exit()
 {
+#ifndef PLAT_UNIX
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	char cmd_line[2048];
@@ -6840,6 +6908,9 @@ void game_launch_launcher_on_exit()
 										);			
 	// to eliminate build warnings
 	ret;
+#else
+	STUB_FUNCTION;
+#endif		
 }
 
 
@@ -6849,7 +6920,9 @@ void game_launch_launcher_on_exit()
 //
 void game_shutdown(void)
 {
+#ifndef PLAT_UNIX
 	timeEndPeriod(1);
+#endif
 
 	// don't ever flip a page on the standalone!
 	if(!(Game_mode & GM_STANDALONE_SERVER)){
@@ -7931,6 +8004,7 @@ void game_stop_subspace_ambient_sound()
 
 uint game_get_cd_used_space(char *path)
 {
+#ifndef PLAT_UNIX
 	uint total = 0;
 	char use_path[512] = "";
 	char sub_path[512] = "";
@@ -7966,12 +8040,18 @@ uint game_get_cd_used_space(char *path)
 
 	// total
 	return total;
+#else
+	STUB_FUNCTION;
+	
+	return 0;
+#endif	
 }
 
 
 // if volume_name is non-null, the CD name must match that
 int find_freespace_cd(char *volume_name)
 {
+#ifndef PLAT_UNIX
 	char oldpath[MAX_PATH];
 	char volume[256];
 	int i;
@@ -8081,6 +8161,11 @@ int find_freespace_cd(char *volume_name)
 
 	SetCurrentDirectory(oldpath);
 	return cdrom_drive;
+#else
+	STUB_FUNCTION;
+	
+	return 0;
+#endif	
 }
 
 int set_cdrom_path(int drive_num)
@@ -8133,6 +8218,7 @@ char Last_cd_label[256];
 
 int game_cd_changed()
 {
+#ifndef PLAT_UNIX
 	char label[256];
 	int found;
 	int changed = 0;
@@ -8174,6 +8260,9 @@ int game_cd_changed()
 	}
 
 	return changed;
+#else
+	STUB_FUNCTION;
+#endif		
 }
 
 // check if _any_ FreeSpace2 CDs are in the drive

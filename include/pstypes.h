@@ -15,6 +15,9 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.9  2004/06/11 21:39:44  taylor
+ * x86 compile fixes for OSX patch
+ *
  * Revision 1.8  2004/06/11 00:15:06  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -593,7 +596,7 @@ float SWAPFLOAT( float *x )
 #if SDL_BYTEORDER != SDL_BIG_ENDIAN
 #define INTEL_INT(x)	x
 #define INTEL_SHORT(x)	x
-#define INTEL_FLOAT(x)	x
+#define INTEL_FLOAT(x)	(*x)
 #else
 #define INTEL_INT(x)	SWAPINT(x)
 #define INTEL_SHORT(x)	SWAPSHORT(x)

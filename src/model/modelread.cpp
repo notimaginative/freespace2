@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.10  2004/06/11 21:39:44  taylor
+ * x86 compile fixes for OSX patch
+ *
  * Revision 1.9  2004/06/10 23:55:39  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -1531,9 +1534,9 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 				if ( pm->submodel[n].bsp_data_size > 0 )	{
 					pm->submodel[n].bsp_data = (ubyte *)malloc(pm->submodel[n].bsp_data_size);
 					cfread(pm->submodel[n].bsp_data,1,pm->submodel[n].bsp_data_size,fp);
-                    if (SDL_BYTEORDER == SDL_BIG_ENDIAN)		//tigital
-                        swap_bsp_data( pm, pm->submodel[n].bsp_data );
-                                        
+#if (SDL_BYTEORDER == SDL_BIG_ENDIAN)		//tigital
+					swap_bsp_data( pm, pm->submodel[n].bsp_data );
+#endif
 				} else {
 					pm->submodel[n].bsp_data = NULL;
 				}

@@ -7,6 +7,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.3  2002/05/31 07:24:28  relnev
+ * warning
+ *
  * Revision 1.2  2002/05/07 03:16:43  theoddone33
  * The Great Newline Fix
  *
@@ -352,7 +355,7 @@ enum
     SND_ENV_UNDERWATER,
     SND_ENV_DRUGGED,
     SND_ENV_DIZZY,
-    SND_ENV_PSYCHOTIC,
+    SND_ENV_PSYCHOTIC
 };
 
 int sound_env_set(sound_env *se);

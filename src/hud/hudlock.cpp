@@ -7,6 +7,9 @@
  * C module that controls missile locking
  *
  * $Log$
+ * Revision 1.3  2002/05/31 07:24:28  relnev
+ * warning
+ *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
  *
@@ -786,7 +789,7 @@ void hud_draw_lock_triangles_old(int center_x, int center_y, int radius)
 		ang += PI/12;
 	}
 
-	for (ang; ang <= end_ang; ang += PI/2.0f) {
+	for (; ang <= end_ang; ang += PI/2.0f) {
 
 		// draw the orbiting triangles
 

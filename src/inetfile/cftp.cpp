@@ -7,10 +7,13 @@
  * FTP Client class (get only)
  *
  * $Log$
+ * Revision 1.5  2002/05/26 20:32:24  theoddone33
+ * Fix some minor stuff
+ *
  * Revision 1.4  2002/05/26 20:20:53  relnev
  * unix.h: updated
  *
- * inetfile/*: complete
+ * inetfile/: complete
  *
  * Revision 1.3  2002/05/26 19:55:20  relnev
  * unix.h: winsock defines

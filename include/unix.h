@@ -35,7 +35,6 @@
 #define byte unsigned char
 #define __try try
 #define __except catch
-#define mprintf printf
 #define LPSTR char *
 
 extern void strlwr (char *str);

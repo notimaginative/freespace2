@@ -7,10 +7,13 @@
  * InternetGetFile Class
  *
  * $Log$
+ * Revision 1.4  2002/05/26 20:32:24  theoddone33
+ * Fix some minor stuff
+ *
  * Revision 1.3  2002/05/26 20:20:54  relnev
  * unix.h: updated
  *
- * inetfile/*: complete
+ * inetfile: complete
  *
  * Revision 1.2  2002/05/07 03:16:45  theoddone33
  * The Great Newline Fix
@@ -44,7 +47,7 @@
 #include <sys/stat.h>	// mkdir
 #include <sys/types.h>	// mkdir
               
-#include "unix.h"
+#include "pstypes.h"
 #endif
 
 #include <stdio.h>

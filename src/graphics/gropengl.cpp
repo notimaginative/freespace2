@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.16  2002/05/29 19:45:13  theoddone33
+ * More changes on texture loading
+ *
  * Revision 1.15  2002/05/29 19:06:48  theoddone33
  * Enable string printing.  Enable texture mapping
  *
@@ -1590,12 +1593,8 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 		t->v_scale = 1.0f;
 	}
 
-	/*
-	bmp_data = (ushort *)data;
+	ushort *bmp_data = (ushort *)data;
 	ubyte *bmp_data_byte = (ubyte*)data;
-	*/
-
-	/* DDOI - FIXME: Uh, actually loading the texture sound good? */
 
 	glGenTextures (1, &t->texture_handle);
 	glBindTexture (GL_TEXTURE_2D, t->texture_handle);
@@ -1605,8 +1604,69 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
-			GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+	ushort xlat[256];
+	int r, g, b, a;
+	int i, j;
+	ushort *texmem = (ushort *)malloc (tex_w*tex_h*2);
+	switch (bitmap_type) {
+
+		case TCACHE_TYPE_AABITMAP:
+			for (i=0; i<16;i++) {
+				r = 255;
+				g = 255;
+				b = 255;
+				a = Gr_gamma_lookup[(i*255)/15];
+				/*
+				r /= Gr_ta_red.scale;
+				g /= Gr_ta_green.scale;
+				b /= Gr_ta_blue.scale;
+				a /= Gr_ta_alpha.scale;
+				*/
+				xlat[i] = (unsigned short)(((a<<Gr_ta_alpha.shift) | (r << Gr_ta_red.shift) | (g << Gr_ta_green.shift) | (b << Gr_ta_blue.shift)));
+			}
+
+			xlat[15] = xlat[1];
+			for ( ; i<256; i++ )    {
+				xlat[i] = xlat[0];
+			}
+
+			for (j = 0; j < tex_h; j++) {
+				for (i = 0; i < tex_w; i++) {
+					if ( (i < bmap_w) && (j<bmap_h) )       {
+						*texmem++ = xlat[(ubyte)bmp_data_byte[j*bmap_w+i]];
+					} else {
+						*texmem++ = 0;
+					}
+				}
+			}
+
+			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
+					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+
+			break;
+		default:
+			fix u, utmp, v, du, dv;
+
+			u = v = 0;
+
+			du = ( (bmap_w-1)*F1_0 ) / tex_w;
+			dv = ( (bmap_h-1)*F1_0 ) / tex_h;
+
+			for (j = 0; j < tex_h; j++) {
+				utmp = u;
+
+				for (i = 0; i < tex_w; i++) {
+					*texmem++ = bmp_data[f2i(v)*bmap_w+f2i(utmp)];
+					utmp += du;
+				}
+				v += dv;
+			}
+				
+			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tex_w, tex_h, 0, GL_RGBA,
+					GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+			break;
+	}
+	free (texmem);
 	
 	t->bitmap_id = texture_handle;
 	t->time_created = GL_frame_count;
@@ -1865,6 +1925,7 @@ int gr_opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *
 	}
 	// gah
 	else {
+		glBindTexture (GL_TEXTURE_2D, 0);	// test - DDOI
 		return 0;
 	}
 

@@ -19,6 +19,9 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.11  2004/07/04 11:27:29  taylor
+ * cleanup CFILE code a little, warning fixes, remove redundant dir checks, amd64 support
+ *
  * Revision 1.10  2004/06/11 00:29:22  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -502,13 +505,8 @@ void cf_build_root_list(char *cdrom_dir)
 	}
 
 	// do we already have a slash? as in the case of a root directory install
-#ifdef PLAT_UNIX
-	if(strlen(root->path) && (root->path[strlen(root->path)-1] != '/')){
-		strcat(root->path, "/");		// put trailing backslash on for easier path construction
-#else
-	if(strlen(root->path) && (root->path[strlen(root->path)-1] != '\\')){
-		strcat(root->path, "\\");		// put trailing backslash on for easier path construction
-#endif
+	if(strlen(root->path) && (root->path[strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
+		strcat(root->path, DIR_SEPARATOR_STR);		// put trailing backslash on for easier path construction
 	}
 	root->roottype = CF_ROOTTYPE_PATH;
 
@@ -560,16 +558,23 @@ void cf_search_root_path(int root_index)
 
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 
-#ifdef PLAT_UNIX
-		DIR *dirp;
-		struct dirent *dir;
-
 		strcpy( search_path, root->path );
 
 		if(strlen(Pathtypes[i].path)){
 			strcat( search_path, Pathtypes[i].path );
-			strcat( search_path, "/" );
-		} 
+			strcat( search_path, DIR_SEPARATOR_STR );
+		}
+
+#ifdef PLAT_UNIX
+		DIR *dirp;
+		struct dirent *dir;
+
+		// only get pilots from the primary root as there could be nasty
+		// permission issues otherwise
+		if ( (root_index > 0) && ((Pathtypes[i].index == CF_TYPE_SINGLE_PLAYERS)
+					|| (Pathtypes[i].index == CF_TYPE_MULTI_PLAYERS)) ) {
+			break;
+		}
 
 		dirp = opendir (search_path);
 		if ( dirp ) {
@@ -614,13 +619,6 @@ void cf_search_root_path(int root_index)
 			closedir(dirp);
 		}
 #else
-		strcpy( search_path, root->path );
-
-		if(strlen(Pathtypes[i].path)){
-			strcat( search_path, Pathtypes[i].path );
-			strcat( search_path, "\\" );
-		} 
-
 		strcat( search_path, "*.*" );
 
 		int find_handle;
@@ -673,7 +671,7 @@ typedef struct VP_FILE {
 	int	offset;
 	int	size;
 	char	filename[32];
-	time_t write_time;
+	fs_time_t write_time;
 } VP_FILE;
 
 void cf_search_root_pack(int root_index)
@@ -722,21 +720,13 @@ void cf_search_root_pack(int root_index)
 			if ( !stricmp( find.filename, ".." ))	{
 				int l = strlen(search_path);
 				char *p = &search_path[l-1];
-#ifdef PLAT_UNIX
-				while( (p > search_path) && (*p != '/') )	{
-#else
-				while( (p > search_path) && (*p != '\\') )	{
-#endif
+				while( (p > search_path) && (*p != DIR_SEPARATOR_CHAR) )	{
 					p--;
 				}
 				*p = 0;
 			} else {
 				if ( strlen(search_path)	)	{
-#ifdef PLAT_UNIX
-					strcat( search_path,	"/" );
-#else
-					strcat( search_path,	"\\" );
-#endif
+					strcat( search_path,	DIR_SEPARATOR_STR );
 				}
 				strcat( search_path, find.filename );
 			}
@@ -878,7 +868,11 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 	// of the file
 
 	// NOTE: full path should also include localization, if so desired
+#ifdef PLAT_UNIX
+	if ( strpbrk(filespec, "/") ) {
+#else
 	if ( strpbrk(filespec,"/\\:")  ) {		// do we have a full path already?
+#endif
 		FILE *fp = fopen(filespec, "rb" );
 		if (fp)	{
 			if ( size ) *size = filelength(fileno(fp));
@@ -924,26 +918,6 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 		}
 	} 
 
-#ifdef PLAT_UNIX
-	// search the secondary directory (game directory) as well since the user dir is default
-	for (i=0; i<num_search_dirs; i++ )	{
-		char longname[MAX_PATH_LEN];
-
-		cf_create_secondary_path_string( longname, search_order[i], filespec, localize );
-
-		FILE *fp = fopen(longname, "rb" );
-		if (fp)	{
-			if ( size ) *size = filelength(fileno(fp));
-			if ( offset ) *offset = 0;
-			if ( pack_filename ) {
-				strcpy( pack_filename, longname );
-			}				
-			fclose(fp);
-			return 1;		
-		}
-	}
-#endif
-
 	// Search the pak files and CD-ROM.
 
 		for (i=0; i<Num_files; i++ )	{
@@ -969,11 +943,7 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 						strcpy( pack_filename, r->path );
 						if ( f->pack_offset < 1 )	{
 							strcat( pack_filename, Pathtypes[f->pathtype_index].path );
-#ifdef PLAT_UNIX
-							strcat( pack_filename, "/" );
-#else
-							strcat( pack_filename, "\\" );
-#endif
+							strcat( pack_filename, DIR_SEPARATOR_STR );
 							strcat( pack_filename, f->name_ext );
 						}
 					}				
@@ -995,11 +965,7 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 
 						if(strlen(Pathtypes[f->pathtype_index].path)){
 							strcat( pack_filename, Pathtypes[f->pathtype_index].path );
-#ifdef PLAT_UNIX
-							strcat( pack_filename, "/" );
-#else
-							strcat( pack_filename, "\\" );
-#endif
+							strcat( pack_filename, DIR_SEPARATOR_STR );
 						}
 
 						strcat( pack_filename, f->name_ext );
@@ -1129,58 +1095,6 @@ int cf_get_file_list( int max, char **list, int pathtype, char *filter, int sort
 			
 			closedir(dirp);
 		}
-
-	// grab secondary (game) directory as well but be sure to skip the pilot
-	// directories as that would be a bad thing to load read-only pilots
-	if (pathtype != (CF_TYPE_PLAYERS || CF_TYPE_SINGLE_PLAYERS || CF_TYPE_MULTI_PLAYERS)) {
-		cf_create_secondary_path_string( filespec, pathtype, NULL );
-
-		DIR *dirp;
-		struct dirent *dir;
-
-		dirp = opendir (filespec);
-		if ( dirp ) {
-			while ((dir = readdir (dirp)) != NULL)
-			{
-				if (num_files >= max)
-					break;
-				
-				if (fnmatch(filter, dir->d_name, 0) != 0)
-					continue;
-				
-				char fn[MAX_PATH];
-				snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
-				fn[MAX_PATH-1] = 0;
-							
-				struct stat buf;
-				if (stat(fn, &buf) == -1) {
-					continue;
-				}
-				
-				if (!S_ISREG(buf.st_mode)) {
-					continue;
-				}
-				
-				if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
-					ptr = strrchr(dir->d_name, '.');
-					if (ptr)
-						l = ptr - dir->d_name;
-					else
-						l = strlen(dir->d_name);
-
-					list[num_files] = (char *)malloc(l + 1);
-					strncpy(list[num_files], dir->d_name, l);
-					list[num_files][l] = 0;
-					if (info)
-						info[num_files].write_time = buf.st_mtime;
-
-					num_files++;
-				}
-			}
-
-			closedir(dirp);
-		}
-	}
 #else
 	cf_create_default_path_string( filespec, pathtype, filter );
 	
@@ -1213,7 +1127,6 @@ int cf_get_file_list( int max, char **list, int pathtype, char *filter, int sort
 		_findclose( find_handle );
 	}
 #endif
-
 
 	// Search all the packfiles and CD.
 	if ( !Skip_packfile_search )	{
@@ -1368,56 +1281,6 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 			}
 			closedir(dirp);
 		}
-
-	// grab secondary (game) directory as well but be sure to skip the pilot
-	// directories as that would be a bad thing to load read-only pilots
-	if (pathtype != (CF_TYPE_PLAYERS || CF_TYPE_SINGLE_PLAYERS || CF_TYPE_MULTI_PLAYERS)) {
-		cf_create_secondary_path_string( filespec, pathtype, NULL );
-	
-		DIR *dirp;
-		struct dirent *dir;
-
-		dirp = opendir (filespec);
-		if ( dirp ) {
-			while ((dir = readdir (dirp)) != NULL)
-			{
-				if (num_files >= max)
-					break;
-				
-				if (fnmatch(filter, dir->d_name, 0) != 0)
-					continue;
-				
-				char fn[MAX_PATH];
-				snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
-				fn[MAX_PATH-1] = 0;
-							
-				struct stat buf;
-				if (stat(fn, &buf) == -1) {
-					continue;
-				}
-				
-				if (!S_ISREG(buf.st_mode)) {
-					continue;
-				}
-				
-				if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
-
-					strncpy(arr[num_files], dir->d_name, MAX_FILENAME_LEN - 1 );
-					char *ptr = strrchr(arr[num_files], '.');
-					if ( ptr ) {
-						*ptr = 0;
-					}
-
-					if (info)	{
-						info[num_files].write_time = buf.st_mtime;
-					}
-
-					num_files++;
-				}
-			}
-			closedir(dirp);
-		}
-	}
 #else
 	cf_create_default_path_string( filespec, pathtype, filter );
 	
@@ -1520,7 +1383,7 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 void cf_create_default_path_string( char *path, int pathtype, char *filename, bool localize )
 {
 #ifdef PLAT_UNIX
-	if ( filename && strpbrk(filename,"/")  ) {  
+	if ( filename && strpbrk(filename, "/")  ) {  
 #else
 	if ( filename && strpbrk(filename,"/\\:")  ) {  
 #endif
@@ -1542,11 +1405,7 @@ void cf_create_default_path_string( char *path, int pathtype, char *filename, bo
 
 		// Don't add slash for root directory
 		if (Pathtypes[pathtype].path[0] != '\0') {
-#ifdef PLAT_UNIX
-			strcat(path, "/");
-#else
-			strcat(path, "\\");
-#endif
+			strcat(path, DIR_SEPARATOR_STR);
 		}
 
 		// add filename
@@ -1573,58 +1432,3 @@ void cf_create_default_path_string( char *path, int pathtype, char *filename, bo
 		}
 	}
 }
-
-#ifdef PLAT_UNIX
-// this is the same as cf_create_default_path_string above but as it only shows
-// files in the users directory this function will find files in the game
-// installation directory
-void cf_create_secondary_path_string( char *path, int pathtype, char *filename, bool localize )
-{
-	if ( filename && strpbrk(filename,"/")  ) {  
-
-		// Already has full path
-		strcpy( path, filename );
-
-	} else {
-		cf_root *root = cf_get_root(1);
-
-		if (!root) {
-			strcpy(path, filename);
-			return;
-		}
-
-		Assert(CF_TYPE_SPECIFIED(pathtype));
-
-		strcpy(path, root->path);
-		strcat(path, Pathtypes[pathtype].path);
-
-		// Don't add slash for root directory
-		if (Pathtypes[pathtype].path[0] != '\0') {
-			strcat(path, "/");
-		}
-
-		// add filename
-		if (filename) {
-			strcat(path, filename);
-
-			// localize filename
-			if (localize) {
-				// create copy of path
-				char temp_path[MAX_PATH_LEN];
-				strcpy(temp_path, path);
-
-				// localize the path
-				lcl_add_dir_to_path_with_filename(path);
-
-				// verify localized path
-				FILE *fp = fopen(path, "rb");
-				if (fp) {
-					fclose(fp);
-				} else {
-					strcpy(path, temp_path);
-				}
-			}
-		}
-	}
-}
-#endif

@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.11  2004/07/04 11:27:29  taylor
+ * cleanup CFILE code a little, warning fixes, remove redundant dir checks, amd64 support
+ *
  * Revision 1.10  2004/06/11 00:28:39  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -353,21 +356,13 @@ int cfile_in_root_dir(char *exe_path)
 	strncpy(path_copy, exe_path, 2047);
 
 	// count how many slashes there are in the path
-#ifdef PLAT_UNIX
-	tok = strtok(path_copy, "/");
-#else
-	tok = strtok(path_copy, "\\");
-#endif
+	tok = strtok(path_copy, DIR_SEPARATOR_STR);
 	if(tok == NULL){
 		return 1;
 	}	
 	do {
 		token_count++;
-#ifdef PLAT_UNIX
-		tok = strtok(NULL, "/");
-#else
-		tok = strtok(NULL, "\\");
-#endif
+		tok = strtok(NULL, DIR_SEPARATOR_STR);
 	} while(tok != NULL);
 		
 	// root directory if we have <= 1 slash
@@ -408,11 +403,7 @@ int cfile_init(char *exe_dir, char *cdrom_dir)
 #endif
 
 		while (i--) {
-#ifdef PLAT_UNIX
-			if (buf[i] == '/'){
-#else
-			if (buf[i] == '\\'){
-#endif
+			if (buf[i] == DIR_SEPARATOR_CHAR){
 				break;
 			}
 		}						
@@ -834,7 +825,11 @@ CFILE *cfopen(char *file_path, char *mode, int type, int dir_type, bool localize
 	
 	if ( strchr(mode,'w') )	{
 		// For write-only files, require a full path or a path type
+#ifdef PLAT_UNIX
+		if ( strpbrk(file_path, "/") ) {
+#else
 		if ( strpbrk(file_path,"/\\:")  ) {  
+#endif
 			// Full path given?
 			strcpy(longname, file_path );
 		} else {

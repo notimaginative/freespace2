@@ -16,6 +16,11 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.6  2002/06/22 23:57:39  relnev
+ * remove writable strings.
+ *
+ * fix compile for intel compiler.
+ *
  * Revision 1.5  2002/06/17 06:33:11  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -243,7 +248,7 @@
 typedef struct debris_vclip {
 	int	bm;
 	int	nframes;
-	char  *name;
+	char  name[32];
 } debris_vclip;
 
 typedef struct {

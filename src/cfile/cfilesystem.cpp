@@ -19,6 +19,11 @@
  * all those locations, inherently enforcing precedence orders.
  *
  * $Log$
+ * Revision 1.7  2002/06/22 23:57:39  relnev
+ * remove writable strings.
+ *
+ * fix compile for intel compiler.
+ *
  * Revision 1.6  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -767,9 +772,11 @@ void cf_build_secondary_filelist(char *cdrom_dir)
 	// Init the path types
 	for (i=0; i<CF_MAX_PATH_TYPES; i++ )	{
 		Assert( Pathtypes[i].index == i );
+#if 0 /* they are already lowercased -- SBF */
 		if ( Pathtypes[i].extensions )	{
 			strlwr(Pathtypes[i].extensions);
 		}
+#endif		
 	}
 	
 	// Init the root blocks

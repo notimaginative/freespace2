@@ -7,6 +7,9 @@
  * Code to load and manage all bitmaps for the game
  *
  * $Log$
+ * Revision 1.4  2002/05/28 17:03:29  theoddone33
+ * fs2 gets to the main game loop now
+ *
  * Revision 1.3  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -2323,7 +2326,9 @@ void BM_SELECT_SCREEN_FORMAT()
 
 	// setup pointers
 	if(gr_screen.mode == GR_GLIDE){
+#ifndef PLAT_UNIX
 		bm_set_components = bm_set_components_argb;
+#endif
 	} else if(gr_screen.mode == GR_DIRECT3D){
 		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
 			bm_set_components = bm_set_components_d3d;
@@ -2346,6 +2351,7 @@ void BM_SELECT_SCREEN_FORMAT()
 
 void BM_SELECT_TEX_FORMAT()
 {
+#ifndef PLAT_UNIX
 	Gr_current_red = &Gr_t_red; 
 	Gr_current_green = &Gr_t_green; 
 	Gr_current_blue = &Gr_t_blue; 
@@ -2354,7 +2360,9 @@ void BM_SELECT_TEX_FORMAT()
 	// setup pointers
 	if(gr_screen.mode == GR_GLIDE){
 		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_DIRECT3D){
+	} else
+#endif
+	if(gr_screen.mode == GR_DIRECT3D){
 		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
 			bm_set_components = bm_set_components_d3d;
 		} else {

@@ -7,6 +7,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.3  2002/05/28 17:03:29  theoddone33
+ * fs2 gets to the main game loop now
+ *
  * Revision 1.2  2002/05/27 21:35:50  theoddone33
  * Stub out dsound backend
  *
@@ -564,6 +567,7 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 {
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
+	return -1;
 #else
 	CFILE				*fp;
 	PCMWAVEFORMAT	PCM_header;

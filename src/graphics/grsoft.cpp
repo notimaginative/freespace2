@@ -7,6 +7,9 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
+ * Revision 1.4  2002/05/28 17:03:29  theoddone33
+ * fs2 gets to the main game loop now
+ *
  * Revision 1.3  2002/05/28 04:56:51  theoddone33
  * runs a little bit now
  *
@@ -470,6 +473,7 @@ void gr_buffer_create( int w, int h, int bpp )
 	DibInfo.Header.biHeight = h;
 	DibInfo.Header.biPlanes = 1; 
 	DibInfo.Header.biClrUsed = 0;
+#endif
 
 	switch( bpp )	{
 	case 8:
@@ -488,6 +492,7 @@ void gr_buffer_create( int w, int h, int bpp )
 		Gr_blue.scale = 1;
 		Gr_blue.mask = 0xff;
 
+#ifndef PLAT_UNIX
 		DibInfo.Header.biCompression = BI_RGB; 
 		DibInfo.Header.biBitCount = 8; 
 		for (i=0; i<256; i++ )	{
@@ -497,6 +502,7 @@ void gr_buffer_create( int w, int h, int bpp )
 			DibInfo.Colors.aColors[i].rgbReserved = 0;
 		}
 		break;
+#endif
 
 	case 15:
 		Gr_red.bits = 5;
@@ -514,11 +520,13 @@ void gr_buffer_create( int w, int h, int bpp )
 		Gr_blue.scale = 8;
 		Gr_blue.mask = 0x1F;
 
+#ifndef PLAT_UNIX
 		DibInfo.Header.biCompression = BI_BITFIELDS;
 		DibInfo.Header.biBitCount = 16; 
 		DibInfo.Colors.hicolor_masks[0] = Gr_red.mask;
 		DibInfo.Colors.hicolor_masks[1] = Gr_green.mask;
 		DibInfo.Colors.hicolor_masks[2] = Gr_blue.mask;
+#endif
 
 
 		break;
@@ -539,11 +547,13 @@ void gr_buffer_create( int w, int h, int bpp )
 		Gr_blue.scale = 8;
 		Gr_blue.mask = 0x1F;
 
+#ifndef PLAT_UNIX
 		DibInfo.Header.biCompression = BI_BITFIELDS;
 		DibInfo.Header.biBitCount = 16; 
 		DibInfo.Colors.hicolor_masks[0] = Gr_red.mask;
 		DibInfo.Colors.hicolor_masks[1] = Gr_green.mask;
 		DibInfo.Colors.hicolor_masks[2] = Gr_blue.mask;
+#endif
 		break;
 
 	case 24:
@@ -563,14 +573,17 @@ void gr_buffer_create( int w, int h, int bpp )
 		Gr_blue.scale = 1;
 		Gr_blue.mask = 0xff;
 
+#ifndef PLAT_UNIX
 		DibInfo.Header.biCompression = BI_RGB; 
 		DibInfo.Header.biBitCount = unsigned short(bpp); 
+#endif
 		break;
 
 	default:
 		Int3();	// Illegal bpp
 	}
 
+#ifndef PLAT_UNIX
 	lpDibBits = NULL;
 
 	hDibDC = CreateCompatibleDC(NULL);

@@ -7,6 +7,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.7  2002/06/02 05:31:17  relnev
+ * unstub
+ *
  * Revision 1.6  2002/06/02 02:29:39  relnev
  * net fixes
  *
@@ -418,10 +421,9 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 	case NET_TCP:			
 		((SOCKADDR_IN*)from)->sin_port = htons(addr.port);
 #ifdef PLAT_UNIX
-		STUB_FUNCTION; // !
-		//memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
+		memcpy(&((SOCKADDR_IN*)from)->sin_addr.s_addr, addr.addr, 4);		
 #else
-		//memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
+		memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
 #endif
 		((SOCKADDR_IN*)from)->sin_family = AF_INET;
 		*fromlen = sizeof(SOCKADDR_IN);
@@ -571,8 +573,7 @@ void PSNET_TOP_LAYER_PROCESS()
 #ifndef PLAT_UNIX
 			memcpy(from_addr.addr, &ip_addr.sin_addr.S_un.S_addr, 4);
 #else
-			STUB_FUNCTION; // !
-			//memcpy(from_addr.addr, &ip_addr.sin_addr.S_un.S_addr, 4);
+			memcpy(from_addr.addr, &ip_addr.sin_addr.s_addr, 4);
 #endif
 			break;
 
@@ -1840,8 +1841,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 #ifndef PLAT_UNIX
 				memcpy(from_addr->addr, &ip_addr->sin_addr.S_un.S_addr, 4);
 #else
-				STUB_FUNCTION; // !
-				//memcpy(from_addr->addr, &ip_addr->sin_addr.S_un.S_addr, 4);
+				memcpy(from_addr->addr, &ip_addr->sin_addr.s_addr, 4);
 #endif
 				break;
 			

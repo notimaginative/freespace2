@@ -251,4 +251,4 @@ fs2: code.so $(FS_OBJECTS)
 	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OBJECTS) $(CODE_BINARY)
 
 clean:
-	rm -rf $(BINARY) $(OBJECTS)
+	rm -rf $(FS_BINARY) $(FS_OBJECTS) $(CODE_BINARY) $(CODE_OBJECTS)

@@ -7,8 +7,11 @@
  * AI code that does interesting stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 107   9/15/99 4:42a Mikek
@@ -3872,8 +3875,9 @@ void ai_form_on_wing(object *objp, object *goal_objp)
 int ai_formation_object_get_slotnum(int objnum, object *objp)
 {
 	int	slotnum = 1;			//	Note: Slot #0 means leader, which isn't someone who was told to form-on-wing.
+	object *o;
 
-	for ( object *o = GET_FIRST(&obj_used_list); o != END_OF_LIST(&obj_used_list); o = GET_NEXT(o) ) {
+	for ( o = GET_FIRST(&obj_used_list); o != END_OF_LIST(&obj_used_list); o = GET_NEXT(o) ) {
 		if (objp == o)
 			break;
 		else if (o->type == OBJ_SHIP)

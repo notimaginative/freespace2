@@ -6,8 +6,11 @@
  *
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *  
  * 
  * 5     6/01/99 8:35p Dave
@@ -54,44 +57,9 @@
 
 // test code for subspace missile strike -------------------------------------------
 
-#define MAX_SSM_TYPES			10
-
-// global ssm types
-typedef struct ssm_info {
-	char			name[NAME_LENGTH+1];				// strike name
-	int			count;								// # of missiles in this type of strike
-	int			weapon_info_index;				// missile type
-	float			warp_radius;						// radius of associated warp effect	
-	float			warp_time;							// how long the warp effect lasts
-	float			radius;								// radius around the shooting ship	
-	float			offset;								// offset in front of the shooting ship
-} ssm_info;
 
 int Ssm_info_count = 0;
 ssm_info Ssm_info[MAX_SSM_TYPES];
-
-#define MAX_SSM_STRIKES			10
-#define MAX_SSM_COUNT			10
-
-// creation info for the strike (useful for multiplayer)
-typedef struct ssm_firing_info {
-	int			delay_stamp[MAX_SSM_COUNT];	// timestamps
-	vector		start_pos[MAX_SSM_COUNT];		// start positions
-	
-	int			ssm_index;							// index info ssm_info array
-	vector		target;								// target for the strike	
-} ssm_firing_info;
-
-// the strike itself
-typedef struct ssm_strike {
-	int			fireballs[MAX_SSM_COUNT];		// warpin effect fireballs
-	int			done_flags[MAX_SSM_COUNT];		// when we've fired off the individual missiles
-	
-	// this is the info that controls how the strike behaves (just like for beam weapons)
-	ssm_firing_info		sinfo;
-
-	ssm_strike	*next, *prev;						// for list
-} ssm_strike;
 
 // list of active/free strikes
 ssm_strike Ssm_strikes[MAX_SSM_STRIKES];

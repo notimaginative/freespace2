@@ -7,8 +7,11 @@
  * Routines to keep track of which sound files go where
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 6     7/01/99 11:44a Dave
@@ -412,3 +415,4 @@ void gamesnd_play_error_beep()
 {
 	gamesnd_play_iface(SND_GENERAL_FAIL);
 }
+

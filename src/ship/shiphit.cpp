@@ -7,8 +7,11 @@
  * Code to deal with a ship getting hit by something, be it a missile, dog, or ship.
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:34  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 61    9/14/99 3:26a Dave
@@ -1880,7 +1883,7 @@ void ship_self_destruct( object *objp )
 	ship_hit_kill(objp, NULL, 1.0f, 1);	
 }
 
-extern Homing_hits, Homing_misses;
+extern int Homing_hits, Homing_misses;
 
 // Call this instead of physics_apply_whack directly to 
 // deal with two ships docking properly.
@@ -2479,3 +2482,4 @@ void ship_hit_pain(float damage)
 		popup_kill_any_active();
 	}
 }
+

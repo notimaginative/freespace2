@@ -7,8 +7,11 @@
  * Module for Red Alert mission interface and code
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 16    9/11/99 12:31a Mikek
@@ -929,3 +932,4 @@ int red_alert_check_status()
 
 	return 1;
 }
+

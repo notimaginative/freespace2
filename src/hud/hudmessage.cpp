@@ -7,8 +7,11 @@
  * C module that controls and manages the message window on the HUD
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 23    9/08/99 5:38p Jefff
@@ -1561,3 +1564,4 @@ void hud_scrollback_exit()
 {
 	gameseq_post_event(GS_EVENT_PREVIOUS_STATE);
 }
+

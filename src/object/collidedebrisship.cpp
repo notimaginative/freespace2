@@ -7,8 +7,11 @@
  * Routines to detect collisions and do physics, damage, etc for ships and debris
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 12    9/14/99 2:59a Andsager
@@ -441,3 +444,4 @@ int collide_asteroid_ship( obj_pair * pair )
 	return 0;	// no asteroids in demo version
 #endif
 }
+

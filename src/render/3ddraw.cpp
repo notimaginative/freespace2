@@ -7,8 +7,11 @@
  * 3D rendering primitives
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 18    9/06/99 3:23p Andsager
@@ -308,7 +311,7 @@ int g3_draw_poly(int nv,vertex **pointlist,uint tmap_flags)
 
 	Assert( G3_count == 1 );
 
-	cc.or = 0; cc.and = 0xff;
+	cc.vor = 0; cc.vand = 0xff;
 
 	bufptr = Vbuf0;
 
@@ -317,19 +320,19 @@ int g3_draw_poly(int nv,vertex **pointlist,uint tmap_flags)
 
 		p = bufptr[i] = pointlist[i];
 
-		cc.and &= p->codes;
-		cc.or  |= p->codes;
+		cc.vand &= p->codes;
+		cc.vor  |= p->codes;
 	}
 
-	if (cc.and)
+	if (cc.vand)
 		return 1;	//all points off screen
 
-	if (cc.or)	{
+	if (cc.vor)	{
 		Assert( G3_count == 1 );
 
 		bufptr = clip_polygon(Vbuf0,Vbuf1,&nv,&cc,tmap_flags);
 
-		if (nv && !(cc.or&CC_BEHIND) && !cc.and) {
+		if (nv && !(cc.vor&CC_BEHIND) && !cc.vand) {
 
 			for (i=0;i<nv;i++) {
 				vertex *p = bufptr[i];
@@ -390,7 +393,7 @@ int g3_draw_poly_constant_sw(int nv,vertex **pointlist,uint tmap_flags, float co
 
 	Assert( G3_count == 1 );
 
-	cc.or = 0; cc.and = 0xff;
+	cc.vor = 0; cc.vand = 0xff;
 
 	bufptr = Vbuf0;
 
@@ -399,19 +402,19 @@ int g3_draw_poly_constant_sw(int nv,vertex **pointlist,uint tmap_flags, float co
 
 		p = bufptr[i] = pointlist[i];
 
-		cc.and &= p->codes;
-		cc.or  |= p->codes;
+		cc.vand &= p->codes;
+		cc.vor  |= p->codes;
 	}
 
-	if (cc.and)
+	if (cc.vand)
 		return 1;	//all points off screen
 
-	if (cc.or)	{
+	if (cc.vor)	{
 		Assert( G3_count == 1 );
 
 		bufptr = clip_polygon(Vbuf0, Vbuf1, &nv, &cc, tmap_flags);
 
-		if (nv && !(cc.or&CC_BEHIND) && !cc.and) {
+		if (nv && !(cc.vor&CC_BEHIND) && !cc.vand) {
 
 			for (i=0;i<nv;i++) {
 				vertex *p = bufptr[i];
@@ -797,7 +800,7 @@ float g3_draw_poly_constant_sw_area(int nv, vertex **pointlist, uint tmap_flags,
 
 	Assert( G3_count == 1 );
 
-	cc.or = 0; cc.and = 0xff;
+	cc.vor = 0; cc.vand = 0xff;
 
 	bufptr = Vbuf0;
 
@@ -806,20 +809,20 @@ float g3_draw_poly_constant_sw_area(int nv, vertex **pointlist, uint tmap_flags,
 
 		p = bufptr[i] = pointlist[i];
 
-		cc.and &= p->codes;
-		cc.or  |= p->codes;
+		cc.vand &= p->codes;
+		cc.vor  |= p->codes;
 	}
 
-	if (cc.and){
+	if (cc.vand){
 		return 0.0f;	//all points off screen
 	}
 
-	if (cc.or)	{
+	if (cc.vor)	{
 		Assert( G3_count == 1 );
 
 		bufptr = clip_polygon(Vbuf0, Vbuf1, &nv, &cc, tmap_flags);
 
-		if (nv && !(cc.or&CC_BEHIND) && !cc.and) {
+		if (nv && !(cc.vor&CC_BEHIND) && !cc.vand) {
 
 			for (i=0;i<nv;i++) {
 				vertex *p = bufptr[i];

@@ -6,8 +6,11 @@
  *
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 3     7/08/99 10:53a Dave
@@ -308,3 +311,4 @@ void herm_spline::herm_render(int divs, color *clc)
 		g3_draw_sphere_ez(&pts[idx], 0.75f);
 	}
 }
+

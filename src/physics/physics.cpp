@@ -7,8 +7,11 @@
  * Physics stuff
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 5     8/13/99 10:49a Andsager
@@ -1379,3 +1382,4 @@ void update_reduced_damp_timestamp( physics_info *pi, float impulse )
 	}
 
 }
+

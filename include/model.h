@@ -7,8 +7,11 @@
  * header file for information about polygon models
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:33  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 38    9/13/99 10:09a Andsager
@@ -542,7 +545,7 @@ typedef struct ship_bay {
 	int	paths[MAX_SHIP_BAY_PATHS];		// index into polymodel->paths[] array
 	int	arrive_flags;	// bitfield, set to 1 when that path number is reserved for an arrival
 	int	depart_flags;	// bitfield, set to 1 when that path number is reserved for a departure
-} ship_bay;
+} ship_bay_t;
 
 // three structures now used for representing shields.
 // shield_tri structure stores information concerning each face of the shield.
@@ -666,7 +669,7 @@ typedef struct polymodel {
 	w_bank		*missile_banks;					// array of missile banks
 	dock_bay		*docking_bays;						// array of docking point pairs
 	thruster_bank		*thrusters;							// array of thruster objects -- likely to change in the future
-	ship_bay		*ship_bay_v;							// contains path indexes for ship bay approach/depart paths
+	ship_bay_t		*ship_bay;							// contains path indexes for ship bay approach/depart paths
 
 	shield_info	shield;								// new shield information
 

@@ -7,8 +7,11 @@
  * Ship (and other object) handling functions
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/03 13:34:34  theoddone33
+ * More stuff compiles
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 144   10/13/99 3:43p Jefff
@@ -693,6 +696,7 @@
 #include "asteroid.h"
 #include "hudtargetbox.h"
 #include "multi_respawn.h"
+#include "hudartillery.h"
 #include "hudwingmanstatus.h"
 #include "jumpnode.h"
 #include "redalert.h"
@@ -9243,6 +9247,8 @@ int ship_get_texture(int bitmap)
 	return -1;
 }
 
+extern void ssm_create(vector *target, vector *start, int ssm_index, ssm_firing_info *override);
+
 // update artillery lock info
 #define CLEAR_ARTILLERY_AND_CONTINUE()	{ if(aip != NULL){ aip->artillery_objnum = -1; aip->artillery_sig = -1;	aip->artillery_lock_time = 0.0f;} continue; } 
 float artillery_dist = 10.0f;
@@ -9338,8 +9344,6 @@ void ship_update_artillery_lock()
 
 		// TEST CODE
 		if(aip->artillery_lock_time >= 2.0f){
-			struct ssm_firing_info;
-			extern void ssm_create(vector *target, vector *start, int ssm_index, ssm_firing_info *override);
 
 			HUD_printf("Firing artillery");
 

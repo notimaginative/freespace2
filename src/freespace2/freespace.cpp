@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.25  2003/01/30 19:54:10  relnev
+ * ini config option for the frames per second counter (Taylor Richards)
+ *
  * Revision 1.24  2002/08/31 01:39:13  theoddone33
  * Speed up the renderer a tad
  *
@@ -740,7 +743,7 @@ float frametotal = 0.0f;
 float flFrametime;
 
 #ifdef RELEASE_REAL
-	int	Show_framerate = 0;
+	int	Show_framerate = os_config_read_uint( NULL, "ShowFPS", 0 );
 #else 
 	int	Show_framerate = 1;
 #endif

@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.38  2002/06/01 03:35:27  relnev
+ * fix typo
+ *
  * Revision 1.37  2002/06/01 03:32:00  relnev
  * fix texture loading mistake.
  *
@@ -2652,7 +2655,7 @@ void opengl_zbias(int bias)
 {
 	if (bias) {
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonMode(0, bias);
+		glPolygonOffset(0, bias);
 	} else {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}

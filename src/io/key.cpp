@@ -15,8 +15,8 @@
  * <insert description of file here>
  *
  * $Log$
- * Revision 1.10  2003/05/18 03:55:30  taylor
- * automatic language selection support
+ * Revision 1.11  2003/05/18 03:57:08  taylor
+ * do not swap German z and y keys if they are already swapped
  *
  * Revision 1.9  2003/01/30 19:55:01  relnev
  * add German keys (this is mostly a patch already sent in by someone else that hasn't made it into cvs yet) (Taylor Richards)
@@ -826,6 +826,7 @@ void key_mark( uint code, int state, uint latency )
 			code = KEY_SEMICOL;
 			break;
 		}
+#if !defined(PLAT_UNIX) || defined(__MACOSX__)
 	} else if(Lcl_gr){
 		switch (code) {
 		case KEY_Y:
@@ -836,6 +837,7 @@ void key_mark( uint code, int state, uint latency )
 			code = KEY_Y;
 			break;
 		}
+#endif
 	}
 
 	if ( (code == 0xc5) && !Key_running_NT ) {

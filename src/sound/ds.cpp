@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.18  2004/06/11 02:07:01  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.17  2003/12/02 03:24:47  taylor
  * MS-ADPCM support, fix file parser with OSX support
  *
@@ -383,10 +386,17 @@
 #include <objbase.h>
 #include <initguid.h>
 #else
+#ifdef __APPLE__
+#include <al.h>
+#include <alc.h>
+#include <alut.h>
+#include <SDL_audio.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alut.h>
 #include <SDL/SDL_audio.h>
+#endif
 #endif
 
 #ifndef PLAT_UNIX
@@ -713,9 +723,11 @@ int ds_parse_wave(char *filename, ubyte **dest, uint *dest_size, WAVEFORMATEX **
 	while(1)	{
 		if ( cfread( &tag, sizeof(uint), 1, fp ) != 1 )
 			break;
+        tag = INTEL_INT( tag );
 
 		if ( cfread( &size, sizeof(uint), 1, fp ) != 1 )
 			break;
+        size = INTEL_INT( size );
 
 		next_chunk = cftell(fp) + size;
 
@@ -831,12 +843,12 @@ int ds_get_hid()
 // 
 //
 // parameters:  
-//					 sid				  => pointer to software id for sound ( output parm)
-//					 hid				  => pointer to hardware id for sound ( output parm)
-//					 final_size		  => pointer to storage to receive uncompressed sound size (output parm)
+//		sid		=> pointer to software id for sound ( output parm)
+//		hid		=> pointer to hardware id for sound ( output parm)
+//		final_size	=> pointer to storage to receive uncompressed sound size (output parm)
 //              header          => pointer to a WAVEFORMATEX structure
-//					 si				  => sound_info structure, contains details on the sound format
-//					 flags			  => buffer properties ( DS_HARDWARE , DS_3D )
+//		si		=> sound_info structure, contains details on the sound format
+//		flags		=> buffer properties ( DS_HARDWARE , DS_3D )
 //
 // returns:     -1           => sound effect could not loaded into a secondary buffer
 //               0           => sound effect successfully loaded into a secondary buffer
@@ -886,6 +898,15 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 			bits = si->bits;
 			bps  = si->avg_bytes_per_sec;
 			size = si->size;
+                        
+            if(bits == 16){
+                ushort *swap_tmp;
+                for (uint i=0; i<size; i=i+2)
+                {
+                   swap_tmp = (ushort*)(si->data+i);
+                   *swap_tmp = INTEL_SHORT(*swap_tmp);
+                }
+            }
 			data = si->data;
 			break;
 		case WAVE_FORMAT_ADPCM:
@@ -948,7 +969,6 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	sound_buffers[*sid].nseconds = size / bps;
 	sound_buffers[*sid].nbytes = size;
 
-	
 	OpenAL_ErrorCheck();
 
 	if ( convert_buffer )
@@ -956,7 +976,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 
 	return 0;
 
-#else
+#else // !PLAT_UNIX
 	Assert( final_size != NULL );
 	Assert( header != NULL );
 	Assert( si != NULL );
@@ -1439,7 +1459,7 @@ int ds_init(int use_a3d, int use_eax)
 {
 #ifdef PLAT_UNIX
 // NOTE: A3D and EAX are unused in OpenAL
-	const ALubyte *initStr = (const ALubyte *)"\'( (sampling-rate 22050 ))";
+	ALCubyte *initStr = (ubyte *)"\'( (sampling-rate 22050 ))";
 	int attr[] = { ALC_FREQUENCY, 22050, ALC_SYNC, AL_FALSE, 0 };
 
 	Ds_use_a3d = 0;
@@ -2504,7 +2524,7 @@ int ds_play_easy(int sid, int volume)
 int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int looping, bool is_voice_msg)
 {
 #ifdef PLAT_UNIX
-	int				channel;
+	int	channel;
 
 	if (!ds_initialized)
 		return -1;
@@ -2597,7 +2617,7 @@ int ds_play(int sid, int hid, int snd_id, int priority, int volume, int pan, int
 
 			DWORD current_position = ds_get_play_position(i);
 			if (current_position != 0) {
-				if (current_position < Channels[i].last_position) {
+				if (current_position < (DWORD)Channels[i].last_position) {
 					ds_stop_channel(i);
 				} else {
 					Channels[i].last_position = current_position;
@@ -3763,7 +3783,7 @@ void ds_do_frame()
 
 			DWORD current_position = ds_get_play_position(i);
 			if (current_position != 0) {
-				if (current_position < cp->last_position) {
+				if (current_position < (DWORD)cp->last_position) {
 #ifdef PLAT_UNIX
 					ds_stop_channel(i);
 #else

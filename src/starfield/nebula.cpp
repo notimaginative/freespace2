@@ -15,6 +15,9 @@
  * Code to load & display nebulas
  *
  * $Log$
+ * Revision 1.8  2004/06/11 02:07:39  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.7  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -230,6 +233,7 @@ int load_nebula_sub(char *filename)
 		return 0;
 	} 
 	cfread( &version, sizeof(int), 1, fp );
+    version = INTEL_INT(version);
 	major = version / 100;
 	minor = version % 100;
 
@@ -239,8 +243,10 @@ int load_nebula_sub(char *filename)
 	}	
 
 	cfread( &num_pts, sizeof(int), 1, fp );
+    num_pts = INTEL_INT(num_pts);
 	Assert( num_pts < MAX_POINTS );
 	cfread( &num_tris, sizeof(int), 1, fp );
+    num_tris = INTEL_INT(num_tris);
 	Assert( num_tris < MAX_TRIS );
 
 	for (int i=0; i<num_pts; i++ )	{
@@ -250,6 +256,9 @@ int load_nebula_sub(char *filename)
 		cfread( &xf, sizeof(float), 1, fp );
 		cfread( &yf, sizeof(float), 1, fp );
 		cfread( &l, sizeof(int), 1, fp );
+                xf = INTEL_FLOAT(&xf);
+                yf = INTEL_FLOAT(&yf);
+                l = INTEL_INT(l);
 		project_2d_onto_sphere( &nebula_vecs[i], 1.0f - xf, yf );
 		vm_vec_scale( &nebula_vecs[i], 10.0f );
 		nebula_verts[i].b = ubyte((l*255)/31);
@@ -261,6 +270,9 @@ int load_nebula_sub(char *filename)
 		cfread( &tri[i][0], sizeof(int), 1, fp );
 		cfread( &tri[i][1], sizeof(int), 1, fp );
 		cfread( &tri[i][2], sizeof(int), 1, fp );
+                tri[i][0] = INTEL_INT(tri[i][0]);
+                tri[i][1] = INTEL_INT(tri[i][1]);
+                tri[i][2] = INTEL_INT(tri[i][2]);
 	}
 
 	cfclose(fp);

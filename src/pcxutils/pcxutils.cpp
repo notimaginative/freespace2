@@ -15,6 +15,9 @@
  * code to deal with pcx files
  *
  * $Log$
+ * Revision 1.4  2004/06/11 02:05:16  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.3  2002/06/09 04:41:25  relnev
  * added copyright header
  *
@@ -146,6 +149,21 @@ int pcx_read_header(char *real_filename, int *w, int *h, ubyte *pal )
 		cfclose( PCXfile );
 		return PCX_ERROR_NO_HEADER;
 	}
+        header.Xmin = INTEL_SHORT( header.Xmin );
+        header.Ymin = INTEL_SHORT( header.Ymin );
+        header.Xmax = INTEL_SHORT( header.Xmax );
+        header.Ymax = INTEL_SHORT( header.Ymax );
+        header.Hdpi = INTEL_SHORT( header.Hdpi );
+        header.Vdpi = INTEL_SHORT( header.Vdpi );
+        for ( int i=0; i<16; i++ ){
+            for ( int j=0; j<3; j++){
+                header.ColorMap[i][j] = INTEL_INT( header.ColorMap[i][j] );
+            }
+        }
+        header.BytesPerLine = INTEL_SHORT( header.BytesPerLine );
+        for ( int i=0; i<60; i++ ){
+            header.filler[i] = INTEL_INT( header.filler[i] );
+        }
 
 	// Is it a 256 color PCX file?
 	if ((header.Manufacturer != 10)||(header.Encoding != 1)||(header.Nplanes != 1)||(header.BitsPerPixel != 8)||(header.Version != 5))	{
@@ -195,6 +213,14 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 		cfclose( PCXfile );
 		return PCX_ERROR_NO_HEADER;
 	}
+        header.Xmin = INTEL_SHORT( header.Xmin );
+        header.Ymin = INTEL_SHORT( header.Ymin );
+        header.Xmax = INTEL_SHORT( header.Xmax );
+        header.Ymax = INTEL_SHORT( header.Ymax );
+        header.Hdpi = INTEL_SHORT( header.Hdpi );
+        header.Vdpi = INTEL_SHORT( header.Vdpi );
+
+        header.BytesPerLine = INTEL_SHORT( header.BytesPerLine );
 
 	// Is it a 256 color PCX file?
 	if ((header.Manufacturer != 10)||(header.Encoding != 1)||(header.Nplanes != 1)||(header.BitsPerPixel != 8)||(header.Version != 5))	{
@@ -211,6 +237,10 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 
 	cfseek( PCXfile, -768, CF_SEEK_END );
 	cfread( palette, 3, 256, PCXfile );
+        
+        for ( int i=0; i<256; i++ ){				//tigital
+            palette[i] = INTEL_INT( palette[i] );
+        }
 	cfseek( PCXfile, sizeof(PCXHeader), CF_SEEK_SET );
 	
 	buffer_size = 1024;
@@ -282,6 +312,15 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 		cfclose( PCXfile );
 		return PCX_ERROR_NO_HEADER;
 	}
+
+        header.Xmin = INTEL_SHORT( header.Xmin );
+        header.Ymin = INTEL_SHORT( header.Ymin );
+        header.Xmax = INTEL_SHORT( header.Xmax );
+        header.Ymax = INTEL_SHORT( header.Ymax );
+        header.Hdpi = INTEL_SHORT( header.Hdpi );
+        header.Vdpi = INTEL_SHORT( header.Vdpi );
+
+        header.BytesPerLine = INTEL_SHORT( header.BytesPerLine );
 
 	// Is it a 256 color PCX file?
 	if ((header.Manufacturer != 10)||(header.Encoding != 1)||(header.Nplanes != 1)||(header.BitsPerPixel != 8)||(header.Version != 5))	{
@@ -393,6 +432,15 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 		return PCX_ERROR_NO_HEADER;
 	}
 
+        header.Xmin = INTEL_SHORT( header.Xmin );
+        header.Ymin = INTEL_SHORT( header.Ymin );
+        header.Xmax = INTEL_SHORT( header.Xmax );
+        header.Ymax = INTEL_SHORT( header.Ymax );
+        header.Hdpi = INTEL_SHORT( header.Hdpi );
+        header.Vdpi = INTEL_SHORT( header.Vdpi );
+
+        header.BytesPerLine = INTEL_SHORT( header.BytesPerLine );
+
 	// Is it a 256 color PCX file?
 	if ((header.Manufacturer != 10)||(header.Encoding != 1)||(header.Nplanes != 1)||(header.BitsPerPixel != 8)||(header.Version != 5))	{
 		cfclose( PCXfile );
@@ -486,6 +534,13 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 		cfclose( PCXfile );
 		return PCX_ERROR_NO_HEADER;
 	}
+        header.Xmin = INTEL_SHORT( header.Xmin );
+        header.Ymin = INTEL_SHORT( header.Ymin );
+        header.Xmax = INTEL_SHORT( header.Xmax );
+        header.Ymax = INTEL_SHORT( header.Ymax );
+        header.Hdpi = INTEL_SHORT( header.Hdpi );
+        header.Vdpi = INTEL_SHORT( header.Vdpi );
+        header.BytesPerLine = INTEL_SHORT( header.BytesPerLine );       
 
 	// Is it a 256 color PCX file?
 	if ((header.Manufacturer != 10)||(header.Encoding != 1)||(header.Nplanes != 1)||(header.BitsPerPixel != 8)||(header.Version != 5))	{

@@ -15,6 +15,9 @@
  * Module for encryption code common to FreeSpace and related tools
  *
  * $Log$
+ * Revision 1.5  2004/06/11 02:04:35  tigital
+ * byte-swapping changes for bigendian systems
+ *
  * Revision 1.4  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -71,9 +74,15 @@
 #include "pstypes.h"
 #include "encrypt.h"
 
+#if SDL_BYTEORDER != SDL_BIG_ENDIAN
 const uint Encrypt_new_signature			= 0x5c331a55;		// new encrpytion
 const uint Encrypt_signature				= 0xdeadbeef;		// full encryption
 const uint Encrypt_signature_8bit		= 0xcacacaca;		// light encryption - doesn't use 7bit chars
+#else
+const uint Encrypt_new_signature			= 0x551a335c;		// new encrpytion
+const uint Encrypt_signature				= 0xefbeadde;		// full encryption
+const uint Encrypt_signature_8bit		= 0xcacacaca;		// light encryption - doesn't use 7bit chars
+#endif
 
 int Encrypt_inited = 0;
 

@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.18  2002/05/29 23:37:36  relnev
+ * fix bitmap bug
+ *
  * Revision 1.17  2002/05/29 23:17:49  theoddone33
  * Non working text code and fixed keys
  *
@@ -417,7 +420,9 @@ void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 		}
 		
 		py = qy;
-	}	
+	}
+	
+	bm_unlock(gr_screen.current_bitmap);
 }
 
 
@@ -2044,6 +2049,8 @@ void gr_opengl_init()
 	glLoadIdentity();
 	
 	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, -1.0, 1.0);		
+	
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
 	bitmapMem = (GLubyte *)malloc(256*256*4);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, bitmapMem);

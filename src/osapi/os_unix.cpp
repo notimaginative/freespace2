@@ -15,6 +15,14 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.17  2004/12/15 04:10:45  taylor
+ * outwnd_unix.cpp from fs2_open for logging to file in debug mode
+ * fixes for default function values
+ * always use vm_* functions for sanity sake
+ * make cfilearchiver 64-bit compatible
+ * fix crash on exit from double free()
+ * fix crash on startup from extra long GL extension string in debug
+ *
  * Revision 1.16  2003/12/15 06:24:51  theoddone33
  * Bumpy ride... hang on.
  *
@@ -195,6 +203,10 @@ const char *detect_home(void)
 // for the app name, which is where registry keys are stored.
 void os_init(char * wclass, char * title, char *app_name, char *version_string )
 {
+#ifndef NDEBUG
+	outwnd_init(1);
+#endif
+
 	/* set some sane defaults since we don't have a laucher... */
 	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));

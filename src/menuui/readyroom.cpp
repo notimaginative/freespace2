@@ -15,6 +15,14 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.7  2004/12/15 04:10:45  taylor
+ * outwnd_unix.cpp from fs2_open for logging to file in debug mode
+ * fixes for default function values
+ * always use vm_* functions for sanity sake
+ * make cfilearchiver 64-bit compatible
+ * fix crash on exit from double free()
+ * fix crash on startup from extra long GL extension string in debug
+ *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1885,20 +1893,31 @@ void campaign_room_close()
 {
 	int i;
 
-	for (i=0; i<Num_campaigns; i++)
-		if (Campaign_descs[i])
+	for (i=0; i<Num_campaigns; i++) {
+		if (Campaign_descs[i] != NULL) {
 			free(Campaign_descs[i]);
+			Campaign_descs[i] = NULL;
+		}
+	}
 
 	if (Background_bitmap >= 0)
 		bm_unload(Background_bitmap);
 
-	if (Campaign_names_inited)
-		for (i=0; i<Num_campaigns; i++)
-			if (Campaign_names[i])
+	if (Campaign_names_inited) {
+		for (i=0; i<Num_campaigns; i++) {
+			if (Campaign_names[i] != NULL) {
 				free(Campaign_names[i]);
+				Campaign_names[i] = NULL;
+			}
+		}
+	}
 
-	for (i=0; i<Num_campaigns; i++)
-		free(Campaign_file_names[i]);
+	for (i=0; i<Num_campaigns; i++) {
+		if (Campaign_file_names[i] != NULL) {
+			free(Campaign_file_names[i]);
+			Campaign_file_names[i] = NULL;
+		}
+	}
 
 	// unload the overlay bitmap
 	help_overlay_unload(CAMPAIGN_ROOM_OVERLAY);

@@ -15,6 +15,14 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.11  2004/12/15 04:10:45  taylor
+ * outwnd_unix.cpp from fs2_open for logging to file in debug mode
+ * fixes for default function values
+ * always use vm_* functions for sanity sake
+ * make cfilearchiver 64-bit compatible
+ * fix crash on exit from double free()
+ * fix crash on startup from extra long GL extension string in debug
+ *
  * Revision 1.10  2004/07/04 11:31:43  taylor
  * amd64 support, compiler warning fixes, don't use software rendering
  *
@@ -253,6 +261,7 @@
 #ifdef PLAT_UNIX
 #include "unix.h"
 #endif
+
 // value to represent an uninitialized state in any int or uint
 #define UNINITIALIZED 0x7f8e6d9c
 
@@ -407,9 +416,11 @@ extern void _cdecl Warning( char * filename, int line, char * format, ... );
 
 #if defined(NDEBUG)
 #define Assert(x) do {} while (0)
+#define STUB_FUNCTION
 #else
 void gr_activate(int);
 #define Assert(x) do { if (!(x)){ gr_activate(0); WinAssert(#x,__FILE__,__LINE__); gr_activate(1); } } while (0)
+#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d, thread %d\n", __FUNCTION__, LOCATION, getpid()))
 #endif
 
 //#define Int3() _asm { int 3 }
@@ -755,13 +766,13 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-//	void *vm_malloc( int size );
+	void *vm_malloc( int size );
 
 	// 
-//	char *vm_strdup( const char *ptr );
+	char *vm_strdup( const char *ptr );
 
 	// Frees some RAM. 
-//	void vm_free( void *ptr );
+	void vm_free( void *ptr );
 
 	// Frees all RAM.
 	void vm_free_all();
@@ -770,12 +781,10 @@ template <class T> void CAP( T& v, T mn, T mx )
 	#define VM_MALLOC(size) vm_malloc(size)
 	#define VM_FREE(ptr) vm_free(ptr)
 
-//	#define malloc(size) vm_malloc(size)
-//	#define free(ptr) vm_free(ptr)
-//	#define strdup(ptr) vm_strdup(ptr)
-	#define vm_malloc(size) malloc(size)
-	#define vm_free(ptr) free(ptr)
-	#define vm_strdup(ptr) strdup(ptr)
+	#define malloc(size) vm_malloc(size)
+	#define free(ptr) vm_free(ptr)
+	#define strdup(ptr) vm_strdup(ptr)
+
 #endif
 
 

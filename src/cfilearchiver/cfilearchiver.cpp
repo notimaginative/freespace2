@@ -15,6 +15,14 @@
  * Program to create an archive file for use with cfile stuff
  *
  * $Log$
+ * Revision 1.6  2004/12/15 04:10:45  taylor
+ * outwnd_unix.cpp from fs2_open for logging to file in debug mode
+ * fixes for default function values
+ * always use vm_* functions for sanity sake
+ * make cfilearchiver 64-bit compatible
+ * fix crash on exit from double free()
+ * fix crash on startup from extra long GL extension string in debug
+ *
  * Revision 1.5  2003/05/04 04:49:48  taylor
  * improve error handling, instructions
  *
@@ -102,7 +110,7 @@ int write_index(char *hf, char *df)
 	return 1;
 }
 
-void pack_file( char *filespec, char *filename, int filesize, time_t time_write )
+void pack_file( char *filespec, char *filename, int filesize, fs_time_t time_write )
 {
 	char path[1024];
 
@@ -130,7 +138,7 @@ void pack_file( char *filespec, char *filename, int filesize, time_t time_write 
 	fwrite( &Total_size, 1, 4, fp_out_hdr );
 	fwrite( &filesize, 1, 4, fp_out_hdr );
 	fwrite( &path, 1, 32, fp_out_hdr );
-	fwrite( &time_write, 1, sizeof(time_t), fp_out_hdr);
+	fwrite( &time_write, 1, sizeof(fs_time_t), fp_out_hdr);
 
 	Total_size += filesize;
 	Num_files++;
@@ -250,7 +258,7 @@ void pack_directory( char * filespec)
 				pack_directory(tmp);
 			}
 		} else {
-			pack_file( filespec, find.name, find.size, find.time_write );
+			pack_file( filespec, find.name, find.size, (fs_time_t)find.time_write );
 		}
 
 		while( !_findnext( find_handle, &find ) )	{

@@ -158,6 +158,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/observer/observer.cpp \
 	./src/osapi/os_unix.cpp \
 	./src/osapi/osregistry-unix.cpp \
+	./src/osapi/outwnd_unix.cpp \
 	./src/palman/palman.cpp \
 	./src/parse/encrypt.cpp \
 	./src/parse/parselo.cpp \

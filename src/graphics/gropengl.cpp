@@ -15,6 +15,14 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.71  2004/12/15 04:10:45  taylor
+ * outwnd_unix.cpp from fs2_open for logging to file in debug mode
+ * fixes for default function values
+ * always use vm_* functions for sanity sake
+ * make cfilearchiver 64-bit compatible
+ * fix crash on exit from double free()
+ * fix crash on startup from extra long GL extension string in debug
+ *
  * Revision 1.70  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -666,7 +674,7 @@ void gr_opengl_reset_clip()
 //	glScissor(0, 0, gr_screen.max_w, gr_screen.max_h);
 }
 
-void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy )
+void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode = GR_ALPHABLEND_NONE, int bitblt_mode = GR_BITBLT_MODE_NORMAL, float alpha = 1.0f, int sx = -1, int sy = -1 )
 {
 	gr_screen.current_alpha = alpha;
 	gr_screen.current_alphablend_mode = alphablend_mode;
@@ -2855,8 +2863,31 @@ void gr_opengl_init()
 	mprintf(( "Vendor     : %s\n", glGetString(GL_VENDOR) ));
 	mprintf(( "Renderer   : %s\n", glGetString(GL_RENDERER) ));
 	mprintf(( "Version    : %s\n", glGetString(GL_VERSION) ));
-	mprintf(( "Extensions : %s\n", glGetString(GL_EXTENSIONS) ));
+
+#ifndef NDEBUG
+	// print out extensions - taken from FS2_Open (credits: phreak, taylor)
+	mprintf(( "Extensions : \n"));
+
+	static const char *OGL_extensions = (const char*)glGetString(GL_EXTENSIONS);
+
+	char *extlist = (char*)malloc(strlen(OGL_extensions));
+
+	if (extlist != NULL) {
+		memcpy(extlist, OGL_extensions, strlen(OGL_extensions));
+
+		char *curext = strtok(extlist, " ");
+
+		while (curext) {
+			mprintf(( "     %s\n", curext ));
+			curext = strtok(NULL, " ");
+		}
+
+		free(extlist);
+		extlist = NULL;
+	}
+
 	mprintf(( "\n" ));
+#endif
 	
 	int value;
 	int rgb_size[3];

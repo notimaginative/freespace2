@@ -8,7 +8,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "unix.h"
+#include "pstypes.h"
+
+// use system versions of this stuff in here rather than the vm_* versions
+#undef malloc
+#undef free
+#undef strdup
+
 
 #define MAX_LINE_WIDTH 128
 
@@ -112,7 +118,11 @@ typedef struct RAM {
 static RAM *RamTable;
 #endif
 
+#ifndef NDEBUG
 void vm_free(void* ptr, char *file, int line)
+#else
+void vm_free(void* ptr)
+#endif
 {
 #ifdef WANT_DEBUG
 	fprintf(stderr, "FREE: %s:%d addr = %p\n", file, line, ptr);
@@ -143,7 +153,11 @@ void vm_free(void* ptr, char *file, int line)
 #endif
 }
 
+#ifndef NDEBUG
 void *vm_malloc(int size, char *file, int line)
+#else
+void *vm_malloc(int size)
+#endif
 {
 #ifdef WANT_DEBUG
 	fprintf(stderr, "MALLOC: %s:%d %d bytes\n", file, line, size);
@@ -164,7 +178,11 @@ void *vm_malloc(int size, char *file, int line)
 #endif	
 }
 
+#ifndef NDEBUG
 char *vm_strdup(char const* str, char *file, int line)
+#else
+char *vm_strdup(char const* str)
+#endif
 {
 #ifdef WANT_DEBUG
 	fprintf(stderr, "STRDUP: %s:%d\n", file, line);
@@ -210,6 +228,7 @@ void windebug_memwatch_init()
 }
 
 /* error message debugging junk */
+/*
 int Log_debug_output_to_file = 0;
 
 void load_filter_info(void)
@@ -243,7 +262,7 @@ void outwnd_close()
 {
 //	STUB_FUNCTION;
 }
-
+*/
 void Warning( char * filename, int line, char * format, ... )
 {
 	char tmp[MAX_LINE_WIDTH*4];

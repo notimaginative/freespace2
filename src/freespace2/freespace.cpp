@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.8  2002/05/29 02:52:32  theoddone33
+ * Enable OpenGL renderer
+ *
  * Revision 1.7  2002/05/28 08:52:03  relnev
  * implemented two assembly stubs.
  *
@@ -2249,13 +2252,21 @@ void game_init()
 			if ( Use_fullscreen_at_startup && !Is_standalone)	{		
 				gr_init(GR_640, GR_DIRECTDRAW);
 			} else {
+#ifdef PLAT_UNIX
+				gr_init(GR_640, GR_OPENGL);
+#else
 				gr_init(GR_640, GR_SOFTWARE);
+#endif
 			}
 		#else
 			if ( !Is_standalone ) {
 				gr_init(GR_640, GR_DIRECTDRAW);
 			} else {
-				gr_init(GR_640, GR_SOFTWARE);
+#ifdef PLAT_UNIX
+				gr_init(GR_640, GR_OPENGL);
+#else
+				gr_init(GR_640, GR_SOFTWAREL);
+#endif
 			}
 		#endif
 	}

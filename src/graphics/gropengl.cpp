@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.7  2002/05/29 02:52:32  theoddone33
+ * Enable OpenGL renderer
+ *
  * Revision 1.6  2002/05/28 04:56:51  theoddone33
  * runs a little bit now
  *
@@ -212,6 +215,9 @@ void gr_opengl_clear()
 
 void gr_opengl_flip()
 {
+#ifdef PLAT_UNIX
+	if (Inited) SDL_GL_SwapBuffers ();
+#endif
 }
 
 void gr_opengl_flip_window(uint _hdc, int x, int y, int w, int h )
@@ -752,6 +758,21 @@ void gr_opengl_init()
 	mprintf(( "Initializing opengl graphics device...\n" ));
 	Inited = 1;
 
+#ifdef PLAT_UNIX
+	if (SDL_InitSubSystem (SDL_INIT_VIDEO) < 0)
+	{
+		fprintf (stderr, "Couldn't init SDL: %s", SDL_GetError());
+		exit (1);
+	}
+
+	atexit (SDL_Quit);
+
+	if (SDL_SetVideoMode (640, 480, 16, SDL_OPENGL) == NULL)
+	{
+		fprintf (stderr, "Couldn't set video mode: %s", SDL_GetError ());
+		exit (1);
+	}
+#endif
 	gr_opengl_clear();
 
 	gr_screen.gf_flip = gr_opengl_flip;

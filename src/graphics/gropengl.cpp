@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.26  2002/05/30 23:33:12  relnev
+ * implemented a few more functions.
+ *
  * Revision 1.25  2002/05/30 23:01:16  relnev
  * implement gr_opengl_set_state.
  *
@@ -253,34 +256,7 @@ void gr_directdraw_init()
 	STUB_FUNCTION;
 }
 
-
-int GL_should_preload = 0;
-int gr_opengl_preload(int bitmap_num, int is_aabitmap)
-{
-	if ( gr_screen.mode != GR_OPENGL) {
-		return 0;
-	}
-
-	if ( !GL_should_preload )      {
-		return 0;
-	}
-
-	float u_scale, v_scale;
-
-	int retval;
-	if ( is_aabitmap )      {
-		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 1 );
-	} else {
-		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_NORMAL, &u_scale, &v_scale, 1 );
-	}
-
-	if ( !retval )  {
-		mprintf(("Texture upload failed!\n" ));
-	}
-
-	return retval;
-}
-
+extern int gr_opengl_preload (int x, int y);
 int gr_d3d_preload (int x, int y)
 {
 	return gr_opengl_preload(x, y);
@@ -372,7 +348,9 @@ void gr_opengl_activate(int b)
 	STUB_FUNCTION;
 }
 
+
 void opengl_tcache_flush ();
+
 void gr_opengl_preload_init()
 {
 	if (gr_screen.mode != GR_OPENGL) {
@@ -380,6 +358,33 @@ void gr_opengl_preload_init()
 	}
 
 	opengl_tcache_flush ();
+}
+
+int GL_should_preload = 0;
+int gr_opengl_preload(int bitmap_num, int is_aabitmap)
+{
+	if ( gr_screen.mode != GR_OPENGL) {
+		return 0;
+	}
+
+	if ( !GL_should_preload )      {
+		return 0;
+	}
+
+	float u_scale, v_scale;
+
+	int retval;
+	if ( is_aabitmap )      {
+		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 1 );
+	} else {
+		retval = gr_tcache_set(bitmap_num, TCACHE_TYPE_NORMAL, &u_scale, &v_scale, 1 );
+	}
+
+	if ( !retval )  {
+		mprintf(("Texture upload failed!\n" ));
+	}
+
+	return retval;
 }
 
 void gr_opengl_pixel(int x, int y)
@@ -498,6 +503,8 @@ void gr_opengl_set_shader( shader * shade )
 
 void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
+	STUB_FUNCTION; /* who called me? */
+#if 0
 	bitmap * bmp;
 	extern int GL_last_bitmap_id;	
 	bmp = bm_lock( gr_screen.current_bitmap, 16, 0 );
@@ -573,6 +580,7 @@ void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	}
 	
 	bm_unlock(gr_screen.current_bitmap);
+#endif	
 }
 
 
@@ -681,11 +689,6 @@ void gr_opengl_bitmap(int x, int y)
 	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
 
 	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);	
-}
-
-static void opengl_scanline(int x1,int x2,int y)
-{
-	STUB_FUNCTION;
 }
 
 static void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
@@ -972,6 +975,42 @@ void gr_opengl_string( int sx, int sy, char *s )
 	}
 }
 
+void gr_opengl_line(int x1,int y1,int x2,int y2)
+{
+	int clipped = 0, swapped=0;
+
+	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+	
+	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+		
+	glBegin (GL_LINE);
+	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
+	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), -0.99f);
+	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), -0.99f);
+	glEnd ();
+}
+
+void gr_opengl_gradient(int x1,int y1,int x2,int y2)
+{
+	int clipped = 0, swapped=0;
+
+	if ( !gr_screen.current_color.is_alphacolor )   {
+		gr_line( x1, y1, x2, y2 );
+		return;
+	}
+
+	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+
+	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+
+	glBegin (GL_LINE);
+	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
+	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), -0.99f);
+	  glColor4ub (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, 0);
+	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), -0.99f);
+	glEnd ();	
+}
+
 void gr_opengl_circle( int xc, int yc, int d )
 {
 	int p,x, y, r;
@@ -989,153 +1028,26 @@ void gr_opengl_circle( int xc, int yc, int d )
 
 	while(x<y)	{
 		// Draw the first octant
-		opengl_scanline( xc-y, xc+y, yc-x );
-		opengl_scanline( xc-y, xc+y, yc+x );
-
+		gr_opengl_line( xc-y, yc-x, xc+y, yc-x );
+		gr_opengl_line( xc-y, yc+x, xc+y, yc+x );
+                                
 		if (p<0) 
 			p=p+(x<<2)+6;
 		else	{
 			// Draw the second octant
-			opengl_scanline( xc-x, xc+x, yc-y );
-			opengl_scanline( xc-x, xc+x, yc+y );
+			gr_opengl_line( xc-x, yc-y, xc+x, yc-y );
+			gr_opengl_line( xc-x, yc+y, xc+x, yc+y );
+                                                
 			p=p+((x-y)<<2)+10;
 			y--;
 		}
 		x++;
 	}
-	if(x==y)	{
-		opengl_scanline( xc-x, xc+x, yc-y );
-		opengl_scanline( xc-x, xc+x, yc+y );
+	if(x==y) {
+		gr_opengl_line( xc-x, yc-y, xc+x, yc-y );
+		gr_opengl_line( xc-x, yc+y, xc+x, yc+y );
 	}
 	return;
-}
-
-
-void gr_opengl_line(int x1,int y1,int x2,int y2)
-{
-	int clipped = 0, swapped=0;
-
-	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
-	
-	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
-		
-	glBegin (GL_LINE);
-	  glColor4f (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
-	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), -0.99f);
-	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), -0.99f);
-	glEnd ();
-}
-
-#define FIND_SCALED_NUM(x,x0,x1,y0,y1) (((((x)-(x0))*((y1)-(y0)))/((x1)-(x0)))+(y0))
-
-void gr_opengl_scaler(vertex *va, vertex *vb )
-{
-	float x0, y0, x1, y1;
-	float u0, v0, u1, v1;
-	float clipped_x0, clipped_y0, clipped_x1, clipped_y1;
-	float clipped_u0, clipped_v0, clipped_u1, clipped_v1;
-	float xmin, xmax, ymin, ymax;
-	int dx0, dy0, dx1, dy1;
-
-	//============= CLIP IT =====================
-
-	x0 = va->sx; y0 = va->sy;
-	x1 = vb->sx; y1 = vb->sy;
-
-	xmin = i2fl(gr_screen.clip_left); ymin = i2fl(gr_screen.clip_top);
-	xmax = i2fl(gr_screen.clip_right); ymax = i2fl(gr_screen.clip_bottom);
-
-	u0 = va->u; v0 = va->v;
-	u1 = vb->u; v1 = vb->v;
-
-	// Check for obviously offscreen bitmaps...
-	if ( (y1<=y0) || (x1<=x0) ) return;
-	if ( (x1<xmin ) || (x0>xmax) ) return;
-	if ( (y1<ymin ) || (y0>ymax) ) return;
-
-	clipped_u0 = u0; clipped_v0 = v0;
-	clipped_u1 = u1; clipped_v1 = v1;
-
-	clipped_x0 = x0; clipped_y0 = y0;
-	clipped_x1 = x1; clipped_y1 = y1;
-
-	// Clip the left, moving u0 right as necessary
-	if ( x0 < xmin ) 	{
-		clipped_u0 = FIND_SCALED_NUM(xmin,x0,x1,u0,u1);
-		clipped_x0 = xmin;
-	}
-
-	// Clip the right, moving u1 left as necessary
-	if ( x1 > xmax )	{
-		clipped_u1 = FIND_SCALED_NUM(xmax,x0,x1,u0,u1);
-		clipped_x1 = xmax;
-	}
-
-	// Clip the top, moving v0 down as necessary
-	if ( y0 < ymin ) 	{
-		clipped_v0 = FIND_SCALED_NUM(ymin,y0,y1,v0,v1);
-		clipped_y0 = ymin;
-	}
-
-	// Clip the bottom, moving v1 up as necessary
-	if ( y1 > ymax ) 	{
-		clipped_v1 = FIND_SCALED_NUM(ymax,y0,y1,v0,v1);
-		clipped_y1 = ymax;
-	}
-	
-	dx0 = fl2i(clipped_x0); dx1 = fl2i(clipped_x1);
-	dy0 = fl2i(clipped_y0); dy1 = fl2i(clipped_y1);
-
-	if (dx1<=dx0) return;
-	if (dy1<=dy0) return;
-
-	//============= DRAW IT =====================
-	int u, v, du, dv;
-	int y, w;
-	ubyte * sbits;
-	bitmap * bp;
-	ubyte * spixels;
-	float tmpu, tmpv;
-
-	tmpu = (clipped_u1-clipped_u0) / (dx1-dx0);
-	if ( fl_abs(tmpu) < 0.001f ) {
-		return;		// scaled up way too far!
-	}
-	tmpv = (clipped_v1-clipped_v0) / (dy1-dy0);
-	if ( fl_abs(tmpv) < 0.001f ) {
-		return;		// scaled up way too far!
-	}
-
-	bp = bm_lock( gr_screen.current_bitmap, 8, 0 );
-
-	du = fl2f(tmpu*(bp->w-1));
-	dv = fl2f(tmpv*(bp->h-1));
-
-	v = fl2f(clipped_v0*(bp->h-1));
-	u = fl2f(clipped_u0*(bp->w-1)); 
-	w = dx1 - dx0 + 1;
-
-	spixels = (ubyte *)bp->data;
-
-	for (y=dy0; y<=dy1; y++ )			{
-		sbits = &spixels[bp->rowsize*(v>>16)];
-
-		int x, tmp_u;
-		tmp_u = u;
-		for (x=0; x<w; x++ )			{
-			ubyte c = sbits[ tmp_u >> 16 ];
-			if ( c != 255 ) {
-				gr_set_color( gr_palette[c*3+0], gr_palette[c*3+1], gr_palette[c*3+2] );
-				gr_pixel( x+dx0, y );
-			}
-			tmp_u += du;
-		}
-		v += dv;
-	}
-
-	bm_unlock(gr_screen.current_bitmap);
-
-	STUB_FUNCTION;
 }
 
 void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
@@ -1341,29 +1253,107 @@ void gr_opengl_tmapper( int nverts, vertex **verts, uint flags )
 	gr_opengl_tmapper_internal( nverts, verts, flags, 0 );
 }
 
-void gr_opengl_gradient(int x1,int y1,int x2,int y2)
-{
-	// DDOI - needs opengl_make_rect
-	/*
-	int clipped = 0, swapped=0;
+#define FIND_SCALED_NUM(x,x0,x1,y0,y1) (((((x)-(x0))*((y1)-(y0)))/((x1)-(x0)))+(y0))
 
-	if ( !gr_screen.current_color.is_alphacolor )   {
-		gr_line( x1, y1, x2, y2 );
-		return;
+void gr_opengl_scaler(vertex *va, vertex *vb )
+{
+	float x0, y0, x1, y1;
+	float u0, v0, u1, v1;
+	float clipped_x0, clipped_y0, clipped_x1, clipped_y1;
+	float clipped_u0, clipped_v0, clipped_u1, clipped_v1;
+	float xmin, xmax, ymin, ymax;
+	int dx0, dy0, dx1, dy1;
+
+	//============= CLIP IT =====================
+
+	x0 = va->sx; y0 = va->sy;
+	x1 = vb->sx; y1 = vb->sy;
+
+	xmin = i2fl(gr_screen.clip_left); ymin = i2fl(gr_screen.clip_top);
+	xmax = i2fl(gr_screen.clip_right); ymax = i2fl(gr_screen.clip_bottom);
+
+	u0 = va->u; v0 = va->v;
+	u1 = vb->u; v1 = vb->v;
+
+	// Check for obviously offscreen bitmaps...
+	if ( (y1<=y0) || (x1<=x0) ) return;
+	if ( (x1<xmin ) || (x0>xmax) ) return;
+	if ( (y1<ymin ) || (y0>ymax) ) return;
+
+	clipped_u0 = u0; clipped_v0 = v0;
+	clipped_u1 = u1; clipped_v1 = v1;
+
+	clipped_x0 = x0; clipped_y0 = y0;
+	clipped_x1 = x1; clipped_y1 = y1;
+
+	// Clip the left, moving u0 right as necessary
+	if ( x0 < xmin ) 	{
+		clipped_u0 = FIND_SCALED_NUM(xmin,x0,x1,u0,u1);
+		clipped_x0 = xmin;
 	}
 
-	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+	// Clip the right, moving u1 left as necessary
+	if ( x1 > xmax )	{
+		clipped_u1 = FIND_SCALED_NUM(xmax,x0,x1,u0,u1);
+		clipped_x1 = xmax;
+	}
 
-	uint color1, color2;
+	// Clip the top, moving v0 down as necessary
+	if ( y0 < ymin ) 	{
+		clipped_v0 = FIND_SCALED_NUM(ymin,y0,y1,v0,v1);
+		clipped_y0 = ymin;
+	}
 
-	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+	// Clip the bottom, moving v1 up as necessary
+	if ( y1 > ymax ) 	{
+		clipped_v1 = FIND_SCALED_NUM(ymax,y0,y1,v0,v1);
+		clipped_y1 = ymax;
+	}
 	
-	// DDOI - may not be right
-	color1 = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha );
-	color2 = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, 0 );
+	dx0 = fl2i(clipped_x0); dx1 = fl2i(clipped_x1);
+	dy0 = fl2i(clipped_y0); dy1 = fl2i(clipped_y1);
 
-	*/
-	STUB_FUNCTION;
+	if (dx1<=dx0) return;
+	if (dy1<=dy0) return;
+
+	//============= DRAW IT =====================
+
+	vertex v[4];
+	vertex *vl[4];
+
+	vl[0] = &v[0];	
+	v->sx = clipped_x0;
+	v->sy = clipped_y0;
+	v->sw = va->sw;
+	v->z = va->z;
+	v->u = clipped_u0;
+	v->v = clipped_v0;
+
+	vl[1] = &v[1];	
+	v[1].sx = clipped_x1;
+	v[1].sy = clipped_y0;
+	v[1].sw = va->sw;
+	v[1].z = va->z;
+	v[1].u = clipped_u1;
+	v[1].v = clipped_v0;
+
+	vl[2] = &v[2];	
+	v[2].sx = clipped_x1;
+	v[2].sy = clipped_y1;
+	v[2].sw = va->sw;
+	v[2].z = va->z;
+	v[2].u = clipped_u1;
+	v[2].v = clipped_v1;
+
+	vl[3] = &v[3];	
+	v[3].sx = clipped_x0;
+	v[3].sy = clipped_y1;
+	v[3].sw = va->sw;
+	v[3].z = va->z;
+	v[3].u = clipped_u0;
+	v[3].v = clipped_v1;
+
+	gr_opengl_tmapper_internal( 4, vl, TMAP_FLAG_TEXTURED, 1 );
 }
 
 void gr_opengl_set_palette(ubyte *new_palette, int is_alphacolor)
@@ -1539,16 +1529,15 @@ void opengl_tcache_init (int use_sections)
 	// DDOI - FIXME skipped a lot of stuff here
 	GL_should_preload = 0;
 
-	STUB_FUNCTION;
 	//uint tmp_pl = os_config_read_uint( NULL, NOX("D3DPreloadTextures"), 255 );
-	uint tmp_pl = 1;	// Enabling preloading segfaults it somehow - DDOI
+	uint tmp_pl = 1;
 
 	if ( tmp_pl == 0 )      {
 		GL_should_preload = 0;
 	} else if ( tmp_pl == 1 )       {
 		GL_should_preload = 1;
 	} else {
-		STUB_FUNCTION;
+		GL_should_preload = 1;
 	}
 
 	STUB_FUNCTION;

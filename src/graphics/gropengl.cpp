@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.4  2002/05/27 23:39:34  relnev
+ * 0
+ *
  * Revision 1.3  2002/05/27 22:35:01  theoddone33
  * more symbols
  *
@@ -125,6 +128,53 @@
 static int Inited = 0;
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
+
+int D3D_32bit = 0;		// grd3d.cpp
+int D3D_fog_mode = -1;		// grd3d.cpp
+int D3D_inited = 0;		// grd3d.cpp
+int D3D_zbias = 1;		// grd3d.cpp
+int D3d_rendition_uvs = 0;	// grd3d.cpp
+
+void gr_dd_activate(int active)		// grdirectdraw.cpp
+{
+	STUB_FUNCTION;
+}
+
+void gr_directdraw_cleanup()		// grdirectdraw.cpp
+{
+	STUB_FUNCTION;
+}
+
+void gr_directdraw_force_windowed()	// grdirectdraw.cpp
+{
+	STUB_FUNCTION;
+}
+
+void gr_directdraw_init()
+{
+	STUB_FUNCTION;
+}
+
+void gr_soft_activate(int active)	// grsoft.cpp
+{
+	STUB_FUNCTION;
+}
+
+void gr_soft_cleanup()			// grsoft.cpp
+{
+	STUB_FUNCTION;
+}
+
+void gr_soft_force_windowed()		// grsoft.cpp
+{
+	STUB_FUNCTION;
+}
+
+void gr_soft_init()
+{
+	STUB_FUNCTION;
+}
+
 void gr_opengl_preload_init()
 {
 	STUB_FUNCTION;

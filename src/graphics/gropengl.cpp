@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.63  2003/05/09 05:05:52  taylor
+ * improve gr_(de)activate, mouse grab, default fullscreen
+ *
  * Revision 1.62  2003/05/04 04:56:53  taylor
  * move SDL_Quit to os_deinit to fix fonttool segfault
  *
@@ -340,6 +343,7 @@
 #include "neb.h"
 #include "mouse.h"
 #include "osregistry.h"
+#include "cmdline.h"
 
 static int Inited = 0;
 
@@ -458,18 +462,16 @@ void gr_opengl_activate(int active)
 	if (active) {
 		GL_activate++;
 		
-		/* TODO:
-		   make sure window is active and mouse grabbed
-		 */
+		// don't grab key/mouse if cmdline says so or if we're fullscreen
+		if(!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN)) {
+			SDL_WM_GrabInput(SDL_GRAB_ON);
+		}
 	} else {
 		GL_deactivate++;
 		
-		/* TODO:
-		   make sure mouse is not grabbed and window minimized
-		 */
+		// let go of mouse/keyboard
+		SDL_WM_GrabInput(SDL_GRAB_OFF);
 	}
-	
-	STUB_FUNCTION;
 }
 
 
@@ -2812,8 +2814,15 @@ void gr_opengl_init()
 	
 	int flags = SDL_OPENGL;
 	
-	if (os_config_read_uint( NULL, "Fullscreen", 0 ) == 1)
+	if (!Cmdline_window && ( (os_config_read_uint( NULL, "Fullscreen", 1 ) == 1) || Cmdline_fullscreen ))
 		flags |= SDL_FULLSCREEN;
+
+	// don't automatically grab key/mouse if cmdline says so, else do
+	if(Cmdline_no_grab) {
+		SDL_WM_GrabInput(SDL_GRAB_OFF);
+	} else {
+		SDL_WM_GrabInput(SDL_GRAB_ON);
+	}
 
 	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
 	{

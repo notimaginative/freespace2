@@ -157,7 +157,6 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/parse/sexp.cpp \
 	./src/sound/rtvoice.cpp \
 	./src/sound/sound.cpp \
-	./src/sound/acm-unix.cpp \
 	./src/sound/audiostr.cpp \
 	./src/sound/ds.cpp \
 	./src/vcodec/codec1.cpp \

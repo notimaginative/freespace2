@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.14  2003/05/09 05:04:15  taylor
+ * better window min/max/focus support
+ *
  * Revision 1.13  2003/05/04 04:56:53  taylor
  * move SDL_Quit to os_deinit to fix fonttool segfault
  *
@@ -140,7 +143,7 @@
 //
 
 // os-wide globals
-static int			fAppActive = 0;
+static int			fAppActive = 1;
 static int			main_window_inited = 0;
 static char			szWinTitle[128];
 static char			szWinClass[128];
@@ -228,11 +231,10 @@ void os_cleanup()
 
 // window management -----------------------------------------------------------------
 
-static int app_active = 1;
 // Returns 1 if app is not the foreground app.
 int os_foreground()
 {
-	return app_active;
+	return fAppActive;
 }
 
 // Returns the handle to the main window
@@ -306,7 +308,7 @@ void os_poll()
 				if ((e.key.keysym.mod & KMOD_ALT) &&
 				    (e.key.keysym.sym == SDLK_RETURN))
 				{
-					if (!(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
+					if (!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
 						SDL_WM_GrabInput (SDL_GRAB_ON);
 					SDL_WM_ToggleFullScreen (SDL_GetVideoSurface());
 					break;
@@ -339,8 +341,13 @@ void os_poll()
 				key_mark (SDLtoFS2[e.key.keysym.sym], 0, 0);
 				break;
 			case SDL_ACTIVEEVENT:
-				if (e.active.state == SDL_APPACTIVE)
-					app_active = e.active.gain;
+				if (e.active.state & SDL_APPACTIVE) {
+					fAppActive = e.active.gain;
+					gr_activate(fAppActive);
+				}
+				if (e.active.state & SDL_APPINPUTFOCUS) {
+					gr_activate(e.active.gain);
+				}
 				break;
 			default:
 				break;
@@ -370,4 +377,3 @@ void debug_int3()
 {
 	STUB_FUNCTION;
 }
-

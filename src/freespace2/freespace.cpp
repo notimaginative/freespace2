@@ -15,6 +15,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.22  2002/08/02 23:07:03  relnev
+ * don't access the mouse in standalone mode
+ *
  * Revision 1.21  2002/07/28 05:05:08  relnev
  * removed some old stuff
  *
@@ -5984,7 +5987,9 @@ void game_enter_state( int old_state, int new_state )
 #ifndef NDEBUG
 			// required to truely make mouse deltas zeroed in debug mouse code
 void mouse_force_pos(int x, int y);
-			mouse_force_pos(gr_screen.max_w / 2, gr_screen.max_h / 2);
+			if (!Is_standalone) {
+				mouse_force_pos(gr_screen.max_w / 2, gr_screen.max_h / 2);
+			}
 #endif
 
 			game_flush();

@@ -7,6 +7,9 @@
  * MVE movie playing routines
  *
  * $Log$
+ * Revision 1.4  2005/03/31 00:06:20  taylor
+ * go back to more accurate timer and allow video scaling for movies
+ *
  * Revision 1.3  2005/03/29 07:50:34  taylor
  * Update to newest movie code with much better video support and audio support from
  *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
@@ -17,6 +20,10 @@
  */
  
 #ifdef PLAT_UNIX
+#include <errno.h>
+#include <time.h>
+#include <sys/time.h>
+
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <al.h>
@@ -39,6 +46,7 @@
 #include "timer.h"
 #include "sound.h"
 #include "bmpman.h"
+#include "osregistry.h"
 
 
 static int mve_playing;
@@ -48,7 +56,11 @@ static int g_spdFactorNum = 0;
 static int g_spdFactorDenom = 10;
 static int micro_frame_delay = 0;
 static int timer_started = 0;
+#ifdef PLAT_UNIX
+static struct timeval timer_expire = {0, 0};
+#else
 static fix timer_expire;
+#endif
 
 // audio variables
 #define MVE_AUDIO_BUFFERS 64  // total buffers to interact with stream
@@ -106,6 +118,7 @@ static int g_nMapLength=0;
 static int videobuf_created, video_inited;
 static int hp2, wp2;
 static uint mve_video_skiptimer = 0;
+static int mve_scale_video = 0;
 #ifdef PLAT_UNIX
 static GLuint tex = 0;
 #endif
@@ -141,16 +154,68 @@ int mve_timer_create(ubyte *data)
 	return 1;
 }
 
-static void timer_start(void)
+static void mve_timer_start(void)
 {
+#ifdef PLAT_UNIX
+	int nsec = 0;
+
+	gettimeofday(&timer_expire, NULL);
+
+	timer_expire.tv_usec += micro_frame_delay;
+
+	if (timer_expire.tv_usec > 1000000) {
+		nsec = timer_expire.tv_usec / 1000000;
+		timer_expire.tv_sec += nsec;
+		timer_expire.tv_usec -= nsec * 1000000;
+	}
+#else
 	timer_expire = timer_get_microseconds();
 	timer_expire += micro_frame_delay;
+#endif
 
-	timer_started=1;
+	timer_started = 1;
 }
 
-static void do_timer_wait(void)
+static int mve_do_timer_wait(void)
 {
+	if (!timer_started)
+		return 0;
+
+#ifdef PLAT_UNIX
+	int nsec = 0;
+	struct timespec ts, tsRem;
+	struct timeval tv;
+
+	gettimeofday(&tv, NULL);
+
+	if (tv.tv_sec > timer_expire.tv_sec)
+		goto end;
+
+	if ( (tv.tv_sec == timer_expire.tv_sec) && (tv.tv_usec >= timer_expire.tv_usec) )
+		goto end;
+
+	ts.tv_sec = timer_expire.tv_sec - tv.tv_sec;
+	ts.tv_nsec = 1000 * (timer_expire.tv_usec - tv.tv_usec);
+
+	if (ts.tv_nsec < 0) {
+		ts.tv_nsec += 1000000000UL;
+		--ts.tv_sec;
+	}
+
+	if ( (nanosleep(&ts, &tsRem) == -1) && (errno == EINTR) ) {
+		mprintf(("MVE: Timer error! Aborting movie playback!\n"));
+		return 1;
+	}
+
+end:
+    timer_expire.tv_usec += micro_frame_delay;
+
+    if (timer_expire.tv_usec > 1000000) {
+        nsec = timer_expire.tv_usec / 1000000;
+        timer_expire.tv_sec += nsec;
+        timer_expire.tv_usec -= nsec * 1000000;
+    }
+#else
 	fix tv, ts, ts2;
 
 	tv = timer_get_microseconds();
@@ -166,6 +231,16 @@ static void do_timer_wait(void)
 
 end:
 	timer_expire += micro_frame_delay;
+#endif
+
+	return 0;
+}
+
+static void mve_timer_stop()
+{
+	timer_expire.tv_sec = 0;
+	timer_expire.tv_usec = 0;
+	timer_started = 0;
 }
 
 /*************************
@@ -428,8 +503,8 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	g_width = w << 3;
 	g_height = h << 3;
 
-	/* TODO: * 4 causes crashes on some files */
-	g_vBackBuf1 = g_vBuffers = malloc(g_width * g_height * 8);
+	// with Pierre's decoder16 fix in opcode 0xc, 8 should no longer be needed
+	g_vBackBuf1 = g_vBuffers = malloc(g_width * g_height * 4);
 
 	if (g_vBackBuf1 == NULL) {
 		mprintf(("MOVIE", "ERROR: Can't allocate video buffer"));
@@ -439,7 +514,7 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 
 	g_vBackBuf2 = (ushort *)g_vBackBuf1 + (g_width * g_height);
 		
-	memset(g_vBackBuf1, 0, g_width * g_height * 8);
+	memset(g_vBackBuf1, 0, g_width * g_height * 4);
 
 	videobuf_created = 1;
 
@@ -478,14 +553,20 @@ void mve_video_display()
 {
 	fix t1 = timer_get_fixed_seconds();
 	mve_convert_and_draw();
-	
-	// centers on 1024x768, fills on 640x480
-	int x = ((gr_screen.max_w - g_screenWidth) / 2);
-	int y = ((gr_screen.max_h - g_screenHeight) / 2);
+
+	int x, y;
 	int h = g_screenHeight;
 	int w = g_screenWidth;
 
 #ifdef PLAT_UNIX
+	if (mve_scale_video) {
+		x = y = 0;
+	} else {
+		// centers on 1024x768, fills on 640x480
+		x = ((gr_screen.max_w - g_screenWidth) / 2);
+		y = ((gr_screen.max_h - g_screenHeight) / 2);
+	}
+
 	// micro_frame_delay is divided by 10 to match mve_video_skiptimer overflow catch
 	if ( mve_video_skiptimer > (uint)(micro_frame_delay/10) ) {
 		// we are running slow so subtract desired time from actual and skip this frame
@@ -547,7 +628,11 @@ void mve_video_display()
 		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(h)/i2fl(hp2));		glVertex2i(x+w,y+h);
 		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
 	glEnd();
-#else 
+#else
+	// centers on 1024x768, fills on 640x480
+	x = ((gr_screen.max_w - g_screenWidth) / 2);
+	y = ((gr_screen.max_h - g_screenHeight) / 2);
+
 	// DDOI - This is probably really fricking slow
 	int bitmap = bm_create (16, w, h, pixelbuf, 0);
 	gr_set_bitmap (bitmap);
@@ -650,6 +735,20 @@ int mve_video_init(ubyte *data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 0) == 1 ) {
+		float scale_by = (float)gr_screen.max_w / (float)g_screenWidth;
+
+		// don't bother setting anything if we aren't going to need it
+		if (scale_by != 1.0f) {
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glScalef( scale_by, scale_by, 1.0f );
+			mve_scale_video = 1;
+		}
+	}
+
 	// NOTE: using NULL instead of pixelbuf crashes some drivers, but then so does pixelbuf so less of two evils...
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, wp2, hp2, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
 #endif
@@ -718,30 +817,36 @@ void mve_init(MVESTREAM *mve)
 
 	videobuf_created = 0;
 	video_inited = 0;
+	mve_scale_video = 0;
 
 	mve_playing = 1;
 }
 
 void mve_play(MVESTREAM *mve)
 {
-	int init_timer = 0;
+	int init_timer = 0, timer_error = 0;
 	int cont = 1;
-	
-	if (micro_frame_delay && !init_timer) {
-		timer_start();
-		init_timer = 1;
-	}
 
-	while (cont && mve_playing) {
+	if (!timer_started)
+		mve_timer_start();
+
+	while (cont && mve_playing && !timer_error) {
 		cont = mve_play_next_chunk(mve);
 
-		do_timer_wait();
+		if (micro_frame_delay && !init_timer) {
+			mve_timer_start();
+			init_timer = 1;
+		}
+
+		timer_error = mve_do_timer_wait();
 	}
 }
 
 void mve_shutdown()
 {
 	mve_audio_stop();
+
+	mve_timer_stop();
 
 	if (pixelbuf != NULL) {
 		free(pixelbuf);
@@ -754,9 +859,15 @@ void mve_shutdown()
 	}
 
 #ifdef PLAT_UNIX
+	if (mve_scale_video) {
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+		glLoadIdentity();
+	}
+
 	glDeleteTextures(1, &tex);
 	tex = 0;
-	
+
 	glEnable(GL_DEPTH_TEST);
 #endif
 }

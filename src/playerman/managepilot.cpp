@@ -16,6 +16,9 @@
  * manage the pilot
  *
  * $Log$
+ * Revision 1.6  2004/07/04 11:41:24  taylor
+ * warning fixes, cross platform pilot compat with OSX-Linux-Windows
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -263,7 +266,7 @@
 // version 139 : # medals increased - added compatibility with old plr file versions
 // version 140 : ships table reordered. clear out old pilot files
 // search for PLAYER INIT for new pilot initialization stuff. I _think_ its in the right spot for now
-#define PLR_FILE_ID	'FPSF'	// unique signiture to identify a .PLR file (FreeSpace Player File)  // FPSF appears as FSPF in file.
+#define PLR_FILE_ID	0x46505346	// FPSF, unique signiture to identify a .PLR file (FreeSpace Player File)  // FPSF appears as FSPF in file.
 
 // Current content of a .PLR file
 //
@@ -284,6 +287,8 @@ int Num_pilot_squad_images = 0;
 static uint Player_file_version;
 
 // forward declarations
+void read_detail_settings(CFILE *file, int Player_file_version);
+void write_detail_settings(CFILE *file);
 void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stats);
 void write_stats_block(CFILE *file, scoring_struct *stats);
 void read_multiplayer_options(player *p,CFILE *file);
@@ -709,16 +714,7 @@ int read_pilot_file(char *callsign, int single, player *p)
 		Event_music_enabled = 0;
 	}
 
-#ifdef MAKE_FS1
-	// add in extra detail settings
-	if(Player_file_version < 141){
-		cfread( &Detail, sizeof(detail_levels) - sizeof(Detail.engine_glows), 1, file );
-	} else {
-		cfread( &Detail, sizeof(detail_levels), 1, file );
-	}
-#else
-	cfread( &Detail, sizeof(detail_levels), 1, file );
-#endif
+	read_detail_settings(file, Player_file_version);
 
 	// restore list of most recently played missions
 	Num_recent_missions = cfread_int( file );
@@ -863,6 +859,48 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 	stats->bonehead_kills = cfread_uint(file);
 }
 
+// grab the various detail settings
+void read_detail_settings(CFILE *file, int pfile_version)
+{
+	// mass read the Detail struct
+#ifdef MAKE_FS1
+	// add in extra detail settings
+	if(pfile_version < 141){
+		cfread( &Detail, sizeof(detail_levels) - sizeof(Detail.engine_glows), 1, file );
+	} else {
+		cfread( &Detail, sizeof(detail_levels), 1, file );
+	}
+#else
+	cfread( &Detail, sizeof(detail_levels), 1, file );
+#endif
+
+	// swap, swap, swap
+	Detail.setting = INTEL_INT(Detail.setting);
+
+	// hack for old pilot files with big-endian data
+	if ( (Detail.setting >= -1) && (Detail.setting <= 5) ) {
+		// new way - it's little-endian...
+		Detail.nebula_detail = INTEL_INT(Detail.nebula_detail);
+		Detail.detail_distance = INTEL_INT(Detail.detail_distance);
+		Detail.hardware_textures = INTEL_INT(Detail.hardware_textures);
+		Detail.num_small_debris = INTEL_INT(Detail.num_small_debris);
+		Detail.num_particles = INTEL_INT(Detail.num_particles);
+		Detail.num_stars = INTEL_INT(Detail.num_stars);
+		Detail.shield_effects = INTEL_INT(Detail.shield_effects);
+		Detail.lighting = INTEL_INT(Detail.lighting);
+		Detail.targetview_model = INTEL_INT(Detail.targetview_model);
+		Detail.planets_suns = INTEL_INT(Detail.planets_suns);
+		Detail.weapon_extras = INTEL_INT(Detail.weapon_extras);
+#ifdef MAKE_FS1
+		if (pfile_version >= 141)
+			Detail.engine_glows = INTEL_INT(Detail.engine_glows);
+#endif
+	} else {
+		// it's the old way... un-swap and the new way will be used on save
+		Detail.setting = INTEL_INT(Detail.setting);
+	}
+}
+
 // Will write the pilot file in the most current format
 //
 // if single == 1, save into the single players directory, else save into the multiplayers directory
@@ -991,7 +1029,8 @@ int write_pilot_file_core(player *p)
 	cfwrite_float(Master_voice_volume, file);
 
 
-	cfwrite( &Detail, sizeof(detail_levels), 1, file );
+	//cfwrite( &Detail, sizeof(detail_levels), 1, file );
+	write_detail_settings(file);
 
 	// store list of most recently played missions
 	cfwrite_int(Num_recent_missions, file);
@@ -1107,6 +1146,36 @@ void write_stats_block(CFILE *file,scoring_struct *stats)
 	cfwrite_uint(stats->p_bonehead_hits,file);
 	cfwrite_uint(stats->s_bonehead_hits,file);
 	cfwrite_uint(stats->bonehead_kills,file);
+}
+
+// write the various detail settings
+void write_detail_settings(CFILE *file)
+{
+	// we still need sane values in the Detail struct so create
+	// a temporary one to value swap and write to file
+	detail_levels Detail_tmp;
+	memset(&Detail_tmp, 0, sizeof(detail_levels));
+	memcpy(&Detail_tmp, &Detail, sizeof(detail_levels));
+
+	// swap, swap, swap - on big-endian this will convert back to little-endian
+	Detail_tmp.setting = INTEL_INT(Detail_tmp.setting);
+	Detail_tmp.nebula_detail = INTEL_INT(Detail_tmp.nebula_detail);
+	Detail_tmp.detail_distance = INTEL_INT(Detail_tmp.detail_distance);
+	Detail_tmp.hardware_textures = INTEL_INT(Detail_tmp.hardware_textures);
+	Detail_tmp.num_small_debris = INTEL_INT(Detail_tmp.num_small_debris);
+	Detail_tmp.num_particles = INTEL_INT(Detail_tmp.num_particles);
+	Detail_tmp.num_stars = INTEL_INT(Detail_tmp.num_stars);
+	Detail_tmp.shield_effects = INTEL_INT(Detail_tmp.shield_effects);
+	Detail_tmp.lighting = INTEL_INT(Detail_tmp.lighting);
+	Detail_tmp.targetview_model = INTEL_INT(Detail_tmp.targetview_model);
+	Detail_tmp.planets_suns = INTEL_INT(Detail_tmp.planets_suns);
+	Detail_tmp.weapon_extras = INTEL_INT(Detail_tmp.weapon_extras);
+
+#ifdef MAKE_FS1
+	Detail.engine_glows = INTEL_INT(Detail.engine_glows);
+#endif // MAKE_FS1
+
+	cfwrite( &Detail_tmp, sizeof(detail_levels), 1, file );
 }
 
 // write multiplayer information

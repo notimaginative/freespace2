@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.25  2002/05/30 23:01:16  relnev
+ * implement gr_opengl_set_state.
+ *
  * Revision 1.24  2002/05/30 22:12:57  relnev
  * finish default texture case
  *
@@ -304,6 +307,66 @@ void d3d_zbias (int a)
 }
 #endif
 
+void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt)
+{
+	switch (ts) {
+		case TEXTURE_SOURCE_NONE:
+			glBindTexture(GL_TEXTURE_2D, 0);
+			gr_tcache_set(-1, -1, NULL, NULL );
+			break;
+		case TEXTURE_SOURCE_DECAL:
+			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			break;
+		case TEXTURE_SOURCE_NO_FILTERING:
+			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			break;
+		default:
+			break;
+	}
+	
+	switch (ab) {
+		case ALPHA_BLEND_NONE:
+			glBlendFunc(GL_ONE, GL_ZERO);
+			break;
+		case ALPHA_BLEND_ALPHA_ADDITIVE:
+			glBlendFunc(GL_ONE, GL_ONE);
+			break;
+		case ALPHA_BLEND_ALPHA_BLEND_ALPHA:
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:
+			glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+			break;
+		default:
+			break;
+	}
+	
+	switch (zt) {
+		case ZBUFFER_TYPE_NONE:
+			glDepthFunc(GL_ALWAYS);
+			glDepthMask(GL_FALSE);
+			break;
+		case ZBUFFER_TYPE_READ:
+			glDepthFunc(GL_LEQUAL);
+			glDepthMask(GL_FALSE);	
+			break;
+		case ZBUFFER_TYPE_WRITE:
+			glDepthFunc(GL_ALWAYS);
+			glDepthMask(GL_TRUE);
+			break;
+		case ZBUFFER_TYPE_FULL:
+			glDepthFunc(GL_LEQUAL);
+			glDepthMask(GL_TRUE);
+			break;
+		default:
+			break;
+	}		
+}
+
 void gr_opengl_activate(int b)
 {
 	STUB_FUNCTION;
@@ -513,7 +576,7 @@ void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 }
 
 
-void gr_d3d_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
+void gr_opengl_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 {
 	int reclip;
 	#ifndef NDEBUG
@@ -685,7 +748,7 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 
 	float u_scale, v_scale;
 
-//	gr_d3d_set_state( TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+	gr_opengl_set_state( TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 
 	if ( !gr_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale ) )	{
 		// Couldn't set texture
@@ -693,17 +756,11 @@ void gr_opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 		return;
 	}
 
-//	LPD3DTLVERTEX src_v;
-//	D3DTLVERTEX d3d_verts[4];
-
 	float u0, u1, v0, v1;
 	float x1, x2, y1, y2;
 	int bw, bh;
 
 	bm_get_info( gr_screen.current_bitmap, &bw, &bh );
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	u0 = u_scale*i2fl(sx)/i2fl(bw);
 	v0 = v_scale*i2fl(sy)/i2fl(bh);
@@ -958,10 +1015,8 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 {
 	int clipped = 0, swapped=0;
 
-	glDisable ( GL_DEPTH_TEST );
-	glEnable ( GL_BLEND );
-	glBlendFunc ( GL_SRC_ALPHA, GL_DST_ALPHA );
-
+	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+	
 	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
 		
 	glBegin (GL_LINE);
@@ -1188,7 +1243,7 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 	y1 = gr_screen.clip_top*16;
 	y2 = gr_screen.clip_bottom*16+15;
 
-	// gr_d3d_set_state( texture_source, alpha_blend, zbuffer_type );
+	gr_opengl_set_state( texture_source, alpha_blend, zbuffer_type );
 	
 	if ( flags & TMAP_FLAG_TEXTURED )
 	{
@@ -1301,10 +1356,8 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 
 	uint color1, color2;
 
-	glShadeModel (GL_FLAT);
-	glEnable (GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_DST_ALPHA);
-
+	gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+	
 	// DDOI - may not be right
 	color1 = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha );
 	color2 = RGBA_MAKE(gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, 0 );
@@ -2194,7 +2247,7 @@ void gr_opengl_zbuffer_clear(int mode)
 		gr_zbuffering_mode = GR_ZBUFF_FULL;
 		gr_global_zbuffering = 1;
 		
-		// gr_d3d_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
+		gr_opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
 		glClear(GL_DEPTH_BUFFER_BIT);
 	} else {
 		gr_zbuffering = 0;
@@ -2329,13 +2382,20 @@ void gr_opengl_init()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_DITHER);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	
 	glEnable(GL_TEXTURE_2D);
 	
 	glGenTextures(1, &bitmapTex);
 	glBindTexture(GL_TEXTURE_2D, bitmapTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();

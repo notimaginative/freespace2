@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.13  2002/07/30 05:24:38  relnev
+ * command line
+ *
  * Revision 1.12  2002/07/28 05:19:44  relnev
  * more housecleaning
  *
@@ -3616,6 +3619,10 @@ void ds_do_frame()
 {
 	channel *cp;
 
+	if (!ds_initialized) {
+		return;
+	}
+		
 	for (int i=0; i<MAX_CHANNELS; i++) {
 		cp = &Channels[i];
 		if (cp->is_voice_msg) {

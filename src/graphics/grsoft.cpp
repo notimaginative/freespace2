@@ -15,6 +15,9 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
+ * Revision 1.10  2002/07/30 05:24:38  relnev
+ * command line
+ *
  * Revision 1.9  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -399,6 +402,7 @@
 #include "palman.h"
 #include "grsoft.h"
 #include "grinternal.h"
+#include "systemvars.h"
 
 // Headers for 2d functions
 #include "pixel.h"
@@ -1089,6 +1093,10 @@ void grx_change_palette( ubyte *pal );
 
 void grx_flip()
 {
+	if (Is_standalone) {
+		return;
+	}
+	
 	if ( (!Palette_flashed) && (Palette_flashed_last_frame) )	{
 		// Reset flash
 		grx_change_palette( gr_palette );
@@ -1294,6 +1302,10 @@ void grx_set_bitmap( int bitmap_num, int alphablend_mode, int bitblt_mode, float
 // clears entire clipping region to black.
 void grx_clear()
 {
+	if (Is_standalone) {
+		return;
+	}
+	
 	gr_lock();
 
 	int i,w;

@@ -7,8 +7,11 @@
  * Code for our software renderer using standard Win32 functions.  (Dibsections, etc)
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/28 04:07:28  theoddone33
+ * New graphics stubbing arrangement
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 12    7/14/99 9:42a Dave
@@ -346,8 +349,10 @@
  */
 
 #include <math.h>
+#ifndef PLAT_UNIX
 #include <windows.h>
 #include <windowsx.h>
+#endif
 
 #include "osapi.h"
 #include "2d.h"
@@ -381,6 +386,7 @@
 // requires you to malloc out space for the palette, which just isn't
 // worth the trouble.
 
+#ifndef PLAT_UNIX
 typedef struct {
     WORD         palVersion; 
     WORD         palNumEntries; 
@@ -407,6 +413,7 @@ HDC hDibDC = NULL;
 void *lpDibBits=NULL;
 
 HPALETTE hOldPalette=NULL, hPalette = NULL;	
+#endif
 
 int Gr_soft_inited = 0;
 
@@ -414,6 +421,7 @@ static volatile int Grsoft_activated = 0;				// If set, that means application g
 
 void gr_buffer_release()
 {
+#ifndef PLAT_UNIX
 	if ( hPalette )	{
 		if (hDibDC)
 			SelectPalette( hDibDC, hOldPalette, FALSE );
@@ -433,6 +441,7 @@ void gr_buffer_release()
 		DeleteObject(hDibSection);
 		hDibSection = NULL;
 	}
+#endif
 }
 
 
@@ -447,6 +456,7 @@ void gr_buffer_create( int w, int h, int bpp )
 
 	gr_buffer_release();
 
+#ifndef PLAT_UNIX
 	memset( &DibInfo, 0, sizeof(EZ_BITMAPINFO));
    DibInfo.Header.biSize = sizeof(BITMAPINFOHEADER);
 	DibInfo.Header.biWidth = w;
@@ -563,6 +573,7 @@ void gr_buffer_create( int w, int h, int bpp )
 	if ( hDibSection == NULL )	{
 		Int3();	// couldn't allocate dib section
 	}
+#endif
 }
 
 
@@ -572,6 +583,7 @@ void gr_buffer_create( int w, int h, int bpp )
 // All colors get changed in target_palette.
 
 
+#ifndef PLAT_UNIX
 HPALETTE gr_create_palette_0(ubyte * target_palette)
 {
 	EZ_LOGPALETTE LogicalPalette;
@@ -783,9 +795,13 @@ HPALETTE gr_create_palette_254( ubyte * target_palette )
 
 	return CreatePalette( (LOGPALETTE *)&LogicalPalette );
 }
+#endif // !PLAT_UNIX
 
 void grx_set_palette_internal( ubyte * new_pal )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if ( hPalette )	{
 		if (hDibDC)
 			SelectPalette( hDibDC, hOldPalette, FALSE );
@@ -869,12 +885,16 @@ void grx_set_palette_internal( ubyte * new_pal )
 	} else {
 		hPalette = NULL;
 	}
+#endif
 }
 
 
 
 void grx_set_palette( ubyte * new_pal, int is_alphacolor )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if ( hPalette )	{
 		Mouse_hidden++;
 		gr_reset_clip();
@@ -884,6 +904,7 @@ void grx_set_palette( ubyte * new_pal, int is_alphacolor )
 	}
 
 	grx_set_palette_internal(new_pal);
+#endif
 }
 
 
@@ -1068,6 +1089,9 @@ void grx_flip()
 
 	fix t1, t2, d, t;
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HWND hwnd = (HWND)os_get_window();
 
 	if ( hwnd )	{
@@ -1107,6 +1131,7 @@ void grx_flip()
 
 		}
 	}
+#endif
 
 	if ( Grx_mouse_saved )	{
 		grx_restore_mouse_area();
@@ -1118,6 +1143,9 @@ void grx_flip()
 // Set msg to 0 if calling outside of the window handler.
 void grx_flip_window(uint _hdc, int x, int y, int w, int h )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	HDC hdc = (HDC)_hdc;
 	HPALETTE hOldPalette = NULL;
 	int min_w, min_h;
@@ -1140,6 +1168,7 @@ void grx_flip_window(uint _hdc, int x, int y, int w, int h )
 	if ( hOldPalette ){	
 		SelectPalette(hdc,hOldPalette, FALSE );
 	}
+#endif
 }
 
 
@@ -1507,7 +1536,6 @@ void gr8_set_gamma(float gamma)
 void gr_soft_init()
 {
 //	int i;
-	HWND hwnd = (HWND)os_get_window();
 	
 	// software mode only supports 640x480
 	Assert(gr_screen.res == GR_640);
@@ -1518,6 +1546,11 @@ void gr_soft_init()
 	}
 
 	// Prepare the window to go full screen
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
+	HWND hwnd = (HWND)os_get_window();
+
 	if ( hwnd )	{
 		DWORD style, exstyle;
 		RECT		client_rect;
@@ -1550,6 +1583,7 @@ void gr_soft_init()
 		SetActiveWindow(hwnd);
 		SetForegroundWindow(hwnd);
 	}
+#endif
 
 	Palette_flashed = 0;
 	Palette_flashed_last_frame = 0;
@@ -1559,6 +1593,9 @@ void gr_soft_init()
 
 	gr_buffer_create( gr_screen.max_w, gr_screen.max_h, gr_screen.bits_per_pixel );
 
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	gr_screen.offscreen_buffer_base = lpDibBits;
 
 	gr_screen.rowsize = DibInfo.Header.biWidth*((gr_screen.bits_per_pixel+7)/8);
@@ -1572,6 +1609,7 @@ void gr_soft_init()
 		// top up
 		gr_screen.offscreen_buffer = gr_screen.offscreen_buffer_base;
 	}
+#endif
 
 	grx_init_alphacolors();
 
@@ -1683,6 +1721,9 @@ void gr_soft_cleanup()
 
 void grx_change_palette( ubyte * new_pal )
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	if ( hPalette )	{
 		if (hDibDC)
 			SelectPalette( hDibDC, hOldPalette, FALSE );
@@ -1705,6 +1746,7 @@ void grx_change_palette( ubyte * new_pal )
 		hOldPalette = SelectPalette( hDibDC, hPalette, FALSE );
 		SetDIBColorTable( hDibDC, 0, 256, DibInfo.Colors.aColors );
 	}
+#endif
 }
 
 void grx_flash( int r, int g, int b )

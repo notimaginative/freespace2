@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.5  2002/05/28 04:07:28  theoddone33
+ * New graphics stubbing arrangement
+ *
  * Revision 1.4  2002/05/27 22:46:52  theoddone33
  * Remove more undefined symbols
  *
@@ -2039,6 +2042,7 @@ void game_init()
 	GetCurrentDirectory(1024, whee);
 #else
 	strcpy(whee, ".");
+	strcpy(whee,".\\.");
 	STUB_FUNCTION;
 #endif
 	strcat(whee, "\\");

@@ -2,16 +2,15 @@
 # for that freespace 2 thing
 
 CC=g++-3.0
-CODE_BINARY=code.so
+AR=ar
+CODE_BINARY=code.a
 FS_BINARY=freespace2
 LDFLAGS=$(shell sdl-config --libs)
-CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/
-
+CFLAGS=-Wall -g -DPLAT_UNIX -O2 $(shell sdl-config --cflags) -Iinclude/ -fwritable-strings
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
-
-
+	
 CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/anim/packunpack.cpp \
 	./src/asteroid/asteroid.cpp \
@@ -46,6 +45,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/graphics/font.cpp \
 	./src/graphics/gradient.cpp \
 	./src/graphics/gropengl.cpp \
+	./src/graphics/grsoft.cpp \
 	./src/graphics/grzbuffer.cpp \
 	./src/graphics/line.cpp \
 	./src/graphics/pixel.cpp \
@@ -253,12 +253,14 @@ CODE_OBJECTS=$(CODE_SOURCES:.cpp=.o)
 FS_OBJECTS=$(FS_SOURCES:.cpp=.o)
 
 
-all: fs2
+all: $(FS_BINARY)
 
-code.so: $(CODE_OBJECTS)
-	$(CC) -shared -o $(CODE_BINARY) $(LDFLAGS) $(CODE_OBJECTS)
+$(CODE_BINARY): $(CODE_OBJECTS)
+	rm -rf $(CODE_BINARY)
+	$(AR) rc $(CODE_BINARY) $(CODE_OBJECTS)
+#	$(RANLIB) $(CODE_BINARY)
 
-fs2: code.so $(FS_OBJECTS)
+$(FS_BINARY): $(CODE_BINARY) $(FS_OBJECTS)
 	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OBJECTS) $(CODE_BINARY)
 
 clean:

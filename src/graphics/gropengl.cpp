@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.5  2002/05/28 04:07:28  theoddone33
+ * New graphics stubbing arrangement
+ *
  * Revision 1.4  2002/05/27 23:39:34  relnev
  * 0
  *
@@ -151,26 +154,6 @@ void gr_directdraw_force_windowed()	// grdirectdraw.cpp
 }
 
 void gr_directdraw_init()
-{
-	STUB_FUNCTION;
-}
-
-void gr_soft_activate(int active)	// grsoft.cpp
-{
-	STUB_FUNCTION;
-}
-
-void gr_soft_cleanup()			// grsoft.cpp
-{
-	STUB_FUNCTION;
-}
-
-void gr_soft_force_windowed()		// grsoft.cpp
-{
-	STUB_FUNCTION;
-}
-
-void gr_soft_init()
 {
 	STUB_FUNCTION;
 }

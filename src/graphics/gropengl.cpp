@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.54  2002/07/30 15:00:15  relnev
+ * not use luminance alpha by default
+ *
  * Revision 1.53  2002/06/22 17:08:16  relnev
  * more fixes to unused alpha code
  *
@@ -344,6 +347,8 @@ typedef enum gr_zbuffer_type {
 
 volatile int GL_activate = 0;
 volatile int GL_deactivate = 0;
+
+static int GL_use_luminance_alpha;
 
 static char *Gr_saved_screen = NULL;
 static int Gr_saved_screen_bitmap;
@@ -2238,8 +2243,9 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 			{
 			int i,j;
 			ubyte *bmp_data = ((ubyte*)data);
-			ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
-			ubyte *texmemp = texmem;
+			ubyte *texmem;
+			ubyte *texmemp;
+			
 			ubyte xlat[256];
 			
 			for (i=0; i<16; i++) {
@@ -2250,23 +2256,53 @@ int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data,
 				xlat[i] = xlat[0];
 			}
 			
-			for (i=0;i<tex_h;i++)
-			{
-				for (j=0;j<tex_w;j++)
+			if (GL_use_luminance_alpha) {
+				texmem = (ubyte *) malloc (tex_w*tex_h*2);
+				texmemp = texmem;
+							
+				for (i=0;i<tex_h;i++)
 				{
-					if (i < bmap_h && j < bmap_w) {
-						*texmemp++ = 0xff;
-						*texmemp++ = xlat[bmp_data[i*bmap_w+j]];
-					} else {
-						*texmemp++ = 0;
-						*texmemp++ = 0;
+					for (j=0;j<tex_w;j++)
+					{
+						if (i < bmap_h && j < bmap_w) {
+							*texmemp++ = 0xff;
+							*texmemp++ = xlat[bmp_data[i*bmap_w+j]];
+						} else {
+							*texmemp++ = 0;
+							*texmemp++ = 0;
+						}
 					}
 				}
+
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, tex_w, tex_h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, texmem);
+
+				free (texmem);
+			} else {
+				texmem = (ubyte *) malloc (tex_w*tex_h*4);
+				texmemp = texmem;
+							
+				for (i=0;i<tex_h;i++)
+				{
+					for (j=0;j<tex_w;j++)
+					{
+						if (i < bmap_h && j < bmap_w) {
+							*texmemp++ = 0xff; /* R */
+							*texmemp++ = 0xff; /* G */
+							*texmemp++ = 0xff; /* B */
+							*texmemp++ = xlat[bmp_data[i*bmap_w+j]];
+						} else {
+							*texmemp++ = 0;
+							*texmemp++ = 0;
+							*texmemp++ = 0;
+							*texmemp++ = 0;
+						}
+					}
+				}
+
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texmem);
+
+				free (texmem);
 			}
-
-			glTexImage2D (GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, tex_w, tex_h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, texmem);
-
-			free (texmem);
 			}
 			break;
 		case TCACHE_TYPE_BITMAP_SECTION:
@@ -2914,6 +2950,8 @@ void gr_opengl_init()
 	/* might as well put this here */
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
+	GL_use_luminance_alpha = os_config_read_uint(NOX("OpenGL"), NOX("UseLuminanceAlpha"), 0);
+
 	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 
 	glMatrixMode(GL_PROJECTION);

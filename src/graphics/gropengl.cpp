@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.31  2002/05/31 06:04:39  relnev
+ * fog
+ *
  * Revision 1.30  2002/05/31 03:56:11  theoddone33
  * Change tmapper polygon winding and enable culling
  *
@@ -211,11 +214,12 @@
 #include "grinternal.h"
 #include "gropengl.h"
 #include "line.h"
+#include "neb.h"
 
 static int Inited = 0;
 
-static GLuint bitmapTex;
-static GLubyte *bitmapMem;
+//static GLuint bitmapTex;
+//static GLubyte *bitmapMem;
 
 typedef enum gr_texture_source {
 	TEXTURE_SOURCE_NONE,
@@ -1060,6 +1064,22 @@ void gr_opengl_circle( int xc, int yc, int d )
 	return;
 }
 
+void gr_opengl_stuff_fog_value(float z, int *r, int *g, int *b, int *a)
+{
+	float f_float;
+	
+	f_float = (gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near);
+	if (f_float < 0.0f) {
+		f_float = 0.0f;
+	} else {
+		f_float = 1.0f;
+	}
+	*r = 0;
+	*g = 0;
+	*b = 0;
+	*a = (int)(f_float * 255.0);
+}
+
 void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
 {
 	int i;
@@ -1159,11 +1179,6 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		}
 	}
 
-	int x1, y1, x2, y2;
-	x1 = gr_screen.clip_left*16;
-	x2 = gr_screen.clip_right*16+15;
-	y1 = gr_screen.clip_top*16;
-	y2 = gr_screen.clip_bottom*16+15;
 
 	gr_opengl_set_state( texture_source, alpha_blend, zbuffer_type );
 	
@@ -1173,9 +1188,43 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		// STUB_FUNCTION;
 	}
 
-	glBegin (GL_TRIANGLE_FAN);
-	for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
-	{
+	if (flags & TMAP_FLAG_PIXEL_FOG) {
+		int r, g, b;
+		int ra, ga, ba;
+		ra = ga = ba = 0;
+	
+		/* argh */
+		for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
+		{
+			vertex * va = verts[i];
+			float sx, sy;
+		
+			int x, y;
+			x = fl2i(va->sx*16.0f);
+			y = fl2i(va->sy*16.0f);
+		
+			x += gr_screen.offset_x*16;
+			y += gr_screen.offset_y*16;
+		
+			sx = i2fl(x) / 16.0f;
+			sy = i2fl(y) / 16.0f;
+		
+			neb2_get_pixel((int)sx, (int)sy, &r, &g, &b);
+			
+			ra += r;
+			ga += g;
+			ba += b;
+		}
+		
+		ra /= nv;
+		ga /= nv;
+		ba /= nv;
+		
+		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba);
+	}
+	
+	glBegin(GL_TRIANGLE_FAN);
+	for (i = nv-1; i >= 0; i--) {		
 		vertex * va = verts[i];
 		float sx, sy, sz, sw;
 		float tu, tv;
@@ -1223,9 +1272,13 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		glColor4ub (r,g,b,a);
 
 		if((gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (D3D_fog_mode == 1)){
-			// gr_d3d_stuff_fog_value(va->z, &src_v->specular);
-		} else {
-			// i hate you, specular color
+			int sr, sg, sb, sa;
+			
+			/* this is for GL_EXT_SECONDARY_COLOR */
+			gr_opengl_stuff_fog_value(va->z, &sr, &sg, &sb, &sa);
+			/* do separate color call here */
+			
+			STUB_FUNCTION;
 		}
 		
 		int x, y;
@@ -1245,15 +1298,9 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 			glTexCoord2d(tu, tv);
 		}
 		
-		sx /= rhw;
-		sy /= rhw;
-		sz /= rhw;
-		sw = 1.0 / rhw;
-
-		if(flags & TMAP_FLAG_PIXEL_FOG){
-			// TODO
-		}
-		glVertex4f(sx, sy, -sz, sw);
+		sw = 1.0;
+		
+		glVertex4d(sx/rhw, sy/rhw, -sz/rhw, sw/rhw);
 	}
 	glEnd();
 }
@@ -1460,9 +1507,57 @@ void gr_opengl_cleanup()
 	Inited = 0;
 }
 
-void gr_opengl_fog_set(int fog_mode, int r, int g, int b, float near, float far)
+void gr_opengl_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
 {
-	STUB_FUNCTION;
+	Assert((r >= 0) && (r < 256));
+	Assert((g >= 0) && (g < 256));
+	Assert((b >= 0) && (b < 256));
+	
+	if (fog_mode == GR_FOGMODE_NONE) {
+		if (gr_screen.current_fog_mode != fog_mode) {
+			glDisable(GL_FOG);
+		}
+		gr_screen.current_fog_mode = fog_mode;
+		
+		return;
+	}
+	
+	if (gr_screen.current_fog_mode != fog_mode) {
+		glEnable(GL_FOG);
+		
+		if (D3D_fog_mode == 2) {
+			glFogi(GL_FOG_MODE, GL_LINEAR);
+		}
+		
+		gr_screen.current_fog_mode = fog_mode;
+	}
+	
+	if ( (gr_screen.current_fog_color.red != r) ||
+			(gr_screen.current_fog_color.green != g) ||
+			(gr_screen.current_fog_color.blue != b) ) {
+		GLfloat fc[4];
+		
+		gr_opengl_init_color( &gr_screen.current_fog_color, r, g, b );
+	
+		fc[0] = (float)r/255.0;
+		fc[1] = (float)g/255.0;
+		fc[2] = (float)b/255.0;
+		fc[3] = 1.0;
+		
+		glFogfv(GL_FOG_COLOR, fc);
+	}
+	
+	if( (fog_near >= 0.0f) && (fog_far >= 0.0f) && 
+			((fog_near != gr_screen.fog_near) || 
+			(fog_far != gr_screen.fog_far)) ) {
+		gr_screen.fog_near = fog_near;
+		gr_screen.fog_far = fog_far;
+		
+		if (D3D_fog_mode == 2) {
+			glFogf(GL_FOG_START, fog_near);
+			glFogf(GL_FOG_END, fog_far);
+		}
+	}
 }
 
 void gr_opengl_get_pixel(int x, int y, int *r, int *g, int *b)
@@ -2396,30 +2491,38 @@ void gr_opengl_init()
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DITHER);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	
+	glHint(GL_FOG_HINT, GL_NICEST);
+		
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	
 	glEnable(GL_TEXTURE_2D);
-	
-	glGenTextures(1, &bitmapTex);
-	glBindTexture(GL_TEXTURE_2D, bitmapTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	
-	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, 1.0, -1.0);		
+	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, -1.0, 1.0);		
 	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-	bitmapMem = (GLubyte *)malloc(256*256*4);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, bitmapMem);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_CHAR, bitmapMem);
+	//glGenTextures(1, &bitmapTex);
+	//glBindTexture(GL_TEXTURE_2D, bitmapTex);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//bitmapMem = (GLubyte *)malloc(256*256*4);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, bitmapMem);
 	
+	D3D_32bit = 1;              // grd3d.cpp
+	
+	/* 
+	  TODO: set fog_mode to 1 if EXT_secondary_color found and wanted 
+	  1 = use secondary color ext
+	  2 = use opengl linear fog
+	 */
+	D3D_fog_mode = 2;          // grd3d.cpp
+
 	glFlush();
 	
 	Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;

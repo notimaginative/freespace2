@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.10  2002/05/29 04:13:27  theoddone33
+ * enable opengl_line
+ *
  * Revision 1.9  2002/05/29 03:35:51  relnev
  * added rest of init
  *
@@ -130,6 +133,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #endif
+#include <GL/gl.h>
 
 #include "osapi.h"
 #include "2d.h"
@@ -217,7 +221,7 @@ void gr_opengl_pixel(int x, int y)
 
 void gr_opengl_clear()
 {
-	STUB_FUNCTION;
+	glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void gr_opengl_flip()
@@ -514,57 +518,19 @@ void gr_opengl_circle( int xc, int yc, int d )
 
 void gr_opengl_line(int x1,int y1,int x2,int y2)
 {
-	int i;
-   int xstep,ystep;
-   int dy=y2-y1;
-   int dx=x2-x1;
-   int error_term=0;
 	int clipped = 0, swapped=0;
+
+	glDisable ( GL_DEPTH_TEST );
+	glEnable ( GL_BLEND );
+	glBlendFunc ( GL_SRC_ALPHA, GL_DST_ALPHA );
 
 	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
 		
-	if(dy<0)	{
-		dy=-dy;
-      ystep=-1;
-	}	else	{
-      ystep=1;
-	}
-
-   if(dx<0)	{
-      dx=-dx;
-      xstep=-1;
-   } else {
-      xstep=1;
-	}
-
-	if(dx>dy)	{
-
-		for(i=dx+1;i>0;i--) {
-			gr_pixel( x1, y1 ); 
-			x1 += xstep;
-         error_term+=dy;
-
-         if(error_term>dx)	{
-				error_term-=dx;
-            y1+=ystep;
-         }
-      }
-   } else {
-
-      for(i=dy+1;i>0;i--)	{
-			gr_pixel( x1, y1 ); 
-			y1 += ystep;
-         error_term+=dx;
-         if(error_term>0)	{
-            error_term-=dy;
-            x1+=xstep;
-         }
-
-      }
-
-   }
-   
-   STUB_FUNCTION;
+	glBegin (GL_LINE);
+	  glColor4f (gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
+	  glVertex3f (i2fl (x1+gr_screen.offset_x),i2fl (y1+gr_screen.offset_y), 0.99f);
+	  glVertex3f (i2fl (x2+gr_screen.offset_x),i2fl (y2+gr_screen.offset_y), 0.99f);
+	glEnd ();
 }
 
 #define FIND_SCALED_NUM(x,x0,x1,y0,y1) (((((x)-(x0))*((y1)-(y0)))/((x1)-(x0)))+(y0))
@@ -723,8 +689,6 @@ void gr_opengl_set_color_fast(color *dst)
 		return;
 	}
 	gr_screen.current_color = *dst;
-	
-	STUB_FUNCTION;
 }
 
 void gr_opengl_print_screen(char *filename)

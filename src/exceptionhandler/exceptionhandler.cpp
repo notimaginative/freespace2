@@ -15,6 +15,9 @@
  * Main file for dealing with exception handling
  *
  * $Log$
+ * Revision 1.5  2004/06/11 00:49:34  tigital
+ * casting to shutup gcc
+ *
  * Revision 1.4  2002/06/09 04:41:16  relnev
  * added copyright header
  *
@@ -329,7 +332,7 @@ static const char *GetExceptionDescription(DWORD ExceptionCode)
 		{0xe06d7363, "a Microsoft C++ Exception"},
 	};
 
-	for (int i = 0; i < sizeof(ExceptionMap) / sizeof(ExceptionMap[0]); i++) {
+	for (int i = 0; i < (int)(sizeof(ExceptionMap) / sizeof(ExceptionMap[0])); i++) {
 		if (ExceptionCode == ExceptionMap[i].ExceptionCode) {
 			return ExceptionMap[i].ExceptionName;
 		}

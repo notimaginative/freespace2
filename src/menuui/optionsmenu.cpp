@@ -7,8 +7,13 @@
  * C module that contains functions to drive the Options user interface
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/26 22:06:17  relnev
+ * makefile: disable stand_gui for now.
+ *
+ * rest: staticize some globals
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 31    10/25/99 5:47p Jefff
@@ -285,7 +290,7 @@ struct options_buttons {
 	options_buttons(char *name, int x1, int y1, int h, int t, int f = 0) : filename(name), x(x1), y(y1), hotspot(h), tab(t), flags(f) {}
 };
 
-options_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
+static options_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{	// GR_640
 		options_buttons("OPT_00",	17,	2,		0,		-1),							// options tab
 		options_buttons("OPT_01",	102,	2,		1,		-1),							// multiplayer tab

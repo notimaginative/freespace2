@@ -7,8 +7,13 @@
  * Module for working with Mission goals
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:09  root
- * Initial revision
+ * Revision 1.2  2002/05/26 22:06:17  relnev
+ * makefile: disable stand_gui for now.
+ *
+ * rest: staticize some globals
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:09  root
+ * Initial import.
  *
  * 
  * 15    10/27/99 5:22p Jefff
@@ -480,7 +485,7 @@ int Mission_goal_timestamp;
 
 mission_event Mission_events[MAX_MISSION_EVENTS];
 mission_goal Mission_goals[MAX_GOALS];		// structure for the goals of this mission
-goal_text Goal_text;
+static goal_text Goal_text;
 
 #define DIRECTIVE_SOUND_DELAY			500					// time directive success sound effect is delayed
 #define DIRECTIVE_SPECIAL_DELAY		7000					// mark special directives as true after 7 seconds

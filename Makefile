@@ -228,8 +228,9 @@ SOURCES =./src/anim/animplay.cpp \
 	./src/network/multiutil.cpp \
 	./src/network/psnet.cpp \
 	./src/network/psnet2.cpp \
-	./src/network/stand_gui.cpp \
 	./src/platform/unix.cpp
+
+#	./src/network/stand_gui.cpp 
 
 OBJECTS=$(SOURCES:.cpp=.o)
 

@@ -7,6 +7,11 @@
  * File to deal with manipulating AI goals, etc.
  *
  * $Log$
+ * Revision 1.3  2002/05/26 22:06:17  relnev
+ * makefile: disable stand_gui for now.
+ *
+ * rest: staticize some globals
+ *
  * Revision 1.2  2002/05/07 03:16:52  theoddone33
  * The Great Newline Fix
  *
@@ -1898,7 +1903,7 @@ void validate_mission_goals(int objnum, ai_info *aip)
 }
 
 //XSTR:OFF
-char *Goal_text[5] = {
+static char *Goal_text[5] = {
 "EVENT_SHIP",
 "EVENT_WING",
 "PLAYER_SHIP",

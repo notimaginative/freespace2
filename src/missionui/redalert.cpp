@@ -7,6 +7,11 @@
  * Module for Red Alert mission interface and code
  *
  * $Log$
+ * Revision 1.3  2002/05/26 22:06:17  relnev
+ * makefile: disable stand_gui for now.
+ *
+ * rest: staticize some globals
+ *
  * Revision 1.2  2002/05/03 13:34:33  theoddone33
  * More stuff compiles
  *
@@ -220,7 +225,7 @@ static int Ra_flash_coords[GR_NUM_RESOLUTIONS][2] = {
 #define RA_REPLAY_MISSION				0
 #define RA_CONTINUE						1
 
-ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
+static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{	// GR_640
 		ui_button_info("RAB_00",	2,		445,	-1,	-1, 0),
 		ui_button_info("RAB_01",	575,	432,	-1,	-1, 1),

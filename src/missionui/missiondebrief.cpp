@@ -7,6 +7,11 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.3  2002/05/26 22:06:17  relnev
+ * makefile: disable stand_gui for now.
+ *
+ * rest: staticize some globals
+ *
  * Revision 1.2  2002/05/07 03:16:46  theoddone33
  * The Great Newline Fix
  *
@@ -521,7 +526,7 @@ typedef struct {
 	char callsign[CALLSIGN_LEN];
 } debrief_multi_list_info;
 
-ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
+static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{ // GR_640
 		ui_button_info("DB_00",		6,		1,		37,	7,		0),		// debriefing
 		ui_button_info("DB_01",		6,		21,	37,	23,	1),		// statistics

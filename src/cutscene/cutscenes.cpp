@@ -7,6 +7,11 @@
  * Code for the cutscenes viewer screen
  *
  * $Log$
+ * Revision 1.3  2002/05/26 22:06:17  relnev
+ * makefile: disable stand_gui for now.
+ *
+ * rest: staticize some globals
+ *
  * Revision 1.2  2002/05/07 03:16:43  theoddone33
  * The Great Newline Fix
  *
@@ -257,7 +262,7 @@ static int Background_bitmap;
 static UI_BUTTON List_region;
 static UI_WINDOW Ui_window;
 
-ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
+static ui_button_info Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	{ // GR_640
 		ui_button_info("TDB_00",	7,		5,		37,	7,		0),			// tech database 1
 		ui_button_info("TDB_01",	7,		19,	37,	23,	1),			// tech database 2

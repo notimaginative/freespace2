@@ -15,6 +15,9 @@
  * Code to drive the Player Select initial screen
  *
  * $Log$
+ * Revision 1.4  2003/05/22 16:13:35  taylor
+ * fix missed German build option for auto-lang
+ *
  * Revision 1.3  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -1324,11 +1327,11 @@ void player_select_display_copyright()
 	gr_set_color_fast(&Color_white);
 
 	sprintf(Copyright_msg1, NOX("FreeSpace 2"));
-#if defined(GERMAN_BUILD)
-	sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\xA8');
-#else
-	sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
-#endif
+	if (Lcl_gr) {
+		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\xA8');
+	} else {
+		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
+	}
 
 	gr_get_string_size(&w, NULL, Copyright_msg1);
 	sx = fl2i((gr_screen.max_w / 2) - w/2.0f + 0.5f);

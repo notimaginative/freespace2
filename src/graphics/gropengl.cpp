@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.33  2002/05/31 22:04:55  relnev
+ * use d3d rect_internal
+ *
  * Revision 1.32  2002/05/31 06:28:23  relnev
  * more stuff
  *
@@ -209,8 +212,10 @@
 #endif
 #include <GL/gl.h>
 
+#include "pstypes.h"
 #include "osapi.h"
 #include "2d.h"
+#include "3d.h"
 #include "bmpman.h"
 #include "floating.h"
 #include "palman.h"
@@ -349,7 +354,7 @@ void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_typ
 			glDepthMask(GL_FALSE);
 			break;
 		case ZBUFFER_TYPE_READ:
-			glDepthFunc(GL_LEQUAL);
+			glDepthFunc(GL_LESS);
 			glDepthMask(GL_FALSE);	
 			break;
 		case ZBUFFER_TYPE_WRITE:
@@ -357,7 +362,7 @@ void gr_opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_typ
 			glDepthMask(GL_TRUE);
 			break;
 		case ZBUFFER_TYPE_FULL:
-			glDepthFunc(GL_LEQUAL);
+			glDepthFunc(GL_LESS);
 			glDepthMask(GL_TRUE);
 			break;
 		default:
@@ -710,31 +715,76 @@ void gr_opengl_bitmap(int x, int y)
 	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);	
 }
 
-static void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
+void gr_opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 {
 	int saved_zbuf;
+	vertex v[4];
+	vertex *verts[4] = {&v[0], &v[1], &v[2], &v[3]};
 
 	saved_zbuf = gr_zbuffer_get();
-	gr_zbuffer_set(GR_ZBUFF_NONE);
-	gr_set_cull(0);
 	
-	glColor4ub(r, g, b, a);
-	glBegin(GL_QUADS);
-		/* upper left */
-		glVertex2f(x, y);
-		
-		/* lower left */
-		glVertex2f(x, y+x);
-	
-		/* lower right */
-		glVertex2f(x+w, y+h);
-		
-		/* upper right */
-		glVertex2f(x+w, y);
-	glEnd();
-	
+	// start the frame, no zbuffering, no culling
+	g3_start_frame(1);	
+	gr_zbuffer_set(GR_ZBUFF_NONE);		
+	gr_set_cull(0);		
+
+	// stuff coords		
+	v[0].sx = i2fl(x);
+	v[0].sy = i2fl(y);
+	v[0].sw = 0.0f;
+	v[0].u = 0.0f;
+	v[0].v = 0.0f;
+	v[0].flags = PF_PROJECTED;
+	v[0].codes = 0;
+	v[0].r = (ubyte)r;
+	v[0].g = (ubyte)g;
+	v[0].b = (ubyte)b;
+	v[0].a = (ubyte)a;
+
+	v[1].sx = i2fl(x + w);
+	v[1].sy = i2fl(y);	
+	v[1].sw = 0.0f;
+	v[1].u = 0.0f;
+	v[1].v = 0.0f;
+	v[1].flags = PF_PROJECTED;
+	v[1].codes = 0;
+	v[1].r = (ubyte)r;
+	v[1].g = (ubyte)g;
+	v[1].b = (ubyte)b;
+	v[1].a = (ubyte)a;
+
+	v[2].sx = i2fl(x + w);
+	v[2].sy = i2fl(y + h);
+	v[2].sw = 0.0f;
+	v[2].u = 0.0f;
+	v[2].v = 0.0f;
+	v[2].flags = PF_PROJECTED;
+	v[2].codes = 0;
+	v[2].r = (ubyte)r;
+	v[2].g = (ubyte)g;
+	v[2].b = (ubyte)b;
+	v[2].a = (ubyte)a;
+
+	v[3].sx = i2fl(x);
+	v[3].sy = i2fl(y + h);
+	v[3].sw = 0.0f;
+	v[3].u = 0.0f;
+	v[3].v = 0.0f;
+	v[3].flags = PF_PROJECTED;
+	v[3].codes = 0;				
+	v[3].r = (ubyte)r;
+	v[3].g = (ubyte)g;
+	v[3].b = (ubyte)b;
+	v[3].a = (ubyte)a;
+
+	// draw the polys
+	g3_draw_poly_constant_sw(4, verts, TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB | TMAP_FLAG_ALPHA, 0.1f);		
+
+	g3_end_frame();
+
+	// restore zbuffer and culling
 	gr_zbuffer_set(saved_zbuf);
-	gr_set_cull(1);
+	gr_set_cull(1);	
 }
 
 void gr_opengl_rect(int x,int y,int w,int h)
@@ -1299,7 +1349,6 @@ void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_sca
 		if ( flags & TMAP_FLAG_TEXTURED )       {
 			tu = va->u*u_scale;
 			tv = va->v*v_scale;
-			
 			glTexCoord2d(tu, tv);
 		}
 		
@@ -2546,7 +2595,8 @@ void gr_opengl_init()
 	glPushMatrix();
 	glLoadIdentity();
 	
-	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, -1.0, 1.0);		
+	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, 0.0, 1.0);
+	glDepthRange(0.0, 1.0);
 	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	

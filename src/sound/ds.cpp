@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.15  2003/03/15 05:12:56  theoddone33
+ * Fix OpenAL cleanup (Taylor)
+ *
  * Revision 1.14  2002/08/01 04:55:45  relnev
  * experimenting with texture state
  *
@@ -1889,6 +1892,13 @@ void ds_close()
 	// free the Channels[] array, since it was dynamically allocated
 	free(Channels);
 	Channels = NULL;
+
+#ifdef PLAT_UNIX
+	ds_sound_context = alcGetCurrentContext();
+	ds_sound_device = alcGetContextsDevice(ds_sound_context);
+	alcDestroyContext(ds_sound_context);
+	alcCloseDevice(ds_sound_device);
+#endif
 }
 
 // ---------------------------------------------------------------------------------------

@@ -15,6 +15,9 @@
  * main upper level code for pasring stuff
  *
  * $Log$
+ * Revision 1.6  2003/08/14 02:39:11  theoddone33
+ * Removed braces from initializers so GCC 3 will stop complaining.
+ *
  * Revision 1.5  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -471,31 +474,30 @@ char *Nebula_colors[NUM_NEBULA_COLORS] = {
 	"Grey Green",
 };
 
-char *Iff_names[MAX_IFF] = { {"IFF 1"}, {"IFF 2"}, {"IFF 3"},
-};
+char *Iff_names[MAX_IFF] = { "IFF 1", "IFF 2", "IFF 3" };
 
 char *Ai_behavior_names[MAX_AI_BEHAVIORS] = {
-	{"Chase"},
-	{"Evade"},
-	{"Get behind"},
-	{"Stay Near"},
-	{"Still"},
-	{"Guard"},
-	{"Avoid"},
-	{"Waypoints"},
-	{"Dock"},
-	{"None"},
-	{"Big Ship"},
-	{"Path"},
-	{"Be Rearmed"},
-	{"Safety"},
-	{"Evade Weapon"},
-	{"Strafe"},
-	{"Play Dead"},
-	{"Bay Emerge"},
-	{"Bay Depart"},
-	{"Sentry Gun"},
-	{"Warp Out"},
+	"Chase",
+	"Evade",
+	"Get behind",
+	"Stay Near",
+	"Still",
+	"Guard",
+	"Avoid",
+	"Waypoints",
+	"Dock",
+	"None",
+	"Big Ship",
+	"Path",
+	"Be Rearmed",
+	"Safety",
+	"Evade Weapon",
+	"Strafe",
+	"Play Dead",
+	"Bay Emerge",
+	"Bay Depart",
+	"Sentry Gun",
+	"Warp Out"
 };
 
 char *Cargo_names[MAX_CARGO];
@@ -504,16 +506,16 @@ char Cargo_names_buf[MAX_CARGO][NAME_LENGTH];
 char *Ship_class_names[MAX_SHIP_TYPES];		// to be filled in from Ship_info array
 
 char *Icon_names[MAX_BRIEF_ICONS] = {
-	{"Fighter"}, {"Fighter Wing"}, {"Cargo"}, {"Cargo Wing"}, {"Largeship"},
-	{"Largeship Wing"}, {"Capital"}, {"Planet"}, {"Asteroid Field"}, {"Waypoint"},
-	{"Support Ship"}, {"Freighter(no cargo)"}, {"Freighter(has cargo)"},
-	{"Freighter Wing(no cargo)"}, {"Freighter Wing(has cargo)"}, {"Installation"},
-	{"Bomber"}, {"Bomber Wing"}, {"Cruiser"}, {"Cruiser Wing"}, {"Unknown"}, {"Unknown Wing"},
-	{"Player Fighter"}, {"Player Fighter Wing"}, {"Player Bomber"}, {"Player Bomber Wing"}, 
+	"Fighter", "Fighter Wing", "Cargo", "Cargo Wing", "Largeship",
+	"Largeship Wing", "Capital", "Planet", "Asteroid Field", "Waypoint",
+	"Support Ship", "Freighter(no cargo)", "Freighter(has cargo)",
+	"Freighter Wing(no cargo)", "Freighter Wing(has cargo)", "Installation",
+	"Bomber", "Bomber Wing", "Cruiser", "Cruiser Wing", "Unknown", "Unknown Wing",
+	"Player Fighter", "Player Fighter Wing", "Player Bomber", "Player Bomber Wing", 
 #ifdef MAKE_FS1
-	{"Jump Node"}
+	"Jump Node"
 #else
-	{"Knossos Device"}, {"Transport Wing"}, {"Corvette"}, {"Gas Miner"}, {"Awacs"}, {"Supercap"}, {"Sentry Gun"}, {"Jump Node"}, {"Transport"}
+	"Knossos Device", "Transport Wing", "Corvette", "Gas Miner", "Awacs", "Supercap", "Sentry Gun", "Jump Node", "Transport"
 #endif
 };
 
@@ -522,24 +524,24 @@ char *Icon_names[MAX_BRIEF_ICONS] = {
 int	Team_names_index_xlate[MAX_TEAM_NAMES_INDEX+1] = {-1, 0, 1, -1, 2, -1, -1, -1, 3};
 
 char *Team_names[MAX_TEAM_NAMES] = {
-	{"Hostile"}, {"Friendly"}, {"Neutral"}, {"Unknown"},
+	"Hostile", "Friendly", "Neutral", "Unknown",
 };
 
 char *Status_desc_names[MAX_STATUS_NAMES] = {
-	{"Shields Critical"}, {"Engines Damaged"}, {"Fully Operational"},
+	"Shields Critical", "Engines Damaged", "Fully Operational",
 };
 
 char *Status_type_names[MAX_STATUS_NAMES] = {
-	{"Damaged"}, {"Disabled"}, {"Corroded"},
+	"Damaged", "Disabled", "Corroded",
 };
 
 char *Status_target_names[MAX_STATUS_NAMES] = {
-	{"Weapons"}, {"Engines"}, {"Cable TV"},
+	"Weapons", "Engines", "Cable TV",
 };
 
 // definitions for arrival locations for ships/wings
 char *Arrival_location_names[MAX_ARRIVAL_NAMES] = {
-	{"Hyperspace"}, {"Near Ship"}, {"In front of ship"}, {"Docking Bay"},
+	"Hyperspace", "Near Ship", "In front of ship", "Docking Bay",
 };
 
 char *Special_arrival_anchor_names[MAX_SPECIAL_ARRIVAL_ANCHORS] =
@@ -553,15 +555,15 @@ char *Special_arrival_anchor_names[MAX_SPECIAL_ARRIVAL_ANCHORS] =
 };
 
 char *Departure_location_names[MAX_ARRIVAL_NAMES] = {
-	{"Hyperspace"}, {"Docking Bay"},
+	"Hyperspace", "Docking Bay",
 };
 
 char *Goal_type_names[MAX_GOAL_TYPE_NAMES] = {
-	{"Primary"}, {"Secondary"}, {"Bonus"},
+	"Primary", "Secondary", "Bonus",
 };
 
 char *Species_names[MAX_SPECIES_NAMES] = {
-	{"Terran"}, {"Vasudan"}, {"Shivan"},
+	"Terran", "Vasudan", "Shivan",
 };
 
 char *Reinforcement_type_names[] = {

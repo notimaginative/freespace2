@@ -18,7 +18,7 @@ CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ # -fwritable
 #CFLAGS+=-DNDEBUG
 #CFLAGS+=-funroll-loops # -fomit-frame-pointer # not stable?
 #CFLAGS+=-march=pentiumpro -mcpu=pentiumpro # not stable?
-CFLAGS+=-Wno-missing-braces -Wno-multichar -fsigned-char
+CFLAGS+=-fsigned-char -Wno-format-y2k
 
 ifeq ($(strip $(MACOSX)),true)
   CFLAGS+=-D__MACOSX__=1 -I/System/Library/Frameworks/AGL.framework/Headers
@@ -77,27 +77,9 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/globalincs/systemvars.cpp \
 	./src/globalincs/version.cpp \
 	./src/graphics/2d.cpp \
-	./src/graphics/aaline.cpp \
-	./src/graphics/bitblt.cpp \
-	./src/graphics/circle.cpp \
-	./src/graphics/colors.cpp \
 	./src/graphics/font.cpp \
-	./src/graphics/gradient.cpp \
 	./src/graphics/gropengl.cpp \
-	./src/graphics/grsoft.cpp \
 	./src/graphics/grzbuffer.cpp \
-	./src/graphics/line.cpp \
-	./src/graphics/pixel.cpp \
-	./src/graphics/rect.cpp \
-	./src/graphics/scaler.cpp \
-	./src/graphics/shade.cpp \
-	./src/graphics/tmapper.cpp \
-	./src/graphics/tmapscanline.cpp \
-	./src/graphics/tmapscantiled128x128.cpp \
-	./src/graphics/tmapscantiled16x16.cpp \
-	./src/graphics/tmapscantiled256x256.cpp \
-	./src/graphics/tmapscantiled32x32.cpp \
-	./src/graphics/tmapscantiled64x64.cpp \
 	./src/hud/hud.cpp \
 	./src/hud/hudartillery.cpp \
 	./src/hud/hudbrackets.cpp \
@@ -288,6 +270,27 @@ CODE_SOURCES += \
 	./src/movie/decoder16.cpp \
 	./src/movie/mve_audio.cpp
 endif
+
+## Only used for software rendering
+##CODE_SOURCES += \
+##	./src/graphics/aaline.cpp \
+##	./src/graphics/bitblt.cpp \
+##	./src/graphics/circle.cpp \
+##	./src/graphics/colors.cpp \
+##	./src/graphics/gradient.cpp \
+##	./src/graphics/grsoft.cpp \
+##	./src/graphics/line.cpp \
+##	./src/graphics/pixel.cpp \
+##	./src/graphics/rect.cpp \
+##	./src/graphics/scaler.cpp \
+##	./src/graphics/shade.cpp \
+##	./src/graphics/tmapper.cpp \
+##	./src/graphics/tmapscanline.cpp \
+##	./src/graphics/tmapscantiled128x128.cpp \
+##	./src/graphics/tmapscantiled16x16.cpp \
+##	./src/graphics/tmapscantiled256x256.cpp \
+##	./src/graphics/tmapscantiled32x32.cpp \
+##	./src/graphics/tmapscantiled64x64.cpp
 
 FS_SOURCES=./src/freespace2/freespace.cpp \
 	./src/freespace2/levelpaging.cpp \

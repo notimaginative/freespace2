@@ -7,6 +7,9 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.3  2002/05/30 16:55:44  theoddone33
+ * now gets to another screen
+ *
  * Revision 1.2  2002/05/27 22:43:02  theoddone33
  * Fix more glide symbols
  *
@@ -1975,8 +1978,10 @@ void main_hall_read_table()
 			stuff_string(m->bitmap, F_NAME, NULL, MAX_FILENAME_LEN);
 			required_string("+Mask:");
 			stuff_string(m->mask, F_NAME, NULL, MAX_FILENAME_LEN);
+#ifndef FS2_DEMO
 			required_string("+Music:");
 			stuff_string(m->music, F_NAME, NULL, MAX_FILENAME_LEN);
+#endif
 
 			// intercom sounds
 			required_string("+Num Intercom Sounds:");

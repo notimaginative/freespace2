@@ -7,6 +7,9 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
+ * Revision 1.3  2002/06/02 00:31:36  relnev
+ * implemented osregistry
+ *
  * Revision 1.2  2002/05/07 03:16:53  theoddone33
  * The Great Newline Fix
  *
@@ -785,7 +788,7 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 	new_item->warmdown_stamp = -1;
 	new_item->weapon_info_index = fire_info->beam_info_index;	
 	new_item->objp = fire_info->shooter;
-	new_item->sig = NULL;
+	new_item->sig = 0;
 	new_item->subsys = NULL;
 	new_item->life_left = 0;	
 	new_item->life_total = 0;
@@ -793,7 +796,7 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 	new_item->f_collision_count = 0;
 	new_item->target = NULL;
 	new_item->target_subsys = NULL;
-	new_item->target_sig = NULL;	
+	new_item->target_sig = 0;
 	new_item->beam_sound_loop = -1;
 	new_item->type = BEAM_TYPE_C;	
 	new_item->targeting_laser_offset = fire_info->targeting_laser_offset;

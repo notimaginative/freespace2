@@ -7,6 +7,9 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.12  2002/06/02 00:31:35  relnev
+ * implemented osregistry
+ *
  * Revision 1.11  2002/06/01 09:00:34  relnev
  * silly debug memmanager
  *
@@ -3789,7 +3792,7 @@ void game_flip_page_and_time_it()
 	t2 = timer_get_fixed_seconds();
 	d = t2 - t1;
 	t = (gr_screen.max_w*gr_screen.max_h*gr_screen.bytes_per_pixel)/1024;
-	sprintf( transfer_text, NOX("%d MB/s"), fixmuldiv(t,65,d) );
+	sprintf( transfer_text, NOX("%ld MB/s"), fixmuldiv(t,65,d) );
 }
 
 void game_simulation_frame()
@@ -4325,8 +4328,10 @@ void game_frame()
 fix Last_time = 0;						// The absolute time of game at end of last frame (beginning of this frame)
 fix Last_delta_time = 0;				// While game is paused, this keeps track of how much elapsed in the frame before paused.
 static int timer_paused=0;
+#if defined(TIMER_TEST) && !defined(NDEBUG)
 static int stop_count,start_count;
 static int time_stopped,time_started;
+#endif
 int saved_timestamp_ticker = -1;
 
 void game_reset_time()
@@ -7540,7 +7545,7 @@ void Do_model_timings_test()
 	
 	// Load them all
 	for (i=0; i<Num_ship_types; i++ )	{
-		Ship_info[i].modelnum = model_load( Ship_info[i].pof_file, NULL, NULL );
+		Ship_info[i].modelnum = model_load( Ship_info[i].pof_file, 0, NULL );
 
 		model_used[Ship_info[i].modelnum%MAX_POLYGON_MODELS]++;
 		model_id[Ship_info[i].modelnum%MAX_POLYGON_MODELS] = Ship_info[i].modelnum;

@@ -7,6 +7,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.3  2002/06/02 00:31:36  relnev
+ * implemented osregistry
+ *
  * Revision 1.2  2002/05/03 13:34:34  theoddone33
  * More stuff compiles
  *
@@ -4543,7 +4546,7 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 		}
 
 		// mow load it for me with no subsystems
-		sip->modelnum_hud = model_load(sip->pof_file_hud, NULL, NULL);
+		sip->modelnum_hud = model_load(sip->pof_file_hud, 0, NULL);
 	}
 
 	polymodel * pm;

@@ -7,6 +7,9 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.5  2002/06/02 00:31:35  relnev
+ * implemented osregistry
+ *
  * Revision 1.4  2002/06/01 07:12:33  relnev
  * a few NDEBUG updates.
  *
@@ -1360,7 +1363,7 @@ void multi_join_game_init()
 		port_num = DEFAULT_GAME_PORT;
 		p = strrchr(Cmdline_connect_addr, ':');
 		if ( p ) {
-			*p = NULL;
+			*p = 0;
 			p++;
 			port_num = (short)atoi(p);
 		}

@@ -1,12 +1,15 @@
-#include "unix.h"
+#include "pstypes.h"
+#include "osregistry.h"
 
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow);
 void vm_dump();
 
 int main(int argc, char **argv)
 {
-	STUB_FUNCTION;
-
+	/* set some sane defaults since we don't have a laucher... */
+	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
+		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL 640x480"));
+	
 	int retr = WinMain(1, 0, "", 0);
 	
 	vm_dump();

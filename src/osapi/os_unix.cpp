@@ -7,6 +7,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.4  2002/05/30 16:50:24  theoddone33
+ * Keyboard partially fixed
+ *
  * Revision 1.3  2002/05/29 06:25:13  theoddone33
  * Keyboard input, mouse tracking now work
  *
@@ -237,10 +240,10 @@ void os_poll()
 					mouse_mark_button (MOUSE_MIDDLE_BUTTON, 0);
 				break;
 			case SDL_KEYDOWN:
-				key_mark (e.key.keysym.sym, 1, 0);
+				key_mark ((e.key.keysym.mod<<16) | e.key.keysym.sym, 1, 0);
 				break;
 			case SDL_KEYUP:
-				key_mark (e.key.keysym.sym, 0, 0);
+				key_mark ((e.key.keysym.mod<<16) | e.key.keysym.sym, 0, 0);
 				break;
 			default:
 				break;

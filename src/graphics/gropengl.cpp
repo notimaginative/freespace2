@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.20  2002/05/30 16:50:24  theoddone33
+ * Keyboard partially fixed
+ *
  * Revision 1.19  2002/05/30 08:13:14  relnev
  * fonts are fixed
  *
@@ -1294,7 +1297,6 @@ int GL_max_texture_width = 0;
 int GL_min_texture_height = 0;
 int GL_max_texture_height = 0;
 int GL_square_textures = 0;
-int GL_pow2_textures = 0;
 int GL_textures_in = 0;
 int GL_textures_in_frame = 0;
 int GL_last_bitmap_id = -1;
@@ -1514,7 +1516,6 @@ void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int
 	tex_w = w_in;
 	tex_h = h_in;
 
-	
 	if (1)        {
 		int i;
 		for (i=0; i<16; i++ )   {
@@ -1531,7 +1532,6 @@ void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int
 			}
 		}
 	}
-	
 
 	if ( tex_w < GL_min_texture_width ) {
 		tex_w = GL_min_texture_width;

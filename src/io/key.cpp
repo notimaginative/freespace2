@@ -7,6 +7,9 @@
  * <insert description of file here>
  *
  * $Log$
+ * Revision 1.3  2002/05/30 16:50:24  theoddone33
+ * Keyboard partially fixed
+ *
  * Revision 1.2  2002/05/29 23:17:50  theoddone33
  * Non working text code and fixed keys
  *
@@ -127,6 +130,7 @@
 #include <windowsx.h>
 #endif
 
+#include <ctype.h>	// for toupper
 #include "pstypes.h"
 #include "key.h"
 #include "fix.h"
@@ -252,15 +256,26 @@ int key_to_ascii(int keycode )
 	if ( !key_inited ) return 255;
 
 	shifted = keycode & KEY_SHIFTED;
+#ifdef PLAT_UNIX
+	keycode &= 0xffff;
+#else
 	keycode &= 0xFF;
+#endif
 
 	if ( keycode>=127 )
 		return 255;
 
+#ifdef PLAT_UNIX
+	if (shifted)
+		return toupper (keycode);
+	else
+		return keycode;
+#else
 	if (shifted)
 		return shifted_ascii_table[keycode];
 	else
 		return ascii_table[keycode];
+#endif
 }
 
 //	Flush the keyboard buffer.

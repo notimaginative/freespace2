@@ -7,6 +7,9 @@
  * Include file for keyboard reading routines
  *
  * $Log$
+ * Revision 1.4  2002/05/30 16:50:24  theoddone33
+ * Keyboard partially fixed
+ *
  * Revision 1.3  2002/05/29 23:17:49  theoddone33
  * Non working text code and fixed keys
  *
@@ -118,16 +121,16 @@ void key_clear_filter();
 extern int Cheats_enabled;
 extern int Key_normal_game;
 
-#define KEY_SHIFTED     0x1000
-#define KEY_ALTED       0x2000
-#define KEY_CTRLED      0x4000
-#define KEY_DEBUGGED		0x8000
-#define KEY_DEBUGGED1	0x0800		//	Cheat bit in release version of game.
-#define KEY_MASK			0x00FF
+#ifdef PLAT_UNIX
+#define KEY_SHIFTED     0x30000		//(KMOD_SHIFT)<<16;
+#define KEY_ALTED       0x3000000	//(KMOD_ALT)<<16;
+#define KEY_CTRLED      0xc00000	//(KMOD_CTRL)<<16;
+#define KEY_DEBUGGED	0x010000	// Dummy
+#define KEY_DEBUGGED1	0x2000000	// Dummy
+#define KEY_MASK			0xffff
 
 #define KEY_DEBUG_KEY	0x29			//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
 
-#ifdef PLAT_UNIX
 #define KEY_0           SDLK_0
 #define KEY_1           SDLK_1
 #define KEY_2           SDLK_2
@@ -245,6 +248,15 @@ extern int Key_normal_game;
 #define KEY_PAUSE       SDLK_PAUSE
 #define KEY_BREAK	SDLK_BREAK
 #else
+#define KEY_SHIFTED     0x1000
+#define KEY_ALTED       0x2000
+#define KEY_CTRLED      0x4000
+#define KEY_DEBUGGED		0x8000
+#define KEY_DEBUGGED1	0x0800		//	Cheat bit in release version of game.
+#define KEY_MASK			0x00FF
+
+#define KEY_DEBUG_KEY	0x29			//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
+
 #define KEY_0           0x0B
 #define KEY_1           0x02
 #define KEY_2           0x03

@@ -4,10 +4,12 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#include "mvelib.h"                                             /* next buffer */
+#include "mvelib.h"
 #include "bmpman.h"
 #include "2d.h"
 #include "mve_audio.h"
+#include "key.h"
+#include "osapi.h"
 
 #ifndef MIN
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -16,6 +18,7 @@
 
 static int g_spdFactorNum=0;
 static int g_spdFactorDenom=10;
+static int playing = 1;
 
 void initializeMovie(MVESTREAM *mve);
 void playMovie(MVESTREAM *mve);
@@ -562,6 +565,10 @@ static int display_video_handler(unsigned char major, unsigned char minor, unsig
 	gr_bitmap (0, 0);
 	bm_release (bitmap);
 	gr_flip ();
+#ifdef PLAT_UNIX
+	os_poll ();	/* DDOI - run event loop(s) */
+#endif
+	if (key_check (KEY_ESC)) playing = 0;
 	
 	return 1;
 }
@@ -668,7 +675,7 @@ void playMovie(MVESTREAM *mve)
 {
     int init_timer=0;
     int cont=1;
-    while (cont)
+    while (cont && playing)
     {
         cont = mve_play_next_chunk(mve);
         if (micro_frame_delay  &&  !init_timer)

@@ -7,6 +7,9 @@
  * MVE movie playing routines
  *
  * $Log$
+ * Revision 1.5  2005/03/31 21:26:02  taylor
+ * s/alGetSourceiv/alGetSourcei/
+ *
  * Revision 1.4  2005/03/31 00:06:20  taylor
  * go back to more accurate timer and allow video scaling for movies
  *
@@ -334,7 +337,7 @@ void mve_audio_play()
 	if (mve_audio_canplay) {
 		ALint status, bqueued;
 
-		alGetSourceiv(mas->source_id, AL_SOURCE_STATE, &status);
+		alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status);
 
 		OpenAL_ErrorCheck(return);
 	
@@ -408,7 +411,7 @@ int mve_audio_data(ubyte major, ubyte *data)
 			if (bqueued == 0) 
 				mprintf(("MVE: Buffer underun (First is normal)\n"));
 
-			alGetSourceiv(mas->source_id, AL_SOURCE_STATE, &status);
+			alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status);
 
 			OpenAL_ErrorCheck(return 0);
 

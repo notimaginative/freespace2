@@ -7,6 +7,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.12  2002/05/29 04:52:45  relnev
+ * bitmap
+ *
  * Revision 1.11  2002/05/29 04:29:56  relnev
  * removed some unncessary stubbing, implemented opengl rect
  *
@@ -325,29 +328,127 @@ void gr_opengl_set_shader( shader * shade )
 	}
 }
 
-
-void gr_opengl_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
+void gr_opengl_bitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
-	int i,j;
 	bitmap * bmp;
-	ubyte * sptr;
 
-	bmp = bm_lock( gr_screen.current_bitmap, 8, 0 );
-	sptr = (ubyte *)( bmp->data + (sy*bmp->w+sx) );
+	bmp = bm_lock( gr_screen.current_bitmap, 16, 0 );
 
 //	mprintf(( "x=%d, y=%d, w=%d, h=%d\n", x, y, w, h ));
 //	mprintf(( "sx=%d, sy=%d, bw=%d, bh=%d\n", sx, sy, bmp->w, bmp->h ));
 
-	for (i=0; i<h; i++ )	{
-		for ( j=0; j<w; j++ )	{
-			gr_set_color( gr_palette[sptr[j]*3+0], gr_palette[sptr[j]*3+1], gr_palette[sptr[j]*3+2] );
-			gr_pixel( x+j, i+y );
-		}
-		sptr += bmp->w;
-	}
+/* ** */
+	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_PIXEL_MODE_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
+	glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+	
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+		
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, bmp->w);
+	glPixelZoom(1, 1);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	glOrtho(0.0, gr_screen.max_w, 0.0, gr_screen.max_h, -1.0, 1.0);
+	glRasterPos2i(x, gr_screen.max_h-(y+h));
+	
+	glDrawPixels(w, h, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid *)bmp->data);
+		
+	glPopMatrix();
+	
+	glPopClientAttrib();
+	glPopAttrib();
+/* ** */
+
 	bm_unlock(gr_screen.current_bitmap);
 	
 	STUB_FUNCTION;
+}
+
+
+void gr_d3d_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
+{
+	int reclip;
+	#ifndef NDEBUG
+	int count = 0;
+	#endif
+
+	int dx1=x, dx2=x+w-1;
+	int dy1=y, dy2=y+h-1;
+
+	int bw, bh;
+	bm_get_info( gr_screen.current_bitmap, &bw, &bh, NULL );
+
+	do {
+		reclip = 0;
+		#ifndef NDEBUG
+			if ( count > 1 ) Int3();
+			count++;
+		#endif
+	
+		if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
+		if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
+		if ( dx1 < gr_screen.clip_left ) { sx += gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
+		if ( dy1 < gr_screen.clip_top ) { sy += gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
+		if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
+		if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
+
+		if ( sx < 0 ) {
+			dx1 -= sx;
+			sx = 0;
+			reclip = 1;
+		}
+
+		if ( sy < 0 ) {
+			dy1 -= sy;
+			sy = 0;
+			reclip = 1;
+		}
+
+		w = dx2-dx1+1;
+		h = dy2-dy1+1;
+
+		if ( sx + w > bw ) {
+			w = bw - sx;
+			dx2 = dx1 + w - 1;
+		}
+
+		if ( sy + h > bh ) {
+			h = bh - sy;
+			dy2 = dy1 + h - 1;
+		}
+
+		if ( w < 1 ) return;		// clipped away!
+		if ( h < 1 ) return;		// clipped away!
+
+	} while (reclip);
+
+	// Make sure clipping algorithm works
+	#ifndef NDEBUG
+		Assert( w > 0 );
+		Assert( h > 0 );
+		Assert( w == (dx2-dx1+1) );
+		Assert( h == (dy2-dy1+1) );
+		Assert( sx >= 0 );
+		Assert( sy >= 0 );
+		Assert( sx+w <= bw );
+		Assert( sy+h <= bh );
+		Assert( dx2 >= dx1 );
+		Assert( dy2 >= dy1 );
+		Assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
+		Assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
+		Assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
+		Assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
+	#endif
+
+	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.
+	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
+
+	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
 }
 
 void gr_opengl_bitmap(int x, int y)
@@ -373,7 +474,7 @@ void gr_opengl_bitmap(int x, int y)
 
 	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
 
-	gr_bitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);	
+	gr_opengl_bitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);	
 }
 
 static void opengl_scanline(int x1,int x2,int y)

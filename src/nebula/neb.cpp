@@ -7,8 +7,12 @@
  * Nebula effect
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/04 04:36:56  theoddone33
+ * More changes, took out a lot of the sound/* stuff which will bite later but
+ * I don't care.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  * 
  * 
  * 50    8/30/99 5:01p Dave
@@ -71,7 +75,9 @@
 #include "bmpman.h"
 #include "2d.h"
 #include "object.h"
+#ifndef PLAT_UNIX
 #include "glide.h"
+#endif
 #include "timer.h"
 #include "multi.h"
 #include "freespace.h"

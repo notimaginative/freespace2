@@ -5,8 +5,12 @@
  * $Author$
  * 
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/04 04:36:56  theoddone33
+ * More changes, took out a lot of the sound/* stuff which will bite later but
+ * I don't care.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 12    10/29/99 10:40p Jefff
@@ -661,7 +665,11 @@ void init_medal_bitmaps()
 			// for this medal.  if the player has > 1 of these types of medals, then determien
 			// which of the possible version to use based on the player's count of this medal
 			strcpy( filename, Medals[idx].bitmap );
+#ifdef PLAT_UNIX
+			STUB_FUNCTION;
+#else
 			_splitpath( filename, NULL, NULL, base, NULL );
+#endif
 
 			num_medals = Player_score->medals[idx];
 

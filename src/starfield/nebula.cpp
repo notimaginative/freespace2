@@ -7,8 +7,12 @@
  * Code to load & display nebulas
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:10  root
- * Initial revision
+ * Revision 1.2  2002/05/04 04:36:56  theoddone33
+ * More changes, took out a lot of the sound/* stuff which will bite later but
+ * I don't care.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:10  root
+ * Initial import.
  *
  * 
  * 14    9/01/99 11:26p Dave
@@ -233,7 +237,7 @@ int load_nebula_sub(char *filename)
 		// throw in some randomness to the nebula vertices depth
 	}
 
-	for (i=0; i<num_tris; i++ )	{
+	for (int i=0; i<num_tris; i++ )	{
 		cfread( &tri[i][0], sizeof(int), 1, fp );
 		cfread( &tri[i][1], sizeof(int), 1, fp );
 		cfread( &tri[i][2], sizeof(int), 1, fp );

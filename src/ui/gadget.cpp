@@ -7,8 +7,12 @@
  * Functions for the base gadget class
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:11  root
- * Initial revision
+ * Revision 1.2  2002/05/04 04:36:56  theoddone33
+ * More changes, took out a lot of the sound/* stuff which will bite later but
+ * I don't care.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:11  root
+ * Initial import.
  *
  * 
  * 18    8/11/99 3:21p Jefff
@@ -224,7 +228,11 @@ int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 		for(s_idx=0; s_idx<(4-num_digits); s_idx++){
 			strcat(full_name, NOX("0"));
 		}
+#ifdef PLAT_UNIX
+		STUB_FUNCTION;
+#else
 		strcat(full_name, itoa(idx, tmp, 10));		
+#endif
 
 		// try and load the bitmap				
 		bmap_ids[idx] = bm_load(full_name);	

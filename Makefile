@@ -160,18 +160,6 @@ SOURCES =./src/anim/animplay.cpp \
 	./src/ship/shipcontrails.cpp \
 	./src/ship/shipfx.cpp \
 	./src/ship/shiphit.cpp \
-	./src/sound/acm.cpp \
-	./src/sound/audiostr.cpp \
-	./src/sound/ds.cpp \
-	./src/sound/ds3d.cpp \
-	./src/sound/dscap.cpp \
-	./src/sound/midifile.cpp \
-	./src/sound/rbaudio.cpp \
-	./src/sound/rsx_lib.cpp \
-	./src/sound/rtvoice.cpp \
-	./src/sound/sound.cpp \
-	./src/sound/winmidi.cpp \
-	./src/sound/winmidi_base.cpp \
 	./src/starfield/nebula.cpp \
 	./src/starfield/starfield.cpp \
 	./src/starfield/supernova.cpp \

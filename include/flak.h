@@ -7,8 +7,12 @@
  * flak functions
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/04 04:36:56  theoddone33
+ * More changes, took out a lot of the sound/* stuff which will bite later but
+ * I don't care.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  * 
  * 
  * 6     7/31/99 2:57p Dave
@@ -27,6 +31,7 @@
 // --------------------------------------------------------------------------------------------------------------------------------------
 // FLAK DEFINES/VARS
 //
+#include "pstypes.h"
 
 struct weapon;
 struct object;

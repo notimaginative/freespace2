@@ -6,8 +6,12 @@
  *
  *
  * $Log$
- * Revision 1.1  2002/05/03 03:28:12  root
- * Initial revision
+ * Revision 1.2  2002/05/04 04:36:56  theoddone33
+ * More changes, took out a lot of the sound/* stuff which will bite later but
+ * I don't care.
+ *
+ * Revision 1.1.1.1  2002/05/03 03:28:12  root
+ * Initial import.
  *
  * 
  * 3     3/20/99 3:46p Dave
@@ -23,6 +27,8 @@
 
 #ifndef __TARGA_H
 #define __TARGA_H
+
+#include "pstypes.h"
 
 // --------------------
 //

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.4  2002/06/21 03:34:05  relnev
+ * implemented a stub and fixed a path
+ *
  * Revision 1.3  2002/06/09 04:41:15  relnev
  * added copyright header
  *
@@ -394,7 +397,11 @@ void os_init_cmdline(char *cmdline)
 	// read the cmdline.cfg file from the data folder, and pass the command line arguments to
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
 	// the command line will take precedence
+#ifdef PLAT_UNIX
+	fp = fopen("Data/cmdline.cfg", "rt");
+#else
 	fp = fopen("data\\cmdline.cfg", "rt");
+#endif
 
 	// if the file exists, get a single line, and deal with it
 	if ( fp ) {

@@ -15,6 +15,9 @@
  * source for dealing with campaigns
  *
  * $Log$
+ * Revision 1.5  2002/06/21 03:34:05  relnev
+ * implemented a stub and fixed a path
+ *
  * Revision 1.4  2002/06/09 04:41:22  relnev
  * added copyright header
  *
@@ -178,6 +181,12 @@
 #ifndef PLAT_UNIX
 #include <direct.h>
 #include <io.h>
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <fnmatch.h>
 #endif
 #include <string.h>
 #include <setjmp.h>
@@ -391,7 +400,43 @@ void mission_campaign_maybe_add( char *filename, int multiplayer )
 void mission_campaign_build_list( int multiplayer )
 {
 #ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	DIR *dirp;
+	struct dirent *dir;
+	char wild_card[256];
+	
+	Num_campaigns = 0;
+	mission_campaign_maybe_add( BUILTIN_CAMPAIGN, multiplayer);	
+	
+	strcpy(wild_card, "Data/Missions");
+	
+	dirp = opendir(wild_card);
+	if (dirp) {
+		while ((dir = readdir(dirp)) != NULL) {
+			if ( Num_campaigns >= MAX_CAMPAIGNS )
+				break;
+				
+			if (fnmatch("*"FS_CAMPAIGN_FILE_EXT, dir->d_name, 0) == 0) {
+				if (stricmp(dir->d_name, BUILTIN_CAMPAIGN) == 0)
+					continue;
+				
+				char fn[MAX_PATH];
+				snprintf(fn, MAX_PATH-1, "%s/%s", wild_card, dir->d_name);
+				fn[MAX_PATH-1] = 0;
+			
+				struct stat buf;
+				if (stat(fn, &buf) == -1) {
+					continue;
+				}
+ 			
+				if (!S_ISREG(buf.st_mode)) {
+					continue;
+				}
+				
+				mission_campaign_maybe_add(dir->d_name, multiplayer);
+			}
+		}
+		closedir(dirp);
+	}	
 #else
 	int find_handle;
 	_finddata_t find;

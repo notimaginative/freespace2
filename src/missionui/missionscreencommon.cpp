@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.10  2005/08/12 08:58:41  taylor
+ * fix the strange mouse click issues on briefing, ship select and weapon select screens
+ *
  * Revision 1.9  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -811,24 +814,6 @@ int common_select_do(float frametime)
 {
 	int	k, new_k;
 
-	// If the mouse went up, set flags.  We can't use mouse_up_count() more than once a frame,
-	// since the count gets zeroed after the call.
-	//
-	Drop_icon_mflag = 0;
-	Drop_on_wing_mflag = 0;
-	Brief_mouse_up_flag = 0;
-
-	if ( mouse_up_count(MOUSE_LEFT_BUTTON) ) {
-		Drop_icon_mflag = 1;
-		Drop_on_wing_mflag = 1;
-		Brief_mouse_up_flag = 1;		
-	}
-
-	Mouse_down_last_frame = 0;
-	if ( mouse_down_count(MOUSE_LEFT_BUTTON) ) {
-		Mouse_down_last_frame = 1;
-	}
-
 	if ( help_overlay_active(BR_OVERLAY) || help_overlay_active(SS_OVERLAY) || help_overlay_active(WL_OVERLAY) ) {
 		Common_buttons[0][gr_screen.res][COMMON_HELP_BUTTON].button.reset_status();
 		Common_buttons[1][gr_screen.res][COMMON_HELP_BUTTON].button.reset_status();
@@ -854,6 +839,30 @@ int common_select_do(float frametime)
 			k = 0;
 			new_k = 0;
 		}
+	}
+
+	// test for mouse buttons,  must be done after Active_ui_window->process()
+	// has been called to work properly
+	//
+	Drop_icon_mflag = 0;
+	Drop_on_wing_mflag = 0;
+	Brief_mouse_up_flag = 0;
+	Mouse_down_last_frame = 0;
+
+	// if the left mouse button was released...
+	if ( B1_RELEASED ) {
+		Drop_icon_mflag = 1;
+		Drop_on_wing_mflag = 1;
+	}
+
+	// if the left mouse button was pressed...
+	if ( B1_PRESSED ) {
+		Mouse_down_last_frame = 1;
+	}
+
+	// basically a "click", only check for the click here to avoid action-on-over on briefing map
+	if ( B1_JUST_PRESSED ) {
+		Brief_mouse_up_flag = 1;
 	}
 
 	// reset timers for flashing buttons if key pressed

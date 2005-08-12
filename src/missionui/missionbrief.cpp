@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.11  2005/08/12 08:58:41  taylor
+ * fix the strange mouse click issues on briefing, ship select and weapon select screens
+ *
  * Revision 1.10  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -1747,7 +1750,7 @@ void brief_update_closeup_icon(int mode)
 //
 void brief_check_for_anim()
 {
-	int				mx, my, i, iw, ih;
+	int				mx, my, i, iw, ih, x, y;
 	brief_stage		*bs;
 	brief_icon		*bi = NULL;
 
@@ -1756,9 +1759,19 @@ void brief_check_for_anim()
 
 	// if mouse click is over the VCR controls, don't launch an icon
 	// FIXME - should prolly push these into defines instead of hardcoding this
-	if ( mx >= 0 && mx <= 115 && my >= 136 && my <= 148 ) {
-		return;
-	}
+//	if ( mx >= 0 && mx <= 115 && my >= 136 && my <= 148 ) {
+//		return;
+//	}
+
+	// same as above but without the hardcoded values, which were wrong anyway.  don't know
+	// how this will work longterm but will hopefully keep things working well - taylor
+	for (i = 0; i <= BRIEF_BUTTON_FIRST_STAGE; i++) {
+		Brief_buttons[gr_screen.res][i].button.get_dimensions(&x, &y, &iw, &ih);
+
+		if (mx >= x && mx <= (x+iw) && my >= y && my <= (y+ih)) {
+			return;
+		}
+ 	}
 
 	// if mouse coords are outside the briefing screen, then go away
 	my -= bscreen.map_y1;

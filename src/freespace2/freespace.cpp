@@ -15,6 +15,11 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.39  2005/08/12 08:57:20  taylor
+ * don't show hardware S-RAM value on HUD in debug
+ * do show in use GL texture memory
+ * have an actual fade effect for the credits screen artwork
+ *
  * Revision 1.38  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -2940,10 +2945,10 @@ void game_show_framerate()
 		sy += dy;
 		gr_printf( sx, sy, NOX("S-SRAM: %d KB\n"), Snd_sram/1024 );		// mem used to store game sound
 		sy += dy;
+#ifndef PLAT_UNIX
 		gr_printf( sx, sy, NOX("S-HRAM: %d KB\n"), Snd_hram/1024 );		// mem used to store game sound
 		sy += dy;
 		{
-#ifndef PLAT_UNIX
 			extern int D3D_textures_in;
 			extern int Glide_textures_in;
 			extern int Glide_textures_in_frame;
@@ -2953,6 +2958,11 @@ void game_show_framerate()
 			gr_printf( sx, sy, NOX("VRAM: +%d KB\n"), (Glide_textures_in_frame)/1024 );
 			sy += dy;
 			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
+			sy += dy;
+#else
+		{
+			extern int GL_textures_in;
+			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), (GL_textures_in)/1024 );
 			sy += dy;
 #endif
 		}

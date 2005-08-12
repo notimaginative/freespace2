@@ -15,6 +15,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.74  2005/08/12 08:57:20  taylor
+ * don't show hardware S-RAM value on HUD in debug
+ * do show in use GL texture memory
+ * have an actual fade effect for the credits screen artwork
+ *
  * Revision 1.73  2005/04/02 18:58:08  taylor
  * attempt to fix garbage at end of GL extension string
  *
@@ -1746,13 +1751,11 @@ void gr_opengl_filter_set(int filter)
 // cross fade
 void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct)
 {
-	if ( pct <= 50 ) {
-		gr_set_bitmap(bmap1, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-		gr_bitmap(x1, y1);
-	} else {
-		gr_set_bitmap(bmap2, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-		gr_bitmap(x2, y2);
-	}		
+	gr_set_bitmap(bmap1, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.0f - pct );
+	gr_bitmap(x1, y1);
+
+	gr_set_bitmap(bmap2, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, pct );
+	gr_bitmap(x2, y2);	
 }
 
 
@@ -2048,6 +2051,7 @@ static int opengl_free_texture ( tcache_slot_opengl *t )
 		t->bitmap_id = -1;
 		t->used_this_frame = 0;
 		GL_textures_in -= t->size;
+		t->size = 0;
 	}
 
 	return 1;

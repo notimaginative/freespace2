@@ -15,6 +15,9 @@
  * C file that holds functions for the building and processing of multiplayer packets
  *
  * $Log$
+ * Revision 1.9  2005/08/12 08:59:17  taylor
+ * small endianess fix
+ *
  * Revision 1.8  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -5696,7 +5699,7 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 	ADD_DATA(val);
 	for(idx=0;idx<Multi_ts_num_deleted;idx++){
 		sval = (ushort)Objects[Multi_ts_deleted_objnums[idx]].net_signature;
-		ADD_DATA(sval);
+		ADD_DATA_U16(sval);
 	}
 
 	// ship count	

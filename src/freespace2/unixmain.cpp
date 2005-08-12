@@ -20,8 +20,8 @@ int main(int argc, char **argv)
 	char userdir[MAX_PATH];
 	
 	// create user game directory
-	snprintf(userdir, MAX_PATH, "%s/%s", detect_home(), Osreg_user_dir);
-	_mkdir(userdir, 0700);	
+	snprintf(userdir, MAX_PATH, "%s/%s/", detect_home(), Osreg_user_dir);
+	_mkdir(userdir);	
 	
 	char *argptr = NULL;
 	int i;

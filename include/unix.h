@@ -29,7 +29,6 @@
 #define _chdir chdir
 #define _strlwr strlwr
 #define _unlink unlink
-#define _mkdir mkdir
 #define _hypot hypot
 #define _access access
 #define byte unsigned char
@@ -55,6 +54,7 @@ extern void Sleep (int miliseconds);
 extern unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList);
 extern void OutputDebugString (const char *);
 extern int WSAGetLastError ();
+extern int _mkdir(const char *path);
 extern void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ext);
 
 typedef struct FILETIME_s {

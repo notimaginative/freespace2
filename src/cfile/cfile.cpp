@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.12  2005/08/12 08:50:09  taylor
+ * recursively create directories (hurt more on OSX) and update all _mkdir() calls accordingly
+ *
  * Revision 1.11  2004/07/04 11:27:29  taylor
  * cleanup CFILE code a little, warning fixes, remove redundant dir checks, amd64 support
  *
@@ -761,15 +764,9 @@ void cf_create_directory( int dir_type )
 	for (i=num_dirs-1; i>=0; i-- )	{
 		cf_create_default_path_string( longname, dir_tree[i], NULL );
 
-#ifdef PLAT_UNIX
-		if ( _mkdir(longname, 0700)==0 )	{
-			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
-		}
-#else
 		if ( _mkdir(longname)==0 )	{
 			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
 		}
-#endif
 	}
 
 

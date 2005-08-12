@@ -15,6 +15,9 @@
  * InternetGetFile Class
  *
  * $Log$
+ * Revision 1.6  2005/08/12 08:50:09  taylor
+ * recursively create directories (hurt more on OSX) and update all _mkdir() calls accordingly
+ *
  * Revision 1.5  2002/06/09 04:41:21  relnev
  * added copyright header
  *
@@ -111,11 +114,7 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 		}
 		*end = '\0';
 
-#ifndef PLAT_UNIX
-		if ( _mkdir(dir_name)==0 )	{
-#else
-		if ( _mkdir(dir_name, 0777)==0 )	{
-#endif		
+		if ( _mkdir(dir_name)==0 )	{	
 			mprintf(( "CFILE: Created new directory '%s'\n", dir_name ));
 		}
 	}

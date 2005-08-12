@@ -7,6 +7,12 @@
  * MVE movie playing routines
  *
  * $Log$
+ * Revision 1.6  2005/08/12 08:47:24  taylor
+ * use new audiostr code rather than old windows/*nix version
+ * update all OpenAL commands with new error checking macros
+ * fix play_position to properly account for real position, fixes the talking heads and message text cutting out early
+ * movies will now use better filtering when scaled
+ *
  * Revision 1.5  2005/03/31 21:26:02  taylor
  * s/alGetSourceiv/alGetSourcei/
  *
@@ -50,6 +56,7 @@
 #include "sound.h"
 #include "bmpman.h"
 #include "osregistry.h"
+#include "ds.h"
 
 
 static int mve_playing;
@@ -90,21 +97,6 @@ typedef struct MVE_AUDIO_T {
 } mve_audio_t;
 
 mve_audio_t *mas;  // mve_audio_stream
-
-#ifndef NDEBUG
-#define OpenAL_ErrorCheck(errcode)	do {		\
-	int i = alGetError();			\
-	if (i != AL_NO_ERROR) {			\
-		while(i != AL_NO_ERROR) {	\
-			fprintf(stderr, "%s/%s:%d - OpenAL error %s\n", __FUNCTION__, __FILE__, __LINE__, alGetString(i)); \
-			i = alGetError();	\
-		}				\
-		errcode;			\
-	} 					\
-} while (0);
-#else
-#define OpenAL_ErrorCheck(errocode)
-#endif	// !NDEBUG
 
 #endif	// PLAT_UNIX
 
@@ -263,7 +255,7 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 	}
 
 #ifdef PLAT_UNIX
-    int i, flags, desired_buffer, sample_rate;
+    int flags, desired_buffer, sample_rate;
 
     mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
 	memset(mas, 0, sizeof(mve_audio_t));
@@ -306,20 +298,16 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 	}
 
-    alGenSources(1, &mas->source_id);
+	OpenAL_ErrorCheck( alGenSources(1, &mas->source_id), { mve_audio_canplay = 0; return; } );
 
-    if ((i = alGetError()) == AL_NO_ERROR) {
-		mve_audio_canplay = 1;
-	} else {
-        mve_audio_canplay = 0;
-    }
+	mve_audio_canplay = 1;
 
-	alSourcef(mas->source_id, AL_GAIN, 1.0f);
-	alSource3f(mas->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
-	alSource3f(mas->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-	alSource3f(mas->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
-	alSourcef(mas->source_id, AL_ROLLOFF_FACTOR, 0.0f );
-	alSourcei(mas->source_id, AL_SOURCE_RELATIVE, AL_TRUE );
+	OpenAL_ErrorPrint( alSourcef(mas->source_id, AL_GAIN, 1.0f) );
+	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f) );
+	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f) );
+	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f) );
+	OpenAL_ErrorPrint( alSourcef(mas->source_id, AL_ROLLOFF_FACTOR, 0.0f ) );
+	OpenAL_ErrorPrint( alSourcei(mas->source_id, AL_SOURCE_RELATIVE, AL_TRUE ) );
 
 	memset(mas->audio_buffer, 0, MVE_AUDIO_BUFFERS * sizeof(ALuint));
 
@@ -337,20 +325,14 @@ void mve_audio_play()
 	if (mve_audio_canplay) {
 		ALint status, bqueued;
 
-		alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status);
-
-		OpenAL_ErrorCheck(return);
+		OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status), return );
 	
-		alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued);
-
-		OpenAL_ErrorCheck(return);
+		OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued), return );
 	
 		mve_audio_playing = 1;
 
 		if (status != AL_PLAYING && bqueued > 0) {
-			alSourcePlay(mas->source_id);
-
-			OpenAL_ErrorCheck(return);
+			OpenAL_ErrorPrint( alSourcePlay(mas->source_id) );
 		}
 	}
 #endif
@@ -363,12 +345,15 @@ static void mve_audio_stop()
 		return;
 
 #ifdef PLAT_UNIX
+	ALint p = 0;
+
 	mve_audio_playing = 0;
 
-	alSourceStop(mas->source_id);
-	alSourceUnqueueBuffers(mas->source_id, MVE_AUDIO_BUFFERS, mas->audio_buffer);
-	alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->audio_buffer);
-	alDeleteSources(1, &mas->source_id);
+	OpenAL_ErrorPrint( alSourceStop(mas->source_id) );
+	OpenAL_ErrorPrint( alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &p) );
+	OpenAL_ErrorPrint( alSourceUnqueueBuffers(mas->source_id, p, mas->audio_buffer) );
+	OpenAL_ErrorPrint( alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->audio_buffer) );
+	OpenAL_ErrorPrint( alDeleteSources(1, &mas->source_id) );
 
 	if (mas != NULL) {
 		free(mas);
@@ -392,33 +377,25 @@ int mve_audio_data(ubyte major, ubyte *data)
 			ALint bprocessed, bqueued, status;
 			ALuint bid;
 
-			alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &bprocessed);
-
-			OpenAL_ErrorCheck(return 0);
+			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &bprocessed), return 0 );
 
 			while (bprocessed-- > 2) {
-				alSourceUnqueueBuffers(mas->source_id, 1, &bid);
+				OpenAL_ErrorPrint( alSourceUnqueueBuffers(mas->source_id, 1, &bid) );
 			//	fprintf(stderr,"Unqueued buffer %d(%d)\n", mve_audio_bufhead, bid);
 		
 				if (++mve_audio_bufhead == MVE_AUDIO_BUFFERS)
 					mve_audio_bufhead = 0;
 			}
 
-			alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued);
-
-			OpenAL_ErrorCheck(return 0);
+			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued), return 0 );
 		    
 			if (bqueued == 0) 
 				mprintf(("MVE: Buffer underun (First is normal)\n"));
 
-			alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status);
-
-			OpenAL_ErrorCheck(return 0);
+			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status), return 0 );
 
 			if (mve_audio_playing && status != AL_PLAYING && bqueued > 0) {
-				alSourcePlay(mas->source_id);
-
-				OpenAL_ErrorCheck(return 0);
+				OpenAL_ErrorCheck( alSourcePlay(mas->source_id), return 0 );
 			}
 
 			if (bqueued < MVE_AUDIO_BUFFERS) {
@@ -446,19 +423,14 @@ int mve_audio_data(ubyte major, ubyte *data)
 
 
 				if (!mas->audio_buffer[mve_audio_buftail]) {
-					alGenBuffers(1,&mas->audio_buffer[mve_audio_buftail]);
-
-					OpenAL_ErrorCheck( {free(buf); return 0;} );
+					OpenAL_ErrorCheck( alGenBuffers(1,&mas->audio_buffer[mve_audio_buftail]), { free(buf); return 0; } );
 				}
 
-				alBufferData(mas->audio_buffer[mve_audio_buftail], mas->format, buf, nsamp, mas->sample_rate);
-
-				OpenAL_ErrorCheck( {free(buf); return 0;} );
+				OpenAL_ErrorCheck( alBufferData(mas->audio_buffer[mve_audio_buftail], mas->format, buf, nsamp, mas->sample_rate), { free(buf); return 0; } );
 	    
-				alSourceQueueBuffers(mas->source_id, 1, &mas->audio_buffer[mve_audio_buftail]);
+				OpenAL_ErrorCheck( alSourceQueueBuffers(mas->source_id, 1, &mas->audio_buffer[mve_audio_buftail]), { free(buf); return 0;} );
 
-			//	fprintf(stderr,"Queued buffer %d(%d)\n", mve_audio_buftail, mas->audio_buffer[mve_audio_buftail]);
-				OpenAL_ErrorCheck( {free(buf); return 0;} );
+				//fprintf(stderr,"Queued buffer %d(%d)\n", mve_audio_buftail, mas->audio_buffer[mve_audio_buftail]);
 
 				if (++mve_audio_buftail == MVE_AUDIO_BUFFERS)
 					mve_audio_buftail = 0;
@@ -469,7 +441,7 @@ int mve_audio_data(ubyte major, ubyte *data)
 				mprintf(("MVE: Buffer overrun: Queue full\n"));
 			}
 
-		//	fprintf(stderr,"Buffers queued: %d\n", bqueued);
+			//fprintf(stderr,"Buffers queued: %d\n", bqueued);
 		}
 	}
 #endif
@@ -735,8 +707,8 @@ int mve_video_init(ubyte *data)
 	glDepthFunc(GL_ALWAYS);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 0) == 1 ) {
 		float scale_by = (float)gr_screen.max_w / (float)g_screenWidth;

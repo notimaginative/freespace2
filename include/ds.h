@@ -15,6 +15,12 @@
  * Header file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.4  2005/08/12 08:47:24  taylor
+ * use new audiostr code rather than old windows/*nix version
+ * update all OpenAL commands with new error checking macros
+ * fix play_position to properly account for real position, fixes the talking heads and message text cutting out early
+ * movies will now use better filtering when scaled
+ *
  * Revision 1.3  2002/06/09 04:41:12  relnev
  * added copyright header
  *
@@ -148,7 +154,38 @@ typedef struct sound_info {
 } sound_info;
 
 extern int							ds_initialized;
-#ifndef PLAT_UNIX
+
+
+#ifdef PLAT_UNIX
+extern const char* openal_error_string();
+
+// if an error occurs after executing 'x' then do 'y'
+#define OpenAL_ErrorCheck( x, y )	do {	\
+	x;	\
+	const char *error_text = openal_error_string();	\
+	if ( error_text != NULL ) {	\
+		while ( error_text != NULL ) {	\
+			nprintf(("Warning", "SOUND: %s:%d - OpenAL error = '%s'\n", __FILE__, __LINE__, error_text));	\
+			error_text = openal_error_string();	\
+		}	\
+		y;	\
+	}	\
+} while (0);
+
+// like OpenAL_ErrorCheck() except that it gives the error message from x but does nothing about it
+#define OpenAL_ErrorPrint( x )	do {	\
+	x;	\
+	const char *error_text = openal_error_string();	\
+	if ( error_text != NULL ) {	\
+		while ( error_text != NULL ) {	\
+			nprintf(("Sound", "OpenAL ERROR: \"%s\" in %s, line %i\n", error_text, __FILE__, __LINE__));	\
+			error_text = openal_error_string();	\
+		}	\
+	}	\
+} while (0);
+
+#else
+
 extern LPDIRECTSOUNDBUFFER		pPrimaryBuffer;
 extern LPDIRECTSOUND				pDirectSound;
 

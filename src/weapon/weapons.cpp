@@ -15,6 +15,9 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.12  2005/08/12 08:48:11  taylor
+ * don't scale weapon damage for FS1, this way you can still kill a capship with lasers rather than bombs
+ *
  * Revision 1.11  2004/09/20 01:31:45  theoddone33
  * GCC 3.4 fixes.
  *
@@ -3670,7 +3673,8 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 	if((wip->wi_flags & WIF_LOCKARM) && !(wp->weapon_flags & WF_LOCKED_WHEN_FIRED)){		
 		total_scale *= 0.1f;
 	}
-	
+
+#ifndef MAKE_FS1 // don't do special damage scaling for capships in FS1
 	// if the hit object was a ship
 	if(target->type == OBJ_SHIP){
 		ship *shipp;
@@ -3725,6 +3729,7 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 			}
 		}
 	}
+#endif
 	
 	return total_scale;
 }

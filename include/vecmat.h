@@ -15,6 +15,9 @@
  * Header file for functions that manipulate vectors and matricies
  *
  * $Log$
+ * Revision 1.4  2005/08/12 08:52:32  taylor
+ * various GCC4 warning fixes
+ *
  * Revision 1.3  2002/06/17 06:33:08  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -216,10 +219,11 @@ extern matrix vmd_identity_matrix;
 
 //Here's a handy constant
 
-#define ZERO_VECTOR {(float)0.0,(float)0.0,(float)0.0}
-#define IDENTITY_MATRIX {(float)1.0,(float)0.0,(float)0.0,	\
-                         (float)0.0,(float)1.0,(float)0.0,	\
-                         (float)0.0,(float)0.0,(float)1.0 }
+#define ZERO_VECTOR {0.0f,0.0f,0.0f}
+//#define IDENTITY_MATRIX {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}
+// first set of inside braces is for union, second set is for inside union, then for a2d[3][3] (some compiler warning messages just suck)
+#define IDENTITY_MATRIX { { { {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} } } }
+
 
 //fills in fields of an angle vector
 #define vm_angvec_make(v,_p,_b,_h) (((v)->p=(_p), (v)->b=(_b), (v)->h=(_h)), (v))

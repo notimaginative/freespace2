@@ -15,6 +15,9 @@
  * File to control sqaudmate messaging
  *
  * $Log$
+ * Revision 1.5  2005/08/12 08:52:32  taylor
+ * various GCC4 warning fixes
+ *
  * Revision 1.4  2002/07/13 06:46:48  theoddone33
  * Warning cleanups
  *
@@ -425,19 +428,19 @@ typedef struct comm_order {
 // Also make sure you update comm_order_menu_text below this.
 // Also make sure you update MAX_SHIP_ORDERS in HUDsquadmsg.h
 comm_order Comm_orders[MAX_SHIP_ORDERS] = {
-	ATTACK_TARGET_ITEM,
-	DISABLE_TARGET_ITEM,
-	DISARM_TARGET_ITEM,
-	DISABLE_SUBSYSTEM_ITEM,
-	PROTECT_TARGET_ITEM,
-	IGNORE_TARGET_ITEM,
-	FORMATION_ITEM,
-	COVER_ME_ITEM,
-	ENGAGE_ENEMY_ITEM,
-	CAPTURE_TARGET_ITEM,
-	REARM_REPAIR_ME_ITEM,
-	ABORT_REARM_REPAIR_ITEM,
-	DEPART_ITEM,
+	{ ATTACK_TARGET_ITEM },
+	{ DISABLE_TARGET_ITEM },
+	{ DISARM_TARGET_ITEM },
+	{ DISABLE_SUBSYSTEM_ITEM },
+	{ PROTECT_TARGET_ITEM },
+	{ IGNORE_TARGET_ITEM },
+	{ FORMATION_ITEM },
+	{ COVER_ME_ITEM },
+	{ ENGAGE_ENEMY_ITEM },
+	{ CAPTURE_TARGET_ITEM },
+	{ REARM_REPAIR_ME_ITEM },
+	{ ABORT_REARM_REPAIR_ITEM },
+	{ DEPART_ITEM }
 };
 
 // Text to display on the menu

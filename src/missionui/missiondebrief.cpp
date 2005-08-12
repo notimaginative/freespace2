@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.13  2005/08/12 08:52:32  taylor
+ * various GCC4 warning fixes
+ *
  * Revision 1.12  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -805,10 +808,12 @@ void debrief_kick_selected_player();
 
 // promotion voice selection stuff
 #define NUM_VOLITION_CAMPAIGNS	1
-struct {
+typedef struct {
 	char  campaign_name[32];
 	int	num_missions;
-} Volition_campaigns[NUM_VOLITION_CAMPAIGNS] = {
+} v_campaign;
+
+v_campaign Volition_campaigns[NUM_VOLITION_CAMPAIGNS] = {
 	{
 		BUILTIN_CAMPAIGN,		// the only campaign for now, but this leaves room for a mission pack
 		35						// make sure this is equal to the  number of missions you gave in the corresponding Debrief_promotion_voice_mapping

@@ -15,6 +15,9 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.75  2005/08/12 20:24:31  taylor
+ * some OSX GCC4 fixin (LEgregius)
+ *
  * Revision 1.74  2005/08/12 08:57:20  taylor
  * don't show hardware S-RAM value on HUD in debug
  * do show in use GL texture memory
@@ -421,6 +424,18 @@ static int FSAA;
 static char *Gr_saved_screen = NULL;
 static int Gr_saved_screen_bitmap;
 
+static int Gr_opengl_mouse_saved = 0;
+static int Gr_opengl_mouse_saved_x1 = 0;
+static int Gr_opengl_mouse_saved_y1 = 0;
+static int Gr_opengl_mouse_saved_x2 = 0;
+static int Gr_opengl_mouse_saved_y2 = 0;
+static int Gr_opengl_mouse_saved_w = 0;
+static int Gr_opengl_mouse_saved_h = 0;
+#define MAX_SAVE_SIZE (32*32)
+static ubyte Gr_opengl_mouse_saved_data[MAX_SAVE_SIZE*2];
+
+#define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
+
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
 
@@ -580,8 +595,7 @@ void gr_opengl_flip()
 	gr_reset_clip();
 
 	mouse_eval_deltas();
-	
-	extern int Gr_opengl_mouse_saved;
+
 	Gr_opengl_mouse_saved = 0;
 	
 	if ( mouse_is_visible() )       {
@@ -2708,18 +2722,6 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 	
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
-
-static int Gr_opengl_mouse_saved = 0;
-static int Gr_opengl_mouse_saved_x1 = 0;
-static int Gr_opengl_mouse_saved_y1 = 0;
-static int Gr_opengl_mouse_saved_x2 = 0;
-static int Gr_opengl_mouse_saved_y2 = 0;
-static int Gr_opengl_mouse_saved_w = 0;
-static int Gr_opengl_mouse_saved_h = 0;
-#define MAX_SAVE_SIZE (32*32)
-static ubyte Gr_opengl_mouse_saved_data[MAX_SAVE_SIZE*2];
-
-#define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
 
 void gr_opengl_save_mouse_area(int x, int y, int w, int h)
 {

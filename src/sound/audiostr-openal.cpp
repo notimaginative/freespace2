@@ -7,6 +7,9 @@
  * OpenAL based audio streaming
  *
  * $Log$
+ * Revision 1.2  2005/08/12 20:21:06  taylor
+ * woorps!
+ *
  * Revision 1.1  2005/08/12 08:44:39  taylor
  * import of FS2_Open audio code which is now *nix only, does not include windows or ogg support that FS2_Open has
  *
@@ -561,10 +564,6 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 	uint	src_bytes_used, convert_len, num_bytes_desired=0, num_bytes_read;
 
 //	nprintf(("Alan","Reqeusted: %d\n", cbSize));
-
-#if BYTE_ORDER == BIG_ENDIAN
-	byte_order = 1;
-#endif
 
 	if ( service ) {
 		uncompressed_wave_data = Wavedata_service_buffer;

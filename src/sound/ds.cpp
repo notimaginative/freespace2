@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.23  2005/08/12 20:21:06  taylor
+ * woorps!
+ *
  * Revision 1.22  2005/08/12 08:47:24  taylor
  * use new audiostr code rather than old windows/*nix version
  * update all OpenAL commands with new error checking macros
@@ -919,7 +922,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 			bits = si->bits;
 			bps  = si->avg_bytes_per_sec;
 			size = si->size;
-#if BYTE_ORDER == BIG_ENDIAN
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
 			// swap 16-bit sound data
 			if (bits == 16) {
 				ushort *swap_tmp;
@@ -997,7 +1000,7 @@ int ds_load_buffer(int *sid, int *hid, int *final_size, void *header, sound_info
 	sound_buffers[*sid].nbytes = size;
 
 	if ( convert_buffer )
-		vm_free( convert_buffer );
+		free( convert_buffer );
 
 	return 0;
 

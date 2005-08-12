@@ -15,6 +15,9 @@
  * C module for playing back anim files
  *
  * $Log$
+ * Revision 1.6  2005/08/12 08:55:13  taylor
+ * sync up talking head fixes from FS2_Open code base (still not 100%)
+ *
  * Revision 1.5  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1048,7 +1051,7 @@ int anim_free(anim *ptr)
 	}
 
 	if ( !list )
-		return -1;
+		return -2;
 
 	// only free when ref_count is 0
 	ptr->ref_count--;

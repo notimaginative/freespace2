@@ -15,6 +15,9 @@
  * Controls messaging to player during the mission
  *
  * $Log$
+ * Revision 1.7  2005/08/12 08:55:13  taylor
+ * sync up talking head fixes from FS2_Open code base (still not 100%)
+ *
  * Revision 1.6  2004/07/04 11:42:56  taylor
  * cleanup talking head code a little, fix anim free to work better and prevent crashes, fix test for old anim
  *
@@ -832,24 +835,31 @@ void messages_init()
 // free a loaded avi
 void message_mission_free_avi(int m_index)
 {
-	int count = 0;
-	int i;
+	int rc = 0, try_count = 0;
 
 	// check for bogus index
-	if ( (m_index < 0) || (m_index > Num_message_avis) )
+	if ( (m_index < 0) || (m_index >= Num_message_avis) )
+		return;
+
+	// Make sure this code doesn't get run if the talking head guage is off
+	// helps prevent a crash on jump out if this code doesn't work right
+	if ( !hud_gauge_active(HUD_TALKING_HEAD) )
 		return;
 
 	if (Message_avis[m_index].anim_data != NULL) {
-		// how many tries do we need to make
-		count = Message_avis[m_index].anim_data->ref_count;
+		do {
+			rc = anim_free( Message_avis[m_index].anim_data );
+			try_count++;
 
-		for (i=0; i<count; i++) {
-			if (anim_free(Message_avis[m_index].anim_data) == 0) {
-				// successfully free'd so reset to NULL and get out
-				Message_avis[m_index].anim_data = NULL;
+			// -2 is to catch a point where the data isn't valid and we want
+			// to just abort right now rather than to keep trying
+			if (rc == -2)
 				break;
-			}
-		}
+
+			// stop at 25 tries to avoid a possible endless loop
+		} while ( rc && (try_count < 25) );
+
+		Message_avis[m_index].anim_data = NULL;
 	}
 }
 
@@ -861,6 +871,11 @@ void message_mission_shutdown()
 	mprintf(("Unloading in mission messages\n"));
 
 	training_mission_shutdown();
+
+	// kill/stop all playing messages sounds and animations if we need to
+	if (Num_messages_playing) {
+		message_kill_all(1);
+	}
 
 	// remove the wave sounds from memory
 	for (i = 0; i < Num_message_waves; i++ ) {

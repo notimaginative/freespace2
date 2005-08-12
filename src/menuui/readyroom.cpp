@@ -15,6 +15,9 @@
  * Ready Room code, which is the UI screen for selecting Campaign/mission to play next mainly.
  *
  * $Log$
+ * Revision 1.9  2005/08/12 09:01:11  taylor
+ * fix strange issue where campaign and single missions could end up mixed together in the same list
+ *
  * Revision 1.8  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -299,7 +302,7 @@ static char Cur_campaign[MAX_FILENAME_LEN];
 static char *Mission_filenames[MAX_MISSIONS];
 static char *Standalone_mission_names[MAX_MISSIONS];
 static int  Standalone_mission_flags[MAX_MISSIONS];
-static char *Campaign_missions[MAX_MISSIONS];
+static char *Campaign_missions[MAX_CAMPAIGN_MISSIONS];
 static char *Campaign_mission_names[MAX_CAMPAIGN_MISSIONS];
 static int Campaign_mission_flags[MAX_MISSIONS];
 static char *Campaign_descs[MAX_CAMPAIGNS];

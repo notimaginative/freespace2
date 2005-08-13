@@ -7,6 +7,9 @@
  * OpenAL based audio streaming
  *
  * $Log$
+ * Revision 1.3  2005/08/13 16:59:23  taylor
+ * type check
+ *
  * Revision 1.2  2005/08/12 20:21:06  taylor
  * woorps!
  *
@@ -407,7 +410,7 @@ BOOL WaveFile::Open (char *pszFilename)
 	SDL_RWseek( cfp, 12+FileOffset, SEEK_SET );
 
 	// Now read RIFF tags until the end of file
-	uint tag, size, next_chunk;
+	DWORD tag, size, next_chunk;
 
 	while(done == FALSE)	{
 		if ( !audiostr_read_dword(cfp, &tag) )

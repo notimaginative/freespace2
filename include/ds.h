@@ -15,8 +15,11 @@
  * Header file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.5  2005/08/13 17:01:34  taylor
+ * gah, fix stupid commit message
+ *
  * Revision 1.4  2005/08/12 08:47:24  taylor
- * use new audiostr code rather than old windows/*nix version
+ * use new audiostr code rather than old windows and *nix version
  * update all OpenAL commands with new error checking macros
  * fix play_position to properly account for real position, fixes the talking heads and message text cutting out early
  * movies will now use better filtering when scaled

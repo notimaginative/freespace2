@@ -15,6 +15,10 @@
  * Variables and constants common to FreeSpace and Fred.
  *
  * $Log$
+ * Revision 1.5  2005/10/01 21:42:07  taylor
+ * if we are using a custom detail level then give the closest relative to the defaults when we request
+ *   the current detail level (needed to be fixed for one FS1 thing in particular)
+ *
  * Revision 1.4  2003/05/25 02:30:42  taylor
  * Freespace 1 support
  *
@@ -650,13 +654,27 @@ int current_detail_level()
 {
 //	return Detail.setting;
 	int i;
+	int match = -1;
 
 	for (i=0; i<NUM_DEFAULT_DETAIL_LEVELS; i++ )	{
-		if ( memcmp( &Detail, &Detail_defaults[i], sizeof(detail_levels) )==0 )	{
+		if ( Detail.setting == -1 ) {
+			// in the case of a custom detail level, return it's closest match
+			if ( (Detail.nebula_detail >= Detail_defaults[i].nebula_detail) &&
+				 (Detail.detail_distance >= Detail_defaults[i].detail_distance) &&
+				 (Detail.hardware_textures >= Detail_defaults[i].hardware_textures) &&
+				 (Detail.shield_effects >= Detail_defaults[i].shield_effects) &&
+				 (Detail.lighting >= Detail_defaults[i].lighting) &&
+				 (Detail.planets_suns == Detail_defaults[i].planets_suns) &&
+				 (Detail.weapon_extras == Detail_defaults[i].weapon_extras) )
+			{
+				match = i; // we will keep whatever the highest value is
+			}
+		} else if ( memcmp( &Detail, &Detail_defaults[i], sizeof(detail_levels) )==0 )	{
 			return i;
 		}
 	}
-	return -1;
+
+	return match;
 }
 
 #ifndef NDEBUG

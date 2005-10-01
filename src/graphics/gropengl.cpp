@@ -15,6 +15,11 @@
  * Code that uses the OpenGL graphics library
  *
  * $Log$
+ * Revision 1.76  2005/10/01 21:44:43  taylor
+ * slight speedup to font rendering by not doing something that should be global for each letter
+ * little cleanup to better deal with FS2_Open related changes
+ * don't deal with the extra texmem stuff if we don't have to, saves on temporary memory usage and speed
+ *
  * Revision 1.75  2005/08/12 20:24:31  taylor
  * some OSX GCC4 fixin (LEgregius)
  *
@@ -367,12 +372,6 @@
 #include <windowsx.h>
 #endif
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
 #include "pstypes.h"
 #include "osapi.h"
 #include "2d.h"
@@ -420,6 +419,7 @@ volatile int GL_deactivate = 0;
 
 static int GL_use_luminance_alpha;
 static int FSAA;
+static ubyte GL_xlat[256];
 
 static char *Gr_saved_screen = NULL;
 static int Gr_saved_screen_bitmap;
@@ -1929,6 +1929,8 @@ static void opengl_tcache_init (int use_sections)
 		}
 	}
 
+	memset(GL_xlat, 0, 256);
+
 	GL_texture_sections = use_sections;
 
 	GL_last_detail = Detail.hardware_textures;
@@ -2140,13 +2142,16 @@ static void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_o
 // bmap_h == height of source bitmap
 // tex_w == width of final texture
 // tex_h == height of final texture
-static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data, int sx, int sy, int src_w, int src_h, int bmap_w, int bmap_h, int tex_w, int tex_h, tcache_slot_opengl *t, int reload, int fail_on_full)
+static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort *data, int sx, int sy, int src_w, int src_h, int bmap_w, int bmap_h, int tex_w, int tex_h, tcache_slot_opengl *t, int reload, int resize, int fail_on_full)
 {
 	int ret_val = 1;
 	int size;
+	int i, j;
+	ubyte *bmp_data = ((ubyte*)data);
+	ubyte *texmem = NULL, *texmemp;
 	
 	// bogus
-	if(t == NULL){
+	if((t == NULL) || (bmp_data == NULL)){
 		return 0;
 	}
 
@@ -2159,14 +2164,6 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 		if(!opengl_free_texture(t)){
 			return 0;
 		}
-	}
-
-	// get final texture size
-	opengl_tcache_get_adjusted_texture_size(tex_w, tex_h, &tex_w, &tex_h);
-
-	if ( (tex_w < 1) || (tex_h < 1) )       {
-		mprintf(("Bitmap is to small at %dx%d.\n", tex_w, tex_h ));
-		return 0;
 	}
 
 	if ( bitmap_type == TCACHE_TYPE_AABITMAP )      {
@@ -2210,65 +2207,50 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 
 		case TCACHE_TYPE_AABITMAP:
 			{
-			int i,j;
-			ubyte *bmp_data = ((ubyte*)data);
-			ubyte *texmem;
-			ubyte *texmemp;
-			
-			ubyte xlat[256];
-			
-			for (i=0; i<16; i++) {
-				xlat[i] = Gr_gamma_lookup[(i*255)/15];
-			}
-			xlat[15] = xlat[1];
-			for ( ; i<256; i++ )    {
-				xlat[i] = xlat[0];
-			}
-			
-			texmem = (ubyte *) malloc (tex_w*tex_h);
-			texmemp = texmem;
-							
-			for (i=0;i<tex_h;i++)
-			{
-				for (j=0;j<tex_w;j++)
-				{
-					if (i < bmap_h && j < bmap_w) {
-						*texmemp++ = xlat[bmp_data[i*bmap_w+j]];
-					} else {
-						*texmemp++ = 0;
-					}
-				}
-			}
+				texmem = (ubyte *) malloc (tex_w*tex_h);
+				texmemp = texmem;
 
-			size = tex_w*tex_h;
-			
-			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
-			} else {
-				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
-			}
-
-			free (texmem);
-
-			}
-			break;
-		case TCACHE_TYPE_BITMAP_SECTION:
-			{
-				int i,j;
-				ubyte *bmp_data = ((ubyte*)data);
-				ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
-				ubyte *texmemp = texmem;
-				
 				for (i=0;i<tex_h;i++)
 				{
 					for (j=0;j<tex_w;j++)
 					{
-						if (i < src_h && j < src_w) {
-							*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+0];
-							*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+1];
+						if (i < bmap_h && j < bmap_w) {
+							*texmemp++ = GL_xlat[bmp_data[i*bmap_w+j]];
 						} else {
 							*texmemp++ = 0;
-							*texmemp++ = 0;
+						}
+					}
+				}
+
+				size = tex_w*tex_h;
+
+				if (!reload) {
+					glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				} else {
+					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				}
+
+				free (texmem);
+
+				break;
+			}
+
+		case TCACHE_TYPE_BITMAP_SECTION:
+			{
+				// if we aren't resizing in any way then we can just use bmp_data directly
+				if ( resize ) {
+					texmem = (ubyte *) malloc (tex_w*tex_h*2);
+					texmemp = texmem;
+				
+					for (i=0;i<tex_h;i++) {
+						for (j=0;j<tex_w;j++) {
+							if (i < src_h && j < src_w) {
+								*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+0];
+								*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+1];
+							} else {
+								*texmemp++ = 0;
+								*texmemp++ = 0;
+							}
 						}
 					}
 				}
@@ -2276,52 +2258,59 @@ static int opengl_create_texture_sub(int bitmap_type, int texture_handle, ushort
 				size = tex_w*tex_h*2;
 				
 				if (!reload) {
-					glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 				} else {
-					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 				}
 
-				free(texmem);
+				if (texmem != NULL)
+					free(texmem);
+
 				break;
 			}
+
 		default:
 			{
-				int i,j;
-				ubyte *bmp_data = ((ubyte*)data);
-				ubyte *texmem = (ubyte *) malloc (tex_w*tex_h*2);
-				ubyte *texmemp = texmem;
+				// if we aren't resizing then we can just use bmp_data directly
+				if ( resize ) {
+					texmem = (ubyte *) malloc (tex_w*tex_h*2);
+					texmemp = texmem;
+
+					Assert( texmem != NULL );
+
+					fix u, utmp, v, du, dv;
 				
-				fix u, utmp, v, du, dv;
+					u = v = 0;
 				
-				u = v = 0;
+					du = ( (bmap_w-1)*F1_0 ) / tex_w;
+					dv = ( (bmap_h-1)*F1_0 ) / tex_h;
 				
-				du = ( (bmap_w-1)*F1_0 ) / tex_w;
-				dv = ( (bmap_h-1)*F1_0 ) / tex_h;
-				
-				for (j=0;j<tex_h;j++)
-				{
-					utmp = u;
-					for (i=0;i<tex_w;i++)
-					{
-						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+0];
-						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+1];
-						utmp += du;
+					for (j=0;j<tex_h;j++) {
+						utmp = u;
+						for (i=0;i<tex_w;i++) {
+							*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+0];
+							*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+1];
+							utmp += du;
+						}
+						v += dv;
 					}
-					v += dv;
 				}
 
 				size = tex_w*tex_h*2;
 				
 				if (!reload) {
-					glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 				} else {
-					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, texmem);
+					glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 				}
-					
-				free(texmem);
+
+				if (texmem != NULL)
+					free(texmem);
+
 				break;
 			}
-			break;
+
+		break;
 	}
 	
 	t->bitmap_id = texture_handle;
@@ -2346,6 +2335,7 @@ static int opengl_create_texture (int bitmap_handle, int bitmap_type, tcache_slo
 	int final_w, final_h;
 	ubyte bpp = 16;
 	int reload = 0;
+	int resize = 0;
 
 	// setup texture/bitmap flags
 	flags = 0;
@@ -2381,6 +2371,11 @@ static int opengl_create_texture (int bitmap_handle, int bitmap_type, tcache_slo
 		// max_w /= D3D_texture_divider;
 		// max_h /= D3D_texture_divider;
 
+		// if we are going to cull the size then we need to force a resize
+		if (Detail.hardware_textures < 4) {
+			resize = 1;
+		}
+
 		// Detail.debris_culling goes from 0 to 4.
 		max_w /= (16 >> Detail.hardware_textures);
 		max_h /= (16 >> Detail.hardware_textures);
@@ -2389,6 +2384,16 @@ static int opengl_create_texture (int bitmap_handle, int bitmap_type, tcache_slo
 
 	// get final texture size as it will be allocated as a DD surface
 	opengl_tcache_get_adjusted_texture_size(max_w, max_h, &final_w, &final_h); 
+
+	if ( (final_w < 1) || (final_h < 1) ) {
+		mprintf(("Bitmap is too small at %dx%d.\n", final_w, final_h));
+		return 0;
+	}
+
+	// if we don't have to resize the image (to get power of 2, etc.) then skip that extra work
+	if ( (max_w != final_w) || (max_h != final_h) ) {
+		resize = 1;
+	}
 
 	// if this tcache slot has no bitmap
 	if ( tslot->bitmap_id < 0) {
@@ -2405,7 +2410,7 @@ static int opengl_create_texture (int bitmap_handle, int bitmap_type, tcache_slo
 	}
 
 	// call the helper
-	int ret_val = opengl_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, 0, 0, bmp->w, bmp->h, bmp->w, bmp->h, max_w, max_h, tslot, reload, fail_on_full);
+	int ret_val = opengl_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, 0, 0, bmp->w, bmp->h, bmp->w, bmp->h, final_w, final_h, tslot, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -2420,6 +2425,7 @@ static int opengl_create_texture_sectioned(int bitmap_handle, int bitmap_type, t
 	int final_w, final_h;
 	int section_x, section_y;
 	int reload = 0;
+	int resize = 1;
 
 	// setup texture/bitmap flags
 	Assert(bitmap_type == TCACHE_TYPE_BITMAP_SECTION);
@@ -2440,6 +2446,16 @@ static int opengl_create_texture_sectioned(int bitmap_handle, int bitmap_type, t
 	// get final texture size as it will be allocated as an opengl texture
 	opengl_tcache_get_adjusted_texture_size(section_x, section_y, &final_w, &final_h);
 
+	if ( (final_w < 1) || (final_h < 1) ) {
+		mprintf(("Bitmap is too small at %dx%d.\n", final_w, final_h));
+		return 0;
+	}
+
+	// if we don't have to resize the image (to get power of 2, etc.) then skip that extra work
+	if ( (bmp->sections.num_x == 1) && (bmp->sections.num_y == 1) && (section_x == final_w) && (section_y == final_h) ) {
+		resize = 0;
+	}
+
 	// if this tcache slot has no bitmap
 	if ( tslot->bitmap_id < 0) {
 		reload = 0;
@@ -2454,7 +2470,7 @@ static int opengl_create_texture_sectioned(int bitmap_handle, int bitmap_type, t
 	}
 
 	// call the helper
-	int ret_val = opengl_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, bmp->sections.sx[sx], bmp->sections.sy[sy], section_x, section_y, bmp->w, bmp->h, section_x, section_y, tslot, reload, fail_on_full);
+	int ret_val = opengl_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, bmp->sections.sx[sx], bmp->sections.sy[sy], section_x, section_y, bmp->w, bmp->h, final_w, final_h, tslot, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -2686,6 +2702,17 @@ void gr_opengl_set_gamma(float gamma)
 			v = 0;
 		}
 		Gr_gamma_lookup[i] = v;
+	}
+
+	// set the alpha gamma settings (for fonts)
+	for (i=0; i<16; i++) {
+		GL_xlat[i] = (ubyte)Gr_gamma_lookup[(i*255)/15];
+	}
+
+	GL_xlat[15] = GL_xlat[1];
+
+	for (; i<256; i++) {
+		GL_xlat[i] = GL_xlat[0];
 	}
 
 	// Flush any existing textures

@@ -65,8 +65,7 @@ typedef struct FILETIME_s {
 #define WAVE_FORMAT_PCM		1
 #define WAVE_FORMAT_ADPCM	2
 
-// these structures are packed on WIN32 so do it here too
-#pragma pack(push, 1)
+#pragma pack(1)
 typedef struct {
 	WORD wFormatTag;
 	WORD nChannels;
@@ -89,7 +88,7 @@ typedef struct {
 	WORD  wBitsPerSample;
 	WORD  cbSize;
 } WAVEFORMATEX;
-#pragma pack(pop)
+#pragma pack()
 
 #define CRITICAL_SECTION SDL_mutex*
 

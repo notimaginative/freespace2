@@ -15,6 +15,11 @@
  * Include file for OpenGL renderer
  *
  * $Log$
+ * Revision 1.3  2005/10/01 21:38:32  taylor
+ * some reorg of includes to not requires the same headers in many different files
+ * handle FS1 specific language changes
+ * some OS X changes for paths and to handle socklen_t better
+ *
  * Revision 1.2  2002/06/09 04:41:13  relnev
  * added copyright header
  *
@@ -37,6 +42,12 @@
 
 #ifndef _GROPENGL_H
 #define _GROPENGL_H
+
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 void gr_opengl_init();
 void gr_opengl_cleanup();

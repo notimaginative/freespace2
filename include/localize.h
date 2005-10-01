@@ -14,6 +14,11 @@
  *
  *
  * $Log$
+ * Revision 1.4  2005/10/01 21:38:32  taylor
+ * some reorg of includes to not requires the same headers in many different files
+ * handle FS1 specific language changes
+ * some OS X changes for paths and to handle socklen_t better
+ *
  * Revision 1.3  2003/06/03 04:00:39  taylor
  * Polish language support (Janusz Dziemidowicz)
  *
@@ -70,6 +75,11 @@
 #define LCL_POLISH						3
 
 #define LCL_DEFAULT_LANGUAGE			LCL_ENGLISH
+
+#ifdef MAKE_FS1
+#define LCL_NUM_LANGUAGES_FS1			3
+#define LCL_NUM_STRINGS_FS1				1570
+#endif
 
 // following is the offset where special characters start in our font
 extern int Lcl_special_chars;

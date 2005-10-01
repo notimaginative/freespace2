@@ -62,8 +62,8 @@ unsigned int  os_config_read_uint( char *section, char *name, unsigned int defau
 // uses Ex versions of Windows registry functions
 char * os_config_read_string_ex( char *keyname, char *name, char *default_value );
 
-#ifdef __APPLE__
-extern char app_path[], full_path[];
+#if defined(__APPLE__) && !defined(MACOSX)
+extern char full_path[];
 #endif
 
 #endif

@@ -15,6 +15,11 @@
  * Header file containg global typedefs, constants and macros
  *
  * $Log$
+ * Revision 1.12  2005/10/01 21:38:32  taylor
+ * some reorg of includes to not requires the same headers in many different files
+ * handle FS1 specific language changes
+ * some OS X changes for paths and to handle socklen_t better
+ *
  * Revision 1.11  2004/12/15 04:10:45  taylor
  * outwnd_unix.cpp from fs2_open for logging to file in debug mode
  * fixes for default function values
@@ -277,10 +282,6 @@
 #define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(a))
 
 #define LOCAL static			// make module local varilable static.
-
-#ifdef __APPLE__
-typedef int socklen_t;
-#endif
 
 typedef __int64 longlong;
 typedef long fix;

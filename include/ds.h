@@ -15,6 +15,11 @@
  * Header file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.6  2005/10/01 21:38:32  taylor
+ * some reorg of includes to not requires the same headers in many different files
+ * handle FS1 specific language changes
+ * some OS X changes for paths and to handle socklen_t better
+ *
  * Revision 1.5  2005/08/13 17:01:34  taylor
  * gah, fix stupid commit message
  *
@@ -160,6 +165,17 @@ extern int							ds_initialized;
 
 
 #ifdef PLAT_UNIX
+
+#ifdef __APPLE__
+	#include <al.h>
+	#include <alc.h>
+	#include <alut.h>
+#else
+	#include <AL/al.h>
+	#include <AL/alc.h>
+	#include <AL/alut.h>
+#endif
+
 extern const char* openal_error_string();
 
 // if an error occurs after executing 'x' then do 'y'

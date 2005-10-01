@@ -15,6 +15,11 @@
  * Header file for the application level network-interface.
  *
  * $Log$
+ * Revision 1.7  2005/10/01 21:38:32  taylor
+ * some reorg of includes to not requires the same headers in many different files
+ * handle FS1 specific language changes
+ * some OS X changes for paths and to handle socklen_t better
+ *
  * Revision 1.6  2002/06/16 05:20:01  relnev
  * work around some gcc 3.1 weirdness
  *
@@ -65,7 +70,20 @@
 #ifndef _PSNET2_H
 #define _PSNET2_H
 
+/* sigh */
+#ifdef PLAT_UNIX
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 #include "pstypes.h"
+
+#if defined(__APPLE__) && !defined(_SOCKLEN_T)
+typedef int socklen_t;
+#endif
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 DEFINES/VARS
@@ -155,14 +173,7 @@ extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send 
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
 //
 
-/* sigh */
-#ifdef PLAT_UNIX
-#include <sys/select.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#else
+#ifndef PLAT_UNIX
 struct sockaddr;
 struct fd_set;
 struct timeval;

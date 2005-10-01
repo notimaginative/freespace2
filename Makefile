@@ -20,7 +20,7 @@ CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ # -fwritable
 CFLAGS+=-fsigned-char -Wno-format-y2k
 
 ifeq ($(strip $(MACOSX)),true)
-  CFLAGS+=-D__MACOSX__=1 -I/System/Library/Frameworks/AGL.framework/Headers
+  CFLAGS+=-DMACOSX=1 -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/OpenAL.framework/Headers
 else
   LDFLAGS+= -lGL
 endif
@@ -42,9 +42,6 @@ else
 	CFLAGS += -DRELEASE_REAL
 endif
 
-ifeq ($(strip $(MVE)),true)
-	CFLAGS += -DMVE
-endif
 
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -230,6 +227,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/nebula/neblightning.cpp \
 	./src/localization/fhash.cpp \
 	./src/localization/localize.cpp \
+	./src/localization/strings_tbl_fs1.cpp \
 	./src/tgautils/tgautils.cpp \
 	./src/demo/demo.cpp \
 	./src/inetfile/cftp.cpp \

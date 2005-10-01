@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.9  2005/10/01 21:35:51  taylor
+ * various FS1 related changes, removes need to extra fs1.vp file
+ *
  * Revision 1.8  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -409,6 +412,10 @@ int Ts_id_text_size;
 int Lcl_pointers[LCL_MAX_POINTERS];
 int Lcl_pointer_count = 0;
 
+#ifdef MAKE_FS1
+// strings.tbl for FS1, hard coded
+extern char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1];
+#endif
 
 // ------------------------------------------------------------------------------------------------------------
 // LOCALIZE FORWARD DECLARATIONS
@@ -486,6 +493,11 @@ void lcl_init(int lang_init)
 		lang = lang_init;
 	}
 
+#ifdef MAKE_FS1
+	if (lang >= LCL_NUM_LANGUAGES_FS1)
+		lang = 0;
+#endif
+
 	// language markers
 	Lcl_pointer_count = 0;
 
@@ -500,19 +512,13 @@ void lcl_init(int lang_init)
 // shutdown localization
 void lcl_close()
 {
-	int i;
-
 	// if the filename exists, free it up
 	if(Lcl_ext_filename != NULL){
 		free(Lcl_ext_filename);
 	}
 
 	// free the Xstr_table
-	for (i=0; i<XSTR_SIZE; i++) {
-		if (Xstr_table[i].str != NULL) {
-			free(Xstr_table[i].str);
-		}
-	}
+	lcl_xstr_close();
 };
 
 // determine what language we're running in, see LCL_* defines above
@@ -524,20 +530,18 @@ int lcl_get_language()
 // initialize the xstr table
 void lcl_xstr_init()
 {
-	int i;
 #ifndef MAKE_FS1
+	int i;
 	char chr, buf[4096];
 	char language_tag[512];	
 	int z, index, rval;
 	char *p_offset = NULL;
 	int offset_lo = 0, offset_hi = 0;
-#endif
 
 	for (i=0; i<XSTR_SIZE; i++){
 		Xstr_table[i].str = NULL;
 	}
 
-#ifndef MAKE_FS1
 	if ((rval = setjmp(parse_abort)) != 0) {
 		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", rval));
 	} else {
@@ -648,21 +652,39 @@ void lcl_xstr_init()
 			num_offsets_on_this_line = 0;
 		}
 	}
+#else
+	int i;
+
+	Assert(XSTR_SIZE == LCL_NUM_STRINGS_FS1);
+	Assert(Lcl_current_lang < LCL_NUM_LANGUAGES_FS1);
+	
+	for (i=0; i<XSTR_SIZE; i++) {
+		if ( !strlen(FS1_trans[Lcl_current_lang][i]) ) {
+			Xstr_table[i].str = NULL;
+		} else {
+			Xstr_table[i].str = FS1_trans[Lcl_current_lang][i];
+		}
+
+		Xstr_table[i].offset_x = 0;
+		Xstr_table[i].offset_x_hi = 0;
+	}
+#endif
 
 	Xstr_inited = 1;
-#endif
 }
 
 
 // free Xstr table
 void lcl_xstr_close()
 {
+#ifndef MAKE_FS1
 	for (int i=0; i<XSTR_SIZE; i++){
 		if (Xstr_table[i].str != NULL) {
 			free(Xstr_table[i].str);
 			Xstr_table[i].str = NULL;
 		}
 	}
+#endif
 }
 
 
@@ -781,11 +803,13 @@ void lcl_ext_open()
 		return;
 	}
 
+#ifndef MAKE_FS1
 	// otherwise open the file
 	Lcl_ext_file = cfopen(Lcl_ext_filename, "rt");
 	if(Lcl_ext_file == NULL){
 		return;
-	}		
+	}
+#endif
 }
 
 // close the externalization file (call after parsing a given file)
@@ -947,6 +971,7 @@ int lcl_get_xstr_offset(int index, int res)
 // associate table file externalization with the specified input file
 void lcl_ext_associate(char *filename)
 {
+#ifndef MAKE_FS1
 	// if the filename already exists, free it up
 	if(Lcl_ext_filename != NULL){
 		free(Lcl_ext_filename);
@@ -954,6 +979,7 @@ void lcl_ext_associate(char *filename)
 
 	// set the new filename
 	Lcl_ext_filename = strdup(filename);
+#endif
 }
 
 // given a valid XSTR() tag piece of text, extract the string portion, return it in out, nonzero on success

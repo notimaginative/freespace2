@@ -15,6 +15,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.13  2005/10/01 22:01:28  taylor
+ * some cleanup of earlier big-endian changes
+ *
  * Revision 1.12  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -1219,12 +1222,13 @@ int psnet_rel_ping_compare( const void *arg1, const void *arg2 )
 
 void psnet_rel_send_ack(SOCKADDR *raddr, unsigned int sig, ubyte link_type, float time_sent)
 {
-	int ret;
+	int ret, sig_tmp;
 	reliable_header ack_header;
 	ack_header.type = RNT_ACK;	
 	ack_header.data_len = sizeof(unsigned int);
-	ack_header.send_time = time_sent;
-	memcpy(&ack_header.data,&sig,sizeof(unsigned int));
+	ack_header.send_time = INTEL_FLOAT( &time_sent );
+	sig_tmp = INTEL_INT( sig );
+	memcpy(&ack_header.data,&sig_tmp,sizeof(unsigned int));
 	switch (link_type) {
 	case NET_IPX:
 		if(!Ipx_active){
@@ -1350,13 +1354,11 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 		
 			memcpy(rsocket->sbuffers[i]->buffer,data,length);	
 
-			send_header.seq = rsocket->theirsequence;
-            send_header.seq = INTEL_SHORT( send_header.seq );
+			send_header.seq = INTEL_SHORT( rsocket->theirsequence );
 			rsocket->ssequence[i] = rsocket->theirsequence;
 			
 			memcpy(send_header.data,data,length);
-			send_header.data_len = (ushort)length;
-            send_header.data_len = INTEL_SHORT( send_header.data_len );
+			send_header.data_len = INTEL_SHORT( (ushort)length );
 			send_header.type = RNT_DATA;
 			send_header.send_time = psnet_get_time();
             send_header.send_time = INTEL_FLOAT( &send_header.send_time );
@@ -1541,9 +1543,9 @@ void psnet_rel_work()
 			memset(&d3_rcv_addr,0,sizeof(net_addr_t));
 			memset(&rcv_addr,0,sizeof(SOCKADDR));
 			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
-                        rcv_buff.seq = INTEL_SHORT( rcv_buff.seq );
-                        rcv_buff.data_len = INTEL_SHORT( rcv_buff.data_len );
-                        rcv_buff.send_time = INTEL_FLOAT( &rcv_buff.send_time );
+			rcv_buff.seq = INTEL_SHORT( rcv_buff.seq );
+			rcv_buff.data_len = INTEL_SHORT( rcv_buff.data_len );
+			rcv_buff.send_time = INTEL_FLOAT( &rcv_buff.send_time );
 			memcpy(d3_rcv_addr.addr, &tcp_addr->sin_addr.s_addr, 4);
 			d3_rcv_addr.port = tcp_addr->sin_port;
 			d3_rcv_addr.type = NET_TCP;
@@ -1568,7 +1570,7 @@ void psnet_rel_work()
 							//We already have a reliable link to this user, so we will ignore it...
 							ml_printf("Received duplicate connection request. %d\n",i);
 							//reliable_sockets[i].last_packet_received = timer_GetTime();
-							psnet_rel_send_ack(&Reliable_sockets[i].addr, INTEL_INT(rcv_buff.seq), link_type, INTEL_FLOAT(&rcv_buff.send_time));
+							psnet_rel_send_ack(&Reliable_sockets[i].addr, rcv_buff.seq, link_type, rcv_buff.send_time);
 							//We will change this as a hack to prevent later code from hooking us up
 							rcv_buff.type = 0xff;
 							continue;
@@ -1597,7 +1599,7 @@ void psnet_rel_work()
 					//Int3();//See Kevin
 					continue;
 				}
-				psnet_rel_send_ack(&rsocket->addr,INTEL_INT(rcv_buff.seq),link_type,INTEL_FLOAT(&rcv_buff.send_time));			
+				psnet_rel_send_ack(&rsocket->addr, rcv_buff.seq, link_type, rcv_buff.send_time);			
 			}
 			
 			//Find out if this is a packet from someone we were expecting a packet.
@@ -1623,10 +1625,8 @@ void psnet_rel_work()
 					//this is our connection to the server
 					if(Serverconn != 0xffffffff){
 						if(rcv_buff.type == RNT_ACK){
-							uint *acknum = (uint *)&rcv_buff.data;
-                            //short *acknum = (short *)&rcv_buff.data;
-                            if ((*acknum == 0xfebd ) || (*acknum == 0xfebd0000)){
-							//if(*acknum == (~CONNECTSEQ & 0xffff)){
+                            ushort *acknum = (ushort *)&rcv_buff.data;
+							if(*acknum == (~CONNECTSEQ & 0xffff)){
 								rsocket->status = RNF_CONNECTED;
 								ml_printf("Got ACK for IAMHERE!\n");
 							}
@@ -1634,7 +1634,7 @@ void psnet_rel_work()
 						}
 					} else if(rcv_buff.type == RNT_I_AM_HERE){
 						rsocket->status = RNF_CONNECTING;
-						psnet_rel_send_ack(&rsocket->addr,INTEL_INT(rcv_buff.seq),link_type,INTEL_FLOAT(&rcv_buff.send_time));		
+						psnet_rel_send_ack(&rsocket->addr, rcv_buff.seq, link_type, rcv_buff.send_time);		
 						ml_printf("Got IAMHERE!\n");
 						continue;
 					}
@@ -1740,7 +1740,7 @@ void psnet_rel_work()
 						}
 					}
 				}
-				psnet_rel_send_ack(&rsocket->addr,INTEL_INT(rcv_buff.seq),link_type,INTEL_FLOAT(&rcv_buff.send_time));		
+				psnet_rel_send_ack(&rsocket->addr, rcv_buff.seq, link_type, rcv_buff.send_time);		
 			}
 			
 		}
@@ -2059,7 +2059,6 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 			if(bytesin){	
 				ml_string("about to check ack_header.type");
 				if(ack_header.type == RNT_ACK){
-                    //int *acknum = (int *)&ack_header.data;
                     short *acknum = (short *)&ack_header.data;
 					if(*acknum == CONNECTSEQ){						
 						for(i=1; i<MAXRELIABLESOCKETS; i++){

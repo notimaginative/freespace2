@@ -15,6 +15,9 @@
  * C module containg functions for manipulating vectors and matricies
  *
  * $Log$
+ * Revision 1.7  2005/10/01 21:45:56  taylor
+ * fix an old Volition math bug, causes various Assert()'s and physics strangeness in some missions
+ *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1771,9 +1774,9 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 		switch (largest_diagonal_index) {
 		case 0:
 			float ix;
-			ix = 1.0f / rot_axis->xyz.x;
 
 			rot_axis->xyz.x = fl_sqrt(m->a2d[0][0] + 1.0f);
+			ix = 1.0f / rot_axis->xyz.x;
 			rot_axis->xyz.y = m->a2d[0][1] * ix;
 			rot_axis->xyz.z = m->a2d[0][2] * ix;
 			vm_vec_normalize(rot_axis);
@@ -1781,9 +1784,9 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 
 		case 1:
 			float iy;
-			iy = 1.0f / rot_axis->xyz.y;
 
 			rot_axis->xyz.y = fl_sqrt(m->a2d[1][1] + 1.0f);
+			iy = 1.0f / rot_axis->xyz.y;
 			rot_axis->xyz.x = m->a2d[1][0] * iy;
 			rot_axis->xyz.z = m->a2d[1][2] * iy;
 			vm_vec_normalize(rot_axis);
@@ -1791,9 +1794,9 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 
 		case 2:
 			float iz;
-			iz = 1.0f / rot_axis->xyz.z;
 
 			rot_axis->xyz.z = fl_sqrt(m->a2d[2][2] + 1.0f);
+			iz = 1.0f / rot_axis->xyz.z;
 			rot_axis->xyz.x = m->a2d[2][0] * iz;
 			rot_axis->xyz.y = m->a2d[2][1] * iz;
 			break;

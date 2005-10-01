@@ -7,6 +7,11 @@
  * Frontend for MVE playing
  *
  * $Log$
+ * Revision 1.5  2005/10/01 21:48:01  taylor
+ * various cleanups
+ * fix decoder to swap opcode 0xb since it screws up on PPC
+ * the previous opcode 0xc change was wrong since we had already determined that it messes up FS1 movies
+ *
  * Revision 1.4  2005/03/29 07:50:34  taylor
  * Update to newest movie code with much better video support and audio support from
  *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
@@ -38,8 +43,6 @@ int movie_play(char *filename, int cd_prompt)
 
 	if (Cmdline_play_movies) {
 		MVESTREAM *movie;
-
-		printf("Playing movie: %s\n", filename);
 
 		// umm, yeah
 	//	if ( cd_prompt == -1 )

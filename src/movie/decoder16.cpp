@@ -7,6 +7,11 @@
  * 16-bit frame decoder for MVEs
  *
  * $Log$
+ * Revision 1.3  2005/10/01 21:48:01  taylor
+ * various cleanups
+ * fix decoder to swap opcode 0xb since it screws up on PPC
+ * the previous opcode 0xc change was wrong since we had already determined that it messes up FS1 movies
+ *
  * Revision 1.2  2005/03/29 07:50:34  taylor
  * Update to newest movie code with much better video support and audio support from
  *   Pierre Willenbrock.  Movies are enabled always now (no longer a build option)
@@ -314,6 +319,8 @@ static void dispatchDecoder16(ushort **pFrame, unsigned char codeType, unsigned 
 	int i, j, k;
 	int x, y;
 	ushort *pDstBak;
+	ubyte frame_tmp[16];				
+	ushort *swap_tmp;
 
 	pDstBak = *pFrame;
 
@@ -587,7 +594,16 @@ static void dispatchDecoder16(ushort **pFrame, unsigned char codeType, unsigned 
 
 		case 0xb:
 			for (i=0; i<8; i++) {
-				memcpy(*pFrame, *pData, 16);
+				// blah
+				memcpy(&frame_tmp, *pData, 16);
+
+				for (j = 0; j < 16; j += 2) {
+					swap_tmp = (ushort*)(frame_tmp + j);
+					*swap_tmp = INTEL_SHORT(*swap_tmp);
+				}
+
+				memcpy(*pFrame, &frame_tmp, 16);
+
 				*pFrame += g_width;
 				*pData += 16;
 				*pDataRemain -= 16;
@@ -601,22 +617,17 @@ static void dispatchDecoder16(ushort **pFrame, unsigned char codeType, unsigned 
 				p[2] = GETPIXEL(pData, 4);
 				p[3] = GETPIXEL(pData, 6);
 
-			/*	for (j=0; j<2; j++) {
+				for (j=0; j<2; j++) {
 					for (k=0; k<4; k++) {
 						(*pFrame)[2*k] = p[k];
 						(*pFrame)[2*k+1] = p[k];
+
+						// this is the original code but it messes up FS1 movies
+					//	(*pFrame)[j+2*k] = p[k];
+					//	(*pFrame)[g_width+j+2*k] = p[k];
 					}
 					*pFrame += g_width;
-				} */
-
-				for (k=0; k<4; k++) {
-					(*pFrame)[0+2*k] = p[k];
-					(*pFrame)[g_width+0+2*k] = p[k];
-					(*pFrame)[1+2*k] = p[k];
-					(*pFrame)[g_width+1+2*k] = p[k];
 				}
-
-				*pFrame += 2*g_width;
 
 				*pData += 8;
 				*pDataRemain -= 8;

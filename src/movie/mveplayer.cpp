@@ -7,8 +7,13 @@
  * MVE movie playing routines
  *
  * $Log$
+ * Revision 1.7  2005/10/01 21:48:01  taylor
+ * various cleanups
+ * fix decoder to swap opcode 0xb since it screws up on PPC
+ * the previous opcode 0xc change was wrong since we had already determined that it messes up FS1 movies
+ *
  * Revision 1.6  2005/08/12 08:47:24  taylor
- * use new audiostr code rather than old windows/*nix version
+ * use new audiostr code rather than old windows/unix version
  * update all OpenAL commands with new error checking macros
  * fix play_position to properly account for real position, fixes the talking heads and message text cutting out early
  * movies will now use better filtering when scaled
@@ -32,19 +37,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <al.h>
-#include <alc.h>
-#include <alut.h>
-#else
-#include <GL/gl.h>
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alut.h>
-#endif	// __APPLE__
-#endif	// PLAT_UNIX
+#endif
 
 #include "pstypes.h"
 #include "mvelib.h"
@@ -57,6 +50,7 @@
 #include "bmpman.h"
 #include "osregistry.h"
 #include "ds.h"
+#include "gropengl.h"
 
 
 static int mve_playing;

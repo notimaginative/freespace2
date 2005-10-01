@@ -46,7 +46,15 @@ unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, vo
 
 void Sleep (int mili)
 {
+#ifdef __APPLE__
+	// ughh, SDL_Delay causes a slowdown on Tiger for some reason and though I hate
+	// doing this, even the few Apple examples I've seen do this over what SDL_Delay does.
+	uint then = SDL_GetTicks() + mili;
+
+	while ( then > SDL_GetTicks() );
+#else
 	SDL_Delay( long(mili) );
+#endif
 }
 
 void OutputDebugString (const char *str)

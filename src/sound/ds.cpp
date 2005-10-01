@@ -15,6 +15,10 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.25  2005/10/01 21:53:06  taylor
+ * include file cleanup
+ * byte-swap streaming PCM to avoid the endless, loud, static
+ *
  * Revision 1.24  2005/08/13 17:01:34  taylor
  * gah, fix stupid commit message
  *
@@ -408,18 +412,6 @@
 #ifndef PLAT_UNIX
 #include <objbase.h>
 #include <initguid.h>
-#else
-#ifdef __APPLE__
-#include <al.h>
-#include <alc.h>
-#include <alut.h>
-#include <SDL_audio.h>
-#else
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alut.h>
-#include <SDL/SDL_audio.h>
-#endif
 #endif
 
 #ifndef PLAT_UNIX

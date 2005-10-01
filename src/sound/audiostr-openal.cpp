@@ -7,6 +7,10 @@
  * OpenAL based audio streaming
  *
  * $Log$
+ * Revision 1.4  2005/10/01 21:53:06  taylor
+ * include file cleanup
+ * byte-swap streaming PCM to avoid the endless, loud, static
+ *
  * Revision 1.3  2005/08/13 16:59:23  taylor
  * type check
  *
@@ -74,17 +78,6 @@
  */
 
 #ifdef PLAT_UNIX	// to end of file...
-
-#ifndef __APPLE__
-	#include <AL/al.h>
-	#include <AL/alc.h>
-	#include <AL/alut.h>
-#else
-	#include "al.h"
-	#include "alc.h"
-	#include "alut.h"
-#endif // !__APPLE__
-
 
 #include "pstypes.h"
 #include "audiostr.h"
@@ -682,6 +675,19 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 		m_data_bytes_left -= num_bytes_read;
 		m_nBytesPlayed += num_bytes_read;
 		uncompressed_bytes_written = num_bytes_read;
+#if BYTE_ORDER == BIG_ENDIAN
+		if ( m_wave_format == WAVE_FORMAT_PCM ) {
+			// swap 16-bit sound data
+			if (m_wfmt.wBitsPerSample == 16) {
+				ushort *swap_tmp;
+				
+				for (int i=0; i<uncompressed_bytes_written; i=i+2) {
+					swap_tmp = (ushort*)((ubyte*)dest_buf + i);
+					*swap_tmp = INTEL_SHORT(*swap_tmp);
+				}
+			}
+		}
+#endif
 		goto READ_DONE;
 	}
     

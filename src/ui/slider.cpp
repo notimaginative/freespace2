@@ -15,6 +15,10 @@
  * C++ file for controlling and displaying a horizontal slider
  *
  * $Log$
+ * Revision 1.6  2005/10/01 21:55:00  taylor
+ * fix a small bug in UI_GADGET that could leave a control animation loaded in memory without a way to unload it
+ * allow a slider with no defined hotspot to function properly (fixes the FS1 skill slider mask problem)
+ *
  * Revision 1.5  2004/09/20 01:31:45  theoddone33
  * GCC 3.4 fixes.
  *
@@ -134,8 +138,20 @@ void UI_DOT_SLIDER_NEW::create(UI_WINDOW *wnd, int _x, int _y, int _num_pos, cha
 	// set bitmaps for the slider itself	
 	button.create( wnd, "", _x, _y, 0, 0, 0, 1 );
 	button.set_parent(this);
-	button.link_hotspot(slider_mask);
-	button.set_bmaps(bm_slider, num_pos, 0);	
+	if (slider_mask == -1) {
+		// this lets us take advantage of the fact that UI_GADGET allows for no mask hotspot
+		// and for FS1 that's needed for the freaky skill slider in the options screen - taylor
+		int _bw, _bh;
+		button.set_bmaps(bm_slider, num_pos, 0);
+
+		if (button.bmap_ids[0] >= 0) {
+			bm_get_info(button.bmap_ids[0], &_bw, &_bh);
+			button.update_dimensions(_x, _y, _bw, _bh);
+		}
+	} else {
+		button.link_hotspot(slider_mask);
+		button.set_bmaps(bm_slider, num_pos, 0);
+	}
 	button.hide();
 		
 	// maybe setup buttons for the arrows

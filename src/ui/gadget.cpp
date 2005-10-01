@@ -15,6 +15,10 @@
  * Functions for the base gadget class
  *
  * $Log$
+ * Revision 1.8  2005/10/01 21:55:00  taylor
+ * fix a small bug in UI_GADGET that could leave a control animation loaded in memory without a way to unload it
+ * allow a slider with no defined hotspot to function properly (fixes the FS1 skill slider mask problem)
+ *
  * Revision 1.7  2003/05/25 02:30:44  taylor
  * Freespace 1 support
  *
@@ -222,7 +226,7 @@ void UI_GADGET::link_hotspot(int num)
 // and taking an unnecessary disk hit.		
 int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 {
-	int first_frame, i;	
+	int i;	
 #ifndef MAKE_FS1
 	char full_name[MAX_FILENAME_LEN] = "";
 	char tmp[10];
@@ -285,13 +289,13 @@ int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 #endif
 
 	// no go, so try and load as an ani. try and load as an .ani	
-	first_frame = bm_load_animation(ani_fname, &m_num_frames);	
-	if((first_frame >= 0) && (m_num_frames <= MAX_BMAPS_PER_GADGET)){					
+	bmap_ids[0] = bm_load_animation(ani_fname, &m_num_frames);	
+	if((bmap_ids[0] >= 0) && (m_num_frames <= MAX_BMAPS_PER_GADGET)){					
 		// seems pretty stupid that we didn't just use a variable for the first frame and access all
 		// other frames offset from it instead of accessing this bmap_ids[] array, but probably too
 		// much trouble to go through and change this anymore.  How sad..
-		for ( i=0; i<m_num_frames; i++ ) {
-			bmap_ids[i] = first_frame + i;
+		for ( i=1; i<m_num_frames; i++ ) {
+			bmap_ids[i] = bmap_ids[0] + i;
 		}	
 	}	
 

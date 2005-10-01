@@ -22,7 +22,7 @@ char *Osreg_title = "Freespace Demo";
 #ifndef __APPLE__
 char *Osreg_user_dir = ".freespace_demo";
 #else
-char *Osreg_user_dir = "Library/Preferences/freespace_demo";
+char *Osreg_user_dir = "Library/Application Support/FreeSpace Demo";
 #endif
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
@@ -31,7 +31,7 @@ char *Osreg_title = "Freespace 2 Demo";
 #ifndef __APPLE__
 char *Osreg_user_dir = ".freespace2_demo";
 #else
-char *Osreg_user_dir = "Library/Preferences/freespace2_demo";
+char *Osreg_user_dir = "Library/Application Support/Freespace 2 Demo";
 #endif
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
@@ -44,7 +44,7 @@ char *Osreg_title = "FreeSpace";
 #ifndef __APPLE__
 char *Osreg_user_dir = ".freespace";
 #else
-char *Osreg_user_dir = "Library/Preferences/freespace";
+char *Osreg_user_dir = "Library/Application Support/FreeSpace";
 #endif
 #define PROFILE_NAME "FreeSpace.ini"
 #else
@@ -53,16 +53,13 @@ char *Osreg_title = "Freespace 2";
 #ifndef __APPLE__
 char *Osreg_user_dir = ".freespace2";
 #else
-char *Osreg_user_dir = "Library/Preferences/freespace2";
+char *Osreg_user_dir = "Library/Application Support/Freespace 2";
 #endif
 #define PROFILE_NAME "FreeSpace2.ini"
 #endif
 
 #define DEFAULT_SECTION "Default"
 
-#ifdef __APPLE__
-extern char full_path[1024];
-#endif
 
 typedef struct KeyValue
 {
@@ -409,20 +406,8 @@ static char tmp_string_data[1024];
 
 char *os_config_read_string(char *section, char *name, char *default_value)
 {
-#ifndef __APPLE__
 	Profile *p = profile_read(PROFILE_NAME);
-#else
-        char p_name[1024];
-        strcpy( p_name, full_path);
-        int f = strlen(full_path);
-        int n = strlen(PROFILE_NAME);
-        for (int i =0; i<n; i++)
-        {
-            p_name[f+i]=PROFILE_NAME[i];
-        }
-        p_name[f+n] = '\0';
-        Profile *p = profile_read(p_name);
-#endif
+
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 		
@@ -439,20 +424,7 @@ char *os_config_read_string(char *section, char *name, char *default_value)
 
 unsigned int os_config_read_uint(char *section, char *name, unsigned int default_value)
 {
-#ifndef __APPLE__
 	Profile *p = profile_read(PROFILE_NAME);
-#else
-        char p_name[1024];
-        strcpy( p_name, full_path);
-        int f = strlen(full_path);
-        int n = strlen(PROFILE_NAME);
-        for (int i =0; i<n; i++)
-        {
-            p_name[f+i]=PROFILE_NAME[i];
-        }
-        p_name[f+n] = '\0';
-        Profile *p = profile_read(p_name);
-#endif
 	
 	if (section == NULL)
 		section = DEFAULT_SECTION;
@@ -469,30 +441,13 @@ unsigned int os_config_read_uint(char *section, char *name, unsigned int default
 
 void os_config_write_string(char *section, char *name, char *value)
 {
-#ifndef __APPLE__
 	Profile *p = profile_read(PROFILE_NAME);
-#else
-        char p_name[1024];
-        strcpy( p_name, full_path);
-        int f = strlen(full_path);
-        int n = strlen(PROFILE_NAME);
-        for (int i =0; i<n; i++)
-        {
-            p_name[f+i]=PROFILE_NAME[i];
-        }
-        p_name[f+n] = '\0';
-        Profile *p = profile_read(p_name);
-#endif
 	
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 		
 	p = profile_update(p, section, name, value);
-#ifndef __APPLE__
 	profile_save(p, PROFILE_NAME);
-#else
-    profile_save(p, p_name);
-#endif
 	profile_free(p);	
 }
 
@@ -502,28 +457,12 @@ void os_config_write_uint(char *section, char *name, unsigned int value)
 	
 	snprintf(buf, 20, "%u", value);
 	
-#ifndef __APPLE__
 	Profile *p = profile_read(PROFILE_NAME);
-#else
-        char p_name[1024];
-        strcpy( p_name, full_path);
-        int f = strlen(full_path);
-        int n = strlen(PROFILE_NAME);
-        for (int i =0; i<n; i++)
-        {
-            p_name[f+i]=PROFILE_NAME[i];
-        }
-        p_name[f+n] = '\0';
-        Profile *p = profile_read(p_name);
-#endif	
+
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 	
 	p = profile_update(p, section, name, buf);
-#ifndef __APPLE__
 	profile_save(p, PROFILE_NAME);
-#else
-    profile_save(p, p_name);
-#endif
 	profile_free(p);
 }

@@ -15,6 +15,9 @@
  * Low level Windows code
  *
  * $Log$
+ * Revision 1.18  2005/10/01 21:49:11  taylor
+ * don't use CTRL-Z for minimizing since it's an extrememly common key combo in the game
+ *
  * Revision 1.17  2004/12/15 04:10:45  taylor
  * outwnd_unix.cpp from fs2_open for logging to file in debug mode
  * fixes for default function values
@@ -332,12 +335,14 @@ void os_poll()
 					}
 					break;
 				}
+
+				/* this is a very common key combo in the game so don't use this to iconify
 				if ((e.key.keysym.mod & KMOD_CTRL) &&
 				    (e.key.keysym.sym == SDLK_z))
 				{
 					SDL_WM_IconifyWindow();
 					break;
-				}
+				} */
 
 				if (SDLtoFS2[e.key.keysym.sym])
 					key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);

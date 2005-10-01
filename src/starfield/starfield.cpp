@@ -16,6 +16,13 @@
  * debris, etc.
  *
  * $Log$
+ * Revision 1.10  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.9  2004/09/20 01:31:45  theoddone33
  * GCC 3.4 fixes.
  *
@@ -368,6 +375,7 @@ void stars_load_debris()
 // call on game startup
 void stars_init()
 {
+#ifndef MAKE_FS1
 	starfield_bitmap *bm;	
 	int count, idx;
 	char filename[MAX_FILENAME_LEN+1] = "";
@@ -498,8 +506,43 @@ void stars_init()
 			strcpy(debris_vclips_nebula[count++].name, filename);
 		}
 	}
-#ifndef MAKE_FS1 // string not used in FS1
+
 	Assert(count == 4);
+#else
+	// hard-coded for FS1
+	starfield_bitmap *bm;
+	int count, idx;
+
+	// make all bitmaps invalid
+	for (idx=0; idx<MAX_STARFIELD_BITMAPS; idx++) {
+		Starfield_bitmaps[idx].bitmap = -1;
+		Starfield_bitmaps[idx].glow_bitmap = -1;		
+		strcpy(Starfield_bitmaps[idx].filename, "");
+		strcpy(Starfield_bitmaps[idx].glow_filename, "");
+		
+		Sun_bitmaps[idx].bitmap = -1;		
+		Sun_bitmaps[idx].glow_bitmap = -1;		
+		strcpy(Sun_bitmaps[idx].filename, "");
+		strcpy(Sun_bitmaps[idx].glow_filename, "");
+	}
+
+	// the sun
+	count = 0;
+	bm = &Sun_bitmaps[count++];
+
+	strcpy(bm->filename, "Sun01");
+	strcpy(bm->glow_filename, "Sunglow01");
+	bm->xparent = 1;
+	bm->bitmap = bm_load(bm->filename);
+	bm->glow_bitmap = bm_load(bm->glow_filename);
+	Assert(bm->bitmap != -1);
+	Assert(bm->glow_bitmap != -1);
+	bm->r = 1.0f;
+	bm->g = 1.0f;
+	bm->b = 1.0f;
+	bm->i = 1.0f;
+
+	// we use the default debris vclips so no need to specify those again here
 #endif
 }
 

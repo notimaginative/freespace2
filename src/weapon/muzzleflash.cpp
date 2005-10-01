@@ -15,6 +15,13 @@
  * all sorts of cool stuff about ships
  *
  * $Log$
+ * Revision 1.4  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.3  2002/06/09 04:41:29  relnev
  * added copyright header
  *
@@ -103,6 +110,7 @@ mflash Mflash_used_list;
 // initialize muzzle flash stuff for the whole game
 void mflash_game_init()
 {
+#ifndef MAKE_FS1
 	mflash_info bogus;
 	mflash_info *m;	
 	char name[MAX_MFLASH_NAME_LEN];
@@ -155,6 +163,45 @@ void mflash_game_init()
 
 	// close
 	required_string("#end");
+#else
+	// hardcoded FS1 values
+	int idx;
+	mflash_info *m;
+
+	Num_mflash_types = 0;
+	m = &Mflash_info[Num_mflash_types++];
+
+	memset(m, 0, sizeof(mflash_info));
+
+	for (idx=0; idx<MAX_MFLASH_BLOBS; idx++) {
+		m->blob_anims[idx] = -1;
+	}
+
+	strncpy(m->name, "mflash_small", MAX_MFLASH_NAME_LEN);
+
+	m->num_blobs = 4;
+	Assert(m->num_blobs <= MAX_MFLASH_BLOBS);
+
+	idx = 0;
+	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	m->blob_offset[idx] = 1.0f;
+	m->blob_radius[idx] = 6.0f;
+
+	idx++;
+	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	m->blob_offset[idx] = 4.5f;
+	m->blob_radius[idx] = 4.0f;
+
+	idx++;
+	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	m->blob_offset[idx] = 6.0f;
+	m->blob_radius[idx] = 3.0f;
+
+	idx++;
+	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	m->blob_offset[idx] = 8.5f;
+	m->blob_radius[idx] = 3.0f;
+#endif
 }
 
 // initialize muzzle flash stuff for the level

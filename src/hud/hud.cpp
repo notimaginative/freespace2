@@ -15,6 +15,13 @@
  * C module that contains all the HUD functions at a high level
  *
  * $Log$
+ * Revision 1.9  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.8  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1952,6 +1959,10 @@ void hud_anim_init(hud_anim *ha, int sx, int sy, char *filename)
 void hud_anim_release(hud_anim *ha)
 {
 	int i;
+
+	if (ha->first_frame < 0)
+		return;
+
 	for ( i = 0; i < ha->num_frames; i++ ) {
 		bm_unload(ha->first_frame + i);
 	}

@@ -15,6 +15,13 @@
  * Header file for main-hall menu code
  *
  * $Log$
+ * Revision 1.9  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.8  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1998,6 +2005,7 @@ int main_hall_id()
 // read in main hall table
 void main_hall_read_table()
 {
+#ifndef MAKE_FS1
 	main_hall_defines *m, temp;
 	int count, idx, s_idx, m_idx;
 
@@ -2010,11 +2018,7 @@ void main_hall_read_table()
 	while(!optional_string("#end")){
 
 		// read in 2 resolutions
-#ifndef MAKE_FS1
 		for(m_idx=0; m_idx<GR_NUM_RESOLUTIONS; m_idx++){
-#else  // only read one res for FS1
-		for(m_idx=0; m_idx<1; m_idx++){
-#endif
 			// maybe use a temp main hall stuct
 			if(count >= NUM_MAIN_HALLS){
 				m = &temp;
@@ -2153,6 +2157,266 @@ void main_hall_read_table()
 			count++;
 		}
 	}
+#else
+	// hard coded values for FS1
+	int idx;
+
+	// Terran main hall
+	strncpy(Main_hall_defines[0][0].bitmap, "MainHall1", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].mask, "MainHall1-m", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].music, "main_amb", MAX_FILENAME_LEN);
+	
+	Main_hall_defines[0][0].num_random_intercom_sounds = 3;
+	Main_hall_defines[0][0].intercom_delay[0][0] = 8000;
+	Main_hall_defines[0][0].intercom_delay[0][1] = 15000;
+	Main_hall_defines[0][0].intercom_delay[1][0] = 8000;
+	Main_hall_defines[0][0].intercom_delay[1][1] = 15000;
+	Main_hall_defines[0][0].intercom_delay[2][0] = 8000;
+	Main_hall_defines[0][0].intercom_delay[2][1] = 15000;
+	Main_hall_defines[0][0].intercom_sounds[0] = 38;
+	Main_hall_defines[0][0].intercom_sounds[1] = 39;
+	Main_hall_defines[0][0].intercom_sounds[2] = 40;
+	Main_hall_defines[0][0].intercom_sound_pan[0] = 0.0f;
+	Main_hall_defines[0][0].intercom_sound_pan[1] = 0.0f;
+	Main_hall_defines[0][0].intercom_sound_pan[2] = 0.0f;
+	
+	Main_hall_defines[0][0].num_misc_animations = 2;
+	strncpy(Main_hall_defines[0][0].misc_anim_name[0], "main1-m1", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].misc_anim_name[1], "main1-m2", MAX_FILENAME_LEN);
+	Main_hall_defines[0][0].misc_anim_delay[0][0] = -1;
+	Main_hall_defines[0][0].misc_anim_delay[0][1] = 15000;
+	Main_hall_defines[0][0].misc_anim_delay[0][2] = 20000;
+	Main_hall_defines[0][0].misc_anim_delay[1][0] = -1;
+	Main_hall_defines[0][0].misc_anim_delay[1][1] = 9000;
+	Main_hall_defines[0][0].misc_anim_delay[1][2] = 30000;
+	Main_hall_defines[0][0].misc_anim_coords[0][0] = 14;
+	Main_hall_defines[0][0].misc_anim_coords[0][1] = 14;
+	Main_hall_defines[0][0].misc_anim_coords[1][0] = 174;
+	Main_hall_defines[0][0].misc_anim_coords[1][1] = 198;
+	Main_hall_defines[0][0].misc_anim_modes[0] = 0;
+	Main_hall_defines[0][0].misc_anim_modes[1] = 2;
+	Main_hall_defines[0][0].misc_anim_sound_pan[0] = -0.5f;
+	Main_hall_defines[0][0].misc_anim_sound_pan[1] = -0.25f;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][0] = 2;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][1] = 34;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][2] = 35;
+	Main_hall_defines[0][0].misc_anim_special_sounds[1][0] = 3;
+	Main_hall_defines[0][0].misc_anim_special_sounds[1][1] = 31;
+	Main_hall_defines[0][0].misc_anim_special_sounds[1][2] = 32;
+	Main_hall_defines[0][0].misc_anim_special_sounds[1][3] = 33;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][0] = 4;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][1] = 1;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][2] = 20;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][3] = 42;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][4] = 96;
+	Main_hall_defines[0][0].misc_anim_special_trigger[1][0] = 3;
+	Main_hall_defines[0][0].misc_anim_special_trigger[1][1] = 25;
+	Main_hall_defines[0][0].misc_anim_special_trigger[1][2] = 200;
+	Main_hall_defines[0][0].misc_anim_special_trigger[1][3] = 274;
+	Main_hall_defines[0][0].misc_anim_sound_handles[0][0] = 2;
+	Main_hall_defines[0][0].misc_anim_sound_handles[1][0] = 3;
+	Main_hall_defines[0][0].misc_anim_sound_flag[0][0] = 1;
+	Main_hall_defines[0][0].misc_anim_sound_flag[1][0] = 2;
+	
+	Main_hall_defines[0][0].num_door_animations = 6;
+	strncpy(Main_hall_defines[0][0].door_anim_name[0], "main1-d1", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].door_anim_name[1], "main1-d6", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].door_anim_name[2], "main1-d3", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].door_anim_name[3], "main1-d4", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].door_anim_name[4], "main1-d5", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][0].door_anim_name[5], "main1-d2", MAX_FILENAME_LEN);
+	Main_hall_defines[0][0].door_anim_coords[0][0] = 68;
+	Main_hall_defines[0][0].door_anim_coords[0][1] = 260;
+	Main_hall_defines[0][0].door_anim_coords[0][2] = 103;
+	Main_hall_defines[0][0].door_anim_coords[0][3] = 298;
+	Main_hall_defines[0][0].door_anim_coords[1][0] = 309;
+	Main_hall_defines[0][0].door_anim_coords[1][1] = 34;
+	Main_hall_defines[0][0].door_anim_coords[1][2] = 110;
+	Main_hall_defines[0][0].door_anim_coords[1][3] = 61;
+	Main_hall_defines[0][0].door_anim_coords[2][0] = 312;
+	Main_hall_defines[0][0].door_anim_coords[2][1] = 264;
+	Main_hall_defines[0][0].door_anim_coords[2][2] = 385;
+	Main_hall_defines[0][0].door_anim_coords[2][3] = 330;
+	Main_hall_defines[0][0].door_anim_coords[3][0] = 457;
+	Main_hall_defines[0][0].door_anim_coords[3][1] = 34;
+	Main_hall_defines[0][0].door_anim_coords[3][2] = 404;
+	Main_hall_defines[0][0].door_anim_coords[3][3] = 367;
+	Main_hall_defines[0][0].door_anim_coords[4][0] = 530;
+	Main_hall_defines[0][0].door_anim_coords[4][1] = 206;
+	Main_hall_defines[0][0].door_anim_coords[4][2] = 174;
+	Main_hall_defines[0][0].door_anim_coords[4][3] = 412;
+	Main_hall_defines[0][0].door_anim_coords[5][0] = 305;
+	Main_hall_defines[0][0].door_anim_coords[5][1] = 133;
+	Main_hall_defines[0][0].door_anim_coords[5][2] = 385;
+	Main_hall_defines[0][0].door_anim_coords[5][3] = 330;
+	Main_hall_defines[0][0].door_sounds[0][0] = 23;
+	Main_hall_defines[0][0].door_sounds[0][1] = 24;
+	Main_hall_defines[0][0].door_sounds[1][0] = 23;
+	Main_hall_defines[0][0].door_sounds[1][1] = 24;
+	Main_hall_defines[0][0].door_sounds[2][0] = 23;
+	Main_hall_defines[0][0].door_sounds[2][1] = 24;
+	Main_hall_defines[0][0].door_sounds[3][0] = 25;
+	Main_hall_defines[0][0].door_sounds[3][1] = 26;
+	Main_hall_defines[0][0].door_sounds[4][0] = 25;
+	Main_hall_defines[0][0].door_sounds[4][1] = 26;
+	Main_hall_defines[0][0].door_sounds[5][0] = 23;
+	Main_hall_defines[0][0].door_sounds[5][1] = 24;
+	Main_hall_defines[0][0].door_sound_pan[0] = -0.7f;
+	Main_hall_defines[0][0].door_sound_pan[1] = 0.07f;
+	Main_hall_defines[0][0].door_sound_pan[2] = 0.2f;
+	Main_hall_defines[0][0].door_sound_pan[3] = 0.73f;
+	Main_hall_defines[0][0].door_sound_pan[4] = 0.75f;
+	Main_hall_defines[0][0].door_sound_pan[5] = 0.11f;
+	
+	Main_hall_defines[0][0].region_yval = 455;
+	
+	for (idx = 0; idx < NUM_REGIONS; idx++) {
+		Main_hall_defines[0][0].region_descript[idx] = NULL;
+	}
+	
+	
+	// Vasudan main hall
+	strncpy(Main_hall_defines[0][1].bitmap, "MainHall2", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].mask, "MainHall2-m", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].music, "main_amb", MAX_FILENAME_LEN);
+	
+	Main_hall_defines[0][1].num_random_intercom_sounds = 3;
+	Main_hall_defines[0][1].intercom_delay[0][0] = 8000;
+	Main_hall_defines[0][1].intercom_delay[0][1] = 15000;
+	Main_hall_defines[0][1].intercom_delay[1][0] = 8000;
+	Main_hall_defines[0][1].intercom_delay[1][1] = 15000;
+	Main_hall_defines[0][1].intercom_delay[2][0] = 8000;
+	Main_hall_defines[0][1].intercom_delay[2][1] = 15000;
+	Main_hall_defines[0][1].intercom_sounds[0] = 49;
+	Main_hall_defines[0][1].intercom_sounds[1] = 50;
+	Main_hall_defines[0][1].intercom_sounds[2] = 51;
+	Main_hall_defines[0][1].intercom_sound_pan[0] = 0.0f;
+	Main_hall_defines[0][1].intercom_sound_pan[1] = 0.0f;
+	Main_hall_defines[0][1].intercom_sound_pan[2] = 0.0f;
+	
+	Main_hall_defines[0][1].num_misc_animations = 4;
+	strncpy(Main_hall_defines[0][1].misc_anim_name[0], "main2-m1", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].misc_anim_name[1], "main2-m2", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].misc_anim_name[2], "main2-m3", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].misc_anim_name[3], "main2-m4", MAX_FILENAME_LEN);
+	Main_hall_defines[0][1].misc_anim_delay[0][0] = -1;
+	Main_hall_defines[0][1].misc_anim_delay[0][1] = 0;
+	Main_hall_defines[0][1].misc_anim_delay[0][2] = 0;
+	Main_hall_defines[0][1].misc_anim_delay[1][0] = -1;
+	Main_hall_defines[0][1].misc_anim_delay[1][1] = 0;
+	Main_hall_defines[0][1].misc_anim_delay[1][2] = 0;
+	Main_hall_defines[0][1].misc_anim_delay[2][0] = -1;
+	Main_hall_defines[0][1].misc_anim_delay[2][1] = 0;
+	Main_hall_defines[0][1].misc_anim_delay[2][2] = 0;
+	Main_hall_defines[0][1].misc_anim_delay[3][0] = -1;
+	Main_hall_defines[0][1].misc_anim_delay[3][1] = 5000;
+	Main_hall_defines[0][1].misc_anim_delay[3][2] = 9000;
+	Main_hall_defines[0][1].misc_anim_coords[0][0] = 0;
+	Main_hall_defines[0][1].misc_anim_coords[0][1] = 37;
+	Main_hall_defines[0][1].misc_anim_coords[1][0] = 59;
+	Main_hall_defines[0][1].misc_anim_coords[1][1] = 0;
+	Main_hall_defines[0][1].misc_anim_coords[2][0] = 80;
+	Main_hall_defines[0][1].misc_anim_coords[2][1] = 115;
+	Main_hall_defines[0][1].misc_anim_coords[3][0] = 0;
+	Main_hall_defines[0][1].misc_anim_coords[3][1] = 182;
+	Main_hall_defines[0][1].misc_anim_modes[0] = 0;
+	Main_hall_defines[0][1].misc_anim_modes[1] = 0;
+	Main_hall_defines[0][1].misc_anim_modes[2] = 0;
+	Main_hall_defines[0][1].misc_anim_modes[3] = 1;
+	Main_hall_defines[0][1].misc_anim_sound_pan[0] = -0.82f;
+	Main_hall_defines[0][1].misc_anim_sound_pan[1] = -0.5f;
+	Main_hall_defines[0][1].misc_anim_sound_pan[2] = -0.5f;
+	Main_hall_defines[0][1].misc_anim_sound_pan[3] = -0.86f;
+	Main_hall_defines[0][1].misc_anim_special_sounds[0][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_sounds[0][1] = 43;
+	Main_hall_defines[0][1].misc_anim_special_sounds[0][2] = 44;
+	Main_hall_defines[0][1].misc_anim_special_sounds[1][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_sounds[1][1] = 45;
+	Main_hall_defines[0][1].misc_anim_special_sounds[1][2] = 46;
+	Main_hall_defines[0][1].misc_anim_special_sounds[2][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_sounds[2][1] = 45;
+	Main_hall_defines[0][1].misc_anim_special_sounds[2][2] = 46;
+	Main_hall_defines[0][1].misc_anim_special_sounds[3][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_sounds[3][1] = 47;
+	Main_hall_defines[0][1].misc_anim_special_sounds[3][2] = 48;
+	Main_hall_defines[0][1].misc_anim_special_trigger[0][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_trigger[0][1] = 0;
+	Main_hall_defines[0][1].misc_anim_special_trigger[0][2] = 300;
+	Main_hall_defines[0][1].misc_anim_special_trigger[1][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_trigger[1][1] = 20;
+	Main_hall_defines[0][1].misc_anim_special_trigger[1][2] = 262;
+	Main_hall_defines[0][1].misc_anim_special_trigger[2][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_trigger[2][1] = 0;
+	Main_hall_defines[0][1].misc_anim_special_trigger[2][2] = 150;
+	Main_hall_defines[0][1].misc_anim_special_trigger[3][0] = 2;
+	Main_hall_defines[0][1].misc_anim_special_trigger[3][1] = 128;
+	Main_hall_defines[0][1].misc_anim_special_trigger[3][2] = 300;
+	Main_hall_defines[0][1].misc_anim_sound_handles[0][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_handles[1][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_handles[2][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_handles[3][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_flag[0][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_flag[1][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_flag[2][0] = 2;
+	Main_hall_defines[0][1].misc_anim_sound_flag[3][0] = 2;
+	
+	Main_hall_defines[0][1].num_door_animations = 6;
+	strncpy(Main_hall_defines[0][1].door_anim_name[0], "main2-d1", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].door_anim_name[1], "main2-d6", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].door_anim_name[2], "main2-d3", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].door_anim_name[3], "main2-d4", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].door_anim_name[4], "main2-d5", MAX_FILENAME_LEN);
+	strncpy(Main_hall_defines[0][1].door_anim_name[5], "main2-d2", MAX_FILENAME_LEN);
+	Main_hall_defines[0][1].door_anim_coords[0][0] = 199;
+	Main_hall_defines[0][1].door_anim_coords[0][1] = 265;
+	Main_hall_defines[0][1].door_anim_coords[0][2] = 263;
+	Main_hall_defines[0][1].door_anim_coords[0][3] = 295;
+	Main_hall_defines[0][1].door_anim_coords[1][0] = 296;
+	Main_hall_defines[0][1].door_anim_coords[1][1] = 278;
+	Main_hall_defines[0][1].door_anim_coords[1][2] = 331;
+	Main_hall_defines[0][1].door_anim_coords[1][3] = 209;
+	Main_hall_defines[0][1].door_anim_coords[2][0] = 423;
+	Main_hall_defines[0][1].door_anim_coords[2][1] = 138;
+	Main_hall_defines[0][1].door_anim_coords[2][2] = 531;
+	Main_hall_defines[0][1].door_anim_coords[2][3] = 240;
+	Main_hall_defines[0][1].door_anim_coords[3][0] = 363;
+	Main_hall_defines[0][1].door_anim_coords[3][1] = 187;
+	Main_hall_defines[0][1].door_anim_coords[3][2] = 395;
+	Main_hall_defines[0][1].door_anim_coords[3][3] = 218;
+	Main_hall_defines[0][1].door_anim_coords[4][0] = 47;
+	Main_hall_defines[0][1].door_anim_coords[4][1] = 307;
+	Main_hall_defines[0][1].door_anim_coords[4][2] = 101;
+	Main_hall_defines[0][1].door_anim_coords[4][3] = 342;
+	Main_hall_defines[0][1].door_anim_coords[5][0] = 325;
+	Main_hall_defines[0][1].door_anim_coords[5][1] = 311;
+	Main_hall_defines[0][1].door_anim_coords[5][2] = 362;
+	Main_hall_defines[0][1].door_anim_coords[5][3] = 371;
+	Main_hall_defines[0][1].door_sounds[0][0] = 23;
+	Main_hall_defines[0][1].door_sounds[0][1] = 24;
+	Main_hall_defines[0][1].door_sounds[1][0] = 23;
+	Main_hall_defines[0][1].door_sounds[1][1] = 24;
+	Main_hall_defines[0][1].door_sounds[2][0] = 23;
+	Main_hall_defines[0][1].door_sounds[2][1] = 24;
+	Main_hall_defines[0][1].door_sounds[3][0] = 25;
+	Main_hall_defines[0][1].door_sounds[3][1] = 26;
+	Main_hall_defines[0][1].door_sounds[4][0] = 25;
+	Main_hall_defines[0][1].door_sounds[4][1] = 26;
+	Main_hall_defines[0][1].door_sounds[5][0] = 23;
+	Main_hall_defines[0][1].door_sounds[5][1] = 24;
+	Main_hall_defines[0][1].door_sound_pan[0] = -0.2f;
+	Main_hall_defines[0][1].door_sound_pan[1] = 0.12f;
+	Main_hall_defines[0][1].door_sound_pan[2] = 0.62f;
+	Main_hall_defines[0][1].door_sound_pan[3] = 0.2f;
+	Main_hall_defines[0][1].door_sound_pan[4] = -0.63f;
+	Main_hall_defines[0][1].door_sound_pan[5] = 0.35f;
+	
+	Main_hall_defines[0][1].region_yval = 425;
+	
+	for (idx = 0; idx < NUM_REGIONS; idx++) {
+		Main_hall_defines[0][1].region_descript[idx] = NULL;
+	}
+
+#endif
 
 	// are we funny?
 	if(Vasudan_funny){

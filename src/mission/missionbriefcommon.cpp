@@ -15,6 +15,13 @@
  * C module for briefing code common to FreeSpace and FRED
  *
  * $Log$
+ * Revision 1.12  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.11  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -470,6 +477,38 @@ int Brief_voices[MAX_BRIEF_STAGES];
 cmd_brief *Cur_cmd_brief;
 cmd_brief Cmd_briefs[MAX_TEAMS];
 
+#ifdef MAKE_FS1
+static char *fs1_icon_tbl[MAX_BRIEF_ICONS][3] = {
+	{ "iconfighter", "FadeFighter", "iconhighlight04" },
+	{ "iconfighterW", "FadeFighterW", "iconhighlight02" },
+	{ "iconcargo", "FadeCargo", "iconhighlight04" },
+	{ "iconcargoW", "FadeCargoW", "iconhighlight02" },
+	{ "iconbigship", "FadeBigShip", "iconhighlight07" },
+	{ "iconbigshipW", "FadeBigShipW", "iconhighlight05" },
+	{ "iconcapital", "FadeCapital", "iconhighlight06" },
+	{ "iconplanet", "FadePlanet", "iconhighlight03" },
+	{ "iconasteroid", "FadeAsteroid", "iconhighlight03" },
+	{ "iconwaypoint", "FadeWaypoint", "iconhighlight04" },
+	{ "iconsupport", "FadeSupport", "iconhighlight04" },
+	{ "iconfreighter", "FadeFreighter", "iconhighlight01" },
+	{ "iconfreighterc", "FadeFreighterC", "iconhighlight01" },
+	{ "iconfreighterwing", "FadeFreighterW", "iconhighlight05" },
+	{ "iconfreightercwing", "FadeFreighterCW", "iconhighlight05" },
+	{ "iconInstallation", "FadeInstallation", "iconhighlight03" },
+	{ "iconbomber", "FadeBomber", "iconhighlight07" },
+	{ "iconbomberW", "FadeBomberW", "iconhighlight05" },
+	{ "iconcruiser", "FadeCruiser", "iconhighlight01" },
+	{ "iconcruiserW", "FadeCruiserW", "iconhighlight05" },
+	{ "iconunknown", "FadeUnknown", "iconhighlight04" },
+	{ "iconunknownW", "FadeUnknownW", "iconhighlight01" },
+	{ "iconfighterP", "FadeFighterP", "iconhighlight04" },
+	{ "iconfighterWP", "FadeFighterWP", "iconhighlight02" },
+	{ "iconbomberP", "FadeBomberP", "iconhighlight07" },
+	{ "iconbomberWP", "FadeBomberWP", "iconhighlight05" },
+	{ "iconwaypoint", "FadeWaypoint", "iconhighlight04" }
+};
+#endif
+
 // --------------------------------------------------------------------------------------
 // forward declarations
 // --------------------------------------------------------------------------------------
@@ -715,6 +754,16 @@ void brief_init_icons()
 		gr_init_alphacolor( &IFF_colors[IFF_COLOR_FRIENDLY][0], 0x00, 0xff, 0x00, 15*16, AC_TYPE_HUD);
 	}
 
+	int idx;
+	int i;
+	
+	for (i=0; i<MAX_BRIEF_ICONS; i++) {
+		for (idx=0; idx<MAX_SPECIES_NAMES; idx++) {
+			Icon_bitmaps[i][idx].first_frame = -1;
+			Icon_bitmaps[i][idx].num_frames = 0;
+		}
+	}
+
 	// Load in the bitmaps for the icons from icons.tbl
 	brief_parse_icon_tbl();
 }
@@ -722,22 +771,16 @@ void brief_init_icons()
 // Reset the highlight and fade anims... call before brief_parse_icon_tbl();
 void brief_init_anims()
 {
-#ifndef MAKE_FS1
 	int idx;
-#endif
 	int i;
 
 	for (i=0; i<MAX_BRIEF_ICONS; i++) {
-#ifndef MAKE_FS1
-		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
-			Icon_highlight_anims[i][idx].num_frames=0;
-			Icon_fade_anims[i][idx].num_frames=0;
+		for (idx=0; idx<MAX_SPECIES_NAMES; idx++) {
+			Icon_highlight_anims[i][idx].first_frame = -1;
+			Icon_highlight_anims[i][idx].num_frames = 0;
+			Icon_fade_anims[i][idx].first_frame = -1;
+			Icon_fade_anims[i][idx].num_frames = 0;
 		}
-#else
-		// one set of icons for all species in FS1
-		Icon_highlight_anims[i][1].num_frames=0;
-		Icon_fade_anims[i][1].num_frames=0;
-#endif
 	}
 }
 
@@ -753,6 +796,9 @@ void brief_unload_icons()
 	for ( i = 0; i < MAX_BRIEF_ICONS; i++ ) {
 		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
 			ib = &Icon_bitmaps[i][idx];
+
+			if (ib->first_frame < 0)
+				continue;
 
 			for ( j=0; j<ib->num_frames; j++ ) {
 				bm_unload(ib->first_frame+j);
@@ -786,6 +832,7 @@ int brief_icon_used_in_briefing(int icon_type)
 //
 void brief_parse_icon_tbl()
 {
+#ifndef MAKE_FS1
 	int			num_icons, rval;
 	char			name[NAME_LENGTH];
 	hud_frames	*hf;
@@ -851,6 +898,44 @@ void brief_parse_icon_tbl()
 
 	// close localization
 	lcl_ext_close();
+#else
+	// load up hard coded values for FS1
+	char name[NAME_LENGTH];
+	hud_frames *hf;
+	hud_anim *ha;
+	int idx;
+	int load_this_icon = 0;
+
+	for (idx = 0; idx < MAX_BRIEF_ICONS; idx++) {
+		hf = &Icon_bitmaps[idx][0];
+
+		// load in regular frames
+		strncpy(name, fs1_icon_tbl[idx][0], NAME_LENGTH);
+
+		if ( Fred_running ) {
+			load_this_icon = 1;
+		} else {
+			load_this_icon = brief_icon_used_in_briefing(idx);
+		}
+		
+		if ( load_this_icon ) {
+			hf->first_frame = bm_load_animation(name, &hf->num_frames);
+			if ( hf->first_frame == -1 ) {
+				Int3();	// missing briefing icon
+			}
+		}
+
+		// load in fade frames
+		strncpy(name, fs1_icon_tbl[idx][1], NAME_LENGTH);
+		ha = &Icon_fade_anims[idx][0];
+		hud_anim_init(ha, 0, 0, name);
+
+		// load in highlighting frames
+		strncpy(name, fs1_icon_tbl[idx][2], NAME_LENGTH);
+		ha = &Icon_highlight_anims[idx][0];
+		hud_anim_init(ha, 0, 0, name);
+	}
+#endif
 }
 
 // --------------------------------------------------------------------------------------
@@ -866,6 +951,10 @@ void brief_preload_highlight_anim(brief_icon *bi)
 {
 	hud_anim *ha;
 	int species = ship_get_species_by_type(bi->ship_class);
+
+#ifdef MAKE_FS1
+	species = 0;
+#endif
 
 	if(species < 0){
 		return;
@@ -892,6 +981,10 @@ void brief_preload_fade_anim(brief_icon *bi)
 {
 	hud_anim *ha;
 	int species = ship_get_species_by_type(bi->ship_class);
+
+#ifdef MAKE_FS1
+	species = 0;
+#endif
 
 	if(species < 0){
 		return;
@@ -1141,6 +1234,10 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 		brief_set_icon_color(bi->team);
 
 		int species = ship_get_species_by_type(bi->ship_class);
+
+#ifdef MAKE_FS1
+		species = 0;
+#endif
 
 		if(species < 0){
 			return;
@@ -1972,6 +2069,11 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 			}
 
 			int species = ship_get_species_by_type(cb->icons[i].ship_class);
+
+#ifdef MAKE_FS1
+			species = 0;
+#endif
+
 			if(species < 0) {
 				return 0;
 			}
@@ -1994,6 +2096,11 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 		}
 		if ( is_new ) {
 			int species = ship_get_species_by_type(newb->icons[i].ship_class);
+
+#ifdef MAKE_FS1
+			species = 0;
+#endif
+
 			if(species < 0) {
 				return 0;
 			}
@@ -2466,22 +2573,14 @@ void brief_modify_grid(grid *gridp)
 
 void brief_unload_anims()
 {
-#ifndef MAKE_FS1
 	int idx;
-#endif
 	int i;
 	
 	for (i=0; i<MAX_BRIEF_ICONS; i++) {
-#ifndef MAKE_FS1
 		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
 			hud_anim_release(&Icon_highlight_anims[i][idx]);
 			hud_anim_release(&Icon_fade_anims[i][idx]);
 		}
-#else
-		// one set of icons in FS1
-		hud_anim_release(&Icon_highlight_anims[i][1]);
-		hud_anim_release(&Icon_fade_anims[i][1]);
-#endif
 	}
 }
 
@@ -2628,6 +2727,11 @@ void brief_common_get_icon_dimensions(int *w, int *h, int type, int ship_class)
 	*h=0;
 
 	int species = ship_get_species_by_type(ship_class);
+
+#ifdef MAKE_FS1
+	species = 0;
+#endif
+
 	if(species < 0){
 		return;
 	}
@@ -2706,4 +2810,3 @@ int brief_time_to_advance(int stage_num, float frametime)
 
 	return advance;
 }
-

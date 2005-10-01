@@ -15,6 +15,13 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.13  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.12  2005/08/12 08:50:09  taylor
  * recursively create directories (hurt more on OSX) and update all _mkdir() calls accordingly
  *
@@ -254,9 +261,17 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	{ CF_TYPE_SOUNDS_8B22K,			"Data/Sounds/8b22k",				".wav",						CF_TYPE_SOUNDS	},
 	{ CF_TYPE_SOUNDS_16B11K,		"Data/Sounds/16b11k",				".wav",						CF_TYPE_SOUNDS	},
 	{ CF_TYPE_VOICE,					"Data/Voice",							"",							CF_TYPE_DATA	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_VOICE_BRIEFINGS,		"Data/Voice/Briefings",			".wav",						CF_TYPE_VOICE	},
+#else
 	{ CF_TYPE_VOICE_BRIEFINGS,		"Data/Voice/Briefing",			".wav",						CF_TYPE_VOICE	},
+#endif
 	{ CF_TYPE_VOICE_CMD_BRIEF,		"Data/Voice/Command_briefings",".wav",						CF_TYPE_VOICE	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data/Voice/Debriefings",			".wav",						CF_TYPE_VOICE	},
+#else
 	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data/Voice/Debriefing",			".wav",						CF_TYPE_VOICE	},
+#endif
 	{ CF_TYPE_VOICE_PERSONAS,		"Data/Voice/Personas",			".wav",						CF_TYPE_VOICE	},
 	{ CF_TYPE_VOICE_SPECIAL,		"Data/Voice/Special",				".wav",						CF_TYPE_VOICE	},
 	{ CF_TYPE_VOICE_TRAINING,		"Data/Voice/Training",			".wav",						CF_TYPE_VOICE	},

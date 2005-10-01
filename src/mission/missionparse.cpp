@@ -15,6 +15,13 @@
  * main upper level code for pasring stuff
  *
  * $Log$
+ * Revision 1.7  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.6  2003/08/14 02:39:11  theoddone33
  * Removed braces from initializers so GCC 3 will stop complaining.
  *
@@ -2991,6 +2998,25 @@ void parse_waypoint_list(mission *pm)
 
 	required_string("$List:");
 	wpl->count = stuff_vector_list(wpl->waypoints, MAX_WAYPOINTS_PER_LIST);
+
+#ifdef MAKE_FS1
+	// AAAAHH!  I don't like to hard code a mission fix but I have no clue what to do
+	// to fix this properly.  In the FS1 mission "Playing Judas" you have to try and fly
+	// into one of the docking bays on the Lucifer.  Due to some change in the code the
+	// waypoints and the Lucifer's position don't match up so we have to change the
+	// waypoint position to compensate.
+	if ( !stricmp(pm->name, "Playing Judas") ) {
+		if ( !stricmp(wpl->name, "Docking Bay 1") ) {
+			wpl->waypoints[0].xyz.x = -1262.550903;
+			wpl->waypoints[0].xyz.y = 27.676950;
+			wpl->waypoints[0].xyz.z = 4461.702930;
+		} else if ( !stricmp(wpl->name, "Docking Bat 2") ) { // it really is spelled "Bat" in the mission
+			wpl->waypoints[0].xyz.x = -1105.347976;
+			wpl->waypoints[0].xyz.y = 27.676950;
+			wpl->waypoints[0].xyz.z = 3900.236867;
+		}
+	}
+#endif
 
 	Num_waypoint_lists++;
 }

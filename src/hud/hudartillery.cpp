@@ -14,6 +14,13 @@
  *
  *
  * $Log$
+ * Revision 1.6  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.5  2002/06/17 06:33:09  relnev
  * ryan's struct patch for gcc 2.95
  *
@@ -87,6 +94,7 @@ int Num_ssm_strikes = 0;
 // game init
 void ssm_init()
 {	
+#ifndef MAKE_FS1
 	ssm_info bogus, *s;
 	char weapon_name[NAME_LENGTH+1] = "";
 
@@ -131,6 +139,10 @@ void ssm_init()
 			}
 		}
 	}
+#else
+	// not for FS1
+	Ssm_info_count = 0;
+#endif
 }
 
 void ssm_get_random_start_pos(vector *out, vector *start, matrix *orient, int ssm_index)

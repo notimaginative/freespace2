@@ -15,6 +15,13 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.12  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.11  2005/08/12 08:58:41  taylor
  * fix the strange mouse click issues on briefing, ship select and weapon select screens
  *
@@ -470,7 +477,11 @@ int Closeup_button_hotspot = 14;
 
 //static int			Closeup_button_coords[2] = {CLOSEUP_X+164,CLOSEUP_Y+227};
 int Closeup_button_coords[GR_NUM_RESOLUTIONS][2] = {	
+#ifdef MAKE_FS1
+	{ 369, 306 },
+#else
 	{ 374, 316 },		// GR_640	
+#endif
 	{ 599, 506 }		// GR_1024	
 };
 
@@ -538,10 +549,10 @@ int	Brief_multitext_bitmap = -1;
 int	Brief_background_bitmap =-1;
 
 #ifdef MAKE_FS1
-	static int MapWin01 = -1;
-	static int MapWin02 = -1;
-	static int MapWin03 = -1;
-	static int MapWin04 = -1;
+static int MapWin01 = -1;
+static int MapWin02 = -1;
+static int MapWin03 = -1;
+static int MapWin04 = -1;
 #endif
 
 UI_WINDOW Brief_ui_window;

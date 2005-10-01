@@ -15,6 +15,13 @@
  * C file for the display and management of the HUD shield
  *
  * $Log$
+ * Revision 1.5  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.4  2002/07/13 06:46:48  theoddone33
  * Warning cleanups
  *
@@ -289,6 +296,7 @@ ubyte Quadrant_xlate[4] = {1,0,2,3};
 
 void hud_shield_game_init()
 {
+#ifndef MAKE_FS1
 	char name[MAX_FILENAME_LEN+1] = "";
 
 	// read in hud.tbl
@@ -308,6 +316,24 @@ void hud_shield_game_init()
 			strcpy(Hud_shield_filenames[Hud_shield_filename_count++], name);
 		}
 	}
+#else
+	// hardcoded FS1 table values
+	int i;
+
+	Hud_shield_filename_count = 0;
+
+	// for fighters
+	for (i = 1; i < 14; i++) {
+		snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-f%02d", i);
+		Assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
+	}
+
+	// for bombers
+	for (i = 1; i < 11; i++) {
+		snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-b%02d", i);
+		Assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
+	}
+#endif
 }
 
 // called at the start of each level from HUD_init.  Use Hud_shield_init so we only init Shield_gauges[] once.

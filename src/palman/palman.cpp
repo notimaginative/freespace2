@@ -15,6 +15,13 @@
  * Palette manager routines
  *
  * $Log$
+ * Revision 1.5  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.4  2004/07/04 11:39:06  taylor
  * fix missing debrief text, crash on exit, path separator's, warning fixes, no GR_SOFT
  *
@@ -258,6 +265,7 @@ int palman_is_nondarkening(int r,int g, int b)
 
 void palman_load_pixels()
 {
+#ifndef MAKE_FS1
 	// open pixels.tbl
 	read_file_text("pixels.tbl");
 	reset_parse();
@@ -271,6 +279,28 @@ void palman_load_pixels()
 			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default++][2]);
 		}
 	}
+#else
+	// hard-coded FS1 values
+	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 255;
+	Palman_non_darkening_default[Palman_num_nondarkening_default][1] = 255;
+	Palman_non_darkening_default[Palman_num_nondarkening_default++][2] = 255;
+
+	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 41;
+	Palman_non_darkening_default[Palman_num_nondarkening_default][1] = 41;
+	Palman_non_darkening_default[Palman_num_nondarkening_default++][2] = 255;
+
+	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 255;
+	Palman_non_darkening_default[Palman_num_nondarkening_default][1] = 0;
+	Palman_non_darkening_default[Palman_num_nondarkening_default++][2] = 0;
+
+	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 0;
+	Palman_non_darkening_default[Palman_num_nondarkening_default][1] = 255;
+	Palman_non_darkening_default[Palman_num_nondarkening_default++][2] = 0;
+
+	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 255;
+	Palman_non_darkening_default[Palman_num_nondarkening_default][1] = 244;
+	Palman_non_darkening_default[Palman_num_nondarkening_default++][2] = 126;
+#endif
 
 	// set this to be the active table
 	palman_set_nondarkening(Palman_non_darkening_default, Palman_num_nondarkening_default);

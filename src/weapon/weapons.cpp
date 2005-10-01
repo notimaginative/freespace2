@@ -15,6 +15,13 @@
  * Code to handle the weapon systems
  *
  * $Log$
+ * Revision 1.13  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.12  2005/08/12 08:48:11  taylor
  * don't scale weapon damage for FS1, this way you can still kill a capship with lasers rather than bombs
  *
@@ -508,6 +515,7 @@ extern int compute_num_homing_objects(object *target_objp);
 // 
 void parse_weapon_expl_tbl()
 {
+#ifndef MAKE_FS1
 	int	rval, idx;
 	char base_filename[256] = "";
 
@@ -555,6 +563,15 @@ void parse_weapon_expl_tbl()
 
 	// close localization
 	lcl_ext_close();
+#else
+	// hard coded value for FS1
+	Num_weapon_expl = 0;
+
+	Weapon_expl_info[Num_weapon_expl].lod_count = 1;
+	strncpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
+
+	Num_weapon_expl++;
+#endif
 }
 
 int get_weapon_expl_info_index(char *filename)
@@ -3649,8 +3666,10 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 	weapon *wp;	
 	int from_player = 0;
 	float total_scale = 1.0f;
+#ifndef MAKE_FS1
 	float hull_pct;
 	int is_big_damage_ship = 0;
+#endif
 
 	// sanity
 	if((wip == NULL) || (wep == NULL) || (target == NULL)){

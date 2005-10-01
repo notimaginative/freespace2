@@ -15,6 +15,13 @@
  * C module that contains functions to drive the Options user interface
  *
  * $Log$
+ * Revision 1.7  2005/10/01 22:04:58  taylor
+ * fix FS1 (de)briefing voices, the directory names are different in FS1
+ * hard code the table values so that the fs1.vp file isn't needed
+ * hard code a mission fix for sm2-08a since a have no idea how to fix it otherwise
+ * generally cleanup some FS1 code
+ * fix volume sliders in the options screen that never went all the way up
+ *
  * Revision 1.6  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -435,19 +442,19 @@ op_sliders Options_sliders[GR_NUM_RESOLUTIONS][NUM_OPTIONS_SLIDERS] = {
 #ifdef MAKE_FS1
 // slider, right arrow, left arrow
 // s(name), s(x), s(y), s(?), s(?), s(h), s(?), s(?), ra(name), ra(h), ra(x), ra(y), la(name), la(h), la(x), la(y)
-		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	20,	10,
+		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	20,	11,
 					"OPa_10",	10,	245,	159,
 					"OPa_08",	8,	29,		159),	// sound fx volume slider
-		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	20,	10,
+		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	20,	11,
 					"OPa_18",	18,	245,	194,
 					"OPa_16",	16,	29,		194),	// music volume slider
-		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	20,	10,
+		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	20,	11,
 					"OPa_21",	21,	245,	228,
 					"OPa_19",	19,	29,		228),	// voice volume slider
 		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity    
 		op_sliders("OPa_60",	358,	194,	-1,	-1,	60,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick sensitivity
 		op_sliders("OPa_61",	358,	226,	-1,	-1,	61,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick deadzone
-		op_sliders("OPa_11",	28,		285,	-1,	-1,	11,	42,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1)		// skill
+		op_sliders("OPa_11",	28,		285,	-1,	-1,	-1,	42,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1)		// skill
 #else
 		op_sliders("OMB_10",		31,	139,	-1,	-1,	10,	20,	10,
 					  "OMB_11",		11,	226,	137,
@@ -608,7 +615,7 @@ int Options_skills_text_coords[GR_NUM_RESOLUTIONS][4] = {
 #define NUM_STARS_SLIDER			6
 #define LIGHTING_SLIDER				7
 #ifdef MAKE_FS1
-#define WEAPON_REDNERING_SLIDER		8
+#define WEAPON_RENDERING_SLIDER		8
 #endif
 op_sliders Detail_sliders[GR_NUM_RESOLUTIONS][NUM_DETAIL_SLIDERS] = {
 	{ // GR_640
@@ -1692,6 +1699,11 @@ void options_detail_synch_sliders()
 	Detail_slider_pos[NUM_STARS_SLIDER] = Detail_sliders[gr_screen.res][NUM_STARS_SLIDER].slider.pos = Detail.num_stars;
 	Detail_slider_pos[NUM_PARTICLES_SLIDER] = Detail_sliders[gr_screen.res][NUM_PARTICLES_SLIDER].slider.pos = Detail.num_particles;
 	Detail_slider_pos[LIGHTING_SLIDER] = Detail_sliders[gr_screen.res][LIGHTING_SLIDER].slider.pos = Detail.lighting;
+#ifdef MAKE_FS1
+	// this doesn't do anything since it's affects are included in the other sliders now
+	// so lets just max it out to avoid it looking bad at 0
+	Detail_slider_pos[WEAPON_RENDERING_SLIDER] = Detail_sliders[gr_screen.res][WEAPON_RENDERING_SLIDER].slider.pos = Detail_sliders[gr_screen.res][WEAPON_RENDERING_SLIDER].dots - 1;
+#endif
 }
 
 void options_detail_init()

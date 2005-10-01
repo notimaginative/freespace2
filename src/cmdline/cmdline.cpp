@@ -13,6 +13,10 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.7  2005/10/01 21:40:38  taylor
+ * deal with OS X apps a little better, sets the path only based on ".app" in the name rather than the name itself
+ * make sure a global cmdline.cfg file works with OS X when built as an app
+ *
  * Revision 1.6  2003/06/22 12:50:11  taylor
  * fix memory error, code cleanup
  *
@@ -470,14 +474,32 @@ void os_init_cmdline(char *cmdline)
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
 	// the command line will take precedence
 #ifdef PLAT_UNIX
-	char cmdname[MAX_FILENAME_LENGTH];
+	char cmdname[MAX_PATH];
 
-	snprintf(cmdname, MAX_FILENAME_LENGTH, "%s/%s/Data/cmdline.cfg", detect_home(), Osreg_user_dir);
+	snprintf(cmdname, MAX_PATH, "%s/%s/Data/cmdline.cfg", detect_home(), Osreg_user_dir);
 	fp = fopen(cmdname, "rt");
 	
 	if (!fp) {
 		// if not already found check exec directory
+#if defined(__APPLE__) && !defined(MACOSX)
+		// we may end up doing this twice but it would largely get skipped the second time anyway
+		char *c = NULL;
+		c = strstr(full_path, ".app");
+		
+		if ( c != NULL) {
+			while (c && (*c != '/'))
+				c--;
+			
+			*c = '\0';
+		}
+		
+		memset(cmdname, 0, MAX_PATH);
+		snprintf(cmdname, MAX_PATH-1, "%s/Data/cmdline.cfg", full_path);
+
+		fp = fopen(cmdname, "rt");
+#else
 		fp = fopen("Data/cmdline.cfg", "rt");
+#endif // __APPLE__ && !__MACOSX__
 	}
 #else
 	fp = fopen("data\\cmdline.cfg", "rt");

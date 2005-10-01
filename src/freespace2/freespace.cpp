@@ -15,6 +15,10 @@
  * Freespace main body
  *
  * $Log$
+ * Revision 1.40  2005/10/01 21:40:38  taylor
+ * deal with OS X apps a little better, sets the path only based on ".app" in the name rather than the name itself
+ * make sure a global cmdline.cfg file works with OS X when built as an app
+ *
  * Revision 1.39  2005/08/12 08:57:20  taylor
  * don't show hardware S-RAM value on HUD in debug
  * do show in use GL texture memory
@@ -756,28 +760,11 @@ int	Game_skill_level = DEFAULT_SKILL_LEVEL;
 #define	VIEWER_ZOOM_DEFAULT 0.75f			//	Default viewer zoom, 0.625 as per multi-lateral agreement on 3/24/97
 float Viewer_zoom = VIEWER_ZOOM_DEFAULT;
 
-#ifndef __APPLE__
 #define EXE_FNAME	("fs2.exe")
 #define LAUNCHER_FNAME	("freespace2.exe")
-#elif FS2_DEMO
-#define EXE_FNAME	("Freespace2demo.app")
-#define LAUNCHER_FNAME	("Freespace2demo.app")
-char app_path[] =	"Freespace2demo.app/Contents/MacOS/Freespace2demo";
-#elif FS1_DEMO
-#define EXE_FNAME	("Freespace1demo.app")
-#define LAUNCHER_FNAME	("Freespace1demo.app")
-char app_path[] =	"Freespace1demo.app/Contents/MacOS/Freespace1demo";
-#elif MAKE_FS1
-#define EXE_FNAME	("Freespace1.app")
-#define LAUNCHER_FNAME	("Freespace1.app")
-char app_path[]		="Freespace1.app/Contents/MacOS/Freespace1";
-#else
-#define EXE_FNAME	("Freespace2.app")
-#define LAUNCHER_FNAME	("Freespace2.app")
-char app_path[]		="Freespace2.app/Contents/MacOS/Freespace2";
-#endif
 
-#ifdef __APPLE__
+
+#if defined(__APPLE__) && !defined(MACOSX)
 extern char full_path[1024];
 #endif
 
@@ -2390,9 +2377,20 @@ void game_init()
 #ifndef PLAT_UNIX	
 	GetCurrentDirectory(1024, whee);
 	strcat(whee, "\\");
-#elif __APPLE__
-        full_path[strlen(full_path) - strlen(app_path)] = '\0';
-        strcpy( whee, full_path);
+#elif defined(__APPLE__) && !defined(MACOSX)
+	// some OSX hackery to drop us out of the APP the binary is run from
+	char *c = NULL;
+	c = strstr(full_path, ".app");
+
+	if ( c != NULL) {
+		while (c && (*c != '/'))
+			c--;
+
+		*c = '\0';
+	}
+
+	strncpy(whee, full_path, 1024);
+	strcat(whee, "/");
 #else
 	getcwd (whee, 1024);
 	strcat(whee, "/");

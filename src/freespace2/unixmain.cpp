@@ -6,7 +6,7 @@
 
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow);
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(MACOSX)
 char full_path[1024];
 #endif
 
@@ -14,11 +14,12 @@ void vm_dump();
 
 int main(int argc, char **argv)
 {
-#ifdef __APPLE__
-        strcpy( full_path, *argv );
-#endif
 	char userdir[MAX_PATH];
-	
+
+#if defined(__APPLE__) && !defined(MACOSX)
+	strcpy( full_path, *argv );
+#endif
+
 	// create user game directory
 	snprintf(userdir, MAX_PATH, "%s/%s/", detect_home(), Osreg_user_dir);
 	_mkdir(userdir);	

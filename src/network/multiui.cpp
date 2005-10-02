@@ -15,6 +15,9 @@
  * C file for all the UI controls of the mulitiplayer screens
  *
  * $Log$
+ * Revision 1.12  2005/10/02 09:27:49  taylor
+ * fix interface problems with MultiJoinWait screen in FS1
+ *
  * Revision 1.11  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -7079,6 +7082,16 @@ int Multi_jw_bitmap;														// the background bitmap
 
 ui_button_info Multi_jw_buttons[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_BUTTONS] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		ui_button_info("MJW_00",	0,		50,		-1,	-1,	0),
+		ui_button_info("MJW_01",	0,		87,		-1,	-1,	1),
+		ui_button_info("MJW_02",	20,		219,	-1,	-1,	2),
+		ui_button_info("MJW_03",	73,		219,	-1,	-1,	3),
+		ui_button_info("MJW_09",	131,	213,	-1,	-1,	9),
+		ui_button_info("MJW_05",	0,		398,	-1,	-1,	5),
+		ui_button_info("MJW_06",	0,		435,	-1,	-1,	6),
+		ui_button_info("MJW_04",	559,	411,	-1,	-1,	4),
+#else
 		ui_button_info("MJW_00",	1,		24,	-1,	-1,	0),
 		ui_button_info("MJW_01",	1,		66,	-1,	-1,	1),
 		ui_button_info("MJW_02",	30,	244,	20,	272,	2),
@@ -7087,6 +7100,7 @@ ui_button_info Multi_jw_buttons[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_BUTTONS] = {
 		ui_button_info("MJW_05",	1,		406,	-1,	-1,	5),
 		ui_button_info("MJW_06",	1,		447,	-1,	-1,	6),
 		ui_button_info("MJW_07",	577,	428,	570,	414,	7),
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_MJW_00",	2,		38,	-1,	-1,	0),
@@ -7127,7 +7141,11 @@ UI_XSTR Multi_jw_text[GR_NUM_RESOLUTIONS][MULTI_JW_NUM_TEXT] = {
 
 int Mjw_players_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		36, 31, 173, 204
+#else
 		29, 18, 153, 210
+#endif
 	},
 	{ // GR_1024
 		46, 29, 254, 336

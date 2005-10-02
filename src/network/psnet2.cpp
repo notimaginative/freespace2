@@ -15,6 +15,9 @@
  * C file containing application level network-interface.
  *
  * $Log$
+ * Revision 1.14  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.13  2005/10/01 22:01:28  taylor
  * some cleanup of earlier big-endian changes
  *
@@ -1361,7 +1364,7 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 			send_header.data_len = INTEL_SHORT( (ushort)length );
 			send_header.type = RNT_DATA;
 			send_header.send_time = psnet_get_time();
-            send_header.send_time = INTEL_FLOAT( &send_header.send_time );
+			send_header.send_time = INTEL_FLOAT( &send_header.send_time );
 			// SOCKADDR_IN * rsockaddr = (SOCKADDR_IN *)&rsocket->addr;
 					
 			if (send_this_packet){
@@ -1625,7 +1628,7 @@ void psnet_rel_work()
 					//this is our connection to the server
 					if(Serverconn != 0xffffffff){
 						if(rcv_buff.type == RNT_ACK){
-                            ushort *acknum = (ushort *)&rcv_buff.data;
+							ushort *acknum = (ushort *)&rcv_buff.data;
 							if(*acknum == (~CONNECTSEQ & 0xffff)){
 								rsocket->status = RNF_CONNECTED;
 								ml_printf("Got ACK for IAMHERE!\n");
@@ -1782,7 +1785,7 @@ void psnet_rel_work()
 				if((rsocket->sbuffers[i]) && (fl_abs((psnet_get_time() - rsocket->timesent[i])) >= retry_packet_time)) {
 					reliable_header send_header;					
 					send_header.send_time = psnet_get_time();
-                    send_header.send_time = INTEL_FLOAT( &send_header.send_time );
+					send_header.send_time = INTEL_FLOAT( &send_header.send_time );
 					send_header.seq = INTEL_SHORT( rsocket->ssequence[i] );
 					memcpy(send_header.data,rsocket->sbuffers[i]->buffer,rsocket->send_len[i]);
 					send_header.data_len = INTEL_SHORT( (ushort)rsocket->send_len[i] );
@@ -1806,7 +1809,7 @@ void psnet_rel_work()
 			if((rsocket->status == RNF_CONNECTED) && (fl_abs((psnet_get_time() - rsocket->last_packet_sent)) > NETHEARTBEATTIME)) {
 				reliable_header send_header;				
 				send_header.send_time = psnet_get_time();
-                send_header.send_time = INTEL_FLOAT( &send_header.send_time );
+				send_header.send_time = INTEL_FLOAT( &send_header.send_time );
 				send_header.seq = 0;
 				send_header.data_len = 0;
 				send_header.type = RNT_HEARTBEAT;
@@ -2059,7 +2062,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 			if(bytesin){	
 				ml_string("about to check ack_header.type");
 				if(ack_header.type == RNT_ACK){
-                    short *acknum = (short *)&ack_header.data;
+					short *acknum = (short *)&ack_header.data;
 					if(*acknum == CONNECTSEQ){						
 						for(i=1; i<MAXRELIABLESOCKETS; i++){
 							if(Reliable_sockets[i].status==RNF_UNUSED){

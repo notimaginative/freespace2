@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.5  2004/06/11 01:34:41  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -587,8 +590,8 @@ void multi_options_update_start_game(netgame_info *ng)
 
 	// add the start game options
 	ADD_STRING(ng->name);
-	ADD_DATA_S32(ng->mode);
-	ADD_DATA_S32(ng->security);
+	ADD_INT(ng->mode);
+	ADD_INT(ng->security);
 
 	// add mode-specific data
 	switch(ng->mode){
@@ -597,7 +600,7 @@ void multi_options_update_start_game(netgame_info *ng)
 		break;
 	case NG_MODE_RANK_ABOVE:
 	case NG_MODE_RANK_BELOW:
-		ADD_DATA_S32(ng->rank_base);
+		ADD_INT(ng->rank_base);
 		break;
 	}
 
@@ -620,10 +623,10 @@ void multi_options_update_mission(netgame_info *ng, int campaign_mode)
 	ADD_DATA(code);
 
 	// type (coop or team vs. team)
-	ADD_DATA_S32(ng->type_flags);
+	ADD_INT(ng->type_flags);
 
 	// respawns
-	ADD_DATA_U32(ng->respawn);
+	ADD_UINT(ng->respawn);
 
 	// add the mission/campaign filename
 	code = (ubyte)campaign_mode;
@@ -666,10 +669,10 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		GET_STRING(Netgame.name);		
 
 		// get the netgame mode
-		GET_DATA_S32(Netgame.mode);
+		GET_INT(Netgame.mode);
 
 		// get the security #
-		GET_DATA_S32(Netgame.security);
+		GET_INT(Netgame.security);
 
 		// get mode specific data
 		switch(Netgame.mode){
@@ -678,7 +681,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 			break;
 		case NG_MODE_RANK_ABOVE:
 		case NG_MODE_RANK_BELOW:
-			GET_DATA_S32(Netgame.rank_base);
+			GET_INT(Netgame.rank_base);
 			break;
 		}
 
@@ -698,7 +701,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		Assert(Game_mode & GM_STANDALONE_SERVER);
 
 		// coop or team vs. team mode
-		GET_DATA_S32(ng.type_flags);
+		GET_INT(ng.type_flags);
 		if((ng.type_flags & NG_TYPE_TEAM) && !(Netgame.type_flags & NG_TYPE_TEAM)){
 			multi_team_reset();
 		}
@@ -709,7 +712,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		Netgame.type_flags = ng.type_flags;
 
 		// new respawn count
-		GET_DATA_U32(Netgame.respawn);
+		GET_UINT(Netgame.respawn);
 
 		// name string
 		memset(str,255,0);

@@ -15,6 +15,9 @@
  * C file that holds functions for the building and processing of multiplayer packets
  *
  * $Log$
+ * Revision 1.10  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.9  2005/08/12 08:59:17  taylor
  * small endianess fix
  *
@@ -705,9 +708,9 @@ void add_vector_data(ubyte *data, int *size, vector vec)
 {
 	int packet_size = *size;
 
-	ADD_DATA_FL(vec.xyz.x);
-	ADD_DATA_FL(vec.xyz.y);
-	ADD_DATA_FL(vec.xyz.z);
+	ADD_FLOAT(vec.xyz.x);
+	ADD_FLOAT(vec.xyz.y);
+	ADD_FLOAT(vec.xyz.z);
 
 	*size = packet_size;
 }
@@ -716,9 +719,9 @@ void get_vector_data(ubyte *data, int *size, vector vec)
 {
 	int offset = *size;
 
-	GET_DATA_FL(vec.xyz.x);
-	GET_DATA_FL(vec.xyz.y);
-	GET_DATA_FL(vec.xyz.z);
+	GET_FLOAT(vec.xyz.x);
+	GET_FLOAT(vec.xyz.y);
+	GET_FLOAT(vec.xyz.z);
 
 	*size = offset;
 }
@@ -949,16 +952,16 @@ void send_game_chat_packet(net_player *from, char *msg, int msg_mode, net_player
 	BUILD_HEADER(GAME_CHAT);
 	
 	// add the id
-	ADD_DATA_S16(from->player_id);
+	ADD_SHORT(from->player_id);
 
 	// add the message mode and if in MSG_TARGET mode, add who the target is
-	ADD_DATA_S32(server_msg);
+	ADD_INT(server_msg);
 	mode = (ubyte)msg_mode;	
 	ADD_DATA(mode);
 	switch(mode){
 	case MULTI_MSG_TARGET:	
 		Assert(to != NULL);
-		ADD_DATA_S16(to->player_id);
+		ADD_SHORT(to->player_id);
 		break;
 	case MULTI_MSG_EXPR:
 		Assert(expr != NULL);
@@ -1035,10 +1038,10 @@ void process_game_chat_packet( ubyte *data, header *hinfo )
 	offset = HEADER_LENGTH;
 
 	// get the id of the sender
-	GET_DATA_S16(from);
+	GET_SHORT(from);
 	
 	// determine if this is a server message
-	GET_DATA_S32(server_msg);
+	GET_INT(server_msg);
 
 	// get the mode
 	GET_DATA(mode);
@@ -1047,7 +1050,7 @@ void process_game_chat_packet( ubyte *data, header *hinfo )
 	to = -1;
 	switch(mode){
 	case MULTI_MSG_TARGET:	
-		GET_DATA_S16(to);
+		GET_SHORT(to);
 		break;
 	case MULTI_MSG_EXPR:
 		GET_STRING(expr);
@@ -1285,13 +1288,13 @@ void send_new_player_packet(int new_player_num,net_player *target)
 	BUILD_HEADER( NOTIFY_NEW_PLAYER );
 
 	// add the new player's info
-	ADD_DATA_S32(new_player_num);
+	ADD_INT(new_player_num);
 //	ADD_DATA(Net_players[new_player_num].p_info.addr);
 
 	add_net_addr(data, &packet_size, Net_players[new_player_num].p_info.addr);
 
-	ADD_DATA_S16(Net_players[new_player_num].player_id);
-	ADD_DATA_S32(Net_players[new_player_num].flags);
+	ADD_SHORT(Net_players[new_player_num].player_id);
+	ADD_INT(Net_players[new_player_num].flags);
 	ADD_STRING(Net_players[new_player_num].player->callsign);
 	ADD_STRING(Net_players[new_player_num].player->image_filename);
 	ADD_STRING(Net_players[new_player_num].player->squad_filename);
@@ -1325,11 +1328,11 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 	offset = HEADER_LENGTH;
 
 	// get the new players information
-	GET_DATA_S32(new_player_num);
+	GET_INT(new_player_num);
 	get_net_addr(data, &offset, new_addr);
 
-	GET_DATA_S16(new_id);
-	GET_DATA_S32(new_flags);
+	GET_SHORT(new_id);
+	GET_INT(new_flags);
 	GET_STRING(new_player_name);	
 	GET_STRING(new_player_image);
 	GET_STRING(new_player_squad);
@@ -1434,14 +1437,14 @@ void send_accept_player_data( net_player *npp, int is_ingame )
 		ADD_DATA(stop);
 
 		// add the player's number
-		ADD_DATA_S32(i);		
+		ADD_INT(i);		
 
 		// add the player's address
 	//	ADD_DATA(Net_players[i].p_info.addr);
 		add_net_addr(data, &packet_size, Net_players[i].p_info.addr);
 
 		// add his id#
-		ADD_DATA_S16(Net_players[i].player_id);
+		ADD_SHORT(Net_players[i].player_id);
 
 		// add his callsign
 		ADD_STRING(Net_players[i].player->callsign);
@@ -1456,11 +1459,11 @@ void send_accept_player_data( net_player *npp, int is_ingame )
 		ADD_STRING(Net_players[i].p_info.pxo_squad_name);
 		
 		// add his flags
-		ADD_DATA_S32(Net_players[i].flags);		
+		ADD_INT(Net_players[i].flags);		
 
 		// add his object's net sig
 		if ( is_ingame ) {
-			ADD_DATA_U16( Objects[Net_players[i].player->objnum].net_signature );
+			ADD_USHORT( Objects[Net_players[i].player->objnum].net_signature );
 		}
 
 		if ( (packet_size + PLAYER_DATA_SLOP) > MAX_PACKET_SIZE ) {
@@ -1497,7 +1500,7 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 	BUILD_HEADER(ACCEPT);	
 	
 	// add the accept code
-	ADD_DATA_S32(code);
+	ADD_INT(code);
 	
 	// add code specific accept data
 	if (code & ACCEPT_INGAME) {
@@ -1529,16 +1532,16 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 	}
 
 	// add the current skill level setting on the host
-	ADD_DATA_S32(Game_skill_level);
+	ADD_INT(Game_skill_level);
 
 	// add this guys player num 
-	ADD_DATA_S32(new_player_num);
+	ADD_INT(new_player_num);
 
 	// add his player id
-	ADD_DATA_S16(Net_players[new_player_num].player_id);
+	ADD_SHORT(Net_players[new_player_num].player_id);
 
 	// add netgame type flags
-	ADD_DATA_S32(Netgame.type_flags);
+	ADD_INT(Netgame.type_flags);
 	
 //#ifndef NDEBUG
 	// char buffer[100];
@@ -1601,13 +1604,13 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 		Assert(player_slot_num != -1);
 
 		// get the player's number
-		GET_DATA_S32(player_num);
+		GET_INT(player_num);
 
 		// add the player's address
 		get_net_addr(data, &offset, addr);
 
 		// get the player's id#
-		GET_DATA_S16(player_id);
+		GET_SHORT(player_id);
 
 		// get his callsign
 		GET_STRING(name);
@@ -1622,7 +1625,7 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 		GET_STRING(pxo_squad_name);
 		
 		// get his flags
-		GET_DATA_S32(new_flags);
+		GET_INT(new_flags);
 		
 		if (Net_players[player_num].flags & NETINFO_FLAG_OBSERVER) {
 			if (!multi_obs_create_player(player_num, name, &addr, &Players[player_slot_num])) {
@@ -1671,7 +1674,7 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 
 		// read in the player's object net signature and store as his objnum for now
 		if ( Net_player->flags & NETINFO_FLAG_ACCEPT_INGAME ) {
-			GET_DATA_U16( ig_signature );
+			GET_USHORT( ig_signature );
 			Net_players[player_num].player->objnum = ig_signature;
 		}
 
@@ -1746,7 +1749,7 @@ void process_accept_packet(ubyte* data, header* hinfo)
 	// get the accept code
 	offset = HEADER_LENGTH;	
 
-	GET_DATA_S32(code);
+	GET_INT(code);
 
 	// read in the accept code specific data
 	val = 0;
@@ -1778,16 +1781,16 @@ void process_accept_packet(ubyte* data, header* hinfo)
 	fill_net_addr( &Netgame.server_addr, hinfo->addr, hinfo->net_id, hinfo->port );	
 
 	// get the skill level setting
-	GET_DATA_S32(Game_skill_level);
+	GET_INT(Game_skill_level);
 
 	// get my netplayer number
-	GET_DATA_S32(my_player_num);
+	GET_INT(my_player_num);
 
 	// get my id #
-	GET_DATA_S16(player_id);
+	GET_SHORT(player_id);
 
 	// get netgame type flags
-	GET_DATA_S32(Netgame.type_flags);
+	GET_INT(Netgame.type_flags);
 
 	// setup the Net_players structure for myself first
 	Net_player = &Net_players[my_player_num];
@@ -1862,7 +1865,7 @@ void send_leave_game_packet(short player_id, int kicked_reason, net_player *targ
 	ADD_DATA(val);
 
 	if (player_id < 0) {
-		ADD_DATA_S16(Net_player->player_id);
+		ADD_SHORT(Net_player->player_id);
 
 		// inform the host that we are leaving the game
 		if (Net_player->flags & NETINFO_FLAG_AM_MASTER) {			
@@ -1881,7 +1884,7 @@ void send_leave_game_packet(short player_id, int kicked_reason, net_player *targ
 		Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 		// add the id of the guy to be kicked
-		ADD_DATA_S16(player_id);
+		ADD_SHORT(player_id);
 
 		// broadcast to everyone
 		if (target == NULL) {			
@@ -1907,7 +1910,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 	GET_DATA(kicked_reason);
 
 	// get the address of the guy who is to leave
-	GET_DATA_S16(deader_id);
+	GET_SHORT(deader_id);
 	PACKET_SET_SIZE();
 
 	// determine who is dropping and printf out a notification
@@ -2078,7 +2081,7 @@ void send_game_active_packet(net_addr* addr)
 	Assert( (Multi_connection_speed >= 0) && (Multi_connection_speed <= 4) );
 	flags |= (Multi_connection_speed << AG_FLAG_CONNECTION_BIT);
 
-	ADD_DATA_U16(flags);
+	ADD_USHORT(flags);
 	
 	// send the data	
 	psnet_send(addr, data, packet_size);
@@ -2106,7 +2109,7 @@ void process_game_active_packet(ubyte* data, header* hinfo)
 	GET_STRING(ag.title);	
 	GET_DATA(val);
 	ag.num_players = val;
-	GET_DATA_U16(ag.flags);
+	GET_USHORT(ag.flags);
 
 	PACKET_SET_SIZE();	
 
@@ -2143,18 +2146,18 @@ void send_netgame_update_packet(net_player *pl)
 	ADD_STRING(Netgame.mission_name);	
 	ADD_STRING(Netgame.title);
 	ADD_STRING(Netgame.campaign_name);
-	ADD_DATA_S32(Netgame.campaign_mode);	
-	ADD_DATA_S32(Netgame.max_players);			
-	ADD_DATA_S32(Netgame.security);
-	ADD_DATA_U32(Netgame.respawn);
-	ADD_DATA_S32(Netgame.flags);
-	ADD_DATA_S32(Netgame.type_flags);
-	ADD_DATA_S32(Netgame.version_info);
+	ADD_INT(Netgame.campaign_mode);	
+	ADD_INT(Netgame.max_players);			
+	ADD_INT(Netgame.security);
+	ADD_UINT(Netgame.respawn);
+	ADD_INT(Netgame.flags);
+	ADD_INT(Netgame.type_flags);
+	ADD_INT(Netgame.version_info);
 	ADD_DATA(Netgame.debug_flags);
 
 	// only the server should ever send the netgame state (standalone situation)
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
-		ADD_DATA_S32(Netgame.game_state);
+		ADD_INT(Netgame.game_state);
 	}
 	
 	// if we're the host on a standalone, send to the standalone and let him rebroadcast
@@ -2197,20 +2200,20 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 	GET_STRING(Netgame.mission_name);	
 	GET_STRING(Netgame.title);	
 	GET_STRING(Netgame.campaign_name);
-	GET_DATA_S32(Netgame.campaign_mode);	
-	GET_DATA_S32(Netgame.max_players);					// ignore on the standalone, who keeps track of this himself			
-	GET_DATA_S32(Netgame.security);
-	GET_DATA_U32(Netgame.respawn);		
+	GET_INT(Netgame.campaign_mode);	
+	GET_INT(Netgame.max_players);					// ignore on the standalone, who keeps track of this himself			
+	GET_INT(Netgame.security);
+	GET_UINT(Netgame.respawn);		
 	
 	// be sure not to blast the quitting flag because of the "one frame extra" problem
 	old_flags = Netgame.flags;	
-	GET_DATA_S32(Netgame.flags);	
-	GET_DATA_S32(Netgame.type_flags);
-	GET_DATA_S32(Netgame.version_info);
+	GET_INT(Netgame.flags);	
+	GET_INT(Netgame.type_flags);
+	GET_INT(Netgame.version_info);
 	GET_DATA(Netgame.debug_flags);
 
 	// netgame state	
-	GET_DATA_S32(ng_state);
+	GET_INT(ng_state);
 	
 	PACKET_SET_SIZE();
 							
@@ -2293,7 +2296,7 @@ void send_netgame_descript_packet(net_addr *addr, int code)
 		len = strlen(The_mission.mission_desc);
 		if(len > MAX_PACKET_SIZE - 10){
 			len = MAX_PACKET_SIZE - 10;
-			ADD_DATA_S32(len);
+			ADD_INT(len);
 			memcpy(data+packet_size,The_mission.mission_desc,len);
 			packet_size += len;
 		} else {
@@ -2435,10 +2438,10 @@ void send_netplayer_update_packet( net_player *pl )
 				ADD_DATA(val);
 
 				// add the net player's information
-				ADD_DATA_S16(Net_players[idx].player_id);
-				ADD_DATA_S32(Net_players[idx].state);
-				ADD_DATA_S32(Net_players[idx].p_info.ship_class);				
-				ADD_DATA_S32(Net_players[idx].tracker_player_id);
+				ADD_SHORT(Net_players[idx].player_id);
+				ADD_INT(Net_players[idx].state);
+				ADD_INT(Net_players[idx].p_info.ship_class);				
+				ADD_INT(Net_players[idx].tracker_player_id);
 
 				if(Net_players[idx].flags & NETINFO_FLAG_HAS_CD){
 					val = 1;
@@ -2472,10 +2475,10 @@ void send_netplayer_update_packet( net_player *pl )
 		ADD_DATA(val);
 
 		// add my current state in the netgame to this packet
-		ADD_DATA_S16(Net_player->player_id);
-		ADD_DATA_S32(Net_player->state);
-		ADD_DATA_S32(Net_player->p_info.ship_class);		
-		ADD_DATA_S32(Multi_tracker_id);
+		ADD_SHORT(Net_player->player_id);
+		ADD_INT(Net_player->state);
+		ADD_INT(Net_player->p_info.ship_class);		
+		ADD_INT(Multi_tracker_id);
 
 		// add if I have a CD or not
 		if(Multi_has_cd){
@@ -2515,21 +2518,21 @@ void process_netplayer_update_packet( ubyte *data, header *hinfo )
 	player_num = -1;
 	while(stop != 0xff){
 		// look the player up
-		GET_DATA_S16(player_id);
+		GET_SHORT(player_id);
 		player_num = find_player_id(player_id);
 		// if we couldn't find him, read in the bogus data
 		if((player_num == -1) || (Net_player == &Net_players[player_num])){
-			GET_DATA_S32(bogus.state);
-			GET_DATA_S32(bogus.p_info.ship_class);			
-			GET_DATA_S32(bogus.tracker_player_id);
+			GET_INT(bogus.state);
+			GET_INT(bogus.p_info.ship_class);			
+			GET_INT(bogus.tracker_player_id);
 
 			GET_DATA(has_cd);			
 		} 
 		// otherwise read in the data correctly
 		else {
-			GET_DATA_S32(new_state);
-			GET_DATA_S32(Net_players[player_num].p_info.ship_class);			
-			GET_DATA_S32(Net_players[player_num].tracker_player_id);
+			GET_INT(new_state);
+			GET_INT(Net_players[player_num].p_info.ship_class);			
+			GET_INT(Net_players[player_num].tracker_player_id);
 			GET_DATA(has_cd);
 			if(has_cd){
 				Net_players[player_num].flags |= NETINFO_FLAG_HAS_CD;
@@ -2611,21 +2614,21 @@ void send_ship_kill_packet( object *objp, object *other_objp, float percent_kill
 	}
 
 	BUILD_HEADER(SHIP_KILL);
-	ADD_DATA_U16(objp->net_signature);
+	ADD_USHORT(objp->net_signature);
 
 	// ships which are initially killed get the rest of the data sent.  self destructed ships and
 	if ( other_objp == NULL ) {
 		ushort temp;
 
 		temp = 0;
-		ADD_DATA_U16(temp);
+		ADD_USHORT(temp);
 		nprintf(("Network","Don't know other_obj for ship kill packet, sending NULL\n"));
 	} else {
-		ADD_DATA_U16( other_objp->net_signature );
+		ADD_USHORT( other_objp->net_signature );
 	}
 
-	ADD_DATA_U16( debris_signature );
-	ADD_DATA_FL( percent_killed );
+	ADD_USHORT( debris_signature );
+	ADD_FLOAT( percent_killed );
 	sd = (ubyte)self_destruct;
 	ADD_DATA(sd);
 	ADD_DATA( extra_death_info );
@@ -2676,11 +2679,11 @@ void process_ship_kill_packet( ubyte *data, header *hinfo )
 	char killer_name[NAME_LENGTH], killer_objtype = OBJ_NONE, killer_species = SPECIES_TERRAN, killer_weapon_index = -1;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_U16(ship_sig);
+	GET_USHORT(ship_sig);
 
-	GET_DATA_U16( other_sig );
-	GET_DATA_U16( debris_sig );
-	GET_DATA_FL( percent_killed );
+	GET_USHORT( other_sig );
+	GET_USHORT( debris_sig );
+	GET_FLOAT( percent_killed );
 	GET_DATA( sd );
 	GET_DATA( extra_death_info );
 	GET_DATA( was_player );
@@ -2764,8 +2767,8 @@ void send_ship_create_packet( object *objp, int is_support )
 
 	// We will pass the ship to create by name.
 	BUILD_HEADER(SHIP_CREATE);
-	ADD_DATA_U16(objp->net_signature);
-	ADD_DATA_S32( is_support );
+	ADD_USHORT(objp->net_signature);
+	ADD_INT( is_support );
 	if ( is_support ){
 		add_vector_data(data, &packet_size, objp->pos);
 	}
@@ -2784,8 +2787,8 @@ void process_ship_create_packet( ubyte *data, header *hinfo )
 
 	Assert ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 	offset = HEADER_LENGTH;
-	GET_DATA_U16(signature);
-	GET_DATA_S32( is_support );
+	GET_USHORT(signature);
+	GET_INT( is_support );
 	if ( is_support ){
 		get_vector_data(data, &offset, pos);
 	}
@@ -2833,12 +2836,12 @@ void send_wing_create_packet( wing *wingp, int num_to_create, int pre_create_cou
 	signature = Objects[Ships[ship_instance].objnum].net_signature;
 
 	BUILD_HEADER( WING_CREATE );
-	ADD_DATA_S32(index);
-	ADD_DATA_S32(num_to_create);
-	ADD_DATA_U16(signature);		
-	ADD_DATA_S32(pre_create_count);
+	ADD_INT(index);
+	ADD_INT(num_to_create);
+	ADD_USHORT(signature);		
+	ADD_INT(pre_create_count);
 	val = wingp->current_wave - 1;
-	ADD_DATA_S32(val);
+	ADD_INT(val);
 	
 	multi_io_send_to_all_reliable(data, packet_size);	
 }
@@ -2851,11 +2854,11 @@ void process_wing_create_packet( ubyte *data, header *hinfo )
 	int total_arrived_count, current_wave;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_S32(index);
-	GET_DATA_S32(num_to_create);
-	GET_DATA_U16(signature);
-	GET_DATA_S32(total_arrived_count);
-	GET_DATA_S32(current_wave);
+	GET_INT(index);
+	GET_INT(num_to_create);
+	GET_USHORT(signature);
+	GET_INT(total_arrived_count);
+	GET_INT(current_wave);
 
 	PACKET_SET_SIZE();
 
@@ -2892,7 +2895,7 @@ void send_ship_depart_packet( object *objp )
 	signature = objp->net_signature;
 
 	BUILD_HEADER(SHIP_DEPART);
-	ADD_DATA_U16( signature );
+	ADD_USHORT( signature );
 	
 	multi_io_send_to_all_reliable(data, packet_size);
 }
@@ -2905,7 +2908,7 @@ void process_ship_depart_packet( ubyte *data, header *hinfo )
 	ushort signature;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_U16( signature );
+	GET_USHORT( signature );
 	PACKET_SET_SIZE();
 
 	// find the object which is departing
@@ -2927,7 +2930,7 @@ void send_cargo_revealed_packet( ship *shipp )
 
 	// build the header and add the data
 	BUILD_HEADER(CARGO_REVEALED);
-	ADD_DATA_U16( Objects[shipp->objnum].net_signature );
+	ADD_USHORT( Objects[shipp->objnum].net_signature );
 
 	// server sends to all players
 	if(MULTIPLAYER_MASTER){		
@@ -2947,7 +2950,7 @@ void process_cargo_revealed_packet( ubyte *data, header *hinfo )
 	object *objp;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_U16(signature);
+	GET_USHORT(signature);
 	PACKET_SET_SIZE();
 
 	// get a ship pointer and call the ship function to reveal the cargo
@@ -3005,8 +3008,8 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 	// build up the header portion
 	BUILD_HEADER( SECONDARY_FIRED_AI );
 
-	ADD_DATA_U16( Objects[shipp->objnum].net_signature );
-	ADD_DATA_U16( starting_sig );
+	ADD_USHORT( Objects[shipp->objnum].net_signature );
+	ADD_USHORT( starting_sig );
 	
 	// add a couple of bits for swarm missiles and dual fire secondary weaspons
 	sinfo = 0;
@@ -3046,7 +3049,7 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 
 	}
 
-	ADD_DATA_U16( target_signature );
+	ADD_USHORT( target_signature );
 	ADD_DATA( t_subsys );
 
 	// just send this packet to everyone, then bail if an AI ship fired.
@@ -3071,12 +3074,12 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 
 	// now build up the packet to send to the player who actually fired.
 	BUILD_HEADER( SECONDARY_FIRED_PLR );
-	ADD_DATA_U16(starting_sig);
+	ADD_USHORT(starting_sig);
 	ADD_DATA( sinfo );
 
 	// add the targeting information so that the player's weapons will always home on the correct
 	// ship
-	ADD_DATA_U16( target_signature );
+	ADD_USHORT( target_signature );
 	ADD_DATA( t_subsys );
 	
 	multi_io_send_reliable(&Net_players[net_player_num], data, packet_size);
@@ -3100,11 +3103,11 @@ void process_secondary_fired_packet(ubyte* data, header* hinfo, int from_player)
 	// fired by an ai object (or another player).  from_player == 1 means tha me (the person
 	// receiving this packet) fired the secondary weapon
 	if ( !from_player ) {
-		GET_DATA_U16( net_signature );
-		GET_DATA_U16( starting_sig );
+		GET_USHORT( net_signature );
+		GET_USHORT( starting_sig );
 		GET_DATA( sinfo );			// are we firing swarm missiles
 
-		GET_DATA_U16( target_signature );
+		GET_USHORT( target_signature );
 		GET_DATA( t_subsys );
 
 		PACKET_SET_SIZE();
@@ -3121,10 +3124,10 @@ void process_secondary_fired_packet(ubyte* data, header* hinfo, int from_player)
 		shipp = &Ships[objp->instance];
 
 	} else {
-		GET_DATA_U16( starting_sig );
+		GET_USHORT( starting_sig );
 		GET_DATA( sinfo );
 
-		GET_DATA_U16( target_signature );
+		GET_USHORT( target_signature );
 		GET_DATA( t_subsys );
 
 		PACKET_SET_SIZE();
@@ -3207,8 +3210,8 @@ void send_countermeasure_fired_packet( object *objp, int cmeasure_count, int ran
 
 	Assert ( cmeasure_count < UCHAR_MAX );
 	BUILD_HEADER(COUNTERMEASURE_FIRED);
-	ADD_DATA_U16( objp->net_signature );
-	ADD_DATA_S32( rand_val );
+	ADD_USHORT( objp->net_signature );
+	ADD_INT( rand_val );
 		
 	multi_io_send_to_all(data, packet_size);
 }
@@ -3224,8 +3227,8 @@ void process_countermeasure_fired_packet( ubyte *data, header *hinfo )
 
 	offset = HEADER_LENGTH;	
 
-	GET_DATA_U16( signature );
-	GET_DATA_S32( rand_val );
+	GET_USHORT( signature );
+	GET_INT( rand_val );
 	PACKET_SET_SIZE();
 
 	objp = multi_get_network_object( signature );
@@ -3284,15 +3287,15 @@ void send_turret_fired_packet( int ship_objnum, int subsys_index, int weapon_obj
 	BUILD_HEADER(FIRE_TURRET_WEAPON);	
 	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.v.fvec);
 	ADD_DATA( has_sig );
-	ADD_DATA_U16( pnet_signature );	
+	ADD_USHORT( pnet_signature );	
 	if(has_sig){		
-		ADD_DATA_U16( objp->net_signature );
+		ADD_USHORT( objp->net_signature );
 	}
 	ADD_DATA( cindex );
 	val = (short)ssp->submodel_info_1.angs.h;
-	ADD_DATA_S16( val );
+	ADD_SHORT( val );
 	val = (short)ssp->submodel_info_2.angs.p;
-	ADD_DATA_S16( val );	
+	ADD_SHORT( val );	
 	
 	multi_io_send_to_all(data, packet_size);
 
@@ -3318,15 +3321,15 @@ void process_turret_fired_packet( ubyte *data, header *hinfo )
 	offset = HEADER_LENGTH;	
 	offset += multi_pack_unpack_position(0, data + offset, &o_fvec);	
 	GET_DATA( has_sig );
-	GET_DATA_U16( pnet_signature );
+	GET_USHORT( pnet_signature );
 	if(has_sig){
-		GET_DATA_U16( wnet_signature );
+		GET_USHORT( wnet_signature );
 	} else {
 		wnet_signature = 0;
 	}
 	GET_DATA( turret_index );
-	GET_DATA_S16( heading );
-	GET_DATA_S16( pitch );	
+	GET_SHORT( heading );
+	GET_SHORT( pitch );	
 	PACKET_SET_SIZE();				// move our counter forward the number of bytes we have read
 
 	// find the object
@@ -3390,8 +3393,8 @@ void send_mission_log_packet( int num )
 
 	BUILD_HEADER(MISSION_LOG_ENTRY);
 	ADD_DATA(type);
-	ADD_DATA_S32(entry->flags);
-	ADD_DATA_U16(sindex);
+	ADD_INT(entry->flags);
+	ADD_USHORT(sindex);
 	ADD_DATA(entry->timestamp);
 	ADD_STRING(entry->pname);
 	ADD_STRING(entry->sname);
@@ -3413,8 +3416,8 @@ void process_mission_log_packet( ubyte *data, header *hinfo )
 
 	offset = HEADER_LENGTH;
 	GET_DATA(type);
-	GET_DATA_S32(flags);
-	GET_DATA_U16(sindex);
+	GET_INT(flags);
+	GET_USHORT(sindex);
 	GET_DATA(timestamp);
 	GET_STRING(pname);
 	GET_STRING(sname);
@@ -3439,13 +3442,13 @@ void send_mission_message_packet( int id, char *who_from, int priority, int timi
 	utime = (ubyte)timing;
 
 	BUILD_HEADER(MISSION_MESSAGE);
-	ADD_DATA_S32(id);
+	ADD_INT(id);
 	ADD_STRING(who_from);
 	ADD_DATA(up);
 	ADD_DATA(utime);
 	ADD_DATA(us);
-	ADD_DATA_S32(builtin_type);
-	ADD_DATA_S32(multi_team_filter);
+	ADD_INT(builtin_type);
+	ADD_INT(multi_team_filter);
 
 	if (multi_target == -1){		
 		multi_io_send_to_all_reliable(data, packet_size);
@@ -3465,13 +3468,13 @@ void process_mission_message_packet( ubyte *data, header *hinfo )
 	Assert( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 
 	offset = HEADER_LENGTH;
-	GET_DATA_S32(id);
+	GET_INT(id);
 	GET_STRING(who_from);
 	GET_DATA(priority);
 	GET_DATA(utiming);
 	GET_DATA(source);
-	GET_DATA_S32(builtin_type);
-	GET_DATA_S32(multi_team_filter);
+	GET_INT(builtin_type);
+	GET_INT(multi_team_filter);
 
 	PACKET_SET_SIZE();
 
@@ -3611,9 +3614,9 @@ void send_mission_items( net_player *pl )
 
 		ADD_STRING( Multi_create_mission_list[i].filename );
 		ADD_STRING( Multi_create_mission_list[i].name );
-		ADD_DATA_S32( Multi_create_mission_list[i].flags );
+		ADD_INT( Multi_create_mission_list[i].flags );
 		ADD_DATA( Multi_create_mission_list[i].max_players );
-		ADD_DATA_U32( Multi_create_mission_list[i].respawn );		
+		ADD_UINT( Multi_create_mission_list[i].respawn );		
 
 		// STANDALONE_ONLY		
 		ADD_DATA( Multi_create_mission_list[i].valid_status );
@@ -3640,7 +3643,7 @@ void send_mission_items( net_player *pl )
 
 		ADD_STRING( Multi_create_campaign_list[i].filename );
 		ADD_STRING( Multi_create_campaign_list[i].name );
-		ADD_DATA_S32( Multi_create_campaign_list[i].flags );	
+		ADD_INT( Multi_create_campaign_list[i].flags );	
 		ADD_DATA( Multi_create_campaign_list[i].max_players );		
 
 		if ( packet_size > (int)MAX_MISSION_ITEMS_BYTES ) {
@@ -3690,12 +3693,12 @@ void process_mission_item_packet(ubyte *data,header *hinfo)
 	while( !stop ) {
 		GET_STRING( filename );
 		GET_STRING( name );
-		GET_DATA_S32( flags );
+		GET_INT( flags );
 		GET_DATA( max_players );
 
 		// missions also have respawns and a crc32 associated with them
 		if(type == MISSION_LIST_ITEMS){
-			GET_DATA_U32(respawn);
+			GET_UINT(respawn);
 
 			// STANDALONE_ONLY			
 			GET_DATA(valid_status);
@@ -3786,7 +3789,7 @@ void send_game_info_packet()
 	paused = (ubyte)((Netgame.game_state == NETGAME_STATE_PAUSED)?1:0);
 
 	BUILD_HEADER(GAME_INFO);
-	ADD_DATA_S32( Missiontime );
+	ADD_INT( Missiontime );
 	ADD_DATA( paused );
 	
 	multi_io_send_to_all(data, packet_size);
@@ -3816,7 +3819,7 @@ void send_ingame_nak(int state, net_player *p)
 	packet_size = 0;
 	BUILD_HEADER(INGAME_NAK);
 
-	ADD_DATA_S32(state);
+	ADD_INT(state);
 		
 	multi_io_send_reliable(p, data, packet_size);
 }
@@ -3828,7 +3831,7 @@ void process_ingame_nak(ubyte *data, header *hinfo)
 	net_player *pl;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_S32(state);	
+	GET_INT(state);	
 	PACKET_SET_SIZE();
 	
    pid = find_player_id(hinfo->id);
@@ -3962,7 +3965,7 @@ void send_observer_update_packet()
 	} else {
 		target_sig = 0;
 	}
-	ADD_DATA_U16(target_sig);
+	ADD_USHORT(target_sig);
 	
 	multi_io_send(Net_player, data, packet_size);
 }
@@ -3988,7 +3991,7 @@ void process_observer_update_packet(ubyte *data, header *hinfo)
 	offset += ret;
 
 	// targeting information
-	GET_DATA_U16(target_sig);	
+	GET_USHORT(target_sig);	
 	PACKET_SET_SIZE();	
 
 	if((obs_num < 0) || (Net_players[obs_num].player->objnum < 0)){
@@ -4021,10 +4024,10 @@ void send_netplayer_slot_packet()
    for(idx=0;idx<MAX_PLAYERS;idx++){
 		if( MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_OBSERVER(Net_players[idx])){
 			ADD_DATA(stop);
-			ADD_DATA_S16(Net_players[idx].player_id);  
-			ADD_DATA_U16(Objects[Net_players[idx].player->objnum].net_signature);
-			ADD_DATA_S32(Net_players[idx].p_info.ship_class);
-			ADD_DATA_S32(Net_players[idx].p_info.ship_index);			
+			ADD_SHORT(Net_players[idx].player_id);  
+			ADD_USHORT(Objects[Net_players[idx].player->objnum].net_signature);
+			ADD_INT(Net_players[idx].p_info.ship_class);
+			ADD_INT(Net_players[idx].p_info.ship_index);			
 		}
 	}
 	stop = 0x0;
@@ -4054,10 +4057,10 @@ void process_netplayer_slot_packet(ubyte *data, header *hinfo)
 
 	GET_DATA(stop);
 	while(stop != 0x0){
-		GET_DATA_S16(player_id);
-		GET_DATA_U16(net_sig);
-		GET_DATA_S32(ship_class);
-		GET_DATA_S32(ship_index);
+		GET_SHORT(player_id);
+		GET_USHORT(net_sig);
+		GET_INT(ship_class);
+		GET_INT(ship_index);
 		player_num = find_player_id(player_id);
 		if(player_num < 0){
 			nprintf(("Network","Error looking up player for object/slot assignment!!\n"));
@@ -4095,7 +4098,7 @@ void send_ship_weapon_change( ship *shipp, int what, int new_bank, int link_stat
 	int packet_size;
 
 	BUILD_HEADER(SHIP_WSTATE_CHANGE);
-	ADD_DATA_U16( Objects[shipp->objnum].net_signature );
+	ADD_USHORT( Objects[shipp->objnum].net_signature );
 	utmp = (ubyte)(what);
 	ADD_DATA( utmp );
 	utmp = (ubyte)(new_bank);
@@ -4116,7 +4119,7 @@ void process_ship_weapon_change( ubyte *data, header *hinfo )
 	ship *shipp;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_U16( signature );
+	GET_USHORT( signature );
 	GET_DATA( what );
 	GET_DATA( new_bank );
 	GET_DATA( link_status );
@@ -4181,10 +4184,10 @@ void send_ship_status_packet(net_player *pl, button_info *bi, int id)
 	}
 
 	BUILD_HEADER(SHIP_STATUS_CHANGE);
-	ADD_DATA_S32(id);
+	ADD_INT(id);
 	for(idx=0;idx<NUM_BUTTON_FIELDS;idx++){
 		temp = bi->status[idx];
-		ADD_DATA_S32(temp);
+		ADD_INT(temp);
 	}
 	
    // server should send reliably (response packet)
@@ -4209,10 +4212,10 @@ void process_ship_status_packet(ubyte *data, header *hinfo)
 	memset(&bi,0,sizeof(button_info));
 	
 	// read the button-info
-	GET_DATA_S32(unique_id);	
+	GET_INT(unique_id);	
 		
 	for(idx=0;idx<NUM_BUTTON_FIELDS;idx++){
-		GET_DATA_S32(i_tmp);
+		GET_INT(i_tmp);
 		bi.status[idx] = i_tmp;
 	}
 
@@ -4266,10 +4269,10 @@ void send_player_order_packet(int type, int index, int cmd)
 
 	// if we are not messaging all ships or wings, add the index, which is the shipnum or wingnum
 	if ( val != SQUAD_MSG_ALL ){
-		ADD_DATA_S32(index);  // net signature of target ship
+		ADD_INT(index);  // net signature of target ship
 	}
 
-	ADD_DATA_S32(cmd);         // the command itself
+	ADD_INT(cmd);         // the command itself
 
 	// add target data.
 	target_signature = 0;
@@ -4277,7 +4280,7 @@ void send_player_order_packet(int type, int index, int cmd)
 		target_signature = Objects[Player_ai->target_objnum].net_signature;
 	}
 
-	ADD_DATA_U16( target_signature );
+	ADD_USHORT( target_signature );
 
 	t_subsys = -1;
 	if ( (Player_ai->target_objnum != -1) && (Player_ai->targeted_subsys != NULL) ) {
@@ -4315,11 +4318,11 @@ void process_player_order_packet(ubyte *data, header *hinfo)
 	
 	GET_DATA( type );
 	if ( type != SQUAD_MSG_ALL ){
-		GET_DATA_S32( index );
+		GET_INT( index );
 	}
 
-	GET_DATA_S32( command );
-	GET_DATA_U16( target_signature );
+	GET_INT( command );
+	GET_USHORT( target_signature );
 	GET_DATA( t_subsys );
 
 	PACKET_SET_SIZE();	
@@ -4416,8 +4419,8 @@ void send_file_sig_packet(ushort sum_sig,int length_sig)
 	int packet_size = 0;
 
 	BUILD_HEADER(FILE_SIG_INFO);
-	ADD_DATA_U16(sum_sig);
-	ADD_DATA_S16(length_sig);
+	ADD_USHORT(sum_sig);
+	ADD_SHORT(length_sig);
 		
 	multi_io_send_reliable(Net_player, data, packet_size);
 }
@@ -4432,8 +4435,8 @@ void process_file_sig_packet(ubyte *data, header *hinfo)
 	// should only be received on the server-side
 	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 	
-	GET_DATA_U16(sum_sig);
-	GET_DATA_S32(length_sig);
+	GET_USHORT(sum_sig);
+	GET_INT(length_sig);
 	PACKET_SET_SIZE();
 	server_verify_filesig(hinfo->id, sum_sig, length_sig);	
 }
@@ -4489,7 +4492,7 @@ void send_subsystem_destroyed_packet( ship *shipp, int index, vector world_hitpo
 	vm_vec_rotate( &local_hitpos, &tmp, &objp->orient );
 
 	BUILD_HEADER(SUBSYSTEM_DESTROYED);
-	ADD_DATA_U16( Objects[shipp->objnum].net_signature );
+	ADD_USHORT( Objects[shipp->objnum].net_signature );
 	ADD_DATA( uindex );
 //	ADD_DATA( local_hitpos );
 	add_vector_data(data, &packet_size, local_hitpos);
@@ -4507,7 +4510,7 @@ void process_subsystem_destroyed_packet( ubyte *data, header *hinfo )
 
 	offset = HEADER_LENGTH;
 
-	GET_DATA_U16( signature );
+	GET_USHORT( signature );
 	GET_DATA( uindex );
 //	GET_DATA( local_hit_pos );
 	get_vector_data(data, &offset, local_hit_pos);
@@ -4553,7 +4556,7 @@ void send_subsystem_cargo_revealed_packet( ship *shipp, int index )
 
 	// build the header and add the data
 	BUILD_HEADER(SUBSYS_CARGO_REVEALED);
-	ADD_DATA_U16( Objects[shipp->objnum].net_signature );
+	ADD_USHORT( Objects[shipp->objnum].net_signature );
 	ADD_DATA( uindex );
 
 	// server sends to all players
@@ -4577,7 +4580,7 @@ void process_subsystem_cargo_revealed_packet( ubyte *data, header *hinfo )
 	ship_subsys *subsysp;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_U16( signature );
+	GET_USHORT( signature );
 	GET_DATA( uindex );
 	PACKET_SET_SIZE();
 
@@ -4678,7 +4681,7 @@ void send_jump_into_mission_packet(net_player *pl)
 	// and possible other things.
 	if ( pl != NULL ) {
 		if ( pl->flags & NETINFO_FLAG_INGAME_JOIN ) {
-			ADD_DATA_S32(Netgame.game_state);
+			ADD_INT(Netgame.game_state);
 		}
 	}
 	
@@ -4702,7 +4705,7 @@ void process_jump_into_mission_packet(ubyte *data, header *hinfo)
 	// if I am ingame joining, there should be extra data.  For now, this data is the netgame state.
 	// the game could be paused, so ingame joiner needs to deal with it.
 	if ( Net_player->flags & NETINFO_FLAG_INGAME_JOIN ) {
-		GET_DATA_S32( state );
+		GET_INT( state );
 		Netgame.game_state = state;
 	}
 
@@ -4786,8 +4789,8 @@ void send_repair_info_packet(object *repaired_objp, object *repair_objp, int cod
 	BUILD_HEADER(CLIENT_REPAIR_INFO);
 	cd = (ubyte)code;
 	ADD_DATA(cd);
-	ADD_DATA_U16( repaired_signature );
-	ADD_DATA_U16( repair_signature );
+	ADD_USHORT( repaired_signature );
+	ADD_USHORT( repair_signature );
 	
 	multi_io_send_to_all_reliable(data, packet_size);
 
@@ -4802,8 +4805,8 @@ void process_repair_info_packet(ubyte *data, header *hinfo)
 	ubyte code;
 
 	GET_DATA(code);
-	GET_DATA_U16( repaired_signature );
-	GET_DATA_U16( repair_signature );
+	GET_USHORT( repaired_signature );
+	GET_USHORT( repair_signature );
 	PACKET_SET_SIZE();
 
 	repaired_objp = multi_get_network_object( repaired_signature );
@@ -4870,7 +4873,7 @@ void send_ai_info_update_packet( object *objp, char what )
 		return;
 
 	BUILD_HEADER( AI_INFO_UPDATE );
-	ADD_DATA_U16( objp->net_signature );
+	ADD_USHORT( objp->net_signature );
 	ADD_DATA( what );
 
 	// depending on the "what" value, we will send different information
@@ -4883,7 +4886,7 @@ void send_ai_info_update_packet( object *objp, char what )
 		other_signature = Objects[aip->dock_objnum].net_signature;
 		dock_index = (ubyte)(aip->dock_index);
 		dockee_index = (ubyte)(aip->dockee_index);
-		ADD_DATA_U16( other_signature );
+		ADD_USHORT( other_signature );
 		ADD_DATA(dock_index);
 		ADD_DATA(dockee_index);
 		break;
@@ -4894,7 +4897,7 @@ void send_ai_info_update_packet( object *objp, char what )
 		other_signature = 0;
 		if ( aip->dock_objnum != -1 )
 			other_signature = Objects[aip->dock_objnum].net_signature;
-		ADD_DATA_U16( other_signature );
+		ADD_USHORT( other_signature );
 
 		break;
 
@@ -4904,8 +4907,8 @@ void send_ai_info_update_packet( object *objp, char what )
 		// for orders, we only need to send a little bit of information here.  Be sure that the
 		// first order for this ship is active
 		Assert( (aip->active_goal != AI_GOAL_NONE) && (aip->active_goal != AI_ACTIVE_GOAL_DYNAMIC) );
-		ADD_DATA_S32( aip->goals[0].ai_mode );
-		ADD_DATA_S32( aip->goals[0].ai_submode );
+		ADD_INT( aip->goals[0].ai_mode );
+		ADD_INT( aip->goals[0].ai_submode );
 		shipnum = -1;
 		if ( aip->goals[0].ship_name != NULL )
 			shipnum = ship_name_lookup( aip->goals[0].ship_name );
@@ -4918,7 +4921,7 @@ void send_ai_info_update_packet( object *objp, char what )
 		} else
 			other_signature = 0;
 		
-		ADD_DATA_U16( other_signature );
+		ADD_USHORT( other_signature );
 
 		// for docking, add the dock and dockee index
 		if ( aip->goals[0].ai_mode & (AI_GOAL_DOCK|AI_GOAL_REARM_REPAIR) ) {
@@ -4952,7 +4955,7 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 	char code;
 	ubyte dock_index = 0, dockee_index = 0;
 
-	GET_DATA_U16( net_signature );		// signature of the object that we are dealing with.
+	GET_USHORT( net_signature );		// signature of the object that we are dealing with.
 	GET_DATA( code );					// code of what we are doing.
 	objp = multi_get_network_object( net_signature );
 	if ( !objp )
@@ -4960,7 +4963,7 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 
 	switch( code ) {
 	case AI_UPDATE_DOCK:
-		GET_DATA_U16( other_net_signature );
+		GET_USHORT( other_net_signature );
 		GET_DATA( dock_index );
 		GET_DATA( dockee_index );
 		other_objp = multi_get_network_object( other_net_signature );
@@ -4983,7 +4986,7 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 		break;
 
 	case AI_UPDATE_UNDOCK:
-		GET_DATA_U16( other_net_signature );
+		GET_USHORT( other_net_signature );
 		other_objp = multi_get_network_object( other_net_signature );
 		
 		// if we don't have an object to work with, break out of loop
@@ -4994,9 +4997,9 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 		break;
 
 	case AI_UPDATE_ORDERS:
-		GET_DATA_S32( mode );
-		GET_DATA_S32( submode );
-		GET_DATA_U16( other_net_signature );
+		GET_INT( mode );
+		GET_INT( submode );
+		GET_USHORT( other_net_signature );
 		if ( mode & (AI_GOAL_DOCK|AI_GOAL_REARM_REPAIR) ) {
 			GET_DATA(dock_index);
 			GET_DATA(dockee_index);
@@ -5058,7 +5061,7 @@ void send_mission_sync_packet(int mode,int start_campaign)
 
 	// build the header and add the sync mode (pre or post briefing)
 	BUILD_HEADER(MISSION_SYNC_DATA);
-	ADD_DATA_S32(mode);
+	ADD_INT(mode);
 
 	// if this is a campaign game
 	if(mode == MULTI_SYNC_PRE_BRIEFING){
@@ -5104,7 +5107,7 @@ void process_mission_sync_packet(ubyte *data, header *hinfo)
 	}
 
 	// get the sync mode (pre or post briefing)
-	GET_DATA_S32(mode);
+	GET_INT(mode);
 
 	if(mode == MULTI_SYNC_PRE_BRIEFING){
 		// get the flag indicating if this is a single mission or a campaign mode
@@ -5189,7 +5192,7 @@ void send_debris_update_packet(object *objp,int code)
 	int packet_size = 0;
 
 	BUILD_HEADER(DEBRIS_UPDATE);	
-	ADD_DATA_U16(objp->net_signature);
+	ADD_USHORT(objp->net_signature);
 	val = (ubyte) code;
 	ADD_DATA(val);
 	
@@ -5216,7 +5219,7 @@ void process_debris_update_packet(ubyte *data, header *hinfo)
 	object *objp;
 	int offset = HEADER_LENGTH;
 	
-	GET_DATA_U16(net_sig);
+	GET_USHORT(net_sig);
 	GET_DATA(code);
 
 	objp = NULL;
@@ -5262,14 +5265,14 @@ void send_wss_request_packet(short player_id, int from_slot, int from_index, int
 	BUILD_HEADER(WSS_REQUEST_PACKET);
 	
 	// add the request information
-	ADD_DATA_S16(player_id);
-	ADD_DATA_S32(from_slot);
-	ADD_DATA_S32(from_index);
-	ADD_DATA_S32(to_slot);
-	ADD_DATA_S32(to_index);
-	ADD_DATA_S32(wl_ship_slot);	// only used in weapons loadout
-	ADD_DATA_S32(ship_class);
-	ADD_DATA_S32(mode);
+	ADD_SHORT(player_id);
+	ADD_INT(from_slot);
+	ADD_INT(from_index);
+	ADD_INT(to_slot);
+	ADD_INT(to_index);
+	ADD_INT(wl_ship_slot);	// only used in weapons loadout
+	ADD_INT(ship_class);
+	ADD_INT(mode);
 
 	// a standard request
 	if(p == NULL){		
@@ -5293,17 +5296,17 @@ void process_wss_request_packet(ubyte *data, header *hinfo)
 	int player_num;
 
 	// determine who this request is from	
-	GET_DATA_S16(player_id);	
+	GET_SHORT(player_id);	
 	player_num = find_player_id(player_id);	
 
 	// read in the request data	
-	GET_DATA_S32(from_slot);
-	GET_DATA_S32(from_index);
-	GET_DATA_S32(to_slot);
-	GET_DATA_S32(to_index);
-	GET_DATA_S32(wl_ship_slot); // only used in weapons loadout
-	GET_DATA_S32(ship_class);	// only used in multi team select
-	GET_DATA_S32(mode);
+	GET_INT(from_slot);
+	GET_INT(from_index);
+	GET_INT(to_slot);
+	GET_INT(to_index);
+	GET_INT(wl_ship_slot); // only used in weapons loadout
+	GET_INT(ship_class);	// only used in multi team select
+	GET_INT(mode);
 	PACKET_SET_SIZE();
 
 	Assert(player_num != -1);	
@@ -5344,7 +5347,7 @@ void send_wss_update_packet(int team_num,ubyte *wss_data,int size)
 	ADD_DATA(team);
 
 	// add the data block size
-	ADD_DATA_S32(size);
+	ADD_INT(size);
 	
 	// add the data itself
 	memcpy(data + packet_size,wss_data,size);
@@ -5370,7 +5373,7 @@ void process_wss_update_packet(ubyte *data, header *hinfo)
 	GET_DATA(team);
 
 	// get the data size
-	GET_DATA_S32(size);		
+	GET_INT(size);		
 
 	// if we're the standalone, then we should be routing this data to all the other clients
 	if(Game_mode & GM_STANDALONE_SERVER){
@@ -5474,9 +5477,9 @@ void send_mission_goal_info_packet( int goal_num, int new_status, int valid )
 
 	BUILD_HEADER(MISSION_GOAL_INFO);
 
-	ADD_DATA_S32(goal_num);
-	ADD_DATA_S32(new_status);
-	ADD_DATA_S32(valid);
+	ADD_INT(goal_num);
+	ADD_INT(new_status);
+	ADD_INT(valid);
 	
 	multi_io_send_to_all_reliable(data, packet_size);
 }
@@ -5486,9 +5489,9 @@ void process_mission_goal_info_packet( ubyte *data, header *hinfo )
 	int offset, goal_num, new_status, valid;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_S32(goal_num);
-	GET_DATA_S32(new_status);
-	GET_DATA_S32(valid);
+	GET_INT(goal_num);
+	GET_INT(new_status);
+	GET_INT(valid);
 	PACKET_SET_SIZE();
 
 	// if new_status != -1, then this is a change in goal status (i.e. goal failed, or is successful)
@@ -5514,13 +5517,13 @@ void send_player_settings_packet(net_player *p)
 	for(idx=0;idx<MAX_PLAYERS;idx++){
 		if(MULTI_CONNECTED(Net_players[idx])){
 			ADD_DATA(stop);
-			ADD_DATA_S16(Net_players[idx].player_id);
+			ADD_SHORT(Net_players[idx].player_id);
 
 			// break the p_info structure by member, so we don't overwrite any absolute pointers
 			// ADD_DATA(Net_players[idx].p_info);
-			ADD_DATA_S32(Net_players[idx].p_info.team);
-			ADD_DATA_S32(Net_players[idx].p_info.ship_index);
-			ADD_DATA_S32(Net_players[idx].p_info.ship_class);
+			ADD_INT(Net_players[idx].p_info.team);
+			ADD_INT(Net_players[idx].p_info.ship_index);
+			ADD_INT(Net_players[idx].p_info.ship_class);
 		}
 	}
 	// add the stop byte
@@ -5548,7 +5551,7 @@ void process_player_settings_packet(ubyte *data, header *hinfo)
 	GET_DATA(stop);
 	while(stop != 0xff){
 		// lookup the player
-		GET_DATA_S16(player_id);
+		GET_SHORT(player_id);
 		player_num = find_player_id(player_id);
 
 		// make sure this is a valid player
@@ -5558,9 +5561,9 @@ void process_player_settings_packet(ubyte *data, header *hinfo)
 			ptr = &Net_players[player_num].p_info;
 		}
 		
-		GET_DATA_S32(ptr->team);
-		GET_DATA_S32(ptr->ship_index);
-		GET_DATA_S32(ptr->ship_class);
+		GET_INT(ptr->team);
+		GET_INT(ptr->ship_index);
+		GET_INT(ptr->ship_class);
 		
 		// next stop byte
 		GET_DATA(stop);
@@ -5588,7 +5591,7 @@ void send_deny_packet(net_addr *addr, int code)
 	// build the header and add the rejection code
 	BUILD_HEADER(DENY);
 
-	ADD_DATA_S32(code);
+	ADD_INT(code);
 	
 	// send the packet	
 	psnet_send(addr, data, packet_size);
@@ -5600,7 +5603,7 @@ void process_deny_packet(ubyte *data, header *hinfo)
 
 	// get the denial code
 	offset = HEADER_LENGTH;
-	GET_DATA_S32(code);
+	GET_INT(code);
 	PACKET_SET_SIZE();
 
 	// if there is already a dialog active, do nothing - who cares at this point.
@@ -5699,7 +5702,7 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 	ADD_DATA(val);
 	for(idx=0;idx<Multi_ts_num_deleted;idx++){
 		sval = (ushort)Objects[Multi_ts_deleted_objnums[idx]].net_signature;
-		ADD_DATA_U16(sval);
+		ADD_USHORT(sval);
 	}
 
 	// ship count	
@@ -5727,7 +5730,7 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 			continue;		
 		
 		// add the net signature of the object for look up
-		ADD_DATA_U16( Objects[so->objnum].net_signature );
+		ADD_USHORT( Objects[so->objnum].net_signature );
 		
 		// add the ship info index 
 		val = (ubyte)(shipp->ship_info_index);
@@ -5758,7 +5761,7 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 		}
 
 		// add the net signature and other weapon information
-		ADD_DATA_U16( Objects[so->objnum].net_signature );		
+		ADD_USHORT( Objects[so->objnum].net_signature );		
 
 		// add number of primary and secondary banks
 		bval = (char)(shipp->weapons.num_primary_banks);
@@ -5791,15 +5794,15 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 		bval = (char)(shipp->weapons.secondary_bank_weapons[0]);
 		ADD_DATA(bval);
 		val_short = (short)(shipp->weapons.secondary_bank_ammo[0]);
-		ADD_DATA_S16(val_short);
+		ADD_SHORT(val_short);
 		bval = (char)(shipp->weapons.secondary_bank_weapons[1]);
 		ADD_DATA(bval);
 		val_short = (short)(shipp->weapons.secondary_bank_ammo[1]);
-		ADD_DATA_S16(val_short);
+		ADD_SHORT(val_short);
 		bval = (char)(shipp->weapons.secondary_bank_weapons[2]);
 		ADD_DATA(bval);
 		val_short = (short)(shipp->weapons.secondary_bank_ammo[2]);
-		ADD_DATA_S16(val_short);		
+		ADD_SHORT(val_short);		
 		
 		// send primary and secondary weapon link status
 		val = 0x0;
@@ -5829,7 +5832,7 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 		ship_ets |= ((ushort)shipp->weapon_recharge_index << 4);
 		// engine ets
 		ship_ets |= ((ushort)shipp->engine_recharge_index);
-		ADD_DATA_U16(ship_ets);
+		ADD_USHORT(ship_ets);
 
 	}
 
@@ -5896,7 +5899,7 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 	Multi_ts_num_deleted = (int)val;
 	for(idx=0;idx<Multi_ts_num_deleted;idx++){
 		// get the ship's objnum
-		GET_DATA_U16(sval);
+		GET_USHORT(sval);
 		objp = NULL;
 		objp = multi_get_network_object(sval);
 		if(objp != NULL){
@@ -5921,7 +5924,7 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 	// process ship class information
 	for(idx=0; idx<ship_count; idx++){	
 		// get the object's net signature
-		GET_DATA_U16(net_sig);
+		GET_USHORT(net_sig);
 		GET_DATA(sinfo_index);
 		GET_DATA(ts_index);
 
@@ -5941,7 +5944,7 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 	// process ship weapon state info
 	for(idx=0; idx<ship_count; idx++){	
 		// get the object's net signature
-		GET_DATA_U16(net_sig);
+		GET_USHORT(net_sig);
 
 		// attempt to get the object
 		objp = multi_get_network_object(net_sig);
@@ -5984,17 +5987,17 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 		// secondary weapon info
 		GET_DATA(b);
 		shipp->weapons.secondary_bank_weapons[0] = (int)b;
-		GET_DATA_S16(val_short);
+		GET_SHORT(val_short);
 		shipp->weapons.secondary_bank_ammo[0] = (int)val_short;
 
 		GET_DATA(b);
 		shipp->weapons.secondary_bank_weapons[1] = (int)b;
-		GET_DATA_S16(val_short);
+		GET_SHORT(val_short);
 		shipp->weapons.secondary_bank_ammo[1] = (int)val_short;
 
 		GET_DATA(b);
 		shipp->weapons.secondary_bank_weapons[2] = (int)b;
-		GET_DATA_S16(val_short);
+		GET_SHORT(val_short);
 		shipp->weapons.secondary_bank_ammo[2] = (int)val_short;
 
 		// other flags
@@ -6016,7 +6019,7 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 		}
 
 		// get ship ets
-		GET_DATA_U16(ship_ets);
+		GET_USHORT(ship_ets);
 		// shield ets
 		shipp->shield_recharge_index = ((ship_ets & 0x0f00) >> 8);
 		// weapon ets
@@ -6091,7 +6094,7 @@ void send_wss_slots_data_packet(int team_num,int final,net_player *p,int std_req
 		// add the weapon counts
 		for(i = 0;i<MAX_WL_WEAPONS;i++){
 			val_short = (short)Wss_slots_teams[team_num][idx].wep_count[i];
-			ADD_DATA_S16(val_short);
+			ADD_SHORT(val_short);
 		}
 	}
 
@@ -6170,7 +6173,7 @@ void process_wss_slots_data_packet(ubyte *data, header *hinfo)
 
 		// get the weapon counts
 		for(i = 0;i<MAX_WL_WEAPONS;i++){
-			GET_DATA_S16(val_short);
+			GET_SHORT(val_short);
 			Wss_slots_teams[team_num][idx].wep_count[i] = (int)val_short;
 		}
 	}
@@ -6232,7 +6235,7 @@ void send_shield_explosion_packet( int objnum, int tri_num, vector hit_pos )
 
 			BUILD_HEADER(SHIELD_EXPLOSION);
 
-			ADD_DATA_U16( Objects[objnum].net_signature );
+			ADD_USHORT( Objects[objnum].net_signature );
 			ADD_DATA(utri_num);			
 			
 			multi_io_send(&Net_players[i], data, packet_size);
@@ -6251,7 +6254,7 @@ void process_shield_explosion_packet( ubyte *data, header *hinfo)
 
 	// get the shield hit data
 	offset = HEADER_LENGTH;
-	GET_DATA_U16(signature);
+	GET_USHORT(signature);
 	GET_DATA(utri_num);
 	//GET_DATA(hit_pos);
 	PACKET_SET_SIZE();
@@ -6302,7 +6305,7 @@ void send_player_stats_block_packet(net_player *pl, int stats_code, net_player *
 	BUILD_HEADER(PLAYER_STATS);	
 
 	// add the player id
-	ADD_DATA_S16(pl->player_id);
+	ADD_SHORT(pl->player_id);
 
 	// add the byte indicating whether these stats are all-time or not
 	val = (ubyte)stats_code;
@@ -6314,69 +6317,69 @@ void send_player_stats_block_packet(net_player *pl, int stats_code, net_player *
 		// alltime kills
 		for(idx=0;idx<MAX_SHIP_TYPES;idx++){
 			u_tmp = sc->kills[idx];
-			ADD_DATA_U16(u_tmp);
+			ADD_USHORT(u_tmp);
 		}
 		// medal information
 		for(idx=0;idx<NUM_MEDALS;idx++){
 			i_tmp = sc->medals[idx];
-			ADD_DATA_S32(i_tmp);
+			ADD_INT(i_tmp);
 		}
 
-		ADD_DATA_S32(sc->score);
-		ADD_DATA_S32(sc->rank);
-		ADD_DATA_S32(sc->assists);
-		ADD_DATA_S32(sc->kill_count);
-		ADD_DATA_S32(sc->kill_count_ok);
-		ADD_DATA_U32(sc->p_shots_fired);
-		ADD_DATA_U32(sc->s_shots_fired);
-		ADD_DATA_U32(sc->p_shots_hit);
-		ADD_DATA_U32(sc->s_shots_hit);
-		ADD_DATA_U32(sc->p_bonehead_hits);
-		ADD_DATA_U32(sc->s_bonehead_hits);
-		ADD_DATA_S32(sc->bonehead_kills);
+		ADD_INT(sc->score);
+		ADD_INT(sc->rank);
+		ADD_INT(sc->assists);
+		ADD_INT(sc->kill_count);
+		ADD_INT(sc->kill_count_ok);
+		ADD_UINT(sc->p_shots_fired);
+		ADD_UINT(sc->s_shots_fired);
+		ADD_UINT(sc->p_shots_hit);
+		ADD_UINT(sc->s_shots_hit);
+		ADD_UINT(sc->p_bonehead_hits);
+		ADD_UINT(sc->s_bonehead_hits);
+		ADD_INT(sc->bonehead_kills);
 
-		ADD_DATA_U32(sc->missions_flown);
-		ADD_DATA_U32(sc->flight_time);
-		ADD_DATA_S32(sc->last_flown);
-		ADD_DATA_S32(sc->last_backup);
+		ADD_UINT(sc->missions_flown);
+		ADD_UINT(sc->flight_time);
+		ADD_INT(sc->last_flown);
+		ADD_INT(sc->last_backup);
 		break;
 
 	case STATS_MISSION:	
 		// mission OKkills		
 		for(idx=0;idx<MAX_SHIP_TYPES;idx++){
 			u_tmp = sc->m_okKills[idx];
-			ADD_DATA_U16(u_tmp);			
+			ADD_USHORT(u_tmp);			
 		}
 	
-		ADD_DATA_S32(sc->m_score);
-		ADD_DATA_S32(sc->m_assists);
-		ADD_DATA_S32(sc->m_kill_count);
-		ADD_DATA_S32(sc->m_kill_count_ok);
-		ADD_DATA_U32(sc->mp_shots_fired);
-		ADD_DATA_U32(sc->ms_shots_fired);
-		ADD_DATA_U32(sc->mp_shots_hit);
-		ADD_DATA_U32(sc->ms_shots_hit);
-		ADD_DATA_U32(sc->mp_bonehead_hits);
-		ADD_DATA_U32(sc->ms_bonehead_hits);
-		ADD_DATA_S32(sc->m_bonehead_kills);
-		ADD_DATA_S32(sc->m_player_deaths);
-		ADD_DATA_S32(sc->m_medal_earned);
+		ADD_INT(sc->m_score);
+		ADD_INT(sc->m_assists);
+		ADD_INT(sc->m_kill_count);
+		ADD_INT(sc->m_kill_count_ok);
+		ADD_UINT(sc->mp_shots_fired);
+		ADD_UINT(sc->ms_shots_fired);
+		ADD_UINT(sc->mp_shots_hit);
+		ADD_UINT(sc->ms_shots_hit);
+		ADD_UINT(sc->mp_bonehead_hits);
+		ADD_UINT(sc->ms_bonehead_hits);
+		ADD_INT(sc->m_bonehead_kills);
+		ADD_INT(sc->m_player_deaths);
+		ADD_INT(sc->m_medal_earned);
 		break;
 
 	case STATS_MISSION_KILLS:		
-		ADD_DATA_S32(sc->m_kill_count);
-		ADD_DATA_S32(sc->m_kill_count_ok);
-		ADD_DATA_S32(sc->m_assists);
+		ADD_INT(sc->m_kill_count);
+		ADD_INT(sc->m_kill_count_ok);
+		ADD_INT(sc->m_assists);
 		break;		
 
 	case STATS_DOGFIGHT_KILLS:
 		for(idx=0; idx<MAX_PLAYERS; idx++){
 			u_tmp = sc->m_dogfight_kills[idx];
-			ADD_DATA_U16(u_tmp);
+			ADD_USHORT(u_tmp);
 		}
-		ADD_DATA_S32(sc->m_kill_count);
-		ADD_DATA_S32(sc->m_kill_count_ok);
-		ADD_DATA_S32(sc->m_assists);
+		ADD_INT(sc->m_kill_count);
+		ADD_INT(sc->m_kill_count_ok);
+		ADD_INT(sc->m_assists);
 		break;		
 	}
 
@@ -6412,7 +6415,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 	// nprintf(("Network","----------++++++++++********RECEIVED STATS***********+++++++++----------\n"));
 
 	// get the player who these stats are for
-	GET_DATA_S16(player_id);	
+	GET_SHORT(player_id);	
 	player_num = find_player_id(player_id);
 	if (player_num == -1) {
 		nprintf(("Network", "Couldn't find player for stats update!\n"));
@@ -6432,33 +6435,33 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 
 		// kills - alltime
 		for (idx=0; idx<MAX_SHIP_TYPES; idx++) {
-			GET_DATA_U16(u_tmp);
+			GET_USHORT(u_tmp);
 			sc->kills[idx] = u_tmp;
 		}
 
 		// read in the stats
 		for (idx=0; idx<NUM_MEDALS; idx++) {
-			GET_DATA_S32(i_tmp);
+			GET_INT(i_tmp);
 			sc->medals[idx] = i_tmp;
 		}
 
-		GET_DATA_S32(sc->score);
-		GET_DATA_S32(sc->rank);
-		GET_DATA_S32(sc->assists);
-		GET_DATA_S32(sc->kill_count);
-		GET_DATA_S32(sc->kill_count_ok);
-		GET_DATA_U32(sc->p_shots_fired);
-		GET_DATA_U32(sc->s_shots_fired);
-		GET_DATA_U32(sc->p_shots_hit);
-		GET_DATA_U32(sc->s_shots_hit);
-		GET_DATA_U32(sc->p_bonehead_hits);
-		GET_DATA_U32(sc->s_bonehead_hits);
-		GET_DATA_S32(sc->bonehead_kills);
+		GET_INT(sc->score);
+		GET_INT(sc->rank);
+		GET_INT(sc->assists);
+		GET_INT(sc->kill_count);
+		GET_INT(sc->kill_count_ok);
+		GET_UINT(sc->p_shots_fired);
+		GET_UINT(sc->s_shots_fired);
+		GET_UINT(sc->p_shots_hit);
+		GET_UINT(sc->s_shots_hit);
+		GET_UINT(sc->p_bonehead_hits);
+		GET_UINT(sc->s_bonehead_hits);
+		GET_INT(sc->bonehead_kills);
 
-		GET_DATA_U32(sc->missions_flown);
-		GET_DATA_U32(sc->flight_time);
-		GET_DATA_S32(sc->last_flown);
-		GET_DATA_S32(sc->last_backup);
+		GET_UINT(sc->missions_flown);
+		GET_UINT(sc->flight_time);
+		GET_INT(sc->last_flown);
+		GET_INT(sc->last_backup);
 		break;
 
 	case STATS_MISSION:
@@ -6466,31 +6469,31 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 
 		// kills - mission OK			
 		for (idx=0; idx<MAX_SHIP_TYPES; idx++) {
-			GET_DATA_U16(u_tmp);
+			GET_USHORT(u_tmp);
 			sc->m_okKills[idx] = u_tmp;			
 		}
 		
-		GET_DATA_S32(sc->m_score);
-		GET_DATA_S32(sc->m_assists);
-		GET_DATA_S32(sc->m_kill_count);
-		GET_DATA_S32(sc->m_kill_count_ok);
-		GET_DATA_U32(sc->mp_shots_fired);
-		GET_DATA_U32(sc->ms_shots_fired);
-		GET_DATA_U32(sc->mp_shots_hit);
-		GET_DATA_U32(sc->ms_shots_hit);
-		GET_DATA_U32(sc->mp_bonehead_hits);
-		GET_DATA_U32(sc->ms_bonehead_hits);
-		GET_DATA_S32(sc->m_bonehead_kills);
-		GET_DATA_S32(sc->m_player_deaths);
-		GET_DATA_S32(sc->m_medal_earned);
+		GET_INT(sc->m_score);
+		GET_INT(sc->m_assists);
+		GET_INT(sc->m_kill_count);
+		GET_INT(sc->m_kill_count_ok);
+		GET_UINT(sc->mp_shots_fired);
+		GET_UINT(sc->ms_shots_fired);
+		GET_UINT(sc->mp_shots_hit);
+		GET_UINT(sc->ms_shots_hit);
+		GET_UINT(sc->mp_bonehead_hits);
+		GET_UINT(sc->ms_bonehead_hits);
+		GET_INT(sc->m_bonehead_kills);
+		GET_INT(sc->m_player_deaths);
+		GET_INT(sc->m_medal_earned);
 		break;
 
 	case STATS_MISSION_KILLS:		
 		ml_string("Received STATS_MISSION_KILLS\n");
 
-		GET_DATA_S32(sc->m_kill_count);
-		GET_DATA_S32(sc->m_kill_count_ok);
-		GET_DATA_S32(sc->m_assists);
+		GET_INT(sc->m_kill_count);
+		GET_INT(sc->m_kill_count_ok);
+		GET_INT(sc->m_assists);
 		break;		
 
 	case STATS_DOGFIGHT_KILLS:
@@ -6499,15 +6502,15 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 			ml_printf("Dogfight stats for %s", Net_players[player_num].player->callsign);
 		}
 		for(idx=0; idx<MAX_PLAYERS; idx++){
-			GET_DATA_U16(u_tmp);
+			GET_USHORT(u_tmp);
 			sc->m_dogfight_kills[idx] = u_tmp;
 			if(player_num >= 0){				
 				ml_printf("%d", Net_players[player_num].player->stats.m_dogfight_kills[idx]);
 			}
 		}
-		GET_DATA_S32(sc->m_kill_count);
-		GET_DATA_S32(sc->m_kill_count_ok);
-		GET_DATA_S32(sc->m_assists);		
+		GET_INT(sc->m_kill_count);
+		GET_INT(sc->m_kill_count_ok);
+		GET_INT(sc->m_assists);		
 		break;		
 	}
 	PACKET_SET_SIZE();
@@ -6540,8 +6543,8 @@ void send_asteroid_create( object *new_objp, object *parent_objp, int asteroid_t
 	atype = (ubyte)asteroid_type;
 
 	ADD_DATA( packet_type );
-	ADD_DATA_U16( parent_objp->net_signature );
-	ADD_DATA_U16( new_objp->net_signature );
+	ADD_USHORT( parent_objp->net_signature );
+	ADD_USHORT( new_objp->net_signature );
 	ADD_DATA( atype );
 	//ADD_DATA( vec );
         add_vector_data( data, &packet_size, vec );
@@ -6559,7 +6562,7 @@ void send_asteroid_throw( object *objp )
 	// this packet type is an asteroid throw
 	packet_type = ASTEROID_THROW;
 	ADD_DATA( packet_type );
-	ADD_DATA_U16( objp->net_signature );
+	ADD_USHORT( objp->net_signature );
 	//ADD_DATA( objp->pos );
         add_vector_data( data, &packet_size, objp->pos );
 	//ADD_DATA( objp->phys_info.vel );
@@ -6582,17 +6585,17 @@ void send_asteroid_hit( object *objp, object *other_objp, vector *hitpos, float 
 	BUILD_HEADER( ASTEROID_INFO );
 	packet_type = ASTEROID_HIT;
 	ADD_DATA( packet_type );
-	ADD_DATA_U16( objp->net_signature );
+	ADD_USHORT( objp->net_signature );
 
 	if(other_objp == NULL){
 		ushort invalid_sig = 0xffff;
-		ADD_DATA_U16(invalid_sig);
+		ADD_USHORT(invalid_sig);
 	} else {
-		ADD_DATA_U16( other_objp->net_signature );
+		ADD_USHORT( other_objp->net_signature );
 	}
 	//ADD_DATA( vec );
         add_vector_data( data, &packet_size, vec );
-	ADD_DATA_FL( damage );
+	ADD_FLOAT( damage );
 	
 	multi_io_send_to_all(data, packet_size);
 }
@@ -6614,8 +6617,8 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 		vector relvec;
 		object *parent_objp;
 
-		GET_DATA_U16( psignature );
-		GET_DATA_U16( signature );
+		GET_USHORT( psignature );
+		GET_USHORT( signature );
 		GET_DATA( atype );
 		//GET_DATA( relvec );
                 get_vector_data( data, &offset, relvec );
@@ -6639,7 +6642,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 		vector pos, vel;
 		object *objp;
 
-		GET_DATA_U16( signature );
+		GET_USHORT( signature );
 		//GET_DATA( pos );
                 get_vector_data( data, &offset, pos );
 		//GET_DATA( vel );
@@ -6661,11 +6664,11 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 		vector hitpos;
 		float damage;
 
-		GET_DATA_U16( signature );
-		GET_DATA_U16( osignature );
+		GET_USHORT( signature );
+		GET_USHORT( osignature );
 		//GET_DATA( hitpos );
                 get_vector_data( data, &offset, hitpos );
-		GET_DATA_FL( damage );
+		GET_FLOAT( damage );
 
 		objp = multi_get_network_object( signature );
 		if(osignature == 0xffff){
@@ -6861,7 +6864,7 @@ void send_client_update_packet(net_player *pl)
 	// if paused, add the net address of the guy who paused
 	if(val & UPDATE_IS_PAUSED){
 		Assert(Multi_pause_pauser != NULL);
-		ADD_DATA_S16(Multi_pause_pauser->player_id);
+		ADD_SHORT(Multi_pause_pauser->player_id);
 	}
 
 	// when not paused, send hull/shield/subsystem updates to all clients (except for ingame joiners)
@@ -6918,17 +6921,17 @@ void send_client_update_packet(net_player *pl)
 		ADD_DATA( threats );
 
 		// add his energy level for guns
-		ADD_DATA_FL(shipp->weapon_energy);
+		ADD_FLOAT(shipp->weapon_energy);
 
 		// add his secondary bank ammo
-		ADD_DATA_S32(shipp->weapons.num_secondary_banks);
+		ADD_INT(shipp->weapons.num_secondary_banks);
 		for(i=0; i<shipp->weapons.num_secondary_banks; i++){
-			ADD_DATA_S32(shipp->weapons.secondary_bank_ammo[i]);
+			ADD_INT(shipp->weapons.secondary_bank_ammo[i]);
 		}
 	}
 
 	// add pl
-	ADD_DATA_S32(pl->sv_last_pl);
+	ADD_INT(pl->sv_last_pl);
 
 	// send the packet reliably to the player	
 	multi_io_send(pl, data, packet_size);
@@ -6953,7 +6956,7 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 
 	// if we are paused, get who paused
 	if(is_paused){		
-		GET_DATA_S16(pauser);
+		GET_SHORT(pauser);
 		player_index = find_player_id(pauser);
 		if(player_index != -1){
 			Multi_pause_pauser = &Net_players[player_index];
@@ -6992,12 +6995,12 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 		GET_DATA( threats );
 
 		// add his energy level for guns
-		GET_DATA_FL(weapon_energy);
+		GET_FLOAT(weapon_energy);
 		
 		// add his secondary bank ammo
-		GET_DATA_S32(ammo_count);
+		GET_INT(ammo_count);
 		for(i=0; i<ammo_count; i++){
-			GET_DATA_S32(ammo[i]);
+			GET_INT(ammo[i]);
 		}
 
 		// assign the above information to my ship, assuming that I can find it!  Ingame joiners might get this
@@ -7049,7 +7052,7 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 
 	// get pl
 	int pl;
-	GET_DATA_S32(pl);
+	GET_INT(pl);
 	if(Net_player != NULL){
 		Net_player->cl_last_pl = pl;
 	}
@@ -7128,10 +7131,10 @@ void send_debrief_info( int stage_count[], int *stages[] )
 		int count;
 
 		count = stage_count[i];
-		ADD_DATA_S32( count );
+		ADD_INT( count );
 		for ( j = 0; j < count; j++ ) {
 			i_tmp = stages[i][j];
-			ADD_DATA_S32( i_tmp );
+			ADD_INT( i_tmp );
 		}
 	}
 	
@@ -7149,11 +7152,11 @@ void process_debrief_info( ubyte *data, header *hinfo )
 	for ( i = 0; i < Num_teams; i++ ) {
 		int count;
 
-		GET_DATA_S32( count );
+		GET_INT( count );
 		stage_counts[i] = count;
 		stages[i] = active_stages[i];
 		for ( j = 0; j < count; j++ ) {
-			GET_DATA_S32(i_tmp);
+			GET_INT(i_tmp);
 			active_stages[i][j] = i_tmp;
 		}
 	}
@@ -7201,8 +7204,8 @@ void send_homing_weapon_info( int weapon_num )
 	}
 
 	BUILD_HEADER(HOMING_WEAPON_UPDATE);
-	ADD_DATA_U16( Objects[wp->objnum].net_signature );
-	ADD_DATA_U16( homing_signature );
+	ADD_USHORT( Objects[wp->objnum].net_signature );
+	ADD_USHORT( homing_signature );
 	ADD_DATA( t_subsys );
 	
 	multi_io_send_to_all(data, packet_size);
@@ -7221,8 +7224,8 @@ void process_homing_weapon_info( ubyte *data, header *hinfo )
 	offset = HEADER_LENGTH;
 
 	// get the data for the packet
-	GET_DATA_U16( weapon_signature );
-	GET_DATA_U16( homing_signature );
+	GET_USHORT( weapon_signature );
+	GET_USHORT( homing_signature );
 	GET_DATA( h_subsys );
 	PACKET_SET_SIZE();
 
@@ -7269,9 +7272,9 @@ void send_emp_effect(ushort net_sig, float intensity, float time)
 
 	// build the packet and add the opcode
 	BUILD_HEADER(EMP_EFFECT);
-	ADD_DATA_U16(net_sig);
-	ADD_DATA_FL(intensity);
-	ADD_DATA_FL(time);
+	ADD_USHORT(net_sig);
+	ADD_FLOAT(intensity);
+	ADD_FLOAT(time);
 
 	// send it to the player		
 	multi_io_send_to_all(data, packet_size);
@@ -7285,9 +7288,9 @@ void process_emp_effect(ubyte *data, header *hinfo)
 	int offset = HEADER_LENGTH;
 
 	// read in the EMP effect data
-	GET_DATA_U16(net_sig);
-	GET_DATA_FL(intensity);
-	GET_DATA_FL(time);
+	GET_USHORT(net_sig);
+	GET_FLOAT(intensity);
+	GET_FLOAT(time);
 	PACKET_SET_SIZE();
 
 	// try and find the object
@@ -7310,7 +7313,7 @@ void send_reinforcement_avail( int rnum )
 	int packet_size;
 
 	BUILD_HEADER(REINFORCEMENT_AVAIL);
-	ADD_DATA_S32( rnum );	
+	ADD_INT( rnum );	
 	multi_io_send_to_all_reliable(data, packet_size);
 }
 
@@ -7320,7 +7323,7 @@ void process_reinforcement_avail( ubyte *data, header *hinfo )
 	int rnum;
 
 	offset = HEADER_LENGTH;
-	GET_DATA_S32( rnum );
+	GET_INT( rnum );
 	PACKET_SET_SIZE();
 
 	// sanity check for a valid reinforcement number
@@ -7343,8 +7346,8 @@ void send_change_iff_packet(ushort net_signature, int new_team)
 
 	// build the packet and add the data
 	BUILD_HEADER(CHANGE_IFF);
-	ADD_DATA_U16(net_signature);
-	ADD_DATA_S32(new_team);
+	ADD_USHORT(net_signature);
+	ADD_INT(new_team);
 
 	// send to all players	
 	multi_io_send_to_all_reliable(data, packet_size);
@@ -7358,8 +7361,8 @@ void process_change_iff_packet( ubyte *data, header *hinfo)
 	object *objp;
 
 	// get the data
-	GET_DATA_U16(net_signature);
-	GET_DATA_S32(new_team);
+	GET_USHORT(net_signature);
+	GET_INT(new_team);
 	PACKET_SET_SIZE();
 
 	// lookup the object
@@ -7420,7 +7423,7 @@ void send_NEW_primary_fired_packet(ship *shipp, int banks_fired)
 	// to every player but the guy who actullly fired the weapon.  This method is used to help keep client
 	// and server in sync w.r.t. weapon energy for player ship
 	BUILD_HEADER( PRIMARY_FIRED_NEW );
-	ADD_DATA_U16(objp->net_signature);
+	ADD_USHORT(objp->net_signature);
 	// ADD_DATA(ubanks_fired);
 
 	// if I'm a server, broadcast to all players
@@ -7446,7 +7449,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 
 	// read all packet info
 	offset = HEADER_LENGTH;
-	GET_DATA_U16(shooter_sig);
+	GET_USHORT(shooter_sig);
 	// GET_DATA(banks_fired);
 	PACKET_SET_SIZE();
 
@@ -7511,8 +7514,8 @@ void send_NEW_countermeasure_fired_packet(object *objp, int cmeasure_count, int 
 
 	Assert ( cmeasure_count < UCHAR_MAX );
 	BUILD_HEADER(COUNTERMEASURE_NEW);
-	ADD_DATA_U16( objp->net_signature );
-	ADD_DATA_S32( rand_val );
+	ADD_USHORT( objp->net_signature );
+	ADD_INT( rand_val );
 
 	nprintf(("Network","Sending NEW countermeasure packet!\n"));
 
@@ -7543,8 +7546,8 @@ void process_NEW_countermeasure_fired_packet(ubyte *data, header *hinfo)
 	object *objp;	
 
 	offset = HEADER_LENGTH;
-	GET_DATA_U16( signature );
-	GET_DATA_S32( rand_val );
+	GET_USHORT( signature );
+	GET_INT( rand_val );
 	PACKET_SET_SIZE();
 
 	objp = multi_get_network_object( signature );
@@ -7597,9 +7600,9 @@ void send_beam_fired_packet(object *shooter, ship_subsys *turret, object *target
 
 	// build the header
 	BUILD_HEADER(BEAM_FIRED);
-	ADD_DATA_U16(shooter->net_signature);
+	ADD_USHORT(shooter->net_signature);
 	ADD_DATA(subsys_index);
-	ADD_DATA_U16(target->net_signature);
+	ADD_USHORT(target->net_signature);
 	ADD_DATA(u_beam_info);
 	ADD_DATA((*override));
 
@@ -7621,9 +7624,9 @@ void process_beam_fired_packet(ubyte *data, header *hinfo)
 
 	// read in packet data
 	offset = HEADER_LENGTH;
-	GET_DATA_U16(shooter_sig);
+	GET_USHORT(shooter_sig);
 	GET_DATA(subsys_index);
-	GET_DATA_U16(target_sig);
+	GET_USHORT(target_sig);
 	GET_DATA(u_beam_info);
 	GET_DATA(b_info);
         b_info.dir_a.xyz.x = INTEL_FLOAT( &b_info.dir_a.xyz.x );
@@ -7704,11 +7707,11 @@ void send_event_update_packet(int event)
 
 	// build the header and add the event
 	BUILD_HEADER(EVENT_UPDATE);
-	ADD_DATA_U16(u_event);
-	ADD_DATA_S32(Mission_events[event].flags);
-	ADD_DATA_S32(Mission_events[event].formula);
-	ADD_DATA_S32(Mission_events[event].result);
-	ADD_DATA_S32(Mission_events[event].count);
+	ADD_USHORT(u_event);
+	ADD_INT(Mission_events[event].flags);
+	ADD_INT(Mission_events[event].formula);
+	ADD_INT(Mission_events[event].result);
+	ADD_INT(Mission_events[event].count);
 
 	// send to all players	
 	multi_io_send_to_all_reliable(data, packet_size);
@@ -7721,12 +7724,12 @@ void process_event_update_packet(ubyte *data, header *hinfo)
 	ushort u_event;
 	
 	// get the data
-	GET_DATA_U16(u_event);
+	GET_USHORT(u_event);
 	store_flags = Mission_events[u_event].flags;
-	GET_DATA_S32(Mission_events[u_event].flags);
-	GET_DATA_S32(Mission_events[u_event].formula);
-	GET_DATA_S32(Mission_events[u_event].result);
-	GET_DATA_S32(Mission_events[u_event].count);
+	GET_INT(Mission_events[u_event].flags);
+	GET_INT(Mission_events[u_event].formula);
+	GET_INT(Mission_events[u_event].result);
+	GET_INT(Mission_events[u_event].count);
 	PACKET_SET_SIZE();
 
 	// went from non directive special to directive special
@@ -7757,7 +7760,7 @@ void send_weapon_detonate_packet(object *objp)
 
 	// build the header and add the data
 	BUILD_HEADER(WEAPON_DET);
-	ADD_DATA_U16(objp->net_signature);
+	ADD_USHORT(objp->net_signature);
 
 	// send to all players
 	multi_io_send_to_all(data, packet_size);
@@ -7770,7 +7773,7 @@ void process_weapon_detonate_packet(ubyte *data, header *hinfo)
 	object *objp = NULL;
 
 	// get the weapon signature
-	GET_DATA_U16(net_sig);
+	GET_USHORT(net_sig);
 	PACKET_SET_SIZE();
 
 	// lookup the weapon
@@ -7811,13 +7814,13 @@ void send_flak_fired_packet(int ship_objnum, int subsys_index, int weapon_objnum
 	// build the fire turret packet.  
 	BUILD_HEADER(FLAK_FIRED);	
 	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.v.fvec);
-	ADD_DATA_U16( pnet_signature );		
+	ADD_USHORT( pnet_signature );		
 	ADD_DATA( cindex );
 	val = (short)ssp->submodel_info_1.angs.h;
-	ADD_DATA_S16( val );
+	ADD_SHORT( val );
 	val = (short)ssp->submodel_info_2.angs.p;
-	ADD_DATA_S16( val );	
-	ADD_DATA_FL( flak_range );
+	ADD_SHORT( val );	
+	ADD_FLOAT( flak_range );
 	
 	multi_io_send_to_all(data, packet_size);
 
@@ -7841,11 +7844,11 @@ void process_flak_fired_packet(ubyte *data, header *hinfo)
 	// get the data for the turret fired packet
 	offset = HEADER_LENGTH;		
 	offset += multi_pack_unpack_position(0, data + offset, &o_fvec);
-	GET_DATA_U16( pnet_signature );
+	GET_USHORT( pnet_signature );
 	GET_DATA( turret_index );
-	GET_DATA_S16( heading );
-	GET_DATA_S16( pitch );	
-	GET_DATA_FL( flak_range );
+	GET_SHORT( heading );
+	GET_SHORT( pitch );	
+	GET_FLOAT( flak_range );
 	PACKET_SET_SIZE();				// move our counter forward the number of bytes we have read
 
 	// find the object
@@ -7922,7 +7925,7 @@ void send_player_pain_packet(net_player *pl, int weapon_info_index, float damage
 	windex = (ubyte)weapon_info_index;
 	ADD_DATA(windex);
 	udamage = (ushort)damage;
-	ADD_DATA_U16(udamage);
+	ADD_USHORT(udamage);
 	//ADD_DATA((*force));
 	add_vector_data( data, &packet_size, *force );
         //ADD_DATA((*hitpos));
@@ -7946,7 +7949,7 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	// get the data for the pain packet
 	offset = HEADER_LENGTH;		
 	GET_DATA(windex);
-	GET_DATA_U16(udamage);
+	GET_USHORT(udamage);
 	//GET_DATA(force);
         get_vector_data( data, &offset, force );
 	//GET_DATA(local_hit_pos);
@@ -8030,7 +8033,7 @@ void send_bytes_recvd_packet(net_player *pl)
 	ubyte data[MAX_PACKET_SIZE];
 	int packet_size = 0;
 	BUILD_HEADER(BYTES_SENT);
-	ADD_DATA_S32(pl->cl_bytes_recvd);
+	ADD_INT(pl->cl_bytes_recvd);
 
 	// send to the server
 	multi_io_send_reliable(pl, data, packet_size);
@@ -8043,7 +8046,7 @@ void process_bytes_recvd_packet(ubyte *data, header *hinfo)
 	net_player *pl = NULL;
 	int offset = HEADER_LENGTH;
 	
-	GET_DATA_S32(bytes);
+	GET_INT(bytes);
 	PACKET_SET_SIZE();
 
 	// not server?
@@ -8080,8 +8083,8 @@ void send_host_captain_change_packet(short player_id, int captain_change)
 
 	// build the packet
 	BUILD_HEADER(TRANSFER_HOST);
-	ADD_DATA_S16(player_id);
-	ADD_DATA_S32(captain_change);
+	ADD_SHORT(player_id);
+	ADD_INT(captain_change);
 
 	// send to all
 	multi_io_send_to_all_reliable(data, packet_size);
@@ -8094,8 +8097,8 @@ void process_host_captain_change_packet(ubyte *data, header *hinfo)
 	short player_id;
 
 	// get the player id
-	GET_DATA_S16(player_id);
-	GET_DATA_S32(captain_change);
+	GET_SHORT(player_id);
+	GET_INT(captain_change);
 	PACKET_SET_SIZE();
 
 	// captain change
@@ -8164,7 +8167,7 @@ void send_self_destruct_packet()
 
 	// self destruct
 	BUILD_HEADER(SELF_DESTRUCT);
-	ADD_DATA_U16(Player_obj->net_signature);
+	ADD_USHORT(Player_obj->net_signature);
 
 	// send to the server
 	multi_io_send_reliable(Net_player, data, packet_size);
@@ -8177,7 +8180,7 @@ void process_self_destruct_packet(ubyte *data, header *hinfo)
 	int np_index;
 
 	// get the net signature
-	GET_DATA_U16(net_sig);
+	GET_USHORT(net_sig);
 	PACKET_SET_SIZE();
 
 	// get the player

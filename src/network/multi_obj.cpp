@@ -559,7 +559,7 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 	// don't add for clients
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){		
 		multi_rate_add(NET_PLAYER_NUM(pl), "sig", 2);
-		ADD_DATA_U16( objp->net_signature );		
+		ADD_USHORT( objp->net_signature );		
 		
 		multi_rate_add(NET_PLAYER_NUM(pl), "flg", 1);
 		ADD_DATA( oo_flags );
@@ -652,7 +652,7 @@ int multi_oo_unpack_client_data(net_player *pl, ubyte *data)
 	object *tobj;
 
 	// get the data
-	GET_DATA_U16(tnet_sig);
+	GET_USHORT(tnet_sig);
 	GET_DATA(t_subsys);
 	GET_DATA(l_subsys);
 
@@ -704,7 +704,7 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 
 	// add the object's net signature, type and oo_flags
 	if(!(Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-		GET_DATA_U16( net_sig );		
+		GET_USHORT( net_sig );		
 		GET_DATA( oo_flags );	
 	}
 	// clients always pos and orient stuff only
@@ -910,8 +910,8 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 		object *target_objp;
 
 		GET_DATA( umode );
-		GET_DATA_S16( submode );
-		GET_DATA_U16( target_signature );		
+		GET_SHORT( submode );
+		GET_USHORT( target_signature );		
 
 		if(shipp->ai_index >= 0){
 			Ai_info[shipp->ai_index].mode = umode;
@@ -940,10 +940,10 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 		int ai_flags, ai_mode, ai_submode;
 
 		// flag		
-		GET_DATA_S32(ai_flags);
-		GET_DATA_S32(ai_mode);
-		GET_DATA_S32(ai_submode);
-		GET_DATA_U16(dock_sig);		
+		GET_INT(ai_flags);
+		GET_INT(ai_mode);
+		GET_INT(ai_submode);
+		GET_USHORT(dock_sig);		
 
 		// valid ship?							
 		if((shipp != NULL) && (shipp->ai_index >= 0) && (shipp->ai_index < MAX_AI_INFO)){

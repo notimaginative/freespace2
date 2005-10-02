@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.5  2004/06/11 01:38:28  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -730,13 +733,13 @@ void multi_msg_send_squadmsg_packet(net_player *target,net_player *source,int co
 	BUILD_HEADER(SQUADMSG_PLAYER);
 
 	// add the command and targeting data	
-	ADD_DATA_S32(command);
+	ADD_INT(command);
 
 	// add the id of the guy sending the order
-	ADD_DATA_S16(source->player_id);
+	ADD_SHORT(source->player_id);
 
 	// net signature
-	ADD_DATA_U16(net_sig);
+	ADD_USHORT(net_sig);
 	
 	// targeted subsytem (or -1 if none)
 	s_val = (char)subsys_type;
@@ -862,9 +865,9 @@ void multi_msg_process_squadmsg_packet(unsigned char *data, header *hinfo)
 	int offset = HEADER_LENGTH;
 
 	// get all packet data
-	GET_DATA_S32(command);
-	GET_DATA_S16(source_id);
-	GET_DATA_U16(net_sig);
+	GET_INT(command);
+	GET_SHORT(source_id);
+	GET_USHORT(net_sig);
 	GET_DATA(s_val);
 	PACKET_SET_SIZE();
 

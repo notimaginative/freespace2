@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.4  2004/06/11 01:16:32  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -503,7 +506,7 @@ void multi_campaign_process_update(ubyte *data, header *hinfo)
 		multi_campaign_client_start();
 
 		// read in the # of missions
-		GET_DATA_S32(Campaign.num_missions);
+		GET_INT(Campaign.num_missions);
 
 		// read in the mission filenames
 		for(idx=0;idx<Campaign.num_missions;idx++){
@@ -670,7 +673,7 @@ void multi_campaign_send_start(net_player *pl)
 	ADD_DATA(val);
 
 	// add the # of missions, and their filenames
-	ADD_DATA_S32(Campaign.num_missions);
+	ADD_INT(Campaign.num_missions);
 	for(idx=0;idx<Campaign.num_missions;idx++){
 		Assert(Campaign.missions[idx].name != NULL);
 		ADD_STRING(Campaign.missions[idx].name);
@@ -702,7 +705,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 		BUILD_HEADER(CAMPAIGN_UPDATE_INGAME);
 		packet_type = MC_JIP_INITIAL_PACKET;
 		ADD_DATA(packet_type);
-		ADD_DATA_S32(Campaign.num_missions);
+		ADD_INT(Campaign.num_missions);
 		for( i = 0; i < Campaign.num_missions; i++) {
 			Assert(Campaign.missions[i].name != NULL);
 			ADD_STRING(Campaign.missions[i].name);
@@ -727,7 +730,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 			BUILD_HEADER( CAMPAIGN_UPDATE_INGAME );
 			packet_type = MC_JIP_GE_STATUS;
 			ADD_DATA( packet_type );
-			ADD_DATA_S32(i);
+			ADD_INT(i);
 			ADD_DATA( num_goals );
 			for ( j = 0; j < num_goals; j++ ) {
 				status = (ubyte)Campaign.missions[i].goals[j].status;
@@ -760,7 +763,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 			BUILD_HEADER( CAMPAIGN_UPDATE_INGAME );
 			packet_type = MC_JIP_GOAL_NAMES;
 			ADD_DATA(packet_type);
-			ADD_DATA_S32(i);
+			ADD_INT(i);
 
 			// save a pointer so we can put the number of goals written here.
 			ptr = &data[packet_size];
@@ -782,7 +785,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 					BUILD_HEADER(CAMPAIGN_UPDATE_INGAME);
 					packet_type = MC_JIP_GOAL_NAMES;
 					ADD_DATA( packet_type );
-					ADD_DATA_S32(i);
+					ADD_INT(i);
 					ptr = &data[packet_size];
 					goal_count = 0;
 					ADD_DATA( goal_count );
@@ -810,7 +813,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 			BUILD_HEADER(CAMPAIGN_UPDATE_INGAME);
 			packet_type = MC_JIP_EVENT_NAMES;
 			ADD_DATA(packet_type);
-			ADD_DATA_S32(i);
+			ADD_INT(i);
 
 			// save a pointer so we can put the number of goals written here.
 			ptr = &data[packet_size];
@@ -832,7 +835,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 					BUILD_HEADER(CAMPAIGN_UPDATE_INGAME);
 					packet_type = MC_JIP_EVENT_NAMES;
 					ADD_DATA( packet_type );
-					ADD_DATA_S32(i);
+					ADD_INT(i);
 					ptr = &data[packet_size];
 					event_count = 0;
 					ADD_DATA( event_count );
@@ -879,7 +882,7 @@ void multi_campaign_process_ingame_start( ubyte *data, header *hinfo )
 
 	case MC_JIP_GE_STATUS:
 		
-		GET_DATA_U32( mission_num );
+		GET_UINT( mission_num );
 		GET_DATA( num_goals );
 		// need to malloc out the data
 		Assert( Campaign.missions[mission_num].num_goals == 0 );
@@ -912,7 +915,7 @@ void multi_campaign_process_ingame_start( ubyte *data, header *hinfo )
 		break;
 
 	case MC_JIP_GOAL_NAMES:
-		GET_DATA_U32( mission_num );
+		GET_UINT( mission_num );
 		GET_DATA( num_goals );
 		GET_DATA( starting_num );
 		for ( i = starting_num; i < (starting_num + num_goals); i++ ) {
@@ -921,7 +924,7 @@ void multi_campaign_process_ingame_start( ubyte *data, header *hinfo )
 		break;
 
 	case MC_JIP_EVENT_NAMES:
-		GET_DATA_U32( mission_num );
+		GET_UINT( mission_num );
 		GET_DATA( num_events );
 		GET_DATA( starting_num );
 		for ( i = starting_num; i < (starting_num + num_events); i++ ) {

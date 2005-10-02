@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.5  2004/06/11 01:43:48  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -649,7 +652,7 @@ void multi_respawn_send_ai_respawn( ushort net_signature )
 	BUILD_HEADER(RESPAWN_NOTICE);
 	val = AI_RESPAWN_NOTICE;
 	ADD_DATA(val);
-	ADD_DATA_U16( net_signature );
+	ADD_USHORT( net_signature );
 
 	// broadcast the packet to all players
 	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
@@ -695,13 +698,13 @@ void multi_respawn_broadcast(net_player *np)
 	ADD_DATA(val);
 
 	// add the data for the respawn
-	ADD_DATA_U16(signature);
+	ADD_USHORT(signature);
     add_vector_data( data, &packet_size, pos );
-	ADD_DATA_S16(np->player_id);
+	ADD_SHORT(np->player_id);
 	ADD_DATA(np->s_info.cur_primary_bank);
 	ADD_DATA(np->s_info.cur_secondary_bank);
 	ADD_DATA(np->s_info.cur_link_status);
-	ADD_DATA_U16(np->s_info.ship_ets);
+	ADD_USHORT(np->s_info.ship_ets);
 	ADD_STRING(np->p_info.p_objp->name);
 
 	Assert( np->s_info.ship_ets != 0 );		// find dave or allender
@@ -736,7 +739,7 @@ void multi_respawn_process_packet(ubyte *data, header *hinfo)
 	case AI_RESPAWN_NOTICE: 
 		p_object *pobjp;
 
-		GET_DATA_U16( net_sig );
+		GET_USHORT( net_sig );
 		pobjp = mission_parse_get_arrival_ship( net_sig );
 		Assert( pobjp != NULL );
 		multi_respawn_ai( pobjp );
@@ -744,13 +747,13 @@ void multi_respawn_process_packet(ubyte *data, header *hinfo)
 
 	case RESPAWN_BROADCAST:
 		// get the respawn data
-		GET_DATA_U16(net_sig);
+		GET_USHORT(net_sig);
 		get_vector_data( data, &offset, v );
-		GET_DATA_S16(player_id);
+		GET_SHORT(player_id);
 		GET_DATA(cur_primary_bank);
 		GET_DATA(cur_secondary_bank);
 		GET_DATA(cur_link_status);
-		GET_DATA_U16(ship_ets);
+		GET_USHORT(ship_ets);
 		GET_STRING(parse_name);
 		player_index = find_player_id(player_id);
 		if(player_index == -1){

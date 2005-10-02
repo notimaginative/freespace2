@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.11  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.10  2005/08/12 08:58:41  taylor
  * fix the strange mouse click issues on briefing, ship select and weapon select screens
  *
@@ -1468,6 +1471,9 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	short player_id;	
 	short ishort;
 
+	// this is intended for multi only since it byteswaps
+	Assert( Game_mode & GM_MULTIPLAYER );
+
 	// write the ship pool 
 	for ( i = 0; i < MAX_SHIP_TYPES; i++ ) {
 		if ( Ss_pool[i] > 0 ) {	
@@ -1489,7 +1495,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	for ( i = 0; i < MAX_WEAPON_TYPES; i++ ) {
 		if ( Wl_pool[i] > 0 ) {
 			block[offset++] = (ubyte)i;
-			ishort = (short)Wl_pool[i];
+			ishort = INTEL_SHORT( (short)Wl_pool[i] );
 			memcpy(block+offset, &ishort, sizeof(short));
 			offset += sizeof(short);
 		}
@@ -1516,7 +1522,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 			}
 
 			Assert( Wss_slots[i].wep_count[j] < SHRT_MAX );
-			ishort = short(Wss_slots[i].wep_count[j]);
+			ishort = INTEL_SHORT( (short)Wss_slots[i].wep_count[j] );
 
 			memcpy(&(block[offset]), &(ishort), sizeof(short) );
 			offset += sizeof(short);
@@ -1539,6 +1545,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	if(player_index != -1){
 		player_id = Net_players[player_index].player_id;		
 	}
+	player_id = INTEL_SHORT( player_id );
 	memcpy(block+offset,&player_id,sizeof(player_id));
 	offset += sizeof(player_id);
 
@@ -1552,6 +1559,9 @@ int restore_wss_data(ubyte *block)
 	ubyte	b1, b2,sound;	
 	short ishort;
 	short player_id;	
+
+	// this is intended for multi only since it byteswaps
+	Assert( Game_mode & GM_MULTIPLAYER );
 
 	// restore ship pool
 	sanity=0;
@@ -1592,7 +1602,7 @@ int restore_wss_data(ubyte *block)
 	
 		memcpy(&ishort, block+offset, sizeof(short));
 		offset += sizeof(short);
-		Wl_pool[b1] = ishort;
+		Wl_pool[b1] = INTEL_SHORT( ishort );
 	}
 
 	for ( i=0; i<MAX_WSS_SLOTS; i++ ) {
@@ -1612,6 +1622,7 @@ int restore_wss_data(ubyte *block)
 			}
 		
 			memcpy( &ishort, &(block[offset]), sizeof(short) );
+			ishort = INTEL_SHORT( ishort );
 			Wss_slots[i].wep_count[j] = (int)ishort;
 			offset += sizeof(short);
 		}
@@ -1626,6 +1637,7 @@ int restore_wss_data(ubyte *block)
 
 	// read in the player address
 	memcpy(&player_id,block+offset,sizeof(player_id));
+	player_id = INTEL_SHORT( player_id );
 	offset += sizeof(short);
 	
 	// determine if I'm the guy who should be playing the sound

@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.6  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.5  2004/06/11 01:18:40  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -322,11 +325,11 @@ void send_player_kick_packet(int player_index, int ban, int reason)
 	BUILD_HEADER(KICK_PLAYER);
 
 	// add the address of the player to be kicked
-	ADD_DATA_S16(Net_players[player_index].player_id);
+	ADD_SHORT(Net_players[player_index].player_id);
 	
 	// indicate if he should be banned
-	ADD_DATA_S32(ban);
-	ADD_DATA_S32(reason);
+	ADD_INT(ban);
+	ADD_INT(reason);
 
 	// send the request to the server	
 	multi_io_send_reliable(Net_player, data, packet_size);
@@ -340,9 +343,9 @@ void process_player_kick_packet(ubyte *data, header *hinfo)
 	int offset = HEADER_LENGTH;
 	
 	// get the address of the guy who is to be kicked
-	GET_DATA_S16(player_id);
-	GET_DATA_S32(ban);
-	GET_DATA_S32(reason);
+	GET_SHORT(player_id);
+	GET_INT(ban);
+	GET_INT(reason);
 	player_num = find_player_id(player_id);
 	PACKET_SET_SIZE();
 

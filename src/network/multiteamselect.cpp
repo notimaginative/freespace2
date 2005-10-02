@@ -15,6 +15,9 @@
  * Multiplayer Team Selection Code
  *
  * $Log$
+ * Revision 1.8  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.7  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -2977,7 +2980,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 
 	// add the sound to play
 	s_sound = (short)sound;
-	ADD_DATA_S16(s_sound);
+	ADD_SHORT(s_sound);
 	
 	// add data based upon the packet code
 	switch(code){
@@ -3005,7 +3008,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 
 				// add the objnum we're working with
 				i_tmp = Multi_ts_team[team].multi_ts_objnum[idx];
-				ADD_DATA_S32(i_tmp);
+				ADD_INT(i_tmp);
 
 				// add a byte indicating if a player is here or not
 				if(Multi_ts_team[team].multi_ts_player[idx] == NULL){
@@ -3017,7 +3020,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 
 				// if there's a player, add his address
 				if(val){
-					ADD_DATA_S16(Multi_ts_team[team].multi_ts_player[idx]->player_id);
+					ADD_SHORT(Multi_ts_team[team].multi_ts_player[idx]->player_id);
 
 					// should also update his p_info settings locally
 					Multi_ts_team[team].multi_ts_player[idx]->p_info.ship_class = Wss_slots_teams[team][idx].ship_class;
@@ -3081,7 +3084,7 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 	team = (int)val;
 
 	// get the sound to play
-	GET_DATA_S16(sound);
+	GET_SHORT(sound);
 
 	// process the different opcodes
 	switch(code){
@@ -3126,13 +3129,13 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 			GET_DATA(ship_class);
 
 			// get the objnum
-			GET_DATA_S32(objnum);
+			GET_INT(objnum);
 	
 			// flag indicating if a player is in this slot
 			GET_DATA(val);
 			if(val){
 				// look the player up
-				GET_DATA_S16(player_id);
+				GET_SHORT(player_id);
 				player_index = find_player_id(player_id);
 			
 				// if we couldn't find him

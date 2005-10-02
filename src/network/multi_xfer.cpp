@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.8  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.7  2004/06/11 01:46:42  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -859,11 +862,11 @@ int multi_xfer_process_packet(unsigned char *data, PSNET_SOCKET_RELIABLE who)
 
 	// read in all packet data
 	GET_DATA(val);	
-	GET_DATA_U16(sig);
+	GET_USHORT(sig);
 	switch(val){
 	// RECV side
 	case MULTI_XFER_CODE_DATA:				
-		GET_DATA_U16(data_size);		
+		GET_USHORT(data_size);		
 		memcpy(xfer_data, data + offset, data_size);
 		offset += data_size;
 		sender_side = 0;
@@ -872,8 +875,8 @@ int multi_xfer_process_packet(unsigned char *data, PSNET_SOCKET_RELIABLE who)
 	// RECV side
 	case MULTI_XFER_CODE_HEADER:		
 		GET_STRING(filename);
-		GET_DATA_S32(file_size);					
-		GET_DATA_U16(file_checksum);
+		GET_INT(file_size);					
+		GET_USHORT(file_checksum);
 		sender_side = 0;
 		break;
 
@@ -1226,10 +1229,10 @@ void multi_xfer_send_next(xfer_entry *xe)
 	ADD_DATA(code);
 
 	// add the sig
-	ADD_DATA_U16(xe->sig);
+	ADD_USHORT(xe->sig);
 
 	// add in the size of the rest of the packet	
-	ADD_DATA_U16(data_size);
+	ADD_USHORT(data_size);
 	
 	// copy in the data
 	if(cfread(data+packet_size,1,(int)data_size,xe->file) == 0){
@@ -1265,7 +1268,7 @@ void multi_xfer_send_ack(PSNET_SOCKET_RELIABLE socket, ushort sig)
 	ADD_DATA(code);
 
 	// add the sig
-	ADD_DATA_U16(sig);
+	ADD_USHORT(sig);
 	
 	// send the data	
 	psnet_rel_send(socket, data, packet_size);
@@ -1285,7 +1288,7 @@ void multi_xfer_send_nak(PSNET_SOCKET_RELIABLE socket, ushort sig)
 	ADD_DATA(code);
 
 	// add the sig
-	ADD_DATA_U16(sig);
+	ADD_USHORT(sig);
 
 	// send the data	
 	psnet_rel_send(socket, data, packet_size);
@@ -1305,7 +1308,7 @@ void multi_xfer_send_final(xfer_entry *xe)
 	ADD_DATA(code);
 
 	// add the sig
-	ADD_DATA_U16(xe->sig);
+	ADD_USHORT(xe->sig);
 
 	// send the data	
 	psnet_rel_send(xe->file_socket, data, packet_size);
@@ -1323,16 +1326,16 @@ void multi_xfer_send_header(xfer_entry *xe)
 	ADD_DATA(code);
 
 	// add the sig
-	ADD_DATA_U16(xe->sig);
+	ADD_USHORT(xe->sig);
 
 	// add the filename
 	ADD_STRING(xe->filename);
 		
 	// add the id #
-	ADD_DATA_S32(xe->file_size);
+	ADD_INT(xe->file_size);
 
 	// add the file checksum
-	ADD_DATA_U16(xe->file_chksum);
+	ADD_USHORT(xe->file_chksum);
 
 	// send the packet	
 	psnet_rel_send(xe->file_socket, data, packet_size);

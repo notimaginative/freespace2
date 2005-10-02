@@ -13,6 +13,9 @@
  * $Author$
  *
  * $Log$
+ * Revision 1.5  2005/10/02 09:30:10  taylor
+ * sync up rest of big-endian network changes.  it should at least be as good as what's in FS2_Open now, only better :)
+ *
  * Revision 1.4  2004/06/11 01:45:13  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -789,8 +792,8 @@ void multi_team_process_packet(unsigned char *data, header *hinfo)
 		Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 		// get the packet data
-		GET_DATA_U16(player_id);
-		GET_DATA_S32(req_team);
+		GET_USHORT(player_id);
+		GET_INT(req_team);
 
 		// if i'm the host of the game, process here		
 		req_index = find_player_id(player_id);
@@ -825,10 +828,10 @@ void multi_team_send_team_request(net_player *pl, int team)
 	ADD_DATA(code);
 
 	// add the address of the guy we want to change
-	ADD_DATA_S16(pl->player_id);
+	ADD_SHORT(pl->player_id);
 
 	// add the team I want to be on
-	ADD_DATA_S32(team);
+	ADD_INT(team);
 
 	// send to the server of the game (will be routed to host if in a standalone situation)	
 	multi_io_send_reliable(Net_player, data, packet_size);
@@ -862,7 +865,7 @@ void multi_team_send_update()
 			ADD_DATA(stop);
 
 			// add this guy's id
-			ADD_DATA_S16(Net_players[idx].player_id);
+			ADD_SHORT(Net_players[idx].player_id);
 
 			// pack all his data into a byte
 			val = 0x0;
@@ -907,7 +910,7 @@ int multi_team_process_team_update(ubyte *data)
 	GET_DATA(stop);
 	while(stop != 0xff){
 		// get the net address and flags for the guy
-		GET_DATA_S16(player_id);
+		GET_SHORT(player_id);
 		GET_DATA(flags);
 
 		// do a player lookup

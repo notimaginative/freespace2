@@ -15,6 +15,9 @@
  * C module that contains code to display the mission briefing to the player
  *
  * $Log$
+ * Revision 1.13  2005/10/03 11:25:42  taylor
+ * be sure to properly clean out old briefing entries when compacting
+ *
  * Revision 1.12  2005/10/01 22:04:58  taylor
  * fix FS1 (de)briefing voices, the directory names are different in FS1
  * hard code the table values so that the fs1.vp file isn't needed
@@ -1135,13 +1138,15 @@ void brief_set_default_closeup()
 // which shouldn't get shown
 void brief_compact_stages()
 {
-	int num, result, i;
+	int num, before, result, i;
 
 	/*
 	if((Game_mode & GM_MULTIPLAYER) && (Netgame.campaign_mode == MP_CAMPAIGN) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER)){
 		Game_mode |= GM_CAMPAIGN_MODE;
 	}
 	*/
+
+	before = Briefing->num_stages;
 
 	num = 0;
 	while ( num < Briefing->num_stages ) {
@@ -1171,6 +1176,13 @@ void brief_compact_stages()
 			continue;
 		}
 		num++;
+	}
+
+	// completely clear out the old entries (if any) so we don't access them by mistake - taylor
+	if (before > Briefing->num_stages) {
+		for (i = Briefing->num_stages; i < before; i++) {
+			memset( &Briefing->stages[i], 0, sizeof(brief_stage) );
+		}
 	}
 
 	/*

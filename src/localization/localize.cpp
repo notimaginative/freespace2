@@ -14,6 +14,9 @@
  *
  *
  * $Log$
+ * Revision 1.10  2005/10/03 11:23:14  taylor
+ * don't display error message in FS1 for missing tstrings.tbl, it's ok to be missing in that case
+ *
  * Revision 1.9  2005/10/01 21:35:51  taylor
  * various FS1 related changes, removes need to extra fs1.vp file
  *
@@ -1294,7 +1297,9 @@ void lcl_ext_setup_pointers()
 	// open the localization file
 	lcl_ext_open();
 	if(Lcl_ext_file == NULL){
+#ifndef MAKE_FS1
 		error_display(0, "Error opening externalization file! File likely does not exist or could not be found");
+#endif
 		return;
 	}
 

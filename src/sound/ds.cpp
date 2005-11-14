@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.26  2005/11/14 05:22:08  taylor
+ * patch from mailing list (courtesy of fatty) to allow compling with both OpenAL 1.0 and 1.1
+ *
  * Revision 1.25  2005/10/01 21:53:06  taylor
  * include file cleanup
  * byte-swap streaming PCM to avoid the endless, loud, static
@@ -587,7 +590,7 @@ static int AL_play_position = 0;
 #endif
 
 ALCdevice *ds_sound_device = NULL;
-void *ds_sound_context = NULL;
+ALCcontext *ds_sound_context = NULL;
 
 
 //--------------------------------------------------------------------------
@@ -1483,7 +1486,11 @@ int ds_init(int use_a3d, int use_eax)
 #ifdef PLAT_UNIX
 // NOTE: A3D and EAX are unused in OpenAL
 	// changed from 22050 to 44100 so that movies don't sound like crap
+#ifdef AL_VERSION_1_1
+	const ALCchar *initStr = (ubyte *)"\'( (sampling-rate 44100 ))";
+#else
 	ALCubyte *initStr = (ubyte *)"\'( (sampling-rate 44100 ))";
+#endif
 	int attr[] = { ALC_FREQUENCY, 44100, ALC_SYNC, AL_FALSE, 0 };
 
 	Ds_use_a3d = 0;
@@ -1552,7 +1559,11 @@ int ds_init(int use_a3d, int use_eax)
 #endif
 
 	// make sure we can actually use AL_BYTE_LOKI (Mac OpenAL doesn't have it)
+#ifdef AL_VERSION_1_1
+	AL_play_position = alIsExtensionPresent( (const ALchar*)"AL_LOKI_play_position" );
+#else
 	AL_play_position = alIsExtensionPresent( (ALubyte*)"AL_LOKI_play_position" );
+#endif
 
 	// Initialize DirectSound3D.  Since software performance of DirectSound3D is unacceptably
 	// slow, we require the voice manger (a DirectSound extension) to be present.  The 

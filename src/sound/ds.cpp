@@ -15,6 +15,9 @@
  * C file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.27  2005/11/18 09:36:13  taylor
+ * gah, should have been paying more attention there
+ *
  * Revision 1.26  2005/11/14 05:22:08  taylor
  * patch from mailing list (courtesy of fatty) to allow compling with both OpenAL 1.0 and 1.1
  *
@@ -1487,9 +1490,9 @@ int ds_init(int use_a3d, int use_eax)
 // NOTE: A3D and EAX are unused in OpenAL
 	// changed from 22050 to 44100 so that movies don't sound like crap
 #ifdef AL_VERSION_1_1
-	const ALCchar *initStr = (ubyte *)"\'( (sampling-rate 44100 ))";
+	const ALCchar *initStr = (ALCchar *)"\'( (sampling-rate 44100 ))";
 #else
-	ALCubyte *initStr = (ubyte *)"\'( (sampling-rate 44100 ))";
+	ALCubyte *initStr = (ALCubyte *)"\'( (sampling-rate 44100 ))";
 #endif
 	int attr[] = { ALC_FREQUENCY, 44100, ALC_SYNC, AL_FALSE, 0 };
 

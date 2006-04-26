@@ -15,6 +15,9 @@
  * C file that contains misc. functions to support multiplayer
  *
  * $Log$
+ * Revision 1.10  2006/04/26 19:48:58  taylor
+ * various big-endian fixes, mainly networking support related
+ *
  * Revision 1.9  2003/05/25 02:30:43  taylor
  * Freespace 1 support
  *
@@ -1281,30 +1284,44 @@ char* get_text_address( char * text, ubyte * address )
 // return size of packed matrix
 void multi_pack_orient_matrix(ubyte *data,matrix *m)
 {	
-   data[16]=0;
+	data[16] = 0;
+	float x1, y1, x2, y2;
 
 	if(m->v.rvec.xyz.z < 0) data[16] |= (1<<0);	// X
 	if(m->v.uvec.xyz.z < 0) data[16] |= (1<<1);	// Y
 	if(m->v.fvec.xyz.z < 0) data[16] |= (1<<2);	// V
 	if(m->v.fvec.xyz.x < 0) data[16] |= (1<<3);	// Z
 	if(m->v.fvec.xyz.y < 0) data[16] |= (1<<4);	// W
-	memcpy(&data[0],&m->v.rvec.xyz.x,4);			// a
-	memcpy(&data[4],&m->v.rvec.xyz.y,4);			// b
-	memcpy(&data[8],&m->v.uvec.xyz.x,4);			// c
-	memcpy(&data[12],&m->v.uvec.xyz.y,4);			// d
+
+	x1 = INTEL_FLOAT(&m->v.rvec.xyz.x);
+	y1 = INTEL_FLOAT(&m->v.rvec.xyz.y);
+	x2 = INTEL_FLOAT(&m->v.uvec.xyz.x);
+	y2 = INTEL_FLOAT(&m->v.uvec.xyz.y);
+
+	memcpy(&data[0], &x1, 4);	// a
+	memcpy(&data[4], &y1, 4);	// b
+	memcpy(&data[8], &x2, 4);	// c
+	memcpy(&data[12], &y2, 4);	// d
 }
 
 // return bytes processed
 // non-16 byte version of unpack matrix code
 void multi_unpack_orient_matrix(ubyte *data,matrix *m)
-{	
-	memcpy(&m->v.rvec.xyz.x,&data[0],4); 
-	memcpy(&m->v.rvec.xyz.y,&data[4],4); 
-	memcpy(&m->v.uvec.xyz.x,&data[8],4);  
-   memcpy(&m->v.uvec.xyz.y,&data[12],4);     
+{
+	float x1, y1, x2, y2;
+
+	memcpy(&x1, &data[0], 4);
+	memcpy(&y1, &data[4], 4);
+	memcpy(&x2, &data[8], 4);
+	memcpy(&y2, &data[12],4);
+
+	m->v.rvec.xyz.x = INTEL_FLOAT(&x1);
+	m->v.rvec.xyz.y = INTEL_FLOAT(&y1);
+	m->v.uvec.xyz.x = INTEL_FLOAT(&x2);
+	m->v.uvec.xyz.y = INTEL_FLOAT(&y2);
 	
 	m->v.rvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.rvec.xyz.x * m->v.rvec.xyz.x) - (m->v.rvec.xyz.y * m->v.rvec.xyz.y))); // X
-   m->v.uvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.uvec.xyz.x * m->v.uvec.xyz.x) - (m->v.uvec.xyz.y * m->v.uvec.xyz.y))); // Y
+	m->v.uvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.uvec.xyz.x * m->v.uvec.xyz.x) - (m->v.uvec.xyz.y * m->v.uvec.xyz.y))); // Y
 	m->v.fvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.rvec.xyz.z * m->v.rvec.xyz.z) - (m->v.uvec.xyz.z * m->v.uvec.xyz.z))); // V
 	m->v.fvec.xyz.x = fl_sqrt(fl_abs(1 - (m->v.rvec.xyz.x * m->v.rvec.xyz.x) - (m->v.uvec.xyz.x * m->v.uvec.xyz.x))); // Z
 	m->v.fvec.xyz.y = fl_sqrt(fl_abs(1 - (m->v.rvec.xyz.y * m->v.rvec.xyz.y) - (m->v.uvec.xyz.y * m->v.uvec.xyz.y))); // W

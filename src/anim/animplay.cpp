@@ -15,6 +15,9 @@
  * C module for playing back anim files
  *
  * $Log$
+ * Revision 1.7  2006/04/26 19:48:58  taylor
+ * various big-endian fixes, mainly networking support related
+ *
  * Revision 1.6  2005/08/12 08:55:13  taylor
  * sync up talking head fixes from FS2_Open code base (still not 100%)
  *
@@ -867,8 +870,7 @@ void anim_read_header(anim *ptr, CFILE *fp)
 #endif
 
 	ptr->total_frames = cfread_short(fp);
-	cfread(&ptr->packer_code, 1, 1, fp);
-	ptr->packer_code = INTEL_SHORT(ptr->packer_code);
+	ptr->packer_code = cfread_ubyte(fp);
 	cfread(&ptr->palette, 256, 3, fp);
 	ptr->num_keys = cfread_short(fp);
 

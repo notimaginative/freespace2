@@ -15,6 +15,9 @@
  * Utilities for operating on files
  *
  * $Log$
+ * Revision 1.14  2006/04/26 19:36:57  taylor
+ * address an error handling bug in cfwrite()
+ *
  * Revision 1.13  2005/10/01 22:04:58  taylor
  * fix FS1 (de)briefing voices, the directory names are different in FS1
  * hard code the table values so that the fs1.vp file isn't needed
@@ -1427,16 +1430,25 @@ int cfwrite(void *buf, int elsize, int nelem, CFILE *cfile)
 	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int result = 0;
+	int size = elsize * nelem;
 
 	// cfwrite() not supported for memory-mapped files
 	Assert( !cb->data );
 
 	Assert(cb->fp != NULL);
 	Assert(cb->lib_offset == 0 );
-	result = fwrite(buf, elsize, nelem, cb->fp);
+	int bytes_written = fwrite( buf, 1, size, cb->fp );
 
-	return result;	
+	if (bytes_written > 0) {
+		cb->raw_position += bytes_written;
+	}
+
+	#if defined(CHECK_POSITION) && !defined(NDEBUG)
+		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
+		Assert(tmp_offset == cb->raw_position);
+	#endif
+
+	return bytes_written / elsize;
 }
 
 

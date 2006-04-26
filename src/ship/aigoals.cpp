@@ -15,6 +15,9 @@
  * File to deal with manipulating AI goals, etc.
  *
  * $Log$
+ * Revision 1.6  2006/04/26 19:46:52  taylor
+ * address a Windows qsort() issue that Volition got around before, this will correct numerous mission bugs due to goal sorting for non-Windows systems
+ *
  * Revision 1.5  2003/08/03 16:10:30  taylor
  * cleanup; compile warning fixes
  *
@@ -1836,8 +1839,15 @@ int ai_goal_priority_compare(const void *a, const void *b)
 	else {
 		if ( ga->time > gb->time )
 			return -1;
+#ifdef PLAT_UNIX
+		else if ( ga->time > gb->time )
+			return 1;
+		else
+			return 0;
+#else
 		else // if ( ga->time < gb->time )			// this way prevents element swapping if times happen to be equal (which they should not)
 			return 1;
+#endif
 	}
 }
 

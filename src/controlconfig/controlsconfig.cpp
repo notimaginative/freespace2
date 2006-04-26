@@ -15,6 +15,9 @@
  * C module for keyboard, joystick and mouse configuration
  *
  * $Log$
+ * Revision 1.8  2006/04/26 19:37:47  taylor
+ * some text position fixes for FS1
+ *
  * Revision 1.7  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -362,7 +365,7 @@ char* Conflict_background_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 int Control_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	{
 #ifdef MAKE_FS1
-		34, 85, 198, 219
+		34, 85, 198, 229
 #else
 		32, 58, 198, 259			// GR_640
 #endif
@@ -394,7 +397,7 @@ int Control_list_key_w[GR_NUM_RESOLUTIONS] = {
 int Control_more_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
 #ifdef MAKE_FS1
-		320, 316
+		320, 326
 #else
 		320, 326			// GR_640
 #endif

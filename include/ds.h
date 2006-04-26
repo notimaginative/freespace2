@@ -15,6 +15,9 @@
  * Header file for interface to DirectSound
  *
  * $Log$
+ * Revision 1.7  2006/04/26 19:36:12  taylor
+ * remove ALUT headers, since we don't use it anyway and there is no reason to make it a build requirement
+ *
  * Revision 1.6  2005/10/01 21:38:32  taylor
  * some reorg of includes to not requires the same headers in many different files
  * handle FS1 specific language changes
@@ -169,11 +172,9 @@ extern int							ds_initialized;
 #ifdef __APPLE__
 	#include <al.h>
 	#include <alc.h>
-	#include <alut.h>
 #else
 	#include <AL/al.h>
 	#include <AL/alc.h>
-	#include <AL/alut.h>
 #endif
 
 extern const char* openal_error_string();

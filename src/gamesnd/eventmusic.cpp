@@ -15,6 +15,9 @@
  * C module for high-level control of event driven music 
  *
  * $Log$
+ * Revision 1.5  2006/04/26 19:39:20  taylor
+ * fix music handling for FS1 to better match the original
+ *
  * Revision 1.4  2002/06/09 04:41:17  relnev
  * added copyright header
  *
@@ -206,6 +209,10 @@ char* Pattern_names[MAX_PATTERNS] =
 {
 //XSTR:OFF
 	"NRML_1",	// Normal Song 1
+#ifdef MAKE_FS1
+	"NRML_2",	// Normal Song 2
+	"NRML_3",	// Normal Song 3
+#endif
 	"AARV_1",	// Allied Arrival 1
 	"EARV_1",	// Enemy Arrival 1
 	"BTTL_1",	// Battle Song 1
@@ -224,6 +231,10 @@ char* Pattern_description[MAX_PATTERNS] =
 {
 //XSTR:OFF
 	"normal 1",
+#ifdef MAKE_FS1
+	"normal 2",
+	"normal 3",
+#endif
 	"friendly arrival 1",
 	"enemy arrival 2",
 	"battle 1",
@@ -241,6 +252,10 @@ char* Pattern_description[MAX_PATTERNS] =
 int Pattern_loop_for[MAX_PATTERNS] =
 {
 	1,	// Normal Song 1
+#ifdef MAKE_FS1
+	1,	// Normal Song 2
+	1,	// Normal Song 3
+#endif
 	1,	// Allied Arrival 1
 	1,	// Enemy Arrival 1
 	1,	// Battle Song 1
@@ -256,6 +271,22 @@ int Pattern_loop_for[MAX_PATTERNS] =
 
 int Pattern_default_next[MAX_PATTERNS] =
 {
+#ifdef MAKE_FS1
+	SONG_NRML_2,	// NRML_1 progresses to NRML_2 by default
+	SONG_NRML_1,	// NRML_2 progresses to NRML_1 by default
+	SONG_NRML_1,	// NRML_3 progresses to NRML_1 by default
+	SONG_NRML_2,	// AARV_1 progresses to NRML_2 by default
+	SONG_BTTL_1,	// EARV_1 progresses to BTTL_1 by default
+	SONG_BTTL_2,	// BTTL_1 progresses to BTTL_2 by default
+	SONG_BTTL_3,	// BTTL_2 progresses to BTTL_3 by default
+	SONG_BTTL_1,	// BTTL_3 progresses to BTTL_1 by default
+	SONG_BTTL_2,	// AARV_2 progresses to BTTL_2 by default
+	SONG_BTTL_2,	// EARV_2 progresses to BTTL_2 by default
+	SONG_NRML_3,	// VICT_1 progresses to NRML_3 by default
+	SONG_NRML_3,	// VICT_2 progresses to NRML_3 by default
+	SONG_NRML_1,	// FAIL_1 progresses to NRML_1 by default
+	-1				// no music playes after dead
+#else
 	SONG_NRML_1,	// NRML_1 progresses to NRML_1 by default
 	SONG_NRML_1,	// AARV_1 progresses to NRML_1 by default
 	SONG_BTTL_1,	// EARV_1 progresses to BTTL_1 by default
@@ -268,6 +299,7 @@ int Pattern_default_next[MAX_PATTERNS] =
 	SONG_NRML_1,	// VICT_2 progresses to NRML_1 by default
 	SONG_NRML_1,	//	FAIL_1 progresses to NRML_1 by default
 	-1					// no music plays after dead
+#endif
 };
 
 
@@ -276,6 +308,10 @@ int Pattern_default_next[MAX_PATTERNS] =
 int Pattern_can_force[MAX_PATTERNS] =
 {
 	TRUE,		// NRML_1 
+#ifdef MAKE_FS1
+	TRUE,		// NRML_2
+	TRUE,		// NRML_3
+#endif
 	FALSE,	// AARV_1 
 	FALSE,	// EARV_1 
 	TRUE,		// BTTL_1
@@ -478,7 +514,11 @@ void event_music_do_frame()
 		}
 
 		if (Event_Music_battle_started == 0) {
+#ifdef MAKE_FS1
+			if ( (Current_pattern == SONG_NRML_1) || (Current_pattern == SONG_NRML_2) ) {
+#else
 			if (Current_pattern == SONG_NRML_1) {
+#endif
 				if (timestamp_elapsed(Check_for_battle_music)) {
 					Check_for_battle_music = timestamp(1000);
 					if (hostile_ships_present() == TRUE) {
@@ -1247,7 +1287,11 @@ void event_music_start_default()
 		}
 		else {
 			Event_Music_battle_started = FALSE;
+#ifdef MAKE_FS1
+			next_pattern = SONG_NRML_3;
+#else
 			next_pattern = SONG_NRML_1;
+#endif
 		}
 	}
 	else

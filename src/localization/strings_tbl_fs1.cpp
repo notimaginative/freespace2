@@ -15,6 +15,9 @@
  * copy of strings.tbl modified for FS1
  *
  * $Log$
+ * Revision 1.2  2006/04/26 19:40:15  taylor
+ * text changes to match the original FS1 wording
+ *
  * Revision 1.1  2005/10/01 21:35:51  taylor
  * various FS1 related changes, removes need to extra fs1.vp file
  *
@@ -549,11 +552,11 @@ char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Target Ship in Reticle",
 		"Target Target's Nearest Attacker",
 		"Target Last Ship to Send Transmission",
-		"Turn Off Auto-Targeting",
+		"Stop Targeting Ship",
 		"Target Subsystem in Reticle",
 		"Target Next Subsystem",
 		"Target Previous Subsystem",
-		"Turn Off Auto-Targeting of Subsystems",
+		"Stop Targeting Subsystem",
 		"Match Target Speed",
 		"Toggle Auto Speed Matching",
 		"Fire Primary Weapon",
@@ -571,10 +574,10 @@ char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Pitch Backward",
 		"Turn Left",
 		"Turn Right",
-		"Set Throttle to Zero",
-		"Set Throttle to Max",
-		"Set Throttle to One-Third",
-		"Set Throttle to Two-Thirds",
+		"Set Zero Throttle",
+		"Set Max Throttle",
+		"Set One-Third Throttle",
+		"Set Two-Thirds Throttle",
 		"Increase Throttle 5 Percent",
 		"Decrease Throttle 5 Percent",
 		"Attack My Target",
@@ -634,8 +637,8 @@ char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Target Newest Ship In Area",
 		"Target Next Live Turret",
 		"Target Previous Live Turret",
-		"Target Next Hostile Bomb or Bomber",
-		"Target Previous Hostile Bomb or Bomber",
+		"Target Next Hostile Bomb",
+		"Target Previous Hostile Bomb",
 		"(Multiplayer) Message All",
 		"(Multiplayer) Message Friendly",
 		"(Multiplayer) Message Hostile",

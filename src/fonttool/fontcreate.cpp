@@ -15,6 +15,9 @@
  * Tool for creating new fonts
  *
  * $Log$
+ * Revision 1.5  2006/04/26 19:38:36  taylor
+ * fix some minor fonttool compile errors
+ *
  * Revision 1.4  2004/06/11 00:50:40  tigital
  * byte-swapping changes for bigendian systems
  *
@@ -586,7 +589,7 @@ void fonttool_create_font(char *pcx_filename, char *font_filename)
 	
 	bmp.w = (short)w;
 	bmp.h = (short)h;
-	bmp.data = (uint)malloc( w*h + 768 );
+	bmp.data = (ptr_u)malloc( w*h + 768 );
 	bmp.palette = (ubyte *)(bmp.data +w*h );
 	if ( !bmp.data )	{
 		printf( "Error mallocing PCX data, '%s'\n", pcx_filename );

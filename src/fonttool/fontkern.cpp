@@ -15,6 +15,9 @@
  * Tool for interactively kerning fonts
  *
  * $Log$
+ * Revision 1.4  2006/04/26 19:38:36  taylor
+ * fix some minor fonttool compile errors
+ *
  * Revision 1.3  2003/01/30 20:03:48  relnev
  * various files ported needed for fonttool.  There is a bug where on exit it segfaults in SDL_GL_SwapBuffers, I'm probably missing something (don't know what) but it works fine otherwise (Taylor Richards)
  *
@@ -383,7 +386,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 	key_init();
 	mouse_init();
 
-	gr_init_alphacolor( &ac, cr*16,cg*16,cb*16,alpha*16 );
+	gr_init_alphacolor( &ac, cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD );
 	
 
 	{
@@ -414,30 +417,30 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 		case KEY_COMMA:
 			if ( alpha > 1 )	{
 				alpha--;
-				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16);
+				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			}
 			break;
 
 		case KEY_PERIOD:
 			if ( alpha < 17 )	{
 				alpha++;
-				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16);
+				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			}
 			break;
 
 		case KEY_R:
 			if ( cr == 16 ) cr = 1; else cr = 16;
-			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16);
+			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
 		case KEY_G:
 			if ( cg == 16 ) cg = 1; else cg = 16;
-			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16);
+			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
 		case KEY_B:
 			if ( cb == 16 ) cb = 1; else cb = 16;
-			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16);
+			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
 		case KEY_PAD6:

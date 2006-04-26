@@ -15,6 +15,9 @@
  * C module for running the debriefing
  *
  * $Log$
+ * Revision 1.14  2006/04/26 19:43:25  taylor
+ * this should squash the first second double-play of debriefing voice
+ *
  * Revision 1.13  2005/08/12 08:52:32  taylor
  * various GCC4 warning fixes
  *
@@ -766,9 +769,9 @@ static char *Text[MAX_TOTAL_DEBRIEF_LINES];
 static int Debrief_inited = 0;
 static int New_stage;
 static int Current_stage;
-static int Num_stages;
-static int Num_debrief_stages;
-static int Stage_voice;
+static int Num_stages = 0;
+static int Num_debrief_stages = 0;
+static int Stage_voice = -1;
 
 static int Multi_list_size;
 static int Multi_list_offset;
@@ -2616,6 +2619,8 @@ void debrief_close()
 	}
 
 	game_flush();
+
+	Stage_voice = -1;
 
 	Debrief_inited = 0;
 }

@@ -15,6 +15,10 @@
  * C module that contains functions to drive the Tech Menu user interface
  *
  * $Log$
+ * Revision 1.10  2006/04/26 19:42:25  taylor
+ * fix techroom list selection so that it matches the original FS1 behavior
+ * correct a stupid bitwise bug
+ *
  * Revision 1.9  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -987,6 +991,13 @@ void tech_scroll_list_up()
 	if (List_offset > 0) {
 		List_offset--;
 		//last = List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1;
+
+#ifdef MAKE_FS1
+		if ( (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1) < Cur_entry ) {
+			Cur_entry--;
+			techroom_select_new_entry();
+		}
+#endif
 		gamesnd_play_iface(SND_SCROLL);
 	} else {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -997,6 +1008,13 @@ void tech_scroll_list_down()
 {
 	if (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() < Current_list_size) {
 		List_offset++;
+
+#ifdef MAKE_FS1
+		if ( (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height()) > Cur_entry ) {
+			Cur_entry++;
+			techroom_select_new_entry();
+		}
+#endif
 		gamesnd_play_iface(SND_SCROLL);
 	} else {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1137,7 +1155,7 @@ void techroom_change_tab(int num)
 					if (Ship_info[i].flags & mask) {
 #else
 					// make sure it has a description before displaying
-					if ((Ship_info[i].flags && mask) && (Ship_info[i].tech_desc)) {
+					if ((Ship_info[i].flags & mask) && (Ship_info[i].tech_desc)) {
 #endif
 						// this ship should be displayed, fill out the entry struct
 						Ship_list[Ship_list_size].bitmap = -1;

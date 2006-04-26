@@ -15,6 +15,9 @@
  * file which reads and deciphers POF information
  *
  * $Log$
+ * Revision 1.13  2006/04/26 19:44:19  taylor
+ * better error handing of a Volition bug
+ *
  * Revision 1.12  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1754,6 +1757,7 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 				int n_banks, n_slots, parent;
 				model_subsystem *subsystemp;
 				int i, j, snum=-1;
+				vector bogus;
 	
 				n_banks = cfread_int(fp);				// number of turret points
 				for ( i = 0; i < n_banks; i++ ) {
@@ -1772,13 +1776,17 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 
 								n_slots = cfread_int( fp );
 								subsystemp->turret_gun_sobj = physical_parent;
-								Assert(n_slots < MAX_TFP);		// only MAX_TFP firing points per model_subsystem
+								Assert(n_slots <= MAX_TFP);		// only MAX_TFP firing points per model_subsystem
 								for (j = 0; j < n_slots; j++ )	{
-									cfread_vector( &subsystemp->turret_firing_point[j], fp );
+									if ( j < MAX_TFP ) {
+										cfread_vector( &subsystemp->turret_firing_point[j], fp );
+									} else {
+										cfread_vector( &bogus, fp );
+									}
 								}
 								Assert( n_slots > 0 );
 
-								subsystemp->turret_num_firing_points = n_slots;
+								subsystemp->turret_num_firing_points = (n_slots > MAX_TFP) ? MAX_TFP : n_slots;
 
 								break;
 							}
@@ -1788,8 +1796,6 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 //turret_gun_sobj
 
 					if ( (n_subsystems == 0) || (snum == n_subsystems) ) {
-						vector bogus;
-
 						nprintf(("Warning", "Turret object not found for turret firing point in model %s\n", model_filename));
 						cfread_vector( &bogus, fp );
 						n_slots = cfread_int( fp );

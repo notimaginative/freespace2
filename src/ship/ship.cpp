@@ -15,6 +15,9 @@
  * Ship (and other object) handling functions
  *
  * $Log$
+ * Revision 1.10  2006/04/26 19:47:57  taylor
+ * FS1 keeps single-database and multi-database techroom entries separate so do it here too
+ *
  * Revision 1.9  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
  *
@@ -1406,7 +1409,11 @@ int parse_ship()
 		else if ( !stricmp( NOX("ship copy"), ship_strings[i]))
 			sip->flags |= SIF_SHIP_COPY;
 		else if ( !stricmp( NOX("in tech database"), ship_strings[i]))
+#ifdef MAKE_FS1
+			sip->flags |= SIF_IN_TECH_DATABASE;
+#else
 			sip->flags |= SIF_IN_TECH_DATABASE | SIF_IN_TECH_DATABASE_M;
+#endif
 		else if ( !stricmp( NOX("in tech database multi"), ship_strings[i]))
 			sip->flags |= SIF_IN_TECH_DATABASE_M;
 		else if ( !stricmp( NOX("dont collide invisible"), ship_strings[i]))

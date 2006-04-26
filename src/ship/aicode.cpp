@@ -15,6 +15,9 @@
  * AI code that does interesting stuff
  *
  * $Log$
+ * Revision 1.11  2006/04/26 19:45:22  taylor
+ * fix a FS1 docked speed issue, should keep it in line with the original now
+ *
  * Revision 1.10  2005/03/29 02:18:47  taylor
  * Various 64-bit platform fixes
  * Fix compiler errors with MAKE_FS1 and fix gr_set_bitmap() too
@@ -1725,9 +1728,16 @@ void adjust_accel_for_docking(ai_info *aip)
 			ratio = obj1p->phys_info.mass / (obj1p->phys_info.mass + obj2p->phys_info.mass);
 
 			// put cap on how much ship can slow down
+#ifdef MAKE_FS1
+			// FS1 can go slower, perhaps down to 0, but I'll cap it at .25 just in case
+			if (ratio < 0.25f) {
+				ratio = 0.25f;
+			}
+#else
 			if (ratio < 0.8) {
 				ratio = 0.8f;
 			}
+#endif
 
 			if (AI_ci.forward > ratio) {
 				AI_ci.forward = ratio;

@@ -67,6 +67,8 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
+
 #ifndef PLAT_UNIX
 #include <windows.h>
 #include <process.h>
@@ -630,3 +632,5 @@ void CFtpGet::FlushControlChannel()
 		Sleep(1);
 	}
 }
+
+#endif	// !PLAT_UNIX

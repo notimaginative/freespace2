@@ -54,6 +54,8 @@
  * $NoKeywords: $
  */
 
+#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
+
 #ifndef PLAT_UNIX
 #include <windows.h>
 #include <direct.h>
@@ -315,3 +317,5 @@ int InetGetFile::GetBytesIn()
 		return ftp->GetBytesIn();
 	}
 }
+
+#endif // !PLAT_UNIX

@@ -116,6 +116,8 @@
 * $NoKeywords: $
 */
 
+#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
+
 #ifndef PLAT_UNIX
 // #define WIN32
 
@@ -821,3 +823,4 @@ void *http_gethostbynameworker(void *parm)
 #endif
 }
 
+#endif // !PLAT_UNIX

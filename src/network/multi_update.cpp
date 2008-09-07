@@ -131,8 +131,10 @@
 // MULTI UPDATE DEFINES/VARS
 //
 
+#ifndef PLAT_UNIX
 // file get object
 InetGetFile *Multi_update_get = NULL;
+#endif
 
 // set this to be true so that game_shutdown() will fire up the launcher, then post a quit game event
 int Multi_update_fireup_launcher_on_exit = 0;
@@ -147,6 +149,7 @@ char Multi_update_error_string[512];
 // initialize the http xfer of the version info file, return 1 on success
 int multi_update_http_init()
 {
+#ifndef PLAT_UNIX
 	char url_file[512] = "";
 	char local_file[512] = "";
 
@@ -168,11 +171,15 @@ int multi_update_http_init()
 	}
 
 	return 1;
+#else
+	return 0;
+#endif
 }
 
 // do frame for the popup. returns 0 if not done yet, 1 if succeeded, 2 on error
 int multi_update_http_do()
-{	
+{
+#ifndef PLAT_UNIX
 	// sanity
 	if(Multi_update_get == NULL){
 		// error string
@@ -205,6 +212,9 @@ int multi_update_http_do()
 	}
 
 	return 0;
+#else
+	return 2;
+#endif
 }
 
 // close down the http xfer

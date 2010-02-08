@@ -359,7 +359,7 @@ void message_translate_tokens(char *buf, char *text);
 static hud_frames Directive_gauge[NUM_DIRECTIVE_GAUGES];
 static int Directive_frames_loaded = 0;
 
-static char *Directive_fnames[3] = 
+static const char *Directive_fnames[3] = 
 {
 //XSTR:OFF
 	"directives1",
@@ -819,7 +819,7 @@ void message_translate_tokens(char *buf, char *text)
 
 			strncpy(temp, text, toke2 - text);  // isolate token into seperate buffer
 			temp[toke2 - text] = 0;  // null terminate string
-			ptr = translate_key(temp);  // try and translate key
+			ptr = (char *)translate_key(temp);  // try and translate key
 			if (ptr) {  // was key translated properly?
 				if (!stricmp(ptr, NOX("none")) && (Training_bind_warning != Missiontime)) {
 					if ( The_mission.game_type & MISSION_TYPE_TRAINING ) {

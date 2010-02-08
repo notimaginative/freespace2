@@ -1,12 +1,12 @@
 #include "pstypes.h"
 #include "stand_gui.h"
 
-void std_add_ban(char *name)
+void std_add_ban(const char *name)
 {
 	STUB_FUNCTION;
 }
 
-void std_add_chat_text(char *text, int player_index, int add_id)
+void std_add_chat_text(const char *text, int player_index, int add_id)
 {
 	STUB_FUNCTION;
 }
@@ -23,7 +23,7 @@ int std_connect_set_connect_count()
 	return 0;
 }
 
-void std_connect_set_gamename(char *name)
+void std_connect_set_gamename(const char *name)
 {
 	STUB_FUNCTION;
 }
@@ -33,12 +33,12 @@ void std_connect_set_host_connect_status()
 	STUB_FUNCTION;
 }
 
-void std_create_gen_dialog(char *title)
+void std_create_gen_dialog(const char *title)
 {
 	STUB_FUNCTION;
 }
 
-void std_debug_set_standalone_state_string(char *str)
+void std_debug_set_standalone_state_string(const char *str)
 {
 	STUB_FUNCTION;
 }
@@ -53,7 +53,7 @@ void std_do_gui_frame()
 	STUB_FUNCTION;
 }
 
-void std_gen_set_text(char *str, int field_num)
+void std_gen_set_text(const char *str, int field_num)
 {
 	STUB_FUNCTION;
 }
@@ -73,7 +73,7 @@ void std_multi_add_goals()
 	STUB_FUNCTION;
 }
 
-void std_multi_set_standalone_mission_name(char *mission_name)
+void std_multi_set_standalone_mission_name(const char *mission_name)
 {
 	STUB_FUNCTION;
 }
@@ -98,7 +98,7 @@ void std_multi_update_netgame_info_controls()
 	STUB_FUNCTION;
 }
 
-int std_player_is_banned(char *name)
+int std_player_is_banned(const char *name)
 {
 	return 0;
 }

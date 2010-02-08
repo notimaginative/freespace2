@@ -77,7 +77,7 @@
 
 #ifndef NDEBUG
 //XSTR:OFF
-char *lTeamNames[3] = { "Hostile", "Friendly", "Unknown" };
+const char *lTeamNames[3] = { "Hostile", "Friendly", "Unknown" };
 //XSTR:ON
 #endif
 

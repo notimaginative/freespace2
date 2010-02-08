@@ -587,7 +587,7 @@ sexp_ai_goal_link Sexp_ai_goal_links[] = {
 	{ AI_GOAL_PLAY_DEAD, OP_AI_PLAY_DEAD },
 };
 
-char *HUD_gauge_text[NUM_HUD_GAUGES] = 
+const char *HUD_gauge_text[NUM_HUD_GAUGES] = 
 {
 	"LEAD_INDICATOR",
 	"ORIENTATION_TEE",
@@ -689,7 +689,7 @@ void init_sexp()
 }
 
 // allocates an sexp node.
-int alloc_sexp(char *text, int type, int subtype, int first, int rest)
+int alloc_sexp(const char *text, int type, int subtype, int first, int rest)
 {
 	int i;
 
@@ -1044,7 +1044,7 @@ int is_sexp_top_level( int node )
 	return 1;
 }
 
-int identify_operator(char *token)
+int identify_operator(const char *token)
 {
 	int	i;
 
@@ -1057,7 +1057,7 @@ int identify_operator(char *token)
 	return -1;
 }
 
-int find_operator(char *token)
+int find_operator(const char *token)
 {
 	int	i;
 
@@ -9231,7 +9231,7 @@ int sexp_query_type_match(int opf, int opr)
 	return 0;
 }
 
-char *sexp_error_message(int num)
+const char *sexp_error_message(int num)
 {
 	switch (num) {
 		case SEXP_CHECK_NONOP_ARGS:

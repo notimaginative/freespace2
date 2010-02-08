@@ -217,12 +217,12 @@ static char	Red_alert_precursor_mission[MAX_FILENAME_LEN];
 // Red Alert Interface
 /////////////////////////////////////////////////////////////////////////////
 
-char *Red_alert_fname[GR_NUM_RESOLUTIONS] = {
+const char *Red_alert_fname[GR_NUM_RESOLUTIONS] = {
 	"RedAlert",
 	"2_RedAlert"
 };
 
-char *Red_alert_mask[GR_NUM_RESOLUTIONS] = {
+const char *Red_alert_mask[GR_NUM_RESOLUTIONS] = {
 	"RedAlert-m",
 	"2_RedAlert-m"
 };
@@ -404,7 +404,7 @@ float Ra_flash_time = 0.0f;
 int Ra_flash_up = 0;
 void red_alert_blit_title()
 {
-	char *str = XSTR("Incoming Transmission", 1406);
+	const char *str = XSTR("Incoming Transmission", 1406);
 	int w, h;
 
 	// get the string size	

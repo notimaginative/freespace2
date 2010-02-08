@@ -141,7 +141,7 @@ int G3_frame_count = 0;
 
 //start the frame
 // Pass true for zbuffer_flag to turn on zbuffering
-void g3_start_frame_func(int zbuffer_flag, char * filename, int lineno)
+void g3_start_frame_func(int zbuffer_flag, const char * filename, int lineno)
 {
 	float s;
 	int width, height;

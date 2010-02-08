@@ -351,12 +351,12 @@
 #define CONTROL_W_COORD 2
 #define CONTROL_H_COORD 3
 
-char* Conflict_background_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+const char* Conflict_background_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"ControlConfig",		// GR_640
 	"2_ControlConfig"		// GR_1024
 };
 
-char* Conflict_background_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+const char* Conflict_background_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"ControlConfig-m",		// GR_640
 	"2_ControlConfig-m"		// GR_1024
 };
@@ -445,7 +445,7 @@ int Conflict_bright = 0;
 
 static int Num_cc_lines;
 static struct {
-	char *label;
+	const char *label;
 	int cc_index;  // index into Control_config of item
 	int y;  // Y coordinate of line
 	int kx, kw, jx, jw;  // x start and width of keyboard and joystick bound text
@@ -1569,7 +1569,7 @@ void control_config_button_pressed(int n)
 	}
 }
 
-char *control_config_tooltip_handler(char *str)
+const char *control_config_tooltip_handler(const char *str)
 {
 	int i;
 
@@ -1749,7 +1749,7 @@ void control_config_close()
 
 void control_config_do_frame(float frametime)
 {
-	char buf[256], *str, *jptr;
+	char buf[256], *jptr;
 	int i, j, k, w, x, y, z, len, line, conflict;
 	int font_height = gr_get_font_height();
 	int select_tease_line = -1;  // line mouse is down on, but won't be selected until button released
@@ -2236,7 +2236,7 @@ void control_config_do_frame(float frametime)
 			i = Conflicts[z].joy;
 
 		gr_set_color_fast(&Color_text_normal);
-		str = XSTR( "Control conflicts with:", 209);
+		const char *str = XSTR( "Control conflicts with:", 209);
 		gr_get_string_size(&w, NULL, str);
 		gr_printf(x - w / 2, y - font_height, str);
 

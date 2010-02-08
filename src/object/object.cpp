@@ -480,7 +480,7 @@ int Object_inited = 0;
 int Show_waypoints = 0;
 
 #ifndef NDEBUG
-char *Object_type_names[MAX_OBJECT_TYPES] = {
+const char *Object_type_names[MAX_OBJECT_TYPES] = {
 //XSTR:OFF
 	"NONE",
 	"SHIP",

@@ -67,7 +67,7 @@
 // UI_ICON::create()
 //
 //
-void UI_ICON::create(UI_WINDOW *wnd, char *_text, int _x, int _y, int _w, int _h)
+void UI_ICON::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w, int _h)
 {
 	if (_text)	
 		text = strdup(_text);

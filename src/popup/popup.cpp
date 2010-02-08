@@ -222,7 +222,7 @@ int Popup_max_display[GR_NUM_RESOLUTIONS] = {
 };
 
 #ifndef MAKE_FS1  // to avoid trying to find the interface tool
-char *Popup_slider_name[GR_NUM_RESOLUTIONS] = {
+const char *Popup_slider_name[GR_NUM_RESOLUTIONS] = {
 	"slider",
 	"2_slider"
 };
@@ -300,7 +300,7 @@ int Popup_input_text_y_offset[GR_NUM_RESOLUTIONS] = {
 
 typedef struct popup_background
 {
-	char	*filename;							// filename for background
+	const char	*filename;							// filename for background
 	int	coords[2];							// coords to draw background at
 } popup_background;
 
@@ -382,19 +382,19 @@ static popup_background Popup_background[GR_NUM_RESOLUTIONS][4] =
 {
 	{ // GR_640
 #ifdef MAKE_FS1
-        {"Pop2a",			131, 122},
-        {"Pop2a",			131, 122},
-        {"Pop3",			131, 122},
+        { "Pop2a",		{ 131, 122} },
+        { "Pop2a",		{ 131, 122 } },
+        { "Pop3",		{ 131, 122 } },
 #else
-		{"Pop2",			129, 99},
-		{"Pop2",			129, 99},
-		{"Pop3",			129, 99},		
+		{ "Pop2",		{ 129, 99 } },
+		{ "Pop2",		{ 129, 99 } },
+		{ "Pop3",		{ 129, 99 } },		
 #endif
 	},
 	{ // GR_1024
-		{"2_Pop2",		206, 158},
-		{"2_Pop2",		206, 158},
-		{"2_Pop3",		206, 158},		
+		{ "2_Pop2",		{ 206, 158 } },
+		{ "2_Pop2",		{ 206, 158 } },
+		{ "2_Pop3",		{ 206, 158 } },		
 	}
 };
 
@@ -403,7 +403,7 @@ static popup_background Popup_background[GR_NUM_RESOLUTIONS][4] =
 #define BUTTON_GENERIC_FIRST		2
 #define BUTTON_GENERIC_SECOND		3
 #define BUTTON_GENERIC_THIRD		4
-static char *Popup_button_filenames[GR_NUM_RESOLUTIONS][2][5] = 
+static const char *Popup_button_filenames[GR_NUM_RESOLUTIONS][2][5] = 
 {
 	{ // GR_640
 #ifdef MAKE_FS1
@@ -616,9 +616,9 @@ void popup_split_lines(popup_info *pi, int flags)
 }
 
 // figure out what filename to use for the button icon
-char *popup_get_button_filename(popup_info *pi, int i, int flags)
+const char *popup_get_button_filename(popup_info *pi, int i, int flags)
 {
-	char *fname = NULL;
+	const char *fname = NULL;
 	int is_tiny=0;	
 
 	// check for special button texts and if found, use specialized buttons for them.
@@ -692,7 +692,7 @@ int popup_init(popup_info *pi, int flags)
 	int					i;
 	UI_BUTTON			*b;
 	popup_background	*pbg;
-	char					*fname;
+	const char			*fname;
 
 	if(pi->nchoices == 0){
 		pbg = &Popup_background[gr_screen.res][0];
@@ -856,7 +856,7 @@ void popup_set_title_color(int flags)
 }
 
 // Draw the title centered within the popup
-void popup_draw_title(int sy, char *line, int flags)
+void popup_draw_title(int sy, const char *line, int flags)
 {
 	int w, h, sx;
 
@@ -1307,7 +1307,7 @@ int popup_till_condition(int (*condition)(), ...)
 }
 
 // popup to return the value from an input box
-char *popup_input(int flags, char *caption, int max_output_len)
+char *popup_input(int flags, const char *caption, int max_output_len)
 {
 	if ( Popup_is_active ) {
 		Int3();		// should never happen
@@ -1365,7 +1365,7 @@ void popup_kill_any_active()
 }
 
 // change the text inside of the popup 
-void popup_change_text(char *new_text)
+void popup_change_text(const char *new_text)
 {
 	// copy the raw text
 	strncpy(Popup_info.raw_text,new_text,POPUP_MAX_CHARS);

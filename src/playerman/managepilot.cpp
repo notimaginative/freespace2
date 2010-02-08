@@ -296,7 +296,7 @@ void write_multiplayer_options(player *p,CFILE *file);
 
 // internal function to delete a player file.  Called after a pilot is obsoleted, and when a pilot is deleted
 // used in barracks and player_select
-void delete_pilot_file( char *pilot_name, int single )
+void delete_pilot_file( const char *pilot_name, int single )
 {
 	char filename[MAX_FILENAME_LEN];
 	char basename[MAX_FILENAME_LEN];
@@ -319,7 +319,7 @@ void delete_pilot_file( char *pilot_name, int single )
 
 // check if a pilot file is valid or not (i.e. is usable, not out of date, etc)
 // used in barracks and player_select
-int verify_pilot_file(char *filename, int single, int *rank)
+int verify_pilot_file(const char *filename, int single, int *rank)
 {
 	CFILE	*file;
 	uint id, file_version;
@@ -542,7 +542,7 @@ void pilot_read_loadout(CFILE *file)
 //        >0 - errno from fopen error
 // if single == 1, look for players in the single players directory, otherwise look in the 
 // multiplayers directory
-int read_pilot_file(char *callsign, int single, player *p)
+int read_pilot_file(const char *callsign, int single, player *p)
 {
 	ubyte num_ctrls;
 	ubyte is_multi = 0;
@@ -1375,7 +1375,7 @@ void pilot_set_random_squad_pic(player *p)
 }
 
 // format a pilot's callsign into a "personal" form - ie, adding a 's or just an ' as appropriate
-void pilot_format_callsign_personal(char *in_callsign,char *out_callsign)
+void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign)
 {
 	// don't do anything if we've got invalid strings
 	if((in_callsign == NULL) || (out_callsign == NULL)){
@@ -1428,7 +1428,7 @@ void pilot_load_squad_pic_list()
 }
 
 // will attempt to load an insignia bitmap and set it as active for the player
-void player_set_squad_bitmap(player *p, char *fname)
+void player_set_squad_bitmap(player *p, const char *fname)
 {
 	// sanity check
 	if(p == NULL){
@@ -1467,7 +1467,7 @@ void player_set_squad_bitmap(player *p, char *fname)
 }
 
 // set squadron
-void player_set_squad(player *p, char *squad_name)
+void player_set_squad(player *p, const char *squad_name)
 {
 	// sanity check
 	if(p == NULL){

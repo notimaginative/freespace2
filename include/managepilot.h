@@ -144,8 +144,8 @@ void write_string(char *s, CFILE *f);
 int is_pilot_multi(CFILE *fp);	// pass a newly opened (at the beginning) file pointer to the pilot file itself
 int is_pilot_multi(player *p);	// pass a pointer to a player struct
 
-int verify_pilot_file(char *filename, int single = 1, int *rank = NULL);
-int read_pilot_file(char* callsign, int single = 1, player *p = NULL);
+int verify_pilot_file(const char *filename, int single = 1, int *rank = NULL);
+int read_pilot_file(const char* callsign, int single = 1, player *p = NULL);
 int write_pilot_file(player *p = NULL);
 
 // function to get default pilot callsign for game
@@ -169,7 +169,7 @@ void pilot_set_random_pic(player *p);
 void pilot_set_random_squad_pic(player *p);
 
 // format a pilot's callsign into a "personal" form - ie, adding a 's or just an ' as appropriate
-void pilot_format_callsign_personal(char *in_callsign,char *out_callsign);
+void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign);
 
 // throw up a popup asking the user to verify the overwrite of an existing pilot name
 // 1 == ok to overwrite, 0 == not ok

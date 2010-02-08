@@ -634,7 +634,7 @@ void common_music_close()
 
 // function that sets the current palette to the interface palette.  This function
 // needs to be followed by common_free_interface_palette() to restore the game palette.
-void common_set_interface_palette(char *filename)
+void common_set_interface_palette(const char *filename)
 {
 	static char buf[MAX_FILENAME_LEN + 1] = {0};
 
@@ -1212,7 +1212,7 @@ void common_select_close()
 // ------------------------------------------------------------------------
 //	load_wing_icons() creates the bitmaps for wing icons 
 //
-void load_wing_icons(char *filename)
+void load_wing_icons(const char *filename)
 {
 	int first_frame, num_frames;
 

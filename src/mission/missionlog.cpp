@@ -306,7 +306,7 @@ void mission_log_cull_obsolete_entries()
 
 // function to mark entries as obsolete.  Passed is the type of entry that is getting added
 // to the log.  Some entries might get marked obsolete as a result of this type
-void mission_log_obsolete_entries(int type, char *pname)
+void mission_log_obsolete_entries(int type, const char *pname)
 {
 	int i;
 	log_entry *entry = NULL;
@@ -383,7 +383,7 @@ void mission_log_flag_team( log_entry *entry, int which_entry, int team )
 // following function adds an entry into the mission log.
 // pass a type and a string which indicates the object
 // that this event is for.  Don't add entries with this function for multiplayer
-void mission_log_add_entry(int type, char *pname, char *sname, int info_index)
+void mission_log_add_entry(int type, const char *pname, const char *sname, int info_index)
 {
 	int last_entry_save;
 	log_entry *entry;	
@@ -580,7 +580,7 @@ void mission_log_add_entry(int type, char *pname, char *sname, int info_index)
 // function, used in multiplayer only, which adds an entry sent by the host of the game, into
 // the mission log.  The index of the log entry is passed as one of the parameters in addition to
 // the normal parameters used for adding an entry to the log
-void mission_log_add_entry_multi( int type, char *pname, char *sname, int index, fix timestamp, int flags )
+void mission_log_add_entry_multi( int type, const char *pname, const char *sname, int index, fix timestamp, int flags )
 {
 	log_entry *entry;
 
@@ -617,7 +617,7 @@ void mission_log_add_entry_multi( int type, char *pname, char *sname, int index,
 
 // function to determine is the given event has taken place count number of times.
 
-int mission_log_get_time_indexed( int type, char *pname, char *sname, int count, fix *time)
+int mission_log_get_time_indexed( int type, const char *pname, const char *sname, int count, fix *time)
 {
 	int i, found;
 	log_entry *entry;
@@ -662,12 +662,12 @@ next_entry:
 // this function determines if the given type of event on the specified
 // object has taken place yet.  If not, it returns 0.  If it has, the
 // timestamp that the event happened is returned in the time parameter
-int mission_log_get_time( int type, char *pname, char *sname, fix *time )
+int mission_log_get_time( int type, const char *pname, const char *sname, fix *time )
 {
 	return mission_log_get_time_indexed( type, pname, sname, 1, time );
 }
 
-void message_log_add_seg(int n, int x, int color, char *text, int flags = 0)
+void message_log_add_seg(int n, int x, int color, const char *text, int flags = 0)
 {
 	log_text_seg *seg, **parent;
 
@@ -688,44 +688,54 @@ void message_log_add_seg(int n, int x, int color, char *text, int flags = 0)
 	*parent = seg;
 }
 
-void message_log_add_segs(char *text, int color, int flags = 0)
+void message_log_add_segs(const char *text, int color, int flags = 0)
 {
+	char *log_text = NULL, *log_text_ptr = NULL;
 	char *ptr;
 	int w;
 
+	if (!text) {
+		mprintf(("Why are you passing a NULL pointer to message_log_add_segs?\n"));
+		return;
+	}
+
+	log_text = strdup(text);
+	log_text_ptr = log_text;
+
+	if (!log_text) {
+		return;
+	}
+
 	while (1) {
 		if (X == ACTION_X) {
-			while (is_white_space(*text))
-				text++;
+			while (is_white_space(*log_text_ptr))
+				log_text_ptr++;
 		}
 
-		if (!text) {
-			mprintf(("Why are you passing a NULL pointer to message_log_add_segs?\n"));
-			return;
-		}
-
-		if ( !text[0] ) {
-			return;
+		if ( !log_text_ptr[0] ) {
+			break;
 		}
 
 		if (P_width - X < 1)
-			ptr = text;
+			ptr = log_text_ptr;
 		else
-			ptr = split_str_once(text, P_width - X);
+			ptr = split_str_once(log_text_ptr, P_width - X);
 
-		if (ptr != text)
-			message_log_add_seg(Num_log_lines, X, color, text, flags);
+		if (ptr != log_text_ptr)
+			message_log_add_seg(Num_log_lines, X, color, log_text_ptr, flags);
 
 		if (!ptr) {
-			gr_get_string_size(&w, NULL, text);
+			gr_get_string_size(&w, NULL, log_text_ptr);
 			X += w;
-			return;
+			break;
 		}
 
 		Num_log_lines++;
 		X = ACTION_X;
-		text = ptr;
+		log_text_ptr = ptr;
 	}
+
+	free(log_text);
 }
 
 void message_log_remove_segs(int n)
@@ -856,7 +866,7 @@ void message_log_init_scrollback(int pw)
 
 				message_log_add_segs(XSTR( "Subsystem ", 410), LOG_COLOR_NORMAL);
 				//message_log_add_segs(entry->sname, LOG_COLOR_BRIGHT);
-				char *subsys_name = Ship_info[si_index].subsystems[model_index].name;
+				const char *subsys_name = Ship_info[si_index].subsystems[model_index].name;
 				if (Ship_info[si_index].subsystems[model_index].type == SUBSYSTEM_TURRET) {
 					subsys_name = XSTR("Turret", 1487);
 				}

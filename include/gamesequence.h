@@ -405,7 +405,7 @@
 // IMPORTANT:  When you add a new event, update the initialization for GS_event_text[]
 //             which is done in GameSequence.cpp
 //
-extern char *GS_event_text[];		// text description for the GS_EVENT_* #defines above
+extern const char *GS_event_text[];		// text description for the GS_EVENT_* #defines above
 
 
 // defines for game sequencing states
@@ -465,7 +465,7 @@ extern char *GS_event_text[];		// text description for the GS_EVENT_* #defines a
 // IMPORTANT:  When you add a new state, update the initialization for GS_state_text[]
 //             which is done in GameSequence.cpp
 //
-extern char *GS_state_text[];		// text description for the GS_STATE_* #defines above
+extern const char *GS_state_text[];		// text description for the GS_STATE_* #defines above
 
 
 // function prototypes

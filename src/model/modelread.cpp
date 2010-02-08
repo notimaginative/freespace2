@@ -1164,7 +1164,7 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 
 }
 
-void print_family_tree( polymodel *obj, int modelnum, char * ident, int islast )	
+void print_family_tree( polymodel *obj, int modelnum, const char * ident, int islast )	
 {
 	char temp[50];
 
@@ -1242,7 +1242,7 @@ int Bogus_warning_flag_1903 = 0;
 #endif
 
 //reads a binary file containing a 3d model
-int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subsystem *subsystems)
+int read_model_file(polymodel * pm, const char *filename, int n_subsystems, model_subsystem *subsystems)
 {
 	CFILE *fp;
 	int version;
@@ -2055,7 +2055,7 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 
 
 //returns the number of this model
-int model_load(char *filename, int n_subsystems, model_subsystem *subsystems)
+int model_load(const char *filename, int n_subsystems, model_subsystem *subsystems)
 {
 	int i, num, arc_idx;
 

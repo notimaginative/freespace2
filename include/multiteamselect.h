@@ -190,7 +190,7 @@ int multi_ts_get_team(char *ship_name);
 void multi_ts_get_team_and_slot(char *ship_name,int *team_index,int *slot_index);
 
 // function to return the shipname of the ship belonging in slot N
-char *multi_ts_get_shipname( int team, int slot_index );
+const char *multi_ts_get_shipname( int team, int slot_index );
 
 // blit the proper "locked" button - used for weapon select and briefing screens
 void multi_ts_blit_locked_button();

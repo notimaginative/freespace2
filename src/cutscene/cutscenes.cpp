@@ -181,11 +181,11 @@
 #include "alphacolors.h"
 #include "localize.h"
 
-char *Cutscene_bitmap_name[GR_NUM_RESOLUTIONS] = {
+const char *Cutscene_bitmap_name[GR_NUM_RESOLUTIONS] = {
 	"ViewFootage",
 	"2_ViewFootage"
 };
-char *Cutscene_mask_name[GR_NUM_RESOLUTIONS] = {
+const char *Cutscene_mask_name[GR_NUM_RESOLUTIONS] = {
 	"ViewFootage-m",
 	"2_ViewFootage-m"
 };
@@ -259,7 +259,7 @@ void cutscene_tbl_close()
 
 // function to return 0 based index of which CD a particular movie is on
 // returns -1 on failure.
-int cutscenes_get_cd_num( char *filename )
+int cutscenes_get_cd_num( const char *filename )
 {
 #if defined(OEM_BUILD)
 	return 0;				// only 1 cd for OEM
@@ -277,7 +277,7 @@ int cutscenes_get_cd_num( char *filename )
 }
 
 // marks a cutscene as viewable
-void cutscene_mark_viewable(char *filename)
+void cutscene_mark_viewable(const char *filename)
 {
 	int i;
 
@@ -411,7 +411,7 @@ static int Text_line_size[MAX_TEXT_LINES];
 static char *Text_lines[MAX_TEXT_LINES];
 
 
-int cutscenes_validate_cd(char *mve_name, int prompt_for_cd)
+int cutscenes_validate_cd(const char *mve_name, int prompt_for_cd)
 {
 	int cd_present = 0;
 	int cd_drive_num;

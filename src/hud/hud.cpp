@@ -416,7 +416,7 @@ int Hud_text_flash_coords[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 void hud_init_text_flash_gauge();
-void hud_start_text_flash(char *txt, int t);
+void hud_start_text_flash(const char *txt, int t);
 void hud_maybe_show_text_flash_icon();
 
 
@@ -517,7 +517,7 @@ int Netlag_coords[GR_NUM_RESOLUTIONS][2] = {
 		627, 529
 	}
 };
-char Netlag_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Netlag_fname[GR_NUM_RESOLUTIONS] = {
 	"netlag1",
 	"netlag1"
 };
@@ -561,7 +561,7 @@ int Kills_text_val_coords[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 
-char Kills_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Kills_fname[GR_NUM_RESOLUTIONS] = {
 	"kills1",
 	"kills1"
 };
@@ -577,7 +577,7 @@ int Head_frame_coords[GR_NUM_RESOLUTIONS][2] = {
 		5, 56
 	}
 };
-char Head_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Head_fname[GR_NUM_RESOLUTIONS] = {
 	"head1",
 	"head1"
 };
@@ -609,7 +609,7 @@ int Mission_time_text_val_coords[GR_NUM_RESOLUTIONS][2] = {
 		995, 728
 	}
 };
-char Mission_time_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Mission_time_fname[GR_NUM_RESOLUTIONS] = {
 	"time1",
 	"time1"
 };
@@ -661,7 +661,7 @@ int Support_text_dock_val_coords[GR_NUM_RESOLUTIONS][2] = {		// time value for "
 		524, -1
 	}
 };
-char Support_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Support_fname[GR_NUM_RESOLUTIONS] = {
 	"support1",
 	"support1"
 };
@@ -670,7 +670,7 @@ char Support_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
 #define NUM_DAMAGE_GAUGES	3
 static hud_frames Damage_gauges[NUM_DAMAGE_GAUGES];
 static int Damage_gauges_loaded = 0;
-char *Damage_gauge_fnames[GR_NUM_RESOLUTIONS][NUM_DAMAGE_GAUGES] = 
+const char *Damage_gauge_fnames[GR_NUM_RESOLUTIONS][NUM_DAMAGE_GAUGES] = 
 {
 	//XSTR:OFF
 	{ // GR_640
@@ -1944,7 +1944,7 @@ void hud_show_damage_popup()
 }
 
 // init the members of the hud_anim struct to default values
-void hud_anim_init(hud_anim *ha, int sx, int sy, char *filename)
+void hud_anim_init(hud_anim *ha, int sx, int sy, const char *filename)
 {
 	ha->first_frame	= -1;
 	ha->num_frames		= 0;
@@ -2055,7 +2055,7 @@ void hud_init_text_flash_gauge()
 {	
 }
 
-void hud_start_text_flash(char *txt, int t)
+void hud_start_text_flash(const char *txt, int t)
 {
 	// bogus
 	if(txt == NULL){
@@ -2089,7 +2089,7 @@ void hud_maybe_show_text_flash_icon()
 	hud_show_text_flash_icon(Hud_text_flash, Hud_text_flash_coords[gr_screen.res][1], bright);
 }
 
-void hud_show_text_flash_icon(char *txt, int y, int bright)
+void hud_show_text_flash_icon(const char *txt, int y, int bright)
 {
 	int w, h;
 
@@ -2957,7 +2957,7 @@ void hud_maybe_display_objective_message()
 
 // return wing slot (0->3) based on name of ship.  Assumes ship is from Alpha,Beta, or 
 // Gamma wings
-int hud_wing_slot_from_name(char *name)
+int hud_wing_slot_from_name(const char *name)
 {
 	int	rval;
 	char	num[2];

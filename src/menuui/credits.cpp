@@ -203,12 +203,12 @@
 #define CREDITS_W_COORD 2
 #define CREDITS_H_COORD 3
 
-static char* Credits_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Credits_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"Credits",			// GR_640
 	"2_Credits"
 };
 
-static char* Credits_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Credits_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"Credits-M",			// GR_640
 	"2_Credits-M"
 };
@@ -241,12 +241,12 @@ int Credits_text_coords[GR_NUM_RESOLUTIONS][4] = {
 };
 
 struct credits_screen_buttons {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	credits_screen_buttons(char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
+	credits_screen_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
 };
 
 static int Background_bitmap;
@@ -317,7 +317,6 @@ static int Credits_artwork_index;
 static int Credits_bmps[NUM_IMAGES];
 
 char *Credit_text = NULL;
-int Credit_text_malloced = 0;			// TRUE if credit_text was malloced
 
 // Positions for credits...
 float Credit_start_pos, Credit_stop_pos, Credit_position = 0.0f;
@@ -330,7 +329,7 @@ void credits_stop_music()
 	}
 }
 
-void credits_load_music(char* fname)
+void credits_load_music(const char* fname)
 {
 	if ( Credits_music_handle != -1 ){
 		return;
@@ -402,7 +401,6 @@ void credits_init()
 	Credits_last_time = timer_get_milliseconds();
 
 	Credit_text = NULL;
-	Credit_text_malloced = 0;
 
 	// allocate enough space for credits text
 	CFILE *fp = cfopen( NOX("credits.tbl"), "rb" );
@@ -410,7 +408,6 @@ void credits_init()
 		int size;
 		size = cfilelength(fp);
 		Credit_text = (char *) malloc(size + 200);
-		Credit_text_malloced = 1;
 		cfclose(fp);
 
 		// open localization and parse
@@ -456,7 +453,8 @@ void credits_init()
 		// close localization
 		lcl_ext_close();	
 	} else {
-		Credit_text = NOX("No credits available.\n");
+		Credit_text = (char *) malloc(25 + 200);
+		strcpy(Credit_text, NOX("No credits available.\n"));
 	}	
 
 	int ch;
@@ -649,10 +647,7 @@ void credits_close()
 	credits_stop_music();
 
 	if (Credit_text) {
-		if (Credit_text_malloced){
-			free(Credit_text);
-		}
-
+		free(Credit_text);
 		Credit_text = NULL;
 	}
 

@@ -947,7 +947,7 @@ void multi_io_send_buffered_packets()
 }
 
 // send a general game chat packet (if msg_mode == MULTI_MSG_TARGET, need to pass in "to", if == MULTI_MSG_EXPR, need to pass in expr)
-void send_game_chat_packet(net_player *from, char *msg, int msg_mode, net_player *to, char *expr, int server_msg)
+void send_game_chat_packet(net_player *from, const char *msg, int msg_mode, net_player *to, const char *expr, int server_msg)
 {
 	ubyte data[MAX_PACKET_SIZE],mode;
 	int packet_size,idx;
@@ -3431,7 +3431,7 @@ void process_mission_log_packet( ubyte *data, header *hinfo )
 }
 
 // send a mission message packet
-void send_mission_message_packet( int id, char *who_from, int priority, int timing, int source, int builtin_type, int multi_target, int multi_team_filter)
+void send_mission_message_packet( int id, const char *who_from, int priority, int timing, int source, int builtin_type, int multi_target, int multi_team_filter)
 {
 	int packet_size;
 	ubyte data[MAX_PACKET_SIZE], up, us, utime;
@@ -4752,7 +4752,7 @@ void process_jump_into_mission_packet(ubyte *data, header *hinfo)
 
 //XSTR:OFF
 
-char *repair_text[] = {
+const char *repair_text[] = {
 	"unknown",
 	"REPAIR_INFO_BEGIN",
 	"REPAIR_INFO_END",
@@ -6705,7 +6705,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	PACKET_SET_SIZE();
 }
 
-void send_host_restr_packet(char *callsign,int code,int mode)
+void send_host_restr_packet(const char *callsign, int code, int mode)
 {
 	ubyte data[MAX_PACKET_SIZE],val;
 	int packet_size = 0;

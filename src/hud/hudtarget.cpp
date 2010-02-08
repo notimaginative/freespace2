@@ -366,7 +366,7 @@ float Lead_indicator_half[GR_NUM_RESOLUTIONS][2] = {
 };
 hud_frames Lead_indicator_gauge;
 int Lead_indicator_gauge_loaded = 0;
-char Lead_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Lead_fname[GR_NUM_RESOLUTIONS] = {
 	"lead1",
 	"2_lead1"
 };
@@ -378,7 +378,7 @@ char Lead_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
 //				3	=>		gun energy light
 hud_frames Energy_bar_gauges;
 int Energy_bar_gauges_loaded = 0;
-char Energy_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Energy_fname[GR_NUM_RESOLUTIONS] = {
 	"energy2",
 	"2_energy2"
 };
@@ -419,7 +419,7 @@ int Cm_text_val_coords[GR_NUM_RESOLUTIONS][2] = {
 		889, 606
 	}
 };
-char Cm_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Cm_fname[GR_NUM_RESOLUTIONS] = {
 	"countermeasure1",
 	"countermeasure1"
 };
@@ -447,7 +447,7 @@ int Toggle_speed_gauge_coords[GR_NUM_RESOLUTIONS][2] = {
 		960, 672
 	}
 };
-char Toggle_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Toggle_fname[GR_NUM_RESOLUTIONS] = {
 	"toggle1",
 	"toggle1"
 };
@@ -573,7 +573,7 @@ int Weapon_secondary_reload_x[GR_NUM_RESOLUTIONS] = {
 	615,							// x location of where to draw the weapon reload time
 	998
 };
-char *Weapon_gauge_fnames[GR_NUM_RESOLUTIONS][NUM_WEAPON_GAUGES] = 
+const char *Weapon_gauge_fnames[GR_NUM_RESOLUTIONS][NUM_WEAPON_GAUGES] = 
 {
 //XSTR:OFF
 	{ // GR_640

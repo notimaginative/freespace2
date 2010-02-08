@@ -139,14 +139,14 @@ struct net_player;
 //
 
 // create the validate dialog 
-void std_create_gen_dialog(char *title);
+void std_create_gen_dialog(const char *title);
 
 // kill the validate dialog();
 void std_destroy_gen_dialog();
 
 // set the text in the filename of the validate dialog
 // valid values for field_num == 0 .. 2
-void std_gen_set_text(char *str, int field_num);
+void std_gen_set_text(const char *str, int field_num);
 
 // is the validate dialog active
 int std_gen_is_active();
@@ -163,13 +163,13 @@ int std_connect_set_connect_count();
 void std_connect_set_host_connect_status();
 
 // add an ip string to the connect page listbox
-void std_connect_add_ip_string(char *string);
+void std_connect_add_ip_string(const char *string);
 
 // remove an ip string from the connect page listbox
-void std_connect_remove_ip_string(char *string);
+void std_connect_remove_ip_string(const char *string);
 
 // set an ip string on the connect page listbox
-void std_connect_set_ip_string(char *lookup,char *string);
+void std_connect_set_ip_string(const char *lookup, const char *string);
 
 // kick a player (the one currently selected in the listbox)
 void std_connect_kick_player();
@@ -181,7 +181,7 @@ void std_connect_update_ping(net_player *p);
 void std_connect_clear_controls();
 
 // set the game name for the standalone. passing NULL uses the default
-void std_connect_set_gamename(char *name);
+void std_connect_set_gamename(const char *name);
 
 // the user has changed the text in the server name text box. handle this
 void std_connect_handle_name_change();
@@ -198,7 +198,7 @@ void std_connect_handle_passwd_change();
 void std_multi_set_standalone_missiontime(float mission_time);
 
 // set the mission name
-void std_multi_set_standalone_mission_name(char *mission_name);
+void std_multi_set_standalone_mission_name(const char *mission_name);
 
 // initialize the goal tree for this mission 
 void std_multi_setup_goal_tree();
@@ -268,7 +268,7 @@ void std_gs_clear_controls();
 //
 
 // set the text on the standalones state indicator box
-void std_debug_set_standalone_state_string(char *str);
+void std_debug_set_standalone_state_string(const char *str);
 
 // clear all the controls for this page
 void std_debug_clear_controls();
@@ -315,7 +315,7 @@ void std_tracker_login();
 void std_reset_timestamps();
 
 // add a line of text chat to the standalone
-void std_add_chat_text(char *text,int player_index,int add_id);
+void std_add_chat_text(const char *text, int player_index, int add_id);
 
 // if the standalone is host password protected
 int std_is_host_passwd();
@@ -324,10 +324,10 @@ int std_is_host_passwd();
 void std_mutate_sheet();
 
 // if the given callsign is banned from the server
-int std_player_is_banned(char *name);
+int std_player_is_banned(const char *name);
 
 // add a callsign to the ban list
-void std_add_ban(char *name);
+void std_add_ban(const char *name);
 
 #endif
 

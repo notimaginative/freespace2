@@ -75,7 +75,7 @@
 #include "ui.h"
 #include "alphacolors.h"
 
-void UI_RADIO::create(UI_WINDOW *wnd, char *_text, int _x, int _y, int _state, int _group )
+void UI_RADIO::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _state, int _group )
 {
 	int _w, _h;
 

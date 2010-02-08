@@ -168,10 +168,10 @@
 
 //XSTR:OFF
 
-char *Multi_team0_names[4] = {									// ships on team 0 (TEAM_FRIENDLY)
+const char *Multi_team0_names[4] = {									// ships on team 0 (TEAM_FRIENDLY)
 	"alpha 1", "alpha 2", "alpha 3", "alpha 4"
 };
-char *Multi_team1_names[4] = {									// ships on team 1 (TEAM_HOSTILE)
+const char *Multi_team1_names[4] = {									// ships on team 1 (TEAM_HOSTILE)
 	"zeta 1", "zeta 2", "zeta 3", "zeta 4"
 };
 

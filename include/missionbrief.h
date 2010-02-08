@@ -177,7 +177,7 @@ void brief_turn_off_closeup_icon();
 
 void briefing_stop_music();
 void briefing_start_music();
-void briefing_load_music(char* fname);
+void briefing_load_music(const char* fname);
 void brief_stop_voices();
 
 int brief_only_allow_briefing();

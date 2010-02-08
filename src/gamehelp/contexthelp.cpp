@@ -188,7 +188,7 @@ typedef struct {
 } help_overlay;
 
 // Added for FS1
-char *Help_overlays[MAX_HELP_OVERLAYS] = {
+const char *Help_overlays[MAX_HELP_OVERLAYS] = {
 	"ship_help_over",
 	"weapon_help_over",
 #ifndef FS1_DEMO
@@ -214,7 +214,7 @@ char *Help_overlays[MAX_HELP_OVERLAYS] = {
 };
 
 // new help.tbl file way
-char *help_overlay_section_names[MAX_HELP_OVERLAYS] = {
+const char *help_overlay_section_names[MAX_HELP_OVERLAYS] = {
 	"$ship",					// ship_help
 	"$weapon",				// weapon_help
 	"$briefing",			// briefing

@@ -674,7 +674,7 @@ extern exited_ship Ships_exited[MAX_EXITED_SHIPS];
 
 // a couple of functions to get at the data
 extern void ship_add_exited_ship( ship *shipp, int reason );
-extern int ship_find_exited_ship_by_name( char *name );
+extern int ship_find_exited_ship_by_name( const char *name );
 extern int ship_find_exited_ship_by_signature( int signature);
 
 #define	SIF_DO_COLLISION_CHECK	(1 << 0)
@@ -978,7 +978,7 @@ typedef struct ship_counts {
 	int	killed;
 } ship_counts;
 
-extern char *Ship_type_names[MAX_SHIP_TYPE_COUNTS];
+extern const char *Ship_type_names[MAX_SHIP_TYPE_COUNTS];
 extern int Ship_type_flags[MAX_SHIP_TYPE_COUNTS];					// SIF_* flags for each ship type
 extern ship_counts	Ship_counts[MAX_SHIP_TYPE_COUNTS];
 
@@ -1027,12 +1027,12 @@ extern void physics_ship_init(object *objp);
 //	Stuff vector *pos with absolute position.
 extern int get_subsystem_pos(vector *pos, object *objp, ship_subsys *subsysp);
 
-extern int ship_info_lookup(char *name);
-extern int ship_info_base_lookup(int si_index);
-extern int ship_name_lookup(char *name, int inc_players = 0);	// returns the index into Ship array of name
-extern int ship_type_name_lookup(char *name);
+extern int ship_info_lookup(const char *name);
+extern int ship_info_base_lookup(const int si_index);
+extern int ship_name_lookup(const char *name, int inc_players = 0);	// returns the index into Ship array of name
+extern int ship_type_name_lookup(const char *name);
 
-extern int wing_lookup(char *name);
+extern int wing_lookup(const char *name);
 
 // returns 0 if no conflict, 1 if conflict, -1 on some kind of error with wing struct
 extern int wing_has_conflicting_teams(int wing_index);
@@ -1040,7 +1040,7 @@ extern int wing_has_conflicting_teams(int wing_index);
 // next function takes optional second parameter which says to ignore the current count of ships
 // in the wing -- used to tell is the wing exists or not, not whether it exists and has ships currently
 // present.
-extern int wing_name_lookup(char *name, int ignore_count = 0);
+extern int wing_name_lookup(const char *name, int ignore_count = 0);
 
 extern int Player_ship_class;
 

@@ -465,7 +465,7 @@ typedef struct screen {
 
 	void (*gf_rect)(int x, int y, int w, int h);
 	void (*gf_shade)(int x, int y, int w, int h);
-	void (*gf_string)(int x, int y, char * text);
+	void (*gf_string)(int x, int y, const char * text);
 
 	// Draw a gradient line... x1,y1 is bright, x2,y2 is transparent.
 	void (*gf_gradient)(int x1, int y1, int x2, int y2);
@@ -494,7 +494,7 @@ typedef struct screen {
 	void (*gf_tmapper)(int nv, vertex *verts[], uint flags );
 
 	// dumps the current screen to a file
-	void (*gf_print_screen)(char * filename);
+	void (*gf_print_screen)(const char * filename);
 
 	// Call once before rendering anything.
 	void (*gf_start_frame)();
@@ -604,25 +604,25 @@ extern screen gr_screen;
 // it will return the same font number both times.  This font is
 // then set to be the current font, and default font if none is 
 // yet specified.
-int gr_init_font( char * typeface );
+int gr_init_font( const char * typeface );
 
 // Does formatted printing.  This calls gr_string after formatting,
 // so if you don't need to format the string, then call gr_string
 // directly.
-extern void _cdecl gr_printf( int x, int y, char * format, ... );
+extern void _cdecl gr_printf( int x, int y, const char * format, ... );
 
 // Returns the size of the string in pixels in w and h
-extern void gr_get_string_size( int *w, int *h, char * text, int len = 9999 );
+extern void gr_get_string_size( int *w, int *h, const char * text, int len = 9999 );
 
 // Returns the height of the current font
 extern int gr_get_font_height();
 
-extern void gr_set_palette(char *name, ubyte *palette, int restrict_to_128 = 0);
+extern void gr_set_palette(const char *name, ubyte *palette, int restrict_to_128 = 0);
 
 // These two functions use a Windows mono font.  Only for use
 // in the editor, please.
-void gr_get_string_size_win(int *w, int *h, char *text);
-void gr_string_win(int x, int y, char *s );
+void gr_get_string_size_win(int *w, int *h, const char *text);
+void gr_string_win(int x, int y, const char *s );
 
 // set the mouse pointer to a specific bitmap, used for animating cursors
 #define GR_CURSOR_LOCK		1

@@ -373,12 +373,12 @@ UI_XSTR Medals_text[GR_NUM_RESOLUTIONS][MEDALS_NUM_TEXT] = {
 };
 #endif
 
-static char* Medals_background_filename[GR_NUM_RESOLUTIONS] = {
+static const char* Medals_background_filename[GR_NUM_RESOLUTIONS] = {
 	"MedalsDisplayEmpty",
 	"2_MedalsDisplayEmpty"
 };
 
-static char* Medals_mask_filename[GR_NUM_RESOLUTIONS] = {
+static const char* Medals_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"Medals-m",
 	"2_Medals-m"
 };

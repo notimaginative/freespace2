@@ -136,11 +136,11 @@ int				anim_stop_playing(anim_instance* anim_instance);
 int				anim_show_next_frame(anim_instance *instance, float frametime);
 void				anim_release_all_instances(int screen_id = 0);
 void				anim_release_render_instance(anim_instance* instance);
-anim			  *anim_load(char *name, int file_mapped = 0);
+anim			  *anim_load(const char *name, int file_mapped = 0);
 int				anim_free(anim *ptr);
 int				anim_playing(anim_instance *ai);
-int				anim_write_frames_out(char *filename);
-void				anim_display_info(char *filename);
+int				anim_write_frames_out(const char *filename);
+void				anim_display_info(const char *filename);
 void				anim_read_header(anim *ptr, CFILE *fp);
 void				anim_reverse_direction(anim_instance *ai);						// called automatically for ping-ponging, and can also be called externally
 void				anim_pause(anim_instance *ai);

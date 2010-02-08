@@ -395,7 +395,7 @@ int keys_used[] = {	KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_
 
 #define NUM_TYPE_SELECT		6
 
-char *type_select_str(int n)
+const char *type_select_str(int n)
 {
 	#if NUM_TYPE_SELECT != 6 
 	#error type_select_Str is not up to date
@@ -446,7 +446,7 @@ comm_order Comm_orders[MAX_SHIP_ORDERS] = {
 // Text to display on the menu
 // Given an index into the Comm_orders array, return the text associated with it.
 // MUST BE 1:1 with Comm_orders.
-char	*comm_order_menu_text(int index)
+const char	*comm_order_menu_text(int index)
 {
 	switch( index )	{
 	case 0: return XSTR( "Destroy my target", 299); break;
@@ -469,7 +469,7 @@ char	*comm_order_menu_text(int index)
 }
 
 // Text to display on the messaging menu when using the shortcut keys
-char *comm_order_hotkey_text( int index )
+const char *comm_order_hotkey_text( int index )
 {
 	int i;
 
@@ -493,7 +493,7 @@ squadmsg_history Squadmsg_history[SQUADMSG_HISTORY_MAX] = { 0 };
 
 static hud_frames Mbox_gauge[NUM_MBOX_FRAMES];
 static int Mbox_frames_loaded = 0;
-static char *Mbox_fnames[GR_NUM_RESOLUTIONS][NUM_MBOX_FRAMES] =
+static const char *Mbox_fnames[GR_NUM_RESOLUTIONS][NUM_MBOX_FRAMES] =
 {
 //XSTR:OFF
 	{ // GR_640
@@ -530,7 +530,7 @@ static int Mbox_item_coord[GR_NUM_RESOLUTIONS][2] = {
 #define MESSAGE_ALL_FIGHTERS		-999
 
 // forward declarations
-void hud_add_issued_order(char *name, int order, char *target);
+void hud_add_issued_order(const char *name, int order, const char *target);
 int hud_squadmsg_is_target_order_valid(int order, int find_order, ai_info *aip = NULL );
 int hud_squadmsg_ship_order_valid( int shipnum, int order );
 
@@ -937,7 +937,7 @@ int hud_squadmsg_get_key()
 // function which will essentially print out the contents of the current state of the messaging
 // menu.  Parameters will be a title.  The menu items and the number of items will be
 // in global vars since they don't get recomputed every frame.
-void hud_squadmsg_display_menu( char *title )
+void hud_squadmsg_display_menu( const char *title )
 {
 	int bx, by, sx, sy, i, nitems, none_valid, messaging_allowed;
 
@@ -2711,7 +2711,7 @@ int hud_squadmsg_do_frame( )
 		return 0;
 }
 
-void hud_add_issued_order(char *name, int order, char *target)
+void hud_add_issued_order(const char *name, int order, const char *target)
 {
 	Squadmsg_history[squadmsg_history_index].ship = get_parse_name_index(name);
 	Squadmsg_history[squadmsg_history_index].order = order;
@@ -2725,7 +2725,7 @@ void hud_add_issued_order(char *name, int order, char *target)
 		squadmsg_history_index = 0;
 }
 
-int hud_query_order_issued(char *name, char *order, char *target)
+int hud_query_order_issued(const char *name, const char *order, const char *target)
 {
 	int i, o=-1, ship, t;
 

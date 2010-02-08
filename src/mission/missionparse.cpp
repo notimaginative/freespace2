@@ -456,20 +456,20 @@ int Num_parse_names;
 
 //XSTR:OFF
 
-char *Nebula_filenames[NUM_NEBULAS] = {
+const char *Nebula_filenames[NUM_NEBULAS] = {
 	"Nebula01",
 	"Nebula02",
 	"Nebula03"	
 };
 
-char *Neb2_filenames[NUM_NEBULAS] = {
+const char *Neb2_filenames[NUM_NEBULAS] = {
 	"Nebfull01",
 	"Nebfull02",
 	"Nebfull03"
 };
 
 // Note: Nebula_colors[] and Nebula_palette_filenames are linked via index numbers
-char *Nebula_colors[NUM_NEBULA_COLORS] = {
+const char *Nebula_colors[NUM_NEBULA_COLORS] = {
 	"Red",
 	"Blue",
 	"Gold",
@@ -481,9 +481,9 @@ char *Nebula_colors[NUM_NEBULA_COLORS] = {
 	"Grey Green",
 };
 
-char *Iff_names[MAX_IFF] = { "IFF 1", "IFF 2", "IFF 3" };
+const char *Iff_names[MAX_IFF] = { "IFF 1", "IFF 2", "IFF 3" };
 
-char *Ai_behavior_names[MAX_AI_BEHAVIORS] = {
+const char *Ai_behavior_names[MAX_AI_BEHAVIORS] = {
 	"Chase",
 	"Evade",
 	"Get behind",
@@ -512,7 +512,7 @@ char Cargo_names_buf[MAX_CARGO][NAME_LENGTH];
 
 char *Ship_class_names[MAX_SHIP_TYPES];		// to be filled in from Ship_info array
 
-char *Icon_names[MAX_BRIEF_ICONS] = {
+const char *Icon_names[MAX_BRIEF_ICONS] = {
 	"Fighter", "Fighter Wing", "Cargo", "Cargo Wing", "Largeship",
 	"Largeship Wing", "Capital", "Planet", "Asteroid Field", "Waypoint",
 	"Support Ship", "Freighter(no cargo)", "Freighter(has cargo)",
@@ -530,28 +530,28 @@ char *Icon_names[MAX_BRIEF_ICONS] = {
 //	-1 means an illegal value.
 int	Team_names_index_xlate[MAX_TEAM_NAMES_INDEX+1] = {-1, 0, 1, -1, 2, -1, -1, -1, 3};
 
-char *Team_names[MAX_TEAM_NAMES] = {
+const char *Team_names[MAX_TEAM_NAMES] = {
 	"Hostile", "Friendly", "Neutral", "Unknown",
 };
 
-char *Status_desc_names[MAX_STATUS_NAMES] = {
+const char *Status_desc_names[MAX_STATUS_NAMES] = {
 	"Shields Critical", "Engines Damaged", "Fully Operational",
 };
 
-char *Status_type_names[MAX_STATUS_NAMES] = {
+const char *Status_type_names[MAX_STATUS_NAMES] = {
 	"Damaged", "Disabled", "Corroded",
 };
 
-char *Status_target_names[MAX_STATUS_NAMES] = {
+const char *Status_target_names[MAX_STATUS_NAMES] = {
 	"Weapons", "Engines", "Cable TV",
 };
 
 // definitions for arrival locations for ships/wings
-char *Arrival_location_names[MAX_ARRIVAL_NAMES] = {
+const char *Arrival_location_names[MAX_ARRIVAL_NAMES] = {
 	"Hyperspace", "Near Ship", "In front of ship", "Docking Bay",
 };
 
-char *Special_arrival_anchor_names[MAX_SPECIAL_ARRIVAL_ANCHORS] =
+const char *Special_arrival_anchor_names[MAX_SPECIAL_ARRIVAL_ANCHORS] =
 {
 	"<any friendly>",
 	"<any enemy>",
@@ -561,31 +561,31 @@ char *Special_arrival_anchor_names[MAX_SPECIAL_ARRIVAL_ANCHORS] =
 	"<any neutral player>",
 };
 
-char *Departure_location_names[MAX_ARRIVAL_NAMES] = {
+const char *Departure_location_names[MAX_ARRIVAL_NAMES] = {
 	"Hyperspace", "Docking Bay",
 };
 
-char *Goal_type_names[MAX_GOAL_TYPE_NAMES] = {
+const char *Goal_type_names[MAX_GOAL_TYPE_NAMES] = {
 	"Primary", "Secondary", "Bonus",
 };
 
-char *Species_names[MAX_SPECIES_NAMES] = {
+const char *Species_names[MAX_SPECIES_NAMES] = {
 	"Terran", "Vasudan", "Shivan",
 };
 
-char *Reinforcement_type_names[] = {
+const char *Reinforcement_type_names[] = {
 	"Attack/Protect",
 	"Repair/Rearm",
 };
 
-char *Old_game_types[OLD_MAX_GAME_TYPES] = {
+const char *Old_game_types[OLD_MAX_GAME_TYPES] = {
 	"Single Player Only",	
 	"Multiplayer Only",
 	"Single/Multi Player",
 	"Training mission"
 };
 
-char *Parse_object_flags[MAX_PARSE_OBJECT_FLAGS] = {
+const char *Parse_object_flags[MAX_PARSE_OBJECT_FLAGS] = {
 	"cargo-known",
 	"ignore-count",
 	"protect-ship",
@@ -608,7 +608,7 @@ char *Parse_object_flags[MAX_PARSE_OBJECT_FLAGS] = {
 	"special-warp"
 };
 
-char *Starting_wing_names[MAX_STARTING_WINGS+1] = {
+const char *Starting_wing_names[MAX_STARTING_WINGS+1] = {
 	"Alpha",
 	"Beta",
 	"Gamma",
@@ -658,7 +658,7 @@ int allocate_subsys_status();
 void parse_common_object_data(p_object	*objp);
 void parse_asteroid_fields(mission *pm);
 int mission_set_arrival_location(int anchor, int location, int distance, int objnum, vector *new_pos, matrix *new_orient);
-int get_parse_name_index(char *name);
+int get_parse_name_index(const char *name);
 int get_anchor(char *name);
 void mission_parse_do_initial_docks();
 void mission_parse_set_arrival_locations();
@@ -1203,7 +1203,7 @@ void parse_briefing(mission *pm)
 				Assert((team_index >= 0) && (team_index < MAX_TEAM_NAMES));
 				bi->team = 1 << team_index;
 
-				find_and_stuff("$class:", &bi->ship_class, F_NAME, Ship_class_names, Num_ship_types, "ship class");
+				find_and_stuff("$class:", &bi->ship_class, F_NAME, (const char **)Ship_class_names, Num_ship_types, "ship class");
 
 				required_string("$pos:");
 				stuff_vector(&bi->pos);
@@ -1822,7 +1822,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 		error_display(0, NOX("Redundant ship name: %s\n"), objp->name);
 
 
-	find_and_stuff("$Class:", &objp->ship_class, F_NAME, Ship_class_names, Num_ship_types, "ship class");
+	find_and_stuff("$Class:", &objp->ship_class, F_NAME, (const char **)Ship_class_names, Num_ship_types, "ship class");
 	if (objp->ship_class < 0) {
 		Warning(LOCATION, "Ship \"%s\" has an invalid ship type (ships.tbl probably changed).  Making it type 0", objp->name);
 
@@ -1871,7 +1871,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	objp->ai_goals = -1;
 
 	if ( optional_string("+AI Class:")) {
-		objp->ai_class = match_and_stuff(F_NAME, Ai_class_names, Num_ai_classes, "AI class");
+		objp->ai_class = match_and_stuff(F_NAME, (const char **)Ai_class_names, Num_ai_classes, "AI class");
 		Assert(objp->ai_class > -1 );
 	} else {
 		objp->ai_class = Ship_info[objp->ship_class].ai_class;
@@ -2212,7 +2212,7 @@ void parse_common_object_data(p_object	*objp)
 		if (optional_string("+Cargo Name:")) {
 			char cargo_name[256];
 			stuff_string(cargo_name, F_NAME, NULL);
-			int index = string_lookup(cargo_name, Cargo_names, Num_cargo, "cargo", 0);
+			int index = string_lookup(cargo_name, (const char **)Cargo_names, Num_cargo, "cargo", 0);
 			if (index == -1 && (Num_cargo < MAX_CARGO)) {
 				index = Num_cargo;
 				strcpy(Cargo_names[Num_cargo++], cargo_name);
@@ -2221,7 +2221,7 @@ void parse_common_object_data(p_object	*objp)
 		}
 
 		if (optional_string("+AI Class:"))
-			Subsys_status[i].ai_class = match_and_stuff(F_NAME, Ai_class_names, Num_ai_classes, "AI class");
+			Subsys_status[i].ai_class = match_and_stuff(F_NAME, (const char **)Ai_class_names, Num_ai_classes, "AI class");
 
 		if (optional_string("+Primary Banks:"))
 			stuff_int_list(Subsys_status[i].primary_banks, MAX_PRIMARY_BANKS, WEAPON_LIST_TYPE);
@@ -3829,7 +3829,7 @@ int get_mission_info(char *filename, mission *mission_p)
 // mai parse routine for parsing a mission.  The default parameter flags tells us which information
 // to get when parsing the mission.  0 means get everything (default).  Other flags just gets us basic
 // info such as game type, number of players etc.
-int parse_main(char *mission_name, int flags)
+int parse_main(const char *mission_name, int flags)
 {
 	int rval, i;
 
@@ -4024,7 +4024,7 @@ void mission_parse_do_initial_docks()
 }
 
 // function which returns true or false if the given mission support multiplayers
-int mission_parse_is_multi(char *filename, char *mission_name)
+int mission_parse_is_multi(const char *filename, char *mission_name)
 {
 	int rval, game_type;
 	int filelength;
@@ -4090,7 +4090,7 @@ int mission_parse_is_multi(char *filename, char *mission_name)
 // The calling function can use the information in The_mission to get the name/description of the mission
 // if needed.
 
-int mission_parse_get_multi_mission_info( char *filename )
+int mission_parse_get_multi_mission_info( const char *filename )
 {
 	if ( parse_main(filename, MISSION_PARSE_MISSION_INFO) ){
 		return -1;
@@ -4106,7 +4106,7 @@ int mission_parse_get_multi_mission_info( char *filename )
 }
 
 // returns true or false if this is on the yet to arrive list
-int mission_parse_ship_arrived( char *shipname )
+int mission_parse_ship_arrived( const char *shipname )
 {
 	p_object *objp;
 
@@ -4118,7 +4118,7 @@ int mission_parse_ship_arrived( char *shipname )
 }
 
 // return the parse object on the ship arrival list associated with the given name
-p_object *mission_parse_get_arrival_ship( char *name )
+p_object *mission_parse_get_arrival_ship( const char *name )
 {
 	p_object *objp;
 
@@ -4821,7 +4821,7 @@ int allocate_subsys_status()
 }
 
 // find (or add) the name in the list and return an index to it.
-int get_parse_name_index(char *name)
+int get_parse_name_index(const char *name)
 {
 	int i;
 

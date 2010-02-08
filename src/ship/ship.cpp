@@ -805,7 +805,7 @@ static int Missile_out_snd_timer;	// timer so we play out of laser sound effect 
 
 // structure used to hold ship counts of particular types.  The order in which these appear is crucial
 // since the goal code relies on this placement to find the array index in the Ship_counts array
-char *Ship_type_names[MAX_SHIP_TYPE_COUNTS] = {
+const char *Ship_type_names[MAX_SHIP_TYPE_COUNTS] = {
 //XSTR:OFF
 	"no type",
 	"cargo",
@@ -1434,7 +1434,7 @@ int parse_ship()
 			Warning(LOCATION, "Bogus string in ship flags: %s\n", ship_strings[i]);
 	}
 
-	find_and_stuff("$AI Class:", &sip->ai_class, F_NAME, Ai_class_names, Num_ai_classes, "AI class names");
+	find_and_stuff("$AI Class:", &sip->ai_class, F_NAME, (const char **)Ai_class_names, Num_ai_classes, "AI class names");
 
 	// Get Afterburner information
 	// Be aware that if $Afterburner is not 1, the other Afterburner fields are not read in
@@ -1866,7 +1866,7 @@ void ship_add_exited_ship( ship *sp, int reason )
 }
 
 // function which attempts to find information about an exited ship based on shipname
-int ship_find_exited_ship_by_name( char *name )
+int ship_find_exited_ship_by_name( const char *name )
 {
 	int i;
 
@@ -6092,7 +6092,7 @@ int get_available_secondary_weapons(object *objp, int *outlist, int *outbanklist
 }
 
 //	Return the object index of the ship with name *name.
-int wing_name_lookup(char *name, int ignore_count)
+int wing_name_lookup(const char *name, int ignore_count)
 {
 	int i, wing_limit;
 
@@ -6117,7 +6117,7 @@ int wing_name_lookup(char *name, int ignore_count)
 
 // this function is needed in addition to wing_name_lookup because it does a straight lookup without
 // caring about how many ships are in the wing, etc.
-int wing_lookup(char *name)
+int wing_lookup(const char *name)
 {
    int idx;
 	for(idx=0;idx<num_wings;idx++)
@@ -6128,7 +6128,7 @@ int wing_lookup(char *name)
 }
 
 //	Return the index of Ship_info[].name that is *name.
-int ship_info_lookup(char *name)
+int ship_info_lookup(const char *name)
 {
 	int	i;
 
@@ -6157,7 +6157,7 @@ int ship_info_base_lookup(int si_index)
 }
 
 //	Return the ship index of the ship with name *name.
-int ship_name_lookup(char *name, int inc_players)
+int ship_name_lookup(const char *name, int inc_players)
 {
 	int	i;
 
@@ -6180,7 +6180,7 @@ int ship_name_lookup(char *name, int inc_players)
 	return -1;
 }
 
-int ship_type_name_lookup(char *name)
+int ship_type_name_lookup(const char *name)
 {
 	int idx;
 
@@ -8062,7 +8062,7 @@ char *ship_return_orders(char *outbuf, ship *sp)
 {
 	ai_info	*aip;
 	ai_goal	*aigp;
-	char		*order_text;
+	const char	*order_text;
 	
 	Assert(sp->ai_index >= 0);
 	aip = &Ai_info[sp->ai_index];

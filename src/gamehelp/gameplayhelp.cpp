@@ -184,14 +184,14 @@ int Gp_last_screen;
 #define CONTINUE_BUTTON					2
 
 struct gameplay_help_buttons {
-	char *filename;
+	const char *filename;
 	int x, y;
 	int hotspot;
 	int tab;
 	int flags;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	gameplay_help_buttons(char *name, int x1, int y1, int h) : filename(name), x(x1), y(y1), hotspot(h) {}
+	gameplay_help_buttons(const char *name, int x1, int y1, int h) : filename(name), x(x1), y(y1), hotspot(h) {}
 };
 
 static gameplay_help_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
@@ -232,12 +232,12 @@ static UI_XSTR Game_help_text[GR_NUM_RESOLUTIONS][GAME_HELP_NUM_TEXT] = {
 };
 #endif
 
-static char *Game_help_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Game_help_filename[GR_NUM_RESOLUTIONS] = {
 	"F1",
 	"2_F1"
 };
 
-static char *Game_help_mask_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Game_help_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"F1-m",
 	"2_F1-m"
 };
@@ -314,7 +314,7 @@ void gameplay_help_blit_control_line(int x, int y, int id)
 	gr_string(x+KEY_DESCRIPTION_OFFSET, y, XSTR(ci->text, CONTROL_CONFIG_XSTR + id));
 }
 
-void gameplay_help_blit_control_line_raw(int x, int y, char *control_text, char *control_description)
+void gameplay_help_blit_control_line_raw(int x, int y, const char *control_text, const char *control_description)
 {
 	gr_string(x,y,control_text);
 	gr_string(x+KEY_DESCRIPTION_OFFSET,y,control_description);
@@ -322,7 +322,7 @@ void gameplay_help_blit_control_line_raw(int x, int y, char *control_text, char 
 
 // game_play_help_set_title() will display the title for the help screen and
 // set the font for the rest of the screen
-void gameplay_help_set_title(char *title)
+void gameplay_help_set_title(const char *title)
 {
 	int sy=TITLE_Y;
 	char buf[128];

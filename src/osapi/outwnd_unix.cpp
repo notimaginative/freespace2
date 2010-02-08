@@ -174,7 +174,7 @@
 extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
 
 
-void outwnd_print(char *id, char *tmp);
+void outwnd_print(const char *id, const char *tmp);
 
 #define MAX_FILTERS 48
 #define MAX_LINE_WIDTH	128
@@ -197,7 +197,7 @@ int outwnd_filter_loaded = 0;
 #ifndef NDEBUG
 	int Log_debug_output_to_file = 1;
 	FILE *Log_fp;
-	char *Freespace_logfilename = "fs_debug.log";
+	const char *Freespace_logfilename = "fs_debug.log";
 #endif
 
 void load_filter_info(void)
@@ -299,7 +299,7 @@ void save_filter_info(void)
 	}
 }
 
-void outwnd_printf2(char *format, ...)
+void outwnd_printf2(const char *format, ...)
 {
 	char tmp[MAX_LINE_WIDTH*4];
 	va_list args;
@@ -310,7 +310,7 @@ void outwnd_printf2(char *format, ...)
 	outwnd_print("General", tmp);
 }
 
-void outwnd_printf(char *id, char *format, ...)
+void outwnd_printf(const char *id, const char *format, ...)
 {
 	char tmp[MAX_LINE_WIDTH*4];
 	va_list args;
@@ -321,7 +321,7 @@ void outwnd_printf(char *id, char *format, ...)
 	outwnd_print(id, tmp);
 }
 
-void outwnd_print(char *id, char *tmp)
+void outwnd_print(const char *id, const char *tmp)
 {
 	int i;
 	outwnd_filter_struct *temp;

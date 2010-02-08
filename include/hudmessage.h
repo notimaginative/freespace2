@@ -191,16 +191,16 @@ void hud_init_msg_window();
 void hud_show_msg_window();
 void hud_show_fixed_text();
 int HUD_get_team_source(int team);
-void HUD_printf(char *format, ...);
+void HUD_printf(const char *format, ...);
 void hud_sourced_print(int source, char *msg);
-void HUD_sourced_printf(int source, char *format, ...);  // send hud message from specified source
-void HUD_ship_sent_printf(int sh, char *format, ...);  // send hud message from a specific ship
-void HUD_fixed_printf(float duration, char *format, ...);		//	Display a single message for duration seconds.
+void HUD_sourced_printf(int source, const char *format, ...);  // send hud message from specified source
+void HUD_ship_sent_printf(int sh, const char *format, ...);  // send hud message from a specific ship
+void HUD_fixed_printf(float duration, const char *format, ...);		//	Display a single message for duration seconds.
 void HUD_init_fixed_text();			//	Clear all pending fixed text.
 
-void HUD_add_to_scrollback(char *text, int source);
-void hud_add_line_to_scrollback(char *text, int source, int t, int x, int y, int w);
-void hud_add_msg_to_scrollback(char *text, int source, int t);
+void HUD_add_to_scrollback(const char *text, int source);
+void hud_add_line_to_scrollback(const char *text, int source, int t, int x, int y, int w);
+void hud_add_msg_to_scrollback(const char *text, int source, int t);
 void hud_free_scrollback_list();
 
 #endif

@@ -117,7 +117,7 @@ void UI_SCROLLBAR::link_hotspot(int up_button_num, int down_button_num)
 // returns:		-1 ==> error
 //					 0 ==> success
 //
-int UI_SCROLLBAR::set_bmaps(char *up_button_fname, char *down_button_fname, char *line_fname)
+int UI_SCROLLBAR::set_bmaps(const char *up_button_fname, const char *down_button_fname, const char *line_fname)
 {
 	int bx, by, bh, bw;
 
@@ -155,8 +155,8 @@ int UI_SCROLLBAR::get_hidden()
 
 void UI_SCROLLBAR::create(UI_WINDOW *wnd, int _x, int _y, int _h, int _start, int _stop, int _position, int _window_size)
 {
-	char *up = "^";
-	char *down = "v";
+	const char *up = "^";
+	const char *down = "v";
 	int bw = 20;
 
 	base_create( wnd, UI_KIND_SCROLLBAR, _x, _y + bw, bw, _h - bw * 2 );

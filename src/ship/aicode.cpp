@@ -520,7 +520,7 @@
 
 //XSTR:OFF
 
-char *Mode_text[MAX_AI_BEHAVIORS] = {
+const char *Mode_text[MAX_AI_BEHAVIORS] = {
 	"CHASE",
 	"EVADE",
 	"GET_BEHIND",
@@ -545,7 +545,7 @@ char *Mode_text[MAX_AI_BEHAVIORS] = {
 };
 
 //	Submode text is only valid for CHASE mode.
-char *Submode_text[] = {
+const char *Submode_text[] = {
 "undefined",
 "CONT_TURN",
 "ATTACK   ",
@@ -566,7 +566,7 @@ char *Submode_text[] = {
 "BIG_PARL"
 };
 
-char *Strafe_submode_text[5] = {
+const char *Strafe_submode_text[5] = {
 "ATTACK",
 "AVOID",
 "RETREAT1",
@@ -660,9 +660,9 @@ int	AI_watch_object = 0; // Debugging, object to spew debug info for.
 int	Num_waypoint_lists = 0;
 int	Mission_all_attack = 0;					//	!0 means all teams attack all teams.
 
-char *Skill_level_names(int level, int translate)
+const char *Skill_level_names(int level, int translate)
 {
-	char *str = NULL;
+	const char *str = NULL;
 
 	#if NUM_SKILL_LEVELS != 5
 	#error Number of skill levels is wrong!

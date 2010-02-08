@@ -249,7 +249,7 @@ typedef struct ai_goals {
 	int	flags;				// one of the AIGF_* values above
 	fix	time;					// time at which this goal was issued.
 	int	priority;			// how important is this goal -- number 0 - 100
-	char	*ship_name;			// name of the ship that this goal acts upon
+	const char	*ship_name;			// name of the ship that this goal acts upon
 	int	ship_name_index;	// index of ship_name in Goal_ship_names[][]
 	int	wp_index;			// index into waypoints list of waypoints that this ship might fly.
 	int	weapon_signature;	// signature of weapon this ship might be chasing.  Paired with above value to get target.
@@ -602,7 +602,7 @@ extern char *Ai_class_names[];
 extern int Num_ai_classes;
 extern int Ai_firing_enabled;
 
-extern char	*Skill_level_names(int skill_level, int translate = 1);
+extern const char	*Skill_level_names(int skill_level, int translate = 1);
 extern int	Skill_level_max_attackers[NUM_SKILL_LEVELS];
 extern int Ai_goal_signature;
 
@@ -629,7 +629,7 @@ void ai_process( object * obj, int ai_index, float frametime );
 int get_wingnum(int objnum);
 
 void set_wingnum(int objnum, int wingnum);
-char *ai_get_goal_ship_name(char *name, int *index);
+char *ai_get_goal_ship_name(const char *name, int *index);
 
 extern waypoint_list Waypoint_lists[MAX_WAYPOINT_LISTS];
 extern int	Num_waypoint_lists;

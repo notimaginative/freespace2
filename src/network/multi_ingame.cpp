@@ -613,12 +613,12 @@ void multi_ingame_sync_close()
 // --------------------------------------------------------------------------------------------------
 // INGAME SHIP SELECT SCREEN 
 //
-static char *Multi_ingame_join_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Multi_ingame_join_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"MultiIngame",				// GR_640
 	"2_MultiIngame"			// GR_1024
 };
 
-static char *Multi_ingame_join_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Multi_ingame_join_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"MultiIngame-M",			// GR_640
 	"2_MultiIngame-M"			// GR_1024
 };
@@ -1809,7 +1809,7 @@ void multi_ingame_validate_players()
 
 	for ( i = 0; i < MAX_PLAYERS; i++ ) {
 		if( MULTI_CONNECTED(Net_players[i]) && (Net_player != &Net_players[i]) && !MULTI_STANDALONE(Net_players[i]) ) {
-			char *ship_name;
+			const char *ship_name;
 			int shipnum, objnum, player_objnum;
 
 			player_objnum = Net_players[i].player->objnum;

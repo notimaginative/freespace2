@@ -425,7 +425,7 @@ extern char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1];
 //
 
 // associate table file externalization with the specified input file
-void lcl_ext_associate(char *filename);
+void lcl_ext_associate(const char *filename);
 
 // given a valid XSTR() tag piece of text, extract the string portion, return it in out, nonzero on success
 int lcl_ext_get_text(char *xstr, char *out);
@@ -459,7 +459,7 @@ void lcl_ext_setup_pointers();
 void lcl_init(int lang_init)
 {
 	char lang_string[128];
-	char *ret;
+	const char *ret;
 	int lang, idx;
 
 	// initialize encryption
@@ -939,7 +939,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 }
 
 // translate the specified string based upon the current language
-char *XSTR(char *str, int index)
+const char *XSTR(const char *str, int index)
 {
 	if(!Xstr_inited){
 		return str;
@@ -972,7 +972,7 @@ int lcl_get_xstr_offset(int index, int res)
 //
 
 // associate table file externalization with the specified input file
-void lcl_ext_associate(char *filename)
+void lcl_ext_associate(const char *filename)
 {
 #ifndef MAKE_FS1
 	// if the filename already exists, free it up

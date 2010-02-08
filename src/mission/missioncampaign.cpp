@@ -236,7 +236,7 @@ char *Campaign_names[MAX_CAMPAIGNS];
 char *Campaign_file_names[MAX_CAMPAIGNS];
 int	Num_campaigns;
 
-char *campaign_types[MAX_CAMPAIGN_TYPES] = 
+const char *campaign_types[MAX_CAMPAIGN_TYPES] = 
 {
 //XSTR:OFF
 	"single",
@@ -272,7 +272,7 @@ campaign Campaign;
 // mission_campaign_get_name returns a string (which is malloced in this routine) of the name
 // of the given freespace campaign file.  In the type field, we return if the campaign is a single
 // player or multiplayer campaign.  The type field will only be valid if the name returned is non-NULL
-int mission_campaign_get_info(char *filename, char *name, int *type, int *max_players, char **desc)
+int mission_campaign_get_info(const char *filename, char *name, int *type, int *max_players, char **desc)
 {
 	int rval, i;
 	char campaign_type[NAME_LENGTH], fname[MAX_FILENAME_LEN];
@@ -359,7 +359,7 @@ int mission_campaign_get_info(char *filename, char *name, int *type, int *max_pl
 // parses campaign and returns a list of missions in it.  Returns number of missions added to
 // the 'list', and up to 'max' missions may be added to 'list'.  Returns negative on error.
 //
-int mission_campaign_get_mission_list(char *filename, char **list, int max)
+int mission_campaign_get_mission_list(const char *filename, char **list, int max)
 {
 	int rval, i, num = 0;
 	char name[NAME_LENGTH];
@@ -388,7 +388,7 @@ int mission_campaign_get_mission_list(char *filename, char **list, int max)
 	return num;
 }
 
-void mission_campaign_maybe_add( char *filename, int multiplayer )
+void mission_campaign_maybe_add( const char *filename, int multiplayer )
 {
 	char name[NAME_LENGTH];
 	int type,max_players;
@@ -523,7 +523,7 @@ void mission_campaign_get_sw_info()
 // Note: Due to difficulties in generalizing this function, parts of it are duplicated throughout
 // this file.  If you change the format of the campaign file, you should be sure these related
 // functions work properly and update them if it breaks them.
-int mission_campaign_load( char *filename, int load_savefile )
+int mission_campaign_load( const char *filename, int load_savefile )
 {
 	int len, rval, i;
 	char name[NAME_LENGTH], type[NAME_LENGTH];
@@ -731,38 +731,41 @@ int mission_campaign_load( char *filename, int load_savefile )
 // mission_campaign_load_by_name() loads up a freespace campaign given the filename.  This routine
 // is used to load up campaigns when a pilot file is loaded.  Generally, the
 // filename will probably be the freespace campaign file, but not necessarily.
-int mission_campaign_load_by_name( char *filename )
+int mission_campaign_load_by_name( const char *filename )
 {
+	char real_filename[MAX_FILENAME_LEN+1] = { 0 };
 	char name[NAME_LENGTH],test[5];
 	int type,max_players;
 
 	// make sure to tack on .fsc on the end if its not there already
 	if(strlen(filename) > 0){
-		if(strlen(filename) > 4){
-			strcpy(test,filename+(strlen(filename)-4));
+		strncpy(real_filename, filename, MAX_FILENAME_LEN);
+
+		if(strlen(real_filename) > 4){
+			strcpy(test,real_filename+(strlen(real_filename)-4));
 			if(strcmp(test, FS_CAMPAIGN_FILE_EXT)!=0){
-				strcat(filename, FS_CAMPAIGN_FILE_EXT);
+				strcat(real_filename, FS_CAMPAIGN_FILE_EXT);
 			}
 		} else {
-			strcat(filename, FS_CAMPAIGN_FILE_EXT);
+			strcat(real_filename, FS_CAMPAIGN_FILE_EXT);
 		}
 	} else {
 		Error(LOCATION,"Tried to load campaign file with illegal length/extension!");
 	}
 
-	if (!mission_campaign_get_info(filename, name, &type, &max_players)){
+	if (!mission_campaign_get_info(real_filename, name, &type, &max_players)){
 		return -1;	
 	}
 
 	Num_campaigns = 0;
-	Campaign_file_names[Num_campaigns] = filename;
+	Campaign_file_names[Num_campaigns] = real_filename;
 	Campaign_names[Num_campaigns] = name;
 	Num_campaigns++;
-	mission_campaign_load(filename);		
+	mission_campaign_load(real_filename);		
 	return 0;
 }
 
-int mission_campaign_load_by_name_csfe( char *filename, char *callsign )
+int mission_campaign_load_by_name_csfe( const char *filename, const char *callsign )
 {
 	Game_mode |= GM_NORMAL;
 	strcpy(Player->callsign, callsign);
@@ -907,7 +910,7 @@ int mission_campaign_savefile_save()
 }
 
 // The following function always only ever ever ever called by CSFE!!!!!
-int campaign_savefile_save(char *pname)
+int campaign_savefile_save(const char *pname)
 {
 	if (Campaign.type == CAMPAIGN_TYPE_SINGLE)
 		Game_mode &= ~GM_MULTIPLAYER;
@@ -926,7 +929,7 @@ int campaign_savefile_save(char *pname)
 
 // mission_campaign_savefile_delete deletes any save file in the players directory for the given
 // campaign filename
-void mission_campaign_savefile_delete( char *cfilename, int is_multi )
+void mission_campaign_savefile_delete( const char *cfilename, int is_multi )
 {
 	char filename[_MAX_FNAME], base[_MAX_FNAME];
 
@@ -941,7 +944,7 @@ void mission_campaign_savefile_delete( char *cfilename, int is_multi )
 	cf_delete( filename, CF_TYPE_SINGLE_PLAYERS );
 }
 
-void campaign_delete_save( char *cfn, char *pname)
+void campaign_delete_save( const char *cfn, const char *pname)
 {
 	strcpy(Player->callsign, pname);
 	mission_campaign_savefile_delete(cfn);
@@ -950,12 +953,13 @@ void campaign_delete_save( char *cfn, char *pname)
 // next function deletes all the save files for this particular pilot.  Just call cfile function
 // which will delete multiple files
 // Player_select_mode tells us whether we are deleting single or multiplayer files
-void mission_campaign_delete_all_savefiles( char *pilot_name, int is_multi )
+void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi )
 {
 	int dir_type, num_files, i;
-	char *names[MAX_CAMPAIGNS], spec[MAX_FILENAME_LEN + 2], *ext;
+	char *names[MAX_CAMPAIGNS], spec[MAX_FILENAME_LEN + 2];
+	const char *ext;
 	char filename[1024];
-	int (*filter_save)(char *filename);
+	int (*filter_save)(const char *filename);
 
 	if ( is_multi ) {
 		return;				// can't have multiplayer campaign save files
@@ -983,7 +987,7 @@ void mission_campaign_delete_all_savefiles( char *pilot_name, int is_multi )
 
 // mission_campaign_savefile_load takes a filename of a campaign file as a parameter and loads all
 // of the information stored in the campaign file.
-void mission_campaign_savefile_load( char *cfilename )
+void mission_campaign_savefile_load( const char *cfilename )
 {
 	char filename[_MAX_FNAME], base[_MAX_FNAME];
 	int version, i, num, j, num_stats_blocks;
@@ -1152,7 +1156,7 @@ void mission_campaign_savefile_load( char *cfilename )
 }
 
 // the following code only ever called by CSFE!!!!
-void campaign_savefile_load(char *fname, char *pname)
+void campaign_savefile_load(const char *fname, const char *pname)
 {
 	if (Campaign.type==CAMPAIGN_TYPE_SINGLE) {
 		Game_mode &= ~GM_MULTIPLAYER;
@@ -1600,7 +1604,7 @@ void mission_campaign_shutdown()
 // num		=> output parameter for the number of mission filenames in the campaign
 //
 // note that dest should allocate at least dest[MAX_CAMPAIGN_MISSIONS][NAME_LENGTH]
-int mission_campaign_get_filenames(char *filename, char dest[][NAME_LENGTH], int *num)
+int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH], int *num)
 {
 	int	rval;
 
@@ -1740,7 +1744,7 @@ void read_mission_goal_list(int num)
 // filename.  This function tried to be a little smart about filename looking for the .fsm
 // extension since filenames are stored with the extension in the campaign file.  Returns
 // index of mission in campaign structure.  -1 if mission name not found.
-int mission_campaign_find_mission( char *name )
+int mission_campaign_find_mission( const char *name )
 {
 	int i;
 	char realname[_MAX_PATH];
@@ -1796,7 +1800,7 @@ void mission_campaign_maybe_play_movie(int type)
 }
 
 // return nonzero if the passed filename is a multiplayer campaign, 0 otherwise
-int mission_campaign_parse_is_multi(char *filename, char *name)
+int mission_campaign_parse_is_multi(const char *filename, char *name)
 {	
 	int i;
 	char temp[50];
@@ -1954,27 +1958,25 @@ void mission_campaign_exit_loop()
 // used for jumping to a particular campaign mission
 // all pvs missions marked skipped
 // this relies on correct mission ordering in the campaign file
-void mission_campaign_jump_to_mission(char *name)
+void mission_campaign_jump_to_mission(const char *name)
 {
 	int i = 0;
-	char dest_name[64];
+	char dest_name[64] = { 0 };
 
 	// load in the campaign junk
 	mission_load_up_campaign();
 
 #ifdef MAKE_FS1
 	// tack the .fsm onto the input name
-	strcpy(dest_name, name);
-	strcat(name, ".fsm");
+	strncpy(dest_name, cf_add_ext(name, ".fsm"), sizeof(dest_name)-1);
 #else
 	// tack the .fs2 onto the input name
-	strcpy(dest_name, name);
-	strcat(name, ".fs2");
+	strncpy(dest_name, cf_add_ext(name, ".fs2"), sizeof(dest_name)-1);
 #endif
 
 	// search for our mission
 	for (i=0; i<Campaign.num_missions; i++) {
-		if ((Campaign.missions[i].name != NULL) && !stricmp(Campaign.missions[i].name, name) ) {
+		if ((Campaign.missions[i].name != NULL) && !stricmp(Campaign.missions[i].name, dest_name) ) {
 			Campaign.next_mission = i;
 			Campaign.prev_mission = i-1;
 			mission_campaign_next_mission();

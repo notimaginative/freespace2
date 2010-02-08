@@ -509,7 +509,7 @@ char	Ai_dock_names[MAX_AI_DOCK_NAMES][NAME_LENGTH];
 // HUD what a ship's current orders are.  If the AI goal doesn't correspond to something that
 // ought to be printable, then NULL is used.
 // JAS: Converted to a function in order to externalize the strings
-char *Ai_goal_text(int goal)
+const char *Ai_goal_text(int goal)
 {
 	switch(goal)	{
 	case 1:
@@ -777,7 +777,7 @@ void ai_clear_wing_goals( int wingnum )
 void ai_mission_wing_goal_complete( int wingnum, ai_goal *remove_goalp )
 {
 	int mode, submode, priority, i;
-	char *name;
+	const char *name;
 	ai_goal *aigp;
 	wing *wingp;
 
@@ -845,7 +845,7 @@ void ai_mission_goal_complete( ai_info *aip )
 
 }
 
-int ai_get_subsystem_type( char *subsystem )
+int ai_get_subsystem_type( const char *subsystem )
 {
 	if ( strstr(subsystem, "engine") ) {
 		return SUBSYSTEM_ENGINE;
@@ -885,7 +885,7 @@ void ai_goal_purge_invalid_goals( ai_goal *aigp, ai_goal *goal_list )
 {
 	int i;
 	ai_goal *purge_goal;
-	char *name;
+	const char *name;
 	int mode, ship_index, wingnum;
 
 	// get locals for easer access
@@ -1006,7 +1006,7 @@ void ai_goal_fixup_dockpoints(ai_info *aip, ai_goal *aigp)
 // from the mission goals (i.e. those goals which come from events) in that we don't
 // use sexpressions for goals from the player...so we enumerate all the parameters
 
-void ai_add_goal_sub_player(int type, int mode, int submode, char *shipname, ai_goal *aigp )
+void ai_add_goal_sub_player(int type, int mode, int submode, const char *shipname, ai_goal *aigp )
 {
 	Assert ( (type == AIG_TYPE_PLAYER_WING) || (type == AIG_TYPE_PLAYER_SHIP) );
 
@@ -1068,7 +1068,7 @@ int ai_goal_find_empty_slot( ai_goal *goals )
 // is issued to ship or wing (from player),  mode is AI_GOAL_*. submode is the submode the
 // ship should go into.  shipname is the object of the action.  aip is the ai_info pointer
 // of the ship receiving the order
-void ai_add_ship_goal_player( int type, int mode, int submode, char *shipname, ai_info *aip )
+void ai_add_ship_goal_player( int type, int mode, int submode, const char *shipname, ai_info *aip )
 {
 	int empty_index;
 	ai_goal *aigp;
@@ -1094,7 +1094,7 @@ void ai_add_ship_goal_player( int type, int mode, int submode, char *shipname, a
 
 // adds a goal from the player to the given wing (which in turn will add it to the proper
 // ships in the wing
-void ai_add_wing_goal_player( int type, int mode, int submode, char *shipname, int wingnum )
+void ai_add_wing_goal_player( int type, int mode, int submode, const char *shipname, int wingnum )
 {
 	int i, empty_index;
 	wing *wingp = &Wings[wingnum];
@@ -1331,7 +1331,7 @@ void ai_add_wing_goal_sexp(int sexp, int type, int wingnum)
 // this name can be a shipname or a wingname)
 // docker_point and dockee_point are used for the AI_GOAL_DOCK command to tell two ships where to dock
 // immediate means to process this order right away
-void ai_add_goal_ship_internal( ai_info *aip, int goal_type, char *name, int docker_point, int dockee_point, int immediate )
+void ai_add_goal_ship_internal( ai_info *aip, int goal_type, const char *name, int docker_point, int dockee_point, int immediate )
 {
 	int gindex;
 	ai_goal *aigp;
@@ -1395,7 +1395,7 @@ void ai_add_goal_ship_internal( ai_info *aip, int goal_type, char *name, int doc
 // across waves of the wing so we merely need to add the goal to each ship in the wing.  Certain
 // goal are simply not valid for wings (like dock, undock).  Immediate parameter gets passed to add_ship_goal
 // to say whether or not we should process this goal right away
-void ai_add_goal_wing_internal( wing *wingp, int goal_type, char *name, int immediate )
+void ai_add_goal_wing_internal( wing *wingp, int goal_type, const char *name, int immediate )
 {
 	int i;
 
@@ -2201,7 +2201,7 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 
 }
 
-void ai_update_goal_references(ai_goal *goals, int type, char *old_name, char *new_name)
+void ai_update_goal_references(ai_goal *goals, int type, const char *old_name, char *new_name)
 {
 	int i, mode, flag, dummy;
 
@@ -2267,7 +2267,7 @@ void ai_update_goal_references(ai_goal *goals, int type, char *old_name, char *n
 	}
 }
 
-int query_referenced_in_ai_goals(ai_goal *goals, int type, char *name)
+int query_referenced_in_ai_goals(ai_goal *goals, int type, const char *name)
 {
 	int i, mode, flag;
 
@@ -2331,7 +2331,7 @@ int query_referenced_in_ai_goals(ai_goal *goals, int type, char *name)
 	return 0;
 }
 
-char *ai_add_dock_name(char *str)
+char *ai_add_dock_name(const char *str)
 {
 	char *ptr;
 	int i;

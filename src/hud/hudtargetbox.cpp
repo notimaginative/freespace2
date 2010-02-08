@@ -259,7 +259,7 @@ extern int Show_target_weapons;
 #endif
 
 // used to print out + or - after target distance and speed
-char* modifiers[] = {
+const char* modifiers[] = {
 //XSTR:OFF
 "+",
 "-",
@@ -267,15 +267,15 @@ char* modifiers[] = {
 //XSTR:ON
 };
 
-char Target_view_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Target_view_fname[GR_NUM_RESOLUTIONS] = {
 	"targetview1",
 	"targetview1"
 };
-char Target_integ_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Target_integ_fname[GR_NUM_RESOLUTIONS] = {
 	"targetview2",
 	"targetview2"
 };
-char Target_extra_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
+const char *Target_extra_fname[GR_NUM_RESOLUTIONS] = {
 	"targetview3",
 	"targetview3"
 };

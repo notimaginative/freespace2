@@ -1761,7 +1761,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 
 	// if cargo is already revealed
 	if ( subsys->subsys_cargo_revealed ) {
-		char *cargo_name;
+		const char *cargo_name;
 		if (subsys->subsys_cargo_name == -1) {
 			cargo_name = XSTR("Nothing", 1493);
 		} else {

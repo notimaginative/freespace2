@@ -187,7 +187,7 @@ char Multi_msg_text[MULTI_MSG_MAX_TEXT_LEN+1];
 #define MULTI_MSG_CMD_KICK						0								// kick command
 
 //XSTR:OFF
-char *Multi_msg_commands[MULTI_MSG_CMD_COUNT] = {						// commands themselves
+const char *Multi_msg_commands[MULTI_MSG_CMD_COUNT] = {						// commands themselves
 	"kick"	
 };
 //XSTR:ON
@@ -417,7 +417,7 @@ int multi_msg_message_text(char *txt)
 }
 
 // display ingame,inmission message text
-void multi_msg_display_mission_text(char *msg,int player_index)
+void multi_msg_display_mission_text(const char *msg, int player_index)
 {
 	// play a cue voice sound
 	snd_play(&Snds[MULTI_MSG_TEXT_SOUND]);
@@ -430,7 +430,7 @@ void multi_msg_display_mission_text(char *msg,int player_index)
 }
 
 // if the passed net_player's callsign matches the reg expression of the passed expr
-int multi_msg_matches_expr(net_player *player,char *expr)
+int multi_msg_matches_expr(net_player *player, const char *expr)
 {
 	char callsign[CALLSIGN_LEN+1];
 	int len,idx;
@@ -558,7 +558,7 @@ void multi_msg_perform_command(int command,char *param)
 
 //XSTR:OFF
 
-char *Multi_msg_subsys_name[SUBSYSTEM_MAX] = {
+const char *Multi_msg_subsys_name[SUBSYSTEM_MAX] = {
 	"None",
 	"Engine",
 	"Turret",

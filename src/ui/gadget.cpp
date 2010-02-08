@@ -179,7 +179,6 @@
 // constructor
 UI_GADGET::UI_GADGET()
 {
-	bm_filename = NULL;
 }
 
 // destructor
@@ -224,7 +223,7 @@ void UI_GADGET::link_hotspot(int num)
 // anything < start_frame will not be loaded.
 // this keeps the loading code from trying to load bitmaps which don't exist
 // and taking an unnecessary disk hit.		
-int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
+int UI_GADGET::set_bmaps(const char *ani_fname, int nframes, int start_frame)
 {
 	int i;	
 #ifndef MAKE_FS1
@@ -242,7 +241,6 @@ int UI_GADGET::set_bmaps(char *ani_fname, int nframes, int start_frame)
 	}
 	
 	// load all the bitmaps
-	bm_filename = ani_fname;
 
 	Assert(nframes < MAX_BMAPS_PER_GADGET);		
 	m_num_frames = nframes;		

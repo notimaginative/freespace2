@@ -110,9 +110,9 @@
 #include "alphacolors.h"
 
 /// DOT_SLIDER class down here
-void UI_DOT_SLIDER_NEW::create(UI_WINDOW *wnd, int _x, int _y, int _num_pos, char *bm_slider, int slider_mask,
-																					char *bm_left, int left_mask, int left_x, int left_y,
-																					char *bm_right, int right_mask, int right_x, int right_y,
+void UI_DOT_SLIDER_NEW::create(UI_WINDOW *wnd, int _x, int _y, int _num_pos, const char *bm_slider, int slider_mask,
+																					const char *bm_left, int left_mask, int left_x, int left_y,
+																					const char *bm_right, int right_mask, int right_x, int right_y,
 																					int _dot_width)
 {
 	// no end buttons yet
@@ -260,7 +260,7 @@ void UI_DOT_SLIDER_NEW::process(int focus)
 //
 
 /// DOT_SLIDER class down here
-void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, char *bm, int id, int end_buttons, int _num_pos)
+void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int id, int end_buttons, int _num_pos)
 {
 	char	filename[MAX_PATH_LEN];
 	int	bx, by, bw, hotspot;

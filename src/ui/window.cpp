@@ -192,7 +192,7 @@ UI_WINDOW::~UI_WINDOW()
 // Specify the filename for the mask bitmap to use.  This has the hotspots
 // for all the different controls.
 //
-void UI_WINDOW::set_mask_bmap(char *fname)
+void UI_WINDOW::set_mask_bmap(const char *fname)
 {
 	int bmap;
 
@@ -206,7 +206,7 @@ void UI_WINDOW::set_mask_bmap(char *fname)
 	}
 }
 
-void UI_WINDOW::set_mask_bmap(int bmap, char *name)
+void UI_WINDOW::set_mask_bmap(int bmap, const char *name)
 {
 	// int i;
 
@@ -244,7 +244,7 @@ void UI_WINDOW::set_mask_bmap(int bmap, char *name)
 // Specify the filename for the mask bitmap to display on the ui window as
 // a background.
 //
-void UI_WINDOW::set_foreground_bmap(char *fname)
+void UI_WINDOW::set_foreground_bmap(const char *fname)
 {
 	// load in the background bitmap 
 	foreground_bmap_id = bm_load(fname);
@@ -328,7 +328,7 @@ void UI_WINDOW::destroy()
 		// free up this struct
 		if(xstrs[idx] != NULL){
 			if(xstrs[idx]->xstr != NULL){
-				free(xstrs[idx]->xstr);
+				free((char *)xstrs[idx]->xstr);
 			}
 			free(xstrs[idx]);
 			xstrs[idx] = NULL;
@@ -489,7 +489,7 @@ void UI_WINDOW::draw_tooltip()
 	*/
 }
 
-void UI_WINDOW::render_tooltip(char *str)
+void UI_WINDOW::render_tooltip(const char *str)
 {
 	int w, h;
 
@@ -591,7 +591,7 @@ void UI_WINDOW::set_ignore_gadgets(int state)
 	ignore_gadgets = state;
 }
 
-void UI_WINDOW::add_XSTR(char *string, int _xstr_id, int _x, int _y, UI_GADGET *_assoc, int _color_type, int _font_id)
+void UI_WINDOW::add_XSTR(const char *string, int _xstr_id, int _x, int _y, UI_GADGET *_assoc, int _color_type, int _font_id)
 {
 	int idx;
 	int found = -1;

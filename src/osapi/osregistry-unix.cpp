@@ -10,50 +10,50 @@
 #include <string.h>
 #include <ctype.h>
 
-char *Osreg_company_name = "Volition";
+const char *Osreg_company_name = "Volition";
 #if defined(MAKE_FS1)
-char *Osreg_class_name = "FreespaceClass";
+const char *Osreg_class_name = "FreespaceClass";
 #else
-char *Osreg_class_name = "Freespace2Class";
+const char *Osreg_class_name = "Freespace2Class";
 #endif
 #if defined(FS1_DEMO)
-char *Osreg_app_name = "FreeSpaceDemo";
-char *Osreg_title = "Freespace Demo";
+const char *Osreg_app_name = "FreeSpaceDemo";
+const char *Osreg_title = "Freespace Demo";
 #ifndef __APPLE__
-char *Osreg_user_dir = ".freespace_demo";
+const char *Osreg_user_dir = ".freespace_demo";
 #else
-char *Osreg_user_dir = "Library/Application Support/FreeSpace Demo";
+const char *Osreg_user_dir = "Library/Application Support/FreeSpace Demo";
 #endif
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
-char *Osreg_app_name = "FreeSpace2Demo";
-char *Osreg_title = "Freespace 2 Demo";
+const char *Osreg_app_name = "FreeSpace2Demo";
+const char *Osreg_title = "Freespace 2 Demo";
 #ifndef __APPLE__
-char *Osreg_user_dir = ".freespace2_demo";
+const char *Osreg_user_dir = ".freespace2_demo";
 #else
-char *Osreg_user_dir = "Library/Application Support/Freespace 2 Demo";
+const char *Osreg_user_dir = "Library/Application Support/Freespace 2 Demo";
 #endif
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
-char *Osreg_app_name = "FreeSpace2OEM";
-char *Osreg_title = "Freespace 2 OEM";
+const char *Osreg_app_name = "FreeSpace2OEM";
+const char *Osreg_title = "Freespace 2 OEM";
 #define PROFILE_NAME "FreeSpace2OEM.ini"
 #elif defined(MAKE_FS1)
-char *Osreg_app_name = "FreeSpace";
-char *Osreg_title = "FreeSpace";
+const char *Osreg_app_name = "FreeSpace";
+const char *Osreg_title = "FreeSpace";
 #ifndef __APPLE__
-char *Osreg_user_dir = ".freespace";
+const char *Osreg_user_dir = ".freespace";
 #else
-char *Osreg_user_dir = "Library/Application Support/FreeSpace";
+const char *Osreg_user_dir = "Library/Application Support/FreeSpace";
 #endif
 #define PROFILE_NAME "FreeSpace.ini"
 #else
-char *Osreg_app_name = "FreeSpace2";
-char *Osreg_title = "Freespace 2";
+const char *Osreg_app_name = "FreeSpace2";
+const char *Osreg_title = "Freespace 2";
 #ifndef __APPLE__
-char *Osreg_user_dir = ".freespace2";
+const char *Osreg_user_dir = ".freespace2";
 #else
-char *Osreg_user_dir = "Library/Application Support/Freespace 2";
+const char *Osreg_user_dir = "Library/Application Support/Freespace 2";
 #endif
 #define PROFILE_NAME "FreeSpace2.ini"
 #endif
@@ -164,7 +164,7 @@ static char *trim_string(char *str)
 	return ptr;
 }
 
-static Profile *profile_read(char *file)
+static Profile *profile_read(const char *file)
 {
 	CFILE *fp = cfopen(file, "rt", CFILE_NORMAL, CF_TYPE_ROOT);
 	if (fp == NULL)
@@ -270,7 +270,7 @@ static void profile_free(Profile *profile)
 	free(profile);
 }
 
-static Profile *profile_update(Profile *profile, char *section, char *key, char *value)
+static Profile *profile_update(Profile *profile, const char *section, const char *key, const char *value)
 {
 	if (profile == NULL) {
 		profile = (Profile *)malloc(sizeof(Profile));
@@ -343,7 +343,7 @@ static Profile *profile_update(Profile *profile, char *section, char *key, char 
 	return profile;
 }
 
-static char *profile_get_value(Profile *profile, char *section, char *key)
+static const char *profile_get_value(Profile *profile, const char *section, const char *key)
 {
 	if (profile == NULL)
 		return NULL;
@@ -368,7 +368,7 @@ static char *profile_get_value(Profile *profile, char *section, char *key)
 	return NULL;
 }
 
-static void profile_save(Profile *profile, char *file)
+static void profile_save(Profile *profile, const char *file)
 {
 	CFILE *fp;
 	
@@ -404,14 +404,14 @@ static void profile_save(Profile *profile, char *file)
 
 static char tmp_string_data[1024];
 
-char *os_config_read_string(char *section, char *name, char *default_value)
+const char *os_config_read_string(const char *section, const char *name, const char *default_value)
 {
 	Profile *p = profile_read(PROFILE_NAME);
 
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 		
-	char *ptr = profile_get_value(p, section, name);
+	const char *ptr = profile_get_value(p, section, name);
 	if (ptr != NULL) {
 		strncpy(tmp_string_data, ptr, 1023);
 		default_value = tmp_string_data;
@@ -422,14 +422,14 @@ char *os_config_read_string(char *section, char *name, char *default_value)
 	return default_value;
 }
 
-unsigned int os_config_read_uint(char *section, char *name, unsigned int default_value)
+unsigned int os_config_read_uint(const char *section, const char *name, unsigned int default_value)
 {
 	Profile *p = profile_read(PROFILE_NAME);
 	
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 		
-	char *ptr = profile_get_value(p, section, name);
+	const char *ptr = profile_get_value(p, section, name);
 	if (ptr != NULL) {
 		default_value = atoi(ptr);
 	}
@@ -439,7 +439,7 @@ unsigned int os_config_read_uint(char *section, char *name, unsigned int default
 	return default_value;
 }
 
-void os_config_write_string(char *section, char *name, char *value)
+void os_config_write_string(const char *section, const char *name, const char *value)
 {
 	Profile *p = profile_read(PROFILE_NAME);
 	
@@ -451,7 +451,7 @@ void os_config_write_string(char *section, char *name, char *value)
 	profile_free(p);	
 }
 
-void os_config_write_uint(char *section, char *name, unsigned int value)
+void os_config_write_uint(const char *section, const char *name, unsigned int value)
 {
 	static char buf[21];
 	

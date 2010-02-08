@@ -64,7 +64,7 @@
 //
 
 // pause bitmap name
-char *Pause_bmp_name[GR_NUM_RESOLUTIONS] = {
+const char *Pause_bmp_name[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
 	"Pause",
 #else
@@ -87,11 +87,11 @@ int Please_wait_coords[GR_NUM_RESOLUTIONS][4] = {
 	}	
 };
 
-char *Pause_multi_fname[GR_NUM_RESOLUTIONS] = {
+const char *Pause_multi_fname[GR_NUM_RESOLUTIONS] = {
 	"MPPause",
 	"2_MPPause"
 };
-char *Pause_multi_mask[GR_NUM_RESOLUTIONS] = {
+const char *Pause_multi_mask[GR_NUM_RESOLUTIONS] = {
 	"MPPause-m",
 	"2_MPPause-m"
 };
@@ -171,11 +171,7 @@ void pause_init(int multi)
 void pause_do(int multi)
 {
 	int k;
-#ifdef MAKE_FS1
-	char *pause_str = XSTR(" ", -1);
-#else
-	char *pause_str = XSTR("Paused", 767);
-#endif
+	const char *pause_str = XSTR("Paused", 767);
 	int str_w, str_h;
 
 	if(Game_mode & GM_STANDALONE_SERVER){
@@ -191,12 +187,14 @@ void pause_do(int multi)
 				// draw the bitmap
 				gr_bitmap(Please_wait_coords[gr_screen.res][0], Please_wait_coords[gr_screen.res][1]);
 
+#ifndef MAKE_FS1
 				// draw "Paused" on it
 				gr_set_color_fast(&Color_normal);
 				gr_set_font(FONT2);
 				gr_get_string_size(&str_w, &str_h, pause_str);
 				gr_string((gr_screen.max_w - str_w) / 2, (gr_screen.max_h - str_h) / 2, pause_str);
 				gr_set_font(FONT1);
+#endif
 			}
 		}
 	

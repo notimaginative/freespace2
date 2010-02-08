@@ -55,14 +55,14 @@
 #define _CFILESYSTEM_H
 
 // Builds a list of all the files
-void cf_build_secondary_filelist( char *cdrom_path );
+void cf_build_secondary_filelist( const char *cdrom_path );
 void cf_free_secondary_filelist();
 
 // Internal stuff
 typedef struct cf_pathtype {
 	int		index;					// To verify that the CF_TYPE define is correctly indexed into this array
-	char		*path;					// Path relative to Freespace root, has ending backslash.
-	char		*extensions;			// Extensions used in this pathtype, separated by spaces
+	const char	*path;					// Path relative to Freespace root, has ending backslash.
+	const char	*extensions;			// Extensions used in this pathtype, separated by spaces
 	int		parent_index;			// Index of this directory's parent.  Used for creating directories when writing.
 } cf_pathtype;
 
@@ -77,7 +77,7 @@ extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
 // Input:   pathtype  - CF_TYPE_??
 //          filename  - optional, if set, tacks the filename onto end of path.
 // Output:  path      - Fully qualified pathname.
-void cf_create_default_path_string( char *path, int pathtype, char *filename=NULL, bool localize = false);
+void cf_create_default_path_string( char *path, int pathtype, const char *filename=NULL, bool localize = false);
 
 
 #endif	//_CFILESYSTEM_H

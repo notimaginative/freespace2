@@ -52,8 +52,8 @@ typedef struct fish {
 fish Fish[MAX_FISH];
 
 // fish anim name
-#define FISH_LEFT_ANIM_NAME			"f_left.ani"
-#define FISH_RIGHT_ANIM_NAME			"f_right.ani"
+static const char *FISH_LEFT_ANIM_NAME = "f_left.ani";
+static const char *FISH_RIGHT_ANIM_NAME = "f_right.ani";
 
 #define FISH_ANIM_WIDTH			100
 #define FISH_ANIM_HEIGHT		30

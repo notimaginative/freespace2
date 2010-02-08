@@ -394,7 +394,6 @@ class UI_GADGET
 	friend class UI_DOT_SLIDER_NEW;
 
 	protected:
-		char *bm_filename;
 		int kind;
 		int hotkey;
 		int x, y, w, h;
@@ -470,7 +469,7 @@ class UI_GADGET
 		// anything < start_frame will not be loaded.
 		// this keeps the loading code from trying to load bitmaps which don't exist
 		// and taking an unnecessary disk hit.		
-		int set_bmaps(char *ani_filename, int nframes = 3, int start_frame = 1);		// extracts MAX_BMAPS_PER_GADGET from .ani file		
+		int set_bmaps(const char *ani_filename, int nframes = 3, int start_frame = 1);		// extracts MAX_BMAPS_PER_GADGET from .ani file		
 
 		void reset();  // zero out m_flags
 		int is_hidden() { return hidden; }
@@ -481,7 +480,7 @@ class UI_GADGET
 #define UI_XSTR_COLOR_GREEN		0			// shades of green/gray
 #define UI_XSTR_COLOR_PINK			1			// pinkish hue
 typedef struct UI_XSTR {
-	char *xstr;										// base string
+	const char *xstr;										// base string
 	int xstr_id;									// xstring id	
 	int x, y;										// coords of the string
 	int clr;											// color to use
@@ -558,7 +557,7 @@ class UI_BUTTON : public UI_GADGET
 		int button_hilighted();	// is the mouse over this button?
 		void set_button_hilighted();	// force button to be highlighted
 		void press_button();		// force button to get pressed
-		void create(UI_WINDOW *wnd, char *_text, int _x, int _y, int _w, int _h, int do_repeat=0, int ignore_focus = 0);
+		void create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w, int _h, int do_repeat=0, int ignore_focus = 0);
 		void set_highlight_action( void (*user_function)(void) );
 		void set_disabled_action( void (*user_function)(void) );
 		void draw_forced(int frame_num);
@@ -630,13 +629,13 @@ class UI_INPUTBOX : public UI_GADGET
 	public:
 //		int first_time;
 
-		void create(UI_WINDOW *wnd, int _x, int _y, int _w, int _textlen, char *text, int _flags = 0, int pixel_lim = -1, color *clr = NULL);
-		void set_valid_chars(char *vchars);
-		void set_invalid_chars(char *ichars);
+		void create(UI_WINDOW *wnd, int _x, int _y, int _w, int _textlen, const char *text, int _flags = 0, int pixel_lim = -1, color *clr = NULL);
+		void set_valid_chars(const char *vchars);
+		void set_invalid_chars(const char *ichars);
 		int changed();
 		int pressed();
 		void get_text(char *out);
-		void set_text(char *in);
+		void set_text(const char *in);
 };
 
 // Icon flags
@@ -658,7 +657,7 @@ class UI_ICON : public UI_GADGET
 		virtual void destroy();
 
 	public:
-		void create(UI_WINDOW *wnd, char *_text, int _x, int _y, int _w, int _h);
+		void create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w, int _h);
 };
 
 class UI_CHECKBOX : public UI_GADGET
@@ -682,7 +681,7 @@ class UI_CHECKBOX : public UI_GADGET
 	public:
 		int changed();
 		int checked();
-		void create(UI_WINDOW *wnd, char *_text, int _x, int _y, int _state );
+		void create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _state );
 		void set_state(int _state);
 };
 
@@ -708,7 +707,7 @@ class UI_RADIO : public UI_GADGET
 	public:
 		int changed();
 		int checked();
-		void create(UI_WINDOW *wnd, char *_text, int _x, int _y, int _state, int _group );
+		void create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _state, int _group );
 };
 
 class UI_SCROLLBAR : public UI_GADGET
@@ -746,7 +745,7 @@ class UI_SCROLLBAR : public UI_GADGET
 		void unhide();
 		int get_hidden();
 		void link_hotspot(int up_button_num, int down_button_num);
-		int set_bmaps(char *up_button_fname, char *down_button_fname, char *line_fname);
+		int set_bmaps(const char *up_button_fname, const char *down_button_fname, const char *line_fname);
 };
 
 class UI_SLIDER2 : public UI_GADGET
@@ -783,7 +782,7 @@ class UI_SLIDER2 : public UI_GADGET
 
 	public:
 		// create the slider
-		void create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, int _numberItems, char *_bitmapSliderControl,
+		void create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, int _numberItems, const char *_bitmapSliderControl,
 						void (*_upCallback)(), void (*_downCallback)(), void (*_captureCallback)());
 		
 		// range management
@@ -821,7 +820,7 @@ class UI_DOT_SLIDER : public UI_GADGET
 	public:
 		int pos;  // 0 thru 10
 
-		void create(UI_WINDOW *wnd, int _x, int _y, char *bm, int id, int end_buttons = 1, int num_pos = 10);		
+		void create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int id, int end_buttons = 1, int num_pos = 10);		
 		virtual void draw();
 		virtual void process(int focus = 0);
 		virtual void destroy();
@@ -840,9 +839,9 @@ class UI_DOT_SLIDER_NEW : public UI_GADGET
 	public:
 		int pos;  // 0 thru 10
 
-		void create(UI_WINDOW *wnd, int _x, int _y, int num_pos, char *bm_slider, int slider_mask,
-																					char *bm_left = NULL, int left_mask = -1, int left_x = -1, int left_y = -1,
-																					char *bm_right = NULL, int right_mask = -1, int right_x = -1, int right_y = -1,
+		void create(UI_WINDOW *wnd, int _x, int _y, int num_pos, const char *bm_slider, int slider_mask,
+																					const char *bm_left = NULL, int left_mask = -1, int left_x = -1, int left_y = -1,
+																					const char *bm_right = NULL, int right_mask = -1, int right_x = -1, int right_y = -1,
 																					int dot_width = 19);
 		virtual void draw();
 		virtual void process(int focus = 0);		
@@ -891,7 +890,7 @@ class UI_LISTBOX : public UI_GADGET
 		int sel_changed();           // returns > 0 if the selected item has changed
 		void set_new_list(int _numitems, char **_list);
 
-		int set_bmaps(char *lbox_fname, char *b_up_fname, char *b_down_fname, char *sb_fname);
+		int set_bmaps(const char *lbox_fname, const char *b_up_fname, const char *b_down_fname, const char *sb_fname);
 		void link_hotspot(int up_button_num, int down_button_num);
 };
 
@@ -950,9 +949,9 @@ protected:
 public:
 	UI_WINDOW();	// constructor
 	~UI_WINDOW();	// destructor
-	void set_mask_bmap(char *fname);
-	void set_mask_bmap(int bmap, char *name);
-	void set_foreground_bmap(char *fname);
+	void set_mask_bmap(const char *fname);
+	void set_mask_bmap(int bmap, const char *name);
+	void set_foreground_bmap(const char *fname);
 	void create( int x, int y, int w, int h, int flags );
 	int process( int key_in = -1,int process_mouse = 1);
 	void draw();
@@ -961,12 +960,12 @@ public:
 	int get_current_hotspot();
 	void destroy();
 	ushort *get_mask_data(int *w, int *h) { *w = mask_w; *h = mask_h; return mask_data; }
-	void render_tooltip(char *str);
+	void render_tooltip(const char *str);
 	void set_ignore_gadgets(int state);
-	void add_XSTR(char *string, int xstr_id, int x, int y, UI_GADGET *assoc, int color_type, int font_id = -1);
+	void add_XSTR(const char *string, int xstr_id, int x, int y, UI_GADGET *assoc, int color_type, int font_id = -1);
 	void add_XSTR(UI_XSTR *xstr);
 
-	char *(*tooltip_handler)(char *text);
+	const char *(*tooltip_handler)(const char *text);
 	int last_keypress;		// filled in each frame
 	int ttx, tty;
 	int use_hack_to_get_around_stupid_problem_flag;
@@ -974,12 +973,12 @@ public:
 
 // 2 extremely useful structs
 typedef struct ui_button_info {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	ui_button_info(char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
+	ui_button_info(const char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
 } ui_button_info;
 
 

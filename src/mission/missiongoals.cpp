@@ -480,12 +480,12 @@ struct goal_list {
 };
 
 struct goal_buttons {
-	char *filename;
+	const char *filename;
 	int x, y;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	goal_buttons(char *name, int x1, int y1, int h) : filename(name), x(x1), y(y1), hotspot(h) {}
+	goal_buttons(const char *name, int x1, int y1, int h) : filename(name), x(x1), y(y1), hotspot(h) {}
 };
 
 struct goal_text {
@@ -494,7 +494,7 @@ struct goal_text {
 	char *m_lines[MAX_GOAL_LINES];
 
 	void init();
-	int add(char *text = NULL);
+	int add(const char *text = NULL);
 	void display(int n, int y);
 };
 
@@ -513,7 +513,7 @@ static goal_text Goal_text;
 static int Mission_directive_sound_timestamp;	// timestamp to control when directive succcess sound gets played
 static int Mission_directive_special_timestamp;	// used to specially mark a directive as true even though it's not
 
-char *Goal_type_text(int n)
+const char *Goal_type_text(int n)
 {
 	switch (n) {
 		case 0:	
@@ -632,7 +632,7 @@ void goal_text::init()
 // Adds lines of goal text.  If passed NULL (or nothing passed) a blank line is added.  If
 // the text is too long, it is automatically split into more than one line.
 // Returns the number of lines added.
-int goal_text::add(char *text)
+int goal_text::add(const char *text)
 {
 	int max, count;
 

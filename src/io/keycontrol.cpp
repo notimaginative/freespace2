@@ -365,18 +365,18 @@ typedef	struct asteroid_field {
 char CheatBuffer[CHEAT_BUFFER_LEN+1];
 
 #if defined(FS2_DEMO)
-	char *Cheat_code_demo = NOX("33BE^(8]C01(:=BHt");
+	const char *Cheat_code_demo = NOX("33BE^(8]C01(:=BHt");
 #elif defined(MAKE_FS1)
-	char *Cheat_code_gr = NOX("BNdEgDB\\s?0XD1?0)");		// de:www.volition-inc.com
-	char *Cheat_code = NOX("E5B?(\"=H'5UTE$o%D");			// www.volition-inc.com
-	char *Cheat_code_movies = NOX("iC:1C06,'00SoXyY6");		// freespacestandsalone
+	const char *Cheat_code_gr = NOX("BNdEgDB\\s?0XD1?0)");		// de:www.volition-inc.com
+	const char *Cheat_code = NOX("E5B?(\"=H'5UTE$o%D");			// www.volition-inc.com
+	const char *Cheat_code_movies = NOX("iC:1C06,'00SoXyY6");		// freespacestandsalone
 #else
-	char *Cheat_code = NOX("33BE^(8]C01(:=BHt");					// www.freespace2.com
-	char *Cheat_code_fish = NOX("bDc9y+$;#AIDRoouM");			// vasudanswuvfishes
-	char *Cheat_code_headz = NOX("!;:::@>F7L?@@2:@A");			// humanheadsinside.
-	char *Cheat_code_tooled = NOX("sipp-^rM@L!U^usjX");		// tooledworkedowned
-	char *Cheat_code_pirate = NOX("MAP4YP[4=-2uC(yJ^");		// arrrrwalktheplank	
-	char *Cheat_code_skip = NOX("7!ICkSI\"(8n3JesBP");			// skipmemymissionyo
+	const char *Cheat_code = NOX("33BE^(8]C01(:=BHt");					// www.freespace2.com
+	const char *Cheat_code_fish = NOX("bDc9y+$;#AIDRoouM");			// vasudanswuvfishes
+	const char *Cheat_code_headz = NOX("!;:::@>F7L?@@2:@A");			// humanheadsinside.
+	const char *Cheat_code_tooled = NOX("sipp-^rM@L!U^usjX");		// tooledworkedowned
+	const char *Cheat_code_pirate = NOX("MAP4YP[4=-2uC(yJ^");		// arrrrwalktheplank	
+	const char *Cheat_code_skip = NOX("7!ICkSI\"(8n3JesBP");			// skipmemymissionyo
 #endif
 										  // 666)6=N79+Z45=BE0e
 int Tool_enabled = 0;

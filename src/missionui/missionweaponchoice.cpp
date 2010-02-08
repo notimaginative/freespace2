@@ -557,23 +557,23 @@ typedef struct wl_bitmap_group
 UI_WINDOW	Weapon_ui_window;
 //UI_BUTTON	Weapon_buttons[NUM_WEAPON_BUTTONS];
 
-static char *Wl_mask_single[GR_NUM_RESOLUTIONS] = {
+static const char *Wl_mask_single[GR_NUM_RESOLUTIONS] = {
 	"weaponloadout-m",
 	"2_weaponloadout-m"
 };
 
-static char *Wl_mask_multi[GR_NUM_RESOLUTIONS] = {
+static const char *Wl_mask_multi[GR_NUM_RESOLUTIONS] = {
 	"weaponloadoutmulti-m",
 	"2_weaponloadoutmulti-m"
 };
 
-static char *Wl_loadout_select_mask[GR_NUM_RESOLUTIONS] = {
+static const char *Wl_loadout_select_mask[GR_NUM_RESOLUTIONS] = {
 	"weaponloadout-m",
 	"2_weaponloadout-m"
 };
 
 
-static char *Weapon_select_background_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Weapon_select_background_fname[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
 	"Brief",
 	"Brief"
@@ -583,7 +583,7 @@ static char *Weapon_select_background_fname[GR_NUM_RESOLUTIONS] = {
 #endif
 };
 
-static char *Weapon_select_multi_background_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Weapon_select_multi_background_fname[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
 	"Brief",
 	"Brief"
@@ -607,12 +607,12 @@ static int		WeaponSelectMaskBitmap;	// bitmap id of the weapon select mask bitma
 
 // convenient struct for handling all button controls
 struct wl_buttons {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	wl_buttons(char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
+	wl_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
 };
 
 static wl_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_WEAPON_BUTTONS] = {
@@ -947,7 +947,7 @@ int wl_fury_missile_offset_hack(int weapon_class, int num_missiles)
 	return 0;
 }
 
-char *wl_tooltip_handler(char *str)
+const char *wl_tooltip_handler(const char *str)
 {
 	if (Selected_wl_class < 0)
 		return NULL;

@@ -320,7 +320,7 @@
 
 #define CAMPAIGN_LOOP_MISSION_UNINITIALIZED	-2
 
-extern char *campaign_types[MAX_CAMPAIGN_TYPES];
+extern const char *campaign_types[MAX_CAMPAIGN_TYPES];
 
 // structure for a campaign definition.  It contains the mission names and other interesting
 // information about a campaign and the mission strucuture within.
@@ -402,23 +402,23 @@ extern int	Num_campaigns;
 void mission_campaign_init( void );
 
 // called to reload the default campaign
-int mission_campaign_load_by_name( char *filename );
-int mission_campaign_load_by_name_csfe( char *filename, char *callsign );
+int mission_campaign_load_by_name( const char *filename );
+int mission_campaign_load_by_name_csfe( const char *filename, const char *callsign );
 
 
 // load up and initialize a new campaign
-int mission_campaign_load( char *filename, int load_savefile = 1 );
+int mission_campaign_load( const char *filename, int load_savefile = 1 );
 
 // function to save the state of the campaign between missions or to load a campaign save file
 extern int mission_campaign_save( void );
 
 // declaration for local campaign save game load function
-extern void mission_campaign_savefile_load( char *cfilename );
-extern void mission_campaign_savefile_delete( char *cfilename, int is_multi = -1 );
-extern void mission_campaign_delete_all_savefiles( char *pilot_name, int is_multi );
+extern void mission_campaign_savefile_load( const char *cfilename );
+extern void mission_campaign_savefile_delete( const char *cfilename, int is_multi = -1 );
+extern void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi );
 
 // if a given campaign is a multiplayer campaign, we can load and save the multiplayer info portion with these functions
-extern int mission_campaign_parse_is_multi(char *filename, char *name);
+extern int mission_campaign_parse_is_multi(const char *filename, char *name);
 
 // function which sets up internal variable for player to play next mission in the campaign
 extern int mission_campaign_next_mission( void );
@@ -431,7 +431,7 @@ extern void mission_campaign_close( void );		// gets called in more than game cl
 extern void mission_campaign_shutdown( void );	// only called in game close
 
 // read in a campaign file.  Used by Fred.
-int mission_campaign_load_fred(char *filename, char *name_verify = NULL);
+int mission_campaign_load_fred(const char *filename, const char *name_verify = NULL);
 
 // used by Fred to get a mission's list of goals.
 void read_mission_goal_list(int num);
@@ -439,7 +439,7 @@ void read_mission_goal_list(int num);
 void mission_campaign_build_list( int multiplayer );
 
 // returns index of mission with passed name
-extern int mission_campaign_find_mission( char *name );
+extern int mission_campaign_find_mission( const char *name );
 
 // maybe play a movie.  type indicates before or after mission
 extern void mission_campaign_maybe_play_movie(int type);
@@ -453,17 +453,17 @@ void mission_campaign_savefile_generate_root(char *filename);
 // execute the corresponding mission_campaign_savefile functions.
 
 // Saves the campaign camp under the player name pname
-int campaign_savefile_save(char *pname);
+int campaign_savefile_save(const char *pname);
 // Deletes the campaign save camp under the player name pname
-void campaign_delete_save( char *cfn, char *pname);
+void campaign_delete_save( const char *cfn, const char *pname);
 // Loads campaign camp from fname under player name pname
-void campaign_savefile_load(char *fname, char *pname);
+void campaign_savefile_load(const char *fname, const char *pname);
 
 // get name and type of specified campaign file
-int mission_campaign_get_info(char *filename, char *name, int *type, int *max_players, char **desc = NULL);
+int mission_campaign_get_info(const char *filename, char *name, int *type, int *max_players, char **desc = NULL);
 
 // get a listing of missions in a campaign
-int mission_campaign_get_mission_list(char *filename, char **list, int max);
+int mission_campaign_get_mission_list(const char *filename, char **list, int max);
 
 // load up a campaign for the current player.
 int mission_load_up_campaign();
@@ -484,7 +484,7 @@ void mission_campaign_skip_to_next(int start_game = 1);
 void mission_campaign_exit_loop();
 
 // jump to specified mission
-void mission_campaign_jump_to_mission(char *name);
+void mission_campaign_jump_to_mission(const char *name);
 
 // stuff for the end of the campaign of the single player game
 void mission_campaign_end_init();

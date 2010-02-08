@@ -578,15 +578,15 @@ int Debrief_award_text_width[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 
-char *Debrief_single_name[GR_NUM_RESOLUTIONS] = {
+const char *Debrief_single_name[GR_NUM_RESOLUTIONS] = {
 	"DebriefSingle",		// GR_640
 	"2_DebriefSingle"		// GR_1024
 };
-char *Debrief_multi_name[GR_NUM_RESOLUTIONS] = {
+const char *Debrief_multi_name[GR_NUM_RESOLUTIONS] = {
 	"DebriefMulti",		// GR_640
 	"2_DebriefMulti"		// GR_1024
 };
-char *Debrief_mask_name[GR_NUM_RESOLUTIONS] = {
+const char *Debrief_mask_name[GR_NUM_RESOLUTIONS] = {
 	"Debrief-m",			// GR_640
 	"2_Debrief-m"			// GR_1024
 };
@@ -616,7 +616,7 @@ char *Debrief_mask_name[GR_NUM_RESOLUTIONS] = {
 #define REPEAT	1
 
 //XSTR:OFF
-char* Debrief_loading_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+const char* Debrief_loading_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"PleaseWait",		// GR_640
 	"2_PleaseWait"		// GR_1024
 };
@@ -878,7 +878,7 @@ voice_map Debrief_promotion_voice_mapping[NUM_VOLITION_CAMPAIGNS][MAX_CAMPAIGN_M
 #define DB_AWARD_RANK		2
 #define DB_AWARD_BADGE		3
 #define DB_AWARD_BG			4
-static char* Debrief_award_filename[GR_NUM_RESOLUTIONS][5] = {
+static const char* Debrief_award_filename[GR_NUM_RESOLUTIONS][5] = {
 	{
 		"DebriefWings",
 		"DebriefMedal",
@@ -899,7 +899,7 @@ static char* Debrief_award_filename[GR_NUM_RESOLUTIONS][5] = {
 #define DB_AWARD_RANK		3
 #define DB_AWARD_BADGE		4
 #define DB_AWARD_BG			5
-static char* Debrief_award_filename[GR_NUM_RESOLUTIONS][6] = {
+static const char* Debrief_award_filename[GR_NUM_RESOLUTIONS][6] = {
 	{
 		"DebriefWings",
 		"DebriefMedal",
@@ -933,7 +933,7 @@ void debrief_award_text_clear();
 
 
 // functions
-char *debrief_tooltip_handler(char *str)
+const char *debrief_tooltip_handler(const char *str)
 {
 	if (!stricmp(str, NOX("@.Medal"))) {
 		if (Award_active){
@@ -1747,7 +1747,7 @@ void debrief_accept(int ok_to_post_start_game_event)
 	int go_loop = 0;
 
 	if ( (/*Cheats_enabled ||*/ Turned_traitor || Must_replay_mission) && (Game_mode & GM_CAMPAIGN_MODE) ) {
-		char *str;
+		const char *str;
 		int z;
 
 		if (Game_mode & GM_MULTIPLAYER) {
@@ -2282,7 +2282,7 @@ void debrief_check_buttons()
 	*/
 }
 
-void debrief_text_stage_init(char *src, int type)
+void debrief_text_stage_init(const char *src, int type)
 {
 	int i, n_lines, n_chars[MAX_DEBRIEF_LINES];
 	char line[MAX_DEBRIEF_LINE_LEN];
@@ -2324,7 +2324,7 @@ void debrief_free_text()
 void debrief_text_init()
 {
 	int i, r_count = 0;
-	char *src;
+	const char *src;
 
 	// release old text lines first
 	debrief_free_text();
@@ -2753,7 +2753,7 @@ void debrief_add_award_text(char *str)
 void debrief_do_frame(float frametime)
 {
 	int k=0, new_k=0;
-	char *please_wait_str = XSTR("Please Wait", 1242);
+	const char *please_wait_str = XSTR("Please Wait", 1242);
 	int str_w, str_h;
 	char buf[256];
 

@@ -123,7 +123,7 @@
 #define WINGMAN_STATUS_DOTS				3
 #define WINGMAN_STATUS_NAMES				4
 
-static char *Wingman_status_filenames[GR_NUM_RESOLUTIONS][HUD_WINGMAN_STATUS_NUM_FRAMES] =
+static const char *Wingman_status_filenames[GR_NUM_RESOLUTIONS][HUD_WINGMAN_STATUS_NUM_FRAMES] =
 {
 //XSTR:OFF
 	{ // GR_640
@@ -355,7 +355,7 @@ int HUD_wingman_status_coords[GR_NUM_RESOLUTIONS][HUD_WINGMAN_MAX_WINGS][HUD_WIN
 	} 
 };
 
-int hud_wingman_status_wing_index(char *wing_name)
+int hud_wingman_status_wing_index(const char *wing_name)
 {
 //XSTR:OFF
 	if ( !stricmp("alpha", wing_name) ) {

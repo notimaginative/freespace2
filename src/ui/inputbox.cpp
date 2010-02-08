@@ -285,7 +285,7 @@ void UI_INPUTBOX::init_cursor()
 	cursor_current_frame=0;
 }
 
-void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, char *_text, int _flags, int pixel_lim, color *clr)
+void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, const char *_text, int _flags, int pixel_lim, color *clr)
 {
 	int tw, th;
 
@@ -337,7 +337,7 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 	invalid_chars = NULL;
 };
 
-void UI_INPUTBOX::set_valid_chars(char *vchars)
+void UI_INPUTBOX::set_valid_chars(const char *vchars)
 {
 	// free up any existing string
 	if(valid_chars != NULL){
@@ -348,7 +348,7 @@ void UI_INPUTBOX::set_valid_chars(char *vchars)
 	valid_chars = strdup(vchars);
 }
 
-void UI_INPUTBOX::set_invalid_chars(char *ichars)
+void UI_INPUTBOX::set_invalid_chars(const char *ichars)
 {
 	// free up any existing string
 	if(invalid_chars != NULL){
@@ -703,7 +703,7 @@ void UI_INPUTBOX::get_text(char *out)
 	out[length] = 0;
 }
 
-void UI_INPUTBOX::set_text(char *in)
+void UI_INPUTBOX::set_text(const char *in)
 {
 	int in_length;
 	

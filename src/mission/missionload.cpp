@@ -354,7 +354,7 @@ static char Campaign_name_list[MAX_CAMPAIGNS+2][NAME_LENGTH];
 static int	Num_campaign_missions;
 
 // get the mission filenames that make up a campaign
-extern int mission_campaign_get_filenames(char *filename, char dest[][NAME_LENGTH], int *num);
+extern int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH], int *num);
 
 void mission_load_menu_init()
 {

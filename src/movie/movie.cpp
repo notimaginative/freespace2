@@ -34,7 +34,7 @@
 #include "gamesequence.h"
 #include "mainhallmenu.h"
 
-int movie_play(char *filename, int cd_prompt)
+int movie_play(const char *filename, int cd_prompt)
 {
 	// mark the movie as viewable in the techroom if in a campaign
 	if (Game_mode & GM_CAMPAIGN_MODE) {
@@ -90,7 +90,7 @@ int movie_play(char *filename, int cd_prompt)
 	return 1;
 }
 
-int movie_play_two(char *filename1, char *filename2)
+int movie_play_two(const char *filename1, const char *filename2)
 {
 	// FIXME: part of the CD code which isn't included yet
 	int require_cd = 0;

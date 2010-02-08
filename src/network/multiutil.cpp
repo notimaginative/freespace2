@@ -461,7 +461,7 @@ object *multi_get_network_object( ushort net_signature )
 
 #define NUM_DEATH_WORDS	40
 
-char *multi_random_death_word()
+const char *multi_random_death_word()
 {
 	int index;
 
@@ -560,7 +560,7 @@ char *multi_random_death_word()
 #define NUM_CHAT_START_WORDS	8
 #define MAX_CHAT_PHRASE_LEN	25		// be careful not to exceed (or update if exceeded)
 
-char *multi_random_chat_start()
+const char *multi_random_chat_start()
 {
 	int index;
 
@@ -593,7 +593,7 @@ char *multi_random_chat_start()
 //
 //
 
-int multi_ship_class_lookup(char* ship_name)
+int multi_ship_class_lookup(const char* ship_name)
 {
 	int i, player_ship_class;
 
@@ -748,7 +748,7 @@ int multi_find_player_by_net_signature(ushort net_signature)
 	return -1;
 }
 
-int multi_find_player_by_ship_name(char *ship_name)
+int multi_find_player_by_ship_name(const char *ship_name)
 {
 	int idx;
 
@@ -1484,7 +1484,7 @@ void multi_subsys_update_all()
 	*/
 }
 
-int multi_find_player_by_callsign(char *callsign)
+int multi_find_player_by_callsign(const char *callsign)
 {
 	int idx;
 	for(idx=0;idx<MAX_PLAYERS;idx++){
@@ -3018,7 +3018,7 @@ int multi_kill_limit_reached()
 }
 
 // display a chat message (write to the correct spot - hud, standalone gui, chatbox, etc)
-void multi_display_chat_msg(char *msg, int player_index, int add_id)
+void multi_display_chat_msg(const char *msg, int player_index, int add_id)
 {
 	// if i'm a standalone, always add to the gui
 	if(Game_mode & GM_STANDALONE_SERVER){
@@ -3044,7 +3044,7 @@ void multi_display_chat_msg(char *msg, int player_index, int add_id)
 }
 
 // fill in Current_file_checksum and Current_file_length
-void multi_get_mission_checksum(char *filename)
+void multi_get_mission_checksum(const char *filename)
 {
 	CFILE *in;
 
@@ -3125,7 +3125,7 @@ int multi_show_ingame_ping()
 int multi_get_connection_speed()
 {
 	int cspeed;
-	char *connection_speed;
+	const char *connection_speed;
 	
 	connection_speed = os_config_read_string(NULL, "ConnectionSpeed", "");	
 

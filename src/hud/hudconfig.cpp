@@ -313,7 +313,7 @@ float Radar_ranges[RR_MAX_RANGES] = {
 	10000000.0f,	// infinity
 };
 
-char *Radar_range_text(int n)
+const char *Radar_range_text(int n)
 {
 	#if RR_MAX_RANGES != 3
 	#error Number of ranges is wrong!
@@ -435,7 +435,7 @@ int HUD_default_popup_mask2 =
 	0											// kills gauge
 };
 
-void hud_config_color_save(char *name);
+void hud_config_color_save(const char *name);
 void hud_config_select_all_toggle(int toggle);
 
 int HC_select_all = 0;
@@ -448,19 +448,19 @@ int HC_select_all = 0;
 #pragma warning(disable:4710)
 #endif
 
-char *Hud_config_fname[GR_NUM_RESOLUTIONS] = {
+const char *Hud_config_fname[GR_NUM_RESOLUTIONS] = {
 	"HUDConfig",
 	"2_HUDConfig"
 };
 
-char *Hud_config_mask_fname[GR_NUM_RESOLUTIONS] = {
+const char *Hud_config_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"HUDConfig-m",
 	"2_HUDConfig-m"
 };
 
 struct HC_gauge_region
 {
-	char			*filename;
+	const char		*filename;
 	int			x,y;
 	int			hotspot;
 	int			use_iff;
@@ -470,7 +470,7 @@ struct HC_gauge_region
 	int			color;
 	UI_BUTTON	button;
 
-	HC_gauge_region(char *name, int x1, int y1, int h, int iff, int cp, int b, int nf, int cl) : filename(name), x(x1), y(y1), hotspot(h), use_iff(iff), can_popup(cp), bitmap(b), nframes(nf), color(cl){}
+	HC_gauge_region(const char *name, int x1, int y1, int h, int iff, int cp, int b, int nf, int cl) : filename(name), x(x1), y(y1), hotspot(h), use_iff(iff), can_popup(cp), bitmap(b), nframes(nf), color(cl){}
 };
 
 // hud config gauges
@@ -623,7 +623,7 @@ int HC_gauge_description_coords[GR_NUM_RESOLUTIONS][3] = {
 	}
 };
 
-char *HC_gauge_descriptions(int n)
+const char *HC_gauge_descriptions(int n)
 {
 	switch(n)	{
 	case 0:
@@ -861,7 +861,7 @@ void hud_config_set_alpha(int gauge, int a);
 #define HC_SPECIAL_TEXT				1
 typedef struct HC_special_bitmap
 {
-	char *filename;
+	const char *filename;
 	int x,y;
 	int bitmap;
 } HC_special_bitmap;
@@ -887,22 +887,22 @@ static int							HC_gauge_selected;	// gauge is selected
 #define HC_BRIGHTNESS_SLIDER					0
 struct hc_sliders {
 	// base slider
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	int dot_w;
 	int dots;
 
 	// left and right buttons
-	char *left_filename;
+	const char *left_filename;
 	int left_mask, left_x, left_y;
-	char *right_filename;
+	const char *right_filename;
 	int right_mask, right_x, right_y;
 
 	// slider control
 	UI_DOT_SLIDER_NEW slider;  // because we have a class inside this struct, we need the constructor below..
 
-	hc_sliders(char *name, int x1, int y1, int xt1, int yt1, int h, int _dot_w, int _dots, char *_left_filename, int _left_mask, int _left_x, int _left_y, char *_right_filename, int _right_mask, int _right_x, int _right_y) : 
+	hc_sliders(const char *name, int x1, int y1, int xt1, int yt1, int h, int _dot_w, int _dots, const char *_left_filename, int _left_mask, int _left_x, int _left_y, const char *_right_filename, int _right_mask, int _right_x, int _right_y) : 
 				 filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), dot_w(_dot_w), dots(_dots), left_filename(_left_filename), left_mask(_left_mask), left_x(_left_x), left_y(_left_y), right_filename(_right_filename), right_mask(_right_mask), right_x(_right_x), right_y(_right_y) {}
 };
 
@@ -974,7 +974,7 @@ int HC_slider_coords[GR_NUM_RESOLUTIONS][NUM_HC_SLIDERS][4] = {
 };
 #define HCS_CONV(__v)			( 255 - (__v) )
 
-char *HC_slider_fname[GR_NUM_RESOLUTIONS] = {
+const char *HC_slider_fname[GR_NUM_RESOLUTIONS] = {
 	"slider",
 	"2_slider"
 };
@@ -1975,7 +1975,7 @@ void hud_config_as_player()
 // RGB color stuff
 //
 
-void hud_config_color_save(char *name)
+void hud_config_color_save(const char *name)
 {
 	int idx;
 	CFILE *out = cfopen(name, "wt", CFILE_NORMAL, CF_TYPE_PLAYERS);
@@ -2001,7 +2001,7 @@ void hud_config_color_save(char *name)
 	cfclose(out);	
 }
 
-void hud_config_color_load(char *name)
+void hud_config_color_load(const char *name)
 {
 	int idx, rval;
 	char str[1024] = "";

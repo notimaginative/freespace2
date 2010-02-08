@@ -108,7 +108,7 @@ wacky_text Emp_wacky_text[NUM_TEXT_STAMPS];
 
 // for randomly inserting characters
 #define NUM_RANDOM_CHARS		51
-char Emp_random_char[NUM_RANDOM_CHARS] = 
+const char Emp_random_char[NUM_RANDOM_CHARS] = 
 									{ 'a', 'b', 'c', 'd', 'e', 'f', 'g', '4', 'h', '8', '_', '$', ')', '-', '~', 'u', 'q', 
 									  '.', 'x', 'h', '&', '%', '*', '1', '3', 't', 'h', 'o', 'p', '@', 'h', 'i','v', '+', '=',
 									  '|', '{', '}', ':', ';', '^', 'l', 'z', 'u', 'v', '<', '>', '?', '5', '8' };
@@ -512,7 +512,7 @@ int emp_should_blit_gauge()
 }
 
 // emp hud string
-void emp_hud_string(int x, int y, int gauge_id, char *str)
+void emp_hud_string(int x, int y, int gauge_id, const char *str)
 {
 	char tmp[256] = "";
 
@@ -532,7 +532,7 @@ void emp_hud_string(int x, int y, int gauge_id, char *str)
 }
 
 // emp hud printf
-void emp_hud_printf(int x, int y, int gauge_id, char *format, ...)
+void emp_hud_printf(int x, int y, int gauge_id, const char *format, ...)
 {
 	char tmp[256] = "";
 	va_list args;	

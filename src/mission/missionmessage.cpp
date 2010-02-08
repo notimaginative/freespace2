@@ -408,7 +408,7 @@
 // names read in for builtin message radio bits to see what message to play.  These are
 // generic names, meaning that there will be the same message type for a number of different
 // personas
-char *Builtin_message_types[MAX_BUILTIN_MESSAGE_TYPES] =
+const char *Builtin_message_types[MAX_BUILTIN_MESSAGE_TYPES] =
 {
 //XSTR:OFF
 	"Arrive Enemy",
@@ -532,7 +532,7 @@ int MessageQ_num;			// keeps track of number of entries on the queue.
 int Num_personas;
 Persona Personas[MAX_PERSONAS];
 
-char *Persona_type_names[MAX_PERSONA_TYPES] = 
+const char *Persona_type_names[MAX_PERSONA_TYPES] = 
 {
 //XSTR:OFF
 	"wingman",
@@ -618,7 +618,7 @@ void persona_parse()
 }
 
 // two functions to add avi/wave names into a table
-int add_avi( char *avi_name )
+int add_avi( const char *avi_name )
 {
 	int i;
 
@@ -638,7 +638,7 @@ int add_avi( char *avi_name )
 	return (Num_message_avis - 1);
 }
 
-int add_wave( char *wave_name )
+int add_wave( const char *wave_name )
 {
 	int i;
 
@@ -1587,7 +1587,7 @@ all_done:
 }
 
 // queues up a message to display to the player
-void message_queue_message( int message_num, int priority, int timing, char *who_from, int source, int group, int delay, int builtin_type )
+void message_queue_message( int message_num, int priority, int timing, const char *who_from, int source, int group, int delay, int builtin_type )
 {
 	int i, m_persona;
 
@@ -1808,7 +1808,7 @@ int message_filter_multi(int id)
 void message_send_unique_to_player( char *id, void *data, int m_source, int priority, int group, int delay )
 {
 	int i, source;
-	char *who_from;
+	const char *who_from;
 
 	source = 0;
 	who_from = NULL;
@@ -1823,7 +1823,7 @@ void message_send_unique_to_player( char *id, void *data, int m_source, int prio
 				who_from = TERRAN_COMMAND;
 				source = HUD_SOURCE_TERRAN_CMD;
 			} else if ( m_source == MESSAGE_SOURCE_SPECIAL ) {
-				who_from = (char *)data;
+				who_from = (const char *)data;
 				source = HUD_SOURCE_TERRAN_CMD;
 			} else if ( m_source == MESSAGE_SOURCE_WINGMAN ) {
 				int m_persona, ship_index;
@@ -1918,7 +1918,7 @@ void message_send_builtin_to_player( int type, ship *shipp, int priority, int ti
 	// persona if we can't find the right message for the given persona
 	do {
 		for ( i = 0; i < Num_builtin_messages; i++ ) {
-			char *name, *who_from;
+			const char *name, *who_from;
 
 			name = Builtin_message_types[type];
 
@@ -2003,7 +2003,7 @@ int message_is_playing()
 // Functions below pertain only to personas!!!!
 
 // given a character string, try to find the persona index
-int message_persona_name_lookup( char *name )
+int message_persona_name_lookup( const char *name )
 {
 	int i;
 

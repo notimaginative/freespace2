@@ -221,18 +221,18 @@
 class cmdline_parm {
 public:
 	cmdline_parm *next, *prev;
-	char *name;						// name of parameter, must start with '-' char
+	const char *name;						// name of parameter, must start with '-' char
 #ifdef PLAT_UNIX
-	char *name_s;					// single letter argument
+	const char *name_s;					// single letter argument
 #endif
-	char *help;						// help text for this parameter
+	const char *help;						// help text for this parameter
 	char *args;						// string value for parameter arguements (NULL if no arguements)
 	int name_found;				// true if parameter on command line, otherwise false
 
 #ifndef PLAT_UNIX
-	cmdline_parm(char *name, char *help);
+	cmdline_parm(const char *name, const char *help);
 #else
-	cmdline_parm(char *name, char *name_s, char *help);
+	cmdline_parm(const char *name, const char *name_s, const char *help);
 #endif
 	~cmdline_parm();
 	int found();
@@ -576,9 +576,9 @@ void print_instructions()
 // name_ - name of the parameter, must start with '-' character
 // help_ - help text for this parameter
 #ifndef PLAT_UNIX
-cmdline_parm::cmdline_parm(char *name_, char *help_)
+cmdline_parm::cmdline_parm(const char *name_, const char *help_)
 #else
-cmdline_parm::cmdline_parm(char *name_, char *name_s_, char *help_)
+cmdline_parm::cmdline_parm(const char *name_, const char *name_s_, const char *help_)
 #endif
 {
 	name = name_;

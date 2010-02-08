@@ -392,9 +392,9 @@ typedef struct bitmap {
 } bitmap;
 
 //This are defined in MainWin.c
-extern void _cdecl WinAssert(char * text,char *filename, int line);
-extern void _cdecl Error( char * filename, int line, char * format, ... );
-extern void _cdecl Warning( char * filename, int line, char * format, ... );
+extern void _cdecl WinAssert(const char * text, const char *filename, int line);
+extern void _cdecl Error( const char * filename, int line, const char * format, ... );
+extern void _cdecl Warning( const char * filename, int line, const char * format, ... );
 
 #include "outwnd.h"
 
@@ -484,10 +484,10 @@ DCF(toggle_it,"description")
 
 class debug_command {
 	public:
-	char *name;
-	char *help;
+	const char *name;
+	const char *help;
 	void (*func)();
-	debug_command(char *name,char *help,void (*func)());	// constructor
+	debug_command(const char *name, const char *help, void (*func)());	// constructor
 };
 
 #define DCF(function_name,help_text)			\
@@ -519,12 +519,12 @@ void dc_get_arg(uint flags);		// Gets the next argument.   If it doesn't match t
 extern char *Dc_arg;		// The (lowercased) string value of the argument retrieved from dc_arg
 extern char *Dc_arg_org;	// Dc_arg before it got converted to lowercase
 extern uint Dc_arg_type;	// The type of dc_arg.
-extern char *Dc_command_line;		// The rest of the command line, from the end of the last processed arg on.
+extern const char *Dc_command_line;		// The rest of the command line, from the end of the last processed arg on.
 extern int Dc_arg_int;		// If Dc_arg_type & ARG_INT or ARG_HEX is set, then this is the value
 extern float Dc_arg_float;	// If Dc_arg_type & ARG_FLOAT is set, then this is the value
 
 // Outputs text to the console
-void dc_printf( char *format, ... );
+void dc_printf( const char *format, ... );
 
 // Each dc_arg_type can have one or more of these flags set.
 // This is because some things can fit into two catagories.
@@ -662,10 +662,10 @@ extern void game_busy();
 
 class monitor {
 	public:
-	char	*name;			
+	const char	*name;			
 	int	value;			// Value that gets cleared to 0 each frame.
 	int	min, max, sum, cnt;		// Min & Max of value.  Sum is used to calculate average 
-	monitor(char *name);	// constructor
+	monitor(const char *name);	// constructor
 };
 
 // Creates a monitor variable
@@ -690,7 +690,7 @@ void monitor_update();
 
 #define NOX(s) s
 
-char *XSTR(char *str, int index);
+const char *XSTR(const char *str, int index);
 
 // Caps V between MN and MX.
 template <class T> void CAP( T& v, T mn, T mx )
@@ -741,13 +741,13 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-	void *vm_malloc( int size, char *filename=NULL, int line=-1 );
+	void *vm_malloc( int size, const char *filename=NULL, int line=-1 );
 
 	// 
-	char *vm_strdup( const char *ptr, char *filename, int line );
+	char *vm_strdup( const char *ptr, const char *filename, int line );
 
 	// Frees some RAM. 
-	void vm_free( void *ptr, char *filename=NULL, int line=-1 );
+	void vm_free( void *ptr, const char *filename=NULL, int line=-1 );
 
 	// Frees all RAM.
 	void vm_free_all();

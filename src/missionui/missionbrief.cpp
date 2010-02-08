@@ -410,17 +410,17 @@ static int Brief_infobox_coords[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 
-static char *Brief_infobox_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_infobox_filename[GR_NUM_RESOLUTIONS] = {
 	"InfoBox",
 	"2_Infobox"
 };
 
-static char *Brief_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_filename[GR_NUM_RESOLUTIONS] = {
 	"Brief",
 	"2_Brief"
 };
 
-static char *Brief_multi_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_multi_filename[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
 	"Brief",	// use the standard bitmap and slap the chatbox on later
 #else
@@ -429,18 +429,18 @@ static char *Brief_multi_filename[GR_NUM_RESOLUTIONS] = {
 	"2_BriefMulti"
 };
 
-static char *Brief_mask_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"Brief-m",
 	"2_Brief-m"
 };
 
-static char *Brief_multi_mask_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_multi_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"BriefMulti-m",
 	"2_BriefMulti-m"
 };
 
 
-static char *Brief_win_filename[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_win_filename[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
 	"mapwin",
 	"mapwin"
@@ -466,12 +466,12 @@ int Closeup_region[GR_NUM_RESOLUTIONS][4] = {
 	}, 
 };
 
-char *Closeup_background_filename[GR_NUM_RESOLUTIONS] = {
+const char *Closeup_background_filename[GR_NUM_RESOLUTIONS] = {
 	NOX("BriefPop"),	// GR_640
 	NOX("2_BriefPop")	// GR_1024
 };
 
-char *Closeup_button_filename[GR_NUM_RESOLUTIONS] = {
+const char *Closeup_button_filename[GR_NUM_RESOLUTIONS] = {
 	NOX("BPB_00"),		// GR_640
 	NOX("2_BPB_00"),		// GR_1024
 };
@@ -523,26 +523,26 @@ int Brief_inited = FALSE;
 #define	BRIEF_PAUSE_MASK					16
 
 //XSTR:OFF
-static char *Brief_mask_single[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_mask_single[GR_NUM_RESOLUTIONS] = {
 	"brief-m",		// GR_640
 	"2_brief-m"		// GR_1024
 };
 
-static char *Brief_mask_multi[GR_NUM_RESOLUTIONS] = {
+static const char *Brief_mask_multi[GR_NUM_RESOLUTIONS] = {
 	"briefmulti-m",		// GR_640
 	"2_briefmulti-m"			// GR_1024
 };
 //XSTR:ON
 
 struct brief_buttons {	
-	char *filename;
+	const char *filename;
 	int x, y;
 	int xt, yt;
 	int hotspot;
 	int repeat;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	brief_buttons(char *name, int x1, int y1, int xt1, int yt1, int h, int r = 0) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), repeat(r) {}
+	brief_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h, int r = 0) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), repeat(r) {}
 };
 
 int	Brief_grid_bitmap = -1;
@@ -654,7 +654,7 @@ int brief_setup_closeup(brief_icon *bi);
 void brief_maybe_blit_scene_cut(float frametime);
 void brief_transition_reset();
 
-char *brief_tooltip_handler(char *str)
+const char *brief_tooltip_handler(const char *str)
 {
 	if (!stricmp(str, NOX("@close"))) {
 		if (Closeup_icon)
@@ -2289,7 +2289,7 @@ void briefing_stop_music()
 	}
 }
 
-void briefing_load_music(char* fname)
+void briefing_load_music(const char* fname)
 {
 	if ( Cmdline_freespace_no_music ) {
 		return;

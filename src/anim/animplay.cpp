@@ -898,7 +898,7 @@ void anim_read_header(anim *ptr, CFILE *fp)
 //	returns:	pointer to anim that is loaded	=> sucess
 //				NULL										=>	failure
 //
-anim *anim_load(char *real_filename, int file_mapped)
+anim *anim_load(const char *real_filename, int file_mapped)
 {
 	anim			*ptr;
 	CFILE			*fp;
@@ -1131,7 +1131,7 @@ void anim_level_close()
 // return:		0	=>		success
 //					-1	=>		failed
 //
-int anim_write_frames_out(char *filename)
+int anim_write_frames_out(const char *filename)
 {
 	anim				*source_anim;
 	anim_instance	*ai;
@@ -1182,7 +1182,7 @@ int anim_write_frames_out(char *filename)
 //	Display information and statistics about a .ani file.
 //	This is called when -i switch is on when running ac.exe
 //
-void anim_display_info(char *real_filename)
+void anim_display_info(const char *real_filename)
 {
 	CFILE				*fp;
 	anim				A;

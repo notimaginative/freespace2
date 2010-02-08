@@ -149,7 +149,7 @@
 #define RR_LONG				1	
 #define RR_INFINITY			2
 extern float Radar_ranges[RR_MAX_RANGES];
-extern char *Radar_range_text(int range_num);
+extern const char *Radar_range_text(int range_num);
 
 #define RP_SHOW_DEBRIS						(1<<0)
 #define RP_SHOW_FRIENDLY_MISSILES		(1<<1)
@@ -195,7 +195,7 @@ void hud_config_as_observer(ship *shipp,ai_info *aif);
 
 void hud_config_as_observer();
 void hud_config_as_player();
-void hud_config_display_text(char* gauge_text, int x, int y);
+void hud_config_display_text(const char* gauge_text, int x, int y);
 void hud_set_display_gauge_cbox();
 
 // leave hud config without accepting changes
@@ -215,7 +215,7 @@ void	hud_config_popup_flag_clear(int i);
 void hud_config_record_color(int color);
 
 // load up the given hcf file
-void hud_config_color_load(char *name);
+void hud_config_color_load(const char *name);
 
 #endif
 

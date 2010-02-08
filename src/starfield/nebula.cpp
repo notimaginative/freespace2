@@ -217,7 +217,7 @@ void project_2d_onto_sphere( vector *pnt, float u, float v )
 // 1.00 - initial version
 
 // returns 0 if failed
-int load_nebula_sub(char *filename)
+int load_nebula_sub(const char *filename)
 {
 	CFILE *fp;
 	char id[16];
@@ -283,7 +283,7 @@ int load_nebula_sub(char *filename)
 	return 1;
 }
 
-void nebula_init( char *filename, int pitch, int bank, int heading )
+void nebula_init( const char *filename, int pitch, int bank, int heading )
 {
 	angles a;
 
@@ -293,7 +293,7 @@ void nebula_init( char *filename, int pitch, int bank, int heading )
 	nebula_init(filename, &a);
 }
 
-void nebula_init( char *filename, angles * pbh )
+void nebula_init( const char *filename, angles * pbh )
 {
 	if ( Nebula_loaded )	{
 		nebula_close();

@@ -227,7 +227,7 @@ static int Demo_title_active = 0;
 static int Demo_title_bitmap = -1;
 static int Demo_title_expire_timestamp = 0;
 static int Demo_title_need_fade_in = 1;
-static char *Demo_title_bitmap_filename = NOX("DemoTitle1");
+static const char *Demo_title_bitmap_filename = NOX("DemoTitle1");
 #endif
 
 // --------------------------------------------------------------------------------------------------------
@@ -266,11 +266,11 @@ int Choose_list_coords[GR_NUM_RESOLUTIONS][4] = {
 	}
 };
 
-char *Player_select_background_bitmap_name[GR_NUM_RESOLUTIONS] = {
+const char *Player_select_background_bitmap_name[GR_NUM_RESOLUTIONS] = {
 	"ChoosePilot",
 	"2_ChoosePilot"
 };
-char *Player_select_background_mask_bitmap[GR_NUM_RESOLUTIONS] = {
+const char *Player_select_background_mask_bitmap[GR_NUM_RESOLUTIONS] = {
 	"ChoosePilot-m",
 	"2_ChoosePilot-m"
 };
@@ -280,12 +280,12 @@ char *Player_select_background_mask_bitmap[GR_NUM_RESOLUTIONS] = {
 
 // convenient struct for handling all button controls
 struct barracks_buttons {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	barracks_buttons(char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
+	barracks_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
 };
 
 static barracks_buttons Player_select_buttons[GR_NUM_RESOLUTIONS][NUM_PLAYER_SELECT_BUTTONS] = {	
@@ -399,8 +399,8 @@ static int Player_select_middle_text_y[GR_NUM_RESOLUTIONS] = {
 
 char Player_select_bottom_text[150] = "";
 char Player_select_middle_text[150] = "";
-void player_select_set_bottom_text(char *txt);
-void player_select_set_middle_text(char *txt);
+void player_select_set_bottom_text(const char *txt);
+void player_select_set_middle_text(const char *txt);
 
 
 // FORWARD DECLARATIONS
@@ -413,12 +413,11 @@ int player_select_create_new_pilot();
 void player_select_delete_pilot();
 void player_select_display_all_text();
 void player_select_display_copyright();
-void player_select_set_bottom_text(char *txt);
 void player_select_set_controls(int gray);
 void player_select_draw_list();
 void player_select_process_noninput(int k);
 void player_select_process_input(int k);
-int player_select_pilot_file_filter(char *filename);
+int player_select_pilot_file_filter(const char *filename);
 int player_select_get_last_pilot_info();
 void player_select_eval_very_first_pilot();
 void player_select_commit();
@@ -1087,7 +1086,7 @@ void player_select_scroll_list_down()
 // fill in the data on the last played pilot (callsign and is_multi or not)
 int player_select_get_last_pilot_info()
 {
-	char *last_player;
+	const char *last_player;
 
 	last_player = os_config_read_string( NULL, "LastPlayer", NULL);
 	
@@ -1441,19 +1440,19 @@ void player_select_display_all_text()
 	}
 }
 
-int player_select_pilot_file_filter(char *filename)
+int player_select_pilot_file_filter(const char *filename)
 {
 	return !verify_pilot_file(filename, Player_select_mode == PLAYER_SELECT_MODE_SINGLE);
 }
 
-void player_select_set_bottom_text(char *txt)
+void player_select_set_bottom_text(const char *txt)
 {
 	if (txt) {
 		strncpy(Player_select_bottom_text, txt, 149);
 	}
 }
 
-void player_select_set_middle_text(char *txt)
+void player_select_set_middle_text(const char *txt)
 {
 	if (txt) {
 		strncpy(Player_select_middle_text, txt, 149);

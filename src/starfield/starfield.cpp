@@ -1470,14 +1470,14 @@ void stars_draw_background()
 }
 
 // call this to set a specific model as the background model
-void stars_set_background_model(char *model_name, char *texture_name)
+void stars_set_background_model(const char *model_name, const char *texture_name)
 {
 	Nmodel_num = model_load(model_name, 0, NULL);
 	Nmodel_bitmap = bm_load(texture_name);
 }
 
 // lookup a starfield bitmap, return index or -1 on fail
-int stars_find_bitmap(char *name)
+int stars_find_bitmap(const char *name)
 {
 	int idx;
 
@@ -1493,7 +1493,7 @@ int stars_find_bitmap(char *name)
 }
 
 // lookup a sun by bitmap filename, return index or -1 on fail
-int stars_find_sun(char *name)
+int stars_find_sun(const char *name)
 {
 	int idx;
 

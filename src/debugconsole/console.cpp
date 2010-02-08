@@ -124,7 +124,7 @@ static int Num_debug_commands = 0;
 static debug_command *Debug_command[MAX_COMMANDS];
 
 
-debug_command::debug_command(char *_name, char *_help, void (*_func)() )
+debug_command::debug_command(const char *_name, const char *_help, void (*_func)() )
 {
 	int i;
 
@@ -172,7 +172,7 @@ int Dc_status;		// If this is set, then print out the current status of the comm
 char *Dc_arg;		// The (lowercased) string value of the argument retrieved from dc_arg
 char *Dc_arg_org;	// Dc_arg before it got converted to lowercase
 uint Dc_arg_type;	// The type of dc_arg.
-char *Dc_command_line;		// The rest of the command line, from the end of the last processed arg on.
+const char *Dc_command_line;		// The rest of the command line, from the end of the last processed arg on.
 int Dc_arg_int;		// If Dc_arg_type & ARG_INT is set, then this is the value
 float Dc_arg_float;	// If Dc_arg_type & ARG_FLOAT is set, then this is the value
 
@@ -211,7 +211,7 @@ TOKEN_CODE	scanner_token;
 
 char scanner_token_string[MAX_TOKEN_STRING_LENGTH];
 char scanner_word_string[MAX_TOKEN_STRING_LENGTH];
-char * scanner_bufferp = "";
+const char * scanner_bufferp = "";
 char * scanner_tokenp = scanner_token_string;
 
 CHAR_CODE scanner_char_table[256];
@@ -325,7 +325,7 @@ void scanner_get_token()
 	scanner_downshift_word();
 }
 
-void scanner_start_command( char * s )
+void scanner_start_command( const char * s )
 {
 	scanner_bufferp = s;
 	scanner_get_char();
@@ -435,7 +435,7 @@ void dc_get_arg(uint type)
 
 void debug_help();
 
-void debug_do_command(char * command)
+void debug_do_command(const char * command)
 {
 
 	int i;
@@ -613,7 +613,7 @@ void debug_output( char c )
 	debug_text[debug_y][debug_x] = 0;
 }
 
-void dc_printf(char *format, ...)
+void dc_printf(const char *format, ...)
 {
 	char tmp[DCOLS*2];
 	va_list args;

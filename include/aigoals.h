@@ -197,7 +197,7 @@
 extern int Num_ai_dock_names;
 extern char Ai_dock_names[MAX_AI_DOCK_NAMES][NAME_LENGTH];
 
-extern char *Ai_goal_text(int goal);
+extern const char *Ai_goal_text(int goal);
 
 // extern function definitions
 extern void ai_post_process_mission();
@@ -210,8 +210,8 @@ extern void ai_add_wing_goal_sexp( int sexp, int type, int wingnum );
 extern void ai_add_goal_sub_sexp( int sexp, int type, ai_goal *aigp );
 
 // adds goals to ships/sings through player orders
-extern void ai_add_ship_goal_player( int type, int mode, int submode, char *shipname, ai_info *aip );
-extern void ai_add_wing_goal_player( int type, int mode, int submode, char *shipname, int wingnum );
+extern void ai_add_ship_goal_player( int type, int mode, int submode, const char *shipname, ai_info *aip );
+extern void ai_add_wing_goal_player( int type, int mode, int submode, const char *shipname, int wingnum );
 
 extern void ai_remove_ship_goal( ai_info *aip, int index );
 extern void ai_clear_ship_goals( ai_info *aip );
@@ -222,16 +222,16 @@ extern void ai_copy_mission_wing_goal( ai_goal *aigp, ai_info *aip );
 extern void ai_mission_goal_complete( ai_info *aip );
 extern void ai_mission_wing_goal_complete( int wingnum, ai_goal *remove_goalp );
 
-extern int ai_get_subsystem_type( char *subsystem );
+extern int ai_get_subsystem_type( const char *subsystem );
 extern char *ai_get_subsystem_type_name(int type);
-extern void ai_update_goal_references(ai_goal *goals, int type, char *old_name, char *new_name);
-extern int query_referenced_in_ai_goals(ai_goal *goals, int type, char *name);
-extern char *ai_add_dock_name(char *str);
+extern void ai_update_goal_references(ai_goal *goals, int type, const char *old_name, char *new_name);
+extern int query_referenced_in_ai_goals(ai_goal *goals, int type, const char *name);
+extern char *ai_add_dock_name(const char *str);
 
 extern int ai_query_goal_valid( int ship, int ai_goal );
 
-extern void ai_add_goal_ship_internal( ai_info *aip, int goal_type, char *name, int docker_point, int dockee_point, int immediate = 1 );
-extern void ai_add_goal_wing_internal( wing *wingp, int goal_type, char *name, int immediate = 1 );
+extern void ai_add_goal_ship_internal( ai_info *aip, int goal_type, const char *name, int docker_point, int dockee_point, int immediate = 1 );
+extern void ai_add_goal_wing_internal( wing *wingp, int goal_type, const char *name, int immediate = 1 );
 
 #endif
 

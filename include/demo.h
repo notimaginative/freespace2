@@ -70,10 +70,10 @@ int demo_do_frame_end();
 
 // initialize a demo for recording
 // NOTE : call this after loading the mission and going through the briefing, but _before_ physically moving into the mission
-int demo_start_record(char *file);
+int demo_start_record(const char *file);
 
 // initialize a demo for playback - calling this will load up the demo file and move the player into the playback state
-int demo_start_playback(char *file);
+int demo_start_playback(const char *file);
 
 // finish the demo, whether recording or playing back
 void demo_close();
@@ -91,13 +91,13 @@ void demo_POST_object_dump();
 void demo_POST_primary_fired(object *objp, int banks, int linked);
 
 // post a unique message
-void demo_POST_unique_message(char *id, char *who_from, int m_source, int priority);
+void demo_POST_unique_message(const char *id, const char *who_from, int m_source, int priority);
 
 // post a builtin message
 void demo_POST_builtin_message(int type, ship *shipp, int priority, int timing);
 
 // post an object create message
-void demo_POST_obj_create(char *pobj_name, int signature);
+void demo_POST_obj_create(const char *pobj_name, int signature);
 
 // post a warpin event
 void demo_POST_warpin(int signature, int ship_flags);

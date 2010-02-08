@@ -643,7 +643,7 @@ void PSNET_TOP_LAYER_PROCESS()
 // initialize psnet to use the specified port
 void psnet_init( int protocol, int port_num )
 {	
-	char *internet_connection;
+	const char *internet_connection;
 #ifndef PLAT_UNIX
 	WSADATA wsa_data; 		
 #endif

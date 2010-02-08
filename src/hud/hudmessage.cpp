@@ -531,13 +531,13 @@ static int Hud_mission_log_status_coords[GR_NUM_RESOLUTIONS][2] = {
 #endif
 
 struct scrollback_buttons {
-	char *filename;
+	const char *filename;
 	int x, y;
 	int xt, yt;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	scrollback_buttons(char *name, int x1, int y1, int x2, int y2, int h) : filename(name), x(x1), y(y1), xt(x2), yt(y2), hotspot(h) {}
+	scrollback_buttons(const char *name, int x1, int y1, int x2, int y2, int h) : filename(name), x(x1), y(y1), xt(x2), yt(y2), hotspot(h) {}
 };
 
 int Scroll_time_id;
@@ -590,20 +590,20 @@ static int Status_bitmap;
 static int Background_bitmap;
 static UI_WINDOW Ui_window;
 
-static char* Hud_mission_log_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Hud_mission_log_fname[GR_NUM_RESOLUTIONS] = {
 	"MissionLog",		// GR_640
 	"2_MissionLog"		// GR_1024
 };
 
 #ifdef MAKE_FS1
 // No longer used - DDOI
-static char* Hud_mission_log_status_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Hud_mission_log_status_fname[GR_NUM_RESOLUTIONS] = {
 	"MLStatus",		// GR_640
 	"MLStatus"		// GR_1024
 };
 #endif
 
-static char* Hud_mission_log_mask_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Hud_mission_log_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"MissionLog-m",		// GR_640
 	"2_MissionLog-m"		// GR_1024
 };
@@ -835,7 +835,7 @@ void hud_show_fixed_text()
 }
 
 //	Similar to HUD printf, but shows only one message at a time, at a fixed location.
-void HUD_fixed_printf(float duration, char * format, ...)
+void HUD_fixed_printf(float duration, const char * format, ...)
 {
 	va_list	args;
 	char		tmp[HUD_MSG_LENGTH_MAX];
@@ -885,7 +885,7 @@ void HUD_fixed_printf_reset()
 //	Print a single line of text to the HUD.  We know that the text will fit on the screen,
 // since that was taken care of in HUD_printf();
 //
-void HUD_printf_line(char *text, int source, int time = 0, int x = 0)
+void HUD_printf_line(const char *text, int source, int time = 0, int x = 0)
 {
 	Assert(text != NULL);
 
@@ -937,7 +937,7 @@ int HUD_get_team_source(int team)
 	return 0;
 }
 
-void HUD_printf(char *format, ...)
+void HUD_printf(const char *format, ...)
 {
 	va_list args;
 	char tmp[HUD_MSG_LENGTH_MAX];
@@ -958,7 +958,7 @@ void HUD_printf(char *format, ...)
 	hud_sourced_print(HUD_SOURCE_COMPUTER, tmp);
 }
 
-void HUD_ship_sent_printf(int sh, char *format, ...)
+void HUD_ship_sent_printf(int sh, const char *format, ...)
 {
 	va_list args;
 	char tmp[HUD_MSG_LENGTH_MAX];
@@ -984,7 +984,7 @@ void HUD_ship_sent_printf(int sh, char *format, ...)
 // message on the HUD.  Text is split into multiple lines if width exceeds msg display area
 // width.  'source' is used to indicate who send the message, and is used to color code text.
 //
-void HUD_sourced_printf(int source, char *format, ...)
+void HUD_sourced_printf(int source, const char *format, ...)
 {
 	va_list args;
 	char tmp[HUD_MSG_LENGTH_MAX];
@@ -1061,7 +1061,7 @@ int hud_query_scrollback_size()
 }
 
 // add text directly to the hud scrollback log, without displaying on the hud
-void HUD_add_to_scrollback(char *text, int source)
+void HUD_add_to_scrollback(const char *text, int source)
 {
 	if (!strlen(text)) {
 		nprintf(("Warning", "HUD ==> attempt to print a 0 length string in msg window\n"));
@@ -1074,7 +1074,7 @@ void HUD_add_to_scrollback(char *text, int source)
 // hud_add_msg_to_scrollback() adds the new_msg to the scroll-back message list.  If there
 // are no more free slots, the first slot is released to make room for the new message.
 //
-void hud_add_line_to_scrollback(char *text, int source, int t, int x, int y, int underline_width)
+void hud_add_line_to_scrollback(const char *text, int source, int t, int x, int y, int underline_width)
 {
 	line_node *new_line;
 
@@ -1102,7 +1102,7 @@ void hud_add_line_to_scrollback(char *text, int source, int t, int x, int y, int
 	list_append(&Msg_scrollback_used_list, new_line);
 }
 
-void hud_add_msg_to_scrollback(char *text, int source, int t)
+void hud_add_msg_to_scrollback(const char *text, int source, int t)
 {
 	char buf[HUD_MSG_LENGTH_MAX], *ptr, *str;
 	int msg_len, w, max_width, x, offset = 0;

@@ -229,12 +229,12 @@ HK_save_info Hotkey_saved_info[MAX_HOTKEY_TARGET_ITEMS];
 int Num_hotkeys_saved;
 
 
-static char *Hotkey_background_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Hotkey_background_fname[GR_NUM_RESOLUTIONS] = {
 	"Hotkeys",		// GR_640
 	"2_Hotkeys"		// GR_1024
 };
 
-static char *Hotkey_mask_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Hotkey_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"Hotkeys-M",		// GR_640
 	"2_Hotkeys-M"	// GR_1024
 };
@@ -377,12 +377,12 @@ static int Hotkey_ship_x[GR_NUM_RESOLUTIONS] = {
 #endif
 
 struct hotkey_buttons {
-	char *filename;
+	const char *filename;
 	int x, y;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	hotkey_buttons(char *name, int x1, int y1, int h) : filename(name), x(x1), y(y1), hotspot(h) {}
+	hotkey_buttons(const char *name, int x1, int y1, int h) : filename(name), x(x1), y(y1), hotspot(h) {}
 };
 
 // button definitions
@@ -462,7 +462,7 @@ static UI_XSTR Hotkey_text[GR_NUM_RESOLUTIONS][HOTKEY_NUM_TEXT] = {
 
 
 static struct {
-	char *label;
+	const char *label;
 	int type;
 	int index;
 	int y;  // Y coordinate of line
@@ -711,7 +711,7 @@ int get_wing_hotkeys(int n)
 }
 
 // add a line of hotkey smuck to end of list
-int hotkey_line_add(char *text, int type, int index, int y)
+int hotkey_line_add(const char *text, int type, int index, int y)
 {
 	if (Num_lines >= MAX_LINES)
 		return 0;
@@ -724,7 +724,7 @@ int hotkey_line_add(char *text, int type, int index, int y)
 }
 
 // insert a line of hotkey smuck before line 'n'.
-int hotkey_line_insert(int n, char *text, int type, int index)
+int hotkey_line_insert(int n, const char *text, int type, int index)
 {
 	int z;
 
@@ -745,7 +745,7 @@ int hotkey_line_insert(int n, char *text, int type, int index)
 
 // insert a line of hotkey smuck somewhere between 'start' and end of list such that it is
 // sorted by name
-int hotkey_line_add_sorted(char *text, int type, int index, int start)
+int hotkey_line_add_sorted(const char *text, int type, int index, int start)
 {
 	int z;
 
@@ -774,7 +774,7 @@ int hotkey_get_team(int i)
 int hotkey_build_team_listing(int team, int y)
 {
 	ship_obj *so;
-	char *str = NULL;
+	const char *str = NULL;
 	int i, j, s, z, start;
 	int font_height = gr_get_font_height();
 

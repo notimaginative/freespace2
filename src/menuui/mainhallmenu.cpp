@@ -455,7 +455,7 @@ typedef struct main_hall_defines {
 	// region descriptions ----------------
 	
 	// text (tooltip) description
-	char *region_descript[NUM_REGIONS];
+	const char *region_descript[NUM_REGIONS];
 
 	// y coord of where to draw tooltip text
 	int region_yval;
@@ -648,7 +648,7 @@ int Main_hall_notify_stamp = -1;
 char Main_hall_notify_text[300]="";
 
 // set the current notification string and the associated timestamp
-void main_hall_set_notify_string(char *str);
+void main_hall_set_notify_string(const char *str);
 
 // handle any drawing, culling, etc of notification messages
 void main_hall_notify_do();
@@ -1828,7 +1828,7 @@ void main_hall_handle_random_intercom_sounds()
 }
 
 // set the notification string with its decay timeout
-void main_hall_set_notify_string(char *str)
+void main_hall_set_notify_string(const char *str)
 {
 	strcpy(Main_hall_notify_text,str);
 	Main_hall_notify_stamp = timestamp(MAIN_HALL_NOTIFY_TIME);

@@ -311,13 +311,13 @@
 // SMALL CHATBOX ----------------------------------------------------------------------------------
 
 // background bitmap
-char* Chatbox_small_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+const char* Chatbox_small_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"Chatbox",		// GR_640
 	"2_Chatbox"		// GR_1024
 };
 
 // background mask
-char* Chatbox_small_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+const char* Chatbox_small_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"Chatbox-m",	// GR_640
 	"2_Chatbox-m"	// GR_1024
 };
@@ -377,13 +377,13 @@ int Chatbox_small_max_lines[GR_NUM_RESOLUTIONS] = {
 // BIG CHATBOX ----------------------------------------------------------------------------------
 
 // background bitmap
-char* Chatbox_big_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+const char* Chatbox_big_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"ChatboxBig",		// GR_640
 	"2_ChatboxBig"		// GR_1024
 };
 
 // mask
-char* Chatbox_big_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+const char* Chatbox_big_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"Chatbox-m",		// GR_640
 	"2_Chatbox-m"			// GR_1024
 };
@@ -443,13 +443,13 @@ int Chatbox_big_max_lines[GR_NUM_RESOLUTIONS] = {
 // PAUSED CHATBOX ----------------------------------------------------------------------------------
 
 // mask
-char* Chatbox_p_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+const char* Chatbox_p_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"MPPause",			// GR_640
 	"2_MPPause"			// GR_1024
 };
 
 // mask
-char* Chatbox_p_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+const char* Chatbox_p_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"MPPause-m",		// GR_640
 	"2_MPPause-m"		// GR_1024
 };
@@ -696,14 +696,14 @@ void chatbox_set_mode(int mode_flags)
 // automatically split up any input text, send it, and leave the remainder 
 void chatbox_autosplit_line()
 {
-	char *remainder,msg[150];
+	char *remainder = NULL, msg[150];
 	int msg_pixel_width;
 	
 	// if the chat line is getting too long, fire off the message, putting the last
 	// word on the next input line.
 	memset(msg,0,150);
 	Chat_inputbox.get_text(msg);
-	remainder = "";
+
 	// determine if the width of the string in pixels is > than the inputbox width -- if so,
 	// then send the message
 	gr_get_string_size(&msg_pixel_width, NULL, msg);
@@ -713,16 +713,17 @@ void chatbox_autosplit_line()
 		if ( remainder ) {
 			*remainder = '\0';
 			remainder++;
-		} else {
-			remainder = "";
-		}	
+		}
+
 		// if I'm the server, then broadcast the packet		
 		chatbox_recall_add(msg);
   		send_game_chat_packet(Net_player, msg, MULTI_MSG_ALL,NULL);
 		chatbox_add_line(msg, MY_NET_PLAYER_NUM);
 
-		// display any remainder of text on the next line
-		Chat_inputbox.set_text(remainder);
+		if ( remainder ) {
+			// display any remainder of text on the next line
+			Chat_inputbox.set_text(remainder);
+		}
 	} else if((Chat_inputbox.pressed() && (strlen(msg) > 0)) || (strlen(msg) >= CHATBOX_MAX_LEN)) { 
 		// tack on the null terminator in the boundary case
 		int x = strlen(msg);
@@ -732,10 +733,7 @@ void chatbox_autosplit_line()
 		// if I'm the server, then broadcast the packet		
 		chatbox_recall_add(msg);
   		send_game_chat_packet(Net_player, msg, MULTI_MSG_ALL,NULL);
-		chatbox_add_line(msg, MY_NET_PLAYER_NUM);
-
-		// display any remainder of text on the next line
-		Chat_inputbox.set_text(remainder);		
+		chatbox_add_line(msg, MY_NET_PLAYER_NUM);	
 	}	
 }
 
@@ -1016,7 +1014,7 @@ void chatbox_chat_init()
 }
 
 // int Test_color = 0;
-void chatbox_add_line(char *msg, int pid, int add_id)
+void chatbox_add_line(const char *msg, int pid, int add_id)
 {
 	int backup;
 	int	n_lines,idx;

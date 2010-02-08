@@ -136,7 +136,7 @@ void UI_LISTBOX::link_hotspot(int up_button_num, int down_button_num)
 // returns:		-1 ==> error
 //					 0 ==> success
 //
-int UI_LISTBOX::set_bmaps(char *lbox_fname, char *b_up_fname, char *b_down_fname, char *sb_fname)
+int UI_LISTBOX::set_bmaps(const char *lbox_fname, const char *b_up_fname, const char *b_down_fname, const char *sb_fname)
 {
 	if (has_scrollbar) {
 		scrollbar.set_bmaps(b_up_fname, b_down_fname, sb_fname);

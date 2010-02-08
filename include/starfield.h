@@ -184,13 +184,13 @@ void stars_draw_sun_glow(int sun_n);
 void stars_camera_cut();
 
 // call this to set a specific model as the background model
-void stars_set_background_model(char *model_name, char *texture_name);
+void stars_set_background_model(const char *model_name, const char *texture_name);
 
 // lookup a starfield bitmap, return index or -1 on fail
-int stars_find_bitmap(char *name);
+int stars_find_bitmap(const char *name);
 
 // lookup a sun by bitmap filename, return index or -1 on fail
-int stars_find_sun(char *name);
+int stars_find_sun(const char *name);
 
 // get the world coords of the sun pos on the unit sphere.
 void stars_get_sun_pos(int sun_n, vector *pos);

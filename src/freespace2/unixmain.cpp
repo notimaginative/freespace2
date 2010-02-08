@@ -4,6 +4,9 @@
 #include "osregistry.h"
 #include "osapi.h"
 
+#undef malloc
+#undef free
+
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow);
 
 #if defined(__APPLE__) && !defined(MACOSX)

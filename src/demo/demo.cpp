@@ -138,7 +138,7 @@ int Demo_error = DEMO_ERROR_NONE;
 #define DEMO_FLOAT(vl)					do { DEMO_DATA(vl, sizeof(float)); } while(0)
 #define DEMO_VECTOR(vl)					do { DEMO_DATA(vl, sizeof(vector)); } while(0)
 #define DEMO_MATRIX(vl)					do { DEMO_DATA(vl, sizeof(matrix)); } while(0)
-#define DEMO_STRING(vl)					do { int stlen; if(Game_mode & GM_DEMO_RECORD){ stlen = strlen(vl); if(stlen <= 0){ break; }	DEMO_DATA(stlen, sizeof(ushort)); DEMO_DATA(*vl, strlen(vl)); } else { ushort len = 0; DEMO_USHORT(len); DEMO_DATA(*vl, len); vl[len] = '\0'; } } while(0)
+#define DEMO_STRING(vl)					do { /*int stlen; if(Game_mode & GM_DEMO_RECORD){ stlen = strlen(vl); if(stlen <= 0){ break; }	DEMO_DATA(stlen, sizeof(ushort)); DEMO_DATA(*vl, strlen(vl)); } else { ushort len = 0; DEMO_USHORT(len); DEMO_DATA(*vl, len); vl[len] = '\0'; }*/ } while(0)
 		
 // demo events types
 #define DE_DUMP							1			// standard object dump
@@ -275,7 +275,7 @@ int demo_do_frame_end()
 
 // initialize a demo for recording
 // NOTE : call this after loading the mission and going through the briefing, but _before_ physically moving into the mission
-int demo_start_record(char *file)
+int demo_start_record(const char *file)
 {
 #ifndef DEMO_SYSTEM
 	return 0;
@@ -319,7 +319,7 @@ int demo_start_record(char *file)
 }
 
 // initialize a demo for playback - calling this will load up the demo file and move the player into the playback state
-int demo_start_playback(char *file)
+int demo_start_playback(const char *file)
 {
 #ifndef DEMO_SYSTEM
 	return 0;
@@ -578,7 +578,7 @@ void demo_POST_primary_fired(object *objp, int banks, int linked)
 }
 
 // post a unique message
-void demo_POST_unique_message(char *id, char *who_from, int m_source, int priority)
+void demo_POST_unique_message(const char *id, const char *who_from, int m_source, int priority)
 {
 	// sanity
 	if((id == NULL) || (who_from == NULL) || (strlen(id) <= 0) || (strlen(who_from) <= 0)){
@@ -620,7 +620,7 @@ void demo_POST_builtin_message(int type, ship *shipp, int priority, int timing)
 }
 
 // post an object create message
-void demo_POST_obj_create(char *pobj_name, int signature)
+void demo_POST_obj_create(const char *pobj_name, int signature)
 {
 	// write it
 	ubyte event = DE_OBJ_CREATE;

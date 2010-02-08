@@ -683,7 +683,7 @@ missile_obj *missile_obj_return_address(int index)
 }
 
 //	Return the index of Weapon_info[].name that is *name.
-int weapon_info_lookup(char *name)
+int weapon_info_lookup(const char *name)
 {
 	int	i;
 
@@ -3320,7 +3320,7 @@ void weapon_detonate(object *objp)
 }
 
 //	Return the Weapon_info[] index of the weapon with name *name.
-int weapon_name_lookup(char *name)
+int weapon_name_lookup(const char *name)
 {
 	int	i;
 

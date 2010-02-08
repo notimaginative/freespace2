@@ -329,16 +329,16 @@
 
 // background filename for species
 // note weapon filename is now same as ship filename
-char *Tech_background_filename[GR_NUM_RESOLUTIONS] = {
+const char *Tech_background_filename[GR_NUM_RESOLUTIONS] = {
 	"TechShipData",
 	"2_TechShipData"
 };
-char *Tech_mask_filename[GR_NUM_RESOLUTIONS] = {
+const char *Tech_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"TechShipData-M",
 	"2_TechShipData-M"
 };
 #ifndef MAKE_FS1
-char *Tech_slider_filename[GR_NUM_RESOLUTIONS] = {
+const char *Tech_slider_filename[GR_NUM_RESOLUTIONS] = {
 	"slider",
 	"2_slider"
 };
@@ -346,10 +346,10 @@ char *Tech_slider_filename[GR_NUM_RESOLUTIONS] = {
 
 #ifdef MAKE_FS1
 // need the second background for FS1
-char *Tech_data_background_filename = {
+const char *Tech_data_background_filename = {
 	"TechData"
 };
-char *Tech_data_mask_filename = {
+const char *Tech_data_mask_filename = {
 	"TechData-M"
 };
 #endif
@@ -436,14 +436,14 @@ int Tech_texture_backup;
 #define MAX_TEXT_LINE_LEN	256
 
 struct techroom_buttons {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	int tab;
 	int flags;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	techroom_buttons(char *name, int x1, int y1, int xt1, int yt1, int h, int t, int f = 0) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), tab(t), flags(f) {}
+	techroom_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h, int t, int f = 0) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), tab(t), flags(f) {}
 };
 
 static techroom_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
@@ -583,7 +583,7 @@ static UI_SLIDER2 Tech_slider;
 
 //XSTR:OFF
 #ifdef MAKE_FS1
-static char *Intel_anim_filenames[MAX_INTEL_ENTRIES] = {
+static const char *Intel_anim_filenames[MAX_INTEL_ENTRIES] = {
 	"tech_tpilot.ani",
 	"tech_vasudan.ani",
 	"tech_shivan.ani",

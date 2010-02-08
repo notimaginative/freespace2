@@ -428,7 +428,7 @@ typedef struct {
 
 // callback function used for get_file_list() to filter files to be added to list.  Return 1
 // to add file to list, or 0 to not add it.
-extern int (*Get_file_list_filter)(char *filename);
+extern int (*Get_file_list_filter)(const char *filename);
 
 // cfile directory. valid after cfile_init() returns successfully
 #define CFILE_ROOT_DIRECTORY_LEN			256
@@ -439,7 +439,7 @@ extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
 
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program
-int cfile_init(char *exe_dir,char *cdrom_dir=NULL);
+int cfile_init(const char *exe_dir, const char *cdrom_dir=NULL);
 
 // Call this if pack files got added or removed or the
 // cdrom changed.  This will refresh the list of filenames 
@@ -447,14 +447,14 @@ int cfile_init(char *exe_dir,char *cdrom_dir=NULL);
 void cfile_refresh();
 
 // add an extension to a filename if it doesn't already have it
-char *cf_add_ext(char *filename, char *ext);
+char *cf_add_ext(const char *filename, const char *ext);
 
 // return CF_TYPE (directory location type) of a CFILE you called cfopen() successfully on.
 int cf_get_dir_type(CFILE *cfile);
 
 // Opens the file.  If no path is given, use the extension to look into the
 // default path.  If mode is NULL, delete the file.  
-CFILE *cfopen(char *filename, char *mode, int type = CFILE_NORMAL, int dir_type = CF_TYPE_ANY, bool localize = false);
+CFILE *cfopen(const char *filename, const char *mode, int type = CFILE_NORMAL, int dir_type = CF_TYPE_ANY, bool localize = false);
 
 // Flush the open file buffer
 int cflush(CFILE *cfile);
@@ -464,13 +464,13 @@ int cflush(CFILE *cfile);
 void cf_set_version( CFILE * cfile, int version );
 
 // Deletes a file.
-void cf_delete( char *filename, int dir_type );
+void cf_delete( const char *filename, int dir_type );
 
 // Same as _access function to read a file's access bits
-int cf_access( char *filename, int dir_type, int mode );
+int cf_access( const char *filename, int dir_type, int mode );
 
 // Returns 1 if file exists, 0 if not.
-int cf_exist( char *filename, int dir_type );
+int cf_exist( const char *filename, int dir_type );
 
 // ctmpfile() opens a temporary file stream.  File is deleted automatically when closed
 CFILE *ctmpfile();
@@ -485,7 +485,7 @@ int cfilelength(CFILE *fp);
 int cfread(void *buf, int elsize, int nelem, CFILE *fp);
 
 // cfwrite() writes to the file
-int cfwrite(void *buf, int elsize, int nelem, CFILE *cfile);
+int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile);
 
 // Reads/writes RLE compressed data.
 int cfread_compressed(void *buf, int elsize, int nelem, CFILE *cfile);
@@ -501,7 +501,7 @@ int cftell(CFILE *fp);
 int cfputc(int c, CFILE *cfile);
 
 // cfputs() writes a string to a file
-int cfputs(char *str, CFILE *cfile);
+int cfputs(const char *str, CFILE *cfile);
 
 // cfgetc() reads a character to a file
 int cfgetc(CFILE *cfile);
@@ -516,14 +516,14 @@ int cfeof(CFILE *cfile);
 void *cf_returndata(CFILE *cfile);
 
 // get the 2 byte checksum of the passed filename - return 0 if operation failed, 1 if succeeded
-int cf_chksum_short(char *filename, ushort *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );
+int cf_chksum_short(const char *filename, ushort *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );
 
 // get the 2 byte checksum of the passed file - return 0 if operation failed, 1 if succeeded
 // NOTE : preserves current file position
 int cf_chksum_short(CFILE *file, ushort *chksum, int max_size = -1);
 
 // get the 32 bit CRC checksum of the passed filename - return 0 if operation failed, 1 if succeeded
-int cf_chksum_long(char *filename, uint *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );
+int cf_chksum_long(const char *filename, uint *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );
 
 // get the 32 bit CRC checksum of the passed file - return 0 if operation failed, 1 if succeeded
 // NOTE : preserves current file position
@@ -532,24 +532,24 @@ int cf_chksum_long(CFILE *file, uint *chksum, int max_size = -1);
 // convenient for misc checksumming purposes ------------------------------------------
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-ushort cf_add_chksum_short(ushort seed, char *buffer, int size);
+ushort cf_add_chksum_short(ushort seed, const char *buffer, int size);
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-unsigned long cf_add_chksum_long(unsigned long seed, char *buffer, int size);
+unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int size);
 
 // convenient for misc checksumming purposes ------------------------------------------
 
 //================= HIGH LEVEL FUNCTIONS ==================
-int cfexist(char *filename);	// Returns true if file exists on disk (1) or in hog (2).
+int cfexist(const char *filename);	// Returns true if file exists on disk (1) or in hog (2).
 
 // rename a file, utilizing the extension to determine where file is.
 #define CF_RENAME_SUCCESS				0					// successfully renamed the file
 #define CF_RENAME_FAIL_ACCESS			1					// new name could not be created
 #define CF_RENAME_FAIL_EXIST			2					// old name does not exist
-int cf_rename(char *old_name, char *name, int type = CF_TYPE_ANY );
+int cf_rename(const char *old_name, const char *name, int type = CF_TYPE_ANY );
 
 // changes the attributes of a file
-void cf_attrib(char *name, int set, int clear, int type);
+void cf_attrib(const char *name, int set, int clear, int type);
 
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES
@@ -558,8 +558,6 @@ int cfile_flush_dir(int type);
 // functions for reading from cfile
 // These are all high level, built up from
 // cfread.
-int cfgetc(CFILE *fp);
-char *cfgets(char *buf, size_t n, CFILE *fp);
 char cfread_char(CFILE *file, int ver = 0, char deflt = 0);
 ubyte cfread_ubyte(CFILE *file, int ver = 0, ubyte deflt = 0);
 short cfread_short(CFILE *file, int ver = 0, short deflt = 0);
@@ -572,10 +570,10 @@ void cfread_angles(angles *ang, CFILE *file, int ver = 0, angles *deflt = NULL);
 
 // Reads variable length, null-termined string.   Will only read up
 // to n characters.
-void cfread_string(char *buf,int n, CFILE *file);
+void cfread_string(char *buf, int n, CFILE *file);
 // Read a fixed length that is null-terminatedm, and has the length
 // stored in file
-void cfread_string_len(char *buf,int n, CFILE *file);
+void cfread_string_len(char *buf, int n, CFILE *file);
 
 // functions for writing cfiles
 int cfwrite_char(char c, CFILE *file);
@@ -589,14 +587,14 @@ int cfwrite_vector(vector *vec, CFILE *file);
 int cfwrite_angles(angles *ang, CFILE *file);
 
 // writes variable length, null-termined string.
-int cfwrite_string(char *buf, CFILE *file);
+int cfwrite_string(const char *buf, CFILE *file);
 
 // write a fixed length that is null-terminatedm, and has the length
 // stored in file
-int cfwrite_string_len(char *buf, CFILE *file);
+int cfwrite_string_len(const char *buf, CFILE *file);
 
-int cf_get_file_list( int max, char **list, int type, char *filter, int sort = CF_SORT_NONE, file_list_info *info = NULL );
-int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char **list, int type, char *filter, int sort = CF_SORT_NONE, file_list_info *info = NULL );
+int cf_get_file_list( int max, char **list, int type, const char *filter, int sort = CF_SORT_NONE, file_list_info *info = NULL );
+int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char **list, int type, const char *filter, int sort = CF_SORT_NONE, file_list_info *info = NULL );
 void cf_sort_filenames( int n, char **list, int sort, file_list_info *info = NULL );
 
 // Searches for a file.   Follows all rules and precedence and searches
@@ -607,7 +605,7 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info = NUL
 //         size        - File size
 //         offset      - Offset into pack file.  0 if not a packfile.
 // Returns: If not found returns 0.
-int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize = false);
+int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize = false);
 
 // Functions to change directories
 int cfile_chdir(char *dir);

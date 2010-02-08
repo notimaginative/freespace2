@@ -139,7 +139,7 @@ jmp_buf	parse_abort;
 char	Mission_text[MISSION_TEXT_SIZE];
 char	Mission_text_raw[MISSION_TEXT_SIZE];
 char	*Mp;
-char	*token_found;
+const char	*token_found;
 
 //	Return true if this character is white space, else false.
 int is_white_space(char ch)
@@ -233,7 +233,7 @@ void skip_token()
 
 //	Display a diagnostic message if Verbose is set.
 //	(Verbose is set if -v command line switch is present.)
-void diag_printf(char *format, ...)
+void diag_printf(const char *format, ...)
 {
 	char	buffer[8192];
 	va_list args;
@@ -314,7 +314,7 @@ int get_line_num()
 //	error_level == 0 means this is just a warning.
 //	!0 means it's an error message.
 //	Prints line number and other useful information.
-void error_display(int error_level, char *format, ...)
+void error_display(int error_level, const char *format, ...)
 {
 	char	buffer[1024];
 	char	error_text[128];
@@ -340,7 +340,7 @@ void error_display(int error_level, char *format, ...)
 }
 
 //	Advance Mp to the next eoln character.
-void advance_to_eoln(char *more_terminators)
+void advance_to_eoln(const char *more_terminators)
 {
 	char	terminators[128];
 
@@ -375,7 +375,7 @@ void advance_to_next_white()
 // Search for specified string, skipping everything up to that point.  Returns 1 if found,
 // 0 if string wasn't found (and hit end of file), or -1 if not found, but end of checking
 // block was reached.
-int skip_to_string(char *pstr, char *end)
+int skip_to_string(const char *pstr, const char *end)
 {
 	int len, len2 = 0;
 
@@ -403,7 +403,7 @@ int skip_to_string(char *pstr, char *end)
 }
 
 // Advance to start of either pstr1 or pstr2.  Return 0 is successful, otherwise return !0
-int skip_to_start_of_strings(char *pstr1, char *pstr2)
+int skip_to_start_of_strings(const char *pstr1, const char *pstr2)
 {
 	int len1, len2;
 
@@ -428,7 +428,7 @@ int skip_to_start_of_strings(char *pstr1, char *pstr2)
 // lines.
 //	If unable to find the required string after RS_MAX_TRIES tries, then
 //	abort using longjmp to parse_abort.
-int required_string(char *pstr)
+int required_string(const char *pstr)
 {
 	int	count = 0;
 
@@ -455,7 +455,7 @@ int required_string(char *pstr)
 // similar to optional_string, but just checks if next token is a match.
 // It doesn't advance Mp.
 //
-int check_for_string(char *pstr)
+int check_for_string(const char *pstr)
 {
 	ignore_white_space();
 
@@ -466,7 +466,7 @@ int check_for_string(char *pstr)
 }
 
 // like check for string, but doesn't skip past any whitespace
-int check_for_string_raw(char *pstr)
+int check_for_string_raw(const char *pstr)
 {
 	if (!strnicmp(pstr, Mp, strlen(pstr))){
 		return 1;
@@ -478,7 +478,7 @@ int check_for_string_raw(char *pstr)
 // Find an optional string.
 //	If found, return 1, else return 0.
 //	If found, point past string, else don't update pointer.
-int optional_string(char *pstr)
+int optional_string(const char *pstr)
 {
 	ignore_white_space();
 
@@ -490,7 +490,7 @@ int optional_string(char *pstr)
 	return 0;
 }
 
-int required_string_fred(char *pstr, char *end)
+int required_string_fred(const char *pstr, const char *end)
 {
 	char *backup = Mp;;
 
@@ -527,7 +527,7 @@ int required_string_fred(char *pstr, char *end)
 // further complicate things, we should only search to a certain point, since we don't want
 // a token that belongs to another section which might match the token we want.  Thus, we
 // also pass in an ending token, which marks the point we should stop looking at.
-int optional_string_fred(char *pstr, char *end, char *end2)
+int optional_string_fred(const char *pstr, const char *end, const char *end2)
 {
 	char *mp_save = Mp;
 
@@ -563,7 +563,7 @@ int optional_string_fred(char *pstr, char *end, char *end2)
 //	Return 0 or 1 for str1 match, str2 match.  Return -1 if neither matches.
 //	Does not update Mp if token found.  If not found, advances, trying to
 //	find the string.  Doesn't advance past the found string.
-int required_string_either(char *str1, char *str2)
+int required_string_either(const char *str1, const char *str2)
 {
 	int	count = 0;
 
@@ -600,7 +600,7 @@ int required_string_either(char *str1, char *str2)
 //	Return 0 or 1 for str1 match, str2 match.  Return -1 if neither matches.
 //	Does not update Mp if token found.  If not found, advances, trying to
 //	find the string.  Doesn't advance past the found string.
-int required_string_3(char *str1, char *str2, char *str3)
+int required_string_3(const char *str1, const char *str2, const char *str3)
 {
 	int	count = 0;
 
@@ -631,7 +631,7 @@ int required_string_3(char *str1, char *str2, char *str3)
 	// exit (1);
 }
 
-int required_string_either_fred(char *str1, char *str2)
+int required_string_either_fred(const char *str1, const char *str2)
 {
 	ignore_white_space();
 
@@ -660,7 +660,7 @@ int required_string_either_fred(char *str1, char *str2)
 
 //	Copy characters from instr to outstr until eoln is found, or until max
 //	characters have been copied (including terminator).
-void copy_to_eoln(char *outstr, char *more_terminators, char *instr, int max)
+void copy_to_eoln(char *outstr, const char *more_terminators, const char *instr, int max)
 {
 	int	count = 0;
 	char	ch;
@@ -688,7 +688,7 @@ void copy_to_eoln(char *outstr, char *more_terminators, char *instr, int max)
 
 //	Copy characters from instr to outstr until next white space is found, or until max
 //	characters have been copied (including terminator).
-void copy_to_next_white(char *outstr, char *instr, int max)
+void copy_to_next_white(char *outstr, const char *instr, int max)
 {
 	int	count = 0;
 	int	in_quotes = 0;
@@ -714,9 +714,9 @@ void copy_to_next_white(char *outstr, char *instr, int max)
 //	Copy text until a certain string is matched.
 //	For example, this is used to copy mission notes, scanning until $END NOTES:
 // is found.
-void copy_text_until(char *outstr, char *instr, char *endstr, int max_chars)
+void copy_text_until(char *outstr, const char *instr, const char *endstr, int max_chars)
 {
-	char *foundstr;
+	const char *foundstr;
 
 	foundstr = strstr(instr, endstr);
 
@@ -751,7 +751,7 @@ void stuff_string_white(char *pstr)
 //	Stuff a string into a string buffer.
 //	Supports various FreeSpace primitive types.  If 'len' is supplied, it will override
 // the default string length if using the F_NAME case.
-void stuff_string(char *pstr, int type, char *terminators, int len)
+void stuff_string(char *pstr, int type, const char *terminators, int len)
 {	
 	char read_str[2048] = "";
 	int read_len = 2048;	
@@ -878,7 +878,7 @@ void stuff_string_line(char *pstr, int len)
 // Exactly the same as stuff string only Malloc's the buffer. 
 //	Supports various FreeSpace primitive types.  If 'len' is supplied, it will override
 // the default string length if using the F_NAME case.
-char *stuff_and_malloc_string( int type, char *terminators, int len)
+char *stuff_and_malloc_string( int type, const char *terminators, int len)
 {
 	int l;
 
@@ -1113,7 +1113,7 @@ void strip_all_comments( char *readp, char *writep )
 }
 #endif
 
-int parse_get_line(char *lineout, int max_line_len, char *start, int max_size, char *cur)
+int parse_get_line(char *lineout, int max_line_len, const char *start, int max_size, const char *cur)
 {
 	char * t = lineout;
 	int i, num_chars_read=0;
@@ -1145,7 +1145,7 @@ int parse_get_line(char *lineout, int max_line_len, char *start, int max_size, c
 //	Read mission text, stripping comments.
 //	When a comment is found, it is removed.  If an entire line
 //	consisted of a comment, a blank line is left in the input file.
-void read_file_text(char *filename, int mode)
+void read_file_text(const char *filename, int mode)
 {
 	CFILE	*mf;
 	char	outbuf[BUF_SIZE], *str;
@@ -1633,7 +1633,7 @@ void stuff_matrix(matrix *mp)
 //	*str1 is the string to be found.
 //	*strlist is the list of strings to search.
 //	max is the number of entries in *strlist to scan.
-int string_lookup(char *str1, char *strlist[], int max, char *description, int say_errors)
+int string_lookup(const char *str1, const char *strlist[], int max, const char *description, int say_errors)
 {
 	int	i;
 
@@ -1653,7 +1653,7 @@ int string_lookup(char *str1, char *strlist[], int max, char *description, int s
 //	Find a required string (*id), then stuff the text of type f_type that
 // follows it at *addr.  *strlist[] contains the strings it should try to
 // match.
-void find_and_stuff(char *id, int *addr, int f_type, char *strlist[], int max, char *description)
+void find_and_stuff(const char *id, int *addr, int f_type, const char *strlist[], int max, const char *description)
 {
 	char	token[128];
 
@@ -1665,7 +1665,7 @@ void find_and_stuff(char *id, int *addr, int f_type, char *strlist[], int max, c
 //	Mp points at a string.
 //	Find the string in the list of strings *strlist[].
 // Returns the index of the match, -1 if none.
-int match_and_stuff(int f_type, char *strlist[], int max, char *description)
+int match_and_stuff(int f_type, const char *strlist[], int max, const char *description)
 {
 	char	token[128];
 
@@ -1673,8 +1673,8 @@ int match_and_stuff(int f_type, char *strlist[], int max, char *description)
 	return string_lookup(token, strlist, max, description, 0);
 }
 
-void find_and_stuff_or_add(char *id, int *addr, int f_type, char *strlist[], int *total,
-	int max, char *description)
+void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[], int *total,
+	int max, const char *description)
 {
 	char	token[128];
 
@@ -1682,7 +1682,7 @@ void find_and_stuff_or_add(char *id, int *addr, int f_type, char *strlist[], int
 	required_string(id);
 	stuff_string(token, f_type, NULL);
 	if (*total)
-		*addr = string_lookup(token, strlist, *total, description, 0);
+		*addr = string_lookup(token, (const char **)strlist, *total, description, 0);
 
 	if (*addr == -1)  // not in list, so lets try and add it.
 	{
@@ -1801,7 +1801,7 @@ char *split_str_once(char *src, int max_pixel_w)
 //	returns:			number of lines src is broken into
 //						-1 is returned when an error occurs
 //
-int split_str(char *src, int max_pixel_w, int *n_chars, char **p_str, int max_lines, char ignore_char)
+int split_str(const char *src, int max_pixel_w, int *n_chars, char **p_str, int max_lines, char ignore_char)
 {
 	char buffer[SPLIT_STR_BUFFER_SIZE];
 	char *breakpoint = NULL;
@@ -1838,7 +1838,7 @@ int split_str(char *src, int max_pixel_w, int *n_chars, char **p_str, int max_li
 			if (is_gray_space(*src))
 				continue;
 
-			p_str[line_num] = src;
+			p_str[line_num] = (char*)src;
 			breakpoint = NULL;
 			new_line = 0;
 		}
@@ -1870,7 +1870,7 @@ int split_str(char *src, int max_pixel_w, int *n_chars, char **p_str, int max_li
 
 		if (is_gray_space(*src)) {
 			if (!last_was_white)  // track at first whitespace in a series of whitespace
-				breakpoint = src;
+				breakpoint = (char*)src;
 
 			last_was_white = 1;
 
@@ -1889,10 +1889,10 @@ int split_str(char *src, int max_pixel_w, int *n_chars, char **p_str, int max_li
 			char *end;
 
 			if (breakpoint) {
-				end = src = breakpoint;
-
+				end = breakpoint;
+				src = breakpoint;
 			} else {
-				end = src;  // force a split here since to whitespace
+				end = (char*)src;  // force a split here since to whitespace
 				src--;  // reuse this character in next line
 			}
 

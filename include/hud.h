@@ -341,7 +341,7 @@ void HUD_reset_clip();
 void HUD_set_clip(int x, int y, int w, int h);
 
 // do flashing text gauge
-void hud_start_text_flash(char *txt, int t);
+void hud_start_text_flash(const char *txt, int t);
 
 // convert a string to use mono spaced numbers
 void hud_num_make_mono(char *num_str);
@@ -350,13 +350,13 @@ void hud_num_make_mono(char *num_str);
 void hud_end_string_at_first_hash_symbol(char *src);
 
 // functions for handling hud animations
-void	hud_anim_init(hud_anim *ha, int sx, int sy, char *filename);
+void	hud_anim_init(hud_anim *ha, int sx, int sy, const char *filename);
 int	hud_anim_render(hud_anim *ha, float frametime, int draw_alpha=0, int loop=1, int hold_last=0, int reverse=0);
 int	hud_anim_load(hud_anim *ha);
 void	hud_anim_release(hud_anim *ha);
 
 // flash text at the given y
-void hud_show_text_flash_icon(char *txt, int y, int bright);
+void hud_show_text_flash_icon(const char *txt, int y, int bright);
 
 // functions for displaying the support view popup
 void hud_support_view_start();
@@ -395,7 +395,7 @@ int	hud_team_matches_filter(int team_filter, int ship_team);
 void	hud_maybe_clear_head_area();
 
 int	hud_wing_index_from_ship(int shipnum);
-int	hud_wing_slot_from_name(char *name);
+int	hud_wing_slot_from_name(const char *name);
 int	hud_support_get_dock_time( int objnum );
 void	hud_show_radar();
 void	hud_show_target_model();

@@ -601,7 +601,7 @@ static int SS_active_list_size;
 //////////////////////////////////////////////////////
 // Background bitmaps data for ship_select
 //////////////////////////////////////////////////////
-static char* Ship_select_background_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Ship_select_background_fname[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
 	"Brief",
 	"Brief"
@@ -611,7 +611,7 @@ static char* Ship_select_background_fname[GR_NUM_RESOLUTIONS] = {
 #endif
 };
 
-static char* Ship_select_background_mask_fname[GR_NUM_RESOLUTIONS] = {
+static const char* Ship_select_background_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"ShipSelect-m",
 	"2_ShipSelect-m"
 };
@@ -629,13 +629,13 @@ int Ship_select_background_bitmap;
 
 // convenient struct for handling all button controls
 struct ss_buttons {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	int scrollable;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	ss_buttons(char *name, int x1, int y1, int xt1, int yt1, int h, int s) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), scrollable(s) {}
+	ss_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h, int s) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h), scrollable(s) {}
 };
 
 static ss_buttons Ship_select_buttons[GR_NUM_RESOLUTIONS][NUM_SS_BUTTONS] = {
@@ -735,7 +735,7 @@ void	ss_set_carried_icon(int from_slot, int ship_class);
 #define SHIP_DESC_X	445
 #define SHIP_DESC_Y	273
 
-char *ss_tooltip_handler(char *str)
+const char *ss_tooltip_handler(const char *str)
 {
 	if (Selected_ss_class < 0)
 		return NULL;

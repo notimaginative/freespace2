@@ -205,7 +205,7 @@ float	Pattern_num_measures[MAX_SOUNDTRACKS][MAX_PATTERNS];
 // stores the number of bytes per measure (data from music.tbl)
 int	Pattern_bytes_per_measure[MAX_SOUNDTRACKS][MAX_PATTERNS];
 
-char* Pattern_names[MAX_PATTERNS] =
+const char* Pattern_names[MAX_PATTERNS] =
 {
 //XSTR:OFF
 	"NRML_1",	// Normal Song 1
@@ -227,7 +227,7 @@ char* Pattern_names[MAX_PATTERNS] =
 //XSTR:ON
 };
 
-char* Pattern_description[MAX_PATTERNS] =
+const char* Pattern_description[MAX_PATTERNS] =
 {
 //XSTR:OFF
 	"normal 1",
@@ -1504,7 +1504,7 @@ void event_music_set_soundtrack(char *name)
 	}
 }
 
-int event_music_get_spooled_music_index(char *name)
+int event_music_get_spooled_music_index(const char *name)
 {
 	// find the correct index for the event music
 	for ( int i = 0; i < Num_music_files; i++ ) {
@@ -1517,7 +1517,7 @@ int event_music_get_spooled_music_index(char *name)
 }
 
 // set a score based on name
-void event_music_set_score(int score_index, char *name)
+void event_music_set_score(int score_index, const char *name)
 {
 	Assert(score_index < NUM_SCORES);
 

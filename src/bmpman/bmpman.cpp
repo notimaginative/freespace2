@@ -904,7 +904,7 @@ int bm_create( int bpp, int w, int h, void * data, int flags )
 //          0 if it was found as a file
 //          1 if it already exists, fills in handle
 int Bm_ignore_duplicates = 0;
-int bm_load_sub(char *real_filename, char *ext, int *handle)
+int bm_load_sub(const char *real_filename, const char *ext, int *handle)
 {	
 	int i;
 	char filename[MAX_FILENAME_LEN] = "";
@@ -944,7 +944,7 @@ int bm_load_sub(char *real_filename, char *ext, int *handle)
 // the bitmap.   On success, it returns the bitmap
 // number.  Function doesn't acutally load the data, only
 // width, height, and possibly flags.
-int bm_load( char * real_filename )
+int bm_load( const char * real_filename )
 {
 	int i, n, first_slot = MAX_BITMAPS;
 	int w, h, bpp;
@@ -1072,7 +1072,7 @@ int bm_load( char * real_filename )
 // special load function. basically allows you to load a bitmap which already exists (by filename). 
 // this is useful because in some cases we need to have a bitmap which is locked in screen format
 // _and_ texture format, such as pilot pics and squad logos
-int bm_load_duplicate(char *filename)
+int bm_load_duplicate(const char *filename)
 {
 	int ret;
 
@@ -1156,7 +1156,7 @@ static int find_block_of(int n)
 //
 // returns:		bitmap number of first frame in the animation
 //
-int bm_load_animation( char *real_filename, int *nframes, int *fps, int can_drop_frames)
+int bm_load_animation( const char *real_filename, int *nframes, int *fps, int can_drop_frames)
 {
 	int	i, n;
 	anim	the_anim;

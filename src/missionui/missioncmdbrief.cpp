@@ -255,12 +255,12 @@
 #include "alphacolors.h"
 #include "animplay.h"
 
-char *Cmd_brief_fname[GR_NUM_RESOLUTIONS] = {
+const char *Cmd_brief_fname[GR_NUM_RESOLUTIONS] = {
 	"CommandBrief",
 	"2_CommandBrief"
 };
 
-char *Cmd_brief_mask[GR_NUM_RESOLUTIONS] = {
+const char *Cmd_brief_mask[GR_NUM_RESOLUTIONS] = {
 	"CommandBrief-m",
 	"2_Commandbrief-m"
 };
@@ -620,7 +620,7 @@ void cmd_brief_button_pressed(int n)
 
 void cmd_brief_ani_wave_init(int index)
 {
-	char *name;
+	const char *name;
 	int i;
 
 	// first, search and see if anim is already used in another stage

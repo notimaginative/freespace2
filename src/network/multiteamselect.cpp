@@ -222,12 +222,12 @@ extern int Next_screen;
 // bitmap defines
 #define MULTI_TS_PALETTE							"InterfacePalette"
 
-char *Multi_ts_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+const char *Multi_ts_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"TeamSelect",		// GR_640
 	"2_TeamSelect"		// GR_1024
 };
 
-char *Multi_ts_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+const char *Multi_ts_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"TeamSelect-M",	// GR_640
 	"2_TeamSelect-M"		// GR_1024
 };
@@ -283,7 +283,7 @@ ui_button_info Multi_ts_buttons[GR_NUM_RESOLUTIONS][MULTI_TS_NUM_BUTTONS] = {
 // players locked ani graphic
 #define MULTI_TS_NUM_LOCKED_BITMAPS				3
 
-char *Multi_ts_bmap_names[GR_NUM_RESOLUTIONS][3] = {
+const char *Multi_ts_bmap_names[GR_NUM_RESOLUTIONS][3] = {
 	{ // GR_640
 		"TSB_340000",
 		"TSB_340001",
@@ -349,12 +349,12 @@ UI_WINDOW Multi_ts_window;
 #define MULTI_TS_NUM_SHIP_SLOTS_TEAM	4														// # of ship slots in team v team
 #define MULTI_TS_FLAG_NONE					-2														// never has any ships
 #define MULTI_TS_FLAG_EMPTY				-1														// currently empty
-char *Multi_ts_slot_names[MULTI_TS_NUM_SHIP_SLOTS] = {									// 
+const char *Multi_ts_slot_names[MULTI_TS_NUM_SHIP_SLOTS] = {									// 
 	"alpha 1", "alpha 2", "alpha 3", "alpha 4",
 	"beta 1", "beta 2", "beta 3", "beta 4",
 	"gamma 1", "gamma 2", "gamma 3", "gamma 4"
 };
-char *Multi_ts_slot_team_names[MULTI_TS_MAX_TEAMS][MULTI_TS_NUM_SHIP_SLOTS_TEAM] = {
+const char *Multi_ts_slot_team_names[MULTI_TS_MAX_TEAMS][MULTI_TS_NUM_SHIP_SLOTS_TEAM] = {
 	{"alpha 1", "alpha 2", "alpha 3", "alpha 4"},
 	{"zeta 1", "zeta 2", "zeta 3", "zeta 4"}
 };
@@ -1904,7 +1904,7 @@ void multi_ts_get_team_and_slot(char *ship_name,int *team_index,int *slot_index)
 
 // function to return the shipname of the ship in the slot designated by the team and slot
 // parameters
-char *multi_ts_get_shipname( int team, int slot_index )
+const char *multi_ts_get_shipname( int team, int slot_index )
 {
 	if ( Netgame.type_flags & NG_TYPE_TEAM ) {
 		Assert( (team >= 0) && (team < MULTI_TS_MAX_TEAMS) );

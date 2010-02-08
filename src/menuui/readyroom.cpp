@@ -189,12 +189,12 @@ int Campaign_list_coords[GR_NUM_RESOLUTIONS][4] = {
 #define CAMPAIGN_MISSION_HASH_SIZE 307
 
 struct sim_room_buttons {
-	char *filename;
+	const char *filename;
 	int x, y, xt, yt;
 	int hotspot;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	sim_room_buttons(char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
+	sim_room_buttons(const char *name, int x1, int y1, int xt1, int yt1, int h) : filename(name), x(x1), y(y1), xt(xt1), yt(yt1), hotspot(h) {}
 };
 
 static sim_room_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
@@ -245,20 +245,20 @@ static sim_room_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 //XSTR:ON
 };
 
-char *Sim_filename[GR_NUM_RESOLUTIONS] = {
+const char *Sim_filename[GR_NUM_RESOLUTIONS] = {
 	"LoadMission",
 	"2_LoadMission"
 };
-char *Sim_mask_filename[GR_NUM_RESOLUTIONS] = {
+const char *Sim_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"LoadMission-m",
 	"2_LoadMission-m"
 };
 
-char *Campaign_filename[GR_NUM_RESOLUTIONS] = {
+const char *Campaign_filename[GR_NUM_RESOLUTIONS] = {
 	"Campaign",
 	"2_Campaign"
 };
-char *Campaign_mask_filename[GR_NUM_RESOLUTIONS] = {
+const char *Campaign_mask_filename[GR_NUM_RESOLUTIONS] = {
 	"Campaign-m",
 	"2_Campaign-m"
 };
@@ -291,8 +291,8 @@ int Sim_misc_text_coords[GR_NUM_RESOLUTIONS][NUM_SIM_MISC_TEXT][2] = {
 #endif
 static struct {	
 	int type;					// see READYROOM_LINE_* defines above
-	char *name;
-	char *filename;
+	const char *name;
+	const char *filename;
 	int x;						// X coordinate of line
 	int y;						// Y coordinate of line
 	int flags;					// special flags, see READYROOM_FLAG_* defines above
@@ -330,7 +330,7 @@ static UI_BUTTON List_buttons[LIST_BUTTONS_MAX];  // buttons for each line of te
 
 typedef struct hash_node {
 	hash_node *next;
-	char *filename;
+	const char *filename;
 } hash_node;
 
 static hash_node *Campaign_mission_hash_table[CAMPAIGN_MISSION_HASH_SIZE];
@@ -374,7 +374,7 @@ static int Sim_silent_icon_x[GR_NUM_RESOLUTIONS] = {
 // special icons themselves
 int Mission_icon_bitmaps[NUM_MISSION_ICONS];
 //XSTR:OFF
-char *Mission_icon_bitmap_filenames[NUM_MISSION_ICONS] = {
+const char *Mission_icon_bitmap_filenames[NUM_MISSION_ICONS] = {
 #ifdef MAKE_FS1
 	"icon-volition",
 	"icon-silent"
@@ -390,9 +390,9 @@ void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb = N
 // Finds a hash value for mission filename
 //
 // returns hash value
-int hash_filename(char *filename) {
+int hash_filename(const char *filename) {
 	unsigned __int64 hash_val = 0;
-	char *ptr = filename;
+	const char *ptr = filename;
 	
 	// Dont hash .fsm extension, convert all to upper case
 	for (int i=0; i < ((signed int)(strlen(filename)) - 4); i++) {
@@ -405,7 +405,7 @@ int hash_filename(char *filename) {
 // insert filename into Campaign_mission_hash_table
 //
 // returns 1 if successful, 0 if could not allocate memory
-int hash_insert(char *filename) {
+int hash_insert(const char *filename) {
 	int hash_val = hash_filename(filename);
 	hash_node *cur_node;
 
@@ -448,7 +448,7 @@ int hash_insert(char *filename) {
 // Checks if a filename already exitst in the hash table
 //
 // returns 1 if found (collision), 0 if no collision
-int campaign_mission_hash_collision(char *filename)
+int campaign_mission_hash_collision(const char *filename)
 {
 	int hash_val = hash_filename(filename);
 	hash_node *cur_node = Campaign_mission_hash_table[hash_val];
@@ -529,7 +529,7 @@ int sim_room_line_add(int type, char *name, char *filename, int x, int y, int fl
 }
 
 // filter out all multiplayer campaigns
-int campaign_room_campaign_filter(char *filename)
+int campaign_room_campaign_filter(const char *filename)
 {
 	int type, max_players;
 	char name[NAME_LENGTH], *desc = NULL;
@@ -555,7 +555,7 @@ int campaign_room_campaign_filter(char *filename)
 }
 
 // build up a list of all missions in all campaigns.
-int sim_room_campaign_mission_filter(char *filename)
+int sim_room_campaign_mission_filter(const char *filename)
 {
 	int num;
 
@@ -568,7 +568,7 @@ int sim_room_campaign_mission_filter(char *filename)
 }
 
 // filter out all missions already used in existing campaigns
-int sim_room_standalone_mission_filter(char *filename)
+int sim_room_standalone_mission_filter(const char *filename)
 {
 	int type;
 	char mission_name[255];

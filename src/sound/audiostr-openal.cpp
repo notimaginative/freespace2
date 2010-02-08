@@ -165,7 +165,7 @@ class WaveFile
 public:
 	void Init(void);
 	void Close(void);
-	BOOL Open (char *pszFilename);
+	BOOL Open (const char *pszFilename);
 	BOOL Cue (void);
 	int	Read (ubyte *pbDest, uint cbSize, int service=1);
 	uint GetNumBytesRemaining (void) { return (m_nDataSize - m_nBytesPlayed); }
@@ -201,7 +201,7 @@ class AudioStream
 public:
 	AudioStream (void);
 	~AudioStream (void);
-	BOOL Create (char *pszFilename);
+	BOOL Create (const char *pszFilename);
 	BOOL Destroy (void);
 	void Play (long volume, int looping);
 	int Is_Playing(){ return(m_fPlaying); }
@@ -375,7 +375,7 @@ void WaveFile::Close(void)
 
 
 // Open
-BOOL WaveFile::Open (char *pszFilename)
+BOOL WaveFile::Open (const char *pszFilename)
 {
 	int done = FALSE;
 	WORD cbExtra = 0;
@@ -792,7 +792,7 @@ void AudioStream::Init_Data ()
 }
 
 // Create
-BOOL AudioStream::Create (char *pszFilename)
+BOOL AudioStream::Create (const char *pszFilename)
 {
 
 	BOOL fRtn = SUCCESS;    // assume success
@@ -1413,7 +1413,7 @@ void audiostream_close()
 //	
 // returns:	success => handle to identify streaming sound
 //				failure => -1
-int audiostream_open( char *filename, int type )
+int audiostream_open( const char *filename, int type )
 {
 	int i, rc;
 

@@ -301,7 +301,7 @@ void gamesnd_unload_interface_sounds()
 //
 // Parse a sound effect line
 //
-void gamesnd_parse_line(game_snd *gs, char *tag)
+void gamesnd_parse_line(game_snd *gs, const char *tag)
 {
 	int is_3d;
 

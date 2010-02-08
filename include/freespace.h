@@ -309,7 +309,7 @@ bool game_using_low_mem();
 // misc ---------------------------------------------------------------
 
 // lookup the specified filename. return an fs_builtin_mission* if found, NULL otherwise
-fs_builtin_mission *game_find_builtin_mission(char *filename);
+fs_builtin_mission *game_find_builtin_mission(const char *filename);
 
 
 
@@ -351,11 +351,11 @@ void game_shudder_apply(int time, float intensity);
 //===================================================================
 
 // make sure a CD is in the drive before continuing (returns 1 to continue, otherwise 0).
-int game_do_cd_check(char *volume_name=NULL);
-int game_do_cd_check_specific(char *volume_name, int cdnum);
-int find_freespace_cd(char *volume_name=NULL);
+int game_do_cd_check(const char *volume_name = NULL);
+int game_do_cd_check_specific(const char *volume_name, int cdnum);
+int find_freespace_cd(const char *volume_name = NULL);
 int set_cdrom_path(int drive_num);
-int game_do_cd_mission_check(char *filename);
+int game_do_cd_mission_check(const char *filename);
 
 // Used to tell the player that a feature isn't available in the demo version of FreeSpace
 void game_feature_not_in_demo_popup();
@@ -364,7 +364,7 @@ void game_feature_not_in_demo_popup();
 void get_version_string(char *str);
 
 // format the specified time (fixed point) into a nice string
-void game_format_time(fix m_time,char *time_str);
+void game_format_time(fix m_time, char *time_str);
 
 // if the game is running using hacked data
 int game_hacked_data();

@@ -168,7 +168,7 @@ static RAM *RamTable;
 #endif
 
 #ifndef NDEBUG
-void vm_free(void* ptr, char *file, int line)
+void vm_free(void* ptr, const char *file, int line)
 #else
 void vm_free(void* ptr)
 #endif
@@ -203,7 +203,7 @@ void vm_free(void* ptr)
 }
 
 #ifndef NDEBUG
-void *vm_malloc(int size, char *file, int line)
+void *vm_malloc(int size, const char *file, int line)
 #else
 void *vm_malloc(int size)
 #endif
@@ -228,7 +228,7 @@ void *vm_malloc(int size)
 }
 
 #ifndef NDEBUG
-char *vm_strdup(char const* str, char *file, int line)
+char *vm_strdup(char const* str, const char *file, int line)
 #else
 char *vm_strdup(char const* str)
 #endif
@@ -312,7 +312,7 @@ void outwnd_close()
 //	STUB_FUNCTION;
 }
 */
-void Warning( char * filename, int line, char * format, ... )
+void Warning( const char * filename, int line, const char * format, ... )
 {
 	char tmp[MAX_LINE_WIDTH*4];
 	va_list args;
@@ -323,7 +323,7 @@ void Warning( char * filename, int line, char * format, ... )
 	fprintf (stderr, "Warning: (%s:%d): %s\n", filename, line, tmp);
 }
 
-void Error( char * filename, int line, char * format, ... )
+void Error( const char * filename, int line, const char * format, ... )
 {
 	char tmp[MAX_LINE_WIDTH*4];
 	va_list args;
@@ -335,7 +335,7 @@ void Error( char * filename, int line, char * format, ... )
 	exit (1);
 }
 
-void WinAssert(char * text,char *filename, int line)
+void WinAssert(const char * text, const char *filename, int line)
 {
 	fprintf (stderr, "Assertion: (%s:%d) %s\n", filename, line, text);
 //	exit(1);

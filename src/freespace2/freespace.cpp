@@ -1227,7 +1227,7 @@ int Player_multi_died_check = -1;
 // Internal function prototypes
 void game_maybe_draw_mouse(float frametime);
 void init_animating_pointer();
-void load_animating_pointer(char *filename, int dx, int dy);
+void load_animating_pointer(const char *filename, int dx, int dy);
 void unload_animating_pointer();
 void game_do_training_checks();
 void game_shutdown(void);
@@ -1242,19 +1242,19 @@ void verify_weapons_tbl();
 void display_title_screen();
 
 // loading background filenames
-static char *Game_loading_bground_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Game_loading_bground_fname[GR_NUM_RESOLUTIONS] = {
 	"LoadingBG",		// GR_640
 	"2_LoadingBG"		// GR_1024
 };
 
 
-static char *Game_loading_ani_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Game_loading_ani_fname[GR_NUM_RESOLUTIONS] = {
 	"Loading.ani",		// GR_640
 	"2_Loading.ani"		// GR_1024
 };
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
-static char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
 #ifdef FS1_DEMO
 	"DemoTitle1",
 #else
@@ -1263,7 +1263,7 @@ static char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
 	"2_PreLoad"
 };
 #elif defined(OEM_BUILD)
-static char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
 	"OEMPreLoad",
 	"2_OEMPreLoad"
 };
@@ -1303,7 +1303,7 @@ int Game_sound_env_update_timestamp;
 
 // WARPIN CRAP END --------------------------------------------------------------------------------------------
 
-fs_builtin_mission *game_find_builtin_mission(char *filename)
+fs_builtin_mission *game_find_builtin_mission(const char *filename)
 {
 	int idx;
 
@@ -2346,7 +2346,7 @@ DCF(gamma,"Sets Gamma factor")
 
 void game_init()
 {
-	char *ptr;
+	const char *ptr;
 	int depth = 16;
 
 	Game_current_mission_filename[0] = 0;
@@ -7465,7 +7465,7 @@ void init_animating_pointer()
 //
 // input:	filename	=>	filename of animation file that holds the animation
 // 
-void load_animating_pointer(char *filename, int dx, int dy)
+void load_animating_pointer(const char *filename, int dx, int dy)
 {
 	int				fps;
 	animating_obj *am;
@@ -8499,7 +8499,7 @@ uint game_get_cd_used_space(char *path)
 
 
 // if volume_name is non-null, the CD name must match that
-int find_freespace_cd(char *volume_name)
+int find_freespace_cd(const char *volume_name)
 {
 #ifndef PLAT_UNIX
 	char oldpath[MAX_PATH];
@@ -8720,7 +8720,7 @@ int game_cd_changed()
 // check if _any_ FreeSpace2 CDs are in the drive
 // return: 1	=> CD now in drive
 //			  0	=>	Could not find CD, they refuse to put it in the drive
-int game_do_cd_check(char *volume_name)
+int game_do_cd_check(const char *volume_name)
 {	
 #if !defined(GAME_CD_CHECK)
 	return 1;
@@ -8771,7 +8771,7 @@ int game_do_cd_check(char *volume_name)
 // check if _any_ FreeSpace2 CDs are in the drive
 // return: 1	=> CD now in drive
 //			  0	=>	Could not find CD, they refuse to put it in the drive
-int game_do_cd_check_specific(char *volume_name, int cdnum)
+int game_do_cd_check_specific(const char *volume_name, int cdnum)
 {	
 	int cd_present = 0;
 	int cd_drive_num;
@@ -8819,7 +8819,7 @@ int game_do_cd_check_specific(char *volume_name, int cdnum)
 }
 
 // only need to do this in RELEASE_REAL
-int game_do_cd_mission_check(char *filename)
+int game_do_cd_mission_check(const char *filename)
 {	
 #ifdef RELEASE_REAL
 	int cd_num;

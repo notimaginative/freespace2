@@ -176,7 +176,7 @@
 // 1 if same version
 // 2 if higher version
 // fills in user version and latest version values if non-NULL
-int version_compare(char *filename, int *u_major, int *u_minor, int *u_build, int *l_major, int *l_minor, int *l_build);
+int version_compare(const char *filename, int *u_major, int *u_minor, int *u_build, int *l_major, int *l_minor, int *l_build);
 
 #endif
 

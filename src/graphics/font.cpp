@@ -342,7 +342,7 @@ int get_char_width(ubyte c1,ubyte c2,int *width,int *spacing)
 	return letter;
 }
 
-int get_centered_x(char *s)
+int get_centered_x(const char *s)
 {
 	int w,w2,s2;
 
@@ -407,7 +407,7 @@ int gr_get_font_height()
 	}
 }
 
-void gr_get_string_size(int *w1, int *h1, char *text, int len)
+void gr_get_string_size(int *w1, int *h1, const char *text, int len)
 {
 	int longest_width;
 	int width,spacing;
@@ -526,7 +526,7 @@ void gr8_string( int sx, int sy, char *s )
 }
 */
 
-void gr8_string(int sx, int sy, char *s )
+void gr8_string(int sx, int sy, const char *s )
 {
 	int row,width, spacing, letter;
 	int x, y;
@@ -669,7 +669,7 @@ HFONT MyhFont = NULL;
 extern HDC hDibDC;
 #endif
 
-void gr_string_win(int x, int y, char *s)
+void gr_string_win(int x, int y, const char *s)
 {
 #ifdef PLAT_UNIX
 //	STUB_FUNCTION;
@@ -728,7 +728,7 @@ void gr_string_win(int x, int y, char *s)
 #endif
 }
 
-void gr_get_string_size_win(int *w, int *h, char *text)
+void gr_get_string_size_win(int *w, int *h, const char *text)
 {
 #ifdef PLAT_UNIX
 //	STUB_FUNCTION;
@@ -765,7 +765,7 @@ void gr_get_string_size_win(int *w, int *h, char *text)
 
 char grx_printf_text[2048];	
 
-void _cdecl gr_printf( int x, int y, char * format, ... )
+void _cdecl gr_printf( int x, int y, const char * format, ... )
 {
 	va_list args;
 
@@ -823,7 +823,7 @@ void gr_font_close()
 
 // Returns -1 if couldn't init font, otherwise returns the
 // font id number.
-int gr_create_font(char * typeface)
+int gr_create_font(const char * typeface)
 {
 	CFILE *fp;
 	font *fnt;
@@ -982,7 +982,7 @@ void gr_font_init()
 
 // Returns -1 if couldn't init font, otherwise returns the
 // font id number.
-int gr_init_font(char * typeface)
+int gr_init_font(const char * typeface)
 {
 	int Loaded_fontnum;
 

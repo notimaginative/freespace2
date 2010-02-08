@@ -123,7 +123,7 @@
 #include "osregistry.h"
 #include "alphacolors.h"
 
-void delete_pilot_file( char *pilot_name, int single );		// manage_pilot.cpp
+void delete_pilot_file( const char *pilot_name, int single );		// manage_pilot.cpp
 
 // stats defines
 #define NUM_STAT_LINES 85
@@ -279,12 +279,12 @@ int Barracks_squad_number_coords[GR_NUM_RESOLUTIONS][2] = {
 
 //XSTR:OFF
 // bitmaps defs
-static char *Barracks_bitmap_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Barracks_bitmap_fname[GR_NUM_RESOLUTIONS] = {
 	"Barracks",		// GR_640
 	"2_Barracks"		// GR_1024
 };
 
-static char *Barracks_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
+static const char *Barracks_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 	"Barracks-M",		// GR_640
 	"2_Barracks-M"		// GR_1024
 };
@@ -294,20 +294,20 @@ static char *Barracks_bitmap_mask_fname[GR_NUM_RESOLUTIONS] = {
 #define BARRACKS_IMAGE_NOT_LOADED	-2
 
 struct barracks_bitmaps {
-	char *filename;
+	const char *filename;
 	int x, y;
 	int b;
 };
 
 struct barracks_buttons {
-	char *filename;
+	const char *filename;
 	int x, y;
 	int text_x, text_y;	// this is where the text label is
 	int hotspot;
 	int repeat;
 	UI_BUTTON button;  // because we have a class inside this struct, we need the constructor below..
 
-	barracks_buttons(char *name, int x1, int y1, int x2, int y2, int h, int r = 0) : filename(name), x(x1), y(y1), text_x(x2), text_y(y2), hotspot(h), repeat(r) {}
+	barracks_buttons(const char *name, int x1, int y1, int x2, int y2, int h, int r = 0) : filename(name), x(x1), y(y1), text_x(x2), text_y(y2), hotspot(h), repeat(r) {}
 };
 
 #if defined(MAKE_FS1) && !defined(FS1_DEMO)
@@ -953,7 +953,7 @@ void barracks_delete_pilot()
 }
 
 // Filter out pilots of wrong type (which shouldn't be in the directory we are checking, but just to be safe..)
-int barracks_pilot_filter(char *filename)
+int barracks_pilot_filter(const char *filename)
 {
 	int r, rank;
 
@@ -1116,7 +1116,8 @@ void barracks_button_pressed(int n)
 #if defined(DEMO) || defined(OEM_BUILD)
 			game_feature_not_in_demo_popup();
 #else
-			char temp[256], *str;
+			const char *str;
+			char temp[256];
 			char old_pic[256] = "";
 			char old_squad_pic[256] = "";
 			char old_squad[256] = "";

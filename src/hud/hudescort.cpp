@@ -205,7 +205,7 @@ int Monitoring_coords[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 	
-char *Escort_gauge_filenames[GR_NUM_RESOLUTIONS][MAX_ESCORT_SHIPS] = 
+const char *Escort_gauge_filenames[GR_NUM_RESOLUTIONS][MAX_ESCORT_SHIPS] = 
 {
 //XSTR:OFF
 	{ // GR_640

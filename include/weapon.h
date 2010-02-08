@@ -556,7 +556,7 @@ extern char	*Weapon_names[MAX_WEAPON_TYPES];
 #define WEAPON_INFO_INDEX(wip)		(wip-Weapon_info)
 
 
-int weapon_info_lookup(char *name);
+int weapon_info_lookup(const char *name);
 void weapon_init();					// called at game startup
 void weapon_level_init();			// called before the start of each level
 void weapon_render(object * obj);
@@ -584,7 +584,7 @@ void weapon_maybe_spew_particle(object *obj);
 
 
 void weapon_hit( object * weapon_obj, object * other_obj, vector * hitpos );
-int weapon_name_lookup(char *name);
+int weapon_name_lookup(const char *name);
 void spawn_child_weapons( object *objp );
 
 // call to detonate a weapon. essentially calls weapon_hit() with other_obj as NULL, and sends a packet in multiplayer

@@ -471,7 +471,7 @@ void cf_build_pack_list( cf_root *root )
 }
 
 
-void cf_build_root_list(char *cdrom_dir)
+void cf_build_root_list(const char *cdrom_dir)
 {
 	Num_roots = 0;
 
@@ -533,7 +533,7 @@ void cf_build_root_list(char *cdrom_dir)
 // Given a lower case list of file extensions 
 // separated by spaces, return zero if ext is
 // not in the list.
-int is_ext_in_list( char *ext_list, char *ext )
+int is_ext_in_list( const char *ext_list, char *ext )
 {
 	char tmp_ext[128];
 
@@ -785,7 +785,7 @@ void cf_build_file_list()
 }
 
 
-void cf_build_secondary_filelist(char *cdrom_dir)
+void cf_build_secondary_filelist(const char *cdrom_dir)
 {
 	int i;
 
@@ -855,7 +855,7 @@ void cf_free_secondary_filelist()
 //         size        - File size
 //         offset      - Offset into pack file.  0 if not a packfile.
 // Returns: If not found returns 0.
-int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize )
+int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize )
 {
 	int i;
 
@@ -930,11 +930,11 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 
 			if (localize) {
 				// create localized filespec
-				char temp[MAX_PATH_LEN];
-				strcpy(temp, filespec);
-				lcl_add_dir_to_path_with_filename(filespec);
+				char loc_filespec[MAX_PATH_LEN];
+				strcpy(loc_filespec, filespec);
+				lcl_add_dir_to_path_with_filename(loc_filespec);
 			
-				if ( !stricmp(filespec, f->name_ext) )	{
+				if ( !stricmp(loc_filespec, f->name_ext) )	{
 					if ( size ) *size = f->size;
 					if ( offset ) *offset = f->pack_offset;
 					if ( pack_filename ) {
@@ -949,8 +949,6 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 					}				
 					return 1;		
 				}
-				// restore original filespec
-				strcpy(filespec, temp);
 			}
 
 			// file either not localized or localized version not found
@@ -980,9 +978,9 @@ int cf_find_file_location( char *filespec, int pathtype, char *pack_filename, in
 
 
 // Returns true if filename matches filespec, else zero if not
-int cf_matches_spec(char *filespec, char *filename)
+int cf_matches_spec(const char *filespec, const char *filename)
 {
-	char *src_ext, *dst_ext;
+	const char *src_ext, *dst_ext;
 
 	src_ext = strchr(filespec, '.');
 	if (!src_ext)
@@ -997,7 +995,7 @@ int cf_matches_spec(char *filespec, char *filename)
 	return !stricmp(dst_ext, src_ext);
 }
 
-int (*Get_file_list_filter)(char *filename) = NULL;
+int (*Get_file_list_filter)(const char *filename) = NULL;
 int Skip_packfile_search = 0;
 
 int cf_file_already_in_list( int num_files, char **list, char *filename )
@@ -1024,7 +1022,7 @@ int cf_file_already_in_list( int num_files, char **list, char *filename )
 // This one has a 'type', which is a CF_TYPE_* value.  Because this specifies the directory
 // location, 'filter' only needs to be the filter itself, with no path information.
 // See above descriptions of cf_get_file_list() for more information about how it all works.
-int cf_get_file_list( int max, char **list, int pathtype, char *filter, int sort, file_list_info *info )
+int cf_get_file_list( int max, char **list, int pathtype, const char *filter, int sort, file_list_info *info )
 {
 	char *ptr;
 	int i, l, num_files = 0, own_flag = 0;
@@ -1186,7 +1184,7 @@ int cf_get_file_list( int max, char **list, int pathtype, char *filter, int sort
 	return num_files;
 }
 
-int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME_LEN], char *filename )
+int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME_LEN], const char *filename )
 {
 	int i;
 
@@ -1210,7 +1208,7 @@ int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME
 // This one has a 'type', which is a CF_TYPE_* value.  Because this specifies the directory
 // location, 'filter' only needs to be the filter itself, with no path information.
 // See above descriptions of cf_get_file_list() for more information about how it all works.
-int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char **list, int pathtype, char *filter, int sort, file_list_info *info )
+int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char **list, int pathtype, const char *filter, int sort, file_list_info *info )
 {
 	int i, num_files = 0, own_flag = 0;
 
@@ -1380,7 +1378,7 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 // Input:   pathtype  - CF_TYPE_??
 //          filename  - optional, if set, tacks the filename onto end of path.
 // Output:  path      - Fully qualified pathname.
-void cf_create_default_path_string( char *path, int pathtype, char *filename, bool localize )
+void cf_create_default_path_string( char *path, int pathtype, const char *filename, bool localize )
 {
 #ifdef PLAT_UNIX
 	if ( filename && strpbrk(filename, "/")  ) {  

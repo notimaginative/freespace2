@@ -400,7 +400,7 @@ int cfile_in_root_dir(char *exe_path)
 //	returns:  success ==> 0
 //           error   ==> non-zero
 //
-int cfile_init(char *exe_dir, char *cdrom_dir)
+int cfile_init(const char *exe_dir, const char *cdrom_dir)
 {
 	int i;
 
@@ -451,7 +451,7 @@ int cfile_init(char *exe_dir, char *cdrom_dir)
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
 
-		Cfile_cdrom_dir = cdrom_dir;
+		Cfile_cdrom_dir = (char *)cdrom_dir;
 		cf_build_secondary_filelist(Cfile_cdrom_dir);
 
 		// 32 bit CRC table init
@@ -640,7 +640,7 @@ int cfile_flush_dir(int dir_type)
 //    filename = name of filename or filepath to process
 //    ext = extension to add.  Must start with the period
 //    Returns: new filename or filepath with extension.
-char *cf_add_ext(char *filename, char *ext)
+char *cf_add_ext(const char *filename, const char *ext)
 {
 	int flen, elen;
 	static char path[MAX_PATH_LEN];
@@ -658,7 +658,7 @@ char *cf_add_ext(char *filename, char *ext)
 }
 
 // Deletes a file.
-void cf_delete( char *filename, int dir_type )
+void cf_delete( const char *filename, int dir_type )
 {
 	char longname[MAX_PATH_LEN];
 
@@ -677,7 +677,7 @@ void cf_delete( char *filename, int dir_type )
 
 
 // Same as _access function to read a file's access bits
-int cf_access( char *filename, int dir_type, int mode )
+int cf_access( const char *filename, int dir_type, int mode )
 {
 	char longname[MAX_PATH_LEN];
 
@@ -690,7 +690,7 @@ int cf_access( char *filename, int dir_type, int mode )
 
 
 // Returns 1 if file exists, 0 if not.
-int cf_exist( char *filename, int dir_type )
+int cf_exist( const char *filename, int dir_type )
 {
 	char longname[MAX_PATH_LEN];
 
@@ -707,7 +707,7 @@ int cf_exist( char *filename, int dir_type )
 	return 0;
 }
 
-void cf_attrib(char *filename, int set, int clear, int dir_type)
+void cf_attrib(const char *filename, int set, int clear, int dir_type)
 {
 	char longname[MAX_PATH_LEN];
 
@@ -729,7 +729,7 @@ void cf_attrib(char *filename, int set, int clear, int dir_type)
 
 }
 
-int cf_rename(char *old_name, char *name, int dir_type)
+int cf_rename(const char *old_name, const char *name, int dir_type)
 {
 	Assert( CF_TYPE_SPECIFIED(dir_type) );
 
@@ -809,7 +809,7 @@ extern int game_cd_changed();
 //					error   ==> NULL
 //
 
-CFILE *cfopen(char *file_path, char *mode, int type, int dir_type, bool localize)
+CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, bool localize)
 {
 	char longname[_MAX_PATH];
 
@@ -1371,7 +1371,7 @@ int cfwrite_char(char b, CFILE *file)
 	return cfwrite( &b, sizeof(b), 1, file);
 }
 
-int cfwrite_string(char *buf, CFILE *file)
+int cfwrite_string(const char *buf, CFILE *file)
 {
 	if ( (!buf) || (buf && !buf[0]) ) {
 		return cfwrite_char(0, file);
@@ -1383,7 +1383,7 @@ int cfwrite_string(char *buf, CFILE *file)
 	return cfwrite_char(0, file);			// write out NULL termination			
 }
 
-int cfwrite_string_len(char *buf, CFILE *file)
+int cfwrite_string_len(const char *buf, CFILE *file)
 {
 	int len = strlen(buf);
 
@@ -1419,7 +1419,7 @@ int cfilelength( CFILE * cfile )
 // returns:   number of full elements actually written
 //            
 //
-int cfwrite(void *buf, int elsize, int nelem, CFILE *cfile)
+int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 {
 	Assert(cfile != NULL);
 	Assert(buf != NULL);
@@ -1544,7 +1544,7 @@ char *cfgets(char *buf, int n, CFILE *cfile)
 // returns:   success ==> non-negative value
 //				  error   ==> EOF
 //
-int cfputs(char *str, CFILE *cfile)
+int cfputs(const char *str, CFILE *cfile)
 {
 	Assert(cfile != NULL);
 	Assert(str != NULL);
@@ -1575,9 +1575,9 @@ unsigned long CRCTable[256];
 #define CF_CHKSUM_SAMPLE_SIZE				512
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-ushort cf_add_chksum_short(ushort seed, char *buffer, int size)
+ushort cf_add_chksum_short(ushort seed, const char *buffer, int size)
 {
-	ubyte * ptr = (ubyte *)buffer;
+	const ubyte * ptr = (const ubyte *)buffer;
 	unsigned int sum1,sum2;
 
 	sum1 = sum2 = (int)(seed);
@@ -1593,14 +1593,14 @@ ushort cf_add_chksum_short(ushort seed, char *buffer, int size)
 }
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-unsigned long cf_add_chksum_long(unsigned long seed, char *buffer, int size)
+unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int size)
 {
 	unsigned long crc;
-	unsigned char *p;
+	unsigned const char *p;
 	unsigned long temp1;
 	unsigned long temp2;
 
-	p = (unsigned char*)buffer;
+	p = (unsigned const char*)buffer;
 	crc = seed;	
 
 	while (size--!=0){
@@ -1686,7 +1686,7 @@ int cf_chksum_do(CFILE *cfile, ushort *chk_short, uint *chk_long, int max_size)
 }
 
 // get the 2 byte checksum of the passed filename - return 0 if operation failed, 1 if succeeded
-int cf_chksum_short(char *filename, ushort *chksum, int max_size, int cf_type)
+int cf_chksum_short(const char *filename, ushort *chksum, int max_size, int cf_type)
 {
 	int ret_val;
 	CFILE *cfile = NULL;		
@@ -1736,7 +1736,7 @@ int cf_chksum_short(CFILE *file, ushort *chksum, int max_size)
 }
 
 // get the 32 bit CRC checksum of the passed filename - return 0 if operation failed, 1 if succeeded
-int cf_chksum_long(char *filename, uint *chksum, int max_size, int cf_type)
+int cf_chksum_long(const char *filename, uint *chksum, int max_size, int cf_type)
 {
 	int ret_val;
 	CFILE *cfile = NULL;		

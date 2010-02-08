@@ -999,7 +999,7 @@ void gr_opengl_aabitmap(int x, int y)
 	gr_aabitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
 }
 
-void gr_opengl_string( int sx, int sy, char *s )
+void gr_opengl_string( int sx, int sy, const char *s )
 {
 	int width, spacing, letter;
 	int x, y;
@@ -1615,7 +1615,7 @@ void gr_opengl_set_color_fast(color *dst)
 	gr_screen.current_color = *dst;
 }
 
-void gr_opengl_print_screen(char *filename)
+void gr_opengl_print_screen(const char *filename)
 {
 #ifdef GL_VERSION_1_2
 	char tmp[MAX_FILENAME_LEN];
@@ -2896,7 +2896,7 @@ void opengl_zbias(int bias)
 	}
 }
 	        
-extern char *Osreg_title;
+extern const char *Osreg_title;
 void gr_opengl_init()
 {
 	if ( Inited )	{

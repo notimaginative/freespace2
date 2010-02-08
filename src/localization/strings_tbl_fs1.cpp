@@ -31,7 +31,7 @@
 #include "localize.h"
 
 
-char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
+const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 {
 	// English
 	{

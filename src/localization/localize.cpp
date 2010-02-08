@@ -417,7 +417,7 @@ int Lcl_pointer_count = 0;
 
 #ifdef MAKE_FS1
 // strings.tbl for FS1, hard coded
-extern char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1];
+extern const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1];
 #endif
 
 // ------------------------------------------------------------------------------------------------------------
@@ -665,7 +665,7 @@ void lcl_xstr_init()
 		if ( !strlen(FS1_trans[Lcl_current_lang][i]) ) {
 			Xstr_table[i].str = NULL;
 		} else {
-			Xstr_table[i].str = FS1_trans[Lcl_current_lang][i];
+			Xstr_table[i].str = (char *)FS1_trans[Lcl_current_lang][i];
 		}
 
 		Xstr_table[i].offset_x = 0;

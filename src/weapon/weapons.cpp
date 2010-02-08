@@ -690,10 +690,10 @@ int weapon_info_lookup(const char *name)
 #ifdef MAKE_FS1
 	// fix the stupid table stuff - it's non-fatal but annoying error messages
 	if (!strcmp(name, "Disruptor Missile")) {
-		strncpy(name, "D-Missile", MAX_FILENAME_LENGTH);
+		name = "D-Missile";
 	// this one fixes the same issue with a SilentThreat mission
 	} else if (!strcmp(name, "Shield Breaker")) {
-		strncpy(name, "S-Breaker", MAX_FILENAME_LENGTH);
+		name = "S-Breaker";
 	}
 #endif
 

@@ -831,7 +831,7 @@ int translate_key_to_index(const char *key)
 #ifdef MAKE_FS1
 	// fix for German training mission key check
 	if (Lcl_gr && !strcmp(key, "Links Ctrl")) {
-		strncpy(key, "Left Ctrl", 10);
+		key = "Left Ctrl";
 	}
 #endif
 

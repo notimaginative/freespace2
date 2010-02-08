@@ -478,7 +478,7 @@ cmd_brief *Cur_cmd_brief;
 cmd_brief Cmd_briefs[MAX_TEAMS];
 
 #ifdef MAKE_FS1
-static char *fs1_icon_tbl[MAX_BRIEF_ICONS][3] = {
+static const char *fs1_icon_tbl[MAX_BRIEF_ICONS][3] = {
 	{ "iconfighter", "FadeFighter", "iconhighlight04" },
 	{ "iconfighterW", "FadeFighterW", "iconhighlight02" },
 	{ "iconcargo", "FadeCargo", "iconhighlight04" },

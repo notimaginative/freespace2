@@ -4534,7 +4534,7 @@ float ai_path()
 			min_dist_to_goal = MIN_DIST_TO_WAYPOINT_GOAL + Pl_objp->radius;
 
 		if ( (vm_vec_dist_quick(&Pl_objp->pos, &gcvp) < min_dist_to_goal) ||
-			((r >= 0.0f) && (r <= 1.0f)) && (vm_vec_dist_quick(&nearest_point, &gcvp) < (MIN_DIST_TO_WAYPOINT_GOAL + Pl_objp->radius))) {
+			(((r >= 0.0f) && (r <= 1.0f)) && (vm_vec_dist_quick(&nearest_point, &gcvp) < (MIN_DIST_TO_WAYPOINT_GOAL + Pl_objp->radius)))) {
 			aip->path_cur += aip->path_dir;
 			//nprintf(("AI", " Near: Advancing from point %i to %i of %i points.\n", aip->path_cur-aip->path_dir, aip->path_cur, num_points));
 			if (((aip->path_cur - aip->path_start) > (num_points+1)) || (aip->path_cur < aip->path_start)) {
@@ -4840,9 +4840,9 @@ void ai_waypoints()
 		r = find_nearest_point_on_line(&nearest_point, &Pl_objp->last_pos, &Pl_objp->pos, wp_cur);
 
 		if ( (vm_vec_dist_quick(&Pl_objp->pos, wp_cur) < (MIN_DIST_TO_WAYPOINT_GOAL + fl_sqrt(Pl_objp->radius) + vm_vec_dist_quick(&Pl_objp->pos, &Pl_objp->last_pos))) ||
-			((r >= 0.0f) && (r <= 1.0f)) && (vm_vec_dist_quick(&nearest_point, wp_cur) < (MIN_DIST_TO_WAYPOINT_GOAL + fl_sqrt(Pl_objp->radius)))) {
+			(((r >= 0.0f) && (r <= 1.0f)) && (vm_vec_dist_quick(&nearest_point, wp_cur) < (MIN_DIST_TO_WAYPOINT_GOAL + fl_sqrt(Pl_objp->radius))))) {
 			wp_index++;
-			if (wp_index >= wpl->count)
+			if (wp_index >= wpl->count) {
 				if (aip->wp_flags & WPF_REPEAT) {
 					wp_index = 0;
 				} else {
@@ -4886,6 +4886,7 @@ void ai_waypoints()
 					}
 					//wp_index = wpl->count-1;
 				}
+			}
 
 			aip->wp_index = wp_index;
 		}
@@ -5121,11 +5122,13 @@ void evade_weapon()
 			locked_weapon_objp = &Objects[aip->nearest_locked_object];
 	}
 	
-	if (aip->danger_weapon_objnum != -1)
-		if (Objects[aip->danger_weapon_objnum].signature == aip->danger_weapon_signature)
+	if (aip->danger_weapon_objnum != -1) {
+		if (Objects[aip->danger_weapon_objnum].signature == aip->danger_weapon_signature) {
 			unlocked_weapon_objp = &Objects[aip->danger_weapon_objnum];
-		else
+		} else {
 			aip->danger_weapon_objnum = -1;		//	Signatures don't match, so no longer endangered.
+		}
+	}
 
 	if (locked_weapon_objp != NULL) {
 		if (unlocked_weapon_objp != NULL) {
@@ -8323,13 +8326,14 @@ void ai_chase()
 	case SM_AVOID:
 		if ((dot_to_enemy > -0.2f) && (dist_to_enemy / (dot_to_enemy + 0.3f) < 100.0f)) {
 			aip->submode_start_time = Missiontime;
-		} else if (Missiontime - aip->submode_start_time > i2f(1)/2)
+		} else if (Missiontime - aip->submode_start_time > i2f(1)/2) {
 			if (might_collide_with_ship(Pl_objp, En_objp, dot_to_enemy, dist_to_enemy, 3.0f)) {
 				aip->submode_start_time = Missiontime;
 			} else {
 				aip->submode = SM_GET_BEHIND;
 				aip->submode_start_time = Missiontime;
 			}
+		}
 
 		break;
 
@@ -9339,7 +9343,7 @@ void ai_big_guard()
 		// how often to choose new desired_z
 		// 1*(64) sec < 2000, 2*(64) < 2-4000 3*(64) > 4-8000, etc (Missiontime >> 22 is 64 sec intervals)
 		int time_choose = int(floor(log(length * 0.001) / log(2)));
-		float desired_z = min_z + length * static_randf( Pl_objp-Objects ^ (Missiontime >> (22 + time_choose)) );
+		float desired_z = min_z + length * static_randf( (Pl_objp-Objects) ^ (Missiontime >> (22 + time_choose)) );
 
 		// get r from guard_ship
 		float cur_guard_rad = vm_vec_dist(&Pl_objp->pos, &axis_pt);

@@ -1278,7 +1278,7 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 		by = fl2i(byf);
 		bc = fl2i(tv.sx);
 
-		if ( (bx < 0) || (bx > gr_screen.max_w) || (by < 0) || (by > gr_screen.max_h) && !Fred_running ) {
+		if ( !Fred_running && ((bx < 0) || (bx > gr_screen.max_w) || (by < 0) || (by > gr_screen.max_h)) ) {
 			bi->x = bx;
 			bi->y = by;
 			return;

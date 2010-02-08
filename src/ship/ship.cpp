@@ -5437,7 +5437,7 @@ void ship_process_targeting_lasers()
 			fire_info.target = NULL;
 			fire_info.target_subsys = NULL;
 			fire_info.turret = NULL;
-			fire_info.targeting_laser_offset = m->gun_banks[shipp->targeting_laser_bank].pnt[0];			
+			fire_info.targeting_laser_offset = m->gun_banks[(int)shipp->targeting_laser_bank].pnt[0];			
 			shipp->targeting_laser_objnum = beam_fire_targeting(&fire_info);			
 
 			// hmm, why didn't it fire?

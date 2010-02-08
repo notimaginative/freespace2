@@ -3944,7 +3944,7 @@ void game_render_frame( vector * eye_pos, matrix * eye_orient )
 
 	hud_show_radar();
 
-	if( (Game_detail_flags & DETAIL_FLAG_HUD) && !(Game_mode & GM_MULTIPLAYER) || ( (Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_OBSERVER) ) ) {
+	if( (Game_detail_flags & DETAIL_FLAG_HUD) && (!(Game_mode & GM_MULTIPLAYER) || ( (Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_OBSERVER) )) ) {
 		hud_maybe_clear_head_area();
 		anim_render_all(0, flFrametime);
 	}
@@ -6244,8 +6244,8 @@ void game_enter_state( int old_state, int new_state )
 			// if we are coming from the briefing, ship select, weapons loadout, or main menu (in the
 			// case of quick start), then do bitmap loads, etc  Don't do any of the loading stuff
 			// if we are in multiplayer -- this stuff is all handled in the multi-wait section
-			if ( !(Game_mode & GM_MULTIPLAYER) && (old_state == GS_STATE_BRIEFING) || (old_state == GS_STATE_SHIP_SELECT) ||
-				(old_state == GS_STATE_WEAPON_SELECT) || (old_state == GS_STATE_MAIN_MENU) || (old_state == GS_STATE_MULTI_STD_WAIT)	|| (old_state == GS_STATE_SIMULATOR_ROOM) ) {
+			if ( !(Game_mode & GM_MULTIPLAYER) && ((old_state == GS_STATE_BRIEFING) || (old_state == GS_STATE_SHIP_SELECT) ||
+				(old_state == GS_STATE_WEAPON_SELECT) || (old_state == GS_STATE_MAIN_MENU) || (old_state == GS_STATE_MULTI_STD_WAIT)	|| (old_state == GS_STATE_SIMULATOR_ROOM)) ) {
 					// JAS: Used to do all paging here.
 
 					#ifndef NDEBUG
@@ -6260,7 +6260,7 @@ void game_enter_state( int old_state, int new_state )
 			}
 
 			// special code that restores player ship selection and weapons loadout when doing a quick start
-			if ( !(Game_mode & GM_MULTIPLAYER) && (old_state == GS_STATE_MAIN_MENU) || (old_state == GS_STATE_DEATH_BLEW_UP)  || (old_state == GS_STATE_GAME_PLAY) ) {
+			if ( !(Game_mode & GM_MULTIPLAYER) && ((old_state == GS_STATE_MAIN_MENU) || (old_state == GS_STATE_DEATH_BLEW_UP)  || (old_state == GS_STATE_GAME_PLAY)) ) {
 				if ( !stricmp(Player_loadout.filename, Game_current_mission_filename) ) {
 					wss_direct_restore_loadout();
 				}
@@ -6314,7 +6314,7 @@ void mouse_force_pos(int x, int y);
 	
 			// under certain circumstances, the server should reset the object update rate limiting stuff
 			if( ((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)) &&
-				 (old_state == GS_STATE_MULTI_PAUSED) || (old_state == GS_STATE_MULTI_MISSION_SYNC) ){
+				 ((old_state == GS_STATE_MULTI_PAUSED) || (old_state == GS_STATE_MULTI_MISSION_SYNC)) ){
 				
 				// reinitialize the rate limiting system for all clients
 				multi_oo_rate_init_all();

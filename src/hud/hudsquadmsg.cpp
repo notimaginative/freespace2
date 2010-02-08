@@ -486,7 +486,7 @@ const char *comm_order_hotkey_text( int index )
 #define CAN_MESSAGE	(SIF_FIGHTER | SIF_BOMBER | SIF_CRUISER | SIF_FREIGHTER | SIF_TRANSPORT | SIF_CAPITAL | SIF_SUPPORT | SIF_SUPERCAP | SIF_DRYDOCK | SIF_GAS_MINER | SIF_AWACS | SIF_CORVETTE)
 
 int squadmsg_history_index = 0;
-squadmsg_history Squadmsg_history[SQUADMSG_HISTORY_MAX] = { 0 };
+squadmsg_history Squadmsg_history[SQUADMSG_HISTORY_MAX];
 
 // used for Message box gauge
 #define NUM_MBOX_FRAMES		3

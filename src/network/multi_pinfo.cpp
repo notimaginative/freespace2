@@ -930,11 +930,11 @@ void multi_pinfo_reset_player(net_player *np)
 	}	
 	
 	// try and load pilot pic/squad logo
-	if(strlen(np->player->image_filename) >= 0){
+	if(strlen(np->player->image_filename) > 0){
 		strcpy(Mp_pilot.filename, np->player->image_filename);
 		Mp_pilot.bitmap = bm_load_duplicate(Mp_pilot.filename);
 	}
-	if(strlen(np->player->squad_filename) >= 0){
+	if(strlen(np->player->squad_filename) > 0){
 		strcpy(Mp_squad.filename, np->player->squad_filename);
 		Mp_squad.bitmap = bm_load_duplicate(Mp_squad.filename);
 	}

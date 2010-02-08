@@ -666,7 +666,7 @@ float key_down_timef(uint scancode)
 
 	if ( !key_inited ) return 0.0f;
 
-	if ((scancode<0)|| (scancode>=NUM_KEYS)) return 0.0f;
+	if (scancode >= NUM_KEYS) return 0.0f;
 
 	ENTER_CRITICAL_SECTION(&key_lock);		
 

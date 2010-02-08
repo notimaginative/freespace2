@@ -643,7 +643,7 @@ int beam_fire(beam_fire_info *fire_info)
 
 	// make sure a ship is firing this
 	Assert((fire_info->shooter->type == OBJ_SHIP) && (fire_info->shooter->instance >= 0) && (fire_info->shooter->instance < MAX_SHIPS));
-	if((fire_info->shooter->type != OBJ_SHIP) || (fire_info->shooter->instance < 0) && (fire_info->shooter->instance >= MAX_SHIPS)){
+	if((fire_info->shooter->type != OBJ_SHIP) || (fire_info->shooter->instance < 0) || (fire_info->shooter->instance >= MAX_SHIPS)){
 		return -1;
 	}
 	firing_ship = &Ships[fire_info->shooter->instance];
@@ -778,7 +778,7 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 
 	// make sure a ship is firing this
 	Assert((fire_info->shooter->type == OBJ_SHIP) && (fire_info->shooter->instance >= 0) && (fire_info->shooter->instance < MAX_SHIPS));
-	if((fire_info->shooter->type != OBJ_SHIP) || (fire_info->shooter->instance < 0) && (fire_info->shooter->instance >= MAX_SHIPS)){
+	if((fire_info->shooter->type != OBJ_SHIP) || (fire_info->shooter->instance < 0) || (fire_info->shooter->instance >= MAX_SHIPS)){
 		return -1;
 	}
 	firing_ship = &Ships[fire_info->shooter->instance];

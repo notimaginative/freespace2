@@ -184,10 +184,15 @@
 
 #define SQUADMSG_HISTORY_MAX 160
 
-typedef struct {
+typedef struct squadmsg_history {
 	int ship;  // ship that received the order
 	int order;  // order that the ship received (see defines above)
-	int target;  // ship that is the target of the order 
+	int target;  // ship that is the target of the order
+
+	squadmsg_history() :
+		ship(-1), order(-1), target(-1)
+	{
+	}
 } squadmsg_history;
 
 extern int squadmsg_history_index;

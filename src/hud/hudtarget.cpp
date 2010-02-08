@@ -616,7 +616,7 @@ typedef struct homing_beep_info
 	float	precalced_interp;		// a precalculated value used in a linear interpretation
 } homing_beep_info;
 
-homing_beep_info Homing_beep = { -1, 0, 150, 1000, 30.0f, 1500.0f };
+homing_beep_info Homing_beep = { -1, 0, 150, 1000, 30.0f, 1500.0f, 1.729412f };
 
 // Set at the start of a mission, used to decide how to draw the separation for the warning missile indicators
 float Min_warning_missile_dist;

@@ -171,8 +171,10 @@ void pause_init(int multi)
 void pause_do(int multi)
 {
 	int k;
+#ifndef MAKE_FS1
 	const char *pause_str = XSTR("Paused", 767);
 	int str_w, str_h;
+#endif
 
 	if(Game_mode & GM_STANDALONE_SERVER){
 		multi_pause_do();

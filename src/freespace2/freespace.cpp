@@ -770,9 +770,9 @@ extern char full_path[1024];
 
 // JAS: Code for warphole camera.
 // Needs to be cleaned up.
-vector Camera_pos = { 0.0f, 0.0f, 0.0f };
-vector Camera_velocity = { 0.0f, 0.0f, 0.0f };
-vector Camera_desired_velocity = { 0.0f, 0.0f, 0.0f };
+vector Camera_pos = ZERO_VECTOR;
+vector Camera_velocity = ZERO_VECTOR;
+vector Camera_desired_velocity = ZERO_VECTOR;
 matrix Camera_orient = IDENTITY_MATRIX;
 float Camera_damping = 1.0f;
 float Camera_time = 0.0f;
@@ -3655,7 +3655,7 @@ void apply_hud_shake(matrix *eye_orient)
 extern void compute_slew_matrix(matrix *orient, angles *a);	// TODO: move code to proper place and extern in header file
 
 //	Player's velocity just before he blew up.  Used to keep camera target moving.
-vector	Dead_player_last_vel = {1.0f, 1.0f, 1.0f};
+vector	Dead_player_last_vel = { { { 1.0f, 1.0f, 1.0f } } };
 
 //	Set eye_pos and eye_orient based on view mode.
 void game_render_frame_setup(vector *eye_pos, matrix *eye_orient)
@@ -5253,7 +5253,7 @@ void camera_move()
 	}
 
 	if ( (ot < 3.0f ) && ( Camera_time >= 3.0f ) )	{
-		vector tmp = { 0.0f, 0.0f, 0.0f };
+		vector tmp = ZERO_VECTOR;
 		camera_set_velocity( &tmp, 0 );
 	}
 	
@@ -5627,7 +5627,7 @@ void game_process_event( int current_state, int event )
 				Camera_time = 0.0f;
 				camera_set_position( &tmp );
 				camera_set_orient( &Player_obj->orient );
-				vector tmp_vel = { 0.0f, 5.1919f, 14.7f };
+				vector tmp_vel = { { { 0.0f, 5.1919f, 14.7f } } };
 
 				//mprintf(( "Rad = %.1f\n", Player_obj->radius ));
 				camera_set_velocity( &tmp_vel, 1);

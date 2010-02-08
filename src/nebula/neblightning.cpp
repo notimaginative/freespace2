@@ -175,16 +175,16 @@ typedef struct l_section {
 
 // points on the basic cross section
 vector Nebl_ring[3] = {	
-	{ -1.0f, 0.0f, 0.0f },
-	{ 1.0f, 0.70f, 0.0f },
-	{ 1.0f, -0.70f, 0.0f }	
+	{ { { -1.0f, 0.0f, 0.0f } } },
+	{ { { 1.0f, 0.70f, 0.0f } } },
+	{ { { 1.0f, -0.70f, 0.0f } } }	
 };
 
 // pinched off cross-section
 vector Nebl_ring_pinched[3] = {	
-	{ -0.05f, 0.0f, 0.0f },
-	{ 0.05f, 0.035f, 0.0f },
-	{ 0.05f, -0.035f, 0.0f }	
+	{ { { -0.05f, 0.0f, 0.0f } } },
+	{ { { 0.05f, 0.035f, 0.0f } } },
+	{ { { 0.05f, -0.035f, 0.0f } } }	
 };
 
 // globals used for rendering and generating bolts

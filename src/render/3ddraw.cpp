@@ -1613,10 +1613,10 @@ int g3_draw_rod(vector *p0,float width1,vector *p1,float width2, vertex * verts,
 
 // draw a perspective bitmap based on angles and radius
 vector g3_square[4] = {
-	{-1.0f, -1.0f, 20.0f},
-	{-1.0f, 1.0f, 20.0f},
-	{1.0f, 1.0f, 20.0f},
-	{1.0f, -1.0f, 20.0f}
+	{ { { -1.0f, -1.0f, 20.0f } } },
+	{ { { -1.0f, 1.0f, 20.0f } } },
+	{ { { 1.0f, 1.0f, 20.0f } } },
+	{ { { 1.0f, -1.0f, 20.0f } } }
 };
 
 #define MAX_PERSPECTIVE_DIVISIONS			5				// should never even come close to this limit

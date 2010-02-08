@@ -453,7 +453,7 @@ void shipfx_maybe_create_live_debris_at_ship_death( object *ship_obj )
 
 				Assert (pss != NULL);
 				if (pss != NULL) {
-					vector exp_center, tmp = {0.0f, 0.0f, 0.0f};
+					vector exp_center, tmp = ZERO_VECTOR;
 					model_find_world_point(&exp_center, &tmp, shipp->modelnum, parent, &ship_obj->orient, &ship_obj->pos );
 
 					// if not blown off, blow it off
@@ -523,7 +523,7 @@ void shipfx_blow_up_hull(object *obj, int model, vector *exp_center)
 	bool try_live_debris = true;
 	for (i=0; i<pm->num_debris_objects; i++ )	{
 		if (! pm->submodel[pm->debris_objects[i]].is_live_debris) {
-			vector tmp = {0.0f, 0.0f, 0.0f };		
+			vector tmp = ZERO_VECTOR;		
 			model_find_world_point(&tmp, &pm->submodel[pm->debris_objects[i]].offset, model, 0, &obj->orient, &obj->pos );
 			debris_create( obj, model, pm->debris_objects[i], &tmp, exp_center, 1, 3.0f );
 		} else {
@@ -1868,8 +1868,8 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	
 	// find which debris pieces are in the front and back split ships
 	for (int i=0; i<pm->num_debris_objects; i++ )	{
-		vector temp_pos = {0.0f, 0.0f, 0.0f};
-		vector tmp = {0.0f, 0.0f, 0.0f };		
+		vector temp_pos = ZERO_VECTOR;
+		vector tmp = ZERO_VECTOR;		
 		vector tmp1 = pm->submodel[pm->debris_objects[i]].offset;
 		// tmp is world position,  temp_pos is world_pivot,  tmp1 is offset from world_pivot (in ship local coord)
 		model_find_world_point(&tmp, &tmp1, shipp->modelnum, -1, &vmd_identity_matrix, &temp_pos );
@@ -1980,7 +1980,7 @@ static void half_ship_render_ship_and_debris(clip_ship* half_ship,ship *shipp)
 		// draw DEBRIS_FREE in test only
 		if (half_ship->draw_debris[i] == DEBRIS_DRAW) {
 			vector temp_pos = orig_ship_world_center;
-			vector tmp = {0.0f, 0.0f, 0.0f};
+			vector tmp = ZERO_VECTOR;
 			vector tmp1 = pm->submodel[pm->debris_objects[i]].offset;
 
 			// determine if explosion front has past debris piece

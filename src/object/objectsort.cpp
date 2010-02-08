@@ -174,14 +174,14 @@ int Object_sort_order[MAX_OBJECTS];
 // Used to (fairly) quicky find the 8 extreme
 // points around an object.
 vector check_offsets[8] = { 
-  { -1.0f, -1.0f, -1.0f },
-  { -1.0f, -1.0f,  1.0f },
-  { -1.0f,  1.0f, -1.0f },
-  { -1.0f,  1.0f,  1.0f },
-  {  1.0f, -1.0f, -1.0f },
-  {  1.0f, -1.0f,  1.0f },
-  {  1.0f,  1.0f, -1.0f },
-  {  1.0f,  1.0f,  1.0f }
+  { { { -1.0f, -1.0f, -1.0f } } },
+  { { { -1.0f, -1.0f,  1.0f } } },
+  { { { -1.0f,  1.0f, -1.0f } } },
+  { { { -1.0f,  1.0f,  1.0f } } },
+  { { {  1.0f, -1.0f, -1.0f } } },
+  { { {  1.0f, -1.0f,  1.0f } } },
+  { { {  1.0f,  1.0f, -1.0f } } },
+  { { {  1.0f,  1.0f,  1.0f } } }
 };
 
 // See if an object is in the view cone.

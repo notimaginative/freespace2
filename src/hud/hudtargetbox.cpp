@@ -765,8 +765,8 @@ void hud_targetbox_show_extra_ship_info(ship *target_shipp, ai_info *target_aip)
 void hud_render_target_jump_node(object *target_objp)
 {
 	char			outstr[256];
-	vector		obj_pos = {0.0f,0.0f,0.0f};
-	vector		camera_eye = {0.0f,0.0f,0.0f};
+	vector		obj_pos = ZERO_VECTOR;
+	vector		camera_eye = ZERO_VECTOR;
 	matrix		camera_orient = IDENTITY_MATRIX;
 	vector		orient_vec, up_vector;
 	float			factor, dist;
@@ -821,8 +821,8 @@ void hud_render_target_jump_node(object *target_objp)
 void hud_render_target_asteroid(object *target_objp)
 {
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
-	vector		obj_pos = {0.0f,0.0f,0.0f};
-	vector		camera_eye = {0.0f,0.0f,0.0f};
+	vector		obj_pos = ZERO_VECTOR;
+	vector		camera_eye = ZERO_VECTOR;
 	matrix		camera_orient = IDENTITY_MATRIX;
 	asteroid		*asteroidp;
 	vector		orient_vec, up_vector;
@@ -1240,7 +1240,7 @@ void hud_targetbox_get_eye(vector *eye_pos, matrix *orient, int ship_num)
 	ship		*shipp;
 	polymodel	*pm;
 	eye			*ep;
-	vector		origin = {0.0f, 0.0f, 0.0f};
+	vector		origin = ZERO_VECTOR;
 
 	shipp = &Ships[ship_num];
 	pm = model_get( shipp->modelnum );
@@ -1262,8 +1262,8 @@ void hud_targetbox_get_eye(vector *eye_pos, matrix *orient, int ship_num)
 //
 void hud_render_target_ship(object *target_objp)
 {
-	vector		obj_pos = {0.0f,0.0f,0.0f};
-	vector		camera_eye = {0.0f,0.0f,0.0f};
+	vector		obj_pos = ZERO_VECTOR;
+	vector		camera_eye = ZERO_VECTOR;
 	matrix		camera_orient = IDENTITY_MATRIX;
 	ship		*target_shipp;
 	ship_info	*target_sip;
@@ -1348,8 +1348,8 @@ void hud_render_target_ship(object *target_objp)
 //
 void hud_render_target_debris(object *target_objp)
 {
-	vector	obj_pos = {0.0f,0.0f,0.0f};
-	vector	camera_eye = {0.0f,0.0f,0.0f};
+	vector	obj_pos = ZERO_VECTOR;
+	vector	camera_eye = ZERO_VECTOR;
 	matrix	camera_orient = IDENTITY_MATRIX;
 	debris	*debrisp;
 	vector	orient_vec, up_vector;
@@ -1414,8 +1414,8 @@ void hud_render_target_debris(object *target_objp)
 //
 void hud_render_target_weapon(object *target_objp)
 {
-	vector		obj_pos = {0.0f,0.0f,0.0f};
-	vector		camera_eye = {0.0f,0.0f,0.0f};
+	vector		obj_pos = ZERO_VECTOR;
+	vector		camera_eye = ZERO_VECTOR;
 	matrix		camera_orient = IDENTITY_MATRIX;
 	vector		orient_vec, up_vector;
 	weapon_info	*target_wip = NULL;

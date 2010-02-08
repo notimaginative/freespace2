@@ -256,9 +256,9 @@ int index_largest (float a, float b, float c);	// returns index of largest, NO_L
 
 
 vector vmd_zero_vector = ZERO_VECTOR;
-vector vmd_x_vector = { 1.0f, 0.0f, 0.0f };
-vector vmd_y_vector = { 0.0f, 1.0f, 0.0f };
-vector vmd_z_vector = { 0.0f, 0.0f, 1.0f };
+vector vmd_x_vector = { { { 1.0f, 0.0f, 0.0f } } };
+vector vmd_y_vector = { { { 0.0f, 1.0f, 0.0f } } };
+vector vmd_z_vector = { { { 0.0f, 0.0f, 1.0f } } };
 matrix vmd_identity_matrix = IDENTITY_MATRIX;
 
 #define	UNINITIALIZED_VALUE	-12345678.9f

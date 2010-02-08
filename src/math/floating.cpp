@@ -164,7 +164,7 @@ float fl_roundoff(float x, int multiple)
 float frand()
 {
 	float rval;
-	rval = fabsf(((float) myrand()) / (RAND_MAX + 1));
+	rval = fabsf(((float) myrand()) / (MY_RAND_MAX + 1));
 	return rval;
 }
 

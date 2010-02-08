@@ -631,6 +631,7 @@ float SWAPFLOAT( float *x )
 #define TRUE	1
 #define FALSE	0
 
+#define MY_RAND_MAX		0x7fff
 int myrand();
 
 

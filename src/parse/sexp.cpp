@@ -2347,7 +2347,7 @@ int rand_internal(int low, int high)
 		diff = 0;
 	}
 
-	return (low + rand() % (diff + 1));
+	return (low + myrand() % (diff + 1));
 }
 
 

@@ -774,7 +774,7 @@ void particle_emit( particle_emitter *pe, int type, uint optional_data, float ra
 	n2 = (pe->num_high*percent)/100;
 
 	// How many to emit?
-	n = (rand() % (n2-n1+1)) + n1;
+	n = (myrand() % (n2-n1+1)) + n1;
 	
 	if ( n < 1 ) return;
 

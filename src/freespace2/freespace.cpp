@@ -3599,8 +3599,8 @@ void apply_hud_shake(matrix *eye_orient)
 			
 			int r1 = myrand();
 			int r2 = myrand();
-			tangles.p += 0.07f * (float) (r1-RAND_MAX/2)/RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/ABURN_DECAY_TIME));
-			tangles.h += 0.07f * (float) (r2-RAND_MAX/2)/RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/ABURN_DECAY_TIME));
+			tangles.p += 0.07f * (float) (r1-MY_RAND_MAX/2)/MY_RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/ABURN_DECAY_TIME));
+			tangles.h += 0.07f * (float) (r2-MY_RAND_MAX/2)/MY_RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/ABURN_DECAY_TIME));
 		}
 
 		// Make eye shake due to engine wash
@@ -3608,8 +3608,8 @@ void apply_hud_shake(matrix *eye_orient)
 		if (Player_obj->type == OBJ_SHIP && (Ships[Player_obj->instance].wash_intensity > 0) && Wash_on ) {
 			int r1 = myrand();
 			int r2 = myrand();
-			tangles.p += 0.07f * Ships[Player_obj->instance].wash_intensity * (float) (r1-RAND_MAX/2)/RAND_MAX;
-			tangles.h += 0.07f * Ships[Player_obj->instance].wash_intensity * (float) (r2-RAND_MAX/2)/RAND_MAX;
+			tangles.p += 0.07f * Ships[Player_obj->instance].wash_intensity * (float) (r1-MY_RAND_MAX/2)/MY_RAND_MAX;
+			tangles.h += 0.07f * Ships[Player_obj->instance].wash_intensity * (float) (r2-MY_RAND_MAX/2)/MY_RAND_MAX;
 
 			// get the   intensity
 			float intensity = FF_SCALE * Ships[Player_obj->instance].wash_intensity;
@@ -3637,8 +3637,8 @@ void apply_hud_shake(matrix *eye_orient)
 			
 				int r1 = myrand();
 				int r2 = myrand();
-				tangles.p += (Game_shudder_intensity / 200.0f) * (float) (r1-RAND_MAX/2)/RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/(float)Game_shudder_total));
-				tangles.h += (Game_shudder_intensity / 200.0f) * (float) (r2-RAND_MAX/2)/RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/(float)Game_shudder_total));
+				tangles.p += (Game_shudder_intensity / 200.0f) * (float) (r1-MY_RAND_MAX/2)/MY_RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/(float)Game_shudder_total));
+				tangles.h += (Game_shudder_intensity / 200.0f) * (float) (r2-MY_RAND_MAX/2)/MY_RAND_MAX * (0.5f - fl_abs(0.5f - (float) dtime/(float)Game_shudder_total));
 			}
 		}
 

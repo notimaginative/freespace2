@@ -1298,9 +1298,9 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 			vertex p;
 
 			if (!d->active)	{
-				d->pos.xyz.x = f2fl(myrand() - RAND_MAX/2);
-				d->pos.xyz.y = f2fl(myrand() - RAND_MAX/2);
-				d->pos.xyz.z = f2fl(myrand() - RAND_MAX/2);
+				d->pos.xyz.x = f2fl(myrand() - MY_RAND_MAX/2);
+				d->pos.xyz.y = f2fl(myrand() - MY_RAND_MAX/2);
+				d->pos.xyz.z = f2fl(myrand() - MY_RAND_MAX/2);
 
 				vm_vec_normalize(&d->pos);
 

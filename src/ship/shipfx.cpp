@@ -2416,7 +2416,7 @@ void shipfx_do_damaged_arcs_frame( ship *shipp )
 
 		//mprintf(( "Creating new ship arc!\n" ));
 
-		int n, n_arcs = ((rand()>>5) % 3)+1;		// Create 1-3 sparks
+		int n, n_arcs = ((myrand()>>5) % 3)+1;		// Create 1-3 sparks
 
 		vector v1, v2, v3, v4;
 		submodel_get_two_random_points( shipp->modelnum, -1, &v1, &v2 );
@@ -2530,7 +2530,7 @@ void shipfx_do_damaged_arcs_frame( ship *shipp )
 			if ( !timestamp_elapsed( shipp->arc_timestamp[i] ) )	{							
 				// Maybe move a vertex....  20% of the time maybe?
 				int mr = myrand();
-				if ( mr < RAND_MAX/5 )	{
+				if ( mr < MY_RAND_MAX/5 )	{
 					vector v1, v2;
 					submodel_get_two_random_points( shipp->modelnum, -1, &v1, &v2 );
 

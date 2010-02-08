@@ -1480,7 +1480,7 @@ void main_hall_handle_misc_anims()
 			// if the timestamp is -1, then reset it to some random value (based on MIN and MAX) and continue
 			if(Main_hall->misc_anim_delay[idx][0] == -1){
 				Main_hall->misc_anim_delay[idx][0] = timestamp(Main_hall->misc_anim_delay[idx][1] + 
-					 									      (int)(((float)rand()/(float)RAND_MAX) * (float)(Main_hall->misc_anim_delay[idx][2] - Main_hall->misc_anim_delay[idx][1])));
+					 									      (int)(((float)myrand()/(float)MY_RAND_MAX) * (float)(Main_hall->misc_anim_delay[idx][2] - Main_hall->misc_anim_delay[idx][1])));
 
 			// if the timestamp is not -1 and has popped, play the anim and make the timestap -1
 			} else if (timestamp_elapsed(Main_hall->misc_anim_delay[idx][0]) && Main_hall_misc_anim[idx]) {
@@ -1789,7 +1789,7 @@ void main_hall_handle_random_intercom_sounds()
 {
 	// if we have no timestamp for the next random sound, then set on
 	if((Main_hall_next_intercom_sound_stamp == -1) && (Main_hall_intercom_sound_handle == -1)){
-		Main_hall_next_intercom_sound_stamp = timestamp((int)(((float)rand()/(float)RAND_MAX) * 
+		Main_hall_next_intercom_sound_stamp = timestamp((int)(((float)myrand()/(float)MY_RAND_MAX) * 
 			                                            (float)(Main_hall->intercom_delay[Main_hall_next_intercom_sound][1]
 																	  - Main_hall->intercom_delay[Main_hall_intercom_sound_handle][0])) );		
 	}
@@ -1817,7 +1817,7 @@ void main_hall_handle_random_intercom_sounds()
 			}
 
 			// set the timestamp
-			Main_hall_next_intercom_sound_stamp = timestamp((int)(((float)rand()/(float)RAND_MAX) * 
+			Main_hall_next_intercom_sound_stamp = timestamp((int)(((float)myrand()/(float)MY_RAND_MAX) * 
 			                                            (float)(Main_hall->intercom_delay[Main_hall_next_intercom_sound][1]
 																	  - Main_hall->intercom_delay[Main_hall_next_intercom_sound][0])) );
 

@@ -404,15 +404,15 @@ int multi_lag_get_random_lag()
 	// pick a value
 	// see if we should be going up or down (loss max/loss min)
 	mod = 0;
-	if((float)rand()/(float)RAND_MAX < 0.5){
+	if((float)myrand()/(float)MY_RAND_MAX < 0.5){
 		// down
 		if(Multi_lag_min >= 0){
-			mod = - (int)((float)(Multi_lag_base - Multi_lag_min) * ((float)rand()/(float)RAND_MAX));
+			mod = - (int)((float)(Multi_lag_base - Multi_lag_min) * ((float)myrand()/(float)MY_RAND_MAX));
 		}
 	} else {
 		// up
 		if(Multi_lag_max >= 0){
-			mod = (int)((float)(Multi_lag_max - Multi_lag_base) * ((float)rand()/(float)RAND_MAX));
+			mod = (int)((float)(Multi_lag_max - Multi_lag_base) * ((float)myrand()/(float)MY_RAND_MAX));
 		}
 	}
 	
@@ -448,19 +448,19 @@ int multi_lag_should_be_lost()
 		
 	// see if we should be going up or down (loss max/loss min)
 	mod = 0.0f;
-	if((float)rand()/(float)RAND_MAX < 0.5){
+	if((float)myrand()/(float)MY_RAND_MAX < 0.5){
 		// down
 		if(Multi_loss_min >= 0.0f){
-			mod = - ((Multi_loss_base - Multi_loss_min) * ((float)rand()/(float)RAND_MAX));
+			mod = - ((Multi_loss_base - Multi_loss_min) * ((float)myrand()/(float)MY_RAND_MAX));
 		}
 	} else {
 		// up
 		if(Multi_loss_max >= 0.0f){
-			mod = ((Multi_loss_max - Multi_loss_base) * ((float)rand()/(float)RAND_MAX));
+			mod = ((Multi_loss_max - Multi_loss_base) * ((float)myrand()/(float)MY_RAND_MAX));
 		}
 	}	
 	
-	if((float)rand()/(float)RAND_MAX <= Multi_loss_base + mod){
+	if((float)myrand()/(float)MY_RAND_MAX <= Multi_loss_base + mod){
 		return 1;
 	}	
 

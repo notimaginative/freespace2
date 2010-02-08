@@ -1372,7 +1372,7 @@ void interp_render_lightning( polymodel *pm, bsp_info * sm )
 		switch(sm->arc_type[i]){
 		// "normal", Freespace 1 style arcs
 		case MARC_TYPE_NORMAL:
-			if ( (rand()>>4) & 1 )	{
+			if ( (myrand()>>4) & 1 )	{
 				gr_set_color( 64, 64, 255 );
 			} else {
 				gr_set_color( 128, 128, 255 );
@@ -1381,7 +1381,7 @@ void interp_render_lightning( polymodel *pm, bsp_info * sm )
 
 		// "EMP" style arcs
 		case MARC_TYPE_EMP:
-			if ( (rand()>>4) & 1 )	{
+			if ( (myrand()>>4) & 1 )	{
 				gr_set_color( AR, AG, AB );
 			} else {
 				gr_set_color( AR2, AG2, AB2 );

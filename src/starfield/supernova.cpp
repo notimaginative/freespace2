@@ -339,8 +339,8 @@ void supernova_apply_shake(matrix *eye_orient, float intensity)
 	// Make eye shake due to engine wash		
 	int r1 = myrand();
 	int r2 = myrand();
-	tangles.p += 0.07f * intensity * (float) (r1-RAND_MAX/2)/RAND_MAX;
-	tangles.h += 0.07f * intensity * (float) (r2-RAND_MAX/2)/RAND_MAX;			
+	tangles.p += 0.07f * intensity * (float) (r1-MY_RAND_MAX/2)/MY_RAND_MAX;
+	tangles.h += 0.07f * intensity * (float) (r2-MY_RAND_MAX/2)/MY_RAND_MAX;			
 
 	matrix	tm, tm2;
 	vm_angles_2_matrix(&tm, &tangles);

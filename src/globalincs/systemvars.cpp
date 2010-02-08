@@ -267,7 +267,11 @@ float Noise[NOISE_NUM_FRAMES] = {
 int myrand()
 {
 	int rval;
+#if MY_RAND_MAX != RAND_MAX
+	rval = rand() % (MY_RAND_MAX+1);
+#else
 	rval = rand();
+#endif
 	Rand_count++;
 //	nprintf(("Alan","RAND: %d\n", rval));
 	return rval;

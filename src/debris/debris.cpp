@@ -624,7 +624,7 @@ void debris_process_post(object * obj, float frame_time)
 			} else {
 				// Maybe move a vertex....  20% of the time maybe?
 				int mr = myrand();
-				if ( mr < RAND_MAX/5 )	{
+				if ( mr < MY_RAND_MAX/5 )	{
 					vector v1, v2;
 					submodel_get_two_random_points( db->model_num, db->submodel_num, &v1, &v2 );
 					db->arc_pts[i][mr % 2] = v1;
@@ -719,12 +719,12 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vecto
 
 	// Create Debris piece n!
 	if ( hull_flag ) {
-		if (rand() < RAND_MAX/6)	// Make some pieces blow up shortly after explosion.
-			db->lifeleft = 2.0f * ((float) myrand()/(float) RAND_MAX) + 0.5f;
+		if (myrand() < MY_RAND_MAX/6)	// Make some pieces blow up shortly after explosion.
+			db->lifeleft = 2.0f * ((float) myrand()/(float) MY_RAND_MAX) + 0.5f;
 		else
 			db->lifeleft = -1.0f;		// large hull pieces stay around forever
 	}	else {
-		db->lifeleft = (i2fl(myrand())/i2fl(RAND_MAX))*2.0f+0.1f;
+		db->lifeleft = (i2fl(myrand())/i2fl(MY_RAND_MAX))*2.0f+0.1f;
 	}
 
 	// increase lifetime for vaporized debris
@@ -749,7 +749,7 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vecto
 
 	if ( db->is_hull )	{
 		// Only make 1/2 of the pieces have arcs
-		if ( myrand() < RAND_MAX*2/3 )	{
+		if ( myrand() < (MY_RAND_MAX/3)*2 )	{
 			db->arc_frequency = 1000;
 		} else {
 			db->arc_frequency = 0;

@@ -5,6 +5,8 @@ MACOSX=false
 FS1=false
 DEMO=false
 
+DEBUG=true
+
 CC=g++
 AR=ar
 RANLIB=ranlib
@@ -13,11 +15,14 @@ FS_BINARY=freespace2
 FS_DEMO_BINARY=freespace2_demo
 LDFLAGS=$(shell sdl-config --libs) -lopenal
 CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ # -fwritable-strings
-#CFLAGS+=-O2
-#CFLAGS+=-DNDEBUG
-#CFLAGS+=-funroll-loops # -fomit-frame-pointer # not stable?
-#CFLAGS+=-march=pentiumpro -mcpu=pentiumpro # not stable?
 CFLAGS+=-fsigned-char -Wno-format-y2k
+
+ifeq ($(strip $(DEBUG)),false)
+	CFLAGS+=-02
+	CFLAGS+=-DNDEBUG
+	CFLAGS+=-funroll-loops # -fomit-frame-pointer # not stable?
+	#CFLAGS+=-march=pentiumpro -mcpu=pentiumpro # not stable?
+endif
 
 ifeq ($(strip $(MACOSX)),true)
   CFLAGS+=-DMACOSX=1 -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/OpenAL.framework/Headers

@@ -156,7 +156,7 @@
 #ifndef FS_CMDLINE_HEADER_FILE
 #define FS_CMDLINE_HEADER_FILE
 
-int parse_cmdline(char *cmdline);
+int parse_cmdline(char *cmdline = NULL);
 
 // COMMAND LINE SETTINGS
 // This section is for reference by all the *_init() functions. For example, the multiplayer init function

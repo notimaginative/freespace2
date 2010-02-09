@@ -208,6 +208,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <new>
 #include "cmdline.h"
 #include "linklist.h"
 #include "systemvars.h"
@@ -364,15 +365,26 @@ char *drop_extra_chars(char *str)
 
 
 // internal function - copy the value for a parameter agruement into the cmdline_parm arg field
+#ifdef PLAT_UNIX
+void parm_stuff_args(cmdline_parm *parm, char *cmdline, bool single)
+#else
 void parm_stuff_args(cmdline_parm *parm, char *cmdline)
+#endif
 {
-	char buffer[1024];
-	memset(buffer, 0, 1024);
+	char buffer[1024] = { 0 };
 	char *dest = buffer;
 
+#ifdef PLAT_UNIX
+	if (single) {
+		cmdline += strlen(parm->name_s);
+	} else {
+		cmdline += strlen(parm->name);
+	}
+#else
 	cmdline += strlen(parm->name);
+#endif
 
-	while ((*cmdline != 0) && (*cmdline != '-')) {
+	while ((*cmdline != 0) && (*cmdline != '-') && (dest-buffer > 1)) {
 		*dest++ = *cmdline++;
 	}
 
@@ -382,15 +394,19 @@ void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 	// the old arguments
 //	Assert(parm->args == NULL);
 	if ( parm->args != NULL ) {
-		delete( parm->args );
+		delete [] parm->args;
 		parm->args = NULL;
 	}
 
-	int size = strlen(buffer) + 1;
+	int size = strlen(buffer);
 	if (size > 0) {
-		parm->args = new char[size];
-		memset(parm->args, 0, size);
-		strcpy(parm->args, buffer);
+		try {
+			parm->args = new char[size+1];
+			memset(parm->args, 0, size+1);
+			strcpy(parm->args, buffer);
+		} catch (std::bad_alloc) {
+			parm->args = NULL;
+		}
 	}
 }
 
@@ -403,24 +419,38 @@ void os_parse_parms(char *cmdline)
 	cmdline_parm *parmp;
 	char *cmdline_offset = NULL;
 
+	if ( !cmdline || (strlen(cmdline) <= 1) ) {
+		return;
+	}
+
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		cmdline_offset = strstr(cmdline, parmp->name);
 
 #ifdef PLAT_UNIX
+		bool single = false;
+
 		// if a match isn't found check for single args
 		// tack a space on the single args so they don't get mixed up with double args
 		if (!cmdline_offset) {
-			char single_tmp[32];
+			char single_tmp[32] = { 0 };
 			strcpy(single_tmp, parmp->name_s);
 			strcat(single_tmp, " ");
 			cmdline_offset = strstr(cmdline, single_tmp);
+			single = true;
 		}
-#endif
 
+		if (cmdline_offset) {
+			parmp->name_found = 1;
+			parm_stuff_args(parmp, cmdline_offset, single);
+		}
+#else
 		if (cmdline_offset) {
 			parmp->name_found = 1;
 			parm_stuff_args(parmp, cmdline_offset);
 		}
+#endif
+
+
 	}
 }
 
@@ -432,6 +462,10 @@ void os_validate_parms(char *cmdline)
 	char seps[] = " ,\t\n";
 	char *token;
 	int parm_found;
+
+	if ( !cmdline || (strlen(cmdline) <= 1) ) {
+		return;
+	}
 
    token = strtok(cmdline, seps);
    while(token != NULL) {
@@ -474,7 +508,7 @@ void os_init_cmdline(char *cmdline)
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
 	// the command line will take precedence
 #ifdef PLAT_UNIX
-	char cmdname[MAX_PATH];
+	char cmdname[MAX_PATH] = { 0 };
 
 	snprintf(cmdname, MAX_PATH, "%s/%s/Data/cmdline.cfg", detect_home(), Osreg_user_dir);
 	fp = fopen(cmdname, "rt");
@@ -492,9 +526,8 @@ void os_init_cmdline(char *cmdline)
 			
 			*c = '\0';
 		}
-		
-		memset(cmdname, 0, MAX_PATH);
-		snprintf(cmdname, MAX_PATH-1, "%s/Data/cmdline.cfg", full_path);
+
+		snprintf(cmdname, MAX_PATH, "%s/Data/cmdline.cfg", full_path);
 
 		fp = fopen(cmdname, "rt");
 #else
@@ -507,22 +540,24 @@ void os_init_cmdline(char *cmdline)
 
 	// if the file exists, get a single line, and deal with it
 	if ( fp ) {
-		char buf[1024], *p;
+		char buf[1024] = { 0 }, *p;
 
-		fgets(buf, 1024, fp);
-
-		// replace the newline character with a NUL:
-		if ( (p = strrchr(buf, '\n')) != NULL ) {
-			*p = '\0';
-		}
+		while (fgets(buf, sizeof(buf), fp) != NULL) {
+			// replace the newline character with a NUL:
+			if ( (p = strrchr(buf, '\n')) != NULL ) {
+				*p = '\0';
+			}
 
 #ifdef PLAT_UNIX
-		// append a space for the os_parse_parms() check
-		strcat(buf, " ");
+			// make sure that we have a trailing space for option finding to work
+			// properly with single args
+			strcat(buf, " ");
 #endif
 
-		os_parse_parms(buf);
-		os_validate_parms(buf);
+			os_parse_parms(buf);
+			os_validate_parms(buf);
+		}
+
 		fclose(fp);
 	}
 

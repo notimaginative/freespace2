@@ -199,7 +199,7 @@ int bm_load_duplicate(const char *filename);
 // On success, it returns the bitmap number.  You cannot 
 // free that RAM until bm_release is called on that bitmap.  
 // See example at bottom of this file
-int bm_create( int bpp, int w, int h, void * data, int flags = 0);
+int bm_create( int bpp, int w, int h, void *data = NULL, int flags = 0);
 
 // Frees up a bitmap's data, but bitmap number 'n' can
 // still be used, it will just have to be paged in next

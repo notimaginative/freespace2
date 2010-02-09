@@ -73,9 +73,8 @@ int WSAGetLastError()
 int _mkdir(const char *path)
 {
 	int status = 1;		// if we don't ever call mkdir() to update this then assume we are in error
-	char *c, tmp_path[MAX_PATH];
+	char *c, tmp_path[MAX_PATH] = { 0 };
 
-	memset(tmp_path, 0, MAX_PATH);
 	strncpy(tmp_path, path, MAX_PATH-1);
 
 	c = &tmp_path[1];
@@ -314,22 +313,22 @@ void outwnd_close()
 */
 void Warning( const char * filename, int line, const char * format, ... )
 {
-	char tmp[MAX_LINE_WIDTH*4];
+	char tmp[MAX_LINE_WIDTH*4] = { 0 };
 	va_list args;
 
 	va_start (args, format);
-	vsprintf (tmp, format, args);
+	vsnprintf (tmp, sizeof(tmp), format, args);
 	va_end(args);
 	fprintf (stderr, "Warning: (%s:%d): %s\n", filename, line, tmp);
 }
 
 void Error( const char * filename, int line, const char * format, ... )
 {
-	char tmp[MAX_LINE_WIDTH*4];
+	char tmp[MAX_LINE_WIDTH*4] = { 0 };
 	va_list args;
 
 	va_start (args, format);
-	vsprintf (tmp, format, args);
+	vsnprintf (tmp, sizeof(tmp), format, args);
 	va_end(args);
 	fprintf (stderr, "Error: (%s:%d): %s\n", filename, line, tmp);
 	exit (1);

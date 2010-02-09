@@ -419,7 +419,7 @@ volatile int GL_deactivate = 0;
 
 static int GL_use_luminance_alpha;
 static int FSAA;
-static ubyte GL_xlat[256];
+static ubyte GL_xlat[256] = { 0 };
 
 static char *Gr_saved_screen = NULL;
 static int Gr_saved_screen_bitmap;
@@ -1928,8 +1928,6 @@ static void opengl_tcache_init (int use_sections)
 			}
 		}
 	}
-
-	memset(GL_xlat, 0, 256);
 
 	GL_texture_sections = use_sections;
 

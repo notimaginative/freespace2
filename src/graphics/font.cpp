@@ -928,6 +928,10 @@ int gr_create_font(const char * typeface)
 	fnt->bm_u = (int *)malloc(sizeof(int)*fnt->num_chars);
 	fnt->bm_v = (int *)malloc(sizeof(int)*fnt->num_chars);
 
+	memset(fnt->bm_data, 0, fnt->bm_w * fnt->bm_h);
+	memset(fnt->bm_u, 0, sizeof(int) * fnt->num_chars);
+	memset(fnt->bm_v, 0, sizeof(int) * fnt->num_chars);
+
 	int i,x,y;
 	x = y = 0;
 	for (i=0; i<fnt->num_chars; i++ )	{

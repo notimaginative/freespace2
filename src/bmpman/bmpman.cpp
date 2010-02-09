@@ -843,9 +843,14 @@ void bm_calc_sections(bitmap *be)
 // bpp you can pass in is 32 or 8.  On success, it returns the
 // bitmap number.  You cannot free that RAM until bm_release
 // is called on that bitmap.
-int bm_create( int bpp, int w, int h, void * data, int flags )
+int bm_create( int bpp, int w, int h, void *data, int flags )
 {
 	int i, n, first_slot = MAX_BITMAPS;
+
+	if (data == NULL) {
+		Int3();
+		return -1;
+	}
 
 	// Assert((bpp==32)||(bpp==8));
 	if(bpp != 16){

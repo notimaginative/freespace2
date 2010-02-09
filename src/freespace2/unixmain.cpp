@@ -17,7 +17,7 @@ void vm_dump();
 
 int main(int argc, char **argv)
 {
-	char userdir[MAX_PATH];
+	char userdir[MAX_PATH] = { 0 };
 
 #if defined(__APPLE__) && !defined(MACOSX)
 	strcpy( full_path, *argv );
@@ -29,26 +29,26 @@ int main(int argc, char **argv)
 	
 	char *argptr = NULL;
 	int i;
-	int len = 1;
-	
-	argptr = (char *)malloc(1);
-	*argptr = 0;
-	
+	int len = 0;
+
 	for (i = 1; i < argc; i++) {
-		int oldlen = len-1;
-		
-		len += strlen(argv[i])+1;
-		
-		argptr = (char *)realloc(argptr, len);
-		if (argptr == NULL) {
-			fprintf(stderr, "ERROR: out of memory in main!\n");
-			exit(1);
-		}
-		
-		strcpy(argptr+oldlen, argv[i]);
+		len += strlen(argv[i]) + 1;
+	}
+
+	argptr = (char *)malloc(len+5);
+
+	if (argptr == NULL) {
+		fprintf(stderr, "ERROR: out of memory in main!\n");
+		exit(1);
+	}
+
+	memset(argptr, 0, len+5);
+
+	for (i = 1; i < argc; i++) {
+		strcat(argptr, argv[i]);
 		strcat(argptr, " ");
 	}
-	 
+
 	int retr = WinMain(1, 0, argptr, 0);
 
 	free(argptr);

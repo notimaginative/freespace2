@@ -126,7 +126,7 @@
 
 #include "fonttool.h"
 
-char *SampleText = "This is some sample text that is here to\n" \
+const char *SampleText = "This is some sample text that is here to\n" \
 "Show you how the antialiasing will\n"	\
 "look over different color backgrounds\n" \
 "KERN PAIRS: VaWaVeWeVAV-LyT.T,TyTvTcYe\n";
@@ -322,7 +322,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 	int current_item = 0;
 	int num_items_displayed = 1;
 	int last_good_pair = -1;
-	char *ptr;
+	const char *ptr;
 	color ac;
 	
 	printf( "Editing kerning data for %s\n", fname1 );

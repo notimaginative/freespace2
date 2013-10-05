@@ -1,7 +1,7 @@
 /*
  * Copyright (C) Volition, Inc. 1999.  All rights reserved.
  *
- * All source code herein is the property of Volition, Inc. You may not sell 
+ * All source code herein is the property of Volition, Inc. You may not sell
  * or otherwise commercially exploit the source or things you created based on
  * the source.
  */
@@ -80,56 +80,56 @@
  *
  * Revision 1.1.1.1  2002/05/03 03:28:10  root
  * Initial import.
- * 
- * 
+ *
+ *
  * 7     6/30/99 5:53p Dave
  * Put in new anti-camper code.
- * 
+ *
  * 6     6/03/99 6:37p Dave
  * More TNT fun. Made perspective bitmaps more flexible.
- * 
+ *
  * 5     6/02/99 6:18p Dave
  * Fixed TNT lockup problems! Wheeeee!
- * 
+ *
  * 4     12/18/98 1:13a Dave
  * Rough 1024x768 support for Direct3D. Proper detection and usage through
  * the launcher.
- * 
+ *
  * 3     10/09/98 2:57p Dave
  * Starting splitting up OS stuff.
- * 
+ *
  * 2     10/08/98 2:38p Dave
  * Cleanup up OsAPI code significantly. Removed old functions, centralized
  * registry functions.
- * 
+ *
  * 118   7/10/98 5:04p Dave
  * Fix connection speed bug on standalone server.
- * 
+ *
  * 117   5/24/98 2:28p Hoffoss
  * Because we never really care about if the left or the right shift or
  * alt key was used, but rather than either shift or alt was used, made
  * both map to the left one.  Solves some problems, causes none.
- * 
+ *
  * 116   5/18/98 9:22p John
  * Took out the annoying tab check.
- * 
+ *
  * 115   5/18/98 11:17a John
  * Fixed some bugs with software window and output window.
- * 
+ *
  * 114   5/16/98 2:20p John
  * Changed the os_suspend and resume to use a critical section to prevent
  * threads from executing rather than just suspending the thread.  Had to
  * make sure gr_close was called before os_close.
- * 
+ *
  * 113   5/15/98 4:49p John
- * 
+ *
  * 112   5/15/98 3:36p John
  * Fixed bug with new graphics window code and standalone server.  Made
  * hwndApp not be a global anymore.
- * 
+ *
  * 111   5/14/98 5:42p John
  * Revamped the whole window position/mouse code for the graphics windows.
- * 
+ *
  * 110   5/04/98 11:08p Hoffoss
  * Expanded on Force Feedback code, and moved it all into Joy_ff.cpp.
  * Updated references everywhere to it.
@@ -175,14 +175,6 @@ int Os_debugger_running = 0;
 // OSAPI FORWARD DECLARATIONS
 //
 
-#ifdef THREADED
-	// thread handler for the main message thread
-	DWORD win32_process(DWORD lparam);
-#else
-	DWORD win32_process1(DWORD lparam);
-	DWORD win32_process1(DWORD lparam);
-#endif
-
 // Fills in the Os_debugger_running with non-zero if debugger detected.
 void os_check_debugger();
 
@@ -213,10 +205,10 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 	/* set some sane defaults since we don't have a laucher... */
 	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
-	
+
 	if (os_config_read_string(NULL, NOX("NetworkConnection"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("NetworkConnection"), NOX("lan"));
-	
+
 	if (os_config_read_string(NULL, NOX("ConnectionSpeed"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("ConnectionSpeed"), NOX("Slow"));
 
@@ -240,7 +232,7 @@ void os_set_title( const char *title )
 void os_cleanup()
 {
 	STUB_FUNCTION;
-	
+
 #ifndef NDEBUG
 		outwnd_close();
 #endif
@@ -274,13 +266,13 @@ void os_sleep(int ms)
 // Used to stop message processing
 void os_suspend()
 {
-	ENTER_CRITICAL_SECTION(&Os_lock);	
+	ENTER_CRITICAL_SECTION(&Os_lock);
 }
 
 // resume message processing
 void os_resume()
 {
-	LEAVE_CRITICAL_SECTION(&Os_lock);	
+	LEAVE_CRITICAL_SECTION(&Os_lock);
 }
 
 
@@ -301,10 +293,11 @@ void os_deinit()
 	SDL_Quit();
 }
 
-extern int SDLtoFS2[SDLK_LAST];
+//extern int SDLtoFS2[SDLK_LAST];
 void os_poll()
 {
 	SDL_Event e;
+	int button, state;
 
 	while (SDL_PollEvent (&e)) {
 		switch (e.type) {
@@ -313,8 +306,9 @@ void os_poll()
 				if (e.button.button <= HIGHEST_MOUSE_BUTTON)
 					mouse_mark_button(e.button.button, e.button.state);
 				break;
+
 			case SDL_KEYDOWN:
-				if ((e.key.keysym.mod & KMOD_ALT) &&
+			/*	if ((e.key.keysym.mod & KMOD_ALT) &&
 				    (e.key.keysym.sym == SDLK_RETURN))
 				{
 					if (!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
@@ -325,7 +319,7 @@ void os_poll()
 				if ((e.key.keysym.mod & KMOD_CTRL) &&
 				    (e.key.keysym.sym == SDLK_g))
 				{
-					/* DDOI - ignore grab changes when fullscreen */
+					// DDOI - ignore grab changes when fullscreen
 					if (!(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
 					{
 						if (SDL_WM_GrabInput(SDL_GRAB_QUERY)==SDL_GRAB_ON)
@@ -336,21 +330,21 @@ void os_poll()
 					break;
 				}
 
-				/* this is a very common key combo in the game so don't use this to iconify
+				// this is a very common key combo in the game so don't use this to iconify
 				if ((e.key.keysym.mod & KMOD_CTRL) &&
 				    (e.key.keysym.sym == SDLK_z))
 				{
 					SDL_WM_IconifyWindow();
 					break;
-				} */
+				}
+*/
+				key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
+				break;
 
-				if (SDLtoFS2[e.key.keysym.sym])
-					key_mark (SDLtoFS2[e.key.keysym.sym], 1, 0);
-				break;
 			case SDL_KEYUP:
-				if (SDLtoFS2[e.key.keysym.sym])
-					key_mark (SDLtoFS2[e.key.keysym.sym], 0, 0);
+				key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
 				break;
+/*
 			case SDL_ACTIVEEVENT:
 				if (e.active.state & SDL_APPACTIVE) {
 					fAppActive = e.active.gain;
@@ -360,13 +354,54 @@ void os_poll()
 					gr_activate(e.active.gain);
 				}
 				break;
+*/
+			case SDL_JOYAXISMOTION:
+			//	e.jaxis.;
+				break;
+
+			case SDL_JOYBUTTONDOWN:
+				joy_mark_button((int)e.jbutton.button, 1);
+				break;
+
+			case SDL_JOYBUTTONUP:
+				joy_mark_button((int)e.jbutton.button, 0);
+				break;
+
+			case SDL_JOYHATMOTION:
+				button = JOY_HATFORWARD;
+				state = 1;
+
+                // can only handle one hat
+				if (e.jhat.hat == 0) {
+					switch (e.jhat.value) {
+						case SDL_HAT_UP:
+							button = JOY_HATFORWARD;
+							break;
+						case SDL_HAT_DOWN:
+							button = JOY_HATBACK;
+							break;
+						case SDL_HAT_LEFT:
+							button = JOY_HATLEFT;
+							break;
+						case SDL_HAT_RIGHT:
+							button = JOY_HATRIGHT;
+							break;
+                        default:
+                            // special case - will toggle all hat positions off
+                            button = JOY_HATFORWARD;
+                            state = 0;
+                            break;
+
+					}
+
+					joy_mark_button(button, state);
+				}
+				break;
+
 			default:
 				break;
 		}
 	}
-	
-    extern void joy_read();
-    joy_read();
 }
 
 void debug_int3()

@@ -13,8 +13,8 @@ RANLIB=ranlib
 CODE_BINARY=code.a
 FS_BINARY=freespace2
 FS_DEMO_BINARY=freespace2_demo
-LDFLAGS=$(shell sdl-config --libs) -lopenal
-CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl-config --cflags) -Iinclude/ # -fwritable-strings
+LDFLAGS=$(shell sdl2-config --libs) -lopenal
+CFLAGS=-Wall -g -DPLAT_UNIX $(shell sdl2-config --cflags) -Iinclude/ # -fwritable-strings
 CFLAGS+=-fsigned-char -Wno-format-y2k
 
 ifeq ($(strip $(DEBUG)),false)

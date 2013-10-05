@@ -436,6 +436,9 @@ static ubyte Gr_opengl_mouse_saved_data[MAX_SAVE_SIZE*2];
 
 #define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
 
+SDL_Window *GL_window = NULL;
+SDL_GLContext GL_context;
+
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
 
@@ -521,14 +524,14 @@ void gr_opengl_activate(int active)
 		GL_activate++;
 		
 		// don't grab key/mouse if cmdline says so or if we're fullscreen
-		if(!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN)) {
-			SDL_WM_GrabInput(SDL_GRAB_ON);
-		}
+	//	if(!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN)) {
+	//		SDL_WM_GrabInput(SDL_GRAB_ON);
+	//	}
 	} else {
 		GL_deactivate++;
 		
 		// let go of mouse/keyboard
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
+	//	SDL_WM_GrabInput(SDL_GRAB_OFF);
 	}
 }
 
@@ -626,8 +629,8 @@ void gr_opengl_flip()
 		ic++;
 	} while (error != GL_NO_ERROR);
 #endif
-	
-	SDL_GL_SwapBuffers ();
+
+	SDL_GL_SwapWindow(GL_window);
 
 	opengl_tcache_frame ();
 	
@@ -1521,12 +1524,12 @@ void gr_opengl_scaler(vertex *va, vertex *vb )
 	vertex *vl[4];
 
 	vl[0] = &v[0];	
-	v->sx = clipped_x0;
-	v->sy = clipped_y0;
-	v->sw = va->sw;
-	v->z = va->z;
-	v->u = clipped_u0;
-	v->v = clipped_v0;
+	v[0].sx = clipped_x0;
+	v[0].sy = clipped_y0;
+	v[0].sw = va->sw;
+	v[0].z = va->z;
+	v[0].u = clipped_u0;
+	v[0].v = clipped_v0;
 
 	vl[1] = &v[1];	
 	v[1].sx = clipped_x1;
@@ -1686,6 +1689,8 @@ void gr_opengl_cleanup()
 	gr_flip();
 
 	opengl_tcache_cleanup ();
+
+	SDL_GL_DeleteContext(GL_context);
 
 	Inited = 0;
 }
@@ -2917,12 +2922,12 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
-	int flags = SDL_OPENGL;
-	
-	if (!Cmdline_window && ( (os_config_read_uint( NULL, "Fullscreen", 1 ) == 1) || Cmdline_fullscreen ))
-		flags |= SDL_FULLSCREEN;
 
+	int flags = SDL_WINDOW_OPENGL;
+
+	if (!Cmdline_window && ( (os_config_read_uint( NULL, "Fullscreen", 1 ) == 1) || Cmdline_fullscreen ))
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+/*
 	// grab mouse/key unless told otherwise, ignore when we are going fullscreen
 	if ( !((flags & SDL_FULLSCREEN) || Cmdline_no_grab) ) {
 		SDL_WM_GrabInput(SDL_GRAB_ON);
@@ -2946,9 +2951,16 @@ void gr_opengl_init()
 		    exit (1);
 	    }
 	}
+*/
+	GL_window = SDL_CreateWindow(Osreg_title, SDL_WINDOWPOS_UNDEFINED,
+						SDL_WINDOWPOS_UNDEFINED,
+						0, 0, flags);
 
-	mprintf(( "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel ));
-	mprintf(( "\n" ));
+	GL_context = SDL_GL_CreateContext(GL_window);
+
+
+//	mprintf(( "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel ));
+//	mprintf(( "\n" ));
 	mprintf(( "Vendor     : %s\n", glGetString(GL_VENDOR) ));
 	mprintf(( "Renderer   : %s\n", glGetString(GL_RENDERER) ));
 	mprintf(( "Version    : %s\n", glGetString(GL_VERSION) ));
@@ -2988,7 +3000,7 @@ void gr_opengl_init()
 	rgb_size[0]=5;
 	rgb_size[1]=5;
 	rgb_size[2]=5;
-
+/*
 	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &value );
 	mprintf(( "SDL_GL_RED_SIZE: requested %d, got %d\n", rgb_size[0],value ));
 	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &value );
@@ -3006,12 +3018,13 @@ void gr_opengl_init()
 		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLESAMPLES, &value );
 		mprintf(( "SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", FSAA, value ));
 	}
+*/
+//	SDL_ShowCursor(0);
+//	SDL_WM_SetCaption (Osreg_title, NULL);
 
-	SDL_ShowCursor(0);
-	SDL_WM_SetCaption (Osreg_title, NULL);
-	
 	/* might as well put this here */
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+//	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+
 #endif
 
 	GL_use_luminance_alpha = os_config_read_uint(NOX("OpenGL"), NOX("UseLuminanceAlpha"), 0);

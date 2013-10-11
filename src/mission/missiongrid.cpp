@@ -83,7 +83,7 @@ void grid_read_camera_controls( control_info * ci, float frametime )
 	}
 
 	// From keyboard...
-	kh = key_down_timef(KEY_PAD6) - key_down_timef(KEY_PAD4);
+	kh = key_down_timef(SDLK_KP_6) - key_down_timef(SDLK_KP_4);
 	if (kh == 0.0f)
 		ci->heading = 0.0f;
 	else if (kh > 0.0f) {
@@ -94,7 +94,7 @@ void grid_read_camera_controls( control_info * ci, float frametime )
 			ci->heading = 0.0f;
 	ci->heading += kh;
 
-	kh = key_down_timef(KEY_PAD8) - key_down_timef(KEY_PAD2);
+	kh = key_down_timef(SDLK_KP_8) - key_down_timef(SDLK_KP_2);
 	if (kh == 0.0f)
 		ci->pitch = 0.0f;
 	else if (kh > 0.0f) {
@@ -105,10 +105,10 @@ void grid_read_camera_controls( control_info * ci, float frametime )
 			ci->pitch = 0.0f;
 	ci->pitch += kh;
 
-	ci->bank = (key_down_timef(KEY_PAD7) - key_down_timef(KEY_PAD9));
-	ci->forward = (key_down_timef(KEY_A) - key_down_timef(KEY_Z));
-	ci->sideways = (key_down_timef(KEY_PAD3) - key_down_timef(KEY_PAD1));
-	ci->vertical = (key_down_timef(KEY_PADMINUS) - key_down_timef(KEY_PADPLUS));
+	ci->bank = (key_down_timef(SDLK_KP_7) - key_down_timef(SDLK_KP_9));
+	ci->forward = (key_down_timef(SDLK_a) - key_down_timef(SDLK_z));
+	ci->sideways = (key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1));
+	ci->vertical = (key_down_timef(SDLK_KP_MINUS) - key_down_timef(SDLK_KP_PLUS));
 }
 
 //	Project the viewer's position onto the grid plane.  If more than threshold distance

@@ -1074,6 +1074,7 @@ void gr_force_windowed()
 			break;
 #endif			
 		case GR_OPENGL:
+			gr_opengl_force_windowed();
 			break;
 		default:
 			Int3();		// Invalid graphics mode

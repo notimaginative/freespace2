@@ -99,6 +99,7 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/io/key.cpp \
 	./src/io/keycontrol.cpp \
 	./src/io/joy-sdl.cpp \
+	./src/io/joy_ff-sdl.cpp \
 	./src/io/mouse.cpp \
 	./src/io/timer.cpp \
 	./src/jumpnode/jumpnode.cpp \
@@ -314,7 +315,7 @@ ifeq ($(strip $(MACOSX)),true)
 endif
 
 $(FS_BINARY): $(CODE_BINARY) $(FS_OBJECTS)
-	$(CC) -o $(FS_BINARY) $(LDFLAGS) $(FS_OBJECTS) $(CODE_BINARY)
+	$(CC) -o $(FS_BINARY) $(FS_OBJECTS) $(CODE_BINARY) $(LDFLAGS) 
 
 cryptstring:
 	$(CC) -o cryptstring $(CFLAGS) src/cryptstring/cryptstring.cpp

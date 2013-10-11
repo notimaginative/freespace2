@@ -768,19 +768,19 @@ void multi_ts_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :		
+	case SDLK_ESCAPE :
 		gamesnd_play_iface(SND_USER_SELECT);
 		multi_quit_game(PROMPT_ALL);
 		break;	
 
 	// cycle to the weapon select screen
-	case KEY_TAB :
+	case SDLK_TAB :
 		gamesnd_play_iface(SND_USER_SELECT);
 		Next_screen = ON_WEAPON_SELECT;
 		gameseq_post_event(GS_EVENT_WEAPON_SELECTION);
 		break;
 
-	case KEY_ENTER|KEY_CTRLED:
+	case SDLK_RETURN|KEY_CTRLED:
 		multi_ts_commit_pressed();
 		break;
 	}		

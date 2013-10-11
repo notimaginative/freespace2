@@ -633,16 +633,16 @@ void cutscenes_screen_init()
 	}
 #endif
 
-	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);	
+	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 
 	List_region.create(&Ui_window, "", Cutscene_list_coords[gr_screen.res][0], Cutscene_list_coords[gr_screen.res][1], Cutscene_list_coords[gr_screen.res][2], Cutscene_list_coords[gr_screen.res][3], 0, 1);
 	List_region.hide();
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 
 	Background_bitmap = bm_load(Cutscene_bitmap_name[gr_screen.res]);
 	Scroll_offset = Selected_line = 0;
@@ -681,37 +681,37 @@ void cutscenes_screen_do_frame()
 
 	k = Ui_window.process();
 	switch (k) {
-		case KEY_DOWN:  // select next line
+		case SDLK_DOWN:  // select next line
 			cutscenes_screen_scroll_line_down();
 			break;
 
-		case KEY_UP:  // select previous line
+		case SDLK_UP:  // select previous line
 			cutscenes_screen_scroll_line_up();
 			break;
 
-		case KEY_TAB:
-		case KEY_CTRLED | KEY_DOWN:
+		case SDLK_TAB:
+		case KEY_CTRLED | SDLK_DOWN:
 			cutscenes_screen_button_pressed(CREDITS_BUTTON);
 			break;
 
-		case KEY_SHIFTED | KEY_TAB:
-		case KEY_CTRLED | KEY_UP:
+		case KEY_SHIFTED | SDLK_TAB:
+		case KEY_CTRLED | SDLK_UP:
 			cutscenes_screen_button_pressed(SIMULATOR_BUTTON);
 			break;
 
-		case KEY_ENTER:
+		case SDLK_RETURN:
 			cutscenes_screen_play();
 			break;
 
-		case KEY_ESC:  // cancel
+		case SDLK_ESCAPE:  // cancel
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			game_flush();
 			break;
 
-		case KEY_F1:  // show help overlay
+		case SDLK_F1:  // show help overlay
 			break;
 
-		case KEY_F2:  // goto options screen
+		case SDLK_F2:  // goto options screen
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 			break;
 	}	// end switch

@@ -351,7 +351,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 	os_init_registry_stuff(Osreg_company_name, Osreg_app_name,NULL);
 #endif
 	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);	
-	if((ptr == NULL) || !stricmp(ptr, "Aucune accélération 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
+	if((ptr == NULL) || !stricmp(ptr, "Aucune accï¿½lï¿½ration 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
 #ifndef PLAT_UNIX
 		MessageBox((HWND)os_get_window(), "Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it", "Warning", MB_OK);		
 #endif
@@ -400,82 +400,82 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 		os_poll();
 		k = key_inkey();
 		switch(k)	{		
-		case KEY_F5:
+		case SDLK_F5:
 			fonttool_read( fname1, &tmpfont );
 			fonttool_copy_kern( &tmpfont, &KernFont );
 			break;
 
-		case KEY_F6:
+		case SDLK_F6:
 			fonttool_remove_kerning( &KernFont );
 			break;
 
-		case KEY_F10:
+		case SDLK_F10:
 			fonttool_dump( fname1, &KernFont );
 			done=1;
 			break;
 
-		case KEY_COMMA:
+		case SDLK_COMMA:
 			if ( alpha > 1 )	{
 				alpha--;
 				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			}
 			break;
 
-		case KEY_PERIOD:
+		case SDLK_PERIOD:
 			if ( alpha < 17 )	{
 				alpha++;
 				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			}
 			break;
 
-		case KEY_R:
+		case SDLK_r:
 			if ( cr == 16 ) cr = 1; else cr = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case KEY_G:
+		case SDLK_g:
 			if ( cg == 16 ) cg = 1; else cg = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case KEY_B:
+		case SDLK_b:
 			if ( cb == 16 ) cb = 1; else cb = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case KEY_PAD6:
+		case SDLK_KP_6:
 			x = fonttool_get_kerning( &KernFont, c1, c2, NULL );
 			fonttool_set_kerning( &KernFont, c1, c2, x+1 );
 			break;
 
-		case KEY_PAD4:
+		case SDLK_KP_4:
 			x = fonttool_get_kerning( &KernFont, c1, c2, NULL );
 			fonttool_set_kerning( &KernFont, c1, c2, x-1 );
 			break;
 
-		case KEY_PAD5:
+		case SDLK_KP_5:
 			fonttool_set_kerning( &KernFont, c1, c2, 0 );
 			break;
 
-		case KEY_PAD7:	
+		case SDLK_KP_7:
 			if ( c1 < KernFont.first_ascii + KernFont.num_chars-1 ) c1++;
 			break;
 
-		case KEY_PAD1:	
+		case SDLK_KP_1:
 			if ( c1 > KernFont.first_ascii ) c1--;
 			break;
 
-		case KEY_PAD9:	
+		case SDLK_KP_9:
 			if ( c2 < KernFont.first_ascii + KernFont.num_chars-1 ) c2++;
 			mprintf(( "C2 = %d\n", c2 ));
 			break;
 
-		case KEY_PAD3:	
+		case SDLK_KP_3:
 			if ( c2 > KernFont.first_ascii ) c2--;
 			mprintf(( "C2 = %d\n", c2 ));
 			break;
 
-		case KEY_PAD2:
+		case SDLK_KP_2:
 			if ( current_pair < 0 ) 
 				current_pair = last_good_pair;
 			else 
@@ -489,7 +489,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 			}
 			break;
 
-		case KEY_PAD8:
+		case SDLK_KP_8:
 			if ( current_pair < 0 ) 
 				current_pair = last_good_pair;
 			else
@@ -503,7 +503,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 			}
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			done=1;
 			break;
 		}

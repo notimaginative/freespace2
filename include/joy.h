@@ -93,10 +93,11 @@
 #define JOY_AXIS_UNDEFINED		-10000
 
 typedef struct Joy_info {
-	int	axis_valid[JOY_NUM_AXES];
+	int num_axes;
 	int	axis_min[JOY_NUM_AXES];
 	int	axis_center[JOY_NUM_AXES];
 	int	axis_max[JOY_NUM_AXES];
+	int axis_current[JOY_NUM_AXES];
 } Joy_info;
 
 extern int Joy_sensitivity;
@@ -117,8 +118,9 @@ void	joy_set_cen();
 void	joy_cheap_cal();
 int	joystick_read_raw_axis( int num_axes, int * axis );
 void joy_get_delta(int *dx, int *dy);
-int joy_get_scaled_reading(int raw, int axn);
-int joy_get_unscaled_reading(int raw, int axn);
+int joy_get_scaled_reading(int axn);
+int joy_get_unscaled_reading(int axn);
+bool joy_axis_valid(int axis);
 
 #endif	/* __JOY_H__ */
 

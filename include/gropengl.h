@@ -54,6 +54,7 @@
 
 void gr_opengl_init();
 void gr_opengl_cleanup();
+void gr_opengl_force_windowed();
 
 void gr_opengl_bitmap(int x, int y);
 void gr_opengl_bitmap_ex(int x, int y, int w, int h, int sx, int sy);

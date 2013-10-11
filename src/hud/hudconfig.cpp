@@ -1429,13 +1429,13 @@ void hud_cycle_gauge_status()
 void hud_config_handle_keypresses(int k)
 {
 	switch(k) {
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		hud_config_cancel();
 		break;
-	case KEY_CTRLED+KEY_ENTER:
+	case KEY_CTRLED+SDLK_RETURN:
 		hud_config_commit();
 		break;
-	case KEY_TAB:
+	case SDLK_TAB:
 		gamesnd_play_iface(SND_USER_SELECT);
 		hud_cycle_gauge_status();
 		break;

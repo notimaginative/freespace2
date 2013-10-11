@@ -166,44 +166,44 @@ void CPofViewView::MoveViewer(float FrameTime, BOOL is_active, int key )
 	}
 	 
 	switch(key)	{
-	case KEY_1:
+	case SDLK_1:
 		if ( n_detail_levels >= 1){
 			m_current_detail_level = 1;
 		}
 		break;
-	case KEY_2:
+	case SDLK_2:
 		if ( n_detail_levels >= 2){
 			m_current_detail_level = 2;
 		}
 		break;
-	case KEY_3:
+	case SDLK_3:
 		if ( n_detail_levels >= 3){ 
 			m_current_detail_level = 3;
 		}
 		break;
-	case KEY_4:
+	case SDLK_4:
 		if ( n_detail_levels >= 4){
 			m_current_detail_level = 4;
 		}
 		break;
-	case KEY_5:
+	case SDLK_5:
 		if ( n_detail_levels >= 5){
 			m_current_detail_level = 5;
 		}
 		break;
-	case KEY_6:
+	case SDLK_6:
 		if ( n_detail_levels >= 6){
 			m_current_detail_level = 6;
 		}
 		break;
-	case KEY_MINUS:
+	case SDLK_MINUS:
 		// Scales the engines thrusters by this much
 		model_thrust -= 0.1f;
 		if ( model_thrust < 0.0f ){
 			model_thrust = 0.0f;
 		}
 		break;
-	case KEY_EQUAL:
+	case SDLK_EQUALS:
 		// Scales the engines thrusters by this much
 		model_thrust += 0.1f;
 		if ( model_thrust > 1.0f ){
@@ -226,14 +226,14 @@ void CPofViewView::MoveViewer(float FrameTime, BOOL is_active, int key )
 		ci->heading = temp;
 		ci->pitch = temp1;
 
-		if ( keyd_pressed[KEY_BACKSP] )	{
+		if ( key_pressed(SDLK_BACKSPACE) )	{
 			model_afterburner = 1;
 		} else {
 			model_afterburner = 0;
 		}
 
 	
-		kh = (key_down_timef(KEY_PAD6) - key_down_timef(KEY_PAD4)) / 32.0f;
+		kh = (key_down_timef(SDLK_KP_6) - key_down_timef(SDLK_KP_4)) / 32.0f;
 		if (kh == 0.0f){
 			ci->heading = 0.0f;
 		} else if (kh > 0.0f) {
@@ -247,7 +247,7 @@ void CPofViewView::MoveViewer(float FrameTime, BOOL is_active, int key )
 		}
 		ci->heading += kh;
 
-		kh = (key_down_timef(KEY_PAD8) - key_down_timef(KEY_PAD2)) / 32.0f;
+		kh = (key_down_timef(SDLK_KP_8) - key_down_timef(SDLK_KP_2)) / 32.0f;
 		if (kh == 0.0f){
 			ci->pitch = 0.0f;
 		} else if (kh > 0.0f) {
@@ -261,10 +261,10 @@ void CPofViewView::MoveViewer(float FrameTime, BOOL is_active, int key )
 		}
 		ci->pitch += kh;
 
-		ci->bank = (key_down_timef(KEY_PAD7) - key_down_timef(KEY_PAD9)) / 8.0f;
-		ci->forward = (key_down_timef(KEY_A) - key_down_timef(KEY_Z)) * c_scale;
-		ci->sideways = (key_down_timef(KEY_PAD3) - key_down_timef(KEY_PAD1)) * c_scale;
-		ci->vertical = (key_down_timef(KEY_PADMINUS) - key_down_timef(KEY_PADPLUS)) * c_scale;
+		ci->bank = (key_down_timef(SDLK_KP_7) - key_down_timef(SDLK_KP_9)) / 8.0f;
+		ci->forward = (key_down_timef(SDLK_a) - key_down_timef(SDLK_z)) * c_scale;
+		ci->sideways = (key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1)) * c_scale;
+		ci->vertical = (key_down_timef(SDLK_KP_MINUS) - key_down_timef(SDLK_KP_PLUS)) * c_scale;
 	} else {
 		memset( ci, 0, sizeof(control_info) );
 	}

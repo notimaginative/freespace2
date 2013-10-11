@@ -346,7 +346,7 @@ void draw_tri_2d( int i, int j, int k )
 //	gr_set_color( 0, 0, 0 );
 	gr_tmapper(3, verts, TMAP_FLAG_RAMP | TMAP_FLAG_GOURAUD | TMAP_FLAG_NEBULA );
 
-	if ( !keyd_pressed[KEY_LSHIFT] )	{
+	if ( !key_pressed(SDLK_LSHIFT) )	{
 		gr_set_color(100,100,100);
 		gr_line( x[i], y[i], x[j], y[j] );
 		gr_line( x[j], y[j], x[k], y[k] );
@@ -627,7 +627,7 @@ void controls_read_all(control_info * ci, float sim_time )
 	}
 
 	// From keyboard...
-	kh = (key_down_timef(KEY_PAD6) - key_down_timef(KEY_PAD4))/8.0f;
+	kh = (key_down_timef(SDLK_KP_6) - key_down_timef(SDLK_KP_4))/8.0f;
 	if (kh == 0.0f)
 		ci->heading = 0.0f;
 	else if (kh > 0.0f) {
@@ -638,7 +638,7 @@ void controls_read_all(control_info * ci, float sim_time )
 			ci->heading = 0.0f;
 	ci->heading += kh;
 
-	kh = (key_down_timef(KEY_PAD8) - key_down_timef(KEY_PAD2))/8.0f;
+	kh = (key_down_timef(SDLK_KP_8) - key_down_timef(SDLK_KP_2))/8.0f;
 	if (kh == 0.0f)
 		ci->pitch = 0.0f;
 	else if (kh > 0.0f) {
@@ -649,10 +649,10 @@ void controls_read_all(control_info * ci, float sim_time )
 			ci->pitch = 0.0f;
 	ci->pitch += kh;
 
-	ci->bank = (key_down_timef(KEY_PAD7) - key_down_timef(KEY_PAD9))*.75f;
-	ci->forward = key_down_timef(KEY_A) - key_down_timef(KEY_Z);
-	ci->sideways = key_down_timef(KEY_PAD3) - key_down_timef(KEY_PAD1);
-	ci->vertical = key_down_timef(KEY_PADPLUS) - key_down_timef(KEY_PADENTER);
+	ci->bank = (key_down_timef(SDLK_KP_7) - key_down_timef(SDLK_KP_9))*.75f;
+	ci->forward = key_down_timef(SDLK_a) - key_down_timef(SDLK_z);
+	ci->sideways = key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1);
+	ci->vertical = key_down_timef(SDLK_KP_PLUS) - key_down_timef(SDLK_KP_ENTER);
 }
 
 int check_keys()
@@ -661,18 +661,18 @@ int check_keys()
 
 	while( (k = key_inkey()) != 0 )	{
 //mprintf(( "Key = %x\n", k ));
-		if ( k == KEY_ESC ) {
+		if ( k == SDLK_ESCAPE ) {
 			return 1;
 		}
 
 		switch( k )	{
-		case KEY_ENTER:
+		case SDLK_RETURN:
 			Sel_mode = FALSE;
 			Vert_mode = !Vert_mode;
 			Which_vert = 0;
 			break;
 
-		case KEY_DELETE:
+		case SDLK_DELETE:
 			if (Sel_mode) break;
 			if (Vert_mode==1) delete_face(Current_face);
 			else if (Vert_mode==0) {
@@ -680,26 +680,26 @@ int check_keys()
 			}
 			break;
 
-		case KEY_MINUS:
+		case SDLK_MINUS:
 			scale_factor -= 0.05f;
 			mprintf(( "Scale = %.1f\n", scale_factor ));
 			break;
 
 
-		case KEY_EQUAL:
+		case SDLK_EQUALS:
 			scale_factor += 0.05f;
 			mprintf(( "Scale = %.1f\n", scale_factor ));
 			break;
 
-		case KEY_INSERT:
+		case SDLK_INSERT:
 			Sel_mode = !Sel_mode;
 			break;
 
-		case KEY_SPACEBAR:
+		case SDLK_SPACE:
 			View_mode = !View_mode;
 			break;
 
-		case KEY_COMMA:
+		case SDLK_COMMA:
 			if (Sel_mode) {
 				int i;
 				for (i=0;i<num_pts;i++) if (Selected[i]) {
@@ -726,7 +726,7 @@ int check_keys()
 			}
 			break;
 
-		case KEY_PERIOD:	
+		case SDLK_PERIOD:
 			if (Sel_mode) {
 				int i;
 				for (i=0;i<num_pts;i++) if (Selected[i]) {
@@ -754,14 +754,14 @@ int check_keys()
 			
 			break;		
 
-		case KEY_F5:
+		case SDLK_F5:
 			save_nebula();
 			break;
-		case KEY_F7:
+		case SDLK_F7:
 			load_nebula();
 			break;
 
-		case KEY_BACKSP:
+		case SDLK_BACKSPACE:
 			sphericalize_nebula();
 			break;
 		}

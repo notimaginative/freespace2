@@ -561,9 +561,9 @@ void common_buttons_init(UI_WINDOW *ui_window)
 
 	common_reset_buttons();
 
-	Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
-	Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].button.set_hotkey(KEY_F1);
-	Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].button.set_hotkey(KEY_F2);
+	Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
+	Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].button.set_hotkey(SDLK_F2);
 
 	// for scramble or training missions, disable the ship/weapon selection regions
 	if ( brief_only_allow_briefing() ) {
@@ -1006,7 +1006,7 @@ void common_check_keys(int k)
 {
 	switch (k) {
 
-		case KEY_ESC: {
+		case SDLK_ESCAPE: {
 
 			if ( Current_screen == ON_BRIEFING_SELECT ) {
 				if ( brief_get_closeup_icon() != NULL ) {
@@ -1035,17 +1035,17 @@ void common_check_keys(int k)
 			break;
 		}
 
-		case KEY_CTRLED + KEY_ENTER:
+		case KEY_CTRLED + SDLK_RETURN:
 			Commit_pressed = 1;
 			break;
 
-		case KEY_B:
+		case SDLK_b:
 			if ( Current_screen != ON_BRIEFING_SELECT && !Background_playing ) {
 				Next_screen = ON_BRIEFING_SELECT;
 			}
 			break;
 
-		case KEY_W:
+		case SDLK_w:
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
 				break;
@@ -1065,7 +1065,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_S:
+		case SDLK_s:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1082,7 +1082,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_SHIFTED+KEY_TAB:
+		case KEY_SHIFTED+SDLK_TAB:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1118,7 +1118,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_TAB:
+		case SDLK_TAB:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1154,7 +1154,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_P:
+		case SDLK_p:
 			if ( Anim_paused )
 				Anim_paused = 0;
 			else

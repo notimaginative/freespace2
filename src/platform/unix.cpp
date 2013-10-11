@@ -311,26 +311,42 @@ void outwnd_close()
 //	STUB_FUNCTION;
 }
 */
+
+extern void gr_force_windowed();
+
 void Warning( const char * filename, int line, const char * format, ... )
 {
 	char tmp[MAX_LINE_WIDTH*4] = { 0 };
+	char tmp2[MAX_LINE_WIDTH*4] = { 0 };
 	va_list args;
 
-	va_start (args, format);
-	vsnprintf (tmp, sizeof(tmp), format, args);
+	va_start(args, format);
+	vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
-	fprintf (stderr, "Warning: (%s:%d): %s\n", filename, line, tmp);
+//	fprintf (stderr, "Warning: (%s:%d): %s\n", filename, line, tmp);
+	snprintf(tmp2, sizeof(tmp2), "Warning: %s\n\nFile:%s\nLine: %d", tmp, filename, line);
+
+	gr_force_windowed();
+
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning!", tmp2, NULL);
 }
 
 void Error( const char * filename, int line, const char * format, ... )
 {
 	char tmp[MAX_LINE_WIDTH*4] = { 0 };
+	char tmp2[MAX_LINE_WIDTH*4] = { 0 };
 	va_list args;
 
 	va_start (args, format);
 	vsnprintf (tmp, sizeof(tmp), format, args);
 	va_end(args);
-	fprintf (stderr, "Error: (%s:%d): %s\n", filename, line, tmp);
+//	fprintf (stderr, "Error: (%s:%d): %s\n", filename, line, tmp);
+	snprintf(tmp2, sizeof(tmp2), "Error: %s\n\nFile:%s\nLine: %d", tmp, filename, line);
+
+	gr_force_windowed();
+
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", tmp2, NULL);
+
 	exit (1);
 }
 

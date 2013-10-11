@@ -1008,12 +1008,12 @@ void brief_buttons_init()
 	Closeup_close_button.link_hotspot(Closeup_button_hotspot);
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_LAST_STAGE].button.set_hotkey(KEY_SHIFTED|KEY_RIGHT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_NEXT_STAGE].button.set_hotkey(KEY_RIGHT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_PREV_STAGE].button.set_hotkey(KEY_LEFT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_FIRST_STAGE].button.set_hotkey(KEY_SHIFTED|KEY_LEFT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_UP].button.set_hotkey(KEY_UP);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_DOWN].button.set_hotkey(KEY_DOWN);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_LAST_STAGE].button.set_hotkey(KEY_SHIFTED|SDLK_RIGHT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_NEXT_STAGE].button.set_hotkey(SDLK_RIGHT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_PREV_STAGE].button.set_hotkey(SDLK_LEFT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_FIRST_STAGE].button.set_hotkey(KEY_SHIFTED|SDLK_LEFT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_UP].button.set_hotkey(SDLK_UP);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_DOWN].button.set_hotkey(SDLK_DOWN);
 
 	Closeup_close_button.disable();
 	Closeup_close_button.hide();
@@ -1909,7 +1909,7 @@ void brief_do_frame(float frametime)
 		switch(k) {
 
 #ifndef NDEBUG			
-			case KEY_CTRLED | KEY_PAGEUP: {
+			case KEY_CTRLED | SDLK_PAGEUP: {
 				if (Closeup_icon->ship_class) {
 					Closeup_icon->ship_class--;
 
@@ -1925,7 +1925,7 @@ void brief_do_frame(float frametime)
 				break;
 			}
 
-			case KEY_CTRLED | KEY_PAGEDOWN: {
+			case KEY_CTRLED | SDLK_PAGEDOWN: {
 				if (Closeup_icon->ship_class < Num_ship_types - 1) {
 					Closeup_icon->ship_class++;
 
@@ -1941,66 +1941,66 @@ void brief_do_frame(float frametime)
 				break;
 			}
 
-			case KEY_A:
+			case SDLK_a:
 				Closeup_cam_pos.xyz.z += 1;
 				cam_change = 1;
 				break;
 
-			case KEY_A + KEY_SHIFTED:
+			case SDLK_a + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.z += 10;
 				cam_change = 1;
 				break;
 
-			case KEY_Z:
+			case SDLK_z:
 				Closeup_cam_pos.xyz.z -= 1;
 				cam_change = 1;
 				break;
 
-			case KEY_Z + KEY_SHIFTED:
+			case SDLK_z + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.z -= 10;
 				cam_change = 1;
 				break;
 			
-			case KEY_Y:
+			case SDLK_y:
 				Closeup_cam_pos.xyz.y += 1;
 				cam_change = 1;
 				break;
 
-			case KEY_Y + KEY_SHIFTED:
+			case SDLK_y + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.y += 10;
 				cam_change = 1;
 				break;
 
-			case KEY_H:
+			case SDLK_h:
 				Closeup_cam_pos.xyz.y -= 1;
 				cam_change = 1;
 				break;
 
-			case KEY_H + KEY_SHIFTED:
+			case SDLK_h + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.y -= 10;
 				cam_change = 1;
 				break;
 
-			case KEY_COMMA:
+			case SDLK_COMMA:
 				Closeup_zoom -= 0.1f;
 				if ( Closeup_zoom < 0.1 ) 
 					Closeup_zoom = 0.1f;
 				cam_change = 1;
 				break;
 
-			case KEY_COMMA+KEY_SHIFTED:
+			case SDLK_COMMA+KEY_SHIFTED:
 				Closeup_zoom -= 0.5f;
 				if ( Closeup_zoom < 0.1 ) 
 					Closeup_zoom = 0.1f;
 				cam_change = 1;
 				break;
 
-			case KEY_PERIOD:
+			case SDLK_PERIOD:
 				Closeup_zoom += 0.1f;
 				cam_change = 1;
 				break;
 
-			case KEY_PERIOD+KEY_SHIFTED:
+			case SDLK_PERIOD+KEY_SHIFTED:
 				Closeup_zoom += 0.5f;
 				cam_change = 1;
 				break;

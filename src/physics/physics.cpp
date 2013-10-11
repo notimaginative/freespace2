@@ -857,8 +857,8 @@ void physics_read_flying_controls( matrix * orient, physics_info * pi, control_i
 
 	float velocity_ramp (float v_in, float v_goal, float time_const, float t);
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) {
-//		keyd_pressed[KEY_LSHIFT] = 0;
+//	if ( key_pressed(SDLK_LSHIFT) ) {
+//	//	key_pressed(SDLK_LSHIFT) = 0;
 //		Int3();
 //	}
 

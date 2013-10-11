@@ -369,46 +369,46 @@ void UI_LISTBOX::process(int focus)
 			kf = 0;
 
 			switch (my_wnd->keypress) {
-				case KEY_ENTER:
+				case SDLK_RETURN:
 					selected_item = current_item;
 					break;
 
-				case KEY_SPACEBAR:
+				case SDLK_SPACE:
 					toggled_item = current_item;
 					break;
 
-				case KEY_UP:
+				case SDLK_UP:
 					current_item--;
 					kf = 1;
 					break;
 
-				case KEY_DOWN:
+				case SDLK_DOWN:
 					current_item++;
 					kf = 1;
 					break;
 
-				case KEY_HOME:
+				case SDLK_HOME:
 					current_item = 0;
 					kf = 1;
 					break;
 
-				case KEY_END:
+				case SDLK_END:
 					current_item=num_items - 1;
 					kf = 1;
 					break;
 
-				case KEY_PAGEUP:
+				case SDLK_PAGEUP:
 					current_item -= num_items_displayed;
 					kf = 1;
 					break;
 
-				case KEY_PAGEDOWN:
+				case SDLK_PAGEDOWN:
 					current_item += num_items_displayed;
 					kf = 1;
 					break;
 
 				default:		// enter the key in the key buffer
-					if (my_wnd->keypress == KEY_BACKSP) {
+					if (my_wnd->keypress == SDLK_BACKSPACE) {
 						key_buffer_count = 0;
 
 					} else if (key_buffer_count < MAX_KEY_BUFFER) {
@@ -424,8 +424,10 @@ void UI_LISTBOX::process(int focus)
 						
 						current_text = get_string(i);
 						for (j=0; j<key_buffer_count; j++)
-							if ( (current_text[j] != ascii_table[(int)key_buffer[j]]) && (current_text[j] != shifted_ascii_table[(int)key_buffer[j]]) )
+							if ( (current_text[j] != key_to_ascii((int)key_buffer[j])) && (current_text[j] != key_to_ascii((int)key_buffer[j], true)) ) {
+printf("breaking!\n");
 								break;
+							}
 
 						if (j == key_buffer_count) {
 							set_first_item(i - num_items_displayed / 2);

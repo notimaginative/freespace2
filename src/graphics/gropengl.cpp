@@ -2889,6 +2889,11 @@ void gr_opengl_unlock()
 {
 }
 
+void gr_opengl_force_windowed()
+{
+	SDL_SetWindowFullscreen(GL_window, 0);
+}
+
 void opengl_zbias(int bias)
 {
 	if (bias) {
@@ -2910,9 +2915,7 @@ void gr_opengl_init()
 	mprintf(( "Initializing opengl graphics device...\n" ));
 	Inited = 1;
 
-#ifdef PLAT_UNIX	
-	if (SDL_InitSubSystem (SDL_INIT_VIDEO) < 0)
-	{
+	if (SDL_InitSubSystem (SDL_INIT_VIDEO) < 0) {
 		fprintf (stderr, "Couldn't init SDL: %s", SDL_GetError());
 		exit (1);
 	}
@@ -2926,19 +2929,19 @@ void gr_opengl_init()
 	int flags = SDL_WINDOW_OPENGL;
 
 	if (!Cmdline_window && ( (os_config_read_uint( NULL, "Fullscreen", 1 ) == 1) || Cmdline_fullscreen ))
-		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-/*
+		flags |= SDL_WINDOW_FULLSCREEN;
+
 	// grab mouse/key unless told otherwise, ignore when we are going fullscreen
-	if ( !((flags & SDL_FULLSCREEN) || Cmdline_no_grab) ) {
-		SDL_WM_GrabInput(SDL_GRAB_ON);
+	if ( !((flags & SDL_WINDOW_FULLSCREEN) || Cmdline_no_grab) ) {
+		SDL_SetWindowGrab(GL_window, SDL_TRUE);
 	}
 
-	FSAA = os_config_read_uint( NULL, "FSAA", 1 );
+	FSAA = os_config_read_uint( NULL, "FSAA", 2 );
 	if ( FSAA ) {
 	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
 	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, FSAA );
 	}
-	
+/*
 	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
 	{
 	    mprintf(( "Couldn't set FSAA video mode: %s\n", SDL_GetError () ));
@@ -2954,17 +2957,16 @@ void gr_opengl_init()
 */
 	GL_window = SDL_CreateWindow(Osreg_title, SDL_WINDOWPOS_UNDEFINED,
 						SDL_WINDOWPOS_UNDEFINED,
-						0, 0, flags);
+						gr_screen.max_w, gr_screen.max_h, flags);
 
 	GL_context = SDL_GL_CreateContext(GL_window);
-
 
 //	mprintf(( "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel ));
 //	mprintf(( "\n" ));
 	mprintf(( "Vendor     : %s\n", glGetString(GL_VENDOR) ));
 	mprintf(( "Renderer   : %s\n", glGetString(GL_RENDERER) ));
 	mprintf(( "Version    : %s\n", glGetString(GL_VERSION) ));
-
+/*
 #ifndef NDEBUG
 	// print out extensions - taken from FS2_Open (credits: phreak, taylor)
 	mprintf(( "Extensions : \n"));
@@ -2993,14 +2995,14 @@ void gr_opengl_init()
 
 	mprintf(( "\n" ));
 #endif
-	
+*/
 	int value;
 	int rgb_size[3];
 	int bpp = 15;
 	rgb_size[0]=5;
 	rgb_size[1]=5;
 	rgb_size[2]=5;
-/*
+
 	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &value );
 	mprintf(( "SDL_GL_RED_SIZE: requested %d, got %d\n", rgb_size[0],value ));
 	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &value );
@@ -3018,14 +3020,13 @@ void gr_opengl_init()
 		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLESAMPLES, &value );
 		mprintf(( "SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", FSAA, value ));
 	}
-*/
+
+	mprintf(("\n"));
+
 //	SDL_ShowCursor(0);
-//	SDL_WM_SetCaption (Osreg_title, NULL);
 
-	/* might as well put this here */
-//	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+//	SDL_SetRelativeMouseMode(SDL_TRUE);
 
-#endif
 
 	GL_use_luminance_alpha = os_config_read_uint(NOX("OpenGL"), NOX("UseLuminanceAlpha"), 0);
 

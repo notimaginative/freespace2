@@ -1145,7 +1145,7 @@ void options_multi_protocol_do(int key)
 
 	// see if he hit any interesting key presses
 	switch(key){
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		// add a new ip string if we're in "input" mode
 		if(Om_input_mode){			
 			options_multi_protocol_add_current_ip();
@@ -1174,7 +1174,7 @@ void options_multi_protocol_do(int key)
 		}
 		break;
 
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		// if we're in input mode, cancel out
 		if(Om_input_mode){
 			// clear the text control and input mode
@@ -1189,7 +1189,7 @@ void options_multi_protocol_do(int key)
 		}
 		break;
 
-	case KEY_TAB:
+	case SDLK_TAB:
 		// tab through the tracker input controls
 		if(Om_tracker_login.has_focus()){
 			Om_tracker_passwd.set_focus();

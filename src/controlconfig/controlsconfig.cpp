@@ -480,10 +480,10 @@ char *Mouse_button_text[NUM_MOUSE_TEXT];
 char *Mouse_axis_text[NUM_MOUSE_AXIS_TEXT];
 char *Invert_text[NUM_INVERT_TEXT];
 
-ubyte System_keys[NUM_SYSTEM_KEYS] = {
-	KEY_ESC, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_F10,
-	KEY_F11, KEY_F12, KEY_PRINT_SCRN
-};
+//ubyte System_keys[NUM_SYSTEM_KEYS] = {
+//	SDLK_ESCAPE, SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
+//	SDLK_F11, SDLK_F12, SDLK_PRINTSCREEN
+//};
 
 int Control_check_count = 0;
 
@@ -773,13 +773,13 @@ void control_config_conflict_check()
 	for (i=0; i<CCFG_MAX; i++) {
 		Conflicts[i].key = Conflicts[i].joy = -1;
 		switch (Control_config[i].key_id) {
-			case KEY_LSHIFT:
-			case KEY_RSHIFT:
+			case SDLK_LSHIFT:
+			case SDLK_RSHIFT:
 				shift = i;
 				break;
 
-			case KEY_LALT:
-			case KEY_RALT:
+			case SDLK_LALT:
+			case SDLK_RALT:
 				alt = i;
 				break;
 		}
@@ -1018,7 +1018,7 @@ void control_config_bind_key(int i, int key)
 	ptr = get_undo_block(1);
 	ptr->index[0] = i;
 	ptr->list[0] = Control_config[i];
-	Control_config[i].key_id = (short) key;
+	Control_config[i].key_id = key;
 }
 
 void control_config_bind_joy(int i, int joy)
@@ -1078,7 +1078,7 @@ int control_config_remove_binding()
 		Control_config[z].joy_id = (short) -1;
 
 	if ((Selected_item != 1) && (Control_config[z].key_id >= 0))  // if not just joy button selected (1)
-		Control_config[z].key_id = (short) -1;
+		Control_config[z].key_id = -1;
 
 	control_config_conflict_check();
 	control_config_list_prepare();
@@ -1160,7 +1160,7 @@ int control_config_clear_other()
 				j++;
 
 				if (Control_config[i].key_id == Control_config[z].key_id)
-					Control_config[i].key_id = (short) -1;
+					Control_config[i].key_id = -1;
 				if (Control_config[i].joy_id == Control_config[z].joy_id)
 					Control_config[i].joy_id = (short) -1;
 			}
@@ -1207,8 +1207,6 @@ int control_config_clear_all()
 	return 0;
 }
 
-extern Joy_info joystick;
-
 int control_config_axis_default(int axis)
 {
 	Assert(axis >= 0);
@@ -1217,7 +1215,7 @@ int control_config_axis_default(int axis)
 		if (Axis_map_to_defaults[axis] < 0)
 			return -1;
 
-		if (!joystick.axis_valid[Axis_map_to_defaults[axis]])
+		if ( !joy_axis_valid(Axis_map_to_defaults[axis]) )
 			return -1;
 	}
 
@@ -1395,7 +1393,7 @@ void control_config_do_bind()
 		}
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.enable();
-	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(KEY_ESC);
+	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(SDLK_ESCAPE);
 
 	for (i=0; i<JOY_TOTAL_BUTTONS; i++){
 		joy_down_count(i);  // clear checking status of all joystick buttons
@@ -1423,7 +1421,7 @@ void control_config_do_search()
 	}
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.enable();
-	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(KEY_ESC);
+	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(SDLK_ESCAPE);
 
 	for (i=0; i<JOY_TOTAL_BUTTONS; i++){
 		joy_down_count(i);  // clear checking status of all joystick buttons
@@ -1644,16 +1642,16 @@ void control_config_init()
 	}
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	CC_Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	CC_Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
-	CC_Buttons[gr_screen.res][BIND_BUTTON].button.set_hotkey(KEY_ENTER);
-	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_DELETE);
-	CC_Buttons[gr_screen.res][UNDO_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_Z);
-	CC_Buttons[gr_screen.res][CLEAR_BUTTON].button.set_hotkey(KEY_DELETE);
-	CC_Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	CC_Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(KEY_F1);
-	CC_Buttons[gr_screen.res][RESET_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_R);
-	CC_Buttons[gr_screen.res][INVERT_AXIS].button.set_hotkey(KEY_I);
+	CC_Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	CC_Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
+	CC_Buttons[gr_screen.res][BIND_BUTTON].button.set_hotkey(SDLK_RETURN);
+	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_DELETE);
+	CC_Buttons[gr_screen.res][UNDO_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_z);
+	CC_Buttons[gr_screen.res][CLEAR_BUTTON].button.set_hotkey(SDLK_DELETE);
+	CC_Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	CC_Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	CC_Buttons[gr_screen.res][RESET_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_r);
+	CC_Buttons[gr_screen.res][INVERT_AXIS].button.set_hotkey(SDLK_i);
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.disable();
 	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.disable();
@@ -1775,13 +1773,13 @@ void control_config_do_frame(float frametime)
 			Ui_window.use_hack_to_get_around_stupid_problem_flag = 1;
 			Ui_window.process(0);
 
-			if (k == KEY_ESC) {
+			if (k == SDLK_ESCAPE) {
 				strcpy(bound_string, XSTR( "Canceled", 206));
 				bound_timestamp = timestamp(2500);
 				control_config_do_cancel();
 
 			} else {
-				if (k == KEY_ENTER)
+				if (k == SDLK_RETURN)
 					bind = 1;
 
 				for (i=0; i<JOY_TOTAL_BUTTONS; i++)
@@ -1826,24 +1824,24 @@ void control_config_do_frame(float frametime)
 				Ui_window.set_ignore_gadgets(0);
 			}
 
-			if (k == KEY_ESC) {
+			if (k == SDLK_ESCAPE) {
 				strcpy(bound_string, XSTR( "Canceled", 206));
 				bound_timestamp = timestamp(2500);
 				control_config_do_cancel();
 
 			} else {
 				switch (k & KEY_MASK) {
-					case KEY_LSHIFT:
-					case KEY_RSHIFT:
-					case KEY_LALT:
-					case KEY_RALT:
+					case SDLK_LSHIFT:
+					case SDLK_RSHIFT:
+					case SDLK_LALT:
+					case SDLK_RALT:
 						Last_key = k & KEY_MASK;
 						k = 0;
 						break;
 				}
 
 				if (Cc_lines[Selected_line].cc_index == BANK_WHEN_PRESSED)  // a special hack just for Mike K.
-					if ( (Last_key >= 0) && (k <= 0) && !keyd_pressed[Last_key] )
+					if ( (Last_key >= 0) && (k <= 0) && !key_pressed(Last_key) )
 						k = Last_key;
 
 				if ((k > 0) && !Config_allowed[k & KEY_MASK]) {
@@ -1933,7 +1931,7 @@ void control_config_do_frame(float frametime)
 			Ui_window.set_ignore_gadgets(0);
 		}
 
-		if (k == KEY_ESC) {
+		if (k == SDLK_ESCAPE) {
 			control_config_do_cancel();
 
 		} else {
@@ -2011,7 +2009,7 @@ void control_config_do_frame(float frametime)
 		if (!z) {
 			z = Cc_lines[Selected_line].cc_index;
 			k = Control_config[z].key_id;
-			if ( (k == KEY_LALT) || (k == KEY_RALT) || (k == KEY_LSHIFT) || (k == KEY_RSHIFT) ) {
+			if ( (k == SDLK_LALT) || (k == SDLK_RALT) || (k == SDLK_LSHIFT) || (k == SDLK_RSHIFT) ) {
 				CC_Buttons[gr_screen.res][ALT_TOGGLE].button.enable(0);
 				CC_Buttons[gr_screen.res][SHIFT_TOGGLE].button.enable(0);
 			}
@@ -2039,15 +2037,15 @@ void control_config_do_frame(float frametime)
 		}
 
 		switch (k) {
-			case KEY_DOWN:  // select next line
+			case SDLK_DOWN:  // select next line
 				control_config_scroll_line_down();
 				break;
 
-			case KEY_UP:  // select previous line
+			case SDLK_UP:  // select previous line
 				control_config_scroll_line_up();
 				break;
 
-			case KEY_SHIFTED | KEY_TAB:  // activate previous tab
+			case KEY_SHIFTED | SDLK_TAB:  // activate previous tab
 				Tab--;
 				if (Tab < 0)
 					Tab = NUM_TABS - 1;
@@ -2057,7 +2055,7 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCREEN_MODE_PRESSED);
 				break;
 
-			case KEY_TAB:  // activate next tab
+			case SDLK_TAB:  // activate next tab
 				Tab++;
 				if (Tab >= NUM_TABS)
 					Tab = 0;
@@ -2067,7 +2065,7 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCREEN_MODE_PRESSED);
 				break;
 
-			case KEY_LEFT:
+			case SDLK_LEFT:
 				Selected_item--;
 				if (Selected_item == -2) {
 					Selected_item = 1;
@@ -2081,7 +2079,7 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCROLL);
 				break;
 
-			case KEY_RIGHT:
+			case SDLK_RIGHT:
 				Selected_item++;
 				if ((Selected_item == 1) && (Cc_lines[Selected_line].jw < 1))
 					Selected_item = -1;
@@ -2093,11 +2091,11 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCROLL);
 				break;
 
-			case KEY_BACKSP:  // undo
+			case SDLK_BACKSPACE:  // undo
 				control_config_undo_last();
 				break;
 
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				control_config_cancel_exit();
 				break;
 		}	// end switch
@@ -2481,16 +2479,11 @@ int check_control(int id, int key)
 			}
 
 		// check what current modifiers are pressed
-		mask = 0;
-		if (keyd_pressed[KEY_LSHIFT] || key_down_count(KEY_LSHIFT) || keyd_pressed[KEY_RSHIFT] || key_down_count(KEY_RSHIFT))
-			mask |= KEY_SHIFTED;
-
-		if (keyd_pressed[KEY_LALT] || key_down_count(KEY_LALT) || keyd_pressed[KEY_RALT] || key_down_count(KEY_RALT))
-			mask |= KEY_ALTED;
+		mask = key_get_shift_status();
 
 		z = Control_config[id].key_id;
 		if (z >= 0) {
-			if ( (z != KEY_LALT) && (z != KEY_RALT) && (z != KEY_LSHIFT) && (z != KEY_RSHIFT) ) {
+			if ( (z != SDLK_LALT) && (z != SDLK_RALT) && (z != SDLK_LSHIFT) && (z != SDLK_RSHIFT) ) {
 				// if current modifiers don't match action's modifiers, don't register control active.
 				if ((z & (KEY_SHIFTED | KEY_ALTED)) != mask)
 					return 0;
@@ -2498,7 +2491,7 @@ int check_control(int id, int key)
 
 			z &= KEY_MASK;
 
-			if (keyd_pressed[z] || key_down_count(z)) {
+			if (key_pressed(z) || key_down_count(z)) {
 				if ( !hud_squadmsg_read_key(z) ) {
 					control_used(id);
 					return 1;
@@ -2520,30 +2513,26 @@ int check_control(int id, int key)
 // get heading, pitch, bank, throttle abs. and throttle rel. values.
 void control_get_axes_readings(int *h, int *p, int *b, int *ta, int *tr)
 {
-	int axes_values[JOY_NUM_AXES];
-
-	joystick_read_raw_axis(JOY_NUM_AXES, axes_values);
-
 	//	joy_get_scaled_reading will return a value represents the joystick pos from -1 to +1 (fixed point)
 	*h = 0;
 	if (Axis_map_to[0] >= 0)
-		*h = joy_get_scaled_reading(axes_values[Axis_map_to[0]], Axis_map_to[0]);
+		*h = joy_get_scaled_reading(Axis_map_to[0]);
 
 	*p = 0;
 	if (Axis_map_to[1] >= 0)
-		*p = joy_get_scaled_reading(axes_values[Axis_map_to[1]], Axis_map_to[1]);
+		*p = joy_get_scaled_reading(Axis_map_to[1]);
 
 	*b = 0;
 	if (Axis_map_to[2] >= 0)
-		*b = joy_get_scaled_reading(axes_values[Axis_map_to[2]], Axis_map_to[2]);
+		*b = joy_get_scaled_reading(Axis_map_to[2]);
 
 	*ta = 0;
 	if (Axis_map_to[3] >= 0)
-		*ta = joy_get_unscaled_reading(axes_values[Axis_map_to[3]], Axis_map_to[3]);
+		*ta = joy_get_unscaled_reading(Axis_map_to[3]);
 
 	*tr = 0;
 	if (Axis_map_to[4] >= 0)
-		*tr = joy_get_scaled_reading(axes_values[Axis_map_to[4]], Axis_map_to[4]);
+		*tr = joy_get_scaled_reading(Axis_map_to[4]);
 
 	if (Invert_axis[0])
 		*h = -(*h);

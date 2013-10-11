@@ -129,9 +129,9 @@ int OO_subsys_total = 0;
 int OO_forward_thrust_total = 0;
 
 // keys for selectively disabling interpolation - these keys can be used in combination with each other
-#define LAG_OFF_KEY							KEY_7
-#define LEVEL_1_OFF_KEY						KEY_8
-#define LEVEL_2_OFF_KEY						KEY_9
+#define LAG_OFF_KEY							SDLK_7
+#define LEVEL_1_OFF_KEY						SDLK_8
+#define LEVEL_2_OFF_KEY						SDLK_9
 
 int OO_global_time;
 
@@ -400,7 +400,7 @@ void multi_oo_interpolate(object *objp, interp_info *current, interp_info *last)
 
 	// level 1 interpolation
 	// if the key disabling level 1 interpolation is pressed, skip
-	if(!keyd_pressed[LEVEL_1_OFF_KEY]){
+	if(!key_pressed(LEVEL_1_OFF_KEY)){
 		float lag = fl2i(current->lowest_ping)/1000.0f;
 
 		lag /= 2.0f;		// Our ping time is round trip, we only account for 1/2 the trip.
@@ -447,7 +447,7 @@ void multi_oo_interpolate(object *objp, interp_info *current, interp_info *last)
 			physics_sim_rot(actual_orient, &objp->phys_info, flFrametime );
 		}
 		
-		if(keyd_pressed[LAG_OFF_KEY]){
+		if(key_pressed(LAG_OFF_KEY)){
 			// Make orient go quickly to actual_orient
 
 			/*

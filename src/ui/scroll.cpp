@@ -163,11 +163,11 @@ void UI_SCROLLBAR::create(UI_WINDOW *wnd, int _x, int _y, int _h, int _start, in
 
 	up_button.create( wnd, up, _x, _y, bw, bw, 1 );
 	up_button.set_parent(this);
-	up_button.set_hotkey_if_focus(KEY_UP);
+	up_button.set_hotkey_if_focus(SDLK_UP);
 
 	down_button.create( wnd, down, _x, _y + _h - bw, bw, bw, 1 );
 	down_button.set_parent(this);
-	down_button.set_hotkey_if_focus(KEY_DOWN);
+	down_button.set_hotkey_if_focus(SDLK_DOWN);
 
 	horz = 0;
 	start = _start;
@@ -272,7 +272,7 @@ void UI_SCROLLBAR::process(int focus)
 		set_focus();
 	}
 /*
-	if ( (up_button.position != 0) || (focus && keyd_pressed[KEY_UP]) ) {
+	if ( (up_button.position != 0) || (focus && key_pressed(SDLK_UP)) ) {
 		if ( (timer_get_milliseconds() > last_scrolled + 50) || up_button.just_pressed() ) {
 			if ( up_button.just_pressed() ) {
 				last_scrolled = timer_get_milliseconds() + 300;
@@ -300,7 +300,7 @@ void UI_SCROLLBAR::process(int focus)
 		set_focus();
 	}
 
-/*	if ( down_button.position || (keyfocus && keyd_pressed[KEY_DOWN]) ) {
+/*	if ( down_button.position || (keyfocus && key_pressed(SDLK_DOWN)) ) {
 		if ( (timer_get_milliseconds() > last_scrolled + 50) || down_button.just_pressed() ) {
 			if ( down_button.just_pressed() )
 				last_scrolled = timer_get_milliseconds() + 300;

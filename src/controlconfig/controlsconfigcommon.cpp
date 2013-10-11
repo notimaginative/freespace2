@@ -250,7 +250,7 @@
  * mouse button down but not up again yet.
  * 
  * 89    11/24/97 10:20p Lawrance
- * Add key 'KEY_N' to target next ship on monitoring view
+ * Add key 'SDLK_n' to target next ship on monitoring view
  * 
  * 88    11/24/97 6:15p Lawrance
  * fix button scroll problem
@@ -410,159 +410,163 @@ int Invert_axis_defaults[JOY_NUM_AXES] = { 0, 0, 0, 0, 0, 0 };
 //XSTR:OFF
 config_item Control_config[CCFG_MAX + 1] = {
 	// targeting a ship
-	{                           KEY_T,				-1, TARGET_TAB,	"Target Next Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_T,				-1, TARGET_TAB,	"Target Previous Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_H,				2,  TARGET_TAB,	"Target Next Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{	           KEY_SHIFTED | KEY_H,				-1, TARGET_TAB,	"Target Previous Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               KEY_H,				-1, TARGET_TAB,	"Toggle Auto Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_F,				-1, TARGET_TAB,	"Target Next Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_F,				-1, TARGET_TAB,	"Target Previous Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_Y,				4,  TARGET_TAB,	"Target Ship in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_G,				-1, TARGET_TAB,	"Target Target's Nearest Attacker", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED	|					 KEY_Y,				-1, TARGET_TAB,	"Target Last Ship to Send Transmission", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               KEY_T,				-1, TARGET_TAB,	"Turn Off Auto-Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_t,				-1, TARGET_TAB,	"Target Next Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_t,				-1, TARGET_TAB,	"Target Previous Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_h,				2,  TARGET_TAB,	"Target Next Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{	           KEY_SHIFTED | SDLK_h,				-1, TARGET_TAB,	"Target Previous Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_h,				-1, TARGET_TAB,	"Toggle Auto Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_f,				-1, TARGET_TAB,	"Target Next Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_f,				-1, TARGET_TAB,	"Target Previous Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_y,				4,  TARGET_TAB,	"Target Ship in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_g,				-1, TARGET_TAB,	"Target Target's Nearest Attacker", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED	|					 SDLK_y,				-1, TARGET_TAB,	"Target Last Ship to Send Transmission", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_t,				-1, TARGET_TAB,	"Turn Off Auto-Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// targeting a ship's subsystem
-	{                           KEY_V,				-1, TARGET_TAB,	"Target Subsystem in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_S,				-1, TARGET_TAB,	"Target Next Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_S,				-1, TARGET_TAB,	"Target Previous Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               KEY_S,				-1, TARGET_TAB,	"Turn Off Auto-Targeting of Subsystems", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_v,				-1, TARGET_TAB,	"Target Subsystem in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_s,				-1, TARGET_TAB,	"Target Next Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_s,				-1, TARGET_TAB,	"Target Previous Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_s,				-1, TARGET_TAB,	"Turn Off Auto-Targeting of Subsystems", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// matching speed
-	{                           KEY_M,				-1, COMPUTER_TAB,	"Match Target Speed", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               KEY_M,				-1, COMPUTER_TAB,	"Toggle Auto Speed Matching", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_m,				-1, COMPUTER_TAB,	"Match Target Speed", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_m,				-1, COMPUTER_TAB,	"Toggle Auto Speed Matching", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// weapons
-	{                           KEY_LCTRL,			0,	 WEAPON_TAB,	"Fire Primary Weapon", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_SPACEBAR,		1,  WEAPON_TAB,	"Fire Secondary Weapon", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PERIOD,		-1, WEAPON_TAB,	"Cycle Forward Primary Weapon", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_COMMA,			-1, WEAPON_TAB,	"Cycle Backward Primary Weapon", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_DIVIDE,		-1, WEAPON_TAB,	"Cycle Secondary Weapon Bank", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_DIVIDE,		-1, WEAPON_TAB,	"Cycle Secondary Weapon Firing Rate", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_X,				3,	 WEAPON_TAB,	"Launch Countermeasure", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_LCTRL,			0,	 WEAPON_TAB,	"Fire Primary Weapon", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_SPACE,		1,  WEAPON_TAB,	"Fire Secondary Weapon", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_PERIOD,		-1, WEAPON_TAB,	"Cycle Forward Primary Weapon", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_COMMA,			-1, WEAPON_TAB,	"Cycle Backward Primary Weapon", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_SLASH,		-1, WEAPON_TAB,	"Cycle Secondary Weapon Bank", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_SLASH,		-1, WEAPON_TAB,	"Cycle Secondary Weapon Firing Rate", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_x,				3,	 WEAPON_TAB,	"Launch Countermeasure", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// controls
-	{                           KEY_A,				-1, SHIP_TAB,		"Forward Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_Z,				-1, SHIP_TAB,		"Reverse Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD7,			-1, SHIP_TAB,		"Bank Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD9,			-1, SHIP_TAB,		"Bank Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD8,			-1, SHIP_TAB,		"Pitch Forward", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD2,			-1, SHIP_TAB,		"Pitch Backward", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD4,			-1, SHIP_TAB,		"Turn Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD6,			-1, SHIP_TAB,		"Turn Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_a,				-1, SHIP_TAB,		"Forward Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_z,				-1, SHIP_TAB,		"Reverse Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_7,			-1, SHIP_TAB,		"Bank Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_9,			-1, SHIP_TAB,		"Bank Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_8,			-1, SHIP_TAB,		"Pitch Forward", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_2,			-1, SHIP_TAB,		"Pitch Backward", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_4,			-1, SHIP_TAB,		"Turn Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_6,			-1, SHIP_TAB,		"Turn Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 
 	// throttle controls
-	{                           KEY_BACKSP,		-1, SHIP_TAB,		"Set Throttle to Zero", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_SLASH,			-1, SHIP_TAB,		"Set Throttle to Max", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_LBRACKET,		-1, SHIP_TAB,		"Set Throttle to One-Third", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_RBRACKET,		-1, SHIP_TAB,		"Set Throttle to Two-Thirds", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_EQUAL,			-1, SHIP_TAB,		"Increase Throttle 5 Percent", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_MINUS,			-1, SHIP_TAB,		"Decrease Throttle 5 Percent", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_BACKSPACE,		-1, SHIP_TAB,		"Set Throttle to Zero", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_BACKSLASH,			-1, SHIP_TAB,		"Set Throttle to Max", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_LEFTBRACKET,		-1, SHIP_TAB,		"Set Throttle to One-Third", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_RIGHTBRACKET,		-1, SHIP_TAB,		"Set Throttle to Two-Thirds", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_EQUALS,			-1, SHIP_TAB,		"Increase Throttle 5 Percent", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_MINUS,			-1, SHIP_TAB,		"Decrease Throttle 5 Percent", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// squadmate messaging
-	{             KEY_SHIFTED | KEY_A,				-1, COMPUTER_TAB,	"Attack My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_Z,				-1, COMPUTER_TAB,	"Disarm My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_D,				-1, COMPUTER_TAB,	"Disable My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_V,				-1, COMPUTER_TAB,	"Attack my Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_X,				-1, COMPUTER_TAB,	"Capture My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_E,				-1, COMPUTER_TAB,	"Engage Enemy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_W,				-1, COMPUTER_TAB,	"Form on my Wing", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_I,				-1, COMPUTER_TAB,	"Ignore my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_P,				-1, COMPUTER_TAB,	"Protect my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_C,				-1, COMPUTER_TAB,	"Cover me", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_J,				-1, COMPUTER_TAB,	"Return to base", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{				  KEY_SHIFTED | KEY_R,				-1, COMPUTER_TAB, "Rearm me", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_a,				-1, COMPUTER_TAB,	"Attack My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_z,				-1, COMPUTER_TAB,	"Disarm My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_d,				-1, COMPUTER_TAB,	"Disable My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_v,				-1, COMPUTER_TAB,	"Attack my Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_x,				-1, COMPUTER_TAB,	"Capture My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_e,				-1, COMPUTER_TAB,	"Engage Enemy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_w,				-1, COMPUTER_TAB,	"Form on my Wing", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_i,				-1, COMPUTER_TAB,	"Ignore my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_p,				-1, COMPUTER_TAB,	"Protect my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_c,				-1, COMPUTER_TAB,	"Cover me", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_j,				-1, COMPUTER_TAB,	"Return to base", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{				  KEY_SHIFTED | SDLK_r,				-1, COMPUTER_TAB, "Rearm me", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{									 KEY_R,				6,  TARGET_TAB,	"Target Closest Attacking Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_r,				6,  TARGET_TAB,	"Target Closest Attacking Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// Views
-	{                           KEY_PADMULTIPLY,	-1, COMPUTER_TAB,	"Chase View", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_PADPERIOD,	-1, COMPUTER_TAB,	"External View", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_PADENTER,		-1, COMPUTER_TAB,	"Toggle External Camera Lock", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_PAD0,			-1, COMPUTER_TAB,	"Free Look View", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PADDIVIDE,	-1, COMPUTER_TAB,	"Current Target View", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_PADPLUS,		-1, COMPUTER_TAB,	"Increase View Distance", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PADMINUS,		-1, COMPUTER_TAB,	"Decrease View Distance", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           KEY_PAD5,			-1, COMPUTER_TAB,	"Center View", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_MULTIPLY,	-1, COMPUTER_TAB,	"Chase View", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_KP_PERIOD,	-1, COMPUTER_TAB,	"External View", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_KP_ENTER,		-1, COMPUTER_TAB,	"Toggle External Camera Lock", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_KP_0,			-1, COMPUTER_TAB,	"Free Look View", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_DIVIDE,	-1, COMPUTER_TAB,	"Current Target View", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_KP_PLUS,		-1, COMPUTER_TAB,	"Increase View Distance", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_MINUS,		-1, COMPUTER_TAB,	"Decrease View Distance", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_KP_5,			-1, COMPUTER_TAB,	"Center View", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					33, COMPUTER_TAB, "View Up", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					32, COMPUTER_TAB, "View Rear", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					34, COMPUTER_TAB, "View Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					35, COMPUTER_TAB, "View Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 
-	{                           KEY_RAPOSTRO,		-1, COMPUTER_TAB,	"Cycle Radar Range", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_C,				-1, COMPUTER_TAB, "Communications Menu", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_QUOTE,		-1, COMPUTER_TAB,	"Cycle Radar Range", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_c,				-1, COMPUTER_TAB, "Communications Menu", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           -1,					-1, -1,				"Show Objectives", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               KEY_J,				-1, COMPUTER_TAB,	"Enter Subspace (End Mission)", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_J,				-1, TARGET_TAB,	"Target Target's Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_TAB,			5,  SHIP_TAB,		"Afterburner", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_j,				-1, COMPUTER_TAB,	"Enter Subspace (End Mission)", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_j,				-1, TARGET_TAB,	"Target Target's Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_TAB,			5,  SHIP_TAB,		"Afterburner", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	
-	{                           KEY_INSERT,		-1, COMPUTER_TAB,	"Increase Weapon Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_DELETE,		-1, COMPUTER_TAB,	"Decrease Weapon Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_HOME,			-1, COMPUTER_TAB,	"Increase Shield Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_END,			-1, COMPUTER_TAB,	"Decrease Shield Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_PAGEUP,		-1, COMPUTER_TAB,	"Increase Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_PAGEDOWN,		-1, COMPUTER_TAB,	"Decrease Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               KEY_D,				-1, COMPUTER_TAB, "Equalize Energy Settings", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_INSERT,		-1, COMPUTER_TAB,	"Increase Weapon Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_DELETE,		-1, COMPUTER_TAB,	"Decrease Weapon Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_HOME,			-1, COMPUTER_TAB,	"Increase Shield Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_END,			-1, COMPUTER_TAB,	"Decrease Shield Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_PAGEUP,		-1, COMPUTER_TAB,	"Increase Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_PAGEDOWN,		-1, COMPUTER_TAB,	"Decrease Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_d,				-1, COMPUTER_TAB, "Equalize Energy Settings", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{                           KEY_Q,				7,  COMPUTER_TAB,	"Equalize Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_UP,				-1, COMPUTER_TAB,	"Augment Forward Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_DOWN,			-1, COMPUTER_TAB,	"Augment Rear Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_LEFT,			-1, COMPUTER_TAB,	"Augment Left Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_RIGHT,			-1, COMPUTER_TAB,	"Augment Right Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_SCROLLOCK,	-1, COMPUTER_TAB,	"Transfer Energy Laser->Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_SCROLLOCK,	-1, COMPUTER_TAB,	"Transfer Energy Shield->Laser", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_q,				7,  COMPUTER_TAB,	"Equalize Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_UP,				-1, COMPUTER_TAB,	"Augment Forward Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_DOWN,			-1, COMPUTER_TAB,	"Augment Rear Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_LEFT,			-1, COMPUTER_TAB,	"Augment Left Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_RIGHT,			-1, COMPUTER_TAB,	"Augment Right Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_SCROLLLOCK,	-1, COMPUTER_TAB,	"Transfer Energy Laser->Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_SCROLLLOCK,	-1, COMPUTER_TAB,	"Transfer Energy Shield->Laser", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           -1,					-1, -1,				"Show Damage Popup Window", CC_TYPE_TRIGGER, -1, -1, 0 },	
 
 	{                           -1,					-1, SHIP_TAB,		"Bank When Pressed", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					-1, -1,				"Show NavMap", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |	             KEY_E,				-1, COMPUTER_TAB,	"Add or Remove Escort", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED | KEY_SHIFTED | KEY_E,				-1, COMPUTER_TAB,	"Clear Escort List", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{					             KEY_E,				-1, TARGET_TAB,	"Target Next Escort Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED	|					 KEY_R,				-1, TARGET_TAB,	"Target Closest Repair Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |	             SDLK_e,				-1, COMPUTER_TAB,	"Add or Remove Escort", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED | KEY_SHIFTED | SDLK_e,				-1, COMPUTER_TAB,	"Clear Escort List", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{					             SDLK_e,				-1, TARGET_TAB,	"Target Next Escort Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED	|					 SDLK_r,				-1, TARGET_TAB,	"Target Closest Repair Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{                           KEY_U,				-1, TARGET_TAB,	"Target Next Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_U,				-1, TARGET_TAB,	"Target Previous Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{									 KEY_N,				-1, TARGET_TAB,	"Target Newest Ship In Area", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           KEY_K,				-1, TARGET_TAB,	"Target Next Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_K,				-1, TARGET_TAB,	"Target Previous Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_u,				-1, TARGET_TAB,	"Target Next Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_u,				-1, TARGET_TAB,	"Target Previous Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_n,				-1, TARGET_TAB,	"Target Newest Ship In Area", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_k,				-1, TARGET_TAB,	"Target Next Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_k,				-1, TARGET_TAB,	"Target Previous Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{									 KEY_B,				-1, TARGET_TAB,	"Target Next Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_B,				-1, TARGET_TAB,	"Target Previous Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_b,				-1, TARGET_TAB,	"Target Next Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_b,				-1, TARGET_TAB,	"Target Previous Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// multiplayer messaging keys
-	{									 KEY_1,				-1, COMPUTER_TAB,	"(Multiplayer) Message All", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{									 KEY_2,				-1, COMPUTER_TAB, "(Multiplayer) Message Friendly", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{									 KEY_3,				-1, COMPUTER_TAB, "(Multiplayer) Message Hostile", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{									 KEY_4,				-1, COMPUTER_TAB, "(Multiplayer) Message Target", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{ KEY_ALTED	|					 KEY_X,				-1, COMPUTER_TAB, "(Multiplayer) Observer zoom to target", CC_TYPE_TRIGGER, -1, -1, 0 },	
+	{									 SDLK_1,				-1, COMPUTER_TAB,	"(Multiplayer) Message All", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{									 SDLK_2,				-1, COMPUTER_TAB, "(Multiplayer) Message Friendly", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{									 SDLK_3,				-1, COMPUTER_TAB, "(Multiplayer) Message Hostile", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{									 SDLK_4,				-1, COMPUTER_TAB, "(Multiplayer) Message Target", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{ KEY_ALTED	|					 SDLK_x,				-1, COMPUTER_TAB, "(Multiplayer) Observer zoom to target", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{             KEY_SHIFTED | KEY_PERIOD,		-1, COMPUTER_TAB,	"Increase time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | KEY_COMMA,			-1, COMPUTER_TAB,	"Decrease time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_PERIOD,		-1, COMPUTER_TAB,	"Increase time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_COMMA,			-1, COMPUTER_TAB,	"Decrease time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{									 KEY_L,				-1, COMPUTER_TAB, "Toggle high HUD contrast", CC_TYPE_TRIGGER, -1, -1, 0 },	
+	{									 SDLK_l,				-1, COMPUTER_TAB, "Toggle high HUD contrast", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{				  KEY_SHIFTED | KEY_N,				-1, COMPUTER_TAB, "(Multiplayer) Toggle network info", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{				  KEY_SHIFTED | KEY_END,			-1, COMPUTER_TAB, "(Multiplayer) Self destruct", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{				  KEY_SHIFTED | SDLK_n,				-1, COMPUTER_TAB, "(Multiplayer) Toggle network info", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{				  KEY_SHIFTED | SDLK_END,			-1, COMPUTER_TAB, "(Multiplayer) Self destruct", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	{                           -1,					-1, -1,				"", CC_TYPE_TRIGGER, -1, -1, 0 }
 };
-
-const char *Scan_code_text_german[] = {
-	"",				"Esc",				"1",				"2",				"3",				"4",				"5",				"6",
+/*
 #ifndef MAKE_FS1
 	"7",				"8",				"9",				"0",				"Akzent '",				"\xE1",				"R\x81""cktaste",		"Tab",
 #else
 	"7",				"8",				"9",				"0",				"?",				"Akzent '",				"R\x81""cktaste",		"Tab",
 #endif
-	"Q",				"W",				"E",				"R",				"T",				"Z",				"U",				"I",
-	"O",				"P",				"\x9A",				"+",				"Eingabe",			"Strg Links",			"A",				"S",
-
-	"D",				"F",				"G",				"H",				"J",				"K",				"L",				"\x99",
 #ifndef MAKE_FS1
 	"\xAE",				"`",				"Shift",			"#",				"Y",				"X",				"C",				"V",
 #else
 	"\x8E",				"`",				"Shift",			"#",				"Y",				"X",				"C",				"V",
 #endif
+*/
+/*
+const char *Scan_code_text_german[] = {
+	"",				"Esc",				"1",				"2",				"3",				"4",				"5",				"6",
+	"7",				"8",				"9",				"0",				"Akzent '",				"\xE1",				"R\x81""cktaste",		"Tab",
+	"Q",				"W",				"E",				"R",				"T",				"Z",				"U",				"I",
+	"O",				"P",				"\x9A",				"+",				"Eingabe",			"Strg Links",			"A",				"S",
+
+	"D",				"F",				"G",				"H",				"J",				"K",				"L",				"\x99",
+	"\xAE",				"`",				"Shift",			"#",				"Y",				"X",				"C",				"V",
 	"B",				"N",				"M",				",",				".",				"-",				"Shift",			"Num *",
 	"Alt",				"Leertaste",			"Hochstell",			"F1",				"F2",				"F3",				"F4",				"F5",
 
@@ -596,6 +600,49 @@ const char *Scan_code_text_german[] = {
 	"",				"",				"",				"",				"",				"",				"",				"",
 	"",				"",				"",				"",				"",				"",				"",				"",
 };
+*/
+const char *Scan_code_text_german[] = {
+	"",	"",	"",	"",	"A",	"B",	"C",	"D",	"E",
+	"F",	"G",	"H",	"I",	"J",	"K",	"L",	"M",
+	"N",	"O",	"P",	"Q",	"R",	"S",	"T",	"U",
+	"V",	"W",	"X",	"Z",	"Y",	"1",	"2",	"3",
+	"4",	"5",	"6",	"7",	"8",	"9",	"0",	"Eingabe",
+	"Esc",	"R\x81""cktaste",	"Tab",	"Leertaste",	"Akzent '",	"\xE1",	"\x9A",	"+",
+	"#",	"",	"\x99",	"\xAE",	"`",	",",	".",	"-",
+	"Hochstell",	"F1",	"F2",	"F3",	"F4",	"F5",	"F6",	"F7",
+	"F8",	"F9",	"F10",	"F11",	"F12",	"Druck",	"Rollen",	"Pause",
+	"Einfg",	"Pos 1",	"Bild Hoch",	"Entf",	"Ende",	"Bild Runter",	"Pfeil Rechts",	"Pfeil Links",
+	"Pfeil Runter",	"Pfeil Hoch",	"",	"Num /",	"Num *",	"Num -",	"Num +",	"Num Eingabe",
+	"Num 1",	"Num 2",	"Num 3",	"Num 4",	"Num 5",	"Num 6",	"Num 7",	"Num 8",
+	"Num 9",	"Num 0",	"Num ,",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"Strg Links",
+	"Shift",	"Alt",	"",	"Strg Rechts",	"Shift",	"Alt",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	""
+};
 
 const char *Joy_button_text_german[] = {
 	"Knopf 1",		"Knopf 2",		"Knopf 3",		"Knopf 4",		"Knopf 5",		"Knopf 6",
@@ -606,6 +653,7 @@ const char *Joy_button_text_german[] = {
 	"Knopf 31",		"Knopf 32",		"Hut Hinten",	"Hut Vorne",	"Hut Links",	"Hut Rechts"
 };
 
+/*
 const char *Scan_code_text_french[] = {
 	"",				"\x90""chap",			"1",				"2",				"3",				"4",				"5",				"6",
 	"7",				"8",				"9",				"0",				"-",				"=",				"Fl\x82""che Ret.",			"Tab",
@@ -647,6 +695,49 @@ const char *Scan_code_text_french[] = {
 	"",				"",				"",				"",				"",				"",				"",				"",
 	"",				"",				"",				"",				"",				"",				"",				"",
 };
+*/
+const char *Scan_code_text_french[] = {
+	"",	"",	"",	"",	"A",	"B",	"C",	"D",	"E",
+	"F",	"G",	"H",	"I",	"J",	"K",	"L",	"M",
+	"N",	"O",	"P",	"Q",	"R",	"S",	"T",	"U",
+	"V",	"W",	"X",	"Y",	"Z",	"1",	"2",	"3",
+	"4",	"5",	"6",	"7",	"8",	"9",	"0",	"Entr\x82""e",
+	"\x90""chap",	"Fl\x82""che Ret.",	"Tab",	"Espace",	"-",	"=",	"[",	"]",
+	"\\",	"",	";",	"'",	"`",	",",	".",	"/",
+	"Verr. Maj.",	"F1",	"F2",	"F3",	"F4",	"F5",	"F6",	"F7",
+	"F8",	"F9",	"F10",	"F11",	"F12",	"Impr \x82""cran",	"Arret defil",	"Pause",
+	"Inser",	"Orig.",	"Page Haut",	"Suppr",	"Fin",	"Page Bas",	"Fl\x82""che Droite",	"Fl\x82""che Gauche",
+	"Fl\x82""che Bas",	"Fl\x82""che Haut",	"",	"Pav\x82 /",	"Pav\x82 *",	"Pav\x82 -",	"Pav\x82 +",	"Pav\x82 Entr",
+	"Pav\x82 1",	"Pav\x82 2",	"Pav\x82 3",	"Pav\x82 4",	"Pav\x82 5",	"Pav\x82 6",	"Pav\x82 7",	"Pav\x82 8",
+	"Pav\x82 9",	"Pav\x82 0",	"Pav\x82 .",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"Ctrl Gauche",
+	"Maj.",	"Alt",	"",	"Ctrl Droite",	"Maj.",	"Alt",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	""
+};
 
 const char *Joy_button_text_french[] = {
 	"Bouton 1",		"Bouton 2",		"Bouton 3",		"Bouton 4",		"Bouton 5",		"Bouton 6",
@@ -654,10 +745,11 @@ const char *Joy_button_text_french[] = {
 	"Bouton 13",		"Bouton 14",		"Bouton 15",		"Bouton 16",		"Bouton 17",		"Bouton 18",
 	"Bouton 19",		"Bouton 20",		"Bouton 21",		"Bouton 22",		"Bouton 23",		"Bouton 24",
 	"Bouton 25",		"Bouton 26",		"Bouton 27",		"Bouton 28",		"Bouton 29",		"Bouton 30",
-	"Bouton 31",		"Bouton 32",		"Chapeau Arrière",		"Chapeau Avant",		"Chapeau Gauche",		"Chapeau Droite"
+	"Bouton 31",		"Bouton 32",		"Chapeau Arri\xE8re",		"Chapeau Avant",		"Chapeau Gauche",		"Chapeau Droite"
 };
 
 //	This is the text that is displayed on the screen for the keys a player selects
+/*
 const char *Scan_code_text_english[] = {
 	"",				"Esc",			"1",				"2",				"3",				"4",				"5",				"6",
 	"7",				"8",				"9",				"0",				"-",				"=",				"Backspace",	"Tab",
@@ -699,6 +791,49 @@ const char *Scan_code_text_english[] = {
 	"",				"",				"",				"",				"",				"",				"",				"",
 	"",				"",				"",				"",				"",				"",				"",				"",
 };
+*/
+const char *Scan_code_text_english[] = {
+	"",	"",	"",	"",	"A",	"B",	"C",	"D",	"E",
+	"F",	"G",	"H",	"I",	"J",	"K",	"L",	"M",
+	"N",	"O",	"P",	"Q",	"R",	"S",	"T",	"U",
+	"V",	"W",	"X",	"Y",	"Z",	"1",	"2",	"3",
+	"4",	"5",	"6",	"7",	"8",	"9",	"0",	"Enter",
+	"Esc",	"Backspace",	"Tab",	"Spacebar",	"-",	"=",	"[",	"]",
+	"\\",	"",	";",	"'",	"`",	",",	".",	"/",
+	"Caps Lock",	"F1",	"F2",	"F3",	"F4",	"F5",	"F6",	"F7",
+	"F8",	"F9",	"F10",	"F11",	"F12",	"Print Scrn",	"Scroll Lock",	"Pause",
+	"Insert",	"Home",	"Page Up",	"Delete",	"End",	"Page Down",	"Right Arrow",	"Left Arrow",
+	"Down Arrow",	"Up Arrow",	"",	"Pad /",	"Pad *",	"Pad -",	"Pad +",	"Pad Enter",
+	"Pad 1",	"Pad 2",	"Pad 3",	"Pad 4",	"Pad 5",	"Pad 6",	"Pad 7",	"Pad 8",
+	"Pad 9",	"Pad 0",	"Pad .",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"Left Ctrl",
+	"Shift",	"Alt",	"",	"Right Ctrl",	"Shift",	"Alt",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	""
+};
 
 const char *Joy_button_text_english[] = {
 	"Button 1",		"Button 2",		"Button 3",		"Button 4",		"Button 5",		"Button 6",
@@ -708,7 +843,7 @@ const char *Joy_button_text_english[] = {
 	"Button 25",	"Button 26",	"Button 27",	"Button 28",	"Button 29",	"Button 30",
 	"Button 31",	"Button 32",	"Hat Back",		"Hat Forward",	"Hat Left",		"Hat Right"
 };
-
+/*
 const char *Scan_code_text_polish[] = {
 	"",				"Esc",			"1",				"2",				"3",				"4",				"5",				"6",
 	"7",				"8",				"9",				"0",				"-",				"=",				"Backspace",	"Tab",
@@ -750,6 +885,49 @@ const char *Scan_code_text_polish[] = {
 	"",				"",				"",				"",				"",				"",				"",				"",
 	"",				"",				"",				"",				"",				"",				"",				"",
 };
+*/
+const char *Scan_code_text_polish[] = {
+	"",	"",	"",	"",	"A",	"B",	"C",	"D",	"E",
+	"F",	"G",	"H",	"I",	"J",	"K",	"L",	"M",
+	"N",	"O",	"P",	"Q",	"R",	"S",	"T",	"U",
+	"V",	"W",	"X",	"Y",	"Z",	"1",	"2",	"3",
+	"4",	"5",	"6",	"7",	"8",	"9",	"0",	"Enter",
+	"Esc",	"Backspace",	"Tab",	"Spacja",	"-",	"=",	"[",	"]",
+	"\\",	"",	";",	"'",	"`",	",",	".",	"/",
+	"CapsLock",	"F1",	"F2",	"F3",	"F4",	"F5",	"F6",	"F7",
+	"F8",	"F9",	"F10",	"F11",	"F12",	"PrntScr",	"Scrlock",	"Pause",
+	"Insert",	"Home",	"Page Up",	"Delete",	"End",	"Page Down",	"Kursor Prawo",	"Kursor Lewo",
+	"Kursor D\xF3\xB3",	"Kursor G\xF3ra",	"",	"Num /",	"Num *",	"Num -",	"Num +",	"Num Enter",
+	"Num 1",	"Num 2",	"Num 3",	"Num 4",	"Num 5",	"Num 6",	"Num 7",	"Num 8",
+	"Num 9",	"Num 0",	"Num .",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"", "",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"Lewy Ctrl",
+	"LShift",	"Alt",	"",	"Prawy Ctrl",	"PShift",	"Alt",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",	"",
+	"",	"",	"",	"",	"",	"",	""
+};
 
 const char *Joy_button_text_polish[] = {
 	"Przyc.1",		"Przyc.2",		"Przyc.3",		"Przyc.4",		"Przyc.5",		"Przyc.6",
@@ -762,6 +940,7 @@ const char *Joy_button_text_polish[] = {
 
 const char **Scan_code_text = Scan_code_text_english;
 const char **Joy_button_text = Joy_button_text_english;
+
 
 void set_modifier_status()
 {
@@ -919,7 +1098,9 @@ const char *textify_scancode(int code)
 		}
 	}
 
-	strcat(text, Scan_code_text[code & KEY_MASK]);
+	code = SDL_GetScancodeFromKey(code & KEY_MASK);
+
+	strcat(text, Scan_code_text[code]);
 	return text;
 }
 //XSTR:ON
@@ -932,10 +1113,10 @@ void control_config_common_init()
 		Joy_button_text = Joy_button_text_german;
 		
 		// swap init bindings for y and z keys
-		Control_config[TARGET_SHIP_IN_RETICLE].key_default = KEY_Z;
-		Control_config[TARGET_LAST_TRANMISSION_SENDER].key_default = KEY_ALTED | KEY_Z;
-		Control_config[REVERSE_THRUST].key_default = KEY_Y;
-		Control_config[DISARM_MESSAGE].key_default = KEY_SHIFTED | KEY_Y;		
+	//	Control_config[TARGET_SHIP_IN_RETICLE].key_default = SDLK_z;
+	//	Control_config[TARGET_LAST_TRANMISSION_SENDER].key_default = KEY_ALTED | SDLK_z;
+	//	Control_config[REVERSE_THRUST].key_default = SDLK_y;
+	//	Control_config[DISARM_MESSAGE].key_default = KEY_SHIFTED | SDLK_y;
 	} else if(Lcl_fr){
 		Scan_code_text = Scan_code_text_french;
 		Joy_button_text = Joy_button_text_french;

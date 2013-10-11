@@ -157,15 +157,15 @@ void mht_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :		
+	case SDLK_ESCAPE :
 		mht_exit_game();
 		break;
 
-	case KEY_B:
+	case SDLK_b:
 		gameseq_post_event( GS_EVENT_BARRACKS_MENU );
 		break;	
 
-	case KEY_G:
+	case SDLK_g:
 		if(Player->flags & PLAYER_FLAGS_IS_MULTI){
 			break;
 		}
@@ -181,15 +181,15 @@ void mht_do()
 		gameseq_post_event(GS_EVENT_START_GAME_QUICK);
 		break;
 
-	case KEY_L:
+	case SDLK_l:
 		gameseq_post_event( GS_EVENT_LOAD_MISSION_MENU );
 		break;
 
-	case KEY_F2:
+	case SDLK_F2:
 		gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 		break;
 
-	case KEY_M:
+	case SDLK_m:
 		if (Player->flags & PLAYER_FLAGS_IS_MULTI){
 			main_hall_do_multi_ready();
 		}

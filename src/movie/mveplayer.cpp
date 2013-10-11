@@ -624,7 +624,7 @@ void mve_video_display()
 	}
 
 	int k = key_inkey();
-	if ( k == KEY_ESC ) {
+	if ( k == SDLK_ESCAPE ) {
 		mve_playing = 0;
 	}
 

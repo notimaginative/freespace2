@@ -815,8 +815,8 @@ void mission_show_goals_init()
 	}
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_UP].button.set_hotkey(KEY_UP);
-	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_DOWN].button.set_hotkey(KEY_DOWN);
+	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_UP].button.set_hotkey(SDLK_UP);
+	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_DOWN].button.set_hotkey(SDLK_DOWN);
 
 	Goals_screen_bg_bitmap = bm_load("ObjectivesBG");
 	Goal_complete_bitmap = bm_load("ObjComp");
@@ -859,15 +859,15 @@ void mission_show_goals_do_frame(float frametime)
 	
 	k = Goals_screen_ui_window.process();
 	switch (k) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			mission_goal_exit();			
 			break;
 		
-		case KEY_DOWN:
+		case SDLK_DOWN:
 			goal_screen_scroll_down();
 			break;
 
-		case KEY_UP:
+		case SDLK_UP:
 			goal_screen_scroll_up();
 			break;
 

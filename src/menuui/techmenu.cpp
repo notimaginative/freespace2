@@ -1670,11 +1670,11 @@ void techroom_init()
 	}
 
 	// set some hotkeys
-	Buttons[gr_screen.res][PREV_ENTRY_BUTTON].button.set_hotkey(KEY_LEFT);
-	Buttons[gr_screen.res][NEXT_ENTRY_BUTTON].button.set_hotkey(KEY_RIGHT);
+	Buttons[gr_screen.res][PREV_ENTRY_BUTTON].button.set_hotkey(SDLK_LEFT);
+	Buttons[gr_screen.res][NEXT_ENTRY_BUTTON].button.set_hotkey(SDLK_RIGHT);
 #ifndef MAKE_FS1 // set per tab
-	Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(KEY_UP);
-	Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(KEY_DOWN);
+	Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(SDLK_UP);
+	Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(SDLK_DOWN);
 #endif
 
 
@@ -1694,10 +1694,10 @@ void techroom_init()
 	ShipWin04 = bm_load(NOX("ShipWin04"));
 #endif
 
-	Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(KEY_F1);
-	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Buttons[gr_screen.res][SCROLL_LIST_UP].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_LIST_DOWN].button.set_hotkey(KEY_PAGEDOWN);
+	Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Buttons[gr_screen.res][SCROLL_LIST_UP].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_LIST_DOWN].button.set_hotkey(SDLK_PAGEDOWN);
 
 	// init help overlay states
 	help_overlay_set_state(TECH_ROOM_OVERLAY, 0);
@@ -1836,8 +1836,8 @@ void techroom_tab_setup(int set_palette)
 			Ui_window.set_mask_bmap(Tech_mask_filename[gr_screen.res]);
 
 			// setup hotkeys to scroll list
-			Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(KEY_UP);
-			Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(KEY_DOWN);
+			Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(SDLK_UP);
+			Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(SDLK_DOWN);
 
 			// hide extra buttons
 			Buttons[gr_screen.res][PREV_ENTRY_BUTTON2].button.hide();
@@ -1913,7 +1913,7 @@ void techroom_do_frame(float frametime)
 	}
 
 	switch (k) {
-		case KEY_SHIFTED | KEY_TAB:  // activate previous tab
+		case KEY_SHIFTED | SDLK_TAB:  // activate previous tab
 			i = Tab - 1;
 			if (i < 0) {
 				i = NUM_TABS - 1;
@@ -1922,7 +1922,7 @@ void techroom_do_frame(float frametime)
 			techroom_change_tab(i);
 			break;
 
-		case KEY_TAB:  // activate next tab
+		case SDLK_TAB:  // activate next tab
 			i = Tab + 1;
 			if (i >= NUM_TABS) {
 				i = 0;
@@ -1931,27 +1931,27 @@ void techroom_do_frame(float frametime)
 			techroom_change_tab(i);
 			break;
 
-		case KEY_CTRLED | KEY_DOWN:
+		case KEY_CTRLED | SDLK_DOWN:
 			if ( !(Player->flags & PLAYER_FLAGS_IS_MULTI) ) {
 				techroom_button_pressed(SIMULATOR_TAB);
 				break;
 			}
 			// fall through
 
-		case KEY_CTRLED | KEY_UP:
+		case KEY_CTRLED | SDLK_UP:
 			techroom_button_pressed(CREDITS_TAB);
 			break;
 /*
-		case KEY_UP:
+		case SDLK_UP:
 			tech_prev_entry();
 			break;
 
-		case KEY_DOWN:
+		case SDLK_DOWN:
 			tech_next_entry();
 			break;
 */
-		case KEY_CTRLED | KEY_ENTER:
-		case KEY_ESC:
+		case KEY_CTRLED | SDLK_RETURN:
+		case SDLK_ESCAPE:
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;
 	}	

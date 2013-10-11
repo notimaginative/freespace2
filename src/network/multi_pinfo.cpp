@@ -487,7 +487,7 @@ void multi_pinfo_popup_do()
 		// process the window
 		k = Multi_pinfo_window.process();
 		switch(k){
-		case KEY_ESC :
+		case SDLK_ESCAPE :
 			Multi_pinfo_popup_done = 1;
 			break;
 		}

@@ -1175,11 +1175,11 @@ void print_family_tree( polymodel *obj, int modelnum, const char * ident, int is
 		mprintf(( " %s", obj->submodel[modelnum].name ));
 		sprintf( temp, " " );
 	} else if ( islast ) 	{
-		mprintf(( "%sÀÄ%s", ident, obj->submodel[modelnum].name ));
+		mprintf(( "%sï¿½ï¿½%s", ident, obj->submodel[modelnum].name ));
 		sprintf( temp, "%s  ", ident );
 	} else {
-		mprintf(( "%sÃÄ%s", ident, obj->submodel[modelnum].name ));
-		sprintf( temp, "%s³ ", ident );
+		mprintf(( "%sï¿½ï¿½%s", ident, obj->submodel[modelnum].name ));
+		sprintf( temp, "%sï¿½ ", ident );
 	}
 
 	mprintf(( "\n" ));
@@ -3003,8 +3003,8 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 	vm_interp_angle(&turret1->h,desired_angles.h,step_size);
 	vm_interp_angle(&turret2->p,desired_angles.p,step_size);
 
-//	turret1->h -= step_size*(key_down_timef(KEY_1)-key_down_timef(KEY_2) );
-//	turret2->p += step_size*(key_down_timef(KEY_3)-key_down_timef(KEY_4) );
+//	turret1->h -= step_size*(key_down_timef(SDLK_1)-key_down_timef(SDLK_2) );
+//	turret2->p += step_size*(key_down_timef(SDLK_3)-key_down_timef(SDLK_4) );
 
 	return 1;
 
@@ -3223,12 +3223,12 @@ void model_clear_instance(int model_num)
 
 	interp_clear_instance();
 
-//	if ( keyd_pressed[KEY_1] ) pm->lights[0].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_2] ) pm->lights[1].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_3] ) pm->lights[2].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_4] ) pm->lights[3].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_5] ) pm->lights[4].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_6] ) pm->lights[5].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_1) ) pm->lights[0].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_2) ) pm->lights[1].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_3) ) pm->lights[2].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_4) ) pm->lights[3].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_5) ) pm->lights[4].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_6) ) pm->lights[5].value = 1.0f/255.0f;
 
 
 }

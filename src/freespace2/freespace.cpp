@@ -2522,7 +2522,7 @@ void game_init()
 	}
 
 	if(!Is_standalone){
-		if(!stricmp(ptr, "Aucune accélération 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
+		if(!stricmp(ptr, "Aucune accï¿½lï¿½ration 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
 #ifndef PLAT_UNIX		
 			MessageBox((HWND)os_get_window(), XSTR("Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it.", 1448), XSTR("Warning", 1449), MB_OK);
 #else
@@ -3980,7 +3980,7 @@ void game_render_frame( vector * eye_pos, matrix * eye_orient )
 #ifdef JOHNS_DEBUG_CODE
 void john_debug_stuff(vector *eye_pos, matrix *eye_orient)
 {
-	//if ( keyd_pressed[KEY_LSHIFT] )		
+	//if ( key_pressed(SDLK_LSHIFT) )
 	{
 		ship_subsys *tsys = Players[Player_num].targeted_subobject;
 		if ( tsys )	{
@@ -4102,7 +4102,7 @@ void game_maybe_dump_frame()
 		return;
 	}
 
-	if( Debug_dump_trigger && !keyd_pressed[KEY_Q] ){
+	if( Debug_dump_trigger && !key_pressed(SDLK_q) ){
 		return;
 	}
 
@@ -4917,8 +4917,8 @@ int game_check_key()
 	k = game_poll();
 
 	// convert keypad enter to normal enter
-	if ((k & KEY_MASK) == KEY_PADENTER)
-		k = (k & ~KEY_MASK) | KEY_ENTER;
+	if ((k & KEY_MASK) == SDLK_KP_ENTER)
+		k = (k & ~KEY_MASK) | SDLK_RETURN;
 
 	return k;
 }
@@ -5052,16 +5052,16 @@ int game_poll()
 //	if ( k ) nprintf(( "General", "Key = %x\n", k ));
 
 	switch (k) {
-		case KEY_DEBUGGED + KEY_BACKSP:
+		case KEY_DEBUGGED + SDLK_BACKSPACE:
 			Int3();
 			break;
 
-		case KEY_F1:
+		case SDLK_F1:
 			launch_context_help();
 			k = 0;
 			break;
 
-		case KEY_F2:
+		case SDLK_F2:
 //			if (state != GS_STATE_INITIAL_PLAYER_SELECT) {
 
 			// don't allow f2 while warping out in multiplayer	
@@ -5088,7 +5088,7 @@ int game_poll()
 			break;
 
 			// hotkey selection screen -- only valid from briefing and beyond.
-		case KEY_F3:	
+		case SDLK_F3:
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 				if ( (state == GS_STATE_TEAM_SELECT) || (state == GS_STATE_BRIEFING) || (state == GS_STATE_SHIP_SELECT) || (state == GS_STATE_WEAPON_SELECT) || (state == GS_STATE_GAME_PLAY) || (state == GS_STATE_GAME_PAUSED) ) {
 					gameseq_post_event( GS_EVENT_HOTKEY_SCREEN );
@@ -5097,15 +5097,15 @@ int game_poll()
 #endif
 			break;
 
-		case KEY_DEBUGGED + KEY_F3:
+		case KEY_DEBUGGED + SDLK_F3:
 			gameseq_post_event( GS_EVENT_TOGGLE_FULLSCREEN );
 			break;
 
-		case KEY_DEBUGGED + KEY_F4:
+		case KEY_DEBUGGED + SDLK_F4:
 			gameseq_post_event( GS_EVENT_TOGGLE_GLIDE );
 			break;
 		
-		case KEY_F4:
+		case SDLK_F4:
 			if(Game_mode & GM_MULTIPLAYER){
 				if((state == GS_STATE_GAME_PLAY) || (state == GS_STATE_MULTI_PAUSED)){
 					gameseq_post_event( GS_EVENT_MISSION_LOG_SCROLLBACK );
@@ -5119,7 +5119,7 @@ int game_poll()
 			}
 			break;
 
-		case KEY_ESC | KEY_SHIFTED:
+		case SDLK_ESCAPE | KEY_SHIFTED:
 			// make sure to quit properly out of multiplayer
 			if(Game_mode & GM_MULTIPLAYER){
 				multi_quit_game(PROMPT_NONE);
@@ -5130,10 +5130,10 @@ int game_poll()
 
 			break;
 
-		case KEY_DEBUGGED + KEY_P:			
+		case KEY_DEBUGGED + SDLK_p:
 			break;			
 
-		case KEY_PRINT_SCRN: 
+		case SDLK_PRINTSCREEN:
 			{
 				static int counter = 0;
 				char tmp_name[127];
@@ -5151,7 +5151,7 @@ int game_poll()
 			k = 0;
 			break;
 
-		case KEY_SHIFTED | KEY_ENTER: {
+		case KEY_SHIFTED | SDLK_RETURN: {
 
 #if !defined(NDEBUG)
 
@@ -7665,25 +7665,25 @@ void game_show_event_debug(float frametime)
 	k = game_check_key();
 	if (k)
 		switch (k) {
-			case KEY_UP:
-			case KEY_PAD8:
+			case SDLK_UP:
+			case SDLK_KP_8:
 				scroll_offset--;
 				if (scroll_offset < 0)
 					scroll_offset = 0;
 				break;
 
-			case KEY_DOWN:
-			case KEY_PAD2:
+			case SDLK_DOWN:
+			case SDLK_KP_2:
 				scroll_offset++;
 				break;
 
-			case KEY_PAGEUP:
+			case SDLK_PAGEUP:
 				scroll_offset -= 20;
 				if (scroll_offset < 0)
 					scroll_offset = 0;
 				break;
 
-			case KEY_PAGEDOWN:
+			case SDLK_PAGEDOWN:
 				scroll_offset += 20;	// not font-independent, hard-coded since I counted the lines!
 				break;
 
@@ -7870,7 +7870,7 @@ void Time_model( int modelnum )
 		ta.h += 0.1f;
 
 		int k = key_inkey();
-		if ( k == KEY_ESC ) {
+		if ( k == SDLK_ESCAPE ) {
 			exit(1);
 		}
 	}

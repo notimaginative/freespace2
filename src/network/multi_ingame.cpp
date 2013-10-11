@@ -1089,15 +1089,15 @@ void multi_ingame_select_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		multi_quit_game(PROMPT_CLIENT);		
 		break;
 
-	case KEY_UP:
+	case SDLK_UP:
 		multi_ingame_scroll_select_up();
 		break;
 
-	case KEY_DOWN:
+	case SDLK_DOWN:
 		multi_ingame_scroll_select_down();
 		break;
 	}	

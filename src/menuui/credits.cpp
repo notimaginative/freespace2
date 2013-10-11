@@ -598,7 +598,7 @@ void credits_init()
 		Buttons[CUTSCENES_BUTTON][gr_screen.res].button.disable();
 	}
 
-	Buttons[EXIT_BUTTON][gr_screen.res].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
+	Buttons[EXIT_BUTTON][gr_screen.res].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 
 	Background_bitmap = bm_load(Credits_bitmap_fname[gr_screen.res]);
 	Credits_artwork_index = rand() % NUM_IMAGES;
@@ -673,21 +673,21 @@ void credits_do_frame(float frametime)
 
 	k = Ui_window.process();
 	switch (k) {
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		gameseq_post_event(GS_EVENT_MAIN_MENU);
 		key_flush();
 		break;
 
-	case KEY_CTRLED | KEY_UP:
-	case KEY_SHIFTED | KEY_TAB:
+	case KEY_CTRLED | SDLK_UP:
+	case KEY_SHIFTED | SDLK_TAB:
 		if ( !(Player->flags & PLAYER_FLAGS_IS_MULTI) ) {
 			credits_screen_button_pressed(CUTSCENES_BUTTON);
 			break;
 		}
 		// else, react like tab key.
 
-	case KEY_CTRLED | KEY_DOWN:
-	case KEY_TAB:
+	case KEY_CTRLED | SDLK_DOWN:
+	case SDLK_TAB:
 		credits_screen_button_pressed(TECH_DATABASE_BUTTON);
 		break;
 
@@ -824,7 +824,7 @@ void credits_do_frame(float frametime)
 	timestamp_inc(Credits_frametime / 1000.0f);
 
 	float fl_frametime = i2fl(Credits_frametime) / 1000.f;
-	if (keyd_pressed[KEY_LSHIFT]) {
+	if (key_pressed(SDLK_LSHIFT)) {
 		Credit_position -= fl_frametime * CREDITS_SCROLL_RATE * 4.0f;
 	} else {
 		Credit_position -= fl_frametime * CREDITS_SCROLL_RATE;

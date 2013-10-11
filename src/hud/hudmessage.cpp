@@ -1380,8 +1380,8 @@ void hud_scrollback_init()
 #endif
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_UP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_DOWN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_UP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_DOWN);
 
 	Background_bitmap = bm_load(Hud_mission_log_fname[gr_screen.res]);
 #ifdef MAKE_FS1
@@ -1428,8 +1428,8 @@ void hud_scrollback_do_frame(float frametime)
 
 	k = Ui_window.process();
 	switch (k) {
-		case KEY_RIGHT:
-		case KEY_TAB:
+		case SDLK_RIGHT:
+		case SDLK_TAB:
 			if (Scrollback_mode == SCROLLBACK_MODE_OBJECTIVES) {
 				Scrollback_mode = SCROLLBACK_MODE_MSGS_LOG;
 				Scroll_max = hud_query_scrollback_size();
@@ -1448,8 +1448,8 @@ void hud_scrollback_do_frame(float frametime)
 
 			break;
 
-		case KEY_LEFT:
-		case KEY_SHIFTED | KEY_TAB:
+		case SDLK_LEFT:
+		case KEY_SHIFTED | SDLK_TAB:
 			if (Scrollback_mode == SCROLLBACK_MODE_OBJECTIVES) {
 				Scrollback_mode = SCROLLBACK_MODE_EVENT_LOG;
 				Scroll_max = Num_log_lines * gr_get_font_height();
@@ -1468,24 +1468,24 @@ void hud_scrollback_do_frame(float frametime)
 
 			break;
 
-		case KEY_PAGEUP:
+		case SDLK_PAGEUP:
 			hud_page_scroll_list(1);
 			break;
 
-		case KEY_PAGEDOWN:
+		case SDLK_PAGEDOWN:
 			hud_page_scroll_list(0);
 			break;
 
-		case KEY_ENTER:
-		case KEY_CTRLED | KEY_ENTER:
-		case KEY_ESC:			
+		case SDLK_RETURN:
+		case KEY_CTRLED | SDLK_RETURN:
+		case SDLK_ESCAPE:
 			hud_scrollback_exit();
 			break;
 
-		case KEY_F1:  // show help overlay
+		case SDLK_F1:  // show help overlay
 			break;
 
-		case KEY_F2:  // goto options screen
+		case SDLK_F2:  // goto options screen
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 			break;
 	}	// end switch

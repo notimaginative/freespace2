@@ -1364,7 +1364,7 @@ void interp_render_lightning( polymodel *pm, bsp_info * sm )
 
 	if (!Interp_lightning) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 //	if ( rad < 3.0f ) return;	
 	
 	for (i=0; i<sm->num_arcs; i++ )	{
@@ -1466,7 +1466,7 @@ void model_interp_subcall(polymodel * pm, int mn, int detail_level)
 
 int interp_box_offscreen( vector *min, vector *max )
 {
-	if ( keyd_pressed[KEY_LSHIFT] )	{
+	if ( key_pressed(SDLK_LSHIFT) )	{
 		return IBOX_ALL_ON;
 	}
 
@@ -2115,7 +2115,7 @@ void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint fl
 //		mprintf(( "Detail level %d\n", tmp_detail_level ));
 //	}
 
-//	if ( keyd_pressed[KEY_LSHIFT] )	{
+//	if ( key_pressed(SDLK_LSHIFT) )	{
 //		mc->cached_valid = 0;
 //		model_really_render(model_num, orient, pos, flags, objnum );
 //		return;
@@ -2176,7 +2176,7 @@ void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint fl
 		goto RedrawIt;
 	}
 
-//	if ( keyd_pressed[KEY_LSHIFT] )	{
+//	if ( key_pressed(SDLK_LSHIFT) )	{
 //		goto RedrawIt;
 //	}
 
@@ -2302,12 +2302,12 @@ void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint fl
 	g3_draw_poly(4, vertlist, TMAP_FLAG_TEXTURED );	
 	Tmap_scan_read = 0;
 
-	//	if ( keyd_pressed[KEY_LSHIFT] )	{
+	//	if ( key_pressed(SDLK_LSHIFT) )	{
 	//	gr_set_color( 255, 0, 0 );
 	//	gr_pixel( fl2i(v[0].sx), fl2i(v[0].sy) );
 	//	}
 
-	//if ( keyd_pressed[KEY_RSHIFT] )	{
+	//if ( key_pressed(SDLK_RSHIFT) )	{
 	//	gr_line( fl2i(v[0].sx), fl2i(v[0].sy), fl2i(v[1].sx), fl2i(v[1].sy) );
 	//	gr_line( fl2i(v[1].sx), fl2i(v[1].sy), fl2i(v[2].sx), fl2i(v[2].sy) );
 	//	gr_line( fl2i(v[2].sx), fl2i(v[2].sy), fl2i(v[3].sx), fl2i(v[3].sy) );

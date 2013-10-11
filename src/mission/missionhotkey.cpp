@@ -201,14 +201,14 @@
 #include "beam.h"
 
 static int Key_sets[MAX_KEYED_TARGETS] = {
-	KEY_F5,
-	KEY_F6,
-	KEY_F7,
-	KEY_F8,
-	KEY_F9,
-	KEY_F10,
-	KEY_F11,
-	KEY_F12
+	SDLK_F5,
+	SDLK_F6,
+	SDLK_F7,
+	SDLK_F8,
+	SDLK_F9,
+	SDLK_F10,
+	SDLK_F11,
+	SDLK_F12
 };
 
 /////////////////////////////
@@ -1169,8 +1169,8 @@ void mission_hotkey_init()
 	}
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 
 	// ensure help overlay is off
 	help_overlay_set_state(HOTKEY_OVERLAY,0);
@@ -1254,55 +1254,55 @@ void mission_hotkey_do_frame(float frametime)
 	}
 
 	switch (k) {
-		case KEY_DOWN:  // scroll list down
+		case SDLK_DOWN:  // scroll list down
 			hotkey_scroll_line_down();
 			break;
 
-		case KEY_UP:  // scroll list up
+		case SDLK_UP:  // scroll list up
 			hotkey_scroll_line_up();
 			break;
 
-		case KEY_PAGEDOWN:  // scroll list down
+		case SDLK_PAGEDOWN:  // scroll list down
 			hotkey_scroll_screen_down();
 			break;
 
-		case KEY_PAGEUP:  // scroll list up
+		case SDLK_PAGEUP:  // scroll list up
 			hotkey_scroll_screen_up();
 			break;
 
-		case KEY_CTRLED | KEY_ENTER:
+		case KEY_CTRLED | SDLK_RETURN:
 			save_hotkeys();
 			// fall through to next state -- allender changed this behavior since ESC should always cancel, no?
 
-		case KEY_ESC:			
+		case SDLK_ESCAPE:
 			mission_hotkey_exit();
 			break;
 
-		case KEY_TAB:
-		case KEY_ENTER:
-		case KEY_PADENTER:
+		case SDLK_TAB:
+		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
 			expand_wing();
 			break;
 
-		case KEY_EQUAL:
-		case KEY_PADPLUS:
+		case SDLK_EQUALS:
+		case SDLK_KP_PLUS:
 			add_hotkey(Cur_hotkey);
 			break;
 
-		case KEY_MINUS:
-		case KEY_PADMINUS:
+		case SDLK_MINUS:
+		case SDLK_KP_MINUS:
 			remove_hotkey();
 			break;
 
-		case KEY_F2:			
+		case SDLK_F2:
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);			
 			break;
 
-		case KEY_CTRLED | KEY_R:
+		case KEY_CTRLED | SDLK_r:
 			reset_hotkeys();
 			break;
 
-		case KEY_CTRLED | KEY_C:
+		case KEY_CTRLED | SDLK_c:
 			clear_hotkeys();
 			break;
 	}	// end switch

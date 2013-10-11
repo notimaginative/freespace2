@@ -845,7 +845,7 @@ int medal_main_do()
 	k = Medals_window.process();	
 
 	// process an exit command
-	if ((k == KEY_ESC) && (Medals_mode == MM_NORMAL)) {
+	if ((k == SDLK_ESCAPE) && (Medals_mode == MM_NORMAL)) {
 		gameseq_post_event(GS_EVENT_PREVIOUS_STATE);
 	}
 
@@ -858,7 +858,7 @@ int medal_main_do()
 	}
 
 	// check to see if a button was pressed
-	if( (k == (KEY_CTRLED|KEY_ENTER)) || (Medals_buttons[gr_screen.res][MEDALS_EXIT].button.pressed()) ) {	
+	if( (k == (KEY_CTRLED|SDLK_RETURN)) || (Medals_buttons[gr_screen.res][MEDALS_EXIT].button.pressed()) ) {
 		gamesnd_play_iface(SND_COMMIT_PRESSED);
 		if(Medals_mode == MM_NORMAL){
 			gameseq_post_event(GS_EVENT_PREVIOUS_STATE);

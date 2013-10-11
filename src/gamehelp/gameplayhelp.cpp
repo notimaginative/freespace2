@@ -374,9 +374,9 @@ void gameplay_help_init()
 	}
 
 	// setup hotkeys so lights flash when keys are pressed
-	Buttons[gr_screen.res][CONTINUE_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Buttons[gr_screen.res][PREVIOUS_PAGE_BUTTON].button.set_hotkey(KEY_LEFT);
-	Buttons[gr_screen.res][NEXT_PAGE_BUTTON].button.set_hotkey(KEY_RIGHT);
+	Buttons[gr_screen.res][CONTINUE_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Buttons[gr_screen.res][PREVIOUS_PAGE_BUTTON].button.set_hotkey(SDLK_LEFT);
+	Buttons[gr_screen.res][NEXT_PAGE_BUTTON].button.set_hotkey(SDLK_RIGHT);
 
 	Background_bitmap = bm_load(Game_help_filename[gr_screen.res]);
 
@@ -420,18 +420,18 @@ void gameplay_help_leave()
 void gameplay_help_process_key(int k)
 {
 	switch ( k ) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			gameplay_help_leave();
 			break;
 
-		case KEY_ENTER:
-		case KEY_SPACEBAR:
-		case KEY_TAB:
+		case SDLK_RETURN:
+		case SDLK_SPACE:
+		case SDLK_TAB:
 			//gameplay_help_goto_next_screen();
 			Buttons[gr_screen.res][NEXT_PAGE_BUTTON].button.press_button();
 			break;
 
-		case KEY_SHIFTED | KEY_TAB:
+		case KEY_SHIFTED | SDLK_TAB:
 			Buttons[gr_screen.res][PREVIOUS_PAGE_BUTTON].button.press_button();
 //			gameplay_help_goto_prev_screen();
 			break;

@@ -236,7 +236,7 @@ void UI_BUTTON::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w
 	m_press_linger = 1;
 	first_callback = 1;
 
-	hotkey_if_focus = KEY_SPACEBAR;
+	hotkey_if_focus = SDLK_SPACE;
 
 	if (ignore_focus){
 		m_flags |= BF_IGNORE_FOCUS;
@@ -460,7 +460,7 @@ void UI_BUTTON::process(int focus)
 			if (my_wnd->keypress == hotkey_if_focus)
 				m_flags |= BF_DOWN | BF_CLICKED;
 
-			if ( (hotkey_if_focus == KEY_SPACEBAR) && (my_wnd->keypress == KEY_ENTER) )
+			if ( (hotkey_if_focus == SDLK_SPACE) && (my_wnd->keypress == SDLK_RETURN) )
 				m_flags |= BF_DOWN | BF_CLICKED;
 		}
 	}

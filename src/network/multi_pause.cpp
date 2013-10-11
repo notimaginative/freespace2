@@ -461,8 +461,8 @@ void multi_pause_do()
 			k = Multi_paused_window->process(k);	
 		
 			switch (k) {
-			case KEY_ESC:			
-			case KEY_PAUSE:									
+			case SDLK_ESCAPE:
+			case SDLK_PAUSE:
 				multi_pause_request(0);
 				break;
 			}

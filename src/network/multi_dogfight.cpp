@@ -297,7 +297,7 @@ void multi_df_debrief_do()
 
 	// process keypresses
 	switch(new_k){
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		multi_debrief_esc_hit();
 		break;
 	}

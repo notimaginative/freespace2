@@ -839,13 +839,13 @@ int chatbox_process(int key_in)
 	// look for special keypresses
 	switch(key_out){
 	// line recall up one
-	case KEY_UP:
+	case SDLK_UP:
 		chatbox_recall_up();
 		key_out = 0;
 		break;
 	
 	// line recall down one
-	case KEY_DOWN:
+	case SDLK_DOWN:
 		chatbox_recall_down();
 		key_out = 0;
 		break;

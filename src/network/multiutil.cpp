@@ -297,9 +297,6 @@ extern int MSG_WINDOW_X_START;	// used to position multiplayer text messages
 extern int MSG_WINDOW_Y_START;
 extern int MSG_WINDOW_HEIGHT;
 
-extern int ascii_table[];
-extern int shifted_ascii_table[];
-
 // if a client doesn't receive an update for an object after this many seconds, query server
 // as to the objects status.
 #define MULTI_CLIENT_OBJ_TIMEOUT		10
@@ -2746,26 +2743,26 @@ int multi_process_restricted_keys(int k)
 	switch(Multi_join_restr_mode){
 	// normal restricted join, Y or N
 	case MULTI_JOIN_RESTR_MODE_1:
-		key1 = KEY_Y;
-		key2 = KEY_N;
+		key1 = SDLK_y;
+		key2 = SDLK_n;
 		break;
 
 	// team vs team, team 0 only has ships
 	case MULTI_JOIN_RESTR_MODE_2:
-		key1 = KEY_Y;
-		key2 = KEY_N;
+		key1 = SDLK_y;
+		key2 = SDLK_n;
 		break;
 
 	// team vs team, team 1 only has ships		
 	case MULTI_JOIN_RESTR_MODE_3:
-		key1 = KEY_Y;
-		key2 = KEY_N;
+		key1 = SDLK_y;
+		key2 = SDLK_n;
 		break;
 
 	// team vs team, both teams have ships
 	case MULTI_JOIN_RESTR_MODE_4:
-		key1 = KEY_1;
-		key2 = KEY_2;
+		key1 = SDLK_1;
+		key2 = SDLK_2;
 		break;
 	
 	// illegal mode

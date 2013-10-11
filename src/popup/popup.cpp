@@ -531,21 +531,21 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 	
 	switch(k) {
 
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		// select the current default choice
 		return Popup_default_choice;
 		break;
 
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		// only process the escape key if this flag is not set
 		if(!(flags & PF_IGNORE_ESC)){
 			return POPUP_ABORT;
 		}
 		break;
 
-	case KEY_DOWN:
-	case KEY_PAD2:
-	case KEY_TAB:
+	case SDLK_DOWN:
+	case SDLK_KP_2:
+	case SDLK_TAB:
 		popup_play_default_change_sound(pi);
 		Popup_default_choice++;
 		if ( Popup_default_choice >= pi->nchoices ) {
@@ -553,9 +553,9 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 		}
 		break;
 
-	case KEY_UP:
-	case KEY_PAD8:
-	case KEY_SHIFTED+KEY_TAB:
+	case SDLK_UP:
+	case SDLK_KP_8:
+	case KEY_SHIFTED+SDLK_TAB:
 		popup_play_default_change_sound(pi);
 		Popup_default_choice--;
 		if ( Popup_default_choice < 0 ) {

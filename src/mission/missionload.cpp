@@ -214,8 +214,6 @@
 
 
 extern mission The_mission;  // need to send this info to the briefing
-extern int shifted_ascii_table[];
-extern int ascii_table[];
 
 // -----------------------------------------------
 // For recording most recent missions played
@@ -375,7 +373,7 @@ void mission_load_menu_init()
 
 	mlm_ok.create( &mlm_window, NOX("Ok"), 125, 420, 80, 40 );
 	mlm_cancel.create( &mlm_window, NOX("Cancel"), 250, 420, 80, 40 );
-	mlm_cancel.set_hotkey( KEY_ESC );
+	mlm_cancel.set_hotkey( SDLK_ESCAPE );
 
 	mlm_mission_list.create( &mlm_window, 450, 150, 150, 200, mlm_nfiles, mlm_missions );
 
@@ -417,21 +415,21 @@ void mission_load_menu_do()
 
 		switch ( key_in & KEY_MASK ) {
 
-		case KEY_UP:
-		case KEY_DOWN:
-		case KEY_HOME:
-		case KEY_END:
-		case KEY_PAGEUP:
-		case KEY_PAGEDOWN:
-		case KEY_ENTER:
+		case SDLK_UP:
+		case SDLK_DOWN:
+		case SDLK_HOME:
+		case SDLK_END:
+		case SDLK_PAGEUP:
+		case SDLK_PAGEDOWN:
+		case SDLK_RETURN:
 			break;
 
-		case KEY_RIGHT:
-		case KEY_LEFT:
+		case SDLK_RIGHT:
+		case SDLK_LEFT:
 			ml_change_listbox();
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;
 

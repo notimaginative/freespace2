@@ -471,7 +471,7 @@ void red_alert_init()
 #endif
 
 	// set up red alert hotkeys
-	Buttons[gr_screen.res][RA_CONTINUE].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
+	Buttons[gr_screen.res][RA_CONTINUE].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 
 	// load in background image and flashing red alert animation
 	Background_bitmap = bm_load(Red_alert_fname[gr_screen.res]);
@@ -536,7 +536,7 @@ void red_alert_do_frame(float frametime)
 
 	k = Ui_window.process() & ~KEY_DEBUGGED;
 	switch (k) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 //			gameseq_post_event(GS_EVENT_ENTER_GAME);
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;

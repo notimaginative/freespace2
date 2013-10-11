@@ -597,17 +597,17 @@ void barracks_init_stats(scoring_struct *stats)
 // sets or clears hotkeys for pilot selection.
 void barracks_set_hotkeys(bool pilot_text_enter_mode)
 {
-	Buttons[gr_screen.res][B_PILOT_SCROLL_UP_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_UP : -1);
-	Buttons[gr_screen.res][B_PILOT_SCROLL_DOWN_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_DOWN : -1);
+	Buttons[gr_screen.res][B_PILOT_SCROLL_UP_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_UP : -1);
+	Buttons[gr_screen.res][B_PILOT_SCROLL_DOWN_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DOWN : -1);
 
-	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_C : -1);
-	Buttons[gr_screen.res][B_PILOT_SET_ACTIVE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_ENTER : -1);
-	Buttons[gr_screen.res][B_PILOT_DELETE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_DELETE : -1);
+	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_c : -1);
+	Buttons[gr_screen.res][B_PILOT_SET_ACTIVE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_RETURN : -1);
+	Buttons[gr_screen.res][B_PILOT_DELETE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DELETE : -1);
 
-	Buttons[gr_screen.res][B_PIC_PREV_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_LEFT : -1);
-	Buttons[gr_screen.res][B_PIC_NEXT_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_RIGHT : -1);
+	Buttons[gr_screen.res][B_PIC_PREV_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_LEFT : -1);
+	Buttons[gr_screen.res][B_PIC_NEXT_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_RIGHT : -1);
 
-	Buttons[gr_screen.res][B_ACCEPT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_CTRLED | KEY_ENTER : -1);
+	Buttons[gr_screen.res][B_ACCEPT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_CTRLED | SDLK_RETURN : -1);
 }
 
 // strip the possible .pcx extension off a filename
@@ -1585,7 +1585,7 @@ void barracks_do_frame(float frametime)
 		Inputbox.set_focus();
 
 		switch (k) {
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				// cancel create pilot
 				Num_pilots--;
 				for (i=0; i<Num_pilots; i++) {
@@ -1596,14 +1596,14 @@ void barracks_do_frame(float frametime)
 				barracks_set_callsign_enter_mode(false);
 				break;
 
-			case KEY_ENTER: 
+			case SDLK_RETURN:
 				barracks_accept_new_pilot_callsign();
 				break;
 		} 
 	} else {
 		// not entering pilot callsign
 		switch (k) {
-			case KEY_ENTER:
+			case SDLK_RETURN:
 				if (barracks_new_pilot_selected()) {
 					gamesnd_play_iface(SND_GENERAL_FAIL);
 				} else {
@@ -1611,7 +1611,7 @@ void barracks_do_frame(float frametime)
 				}
 				break;
 
-			case KEY_ESC:  // cancel
+			case SDLK_ESCAPE:  // cancel
 				if (!help_overlay_active(BARRACKS_OVERLAY)) {
 					if (Num_pilots && !barracks_pilot_accepted()) {
 						gameseq_post_event(GS_EVENT_MAIN_MENU);
@@ -1624,7 +1624,7 @@ void barracks_do_frame(float frametime)
 				}
 				break;
 
-			case KEY_TAB:  // switch mode (simgle/multi)
+			case SDLK_TAB:  // switch mode (simgle/multi)
 #if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
 	game_feature_not_in_demo_popup();
 #else
@@ -1638,11 +1638,11 @@ void barracks_do_frame(float frametime)
 #endif
 				break;
 
-			case KEY_F1:  // show help overlay
+			case SDLK_F1:  // show help overlay
 				gamesnd_play_iface(SND_HELP_PRESSED);
 				break;
 
-			case KEY_F2:  // goto options screen
+			case SDLK_F2:  // goto options screen
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 				break;

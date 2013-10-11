@@ -730,13 +730,13 @@ void cmd_brief_init(int team)
 #endif
 
 	// set up readyrooms for buttons so we draw the correct animation frame when a key is pressed
-	Cmd_brief_buttons[gr_screen.res][FIRST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | KEY_LEFT);
-	Cmd_brief_buttons[gr_screen.res][LAST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | KEY_RIGHT);
-	Cmd_brief_buttons[gr_screen.res][PREV_STAGE_BUTTON].button.set_hotkey(KEY_LEFT);
-	Cmd_brief_buttons[gr_screen.res][NEXT_STAGE_BUTTON].button.set_hotkey(KEY_RIGHT);
-	Cmd_brief_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Cmd_brief_buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(KEY_F1);
-	Cmd_brief_buttons[gr_screen.res][OPTIONS_BUTTON].button.set_hotkey(KEY_F2);
+	Cmd_brief_buttons[gr_screen.res][FIRST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | SDLK_LEFT);
+	Cmd_brief_buttons[gr_screen.res][LAST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | SDLK_RIGHT);
+	Cmd_brief_buttons[gr_screen.res][PREV_STAGE_BUTTON].button.set_hotkey(SDLK_LEFT);
+	Cmd_brief_buttons[gr_screen.res][NEXT_STAGE_BUTTON].button.set_hotkey(SDLK_RIGHT);
+	Cmd_brief_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Cmd_brief_buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	Cmd_brief_buttons[gr_screen.res][OPTIONS_BUTTON].button.set_hotkey(SDLK_F2);
 
 	// load in help overlay bitmap	
 	help_overlay_load(CMD_BRIEF_OVERLAY);
@@ -824,7 +824,7 @@ void cmd_brief_do_frame(float frametime)
 	}
 
 	switch (k) {
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		common_music_close();
 		gameseq_post_event(GS_EVENT_MAIN_MENU);
 		break;

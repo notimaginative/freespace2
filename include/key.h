@@ -108,7 +108,7 @@ void key_flush();
 // Routines/data you can access:
 float key_down_timef(int keycode);
 
-int key_to_ascii(int keycode);
+int key_to_ascii(int keycode, bool force_up = false);
 int key_inkey();
 
 // global flag that will enable/disable the backspace key from stopping execution
@@ -132,9 +132,9 @@ extern int Key_normal_game;
 #define KEY_CTRLED      0x4000
 #define KEY_DEBUGGED	0x8000
 #define KEY_DEBUGGED1	0x0800		//	Cheat bit in release version of game.
-#define KEY_MASK		0x01FF
+#define KEY_MASK		(SDLK_SCANCODE_MASK|0x01FF)
 
-#define KEY_DEBUG_KEY	0x29			//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
+#define KEY_DEBUG_KEY	SDLK_BACKQUOTE		//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
 
 #endif
 

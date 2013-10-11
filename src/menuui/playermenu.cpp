@@ -525,10 +525,10 @@ void player_select_init()
 	Player_select_input_mode = 0;	
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Player_select_buttons[gr_screen.res][SCROLL_LIST_UP_BUTTON].button.set_hotkey(KEY_UP);
-	Player_select_buttons[gr_screen.res][SCROLL_LIST_DOWN_BUTTON].button.set_hotkey(KEY_DOWN);
-	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_ENTER);
-	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(KEY_C);
+	Player_select_buttons[gr_screen.res][SCROLL_LIST_UP_BUTTON].button.set_hotkey(SDLK_UP);
+	Player_select_buttons[gr_screen.res][SCROLL_LIST_DOWN_BUTTON].button.set_hotkey(SDLK_DOWN);
+	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(SDLK_RETURN);
+	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(SDLK_c);
 
 	// disable the single player button in the multiplayer beta
 #ifdef MULTIPLAYER_BETA_BUILD
@@ -652,7 +652,7 @@ void player_select_do()
 	}
 	switch(k){
 	// switch between single and multiplayer modes
-	case KEY_TAB : 
+	case SDLK_TAB :
 #if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
 		break;
 #else
@@ -795,8 +795,8 @@ void player_select_set_input_mode(int n)
 		Player_select_buttons[gr_screen.res][i].button.enable(!n);
 	}
 
-	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(n ? -1 : KEY_ENTER);
-	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(n ? -1 : KEY_C);
+	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(n ? -1 : SDLK_RETURN);
+	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(n ? -1 : SDLK_c);
 
 	// enable the player select input box
 	if(Player_select_input_mode){
@@ -1216,16 +1216,16 @@ void player_select_process_noninput(int k)
 	// check for keypresses
 	switch (k) {			
 	// quit the game entirely
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		gameseq_post_event(GS_EVENT_QUIT_GAME);
 		break;
 
-	case KEY_ENTER | KEY_CTRLED:
+	case SDLK_RETURN | KEY_CTRLED:
 		player_select_button_pressed(ACCEPT_BUTTON);
 		break;
 
 	// delete the currently highlighted pilot
-	case KEY_DELETE:
+	case SDLK_DELETE:
 		if (Player_select_pilot >= 0) {
 			int ret;
 
@@ -1274,12 +1274,12 @@ void player_select_process_input(int k)
 	// if the player is in the process of typing in a new pilot name...
 	switch (k) {
 	// cancel create pilot
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		player_select_cancel_create();		
 		break;
 
 	// accept a new pilot name
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		Player_select_input_box.get_text(buf);
 		drop_white_space(buf);
 		z = 0;

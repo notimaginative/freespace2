@@ -788,7 +788,7 @@ void UI_WINDOW::draw_xstrs()
 void UI_WINDOW::do_dump_check()
 {
 #if 0
-	if ( keypress == KEY_SHIFTED+KEY_CTRLED+KEY_ALTED+KEY_F12 ) {
+	if ( keypress == KEY_SHIFTED+KEY_CTRLED+KEY_ALTED+SDLK_F12 ) {
 		FILE *fp;
 
 		last_keypress = keypress = 0;

@@ -823,8 +823,8 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 
 		ci->pitch += kh;
 
-		ci->sideways = (key_down_timef(KEY_PAD3) - key_down_timef(KEY_PAD1));
-		ci->vertical = (key_down_timef(KEY_PADPLUS) - key_down_timef(KEY_PADENTER));
+		ci->sideways = (key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1));
+		ci->vertical = (key_down_timef(SDLK_KP_PLUS) - key_down_timef(SDLK_KP_ENTER));
 
 		do_thrust_keys(ci);
 	}
@@ -1045,7 +1045,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 
 		// for debugging, check to see if the debug key is down -- if so, make fire the debug laser instead
 #ifndef NDEBUG
-		if ( keyd_pressed[KEY_DEBUG_KEY] ) {
+		if ( key_pressed(KEY_DEBUG_KEY) ) {
 			ci->fire_debug_count = ci->fire_primary_count;
 			ci->fire_primary_count = 0;
 		}

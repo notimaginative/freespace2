@@ -208,8 +208,8 @@ void pause_do(int multi)
 		else {
 			k = Pause_win.process() & ~KEY_DEBUGGED;
 			switch (k) {			
-			case KEY_ESC:
-			case KEY_PAUSE:
+			case SDLK_ESCAPE:
+			case SDLK_PAUSE:
 				gameseq_post_event(GS_EVENT_PREVIOUS_STATE);		
 				break;
 			}	// end switch
@@ -277,13 +277,13 @@ void pause_debug_init()
 	Pause_single_step.create( &Pause_win, NOX("Single Step <S>"), 200, 290, game_single_step );
 	Pause_continue.create( &Pause_win, NOX("Leave Pause"), 200, 350, 200, 40 );
 
-	Pause_single_step.set_hotkey( KEY_S );
-	Pause_physics.set_hotkey( KEY_P );
-	Pause_ai.set_hotkey( KEY_A );
-	Pause_ai_render.set_hotkey( KEY_R );
-	Pause_firing.set_hotkey( KEY_F );
-	Pause_external_view_mode_check.set_hotkey( KEY_E );
-	Pause_continue.set_hotkey( KEY_ESC );
+	Pause_single_step.set_hotkey( SDLK_s );
+	Pause_physics.set_hotkey( SDLK_p );
+	Pause_ai.set_hotkey( SDLK_a );
+	Pause_ai_render.set_hotkey( SDLK_r );
+	Pause_firing.set_hotkey( SDLK_f );
+	Pause_external_view_mode_check.set_hotkey( SDLK_e );
+	Pause_continue.set_hotkey( SDLK_ESCAPE );
 
 	Pause_continue.set_focus();
 }
@@ -326,7 +326,7 @@ void pause_debug_do()
 		}
 	}
 
-	if ( Pause_continue.pressed() || (key == KEY_PAUSE) )	{	//	Changed, MK, 11/9/97, only Pause break pause.
+	if ( Pause_continue.pressed() || (key == SDLK_PAUSE) )	{	//	Changed, MK, 11/9/97, only Pause break pause.
 		gameseq_post_event(GS_EVENT_PREVIOUS_STATE);
 	}
 

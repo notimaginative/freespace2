@@ -1524,7 +1524,7 @@ void multi_join_game_do_frame()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		if(help_overlay_active(MULTI_JOIN_OVERLAY)){
 			help_overlay_set_state(MULTI_JOIN_OVERLAY,0);
 		} else {		
@@ -1534,19 +1534,19 @@ void multi_join_game_do_frame()
 		break;
 
 	// page up the game list
-	case KEY_PAGEUP:
+	case SDLK_PAGEUP:
 		multi_join_list_page_up();	
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
 #endif
 		break;
 
-	case KEY_T:
+	case SDLK_t:
 		multi_pinfo_popup(Net_player);
 		break;
 
 	// page down the game list
-	case KEY_PAGEDOWN:
+	case SDLK_PAGEDOWN:
 		multi_join_list_page_down();
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
@@ -1554,18 +1554,18 @@ void multi_join_game_do_frame()
 		break;
 
 	// send out a ping-all
-	case KEY_P :		
+	case SDLK_p :
 		multi_join_ping_all();		
 		Multi_join_ping_stamp = timestamp(MULTI_JOIN_PING_TIME);
 		break;	
 
 	// shortcut to start a game	
-	case KEY_S :		
+	case SDLK_s :
 		multi_join_create_game();		
 		break;
 
 	// scroll the game list up
-	case KEY_UP:
+	case SDLK_UP:
 		multi_join_list_scroll_up();
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
@@ -1573,7 +1573,7 @@ void multi_join_game_do_frame()
 		break;
 
 	// scroll the game list down
-	case KEY_DOWN:
+	case SDLK_DOWN:
 		multi_join_list_scroll_down();
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
@@ -2992,7 +2992,7 @@ void multi_start_game_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :		
+	case SDLK_ESCAPE :
 		if(help_overlay_active(MULTI_START_OVERLAY)){
 			help_overlay_set_state(MULTI_START_OVERLAY,0);
 		} else {
@@ -3002,8 +3002,8 @@ void multi_start_game_do()
 		break;
 	
 	// same as ACCEPT
-	case KEY_LCTRL + KEY_ENTER :
-	case KEY_RCTRL + KEY_ENTER :		
+	case SDLK_LCTRL + SDLK_RETURN :
+	case SDLK_RCTRL + SDLK_RETURN :
 		gamesnd_play_iface(SND_COMMIT_PRESSED);
 		gameseq_post_event(GS_EVENT_MULTI_HOST_SETUP);
 		break;
@@ -4211,7 +4211,7 @@ void multi_create_game_init()
 	Multi_create_list_select_button.hide();	
 
 	// set hotkeys for a couple of things.
-	Multi_create_buttons[gr_screen.res][MC_ACCEPT].button.set_hotkey(KEY_CTRLED+KEY_ENTER);	
+	Multi_create_buttons[gr_screen.res][MC_ACCEPT].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
 
 	// init some master tracker stuff
 	Multi_create_frame_count = 0;
@@ -4304,7 +4304,7 @@ void multi_create_game_do()
 
 	switch(k){	
 	// same as the cancel button
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		if(help_overlay_active(MULTI_CREATE_OVERLAY)){
 			help_overlay_set_state(MULTI_CREATE_OVERLAY,0);
 		} else {		
@@ -6486,11 +6486,11 @@ void multi_host_options_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		gameseq_post_event(GS_EVENT_MULTI_HOST_SETUP);
 		break;
 	// same as ACCEPT
-	case KEY_CTRLED + KEY_ENTER :	
+	case KEY_CTRLED + SDLK_RETURN :
 		gamesnd_play_iface(SND_COMMIT_PRESSED);
 		multi_ho_accept_hit();
 		break;
@@ -7271,7 +7271,7 @@ void multi_game_client_setup_init()
 	Multi_jw_plist_select_button.hide();
 
 	// set hotkeys
-	Multi_jw_buttons[gr_screen.res][MJW_CANCEL].button.set_hotkey(KEY_ESC);	
+	Multi_jw_buttons[gr_screen.res][MJW_CANCEL].button.set_hotkey(SDLK_ESCAPE);
 
 	// remove campaign flags
 	Game_mode &= ~(GM_CAMPAIGN_MODE);
@@ -8173,7 +8173,7 @@ void multi_sync_common_init()
 	Multi_sync_plist_button.hide();
 
 	// set up hotkeys for certain common functions
-	Multi_sync_buttons[gr_screen.res][MS_CANCEL].button.set_hotkey(KEY_ESC);
+	Multi_sync_buttons[gr_screen.res][MS_CANCEL].button.set_hotkey(SDLK_ESCAPE);
 }
 
 void multi_sync_common_do()
@@ -8189,7 +8189,7 @@ void multi_sync_common_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		// Sync_test = 1;
 		gamesnd_play_iface(SND_USER_SELECT);
 		multi_quit_game(PROMPT_ALL);		
@@ -9124,7 +9124,7 @@ void multi_sync_create_launch_button()
 		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.link_hotspot(Multi_sync_buttons[gr_screen.res][MS_LAUNCH].hotspot);
 
 		// hotkey
-		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
+		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
 
 #ifndef MAKE_FS1
 		// create the text for the button
@@ -9726,7 +9726,7 @@ void multi_passwd_init()
 	Multi_pwd_passwd.set_focus();
 	
 	// link the enter key to ACCEPT
-	Multi_pwd_buttons[gr_screen.res][MPWD_COMMIT].button.set_hotkey(KEY_ENTER);
+	Multi_pwd_buttons[gr_screen.res][MPWD_COMMIT].button.set_hotkey(SDLK_RETURN);
 
 	Multi_passwd_done = -1;
 	Multi_passwd_running = 1;
@@ -9780,7 +9780,7 @@ void multi_passwd_do(char *passwd)
 
 		// process any keypresses
 		switch(k){
-		case KEY_ESC :							
+		case SDLK_ESCAPE :
 			// set this to indicate the user has cancelled for one reason or another
 			Multi_passwd_done = 0;
 			break;		

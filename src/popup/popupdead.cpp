@@ -395,11 +395,11 @@ int popupdead_process_keys(int k)
 	
 	switch(k) {
 
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		return Popupdead_default_choice;	// select the current default choice
 		break;
 
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		if (Popupdead_skip_active) {
 			return 0;								// 0 mimics a "do not skip"
 		} else {
@@ -407,9 +407,9 @@ int popupdead_process_keys(int k)
 		}
 		break;
 
-	case KEY_DOWN:
-	case KEY_PAD2:
-	case KEY_TAB:
+	case SDLK_DOWN:
+	case SDLK_KP_2:
+	case SDLK_TAB:
 		popupdead_play_default_change_sound();
 		Popupdead_default_choice++;
 		if ( Popupdead_default_choice >= Popupdead_num_choices ) {
@@ -417,9 +417,9 @@ int popupdead_process_keys(int k)
 		}
 		break;
 
-	case KEY_UP:
-	case KEY_PAD8:
-	case KEY_SHIFTED+KEY_TAB:
+	case SDLK_UP:
+	case SDLK_KP_8:
+	case KEY_SHIFTED+SDLK_TAB:
 		popupdead_play_default_change_sound();
 		Popupdead_default_choice--;
 		if ( Popupdead_default_choice < 0 ) {
@@ -427,7 +427,7 @@ int popupdead_process_keys(int k)
 		}
 		break;
 
-	case KEY_PAUSE:
+	case SDLK_PAUSE:
 		game_process_pause_key();
 		break;
 

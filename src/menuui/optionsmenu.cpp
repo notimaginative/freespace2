@@ -1320,8 +1320,8 @@ void options_menu_init()
 	Detail_bogus.base_create(&Ui_window, UI_KIND_ICON, 0, 0, 0, 0);
 	Options_bogus.base_create(&Ui_window, UI_KIND_ICON, 0, 0, 0, 0);
 
-	Buttons[gr_screen.res][GAMMA_DOWN].button.set_hotkey(KEY_COMMA);
-	Buttons[gr_screen.res][GAMMA_UP].button.set_hotkey(KEY_PERIOD);
+	Buttons[gr_screen.res][GAMMA_DOWN].button.set_hotkey(SDLK_COMMA);
+	Buttons[gr_screen.res][GAMMA_UP].button.set_hotkey(SDLK_PERIOD);
 
 	/*
 	Skill_control.first_frame = bm_load_animation("OPa_11", &Skill_control.total_frames);
@@ -1503,8 +1503,8 @@ void options_menu_do_frame(float frametime)
 	Assert(Options_menu_inited);
 	k = Ui_window.process() & ~KEY_DEBUGGED;
 	switch (k) {
-		case KEY_SHIFTED | KEY_TAB:
-		case KEY_LEFT:  // activate previous tab
+		case KEY_SHIFTED | SDLK_TAB:
+		case SDLK_LEFT:  // activate previous tab
 			i = Tab - 1;
 			if (i < 0)
 				i = NUM_TABS - 1;
@@ -1512,10 +1512,10 @@ void options_menu_do_frame(float frametime)
 			options_change_tab(i);
 			break;
 
-		case KEY_TAB:
-		case KEY_RIGHT:  // activate next tab
+		case SDLK_TAB:
+		case SDLK_RIGHT:  // activate next tab
 			// check to see if the multiplayer options screen wants to eat the tab kay
-			if ((k == KEY_TAB) && (Tab == MULTIPLAYER_TAB)) {
+			if ((k == SDLK_TAB) && (Tab == MULTIPLAYER_TAB)) {
 				if (options_multi_eat_tab()) {
 					break;
 				}
@@ -1528,7 +1528,7 @@ void options_menu_do_frame(float frametime)
 			options_change_tab(i);
 			break;
 
-		case KEY_C:
+		case SDLK_c:
 			if (Tab == OPTIONS_TAB) {
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_CONTROL_CONFIG);
@@ -1536,7 +1536,7 @@ void options_menu_do_frame(float frametime)
 
 			break;
 
-		case KEY_H:
+		case SDLK_h:
 			if (Tab == OPTIONS_TAB) {
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_HUD_CONFIG);
@@ -1544,20 +1544,20 @@ void options_menu_do_frame(float frametime)
 
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			// if(Tab != MULTIPLAYER_TAB){
 				options_cancel_exit();
 			// }
 			break;
 
-		case KEY_CTRLED | KEY_ENTER:
+		case KEY_CTRLED | SDLK_RETURN:
 			options_accept();
 			break;
 
-		case KEY_DELETE:
+		case SDLK_DELETE:
 			break;
 
-		case KEY_ENTER:			
+		case SDLK_RETURN:
 			break;
 	}	
 

@@ -671,17 +671,17 @@ void debug_console( void (*_func)() )
 		int k = key_inkey();
 		switch( k )	{
 
-		case KEY_SHIFTED+KEY_ENTER:
-		case KEY_ESC:	
+		case KEY_SHIFTED+SDLK_RETURN:
+		case SDLK_ESCAPE:
 			done=1;	break;
 
-		case KEY_BACKSP:
+		case SDLK_BACKSPACE:
 			if ( command_line_pos > 0 )	{
 				command_line[--command_line_pos] = 0;
 			}
 			break;
 
-		case KEY_F3:
+		case SDLK_F3:
 			if ( last_oldcommand > -1 )	{
 				strcpy( command_line, oldcommand_line[last_oldcommand] );
 				command_line_pos = strlen(command_line);
@@ -689,7 +689,7 @@ void debug_console( void (*_func)() )
 			}
 			break;
 
-		case KEY_UP:
+		case SDLK_UP:
 			command_scroll--;
 			if (command_scroll<0) 
 				command_scroll = last_oldcommand;
@@ -701,7 +701,7 @@ void debug_console( void (*_func)() )
 			}
 			break;
 
-		case KEY_DOWN:
+		case SDLK_DOWN:
 			command_scroll++;
 			if (command_scroll>last_oldcommand) 
 				command_scroll = 0;
@@ -714,7 +714,7 @@ void debug_console( void (*_func)() )
 			}
 			break;
 
-		case KEY_ENTER:	{
+		case SDLK_RETURN:	{
 			debug_output( '\n' );
 			debug_draw();
 
@@ -790,7 +790,7 @@ void debug_help()
 			debug_draw();
 			k = key_getch();
 			s = scroll_times;
-			if ( k == KEY_B )  {
+			if ( k == SDLK_b )  {
 				i -= ((DROWS-3)*2);
 				if ( i <= 0 )
 					i = -1;

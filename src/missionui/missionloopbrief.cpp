@@ -234,7 +234,7 @@ void loop_brief_do()
 	k = Loop_brief_window.process();	
 
 	switch (k) {
-	case KEY_ESC:		
+	case SDLK_ESCAPE:
 		gameseq_post_event(GS_EVENT_MAIN_MENU);
 		break;
 	}	

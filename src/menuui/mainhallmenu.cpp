@@ -1044,21 +1044,21 @@ void main_hall_do(float frametime)
 		game_process_cheats(key);
 	}
 	switch(key){
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		snazzy_action = SNAZZY_CLICKED;	
 		break;
 
 #if 0 //#ifndef NDEBUG	
-	case KEY_1:		
+	case SDLK_1:
 		movie_play("endprt2b.mve", 0);
 		break;
-	case KEY_2:		
+	case SDLK_2:
 		movie_play_two("endprt2a.mve", "endprt2b.mve", 0);
 		break;
-	case KEY_3:		
+	case SDLK_3:
 		main_hall_campaign_cheat();	
 		break;	
-	case KEY_DEBUGGED + KEY_D:
+	case KEY_DEBUGGED + SDLK_d:
 		demo_start_playback("test.fsd");
 		break;
 	}

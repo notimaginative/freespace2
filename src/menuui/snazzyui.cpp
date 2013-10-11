@@ -211,9 +211,6 @@
 #include "localize.h"
 
 
-extern int ascii_table[];
-extern int shifted_ascii_table[];
-
 static int Snazzy_mouse_left_was_down;
 
 void snazzy_flush()
@@ -292,7 +289,7 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 	}
 
 	switch ( k ) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			choice = ESC_PRESSED;
 			break;
 
@@ -301,7 +298,7 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 				for (i=0; i<num_regions; i++) {
 					if ( !regions[i].key )
 						continue;
-					if (ascii_table[k] == regions[i].key || shifted_ascii_table[k] == regions[i].key) {
+					if ( key_to_ascii(tolower(regions[i].key)) ) {
 						choice = regions[i].mask;
 						if ( regions[i].click_sound != -1 ) {
 							snd_play( &Snds_iface[regions[i].click_sound], 0.0f );

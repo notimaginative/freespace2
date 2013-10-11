@@ -218,38 +218,38 @@ int is_letter(char c)
 int keypad_to_ascii(int c)
 {
 	switch(c){
-	case KEY_PAD0:
-		return key_to_ascii(KEY_0);
+	case SDLK_KP_0:
+		return key_to_ascii(SDLK_0);
 		break;
-	case KEY_PAD1:
-		return key_to_ascii(KEY_1);
+	case SDLK_KP_1:
+		return key_to_ascii(SDLK_1);
 		break;
-	case KEY_PAD2:
-		return key_to_ascii(KEY_2);
+	case SDLK_KP_2:
+		return key_to_ascii(SDLK_2);
 		break;
-	case KEY_PAD3:
-		return key_to_ascii(KEY_3);
+	case SDLK_KP_3:
+		return key_to_ascii(SDLK_3);
 		break;
-	case KEY_PAD4:
-		return key_to_ascii(KEY_4);
+	case SDLK_KP_4:
+		return key_to_ascii(SDLK_4);
 		break;
-	case KEY_PAD5:
-		return key_to_ascii(KEY_5);
+	case SDLK_KP_5:
+		return key_to_ascii(SDLK_5);
 		break;
-	case KEY_PAD6:
-		return key_to_ascii(KEY_6);
+	case SDLK_KP_6:
+		return key_to_ascii(SDLK_6);
 		break;
-	case KEY_PAD7:
-		return key_to_ascii(KEY_7);
+	case SDLK_KP_7:
+		return key_to_ascii(SDLK_7);
 		break;
-	case KEY_PAD8:
-		return key_to_ascii(KEY_8);
+	case SDLK_KP_8:
+		return key_to_ascii(SDLK_8);
 		break;
-	case KEY_PAD9:
-		return key_to_ascii(KEY_9);
+	case SDLK_KP_9:
+		return key_to_ascii(SDLK_9);
 		break;
-	case KEY_PADPERIOD:
-		return key_to_ascii(KEY_PERIOD);
+	case SDLK_KP_PERIOD:
+		return key_to_ascii(SDLK_PERIOD);
 		break;
 	default :
 		return -1;
@@ -558,8 +558,8 @@ void UI_INPUTBOX::process(int focus)
 			case 0:
 				break;
 
-			//case KEY_LEFT:
-			case KEY_BACKSP:
+			//case SDLK_LEFT:
+			case SDLK_BACKSPACE:
 				if (position > 0)
 					position--;
 
@@ -575,7 +575,7 @@ void UI_INPUTBOX::process(int focus)
 
 				break;
 
-			case KEY_ENTER:
+			case SDLK_RETURN:
 				pressed_down = 1;
 				locked = 0;
 				changed_flag = 1;
@@ -586,7 +586,7 @@ void UI_INPUTBOX::process(int focus)
 //				should_reset = 1;
 				break;
 
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				if (flags & UI_INPUTBOX_FLAG_ESC_CLR){
 					if (position > 0) {
 						set_text("");

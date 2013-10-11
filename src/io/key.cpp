@@ -219,7 +219,7 @@ int Key_normal_game = 0;
 
 bool key_pressed(int keycode)
 {
-	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
+	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
 
 	return keyd_pressed[scancode];
 }
@@ -246,12 +246,27 @@ void key_turn_on_numlock()
 //	Convert a BIOS scancode to ASCII.
 //	If scancode >= 127, returns 255, meaning there is no corresponding ASCII code.
 //	Uses ascii_table and shifted_ascii_table to translate scancode to ASCII.
-int key_to_ascii(int keycode)
+int key_to_ascii(int keycode, bool force_up)
 {
+	int shifted;
+
+	// bail on non-printable keycodes
+	if (keycode & SDLK_SCANCODE_MASK) {
+		return 255;
+	}
+
+	shifted = keycode & KEY_SHIFTED;
+	keycode &= KEY_MASK;
+
+	// this is definitely never come back to bite me in the ass
 	if ( ((keycode >= SDLK_SPACE) && (keycode <= SDLK_AT))
 			|| ((keycode >= SDLK_LEFTBRACKET) && (keycode <= SDLK_z)) )
 	{
-		return keycode;
+		if ( (keycode >= SDLK_a) && (shifted || force_up) ) {
+			return toupper(keycode);
+		} else {
+			return keycode;
+		}
 	}
 
 	return 255;
@@ -326,21 +341,24 @@ int key_checkch()
 //	Reads keys out of the key buffer and updates keyhead.
 int key_inkey()
 {
-	SDL_Scancode scancode;
+	SDL_Scancode scancode = SDL_SCANCODE_UNKNOWN;
+	int mod, keycode;
 
 	if ( !key_inited )
 		return 0;
 
-	ENTER_CRITICAL_SECTION(&key_lock);	
-
 	if (key_data.keytail != key_data.keyhead) {
 		scancode = (SDL_Scancode)key_data.keybuffer[key_data.keyhead];
 		key_data.keyhead = add_one(key_data.keyhead);
+	} else {
+		return 0;
 	}
 
-	LEAVE_CRITICAL_SECTION(&key_lock);	
+	// need to strip key mod state for keycode lookup
+	mod = (scancode & 0xf900);
+	keycode = SDL_GetKeyFromScancode((SDL_Scancode)(scancode & KEY_MASK));
 
-	return (int)SDL_GetKeyFromScancode(scancode);
+	return (keycode | mod);
 }
 
 // If not installed, uses BIOS and returns getch();
@@ -367,24 +385,25 @@ uint key_get_shift_status()
 {
 	unsigned int shift_status = 0;
 
-	if ( !key_inited ) return 0;
+	if ( !key_inited )
+		return 0;
 
-	ENTER_CRITICAL_SECTION(&key_lock);		
+	SDL_Keymod kmod = SDL_GetModState();
 
-	if ( keyd_pressed[SDL_SCANCODE_LSHIFT] || keyd_pressed[SDL_SCANCODE_RSHIFT] )
+	if (kmod & KMOD_SHIFT)
 		shift_status |= KEY_SHIFTED;
 
-	if ( keyd_pressed[SDL_SCANCODE_LALT] || keyd_pressed[SDL_SCANCODE_RALT] )
+	if (kmod & KMOD_ALT)
 		shift_status |= KEY_ALTED;
 
-	if ( keyd_pressed[SDL_SCANCODE_LCTRL] || keyd_pressed[SDL_SCANCODE_RCTRL] )
+	if (kmod & KMOD_CTRL)
 		shift_status |= KEY_CTRLED;
 
 #ifndef NDEBUG
-	if (keyd_pressed[KEY_DEBUG_KEY])
+	if (key_pressed(KEY_DEBUG_KEY))
 		shift_status |= KEY_DEBUGGED;
 #else
-	if (keyd_pressed[KEY_DEBUG_KEY]) {
+	if (key_pressed(KEY_DEBUG_KEY)) {
 		mprintf(("Cheats_enabled = %i, Key_normal_game = %i\n", Cheats_enabled, Key_normal_game));
 		if ((Cheats_enabled) && Key_normal_game) {
 			mprintf(("Debug key\n"));
@@ -392,7 +411,6 @@ uint key_get_shift_status()
 		}
 	}
 #endif
-	LEAVE_CRITICAL_SECTION(&key_lock);		
 
 	return shift_status;
 }
@@ -408,7 +426,7 @@ float key_down_timef(int keycode)
 	if ( !key_inited )
 		return 0.0f;
 
-	scancode = SDL_GetScancodeFromKey(keycode);
+	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
 
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0.0f;
@@ -452,7 +470,7 @@ int key_down_count(int keycode)
 	if ( !key_inited )
 		return 0;
 
-	scancode = SDL_GetScancodeFromKey(keycode);
+	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
 
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0;
@@ -477,7 +495,7 @@ int key_up_count(int keycode)
 	if ( !key_inited )
 		return 0;
 
-	scancode = SDL_GetScancodeFromKey(keycode);
+	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
 
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0;
@@ -494,7 +512,7 @@ int key_up_count(int keycode)
 
 int key_check(int keycode)
 {
-	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
+	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
 
 	return key_data.down_check[scancode];
 }
@@ -505,7 +523,7 @@ int key_check(int keycode)
 void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 {
 	uint breakbit, temp, event_time;
-	ushort keycode;	
+	ushort keycode;
 
 	if ( !key_inited ) return;
 
@@ -557,8 +575,9 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 			keycode |= KEY_CTRLED;
 
 #ifndef NDEBUG
-		if ( keyd_pressed[KEY_DEBUG_KEY] )
+		if ( key_pressed(KEY_DEBUG_KEY) )
 			keycode |= KEY_DEBUGGED;
+
 //			if ( keycode == (KEY_BACKSP + KEY_DEBUGGED) )	{
 //				keycode = 0;
 //				keyd_pressed[KEY_DEBUG_KEY] = 0;
@@ -566,7 +585,7 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 //				Int3();
 //			}
 #else
-		if ( keyd_pressed[KEY_DEBUG_KEY] ) {
+		if ( keyd_pressed(KEY_DEBUG_KEY) ) {
 			mprintf(("Cheats_enabled = %i, Key_normal_game = %i\n", Cheats_enabled, Key_normal_game));
 			if (Cheats_enabled && Key_normal_game) {
 				keycode |= KEY_DEBUGGED1;

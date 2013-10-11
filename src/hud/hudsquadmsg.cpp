@@ -378,8 +378,8 @@ int num_keys_saved = 0;					// number of keys that are saved.
 
 // next array is the array of MAX_KEYS_USED size which are the keys to use for messaging mode
 
-int keys_used[] = {	KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0,
-							KEY_PAGEUP, KEY_PAGEDOWN  };
+int keys_used[] = {	SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,
+							SDLK_PAGEUP, SDLK_PAGEDOWN  };
 
 #define ID1		1
 #define ID2		2
@@ -850,7 +850,7 @@ int hud_squadmsg_read_key( int k )
 		// after messaging is over.  Return true for a while.
 		if ( !timestamp_elapsed(Msg_eat_key_timestamp) ) {
 			for (i = 0; i < num_keys_used; i++ ) {
-				if ( keyd_pressed[keys_used[i]] )
+				if ( key_pressed(keys_used[i]) )
 					return 1;
 			}
 		}
@@ -866,7 +866,7 @@ int hud_squadmsg_read_key( int k )
 				key_found = 1;
 			}
 
-			if ( keyd_pressed[k] ) {
+			if ( key_pressed(k) ) {
 				key_found = 1;
 			}
 
@@ -905,13 +905,13 @@ int hud_squadmsg_get_key()
 
 			// use a timestamp to prevent top level key code from possibly reprocessing this key
 			Msg_eat_key_timestamp = timestamp(MSG_KEY_EAT_TIME);
-			if ( k == KEY_PAGEDOWN ) {			// pageup and pagedown scroll the menu -- deal with these seperately!!
+			if ( k == SDLK_PAGEDOWN ) {			// pageup and pagedown scroll the menu -- deal with these seperately!!
 				hud_squadmsg_page_down();
 				return -1;
-			} else if ( k == KEY_PAGEUP ) {
+			} else if ( k == SDLK_PAGEUP ) {
 				hud_squadmsg_page_up();
 				return -1;
-			} else if ( k == KEY_ESC ) {
+			} else if ( k == SDLK_ESCAPE ) {
 				hud_squadmsg_toggle();
 				return -1;
 			} else if ( (i < Num_menu_items) && (Squad_msg_mode == SM_MODE_REINFORCEMENTS) )		// return any key if selecting reinforcement

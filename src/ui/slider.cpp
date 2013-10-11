@@ -592,9 +592,9 @@ void UI_SLIDER::process(int focus)
 		mouse_locked = 0;
 	}
 
-	if ( (left_button.position!=0) || (keyfocus && keyd_pressed[KEY_LEFT]) || ( OnMe && B1_PRESSED && ui_mouse.x < marker_x) || (mouse_locked && ui_mouse.x < marker_x ) )	{
-		if ( (timer_get_milliseconds() > last_scrolled+50) || left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_LEFT)	{
-			if ( left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_LEFT )	{
+	if ( (left_button.position!=0) || (keyfocus && key_pressed(SDLK_LEFT)) || ( OnMe && B1_PRESSED && ui_mouse.x < marker_x) || (mouse_locked && ui_mouse.x < marker_x ) )	{
+		if ( (timer_get_milliseconds() > last_scrolled+50) || left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_LEFT)	{
+			if ( left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_LEFT )	{
 				last_scrolled = timer_get_milliseconds() + 300;
 			} else
 				last_scrolled = timer_get_milliseconds();
@@ -604,9 +604,9 @@ void UI_SLIDER::process(int focus)
 		}
 	}
 
-	if ( (right_button.position!=0) || (keyfocus && keyd_pressed[KEY_RIGHT]) || ( OnMe && B1_PRESSED && ui_mouse.x > (marker_x+marker_w)) || (mouse_locked && ui_mouse.x > marker_x+marker_w) ) {
-		if ( (timer_get_milliseconds() > last_scrolled+50) || right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_RIGHT)	{
-			if ( right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_RIGHT)	
+	if ( (right_button.position!=0) || (keyfocus && key_pressed(SDLK_RIGHT)) || ( OnMe && B1_PRESSED && ui_mouse.x > (marker_x+marker_w)) || (mouse_locked && ui_mouse.x > marker_x+marker_w) ) {
+		if ( (timer_get_milliseconds() > last_scrolled+50) || right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_RIGHT)	{
+			if ( right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_RIGHT)
 				last_scrolled = timer_get_milliseconds() + 300;
 			else
 				last_scrolled = timer_get_milliseconds();

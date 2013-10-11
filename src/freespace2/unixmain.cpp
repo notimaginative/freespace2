@@ -15,6 +15,7 @@ char full_path[1024];
 
 void vm_dump();
 
+
 int main(int argc, char **argv)
 {
 	char userdir[MAX_PATH] = { 0 };
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
 	// create user game directory
 	snprintf(userdir, MAX_PATH, "%s/%s/", detect_home(), Osreg_user_dir);
 	_mkdir(userdir);	
-	
+
 	char *argptr = NULL;
 	int i;
 	int len = 0;

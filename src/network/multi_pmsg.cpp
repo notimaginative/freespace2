@@ -338,30 +338,30 @@ int multi_msg_text_process(int k)
 
 	switch(k){
 	// cancel the message
-	case KEY_ESC:	
+	case SDLK_ESCAPE:
 		multi_msg_text_flush();				
 		break;
 
 	// send the message
-	case KEY_ENTER:				
+	case SDLK_RETURN:
 		multi_msg_eval_text_msg();		
 		multi_msg_text_flush();						
 		break;
 
 	// backspace
-	case KEY_BACKSP:
+	case SDLK_BACKSPACE:
 		if(strlen(Multi_msg_text) > 0){
 			Multi_msg_text[strlen(Multi_msg_text)-1] = '\0';
 		}
 		break;
 
 	// ignore these individual keys
-	case KEY_LSHIFT + KEY_SHIFTED:
-	case KEY_RSHIFT + KEY_SHIFTED:
-	case KEY_LALT + KEY_SHIFTED:
-	case KEY_RALT + KEY_SHIFTED:
-	case KEY_LCTRL + KEY_SHIFTED:
-	case KEY_RCTRL + KEY_SHIFTED:
+	case SDLK_LSHIFT + KEY_SHIFTED:
+	case SDLK_RSHIFT + KEY_SHIFTED:
+	case SDLK_LALT + KEY_SHIFTED:
+	case SDLK_RALT + KEY_SHIFTED:
+	case SDLK_LCTRL + KEY_SHIFTED:
+	case SDLK_RCTRL + KEY_SHIFTED:
 		break;
 
 	// stick other printable characters onto the text

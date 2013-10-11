@@ -1254,13 +1254,13 @@ void debrief_buttons_init()
 #endif
 	
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][NEXT_STAGE].button.set_hotkey(KEY_RIGHT);
-	Buttons[gr_screen.res][PREV_STAGE].button.set_hotkey(KEY_LEFT);
-	Buttons[gr_screen.res][LAST_STAGE].button.set_hotkey(KEY_SHIFTED | KEY_RIGHT);
-	Buttons[gr_screen.res][FIRST_STAGE].button.set_hotkey(KEY_SHIFTED | KEY_LEFT);
-	Buttons[gr_screen.res][TEXT_SCROLL_UP].button.set_hotkey(KEY_UP);
-	Buttons[gr_screen.res][TEXT_SCROLL_DOWN].button.set_hotkey(KEY_DOWN);
-	Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
+	Buttons[gr_screen.res][NEXT_STAGE].button.set_hotkey(SDLK_RIGHT);
+	Buttons[gr_screen.res][PREV_STAGE].button.set_hotkey(SDLK_LEFT);
+	Buttons[gr_screen.res][LAST_STAGE].button.set_hotkey(KEY_SHIFTED | SDLK_RIGHT);
+	Buttons[gr_screen.res][FIRST_STAGE].button.set_hotkey(KEY_SHIFTED | SDLK_LEFT);
+	Buttons[gr_screen.res][TEXT_SCROLL_UP].button.set_hotkey(SDLK_UP);
+	Buttons[gr_screen.res][TEXT_SCROLL_DOWN].button.set_hotkey(SDLK_DOWN);
+	Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
 
 	// if in multiplayer, disable the button for all players except the host
 	// also disable for squad war matches
@@ -2629,15 +2629,15 @@ void debrief_close()
 void debrief_do_keys(int new_k)
 {
 	switch (new_k) {
-		case KEY_TAB:
+		case SDLK_TAB:
 			debrief_next_tab();
 			break;
 
-		case KEY_SHIFTED | KEY_TAB:
+		case KEY_SHIFTED | SDLK_TAB:
 			debrief_prev_tab();
 			break;
 
-		case KEY_ESC: {
+		case SDLK_ESCAPE: {
 			int pf_flags;
 			int choice;
 
@@ -2792,7 +2792,7 @@ void debrief_do_frame(float frametime)
 		// esc pressed?		
 		os_poll();	
 		int keypress = game_check_key();	
-		if(keypress == KEY_ESC){
+		if(keypress == SDLK_ESCAPE){
 			// popup to leave
 			multi_quit_game(PROMPT_CLIENT);
 		}

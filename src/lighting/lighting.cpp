@@ -406,7 +406,7 @@ void light_add_point( vector * pos, float rad1, float rad2, float intensity, flo
 
 	if (!Lighting_flag) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 
 	if ( Num_lights >= MAX_LIGHTS ) {
 		mprintf(( "Out of lights!\n" ));
@@ -440,7 +440,7 @@ void light_add_point_unique( vector * pos, float rad1, float rad2, float intensi
 
 	if (!Lighting_flag) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 
 	if ( Num_lights >= MAX_LIGHTS ) {
 		mprintf(( "Out of lights!\n" ));
@@ -474,7 +474,7 @@ void light_add_tube(vector *p0, vector *p1, float r1, float r2, float intensity,
 
 	if (!Lighting_flag) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 
 	if ( Num_lights >= MAX_LIGHTS ) {
 		mprintf(( "Out of lights!\n" ));

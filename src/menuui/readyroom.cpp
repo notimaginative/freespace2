@@ -1165,9 +1165,9 @@ void sim_room_init()
 	}
 
 	// set up sim_rooms for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
-	Buttons[gr_screen.res][COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);	
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
+	Buttons[gr_screen.res][COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 
 	Background_bitmap = bm_load(Sim_filename[gr_screen.res]);
 
@@ -1330,27 +1330,27 @@ void sim_room_do_frame(float frametime)
 	}
 
 	switch (k) {
-		case KEY_DOWN:  // scroll list down
+		case SDLK_DOWN:  // scroll list down
 			sim_room_scroll_line_down();
 			break;
 
-		case KEY_UP:  // scroll list up
+		case SDLK_UP:  // scroll list up
 			sim_room_scroll_line_up();
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;
 
-		case KEY_CTRLED | KEY_UP:
+		case KEY_CTRLED | SDLK_UP:
 			sim_room_button_pressed(TECH_DATABASE_BUTTON);
 			break;
 
-		case KEY_CTRLED | KEY_DOWN:
+		case KEY_CTRLED | SDLK_DOWN:
 			sim_room_button_pressed(CUTSCENES_BUTTON);
 			break;
 
-		case KEY_TAB:
+		case SDLK_TAB:
 			if (Player->readyroom_listing_mode == MODE_CAMPAIGNS)
 				Player->readyroom_listing_mode = MODE_MISSIONS;
 			else
@@ -1361,7 +1361,7 @@ void sim_room_do_frame(float frametime)
 			sim_room_build_listing();
 			break;
 
-		case KEY_F2:
+		case SDLK_F2:
 			gamesnd_play_iface(SND_SWITCH_SCREENS);
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 			break;
@@ -1825,10 +1825,10 @@ void campaign_room_init()
 #endif
 
 	// set up sim_rooms for buttons so we draw the correct animation frame when a key is pressed
-	Cr_buttons[gr_screen.res][CR_SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Cr_buttons[gr_screen.res][CR_SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
-	Cr_buttons[gr_screen.res][CR_RESET_BUTTON].button.set_hotkey(KEY_DELETE);
-	Cr_buttons[gr_screen.res][CR_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
+	Cr_buttons[gr_screen.res][CR_SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Cr_buttons[gr_screen.res][CR_SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
+	Cr_buttons[gr_screen.res][CR_RESET_BUTTON].button.set_hotkey(SDLK_DELETE);
+	Cr_buttons[gr_screen.res][CR_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 	// Cr_buttons[gr_screen.res][CR_HELP_BUTTON].button.set_hotkey(KEY_F2);
 
 	Background_bitmap = bm_load(Campaign_filename[gr_screen.res]);
@@ -1952,7 +1952,7 @@ void campaign_room_do_frame(float frametime)
 	}
 
 	switch (k) {
-		case KEY_DOWN:  // scroll list down
+		case SDLK_DOWN:  // scroll list down
 			if (Selected_campaign_index < Num_campaigns - 1) {
 				set_new_campaign_line(Selected_campaign_index + 1);
 				gamesnd_play_iface(SND_SCROLL);
@@ -1962,7 +1962,7 @@ void campaign_room_do_frame(float frametime)
 
 			break;
 
-		case KEY_UP:  // scroll list up
+		case SDLK_UP:  // scroll list up
 			if (Selected_campaign_index < 0)
 				Selected_campaign_index = 1;
 
@@ -1975,7 +1975,7 @@ void campaign_room_do_frame(float frametime)
 
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;
 	}	// end switch

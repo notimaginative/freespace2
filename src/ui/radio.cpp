@@ -228,11 +228,11 @@ void UI_RADIO::process(int focus)
 		my_wnd->last_keypress = 0;
 	}
 		
-	if ( focus && ((my_wnd->keypress == KEY_SPACEBAR) || (my_wnd->keypress == KEY_ENTER)) )
+	if ( focus && ((my_wnd->keypress == SDLK_SPACE) || (my_wnd->keypress == SDLK_RETURN)) )
 		position = 2;
 
 	if (focus)
-		if ( (oldposition == 2) && (keyd_pressed[KEY_SPACEBAR] || keyd_pressed[KEY_ENTER]) )
+		if ( (oldposition == 2) && (key_pressed(SDLK_SPACE) || key_pressed(SDLK_RETURN)) )
 			position = 2;
 
 	pressed_down = 0;

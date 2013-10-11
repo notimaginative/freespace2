@@ -293,7 +293,10 @@ void os_deinit()
 	SDL_Quit();
 }
 
-//extern int SDLtoFS2[SDLK_LAST];
+extern void joy_mark_button(int btn, int state);
+extern int joystick_get_id();
+extern void joystick_update_axis(int axis, int value);
+
 void os_poll()
 {
 	SDL_Event e;
@@ -338,6 +341,7 @@ void os_poll()
 					break;
 				}
 */
+printf("KEYDOWN => scan: %d, sym: %d, name: \"%s\"\n", e.key.keysym.scancode, e.key.keysym.sym, SDL_GetKeyName(e.key.keysym.sym));
 				key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
 				break;
 
@@ -356,45 +360,49 @@ void os_poll()
 				break;
 */
 			case SDL_JOYAXISMOTION:
-			//	e.jaxis.;
+				if (e.jaxis.which == joystick_get_id()) {
+					joystick_update_axis(e.jaxis.axis, e.jaxis.value);
+				}
 				break;
 
 			case SDL_JOYBUTTONDOWN:
-				joy_mark_button((int)e.jbutton.button, 1);
-				break;
-
 			case SDL_JOYBUTTONUP:
-				joy_mark_button((int)e.jbutton.button, 0);
+				if (e.jbutton.which == joystick_get_id()) {
+					state = (e.jbutton.state == SDL_PRESSED) ? 1 : 0;
+					joy_mark_button((int)e.jbutton.button, state);
+				}
 				break;
 
 			case SDL_JOYHATMOTION:
-				button = JOY_HATFORWARD;
-				state = 1;
+				if (e.jhat.which == joystick_get_id()) {
+					// can only handle one hat
+					if (e.jhat.hat == 0) {
+						switch (e.jhat.value) {
+							case SDL_HAT_UP:
+								button = JOY_HATFORWARD;
+								state = 1;
+								break;
+							case SDL_HAT_DOWN:
+								button = JOY_HATBACK;
+								state = 1;
+								break;
+							case SDL_HAT_LEFT:
+								button = JOY_HATLEFT;
+								state = 1;
+								break;
+							case SDL_HAT_RIGHT:
+								button = JOY_HATRIGHT;
+								state = 1;
+								break;
+							default:
+								// special case - will toggle all hat positions off
+								button = JOY_HATBACK;
+								state = 0;
+								break;
+						}
 
-                // can only handle one hat
-				if (e.jhat.hat == 0) {
-					switch (e.jhat.value) {
-						case SDL_HAT_UP:
-							button = JOY_HATFORWARD;
-							break;
-						case SDL_HAT_DOWN:
-							button = JOY_HATBACK;
-							break;
-						case SDL_HAT_LEFT:
-							button = JOY_HATLEFT;
-							break;
-						case SDL_HAT_RIGHT:
-							button = JOY_HATRIGHT;
-							break;
-                        default:
-                            // special case - will toggle all hat positions off
-                            button = JOY_HATFORWARD;
-                            state = 0;
-                            break;
-
+						joy_mark_button(button, state);
 					}
-
-					joy_mark_button(button, state);
 				}
 				break;
 

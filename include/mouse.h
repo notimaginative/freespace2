@@ -128,5 +128,7 @@ int mouse_is_visible();				// returns 1 if mouse is visible, 0 otherwise
 void mouse_eval_deltas();
 void mouse_get_delta(int *dx = NULL, int *dy = NULL, int *dz = NULL);
 
+void mouse_update_pos(int x, int y, int dx, int dy);
+
 #endif
 

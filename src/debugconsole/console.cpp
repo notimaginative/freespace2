@@ -752,12 +752,14 @@ void debug_console( void (*_func)() )
 			} 
 			break;
 		default:	{
-				ubyte c = (ubyte)key_to_ascii(k);
-				if ( c != 255 ) {
-					command_line[command_line_pos++] = c;
+				int c = key_get_text_input();
+				if ( c < 255 ) {
+					command_line[command_line_pos++] = (ubyte)c;
 					command_line[command_line_pos] = 0;
 				}
 			}
+			break;
+
 		}
 
 		strcpy( debug_text[debug_y], ">" );

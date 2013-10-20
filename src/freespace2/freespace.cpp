@@ -7243,6 +7243,9 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 	}
 
 	while (1) {
+		// set default input text every frame
+		key_set_text_input(-1);
+
 		// only important for non THREADED mode
 		os_poll();
 

@@ -108,8 +108,11 @@ void key_flush();
 // Routines/data you can access:
 float key_down_timef(int keycode);
 
-int key_to_ascii(int keycode, bool force_up = false);
+bool key_is_ascii(int keycode);
 int key_inkey();
+
+int key_get_text_input();
+void key_set_text_input(int ch);
 
 // global flag that will enable/disable the backspace key from stopping execution
 //extern int Backspace_debug;

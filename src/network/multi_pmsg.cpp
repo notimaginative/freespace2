@@ -368,7 +368,13 @@ int multi_msg_text_process(int k)
 	default :					
 		// if we're not already at the maximum length
 		if(strlen(Multi_msg_text) < MULTI_MSG_MAX_LEN){
-			str[0] = (char)key_to_ascii(k);
+			int key_text = key_get_text_input();
+
+			if (key_text < 0) {
+				key_text = 255;
+			}
+
+			str[0] = (char)key_text;
 			str[1] = '\0';
 			strcat(Multi_msg_text,str);		
 		}

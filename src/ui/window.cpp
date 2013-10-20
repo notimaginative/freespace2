@@ -541,6 +541,8 @@ int UI_WINDOW::process(int key_in,int process_mouse)
 		mouse_captured_gadget = NULL;
 	}
 
+	keypress_text = key_get_text_input();
+
 	// The following code was commented out by NeilK on 4/15/99 to fix a problem we were having with
 	//	the UI_SLIDER2 class not receiving the process event when the mouse was dragging the scroller
 	// but outside the mask region. I checked a handful of other screens and so no adverse affects

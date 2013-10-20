@@ -296,6 +296,8 @@ void os_deinit()
 extern void joy_mark_button(int btn, int state);
 extern int joystick_get_id();
 extern void joystick_update_axis(int axis, int value);
+extern SDL_Window *GL_window;
+extern void gr_opengl_set_viewport(int width, int height);
 
 void os_poll()
 {
@@ -306,47 +308,42 @@ void os_poll()
 		switch (e.type) {
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
-				if (e.button.button <= HIGHEST_MOUSE_BUTTON)
+				if (e.motion.windowID > 0) {
 					mouse_mark_button(e.button.button, e.button.state);
+				}
+				break;
+
+			case SDL_MOUSEMOTION:
+				if (e.motion.windowID > 0) {
+					mouse_update_pos(e.motion.x, e.motion.y, e.motion.xrel, e.motion.yrel);
+				}
+				break;
+
+			case SDL_TEXTINPUT:
+				key_set_text_input((int)e.text.text[0]);
 				break;
 
 			case SDL_KEYDOWN:
-			/*	if ((e.key.keysym.mod & KMOD_ALT) &&
-				    (e.key.keysym.sym == SDLK_RETURN))
-				{
-					if (!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
-						SDL_WM_GrabInput (SDL_GRAB_ON);
-					SDL_WM_ToggleFullScreen (SDL_GetVideoSurface());
-					break;
-				}
-				if ((e.key.keysym.mod & KMOD_CTRL) &&
-				    (e.key.keysym.sym == SDLK_g))
-				{
-					// DDOI - ignore grab changes when fullscreen
-					if (!(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN))
-					{
-						if (SDL_WM_GrabInput(SDL_GRAB_QUERY)==SDL_GRAB_ON)
-							SDL_WM_GrabInput (SDL_GRAB_OFF);
-						else
-							SDL_WM_GrabInput (SDL_GRAB_ON);
+				if (e.key.keysym.mod & KMOD_GUI) {
+					if (e.key.keysym.sym == SDLK_f ) {
+						SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+					} else if (e.key.keysym.sym == SDLK_w) {
+						SDL_SetWindowFullscreen(GL_window, 0);
+				//	} else if (e.key.keysym.sym == SDLK_z) {
+				//		SDL_MinimizeWindow(GL_window);
 					}
-					break;
+				} else {
+					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
 				}
-
-				// this is a very common key combo in the game so don't use this to iconify
-				if ((e.key.keysym.mod & KMOD_CTRL) &&
-				    (e.key.keysym.sym == SDLK_z))
-				{
-					SDL_WM_IconifyWindow();
-					break;
-				}
-*/
-printf("KEYDOWN => scan: %d, sym: %d, name: \"%s\"\n", e.key.keysym.scancode, e.key.keysym.sym, SDL_GetKeyName(e.key.keysym.sym));
-				key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
 				break;
 
 			case SDL_KEYUP:
-				key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
+				if (e.key.keysym.mod & KMOD_GUI) {
+					// blank, just don't want to process up keys we skipped
+					// the down for
+				} else {
+					key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
+				}
 				break;
 /*
 			case SDL_ACTIVEEVENT:
@@ -403,6 +400,12 @@ printf("KEYDOWN => scan: %d, sym: %d, name: \"%s\"\n", e.key.keysym.scancode, e.
 
 						joy_mark_button(button, state);
 					}
+				}
+				break;
+
+			case SDL_WINDOWEVENT:
+				if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+					gr_opengl_set_viewport(e.window.data1, e.window.data2);
 				}
 				break;
 

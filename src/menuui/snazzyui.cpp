@@ -294,17 +294,19 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 			break;
 
 		default:
-			if ( k )
+			if ( k ) {
+				int key_text = tolower(key_get_text_input());
 				for (i=0; i<num_regions; i++) {
 					if ( !regions[i].key )
 						continue;
-					if ( key_to_ascii(tolower(regions[i].key)) ) {
+					if ( tolower(regions[i].key) == key_text ) {
 						choice = regions[i].mask;
 						if ( regions[i].click_sound != -1 ) {
 							snd_play( &Snds_iface[regions[i].click_sound], 0.0f );
 						}
 					}
-			}	// end for
+				}	// end for
+			}
 
 			break;
 

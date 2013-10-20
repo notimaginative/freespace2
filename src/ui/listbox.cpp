@@ -412,7 +412,7 @@ void UI_LISTBOX::process(int focus)
 						key_buffer_count = 0;
 
 					} else if (key_buffer_count < MAX_KEY_BUFFER) {
-						key_buffer[key_buffer_count++] = (char) my_wnd->keypress;
+						key_buffer[key_buffer_count++] = (char) my_wnd->keypress_text;
 						last_typed = timer_get_milliseconds();
 					}
 
@@ -424,8 +424,7 @@ void UI_LISTBOX::process(int focus)
 						
 						current_text = get_string(i);
 						for (j=0; j<key_buffer_count; j++)
-							if ( (current_text[j] != key_to_ascii((int)key_buffer[j])) && (current_text[j] != key_to_ascii((int)key_buffer[j], true)) ) {
-printf("breaking!\n");
+							if (current_text[j] != key_buffer[j]) {
 								break;
 							}
 

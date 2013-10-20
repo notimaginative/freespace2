@@ -939,6 +939,7 @@ protected:
 
 
 	int keypress;		// filled in each frame
+	int keypress_text;	// filled in each frame
 	void capture_mouse(UI_GADGET *gadget = NULL);
 	void release_bitmaps();		// called internally when window destroys gadgets
 	void check_focus_switch_keys();

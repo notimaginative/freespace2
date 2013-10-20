@@ -214,49 +214,6 @@ int is_letter(char c)
 	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
 }
 
-// if the passed key is keypad number, return the ascii value, otherwise -1
-int keypad_to_ascii(int c)
-{
-	switch(c){
-	case SDLK_KP_0:
-		return key_to_ascii(SDLK_0);
-		break;
-	case SDLK_KP_1:
-		return key_to_ascii(SDLK_1);
-		break;
-	case SDLK_KP_2:
-		return key_to_ascii(SDLK_2);
-		break;
-	case SDLK_KP_3:
-		return key_to_ascii(SDLK_3);
-		break;
-	case SDLK_KP_4:
-		return key_to_ascii(SDLK_4);
-		break;
-	case SDLK_KP_5:
-		return key_to_ascii(SDLK_5);
-		break;
-	case SDLK_KP_6:
-		return key_to_ascii(SDLK_6);
-		break;
-	case SDLK_KP_7:
-		return key_to_ascii(SDLK_7);
-		break;
-	case SDLK_KP_8:
-		return key_to_ascii(SDLK_8);
-		break;
-	case SDLK_KP_9:
-		return key_to_ascii(SDLK_9);
-		break;
-	case SDLK_KP_PERIOD:
-		return key_to_ascii(SDLK_PERIOD);
-		break;
-	default :
-		return -1;
-		break;
-	}
-}
-
 // insert character c into string s at position p.
 void strcins(char *s, int p, char c)
 {
@@ -615,10 +572,7 @@ void UI_INPUTBOX::process(int focus)
 					}
 
 					// get an ascii char from the input if possible
-					key_check = keypad_to_ascii(key);
-					if(key_check == -1){
-						key_check = key_to_ascii(key);
-					}
+					key_check = my_wnd->keypress_text;
 
 					ascii = validate_input(key_check);
 					if ((ascii > 0) && (ascii < 255)) {

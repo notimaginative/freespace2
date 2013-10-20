@@ -1635,7 +1635,11 @@ void game_process_cheats(int k)
 		return;
 	}
 
-	k = key_to_ascii(k);
+	k = key_get_text_input();
+
+	if ( (k < 0) || (k > 255) ) {
+		return;
+	}
 
 	for (i = 0; i < CHEAT_BUFFER_LEN; i++){
 		CheatBuffer[i]=CheatBuffer[i+1];

@@ -216,6 +216,17 @@ static int Key_numlock_was_on = 0;	// Flag to indicate whether NumLock is on at 
 int Cheats_enabled = 0;
 int Key_normal_game = 0;
 
+static int key_text_input = -1;
+
+void key_set_text_input(int ch)
+{
+	key_text_input = ch;
+}
+
+int key_get_text_input()
+{
+	return key_text_input;
+}
 
 bool key_pressed(int keycode)
 {
@@ -243,33 +254,25 @@ void key_turn_on_numlock()
 {
 }
 
-//	Convert a BIOS scancode to ASCII.
-//	If scancode >= 127, returns 255, meaning there is no corresponding ASCII code.
-//	Uses ascii_table and shifted_ascii_table to translate scancode to ASCII.
-int key_to_ascii(int keycode, bool force_up)
+// checks if a keycode is ASCII printable or not
+// returns true if ASCII, false if not
+bool key_is_ascii(int keycode)
 {
-	int shifted;
-
 	// bail on non-printable keycodes
 	if (keycode & SDLK_SCANCODE_MASK) {
-		return 255;
+		return false;
 	}
 
-	shifted = keycode & KEY_SHIFTED;
 	keycode &= KEY_MASK;
 
 	// this is definitely never come back to bite me in the ass
 	if ( ((keycode >= SDLK_SPACE) && (keycode <= SDLK_AT))
 			|| ((keycode >= SDLK_LEFTBRACKET) && (keycode <= SDLK_z)) )
 	{
-		if ( (keycode >= SDLK_a) && (shifted || force_up) ) {
-			return toupper(keycode);
-		} else {
-			return keycode;
-		}
+		return true;
 	}
 
-	return 255;
+	return false;
 }
 
 //	Flush the keyboard buffer.
@@ -530,6 +533,11 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 	ENTER_CRITICAL_SECTION(&key_lock);		
 
 	Assert( scancode < SDL_NUM_SCANCODES );
+
+	// ignore GUI key, we use it for specials commands
+	if ( (scancode == SDL_SCANCODE_LGUI) || (scancode == SDL_SCANCODE_RGUI) ) {
+		return;
+	}
 
 	event_time = timer_get_milliseconds() - latency;
 	// event_time = timeGetTime() - latency;

@@ -522,7 +522,7 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 	}
 
 	for ( i = 0; i < pi->nchoices; i++ ) {
-		if ( pi->keypress[i] == key_to_ascii(k) ) {
+		if ( pi->keypress[i] == key_get_text_input() ) {
 			Popup_default_choice=i;
 			Popup_buttons[i].press_button();
 			return i;

@@ -208,10 +208,29 @@ void mouse_init()
 //               set   ==> 1 - button is pressed
 //                         0 - button is released
 
-void mouse_mark_button( uint flags, int set)
+void mouse_mark_button( uint btn, int set)
 {
+	uint flags = 0;
+
 	if ( !mouse_inited )
 		return;
+
+	switch (btn) {
+		case SDL_BUTTON_LEFT:
+			flags |= MOUSE_LEFT_BUTTON;
+			break;
+
+		case SDL_BUTTON_RIGHT:
+			flags |= MOUSE_RIGHT_BUTTON;
+			break;
+
+		case SDL_BUTTON_MIDDLE:
+			flags |= MOUSE_MIDDLE_BUTTON;
+			break;
+
+		default:
+			return;
+	}
 
 	if ( !(mouse_flags & MOUSE_LEFT_BUTTON) )	{
 
@@ -395,78 +414,50 @@ void mouse_get_delta(int *dx, int *dy, int *dz)
 		*dz = Mouse_dz;
 }
 
+extern SDL_Window *GL_window;
+
 // Forces the actual windows cursor to be at (x,y).  This may be independent of our tracked (x,y) mouse pos.
 void mouse_force_pos(int x, int y)
 {
 	if (os_foreground()) {  // only mess with windows's mouse if we are in control of it
-		extern SDL_Window *GL_window;
 		SDL_WarpMouseInWindow(GL_window, x, y);
 	}
 }
 
-#include "gamesequence.h"
-
-// change in mouse position since last call
+static bool Mouse_grabbed = false;
+// reusing obsolete function for special position handling
 void mouse_eval_deltas()
 {
-	static int old_x = 0;
-	static int old_y = 0;
-	int tmp_x, tmp_y, cx, cy;
-
-	Mouse_dx = Mouse_dy = Mouse_dz = 0;
-
-	if (!mouse_inited)
-		return;
-
-	cx = gr_screen.max_w / 2;
-	cy = gr_screen.max_h / 2;
-
-	SDL_GetMouseState(&tmp_x, &tmp_y);
-
-	Mouse_dx = tmp_x - old_x;
-	Mouse_dy = tmp_y - old_y;
-	Mouse_dz = 0;
-
+	// make sure mouse is bound to window if we're flying with it
 	if (Keep_mouse_centered && Mouse_hidden) {
-		if (Mouse_dx || Mouse_dy)
-			mouse_force_pos(cx, cy);
-
-		old_x = cx;
-		old_y = cy;
-
+		if ( !Mouse_grabbed ) {
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+			SDL_SetWindowGrab(GL_window, SDL_TRUE);
+			Mouse_grabbed = true;
+		}
 	} else {
-		old_x = tmp_x;
-		old_y = tmp_y;
+		if (Mouse_grabbed) {
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+			SDL_SetWindowGrab(GL_window, SDL_FALSE);
+			Mouse_grabbed = false;
+		}
 	}
 }
 
 int mouse_get_pos(int *xpos, int *ypos)
 {
-	int flags;
+	if ( !mouse_inited ) {
+		if (xpos) {
+			*xpos = 0;
+		}
 
-	if (!mouse_inited) {
-		*xpos = *ypos = 0;
+		if (ypos) {
+			*ypos = 0;
+		}
+
 		return 0;
 	}
 
-	flags = SDL_GetMouseState(&Mouse_x, &Mouse_y);
-
-	if (Mouse_x < 0){
-		Mouse_x = 0;
-	}
-
-	if (Mouse_y < 0){
-		Mouse_y = 0;
-	}
-
-	if (Mouse_x >= gr_screen.max_w){
-		Mouse_x = gr_screen.max_w - 1;
-	}
-
-	if (Mouse_y >= gr_screen.max_h){
-		Mouse_y = gr_screen.max_h - 1;
-	}
-	
 	if (xpos){
 		*xpos = Mouse_x;
 	}
@@ -475,12 +466,18 @@ int mouse_get_pos(int *xpos, int *ypos)
 		*ypos = Mouse_y;
 	}
 
-	return flags;
+	return mouse_flags;
 }
 
 void mouse_get_real_pos(int *mx, int *my)
 {
-	SDL_GetMouseState (mx, my);
+	if (mx) {
+		*mx = Mouse_x;
+	}
+
+	if (my) {
+		*my = Mouse_y;
+	}
 }
 
 void mouse_set_pos(int xpos, int ypos)
@@ -488,4 +485,12 @@ void mouse_set_pos(int xpos, int ypos)
 	if ((xpos != Mouse_x) || (ypos != Mouse_y)){
 		mouse_force_pos(xpos, ypos);
 	}
+}
+
+void mouse_update_pos(int x, int y, int dx, int dy)
+{
+	Mouse_x = x;
+	Mouse_y = y;
+	Mouse_dx = dx;
+	Mouse_dy = dy;
 }

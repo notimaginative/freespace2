@@ -165,6 +165,7 @@
  */
 
 #include <ctype.h>	// for toupper
+#include <deque>
 #include "pstypes.h"
 #include "key.h"
 #include "fix.h"
@@ -216,16 +217,25 @@ static int Key_numlock_was_on = 0;	// Flag to indicate whether NumLock is on at 
 int Cheats_enabled = 0;
 int Key_normal_game = 0;
 
-static int key_text_input = -1;
+static std::deque<int> key_text_input;
+
 
 void key_set_text_input(int ch)
 {
-	key_text_input = ch;
+	key_text_input.push_back(ch);
 }
 
 int key_get_text_input()
 {
-	return key_text_input;
+	if ( key_text_input.empty() ) {
+		return -1;
+	}
+
+	int ch = key_text_input.front();
+
+	key_text_input.pop_front();
+
+	return ch;
 }
 
 bool key_pressed(int keycode)
@@ -307,6 +317,8 @@ void key_flush()
 		key_data.NumDowns[i]=0;
 		key_data.NumUps[i]=0;
 	}
+
+	key_text_input.clear();
 
 	LEAVE_CRITICAL_SECTION(&key_lock);	
 }
@@ -537,6 +549,11 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 	// ignore GUI key, we use it for specials commands
 	if ( (scancode == SDL_SCANCODE_LGUI) || (scancode == SDL_SCANCODE_RGUI) ) {
 		return;
+	}
+
+	// for Mac keyboard, make F13 be printscreen
+	if (scancode == SDL_SCANCODE_F13) {
+		scancode = SDL_SCANCODE_PRINTSCREEN;
 	}
 
 	event_time = timer_get_milliseconds() - latency;

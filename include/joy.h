@@ -121,6 +121,9 @@ void joy_get_delta(int *dx, int *dy);
 int joy_get_scaled_reading(int axn);
 int joy_get_unscaled_reading(int axn);
 bool joy_axis_valid(int axis);
+void joy_mark_button(int btn, int state);
+int joystick_get_id();
+void joystick_update_axis(int axis, int value);
 
 #endif	/* __JOY_H__ */
 

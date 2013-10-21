@@ -720,17 +720,17 @@ void gr_set_palette( const char *name, ubyte * palette, int restrict_font_to_128
 // Returns cpu type.
 void gr_detect_cpu(int *cpu, int *mmx, int *amd3d, int *katmai )
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
-	DWORD RegEDX;
-	DWORD RegEAX;
-
 	// Set defaults
 	*cpu = 0;
 	*mmx = 0;
 	*amd3d = 0;
 	*katmai = 0;
+
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
+	DWORD RegEDX;
+	DWORD RegEAX;
 
 	char cpu_vender[16];
 	memset( cpu_vender, 0, sizeof(cpu_vender) );

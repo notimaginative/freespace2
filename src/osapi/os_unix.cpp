@@ -293,11 +293,9 @@ void os_deinit()
 	SDL_Quit();
 }
 
-extern void joy_mark_button(int btn, int state);
-extern int joystick_get_id();
-extern void joystick_update_axis(int axis, int value);
-extern SDL_Window *GL_window;
 extern void gr_opengl_set_viewport(int width, int height);
+extern void gr_opengl_force_windowed();
+extern void gr_opengl_force_fullscreen();
 
 void os_poll()
 {
@@ -326,9 +324,9 @@ void os_poll()
 			case SDL_KEYDOWN:
 				if (e.key.keysym.mod & KMOD_GUI) {
 					if (e.key.keysym.sym == SDLK_f ) {
-						SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+						gr_opengl_force_fullscreen();
 					} else if (e.key.keysym.sym == SDLK_w) {
-						SDL_SetWindowFullscreen(GL_window, 0);
+						gr_opengl_force_windowed();
 				//	} else if (e.key.keysym.sym == SDLK_z) {
 				//		SDL_MinimizeWindow(GL_window);
 					}

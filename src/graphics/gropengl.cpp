@@ -417,27 +417,31 @@ typedef enum gr_zbuffer_type {
 volatile int GL_activate = 0;
 volatile int GL_deactivate = 0;
 
-static int GL_use_luminance_alpha;
 static int FSAA;
 static ubyte GL_xlat[256] = { 0 };
 
-static char *Gr_saved_screen = NULL;
-static int Gr_saved_screen_bitmap;
+static GLuint Gr_saved_screen_tex = 0;
 
 static int Gr_opengl_mouse_saved = 0;
-static int Gr_opengl_mouse_saved_x1 = 0;
-static int Gr_opengl_mouse_saved_y1 = 0;
-static int Gr_opengl_mouse_saved_x2 = 0;
-static int Gr_opengl_mouse_saved_y2 = 0;
+static int Gr_opengl_mouse_saved_x = 0;
+static int Gr_opengl_mouse_saved_y = 0;
 static int Gr_opengl_mouse_saved_w = 0;
 static int Gr_opengl_mouse_saved_h = 0;
-#define MAX_SAVE_SIZE (32*32)
-static ubyte Gr_opengl_mouse_saved_data[MAX_SAVE_SIZE*2];
+static ubyte *Gr_opengl_mouse_saved_data = NULL;
 
 #define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
 
 SDL_Window *GL_window = NULL;
 SDL_GLContext GL_context;
+
+static int GL_viewport_x = 0;
+static int GL_viewport_y = 0;
+static int GL_viewport_w = 640;
+static int GL_viewport_h = 480;
+static float GL_viewport_scale_w = 1.0f;
+static float GL_viewport_scale_h = 1.0f;
+
+PFNGLSECONDARYCOLOR3FEXTPROC glSecondaryColor3fEXT = NULL;
 
 #ifdef PLAT_UNIX
 // Throw in some dummy functions - DDOI
@@ -675,7 +679,7 @@ void gr_opengl_set_clip(int x,int y,int w,int h)
 		w = gr_screen.max_w;
 	if (h > gr_screen.max_h)
 		h = gr_screen.max_h;
-	
+
 	gr_screen.offset_x = x;
 	gr_screen.offset_y = y;
 	gr_screen.clip_left = 0;
@@ -684,9 +688,14 @@ void gr_opengl_set_clip(int x,int y,int w,int h)
 	gr_screen.clip_bottom = h-1;
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
-	
+
+	x = fl2i((x * GL_viewport_scale_w) + 0.5f) + GL_viewport_x;
+	y = fl2i((y * GL_viewport_scale_h) + 0.5f) + GL_viewport_y;
+	w = fl2i((w * GL_viewport_scale_w) + 0.5f);
+	h = fl2i((h * GL_viewport_scale_h) + 0.5f);
+
 	glEnable(GL_SCISSOR_TEST);
-	glScissor(x, gr_screen.max_h-y-h, w, h);
+	glScissor(x, GL_viewport_h-y-h, w, h);
 }
 
 void gr_opengl_reset_clip()
@@ -1211,20 +1220,23 @@ void gr_opengl_circle( int xc, int yc, int d )
 	return;
 }
 
-static void gr_opengl_stuff_fog_value(float z, int *r, int *g, int *b, int *a)
+static void gr_opengl_stuff_fog_value(float z, float *f_val)
 {
 	float f_float;
-	
-	f_float = (gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near);
+
+	if ( !f_val ) {
+		return;
+	}
+
+	f_float = 1.0f - ((gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near));
+
 	if (f_float < 0.0f) {
 		f_float = 0.0f;
-	} else {
+	} else if (f_float > 1.0f) {
 		f_float = 1.0f;
 	}
-	*r = 0;
-	*g = 0;
-	*b = 0;
-	*a = (int)(f_float * 255.0);
+
+	*f_val = f_float;
 }
 
 static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
@@ -1335,6 +1347,8 @@ static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int
 		// STUB_FUNCTION;
 	}
 
+	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
+
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
 		int r, g, b;
 		int ra, ga, ba;
@@ -1368,6 +1382,10 @@ static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int
 		ba /= nv;
 		
 		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
+
+		fr = ra / 255.0f;
+		fg = ga / 255.0f;
+		fb = ba / 255.0f;
 	}
 	
 	glBegin(GL_TRIANGLE_FAN);
@@ -1420,13 +1438,11 @@ static void gr_opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int
 		glColor4ub (r,g,b,a);
 
 		if((gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (D3D_fog_mode == 1)){
-			int sr, sg, sb, sa;
-			
-			/* this is for GL_EXT_SECONDARY_COLOR */
-			gr_opengl_stuff_fog_value(va->z, &sr, &sg, &sb, &sa);
-			/* do separate color call here */
-			
-			STUB_FUNCTION;
+			float f_val;
+
+			gr_opengl_stuff_fog_value(va->z, &f_val);
+
+			glSecondaryColor3fEXT(fr * f_val, fg * f_val, fb * f_val);
 		}
 		
 		int x, y;
@@ -1620,17 +1636,24 @@ void gr_opengl_set_color_fast(color *dst)
 
 void gr_opengl_print_screen(const char *filename)
 {
-#ifdef GL_VERSION_1_2
 	char tmp[MAX_FILENAME_LEN];
 	ubyte *buf = NULL;
 
 	strcpy( tmp, filename );
 	strcat( tmp, NOX(".tga"));
 
+	buf = (ubyte*)malloc(GL_viewport_w * GL_viewport_h * 3);
+
+	if (buf == NULL) {
+		return;
+	}
+
 	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
 
-	if (f == NULL)
+	if (f == NULL) {
+		free(buf);
 		return;
+	}
 
 	// Write the TGA header
 	cfwrite_ubyte( 0, f );	//	IDLength;
@@ -1641,39 +1664,29 @@ void gr_opengl_print_screen(const char *filename)
 	cfwrite_ubyte( 0, f );	// CMapDepth;
 	cfwrite_ushort( 0, f );	//	XOffset;
 	cfwrite_ushort( 0, f );	//	YOffset;
-	cfwrite_ushort( (ushort)gr_screen.max_w, f );	//	Width;
-	cfwrite_ushort( (ushort)gr_screen.max_h, f );	//	Height;
+	cfwrite_ushort( (ushort)GL_viewport_w, f );	//	Width;
+	cfwrite_ushort( (ushort)GL_viewport_h, f );	//	Height;
 	cfwrite_ubyte( 24, f );	//PixelDepth;
 	cfwrite_ubyte( 0, f );	//ImageDesc;
 
-	buf = (ubyte*)malloc(gr_screen.max_w * gr_screen.max_h * 3);
+	memset(buf, 0, GL_viewport_w * GL_viewport_h * 3);
 
-	if (buf == NULL)
-		return;
+	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_BGR, GL_UNSIGNED_BYTE, buf);
 
-	memset(buf, 0, gr_screen.max_w * gr_screen.max_h * 3);
-
-	glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_BGR, GL_UNSIGNED_BYTE, buf);
-
-	cfwrite(buf, gr_screen.max_w * gr_screen.max_h * 3, 1, f);
+	cfwrite(buf, GL_viewport_w * GL_viewport_h * 3, 1, f);
 
 	cfclose(f);
 
 	free(buf);
-#endif
 }
 
 int gr_opengl_supports_res_ingame(int res)
 {
-	STUB_FUNCTION;
-	
 	return 1;
 }
 
 int gr_opengl_supports_res_interface(int res)
 {
-	STUB_FUNCTION;
-	
 	return 1;
 }
 
@@ -1704,16 +1717,23 @@ void gr_opengl_fog_set(int fog_mode, int r, int g, int b, float fog_near, float 
 	if (fog_mode == GR_FOGMODE_NONE) {
 		if (gr_screen.current_fog_mode != fog_mode) {
 			glDisable(GL_FOG);
+
+			if (D3D_fog_mode == 1) {
+				glDisable(GL_COLOR_SUM);
+			}
 		}
+
 		gr_screen.current_fog_mode = fog_mode;
-		
+
 		return;
 	}
 	
 	if (gr_screen.current_fog_mode != fog_mode) {
 		glEnable(GL_FOG);
-		
-		if (D3D_fog_mode == 2) {
+
+		if (D3D_fog_mode == 1) {
+			glEnable(GL_COLOR_SUM);
+		} else if (D3D_fog_mode == 2) {
 			glFogi(GL_FOG_MODE, GL_LINEAR);
 		}
 		
@@ -2742,12 +2762,15 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 	
 	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 	
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, gr_screen.max_w);
-	
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, GL_viewport_w);
+
+	int x = GL_viewport_x;
+	int y = (GL_viewport_y+GL_viewport_h)-h-1;
+
 	if (gr_screen.bits_per_pixel == 15) {
-		glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
+		glReadPixels(x, y, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
 	} else if (gr_screen.bits_per_pixel == 32) {
-		glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 	
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -2755,29 +2778,47 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 
 void gr_opengl_save_mouse_area(int x, int y, int w, int h)
 {
-	Gr_opengl_mouse_saved_x1 = x;
-	Gr_opengl_mouse_saved_y1 = y;
-	Gr_opengl_mouse_saved_x2 = x+w-1;
-	Gr_opengl_mouse_saved_y2 = y+h-1;
-	
-	CLAMP(Gr_opengl_mouse_saved_x1, gr_screen.clip_left, gr_screen.clip_right );
-	CLAMP(Gr_opengl_mouse_saved_x2, gr_screen.clip_left, gr_screen.clip_right );
-	CLAMP(Gr_opengl_mouse_saved_y1, gr_screen.clip_top, gr_screen.clip_bottom );
-	CLAMP(Gr_opengl_mouse_saved_y2, gr_screen.clip_top, gr_screen.clip_bottom );
-	
-	Gr_opengl_mouse_saved_w = Gr_opengl_mouse_saved_x2 - Gr_opengl_mouse_saved_x1 + 1;
-	Gr_opengl_mouse_saved_h = Gr_opengl_mouse_saved_y2 - Gr_opengl_mouse_saved_y1 + 1;
+	int x1, y1, x2, y2;
 
-	if ( Gr_opengl_mouse_saved_w < 1 ) return;
-	if ( Gr_opengl_mouse_saved_h < 1 ) return;
-	
-	Assert( (Gr_opengl_mouse_saved_w*Gr_opengl_mouse_saved_h) <= MAX_SAVE_SIZE );
+	w = fl2i((w * GL_viewport_scale_w) + 0.5f);
+	h = fl2i((h * GL_viewport_scale_h) + 0.5f);
+
+	x1 = x;
+	y1 = y;
+	x2 = x+w-1;
+	y2 = y+h-1;
+
+	CLAMP(x1, 0, GL_viewport_w);
+	CLAMP(x2, 0, GL_viewport_w);
+	CLAMP(y1, 0, GL_viewport_h);
+	CLAMP(y2, 0, GL_viewport_h);
+
+	Gr_opengl_mouse_saved_x = x1;
+	Gr_opengl_mouse_saved_y = y1;
+	Gr_opengl_mouse_saved_w = x2 - x1 + 1;
+	Gr_opengl_mouse_saved_h = y2 - y1 + 1;
+
+	if ( (Gr_opengl_mouse_saved_w < 1) || (Gr_opengl_mouse_saved_h < 1) ) {
+		return;
+	}
+
+	if (Gr_opengl_mouse_saved_data == NULL) {
+		Gr_opengl_mouse_saved_data = (ubyte*)malloc(w * h * gr_screen.bytes_per_pixel);
+
+		if ( !Gr_opengl_mouse_saved_data ) {
+			return;
+		}
+	}
 
 	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-	
+
+	x1 = GL_viewport_x+Gr_opengl_mouse_saved_x;
+	y1 = (GL_viewport_y+GL_viewport_h)-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
+
 	glReadBuffer(GL_BACK);
-	glReadPixels(x, gr_screen.max_h-y-1-h, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_opengl_mouse_saved_data);
-	
+	glReadPixels(x1, y1, Gr_opengl_mouse_saved_w, Gr_opengl_mouse_saved_h,
+			GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_opengl_mouse_saved_data);
+
 	Gr_opengl_mouse_saved = 1;
 }
 
@@ -2785,81 +2826,95 @@ int gr_opengl_save_screen()
 {
 	gr_reset_clip();
 
-	if ( Gr_saved_screen )  {
-		mprintf(( "Screen alread saved!\n" ));
+	if (Gr_saved_screen_tex) {
+		mprintf(( "Screen already saved!\n" ));
 		return -1;
 	}
 
-	Gr_saved_screen = (char*)malloc( gr_screen.max_w * gr_screen.max_h * gr_screen.bytes_per_pixel );
-	if (!Gr_saved_screen) {
-		mprintf(( "Couldn't get memory for saved screen!\n" ));
+	glGenTextures(1, &Gr_saved_screen_tex);
+
+	if ( !Gr_saved_screen_tex ) {
+		mprintf(( "Couldn't create texture for saved screen!\n" ));
 		return -1;
 	}
 
-	char *Gr_saved_screen_tmp = (char*)malloc( gr_screen.max_w * gr_screen.max_h * gr_screen.bytes_per_pixel );
-	if (!Gr_saved_screen_tmp) {
-		mprintf(( "Couldn't get memory for temporary saved screen!\n" ));
-		return -1;
-	}
-	
 	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-	
+
+	glBindTexture(GL_TEXTURE_2D, Gr_saved_screen_tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_saved_screen_tmp);
-	
-	ubyte *sptr, *dptr;
-	
-	sptr = (ubyte *)&Gr_saved_screen_tmp[gr_screen.max_w*gr_screen.max_h*2];
-	dptr = (ubyte *)Gr_saved_screen;
-	for (int j = 0; j < gr_screen.max_h; j++) {
-		sptr -= gr_screen.max_w*2;
-		memcpy(dptr, sptr, gr_screen.max_w*2);
-		dptr += gr_screen.max_w*2;
-	}
-	
-	free(Gr_saved_screen_tmp);
-	
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, GL_viewport_x, GL_viewport_y,
+			GL_viewport_w, GL_viewport_h, 0);
+
 	if (Gr_opengl_mouse_saved) {
-		sptr = (ubyte *)Gr_opengl_mouse_saved_data;
-		dptr = (ubyte *)&Gr_saved_screen[2*(Gr_opengl_mouse_saved_x1+(Gr_opengl_mouse_saved_y2)*gr_screen.max_w)];
-		for (int i = 0; i < Gr_opengl_mouse_saved_h; i++) {
-			memcpy(dptr, sptr, Gr_opengl_mouse_saved_w*2);
-		
-			sptr += 32*2;
-			dptr -= gr_screen.max_w*2;
-		}
+		int x = Gr_opengl_mouse_saved_x;
+		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
+
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
+				Gr_opengl_mouse_saved_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV,
+				Gr_opengl_mouse_saved_data);
 	}
 
-	// this leaks texture handles, and the opengl doesn't currently 
-	// perform some sort of garbage collection, so a hack was added
-	// to bmpman to make it free textures when released
-	Gr_saved_screen_bitmap = bm_create(16, gr_screen.max_w, gr_screen.max_h, Gr_saved_screen, 0);
-	
-	return Gr_saved_screen_bitmap;
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return 0;
 }
 
 void gr_opengl_restore_screen(int id)
 {
 	gr_reset_clip();
-	
-	if ( !Gr_saved_screen ) {
+
+	if ( !Gr_saved_screen_tex ) {
 		gr_clear();
 		return;
 	}
 
-	gr_opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
+	glBindTexture(GL_TEXTURE_2D, Gr_saved_screen_tex);
+
+	if (Gr_opengl_mouse_saved) {
+		int x = Gr_opengl_mouse_saved_x;
+		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
+
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
+				Gr_opengl_mouse_saved_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV,
+				Gr_opengl_mouse_saved_data);
+	}
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glScalef(1.0f, -1.0f, 1.0f);
+
+	glBegin(GL_QUADS);
+		glTexCoord2i(0, 0);
+		glVertex2i(GL_viewport_x, GL_viewport_y);
+
+		glTexCoord2i(0, 1);
+		glVertex2i(GL_viewport_x, GL_viewport_h);
+
+		glTexCoord2i(1, 1);
+		glVertex2f(GL_viewport_w, GL_viewport_h);
 	
-	gr_set_bitmap(Gr_saved_screen_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-	gr_bitmap(0, 0);		
+		glTexCoord2i(1, 0);
+		glVertex2i(GL_viewport_w, GL_viewport_y);
+	glEnd();
+
+	glPopMatrix();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void gr_opengl_free_screen(int id)
 {
-	bm_release(Gr_saved_screen_bitmap);
-	
-	if ( Gr_saved_screen )  {
-		free( Gr_saved_screen );
-		Gr_saved_screen = NULL;
+	if (Gr_saved_screen_tex) {
+		glDeleteTextures(1, &Gr_saved_screen_tex);
+		Gr_saved_screen_tex = 0;
 	}
 }
 
@@ -2889,9 +2944,56 @@ void gr_opengl_unlock()
 {
 }
 
+
+void gr_opengl_set_viewport(int width, int height)
+{
+	int w, h, x, y;
+
+	float ratio = gr_screen.max_w / i2fl(gr_screen.max_h);
+
+	w = width;
+	h = i2fl((width / ratio) + 0.5f);
+
+	if (h > height) {
+		h = height;
+		w = i2fl((height * ratio) + 0.5f);
+	}
+
+	x = (width - w) / 2;
+	y = (height - h) / 2;
+
+	GL_viewport_x = x;
+	GL_viewport_y = y;
+	GL_viewport_w = w;
+	GL_viewport_h = h;
+	GL_viewport_scale_w = w / i2fl(gr_screen.max_w);
+	GL_viewport_scale_h = h / i2fl(gr_screen.max_h);
+
+	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, GL_viewport_w, GL_viewport_h, 0, 0.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
+}
+
 void gr_opengl_force_windowed()
 {
 	SDL_SetWindowFullscreen(GL_window, 0);
+}
+
+void gr_opengl_force_fullscreen()
+{
+	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
+	int flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+	if (fullscreen == 2) {
+		flag = SDL_WINDOW_FULLSCREEN;
+	}
+
+	SDL_SetWindowFullscreen(GL_window, flag);
 }
 
 void opengl_zbias(int bias)
@@ -2912,132 +3014,92 @@ void gr_opengl_init()
 		Inited = 0;
 	}
 
-	mprintf(( "Initializing opengl graphics device...\n" ));
+	mprintf(( "Initializing OpenGL graphics device...\n" ));
 	Inited = 1;
 
-	if (SDL_InitSubSystem (SDL_INIT_VIDEO) < 0) {
+	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
 		fprintf (stderr, "Couldn't init SDL: %s", SDL_GetError());
-		exit (1);
+		exit(1);
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	int r = 5, g = 5, b = 5, bpp = 16, db = 1;
 
-	int flags = SDL_WINDOW_OPENGL;
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, g);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, b);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, db);
 
-	if (!Cmdline_window && ( (os_config_read_uint( NULL, "Fullscreen", 1 ) == 1) || Cmdline_fullscreen ))
-		flags |= SDL_WINDOW_FULLSCREEN;
+	FSAA = os_config_read_uint(NULL, "FSAA", 2);
 
-	// grab mouse/key unless told otherwise, ignore when we are going fullscreen
-	if ( !((flags & SDL_WINDOW_FULLSCREEN) || Cmdline_no_grab) ) {
-		SDL_SetWindowGrab(GL_window, SDL_TRUE);
+	if (FSAA) {
+	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
-	FSAA = os_config_read_uint( NULL, "FSAA", 2 );
-	if ( FSAA ) {
-	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
-	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, FSAA );
+	GL_window = SDL_CreateWindow(Osreg_title, SDL_WINDOWPOS_CENTERED,
+						SDL_WINDOWPOS_CENTERED,
+						gr_screen.max_w, gr_screen.max_h, SDL_WINDOW_OPENGL);
+
+	if ( !GL_window ) {
+		fprintf(stderr, "Couldn't create window: %s\n", SDL_GetError());
+		exit(1);
 	}
-/*
-	if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
-	{
-	    mprintf(( "Couldn't set FSAA video mode: %s\n", SDL_GetError () ));
-	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
-	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
-		
-	    if (SDL_SetVideoMode (gr_screen.max_w, gr_screen.max_h,0,flags) == NULL)
-	    {
-		    fprintf (stderr, "Couldn't set video mode: %s\n", SDL_GetError ());
-		    exit (1);
-	    }
-	}
-*/
-	GL_window = SDL_CreateWindow(Osreg_title, SDL_WINDOWPOS_UNDEFINED,
-						SDL_WINDOWPOS_UNDEFINED,
-						gr_screen.max_w, gr_screen.max_h, flags);
 
 	GL_context = SDL_GL_CreateContext(GL_window);
 
-//	mprintf(( "Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel ));
-//	mprintf(( "\n" ));
-	mprintf(( "Vendor     : %s\n", glGetString(GL_VENDOR) ));
-	mprintf(( "Renderer   : %s\n", glGetString(GL_RENDERER) ));
-	mprintf(( "Version    : %s\n", glGetString(GL_VERSION) ));
-/*
-#ifndef NDEBUG
-	// print out extensions - taken from FS2_Open (credits: phreak, taylor)
-	mprintf(( "Extensions : \n"));
+	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
+	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
+	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
 
-	static const char *OGL_extensions = (const char*)glGetString(GL_EXTENSIONS);
+	mprintf(("  Attributes requested: RGB %d%d%d, BPP %d, DB %d, AA %d\n", r, g, b, bpp, db, FSAA));
 
-	// we use the "+1" here to have an extra NULL char on the end (with the memset())
-	// this is to fix memory errors when the last char in extlist is the same as the token
-	// we are looking for and ultra evil strtok() may still return non-NULL at EOS
-	char *extlist = (char*)malloc(strlen(OGL_extensions) + 1);
-	memset(extlist, 0, strlen(OGL_extensions) + 1);
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
+	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &db);
+	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
 
-	if (extlist != NULL) {
-		memcpy(extlist, OGL_extensions, strlen(OGL_extensions));
+	mprintf(("  Attributes received:  RGB %d%d%d, BPP %d, DB %d, AA %d\n", r, g, b, bpp, db, FSAA));
 
-		char *curext = strtok(extlist, " ");
 
-		while (curext) {
-			mprintf(( "     %s\n", curext ));
-			curext = strtok(NULL, " ");
-		}
+	D3D_32bit = 1;              // grd3d.cpp
+	extern int D3D_enabled;
+	D3D_enabled = 1;
 
-		free(extlist);
-		extlist = NULL;
-	}
+	/*
+	  1 = use secondary color ext
+	  2 = use opengl linear fog
+	 */
+	D3D_fog_mode = 2;          // grd3d.cpp
 
-	mprintf(( "\n" ));
-#endif
-*/
-	int value;
-	int rgb_size[3];
-	int bpp = 15;
-	rgb_size[0]=5;
-	rgb_size[1]=5;
-	rgb_size[2]=5;
-
-	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &value );
-	mprintf(( "SDL_GL_RED_SIZE: requested %d, got %d\n", rgb_size[0],value ));
-	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &value );
-	mprintf(( "SDL_GL_GREEN_SIZE: requested %d, got %d\n", rgb_size[1],value ));
-	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &value );
-	mprintf(( "SDL_GL_BLUE_SIZE: requested %d, got %d\n", rgb_size[2],value ));
-	SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE, &value );
-	mprintf(( "SDL_GL_DEPTH_SIZE: requested %d, got %d\n", bpp, value ));
-	SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &value );
-	mprintf(( "SDL_GL_DOUBLEBUFFER: requested 1, got %d\n", value ));
-
-	if ( FSAA ) {
-		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLEBUFFERS, &value );
-		mprintf(( "SDL_GL_MULTISAMPLEBUFFERS: requested 1, got %d\n", value ));
-		SDL_GL_GetAttribute( SDL_GL_MULTISAMPLESAMPLES, &value );
-		mprintf(( "SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", FSAA, value ));
+	if ( SDL_GL_ExtensionSupported("GL_EXT_secondary_color") ) {
+		glSecondaryColor3fEXT = (PFNGLSECONDARYCOLOR3FEXTPROC)SDL_GL_GetProcAddress("glSecondaryColor3fEXT");
+		Assert( glSecondaryColor3fEXT != NULL );
+		D3D_fog_mode = 1;
+		mprintf(("  Using extension: GL_EXT_secondary_color\n"));
 	}
 
 	mprintf(("\n"));
 
-//	SDL_ShowCursor(0);
+	SDL_ShowCursor(0);
 
-//	SDL_SetRelativeMouseMode(SDL_TRUE);
+	// initial setup viewport
+	gr_opengl_set_viewport(gr_screen.max_w, gr_screen.max_h);
 
+	// maybe go fullscreen - should be done *after* initial viewport setup
+	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
+	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
+		int flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-	GL_use_luminance_alpha = os_config_read_uint(NOX("OpenGL"), NOX("UseLuminanceAlpha"), 0);
+		if (fullscreen == 2) {
+			flag = SDL_WINDOW_FULLSCREEN;
+		}
 
-	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+		SDL_SetWindowFullscreen(GL_window, flag);
+	}
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, gr_screen.max_w, gr_screen.max_h, 0, 0.0, 1.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DITHER);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -3052,22 +3114,14 @@ void gr_opengl_init()
 	
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	
-	D3D_32bit = 1;              // grd3d.cpp
-	extern int D3D_enabled;
-	D3D_enabled = 1;
-	/* 
-	  TODO: set fog_mode to 1 if EXT_secondary_color found and wanted 
-	  1 = use secondary color ext
-	  2 = use opengl linear fog
-	 */
-	D3D_fog_mode = 2;          // grd3d.cpp
 
 	glFlush();
+
 	
 	Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
 	Gr_bitmap_poly = 1;
-	
+
+	bpp = 15;
 	switch( bpp )	{
 	case 15:
 		gr_screen.bits_per_pixel = 15;

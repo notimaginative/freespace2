@@ -2479,7 +2479,16 @@ int check_control(int id, int key)
 			}
 
 		// check what current modifiers are pressed
-		mask = key_get_shift_status();
+		int tmp = key_get_shift_status();
+		mask = 0;
+
+		if (tmp & KEY_SHIFTED) {
+			mask |= KEY_SHIFTED;
+		}
+
+		if (tmp & KEY_ALTED) {
+			mask |= KEY_ALTED;
+		}
 
 		z = Control_config[id].key_id;
 		if (z >= 0) {

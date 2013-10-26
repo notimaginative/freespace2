@@ -96,41 +96,21 @@ static void opengl1_rect_internal(int x, int y, int w, int h, int r, int g, int 
 	gr_set_cull(1);
 }
 
-void gr_opengl1_rect(int x,int y,int w,int h)
-{
-	opengl1_rect_internal(x, y, w, h, gr_screen.current_color.red, gr_screen.current_color.green, gr_screen.current_color.blue, gr_screen.current_color.alpha);
-}
-
-void gr_opengl1_shade(int x,int y,int w,int h)
-{
-	int r,g,b,a;
-
-	float shade1 = 1.0f;
-	float shade2 = 6.0f;
-
-	r = fl2i(gr_screen.current_shader.r*255.0f*shade1);
-	if ( r < 0 ) r = 0; else if ( r > 255 ) r = 255;
-	g = fl2i(gr_screen.current_shader.g*255.0f*shade1);
-	if ( g < 0 ) g = 0; else if ( g > 255 ) g = 255;
-	b = fl2i(gr_screen.current_shader.b*255.0f*shade1);
-	if ( b < 0 ) b = 0; else if ( b > 255 ) b = 255;
-	a = fl2i(gr_screen.current_shader.c*255.0f*shade2);
-	if ( a < 0 ) a = 0; else if ( a > 255 ) a = 255;
-
-	opengl1_rect_internal(x, y, w, h, r, g, b, a);
-}
-
 static void opengl1_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 {
-	if ( w < 1 ) return;
-	if ( h < 1 ) return;
-
-	if ( !gr_screen.current_color.is_alphacolor )
+	if ( (w < 1) || (h < 1) ) {
 		return;
+	}
+
+	if ( !gr_screen.current_color.is_alphacolor ) {
+		return;
+	}
 
 	float u_scale, v_scale;
 
-	if ( !opengl1_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 0, -1, -1, 0 ) )	{
+	if ( !opengl1_tcache_set(gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP,
+			&u_scale, &v_scale, 0, -1, -1, 0) )
+	{
 		// Couldn't set texture
 		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
 		return;
@@ -190,6 +170,292 @@ static void opengl1_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+static void opengl1_stuff_fog_value(float z, float *f_val)
+{
+	float f_float;
+
+	if ( !f_val ) {
+		return;
+	}
+
+	f_float = 1.0f - ((gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near));
+
+	if (f_float < 0.0f) {
+		f_float = 0.0f;
+	} else if (f_float > 1.0f) {
+		f_float = 1.0f;
+	}
+
+	*f_val = f_float;
+}
+
+static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
+{
+	int i;
+	float u_scale = 1.0f, v_scale = 1.0f;
+
+	// Make nebula use the texture mapper... this blends the colors better.
+	if ( flags & TMAP_FLAG_NEBULA ){
+		Int3 ();
+	}
+
+	gr_texture_source texture_source = (gr_texture_source)-1;
+	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
+	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;
+
+	if ( gr_zbuffering )    {
+		if ( is_scaler || (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER) ) {
+			zbuffer_type = ZBUFFER_TYPE_READ;
+		} else {
+			zbuffer_type = ZBUFFER_TYPE_FULL;
+		}
+	} else {
+		zbuffer_type = ZBUFFER_TYPE_NONE;
+	}
+
+	int alpha;
+
+	int tmap_type = TCACHE_TYPE_NORMAL;
+
+	int r, g, b;
+
+	if ( flags & TMAP_FLAG_TEXTURED )       {
+		r = g = b = 255;
+	} else {
+		r = gr_screen.current_color.red;
+		g = gr_screen.current_color.green;
+		b = gr_screen.current_color.blue;
+	}
+
+	if (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER) {
+		tmap_type = TCACHE_TYPE_NORMAL;
+		alpha_blend = ALPHA_BLEND_ALPHA_ADDITIVE;
+
+		// Blend with screen pixel using src*alpha+dst
+
+		alpha = 255;
+
+		if (gr_screen.current_alpha <= 1.0f)   {
+			r = fl2i((r * gr_screen.current_alpha) + 0.5f);
+			g = fl2i((g * gr_screen.current_alpha) + 0.5f);
+			b = fl2i((b * gr_screen.current_alpha) + 0.5f);
+		}
+	} else {
+		alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
+		alpha = 255;
+	}
+
+	if (flags & TMAP_FLAG_BITMAP_SECTION) {
+		Assert( !(flags & TMAP_FLAG_BITMAP_INTERFACE) );
+		tmap_type = TCACHE_TYPE_BITMAP_SECTION;
+	} else if (flags & TMAP_FLAG_BITMAP_INTERFACE) {
+		Assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
+		tmap_type = TCACHE_TYPE_BITMAP_INTERFACE;
+	}
+
+	texture_source = TEXTURE_SOURCE_NONE;
+
+	if (flags & TMAP_FLAG_TEXTURED) {
+		if ( !opengl1_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale,
+				&v_scale, 0, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, 0) )
+		{
+			mprintf(( "Not rendering a texture because it didn't fit in VRAM!\n" ));
+			return;
+		}
+
+		// use non-filtered textures for bitmap sections and UI graphics
+		switch (tmap_type) {
+			case TCACHE_TYPE_BITMAP_INTERFACE:
+			case TCACHE_TYPE_BITMAP_SECTION:
+				texture_source = TEXTURE_SOURCE_NO_FILTERING;
+				break;
+
+			default:
+				texture_source = TEXTURE_SOURCE_DECAL;
+				break;
+		}
+	}
+
+
+	opengl1_set_state( texture_source, alpha_blend, zbuffer_type );
+
+	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
+
+	if (flags & TMAP_FLAG_PIXEL_FOG) {
+		int r, g, b;
+		int ra, ga, ba;
+		ra = ga = ba = 0;
+
+		/* argh */
+		for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
+		{
+			vertex * va = verts[i];
+			float sx, sy;
+
+			int x, y;
+			x = fl2i(va->sx*16.0f);
+			y = fl2i(va->sy*16.0f);
+
+			x += gr_screen.offset_x*16;
+			y += gr_screen.offset_y*16;
+
+			sx = i2fl(x) / 16.0f;
+			sy = i2fl(y) / 16.0f;
+
+			neb2_get_pixel((int)sx, (int)sy, &r, &g, &b);
+
+			ra += r;
+			ga += g;
+			ba += b;
+		}
+
+		ra /= nv;
+		ga /= nv;
+		ba /= nv;
+
+		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
+
+		fr = ra / 255.0f;
+		fg = ga / 255.0f;
+		fb = ba / 255.0f;
+	}
+
+	opengl_alloc_render_buffer(nv);
+
+	int rb_offset = 0;
+
+	for (i = nv-1; i >= 0; i--) {
+		vertex * va = verts[i];
+		float sx, sy, sz;
+		float rhw = 1.0f;
+		int a;
+
+		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
+			sz = 1.0 - 1.0 / (1.0 + va->z / (32768.0 / 256.0));
+
+			if ( sz > 0.98f ) {
+				sz = 0.98f;
+			}
+		} else {
+			sz = 0.99f;
+		}
+
+		if ( flags & TMAP_FLAG_CORRECT )        {
+			rhw /= va->sw;
+		}
+
+		if (flags & TMAP_FLAG_ALPHA) {
+			a = verts[i]->a;
+		} else {
+			a = alpha;
+		}
+
+		if (flags & TMAP_FLAG_NEBULA ) {
+			int pal = (verts[i]->b*(NEBULA_COLORS-1))/255;
+			r = gr_palette[pal*3+0];
+			g = gr_palette[pal*3+1];
+			b = gr_palette[pal*3+2];
+		} else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
+			r = Gr_gamma_lookup[verts[i]->b];
+			g = Gr_gamma_lookup[verts[i]->b];
+			b = Gr_gamma_lookup[verts[i]->b];
+		} else if ( (flags & TMAP_FLAG_RGB)  && (flags & TMAP_FLAG_GOURAUD) )   {
+			// Make 0.75 be 256.0f
+			r = Gr_gamma_lookup[verts[i]->r];
+			g = Gr_gamma_lookup[verts[i]->g];
+			b = Gr_gamma_lookup[verts[i]->b];
+		} else {
+			// use constant RGB values...
+		}
+
+		render_buffer[rb_offset].r = r;
+		render_buffer[rb_offset].g = g;
+		render_buffer[rb_offset].b = b;
+		render_buffer[rb_offset].a = a;
+
+		if ( (gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1) ) {
+			float f_val;
+
+			opengl1_stuff_fog_value(va->z, &f_val);
+
+			render_buffer[rb_offset].sr = fl2i(((fr * f_val) * 255.0f) + 0.5f);
+			render_buffer[rb_offset].sg = fl2i(((fg * f_val) * 255.0f) + 0.5f);
+			render_buffer[rb_offset].sb = fl2i(((fb * f_val) * 255.0f) + 0.5f);
+		}
+
+		int x, y;
+		x = fl2i(va->sx*16.0f);
+		y = fl2i(va->sy*16.0f);
+
+		x += gr_screen.offset_x*16;
+		y += gr_screen.offset_y*16;
+
+		sx = i2fl(x) / 16.0f;
+		sy = i2fl(y) / 16.0f;
+
+		if ( flags & TMAP_FLAG_TEXTURED )       {
+			render_buffer[rb_offset].u = va->u * u_scale;
+			render_buffer[rb_offset].v = va->v * v_scale;
+		}
+
+		render_buffer[rb_offset].x = sx * rhw;
+		render_buffer[rb_offset].y = sy * rhw;
+		render_buffer[rb_offset].z = -sz * rhw;
+		render_buffer[rb_offset].w = rhw;
+
+		++rb_offset;
+	}
+
+	if (flags & TMAP_FLAG_TEXTURED) {
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
+	}
+
+	if ( (gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1) ) {
+		glEnableClientState(GL_SECONDARY_COLOR_ARRAY);
+		vglSecondaryColorPointer(3, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].sr);
+	}
+
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].r);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(4, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
+
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void gr_opengl1_rect(int x,int y,int w,int h)
+{
+	opengl1_rect_internal(x, y, w, h, gr_screen.current_color.red,
+			gr_screen.current_color.green, gr_screen.current_color.blue,
+			gr_screen.current_color.alpha);
+}
+
+void gr_opengl1_shade(int x,int y,int w,int h)
+{
+	int r,g,b,a;
+
+	float shade1 = 1.0f;
+	float shade2 = 6.0f;
+
+	r = fl2i(gr_screen.current_shader.r*255.0f*shade1);
+	if ( r < 0 ) r = 0; else if ( r > 255 ) r = 255;
+	g = fl2i(gr_screen.current_shader.g*255.0f*shade1);
+	if ( g < 0 ) g = 0; else if ( g > 255 ) g = 255;
+	b = fl2i(gr_screen.current_shader.b*255.0f*shade1);
+	if ( b < 0 ) b = 0; else if ( b > 255 ) b = 255;
+	a = fl2i(gr_screen.current_shader.c*255.0f*shade2);
+	if ( a < 0 ) a = 0; else if ( a > 255 ) a = 255;
+
+	opengl1_rect_internal(x, y, w, h, r, g, b, a);
 }
 
 void gr_opengl1_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
@@ -436,11 +702,10 @@ void gr_opengl1_string( int sx, int sy, const char *s )
 
 void gr_opengl1_line(int x1,int y1,int x2,int y2)
 {
-	int clipped = 0, swapped=0;
-
 	opengl1_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 
-	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,
+			gr_screen.clip_right,gr_screen.clip_bottom,return,void(),void());
 
 	float sx1, sy1;
 	float sx2, sy2;
@@ -510,14 +775,15 @@ void gr_opengl1_aaline(vertex *v1, vertex *v2)
 
 void gr_opengl1_gradient(int x1,int y1,int x2,int y2)
 {
-	int clipped = 0, swapped=0;
+	int swapped=0;
 
 	if ( !gr_screen.current_color.is_alphacolor )   {
 		gr_line( x1, y1, x2, y2 );
 		return;
 	}
 
-	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,gr_screen.clip_right,gr_screen.clip_bottom,return,clipped=1,swapped=1);
+	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,
+			gr_screen.clip_right,gr_screen.clip_bottom,return,void(),swapped=1);
 
 	opengl1_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 
@@ -673,293 +939,6 @@ void gr_opengl1_flash(int r, int g, int b)
 
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
-}
-
-void opengl1_stuff_fog_value(float z, float *f_val)
-{
-	float f_float;
-
-	if ( !f_val ) {
-		return;
-	}
-
-	f_float = 1.0f - ((gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near));
-
-	if (f_float < 0.0f) {
-		f_float = 0.0f;
-	} else if (f_float > 1.0f) {
-		f_float = 1.0f;
-	}
-
-	*f_val = f_float;
-}
-
-void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
-{
-	int i;
-	float u_scale = 1.0f, v_scale = 1.0f;
-
-	// Make nebula use the texture mapper... this blends the colors better.
-	if ( flags & TMAP_FLAG_NEBULA ){
-		Int3 ();
-	}
-
-	gr_texture_source texture_source = (gr_texture_source)-1;
-	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
-	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;
-
-	if ( gr_zbuffering )    {
-		if ( is_scaler || (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER)   )       {
-			zbuffer_type = ZBUFFER_TYPE_READ;
-		} else {
-			zbuffer_type = ZBUFFER_TYPE_FULL;
-		}
-	} else {
-		zbuffer_type = ZBUFFER_TYPE_NONE;
-	}
-
-	int alpha;
-
-	int tmap_type = TCACHE_TYPE_NORMAL;
-
-	int r, g, b;
-
-	if ( flags & TMAP_FLAG_TEXTURED )       {
-		r = g = b = 255;
-	} else {
-		r = gr_screen.current_color.red;
-		g = gr_screen.current_color.green;
-		b = gr_screen.current_color.blue;
-	}
-
-	if ( gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER )
-	{
-		if (1) {
-			tmap_type = TCACHE_TYPE_NORMAL;
-			alpha_blend = ALPHA_BLEND_ALPHA_ADDITIVE;
-
-			// Blend with screen pixel using src*alpha+dst
-			float factor = gr_screen.current_alpha;
-
-			alpha = 255;
-
-			if ( factor <= 1.0f )   {
-				int tmp_alpha = fl2i(gr_screen.current_alpha*255.0f);
-				r = (r*tmp_alpha)/255;
-				g = (g*tmp_alpha)/255;
-				b = (b*tmp_alpha)/255;
-			}
-		} else {
-			tmap_type = TCACHE_TYPE_XPARENT;
-
-			alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
-
-			// Blend with screen pixel using src*alpha+dst
-			float factor = gr_screen.current_alpha;
-
-			if ( factor > 1.0f )    {
-				alpha = 255;
-			} else {
-				alpha = fl2i(gr_screen.current_alpha*255.0f);
-			}
-		}
-	} else {
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_ARGB) {
-			alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
-		} else {
-			alpha_blend = ALPHA_BLEND_NONE;
-		}
-		alpha = 255;
-	}
-
-	if (flags & TMAP_FLAG_BITMAP_SECTION) {
-		Assert( !(flags & TMAP_FLAG_BITMAP_INTERFACE) );
-		tmap_type = TCACHE_TYPE_BITMAP_SECTION;
-	} else if (flags & TMAP_FLAG_BITMAP_INTERFACE) {
-		Assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
-		tmap_type = TCACHE_TYPE_BITMAP_INTERFACE;
-	}
-
-	texture_source = TEXTURE_SOURCE_NONE;
-
-	if ( flags & TMAP_FLAG_TEXTURED )       {
-		if ( !opengl1_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale, &v_scale, 0, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, 0 ))
-		{
-			mprintf(( "Not rendering a texture because it didn't fit in VRAM!\n" ));
-			return;
-		}
-
-		// use nonfiltered textures for bitmap sections and UI graphics
-		switch (tmap_type) {
-			case TCACHE_TYPE_BITMAP_INTERFACE:
-			case TCACHE_TYPE_BITMAP_SECTION:
-				texture_source = TEXTURE_SOURCE_NO_FILTERING;
-				break;
-
-			default:
-				texture_source = TEXTURE_SOURCE_DECAL;
-				break;
-		}
-	}
-
-
-	opengl1_set_state( texture_source, alpha_blend, zbuffer_type );
-
-	if ( flags & TMAP_FLAG_TEXTURED )
-	{
-		// rendition junk
-		// STUB_FUNCTION;
-	}
-
-	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
-
-	if (flags & TMAP_FLAG_PIXEL_FOG) {
-		int r, g, b;
-		int ra, ga, ba;
-		ra = ga = ba = 0;
-
-		/* argh */
-		for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
-		{
-			vertex * va = verts[i];
-			float sx, sy;
-
-			int x, y;
-			x = fl2i(va->sx*16.0f);
-			y = fl2i(va->sy*16.0f);
-
-			x += gr_screen.offset_x*16;
-			y += gr_screen.offset_y*16;
-
-			sx = i2fl(x) / 16.0f;
-			sy = i2fl(y) / 16.0f;
-
-			neb2_get_pixel((int)sx, (int)sy, &r, &g, &b);
-
-			ra += r;
-			ga += g;
-			ba += b;
-		}
-
-		ra /= nv;
-		ga /= nv;
-		ba /= nv;
-
-		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
-
-		fr = ra / 255.0f;
-		fg = ga / 255.0f;
-		fb = ba / 255.0f;
-	}
-
-	opengl_alloc_render_buffer(nv);
-
-	int rb_offset = 0;
-
-	for (i = nv-1; i >= 0; i--) {
-		vertex * va = verts[i];
-		float sx, sy, sz;
-		float rhw = 1.0f;
-		int a;
-
-		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
-			sz = 1.0 - 1.0 / (1.0 + va->z / (32768.0 / 256.0));
-
-			if ( sz > 0.98f ) {
-				sz = 0.98f;
-			}
-		} else {
-			sz = 0.99f;
-		}
-
-		if ( flags & TMAP_FLAG_CORRECT )        {
-			rhw /= va->sw;
-		}
-
-		if (flags & TMAP_FLAG_ALPHA) {
-			a = verts[i]->a;
-		} else {
-			a = alpha;
-		}
-
-		if (flags & TMAP_FLAG_NEBULA ) {
-			int pal = (verts[i]->b*(NEBULA_COLORS-1))/255;
-			r = gr_palette[pal*3+0];
-			g = gr_palette[pal*3+1];
-			b = gr_palette[pal*3+2];
-		} else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
-			r = Gr_gamma_lookup[verts[i]->b];
-			g = Gr_gamma_lookup[verts[i]->b];
-			b = Gr_gamma_lookup[verts[i]->b];
-		} else if ( (flags & TMAP_FLAG_RGB)  && (flags & TMAP_FLAG_GOURAUD) )   {
-			// Make 0.75 be 256.0f
-			r = Gr_gamma_lookup[verts[i]->r];
-			g = Gr_gamma_lookup[verts[i]->g];
-			b = Gr_gamma_lookup[verts[i]->b];
-		} else {
-			// use constant RGB values...
-		}
-
-		render_buffer[rb_offset].r = r;
-		render_buffer[rb_offset].g = g;
-		render_buffer[rb_offset].b = b;
-		render_buffer[rb_offset].a = a;
-
-		if((gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1)){
-			float f_val;
-
-			opengl1_stuff_fog_value(va->z, &f_val);
-
-			render_buffer[rb_offset].sr = fl2i(((fr * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sg = fl2i(((fg * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sb = fl2i(((fb * f_val) * 255.0f) + 0.5f);
-		}
-
-		int x, y;
-		x = fl2i(va->sx*16.0f);
-		y = fl2i(va->sy*16.0f);
-
-		x += gr_screen.offset_x*16;
-		y += gr_screen.offset_y*16;
-
-		sx = i2fl(x) / 16.0f;
-		sy = i2fl(y) / 16.0f;
-
-		if ( flags & TMAP_FLAG_TEXTURED )       {
-			render_buffer[rb_offset].u = va->u * u_scale;
-			render_buffer[rb_offset].v = va->v * v_scale;
-		}
-
-		render_buffer[rb_offset].x = sx * rhw;
-		render_buffer[rb_offset].y = sy * rhw;
-		render_buffer[rb_offset].z = -sz * rhw;
-		render_buffer[rb_offset].w = rhw;
-
-		++rb_offset;
-	}
-
-	if (flags & TMAP_FLAG_TEXTURED) {
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
-	}
-
-	if ( (gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1) ) {
-		glEnableClientState(GL_SECONDARY_COLOR_ARRAY);
-		vglSecondaryColorPointerEXT(3, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].sr);
-	}
-
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].r);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(4, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
-
-	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
-
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void gr_opengl1_tmapper( int nverts, vertex **verts, uint flags )

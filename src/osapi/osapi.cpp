@@ -306,10 +306,6 @@ void os_deinit()
 	SDL_Quit();
 }
 
-extern void gr_opengl_set_viewport(int width, int height);
-extern void gr_opengl_force_windowed();
-extern void gr_opengl_force_fullscreen();
-
 void os_poll()
 {
 	SDL_Event e;
@@ -343,9 +339,9 @@ void os_poll()
 			case SDL_KEYDOWN: {
 				if (e.key.keysym.mod & KMOD_GUI) {
 					if (e.key.keysym.sym == SDLK_f ) {
-						gr_opengl_force_fullscreen();
+						gr_force_fullscreen();
 					} else if (e.key.keysym.sym == SDLK_w) {
-						gr_opengl_force_windowed();
+						gr_force_windowed();
 				//	} else if (e.key.keysym.sym == SDLK_z) {
 				//		SDL_MinimizeWindow(GL_window);
 					}

@@ -408,9 +408,6 @@ typedef struct screen {
 	//switch onscreen, offscreen
 	void (*gf_flip)();
 
-	// Sets the current palette
-	void (*gf_set_palette)(ubyte * new_pal, int restrict_alphacolor);
-
 	// Fade the screen in/out
 	void (*gf_fade_in)(int instantaneous);
 	void (*gf_fade_out)(int instantaneous);
@@ -541,17 +538,11 @@ typedef struct screen {
 	// set fog attributes
 	void (*gf_fog_set)(int fog_mode, int r, int g, int b, float fog_near, float fog_far);	
 
-	// get the current pixel color in the framebuffer 
-	void (*gf_get_pixel)(int x, int y, int *r, int *g, int *b);
-
 	// poly culling
 	void (*gf_set_cull)(int cull);
 
 	// cross fade
 	void (*gf_cross_fade)(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct);
-
-	// filtering
-	void (*gf_filter_set)(int filter);
 
 	// set the color to be used when clearing the background
 	void (*gf_set_clear_color)(int r, int g, int b);
@@ -563,6 +554,7 @@ typedef struct screen {
 
 	void (*gf_force_windowed)();
 	void (*gf_force_fullscreen)();
+	void (*gf_set_viewport)(int width, int height);
 
 	void (*gf_activate)(int active);
 } screen;
@@ -712,13 +704,9 @@ __inline bool gr_is_32bit()
 
 #define gr_fog_set			GR_CALL(gr_screen.gf_fog_set)
 
-#define gr_get_pixel			GR_CALL(gr_screen.gf_get_pixel)
-
 #define gr_set_cull			GR_CALL(gr_screen.gf_set_cull)
 
 #define gr_cross_fade		GR_CALL(gr_screen.gf_cross_fade)
-
-#define gr_filter_set		GR_CALL(gr_screen.gf_filter_set)
 
 #define gr_set_clear_color	GR_CALL(gr_screen.gf_set_clear_color)
 
@@ -727,10 +715,12 @@ __inline bool gr_is_32bit()
 
 #define gr_zbias			GR_CALL(gr_screen.gf_zbias)
 
+#define gr_set_viewport		GR_CALL(gr_screen.gf_set_viewport)
+#define gr_force_fullscreen	GR_CALL(gr_screen.gf_force_fullscreen)
+#define gr_force_windowed	GR_CALL(gr_screen.gf_force_windowed)
+
 // new bitmap functions
-extern int Gr_bitmap_poly;
 void gr_bitmap(int x, int y);
-void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy);
 
 // special function for drawing polylines. this function is specifically intended for
 // polylines where each section is no more than 90 degrees away from a previous section.

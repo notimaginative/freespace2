@@ -14,6 +14,7 @@
 #include "bmpman.h"
 #include "grinternal.h"
 #include "systemvars.h"
+#include "osregistry.h"
 
 
 int vram_full = 0;
@@ -54,38 +55,8 @@ static gr_texture_source GL_current_texture_source = (gr_texture_source) -1;
 
 static ubyte GL_xlat[256] = { 0 };
 
+extern int bm_get_cache_slot( int bitmap_id, int separate_ani_frames );
 
-void gr_opengl1_set_gamma(float gamma)
-{
-	Gr_gamma = gamma;
-	Gr_gamma_int = int (Gr_gamma*10);
-
-	// Create the Gamma lookup table
-	int i;
-	for (i=0;i<256; i++) {
-		int v = fl2i(pow(i2fl(i)/255.0f, 1.0f/Gr_gamma)*255.0f);
-		if ( v > 255 ) {
-			v = 255;
-		} else if ( v < 0 )     {
-			v = 0;
-		}
-		Gr_gamma_lookup[i] = v;
-	}
-
-	// set the alpha gamma settings (for fonts)
-	for (i=0; i<16; i++) {
-		GL_xlat[i] = (ubyte)Gr_gamma_lookup[(i*255)/15];
-	}
-
-	GL_xlat[15] = GL_xlat[1];
-
-	for (; i<256; i++) {
-		GL_xlat[i] = GL_xlat[0];
-	}
-
-	// Flush any existing textures
-	opengl1_tcache_flush();
-}
 
 void opengl1_set_texture_state(gr_texture_source ts)
 {
@@ -116,25 +87,17 @@ void opengl1_set_texture_state(gr_texture_source ts)
 }
 
 
-void opengl1_tcache_init (int use_sections)
+void opengl1_tcache_init()
 {
 	int i, idx, s_idx;
 
-	// DDOI - FIXME skipped a lot of stuff here
-	GL_should_preload = 0;
+	uint tmp_pl = os_config_read_uint( NULL, NOX("PreloadTextures"), 1 );
 
-	//uint tmp_pl = os_config_read_uint( NULL, NOX("D3DPreloadTextures"), 255 );
-	uint tmp_pl = 1;
-
-	if ( tmp_pl == 0 )      {
-		GL_should_preload = 0;
-	} else if ( tmp_pl == 1 )       {
+	if (tmp_pl == 1) {
 		GL_should_preload = 1;
 	} else {
-		GL_should_preload = 1;
+		GL_should_preload = 0;
 	}
-
-	STUB_FUNCTION;
 
 	Textures = (tcache_slot_opengl *)malloc(MAX_BITMAPS*sizeof(tcache_slot_opengl));
 	if ( !Textures )        {
@@ -152,10 +115,6 @@ void opengl1_tcache_init (int use_sections)
 	// Init the texture structures
 	int section_count = 0;
 	for( i=0; i<MAX_BITMAPS; i++ )  {
-		/*
-		Textures[i].vram_texture = NULL;
-		Textures[i].vram_texture_surface = NULL;
-		*/
 		Textures[i].texture_handle = 0;
 
 		Textures[i].bitmap_id = -1;
@@ -170,10 +129,6 @@ void opengl1_tcache_init (int use_sections)
 				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
 					Textures[i].data_sections[idx][s_idx] = &((tcache_slot_opengl*)Texture_sections)[section_count++];
 					Textures[i].data_sections[idx][s_idx]->parent = &Textures[i];
-					/*
-					Textures[i].data_sections[idx][s_idx]->vram_texture = NULL;
-					Textures[i].data_sections[idx][s_idx]->vram_texture_surface = NULL;
-					*/
 					Textures[i].data_sections[idx][s_idx]->texture_handle = 0;
 					Textures[i].data_sections[idx][s_idx]->bitmap_id = -1;
 					Textures[i].data_sections[idx][s_idx]->size = 0;
@@ -200,7 +155,57 @@ void opengl1_tcache_init (int use_sections)
 	GL_textures_in_frame = 0;
 }
 
-static int opengl1_free_texture (tcache_slot_opengl *t);
+static int opengl1_free_texture ( tcache_slot_opengl *t )
+{
+	int idx, s_idx;
+
+
+	// Bitmap changed!!
+	if ( t->bitmap_id > -1 )        {
+		// if I, or any of my children have been used this frame, bail
+		if(t->used_this_frame == GL_frame_count){
+			return 0;
+		}
+
+		if (gr_screen.use_sections) {
+			for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
+				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
+					if((t->data_sections[idx][s_idx] != NULL) && (t->data_sections[idx][s_idx]->used_this_frame == GL_frame_count)){
+						return 0;
+					}
+				}
+			}
+		}
+
+		// ok, now we know its legal to free everything safely
+		t->texture_mode = (gr_texture_source) -1;
+		glDeleteTextures (1, &t->texture_handle);
+		t->texture_handle = 0;
+
+		if ( GL_last_bitmap_id == t->bitmap_id )       {
+			GL_last_bitmap_id = -1;
+		}
+
+		// if this guy has children, free them too, since the children
+		// actually make up his size
+		if (gr_screen.use_sections) {
+			for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
+				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
+					if(t->data_sections[idx][s_idx] != NULL){
+						opengl1_free_texture(t->data_sections[idx][s_idx]);
+					}
+				}
+			}
+		}
+
+		t->bitmap_id = -1;
+		t->used_this_frame = 0;
+		GL_textures_in -= t->size;
+		t->size = 0;
+	}
+
+	return 1;
+}
 
 void opengl1_free_texture_with_handle(int handle)
 {
@@ -280,58 +285,6 @@ void opengl1_tcache_frame()
 		opengl1_tcache_flush();
 		vram_full = 0;
 	}
-}
-
-static int opengl1_free_texture ( tcache_slot_opengl *t )
-{
-	int idx, s_idx;
-
-
-	// Bitmap changed!!
-	if ( t->bitmap_id > -1 )        {
-		// if I, or any of my children have been used this frame, bail
-		if(t->used_this_frame == GL_frame_count){
-			return 0;
-		}
-
-		if (gr_screen.use_sections) {
-			for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
-				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
-					if((t->data_sections[idx][s_idx] != NULL) && (t->data_sections[idx][s_idx]->used_this_frame == GL_frame_count)){
-						return 0;
-					}
-				}
-			}
-		}
-
-		// ok, now we know its legal to free everything safely
-		t->texture_mode = (gr_texture_source) -1;
-		glDeleteTextures (1, &t->texture_handle);
-		t->texture_handle = 0;
-
-		if ( GL_last_bitmap_id == t->bitmap_id )       {
-			GL_last_bitmap_id = -1;
-		}
-
-		// if this guy has children, free them too, since the children
-		// actually make up his size
-		if (gr_screen.use_sections) {
-			for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
-				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
-					if(t->data_sections[idx][s_idx] != NULL){
-						opengl1_free_texture(t->data_sections[idx][s_idx]);
-					}
-				}
-			}
-		}
-
-		t->bitmap_id = -1;
-		t->used_this_frame = 0;
-		GL_textures_in -= t->size;
-		t->size = 0;
-	}
-
-	return 1;
 }
 
 static void opengl1_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int *h_out)
@@ -518,7 +471,7 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 			size = tex_w*tex_h*2;
 
 			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 			} else {
 				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 			}
@@ -559,7 +512,7 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 			size = tex_w*tex_h*2;
 
 			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 			} else {
 				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
 			}
@@ -626,12 +579,7 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	int max_w = bmp->w;
 	int max_h = bmp->h;
 
-
-	   // DDOI - TODO
 	if (cull_size) {
-		// max_w /= D3D_texture_divider;
-		// max_h /= D3D_texture_divider;
-
 		// if we are going to cull the size then we need to force a resize
 		if (Detail.hardware_textures < 4) {
 			resize = 1;
@@ -741,8 +689,6 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 	return ret_val;
 }
 
-extern int bm_get_cache_slot( int bitmap_id, int separate_ani_frames );
-
 int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full, int sx, int sy, int force)
 {
 	bitmap *bmp = NULL;
@@ -822,10 +768,6 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 			t->texture_handle = 0;
 			t->time_created = t->data_sections[sx][sy]->time_created;
 			t->used_this_frame = 0;
-			/*
-			t->vram_texture = NULL;
-			t->vram_texture_surface = NULL
-			*/
 		}
 
 		// argh. we failed to upload. free anything we can
@@ -914,4 +856,36 @@ int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
 	}
 
 	return retval;
+}
+
+void gr_opengl1_set_gamma(float gamma)
+{
+	Gr_gamma = gamma;
+	Gr_gamma_int = int (Gr_gamma*10);
+
+	// Create the Gamma lookup table
+	int i;
+	for (i=0;i<256; i++) {
+		int v = fl2i(pow(i2fl(i)/255.0f, 1.0f/Gr_gamma)*255.0f);
+		if ( v > 255 ) {
+			v = 255;
+		} else if ( v < 0 )     {
+			v = 0;
+		}
+		Gr_gamma_lookup[i] = v;
+	}
+
+	// set the alpha gamma settings (for fonts)
+	for (i=0; i<16; i++) {
+		GL_xlat[i] = (ubyte)Gr_gamma_lookup[(i*255)/15];
+	}
+
+	GL_xlat[15] = GL_xlat[1];
+
+	for (; i<256; i++) {
+		GL_xlat[i] = GL_xlat[0];
+	}
+
+	// Flush any existing textures
+	opengl1_tcache_flush();
 }

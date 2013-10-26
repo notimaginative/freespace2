@@ -553,6 +553,7 @@ void gr_close()
 		break;
 	default:
 		Int3();		// Invalid graphics mode
+		break;
 	}
 
 	gr_font_close();
@@ -684,15 +685,6 @@ void gr_set_palette_internal( const char *name, ubyte * palette, int restrict_fo
 //	mprintf(("Setting new palette\n" ));
 
 	if ( Gr_inited )	{
-		if (gr_screen.gf_set_palette)	{
-			(*gr_screen.gf_set_palette)(Gr_current_palette, restrict_font_to_128 );
-
-			// Since the palette set code might shuffle the palette,
-			// reload it into the source palette
-			if ( palette )
-				memmove( palette, Gr_current_palette, 768 );
-		}
-
 		// Update Palette Manager tables
 		memmove( gr_palette, Gr_current_palette, 768 );
 		palette_update(name, restrict_font_to_128);
@@ -878,7 +870,6 @@ done_checking_cpuid:
 
 int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 {
-	int first_time = 0;
 	int max_w, max_h;
 
 	gr_detect_cpu(&Gr_cpu, &Gr_mmx, &Gr_amd3d, &Gr_katmai );
@@ -913,9 +904,8 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 			break;
 		default:
 			Int3();		// Invalid graphics mode
+			break;
 		}
-	} else {
-		first_time = 1;
 	}
 
 #if defined(HARDWARE_ONLY)
@@ -949,6 +939,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 
 		default :
 			Int3();
+			break;
 		}
 	} else {		
 		max_w = fred_x;
@@ -979,45 +970,12 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	gr_screen.clip_height = gr_screen.max_h;
 
 	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:
-			SDL_assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
-			gr_soft_init();
-			break;
-		case GR_DIRECTDRAW:
-			Int3();
-			gr_directdraw_init();
-			break;
-		case GR_DIRECT3D:
-			// we only care about possible 32 bit stuff here
-			Cmdline_force_32bit = 0;
-			if(depth == 32){
-				Cmdline_force_32bit = 1;
-			} 
-
-			gr_d3d_init();
-
-			// bad startup - stupid D3D
-			extern int D3D_inited;
-			if(!D3D_inited){
-				Gr_inited = 0;
-				return 1;
-			}
-
-			break;
-		case GR_GLIDE:
-			// if we're in high-res. force polygon interface
-			if(gr_screen.res == GR_1024){
-				Gr_bitmap_poly = 1;
-			}
-			gr_glide_init();
-			break;
-#endif			
 		case GR_OPENGL:
 			gr_opengl_init();
 			break;
 		default:
 			Int3();		// Invalid graphics mode
+			break;
 	}
 
 	memmove( Gr_current_palette, Gr_original_palette, 768 );
@@ -1106,113 +1064,42 @@ int gr_get_cursor_bitmap()
 	return Gr_cursor;
 }
 
-
-int Gr_bitmap_poly = 0;
-DCF(bmap, "")
-{
-	Gr_bitmap_poly = !Gr_bitmap_poly;
-
-	if(Gr_bitmap_poly){
-		dc_printf("Using poly bitmaps\n");
-	} else {
-		dc_printf("Using LFB bitmaps\n");
-	}
-}
-
 // new bitmap functions
 void gr_bitmap(int x, int y)
 {
 	int section_x, section_y;	
 	int x_line, y_line;
 	int w, h;
+	int idx, s_idx;
+	// float u_scale, v_scale;
+	bitmap_section_info *sections;
 
-	// d3d and glide support texture poly shiz
-	if((gr_screen.mode == GR_OPENGL) && Gr_bitmap_poly){
-		int idx, s_idx;
-		// float u_scale, v_scale;
-		bitmap_section_info *sections;			
+	// render all sections
+	bm_get_info(gr_screen.current_bitmap, &w, &h, NULL, NULL, NULL, &sections);
+	y_line = 0;
+	section_y = 0;
 
-		// render all sections
-		bm_get_info(gr_screen.current_bitmap, &w, &h, NULL, NULL, NULL, &sections);
-		y_line = 0;
-		section_y = 0;
+	if (gr_screen.use_sections) {
+		for(idx=0; idx<sections->num_y; idx++){
+			x_line = 0;
+			for(s_idx=0; s_idx<sections->num_x; s_idx++){
+				// get the section as a texture in vram
+				gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode, gr_screen.current_bitblt_mode, gr_screen.current_alpha, s_idx, idx);
 
-		if (gr_screen.use_sections) {
-			for(idx=0; idx<sections->num_y; idx++){
-				x_line = 0;
-				for(s_idx=0; s_idx<sections->num_x; s_idx++){
-					// get the section as a texture in vram
-					gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode, gr_screen.current_bitblt_mode, gr_screen.current_alpha, s_idx, idx);
+				// determine the width and height of this section
+				bm_get_section_size(gr_screen.current_bitmap, s_idx, idx, &section_x, &section_y);
 
-					// determine the width and height of this section
-					bm_get_section_size(gr_screen.current_bitmap, s_idx, idx, &section_x, &section_y);
-
-					// draw as a poly
-					g3_draw_2d_poly_bitmap(x + x_line, y + y_line, section_x, section_y, TMAP_FLAG_BITMAP_SECTION);
-					x_line += section_x;
-				}
-				y_line += section_y;
+				// draw as a poly
+				g3_draw_2d_poly_bitmap(x + x_line, y + y_line, section_x, section_y, TMAP_FLAG_BITMAP_SECTION);
+				x_line += section_x;
 			}
-		} else {
-			gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode,
-					gr_screen.current_bitblt_mode, gr_screen.current_alpha);
-			g3_draw_2d_poly_bitmap(x, y, w, h, TMAP_FLAG_BITMAP_INTERFACE);
-
+			y_line += section_y;
 		}
+	} else {
+		gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode,
+				gr_screen.current_bitblt_mode, gr_screen.current_alpha);
+		g3_draw_2d_poly_bitmap(x, y, w, h, TMAP_FLAG_BITMAP_INTERFACE);
 
-		// done. whee!
-		return;
-	}			
-
-	// old school bitmaps
-	switch(gr_screen.mode){
-#ifndef PLAT_UNIX
-	case GR_SOFTWARE:
-	case GR_DIRECTDRAW:
-		grx_bitmap(x, y);
-		break;
-
-	case GR_DIRECT3D:
-		gr_d3d_bitmap(x, y);
-		break;
-	
-	case GR_GLIDE:		
-		gr_glide_bitmap(x, y);		
-		break;
-#endif
-	/* don't want opengl bitmap to be called -- slow! */
-	//case GR_OPENGL:
-		//gr_opengl_bitmap(x, y);
-		//break;
-	default:
-		Int3();
-	}
-}
-
-void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy)
-{
-	switch(gr_screen.mode){
-#ifndef PLAT_UNIX
-	case GR_SOFTWARE:
-	case GR_DIRECTDRAW:
-		grx_bitmap_ex(x, y, w, h, sx, sy);
-		break;
-
-	case GR_DIRECT3D:
-		gr_d3d_bitmap_ex(x, y, w, h, sx, sy);
-		break;
-
-	case GR_GLIDE:
-		gr_glide_bitmap_ex(x, y, w, h, sx, sy);
-		break;
-#endif
-	/* slow! */
-	//case GR_OPENGL:
-	//	gr_opengl_bitmap_ex(x, y, w, h, sx, sy);
-	//	break;
-	default:
-		Int3();
-		break;
 	}
 }
 

@@ -41,6 +41,7 @@ int GL_max_texture_height = 0;
 rb_t *render_buffer = NULL;
 static size_t render_buffer_size = 0;
 
+
 void opengl_alloc_render_buffer(unsigned int nelems)
 {
 	if (nelems < 0) {
@@ -57,7 +58,6 @@ void opengl_alloc_render_buffer(unsigned int nelems)
 
 	render_buffer = (rb_t*) malloc(sizeof(rb_t) * nelems);
 	render_buffer_size = nelems;
-printf("render_buffer_size: %d\n", render_buffer_size);
 }
 
 void opengl_free_render_buffer()
@@ -66,6 +66,20 @@ void opengl_free_render_buffer()
 		free(render_buffer);
 		render_buffer = NULL;
 		render_buffer_size = 0;
+	}
+}
+
+static void opengl_set_variables()
+{
+	GL_min_texture_height = 16;
+	GL_min_texture_width = 16;
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GL_max_texture_width);
+	GL_max_texture_height = GL_max_texture_width;
+
+	// no texture is larger than 1024, so maybe don't use sections
+	if (GL_max_texture_width >= 1024) {
+		gr_screen.use_sections = 0;
 	}
 }
 
@@ -235,20 +249,6 @@ int gr_opengl_zbuffer_set(int mode)
 	return tmp;
 }
 
-void opengl_set_variables()
-{
-	GL_min_texture_height = 16;
-	GL_min_texture_width = 16;
-
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GL_max_texture_width);
-	GL_max_texture_height = GL_max_texture_width;
-
-	// no texture is larger than 1024, so maybe don't use sections
-	if (GL_max_texture_width >= 1024) {
-		gr_screen.use_sections = 0;
-	}
-}
-
 void gr_opengl_cleanup()
 {
 	opengl1_cleanup();
@@ -353,9 +353,6 @@ void gr_opengl_init()
 //	}
 
 	mprintf(("\n"));
-
-	Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
-	Gr_bitmap_poly = 1;
 
 	extern int D3D_enabled;
 	D3D_enabled = 1;
@@ -464,12 +461,4 @@ bpp = 16;
 	gr_clear();
 	gr_flip();
 	Mouse_hidden--;
-}
-
-int opengl_max_tex_size_get()
-{
-	GLint max_texture_size = 0;
-
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-	return max_texture_size;
 }

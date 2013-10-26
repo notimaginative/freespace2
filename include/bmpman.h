@@ -167,12 +167,6 @@
 	#define MAX_BITMAPS 3500			// How many bitmaps the game can handle
 #endif
 
-// 16 bit pixel formats
-#define BM_PIXEL_FORMAT_ARGB				0						// can assume certain things, like 1555 LFB writes, whee!
-
-// 16 bit pixel formats
-extern int Bm_pixel_format;
-
 #define BYTES_PER_PIXEL(x)	((x+7)/8)
 
 // how many bytes of textures are used.

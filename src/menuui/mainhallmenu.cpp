@@ -1292,9 +1292,8 @@ void main_hall_do(float frametime)
 	gr_set_color_fast(&Color_white);
 
 	// d3d
-	if (Bm_pixel_format == BM_PIXEL_FORMAT_ARGB) {
-		gr_string(320, gr_screen.max_h - 10, "ARGB");
-	}
+	gr_string(320, gr_screen.max_h - 10, "ARGB");
+
 	//	extern int D3D_fog_mode;
 	//	extern int D3D_zbias;
 

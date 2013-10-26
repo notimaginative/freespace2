@@ -260,9 +260,7 @@ int anim_get_next_frame(anim_instance *inst)
 	anim_check_for_palette_change(inst);
 
 	// if we're using bitmap polys
-	if(Gr_bitmap_poly){
-		BM_SELECT_TEX_FORMAT();
-	}
+	BM_SELECT_TEX_FORMAT();
 
 	if ( anim_instance_is_streamed(inst) ) {
 		inst->file_offset = unpack_frame_from_file(inst, inst->frame, inst->parent->width*inst->parent->height, inst->parent->palette_translation, aabitmap, bpp);

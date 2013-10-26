@@ -597,24 +597,6 @@ int Bm_paging = 0;
 
 static int Bm_low_mem = 0;			
 
-// 16 bit pixel formats
-int Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
-
-// get and put functions for 16 bit pixels - neat bit slinging, huh?
-#define BM_SET_R_ARGB(p, r)	{ p[1] &= ~(0x7c); p[1] |= ((r & 0x1f) << 2); }
-#define BM_SET_G_ARGB(p, g)	{ p[0] &= ~(0xe0); p[1] &= ~(0x03); p[0] |= ((g & 0x07) << 5); p[1] |= ((g & 0x18) >> 3); }
-#define BM_SET_B_ARGB(p, b)	{ p[0] &= ~(0x1f); p[0] |= b & 0x1f; }
-#define BM_SET_A_ARGB(p, a)	{ p[1] &= ~(0x80); p[1] |= ((a & 0x01) << 7); }
-
-#define BM_SET_R_D3D(p, r)		{ *p |= (ushort)(( (int)r / Gr_current_red->scale ) << Gr_current_red->shift); }
-#define BM_SET_G_D3D(p, g)		{ *p |= (ushort)(( (int)g / Gr_current_green->scale ) << Gr_current_green->shift); }
-#define BM_SET_B_D3D(p, b)		{ *p |= (ushort)(( (int)b / Gr_current_blue->scale ) << Gr_current_blue->shift); }
-#define BM_SET_A_D3D(p, a)		{ if(a == 0){ *p = (ushort)Gr_current_green->mask; } }
-
-#define BM_SET_R(p, r)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_R_ARGB(((char*)p), r); break; case BM_PIXEL_FORMAT_D3D: BM_SET_R_D3D(p, r); break; default: Int3(); } }
-#define BM_SET_G(p, g)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_G_ARGB(((char*)p), g); break; case BM_PIXEL_FORMAT_D3D: BM_SET_G_D3D(p, g); break; default: Int3(); } }
-#define BM_SET_B(p, b)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_B_ARGB(((char*)p), b); break; case BM_PIXEL_FORMAT_D3D: BM_SET_B_D3D(p, b); break;  default: Int3(); } }
-#define BM_SET_A(p, a)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_A_ARGB(((char*)p), a); break; case BM_PIXEL_FORMAT_D3D: BM_SET_A_D3D(p, a); break;  default: Int3(); } }
 
 // ===========================================
 // Mode: 0 = High memory
@@ -1356,14 +1338,7 @@ static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flag
 			
 			// if the pixel is transparent
 			if ( ((ushort*)bmp->data)[idx] == Gr_t_green.mask)	{
-				switch(Bm_pixel_format){
-				// 1555, all we need to do is zero the whole thing
-				case BM_PIXEL_FORMAT_ARGB:
-					((ushort*)bmp->data)[idx] = 0;
-					break;
-				default:
-					Int3();
-				}
+				((ushort*)bmp->data)[idx] = 0;
 			}
 		}
 
@@ -2459,34 +2434,25 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 	if(a != NULL){		
 		*a = 1;
 
-		switch (Bm_pixel_format) {
-			// nice 1555 texture format mode
-			case BM_PIXEL_FORMAT_ARGB:
-				// if we're writing to a normal texture, use nice alpha bits
-				if(Gr_current_red == &Gr_t_red){
-				SDL_assert(!bit_32);
+		// if we're writing to a normal texture, use nice alpha bits
+		if(Gr_current_red == &Gr_t_red){
+			SDL_assert(!bit_32);
 
-					if(!(*((ushort*)pixel) & Gr_current_alpha->mask)){
-						*a = 0;
-					}
+			if(!(*((ushort*)pixel) & Gr_current_alpha->mask)){
+				*a = 0;
+			}
+		}
+		// otherwise do it as normal
+		else {
+			if(bit_32){
+				if(*((int*)pixel) == Gr_current_green->mask){
+					*a = 0;
 				}
-				// otherwise do it as normal
-				else {
-					if(bit_32){
-						if(*((int*)pixel) == Gr_current_green->mask){
-							*a = 0;
-						}
-					} else {
-						if(*((ushort*)pixel) == Gr_current_green->mask){
-							*a = 0;
-						}
-					}
+			} else {
+				if(*((ushort*)pixel) == Gr_current_green->mask){
+					*a = 0;
 				}
-				break;
-
-			default:
-				Int3();
-				break;
+			}
 		}
 	}
 }

@@ -19,7 +19,7 @@
 
 int OGL_fog_mode = 0;
 
-static int Inited = 0;
+static int GL_one_inited = 0;
 
 
 volatile int GL_activate = 0;
@@ -37,7 +37,7 @@ static ubyte *Gr_opengl_mouse_saved_data = NULL;
 #define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
 
 
-PFNGLSECONDARYCOLORPOINTEREXTPROC vglSecondaryColorPointerEXT = NULL;
+PFNGLSECONDARYCOLORPOINTERPROC vglSecondaryColorPointer = NULL;
 
 
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
@@ -97,6 +97,145 @@ void opengl1_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type 
 	}
 }
 
+void opengl1_cleanup()
+{
+	if ( !GL_one_inited ) {
+		return;
+	}
+
+	gr_opengl1_reset_clip();
+	gr_opengl1_clear();
+	gr_opengl1_flip();
+
+	opengl1_tcache_cleanup();
+
+	GL_one_inited = 0;
+}
+
+static void opengl1_init_func_pointers()
+{
+	gr_screen.gf_flip = gr_opengl1_flip;
+	gr_screen.gf_set_clip = gr_opengl1_set_clip;
+	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
+	gr_screen.gf_set_font = grx_set_font;
+
+	gr_screen.gf_set_color = gr_opengl_set_color;
+	gr_screen.gf_set_bitmap = gr_opengl_set_bitmap;
+	gr_screen.gf_create_shader = gr_opengl_create_shader;
+	gr_screen.gf_set_shader = gr_opengl_set_shader;
+	gr_screen.gf_clear = gr_opengl1_clear;
+
+	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
+	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
+
+	gr_screen.gf_rect = gr_opengl1_rect;
+	gr_screen.gf_shade = gr_opengl1_shade;
+	gr_screen.gf_string = gr_opengl1_string;
+	gr_screen.gf_circle = gr_opengl1_circle;
+
+	gr_screen.gf_line = gr_opengl1_line;
+	gr_screen.gf_aaline = gr_opengl1_aaline;
+	gr_screen.gf_pixel = gr_opengl1_pixel;
+	gr_screen.gf_scaler = gr_opengl1_scaler;
+	gr_screen.gf_tmapper = gr_opengl1_tmapper;
+
+	gr_screen.gf_gradient = gr_opengl1_gradient;
+
+	gr_screen.gf_get_color = gr_opengl_get_color;
+	gr_screen.gf_init_color = gr_opengl_init_color;
+	gr_screen.gf_init_alphacolor = gr_opengl_init_alphacolor;
+	gr_screen.gf_set_color_fast = gr_opengl_set_color_fast;
+	gr_screen.gf_print_screen = gr_opengl1_print_screen;
+
+	gr_screen.gf_fade_in = gr_opengl1_fade_in;
+	gr_screen.gf_fade_out = gr_opengl1_fade_out;
+	gr_screen.gf_flash = gr_opengl1_flash;
+
+	gr_screen.gf_zbuffer_get = gr_opengl_zbuffer_get;
+	gr_screen.gf_zbuffer_set = gr_opengl_zbuffer_set;
+	gr_screen.gf_zbuffer_clear = gr_opengl1_zbuffer_clear;
+
+	gr_screen.gf_save_screen = gr_opengl1_save_screen;
+	gr_screen.gf_restore_screen = gr_opengl1_restore_screen;
+	gr_screen.gf_free_screen = gr_opengl1_free_screen;
+
+	gr_screen.gf_dump_frame_start = gr_opengl1_dump_frame_start;
+	gr_screen.gf_dump_frame_stop = gr_opengl1_dump_frame_stop;
+	gr_screen.gf_dump_frame = gr_opengl1_dump_frame;
+
+	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
+
+	gr_screen.gf_lock = gr_opengl1_lock;
+	gr_screen.gf_unlock = gr_opengl1_unlock;
+
+	gr_screen.gf_fog_set = gr_opengl1_fog_set;
+
+	gr_screen.gf_get_region = gr_opengl1_get_region;
+
+	gr_screen.gf_set_cull = gr_opengl1_set_cull;
+
+	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
+
+	gr_screen.gf_set_clear_color = gr_opengl_set_clear_color;
+
+	gr_screen.gf_preload_init = gr_opengl1_preload_init;
+	gr_screen.gf_preload = gr_opengl1_preload;
+
+	gr_screen.gf_zbias = gr_opengl1_zbias;
+
+	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
+	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
+	gr_screen.gf_set_viewport = gr_opengl_set_viewport;
+
+	gr_screen.gf_activate = gr_opengl1_activate;
+}
+
+void opengl1_init()
+{
+	if (GL_one_inited) {
+		return;
+	}
+
+	/*
+	  1 = use secondary color ext
+	  2 = use opengl linear fog
+	 */
+	OGL_fog_mode = 2;
+
+	// only available with OpenGL 1.2+, must get ptr for Windows
+	vglSecondaryColorPointer = (PFNGLSECONDARYCOLORPOINTERPROC)SDL_GL_GetProcAddress("glSecondaryColorPointer");
+
+	if (vglSecondaryColorPointer) {
+		OGL_fog_mode = 1;
+	}
+
+	mprintf(("\n"));
+
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_DITHER);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_FOG_HINT, GL_NICEST);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+
+	glEnable(GL_TEXTURE_2D);
+
+	glDepthRange(0.0, 1.0);
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glFlush();
+
+	opengl1_init_func_pointers();
+	opengl1_tcache_init();
+
+	gr_opengl1_clear();
+
+	GL_one_inited = 1;
+}
+
 void gr_opengl1_activate(int active)
 {
 	if (active) {
@@ -120,12 +259,14 @@ void gr_opengl1_clear()
 		gr_screen.current_clear_color.green / 255.0,
 		gr_screen.current_clear_color.blue / 255.0, 1.0);
 
-	glClear ( GL_COLOR_BUFFER_BIT );
+	glClear( GL_COLOR_BUFFER_BIT );
 }
 
 void gr_opengl1_flip()
 {
-	if (!Inited) return;
+	if ( !GL_one_inited ) {
+		return;
+	}
 
 	gr_reset_clip();
 
@@ -156,15 +297,13 @@ void gr_opengl1_flip()
 
 #ifndef NDEBUG
 	GLenum error = GL_NO_ERROR;
-	int ic = 1;
+
 	do {
 		error = glGetError();
 
 		if (error != GL_NO_ERROR) {
-			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d (%d this frame)\n", error, ic));
+			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d\n", error));
 		}
-
-		ic++;
 	} while (error != GL_NO_ERROR);
 #endif
 
@@ -239,14 +378,7 @@ void gr_opengl1_reset_clip()
 	gr_screen.clip_height = gr_screen.max_h;
 
 	glDisable(GL_SCISSOR_TEST);
-//	glScissor(0, 0, gr_screen.max_w, gr_screen.max_h);
 }
-
-
-void gr_opengl1_set_palette(ubyte *new_palette, int is_alphacolor)
-{
-}
-
 
 void gr_opengl1_print_screen(const char *filename)
 {
@@ -292,30 +424,6 @@ void gr_opengl1_print_screen(const char *filename)
 	cfclose(f);
 
 	free(buf);
-}
-
-int gr_opengl1_supports_res_ingame(int res)
-{
-	return 1;
-}
-
-int gr_opengl1_supports_res_interface(int res)
-{
-	return 1;
-}
-
-void opengl1_cleanup()
-{
-	if ( !Inited )	return;
-
-
-	gr_reset_clip();
-	gr_clear();
-	gr_flip();
-
-	opengl1_tcache_cleanup();
-
-	Inited = 0;
 }
 
 void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
@@ -378,11 +486,6 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 	}
 }
 
-void gr_opengl1_get_pixel(int x, int y, int *r, int *g, int *b)
-{
-	// Not used.
-}
-
 void gr_opengl1_set_cull(int cull)
 {
 	if (cull) {
@@ -392,11 +495,6 @@ void gr_opengl1_set_cull(int cull)
 		glDisable (GL_CULL_FACE);
 	}
 }
-
-void gr_opengl1_filter_set(int filter)
-{
-}
-
 
 void gr_opengl1_zbuffer_clear(int mode)
 {
@@ -439,11 +537,13 @@ void gr_opengl1_get_region(int front, int w, int h, ubyte *data)
 	int x = GL_viewport_x;
 	int y = (GL_viewport_y+GL_viewport_h)-h-1;
 
-	if (gr_screen.bytes_per_pixel == 2) {
-		glReadPixels(x, y, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, data);
-	} else if (gr_screen.bytes_per_pixel == 4) {
-		glReadPixels(x, y, w, h, GL_BGRA, GL_UNSIGNED_BYTE, data);
+	GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+
+	if (gr_screen.bytes_per_pixel == 4) {
+		pxtype = GL_UNSIGNED_BYTE;
 	}
+
+	glReadPixels(x, y, w, h, GL_BGRA, pxtype, data);
 
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
@@ -487,9 +587,15 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 	x1 = GL_viewport_x+Gr_opengl_mouse_saved_x;
 	y1 = (GL_viewport_y+GL_viewport_h)-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
+	GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+
+	if (gr_screen.bytes_per_pixel == 4) {
+		pxtype = GL_UNSIGNED_BYTE;
+	}
+
 	glReadBuffer(GL_BACK);
 	glReadPixels(x1, y1, Gr_opengl_mouse_saved_w, Gr_opengl_mouse_saved_h,
-			GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, Gr_opengl_mouse_saved_data);
+			GL_BGRA, pxtype, Gr_opengl_mouse_saved_data);
 
 	Gr_opengl_mouse_saved = 1;
 }
@@ -528,8 +634,14 @@ int gr_opengl1_save_screen()
 		int x = Gr_opengl_mouse_saved_x;
 		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
+		GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+
+		if (gr_screen.bytes_per_pixel == 4) {
+			pxtype = GL_UNSIGNED_BYTE;
+		}
+
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_BGRA, GL_UNSIGNED_BYTE,
+				Gr_opengl_mouse_saved_h, GL_BGRA, pxtype,
 				Gr_opengl_mouse_saved_data);
 	}
 
@@ -553,8 +665,14 @@ void gr_opengl1_restore_screen(int id)
 		int x = Gr_opengl_mouse_saved_x;
 		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
+		GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+
+		if (gr_screen.bytes_per_pixel == 4) {
+			pxtype = GL_UNSIGNED_BYTE;
+		}
+
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_BGRA, GL_UNSIGNED_BYTE,
+				Gr_opengl_mouse_saved_h, GL_BGRA, pxtype,
 				Gr_opengl_mouse_saved_data);
 	}
 
@@ -610,8 +728,6 @@ void gr_opengl1_dump_frame()
 
 uint gr_opengl1_lock()
 {
-	STUB_FUNCTION;
-
 	return 1;
 }
 
@@ -627,137 +743,4 @@ void gr_opengl1_zbias(int bias)
 	} else {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
-}
-
-void opengl1_init_func_pointers()
-{
-	gr_screen.gf_flip = gr_opengl1_flip;
-	gr_screen.gf_set_clip = gr_opengl1_set_clip;
-	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
-	gr_screen.gf_set_font = grx_set_font;
-
-	gr_screen.gf_set_color = gr_opengl_set_color;
-	gr_screen.gf_set_bitmap = gr_opengl_set_bitmap;
-	gr_screen.gf_create_shader = gr_opengl_create_shader;
-	gr_screen.gf_set_shader = gr_opengl_set_shader;
-	gr_screen.gf_clear = gr_opengl1_clear;
-
-	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
-	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
-
-	gr_screen.gf_rect = gr_opengl1_rect;
-	gr_screen.gf_shade = gr_opengl1_shade;
-	gr_screen.gf_string = gr_opengl1_string;
-	gr_screen.gf_circle = gr_opengl1_circle;
-
-	gr_screen.gf_line = gr_opengl1_line;
-	gr_screen.gf_aaline = gr_opengl1_aaline;
-	gr_screen.gf_pixel = gr_opengl1_pixel;
-	gr_screen.gf_scaler = gr_opengl1_scaler;
-	gr_screen.gf_tmapper = gr_opengl1_tmapper;
-
-	gr_screen.gf_gradient = gr_opengl1_gradient;
-
-	gr_screen.gf_set_palette = gr_opengl1_set_palette;
-	gr_screen.gf_get_color = gr_opengl_get_color;
-	gr_screen.gf_init_color = gr_opengl_init_color;
-	gr_screen.gf_init_alphacolor = gr_opengl_init_alphacolor;
-	gr_screen.gf_set_color_fast = gr_opengl_set_color_fast;
-	gr_screen.gf_print_screen = gr_opengl1_print_screen;
-
-	gr_screen.gf_fade_in = gr_opengl1_fade_in;
-	gr_screen.gf_fade_out = gr_opengl1_fade_out;
-	gr_screen.gf_flash = gr_opengl1_flash;
-
-	gr_screen.gf_zbuffer_get = gr_opengl_zbuffer_get;
-	gr_screen.gf_zbuffer_set = gr_opengl_zbuffer_set;
-	gr_screen.gf_zbuffer_clear = gr_opengl1_zbuffer_clear;
-
-	gr_screen.gf_save_screen = gr_opengl1_save_screen;
-	gr_screen.gf_restore_screen = gr_opengl1_restore_screen;
-	gr_screen.gf_free_screen = gr_opengl1_free_screen;
-
-	gr_screen.gf_dump_frame_start = gr_opengl1_dump_frame_start;
-	gr_screen.gf_dump_frame_stop = gr_opengl1_dump_frame_stop;
-	gr_screen.gf_dump_frame = gr_opengl1_dump_frame;
-
-	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
-
-	gr_screen.gf_lock = gr_opengl1_lock;
-	gr_screen.gf_unlock = gr_opengl1_unlock;
-
-	gr_screen.gf_fog_set = gr_opengl1_fog_set;
-
-	gr_screen.gf_get_region = gr_opengl1_get_region;
-
-	gr_screen.gf_get_pixel = gr_opengl1_get_pixel;
-
-	gr_screen.gf_set_cull = gr_opengl1_set_cull;
-
-	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
-
-	gr_screen.gf_filter_set = gr_opengl1_filter_set;
-
-	gr_screen.gf_set_clear_color = gr_opengl_set_clear_color;
-
-	gr_screen.gf_preload_init = gr_opengl1_preload_init;
-	gr_screen.gf_preload = gr_opengl1_preload;
-
-	gr_screen.gf_zbias = gr_opengl1_zbias;
-
-	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
-	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
-
-	gr_screen.gf_activate = gr_opengl1_activate;
-}
-
-void opengl1_init()
-{
-
-	if ( Inited )	{
-		return;
-	}
-
-	/*
-	  1 = use secondary color ext
-	  2 = use opengl linear fog
-	 */
-	OGL_fog_mode = 2;
-
-	if ( SDL_GL_ExtensionSupported("GL_EXT_secondary_color") ) {
-		vglSecondaryColorPointerEXT = (PFNGLSECONDARYCOLORPOINTEREXTPROC)SDL_GL_GetProcAddress("glSecondaryColorPointerEXT");
-		Assert( vglSecondaryColorPointerEXT != NULL );
-		OGL_fog_mode = 1;
-		mprintf(("  Using extension: GL_EXT_secondary_color\n"));
-	}
-
-	mprintf(("\n"));
-
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_DITHER);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	glHint(GL_FOG_HINT, GL_NICEST);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-
-	glEnable(GL_TEXTURE_2D);
-
-	glDepthRange(0.0, 1.0);
-
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glFlush();
-
-
-	Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
-	Gr_bitmap_poly = 1;
-
-	opengl1_init_func_pointers();
-	opengl1_tcache_init(1);
-
-	gr_opengl1_clear();
-
-	Inited = 1;
 }

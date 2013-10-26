@@ -8518,27 +8518,11 @@ void display_title_screen()
 		return;
 	}
 
-#ifndef PLAT_UNIX
-	// d3d		
-	if((gr_screen.mode == GR_DIRECT3D) && (Gr_bitmap_poly)){
-		extern void d3d_start_frame();
-		d3d_start_frame();
-	}
-#endif
-
 	// set
 	gr_set_bitmap(title_bitmap);
 
 	// draw
 	gr_bitmap(0, 0);
-
-#ifndef PLAT_UNIX
-	// d3d	
-	if((gr_screen.mode == GR_DIRECT3D) && (Gr_bitmap_poly)){
-		extern void d3d_stop_frame();
-		d3d_stop_frame();
-	}
-#endif
 
 	// flip
 	gr_flip();

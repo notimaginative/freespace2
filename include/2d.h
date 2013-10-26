@@ -376,6 +376,7 @@ typedef struct screen {
 	int	max_w, max_h;		// Width and height
 	int	res;					// GR_640 or GR_1024
 	int	mode;					// What mode gr_init was called with.
+	int use_sections;			// whether to use bitmap sections or not
 	float	aspect;				// Aspect ratio
 	int	rowsize;				// What you need to add to go to next row (includes bytes_per_pixel)
 	int	bits_per_pixel;	// How many bits per pixel it is. (7,8,15,16,24,32)
@@ -406,7 +407,6 @@ typedef struct screen {
 
 	//switch onscreen, offscreen
 	void (*gf_flip)();
-	void (*gf_flip_window)(uint _hdc, int x, int y, int w, int h );
 
 	// Sets the current palette
 	void (*gf_set_palette)(ubyte * new_pal, int restrict_alphacolor);
@@ -456,9 +456,6 @@ typedef struct screen {
 
 	// clears entire clipping region to current color
 	void (*gf_clear)();
-
-	// void (*gf_bitmap)(int x,int y);
-	// void (*gf_bitmap_ex)(int x,int y,int w,int h,int sx,int sy);
 
 	void (*gf_aabitmap)(int x, int y);
 	void (*gf_aabitmap_ex)(int x, int y, int w, int h, int sx, int sy);
@@ -556,11 +553,18 @@ typedef struct screen {
 	// filtering
 	void (*gf_filter_set)(int filter);
 
-	// set a texture into cache. for sectioned bitmaps, pass in sx and sy to set that particular section of the bitmap
-	int (*gf_tcache_set)(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full, int sx, int sy, int force);	
-
 	// set the color to be used when clearing the background
 	void (*gf_set_clear_color)(int r, int g, int b);
+
+	void (*gf_preload_init)();
+	int (*gf_preload)(int bitmap_num, int is_aabitmap);
+
+	void (*gf_zbias)(int bias);
+
+	void (*gf_force_windowed)();
+	void (*gf_force_fullscreen)();
+
+	void (*gf_activate)(int active);
 } screen;
 
 // cpu types
@@ -576,11 +580,8 @@ extern int Gr_mmx;
 //--------------------------------------
 // Call this at application startup
 
-#define GR_SOFTWARE					(100)		// Software renderer using standard Win32 functions in a window.
-#define GR_DIRECTDRAW				(101)		// Software renderer using DirectDraw fullscreen.
-#define GR_DIRECT3D					(102)		// Use Direct3d hardware renderer
-#define GR_GLIDE						(103)		// Use Glide hardware renderer
-#define GR_OPENGL						(104)		// Use OpenGl hardware renderer
+#define GR_SDL					(100)		// SDL2 renderer
+#define GR_OPENGL				(101)		// OpenGL (generic)
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
 #define GR_NUM_RESOLUTIONS			2
@@ -642,7 +643,6 @@ extern void gr_activate(int active);
 #define gr_print_screen		GR_CALL(gr_screen.gf_print_screen)
 
 #define gr_flip				GR_CALL(gr_screen.gf_flip)
-#define gr_flip_window		GR_CALL(gr_screen.gf_flip_window)
 
 #define gr_set_clip			GR_CALL(gr_screen.gf_set_clip)
 #define gr_reset_clip		GR_CALL(gr_screen.gf_reset_clip)
@@ -660,11 +660,15 @@ __inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, 
 	(*gr_screen.gf_set_bitmap)(bitmap_num, alphablend, bitbltmode, alpha, sx, sy);
 }
 
+__inline bool gr_is_32bit()
+{
+	return (gr_screen.bytes_per_pixel == 4);
+}
+
 #define gr_create_shader	GR_CALL(gr_screen.gf_create_shader)
 #define gr_set_shader		GR_CALL(gr_screen.gf_set_shader)
 #define gr_clear				GR_CALL(gr_screen.gf_clear)
-// #define gr_bitmap				GR_CALL(gr_screen.gf_bitmap)
-// #define gr_bitmap_ex			GR_CALL(gr_screen.gf_bitmap_ex)
+
 #define gr_aabitmap			GR_CALL(gr_screen.gf_aabitmap)
 #define gr_aabitmap_ex		GR_CALL(gr_screen.gf_aabitmap_ex)
 #define gr_rect				GR_CALL(gr_screen.gf_rect)
@@ -716,9 +720,12 @@ __inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, 
 
 #define gr_filter_set		GR_CALL(gr_screen.gf_filter_set)
 
-#define gr_tcache_set		GR_CALL(gr_screen.gf_tcache_set)
-
 #define gr_set_clear_color	GR_CALL(gr_screen.gf_set_clear_color)
+
+#define gr_preload_init		GR_CALL(gr_screen.gf_preload_init)
+#define gr_preload			GR_CALL(gr_screen.gf_preload)
+
+#define gr_zbias			GR_CALL(gr_screen.gf_zbias)
 
 // new bitmap functions
 extern int Gr_bitmap_poly;

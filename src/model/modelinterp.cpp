@@ -2699,11 +2699,7 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 		g3_start_instance_matrix(&auto_back, NULL);		
 	}	
 
-	if (gr_screen.mode == GR_DIRECT3D){
-		d3d_zbias(1);
-	} else if (gr_screen.mode == GR_OPENGL) {
-		opengl_zbias(1);
-	}
+	gr_zbias(1);
 
 	// Draw the subobjects	
 	i = pm->submodel[pm->detail[detail_level]].first_child;
@@ -2741,12 +2737,8 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 	
 	gr_zbuffer_set(zbuf_mode);
 
-	if(gr_screen.mode == GR_DIRECT3D){
-		d3d_zbias(0);	
-	} else if (gr_screen.mode == GR_OPENGL) {
-		opengl_zbias(0);
-	}
-		
+	gr_zbias(0);
+
 	// draw the hull of the ship
 	model_interp_sub( (ubyte *)pm->submodel[pm->detail[detail_level]].bsp_data, pm, &pm->submodel[pm->detail[detail_level]], 0 );
 
@@ -2769,21 +2761,13 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 	}	
 			
 	// render model insignias
-	if(gr_screen.mode == GR_DIRECT3D){
-		d3d_zbias(1);
-	} else if (gr_screen.mode == GR_OPENGL) {
-		opengl_zbias(1);
-	}
+	gr_zbias(1);
 	
 	gr_zbuffer_set(GR_ZBUFF_READ);
 	model_render_insignias(pm, detail_level);	
 
 	// zbias back to 0	
-	if(gr_screen.mode == GR_DIRECT3D){
-		d3d_zbias(0);	
-	} else if (gr_screen.mode == GR_OPENGL) {
-		opengl_zbias(0);
-	}
+	gr_zbias(0);
 
 	// Draw the thruster glow
 #ifndef MAKE_FS1
@@ -3342,14 +3326,8 @@ void model_page_in_textures(int modelnum, int ship_info_index)
 		int bitmap_num = pm->original_textures[idx];
 
 		if ( bitmap_num > -1 )	{
-			// if we're in Glide (and maybe later with D3D), use nondarkening textures
-			if(gr_screen.mode == GR_GLIDE){
-				bm_lock(bitmap_num, 16, BMP_TEX_NONDARK);
-				bm_unlock(bitmap_num);
-			} else {
-				bm_lock(bitmap_num, 16, BMP_TEX_OTHER);
-				bm_unlock(bitmap_num);
-			}
+			bm_lock(bitmap_num, 16, BMP_TEX_OTHER);
+			bm_unlock(bitmap_num);
 		}
 	}
 }

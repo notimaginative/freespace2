@@ -217,8 +217,8 @@ extern int Gr_gamma_lookup[256];
 #define TCACHE_TYPE_AABITMAP				0		// HUD bitmap.  All Alpha.
 #define TCACHE_TYPE_NORMAL					1		// Normal bitmap. Alpha = 0.
 #define TCACHE_TYPE_XPARENT				2		// Bitmap with 0,255,0 = transparent.  Alpha=0 if transparent, 1 if not.
-#define TCACHE_TYPE_NONDARKENING			3		// Bitmap with 255,255,255 = non-darkening.  Alpha=1 if non-darkening, 0 if not.
-#define TCACHE_TYPE_BITMAP_SECTION		4		// section of a bitmap
+#define TCACHE_TYPE_BITMAP_SECTION		3		// section of a bitmap
+#define TCACHE_TYPE_BITMAP_INTERFACE	4		// bitmap used for UI
 
 #endif
 

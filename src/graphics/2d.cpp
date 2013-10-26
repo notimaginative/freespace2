@@ -967,6 +967,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	gr_screen.res = res;	
 	gr_screen.max_w = max_w;
 	gr_screen.max_h = max_h;
+	gr_screen.use_sections = 1;
 	gr_screen.aspect = 1.0f;			// Normal PC screen
 	gr_screen.offset_x = 0;
 	gr_screen.offset_y = 0;
@@ -1047,90 +1048,28 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 
 void gr_force_windowed()
 {
-	if ( !Gr_inited )	return;
-
-	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:
-			{				
-				extern void gr_soft_force_windowed();
-				gr_soft_force_windowed();
-			}
-			break;
-		case GR_DIRECTDRAW:
-			{
-				Int3();
-				extern void gr_directdraw_force_windowed();
-				gr_directdraw_force_windowed();
-			}
-			break;
-		case GR_DIRECT3D:
-			break;
-		case GR_GLIDE:
-			{
-				extern void gr_glide_force_windowed();
-				gr_glide_force_windowed();
-			}
-			break;
-#endif			
-		case GR_OPENGL:
-			gr_opengl_force_windowed();
-			break;
-		default:
-			Int3();		// Invalid graphics mode
+	if ( !Gr_inited ) {
+		return;
 	}
 
-	if ( Os_debugger_running )
+	if (gr_screen.gf_force_windowed) {
+		(*gr_screen.gf_force_windowed)();
+	}
+
+	if (Os_debugger_running) {
 		SDL_Delay(1000);
+	}
 }
 
 void gr_activate(int active)
 {
-	if ( !Gr_inited ) return;
-
-	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:
-			{				
-				extern void gr_soft_activate(int active);
-				gr_soft_activate(active);
-				return;
-			}
-			break;
-		case GR_DIRECTDRAW:
-			{
-				Int3();
-				extern void gr_dd_activate(int active);
-				gr_dd_activate(active);
-				return;
-			}
-			break;
-		case GR_DIRECT3D:
-			{	
-				extern void gr_d3d_activate(int active);
-				gr_d3d_activate(active);
-				return;
-			}
-			break;
-		case GR_GLIDE:
-			{
-				extern void gr_glide_activate(int active);
-				gr_glide_activate(active);
-				return;
-			}
-			break;
-#endif			
-		case GR_OPENGL:
-			{	
-				extern void gr_opengl_activate(int active);
-				gr_opengl_activate(active);
-				return;
-			}	
-			break;
-		default:
-			Int3();		// Invalid graphics mode
+	if ( !Gr_inited ) {
+		return;
 	}
 
+	if (gr_screen.gf_activate) {
+		(*gr_screen.gf_activate)(active);
+	}
 }
 
 // -----------------------------------------------------------------------
@@ -1188,7 +1127,7 @@ void gr_bitmap(int x, int y)
 	int w, h;
 
 	// d3d and glide support texture poly shiz
-	if(((gr_screen.mode == GR_DIRECT3D) || (gr_screen.mode == GR_GLIDE) || (gr_screen.mode == GR_OPENGL)) && Gr_bitmap_poly){
+	if((gr_screen.mode == GR_OPENGL) && Gr_bitmap_poly){
 		int idx, s_idx;
 		// float u_scale, v_scale;
 		bitmap_section_info *sections;			
@@ -1197,20 +1136,28 @@ void gr_bitmap(int x, int y)
 		bm_get_info(gr_screen.current_bitmap, &w, &h, NULL, NULL, NULL, &sections);
 		y_line = 0;
 		section_y = 0;
-		for(idx=0; idx<sections->num_y; idx++){
-			x_line = 0;
-			for(s_idx=0; s_idx<sections->num_x; s_idx++){
-				// get the section as a texture in vram					
-				gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode, gr_screen.current_bitblt_mode, gr_screen.current_alpha, s_idx, idx);
 
-				// determine the width and height of this section
-				bm_get_section_size(gr_screen.current_bitmap, s_idx, idx, &section_x, &section_y);
+		if (gr_screen.use_sections) {
+			for(idx=0; idx<sections->num_y; idx++){
+				x_line = 0;
+				for(s_idx=0; s_idx<sections->num_x; s_idx++){
+					// get the section as a texture in vram
+					gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode, gr_screen.current_bitblt_mode, gr_screen.current_alpha, s_idx, idx);
 
-				// draw as a poly
-				g3_draw_2d_poly_bitmap(x + x_line, y + y_line, section_x, section_y, TMAP_FLAG_BITMAP_SECTION);
-				x_line += section_x;
+					// determine the width and height of this section
+					bm_get_section_size(gr_screen.current_bitmap, s_idx, idx, &section_x, &section_y);
+
+					// draw as a poly
+					g3_draw_2d_poly_bitmap(x + x_line, y + y_line, section_x, section_y, TMAP_FLAG_BITMAP_SECTION);
+					x_line += section_x;
+				}
+				y_line += section_y;
 			}
-			y_line += section_y;
+		} else {
+			gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode,
+					gr_screen.current_bitblt_mode, gr_screen.current_alpha);
+			g3_draw_2d_poly_bitmap(x, y, w, h, TMAP_FLAG_BITMAP_INTERFACE);
+
 		}
 
 		// done. whee!

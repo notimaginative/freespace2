@@ -1336,53 +1336,9 @@ void game_framerate_check_init()
 		
 	// nebula missions
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
-		// if this is a glide card
-		if(gr_screen.mode == GR_GLIDE){
-#ifndef PLAT_UNIX		
-			extern GrHwConfiguration hwconfig;
-
-			// voodoo 2/3
-			if(hwconfig.SSTs[0].sstBoard.VoodooConfig.fbRam >= 4){
-				Gf_critical = 15.0f;
-			}
-			// voodoo 1
-			else {
-				Gf_critical = 10.0f;
-			}
-#else
-			STUB_FUNCTION;
-			
-			Gf_critical = 15.0f;
-#endif						
-		}
-		// d3d. only care about good cards here I guess (TNT)
-		else {
-			Gf_critical = 15.0f;			
-		}
+		Gf_critical = 15.0f;
 	} else {
-		// if this is a glide card
-		if(gr_screen.mode == GR_GLIDE){
-#ifndef PLAT_UNIX		
-			extern GrHwConfiguration hwconfig;
-
-			// voodoo 2/3
-			if(hwconfig.SSTs[0].sstBoard.VoodooConfig.fbRam >= 4){
-				Gf_critical = 25.0f;
-			}
-			// voodoo 1
-			else {
-				Gf_critical = 20.0f;
-			}
-#else
-			STUB_FUNCTION;
-			
-			Gf_critical = 25.0f;
-#endif						
-		}
-		// d3d. only care about good cards here I guess (TNT)
-		else {
-			Gf_critical = 25.0f;
-		}
+		Gf_critical = 25.0f;
 	}
 }
 
@@ -2579,7 +2535,7 @@ void game_init()
 		}
 	} else {
 		STUB_FUNCTION;
-		gr_init(GR_640, GR_SOFTWARE); 
+		gr_init(GR_640, GR_SDL);
 	}
 #endif // !PLAT_UNIX
 
@@ -5366,13 +5322,6 @@ void game_process_event( int current_state, int event )
 			break;
 
 		case GS_EVENT_TOGGLE_GLIDE:
-			#ifndef NDEBUG
-			if ( gr_screen.mode != GR_GLIDE )	{
-				gr_init( GR_640, GR_GLIDE );
-			} else {
-				gr_init( GR_640, GR_SOFTWARE );
-			}
-			#endif
 			break;						
  
 		case GS_EVENT_LOAD_MISSION_MENU:

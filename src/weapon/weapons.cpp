@@ -1583,11 +1583,11 @@ void weapon_level_init()
 
 MONITOR( NumWeaponsRend );	
 
-float weapon_glow_scale_f = 2.3f;
-float weapon_glow_scale_r = 2.3f;
-float weapon_glow_scale_l = 1.5f;
-float weapon_glow_alpha_d3d = 0.85f;
-float weapon_glow_alpha_glide = 0.99f;
+static const float weapon_glow_scale_f = 2.3f;
+static const float weapon_glow_scale_r = 2.3f;
+static const float weapon_glow_scale_l = 1.5f;
+static const float weapon_glow_alpha = 0.85f;
+
 void weapon_render(object *obj)
 {
 	int num;
@@ -1627,7 +1627,7 @@ void weapon_render(object *obj)
 
 				vector headp2;			
 				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.v.fvec, wip->laser_length * weapon_glow_scale_l);
-				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? weapon_glow_alpha_d3d : weapon_glow_alpha_glide, -1, -1);
+				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, weapon_glow_alpha, -1, -1);
 				g3_draw_laser_rgb(&headp2, wip->laser_head_radius * weapon_glow_scale_f, &obj->pos, wip->laser_tail_radius * weapon_glow_scale_r, c.red, c.green, c.blue);
 			}						
 			break;
@@ -3380,12 +3380,7 @@ void weapons_page_in()
 						int bitmap_num = pm->original_textures[j];
 
 						if ( bitmap_num > -1 )	{
-							// if we're in Glide (and maybe later with D3D), use nondarkening textures
-							if(gr_screen.mode == GR_GLIDE){
-								bm_page_in_nondarkening_texture( bitmap_num );
-							} else {
-								bm_page_in_texture( bitmap_num );
-							}
+							bm_page_in_texture( bitmap_num );
 						}
 					}
 				}

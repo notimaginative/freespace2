@@ -850,8 +850,8 @@ void main_hall_init(int main_hall_num)
 	// init tooltip shader
 #ifndef MAKE_FS1
 	float gray_intensity = 0.02f;													// nearly black
-	float c = (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? 0.11f : 0.07f;			// adjust for renderer differences
-	gr_create_shader(&Main_hall_tooltip_shader, gray_intensity, gray_intensity, gray_intensity, c);
+//	float c = (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? 0.11f : 0.07f;			// adjust for renderer differences
+	gr_create_shader(&Main_hall_tooltip_shader, gray_intensity, gray_intensity, gray_intensity, 0.11f);
 #endif
 
 	// load the background bitmap
@@ -1292,32 +1292,19 @@ void main_hall_do(float frametime)
 	gr_set_color_fast(&Color_white);
 
 	// d3d
-	if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_ARGB_D3D){		
-			gr_string(320, gr_screen.max_h - 10, "D3D ARGB");
-		}
-		extern int D3d_rendition_uvs;
-		extern int D3D_32bit;
-		extern int D3D_fog_mode;	
-		extern int D3D_zbias;
-		if(D3d_rendition_uvs){
-			gr_string(320, gr_screen.max_h - 20, "D3D rendition");
-		}
-		if(D3D_32bit){
-			gr_string(320, gr_screen.max_h - 30, "D3D 32bit");
-		}
-		gr_printf(320, gr_screen.max_h - 40, "Fog : %d", D3D_fog_mode);
-		gr_printf(320, gr_screen.max_h - 50, "Zbias : %d", D3D_zbias);
-		// extern void d3d_test();
-		// d3d_test();
-	} else if(gr_screen.mode == GR_GLIDE){
-#ifndef PLAT_UNIX
-		extern int Glide_voodoo3;
-		if(Glide_voodoo3){
-			gr_string(320, gr_screen.max_h - 20, "VOODOO 3");
-		}
-#endif
+	if (Bm_pixel_format == BM_PIXEL_FORMAT_ARGB) {
+		gr_string(320, gr_screen.max_h - 10, "ARGB");
 	}
+	//	extern int D3D_fog_mode;
+	//	extern int D3D_zbias;
+
+	if ( gr_is_32bit() ) {
+		gr_string(320, gr_screen.max_h - 30, "32bit");
+	}
+	//	gr_printf(320, gr_screen.max_h - 40, "Fog : %d", D3D_fog_mode);
+	//	gr_printf(320, gr_screen.max_h - 50, "Zbias : %d", D3D_zbias);
+	// extern void d3d_test();
+	// d3d_test();
 #endif	
 
 	gr_flip();

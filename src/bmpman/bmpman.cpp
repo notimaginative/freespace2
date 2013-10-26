@@ -818,22 +818,30 @@ void bm_calc_sections(bitmap *be)
 {
 	int idx;
 
-	// number of x and y sections
-	be->sections.num_x = (ubyte)(be->w / MAX_BMAP_SECTION_SIZE);
-	if((be->sections.num_x * MAX_BMAP_SECTION_SIZE) < be->w){
-		be->sections.num_x++;
-	}
-	be->sections.num_y = (ubyte)(be->h / MAX_BMAP_SECTION_SIZE);
-	if((be->sections.num_y * MAX_BMAP_SECTION_SIZE) < be->h){
-		be->sections.num_y++;
-	}
+	if (gr_screen.use_sections) {
+		// number of x and y sections
+		be->sections.num_x = (ubyte)(be->w / MAX_BMAP_SECTION_SIZE);
+		if((be->sections.num_x * MAX_BMAP_SECTION_SIZE) < be->w){
+			be->sections.num_x++;
+		}
+		be->sections.num_y = (ubyte)(be->h / MAX_BMAP_SECTION_SIZE);
+		if((be->sections.num_y * MAX_BMAP_SECTION_SIZE) < be->h){
+			be->sections.num_y++;
+		}
 
-	// calculate the offsets for each section
-	for(idx=0; idx<be->sections.num_x; idx++){
-		be->sections.sx[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
-	}
-	for(idx=0; idx<be->sections.num_y; idx++){
-		be->sections.sy[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
+		// calculate the offsets for each section
+		for(idx=0; idx<be->sections.num_x; idx++){
+			be->sections.sx[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
+		}
+		for(idx=0; idx<be->sections.num_y; idx++){
+			be->sections.sy[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
+		}
+	} else {
+		be->sections.num_x = 1;
+		be->sections.num_y = 1;
+
+		be->sections.sx[0] = 0;
+		be->sections.sy[0] = 0;
 	}
 }
 
@@ -1351,17 +1359,7 @@ static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flag
 				switch(Bm_pixel_format){
 				// 1555, all we need to do is zero the whole thing
 				case BM_PIXEL_FORMAT_ARGB:
-				case BM_PIXEL_FORMAT_ARGB_D3D:
 					((ushort*)bmp->data)[idx] = 0;
-					break;
-				// d3d format
-				case BM_PIXEL_FORMAT_D3D:									
-					r = g = b = a = 0;
-					r /= Gr_t_red.scale;
-					g /= Gr_t_green.scale;
-					b /= Gr_t_blue.scale;
-					a /= Gr_t_alpha.scale;
-					((ushort*)bmp->data)[idx] = (unsigned short)((a<<Gr_t_alpha.shift) | (r << Gr_t_red.shift) | (g << Gr_t_green.shift) |	(b << Gr_t_blue.shift));
 					break;
 				default:
 					Int3();
@@ -1436,8 +1434,6 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 
 	// some sanity checks on flags
 	SDL_assert(!((flags & BMP_AABITMAP) && (flags & BMP_TEX_ANY)));						// no aabitmap textures
-	SDL_assert(!((flags & BMP_TEX_XPARENT) && (flags & BMP_TEX_NONDARK)));			// can't be a transparent texture and a nondarkening texture 
-	SDL_assert(!((flags & BMP_TEX_NONDARK) && (gr_screen.mode == GR_DIRECT3D)));	// D3D should never be trying to get nondarkening textures
 
 	if(bpp == 8){
 		int pcx_error=pcx_read_bitmap_8bpp( be->filename, data, palette );
@@ -1457,8 +1453,6 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		// load types
 		if(flags & BMP_AABITMAP){
 			pcx_error = pcx_read_bitmap_16bpp_aabitmap( be->filename, data );
-		} else if(flags & BMP_TEX_NONDARK){
-			pcx_error = pcx_read_bitmap_16bpp_nondark( be->filename, data );
 		} else {
 			pcx_error = pcx_read_bitmap_16bpp( be->filename, data );
 		}
@@ -1923,7 +1917,7 @@ void bm_get_palette(int handle, ubyte *pal, char *name)
 // returns:			nothing
 
 // opengl hack
-void opengl_free_texture_with_handle(int handle);
+void opengl1_free_texture_with_handle(int handle);
 void bm_release(int handle)
 {
 	bitmap_entry	*be;
@@ -1951,7 +1945,7 @@ void bm_release(int handle)
 
 // until opengl mode gets a proper texture manager, this will have to do
 #ifdef PLAT_UNIX
-	opengl_free_texture_with_handle(handle);
+	opengl1_free_texture_with_handle(handle);
 #endif
 
 	bm_free_data(n);
@@ -2099,29 +2093,7 @@ void bm_page_in_texture( int bitmapnum, int nframes )
 
 		bm_bitmaps[n+i].preloaded = 1;
 
-		if ( D3D_enabled )	{
-			bm_bitmaps[n+i].used_flags = BMP_TEX_OTHER;
-		} else {			
-			bm_bitmaps[n+i].used_flags = 0;
-		}
-	}
-}
-
-// Marks a texture as being used for this level
-// If num_frames is passed, assume this is an animation
-void bm_page_in_nondarkening_texture( int bitmapnum, int nframes )
-{
-	int i;
-	for (i=0; i<nframes;i++ )	{
-		int n = bitmapnum % MAX_BITMAPS;
-
-		bm_bitmaps[n+i].preloaded = 4;
-
-		if ( D3D_enabled )	{			
-			bm_bitmaps[n+i].used_flags = BMP_TEX_NONDARK;
-		} else {
-			bm_bitmaps[n+i].used_flags = 0;
-		}
+		bm_bitmaps[n+i].used_flags = BMP_TEX_OTHER;
 	}
 }
 
@@ -2136,12 +2108,8 @@ void bm_page_in_xparent_texture( int bitmapnum, int nframes)
 
 		bm_bitmaps[n+i].preloaded = 3;
 
-		if ( D3D_enabled )	{
-			// bm_bitmaps[n+i].used_flags = BMP_NO_PALETTE_MAP;
-			bm_bitmaps[n+i].used_flags = BMP_TEX_XPARENT;
-		} else {
-			bm_bitmaps[n+i].used_flags = 0;
-		}
+		// bm_bitmaps[n+i].used_flags = BMP_NO_PALETTE_MAP;
+		bm_bitmaps[n+i].used_flags = BMP_TEX_XPARENT;
 	}
 }
 
@@ -2154,12 +2122,8 @@ void bm_page_in_aabitmap( int bitmapnum, int nframes )
 		int n = bitmapnum % MAX_BITMAPS;
 
 		bm_bitmaps[n+i].preloaded = 2;
-	
-		if ( D3D_enabled )	{
-			bm_bitmaps[n+i].used_flags = BMP_AABITMAP;
-		} else {
-			bm_bitmaps[n+i].used_flags = 0;
-		}
+
+		bm_bitmaps[n+i].used_flags = BMP_AABITMAP;
 	}
 }
 
@@ -2186,13 +2150,6 @@ void bm_page_in_start()
 
 }
 
-#ifndef PLAT_UNIX
-extern void gr_d3d_preload_init();
-extern int gr_d3d_preload(int bitmap_num, int is_aabitmap );
-#endif
-extern void gr_opengl_preload_init();
-extern int gr_opengl_preload(int bitmap_num, int is_aabitmap );
-
 void bm_page_in_stop()
 {	
 	int i;	
@@ -2209,14 +2166,7 @@ void bm_page_in_stop()
 
 	int d3d_preloading = 1;
 
-#ifndef PLAT_UNIX
-	if (gr_screen.mode == GR_DIRECT3D) {
-		gr_d3d_preload_init();
-	} else
-#endif	
-	if (gr_screen.mode == GR_OPENGL) {
-		gr_opengl_preload_init();
-	}
+	gr_preload_init();
 
 	for (i = 0; i < MAX_BITMAPS; i++)	{
 		if ( bm_bitmaps[i].type != BM_TYPE_NONE )	{
@@ -2245,19 +2195,9 @@ void bm_page_in_stop()
 				bm_unlock( bm_bitmaps[i].handle );
 
 				if ( d3d_preloading )	{
-#ifndef PLAT_UNIX
-					if (gr_screen.mode == GR_DIRECT3D) {
-						if ( !gr_d3d_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
-							mprintf(( "Out of VRAM.  Done preloading.\n" ));
-							d3d_preloading = 0;
-						}
-					} else 
-#endif					
-					if (gr_screen.mode == GR_OPENGL) {
-						if ( !gr_opengl_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
-							mprintf(( "Out of VRAM.  Done preloading.\n" ));
-							d3d_preloading = 0;
-						}
+					if ( !gr_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
+						mprintf(( "Out of VRAM.  Done preloading.\n" ));
+						d3d_preloading = 0;
 					}
 				}
 				
@@ -2315,38 +2255,9 @@ void bm_24_to_16(int bit_24, ushort *bit_16)
 	bm_set_components((ubyte*)bit_16, (ubyte*)&pixel[0], (ubyte*)&pixel[1], (ubyte*)&pixel[2], &alpha);	
 }
 
-extern int D3D_32bit;
-
 void (*bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a) = NULL;
 
-void bm_set_components_argb(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
-{
-	// rgba 
-	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	*((ushort*)pixel) &= ~(0x8000);
-	if (*((ushort*)pixel) == (ushort)Gr_current_green->mask) {
-		*((ushort*)pixel) = 0;
-	} else {
-		if(*av){
-			*((ushort*)pixel) |= 0x8000;
-		}
-	}
-}
-
-void bm_set_components_d3d(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
-{
-	// rgba 
-	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	if(*av == 0){ 
-		*((ushort*)pixel) = (ushort)Gr_current_green->mask;
-	}
-}
-
-void bm_set_components_argb_d3d_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2356,7 +2267,7 @@ void bm_set_components_argb_d3d_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ub
 	}			
 }
 
-void bm_set_components_argb_d3d_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((uint*)pixel) |= (uint)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((uint*)pixel) |= (uint)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2366,7 +2277,7 @@ void bm_set_components_argb_d3d_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ub
 	}
 }
 
-void bm_set_components_argb_d3d_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2379,7 +2290,7 @@ void bm_set_components_argb_d3d_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte
 	}
 }
 
-void bm_set_components_argb_d3d_32_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_32_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2401,24 +2312,10 @@ void BM_SELECT_SCREEN_FORMAT()
 	Gr_current_alpha = &Gr_alpha;
 
 	// setup pointers
-	if(gr_screen.mode == GR_GLIDE){
-#ifndef PLAT_UNIX
-		bm_set_components = bm_set_components_argb;
-#endif
-	} else if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
-			bm_set_components = bm_set_components_d3d;
-		} else {
-			if(D3D_32bit){
-				bm_set_components = bm_set_components_argb_d3d_32_screen;
-			} else {
-				bm_set_components = bm_set_components_argb_d3d_16_screen;
-			}
-		}
-	} else if(gr_screen.mode == GR_SOFTWARE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb_d3d_32_screen;
+	if ( gr_is_32bit() ) {
+		bm_set_components = bm_set_components_argb_32_screen;
+	} else {
+		bm_set_components = bm_set_components_argb_16_screen;
 	}
 }
 
@@ -2430,22 +2327,10 @@ void BM_SELECT_TEX_FORMAT()
 	Gr_current_alpha = &Gr_t_alpha;
 
 	// setup pointers
-	if(gr_screen.mode == GR_GLIDE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
-			bm_set_components = bm_set_components_d3d;
-		} else {
-			if(D3D_32bit){
-				bm_set_components = bm_set_components_argb_d3d_32_tex;
-			} else {
-				bm_set_components = bm_set_components_argb_d3d_16_tex;
-			}
-		}
-	} else if(gr_screen.mode == GR_SOFTWARE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb_d3d_32_tex;
+	if ( gr_is_32bit() ) {
+		bm_set_components = bm_set_components_argb_32_tex;
+	} else {
+		bm_set_components = bm_set_components_argb_16_tex;
 	}
 }
 
@@ -2457,22 +2342,10 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 	Gr_current_alpha = &Gr_ta_alpha;
 
 	// setup pointers
-	if(gr_screen.mode == GR_GLIDE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
-			bm_set_components = bm_set_components_d3d;
-		} else {
-			if(D3D_32bit){
-				bm_set_components = bm_set_components_argb_d3d_32_tex;
-			} else {
-				bm_set_components = bm_set_components_argb_d3d_16_tex;
-			}
-		}
-	} else if(gr_screen.mode == GR_SOFTWARE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb_d3d_32_tex;
+	if ( gr_is_32bit() ) {
+		bm_set_components = bm_set_components_argb_32_tex;
+	} else {
+		bm_set_components = bm_set_components_argb_16_tex;
 	}
 }
 
@@ -2556,7 +2429,7 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 	int bit_32 = 0;
 
 	// pick a byte size - 32 bits only if 32 bit mode d3d and screen format
-	if(D3D_32bit && (Gr_current_red == &Gr_red)){
+	if ( gr_is_32bit() && (Gr_current_red == &Gr_red) ) {
 		bit_32 = 1;
 	}
 
@@ -2586,45 +2459,34 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 	if(a != NULL){		
 		*a = 1;
 
-		switch(Bm_pixel_format){
-		// glide has an alpha channel so we have to unset ir or set it each time
-		case BM_PIXEL_FORMAT_ARGB:			
-			SDL_assert(!bit_32);
-			if(!( ((ushort*)pixel)[0] & 0x8000)){
-				*a = 0;
-			} 
-			break;
-
-		// this d3d format has no alpha channel, so only make it "transparent", never make it "non-transparent"
-		case BM_PIXEL_FORMAT_D3D:
-			SDL_assert(!bit_32);
-			if( *((ushort*)pixel) == Gr_current_green->mask){ 
-				*a = 0;
-			}
-			break;
-
-		// nice 1555 texture format mode
-		case BM_PIXEL_FORMAT_ARGB_D3D:	
-			// if we're writing to a normal texture, use nice alpha bits
-			if(Gr_current_red == &Gr_t_red){				
+		switch (Bm_pixel_format) {
+			// nice 1555 texture format mode
+			case BM_PIXEL_FORMAT_ARGB:
+				// if we're writing to a normal texture, use nice alpha bits
+				if(Gr_current_red == &Gr_t_red){
 				SDL_assert(!bit_32);
 
-				if(!(*((ushort*)pixel) & Gr_current_alpha->mask)){
-					*a = 0;
-				}
-			}
-			// otherwise do it as normal
-			else {
-				if(bit_32){
-					if(*((int*)pixel) == Gr_current_green->mask){ 
-						*a = 0;
-					}
-				} else {
-					if(*((ushort*)pixel) == Gr_current_green->mask){ 
+					if(!(*((ushort*)pixel) & Gr_current_alpha->mask)){
 						*a = 0;
 					}
 				}
-			}
+				// otherwise do it as normal
+				else {
+					if(bit_32){
+						if(*((int*)pixel) == Gr_current_green->mask){
+							*a = 0;
+						}
+					} else {
+						if(*((ushort*)pixel) == Gr_current_green->mask){
+							*a = 0;
+						}
+					}
+				}
+				break;
+
+			default:
+				Int3();
+				break;
 		}
 	}
 }
@@ -2654,7 +2516,12 @@ void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h)
 	bm_get_info(bitmapnum, &bw, &bh, NULL, NULL, NULL, &sections);
 
 	// determine the width and height of this section
-	*w = sx < (sections->num_x - 1) ? MAX_BMAP_SECTION_SIZE : bw - sections->sx[sx];
-	*h = sy < (sections->num_y - 1) ? MAX_BMAP_SECTION_SIZE : bh - sections->sy[sy];										
+	if (gr_screen.use_sections) {
+		*w = sx < (sections->num_x - 1) ? MAX_BMAP_SECTION_SIZE : bw - sections->sx[sx];
+		*h = sy < (sections->num_y - 1) ? MAX_BMAP_SECTION_SIZE : bh - sections->sy[sy];
+	} else {
+		*w = bw;
+		*h = bh;
+	}
 }
 

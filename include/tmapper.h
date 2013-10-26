@@ -128,6 +128,8 @@ extern void grx_tmapper( int nv, vertex * verts[], uint flags );
 
 // bitmap section
 #define TMAP_FLAG_BITMAP_SECTION	(1<<11)
+// user interface bitmap
+#define TMAP_FLAG_BITMAP_INTERFACE	(1<<12)
 
 #endif
 

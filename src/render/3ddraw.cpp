@@ -1771,7 +1771,7 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	saved_zbuffer_mode = gr_zbuffer_get();
 	gr_zbuffer_set(GR_ZBUFF_NONE);	
 
-	bm_get_section_size(gr_screen.current_bitmap, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, &bw, &bh);
+//	bm_get_section_size(gr_screen.current_bitmap, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, &bw, &bh);
 
 	// stuff coords	
 	v[0].sx = (float)x;

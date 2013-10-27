@@ -499,16 +499,16 @@ void gr_opengl1_set_cull(int cull)
 void gr_opengl1_zbuffer_clear(int mode)
 {
 	if (mode) {
-		gr_zbuffering = 1;
-		gr_zbuffering_mode = GR_ZBUFF_FULL;
-		gr_global_zbuffering = 1;
+		Gr_zbuffering = 1;
+		Gr_zbuffering_mode = GR_ZBUFF_FULL;
+		Gr_global_zbuffering = 1;
 
 		opengl1_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
 		glClear ( GL_DEPTH_BUFFER_BIT );
 	} else {
-		gr_zbuffering = 0;
-		gr_zbuffering_mode = GR_ZBUFF_NONE;
-		gr_global_zbuffering = 0;
+		Gr_zbuffering = 0;
+		Gr_zbuffering_mode = GR_ZBUFF_NONE;
+		Gr_global_zbuffering = 0;
 	}
 }
 

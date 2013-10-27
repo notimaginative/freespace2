@@ -205,7 +205,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
 	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;
 
-	if ( gr_zbuffering )    {
+	if (Gr_zbuffering) {
 		if ( is_scaler || (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER) ) {
 			zbuffer_type = ZBUFFER_TYPE_READ;
 		} else {
@@ -332,7 +332,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		float rhw = 1.0f;
 		int a;
 
-		if ( gr_zbuffering || (flags & TMAP_FLAG_NEBULA) )      {
+		if ( Gr_zbuffering || (flags & TMAP_FLAG_NEBULA) ) {
 			sz = 1.0 - 1.0 / (1.0 + va->z / (32768.0 / 256.0));
 
 			if ( sz > 0.98f ) {

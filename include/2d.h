@@ -716,8 +716,9 @@ __inline bool gr_is_32bit()
 #define gr_zbias			GR_CALL(gr_screen.gf_zbias)
 
 #define gr_set_viewport		GR_CALL(gr_screen.gf_set_viewport)
-#define gr_force_fullscreen	GR_CALL(gr_screen.gf_force_fullscreen)
-#define gr_force_windowed	GR_CALL(gr_screen.gf_force_windowed)
+
+void gr_force_fullscreen();
+void gr_force_windowed();
 
 // new bitmap functions
 void gr_bitmap(int x, int y);

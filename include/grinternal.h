@@ -141,7 +141,6 @@
 
 #include "font.h"
 #include "2d.h"
-#include "grzbuffer.h"
 
 extern int Gr_cursor;
 
@@ -199,6 +198,10 @@ extern color_gun Gr_ta_red, Gr_ta_green, Gr_ta_blue, Gr_ta_alpha;
 // of the above values
 extern color_gun *Gr_current_red, *Gr_current_green, *Gr_current_blue, *Gr_current_alpha;
 
+// zbuffer stuff
+extern int Gr_zbuffering;
+extern int Gr_zbuffering_mode;
+extern int Gr_global_zbuffering;
 
 // Translate the 768 byte 'src' palette into 
 // the current screen format's palette.

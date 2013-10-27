@@ -229,23 +229,25 @@ void gr_opengl_set_shader( shader * shade )
 
 int gr_opengl_zbuffer_get()
 {
-	if ( !gr_global_zbuffering )    {
+	if ( !Gr_global_zbuffering ) {
 		return GR_ZBUFF_NONE;
 	}
-	return gr_zbuffering_mode;
+
+	return Gr_zbuffering_mode;
 }
 
 int gr_opengl_zbuffer_set(int mode)
 {
-	int tmp = gr_zbuffering_mode;
+	int tmp = Gr_zbuffering_mode;
 
-	gr_zbuffering_mode = mode;
+	Gr_zbuffering_mode = mode;
 
-	if (gr_zbuffering_mode == GR_ZBUFF_NONE )      {
-		gr_zbuffering = 0;
+	if (Gr_zbuffering_mode == GR_ZBUFF_NONE) {
+		Gr_zbuffering = 0;
 	} else {
-		gr_zbuffering = 1;
+		Gr_zbuffering = 1;
 	}
+
 	return tmp;
 }
 

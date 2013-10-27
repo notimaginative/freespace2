@@ -508,6 +508,10 @@ ubyte Gr_original_palette[768];		// The palette
 ubyte Gr_current_palette[768];
 char Gr_current_palette_name[128] = NOX("none");
 
+int Gr_zbuffering = 0;
+int Gr_zbuffering_mode = 0;
+int Gr_global_zbuffering = 0;
+
 // cursor stuff
 int Gr_cursor = -1;
 int Web_cursor_bitmap = -1;
@@ -882,29 +886,14 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 		atexit(gr_close);
 
 	// If already inited, shutdown the previous graphics
-	if ( Gr_inited )	{
-		switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:			
-			gr_soft_cleanup();
-			break;
-		case GR_DIRECTDRAW:
-			Int3();
-			gr_directdraw_cleanup();
-			break;
-		case GR_DIRECT3D:			
-			gr_d3d_cleanup();
-			break;
-		case GR_GLIDE:
-			gr_glide_cleanup();
-			break;
-#endif			
-		case GR_OPENGL:
-			gr_opengl_cleanup();
-			break;
-		default:
-			Int3();		// Invalid graphics mode
-			break;
+	if (Gr_inited) {
+		switch (gr_screen.mode) {
+			case GR_OPENGL:
+				gr_opengl_cleanup();
+				break;
+			default:
+				Int3();		// Invalid graphics mode
+				break;
 		}
 	}
 
@@ -1016,6 +1005,21 @@ void gr_force_windowed()
 
 	if (Os_debugger_running) {
 		SDL_Delay(1000);
+	}
+}
+
+void gr_force_fullscreen()
+{
+	if ( !Gr_inited ) {
+		return;
+	}
+
+	if (gr_screen.gf_force_fullscreen) {
+		(*gr_screen.gf_force_fullscreen)();
+	}
+
+	if (Os_debugger_running) {
+		Sleep(1000);
 	}
 }
 

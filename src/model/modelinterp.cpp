@@ -1400,7 +1400,7 @@ void interp_render_lightning( polymodel *pm, bsp_info * sm )
 void model_interp_subcall(polymodel * pm, int mn, int detail_level)
 {
 	int i;
-	int zbuf_mode = gr_zbuffering_mode;
+	int zbuf_mode = gr_zbuffer_get();
 
 	if ( (mn < 0) || (mn>=pm->n_models) )
 		return;
@@ -2593,8 +2593,8 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 		}
 	}
 
-	save_gr_zbuffering_mode = gr_zbuffering_mode;
-	zbuf_mode = gr_zbuffering_mode;
+	save_gr_zbuffering_mode = gr_zbuffer_get();
+	zbuf_mode = gr_zbuffer_get();
 
 	if (!(Game_detail_flags & DETAIL_FLAG_MODELS) )	{
 		gr_set_color(0,128,0);

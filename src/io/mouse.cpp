@@ -148,19 +148,23 @@
 
 static int mouse_inited = 0;
 
+static int mouse_flags;
+static int mouse_left_pressed = 0;
+static int mouse_right_pressed = 0;
+static int mouse_middle_pressed = 0;
+static int mouse_left_up = 0;
+static int mouse_right_up = 0;
+static int mouse_middle_up = 0;
+
 static int Mouse_x;
 static int Mouse_y;
-
-int mouse_flags;
-int mouse_left_pressed = 0;
-int mouse_right_pressed = 0;
-int mouse_middle_pressed = 0;
-int mouse_left_up = 0;
-int mouse_right_up = 0;
-int mouse_middle_up = 0;
-int Mouse_dx = 0;
-int Mouse_dy = 0;
-int Mouse_dz = 0;
+// total mouse delta motion each game frame
+static int Mouse_dx = 0;
+static int Mouse_dy = 0;
+static int Mouse_dz = 0;
+// accumulation of mouse delta motion during each game frame
+static int Mouse_dx_inc = 0;
+static int Mouse_dy_inc = 0;
 
 int Mouse_sensitivity = 4;
 int Use_mouse_to_fly = 0;
@@ -282,6 +286,7 @@ void mouse_flush()
 
 	mouse_eval_deltas();
 	Mouse_dx = Mouse_dy = Mouse_dz = 0;
+	Mouse_dx_inc = Mouse_dy_inc = 0;
 	mouse_left_pressed = 0;
 	mouse_right_pressed = 0;
 	mouse_middle_pressed = 0;
@@ -425,9 +430,13 @@ void mouse_force_pos(int x, int y)
 }
 
 static bool Mouse_grabbed = false;
-// reusing obsolete function for special position handling
 void mouse_eval_deltas()
 {
+	Mouse_dx = Mouse_dx_inc;
+	Mouse_dy = Mouse_dy_inc;
+
+	Mouse_dx_inc = Mouse_dy_inc = 0;
+
 	// make sure mouse is bound to window if we're flying with it
 	if (Keep_mouse_centered && Mouse_hidden) {
 		if ( !Mouse_grabbed ) {
@@ -491,6 +500,7 @@ void mouse_update_pos(int x, int y, int dx, int dy)
 {
 	Mouse_x = x;
 	Mouse_y = y;
-	Mouse_dx = dx;
-	Mouse_dy = dy;
+
+	Mouse_dx_inc += dx;
+	Mouse_dy_inc += dy;
 }

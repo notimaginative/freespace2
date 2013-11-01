@@ -753,7 +753,7 @@ void debug_console( void (*_func)() )
 			break;
 		default:	{
 				int c = key_get_text_input();
-				if ( c < 255 ) {
+				if ( (c >= 0) && (c < 255) ) {
 					command_line[command_line_pos++] = (ubyte)c;
 					command_line[command_line_pos] = 0;
 				}

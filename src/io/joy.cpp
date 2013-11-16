@@ -15,7 +15,6 @@
 #include "joy_ff.h"
 #include "osapi.h"
 
-#include "SDL.h"
 
 static int Joy_inited = 0;
 int Dead_zone_size = 10;

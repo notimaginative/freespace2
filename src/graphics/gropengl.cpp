@@ -359,13 +359,13 @@ void gr_opengl_init()
 	extern int D3D_enabled;
 	D3D_enabled = 1;
 
-bpp = 16;
 	switch (bpp) {
 		case 15:
 		case 16:
 			gr_screen.bits_per_pixel = 16;
 			gr_screen.bytes_per_pixel = 2;
 
+			// screen values
 			Gr_red.bits = 5;
 			Gr_red.shift = 10;
 			Gr_red.scale = 8;
@@ -393,6 +393,7 @@ bpp = 16;
 			gr_screen.bits_per_pixel = 32;
 			gr_screen.bytes_per_pixel = 4;
 
+			// screen values
 			Gr_red.bits = 8;
 			Gr_red.shift = 16;
 			Gr_red.scale = 1;
@@ -421,22 +422,24 @@ bpp = 16;
 	}
 
 	// DDOI - set these so no one else does!
-	Gr_t_red.mask = Gr_red.mask;
-	Gr_t_red.shift = Gr_red.shift;
-	Gr_t_red.scale = Gr_red.scale;
+	// texture values, always 1555 - 16-bit
+	Gr_t_red.mask = 0x7C00;
+	Gr_t_red.shift = 10;
+	Gr_t_red.scale = 8;
 
-	Gr_t_green.mask = Gr_green.mask;
-	Gr_t_green.shift = Gr_green.shift;
-	Gr_t_green.scale = Gr_green.scale;
+	Gr_t_green.mask = 0x3E0;
+	Gr_t_green.shift = 5;
+	Gr_t_green.scale = 8;
 
-	Gr_t_blue.mask = Gr_blue.mask;
-	Gr_t_blue.shift = Gr_blue.shift;
-	Gr_t_blue.scale = Gr_blue.scale;
+	Gr_t_blue.mask = 0x1F;
+	Gr_t_blue.shift = 0;
+	Gr_t_blue.scale = 8;
 
-	Gr_t_alpha.mask = Gr_alpha.mask;
-	Gr_t_alpha.scale = Gr_alpha.scale;
-	Gr_t_alpha.shift = Gr_alpha.shift;
+	Gr_t_alpha.mask = 0x8000;
+	Gr_t_alpha.scale = 255;
+	Gr_t_alpha.shift = 15;
 
+	// alpha-texture values
 	Gr_ta_red.mask = 0x0f00;
 	Gr_ta_red.shift = 8;
 	Gr_ta_red.scale = 16;
@@ -453,6 +456,7 @@ bpp = 16;
 	Gr_ta_alpha.shift = 12;
 	Gr_ta_alpha.scale = 16;
 
+	// default to screen
 	Gr_current_red = &Gr_red;
 	Gr_current_blue = &Gr_blue;
 	Gr_current_green = &Gr_green;

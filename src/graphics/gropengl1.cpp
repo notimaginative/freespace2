@@ -679,10 +679,10 @@ void gr_opengl1_restore_screen(int id)
 	glLoadIdentity();
 	glScalef(1.0f, -1.0f, 1.0f);
 
-	int tex_coord[] = { 0, 0, 0, 1, 1, 1, 1, 0 };
+	int tex_coord[] = { 0, 0, 0, 1, 1, 0, 1, 1 };
 	int ver_coord[] = { GL_viewport_x, GL_viewport_y, GL_viewport_x,
-			GL_viewport_h, GL_viewport_w, GL_viewport_h, GL_viewport_w,
-			GL_viewport_y
+			GL_viewport_h, GL_viewport_w, GL_viewport_y, GL_viewport_w,
+			GL_viewport_h
 	};
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -691,7 +691,7 @@ void gr_opengl1_restore_screen(int id)
 	glTexCoordPointer(2, GL_INT, 0, &tex_coord);
 	glVertexPointer(2, GL_INT, 0, &ver_coord);
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);

@@ -141,13 +141,13 @@ static void opengl1_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	opengl_alloc_render_buffer(4);
 
 	render_buffer[0].x = x1;
-	render_buffer[0].y = y2;
+	render_buffer[0].y = y1;
 	render_buffer[0].u = u0;
-	render_buffer[0].v = v1;
+	render_buffer[0].v = v0;
 
-	render_buffer[1].x = x2;
+	render_buffer[1].x = x1;
 	render_buffer[1].y = y2;
-	render_buffer[1].u = u1;
+	render_buffer[1].u = u0;
 	render_buffer[1].v = v1;
 
 	render_buffer[2].x = x2;
@@ -155,10 +155,10 @@ static void opengl1_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	render_buffer[2].u = u1;
 	render_buffer[2].v = v0;
 
-	render_buffer[3].x = x1;
-	render_buffer[3].y = y1;
-	render_buffer[3].u = u0;
-	render_buffer[3].v = v0;
+	render_buffer[3].x = x2;
+	render_buffer[3].y = y2;
+	render_buffer[3].u = u1;
+	render_buffer[3].v = v1;
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -166,7 +166,7 @@ static void opengl1_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
 	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -571,6 +571,7 @@ void gr_opengl1_string( int sx, int sy, const char *s )
 	float u0, u1, v0, v1;
 	float x1, x2, y1, y2;
 	int bw, bh;
+	float fbw, fbh;
 
 	if ( !Current_font )	{
 		return;
@@ -586,9 +587,23 @@ void gr_opengl1_string( int sx, int sy, const char *s )
 
 	bm_get_info( gr_screen.current_bitmap, &bw, &bh );
 
+	fbw = 1.0f / i2fl(bw);
+	fbh = 1.0f / i2fl(bh);
+
 	opengl1_set_state( TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 
-	opengl_alloc_render_buffer(strlen(s) * 4);
+	// don't want to create a super huge buffer size (i.e. credits text)
+	const int alocsize = 320;	// 80 characters max per render call
+	opengl_alloc_render_buffer(alocsize);
+
+	glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green,
+			gr_screen.current_color.blue, gr_screen.current_color.alpha);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
 
 	x = sx;
 	y = sy;
@@ -646,29 +661,35 @@ void gr_opengl1_string( int sx, int sy, const char *s )
 		if ( wc < 1 ) continue;
 		if ( hc < 1 ) continue;
 
-		int u = Current_font->bm_u[letter];
-		int v = Current_font->bm_v[letter];
+		float u = i2fl(Current_font->bm_u[letter] + xd);
+		float v = i2fl(Current_font->bm_v[letter] + yd);
 
 		x1 = i2fl(xc + gr_screen.offset_x);
 		y1 = i2fl(yc + gr_screen.offset_y);
-		x2 = i2fl(x1 + wc);
-		y2 = i2fl(y1 + hc);
+		x2 = x1 + i2fl(wc);
+		y2 = y1 + i2fl(hc);
 
-		u0 = u_scale * (i2fl(u+xd) / bw);
-		v0 = v_scale * (i2fl(v+yd) / bh);
+		u0 = u_scale * (u * fbw);
+		v0 = v_scale * (v * fbh);
 
-		u1 = u_scale * (i2fl((u+xd)+wc) / bw);
-		v1 = v_scale * (i2fl((v+yd)+hc) / bh);
+		u1 = u_scale * ((u+i2fl(wc)) * fbw);
+		v1 = v_scale * ((v+i2fl(hc)) * fbh);
+
+		// maybe go ahead and draw
+		if (rb_offset == alocsize) {
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, rb_offset);
+			rb_offset = 0;
+		}
+
+		render_buffer[rb_offset].x = x1;
+		render_buffer[rb_offset].y = y1;
+		render_buffer[rb_offset].u = u0;
+		render_buffer[rb_offset].v = v0;
+		++rb_offset;
 
 		render_buffer[rb_offset].x = x1;
 		render_buffer[rb_offset].y = y2;
 		render_buffer[rb_offset].u = u0;
-		render_buffer[rb_offset].v = v1;
-		++rb_offset;
-
-		render_buffer[rb_offset].x = x2;
-		render_buffer[rb_offset].y = y2;
-		render_buffer[rb_offset].u = u1;
 		render_buffer[rb_offset].v = v1;
 		++rb_offset;
 
@@ -678,23 +699,16 @@ void gr_opengl1_string( int sx, int sy, const char *s )
 		render_buffer[rb_offset].v = v0;
 		++rb_offset;
 
-		render_buffer[rb_offset].x = x1;
-		render_buffer[rb_offset].y = y1;
-		render_buffer[rb_offset].u = u0;
-		render_buffer[rb_offset].v = v0;
+		render_buffer[rb_offset].x = x2;
+		render_buffer[rb_offset].y = y2;
+		render_buffer[rb_offset].u = u1;
+		render_buffer[rb_offset].v = v1;
 		++rb_offset;
 	}
 
-	glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green,
-			gr_screen.current_color.blue,gr_screen.current_color.alpha);
-
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
-
-	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
-	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
-
-	glDrawArrays(GL_QUADS, 0, rb_offset);
+	if (rb_offset) {
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, rb_offset);
+	}
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -917,10 +931,10 @@ void gr_opengl1_flash(int r, int g, int b)
 		opengl_alloc_render_buffer(4);
 
 		render_buffer[0].x = x1;
-		render_buffer[0].y = y2;
+		render_buffer[0].y = y1;
 		render_buffer[0].z = -0.99f;
 
-		render_buffer[1].x = x2;
+		render_buffer[1].x = x1;
 		render_buffer[1].y = y2;
 		render_buffer[1].z = -0.99f;
 
@@ -928,14 +942,14 @@ void gr_opengl1_flash(int r, int g, int b)
 		render_buffer[2].y = y1;
 		render_buffer[2].z = -0.99f;
 
-		render_buffer[3].x = x1;
-		render_buffer[3].y = y1;
+		render_buffer[3].x = x2;
+		render_buffer[3].y = y2;
 		render_buffer[3].z = -0.99f;
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
 
-		glDrawArrays(GL_QUADS, 0, 4);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}

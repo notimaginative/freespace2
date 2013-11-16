@@ -209,7 +209,7 @@ void opengl1_init()
 		OGL_fog_mode = 1;
 	}
 
-	mprintf(("\n"));
+	mprintf(("  Fog mode: %s\n", (OGL_fog_mode == 1) ? "secondary color" : "linear"));
 
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DITHER);

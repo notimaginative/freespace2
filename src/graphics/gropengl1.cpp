@@ -34,8 +34,6 @@ static int Gr_opengl_mouse_saved_w = 0;
 static int Gr_opengl_mouse_saved_h = 0;
 static ubyte *Gr_opengl_mouse_saved_data = NULL;
 
-#define CLAMP(x,r1,r2) do { if ( (x) < (r1) ) (x) = (r1); else if ((x) > (r2)) (x) = (r2); } while(0)
-
 
 PFNGLSECONDARYCOLORPOINTERPROC vglSecondaryColorPointer = NULL;
 
@@ -560,10 +558,10 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 	x2 = x+w-1;
 	y2 = y+h-1;
 
-	CLAMP(x1, 0, GL_viewport_w);
-	CLAMP(x2, 0, GL_viewport_w);
-	CLAMP(y1, 0, GL_viewport_h);
-	CLAMP(y2, 0, GL_viewport_h);
+	CAP(x1, 0, GL_viewport_w);
+	CAP(x2, 0, GL_viewport_w);
+	CAP(y1, 0, GL_viewport_h);
+	CAP(y2, 0, GL_viewport_h);
 
 	Gr_opengl_mouse_saved_x = x1;
 	Gr_opengl_mouse_saved_y = y1;

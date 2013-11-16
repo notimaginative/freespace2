@@ -286,15 +286,16 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
 		int r, g, b;
 		int ra, ga, ba;
+		float sx, sy;
+		int x, y;
+
 		ra = ga = ba = 0;
 
 		/* argh */
 		for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
 		{
 			vertex * va = verts[i];
-			float sx, sy;
 
-			int x, y;
 			x = fl2i(va->sx*16.0f);
 			y = fl2i(va->sy*16.0f);
 
@@ -326,11 +327,12 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 
 	int rb_offset = 0;
 
+	int x, y;
+	float sx, sy, sz, rhw;
+	int a;
+
 	for (i = nv-1; i >= 0; i--) {
 		vertex * va = verts[i];
-		float sx, sy, sz;
-		float rhw = 1.0f;
-		int a;
 
 		if ( Gr_zbuffering || (flags & TMAP_FLAG_NEBULA) ) {
 			sz = 1.0 - 1.0 / (1.0 + va->z / (32768.0 / 256.0));
@@ -342,8 +344,10 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			sz = 0.99f;
 		}
 
-		if ( flags & TMAP_FLAG_CORRECT )        {
-			rhw /= va->sw;
+		if (flags & TMAP_FLAG_CORRECT) {
+			rhw = 1.0f / va->sw;
+		} else {
+			rhw = 1.0f;
 		}
 
 		if (flags & TMAP_FLAG_ALPHA) {
@@ -375,7 +379,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		render_buffer[rb_offset].b = b;
 		render_buffer[rb_offset].a = a;
 
-		if ( (gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1) ) {
+		if ( (flags & TMAP_FLAG_PIXEL_FOG) && (OGL_fog_mode == 1) ) {
 			float f_val;
 
 			opengl1_stuff_fog_value(va->z, &f_val);
@@ -385,7 +389,6 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			render_buffer[rb_offset].sb = fl2i(((fb * f_val) * 255.0f) + 0.5f);
 		}
 
-		int x, y;
 		x = fl2i(va->sx*16.0f);
 		y = fl2i(va->sy*16.0f);
 

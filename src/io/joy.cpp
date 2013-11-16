@@ -239,13 +239,6 @@ int joy_get_unscaled_reading(int axn)
 		return 0;
 	}
 
-	// Make sure it's calibrated properly.
-	if (joystick.axis_center[axn] - joystick.axis_min[axn] < 5)
-		return 0;
-
-	if (joystick.axis_max[axn] - joystick.axis_center[axn] < 5)
-		return 0;
-
 	int raw = joystick.axis_current[axn];
 
 	rng = joystick.axis_max[axn] - joystick.axis_min[axn];
@@ -280,15 +273,6 @@ int joy_get_scaled_reading(int axn)
 	}
 
 	if (axn >= joystick.num_axes) {
-		return 0;
-	}
-
-	// Make sure it's calibrated properly.
-	if (joystick.axis_center[axn] - joystick.axis_min[axn] < 5) {
-		return 0;
-	}
-
-	if (joystick.axis_max[axn] - joystick.axis_center[axn] < 5) {
 		return 0;
 	}
 
@@ -443,11 +427,11 @@ void joy_set_cen()
 	}
 
 	for (int i = 0; i < JOY_NUM_AXES; i++) {
-	//	if (i < joystick.num_axes) {
-	//		joystick.axis_center[i] = SDL_JoystickGetAxis(sdljoy, i) + 32768;
-	//	} else {
+		if (i < joystick.num_axes) {
+			joystick.axis_center[i] = SDL_JoystickGetAxis(sdljoy, i) + 32768;
+		} else {
 			joystick.axis_center[i] = 32768;
-	//	}
+		}
 	}
 }
 

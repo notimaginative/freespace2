@@ -20,9 +20,6 @@ extern const char *Osreg_company_name;
 extern const char *Osreg_class_name;
 extern const char *Osreg_app_name;
 extern const char *Osreg_title;
-#ifdef PLAT_UNIX
-extern const char *Osreg_user_dir;
-#endif
 
 // ------------------------------------------------------------------------------------------------------------
 // REGISTRY FUNCTIONS
@@ -61,10 +58,6 @@ unsigned int  os_config_read_uint( const char *section, const char *name, unsign
 
 // uses Ex versions of Windows registry functions
 const char * os_config_read_string_ex( const char *keyname, const char *name, const char *default_value );
-
-#if defined(__APPLE__) && !defined(MACOSX)
-extern char full_path[];
-#endif
 
 #endif
 

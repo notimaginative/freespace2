@@ -433,13 +433,11 @@ extern int (*Get_file_list_filter)(const char *filename);
 // cfile directory. valid after cfile_init() returns successfully
 #define CFILE_ROOT_DIRECTORY_LEN			256
 extern char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN];
-#ifdef PLAT_UNIX
 extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
-#endif
 
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program
-int cfile_init(const char *exe_dir, const char *cdrom_dir=NULL);
+int cfile_init(const char *cdrom_dir = NULL);
 
 // Call this if pack files got added or removed or the
 // cdrom changed.  This will refresh the list of filenames 
@@ -617,6 +615,8 @@ int cfile_push_chdir(int type);
 // restore directory on top of the stack
 int cfile_pop_dir();
 
+// initializes Cfile_root_dir[] and Cfile_user_dir[]
+int cfile_init_paths();
 
 #endif	/* __CFILE_H__ */
 

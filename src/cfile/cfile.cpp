@@ -233,12 +233,10 @@
 #include "cfilesystem.h"
 #include "cfilearchive.h"
 #include "osapi.h"
-#include "osregistry.h"  // for Osreg_user_dir
+#include "osregistry.h"
 
-#ifdef PLAT_UNIX
-char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
-#endif
 char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
+char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
 
 // During cfile_init, verify that Pathtypes[n].index == n for each item
 // Each path must have a valid parent that can be tracable all the way back to the root 
@@ -400,7 +398,7 @@ int cfile_in_root_dir(char *exe_path)
 //	returns:  success ==> 0
 //           error   ==> non-zero
 //
-int cfile_init(const char *exe_dir, const char *cdrom_dir)
+int cfile_init(const char *cdrom_dir)
 {
 	int i;
 
@@ -408,54 +406,25 @@ int cfile_init(const char *exe_dir, const char *cdrom_dir)
 	encrypt_init();	
 
 	if ( !cfile_inited ) {
-		char buf[128];
-
-		cfile_inited = 1;
-
-		strcpy(buf, exe_dir);
-		i = strlen(buf);
-
-#ifndef PLAT_UNIX
-		// are we in a root directory?		
-		if(cfile_in_root_dir(buf)){
-			MessageBox((HWND)NULL, "Freespace2/Fred2 cannot be run from a drive root directory!", "Error", MB_OK);
-			return 1;
-		}		
-#endif
-
-		while (i--) {
-			if (buf[i] == DIR_SEPARATOR_CHAR){
-				break;
-			}
-		}						
-
-		if (i >= 2) {					
-			buf[i] = 0;						
-			cfile_chdir(buf);
-		} else {
-#ifdef PLAT_UNIX
-			fprintf (stderr, "Error trying to determine executable root directory!");
-#else
-			MessageBox((HWND)NULL, "Error trying to determine executable root directory!", "Error", MB_OK);
-#endif
+		// initialize root and user paths (may have been done already)
+		if ( cfile_init_paths() ) {
 			return 1;
 		}
 
-		// set root directory
-		strncpy(Cfile_root_dir, buf, CFILE_ROOT_DIRECTORY_LEN-1);
+		cfile_inited = 1;
 
-#ifdef PLAT_UNIX
-		snprintf(Cfile_user_dir, MAX_PATH, "%s/%s/", detect_home(), Osreg_user_dir);
-#endif
 		for ( i = 0; i < MAX_CFILE_BLOCKS; i++ ) {
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
 
 		Cfile_cdrom_dir = (char *)cdrom_dir;
+
 		cf_build_secondary_filelist(Cfile_cdrom_dir);
 
 		// 32 bit CRC table init
 		cf_chksum_long_init();
+
+
 
 		atexit( cfile_close );
 	}
@@ -1804,9 +1773,61 @@ int cflush(CFILE *cfile)
 	return fflush(cb->fp);
 }
 
+// fill in Cfile_root_dir[] and Cfile_user_dir[]
+// this can be called at any time, even before cfile_init()
+//  returns: non-zero on error
+int cfile_init_paths()
+{
+	if ( strlen(Cfile_root_dir) && strlen(Cfile_user_dir) ) {
+		return 0;
+	}
 
+	char *t_path = SDL_GetBasePath();
 
+	// make sure we have something
+	if (t_path == NULL) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine executable directory!", NULL);
+		return 1;
+	}
 
+	// size check
+	if ( strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Executable path is too long!", NULL);
+		return 1;
+	}
 
+	// set root directory
+	strcpy(Cfile_root_dir, t_path);
+	// free SDL copy
+	SDL_free(t_path);
+	t_path = NULL;
 
+	// are we in a root directory?
+	if ( cfile_in_root_dir(Cfile_root_dir) ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
+		return 1;
+	}
 
+	// now for the user/pref directory, the writable location
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+
+	// make sure we have something
+	if (u_path == NULL) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine preferences directory!", NULL);
+		return 1;
+	}
+
+	// size check
+	if ( strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Preferences path is too long!", NULL);
+		return 1;
+	}
+
+	// set user/pref directory
+	strcpy(Cfile_user_dir, u_path);
+	// free SDL copy
+	SDL_free(u_path);
+	u_path = NULL;
+
+	return 0;
+}

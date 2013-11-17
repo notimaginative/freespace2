@@ -477,32 +477,10 @@ void cf_build_root_list(const char *cdrom_dir)
 
 	cf_root	*root;
 
-#ifdef PLAT_UNIX
 	// ================================================================
-	// use users HOME directory as default for loading and saving files
+	// have user's writable directory as default for loading and saving files
 	root = cf_create_root();
 	strcpy( root->path, Cfile_user_dir );
-
-	// do we already have a slash? as in the case of a root directory install
-	if(strlen(root->path) && (root->path[strlen(root->path)-1] != '/')){
-		strcat(root->path, "/");		// put trailing backslash on for easier path construction
-	}
-	root->roottype = CF_ROOTTYPE_PATH;
-
-   //======================================================
-	// Next, check any VP files under the current directory.
-	cf_build_pack_list(root);
-#endif
-
-   //======================================================
-	// First, check the current directory.
-	// strcpy( root->path, "d:\\projects\\freespace\\" );
-
-	root = cf_create_root();
-
-	if ( !_getcwd(root->path, CF_MAX_PATHNAME_LENGTH ) ) {
-		Error(LOCATION, "Can't get current working directory -- %d", errno );
-	}
 
 	// do we already have a slash? as in the case of a root directory install
 	if(strlen(root->path) && (root->path[strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
@@ -510,12 +488,27 @@ void cf_build_root_list(const char *cdrom_dir)
 	}
 	root->roottype = CF_ROOTTYPE_PATH;
 
-   //======================================================
-	// Next, check any VP files under the current directory.
+	//======================================================
+	// then check any VP files under the directory.
+	cf_build_pack_list(root);
+
+	//======================================================
+	// Next, use the executable's directory for game data
+	root = cf_create_root();
+	strcpy( root->path, Cfile_root_dir );
+
+	// do we already have a slash? as in the case of a root directory install
+	if(strlen(root->path) && (root->path[strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
+		strcat(root->path, DIR_SEPARATOR_STR);		// put trailing backslash on for easier path construction
+	}
+	root->roottype = CF_ROOTTYPE_PATH;
+
+	//======================================================
+	// then check any VP files under the current directory.
 	cf_build_pack_list(root);
 
 
-   //======================================================
+	//======================================================
 	// Check the real CD if one...
 	if ( cdrom_dir && strlen(cdrom_dir) )	{
 		root = cf_create_root();
@@ -525,9 +518,7 @@ void cf_build_root_list(const char *cdrom_dir)
 		//======================================================
 		// Next, check any VP files in the CD-ROM directory.
 		cf_build_pack_list(root);
-
 	}
-
 }
 
 // Given a lower case list of file extensions 

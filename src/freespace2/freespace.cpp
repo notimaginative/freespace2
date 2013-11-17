@@ -764,10 +764,6 @@ float Viewer_zoom = VIEWER_ZOOM_DEFAULT;
 #define LAUNCHER_FNAME	("freespace2.exe")
 
 
-#if defined(__APPLE__) && !defined(MACOSX)
-extern char full_path[1024];
-#endif
-
 // JAS: Code for warphole camera.
 // Needs to be cleaned up.
 vector Camera_pos = ZERO_VECTOR;
@@ -2373,33 +2369,9 @@ void game_init()
 	int s1, e1;
 	// int s2, e2;
 
-	char whee[1024];
-#ifndef PLAT_UNIX	
-	GetCurrentDirectory(1024, whee);
-	strcat(whee, "\\");
-#elif defined(__APPLE__) && !defined(MACOSX)
-	// some OSX hackery to drop us out of the APP the binary is run from
-	char *c = NULL;
-	c = strstr(full_path, ".app");
-
-	if ( c != NULL) {
-		while (c && (*c != '/'))
-			c--;
-
-		*c = '\0';
-	}
-
-	strncpy(whee, full_path, 1024);
-	strcat(whee, "/");
-#else
-	getcwd (whee, 1024);
-	strcat(whee, "/");
-#endif
-	strcat(whee, EXE_FNAME);
-
 	//Initialize the libraries
 	s1 = timer_get_milliseconds();
-	if(cfile_init(whee, Game_CDROM_dir)){			// initialize before calling any cfopen stuff!!!
+	if(cfile_init(Game_CDROM_dir)){			// initialize before calling any cfopen stuff!!!
 		exit(1);
 	}		
 	e1 = timer_get_milliseconds();
@@ -7129,32 +7101,7 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 		return 0;
 	}
 */
-	//=====================================================
-	// Make sure we're running in the right directory.
-#ifndef PLAT_UNIX
-	char exe_dir[1024];
 
-	if ( GetModuleFileName( hInst, exe_dir, 1023 ) > 0 )	{
-		char *p = exe_dir + strlen(exe_dir);
-
-		// chop off the filename
-		while( (p>exe_dir) && (*p!='\\') && (*p!='/') && (*p!=':') )	{
-			p--;
-		}
-		*p = 0;
-
-		// Set directory
-		if ( strlen(exe_dir) > 0 )	{
-			SetCurrentDirectory(exe_dir);
-		}
-
-		// check for updated freespace.exe
-		game_maybe_update_launcher(exe_dir);
-	}
-#else
-	STUB_FUNCTION;
-#endif
-	
 	#ifndef NDEBUG				
 	{
 		extern void windebug_memwatch_init();

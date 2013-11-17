@@ -188,12 +188,6 @@ void os_deinit();
 
 // initialization/shutdown functions -----------------------------------------------
 
-// detect users home directory
-const char *detect_home(void)
-{
-	return (getenv("HOME"));
-}
-
 // If app_name is NULL or ommited, then TITLE is used
 // for the app name, which is where registry keys are stored.
 void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)

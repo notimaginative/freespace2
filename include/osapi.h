@@ -37,10 +37,6 @@ extern int Os_debugger_running;
 
 // initialization/shutdown functions -----------------------------------------------
 
-#ifdef PLAT_UNIX
-extern const char *detect_home(void);
-#endif
-
 // If app_name is NULL or ommited, then TITLE is used
 // for the app name, which is where registry keys are stored.
 void os_init(const char *wclass, const char *title, const char *app_name = NULL, const char *version_string = NULL);

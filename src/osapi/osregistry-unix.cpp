@@ -12,27 +12,17 @@
 
 const char *Osreg_company_name = "Volition";
 #if defined(MAKE_FS1)
-const char *Osreg_class_name = "FreespaceClass";
+const char *Osreg_class_name = "FreeSpaceClass";
 #else
 const char *Osreg_class_name = "Freespace2Class";
 #endif
 #if defined(FS1_DEMO)
 const char *Osreg_app_name = "FreeSpaceDemo";
-const char *Osreg_title = "Freespace Demo";
-#ifndef __APPLE__
-const char *Osreg_user_dir = ".freespace_demo";
-#else
-const char *Osreg_user_dir = "Library/Application Support/FreeSpace Demo";
-#endif
+const char *Osreg_title = "FreeSpace Demo";
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
 const char *Osreg_app_name = "FreeSpace2Demo";
 const char *Osreg_title = "Freespace 2 Demo";
-#ifndef __APPLE__
-const char *Osreg_user_dir = ".freespace2_demo";
-#else
-const char *Osreg_user_dir = "Library/Application Support/Freespace 2 Demo";
-#endif
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
 const char *Osreg_app_name = "FreeSpace2OEM";
@@ -41,20 +31,10 @@ const char *Osreg_title = "Freespace 2 OEM";
 #elif defined(MAKE_FS1)
 const char *Osreg_app_name = "FreeSpace";
 const char *Osreg_title = "FreeSpace";
-#ifndef __APPLE__
-const char *Osreg_user_dir = ".freespace";
-#else
-const char *Osreg_user_dir = "Library/Application Support/FreeSpace";
-#endif
 #define PROFILE_NAME "FreeSpace.ini"
 #else
 const char *Osreg_app_name = "FreeSpace2";
 const char *Osreg_title = "Freespace 2";
-#ifndef __APPLE__
-const char *Osreg_user_dir = ".freespace2";
-#else
-const char *Osreg_user_dir = "Library/Application Support/Freespace 2";
-#endif
 #define PROFILE_NAME "FreeSpace2.ini"
 #endif
 

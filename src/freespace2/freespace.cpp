@@ -7108,7 +7108,14 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 		windebug_memwatch_init();
 	}
 	#endif
-	
+
+#ifndef NDEBUG
+	outwnd_init(1);
+#endif
+
+	mprintf(("Total RAM: %dMB\n", total_ram));
+	mprintf(("Command line: %s\n", szCmdLine));
+
 	parse_cmdline(szCmdLine);	
 
 #ifdef STANDALONE_ONLY_BUILD

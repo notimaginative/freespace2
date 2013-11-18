@@ -192,10 +192,6 @@ void os_deinit();
 // for the app name, which is where registry keys are stored.
 void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)
 {
-#ifndef NDEBUG
-	outwnd_init(1);
-#endif
-
 	/* set some sane defaults since we don't have a laucher... */
 	if (os_config_read_string(NULL, NOX("Videocard"), NULL) == NULL)
 		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));

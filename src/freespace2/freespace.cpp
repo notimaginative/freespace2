@@ -6789,39 +6789,49 @@ void game_do_state(int state)
 
 
 // return 0 if there is enough RAM to run FreeSpace, otherwise return -1
-int game_do_ram_check(int ram_in_bytes)
+int game_do_ram_check(int ram_in_mbytes)
 {
-	if ( ram_in_bytes < 30*1024*1024 )	{
+	if ( ram_in_mbytes < 30 )	{
 		int allowed_to_run = 1;
-		if ( ram_in_bytes < 25*1024*1024 ) {
+		if ( ram_in_mbytes < 25 ) {
 			allowed_to_run = 0;
 		}
 
 		char tmp[1024];
-		int Freespace_total_ram_MB;
-		Freespace_total_ram_MB = fl2i(ram_in_bytes/(1024*1024));
 
 		if ( allowed_to_run ) {
-
-			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), Freespace_total_ram_MB, Freespace_total_ram_MB);
-
-#ifndef PLAT_UNIX
+			SDL_MessageBoxData mboxd;
+			SDL_MessageBoxButtonData mboxbuttons[2];
 			int msgbox_rval;
 
-			msgbox_rval = MessageBox( NULL, tmp, XSTR( "Not Enough RAM", 194), MB_OKCANCEL );
-			if ( msgbox_rval == IDCANCEL ) {
+			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), ram_in_mbytes, ram_in_mbytes);
+
+			mboxbuttons[0].buttonid = 0;
+			mboxbuttons[0].text = XSTR("Ok", 503);
+			mboxbuttons[0].flags = 0;
+
+			mboxbuttons[1].buttonid = 1;
+			mboxbuttons[1].text = XSTR("Cancel", 504);
+			mboxbuttons[0].flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
+
+			mboxd.flags = SDL_MESSAGEBOX_ERROR;
+			mboxd.title = XSTR( "Not Enough RAM", 194);
+			mboxd.message = tmp;
+			mboxd.numbuttons = 2;
+			mboxd.buttons = mboxbuttons;
+			mboxd.window = NULL;
+			mboxd.colorScheme = NULL;
+
+			SDL_ShowMessageBox(&mboxd, &msgbox_rval);
+
+			if ( msgbox_rval == 1 ) {
 				return -1;
 			}
-#else
-			STUB_FUNCTION;
-#endif			
 		} else {
-			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n", 195), Freespace_total_ram_MB, Freespace_total_ram_MB);
-#ifndef PLAT_UNIX
-			MessageBox( NULL, tmp, XSTR( "Not Enough RAM", 194), MB_OK );
-#else
-			STUB_FUNCTION;
-#endif			
+			sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n", 195), ram_in_mbytes, ram_in_mbytes);
+
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough RAM", 194), tmp, NULL);
+
 			return -1;
 		}
 	}
@@ -7007,35 +7017,25 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 #endif
 
 	// Find out how much RAM is on this machine
-#ifndef PLAT_UNIX
-	MEMORYSTATUS ms;
-	ms.dwLength = sizeof(MEMORYSTATUS);
-	GlobalMemoryStatus(&ms);
-	Freespace_total_ram = ms.dwTotalPhys;
+	int total_ram = SDL_GetSystemRAM();
 
-	if ( game_do_ram_check(Freespace_total_ram) == -1 ) {
-		return 0;
-	}
-
-	if ( ms.dwTotalVirtual < 1024 )	{
-		MessageBox( NULL, XSTR( "FreeSpace requires virtual memory to run.\r\n", 196), XSTR( "No Virtual Memory", 197), MB_OK );
+	if ( game_do_ram_check(total_ram) == -1 ) {
 		return 0;
 	}
 
 	if (!vm_init(24*1024*1024)) {
-		MessageBox( NULL, XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), XSTR( "Not Enough Memory", 199), MB_OK );
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
 		return 0;
 	}
-		
+
 	char *tmp_mem = (char *) malloc(16 * 1024 * 1024);
 	if (!tmp_mem) {
-		MessageBox(NULL, XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), XSTR( "Not Enough Memory", 199), MB_OK);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
 		return 0;
 	}
 
 	free(tmp_mem);
 	tmp_mem = NULL;
-#endif
 	
 /* this code doesn't work, and we will hit an error about being unable to load the direct draw
 	dll before we get here anyway if it's not installed (unless we load it manually, which doesn't

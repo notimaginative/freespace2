@@ -166,6 +166,11 @@ typedef struct RAM {
 static RAM *RamTable;
 #endif
 
+int vm_init(int min_heap_size)
+{
+	return 1;
+}
+
 #ifndef NDEBUG
 void vm_free(void* ptr, const char *file, int line)
 #else

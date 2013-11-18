@@ -1380,16 +1380,14 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 		strcpy( path, filename );
 
 	} else {
-		cf_root *root = cf_get_root(0);
-
-		if (!root) {
+		if ( cfile_init_paths() ) {
 			strcpy(path, filename);
 			return;
 		}
 
 		Assert(CF_TYPE_SPECIFIED(pathtype));
 
-		strcpy(path, root->path);
+		strcpy(path, Cfile_user_dir);
 		strcat(path, Pathtypes[pathtype].path);
 
 		// Don't add slash for root directory

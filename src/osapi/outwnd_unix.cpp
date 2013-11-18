@@ -156,8 +156,6 @@
  * $NoKeywords: $
  */
 
-#ifndef WIN32	// Goober5000
-
 #ifndef NDEBUG
 
 #include <stdio.h>
@@ -171,8 +169,8 @@
 #include "cfile.h"
 #include "cfilesystem.h"
 
-extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
 
+extern void cf_create_directory( int dir_type );
 
 void outwnd_print(const char *id, const char *tmp);
 
@@ -194,24 +192,25 @@ int outwnd_filter_count = 0;
 int outwnd_filter_loaded = 0;
 
 // used for file logging
-#ifndef NDEBUG
-	int Log_debug_output_to_file = 1;
-	FILE *Log_fp;
-	const char *Freespace_logfilename = "fs_debug.log";
-#endif
+int Log_debug_output_to_file = 1;
+FILE *Log_fp;
+const char *Freespace_logfilename = "fs_debug.log";
 
 void load_filter_info(void)
 {
 	FILE *fp;
-	char pathname[MAX_PATH_LEN];
+	char pathname[512];
 	char inbuf[FILTER_NAME_LENGTH+4];
 	int z;
 
 	outwnd_filter_loaded = 1;
 	outwnd_filter_count = 0;
 
-	snprintf(pathname, MAX_PATH_LEN, "%s/%s/%s/", detect_home(), Osreg_user_dir, Pathtypes[CF_TYPE_DATA].path);
-	strcat(pathname, "debug_filter.cfg" );
+	if ( cfile_init_paths() ) {
+		return;
+	}
+
+	snprintf(pathname, sizeof(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen(pathname, "rt");
 	if (!fp)	{
@@ -277,7 +276,7 @@ void save_filter_info(void)
 {
 	FILE *fp;
 	int i;
-	char pathname[MAX_PATH_LEN];
+	char pathname[512];
 
 	if (!outwnd_filter_loaded)
 		return;
@@ -286,8 +285,11 @@ void save_filter_info(void)
 		return;	// No file, don't save
 	}
 
-	snprintf(pathname, MAX_PATH_LEN, "%s/%s/%s/", detect_home(), Osreg_user_dir, Pathtypes[CF_TYPE_DATA].path);
-	strcat(pathname, "debug_filter.cfg" );
+	if ( cfile_init_paths() ) {
+		return;
+	}
+
+	snprintf(pathname, sizeof(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen(pathname, "wt");
 	if (fp)
@@ -384,8 +386,6 @@ void outwnd_print(const char *id, const char *tmp)
 	if (!outwnd_filter[i]->state)
 		return;
 
-#ifndef NDEBUG
-
 	if ( Log_debug_output_to_file ) {
 		if ( Log_fp != NULL ) {
 			fputs(tmp, Log_fp);	
@@ -395,25 +395,21 @@ void outwnd_print(const char *id, const char *tmp)
 		fputs(tmp, stdout);
 		fflush(stdout);
 	}
-
-#else
-
-	fputs(tmp, stdout);
-	fflush(stdout);
-
-#endif
 }
 
 
 void outwnd_init(int display_under_freespace_window)
 {
+	if ( cfile_init_paths() ) {
+		return;
+	}
+
 	outwnd_inited = TRUE;
 
-#ifndef NDEBUG
-	char pathname[MAX_PATH_LEN];
+	char pathname[512];
 
-	snprintf(pathname, MAX_PATH_LEN, "%s/%s/%s/", detect_home(), Osreg_user_dir, Pathtypes[CF_TYPE_DATA].path);
-	strcat(pathname, Freespace_logfilename);
+	snprintf(pathname, sizeof(pathname), "%s%s%s%s", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR, Freespace_logfilename);
+	cf_create_directory(CF_TYPE_DATA);
 
 	if ( Log_fp == NULL ) {
 		Log_fp = fopen(pathname, "wb");
@@ -424,20 +420,14 @@ void outwnd_init(int display_under_freespace_window)
 			printf("Future debug output directed to: %s\n", pathname);
 		}
 	}
-#endif 
 }
 
 void outwnd_close()
 {
-#ifndef NDEBUG
 	if ( Log_fp != NULL ) {
 		fclose(Log_fp);
 		Log_fp = NULL;
 	}
-#endif
-
 }
 
 #endif // NDEBUG
-
-#endif		// Goober5000 - #ifndef WIN32

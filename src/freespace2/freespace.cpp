@@ -1273,7 +1273,7 @@ char Game_CDROM_dir[MAX_PATH_LEN];
 int init_cdrom();
 
 // How much RAM is on this machine. Set in WinMain
-uint Freespace_total_ram = 0;
+static int Freespace_total_ram = 0;
 
 // game flash stuff
 float Game_flash_red = 0.0f;
@@ -2657,11 +2657,7 @@ void game_init()
 	}
 
 	// If less than 48MB of RAM, use low memory model.
-	if ( 
-#ifndef PLAT_UNIX		
-			(Freespace_total_ram < 48*1024*1024) ||
-#endif		
-			 Use_low_mem )	{
+	if ( (Freespace_total_ram < 48) || Use_low_mem )	{
 		mprintf(( "Using normal memory settings...\n" ));
 		bm_set_low_mem(1);		// Use every other frame of bitmaps
 	} else {
@@ -7017,9 +7013,9 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 #endif
 
 	// Find out how much RAM is on this machine
-	int total_ram = SDL_GetSystemRAM();
+	Freespace_total_ram = SDL_GetSystemRAM();
 
-	if ( game_do_ram_check(total_ram) == -1 ) {
+	if ( game_do_ram_check(Freespace_total_ram) == -1 ) {
 		return 0;
 	}
 
@@ -7113,8 +7109,9 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 	outwnd_init(1);
 #endif
 
-	mprintf(("Total RAM: %dMB\n", total_ram));
+	mprintf(("Total RAM: %dMB\n", Freespace_total_ram));
 	mprintf(("Command line: %s\n", szCmdLine));
+	mprintf(("Platform: %s\n", SDL_GetPlatform()));
 
 	parse_cmdline(szCmdLine);	
 

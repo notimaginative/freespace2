@@ -6999,7 +6999,7 @@ DCF(pofspew, "")
 	game_spew_pof_info();
 }
 
-int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
+int game_main(const char *szCmdLine)
 {
 	int state, i;		
 
@@ -7214,31 +7214,6 @@ int PASCAL WinMainSub(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCm
 
 	game_shutdown();
 	return 1;
-}
-
-int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
-{
-	int result = -1;
-#ifndef PLAT_UNIX
-	__try
-	{
-		result = WinMainSub(hInst, hPrev, szCmdLine, nCmdShow);
-	}
-	__except(RecordExceptionInfo(GetExceptionInformation(), "Freespace 2 Main Thread"))
-	{
-		// Do nothing here - RecordExceptionInfo() has already done
-		// everything that is needed. Actually this code won't even
-		// get called unless you return EXCEPTION_EXECUTE_HANDLER from
-		// the __except clause.
-	}
-	return result;
-#else
-	nprintf(("WinMain", "exceptions shall fall through"));
-	
-	result = WinMainSub(hInst, hPrev, szCmdLine, nCmdShow);
-	
-	return result;
-#endif	
 }
 
 // launcher the fslauncher program on exit

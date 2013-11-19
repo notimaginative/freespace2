@@ -163,9 +163,9 @@ CODE_SOURCES =./src/anim/animplay.cpp \
 	./src/object/objectsnd.cpp \
 	./src/object/objectsort.cpp \
 	./src/observer/observer.cpp \
-	./src/osapi/os_unix.cpp \
-	./src/osapi/osregistry-unix.cpp \
-	./src/osapi/outwnd_unix.cpp \
+	./src/osapi/osapi.cpp \
+	./src/osapi/osregistry.cpp \
+	./src/osapi/outwnd.cpp \
 	./src/palman/palman.cpp \
 	./src/parse/encrypt.cpp \
 	./src/parse/parselo.cpp \

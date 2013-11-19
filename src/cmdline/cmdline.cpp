@@ -296,20 +296,20 @@ int Cmdline_window = 0;
 
 static cmdline_parm Parm_list(NULL, NULL, NULL);
 
-void print_instructions();
+static void print_instructions();
 
 static int Parm_list_inited = 0;
 
 
 //	Return true if this character is an extra char (white space and quotes)
-int is_extra_space(char ch)
+static int is_extra_space(char ch)
 {
 	return ((ch == ' ') || (ch == '\t') || (ch == 0x0a) || (ch == '\'') || (ch == '\"'));
 }
 
 
 // eliminates all leading and trailing extra chars from a string.  Returns pointer passed in.
-char *drop_extra_chars(char *str)
+static char *drop_extra_chars(char *str)
 {
 	int s, e;
 
@@ -336,7 +336,7 @@ char *drop_extra_chars(char *str)
 
 
 // internal function - copy the value for a parameter agruement into the cmdline_parm arg field
-void parm_stuff_args(cmdline_parm *parm, char *cmdline)
+static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 {
 	char buffer[1024] = { 0 };
 	char *dest = buffer;
@@ -369,7 +369,7 @@ void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 // internal function - parse the command line, extracting parameter arguements if they exist
 // cmdline - command line string passed to the application
-void os_parse_parms(char *cmdline)
+static void os_parse_parms(char *cmdline)
 {
 	// locate command line parameters
 	cmdline_parm *parmp;
@@ -423,7 +423,7 @@ static bool os_find_parm(const cmdline_parm *parmp, const char *token)
 }
 
 // validate the command line parameters.  Display an error if an unrecognized parameter is located.
-void os_validate_parms(char *cmdline)
+static void os_validate_parms(char *cmdline)
 {
 	cmdline_parm *parmp;
 	char seps[] = " ,\t\n";
@@ -458,7 +458,7 @@ void os_validate_parms(char *cmdline)
 // Call once to initialize the command line system
 //
 // cmdline - command line string passed to the application
-void os_init_cmdline(char *cmdline)
+static void os_init_cmdline(const char *cmdline)
 {
 	FILE *fp = NULL;
 	char cmdname[1024] = { 0 };
@@ -503,7 +503,7 @@ void os_init_cmdline(char *cmdline)
 		fclose(fp);
 	}
 
-	if ( strlen(cmdline) ) {
+	if ( cmdline && strlen(cmdline) ) {
 		// for proper arg handling make sure cmdline has trailing space
 		char *m_cmdline = (char*) malloc(strlen(cmdline)+2);
 
@@ -521,7 +521,7 @@ void os_init_cmdline(char *cmdline)
 }
 
 // help for available cmdline options
-void print_instructions()
+static void print_instructions()
 {
 	printf("http://icculus.org/freespace2\n");
 	printf("Support - FAQ: http://icculus.org/lgfaq\n");
@@ -621,7 +621,7 @@ char *cmdline_parm::str()
 }
 
 // external entry point into this modules
-int parse_cmdline(char *cmdline)
+int parse_cmdline(const char *cmdline)
 {
 	os_init_cmdline(cmdline);
 

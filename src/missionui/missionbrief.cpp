@@ -695,12 +695,7 @@ void brief_skip_training_pressed()
 	mission_campaign_eval_next_mission();
 	mission_campaign_mission_over();	
 
-	// CD CHECK
-	if(game_do_cd_mission_check(Game_current_mission_filename)){
-		gameseq_post_event( GS_EVENT_START_GAME );
-	} else {
-		gameseq_post_event( GS_EVENT_MAIN_MENU );
-	}
+	gameseq_post_event( GS_EVENT_START_GAME );
 }
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)

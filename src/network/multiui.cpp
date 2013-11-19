@@ -913,19 +913,7 @@ void multi_common_unload_palette()
 
 void multi_common_verify_cd()
 {
-#ifdef GAME_CD_CHECK
-	// otherwise, call the freespace function to determine if we have a cd
-	Multi_has_cd = 0;
-#ifdef MAKE_FS1
-	if((find_freespace_cd(FS_CDROM_VOLUME_1) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_2) >= 0) ){
-#else
-	if((find_freespace_cd(FS_CDROM_VOLUME_1) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_2) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_3) >= 0) ){
-#endif
-		Multi_has_cd = 1;
-	} 
-#else
 	Multi_has_cd = 1;
-#endif
 }
 
 

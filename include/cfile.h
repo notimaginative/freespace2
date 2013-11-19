@@ -437,12 +437,7 @@ extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
 
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program
-int cfile_init(const char *cdrom_dir = NULL);
-
-// Call this if pack files got added or removed or the
-// cdrom changed.  This will refresh the list of filenames 
-// stored in packfiles and on the cdrom.
-void cfile_refresh();
+int cfile_init(const char *extras_dir = NULL);
 
 // add an extension to a filename if it doesn't already have it
 char *cf_add_ext(const char *filename, const char *ext);

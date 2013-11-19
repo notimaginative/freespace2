@@ -1006,11 +1006,6 @@ int readyroom_continue_campaign()
 #endif
 	}
 
-	// CD CHECK
-	if(!game_do_cd_mission_check(Game_current_mission_filename)){		
-		return -1;
-	}
-
 	// set the bit for campaign mode
 	Game_mode |= GM_CAMPAIGN_MODE;
 	gameseq_post_event( GS_EVENT_START_GAME );	
@@ -1029,12 +1024,9 @@ void sim_room_commit()
 
 	Game_mode &= ~(GM_CAMPAIGN_MODE);						// be sure this bit is clear
 
-	// CD CHECK
-	if(game_do_cd_mission_check(Game_current_mission_filename)){		
-		// don't resume savegame, proceed to briefing
-		gameseq_post_event(GS_EVENT_START_GAME);
-		gamesnd_play_iface(SND_COMMIT_PRESSED);
-	}
+	// don't resume savegame, proceed to briefing
+	gameseq_post_event(GS_EVENT_START_GAME);
+	gamesnd_play_iface(SND_COMMIT_PRESSED);
 }
 
 int sim_room_button_pressed(int n)

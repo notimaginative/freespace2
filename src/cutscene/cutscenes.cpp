@@ -257,25 +257,6 @@ void cutscene_tbl_close()
 	}
 }
 
-// function to return 0 based index of which CD a particular movie is on
-// returns -1 on failure.
-int cutscenes_get_cd_num( const char *filename )
-{
-#if defined(OEM_BUILD)
-	return 0;				// only 1 cd for OEM
-#else
-	int i;
-
-	for (i = 0; i < Num_cutscenes; i++ ) {
-		if ( !stricmp(Cutscenes[i].filename, filename) ) {
-			return (Cutscenes[i].cd - 1);
-		}
-	}
-
-	return -1;
-#endif // defined(OEM_BUILD)
-}
-
 // marks a cutscene as viewable
 void cutscene_mark_viewable(const char *filename)
 {
@@ -410,77 +391,6 @@ static int Text_offset = 0;
 static int Text_line_size[MAX_TEXT_LINES];
 static char *Text_lines[MAX_TEXT_LINES];
 
-
-int cutscenes_validate_cd(const char *mve_name, int prompt_for_cd)
-{
-	int cd_present = 0;
-	int cd_drive_num;
-	int cd_mve_is_on;
-	char volume_name[128];
-
-#ifdef RELEASE_REAL
-	int num_attempts = 0;
-#endif
-
-	while(1) {
-		int path_set_ok;
-
-		cd_mve_is_on = cutscenes_get_cd_num(mve_name);
-		if ((cd_mve_is_on != 0) && (cd_mve_is_on != 1) && (cd_mve_is_on != 2)) {
-			cd_present = 0;
-			break;
-		}
-
-#if defined(OEM_BUILD)
-		sprintf(volume_name, NOX("FS2_OEM"));
-#else
-		sprintf(volume_name, NOX("FREESPACE2_%c"), '1' + cd_mve_is_on);
-#endif
-
-
-		cd_drive_num = find_freespace_cd(volume_name);
-		path_set_ok = set_cdrom_path(cd_drive_num);
-
-		if ( path_set_ok ) {
-			cd_present = 1;
-			break;
-		}
-
-#ifdef RELEASE_REAL
-		if ( !prompt_for_cd ) {
-			cd_present = 0;
-			break;
-		}
-
-		// no CD found, so prompt user
-		char popup_msg[256];
-		int popup_rval;
-
-#if defined(DVD_MESSAGE_HACK)
-		sprintf(popup_msg, XSTR( "Movie not found\n\nInsert FreeSpace DVD to continue", 203));
-#else 
-		sprintf(popup_msg, XSTR( "Movie not found\n\nInsert FreeSpace CD #%d to continue", 203), cd_mve_is_on+1);
-#endif
-
-		popup_rval = popup(PF_BODY_BIG, 2, POPUP_CANCEL, POPUP_OK, popup_msg);
-		if ( popup_rval != 1 ) {
-			cd_present = 0;
-			break;
-		}
-
-		if ( num_attempts++ > 5 ) {
-			cd_present = 0;
-			break;
-		}
-#else
-		cd_present = 0;
-		break;
-#endif
-
-	}
-
-	return cd_present;
-}
 
 void cutscenes_screen_play()
 {

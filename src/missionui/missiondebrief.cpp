@@ -1840,12 +1840,7 @@ void debrief_accept(int ok_to_post_start_game_event)
 	#endif
 				} else {
 					if ( ok_to_post_start_game_event ) {
-						// CD CHECK
-						if(game_do_cd_mission_check(Game_current_mission_filename)){
-							gameseq_post_event(GS_EVENT_START_GAME);
-						} else {
-							gameseq_post_event(GS_EVENT_MAIN_MENU);
-						}
+						gameseq_post_event(GS_EVENT_START_GAME);
 					} else {
 						play_commit_sound = 0;
 					}

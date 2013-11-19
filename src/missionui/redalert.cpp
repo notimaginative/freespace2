@@ -369,11 +369,7 @@ void red_alert_button_pressed(int n)
 {
 	switch (n) {
 	case RA_CONTINUE:		
-		if(game_do_cd_mission_check(Game_current_mission_filename)){
-			gameseq_post_event(GS_EVENT_ENTER_GAME);
-		} else {
-			gameseq_post_event(GS_EVENT_MAIN_MENU);
-		}
+		gameseq_post_event(GS_EVENT_ENTER_GAME);
 		break;
 
 	case RA_REPLAY_MISSION:
@@ -385,12 +381,7 @@ void red_alert_button_pressed(int n)
 				break;
 			}
 
-			// CD CHECK
-			if(game_do_cd_mission_check(Game_current_mission_filename)){
-				gameseq_post_event(GS_EVENT_START_GAME);
-			} else {
-				gameseq_post_event(GS_EVENT_MAIN_MENU);
-			}
+			gameseq_post_event(GS_EVENT_START_GAME);
 		} else {
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		}

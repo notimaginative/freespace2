@@ -55,7 +55,7 @@
 #define _CFILESYSTEM_H
 
 // Builds a list of all the files
-void cf_build_secondary_filelist( const char *cdrom_path );
+void cf_build_secondary_filelist( const char *extras_path );
 void cf_free_secondary_filelist();
 
 // Internal stuff

@@ -471,7 +471,7 @@ void cf_build_pack_list( cf_root *root )
 }
 
 
-void cf_build_root_list(const char *cdrom_dir)
+void cf_build_root_list(const char *extras_dir)
 {
 	Num_roots = 0;
 
@@ -510,9 +510,9 @@ void cf_build_root_list(const char *cdrom_dir)
 
 	//======================================================
 	// Check the real CD if one...
-	if ( cdrom_dir && strlen(cdrom_dir) )	{
+	if ( extras_dir && strlen(extras_dir) )	{
 		root = cf_create_root();
-		strcpy( root->path, cdrom_dir );
+		strcpy( root->path, extras_dir );
 		root->roottype = CF_ROOTTYPE_PATH;
 
 		//======================================================
@@ -776,7 +776,7 @@ void cf_build_file_list()
 }
 
 
-void cf_build_secondary_filelist(const char *cdrom_dir)
+void cf_build_secondary_filelist(const char *extras_dir)
 {
 	int i;
 
@@ -807,7 +807,7 @@ void cf_build_secondary_filelist(const char *cdrom_dir)
 	mprintf(( "Building file index...\n" ));
 	
 	// build the list of searchable roots
-	cf_build_root_list(cdrom_dir);	
+	cf_build_root_list(extras_dir);
 
 	// build the list of files themselves
 	cf_build_file_list();

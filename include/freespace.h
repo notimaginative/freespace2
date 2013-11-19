@@ -169,33 +169,6 @@
 	#define FS_CAMPAIGN_FILE_EXT				NOX(".fc2")
 #endif
 
-// CDROM volume names
-#ifdef MULTIPLAYER_BETA_BUILD
-	#define FS_CDROM_VOLUME_1					NOX("FS2_BETA")
-	#define FS_CDROM_VOLUME_2					NOX("FS2_BETA")
-#elif defined(E3_BUILD)
-	#define FS_CDROM_VOLUME_1					NOX("FS2_E3DEMO")
-	#define FS_CDROM_VOLUME_2					NOX("FS2_E3DEMO")
-#elif defined(OEM_BUILD)
-	#define FS_CDROM_VOLUME_1					NOX("FS2_OEM")
-	#define FS_CDROM_VOLUME_2					NOX("FS2_OEM")
-	#define FS_CDROM_VOLUME_3					NOX("FS2_OEM")
-#else
-#ifdef MAKE_FS1
-    #define FS_CDROM_VOLUME_1					NOX("FREESPACE_1")
-    #define FS_CDROM_VOLUME_2					NOX("FREESPACE_2")
-#else
-	#define FS_CDROM_VOLUME_1					NOX("FREESPACE2_1")
-	#define FS_CDROM_VOLUME_2					NOX("FREESPACE2_2")
-	#define FS_CDROM_VOLUME_3					NOX("FREESPACE2_3")
-#endif
-
-	// old volume names
-	// #define FS_CDROM_VOLUME_1					NOX("FREESPACE_1")
-	// #define FS_CDROM_VOLUME_2					NOX("FREESPACE_2")
-	// #define FS_CDROM_VOLUME_3					NOX("FREESPACE_3")
-#endif
-
 // frametime/missiontime variables
 extern fix Frametime;
 extern float flFrametime;
@@ -219,9 +192,6 @@ extern int Game_subspace_effect;
 
 // The current mission being played.
 extern char Game_current_mission_filename[MAX_FILENAME_LEN];
-
-// game's CDROM directory
-extern char Game_CDROM_dir[MAX_PATH_LEN];
 
 // if the ships.tbl the player has is valid
 extern int Game_ships_tbl_valid;
@@ -248,7 +218,6 @@ extern int Game_weapons_tbl_valid;
 typedef struct fs_builtin_mission {
 	char filename[MAX_FILENAME_LEN];
 	int flags;															// see FSB_* defines above
-	char cd_volume[MAX_FILENAME_LEN];							// cd volume which this needs
 } fs_builtin_mission;
 
 
@@ -349,13 +318,6 @@ void game_whack_apply( float x, float y );
 void game_shudder_apply(int time, float intensity);
 
 //===================================================================
-
-// make sure a CD is in the drive before continuing (returns 1 to continue, otherwise 0).
-int game_do_cd_check(const char *volume_name = NULL);
-int game_do_cd_check_specific(const char *volume_name, int cdnum);
-int find_freespace_cd(const char *volume_name = NULL);
-int set_cdrom_path(int drive_num);
-int game_do_cd_mission_check(const char *filename);
 
 // Used to tell the player that a feature isn't available in the demo version of FreeSpace
 void game_feature_not_in_demo_popup();

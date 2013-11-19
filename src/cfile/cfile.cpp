@@ -342,8 +342,6 @@ char Cfile_stack[128][CFILE_STACK_MAX];
 Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 CFILE Cfile_list[MAX_CFILE_BLOCKS];
 
-char *Cfile_cdrom_dir = NULL;
-
 //
 // Function prototypes for internally-called functions
 //
@@ -398,7 +396,7 @@ int cfile_in_root_dir(char *exe_path)
 //	returns:  success ==> 0
 //           error   ==> non-zero
 //
-int cfile_init(const char *cdrom_dir)
+int cfile_init(const char *extras_dir)
 {
 	int i;
 
@@ -417,9 +415,13 @@ int cfile_init(const char *cdrom_dir)
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
 
-		Cfile_cdrom_dir = (char *)cdrom_dir;
+		const char *extras_dir = os_config_read_string(NULL, "ExtrasPath", NULL);
 
-		cf_build_secondary_filelist(Cfile_cdrom_dir);
+		if ( extras_dir && (strlen(extras_dir) >= MAX_PATH_LEN) ) {
+			extras_dir = NULL;
+		}
+
+		cf_build_secondary_filelist(extras_dir);
 
 		// 32 bit CRC table init
 		cf_chksum_long_init();
@@ -430,14 +432,6 @@ int cfile_init(const char *cdrom_dir)
 	}
 
 	return 0;
-}
-
-// Call this if pack files got added or removed or the
-// cdrom changed.  This will refresh the list of filenames 
-// stored in packfiles and on the cdrom.
-void cfile_refresh()
-{
-	cf_build_secondary_filelist(Cfile_cdrom_dir);
 }
 
 
@@ -760,8 +754,6 @@ void cf_create_directory( int dir_type )
 }
 
 
-extern int game_cd_changed();
-
 // cfopen()
 //
 // parameters:  *filepath ==> name of file to open (may be path+name)
@@ -784,13 +776,6 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 //	nprintf(("CFILE", "CFILE -- trying to open %s\n", file_path ));
 // #if !defined(MULTIPLAYER_BETA_BUILD) && !defined(FS2_DEMO)
-
-// we no longer need to do this, and on machines with crappy-ass drivers it can slow things down horribly.
-#if 0	
-	if ( game_cd_changed() ) {
-		cfile_refresh();
-	}
-#endif
 
 	//================================================
 	// Check that all the parameters make sense

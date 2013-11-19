@@ -871,351 +871,351 @@ int Player_multi_died_check = -1;
 #ifdef FS2_DEMO
 	int Game_builtin_mission_count = 6;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
-		{ "SPDemo-01.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
-		{ "SPDemo-02.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
-		{ "DemoTrain.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
-		{ "Demo.fc2",						(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),					""		},
-		{ "MPDemo-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "Demo-DOG-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI),								""		},
+		{ "SPDemo-01.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "SPDemo-02.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "DemoTrain.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "Demo.fc2",						(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE) },
+		{ "MPDemo-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "Demo-DOG-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI) },
 	};
 #elif defined(FS1_DEMO)
 	int Game_builtin_mission_count = 5;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
-		{ "btmdemo.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
-		{ "demo.fsc",					(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),					""		},
-		{ "demo01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
-		{ "demo02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
-		{ "demo02b.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							""		},
+		{ "btmdemo.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "demo.fsc",					(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE) },
+		{ "demo01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "demo02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "demo02b.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 	};
 #elif defined(PD_BUILD)
 	int Game_builtin_mission_count = 4;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
-		{ "sm1-01.fs2",					(FSB_FROM_VOLITION),												""		},
-		{ "sm1-05.fs2",					(FSB_FROM_VOLITION),												""		},		
-		{ "sm1-01",							(FSB_FROM_VOLITION),												""		},
-		{ "sm1-05",							(FSB_FROM_VOLITION),												""		},		
+		{ "sm1-01.fs2",					(FSB_FROM_VOLITION) },
+		{ "sm1-05.fs2",					(FSB_FROM_VOLITION) },
+		{ "sm1-01",							(FSB_FROM_VOLITION) },
+		{ "sm1-05",							(FSB_FROM_VOLITION) },
 	};
 #elif defined(MULTIPLAYER_BETA)
 	int Game_builtin_mission_count = 17;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
 		// multiplayer beta
-		{ "md-01.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "md-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "md-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "md-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "md-05.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "md-06.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "md-07.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "mt-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "mt-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "m-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "m-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "m-05.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""		},
-		{ "templar-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""		},
-		{ "templar-02.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""		},
-		{ "templar-03a.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""		},
-		{ "templar-04a.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""		},
-		{ "templar.fc2",					(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE),	""		},	
+		{ "md-01.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "md-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "md-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "md-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "md-05.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "md-06.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "md-07.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-05.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "templar-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar-02.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar-03a.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar-04a.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar.fc2",					(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE) },
 	};
 #elif defined(OEM_BUILD)
 	int Game_builtin_mission_count = 17;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
 		// oem version - act 1 only
-		{ "freespace2oem.fc2",			(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),					"" },
+		{ "freespace2oem.fc2",			(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE) },
 			
 		// act 1
-		{ "sm1-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "sm1-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "training-1.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "training-2.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "training-3.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "tsm-104.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "tsm-105.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	},
-		{ "tsm-106.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_1	}
+		{ "sm1-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "training-1.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "training-2.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "training-3.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "tsm-104.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "tsm-105.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "tsm-106.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) }
 	};
 #elif defined(MAKE_FS1) 
 	int Game_builtin_mission_count = 125;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
 		// single player campaign
-		{ "freespace.fsc",				(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),				"" },
+		{ "freespace.fsc",				(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE) },
 
 		// act 1
-		{ "sm1-01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm1-10a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm1-01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-10a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// act 2
-		{ "sm2-01a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm2-10a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm2-01a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-10a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// act 3
-		{ "sm3-01a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "sm3-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "sm3-01a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-02a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-03a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-04a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-05a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-06a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-07a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-08a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-09a.fsm",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// gauntlet
-		{ "t-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "v-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "s-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "t-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "v-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "s-gauntlet.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
 
 		// training
-		{ "btm-01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "btm-02.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "btm-03.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "btm-04.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
-		{ "btm-05.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),						"" },
+		{ "btm-01.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "btm-02.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "btm-03.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "btm-04.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "btm-05.fsm",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// multiplayer
-		{ "m-hope.fsc",					(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
-		{ "m-altair.fsc",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+		{ "m-hope.fsc",					(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE) },
+		{ "m-altair.fsc",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE) },
 
-		{ "m-v-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-va.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-unstoppable.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-t-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-s-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-rescue.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-pain.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-orecovery.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "mm3-01a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "mm3-02a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "mm3-03a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "mm3-04a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "mm3-05a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "mm3-06a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-guardduty.fsm",			(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-gate.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-duel.fsm",					(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-convoyassault.fsm",		(FSB_FROM_VOLITION | FSB_MULTI),						"" },
-		{ "m-clash.fsm",				(FSB_FROM_VOLITION | FSB_MULTI),						"" },
+		{ "m-v-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-va.fsm",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-unstoppable.fsm",			(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-t-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-s-gauntlet.fsm",			(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-rescue.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-pain.fsm",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-orecovery.fsm",			(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mm3-01a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mm3-02a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mm3-03a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mm3-04a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mm3-05a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mm3-06a.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-guardduty.fsm",			(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-gate.fsm",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-duel.fsm",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-convoyassault.fsm",		(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-clash.fsm",				(FSB_FROM_VOLITION | FSB_MULTI) },
 
 	// SilentThreat missions
 		// Main SilentThreat campaign
-		{ "SilentThreat.fsc",			(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN_FILE),				"" },
+		{ "SilentThreat.fsc",			(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN_FILE) },
 
-		{ "md-01.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-02.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-03.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-04.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-05.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-06.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-07.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-08.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-09.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-10.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-11.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
-		{ "md-12.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN),					"" },
+		{ "md-01.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-02.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-03.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-04.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-05.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-06.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-07.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-08.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-09.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-10.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-11.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
+		{ "md-12.fsm",					(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_CAMPAIGN) },
 
 		// SilentThreat Part 1 - multi-coop
-		{ "ST-Part1.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+		{ "ST-Part1.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE) },
 
-		{ "stmm-01.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-02.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-03.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-01.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-02.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-03.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
 
 		// SilentThreat Part 2 - multi-coop
-		{ "ST-Part2.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+		{ "ST-Part2.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE) },
 
-		{ "stmm-04.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-05.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-06.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-04.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-05.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-06.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
 
 		// SilentThreat Part 3 - multi-coop
-		{ "ST-Part3.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+		{ "ST-Part3.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE) },
 
-		{ "stmm-07.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-08.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-09.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-07.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-08.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-09.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
 
 		// SilentThreat Part 4 - multi-coop
-		{ "ST-Part4.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE),	"" },
+		{ "ST-Part4.fsc",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN_FILE) },
 
-		{ "stmm-10.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-11.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
-		{ "stmm-12.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN),		"" },
+		{ "stmm-10.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-11.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "stmm-12.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI | FSB_CAMPAIGN) },
 
 		// multiplayer missions
-		{ "mdmm-01.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
-		{ "mdmm-02.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
-		{ "mdmm-03.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
-		{ "mdmm-04.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI),						"" },
+		{ "mdmm-01.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdmm-02.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdmm-03.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdmm-04.fsm",				(FSB_FROM_VOLITION | FSB_FROM_MDISK | FSB_MULTI) },
 		// user supplied missions
-		{ "mdu-02.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-03.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-04.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-05.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-06.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-07.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-08.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-09.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-10.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-11.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-12.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-13.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-14.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-15.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-16.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-17.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-18.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-19.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-20.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-21.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-22.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-23.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-24.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-25.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-26.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-27.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-28.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-29.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-30.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdu-31.fsm",					(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdumm-01.fsm",				(FSB_FROM_MDISK | FSB_MULTI),											"" },
-		{ "mdumm-02.fsm",				(FSB_FROM_MDISK | FSB_MULTI),											"" },
+		{ "mdu-02.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-03.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-04.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-05.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-06.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-07.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-08.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-09.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-10.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-11.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-12.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-13.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-14.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-15.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-16.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-17.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-18.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-19.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-20.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-21.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-22.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-23.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-24.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-25.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-26.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-27.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-28.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-29.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-30.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdu-31.fsm",					(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdumm-01.fsm",				(FSB_FROM_MDISK | FSB_MULTI) },
+		{ "mdumm-02.fsm",				(FSB_FROM_MDISK | FSB_MULTI) },
 	};
 #else
 	int Game_builtin_mission_count = 92;
 	fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
 		// single player campaign
-		{ "freespace2.fc2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE),					"" },
+		{ "freespace2.fc2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN_FILE) },
 			
 		// act 1
-		{ "sm1-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "sm1-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "loop1-1.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "loop1-2.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "loop1-3.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "training-1.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "training-2.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "training-3.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "tsm-104.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "tsm-105.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
-		{ "tsm-106.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_2	},
+		{ "sm1-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm1-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "loop1-1.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "loop1-2.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "loop1-3.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "training-1.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "training-2.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "training-3.fs2",				(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "tsm-104.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "tsm-105.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "tsm-106.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// act 2
-		{ "sm2-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm2-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
+		{ "sm2-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm2-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// act 3
-		{ "sm3-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "sm3-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
-		{ "loop2-1.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},		
-		{ "loop2-2.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN),							FS_CDROM_VOLUME_3	},
+		{ "sm3-01.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-02.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-03.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-04.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-05.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-06.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-07.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-08.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-09.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "sm3-10.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "loop2-1.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
+		{ "loop2-2.fs2",					(FSB_FROM_VOLITION | FSB_CAMPAIGN) },
 
 		// multiplayer missions
 
 		// gauntlet
-		{ "g-shi.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "g-ter.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "g-vas.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
+		{ "g-shi.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "g-ter.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "g-vas.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
 
 		// coop
-		{ "m-01.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "m-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "m-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "m-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
+		{ "m-01.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "m-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
 
 		// dogfight
-		{ "mdh-01.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-02.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-03.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-04.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-05.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-06.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-07.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-08.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdh-09.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-01.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-02.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-03.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-04.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-05.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-06.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-07.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-08.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdl-09.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-01.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-02.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-03.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-04.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-05.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-06.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-07.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-08.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "mdm-09.fs2",					(FSB_FROM_VOLITION | FSB_MULTI),								""						},		
-		{ "osdog.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
+		{ "mdh-01.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-02.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-03.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-04.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-05.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-06.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-07.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-08.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdh-09.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-01.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-02.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-03.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-04.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-05.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-06.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-07.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-08.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdl-09.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-01.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-02.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-03.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-04.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-05.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-06.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-07.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-08.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mdm-09.fs2",					(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "osdog.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
 
 		// TvT		
-		{ "mt-01.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-05.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-06.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-07.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-08.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-09.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},
-		{ "mt-10.fs2",						(FSB_FROM_VOLITION | FSB_MULTI),								""						},				
+		{ "mt-01.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-02.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-03.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-04.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-05.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-06.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-07.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-08.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-09.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
+		{ "mt-10.fs2",						(FSB_FROM_VOLITION | FSB_MULTI) },
 
 		// campaign
-		{ "templar.fc2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE),					"" },
-		{ "templar-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""						},				
-		{ "templar-02.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""						},				
-		{ "templar-03.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""						},				
-		{ "templar-04.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN),			""						},				
+		{ "templar.fc2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN_FILE) },
+		{ "templar-01.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar-02.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar-03.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
+		{ "templar-04.fs2",				(FSB_FROM_VOLITION | FSB_MULTI | FSB_CAMPAIGN) },
 	};
 #endif
 
@@ -1267,10 +1267,6 @@ static const char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
 
 // auto-lang stuff
 int detect_lang();
-
-// cdrom stuff
-char Game_CDROM_dir[MAX_PATH_LEN];
-int init_cdrom();
 
 // How much RAM is on this machine. Set in WinMain
 static int Freespace_total_ram = 0;
@@ -2371,7 +2367,7 @@ void game_init()
 
 	//Initialize the libraries
 	s1 = timer_get_milliseconds();
-	if(cfile_init(Game_CDROM_dir)){			// initialize before calling any cfopen stuff!!!
+	if ( cfile_init() ) {			// initialize before calling any cfopen stuff!!!
 		exit(1);
 	}		
 	e1 = timer_get_milliseconds();
@@ -4292,12 +4288,7 @@ void game_maybe_do_dead_popup(float frametime)
 		if ( Game_mode & GM_NORMAL ) {
 			switch(choice) {
 			case 0:
-				// CD CHECK				
-				if(game_do_cd_mission_check(Game_current_mission_filename)){
-					gameseq_post_event(GS_EVENT_ENTER_GAME);
-				} else {
-					gameseq_post_event(GS_EVENT_MAIN_MENU);
-				}					
+				gameseq_post_event(GS_EVENT_ENTER_GAME);
 				break;
 
 			case 1:
@@ -4305,12 +4296,7 @@ void game_maybe_do_dead_popup(float frametime)
 				break;
 
 			case 2:
-				// CD CHECK
-				if(game_do_cd_mission_check(Game_current_mission_filename)){
-					gameseq_post_event(GS_EVENT_START_GAME);					
-				} else {
-					gameseq_post_event(GS_EVENT_MAIN_MENU);
-				}					
+				gameseq_post_event(GS_EVENT_START_GAME);
 				break;
 
 			// this should only happen during a red alert mission
@@ -4318,23 +4304,14 @@ void game_maybe_do_dead_popup(float frametime)
 				// bogus?
 				Assert(The_mission.red_alert);
 				if(!The_mission.red_alert){
-					// CD CHECK
-					if(game_do_cd_mission_check(Game_current_mission_filename)){
-						gameseq_post_event(GS_EVENT_START_GAME);
-					} else {
-						gameseq_post_event(GS_EVENT_MAIN_MENU);
-					}
+					gameseq_post_event(GS_EVENT_START_GAME);
 					break;
 				}
 				
 				// choose the previous mission
 				mission_campaign_previous_mission();
-				// CD CHECK
-				if(game_do_cd_mission_check(Game_current_mission_filename)){
-					gameseq_post_event(GS_EVENT_START_GAME);
-				} else {
-					gameseq_post_event(GS_EVENT_MAIN_MENU);
-				}				
+
+				gameseq_post_event(GS_EVENT_START_GAME);
 				break;
 
 			default:
@@ -7001,7 +6978,7 @@ DCF(pofspew, "")
 
 int game_main(const char *szCmdLine)
 {
-	int state, i;		
+	int state;
 
 #ifndef PLAT_UNIX
 	// Don't let more than one instance of Freespace run.
@@ -7124,7 +7101,6 @@ int game_main(const char *szCmdLine)
 	}
 #endif
 
-	init_cdrom();
 	game_init();
 	game_stop_time();
 
@@ -7137,33 +7113,6 @@ int game_main(const char *szCmdLine)
 
 	// non-demo, non-standalone, play the intro movie
 #ifndef DEMO
-	if(!Is_standalone){
-#ifdef RELEASE_REAL
-		char *plist[5];
-
-		// to avoid crashes on debug build
-		for (i=0; i<5; i++) {
-			plist[i] = NULL;
-		}
-
-		if( (cf_get_file_list(2, plist, CF_TYPE_MULTI_PLAYERS, NOX("*.plr"))	<= 0) && (cf_get_file_list(2, plist, CF_TYPE_SINGLE_PLAYERS, NOX("*.plr"))	<= 0) ){
-			// prompt for cd 2
-#if defined(OEM_BUILD)
-			game_do_cd_check_specific(FS_CDROM_VOLUME_1, 1);
-#else
-			game_do_cd_check_specific(FS_CDROM_VOLUME_2, 2);
-#endif // defined(OEM_BUILD)
-		}
-
-		for (int i=0; i<5; i++) {
-			if (plist[i] != NULL) {
-				free(plist[i]);
-				plist[i] = NULL;
-			}
-		}
-#endif // RELEASE_REAL
-	}
-
 	if ( !Is_standalone ) {
 
 		// release -- movies always play
@@ -8367,475 +8316,6 @@ void game_stop_subspace_ambient_sound()
 // ----------------------------------------------------------------
 //
 // Subspace Ambient Sound END
-//
-// ----------------------------------------------------------------
-
-// ----------------------------------------------------------------
-//
-// CDROM detection code START
-//
-// ----------------------------------------------------------------
-
-#define CD_SIZE_72_MINUTE_MAX			(697000000)
-
-uint game_get_cd_used_space(char *path)
-{
-#ifndef PLAT_UNIX
-	uint total = 0;
-	char use_path[512] = "";
-	char sub_path[512] = "";
-	WIN32_FIND_DATA	find;
-	HANDLE find_handle;
-
-	// recurse through all files and directories
-	strcpy(use_path, path);
-	strcat(use_path, "*.*");
-	find_handle = FindFirstFile(use_path, &find);
-
-	// bogus
-	if(find_handle == INVALID_HANDLE_VALUE){
-		return 0;
-	}	
-
-	// whee
-	do {
-		// subdirectory. make sure to ignore . and ..
-		if((find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && stricmp(find.cFileName, ".") && stricmp(find.cFileName, "..")){
-			// subsearch
-			strcpy(sub_path, path);
-			strcat(sub_path, find.cFileName);
-			strcat(sub_path, "\\");
-			total += game_get_cd_used_space(sub_path);	
-		} else {
-			total += (uint)find.nFileSizeLow;
-		}				
-	} while(FindNextFile(find_handle, &find));	
-
-	// close
-	FindClose(find_handle);
-
-	// total
-	return total;
-#else
-	STUB_FUNCTION;
-	
-	return 0;
-#endif	
-}
-
-
-// if volume_name is non-null, the CD name must match that
-int find_freespace_cd(const char *volume_name)
-{
-#ifndef PLAT_UNIX
-	char oldpath[MAX_PATH];
-	char volume[256];
-	int i;
-	int cdrom_drive=-1;
-	int volume_match = 0;
-	_finddata_t find;
-	int find_handle;
-
-	GetCurrentDirectory(MAX_PATH, oldpath);
-
-	for (i = 0; i < 26; i++) 
-	{
-//XSTR:OFF
-		char path[]="d:\\";
-//XSTR:ON
-
-		path[0] = (char)('A'+i);
-		if (GetDriveType(path) == DRIVE_CDROM) {
-			cdrom_drive = -3;
-			if ( GetVolumeInformation(path, volume, 256, NULL, NULL, NULL, NULL, 0) == TRUE ) {
-				nprintf(("CD", "CD volume: %s\n", volume));
-			
-				// check for any CD volume
-				int volume1_present = 0;
-				int volume2_present = 0;
-				int volume3_present = 0;		
-
-				char full_check[512] = "";
-
-				// look for setup.exe
-				strcpy(full_check, path);
-				strcat(full_check, "setup.exe");				
-				find_handle = _findfirst(full_check, &find);
-				if(find_handle != -1){
-					volume1_present = 1;				
-					_findclose(find_handle);				
-				}
-
-				// look for intro.mve
-				strcpy(full_check, path);
-				strcat(full_check, "intro.mve");				
-				find_handle = _findfirst(full_check, &find);
-				if(find_handle != -1){
-					volume2_present = 1;
-					_findclose(find_handle);						
-				}				
-
-				// look for endpart1.mve
-				strcpy(full_check, path);
-				strcat(full_check, "endpart1.mve");				
-				find_handle = _findfirst(full_check, &find);
-				if(find_handle != -1){
-					volume3_present = 1;
-					_findclose(find_handle);				
-				}				
-			
-				// see if we have the specific CD we're looking for
-				if ( volume_name ) {
-					// volume 1
-					if ( !stricmp(volume_name, FS_CDROM_VOLUME_1) && volume1_present) {
-						volume_match = 1;
-					}
-					// volume 2
-					if ( !stricmp(volume_name, FS_CDROM_VOLUME_2) && volume2_present) {
-						volume_match = 1;
-					}
-					// volume 3
-					if ( !stricmp(volume_name, FS_CDROM_VOLUME_3) && volume3_present) {
-						volume_match = 1;
-					}
-				} else {										
-					if ( volume1_present || volume2_present || volume3_present ) {
-						volume_match = 1;
-					}
-				}
-				
-				// here's where we make sure that CD's 2 and 3 are not just ripped - check to make sure its capacity is > 697,000,000 bytes				
-				if ( volume_match ){
-#ifdef RELEASE_REAL					
-					// we don't care about CD1 though. let it be whatever size it wants, since the game will demand CD's 2 and 3 at the proper time
-					if(volume2_present || volume3_present) {
-						// first step - check to make sure its a cdrom
-						if(GetDriveType(path) != DRIVE_CDROM){							
-							break;
-						}
-
-#if !defined(OEM_BUILD)
-						// oem not on 80 min cds, so dont check tha size
-						// check its size
-						uint used_space = game_get_cd_used_space(path);											
-						if(used_space < CD_SIZE_72_MINUTE_MAX){							
-							break;
-						}
-#endif // !defined(OEM_BUILD)
-					}					
-
-					cdrom_drive = i;
-					break;
-#else
-					cdrom_drive = i;
-					break;
-#endif // RELEASE_REAL
-				}
-			}
-		}
-	}	
-
-	SetCurrentDirectory(oldpath);
-	return cdrom_drive;
-#else
-	STUB_FUNCTION;
-	
-	return 0;
-#endif	
-}
-
-int set_cdrom_path(int drive_num)
-{
-	int rval;
-
-	if (drive_num < 0) {			//no CD
-//		#ifndef NDEBUG
-//		strcpy(CDROM_dir,"j:\\FreeSpaceCD\\");				//set directory
-//		rval = 1;
-//		#else
-		strcpy(Game_CDROM_dir,"");				//set directory
-		rval = 0;
-//		#endif
-	} else {
-		sprintf(Game_CDROM_dir,NOX("%c:\\"), 'a' + drive_num );			//set directory
-		rval = 1;
-	}
-
-	return rval;
-}
-
-int init_cdrom()
-{
-	int i, rval;
-
-	//scan for CD, etc.
-
-	rval = 1;
-
-#ifndef DEMO
-	i = find_freespace_cd();
-
-	rval = set_cdrom_path(i);
-
-	/*
-	if ( rval ) {
-		nprintf(("CD", "Using %s for FreeSpace CD\n", CDROM_dir));
-	} else {
-		nprintf(("CD", "FreeSpace CD not found\n"));
-	}
-	*/
-#endif
-
-	return rval;
-}
-
-int Last_cd_label_found = 0;
-char Last_cd_label[256];
-
-int game_cd_changed()
-{
-#ifndef PLAT_UNIX
-	char label[256];
-	int found;
-	int changed = 0;
-	
-	if ( strlen(Game_CDROM_dir) == 0 ) {
-		init_cdrom();
-	}
-
-	found = GetVolumeInformation(Game_CDROM_dir, label, 256, NULL, NULL, NULL, NULL, 0);
-
-	if ( found != Last_cd_label_found )	{
-		Last_cd_label_found = found;
-		if ( found )	{
-			mprintf(( "CD '%s' was inserted\n", label ));
-			changed = 1;
-		} else {
-			mprintf(( "CD '%s' was removed\n", Last_cd_label ));
-			changed = 1;
-		}
-	} else {
-		if ( Last_cd_label_found )	{
-			if ( !stricmp( Last_cd_label, label ))	{
-				//mprintf(( "CD didn't change\n" ));
-			} else {
-				mprintf(( "CD was changed from '%s' to '%s'\n", Last_cd_label, label ));
-				changed = 1;
-			}
-		} else {
-			// none found before, none found now.
-			//mprintf(( "still no CD...\n" ));
-		}
-	}
-	
-	Last_cd_label_found = found;
-	if ( found )	{
-		strcpy( Last_cd_label, label );
-	} else {
-		strcpy( Last_cd_label, "" );
-	}
-
-	return changed;
-#else
-	STUB_FUNCTION;
-	
-	return 0;
-#endif		
-}
-
-// check if _any_ FreeSpace2 CDs are in the drive
-// return: 1	=> CD now in drive
-//			  0	=>	Could not find CD, they refuse to put it in the drive
-int game_do_cd_check(const char *volume_name)
-{	
-#if !defined(GAME_CD_CHECK)
-	return 1;
-#else
-	int cd_present = 0;
-	int cd_drive_num;
-
-	int num_attempts = 0;
-	int refresh_files = 0;
-	while(1) {
-		int path_set_ok, popup_rval;
-
-		cd_drive_num = find_freespace_cd(volume_name);
-		path_set_ok = set_cdrom_path(cd_drive_num);
-		if ( path_set_ok ) {
-			cd_present = 1;
-			if ( refresh_files ) {
-				cfile_refresh();
-				refresh_files = 0;
-			}
-			break;
-		}
-
-		// standalone mode
-		if(Is_standalone){
-			cd_present = 0;
-			break;
-		} else {
-			// no CD found, so prompt user
-			popup_rval = popup(PF_BODY_BIG, 1, POPUP_OK, XSTR( "FreeSpace 2 CD not found\n\nInsert a FreeSpace 2 CD to continue", 202));
-			refresh_files = 1;
-			if ( popup_rval != 1 ) {
-				cd_present = 0;
-				break;
-			}
-
-			if ( num_attempts++ > 5 ) {
-				cd_present = 0;
-				break;
-			}
-		}
-	}
-
-	return cd_present;
-#endif
-}
-
-// check if _any_ FreeSpace2 CDs are in the drive
-// return: 1	=> CD now in drive
-//			  0	=>	Could not find CD, they refuse to put it in the drive
-int game_do_cd_check_specific(const char *volume_name, int cdnum)
-{	
-	int cd_present = 0;
-	int cd_drive_num;
-
-	int num_attempts = 0;
-	int refresh_files = 0;
-	while(1) {
-		int path_set_ok, popup_rval;
-
-		cd_drive_num = find_freespace_cd(volume_name);
-		path_set_ok = set_cdrom_path(cd_drive_num);
-		if ( path_set_ok ) {
-			cd_present = 1;
-			if ( refresh_files ) {
-				cfile_refresh();
-				refresh_files = 0;
-			}
-			break;
-		}
-
-		if(Is_standalone){
-			cd_present = 0;
-			break;
-		} else {
-			// no CD found, so prompt user
-#if defined(DVD_MESSAGE_HACK)
-			popup_rval = popup(PF_BODY_BIG, 1, POPUP_OK, XSTR("Please insert DVD", 1468));
-#else
-			popup_rval = popup(PF_BODY_BIG, 1, POPUP_OK, XSTR("Please insert CD %d", 1468), cdnum);
-#endif
-			refresh_files = 1;
-			if ( popup_rval != 1 ) {
-				cd_present = 0;
-				break;
-			}
-
-			if ( num_attempts++ > 5 ) {
-				cd_present = 0;
-				break;
-			}
-		}
-	}
-
-	return cd_present;
-}
-
-// only need to do this in RELEASE_REAL
-int game_do_cd_mission_check(const char *filename)
-{	
-#ifdef RELEASE_REAL
-	int cd_num;
-	int cd_present = 0;
-	int cd_drive_num;
-	fs_builtin_mission *m = game_find_builtin_mission(filename);
-
-	// check for changed CD
-	if(game_cd_changed()){
-		cfile_refresh();
-	}
-
-	// multiplayer
-	if((Game_mode & GM_MULTIPLAYER) || Is_standalone){
-		return 1;
-	}
-
-	// not builtin, so do a general check (any FS2 CD will do)
-	if(m == NULL){
-		return game_do_cd_check();
-	}
-
-	// does not have any CD requirement, do a general check
-	if(strlen(m->cd_volume) <= 0){
-		return game_do_cd_check();
-	}
-
-	// get the volume
-	if(!stricmp(m->cd_volume, FS_CDROM_VOLUME_1)){
-		cd_num = 1;
-	} else if(!stricmp(m->cd_volume, FS_CDROM_VOLUME_2)){
-		cd_num = 2;
-#ifndef MAKE_FS1
-	} else if(!stricmp(m->cd_volume, FS_CDROM_VOLUME_3)){
-		cd_num = 3; 
-#endif
-	} else {
-		return game_do_cd_check();
-	}
-
-	// did we find the cd?
-	if(find_freespace_cd(m->cd_volume) >= 0){
-		return 1;
-	}
-
-	// make sure the volume exists
-	int num_attempts = 0;
-	int refresh_files = 0;
-	while(1){
-		int path_set_ok, popup_rval;
-
-		cd_drive_num = find_freespace_cd(m->cd_volume);
-		path_set_ok = set_cdrom_path(cd_drive_num);
-		if ( path_set_ok ) {
-			cd_present = 1;
-			if ( refresh_files ) {
-				cfile_refresh();
-				refresh_files = 0;
-			}
-			break;
-		}
-
-		// no CD found, so prompt user
-#if defined(DVD_MESSAGE_HACK)
-		popup_rval = popup(PF_BODY_BIG, 1, POPUP_OK, XSTR("Please insert DVD", 1468));
-#else
-		popup_rval = popup(PF_BODY_BIG, 1, POPUP_OK, XSTR("Please insert CD %d", 1468), cd_num);
-#endif
-
-		refresh_files = 1;
-		if ( popup_rval != 1 ) {
-			cd_present = 0;
-			break;
-		}
-
-		if ( num_attempts++ > 5 ) {
-			cd_present = 0;
-			break;
-		}
-	}	
-
-	return cd_present;
-#else
-	return 1;
-#endif
-}
-
-// ----------------------------------------------------------------
-//
-// CDROM detection code END
 //
 // ----------------------------------------------------------------
 

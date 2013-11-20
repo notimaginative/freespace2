@@ -6986,15 +6986,6 @@ int game_main(const char *szCmdLine)
 {
 	int state;
 
-#ifndef PLAT_UNIX
-	// Don't let more than one instance of Freespace run.
-	HWND hwnd = FindWindow( NOX( "FreeSpaceClass" ), NULL );
-	if ( hwnd )	{
-		SetForegroundWindow(hwnd);
-		return 0;
-	}
-#endif
-
 	// Find out how much RAM is on this machine
 	Freespace_total_ram = SDL_GetSystemRAM();
 

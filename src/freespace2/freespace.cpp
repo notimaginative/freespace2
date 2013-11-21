@@ -2294,7 +2294,6 @@ DCF(gamma,"Sets Gamma factor")
 void game_init()
 {
 	const char *ptr;
-	int depth = 16;
 
 	Game_current_mission_filename[0] = 0;
 
@@ -2465,13 +2464,6 @@ void game_init()
 	}
 #endif
 
-	// see if we've got 32 bit in the string
-	if(strstr(ptr, "32 bit")){
-		depth = 32;
-	}
-
-	int trying_d3d = 0;
-
 #ifndef PLAT_UNIX	
 	if (!Is_standalone && ptr && (strstr(ptr, NOX("3DFX Glide")))) {
 #ifdef E3_BUILD
@@ -2538,19 +2530,6 @@ void game_init()
 		gr_init(GR_640, GR_SDL);
 	}
 #endif // !PLAT_UNIX
-
-	// tried d3d ?
-	extern int Gr_inited;
-	if(trying_d3d && !Gr_inited){
-#ifndef PLAT_UNIX
-		extern char Device_init_error[512];
-		MessageBox( NULL, Device_init_error, "Error intializing Direct3D", MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
-#else
-		STUB_FUNCTION;
-#endif		
-		exit(1);
-		return;
-	}
 
 	// Set the gamma
 	ptr = os_config_read_string(NULL,NOX("Gamma"),NOX("1.80"));
@@ -6950,71 +6929,6 @@ int game_main(const char *szCmdLine)
 
 	free(tmp_mem);
 	tmp_mem = NULL;
-	
-/* this code doesn't work, and we will hit an error about being unable to load the direct draw
-	dll before we get here anyway if it's not installed (unless we load it manually, which doesn't
-	seem worth bothering with.
-
-	LONG lResult;
-
-	lResult = RegOpenKeyEx(
-		HKEY_LOCAL_MACHINE,					// Where it is
-		"Software\\Microsoft\\DirectX",	// name of key
-		NULL,										// DWORD reserved
-		KEY_QUERY_VALUE,						// Allows all changes
-		&hKey										// Location to store key
-	);
-
-	if (lResult == ERROR_SUCCESS) {
-		char version[32];
-		DWORD dwType, dwLen;
-
-		dwLen = 32;
-		lResult = RegQueryValueEx(
-			hKey,									// Handle to key
-			"Version",							// The values name
-			NULL,									// DWORD reserved
-			&dwType,								// What kind it is
-			(ubyte *) version, 				// value to set
-			&dwLen								// How many bytes to set
-		);
-
-		if (lResult == ERROR_SUCCESS) {
-			dx_version = atoi(strstr(version, ".") + 1);
-
-		} else {
-			int val;
-			DWORD dwType, dwLen;
-
-			dwLen = 4;
-			lResult = RegQueryValueEx(
-				hKey,									// Handle to key
-				"InstalledVersion",				// The values name
-				NULL,									// DWORD reserved
-				&dwType,								// What kind it is
-				(ubyte *) &val,					// value to set
-				&dwLen								// How many bytes to set
-			);
-
-			if (lResult == ERROR_SUCCESS) {
-				dx_version = val;
-			}
-		}
-
-		RegCloseKey(hKey);
-	}
-
-	if (dx_version < 3) {
-		MessageBox(NULL, "DirectX 3.0 or higher is required and wasn't detected.  You can get the\n"
-			"latest version of DirectX at:\n\n"
-			"http://www.microsoft.com/msdownload/directx/dxf/enduser5.0/default.htm", "DirectX required", MB_OK);
-
-		MessageBox(NULL, "DirectX 3.0 or higher is required and wasn't detected.  You can install\n"
-			"DirectX 5.2 by pressing the 'Install DirectX' button on the FreeSpace Launcher", "DirectX required", MB_OK);
-
-		return 0;
-	}
-*/
 
 	#ifndef NDEBUG				
 	{

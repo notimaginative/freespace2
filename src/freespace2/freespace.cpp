@@ -6780,7 +6780,7 @@ int game_do_ram_check(int ram_in_mbytes)
 			// not a translated string, but it's too long and smartdrv isn't
 			// really a thing for any OS we now support :p
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), ram_in_mbytes, ram_in_mbytes);
-			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes, ram_in_mbytes);
+			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
 
 			mboxbuttons[0].buttonid = 0;
 			mboxbuttons[0].text = XSTR("Ok", 503);
@@ -6807,7 +6807,7 @@ int game_do_ram_check(int ram_in_mbytes)
 			// not a translated string, but it's too long and smartdrv isn't
 			// really a thing for any OS we now support :p
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n", 195), ram_in_mbytes, ram_in_mbytes);
-			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n", ram_in_mbytes, ram_in_mbytes);
+			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n", ram_in_mbytes);
 
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough RAM", 194), tmp, NULL);
 

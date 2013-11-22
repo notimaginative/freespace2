@@ -34,7 +34,7 @@
 #include "gamesequence.h"
 #include "mainhallmenu.h"
 
-int movie_play(const char *filename, int cd_prompt)
+int movie_play(const char *filename)
 {
 	// mark the movie as viewable in the techroom if in a campaign
 	if (Game_mode & GM_CAMPAIGN_MODE) {
@@ -43,15 +43,6 @@ int movie_play(const char *filename, int cd_prompt)
 
 	if (Cmdline_play_movies) {
 		MVESTREAM *movie;
-
-		// umm, yeah
-	//	if ( cd_prompt == -1 )
-	//		cd_prompt = require_cd;
-
-		// look for correct CD when viewing movies in the tech room
-	//	if (gameseq_get_state() == GS_STATE_VIEW_CUTSCENES) {
-	//		cutscenes_validate_cd(filename, cd_prompt);
-	//	}
 
 		movie = mve_open(filename);
 
@@ -92,12 +83,9 @@ int movie_play(const char *filename, int cd_prompt)
 
 int movie_play_two(const char *filename1, const char *filename2)
 {
-	// FIXME: part of the CD code which isn't included yet
-	int require_cd = 0;
-
 	// make sure the first movie played correctly, then play the second one
-	if (movie_play(filename1, require_cd)) {
-		movie_play(filename2, require_cd);
+	if ( movie_play(filename1) ) {
+		movie_play(filename2);
 	} else {
 		printf("Not playing second movie: %s\n", filename2);
 		return 0;

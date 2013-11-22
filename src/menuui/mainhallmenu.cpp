@@ -1050,10 +1050,10 @@ void main_hall_do(float frametime)
 
 #if 0 //#ifndef NDEBUG	
 	case SDLK_1:
-		movie_play("endprt2b.mve", 0);
+		movie_play("endprt2b.mve");
 		break;
 	case SDLK_2:
-		movie_play_two("endprt2a.mve", "endprt2b.mve", 0);
+		movie_play_two("endprt2a.mve", "endprt2b.mve");
 		break;
 	case SDLK_3:
 		main_hall_campaign_cheat();	

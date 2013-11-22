@@ -7116,16 +7116,16 @@ int game_main(const char *szCmdLine)
 #if defined(NDEBUG)
 
 		// in RELEASE_REAL builds make the user stick in CD2 if there are no pilots on disk so that we guarantee he plays the movie
-		movie_play( NOX("intro.mve"), 0 );
+		movie_play( NOX("intro.mve") );
 
 		// debug version, movie will only play with -showmovies
 #elif !defined(NDEBUG)
-		
-		movie_play( NOX("intro.mve"), 0);
+
+		movie_play( NOX("intro.mve") );
 /*
 #ifndef NDEBUG
 		if ( Cmdline_show_movies )
-			movie_play( NOX("intro.mve"), 0 );
+			movie_play( NOX("intro.mve") );
 #endif
 */
 #endif // NDEBUG

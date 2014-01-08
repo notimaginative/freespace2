@@ -55,16 +55,14 @@
 
 static int mve_playing;
 
+
 // timer variables
-static int g_spdFactorNum = 0;
-static int g_spdFactorDenom = 10;
 static int micro_frame_delay = 0;
 static int timer_started = 0;
-#ifdef PLAT_UNIX
-static struct timeval timer_expire = {0, 0};
-#else
-static fix timer_expire;
-#endif
+static int timer_created = 0;
+static int timer_expire;
+static Uint64 micro_timer_start = 0;
+static Uint64 micro_timer_freq = 0;
 
 // audio variables
 #define MVE_AUDIO_BUFFERS 64  // total buffers to interact with stream
@@ -129,38 +127,41 @@ void mve_end_movie()
 
 int mve_timer_create(ubyte *data)
 {
-	longlong temp;
-
 	micro_frame_delay = mve_get_int(data) * (int)mve_get_short(data+4);
 
-	if (g_spdFactorNum != 0) {
-		temp = micro_frame_delay;
-		temp *= g_spdFactorNum;
-		temp /= g_spdFactorDenom;
-		micro_frame_delay = (int)temp;
+	micro_timer_start = SDL_GetPerformanceCounter();
+	micro_timer_freq = SDL_GetPerformanceFrequency();
+
+	if (micro_timer_freq < 1000) {
+		micro_timer_freq = 1000;
 	}
+
+	timer_created = 1;
 
 	return 1;
 }
 
+static int mve_timer_get_microseconds()
+{
+
+	Uint64 us = SDL_GetPerformanceCounter() - micro_timer_start;
+
+	if (micro_timer_freq >= 1000000) {
+		us /= (micro_timer_freq / 1000000);
+	} else {
+		us *= (1000000 / micro_timer_freq);
+	}
+
+	return (int)us;
+}
+
 static void mve_timer_start(void)
 {
-#ifdef PLAT_UNIX
-	int nsec = 0;
+	if (!timer_created)
+		return;
 
-	gettimeofday(&timer_expire, NULL);
-
-	timer_expire.tv_usec += micro_frame_delay;
-
-	if (timer_expire.tv_usec > 1000000) {
-		nsec = timer_expire.tv_usec / 1000000;
-		timer_expire.tv_sec += nsec;
-		timer_expire.tv_usec -= nsec * 1000000;
-	}
-#else
-	timer_expire = timer_get_microseconds();
+	timer_expire = mve_timer_get_microseconds();
 	timer_expire += micro_frame_delay;
-#endif
 
 	timer_started = 1;
 }
@@ -170,66 +171,37 @@ static int mve_do_timer_wait(void)
 	if (!timer_started)
 		return 0;
 
-#ifdef PLAT_UNIX
-	int nsec = 0;
-	struct timespec ts, tsRem;
-	struct timeval tv;
+	int tv, ts;
 
-	gettimeofday(&tv, NULL);
-
-	if (tv.tv_sec > timer_expire.tv_sec)
-		goto end;
-
-	if ( (tv.tv_sec == timer_expire.tv_sec) && (tv.tv_usec >= timer_expire.tv_usec) )
-		goto end;
-
-	ts.tv_sec = timer_expire.tv_sec - tv.tv_sec;
-	ts.tv_nsec = 1000 * (timer_expire.tv_usec - tv.tv_usec);
-
-	if (ts.tv_nsec < 0) {
-		ts.tv_nsec += 1000000000UL;
-		--ts.tv_sec;
-	}
-
-	if ( (nanosleep(&ts, &tsRem) == -1) && (errno == EINTR) ) {
-		mprintf(("MVE: Timer error! Aborting movie playback!\n"));
-		return 1;
-	}
-
-end:
-    timer_expire.tv_usec += micro_frame_delay;
-
-    if (timer_expire.tv_usec > 1000000) {
-        nsec = timer_expire.tv_usec / 1000000;
-        timer_expire.tv_sec += nsec;
-        timer_expire.tv_usec -= nsec * 1000000;
-    }
-#else
-	fix tv, ts, ts2;
-
-	tv = timer_get_microseconds();
+	tv = mve_timer_get_microseconds();
 
 	if (tv > timer_expire)
 		goto end;
 
 	ts = timer_expire - tv;
 
-	ts2 = ts/1000;
+	Sleep(ts / 1000);
 
-	Sleep(ts2);
-
+	// try and burn off excess in attempt to keep sync
+	if (ts % 1000) {
+		for (int i = 0; i < 10; i++) {
+			Sleep(0);
+		}
+	}
 end:
 	timer_expire += micro_frame_delay;
-#endif
 
 	return 0;
 }
 
 static void mve_timer_stop()
 {
-	timer_expire.tv_sec = 0;
-	timer_expire.tv_usec = 0;
+	timer_expire = 0;
 	timer_started = 0;
+	timer_created = 0;
+
+	micro_timer_start = 0;
+	micro_timer_freq = 0;
 }
 
 /*************************

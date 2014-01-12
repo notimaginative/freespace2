@@ -296,8 +296,6 @@ int Cmdline_window = 0;
 
 static cmdline_parm Parm_list(NULL, NULL, NULL);
 
-static void print_instructions();
-
 static int Parm_list_inited = 0;
 
 
@@ -422,6 +420,58 @@ static bool os_find_parm(const cmdline_parm *parmp, const char *token)
 	return false;
 }
 
+// help for available cmdline options
+static void print_instructions()
+{
+	printf("http://icculus.org/freespace2\n");
+	printf("Support - FAQ: http://icculus.org/lgfaq\n");
+	printf("          Web: http://bugzilla.icculus.org\n\n");
+
+#ifdef MAKE_FS1
+	printf("Usage: freespace [options]\n");
+#else
+	printf("Usage: freespace2 [options]\n");
+#endif
+	printf("\n");
+	printf("  General:\n");
+	printf("     [-h | --help]           Show this help message\n");
+	printf("     [-v | --version]        Show game version\n");
+	printf("     [-s | --nosound]        Do not access the sound card\n");
+	printf("     [-f | --fullscreen]     Run the game fullscreen\n");
+	printf("     [-w | --window]         Run the game in a window\n");
+	printf("     [-g | --nograb]         Do not automatically grab mouse\n");
+	printf("     [-n | --nomovies]       Do not play movies\n");
+	printf("     [-P | --pofspew]        Save model info to pofspew.txt\n");
+	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n");
+	printf("     [--nomusic]             Do not play music\n");
+	printf("\n");
+	printf("  Multiplayer:\n");
+	printf("     [-d | --standalone]     Run as a dedicated server\n");
+	printf("     [-S | --startgame]      Start a multiplayer game\n");
+	printf("     [-N | --gamename]       Name of the multiplayer game\n");
+	printf("     [-p | --password]       Use this password to connect\n");
+	printf("     [-c | --closed]         Closed multiplayer game\n");
+	printf("     [-r | --restricted]     Restricted multiplayer game\n");
+	printf("     [-a | --allowabove]     Only allow above certain rank\n");
+	printf("     [-b | --allowbelow]     Only allow below certain rank\n");
+	printf("     [-o | --port]           Port to use for multiplayer games\n");
+	printf("     [-C | --connect]        Connect to particular IP address\n");
+	printf("     [-m | --multilog]       Log multiplayer events\n");
+	printf("     [-F | --oldfire]        Server side firing\n");
+	printf("     [-D | --clientdamage]   Client does damage\n");
+	printf("     [-t | --timeout]        Multiplayer game timeout\n");
+	printf("\n");
+
+#ifdef MAKE_FS1
+	printf("FreeSpace v%d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#else
+	printf("Freespace 2 v%d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#endif
+	printf("icculus.org client v%d.%02d\n\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
+
+	exit(0);
+}
+
 // validate the command line parameters.  Display an error if an unrecognized parameter is located.
 static void os_validate_parms(char *cmdline)
 {
@@ -518,45 +568,8 @@ static void os_init_cmdline(const char *cmdline)
 		}
 	}
 
+	mprintf(("\n"));
 }
-
-// help for available cmdline options
-static void print_instructions()
-{
-	printf("http://icculus.org/freespace2\n");
-	printf("Support - FAQ: http://icculus.org/lgfaq\n");
-	printf("          Web: http://bugzilla.icculus.org\n\n");
-
-	printf("Usage: freespace2 [options]\n");
-	printf("     [-h | --help]           Show this help message\n");
-	printf("     [-v | --version]        Show game version\n");
-	printf("     [-s | --nosound]        Do no access the sound card\n");
-	printf("     [-f | --fullscreen]     Run the game fullscreen\n");
-	printf("     [-w | --window]         Run the game in a window\n");
-	printf("     [-g | --nograb]         Do not automatically grab mouse\n");
-	printf("     [-n | --nomovies]       Do not play movies\n");
-	printf("     [-d | --standalone]     Run as a dedicated server\n");
-	printf("     [-S | --startgame]      Start a multiplayer game\n");
-	printf("     [-N | --gamename]       Name of the multiplayer game\n");
-	printf("     [-p | --password]       Use this password to connect\n");
-	printf("     [-c | --closed]         Closed multiplayer game\n");
-	printf("     [-r | --restricted]     Restricted multiplayer game\n");
-	printf("     [-a | --allowabove]     Only allow above certain rank\n");
-	printf("     [-b | --allowbelow]     Only allow below certain rank\n");
-	printf("     [-o | --port]           Port to use for multiplayer games\n");
-	printf("     [-C | --connect]        Connect to particular IP address\n");
-	printf("     [-m | --multilog]       Log multiplayer events\n");
-	printf("     [-F | --oldfire]        Server side firing\n");
-	printf("     [-D | --clientdamage]   Client does damage\n");
-	printf("     [-t | --timeout]        Multiplayer game timeout\n");
-	printf("     [-P | --pofspew]        Save model info to pofspew.txt\n");
-	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n\n");
-
-	printf("Freespace 2 v%d.%02d -- Linux Client v%d.%02d\n\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_UNIX_VERSION_MAJOR, FS_UNIX_VERSION_MINOR);
-
-	exit(0);
-}
-
 
 // arg constructor
 // name_ - name of the parameter, must start with '-' character
@@ -758,7 +771,7 @@ int parse_cmdline(const char *cmdline)
 	// display game version
 	if(fs_version.found()){
 		printf("Freespace 2 version:  %d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-		printf("Linux client version:  %d.%02d\n", FS_UNIX_VERSION_MAJOR, FS_UNIX_VERSION_MINOR);
+		printf("icculus.org client version:  %d.%02d\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
 		exit(0);
 	}
 

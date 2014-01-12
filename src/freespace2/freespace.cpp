@@ -7084,7 +7084,6 @@ int game_main(const char *szCmdLine)
 #endif
 
 	mprintf(("Total RAM: %dMB\n", Freespace_total_ram));
-	mprintf(("Command line: %s\n", szCmdLine));
 	mprintf(("Platform: %s\n", SDL_GetPlatform()));
 
 	parse_cmdline(szCmdLine);	

@@ -521,6 +521,8 @@ static void os_init_cmdline(const char *cmdline)
 		exit(-2);
 	}
 
+	mprintf(("Command line: "));
+
 	snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen (cmdname, "rt");
@@ -546,6 +548,8 @@ static void os_init_cmdline(const char *cmdline)
 			// work properly with single args
 			strcat(buf, " ");
 
+			mprintf(("%s", buf));
+
 			os_parse_parms(buf);
 			os_validate_parms(buf);
 		}
@@ -554,6 +558,8 @@ static void os_init_cmdline(const char *cmdline)
 	}
 
 	if ( cmdline && strlen(cmdline) ) {
+		mprintf(("%s", cmdline));
+
 		// for proper arg handling make sure cmdline has trailing space
 		char *m_cmdline = (char*) malloc(strlen(cmdline)+2);
 

@@ -417,7 +417,7 @@ void outwnd_init(int display_under_freespace_window)
 			outwnd_printf("Error", "Error opening %s\n", pathname);
 		} else {
 			outwnd_printf("General", "Opened %s OK\n", pathname);
-			printf("Future debug output directed to: %s\n", pathname);
+		//	printf("Future debug output directed to: %s\n", pathname);
 		}
 	}
 }

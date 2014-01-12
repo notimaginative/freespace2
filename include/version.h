@@ -144,10 +144,8 @@
 	#define FS_VERSION_BUILD 00					// Build version 
 #endif
 
-#ifdef PLAT_UNIX
-	#define FS_UNIX_VERSION_MAJOR 00
-	#define FS_UNIX_VERSION_MINOR 92
-#endif
+#define IO_VERSION_MAJOR 00
+#define IO_VERSION_MINOR 95
 
 #define VERSION_LOC_FNAME			"version.nfo"
 #define MOTD_LOC_FNAME				"motd.txt"

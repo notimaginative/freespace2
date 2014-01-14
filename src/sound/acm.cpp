@@ -68,8 +68,6 @@ typedef struct acm_stream_t {
 // similar to BIAL_IF_MACRO in SDL_sound
 #define IF_ERR(a, b) if (a) { printf("IF_ERR-ACM, function: %s, line %d...\n", __FUNCTION__, __LINE__); return b; }
 
-static int ACM_inited = 0;
-
 
 /*****************************************************************************
  * Begin ADPCM compression handler...                                       */
@@ -336,12 +334,6 @@ int ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, uby
 	uint rc;
 	uint new_size = 0;
 
-	if ( ACM_inited == 0 ) {
-		rc = ACM_init();
-		if ( rc != 0 )
-			return -1;
-	}
-
 	// estimate size of uncompressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
@@ -429,12 +421,6 @@ int ACM_stream_open(WAVEFORMATEX *pwfxSrc, WAVEFORMATEX *pwfxDest, void **stream
 
 	SDL_RWops *hdr = SDL_RWFromMem(pwfxSrc, sizeof(WAVEFORMATEX) + pwfxSrc->cbSize);
 	uint rc;
-
-	if ( ACM_inited == 0 ) {
-		rc = ACM_init();
-		if ( rc != 0 )
-			return -1;
-	}
 
 	adpcm_fmt_t *fmt = (adpcm_fmt_t *)malloc(sizeof(adpcm_fmt_t));
 	IF_ERR(fmt == NULL, -1);
@@ -550,30 +536,4 @@ int ACM_convert(void *stream, ubyte *src, int src_len, ubyte *dest, int max_dest
 	SDL_RWclose(rw);
 
 	return 0;
-}
-
-// ACM_init() - decoding should always work
-int ACM_init()
-{
-	if ( ACM_inited == 1 )
-		return 0;
-
-	ACM_inited = 1;
-
-	return 0;
-}
-
-// close out
-void ACM_close()
-{
-	if ( ACM_inited == 0 )
-		return;
-
-	ACM_inited = 0;
-}
-
-// Query if the ACM system is initialized
-int ACM_is_inited()
-{
-	return ACM_inited;
 }

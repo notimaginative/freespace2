@@ -1318,10 +1318,6 @@ void audiostream_init()
 	if ( Audiostream_inited == 1 )
 		return;
 
-	if ( !ACM_is_inited() ) {
-		return;
-	}
-
 	// Allocate memory for the buffer which holds the uncompressed wave data that is streamed from the
 	// disk during a load/cue
 	if ( Wavedata_load_buffer == NULL ) {

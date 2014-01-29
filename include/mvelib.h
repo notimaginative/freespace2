@@ -102,7 +102,7 @@ void mve_end_chunk();
 int mve_timer_create(ubyte *data);
 
 // special audio functions
-void mveaudio_uncompress(short *buffer, unsigned char *data, int length);
+void mveaudio_uncompress(unsigned char *buffer, unsigned char *data, int length);
 typedef short mves;
 
 #endif /* INCLUDED_MVELIB_H */

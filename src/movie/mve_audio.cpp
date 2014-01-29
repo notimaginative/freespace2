@@ -60,10 +60,12 @@ static void processSwath(short *fout, unsigned char *data, int swath, int *offse
     }
 }
 
-void mveaudio_uncompress(short *buffer, unsigned char *data, int length)
+void mveaudio_uncompress(unsigned char *buf, unsigned char *data, int length)
 {
     int nCurOffsets[2];
     int swath;
+
+    short *buffer = (short*)buf;
 
     data += 4;
     swath = getWord(&data) / 2;

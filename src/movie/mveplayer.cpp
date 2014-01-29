@@ -33,12 +33,6 @@
  * $NoKeywords: $
  */
  
-#ifdef PLAT_UNIX
-#include <errno.h>
-#include <time.h>
-#include <sys/time.h>
-#endif
-
 #include "pstypes.h"
 #include "mvelib.h"
 #include "movie.h"
@@ -51,7 +45,7 @@
 #include "osregistry.h"
 #include "ds.h"
 #include "gropengl.h"
-
+#include <vector>
 
 static int mve_playing;
 
@@ -65,32 +59,31 @@ static Uint64 micro_timer_start = 0;
 static Uint64 micro_timer_freq = 0;
 
 // audio variables
-#define MVE_AUDIO_BUFFERS 64  // total buffers to interact with stream
-static int mve_audio_curbuf_curpos = 0;
-static int mve_audio_bufhead = 0;
-static int mve_audio_buftail = 0;
+#define MVE_AUDIO_BUFFERS 8  // total buffers to interact with stream
+
+static std::vector<ALuint> mve_audio_bufl_free;
+static ubyte *mve_audio_buf = NULL;
+static size_t mve_audio_buf_size = 0;
+static size_t mve_audio_buf_offset = 0;
+
 static int mve_audio_playing = 0;
 static int mve_audio_canplay = 0;
 static int mve_audio_compressed = 0;
 static int audiobuf_created;
 
-#ifdef PLAT_UNIX
-
 // struct for the audio stream information
-typedef struct MVE_AUDIO_T {
+struct mve_audio_t {
 	ALenum format;
 	int sample_rate;
 	int bytes_per_sec;
 	int channels;
 	int bitsize;
-	ALuint audio_data[MVE_AUDIO_BUFFERS];
 	ALuint source_id;
-	ALuint audio_buffer[MVE_AUDIO_BUFFERS];
-} mve_audio_t;
+	ALuint buffers[MVE_AUDIO_BUFFERS];
+};
 
-mve_audio_t *mas;  // mve_audio_stream
+mve_audio_t *mas = NULL;  // mve_audio_stream
 
-#endif	// PLAT_UNIX
 
 
 // video variables
@@ -106,9 +99,7 @@ static int videobuf_created, video_inited;
 static int hp2, wp2;
 static uint mve_video_skiptimer = 0;
 static int mve_scale_video = 0;
-#ifdef PLAT_UNIX
 static GLuint tex = 0;
-#endif
 
 // the decoder
 void decodeFrame16(ubyte *pFrame, ubyte *pMap, int mapRemain, ubyte *pData, int dataRemain);
@@ -217,33 +208,57 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 	// if game sound disabled don't try and play movie audio
 	if (!Sound_enabled) {
 		mve_audio_canplay = 0;
+		audiobuf_created = 1;
 		return;
 	}
 
-#ifdef PLAT_UNIX
-    int flags, desired_buffer, sample_rate;
+	int flags, desired_buffer, sample_rate;
 
-    mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
+	mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
+
+	if (mas == NULL) {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
+
 	memset(mas, 0, sizeof(mve_audio_t));
 
 	mas->format = AL_INVALID;
 
-    flags = mve_get_ushort(data + 2);
-    sample_rate = mve_get_ushort(data + 4);
-    desired_buffer = mve_get_int(data + 6);
+	flags = mve_get_ushort(data + 2);
+	sample_rate = mve_get_ushort(data + 4);
+	desired_buffer = mve_get_int(data + 6);
 
-    mas->channels = (flags & 0x0001) ? 2 : 1;
+	if (desired_buffer > 0) {
+		mve_audio_buf = (ubyte*) malloc (desired_buffer);
+
+		if (mve_audio_buf == NULL) {
+			mve_audio_canplay = 0;
+			audiobuf_created = 1;
+			return;
+		}
+
+		mve_audio_buf_size = desired_buffer;
+		mve_audio_buf_offset = 0;
+	} else {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
+
+	mas->channels = (flags & 0x0001) ? 2 : 1;
 	mas->bitsize = (flags & 0x0002) ? 16 : 8;
 
 	mas->sample_rate = sample_rate;
 
-    if (minor > 0) {
-    	mve_audio_compressed = flags & 0x0004 ? 1 : 0;
-    } else {
+	if (minor > 0) {
+		mve_audio_compressed = flags & 0x0004 ? 1 : 0;
+	} else {
 		mve_audio_compressed = 0;
-    }
+	}
 
-    if (mas->bitsize == 16) {
+	if (mas->bitsize == 16) {
 		if (mas->channels == 2) {
 			mas->format = AL_FORMAT_STEREO16;
 		} else if (mas->channels == 1) {
@@ -264,44 +279,46 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 	}
 
-	OpenAL_ErrorCheck( alGenSources(1, &mas->source_id), { mve_audio_canplay = 0; return; } );
+	alGenSources(1, &mas->source_id);
 
-	mve_audio_canplay = 1;
+	if (mas->source_id == 0) {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
 
-	OpenAL_ErrorPrint( alSourcef(mas->source_id, AL_GAIN, 1.0f) );
-	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f) );
-	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f) );
-	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f) );
-	OpenAL_ErrorPrint( alSourcef(mas->source_id, AL_ROLLOFF_FACTOR, 0.0f ) );
-	OpenAL_ErrorPrint( alSourcei(mas->source_id, AL_SOURCE_RELATIVE, AL_TRUE ) );
+	alSourcef(mas->source_id, AL_GAIN, 1.0f);
+	alSource3f(mas->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
+	alSource3f(mas->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+	alSource3f(mas->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+	alSourcef(mas->source_id, AL_ROLLOFF_FACTOR, 0.0f);
+	alSourcei(mas->source_id, AL_SOURCE_RELATIVE, AL_TRUE);
 
-	memset(mas->audio_buffer, 0, MVE_AUDIO_BUFFERS * sizeof(ALuint));
+	for (int i = 0; i < MVE_AUDIO_BUFFERS; i++) {
+		alGenBuffers(1, &mas->buffers[i]);
+	}
 
-    mve_audio_bufhead = 0;
-    mve_audio_buftail = 0;
+	mve_audio_bufl_free.assign(mas->buffers, mas->buffers+MVE_AUDIO_BUFFERS);
 
 	audiobuf_created = 1;
-#endif
+	mve_audio_canplay = 1;
 }
 
 // play and stream the audio
 void mve_audio_play()
 {
-#ifdef PLAT_UNIX
 	if (mve_audio_canplay) {
-		ALint status, bqueued;
+		ALint queued = 0;
+		ALint status = AL_INVALID;
 
-		OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status), return );
-	
-		OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued), return );
-	
-		mve_audio_playing = 1;
+		alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &queued);
+		alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status);
 
-		if (status != AL_PLAYING && bqueued > 0) {
-			OpenAL_ErrorPrint( alSourcePlay(mas->source_id) );
+		if ( (status != AL_PLAYING) && (queued > 0) ) {
+			alSourcePlay(mas->source_id);
+			mve_audio_playing = 1;
 		}
 	}
-#endif
 }
 
 // call this in shutdown to stop and close audio
@@ -310,107 +327,101 @@ static void mve_audio_stop()
 	if (!audiobuf_created)
 		return;
 
-#ifdef PLAT_UNIX
-	ALint p = 0;
+	ALint processed = 0;
+	ALuint bid = 0;
 
 	mve_audio_playing = 0;
+	audiobuf_created = 0;
 
-	OpenAL_ErrorPrint( alSourceStop(mas->source_id) );
-	OpenAL_ErrorPrint( alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &p) );
-	OpenAL_ErrorPrint( alSourceUnqueueBuffers(mas->source_id, p, mas->audio_buffer) );
-	OpenAL_ErrorPrint( alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->audio_buffer) );
-	OpenAL_ErrorPrint( alDeleteSources(1, &mas->source_id) );
+	mve_audio_bufl_free.clear();
+
+	if (mas && mas->source_id) {
+		alSourceStop(mas->source_id);
+
+		alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &processed);
+
+		while (processed > 0) {
+			alSourceUnqueueBuffers(mas->source_id, 1, &bid);
+			--processed;
+		}
+
+		alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->buffers);
+		alDeleteSources(1, &mas->source_id);
+	}
 
 	if (mas != NULL) {
 		free(mas);
 		mas = NULL;
 	}
-#endif
+
+	if (mve_audio_buf != NULL) {
+		free(mve_audio_buf);
+		mve_audio_buf = NULL;
+	}
+
+	mve_audio_buf_size = 0;
+	mve_audio_buf_offset = 0;
 }
 
 int mve_audio_data(ubyte major, ubyte *data)
 {
-#ifdef PLAT_UNIX
-	static const int selected_chan=1;
+	static const int selected_chan = 1;
 	int chan;
 	int nsamp;
+	ALint processed = 0;
+	ALuint bid;
 
 	if (mve_audio_canplay) {
 		chan = mve_get_ushort(data + 2);
 		nsamp = mve_get_ushort(data + 4);
 
 		if (chan & selected_chan) {
-			ALint bprocessed, bqueued, status;
-			ALuint bid;
-
-			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &bprocessed), return 0 );
-
-			while (bprocessed-- > 2) {
-				OpenAL_ErrorPrint( alSourceUnqueueBuffers(mas->source_id, 1, &bid) );
-			//	fprintf(stderr,"Unqueued buffer %d(%d)\n", mve_audio_bufhead, bid);
-		
-				if (++mve_audio_bufhead == MVE_AUDIO_BUFFERS)
-					mve_audio_bufhead = 0;
-			}
-
-			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued), return 0 );
-		    
-			if (bqueued == 0) 
-				mprintf(("MVE: Buffer underun (First is normal)\n"));
-
-			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status), return 0 );
-
-			if (mve_audio_playing && status != AL_PLAYING && bqueued > 0) {
-				OpenAL_ErrorCheck( alSourcePlay(mas->source_id), return 0 );
-			}
-
-			if (bqueued < MVE_AUDIO_BUFFERS) {
-				short *buf = NULL;
-
-				/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
+			if ( (mve_audio_buf_offset+nsamp+4) <= mve_audio_buf_size ) {
 				if (major == 8) {
-				    if (mve_audio_compressed) {
+					if (mve_audio_compressed) {
+						/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
 						nsamp += 4;
 
-						buf = (short *)malloc(nsamp);
-						mveaudio_uncompress(buf, data, -1); /* XXX */
+						mveaudio_uncompress(mve_audio_buf+mve_audio_buf_offset, data, -1);
 					} else {
 						nsamp -= 8;
 						data += 8;
 
-						buf = (short *)malloc(nsamp);
-						memcpy(buf, data, nsamp);
-					}	              
+						memcpy(mve_audio_buf+mve_audio_buf_offset, data, nsamp);
+					}
 				} else {
-					buf = (short *)malloc(nsamp);
-
-					memset(buf, 0, nsamp); /* XXX */
+					// silence
+					memset(mve_audio_buf+mve_audio_buf_offset, 0, nsamp);
 				}
 
-
-				if (!mas->audio_buffer[mve_audio_buftail]) {
-					OpenAL_ErrorCheck( alGenBuffers(1,&mas->audio_buffer[mve_audio_buftail]), { free(buf); return 0; } );
-				}
-
-				OpenAL_ErrorCheck( alBufferData(mas->audio_buffer[mve_audio_buftail], mas->format, buf, nsamp, mas->sample_rate), { free(buf); return 0; } );
-	    
-				OpenAL_ErrorCheck( alSourceQueueBuffers(mas->source_id, 1, &mas->audio_buffer[mve_audio_buftail]), { free(buf); return 0;} );
-
-				//fprintf(stderr,"Queued buffer %d(%d)\n", mve_audio_buftail, mas->audio_buffer[mve_audio_buftail]);
-
-				if (++mve_audio_buftail == MVE_AUDIO_BUFFERS)
-					mve_audio_buftail = 0;
-
-				bqueued++;
-				free(buf);
+				mve_audio_buf_offset += nsamp;
 			} else {
-				mprintf(("MVE: Buffer overrun: Queue full\n"));
+				mprintf(("MVE audio_buf overrun!!\n"));
 			}
 
-			//fprintf(stderr,"Buffers queued: %d\n", bqueued);
+			alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &processed);
+
+			while (processed) {
+				alSourceUnqueueBuffers(mas->source_id, 1, &bid);
+				mve_audio_bufl_free.push_back(bid);
+				--processed;
+			}
+
+			if ( !mve_audio_bufl_free.empty() ) {
+				bid = mve_audio_bufl_free.back();
+
+				alBufferData(bid, mas->format, mve_audio_buf, mve_audio_buf_offset, mas->sample_rate);
+				alSourceQueueBuffers(mas->source_id, 1, &bid);
+
+				mve_audio_buf_offset = 0;
+				mve_audio_bufl_free.pop_back();
+			}
+
+			if ( !mve_audio_playing ) {
+				mve_audio_play();
+			}
 		}
 	}
-#endif
 
 	return 1;
 }
@@ -748,12 +759,10 @@ void mve_end_chunk()
 void mve_init(MVESTREAM *mve)
 {
 	// reset to default values
-	mve_audio_curbuf_curpos = 0;
-	mve_audio_bufhead = 0;
-	mve_audio_buftail = 0;
 	mve_audio_playing = 0;
 	mve_audio_canplay = 0;
 	mve_audio_compressed = 0;
+	mve_audio_buf_offset = 0;
 	audiobuf_created = 0;
 
 	videobuf_created = 0;

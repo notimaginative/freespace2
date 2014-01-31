@@ -1452,7 +1452,7 @@ void hud_render_multi_ping()
 		if((Netgame.server != NULL) && (Netgame.server->s_info.ping.ping_avg > 0)){
 			// get the string
 			if(Netgame.server->s_info.ping.ping_avg >= 1000){
-				sprintf(ping_str,XSTR("> 1 sec",628));
+				strcpy(ping_str,XSTR("> 1 sec",628));
 			} else {
 				sprintf(ping_str,XSTR("%d ms",629),Netgame.server->s_info.ping.ping_avg);
 			}
@@ -2450,17 +2450,17 @@ void hud_support_view_blit()
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_SENSORS) < 1.0 ) ||
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_WEAPONS) < 1.0 ) ||
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_COMMUNICATION) < 1.0 ) ) {
-			sprintf(outstr, XSTR( "repairing", 227));
+			strcpy(outstr, XSTR( "repairing", 227));
 		} else {
-			sprintf(outstr, XSTR( "rearming", 228));
+			strcpy(outstr, XSTR( "rearming", 228));
 		}
 		gr_string(0x8000, Support_text_val_coords[gr_screen.res][1], outstr);
 	} else if (Player_ai->ai_flags & AIF_REPAIR_OBSTRUCTED) {
-		sprintf(outstr, XSTR( "obstructed", 229));
+		strcpy(outstr, XSTR( "obstructed", 229));
 		gr_string(0x8000, Support_text_val_coords[gr_screen.res][1], outstr);
 	} else {
 		if ( Hud_support_objnum == -1 ) {
-			sprintf(outstr, XSTR( "warping in", 230));
+			strcpy(outstr, XSTR( "warping in", 230));
 			gr_string(0x8000, Support_text_val_coords[gr_screen.res][1], outstr);
 		} else {
 			ai_info *aip;
@@ -2468,11 +2468,11 @@ void hud_support_view_blit()
 			// display "busy" when support ship isn't actually enroute to me
 			aip = &Ai_info[Ships[Objects[Hud_support_objnum].instance].ai_index];
 			if ( aip->goal_objnum != OBJ_INDEX(Player_obj) ) {
-				sprintf(outstr, XSTR( "busy", 231));
+				strcpy(outstr, XSTR( "busy", 231));
 				show_time = 0;
 
 			} else {
-				sprintf(outstr, XSTR( "dock in:", 232));
+				strcpy(outstr, XSTR( "dock in:", 232));
 				show_time = 1;
 			}		
 

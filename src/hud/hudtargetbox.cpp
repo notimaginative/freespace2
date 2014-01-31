@@ -733,7 +733,7 @@ void hud_targetbox_show_extra_ship_info(ship *target_shipp, ai_info *target_aip)
 		}
 
 		if ( has_orders ) {
-			sprintf(outstr, XSTR( "time to: ", 338));
+			strcpy(outstr, XSTR( "time to: ", 338));
 			if ( ship_return_time_to_goal(tmpbuf, target_shipp) ) {
 				strcat(outstr, tmpbuf);
 				
@@ -1073,9 +1073,9 @@ void hud_render_target_ship_info(object *target_objp)
 	// print out 'disabled' on the monitor if the target is disabled
 	if ( (target_shipp->flags & SF_DISABLED) || (ship_subsys_disrupted(target_shipp, SUBSYSTEM_ENGINE)) ) {
 		if ( target_shipp->flags & SF_DISABLED ) {
-			sprintf(outstr, XSTR( "DISABLED", 342));
+			strcpy(outstr, XSTR( "DISABLED", 342));
 		} else {
-			sprintf(outstr, XSTR( "DISRUPTED", 343));
+			strcpy(outstr, XSTR( "DISRUPTED", 343));
 		}
 		gr_get_string_size(&w,&h,outstr);
 		gr_printf(Target_window_coords[gr_screen.res][0]+Target_window_coords[gr_screen.res][2]/2 - w/2 - 1, Target_window_coords[gr_screen.res][1]+Target_window_coords[gr_screen.res][3] - 2*h, "%s", outstr);
@@ -1111,17 +1111,17 @@ void hud_blit_target_integrity(int disabled,int force_obj_num)
 
 	// print out status of ship
 	if ( (Ships[objp->instance].flags & SF_DISABLED) || (ship_subsys_disrupted(&Ships[objp->instance], SUBSYSTEM_ENGINE)) ) {
-		sprintf(buf,XSTR( "dis", 344));
+		strcpy(buf,XSTR( "dis", 344));
 		current_ts = TS_DIS;
 	} else {
 		if ( Pl_target_integrity > 0.9 ) {
-			sprintf(buf,XSTR( "ok", 345));
+			strcpy(buf,XSTR( "ok", 345));
 			current_ts = TS_OK;
 		} else if ( Pl_target_integrity > 0.2 ) {
-			sprintf(buf,XSTR( "dmg", 346));
+			strcpy(buf,XSTR( "dmg", 346));
 			current_ts = TS_DMG;
 		} else {
-			sprintf(buf,XSTR( "crt", 347));
+			strcpy(buf,XSTR( "crt", 347));
 			current_ts = TS_CRT;
 		}
 	}
@@ -1505,7 +1505,7 @@ void hud_render_target_weapon(object *target_objp)
 		if ( speed > 0 ) {
 			sprintf(outstr, NOX("impact: %.1f sec"), dist/speed);
 		} else {
-			sprintf(outstr, XSTR( "unknown", 349));
+			strcpy(outstr, XSTR( "unknown", 349));
 		}
 
 		emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_CLASS][0], Targetbox_coords[gr_screen.res][TBOX_CLASS][1], EG_TBOX_CLASS, outstr);		

@@ -347,19 +347,19 @@ DCF(objsnd, "Persistant sound stuff" )
 				Assert(osp != NULL);
 				if ( osp->instance == -1 ) {
 					continue;
-					//sprintf(buf1,"OFF");
+					//strcpy(buf1,"OFF");
 				} else {
-					sprintf(buf1,"ON");
+					strcpy(buf1,"ON");
 				}
 
 				if ( Objects[osp->objnum].type == OBJ_SHIP ) {
-					sprintf(buf2, Ships[Objects[osp->objnum].instance].ship_name);
+					strcpy(buf2, Ships[Objects[osp->objnum].instance].ship_name);
 				}
 				else if ( Objects[osp->objnum].type == OBJ_DEBRIS ) {
-					sprintf(buf2, "Debris");
+					strcpy(buf2, "Debris");
 				}
 				else {
-					sprintf(buf2, "Unknown");
+					strcpy(buf2, "Unknown");
 				}
 
 				vector source_pos;

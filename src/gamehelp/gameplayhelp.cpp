@@ -259,7 +259,7 @@ char *gameplay_help_control_text(int id, char *buf)
 	ci = &Control_config[id];
 
 	if ( ci->key_id >= 0 ) {
-		sprintf(buf, textify_scancode(ci->key_id));
+		strcpy(buf, textify_scancode(ci->key_id));
 		has_key=1;
 	}
 
@@ -292,7 +292,7 @@ void gameplay_help_blit_control_line(int x, int y, int id)
 	buf[0] = 0;
 
 	if ( ci->key_id >= 0 ) {
-		sprintf(buf, textify_scancode(ci->key_id));
+		strcpy(buf, textify_scancode(ci->key_id));
 		has_key=1;
 	}
 

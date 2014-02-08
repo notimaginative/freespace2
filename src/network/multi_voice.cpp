@@ -532,16 +532,14 @@ void multi_voice_init()
 
 		// attempt to copy in the "pre" voice sound
 		pre_sound = snd_load(&Snds[MULTI_VOICE_PRE_SOUND]);
+		Multi_voice_pre_sound_size = 0;
 		if(pre_sound != -1){
 			// get the pre-sound size
 			if((snd_size(pre_sound,&pre_size) != -1) && (pre_size < MULTI_VOICE_MAX_BUFFER_SIZE)){
-				snd_get_data(pre_sound,Multi_voice_playback_buffer);
-				Multi_voice_pre_sound_size = pre_size;
-			} else {
-				Multi_voice_pre_sound_size = 0;
+				if ( !snd_get_data(pre_sound,Multi_voice_playback_buffer) ) {
+					Multi_voice_pre_sound_size = pre_size;
+				}
 			}
-		} else {
-			Multi_voice_pre_sound_size = 0;
 		}
 	}
 
@@ -1641,10 +1639,10 @@ int multi_voice_mix(int post_sound,char *data,int cur_size,int max_size)
 	if(post_size > 0){
 		if((max_size - cur_size) > post_size){
 			// copy in the sound
-			snd_get_data(post_sound,data + cur_size);
-
-			// increment the cur_size
-			cur_size += post_size;
+			if ( !snd_get_data(post_sound,data + cur_size) ) {
+				// increment the cur_size
+				cur_size += post_size;
+			}
 		}
 	}
 

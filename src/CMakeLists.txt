@@ -186,9 +186,11 @@ set(code_SOURCE
   ship/shipcontrails.cpp
   ship/shipfx.cpp
   ship/shiphit.cpp
-  sound/acm-unix.cpp
-  sound/audiostr-openal.cpp
-  sound/ds.cpp
+  sound/acm.cpp
+  sound/audiostr.cpp
+  sound/oal.cpp
+  sound/oal_capture.cpp
+  sound/oal_efx.cpp
   sound/rtvoice.cpp
   sound/sound.cpp
   starfield/nebula.cpp

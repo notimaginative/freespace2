@@ -51,10 +51,11 @@
 #define __FREESPACE_ACM_H__
 
 #include "pstypes.h"
+#include "oal.h"
 
-int	ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int max_dest_bytes, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps=16);
+int	ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int max_dest_bytes, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps=16);
 
-int ACM_stream_open(WAVEFORMATEX *pwfxSrc, WAVEFORMATEX *pwfxDest, void **stream, int dest_bps=16);
+int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, int dest_bps=16);
 int ACM_stream_close(void *stream);
 int ACM_query_source_size(void *stream, int dest_len);
 int ACM_query_dest_size(void *stream, int src_len);

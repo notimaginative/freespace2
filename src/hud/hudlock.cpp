@@ -1017,7 +1017,7 @@ void hud_calculate_lock_position(float frametime)
 		}
 
 		if ( Missile_track_loop == -1 ) {	
-			Missile_track_loop = snd_play_looping( &Snds[SND_MISSILE_TRACKING], 0.0f , -1, -1);
+			Missile_track_loop = snd_play_looping( &Snds[SND_MISSILE_TRACKING], 0.0f);
 		}
 
 		if (!Players[Player_num].lock_time_to_target) {

@@ -224,7 +224,7 @@
 #include "bmpman.h"
 #include "cfile.h"
 #include "key.h"
-#include "ds.h"
+#include "oal.h"
 #include "font.h"
 #include "gamesnd.h"
 #include "freespace.h"
@@ -2237,19 +2237,24 @@ void options_multi_vox_do()
 	
 	case OM_VOX_TEST_PLAYBACK:			
 		// if we were playing a sound back, but now the sound is done
-		if((Om_vox_playback_handle != -1) && (ds_get_play_position(ds_get_channel(Om_vox_playback_handle)) >= (DWORD)Om_vox_voice_comp_size)){
-			// flush all playing sounds safely
-			rtvoice_stop_playback_all();
+		if (Om_vox_playback_handle != -1) {
+			int channel = oal_get_channel(Om_vox_playback_handle);
 
-			// null the sound handle
-			Om_vox_playback_handle = -1;
+			// channel will be -1 if sound has already stopped playing
+			if ( (channel == -1) || (oal_get_play_position(channel) >= Om_vox_voice_comp_size) ) {
+				// flush all playing sounds safely
+				rtvoice_stop_playback_all();
 
-			// set this so we know not to display any more waveforms
-			Om_vox_voice_buffer_size = -1;
-			Om_vox_voice_comp_size = -1;			
+				// null the sound handle
+				Om_vox_playback_handle = -1;
 
-			// free the status up
-			Om_vox_test_status = OM_VOX_TEST_NONE;
+				// set this so we know not to display any more waveforms
+				Om_vox_voice_buffer_size = -1;
+				Om_vox_voice_comp_size = -1;
+
+				// free the status up
+				Om_vox_test_status = OM_VOX_TEST_NONE;
+			}
 		}
 		break;
 	}
@@ -2402,7 +2407,7 @@ void options_multi_vox_process_waveform()
 
 	case OM_VOX_TEST_PLAYBACK:
 		// get the offset into the playing direct sound buffer
-		buf_offset = ds_get_play_position(ds_get_channel(Om_vox_playback_handle));		
+		buf_offset = oal_get_play_position(oal_get_channel(Om_vox_playback_handle));
 
 		// get the # of samples we'll average for one line
 		avg_len = (int)((float)OM_VOX_RECORD_INT * ((1024.0f * 11.0f) / 1000.0f)) / c_width;				

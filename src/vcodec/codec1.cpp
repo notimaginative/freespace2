@@ -5,14 +5,10 @@
 //
 // Written by Matthew F. Storch, Ph.D., copyright (c) 1998 Volition Inc.
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#endif
 
 #include "pstypes.h"
 
 #include <math.h>
-#include <assert.h>
 #include "codec1.h"
 
 
@@ -114,7 +110,7 @@ extern "C"
 #define lpc10init()
 #define lpc10encode(in, out, inlen) 0
 #define lpc10decode(in, out, inlen) { out = 0; }
-#define AssertLPC10Available() assert(0)
+#define AssertLPC10Available() SDL_assert(0)
 #endif // defined(USE_LPC10)
 
 //
@@ -159,7 +155,6 @@ t_Sample* TempEncoderBuf2 = NULL;
 
 void InitDecoder(int QoS, t_Sample* tempBuf) 
 { 
-	QoS = QoS; // just to shut compiler up
     TempDecoderBuf = tempBuf;
     lpc10init(); // call unconditionally because we don't know what kind of
                  // coded packets we might receive
@@ -451,27 +446,27 @@ int Encode(t_Sample* bufIn, t_Sample* bufOut, int sizeIn, int sizeOut,
 #pragma pack(1)
 #define PACKED
 #else
-#define PACKED __attribute__((packed))
+#define PACKED __attribute__((packed, aligned(2)))
 #endif
 
 // most general notion of a packet pair
 struct t_PacketPair
 {
-    unsigned long Mode1   : 3;
-    unsigned long Mode1Ex : 1;
-    unsigned long Data1   : 8;
-    unsigned long Mode0   : 3;
-    unsigned long Mode0Ex : 1;
-    unsigned long Data0   : 8;
+    unsigned int Mode1   : 3;
+    unsigned int Mode1Ex : 1;
+    unsigned int Data1   : 8;
+    unsigned int Mode0   : 3;
+    unsigned int Mode0Ex : 1;
+    unsigned int Data0   : 8;
 } PACKED;
 
 // nominal packet pair
 struct t_PacketPairNom
 {
-    unsigned long Mode1 : 3;
-    unsigned long Data1 : 9;
-    unsigned long Mode0 : 3;
-    unsigned long Data0 : 9;
+    unsigned int Mode1 : 3;
+    unsigned int Data1 : 9;
+    unsigned int Mode0 : 3;
+    unsigned int Data0 : 9;
 } PACKED;
 
 // run-length packet, case 1 
@@ -508,24 +503,24 @@ struct t_PacketHFData
 // run-length packet, case 0
 struct t_PacketRL0
 {
-    unsigned long Mode1   : 3; // mode of previous packet in pair
-    unsigned long Data1   : 9; // data of previous packet in pair
-    unsigned long Mode0   : 3; // mode of this packet (always 0)
-    unsigned long Mode0Ex : 1; // extra bit to distinguish RL & HF (always 0)
-    unsigned long Length  : 8; // length of run
+    unsigned int Mode1   : 3; // mode of previous packet in pair
+    unsigned int Data1   : 9; // data of previous packet in pair
+    unsigned int Mode0   : 3; // mode of this packet (always 0)
+    unsigned int Mode0Ex : 1; // extra bit to distinguish RL & HF (always 0)
+    unsigned int Length  : 8; // length of run
 } PACKED;
 
 // high-frequency packet, case 0
 struct t_PacketHF0
 {
-    unsigned long Mode1   : 3; // mode of previous packet in pair
-    unsigned long Data1   : 9; // data of previous packet in pair
-    unsigned long Mode0   : 3; // mode of this packet (always 0)
-    unsigned long Mode0Ex : 1; // extra bit to distinguish RL & HF (always 1)
-	unsigned long Table   : 1; // 1 ==> DataT is lookup table number
-	unsigned long Data0   : 3; // absolute sample data
-	unsigned long DataT   : 3; // absolute sample data or lookup table number
-	unsigned long Unused  : 1;
+    unsigned int Mode1   : 3; // mode of previous packet in pair
+    unsigned int Data1   : 9; // data of previous packet in pair
+    unsigned int Mode0   : 3; // mode of this packet (always 0)
+    unsigned int Mode0Ex : 1; // extra bit to distinguish RL & HF (always 1)
+	unsigned int Table   : 1; // 1 ==> DataT is lookup table number
+	unsigned int Data0   : 3; // absolute sample data
+	unsigned int DataT   : 3; // absolute sample data or lookup table number
+	unsigned int Unused  : 1;
 } PACKED;
 
 // medium-frequency packet, case 1
@@ -540,12 +535,12 @@ struct t_PacketMF1
 // medium-frequency packet, case 0
 struct t_PacketMF0
 {
-    unsigned long  Mode1 : 3; // mode of previous packet in pair
-    unsigned long  Data1 : 9; // data of previous packet in pair
-    unsigned long  Mode0 : 3; // mode of this packet (always 7)
-    unsigned long  Mult  : 1; // 0 ==> mult data by 1, 1 ==> mult data by 2
-    long           DataX : 2; // not currently used
-    long           Data0 : 6; // total rise or fall over next 4 samples
+    unsigned int  Mode1 : 3; // mode of previous packet in pair
+    unsigned int  Data1 : 9; // data of previous packet in pair
+    unsigned int  Mode0 : 3; // mode of this packet (always 7)
+    unsigned int  Mult  : 1; // 0 ==> mult data by 1, 1 ==> mult data by 2
+    int           DataX : 2; // not currently used
+    int           Data0 : 6; // total rise or fall over next 4 samples
 } PACKED;
 
 // restore state of compiler padding of structures
@@ -1043,10 +1038,10 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 	int tableNum = 0;
 
 
-    assert(sizeof(t_PacketRL1) == 2);
-    assert(sizeof(t_PacketHF1) == 2);
-    assert(sizeof(t_PacketHFData) == 2);
-    assert(sizeof(t_PacketHF0) == 4);
+    SDL_assert(sizeof(t_PacketRL1) == 2);
+    SDL_assert(sizeof(t_PacketHF1) == 2);
+    SDL_assert(sizeof(t_PacketHFData) == 2);
+    SDL_assert(sizeof(t_PacketHF0) == 4);
 
     // First byte in encoded data is unencoded (literal mode) initial level.
     level = *out++ = *in++; 
@@ -1176,10 +1171,10 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                         packet.ModeEx = 0;
                         packet.Length = (unsigned short)len;
                         *(t_PacketRL1*)out = packet;
-                        out += sizeof packet;
+                        out += sizeof(packet);
                         // packetPos remains at 1
                       #if defined(CODEC_DEMO)
-                        samples[0] += len;  storage[0] += 2*sizeof packet;
+                        samples[0] += len;  storage[0] += 2*sizeof(packet);
                       #endif
                     }
                     else
@@ -1189,10 +1184,10 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                         packet.Mode0Ex = 0;
                         packet.Length = len;
                         *(t_PacketRL0*)out = packet;
-                        out += 3; // sizeof packet;
+                        out += 3; // sizeof(packet);
                         packetPos = 1;
                       #if defined(CODEC_DEMO)
-                        samples[0] += len;  storage[0] += 3; // sizeof packet;
+                        samples[0] += len;  storage[0] += 3; // sizeof(packet};
                       #endif
                     }
                     in += len;
@@ -1296,7 +1291,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 else if (delta < -32) packet.Data0 = -32;
                 else                  packet.Data0 = delta;
                 *(t_PacketMF1*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
                 in += 4;
 
               #if defined(CODEC_DEMO)
@@ -1312,7 +1307,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 assert(temp2 == level + packet.Data0);
 
                 for (i = 0; i < 8; i++) *modes++ = 7;
-                samples[7] += 8;  storage[7] += 2*sizeof packet;
+                samples[7] += 8;  storage[7] += 2*sizeof(packet);
               #endif
 
                 level += packet.Data0;
@@ -1324,7 +1319,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 packet.DataX = 0;
                 packet.Data0 = delta;
                 *(t_PacketMF0*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
 
               #if defined(CODEC_DEMO)
                 temp2 = level;
@@ -1335,7 +1330,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 assert(temp2 == level + packet.Data0);
 
                 for (i = 0; i < 4; i++) *modes++ = 7;
-                samples[7] += 4;  storage[7] += 3; // sizeof packet;
+                samples[7] += 4;  storage[7] += 3; // sizeof(packet);
               #endif
 
                 level += packet.Data0; 
@@ -1367,7 +1362,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				packet.Data0 = (unsigned short)(EncTable[table][*in]);
 				data0 = *in++;
                 *(t_PacketHF1*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
 
               #if defined(CODEC_DEMO)
 				*levels++ = t_Sample(DecTable[table][packet.Data2] + ZERO);
@@ -1376,7 +1371,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 *modes++ = 8; 
 				*modes++ = 8;
 				*modes++ = 8;
-				samples[8] += 3;  storage[8] += 2*sizeof packet;
+				samples[8] += 3;  storage[8] += 2*sizeof(packet);
               #endif
             }
             else
@@ -1401,12 +1396,12 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 					finalPacketData = packet.DataT = EncTable[table = tableNum][*in++];
 				}
                 *(t_PacketHF0*)out = packet;
-                out += 3; // sizeof packet;
+                out += 3; // sizeof(packet);
 
               #if defined(CODEC_DEMO)
 				*levels++ = t_Sample(DecTable[table][packet.Data0] + ZERO);
                 *modes++ = 8;
-                samples[8] += 1;  storage[8] += 3; // sizeof packet;
+                samples[8] += 1;  storage[8] += 3; // sizeof(packet);
 				if (packet.Table == 0)
 				{
 					*levels++ = t_Sample(DecTable[table][packet.DataT] + ZERO);
@@ -1483,7 +1478,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				tableNum = table;
 
                 *(t_PacketHFData*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
 
               #if defined(CODEC_DEMO)
 				*levels++ = t_Sample(DecTable[table][packet.Data3] + ZERO);
@@ -1491,7 +1486,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				*levels++ = t_Sample(DecTable[table][packet.Data1] + ZERO);
 				*levels++ = t_Sample(DecTable[table][packet.Data0] + ZERO);
                 *modes++ = 8; *modes++ = 8; *modes++ = 8; *modes++ = 8;
-                samples[8] += 4;  storage[8] += 2*sizeof packet;
+                samples[8] += 4;  storage[8] += 2*sizeof(packet);
 				if (packet.Table == 0)
 				{
 					*levels++ = t_Sample(DecTable[table][packet.DataT] + ZERO);
@@ -1547,6 +1542,8 @@ static int ComputeNomData(t_Sample*& in, const int deltas[], int& level)
 // esi in
 // ebp data
 
+//#define CODEC1_USE_ASM
+
 #if defined(CODEC_DEMO)
 static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level,
                           t_Sample*& levels)
@@ -1554,7 +1551,7 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level,
 static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
 #endif
 {
-#ifndef PLAT_UNIX
+#ifdef CODEC1_USE_ASM
     int data;
     __asm
     {
@@ -1611,8 +1608,26 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
     }
     return data;
 #else
-	STUB_FUNCTION;
-	return 0;
+    int data = 0;
+
+    for (int i = 0; i < 9; i++, inp++)
+    {
+        if (level+deltas[0] < *inp)
+        {
+            data = (data << 1) | 1;
+            level += deltas[1];
+        }
+        else
+        {
+            data <<= 1;
+            level += deltas[0];
+        }
+        #if defined(CODEC_DEMO)
+            *levels++ = t_Sample(level);
+        #endif
+    }
+
+    return data;
 #endif	    
 }
 
@@ -1661,14 +1676,14 @@ static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out,
         packet = *(t_PacketPairNom*)out;
         packet.Mode0 = mode;
         packet.Data0 = ComputeNomDataF(in,Deltas[mode], level EXTRA_CODEC_DEMO_ARGS1);
-        advanceOutput = 3; // sizeof packet;
+        advanceOutput = 3; // sizeof(packet);
     }
     *(t_PacketPairNom*)out = packet;
     packetPos = !packetPos;
 
   #if defined(CODEC_DEMO)
     for (int i = 0; i < 9; i++) *modes++ = mode;
-    samples[mode] += 9;  storage[mode] += 3; // sizeof packet;
+    samples[mode] += 9;  storage[mode] += 3; // sizeof(packet);
   #endif
 
     return advanceOutput;

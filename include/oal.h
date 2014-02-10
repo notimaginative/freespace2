@@ -116,6 +116,4 @@ int oal_play_3d( int sid, int snd_id, vector *pos, vector *vel, int min, int max
 
 bool oal_check_for_errors(const char *location);
 
-void oal_set_source_properties_all(ALenum param, ALint *props);
-
 #endif // __OAL_H__

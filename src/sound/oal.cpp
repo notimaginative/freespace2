@@ -44,6 +44,8 @@ static std::vector<sound_buffer> Buffers;
 static std::vector<sound_channel> Channels;
 static int channel_next_sig = 1;
 
+extern void oal_efx_attach(ALuint source_id);
+
 
 bool oal_check_for_errors(const char *location)
 {
@@ -53,9 +55,9 @@ bool oal_check_for_errors(const char *location)
 		if (location) {
 			const char *str = alGetString(err);
 
-			nprintf(("OpenAL", "AL-ERROR (%s) => 0x%x: %s", location, err, (str) ? str : "??"));
+			nprintf(("OpenAL", "AL-ERROR (%s) => 0x%x: %s\n", location, err, (str) ? str : "??"));
 		} else {
-			nprintf(("OpenAL", "AL-ERROR => 0x%x: %s", err, alGetString(err)));
+			nprintf(("OpenAL", "AL-ERROR => 0x%x: %s\n", err, alGetString(err)));
 		}
 
 		return true;
@@ -93,8 +95,6 @@ int oal_init(int use_eax)
 
 	nprintf(( "Sound", "SOUND ==> Initializing OpenAL...\n" ));
 
-	oal_check_for_errors("oal_init() begin");
-
 	alcGetIntegerv(NULL, ALC_MAJOR_VERSION, 1, &ver_major);
 	alcGetIntegerv(NULL, ALC_MINOR_VERSION, 1, &ver_minor);
 
@@ -125,6 +125,8 @@ int oal_init(int use_eax)
 
 	alcMakeContextCurrent(al_context);
 
+	OAL_inited = 1;
+
 	oal_init_channels();
 
 	Buffers.reserve(64);
@@ -132,8 +134,6 @@ int oal_init(int use_eax)
 	if (use_eax) {
 		oal_efx_init();
 	}
-
-	OAL_inited = 1;
 
 	oal_check_for_errors("oal_init() end");
 
@@ -146,19 +146,12 @@ void oal_close()
 		return;
 	}
 
+	oal_check_for_errors("oal_close() begin");
+
 	while ( !Channels.empty() ) {
-		ALint processed = 0;
-		ALuint bid;
 		ALuint sid = Channels.back().source_id;
 
 		alSourceStop(sid);
-
-		alGetSourcei(sid, AL_BUFFERS_PROCESSED, &processed);
-
-		while (processed > 0) {
-			alSourceUnqueueBuffers(sid, 1, &bid);
-			--processed;
-		}
 
 		alSourcei(sid, AL_BUFFER, 0);
 
@@ -174,6 +167,10 @@ void oal_close()
 
 		Buffers.pop_back();
 	}
+
+	oal_efx_close();
+
+	oal_check_for_errors("oal_close() end");
 
 	Channels.clear();
 	Buffers.clear();
@@ -262,9 +259,6 @@ void oal_stop_buffer(int sid)
 
 void oal_stop_channel(int channel)
 {
-	ALint processed = 0;
-	ALuint bid;
-
 	if ( !OAL_inited ) {
 		return;
 	}
@@ -276,15 +270,8 @@ void oal_stop_channel(int channel)
 
 	alSourceStop(Channels[channel].source_id);
 
-	// if this channel was used for streaming, make sure to unqueue any buffers
-	if (Channels[channel].snd_id < 0) {
-		alGetSourcei(Channels[channel].source_id, AL_BUFFERS_PROCESSED, &processed);
-
-		while (processed > 0) {
-			alSourceUnqueueBuffers(Channels[channel].source_id, 1, &bid);
-			--processed;
-		}
-	}
+	alSourcei(Channels[channel].source_id, AL_BUFFER, 0);
+	Channels[channel].buf_idx = -1;
 
 	oal_check_for_errors("oal_stop_channel() end");
 }
@@ -400,24 +387,6 @@ void oal_set_play_position(int channel, int position)
 	alSourcei(Channels[channel].source_id, AL_BYTE_OFFSET, position);
 
 	oal_check_for_errors("oal_set_play_position() end");
-}
-
-void oal_set_source_properties_all(ALenum param, ALint *props)
-{
-	if (props == NULL) {
-		return;
-	}
-
-	oal_check_for_errors("oal_set_source_properties_all() begin");
-
-	int size = (int)Channels.size();
-
-	// make sure there aren't any looping voice messages
-	for (int i = 0; i < size; i++) {
-		alSourceiv(Channels[i].source_id, param, props);
-	}
-
-	oal_check_for_errors("oal_set_source_properties_all() end");
 }
 
 // -----------------------------------------------------------------------------
@@ -537,6 +506,10 @@ static int oal_get_free_channel_idx(float new_volume, int snd_id, int priority)
 
 	int first_free_channel = -1;
 
+	if ( !OAL_inited ) {
+		return -1;
+	}
+
 	int size = (int)Channels.size();
 
 	oal_check_for_errors("oal_get_free_channel_idx() begin");
@@ -646,8 +619,20 @@ sound_channel *oal_get_free_channel(float volume, int snd_id, int priority)
 
 	SDL_assert( Channels[chan].source_id != 0 );
 
+	// should be stopped already, but just in case
+	alSourceStop(Channels[chan].source_id);
+
+	alSourcei(Channels[chan].source_id, AL_BUFFER, 0);
+
+	if (Channels[chan].buf_idx >= 0) {
+		Buffers[Channels[chan].buf_idx].chan_idx = -1;
+	}
+
+	Channels[chan].vol = volume;
+	Channels[chan].priority = priority;
+	Channels[chan].last_position = 0;
 	Channels[chan].buf_idx = -1;
-	Channels[chan].snd_id = -1;
+	Channels[chan].snd_id = snd_id;
 	Channels[chan].sig = channel_next_sig++;
 
 	if (channel_next_sig < 0) {
@@ -946,6 +931,12 @@ void oal_unload_buffer(int sid)
 	sound_buffer *buf = &Buffers[sid];
 
 	if (buf->buf_id) {
+		if (buf->chan_idx >= 0) {
+			alSourceStop(Channels[buf->chan_idx].source_id);
+			alSourcei(Channels[buf->chan_idx].source_id, AL_BUFFER, 0);
+			buf->chan_idx = -1;
+		}
+
 		alDeleteBuffers(1, &buf->buf_id);
 		buf->buf_id = 0;
 	}
@@ -1075,6 +1066,9 @@ int oal_play(int sid, int snd_id, int priority, float volume, float pan, int fla
 	alSourcei(chan->source_id, AL_SOURCE_RELATIVE, AL_TRUE);
 	alSourcei(chan->source_id, AL_LOOPING, (flags & SND_FLAG_LOOPING) ? AL_TRUE : AL_FALSE);
 
+	// maybe attach source to reverb effect
+	oal_efx_attach(chan->source_id);
+
 	// Actually play it
 	alSourcePlay(chan->source_id);
 
@@ -1138,6 +1132,9 @@ int oal_play_3d( int sid, int snd_id, vector *pos, vector *vel, int min, int max
 	alSourcei(chan->source_id, AL_SOURCE_RELATIVE, AL_FALSE);
 	alSourcei(chan->source_id, AL_LOOPING, (looping) ? AL_TRUE : AL_FALSE);
 
+	// maybe attach source to reverb effect
+	oal_efx_attach(chan->source_id);
+
 	// Actually play it
 	alSourcePlay(chan->source_id);
 
@@ -1154,13 +1151,16 @@ void oal_do_frame()
 {
 	ALint state, current_position;
 
+	if ( !OAL_inited ) {
+		return;
+	}
+
 	oal_check_for_errors("oal_do_frame() begin");
 
 	int size = (int)Channels.size();
 
 	// make sure there aren't any looping voice messages
 	for (int i = 0; i < size; i++) {
-
 		if ( (Channels[i].flags & SND_FLAG_VOICE) && (Channels[i].flags & SND_FLAG_LOOPING) ) {
 			alGetSourcei(Channels[i].source_id, AL_SOURCE_STATE, &state);
 

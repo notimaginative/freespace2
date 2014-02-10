@@ -33,137 +33,190 @@ LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
 LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
 
 static uint EFX_active_environment = SND_ENV_GENERIC;
-static EFXEAXREVERBPROPERTIES EFX_properties = EFX_REVERB_PRESET_GENERIC;
+static EFXEAXREVERBPROPERTIES EFX_env_properties = EFX_REVERB_PRESET_GENERIC;
+static int EFX_enabled = 0;
 
 static ALuint AL_EFX_aux_id = 0;
 static ALuint AL_EFX_effect_id = 0;
 
 static int OAL_efx_inited = 0;
 
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Generic = EFX_REVERB_PRESET_GENERIC;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_PaddedCell = EFX_REVERB_PRESET_PADDEDCELL;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Room = EFX_REVERB_PRESET_ROOM;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_BathRoom = EFX_REVERB_PRESET_BATHROOM;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_LivingRoom = EFX_REVERB_PRESET_LIVINGROOM;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_StoneRoom = EFX_REVERB_PRESET_STONEROOM;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Auditorium = EFX_REVERB_PRESET_AUDITORIUM;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_ConcertHall = EFX_REVERB_PRESET_CONCERTHALL;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Cave = EFX_REVERB_PRESET_CAVE;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Arena = EFX_REVERB_PRESET_ARENA;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Hangar = EFX_REVERB_PRESET_HANGAR;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_CarpetedHallway = EFX_REVERB_PRESET_CARPETEDHALLWAY;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Hallway = EFX_REVERB_PRESET_HALLWAY;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_StoneCorridor = EFX_REVERB_PRESET_STONECORRIDOR;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Alley = EFX_REVERB_PRESET_ALLEY;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Forest = EFX_REVERB_PRESET_FOREST;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_City = EFX_REVERB_PRESET_CITY;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Mountains = EFX_REVERB_PRESET_MOUNTAINS;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Quarry = EFX_REVERB_PRESET_QUARRY;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Plain = EFX_REVERB_PRESET_PLAIN;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_ParkingLot = EFX_REVERB_PRESET_PARKINGLOT;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_SewerPipe = EFX_REVERB_PRESET_SEWERPIPE;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Underwater = EFX_REVERB_PRESET_UNDERWATER;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Drugged = EFX_REVERB_PRESET_DRUGGED;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Dizzy = EFX_REVERB_PRESET_DIZZY;
+static const EFXEAXREVERBPROPERTIES EFX_ENV_Psychotic = EFX_REVERB_PRESET_PSYCHOTIC;
 
-static void oal_efx_set_effect_properties()
+
+static void oal_efx_set_env_properties()
 {
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DENSITY, EFX_properties.flDensity);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DIFFUSION, EFX_properties.flDiffusion);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAIN, EFX_properties.flGain);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAINHF, EFX_properties.flGainHF);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAINLF, EFX_properties.flGainLF);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_TIME, EFX_properties.flDecayTime);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_HFRATIO, EFX_properties.flDecayHFRatio);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_LFRATIO, EFX_properties.flDecayLFRatio);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_REFLECTIONS_GAIN, EFX_properties.flReflectionsGain);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_REFLECTIONS_DELAY, EFX_properties.flReflectionsDelay);
-    alEffectfv(AL_EFX_effect_id, AL_EAXREVERB_REFLECTIONS_PAN, EFX_properties.flReflectionsPan);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_LATE_REVERB_GAIN, EFX_properties.flLateReverbGain);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_LATE_REVERB_DELAY, EFX_properties.flLateReverbDelay);
-    alEffectfv(AL_EFX_effect_id, AL_EAXREVERB_LATE_REVERB_PAN, EFX_properties.flLateReverbPan);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_ECHO_TIME, EFX_properties.flEchoTime);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_ECHO_DEPTH, EFX_properties.flEchoDepth);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_MODULATION_TIME, EFX_properties.flModulationTime);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_MODULATION_DEPTH, EFX_properties.flModulationDepth);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, EFX_properties.flAirAbsorptionGainHF);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_HFREFERENCE, EFX_properties.flHFReference);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_LFREFERENCE, EFX_properties.flLFReference);
-    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, EFX_properties.flRoomRolloffFactor);
-    alEffecti(AL_EFX_effect_id, AL_EAXREVERB_DECAY_HFLIMIT, EFX_properties.iDecayHFLimit);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DENSITY, EFX_env_properties.flDensity);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DIFFUSION, EFX_env_properties.flDiffusion);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAIN, EFX_env_properties.flGain);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAINHF, EFX_env_properties.flGainHF);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAINLF, EFX_env_properties.flGainLF);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_TIME, EFX_env_properties.flDecayTime);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_HFRATIO, EFX_env_properties.flDecayHFRatio);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_LFRATIO, EFX_env_properties.flDecayLFRatio);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_REFLECTIONS_GAIN, EFX_env_properties.flReflectionsGain);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_REFLECTIONS_DELAY, EFX_env_properties.flReflectionsDelay);
+    alEffectfv(AL_EFX_effect_id, AL_EAXREVERB_REFLECTIONS_PAN, EFX_env_properties.flReflectionsPan);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_LATE_REVERB_GAIN, EFX_env_properties.flLateReverbGain);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_LATE_REVERB_DELAY, EFX_env_properties.flLateReverbDelay);
+    alEffectfv(AL_EFX_effect_id, AL_EAXREVERB_LATE_REVERB_PAN, EFX_env_properties.flLateReverbPan);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_ECHO_TIME, EFX_env_properties.flEchoTime);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_ECHO_DEPTH, EFX_env_properties.flEchoDepth);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_MODULATION_TIME, EFX_env_properties.flModulationTime);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_MODULATION_DEPTH, EFX_env_properties.flModulationDepth);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, EFX_env_properties.flAirAbsorptionGainHF);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_HFREFERENCE, EFX_env_properties.flHFReference);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_LFREFERENCE, EFX_env_properties.flLFReference);
+    alEffectf(AL_EFX_effect_id, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, EFX_env_properties.flRoomRolloffFactor);
+    alEffecti(AL_EFX_effect_id, AL_EAXREVERB_DECAY_HFLIMIT, EFX_env_properties.iDecayHFLimit);
 }
 
-static void oal_efx_update_effect_properties()
+static void oal_efx_update_env_properties()
 {
-	alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAIN, EFX_properties.flGain);
-	alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_TIME, EFX_properties.flDecayTime);
-	alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_HFRATIO, EFX_properties.flDecayHFRatio);
+	alEffectf(AL_EFX_effect_id, AL_EAXREVERB_GAIN, EFX_env_properties.flGain);
+	alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_TIME, EFX_env_properties.flDecayTime);
+	alEffectf(AL_EFX_effect_id, AL_EAXREVERB_DECAY_HFRATIO, EFX_env_properties.flDecayHFRatio);
 }
 
 static void oal_efx_set_environment(uint id)
 {
 	uint n_id = id;
 
-	if (n_id == SND_ENV_GENERIC) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_GENERIC;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_PADDEDCELL) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_PADDEDCELL;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_ROOM) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_ROOM;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_BATHROOM) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_BATHROOM;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_LIVINGROOM) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_LIVINGROOM;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_STONEROOM) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_STONEROOM;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_AUDITORIUM) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_AUDITORIUM;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_CONCERTHALL) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_CONCERTHALL;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_CAVE) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_CAVE;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_ARENA) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_ARENA;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_HANGAR) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_HANGAR;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_CARPETEDHALLWAY) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_CARPETEDHALLWAY;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_HALLWAY) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_HALLWAY;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_STONECORRIDOR) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_STONECORRIDOR;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_ALLEY) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_ALLEY;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_FOREST) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_FOREST;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_CITY) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_CITY;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_MOUNTAINS) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_MOUNTAINS;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_QUARRY) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_QUARRY;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_PLAIN) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_PLAIN;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_PARKINGLOT) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_PARKINGLOT;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_SEWERPIPE) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_SEWERPIPE;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_UNDERWATER) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_UNDERWATER;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_DRUGGED) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_DRUGGED;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_DIZZY) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_DIZZY;
-		EFX_properties = ptmp;
-	} else if (n_id == SND_ENV_PSYCHOTIC) {
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_PSYCHOTIC;
-		EFX_properties = ptmp;
-	} else {
-		n_id = SND_ENV_GENERIC;
-		EFXEAXREVERBPROPERTIES ptmp = EFX_REVERB_PRESET_GENERIC;
-		EFX_properties = ptmp;
-	}
+	switch (n_id) {
+		case SND_ENV_GENERIC:
+			EFX_env_properties = EFX_ENV_Generic;
+			break;
 
-	oal_efx_set_effect_properties();
+		case SND_ENV_PADDEDCELL:
+			EFX_env_properties = EFX_ENV_PaddedCell;
+			break;
+
+		case SND_ENV_ROOM:
+			EFX_env_properties = EFX_ENV_Room;
+			break;
+
+		case SND_ENV_BATHROOM:
+			EFX_env_properties = EFX_ENV_BathRoom;
+			break;
+
+		case SND_ENV_LIVINGROOM:
+			EFX_env_properties = EFX_ENV_LivingRoom;
+			break;
+
+		case SND_ENV_STONEROOM:
+			EFX_env_properties = EFX_ENV_StoneRoom;
+			break;
+
+		case SND_ENV_AUDITORIUM:
+			EFX_env_properties = EFX_ENV_Auditorium;
+			break;
+
+		case SND_ENV_CONCERTHALL:
+			EFX_env_properties = EFX_ENV_ConcertHall;
+			break;
+
+		case SND_ENV_CAVE:
+			EFX_env_properties = EFX_ENV_Cave;
+			break;
+
+		case SND_ENV_ARENA:
+			EFX_env_properties = EFX_ENV_Arena;
+			break;
+
+		case SND_ENV_HANGAR:
+			EFX_env_properties = EFX_ENV_Hangar;
+			break;
+
+		case SND_ENV_CARPETEDHALLWAY:
+			EFX_env_properties = EFX_ENV_CarpetedHallway;
+			break;
+
+		case SND_ENV_HALLWAY:
+			EFX_env_properties = EFX_ENV_Hallway;
+			break;
+
+		case SND_ENV_STONECORRIDOR:
+			EFX_env_properties = EFX_ENV_StoneCorridor;
+			break;
+
+		case SND_ENV_ALLEY:
+			EFX_env_properties = EFX_ENV_Alley;
+			break;
+
+		case SND_ENV_FOREST:
+			EFX_env_properties = EFX_ENV_Forest;
+			break;
+
+		case SND_ENV_CITY:
+			EFX_env_properties = EFX_ENV_City;
+			break;
+
+		case SND_ENV_MOUNTAINS:
+			EFX_env_properties = EFX_ENV_Mountains;
+			break;
+
+		case SND_ENV_QUARRY:
+			EFX_env_properties = EFX_ENV_Quarry;
+			break;
+
+		case SND_ENV_PLAIN:
+			EFX_env_properties = EFX_ENV_Plain;
+			break;
+
+		case SND_ENV_PARKINGLOT:
+			EFX_env_properties = EFX_ENV_ParkingLot;
+			break;
+
+		case SND_ENV_SEWERPIPE:
+			EFX_env_properties = EFX_ENV_SewerPipe;
+			break;
+
+		case SND_ENV_UNDERWATER:
+			EFX_env_properties = EFX_ENV_Underwater;
+			break;
+
+		case SND_ENV_DRUGGED:
+			EFX_env_properties = EFX_ENV_Drugged;
+			break;
+
+		case SND_ENV_DIZZY:
+			EFX_env_properties = EFX_ENV_Dizzy;
+			break;
+
+		case SND_ENV_PSYCHOTIC:
+			EFX_env_properties = EFX_ENV_Psychotic;
+			break;
+
+		default:
+			n_id = SND_ENV_GENERIC;
+			EFX_env_properties = EFX_ENV_Generic;
+			break;
+	}
 
 	EFX_active_environment = n_id;
 }
@@ -217,6 +270,7 @@ int oal_efx_init()
 
 
 	EFX_active_environment = SND_ENV_GENERIC;
+	EFX_env_properties = EFX_ENV_Generic;
 
 
 	alGenAuxiliaryEffectSlots(1, &AL_EFX_aux_id);
@@ -247,9 +301,9 @@ int oal_efx_init()
 		return -1;
 	}
 
-	oal_efx_set_effect_properties();
-
 	OAL_efx_inited = 1;
+
+	oal_efx_set_env_properties();
 
 	return 0;
 }
@@ -273,7 +327,29 @@ void oal_efx_close()
 	alDeleteAuxiliaryEffectSlots(1, &AL_EFX_aux_id);
 	AL_EFX_aux_id = 0;
 
+	EFX_enabled = 0;
+
 	OAL_efx_inited = 0;
+}
+
+void oal_efx_attach(ALuint source_id)
+{
+	if ( !OAL_efx_inited ) {
+		return;
+	}
+
+	// by default, we have Aux send is disabled
+	ALint plist[3] = { 0, 0, AL_FILTER_NULL };
+
+	if (EFX_enabled) {
+		plist[0] = AL_EFX_aux_id;
+	}
+
+	oal_check_for_errors("oal_efx_attach() begin");
+
+	alSourceiv(source_id, AL_AUXILIARY_SEND_FILTER, plist);
+
+	oal_check_for_errors("oal_efx_attach() end");
 }
 
 // Get up the parameters for the current environment
@@ -289,14 +365,26 @@ int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 		return -1;
 	}
 
-	if ( (id < 0) || (id == (int)EFX_active_environment) ) {
-		er->environment = EFX_active_environment;
-		er->fVolume = EFX_properties.flGain;
-		er->fDecayTime_sec = EFX_properties.flDecayTime;
-		er->fDamping = EFX_properties.flDecayHFRatio;
-	} else {
-		// ignoring alternate environments for now
-		return -1;
+	uint active_env_save;
+	EFXEAXREVERBPROPERTIES env_save;
+	bool saved = false;
+
+	if ( (id >= 0) && (id != (int)EFX_active_environment) ) {
+		active_env_save = EFX_active_environment;
+		env_save = EFX_env_properties;
+		saved = true;
+
+		oal_efx_set_environment(id);
+	}
+
+	er->environment = EFX_active_environment;
+	er->fVolume = EFX_env_properties.flGain;
+	er->fDecayTime_sec = EFX_env_properties.flDecayTime;
+	er->fDamping = EFX_env_properties.flDecayHFRatio;
+
+	if (saved) {
+		EFX_active_environment = active_env_save;
+		EFX_env_properties = env_save;
 	}
 
 	return 0;
@@ -304,7 +392,7 @@ int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 
 // Set up all the parameters for an environment
 //
-// id: value from teh EAX_ENVIRONMENT_* enumeration
+// id: value from the EAX_ENVIRONMENT_* enumeration
 // volume: volume for the environment (0 to 1.0)
 // damping: damp value for the environment (0 to 2.0)
 // decay: decay time in seconds (0.1 to 20.0)
@@ -319,30 +407,30 @@ int oal_efx_set_all(uint id, float vol, float damping, float decay)
 
 	oal_check_for_errors("oal_efx_set_all() begin");
 
-	// special disabled case
+	// special disabled case (NOTE: does not take immediate affect!)
 	if ( (id == SND_ENV_GENERIC) && (vol == 0.0f) && (damping == 0.0f) && (decay == 0.0f) ) {
-		ALint props[3] = { AL_EFFECT_NULL, 0, AL_FILTER_NULL };
-
-		oal_set_source_properties_all(AL_AUXILIARY_SEND_FILTER, props);
-
+		EFX_enabled = 0;
 		return 0;
 	}
 
 	if (id != EFX_active_environment) {
 		oal_efx_set_environment(id);
+		oal_efx_set_env_properties();
 	}
 
 	CAP(vol, AL_EAXREVERB_MIN_GAIN, AL_EAXREVERB_MAX_GAIN);
 	CAP(decay, AL_EAXREVERB_MIN_DECAY_TIME, AL_EAXREVERB_MAX_DECAY_TIME);
 	CAP(damping, AL_EAXREVERB_MIN_DECAY_HFRATIO, AL_EAXREVERB_MAX_DECAY_HFRATIO);
 
-	EFX_properties.flGain = vol;
-	EFX_properties.flDecayTime = decay;
-	EFX_properties.flDecayHFRatio = damping;
+	EFX_env_properties.flGain = vol;
+	EFX_env_properties.flDecayTime = decay;
+	EFX_env_properties.flDecayHFRatio = damping;
 
-	oal_efx_update_effect_properties();
+	oal_efx_update_env_properties();
 
 	alAuxiliaryEffectSloti(AL_EFX_aux_id, AL_EFFECTSLOT_EFFECT, AL_EFX_effect_id);
+
+	EFX_enabled = 1;
 
 	if ( oal_check_for_errors("oal_efx_set_all() end") ) {
 		return -1;

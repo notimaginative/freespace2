@@ -107,6 +107,9 @@ static ubyte *Compressed_service_buffer = NULL;	// Used to read in compressed da
 
 #define AS_HIGHEST_MAX	999999999	// max uncompressed filesize supported is 999 meg
 
+// status
+#define ASF_FREE	0
+#define ASF_USED	1
 
 static int Audiostream_inited = 0;
 
@@ -202,6 +205,7 @@ public:
 	void Fade_and_Stop();
 	void Set_Volume(float vol);
 	float Get_Volume();
+	void Init_Data();
 	void Set_Byte_Cutoff(uint num_bytes_cutoff);
 	uint Get_Bytes_Committed();
 
@@ -235,6 +239,7 @@ public:
 		return m_bLooping;
 	}
 
+	int status;
 	int	type;
 	ushort m_bits_per_sample_uncompressed;
 
@@ -781,8 +786,15 @@ static const ushort DefBufferServiceInterval = 250;  // default buffer service i
 // Constructor
 AudioStream::AudioStream()
 {
-	type = ASF_NONE;
+}
 
+// Destructor
+AudioStream::~AudioStream()
+{
+}
+
+void AudioStream::Init_Data()
+{
 	m_bLooping = false;
 	m_bFade = false;
 	m_fade_timer_id = 0;
@@ -798,7 +810,6 @@ AudioStream::AudioStream()
 	m_bReadingDone = false;
 
 	m_pwavefile = NULL;
-	m_bits_per_sample_uncompressed = 0;
 
 	m_fPlaying = m_fCued = false;
 	m_lInService = false;
@@ -813,23 +824,21 @@ AudioStream::AudioStream()
 	m_play_buffer_id = 0;
 }
 
-// Destructor
-AudioStream::~AudioStream()
-{
-}
-
 // Create
 bool AudioStream::Create(const char *pszFilename)
 {
 	SDL_assert( pszFilename != NULL );
+
+	Init_Data();
 
 	if (pszFilename == NULL) {
 		return false;
 	}
 
 	// make 100% sure we got a good filename
-	if ( !strlen(pszFilename) )
+	if ( !strlen(pszFilename) ) {
 		return false;
+	}
 
 	// Create a new WaveFile object
 	m_pwavefile = (WaveFile *)malloc(sizeof(WaveFile));
@@ -895,7 +904,7 @@ bool AudioStream::Destroy()
 		m_pwavefile = NULL;
 	}
 
-	type = ASF_NONE;
+	status = ASF_FREE;
 
 	return true;
 }
@@ -930,6 +939,8 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 
 	int num_bytes_read = 0;
 
+	oal_check_for_errors("AudioStream::WriteWaveData() begin");
+
 	if ( !service ) {
 		for (int ib = 0; ib < MAX_STREAM_BUFFERS; ib++) {
 			num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize, service);
@@ -939,7 +950,6 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 			} else if (num_bytes_read > 0) {
 				alBufferData(m_buffer_ids[ib], m_pwavefile->GetOALFormat(), uncompressed_wave_data, num_bytes_read, m_pwavefile->m_wfmt.sample_rate);
 				alSourceQueueBuffers(m_source_id, 1, &m_buffer_ids[ib]);
-
 				*num_bytes_written += num_bytes_read;
 			}
 		}
@@ -959,13 +969,14 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 			} else if (num_bytes_read > 0) {
 				alBufferData(buffer_id, m_pwavefile->GetOALFormat(), uncompressed_wave_data, num_bytes_read, m_pwavefile->m_wfmt.sample_rate);
 				alSourceQueueBuffers(m_source_id, 1, &buffer_id);
-
 				*num_bytes_written += num_bytes_read;
 			}
 
 			buffers_processed--;
 		}
 	}
+
+	oal_check_for_errors("AudioStream::WriteWaveData() end");
 
 	if ( service ) {
 		SDL_UnlockMutex(Global_service_lock);
@@ -983,6 +994,8 @@ uint AudioStream::GetMaxWriteSize()
 	uint dwMaxSize = m_cbBufSize;
 	ALint n = 0, q = 0;
 
+	oal_check_for_errors("AudioStream::GetMaxWriteSize() begin");
+
 	alGetSourcei(m_source_id, AL_BUFFERS_PROCESSED, &n);
 
 	alGetSourcei(m_source_id, AL_BUFFERS_QUEUED, &q);
@@ -991,6 +1004,8 @@ uint AudioStream::GetMaxWriteSize()
 		//all buffers queued
 		dwMaxSize = 0;
 	}
+
+	oal_check_for_errors("AudioStream::GetMaxWriteSize() end");
 
 	//	nprintf(("Alan","Max write size: %d\n", dwMaxSize));
 	return dwMaxSize;
@@ -1004,7 +1019,7 @@ bool AudioStream::ServiceBuffer()
 	float vol;
 	int	fRtn = true;
 
-	if (type == ASF_NONE) {
+	if (type == ASF_FREE) {
 		return false;
 	}
 
@@ -1139,11 +1154,17 @@ void AudioStream::Cue()
 // Play
 void AudioStream::Play(float volume, int looping)
 {
-	if (m_buffer_ids[0] != 0) {
+	if ( m_buffer_ids[0] ) {
+		oal_check_for_errors("AudioStream::Play() begin");
+
 		// If playing, stop
 		if (m_fPlaying) {
 			if ( m_bIsPaused == false)
 				Stop_and_Rewind();
+		} else {
+			// get source id
+			sound_channel *chan = oal_get_free_channel(1.0f, -1, SND_PRIORITY_MUST_PLAY);
+			m_source_id = chan->source_id;
 		}
 
 		// Cue for playback if necessary
@@ -1157,8 +1178,6 @@ void AudioStream::Play(float volume, int looping)
 			m_bLooping = false;
 		}
 
-		alSourcePlay(m_source_id);
-
 		m_nTimeStarted = timer_get_milliseconds();
 		Set_Volume(volume);
 
@@ -1167,9 +1186,20 @@ void AudioStream::Play(float volume, int looping)
 
 		m_timer.Create(m_nBufService, (ptr_u)this, TimerCallback);
 
+		alSourcef(m_source_id, AL_GAIN, m_lVolume);
+		alSource3f(m_source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
+		alSource3f(m_source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+		alSource3f(m_source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+		alSourcef(m_source_id, AL_ROLLOFF_FACTOR, 0.0f);
+		alSourcei(m_source_id, AL_SOURCE_RELATIVE, AL_TRUE);
+
+		alSourcePlay(m_source_id);
+
 		// Playback begun, no longer cued
 		m_fPlaying = true;
 		m_bIsPaused = false;
+
+		oal_check_for_errors("AudioStream::Play() end");
 	}
 }
 
@@ -1199,7 +1229,6 @@ uint AudioStream::Get_Bytes_Committed(void)
 	return m_pwavefile->m_total_uncompressed_bytes_read;
 }
 
-
 // Fade_and_Destroy
 void AudioStream::Fade_and_Destroy()
 {
@@ -1214,7 +1243,6 @@ void AudioStream::Fade_and_Stop()
 	m_bDestroy_when_faded = false;
 }
 
-
 // Stop
 void AudioStream::Stop(int paused)
 {
@@ -1223,6 +1251,7 @@ void AudioStream::Stop(int paused)
 			alSourcePause(m_source_id);
 		} else {
 			alSourceStop(m_source_id);
+			m_source_id = 0;
 		}
 
 		m_fPlaying = false;
@@ -1239,6 +1268,7 @@ void AudioStream::Stop_and_Rewind()
 	if (m_fPlaying) {
 		// Stop playback
 		alSourceStop(m_source_id);
+		m_source_id = 0;
 
 		// Delete Timer object
 		m_timer.destructor();
@@ -1253,7 +1283,9 @@ void AudioStream::Stop_and_Rewind()
 // Set_Volume
 void AudioStream::Set_Volume(float vol)
 {
-	alSourcef(m_source_id, AL_GAIN, vol);
+	if (m_fPlaying) {
+		alSourcef(m_source_id, AL_GAIN, vol);
+	}
 
 	m_lVolume = vol;
 }
@@ -1266,7 +1298,8 @@ float AudioStream::Get_Volume()
 }
 
 
-static std::vector<AudioStream> Audio_streams;
+#define MAX_AUDIO_STREAMS	30
+static AudioStream *Audio_streams = NULL;
 
 
 void audiostream_init()
@@ -1277,77 +1310,122 @@ void audiostream_init()
 
 	// Allocate memory for the buffer which holds the uncompressed wave data that is streamed from the
 	// disk during a load/cue
-	if ( Wavedata_load_buffer == NULL ) {
+	if (Wavedata_load_buffer == NULL) {
 		Wavedata_load_buffer = (ubyte*)malloc(BIGBUF_SIZE);
-		Assert(Wavedata_load_buffer != NULL);
+
+		if (Wavedata_load_buffer == NULL) {
+			goto INIT_ERROR;
+		}
 	}
 
 	// Allocate memory for the buffer which holds the uncompressed wave data that is streamed from the
 	// disk during a service interval
-	if ( Wavedata_service_buffer == NULL ) {
+	if (Wavedata_service_buffer == NULL) {
 		Wavedata_service_buffer = (ubyte*)malloc(BIGBUF_SIZE);
-		Assert(Wavedata_service_buffer != NULL);
+
+		if (Wavedata_service_buffer == NULL) {
+			goto INIT_ERROR;
+		}
 	}
 
 	// Allocate memory for the buffer which holds the compressed wave data that is read from the hard disk
-	if ( Compressed_buffer == NULL ) {
+	if (Compressed_buffer == NULL) {
 		Compressed_buffer = (ubyte*)malloc(COMPRESSED_BUFFER_SIZE);
-		Assert(Compressed_buffer != NULL);
+
+		if (Compressed_buffer == NULL) {
+			goto INIT_ERROR;
+		}
 	}
 
-	if ( Compressed_service_buffer == NULL ) {
+	if (Compressed_service_buffer == NULL) {
 		Compressed_service_buffer = (ubyte*)malloc(COMPRESSED_BUFFER_SIZE);
-		Assert(Compressed_service_buffer != NULL);
+
+		if (Compressed_service_buffer == NULL) {
+			goto INIT_ERROR;
+		}
 	}
 
-	Audio_streams.clear();
+	if (Audio_streams == NULL) {
+		Audio_streams = (AudioStream*)malloc(sizeof(AudioStream) * MAX_AUDIO_STREAMS);
 
-	SDL_InitSubSystem(SDL_INIT_TIMER);
+		if (Audio_streams == NULL) {
+			goto INIT_ERROR;
+		}
+	}
+
+	for (int i = 0; i < MAX_AUDIO_STREAMS; i++ ) {
+		Audio_streams[i].Init_Data();
+		Audio_streams[i].status = ASF_FREE;
+		Audio_streams[i].type = ASF_NONE;
+	}
 
 	Global_service_lock = SDL_CreateMutex();
 
 	Audiostream_inited = 1;
+
+	return;
+
+INIT_ERROR:
+	if (Wavedata_service_buffer) {
+		free(Wavedata_service_buffer);
+		Wavedata_service_buffer = NULL;
+	}
+
+	if (Compressed_buffer) {
+		free(Compressed_buffer);
+		Compressed_buffer = NULL;
+	}
+
+	if (Compressed_service_buffer) {
+		free(Compressed_service_buffer);
+		Compressed_service_buffer = NULL;
+	}
+
+	if (Audio_streams) {
+		free(Audio_streams);
+		Audio_streams = NULL;
+	}
+
+	Audiostream_inited = 0;
 }
 
 // Close down the audiostream system.  Must call audiostream_init() before any audiostream functions can
 // be used.
 void audiostream_close()
 {
-	int i;
-
 	if ( !Audiostream_inited ) {
 		return;
 	}
 
-	int size = (int)Audio_streams.size();
+	SDL_assert( Audio_streams != NULL );
 
-	for (i = 0; i < size; i++) {
-		if (Audio_streams[i].type == ASF_NONE) {
-			continue;
+	for (int i = 0; i < MAX_AUDIO_STREAMS; i++) {
+		if ( Audio_streams[i].status == ASF_USED ) {
+			Audio_streams[i].status = ASF_FREE;
+			Audio_streams[i].Destroy();
 		}
-
-		Audio_streams[i].Destroy();
 	}
 
-	Audio_streams.clear();
+	free(Audio_streams);
+	Audio_streams = NULL;
 
 	// free global buffers
-	if ( Wavedata_load_buffer ) {
+	if (Wavedata_load_buffer) {
 		free(Wavedata_load_buffer);
 		Wavedata_load_buffer = NULL;
 	}
 
-	if ( Wavedata_service_buffer ) {
+	if (Wavedata_service_buffer) {
 		free(Wavedata_service_buffer);
 		Wavedata_service_buffer = NULL;
 	}
 
-	if ( Compressed_buffer ) {
+	if (Compressed_buffer) {
 		free(Compressed_buffer);
 		Compressed_buffer = NULL;
 	}
 
-	if ( Compressed_service_buffer ) {
+	if (Compressed_service_buffer) {
 		free(Compressed_service_buffer);
 		Compressed_service_buffer = NULL;
 	}
@@ -1376,18 +1454,17 @@ int audiostream_open( const char *filename, int type )
 		return -1;
 	}
 
-	int size = (int)Audio_streams.size();
-
-	for (i = 0; i < size; i++) {
-		if (Audio_streams[i].type == ASF_NONE) {
+	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
+		if (Audio_streams[i].status == ASF_FREE) {
+			Audio_streams[i].status = ASF_USED;
 			Audio_streams[i].type = type;
 			break;
 		}
 	}
 
-	if (i == size) {
-		AudioStream n_stream;
-		Audio_streams.push_back(n_stream);
+	if (i == MAX_AUDIO_STREAMS) {
+		nprintf(("Sound", "SOUND => No more audio streams available!\n"));
+		return -1;
 	}
 
 	switch (type) {
@@ -1406,7 +1483,7 @@ int audiostream_open( const char *filename, int type )
 	}
 
 	if ( !Audio_streams[i].Create(filename) ) {
-		Audio_streams[i].type = ASF_NONE;
+		Audio_streams[i].status = ASF_FREE;
 		return -1;
 	}
 
@@ -1419,14 +1496,13 @@ void audiostream_close_file(int i, int fade)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1445,10 +1521,8 @@ void audiostream_close_all(int fade)
 		return;
 	}
 
-	int size = (int)Audio_streams.size();
-
-	for (i = 0; i < size; i++) {
-		if (Audio_streams[i].type == ASF_NONE) {
+	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
+		if (Audio_streams[i].status == ASF_FREE) {
 			continue;
 		}
 
@@ -1462,14 +1536,13 @@ void audiostream_play(int i, float volume, int looping)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1488,14 +1561,13 @@ bool audiostream_is_playing(int i)
 		return false;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return false;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return false;
 	}
 
@@ -1508,14 +1580,13 @@ void audiostream_stop(int i, int rewind, int paused)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1534,10 +1605,8 @@ void audiostream_set_volume_all(float volume, int type)
 		return;
 	}
 
-	int size = (int)Audio_streams.size();
-
-	for (i = 0; i < size; i++) {
-		if (Audio_streams[i].type == ASF_NONE) {
+	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
+		if (Audio_streams[i].status == ASF_FREE) {
 			continue;
 		}
 
@@ -1553,14 +1622,13 @@ void audiostream_set_volume(int i, float volume)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1573,14 +1641,13 @@ bool audiostream_is_paused(int i)
 		return false;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return false;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return false;
 	}
 
@@ -1593,14 +1660,13 @@ void audiostream_set_byte_cutoff(int i, uint cutoff)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1613,14 +1679,13 @@ uint audiostream_get_bytes_committed(int i)
 		return 0;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return 0;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return 0;
 	}
 
@@ -1633,14 +1698,13 @@ bool audiostream_done_reading(int i)
 		return true;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return true;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return true;
 	}
 
@@ -1658,14 +1722,13 @@ void audiostream_pause(int i)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1682,10 +1745,8 @@ void audiostream_pause_all()
 		return;
 	}
 
-	int size = (int)Audio_streams.size();
-
-	for (i = 0; i < size; i++) {
-		if (Audio_streams[i].type == ASF_NONE) {
+	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
+		if (Audio_streams[i].status == ASF_FREE) {
 			continue;
 		}
 
@@ -1701,14 +1762,13 @@ void audiostream_unpause(int i)
 		return;
 	}
 
-	SDL_assert( i >= 0 );
-	SDL_assert( i < (int)Audio_streams.size() );
-
 	if (i < 0) {
 		return;
 	}
 
-	if (Audio_streams[i].type == ASF_NONE) {
+	SDL_assert( i < MAX_AUDIO_STREAMS );
+
+	if (Audio_streams[i].status == ASF_FREE) {
 		return;
 	}
 
@@ -1726,10 +1786,8 @@ void audiostream_unpause_all()
 		return;
 	}
 
-	int size = (int)Audio_streams.size();
-
-	for (i = 0; i < size; i++) {
-		if (Audio_streams[i].type == ASF_NONE) {
+	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
+		if (Audio_streams[i].status == ASF_FREE) {
 			continue;
 		}
 

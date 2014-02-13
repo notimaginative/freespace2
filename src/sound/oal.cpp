@@ -163,7 +163,9 @@ void oal_close()
 	while ( !Buffers.empty() ) {
 		ALuint bid = Buffers.back().buf_id;
 
-		alDeleteBuffers(1, &bid);
+		if ( alIsBuffer(bid) ) {
+			alDeleteBuffers(1, &bid);
+		}
 
 		Buffers.pop_back();
 	}
@@ -252,6 +254,7 @@ void oal_stop_buffer(int sid)
 		ALuint source_id = Channels[cid].source_id;
 
 		alSourceStop(source_id);
+		alSourcei(source_id, AL_BUFFER, 0);
 	}
 
 	oal_check_for_errors("oal_stop_buffer() end");
@@ -529,7 +532,7 @@ static int oal_get_free_channel_idx(float new_volume, int snd_id, int priority)
 
 		alGetSourcei(chp->source_id, AL_SOURCE_STATE, &status);
 
-		if (status != AL_PLAYING) {
+		if ( (status != AL_PLAYING) && (status != AL_PAUSED) ) {
 			if (first_free_channel == -1) {
 				first_free_channel = i;
 			}
@@ -619,9 +622,7 @@ sound_channel *oal_get_free_channel(float volume, int snd_id, int priority)
 
 	SDL_assert( Channels[chan].source_id != 0 );
 
-	// should be stopped already, but just in case
 	alSourceStop(Channels[chan].source_id);
-
 	alSourcei(Channels[chan].source_id, AL_BUFFER, 0);
 
 	if (Channels[chan].buf_idx >= 0) {
@@ -631,6 +632,7 @@ sound_channel *oal_get_free_channel(float volume, int snd_id, int priority)
 	Channels[chan].vol = volume;
 	Channels[chan].priority = priority;
 	Channels[chan].last_position = 0;
+	Channels[chan].flags = 0;
 	Channels[chan].buf_idx = -1;
 	Channels[chan].snd_id = snd_id;
 	Channels[chan].sig = channel_next_sig++;

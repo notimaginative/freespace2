@@ -338,7 +338,7 @@ void oal_efx_attach(ALuint source_id)
 		return;
 	}
 
-	// by default, we have Aux send is disabled
+	// by default it's disabled
 	ALint plist[3] = { 0, 0, AL_FILTER_NULL };
 
 	if (EFX_enabled) {
@@ -392,10 +392,10 @@ int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 
 // Set up all the parameters for an environment
 //
-// id: value from the EAX_ENVIRONMENT_* enumeration
-// volume: volume for the environment (0 to 1.0)
-// damping: damp value for the environment (0 to 2.0)
-// decay: decay time in seconds (0.1 to 20.0)
+// id: value from the SND_ENV_* enumeration
+// volume: volume for the environment
+// damping: damp value for the environment
+// decay: decay time in seconds
 //
 // returns: 0 if successful, otherwise return -1
 //

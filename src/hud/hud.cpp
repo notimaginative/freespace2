@@ -1693,7 +1693,7 @@ void update_throttle_sound()
 {
 	// determine what engine sound to play
 	float percent_throttle;
-//	int	throttle_pitch;
+//	float throttle_pitch;
 
 	// if we're a multiplayer observer, stop any engine sounds from playing and return
 	if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_OBSERVER)){
@@ -1728,7 +1728,7 @@ void update_throttle_sound()
 			}
 			else {
 				if ( Player_engine_snd_loop == -1 ){
-					Player_engine_snd_loop = snd_play_looping( &Snds[SND_ENGINE], 0.0f , -1, -1, percent_throttle * ENGINE_MAX_VOL );
+					Player_engine_snd_loop = snd_play_looping( &Snds[SND_ENGINE], 0.0f, percent_throttle * ENGINE_MAX_VOL );
 				} else {
 					// The sound may have been trashed at the low-level if sound channel overflow.
 					// TODO: implement system where certain sounds cannot be interrupted (priority?)
@@ -1742,8 +1742,8 @@ void update_throttle_sound()
 			}
 
 //			throttle_pitch = snd_get_pitch(Player_engine_snd_loop);
-//			if ( percent_throttle > 0.5 ) {
-//				snd_set_pitch(Player_engine_snd_loop, fl2i(22050 + (percent_throttle-0.5f)*1000));
+//			if ( percent_throttle > 0.5f ) {
+//				snd_set_pitch(Player_engine_snd_loop, 1.0f + (percent_throttle-0.5f)*1.0f));
 //			}
 
 		}	// end if (percent_throttle != last_percent_throttle)

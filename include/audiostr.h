@@ -115,7 +115,7 @@ void audiostream_close_all(int fade);
 void audiostream_play(int i, float volume = -1.0f, int looping = 1);
 
 // See if a particular stream is playing
-int audiostream_is_playing(int i);
+bool audiostream_is_playing(int i);
 
 // Stops the currently opened wave file
 void audiostream_stop(int i, int rewind = 1, int paused = 0);
@@ -127,7 +127,7 @@ void audiostream_set_volume_all(float volume, int type);
 void audiostream_set_volume(int i, float volume);
 
 // see if a particular stream is paused
-int audiostream_is_paused(int i);
+bool audiostream_is_paused(int i);
 
 // set the number of bytes that the sound should cutoff after
 void audiostream_set_byte_cutoff(int i, unsigned int cutoff);
@@ -136,7 +136,7 @@ void audiostream_set_byte_cutoff(int i, unsigned int cutoff);
 unsigned int audiostream_get_bytes_committed(int i);
 
 // check if the streaming has read all the bytes from disk yet
-int audiostream_done_reading(int i);
+bool audiostream_done_reading(int i);
 
 // return if audiostream has initialized ok
 int audiostream_is_inited();

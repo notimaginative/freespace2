@@ -224,7 +224,7 @@
 #include "bmpman.h"
 #include "cfile.h"
 #include "key.h"
-#include "ds.h"
+#include "oal.h"
 #include "font.h"
 #include "gamesnd.h"
 #include "freespace.h"
@@ -768,7 +768,7 @@ op_sliders Om_vox_sliders[GR_NUM_RESOLUTIONS][NUM_OM_VOX_SLIDERS] = {
 #endif
 	},	
 	{ // GR_1024				
-		op_sliders("2_OVB_18",	686,	259,	-1,	-1,	18,	20,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// voice QOS
+		op_sliders("2_OVB_18",	686,	259,	-1,	-1,	18,	32,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// voice QOS
 	}
 };
 
@@ -827,6 +827,9 @@ net_player *Om_vox_players[MAX_PLAYERS];
 
 // selected player
 net_player *Om_vox_player_select;
+
+// vox QoS setting
+static int Om_vox_qos_pos;
 
 // mute or don't mute for each player
 int Om_vox_player_flags[MAX_PLAYERS];
@@ -2031,6 +2034,10 @@ void options_multi_load_vox_controls()
 																		Om_vox_sliders[gr_screen.res][idx].dot_w);
 	}	
 
+	// default position from settings (slider is 0-9, hence the -1)
+	Om_vox_qos_pos = Player->m_server_options.voice_qos - 1;
+	Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos = Om_vox_qos_pos;
+
 	// create the player list select button
 	Om_vox_plist_button.create(Om_window, "", Om_vox_plist_coords[gr_screen.res][0], Om_vox_plist_coords[gr_screen.res][1], Om_vox_plist_coords[gr_screen.res][2], Om_vox_plist_coords[gr_screen.res][3], 0, 1);
 	Om_vox_plist_button.hide();
@@ -2147,6 +2154,9 @@ void options_multi_vox_accept()
 		Player->m_local_options.flags |= MLO_FLAG_NO_VOICE;
 	}
 
+	// VOX QoS
+	Players->m_server_options.voice_qos = (ubyte)(Om_vox_qos_pos + 1);
+
 	// build the voice preferences stuff
 	voice_pref_flags = 0xffffffff;
 	for(idx=0;idx<Om_vox_num_players;idx++){
@@ -2165,6 +2175,12 @@ void options_multi_vox_do()
 	
 	// check for button presses
 	options_multi_vox_check_buttons();
+
+	// maybe do something with the QoS slider
+	if (Om_vox_qos_pos != Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos) {
+		Om_vox_qos_pos = Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos;
+		gamesnd_play_iface(SND_USER_SELECT);
+	}
 
 	// draw the proper accept voice button
 	if(Om_vox_accept_voice){
@@ -2221,19 +2237,24 @@ void options_multi_vox_do()
 	
 	case OM_VOX_TEST_PLAYBACK:			
 		// if we were playing a sound back, but now the sound is done
-		if((Om_vox_playback_handle != -1) && (ds_get_play_position(ds_get_channel(Om_vox_playback_handle)) >= (DWORD)Om_vox_voice_comp_size)){
-			// flush all playing sounds safely
-			rtvoice_stop_playback_all();
+		if (Om_vox_playback_handle != -1) {
+			int channel = oal_get_channel(Om_vox_playback_handle);
 
-			// null the sound handle
-			Om_vox_playback_handle = -1;
+			// channel will be -1 if sound has already stopped playing
+			if ( (channel == -1) || (oal_get_play_position(channel) >= Om_vox_voice_comp_size) ) {
+				// flush all playing sounds safely
+				rtvoice_stop_playback_all();
 
-			// set this so we know not to display any more waveforms
-			Om_vox_voice_buffer_size = -1;
-			Om_vox_voice_comp_size = -1;			
+				// null the sound handle
+				Om_vox_playback_handle = -1;
 
-			// free the status up
-			Om_vox_test_status = OM_VOX_TEST_NONE;
+				// set this so we know not to display any more waveforms
+				Om_vox_voice_buffer_size = -1;
+				Om_vox_voice_comp_size = -1;
+
+				// free the status up
+				Om_vox_test_status = OM_VOX_TEST_NONE;
+			}
 		}
 		break;
 	}
@@ -2312,7 +2333,7 @@ void options_multi_vox_button_pressed(int n)
 			// if we're not already doing a record test
 			if(Om_vox_test_status == OM_VOX_TEST_NONE){
 				// set the quality of sound
-				rtvoice_set_qos(Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos + 1);
+				rtvoice_set_qos(Om_vox_qos_pos + 1);
 
 				// clear the comp buffer
 				memset(Om_vox_comp_buffer,128,OM_VOX_COMP_SIZE);
@@ -2386,7 +2407,7 @@ void options_multi_vox_process_waveform()
 
 	case OM_VOX_TEST_PLAYBACK:
 		// get the offset into the playing direct sound buffer
-		buf_offset = ds_get_play_position(ds_get_channel(Om_vox_playback_handle));		
+		buf_offset = oal_get_play_position(oal_get_channel(Om_vox_playback_handle));
 
 		// get the # of samples we'll average for one line
 		avg_len = (int)((float)OM_VOX_RECORD_INT * ((1024.0f * 11.0f) / 1000.0f)) / c_width;				

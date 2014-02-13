@@ -2963,7 +2963,7 @@ void engine_wash_ship_process(ship *shipp)
 			if(shipp != Player_ship){
 				obj_snd_assign(shipp->objnum, SND_ENGINE_WASH, &vmd_zero_vector, 1);
 			} else {				
-				Player_engine_wash_loop = snd_play_looping( &Snds[SND_ENGINE_WASH], 0.0f , -1, -1, 1.0f);
+				Player_engine_wash_loop = snd_play_looping( &Snds[SND_ENGINE_WASH], 0.0f, 1.0f);
 			}
 		}
 	} 

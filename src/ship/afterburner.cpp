@@ -371,7 +371,7 @@ void afterburners_update(object *objp, float fl_frametime)
 			Player_afterburner_vol = AFTERBURNER_DEFAULT_VOL;
 			Player_afterburner_loop_delay = 0;
 			if ( Player_afterburner_loop_id == -1 ) {
-				Player_afterburner_loop_id = snd_play_looping( &Snds[SND_ABURN_LOOP], 0.0f , -1, -1);
+				Player_afterburner_loop_id = snd_play_looping(&Snds[SND_ABURN_LOOP], 0.0f);
 				snd_set_volume(Player_afterburner_loop_id, Player_afterburner_vol);
 //				nprintf(("Alan","PLAY LOOPING SOUND\n"));
 			}

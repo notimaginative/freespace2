@@ -1877,6 +1877,11 @@ void main_hall_stop_ambient()
 		snd_stop(Main_hall_ambient_loop);
 		Main_hall_ambient_loop = -1;
 	}
+
+	if ( Main_hall_intercom_sound_handle != -1 ) {
+		snd_stop(Main_hall_intercom_sound_handle);
+		Main_hall_intercom_sound_handle = -1;
+	}
 }
 
 // Reset the volume of the looping ambient sound.  This is called from the options 

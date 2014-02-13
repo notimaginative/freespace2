@@ -318,7 +318,7 @@ void gamesnd_parse_line(game_snd *gs, const char *tag)
 	stuff_float(&gs->default_volume);
 	stuff_int(&is_3d);
 	if ( is_3d ) {
-		gs->flags |= GAME_SND_USE_DS3D;
+		gs->flags |= GAME_SND_USE_3D;
 		stuff_int(&gs->min);
 		stuff_int(&gs->max);
 	}

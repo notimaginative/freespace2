@@ -391,11 +391,23 @@ void os_poll()
 				}
 				break;
 
-			case SDL_WINDOWEVENT:
-				if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-					gr_opengl_set_viewport(e.window.data1, e.window.data2);
+			case SDL_WINDOWEVENT: {
+				switch (e.window.event) {
+					case SDL_WINDOWEVENT_RESIZED:
+						gr_opengl_set_viewport(e.window.data1, e.window.data2);
+						break;
+
+					case SDL_WINDOWEVENT_FOCUS_LOST:
+						joy_unacquire_ff();
+						break;
+
+					case SDL_WINDOWEVENT_FOCUS_GAINED:
+						joy_reacquire_ff();
+						break;
 				}
+
 				break;
+			}
 
 			default:
 				break;

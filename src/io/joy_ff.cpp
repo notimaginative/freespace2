@@ -16,6 +16,7 @@
 
 
 static int Joy_ff_enabled = 0;
+static int Joy_ff_acquired = 0;
 static SDL_Haptic *haptic = NULL;
 static int joy_ff_handling_scaler = 0;
 static int Joy_ff_directional_hit_effect_enabled = 1;
@@ -91,6 +92,7 @@ int joy_ff_init()
 	mprintf(("\n"));
 
 	Joy_ff_enabled = 1;
+	Joy_ff_acquired = 1;
 
 	Joy_ff_directional_hit_effect_enabled = os_config_read_uint(NULL, "EnableHitEffect", 1);
 
@@ -110,6 +112,7 @@ void joy_ff_shutdown()
 
 	SDL_QuitSubSystem(SDL_INIT_HAPTIC);
 
+	Joy_ff_acquired = 0;
 	Joy_ff_enabled = 0;
 }
 
@@ -403,6 +406,10 @@ static void joy_ff_start_effect(haptic_effect_t *eff, const char *name)
 
 void joy_ff_stop_effects()
 {
+	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
 	SDL_HapticStopAll(haptic);
 }
 
@@ -415,10 +422,32 @@ void joy_ff_mission_init(vector v)
 
 void joy_reacquire_ff()
 {
+	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if (Joy_ff_acquired) {
+		return;
+	}
+
+	joy_ff_start_effect(&pSpring, "Spring");
+
+	Joy_ff_acquired = 1;
 }
 
 void joy_unacquire_ff()
 {
+	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
+	joy_ff_stop_effects();
+
+	Joy_ff_acquired = 0;
 }
 
 void joy_ff_play_vector_effect(vector *v, float scaler)
@@ -446,6 +475,10 @@ void joy_ff_play_dir_effect(float x, float y)
 	float degs;
 
 	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
 		return;
 	}
 
@@ -522,6 +555,10 @@ void joy_ff_play_primary_shoot(int gain)
 		return;
 	}
 
+	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
 	if ( !pShootEffect.loaded && !Joy_rumble ) {
 		return;
 	}
@@ -559,6 +596,10 @@ static int secondary_ff_level = 10000;
 void joy_ff_play_secondary_shoot(int gain)
 {
 	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
 		return;
 	}
 
@@ -604,6 +645,10 @@ void joy_ff_adjust_handling(int speed)
 		return;
 	}
 
+	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
 	if ( !pSpring.loaded ) {
 		return;
 	}
@@ -645,6 +690,10 @@ void joy_ff_docked()
 		return;
 	}
 
+	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
 	if ( !pDock.loaded ) {
 		return;
 	}
@@ -663,6 +712,10 @@ void joy_ff_docked()
 void joy_ff_play_reload_effect()
 {
 	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
 		return;
 	}
 
@@ -686,6 +739,10 @@ static int Joy_ff_afterburning = 0;
 void joy_ff_afterburn_on()
 {
 	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
 		return;
 	}
 
@@ -733,6 +790,10 @@ void joy_ff_afterburn_off()
 		return;
 	}
 
+	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
 	if ( !Joy_ff_afterburning ) {
 		return;
 	}
@@ -753,6 +814,10 @@ void joy_ff_afterburn_off()
 void joy_ff_explode()
 {
 	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
 		return;
 	}
 /*
@@ -805,6 +870,10 @@ void joy_ff_fly_by(int mag)
 		return;
 	}
 
+	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
 	if (Joy_ff_afterburning) {
 		return;
 	}
@@ -851,6 +920,10 @@ void joy_ff_fly_by(int mag)
 void joy_ff_deathroll()
 {
 	if ( !Joy_ff_enabled ) {
+		return;
+	}
+
+	if ( !Joy_ff_acquired ) {
 		return;
 	}
 /*

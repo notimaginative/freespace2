@@ -191,6 +191,8 @@ static void mve_timer_stop()
 	timer_started = 0;
 	timer_created = 0;
 
+	micro_frame_delay = 0;
+
 	micro_timer_start = 0;
 	micro_timer_freq = 0;
 }

@@ -414,10 +414,7 @@ void outwnd_init(int display_under_freespace_window)
 	if ( Log_fp == NULL ) {
 		Log_fp = fopen(pathname, "wb");
 		if ( Log_fp == NULL ) {
-			outwnd_printf("Error", "Error opening %s\n", pathname);
-		} else {
-			outwnd_printf("General", "Opened %s OK\n", pathname);
-		//	printf("Future debug output directed to: %s\n", pathname);
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning!", "Unable to open debug log file. Debug output will not be saved.", NULL);
 		}
 	}
 }

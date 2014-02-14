@@ -295,23 +295,29 @@ void os_poll()
 	while (SDL_PollEvent (&e)) {
 		switch (e.type) {
 			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEBUTTONUP: {
 				if (e.motion.windowID > 0) {
 					mouse_mark_button(e.button.button, e.button.state);
 				}
-				break;
 
-			case SDL_MOUSEMOTION:
+				break;
+			}
+
+			case SDL_MOUSEMOTION: {
 				if (e.motion.windowID > 0) {
 					mouse_update_pos(e.motion.x, e.motion.y, e.motion.xrel, e.motion.yrel);
 				}
-				break;
 
-			case SDL_TEXTINPUT:
+				break;
+			}
+
+			case SDL_TEXTINPUT: {
 				key_set_text_input((int)e.text.text[0]);
-				break;
 
-			case SDL_KEYDOWN:
+				break;
+			}
+
+			case SDL_KEYDOWN: {
 				if (e.key.keysym.mod & KMOD_GUI) {
 					if (e.key.keysym.sym == SDLK_f ) {
 						gr_opengl_force_fullscreen();
@@ -323,16 +329,20 @@ void os_poll()
 				} else {
 					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
 				}
-				break;
 
-			case SDL_KEYUP:
+				break;
+			}
+
+			case SDL_KEYUP: {
 				if (e.key.keysym.mod & KMOD_GUI) {
 					// blank, just don't want to process up keys we skipped
 					// the down for
 				} else {
 					key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
 				}
+
 				break;
+			}
 /*
 			case SDL_ACTIVEEVENT:
 				if (e.active.state & SDL_APPACTIVE) {
@@ -344,21 +354,41 @@ void os_poll()
 				}
 				break;
 */
-			case SDL_JOYAXISMOTION:
+			case SDL_JOYDEVICEADDED: {
+				if ( !Is_standalone ) {
+					joy_init();
+				}
+
+				break;
+			}
+
+			case SDL_JOYDEVICEREMOVED: {
+				if (e.jdevice.which == joystick_get_id()) {
+					joy_close();
+				}
+
+				break;
+			}
+
+			case SDL_JOYAXISMOTION: {
 				if (e.jaxis.which == joystick_get_id()) {
 					joystick_update_axis(e.jaxis.axis, e.jaxis.value);
 				}
+
 				break;
+			}
 
 			case SDL_JOYBUTTONDOWN:
-			case SDL_JOYBUTTONUP:
+			case SDL_JOYBUTTONUP: {
 				if (e.jbutton.which == joystick_get_id()) {
 					state = (e.jbutton.state == SDL_PRESSED) ? 1 : 0;
 					joy_mark_button((int)e.jbutton.button, state);
 				}
-				break;
 
-			case SDL_JOYHATMOTION:
+				break;
+			}
+
+			case SDL_JOYHATMOTION: {
 				if (e.jhat.which == joystick_get_id()) {
 					// can only handle one hat
 					if (e.jhat.hat == 0) {
@@ -389,7 +419,9 @@ void os_poll()
 						joy_mark_button(button, state);
 					}
 				}
+
 				break;
+			}
 
 			case SDL_WINDOWEVENT: {
 				switch (e.window.event) {

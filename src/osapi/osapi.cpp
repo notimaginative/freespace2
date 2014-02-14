@@ -424,10 +424,18 @@ void os_poll()
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
 						joy_reacquire_ff();
 						break;
+
+					case SDL_WINDOWEVENT_CLOSE:
+					//	gameseq_post_event(GS_EVENT_QUIT_GAME);
+						break;
 				}
 
 				break;
 			}
+
+			case SDL_QUIT:
+				gameseq_post_event(GS_EVENT_QUIT_GAME);
+				break;
 
 			default:
 				break;

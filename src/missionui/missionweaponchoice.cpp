@@ -940,7 +940,7 @@ int wl_fury_missile_offset_hack(int weapon_class, int num_missiles)
 		return 0 ;
 	} 			
 
-	if ( !strnicmp(Weapon_info[weapon_class].name, NOX("fury"), 4) ) {
+	if ( !SDL_strncasecmp(Weapon_info[weapon_class].name, NOX("fury"), 4) ) {
 		return 3;
 	}
 
@@ -952,7 +952,7 @@ const char *wl_tooltip_handler(const char *str)
 	if (Selected_wl_class < 0)
 		return NULL;
 
-	if (!stricmp(str, "@weapon_desc")) {
+	if (!SDL_strcasecmp(str, "@weapon_desc")) {
 		char *str;
 		int x, y, w, h;
 
@@ -1029,7 +1029,7 @@ int wl_get_pilot_subsys_index(p_object *pobjp)
 	end_index = start_index + pobjp->subsys_count;
 	pilot_index = -1;
 	for ( i = start_index; i < end_index; i++ ) {
-		if ( !stricmp(Subsys_status[i].name, NOX("pilot") ) ) {
+		if ( !SDL_strcasecmp(Subsys_status[i].name, NOX("pilot") ) ) {
 			pilot_index = i;
 			break;
 		}
@@ -1102,7 +1102,7 @@ void weapon_button_do(int i)
 				break;
 
 			case WL_BUTTON_MULTI_LOCK:
-				Assert(Game_mode & GM_MULTIPLAYER);				
+				SDL_assert(Game_mode & GM_MULTIPLAYER);				
 				// the "lock" button has been pressed
 				multi_ts_lock_pressed();
 
@@ -1301,7 +1301,7 @@ void wl_set_disabled_weapons(int ship_class)
 	if ( ship_class == - 1 )
 		return;
 
-	Assert(ship_class >= 0 && ship_class < MAX_SHIP_TYPES);
+	SDL_assert(ship_class >= 0 && ship_class < MAX_SHIP_TYPES);
 
 	sip = &Ship_info[ship_class];
 
@@ -1441,12 +1441,12 @@ void wl_load_anim(int weapon_class)
 	wl_icon_info	*icon;
 
 	icon = &Wl_icons[weapon_class];
-	Assert( icon->anim == NULL );
+	SDL_assert( icon->anim == NULL );
 	
 	// 1024x768 SUPPORT
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
-		Assert(strlen(Weapon_info[weapon_class].anim_filename) <= 30);
+		SDL_assert(strlen(Weapon_info[weapon_class].anim_filename) <= 30);
 		strcpy(animation_filename, "2_");
 		strcat(animation_filename, Weapon_info[weapon_class].anim_filename);
 
@@ -1796,7 +1796,7 @@ int wl_calc_missile_fit(int wi_index, int capacity)
 		return 0;
 	}
 
-	Assert(Weapon_info[wi_index].subtype == WP_MISSILE);
+	SDL_assert(Weapon_info[wi_index].subtype == WP_MISSILE);
 	return fl2i( capacity / Weapon_info[wi_index].cargo_size + 0.5f );
 }
 
@@ -1806,7 +1806,7 @@ void wl_get_ship_class_weapons(int ship_class, int *wep, int *wep_count)
 	ship_info	*sip;
 	int i;
 
-	Assert(ship_class >= 0 && ship_class < MAX_SHIP_TYPES);
+	SDL_assert(ship_class >= 0 && ship_class < MAX_SHIP_TYPES);
 	sip = &Ship_info[ship_class];
 
 	// reset weapons arrays
@@ -1833,9 +1833,9 @@ void wl_get_ship_weapons(int ship_index, int *wep, int *wep_count)
 	wing			*wp;
 	ship_weapon	*swp;
 
-	Assert(ship_index >= 0);
+	SDL_assert(ship_index >= 0);
 
-	Assert(Ships[ship_index].wingnum >= 0);
+	SDL_assert(Ships[ship_index].wingnum >= 0);
 	wp = &Wings[Ships[ship_index].wingnum];
 	swp = &Ships[ship_index].weapons;
 
@@ -1915,7 +1915,7 @@ void wl_get_default_weapons(int ship_class, int slot_num, int *wep, int *wep_cou
 {
 	int original_ship_class, i;
 
-	Assert(slot_num >= 0 && slot_num < MAX_WSS_SLOTS);
+	SDL_assert(slot_num >= 0 && slot_num < MAX_WSS_SLOTS);
 
 	// clear out wep and wep_count
 	for ( i = 0; i < MAX_WL_WEAPONS; i++ ) {
@@ -1944,7 +1944,7 @@ void wl_get_default_weapons(int ship_class, int slot_num, int *wep, int *wep_cou
 			int ship_index = -1;
 			p_object *pobjp;
 			ss_return_ship(slot_num/4, slot_num%4, &ship_index, &pobjp);
-			Assert(ship_index != -1);
+			SDL_assert(ship_index != -1);
 			wl_get_ship_weapons(ship_index, wep, wep_count);
 		}
 	}
@@ -2045,7 +2045,7 @@ void wl_remove_weps_from_pool(int *wep, int *wep_count, int ship_class)
 					}
 
 					wep_count[i] = min(new_wep_count, Wl_pool[wi_index]);
-					Assert(wep_count[i] >= 0);
+					SDL_assert(wep_count[i] >= 0);
 					Wl_pool[wi_index] -= wep_count[i];
 					if ( wep_count[i] <= 0 ) {
 						wep[i] = -1;
@@ -2222,7 +2222,7 @@ void weapon_select_init()
 	// get a pointer to bitmap by using bm_lock()
 	WeaponSelectMaskPtr = bm_lock(WeaponSelectMaskBitmap, 8, BMP_AABITMAP);
 	WeaponSelectMaskData = (ubyte*)WeaponSelectMaskPtr->data;
-	Assert(WeaponSelectMaskData != NULL);
+	SDL_assert(WeaponSelectMaskData != NULL);
 	bm_get_info(WeaponSelectMaskBitmap, &Weaponselect_mask_w, &Weaponselect_mask_h);
 
 
@@ -2419,7 +2419,7 @@ int do_mouse_over_ship_weapon(int index)
 	int dropped_on_slot, is_moved, mx, my;
 
 	dropped_on_slot = 0;
-	Assert(Selected_wl_slot >= 0);
+	SDL_assert(Selected_wl_slot >= 0);
 
 	if ( ss_disabled_slot( Selected_wl_slot ) )
 		return 0;
@@ -2644,8 +2644,8 @@ void wl_weapon_desc_start_wipe()
 
 		currchar_src++;
 
-		Assert(currline_dest < WEAPON_DESC_MAX_LINES);
-		Assert(currchar_dest < WEAPON_DESC_MAX_LENGTH);
+		SDL_assert(currline_dest < WEAPON_DESC_MAX_LINES);
+		SDL_assert(currchar_dest < WEAPON_DESC_MAX_LENGTH);
 	}
 
 	// wrap up the line processing
@@ -2904,11 +2904,11 @@ void weapon_select_do(float frametime)
 
 	if ( Weapon_anim_class != -1 && ( Selected_wl_class == Weapon_anim_class ) ) {
 		wl_icon_info *icon;
-		Assert(Selected_wl_class >= 0 && Selected_wl_class < MAX_WEAPON_TYPES );
+		SDL_assert(Selected_wl_class >= 0 && Selected_wl_class < MAX_WEAPON_TYPES );
 		if ( Weapon_anim_class != Selected_wl_class ) 
 			start_weapon_animation(Selected_wl_class);	
 
-		Assert(Weapon_anim_class == Selected_wl_class);
+		SDL_assert(Weapon_anim_class == Selected_wl_class);
 		icon = &Wl_icons[Selected_wl_class];
 		if ( icon->anim_instance ) {
 			if ( icon->anim_instance->frame_num == icon->anim_instance->stop_at ) {
@@ -2956,7 +2956,7 @@ void weapon_select_do(float frametime)
 
 	if ( wl_icon_being_carried() ) {
 		int mx, my, sx, sy;
-		Assert(Carried_wl_icon.weapon_class < MAX_WEAPON_TYPES);
+		SDL_assert(Carried_wl_icon.weapon_class < MAX_WEAPON_TYPES);
 		mouse_get_pos( &mx, &my );
 		sx = mx + Wl_delta_x;
 		sy = my + Wl_delta_y;
@@ -3104,7 +3104,7 @@ void wl_render_icon_count(int num, int x, int y)
 	char buf[32];
 	int num_w, num_h;
 	int number_to_draw = (num > 1000) ? 999 : num;		// cap count @ 999
-	Assert(number_to_draw >= 0);
+	SDL_assert(number_to_draw >= 0);
 
 	sprintf(buf, "%d", number_to_draw);
 	gr_get_string_size(&num_w, &num_h, buf, strlen(buf));
@@ -3208,7 +3208,7 @@ void wl_draw_ship_weapons(int index)
 	if ( index == -1 )
 		return;
 
-	Assert(index >= 0 && index < MAX_WSS_SLOTS);
+	SDL_assert(index >= 0 && index < MAX_WSS_SLOTS);
 	wep = Wss_slots[index].wep;
 	wep_count = Wss_slots[index].wep_count;
 
@@ -3234,7 +3234,7 @@ void wl_draw_ship_weapons(int index)
 //
 void draw_wl_icon_with_number(int list_count, int weapon_class)
 {
-	Assert( list_count >= 0 && list_count < 8 );	
+	SDL_assert( list_count >= 0 && list_count < 8 );	
 
 	wl_render_icon(weapon_class, Wl_weapon_icon_coords[gr_screen.res][list_count][0], Wl_weapon_icon_coords[gr_screen.res][list_count][1],
 					   Wl_pool[weapon_class], 1, list_count, -1, weapon_class);
@@ -3328,7 +3328,7 @@ void pick_from_ship_slot(int num)
 {
 	int mx, my, *wep, *wep_count;
 		
-	Assert(num < 7);
+	SDL_assert(num < 7);
 
 	if ( Selected_wl_slot == -1 )
 		return;
@@ -3347,7 +3347,7 @@ void pick_from_ship_slot(int num)
 		return;
 	}
 
-	Assert(Wl_icons[wep[num]].can_use);
+	SDL_assert(Wl_icons[wep[num]].can_use);
 
 	wl_set_carried_icon(num, Selected_wl_slot, wep[num]);
 	common_flash_button_init();
@@ -3412,7 +3412,7 @@ void wl_update_parse_object_weapons(p_object *pobjp, wss_unit *slot)
 	subsys_status	*ss;
 	ship_info		*sip;
 
-	Assert(slot->ship_class >= 0);
+	SDL_assert(slot->ship_class >= 0);
 	sip = &Ship_info[slot->ship_class];
 
 	pilot_index = wl_get_pilot_subsys_index(pobjp);
@@ -3757,8 +3757,8 @@ int wl_grab_from_list(int from_list, int to_bank, int ship_slot, int *sound)
 	}
 
 	// bank should be empty:
-	Assert(slot->wep_count[to_bank] == 0);
-	Assert(slot->wep[to_bank] < 0);
+	SDL_assert(slot->wep_count[to_bank] == 0);
+	SDL_assert(slot->wep[to_bank] < 0);
 
 	// ensure that pool has weapon
 	if ( Wl_pool[from_list] <= 0 ) {
@@ -3808,8 +3808,8 @@ int wl_swap_list_slot(int from_list, int to_bank, int ship_slot, int *sound)
 	}
 
 	// bank should have something in it
-	Assert(slot->wep_count[to_bank] > 0);
-	Assert(slot->wep[to_bank] >= 0);
+	SDL_assert(slot->wep_count[to_bank] > 0);
+	SDL_assert(slot->wep[to_bank] >= 0);
 
 	// ensure that pool has weapon
 	if ( Wl_pool[from_list] <= 0 ) {
@@ -3892,12 +3892,12 @@ void wl_apply(int mode,int from_bank,int from_list,int to_bank,int to_list,int s
 			ubyte wss_data[MAX_PACKET_SIZE-20];
 
 			size = store_wss_data(wss_data, MAX_PACKET_SIZE-20,sound,player_index);			
-			Assert(pl != NULL);
+			SDL_assert(pl != NULL);
 			send_wss_update_packet(pl->p_info.team,wss_data, size);
 		}
 
 		if(Game_mode & GM_MULTIPLAYER){
-			Assert(pl != NULL);
+			SDL_assert(pl != NULL);
 
 			// if the pool we're using has changed, synch stuff up
 			if(pl->p_info.team == Net_player->p_info.team){

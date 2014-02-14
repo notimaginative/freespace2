@@ -343,7 +343,7 @@ void UI_LISTBOX::process(int focus)
 	if (has_scrollbar) {
 		if (scrollbar.moved) {
 			first_item = scrollbar.position;
-			Assert(first_item >= 0);
+			SDL_assert(first_item >= 0);
 
 			if (current_item<first_item)
 				current_item = first_item;

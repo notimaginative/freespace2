@@ -134,7 +134,7 @@ debug_command::debug_command(const char *_name, const char *_help, void (*_func)
 	}
 
 	for (i=0; i<Num_debug_commands; i++ )	{
-		int ret  = stricmp( Debug_command[i]->name, _name );
+		int ret  = SDL_strcasecmp( Debug_command[i]->name, _name );
 
 		if ( ret == 0)	{
 			Int3();		// This debug console command already exists!!!! 
@@ -397,22 +397,22 @@ void dc_get_arg(uint type)
 				dc_printf( "Found hex number! 0x%x\n", Dc_arg_int );
 		}
 
-		if ( !stricmp( Dc_arg, "on" ))
+		if ( !SDL_strcasecmp( Dc_arg, "on" ))
 			Dc_arg_type |= ARG_TRUE;
-		if ( !stricmp( Dc_arg, "true" ))
+		if ( !SDL_strcasecmp( Dc_arg, "true" ))
 			Dc_arg_type |= ARG_TRUE;
-		if ( !stricmp( Dc_arg, "off" ))
+		if ( !SDL_strcasecmp( Dc_arg, "off" ))
 			Dc_arg_type |= ARG_FALSE;
-		if ( !stricmp( Dc_arg, "false" ))
+		if ( !SDL_strcasecmp( Dc_arg, "false" ))
 			Dc_arg_type |= ARG_FALSE;
 
-		if ( !stricmp( Dc_arg, "+" ))
+		if ( !SDL_strcasecmp( Dc_arg, "+" ))
 			Dc_arg_type |= ARG_PLUS;
 
-		if ( !stricmp( Dc_arg, "-" ))
+		if ( !SDL_strcasecmp( Dc_arg, "-" ))
 			Dc_arg_type |= ARG_MINUS;
 
-		if ( !stricmp( Dc_arg, "," ))
+		if ( !SDL_strcasecmp( Dc_arg, "," ))
 			Dc_arg_type |= ARG_COMMA;
 	}
 
@@ -493,7 +493,7 @@ void debug_do_command(const char * command)
 	}
 
 	for (i=0; i<Num_debug_commands; i++ )	{
-		if ( !stricmp( Debug_command[i]->name, Dc_arg ))	{
+		if ( !SDL_strcasecmp( Debug_command[i]->name, Dc_arg ))	{
 		
 			if (mode==0)	{
 				if (Dc_debug_on)	
@@ -722,7 +722,7 @@ void debug_console( void (*_func)() )
 
 			int i, found = 0;
 			for (i=0; i<=last_oldcommand; i++ )	{
-				if (!stricmp( oldcommand_line[i], command_line ))	{
+				if (!SDL_strcasecmp( oldcommand_line[i], command_line ))	{
 					found = 1;
 				}
 			}

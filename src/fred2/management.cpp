@@ -396,8 +396,8 @@ void deconvert_multiline_string(char *buf, CString &str, int max_len)
 	int i, j;
 	CString str2;
 
-	Assert(max_len > 1);
-	Assert(buf);
+	SDL_assert(max_len > 1);
+	SDL_assert(buf);
 	max_len -= 2;
 	while ((i = str.Find("\r\n")) >= 0) {
 		for (j=0; j<i; j++)
@@ -446,7 +446,7 @@ void parse_medal_tbl()
 	num_medals = 0;
 	required_string("#Medals");
 	while ( required_string_either("#End", "$Name:") ) {
-		Assert ( num_medals < NUM_MEDALS);
+		SDL_assert ( num_medals < NUM_MEDALS);
 		required_string("$Name:");
 		stuff_string( Medals[num_medals].name, F_NAME, NULL );
 		required_string("$Bitmap:");
@@ -501,7 +501,7 @@ void fred_init()
 
 	timer_init();
 
-	Assert(strlen(Fred_exe_dir) > 0);
+	SDL_assert(strlen(Fred_exe_dir) > 0);
 	
 	// doh
 	if(cfile_init(Fred_exe_dir)){
@@ -744,7 +744,7 @@ int dup_object(object *objp)
 		subp1 = GET_FIRST(&Ships[n].subsys_list);
 		subp2 = GET_FIRST(&Ships[inst].subsys_list);
 		while (subp1 != END_OF_LIST(&Ships[n].subsys_list)) {
-			Assert(subp2 != END_OF_LIST(&Ships[inst].subsys_list));
+			SDL_assert(subp2 != END_OF_LIST(&Ships[inst].subsys_list));
 			subp1 -> current_hits = subp2 -> current_hits;
 			subp1 = GET_NEXT(subp1);
 			subp2 = GET_NEXT(subp2);
@@ -841,8 +841,8 @@ int create_player(int num, vector *pos, matrix *orient, int type, int init)
 		type = Default_player_model;
 	}
 
-	Assert(type >= 0);
-	Assert(Player_starts < MAX_PLAYERS);
+	SDL_assert(type >= 0);
+	SDL_assert(Player_starts < MAX_PLAYERS);
 	Player_starts++;
 	obj = create_ship(orient, pos, type);
 	Objects[obj].type = OBJ_START;
@@ -900,7 +900,7 @@ int create_waypoint(vector *pos, int list)
 		return -1;
 	}
 
-	Assert((list >= 0) && (list < MAX_WAYPOINT_LISTS));  // illegal index or out of lists.
+	SDL_assert((list >= 0) && (list < MAX_WAYPOINT_LISTS));  // illegal index or out of lists.
 	if (Waypoint_lists[list].count >= MAX_WAYPOINTS_PER_LIST) {
 		Fred_main_wnd->MessageBox("Unable to create new waypoint.  You have\n"
 			"reached the maximum limit on waypoints per list.", NULL, MB_OK | MB_ICONEXCLAMATION);
@@ -918,7 +918,7 @@ int create_waypoint(vector *pos, int list)
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
-		Assert(ptr->type != OBJ_NONE);
+		SDL_assert(ptr->type != OBJ_NONE);
 		if (ptr->type == OBJ_WAYPOINT) {
 			i = ptr->instance;
 			if ((i / 65536 == list) && ((i & 0xffff) >= index)){
@@ -1135,14 +1135,14 @@ int query_valid_object(int index)
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
-		Assert(ptr->type != OBJ_NONE);
+		SDL_assert(ptr->type != OBJ_NONE);
 		if (OBJ_INDEX(ptr) == index)
 			obj_found = TRUE;
 		
 		ptr = GET_NEXT(ptr);
 	}
 
-	Assert(obj_found);  // just to make sure it's in the list like it should be.	
+	SDL_assert(obj_found);  // just to make sure it's in the list like it should be.	
 	return TRUE;
 }
 
@@ -1156,14 +1156,14 @@ int query_valid_ship(int index)
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
-		Assert(ptr->type != OBJ_NONE);
+		SDL_assert(ptr->type != OBJ_NONE);
 		if (OBJ_INDEX(ptr) == index)
 			obj_found = TRUE;
 		
 		ptr = GET_NEXT(ptr);
 	}
 
-	Assert(obj_found);  // just to make sure it's in the list like it should be.	
+	SDL_assert(obj_found);  // just to make sure it's in the list like it should be.	
 	return TRUE;
 }
 
@@ -1177,14 +1177,14 @@ int query_valid_waypoint(int index)
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
-		Assert(ptr->type != OBJ_NONE);
+		SDL_assert(ptr->type != OBJ_NONE);
 		if (OBJ_INDEX(ptr) == index)
 			obj_found = TRUE;
 		
 		ptr = GET_NEXT(ptr);
 	}
 
-	Assert(obj_found);  // just to make sure it's in the list like it should be.	
+	SDL_assert(obj_found);  // just to make sure it's in the list like it should be.	
 	return TRUE;
 }
 
@@ -1209,9 +1209,9 @@ void set_cur_wing(int wing)
 {
 	cur_wing = wing;
 /*	if (cur_ship != -1)
-		Assert(cur_wing == Ships[cur_ship].wingnum);
+		SDL_assert(cur_wing == Ships[cur_ship].wingnum);
 	if ((cur_object_index != -1) && (Objects[cur_object_index].type == OBJ_SHIP))
-		Assert(cur_wing == Ships[Objects[cur_object_index].instance].wingnum);*/
+		SDL_assert(cur_wing == Ships[Objects[cur_object_index].instance].wingnum);*/
 	Update_wing = 1;
 	Update_window = 1;
 }
@@ -1259,9 +1259,9 @@ void set_cur_indices(int obj)
 	if (ptr == END_OF_LIST(&obj_used_list))
 		ptr = ptr->next;
 
-	Assert(ptr != END_OF_LIST(&obj_used_list));
+	SDL_assert(ptr != END_OF_LIST(&obj_used_list));
 	cur_object_index = OBJ_INDEX(ptr);
-	Assert(ptr->type != OBJ_NONE);
+	SDL_assert(ptr->type != OBJ_NONE);
 	cur_ship = cur_wing = cur_waypoint_list = cur_waypoint = -1;
 	if (ptr->type == OBJ_SHIP) {
 		cur_ship = ptr->instance;
@@ -1363,7 +1363,7 @@ int common_object_delete(int obj)
 			return 1;
 		}
 
-		Assert((i >= 0) && (i < MAX_SHIPS));
+		SDL_assert((i >= 0) && (i < MAX_SHIPS));
 		sprintf(msg, "Player %d", i + 1);
 		name = msg;
 		r = reference_handler(name, REF_TYPE_PLAYER, obj);
@@ -1409,9 +1409,9 @@ int common_object_delete(int obj)
 
 		list = Objects[obj].instance / 65536;
 		i = Objects[obj].instance & 0xffff;
-		Assert(list >= 0 && list < MAX_WAYPOINT_LISTS);
+		SDL_assert(list >= 0 && list < MAX_WAYPOINT_LISTS);
 		count = Waypoint_lists[list].count;
-		Assert(i >= 0 && i < count);
+		SDL_assert(i >= 0 && i < count);
 
 		if (Waypoint_lists[list].count == 1) {
 			name = Waypoint_lists[list].name;
@@ -1501,7 +1501,7 @@ int common_object_delete(int obj)
 		}
 
 	} else if (type == OBJ_POINT) {
-		Assert(Briefing_dialog);
+		SDL_assert(Briefing_dialog);
 		Briefing_dialog->delete_icon(Objects[obj].instance);
 		Update_window = 1;
 		return 0;
@@ -1592,7 +1592,7 @@ int delete_ship_from_wing(int ship)
 				}
 			}
 
-			Assert(i != -1);  // Error, object should be in wing.
+			SDL_assert(i != -1);  // Error, object should be in wing.
 			if (Wings[wing].special_ship == i){
 				Wings[wing].special_ship = 0;
 			} else if (Wings[wing].special_ship > i) {
@@ -1659,7 +1659,7 @@ int query_object_in_wing(int obj)
 
 void mark_object(int obj)
 {
-	Assert(query_valid_object(obj));
+	SDL_assert(query_valid_object(obj));
 	if (!(Objects[obj].flags & OF_MARKED)) {
 		Objects[obj].flags |= OF_MARKED;  // set as marked
 		Marked++;
@@ -1674,7 +1674,7 @@ void mark_object(int obj)
 
 void unmark_object(int obj)
 {
-	Assert(query_valid_object(obj));
+	SDL_assert(query_valid_object(obj));
 	if (Objects[obj].flags & OF_MARKED) {
 		Objects[obj].flags &= ~OF_MARKED;
 		Marked--;
@@ -1802,7 +1802,7 @@ int string_lookup(CString str1, char *strlist[], int max)
 	int	i;
 
 	for (i=0; i<max; i++) {
-		Assert(strlen(strlist[i]));
+		SDL_assert(strlen(strlist[i]));
 
 		if (!stricmp(str1, strlist[i])){
 			return i;
@@ -1841,7 +1841,7 @@ int query_initial_orders_conflict(int wing)
 {
 	int i, z;
 
-	Assert(wing != -1);
+	SDL_assert(wing != -1);
 	if (wing == -1){
 		return 0;
 	}
@@ -1907,7 +1907,7 @@ int set_reinforcement(char *name, int state)
 	}
 
 	if (state && (cur == -1) && (Num_reinforcements < MAX_REINFORCEMENTS)) {
-		Assert(strlen(name) < NAME_LENGTH);
+		SDL_assert(strlen(name) < NAME_LENGTH);
 		strcpy(Reinforcements[Num_reinforcements].name, name);
 		Reinforcements[Num_reinforcements].uses = 1;
 		Reinforcements[Num_reinforcements].arrival_delay = 0;
@@ -1959,7 +1959,7 @@ int get_docking_list(int model_index)
 	polymodel *pm;
 
 	pm = model_get(model_index);
-	Assert(pm->n_docks <= MAX_DOCKS);
+	SDL_assert(pm->n_docks <= MAX_DOCKS);
 	for (i=0; i<pm->n_docks; i++)
 		Docking_bay_list[i] = pm->docking_bays[i].name;
 
@@ -1971,8 +1971,8 @@ int rename_ship(int ship, char *name)
 {
 	int i;
 
-	Assert(ship >= 0);
-	Assert(strlen(name) < NAME_LENGTH);
+	SDL_assert(ship >= 0);
+	SDL_assert(strlen(name) < NAME_LENGTH);
 
 	update_sexp_references(Ships[ship].ship_name, name);
 	ai_update_goal_references(REF_TYPE_SHIP, Ships[ship].ship_name, name);
@@ -2025,7 +2025,7 @@ int internal_integrity_check()
 			verify_sexp_tree(Ships[i].arrival_cue);
 			verify_sexp_tree(Ships[i].departure_cue);
 			if (Ships[i].ai_index < 0)
-				Assert(0);
+				SDL_assert(0);
 			if (Ai_info[Ships[i].ai_index].shipnum != i)
 				Int3();
 		}
@@ -2097,7 +2097,7 @@ void set_valid_dock_points(int ship, int type, CComboBox *box)
 			box->SetItemData(z, i);
 		}
 
-	Assert(box->GetCount());
+	SDL_assert(box->GetCount());
 }
 
 // Given an object index, find the ship index for that object.
@@ -2610,7 +2610,7 @@ void management_add_ships_to_combo( CComboBox *box, int flags )
 
 				// determine if this ship has a docking bay
 				pm = model_get( Ships[objp->instance].modelnum );
-				Assert( pm );
+				SDL_assert( pm );
 				if ( pm->ship_bay && (pm->ship_bay->num_paths > 0) ) {
 					id = box->AddString(Ships[get_ship_from_obj(objp)].ship_name);
 					box->SetItemData(id, get_ship_from_obj(objp));

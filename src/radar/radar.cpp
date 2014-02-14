@@ -716,7 +716,7 @@ void draw_radar_blips(int rcol, int is_dim, int distort)
 
 	for ( b = GET_FIRST(blip_head); b !=END_OF_LIST(blip_head); b = GET_NEXT(b) )	{
 
-		Assert((rcol >= 0) && (rcol < MAX_RADAR_COLORS));
+		SDL_assert((rcol >= 0) && (rcol < MAX_RADAR_COLORS));
 
 		if ( is_dim ) {
 			gr_set_color_fast( &Radar_colors[RADAR_BLIP_DIM][rcol] );

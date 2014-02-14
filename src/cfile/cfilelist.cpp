@@ -94,7 +94,7 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info )
 			for (i=incr; i<n; i++) {
 				j = i - incr;
 				while (j >= 0) {
-					if (stricmp(list[j], list[j + incr]) > 0) {
+					if (SDL_strcasecmp(list[j], list[j + incr]) > 0) {
 						t = list[j];
 						list[j] = list[j + incr];
 						list[j + incr] = t;
@@ -118,7 +118,7 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info )
 		return;
 
 	} else if (sort == CF_SORT_TIME) {
-		Assert(info);
+		SDL_assert(info);
 		incr = n / 2;
 		while (incr > 0) {
 			for (i=incr; i<n; i++) {

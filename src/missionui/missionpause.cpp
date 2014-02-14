@@ -223,7 +223,7 @@ void pause_do(int multi)
 			gr_flip();
 		} else {
 			// this should only be happening in a very unique multiplayer case
-			Assert(Game_mode & GM_MULTIPLAYER);
+			SDL_assert(Game_mode & GM_MULTIPLAYER);
 		}
 	}
 }

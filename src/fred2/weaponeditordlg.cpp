@@ -293,7 +293,7 @@ BOOL WeaponEditorDlg::OnInitDialog()
 					flag = 1;
 
 				} else {
-					Assert(Ships[inst].ship_info_index == m_ship_class);
+					SDL_assert(Ships[inst].ship_info_index == m_ship_class);
 					if (pilot.ai_class != Ships[inst].weapons.ai_class)
 						pilot.ai_class = BLANK_FIELD;
 

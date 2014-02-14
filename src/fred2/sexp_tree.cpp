@@ -1433,7 +1433,7 @@ void sexp_tree::load_tree(int index, char *deflt)
 	// assumption: first token is an operator.  I require this because it would cause problems
 	// with child/parent relations otherwise, and it should be this way anyway, since the
 	// return type of the whole sexp is boolean, and only operators can satisfy this.
-	Assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
+	SDL_assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
 	load_branch(index, -1);
 	build_tree();
 }
@@ -1441,7 +1441,7 @@ void sexp_tree::load_tree(int index, char *deflt)
 void get_combined_variable_name(char *combined_name, const char *sexp_var_name)
 {
 	int sexp_var_index = get_index_sexp_variable_name(sexp_var_name);
-	Assert(sexp_var_index > -1);
+	SDL_assert(sexp_var_index > -1);
 
 	sprintf(combined_name, "%s(%s)", Sexp_variables[sexp_var_index].variable_name, Sexp_variables[sexp_var_index].text);
 }
@@ -1455,7 +1455,7 @@ void sexp_tree::load_branch(int index, int parent)
 	char combined_var_name[2*TOKEN_LENGTH + 2];
 
 	while (index != -1) {
-		Assert(Sexp_nodes[index].type != SEXP_NOT_USED);
+		SDL_assert(Sexp_nodes[index].type != SEXP_NOT_USED);
 		if (Sexp_nodes[index].subtype == SEXP_ATOM_LIST) {
 			load_branch(Sexp_nodes[index].first, parent);  // do the sublist and continue
 
@@ -1489,7 +1489,7 @@ void sexp_tree::load_branch(int index, int parent)
 			}
 
 		} else
-			Assert(0);  // unknown and/or invalid sexp type
+			SDL_assert(0);  // unknown and/or invalid sexp type
 
 		if ((index == select_sexp_node) && !flag) {  // translate sexp node to our node
 			select_sexp_node = cur;
@@ -1507,9 +1507,9 @@ int sexp_tree::query_false(int node)
 	if (node < 0)
 		node = root_item;
 
-	Assert(node >= 0);
-	Assert(nodes[node].type == (SEXPT_OPERATOR | SEXPT_VALID));
-	Assert(nodes[node].next == -1);  // must make this assumption or else it will confuse code!
+	SDL_assert(node >= 0);
+	SDL_assert(nodes[node].type == (SEXPT_OPERATOR | SEXPT_VALID));
+	SDL_assert(nodes[node].next == -1);  // must make this assumption or else it will confuse code!
 	if (find_operator(nodes[node].text) == OP_FALSE){
 		return TRUE;
 	}
@@ -1523,9 +1523,9 @@ int sexp_tree::save_tree(int node)
 	if (node < 0)
 		node = root_item;
 
-	Assert(node >= 0);
-	Assert(nodes[node].type == (SEXPT_OPERATOR | SEXPT_VALID));
-	Assert(nodes[node].next == -1);  // must make this assumption or else it will confuse code!
+	SDL_assert(node >= 0);
+	SDL_assert(nodes[node].type == (SEXPT_OPERATOR | SEXPT_VALID));
+	SDL_assert(nodes[node].next == -1);  // must make this assumption or else it will confuse code!
 	return save_branch(node);
 }
 
@@ -1533,7 +1533,7 @@ int sexp_tree::save_tree(int node)
 void var_name_from_sexp_tree_text(char *var_name, const char *text)
 {
 	int var_name_length = strcspn(text, "(");
-	Assert(var_name_length < TOKEN_LENGTH - 1);
+	SDL_assert(var_name_length < TOKEN_LENGTH - 1);
 
 	strncpy(var_name, text, var_name_length);
 	var_name[var_name_length] = '\0';
@@ -1571,10 +1571,10 @@ int sexp_tree::save_branch(int cur, int at_root)
 				node = alloc_sexp(nodes[cur].text, SEXP_ATOM, SEXP_ATOM_STRING, -1, -1);
 			}
 		} else if (nodes[cur].type & SEXPT_STRING) {
-			Assert( !(nodes[cur].type & SEXPT_VARIABLE) );
+			SDL_assert( !(nodes[cur].type & SEXPT_VARIABLE) );
 			Int3();
 		} else {
-			Assert(0); // unknown and/or invalid type
+			SDL_assert(0); // unknown and/or invalid type
 		}
 
 		if (last == NO_PREVIOUS_NODE){
@@ -1584,7 +1584,7 @@ int sexp_tree::save_branch(int cur, int at_root)
 		}
 
 		last = node;
-		Assert(last != NO_PREVIOUS_NODE);  // should be impossible
+		SDL_assert(last != NO_PREVIOUS_NODE);  // should be impossible
 		cur = nodes[cur].next;
 		if (at_root){
 			return start;
@@ -1647,7 +1647,7 @@ void sexp_tree::free_node(int node, int cascade)
 
 	// clear the pointer to node
 	i = nodes[node].parent;
-	Assert(i != -1);
+	SDL_assert(i != -1);
 	if (nodes[i].child == node)
 		nodes[i].child = nodes[node].next;
 
@@ -1676,9 +1676,9 @@ void sexp_tree::free_node(int node, int cascade)
 //
 void sexp_tree::free_node2(int node)
 {
-	Assert(node != -1);
-	Assert(nodes[node].type != SEXPT_UNUSED);
-	Assert(total > 0);
+	SDL_assert(node != -1);
+	SDL_assert(nodes[node].type != SEXPT_UNUSED);
+	SDL_assert(total > 0);
 	*modified = 1;
 	nodes[node].type = SEXPT_UNUSED;
 	total--;
@@ -1692,8 +1692,8 @@ void sexp_tree::free_node2(int node)
 // initialize the data for a node.  Should be called right after a new node is allocated.
 void sexp_tree::set_node(int node, int type, char *text)
 {
-	Assert(type != SEXPT_UNUSED);
-	Assert(nodes[node].type != SEXPT_UNUSED);
+	SDL_assert(type != SEXPT_UNUSED);
+	SDL_assert(nodes[node].type != SEXPT_UNUSED);
 	nodes[node].type = type;
 	size_t max_length;
 	if (type & SEXPT_VARIABLE) {
@@ -1701,7 +1701,7 @@ void sexp_tree::set_node(int node, int type, char *text)
 	} else {
 		max_length = TOKEN_LENGTH;
 	}
-	Assert(strlen(text) < max_length);
+	SDL_assert(strlen(text) < max_length);
 	strcpy(nodes[node].text, text);
 }
 
@@ -1728,7 +1728,7 @@ void sexp_tree::add_sub_tree(int node, HTREEITEM root)
 //	char str[80];
 	int node2;
 
-	Assert(node >= 0 && node < MAX_SEXP_TREE_SIZE);
+	SDL_assert(node >= 0 && node < MAX_SEXP_TREE_SIZE);
 	node2 = nodes[node].child;
 
 	// check for single argument operator case (prints as one line)
@@ -1760,13 +1760,13 @@ void sexp_tree::add_sub_tree(int node, HTREEITEM root)
 
 	node = node2;
 	while (node != -1) {
-		Assert(node >= 0 && node < MAX_SEXP_TREE_SIZE);
-		Assert(nodes[node].type & SEXPT_VALID);
+		SDL_assert(node >= 0 && node < MAX_SEXP_TREE_SIZE);
+		SDL_assert(nodes[node].type & SEXPT_VALID);
 		if (nodes[node].type & SEXPT_OPERATOR)	{
 			add_sub_tree(node, root);
 
 		} else {
-			Assert(nodes[node].child == -1);
+			SDL_assert(nodes[node].child == -1);
 			if (nodes[node].type & SEXPT_VARIABLE) {
 				nodes[node].handle = insert(nodes[node].text, BITMAP_VARIABLE, BITMAP_VARIABLE, root);
 				nodes[node].flags = NOT_EDITABLE;
@@ -1801,7 +1801,7 @@ int sexp_tree::get_ambiguous_type(int parent)
 
 	int first_arg_index = get_modify_variable_first_arg_index();
 	int sexp_var_index = get_tree_name_to_sexp_variable_index(nodes[first_arg_index].text);
-	Assert(sexp_var_index != -1);
+	SDL_assert(sexp_var_index != -1);
 
 	if (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_NUMBER) {
 		return OPF_NUMBER;
@@ -1815,17 +1815,17 @@ int sexp_tree::get_modify_variable_first_arg_index()
 {
 	int index;
 
-	Assert( item_index >= 0);
+	SDL_assert( item_index >= 0);
 
 	// get parent and check "modify-variable"
 	index = nodes[item_index].parent;
-	Assert( index != -1 );
-	Assert( !(stricmp(nodes[index].text, "modify-variable")) );
+	SDL_assert( index != -1 );
+	SDL_assert( !(stricmp(nodes[index].text, "modify-variable")) );
 
 	// get first child and verify type variable
 	index = nodes[index].child;
-	Assert( index != -1 );
-	Assert( nodes[index].type & SEXPT_VARIABLE);
+	SDL_assert( index != -1 );
+	SDL_assert( nodes[index].type & SEXPT_VARIABLE);
 
 	return index;
 }
@@ -1847,8 +1847,8 @@ void sexp_tree::right_clicked(int mode)
 
 	m_mode = mode;
 	add_instance = replace_instance = -1;
-	Assert(Num_operators <= MAX_OPERATORS);
-	Assert(Num_op_menus < MAX_OP_MENUS);
+	SDL_assert(Num_operators <= MAX_OPERATORS);
+	SDL_assert(Num_op_menus < MAX_OP_MENUS);
 	GetCursorPos(&mouse);
 	click_point = mouse;
 	ScreenToClient(&click_point);
@@ -1932,7 +1932,7 @@ void sexp_tree::right_clicked(int mode)
 				int parent = nodes[item_index].parent;
 				if (parent >= 0) {
 					op = identify_operator(nodes[parent].text);
-					Assert(op >= 0);
+					SDL_assert(op >= 0);
 					int first_arg = nodes[parent].child;
 
 					// get arg count of item to replace
@@ -1957,7 +1957,7 @@ void sexp_tree::right_clicked(int mode)
 
 							int max_sexp_vars = MAX_SEXP_VARIABLES;
 							// prevent collisions in id numbers: ID_VARIABLE_MENU + 512 = ID_ADD_MENU
-							Assert(max_sexp_vars < 512);
+							SDL_assert(max_sexp_vars < 512);
 
 							for (int idx=0; idx<max_sexp_vars; idx++) {
 								if (Sexp_variables[idx].type & SEXP_VARIABLE_SET) {
@@ -2056,7 +2056,7 @@ void sexp_tree::right_clicked(int mode)
 			return;
 		}
 
-		Assert(item_index != -1);  // handle not found, which should be impossible.
+		SDL_assert(item_index != -1);  // handle not found, which should be impossible.
 		if (!(nodes[item_index].flags & EDITABLE)) {
 			menu.EnableMenuItem(ID_EDIT_TEXT, MF_GRAYED);
 		}
@@ -2083,7 +2083,7 @@ void sexp_tree::right_clicked(int mode)
 			int child = nodes[item_index].child;
 			Add_count = count_args(child);
 			op = identify_operator(nodes[item_index].text);
-			Assert(op >= 0);
+			SDL_assert(op >= 0);
 
 			// get listing of valid argument values and add to menus
 			type = query_operator_argument_type(op, Add_count);
@@ -2156,7 +2156,7 @@ void sexp_tree::right_clicked(int mode)
 		if (parent >= 0) {
 			replace_type = OPR_STRING;
 			op = identify_operator(nodes[parent].text);
-			Assert(op >= 0);
+			SDL_assert(op >= 0);
 			int first_arg = nodes[parent].child;
 			count = count_args(nodes[parent].child);
 
@@ -2277,10 +2277,10 @@ void sexp_tree::right_clicked(int mode)
 
 		// change enabled status of 'insert' type menu options.
 		z = nodes[item_index].parent;
-		Assert(z >= -1);
+		SDL_assert(z >= -1);
 		if (z != -1) {
 			op = identify_operator(nodes[z].text);
-			Assert(op != -1);
+			SDL_assert(op != -1);
 			j = nodes[z].child;
 			count = 0;
 			while (j != item_index) {
@@ -2334,11 +2334,11 @@ void sexp_tree::right_clicked(int mode)
 		}
 
 		if ((Sexp_clipboard > -1) && (Sexp_nodes[Sexp_clipboard].type != SEXP_NOT_USED)) {
-			Assert(Sexp_nodes[Sexp_clipboard].subtype != SEXP_ATOM_LIST);
+			SDL_assert(Sexp_nodes[Sexp_clipboard].subtype != SEXP_ATOM_LIST);
 
 			if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_OPERATOR) {
 				j = find_operator(CTEXT(Sexp_clipboard));
-				Assert(j);
+				SDL_assert(j);
 				z = query_operator_return_type(j);
 
 				if ((z == OPR_POSITIVE) && (replace_type == OPR_NUMBER))
@@ -2408,11 +2408,11 @@ int sexp_tree::identify_arg_type(int node)
 	int type = -1;
 
 	while (node != -1) {
-		Assert(nodes[node].type & SEXPT_VALID);
+		SDL_assert(nodes[node].type & SEXPT_VALID);
 		switch (SEXPT_TYPE(nodes[node].type)) {
 			case SEXPT_OPERATOR:
 				type = find_operator(nodes[node].text);
-				Assert(type);
+				SDL_assert(type);
 				return query_operator_return_type(type);
 
 			case SEXPT_NUMBER:
@@ -2497,7 +2497,7 @@ int sexp_tree::end_label_edit(HTREEITEM h, char *str)
 	if (node == MAX_SEXP_TREE_SIZE) {
 		if (m_mode == MODE_EVENTS) {
 			item_index = GetItemData(h);
-			Assert(Event_editor_dlg);
+			SDL_assert(Event_editor_dlg);
 			node = Event_editor_dlg->handler(ROOT_RENAMED, item_index, str);
 			return 1;
 
@@ -2505,7 +2505,7 @@ int sexp_tree::end_label_edit(HTREEITEM h, char *str)
 			Int3();  // root labels shouldn't have been editable!
 	}
 
-	Assert(node < MAX_SEXP_TREE_SIZE);
+	SDL_assert(node < MAX_SEXP_TREE_SIZE);
 	if (nodes[node].type & SEXPT_OPERATOR) {
 		str = match_closest_operator(str, node);
 		SetItemText(h, str);
@@ -2584,7 +2584,7 @@ char *sexp_tree::match_closest_operator(char *str, int node)
 	arg_num = 0;
 	n = nodes[z].child;
 	while (n != node) {
-		Assert(n >= 0);
+		SDL_assert(n >= 0);
 		arg_num++;
 		n = nodes[n].next;
 	}
@@ -2603,7 +2603,7 @@ char *sexp_tree::match_closest_operator(char *str, int node)
 	if (!best)
 		best = sub_best;  // no best found, use our plan #2 best found.
 
-	Assert(best);  // we better have some valid operator at this point.
+	SDL_assert(best);  // we better have some valid operator at this point.
 	return best;
 
 /*	char buf[256];
@@ -2675,12 +2675,12 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 
 		dlg.DoModal();
 
-		Assert( !(dlg.m_deleted && dlg.m_do_modify) );
+		SDL_assert( !(dlg.m_deleted && dlg.m_do_modify) );
 
 		if (dlg.m_deleted) {
 			// find index in sexp_variable list
 			int sexp_var_index = get_index_sexp_variable_name(dlg.m_cur_variable_name);
-			Assert(sexp_var_index != -1);
+			SDL_assert(sexp_var_index != -1);
 
 			// delete from list
 			sexp_variable_delete(sexp_var_index);
@@ -2699,7 +2699,7 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			// check sexp_tree -- warn on type
 			// find index and change either (1) name, (2) type, (3) value
 			int sexp_var_index = get_index_sexp_variable_name(dlg.m_old_var_name);
-			Assert(sexp_var_index != -1);
+			SDL_assert(sexp_var_index != -1);
 
 			// save old name, since name may be modified
 			char old_name[TOKEN_LENGTH];
@@ -2735,14 +2735,14 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 	// check if REPLACE_VARIABLE_MENU
 	if ( (id >= ID_VARIABLE_MENU) && (id < ID_VARIABLE_MENU + 511)) {
 
-		Assert(item_index >= 0);
+		SDL_assert(item_index >= 0);
 
 		// get index into list of type valid variables
 		int var_idx = id - ID_VARIABLE_MENU;
-		Assert( (var_idx >= 0) && (var_idx < MAX_SEXP_VARIABLES) );
+		SDL_assert( (var_idx >= 0) && (var_idx < MAX_SEXP_VARIABLES) );
 
 		int type = get_type(item_handle);
-		Assert( (type & SEXPT_NUMBER) || (type & SEXPT_STRING) );
+		SDL_assert( (type & SEXPT_NUMBER) || (type & SEXPT_STRING) );
 
 		// dont do type check for modify-variable
 		if (Modify_variable) {
@@ -2758,11 +2758,11 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 	
 			// verify type in tree is same as type in Sexp_variables array
 			if (type & SEXPT_NUMBER) {
-				Assert(Sexp_variables[var_idx].type & SEXP_VARIABLE_NUMBER);
+				SDL_assert(Sexp_variables[var_idx].type & SEXP_VARIABLE_NUMBER);
 			}
 
 			if (type & SEXPT_STRING) {
-				Assert( (Sexp_variables[var_idx].type & SEXP_VARIABLE_STRING) );
+				SDL_assert( (Sexp_variables[var_idx].type & SEXP_VARIABLE_STRING) );
 			}
 		}
 
@@ -2774,23 +2774,23 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 
 
 	if ((id >= ID_ADD_MENU) && (id < ID_ADD_MENU + 511)) {
-		Assert(item_index >= 0);
+		SDL_assert(item_index >= 0);
 		op = identify_operator(nodes[item_index].text);
-		Assert(op >= 0);
+		SDL_assert(op >= 0);
 
 		type = query_operator_argument_type(op, Add_count);
 		list = get_listing_opf(type, item_index, Add_count);
-		Assert(list);
+		SDL_assert(list);
 
 		id -= ID_ADD_MENU;
 		ptr = list;
 		while (id) {
 			id--;
 			ptr = ptr->next;
-			Assert(ptr);
+			SDL_assert(ptr);
 		}
 
-		Assert((SEXPT_TYPE(ptr->type) != SEXPT_OPERATOR) && (ptr->op < 0));
+		SDL_assert((SEXPT_TYPE(ptr->type) != SEXPT_OPERATOR) && (ptr->op < 0));
 		expand_operator(item_index);
 		add_data(ptr->text, ptr->type);
 		list->destroy();
@@ -2798,24 +2798,24 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 	}
 
 	if ((id >= ID_REPLACE_MENU) && (id < ID_REPLACE_MENU + 511)) {
-		Assert(item_index >= 0);
-		Assert(nodes[item_index].parent >= 0);
+		SDL_assert(item_index >= 0);
+		SDL_assert(nodes[item_index].parent >= 0);
 		op = identify_operator(nodes[nodes[item_index].parent].text);
-		Assert(op >= 0);
+		SDL_assert(op >= 0);
 
 		type = query_operator_argument_type(op, Replace_count); // check argument type at this position
 		list = get_listing_opf(type, nodes[item_index].parent, Replace_count);
-		Assert(list);
+		SDL_assert(list);
 
 		id -= ID_REPLACE_MENU;
 		ptr = list;
 		while (id) {
 			id--;
 			ptr = ptr->next;
-			Assert(ptr);
+			SDL_assert(ptr);
 		}
 
-		Assert((SEXPT_TYPE(ptr->type) != SEXPT_OPERATOR) && (ptr->op < 0));
+		SDL_assert((SEXPT_TYPE(ptr->type) != SEXPT_OPERATOR) && (ptr->op < 0));
 		expand_operator(item_index);
 		replace_data(ptr->text, ptr->type);
 		list->destroy();
@@ -2847,12 +2847,12 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			else {
 				h = GetParentItem(nodes[item_index].handle);
 				if (m_mode == MODE_GOALS) {
-					Assert(Goal_editor_dlg);
+					SDL_assert(Goal_editor_dlg);
 					Goal_editor_dlg->insert_handler(item_index, node);
 					SetItemData(h, node);
 
 				} else if (m_mode == MODE_EVENTS) {
-					Assert(Event_editor_dlg);
+					SDL_assert(Event_editor_dlg);
 					Event_editor_dlg->insert_handler(item_index, node);
 					SetItemData(h, node);
 
@@ -2894,8 +2894,8 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 
 		case ID_EDIT_PASTE:
 			// the following assumptions are made..
-			Assert((Sexp_clipboard > -1) && (Sexp_nodes[Sexp_clipboard].type != SEXP_NOT_USED));
-			Assert(Sexp_nodes[Sexp_clipboard].subtype != SEXP_ATOM_LIST);
+			SDL_assert((Sexp_clipboard > -1) && (Sexp_nodes[Sexp_clipboard].type != SEXP_NOT_USED));
+			SDL_assert(Sexp_nodes[Sexp_clipboard].subtype != SEXP_ATOM_LIST);
 
 			if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_OPERATOR) {
 				expand_operator(item_index);
@@ -2910,24 +2910,24 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 				}
 
 			} else if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_NUMBER) {
-				Assert(Sexp_nodes[Sexp_clipboard].rest == -1);
+				SDL_assert(Sexp_nodes[Sexp_clipboard].rest == -1);
 				expand_operator(item_index);
 				replace_data(CTEXT(Sexp_clipboard), (SEXPT_NUMBER | SEXPT_VALID));
 
 			} else if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_STRING) {
-				Assert(Sexp_nodes[Sexp_clipboard].rest == -1);
+				SDL_assert(Sexp_nodes[Sexp_clipboard].rest == -1);
 				expand_operator(item_index);
 				replace_data(CTEXT(Sexp_clipboard), (SEXPT_STRING | SEXPT_VALID));
 
 			} else
-				Assert(0);  // unknown and/or invalid sexp type
+				SDL_assert(0);  // unknown and/or invalid sexp type
 
 			return 1;
 
 		case ID_EDIT_PASTE_SPECIAL:  // add paste, instead of replace.
 			// the following assumptions are made..
-			Assert((Sexp_clipboard > -1) && (Sexp_nodes[Sexp_clipboard].type != SEXP_NOT_USED));
-			Assert(Sexp_nodes[Sexp_clipboard].subtype != SEXP_ATOM_LIST);
+			SDL_assert((Sexp_clipboard > -1) && (Sexp_nodes[Sexp_clipboard].type != SEXP_NOT_USED));
+			SDL_assert(Sexp_nodes[Sexp_clipboard].subtype != SEXP_ATOM_LIST);
 
 			if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_OPERATOR) {
 				expand_operator(item_index);
@@ -2942,17 +2942,17 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 				}
 
 			} else if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_NUMBER) {
-				Assert(Sexp_nodes[Sexp_clipboard].rest == -1);
+				SDL_assert(Sexp_nodes[Sexp_clipboard].rest == -1);
 				expand_operator(item_index);
 				add_data(CTEXT(Sexp_clipboard), (SEXPT_NUMBER | SEXPT_VALID));
 
 			} else if (Sexp_nodes[Sexp_clipboard].subtype == SEXP_ATOM_STRING) {
-				Assert(Sexp_nodes[Sexp_clipboard].rest == -1);
+				SDL_assert(Sexp_nodes[Sexp_clipboard].rest == -1);
 				expand_operator(item_index);
 				add_data(CTEXT(Sexp_clipboard), (SEXPT_STRING | SEXPT_VALID));
 
 			} else
-				Assert(0);  // unknown and/or invalid sexp type
+				SDL_assert(0);  // unknown and/or invalid sexp type
 
 			return 1;
 
@@ -3009,32 +3009,32 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			if ((m_mode & ST_ROOT_DELETABLE) && (item_index == -1)) {
 				item_index = GetItemData(item_handle);
 				if (m_mode == MODE_GOALS) {
-					Assert(Goal_editor_dlg);
+					SDL_assert(Goal_editor_dlg);
 					node = Goal_editor_dlg->handler(ROOT_DELETED, item_index);
 
 				} else if (m_mode == MODE_EVENTS) {
-					Assert(Event_editor_dlg);
+					SDL_assert(Event_editor_dlg);
 					node = Event_editor_dlg->handler(ROOT_DELETED, item_index);
 
 				} else {
-					Assert(m_mode == MODE_CAMPAIGN);
+					SDL_assert(m_mode == MODE_CAMPAIGN);
 					node = Campaign_tree_formp->handler(ROOT_DELETED, item_index);
 				}
 
-				Assert(node >= 0);
+				SDL_assert(node >= 0);
 				free_node2(node);
 				DeleteItem(item_handle);
 				*modified = 1;
 				return 1;
 			}
 
-			Assert(item_index >= 0);
+			SDL_assert(item_index >= 0);
 			h = GetParentItem(item_handle);
 			parent = nodes[item_index].parent;
 			if ((parent == -1) && (m_mode == MODE_EVENTS))
 				Int3();  // no longer used, temporary to check if called still.
 
-			Assert(parent != -1 && nodes[parent].handle == h);
+			SDL_assert(parent != -1 && nodes[parent].handle == h);
 			free_node(item_index);
 			DeleteItem(item_handle);
 
@@ -3064,7 +3064,7 @@ void sexp_tree::add_or_replace_operator(int op, int replace_flag)
 	if (replace_flag) {
 		if (nodes[item_index].flags & OPERAND) {  // are both operators?
 			op2 = identify_operator(nodes[item_index].text);
-			Assert(op2 >= 0);
+			SDL_assert(op2 >= 0);
 			i = count_args(nodes[item_index].child);
 			if ((i >= Operators[op].min) && (i <= Operators[op].max)) {  // are old num args valid?
 				while (i--)
@@ -3211,7 +3211,7 @@ int sexp_tree::add_default_operator(int op, int argnum)
 		return -1;
 
 	if (item.type & SEXPT_OPERATOR) {
-		Assert((item.op >= 0) && (item.op < Num_operators));
+		SDL_assert((item.op >= 0) && (item.op < Num_operators));
 		add_or_replace_operator(item.op);
 		item_index = index;
 		item_handle = h;
@@ -3222,7 +3222,7 @@ int sexp_tree::add_default_operator(int op, int argnum)
 			if (argnum == 0) {
 
 				int sexp_var_index = get_index_sexp_variable_name(item.text);
-				Assert(sexp_var_index != -1);
+				SDL_assert(sexp_var_index != -1);
 				int type = SEXPT_VALID | SEXPT_VARIABLE;
 				if (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_STRING) {
 					type |= SEXPT_STRING;
@@ -3238,12 +3238,12 @@ int sexp_tree::add_default_operator(int op, int argnum)
 			} else {
 				// the the variable name
 				char buf2[256];
-				Assert(argnum == 1);
+				SDL_assert(argnum == 1);
 				sexp_list_item temp_item;
 				temp_item.text = buf2;
 				get_default_value(&temp_item, op, 0);
 				int sexp_var_index = get_index_sexp_variable_name(temp_item.text);
-				Assert(sexp_var_index != -1);
+				SDL_assert(sexp_var_index != -1);
 
 				// from name get type
 				int temp_type = Sexp_variables[sexp_var_index].type;
@@ -3395,7 +3395,7 @@ int sexp_tree::query_default_argument_available(int op)
 {
 	int i;
 
-	Assert(op >= 0);
+	SDL_assert(op >= 0);
 	for (i=0; i<Operators[op].min; i++)
 		if (!query_default_argument_available(op, i))
 			return 0;
@@ -3508,7 +3508,7 @@ int sexp_tree::query_default_argument_available(int op, int i)
 
 		case OPF_MESSAGE:
 			if (m_mode == MODE_EVENTS) {
-				Assert(Event_editor_dlg);
+				SDL_assert(Event_editor_dlg);
 				if (Event_editor_dlg->current_message_name(0))
 					return 1;
 
@@ -3543,14 +3543,14 @@ void sexp_tree::expand_operator(int node)
 
 	if (nodes[node].flags & COMBINED) {
 		node = nodes[node].parent;
-		Assert((nodes[node].flags & OPERAND) && (nodes[node].flags & EDITABLE));
+		SDL_assert((nodes[node].flags & OPERAND) && (nodes[node].flags & EDITABLE));
 	}
 
 	if ((nodes[node].flags & OPERAND) && (nodes[node].flags & EDITABLE)) {  // expandable?
-		Assert(nodes[node].type & SEXPT_OPERATOR);
+		SDL_assert(nodes[node].type & SEXPT_OPERATOR);
 		h = nodes[node].handle;
 		data = nodes[node].child;
-		Assert(data != -1 && nodes[data].next == -1 && nodes[data].child == -1);
+		SDL_assert(data != -1 && nodes[data].next == -1 && nodes[data].child == -1);
 
 		SetItem(h, TVIF_TEXT, nodes[node].text, 0, 0, 0, 0, 0);
 		nodes[node].flags = OPERAND;
@@ -3612,7 +3612,7 @@ int sexp_tree::add_variable_data(char *data, int type)
 {
 	int node;
 
-	Assert(type & SEXPT_VARIABLE);
+	SDL_assert(type & SEXPT_VARIABLE);
 
 	expand_operator(item_index);
 	node = allocate_node(item_index);
@@ -3681,8 +3681,8 @@ int sexp_tree::verify_tree(int node, int *bypass)
 	if (!total)
 		return 0;  // nothing to check
 
-	Assert(node >= 0 && node < MAX_SEXP_TREE_SIZE);
-	Assert(nodes[node].type == SEXPT_OPERATOR);
+	SDL_assert(node >= 0 && node < MAX_SEXP_TREE_SIZE);
+	SDL_assert(nodes[node].type == SEXPT_OPERATOR);
 
 	op = identify_operator(nodes[node].text);
 	if (op == -1)
@@ -3697,7 +3697,7 @@ int sexp_tree::verify_tree(int node, int *bypass)
 	node = nodes[node].child;  // get first argument
 	while (node != -1) {
 		type = query_operator_argument_type(op, argnum);
-		Assert(nodes[node].type & SEXPT_VALID);
+		SDL_assert(nodes[node].type & SEXPT_VALID);
 		if (nodes[node].type == SEXPT_OPERATOR) {
 			if (verify_tree(node) == -1)
 				return -1;
@@ -3718,7 +3718,7 @@ int sexp_tree::verify_tree(int node, int *bypass)
 			type2 = SEXP_ATOM_STRING;
 
 		} else
-			Assert(0);  // unknown and invalid sexp node type.
+			SDL_assert(0);  // unknown and invalid sexp node type.
 
 		switch (type) {
 			case OPF_NUMBER:
@@ -3856,7 +3856,7 @@ void sexp_tree::hilite_item(int node)
 // because the MFC function EnsureVisible() doesn't do what it says it does, I wrote this.
 void sexp_tree::ensure_visible(int node)
 {
-	Assert(node != -1);
+	SDL_assert(node != -1);
 	if (nodes[node].parent != -1)
 		ensure_visible(nodes[node].parent);  // expand all parents first
 
@@ -3876,7 +3876,7 @@ void get_variable_default_text_from_variable_text(char *text, char *default_text
 
 	// find '('
 	start = strstr(text, "(");
-	Assert(start);
+	SDL_assert(start);
 	start++;
 
 	// get length and copy all but last char ")"
@@ -3898,17 +3898,17 @@ void get_variable_name_from_sexp_tree_node_text(const char *text, char *var_name
 
 int sexp_tree::get_modify_variable_type()
 {
-	Assert(item_index > -1);
+	SDL_assert(item_index > -1);
 	int sexp_var_index;
 
 	// get arg
 	int parent = nodes[item_index].parent;
-	Assert(parent != -1);
+	SDL_assert(parent != -1);
 
 	if ( !stricmp(nodes[parent].text, "modify-variable") ) {
-		Assert(nodes[parent].child != -1);
+		SDL_assert(nodes[parent].child != -1);
 		sexp_var_index = get_tree_name_to_sexp_variable_index(nodes[nodes[parent].child].text);
-		Assert(sexp_var_index != -1);
+		SDL_assert(sexp_var_index != -1);
 	} else {
 		Int3();  // should not be called otherwise
 	}
@@ -4066,7 +4066,7 @@ void sexp_tree::replace_variable_data(int var_idx, int type)
 	HTREEITEM h;
 	char buf[128];
 
-	Assert(type & SEXPT_VARIABLE);
+	SDL_assert(type & SEXPT_VARIABLE);
 
 	node = nodes[item_index].child;
 	if (node != -1)
@@ -4161,7 +4161,7 @@ void sexp_tree::move_branch(int source, int parent)
 				node = nodes[node].child;
 				while (nodes[node].next != source) {
 					node = nodes[node].next;
-					Assert(node != -1);
+					SDL_assert(node != -1);
 				}
 
 				nodes[node].next = nodes[source].next;
@@ -4261,8 +4261,8 @@ void sexp_tree::swap_roots(HTREEITEM one, HTREEITEM two)
 {
 	HTREEITEM h;
 
-	Assert(!GetParentItem(one));
-	Assert(!GetParentItem(two));
+	SDL_assert(!GetParentItem(one));
+	SDL_assert(!GetParentItem(two));
 //	copy_branch(one, TVI_ROOT, two);
 //	move_branch(two, TVI_ROOT, one);
 //	DeleteItem(one);
@@ -4336,23 +4336,23 @@ void sexp_tree::OnLButtonUp(UINT nFlags, CPoint point)
 		m_p_image_list = NULL;
 
 		if (m_h_drop && m_h_drag != m_h_drop) {
-			Assert(m_h_drag);
+			SDL_assert(m_h_drag);
 			index1 = GetItemData(m_h_drag);
 			index2 = GetItemData(m_h_drop);
 			swap_roots(m_h_drag, m_h_drop);
 			if (m_mode == MODE_GOALS) {
-				Assert(Goal_editor_dlg);
+				SDL_assert(Goal_editor_dlg);
 				Goal_editor_dlg->swap_handler(index1, index2);
 
 			} else if (m_mode == MODE_EVENTS) {
-				Assert(Event_editor_dlg);
+				SDL_assert(Event_editor_dlg);
 				Event_editor_dlg->swap_handler(index1, index2);
 
 			} else if (m_mode == MODE_CAMPAIGN) {
 				Campaign_tree_formp->swap_handler(index1, index2);
 
 			} else
-				Assert(0);
+				SDL_assert(0);
 
 		} else
 			MessageBeep(0);
@@ -4533,7 +4533,7 @@ void sexp_tree::update_help(HTREEITEM h)
 				c++;
 			}
 
-			Assert(j >= 0);
+			SDL_assert(j >= 0);
 			if (query_operator_argument_type(code, c) == OPF_MESSAGE) {
 				for (j=0; j<Num_messages; j++)
 					if (!stricmp(Messages[j].name, nodes[i].text)) {
@@ -4828,14 +4828,14 @@ sexp_list_item *sexp_tree::get_listing_opf_ship(int parent_node)
 			int z;
 
 			z = nodes[parent_node].parent;
-			Assert(z >= 0);
-			Assert(!stricmp(nodes[z].text, "add-ship-goal") || !stricmp(nodes[z].text, "add-wing-goal") || !stricmp(nodes[z].text, "add-goal"));
+			SDL_assert(z >= 0);
+			SDL_assert(!stricmp(nodes[z].text, "add-ship-goal") || !stricmp(nodes[z].text, "add-wing-goal") || !stricmp(nodes[z].text, "add-goal"));
 
 			z = nodes[z].child;
-			Assert(z >= 0);
+			SDL_assert(z >= 0);
 
 			dock_ship = ship_name_lookup(nodes[z].text, 1);
-			Assert( dock_ship != -1 );
+			SDL_assert( dock_ship != -1 );
 		}
 	}
 
@@ -4888,14 +4888,14 @@ sexp_list_item *sexp_tree::get_listing_opf_subsystem(int parent_node, int arg_in
 
 	// determine if the parent is one of the set subsystem strength items.  If so,
 	// we want to append the "Hull" name onto the end of the menu
-	Assert(parent_node >= 0);	
+	SDL_assert(parent_node >= 0);	
 	
 	// get the operator type of the node
 	op = find_operator(nodes[parent_node].text);
 
 	// first child node
 	child = nodes[parent_node].child;
-	Assert(child >= 0);
+	SDL_assert(child >= 0);
 
 	switch(op){
 	// where we care about hull strength
@@ -4924,18 +4924,18 @@ sexp_list_item *sexp_tree::get_listing_opf_subsystem(int parent_node, int arg_in
 
 		// if this is arg index 3 (targeted ship)
 		if(arg_index == 3){			
-			Assert(arg_index == 3);
+			SDL_assert(arg_index == 3);
 			child = nodes[child].next;
-			Assert(child >= 0);			
+			SDL_assert(child >= 0);			
 			child = nodes[child].next;			
 		} else {
-			Assert(arg_index == 1);
+			SDL_assert(arg_index == 1);
 		}
 		break;
 	}			
 
 	// now find the ship and add all relevant subsystems
-	Assert(child >= 0);
+	SDL_assert(child >= 0);
 	sh = ship_name_lookup(nodes[child].text, 1);
 	if (sh >= 0) {
 		subsys = GET_FIRST(&Ships[sh].subsys_list);
@@ -5011,9 +5011,9 @@ sexp_list_item *sexp_tree::get_listing_opf_ai_goal(int parent_node)
 	int i, n, w, z, child;
 	sexp_list_item head;
 
-	Assert(parent_node >= 0);
+	SDL_assert(parent_node >= 0);
 	child = nodes[parent_node].child;
-	Assert(child >= 0);
+	SDL_assert(child >= 0);
 	n = ship_name_lookup(nodes[child].text, 1);
 	if (n >= 0) {
 		// add operators if it's an ai-goal and ai-goal is allowed for that ship
@@ -5046,15 +5046,15 @@ sexp_list_item *sexp_tree::get_listing_opf_docker_point(int parent_node)
 	int i, z, sh;
 	sexp_list_item head;
 
-	Assert(parent_node >= 0);
-	Assert(!stricmp(nodes[parent_node].text, "ai-dock"));
+	SDL_assert(parent_node >= 0);
+	SDL_assert(!stricmp(nodes[parent_node].text, "ai-dock"));
 
 	z = nodes[parent_node].parent;
-	Assert(z >= 0);
-	Assert(!stricmp(nodes[z].text, "add-ship-goal") || !stricmp(nodes[z].text, "add-wing-goal") || !stricmp(nodes[z].text, "add-goal"));
+	SDL_assert(z >= 0);
+	SDL_assert(!stricmp(nodes[z].text, "add-ship-goal") || !stricmp(nodes[z].text, "add-wing-goal") || !stricmp(nodes[z].text, "add-goal"));
 
 	z = nodes[z].child;
-	Assert(z >= 0);
+	SDL_assert(z >= 0);
 
 	sh = ship_name_lookup(nodes[z].text, 1);
 	if (sh >= 0) {
@@ -5071,11 +5071,11 @@ sexp_list_item *sexp_tree::get_listing_opf_dockee_point(int parent_node)
 	int i, z, sh;
 	sexp_list_item head;
 
-	Assert(parent_node >= 0);
-	Assert(!stricmp(nodes[parent_node].text, "ai-dock"));
+	SDL_assert(parent_node >= 0);
+	SDL_assert(!stricmp(nodes[parent_node].text, "ai-dock"));
 
 	z = nodes[parent_node].child;
-	Assert(z >= 0);
+	SDL_assert(z >= 0);
 
 	sh = ship_name_lookup(nodes[z].text, 1);
 	if (sh >= 0) {
@@ -5094,7 +5094,7 @@ sexp_list_item *sexp_tree::get_listing_opf_message()
 	sexp_list_item head;
 
 	if (m_mode == MODE_EVENTS) {
-		Assert(Event_editor_dlg);
+		SDL_assert(Event_editor_dlg);
 		// this for looks a litle strange, but had to do it get rid of a warning.  Conditional
 		//uses last statement is sequence, i.e. same as for (i=0, str, i++)
 		for (i=0; str = Event_editor_dlg->current_message_name(i), str; i++)
@@ -5197,9 +5197,9 @@ sexp_list_item *sexp_tree::get_listing_opf_goal_name(int parent_node)
 	if (m_mode == MODE_CAMPAIGN) {
 		int child;
 
-		Assert(parent_node >= 0);
+		SDL_assert(parent_node >= 0);
 		child = nodes[parent_node].child;
-		Assert(child >= 0);
+		SDL_assert(child >= 0);
 
 		for (m=0; m<Campaign.num_missions; m++)
 			if (!stricmp(Campaign.missions[m].name, nodes[child].text))
@@ -5265,9 +5265,9 @@ sexp_list_item *sexp_tree::get_listing_opf_event_name(int parent_node)
 	if (m_mode == MODE_CAMPAIGN) {
 		int child;
 
-		Assert(parent_node >= 0);
+		SDL_assert(parent_node >= 0);
 		child = nodes[parent_node].child;
-		Assert(child >= 0);
+		SDL_assert(child >= 0);
 
 		for (m=0; m<Campaign.num_missions; m++)
 			if (!stricmp(Campaign.missions[m].name, nodes[child].text))
@@ -5432,7 +5432,7 @@ void sexp_tree::delete_sexp_tree_variable(const char *var_name)
 			if ( strstr(nodes[idx].text, search_str) != NULL ) {
 
 				// check type is number or string
-				Assert( (nodes[idx].type & SEXPT_NUMBER) || (nodes[idx].type & SEXPT_STRING) );
+				SDL_assert( (nodes[idx].type & SEXPT_NUMBER) || (nodes[idx].type & SEXPT_STRING) );
 
 				// reset type as not variable
 				int type = nodes[idx].type &= ~SEXPT_VARIABLE;
@@ -5462,8 +5462,8 @@ void sexp_tree::modify_sexp_tree_variable(const char *old_name, int sexp_var_ind
 	char search_str[64];
 	int type;
 
-	Assert(Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_SET);
-	Assert( (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_NUMBER) || (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_STRING) );
+	SDL_assert(Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_SET);
+	SDL_assert( (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_NUMBER) || (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_STRING) );
 
 	// Get type for sexp_tree node
 	if (Sexp_variables[sexp_var_index].type & SEXP_VARIABLE_NUMBER) {
@@ -5512,7 +5512,7 @@ int sexp_tree::get_tree_name_to_sexp_variable_index(const char *tree_name)
 	char var_name[TOKEN_LENGTH];
 
 	int chars_to_copy = strcspn(tree_name, "(");
-	Assert(chars_to_copy < TOKEN_LENGTH - 1);
+	SDL_assert(chars_to_copy < TOKEN_LENGTH - 1);
 
 	// Copy up to '(' and add null termination
 	strncpy(var_name, tree_name, chars_to_copy);

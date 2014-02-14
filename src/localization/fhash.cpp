@@ -131,13 +131,13 @@ void fhash_add_str(char *str, int id)
 	int hash_index;
 
 	// if the hash table isn't active, don't bother
-	Assert(Fhash_active);
+	SDL_assert(Fhash_active);
 	if(!Fhash_active){
 		return;
 	}
 
 	// determine where the string goes in the has table
-	Assert(str != NULL);
+	SDL_assert(str != NULL);
 	if(str == NULL){
 		return;
 	}
@@ -154,7 +154,7 @@ int fhash_string_exists(char *str)
 	int hash_index;
 	fhash_node *moveup;
 
-	Assert(str != NULL);
+	SDL_assert(str != NULL);
 	if(str == NULL){
 		return -2;
 	}
@@ -171,7 +171,7 @@ int fhash_string_exists(char *str)
 	moveup = Hash_table_fred[hash_index];
 	while(moveup != NULL){
 		// do a string compare on this item
-		Assert(moveup->str != NULL);
+		SDL_assert(moveup->str != NULL);
 		if(moveup->str != NULL){
 			if(!strcmp(moveup->str, str)){
 				return moveup->id;
@@ -216,7 +216,7 @@ void fhash_insert(char *str, int id, int n)
 
 	// allocate the new node
 	new_node = (fhash_node*)malloc(sizeof(fhash_node));
-	Assert(new_node);
+	SDL_assert(new_node);
 	if(new_node == NULL){
 		return;
 	}

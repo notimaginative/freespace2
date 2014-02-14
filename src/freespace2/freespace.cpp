@@ -220,7 +220,7 @@
  * Directsound decides to be lame. Fix TOPMOST problem with D3D windows.
  * 
  * 183   9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 182   9/08/99 10:29p Dave
@@ -1300,7 +1300,7 @@ fs_builtin_mission *game_find_builtin_mission(const char *filename)
 
 	// look through all existing builtin missions
 	for(idx=0; idx<Game_builtin_mission_count; idx++){
-		if(!stricmp(Game_builtin_mission_list[idx].filename, filename)){
+		if(!SDL_strcasecmp(Game_builtin_mission_list[idx].filename, filename)){
 			return &Game_builtin_mission_list[idx];
 		}
 	}
@@ -1729,7 +1729,7 @@ void game_level_init(int seed)
 		}
 	} else {
 		// mwa 9/17/98 -- maybe this assert isn't needed????
-		Assert( !(Game_mode & GM_MULTIPLAYER) );
+		SDL_assert( !(Game_mode & GM_MULTIPLAYER) );
 		Game_level_seed = seed;
 	}
 	srand( Game_level_seed );
@@ -1817,7 +1817,7 @@ void freespace_stop_mission()
 // called at frame interval to process networking stuff
 void game_do_networking()
 {
-	Assert( Net_player != NULL );
+	SDL_assert( Net_player != NULL );
 	if (!(Game_mode & GM_MULTIPLAYER)){
 		return;
 	}
@@ -1845,12 +1845,12 @@ void game_load_palette()
 
 	// We only use 3 hud colors right now
 #ifdef MAKE_FS1
-	Assert( HUD_config.main_color >= 0 );
-	Assert( HUD_config.main_color <= 2 );
+	SDL_assert( HUD_config.main_color >= 0 );
+	SDL_assert( HUD_config.main_color <= 2 );
 #endif
 
-	Assert( Mission_palette >= 0 );
-	Assert( Mission_palette <= 98 );
+	SDL_assert( Mission_palette >= 0 );
+	SDL_assert( Mission_palette <= 98 );
 
 #ifdef MAKE_FS1
 	if ( The_mission.flags & MISSION_FLAG_SUBSPACE )	{
@@ -1933,8 +1933,8 @@ void game_loading_callback(int count)
 {	
 	game_do_networking();
 
-	Assert( Game_loading_callback_inited==1 );
-	Assert( Game_loading_ani != NULL );
+	SDL_assert( Game_loading_callback_inited==1 );
+	SDL_assert( Game_loading_ani != NULL );
 
 	int framenum = ((Game_loading_ani->total_frames*count) / COUNT_ESTIMATE)+1;
 	if ( framenum > Game_loading_ani->total_frames-1 )	{
@@ -1968,7 +1968,7 @@ void game_loading_callback(int count)
 
 void game_loading_callback_init()
 {
-	Assert( Game_loading_callback_inited==0 );
+	SDL_assert( Game_loading_callback_inited==0 );
 
 	Game_loading_background = bm_load(Game_loading_bground_fname[gr_screen.res]);
 #ifdef MAKE_FS1
@@ -1977,9 +1977,9 @@ void game_loading_callback_init()
 
 
 	Game_loading_ani = anim_load( Game_loading_ani_fname[gr_screen.res]);
-	Assert( Game_loading_ani != NULL );
+	SDL_assert( Game_loading_ani != NULL );
 	Game_loading_ani_instance = init_anim_instance(Game_loading_ani, 16);
-	Assert( Game_loading_ani_instance != NULL );
+	SDL_assert( Game_loading_ani_instance != NULL );
 	Game_loading_frame = -1;
 
 	Game_loading_callback_inited = 1;
@@ -1991,7 +1991,7 @@ void game_loading_callback_init()
 
 void game_loading_callback_close()
 {
-	Assert( Game_loading_callback_inited==1 );
+	SDL_assert( Game_loading_callback_inited==1 );
 
 	// Make sure bar shows all the way over.
 	game_loading_callback(COUNT_ESTIMATE);
@@ -2436,9 +2436,9 @@ void game_init()
 	ptr = os_config_read_string(NULL, NOX("Soundcard"), NULL);
 	mprintf(("soundcard = %s\n", ptr ? ptr : "<nothing>"));
 	if (ptr) {
-		if (!stricmp(ptr, NOX("no sound"))) {
+		if (!SDL_strcasecmp(ptr, NOX("no sound"))) {
 			Cmdline_freespace_no_sound = 1;
-		} else if ( !stricmp(ptr, NOX("EAX")) || !stricmp(ptr, NOX("Aureal A3D")) ) {
+		} else if ( !SDL_strcasecmp(ptr, NOX("EAX")) || !SDL_strcasecmp(ptr, NOX("Aureal A3D")) ) {
 			use_eax = 1;
 		}
 	}
@@ -2485,7 +2485,7 @@ void game_init()
 	}
 
 	if(!Is_standalone){
-		if(!stricmp(ptr, "Aucune acc�l�ration 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
+		if(!SDL_strcasecmp(ptr, "Aucune acc�l�ration 3D") || !SDL_strcasecmp(ptr, "Keine 3D-Beschleunigerkarte") || !SDL_strcasecmp(ptr, "No 3D acceleration")){
 #ifndef PLAT_UNIX		
 			MessageBox((HWND)os_get_window(), XSTR("Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it.", 1448), XSTR("Warning", 1449), MB_OK);
 #else
@@ -3603,9 +3603,9 @@ void apply_hud_shake(matrix *eye_orient)
 
 		matrix	tm, tm2;
 		vm_angles_2_matrix(&tm, &tangles);
-		Assert(vm_vec_mag(&tm.v.fvec) > 0.0f);
-		Assert(vm_vec_mag(&tm.v.rvec) > 0.0f);
-		Assert(vm_vec_mag(&tm.v.uvec) > 0.0f);
+		SDL_assert(vm_vec_mag(&tm.v.fvec) > 0.0f);
+		SDL_assert(vm_vec_mag(&tm.v.rvec) > 0.0f);
+		SDL_assert(vm_vec_mag(&tm.v.uvec) > 0.0f);
 		vm_matrix_x_matrix(&tm2, eye_orient, &tm);
 		*eye_orient = tm2;
 	}
@@ -4088,7 +4088,7 @@ void game_flip_page_and_time_it()
 	d = t2 - t1;
 	if (d != 0) {
 		t = (gr_screen.max_w*gr_screen.max_h*gr_screen.bytes_per_pixel)/1024;
-		sprintf( transfer_text, NOX("%ld MB/s"), fixmuldiv(t,65,d) );
+		sprintf( transfer_text, NOX("%d MB/s"), fixmuldiv(t,65,d) );
 	}
 #else
 	gr_flip ();
@@ -4297,7 +4297,7 @@ void game_maybe_do_dead_popup(float frametime)
 			// this should only happen during a red alert mission
 			case 3:				
 				// bogus?
-				Assert(The_mission.red_alert);
+				SDL_assert(The_mission.red_alert);
 				if(!The_mission.red_alert){
 					gameseq_post_event(GS_EVENT_START_GAME);
 					break;
@@ -4423,7 +4423,7 @@ void game_frame()
 	
 	if ((!(Game_mode & GM_MULTIPLAYER)) || ((Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_OBSERVER))) {
 		if (!(Game_mode & GM_STANDALONE_SERVER)){
-			Assert( OBJ_INDEX(Player_obj) >= 0 );
+			SDL_assert( OBJ_INDEX(Player_obj) >= 0 );
 		}
 	}
 
@@ -4478,7 +4478,7 @@ void game_frame()
 	// if not actually in a game play state, then return.  This condition could only be true in 
 	// a multiplayer game.
 	if ( !actually_playing ) {
-		Assert( Game_mode & GM_MULTIPLAYER );
+		SDL_assert( Game_mode & GM_MULTIPLAYER );
 		return;
 	}
 
@@ -4661,7 +4661,7 @@ void game_stop_time()
 void game_start_time()
 {
 	timer_paused--;
-	Assert(timer_paused >= 0);
+	SDL_assert(timer_paused >= 0);
 	if (timer_paused==0) {
 		fix time;
 		time = timer_get_fixed_seconds();
@@ -4681,7 +4681,7 @@ void game_start_time()
 
 		// Restore the timer_tick stuff...
 		// Normally, you should never access 'timestamp_ticker', consider this a low-level routine
-		Assert( saved_timestamp_ticker > -1 );		// Called out of order, get JAS
+		SDL_assert( saved_timestamp_ticker > -1 );		// Called out of order, get JAS
 		timestamp_ticker = saved_timestamp_ticker;
 		saved_timestamp_ticker = -1;
 	}
@@ -4728,7 +4728,7 @@ void game_set_frametime(int state)
 	}
 #endif
 
-	Assert( Framerate_cap > 0 );
+	SDL_assert( Framerate_cap > 0 );
 
 	// Cap the framerate so it doesn't get too high.
 	{
@@ -4738,7 +4738,7 @@ void game_set_frametime(int state)
 		if (Frametime < cap) {
 			thistime = cap - Frametime;
 			//mprintf(("Sleeping for %6.3f seconds.\n", f2fl(thistime)));
-			Sleep( (DWORD)(f2fl(thistime) * 1000.0f) );
+			SDL_Delay( (f2fl(thistime) * 1000.0f) );
 			Frametime = cap;
 			thistime = timer_get_fixed_seconds();
 		}
@@ -4748,7 +4748,7 @@ void game_set_frametime(int state)
 		(f2fl(Frametime) < ((float)1.0/(float)Multi_options_g.std_framecap))){
 
 		frame_cap_diff = ((float)1.0/(float)Multi_options_g.std_framecap) - f2fl(Frametime);		
-		Sleep((DWORD)(frame_cap_diff*1000)); 				
+		SDL_Delay((frame_cap_diff*1000));
 		
 		thistime += fl2f((frame_cap_diff));		
 
@@ -4844,7 +4844,7 @@ void game_flush()
 // debug console
 void game_do_dc_networking()
 {
-	Assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 	game_do_state_common( gameseq_get_state() );
 }
@@ -5257,9 +5257,9 @@ void game_process_event( int current_state, int event )
 		case GS_EVENT_DEBRIEF:
 			// did we end the campaign in the main freespace 2 single player campaign?
 #ifdef MAKE_FS1
-			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !stricmp(Campaign.filename, "freespace")) {
+			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !SDL_strcasecmp(Campaign.filename, "freespace")) {
 #else
-			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !stricmp(Campaign.filename, "freespace2")) {
+			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !SDL_strcasecmp(Campaign.filename, "freespace2")) {
 #endif
 				gameseq_post_event(GS_EVENT_END_CAMPAIGN);
 			} else {
@@ -5427,7 +5427,7 @@ void game_process_event( int current_state, int event )
 				
 				// look for the mission
 				for(idx=0; idx<Campaign.num_missions; idx++){
-					if(!stricmp(Campaign.missions[idx].name, Main_hall_campaign_cheat)){
+					if(!SDL_strcasecmp(Campaign.missions[idx].name, Main_hall_campaign_cheat)){
 						Campaign.next_mission = idx;
 						Campaign.prev_mission = idx - 1;
 						break;
@@ -5954,7 +5954,7 @@ void game_leave_state( int old_state, int new_state )
 				break;
 			}
 
-			Assert( Game_mode & GM_MULTIPLAYER );
+			SDL_assert( Game_mode & GM_MULTIPLAYER );
 			multi_sync_close();
 			if ( new_state == GS_STATE_GAME_PLAY ){
 				// palette_restore_palette();
@@ -6032,7 +6032,7 @@ void game_enter_state( int old_state, int new_state )
 		case GS_STATE_MAIN_MENU:				
 			// in multiplayer mode, be sure that we are not doing networking anymore.
 			if ( Game_mode & GM_MULTIPLAYER ) {
-				Assert( Net_player != NULL );
+				SDL_assert( Net_player != NULL );
 				Net_player->flags &= ~NETINFO_FLAG_DO_NETWORKING;
 			}
 
@@ -6201,7 +6201,7 @@ void game_enter_state( int old_state, int new_state )
 
 			// special code that restores player ship selection and weapons loadout when doing a quick start
 			if ( !(Game_mode & GM_MULTIPLAYER) && ((old_state == GS_STATE_MAIN_MENU) || (old_state == GS_STATE_DEATH_BLEW_UP)  || (old_state == GS_STATE_GAME_PLAY)) ) {
-				if ( !stricmp(Player_loadout.filename, Game_current_mission_filename) ) {
+				if ( !SDL_strcasecmp(Player_loadout.filename, Game_current_mission_filename) ) {
 					wss_direct_restore_loadout();
 				}
 			}
@@ -7358,7 +7358,7 @@ void unload_animating_pointer()
 
 	am = &Animating_mouse;
 	for ( i = 0; i < am->num_frames; i++ ) {
-		Assert( (am->first_frame+i) >= 0 );
+		SDL_assert( (am->first_frame+i) >= 0 );
 		bm_release(am->first_frame + i);
 	}
 
@@ -8020,7 +8020,7 @@ void oem_upsell_show_screens()
 	int nframes;						// used to pass, not really needed (should be 1)
 	Oem_normal_cursor = gr_get_cursor_bitmap();
 	Oem_web_cursor = bm_load_animation("cursorweb", &nframes);
-	Assert(Oem_web_cursor >= 0);
+	SDL_assert(Oem_web_cursor >= 0);
 	if (Oem_web_cursor < 0) {
 		Oem_web_cursor = Oem_normal_cursor;
 	}
@@ -8080,7 +8080,7 @@ void oem_upsell_show_screens()
 		if ( done ) {
 			if (gameseq_get_state() != GS_STATE_END_DEMO) {
 				gr_fade_out(0);
-				Sleep(300);
+				SDL_Delay(300);
 			}
 		}
 
@@ -8250,7 +8250,7 @@ void demo_upsell_show_screens()
 		if ( done ) {
 			if (gameseq_get_state() != GS_STATE_END_DEMO) {
 				gr_fade_out(0);
-				Sleep(300);
+				SDL_Delay(300);
 			}
 		}
 

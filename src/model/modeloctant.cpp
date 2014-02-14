@@ -40,7 +40,7 @@
  * Large overhaul in how turrets fire.
  * 
  * 15    4/02/98 8:16a John
- * Fixed Assert in model_collide with large ships
+ * Fixed SDL_assert in model_collide with large ships
  * 
  * 14    4/01/98 5:34p John
  * Made only the used POFs page in for a level.   Reduced some interp
@@ -150,7 +150,7 @@ void model_octant_find_shields( polymodel * pm, model_octant * oct )
 
 	oct->nshield_tris = n;
 	oct->shield_tris = (shield_tri **)malloc( sizeof(shield_tri *) * oct->nshield_tris );
-	Assert(oct->shield_tris!=NULL);
+	SDL_assert(oct->shield_tris!=NULL);
 
 	n = 0;
 		
@@ -167,7 +167,7 @@ void model_octant_find_shields( polymodel * pm, model_octant * oct )
 		}
 	}
 
-	Assert( oct->nshield_tris == n );
+	SDL_assert( oct->nshield_tris == n );
 }
 
 
@@ -181,8 +181,8 @@ void moff_defpoints(ubyte * p)
 	ubyte * normcount = p+20;
 	vector *src = vp(p+offset);
 
-	Assert( nverts < MAX_POLYGON_VECS );
-	// Assert( nnorms < MAX_POLYGON_NORMS );
+	SDL_assert( nverts < MAX_POLYGON_VECS );
+	// SDL_assert( nnorms < MAX_POLYGON_NORMS );
 
 	for (n=0; n<nverts; n++ )	{
 
@@ -371,7 +371,7 @@ void model_octant_find_faces( polymodel * pm, model_octant * oct )
 	}
 
 	oct->verts = (vector **)malloc( sizeof(vector *) * oct->nverts );
-	Assert(oct->verts!=NULL);
+	SDL_assert(oct->verts!=NULL);
 
 	oct->nverts = 0;
 	model_octant_find_faces_sub(pm, oct, p, 0 );

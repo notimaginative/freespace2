@@ -925,11 +925,11 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 				if ( tspeed < MATCH_SPEED_THRESHOLD ) {
 					ai_info *aip;
 
-					Assert(Objects[Player_ai->target_objnum].type == OBJ_SHIP);
+					SDL_assert(Objects[Player_ai->target_objnum].type == OBJ_SHIP);
 
 					aip = &Ai_info[Ships[Objects[Player_ai->target_objnum].instance].ai_index];
 					if ( aip->ai_flags & AIF_DOCKED ) {
-						Assert( aip->dock_objnum != -1 );
+						SDL_assert( aip->dock_objnum != -1 );
 						tspeed = Objects[aip->dock_objnum].phys_info.fspeed;
 					}
 				}
@@ -1076,7 +1076,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 		// see if the afterburner has been started (keyboard + joystick)
 		if (check_control(AFTERBURNER)) {
 			if (!afterburner_last) {
-				Assert(Player_ship);
+				SDL_assert(Player_ship);
 				if ( !(Ship_info[Player_ship->ship_info_index].flags & SIF_AFTERBURNER) ) {
 					gamesnd_play_error_beep();
 				} else {
@@ -1286,7 +1286,7 @@ void player_match_target_speed(char *no_target_text, char *match_off_text, char 
 			ai_info *aip;
 			aip = &Ai_info[Ships[Objects[Player_ai->target_objnum].instance].ai_index];
 			if ( aip->ai_flags & AIF_DOCKED ) {
-				Assert( aip->dock_objnum != -1 );
+				SDL_assert( aip->dock_objnum != -1 );
 				if ( Objects[aip->dock_objnum].phys_info.fspeed > MATCH_SPEED_THRESHOLD ) {
 					can_match=1;
 				}
@@ -1502,7 +1502,7 @@ void player_init()
 // stop any looping sounds associated with the Player, called from game_stop_looped_sounds().
 void player_stop_looped_sounds()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->repair_sound_loop > -1 )	{
 		snd_stop(Player->repair_sound_loop);
 		Player->repair_sound_loop = -1;
@@ -1517,7 +1517,7 @@ void player_stop_looped_sounds()
 // repaired by a support ship
 void player_maybe_start_repair_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->repair_sound_loop == -1 ) {
 		Player->repair_sound_loop = snd_play_looping( &Snds[SND_SHIP_REPAIR] );
 	}
@@ -1526,7 +1526,7 @@ void player_maybe_start_repair_sound()
 // stop the player repair sound if it is already playing
 void player_stop_repair_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->repair_sound_loop != -1 ) {
 		snd_stop(Player->repair_sound_loop);
 		Player->repair_sound_loop  = -1;
@@ -1536,7 +1536,7 @@ void player_stop_repair_sound()
 // start the cargo scanning sound if it hasn't already been started
 void player_maybe_start_cargo_scan_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->cargo_scan_loop == -1 ) {
 		Player->cargo_scan_loop = snd_play_looping( &Snds[SND_CARGO_SCAN] );
 	}
@@ -1545,7 +1545,7 @@ void player_maybe_start_cargo_scan_sound()
 // stop the player repair sound if it is already playing
 void player_stop_cargo_scan_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->cargo_scan_loop != -1 ) {
 		snd_stop(Player->cargo_scan_loop);
 		Player->cargo_scan_loop  = -1;
@@ -1613,7 +1613,7 @@ int player_inspect_cargo(float frametime, char *outstr)
 	}
 
 	cargo_objp = &Objects[Player_ai->target_objnum];
-	Assert(cargo_objp->type == OBJ_SHIP);
+	SDL_assert(cargo_objp->type == OBJ_SHIP);
 	cargo_sp = &Ships[cargo_objp->instance];
 	cargo_sip = &Ship_info[cargo_sp->ship_info_index];
 
@@ -1652,7 +1652,7 @@ int player_inspect_cargo(float frametime, char *outstr)
 		if ( !(cargo_sp->flags & SF_SCANNABLE) ) {
 			char *cargo_name;
 			cargo_name = Cargo_names[cargo_sp->cargo1 & CARGO_INDEX_MASK];
-			Assert ( cargo_name );
+			SDL_assert ( cargo_name );
 
 			if ( cargo_sip->flags & (SIF_CARGO|SIF_TRANSPORT) ) {
 				if ( cargo_name[0] == '#' )
@@ -1662,11 +1662,11 @@ int player_inspect_cargo(float frametime, char *outstr)
 			} else {
 				int pn;
 
-				Assert( Game_mode & GM_MULTIPLAYER );
+				SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 				// get a player num from the object, then get a callsign from the player structure.
 				pn = multi_find_player_by_object( cargo_objp );
-				// Assert( pn != -1 );
+				// SDL_assert( pn != -1 );
 				if(pn == -1){
 					strcpy(outstr, "");
 				} else {
@@ -1744,11 +1744,11 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 	} 
 
 	cargo_objp = &Objects[Player_ai->target_objnum];
-	Assert(cargo_objp->type == OBJ_SHIP);
+	SDL_assert(cargo_objp->type == OBJ_SHIP);
 	cargo_sp = &Ships[cargo_objp->instance];
 	cargo_sip = &Ship_info[cargo_sp->ship_info_index];
 
-	Assert(cargo_sip->flags & SIF_HUGE_SHIP);
+	SDL_assert(cargo_sip->flags & SIF_HUGE_SHIP);
 
 	if ( !(cargo_sp->flags & SF_SCANNABLE) ) {
 		return 0;
@@ -1767,7 +1767,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 		} else {
 			cargo_name = Cargo_names[subsys->subsys_cargo_name];
 		}
-		Assert ( cargo_name );
+		SDL_assert ( cargo_name );
 
 		sprintf(outstr,XSTR( "cargo: %s", 84), cargo_name );
 	
@@ -1882,7 +1882,7 @@ char *player_generate_death_text( player *player_p, char *death_text )
 		}
 		break;
 	case OBJ_WEAPON:
-		Assert(weapon_name[0]);
+		SDL_assert(weapon_name[0]);
 
 		// is this from a friendly ship?
 		int ship_index;
@@ -2091,7 +2091,7 @@ void player_set_padlock_state()
 
 void player_get_padlock_orient(matrix *eye_orient)
 {
-	Assert(Viewer_mode & VM_PADLOCK_ANY);
+	SDL_assert(Viewer_mode & VM_PADLOCK_ANY);
 
 	matrix old_eye_orient;
 	old_eye_orient = *eye_orient;
@@ -2174,8 +2174,8 @@ void player_get_eye(vector *eye_pos, matrix *eye_orient)
 		return;
 	}
 
-	Assert(eye_pos != NULL);
-	Assert(eye_orient != NULL);
+	SDL_assert(eye_pos != NULL);
+	SDL_assert(eye_orient != NULL);
 
 	if (Game_mode & GM_DEAD) {
 		vector	vec_to_deader, view_pos;

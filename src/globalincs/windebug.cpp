@@ -89,7 +89,7 @@
  * modules with no debugging info
  * 
  * 15    3/05/98 3:04p John
- * Made Errors, Assert, Warning info paste to clipboard.
+ * Made Errors, SDL_assert, Warning info paste to clipboard.
  * 
  * 14    3/05/98 9:17a John
  * Limited stack dump depth to 16
@@ -98,7 +98,7 @@
  * Added in a simple function name unmangler
  * 
  * 12    3/04/98 7:08p John
- * Made Freespace generate COFF files.   Made Assert,Error, and Warning
+ * Made Freespace generate COFF files.   Made SDL_assert,Error, and Warning
  * display the call stack.
  * 
  * 11    2/22/98 2:48p John
@@ -466,7 +466,7 @@ void PE_Debug::DumpSymbolInfo( DumpBuffer& dumpBuffer, DWORD relativeAddress )
 		// Microsoft uses sections that only _begin_ with .text
 		const char* symName = GetSymbolName( currentSym ) ;
 
-		if ( strnicmp( symName, ".text", 5 ) == 0 || strcmpi( symName, "CODE" ) == 0 )	{
+		if ( SDL_strncasecmp( symName, ".text", 5 ) == 0 || strcmpi( symName, "CODE" ) == 0 )	{
 			if ( currentSym->Value <= relativeAddress )	{
 				PIMAGE_AUX_SYMBOL auxSym = (PIMAGE_AUX_SYMBOL)(currentSym + 1) ;
 				if ( currentSym->Value + auxSym->Section.Length >= relativeAddress )	{
@@ -554,7 +554,7 @@ PIMAGE_SECTION_HEADER PE_Debug :: SectionHeaderFromName( const char* name )
   PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION( NT_Header ) ;
   for( unsigned i = 0; i < NT_Header->FileHeader.NumberOfSections; i++ )
     {
-    if( strnicmp( (const char*)section->Name, name, IMAGE_SIZEOF_SHORT_NAME ) == 0 )
+    if( SDL_strncasecmp( (const char*)section->Name, name, IMAGE_SIZEOF_SHORT_NAME ) == 0 )
       return( section ) ;
     else
       section++ ;
@@ -831,7 +831,7 @@ void dump_text_to_clipboard(char *text)
 	CloseClipboard();
 }
 
-
+/*
 void _cdecl WinAssert(char * text, char * filename, int linenum )
 {
 	int val;
@@ -839,7 +839,7 @@ void _cdecl WinAssert(char * text, char * filename, int linenum )
 	gr_force_windowed();
 
 
-	sprintf( AssertText1, "Assert: %s\r\nFile: %s\r\nLine: %d", text, filename, linenum );
+	sprintf( AssertText1, "SDL_assert: %s\r\nFile: %s\r\nLine: %d", text, filename, linenum );
 
 	#ifdef SHOW_CALL_STACK
 		dumpBuffer.Clear();
@@ -867,8 +867,9 @@ void _cdecl WinAssert(char * text, char * filename, int linenum )
 
 
 } 
+*/
 
-void _cdecl Error( char * filename, int line, char * format, ... )
+void __cdecl Error( char * filename, int line, char * format, ... )
 {
 	int val;
 	va_list args;
@@ -907,7 +908,7 @@ void _cdecl Error( char * filename, int line, char * format, ... )
 	}
 }
 
-void _cdecl Warning( char * filename, int line, char * format, ... )
+void __cdecl Warning( char * filename, int line, char * format, ... )
 {
 #ifndef NDEBUG
 

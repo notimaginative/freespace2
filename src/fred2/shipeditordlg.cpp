@@ -702,7 +702,7 @@ void CShipEditorDlg::initialize_data(int full_update)
 		}
 		
 		if (!multi_edit) {
-			Assert((ship_count == 1) && (base_ship >= 0));
+			SDL_assert((ship_count == 1) && (base_ship >= 0));
 			m_ship_name = Ships[base_ship].ship_name;			
 		} else {
 			m_ship_name = _T("");
@@ -897,7 +897,7 @@ void CShipEditorDlg::initialize_data(int full_update)
 
 	} else {  // no ships selected, 0 or more player ships selected
 		if (player_count > 1) {  // multiple player ships selected
-			Assert(base_player >= 0);
+			SDL_assert(base_player >= 0);
 			m_ship_name = _T("");
 			m_player_ship.SetCheck(TRUE);
 			objp = GET_FIRST(&obj_used_list);
@@ -922,7 +922,7 @@ void CShipEditorDlg::initialize_data(int full_update)
 
 		// only 1 player selected..
 		} else if (query_valid_object() && (Objects[cur_object_index].type == OBJ_START)) {
-			Assert((player_count == 1) && !multi_edit);
+			SDL_assert((player_count == 1) && !multi_edit);
 			player_ship = Objects[cur_object_index].instance;
 			m_ship_name = Ships[player_ship].ship_name;
 			m_ship_class = Ships[player_ship].ship_info_index;
@@ -1258,12 +1258,12 @@ int CShipEditorDlg::update_data(int redraw)
 
 		wing = Ships[single_ship].wingnum;
 		if (wing >= 0) {
-			Assert((wing < MAX_WINGS) && Wings[wing].wave_count);
+			SDL_assert((wing < MAX_WINGS) && Wings[wing].wave_count);
 			for (i=0; i<Wings[wing].wave_count; i++)
 				if (wing_objects[wing][i] == Ships[single_ship].objnum)
 					break;
 
-			Assert(i < Wings[wing].wave_count);
+			SDL_assert(i < Wings[wing].wave_count);
 			sprintf(old_name, "%s %d", Wings[wing].name, i + 1);
 			if (stricmp(old_name, m_ship_name)) {
 				if (bypass_errors)
@@ -1290,7 +1290,7 @@ int CShipEditorDlg::update_data(int redraw)
 			ai_update_goal_references(REF_TYPE_SHIP, old_name, str);
 			for (i=0; i<Num_reinforcements; i++)
 				if (!stricmp(old_name, Reinforcements[i].name)) {
-					Assert(strlen(str) < NAME_LENGTH);
+					SDL_assert(strlen(str) < NAME_LENGTH);
 					strcpy(Reinforcements[i].name, str);
 				}
 
@@ -1354,7 +1354,7 @@ int CShipEditorDlg::update_ship(int ship)
 	if (strlen(m_cargo1)) {
 		z = string_lookup(m_cargo1, Cargo_names, Num_cargo);
 		if (z == -1) {
-			Assert(Num_cargo < MAX_CARGO);
+			SDL_assert(Num_cargo < MAX_CARGO);
 			z = Num_cargo++;
 			strcpy(Cargo_names[z], m_cargo1);
 		}
@@ -1593,18 +1593,18 @@ void CShipEditorDlg::OnGoals()
 {
 	ShipGoalsDlg dlg_goals;
 
-	Assert(query_valid_object());
+	SDL_assert(query_valid_object());
 //	if (multi_edit)
 //		dlg_goals.initialize_multi();
 //
 //	else {
-//		Assert(single_ship != -1);
+//		SDL_assert(single_ship != -1);
 //		dlg_goals.self_ship = single_ship;
 //		dlg_goals.initialize(Ai_info[Ships[single_ship].ai_index].goals);
 //	}
 
 	if (!multi_edit) {
-		Assert(single_ship != -1);
+		SDL_assert(single_ship != -1);
 		dlg_goals.self_ship = single_ship;
 	}
 
@@ -1676,7 +1676,7 @@ void CShipEditorDlg::OnWeapons()
 		if (ship < 0)
 			ship = player_ship;
 
-		Assert(ship >= 0);
+		SDL_assert(ship >= 0);
 		m_ai_class = Ships[ship].weapons.ai_class;
 	}
 
@@ -1823,7 +1823,7 @@ void CShipEditorDlg::OnPrev()
 				}
 			}
 
-			Assert(i < n);
+			SDL_assert(i < n);
 			i--;
 			if (i < 0){
 				i = n - 1;
@@ -1856,7 +1856,7 @@ void CShipEditorDlg::OnNext()
 				if (Ships[cur_ship].objnum == arr[i])
 					break;
 
-			Assert(i < n);
+			SDL_assert(i < n);
 			i++;
 			if (i == n)
 				i = 0;
@@ -2069,7 +2069,7 @@ void CShipEditorDlg::OnIgnoreOrders()
 	// TODO: Add your control notification handler code here
 	ignore_orders_dlg player_order_dlg;
 
-	Assert(query_valid_object());
+	SDL_assert(query_valid_object());
 
 	if (!multi_edit) {
 		if ( single_ship != -1 ){

@@ -187,11 +187,11 @@ void ssm_create(vector *target, vector *start, int ssm_index, ssm_firing_info *o
 	}
 
 	// sanity
-	Assert(target != NULL);
+	SDL_assert(target != NULL);
 	if(target == NULL){
 		return;
 	}
-	Assert(start != NULL);
+	SDL_assert(start != NULL);
 	if(start == NULL){
 		return;
 	}
@@ -201,7 +201,7 @@ void ssm_create(vector *target, vector *start, int ssm_index, ssm_firing_info *o
 
 	// Find next available trail
 	ssm = GET_FIRST(&Ssm_free_list);
-	Assert( ssm != &Ssm_free_list );		// shouldn't have the dummy element
+	SDL_assert( ssm != &Ssm_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Ssm_free_list, ssm );

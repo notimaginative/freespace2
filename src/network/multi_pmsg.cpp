@@ -515,7 +515,7 @@ int multi_msg_check_command(char *str)
 
 	// go through all existing commands and see what we can do
 	for(idx=0;idx<MULTI_MSG_CMD_COUNT;idx++){
-		if(!stricmp(prefix,Multi_msg_commands[idx])){
+		if(!SDL_strcasecmp(prefix,Multi_msg_commands[idx])){
 			// perform the command
 			multi_msg_perform_command(idx,param);
 
@@ -729,8 +729,8 @@ void multi_msg_send_squadmsg_packet(net_player *target,net_player *source,int co
 	char s_val;
 	int packet_size;
 
-	Assert(source != NULL);
-	Assert(target != NULL);
+	SDL_assert(source != NULL);
+	SDL_assert(target != NULL);
 	if((source == NULL) || (target == NULL)){
 		return;
 	}

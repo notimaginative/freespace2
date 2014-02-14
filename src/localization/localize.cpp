@@ -483,7 +483,7 @@ void lcl_init(int lang_init)
 		// look it up
 		lang = -1;
 		for(idx=0; idx<LCL_NUM_LANGUAGES; idx++){
-			if(!stricmp(Lcl_languages[idx].lang_name, lang_string)){
+			if(!SDL_strcasecmp(Lcl_languages[idx].lang_name, lang_string)){
 				lang = idx;
 				break;
 			}
@@ -492,7 +492,7 @@ void lcl_init(int lang_init)
 			lang = 0;
 		}	
 	} else {
-		Assert((lang_init >= 0) && (lang_init < LCL_NUM_LANGUAGES));
+		SDL_assert((lang_init >= 0) && (lang_init < LCL_NUM_LANGUAGES));
 		lang = lang_init;
 	}
 
@@ -582,7 +582,7 @@ void lcl_xstr_init()
 
 			// trim unneccesary end of string
 			if (i >= 0) {
-				// Assert(buf[i] == '"');
+				// SDL_assert(buf[i] == '"');
 				if (buf[i] != '"') {
 					// probably an offset on this entry
 					buf[i+1] = 0;						// drop down a null terminator (prolly unnecessary)
@@ -658,8 +658,8 @@ void lcl_xstr_init()
 #else
 	int i;
 
-	Assert(XSTR_SIZE == LCL_NUM_STRINGS_FS1);
-	Assert(Lcl_current_lang < LCL_NUM_LANGUAGES_FS1);
+	SDL_assert(XSTR_SIZE == LCL_NUM_STRINGS_FS1);
+	SDL_assert(Lcl_current_lang < LCL_NUM_LANGUAGES_FS1);
 	
 	for (i=0; i<XSTR_SIZE; i++) {
 		if ( !strlen(FS1_trans[Lcl_current_lang][i]) ) {
@@ -799,7 +799,7 @@ void lcl_add_dir_to_path_with_filename(char *current_path)
 void lcl_ext_open()
 {
 	// if the file is already open, do nothing
-	Assert(Lcl_ext_file == NULL);	
+	SDL_assert(Lcl_ext_file == NULL);	
 
 	// if we're running in the default language, do nothing
 	if(Lcl_current_lang == LCL_DEFAULT_LANGUAGE){
@@ -848,8 +848,8 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	int str_id;	
 	int str_len;	
 
-	Assert(in);
-	Assert(out);
+	SDL_assert(in);
+	SDL_assert(out);
 
 	// default (non-external string) value
 	if(id != NULL){
@@ -874,7 +874,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	// otherwise, check to see if it's an XSTR() tag
 	memset(first_four, 0, 5);
 	strncpy(first_four, in, 4);
-	if(stricmp(first_four, "XSTR")){
+	if(SDL_strcasecmp(first_four, "XSTR")){
 		// NOT an XSTR() tag
 		if(str_len > max_len){
 			error_display(0, "Token too long: [%s].  Length = %i.  Max is %i.\n", in, str_len, max_len);
@@ -916,7 +916,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	// attempt to find the string
 	if(lcl_ext_lookup(lookup_str, str_id)){
 		// copy to the outgoing string
-		Assert(strlen(lookup_str) <= (unsigned int)(max_len - 1));
+		SDL_assert(strlen(lookup_str) <= (unsigned int)(max_len - 1));
 
 		if (strlen(lookup_str) > (unsigned int)(max_len-1)) {
 			// be safe and truncate string to fit
@@ -992,8 +992,8 @@ int lcl_ext_get_text(char *xstr, char *out)
 	int str_len;
 	char *p, *p2;
 
-	Assert(xstr != NULL);
-	Assert(out != NULL);
+	SDL_assert(xstr != NULL);
+	SDL_assert(out != NULL);
 	str_len = strlen(xstr);
 	
 	// this is some crazy wack-ass code.
@@ -1038,8 +1038,8 @@ int lcl_ext_get_id(char *xstr, int *out)
 	char *p, *pnext;
 	int str_len;
 
-	Assert(xstr != NULL);
-	Assert(out != NULL);
+	SDL_assert(xstr != NULL);
+	SDL_assert(out != NULL);
 	
 	str_len = strlen(xstr);
 
@@ -1109,11 +1109,11 @@ int lcl_ext_lookup(char *out, int id)
 	int ret;
 	int pointer;
 	
-	Assert(Lcl_pointer_count >= 0);
-	Assert(Lcl_pointers[0] >= 0);
-	Assert(Lcl_pointers[Lcl_pointer_count - 1] >= 0);
-	Assert(Lcl_ext_file != NULL);
-	Assert(id >= 0);
+	SDL_assert(Lcl_pointer_count >= 0);
+	SDL_assert(Lcl_pointers[0] >= 0);
+	SDL_assert(Lcl_pointers[Lcl_pointer_count - 1] >= 0);
+	SDL_assert(Lcl_ext_file != NULL);
+	SDL_assert(id >= 0);
 
 	// seek to the closest pointer <= the id# we're looking for
 	pointer = id / LCL_GRANULARITY;
@@ -1186,7 +1186,7 @@ int lcl_ext_lookup_sub(char *text, char *out, int id)
 			// if the first word is #end, we're done with the file altogether
 			strcpy(text_copy, text);
 			tok = strtok(text_copy, " \n");
-			if((tok != NULL) && !stricmp(tok, "#end")){
+			if((tok != NULL) && !SDL_strcasecmp(tok, "#end")){
 				return 3;
 			}
 			// if its a commented line, skip it
@@ -1306,7 +1306,7 @@ void lcl_ext_setup_pointers()
 	// seek to the currently active language
 	memset(language_string, 0, 128);
 	strcpy(language_string, "#");
-	if(!stricmp(DEFAULT_LANGUAGE, Lcl_languages[Lcl_current_lang].lang_name)){
+	if(!SDL_strcasecmp(DEFAULT_LANGUAGE, Lcl_languages[Lcl_current_lang].lang_name)){
 		strcat(language_string, "default");
 	} else {
 		strcat(language_string, Lcl_languages[Lcl_current_lang].lang_name);
@@ -1322,7 +1322,7 @@ void lcl_ext_setup_pointers()
 		}
 		
 		// if the language matches, we're good to start parsing strings
-		if(!stricmp(language_string, tok)){
+		if(!SDL_strcasecmp(language_string, tok)){
 			found_start = 1;			
 			break;
 		}		
@@ -1380,7 +1380,7 @@ void lcl_ext_setup_pointers()
 
 void lcl_get_language_name(char *lang_name)
 {
-	Assert(LCL_NUM_LANGUAGES == 3);
+	SDL_assert(LCL_NUM_LANGUAGES == 3);
 
 	strcpy(lang_name, Lcl_languages[Lcl_current_lang].lang_name);
 }
@@ -1512,64 +1512,64 @@ void lcl_translate_brief_icon_name(char *name)
 	char *pos;
 	char buf[128];
 
-	if (!stricmp(name, "Subspace Portal")) {	
+	if (!SDL_strcasecmp(name, "Subspace Portal")) {	
 		strcpy(name, "Subraum Portal");
 
-	} else if (!stricmp(name, "Alpha Wing")) {
+	} else if (!SDL_strcasecmp(name, "Alpha Wing")) {
 		strcpy(name, "Alpha");
 
-	} else if (!stricmp(name, "Beta Wing")) {
+	} else if (!SDL_strcasecmp(name, "Beta Wing")) {
 		strcpy(name, "Beta");
 
-	} else if (!stricmp(name, "Zeta Wing")) {
+	} else if (!SDL_strcasecmp(name, "Zeta Wing")) {
 		strcpy(name, "Zeta");
 
-	} else if (!stricmp(name, "Capella Node")) {
+	} else if (!SDL_strcasecmp(name, "Capella Node")) {
 		strcpy(name, "Capella");
 
-	} else if (!stricmp(name, "Hostile")) {
+	} else if (!SDL_strcasecmp(name, "Hostile")) {
 		strcpy(name, "Gegner");
 
-	} else if (!stricmp(name, "Hostile Craft")) {
+	} else if (!SDL_strcasecmp(name, "Hostile Craft")) {
 		strcpy(name, "Gegner");
 
-	} else if (!stricmp(name, "Rebel Wing")) {
+	} else if (!SDL_strcasecmp(name, "Rebel Wing")) {
 		strcpy(name, "Rebellen");
 
-	} else if (!stricmp(name, "Rebel Fleet")) {
+	} else if (!SDL_strcasecmp(name, "Rebel Fleet")) {
 		strcpy(name, "Rebellenflotte");
 
-	} else if (!stricmp(name, "Sentry Gun")) {
+	} else if (!SDL_strcasecmp(name, "Sentry Gun")) {
 		strcpy(name, "Gesch\x81tz");
 
-	} else if (!stricmp(name, "Cargo")) {
+	} else if (!SDL_strcasecmp(name, "Cargo")) {
 		strcpy(name, "Fracht");
 
-	} else if (!stricmp(name, "Knossos Device")) {
+	} else if (!SDL_strcasecmp(name, "Knossos Device")) {
 		strcpy(name, "Knossosger\x84t");
 	
-	} else if (!stricmp(name, "Support")) {
+	} else if (!SDL_strcasecmp(name, "Support")) {
 		strcpy(name, "Versorger");
 
-	} else if (!stricmp(name, "Unknown")) {
+	} else if (!SDL_strcasecmp(name, "Unknown")) {
 		strcpy(name, "Unbekannt");
 
-	} else if (!stricmp(name, "Instructor")) {
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
 		strcpy(name, "Ausbilder");
 	
-	} else if (!stricmp(name, "Jump Node")) {
+	} else if (!SDL_strcasecmp(name, "Jump Node")) {
 		strcpy(name, "Sprungknoten");
 
-	} else if (!stricmp(name, "Escort")) {
+	} else if (!SDL_strcasecmp(name, "Escort")) {
 		strcpy(name, "Geleitschutz");
 
-	} else if (!stricmp(name, "Asteroid Field")) {
+	} else if (!SDL_strcasecmp(name, "Asteroid Field")) {
 		strcpy(name, "Asteroidenfeld");
 
-	} else if (!stricmp(name, "Enif Station")) {
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
 		strcpy(name, "Station Enif");
 
-	} else if (!stricmp(name, "Rally Point")) {
+	} else if (!SDL_strcasecmp(name, "Rally Point")) {
 		strcpy(name, "Sammelpunkt");
 
 	} else if ((pos = strstr(name, "Transport")) != NULL) {
@@ -1584,66 +1584,66 @@ void lcl_translate_brief_icon_name(char *name)
 		strcat(buf, pos);
 		strcpy(name, buf);
 	
-	} else if (!stricmp(name, "Orion under repair")) {
+	} else if (!SDL_strcasecmp(name, "Orion under repair")) {
 		strcpy(name, "Orion wird repariert");
 
 	// SOTY-specific ones below!
 	
-	} else if (!stricmp(name, "Wayfarer Station")) {
+	} else if (!SDL_strcasecmp(name, "Wayfarer Station")) {
 		strcpy(name, "Station Wayfarer");
-	} else if (!stricmp(name, "Enemy")) {
+	} else if (!SDL_strcasecmp(name, "Enemy")) {
 		strcpy(name, "Gegner");
-	} else if (!stricmp(name, "Supply Depot")) {
+	} else if (!SDL_strcasecmp(name, "Supply Depot")) {
 		strcpy(name, "Nachschubdepot");
-	} else if (!stricmp(name, "Fighter Escort")) {
+	} else if (!SDL_strcasecmp(name, "Fighter Escort")) {
 		strcpy(name, "Jagdschutz");
-	} else if (!stricmp(name, "Shivans")) {
+	} else if (!SDL_strcasecmp(name, "Shivans")) {
 		strcpy(name, "Shivaner");
-	} else if (!stricmp(name, "NTF Base of Operations")) {
+	} else if (!SDL_strcasecmp(name, "NTF Base of Operations")) {
 		strcpy(name, "NTF-Operationsbasis");
-	} else if (!stricmp(name, "NTF Bombers")) {
+	} else if (!SDL_strcasecmp(name, "NTF Bombers")) {
 		strcpy(name, "NTF-Bomber");
-	} else if (!stricmp(name, "NTF Fighters")) {
+	} else if (!SDL_strcasecmp(name, "NTF Fighters")) {
 		strcpy(name, "NTF-J\x84ger");
-	} else if (!stricmp(name, "Sentry")) {
+	} else if (!SDL_strcasecmp(name, "Sentry")) {
 		strcpy(name, "Sperrgesch\x81tz");
-	} else if (!stricmp(name, "Cargo Containers")) {
+	} else if (!SDL_strcasecmp(name, "Cargo Containers")) {
 		strcpy(name, "Frachtbeh\x84lter");
-	} else if (!stricmp(name, "NTF Reinforcements")) {
+	} else if (!SDL_strcasecmp(name, "NTF Reinforcements")) {
 		strcpy(name, "NTF-Verst\x84rkungen");
-	} else if (!stricmp(name, "NTF Base")) {
+	} else if (!SDL_strcasecmp(name, "NTF Base")) {
 		strcpy(name, "NTF-St\x81tzpunkt");
-	} else if (!stricmp(name, "Refugee Convoy")) {
+	} else if (!SDL_strcasecmp(name, "Refugee Convoy")) {
 		strcpy(name, "Fl\x81""chtlingskonvoi");
-	} else if (!stricmp(name, "Food Convoy")) {
+	} else if (!SDL_strcasecmp(name, "Food Convoy")) {
 		strcpy(name, "Nachschubkonvoi");
-	} else if (!stricmp(name, "Governor's Shuttle")) {
+	} else if (!SDL_strcasecmp(name, "Governor's Shuttle")) {
 		strcpy(name, "F\x84hre des Gouverneurs");
-	} else if (!stricmp(name, "GTVA Patrol")) {
+	} else if (!SDL_strcasecmp(name, "GTVA Patrol")) {
 		strcpy(name, "GTVA-Patrouille");
-	} else if (!stricmp(name, "Escort fighters")) {
+	} else if (!SDL_strcasecmp(name, "Escort fighters")) {
 		strcpy(name, "Geleitschutz");
-	} else if (!stricmp(name, "Nagada Outpost")) {
+	} else if (!SDL_strcasecmp(name, "Nagada Outpost")) {
 		strcpy(name, "Nagada-Aussenposten");
-	} else if (!stricmp(name, "Fighters")) {
+	} else if (!SDL_strcasecmp(name, "Fighters")) {
 		strcpy(name, "J\x84ger");
-	} else if (!stricmp(name, "Bombers")) {
+	} else if (!SDL_strcasecmp(name, "Bombers")) {
 		strcpy(name, "Bomber");
-	} else if (!stricmp(name, "Enemy Destroyers")) {
+	} else if (!SDL_strcasecmp(name, "Enemy Destroyers")) {
 		strcpy(name, "Feindliche Zerst\x94rer");
-	} else if (!stricmp(name, "Ross 128 System")) {
+	} else if (!SDL_strcasecmp(name, "Ross 128 System")) {
 		strcpy(name, "System Ross 128");
-	} else if (!stricmp(name, "Knossos Station")) {
+	} else if (!SDL_strcasecmp(name, "Knossos Station")) {
 		strcpy(name, "Knossos-Station");
-	} else if (!stricmp(name, "Transporters")) {
+	} else if (!SDL_strcasecmp(name, "Transporters")) {
 		strcpy(name, "Transporter");
-	} else if (!stricmp(name, "Pirates?")) {
+	} else if (!SDL_strcasecmp(name, "Pirates?")) {
 		strcpy(name, "Piraten?");
-	} else if (!stricmp(name, "Escorts")) {
+	} else if (!SDL_strcasecmp(name, "Escorts")) {
 		strcpy(name, "Geleitschutz");
-	} else if (!stricmp(name, "Shivan Fighters")) {
+	} else if (!SDL_strcasecmp(name, "Shivan Fighters")) {
 		strcpy(name, "J\x84ger");
-	} else if (!stricmp(name, "Shivan Territory")) {
+	} else if (!SDL_strcasecmp(name, "Shivan Territory")) {
 		strcpy(name, "Shivaner");
 	}
 }
@@ -1659,64 +1659,64 @@ void lcl_translate_brief_icon_name_pl(char *name)
 	char *pos;
 	char buf[128];
 
-	if (!stricmp(name, "Subspace Portal")) {	
+	if (!SDL_strcasecmp(name, "Subspace Portal")) {	
 		strcpy(name, "Portal podprz.");
 
-	} else if (!stricmp(name, "Alpha Wing")) {
+	} else if (!SDL_strcasecmp(name, "Alpha Wing")) {
 		strcpy(name, "Alfa");
 
-	} else if (!stricmp(name, "Beta Wing")) {
+	} else if (!SDL_strcasecmp(name, "Beta Wing")) {
 		strcpy(name, "Beta");
 
-	} else if (!stricmp(name, "Zeta Wing")) {
+	} else if (!SDL_strcasecmp(name, "Zeta Wing")) {
 		strcpy(name, "Zeta");
 
-	} else if (!stricmp(name, "Capella Node")) {
+	} else if (!SDL_strcasecmp(name, "Capella Node")) {
 		strcpy(name, "Capella");
 
-	} else if (!stricmp(name, "Hostile")) {
+	} else if (!SDL_strcasecmp(name, "Hostile")) {
 		strcpy(name, "Wr\xF3g");
 
-	} else if (!stricmp(name, "Hostile Craft")) {
+	} else if (!SDL_strcasecmp(name, "Hostile Craft")) {
 		strcpy(name, "Wr\xF3g");
 
-	} else if (!stricmp(name, "Rebel Wing")) {
+	} else if (!SDL_strcasecmp(name, "Rebel Wing")) {
 		strcpy(name, "Rebelianci");
 
-	} else if (!stricmp(name, "Rebel Fleet")) {
+	} else if (!SDL_strcasecmp(name, "Rebel Fleet")) {
 		strcpy(name, "Flota Rebelii");
 
-	} else if (!stricmp(name, "Sentry Gun")) {
+	} else if (!SDL_strcasecmp(name, "Sentry Gun")) {
 		strcpy(name, "Dzia\xB3o str.");
 
-	} else if (!stricmp(name, "Cargo")) {
+	} else if (!SDL_strcasecmp(name, "Cargo")) {
 		strcpy(name, "\xA3\x61\x64unek");
 
-	} else if (!stricmp(name, "Knossos Device")) {
+	} else if (!SDL_strcasecmp(name, "Knossos Device")) {
 		strcpy(name, "Urz. Knossos");
 	
-	} else if (!stricmp(name, "Support")) {
+	} else if (!SDL_strcasecmp(name, "Support")) {
 		strcpy(name, "Wsparcie");
 
-	} else if (!stricmp(name, "Unknown")) {
+	} else if (!SDL_strcasecmp(name, "Unknown")) {
 		strcpy(name, "Nieznany");
 
-	} else if (!stricmp(name, "Instructor")) {
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
 		strcpy(name, "Instruktor");
 	
-	} else if (!stricmp(name, "Jump Node")) {
+	} else if (!SDL_strcasecmp(name, "Jump Node")) {
 		strcpy(name, "W\xEAze\xB3 skokowy");
 
-	} else if (!stricmp(name, "Escort")) {
+	} else if (!SDL_strcasecmp(name, "Escort")) {
 		strcpy(name, "Eskorta");
 
-	} else if (!stricmp(name, "Asteroid Field")) {
+	} else if (!SDL_strcasecmp(name, "Asteroid Field")) {
 		strcpy(name, "Pole asteroid");
 
-	} else if (!stricmp(name, "Enif Station")) {
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
 		strcpy(name, "Stacja Enif");
 
-	} else if (!stricmp(name, "Rally Point")) {
+	} else if (!SDL_strcasecmp(name, "Rally Point")) {
 		strcpy(name, "Pkt zborny");
 
 	} else if ((pos = strstr(name, "Transport")) != NULL) {
@@ -1731,7 +1731,7 @@ void lcl_translate_brief_icon_name_pl(char *name)
 		strcat(buf, pos);
 		strcpy(name, buf);
 	
-	} else if (!stricmp(name, "Orion under repair")) {
+	} else if (!SDL_strcasecmp(name, "Orion under repair")) {
 		strcpy(name, "Naprawiany Orion");
 	}
 }
@@ -1790,13 +1790,13 @@ void lcl_translate_targetbox_name(char *name)
 		strcat(buf, pos);
 		strcpy(name, buf);
 
-	} else if (!stricmp(name, "Instructor")) {
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
 		strcpy(name, "Ausbilder");
 
-	} else if (!stricmp(name, "NTF Vessel")) {
+	} else if (!SDL_strcasecmp(name, "NTF Vessel")) {
 		strcpy(name, "NTF-Schiff");
 
-	} else if (!stricmp(name, "Enif Station")) {
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
 		strcpy(name, "Station Enif");
 	}
 }
@@ -1842,13 +1842,13 @@ void lcl_translate_targetbox_name_pl(char *name)
 		strcat(buf, pos);
 		strcpy(name, buf);
 
-	} else if (!stricmp(name, "Instructor")) {
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
 		strcpy(name, "Instruktor");
 
-	} else if (!stricmp(name, "NTF Vessel")) {
+	} else if (!SDL_strcasecmp(name, "NTF Vessel")) {
 		strcpy(name, "Okr\xEAt NTF");
 
-	} else if (!stricmp(name, "Enif Station")) {
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
 		strcpy(name, "Stacja Enif");
 	}
 }

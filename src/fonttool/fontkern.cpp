@@ -332,9 +332,9 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 
 	// setup the fred exe directory so CFILE can init properly
 	//char *c = GetCommandLine();
-	//Assert(c != NULL);
+	//SDL_assert(c != NULL);
 	//char *tok = strtok(c, " ");
-	//Assert(tok != NULL);	
+	//SDL_assert(tok != NULL);	
 #ifdef PLAT_UNIX
 	char whee[1024];
 	getcwd (whee, 1024);

@@ -746,7 +746,7 @@ void credits_do_frame(float frametime)
 	bm2 = Credits_bmps[next];
 
 	if((bm1 != -1) && (bm2 != -1)){
-		Assert(percent >= 0 && percent <= 100);
+		SDL_assert(percent >= 0 && percent <= 100);
 
 		// get width and height
 		bm_get_info(bm1, &bw1, &bh1, NULL, NULL, NULL);	

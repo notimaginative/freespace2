@@ -111,9 +111,9 @@ BOOL CPofViewApp::InitInstance()
 	// setup the fred exe directory so CFILE can init properly
 	/*
 	char *c = GetCommandLine();
-	Assert(c != NULL);
+	SDL_assert(c != NULL);
 	char *tok = strtok(c, " ");
-	Assert(tok != NULL);	
+	SDL_assert(tok != NULL);	
 	*/
 
 	outwnd_init();
@@ -274,7 +274,7 @@ void init_thrusters()
 				Error(LOCATION,"Error loading animation file: %s\n",Thrust_anim_names[i]);
 				return;
 			}
-			Assert(fps != 0);
+			SDL_assert(fps != 0);
 			ta->time = i2fl(ta->num_frames)/fps;
 		//} else {
 		//	ta->first_frame = bm_load(Thrust_anim_names[i] );
@@ -284,7 +284,7 @@ void init_thrusters()
 		//		Error(LOCATION,"Error loading bitmap file: %s\n",Thrust_anim_names[i]);
 		//		return;
 		//	}
-		//	Assert(fps != 0);
+		//	SDL_assert(fps != 0);
 		//	ta->time = i2fl(ta->num_frames)/fps;
 		//}
 	}

@@ -289,7 +289,7 @@ void multi_team_reset()
 void multi_team_set_captain(net_player *pl,int set)
 {
 	// only the host should ever get here!
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 	// set the player flags as being a captain and notify everyone else of this
 	if(set){
@@ -589,7 +589,7 @@ void multi_team_handle_join(net_player *pl)
 	}
 
 	// only the host should ever do this
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	if(!(Net_player->flags & NETINFO_FLAG_AM_MASTER)){
 		return;
 	}
@@ -660,7 +660,7 @@ void multi_team_mark_ship(ship *sp)
 		
 	// look through team 0
 	for(idx=0;idx<4;idx++){
-		if(!stricmp(sp->ship_name,Multi_team0_names[idx])){
+		if(!SDL_strcasecmp(sp->ship_name,Multi_team0_names[idx])){
 			team_num = 0;
 			break;
 		}
@@ -669,7 +669,7 @@ void multi_team_mark_ship(ship *sp)
 	// look through team 1 if necessary
 	if(team_num < 0){
 		for(idx=0;idx<4;idx++){
-			if(!stricmp(sp->ship_name,Multi_team1_names[idx])){
+			if(!SDL_strcasecmp(sp->ship_name,Multi_team1_names[idx])){
 				team_num = 1;
 				break;
 			}
@@ -789,7 +789,7 @@ void multi_team_process_packet(unsigned char *data, header *hinfo)
 		ushort player_id;
 		int req_index,req_team;
 
-		Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 		// get the packet data
 		GET_USHORT(player_id);
@@ -904,7 +904,7 @@ int multi_team_process_team_update(ubyte *data)
 	int offset = 0;	
 
 	// if I'm the server, bail
-	Assert(!MULTIPLAYER_MASTER);
+	SDL_assert(!MULTIPLAYER_MASTER);
 	
 	// process all players
 	GET_DATA(stop);
@@ -970,10 +970,10 @@ void multi_team_verify()
 	// if the team has members
 	if(team0_count > 0){
 		// make sure it also has a captain
-		Assert(team0_cap > 0);
+		SDL_assert(team0_cap > 0);
 
 		// make sure it only has 1 captain
-		Assert(team0_cap == 1);
+		SDL_assert(team0_cap == 1);
 	}
 
 	// determine how many players we have on team 1 and if they have a captain
@@ -995,10 +995,10 @@ void multi_team_verify()
 	// if the team has members
 	if(team1_count > 0){
 		// make sure it also has a captain
-		Assert(team1_cap > 0);
+		SDL_assert(team1_cap > 0);
 
 		// make sure it only has 1 captain
-		Assert(team1_cap == 1);
+		SDL_assert(team1_cap == 1);
 	}
 #endif
 }

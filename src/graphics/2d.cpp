@@ -818,7 +818,7 @@ done_checking_cpuid:
 
 	// Check for Amd 3dnow
 	/*
-	if ( !stricmp( cpu_vender, NOX("AuthenticAMD")) )	{
+	if ( !SDL_strcasecmp( cpu_vender, NOX("AuthenticAMD")) )	{
 
 		_asm {
 			mov eax, 0x80000000      // setup CPUID to return extended number of functions
@@ -980,7 +980,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	switch( gr_screen.mode )	{
 #ifndef PLAT_UNIX
 		case GR_SOFTWARE:
-			Assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
+			SDL_assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
 			gr_soft_init();
 			break;
 		case GR_DIRECTDRAW:
@@ -1032,7 +1032,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	if (Web_cursor_bitmap < 0)	{
 		int nframes;						// used to pass, not really needed (should be 1)
 		Web_cursor_bitmap = bm_load_animation("cursorweb", &nframes);
-		Assert(Web_cursor_bitmap >= 0);		// if bitmap didnt load, thats not good (this is protected for in release tho)
+		SDL_assert(Web_cursor_bitmap >= 0);		// if bitmap didnt load, thats not good (this is protected for in release tho)
 	}
 
 	gr_set_color(0,0,0);
@@ -1081,7 +1081,7 @@ void gr_force_windowed()
 	}
 
 	if ( Os_debugger_running )
-		Sleep(1000);		
+		SDL_Delay(1000);
 }
 
 void gr_activate(int active)
@@ -1147,7 +1147,7 @@ void gr_activate(int active)
 void gr_set_cursor_bitmap(int n, int lock)
 {
 	static int locked = 0;			
-	Assert(n >= 0);
+	SDL_assert(n >= 0);
 
 	if (!locked || (lock == GR_CURSOR_UNLOCK)) {
 		Gr_cursor = n;
@@ -1301,7 +1301,7 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 	int saved_zbuffer_mode, idx;		
 	int started_frame = 0;
 
-	// Assert(0);
+	// SDL_assert(0);
 
 	// if we have less than 2 pts, bail
 	if(num_pts < 2){

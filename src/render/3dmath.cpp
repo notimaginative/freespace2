@@ -166,7 +166,7 @@ ubyte g3_rotate_vertex(vertex *dest,vector *src)
 {
 #if 0
 	vector tempv;
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 	vm_vec_sub(&tempv,src,&View_position);
 	vm_vec_rotate( (vector *)&dest->x, &tempv, &View_matrix );
 	dest->flags = 0;	//not projected
@@ -223,7 +223,7 @@ ubyte g3_rotate_vertex(vertex *dest,vector *src)
 
 ubyte g3_rotate_faraway_vertex(vertex *dest,vector *src)
 {	
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	MONITOR_INC( NumRotations, 1 );	
 
@@ -238,7 +238,7 @@ ubyte g3_rotate_vector(vector *dest,vector *src)
 {
 	vector tempv;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	MONITOR_INC( NumRotations, 1 );	
 
@@ -251,7 +251,7 @@ ubyte g3_project_vector(vector *p, float *sx, float *sy )
 {
 	float w;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if ( p->xyz.z <= MIN_Z ) return PF_OVERFLOW;
 
@@ -268,7 +268,7 @@ int g3_project_vertex(vertex *p)
 {
 	float w;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if ( p->flags & PF_PROJECTED )
 		return p->flags;
@@ -300,7 +300,7 @@ void g3_point_to_vec(vector *v,int sx,int sy)
 {
 	vector	tempv;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	tempv.xyz.x =  ((float)sx - Canv_w2) / Canv_w2;
 	tempv.xyz.y = -((float)sy - Canv_h2) / Canv_h2;
@@ -333,7 +333,7 @@ void g3_point_to_vec_delayed(vector *v,int sx,int sy)
 
 vector *g3_rotate_delta_vec(vector *dest,vector *src)
 {
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 	return vm_vec_rotate(dest,src,&View_matrix);
 }
 

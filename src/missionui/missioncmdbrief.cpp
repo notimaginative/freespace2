@@ -404,10 +404,10 @@ void cmd_brief_init_voice()
 {
 	int i;
 
-	Assert(Cur_cmd_brief);
+	SDL_assert(Cur_cmd_brief);
 	for (i=0; i<Cur_cmd_brief->num_stages; i++) {
 		Cur_cmd_brief->stage[i].wave = -1;
-		if (stricmp(Cur_cmd_brief->stage[i].wave_filename, NOX("none")) && Cur_cmd_brief->stage[i].wave_filename[0]) {
+		if (SDL_strcasecmp(Cur_cmd_brief->stage[i].wave_filename, NOX("none")) && Cur_cmd_brief->stage[i].wave_filename[0]) {
 			Cur_cmd_brief->stage[i].wave = audiostream_open(Cur_cmd_brief->stage[i].wave_filename, ASF_VOICE);
 			if (Cur_cmd_brief->stage[i].wave < 0) {
 				nprintf(("General", "Failed to load \"%s\"", Cur_cmd_brief->stage[i].wave_filename));
@@ -625,7 +625,7 @@ void cmd_brief_ani_wave_init(int index)
 
 	// first, search and see if anim is already used in another stage
 	for (i=0; i<index; i++) {
-		if (!stricmp(Cur_cmd_brief->stage[i].ani_filename, Cur_cmd_brief->stage[index].ani_filename)) {
+		if (!SDL_strcasecmp(Cur_cmd_brief->stage[i].ani_filename, Cur_cmd_brief->stage[index].ani_filename)) {
 			if (Cur_cmd_brief->stage[i].anim_ref >= 0)
 				Cur_cmd_brief->stage[index].anim_ref = Cur_cmd_brief->stage[i].anim_ref;
 			else
@@ -638,7 +638,7 @@ void cmd_brief_ani_wave_init(int index)
 	// this is the first instance of the given anim filename
 	Cur_cmd_brief->stage[index].anim_ref = -1;
 	name = Cur_cmd_brief->stage[index].ani_filename;
-	if (!name[0] || !stricmp(name, NOX("<default>")) || !stricmp(name, NOX("none.ani"))) {
+	if (!name[0] || !SDL_strcasecmp(name, NOX("<default>")) || !SDL_strcasecmp(name, NOX("none.ani"))) {
 		name = NOX("CB_default");
 		strcpy(Cur_cmd_brief->stage[index].ani_filename, name);
 	}
@@ -698,7 +698,7 @@ void cmd_brief_init(int team)
 
 	/*
 	Palette_bmp = bm_load("BarracksPalette");	//CommandBriefPalette");
-	Assert(Palette_bmp);
+	SDL_assert(Palette_bmp);
 	bm_get_palette(Palette_bmp, Palette, Palette_name);  // get the palette for this bitmap
 	gr_set_palette(Palette_name, Palette, 1);
 	*/

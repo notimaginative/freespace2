@@ -382,7 +382,7 @@
  * 20).
  * 
  * 330   9/17/98 9:43a Allender
- * removed an Assert that Dave called bogus.
+ * removed an SDL_assert that Dave called bogus.
  * 
  * 329   9/16/98 6:54p Dave
  * Upped  max sexpression nodes to 1800 (from 1600). Changed FRED to sort
@@ -657,10 +657,10 @@ void multi_common_split_text()
 	char	*p_str[MAX_BRIEF_LINES];
 
 	n_lines = split_str(Multi_common_all_text, Multi_common_text_coords[gr_screen.res][2], n_chars, p_str, MULTI_COMMON_TEXT_MAX_LINES, MULTI_COMMON_TEXT_META_CHAR);
-	Assert(n_lines != -1);
+	SDL_assert(n_lines != -1);
 
 	for ( i = 0; i < n_lines; i++ ) {
-		Assert(n_chars[i] < MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
+		SDL_assert(n_chars[i] < MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
 		strncpy(Multi_common_text[i], p_str[i], n_chars[i]);
 		Multi_common_text[i][n_chars[i]] = 0;
 		drop_leading_white_space(Multi_common_text[i]);		
@@ -1289,8 +1289,8 @@ void multi_join_game_init()
 
 	// do the multiplayer init stuff - multi_level_init() now does all net_player zeroing.
 	// setup various multiplayer things
-	Assert( Game_mode & GM_MULTIPLAYER );
-	Assert( Net_player != NULL );
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Net_player != NULL );
 
 	switch (Multi_options_g.protocol) {	
 	case NET_IPX:
@@ -1682,7 +1682,7 @@ void multi_join_button_pressed(int n)
 			*/
 
 			// send the join request here
-			Assert(Multi_join_selected_item != NULL);
+			SDL_assert(Multi_join_selected_item != NULL);
 
 			// send a join request packet
 			Multi_join_should_send = 0;			
@@ -1755,7 +1755,7 @@ void multi_join_button_pressed(int n)
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		} else {			
 			// send the join request here
-			Assert(Multi_join_selected_item != NULL);
+			SDL_assert(Multi_join_selected_item != NULL);
 
 			Multi_join_should_send = 1;		
 
@@ -2104,7 +2104,7 @@ void multi_join_process_select()
 		multi_common_set_text("");
 
 		// I sure hope this doesn't happen
-		Assert(Multi_join_selected_item != NULL);		
+		SDL_assert(Multi_join_selected_item != NULL);		
 		return;
 	} 
 	// otherwise see if he's clicked on an item
@@ -2119,7 +2119,7 @@ void multi_join_process_select()
 			Multi_join_selected_item = multi_join_get_game(Multi_join_list_selected);
 			
 			// I sure hope this doesn't happen
-			Assert(Multi_join_selected_item != NULL);
+			SDL_assert(Multi_join_selected_item != NULL);
 
 			// send a mission description request to this guy
 			send_netgame_descript_packet(&Multi_join_selected_item->server_addr,0);
@@ -2837,7 +2837,7 @@ int multi_start_game_rank_from_name( char *rank ) {
 #else
 	for ( i = 0; i <= MAX_FREESPACE2_RANK; i++ ) {
 #endif
-		if ( !stricmp(Ranks[i].name, rank) ) {
+		if ( !SDL_strcasecmp(Ranks[i].name, rank) ) {
 			return i;
 		}
 	}
@@ -3505,7 +3505,7 @@ void multi_sg_rank_build_name(char *in,char *out)
 	}
 	
 	// if the first part of the string is lieutenant, then abbreivate it and tack on the rest of the string	
-	if (stricmp(first,XSTR("lieutenant",785)) == 0) {
+	if (SDL_strcasecmp(first,XSTR("lieutenant",785)) == 0) {
 		first = strtok(NULL, NOX("\n"));
 
 		// if he's not just a plain lieutenant
@@ -5269,7 +5269,7 @@ void multi_create_list_select_item(int n)
 				ship_init();		// mwa -- 10/15/97.  Call this function to reset number of ships in mission
 				ng->max_players = mission_parse_get_multi_mission_info( ng->mission_name );				
 				
-				Assert(ng->max_players > 0);
+				SDL_assert(ng->max_players > 0);
 				strcpy(ng->title,The_mission.name);								
 
 				// set the information area text
@@ -5849,7 +5849,7 @@ int multi_create_lookup_mission(char *fname)
 	int idx;
 
 	for(idx=0; idx<Multi_create_mission_count; idx++){
-		if(!stricmp(fname, Multi_create_mission_list[idx].filename)){
+		if(!SDL_strcasecmp(fname, Multi_create_mission_list[idx].filename)){
 			return idx;
 		}
 	}
@@ -5864,7 +5864,7 @@ int multi_create_lookup_campaign(char *fname)
 	int idx;
 
 	for(idx=0; idx<Multi_create_campaign_count; idx++){
-		if(!stricmp(fname, Multi_create_campaign_list[idx].filename)){
+		if(!SDL_strcasecmp(fname, Multi_create_campaign_list[idx].filename)){
 			return idx;
 		}
 	}
@@ -5900,7 +5900,7 @@ void multi_create_sw_clicked()
 	// maybe switch squad war off
 	if(!Multi_create_sw_checkbox.checked()){
 		// if the mission selected is a coop mission, go back to coop mode
-		Assert(file_index != -1);
+		SDL_assert(file_index != -1);
 		if(file_index == -1){
 			ng->type_flags = NG_TYPE_COOP;			
 		}		
@@ -5914,7 +5914,7 @@ void multi_create_sw_clicked()
 	}
 	// switch squad war on
 	else {
-		Assert(file_index != -1);
+		SDL_assert(file_index != -1);
 		if((file_index == -1) || !(Multi_create_file_list[file_index].flags & MISSION_TYPE_MULTI_TEAMS)){			
 			Multi_create_sw_checkbox.set_state(0);			
 		} else {
@@ -6590,7 +6590,7 @@ void multi_ho_button_pressed(int n)
 			break;
 		}
 	}
-	Assert(radio_index != -1);
+	SDL_assert(radio_index != -1);
 
 	// check to see if a radio button was pressed
 	if(radio_index < MULTI_HO_NUM_RADIO_BUTTONS){
@@ -6820,15 +6820,15 @@ void multi_ho_get_options()
 	}	
 
 	// get the voice qos options
-	Assert((Netgame.options.voice_qos >= 1) && (Netgame.options.voice_qos <= 10));
+	SDL_assert((Netgame.options.voice_qos >= 1) && (Netgame.options.voice_qos <= 10));
 	Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_VOICE_QOS].slider.pos = (Netgame.options.voice_qos - 1);
 
 	// get the voice duration options
-	Assert((Netgame.options.voice_record_time > 0) && (Netgame.options.voice_record_time <= MULTI_VOICE_MAX_TIME));
+	SDL_assert((Netgame.options.voice_record_time > 0) && (Netgame.options.voice_record_time <= MULTI_VOICE_MAX_TIME));
 	Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_VOICE_DUR].slider.pos = ((int)((float)Netgame.options.voice_record_time / 500.0f)) - 1;	
 
 	// get the current skill level
-	Assert((Game_skill_level >= 0) && (Game_skill_level < NUM_SKILL_LEVELS));
+	SDL_assert((Game_skill_level >= 0) && (Game_skill_level < NUM_SKILL_LEVELS));
 	Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_SKILL].slider.pos = Game_skill_level;	
 
 	// get the # of observers
@@ -7017,7 +7017,7 @@ void multi_ho_display_skill_level()
 	int skill_level = Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_SKILL].slider.pos;
 
 	// sanity
-	Assert((skill_level >= 0) && (skill_level < NUM_SKILL_LEVELS));
+	SDL_assert((skill_level >= 0) && (skill_level < NUM_SKILL_LEVELS));
 	if((skill_level < 0) || (skill_level >= NUM_SKILL_LEVELS)){
 		skill_level = 0;
 	}
@@ -8064,7 +8064,7 @@ void multi_sync_close()
 
 const char *multi_sync_tooltip_handler(const char *str)
 {
-	if (!stricmp(str, NOX("@launch"))) {
+	if (!SDL_strcasecmp(str, NOX("@launch"))) {
 		if (Multi_launch_button_created){
 			return XSTR("Launch",801);
 		}
@@ -8493,7 +8493,7 @@ void multi_sync_pre_init()
 	}
 
 	// we aren't necessarily xferring the mission file yet	
-	Assert(Net_player->s_info.xfer_handle == -1);
+	SDL_assert(Net_player->s_info.xfer_handle == -1);
 
 	// always call this for good measure
 	multi_campaign_flush_data();
@@ -9065,7 +9065,7 @@ void multi_sync_start_countdown()
 	}
 	// otherwise send the "start countdown" packet to the standalone
 	else {
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 		send_countdown_packet(-1);
 	}
 }
@@ -9274,7 +9274,7 @@ void multi_maybe_set_mission_loop()
 {
 	int cur = Campaign.current_mission;
 	if (Campaign.missions[cur].has_mission_loop) {
-		Assert(Campaign.loop_mission != CAMPAIGN_LOOP_MISSION_UNINITIALIZED);
+		SDL_assert(Campaign.loop_mission != CAMPAIGN_LOOP_MISSION_UNINITIALIZED);
 	}
 	bool require_repeat_mission = (Campaign.current_mission == Campaign.next_mission);
 
@@ -9411,7 +9411,7 @@ void multi_debrief_esc_hit()
 void multi_debrief_replay_hit()
 {
 	// only the host should ever get here
-	Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 
 	// if the button was already pressed, do nothing
 	if(Multi_debrief_accept_hit){

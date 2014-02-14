@@ -571,7 +571,7 @@ void delete_vert(int i)
 
 int add_vert(int mx, int my)
 {
-	Assert(num_pts<300);
+	SDL_assert(num_pts<300);
 	x[num_pts] = mx;
 	y[num_pts] = my;
 	l[num_pts] = 0;
@@ -788,9 +788,9 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	// setup the fred exe directory so CFILE can init properly
 	/*
 	char *c = GetCommandLine();
-	Assert(c != NULL);
+	SDL_assert(c != NULL);
 	char *tok = strtok(c, " ");
-	Assert(tok != NULL);	
+	SDL_assert(tok != NULL);	
 	*/
 
 	timer_init();

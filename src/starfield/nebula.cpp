@@ -247,10 +247,10 @@ int load_nebula_sub(const char *filename)
 
 	cfread( &num_pts, sizeof(int), 1, fp );
     num_pts = INTEL_INT(num_pts);
-	Assert( num_pts < MAX_POINTS );
+	SDL_assert( num_pts < MAX_POINTS );
 	cfread( &num_tris, sizeof(int), 1, fp );
     num_tris = INTEL_INT(num_tris);
-	Assert( num_tris < MAX_TRIS );
+	SDL_assert( num_tris < MAX_TRIS );
 
 	for (int i=0; i<num_pts; i++ )	{
 		float xf, yf;
@@ -259,8 +259,8 @@ int load_nebula_sub(const char *filename)
 		cfread( &xf, sizeof(float), 1, fp );
 		cfread( &yf, sizeof(float), 1, fp );
 		cfread( &l, sizeof(int), 1, fp );
-                xf = INTEL_FLOAT(&xf);
-                yf = INTEL_FLOAT(&yf);
+                xf = INTEL_FLOAT(xf);
+                yf = INTEL_FLOAT(yf);
                 l = INTEL_INT(l);
 		project_2d_onto_sphere( &nebula_vecs[i], 1.0f - xf, yf );
 		vm_vec_scale( &nebula_vecs[i], 10.0f );

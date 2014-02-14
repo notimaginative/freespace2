@@ -95,10 +95,10 @@ void tmapscan_pln8_zbuffered_tiled_64x64()
 		Tmap.fx_dl_dx = -Tmap.fx_dl_dx;
 		Tmap.fx_l = (67*F1_0)-Tmap.fx_l;
 		Tmap.fx_l_right = (67*F1_0)-Tmap.fx_l_right;
-//		Assert( Tmap.fx_l > 31*F1_0 );
-//		Assert( Tmap.fx_l < 66*F1_0 );
-//		Assert( Tmap.fx_dl_dx >= 0 );
-//		Assert( Tmap.fx_dl_dx < 31*F1_0 );
+//		SDL_assert( Tmap.fx_l > 31*F1_0 );
+//		SDL_assert( Tmap.fx_l < 66*F1_0 );
+//		SDL_assert( Tmap.fx_dl_dx >= 0 );
+//		SDL_assert( Tmap.fx_dl_dx < 31*F1_0 );
 	}
 
 	Tmap.fl_dudx_wide = Tmap.deltas.u*32.0f;
@@ -108,10 +108,10 @@ void tmapscan_pln8_zbuffered_tiled_64x64()
 	Tmap.fx_w = fl2i(Tmap.l.sw * GR_Z_RANGE)+gr_zoffset;
 	Tmap.fx_dwdx = fl2i(Tmap.deltas.sw * GR_Z_RANGE);
 
-//	Assert(Tmap.fx_w < 65536 );
-//	Assert(Tmap.fx_w >= 0 );
-//	Assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count < 65536 );
-//	Assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count >= 0 );
+//	SDL_assert(Tmap.fx_w < 65536 );
+//	SDL_assert(Tmap.fx_w >= 0 );
+//	SDL_assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count < 65536 );
+//	SDL_assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count >= 0 );
 
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;
@@ -736,10 +736,10 @@ void tmapscan_pln8_tiled_64x64()
 		Tmap.fx_dl_dx = -Tmap.fx_dl_dx;
 		Tmap.fx_l = (67*F1_0)-Tmap.fx_l;
 		Tmap.fx_l_right = (67*F1_0)-Tmap.fx_l_right;
-//		Assert( Tmap.fx_l > 31*F1_0 );
-//		Assert( Tmap.fx_l < 66*F1_0 );
-//		Assert( Tmap.fx_dl_dx >= 0 );
-//		Assert( Tmap.fx_dl_dx < 31*F1_0 );
+//		SDL_assert( Tmap.fx_l > 31*F1_0 );
+//		SDL_assert( Tmap.fx_l < 66*F1_0 );
+//		SDL_assert( Tmap.fx_dl_dx >= 0 );
+//		SDL_assert( Tmap.fx_dl_dx < 31*F1_0 );
 	}
 
 	Tmap.fl_dudx_wide = Tmap.deltas.u*32.0f;
@@ -749,10 +749,10 @@ void tmapscan_pln8_tiled_64x64()
 	Tmap.fx_w = fl2i(Tmap.l.sw * GR_Z_RANGE)+gr_zoffset;
 	Tmap.fx_dwdx = fl2i(Tmap.deltas.sw * GR_Z_RANGE);
 
-//	Assert(Tmap.fx_w < 65536 );
-//	Assert(Tmap.fx_w >= 0 );
-//	Assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count < 65536 );
-//	Assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count >= 0 );
+//	SDL_assert(Tmap.fx_w < 65536 );
+//	SDL_assert(Tmap.fx_w >= 0 );
+//	SDL_assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count < 65536 );
+//	SDL_assert(Tmap.fx_w+Tmap.fx_dwdx*Tmap.loop_count >= 0 );
 
 #ifdef PLAT_UNIX
 	STUB_FUNCTION;

@@ -212,7 +212,7 @@ void gamesnd_preload_common_sounds()
 
 	for ( i = 0; i < MAX_GAME_SOUNDS; i++ ) {
 		gs = &Snds[i];
-		if ( gs->filename[0] != 0 && stricmp(gs->filename, NOX("none.wav")) ) {
+		if ( gs->filename[0] != 0 && SDL_strcasecmp(gs->filename, NOX("none.wav")) ) {
 			if ( gs->preload ) {
 				gs->id = snd_load(gs);
 			}
@@ -233,7 +233,7 @@ void gamesnd_load_gameplay_sounds()
 
 	for ( i = 0; i < MAX_GAME_SOUNDS; i++ ) {
 		gs = &Snds[i];
-		if ( gs->filename[0] != 0 && stricmp(gs->filename, NOX("none.wav")) ) {
+		if ( gs->filename[0] != 0 && SDL_strcasecmp(gs->filename, NOX("none.wav")) ) {
 			gs->id = snd_load(gs);
 		}
 	}
@@ -270,7 +270,7 @@ void gamesnd_load_interface_sounds()
 
 	for ( i = 0; i < MAX_INTERFACE_SOUNDS; i++ ) {
 		gs = &Snds_iface[i];
-		if ( gs->filename[0] != 0 && stricmp(gs->filename, NOX("none.wav")) ) {
+		if ( gs->filename[0] != 0 && SDL_strcasecmp(gs->filename, NOX("none.wav")) ) {
 			gs->id = snd_load(gs);
 		}
 	}
@@ -308,7 +308,7 @@ void gamesnd_parse_line(game_snd *gs, const char *tag)
 	required_string(tag);
 	stuff_int(&gs->sig);
 	stuff_string(gs->filename, F_NAME, ",");
-	if ( !stricmp(gs->filename,NOX("empty")) ) {
+	if ( !SDL_strcasecmp(gs->filename,NOX("empty")) ) {
 		gs->filename[0] = 0;
 		advance_to_eoln(NULL);
 		return;
@@ -351,7 +351,7 @@ void gamesnd_parse_soundstbl()
 	// Parse the gameplay sounds section
 	required_string("#Game Sounds Start");
 	while (required_string_either("#Game Sounds End","$Name:")) {
-		Assert( num_game_sounds < MAX_GAME_SOUNDS);
+		SDL_assert( num_game_sounds < MAX_GAME_SOUNDS);
 		gamesnd_parse_line( &Snds[num_game_sounds], "$Name:" );
 		num_game_sounds++;
 	}
@@ -360,7 +360,7 @@ void gamesnd_parse_soundstbl()
 	// Parse the interface sounds section
 	required_string("#Interface Sounds Start");
 	while (required_string_either("#Interface Sounds End","$Name:")) {
-		Assert( num_iface_sounds < MAX_INTERFACE_SOUNDS);
+		SDL_assert( num_iface_sounds < MAX_INTERFACE_SOUNDS);
 		gamesnd_parse_line(&Snds_iface[num_iface_sounds], "$Name:");
 		num_iface_sounds++;
 	}

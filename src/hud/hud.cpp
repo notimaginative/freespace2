@@ -1078,7 +1078,7 @@ void hud_update_frame()
 	}
 
 	if (retarget_turret && can_target) {
-		Assert(!retarget);
+		SDL_assert(!retarget);
 		// get closest weighted live turret
 		// hud_target_closest(OBJ_INDEX(Player_obj), FALSE, FALSE);
 		void hud_update_closest_turret();
@@ -1108,7 +1108,7 @@ void hud_update_frame()
 	ship	*target_shipp = NULL;
 	
 	if ( targetp->type == OBJ_SHIP ) {
-		Assert ( targetp->instance >=0 && targetp->instance < MAX_SHIPS );
+		SDL_assert ( targetp->instance >=0 && targetp->instance < MAX_SHIPS );
 		target_shipp = &Ships[targetp->instance];
 		Player->target_is_dying = target_shipp->flags & SF_DYING;
 
@@ -1140,7 +1140,7 @@ void hud_update_frame()
 
 	// Switch to battle track when a targeted ship is hostile and within BATTLE_START_MIN_TARGET_DIST
 	if (targetp->type == OBJ_SHIP && Event_Music_battle_started == 0 ) {
-		Assert( target_shipp != NULL );
+		SDL_assert( target_shipp != NULL );
 
 		if (opposing_team_mask(Player_ship->team)) {
 			float	dist_to_target;
@@ -1150,7 +1150,7 @@ void hud_update_frame()
 
 				// If the target has an AI class of none, it is a Cargo, NavBuoy or other non-aggressive
 				// ship, so don't start the battle music	
-				if (stricmp(Ai_class_names[Ai_info[target_shipp->ai_index].ai_class], NOX("none")))
+				if (SDL_strcasecmp(Ai_class_names[Ai_info[target_shipp->ai_index].ai_class], NOX("none")))
 					event_music_battle_start();
 			}
 		}
@@ -1270,7 +1270,7 @@ void HUD_render_3d(float frametime)
 
 	} else if ( Viewer_mode & (VM_CHASE | VM_EXTERNAL | VM_WARP_CHASE | VM_PADLOCK_ANY ) ) {
 		// If the player is warping out, don't draw the targeting gauges
-		Assert(Player != NULL);
+		SDL_assert(Player != NULL);
 		if ( Player->control_mode != PCM_NORMAL ) {
 			return;
 		}
@@ -1878,8 +1878,8 @@ void hud_show_damage_popup()
 			}
 		}
 
-		Assert(best_index >= 0);
-		Assert(best_str >= 0);
+		SDL_assert(best_index >= 0);
+		SDL_assert(best_str >= 0);
 
 		// display strongest subsystem left in list
 		// draw the bitmap
@@ -1979,7 +1979,7 @@ int hud_anim_load(hud_anim *ha)
 		Int3();	// couldn't load animation file in
 		return -1;
 	}
-	Assert(fps != 0);
+	SDL_assert(fps != 0);
 	ha->total_time = i2fl(ha->num_frames)/fps;
 	return 0;
 }
@@ -2365,7 +2365,7 @@ int hud_support_find_closest( int objnum )
 			// make sure support ship is not dying
 			if ( !(Ships[Objects[sop->objnum].instance].flags & (SF_DYING|SF_EXPLODED)) ) {
 
-				Assert( objp->type == OBJ_SHIP );
+				SDL_assert( objp->type == OBJ_SHIP );
 				aip = &Ai_info[Ships[Objects[sop->objnum].instance].ai_index];
 				pship_index = objp->instance;
 
@@ -2375,7 +2375,7 @@ int hud_support_find_closest( int objnum )
 					// we can use == in the next statement (and should) since a ship will only ever be
 					// following one order at a time.
 					if ( aip->goals[i].ai_mode == AI_GOAL_REARM_REPAIR ) {
-						Assert( aip->goals[i].ship_name );
+						SDL_assert( aip->goals[i].ship_name );
 						sindex = ship_name_lookup( aip->goals[i].ship_name );
 						if ( sindex == pship_index )
 							return sop->objnum;
@@ -2445,7 +2445,7 @@ void hud_support_view_blit()
 
 	show_time = 0;
 	if ( Player_ai->ai_flags & AIF_BEING_REPAIRED ) {
-		Assert(Ship_info[Player_ship->ship_info_index].initial_hull_strength > 0);
+		SDL_assert(Ship_info[Player_ship->ship_info_index].initial_hull_strength > 0);
 		if (  (ship_get_subsystem_strength(Player_ship, SUBSYSTEM_ENGINE) < 1.0 ) ||
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_SENSORS) < 1.0 ) ||
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_WEAPONS) < 1.0 ) ||
@@ -2487,7 +2487,7 @@ void hud_support_view_blit()
 	if ( show_time ) {
 		int seconds, minutes;
 
-		Assert( Hud_support_objnum != -1 );
+		SDL_assert( Hud_support_objnum != -1 );
 
 		// ensure support ship is still alive
 		if ( (Objects[Hud_support_objnum].signature != Hud_support_obj_sig) || (Hud_support_target_sig != Player_obj->signature) ) {
@@ -2515,7 +2515,7 @@ void hud_support_view_blit()
 // Set the current color to the default HUD color (with default alpha)
 void hud_set_default_color()
 {
-	Assert(HUD_color_alpha >= 0 && HUD_color_alpha < HUD_NUM_COLOR_LEVELS);
+	SDL_assert(HUD_color_alpha >= 0 && HUD_color_alpha < HUD_NUM_COLOR_LEVELS);
 	gr_set_color_fast(&HUD_color_defaults[HUD_color_alpha]);
 }
 
@@ -2609,7 +2609,7 @@ static int Vm_other_ship_gauges[NUM_VM_OTHER_SHIP_GAUGES] =
 // determine if the specified HUD gauge should be displayed
 int hud_gauge_active(int gauge_index)
 {
-	Assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
+	SDL_assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
 
 	// AL: Special code: Only show two gauges when not viewing from own ship
 	if ( Viewer_mode & VM_OTHER_SHIP ) {
@@ -2627,14 +2627,14 @@ int hud_gauge_active(int gauge_index)
 // determine if gauge is in pop-up mode or not
 int hud_gauge_is_popup(int gauge_index)
 {
-	Assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
+	SDL_assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
 	return hud_config_popup_flag_is_set(gauge_index);
 }
 
 // determine if a popup gauge should be drawn
 int hud_gauge_popup_active(int gauge_index)
 {
-	Assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
+	SDL_assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
 	if ( !hud_gauge_is_popup(gauge_index) ) {
 		return 0;
 	}
@@ -2649,7 +2649,7 @@ int hud_gauge_popup_active(int gauge_index)
 // start a gauge to popup
 void hud_gauge_popup_start(int gauge_index, int time) 
 {
-	Assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
+	SDL_assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
 	if ( !hud_gauge_is_popup(gauge_index) ) {
 		return;
 	}
@@ -2661,7 +2661,7 @@ void hud_gauge_popup_start(int gauge_index, int time)
 // call HUD function to flash gauge
 void hud_gauge_start_flash(int gauge_index)
 {
-	Assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
+	SDL_assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
 	HUD_gauge_flash_duration[gauge_index] = timestamp(HUD_GAUGE_FLASH_DURATION);
 	HUD_gauge_flash_next[gauge_index] = 1;
 }
@@ -2694,7 +2694,7 @@ void hud_set_gauge_color(int gauge_index, int bright_index)
 
 		// intensity
 		default: 
-			Assert((bright_index >= 0) && (bright_index < HUD_NUM_COLOR_LEVELS));
+			SDL_assert((bright_index >= 0) && (bright_index < HUD_NUM_COLOR_LEVELS));
 			if(bright_index < 0){
 				bright_index = 0;
 			}
@@ -2741,7 +2741,7 @@ void hud_set_gauge_color(int gauge_index, int bright_index)
 //			1	=>	gauge is flashing, draw bright
 int hud_gauge_maybe_flash(int gauge_index)
 {
-	Assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
+	SDL_assert(gauge_index >=0 && gauge_index < NUM_HUD_GAUGES);
 	int flash_status=-1;
 	if ( !timestamp_elapsed(HUD_gauge_flash_duration[gauge_index]) ) {
 		if ( timestamp_elapsed(HUD_gauge_flash_next[gauge_index]) ) {
@@ -2966,7 +2966,7 @@ int hud_wing_slot_from_name(const char *name)
 	num[1]=0;
 
 	rval = num[0] - '1';
-	Assert(rval >= 0 && rval < 4);
+	SDL_assert(rval >= 0 && rval < 4);
 	return rval;
 }
 

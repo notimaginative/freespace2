@@ -322,7 +322,7 @@ void draw_aa_hspan8(fix_xy x, fix_xy y, long int ep_corr, long int slope)
 				index = filter_index;
 
 			if (index > INV_FILTER)	{
-				Assert( i == 3 );
+				SDL_assert( i == 3 );
 				return;			// Not a valid pixel
 			}
 
@@ -352,7 +352,7 @@ void draw_aa_hspan8(fix_xy x, fix_xy y, long int ep_corr, long int slope)
 				index = filter_index;
 
 			if (index > INV_FILTER)	{
-				Assert( i == 3 );
+				SDL_assert( i == 3 );
 				return;			// Not a valid pixel
 			}
 
@@ -417,7 +417,7 @@ void draw_aa_vspan8(fix_xy x, fix_xy y, long int ep_corr, long int slope)
 				index = filter_index;
 
 			if (index > INV_FILTER)	{
-				Assert( i == 3 );
+				SDL_assert( i == 3 );
 				return;			// Not a valid pixel
 			}
 
@@ -445,7 +445,7 @@ void draw_aa_vspan8(fix_xy x, fix_xy y, long int ep_corr, long int slope)
 				index = filter_index;
 
 			if (index > INV_FILTER)	{
-				Assert( i == 3 );
+				SDL_assert( i == 3 );
 				return;			// Not a valid pixel
 			}
 

@@ -347,11 +347,11 @@ void anim_play_init(anim_play_struct *aps, anim *a_info, int x, int y)
 //
 anim_instance *anim_play(anim_play_struct *aps)
 {
-	Assert( aps->anim_info != NULL );
-	Assert( aps->start_at >= 0 );
-	Assert( aps->stop_at < aps->anim_info->total_frames );
-	// Assert( aps->stop_at >= aps->start_at );
-	Assert( !(aps->looped && aps->ping_pong) );  // shouldn't have these both set at once
+	SDL_assert( aps->anim_info != NULL );
+	SDL_assert( aps->start_at >= 0 );
+	SDL_assert( aps->stop_at < aps->anim_info->total_frames );
+	// SDL_assert( aps->stop_at >= aps->start_at );
+	SDL_assert( !(aps->looped && aps->ping_pong) );  // shouldn't have these both set at once
 
 	MONITOR_INC(NumANIPlayed, 1);
 	
@@ -361,7 +361,7 @@ anim_instance *anim_play(anim_play_struct *aps)
 
 	// Find next free anim instance slot on queue
 	instance = GET_FIRST(&anim_free_list);
-	Assert( instance != &anim_free_list );  // shouldn't have the dummy element
+	SDL_assert( instance != &anim_free_list );  // shouldn't have the dummy element
 
 	// remove instance from the free list
 	list_remove( &anim_free_list, instance );
@@ -378,7 +378,7 @@ anim_instance *anim_play(anim_play_struct *aps)
 		instance->file_offset = instance->parent->file_offset;
 	}
 	instance->frame = (ubyte *) malloc(instance->parent->width * instance->parent->height * 2);
-	Assert( instance->frame != NULL );
+	SDL_assert( instance->frame != NULL );
 	instance->time_elapsed = 0.0f;
 	instance->stop_at = aps->stop_at;
 	instance->x = aps->x;
@@ -470,7 +470,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 	int aabitmap = 0;
 	int bpp = 16;
 
-	Assert( instance != NULL );
+	SDL_assert( instance != NULL );
 
 	instance->time_elapsed += frametime;
 
@@ -584,9 +584,9 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 			frame_diff = 1;
 		}
 	}		
-	Assert(frame_diff >= 0);
+	SDL_assert(frame_diff >= 0);
 	//	nprintf(("Alan","FRAME DIFF: %d\n",frame_diff));
-	Assert( instance->frame_num >= 0 && instance->frame_num < instance->parent->total_frames );
+	SDL_assert( instance->frame_num >= 0 && instance->frame_num < instance->parent->total_frames );
 
 	// if the anim is paused, ignore all the above changes and still display this frame
 	if(instance->paused || Anim_paused){
@@ -706,7 +706,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 		}
 		else {
 			g3_rotate_vertex(&image_vertex,instance->world_pos);
-			Assert(instance->radius != 0.0f);
+			SDL_assert(instance->radius != 0.0f);
 			g3_draw_bitmap(&image_vertex, 0, instance->radius*1.5f, TMAP_FLAG_TEXTURED );
 		}
 
@@ -729,7 +729,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 //
 int anim_stop_playing(anim_instance* instance)
 {
-	Assert(instance != NULL);
+	SDL_assert(instance != NULL);
 
 	if ( anim_playing(instance) ) {
 		anim_release_render_instance(instance);
@@ -747,8 +747,8 @@ int anim_stop_playing(anim_instance* instance)
 //
 void anim_release_render_instance(anim_instance* instance)
 {
-	Assert( instance != NULL );
-	Assert(instance->frame);
+	SDL_assert( instance != NULL );
+	SDL_assert(instance->frame);
 	free(instance->frame);
 	instance->frame = NULL;
 	instance->parent->instance_count--;
@@ -907,7 +907,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 //	file_mapped = 0;
 
-	Assert ( real_filename != NULL );
+	SDL_assert ( real_filename != NULL );
 
 	strcpy( name, real_filename );
 	char *p = strchr( name, '.' );
@@ -918,7 +918,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 	ptr = first_anim;
 	while (ptr) {
-		if (!stricmp(name, ptr->name))
+		if (!SDL_strcasecmp(name, ptr->name))
 			break;
 
 		ptr = ptr->next;
@@ -930,12 +930,12 @@ anim *anim_load(const char *real_filename, int file_mapped)
 			return NULL;
 
 		ptr = (anim *) malloc(sizeof(anim));
-		Assert(ptr);
+		SDL_assert(ptr);
 
 		ptr->flags = 0;
 		ptr->next = first_anim;
 		first_anim = ptr;
-		Assert(strlen(name) < _MAX_PATH - 1);
+		SDL_assert(strlen(name) < _MAX_PATH - 1);
 		strcpy(ptr->name, name);
 		ptr->instance_count = 0;
 		ptr->width = 0;
@@ -948,7 +948,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 		if(ptr->num_keys > 0){
 			ptr->keys = (key_frame*)malloc(sizeof(key_frame) * ptr->num_keys);
-			Assert(ptr->keys != NULL);
+			SDL_assert(ptr->keys != NULL);
 		} 			
 
 		// store how long the anim should take on playback (in seconds)
@@ -1007,7 +1007,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 				ptr->data = NULL;
 				ptr->cache_file_offset = ptr->file_offset;
 				ptr->cache = (ubyte*)malloc(ANI_STREAM_CACHE_SIZE+2);
-				Assert(ptr->cache);
+				SDL_assert(ptr->cache);
 				cfseek(ptr->cfile_ptr, offset, CF_SEEK_SET);
 				cfread(ptr->cache, ANI_STREAM_CACHE_SIZE, 1, ptr->cfile_ptr);
 			} else {
@@ -1042,7 +1042,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 //
 int anim_free(anim *ptr)
 {
-	Assert ( ptr != NULL );
+	SDL_assert ( ptr != NULL );
 	anim *list, **prev_anim;
 
 	list = first_anim;
@@ -1076,7 +1076,7 @@ int anim_free(anim *ptr)
 		}
 	}
 	else {
-		Assert(ptr->data);
+		SDL_assert(ptr->data);
 		free(ptr->data);
 	}
 
@@ -1093,7 +1093,7 @@ int anim_free(anim *ptr)
 //
 int anim_playing(anim_instance *ai)
 {
-	Assert(ai != NULL);
+	SDL_assert(ai != NULL);
 	if ( ai->frame == NULL )
 		return 0;
 	else 
@@ -1206,7 +1206,7 @@ void anim_display_info(const char *real_filename)
 	anim_read_header(&A, fp);
 	// read the keyframe frame nums and offsets
 	key_frame_nums = (int*)malloc(sizeof(int)*A.num_keys);
-	Assert(key_frame_nums != NULL);
+	SDL_assert(key_frame_nums != NULL);
 	for ( i = 0; i < A.num_keys; i++ ) {
 		key_frame_nums[i] = 0;
 		cfread(&key_frame_nums[i], 2, 1, fp);
@@ -1304,7 +1304,7 @@ void anim_ignore_next_frametime()
 
 int anim_instance_is_streamed(anim_instance *ai)
 {
-	Assert(ai);
+	SDL_assert(ai);
 	return ( ai->parent->flags & ANF_STREAMED );
 }
 
@@ -1313,9 +1313,9 @@ unsigned char anim_instance_get_byte(anim_instance *ai, int offset)
 	int absolute_offset;
 	anim *parent;
 	
-	Assert(ai);
-	Assert(ai->parent->cfile_ptr);
-	Assert(ai->parent->flags & ANF_STREAMED);
+	SDL_assert(ai);
+	SDL_assert(ai->parent->cfile_ptr);
+	SDL_assert(ai->parent->flags & ANF_STREAMED);
 
 	parent = ai->parent;
 	absolute_offset = ai->file_offset + offset;

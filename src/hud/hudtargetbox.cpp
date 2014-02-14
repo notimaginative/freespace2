@@ -392,11 +392,11 @@ char *hud_targetbox_truncate_subsys_name(char *outstr)
 	if(Lcl_gr){
 		if ( strstr(outstr, "communication") )	{
 			strcpy(outstr, "Komm");
-		} else if ( !stricmp(outstr, "weapons") ) {
+		} else if ( !SDL_strcasecmp(outstr, "weapons") ) {
 			strcpy(outstr, "Waffen");
 		} else if ( strstr(outstr, "engine") || strstr(outstr, "Engine")) {
 			strcpy(outstr, "Antrieb");
-		} else if ( !stricmp(outstr, "sensors") ) {
+		} else if ( !SDL_strcasecmp(outstr, "sensors") ) {
 			strcpy(outstr, "Sensoren");
 		} else if ( strstr(outstr, "navigat") ) {
 			strcpy(outstr, "Nav");
@@ -414,17 +414,17 @@ char *hud_targetbox_truncate_subsys_name(char *outstr)
 			strcpy(outstr, "Reaktor");
 		} else if ( strstr(outstr, "RadarDish") ) {
 			strcpy(outstr, "Radarantenne");
-		} else if (!stricmp(outstr, "Gas Collector")) {
+		} else if (!SDL_strcasecmp(outstr, "Gas Collector")) {
 			strcpy(outstr, "Sammler");
 		} 
 	} else if(Lcl_fr){	
 		if ( strstr(outstr, "communication") )	{
 			strcpy(outstr, "comm");
-		} else if ( !stricmp(outstr, "weapons") ) {
+		} else if ( !SDL_strcasecmp(outstr, "weapons") ) {
 			strcpy(outstr, "armes");
 		} else if ( strstr(outstr, "engine") ) {
 			strcpy(outstr, "moteur");
-		} else if ( !stricmp(outstr, "sensors") ) {
+		} else if ( !SDL_strcasecmp(outstr, "sensors") ) {
 			strcpy(outstr, "detecteurs");
 		} else if ( strstr(outstr, "navi") ) {
 			strcpy(outstr, "nav");
@@ -438,11 +438,11 @@ char *hud_targetbox_truncate_subsys_name(char *outstr)
 	} else if(Lcl_pl){	
 		if ( strstr(outstr, "communication") )	{
 			strcpy(outstr, "komunikacja");
-		} else if ( !stricmp(outstr, "weapons") ) {
+		} else if ( !SDL_strcasecmp(outstr, "weapons") ) {
 			strcpy(outstr, "uzbrojenie");
 		} else if ( strstr(outstr, "engine") || strstr(outstr, "Engine")) {
 			strcpy(outstr, "silnik");
-		} else if ( !stricmp(outstr, "sensors") ) {
+		} else if ( !SDL_strcasecmp(outstr, "sensors") ) {
 			strcpy(outstr, "sensory");
 		} else if ( strstr(outstr, "navigat") ) {
 			strcpy(outstr, "nawigacja");
@@ -460,15 +460,15 @@ char *hud_targetbox_truncate_subsys_name(char *outstr)
 			strcpy(outstr, "reaktor");
 		} else if ( strstr(outstr, "RadarDish") ) {
 			strcpy(outstr, "antena radaru");
-		} else if (!stricmp(outstr, "Gas Collector")) {
+		} else if (!SDL_strcasecmp(outstr, "Gas Collector")) {
 			strcpy(outstr, "zbieracz gazu");
 		} 
 	} else {
-		if (!strnicmp(outstr, XSTR( "communication", 333), 3))	{
+		if (!SDL_strncasecmp(outstr, XSTR( "communication", 333), 3))	{
 			strcpy( outstr, XSTR( "comm", 334) );
-		} else if (!strnicmp(outstr, XSTR( "navigation", 335), 3))	{
+		} else if (!SDL_strncasecmp(outstr, XSTR( "navigation", 335), 3))	{
 			strcpy( outstr, XSTR( "nav", 336) );
-		} else if (!stricmp(outstr, "Gas Collector")) {
+		} else if (!SDL_strcasecmp(outstr, "Gas Collector")) {
 			strcpy(outstr, "Collector");
 		}
 	}
@@ -907,7 +907,7 @@ void hud_render_target_asteroid(object *target_objp)
 
 void get_turret_subsys_name(model_subsystem *system_info, char *outstr)
 {
-	Assert(system_info->type == SUBSYSTEM_TURRET);
+	SDL_assert(system_info->type == SUBSYSTEM_TURRET);
 
 	if (system_info->turret_weapon_type >= 0) {
 		// check if beam or flak using weapon flags
@@ -947,7 +947,7 @@ void hud_render_target_ship_info(object *target_objp)
 	char			outstr[256];
 	float			ship_integrity, shield_strength;
 
-	Assert(target_objp->type == OBJ_SHIP);
+	SDL_assert(target_objp->type == OBJ_SHIP);
 	target_shipp = &Ships[target_objp->instance];
 	target_sip = &Ship_info[target_shipp->ship_info_index];
 	target_aip = &Ai_info[target_shipp->ai_index];
@@ -1061,7 +1061,7 @@ void hud_render_target_ship_info(object *target_objp)
 
 		// AL 23-3-98: Fighter bays are a special case.  Player cannot destroy them, so don't
 		//					show the subsystem strength
-		if ( strnicmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7) ) {
+		if ( SDL_strncasecmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7) ) {
 			sprintf(outstr,XSTR( "%d%%", 341),screen_integrity);
 			gr_get_string_size(&w,&h,outstr);
 			gr_printf(Target_window_coords[gr_screen.res][0]+Target_window_coords[gr_screen.res][2]-w-1, Target_window_coords[gr_screen.res][1]+Target_window_coords[gr_screen.res][3] - h, "%s", outstr);
@@ -1101,7 +1101,7 @@ void hud_blit_target_integrity(int disabled,int force_obj_num)
 	}
 
 	if(force_obj_num == -1){
-		Assert(Player_ai->target_objnum >= 0 );
+		SDL_assert(Player_ai->target_objnum >= 0 );
 		objp = &Objects[Player_ai->target_objnum];
 	} else {
 		objp = &Objects[Player_ai->target_objnum];
@@ -1173,7 +1173,7 @@ int hud_targetbox_subsystem_in_view(object *target_objp, int *sx, int *sy)
 		}
 
 		// get screen coords, adjusting for autocenter
-		Assert(target_objp->type == OBJ_SHIP);
+		SDL_assert(target_objp->type == OBJ_SHIP);
 		if (target_objp->type == OBJ_SHIP) {
 			pm = model_get(Ships[target_objp->instance].modelnum);
 			if (pm->flags & PM_FLAG_AUTOCEN) {
@@ -1318,7 +1318,7 @@ void hud_render_target_ship(object *target_objp)
 			if ( subsys_in_view != -1 ) {
 
 				// AL 29-3-98: If subsystem is destroyed, draw gray brackets					
-				if ( (Player_ai->targeted_subsys->current_hits <= 0) && (strnicmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7)) ) {
+				if ( (Player_ai->targeted_subsys->current_hits <= 0) && (SDL_strncasecmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7)) ) {
 					gr_set_color_fast(&IFF_colors[IFF_COLOR_MESSAGE][1]);
 				} else {
 					hud_set_iff_color( target_objp, 1 );
@@ -1673,7 +1673,7 @@ void hud_show_target_data(float frametime)
 
 		aip = &Ai_info[shipp->ai_index];
 		if ( aip->ai_flags & AIF_DOCKED ) {
-			Assert( aip->dock_objnum != -1 );
+			SDL_assert( aip->dock_objnum != -1 );
 			other_objp = &Objects[aip->dock_objnum];
 			spd = other_objp->phys_info.fspeed;
 			if ( spd < 0.1 )
@@ -1708,13 +1708,13 @@ void hud_show_target_data(float frametime)
 
 			switch (aip->mode) {
 			case AIM_CHASE:
-				Assert(aip->submode <= SM_BIG_PARALLEL);	//	Must be <= largest chase submode value.
+				SDL_assert(aip->submode <= SM_BIG_PARALLEL);	//	Must be <= largest chase submode value.
 //				sprintf(outstr,"AI: %s",Submode_text[aip->submode]);
 				sprintf(outstr2," / %s",Submode_text[aip->submode]);
 				strcat(outstr,outstr2);
 				break;
 			case AIM_STRAFE:
-				Assert(aip->submode <= AIS_STRAFE_POSITION);	//	Must be <= largest chase submode value.
+				SDL_assert(aip->submode <= AIS_STRAFE_POSITION);	//	Must be <= largest chase submode value.
 //				sprintf(outstr,"AI: %s",Strafe_submode_text[aip->submode-AIS_STRAFE_ATTACK]);
 				sprintf(outstr2," / %s",Strafe_submode_text[aip->submode-AIS_STRAFE_ATTACK]);
 				strcat(outstr,outstr2);

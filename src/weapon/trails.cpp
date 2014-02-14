@@ -169,7 +169,7 @@ int trail_create(trail_info info)
 
 	// Find next available trail
 	trailp = GET_FIRST(&Trail_free_list);
-	Assert( trailp != &Trail_free_list );		// shouldn't have the dummy element
+	SDL_assert( trailp != &Trail_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Trail_free_list, trailp );
@@ -436,7 +436,7 @@ void trail_move_all(float frametime)
 			// decrement counter
 			Num_trails--;
 
-			Assert(Num_trails >= 0);
+			SDL_assert(Num_trails >= 0);
 			
 			trailp = next_one;
 		} else {

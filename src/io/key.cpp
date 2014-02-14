@@ -200,8 +200,6 @@ keyboard key_data;
 
 int key_inited = 0;
 
-CRITICAL_SECTION key_lock;
-
 //int Backspace_debug=1;	// global flag that will enable/disable the backspace key from stopping execution
 								// This flag was created since the backspace key is also used to correct mistakes
 								// when typing in your pilots callsign.  This global flag is checked before execution
@@ -294,8 +292,6 @@ void key_flush()
 
 	if ( !key_inited ) return;
 
-	ENTER_CRITICAL_SECTION(&key_lock);	
-
 	key_data.keyhead = key_data.keytail = 0;
 
 	//Clear the keyboard buffer
@@ -319,8 +315,6 @@ void key_flush()
 	}
 
 	key_text_input.clear();
-
-	LEAVE_CRITICAL_SECTION(&key_lock);	
 }
 
 //	A nifty function which performs the function:
@@ -340,13 +334,9 @@ int key_checkch()
 
 	if ( !key_inited ) return 0;
 
-	ENTER_CRITICAL_SECTION(&key_lock);	
-
 	if (key_data.keytail != key_data.keyhead){
 		is_one_waiting = 1;
 	}
-
-	LEAVE_CRITICAL_SECTION(&key_lock);		
 
 	return is_one_waiting;
 }
@@ -446,8 +436,6 @@ float key_down_timef(int keycode)
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0.0f;
 
-	ENTER_CRITICAL_SECTION(&key_lock);		
-
 	time = timer_get_milliseconds();
 	delta_time = time - key_data.TimeKeyDownChecked[scancode];
 	key_data.TimeKeyDownChecked[scancode] = time;
@@ -455,10 +443,8 @@ float key_down_timef(int keycode)
 	if ( delta_time <= 1 ) {
 		key_data.TimeKeyWentDown[scancode] = time;
 		if (keyd_pressed[scancode])	{
-			LEAVE_CRITICAL_SECTION(&key_lock);		
 			return 1.0f;
 		} else	{
-			LEAVE_CRITICAL_SECTION(&key_lock);		
 			return 0.0f;
 		}
 	}
@@ -470,8 +456,6 @@ float key_down_timef(int keycode)
 		time_down =  time - key_data.TimeKeyWentDown[scancode];
 		key_data.TimeKeyWentDown[scancode] = time;
 	}
-
-	LEAVE_CRITICAL_SECTION(&key_lock);		
 
 	return i2fl(time_down) / i2fl(delta_time);
 }
@@ -490,12 +474,8 @@ int key_down_count(int keycode)
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0;
 
-	ENTER_CRITICAL_SECTION(&key_lock);		
-
 	n = key_data.NumDowns[scancode];
 	key_data.NumDowns[scancode] = 0;
-
-	LEAVE_CRITICAL_SECTION(&key_lock);		
 
 	return n;
 }
@@ -515,12 +495,8 @@ int key_up_count(int keycode)
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0;
 
-	ENTER_CRITICAL_SECTION(&key_lock);		
-
 	n = key_data.NumUps[scancode];
 	key_data.NumUps[scancode] = 0;
-
-	LEAVE_CRITICAL_SECTION(&key_lock);		
 
 	return n;
 }
@@ -542,9 +518,7 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 
 	if ( !key_inited ) return;
 
-	ENTER_CRITICAL_SECTION(&key_lock);		
-
-	Assert( scancode < SDL_NUM_SCANCODES );
+	SDL_assert( scancode < SDL_NUM_SCANCODES );
 
 	// ignore GUI key, we use it for specials commands
 	if ( (scancode == SDL_SCANCODE_LGUI) || (scancode == SDL_SCANCODE_RGUI) ) {
@@ -643,8 +617,6 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 			}
 		}
 	}
-
-	LEAVE_CRITICAL_SECTION(&key_lock);		
 }
 
 void key_close()

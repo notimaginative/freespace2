@@ -564,7 +564,7 @@ void goal_screen_scroll_down();
 
 void goal_list::add(mission_goal *m)
 {
-	Assert(count < MAX_GOALS_PER_LIST);
+	SDL_assert(count < MAX_GOALS_PER_LIST);
 	list[count++] = m;
 }
 
@@ -664,7 +664,7 @@ void goal_text::display(int n, int y)
 	if ((n < 0) || (n >= m_num_lines) || (m_line_sizes[n] < 1))
 		return;  // out of range, don't draw anything
 
-	Assert(m_line_sizes[n] < MAX_GOAL_TEXT);
+	SDL_assert(m_line_sizes[n] < MAX_GOAL_TEXT);
 	y += Goal_screen_text_y;
 	if (*m_lines[n] == '*') {  // header line
 		gr_set_color_fast(&Color_text_heading);
@@ -1061,8 +1061,8 @@ void mission_goal_status_change( int goal_num, int new_status)
 {
 	int type;
 
-	Assert(goal_num < Num_goals);
-	Assert((new_status == GOAL_FAILED) || (new_status == GOAL_COMPLETE));
+	SDL_assert(goal_num < Num_goals);
+	SDL_assert((new_status == GOAL_FAILED) || (new_status == GOAL_COMPLETE));
 
 	// if in a multiplayer game, send a status change to clients
 	if ( MULTIPLAYER_MASTER ){
@@ -1442,7 +1442,7 @@ void mission_goal_mark_invalid( char *name )
 	int i;
 
 	for (i=0; i<Num_goals; i++) {
-		if ( !stricmp(Mission_goals[i].name, name) ) {
+		if ( !SDL_strcasecmp(Mission_goals[i].name, name) ) {
 			mission_goal_validation_change( i, 0 );
 			return;
 		}
@@ -1455,7 +1455,7 @@ void mission_goal_mark_valid( char *name )
 	int i;
 
 	for (i=0; i<Num_goals; i++) {
-		if ( !stricmp(Mission_goals[i].name, name) ) {
+		if ( !SDL_strcasecmp(Mission_goals[i].name, name) ) {
 			mission_goal_validation_change( i, 1 );
 			return;
 		}
@@ -1570,11 +1570,11 @@ DCF(change_mission_goal, "Change the mission goal")
 		else if ( Dc_arg_type & ARG_NONE )
 			Mission_goals[num].satisfied = GOAL_INCOMPLETE;
 		else if ( Dc_arg_type & ARG_STRING) {
-			if ( !stricmp(Dc_arg, "satisfied") )
+			if ( !SDL_strcasecmp(Dc_arg, "satisfied") )
 				Mission_goals[num].satisfied = GOAL_COMPLETE;
-			else if ( !stricmp( Dc_arg, "failed") )
+			else if ( !SDL_strcasecmp( Dc_arg, "failed") )
 				Mission_goals[num].satisfied = GOAL_FAILED;
-			else if ( !stricmp( Dc_arg, "unknown") )
+			else if ( !SDL_strcasecmp( Dc_arg, "unknown") )
 				Mission_goals[num].satisfied = GOAL_INCOMPLETE;
 			else
 				dc_printf("Unknown status %s.  Use 'satisfied', 'failed', or 'unknown'\n", Dc_arg);

@@ -421,7 +421,7 @@ void multi_oo_interpolate(object *objp, interp_info *current, interp_info *last)
 		objp->phys_info.desired_vel = current->desired_vel;
 		objp->phys_info.desired_rotvel = current->desired_rotvel;		
 
-//		if ( !stricmp( Ships[objp->instance].ship_name, "alpha 1"))	{
+//		if ( !SDL_strcasecmp( Ships[objp->instance].ship_name, "alpha 1"))	{
 //			mprintf(( "Rotvel = %.3f, %.3f, %.3f\n", current->rotvel.x, current->rotvel.y, current->rotvel.z ));
 //		}
 
@@ -654,11 +654,11 @@ int multi_oo_pack_client_data(ubyte *data)
 	
 	// client eye information	
 	ret = (ubyte)multi_pack_unpack_position( 1, data + packet_size, &Net_player->s_info.eye_pos );
-	Assert(ret == OO_POS_RET_SIZE);
+	SDL_assert(ret == OO_POS_RET_SIZE);
 	packet_size += ret;
 
 	ret = (ubyte)multi_pack_unpack_orient( 1, data + packet_size, &Net_player->s_info.eye_orient );
-	Assert(ret == OO_ORIENT_RET_SIZE);
+	SDL_assert(ret == OO_ORIENT_RET_SIZE);
 	packet_size += ret;	
 
 	// client targeting information	
@@ -716,7 +716,7 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 		header_bytes = 2;
 	}
 
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	if((objp->instance >= 0) && (Ships[objp->instance].ship_info_index >= 0)){
 		shipp = &Ships[objp->instance];
 	} else {
@@ -731,7 +731,7 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 	// orientation	
 	if(oo_flags & OO_ORIENT_NEW){
 		ret = (ubyte)multi_pack_unpack_orient( 1, data + packet_size + header_bytes, &objp->orient );
-		Assert(ret == OO_ORIENT_RET_SIZE);
+		SDL_assert(ret == OO_ORIENT_RET_SIZE);
 		packet_size += ret;
 		R_ORIENT_ADD(pl, ret);
 
@@ -784,7 +784,7 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 		
 	// forward thrust	
 	percent = (char)(objp->phys_info.forward_thrust * 100.0f);
-	Assert( percent <= 100 );
+	SDL_assert( percent <= 100 );
 
 	memcpy(data + packet_size + header_bytes, &percent, sizeof(char));
 	packet_size += 1;
@@ -877,7 +877,7 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 		R_AI_MODE_ADD(pl, 5);
 	}
 
-	Assert(packet_size < 255);
+	SDL_assert(packet_size < 255);
 	data_size = (ubyte)packet_size;
 
 	// add the object's net signature, type and oo_flags
@@ -956,11 +956,11 @@ int multi_oo_unpack_client_data(net_player *pl, ubyte *data)
 	memset(&pi,0,sizeof(physics_info));
 
 	ret = multi_pack_unpack_position( 0, data + offset, &eye_pos );
-	Assert(ret == OO_POS_RET_SIZE);
+	SDL_assert(ret == OO_POS_RET_SIZE);
 	offset += ret;
 
 	ret = multi_pack_unpack_orient( 0, data + offset, &eye_orient );
-	Assert(ret == OO_ORIENT_RET_SIZE);
+	SDL_assert(ret == OO_ORIENT_RET_SIZE);
 	offset += ret;
 
 	// if we have a valid player, copy the info in
@@ -1076,15 +1076,15 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data, ushort packet_sequence_num
 	// orientation	
 	if ( oo_flags & OO_ORIENT_NEW ) {		
 		int r2 = multi_pack_unpack_orient( 0, data + offset, &objp->orient );				
-		Assert(fl_abs(objp->orient.fvec.x) < 10000.0f);
-		Assert(fl_abs(objp->orient.fvec.y) < 10000.0f);
-		Assert(fl_abs(objp->orient.fvec.z) < 10000.0f);		
-		Assert(fl_abs(objp->orient.uvec.x) < 10000.0f);
-		Assert(fl_abs(objp->orient.uvec.y) < 10000.0f);
-		Assert(fl_abs(objp->orient.uvec.z) < 10000.0f);		
-		Assert(fl_abs(objp->orient.rvec.x) < 10000.0f);
-		Assert(fl_abs(objp->orient.rvec.y) < 10000.0f);
-		Assert(fl_abs(objp->orient.rvec.z) < 10000.0f);		
+		SDL_assert(fl_abs(objp->orient.fvec.x) < 10000.0f);
+		SDL_assert(fl_abs(objp->orient.fvec.y) < 10000.0f);
+		SDL_assert(fl_abs(objp->orient.fvec.z) < 10000.0f);		
+		SDL_assert(fl_abs(objp->orient.uvec.x) < 10000.0f);
+		SDL_assert(fl_abs(objp->orient.uvec.y) < 10000.0f);
+		SDL_assert(fl_abs(objp->orient.uvec.z) < 10000.0f);		
+		SDL_assert(fl_abs(objp->orient.rvec.x) < 10000.0f);
+		SDL_assert(fl_abs(objp->orient.rvec.y) < 10000.0f);
+		SDL_assert(fl_abs(objp->orient.rvec.z) < 10000.0f);		
 		offset += r2;		
 
 		int r5 = multi_pack_unpack_rotvel( 0, data + offset, &objp->orient, &objp->pos, &objp->phys_info );		
@@ -1114,7 +1114,7 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data, ushort packet_sequence_num
 		
 	// forward thrust	
 	percent = (char)(objp->phys_info.forward_thrust * 100.0f);
-	Assert( percent <= 100 );
+	SDL_assert( percent <= 100 );
 	GET_DATA(percent);	
 	
 	// hull info
@@ -1176,7 +1176,7 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data, ushort packet_sequence_num
 
 			// add the value just generated (it was zero'ed above) into the array of generic system types
 			subsys_type = subsysp->system_info->type;					// this is the generic type of subsystem
-			Assert ( subsys_type < SUBSYSTEM_MAX );
+			SDL_assert ( subsys_type < SUBSYSTEM_MAX );
 			shipp->subsys_info[subsys_type].current_hits += val;
 			subsys_count++;
 
@@ -1335,7 +1335,7 @@ int multi_oo_maybe_update(net_player *pl,object *pobj,object *obj,ubyte *data)
 		}
 
 		/*
-		if(!stricmp(Ships[obj->instance].ship_name, "alpha 1")){
+		if(!SDL_strcasecmp(Ships[obj->instance].ship_name, "alpha 1")){
 			if(in_cone){
 				nprintf(("Network","In cone\n"));
 			} else {
@@ -1691,7 +1691,7 @@ void multi_oo_send_update_sync(net_player *pl)
 	ubyte data[20];
 	int packet_size = 0;	
 
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 	// build the header and add the data
 	BUILD_HEADER(OBJ_UPDATE_SYNC);	

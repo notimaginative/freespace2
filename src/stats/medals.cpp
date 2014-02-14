@@ -457,7 +457,7 @@ void parse_medal_tbl()
 	bi = 0;
 	required_string("#Medals");
 	while ( required_string_either("#End", "$Name:") ) {
-		Assert ( num_medals < NUM_MEDALS);
+		SDL_assert ( num_medals < NUM_MEDALS);
 		required_string("$Name:");
 		stuff_string( Medals[num_medals].name, F_NAME, NULL );
 		required_string("$Bitmap:");
@@ -471,7 +471,7 @@ void parse_medal_tbl()
 		if ( optional_string("+Num Kills:") ) {
 			char buf[MULTITEXT_LENGTH + 1];
 
-			Assert( bi < MAX_BADGES );
+			SDL_assert( bi < MAX_BADGES );
 			stuff_int( &Medals[num_medals].kills_needed );
 			Badge_index[bi] = num_medals;
 #ifdef MAKE_FS1
@@ -502,7 +502,7 @@ void parse_medal_tbl()
 	}
 
 	required_string("#End");
-	Assert( num_medals == NUM_MEDALS );
+	SDL_assert( num_medals == NUM_MEDALS );
 
 	// be sure that the badges kill numbers show up in order
 	for (i = 0; i < MAX_BADGES-1; i++ ) {
@@ -519,7 +519,7 @@ void medal_main_init(player *pl, int mode)
 {
 	int idx;
 
-	Assert(pl != NULL);
+	SDL_assert(pl != NULL);
 	Medals_player = pl;
 
    Player_score = &Medals_player->stats;
@@ -972,7 +972,7 @@ void init_medal_palette()
 void init_medal_bitmaps()
 {
 	int idx;
-	Assert(Player_score);
+	SDL_assert(Player_score);
 
 	for (idx=0; idx<NUM_MEDALS; idx++) {
 		Medal_bitmaps[idx] = -1;
@@ -1008,7 +1008,7 @@ void init_medal_bitmaps()
 			// we don't need to pass extension to bm_load anymore, so just use the basename
 			// as is.
          Medal_bitmaps[idx] = bm_load( filename );
-			Assert( Medal_bitmaps[idx] != -1 );
+			SDL_assert( Medal_bitmaps[idx] != -1 );
 		}
 	}
 

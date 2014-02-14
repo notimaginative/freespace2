@@ -369,7 +369,7 @@ void neb2_init()
 	}
 
 	// should always have 6 neb poofs
-	Assert(Neb2_poof_count == 6);
+	SDL_assert(Neb2_poof_count == 6);
 #endif
 }
 
@@ -448,7 +448,7 @@ void neb2_level_init()
 		Neb_backg_fog_far = NEB_BACKG_FOG_FAR_D3D;					
 		break;
 	case GR_SOFTWARE:
-		Assert(Fred_running);
+		SDL_assert(Fred_running);
 		break;
 	default :
 		Int3();
@@ -1136,12 +1136,12 @@ void neb2_get_fog_values(float *fnear, float *ffar, object *objp)
 
 	// determine what fog index to use
 	if(objp->type == OBJ_SHIP){
-		Assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+		SDL_assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 		if((objp->instance < 0) || (objp->instance >= MAX_SHIPS)){
 			fog_index = SHIP_TYPE_FIGHTER_BOMBER;
 		} else {
 			fog_index = ship_query_general_type(objp->instance);
-			Assert(fog_index >= 0);
+			SDL_assert(fog_index >= 0);
 			if(fog_index < 0){
 				fog_index = SHIP_TYPE_FIGHTER_BOMBER;
 			}
@@ -1517,7 +1517,7 @@ DCF(neb2_fog, "")
 				Neb_ship_fog_vals_glide[index][0] = fnear;
 				Neb_ship_fog_vals_glide[index][1] = ffar;
 			} else {
-				Assert(gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL);
+				SDL_assert(gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL);
 				Neb_ship_fog_vals_d3d[index][0] = fnear;
 				Neb_ship_fog_vals_d3d[index][1] = ffar;
 			}
@@ -1645,7 +1645,7 @@ DCF(neb2_fog_vals, "")
 		dc_printf("(11)background polys : %f, %f\n\n", Neb_backg_fog_near, Neb_backg_fog_far);
 
 	} else {
-		Assert(gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL);
+		SDL_assert(gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL);
 		dc_printf("(1)cargo containers : %f, %f\n", Neb_ship_fog_vals_d3d[1][0], Neb_ship_fog_vals_d3d[1][1]);
 		dc_printf("(2)fighters/bombers : %f, %f\n", Neb_ship_fog_vals_d3d[2][0], Neb_ship_fog_vals_d3d[2][1]);
 		dc_printf("(3)cruisers : %f, %f\n", Neb_ship_fog_vals_d3d[3][0], Neb_ship_fog_vals_d3d[3][1]);

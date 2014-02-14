@@ -32,7 +32,7 @@
  * Changes for OEM
  * 
  * 15    9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 14    9/07/99 6:55p Jefff

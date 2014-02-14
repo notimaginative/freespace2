@@ -117,10 +117,10 @@ void flak_create(weapon *wp)
 	int found;
 	
 	// make sure this is a valid flak weapon object
-	Assert(wp->objnum >= 0);
-	Assert(Objects[wp->objnum].type == OBJ_WEAPON);
-	Assert(wp->weapon_info_index >= 0);
-	Assert(Weapon_info[wp->weapon_info_index].wi_flags & WIF_FLAK);
+	SDL_assert(wp->objnum >= 0);
+	SDL_assert(Objects[wp->objnum].type == OBJ_WEAPON);
+	SDL_assert(wp->weapon_info_index >= 0);
+	SDL_assert(Weapon_info[wp->weapon_info_index].wi_flags & WIF_FLAK);
 
 	// switch off rendering for the object
 	obj_set_flags(&Objects[wp->objnum], Objects[wp->objnum].flags & ~(OF_RENDERS));
@@ -146,7 +146,7 @@ void flak_create(weapon *wp)
 // free up a flak object
 void flak_delete(int flak_index)
 {
-	Assert((flak_index >= 0) && (flak_index < MAX_FLAK_INFO));
+	SDL_assert((flak_index >= 0) && (flak_index < MAX_FLAK_INFO));
 	memset(&Flak[flak_index], 0, sizeof(flak_info));
 	Flak[flak_index].range = -1;
 }
@@ -158,10 +158,10 @@ void flak_pick_range(object *objp, vector *predicted_target_pos, float weapon_su
 	vector temp;
 	
 	// make sure this flak object is valid
-	Assert(objp->type == OBJ_WEAPON);
-	Assert(objp->instance >= 0);
-	Assert(Weapons[objp->instance].weapon_info_index >= 0);
-	Assert(Weapon_info[Weapons[objp->instance].weapon_info_index].wi_flags & WIF_FLAK);	
+	SDL_assert(objp->type == OBJ_WEAPON);
+	SDL_assert(objp->instance >= 0);
+	SDL_assert(Weapons[objp->instance].weapon_info_index >= 0);
+	SDL_assert(Weapon_info[Weapons[objp->instance].weapon_info_index].wi_flags & WIF_FLAK);	
 	
 	// if the flak index is invalid, do nothing - if this fails the flak simply becomes a non-rendering bullet
 	if(Weapons[objp->instance].flak_index < 0){
@@ -221,19 +221,19 @@ void flak_jitter_aim(vector *dir, float dist_to_target, float weapon_subsys_stre
 void flak_muzzle_flash(vector *pos, vector *dir, int turret_weapon_class)
 {
 	// sanity
-	Assert((turret_weapon_class >= 0) && (turret_weapon_class < Num_weapon_types));
+	SDL_assert((turret_weapon_class >= 0) && (turret_weapon_class < Num_weapon_types));
 	if((turret_weapon_class < 0) || (turret_weapon_class >= Num_weapon_types)){
 		return;
 	}
-	Assert(Weapon_info[turret_weapon_class].wi_flags & WIF_FLAK);
+	SDL_assert(Weapon_info[turret_weapon_class].wi_flags & WIF_FLAK);
 	if(!(Weapon_info[turret_weapon_class].wi_flags & WIF_FLAK)){
 		return;
 	}
-	Assert(Weapon_info[turret_weapon_class].wi_flags & WIF_MFLASH);
+	SDL_assert(Weapon_info[turret_weapon_class].wi_flags & WIF_MFLASH);
 	if(!(Weapon_info[turret_weapon_class].wi_flags & WIF_MFLASH)){
 		return;
 	}
-	Assert(Weapon_info[turret_weapon_class].muzzle_flash >= 0);
+	SDL_assert(Weapon_info[turret_weapon_class].muzzle_flash >= 0);
 	if(Weapon_info[turret_weapon_class].muzzle_flash < 0){
 		return;
 	}
@@ -270,9 +270,9 @@ void flak_maybe_detonate(object *objp)
 // given a just fired flak shell, pick a detonating distance for it
 void flak_set_range(object *objp, vector *start_pos, float range)
 {
-	Assert(objp->type == OBJ_WEAPON);
-	Assert(objp->instance >= 0);	
-	Assert(Weapons[objp->instance].flak_index >= 0);
+	SDL_assert(objp->type == OBJ_WEAPON);
+	SDL_assert(objp->instance >= 0);	
+	SDL_assert(Weapons[objp->instance].flak_index >= 0);
 
 	// setup the flak info
 	Flak[Weapons[objp->instance].flak_index].range = range;
@@ -282,9 +282,9 @@ void flak_set_range(object *objp, vector *start_pos, float range)
 // get the current range for the flak object
 float flak_get_range(object *objp)
 {
-	Assert(objp->type == OBJ_WEAPON);
-	Assert(objp->instance >= 0);	
-	Assert(Weapons[objp->instance].flak_index >= 0);
+	SDL_assert(objp->type == OBJ_WEAPON);
+	SDL_assert(objp->instance >= 0);	
+	SDL_assert(Weapons[objp->instance].flak_index >= 0);
 	
 	return Flak[Weapons[objp->instance].flak_index].range;
 }

@@ -140,7 +140,7 @@
  * Optimize a bit by making old ones go away if Poly_count high.
  * 
  * 46    2/06/98 9:10a Allender
- * removed an Assert for multiplayer clients
+ * removed an SDL_assert for multiplayer clients
  * 
  * 45    2/05/98 9:21p John
  * Some new Direct3D code.   Added code to monitor a ton of stuff in the
@@ -435,7 +435,7 @@ void free_global_tri_records(int shnum)
 {
 	int	i;
 
-	Assert((shnum >= 0) && (shnum < MAX_SHIELD_HITS));
+	SDL_assert((shnum >= 0) && (shnum < MAX_SHIELD_HITS));
 
 	//mprintf(("Freeing up %i global records.\n", Shield_hits[shnum].num_tris));
 
@@ -523,8 +523,8 @@ void render_shield_triangle(gshield_tri *trip, matrix *orient, vector *pos, ubyt
 		g3_rotate_vertex(&points[j], &pnt);
 		points[j].u = trip->verts[j].u;
 		points[j].v = trip->verts[j].v;
-		Assert((trip->verts[j].u >= 0.0f) && (trip->verts[j].u <= UV_MAX));
-		Assert((trip->verts[j].v >= 0.0f) && (trip->verts[j].v <= UV_MAX));
+		SDL_assert((trip->verts[j].u >= 0.0f) && (trip->verts[j].u <= UV_MAX));
+		SDL_assert((trip->verts[j].v >= 0.0f) && (trip->verts[j].v <= UV_MAX));
 		verts[j] = &points[j];
 	}
 
@@ -568,7 +568,7 @@ void render_shield(int shield_num) //, matrix *orient, vector *centerp)
 		return;
 	}
 
-	Assert(Shield_hits[shield_num].objnum >= 0);
+	SDL_assert(Shield_hits[shield_num].objnum >= 0);
 
 	objp = &Objects[Shield_hits[shield_num].objnum];
 
@@ -622,8 +622,8 @@ void render_shield(int shield_num) //, matrix *orient, vector *centerp)
 
 	n = si->species;		
 	// Do some sanity checking
-	Assert( (n >=0) && (n<MAX_SPECIES_NAMES));
-	Assert( (n >=0) && (n<MAX_SHIELD_ANIMS));
+	SDL_assert( (n >=0) && (n<MAX_SPECIES_NAMES));
+	SDL_assert( (n >=0) && (n<MAX_SHIELD_ANIMS));
 
 	frame_num = fl2i( f2fl(Missiontime - Shield_hits[shield_num].start_time) * Sheild_ani[n].nframes);
 	if ( frame_num >= Sheild_ani[n].nframes )	{
@@ -646,7 +646,7 @@ void render_shield(int shield_num) //, matrix *orient, vector *centerp)
 		}
 	} else {
 
-		// AL 06/01/97 don't use Assert() until issue with Missiontime being reset to 0 are worked out
+		// AL 06/01/97 don't use SDL_assert() until issue with Missiontime being reset to 0 are worked out
 		if ( bitmap_id != - 1 ) {
 			for (i=0; i<Shield_hits[shield_num].num_tris; i++) {
 				//if (Missiontime == Shield_hits[shield_num].start_time)
@@ -742,7 +742,7 @@ int get_global_shield_tri()
 		shnum = myrand() % MAX_SHIELD_HITS;
 	}
 
-	Assert((shnum >= 0) && (shnum < MAX_SHIELD_HITS));
+	SDL_assert((shnum >= 0) && (shnum < MAX_SHIELD_HITS));
 
 	return shnum;
 }
@@ -753,7 +753,7 @@ void create_shield_from_triangle(int trinum, matrix *orient, shield_info *shield
 
 	rs_compute_uvs( &shieldp->tris[trinum], shieldp->verts, tcp, radius, rvec, uvec);
 
-	//Assert(trinum < MAX_SHIELD_HITS);
+	//SDL_assert(trinum < MAX_SHIELD_HITS);
 	shieldp->tris[trinum].used = 1;
 
 //mprintf(("%i ", trinum));
@@ -834,7 +834,7 @@ float apply_damage_to_shield(object *objp, int shield_quadrant, float damage)
 
 	if ( (shield_quadrant < 0)  || (shield_quadrant > 3) ) return damage;	
 	
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	aip = &Ai_info[Ships[objp->instance].ai_index];
 	aip->last_hit_quadrant = shield_quadrant;
 
@@ -926,7 +926,7 @@ void create_shield_explosion(int objnum, int model_num, matrix *orient, vector *
 
 	pm = model_get(model_num);
 	Num_tris = pm->shield.ntris;
-	//Assert(Num_tris < MAX_SHIELD_HITS);
+	//SDL_assert(Num_tris < MAX_SHIELD_HITS);
 	shieldp = &pm->shield;
 
 	if (Num_tris == 0)
@@ -967,7 +967,7 @@ MONITOR(NumShieldHits);
 //	Add data for a shield hit.
 void add_shield_point(int objnum, int tri_num, vector *hit_pos)
 {
-	//Assert(Num_shield_points < MAX_SHIELD_POINTS);
+	//SDL_assert(Num_shield_points < MAX_SHIELD_POINTS);
 	if (Num_shield_points >= MAX_SHIELD_POINTS)
 		return;
 
@@ -994,7 +994,7 @@ void add_shield_point(int objnum, int tri_num, vector *hit_pos)
 // the normal count at the correct time.
 void add_shield_point_multi(int objnum, int tri_num, vector *hit_pos)
 {
-	//Assert(Num_multi_shield_points < MAX_SHIELD_POINTS);
+	//SDL_assert(Num_multi_shield_points < MAX_SHIELD_POINTS);
 
 	if (Num_multi_shield_points >= MAX_SHIELD_POINTS)
 		return;
@@ -1011,7 +1011,7 @@ void shield_point_multi_setup()
 {
 	int i;
 
-	Assert( MULTIPLAYER_CLIENT );
+	SDL_assert( MULTIPLAYER_CLIENT );
 
 	if ( Num_multi_shield_points == 0 )
 		return;
@@ -1059,7 +1059,7 @@ void create_shield_explosion_all(object *objp)
 	// some some reason, clients seem to have a bogus count valud on occation.  I"ll chalk it up
 	// to missed packets :-)  MWA 2/6/98
 	if ( !MULTIPLAYER_CLIENT ){
-		Assert(count == 0);	//	Couldn't find all the alleged shield hits.  Bogus!
+		SDL_assert(count == 0);	//	Couldn't find all the alleged shield hits.  Bogus!
 	}
 }
 
@@ -1083,7 +1083,7 @@ void ship_draw_shield( object *objp)
 	if (objp->flags & OF_NO_SHIELDS)
 		return;
 
-	Assert(objp->instance >= 0);
+	SDL_assert(objp->instance >= 0);
 
 	model_num = Ships[objp->instance].modelnum;
 

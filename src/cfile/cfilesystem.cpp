@@ -215,7 +215,7 @@ cf_file *cf_create_file()
 	
 	if ( File_blocks[block] == NULL )	{
 		File_blocks[block] = (cf_file_block *)malloc( sizeof(cf_file_block) );
-		Assert( File_blocks[block] != NULL);
+		SDL_assert( File_blocks[block] != NULL);
 	}
 
 	Num_files++;
@@ -246,7 +246,7 @@ cf_root *cf_create_root()
 	
 	if ( Root_blocks[block] == NULL )	{
 		Root_blocks[block] = (cf_root_block *)malloc( sizeof(cf_root_block) );
-		Assert(Root_blocks[block] != NULL);
+		SDL_assert(Root_blocks[block] != NULL);
 	}
 
 	Num_roots++;
@@ -324,7 +324,7 @@ int cf_packfile_sort_func(const void *elem1, const void *elem2)
 
 	// if the 2 directory types are the same, do a string compare
 	if(r1->cf_type == r2->cf_type){
-		return stricmp(r1->path, r2->path);
+		return SDL_strcasecmp(r1->path, r2->path);
 	}
 
 	// otherwise return them in order of CF_TYPE_* precedence
@@ -373,7 +373,7 @@ void cf_build_pack_list( cf_root *root )
 			{
 				if (!fnmatch ("*.vp", dir->d_name, 0))
 				{
-					Assert(root_index < temp_root_count);
+					SDL_assert(root_index < temp_root_count);
 
 					char fn[MAX_PATH];
 					snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
@@ -423,7 +423,7 @@ void cf_build_pack_list( cf_root *root )
 			do {
 				// add the new item
 				if (!(find.attrib & _A_SUBDIR)) {					
-					Assert(root_index < temp_root_count);
+					SDL_assert(root_index < temp_root_count);
 
 					// get a temp pointer
 					rptr_sort = &temp_roots_sort[root_index++];
@@ -449,7 +449,7 @@ void cf_build_pack_list( cf_root *root )
 	}	
 
 	// these should always be the same
-	Assert(root_index == temp_root_count);
+	SDL_assert(root_index == temp_root_count);
 
 	// sort tht roots
 	qsort(temp_roots_sort,  temp_root_count, sizeof(cf_root_sort), cf_packfile_sort_func);
@@ -529,7 +529,7 @@ int is_ext_in_list( const char *ext_list, char *ext )
 	char tmp_ext[128];
 
 	strncpy( tmp_ext, ext, 127 );
-	strlwr(tmp_ext);
+	SDL_strlwr(tmp_ext);
 	if ( strstr(ext_list, tmp_ext ))	{
 		return 1;
 	}	
@@ -683,7 +683,7 @@ void cf_search_root_pack(int root_index)
 
 	VP_FILE_HEADER VP_header;
 
-	Assert( sizeof(VP_header) == 16 );
+	SDL_assert( sizeof(VP_header) == 16 );
 	fread(&VP_header, 1, sizeof(VP_header), fp);
 
     VP_header.version = INTEL_INT( VP_header.version);
@@ -708,7 +708,7 @@ void cf_search_root_pack(int root_index)
 		find.write_time = INTEL_INT(find.write_time);
 
 		if ( find.size == 0 )	{
-			if ( !stricmp( find.filename, ".." ))	{
+			if ( !SDL_strcasecmp( find.filename, ".." ))	{
 				int l = strlen(search_path);
 				char *p = &search_path[l-1];
 				while( (p > search_path) && (*p != DIR_SEPARATOR_CHAR) )	{
@@ -728,7 +728,7 @@ void cf_search_root_pack(int root_index)
 			int j;
 			for (j=CF_TYPE_ROOT; j<CF_MAX_PATH_TYPES; j++ )	{
 
-				if ( !stricmp( search_path, Pathtypes[j].path ))	{
+				if ( !SDL_strcasecmp( search_path, Pathtypes[j].path ))	{
 
 					char *ext = strchr( find.filename, '.' );
 					if ( ext )	{
@@ -786,10 +786,10 @@ void cf_build_secondary_filelist(const char *extras_dir)
 
 	// Init the path types
 	for (i=0; i<CF_MAX_PATH_TYPES; i++ )	{
-		Assert( Pathtypes[i].index == i );
+		SDL_assert( Pathtypes[i].index == i );
 #if 0 /* they are already lowercased -- SBF */
 		if ( Pathtypes[i].extensions )	{
-			strlwr(Pathtypes[i].extensions);
+			SDL_strlwr(Pathtypes[i].extensions);
 		}
 #endif		
 	}
@@ -850,7 +850,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 {
 	int i;
 
-	Assert(filespec && strlen(filespec));
+	SDL_assert(filespec && strlen(filespec));
 
 	// see if we have something other than just a filename
 	// our current rules say that any file that specifies a direct
@@ -925,7 +925,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 				strcpy(loc_filespec, filespec);
 				lcl_add_dir_to_path_with_filename(loc_filespec);
 			
-				if ( !stricmp(loc_filespec, f->name_ext) )	{
+				if ( !SDL_strcasecmp(loc_filespec, f->name_ext) )	{
 					if ( size ) *size = f->size;
 					if ( offset ) *offset = f->pack_offset;
 					if ( pack_filename ) {
@@ -943,7 +943,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 			}
 
 			// file either not localized or localized version not found
-			if ( !stricmp(filespec, f->name_ext) )	{
+			if ( !SDL_strcasecmp(filespec, f->name_ext) )	{
 				if ( size ) *size = f->size;
 				if ( offset ) *offset = f->pack_offset;
 				if ( pack_filename ) {
@@ -983,7 +983,7 @@ int cf_matches_spec(const char *filespec, const char *filename)
 	if (!dst_ext)
 		return 1;
 	
-	return !stricmp(dst_ext, src_ext);
+	return !SDL_strcasecmp(dst_ext, src_ext);
 }
 
 int (*Get_file_list_filter)(const char *filename) = NULL;
@@ -1000,7 +1000,7 @@ int cf_file_already_in_list( int num_files, char **list, char *filename )
 	if ( p ) *p = 0;
 
 	for (i=0; i<num_files; i++ )	{
-		if ( !stricmp(list[i], name_no_extension ) )	{
+		if ( !SDL_strcasecmp(list[i], name_no_extension ) )	{
 			// Match found!
 			return 1;
 		}
@@ -1027,7 +1027,7 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 		return 0;
 	}
 
-	Assert(list);
+	SDL_assert(list);
 
 	if (!info && (sort == CF_SORT_TIME)) {
 		info = (file_list_info *) malloc(sizeof(file_list_info) * max);
@@ -1186,7 +1186,7 @@ int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME
 	if ( p ) *p = 0;
 
 	for (i=0; i<num_files; i++ )	{
-		if ( !stricmp(arr[i], name_no_extension ) )	{
+		if ( !SDL_strcasecmp(arr[i], name_no_extension ) )	{
 			// Match found!
 			return 1;
 		}
@@ -1349,7 +1349,7 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 	}
 
 	if (sort != CF_SORT_NONE) {
-		Assert(list);
+		SDL_assert(list);
 		cf_sort_filenames( num_files, list, sort, info );
 	}
 
@@ -1385,7 +1385,7 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 			return;
 		}
 
-		Assert(CF_TYPE_SPECIFIED(pathtype));
+		SDL_assert(CF_TYPE_SPECIFIED(pathtype));
 
 		strcpy(path, Cfile_user_dir);
 		strcat(path, Pathtypes[pathtype].path);

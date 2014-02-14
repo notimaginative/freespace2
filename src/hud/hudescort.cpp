@@ -297,7 +297,7 @@ int escort_compare_func(const void *e1, const void *e2)
 			name1 = Ships[Objects[escort1->objnum].instance].ship_name;
 			name2 = Ships[Objects[escort2->objnum].instance].ship_name;
 
-			ret = stricmp(name1, name2);
+			ret = SDL_strcasecmp(name1, name2);
 		}
 	}
 
@@ -340,12 +340,12 @@ void hud_create_complete_escort_list(escort_info *escorts, int *num_escorts)
 	// all others 
 	else {
 		for ( so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list); so = GET_NEXT(so) ) {
-			Assert( so->objnum >= 0 && so->objnum < MAX_OBJECTS);
+			SDL_assert( so->objnum >= 0 && so->objnum < MAX_OBJECTS);
 			if((so->objnum < 0) || (so->objnum >= MAX_OBJECTS)){
 				continue;
 			}
 			objp = &Objects[so->objnum];
-			Assert( objp->type == OBJ_SHIP );
+			SDL_assert( objp->type == OBJ_SHIP );
 			if(objp->type != OBJ_SHIP){
 				continue;
 			}
@@ -467,7 +467,7 @@ void merge_escort_lists(escort_info *complete_escorts, int num_complete_escorts)
 			Escort_ships[i] = complete_escorts[i];
 			// check all ships are valid
 			int objnum = Escort_ships[i].objnum;
-			Assert( objnum >=0 && objnum < MAX_OBJECTS );
+			SDL_assert( objnum >=0 && objnum < MAX_OBJECTS );
 			if((objnum < 0) || (objnum >= MAX_OBJECTS)){
 				continue;
 			}
@@ -508,7 +508,7 @@ void hud_remove_ship_from_escort_index(int dead_index, int objnum)
 	}
 
 	Num_escort_ships--;
-	Assert(Num_escort_ships >= 0);	
+	SDL_assert(Num_escort_ships >= 0);	
 
 	// get complete escort list
 	hud_create_complete_escort_list(complete_escorts, &num_complete_escorts);
@@ -544,7 +544,7 @@ void hud_escort_cull_list()
 	else {
 		for ( i = 0; i < Num_escort_ships; i++ ) {
 			objnum = Escort_ships[i].objnum;
-			Assert( objnum >=0 && objnum < MAX_OBJECTS );
+			SDL_assert( objnum >=0 && objnum < MAX_OBJECTS );
 			if ( Objects[objnum].flags & OF_SHOULD_BE_DEAD || Ships[Objects[objnum].instance].flags & SF_HIDDEN_FROM_SENSORS ) {
 				hud_remove_ship_from_escort_index(i, objnum);
 				i--;
@@ -610,7 +610,7 @@ void hud_escort_show_icon(int index, object *objp)
 	shield_hit_info	*shi;	
 
 	// multiplayer dogfight code should never get into here
-	Assert(!((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT)));
+	SDL_assert(!((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT)));
 	if((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT)){
 		return;
 	}
@@ -985,7 +985,7 @@ void hudescort_page_in()
 
 void hud_escort_add_player(short id)
 {
-	Assert(Game_mode & GM_MULTIPLAYER);
+	SDL_assert(Game_mode & GM_MULTIPLAYER);
 	if(!(Game_mode & GM_MULTIPLAYER)){
 		return;
 	}	
@@ -1005,7 +1005,7 @@ void hud_escort_add_player(short id)
 
 void hud_escort_remove_player(short id)
 {	
-	Assert(Game_mode & GM_MULTIPLAYER);
+	SDL_assert(Game_mode & GM_MULTIPLAYER);
 	if(!(Game_mode & GM_MULTIPLAYER)){
 		return;
 	}

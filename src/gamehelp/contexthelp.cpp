@@ -263,14 +263,14 @@ static int Overlay = -1;
 // query whether a help overlay is active (ie being displayed)
 int help_overlay_active(int overlay_id)
 {
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 	return Help_overlay_flags & (1<<overlay_id);
 }
 
 // stop displaying a help overlay
 void help_overlay_set_state(int overlay_id, int state)
 {
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 
 	if ( state > 0 ) {
 		Help_overlay_flags |= (1<<overlay_id);
@@ -305,7 +305,7 @@ void help_overlay_unload(int overlay_id)
 // maybe blit a bitmap of a help overlay to the screen
 void help_overlay_maybe_blit(int overlay_id)
 {
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 
 	if ( Help_overlay_flags & (1<<overlay_id) ) {
 		context_help_grey_screen();
@@ -587,7 +587,7 @@ void parse_helptbl()
 					// read number of pline vertices
 					stuff_int(&help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount);		// note that it is read into GR_640
 					// help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtxcount = help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount;			// set equal to 1024 version vertex count to prevent bugs
-					Assert(help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount <= HELP_MAX_PLINE_VERTICES);
+					SDL_assert(help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount <= HELP_MAX_PLINE_VERTICES);
 					// get 640x480 vertex coordinates
 					for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
 						stuff_int(&a);
@@ -665,7 +665,7 @@ void parse_helptbl()
 
 			} else {
 				// help.tbl is corrupt
-				Assert(0);
+				SDL_assert(0);
 
 			}		// end if
 
@@ -699,7 +699,7 @@ void help_overlay_blit(int overlay_id)
 	int rbracketcount = help_overlaylist[overlay_id].rbracketcount;
 	int lbracketcount = help_overlaylist[overlay_id].lbracketcount;
 
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 
 	// this draws each line of help text with white on black text (use the GR_640 index for the string)
 	for (idx = 0; idx < textcount; idx++) {

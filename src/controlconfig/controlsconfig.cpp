@@ -909,16 +909,16 @@ config_item_undo *get_undo_block(int size)
 	config_item_undo *ptr;
 
 	ptr = (config_item_undo *) malloc( sizeof(config_item_undo) );
-	Assert(ptr);
+	SDL_assert(ptr);
 	ptr->next = Config_item_undo;
 	Config_item_undo = ptr;
 
 	ptr->size = size;
 	if (size) {
 		ptr->index = (int *) malloc( sizeof(int) * size );
-		Assert(ptr->index);
+		SDL_assert(ptr->index);
 		ptr->list = (config_item *) malloc( sizeof(config_item) * size );
-		Assert(ptr->list);
+		SDL_assert(ptr->list);
 
 	} else {
 		ptr->index = NULL;
@@ -1196,7 +1196,7 @@ int control_config_clear_all()
 		}
 	}
 
-	Assert(j == total);
+	SDL_assert(j == total);
 	for (i=0; i<CCFG_MAX; i++) {
 		Control_config[i].key_id = Control_config[i].joy_id = -1;
 	}
@@ -1209,7 +1209,7 @@ int control_config_clear_all()
 
 int control_config_axis_default(int axis)
 {
-	Assert(axis >= 0);
+	SDL_assert(axis >= 0);
 
 	if ( axis > 1 ) {
 		if (Axis_map_to_defaults[axis] < 0)
@@ -1262,7 +1262,7 @@ int control_config_do_reset()
 			j++;
 		}
 
-	Assert(j == total);
+	SDL_assert(j == total);
 	control_config_reset_defaults();
 	control_config_conflict_check();
 	control_config_list_prepare();
@@ -1291,7 +1291,7 @@ void control_config_scroll_screen_up()
 {
 	if (Scroll_offset) {
 		Scroll_offset--;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!cc_line_query_visible(Selected_line))
 			Selected_line--;
 
@@ -1322,7 +1322,7 @@ void control_config_scroll_screen_down()
 		Scroll_offset++;
 		while (!cc_line_query_visible(Selected_line)) {
 			Selected_line++;
-			Assert(Selected_line < Num_cc_lines);
+			SDL_assert(Selected_line < Num_cc_lines);
 		}
 
 		Selected_item = -1;
@@ -1336,7 +1336,7 @@ void control_config_scroll_line_down()
 {
 	if (Selected_line < Num_cc_lines - 1) {
 		Selected_line++;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!cc_line_query_visible(Selected_line))
 			Scroll_offset++;
 
@@ -1352,7 +1352,7 @@ void control_config_toggle_modifier(int bit)
 	int k, z;
 
 	z = Cc_lines[Selected_line].cc_index;
-	Assert(!(z & JOY_AXIS));
+	SDL_assert(!(z & JOY_AXIS));
 	k = Control_config[z].key_id;
 	if (k < 0) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1369,7 +1369,7 @@ void control_config_toggle_invert()
 	int z;
 
 	z = Cc_lines[Selected_line].cc_index;
-	Assert(z & JOY_AXIS);
+	SDL_assert(z & JOY_AXIS);
 	z &= ~JOY_AXIS;
 	control_config_save_axis_undo(z);
 	Invert_axis[z] = !Invert_axis[z];
@@ -1571,7 +1571,7 @@ const char *control_config_tooltip_handler(const char *str)
 {
 	int i;
 
-	if (!stricmp(str, NOX("@conflict"))) {
+	if (!SDL_strcasecmp(str, NOX("@conflict"))) {
 		for (i=0; i<NUM_TABS; i++) {
 			if (Conflicts_tabs[i])
 				return XSTR( "Conflict!", 205);
@@ -1852,7 +1852,7 @@ void control_config_do_frame(float frametime)
 				k &= (KEY_MASK | KEY_SHIFTED | KEY_ALTED);
 				if (k > 0) {
 					z = Cc_lines[Selected_line].cc_index;
-					Assert(!(z & JOY_AXIS));
+					SDL_assert(!(z & JOY_AXIS));
 					control_config_bind_key(z, k);
 
 					strcpy(bound_string, textify_scancode(k));
@@ -1866,7 +1866,7 @@ void control_config_do_frame(float frametime)
 				for (i=0; i<JOY_TOTAL_BUTTONS; i++)
 					if (joy_down_count(i)) {
 						z = Cc_lines[Selected_line].cc_index;
-						Assert(!(z & JOY_AXIS));
+						SDL_assert(!(z & JOY_AXIS));
 						control_config_bind_joy(z, i);
 
 						strcpy(bound_string, Joy_button_text[i]);
@@ -1889,7 +1889,7 @@ void control_config_do_frame(float frametime)
 						for (i=0; i<MOUSE_NUM_BUTTONS; i++)
 							if (mouse_down(1 << i)) {
 								z = Cc_lines[Selected_line].cc_index;
-								Assert(!(z & JOY_AXIS));
+								SDL_assert(!(z & JOY_AXIS));
 								control_config_bind_joy(z, i);
 
 								strcpy(bound_string, Joy_button_text[i]);
@@ -1995,7 +1995,7 @@ void control_config_do_frame(float frametime)
 
 				while (!cc_line_query_visible(Selected_line)) {
 					Scroll_offset++;
-					Assert(Scroll_offset < Num_cc_lines);
+					SDL_assert(Scroll_offset < Num_cc_lines);
 				}
 			}
 		}
@@ -2418,7 +2418,7 @@ float check_control_timef(int id)
 	float t1, t2;
 
 	// if type isn't continuous, we shouldn't be using this function, cause it won't work.
-	Assert(Control_config[id].type == CC_TYPE_CONTINUOUS);
+	SDL_assert(Control_config[id].type == CC_TYPE_CONTINUOUS);
 
 	// first, see if control actually used (makes sure modifiers match as well)
 	if (!check_control(id))
@@ -2605,7 +2605,7 @@ int control_config_handle_conflict()
 			if (j < 0)
 				z = k;
 
-			Assert(z >= 0);
+			SDL_assert(z >= 0);
 			ptr = get_undo_block(1);
 			ptr->index[0] = z;
 			ptr->list[0] = Control_config[z];

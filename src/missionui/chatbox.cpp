@@ -748,7 +748,7 @@ int chatbox_create(int mode_flags)
 	}
 
 	// probably shouldn't be using the chatbox in single player mode
-	Assert(Game_mode & GM_MULTIPLAYER);
+	SDL_assert(Game_mode & GM_MULTIPLAYER);
 
 	// setup all data to correspond to our mode flags
 	chatbox_set_mode(mode_flags);
@@ -1036,11 +1036,11 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	} else {
 		strcpy(msg_extra,msg);
 	}	
-	Assert(strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
+	SDL_assert(strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
 
 	// split the text up into as many lines as necessary
 	n_lines = split_str(msg_extra, Chatbox_disp_w, n_chars, p_str, 3);
-	Assert(n_lines != -1);	
+	SDL_assert(n_lines != -1);	
 
 	// setup the first line -- be sure to clear out the line
 	memset( Brief_chat_lines[Brief_current_add_line], 0, CHATBOX_STRING_LEN );
@@ -1073,7 +1073,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	if(n_lines > 1){
 		// split up the string after the first break-marker
 		n_lines = split_str(msg_extra + n_chars[0],Chatbox_disp_w - CHAT_LINE_INDENT,n_chars,p_str,3);
-		Assert(n_lines != -1);		
+		SDL_assert(n_lines != -1);		
 
 		// setup these remaining lines
 		for(idx=0;idx<n_lines;idx++){

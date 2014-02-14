@@ -302,9 +302,9 @@ void draw_brackets_square(int x1, int y1, int x2, int y2)
 	int	width, height;
 	
 	width = x2 - x1;
-	Assert( width > 0);
+	SDL_assert( width > 0);
 	height = y2 - y1;
-	Assert( height > 0);
+	SDL_assert( height > 0);
 
 	// make the brackets extend 25% of the way along the width or height
 	int bracket_width = width/4;
@@ -538,7 +538,7 @@ void draw_brackets_diamond_quick(int x1, int y1, int x2, int y2, int thick)
 
 int subsys_is_fighterbay(ship_subsys *ss)
 {
-	if ( !strnicmp(NOX("fighter"), ss->system_info->name, 7) ) {
+	if ( !SDL_strncasecmp(NOX("fighter"), ss->system_info->name, 7) ) {
 		return 1;
 	}
 
@@ -559,9 +559,9 @@ void draw_bounding_brackets_subobject()
 
 			subsys = Player_ai->targeted_subsys;
 			target_objnum = Player_ai->target_objnum;
-			Assert(target_objnum != -1);
+			SDL_assert(target_objnum != -1);
 			targetp = &Objects[target_objnum];
-			Assert( targetp->type == OBJ_SHIP );
+			SDL_assert( targetp->type == OBJ_SHIP );
 
 			get_subsystem_world_pos(targetp, subsys, &subobj_pos);
 
@@ -673,7 +673,7 @@ int hud_bracket_num_ships_attacking(int objnum)
 
 			// don't count instructor
 			int is_training_mission();
-			if ( is_training_mission() && stricmp(Ships[objp->instance].ship_name, "Instructor") == 0) {
+			if ( is_training_mission() && SDL_strcasecmp(Ships[objp->instance].ship_name, "Instructor") == 0) {
 				break;
 			}
 
@@ -702,10 +702,10 @@ void draw_bounding_brackets(int x1, int y1, int x2, int y2, int w_correction, in
 		return;
 
 	width = x2-x1;
-	Assert(width>=0);
+	SDL_assert(width>=0);
 
 	height = y2-y1;
-	Assert(height>=0);
+	SDL_assert(height>=0);
 
 	if ( (width>(gr_screen.max_w - 1)) && (height>(gr_screen.max_h - 1)) ) {
 		return;

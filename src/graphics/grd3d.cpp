@@ -1688,7 +1688,7 @@ void gr_d3d_save_mouse_area(int x, int y, int w, int h )
 	if ( Gr_d3d_mouse_saved_h < 1 ) return;
 
 	// Make sure we're not saving too much!
-	Assert( (Gr_d3d_mouse_saved_w*Gr_d3d_mouse_saved_h) <= MAX_SAVE_SIZE );
+	SDL_assert( (Gr_d3d_mouse_saved_w*Gr_d3d_mouse_saved_h) <= MAX_SAVE_SIZE );
 
 	HRESULT ddrval;
 	DDSURFACEDESC ddsd;
@@ -2215,9 +2215,9 @@ void gr_d3d_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog
 {
 	D3DCOLOR color = 0;	
 	  
-	Assert((r >= 0) && (r < 256));
-	Assert((g >= 0) && (g < 256));
-	Assert((b >= 0) && (b < 256));	
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));	
 
 	// turning fog off
 	if(fog_mode == GR_FOGMODE_NONE){
@@ -2640,7 +2640,7 @@ void gr_d3d_init()
 	D3D_enabled = 1;		// Tell Freespace code that we're using Direct3D.
 	D3D_running = 0;	
 
-	Assert( !D3D_inited );
+	SDL_assert( !D3D_inited );
 
 	// pixel format
 	Bm_pixel_format = BM_PIXEL_FORMAT_D3D;	

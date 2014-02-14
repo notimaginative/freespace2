@@ -518,7 +518,7 @@ ushort psnet_calc_checksum( void * vptr, int len )
 
 uint psnet_set_socket_mode(SOCKET sock_id, int opt, BOOL toggle)
 {
-	return (setsockopt(sock_id, SOL_SOCKET, opt, (LPSTR)&toggle, sizeof(toggle)));
+	return (setsockopt(sock_id, SOL_SOCKET, opt, (char *)&toggle, sizeof(toggle)));
 }
 
 
@@ -543,7 +543,7 @@ uint sock_get_ip()
 	nRet = gethostname(LclHost, MAXHOSTNAME );
 	if (nRet != SOCKET_ERROR )	{
 		// Resolve host name for local address
-		Hostent = gethostbyname((LPSTR)LclHost);
+		Hostent = gethostbyname((char *)LclHost);
 		if ( Hostent )
 			LclAddr.sin_addr.s_addr = *((u_long FAR *)(Hostent->h_addr));
 	}
@@ -725,7 +725,7 @@ void psnet_socket_options( SOCKET sock )
 	// Set the mode of the socket to allow broadcasting.  We need to be able to broadcast
 	// when a game is searched for in IPX mode.
 	broadcast = 1;
-	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (LPSTR)&broadcast, sizeof(broadcast) )){
+	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&broadcast, sizeof(broadcast) )){
 		Can_broadcast = 0;
 	} else {
 		Can_broadcast = 1;
@@ -736,9 +736,9 @@ void psnet_socket_options( SOCKET sock )
 	
 	// set the current size of the receive buffer
 	cursizesize = sizeof(int);
-	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&cursize, &cursizesize);
 	for ( trysize = bufsize; trysize >= cursize; trysize >>= 1 ) {
-		ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (LPSTR)&trysize, sizeof(trysize));
+		ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&trysize, sizeof(trysize));
 		if ( ret == SOCKET_ERROR ) {
 			int wserr;
 
@@ -748,14 +748,14 @@ void psnet_socket_options( SOCKET sock )
 		} else
 			break;
 	}
-	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&cursize, &cursizesize);
 	nprintf(("Network", "Receive buffer set to %d\n", cursize));
 
 	// set the current size of the send buffer
 	cursizesize = sizeof(int);
-	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&cursize, &cursizesize);
 	for ( trysize = bufsize; trysize >= cursize; trysize >>= 1 ) {
-		ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (LPSTR)&trysize, sizeof(trysize));
+		ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&trysize, sizeof(trysize));
 		if ( ret == SOCKET_ERROR ) {
 			int wserr;
 
@@ -765,7 +765,7 @@ void psnet_socket_options( SOCKET sock )
 		} else
 			break;
 	}
-	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&cursize, &cursizesize);
 	nprintf(("Network", "Send buffer set to %d\n", cursize));
 }
 
@@ -792,9 +792,9 @@ void psnet_init( int protocol, int port_num )
 		return;
 
 	internet_connection = os_config_read_string(NULL, "NetworkConnection", "none");
-	if ( !stricmp(internet_connection, NOX("dialup")) ) {
+	if ( !SDL_strcasecmp(internet_connection, NOX("dialup")) ) {
 		Psnet_connection = NETWORK_CONNECTION_DIALUP;
-	} else if ( !stricmp(internet_connection, NOX("lan")) ) {
+	} else if ( !SDL_strcasecmp(internet_connection, NOX("lan")) ) {
 		Psnet_connection = NETWORK_CONNECTION_LAN;
 	} else {
 		Psnet_connection = NETWORK_CONNECTION_NONE;
@@ -1215,7 +1215,7 @@ void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr *server_addr)
 				} else if (is_set) {			// if set, then we have connection, move forward
 					break;
 				} else {
-					Sleep(10);					// sleep for 10 ms and try again
+					SDL_Delay(10);					// sleep for 10 ms and try again
 					num_tries++;
 				}
 			} while ( num_tries < MAX_CONNECT_TRIES );
@@ -1303,7 +1303,7 @@ char* psnet_addr_to_string( char * text, net_addr * address )
 			break;
 
 		default:
-			// Assert(0);
+			// SDL_assert(0);
 			break;
 
 	} // end switch
@@ -1329,7 +1329,7 @@ void psnet_string_to_addr( net_addr * address, char * text )
 	}
 
 	// copy the text string to local storage to look for ports
-	Assert( strlen(text) < 255 );
+	SDL_assert( strlen(text) < 255 );
 	strcpy(str, text);
 	c = strrchr(str, ':');
 	port = NULL;
@@ -1364,7 +1364,7 @@ void psnet_string_to_addr( net_addr * address, char * text )
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 			break;
 
 	} // end switch
@@ -1477,7 +1477,7 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 			break;
 		}
 
@@ -1567,7 +1567,7 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 		// put all of the data (length, who from, etc.) into the next available packet buffer
 		// slot.  We should be assured of a slot here because of the check at the beginning
 		// of the while loop
-		Assert ( Num_packet_buffers < MAX_PACKET_BUFFERS );
+		SDL_assert ( Num_packet_buffers < MAX_PACKET_BUFFERS );
 		id = packet_free_list[ Num_packet_buffers++ ];
 		if (id > Largest_packet_index ) Largest_packet_index = id;
 		packet_buffers[id].len = len;		// use the flags field of the packet structure to hold the data length
@@ -1646,7 +1646,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int flags, int reliable
 	// determine from the flags whether or not this packet should have a checksum.
 	if ( flags & PSNET_FLAG_CHECKSUM ) {      
 		// can't send raw data with a checksum, dumbass!
-		Assert(!(flags & PSNET_FLAG_RAW));
+		SDL_assert(!(flags & PSNET_FLAG_RAW));
 
 		Send_network_checksum_packet.sequence_number = Next_packet_id++;
 		Send_network_checksum_packet.flags = PSNET_FLAG_CHECKSUM;
@@ -1720,7 +1720,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int flags, int reliable
 			break;
 
 		default:
-			Assert(0);	// unknown protocol
+			SDL_assert(0);	// unknown protocol
 			break;
 
 	} // end switch
@@ -1771,11 +1771,11 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 	if ( socket == INVALID_SOCKET )		// might happen in race conditions -- should get cleaned up.
 		return 0;
 
-	Assert( length < MAX_RSEND_BUFFER );
+	SDL_assert( length < MAX_RSEND_BUFFER );
 
 	// copy the length of the data into the beginning of the buffer.  then put the data into the buffer
 	// after the length value
-	Assert( length > 0 );
+	SDL_assert( length > 0 );
 	s_length = (ushort)length;
 	memcpy( &rsend_buffer[0], &s_length, sizeof(s_length) );
 	memcpy( &rsend_buffer[2], data, length );
@@ -1876,7 +1876,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 
 	total_read = 0;
 	memcpy(&read_len, &rread_buffer[0], 2);
-	Assert( (read_len > 0) && (read_len < max_len) );
+	SDL_assert( (read_len > 0) && (read_len < max_len) );
 	if ( read_len == 0 )
 		return 0;
 
@@ -2286,7 +2286,7 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 	char str[255], *c;
 
 	// our addresses may have ports, so make local copy and remove port number
-	Assert( strlen(ip_string) < 255 );
+	SDL_assert( strlen(ip_string) < 255 );
 	strcpy(str, ip_string);
 	c = strrchr(str, ':');
 	if ( c ){
@@ -2398,7 +2398,7 @@ int psnet_buffer_get_next(ubyte *data, int *length, net_addr *from)
 	}
 
 	// at this point, we should _always_ have found the buffer
-	Assert(found_buf);
+	SDL_assert(found_buf);
 	
 	// copy out the buffer data
 	memcpy(data,Psnet_buffers[idx].data,Psnet_buffers[idx].len);

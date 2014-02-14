@@ -109,7 +109,7 @@
  * 
  * 85    8/25/97 5:47p Mike
  * Increase number of missions supported in mission load list (outside
- * campaign) to 256 and Assert() if there are more than 256.
+ * campaign) to 256 and SDL_assert() if there are more than 256.
  * 
  * 84    8/20/97 5:19p Hoffoss
  * Fixed bug where creating a new pilot causes the mission load mission
@@ -245,12 +245,12 @@ void ml_update_recent_missions(char *filename)
 		p++;
 	}
 
-	Assert(strlen(p) < MAX_FILENAME_LEN);
+	SDL_assert(strlen(p) < MAX_FILENAME_LEN);
 	strcpy( Recent_missions[0], p );
 
 	j = 1;
 	for ( i = 0; i < Num_recent_missions; i++ ) {
-		if ( stricmp(Recent_missions[0], tmp[i]) ) {
+		if ( SDL_strcasecmp(Recent_missions[0], tmp[i]) ) {
 			strcpy(Recent_missions[j++], tmp[i]);
 			if ( j >= MAX_RECENT_MISSIONS ) {
 				break;
@@ -259,7 +259,7 @@ void ml_update_recent_missions(char *filename)
 	}
 
 	Num_recent_missions = j;
-	Assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
+	SDL_assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
 }
 
 // Mission_load takes no parameters.
@@ -294,7 +294,7 @@ int mission_load()
 	if (Select_default_ship) {
 		int ret;
 		ret = create_default_player_ship();
-		Assert(!ret);
+		SDL_assert(!ret);
 	}
 
 	ml_update_recent_missions(Game_current_mission_filename);  // update recently played missions list
@@ -358,7 +358,7 @@ void mission_load_menu_init()
 {
 	int i;
 	char wild_card[256];
-	Assert( mlm_active == 0 );
+	SDL_assert( mlm_active == 0 );
 	mlm_active = 1;
 
 	memset(wild_card, 0, 256);
@@ -367,7 +367,7 @@ void mission_load_menu_init()
 	mlm_nfiles = cf_get_file_list( MLM_MAX_MISSIONS, mlm_missions, CF_TYPE_MISSIONS, wild_card, CF_SORT_NAME );
 	jtmp_nfiles = 0;	
 		
-	Assert(mlm_nfiles <= MLM_MAX_MISSIONS);
+	SDL_assert(mlm_nfiles <= MLM_MAX_MISSIONS);
 
 	mlm_window.create( 100,100,500,300, 0 );	//WIN_DIALOG
 
@@ -407,7 +407,7 @@ void mission_load_menu_do()
 	int	selected, key_in, recent_current, mlm_current, use_recent_flag, i;
 	
 
-	Assert( mlm_active == 1 );
+	SDL_assert( mlm_active == 1 );
 
 	key_in = mlm_window.process();
 
@@ -545,7 +545,7 @@ void mission_load_menu_close()
 {
 	int i;
 
-	Assert( mlm_active == 1 );
+	SDL_assert( mlm_active == 1 );
 	mlm_active = 0;
 
 	for (i=0; i<mlm_nfiles; i++ )	{

@@ -97,7 +97,7 @@
 static ubyte *Wavedata_load_buffer = NULL;		// buffer used for cueing audiostreams
 static ubyte *Wavedata_service_buffer = NULL;	// buffer used for servicing audiostreams
 
-CRITICAL_SECTION Global_service_lock;
+SDL_mutex *Global_service_lock;
 
 typedef bool (*TIMERCALLBACK)(ptr_u);
 

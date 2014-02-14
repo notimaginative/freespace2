@@ -2039,22 +2039,22 @@ void std_mutate_sheet()
 		GetWindowText(child,lookup,511);
 		
 		// if its the OK button
-		if(!stricmp(lookup,XSTR("ok",925))){
+		if(!SDL_strcasecmp(lookup,XSTR("ok",925))){
 			ok_button = child;
 		} 
 
 		// if its the cancel button
-		if(!stricmp(lookup,XSTR("cancel",926))){
+		if(!SDL_strcasecmp(lookup,XSTR("cancel",926))){
 			cancel_button = child;
 		} 
 
 		// if its the apply button
-		if(!stricmp(lookup,XSTR("&apply",927))){
+		if(!SDL_strcasecmp(lookup,XSTR("&apply",927))){
 			apply_button = child;
 		} 
 
 		// if its the help button
-		if(!stricmp(lookup,XSTR("help",928))){
+		if(!SDL_strcasecmp(lookup,XSTR("help",928))){
 			help_button = child;
 		} 
 
@@ -2101,7 +2101,7 @@ int std_player_is_banned(char *name)
 
 	// go through the ban list
 	for(idx=0;idx<Standalone_ban_count;idx++){
-		if(!stricmp(name,Standalone_ban_list[idx])){
+		if(!SDL_strcasecmp(name,Standalone_ban_list[idx])){
 			return 1;
 		}
 	}

@@ -138,7 +138,7 @@ int multi_rate_add(int np_index, const char *type, int size)
 			break;
 		}
 		// existing
-		else if(!stricmp(Multi_rate[np_index][idx].type, type)){
+		else if(!SDL_strcasecmp(Multi_rate[np_index][idx].type, type)){
 			break;
 		}
 	}

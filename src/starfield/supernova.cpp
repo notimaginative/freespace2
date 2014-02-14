@@ -29,7 +29,7 @@
  *
  * 
  * 5     9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 4     9/03/99 1:32a Dave
@@ -246,7 +246,7 @@ void supernova_process()
 			if(Supernova_fade_to_white >= SUPERNOVA_FADE_TO_WHITE_TIME){
 				if(!Supernova_popup){
 					// main freespace 2 campaign? if so - end it now
-					if((Game_mode & GM_CAMPAIGN_MODE) && !stricmp(Campaign.filename, "freespace2") && Campaign_ended_in_mission){
+					if((Game_mode & GM_CAMPAIGN_MODE) && !SDL_strcasecmp(Campaign.filename, "freespace2") && Campaign_ended_in_mission){
 						gameseq_post_event(GS_EVENT_END_CAMPAIGN);
 					} else {
 						popupdead_start();
@@ -344,9 +344,9 @@ void supernova_apply_shake(matrix *eye_orient, float intensity)
 
 	matrix	tm, tm2;
 	vm_angles_2_matrix(&tm, &tangles);
-	Assert(vm_vec_mag(&tm.v.fvec) > 0.0f);
-	Assert(vm_vec_mag(&tm.v.rvec) > 0.0f);
-	Assert(vm_vec_mag(&tm.v.uvec) > 0.0f);
+	SDL_assert(vm_vec_mag(&tm.v.fvec) > 0.0f);
+	SDL_assert(vm_vec_mag(&tm.v.rvec) > 0.0f);
+	SDL_assert(vm_vec_mag(&tm.v.uvec) > 0.0f);
 	vm_matrix_x_matrix(&tm2, eye_orient, &tm);
 	*eye_orient = tm2;	
 }

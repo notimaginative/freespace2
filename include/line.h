@@ -74,7 +74,7 @@ void gr8_aaline(vertex *v1, vertex *v2);
 } while(0)
 
 //#define INT_SCALE(var,arg,num,den) ((var) = ((arg) * (num)) / (den))
-#define INT_SCALE(var,arg,num,den) ((var) = MulDiv(arg, num, den))
+#define INT_SCALE(var,arg,num,den) ((var) = mul_div(arg, num, den))
 
 #define INT_CLIPLINE(x1,y1,x2,y2,XMIN,YMIN,XMAX,YMAX,WHEN_OUTSIDE,WHEN_CLIPPED,WHEN_SWAPPED) do {                                    \
     int temp;                                                  \

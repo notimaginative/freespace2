@@ -248,7 +248,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 #endif
 
 	char *pURL = URL;
-	if(strnicmp(URL,"http:",5)==0)
+	if(SDL_strncasecmp(URL,"http:",5)==0)
 	{
 		pURL +=5;
 		while(*pURL == '/')
@@ -367,7 +367,7 @@ void ChttpGet::WorkerThread()
 	sprintf(szCommand,"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
 	send(m_DataSock,szCommand,strlen(szCommand),0);
 	p = GetHTTPLine();
-	if(strnicmp("HTTP/",p,5)==0)
+	if(SDL_strncasecmp("HTTP/",p,5)==0)
 	{
 		char *pcode;
 		pcode = strchr(p,' ')+1;
@@ -404,7 +404,7 @@ void ChttpGet::WorkerThread()
 					idataready = 1;
 					break;
 				}
-				if(strnicmp(p,"Content-Length:",strlen("Content-Length:"))==0)
+				if(SDL_strncasecmp(p,"Content-Length:",strlen("Content-Length:"))==0)
 				{
 					char *s = strchr(p,' ')+1;
 					p = s;

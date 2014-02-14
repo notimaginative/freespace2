@@ -840,7 +840,7 @@ void options_tab_setup(int set_palette)
 	int flags[256];
 
 	if (Tab != MULTIPLAYER_TAB) {
-		Assert(Backgrounds[gr_screen.res][Tab].mask >= 0);
+		SDL_assert(Backgrounds[gr_screen.res][Tab].mask >= 0);
 		Ui_window.set_mask_bmap(Backgrounds[gr_screen.res][Tab].mask, Backgrounds[gr_screen.res][Tab].mask_filename);
 	}
 
@@ -1261,7 +1261,7 @@ void options_accept()
 
 void options_load_background_and_mask(int tab)
 {
-	Assert(tab == OPTIONS_TAB || tab == DETAIL_LEVELS_TAB );
+	SDL_assert(tab == OPTIONS_TAB || tab == DETAIL_LEVELS_TAB );
 	Backgrounds[gr_screen.res][tab].bitmap = bm_load(Backgrounds[gr_screen.res][tab].filename);
 	Backgrounds[gr_screen.res][tab].mask = bm_load(Backgrounds[gr_screen.res][tab].mask_filename);
 }
@@ -1274,7 +1274,7 @@ void options_menu_init()
 	int i, j;
 	options_buttons *b;
 
-	Assert(!Options_menu_inited);
+	SDL_assert(!Options_menu_inited);
 
 	// pause all sounds, since we could get here through the game
 	beam_pause_sounds();
@@ -1385,7 +1385,7 @@ void options_menu_close()
 {
 	int i;	
 
-	Assert(Options_menu_inited);	
+	SDL_assert(Options_menu_inited);	
 
 	for (i=0; i<NUM_TABS; i++) {
 		if (Backgrounds[gr_screen.res][i].bitmap >= 0){
@@ -1500,7 +1500,7 @@ void options_menu_do_frame(float frametime)
 {
 	int i, k, x, y;	
 
-	Assert(Options_menu_inited);
+	SDL_assert(Options_menu_inited);
 	k = Ui_window.process() & ~KEY_DEBUGGED;
 	switch (k) {
 		case KEY_SHIFTED | SDLK_TAB:

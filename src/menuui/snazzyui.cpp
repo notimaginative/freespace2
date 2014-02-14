@@ -249,9 +249,9 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 	int choice = -1, mouse_on_choice = -1;
 	ubyte pixel_value;
 
-	Assert(data != NULL);
-	Assert(num_regions > 0);
-	Assert(regions != NULL);
+	SDL_assert(data != NULL);
+	SDL_assert(num_regions > 0);
+	SDL_assert(regions != NULL);
 	
 	gr_reset_clip();  // don't remove
 	mouse_get_pos( &x, &y );
@@ -412,7 +412,7 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filenam
 			if (!state)	{
 				p2 = strchr( tmp_line, ']' );
 				if (p2) *p2 = 0;
-				if (!stricmp( ++p1, menu_name )) state = 1;
+				if (!SDL_strcasecmp( ++p1, menu_name )) state = 1;
 			} else {
 				cfclose(fp);
 				break;

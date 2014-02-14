@@ -239,7 +239,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Create the combo box
 	z = m_wndToolBar.CommandToIndex(ID_NEW_SHIP_TYPE);
-	Assert(z != -1);
+	SDL_assert(z != -1);
 	m_wndToolBar.SetButtonInfo(z, ID_NEW_SHIP_TYPE, TBBS_SEPARATOR, 230);
 
 	// Design guide advises 12 pixel gap between combos and buttons
@@ -472,7 +472,7 @@ void CMainFrame::init_tools()
 	//char ship_name[256];
 	//int ship_index;
 
-	Assert(count < 2);
+	SDL_assert(count < 2);
 
 	// add 
 	if (count++) {

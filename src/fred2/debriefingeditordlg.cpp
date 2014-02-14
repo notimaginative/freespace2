@@ -373,7 +373,7 @@ void debriefing_editor_dlg::OnDeleteStage()
 	if (m_cur_stage < 0)
 		return;
 	
-	Assert(Debriefing->num_stages);
+	SDL_assert(Debriefing->num_stages);
 	z = m_cur_stage;
 	m_cur_stage = -1;
 	update_data(1);

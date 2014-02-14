@@ -158,7 +158,7 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 	float depth;
 	int head_on = 0;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	g3_rotate_vertex(&pt1,headp);
 
@@ -318,7 +318,7 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 	float depth;
 	int head_on = 0;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	g3_rotate_vertex(&pt1,headp);
 

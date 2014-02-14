@@ -119,7 +119,7 @@ int jumpnode_create(vector *pos)
 {
 	int obj;
 
-	Assert(Num_jump_nodes < MAX_JUMP_NODES);
+	SDL_assert(Num_jump_nodes < MAX_JUMP_NODES);
 
 	Jump_nodes[Num_jump_nodes].modelnum = model_load(NOX("subspacenode.pof"), 0, NULL);
 	if ( Jump_nodes[Num_jump_nodes].modelnum < 0 ) {

@@ -980,7 +980,7 @@ void gr8_aascaler(vertex *va, vertex *vb )
 
 	MONITOR_INC( ScalerNumCalls, 1 );	
 
-	Assert(Fred_running);
+	SDL_assert(Fred_running);
 	if(!aiee){
 		old_alphac.used = 1;
 		old_alphac.r = 93;

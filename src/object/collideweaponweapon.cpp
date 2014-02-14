@@ -91,8 +91,8 @@ int collide_weapon_weapon( obj_pair * pair )
 	object *A = pair->a;
 	object *B = pair->b;
 
-	Assert( A->type == OBJ_WEAPON );
-	Assert( B->type == OBJ_WEAPON );
+	SDL_assert( A->type == OBJ_WEAPON );
+	SDL_assert( B->type == OBJ_WEAPON );
 	
 	//	Don't allow ship to shoot down its own missile.
 	if (A->parent_sig == B->parent_sig)

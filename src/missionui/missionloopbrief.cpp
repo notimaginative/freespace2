@@ -155,7 +155,7 @@ void loop_brief_init()
 
 	// load the background bitmap
 	Loop_brief_bitmap = bm_load(Loop_brief_fname[gr_screen.res]);
-	Assert(Loop_brief_bitmap != -1);
+	SDL_assert(Loop_brief_bitmap != -1);
 
 	// window
 	Loop_brief_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);

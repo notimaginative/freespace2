@@ -404,7 +404,7 @@ void fireball_play_warphole_open_sound(int ship_class, fireball *fb)
 	float		range_multiplier = 1.0f;
 	object	*fireball_objp;	
 		
-	Assert((fb != NULL) && (fb->objnum >= 0));
+	SDL_assert((fb != NULL) && (fb->objnum >= 0));
 	if((fb == NULL) || (fb->objnum < 0)){
 		return;
 	}
@@ -465,7 +465,7 @@ void fireball_parse_tbl()
 	int ntypes = 0;
 	required_string("#Start");
 	while (required_string_either("#End","$Name:")) {
-		Assert( ntypes < MAX_FIREBALL_TYPES);
+		SDL_assert( ntypes < MAX_FIREBALL_TYPES);
 
 		// base filename
 		required_string("$Name:");
@@ -664,11 +664,11 @@ void fireball_delete( object * obj )
 	num = obj->instance;
 	fb = &Fireballs[num];
 
-	Assert( fb->objnum == OBJ_INDEX(obj));
+	SDL_assert( fb->objnum == OBJ_INDEX(obj));
 
 	Fireballs[num].objnum = -1;
 	Num_fireballs--;
-	Assert( Num_fireballs >= 0 );
+	SDL_assert( Num_fireballs >= 0 );
 }
 
 // -----------------------------------------------------------------
@@ -748,7 +748,7 @@ int fireball_is_perishable(object * obj)
 
 	num = obj->instance;
 	objnum = OBJ_INDEX(obj);
-	Assert( Fireballs[num].objnum == objnum );
+	SDL_assert( Fireballs[num].objnum == objnum );
 
 	fb = &Fireballs[num];
 
@@ -814,7 +814,7 @@ int fireball_is_warp(object * obj)
 
 	num = obj->instance;
 	objnum = OBJ_INDEX(obj);
-	Assert( Fireballs[num].objnum == objnum );
+	SDL_assert( Fireballs[num].objnum == objnum );
 
 	fb = &Fireballs[num];
 
@@ -858,7 +858,7 @@ void fireball_process_post(object * obj, float frame_time)
 
 	num = obj->instance;
 	objnum = OBJ_INDEX(obj);
-	Assert( Fireballs[num].objnum == objnum );
+	SDL_assert( Fireballs[num].objnum == objnum );
 
 	fb = &Fireballs[num];
 
@@ -880,7 +880,7 @@ float fireball_lifeleft( object *obj )
 
 	num = obj->instance;
 	objnum = OBJ_INDEX(obj);
-	Assert( Fireballs[num].objnum == objnum );
+	SDL_assert( Fireballs[num].objnum == objnum );
 
 	fb = &Fireballs[num];
 
@@ -895,7 +895,7 @@ float fireball_lifeleft_percent( object *obj )
 
 	num = obj->instance;
 	objnum = OBJ_INDEX(obj);
-	Assert( Fireballs[num].objnum == objnum );
+	SDL_assert( Fireballs[num].objnum == objnum );
 
 	fb = &Fireballs[num];
 
@@ -993,8 +993,8 @@ int fireball_create( vector * pos, int fireball_type, int parent_obj, float size
 	fireball_info	*fd;
 	fireball_lod	*fl;
 
-	Assert( fireball_type > -1 );
-	Assert( fireball_type < MAX_FIREBALL_TYPES );
+	SDL_assert( fireball_type > -1 );
+	SDL_assert( fireball_type < MAX_FIREBALL_TYPES );
 
 	fd = &Fireball_info[fireball_type];
 
@@ -1028,7 +1028,7 @@ int fireball_create( vector * pos, int fireball_type, int parent_obj, float size
 				break;
 			}
 		}
-		Assert( n != MAX_FIREBALLS );
+		SDL_assert( n != MAX_FIREBALLS );
 	}
 
 	fb = &Fireballs[n];
@@ -1115,7 +1115,7 @@ int fireball_create( vector * pos, int fireball_type, int parent_obj, float size
 	}
 
 	if ( fb->fireball_info_index == FIREBALL_WARP_EFFECT || fb->fireball_info_index == FIREBALL_KNOSSOS_EFFECT )	{
-		Assert( warp_lifetime > 4.0f );		// Warp lifetime must be at least 4 seconds!
+		SDL_assert( warp_lifetime > 4.0f );		// Warp lifetime must be at least 4 seconds!
 		fb->total_time = warp_lifetime;	// in seconds
 	} else {
 		fb->total_time = i2fl(fl->num_frames) / fl->fps;	// in seconds

@@ -193,33 +193,33 @@ grid *create_grid(grid *gridp, vector *forward, vector *right, vector *center, i
 	int	i, ncols2, nrows2, d = 1;
 	vector	dfvec, drvec, cur, cur2, tvec, uvec, save, save2;
 
-	Assert(square_size > 0.0);
+	SDL_assert(square_size > 0.0);
 	if (double_fine_gridlines)
 		d = 2;
 
 	if (gridp == NULL)
 		gridp = (grid *) malloc(sizeof(grid));
 
-	Assert(gridp);
+	SDL_assert(gridp);
 
 	gridp->center = *center;
 	gridp->square_size = square_size;
 
 	//	Create the plane equation.
-	Assert(!IS_VEC_NULL(forward));
-	Assert(!IS_VEC_NULL(right));
+	SDL_assert(!IS_VEC_NULL(forward));
+	SDL_assert(!IS_VEC_NULL(right));
 
 	vm_vec_copy_normalize(&dfvec, forward);
 	vm_vec_copy_normalize(&drvec, right);
 
 	vm_vec_cross(&uvec, &dfvec, &drvec);
 	
-	Assert(!IS_VEC_NULL(&uvec));
+	SDL_assert(!IS_VEC_NULL(&uvec));
 
 	gridp->gmatrix.v.uvec = uvec;
 
 	gridp->planeD = -(center->xyz.x * uvec.xyz.x + center->xyz.y * uvec.xyz.y + center->xyz.z * uvec.xyz.z);
-	Assert(!_isnan(gridp->planeD));
+	SDL_assert(!_isnan(gridp->planeD));
 
 	gridp->gmatrix.v.fvec = dfvec;
 	gridp->gmatrix.v.rvec = drvec;
@@ -238,7 +238,7 @@ grid *create_grid(grid *gridp, vector *forward, vector *right, vector *center, i
 	gridp->nrows = nrows;
 	ncols2 = ncols / 2;
 	nrows2 = nrows / 2;
-	Assert(ncols < MAX_GRIDLINE_POINTS && nrows < MAX_GRIDLINE_POINTS);
+	SDL_assert(ncols < MAX_GRIDLINE_POINTS && nrows < MAX_GRIDLINE_POINTS);
 
 	// Create the points along the edges of the grid, so we can just draw lines
 	// between them to form the grid.  

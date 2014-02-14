@@ -717,7 +717,7 @@ void main_hall_do_multi_ready()
 		if(Multi_options_g.protocol == NET_TCP){
 			popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "TCP/IP protocol not found.  This protocol is required for multiplayer FreeSpace.", 362));
 		} else {
-			Assert(Multi_options_g.protocol == NET_IPX);
+			SDL_assert(Multi_options_g.protocol == NET_IPX);
 			popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "IPX protocol not found.  This protocol is required for multiplayer FreeSpace.", 362));
 		}
 		break;
@@ -825,7 +825,7 @@ void main_hall_init(int main_hall_num)
 	read_menu_tbl(NOX("MAIN HALL"), temp, whee, Main_hall_region, &Main_hall_num_options, 0);
 
 	// assign the proper main hall data
-	Assert((main_hall_num >= 0) && (main_hall_num < NUM_MAIN_HALLS));
+	SDL_assert((main_hall_num >= 0) && (main_hall_num < NUM_MAIN_HALLS));
 	Main_hall = &Main_hall_defines[gr_screen.res][main_hall_num];	
 
 	// tooltip strings
@@ -913,7 +913,7 @@ void main_hall_init(int main_hall_num)
 	if(Main_hall == &Main_hall_defines[gr_screen.res][0]) {
 		Main_hall_overlay_id = MH_OVERLAY;
 	} else {
-		Assert(Main_hall == &Main_hall_defines[gr_screen.res][1]);
+		SDL_assert(Main_hall == &Main_hall_defines[gr_screen.res][1]);
 		Main_hall_overlay_id = MH2_OVERLAY;
 	}
 	help_overlay_load(Main_hall_overlay_id);
@@ -980,7 +980,7 @@ void main_hall_init(int main_hall_num)
 	Main_hall_right_click = mouse_down(MOUSE_RIGHT_BUTTON);
 
 	// set the game_mode based on the type of player
-	Assert( Player != NULL );
+	SDL_assert( Player != NULL );
 	if ( Player->flags & PLAYER_FLAGS_IS_MULTI ){
 		Game_mode = GM_MULTIPLAYER;
 	} else {

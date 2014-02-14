@@ -275,7 +275,7 @@ int timing_event_lookup(char *event_name)
 
 	// look through all events
 	for(idx=0; idx<MAX_TIMING_EVENTS; idx++){
-		if(!stricmp(Timing_events[idx].name, event_name)){
+		if(!SDL_strcasecmp(Timing_events[idx].name, event_name)){
 			return idx;
 		}
 	}
@@ -347,7 +347,7 @@ void timing_event_start(char *event_name)
 
 	// if we already have one
 	if(event != -1){
-		Assert(Timing_events[event].ref_count == 0);
+		SDL_assert(Timing_events[event].ref_count == 0);
 		Timing_events[event].start = timer_get_microseconds();
 		Timing_events[event].ref_count++;
 	}
@@ -380,7 +380,7 @@ void timing_event_stop(char *event_name)
 
 	// if we already have one
 	if(event != -1){
-		Assert(Timing_events[event].ref_count == 1);
+		SDL_assert(Timing_events[event].ref_count == 1);
 		Timing_events[event].microseconds_total += timer_get_microseconds() - Timing_events[event].start;
 		Timing_events[event].ref_count--;
 	}

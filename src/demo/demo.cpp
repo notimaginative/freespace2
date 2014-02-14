@@ -219,7 +219,7 @@ int demo_do_frame_start()
 	}
 
 	// make sure we're not trying to record and playback at the same time
-	Assert( ((Game_mode & GM_DEMO_RECORD) && !(Game_mode & GM_DEMO_PLAYBACK)) || (!(Game_mode & GM_DEMO_RECORD) && (Game_mode & GM_DEMO_PLAYBACK)) );
+	SDL_assert( ((Game_mode & GM_DEMO_RECORD) && !(Game_mode & GM_DEMO_PLAYBACK)) || (!(Game_mode & GM_DEMO_RECORD) && (Game_mode & GM_DEMO_PLAYBACK)) );
 
 	// recording
 	if(Game_mode & GM_DEMO_RECORD){		
@@ -256,7 +256,7 @@ int demo_do_frame_end()
 	}
 
 	// make sure we're not trying to record and playback at the same time
-	Assert( ((Game_mode & GM_DEMO_RECORD) && !(Game_mode & GM_DEMO_PLAYBACK)) || (!(Game_mode & GM_DEMO_RECORD) && (Game_mode & GM_DEMO_PLAYBACK)) );
+	SDL_assert( ((Game_mode & GM_DEMO_RECORD) && !(Game_mode & GM_DEMO_PLAYBACK)) || (!(Game_mode & GM_DEMO_RECORD) && (Game_mode & GM_DEMO_PLAYBACK)) );
 
 	// recording. there's nothing to do here for playback
 	if(Game_mode & GM_DEMO_RECORD){		
@@ -835,7 +835,7 @@ int demo_playback_seek_sub(int frame_size)
 
 				// find our ship object
 				ship_index = ship_get_by_signature(obj_sig);
-				// Assert(ship_index >= 0);
+				// SDL_assert(ship_index >= 0);
 				if(ship_index >= 0){
 					Objects[Ships[ship_index].objnum].pos = obj_pos;
 					Objects[Ships[ship_index].objnum].orient = obj_orient;

@@ -257,7 +257,7 @@ void multi_dcf_kick()
 
 	player_num = -1;
 	for(idx=0;idx<MAX_PLAYERS;idx++){
-		if(MULTI_CONNECTED(Net_players[idx]) && (stricmp(Net_players[idx].player->callsign,Dc_arg)==0)){
+		if(MULTI_CONNECTED(Net_players[idx]) && (SDL_strcasecmp(Net_players[idx].player->callsign,Dc_arg)==0)){
 			player_num = idx;
 			break;
 		}
@@ -350,7 +350,7 @@ void process_player_kick_packet(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();
 
 	// only the server should ever receive a request to kick a guy
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	
 	// determine who sent the packet	
 	from_player = find_player_id(hinfo->id);

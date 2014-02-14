@@ -967,7 +967,7 @@ int ship_obj_list_add(int objnum)
 // called from ship_delete()
 void ship_obj_list_remove(int index)
 {
-	Assert(index >= 0 && index < MAX_SHIP_OBJS);
+	SDL_assert(index >= 0 && index < MAX_SHIP_OBJS);
 	list_remove(&Ship_obj_list, &Ship_objs[index]);	
 	ship_obj_list_reset_slot(index);
 }
@@ -992,7 +992,7 @@ void ship_obj_list_rebuild()
 
 ship_obj *get_ship_obj_ptr_from_index(int index)
 {
-	Assert(index >= 0 && index < MAX_SHIP_OBJS);
+	SDL_assert(index >= 0 && index < MAX_SHIP_OBJS);
 	return &Ship_objs[index];
 }
 
@@ -1294,7 +1294,7 @@ int parse_ship()
 
 	// error checking
 	for ( i = 0; i < sip->num_primary_banks; i++ ) {
-		Assert(sip->primary_bank_weapons[i] >= 0);
+		SDL_assert(sip->primary_bank_weapons[i] >= 0);
 	}
 
 	// Set the weapons filter used in weapons loadout (for secondary weapons)
@@ -1330,7 +1330,7 @@ int parse_ship()
 
 	// error checking
 	for ( i = 0; i < sip->num_secondary_banks; i++ ) {
-		Assert(sip->secondary_bank_weapons[i] >= 0);
+		SDL_assert(sip->secondary_bank_weapons[i] >= 0);
 	}
 
 	// Get the capacity of each secondary bank
@@ -1372,63 +1372,63 @@ int parse_ship()
 	int num_strings = stuff_string_list(ship_strings, MAX_SHIP_FLAGS);
 	sip->flags = SIF_DEFAULT_VALUE;
 	for ( i=0; i<num_strings; i++ ) {
-		if (!stricmp(NOX("no_collide"), ship_strings[i]))
+		if (!SDL_strcasecmp(NOX("no_collide"), ship_strings[i]))
 			sip->flags &= ~SIF_DO_COLLISION_CHECK;
-		else if (!stricmp(NOX("player_ship"), ship_strings[i]))
+		else if (!SDL_strcasecmp(NOX("player_ship"), ship_strings[i]))
 			sip->flags |= SIF_PLAYER_SHIP;
-		else if (!stricmp(NOX("default_player_ship"), ship_strings[i]))
+		else if (!SDL_strcasecmp(NOX("default_player_ship"), ship_strings[i]))
 			sip->flags |= SIF_DEFAULT_PLAYER_SHIP;
-		else if ( !stricmp(NOX("repair_rearm"), ship_strings[i]))
+		else if ( !SDL_strcasecmp(NOX("repair_rearm"), ship_strings[i]))
 			sip->flags |= SIF_SUPPORT;
-		else if ( !stricmp(NOX("cargo"), ship_strings[i]))
+		else if ( !SDL_strcasecmp(NOX("cargo"), ship_strings[i]))
 			sip->flags |= SIF_CARGO;
-		else if ( !stricmp( NOX("fighter"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("fighter"), ship_strings[i]))
 			sip->flags |= SIF_FIGHTER;
-		else if ( !stricmp( NOX("bomber"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("bomber"), ship_strings[i]))
 			sip->flags |= SIF_BOMBER;
-		else if ( !stricmp( NOX("transport"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("transport"), ship_strings[i]))
 			sip->flags |= SIF_TRANSPORT;
-		else if ( !stricmp( NOX("freighter"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("freighter"), ship_strings[i]))
 			sip->flags |= SIF_FREIGHTER;
-		else if ( !stricmp( NOX("capital"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("capital"), ship_strings[i]))
 			sip->flags |= SIF_CAPITAL;
-		else if (!stricmp( NOX("supercap"), ship_strings[i]))
+		else if (!SDL_strcasecmp( NOX("supercap"), ship_strings[i]))
 			sip->flags |= SIF_SUPERCAP;
-		else if (!stricmp( NOX("drydock"), ship_strings[i]))
+		else if (!SDL_strcasecmp( NOX("drydock"), ship_strings[i]))
 			sip->flags |= SIF_DRYDOCK;
-		else if ( !stricmp( NOX("cruiser"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("cruiser"), ship_strings[i]))
 			sip->flags |= SIF_CRUISER;
-		else if ( !stricmp( NOX("navbuoy"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("navbuoy"), ship_strings[i]))
 			sip->flags |= SIF_NAVBUOY;
-		else if ( !stricmp( NOX("sentrygun"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("sentrygun"), ship_strings[i]))
 			sip->flags |= SIF_SENTRYGUN;
-		else if ( !stricmp( NOX("escapepod"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("escapepod"), ship_strings[i]))
 			sip->flags |= SIF_ESCAPEPOD;
-		else if ( !stricmp( NOX("no type"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("no type"), ship_strings[i]))
 			sip->flags |= SIF_NO_SHIP_TYPE;
-		else if ( !stricmp( NOX("ship copy"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("ship copy"), ship_strings[i]))
 			sip->flags |= SIF_SHIP_COPY;
-		else if ( !stricmp( NOX("in tech database"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("in tech database"), ship_strings[i]))
 #ifdef MAKE_FS1
 			sip->flags |= SIF_IN_TECH_DATABASE;
 #else
 			sip->flags |= SIF_IN_TECH_DATABASE | SIF_IN_TECH_DATABASE_M;
 #endif
-		else if ( !stricmp( NOX("in tech database multi"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("in tech database multi"), ship_strings[i]))
 			sip->flags |= SIF_IN_TECH_DATABASE_M;
-		else if ( !stricmp( NOX("dont collide invisible"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("dont collide invisible"), ship_strings[i]))
 			sip->flags |= SIF_DONT_COLLIDE_INVIS;
-		else if ( !stricmp( NOX("big damage"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("big damage"), ship_strings[i]))
 			sip->flags |= SIF_BIG_DAMAGE;
-		else if ( !stricmp( NOX("corvette"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("corvette"), ship_strings[i]))
 			sip->flags |= SIF_CORVETTE;
-		else if ( !stricmp( NOX("gas miner"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("gas miner"), ship_strings[i]))
 			sip->flags |= SIF_GAS_MINER;
-		else if ( !stricmp( NOX("awacs"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("awacs"), ship_strings[i]))
 			sip->flags |= SIF_AWACS;
-		else if ( !stricmp( NOX("knossos"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("knossos"), ship_strings[i]))
 			sip->flags |= SIF_KNOSSOS_DEVICE;
-		else if ( !stricmp( NOX("no_fred"), ship_strings[i]))
+		else if ( !SDL_strcasecmp( NOX("no_fred"), ship_strings[i]))
 			sip->flags |= SIF_NO_FRED;
 		else
 			Warning(LOCATION, "Bogus string in ship flags: %s\n", ship_strings[i]);
@@ -1523,7 +1523,7 @@ int parse_ship()
 	sip->ct_count = 0;
 	while(optional_string("$Trail:")){
 		// this means you've reached the max # of contrails for a ship
-		Assert(sip->ct_count <= MAX_SHIP_CONTRAILS);
+		SDL_assert(sip->ct_count <= MAX_SHIP_CONTRAILS);
 
 		ci = &sip->ct_info[sip->ct_count++];
 		
@@ -1566,7 +1566,7 @@ int parse_ship()
 			float	percentage_of_hits;
 			model_subsystem *sp;			// to append on the ships list of subsystems
 
-			Assert ( n_subsystems < MAX_MODEL_SUBSYSTEMS );
+			SDL_assert ( n_subsystems < MAX_MODEL_SUBSYSTEMS );
 			sp = &subsystems[n_subsystems++];			// subsystems a local -- when done, we will malloc and copy
 			required_string("$Subsystem:");
 			stuff_string(sp->subobj_name, F_NAME, ",");
@@ -1637,13 +1637,13 @@ int parse_ship()
 			Int3();	// Impossible return value from required_string_3.
 		}
 	}	
-	Assert( hull_percentage_of_hits > 0.0f );		// must be > 0
+	SDL_assert( hull_percentage_of_hits > 0.0f );		// must be > 0
 
 	// when done reading subsystems, malloc and copy the subsystem data to the ship info structure
 	sip->n_subsystems = n_subsystems;
 	if ( n_subsystems > 0 ) {
 		sip->subsystems = (model_subsystem *)malloc(sizeof(model_subsystem) * n_subsystems );
-		Assert( sip->subsystems != NULL );
+		SDL_assert( sip->subsystems != NULL );
 	}
 	else {
 		sip->subsystems = NULL;
@@ -1677,7 +1677,7 @@ char get_engine_wash_index(char *engine_wash_name)
 	int i;
 
 	for (i=0; i<Num_engine_wash_types; i++) {
-		if ( 0 == stricmp(engine_wash_name, Engine_wash_info[i].name) ) {
+		if ( 0 == SDL_strcasecmp(engine_wash_name, Engine_wash_info[i].name) ) {
 			return (char)i;
 		}
 	}
@@ -1710,7 +1710,7 @@ void parse_shiptbl()
 #ifndef MAKE_FS1
 	required_string("#Engine Wash Info");
 	while (required_string_either("#End", "$Name:")) {
-		Assert( Num_engine_wash_types < MAX_ENGINE_WASH_TYPES );
+		SDL_assert( Num_engine_wash_types < MAX_ENGINE_WASH_TYPES );
 
 		parse_engine_wash();
 		Num_engine_wash_types++;
@@ -1721,7 +1721,7 @@ void parse_shiptbl()
 	required_string("#Ship Classes");
 
 	while (required_string_either("#End","$Name:")) {
-		Assert( Num_ship_types < MAX_SHIP_TYPES );
+		SDL_assert( Num_ship_types < MAX_SHIP_TYPES );
 
 		if ( parse_ship() ) {
 			continue;
@@ -1871,7 +1871,7 @@ int ship_find_exited_ship_by_name( const char *name )
 	int i;
 
 	for (i = 0; i < Num_exited_ships; i++) {
-		if ( !stricmp(name, Ships_exited[i].ship_name) )
+		if ( !SDL_strcasecmp(name, Ships_exited[i].ship_name) )
 			break;
 	}
 
@@ -1978,7 +1978,7 @@ void ship_set(int ship_index, int objnum, int ship_type)
 
 	// Create n!
 	// sprintf(shipp->ship_name, "%s %d", Ship_info[ship_type].name, ship_index); // moved to ship_create()
-	Assert(strlen(shipp->ship_name) < NAME_LENGTH - 1);
+	SDL_assert(strlen(shipp->ship_name) < NAME_LENGTH - 1);
 	shipp->ship_info_index = ship_type;
 	shipp->objnum = objnum;
 	shipp->group = 0;
@@ -2081,7 +2081,7 @@ void ship_set(int ship_index, int objnum, int ship_type)
 	for ( i = 0; i < sip->num_secondary_banks; i++ ) {
 		float weapon_size;
 		weapon_size = Weapon_info[sip->secondary_bank_weapons[i]].cargo_size;
-		Assert( weapon_size > 0.0f );
+		SDL_assert( weapon_size > 0.0f );
 		if (Fred_running){
 			swp->secondary_bank_ammo[i] = 100;
 		} else {
@@ -2202,7 +2202,7 @@ void ship_recalc_subsys_strength( ship *shipp )
 		int type;
 
 		type = ship_system->system_info->type;
-		Assert ( (type >= 0) && (type < SUBSYSTEM_MAX) );
+		SDL_assert ( (type >= 0) && (type < SUBSYSTEM_MAX) );
 		shipp->subsys_info[type].num++;
 		shipp->subsys_info[type].total_hits += ship_system->system_info->max_hits;
 		shipp->subsys_info[type].current_hits += ship_system->current_hits;
@@ -2254,7 +2254,7 @@ void ship_copy_subsystem_fixup(ship_info *sip)
 
 			// see if this ship has subsystems and a model for the subsystems.  We only need check the first
 			// subsystem since previous error checking would have trapped it's loading as an error.
-			Assert( Ship_info[i].n_subsystems == sip->n_subsystems );
+			SDL_assert( Ship_info[i].n_subsystems == sip->n_subsystems );
 
 			msp = &Ship_info[i].subsystems[0];
 			model_copy_subsystems( sip->n_subsystems, &(sip->subsystems[0]), msp );
@@ -2289,7 +2289,7 @@ void subsys_set(int objnum, int ignore_subsys_info)
 
 		// set up the linked list
 		ship_system = GET_FIRST( &ship_subsys_free_list );		// get a new element from the ship_subsystem array
-		Assert ( ship_system != &ship_subsys_free_list );		// shouldn't have the dummy element
+		SDL_assert ( ship_system != &ship_subsys_free_list );		// shouldn't have the dummy element
 		list_remove( &ship_subsys_free_list, ship_system );	// remove the element from the array
 		list_append( &shipp->subsys_list, ship_system );		// link the element into the ship
 
@@ -2449,7 +2449,7 @@ void ship_render(object * obj)
 
 	num = obj->instance;
 
-	Assert( num >= 0);	
+	SDL_assert( num >= 0);	
 
 #if 0
 	// show target when attacking big ship
@@ -2727,10 +2727,10 @@ void ship_delete( object * obj )
 	int	num, objnum;
 
 	num = obj->instance;
-	Assert( num >= 0);
+	SDL_assert( num >= 0);
 
 	objnum = OBJ_INDEX(obj);
-	Assert( Ships[num].objnum == objnum );
+	SDL_assert( Ships[num].objnum == objnum );
 
 	shipp = &Ships[num];
 
@@ -2778,7 +2778,7 @@ void ship_wing_cleanup( int shipnum, wing *wingp )
 		}
 	}
 
-	// Assert(index != -1);
+	// SDL_assert(index != -1);
 	
 	// this can happen in multiplayer (dogfight, ingame join specifically)
 	if(index == -1){
@@ -2790,7 +2790,7 @@ void ship_wing_cleanup( int shipnum, wing *wingp )
 	}
 
 	wingp->current_count--;
-	Assert ( wingp->current_count >= 0 );
+	SDL_assert ( wingp->current_count >= 0 );
 	wingp->ship_index[wingp->current_count] = -1;
 
 	// if the current count is 0, check to see if the wing departed or was destroyed.
@@ -3020,7 +3020,7 @@ int ship_explode_area_calc_damage( vector *pos1, vector *pos2, float inner_rad, 
 void ship_blow_up_area_apply_blast( object *exp_objp)
 {
 	ship_info	*sip;
-	Assert( exp_objp->type == OBJ_SHIP );
+	SDL_assert( exp_objp->type == OBJ_SHIP );
 	float	inner_rad, outer_rad, max_damage, max_blast, shockwave_speed;
 	shockwave_create_info sci;
 
@@ -3124,15 +3124,15 @@ void ship_blow_up_area_apply_blast( object *exp_objp)
 
 void do_dying_undock_physics(object* objp, ship* sp) 
 {
-	Assert(sp->dock_objnum_when_dead >= 0);
+	SDL_assert(sp->dock_objnum_when_dead >= 0);
 	if(sp->dock_objnum_when_dead < 0){
 		return;
 	}
 	object* dock_obj = &Objects[sp->dock_objnum_when_dead];
 
 	// sanity checks
-	Assert(objp->type == OBJ_SHIP);
-	Assert(dock_obj->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
+	SDL_assert(dock_obj->type == OBJ_SHIP);
 	if((objp->type != OBJ_SHIP) || (dock_obj->type != OBJ_SHIP)){
 		return;
 	}
@@ -3186,7 +3186,7 @@ void ship_dying_frame(object *objp, int ship_num)
 
 		// special case of VAPORIZE
 		if (sp->flags & SF_VAPORIZE) {
-			// Assert(Ship_info[sp->ship_info_index].flags & SIF_SMALL_SHIP);
+			// SDL_assert(Ship_info[sp->ship_info_index].flags & SIF_SMALL_SHIP);
 			if (timestamp_elapsed(sp->final_death_time)) {
 
 				// play death sound
@@ -3328,8 +3328,8 @@ void ship_dying_frame(object *objp, int ship_num)
 			if (sp->dock_objnum_when_dead != -1)  {				
 				// other ship undocks
 				//	These asserts should no longer be needed and they cause a problem that is not obvious how to fix.
-				//Assert( !(Ai_info[Ships[dock_obj->instance].ai_index].ai_flags & AIF_DOCKED) );
-				//Assert( Ai_info[Ships[dock_obj->instance].ai_index].dock_objnum == -1 );
+				//SDL_assert( !(Ai_info[Ships[dock_obj->instance].ai_index].ai_flags & AIF_DOCKED) );
+				//SDL_assert( Ai_info[Ships[dock_obj->instance].ai_index].dock_objnum == -1 );
 				// MWA  Ai_info[Ships[dock_obj->instance].ai_index].ai_flags &= ~AIF_DOCKED;
 				// MWA  Ai_info[Ships[dock_obj->instance].ai_index].dock_objnum = -1;
 				// MWA Ai_info[Ships[dock_obj->instance].ai_index].mode = AIM_NONE;
@@ -3575,7 +3575,7 @@ void ship_init_thrusters()
 			Error(LOCATION,"Error loading animation file: %s\n",Thrust_anim_names[i]);
 			return;
 		}
-		Assert(fps != 0);
+		SDL_assert(fps != 0);
 		ta->time = i2fl(ta->num_frames)/fps;
 	}
 
@@ -3594,7 +3594,7 @@ void ship_init_thrusters()
 			Error(LOCATION,"Error loading bitmap file: %s\n",Thrust_glow_anim_names[i]);
 			return;
 		}
-		Assert(fps != 0);
+		SDL_assert(fps != 0);
 		ta->time = i2fl(ta->num_frames)/fps;
 	}
 
@@ -3631,12 +3631,12 @@ void ship_do_thruster_frame( ship *shipp, object *objp, float frametime )
 
 //	rate = 0.1f;
 
-	Assert( anim_index > -1 );
-	Assert( anim_index < NUM_THRUST_ANIMS );
+	SDL_assert( anim_index > -1 );
+	SDL_assert( anim_index < NUM_THRUST_ANIMS );
 
 	the_anim = &Thrust_anims[anim_index];
 
-	Assert( frametime > 0.0f );
+	SDL_assert( frametime > 0.0f );
 	shipp->thruster_frame += frametime * rate;
 
 	// Sanity checks
@@ -3661,7 +3661,7 @@ void ship_do_thruster_frame( ship *shipp, object *objp, float frametime )
 	// Do it for glow bitmaps
 	the_anim = &Thrust_glow_anims[anim_index];
 
-	Assert( frametime > 0.0f );
+	SDL_assert( frametime > 0.0f );
 	shipp->thruster_glow_frame += frametime * rate;
 
 	// Sanity checks
@@ -3710,12 +3710,12 @@ void ship_do_weapon_thruster_frame( weapon *weaponp, object *objp, float frameti
 	// rate = 0.5f + objp->phys_info.forward_thrust / 2.0f;
 	rate = 0.67f * (1.0f + objp->phys_info.forward_thrust);
 
-	Assert( anim_index > -1 );
-	Assert( anim_index < NUM_THRUST_ANIMS );
+	SDL_assert( anim_index > -1 );
+	SDL_assert( anim_index < NUM_THRUST_ANIMS );
 
 	the_anim = &Thrust_anims[anim_index];
 
-	Assert( frametime > 0.0f );
+	SDL_assert( frametime > 0.0f );
 	weaponp->thruster_frame += frametime * rate;
 
 	// Sanity checks
@@ -3740,7 +3740,7 @@ void ship_do_weapon_thruster_frame( weapon *weaponp, object *objp, float frameti
 	// Do it for glow bitmaps
 	the_anim = &Thrust_glow_anims[anim_index];
 
-	Assert( frametime > 0.0f );
+	SDL_assert( frametime > 0.0f );
 	weaponp->thruster_glow_frame += frametime * rate;
 
 	// Sanity checks
@@ -3783,7 +3783,7 @@ void ship_auto_repair_frame(int shipnum, float frametime)
 		return;
 	#endif
 
-	Assert( shipnum >= 0 && shipnum < MAX_SHIPS);
+	SDL_assert( shipnum >= 0 && shipnum < MAX_SHIPS);
 	sp = &Ships[shipnum];
 	sip = &Ship_info[sp->ship_info_index];
 
@@ -3797,7 +3797,7 @@ void ship_auto_repair_frame(int shipnum, float frametime)
 	
 	// iterate through subsystems, repair as needed based on elapsed frametime
 	for ( ssp = GET_FIRST(&sp->subsys_list); ssp != END_OF_LIST(&sp->subsys_list); ssp = GET_NEXT(ssp) ) {
-		Assert(ssp->system_info->type >= 0 && ssp->system_info->type < SUBSYSTEM_MAX);
+		SDL_assert(ssp->system_info->type >= 0 && ssp->system_info->type < SUBSYSTEM_MAX);
 		ssip = &sp->subsys_info[ssp->system_info->type];
 
 		if ( ssp->current_hits != ssp->system_info->max_hits ) {		
@@ -3921,7 +3921,7 @@ void ship_check_player_distance()
 
 void observer_process_post(object *objp)
 {
-	Assert(objp->type == OBJ_OBSERVER);
+	SDL_assert(objp->type == OBJ_OBSERVER);
 
 	if (Game_mode & GM_MULTIPLAYER) {
 		// if I'm just an observer
@@ -4093,9 +4093,9 @@ void ship_process_post(object * obj, float frametime)
 	MONITOR_INC( NumShips, 1 );	
 
 	num = obj->instance;
-	Assert( num >= 0 && num < MAX_SHIPS);
-	Assert( obj->type == OBJ_SHIP );
-	Assert( Ships[num].objnum == OBJ_INDEX(obj));	
+	SDL_assert( num >= 0 && num < MAX_SHIPS);
+	SDL_assert( obj->type == OBJ_SHIP );
+	SDL_assert( Ships[num].objnum == OBJ_INDEX(obj));	
 
 	shipp = &Ships[num];
 
@@ -4278,12 +4278,12 @@ void ship_set_default_weapons(ship *shipp, ship_info *sip)
 
 	// Primary banks
 	if ( po->n_guns > sip->num_primary_banks ) {
-		Assert(po->n_guns <= MAX_PRIMARY_BANKS);
+		SDL_assert(po->n_guns <= MAX_PRIMARY_BANKS);
 		Warning(LOCATION, "There are %d primary banks in the model file,\nbut only %d primary banks in ships.tbl for %s\n", po->n_guns, sip->num_primary_banks, sip->name);
 		for ( i = sip->num_primary_banks; i < po->n_guns; i++ ) {
 			// Make unspecified weapon for bank be a Light Laser
 			swp->primary_bank_weapons[i] = weapon_info_lookup(NOX("Light Laser"));
-			Assert(swp->primary_bank_weapons[i] >= 0);
+			SDL_assert(swp->primary_bank_weapons[i] >= 0);
 		}
 		sip->num_primary_banks = po->n_guns;
 	}
@@ -4294,12 +4294,12 @@ void ship_set_default_weapons(ship *shipp, ship_info *sip)
 
 	// Secondary banks
 	if ( po->n_missiles > sip->num_secondary_banks ) {
-		Assert(po->n_missiles <= MAX_SECONDARY_BANKS);
+		SDL_assert(po->n_missiles <= MAX_SECONDARY_BANKS);
 		Warning(LOCATION, "There are %d secondary banks in model,\nbut only %d secondary banks in ships.tbl for %s\n", po->n_missiles, sip->num_secondary_banks, sip->name);
 		for ( i = sip->num_secondary_banks; i < po->n_missiles; i++ ) {
 			// Make unspecified weapon for bank be a Rockeye Missile
 			swp->secondary_bank_weapons[i] = weapon_info_lookup(NOX("Rockeye Missile"));
-			Assert(swp->secondary_bank_weapons[i] >= 0);
+			SDL_assert(swp->secondary_bank_weapons[i] >= 0);
 		}
 		sip->num_secondary_banks = po->n_missiles;
 	}
@@ -4337,8 +4337,8 @@ int ship_check_collision_fast( object * obj, object * other_obj, vector * hitpos
 	int num;
 	mc_info mc;
 
-	Assert( obj->type == OBJ_SHIP );
-	Assert( obj->instance >= 0 );
+	SDL_assert( obj->type == OBJ_SHIP );
+	SDL_assert( obj->instance >= 0 );
 
 	num = obj->instance;
 
@@ -4371,8 +4371,8 @@ void ship_maybe_fixup_subsys_path(polymodel *pm, int path_num)
 	model_path *mp;
 	mp = &pm->paths[path_num];
 
-	Assert(mp != NULL);
-	Assert(mp->nverts > 1);
+	SDL_assert(mp != NULL);
+	SDL_assert(mp->nverts > 1);
 	
 	index_1 = 1;
 	index_2 = 0;
@@ -4408,7 +4408,7 @@ void ship_set_subsys_path_nums(ship_info *sip, polymodel *pm)
 		for ( j = 0; j < pm->n_paths; j++ ) {
 			if ( (sip->subsystems[i].subobj_num != -1) && (sip->subsystems[i].subobj_num == pm->paths[j].parent_submodel) ) {
 				found_path = 1;
-			} else if ( !stricmp(sip->subsystems[i].subobj_name, pm->paths[j].parent_name) ) {
+			} else if ( !SDL_strcasecmp(sip->subsystems[i].subobj_name, pm->paths[j].parent_name) ) {
 				found_path = 1;
 			}
 	
@@ -4446,7 +4446,7 @@ void ship_set_bay_path_nums(ship_info *sip, polymodel *pm)
 
 	// malloc out storage for the path information
 	pm->ship_bay = (ship_bay*)malloc(sizeof(ship_bay));
-	Assert(pm->ship_bay != NULL);
+	SDL_assert(pm->ship_bay != NULL);
 
 	pm->ship_bay->num_paths = 0;
 	// TODO: determine if zeroing out here is affecting any earlier initializations
@@ -4456,11 +4456,11 @@ void ship_set_bay_path_nums(ship_info *sip, polymodel *pm)
 
 	// iterate through the paths that exist in the polymodel, searching for $bayN pathnames
 	for ( i = 0; i < pm->n_paths; i++ ) {
-		if ( !strnicmp(pm->paths[i].name, NOX("$bay"), 4) ) {
+		if ( !SDL_strncasecmp(pm->paths[i].name, NOX("$bay"), 4) ) {
 			strncpy(bay_num_str, pm->paths[i].name+4, 2);
 			bay_num_str[2] = 0;
 			bay_num = atoi(bay_num_str);
-			Assert(bay_num >= 1 && bay_num <= MAX_SHIP_BAY_PATHS);
+			SDL_assert(bay_num >= 1 && bay_num <= MAX_SHIP_BAY_PATHS);
 			pm->ship_bay->paths[bay_num-1] = i;
 			pm->ship_bay->num_paths++;
 		}
@@ -4565,13 +4565,13 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 		return -1;
 	}
 
-	Assert((ship_type >= 0) && (ship_type < Num_ship_types));
+	SDL_assert((ship_type >= 0) && (ship_type < Num_ship_types));
 	sip = &(Ship_info[ship_type]);
 	shipp = &Ships[n];
 
 	//  check to be sure that this ship falls into a ship size category!!!
-	//  get Allender or Mike if you hit this Assert
-	Assert( sip->flags & (SIF_SMALL_SHIP | SIF_BIG_SHIP | SIF_CAPITAL | SIF_NO_SHIP_TYPE | SIF_NOT_FLYABLE | SIF_ESCAPEPOD | SIF_SUPERCAP | SIF_DRYDOCK | SIF_KNOSSOS_DEVICE) );
+	//  get Allender or Mike if you hit this SDL_assert
+	SDL_assert( sip->flags & (SIF_SMALL_SHIP | SIF_BIG_SHIP | SIF_CAPITAL | SIF_NO_SHIP_TYPE | SIF_NOT_FLYABLE | SIF_ESCAPEPOD | SIF_SUPERCAP | SIF_DRYDOCK | SIF_KNOSSOS_DEVICE) );
 
 	sip->modelnum = model_load(sip->pof_file, sip->n_subsystems, &sip->subsystems[0]);		// use the highest detail level
 	shipp->modelnum = sip->modelnum;
@@ -4581,7 +4581,7 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 		// check to see if a "real" ship uses this model. if so, load it up for him so that subsystems are setup properly
 		int idx;
 		for(idx=0; idx<Num_ship_types; idx++){
-			if(!stricmp(Ship_info[idx].pof_file, sip->pof_file_hud)){
+			if(!SDL_strcasecmp(Ship_info[idx].pof_file, sip->pof_file_hud)){
 				Ship_info[idx].modelnum = model_load(Ship_info[idx].pof_file, Ship_info[idx].n_subsystems, &Ship_info[idx].subsystems[0]);
 			}
 		}
@@ -4615,10 +4615,10 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 	} else {
 		objnum = obj_create(OBJ_SHIP, -1, n, orient, pos, model_get_radius(shipp->modelnum), OF_RENDERS | OF_COLLIDES | OF_PHYSICS );
 	}
-	Assert( objnum >= 0 );
+	SDL_assert( objnum >= 0 );
 
 	shipp->ai_index = ai_get_slot(n);
-	Assert( shipp->ai_index >= 0 );
+	SDL_assert( shipp->ai_index >= 0 );
 
 	sprintf(shipp->ship_name, NOX("%s %d"), Ship_info[ship_type].name, n);
 	ship_set_default_weapons(shipp, sip);	//	Moved up here because ship_set requires that weapon info be valid.  MK, 4/28/98
@@ -4725,7 +4725,7 @@ void ship_model_change(int n, int ship_type)
 	ship			*sp;
 
 
-	Assert( n >= 0 && n < MAX_SHIPS );
+	SDL_assert( n >= 0 && n < MAX_SHIPS );
 	sp = &Ships[n];
 	sip = &(Ship_info[ship_type]);
 
@@ -4774,7 +4774,7 @@ void change_ship_type(int n, int ship_type)
 	object		*objp;
 
 
-	Assert( n >= 0 && n < MAX_SHIPS );
+	SDL_assert( n >= 0 && n < MAX_SHIPS );
 	sp = &Ships[n];
 	sip = &(Ship_info[ship_type]);
 	objp = &Objects[sp->objnum];
@@ -4839,7 +4839,7 @@ int ship_fire_primary_debug(object *objp)
 
 	//	Debug code!  Make the single laser fire only one bolt and from the object center!
 	for (i=0; i<MAX_WEAPONS; i++)
-		if (!stricmp(Weapon_info[i].name, NOX("Debug Laser")))
+		if (!SDL_strcasecmp(Weapon_info[i].name, NOX("Debug Laser")))
 			break;
 	
 	vm_vec_add(&wpos, &objp->pos, &(objp->orient.v.fvec) );
@@ -4913,7 +4913,7 @@ int ship_launch_countermeasure(object *objp, int rand_val)
 	fired = cmeasure_create( objp, &pos, shipp->current_cmeasure, rand_val );
 
 	// Play sound effect for counter measure launch
-	Assert(shipp->current_cmeasure < Num_cmeasure_types);
+	SDL_assert(shipp->current_cmeasure < Num_cmeasure_types);
 	if ( Cmeasure_info[shipp->current_cmeasure].launch_sound != -1 ) {
 		snd_play_3d( &Snds[Cmeasure_info[shipp->current_cmeasure].launch_sound], &pos, &View_position );
 	}
@@ -5086,7 +5086,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 
 	int			sound_played;	// used to track what sound is played.  If the player is firing two banks
 										// of the same laser, we only want to play one sound
-	Assert( obj != NULL );
+	SDL_assert( obj != NULL );
 
 	if(obj == NULL){
 		return 0;
@@ -5097,9 +5097,9 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 		return 0;
 	}
 
-	Assert( obj->type == OBJ_SHIP );
-	Assert( n >= 0 );
-	Assert( Ships[n].objnum == OBJ_INDEX(obj));
+	SDL_assert( obj->type == OBJ_SHIP );
+	SDL_assert( n >= 0 );
+	SDL_assert( Ships[n].objnum == OBJ_INDEX(obj));
 	if((obj->type != OBJ_SHIP) || (n < 0) || (n >= MAX_SHIPS) || (Ships[n].objnum != OBJ_INDEX(obj))){
 		return 0;
 	}
@@ -5137,7 +5137,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 		num_primary_banks = min(1, swp->num_primary_banks);
 	}
 
-	Assert(num_primary_banks > 0);
+	SDL_assert(num_primary_banks > 0);
 	if (num_primary_banks < 1){
 		return 0;
 	}
@@ -5151,7 +5151,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 		bank_to_fire = (swp->current_primary_bank+i)%2;	// Max supported banks is 2
 		
 		weapon = swp->primary_bank_weapons[bank_to_fire];
-		Assert( weapon >= 0 && weapon < MAX_WEAPONS );		
+		SDL_assert( weapon >= 0 && weapon < MAX_WEAPONS );		
 		if ( (weapon < 0) || (weapon >= MAX_WEAPON_TYPES) ) {
 			Int3();		// why would a ship try to fire a weapon that doesn't exist?
 			continue;
@@ -5339,7 +5339,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 				int player_num;
 
 				player_num = multi_find_player_by_object ( obj );
-				Assert ( player_num != -1 );
+				SDL_assert ( player_num != -1 );
 
 				Net_players[player_num].player->stats.mp_shots_fired += num_fired;
 			}
@@ -5475,7 +5475,7 @@ int maybe_detonate_weapon(ship_weapon *swp, object *src)
 		return 0;
 	}
 
-	Assert(Weapons[objp->instance].weapon_info_index != -1);
+	SDL_assert(Weapons[objp->instance].weapon_info_index != -1);
 	wip = &Weapon_info[Weapons[objp->instance].weapon_info_index];
 
 	if (wip->wi_flags & WIF_REMOTE) {
@@ -5522,7 +5522,7 @@ int ship_fire_secondary_detonate(object *obj, ship_weapon *swp)
 				// check for currently locked missiles (highest precedence)
 				for ( mo = GET_FIRST(&Missile_obj_list); mo != END_OF_LIST(&Missile_obj_list); mo = GET_NEXT(mo) ) {
 					object	*mobjp;
-					Assert(mo->objnum >= 0 && mo->objnum < MAX_OBJECTS);
+					SDL_assert(mo->objnum >= 0 && mo->objnum < MAX_OBJECTS);
 					mobjp = &Objects[mo->objnum];
 					if ((mobjp != first_objp) && (mobjp->parent_sig == obj->parent_sig)) {
 						if (Weapon_info[Weapons[mobjp->instance].weapon_info_index].wi_flags & WIF_REMOTE) {
@@ -5589,7 +5589,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 	polymodel	*po;
 	vector		missile_point, pnt, firing_pos;
 
-	Assert( obj != NULL );
+	SDL_assert( obj != NULL );
 
 	// in the case where the server is an observer, he can fire (which would be bad) - unless we do this.
 	if( obj->type == OBJ_OBSERVER ){
@@ -5601,16 +5601,16 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 		return 0;
 	}
 
-	Assert( obj->type == OBJ_SHIP );
+	SDL_assert( obj->type == OBJ_SHIP );
 	if(obj->type != OBJ_SHIP){
 		return 0;
 	}
 	n = obj->instance;
-	Assert( n >= 0 && n < MAX_SHIPS );
+	SDL_assert( n >= 0 && n < MAX_SHIPS );
 	if((n < 0) || (n >= MAX_SHIPS)){
 		return 0;
 	}
-	Assert( Ships[n].objnum == OBJ_INDEX(obj));
+	SDL_assert( Ships[n].objnum == OBJ_INDEX(obj));
 	if(Ships[n].objnum != OBJ_INDEX(obj)){
 		return 0;
 	}
@@ -5638,7 +5638,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 	}
 
 	weapon = swp->secondary_bank_weapons[bank];
-	Assert( (swp->secondary_bank_weapons[bank] >= 0) && (swp->secondary_bank_weapons[bank] < MAX_WEAPON_TYPES) );
+	SDL_assert( (swp->secondary_bank_weapons[bank] >= 0) && (swp->secondary_bank_weapons[bank] < MAX_WEAPON_TYPES) );
 	if((swp->secondary_bank_weapons[bank] < 0) || (swp->secondary_bank_weapons[bank] >= MAX_WEAPON_TYPES)){
 		return 0;
 	}
@@ -5654,8 +5654,8 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 		// in multiplayer, master sends a secondary fired packet with starting signature of -1 -- indicates
 		// to client code to set the detonate timer to 0.
 		if ( MULTIPLAYER_MASTER ) {
-			// MWA -- 4/6/98  Assert invalid since the bank count could have gone to 0.
-			//Assert(starting_bank_count != 0);
+			// MWA -- 4/6/98  SDL_assert invalid since the bank count could have gone to 0.
+			//SDL_assert(starting_bank_count != 0);
 			send_secondary_fired_packet( shipp, 0, starting_bank_count, 1, allow_swarm );
 		}
 	
@@ -5712,7 +5712,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 
 	// if trying to fire a swarm missile, make sure being called from right place
 	if ( (wip->wi_flags & WIF_SWARM) && !allow_swarm ) {
-		Assert(wip->swarm_count > 0);
+		SDL_assert(wip->swarm_count > 0);
 		if(wip->swarm_count <= 0){
 			shipp->num_swarm_missiles_to_fire += SWARM_DEFAULT_NUM_MISSILES_FIRED;
 		} else {
@@ -5808,7 +5808,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 			vm_vec_add(&firing_pos, &missile_point, &obj->pos);
 
 			if ( Game_mode & GM_MULTIPLAYER ) {
-				Assert( Weapon_info[weapon].subtype == WP_MISSILE );
+				SDL_assert( Weapon_info[weapon].subtype == WP_MISSILE );
 			}
 
 			// create the weapon -- for multiplayer, the net_signature is assigned inside
@@ -5867,7 +5867,7 @@ done_secondary:
 		// first network signatures for the newly created weapons.  if nothing got fired, send a failed
 		// packet if 
 		if ( MULTIPLAYER_MASTER ) {			
-			Assert(starting_sig != 0);
+			SDL_assert(starting_sig != 0);
 			send_secondary_fired_packet( shipp, starting_sig, starting_bank_count, num_fired, allow_swarm );			
 		}
 
@@ -5881,7 +5881,7 @@ done_secondary:
 					int player_num;
 
 					player_num = multi_find_player_by_object ( obj );
-					Assert ( player_num != -1 );
+					SDL_assert ( player_num != -1 );
 
 					Net_players[player_num].player->stats.ms_shots_fired += num_fired;
 				}				
@@ -5922,14 +5922,14 @@ int ship_select_next_primary(object *objp, int direction)
 	ship	*shipp;
 	ship_weapon *swp;
 
-	Assert(objp != NULL);
-	Assert(objp->type == OBJ_SHIP);
-	Assert(objp->instance >= 0 && objp->instance < MAX_SHIPS);
+	SDL_assert(objp != NULL);
+	SDL_assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->instance >= 0 && objp->instance < MAX_SHIPS);
 
 	shipp = &Ships[objp->instance];
 	swp = &shipp->weapons;
 
-	Assert(direction == CYCLE_PRIMARY_NEXT || direction == CYCLE_PRIMARY_PREV);
+	SDL_assert(direction == CYCLE_PRIMARY_NEXT || direction == CYCLE_PRIMARY_PREV);
 
 	switch ( swp->num_primary_banks ) {
 
@@ -6009,9 +6009,9 @@ int ship_select_next_primary(object *objp, int direction)
 //			for the player ship.
 int ship_select_next_secondary(object *objp)
 {
-	Assert(objp != NULL);
-	Assert(objp->type == OBJ_SHIP);
-	Assert(objp->instance >= 0 && objp->instance < MAX_SHIPS);
+	SDL_assert(objp != NULL);
+	SDL_assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->instance >= 0 && objp->instance < MAX_SHIPS);
 
 	int	original_bank, new_bank, i;
 	ship	*shipp;
@@ -6039,7 +6039,7 @@ int ship_select_next_secondary(object *objp)
 
 		case 2:
 		case 3:
-			Assert(swp->current_secondary_bank < swp->num_secondary_banks);
+			SDL_assert(swp->current_secondary_bank < swp->num_secondary_banks);
 			original_bank = swp->current_secondary_bank;
 
 			for ( i = 1; i < swp->num_secondary_banks; i++ ) {
@@ -6078,8 +6078,8 @@ int get_available_secondary_weapons(object *objp, int *outlist, int *outbanklist
 	int	i;
 	ship	*shipp;
 
-	Assert(objp->type == OBJ_SHIP);
-	Assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+	SDL_assert(objp->type == OBJ_SHIP);
+	SDL_assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 	shipp = &Ships[objp->instance];
 
 	for (i=0; i<shipp->weapons.num_secondary_banks; i++)
@@ -6103,12 +6103,12 @@ int wing_name_lookup(const char *name, int ignore_count)
 
 	if (Fred_running || ignore_count ) {  // current_count not used for Fred..
 		for (i=0; i<wing_limit; i++)
-			if (Wings[i].wave_count && !stricmp(Wings[i].name, name))
+			if (Wings[i].wave_count && !SDL_strcasecmp(Wings[i].name, name))
 				return i;
 
 	} else {
 		for (i=0; i<wing_limit; i++)
-			if (Wings[i].current_count && !stricmp(Wings[i].name, name))
+			if (Wings[i].current_count && !SDL_strcasecmp(Wings[i].name, name))
 				return i;
 	}
 
@@ -6133,7 +6133,7 @@ int ship_info_lookup(const char *name)
 	int	i;
 
 	for (i=0; i < Num_ship_types; i++)
-		if (!stricmp(name, Ship_info[i].name))
+		if (!SDL_strcasecmp(name, Ship_info[i].name))
 			return i;
 
 	return -1;
@@ -6147,11 +6147,11 @@ int ship_info_base_lookup(int si_index)
 
 	strcpy( name, Ship_info[si_index].name );
 	p = strchr( name, '#' );
-	Assert( p );						// get allender -- something bogus with ship copy
+	SDL_assert( p );						// get allender -- something bogus with ship copy
 	*p = '\0';
 
 	i = ship_info_lookup( name );
-	Assert( i != -1 );				// get allender -- there had better be a base ship!
+	SDL_assert( i != -1 );				// get allender -- there had better be a base ship!
 
 	return i;
 }
@@ -6169,7 +6169,7 @@ int ship_name_lookup(const char *name, int inc_players)
 	for (i=0; i<MAX_SHIPS; i++){
 		if (Ships[i].objnum >= 0){
 			if (Objects[Ships[i].objnum].type == OBJ_SHIP || (Objects[Ships[i].objnum].type == OBJ_START && inc_players)){
-				if (!stricmp(name, Ships[i].ship_name)){
+				if (!SDL_strcasecmp(name, Ships[i].ship_name)){
 					return i;
 				}
 			}
@@ -6191,7 +6191,7 @@ int ship_type_name_lookup(const char *name)
 
 	// look through the Ship_type_names array
 	for(idx=0; idx<MAX_SHIP_TYPE_COUNTS; idx++){
-		if(!stricmp(name, Ship_type_names[idx])){
+		if(!SDL_strcasecmp(name, Ship_type_names[idx])){
 			return idx;
 		}
 	}
@@ -6217,7 +6217,7 @@ int ship_query_state(char *name)
 	for (i=0; i<MAX_SHIPS; i++){
 		if (Ships[i].objnum >= 0){
 			if ((Objects[Ships[i].objnum].type == OBJ_SHIP) || (Objects[Ships[i].objnum].type == OBJ_START)){
-				if (!stricmp(name, Ships[i].ship_name)){
+				if (!SDL_strcasecmp(name, Ships[i].ship_name)){
 					return 0;
 				}
 			}
@@ -6226,7 +6226,7 @@ int ship_query_state(char *name)
 
 	objp = GET_FIRST(&ship_arrival_list);
 	while (objp != END_OF_LIST(&ship_arrival_list)) {
-		if (!stricmp(name, objp->name)){
+		if (!SDL_strcasecmp(name, objp->name)){
 			return -1;
 		}
 
@@ -6249,10 +6249,10 @@ int get_subsystem_pos(vector *pos, object *objp, ship_subsys *subsysp)
 	vector	pnt;
 	ship		*shipp;
 
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	shipp = &Ships[objp->instance];
 
-	Assert ( subsysp != NULL );
+	SDL_assert ( subsysp != NULL );
 
 	psub = subsysp->system_info;
 	vm_copy_transpose_matrix(&m, &objp->orient);
@@ -6308,7 +6308,7 @@ void ship_model_start(object *objp)
 		case SUBSYSTEM_ACTIVATION:
 			break;
 		case SUBSYSTEM_TURRET:
-			Assert( !(psub->flags & MSS_FLAG_ROTATES) ); // Turrets can't rotate!!! See John!
+			SDL_assert( !(psub->flags & MSS_FLAG_ROTATES) ); // Turrets can't rotate!!! See John!
 			break;
 		default:
 			Error(LOCATION, "Illegal subsystem type.\n");
@@ -6602,8 +6602,8 @@ int ship_get_index_from_subsys(ship_subsys *ssp, int objnum, int error_bypass)
 		ship	*shipp;
 		ship_subsys	*ss;
 
-		Assert(objnum >= 0);
-		Assert(Objects[objnum].instance >= 0);
+		SDL_assert(objnum >= 0);
+		SDL_assert(Objects[objnum].instance >= 0);
 
 		shipp = &Ships[Objects[objnum].instance];
 
@@ -6630,7 +6630,7 @@ int ship_get_subsys_index(ship *sp, char *ss_name, int error_bypass)
 	count = 0;
 	ss = GET_FIRST(&sp->subsys_list);
 	while ( ss != END_OF_LIST( &sp->subsys_list ) ) {
-		if ( !stricmp(ss->system_info->subobj_name, ss_name) )
+		if ( !SDL_strcasecmp(ss->system_info->subobj_name, ss_name) )
 			return count;
 		count++;
 		ss = GET_NEXT( ss );
@@ -6652,7 +6652,7 @@ float ship_get_subsystem_strength( ship *shipp, int type )
 	float strength;
 	ship_subsys *ssp;
 
-	Assert ( (type >= 0) && (type < SUBSYSTEM_MAX) );
+	SDL_assert ( (type >= 0) && (type < SUBSYSTEM_MAX) );
 	if ( shipp->subsys_info[type].total_hits == 0.0f )
 		return 1.0f;
 
@@ -6699,7 +6699,7 @@ void ship_set_subsystem_strength( ship *shipp, int type, float strength )
 	float total_current_hits, diff;
 	ship_subsys *ssp;
 
-	Assert ( (type >= 0) && (type < SUBSYSTEM_MAX) );
+	SDL_assert ( (type >= 0) && (type < SUBSYSTEM_MAX) );
 	if ( shipp->subsys_info[type].total_hits == 0.0f )
 		return;
 
@@ -6816,7 +6816,7 @@ int ship_do_rearm_frame( object *objp, float frametime )
 				repair_delta = repair_allocated;
 			}
 			repair_allocated -= repair_delta;
-			Assert(repair_allocated >= 0.0f);
+			SDL_assert(repair_allocated >= 0.0f);
 
 			// add repair to current strength of single subsystem
 			ssp->current_hits += repair_delta;
@@ -6943,8 +6943,8 @@ object *ship_find_repair_ship( object *requester_obj )
 	object	*nearest_support_ship = NULL;
 	int		support_ships[MAX_SUPPORT_SHIPS_PER_TEAM];
 
-	Assert(requester_obj->type == OBJ_SHIP);
-	Assert((requester_obj->instance >= 0) && (requester_obj->instance < MAX_OBJECTS));
+	SDL_assert(requester_obj->type == OBJ_SHIP);
+	SDL_assert((requester_obj->instance >= 0) && (requester_obj->instance < MAX_OBJECTS));
 
 	// if support ships are not allowed, then no support ship can repair!
 	if ( !is_support_allowed(requester_obj) )
@@ -6960,7 +6960,7 @@ object *ship_find_repair_ship( object *requester_obj )
 			ship_info	*sip;
 			float			dist;
 
-			Assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+			SDL_assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 
 			shipp = &Ships[objp->instance];
 			sip = &Ship_info[shipp->ship_info_index];
@@ -6999,10 +6999,10 @@ object *ship_find_repair_ship( object *requester_obj )
 	if (nearest_support_ship != NULL)
 		return nearest_support_ship;
 	else if (num_support_ships >= MAX_SUPPORT_SHIPS_PER_TEAM) {
-		Assert(&Objects[support_ships[0]] != NULL);
+		SDL_assert(&Objects[support_ships[0]] != NULL);
 		return &Objects[support_ships[0]];
 	} else {
-		Assert(num_support_ships < MAX_SUPPORT_SHIPS_PER_TEAM);
+		SDL_assert(num_support_ships < MAX_SUPPORT_SHIPS_PER_TEAM);
 		return NULL;
 	}
 }
@@ -7090,7 +7090,7 @@ void ship_assign_sound(ship *sp)
 	vector engine_pos;
 	ship_subsys *moveup;
 
-	Assert( sp->objnum >= 0 );
+	SDL_assert( sp->objnum >= 0 );
 	if(sp->objnum < 0){
 		return;
 	}
@@ -7230,14 +7230,14 @@ DCF(set_subsys, "Set the strength of a particular subsystem on player ship" )
 {
 	if ( Dc_command )	{
 		dc_get_arg(ARG_STRING);
-		if ( !stricmp( Dc_arg, "weapons" ))	{
+		if ( !SDL_strcasecmp( Dc_arg, "weapons" ))	{
 			dc_get_arg(ARG_FLOAT);
 			if ( (Dc_arg_float < 0.0f) || (Dc_arg_float > 1.0f) )	{
 				Dc_help = 1;
 			} else {
 				ship_set_subsystem_strength( Player_ship, SUBSYSTEM_WEAPONS, Dc_arg_float );
 			} 
-		} else if ( !stricmp( Dc_arg, "engine" ))	{
+		} else if ( !SDL_strcasecmp( Dc_arg, "engine" ))	{
 			dc_get_arg(ARG_FLOAT);
 			if ( (Dc_arg_float < 0.0f) || (Dc_arg_float > 1.0f) )	{
 				Dc_help = 1;
@@ -7249,28 +7249,28 @@ DCF(set_subsys, "Set the strength of a particular subsystem on player ship" )
 					Player_ship->flags &= (~SF_DISABLED);				// add the disabled flag
 				}
 			} 
-		} else if ( !stricmp( Dc_arg, "sensors" ))	{
+		} else if ( !SDL_strcasecmp( Dc_arg, "sensors" ))	{
 			dc_get_arg(ARG_FLOAT);
 			if ( (Dc_arg_float < 0.0f) || (Dc_arg_float > 1.0f) )	{
 				Dc_help = 1;
 			} else {
 				ship_set_subsystem_strength( Player_ship, SUBSYSTEM_SENSORS, Dc_arg_float );
 			} 
-		} else if ( !stricmp( Dc_arg, "communication" ))	{
+		} else if ( !SDL_strcasecmp( Dc_arg, "communication" ))	{
 			dc_get_arg(ARG_FLOAT);
 			if ( (Dc_arg_float < 0.0f) || (Dc_arg_float > 1.0f) )	{
 				Dc_help = 1;
 			} else {
 				ship_set_subsystem_strength( Player_ship, SUBSYSTEM_COMMUNICATION, Dc_arg_float );
 			} 
-		} else if ( !stricmp( Dc_arg, "navigation" ))	{
+		} else if ( !SDL_strcasecmp( Dc_arg, "navigation" ))	{
 			dc_get_arg(ARG_FLOAT);
 			if ( (Dc_arg_float < 0.0f) || (Dc_arg_float > 1.0f) )	{
 				Dc_help = 1;
 			} else {
 				ship_set_subsystem_strength( Player_ship, SUBSYSTEM_NAVIGATION, Dc_arg_float );
 			} 
-		} else if ( !stricmp( Dc_arg, "radar" ))	{
+		} else if ( !SDL_strcasecmp( Dc_arg, "radar" ))	{
 			dc_get_arg(ARG_FLOAT);
 			if ( (Dc_arg_float < 0.0f) || (Dc_arg_float > 1.0f) )	{
 				Dc_help = 1;
@@ -7458,8 +7458,8 @@ int ship_docking_valid(int docker, int dockee)
 {
 	int docker_type, dockee_type;
 
-	Assert(docker >= 0 && docker < MAX_SHIPS);
-	Assert(dockee >= 0 && dockee < MAX_SHIPS);
+	SDL_assert(docker >= 0 && docker < MAX_SHIPS);
+	SDL_assert(dockee >= 0 && dockee < MAX_SHIPS);
 	docker_type = ship_query_general_type(docker);
 	dockee_type = ship_query_general_type(dockee);
 
@@ -7521,7 +7521,7 @@ int ship_get_random_player_wing_ship( int flags, float max_dist, int persona_ind
 
 		// multi-team?
 		if(multi_team >= 0){
-			if(!stricmp(Wings[i].name, multi_team == 0 ? "alpha" : "zeta")){
+			if(!SDL_strcasecmp(Wings[i].name, multi_team == 0 ? "alpha" : "zeta")){
 				wingnum = i;
 			} else {
 				continue;
@@ -7537,7 +7537,7 @@ int ship_get_random_player_wing_ship( int flags, float max_dist, int persona_ind
 
 			// if not found, the delta and epsilon count too
 			if ( wingnum == -1 ) {
-				if ( !stricmp(Wings[i].name, NOX("delta")) || !stricmp(Wings[i].name, NOX("epsilon")) ) {
+				if ( !SDL_strcasecmp(Wings[i].name, NOX("delta")) || !SDL_strcasecmp(Wings[i].name, NOX("epsilon")) ) {
 					wingnum = i;
 				}
 			}
@@ -7549,7 +7549,7 @@ int ship_get_random_player_wing_ship( int flags, float max_dist, int persona_ind
 
 		for ( j = 0; j < Wings[wingnum].current_count; j++ ) {
 			ship_index = Wings[wingnum].ship_index[j];
-			Assert( ship_index != -1 );
+			SDL_assert( ship_index != -1 );
 
 			if ( Ships[ship_index].flags & SF_DYING ) {
 				continue;
@@ -7601,7 +7601,7 @@ int ship_get_random_player_wing_ship( int flags, float max_dist, int persona_ind
 	which_one = (rand() % count);
 	ship_index = slist[which_one];
 
-	Assert ( Ships[ship_index].objnum != -1 );
+	SDL_assert ( Ships[ship_index].objnum != -1 );
 
 	return ship_index;
 }
@@ -7615,7 +7615,7 @@ int ship_get_random_ship_in_wing(int wingnum, int flags, float max_dist, int get
 	count = 0;
 	for ( i = 0; i < Wings[wingnum].current_count; i++ ) {
 		ship_index = Wings[wingnum].ship_index[i];
-		Assert( ship_index != -1 );
+		SDL_assert( ship_index != -1 );
 
 		if ( Ships[ship_index].flags & SF_DYING ) {
 			continue;
@@ -7651,7 +7651,7 @@ int ship_get_random_ship_in_wing(int wingnum, int flags, float max_dist, int get
 	which_one = (rand() % count);
 	ship_index = slist[which_one];
 
-	Assert ( Ships[ship_index].objnum != -1 );
+	SDL_assert ( Ships[ship_index].objnum != -1 );
 
 	return ship_index;
 }
@@ -7709,7 +7709,7 @@ int ship_get_random_team_ship( int team, int flags, float max_dist )
 	which_one = (rand() % num);
 	objp = obj_list[which_one];
 
-	Assert ( objp->instance != -1 );
+	SDL_assert ( objp->instance != -1 );
 
 	return objp->instance;
 }
@@ -7725,13 +7725,13 @@ int ship_secondary_bank_has_ammo(int shipnum)
 {
 	ship_weapon	*swp;
 
-	Assert(shipnum >= 0 && shipnum < MAX_SHIPS);
+	SDL_assert(shipnum >= 0 && shipnum < MAX_SHIPS);
 	swp = &Ships[shipnum].weapons;
 	
 	if ( swp->current_secondary_bank == -1 )
 		return 0;
 
-	Assert(swp->current_secondary_bank >= 0 && swp->current_secondary_bank < MAX_SECONDARY_BANKS );
+	SDL_assert(swp->current_secondary_bank >= 0 && swp->current_secondary_bank < MAX_SECONDARY_BANKS );
 	if ( swp->secondary_bank_ammo[swp->current_secondary_bank] <= 0 )
 		return 0;
 
@@ -7868,7 +7868,7 @@ ship_subsys *ship_return_next_subsys(ship *shipp, int type, vector *attacker_pos
 {
 	ship_subsys	*ssp;
 
-	Assert ( type >= 0 && type < SUBSYSTEM_MAX );
+	SDL_assert ( type >= 0 && type < SUBSYSTEM_MAX );
 
 	// If aggregate total is 0, that means no subsystem is alive of that type
 	if ( shipp->subsys_info[type].total_hits <= 0.0f )
@@ -7923,7 +7923,7 @@ float ship_quadrant_shield_strength(object *hit_objp, vector *hitpos)
 		return 0.0f;
 	}
 
-	Assert(hit_objp->shields[quadrant_num] <= max_quadrant);
+	SDL_assert(hit_objp->shields[quadrant_num] <= max_quadrant);
 
 	return hit_objp->shields[quadrant_num]/max_quadrant;
 }
@@ -7956,18 +7956,18 @@ int ship_has_homing_missile_locked(ship *shipp)
 	weapon_info	*wip;
 	missile_obj	*mo;
 
-	Assert(shipp->objnum >= 0 && shipp->objnum < MAX_OBJECTS);
+	SDL_assert(shipp->objnum >= 0 && shipp->objnum < MAX_OBJECTS);
 	locked_objp = &Objects[shipp->objnum];
 
 	// check for currently locked missiles (highest precedence)
 	for ( mo = GET_NEXT(&Missile_obj_list); mo != END_OF_LIST(&Missile_obj_list); mo = GET_NEXT(mo) ) {
-		Assert(mo->objnum >= 0 && mo->objnum < MAX_OBJECTS);
+		SDL_assert(mo->objnum >= 0 && mo->objnum < MAX_OBJECTS);
 		A = &Objects[mo->objnum];
 
 		if (A->type != OBJ_WEAPON)
 			continue;
 
-		Assert((A->instance >= 0) && (A->instance < MAX_WEAPONS));
+		SDL_assert((A->instance >= 0) && (A->instance < MAX_WEAPONS));
 		wp = &Weapons[A->instance];
 		wip = &Weapon_info[wp->weapon_info_index];
 
@@ -8064,7 +8064,7 @@ char *ship_return_orders(char *outbuf, ship *sp)
 	ai_goal	*aigp;
 	const char	*order_text;
 	
-	Assert(sp->ai_index >= 0);
+	SDL_assert(sp->ai_index >= 0);
 	aip = &Ai_info[sp->ai_index];
 
 	// The active goal is always in the first element of aip->goals[]
@@ -8510,7 +8510,7 @@ void ship_maybe_ask_for_help(ship *sp)
 		return;
 	}
 
-	Assert(sp->team & TEAM_FRIENDLY );
+	SDL_assert(sp->team & TEAM_FRIENDLY );
 	objp = &Objects[sp->objnum];
 
 	if ( objp->flags & OF_PLAYER_SHIP )	{// don't let the player ask for help!
@@ -8553,7 +8553,7 @@ void ship_maybe_ask_for_help(ship *sp)
 
 play_ask_help:
 
-	Assert(Ship_info[sp->ship_info_index].flags & (SIF_FIGHTER|SIF_BOMBER) );	// get Alan
+	SDL_assert(Ship_info[sp->ship_info_index].flags & (SIF_FIGHTER|SIF_BOMBER) );	// get Alan
 	message_send_builtin_to_player(MESSAGE_HELP, sp, MESSAGE_PRIORITY_HIGH, MESSAGE_TIME_IMMEDIATE, 0, 0, -1, multi_team_filter);
 	Player->allow_ask_help_timestamp = timestamp(PLAYER_ASK_HELP_INTERVAL);
 
@@ -8710,7 +8710,7 @@ void ship_primary_changed(ship *sp)
 	if ( !(Game_mode & GM_MULTIPLAYER) )
 		return;
 
-	Assert(sp);
+	SDL_assert(sp);
 	swp = &sp->weapons;
 
 	
@@ -8732,7 +8732,7 @@ void ship_secondary_changed(ship *sp)
 		return;
 	}
 
-	Assert(sp);
+	SDL_assert(sp);
 	swp = &sp->weapons;
 
 	if ( MULTIPLAYER_MASTER )
@@ -8786,7 +8786,7 @@ void ship_do_cargo_revealed( ship *shipp, int from_network )
 	shipp->time_cargo_revealed = Missiontime;	
 
 	// if the cargo is something other than "nothing", then make a log entry
-	if ( stricmp(Cargo_names[shipp->cargo1 & CARGO_INDEX_MASK], NOX("nothing")) ){
+	if ( SDL_strcasecmp(Cargo_names[shipp->cargo1 & CARGO_INDEX_MASK], NOX("nothing")) ){
 		mission_log_add_entry(LOG_CARGO_REVEALED, shipp->ship_name, NULL, (shipp->cargo1 & CARGO_INDEX_MASK) );
 	}	
 }
@@ -8809,7 +8809,7 @@ void ship_do_cap_subsys_cargo_revealed( ship *shipp, ship_subsys *subsys, int fr
 	subsys->subsys_cargo_revealed = 1;
 
 	// if the cargo is something other than "nothing", then make a log entry
-	if ( (subsys->subsys_cargo_name > 0) && stricmp(Cargo_names[subsys->subsys_cargo_name], NOX("nothing")) ){
+	if ( (subsys->subsys_cargo_name > 0) && SDL_strcasecmp(Cargo_names[subsys->subsys_cargo_name], NOX("nothing")) ){
 		mission_log_add_entry(LOG_CAP_SUBSYS_CARGO_REVEALED, shipp->ship_name, subsys->system_info->name, subsys->subsys_cargo_name );
 	}	
 }
@@ -8916,7 +8916,7 @@ void ship_page_in()
 			int model_previously_loaded = -1;
 			int ship_previously_loaded = -1;
 			for (j=0; j<MAX_SHIP_TYPES; j++ )	{
-				if ( (Ship_info[j].modelnum > -1) && !stricmp(si->pof_file, Ship_info[j].pof_file) )	{
+				if ( (Ship_info[j].modelnum > -1) && !SDL_strcasecmp(si->pof_file, Ship_info[j].pof_file) )	{
 					// Model already loaded
 					model_previously_loaded = Ship_info[j].modelnum;
 					ship_previously_loaded = j;
@@ -8941,18 +8941,18 @@ void ship_page_in()
 
 					#ifndef NDEBUG
 						for ( j = 0; j < si->n_subsystems; j++ )	{
-							Assert( si->subsystems[j].model_num == si->modelnum );
+							SDL_assert( si->subsystems[j].model_num == si->modelnum );
 						}
 					#endif
 
 				} else {
 					// Just to be safe (I mean to check that my code works...)
-					Assert( si->modelnum > -1 );
-					Assert( si->modelnum == model_previously_loaded );
+					SDL_assert( si->modelnum > -1 );
+					SDL_assert( si->modelnum == model_previously_loaded );
 
 					#ifndef NDEBUG
 						for ( j = 0; j < si->n_subsystems; j++ )	{
-							Assert( si->subsystems[j].model_num == si->modelnum );
+							SDL_assert( si->subsystems[j].model_num == si->modelnum );
 						}
 					#endif
 				}
@@ -8960,12 +8960,12 @@ void ship_page_in()
 				// Model not loaded... so load it and page in its textures
 				si->modelnum = model_load(si->pof_file, si->n_subsystems, &si->subsystems[0]);
 
-				Assert( si->modelnum > -1 );
+				SDL_assert( si->modelnum > -1 );
 
 				// Verify that all the subsystem model numbers are updated
 				#ifndef NDEBUG
 					for ( j = 0; j < si->n_subsystems; j++ )	{
-						Assert( si->subsystems[j].model_num == si->modelnum );	// JAS
+						SDL_assert( si->subsystems[j].model_num == si->modelnum );	// JAS
 					}
 				#endif
 
@@ -9008,7 +9008,7 @@ void ship_page_in()
 	// JAS: If you hit this, then MAX_SHIP_SUBOBJECTS is set too low.
 	// I added this code in to detect an error that wasn't getting detected any other
 	// way.
-	Assert(num_subsystems_needed < MAX_SHIP_SUBOBJECTS );	
+	SDL_assert(num_subsystems_needed < MAX_SHIP_SUBOBJECTS );	
 
 	// Page in the thruster effects
 	//
@@ -9158,7 +9158,7 @@ void ship_jettison_cargo(ship *shipp)
 
 float ship_get_exp_damage(object* objp)
 {
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	float damage; 
 
 	ship *shipp = &Ships[objp->instance];
@@ -9180,7 +9180,7 @@ int ship_get_exp_propagates(ship *sp)
 float ship_get_exp_outer_rad(object *ship_objp)
 {
 	float outer_rad;
-	Assert(ship_objp->type == OBJ_SHIP);
+	SDL_assert(ship_objp->type == OBJ_SHIP);
 
 	if (Ships[ship_objp->instance].special_exp_index == -1) {
 		outer_rad = Ship_info[Ships[ship_objp->instance].ship_info_index].outer_rad;
@@ -9253,20 +9253,20 @@ int wing_has_conflicting_teams(int wing_index)
 	int first_team, idx;
 
 	// sanity checks
-	Assert((wing_index >= 0) && (wing_index < num_wings) && (Wings[wing_index].current_count > 0));
+	SDL_assert((wing_index >= 0) && (wing_index < num_wings) && (Wings[wing_index].current_count > 0));
 	if((wing_index < 0) || (wing_index >= num_wings) || (Wings[wing_index].current_count <= 0)){
 		return -1;
 	}
 
 	// check teams
-	Assert(Wings[wing_index].ship_index[0] >= 0);
+	SDL_assert(Wings[wing_index].ship_index[0] >= 0);
 	if(Wings[wing_index].ship_index[0] < 0){
 		return -1;
 	}
 	first_team = Ships[Wings[wing_index].ship_index[0]].team;
 	for(idx=1; idx<Wings[wing_index].current_count; idx++){
 		// more sanity checks
-		Assert(Wings[wing_index].ship_index[idx] >= 0);
+		SDL_assert(Wings[wing_index].ship_index[idx] >= 0);
 		if(Wings[wing_index].ship_index[idx] < 0){
 			return -1;
 		}
@@ -9288,7 +9288,7 @@ int ship_get_reinforcement_team(int r_index)
 	p_object *objp;
 
 	// sanity checks
-	Assert((r_index >= 0) && (r_index < Num_reinforcements));
+	SDL_assert((r_index >= 0) && (r_index < Num_reinforcements));
 	if((r_index < 0) || (r_index >= Num_reinforcements)){
 		return -1;
 	}
@@ -9383,15 +9383,15 @@ void ship_update_artillery_lock()
 		}
 
 		// get weapon info for the targeting laser he's firing
-		Assert((shipp->weapons.current_primary_bank >= 0) && (shipp->weapons.current_primary_bank < 2));
+		SDL_assert((shipp->weapons.current_primary_bank >= 0) && (shipp->weapons.current_primary_bank < 2));
 		if((shipp->weapons.current_primary_bank < 0) || (shipp->weapons.current_primary_bank >= 2)){
 			continue;
 		}
-		Assert(shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank] >= 0);
+		SDL_assert(shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank] >= 0);
 		if(shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank] < 0){
 			continue;
 		}
-		Assert((Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].wi_flags & WIF_BEAM) && (Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].b_info.beam_type == BEAM_TYPE_C));
+		SDL_assert((Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].wi_flags & WIF_BEAM) && (Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].b_info.beam_type == BEAM_TYPE_C));
 		if(!(Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].wi_flags & WIF_BEAM) || (Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].b_info.beam_type != BEAM_TYPE_C)){
 			continue;
 		}
@@ -9451,7 +9451,7 @@ void ship_update_artillery_lock()
 // may not work if delta box is large and negative (ie, adjusted box crosses over on itself - min > max)
 int check_world_pt_in_expanded_ship_bbox(vector *world_pt, object *objp, float delta_box)
 {
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 
 	vector temp, ship_pt;
 	polymodel *pm;
@@ -9504,7 +9504,7 @@ float ship_get_max_speed(ship *shipp)
 // determin warp speed of ship
 float ship_get_warp_speed(object *objp)
 {
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	float shipfx_calculate_warp_speed(object *);
 	return shipfx_calculate_warp_speed(objp);
 }
@@ -9512,7 +9512,7 @@ float ship_get_warp_speed(object *objp)
 // returns true if ship is beginning to speed up in warpout 
 int ship_is_beginning_warpout_speedup(object *objp)
 {
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 
 	ai_info *aip;
 

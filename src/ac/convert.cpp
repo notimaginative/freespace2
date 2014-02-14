@@ -201,7 +201,7 @@ int AVI_stream_open(char* filename)
 	PAVISTREAM		pstream;
 	AVISTREAMINFO	avi_stream_info;
 
-	Assert( !(AVI_stream.flags & AVI_STREAM_F_USED) );
+	SDL_assert( !(AVI_stream.flags & AVI_STREAM_F_USED) );
 
 	// Open the AVI file
 	hr = AVIFileOpen(&pfile, filename, OF_SHARE_DENY_WRITE, 0); 
@@ -234,14 +234,14 @@ int AVI_stream_open(char* filename)
 	int buffer_size;
 	
 	int start_sample = AVIStreamStart(pstream);
-	Assert( start_sample == 0 );
+	SDL_assert( start_sample == 0 );
 
 	int end_sample = AVIStreamEnd(pstream);
-	Assert( end_sample >= start_sample );
+	SDL_assert( end_sample >= start_sample );
 
 	// store the number of frames in the AVI_info[] structure
 	AVI_stream.num_frames = end_sample;		// start sample must be 0
-	Assert(AVI_stream.num_frames == AVIStreamLength(pstream) );
+	SDL_assert(AVI_stream.num_frames == AVIStreamLength(pstream) );
 
 
 	// Get information on the stream
@@ -252,7 +252,7 @@ int AVI_stream_open(char* filename)
 	} 
 
 	buffer_size = avi_stream_info.dwSuggestedBufferSize;
-	Assert( buffer_size > 0 );
+	SDL_assert( buffer_size > 0 );
 	AVI_stream.min_compressed_buffer_size = buffer_size;
 
 	// determine the format of the AVI image data
@@ -261,10 +261,10 @@ int AVI_stream_open(char* filename)
 	BITMAPINFO* bitmap_info;
 
 	hr = AVIStreamFormatSize(pstream, 0, &format_buffer_size);
-	Assert( format_buffer_size > 0 );
+	SDL_assert( format_buffer_size > 0 );
 
 	format_buffer = (ubyte*) malloc(format_buffer_size);
-	Assert(format_buffer != NULL);	// format_buffer is free'ed when AVI is free'ed, since memory is used by b_info member in AVI_info[] structure
+	SDL_assert(format_buffer != NULL);	// format_buffer is free'ed when AVI is free'ed, since memory is used by b_info member in AVI_info[] structure
 
 	hr = AVIStreamReadFormat(pstream, 0, format_buffer, &format_buffer_size);
 	bitmap_info = (BITMAPINFO*)format_buffer;
@@ -275,7 +275,7 @@ int AVI_stream_open(char* filename)
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 			break;
 	}
 
@@ -332,7 +332,7 @@ int AVI_stream_open(char* filename)
 //
 void AVI_stream_close()
 {	
-//	Assert( AVI_stream.flags & AVI_STREAM_F_USED);
+//	SDL_assert( AVI_stream.flags & AVI_STREAM_F_USED);
 
    AVIStreamRelease(AVI_stream.pstream);				// closes the video stream
 	AVIFileRelease(AVI_stream.pfile);					// closes the file 
@@ -361,16 +361,16 @@ int AVI_stream_get_frame(ubyte* buffer, int frame_number)
 		return -1;
 	}
 
-	Assert( (frame_number - 1) >= 0 );
+	SDL_assert( (frame_number - 1) >= 0 );
 
 	ubyte* compressed_frame = (ubyte*)malloc(AVI_stream.min_compressed_buffer_size);
-	Assert( compressed_frame != NULL );
+	SDL_assert( compressed_frame != NULL );
 
 	long num_bytes_used;
 	long num_samples_used;
 
 	AVIStreamRead( AVI_stream.pstream, frame_number-1, 1, compressed_frame, AVI_stream.min_compressed_buffer_size, &num_bytes_used, &num_samples_used);
-	Assert(num_samples_used == 1);
+	SDL_assert(num_samples_used == 1);
 		
 	AVI_decompress_RLE8(compressed_frame, buffer, AVI_stream.w, AVI_stream.h);
 
@@ -393,10 +393,10 @@ void AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h)
 	int dest_index = 0;
 	int i;
 
-	Assert( src != NULL);
-	Assert( dest != NULL);
-	Assert( w > 0 );
-	Assert( h > 0 );
+	SDL_assert( src != NULL);
+	SDL_assert( dest != NULL);
+	SDL_assert( w > 0 );
+	SDL_assert( h > 0 );
 
 	ubyte count;
 	ubyte run;
@@ -427,7 +427,7 @@ void AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h)
 				//nprintf(("AVI","AVI ==> Reached end of line in compressed image\n"));
 			}
 			else if ( control_code == 2 ) {
-				Assert(0);
+				SDL_assert(0);
 			}
 			else {
 				// in absolute mode
@@ -459,7 +459,7 @@ int save_anim_header()
 {
 	int i, new_format_id = 0;
 
-	Assert(anim_fp);
+	SDL_assert(anim_fp);
 	fclose(anim_fp);
 	anim_fp = fopen(anim_save_filename, "r+b");
 
@@ -542,7 +542,7 @@ int allocate_key_frames(int total_frames)
 
 int anim_save_init(char *file, int width, int height, int frames)
 {
-	Assert(file);
+	SDL_assert(file);
 	anim_save_filename = file;
 	anim_fp = fopen(file, "wb");
 	if (!anim_fp)
@@ -588,9 +588,9 @@ int anim_save_frame()
 	int i, size;
 	key_frame *keyp = NULL;
 
-	Assert(anim_fp);
+	SDL_assert(anim_fp);
 	cur_frame_num++;
-	Assert(cur_frame_num <= Anim.total_frames);
+	SDL_assert(cur_frame_num <= Anim.total_frames);
 
 	for (i=0; i<Anim.num_keys; i++)
 		if (Anim.keys[i].frame_num == cur_frame_num) {
@@ -643,10 +643,10 @@ int convert_avi_to_anim(char* filename)
 	}
 	avi_stream_opened = 1;
 	
-	Assert(AVI_stream.bpp == 8);
+	SDL_assert(AVI_stream.bpp == 8);
 	cur_frame = (ubyte*) malloc(AVI_stream.w * AVI_stream.h);
 	last_frame = (ubyte*) malloc(AVI_stream.w * AVI_stream.h);
-	Assert(cur_frame && last_frame);
+	SDL_assert(cur_frame && last_frame);
 
 	strcpy(ani_filename, AVI_stream.filename);
 	strcpy(ani_filename + strlen(ani_filename) - 3, "ani");
@@ -711,7 +711,7 @@ int convert_frames_to_anim(char *filename)
 	int rc;
 	FILE *fp;
 
-	Assert(strlen(filename) < 254);
+	SDL_assert(strlen(filename) < 254);
 	strcpy(name, filename);
 	strcpy(ani_filename, filename);
 	strcpy(ani_filename + strlen(ani_filename) - 8, ".ani");

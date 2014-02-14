@@ -199,8 +199,8 @@ int collide_debris_ship( obj_pair * pair )
 			return 0;
 	}
 
-	Assert( pdebris->type == OBJ_DEBRIS );
-	Assert( pship->type == OBJ_SHIP );
+	SDL_assert( pdebris->type == OBJ_DEBRIS );
+	SDL_assert( pship->type == OBJ_SHIP );
 
 /*	Debris_ship_count++;
 	if (Debris_ship_count % 100 == 0)
@@ -335,8 +335,8 @@ int collide_asteroid_ship( obj_pair * pair )
 	if (pasteroid->hull_strength < 0.0f)
 		return 0;
 
-	Assert( pasteroid->type == OBJ_ASTEROID );
-	Assert( pship->type == OBJ_SHIP );
+	SDL_assert( pasteroid->type == OBJ_ASTEROID );
+	SDL_assert( pship->type == OBJ_SHIP );
 
 	dist = vm_vec_dist( &pasteroid->pos, &pship->pos );
 

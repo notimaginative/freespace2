@@ -326,8 +326,8 @@ void cmeasure_render(object * objp)
 		break;
 	}
 
-	Assert(framenum != -1);
-	Assert(size != -1.0f);
+	SDL_assert(framenum != -1);
+	SDL_assert(size != -1.0f);
 
 	gr_set_bitmap(fd->bitmap_id + framenum);
 	g3_rotate_vertex(&p, &objp->pos );
@@ -341,11 +341,11 @@ void cmeasure_delete( object * objp )
 
 	num = objp->instance;
 
-//	Assert( Cmeasures[num].objnum == OBJ_INDEX(objp));
+//	SDL_assert( Cmeasures[num].objnum == OBJ_INDEX(objp));
 
 	Cmeasures[num].subtype = CMEASURE_UNUSED;
 	Num_cmeasures--;
-	Assert( Num_cmeasures >= 0 );
+	SDL_assert( Num_cmeasures >= 0 );
 }
 
 // broke cmeasure_move into two functions -- process_pre and process_post (as was done with
@@ -360,7 +360,7 @@ void cmeasure_process_post(object * objp, float frame_time)
 	int num;
 	num = objp->instance;
 	
-//	Assert( Cmeasures[num].objnum == objnum );
+//	SDL_assert( Cmeasures[num].objnum == objnum );
 	cmeasure *cmp = &Cmeasures[num];
 
 	if ( cmp->lifeleft >= 0.0f) {
@@ -395,8 +395,8 @@ int cmeasure_create( object * source_obj, vector * pos, int cm_type, int rand_va
 
 	parent_objnum = OBJ_INDEX(source_obj);
 
-	Assert( source_obj->type == OBJ_SHIP );	
-	Assert( source_obj->instance >= 0 && source_obj->instance < MAX_SHIPS );	
+	SDL_assert( source_obj->type == OBJ_SHIP );	
+	SDL_assert( source_obj->instance >= 0 && source_obj->instance < MAX_SHIPS );	
 	
 	shipp = &Ships[source_obj->instance];
 
@@ -419,7 +419,7 @@ int cmeasure_create( object * source_obj, vector * pos, int cm_type, int rand_va
 
 	objnum = obj_create( OBJ_CMEASURE, parent_objnum, n, &source_obj->orient, pos, 1.0f, OF_RENDERS | OF_PHYSICS );
 	
-	Assert( objnum >= 0 && objnum < MAX_OBJECTS );
+	SDL_assert( objnum >= 0 && objnum < MAX_OBJECTS );
 
 	// Create Debris piece n!
 	if ( rand_val == -1 )
@@ -479,7 +479,7 @@ void cmeasure_select_next(object *objp)
 {
 	ship	*shipp;
 
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 
 	shipp = &Ships[objp->instance];
 	shipp->current_cmeasure++;

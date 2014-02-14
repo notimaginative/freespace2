@@ -89,7 +89,7 @@
  * account for some new foreign chars
  * 
  * 94    6/12/98 7:37p Hoffoss
- * Made ß translate to ss, since we don't have this character in our font.
+ * Made ï¿½ translate to ss, since we don't have this character in our font.
  * 
  * 93    6/12/98 4:52p Hoffoss
  * Added support for special characters in in forgeign languages.
@@ -277,7 +277,7 @@ int get_line_num()
 	while (p < stoploc)
 	{
 		if (*p == EOF_CHAR)
-			Assert(0);
+			SDL_assert(0);
 
 		if ( !incomment && (*p == COMMENT_CHAR) )
 			incomment = 1;
@@ -333,7 +333,7 @@ void error_display(int error_level, const char *format, ...)
 	va_start(args, format);
 	vsprintf(buffer, format, args);
 	va_end(args);
-	Assert(strlen(buffer) < 1024);
+	SDL_assert(strlen(buffer) < 1024);
 
 	nprintf((error_text, "%s", buffer));
 	Warning(LOCATION, "%s(%i):\n%s: %s", Current_filename, get_line_num(), error_text, buffer);
@@ -344,7 +344,7 @@ void advance_to_eoln(const char *more_terminators)
 {
 	char	terminators[128];
 
-	Assert((more_terminators == NULL) || (strlen(more_terminators) < 125));
+	SDL_assert((more_terminators == NULL) || (strlen(more_terminators) < 125));
 
 	terminators[0] = EOLN;
 	terminators[1] = (char)EOF_CHAR;
@@ -384,11 +384,11 @@ int skip_to_string(const char *pstr, const char *end)
 	if (end)
 		len2 = strlen(end);
 
-	while ((*Mp != EOF_CHAR) && strnicmp(pstr, Mp, len)) {
+	while ((*Mp != EOF_CHAR) && SDL_strncasecmp(pstr, Mp, len)) {
 		if (end && *Mp == '#')
 			return 0;
 
-		if (end && !strnicmp(pstr, Mp, len2))
+		if (end && !SDL_strncasecmp(pstr, Mp, len2))
 			return -1;
 
 		advance_to_eoln(NULL);
@@ -411,7 +411,7 @@ int skip_to_start_of_strings(const char *pstr1, const char *pstr2)
 	len1 = strlen(pstr1);
 	len2 = strlen(pstr2);
 
-	while ( (*Mp != EOF_CHAR) && strnicmp(pstr1, Mp, len1) && strnicmp(pstr2, Mp, len2) ) {
+	while ( (*Mp != EOF_CHAR) && SDL_strncasecmp(pstr1, Mp, len1) && SDL_strncasecmp(pstr2, Mp, len2) ) {
 		advance_to_eoln(NULL);
 		ignore_white_space();
 	}
@@ -434,7 +434,7 @@ int required_string(const char *pstr)
 
 	ignore_white_space();
 
-	while (strnicmp(pstr, Mp, strlen(pstr)) && (count < RS_MAX_TRIES)) {
+	while (SDL_strncasecmp(pstr, Mp, strlen(pstr)) && (count < RS_MAX_TRIES)) {
 		error_display(1, "Required token = [%s], found [%.32s].\n", pstr, next_tokens());
 		advance_to_eoln(NULL);
 		ignore_white_space();
@@ -459,7 +459,7 @@ int check_for_string(const char *pstr)
 {
 	ignore_white_space();
 
-	if (!strnicmp(pstr, Mp, strlen(pstr)))
+	if (!SDL_strncasecmp(pstr, Mp, strlen(pstr)))
 		return 1;
 
 	return 0;
@@ -468,7 +468,7 @@ int check_for_string(const char *pstr)
 // like check for string, but doesn't skip past any whitespace
 int check_for_string_raw(const char *pstr)
 {
-	if (!strnicmp(pstr, Mp, strlen(pstr))){
+	if (!SDL_strncasecmp(pstr, Mp, strlen(pstr))){
 		return 1;
 	}
 
@@ -482,7 +482,7 @@ int optional_string(const char *pstr)
 {
 	ignore_white_space();
 
-	if (!strnicmp(pstr, Mp, strlen(pstr))) {
+	if (!SDL_strncasecmp(pstr, Mp, strlen(pstr))) {
 		Mp += strlen(pstr);
 		return 1;
 	}
@@ -499,8 +499,8 @@ int required_string_fred(const char *pstr, const char *end)
 		return 0;
 
 	ignore_white_space();
-	while (*Mp != EOF_CHAR && strnicmp(pstr, Mp, strlen(pstr))) {
-		if ((*Mp == '#') || (end && !strnicmp(end, Mp, strlen(end)))) {
+	while (*Mp != EOF_CHAR && SDL_strncasecmp(pstr, Mp, strlen(pstr))) {
+		if ((*Mp == '#') || (end && !SDL_strncasecmp(end, Mp, strlen(end)))) {
 			Mp = NULL;
 			break;
 		}
@@ -536,9 +536,9 @@ int optional_string_fred(const char *pstr, const char *end, const char *end2)
 		return 0;
 
 	ignore_white_space();
-	while ((*Mp != EOF_CHAR) && strnicmp(pstr, Mp, strlen(pstr))) {
-		if ((*Mp == '#') || (end && !strnicmp(end, Mp, strlen(end))) ||
-			(end2 && !strnicmp(end2, Mp, strlen(end2)))) {
+	while ((*Mp != EOF_CHAR) && SDL_strncasecmp(pstr, Mp, strlen(pstr))) {
+		if ((*Mp == '#') || (end && !SDL_strncasecmp(end, Mp, strlen(end))) ||
+			(end2 && !SDL_strncasecmp(end2, Mp, strlen(end2)))) {
 			Mp = NULL;
 			break;
 		}
@@ -570,11 +570,11 @@ int required_string_either(const char *str1, const char *str2)
 	ignore_white_space();
 
 	while (count < RS_MAX_TRIES) {
-		if (strnicmp(str1, Mp, strlen(str1)) == 0) {
+		if (SDL_strncasecmp(str1, Mp, strlen(str1)) == 0) {
 			// Mp += strlen(str1);
 			diag_printf("Found required string [%s]\n", token_found = str1);
 			return 0;
-		} else if (strnicmp(str2, Mp, strlen(str2)) == 0) {
+		} else if (SDL_strncasecmp(str2, Mp, strlen(str2)) == 0) {
 			// Mp += strlen(str2);
 			diag_printf("Found required string [%s]\n", token_found = str2);
 			return 1;
@@ -607,15 +607,15 @@ int required_string_3(const char *str1, const char *str2, const char *str3)
 	ignore_white_space();
 
 	while (count < RS_MAX_TRIES) {
-		if (strnicmp(str1, Mp, strlen(str1)) == 0) {
+		if (SDL_strncasecmp(str1, Mp, strlen(str1)) == 0) {
 			// Mp += strlen(str1);
 			diag_printf("Found required string [%s]\n", token_found = str1);
 			return 0;
-		} else if (strnicmp(str2, Mp, strlen(str2)) == 0) {
+		} else if (SDL_strncasecmp(str2, Mp, strlen(str2)) == 0) {
 			// Mp += strlen(str2);
 			diag_printf("Found required string [%s]\n", token_found = str2);
 			return 1;
-		} else if (strnicmp(str3, Mp, strlen(str3)) == 0) {
+		} else if (SDL_strncasecmp(str3, Mp, strlen(str3)) == 0) {
 			diag_printf("Found required string [%s]\n", token_found = str3);
 			return 2;
 		}
@@ -636,12 +636,12 @@ int required_string_either_fred(const char *str1, const char *str2)
 	ignore_white_space();
 
 	while (*Mp != EOF_CHAR) {
-		if (!strnicmp(str1, Mp, strlen(str1))) {
+		if (!SDL_strncasecmp(str1, Mp, strlen(str1))) {
 			// Mp += strlen(str1);
 			diag_printf("Found required string [%s]\n", token_found = str1);
 			return fred_parse_flag = 0;
 		
-		} else if (!strnicmp(str2, Mp, strlen(str2))) {
+		} else if (!SDL_strncasecmp(str2, Mp, strlen(str2))) {
 			// Mp += strlen(str2);
 			diag_printf("Found required string [%s]\n", token_found = str2);
 			return fred_parse_flag = 1;
@@ -666,7 +666,7 @@ void copy_to_eoln(char *outstr, const char *more_terminators, const char *instr,
 	char	ch;
 	char	terminators[128];
 
-	Assert((more_terminators == NULL) || (strlen(more_terminators) < 125));
+	SDL_assert((more_terminators == NULL) || (strlen(more_terminators) < 125));
 
 	terminators[0] = EOLN;
 	terminators[1] = (char)EOF_CHAR;
@@ -831,7 +831,7 @@ void stuff_string(char *pstr, int type, const char *terminators, int len)
 			break;		
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 	}
 
 	// now we want to do any final localization
@@ -888,7 +888,7 @@ char *stuff_and_malloc_string( int type, const char *terminators, int len)
 	drop_white_space(tmp_result);
 
 	l = strlen(tmp_result);
-	Assert(l < MAX_TMP_STRING_LENGTH);		// Get John!!
+	SDL_assert(l < MAX_TMP_STRING_LENGTH);		// Get John!!
 	if (l < 1)
 		return NULL;
 
@@ -1175,7 +1175,7 @@ void read_file_text(const char *filename, int mode)
 		int	unscrambled_len;
 		char	*scrambled_text;
 		scrambled_text = (char*)malloc(file_len+1);
-		Assert(scrambled_text);
+		SDL_assert(scrambled_text);
 		cfread(scrambled_text, file_len, 1, mf);
 		// unscramble text
 		unencrypt(scrambled_text, file_len, Mission_text_raw, &unscrambled_len);
@@ -1189,7 +1189,7 @@ void read_file_text(const char *filename, int mode)
 
 	//	If you hit this assert, it is probably telling you the obvious.  The file
 	//	you are trying to read is truly too large.  Look at *filename to see the file name.
-	Assert(file_len < MISSION_TEXT_SIZE);
+	SDL_assert(file_len < MISSION_TEXT_SIZE);
 
 	// strip comments from raw text, reading into Mission_text
 
@@ -1231,7 +1231,7 @@ void read_file_text(const char *filename, int mode)
 
 		//	If you hit this assert, it is probably telling you the obvious.  The file
 		//	you are trying to read is truly too large.  Look at *filename to see the file name.
-		Assert(mp2 - Mission_text_raw + strlen(outbuf) < MISSION_TEXT_SIZE);
+		SDL_assert(mp2 - Mission_text_raw + strlen(outbuf) < MISSION_TEXT_SIZE);
 		strcpy(mp2, outbuf);
 		mp2 += strlen(outbuf);
 
@@ -1347,14 +1347,14 @@ void stuff_boolean(int *i)
 			*i = 0;
 	}
 	else {
-		if ( !stricmp(token, "yes") ) {
+		if ( !SDL_strcasecmp(token, "yes") ) {
 			*i = 1;
 		}
-		else if ( !stricmp(token, "no") ) {
+		else if ( !SDL_strcasecmp(token, "no") ) {
 			*i = 0;
 		}
 		else
-			Assert(0);	// can't happen
+			SDL_assert(0);	// can't happen
 	}
 }
 
@@ -1397,7 +1397,7 @@ int stuff_string_list(char slp[][NAME_LENGTH], int max_strings)
 
 	while (*Mp != ')') {
 		assert ( count < max_strings );
-		Assert ( *Mp == '\"' );					// should always be enclosed in quotes
+		SDL_assert ( *Mp == '\"' );					// should always be enclosed in quotes
 
 		get_string( slp[count++] );
 		ignore_white_space();
@@ -1426,7 +1426,7 @@ int stuff_int_list(int *ilp, int max_ints, int lookup_type)
 	ignore_white_space();
 
 	while (*Mp != ')') {
-		Assert(count < max_ints);
+		SDL_assert(count < max_ints);
 		if (*Mp == '"') {
 			int num = 0;
 			char str[128];
@@ -1546,7 +1546,7 @@ void mark_int_list(int *ilp, int max_ints, int lookup_type)
 			int	tval;
 
 			stuff_int(&tval);
-			Assert((tval >= 0) && (tval < max_ints));
+			SDL_assert((tval >= 0) && (tval < max_ints));
 			ilp[tval] = 1;
 		}
 		
@@ -1607,7 +1607,7 @@ int stuff_vector_list(vector *vlp, int max_vecs)
 	ignore_white_space();
 
 	while (*Mp != ')') {
-		Assert(count < max_vecs);
+		SDL_assert(count < max_vecs);
 		stuff_parenthesized_vector(&vlp[count++]);
 		
 		ignore_white_space();
@@ -1638,9 +1638,9 @@ int string_lookup(const char *str1, const char *strlist[], int max, const char *
 	int	i;
 
 	for (i=0; i<max; i++) {
-		Assert(strlen(strlist[i]) != 0);
+		SDL_assert(strlen(strlist[i]) != 0);
 
-		if (!stricmp(str1, strlist[i]))
+		if (!SDL_strcasecmp(str1, strlist[i]))
 			return i;
 	}
 
@@ -1686,7 +1686,7 @@ void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[
 
 	if (*addr == -1)  // not in list, so lets try and add it.
 	{
-		Assert(*total < max);
+		SDL_assert(*total < max);
 		strcpy(strlist[*total], token);
 		*addr = (*total)++;
 	}
@@ -1732,8 +1732,8 @@ char *split_str_once(char *src, int max_pixel_w)
 	char *brk = NULL;
 	int i, w, len, last_was_white = 0;
 
-	Assert(src);
-	Assert(max_pixel_w > 0);
+	SDL_assert(src);
+	SDL_assert(max_pixel_w > 0);
 	
 	gr_get_string_size(&w, NULL, src);
 	if ( w <= max_pixel_w )
@@ -1809,11 +1809,11 @@ int split_str(const char *src, int max_pixel_w, int *n_chars, char **p_str, int 
 	int ignore_until_whitespace, buf_index;
 	
 	// check our assumptions..
-	Assert(src != NULL);
-	Assert(n_chars != NULL);
-	Assert(p_str != NULL);
-	Assert(max_lines > 0);
-	Assert(max_pixel_w > 0);
+	SDL_assert(src != NULL);
+	SDL_assert(n_chars != NULL);
+	SDL_assert(p_str != NULL);
+	SDL_assert(max_lines > 0);
+	SDL_assert(max_pixel_w > 0);
 	
 	memset(buffer, 0, SPLIT_STR_BUFFER_SIZE);
 	buf_index = 0;
@@ -1897,7 +1897,7 @@ int split_str(const char *src, int max_pixel_w, int *n_chars, char **p_str, int 
 			}
 
 			n_chars[line_num] = end - p_str[line_num];  // track length of line
-			Assert(n_chars[line_num]);
+			SDL_assert(n_chars[line_num]);
 			line_num++;
 			p_str[line_num] = NULL;
 			new_line = 1;
@@ -1910,7 +1910,7 @@ int split_str(const char *src, int max_pixel_w, int *n_chars, char **p_str, int 
 
 	if (p_str[line_num]) {
 		n_chars[line_num] = src - p_str[line_num];  // track length of line
-		Assert(n_chars[line_num]);
+		SDL_assert(n_chars[line_num]);
 		line_num++;
 	}
 

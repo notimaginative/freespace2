@@ -416,8 +416,8 @@ void pilot_read_techroom_data(CFILE *file)
 	// read in ship and weapon counts
 	ship_count = cfread_int(file);
 	weapon_count = cfread_int(file);
-	Assert(ship_count <= MAX_SHIP_TYPES);
-	Assert(weapon_count <= MAX_WEAPON_TYPES);
+	SDL_assert(ship_count <= MAX_SHIP_TYPES);
+	SDL_assert(weapon_count <= MAX_WEAPON_TYPES);
 
 	// maintain compatibility w/ demo version
 	if (Player_file_version < 136) {
@@ -431,7 +431,7 @@ void pilot_read_techroom_data(CFILE *file)
 	} else {
 
 		intel_count = cfread_int(file);
-		Assert(intel_count <= MAX_INTEL_ENTRIES);
+		SDL_assert(intel_count <= MAX_INTEL_ENTRIES);
 
 		// read all ships in
 		for (idx=0; idx<ship_count; idx++) {
@@ -515,8 +515,8 @@ void pilot_read_loadout(CFILE *file)
 	// read in ship and weapon counts
 	ship_count = cfread_int(file);
 	weapon_count = cfread_int(file);
-	Assert(ship_count <= MAX_SHIP_TYPES);
-	Assert(weapon_count <= MAX_WEAPON_TYPES);
+	SDL_assert(ship_count <= MAX_SHIP_TYPES);
+	SDL_assert(weapon_count <= MAX_WEAPON_TYPES);
 
 	// read in ship pool
 	for ( i = 0; i < ship_count; i++ ) {
@@ -557,12 +557,12 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	int i, key_value;
 
 	if (!p) {
-		Assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
+		SDL_assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
 		p = &Players[Player_num];
 	}
 
 	//sprintf(filename, "%-.8s.plr",Players[Player_num].callsign);
-	Assert(strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
+	SDL_assert(strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
 	strcpy( filename, callsign );
 	strcat( filename, NOX(".plr") );
 
@@ -722,7 +722,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 	// restore list of most recently played missions
 	Num_recent_missions = cfread_int( file );
-	Assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
+	SDL_assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
 	for ( i = 0; i < Num_recent_missions; i++ ) {
 		char *p;
 
@@ -810,7 +810,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		if (mission_campaign_load_by_name(campaign_fname)) {
 			strcpy(campaign_fname, BUILTIN_CAMPAIGN);
 			if (mission_campaign_load_by_name(campaign_fname))
-				Assert(0);
+				SDL_assert(0);
 		}
 	}
 	//Campaign.current_mission = mission_num;*/
@@ -921,7 +921,7 @@ int write_pilot_file_core(player *p)
 	}
 
 	if (!p) {
-		Assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
+		SDL_assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
 		p = &Players[Player_num];
 	}
 
@@ -929,7 +929,7 @@ int write_pilot_file_core(player *p)
 	if (i == 0)
 		return 0;	//	This means there is no player, probably meaning he was deleted and game exited from same screen.
 
-	Assert((i > 0) && (i <= MAX_FILENAME_LEN - 4));  // ensure we won't overrun the buffer
+	SDL_assert((i > 0) && (i <= MAX_FILENAME_LEN - 4));  // ensure we won't overrun the buffer
 	strcpy( filename, p->callsign);
 	strcat( filename, NOX(".plr") );
 
@@ -1359,7 +1359,7 @@ void pilot_set_random_pic(player *p)
 	} else {
 		// pick a random name from the list
 		int random_index = rand() % Num_pilot_images;
-		Assert((random_index >= 0) && (random_index < Num_pilot_images));
+		SDL_assert((random_index >= 0) && (random_index < Num_pilot_images));
 		strcpy(p->image_filename, Pilot_images_arr[random_index]);
 	}	
 }
@@ -1374,7 +1374,7 @@ void pilot_set_random_squad_pic(player *p)
 	} else {
 		// pick a random name from the list
 		int random_index = rand() % Num_pilot_squad_images;		
-		Assert((random_index >= 0) && (random_index < Num_pilot_squad_images));
+		SDL_assert((random_index >= 0) && (random_index < Num_pilot_squad_images));
 		player_set_squad_bitmap(p, Pilot_squad_images_arr[random_index]); 
 		// strcpy(p->squad_filename, Pilot_squad_images_arr[random_index]);
 	}	
@@ -1466,10 +1466,10 @@ void player_set_squad_bitmap(player *p, const char *fname)
 	/*
 	flen = strlen(filename);
 	elen = strlen(ext);
-	Assert(flen < MAX_PATH_LEN);
+	SDL_assert(flen < MAX_PATH_LEN);
 	strcpy(path, filename);
-	if ((flen < 4) || stricmp(path + flen - elen, ext)) {
-		Assert(flen + elen < MAX_PATH_LEN);
+	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
+		SDL_assert(flen + elen < MAX_PATH_LEN);
 		strcat(path, ext);
 	}
 	*/

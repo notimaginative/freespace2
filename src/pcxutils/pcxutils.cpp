@@ -246,7 +246,7 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;
@@ -258,7 +258,7 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -266,7 +266,7 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -342,7 +342,7 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;	
@@ -354,7 +354,7 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -362,7 +362,7 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -461,7 +461,7 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;
@@ -473,7 +473,7 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -481,7 +481,7 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -562,7 +562,7 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;
@@ -574,7 +574,7 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -582,7 +582,7 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {

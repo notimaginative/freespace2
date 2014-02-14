@@ -256,14 +256,14 @@ int rtvoice_init_recording(int qos)
 		}
 
 		Encode_buffer1 = (unsigned char*)malloc(Rtv_capture_raw_buffer_size);
-		Assert(Encode_buffer1);
+		SDL_assert(Encode_buffer1);
 
 		if ( Encode_buffer2 ) {
 			free(Encode_buffer2);
 			Encode_buffer2=NULL;
 		}
 		Encode_buffer2 = (unsigned char*)malloc(Rtv_capture_raw_buffer_size);
-		Assert(Encode_buffer2);
+		SDL_assert(Encode_buffer2);
 
 		// malloc out the voice data buffer for raw (uncompressed) recorded sound
 		if ( Rtv_capture_raw_buffer ) {
@@ -345,7 +345,7 @@ int rtvoice_start_recording( void (*user_callback)(), int callback_time )
 		return -1;
 	}
 
-	Assert(Rtv_recording_inited);
+	SDL_assert(Rtv_recording_inited);
 
 	if ( Rtv_recording ) {
 		return -1;
@@ -401,7 +401,7 @@ int rtvoice_16to8(unsigned char *data, int size)
 	unsigned short	sample16;
 	unsigned char	sample8, *dest, *src;
 
-	Assert(size%2 == 0);
+	SDL_assert(size%2 == 0);
 
 	dest = data;
 	src = data;
@@ -583,7 +583,7 @@ int rtvoice_init_playback()
 		}
 
 		Decode_buffer = (unsigned char*)malloc(Decode_buffer_size);
-		Assert(Decode_buffer);
+		SDL_assert(Decode_buffer);
 
 		if ( Rtv_playback_uncompressed_buffer ) {
 			free(Rtv_playback_uncompressed_buffer);
@@ -592,7 +592,7 @@ int rtvoice_init_playback()
 
 		Rtv_playback_uncompressed_buffer_size=Decode_buffer_size;
 		Rtv_playback_uncompressed_buffer = (unsigned char*)malloc(Rtv_playback_uncompressed_buffer_size);
-		Assert(Rtv_playback_uncompressed_buffer);
+		SDL_assert(Rtv_playback_uncompressed_buffer);
 
 		InitDecoder(1, Decode_buffer); 
 
@@ -645,7 +645,7 @@ int rtvoice_create_playback_buffer()
 
 void rtvoice_stop_playback(int index)
 {
-	Assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
+	SDL_assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
 
 	if ( Rtv_output_buffers[index].flags & RTV_OUT_FLAG_USED ) {
 		if ( Rtv_output_buffers[index].buf_handle != -1 ) {
@@ -666,7 +666,7 @@ void rtvoice_stop_playback_all()
 // Close a stream that was opened for real-time voice output
 void rtvoice_free_playback_buffer(int index)
 {
-	Assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
+	SDL_assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
 
 	if ( Rtv_output_buffers[index].flags & RTV_OUT_FLAG_USED ) {
 		Rtv_output_buffers[index].flags=0;
@@ -690,7 +690,7 @@ int rtvoice_play_compressed(int index, unsigned char *data, int size, int uncomp
 	// Stop any currently playing voice output
 	oal_stop_buffer(buf_handle);
 
-	Assert(uncompressed_size <= Rtv_playback_uncompressed_buffer_size);
+	SDL_assert(uncompressed_size <= Rtv_playback_uncompressed_buffer_size);
 
 	// uncompress the data into PCM format
 	if ( Rtv_do_compression ) {

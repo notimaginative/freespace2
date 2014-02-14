@@ -167,7 +167,7 @@ static int			fAppActive = 1;
 //static int		WinX, WinY, WinW, WinH;		// not used (grsoft.cpp) in UNIX build
 static int			Os_inited = 0;
 
-static CRITICAL_SECTION Os_lock;
+static SDL_mutex *Os_lock;
 
 int Os_debugger_running = 0;
 
@@ -256,13 +256,13 @@ void os_sleep(int ms)
 // Used to stop message processing
 void os_suspend()
 {
-	ENTER_CRITICAL_SECTION(&Os_lock);
+	SDL_LockMutex(Os_lock);
 }
 
 // resume message processing
 void os_resume()
 {
-	LEAVE_CRITICAL_SECTION(&Os_lock);
+	SDL_UnlockMutex(Os_lock);
 }
 
 
@@ -417,5 +417,5 @@ void os_poll()
 
 void debug_int3()
 {
-	STUB_FUNCTION;
+	SDL_TriggerBreakpoint();
 }

@@ -126,7 +126,7 @@
  * 
  * 37    8/22/97 3:42p Hoffoss
  * Lowered the filter limit to 24, and added support for filter recycling,
- * instead of the rather nasty Assert if we should happen to exceed this
+ * instead of the rather nasty SDL_assert if we should happen to exceed this
  * limit.
  * 
  * 36    8/05/97 4:29p Dave
@@ -252,14 +252,14 @@ void load_filter_info(void)
 		if (inbuf[z] == '\n')
 			inbuf[z] = 0;
 
-		Assert(strlen(inbuf+1) < FILTER_NAME_LENGTH);
+		SDL_assert(strlen(inbuf+1) < FILTER_NAME_LENGTH);
 		strcpy(outwnd_filter[outwnd_filter_count]->name, inbuf + 1);
 
-		if ( !stricmp( outwnd_filter[outwnd_filter_count]->name, "error" ) )	{
+		if ( !SDL_strcasecmp( outwnd_filter[outwnd_filter_count]->name, "error" ) )	{
 			outwnd_filter[outwnd_filter_count]->state = 1;
-		} else if ( !stricmp( outwnd_filter[outwnd_filter_count]->name, "general" ) )	{
+		} else if ( !SDL_strcasecmp( outwnd_filter[outwnd_filter_count]->name, "general" ) )	{
 			outwnd_filter[outwnd_filter_count]->state = 1;
-		} else if ( !stricmp( outwnd_filter[outwnd_filter_count]->name, "warning" ) )	{
+		} else if ( !SDL_strcasecmp( outwnd_filter[outwnd_filter_count]->name, "warning" ) )	{
 			outwnd_filter[outwnd_filter_count]->state = 1;
 		}
 
@@ -348,7 +348,7 @@ void outwnd_print(const char *id, const char *tmp)
 		id = "General";
 
 	for (i=0; i<outwnd_filter_count; i++)
-		if (!stricmp(id, outwnd_filter[i]->name))
+		if (!SDL_strcasecmp(id, outwnd_filter[i]->name))
 			break;
 
 
@@ -360,14 +360,14 @@ void outwnd_print(const char *id, const char *tmp)
 		}
 
 		if (outwnd_filter_count >= MAX_FILTERS) {
-			Assert(outwnd_filter_count == MAX_FILTERS);  // how did it get over the max?  Very bad..
+			SDL_assert(outwnd_filter_count == MAX_FILTERS);  // how did it get over the max?  Very bad..
 			outwnd_printf("General", "Outwnd filter limit reached.  Recycling \"%s\" to add \"%s\"",
 				outwnd_filter[MAX_FILTERS - 1]->name, id);
 
 			i--;  // overwrite the last element (oldest used filter in the list)
 		}
 
-		Assert(strlen(id) < FILTER_NAME_LENGTH);
+		SDL_assert(strlen(id) < FILTER_NAME_LENGTH);
 		outwnd_filter[i] = &real_outwnd_filter[i];  // note: this assumes the list doesn't have gaps (from deleting an element for example)
 		strcpy(outwnd_filter[i]->name, id);
 		outwnd_filter[i]->state = 1;

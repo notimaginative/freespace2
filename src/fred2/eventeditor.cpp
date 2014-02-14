@@ -53,7 +53,7 @@
  * Changed input into sexp_tree::insert() to include bitmaps
  * 
  * 3     11/06/98 11:21a Johnson
- * Put in handling code for wacky event editor Assert().
+ * Put in handling code for wacky event editor SDL_assert().
  * 
  * 2     10/07/98 6:28p Dave
  * Initial checkin. Renamed all relevant stuff to be Fred2 instead of
@@ -194,7 +194,7 @@ int sexp_event_tree::load_sub_tree(int index)
 	// assumption: first token is an operator.  I require this because it would cause problems
 	// with child/parent relations otherwise, and it should be this way anyway, since the
 	// return type of the whole sexp is boolean, and only operators can satisfy this.
-	Assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
+	SDL_assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
 	cur = get_new_node_position();
 	load_branch(index, -1);
 	return cur;
@@ -528,7 +528,7 @@ void event_editor::OnBeginlabeleditEventTree(NMHDR* pNMHDR, LRESULT* pResult)
 		*pResult = 0;
 		modified = 1;
 		edit = m_event_tree.GetEditControl();
-		Assert(edit);
+		SDL_assert(edit);
 		edit->SetLimitText(NAME_LENGTH - 1);
 
 	} else
@@ -771,7 +771,7 @@ int event_editor::handler(int code, int node, char *str)
 				if (m_events[i].formula == node)
 					break;
 
-			Assert(i < m_num_events);
+			SDL_assert(i < m_num_events);
 			while (i < m_num_events - 1) {
 				m_events[i] = m_events[i + 1];
 				m_sig[i] = m_sig[i + 1];
@@ -787,8 +787,8 @@ int event_editor::handler(int code, int node, char *str)
 				if (m_events[i].formula == node)
 					break;
 
-			Assert(i < m_num_events);
-			Assert(strlen(str) < NAME_LENGTH);
+			SDL_assert(i < m_num_events);
+			SDL_assert(strlen(str) < NAME_LENGTH);
 			strcpy(m_events[i].name, str);
 			return node;
 
@@ -944,7 +944,7 @@ void event_editor::insert_handler(int old, int node)
 		}
 	}
 
-	Assert(i < m_num_events);
+	SDL_assert(i < m_num_events);
 	m_events[i].formula = node;
 	return;
 }
@@ -1056,7 +1056,7 @@ void event_editor::OnSelchangedEventTree(NMHDR* pNMHDR, LRESULT* pResult)
 		}
 	}
 
-	Assert(i < m_num_events);
+	SDL_assert(i < m_num_events);
 	cur_event = i;
 	update_cur_event();
 	
@@ -1158,14 +1158,14 @@ void event_editor::swap_handler(int node1, int node2)
 		}
 	}
 
-	Assert(index1 < m_num_events);
+	SDL_assert(index1 < m_num_events);
 	for (index2=0; index2<m_num_events; index2++){
 		if (m_events[index2].formula == node2){
 			break;
 		}
 	}
 
-	Assert(index2 < m_num_events);
+	SDL_assert(index2 < m_num_events);
 	m = m_events[index1];
 //	m_events[index1] = m_events[index2];
 	while (index1 < index2) {
@@ -1314,7 +1314,7 @@ void event_editor::OnNewMsg()
 //		return;
 
 	save();
-	Assert(m_num_messages + Num_builtin_messages < MAX_MISSION_MESSAGES);
+	SDL_assert(m_num_messages + Num_builtin_messages < MAX_MISSION_MESSAGES);
 	strcpy(m_messages[m_num_messages].name, "<new message>");
 	((CListBox *) GetDlgItem(IDC_MESSAGE_LIST))->AddString("<new message>");
 
@@ -1338,7 +1338,7 @@ void event_editor::OnDeleteMsg()
 	int i;
 
 	// handle this case somewhat gracefully
-	Assert((m_cur_msg >= 0) && (m_cur_msg < m_num_messages));
+	SDL_assert((m_cur_msg >= 0) && (m_cur_msg < m_num_messages));
 	if((m_cur_msg < 0) || (m_cur_msg >= m_num_messages)){
 		return;
 	}

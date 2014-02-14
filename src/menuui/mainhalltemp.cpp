@@ -140,7 +140,7 @@ void mht_init()
 	main_hall_start_music();
 
 	// set the game_mode based on the type of player
-	Assert( Player != NULL );
+	SDL_assert( Player != NULL );
 	if ( Player->flags & PLAYER_FLAGS_IS_MULTI ){
 		Game_mode = GM_MULTIPLAYER;
 	} else {

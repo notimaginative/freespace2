@@ -757,12 +757,12 @@ HPALETTE gr_create_palette_236( ubyte * target_palette )
 	NumSysColors = GetDeviceCaps( ScreenDC, NUMCOLORS );
 	NumColors = GetDeviceCaps( ScreenDC, SIZEPALETTE );
 
-	Assert( NumColors <= 256 );
+	SDL_assert( NumColors <= 256 );
 
 	UserLowest = NumSysColors/2;								// 10 normally
 	UserHighest = NumColors - NumSysColors/2 - 1;		// 245 normally
 
-	Assert( (UserHighest - UserLowest + 1) >= 236 );
+	SDL_assert( (UserHighest - UserLowest + 1) >= 236 );
 			
 	GetSystemPaletteEntries(ScreenDC,0,NumSysColors/2,LogicalPalette.palPalEntry);
 	GetSystemPaletteEntries(ScreenDC,UserHighest+1,NumSysColors/2,LogicalPalette.palPalEntry+1+UserHighest);
@@ -818,12 +818,12 @@ HPALETTE gr_create_palette_254( ubyte * target_palette )
 	NumSysColors = 2;
 	NumColors = GetDeviceCaps( ScreenDC, SIZEPALETTE );
 
-	Assert( NumColors <= 256 );
+	SDL_assert( NumColors <= 256 );
 
 	UserLowest = NumSysColors/2;								// 10 normally
 	UserHighest = NumColors - NumSysColors/2 - 1;		// 245 normally
 
-	Assert( (UserHighest - UserLowest + 1) >= 236 );
+	SDL_assert( (UserHighest - UserLowest + 1) >= 236 );
 			
 	GetSystemPaletteEntries(ScreenDC,0,NumSysColors/2,LogicalPalette.palPalEntry);
 	GetSystemPaletteEntries(ScreenDC,UserHighest+1,NumSysColors/2,LogicalPalette.palPalEntry+1+UserHighest);
@@ -1031,7 +1031,7 @@ void grx_save_mouse_area(int x, int y, int w, int h )
 	if ( Grx_mouse_saved_h < 1 ) return;
 
 	// Make sure we're not saving too much!
-	Assert( (Grx_mouse_saved_w*Grx_mouse_saved_h) <= MAX_SAVE_SIZE );
+	SDL_assert( (Grx_mouse_saved_w*Grx_mouse_saved_h) <= MAX_SAVE_SIZE );
 
 	Grx_mouse_saved = 1;
 
@@ -1601,7 +1601,7 @@ void gr_soft_init()
 //	int i;
 	
 	// software mode only supports 640x480
-	Assert(gr_screen.res == GR_640);
+	SDL_assert(gr_screen.res == GR_640);
 	if(gr_screen.res != GR_640){
 		gr_screen.res = GR_640;
 		gr_screen.max_w = 640;
@@ -1658,7 +1658,7 @@ void gr_soft_init()
 	gr_screen.offscreen_buffer_base = lpDibBits;
 
 	gr_screen.rowsize = DibInfo.Header.biWidth*((gr_screen.bits_per_pixel+7)/8);
-	Assert( DibInfo.Header.biWidth == gr_screen.max_w );
+	SDL_assert( DibInfo.Header.biWidth == gr_screen.max_w );
 
 	if (DibInfo.Header.biHeight > 0)	{
 		// top down 

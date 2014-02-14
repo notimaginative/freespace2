@@ -379,8 +379,8 @@ int asteroid_obj_list_add(int objnum)
 	asteroid *cur_asteroid = &Asteroids[Objects[objnum].instance];
 	index = cur_asteroid - Asteroids;
 
-	Assert(index >= 0 && index < MAX_ASTEROID_OBJS);
-	Assert(!Asteroid_objs[index].flags & ASTEROID_OBJ_USED);
+	SDL_assert(index >= 0 && index < MAX_ASTEROID_OBJS);
+	SDL_assert(!Asteroid_objs[index].flags & ASTEROID_OBJ_USED);
 
 	Asteroid_objs[index].flags = 0;
 	Asteroid_objs[index].objnum = objnum;
@@ -399,8 +399,8 @@ void asteroid_obj_list_remove(object * obj)
 {
 	int index = obj->instance;
 
-	Assert(index >= 0 && index < MAX_ASTEROID_OBJS);
-	Assert(Asteroid_objs[index].flags & ASTEROID_OBJ_USED);
+	SDL_assert(index >= 0 && index < MAX_ASTEROID_OBJS);
+	SDL_assert(Asteroid_objs[index].flags & ASTEROID_OBJ_USED);
 
 	list_remove(&Asteroid_obj_list, &Asteroid_objs[index]);	
 	Asteroid_objs[index].flags = 0;
@@ -431,7 +431,7 @@ float asteroid_cap_speed(int asteroid_info_index, float speed)
 // inside only when sum = 7
 int asteroid_in_inner_bound_with_axes(asteroid_field *asfieldp, vector *pos, float delta)
 {
-	Assert(asfieldp->has_inner_bound);
+	SDL_assert(asfieldp->has_inner_bound);
 
 	int rval = 0;
 	if ( (pos->xyz.x > asfieldp->inner_min_bound.xyz.x - delta) && (pos->xyz.x < asfieldp->inner_max_bound.xyz.x + delta) ) {
@@ -474,7 +474,7 @@ void inner_bound_pos_fixup(asteroid_field *asfieldp, vector *pos)
 	for (axis=0; axis<3; axis++) {
 		dist1 = pos->a1d[axis] - asfieldp->inner_min_bound.a1d[axis];
 		dist2 = asfieldp->inner_max_bound.a1d[axis] - pos->a1d[axis];
-		Assert(dist1 >= 0 && dist2 >= 0);
+		SDL_assert(dist1 >= 0 && dist2 >= 0);
 
 		if (dist1 < dist2) {
 			pos->a1d[axis] = asfieldp->inner_max_bound.a1d[axis] + dist1;
@@ -650,7 +650,7 @@ object *asteroid_create(asteroid_field *asfieldp, int asteroid_type, int asteroi
 	objp->hull_strength = asip->initial_hull_strength * (0.8f + (float)Game_skill_level/NUM_SKILL_LEVELS)/2.0f;
 
 	// ensure vel is valid
-	Assert( !vm_is_vec_nan(&objp->phys_info.vel) );	
+	SDL_assert( !vm_is_vec_nan(&objp->phys_info.vel) );	
 
 	// assign a persistant sound to the asteroid
 //	obj_snd_assign(objnum, SND_ASTEROID);
@@ -664,7 +664,7 @@ void asteroid_sub_create(object *parent_objp, int asteroid_type, vector *relvec)
 	object	*new_objp;
 	float speed;
 
-	Assert(parent_objp->type == OBJ_ASTEROID);
+	SDL_assert(parent_objp->type == OBJ_ASTEROID);
 	int subtype = Asteroids[parent_objp->instance].asteroid_subtype;
 	new_objp = asteroid_create(&Asteroid_field, asteroid_type, subtype);
 
@@ -852,7 +852,7 @@ void asteroid_create_all()
 
 			asteroid_create(&Asteroid_field, ASTEROID_TYPE_BIG, subtype);
 		} else {
-			Assert(num_debris_types > 0);
+			SDL_assert(num_debris_types > 0);
 
 			int rand_choice = rand() % max_weighted_range;
 
@@ -1056,11 +1056,11 @@ void asteroid_delete( object * obj )
 	asteroid	*asp;
 
 	num = obj->instance;
-	Assert( Asteroids[num].objnum == OBJ_INDEX(obj));
+	SDL_assert( Asteroids[num].objnum == OBJ_INDEX(obj));
 
 	asp = &Asteroids[num];
 
-	Assert( Num_asteroids >= 0 );
+	SDL_assert( Num_asteroids >= 0 );
 
 	asp->flags = 0;
 	Num_asteroids--;
@@ -1162,18 +1162,18 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vector *hitpo
 	mc_info	mc;
 	int		num, asteroid_subtype;
 
-	Assert( pasteroid->type == OBJ_ASTEROID );
+	SDL_assert( pasteroid->type == OBJ_ASTEROID );
 
 	num = pasteroid->instance;
-	Assert( num >= 0 );
+	SDL_assert( num >= 0 );
 
-	Assert( Asteroids[num].objnum == OBJ_INDEX(pasteroid));
+	SDL_assert( Asteroids[num].objnum == OBJ_INDEX(pasteroid));
 	asteroid_subtype = Asteroids[num].asteroid_subtype;
 
 	// asteroid_hit_info NULL  --  asteroid-weapon collision
 	if ( asteroid_hit_info == NULL ) {
 		// asteroid weapon collision
-		Assert( other_obj->type == OBJ_WEAPON );
+		SDL_assert( other_obj->type == OBJ_WEAPON );
 		mc.model_num = Asteroid_info[Asteroids[num].type].model_num[asteroid_subtype];	// Fill in the model to check
 		model_clear_instance( mc.model_num );
 		mc.orient = &pasteroid->orient;					// The object's orient
@@ -1190,7 +1190,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vector *hitpo
 
 	// asteroid ship collision -- use asteroid_hit_info to calculate physics
 	object *ship_obj = other_obj;
-	Assert( ship_obj->type == OBJ_SHIP );
+	SDL_assert( ship_obj->type == OBJ_SHIP );
 
 	object* heavy = asteroid_hit_info->heavy;
 	object* light = asteroid_hit_info->light;
@@ -1422,10 +1422,10 @@ void asteroid_render(object * obj)
 		pm = NULL;	
 		num = obj->instance;
 
-		Assert((num >= 0) && (num < MAX_ASTEROIDS));
+		SDL_assert((num >= 0) && (num < MAX_ASTEROIDS));
 		asp = &Asteroids[num];
 
-		Assert( asp->flags & AF_USED );
+		SDL_assert( asp->flags & AF_USED );
 
 		model_clear_instance( Asteroid_info[asp->type].model_num[asp->asteroid_subtype]);
 		model_render(Asteroid_info[asp->type].model_num[asp->asteroid_subtype], &obj->orient, &obj->pos, MR_NORMAL|MR_IS_ASTEROID, OBJ_INDEX(obj) );	//	Replace MR_NORMAL with 0x07 for big yellow blobs
@@ -1528,7 +1528,7 @@ void asteriod_explode_sound(object *objp, int type, int play_loud)
 		return;
 	}
 
-	Assert(sound_index != -1);
+	SDL_assert(sound_index != -1);
 
 	if ( !play_loud ) {
 		range_factor = 1.0f;
@@ -1643,7 +1643,7 @@ void asteroid_level_close()
 	for (i=0; i<MAX_ASTEROIDS; i++) {
 		if (Asteroids[i].flags & AF_USED) {
 			Asteroids[i].flags &= ~AF_USED;
-			Assert(Asteroids[i].objnum >=0 && Asteroids[i].objnum < MAX_OBJECTS);
+			SDL_assert(Asteroids[i].objnum >=0 && Asteroids[i].objnum < MAX_OBJECTS);
 			Objects[Asteroids[i].objnum].flags |= OF_SHOULD_BE_DEAD;
 		}
 	}
@@ -1697,7 +1697,7 @@ void hud_target_asteroid()
 			i = 0;
 
 		if (Asteroids[i].flags & AF_USED) {
-			Assert(Objects[Asteroids[i].objnum].type == OBJ_ASTEROID);
+			SDL_assert(Objects[Asteroids[i].objnum].type == OBJ_ASTEROID);
 			set_target_objnum( Player_ai, Asteroids[i].objnum);
 			break;
 		}
@@ -1818,7 +1818,7 @@ void asteroid_test_collide(object *asteroid_obj, object *ship_obj, mc_info *mc)
 		vm_vec_scale_add(&terminus, &asteroid_obj->pos, &asteroid_fvec, asteroid_ray_dist);
 	}
 
-	Assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
 
 	ship_model_start(ship_obj);
 
@@ -1924,7 +1924,7 @@ void asteroid_process_post(object * obj, float frame_time)
 		int num;
 		num = obj->instance;
 		
-		//Assert( Asteroids[num].objnum == objnum );
+		//SDL_assert( Asteroids[num].objnum == objnum );
 		asteroid	*asp = &Asteroids[num];
 
 		// Only wrap if active field
@@ -2041,7 +2041,7 @@ void asteroid_parse_tbl()
 	required_string("#Asteroid Types");
 
 	while (required_string_either("#End","$Name:")) {
-		Assert( Num_asteroid_types < MAX_DEBRIS_TYPES );
+		SDL_assert( Num_asteroid_types < MAX_DEBRIS_TYPES );
 		asteroid_parse_section();
 		Num_asteroid_types++;
 	}
@@ -2049,12 +2049,12 @@ void asteroid_parse_tbl()
 	required_string("#End");
 
 	// check all read in
-	Assert(Num_asteroid_types == MAX_DEBRIS_TYPES);
+	SDL_assert(Num_asteroid_types == MAX_DEBRIS_TYPES);
 
 	Asteroid_impact_explosion_ani = -1;
 	required_string("$Impact Explosion:");
 	stuff_string(impact_ani_file, F_NAME, NULL);
-	if ( stricmp(impact_ani_file,NOX("none")))	{
+	if ( SDL_strcasecmp(impact_ani_file,NOX("none")))	{
 		int num_frames;
 		Asteroid_impact_explosion_ani = bm_load_animation( impact_ani_file, &num_frames, NULL, 1);
 	}

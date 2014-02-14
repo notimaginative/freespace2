@@ -334,7 +334,7 @@ void ship_select::OnOK()
 	}
 
 	if (query_valid_object() && (Marked == 1) && (Objects[cur_object_index].type == OBJ_POINT)) {
-		Assert(Briefing_dialog);
+		SDL_assert(Briefing_dialog);
 		Briefing_dialog->icon_select(Objects[cur_object_index].instance);
 
 	} else {

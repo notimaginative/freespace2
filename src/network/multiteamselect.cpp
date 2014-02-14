@@ -1051,7 +1051,7 @@ void multi_ts_assign_players_all()
 	multi_ts_get_team_and_slot(Ships[shipnum].ship_name,&team_index,&slot_index);
 	multi_assign_player_ship(NET_PLAYER_INDEX(Netgame.host),&Objects[Ships[shipnum].objnum],Ships[shipnum].ship_info_index);
 	Netgame.host->p_info.ship_index = slot_index;
-	Assert(Netgame.host->p_info.ship_index >= 0);
+	SDL_assert(Netgame.host->p_info.ship_index >= 0);
 	Netgame.host->p_info.ship_class = Ships[shipnum].ship_info_index;
 	Netgame.host->player->objnum = Ships[shipnum].objnum;						
 
@@ -1059,10 +1059,10 @@ void multi_ts_assign_players_all()
 	objp = GET_FIRST(&obj_used_list);
 	while(objp != END_OF_LIST(&obj_used_list)){
 		// find a valid player ship - ignoring the ship which was assigned to the host
-		if((objp->flags & OF_PLAYER_SHIP) && stricmp(Ships[objp->instance].ship_name,name_lookup)){
+		if((objp->flags & OF_PLAYER_SHIP) && SDL_strcasecmp(Ships[objp->instance].ship_name,name_lookup)){
 			// determine what team and slot this ship is				
 			multi_ts_get_team_and_slot(Ships[objp->instance].ship_name,&team_index,&slot_index);
-			Assert((team_index != -1) && (slot_index != -1));
+			SDL_assert((team_index != -1) && (slot_index != -1));
 
 			// in a team vs. team situation
 			if(Netgame.type_flags & NG_TYPE_TEAM){
@@ -1091,7 +1091,7 @@ void multi_ts_assign_players_all()
 			if(found){
 				multi_assign_player_ship(idx,objp,Ships[objp->instance].ship_info_index);
 				Net_players[idx].p_info.ship_index = slot_index;
-				Assert(Net_players[idx].p_info.ship_index >= 0);
+				SDL_assert(Net_players[idx].p_info.ship_index >= 0);
 				Net_players[idx].p_info.ship_class = Ships[objp->instance].ship_info_index;
 				Net_players[idx].player->objnum = OBJ_INDEX(objp);					
 				
@@ -1148,7 +1148,7 @@ void multi_ts_create_wings()
 	// the standalone never went through this screen so he should never call this function!
 	// the standalone and all other clients will have this equivalent function performed whey they receieve
 	// the post_sync_data_packet!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	Assert(!(Game_mode & GM_STANDALONE_SERVER));	
+	SDL_assert(!(Game_mode & GM_STANDALONE_SERVER));	
 	
 	// check status of all ships and delete or change ship type as necessary
 	Multi_ts_num_deleted = 0;
@@ -1159,7 +1159,7 @@ void multi_ts_create_wings()
 				int objnum;
 
 				// set the ship type appropriately
-				Assert(Wss_slots_teams[idx][s_idx].ship_class >= 0);
+				SDL_assert(Wss_slots_teams[idx][s_idx].ship_class >= 0);
 
 				objnum = Multi_ts_team[idx].multi_ts_objnum[s_idx];
 				change_ship_type(Objects[objnum].instance,Wss_slots_teams[idx][s_idx].ship_class);
@@ -1170,7 +1170,7 @@ void multi_ts_create_wings()
 				// assign ts_index of the ship to point to the proper Wss_slots slot
 				Ships[Objects[objnum].instance].ts_index = s_idx;
 			} else if(Multi_ts_team[idx].multi_ts_flag[s_idx] == MULTI_TS_FLAG_EMPTY){		
-				Assert(Multi_ts_team[idx].multi_ts_objnum[s_idx] >= 0);			
+				SDL_assert(Multi_ts_team[idx].multi_ts_objnum[s_idx] >= 0);			
 
 				// mark the object as having been deleted
 				Multi_ts_deleted_objnums[Multi_ts_num_deleted] = Multi_ts_team[idx].multi_ts_objnum[s_idx];
@@ -1197,7 +1197,7 @@ void multi_ts_handle_player_drop()
 		for(s_idx=0;s_idx<MULTI_TS_NUM_SHIP_SLOTS;s_idx++){
 			// if we found him, clear his player slot and set his object back to being  OF_COULD_BE_PLAYER
 			if((Multi_ts_team[idx].multi_ts_player[s_idx] != NULL) && !MULTI_CONNECTED((*Multi_ts_team[idx].multi_ts_player[s_idx]))){
-				Assert(Multi_ts_team[idx].multi_ts_objnum[s_idx] != -1);
+				SDL_assert(Multi_ts_team[idx].multi_ts_objnum[s_idx] != -1);
 				Multi_ts_team[idx].multi_ts_player[s_idx] = NULL;
 				Objects[Multi_ts_team[idx].multi_ts_objnum[s_idx]].flags &= ~(OF_PLAYER_SHIP);
 				obj_set_flags( &Objects[Multi_ts_team[idx].multi_ts_objnum[s_idx]], Objects[Multi_ts_team[idx].multi_ts_objnum[s_idx]].flags | OF_COULD_BE_PLAYER);
@@ -1237,9 +1237,9 @@ void multi_ts_lock_pressed()
 	}
 	
 	if(Netgame.type_flags & NG_TYPE_TEAM){
-		Assert(Net_player->flags & NETINFO_FLAG_TEAM_CAPTAIN);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_TEAM_CAPTAIN);
 	} else {
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 	}
 	gamesnd_play_iface(SND_USER_SELECT);
 
@@ -1328,7 +1328,7 @@ void multi_ts_button_pressed(int n)
 		break;
 	// free ship/weapon select
 	case MULTI_TS_LOCK:				
-		Assert(Game_mode & GM_MULTIPLAYER);			
+		SDL_assert(Game_mode & GM_MULTIPLAYER);			
 		// the "lock" button has been pressed
 		multi_ts_lock_pressed();
 
@@ -1782,7 +1782,7 @@ void multi_ts_blit_ship_info()
 
 	// blit the _short_ text description
 	/*
-	Assert(Multi_ts_ship_info_line_count < 3);
+	SDL_assert(Multi_ts_ship_info_line_count < 3);
 	gr_set_color_fast(&Color_normal);
 	for(idx=0;idx<Multi_ts_ship_info_line_count;idx++){
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start, Multi_ts_ship_info_lines[idx]);
@@ -1882,7 +1882,7 @@ void multi_ts_get_team_and_slot(char *ship_name,int *team_index,int *slot_index)
 	if(Netgame.type_flags & NG_TYPE_TEAM){
 		for(idx=0;idx<MULTI_TS_MAX_TEAMS;idx++){
 			for(s_idx=0;s_idx<MULTI_TS_NUM_SHIP_SLOTS_TEAM;s_idx++){
-				if(!stricmp(ship_name,Multi_ts_slot_team_names[idx][s_idx])){
+				if(!SDL_strcasecmp(ship_name,Multi_ts_slot_team_names[idx][s_idx])){
 					*team_index = idx;
 					*slot_index = s_idx;
 					return;
@@ -1893,7 +1893,7 @@ void multi_ts_get_team_and_slot(char *ship_name,int *team_index,int *slot_index)
 	// if we're _not_ in team vs. team mode
 	else {
 		for(idx=0;idx<MULTI_TS_NUM_SHIP_SLOTS;idx++){
-			if(!stricmp(ship_name,Multi_ts_slot_names[idx])){
+			if(!SDL_strcasecmp(ship_name,Multi_ts_slot_names[idx])){
 				*team_index = 0;
 				*slot_index = idx;
 				return;
@@ -1907,10 +1907,10 @@ void multi_ts_get_team_and_slot(char *ship_name,int *team_index,int *slot_index)
 const char *multi_ts_get_shipname( int team, int slot_index )
 {
 	if ( Netgame.type_flags & NG_TYPE_TEAM ) {
-		Assert( (team >= 0) && (team < MULTI_TS_MAX_TEAMS) );
+		SDL_assert( (team >= 0) && (team < MULTI_TS_MAX_TEAMS) );
 		return Multi_ts_slot_team_names[team][slot_index];
 	} else {
-		Assert( team == 0 );
+		SDL_assert( team == 0 );
 		return Multi_ts_slot_names[slot_index];
 	}
 }
@@ -1994,7 +1994,7 @@ void multi_ts_handle_mouse()
 	ship_class = -1;
 	if(snazzy_region != -1){
 		region_type = multi_ts_region_type(snazzy_region);
-		Assert(region_type != -1);
+		SDL_assert(region_type != -1);
 
 		// determine what type of region the mouse is over and the appropriate index
 		switch(region_type){
@@ -2691,7 +2691,7 @@ int multi_ts_get_team(char *ship_name)
 	// lookup through all team ship names
 	for(idx=0;idx<MULTI_TS_MAX_TEAMS;idx++){
 		for(s_idx=0;s_idx<MULTI_TS_NUM_SHIP_SLOTS_TEAM;s_idx++){
-			if(!stricmp(ship_name,Multi_ts_slot_team_names[idx][s_idx])){
+			if(!SDL_strcasecmp(ship_name,Multi_ts_slot_team_names[idx][s_idx])){
 				return idx;
 			}
 		}
@@ -2765,7 +2765,7 @@ void multi_ts_select_ship()
 	memset(Multi_ts_ship_info_text,0,MULTI_TS_SHIP_INFO_MAX_TEXT);
 
 	// get the selected ship class
-	Assert(Multi_ts_select_index >= 0);
+	SDL_assert(Multi_ts_select_index >= 0);
 	Multi_ts_select_ship_class = -1;
 	switch(Multi_ts_select_type){
 	case MULTI_TS_SLOT_LIST:
@@ -2786,8 +2786,8 @@ void multi_ts_select_ship()
 	
 	// split the text info up	
 	/*
-	Assert(Multi_ts_select_ship_class >= 0);
-	Assert((Ship_info[Multi_ts_select_ship_class].desc != NULL) && strlen(Ship_info[Multi_ts_select_ship_class].desc));
+	SDL_assert(Multi_ts_select_ship_class >= 0);
+	SDL_assert((Ship_info[Multi_ts_select_ship_class].desc != NULL) && strlen(Ship_info[Multi_ts_select_ship_class].desc));
 
 	// strip out newlines
 	memset(ship_desc,0,1000);
@@ -2810,7 +2810,7 @@ void multi_ts_select_ship()
 
 		// copy the split up lines into the text lines array
 		for (idx=0;idx<n_lines;idx++ ) {
-			Assert(n_chars[idx] < MULTI_TS_SHIP_INFO_MAX_LINE_LEN);
+			SDL_assert(n_chars[idx] < MULTI_TS_SHIP_INFO_MAX_LINE_LEN);
 			strncpy(Multi_ts_ship_info_lines[idx], p_str[idx], n_chars[idx]);
 			Multi_ts_ship_info_lines[idx][n_chars[idx]] = 0;
 			drop_leading_white_space(Multi_ts_ship_info_lines[idx]);		
@@ -2948,7 +2948,7 @@ void multi_ts_check_errors()
 		}
 
 		shipp = &Ships[Objects[Multi_ts_team[0].multi_ts_objnum[idx]].instance];
-		Assert((shipp->weapons.current_primary_bank != -1) && (shipp->weapons.current_secondary_bank != -1));
+		SDL_assert((shipp->weapons.current_primary_bank != -1) && (shipp->weapons.current_secondary_bank != -1));
 	}
 	*/
 }
@@ -2989,7 +2989,7 @@ void send_pslot_update_packet(int team,int code,int sound)
 		break;
 	case TS_CODE_PLAYER_UPDATE:
 		// only the host should ever be doing this
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 			
 		// add individual slot data
 		for(idx=0;idx<MAX_WSS_SLOTS;idx++){
@@ -3072,7 +3072,7 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 		// fill in the address information of where this came from		
 		player_index = find_player_id(hinfo->id);
-		Assert(player_index != -1);		
+		SDL_assert(player_index != -1);		
 	}
 
 	// get the opcode
@@ -3103,11 +3103,11 @@ void process_pslot_update_packet(ubyte *data, header *hinfo)
 		if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 			// in team vs team mode, only a team captain should ever be sending this
 			if(Netgame.type_flags & NG_TYPE_TEAM){
-				Assert(Net_players[player_index].flags & NETINFO_FLAG_TEAM_CAPTAIN);
+				SDL_assert(Net_players[player_index].flags & NETINFO_FLAG_TEAM_CAPTAIN);
 			}
 			// in any other mode, it better be coming from the game host
 			else {
-				Assert(Net_players[player_index].flags & NETINFO_FLAG_GAME_HOST);
+				SDL_assert(Net_players[player_index].flags & NETINFO_FLAG_GAME_HOST);
 			}
 
 			// re-route to all other players

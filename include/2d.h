@@ -609,7 +609,7 @@ int gr_init_font( const char * typeface );
 // Does formatted printing.  This calls gr_string after formatting,
 // so if you don't need to format the string, then call gr_string
 // directly.
-extern void _cdecl gr_printf( int x, int y, const char * format, ... );
+extern void __cdecl gr_printf( int x, int y, const char * format, ... );
 
 // Returns the size of the string in pixels in w and h
 extern void gr_get_string_size( int *w, int *h, const char * text, int len = 9999 );

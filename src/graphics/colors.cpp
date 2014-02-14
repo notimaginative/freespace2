@@ -197,7 +197,7 @@ void calc_alphacolor_hud_type( alphacolor * ac )
 	int r, g, b, alpha;
 	float falpha;
 
-	Assert(Alphacolors_intited);
+	SDL_assert(Alphacolors_intited);
 
 //	mprintf(( "Calculating alphacolor for %d,%d,%d,%d\n", ac->r, ac->g, ac->b, ac->alpha ));
 
@@ -302,7 +302,7 @@ void calc_alphacolor_blend_type( alphacolor * ac )
 	ubyte * pal;
 	int r, g, b, alpha;
 
-	Assert(Alphacolors_intited);
+	SDL_assert(Alphacolors_intited);
 
 //	mprintf(( "Calculating alphacolor for %d,%d,%d,%d\n", ac->r, ac->g, ac->b, ac->alpha ));
 
@@ -488,9 +488,9 @@ void grx_set_color_fast( color * dst )
 	gr_screen.current_color = *dst;
 	
 	if ( dst->is_alphacolor )	{
-		Assert( dst->alphacolor > -1 );
-		Assert( dst->alphacolor <= MAX_ALPHACOLORS );
-		Assert( Alphacolors[dst->alphacolor].used );
+		SDL_assert( dst->alphacolor > -1 );
+		SDL_assert( dst->alphacolor <= MAX_ALPHACOLORS );
+		SDL_assert( Alphacolors[dst->alphacolor].used );
 
 		// Current_alphacolor = &Alphacolors[dst->alphacolor];
 		Current_alphacolor = NULL;
@@ -502,9 +502,9 @@ void grx_set_color_fast( color * dst )
 
 void grx_set_color( int r, int g, int b )
 {
-	Assert((r >= 0) && (r < 256));
-	Assert((g >= 0) && (g < 256));
-	Assert((b >= 0) && (b < 256));
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
 
 //	if ( r!=0 || g!=0 || b!=0 )	{
 //		mprintf(( "Setcolor: %d,%d,%d\n", r,g,b ));
@@ -521,7 +521,7 @@ void calc_alphacolor_hud_type_old( alphacolor_old * ac )
 	int r, g, b, alpha;
 	float falpha;
 
-	// Assert(Alphacolors_intited);
+	// SDL_assert(Alphacolors_intited);
 
 //	mprintf(( "Calculating alphacolor for %d,%d,%d,%d\n", ac->r, ac->g, ac->b, ac->alpha ));
 
@@ -615,6 +615,6 @@ void calc_alphacolor_hud_type_old( alphacolor_old * ac )
 
 void calc_alphacolor_old(alphacolor_old *ac)
 {
-	Assert(Fred_running);
+	SDL_assert(Fred_running);
 	calc_alphacolor_hud_type_old(ac);
 }

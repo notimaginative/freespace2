@@ -461,7 +461,7 @@ void nebl_init()
 			// fill this guy in
 			if(s->num_bolt_types < MAX_BOLT_TYPES){
 				s->bolt_types[s->num_bolt_types] = (char)nebl_get_bolt_index(name);
-				Assert(s->bolt_types[s->num_bolt_types] != -1);								
+				SDL_assert(s->bolt_types[s->num_bolt_types] != -1);								
 
 				s->num_bolt_types++;
 			} 
@@ -548,7 +548,7 @@ void nebl_render_all()
 
 		// if this is being used
 		if(b->used){
-			Assert(b->head != NULL);
+			SDL_assert(b->head != NULL);
 
 			// bogus bolt
 			if(b->head == NULL){
@@ -895,7 +895,7 @@ l_node *nebl_new()
 
 	// get a new node off the freelist
 	lp = GET_FIRST(&Nebl_free_list);
-	Assert( lp != &Nebl_free_list );		// shouldn't have the dummy element
+	SDL_assert( lp != &Nebl_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Nebl_free_list, lp );
@@ -1244,7 +1244,7 @@ void nebl_render(bolt_type *bi, l_node *whee, float width, l_section *prev)
 
 	// if prev is NULL, we're just starting so we need our start point
 	if(prev == NULL){
-		Assert(whee->links[LINK_RIGHT] != NULL);
+		SDL_assert(whee->links[LINK_RIGHT] != NULL);
 		nebl_generate_section(bi, width, whee, whee->links[LINK_RIGHT], &start, NULL, 1, 0);
 	} else {
 		start = *prev;

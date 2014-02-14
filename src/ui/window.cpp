@@ -211,7 +211,7 @@ void UI_WINDOW::set_mask_bmap(int bmap, const char *name)
 	// int i;
 
 	// init_tooltips();
-	Assert(bmap >= 0);	
+	SDL_assert(bmap >= 0);	
 
 	if (bmap != mask_bmap_id) {
 		if (mask_bmap_id >= 0){
@@ -228,7 +228,7 @@ void UI_WINDOW::set_mask_bmap(int bmap, const char *name)
 		tt_group = -1;
 		/*
 		for (i=0; i<Num_tooltip_groups; i++){
-			if (!stricmp(Tooltip_groups[i].mask, name)){
+			if (!SDL_strcasecmp(Tooltip_groups[i].mask, name)){
 				tt_group = i;
 			}
 		}
@@ -480,7 +480,7 @@ void UI_WINDOW::draw_tooltip()
 
 			if (ttx < 0 || tty < 0) {
 				gr_get_string_size(&w, &h, str);
-				Assert(w < 320 && h < 100);
+				SDL_assert(w < 320 && h < 100);
 				ttx = ui_mouse.x - w / 2;
 				tty = ui_mouse.y - h;
 			}
@@ -496,7 +496,7 @@ void UI_WINDOW::render_tooltip(const char *str)
 	int w, h;
 
 	gr_get_string_size(&w, &h, str);
-	Assert(w < gr_screen.max_w - 4 && h < gr_screen.max_h - 4);
+	SDL_assert(w < gr_screen.max_w - 4 && h < gr_screen.max_h - 4);
 
 	if (ttx < 2)
 		ttx = 2;
@@ -635,7 +635,7 @@ void UI_WINDOW::add_XSTR(const char *string, int _xstr_id, int _x, int _y, UI_GA
 	x->assoc = _assoc;
 	x->font_id = _font_id;	
 	x->clr = _color_type;
-	Assert((x->clr >= 0) && (x->clr < UI_NUM_XSTR_COLORS));
+	SDL_assert((x->clr >= 0) && (x->clr < UI_NUM_XSTR_COLORS));
 	if((x->clr < 0) || (x->clr >= UI_NUM_XSTR_COLORS)){
 		x->clr = 0;
 	}	
@@ -681,7 +681,7 @@ void UI_WINDOW::add_XSTR(UI_XSTR *xstr)
 	x->assoc = xstr->assoc;
 	x->font_id = xstr->font_id;	
 	x->clr = xstr->clr;
-	Assert((x->clr >= 0) && (x->clr < UI_NUM_XSTR_COLORS));
+	SDL_assert((x->clr >= 0) && (x->clr < UI_NUM_XSTR_COLORS));
 	if((x->clr < 0) || (x->clr >= UI_NUM_XSTR_COLORS)){
 		x->clr = 0;
 	}	
@@ -705,7 +705,7 @@ void UI_WINDOW::draw_one_xstr(UI_XSTR *x, int frame)
 	// maybe set the font
 	if(x->font_id >= 0){
 		// backup the current font
-		Assert(Current_font != NULL);
+		SDL_assert(Current_font != NULL);
 		f_backup = Current_font;
 
 		// set the new font
@@ -858,7 +858,7 @@ int parse_tooltips_group(int group, int n)
 {
 	char buf[NAME_LENGTH];
 
-	Assert(group < MAX_TOOLTIP_GROUPS);
+	SDL_assert(group < MAX_TOOLTIP_GROUPS);
 	required_string("$Mask Filename:");
 	stuff_string(buf, F_NAME, NULL);
 	Tooltip_groups[group].mask = strdup(buf);
@@ -870,7 +870,7 @@ int parse_tooltips_group(int group, int n)
 			return n;
 		}
 
-		Assert(n < MAX_TOOLTIPS);
+		SDL_assert(n < MAX_TOOLTIPS);
 		parse_tooltip(n++);
 	}
 }

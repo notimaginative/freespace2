@@ -35,7 +35,7 @@
  * Stupid switch for sexp_team_score.  Don't forget *break*
  * 
  * 65    9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 64    9/07/99 1:05a Andsager
@@ -681,10 +681,10 @@ void init_sexp()
 
 	Locked_sexp_false = Locked_sexp_true = -1;
 	Locked_sexp_false = alloc_sexp("false", SEXP_LIST, SEXP_ATOM_OPERATOR, -1, -1);
-	Assert(Locked_sexp_false != -1);
+	SDL_assert(Locked_sexp_false != -1);
 	Sexp_nodes[Locked_sexp_false].type = SEXP_ATOM;  // fix bypassing value
 	Locked_sexp_true = alloc_sexp("true", SEXP_LIST, SEXP_ATOM_OPERATOR, -1, -1);
-	Assert(Locked_sexp_true != -1);
+	SDL_assert(Locked_sexp_true != -1);
 	Sexp_nodes[Locked_sexp_true].type = SEXP_ATOM;  // fix bypassing value
 }
 
@@ -701,15 +701,15 @@ int alloc_sexp(const char *text, int type, int subtype, int first, int rest)
 	}
 
 	i = find_free_sexp();
-	Assert(i != Locked_sexp_true);
-	Assert(i != Locked_sexp_false);
+	SDL_assert(i != Locked_sexp_true);
+	SDL_assert(i != Locked_sexp_false);
 	if (i == MAX_SEXP_NODES){
 		return -1;
 	}
 
-	Assert(strlen(text) < TOKEN_LENGTH);
+	SDL_assert(strlen(text) < TOKEN_LENGTH);
 	strcpy(Sexp_nodes[i].text, text);
-	Assert(type >= 0);
+	SDL_assert(type >= 0);
 	Sexp_nodes[i].type = type;
 	Sexp_nodes[i].subtype = subtype;
 	Sexp_nodes[i].first = first;
@@ -755,7 +755,7 @@ int find_free_sexp()
 	//count_free_sexp_nodes();
 #endif
 
-	Assert(i != MAX_SEXP_NODES);  // time to raise the limit..
+	SDL_assert(i != MAX_SEXP_NODES);  // time to raise the limit..
 	if (i == MAX_SEXP_NODES){
 		return -1;
 	}
@@ -776,7 +776,7 @@ void sexp_mark_persistent( int n )
 		return;
 	}
 
-	Assert( !(Sexp_nodes[n].type & SEXP_FLAG_PERSISTENT) );
+	SDL_assert( !(Sexp_nodes[n].type & SEXP_FLAG_PERSISTENT) );
 	Sexp_nodes[n].type |= SEXP_FLAG_PERSISTENT;
 
 	sexp_mark_persistent(Sexp_nodes[n].first);
@@ -795,7 +795,7 @@ void sexp_unmark_persistent( int n )
 		return;
 	}
 
-	Assert( Sexp_nodes[n].type & SEXP_FLAG_PERSISTENT );
+	SDL_assert( Sexp_nodes[n].type & SEXP_FLAG_PERSISTENT );
 	Sexp_nodes[n].type &= ~SEXP_FLAG_PERSISTENT;
 
 	sexp_unmark_persistent(Sexp_nodes[n].first);
@@ -805,8 +805,8 @@ void sexp_unmark_persistent( int n )
 // just frees up the specified sexp node,  Leaves link chains untouched.
 int free_one_sexp(int num)
 {
-	Assert(Sexp_nodes[num].type != SEXP_NOT_USED);  // make sure it is actually used
-	Assert( !(Sexp_nodes[num].type & SEXP_FLAG_PERSISTENT) );
+	SDL_assert(Sexp_nodes[num].type != SEXP_NOT_USED);  // make sure it is actually used
+	SDL_assert( !(Sexp_nodes[num].type & SEXP_FLAG_PERSISTENT) );
 
 	if ((num == Locked_sexp_true) || (num == Locked_sexp_false)){
 		return 0;
@@ -823,8 +823,8 @@ int free_sexp(int num)
 {
 	int i, rest, count = 0;
 
-	Assert(Sexp_nodes[num].type != SEXP_NOT_USED);  // make sure it is actually used
-	Assert( !(Sexp_nodes[num].type & SEXP_FLAG_PERSISTENT) );
+	SDL_assert(Sexp_nodes[num].type != SEXP_NOT_USED);  // make sure it is actually used
+	SDL_assert( !(Sexp_nodes[num].type & SEXP_FLAG_PERSISTENT) );
 
 	if ((num == Locked_sexp_true) || (num == Locked_sexp_false) || (num == -1) ){
 		return 0;
@@ -947,7 +947,7 @@ int cmp_sexp_chains(int node1, int node2)
 	}
 
 	// DA: 1/7/99 Need to check the actual Sexp_node.text, not possible variable, which can be equal
-	if (stricmp(Sexp_nodes[node1].text, Sexp_nodes[node2].text)){
+	if (SDL_strcasecmp(Sexp_nodes[node1].text, Sexp_nodes[node2].text)){
 		return 0;
 	}
 
@@ -1049,7 +1049,7 @@ int identify_operator(const char *token)
 	int	i;
 
 	for (i=0; i<Num_operators; i++){
-		if (!stricmp(token, Operators[i].text)){
+		if (!SDL_strcasecmp(token, Operators[i].text)){
 			return i;
 		}
 	}
@@ -1062,7 +1062,7 @@ int find_operator(const char *token)
 	int	i;
 
 	for (i=0; i<Num_operators; i++){
-		if (!stricmp(token, Operators[i].text)){
+		if (!SDL_strcasecmp(token, Operators[i].text)){
 			return Operators[i].value;
 		}
 	}
@@ -1090,11 +1090,11 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 	int i = 0, z, t, type, argnum = 0, count, op, type2 = 0, op2;
 	int op_index;
 
-	Assert(index >= 0 && index < MAX_SEXP_NODES);
-	Assert(Sexp_nodes[index].type != SEXP_NOT_USED);
+	SDL_assert(index >= 0 && index < MAX_SEXP_NODES);
+	SDL_assert(Sexp_nodes[index].type != SEXP_NOT_USED);
 	if (Sexp_nodes[index].subtype == SEXP_ATOM_NUMBER && return_type == OPR_BOOL) {
 		// special case Mark seems to want supported
-		Assert(Sexp_nodes[index].first == -1);  // only lists should have a first pointer
+		SDL_assert(Sexp_nodes[index].first == -1);  // only lists should have a first pointer
 		if (Sexp_nodes[index].rest != -1)  // anything after the number?
 			return SEXP_CHECK_NONOP_ARGS; // if so, it's a syntax error
 
@@ -1126,7 +1126,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 	index = Sexp_nodes[op_index].rest;
 	while (index != -1) {
 		type = query_operator_argument_type(op, argnum);
-		Assert(Sexp_nodes[index].type != SEXP_NOT_USED);
+		SDL_assert(Sexp_nodes[index].type != SEXP_NOT_USED);
 		if (bad_index)
 			*bad_index = index;
 
@@ -1217,7 +1217,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 			type2 = SEXP_ATOM_STRING;
 
 		} else {
-			Assert(0);
+			SDL_assert(0);
 		}
 
 		switch (type) {
@@ -1359,13 +1359,13 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 
 				// check for the special "hull" value
 				if ( (Operators[op].value == OP_SABOTAGE_SUBSYSTEM) || (Operators[op].value == OP_REPAIR_SUBSYSTEM) || (Operators[op].value == OP_SET_SUBSYSTEM_STRNGTH) ) {
-					if ( !stricmp( CTEXT(index), SEXP_HULL_STRING) ){
+					if ( !SDL_strcasecmp( CTEXT(index), SEXP_HULL_STRING) ){
 						break;
 					}
 				}
 
 				for (i=0; i<Ship_info[ship_class].n_subsystems; i++){
-					if (!stricmp(Ship_info[ship_class].subsystems[i].subobj_name, CTEXT(index))){
+					if (!SDL_strcasecmp(Ship_info[ship_class].subsystems[i].subobj_name, CTEXT(index))){
 						break;
 					}
 				}
@@ -1400,7 +1400,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 			case OPF_IFF:
 				if (type2 == SEXP_ATOM_STRING){
 					for (i=0; i<Num_team_names; i++){
-						if (!stricmp(Team_names[i], CTEXT(index))){
+						if (!SDL_strcasecmp(Team_names[i], CTEXT(index))){
 							break;
 						}
 					}
@@ -1457,9 +1457,9 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 						}
 					}
 
-					Assert(Sexp_nodes[index].subtype == SEXP_ATOM_LIST);
+					SDL_assert(Sexp_nodes[index].subtype == SEXP_ATOM_LIST);
 					z = Sexp_nodes[index].first;
-					Assert(Sexp_nodes[z].subtype != SEXP_ATOM_LIST);
+					SDL_assert(Sexp_nodes[z].subtype != SEXP_ATOM_LIST);
 					z = find_operator(CTEXT(z));
 					if (ship_num >= 0) {
 						if (!query_sexp_ai_goal_valid(z, ship_num)){
@@ -1496,7 +1496,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 				}
 
 				for (i=0; i<MAX_SHIP_TYPE_COUNTS; i++){
-					if (!stricmp( Ship_type_names[i], CTEXT(index))){
+					if (!SDL_strcasecmp( Ship_type_names[i], CTEXT(index))){
 						break;
 					}
 				}
@@ -1509,7 +1509,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 
 			case OPF_WAYPOINT_PATH:
 				for (i=0; i<Num_waypoint_lists; i++){
-					if (!stricmp(Waypoint_lists[i].name, CTEXT(index))){
+					if (!SDL_strcasecmp(Waypoint_lists[i].name, CTEXT(index))){
 						break;
 					}
 				}
@@ -1527,7 +1527,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 
 				if (Fred_running) {
 					for (i=0; i<Num_messages; i++)
-						if (!stricmp(Messages[i].name, CTEXT(index)))
+						if (!SDL_strcasecmp(Messages[i].name, CTEXT(index)))
 							break;
 
 					if (i == Num_messages)
@@ -1547,7 +1547,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					char *name;
 
 					name = CTEXT(index);
-					if (!stricmp(name, "low") || !stricmp(name, "normal") || !stricmp(name, "high"))
+					if (!SDL_strcasecmp(name, "low") || !SDL_strcasecmp(name, "normal") || !SDL_strcasecmp(name, "high"))
 						break;
 
 					return SEXP_CHECK_INVALID_PRIORITY;
@@ -1563,7 +1563,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 				if (Fred_running) {
 					if (mode == SEXP_MODE_CAMPAIGN) {
 						for (i=0; i<Campaign.num_missions; i++)
-							if (!stricmp(CTEXT(index), Campaign.missions[i].name)) {
+							if (!SDL_strcasecmp(CTEXT(index), Campaign.missions[i].name)) {
 								if ((i != Sexp_useful_number) && (Campaign.missions[i].level >= Campaign.missions[Sexp_useful_number].level))
 									return SEXP_CHECK_INVALID_LEVEL;
 
@@ -1580,7 +1580,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 							|| (Operators[op].value == OP_PREVIOUS_GOAL_TRUE) || (Operators[op].value == OP_PREVIOUS_GOAL_FALSE) || (Operators[op].value == OP_PREVIOUS_GOAL_INCOMPLETE) )
 							break;
 
-						if (!(*Mission_filename) || stricmp(Mission_filename, CTEXT(index)))
+						if (!(*Mission_filename) || SDL_strcasecmp(Mission_filename, CTEXT(index)))
 							return SEXP_CHECK_INVALID_MISSION_NAME;
 					}
 				}
@@ -1595,11 +1595,11 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 				// otherwise, check the set of current goals
 				if ( Fred_running && (mode == SEXP_MODE_CAMPAIGN) ) {
 					z = find_parent_operator(index);
-					Assert(z >= 0);
+					SDL_assert(z >= 0);
 					z = Sexp_nodes[z].rest;  // first argument of operator should be mission name
-					Assert(z >= 0);
+					SDL_assert(z >= 0);
 					for (i=0; i<Campaign.num_missions; i++)
-						if (!stricmp(CTEXT(z), Campaign.missions[i].name))
+						if (!SDL_strcasecmp(CTEXT(z), Campaign.missions[i].name))
 							break;
 
 					// read the goal/event list from the mission file if both num_goals and num_events
@@ -1609,7 +1609,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					
 					if (i < Campaign.num_missions) {
 						for (t=0; t<Campaign.missions[i].num_goals; t++)
-							if (!stricmp(CTEXT(index), Campaign.missions[i].goals[t].name))
+							if (!SDL_strcasecmp(CTEXT(index), Campaign.missions[i].goals[t].name))
 								break;
 
 						if (t == Campaign.missions[i].num_goals)
@@ -1621,7 +1621,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 						break;
 
 					for (i=0; i<Num_goals; i++)
-						if (!stricmp(CTEXT(index), Mission_goals[i].name))
+						if (!SDL_strcasecmp(CTEXT(index), Mission_goals[i].name))
 							break;
 
 					if (i == Num_goals)
@@ -1638,11 +1638,11 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 				// and only if in campaign mode.  Otherwise, check the current set of events
 				if ( Fred_running && (mode == SEXP_MODE_CAMPAIGN) ) {
 					z = find_parent_operator(index);
-					Assert(z >= 0);
+					SDL_assert(z >= 0);
 					z = Sexp_nodes[z].rest;  // first argument of operator should be mission name
-					Assert(z >= 0);
+					SDL_assert(z >= 0);
 					for (i=0; i<Campaign.num_missions; i++)
-						if (!stricmp(CTEXT(z), Campaign.missions[i].name))
+						if (!SDL_strcasecmp(CTEXT(z), Campaign.missions[i].name))
 							break;
 
 					// read the goal/event list from the mission file if both num_goals and num_events
@@ -1652,7 +1652,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					
 					if (i < Campaign.num_missions) {
 						for (t=0; t<Campaign.missions[i].num_events; t++)
-							if (!stricmp(CTEXT(index), Campaign.missions[i].events[t].name))
+							if (!SDL_strcasecmp(CTEXT(index), Campaign.missions[i].events[t].name))
 								break;
 
 						if (t == Campaign.missions[i].num_events)
@@ -1664,7 +1664,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 						break;
 
 					for ( i = 0; i < Num_mission_events; i++ ) {
-						if ( !stricmp(CTEXT(index), Mission_events[i].name) )
+						if ( !SDL_strcasecmp(CTEXT(index), Mission_events[i].name) )
 							break;
 					}
 					if ( i == Num_mission_events )
@@ -1691,7 +1691,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					model = Ships[ship_num].modelnum;
 					z = model_get_num_dock_points(model);
 					for (i=0; i<z; i++)
-						if (!stricmp(CTEXT(index), model_get_dock_name(model, i)))
+						if (!SDL_strcasecmp(CTEXT(index), model_get_dock_name(model, i)))
 							break;
 
 					if (i == z)
@@ -1718,7 +1718,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					model = Ships[ship_num].modelnum;
 					z = model_get_num_dock_points(model);
 					for (i=0; i<z; i++)
-						if (!stricmp(CTEXT(index), model_get_dock_name(model, i)))
+						if (!SDL_strcasecmp(CTEXT(index), model_get_dock_name(model, i)))
 							break;
 
 					if (i == z)
@@ -1732,10 +1732,10 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				if (*CTEXT(index) != '#') {  // not a manual source?
-					//if ( !stricmp(CTEXT(index), "<any allied>") )
+					//if ( !SDL_strcasecmp(CTEXT(index), "<any allied>") )
 					//	return SEXP_CHECK_INVALID_MSG_SOURCE;
 
-					if ( stricmp(CTEXT(index), "<any wingman>"))  // not a special token?
+					if ( SDL_strcasecmp(CTEXT(index), "<any wingman>"))  // not a special token?
 						if ((ship_name_lookup(CTEXT(index)) < 0) && (wing_name_lookup(CTEXT(index), 1) < 0))  // is it in the mission?
 							if (Fred_running || mission_parse_ship_arrived(CTEXT(index)))  // == 0 when still on arrival list
 								return SEXP_CHECK_INVALID_MSG_SOURCE;
@@ -1754,7 +1754,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				for (i = 0; i < NUM_SKILL_LEVELS; i++) {
-					if ( !stricmp(CTEXT(index), Skill_level_names(i, 0)) )
+					if ( !SDL_strcasecmp(CTEXT(index), Skill_level_names(i, 0)) )
 						break;
 				}
 				if ( i == NUM_SKILL_LEVELS )
@@ -1766,7 +1766,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				for (i = 0; i < NUM_MEDALS; i++) {
-					if ( !stricmp(CTEXT(index), Medals[i].name) )
+					if ( !SDL_strcasecmp(CTEXT(index), Medals[i].name) )
 						break;
 				}
 
@@ -1780,7 +1780,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				for (i = 0; i < Num_weapon_types; i++ ) {
-					if ( !stricmp(CTEXT(index), Weapon_info[i].name) )
+					if ( !SDL_strcasecmp(CTEXT(index), Weapon_info[i].name) )
 						break;
 				}
 
@@ -1800,7 +1800,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				for (i = 0; i < Num_ship_types; i++ ) {
-					if ( !stricmp(CTEXT(index), Ship_info[i].name) )
+					if ( !SDL_strcasecmp(CTEXT(index), Ship_info[i].name) )
 						break;
 				}
 
@@ -1813,7 +1813,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				for ( i = 0; i < NUM_HUD_GAUGES; i++ ) {
-					if ( !stricmp(CTEXT(index), HUD_gauge_text[i]) )
+					if ( !SDL_strcasecmp(CTEXT(index), HUD_gauge_text[i]) )
 						break;
 				}
 
@@ -1828,7 +1828,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				for ( i = 0; i < Num_jump_nodes; i++ ) {
-					if ( !stricmp(Jump_nodes[i].name, CTEXT(index)) )
+					if ( !SDL_strcasecmp(Jump_nodes[i].name, CTEXT(index)) )
 						break;
 				}
 
@@ -1888,14 +1888,14 @@ void get_sexp_text_for_variable(char *text, char *token)
 	
 	// get variable name (up to '['
 	end_index = strcspn(token, "[");
-	Assert( (end_index != 0) && (end_index < TOKEN_LENGTH-1) );
+	SDL_assert( (end_index != 0) && (end_index < TOKEN_LENGTH-1) );
 	strncpy(text, token, end_index);
 	text[end_index] = '\0';
 
 	if ( !Fred_running ) {
 		// freespace - get index into Sexp_variables array
 		sexp_var_index = get_index_sexp_variable_name(text);
-		Assert(sexp_var_index != -1);
+		SDL_assert(sexp_var_index != -1);
 		sprintf(text, "%d", sexp_var_index);
 	}
 }
@@ -1919,7 +1919,7 @@ int get_sexp(char *token)
 
 	ignore_white_space();
 	while (*Mp != ')') {
-		Assert(*Mp != EOF_CHAR);
+		SDL_assert(*Mp != EOF_CHAR);
 		if (*Mp == '(') {
 			// Sexp list
 			Mp++;
@@ -1929,15 +1929,15 @@ int get_sexp(char *token)
 			// Sexp string
 			len = strcspn(Mp + 1, "\"");
 			
-			Assert(Mp[len + 1] == '\"');    // hit EOF first (unterminated string)
-			Assert(len < TOKEN_LENGTH);  // token is too long.
+			SDL_assert(Mp[len + 1] == '\"');    // hit EOF first (unterminated string)
+			SDL_assert(len < TOKEN_LENGTH);  // token is too long.
 
 			// check if string variable
 			if ( *(Mp + 1) == SEXP_VARIABLE_CHAR ) {
 
 				// reduce length by 1 for end \"
 				int length = len - 1;
-				Assert(length < 2*TOKEN_LENGTH+2);
+				SDL_assert(length < 2*TOKEN_LENGTH+2);
 
 				// start copying after skipping 1st char
 				strncpy(token, Mp + 2, length);
@@ -1964,8 +1964,8 @@ int get_sexp(char *token)
 					Mp++;
 					continue;
 				}
-				Assert(*Mp != EOF_CHAR);
-				Assert(len < TOKEN_LENGTH - 1);
+				SDL_assert(*Mp != EOF_CHAR);
+				SDL_assert(len < TOKEN_LENGTH - 1);
 				token[len++] = *Mp++;
 			}
 
@@ -1988,13 +1988,13 @@ int get_sexp(char *token)
 
 		// update links
 		if (count++) {
-			Assert(last != -1);
+			SDL_assert(last != -1);
 			Sexp_nodes[last].rest = node;
 		} else {
 			start = node;
 		}
 
-		Assert(node != -1);  // ran out of nodes.  Time to raise the MAX!
+		SDL_assert(node != -1);  // ran out of nodes.  Time to raise the MAX!
 		last = node;
 		ignore_white_space();
 	}
@@ -2028,7 +2028,7 @@ int stuff_sexp_variable_list()
 	ignore_white_space();
 
 	while (*Mp != ')') {
-		Assert(count < MAX_SEXP_VARIABLES);
+		SDL_assert(count < MAX_SEXP_VARIABLES);
 
 		// get index - for debug
 		stuff_int(&index);
@@ -2047,11 +2047,11 @@ int stuff_sexp_variable_list()
 		ignore_white_space();
 
 
-		if (!stricmp(str_type, "number")) {
+		if (!SDL_strcasecmp(str_type, "number")) {
 			type = SEXP_VARIABLE_NUMBER;
-		} else if (!stricmp(str_type, "string")) {
+		} else if (!SDL_strcasecmp(str_type, "string")) {
 			type = SEXP_VARIABLE_STRING;
-		} else if (!stricmp(str_type, "block")) {
+		} else if (!SDL_strcasecmp(str_type, "block")) {
 			type = SEXP_VARIABLE_BLOCK | SEXP_VARIABLE_BLOCK_EXP;
 		} else {
 			type = SEXP_VARIABLE_UNKNOWN;
@@ -2062,7 +2062,7 @@ int stuff_sexp_variable_list()
 
 		// check if variable name already exists
 		if ( (type == SEXP_VARIABLE_NUMBER) || (type == SEXP_VARIABLE_STRING) ) {
-			Assert(get_index_sexp_variable_name(var_name) == -1);
+			SDL_assert(get_index_sexp_variable_name(var_name) == -1);
 		}
 
 		sexp_add_variable(default_value, var_name, type, index);
@@ -2079,12 +2079,12 @@ void build_sexp_text_string(char *buffer, int node, int mode)
 	if (Sexp_nodes[node].type & SEXP_FLAG_VARIABLE) {
 
 		int sexp_variables_index = get_index_sexp_variable_name(Sexp_nodes[node].text);
-		Assert(sexp_variables_index != -1);
-		Assert( (Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_NUMBER) || (Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_STRING) );
+		SDL_assert(sexp_variables_index != -1);
+		SDL_assert( (Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_NUMBER) || (Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_STRING) );
 
 		// number
 		if (Sexp_nodes[node].subtype == SEXP_ATOM_NUMBER) {
-			Assert(Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_NUMBER);
+			SDL_assert(Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_NUMBER);
 		
 			// Error check - can be Fred or Freespace
 			if (mode == SEXP_ERROR_CHECK_MODE) {
@@ -2095,13 +2095,13 @@ void build_sexp_text_string(char *buffer, int node, int mode)
 				}
 			} else {
 				// Save as string - only  Fred
-				Assert(mode == SEXP_SAVE_MODE);
+				SDL_assert(mode == SEXP_SAVE_MODE);
 				sprintf(buffer, "@%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
 			}
 		} else {
 			// string
-			Assert(Sexp_nodes[node].subtype == SEXP_ATOM_STRING);
-			Assert(Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_STRING);
+			SDL_assert(Sexp_nodes[node].subtype == SEXP_ATOM_STRING);
+			SDL_assert(Sexp_variables[sexp_variables_index].type & SEXP_VARIABLE_STRING);
 
 			// Error check - can be Fred or Freespace
 			if (mode == SEXP_ERROR_CHECK_MODE) {
@@ -2112,7 +2112,7 @@ void build_sexp_text_string(char *buffer, int node, int mode)
 				}
 			} else {
 				// Save as string - only Fred
-				Assert(mode == SEXP_SAVE_MODE);
+				SDL_assert(mode == SEXP_SAVE_MODE);
 				sprintf(buffer, "\"@%s[%s]\" ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
 			}
 		}
@@ -2138,7 +2138,7 @@ int build_sexp_string(int cur_node, int level, int mode)
 	strcat(Sexp_string, "( ");
 	node = cur_node;
 	while (node != -1) {
-		Assert(node >= 0 && node < MAX_SEXP_NODES);
+		SDL_assert(node >= 0 && node < MAX_SEXP_NODES);
 		if (Sexp_nodes[node].first == -1) {
 			// build text to string
 			build_sexp_text_string(pstr, node, mode);
@@ -2175,7 +2175,7 @@ void build_extended_sexp_string(int cur_node, int level, int mode)
 				strcat(Sexp_string, "   ");
 
 		flag = 1;
-		Assert(node >= 0 && node < MAX_SEXP_NODES);
+		SDL_assert(node >= 0 && node < MAX_SEXP_NODES);
 		if (Sexp_nodes[node].first == -1) {
 			build_sexp_text_string(pstr,node, mode);
 			strcat(Sexp_string, pstr);
@@ -2613,7 +2613,7 @@ int sexp_is_destroyed(int n, fix *latest_time)
 	int	count, num_destroyed, wing_index;
 	fix	time;
 
-	Assert ( n != -1 );
+	SDL_assert ( n != -1 );
 
 	count = 0;
 	num_destroyed = 0;
@@ -2665,7 +2665,7 @@ int sexp_is_subsystem_destroyed(int n)
 {
 	char *ship_name, *subsys_name;
 
-	Assert( n != -1 );
+	SDL_assert( n != -1 );
 	
 	ship_name = CTEXT(n);
 	subsys_name = CTEXT(CDR(n));
@@ -2697,7 +2697,7 @@ int sexp_has_docked(int n)
 	if (sexp_query_has_yet_to_arrive(dockee))
 		return SEXP_CANT_EVAL;
 
-	Assert ( count > 0 );
+	SDL_assert ( count > 0 );
 	if ( mission_log_get_time(LOG_SHIP_DESTROYED, docker, NULL, NULL) || mission_log_get_time(LOG_SHIP_DESTROYED, dockee, NULL, NULL) )
 		return SEXP_KNOWN_FALSE;
 
@@ -2720,7 +2720,7 @@ int sexp_has_undocked(int n)
 	if (sexp_query_has_yet_to_arrive(dockee))
 		return SEXP_CANT_EVAL;
 
-	Assert ( count > 0 );
+	SDL_assert ( count > 0 );
 	if ( !mission_log_get_time_indexed(LOG_SHIP_UNDOCK, docker, dockee, count, NULL) ) {
 		// if either ship destroyed before they dock, then sexp is known false
 		if ( mission_log_get_time(LOG_SHIP_DESTROYED, docker, NULL, NULL) || mission_log_get_time(LOG_SHIP_DESTROYED, dockee, NULL, NULL) )
@@ -2893,7 +2893,7 @@ int sexp_is_destroyed_delay(int n)
 	fix delay, time;
 	int val;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	time = 0;
 
@@ -2921,7 +2921,7 @@ int sexp_is_subsystem_destroyed_delay( int n )
 	char *ship_name, *subsys_name;
 	fix delay, time;
 
-	Assert( n != -1 );
+	SDL_assert( n != -1 );
 	
 	ship_name = CTEXT(n);
 	subsys_name = CTEXT(CDR(n));
@@ -2947,7 +2947,7 @@ int sexp_is_disabled_delay( int n )
 	fix delay, time;
 	int val;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	time = 0;
 	delay = i2f(atoi(CTEXT(n)));
@@ -2973,7 +2973,7 @@ int sexp_is_disarmed_delay( int n )
 	fix delay, time;
 	int val;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	time = 0;
 	delay = i2f(atoi(CTEXT(n)));
@@ -3002,7 +3002,7 @@ int sexp_has_docked_delay( int n )
 	fix delay = i2f(atoi(CTEXT(CDR(CDR(CDR(n))))));
 	fix time;
 
-	Assert ( count > 0 );
+	SDL_assert ( count > 0 );
 	if ( mission_log_get_time(LOG_SHIP_DESTROYED, docker, NULL, NULL) || mission_log_get_time(LOG_SHIP_DESTROYED, dockee, NULL, NULL) )
 		return SEXP_KNOWN_FALSE;
 
@@ -3035,7 +3035,7 @@ int sexp_has_undocked_delay( int n )
 	if (sexp_query_has_yet_to_arrive(dockee))
 		return SEXP_CANT_EVAL;
 
-	Assert ( count > 0 );
+	SDL_assert ( count > 0 );
 	if ( !mission_log_get_time_indexed(LOG_SHIP_UNDOCK, docker, dockee, count, &time) ) {
 		// if either ship destroyed before they dock, then sexp is known false
 		if ( mission_log_get_time(LOG_SHIP_DESTROYED, docker, NULL, NULL) || mission_log_get_time(LOG_SHIP_DESTROYED, dockee, NULL, NULL) )
@@ -3055,7 +3055,7 @@ int sexp_has_arrived_delay( int n )
 	fix delay, time;
 	int val;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	time = 0;
 	delay = i2f(atoi(CTEXT(n)));
@@ -3081,7 +3081,7 @@ int sexp_has_departed_delay( int n )
 	fix delay, time;
 	int val;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	time = 0;
 	delay = i2f(atoi(CTEXT(n)));
@@ -3146,7 +3146,7 @@ int sexp_ship_type_destroyed( int n )
 	shiptype = CTEXT(CDR(n));
 
 	for ( type = 0; type < MAX_SHIP_TYPE_COUNTS; type++ ) {
-		if ( !stricmp( Ship_type_names[type], shiptype) )
+		if ( !SDL_strcasecmp( Ship_type_names[type], shiptype) )
 			break;
 	}
 
@@ -3210,7 +3210,7 @@ int sexp_special_warp_dist( int n)
 		return SEXP_NAN;
 	}
 	
-	Assert( (Ships[shipnum].special_warp_objnum >= 0) && (Ships[shipnum].special_warp_objnum < MAX_OBJECTS));
+	SDL_assert( (Ships[shipnum].special_warp_objnum >= 0) && (Ships[shipnum].special_warp_objnum < MAX_OBJECTS));
 	if ( (Ships[shipnum].special_warp_objnum < 0) && (Ships[shipnum].special_warp_objnum >= MAX_OBJECTS) ) {
 		return SEXP_NAN;
 	}
@@ -3275,7 +3275,7 @@ int sexp_time_docked(int n)
 	char *dockee = CTEXT(CDR(n));
 	int count = atoi(CTEXT(CDR(CDR(n))));
 
-	Assert ( count > 0 );
+	SDL_assert ( count > 0 );
 	if ( !mission_log_get_time_indexed(LOG_SHIP_DOCK, docker, dockee, count, &time) ){
 		return SEXP_NAN;
 	}
@@ -3290,7 +3290,7 @@ int sexp_time_undocked(int n)
 	char *dockee = CTEXT(CDR(n));
 	int count = atoi(CTEXT(CDR(CDR(n))));
 
-	Assert ( count > 0 );
+	SDL_assert ( count > 0 );
 	if ( !mission_log_get_time_indexed(LOG_SHIP_UNDOCK, docker, dockee, count, &time) ){
 		return SEXP_NAN;
 	}
@@ -3302,7 +3302,7 @@ int sexp_time_ship_arrived(int n)
 {
 	fix time;
 
-	Assert( n != -1 );
+	SDL_assert( n != -1 );
 	if ( !mission_log_get_time( LOG_SHIP_ARRIVE, CTEXT(n), NULL, &time ) ){
 		return SEXP_NAN;
 	}
@@ -3314,7 +3314,7 @@ int sexp_time_wing_arrived(int n)
 {
 	fix time;
 
-	Assert( n != -1 );
+	SDL_assert( n != -1 );
 	if ( !mission_log_get_time( LOG_WING_ARRIVE, CTEXT(n), NULL, &time ) ){
 		return SEXP_NAN;
 	}
@@ -3326,7 +3326,7 @@ int sexp_time_ship_departed(int n)
 {
 	fix time;
 
-	Assert( n != -1 );
+	SDL_assert( n != -1 );
 	if ( !mission_log_get_time( LOG_SHIP_DEPART, CTEXT(n), NULL, &time ) ){
 		return SEXP_NAN;
 	}
@@ -3338,7 +3338,7 @@ int sexp_time_wing_departed(int n)
 {
 	fix time;
 
-	Assert( n != -1 );
+	SDL_assert( n != -1 );
 	if ( !mission_log_get_time( LOG_WING_DEPART, CTEXT(n), NULL, &time ) ){
 		return SEXP_NAN;
 	}
@@ -3501,7 +3501,7 @@ int sexp_hits_left_subsystem(int n)
 			ss = GET_FIRST( &Ships[shipnum].subsys_list );
 			while ( ss != END_OF_LIST( &Ships[shipnum].subsys_list ) ) {
 
-				if ( !stricmp(ss->system_info->subobj_name, subsys_name)) {
+				if ( !SDL_strcasecmp(ss->system_info->subobj_name, subsys_name)) {
 					percent = (int) (ss->current_hits / ss->system_info->max_hits * 100.0f);
 					return percent;
 				}
@@ -3523,15 +3523,15 @@ int sexp_determine_team(char *subj)
 {
 	int team = 0;
 
-	if (!stricmp(subj, "<any friendly>")){
+	if (!SDL_strcasecmp(subj, "<any friendly>")){
 		team = TEAM_FRIENDLY;
-	} else if (!stricmp(subj, "<any hostile>")){
+	} else if (!SDL_strcasecmp(subj, "<any hostile>")){
 		team = TEAM_HOSTILE;
-	} else if (!stricmp(subj, "<any neutral>")){
+	} else if (!SDL_strcasecmp(subj, "<any neutral>")){
 		team = TEAM_NEUTRAL;
-	} else if (!stricmp(subj, "<any unknown>")){
+	} else if (!SDL_strcasecmp(subj, "<any unknown>")){
 		team = TEAM_UNKNOWN;
-	} else if (!stricmp(subj, "<any traitor>")){
+	} else if (!SDL_strcasecmp(subj, "<any traitor>")){
 		team = TEAM_TRAITOR;
 	}
 
@@ -3709,7 +3709,7 @@ int sexp_last_order_time( int n )
 	ai_goals *aigp;
 
 	time = i2f(atoi(CTEXT(n)));
-	Assert ( time >= 0 );
+	SDL_assert ( time >= 0 );
 
 	n = CDR(n);
 	while ( n != -1 ) {
@@ -3768,7 +3768,7 @@ int sexp_skill_level_at_least( int n )
 
 	level_name = CTEXT(n);
 	for (i = 0; i < NUM_SKILL_LEVELS; i++ ) {
-		if ( !stricmp(level_name, Skill_level_names(i, 0)) ) {
+		if ( !SDL_strcasecmp(level_name, Skill_level_names(i, 0)) ) {
 			if ( Game_skill_level >= i ){
 				return 1;
 			} else {
@@ -3803,7 +3803,7 @@ int sexp_was_medal_granted(int n)
 
 	medal_name = CTEXT(n);
 	for (i=0; i<NUM_MEDALS; i++) {
-		if (!stricmp(medal_name, Medals[i].name))
+		if (!SDL_strcasecmp(medal_name, Medals[i].name))
 			break;
 	}
 
@@ -3998,7 +3998,7 @@ int sexp_is_cargo_known( int n, int check_delay )
 	int count, shipnum, num_known, delay;
 	char *name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	count = 0;
 	num_known = 0;
@@ -4074,7 +4074,7 @@ int sexp_has_been_tagged_delay(int n)
 	int count, shipnum, num_known, delay;
 	char *name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	count = 0;
 	num_known = 0;
@@ -4218,7 +4218,7 @@ int waypoint_lookup(char *name)
 		if (ptr->type == OBJ_WAYPOINT) {
 			i = ptr->instance;
 			sprintf(buf, "%s:%d", Waypoint_lists[i / 65536].name, (i & 0xffff) + 1);
-			if ( !stricmp(buf, name) )
+			if ( !SDL_strcasecmp(buf, name) )
 				return OBJ_INDEX(ptr);
 		}
 
@@ -4235,7 +4235,7 @@ int eval_when(int n)
 {
 	int cond, val;
 
-	Assert( n >= 0 );				// must have valid sexp index
+	SDL_assert( n >= 0 );				// must have valid sexp index
 
 	cond = CAR(n);
 	val = eval_sexp(cond);		// get the value of the the conditional
@@ -4265,7 +4265,7 @@ int eval_cond( int n )
 {
 	int cond = 0, node, val = 0;
 
-	Assert (n >= 0);
+	SDL_assert (n >= 0);
 	while (n >= 0) {
 		node = CAR(n);
 		cond = CAR(node);
@@ -4301,20 +4301,20 @@ int sexp_is_iff( int n )
 	char *ship_name, *iff;
 	int num, team;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 
 	// iff value is the first parameter, second is a list of one or more ships to check to see if the
 	// iff value matches
 	iff = CTEXT(n);
-	if ( !stricmp(iff, "friendly") )
+	if ( !SDL_strcasecmp(iff, "friendly") )
 		team = TEAM_FRIENDLY;
-	else if ( !stricmp(iff, "hostile") )
+	else if ( !SDL_strcasecmp(iff, "hostile") )
 		team = TEAM_HOSTILE;
-	else if ( !stricmp(iff, "neutral") )
+	else if ( !SDL_strcasecmp(iff, "neutral") )
 		team = TEAM_NEUTRAL;
-	else if ( !stricmp(iff, "unknown") )
+	else if ( !SDL_strcasecmp(iff, "unknown") )
 		team = TEAM_UNKNOWN;
-	else if ( !stricmp(iff, "traitor") )
+	else if ( !SDL_strcasecmp(iff, "traitor") )
 		team = TEAM_TRAITOR;
 	else {
 		Int3();
@@ -4345,17 +4345,17 @@ void sexp_change_iff( int n )
 	char *ship_name, *new_iff;
 	int num, new_team;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	new_iff = CTEXT(n);
-	if ( !stricmp(new_iff, "friendly") )
+	if ( !SDL_strcasecmp(new_iff, "friendly") )
 		new_team = TEAM_FRIENDLY;
-	else if ( !stricmp(new_iff, "hostile") )
+	else if ( !SDL_strcasecmp(new_iff, "hostile") )
 		new_team = TEAM_HOSTILE;
-	else if ( !stricmp(new_iff, "neutral") )
+	else if ( !SDL_strcasecmp(new_iff, "neutral") )
 		new_team = TEAM_NEUTRAL;
-	else if ( !stricmp(new_iff, "unknown") )
+	else if ( !SDL_strcasecmp(new_iff, "unknown") )
 		new_team = TEAM_UNKNOWN;
-	else if ( !stricmp(new_iff, "traitor") )
+	else if ( !SDL_strcasecmp(new_iff, "traitor") )
 		new_team = TEAM_TRAITOR;
 	else {
 		mprintf(("Warning: Team %s no longer supported.  Just Friendly and Hostile.\n", new_iff));
@@ -4392,7 +4392,7 @@ void sexp_add_ship_goal( int n )
 	int num, sindex;
 	char *ship_name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	ship_name = CTEXT(n);
 	num = ship_name_lookup(ship_name);
 	if ( num < 0 )									// ship not around anymore???? then forget it!
@@ -4408,7 +4408,7 @@ void sexp_add_wing_goal( int n )
 	int num, sindex;
 	char *wing_name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	wing_name = CTEXT(n);
 	num = wing_name_lookup(wing_name);
 	if ( num < 0 )									// ship not around anymore???? then forget it!
@@ -4425,7 +4425,7 @@ void sexp_add_goal( int n )
 	int num, sindex;
 	char *name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	name = CTEXT(n);
 	sindex = CDR(n);
 
@@ -4443,7 +4443,7 @@ void sexp_clear_ship_goals( int n )
 	int num;
 	char *ship_name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	ship_name = CTEXT(n);
 	num = ship_name_lookup(ship_name);
 	ai_clear_ship_goals( &(Ai_info[Ships[num].ai_index]) );
@@ -4455,7 +4455,7 @@ void sexp_clear_wing_goals( int n )
 	int num;
 	char *wing_name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	wing_name = CTEXT(n);
 	num = wing_name_lookup(wing_name);
 	if ( num < 0 )
@@ -4469,7 +4469,7 @@ void sexp_clear_goals( int n )
 	int num;
 	char *name;
 
-	Assert ( n >= 0 );
+	SDL_assert ( n >= 0 );
 	while ( n != -1 ) {
 		name = CTEXT(n);
 		if ( (num = ship_name_lookup(name)) != -1 )
@@ -4493,11 +4493,11 @@ void sexp_send_one_message( char *name, char *who_from, char *priority, int grou
 	}
 
 	// determine the priority of the message
-	if ( !stricmp(priority, "low") )
+	if ( !SDL_strcasecmp(priority, "low") )
 		ipriority = MESSAGE_PRIORITY_LOW;
-	else if ( !stricmp(priority, "normal") )
+	else if ( !SDL_strcasecmp(priority, "normal") )
 		ipriority = MESSAGE_PRIORITY_NORMAL;
-	else if ( !stricmp(priority, "high") )
+	else if ( !SDL_strcasecmp(priority, "high") )
 		ipriority = MESSAGE_PRIORITY_HIGH;
 	else {
 		Int3();
@@ -4513,7 +4513,7 @@ void sexp_send_one_message( char *name, char *who_from, char *priority, int grou
 	if ( who_from[0] == '#' ) {
 		message_send_unique_to_player( name, &(who_from[1]), MESSAGE_SOURCE_SPECIAL, ipriority, group, delay );
 		return;
-	} else if (!stricmp(who_from, "<any allied>")) {
+	} else if (!SDL_strcasecmp(who_from, "<any allied>")) {
 		//Int3();			// no longer supported
 		return;
 	} else if ( (num = wing_name_lookup(who_from)) != -1 ) {
@@ -4536,7 +4536,7 @@ void sexp_send_one_message( char *name, char *who_from, char *priority, int grou
 		
 		source = MESSAGE_SOURCE_COMMAND;
 
-	} else if ( !stricmp(who_from, "<any wingman>") || (wing_name_lookup(who_from) != -1) ) {
+	} else if ( !SDL_strcasecmp(who_from, "<any wingman>") || (wing_name_lookup(who_from) != -1) ) {
 		source = MESSAGE_SOURCE_WINGMAN;
 	} else {
 		// Message from a apecific ship
@@ -4567,14 +4567,14 @@ void sexp_send_message( int n )
 		return;
 	}
 
-	Assert ( n != -1 );
+	SDL_assert ( n != -1 );
 	who_from = CTEXT(n);
 	priority = CTEXT(CDR(n));
 	name = CTEXT(CDR(CDR(n)));
 
 	// a temporary check to see if the name field matched a priority since I am in the process
 	// of reordering the arguments
-	if ( !stricmp(name, "low") || !stricmp(name, "normal") || !stricmp(name, "high") ) {
+	if ( !SDL_strcasecmp(name, "low") || !SDL_strcasecmp(name, "normal") || !SDL_strcasecmp(name, "high") ) {
 		tmp = name;
 		name = priority;
 		priority = tmp;
@@ -4634,7 +4634,7 @@ void sexp_send_random_message( int n )
 	char *name, *who_from, *priority;
 	int temp, num_messages, message_num;
 
-	Assert ( n != -1 );
+	SDL_assert ( n != -1 );
 	who_from = CTEXT(n);
 	priority = CTEXT(CDR(n));
 
@@ -4650,7 +4650,7 @@ void sexp_send_random_message( int n )
 		n = CDR(n);
 		num_messages++;
 	}
-	Assert ( num_messages >= 1 );
+	SDL_assert ( num_messages >= 1 );
 	
 	// get a random message, and pass the parameters to send_one_message
 	message_num = myrand() % num_messages;
@@ -4661,7 +4661,7 @@ void sexp_send_random_message( int n )
 		message_num--;
 		n = CDR(n);
 	}
-	Assert (n != -1);		// should have found the message!!!
+	SDL_assert (n != -1);		// should have found the message!!!
 	name = CTEXT(n);
 
 	sexp_send_one_message( name, who_from, priority, 0, 0 );
@@ -4691,7 +4691,7 @@ void sexp_next_mission( int n )
 
 	mission_name = CTEXT(n);
 	for (i = 0; i < Campaign.num_missions; i++) {
-		if ( !stricmp(Campaign.missions[i].name, mission_name) ) {
+		if ( !SDL_strcasecmp(Campaign.missions[i].name, mission_name) ) {
 			Campaign.next_mission = i;
 			return;
 		}
@@ -4745,7 +4745,7 @@ void sexp_sabotage_subsystem( int n )
 	shipp = &Ships[shipnum];
 
 	// see if we are dealing with the HULL
-	if ( !stricmp( subsystem, SEXP_HULL_STRING) ) {
+	if ( !SDL_strcasecmp( subsystem, SEXP_HULL_STRING) ) {
 		float ihs;
 		object *objp;
 
@@ -4807,7 +4807,7 @@ void sexp_repair_subsystem( int n )
 	}
 
 	// see if we are dealing with the HULL
-	if ( !stricmp( subsystem, SEXP_HULL_STRING) ) {
+	if ( !SDL_strcasecmp( subsystem, SEXP_HULL_STRING) ) {
 		float ihs;
 		object *objp;
 
@@ -4867,7 +4867,7 @@ void sexp_set_subsystem_strength( int n )
 	}
 
 	// see if we are dealing with the HULL
-	if ( !stricmp( subsystem, SEXP_HULL_STRING) ) {
+	if ( !SDL_strcasecmp( subsystem, SEXP_HULL_STRING) ) {
 		float ihs;
 		object *objp;
 
@@ -4950,7 +4950,7 @@ void sexp_transfer_cargo( int n )
 		return;
 	}
 
-	if ( !stricmp(Cargo_names[Ships[shipnum1].cargo1 & CARGO_INDEX_MASK], "nothing") ) {
+	if ( !SDL_strcasecmp(Cargo_names[Ships[shipnum1].cargo1 & CARGO_INDEX_MASK], "nothing") ) {
 		Int3();			// you are transfering no cargo!!!!
 		return;
 	}
@@ -4959,7 +4959,7 @@ void sexp_transfer_cargo( int n )
 #ifndef NDEBUG
 	// Don't give warning for large ships (cruiser on up) 
 	if (! (Ship_info[Ships[shipnum2].ship_info_index].flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) ) {
-		if ( stricmp(Cargo_names[Ships[shipnum2].cargo1 & CARGO_INDEX_MASK], "nothing") ) {
+		if ( SDL_strcasecmp(Cargo_names[Ships[shipnum2].cargo1 & CARGO_INDEX_MASK], "nothing") ) {
 			Warning(LOCATION, "Transfering cargo to %s which already\nhas cargo %s.\nCargo will be replaced", Ships[shipnum2].ship_name, Cargo_names[Ships[shipnum2].cargo1 & CARGO_INDEX_MASK] );
 		}
 	}
@@ -4970,7 +4970,7 @@ void sexp_transfer_cargo( int n )
 		// need to set ship1's cargo to nothing.  scan the cargo_names array looking for the string nothing.
 		// add it if not found
 		for (i = 0; i < Num_cargo; i++ ) {
-			if ( !stricmp(Cargo_names[i], "nothing") ) {
+			if ( !SDL_strcasecmp(Cargo_names[i], "nothing") ) {
 				Ships[shipnum1].cargo1 = char(i);
 				return;
 			}
@@ -5077,7 +5077,7 @@ void sexp_cargo_no_deplete( int n )
 
 	if (CDR(n) != -1) {
 		no_deplete = atoi(CTEXT(CDR(n)));
-		Assert((no_deplete == 0) || (no_deplete == 1));
+		SDL_assert((no_deplete == 0) || (no_deplete == 1));
 		if ( (no_deplete != 0) && (no_deplete != 1) ) {
 			no_deplete = 1;
 		}
@@ -5112,7 +5112,7 @@ void sexp_good_time_to_rearm( int n )
 	team_name = CTEXT(n);
 	time = atoi(CTEXT(CDR(n)));						// this is the time for how long a good rearm is active -- in seconds
 	for ( i = 0; i < Num_team_names; i++ ) {
-		if ( !stricmp(team_name, Team_names[i]) ) {
+		if ( !SDL_strcasecmp(team_name, Team_names[i]) ) {
 			int team;
 
 			team = 1 << i;
@@ -5146,10 +5146,10 @@ void sexp_grant_medal( int n )
 	if ( (Game_mode & GM_NORMAL) && !(Game_mode & GM_CAMPAIGN_MODE) )
 		return;
 
-	Assert(Player->stats.m_medal_earned < 0);  // Mission has problems.  Tried to grant 2 medals in 1 mission.
+	SDL_assert(Player->stats.m_medal_earned < 0);  // Mission has problems.  Tried to grant 2 medals in 1 mission.
 	medal_name = CTEXT(n);
 	for (i = 0; i < NUM_MEDALS; i++ ) {
-		if ( !stricmp(medal_name, Medals[i].name) )
+		if ( !SDL_strcasecmp(medal_name, Medals[i].name) )
 			break;
 	}
 
@@ -5170,7 +5170,7 @@ void sexp_tech_add_ship(int node)
 	int i;
 	char *name;
 
-	Assert(node >= 0);
+	SDL_assert(node >= 0);
 	// this function doesn't mean anything when not in campaign mode
 	if ( !(Game_mode & GM_CAMPAIGN_MODE) )
 		return;
@@ -5192,7 +5192,7 @@ void sexp_tech_add_weapon(int node)
 	int i;
 	char *name;
 
-	Assert(node >= 0);
+	SDL_assert(node >= 0);
 	// this function doesn't mean anything when not in campaign mode
 	if ( !(Game_mode & GM_CAMPAIGN_MODE) )
 		return;
@@ -5325,7 +5325,7 @@ void sexp_good_secondary_time( int n )
 
 	// get the team type from the team_name
 	for ( i = 0; i < Num_team_names; i++ ) {
-		if ( !stricmp(Team_names[i], team_name) )
+		if ( !SDL_strcasecmp(Team_names[i], team_name) )
 			break;
 	}
 	if ( i == Num_team_names ) {
@@ -5380,7 +5380,7 @@ int sexp_previous_goal_status( int n, int status )
 			// now try and find the goal this mission
 			mission_num = i;
 			for (i = 0; i < Campaign.missions[mission_num].num_goals; i++) {
-				if ( !stricmp(Campaign.missions[mission_num].goals[i].name, goal_name) )
+				if ( !SDL_strcasecmp(Campaign.missions[mission_num].goals[i].name, goal_name) )
 					break;
 			}
 
@@ -5460,7 +5460,7 @@ int sexp_previous_event_status( int n, int status )
 			// now try and find the goal this mission
 			mission_num = i;
 			for (i = 0; i < Campaign.missions[mission_num].num_events; i++) {
-				if ( !stricmp(Campaign.missions[mission_num].events[i].name, name) )
+				if ( !SDL_strcasecmp(Campaign.missions[mission_num].events[i].name, name) )
 					break;
 			}
 
@@ -5510,7 +5510,7 @@ int sexp_event_status( int n, int want_true )
 	name = CTEXT(n);
 	for (i = 0; i < Num_mission_events; i++ ) {
 		// look for the event name, check it's status.  If formula is gone, we know the state won't ever change.
-		if ( !stricmp(Mission_events[i].name, name) ) {
+		if ( !SDL_strcasecmp(Mission_events[i].name, name) ) {
 			result = Mission_events[i].result;
 			if (Mission_events[i].formula < 0) {
 				if ( (want_true && result) || (!want_true && !result) )
@@ -5542,7 +5542,7 @@ int sexp_event_delay_status( int n, int want_true )
 	delay = i2f(num_eval(CDR(n)));
 	for (i = 0; i < Num_mission_events; i++ ) {
 		// look for the event name, check it's status.  If formula is gone, we know the state won't ever change.
-		if ( !stricmp(Mission_events[i].name, name) ) {
+		if ( !SDL_strcasecmp(Mission_events[i].name, name) ) {
 			if ( (fix) Mission_events[i].timestamp + delay >= Missiontime )
 				return SEXP_FALSE;
 
@@ -5574,7 +5574,7 @@ int sexp_event_incomplete( int n )
 	name = CTEXT(n);
 
 	for (i = 0; i < Num_mission_events; i++ ) {
-		if ( !stricmp(Mission_events[i].name, name ) ) {
+		if ( !SDL_strcasecmp(Mission_events[i].name, name ) ) {
 			// if the formula is still >= 0 (meaning it is still getting eval'ed), then
 			// the event is incomplete
 			if ( Mission_events[i].formula != -1 )
@@ -5899,7 +5899,7 @@ int sexp_key_pressed(int node)
 {
 	int z, t;
 
-	Assert(node != -1);
+	SDL_assert(node != -1);
 	z = translate_key_to_index(CTEXT(node));
 	if (z < 0){
 		return 0;
@@ -5921,7 +5921,7 @@ void sexp_key_reset(int node)
 {
 	int z;
 
-	Assert(node != -1);
+	SDL_assert(node != -1);
 	z = translate_key_to_index(CTEXT(node));
 	if (z >= 0)
 		Control_config[z].used = 0;
@@ -5952,7 +5952,7 @@ int sexp_targeted(int node)
 
 		if (CDR(CDR(node)) >= 0) {
 			ptr = Player_ai->targeted_subsys;
-			if (!ptr || stricmp(ptr->system_info->subobj_name, CTEXT(CDR(CDR(node))))){
+			if (!ptr || SDL_strcasecmp(ptr->system_info->subobj_name, CTEXT(CDR(CDR(node))))){
 				return 0;
 			}
 		}
@@ -6056,7 +6056,7 @@ int sexp_facing2(int node)
 	// get position of first waypoint
 	int wp_index = -1;
 	for (i=0; i<Num_waypoint_lists; i++) {
-		if (!stricmp(waypoint_name, Waypoint_lists[i].name)) {
+		if (!SDL_strcasecmp(waypoint_name, Waypoint_lists[i].name)) {
 			wp_index = i;
 			break;
 		}
@@ -6125,8 +6125,8 @@ void sexp_send_training_message(int node)
 		return;
 	}
 
-	Assert(node >= 0);
-	Assert(Event_index >= 0);
+	SDL_assert(node >= 0);
+	SDL_assert(Event_index >= 0);
 
 	if ((CDR(node) >= 0) && (CDR(CDR(node)) >= 0)) {
 		delay = atoi(CTEXT(CDR(CDR(node)))) * 1000;
@@ -6685,7 +6685,7 @@ void sexp_awacs_set_radius(int node)
 	}
 
 	// make sure this _is_ an awacs subsystem
-	Assert(awacs->system_info->flags & MSS_FLAG_AWACS);
+	SDL_assert(awacs->system_info->flags & MSS_FLAG_AWACS);
 	if(awacs->system_info->flags & MSS_FLAG_AWACS){
 		return;
 	}
@@ -7010,7 +7010,7 @@ int process_special_sexps(int index)
 	switch (index) {
 	case 0:	//	Ship "Freighter 1" is aspect locked by player.
 		if (Player_ai->target_objnum != -1) {
-			if (!(stricmp(Ships[Objects[Player_ai->target_objnum].instance].ship_name, "Freighter 1"))) {
+			if (!(SDL_strcasecmp(Ships[Objects[Player_ai->target_objnum].instance].ship_name, "Freighter 1"))) {
 				if (Player_ai->current_target_is_locked)
 					return SEXP_TRUE;
 			}
@@ -7021,11 +7021,11 @@ int process_special_sexps(int index)
 		object	*objp;
 		for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
 			if (objp->type == OBJ_WEAPON) {
-				if (!stricmp(Weapon_info[Weapons[objp->instance].weapon_info_index].name, "Interceptor#weak")) {
+				if (!SDL_strcasecmp(Weapon_info[Weapons[objp->instance].weapon_info_index].name, "Interceptor#weak")) {
 					int target = Weapons[objp->instance].target_num;
 					if (target != -1) {
 						if (Objects[target].type == OBJ_SHIP) {
-							if (!(stricmp(Ships[Objects[target].instance].ship_name, "Freighter 1")))
+							if (!(SDL_strcasecmp(Ships[Objects[target].instance].ship_name, "Freighter 1")))
 								return SEXP_TRUE;
 						}
 					}
@@ -7035,8 +7035,8 @@ int process_special_sexps(int index)
 		return SEXP_FALSE;
 	case 2:	//	Ship "Freighter 1", subsystem "Weapons" is aspect locked by player.
 		if (Player_ai->target_objnum != -1) {
-			if (!(stricmp(Ships[Objects[Player_ai->target_objnum].instance].ship_name, "Freighter 1"))) {
-				if (!(stricmp(Player_ai->targeted_subsys->system_info->name, "Weapons"))) {
+			if (!(SDL_strcasecmp(Ships[Objects[Player_ai->target_objnum].instance].ship_name, "Freighter 1"))) {
+				if (!(SDL_strcasecmp(Player_ai->targeted_subsys->system_info->name, "Weapons"))) {
 					if (Player_ai->current_target_is_locked){
 						return SEXP_TRUE;
 					}
@@ -7158,7 +7158,7 @@ void sexp_flash_hud_gauge( int node )
 
 	name = CTEXT(node);
 	for (i = 0; i < NUM_HUD_GAUGES; i++ ) {
-		if ( !stricmp(HUD_gauge_text[i], name) ) {
+		if ( !SDL_strcasecmp(HUD_gauge_text[i], name) ) {
 			hud_gauge_start_flash(i);	// call HUD function to flash gauge
 			break;
 		}
@@ -7170,7 +7170,7 @@ void sexp_set_training_context_fly_path(int node)
 	int i;
 
 	for (i=0; i<Num_waypoint_lists; i++)
-		if (!stricmp(CTEXT(node), Waypoint_lists[i].name))
+		if (!SDL_strcasecmp(CTEXT(node), Waypoint_lists[i].name))
 			break;
 
 	if (i < Num_waypoint_lists) {
@@ -7197,10 +7197,10 @@ int eval_sexp(int cur_node)
 	if (cur_node == -1)  // empty list, i.e. sexp: ( )
 		return FALSE;
 
-	Assert(cur_node >= 0);			// we have special sexp nodes <= -1!!!  MWA
+	SDL_assert(cur_node >= 0);			// we have special sexp nodes <= -1!!!  MWA
 									// which should be intercepted before we get here.  HOFFOSS
 	type = SEXP_NODE_TYPE(cur_node);
-	Assert( (type == SEXP_LIST) || (type == SEXP_ATOM) );
+	SDL_assert( (type == SEXP_LIST) || (type == SEXP_ATOM) );
 
 	// trap known true and known false sexpressions.  We don't trap on SEXP_NAN sexpressions since
 	// they may yet evaluate to true or false.
@@ -7982,7 +7982,7 @@ int eval_sexp(int cur_node)
 				break;
 		}
 
-		Assert(sexp_val != UNINITIALIZED);
+		SDL_assert(sexp_val != UNINITIALIZED);
 
 		// if we haven't returned, check the sexp value of the sexpression evaluation.  A special
 		// value of known true or known false means that we should set the sexp.value field for
@@ -8046,7 +8046,7 @@ int get_sexp_main()
 	if (!strncmp(Mp, "( )", 3))
 		savep++;
 
-	Assert(*Mp == '(');
+	SDL_assert(*Mp == '(');
 	Mp++;
 	start_node = get_sexp(token);
 	// only need to check syntax if we have a operator
@@ -8081,7 +8081,7 @@ int query_operator_return_type(int op)
 {
 	if (op < FIRST_OP)
 	{
-		Assert(op >= 0 && op < Num_operators);
+		SDL_assert(op >= 0 && op < Num_operators);
 		op = Operators[op].value;
 	}
 
@@ -8306,7 +8306,7 @@ int query_operator_argument_type(int op, int argnum)
 
 	if (op < FIRST_OP)
 	{
-		Assert(index >= 0 && index < Num_operators);
+		SDL_assert(index >= 0 && index < Num_operators);
 		op = Operators[index].value;
 
 	} else {
@@ -8314,7 +8314,7 @@ int query_operator_argument_type(int op, int argnum)
 			if (Operators[index].value == op)
 				break;
 
-		Assert(index < Num_operators);
+		SDL_assert(index < Num_operators);
 	}
 
 	if (argnum >= Operators[index].max)
@@ -8939,7 +8939,7 @@ void update_block_names(const char *old_name, const char *new_name)
 
 	for (i=0; i<MAX_SEXP_VARIABLES; i++) {
 		if (Sexp_variables[i].type & SEXP_VARIABLE_BLOCK) {
-			if ( !stricmp(old_name, Sexp_variables[i].variable_name) ) {
+			if ( !SDL_strcasecmp(old_name, Sexp_variables[i].variable_name) ) {
 				strcpy(Sexp_variables[i].variable_name, new_name);
 			}
 		}
@@ -8955,10 +8955,10 @@ void update_sexp_references(char *old_name, char *new_name)
 	// update_block_names
 	update_block_names(old_name, new_name);
 
-	Assert(strlen(new_name) < TOKEN_LENGTH);
+	SDL_assert(strlen(new_name) < TOKEN_LENGTH);
 	for (i=0; i<MAX_SEXP_NODES; i++){
 		if ((SEXP_NODE_TYPE(i) == SEXP_ATOM) && (Sexp_nodes[i].subtype == SEXP_ATOM_STRING)){
-			if (!stricmp(CTEXT(i), old_name)){
+			if (!SDL_strcasecmp(CTEXT(i), old_name)){
 				strcpy(CTEXT(i), new_name);
 			}
 		}
@@ -8971,7 +8971,7 @@ void update_sexp_references(char *old_name, char *new_name, int format)
 {
 	int i;
 
-	Assert(strlen(new_name) < TOKEN_LENGTH);
+	SDL_assert(strlen(new_name) < TOKEN_LENGTH);
 	for (i=0; i<MAX_SEXP_NODES; i++){
 		if (is_sexp_top_level(i)){
 			update_sexp_references(old_name, new_name, format, i);
@@ -9009,16 +9009,16 @@ void update_sexp_references(char *old_name, char *new_name, int format, int node
 	}
 
 	op = identify_operator(CTEXT(node));
-	Assert(Sexp_nodes[node].first < 0);
+	SDL_assert(Sexp_nodes[node].first < 0);
 	n = Sexp_nodes[node].rest;
 	i = 0;
 	while (n >= 0) {
 		if (SEXP_NODE_TYPE(n) == SEXP_LIST){
 			update_sexp_references(old_name, new_name, format, Sexp_nodes[n].first);
 		} else {
-			Assert((SEXP_NODE_TYPE(n) == SEXP_ATOM) && ((Sexp_nodes[n].subtype == SEXP_ATOM_NUMBER) || (Sexp_nodes[n].subtype == SEXP_ATOM_STRING)));
+			SDL_assert((SEXP_NODE_TYPE(n) == SEXP_ATOM) && ((Sexp_nodes[n].subtype == SEXP_ATOM_NUMBER) || (Sexp_nodes[n].subtype == SEXP_ATOM_STRING)));
 			if (query_operator_argument_type(op, i) == format) {
-				if (!stricmp(CTEXT(n), old_name)){
+				if (!SDL_strcasecmp(CTEXT(n), old_name)){
 					strcpy(CTEXT(n), new_name);
 				}
 			}
@@ -9035,7 +9035,7 @@ int query_referenced_in_sexp(int mode, char *name, int *node)
 
 	for (n=0; n<MAX_SEXP_NODES; n++){
 		if ((SEXP_NODE_TYPE(n) == SEXP_ATOM) && (Sexp_nodes[n].subtype == SEXP_ATOM_STRING)){
-			if (!stricmp(CTEXT(n), name)){
+			if (!SDL_strcasecmp(CTEXT(n), name)){
 				break;
 			}
 		}
@@ -9109,7 +9109,7 @@ int verify_vector(char *text)
 
 	for (i=0; i<Num_waypoint_lists; i++) {
 		len = strlen(str = Waypoint_lists[i].name);
-		if (!strnicmp(str, text, len)){
+		if (!SDL_strncasecmp(str, text, len)){
 			if (!text[len] || text[len] == ':'){
 				break;
 			}
@@ -9346,12 +9346,12 @@ int query_sexp_ai_goal_valid(int sexp_ai_goal, int ship)
 		if (Operators[op].value == sexp_ai_goal)
 			break;
 
-	Assert(op < Num_operators);
+	SDL_assert(op < Num_operators);
 	for (i=0; i<Num_sexp_ai_goal_links; i++)
 		if (Sexp_ai_goal_links[i].op_code == sexp_ai_goal)
 			break;
 
-	Assert(i < Num_sexp_ai_goal_links);
+	SDL_assert(i < Num_sexp_ai_goal_links);
 	return ai_query_goal_valid(ship, Sexp_ai_goal_links[i].ai_goal);
 }
 
@@ -9366,20 +9366,20 @@ int extract_sexp_variable_index(int node)
 
 	// get past the '['
 	start_index = text + 15;
-	Assert(isdigit(*start_index));
+	SDL_assert(isdigit(*start_index));
 
 	int len = 0;
 
 	while ( *start_index != ']' ) {
 		char_index[len++] = *(start_index++);
-		Assert(len < 3);
+		SDL_assert(len < 3);
 	}
 
-	Assert(len > 0);
+	SDL_assert(len > 0);
 	char_index[len] = 0;	// append null termination to string
 
 	variable_index = atoi(char_index);
-	Assert( (variable_index >= 0) && (variable_index < MAX_SEXP_VARIABLES) );
+	SDL_assert( (variable_index >= 0) && (variable_index < MAX_SEXP_VARIABLES) );
 
 	return variable_index;
 }
@@ -9392,7 +9392,7 @@ char *CTEXT(int n)
 		int sexp_variable_index;
 		if (Fred_running) {
 			sexp_variable_index = get_index_sexp_variable_name(Sexp_nodes[n].text);
-			Assert(sexp_variable_index != -1);
+			SDL_assert(sexp_variable_index != -1);
 		} else {
 //			sexp_variable_index = extract_sexp_variable_index(n);
 			sexp_variable_index = atoi(Sexp_nodes[n].text);
@@ -9400,8 +9400,8 @@ char *CTEXT(int n)
 		// Reference a Sexp_variable
 		// string format -- "Sexp_variables[xx]=number" or "Sexp_variables[xx]=string", where xx is the index
 
-		Assert( !(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_NOT_USED) );
-		Assert(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_SET);
+		SDL_assert( !(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_NOT_USED) );
+		SDL_assert(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_SET);
 
 		return Sexp_variables[sexp_variable_index].text;
 	} else {
@@ -9434,7 +9434,7 @@ int sexp_add_variable(const char *text, const char *var_name, int type, int inde
 			}
 		}
 	} else {
-		Assert( (index >= 0) && (index < MAX_SEXP_VARIABLES) );
+		SDL_assert( (index >= 0) && (index < MAX_SEXP_VARIABLES) );
 	}
 
 	if (index >= 0) {
@@ -9452,9 +9452,9 @@ int sexp_add_variable(const char *text, const char *var_name, int type, int inde
 // This should be called in mission when an sexp_variable is to be modified
 void sexp_modify_variable(char *text, int index)
 {
-	Assert(index >= 0 && index < MAX_SEXP_VARIABLES);
-	Assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
-	Assert( !MULTIPLAYER_CLIENT );
+	SDL_assert(index >= 0 && index < MAX_SEXP_VARIABLES);
+	SDL_assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
+	SDL_assert( !MULTIPLAYER_CLIENT );
 
 	strcpy(Sexp_variables[index].text, text);
 	Sexp_variables[index].type |= SEXP_VARIABLE_MODIFIED;
@@ -9477,11 +9477,11 @@ void sexp_modify_variable(int n)
 
 	if (n != -1) {
 		// get sexp_variable index
-		Assert(Sexp_nodes[n].first == -1);
+		SDL_assert(Sexp_nodes[n].first == -1);
 		sexp_variable_index = atoi(Sexp_nodes[n].text);
 
 		// verify variable set
-		Assert(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_SET);
+		SDL_assert(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_SET);
 
 		if (Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_NUMBER) {
 			// get new numerical value
@@ -9491,7 +9491,7 @@ void sexp_modify_variable(int n)
 			sexp_modify_variable(number_as_str, sexp_variable_index);
 		} else {
 			// get new string
-			Assert(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_STRING);
+			SDL_assert(Sexp_variables[sexp_variable_index].type & SEXP_VARIABLE_STRING);
 
 			char *new_text = Sexp_nodes[Sexp_nodes[n].rest].text;
 			sexp_modify_variable(new_text, sexp_variable_index);
@@ -9504,9 +9504,9 @@ void sexp_modify_variable(int n)
 // Different type needed for Fred (1) allow modification of type (2) no callback required
 void sexp_fred_modify_variable(const char *text, const char *var_name, int index, int type)
 {
-	Assert(index >= 0 && index < MAX_SEXP_VARIABLES);
-	Assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
-	Assert( (type & SEXP_VARIABLE_NUMBER) || (type & SEXP_VARIABLE_STRING) );
+	SDL_assert(index >= 0 && index < MAX_SEXP_VARIABLES);
+	SDL_assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
+	SDL_assert( (type & SEXP_VARIABLE_NUMBER) || (type & SEXP_VARIABLE_STRING) );
 
 	strcpy(Sexp_variables[index].text, text);
 	strcpy(Sexp_variables[index].variable_name, var_name);
@@ -9548,7 +9548,7 @@ int sexp_variable_count()
 // deletes sexp_variable from active
 void sexp_variable_delete(int index)
 {
-	Assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
+	SDL_assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
 
 	Sexp_variables[index].type = SEXP_VARIABLE_NOT_USED;
 }
@@ -9571,7 +9571,7 @@ int sexp_var_compare(const void *var1, const void *var2)
 	} else if (!set1 && set2) {
 		return 1;
 	} else {
-		return stricmp( sexp_var1->variable_name, sexp_var2->variable_name);
+		return SDL_strcasecmp( sexp_var1->variable_name, sexp_var2->variable_name);
 	}
 }
 
@@ -9621,7 +9621,7 @@ int sexp_variable_allocate_block(const char* block_name, int block_type)
 	start = MAX_SEXP_VARIABLES - block_count - num_blocks;
 
 	for (int idx=start; idx<start+num_blocks; idx++) {
-		Assert(Sexp_variables[idx].type == SEXP_VARIABLE_NOT_USED);
+		SDL_assert(Sexp_variables[idx].type == SEXP_VARIABLE_NOT_USED);
 		Sexp_variables[idx].type = SEXP_VARIABLE_BLOCK | block_type;
 		strcpy(Sexp_variables[idx].variable_name, block_name);
 	}
@@ -9661,9 +9661,9 @@ void sexp_variable_block_free(const char *ship_name, int start_index, int block_
 	}
 
 	for (int i=start_index; i<(start_index + num_blocks); i++) {
-		Assert(!stricmp(Sexp_variables[i].variable_name, ship_name));
+		SDL_assert(!SDL_strcasecmp(Sexp_variables[i].variable_name, ship_name));
 
-		Assert(Sexp_variables[i].type & block_type);
+		SDL_assert(Sexp_variables[i].type & block_type);
 
 		Sexp_variables[i].type = SEXP_VARIABLE_NOT_USED;
 	}

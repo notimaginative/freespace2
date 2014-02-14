@@ -221,7 +221,7 @@ void pack_directory( char * filespec)
 		strcpy(dir_name, filespec);
 	}
 
-	if ( !stricmp(dir_name, "voice") ) {
+	if ( !SDL_strcasecmp(dir_name, "voice") ) {
 		return;
 	}
 */
@@ -326,7 +326,7 @@ int verify_directory( char *filespec )
 
 	// make sure last directory is named "data", ignoring case
 	dd = filespec+(strlen(filespec)-4);
-	if ( stricmp( dd, "data" ) )
+	if ( SDL_strcasecmp( dd, "data" ) )
 		data_error = 1;
 	
 	return data_error;

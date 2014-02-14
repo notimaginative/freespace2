@@ -403,19 +403,19 @@ ushort multi_get_next_network_signature( int what_kind )
 // and is used mainly for firing weapons.  what_kind tells us permanent or non-permanent signature
 void multi_set_network_signature( ushort signature, int what_kind )
 {
-	Assert( signature != 0 );
+	SDL_assert( signature != 0 );
 
 	if ( what_kind == MULTI_SIG_SHIP ) {
-		Assert( (signature >= SHIP_SIG_MIN) && (signature <= SHIP_SIG_MAX) );
+		SDL_assert( (signature >= SHIP_SIG_MIN) && (signature <= SHIP_SIG_MAX) );
 		Next_ship_signature = signature;
 	} else if ( what_kind == MULTI_SIG_DEBRIS ) {
-		Assert( (signature >= DEBRIS_SIG_MIN) && (signature <= DEBRIS_SIG_MAX) );
+		SDL_assert( (signature >= DEBRIS_SIG_MIN) && (signature <= DEBRIS_SIG_MAX) );
 		Next_debris_signature = signature;
 	} else if ( what_kind == MULTI_SIG_ASTEROID ) {
-		Assert( (signature >= ASTEROID_SIG_MIN) && (signature <= ASTEROID_SIG_MAX) );
+		SDL_assert( (signature >= ASTEROID_SIG_MIN) && (signature <= ASTEROID_SIG_MAX) );
 		Next_asteroid_signature = signature;
 	} else if ( what_kind == MULTI_SIG_NON_PERMANENT ) {
-		Assert( (signature >= NPERM_SIG_MIN) && (signature <= NPERM_SIG_MAX) );
+		SDL_assert( (signature >= NPERM_SIG_MIN) && (signature <= NPERM_SIG_MAX) );
 		Next_non_perm_signature = signature;
 	} else
 		Int3();			// get Allender
@@ -598,7 +598,7 @@ int multi_ship_class_lookup(const char* ship_name)
 
 	player_ship_class = -1;
 	for (i = 0; i < Num_ship_types; i++) {
-		if ( !stricmp(Ship_info[i].name, ship_name) ) {
+		if ( !SDL_strcasecmp(Ship_info[i].name, ship_name) ) {
 			player_ship_class = i;
 			break;
 		}
@@ -756,7 +756,7 @@ int multi_find_player_by_ship_name(const char *ship_name)
 
 	for(idx=0; idx<MAX_PLAYERS; idx++){
 		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_OBSERVER(Net_players[idx]) && (Net_players[idx].player != NULL) && (Net_players[idx].player->objnum >= 0) && (Net_players[idx].player->objnum < MAX_OBJECTS) && (Objects[Net_players[idx].player->objnum].type == OBJ_SHIP) && 
-			(Objects[Net_players[idx].player->objnum].instance >= 0) && (Objects[Net_players[idx].player->objnum].instance < MAX_SHIPS) && !stricmp(ship_name, Ships[Objects[Net_players[idx].player->objnum].instance].ship_name) ){
+			(Objects[Net_players[idx].player->objnum].instance >= 0) && (Objects[Net_players[idx].player->objnum].instance < MAX_SHIPS) && !SDL_strcasecmp(ship_name, Ships[Objects[Net_players[idx].player->objnum].instance].ship_name) ){
 			return idx;
 		}
 	}
@@ -852,7 +852,7 @@ void multi_assign_player_ship( int net_player, object *objp,int ship_class )
 	ship *shipp;
 	int idx;
 
-	Assert ( MULTI_CONNECTED(Net_players[net_player]) );
+	SDL_assert ( MULTI_CONNECTED(Net_players[net_player]) );
 
 	shipp = &Ships[objp->instance];
 
@@ -869,7 +869,7 @@ void multi_assign_player_ship( int net_player, object *objp,int ship_class )
 	// find the parse object for this ship.  Also, set the wingman status stuff so wingman status gauge
 	// works properly.
 	Net_players[net_player].p_info.p_objp = mission_parse_get_arrival_ship( shipp->ship_name );
-	Assert( Net_players[net_player].p_info.p_objp != NULL );		// get allender -- ship should be on list
+	SDL_assert( Net_players[net_player].p_info.p_objp != NULL );		// get allender -- ship should be on list
 	Net_players[net_player].p_info.p_objp->ship_class = ship_class;		// be sure this gets set so respawns work
 
 	// game server and this client need to initialize this information so object updating
@@ -900,7 +900,7 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 	int player_ship_class = ship_class;
 	int i,current_player_count;
 
-	Assert ( net_player_num < MAX_PLAYERS );				// probably shoudln't be able to even get into this routine if no room	
+	SDL_assert ( net_player_num < MAX_PLAYERS );				// probably shoudln't be able to even get into this routine if no room	
 	
 	// blast _any_ old data
 	memset(&Net_players[net_player_num],0,sizeof(net_player));
@@ -917,14 +917,14 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 		// find the ship that matches the string stored in default_player_ship
 
 		for (i = 0; i < Num_ship_types; i++) {
-			if ( !stricmp(Ship_info[i].name, default_player_ship) ) {
+			if ( !SDL_strcasecmp(Ship_info[i].name, default_player_ship) ) {
 				player_ship_class = i;
 				break;
 			}
 		}
 
 		if (i == Num_ship_types)
-			Assert(0);
+			SDL_assert(0);
 	}
 	
 	if ( player_ship_class >= Num_ship_types ) {
@@ -1001,7 +1001,7 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 void multi_make_player_ai( object *pobj )
 {
 
-	Assert ( pobj != NULL );
+	SDL_assert ( pobj != NULL );
 
 	if ( pobj->type != OBJ_SHIP )
 		return;
@@ -1228,9 +1228,9 @@ ushort netmisc_calc_checksum( void * vptr, int len )
 
 void fill_net_addr(net_addr_t* addr, ubyte* address, ubyte* net_id, ushort port)
 {
-	Assert(addr != NULL);
-	Assert(address != NULL);
-	Assert(net_id != NULL);
+	SDL_assert(addr != NULL);
+	SDL_assert(address != NULL);
+	SDL_assert(net_id != NULL);
 
 	addr->type = Multi_options_g.protocol;
 	memset( addr->addr, 0x00, 6);
@@ -1269,7 +1269,7 @@ char* get_text_address( char * text, ubyte * address )
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 			break;
 
 	} // end switch
@@ -1290,10 +1290,10 @@ void multi_pack_orient_matrix(ubyte *data,matrix *m)
 	if(m->v.fvec.xyz.x < 0) data[16] |= (1<<3);	// Z
 	if(m->v.fvec.xyz.y < 0) data[16] |= (1<<4);	// W
 
-	x1 = INTEL_FLOAT(&m->v.rvec.xyz.x);
-	y1 = INTEL_FLOAT(&m->v.rvec.xyz.y);
-	x2 = INTEL_FLOAT(&m->v.uvec.xyz.x);
-	y2 = INTEL_FLOAT(&m->v.uvec.xyz.y);
+	x1 = INTEL_FLOAT(m->v.rvec.xyz.x);
+	y1 = INTEL_FLOAT(m->v.rvec.xyz.y);
+	x2 = INTEL_FLOAT(m->v.uvec.xyz.x);
+	y2 = INTEL_FLOAT(m->v.uvec.xyz.y);
 
 	memcpy(&data[0], &x1, 4);	// a
 	memcpy(&data[4], &y1, 4);	// b
@@ -1312,10 +1312,10 @@ void multi_unpack_orient_matrix(ubyte *data,matrix *m)
 	memcpy(&x2, &data[8], 4);
 	memcpy(&y2, &data[12],4);
 
-	m->v.rvec.xyz.x = INTEL_FLOAT(&x1);
-	m->v.rvec.xyz.y = INTEL_FLOAT(&y1);
-	m->v.uvec.xyz.x = INTEL_FLOAT(&x2);
-	m->v.uvec.xyz.y = INTEL_FLOAT(&y2);
+	m->v.rvec.xyz.x = INTEL_FLOAT(x1);
+	m->v.rvec.xyz.y = INTEL_FLOAT(y1);
+	m->v.uvec.xyz.x = INTEL_FLOAT(x2);
+	m->v.uvec.xyz.y = INTEL_FLOAT(y2);
 	
 	m->v.rvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.rvec.xyz.x * m->v.rvec.xyz.x) - (m->v.rvec.xyz.y * m->v.rvec.xyz.y))); // X
 	m->v.uvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.uvec.xyz.x * m->v.uvec.xyz.x) - (m->v.uvec.xyz.y * m->v.uvec.xyz.y))); // Y
@@ -1473,7 +1473,7 @@ void multi_subsys_update_all()
 {
 	/*
 	int idx;
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	for(idx=0;idx<MAX_PLAYERS;idx++){
 		if((Net_players[idx].flags & NETINFO_FLAG_CONNECTED) && !psnet_same(&My_addr,&Net_players[idx].addr) && !(Net_players[idx].flags & NETINFO_FLAG_OBSERVER))
 			send_subsys_update_packet(&Net_players[idx]);
@@ -1521,7 +1521,7 @@ void server_verify_filesig(short player_id, ushort sum_sig, int length_sig)
    int player;
 
 	player = find_player_id(player_id);
-	Assert(player >= 0);
+	SDL_assert(player >= 0);
 	if(player < 0){
 		return;
 	}
@@ -1540,7 +1540,7 @@ void server_verify_filesig(short player_id, ushort sum_sig, int length_sig)
 	int is_builtin;
    
 	player = find_player_id(player_id);
-	Assert(player >= 0);
+	SDL_assert(player >= 0);
 	if(player < 0){
 		return;
 	}
@@ -1768,8 +1768,8 @@ void multi_maybe_send_repair_info(object *dest_objp, object *source_objp, int co
 	if ( !MULTIPLAYER_MASTER )
 		return;
 	
-	Assert( dest_objp->type == OBJ_SHIP );
-	Assert( dest_objp != source_objp );
+	SDL_assert( dest_objp->type == OBJ_SHIP );
+	SDL_assert( dest_objp != source_objp );
 
 	send_repair_info_packet( dest_objp, source_objp, code );
 }
@@ -1797,7 +1797,7 @@ void multi_create_standalone_object()
 
 	// create the default player ship object and use that as my default virtual "ship", and make it "invisible"
 	pobj_num = parse_create_object(&Player_start_pobject);
-	Assert(pobj_num != -1);
+	SDL_assert(pobj_num != -1);
 	obj_set_flags(&Objects[pobj_num],OF_PLAYER_SHIP);
 	Objects[pobj_num].net_signature = STANDALONE_SHIP_SIG;
 	Player_ship = &Ships[Objects[pobj_num].instance];
@@ -2072,7 +2072,7 @@ int multi_can_message(net_player *p)
 
 		// check to see if he's a wingleader
 		sp = &Ships[Objects[p->player->objnum].instance];		
-		if(stricmp(sp->ship_name,NOX("alpha 1")) && stricmp(sp->ship_name,NOX("beta 1")) && stricmp(sp->ship_name,NOX("gamma 1")) && stricmp(sp->ship_name,NOX("zeta 1")) ){
+		if(SDL_strcasecmp(sp->ship_name,NOX("alpha 1")) && SDL_strcasecmp(sp->ship_name,NOX("beta 1")) && SDL_strcasecmp(sp->ship_name,NOX("gamma 1")) && SDL_strcasecmp(sp->ship_name,NOX("zeta 1")) ){
 			return 0;
 		}	
 		break;
@@ -2120,7 +2120,7 @@ int multi_can_end_mission(net_player *p)
 
 		// check to see if he's a wingleader
 		sp = &Ships[Objects[p->player->objnum].instance];
-		if(stricmp(sp->ship_name,NOX("alpha 1")) && stricmp(sp->ship_name,NOX("beta 1")) && stricmp(sp->ship_name,NOX("gamma 1")) && stricmp(sp->ship_name,NOX("zeta 1")) ){
+		if(SDL_strcasecmp(sp->ship_name,NOX("alpha 1")) && SDL_strcasecmp(sp->ship_name,NOX("beta 1")) && SDL_strcasecmp(sp->ship_name,NOX("gamma 1")) && SDL_strcasecmp(sp->ship_name,NOX("zeta 1")) ){
 			return 0;
 		}	
 		break;
@@ -2511,7 +2511,7 @@ void multi_file_xfer_notify(int handle)
 	// if the incoming filename is a freespace file, set my netplayer state to be "file xfer"
 	if(is_mission){
 		// we'd better not be xferring a file right now
-		Assert(Net_player->s_info.xfer_handle == -1);
+		SDL_assert(Net_player->s_info.xfer_handle == -1);
 
 		// force into the multidata directory
 		multi_xfer_handle_force_dir(handle, cf_type);		
@@ -2563,7 +2563,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 	net_player_num = multi_find_open_netplayer_slot();
 	player_num = multi_find_open_player_slot();
 	id_num = multi_get_new_id();
-	Assert((net_player_num != -1) && (player_num != -1));			
+	SDL_assert((net_player_num != -1) && (player_num != -1));			
 
 	// if he is requesting to join as an observer
 	if(jr->flags & JOIN_FLAG_AS_OBSERVER){			
@@ -2684,7 +2684,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		else if(Net_players[net_player_num].flags & NETINFO_FLAG_INGAME_JOIN){
 			// if we're in team vs. team mode
 			if(Netgame.type_flags & NG_TYPE_TEAM){
-				Assert(ingame_join_team != -1);
+				SDL_assert(ingame_join_team != -1);
 
 				Net_players[net_player_num].p_info.team = ingame_join_team;
 			}
@@ -2894,7 +2894,7 @@ void multi_server_update_player_weapons(net_player *pl,ship *shipp)
 	// engine ets
 	pl->s_info.ship_ets |= ((ushort)shipp->engine_recharge_index);
 
-	Assert( pl->s_info.ship_ets != 0 );
+	SDL_assert( pl->s_info.ship_ets != 0 );
 }
 
 // flush the multidata cache directory
@@ -3126,15 +3126,15 @@ int multi_get_connection_speed()
 	
 	connection_speed = os_config_read_string(NULL, "ConnectionSpeed", "");	
 
-	if ( !stricmp(connection_speed, NOX("Slow")) ) {
+	if ( !SDL_strcasecmp(connection_speed, NOX("Slow")) ) {
 		cspeed = CONNECTION_SPEED_288;
-	} else if ( !stricmp(connection_speed, NOX("56K")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("56K")) ) {
 		cspeed = CONNECTION_SPEED_56K;
-	} else if ( !stricmp(connection_speed, NOX("ISDN")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("ISDN")) ) {
 		cspeed = CONNECTION_SPEED_SISDN;
-	} else if ( !stricmp(connection_speed, NOX("Cable")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("Cable")) ) {
 		cspeed = CONNECTION_SPEED_CABLE;
-	} else if ( !stricmp(connection_speed, NOX("Fast")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("Fast")) ) {
 		cspeed = CONNECTION_SPEED_T1;
 	} else {
 		cspeed = CONNECTION_SPEED_NONE;

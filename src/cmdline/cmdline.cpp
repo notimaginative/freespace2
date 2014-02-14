@@ -347,7 +347,7 @@ static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 	// mwa 9/14/98 -- made it so that newer command line arguments found will overwrite
 	// the old arguments
-//	Assert(parm->args == NULL);
+//	SDL_assert(parm->args == NULL);
 	if ( parm->args != NULL ) {
 		delete [] parm->args;
 		parm->args = NULL;
@@ -619,7 +619,7 @@ int cmdline_parm::found()
 // returns - the interger representation for the parameter arguement
 int cmdline_parm::get_int()
 {
-	Assert(args);
+	SDL_assert(args);
 	return atoi(args);
 }
 
@@ -627,7 +627,7 @@ int cmdline_parm::get_int()
 // returns - the float representation for the parameter arguement
 float cmdline_parm::get_float()
 {
-	Assert(args);
+	SDL_assert(args);
 	return (float)atof(args);
 }
 
@@ -635,7 +635,7 @@ float cmdline_parm::get_float()
 // returns - the string value for the parameter arguement
 char *cmdline_parm::str()
 {
-	Assert(args);
+	SDL_assert(args);
 	return args;
 }
 

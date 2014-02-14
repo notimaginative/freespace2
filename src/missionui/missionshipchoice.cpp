@@ -740,22 +740,22 @@ const char *ss_tooltip_handler(const char *str)
 	if (Selected_ss_class < 0)
 		return NULL;
 
-	if (!stricmp(str, NOX("@ship_name"))) {
+	if (!SDL_strcasecmp(str, NOX("@ship_name"))) {
 		return Ship_info[Selected_ss_class].name;
 
-	} else if (!stricmp(str, NOX("@ship_type"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@ship_type"))) {
 		return Ship_info[Selected_ss_class].type_str;
 
-	} else if (!stricmp(str, NOX("@ship_maneuverability"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@ship_maneuverability"))) {
 		return Ship_info[Selected_ss_class].maneuverability_str;
 
-	} else if (!stricmp(str, NOX("@ship_armor"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@ship_armor"))) {
 		return Ship_info[Selected_ss_class].armor_str;
 
-	} else if (!stricmp(str, NOX("@ship_manufacturer"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@ship_manufacturer"))) {
 		return Ship_info[Selected_ss_class].manufacturer_str;
 
-	} else if (!stricmp(str, NOX("@ship_desc"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@ship_desc"))) {
 		char *str;
 		int x, y, w, h;
 
@@ -851,7 +851,7 @@ void active_list_add(int ship_class)
 	ss_active_item *sai;
 
 	sai = get_free_active_list_node();
-	Assert(sai != NULL);
+	SDL_assert(sai != NULL);
 	sai->ship_class = ship_class;
 	list_append(&SS_active_head, sai);
 }
@@ -1195,15 +1195,15 @@ void maybe_change_selected_ship(int offset)
 		start_ship_animation(Selected_ss_class, 1);
 	}
 	else
-		Assert( Selected_ss_class == ship_class );
+		SDL_assert( Selected_ss_class == ship_class );
 }
 
 void maybe_change_selected_wing_ship(int wb_num, int ws_num)
 {
 	ss_slot_info	*ss_slot;
 
-	Assert(wb_num >= 0 && wb_num < MAX_WING_BLOCKS);
-	Assert(ws_num >= 0 && ws_num < MAX_WING_SLOTS);	
+	SDL_assert(wb_num >= 0 && wb_num < MAX_WING_BLOCKS);
+	SDL_assert(ws_num >= 0 && ws_num < MAX_WING_SLOTS);	
 	
 	if ( Ss_wings[wb_num].wingnum < 0 ) {
 		return;
@@ -1457,7 +1457,7 @@ void ship_select_blit_ship_info()
 
 	// blit the _short_ text description
 	/*
-	Assert(Multi_ts_ship_info_line_count < 3);
+	SDL_assert(Multi_ts_ship_info_line_count < 3);
 	gr_set_color_fast(&Color_normal);
 	for(idx=0;idx<SHIP_SELECT_ship_info_line_count;idx++){
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start, SHIP_SELECT_ship_info_lines[idx]);
@@ -1649,7 +1649,7 @@ void ship_select_do(float frametime)
 	ss_maybe_drop_icon();
 
 	if ( Ship_anim_class >= 0) {
-		Assert(Selected_ss_class >= 0);
+		SDL_assert(Selected_ss_class >= 0);
 		if ( Ss_icons[Selected_ss_class].anim_instance->frame_num == Ss_icons[Selected_ss_class].anim_instance->stop_at ) { 
 			nprintf(("anim", "Frame number = %d, Stop at %d\n", Ss_icons[Selected_ss_class].anim_instance->frame_num, Ss_icons[Selected_ss_class].anim_instance->stop_at));
 			anim_play_struct aps;
@@ -1823,8 +1823,8 @@ void draw_ship_icon_with_number(int screen_offset, int ship_class)
 	ss_icon_info *ss_icon;
 
 
-	Assert( screen_offset >= 0 && screen_offset <= 3 );
-	Assert( ship_class >= 0 );
+	SDL_assert( screen_offset >= 0 && screen_offset <= 3 );
+	SDL_assert( ship_class >= 0 );
 	ss_icon = &Ss_icons[ship_class];
 
 	num_x = Ship_list_coords[gr_screen.res][screen_offset][2];
@@ -1835,7 +1835,7 @@ void draw_ship_icon_with_number(int screen_offset, int ship_class)
 
 	// next check if ship has mouse over it
 	if ( Hot_ss_icon > -1 ) {
-		Assert(Hot_ss_icon <= 3);
+		SDL_assert(Hot_ss_icon <= 3);
 		if ( Hot_ss_icon == screen_offset )
 			ss_icon->current_icon_bitmap = ss_icon->icon_bmaps[ICON_FRAME_HOT];
 	}
@@ -1894,7 +1894,7 @@ anim* ss_load_individual_animation(int ship_class)
 	// 1024x768 SUPPORT
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
-		Assert(strlen(Ship_info[ship_class].anim_filename) <= 30);
+		SDL_assert(strlen(Ship_info[ship_class].anim_filename) <= 30);
 		strcpy(animation_filename, "2_");
 		strcat(animation_filename, Ship_info[ship_class].anim_filename);
 		// now check if file exists
@@ -1935,7 +1935,7 @@ anim* ss_load_individual_animation(int ship_class)
 void start_ship_animation(int ship_class, int play_sound)
 {
 	ss_icon_info	*ss_icon;
-	Assert( ship_class >= 0 );
+	SDL_assert( ship_class >= 0 );
 
 	if ( Ship_anim_class == ship_class ) 
 		return;
@@ -2021,7 +2021,7 @@ void commit_pressed()
 			player_ship_info_index = Team_data[Common_team].default_ship;
 
 		} else {
-			Assert(Selected_ss_class >= 0 );
+			SDL_assert(Selected_ss_class >= 0 );
 			player_ship_info_index = Selected_ss_class;
 		}
 
@@ -2072,7 +2072,7 @@ void commit_pressed()
 int pick_from_ship_list(int screen_offset, int ship_class)
 {
 	int rval = -1;
-	Assert(ship_class >= 0);
+	SDL_assert(ship_class >= 0);
 
 	if ( Wss_num_wings == 0 )
 		return rval;
@@ -2088,7 +2088,7 @@ int pick_from_ship_list(int screen_offset, int ship_class)
 		mouse_get_pos( &mouse_x, &mouse_y );
 		Ss_delta_x = Ship_list_coords[gr_screen.res][screen_offset][0] - mouse_x;
 		Ss_delta_y = Ship_list_coords[gr_screen.res][screen_offset][1] - mouse_y;
-		Assert( Ss_pool[ship_class] >= 0 );
+		SDL_assert( Ss_pool[ship_class] >= 0 );
 		rval = 0;
 	}
 
@@ -2104,8 +2104,8 @@ int pick_from_ship_list(int screen_offset, int ship_class)
 void pick_from_wing(int wb_num, int ws_num)
 {
 	int slot_index;
-	Assert(wb_num >= 0 && wb_num < MAX_WING_BLOCKS);
-	Assert(ws_num >= 0 && ws_num < MAX_WING_SLOTS);
+	SDL_assert(wb_num >= 0 && wb_num < MAX_WING_BLOCKS);
+	SDL_assert(ws_num >= 0 && ws_num < MAX_WING_SLOTS);
 	
 	ss_wing_info *wb;
 	ss_slot_info *ws;
@@ -2149,7 +2149,7 @@ void pick_from_wing(int wb_num, int ws_num)
 		case WING_SLOT_FILLED:
 			{
 			int mouse_x, mouse_y;
-			Assert(Wss_slots[slot_index].ship_class >= 0);
+			SDL_assert(Wss_slots[slot_index].ship_class >= 0);
 			ss_set_carried_icon(slot_index, Wss_slots[slot_index].ship_class);
 
 			mouse_get_pos( &mouse_x, &mouse_y );
@@ -2185,7 +2185,7 @@ void draw_wing_block(int wb_num, int hot_slot, int selected_slot, int class_sele
 	wing				*wp;
 	int				i, bitmap_to_draw, w, h, sx, sy, slot_index;
 
-	Assert(wb_num >= 0 && wb_num < MAX_WING_BLOCKS);		
+	SDL_assert(wb_num >= 0 && wb_num < MAX_WING_BLOCKS);		
 	wb = &Ss_wings[wb_num];
 	
 	if ( wb->wingnum == -1 )
@@ -2214,7 +2214,7 @@ void draw_wing_block(int wb_num, int hot_slot, int selected_slot, int class_sele
 			case WING_SLOT_FILLED:
 			case WING_SLOT_FILLED|WING_SLOT_IS_PLAYER:
 
-				Assert(icon);
+				SDL_assert(icon);
 
 				if ( class_select >= 0 ) {	// only ship select
 					if ( Carried_ss_icon.from_slot == slot_index ) {
@@ -2330,7 +2330,7 @@ void ss_blit_ship_icon(int x,int y,int ship_class,int bmap_num)
 		gr_set_bitmap(Wing_slot_empty_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	} else {
 		ss_icon_info *icon = &Ss_icons[ship_class];
-		Assert(icon->icon_bmaps[bmap_num] != -1);	
+		SDL_assert(icon->icon_bmaps[bmap_num] != -1);	
 		gr_set_bitmap(icon->icon_bmaps[bmap_num], GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 	}
 	gr_bitmap(x,y);	
@@ -2393,7 +2393,7 @@ int create_wings()
 				case WING_SLOT_FILLED|WING_SLOT_LOCKED:
 				case WING_SLOT_FILLED|WING_SLOT_IS_PLAYER|WING_SLOT_LOCKED:
 					if ( wp->ship_index[j] >= 0 ) {
-						Assert(Ships[wp->ship_index[j]].objnum >= 0);
+						SDL_assert(Ships[wp->ship_index[j]].objnum >= 0);
 					}
 
 					if ( ws->status & WING_SLOT_IS_PLAYER ) {
@@ -2419,7 +2419,7 @@ int create_wings()
 									}
 								}
 							}
-							Assert(found_pobj);
+							SDL_assert(found_pobj);
 						}
 						else {
 							// AL 10/04/97
@@ -2468,11 +2468,11 @@ int create_wings()
 					if ( wb->is_late ) {
 						list_remove( &ship_arrival_list, &ship_arrivals[ws->sa_index]);
 						wp->wave_count--;
-						Assert(wp->wave_count >= 0);
+						SDL_assert(wp->wave_count >= 0);
 					}
 					else {
 						shipnum = wp->ship_index[j];
-						Assert( shipnum >= 0 && shipnum < MAX_SHIPS );
+						SDL_assert( shipnum >= 0 && shipnum < MAX_SHIPS );
 						cleanup_ship_index[j] = shipnum;
 						ship_add_exited_ship( &Ships[shipnum], SEF_PLAYER_DELETED );
 						obj_delete(Ships[shipnum].objnum);
@@ -2514,8 +2514,8 @@ void ship_stop_animation()
 //
 void update_player_ship(int si_index)
 {
-	Assert( si_index >= 0 );
-	Assert( Player_obj != NULL);
+	SDL_assert( si_index >= 0 );
+	SDL_assert( Player_obj != NULL);
 
 	// AL 10/04/97
 	// Change the ship type of the player ship if different than current.
@@ -2548,7 +2548,7 @@ int create_default_player_ship(int use_last_flown)
 	}
 	else {
 		for (i = 0; i < Num_ship_types; i++) {
-			if ( !stricmp(Ship_info[i].name, default_player_ship) ) {
+			if ( !SDL_strcasecmp(Ship_info[i].name, default_player_ship) ) {
 				player_ship_class = i;
 				Players[Player_num].last_ship_flown_si_index = player_ship_class;
 				break;
@@ -2639,7 +2639,7 @@ int ss_return_ship(int wing_block, int wing_slot, int *ship_index, p_object **pp
 		*ppobjp = &ship_arrivals[ws->sa_index];
 	} else {
 		*ship_index = Wings[Ss_wings[wing_block].wingnum].ship_index[wing_slot];
-		Assert(*ship_index != -1);		
+		SDL_assert(*ship_index != -1);		
 	}
 
 	return ws->original_ship_class;
@@ -2748,7 +2748,7 @@ int ss_fixup_team_data(team_data *tdata)
 			ship_in_parse_player = 0;
 			
 			for ( k = 0; k < p_team_data->number_choices; k++ ) {
-				Assert( p_team_data->ship_count[k] >= 0 );
+				SDL_assert( p_team_data->ship_count[k] >= 0 );
 				if ( p_team_data->ship_list[k] == Ships[wp->ship_index[j]].ship_info_index ) {
 					ship_in_parse_player = 1;
 					break;
@@ -2770,7 +2770,7 @@ int ss_fixup_team_data(team_data *tdata)
 					ship_in_parse_player = 0;
 			
 					for ( k = 0; k < p_team_data->number_choices; k++ ) {
-						Assert( p_team_data->ship_count[k] >= 0 );
+						SDL_assert( p_team_data->ship_count[k] >= 0 );
 						if ( p_team_data->ship_list[k] == p_objp->ship_class ) {
 							ship_in_parse_player = 1;
 							break;
@@ -2792,7 +2792,7 @@ int ss_fixup_team_data(team_data *tdata)
 		// ensure that the default player ship is in the ship_list too
 		ship_in_parse_player = 0;
 		for ( k = 0; k < p_team_data->number_choices; k++ ) {
-			Assert( p_team_data->ship_count[k] >= 0 );
+			SDL_assert( p_team_data->ship_count[k] >= 0 );
 			if ( p_team_data->ship_list[k] == p_team_data->default_ship ) {
 				ship_in_parse_player = 1;
 				break;
@@ -2880,7 +2880,7 @@ void ss_load_anim(int ship_class)
 
 	// load the compressed ship animation into memory 
 	// NOTE: if last parm of load_anim is 1, the anim file is mapped to memory 
-	Assert( icon->anim == NULL );
+	SDL_assert( icon->anim == NULL );
 	icon->anim = ss_load_individual_animation(ship_class);
 	if ( icon->anim == NULL ) {
 		Int3();		// couldn't load anim filename.. get Alan
@@ -3283,7 +3283,7 @@ int ss_grab_from_list(int from_list, int to_slot, int *sound)
 		return 0;
 	}
 
-	Assert(slot->ship_class < 0 );	// slot should be empty
+	SDL_assert(slot->ship_class < 0 );	// slot should be empty
 
 	// take ship from list->slot
 	Ss_pool[from_list]--;
@@ -3314,7 +3314,7 @@ int ss_swap_list_slot(int from_list, int to_slot, int *sound)
 	}
 
 	slot = &Wss_slots[to_slot];
-	Assert(slot->ship_class >= 0 );	// slot should be filled
+	SDL_assert(slot->ship_class >= 0 );	// slot should be filled
 
 	// put ship from slot->list
 	Ss_pool[Wss_slots[to_slot].ship_class]++;

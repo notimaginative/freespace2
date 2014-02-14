@@ -281,14 +281,14 @@ char *gr_force_fit_string(char *str, int max_str, int max_width)
 	gr_get_string_size(&w, NULL, str);
 	if (w > max_width) {
 		if ((int) strlen(str) > max_str - 3) {
-			Assert(max_str >= 3);
+			SDL_assert(max_str >= 3);
 			str[max_str - 3] = 0;
 		}
 
 		strcpy(str + strlen(str) - 1, "...");
 		gr_get_string_size(&w, NULL, str);
 		while (w > max_width) {
-			Assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
+			SDL_assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
 			strcpy(str + strlen(str) - 4, "...");
 			gr_get_string_size(&w, NULL, str);
 		}
@@ -303,7 +303,7 @@ int get_char_width(ubyte c1,ubyte c2,int *width,int *spacing)
 {
 	int i, letter;
 
-	Assert ( Current_font != NULL );
+	SDL_assert ( Current_font != NULL );
 	letter = c1-Current_font->first_ascii;
 
 	if (letter<0 || letter>=Current_font->num_chars) {				//not in font, draw as space
@@ -765,7 +765,7 @@ void gr_get_string_size_win(int *w, int *h, const char *text)
 
 char grx_printf_text[2048];	
 
-void _cdecl gr_printf( int x, int y, const char * format, ... )
+void __cdecl gr_printf( int x, int y, const char * format, ... )
 {
 	va_list args;
 
@@ -833,7 +833,7 @@ int gr_create_font(const char * typeface)
 	n = -1;
 	for (fontnum=0; fontnum<Num_fonts; fontnum++ )	{
 		if (fnt->id != 0 )	{
-			if ( !_strnicmp( fnt->filename, typeface, MAX_FILENAME_LEN ) )	{
+			if ( !SDL_strncasecmp( fnt->filename, typeface, MAX_FILENAME_LEN ) )	{
 				return fontnum;
 			}
 		} else {
@@ -882,14 +882,14 @@ int gr_create_font(const char * typeface)
 
 	if ( fnt->kern_data_size )	{
 		fnt->kern_data = (font_kernpair *)malloc( fnt->kern_data_size );
-		Assert(fnt->kern_data!=NULL);
+		SDL_assert(fnt->kern_data!=NULL);
 		cfread( fnt->kern_data, fnt->kern_data_size, 1, fp );
 	} else {
 		fnt->kern_data = NULL;
 	}
 	if ( fnt->char_data_size )	{
 		fnt->char_data = (font_char *)malloc( fnt->char_data_size );
-		Assert( fnt->char_data != NULL );
+		SDL_assert( fnt->char_data != NULL );
 		cfread( fnt->char_data, fnt->char_data_size, 1, fp );
         for ( int i=0; i<fnt->num_chars; i++){
             fnt->char_data[i].spacing = INTEL_INT( fnt->char_data[i].spacing );
@@ -903,7 +903,7 @@ int gr_create_font(const char * typeface)
 	}
 	if ( fnt->pixel_data_size )	{
 		fnt->pixel_data = (ubyte *)malloc( fnt->pixel_data_size );
-		Assert(fnt->pixel_data!=NULL);
+		SDL_assert(fnt->pixel_data!=NULL);
 		cfread( fnt->pixel_data, fnt->pixel_data_size, 1, fp );
 	} else {
 		fnt->pixel_data = NULL;
@@ -992,7 +992,7 @@ int gr_init_font(const char * typeface)
 
 	Loaded_fontnum = gr_create_font(typeface);
 
-	Assert( Loaded_fontnum > -1 );
+	SDL_assert( Loaded_fontnum > -1 );
 
 	gr_set_font( Loaded_fontnum );
 

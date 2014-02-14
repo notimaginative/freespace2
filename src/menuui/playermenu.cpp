@@ -542,7 +542,7 @@ void player_select_init()
 
 	// attempt to load in the background bitmap
 	Player_select_background_bitmap = bm_load(Player_select_background_bitmap_name[gr_screen.res]);				
-	Assert(Player_select_background_bitmap >= 0);	
+	SDL_assert(Player_select_background_bitmap >= 0);	
 
 	// load in the palette for the screen
 	// Player_select_palette = bm_load(PLAYER_SELECT_PALETTE);
@@ -632,7 +632,7 @@ void player_select_do()
 #endif
 
 	//if ( !Player_select_palette_set ) {
-	//	Assert(Player_select_palette >= 0);
+	//	SDL_assert(Player_select_palette >= 0);
 //#ifndef HARDWARE_ONLY
 //		palette_use_bm_palette(Player_select_palette);
 //#endif
@@ -1295,7 +1295,7 @@ void player_select_process_input(int k)
 		}
 
 		for (idx=1; idx<Player_select_num_pilots; idx++) {
-			if (!stricmp(buf, Pilots[idx])) {
+			if (!SDL_strcasecmp(buf, Pilots[idx])) {
 				// verify if it is ok to overwrite the file
 				if (pilot_verify_overwrite() == 1) {
 					// delete the pilot and select the beginning of the list
@@ -1484,7 +1484,7 @@ void player_select_eval_very_first_pilot()
 void player_select_commit()
 {
 	// if we've gotten to this point, we should have ensured this was the case
-	Assert(Player_select_num_pilots > 0);
+	SDL_assert(Player_select_num_pilots > 0);
 	
 	gameseq_post_event(GS_EVENT_MAIN_MENU);
 	gamesnd_play_iface(SND_COMMIT_PRESSED);

@@ -474,11 +474,11 @@ int cfile_push_chdir(int type)
 	char NoDir[] = "\\.";
 
 	_getcwd(OriginalDirectory, 127);
-	Assert(Cfile_stack_pos < CFILE_STACK_MAX);
+	SDL_assert(Cfile_stack_pos < CFILE_STACK_MAX);
 	strcpy(Cfile_stack[Cfile_stack_pos++], OriginalDirectory);
 
 	cf_create_default_path_string( dir, type, NULL );
-	_strlwr(dir);
+	SDL_strlwr(dir);
 #ifndef PLAT_UNIX
 	char *Drive = strchr(dir, ':');
 
@@ -517,7 +517,7 @@ int cfile_chdir(char *dir)
 	char NoDir[] = "\\.";
 
 	_getcwd(OriginalDirectory, 127);
-	_strlwr(dir);
+	SDL_strlwr(dir);
 
 #ifndef PLAT_UNIX
 	char *Drive = strchr(dir, ':');
@@ -549,7 +549,7 @@ int cfile_chdir(char *dir)
 
 int cfile_pop_dir()
 {
-	Assert(Cfile_stack_pos);
+	SDL_assert(Cfile_stack_pos);
 	Cfile_stack_pos--;
 	return cfile_chdir(Cfile_stack[Cfile_stack_pos]);
 }
@@ -566,7 +566,7 @@ int cfile_flush_dir(int dir_type)
 	int del_count;
 	_finddata_t find;
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	// attempt to change the directory to the passed type
 	if(cfile_push_chdir(dir_type)){
@@ -610,10 +610,10 @@ char *cf_add_ext(const char *filename, const char *ext)
 
 	flen = strlen(filename);
 	elen = strlen(ext);
-	Assert(flen < MAX_PATH_LEN);
+	SDL_assert(flen < MAX_PATH_LEN);
 	strcpy(path, filename);
-	if ((flen < 4) || stricmp(path + flen - elen, ext)) {
-		Assert(flen + elen < MAX_PATH_LEN);
+	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
+		SDL_assert(flen + elen < MAX_PATH_LEN);
 		strcat(path, ext);
 	}
 
@@ -625,7 +625,7 @@ void cf_delete( const char *filename, int dir_type )
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
@@ -644,7 +644,7 @@ int cf_access( const char *filename, int dir_type, int mode )
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
@@ -657,7 +657,7 @@ int cf_exist( const char *filename, int dir_type )
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
@@ -674,7 +674,7 @@ void cf_attrib(const char *filename, int set, int clear, int dir_type)
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
@@ -694,7 +694,7 @@ void cf_attrib(const char *filename, int set, int clear, int dir_type)
 
 int cf_rename(const char *old_name, const char *name, int dir_type)
 {
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	int ret_code;
 	char old_longname[_MAX_PATH];
@@ -727,12 +727,12 @@ void cf_create_directory( int dir_type )
 	int dir_tree[CF_MAX_PATH_TYPES];
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	int current_dir = dir_type;
 
 	do {
-		Assert( num_dirs < CF_MAX_PATH_TYPES );		// Invalid Pathtypes data?
+		SDL_assert( num_dirs < CF_MAX_PATH_TYPES );		// Invalid Pathtypes data?
 
 		dir_tree[num_dirs++] = current_dir;
 		current_dir = Pathtypes[current_dir].parent_index;
@@ -779,8 +779,8 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	//================================================
 	// Check that all the parameters make sense
-	Assert(file_path && strlen(file_path));
-	Assert( mode != NULL );
+	SDL_assert(file_path && strlen(file_path));
+	SDL_assert( mode != NULL );
 	
 	// Can only open read-only binary files in memory mapped mode.
 	if ( (type & CFILE_MEMORY_MAPPED) && strcmp(mode,"rb") ) {
@@ -803,14 +803,14 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 			strcpy(longname, file_path );
 		} else {
 			// Path type given?
-			Assert( dir_type != CF_TYPE_ANY );
+			SDL_assert( dir_type != CF_TYPE_ANY );
 
 			// Create the directory if necessary
 			cf_create_directory( dir_type );
 
 			cf_create_default_path_string( longname, dir_type, file_path );
 		}
-		Assert( !(type & CFILE_MEMORY_MAPPED) );
+		SDL_assert( !(type & CFILE_MEMORY_MAPPED) );
 
 		// JOHN: TODO, you should create the path if it doesn't exist.
 				
@@ -916,7 +916,7 @@ int cfget_cfile_block()
 
 	// If we've reached this point, a free Cfile_block could not be found
 	nprintf(("Warning","A free Cfile_block could not be found.\n"));
-	Assert(0);	// out of free cfile blocks
+	SDL_assert(0);	// out of free cfile blocks
 	return -1;			
 }
 
@@ -930,9 +930,9 @@ int cfclose( CFILE * cfile )
 {
 	int result;
 
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	result = 0;
@@ -942,16 +942,16 @@ int cfclose( CFILE * cfile )
 		STUB_FUNCTION;
 #else
 		result = UnmapViewOfFile((void*)cb->data);
-		Assert(result);
+		SDL_assert(result);
 		result = CloseHandle(cb->hInFile);		
-		Assert(result);	// Ensure file handle is closed properly
+		SDL_assert(result);	// Ensure file handle is closed properly
 		result = CloseHandle(cb->hMapFile);		
-		Assert(result);	// Ensure file handle is closed properly
+		SDL_assert(result);	// Ensure file handle is closed properly
 #endif
 		result = 0;
 
 	} else if ( cb->fp != NULL )	{
-		Assert(cb->fp != NULL);
+		SDL_assert(cb->fp != NULL);
 		result = fclose(cb->fp);
 	} else {
 		// VP  do nothing
@@ -1066,7 +1066,7 @@ CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type)
 		} 
 	
 		cfbp->data = (ubyte*)MapViewOfFile(cfbp->hMapFile, FILE_MAP_READ, 0, 0, 0);
-		Assert( cfbp->data != NULL );		
+		SDL_assert( cfbp->data != NULL );		
 #endif
 		return cfp;
 	}
@@ -1084,11 +1084,11 @@ int cf_get_dir_type(CFILE *cfile)
 
 void *cf_returndata(CFILE *cfile)
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
-	Assert(cb->data != NULL);
+	SDL_assert(cb->data != NULL);
 	return cb->data;
 }
 
@@ -1098,7 +1098,7 @@ void *cf_returndata(CFILE *cfile)
 // open a file.  Once set, you can use minimum version numbers with the read functions.
 void cf_set_version( CFILE * cfile, int version )
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 
 	cfile->version = version;
 }
@@ -1119,7 +1119,7 @@ float cfread_float(CFILE *file, int ver, float deflt)
 	if (cfread( &f, sizeof(f), 1, file) != 1)
 		return deflt;
 
-    f = INTEL_FLOAT(&f);
+    f = INTEL_FLOAT(f);
 	return f;
 }
 
@@ -1254,7 +1254,7 @@ void cfread_string_len(char *buf,int n, CFILE *file)
 {
 	int len;
 	len = cfread_int(file);
-	Assert( len < n );
+	SDL_assert( len < n );
 	if (len)
 		cfread(buf, len, 1, file);
 
@@ -1265,7 +1265,7 @@ void cfread_string_len(char *buf,int n, CFILE *file)
 
 int cfwrite_float(float f, CFILE *file)
 {
-    f = INTEL_FLOAT(&f);
+    f = INTEL_FLOAT(f);
 	return cfwrite(&f, sizeof(f), 1, file);
 }
 
@@ -1354,15 +1354,15 @@ int cfwrite_string_len(const char *buf, CFILE *file)
 // Get the filelength
 int cfilelength( CFILE * cfile )
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	// TODO: return length of memory mapped file
-	Assert( !cb->data );
+	SDL_assert( !cb->data );
 
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 
 	// cb->size gets set at cfopen
 	return cb->size;
@@ -1375,22 +1375,22 @@ int cfilelength( CFILE * cfile )
 //
 int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(buf != NULL);
-	Assert(elsize > 0);
-	Assert(nelem > 0);
+	SDL_assert(cfile != NULL);
+	SDL_assert(buf != NULL);
+	SDL_assert(elsize > 0);
+	SDL_assert(nelem > 0);
 
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	int size = elsize * nelem;
 
 	// cfwrite() not supported for memory-mapped files
-	Assert( !cb->data );
+	SDL_assert( !cb->data );
 
-	Assert(cb->fp != NULL);
-	Assert(cb->lib_offset == 0 );
+	SDL_assert(cb->fp != NULL);
+	SDL_assert(cb->lib_offset == 0 );
 	int bytes_written = fwrite( buf, 1, size, cb->fp );
 
 	if (bytes_written > 0) {
@@ -1399,7 +1399,7 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
 		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
-		Assert(tmp_offset == cb->raw_position);
+		SDL_assert(tmp_offset == cb->raw_position);
 	#endif
 
 	return bytes_written / elsize;
@@ -1415,16 +1415,16 @@ int cfputc(int c, CFILE *cfile)
 {
 	int result;
 
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	result = 0;
 	// cfputc() not supported for memory-mapped files
-	Assert( !cb->data );
+	SDL_assert( !cb->data );
 
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 	result = fputc(c, cb->fp);
 
 	return result;	
@@ -1438,7 +1438,7 @@ int cfputc(int c, CFILE *cfile)
 //
 int cfgetc(CFILE *cfile)
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	
 	char tmp;
 
@@ -1463,9 +1463,9 @@ int cfgetc(CFILE *cfile)
 //
 char *cfgets(char *buf, int n, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(buf != NULL);
-	Assert(n > 0 );
+	SDL_assert(cfile != NULL);
+	SDL_assert(buf != NULL);
+	SDL_assert(n > 0 );
 
 	char * t = buf;
 	int i, c;
@@ -1500,19 +1500,19 @@ char *cfgets(char *buf, int n, CFILE *cfile)
 //
 int cfputs(const char *str, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(str != NULL);
+	SDL_assert(cfile != NULL);
+	SDL_assert(str != NULL);
 
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	int result;
 
 	result = 0;
 	// cfputs() not supported for memory-mapped files
-	Assert( !cb->data );
-	Assert(cb->fp != NULL);
+	SDL_assert( !cb->data );
+	SDL_assert(cb->fp != NULL);
 	result = fputs(str, cb->fp);
 
 	return result;	
@@ -1596,10 +1596,10 @@ int cf_chksum_do(CFILE *cfile, ushort *chk_short, uint *chk_long, int max_size)
 	// determine whether we're doing a short or long checksum
 	is_long = 0;
 	if(chk_short){
-		Assert(!chk_long);		
+		SDL_assert(!chk_long);		
 		*chk_short = 0;
 	} else {
-		Assert(chk_long);
+		SDL_assert(chk_long);
 		is_long = 1;
 		*chk_long = 0;
 	}
@@ -1746,15 +1746,15 @@ int cf_chksum_long(CFILE *file, uint *chksum, int max_size)
 //			1 - failure
 int cflush(CFILE *cfile)
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	// not supported for memory mapped files
-	Assert( !cb->data );
+	SDL_assert( !cb->data );
 
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 	return fflush(cb->fp);
 }
 

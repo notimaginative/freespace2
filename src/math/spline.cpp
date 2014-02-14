@@ -94,7 +94,7 @@ void bez_spline::bez_set_points(int _num_pts, vector *_pts[MAX_BEZ_PTS])
 	// store the points
 	num_pts = _num_pts;
 	for(idx=0; idx<_num_pts; idx++){
-		Assert(_pts[idx] != NULL);
+		SDL_assert(_pts[idx] != NULL);
 		if(_pts[idx] != NULL){
 			pts[idx] = *_pts[idx];
 		}
@@ -118,7 +118,7 @@ void bez_spline::bez_get_point(vector *out, float u)
 	int idx;
 	float bez_val;
 
-	Assert(out != NULL);
+	SDL_assert(out != NULL);
 	if(out == NULL){
 		return;
 	}
@@ -212,11 +212,11 @@ void herm_spline::herm_set_points(int _num_pts, vector *_pts[MAX_HERM_PTS], vect
 	// store the points
 	num_pts = _num_pts;
 	for(idx=0; idx<_num_pts; idx++){
-		Assert(_pts[idx] != NULL);
+		SDL_assert(_pts[idx] != NULL);
 		if(_pts[idx] != NULL){
 			pts[idx] = *_pts[idx];
 		}
-		Assert(_d_pts[idx] != NULL);
+		SDL_assert(_d_pts[idx] != NULL);
 		if(_d_pts[idx] != NULL){
 			d_pts[idx] = *_d_pts[idx];
 		}

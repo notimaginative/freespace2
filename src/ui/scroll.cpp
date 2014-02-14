@@ -177,7 +177,7 @@ void UI_SCROLLBAR::create(UI_WINDOW *wnd, int _x, int _y, int _h, int _start, in
 	bar_length = h;
 	bar_position =  0;
 
-	Assert( stop >= 0 );
+	SDL_assert( stop >= 0 );
 
 	if (stop != start)
 		bar_size = (window_size * h) / (stop - start + window_size + 1);

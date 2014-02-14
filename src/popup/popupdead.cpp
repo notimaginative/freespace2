@@ -595,7 +595,7 @@ int popupdead_do_frame(float frametime)
 	// dont let dude skip 3-09.  hack.
 	if(Game_mode & GM_CAMPAIGN_MODE){
 		if((Campaign.current_mission >= 0) && (Campaign.current_mission < MAX_CAMPAIGN_MISSIONS)){
-			if ((Campaign.missions[Campaign.current_mission].name != NULL) && !stricmp(Campaign.missions[Campaign.current_mission].name, "sm3-09.fs2")) {
+			if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, "sm3-09.fs2")) {
 				Popupdead_skip_already_shown = 1;
 			}
 		}
@@ -636,7 +636,7 @@ int popupdead_do_frame(float frametime)
 		if ( Game_mode & GM_NORMAL ) {
 			Popupdead_choice=choice;
 		} else {
-			Assert( Popupdead_multi_type != -1 );
+			SDL_assert( Popupdead_multi_type != -1 );
 			switch ( Popupdead_multi_type ) {
 				
 			case POPUPDEAD_OBS_ONLY:
@@ -666,7 +666,7 @@ int popupdead_do_frame(float frametime)
 		if ( Game_mode & GM_NORMAL ) {
 			Popupdead_choice=choice;
 		} else {
-			Assert( Popupdead_multi_type != -1 );
+			SDL_assert( Popupdead_multi_type != -1 );
 			switch ( Popupdead_multi_type ) {
 				
 			case POPUPDEAD_OBS_ONLY:

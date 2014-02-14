@@ -242,7 +242,7 @@ int UI_GADGET::set_bmaps(const char *ani_fname, int nframes, int start_frame)
 	
 	// load all the bitmaps
 
-	Assert(nframes < MAX_BMAPS_PER_GADGET);		
+	SDL_assert(nframes < MAX_BMAPS_PER_GADGET);		
 	m_num_frames = nframes;		
 #ifndef MAKE_FS1
 	// FS1 uses real anis instead of frame based pcxs so this code just slows down

@@ -425,7 +425,7 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 	int ret_len;
 
 	// bad type
-	Assert((psnet_type >= 0) && (psnet_type < PSNET_NUM_TYPES));
+	SDL_assert((psnet_type >= 0) && (psnet_type < PSNET_NUM_TYPES));
 	if((psnet_type < 0) || (psnet_type >= PSNET_NUM_TYPES)){
 		return -1;
 	}	
@@ -464,7 +464,7 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 		break;
 
 	default:
-		Assert(0);
+		SDL_assert(0);
 		break;
 	}
 
@@ -486,7 +486,7 @@ int SELECT(int nfds, fd_set FAR * readfds, fd_set FAR * writefds, fd_set FAR * e
 	}	
 	
 	// bad type
-	Assert((psnet_type >= 0) && (psnet_type < PSNET_NUM_TYPES));
+	SDL_assert((psnet_type >= 0) && (psnet_type < PSNET_NUM_TYPES));
 	if((psnet_type < 0) || (psnet_type >= PSNET_NUM_TYPES)){
 		return -1;
 	}	
@@ -585,7 +585,7 @@ void PSNET_TOP_LAYER_PROCESS()
 			break;
 		
 		default:
-			Assert(0);
+			SDL_assert(0);
 			return;
 		}
 
@@ -612,7 +612,7 @@ void PSNET_TOP_LAYER_PROCESS()
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 			return;
 			// break;
 		}
@@ -662,11 +662,11 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	internet_connection = os_config_read_string(NULL, "NetworkConnection", "none");
-	if ( !stricmp(internet_connection, NOX("dialup")) ) {
+	if ( !SDL_strcasecmp(internet_connection, NOX("dialup")) ) {
 		ml_string("psnet_init() detected dialup connection");
 
 		Psnet_connection = NETWORK_CONNECTION_DIALUP;
-	} else if ( !stricmp(internet_connection, NOX("lan")) ) {
+	} else if ( !SDL_strcasecmp(internet_connection, NOX("lan")) ) {
 		ml_string("psnet_init() detected lan connection");
 
 		Psnet_connection = NETWORK_CONNECTION_LAN;
@@ -945,7 +945,7 @@ char* psnet_addr_to_string( char * text, net_addr_t * address )
 			break;
 
 		default:
-			// Assert(0);
+			// SDL_assert(0);
 			break;
 
 	} // end switch
@@ -966,7 +966,7 @@ void psnet_string_to_addr( net_addr_t * address, char * text )
 	}
 
 	// copy the text string to local storage to look for ports
-	Assert( strlen(text) < 255 );
+	SDL_assert( strlen(text) < 255 );
 	strcpy(str, text);
 	c = strrchr(str, ':');
 	port = NULL;
@@ -1002,7 +1002,7 @@ void psnet_string_to_addr( net_addr_t * address, char * text )
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 			break;
 
 	} // end switch
@@ -1108,7 +1108,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 			break;
 
 		default:
-			Assert(0);	// unknown protocol
+			SDL_assert(0);	// unknown protocol
 			break;
 
 	} // end switch
@@ -1180,7 +1180,7 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 	char str[255], *c;
 
 	// our addresses may have ports, so make local copy and remove port number
-	Assert( strlen(ip_string) < 255 );
+	SDL_assert( strlen(ip_string) < 255 );
 	strcpy(str, ip_string);
 	c = strrchr(str, ':');
 	if ( c ){
@@ -1229,7 +1229,7 @@ void psnet_rel_send_ack(SOCKADDR *raddr, unsigned int sig, ubyte link_type, floa
 	reliable_header ack_header;
 	ack_header.type = RNT_ACK;	
 	ack_header.data_len = sizeof(unsigned int);
-	ack_header.send_time = INTEL_FLOAT( &time_sent );
+	ack_header.send_time = INTEL_FLOAT( time_sent );
 	sig_tmp = INTEL_INT( sig );
 	memcpy(&ack_header.data,&sig_tmp,sizeof(unsigned int));
 	switch (link_type) {
@@ -1336,7 +1336,7 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 		return -1;
 	}
 
-	Assert( length < (int)(sizeof(reliable_header)) );
+	SDL_assert( length < (int)(sizeof(reliable_header)) );
 	psnet_rel_work();
 
 	rsocket=&Reliable_sockets[socketid];
@@ -1364,7 +1364,7 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 			send_header.data_len = INTEL_SHORT( (ushort)length );
 			send_header.type = RNT_DATA;
 			send_header.send_time = psnet_get_time();
-			send_header.send_time = INTEL_FLOAT( &send_header.send_time );
+			send_header.send_time = INTEL_FLOAT( send_header.send_time );
 			// SOCKADDR_IN * rsockaddr = (SOCKADDR_IN *)&rsocket->addr;
 					
 			if (send_this_packet){
@@ -1548,7 +1548,7 @@ void psnet_rel_work()
 			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			rcv_buff.seq = INTEL_SHORT( rcv_buff.seq );
 			rcv_buff.data_len = INTEL_SHORT( rcv_buff.data_len );
-			rcv_buff.send_time = INTEL_FLOAT( &rcv_buff.send_time );
+			rcv_buff.send_time = INTEL_FLOAT( rcv_buff.send_time );
 			memcpy(d3_rcv_addr.addr, &tcp_addr->sin_addr.s_addr, 4);
 			d3_rcv_addr.port = tcp_addr->sin_port;
 			d3_rcv_addr.type = NET_TCP;
@@ -1680,7 +1680,7 @@ void psnet_rel_work()
 					if(rsocket){
 						if(rsocket->sbuffers[i]){
 							if(rsocket->ssequence[i] == INTEL_INT(*acksig) ){								
-								Assert(rsocket->sbuffers[i] != NULL);
+								SDL_assert(rsocket->sbuffers[i] != NULL);
 								free(rsocket->sbuffers[i]);
 								rsocket->sbuffers[i] = NULL;	
 								rsocket->ssequence[i] = 0;
@@ -1785,7 +1785,7 @@ void psnet_rel_work()
 				if((rsocket->sbuffers[i]) && (fl_abs((psnet_get_time() - rsocket->timesent[i])) >= retry_packet_time)) {
 					reliable_header send_header;					
 					send_header.send_time = psnet_get_time();
-					send_header.send_time = INTEL_FLOAT( &send_header.send_time );
+					send_header.send_time = INTEL_FLOAT( send_header.send_time );
 					send_header.seq = INTEL_SHORT( rsocket->ssequence[i] );
 					memcpy(send_header.data,rsocket->sbuffers[i]->buffer,rsocket->send_len[i]);
 					send_header.data_len = INTEL_SHORT( (ushort)rsocket->send_len[i] );
@@ -1809,7 +1809,7 @@ void psnet_rel_work()
 			if((rsocket->status == RNF_CONNECTED) && (fl_abs((psnet_get_time() - rsocket->last_packet_sent)) > NETHEARTBEATTIME)) {
 				reliable_header send_header;				
 				send_header.send_time = psnet_get_time();
-				send_header.send_time = INTEL_FLOAT( &send_header.send_time );
+				send_header.send_time = INTEL_FLOAT( send_header.send_time );
 				send_header.seq = 0;
 				send_header.data_len = 0;
 				send_header.type = RNT_HEARTBEAT;
@@ -2136,7 +2136,7 @@ int psnet_rel_get_ip()
 	ret = gethostname(local, 255 );
 	if (ret != SOCKET_ERROR ){
 		// Resolve host name for local address
-		hostent = gethostbyname((LPSTR)local);
+		hostent = gethostbyname((char *)local);
 		if ( hostent ){
 			local_address.sin_addr.s_addr = *((u_long FAR *)(hostent->h_addr));
 		}
@@ -2346,7 +2346,7 @@ int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *lengt
 	}
 
 	// at this point, we should _always_ have found the buffer
-	Assert(found_buf);	
+	SDL_assert(found_buf);	
 	
 	// copy out the buffer data
 	memcpy(data, l->psnet_buffers[idx].data, l->psnet_buffers[idx].len);
@@ -2644,23 +2644,23 @@ void psnet_socket_options( SOCKET sock )
 	// Set the mode of the socket to allow broadcasting.  We need to be able to broadcast
 	// when a game is searched for in IPX mode.
 	broadcast = 1;
-	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (LPSTR)&broadcast, sizeof(broadcast) )){
+	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&broadcast, sizeof(broadcast) )){
 		Can_broadcast = 0;
 	} else {
 		Can_broadcast = 1;
 	}
 
 	// reuseaddr
-	// setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (LPSTR)&broadcast, sizeof(broadcast) );
+	// setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&broadcast, sizeof(broadcast) );
 
 	// try and increase the size of my receive buffer
 	bufsize = MAX_RECEIVE_BUFSIZE;
 	
 	// set the current size of the receive buffer
 	cursizesize = sizeof(int);
-	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&cursize, &cursizesize);
 	// for ( trysize = bufsize; trysize >= cursize; trysize >>= 1 ) {
-	ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (LPSTR)&bufsize, sizeof(bufsize));
+	ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize, sizeof(bufsize));
 	if ( ret == SOCKET_ERROR ) {
 		int wserr;
 
@@ -2669,14 +2669,14 @@ void psnet_socket_options( SOCKET sock )
 			// break;
 	}
 	// }
-	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&cursize, &cursizesize);
 	ml_printf("Receive buffer set to %d\n", cursize);
 
 	// set the current size of the send buffer
 	cursizesize = sizeof(int);
-	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&cursize, &cursizesize);
 	// for ( trysize = bufsize; trysize >= cursize; trysize >>= 1 ) {
-	ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (LPSTR)&bufsize, sizeof(bufsize));
+	ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize, sizeof(bufsize));
 	if ( ret == SOCKET_ERROR ) {
 		int wserr;
 
@@ -2685,7 +2685,7 @@ void psnet_socket_options( SOCKET sock )
 			// break;
 		// }
 	} 
-	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (LPSTR)&cursize, &cursizesize);
+	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&cursize, &cursizesize);
 	ml_printf("Send buffer set to %d\n", cursize);
 }
 

@@ -174,7 +174,7 @@ void update_danger_weapon(object *ship_obj, object *weapon_obj)
 {
 	ai_info	*aip;
 
-	Assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
 
 	aip = &Ai_info[Ships[ship_obj->instance].ai_index];
 
@@ -252,12 +252,12 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 	weapon	*wp = &Weapons[weapon_obj->instance];
 	weapon_info	*wip = &Weapon_info[wp->weapon_info_index];
 
-	Assert( ship_obj->type == OBJ_SHIP );
-	Assert( weapon_obj->type == OBJ_WEAPON );
+	SDL_assert( ship_obj->type == OBJ_SHIP );
+	SDL_assert( weapon_obj->type == OBJ_WEAPON );
 
 	num = ship_obj->instance;
-	Assert( num >= 0 );
-	Assert( Ships[num].objnum == OBJ_INDEX(ship_obj));
+	SDL_assert( num >= 0 );
+	SDL_assert( Ships[num].objnum == OBJ_INDEX(ship_obj));
 
 	shipp = &Ships[num];
 
@@ -393,8 +393,8 @@ int collide_ship_weapon( obj_pair * pair )
 	object *ship = pair->a;
 	object *weapon = pair->b;
 	
-	Assert( ship->type == OBJ_SHIP );
-	Assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( ship->type == OBJ_SHIP );
+	SDL_assert( weapon->type == OBJ_WEAPON );
 
 	// Don't check collisions for player if past first warpout stage.
 	if ( Player->control_mode > PCM_WARPOUT_STAGE1)	{
@@ -442,7 +442,7 @@ float estimate_ship_speed_upper_limit( object *ship, float time )
 		return ship->phys_info.speed;
 	}
 	exponent = time / ship->phys_info.forward_accel_time_const;
-	//Assert( exponent >= 0);
+	//SDL_assert( exponent >= 0);
 
 
 	factor = 1.0f - (float)exp( -exponent );

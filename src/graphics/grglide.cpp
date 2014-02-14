@@ -596,7 +596,7 @@ void gr_glide_save_mouse_area(int x, int y, int w, int h )
 	if ( Gr_glide_mouse_saved_h < 1 ) return;
 
 	// Make sure we're not saving too much!
-	Assert( (Gr_glide_mouse_saved_w*Gr_glide_mouse_saved_h) <= MAX_SAVE_SIZE );
+	SDL_assert( (Gr_glide_mouse_saved_w*Gr_glide_mouse_saved_h) <= MAX_SAVE_SIZE );
 
 	GrLfbInfo_t info;
 
@@ -951,20 +951,20 @@ void gr_glide_bitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 	// Make sure clipping algorithm works
 	#ifndef NDEBUG
-		Assert( w > 0 );
-		Assert( h > 0 );
-		Assert( w == (dx2-dx1+1) );
-		Assert( h == (dy2-dy1+1) );
-		Assert( sx >= 0 );
-		Assert( sy >= 0 );
-		Assert( sx+w <= bw );
-		Assert( sy+h <= bh );
-		Assert( dx2 >= dx1 );
-		Assert( dy2 >= dy1 );
-		Assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
-		Assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
-		Assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
-		Assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
+		SDL_assert( w > 0 );
+		SDL_assert( h > 0 );
+		SDL_assert( w == (dx2-dx1+1) );
+		SDL_assert( h == (dy2-dy1+1) );
+		SDL_assert( sx >= 0 );
+		SDL_assert( sy >= 0 );
+		SDL_assert( sx+w <= bw );
+		SDL_assert( sy+h <= bh );
+		SDL_assert( dx2 >= dx1 );
+		SDL_assert( dy2 >= dy1 );
+		SDL_assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
+		SDL_assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
+		SDL_assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
+		SDL_assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
 	#endif
 
 	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.
@@ -1974,20 +1974,20 @@ void gr_glide_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 	// Make sure clipping algorithm works
 	#ifndef NDEBUG
-		Assert( w > 0 );
-		Assert( h > 0 );
-		Assert( w == (dx2-dx1+1) );
-		Assert( h == (dy2-dy1+1) );
-		Assert( sx >= 0 );
-		Assert( sy >= 0 );
-		Assert( sx+w <= bw );
-		Assert( sy+h <= bh );
-		Assert( dx2 >= dx1 );
-		Assert( dy2 >= dy1 );
-		Assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
-		Assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
-		Assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
-		Assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
+		SDL_assert( w > 0 );
+		SDL_assert( h > 0 );
+		SDL_assert( w == (dx2-dx1+1) );
+		SDL_assert( h == (dy2-dy1+1) );
+		SDL_assert( sx >= 0 );
+		SDL_assert( sy >= 0 );
+		SDL_assert( sx+w <= bw );
+		SDL_assert( sy+h <= bh );
+		SDL_assert( dx2 >= dx1 );
+		SDL_assert( dy2 >= dy1 );
+		SDL_assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
+		SDL_assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
+		SDL_assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
+		SDL_assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
 	#endif
 
 	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.
@@ -2196,9 +2196,9 @@ void gr_glide_init_alphacolor( color *clr, int r, int g, int b, int alpha, int t
 
 void gr_glide_set_color( int r, int g, int b )
 {
-	Assert((r >= 0) && (r < 256));
-	Assert((g >= 0) && (g < 256));
-	Assert((b >= 0) && (b < 256));
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
 
 	gr_glide_init_color( &gr_screen.current_color, r, g, b );
 }
@@ -3200,9 +3200,9 @@ void gr_glide_fog_set(int fog_mode, int r, int g, int b, float fog_near, float f
 		return;
 	}
 	
-	Assert((r >= 0) && (r < 256));
-	Assert((g >= 0) && (g < 256));
-	Assert((b >= 0) && (b < 256));
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
 
 	// store the values
 	gr_glide_init_color( &gr_screen.current_fog_color, r, g, b );

@@ -413,8 +413,8 @@ void hud_init_missile_lock()
 
 void hud_draw_diamond(int x, int y, int width, int height)
 {
-	Assert(height>0);
-	Assert(width>0);
+	SDL_assert(height>0);
+	SDL_assert(width>0);
 
 	int x1,x2,x3,x4,y1,y2,y3,y4;
 
@@ -448,7 +448,7 @@ void hud_show_lock_indicator(float frametime)
 	}
 
 	target_objnum = Player_ai->target_objnum;
-	Assert(target_objnum != -1);
+	SDL_assert(target_objnum != -1);
 	targetp = &Objects[target_objnum];
 
 	// check to see if there are any missile to fire.. we don't want to show the 
@@ -578,7 +578,7 @@ int hud_lock_target_in_range()
 			vm_vec_unrotate(&target_world_pos, &Player->locking_subsys->system_info->pnt, &targetp->orient);
 			vm_vec_add2(&target_world_pos, &targetp->pos);
 		} else {
-			Assert(Player->locking_on_center);
+			SDL_assert(Player->locking_on_center);
 			target_world_pos = targetp->pos;
 		}
 	}
@@ -625,7 +625,7 @@ int hud_lock_on_subsys_ok()
 	object			*target_objp;
 	int				in_sight=0;
 	
-	Assert(Player_ai->target_objnum >= 0);
+	SDL_assert(Player_ai->target_objnum >= 0);
 	target_objp	= &Objects[Player_ai->target_objnum];
 
 	subsys = Player_ai->targeted_subsys;
@@ -712,7 +712,7 @@ void hud_update_lock_indicator(float frametime)
 		return;
 	}
 
-	Assert(Player_ai->target_objnum != -1);
+	SDL_assert(Player_ai->target_objnum != -1);
 
 	// be sure to unset this flag, then possibly set later in this function so that
 	// threat indicators work properly.
@@ -1172,7 +1172,7 @@ void hud_lock_update_lock_pos(object *target_objp, vector *lock_world_pos)
 	if ( Player->locking_on_center ) {
 		*lock_world_pos = target_objp->pos;
 	} else {
-		Assert(Player->locking_subsys);
+		SDL_assert(Player->locking_subsys);
 		get_subsystem_world_pos(target_objp, Player->locking_subsys, lock_world_pos);
 	}
 }
@@ -1245,7 +1245,7 @@ void hud_lock_determine_lock_point(vector *lock_world_pos_out)
 	vertex	lock_point;
 	object	*target_objp;
 
-	Assert(Player_ai->target_objnum >= 0);
+	SDL_assert(Player_ai->target_objnum >= 0);
 	target_objp = &Objects[Player_ai->target_objnum];
 
 	Player->current_target_sx = -1;

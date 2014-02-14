@@ -361,7 +361,7 @@ int mouse_up_count(int n)
 			break;
 
 		default:
-			Assert(0);	// can't happen
+			SDL_assert(0);	// can't happen
 			break;
 	} // end switch
 

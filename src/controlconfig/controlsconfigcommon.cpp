@@ -961,7 +961,7 @@ void set_modifier_status()
 			Shift_is_modifier = 1;
 
 		if (Control_config[i].key_id & KEY_CTRLED) {
-			Assert(0);  // get Alan
+			SDL_assert(0);  // get Alan
 			Ctrl_is_modifier = 1;
 		}
 	}
@@ -982,8 +982,8 @@ int translate_key_to_index(const char *key)
 	}
 
 	// look for modifiers
-	Assert(key);
-	if (!strnicmp(key, "Alt", 3)) {
+	SDL_assert(key);
+	if (!SDL_strncasecmp(key, "Alt", 3)) {
 		alt = 1;
 		key += 3;
 		if (*key)
@@ -1000,7 +1000,7 @@ int translate_key_to_index(const char *key)
 		translated_shift = "Shift";
 	}
 
-	if (!strnicmp(key, translated_shift, 5)) {
+	if (!SDL_strncasecmp(key, translated_shift, 5)) {
 		shift = 1;
 		key += 5;
 		if (*key)
@@ -1017,7 +1017,7 @@ int translate_key_to_index(const char *key)
 	// look up index for default key
 	if (*key) {
 		for (i=0; i<max_scan_codes; i++)
-			if (!stricmp(key, Scan_code_text_english[i])) {
+			if (!SDL_strcasecmp(key, Scan_code_text_english[i])) {
 				index = i;
 				break;
 			}

@@ -588,7 +588,7 @@ void popup_split_lines(popup_info *pi, int flags)
 	n_chars[0]=0;
 
 	nlines = split_str(pi->raw_text, 1000, n_chars, p_str, POPUP_MAX_LINES);
-	Assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
+	SDL_assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
 
 	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
 		// get first line out
@@ -602,12 +602,12 @@ void popup_split_lines(popup_info *pi, int flags)
 	}
 
 	nlines = split_str(pi->raw_text, Popup_text_coords[gr_screen.res][2], n_chars, p_str, POPUP_MAX_LINES);
-	Assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
+	SDL_assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
 
 	pi->nlines = nlines - body_offset;
 
 	for ( i = 0; i < pi->nlines; i++ ) {
-		Assert(n_chars[i+body_offset] < POPUP_MAX_LINE_CHARS);
+		SDL_assert(n_chars[i+body_offset] < POPUP_MAX_LINE_CHARS);
 		strncpy(pi->msg_lines[i], p_str[i+body_offset], n_chars[i+body_offset]);
 		pi->msg_lines[i][n_chars[i+body_offset]] = 0;
 	}
@@ -622,11 +622,11 @@ const char *popup_get_button_filename(popup_info *pi, int i, int flags)
 	int is_tiny=0;	
 
 	// check for special button texts and if found, use specialized buttons for them.
-	if ((!stricmp(pi->button_text[i], POPUP_OK + 1) || !stricmp(pi->button_text[i], POPUP_YES + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
+	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_OK + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_YES + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
 		return Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_POSITIVE];
 	}
 
-	if ((!stricmp(pi->button_text[i], POPUP_CANCEL + 1) || !stricmp(pi->button_text[i], POPUP_NO + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
+	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_CANCEL + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_NO + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
 		return Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_NEGATIVE];
 	}
 
@@ -1185,7 +1185,7 @@ void popup_maybe_assign_keypress(popup_info *pi, int n, char *str)
 				char first_char_string[2];
 				first_char_string[0]=str[i];
 				first_char_string[1]=0;
-				strlwr(first_char_string);
+				SDL_strlwr(first_char_string);
 				pi->keypress[n] = first_char_string[0];
 			}
 			pi->button_text[n][j++]=str[i];	
@@ -1219,7 +1219,7 @@ int popup(int flags, int nchoices, ... )
 
 	Popup_flags = flags;
 
-	Assert( nchoices > 0 && nchoices <= POPUP_MAX_CHOICES );
+	SDL_assert( nchoices > 0 && nchoices <= POPUP_MAX_CHOICES );
 	Popup_info.nchoices = nchoices;
 
 	va_start(args, nchoices );
@@ -1236,7 +1236,7 @@ int popup(int flags, int nchoices, ... )
 	Popup_info.raw_text[0] = 0;
 	vsprintf(Popup_info.raw_text, format, args);
 	va_end(args);
-	Assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
+	SDL_assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
 	
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
@@ -1323,9 +1323,9 @@ char *popup_input(int flags, const char *caption, int max_output_len)
 	// popup_maybe_assign_keypress(&Popup_info, 0, "&Cancel");	
 
 	// get msg text
-	Assert(caption != NULL);
+	SDL_assert(caption != NULL);
 	strcpy(Popup_info.raw_text, caption);	
-	Assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
+	SDL_assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
 
 	// set input text length
 	if((max_output_len > POPUP_INPUT_MAX_CHARS) || (max_output_len == -1)){

@@ -486,7 +486,7 @@ void snd_spew_debug_info()
 
 		// what kind of sound is this
 		for(s_idx=0; s_idx<MAX_GAME_SOUNDS; s_idx++){
-			if(!stricmp(Snds[s_idx].filename, Sounds[idx].filename)){
+			if(!SDL_strcasecmp(Snds[s_idx].filename, Sounds[idx].filename)){
 				game_sounds++;
 				done = 1;
 			}
@@ -494,7 +494,7 @@ void snd_spew_debug_info()
 
 		if(!done){
 			for(s_idx=0; s_idx<MAX_GAME_SOUNDS; s_idx++){
-				if(!stricmp(Snds_iface[s_idx].filename, Sounds[idx].filename)){
+				if(!SDL_strcasecmp(Snds_iface[s_idx].filename, Sounds[idx].filename)){
 					interface_sounds++;
 					done = 1;
 				}
@@ -545,7 +545,7 @@ int snd_load(game_snd *gs)
 	for (n=0; n<MAX_SOUNDS; n++ )	{
 		if (!(Sounds[n].flags & SND_F_USED))
 			break;
-		else if ( !stricmp( Sounds[n].filename, gs->filename )) {
+		else if ( !SDL_strcasecmp( Sounds[n].filename, gs->filename )) {
 			gs->sig = Sounds[n].sig;
 			return n;
 		}
@@ -732,7 +732,7 @@ int snd_play( game_snd *gs, float pan, float vol_scale, int priority, bool is_vo
 	if (!Sound_enabled)
 		return -1;
 
-	Assert( gs != NULL );
+	SDL_assert( gs != NULL );
 
 	MONITOR_INC( NumSoundsStarted, 1 );
 
@@ -807,7 +807,7 @@ int snd_play_3d(game_snd *gs, vector *source_pos, vector *listen_pos, float radi
 	if ( !Sound_enabled )
 		return -1;
 
-	Assert(gs != NULL);
+	SDL_assert(gs != NULL);
 
 	MONITOR_INC( Num3DSoundsStarted, 1 );
 
@@ -929,7 +929,7 @@ int snd_get_3d_vol_and_pan(game_snd *gs, vector *pos, float* vol, float *pan, fl
 		return -1;
 	}
 
-	Assert(gs != NULL);
+	SDL_assert(gs != NULL);
 
 	if ( gs->id == -1 ) {
 		gs->id = snd_load(gs);
@@ -993,7 +993,7 @@ int snd_play_looping( game_snd *gs, float pan, float vol_scale, int priority, in
 	if (!Sound_enabled)
 		return -1;
 
-	Assert( gs != NULL );
+	SDL_assert( gs != NULL );
 
 	if ( gs->id == -1 ) {
 		gs->id = snd_load(gs);
@@ -1399,13 +1399,13 @@ void snd_set_pos(int snd_handle, game_snd *gs, float val,int as_pct)
 
 	// set position as an absolute from 0 to 1
 	if (as_pct) {
-		Assert((val >= 0.0) && (val <= 1.0));
+		SDL_assert((val >= 0.0) && (val <= 1.0));
 		oal_set_play_position(channel, fl2i((float)snd->size * val));
 	} 
 	// set the position as an absolute # of seconds from the beginning of the sound
 	else {
 		float bps;
-		Assert(val <= (float)snd->duration/1000.0f);
+		SDL_assert(val <= (float)snd->duration/1000.0f);
 		bps = (float)snd->sample_rate * (float)snd->bits;							// data rate			
 		oal_set_play_position(channel, fl2i(bps * val));
 	}
@@ -1451,7 +1451,7 @@ int snd_get_data(int handle, char *data)
 		return -1;
 	}
 
-	Assert(handle >= 0 && handle < MAX_SOUNDS);
+	SDL_assert(handle >= 0 && handle < MAX_SOUNDS);
 
 	sound *snd = &Sounds[handle];
 	uint size;
@@ -1478,7 +1478,7 @@ int snd_size(int handle, int *size)
 		return -1;
 	}
 
-	Assert(handle >= 0 && handle < MAX_SOUNDS);
+	SDL_assert(handle >= 0 && handle < MAX_SOUNDS);
 
 	if ( oal_get_buffer_size(Sounds[handle].sid, size) ) {
 		return -1;
@@ -1490,7 +1490,7 @@ int snd_size(int handle, int *size)
 // retrieve the bits per sample and frequency for a given sound
 void snd_get_format(int handle, int *bits_per_sample, int *frequency)
 {
-	Assert(handle >= 0 && handle < MAX_SOUNDS);
+	SDL_assert(handle >= 0 && handle < MAX_SOUNDS);
 	*bits_per_sample = Sounds[handle].info.bits;
 	*frequency = Sounds[handle].info.sample_rate;
 }

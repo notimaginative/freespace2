@@ -864,7 +864,7 @@ void briefing_editor_dlg::OnDeleteStage()
 	if (m_cur_stage < 0)
 		return;
 	
-	Assert(Briefing->num_stages);
+	SDL_assert(Briefing->num_stages);
 	z = m_cur_stage;
 	m_cur_stage = -1;
 	update_data(1);
@@ -1180,7 +1180,7 @@ void briefing_editor_dlg::OnMakeIcon()
 	}
 
 	icon_obj[m_cur_icon] = obj_create(OBJ_POINT, -1, m_cur_icon, NULL, &pos, 0.0f, OF_RENDERS);
-	Assert(icon_obj[m_cur_icon] >= 0);
+	SDL_assert(icon_obj[m_cur_icon] >= 0);
 	obj_merge_created_list();
 	unmark_all();
 	set_cur_object_index(icon_obj[m_cur_icon]);
@@ -1204,8 +1204,8 @@ void briefing_editor_dlg::delete_icon(int num)
 	if (num < 0)
 		return;
 
-	Assert(m_cur_stage >= 0);
-	Assert(Briefing->stages[m_cur_stage].num_icons);
+	SDL_assert(m_cur_stage >= 0);
+	SDL_assert(Briefing->stages[m_cur_stage].num_icons);
 	z = m_cur_icon;
 	if (z == num)
 		z = -1;

@@ -169,11 +169,11 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 			continue;
 		}
 
-		Assert(target->instance >= 0);
+		SDL_assert(target->instance >= 0);
 		if(target->instance < 0){
 			continue;
 		}
-		Assert(Weapons[target->instance].weapon_info_index >= 0);
+		SDL_assert(Weapons[target->instance].weapon_info_index >= 0);
 		if(Weapons[target->instance].weapon_info_index < 0){
 			continue;
 		}
@@ -206,11 +206,11 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 			continue;
 		}	
 		
-		Assert(Objects[so->objnum].instance >= 0);
+		SDL_assert(Objects[so->objnum].instance >= 0);
 		if(Objects[so->objnum].instance < 0){
 			continue;
 		}
-		Assert(Ships[Objects[so->objnum].instance].ship_info_index >= 0);
+		SDL_assert(Ships[Objects[so->objnum].instance].ship_info_index >= 0);
 		if(Ships[Objects[so->objnum].instance].ship_info_index < 0){
 			continue;
 		}
@@ -287,7 +287,7 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 
 			// if this is a multiplayer game, notify other players of the effect
 			if(Game_mode & GM_MULTIPLAYER){		
-				Assert(MULTIPLAYER_MASTER);				
+				SDL_assert(MULTIPLAYER_MASTER);				
 				send_emp_effect(target->net_signature, actual_intensity, actual_time);
 			}
 			
@@ -306,8 +306,8 @@ void emp_start_ship(object *ship_obj, float intensity, float time)
 	float start_intensity;
 
 	// make sure this is a ship
-	Assert(ship_obj->type == OBJ_SHIP);
-	Assert(ship_obj->instance >= 0);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->instance >= 0);
 	shipp = &Ships[ship_obj->instance];
 
 	// determining pre-existing EMP intensity (if any)
@@ -333,7 +333,7 @@ void emp_start_ship(object *ship_obj, float intensity, float time)
 	}
 
 	// do any initial AI effects
-	Assert(shipp->ai_index >= 0);
+	SDL_assert(shipp->ai_index >= 0);
 	aip = &Ai_info[shipp->ai_index];
 
 	// lose his current target
@@ -348,11 +348,11 @@ void emp_process_ship(ship *shipp)
 	object *objp;
 	ai_info *aip;	
 
-	Assert(shipp != NULL);
+	SDL_assert(shipp != NULL);
 	if(shipp == NULL){
 		return;
 	}
-	Assert(shipp->objnum >= 0);
+	SDL_assert(shipp->objnum >= 0);
 	if(shipp->objnum < 0){
 		return;
 	}
@@ -379,7 +379,7 @@ void emp_process_ship(ship *shipp)
 	}
 
 	// lose lock time, etc, etc.
-	Assert(shipp->ai_index >= 0);
+	SDL_assert(shipp->ai_index >= 0);
 	aip = &Ai_info[shipp->ai_index];	
 	aip->aspect_locked_time = 0.0f;				// hasn't gotten aspect lock at all
 	aip->current_target_is_locked = 0;			// isn't locked on his current target
@@ -577,7 +577,7 @@ void emp_maybe_reformat_text(char *text, int max_len, int gauge_id)
 
 	// if this gauge has not been wacked out, or if the timestamp has expired, we
 	// neeed to wack it out again
-	Assert((gauge_id >= EG_NULL) && (gauge_id < NUM_TEXT_STAMPS));
+	SDL_assert((gauge_id >= EG_NULL) && (gauge_id < NUM_TEXT_STAMPS));
 	wt = &Emp_wacky_text[gauge_id];
 	if((wt->stamp == -1) || timestamp_elapsed(wt->stamp)){
 		// reformat specific gauges differently

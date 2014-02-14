@@ -18,15 +18,6 @@
 
 #define MAX_LINE_WIDTH 128
 
-void strlwr (char * str)
-{
-	while (*str) {*str = tolower (*str); str++; }
-}
-
-void strupr (char * str)
-{
-	while (*str) {*str = toupper (*str); str++; }
-}
 
 int filelength (int fd)
 {
@@ -35,31 +26,6 @@ int filelength (int fd)
 		return -1;
 		
 	return buf.st_size;
-}
-
-unsigned long _beginthread (void (*pfuncStart)(void *), unsigned unStackSize, void* pArgList)
-{
-	STUB_FUNCTION;
-	
-	return 0;
-}
-
-void Sleep (int mili)
-{
-#ifdef __APPLE__
-	// ughh, SDL_Delay causes a slowdown on Tiger for some reason and though I hate
-	// doing this, even the few Apple examples I've seen do this over what SDL_Delay does.
-	uint then = SDL_GetTicks() + mili;
-
-	while ( then > SDL_GetTicks() );
-#else
-	SDL_Delay( long(mili) );
-#endif
-}
-
-void OutputDebugString (const char *str)
-{
-	fprintf(stderr, "OutputDebugString: %s\n", str);
 }
 
 int WSAGetLastError()
@@ -128,21 +94,6 @@ void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ex
 		strncpy(fname, ls, dist);
 		fname[dist] = 0;	// add null, just in case
 	}
-}
-
-int MulDiv(int a, int b, int c)
-{
-	/* slow long long version */
-	__extension__ long long aa = a;
-	__extension__ long long bb = b;
-	__extension__ long long cc = c;
-	
-	__extension__ long long dd = aa * bb;
-	__extension__ long long ee = dd / cc;
-	
-	int retr = (int) ee;
-	
-	return retr;
 }
 
 /* mem debug junk */
@@ -353,10 +304,4 @@ void Error( const char * filename, int line, const char * format, ... )
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", tmp2, NULL);
 
 	exit (1);
-}
-
-void WinAssert(const char * text, const char *filename, int line)
-{
-	fprintf (stderr, "Assertion: (%s:%d) %s\n", filename, line, text);
-//	exit(1);
 }

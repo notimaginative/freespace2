@@ -592,7 +592,7 @@ void multi_xfer_unlock()
 void multi_xfer_force_dir(int cf_type)
 {
 	Multi_xfer_force_dir = cf_type;
-	Assert(Multi_xfer_force_dir > CF_TYPE_ANY);
+	SDL_assert(Multi_xfer_force_dir > CF_TYPE_ANY);
 }
 
 // forces the given xfer entry to the specified directory type (only valid when called from the recv_callback function)
@@ -605,7 +605,7 @@ void multi_xfer_handle_force_dir(int handle,int cf_type)
 
 	// force to go to the given directory
 	Multi_xfer_entry[handle].force_dir = cf_type;
-	Assert(Multi_xfer_entry[handle].force_dir > CF_TYPE_ANY);
+	SDL_assert(Multi_xfer_entry[handle].force_dir > CF_TYPE_ANY);
 }
 
 // or the flag on a given entry
@@ -645,7 +645,7 @@ int multi_xfer_lookup(char *filename)
 	// otherwise, perform a lookup
 	for(idx=0;idx<MAX_XFER_ENTRIES;idx++){
 		// if we found a matching filename
-		if((Multi_xfer_entry[idx].flags & MULTI_XFER_FLAG_USED) && !stricmp(filename,Multi_xfer_entry[idx].filename)){
+		if((Multi_xfer_entry[idx].flags & MULTI_XFER_FLAG_USED) && !SDL_strcasecmp(filename,Multi_xfer_entry[idx].filename)){
 			return idx;
 		}
 	}
@@ -933,25 +933,25 @@ int multi_xfer_process_packet(unsigned char *data, PSNET_SOCKET_RELIABLE who)
 	switch((int)val){
 	// process an ack for this entry
 	case MULTI_XFER_CODE_ACK :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_ack(xe);
 		break;
 	
 	// process a nak for this entry
 	case MULTI_XFER_CODE_NAK :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_nak(xe);
 		break;
 
 	// process a "final" packet
 	case MULTI_XFER_CODE_FINAL :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_final(xe);
 		break;
 
 	// process a data packet
 	case MULTI_XFER_CODE_DATA :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_data(xe, xfer_data, data_size);
 		break;
 	
@@ -1132,7 +1132,7 @@ void multi_xfer_process_header(ubyte *data, PSNET_SOCKET_RELIABLE who, ushort si
 	// lower case all filenames to avoid case issues
 	char *tmp_filename = filename;
 	
-	strlwr(tmp_filename);
+	SDL_strlwr(tmp_filename);
 	strcpy(xe->filename, tmp_filename);
 #else
 	strcpy(xe->filename, filename);

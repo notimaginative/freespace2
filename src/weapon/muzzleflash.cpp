@@ -180,7 +180,7 @@ void mflash_game_init()
 	strncpy(m->name, "mflash_small", MAX_MFLASH_NAME_LEN);
 
 	m->num_blobs = 4;
-	Assert(m->num_blobs <= MAX_MFLASH_BLOBS);
+	SDL_assert(m->num_blobs <= MAX_MFLASH_BLOBS);
 
 	idx = 0;
 	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
@@ -228,7 +228,7 @@ void mflash_level_init()
 		for(idx=0; idx<Mflash_info[i].num_blobs; idx++){
 			Mflash_info[i].blob_anims[idx] = -1;
 			Mflash_info[i].blob_anims[idx] = bm_load_animation(Mflash_info[i].blob_names[idx], &num_frames, &fps, 1);
-			Assert(Mflash_info[i].blob_anims[idx] >= 0);
+			SDL_assert(Mflash_info[i].blob_anims[idx] >= 0);
 		}
 	}
 }
@@ -266,7 +266,7 @@ void mflash_create(vector *gun_pos, vector *gun_dir, int mflash_type)
 
 	// Find next available trail
 	mflashp = GET_FIRST(&Mflash_free_list);
-	Assert( mflashp != &Mflash_free_list );		// shouldn't have the dummy element
+	SDL_assert( mflashp != &Mflash_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Mflash_free_list, mflashp );
@@ -326,7 +326,7 @@ void mflash_process_all()
 			// decrement counter
 			Num_mflash--;
 
-			Assert(Num_mflash >= 0);
+			SDL_assert(Num_mflash >= 0);
 			
 			mflashp = next_one;			
 		} else {	
@@ -347,7 +347,7 @@ int mflash_lookup(char *name)
 
 	// look it up
 	for(idx=0; idx<Num_mflash_types; idx++){
-		if(!stricmp(name, Mflash_info[idx].name)){
+		if(!SDL_strcasecmp(name, Mflash_info[idx].name)){
 			return idx;
 		}
 	}

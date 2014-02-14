@@ -113,9 +113,9 @@ BOOL initial_status::OnInitDialog()
 
 	m_ship = cur_ship;
 	if (m_ship == -1) {
-		Assert((Objects[cur_object_index].type == OBJ_SHIP) || (Objects[cur_object_index].type == OBJ_START));
+		SDL_assert((Objects[cur_object_index].type == OBJ_SHIP) || (Objects[cur_object_index].type == OBJ_START));
 		m_ship = get_ship_from_obj(cur_object_index);
-		Assert(m_ship >= 0);
+		SDL_assert(m_ship >= 0);
 	}
 
 	vflag = sflag = hflag = 0;
@@ -151,7 +151,7 @@ BOOL initial_status::OnInitDialog()
 						m_has_shields = 2;
 				}
 
-				Assert((objp->type == OBJ_SHIP) || (objp->type == OBJ_START));
+				SDL_assert((objp->type == OBJ_SHIP) || (objp->type == OBJ_START));
 				if (Ships[get_ship_from_obj(objp)].flags & SF_LOCKED) {
 					if (!m_locked)
 						m_locked = 2;
@@ -200,7 +200,7 @@ BOOL initial_status::OnInitDialog()
 		m_docked_with = -1;
 		z  = Ai_info[Ships[m_ship].ai_index].dock_objnum;
 		if (z >= 0) {
-			Assert(Objects[z].type == OBJ_SHIP);
+			SDL_assert(Objects[z].type == OBJ_SHIP);
 			z = m_docked_with = get_ship_from_obj(z);
 			m_docked = box->FindStringExact(-1, Ships[z].ship_name);
 
@@ -263,7 +263,7 @@ void initial_status::initialize_docker_points()
 	type = model_get_dock_types(Ships[m_docked_with].modelnum);
 	set_valid_dock_points(m_ship, type, box);
 	i = box->GetCount();
-	Assert(i);  // this shouldn't happen.
+	SDL_assert(i);  // this shouldn't happen.
 	while (i--)
 		if ((int) box->GetItemData(i) == m_docker_index)
 			break;
@@ -290,7 +290,7 @@ void initial_status::initialize_dockee_points()
 	type = model_get_dock_index_type(Ships[m_ship].modelnum, m_docker_index);
 	set_valid_dock_points(m_docked_with, type, box);
 	i = box->GetCount();
-	Assert(i);  // this shouldn't happen.
+	SDL_assert(i);  // this shouldn't happen.
 	while (i--)
 		if ((int) box->GetItemData(i) == m_dockee_index)
 			break;
@@ -310,7 +310,7 @@ void initial_status::change_subsys()
 	if (cur_subsys != LB_ERR) {
 		ptr = GET_FIRST(&Ships[m_ship].subsys_list);
 		while (cur_subsys--) {
-			Assert(ptr != END_OF_LIST(&Ships[m_ship].subsys_list));
+			SDL_assert(ptr != END_OF_LIST(&Ships[m_ship].subsys_list));
 			ptr = GET_NEXT(ptr);
 		}
 
@@ -340,7 +340,7 @@ void initial_status::change_subsys()
 	} else {
 		ptr = GET_FIRST(&Ships[m_ship].subsys_list);
 		while (z--) {
-			Assert(ptr != END_OF_LIST(&Ships[m_ship].subsys_list));
+			SDL_assert(ptr != END_OF_LIST(&Ships[m_ship].subsys_list));
 			ptr = GET_NEXT(ptr);
 		}
 
@@ -476,7 +476,7 @@ void initial_status::OnOK()
 				reset_arrival_to_false( m_ship );
 			}
 
-			Assert ( (Ships[m_ship].flags & SF_INITIALLY_DOCKED) || (Ships[m_docked_with].flags & SF_INITIALLY_DOCKED) );
+			SDL_assert ( (Ships[m_ship].flags & SF_INITIALLY_DOCKED) || (Ships[m_docked_with].flags & SF_INITIALLY_DOCKED) );
 
 			Update_window = 1;
 		}

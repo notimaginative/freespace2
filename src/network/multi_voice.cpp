@@ -625,7 +625,7 @@ void multi_voice_reset()
 	nprintf(("Network","MULTI VOICE : Resetting\n"));
 #endif
 
-	Assert(Multi_voice_inited);	
+	SDL_assert(Multi_voice_inited);	
 
 	// if we're the standalone server, we can't record _or_ playback, but we can still route data and manage tokens
 	if(Game_mode & GM_STANDALONE_SERVER){
@@ -802,7 +802,7 @@ void multi_voice_server_process()
 		default :
 			// if the token timestamp has elapsed, take the token back
 			if((Multi_voice_stream[idx].token_stamp != -1) && timestamp_elapsed(Multi_voice_stream[idx].token_stamp)){
-				Assert(Multi_voice_stream[idx].token_status != MULTI_VOICE_TOKEN_INDEX_FREE);
+				SDL_assert(Multi_voice_stream[idx].token_status != MULTI_VOICE_TOKEN_INDEX_FREE);
 				multi_voice_take_token(idx);
 			}				
 			break;
@@ -986,7 +986,7 @@ void multi_voice_give_token(int stream_index,int player_index)
 	int packet_size = 0;
 	
 	// only the server should ever be here
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 	// set this player as having the token	
 	Multi_voice_stream[stream_index].token_status = player_index;
@@ -1031,7 +1031,7 @@ void multi_voice_take_token(int stream_index)
 	int packet_size = 0;
 
 	// only the server should ever be here
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 
 	// if the index is -1, the token has probably been released to us "officially" already
 	if((Multi_voice_stream[stream_index].token_status == (int)MULTI_VOICE_TOKEN_INDEX_FREE) || (Multi_voice_stream[stream_index].token_status == (int)MULTI_VOICE_TOKEN_INDEX_RELEASED)){
@@ -1070,7 +1070,7 @@ void multi_voice_deny_token(int player_index)
 	int packet_size = 0;
 
 	// only the server should ever be here
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 	
 
 	// if i'm denying myself, set the denied timestamp
@@ -1282,7 +1282,7 @@ void multi_voice_player_send_stream()
 	double d_gain;
 
 	// we'd better not ever get here as we can't record voice
-	Assert(Multi_voice_can_record);
+	SDL_assert(Multi_voice_can_record);
 
 	// get the data	
 	rtvoice_get_data((unsigned char**)&Multi_voice_record_buffer,&sound_size,&uncompressed_size,&d_gain);		
@@ -1329,7 +1329,7 @@ void multi_voice_player_send_stream()
 		// add the current stream id#
 		ADD_DATA(Multi_voice_stream_id);
 
-		Assert(uncompressed_size < MULTI_VOICE_MAX_BUFFER_SIZE);
+		SDL_assert(uncompressed_size < MULTI_VOICE_MAX_BUFFER_SIZE);
 		uc_size = (ushort)uncompressed_size;
 		ADD_USHORT(uc_size);
 
@@ -1452,7 +1452,7 @@ int multi_voice_process_data(ubyte *data, int player_index,int msg_mode,net_play
 // <server> increment the current stream id#
 void multi_voice_inc_stream_id()
 {
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	
 	if(Multi_voice_next_stream_id == 0xff){
 		Multi_voice_next_stream_id = 0;
@@ -1534,7 +1534,7 @@ void multi_voice_route_data(ubyte *data, int packet_size,int player_index,int mo
 		break;
 	
 	case MULTI_MSG_TARGET:
-		Assert(target != NULL);
+		SDL_assert(target != NULL);
 		if(!(target->p_info.options.flags & MLO_FLAG_NO_VOICE)){					
 			multi_io_send(target, data, packet_size);
 		}
@@ -1696,7 +1696,7 @@ void multi_voice_process_next_chunk()
 	voice_stream *str;
 
 	// we'd better not ever get here is we can't record voice
-	Assert(Multi_voice_can_record);
+	SDL_assert(Multi_voice_can_record);
 
 	// get the data	
 	rtvoice_get_data((unsigned char**)&Multi_voice_record_buffer,&sound_size,&uncompressed_size,&d_gain);		
@@ -1924,7 +1924,7 @@ void multi_voice_process_packet(ubyte *data, header *hinfo)
 
 	// a player has set prefs for himself
 	case MV_CODE_PLAYER_PREFS:
-		Assert(player_index != -1);		
+		SDL_assert(player_index != -1);		
 		offset += multi_voice_process_player_prefs(data+offset,player_index);
 		break;
 
@@ -1939,7 +1939,7 @@ void multi_voice_process_packet(ubyte *data, header *hinfo)
 		if(msg_mode == MULTI_MSG_TARGET){
 			GET_USHORT(target_sig);
 			target_index = multi_find_player_by_net_signature(target_sig);
-			Assert(target_index != -1);
+			SDL_assert(target_index != -1);
 		}
 
 		offset += multi_voice_process_data(data+offset,player_index,msg_mode,(target_index == -1) ? NULL : &Net_players[target_index]);
@@ -1961,7 +1961,7 @@ void multi_voice_process_packet(ubyte *data, header *hinfo)
 		if(msg_mode == MULTI_MSG_TARGET){
 			GET_USHORT(target_sig);
 			target_index = multi_find_player_by_net_signature(target_sig);
-			Assert(target_index != -1);
+			SDL_assert(target_index != -1);
 		}
 
 		offset += multi_voice_process_data_dummy(data+offset);
@@ -2044,7 +2044,7 @@ void multi_voice_client_send_pending()
 		// add the routing data and any necessary targeting information
 		ADD_DATA(msg_mode);
 		if(msg_mode == MULTI_MSG_TARGET){
-			Assert(Game_mode & GM_IN_MISSION);
+			SDL_assert(Game_mode & GM_IN_MISSION);
 			ADD_USHORT(Objects[Net_players[target_index].player->objnum].net_signature);
 		}
 
@@ -2054,7 +2054,7 @@ void multi_voice_client_send_pending()
 		// add the current stream id#
 		ADD_DATA(Multi_voice_stream_id);
 
-		//Assert(str->accum_buffer_usize[sent] < MULTI_VOICE_MAX_BUFFER_SIZE);	// always true
+		//SDL_assert(str->accum_buffer_usize[sent] < MULTI_VOICE_MAX_BUFFER_SIZE);	// always true
 		uc_size = (ushort)str->accum_buffer_usize[sent];
 		ADD_USHORT(uc_size);
 
@@ -2136,7 +2136,7 @@ void multi_voice_alg_play_window(int stream_index)
 		// mix in the SND_CUE_VOICE and the SND_END_VOICE game sounds
 		buffer_offset = multi_voice_mix(MULTI_VOICE_POST_SOUND,Multi_voice_playback_buffer,buffer_offset,MULTI_VOICE_MAX_BUFFER_SIZE);
 			
-		Assert(Multi_voice_stream[stream_index].stream_rtvoice_handle != -1);
+		SDL_assert(Multi_voice_stream[stream_index].stream_rtvoice_handle != -1);
 
 		// kill any previously playing sounds
 		rtvoice_stop_playback(Multi_voice_stream[stream_index].stream_rtvoice_handle);	
@@ -2342,8 +2342,8 @@ void multi_voice_test_process()
 int multi_voice_test_get_playback_buffer()
 {
 	// return voice stream 0
-	Assert(Multi_voice_stream[0].stream_snd_handle == -1);
-	Assert(Multi_voice_stream[0].stream_rtvoice_handle != -1);
+	SDL_assert(Multi_voice_stream[0].stream_snd_handle == -1);
+	SDL_assert(Multi_voice_stream[0].stream_rtvoice_handle != -1);
 
 	return Multi_voice_stream[0].stream_rtvoice_handle;
 }

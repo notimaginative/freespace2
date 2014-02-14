@@ -852,7 +852,7 @@ void HUD_fixed_printf(float duration, const char * format, ...)
 	va_end(args);
 
 	msg_length = strlen(tmp);
-	Assert(msg_length < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
+	SDL_assert(msg_length < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 
 	if ( !msg_length ) {
 		nprintf(("Warning", "HUD_fixed_printf ==> attempt to print a 0 length string in msg window\n"));
@@ -887,7 +887,7 @@ void HUD_fixed_printf_reset()
 //
 void HUD_printf_line(const char *text, int source, int time = 0, int x = 0)
 {
-	Assert(text != NULL);
+	SDL_assert(text != NULL);
 
 	// if the pointer exceeds the array size, wrap around to element 1.  element 0 is not used.		
 	Hud_list_end++;
@@ -954,7 +954,7 @@ void HUD_printf(const char *format, ...)
 	va_end(args);
 
 	len = strlen(tmp);
-	Assert(len < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
+	SDL_assert(len < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 	hud_sourced_print(HUD_SOURCE_COMPUTER, tmp);
 }
 
@@ -966,14 +966,14 @@ void HUD_ship_sent_printf(int sh, const char *format, ...)
 
 	sprintf(tmp, NOX("%s: "), Ships[sh].ship_name);
 	len = strlen(tmp);
-	Assert(len < HUD_MSG_LENGTH_MAX);
+	SDL_assert(len < HUD_MSG_LENGTH_MAX);
 
 	va_start(args, format);
 	vsprintf(tmp + len, format, args);
 	va_end(args);
 
 	len = strlen(tmp);
-	Assert(len < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
+	SDL_assert(len < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 	hud_sourced_print(HUD_get_team_source(Ships[sh].team), tmp);
 }
 
@@ -998,7 +998,7 @@ void HUD_sourced_printf(int source, const char *format, ...)
 	va_start(args, format);
 	vsprintf(tmp, format, args);
 	va_end(args);
-	Assert(strlen(tmp) < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
+	SDL_assert(strlen(tmp) < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 	hud_sourced_print(source, tmp);
 }
 
@@ -1078,7 +1078,7 @@ void hud_add_line_to_scrollback(const char *text, int source, int t, int x, int 
 {
 	line_node *new_line;
 
-	Assert(HUD_msg_inited);
+	SDL_assert(HUD_msg_inited);
 	if (!text || !strlen(text))
 		return;
 
@@ -1113,7 +1113,7 @@ void hud_add_msg_to_scrollback(const char *text, int source, int t)
 		return;
 
 	w = 0;
-	Assert(msg_len < HUD_MSG_LENGTH_MAX);
+	SDL_assert(msg_len < HUD_MSG_LENGTH_MAX);
 	strcpy(buf, text);
 	ptr = strstr(buf, NOX(": "));
 	if (ptr) {

@@ -146,10 +146,10 @@
  * think)
  * 
  * 58    3/24/98 10:07p Adam
- * AL: Add another Assert() to try and catch bogus wp->big_attack_point
+ * AL: Add another SDL_assert() to try and catch bogus wp->big_attack_point
  * 
  * 57    3/24/98 9:56p Adam
- * AL: Assert that local_attack_point is valid in ai_bpap
+ * AL: SDL_assert that local_attack_point is valid in ai_bpap
  * 
  * 56    3/21/98 3:36p Mike
  * Fix/optimize attacking of big ships.
@@ -299,7 +299,7 @@
  * Don't allow ships to attack navbuoys.
  * Make ships lead big ships with dumbfire.
  * Make ships smarter about leaving evade weapon mode.
- * Fix a couple Assert() bugs.
+ * Fix a couple SDL_assert() bugs.
  * 
  * 13    11/06/97 6:27p Lawrance
  * fix bug that was messing up retreat point in STRAFE mode
@@ -485,7 +485,7 @@ void ai_bpap(object *objp, vector *attacker_objp_pos, vector *attacker_objp_fvec
 						nearest_dist = dist;
 						best_point = result_point;
 						*local_attack_point = rel_point;
-						Assert( !vm_is_vec_nan(local_attack_point) );
+						SDL_assert( !vm_is_vec_nan(local_attack_point) );
 						if (dot > (1.0f + fov)/2.0f)	//	If this point is quite good, quit searching for a better one.
 							goto done_1;
 					}
@@ -564,8 +564,8 @@ void ai_big_pick_attack_point_turret(object *objp, ship_subsys *ssp, vector *gpo
 //	Note, attacker_objp can be a ship or a weapon.
 void ai_big_pick_attack_point(object *objp, object *attacker_objp, vector *attack_point, float fov)
 {
-	Assert(objp->instance > -1);
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->instance > -1);
+	SDL_assert(objp->type == OBJ_SHIP);
 
 	vector	local_attack_point;
 
@@ -622,7 +622,7 @@ void ai_big_pick_attack_point(object *objp, object *attacker_objp, vector *attac
 	case OBJ_WEAPON: {
 		weapon	*wp = &Weapons[attacker_objp->instance];
 		wp->big_attack_point = local_attack_point;
-		Assert( !vm_is_vec_nan(&wp->big_attack_point) );
+		SDL_assert( !vm_is_vec_nan(&wp->big_attack_point) );
 		break;
 						  }
 	}
@@ -762,7 +762,7 @@ int ai_big_maybe_follow_subsys_path(int do_dot_check)
 			if ( (aip->path_start) == -1 || (aip->mp_index != subsys_path_num) ) {
 				// maybe create a new path
 				if ( subsys_path_num >= 0 ) {
-					Assert(aip->target_objnum >= 0);
+					SDL_assert(aip->target_objnum >= 0);
 					ai_find_path(Pl_objp, aip->target_objnum, subsys_path_num, 0, 1);
 					if ( aip->path_start >= 0 ) {
 						aip->ai_flags |= AIF_ON_SUBSYS_PATH;
@@ -784,7 +784,7 @@ int ai_big_maybe_follow_subsys_path(int do_dot_check)
 			int path_done=0;
 			int in_view=0;
 
-			Assert(aip->path_length >= 2);
+			SDL_assert(aip->path_length >= 2);
 			dist = vm_vec_dist_quick(&Path_points[aip->path_start+aip->path_length-2].pos, &Pl_objp->pos);
 
 			if ( aip->path_cur >= (aip->path_start+aip->path_length-1) ) {
@@ -1022,7 +1022,7 @@ void ai_big_maybe_fire_weapons(float dist_to_enemy, float dot_to_enemy, vector *
 			ship_weapon *tswp = &temp_shipp->weapons;
 
 			if ( tswp->num_primary_banks > 0 ) {
-				Assert(tswp->current_primary_bank < tswp->num_primary_banks);
+				SDL_assert(tswp->current_primary_bank < tswp->num_primary_banks);
 				weapon_info	*wip = &Weapon_info[tswp->primary_bank_weapons[tswp->current_primary_bank]];
 
 				if (dist_to_enemy < wip->max_speed * wip->lifetime)
@@ -1114,7 +1114,7 @@ void ai_big_chase()
 	int			enemy_ship_type;
 	vector		predicted_enemy_pos;
 
-	Assert(aip->mode == AIM_CHASE);
+	SDL_assert(aip->mode == AIM_CHASE);
 
 	maybe_cheat_fire_synaptic(Pl_objp, aip);
 
@@ -1162,7 +1162,7 @@ void ai_big_chase()
 	if ((dot_to_enemy < 0.25f) || (aip->target_time < 1.0f) || (aip->ai_flags & AIF_SEEK_LOCK)) {
 		update_aspect_lock_information(aip, &vec_to_enemy, dist_to_enemy - En_objp->radius, En_objp->radius);
 	} else if (aip->targeted_subsys != NULL) {		
-		Assert(aip->targeted_subsys != NULL);
+		SDL_assert(aip->targeted_subsys != NULL);
 		get_subsystem_pos(&enemy_pos, En_objp, aip->targeted_subsys);
 		vm_vec_add2(&enemy_pos, &predicted_enemy_pos);
 		vm_vec_sub2(&enemy_pos, &En_objp->pos);
@@ -1410,7 +1410,7 @@ void ai_big_attack_get_data(vector *enemy_pos, float *dist_to_enemy, float *dot_
 	ai_info		*aip = &Ai_info[shipp->ai_index];
 	ship_info	*esip = &Ship_info[Ships[En_objp->instance].ship_info_index];
 
-	Assert(aip->mode == AIM_STRAFE);
+	SDL_assert(aip->mode == AIM_STRAFE);
 
 	// ensure that Pl_objp is still targeting a big ship
 	if ( !(esip->flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) ) {
@@ -1423,7 +1423,7 @@ void ai_big_attack_get_data(vector *enemy_pos, float *dist_to_enemy, float *dot_
 	player_pos = Pl_objp->pos;
 
 	if (aip->targeted_subsys != NULL) {
-		Assert(aip->targeted_subsys != NULL);
+		SDL_assert(aip->targeted_subsys != NULL);
 		get_subsystem_pos(enemy_pos, En_objp, aip->targeted_subsys);
 	} else {
 		// checks valid line to target
@@ -1757,7 +1757,7 @@ void ai_big_strafe()
 
 	aip = &Ai_info[Ships[Pl_objp->instance].ai_index];
 
-	Assert(aip->mode == AIM_STRAFE);
+	SDL_assert(aip->mode == AIM_STRAFE);
 
 /*
 	if ( aip->goal_objnum != aip->target_objnum ) {
@@ -1808,7 +1808,7 @@ int ai_big_maybe_enter_strafe_mode(object *pl_objp, int weapon_objnum, int consi
 	object		*weapon_objp, *parent_objp;
 
 	aip = &Ai_info[Ships[pl_objp->instance].ai_index];
-	Assert(aip->mode != AIM_STRAFE);		// can't happen
+	SDL_assert(aip->mode != AIM_STRAFE);		// can't happen
 
 	// if Pl_objp has no target, then we can't enter strafe mode
 	if ( aip->target_objnum < 0 ) {
@@ -1833,11 +1833,11 @@ int ai_big_maybe_enter_strafe_mode(object *pl_objp, int weapon_objnum, int consi
 		return 0;
 	}
 
-	Assert(weapon_objnum >= 0 && weapon_objnum < MAX_OBJECTS);
+	SDL_assert(weapon_objnum >= 0 && weapon_objnum < MAX_OBJECTS);
 	weapon_objp = &Objects[weapon_objnum];
-	Assert(weapon_objp->type == OBJ_WEAPON);
+	SDL_assert(weapon_objp->type == OBJ_WEAPON);
 
-	Assert(weapon_objp->parent >= 0 && weapon_objp->parent < MAX_OBJECTS);
+	SDL_assert(weapon_objp->parent >= 0 && weapon_objp->parent < MAX_OBJECTS);
 	parent_objp = &Objects[weapon_objp->parent];
 	if ( (parent_objp->signature != weapon_objp->parent_sig) || (parent_objp->type != OBJ_SHIP) ) {
 		return 0;
@@ -1880,7 +1880,7 @@ void ai_big_strafe_maybe_attack_turret(object *ship_objp, object *weapon_objp)
 	ai_info	*aip;
 	object	*parent_objp;
 
-	Assert(ship_objp->type == OBJ_SHIP);
+	SDL_assert(ship_objp->type == OBJ_SHIP);
 	aip = &Ai_info[Ships[ship_objp->instance].ai_index];
 
 	// Make decision to attack turret based on AI class.  The better AI ships will realize that
@@ -1899,7 +1899,7 @@ void ai_big_strafe_maybe_attack_turret(object *ship_objp, object *weapon_objp)
 	}
 
 	// Only attack turret if it sits on current target
-	Assert(weapon_objp->parent >= 0 && weapon_objp->parent < MAX_OBJECTS);
+	SDL_assert(weapon_objp->parent >= 0 && weapon_objp->parent < MAX_OBJECTS);
 	parent_objp = &Objects[weapon_objp->parent];
 	if ( (parent_objp->signature != weapon_objp->parent_sig) || (parent_objp->type != OBJ_SHIP) ) {
 		return;

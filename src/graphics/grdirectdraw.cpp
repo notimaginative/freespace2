@@ -1062,7 +1062,7 @@ void gr_directdraw_init()
 		exit(1);
 	}
 
-	Assert( lpDD );
+	SDL_assert( lpDD );
 
 	ddrval = lpDD->SetCooperativeLevel( hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN );
 	if ( ddrval != DD_OK )	{

@@ -641,8 +641,8 @@ void common_set_interface_palette(const char *filename)
 	if (!filename)
 		filename = NOX("palette01");
 
-	Assert(strlen(filename) <= MAX_FILENAME_LEN);
-	if ( (InterfacePaletteBitmap != -1) && !stricmp(filename, buf) )
+	SDL_assert(strlen(filename) <= MAX_FILENAME_LEN);
+	if ( (InterfacePaletteBitmap != -1) && !SDL_strcasecmp(filename, buf) )
 		return;  // already set to this palette
 
 	strcpy(buf, filename);
@@ -733,7 +733,7 @@ void common_select_init()
 			Background_anim = anim_load("BriefTrans", 1);	// 1 as last parm means file is mem-mapped
 		}
 
-		Assert( Background_anim != NULL );
+		SDL_assert( Background_anim != NULL );
 		anim_play_init(&aps, Background_anim, 0, 0);
 		aps.framerate_independent = 1;
 		aps.skip_frames = 0;
@@ -777,7 +777,7 @@ void common_select_init()
 
 	// restore loadout from Player_loadout if this is the same mission as the one previously played
 	if ( !(Game_mode & GM_MULTIPLAYER) ) {
-		if ( !stricmp(Player_loadout.filename, Game_current_mission_filename) ) {
+		if ( !SDL_strcasecmp(Player_loadout.filename, Game_current_mission_filename) ) {
 			wss_restore_loadout();
 			ss_synch_interface();
 			wl_synch_interface();
@@ -1314,7 +1314,7 @@ void wss_restore_loadout()
 	wss_unit	*slot;
 
 	// only restore if mission hasn't changed
-	if ( stricmp(Player_loadout.last_modified, The_mission.modified) ) {
+	if ( SDL_strcasecmp(Player_loadout.last_modified, The_mission.modified) ) {
 		return;
 	}
 
@@ -1348,7 +1348,7 @@ void wss_direct_restore_loadout()
 	wss_unit			*slot;
 
 	// only restore if mission hasn't changed
-	if ( stricmp(Player_loadout.last_modified, The_mission.modified) ) {
+	if ( SDL_strcasecmp(Player_loadout.last_modified, The_mission.modified) ) {
 		return;
 	}
 
@@ -1472,13 +1472,13 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	short ishort;
 
 	// this is intended for multi only since it byteswaps
-	Assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 	// write the ship pool 
 	for ( i = 0; i < MAX_SHIP_TYPES; i++ ) {
 		if ( Ss_pool[i] > 0 ) {	
 			block[offset++] = (ubyte)i;
-			Assert( Ss_pool[i] < UCHAR_MAX );
+			SDL_assert( Ss_pool[i] < UCHAR_MAX );
 			
 			// take care of sign issues
 			if(Ss_pool[i] == -1){
@@ -1506,7 +1506,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	block[offset++] = 0xff; // signals start of unit data
 
 	for ( i=0; i<MAX_WSS_SLOTS; i++ ) {
-		Assert( Wss_slots[i].ship_class < UCHAR_MAX );
+		SDL_assert( Wss_slots[i].ship_class < UCHAR_MAX );
 		if(Wss_slots[i].ship_class == -1){
 			block[offset++] = 0xff;
 		} else {
@@ -1514,14 +1514,14 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 		}
 		for ( j = 0; j < MAX_WL_WEAPONS; j++ ) {
 			// take care of sign issues
-			Assert( Wss_slots[i].wep[j] < UCHAR_MAX );			
+			SDL_assert( Wss_slots[i].wep[j] < UCHAR_MAX );			
 			if(Wss_slots[i].wep[j] == -1){
 				block[offset++] = 0xff;
 			} else {
 				block[offset++] = (ubyte)(Wss_slots[i].wep[j]);
 			}
 
-			Assert( Wss_slots[i].wep_count[j] < SHRT_MAX );
+			SDL_assert( Wss_slots[i].wep_count[j] < SHRT_MAX );
 			ishort = INTEL_SHORT( (short)Wss_slots[i].wep_count[j] );
 
 			memcpy(&(block[offset]), &(ishort), sizeof(short) );
@@ -1549,7 +1549,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	memcpy(block+offset,&player_id,sizeof(player_id));
 	offset += sizeof(player_id);
 
-	Assert( offset < max_size );
+	SDL_assert( offset < max_size );
 	return offset;
 }
 
@@ -1561,7 +1561,7 @@ int restore_wss_data(ubyte *block)
 	short player_id;	
 
 	// this is intended for multi only since it byteswaps
-	Assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 	// restore ship pool
 	sanity=0;

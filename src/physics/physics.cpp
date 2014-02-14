@@ -182,7 +182,7 @@
  * stamp. 
  * 
  * 86    11/24/97 1:54p Dan
- * Mike: Comment out Assert() in physics, debug_rotvel().
+ * Mike: Comment out SDL_assert() in physics, debug_rotvel().
  * 
  * 85    11/24/97 8:46a Andsager
  * Added rotational velocity caps and debug info.
@@ -512,9 +512,9 @@ void physics_sim_rot(matrix * orient, physics_info * pi, float sim_time )
 	float		rotdamp;
 	float		shock_fraction_time_left;
 
-	Assert(is_valid_matrix(orient));
-	Assert(is_valid_vec(&pi->rotvel));
-	Assert(is_valid_vec(&pi->desired_rotvel));
+	SDL_assert(is_valid_matrix(orient));
+	SDL_assert(is_valid_vec(&pi->rotvel));
+	SDL_assert(is_valid_vec(&pi->desired_rotvel));
 
 	// Handle special case of shockwave
 	shock_amplitude = 0.0f;
@@ -543,7 +543,7 @@ void physics_sim_rot(matrix * orient, physics_info * pi, float sim_time )
 	}
 #endif
 */
-	Assert(is_valid_vec(&new_vel));
+	SDL_assert(is_valid_vec(&new_vel));
 
 	pi->rotvel = new_vel;
 
@@ -750,8 +750,8 @@ void physics_sim_vel(vector * position, physics_info * pi, float sim_time, matri
 	// check for  excess velocity or translation
 	// GET DaveA.
 	if ( (Game_mode & GM_IN_MISSION) && (Game_mode & GM_NORMAL) ) {
-		// Assert( (sim_time > 0.5f) || (vm_vec_mag_squared(&pi->vel) < 500*500) );
-		// Assert( (sim_time > 0.5f) || (vm_vec_mag_squared(&world_disp) < 350*350) );
+		// SDL_assert( (sim_time > 0.5f) || (vm_vec_mag_squared(&pi->vel) < 500*500) );
+		// SDL_assert( (sim_time > 0.5f) || (vm_vec_mag_squared(&world_disp) < 350*350) );
 	}
 #endif
 	vm_vec_add2 (position, &world_disp);
@@ -1337,8 +1337,8 @@ int check_rotvel_limit( physics_info *pi )
 	int change_made = 0;
 	if ( !(pi->flags & PF_DEAD_DAMP) ) {
 		// case of normal, live ship
-		// -- Commented out by MK: Assert( vm_vec_mag_squared(&pi->max_rotvel) > ROTVEL_TOL );
-		// Assert( (pi->max_rotvel.xyz.x <= ROTVEL_CAP) && (pi->max_rotvel.xyz.y <= ROTVEL_CAP) && (pi->max_rotvel.xyz.z <= ROTVEL_CAP) );
+		// -- Commented out by MK: SDL_assert( vm_vec_mag_squared(&pi->max_rotvel) > ROTVEL_TOL );
+		// SDL_assert( (pi->max_rotvel.xyz.x <= ROTVEL_CAP) && (pi->max_rotvel.xyz.y <= ROTVEL_CAP) && (pi->max_rotvel.xyz.z <= ROTVEL_CAP) );
 		//		Warning(LOCATION,"Excessive rotvel (wx: %f, wy: %f, wz:%f)\n", pi->rotvel.xyz.x, pi->rotvel.xyz.y, pi->rotvel.xyz.z);
 		if ( fl_abs(pi->rotvel.xyz.x) > pi->max_rotvel.xyz.x ) {
 			pi->rotvel.xyz.x = (pi->rotvel.xyz.x / fl_abs(pi->rotvel.xyz.x)) * (pi->max_rotvel.xyz.x - (float) ROTVEL_TOL);

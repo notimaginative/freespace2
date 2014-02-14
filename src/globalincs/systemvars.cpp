@@ -363,7 +363,7 @@ monitor::monitor( const char *_name )
 	}
 
 	for (i=0; i<Num_monitors; i++ )	{
-		int ret  = stricmp( Monitor[i]->name, _name );
+		int ret  = SDL_strcasecmp( Monitor[i]->name, _name );
 
 		if ( ret == 0)	{
 			Int3();		// This monitor variable already exists!!!! 
@@ -644,8 +644,8 @@ void detail_level_set(int level)
 		Detail.setting = -1;
 		return;
 	}
-	Assert( level >= 0 );
-	Assert( level < NUM_DEFAULT_DETAIL_LEVELS );
+	SDL_assert( level >= 0 );
+	SDL_assert( level < NUM_DEFAULT_DETAIL_LEVELS );
 
 	Detail = Detail_defaults[level];
 

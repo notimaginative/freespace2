@@ -79,7 +79,7 @@ void cscrew_maybe_fire_missile(int shipnum)
 	ship_weapon *swp;
 	int			weapon_info_index;
 
-	Assert(shipnum >= 0 && shipnum < MAX_SHIPS );
+	SDL_assert(shipnum >= 0 && shipnum < MAX_SHIPS );
 	sp = &Ships[shipnum];
 
 	// make sure we're supposed to be firing some missiles
@@ -95,7 +95,7 @@ void cscrew_maybe_fire_missile(int shipnum)
 	}
 
 	weapon_info_index = swp->secondary_bank_weapons[swp->current_secondary_bank];
-	Assert( weapon_info_index >= 0 && weapon_info_index < MAX_WEAPON_TYPES );
+	SDL_assert( weapon_info_index >= 0 && weapon_info_index < MAX_WEAPON_TYPES );
 
 	// if current secondary bank is not a corkscrew missile, return
 	if ( !(Weapon_info[weapon_info_index].wi_flags & WIF_CORKSCREW) ) {
@@ -179,9 +179,9 @@ void cscrew_process_pre(object *objp)
 	cscrew_info *ci;
 
 	// check stuff
-	Assert(objp->type == OBJ_WEAPON);	
-	Assert(Weapons[objp->instance].cscrew_index >= 0);
-	Assert(Corkscrew_missiles[Weapons[objp->instance].cscrew_index].flags & CS_FLAG_USED);
+	SDL_assert(objp->type == OBJ_WEAPON);	
+	SDL_assert(Weapons[objp->instance].cscrew_index >= 0);
+	SDL_assert(Corkscrew_missiles[Weapons[objp->instance].cscrew_index].flags & CS_FLAG_USED);
 
 	ci = &Corkscrew_missiles[Weapons[objp->instance].cscrew_index];
 
@@ -205,9 +205,9 @@ void cscrew_process_post(object *objp)
 	float twist_val;
 
 	// check stuff
-	Assert(objp->type == OBJ_WEAPON);	
-	Assert(Weapons[objp->instance].cscrew_index >= 0);
-	Assert(Corkscrew_missiles[Weapons[objp->instance].cscrew_index].flags & CS_FLAG_USED);
+	SDL_assert(objp->type == OBJ_WEAPON);	
+	SDL_assert(Weapons[objp->instance].cscrew_index >= 0);
+	SDL_assert(Corkscrew_missiles[Weapons[objp->instance].cscrew_index].flags & CS_FLAG_USED);
 
 	// get various useful pointers
 	wp = &Weapons[objp->instance];

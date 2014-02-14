@@ -196,7 +196,7 @@
  * Last minute changes to techroom weapon/ship/species stuff.
  * 
  * 66    9/07/98 2:49p Dan
- * Removed spurious Assert
+ * Removed spurious SDL_assert
  * 
  * 65    7/06/98 2:42p Hoffoss
  * Fixed bug with weapons shown in tech database.
@@ -620,12 +620,12 @@ void techroom_init_desc(char *src, int w)
 	}
 
 	Text_size = split_str(src, w, Text_line_size, Text_lines, MAX_TEXT_LINES);
-	Assert(Text_size >= 0 && Text_size < MAX_TEXT_LINES);
+	SDL_assert(Text_size >= 0 && Text_size < MAX_TEXT_LINES);
 }
 
 void techroom_select_new_entry()
 {
-	Assert(Current_list != NULL);
+	SDL_assert(Current_list != NULL);
 	if (Current_list == NULL) return;
 
 	Cur_entry_index = Current_list[Cur_entry].index;
@@ -1128,7 +1128,7 @@ void techroom_change_tab(int num)
 	int i, multi = 0, mask, font_height, max_num_entries_viewable;	
 
 	Tab = num;
-	// Assert(Current_list_size >= 0);
+	// SDL_assert(Current_list_size >= 0);
 	List_offset = 0;
 	Cur_entry = 0;
 	multi = Player->flags & PLAYER_FLAGS_IS_MULTI;
@@ -1509,7 +1509,7 @@ void techroom_intel_init()
 
 #ifndef MAKE_FS1
 			while (optional_string("$Entry:")) {
-				Assert(Intel_info_size < MAX_INTEL_ENTRIES);
+				SDL_assert(Intel_info_size < MAX_INTEL_ENTRIES);
 				if (Intel_info_size >= MAX_INTEL_ENTRIES) break;
 
 				required_string("$Name:");
@@ -1589,7 +1589,7 @@ void techroom_init()
 
 	/*
 	Palette_bmp = bm_load("TechDataPalette");
-	Assert(Palette_bmp);
+	SDL_assert(Palette_bmp);
 	bm_get_palette(Palette_bmp, Palette, Palette_name);  // get the palette for this bitmap
 	gr_set_palette(Palette_name, Palette, 1);
 	*/

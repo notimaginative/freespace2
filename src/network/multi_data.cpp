@@ -77,7 +77,7 @@
  * problem in options screen. 
  * 
  * 13    4/16/98 1:55p Dave
- * Removed unneeded Assert when processing chat packets. Fixed standalone
+ * Removed unneeded SDL_assert when processing chat packets. Fixed standalone
  * sequencing bugs. Laid groundwork for join screen server status
  * icons/text.
  * 
@@ -457,7 +457,7 @@ int multi_data_is_data(char *filename)
 {		
 	int len,idx;
 
-	Assert(filename != NULL);
+	SDL_assert(filename != NULL);
 
 	// some kind of error
 	if(filename == NULL){

@@ -120,7 +120,7 @@ void UI_DOT_SLIDER_NEW::create(UI_WINDOW *wnd, int _x, int _y, int _num_pos, con
 
 	// if any of the left/right arrow information is specified, make sure its _all_ specified
 	if((bm_left != NULL) || (left_mask != -1) || (bm_right != NULL) || (right_mask != -1)){
-		Assert((bm_left != NULL) && (left_mask >= 0) && (bm_right != NULL) && (right_mask >= 0));
+		SDL_assert((bm_left != NULL) && (left_mask >= 0) && (bm_right != NULL) && (right_mask >= 0));
 		if((bm_left == NULL) || (left_mask < 0) || (bm_right == NULL) || (right_mask < 0)){
 			return;
 		}
@@ -181,7 +181,7 @@ void UI_DOT_SLIDER_NEW::draw()
 	}
 	
 	// draw the proper dot
-	Assert((pos >= 0) && (pos <= num_pos));	
+	SDL_assert((pos >= 0) && (pos <= num_pos));	
 	
 	// for position -1, we don't draw (no dots)	
 	if(pos >= 0){
@@ -340,7 +340,7 @@ void UI_DOT_SLIDER::draw()
 		up_button.draw();
 		down_button.draw();
 	}
-	Assert((pos >= 0) && (pos <= num_pos));
+	SDL_assert((pos >= 0) && (pos <= num_pos));
 	gr_set_bitmap(first_frame + pos, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);  // draw the dot level
 	gr_bitmap(x, y);
 }
@@ -486,9 +486,9 @@ void UI_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, float _st
 	stop = _stop;
 	current = _current;
 
-	Assert( _current >= _start );
-	Assert( _current <= _stop );
-	Assert( stop >= 0 );
+	SDL_assert( _current >= _start );
+	SDL_assert( _current <= _stop );
+	SDL_assert( stop >= 0 );
 
 	n_positions = _n_positions;
 
@@ -502,7 +502,7 @@ void UI_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, float _st
 	pixel_range = w-marker_w;
 	marker_x = x + fl2i( ( (current - start)/(stop-start) * pixel_range ) );
 	increment = pixel_range / n_positions;
-	Assert(increment >= 1);
+	SDL_assert(increment >= 1);
 	mouse_locked = 0;
 };
 

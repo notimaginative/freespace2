@@ -423,7 +423,7 @@ void team_visibility_update()
 		}
 
 		int ship_num = shipp - Ships;
-		Assert((ship_num >= 0) && (ship_num < MAX_SHIPS));
+		SDL_assert((ship_num >= 0) && (ship_num < MAX_SHIPS));
 
 		switch (shipp->team) {
 		case TEAM_FRIENDLY:	
@@ -525,7 +525,7 @@ void team_visibility_update()
 // Determine is ship is visible by team
 int ship_is_visible_by_team(int ship_num, int team)
 {
-	Assert((ship_num >= 0) && (ship_num < MAX_SHIPS));
+	SDL_assert((ship_num >= 0) && (ship_num < MAX_SHIPS));
 
 	switch (team) {
 	case TEAM_FRIENDLY:

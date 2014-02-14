@@ -295,7 +295,7 @@ int joy_get_scaled_reading(int axn)
 	if (d > rng)
 		d = rng;
 
-	Assert(Joy_sensitivity >= 0 && Joy_sensitivity <= 9);
+	SDL_assert(Joy_sensitivity >= 0 && Joy_sensitivity <= 9);
 
 	// compute percentages as a range between 0 and 1
 	sensitivity_percent = (float) Joy_sensitivity / 9.0f;

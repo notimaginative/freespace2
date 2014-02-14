@@ -280,9 +280,9 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	int ret_val;
 	lag_buf *moveup, *item;
 
-	Assert(readfds != NULL);
-	Assert(writefds == NULL);
-	Assert(except_fds == NULL);
+	SDL_assert(readfds != NULL);
+	SDL_assert(writefds == NULL);
+	SDL_assert(except_fds == NULL);
 
 	// clear out addresses
 	memset(&ip_addr, 0, sizeof(SOCKADDR_IN));
@@ -313,7 +313,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 			// get a free packet buf and stuff the data
 			item = multi_lag_get_free();
 			if(item){
-				Assert(ret_val < 700);
+				SDL_assert(ret_val < 700);
 				memcpy(item->data, t_buf, ret_val);			
 				item->data_len = ret_val;
 				item->ip_addr = ip_addr;
@@ -367,9 +367,9 @@ int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *f
 	}
 
 	// if this happens, it means that the multi_lag_select() returned an improper value
-	Assert(item);
+	SDL_assert(item);
 	// stuff the data
-	Assert(item->data_len <= len);
+	SDL_assert(item->data_len <= len);
 	memcpy(buf, item->data, item->data_len);
 	if(Tcp_active){
 		memcpy(from, &item->ip_addr, sizeof(SOCKADDR_IN));
@@ -480,7 +480,7 @@ lag_buf *multi_lag_get_free()
 
 	// get a free item
 	lagp = GET_FIRST(&Lag_free_list);
-	Assert( lagp != &Lag_free_list );		// shouldn't have the dummy element
+	SDL_assert( lagp != &Lag_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Lag_free_list, lagp );

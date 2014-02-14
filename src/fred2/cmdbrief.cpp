@@ -267,7 +267,7 @@ void cmd_brief_dlg::OnDeleteStage()
 	if (m_cur_stage < 0)
 		return;
 	
-	Assert(Cur_cmd_brief->num_stages);
+	SDL_assert(Cur_cmd_brief->num_stages);
 	z = m_cur_stage;
 	m_cur_stage = -1;
 	update_data(1);

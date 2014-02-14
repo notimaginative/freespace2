@@ -102,7 +102,7 @@
  * midgame.
  * 
  * 3     4/16/98 1:55p Dave
- * Removed unneeded Assert when processing chat packets. Fixed standalone
+ * Removed unneeded SDL_assert when processing chat packets. Fixed standalone
  * sequencing bugs. Laid groundwork for join screen server status
  * icons/text.
  * 
@@ -243,7 +243,7 @@ void multi_pause_pause()
 	}
 
 	// sanity check
-	Assert(!Multi_pause_status);
+	SDL_assert(!Multi_pause_status);
 
 	// mark the game as being paused
 	Multi_pause_status = 1;
@@ -278,7 +278,7 @@ void multi_pause_unpause()
 	}
 
 	// sanity check
-	Assert(Multi_pause_status);
+	SDL_assert(Multi_pause_status);
 
 	// mark the game as being unpaused
 	Multi_pause_status = 0;
@@ -486,7 +486,7 @@ void multi_pause_do()
 	}
 	// standalone pretty much does nothing here
 	else {
-		Sleep(1);
+		SDL_Delay(1);
 	}
 }
 

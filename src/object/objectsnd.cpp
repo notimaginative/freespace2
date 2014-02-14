@@ -341,9 +341,9 @@ DCF(objsnd, "Persistant sound stuff" )
 				Obj_snd_enabled = TRUE;
 			}
 		}
-		if ( !stricmp( Dc_arg, "list" ))	{
+		if ( !SDL_strcasecmp( Dc_arg, "list" ))	{
 			for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
-				Assert(osp != NULL);
+				SDL_assert(osp != NULL);
 				if ( osp->instance == -1 ) {
 					continue;
 					//strcpy(buf1,"OFF");
@@ -472,7 +472,7 @@ void obj_snd_stop(object *objp, int index)
 					case OBJ_DEBRIS:
 					case OBJ_ASTEROID:
 						Num_obj_sounds_playing--;
-						Assert(Num_obj_sounds_playing >= 0);					
+						SDL_assert(Num_obj_sounds_playing >= 0);					
 						break;
 
 					default:
@@ -497,7 +497,7 @@ void obj_snd_stop(object *objp, int index)
 			case OBJ_DEBRIS:
 			case OBJ_ASTEROID:
 				Num_obj_sounds_playing--;
-				Assert(Num_obj_sounds_playing >= 0);					
+				SDL_assert(Num_obj_sounds_playing >= 0);					
 				break;
 
 			default:
@@ -570,7 +570,7 @@ int obj_snd_stop_lowest_vol(float new_vol)
 	
 	lowest_vol = 1000.0f;
 	for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
-		Assert(osp->objnum != -1);
+		SDL_assert(osp->objnum != -1);
 		objp = &Objects[osp->objnum];
 
 		if ( (osp->instance != -1) && (osp->vol < lowest_vol) ) {
@@ -579,7 +579,7 @@ int obj_snd_stop_lowest_vol(float new_vol)
 		}
 	}
 
-	Assert(lowest_vol_osp != NULL);
+	SDL_assert(lowest_vol_osp != NULL);
 	objp = &Objects[lowest_vol_osp->objnum];
 
 	if ( (lowest_vol < new_vol) && (objp != NULL) ) {
@@ -638,7 +638,7 @@ void maybe_play_flyby_snd(float closest_dist, object *closest_objp)
 						goto play_no_flyby_sound;
 				}				
 
-				Assert(closest_objp->type == OBJ_SHIP);
+				SDL_assert(closest_objp->type == OBJ_SHIP);
 				if(closest_objp->type != OBJ_SHIP){
 					return;
 				}
@@ -706,7 +706,7 @@ void obj_snd_do_frame()
 	closest_objp = NULL;
 
 	for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
-		Assert(osp != NULL);
+		SDL_assert(osp != NULL);
 		objp = &Objects[osp->objnum];
 		if ( Player_obj == objp ) {
 			continue;
@@ -791,7 +791,7 @@ void obj_snd_do_frame()
 						Num_obj_sounds_playing++;
 					}
 				}
-				Assert(Num_obj_sounds_playing <= MAX_OBJ_SOUNDS_PLAYING);
+				SDL_assert(Num_obj_sounds_playing <= MAX_OBJ_SOUNDS_PLAYING);
 
 			} // 		end if ( distance < Snds[osp->id].max )
 		} // 		if ( osp->instance == -1 )
@@ -808,7 +808,7 @@ void obj_snd_do_frame()
 					}
 				}
 
-				Assert(sound_index != -1);
+				SDL_assert(sound_index != -1);
 				obj_snd_stop(objp, sound_index);						// currently playing sound has gone past maximum
 			}
 		}
@@ -931,7 +931,7 @@ void	obj_snd_delete(int objnum, int sndnum)
 	obj_snd	*osp;
 	int idx;
 
-	Assert(objnum >= 0 && objnum < MAX_OBJECTS);
+	SDL_assert(objnum >= 0 && objnum < MAX_OBJECTS);
 	objp = &Objects[objnum];
 
 	// delete all object sounds for this guy
@@ -973,7 +973,7 @@ void obj_snd_delete_all()
 	osp = GET_FIRST(&obj_snd_list);	
 	while( (osp != NULL) && (osp !=END_OF_LIST(&obj_snd_list)) )	{
 		temp = GET_NEXT(osp);
-		Assert( osp->objnum != -1 );
+		SDL_assert( osp->objnum != -1 );
 
 		obj_snd_delete( osp->objnum );
 
@@ -1015,7 +1015,7 @@ int obj_snd_is_playing(int index)
 	if ( index == -1 )
 		return 0;
 
-	Assert( index >= 0 && index < MAX_OBJ_SNDS );
+	SDL_assert( index >= 0 && index < MAX_OBJ_SNDS );
 
 	osp = &Objsnds[index];
 	if ( osp->instance == -1 ) 
@@ -1034,7 +1034,7 @@ int obj_snd_return_instance(int index)
 	if ( index == -1 )
 		return -1;
 
-	Assert( index >= 0 && index < MAX_OBJ_SNDS );
+	SDL_assert( index >= 0 && index < MAX_OBJ_SNDS );
 
 	return Objsnds[index].instance;
 }

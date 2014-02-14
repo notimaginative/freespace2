@@ -559,7 +559,7 @@ void multi_campaign_send_debrief_info()
 	ADD_DATA(val);
 
 	// add the filename
-	Assert(Campaign.missions[Campaign.current_mission].name != NULL);
+	SDL_assert(Campaign.missions[Campaign.current_mission].name != NULL);
 	ADD_STRING(Campaign.missions[Campaign.current_mission].name);
 	
 	// add the # of goals and events
@@ -627,7 +627,7 @@ void multi_campaign_send_pool_status()
 		}
 
 		// make sure it'll all fit into this packet
-		Assert((wpool_size + spool_size) < 480);
+		SDL_assert((wpool_size + spool_size) < 480);
 
 		// add all ship types
 		val = (ubyte)spool_size;
@@ -651,7 +651,7 @@ void multi_campaign_send_pool_status()
 	}
 
 	// send to all players
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 	multi_io_send_to_all_reliable(data, packet_size);
 
 	// notification message
@@ -675,7 +675,7 @@ void multi_campaign_send_start(net_player *pl)
 	// add the # of missions, and their filenames
 	ADD_INT(Campaign.num_missions);
 	for(idx=0;idx<Campaign.num_missions;idx++){
-		Assert(Campaign.missions[idx].name != NULL);
+		SDL_assert(Campaign.missions[idx].name != NULL);
 		ADD_STRING(Campaign.missions[idx].name);
 	}
 
@@ -695,7 +695,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 	ubyte data[MAX_PACKET_SIZE], packet_type, num_goals, num_events, *ptr;
 	int packet_size, i, j;
 
-	Assert( pl != NULL );
+	SDL_assert( pl != NULL );
 	packet_size = 0;
 
 	if ( Game_mode & GM_CAMPAIGN_MODE ) {
@@ -707,7 +707,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 		ADD_DATA(packet_type);
 		ADD_INT(Campaign.num_missions);
 		for( i = 0; i < Campaign.num_missions; i++) {
-			Assert(Campaign.missions[i].name != NULL);
+			SDL_assert(Campaign.missions[i].name != NULL);
 			ADD_STRING(Campaign.missions[i].name);
 		}		
 		multi_io_send_reliable(pl, data, packet_size);
@@ -717,8 +717,8 @@ void multi_campaign_send_ingame_start( net_player *pl )
 			ubyte status;
 
 			// don't send data for the current mission being played, or if both goals and events are 0
-			Assert( Campaign.missions[i].num_goals < UCHAR_MAX );
-			Assert( Campaign.missions[i].num_events < UCHAR_MAX );
+			SDL_assert( Campaign.missions[i].num_goals < UCHAR_MAX );
+			SDL_assert( Campaign.missions[i].num_events < UCHAR_MAX );
 			num_goals = (ubyte)Campaign.missions[i].num_goals;
 			num_events = (ubyte)Campaign.missions[i].num_events;
 
@@ -752,7 +752,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 			ubyte goal_count, starting_goal_num;
 
 			// first the goal names
-			Assert( Campaign.missions[i].num_goals < UCHAR_MAX );
+			SDL_assert( Campaign.missions[i].num_goals < UCHAR_MAX );
 			num_goals = (ubyte)Campaign.missions[i].num_goals;
 
 			// don't do anything if mission hasn't been completed
@@ -803,7 +803,7 @@ void multi_campaign_send_ingame_start( net_player *pl )
 			ubyte event_count, starting_event_num;
 
 			// first the goal names
-			Assert( Campaign.missions[i].num_events < UCHAR_MAX );
+			SDL_assert( Campaign.missions[i].num_events < UCHAR_MAX );
 			num_events = (ubyte)Campaign.missions[i].num_events;
 
 			// don't do anything if mission hasn't been completed
@@ -885,7 +885,7 @@ void multi_campaign_process_ingame_start( ubyte *data, header *hinfo )
 		GET_UINT( mission_num );
 		GET_DATA( num_goals );
 		// need to malloc out the data
-		Assert( Campaign.missions[mission_num].num_goals == 0 );
+		SDL_assert( Campaign.missions[mission_num].num_goals == 0 );
 		Campaign.missions[mission_num].num_goals = num_goals;
 		if ( num_goals > 0 ){
 			Campaign.missions[mission_num].goals = (mgoal *)malloc( sizeof(mgoal) * num_goals );
@@ -902,7 +902,7 @@ void multi_campaign_process_ingame_start( ubyte *data, header *hinfo )
 		// now the events
 		GET_DATA( num_events );
 		// need to malloc out the data
-		Assert( Campaign.missions[mission_num].num_events == 0 );
+		SDL_assert( Campaign.missions[mission_num].num_events == 0 );
 		Campaign.missions[mission_num].num_events = num_events;
 		if ( num_events > 0 ){
 			Campaign.missions[mission_num].events = (mevent *)malloc( sizeof(mevent) * num_events );

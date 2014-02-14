@@ -391,7 +391,7 @@ void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb = N
 //
 // returns hash value
 int hash_filename(const char *filename) {
-	unsigned __int64 hash_val = 0;
+	Uint64 hash_val = 0;
 	const char *ptr = filename;
 	
 	// Dont hash .fsm extension, convert all to upper case
@@ -458,7 +458,7 @@ int campaign_mission_hash_collision(const char *filename)
 	}
 
 	do {
-		if (!stricmp(filename, cur_node->filename)) {
+		if (!SDL_strcasecmp(filename, cur_node->filename)) {
 			return 1;
 		}
 
@@ -816,7 +816,7 @@ void sim_room_scroll_screen_up()
 
 	if (Scroll_offset) {
 		Scroll_offset--;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!sim_room_line_query_visible(Selected_line))
 			Selected_line--;
 
@@ -856,7 +856,7 @@ void sim_room_scroll_screen_down()
 		Scroll_offset++;
 		while (!sim_room_line_query_visible(Selected_line)) {
 			Selected_line++;
-			Assert(Selected_line < Num_lines);
+			SDL_assert(Selected_line < Num_lines);
 		}
 
 		gamesnd_play_iface(SND_SCROLL);
@@ -870,7 +870,7 @@ void sim_room_scroll_line_down()
 	if (Selected_line < Num_lines - 1) {
 		Selected_line++;
 
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!sim_room_line_query_visible(Selected_line))
 			Scroll_offset++;
 
@@ -906,7 +906,7 @@ int sim_room_can_resume_savegame(char *savegame_filename)
 		return 0;
 	}
 
-	if (stricmp(Game_current_mission_filename, savegame_mission)) {
+	if (SDL_strcasecmp(Game_current_mission_filename, savegame_mission)) {
 		return 0;
 	}
 
@@ -1297,7 +1297,7 @@ void sim_room_do_frame(float frametime)
 
 	z = -1;
 	for (i=0; i<Num_campaigns; i++)
-		if (!stricmp(Campaign_file_names[i], Campaign.filename)) {
+		if (!SDL_strcasecmp(Campaign_file_names[i], Campaign.filename)) {
 			z = i;
 			break;
 		}
@@ -1655,7 +1655,7 @@ void set_new_campaign_line(int n)
 	Num_info_lines = 0;
 	if (str) {
 		Num_info_lines = split_str(str, Cr_info_coords[gr_screen.res][2], Info_text_line_size, Info_text_ptrs, MAX_INFO_LINES);
-		Assert(Num_info_lines >= 0);
+		SDL_assert(Num_info_lines >= 0);
 	}
 
 	Desc_scroll_offset = 0;
@@ -1710,7 +1710,7 @@ void campaign_room_commit()
 		return;
 	}
 
-	if (stricmp(Campaign_file_names[Selected_campaign_index], Campaign.filename)) {  // new campaign selected
+	if (SDL_strcasecmp(Campaign_file_names[Selected_campaign_index], Campaign.filename)) {  // new campaign selected
 		if ((Active_campaign_index >= 0) && campaign_room_reset_campaign(Active_campaign_index)) {
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 			return;
@@ -1861,7 +1861,7 @@ void campaign_room_init()
 			}
 		}
 
-		Assert(j < Num_campaigns);  // Campaign not found?  How is that possible?
+		SDL_assert(j < Num_campaigns);  // Campaign not found?  How is that possible?
 	}
 
 	Campaign_names_inited = 0;
@@ -1870,7 +1870,7 @@ void campaign_room_init()
 	Selected_campaign_index = Active_campaign_index = -1;
 	if (!load_failed) {
 		for (i=0; i<Num_campaigns; i++)
-			if (!stricmp(Campaign_file_names[i], Campaign.filename)) {
+			if (!SDL_strcasecmp(Campaign_file_names[i], Campaign.filename)) {
 				set_new_campaign_line(i);
 				Active_campaign_index = i;
 				break;
@@ -2007,7 +2007,7 @@ void campaign_room_do_frame(float frametime)
 		List_buttons[line - Scroll_offset].update_dimensions(Cr_list_coords[gr_screen.res][0], y, Cr_list_coords[gr_screen.res][2], font_height);
 		List_buttons[line - Scroll_offset].enable();
 
-		if (!stricmp(sim_room_lines[line].filename, Campaign.filename)) {
+		if (!SDL_strcasecmp(sim_room_lines[line].filename, Campaign.filename)) {
 			gr_set_color_fast(&Color_white);
 			i = y + font_height / 2 - 1;
 			gr_circle(Cr_list_coords[gr_screen.res][0] - 6, i, 5);
@@ -2044,7 +2044,7 @@ void campaign_room_do_frame(float frametime)
 		if (i >= Num_info_lines)
 			break;
 
-		Assert(Info_text_line_size[i] < MAX_INFO_LINE_LEN);
+		SDL_assert(Info_text_line_size[i] < MAX_INFO_LINE_LEN);
 		strncpy(line_text, Info_text_ptrs[i], Info_text_line_size[i]);
 		line_text[Info_text_line_size[i]] = 0;
 		drop_white_space(line_text);

@@ -121,7 +121,7 @@ orient_editor::orient_editor(CWnd* pParent /*=NULL*/)
 	m_location_y = _T("0.0");
 	m_location_z = _T("0.0");
 	//}}AFX_DATA_INIT
-	Assert(query_valid_object());
+	SDL_assert(query_valid_object());
 	pos = Objects[cur_object_index].pos;
 	m_position_x.Format("%.1f", pos.x);
 	m_position_y.Format("%.1f", pos.y);
@@ -188,7 +188,7 @@ BOOL orient_editor::OnInitDialog()
 
 			} else if ((ptr->type == OBJ_POINT) || (ptr->type == OBJ_JUMP_NODE)) {
 			} else
-				Assert(0);  // unknown object type.
+				SDL_assert(0);  // unknown object type.
 		}
 
 		ptr = GET_NEXT(ptr);
@@ -300,7 +300,7 @@ void orient_editor::update_object(object *ptr)
 			vm_vec_sub(&v, &loc, &ptr->pos);
 
 		} else {
-			Assert(0);  // neither radio button is checked.
+			SDL_assert(0);  // neither radio button is checked.
 		}
 
 		if (!v.x && !v.y && !v.z){

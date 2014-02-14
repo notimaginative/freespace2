@@ -101,10 +101,10 @@
 
 void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	cb->lib_offset = offset;
@@ -118,7 +118,7 @@ void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
 
 		#if defined(CHECK_POSITION) && !defined(NDEBUG)
 			int raw_position = ftell(cb->fp) - cb->lib_offset;
-			Assert(raw_position == cb->raw_position);
+			SDL_assert(raw_position == cb->raw_position);
 		#endif
 	}
 }
@@ -133,10 +133,10 @@ void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
 
 int cfeof(CFILE *cfile)
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	int result;
@@ -144,13 +144,13 @@ int cfeof(CFILE *cfile)
 	result = 0;
 
 	// cfeof() not supported for memory-mapped files
-	Assert( !cb->data );
+	SDL_assert( !cb->data );
 
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
 	int raw_position = ftell(cb->fp) - cb->lib_offset;
-	Assert(raw_position == cb->raw_position);
+	SDL_assert(raw_position == cb->raw_position);
 	#endif
 		
 	if (cb->raw_position >= cb->size ) {
@@ -169,19 +169,19 @@ int cfeof(CFILE *cfile)
 //
 int cftell( CFILE * cfile )
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	// Doesn't work for memory mapped files
-	Assert( !cb->data );
+	SDL_assert( !cb->data );
 
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
 	int raw_position = ftell(cb->fp) - cb->lib_offset;
-	Assert(raw_position == cb->raw_position);
+	SDL_assert(raw_position == cb->raw_position);
 	#endif
 
 	return cb->raw_position;
@@ -196,15 +196,15 @@ int cftell( CFILE * cfile )
 int cfseek( CFILE *cfile, int offset, int where )
 {
 
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 
 	// TODO: seek to offset in memory mapped file
-	Assert( !cb->data );
-	Assert( cb->fp != NULL );
+	SDL_assert( !cb->data );
+	SDL_assert( cb->fp != NULL );
 	
 	int goal_position;
 
@@ -230,7 +230,7 @@ int cfseek( CFILE *cfile, int offset, int where )
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
 		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
-		Assert(tmp_offset==cb->raw_position);
+		SDL_assert(tmp_offset==cb->raw_position);
 	#endif
 
 	return result;	
@@ -244,22 +244,22 @@ int cfseek( CFILE *cfile, int offset, int where )
 //
 int cfread(void *buf, int elsize, int nelem, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(buf != NULL);
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile != NULL);
+	SDL_assert(buf != NULL);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 
 	Cfile_block *cb;
 	cb = &Cfile_block_list[cfile->id];	
 
 	// cfread() not supported for memory-mapped files
-	Assert( !cb->data );
-	Assert(cb->fp != NULL);
+	SDL_assert( !cb->data );
+	SDL_assert(cb->fp != NULL);
 
 	int size = elsize*nelem;
 
-	Assert(nelem > 0);
-	Assert(elsize > 0);
-	Assert(size > 0);
+	SDL_assert(nelem > 0);
+	SDL_assert(elsize > 0);
+	SDL_assert(size > 0);
 
 	if ( (cb->raw_position+size) > cb->size ) {
 		size = cb->size - cb->raw_position;
@@ -276,7 +276,7 @@ int cfread(void *buf, int elsize, int nelem, CFILE *cfile)
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
 		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
-		Assert(tmp_offset==cb->raw_position);
+		SDL_assert(tmp_offset==cb->raw_position);
 	#endif
 
 	return bytes_read / elsize;

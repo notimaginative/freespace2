@@ -169,10 +169,10 @@
  * Fix typo for 'Stray Warning Final'
  * 
  * 119   5/05/98 9:12p Allender
- * fix large problem introduced last checkin when changiing Assert to if
+ * fix large problem introduced last checkin when changiing SDL_assert to if
  * 
  * 118   5/05/98 4:12p Chad
- * changed Assert info if statement when removing messages from queue when
+ * changed SDL_assert info if statement when removing messages from queue when
  * too old
  * 
  * 117   5/01/98 12:34p John
@@ -284,7 +284,7 @@
  * bitmap id.  Made asteroids not rotate when model_caching is on.  
  * 
  * 87    3/02/98 9:34a Allender
- * don't allow mission specific messages to timeout.  Assert when trying
+ * don't allow mission specific messages to timeout.  SDL_assert when trying
  * to remove a mission specific messages from the queue.  Print out in the
  * log file if the voice didn't play.
  * 
@@ -583,7 +583,7 @@ void persona_parse()
 	int i;
 	char type[NAME_LENGTH];
 
-	Assert ( Num_personas < MAX_PERSONAS );
+	SDL_assert ( Num_personas < MAX_PERSONAS );
 
 	Personas[Num_personas].flags = 0;
 	required_string("$Persona:");
@@ -593,13 +593,13 @@ void persona_parse()
 	required_string("$Type:");
 	stuff_string( type, F_NAME, NULL );
 	for ( i = 0; i < MAX_PERSONA_TYPES; i++ ) {
-		if ( !stricmp( type, Persona_type_names[i]) ) {
+		if ( !SDL_strcasecmp( type, Persona_type_names[i]) ) {
 
 			Personas[Num_personas].flags |= (1<<i);
 
 			// save the Terran Command persona in a global
 			if ( Personas[Num_personas].flags & PERSONA_FLAG_COMMAND ) {
-//				Assert ( Command_persona == -1 );
+//				SDL_assert ( Command_persona == -1 );
 				Command_persona = Num_personas;
 			}
 
@@ -622,12 +622,12 @@ int add_avi( const char *avi_name )
 {
 	int i;
 
-	Assert ( Num_message_avis < MAX_MESSAGE_AVIS );
-	Assert (strlen(avi_name) < MAX_FILENAME_LEN );
+	SDL_assert ( Num_message_avis < MAX_MESSAGE_AVIS );
+	SDL_assert (strlen(avi_name) < MAX_FILENAME_LEN );
 
 	// check to see if there is an existing avi being used here
 	for ( i = 0; i < Num_message_avis; i++ ) {
-		if ( !stricmp(Message_avis[i].name, avi_name) )
+		if ( !SDL_strcasecmp(Message_avis[i].name, avi_name) )
 			return i;
 	}
 
@@ -642,12 +642,12 @@ int add_wave( const char *wave_name )
 {
 	int i;
 
-	Assert ( Num_message_waves < MAX_MESSAGE_WAVES );
-	Assert (strlen(wave_name) < MAX_FILENAME_LEN );
+	SDL_assert ( Num_message_waves < MAX_MESSAGE_WAVES );
+	SDL_assert (strlen(wave_name) < MAX_FILENAME_LEN );
 
 	// check to see if there is an existing wave being used here
 	for ( i = 0; i < Num_message_waves; i++ ) {
-		if ( !stricmp(Message_waves[i].name, wave_name) )
+		if ( !SDL_strcasecmp(Message_waves[i].name, wave_name) )
 			return i;
 	}
 
@@ -663,7 +663,7 @@ void message_parse( )
 	MissionMessage *msgp;
 	char persona_name[NAME_LENGTH];
 
-	Assert ( Num_messages < MAX_MISSION_MESSAGES );
+	SDL_assert ( Num_messages < MAX_MISSION_MESSAGES );
 	msgp = &Messages[Num_messages];
 
 	required_string("$Name:");
@@ -921,7 +921,7 @@ void message_kill_all( int kill_all )
 {
 	int i;
 
-	Assert( Num_messages_playing );
+	SDL_assert( Num_messages_playing );
 
 	// kill sounds for all voices currently playing
 	for ( i = 0; i < Num_messages_playing; i++ ) {
@@ -947,7 +947,7 @@ void message_kill_all( int kill_all )
 // function to kill nth playing message
 void message_kill_playing( int message_num )
 {
-	Assert( message_num < Num_messages_playing );
+	SDL_assert( message_num < Num_messages_playing );
 
 	if ( (Playing_messages[message_num].anim != NULL) && anim_playing(Playing_messages[message_num].anim) ) {
 		anim_stop_playing( Playing_messages[message_num].anim );
@@ -1108,7 +1108,7 @@ void message_play_wave( message_q *q )
 		index = m->wave_info.index;
 
 		// sanity check
-		Assert( index != -1 );
+		SDL_assert( index != -1 );
 		if ( index == -1 ){
 			return;
 		}
@@ -1232,7 +1232,7 @@ void message_play_anim( message_q *q )
 	// support ships use a wingman head.
 	// terran command uses it's own set of heads.
 	int subhead_selected = FALSE;
-	if ( (q->message_num < Num_builtin_messages) || !(_strnicmp(HEAD_PREFIX_STRING, ani_name, strlen(HEAD_PREFIX_STRING)-1)) ) {
+	if ( (q->message_num < Num_builtin_messages) || !(SDL_strncasecmp(HEAD_PREFIX_STRING, ani_name, strlen(HEAD_PREFIX_STRING)-1)) ) {
 		persona_index = m->persona_index;
 		
 		// if this ani should be converted to a terran command, set the persona to the command persona
@@ -1356,7 +1356,7 @@ void message_queue_process()
 					//             here, since message_kill_playing() seems to always set Playing_messages[i].shipnum to -1
 					// MWA 3/24/98 -- save shipnum before killing message
 					// 
-					Assert( shipnum >= 0 );
+					SDL_assert( shipnum >= 0 );
 					if ( !(Ships[shipnum].flags & SF_SHIP_HAS_SCREAMED) ) {
 						ship_scream( &Ships[shipnum] );
 					}
@@ -1442,9 +1442,9 @@ void message_queue_process()
 	}
 
 	q = &MessageQ[0];
-	Assert ( q->message_num != -1 );
-	Assert ( q->priority != -1 );
-	Assert ( q->time_added != -1 );
+	SDL_assert ( q->message_num != -1 );
+	SDL_assert ( q->priority != -1 );
+	SDL_assert ( q->time_added != -1 );
 
 	if ( Num_messages_playing ) {
 		// peek at the first message on the queue to see if it should interrupt, or overlap a currently
@@ -1636,7 +1636,7 @@ void message_queue_message( int message_num, int priority, int timing, const cha
 	// to this message, then set a bit to tell the wave/anim playing code to play the command version
 	// of the wave and head
 	MessageQ[i].flags = 0;
-	if ( !stricmp(who_from, TERRAN_COMMAND) && (m_persona != -1) && (Personas[m_persona].flags & PERSONA_FLAG_WINGMAN) ) {
+	if ( !SDL_strcasecmp(who_from, TERRAN_COMMAND) && (m_persona != -1) && (Personas[m_persona].flags & PERSONA_FLAG_WINGMAN) ) {
 		MessageQ[i].flags |= MQF_CONVERT_TO_COMMAND;
 		MessageQ[i].source = HUD_SOURCE_TERRAN_CMD;
 	}
@@ -1814,7 +1814,7 @@ void message_send_unique_to_player( char *id, void *data, int m_source, int prio
 	who_from = NULL;
 	for (i=0; i<Num_messages; i++) {
 		// find the message
-		if ( !stricmp(id, Messages[i].name) ) {
+		if ( !SDL_strcasecmp(id, Messages[i].name) ) {
 
 			// if the ship pointer and special_who are both NULL then this is from generic "Terran Command"
 			// if the ship is NULL and special_who is not NULL, then this is from special_who
@@ -1855,7 +1855,7 @@ void message_send_unique_to_player( char *id, void *data, int m_source, int prio
 				source = HUD_get_team_source(shipp->team);
 
 				// be sure that this ship can actually send a message!!! (i.e. not-not-flyable -- get it!)
-				Assert( !(Ship_info[shipp->ship_info_index].flags & SIF_NOT_FLYABLE) );		// get allender or alan
+				SDL_assert( !(Ship_info[shipp->ship_info_index].flags & SIF_NOT_FLYABLE) );		// get allender or alan
 			}
 
 			// not multiplayer or this message is for me, then queue it
@@ -1908,7 +1908,7 @@ void message_send_builtin_to_player( int type, ship *shipp, int priority, int ti
 		}		
 
 		// be sure that this ship can actually send a message!!! (i.e. not-not-flyable -- get it!)
-		Assert( !(Ship_info[shipp->ship_info_index].flags & SIF_NOT_FLYABLE) );		// get allender or alan
+		SDL_assert( !(Ship_info[shipp->ship_info_index].flags & SIF_NOT_FLYABLE) );		// get allender or alan
 	} else {
 		persona_index = Command_persona;				// use the terran command persona
 	}
@@ -1923,7 +1923,7 @@ void message_send_builtin_to_player( int type, ship *shipp, int priority, int ti
 			name = Builtin_message_types[type];
 
 			// see if the have the type of message
-			if ( stricmp(Messages[i].name, name) ){
+			if ( SDL_strcasecmp(Messages[i].name, name) ){
 				continue;
 			}
 
@@ -1944,7 +1944,7 @@ void message_send_builtin_to_player( int type, ship *shipp, int priority, int ti
 			}
 
 			// maybe change the who from here for special rearm cases (always seems like that is the case :-) )
-			if ( !stricmp(who_from, TERRAN_COMMAND) && (type == MESSAGE_REARM_ON_WAY) ){
+			if ( !SDL_strcasecmp(who_from, TERRAN_COMMAND) && (type == MESSAGE_REARM_ON_WAY) ){
 				who_from = SUPPORT_NAME;
 			}
 
@@ -2008,7 +2008,7 @@ int message_persona_name_lookup( const char *name )
 	int i;
 
 	for (i = 0; i < Num_personas; i++ ) {
-		if ( !stricmp(Personas[i].name, name) )
+		if ( !SDL_strcasecmp(Personas[i].name, name) )
 			return i;
 	}
 
@@ -2033,7 +2033,7 @@ void message_maybe_distort()
 
 	// distort the number of voices currently playing
 	for ( i = 0; i < Num_messages_playing; i++ ) {
-		Assert(Playing_messages[i].wave >= 0 );
+		SDL_assert(Playing_messages[i].wave >= 0 );
 
 		was_muted = 0;
 

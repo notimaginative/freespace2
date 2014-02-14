@@ -234,10 +234,10 @@ void tmapscan_pln8( int lx, int rx, int y, vertex *p, vertex *dp,  vertex * rp,u
 		Tmap1.fx_l = (67*F1_0)-Tmap1.fx_l;
 		Tmap1.fx_l_right = (67*F1_0)-Tmap1.fx_l_right;
 //		return;
-//		Assert( Tmap1.fx_l > 31*F1_0 );
-//		Assert( Tmap1.fx_l < 66*F1_0 );
-//		Assert( Tmap1.fx_dl_dx >= 0 );
-//		Assert( Tmap1.fx_dl_dx < 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l > 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l < 66*F1_0 );
+//		SDL_assert( Tmap1.fx_dl_dx >= 0 );
+//		SDL_assert( Tmap1.fx_dl_dx < 31*F1_0 );
 	}
 
 //	return;
@@ -3429,10 +3429,10 @@ void asm_tmap_scanline_lln()
 		Tmap1.fx_l = (67*F1_0)-Tmap1.fx_l;
 		Tmap1.fx_l_right = (67*F1_0)-Tmap1.fx_l_right;
 //		return;
-//		Assert( Tmap1.fx_l > 31*F1_0 );
-//		Assert( Tmap1.fx_l < 66*F1_0 );
-//		Assert( Tmap1.fx_dl_dx >= 0 );
-//		Assert( Tmap1.fx_dl_dx < 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l > 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l < 66*F1_0 );
+//		SDL_assert( Tmap1.fx_dl_dx >= 0 );
+//		SDL_assert( Tmap1.fx_dl_dx < 31*F1_0 );
 	}
 
 
@@ -4476,10 +4476,10 @@ void tmapscan_pln16( int lx, int rx, int y, vertex *p, vertex *dp,  vertex * rp,
 		Tmap1.fx_l = (67*F1_0)-Tmap1.fx_l;
 		Tmap1.fx_l_right = (67*F1_0)-Tmap1.fx_l_right;
 //		return;
-//		Assert( Tmap1.fx_l > 31*F1_0 );
-//		Assert( Tmap1.fx_l < 66*F1_0 );
-//		Assert( Tmap1.fx_dl_dx >= 0 );
-//		Assert( Tmap1.fx_dl_dx < 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l > 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l < 66*F1_0 );
+//		SDL_assert( Tmap1.fx_dl_dx >= 0 );
+//		SDL_assert( Tmap1.fx_dl_dx < 31*F1_0 );
 	}
 
 //	return;
@@ -5983,10 +5983,10 @@ void tmapscan_pln32( int lx, int rx, int y, vertex *p, vertex *dp,  vertex * rp,
 		Tmap1.fx_l = (67*F1_0)-Tmap1.fx_l;
 		Tmap1.fx_l_right = (67*F1_0)-Tmap1.fx_l_right;
 //		return;
-//		Assert( Tmap1.fx_l > 31*F1_0 );
-//		Assert( Tmap1.fx_l < 66*F1_0 );
-//		Assert( Tmap1.fx_dl_dx >= 0 );
-//		Assert( Tmap1.fx_dl_dx < 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l > 31*F1_0 );
+//		SDL_assert( Tmap1.fx_l < 66*F1_0 );
+//		SDL_assert( Tmap1.fx_dl_dx >= 0 );
+//		SDL_assert( Tmap1.fx_dl_dx < 31*F1_0 );
 	}
 
 //	return;

@@ -205,7 +205,7 @@
  * make Int3's do nothing when InterplayQA is defined
  * 
  * 65    4/25/98 11:55p Lawrance
- * compile out Int3() and Assert() for release demo build
+ * compile out Int3() and SDL_assert() for release demo build
  * 
  *
  * $NoKeywords: $
@@ -253,6 +253,8 @@
 #pragma warning(disable: 4127 4100 4514 4201 4410 4611 4725 4710 4711 4702 4201 4390)
 #endif
 
+#include "SDL.h"
+
 #include <stdio.h>	// For NULL, etc
 #include <stdlib.h>
 #include <memory.h>
@@ -283,21 +285,19 @@
 
 #define LOCAL static			// make module local varilable static.
 
-typedef __int64 longlong;
-typedef long fix;
-typedef unsigned char ubyte;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef int fs_time_t;	// forced 32-bit version of time_t - **don't use this unless required**
+typedef Sint32 fix;
+typedef Uint8 ubyte;
+typedef Uint16 ushort;
+typedef Uint32 uint;
+typedef Sint32 fs_time_t;	// forced 32-bit version of time_t - **don't use this unless required**
 
 // ptr_? is a value matching the size of a pointer on this specific platform
 #if ( defined(__x86_64__) || defined(_WIN64) )
-typedef __int64 ptr_s;
-typedef unsigned __int64 ptr_u;
+typedef Sint64 ptr_s;
+typedef Uint64 ptr_u;
 #else
-typedef int ptr_s;
-typedef unsigned int ptr_u;
+typedef Sint32 ptr_s;
+typedef Uint32 ptr_u;
 #endif
 
 #define HARDWARE_ONLY
@@ -392,9 +392,8 @@ typedef struct bitmap {
 } bitmap;
 
 //This are defined in MainWin.c
-extern void _cdecl WinAssert(const char * text, const char *filename, int line);
-extern void _cdecl Error( const char * filename, int line, const char * format, ... );
-extern void _cdecl Warning( const char * filename, int line, const char * format, ... );
+extern void __cdecl Error( const char * filename, int line, const char * format, ... );
+extern void __cdecl Warning( const char * filename, int line, const char * format, ... );
 
 #include "outwnd.h"
 
@@ -416,11 +415,9 @@ extern void _cdecl Warning( const char * filename, int line, const char * format
 // Error( LOCATION, "Error opening %s", filename );
 
 #if defined(NDEBUG)
-#define Assert(x) do {} while (0)
 #define STUB_FUNCTION
 #else
 void gr_activate(int);
-#define Assert(x) do { if (!(x)){ gr_activate(0); WinAssert(#x,__FILE__,__LINE__); gr_activate(1); } } while (0)
 #define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d, thread %d\n", __FUNCTION__, LOCATION, getpid()))
 #endif
 
@@ -568,7 +565,13 @@ void dc_printf( const char *format, ... );
 //======================================================================================
 //======================================================================================
 
-
+inline int mul_div(int n, int num, int dem)
+{
+	Sint64 ret = n;
+	ret *= num;
+	ret /= dem;
+	return (int)ret;
+}
 
 #include "fix.h"
 #include "floating.h"
@@ -579,54 +582,9 @@ void dc_printf( const char *format, ... );
 
 // contants and defined for byteswapping routines (useful for mac)
 
-#define SWAPSHORT(x)	(							\
-						((ubyte)x << 8) |					\
-						(((ushort)x) >> 8)			\
-						)
-						
-#define SWAPINT(x)		(							\
-						(x << 24) |					\
-						(((ulong)x) >> 24) |		\
-						((x & 0x0000ff00) << 8) |	\
-						((x & 0x00ff0000) >> 8)		\
-						)
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-inline 
-float SWAPFLOAT( float *x )
-{
-    #if ! defined( __MWERKS__ )
-		//Usage:  void __stwbrx( unsigned int, unsigned int *address, int byteOffsetFromAddress );
-		#define __stwbrx( value, base, index ) \
-			 __asm__ ( "stwbrx %0, %1, %2" :  : "r" (value), "b%" (index), "r" (base) : "memory" )
-	#endif
-
-	union
-	{
-		int		i;
-		float		f;
-	}buf;
-	
-	//load the float into the integer unit
-	//unsigned int	a = ((long*) x)[0];
-        register int a = ((int*) x )[0];
-
-	//store it to the transfer union, with byteswapping
-	__stwbrx( a, 0, &buf.i );	
-
-	//load it into the FPU and return it
-	return buf.f;
-}
-#endif
-
-#if SDL_BYTEORDER != SDL_BIG_ENDIAN
-#define INTEL_INT(x)	x
-#define INTEL_SHORT(x)	x
-#define INTEL_FLOAT(x)	(*x)
-#else
-#define INTEL_INT(x)	SWAPINT(x)
-#define INTEL_SHORT(x)	SWAPSHORT(x)
-#define INTEL_FLOAT(x)	SWAPFLOAT(x)
-#endif
+#define INTEL_INT(x)	SDL_SwapLE32(x)
+#define INTEL_SHORT(x)	SDL_SwapLE16(x)
+#define INTEL_FLOAT(x)	SDL_SwapFloatLE(x)
 
 #define TRUE	1
 #define FALSE	0

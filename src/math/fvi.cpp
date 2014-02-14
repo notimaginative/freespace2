@@ -359,7 +359,7 @@ int fvi_segment_sphere(vector *intp,vector *p0,vector *p1,vector *sphere_pos,flo
 
 //		{
 //			fix dd = vm_vec_dist(intp,sphere_pos);
-//			Assert(dd == sphere_rad);
+//			SDL_assert(dd == sphere_rad);
 //			mprintf(0,"dd=%x, rad=%x, delta=%x\n",dd,sphere_rad,dd-sphere_rad);
 //		}
 
@@ -432,7 +432,7 @@ int fvi_ray_sphere(vector *intp,vector *p0,vector *p1,vector *sphere_pos,float s
 
 //		{
 //			fix dd = vm_vec_dist(intp,sphere_pos);
-//			Assert(dd == sphere_rad);
+//			SDL_assert(dd == sphere_rad);
 //			mprintf(0,"dd=%x, rad=%x, delta=%x\n",dd,sphere_rad,dd-sphere_rad);
 //		}
 
@@ -601,7 +601,7 @@ int fvi_point_face(vector *checkp, int nv, vector **verts, vector * norm1, float
 
 			beta = (v0*u1 - u0*v1) / (v2*u1 - u2*v1);
 			if ((beta >=0.0f) && (beta<=1.0f))	{
-				Assert(beta != UNINITIALIZED_VALUE);
+				SDL_assert(beta != UNINITIALIZED_VALUE);
 				alpha = (u0 - beta*u2)/u1;
 				inter = ((alpha>=0.0f)&&(alpha+beta<=1.0f));
 			}
@@ -631,7 +631,7 @@ int fvi_point_face(vector *checkp, int nv, vector **verts, vector * norm1, float
 	} while ((!inter) && (++i < nv) );
 
 	if ( inter &&  uvls && u_out && v_out )	{
-		// Assert(alpha != 1.0f);
+		// SDL_assert(alpha != 1.0f);
 		gamma = 1.0f - (alpha+beta);
 		*u_out = gamma * uvls[0].u + alpha*uvls[i-1].u + beta*uvls[i].u;
 		*v_out = gamma * uvls[0].v + alpha*uvls[i-1].v + beta*uvls[i].v;
@@ -750,13 +750,13 @@ int fvi_sphere_perp_edge(vector *intersect_point, vector *sphere_center_start, v
 	vector temp;
 	// next two temp should be same as starting velocities
 	vm_vec_projection_onto_plane(&temp, sphere_velocity, &z_hat);
-	Assert ( !vm_vec_cmp(&temp, sphere_velocity) );
+	SDL_assert ( !vm_vec_cmp(&temp, sphere_velocity) );
 	vm_vec_projection_onto_plane(&temp, &edge_velocity,  &z_hat);
-	Assert ( !vm_vec_cmp(&temp, &edge_velocity) );
+	SDL_assert ( !vm_vec_cmp(&temp, &edge_velocity) );
 
 	// should return V0
 	vm_project_point_onto_plane(&Xe_proj, &V0, &z_hat, &V0);
-	Assert ( !vm_vec_cmp(&Xe_proj, &V0) );
+	SDL_assert ( !vm_vec_cmp(&Xe_proj, &V0) );
 
 	vm_project_point_onto_plane(&Xs_proj, sphere_center_start, &z_hat, &V0);
 
@@ -993,7 +993,7 @@ int fvi_polyedge_sphereline(vector *hit_point, vector *xs0, vector *vs, float Rs
 			first_valid_sphere_time = 0.0f;
 		} else {
 			first_valid_sphere_time = time_sm;
-			Assert( time_sm <= 1.0f );
+			SDL_assert( time_sm <= 1.0f );
 		}
 
 		if (ve_dot_vs > 0) {
@@ -1293,19 +1293,19 @@ TryVertex:
 
 		// set hitpoint to closest vetex hit, if any
 		if ( v0_hit ) {
-			Assert(sphere_v0 != UNINITIALIZED_VALUE);
+			SDL_assert(sphere_v0 != UNINITIALIZED_VALUE);
 			t_sphere_hit = sphere_v0;
 			temp_edge_hit = v0;
 
 			if (v1_hit) {
-				Assert(sphere_v1 != UNINITIALIZED_VALUE);
+				SDL_assert(sphere_v1 != UNINITIALIZED_VALUE);
 				if (sphere_v1 < sphere_v0) {
 					t_sphere_hit = sphere_v1;
 					temp_edge_hit = v1;
 				}
 			}
 		} else if ( v1_hit ) {
-			Assert(sphere_v1 != UNINITIALIZED_VALUE);
+			SDL_assert(sphere_v1 != UNINITIALIZED_VALUE);
 			t_sphere_hit = sphere_v1;
 			temp_edge_hit = v1;
 		} else {
@@ -1394,7 +1394,7 @@ int fvi_check_sphere_sphere(vector *x_p0, vector *x_p1, vector *x_s0, vector *x_
 	float time1, time2;
 
 	// Check that there are either 0 or 2 pointers to time
-	Assert( (!(t1) && !(t2)) || (t1 && t2) );
+	SDL_assert( (!(t1) && !(t2)) || (t1 && t2) );
 
 	vm_vec_sub(&delta_x, x_s0, x_p0);
 	delta_x_sqr = vm_vec_mag_squared(&delta_x);

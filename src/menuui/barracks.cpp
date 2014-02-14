@@ -449,7 +449,7 @@ void barracks_squad_change_popup();
 //
 
 #define STRCPY1(a, b) do {	\
-	Assert(strlen(b) < STAT_COLUMN1_W); \
+	SDL_assert(strlen(b) < STAT_COLUMN1_W); \
 	strcpy(a, b); \
 } while (0)
 
@@ -464,27 +464,27 @@ void barracks_init_stats(scoring_struct *stats)
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;	
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary weapon shots:", 51));
 	sprintf(Stats[Num_stat_lines], "%d", stats->p_shots_fired);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary weapon hits:", 52));
 	sprintf(Stats[Num_stat_lines], "%d", stats->p_shots_hit);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary friendly hits:", 53));
 	sprintf(Stats[Num_stat_lines], "%d", stats->p_bonehead_hits);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary hit %:", 54));
 	if (stats->p_shots_fired > 0) {
 		f = (float) stats->p_shots_hit * 100.0f / (float) stats->p_shots_fired;
@@ -494,7 +494,7 @@ void barracks_init_stats(scoring_struct *stats)
 	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary friendly hit %:", 56));
 	if (stats->p_bonehead_hits > 0) {
 		f = (float) stats->p_bonehead_hits * 100.0f / (float) stats->p_shots_fired;
@@ -504,27 +504,27 @@ void barracks_init_stats(scoring_struct *stats)
 	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary weapon shots:", 57));
 	sprintf(Stats[Num_stat_lines], "%d", stats->s_shots_fired);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary weapon hits:", 58));
 	sprintf(Stats[Num_stat_lines], "%d", stats->s_shots_hit);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary friendly hits:", 59));
 	sprintf(Stats[Num_stat_lines], "%d", stats->s_bonehead_hits);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary hit %:", 60));
 	if (stats->s_shots_fired > 0) {
 		f = (float) stats->s_shots_hit * 100.0f / (float) stats->s_shots_fired;
@@ -534,7 +534,7 @@ void barracks_init_stats(scoring_struct *stats)
 	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary friendly hit %:", 61));
 	if (stats->s_bonehead_hits > 0) {
 		f = (float) stats->s_bonehead_hits * 100.0f / (float) stats->s_shots_fired;
@@ -544,27 +544,27 @@ void barracks_init_stats(scoring_struct *stats)
 	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Total kills:", 62));
 	sprintf(Stats[Num_stat_lines], "%d", stats->kill_count_ok);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Assists:", 63));
 	sprintf(Stats[Num_stat_lines], "%d", stats->assists);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
@@ -573,15 +573,15 @@ void barracks_init_stats(scoring_struct *stats)
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
 	for (i=0; i<Num_ship_types; i++) {
 		if (stats->kills[i]) {
-			Assert(Num_stat_lines < NUM_STAT_LINES);
-			Assert(strlen(Ship_info[i].name) + 1 < STAT_COLUMN1_W);
+			SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+			SDL_assert(strlen(Ship_info[i].name) + 1 < STAT_COLUMN1_W);
 			sprintf(Stat_labels[Num_stat_lines], NOX("%s:"), Ship_info[i].name);
 			sprintf(Stats[Num_stat_lines], "%d", stats->kills[i]);
 			Num_stat_lines++;
@@ -615,7 +615,7 @@ void barracks_strip_pcx(char *str)
 {
 	int flen = strlen(str);
 	int elen = 4;		
-	if ((flen > 4) && !stricmp(str + flen - elen, ".pcx")) {
+	if ((flen > 4) && !SDL_strcasecmp(str + flen - elen, ".pcx")) {
 		str[flen - elen] = '\0';
 	}
 }
@@ -647,7 +647,7 @@ int barracks_new_pilot_selected()
 	for (i=0; i<Num_pilot_images; i++) {
 		strcpy(stripped, Cur_pilot->image_filename);
 		barracks_strip_pcx(stripped);
-		if (!stricmp(stripped, Pilot_image_names[i])) {
+		if (!SDL_strcasecmp(stripped, Pilot_image_names[i])) {
 			break;
 		}
 	}
@@ -655,7 +655,7 @@ int barracks_new_pilot_selected()
 	for ( i=0; i<Num_pilot_squad_images; i++) {
 		strcpy(stripped, Cur_pilot->squad_filename);
 		barracks_strip_pcx(stripped);
-		if (!stricmp(stripped, Pilot_squad_image_names[i])) {
+		if (!SDL_strcasecmp(stripped, Pilot_squad_image_names[i])) {
 			break;
 		}
 	}
@@ -708,7 +708,7 @@ void barracks_create_new_pilot()
 
 	// move other pilot names and ranks down to make room for the new one
 	int idx = Num_pilots;
-	Assert(Num_pilots >= 0);
+	SDL_assert(Num_pilots >= 0);
 	while (idx--) {
 		strcpy(Pilots[idx + 1], Pilots[idx]);
 		Pilot_ranks[idx + 1] = Pilot_ranks[idx];
@@ -925,7 +925,7 @@ void barracks_delete_pilot()
 		return;
 	}
 
-	if (!stricmp(Pilots[Selected_line], Cur_pilot->callsign)) {
+	if (!SDL_strcasecmp(Pilots[Selected_line], Cur_pilot->callsign)) {
 		active = 1;
 	}
 
@@ -1022,7 +1022,7 @@ void barracks_init_player_stuff(int mode)
 				break;
 			}
 		}
-		Assert(j < Num_pilots);  // Pilot not found?  How is that possible?
+		SDL_assert(j < Num_pilots);  // Pilot not found?  How is that possible?
 	}
 
 	for (int i=0; i<Num_pilots; i++) {
@@ -1226,7 +1226,7 @@ void barracks_display_pilot_callsigns(int prospective_pilot)
 		if (cur_pilot_idx >= Num_pilots)
 			break;
 
-		if (!stricmp(Cur_pilot->callsign, Pilots[cur_pilot_idx]) && (is_pilot_multi(Cur_pilot) == multi)) {
+		if (!SDL_strcasecmp(Cur_pilot->callsign, Pilots[cur_pilot_idx]) && (is_pilot_multi(Cur_pilot) == multi)) {
 			if ((cur_pilot_idx == Selected_line) || (cur_pilot_idx == prospective_pilot)) {
 				gr_set_color_fast(&Color_text_active_hi);
 			} else {
@@ -1317,7 +1317,7 @@ void barracks_accept_new_pilot_callsign()
 	}
 
 	for (i=1; i<Num_pilots; i++) {
-		if (!stricmp(buf, Pilots[i])) {
+		if (!SDL_strcasecmp(buf, Pilots[i])) {
 			z = 1;
 			if (pilot_verify_overwrite() == 1) {
 				strcpy(name, Pilots[Selected_line]);

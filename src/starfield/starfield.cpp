@@ -337,7 +337,7 @@ starfield_bitmap *stars_lookup_sun(starfield_bitmap_instance *s)
 
 	// lookup
 	for(idx=0; idx<MAX_STARFIELD_BITMAPS; idx++){
-		if(!stricmp(Sun_bitmaps[idx].filename, s->filename)){
+		if(!SDL_strcasecmp(Sun_bitmaps[idx].filename, s->filename)){
 			return &Sun_bitmaps[idx];
 		}
 	}
@@ -410,7 +410,7 @@ void stars_init()
 				strcpy(bm->filename, filename);
 				bm->xparent = 0;
 				bm->bitmap = bm_load(bm->filename);				
-				Assert(bm->bitmap != -1);
+				SDL_assert(bm->bitmap != -1);
 
 				// if fred is running we should lock the bitmap now
 				if(Fred_running && (bm->bitmap >= 0)){
@@ -427,7 +427,7 @@ void stars_init()
 				strcpy(bm->filename, filename);
 				bm->xparent = 1;
 				bm->bitmap = bm_load(bm->filename);
-				Assert(bm->bitmap != -1);
+				SDL_assert(bm->bitmap != -1);
 
 				// if fred is running we should lock as a 0, 255, 0 bitmap now
 				if(Fred_running && (bm->bitmap >= 0)){
@@ -462,8 +462,8 @@ void stars_init()
 				bm->xparent = 1;
 				bm->bitmap = bm_load(bm->filename);
 				bm->glow_bitmap = bm_load(bm->glow_filename);
-				Assert(bm->bitmap != -1);
-				Assert(bm->glow_bitmap != -1);
+				SDL_assert(bm->bitmap != -1);
+				SDL_assert(bm->glow_bitmap != -1);
 				bm->r = r;
 				bm->g = g;
 				bm->b = b;
@@ -494,7 +494,7 @@ void stars_init()
 			strcpy(debris_vclips_normal[count++].name, filename);
 		}
 	}
-	Assert(count == 4);
+	SDL_assert(count == 4);
 
 	// nebula debris pieces
 	count = 0;
@@ -507,7 +507,7 @@ void stars_init()
 		}
 	}
 
-	Assert(count == 4);
+	SDL_assert(count == 4);
 #else
 	// hard-coded for FS1
 	starfield_bitmap *bm;
@@ -535,8 +535,8 @@ void stars_init()
 	bm->xparent = 1;
 	bm->bitmap = bm_load(bm->filename);
 	bm->glow_bitmap = bm_load(bm->glow_filename);
-	Assert(bm->bitmap != -1);
-	Assert(bm->glow_bitmap != -1);
+	SDL_assert(bm->bitmap != -1);
+	SDL_assert(bm->glow_bitmap != -1);
 	bm->r = 1.0f;
 	bm->g = 1.0f;
 	bm->b = 1.0f;
@@ -762,7 +762,7 @@ void stars_get_sun_pos(int sun_n, vector *pos)
 #endif
 
 	// sanity
-	Assert(sun_n < Num_suns);
+	SDL_assert(sun_n < Num_suns);
 	if((sun_n >= Num_suns) || (sun_n < 0)){
 		return;
 	}
@@ -842,7 +842,7 @@ void stars_draw_sun_glow(int sun_n)
 	float local_scale = 1.0f;
 
 	// sanity
-	Assert(sun_n < Num_suns);
+	SDL_assert(sun_n < Num_suns);
 	if((sun_n >= Num_suns) || (sun_n < 0)){
 		return;
 	}
@@ -1023,17 +1023,17 @@ void subspace_render()
 {
 	if ( Subspace_model_inner == -1 )	{
 		Subspace_model_inner = model_load( "subspace_small.pof", 0, NULL );
-		Assert(Subspace_model_inner>-1);
+		SDL_assert(Subspace_model_inner>-1);
 	}
 
 	if ( Subspace_model_outer == -1 )	{
 		Subspace_model_outer = model_load( "subspace_big.pof", 0, NULL );
-		Assert(Subspace_model_outer>-1);
+		SDL_assert(Subspace_model_outer>-1);
 	}
 
 	if ( Subspace_glow_bitmap == -1 )	{
 		Subspace_glow_bitmap = bm_load( NOX("SunGlow01"));
-		Assert(Subspace_glow_bitmap>-1);
+		SDL_assert(Subspace_glow_bitmap>-1);
 	}
 
 	Subspace_glow_frame += flFrametime * 1.0f;
@@ -1377,9 +1377,9 @@ void stars_page_in()
 	if ( Game_subspace_effect )	{
 
 		Subspace_model_inner = model_load( "subspace_small.pof", 0, NULL );
-		Assert(Subspace_model_inner>-1);
+		SDL_assert(Subspace_model_inner>-1);
 		Subspace_model_outer = model_load( "subspace_big.pof", 0, NULL );
-		Assert(Subspace_model_outer>-1);
+		SDL_assert(Subspace_model_outer>-1);
 
 		polymodel *pm;
 		
@@ -1420,7 +1420,7 @@ void stars_page_in()
 	while((idx < MAX_STARFIELD_BITMAPS) && (Starfield_bitmaps[idx].bitmap != -1)){	
 		// make sure it's used in this mission before loading
 		for (t=0; t<Num_starfield_bitmaps; t++) {
-			if (!stricmp(Starfield_bitmaps[idx].filename, Starfield_bitmap_instance[t].filename)) {
+			if (!SDL_strcasecmp(Starfield_bitmaps[idx].filename, Starfield_bitmap_instance[t].filename)) {
 				if(Starfield_bitmaps[idx].xparent){
 					bm_page_in_xparent_texture(Starfield_bitmaps[idx].bitmap);
 				} else { 
@@ -1438,7 +1438,7 @@ void stars_page_in()
 	while((idx < MAX_STARFIELD_BITMAPS) && (Sun_bitmaps[idx].bitmap != -1) && (Sun_bitmaps[idx].glow_bitmap != -1)){
 		// make sure it's used in this mission before loading
 		for (t=0; t<Num_suns; t++) {
-			if (!stricmp(Sun_bitmaps[idx].filename, Suns[t].filename)) {
+			if (!SDL_strcasecmp(Sun_bitmaps[idx].filename, Suns[t].filename)) {
 				bm_page_in_texture(Sun_bitmaps[idx].bitmap);
 				bm_page_in_texture(Sun_bitmaps[idx].glow_bitmap);
 			}

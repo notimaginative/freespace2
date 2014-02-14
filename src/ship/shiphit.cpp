@@ -623,15 +623,15 @@ void do_subobj_destroyed_stuff( ship *ship_p, ship_subsys *subsys, vector* hitpo
 	// engines).  So, my solution is to encode the ship_info index, and the subsystem index into one
 	// integer, and pass that as the "index" parameter to add_entry.  We'll use that information to
 	// print out the info in the mission log.
-	Assert( ship_p->ship_info_index < 65535 );
+	SDL_assert( ship_p->ship_info_index < 65535 );
 
 	// get the "index" of this subsystem in the ship info structure.
 	for ( i = 0; i < sip->n_subsystems; i++ ) {
 		if ( &(sip->subsystems[i]) == psub )
 			break;
 	}
-	Assert( i < sip->n_subsystems );
-	Assert( i < 65535 );
+	SDL_assert( i < sip->n_subsystems );
+	SDL_assert( i < 65535 );
 	log_index = ((ship_p->ship_info_index << 16) & 0xffff0000) | (i & 0xffff);
 
 	// Don't log or display info about the activation subsytem
@@ -864,9 +864,9 @@ float do_subobj_hit_stuff(object *ship_obj, object *other_obj, vector *hitpos, f
 		//	Debug option.  If damage is negative of subsystem type, then just destroy that subsystem.
 		if (damage < 0.0f) {
 			// single player or multiplayer
-			Assert(Player_ai->targeted_subsys != NULL);
+			SDL_assert(Player_ai->targeted_subsys != NULL);
 			if ( (subsys == Player_ai->targeted_subsys) && (subsys->current_hits > 0) ) {
-				Assert(subsys->system_info->type == (int) -damage);
+				SDL_assert(subsys->system_info->type == (int) -damage);
 				ship_p->subsys_info[subsys->system_info->type].current_hits -= subsys->current_hits;
 				if (ship_p->subsys_info[subsys->system_info->type].current_hits < 0) {
 					ship_p->subsys_info[subsys->system_info->type].current_hits = 0.0f;
@@ -918,7 +918,7 @@ float do_subobj_hit_stuff(object *ship_obj, object *other_obj, vector *hitpos, f
 				min_index = i;
 			}
 		}
-		Assert(min_index != -1);
+		SDL_assert(min_index != -1);
 
 		float	damage_to_apply = 0.0f;
 		subsys = subsys_list[min_index].ptr;
@@ -1187,14 +1187,14 @@ void ship_hit_music(object *ship_obj, object *other_obj)
 	//
 	// If the ship hit has an AI class of none, it is a Cargo, NavBuoy or other non-aggressive
 	// ship, so don't start the battle music	
-	if (stricmp(Ai_class_names[Ai_info[ship_p->ai_index].ai_class], NOX("none"))) {
+	if (SDL_strcasecmp(Ai_class_names[Ai_info[ship_p->ai_index].ai_class], NOX("none"))) {
 		int team_1, team_2;
 		// Only start if ship hit and firing ship are from different teams
 		team_1 = Ships[ship_obj->instance].team;
 		switch ( other_obj->type ) {
 			case OBJ_SHIP:
 				team_2 = Ships[other_obj->instance].team;
-				if ( !stricmp(Ai_class_names[Ai_info[Ships[other_obj->instance].ai_index].ai_class], NOX("none")) ) {
+				if ( !SDL_strcasecmp(Ai_class_names[Ai_info[Ships[other_obj->instance].ai_index].ai_class], NOX("none")) ) {
 					team_1 = team_2;
 				}
 				break;
@@ -1244,8 +1244,8 @@ void ship_hit_sparks_no_rotate(object *ship_obj, vector *hitpos)
 // limited for fighter by hull % others by radius.
 int get_max_sparks(object* ship_obj)
 {
-	Assert(ship_obj->type == OBJ_SHIP);
-	Assert((ship_obj->instance >= 0) && (ship_obj->instance < MAX_SHIPS));
+	SDL_assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert((ship_obj->instance >= 0) && (ship_obj->instance < MAX_SHIPS));
 	if(ship_obj->type != OBJ_SHIP){
 		return 1;
 	}
@@ -1284,8 +1284,8 @@ int spark_compare( const void *elem1, const void *elem2 )
 	spark_pair *pair1 = (spark_pair *) elem1;
 	spark_pair *pair2 = (spark_pair *) elem2;
 
-	Assert(pair1->dist >= 0);
-	Assert(pair2->dist >= 0);
+	SDL_assert(pair1->dist >= 0);
+	SDL_assert(pair2->dist >= 0);
 
 	if ( pair1->dist <  pair2->dist ) {
 		return -1;
@@ -1303,11 +1303,11 @@ int choose_next_spark(object *ship_obj, vector *hitpos)
 	ship *shipp = &Ships[ship_obj->instance];
 
 	// only choose next spark when all slots are full
-	Assert(get_max_sparks(ship_obj) == Ships[ship_obj->instance].num_hits);
+	SDL_assert(get_max_sparks(ship_obj) == Ships[ship_obj->instance].num_hits);
 
 	// get num_sparks
 	num_sparks = Ships[ship_obj->instance].num_hits;
-	Assert(num_sparks <= MAX_SHIP_HITS);
+	SDL_assert(num_sparks <= MAX_SHIP_HITS);
 
 	// get num_spark_paris -- only sort these
 	num_spark_pairs = (num_sparks * num_sparks - num_sparks) / 2;
@@ -1361,7 +1361,7 @@ int choose_next_spark(object *ship_obj, vector *hitpos)
 			spark_pairs[count++].dist = vm_vec_dist_squared(&world_hitpos[i], &world_hitpos[j]);
 		}
 	}
-	Assert(count == num_spark_pairs);
+	SDL_assert(count == num_spark_pairs);
 
 	// sort pairs
 	qsort(spark_pairs, count, sizeof(spark_pair), spark_compare);
@@ -1531,7 +1531,7 @@ void player_died_start(object *killer_objp)
 	vector	*side_vec;
 	float		dist;
 
-	Assert(other_objp != NULL);
+	SDL_assert(other_objp != NULL);
 
 	if (Player_obj == other_objp) {
 		dist = 50.0f;
@@ -1586,8 +1586,8 @@ void ship_generic_kill_stuff( object *objp, float percent_killed )
 	int	delta_time;
 	ship	*sp;
 
-	Assert(objp->type == OBJ_SHIP);
-	Assert(objp->instance >= 0 && objp->instance < MAX_SHIPS );
+	SDL_assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->instance >= 0 && objp->instance < MAX_SHIPS );
 	if((objp->type != OBJ_SHIP) || (objp->instance < 0) || (objp->instance >= MAX_SHIPS)){
 		return;
 	}
@@ -1645,7 +1645,7 @@ void ship_generic_kill_stuff( object *objp, float percent_killed )
 	sp->final_death_time = timestamp(delta_time);	// Give him 3 secs to explode
 
 	if (sp->flags & SF_VAPORIZE) {
-		// Assert(Ship_info[sp->ship_info_index].flags & SIF_SMALL_SHIP);
+		// SDL_assert(Ship_info[sp->ship_info_index].flags & SIF_SMALL_SHIP);
 
 		// LIVE FOR 100 MS
 		sp->final_death_time = timestamp(100);
@@ -1722,11 +1722,11 @@ void ship_vaporize(ship *shipp)
 	object *ship_obj;
 
 	// sanity
-	Assert(shipp != NULL);
+	SDL_assert(shipp != NULL);
 	if(shipp == NULL){
 		return;
 	}
-	Assert((shipp->objnum >= 0) && (shipp->objnum < MAX_OBJECTS));
+	SDL_assert((shipp->objnum >= 0) && (shipp->objnum < MAX_OBJECTS));
 	if((shipp->objnum < 0) || (shipp->objnum >= MAX_OBJECTS)){
 		return;
 	}
@@ -1781,7 +1781,7 @@ void ship_hit_kill(object *ship_obj, object *other_obj, float percent_killed, in
 			}
 			// if the object isn't around, the try to find the object in the list of ships which has exited			
 			if ( objp != END_OF_LIST(&obj_used_list) ) {
-				Assert ( (objp->type == OBJ_SHIP ) || (objp->type == OBJ_GHOST) );					// I suppose that this should be true
+				SDL_assert ( (objp->type == OBJ_SHIP ) || (objp->type == OBJ_GHOST) );					// I suppose that this should be true
 				killer_ship_name = Ships[objp->instance].ship_name;
 
 				killer_objp = objp;
@@ -1869,7 +1869,7 @@ void ship_hit_kill(object *ship_obj, object *other_obj, float percent_killed, in
 // function to simply explode a ship where it is currently at
 void ship_self_destruct( object *objp )
 {	
-	Assert ( objp->type == OBJ_SHIP );
+	SDL_assert ( objp->type == OBJ_SHIP );
 
 	// try and find a player
 	if((Game_mode & GM_MULTIPLAYER) && (multi_find_player_by_object(objp) >= 0)){
@@ -2005,7 +2005,7 @@ int maybe_shockwave_damage_adjust(object *ship_obj, object *other_obj, float *da
 	float max_damage;
 	shockwave *sw;
 
-	Assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
 	if (other_obj->type != OBJ_SHOCKWAVE) {
 		return 0;
 	}
@@ -2066,8 +2066,8 @@ static void ship_do_damage(object *ship_obj, object *other_obj, vector *hitpos, 
 	ship *shipp;	
 	float subsystem_damage = damage;			// damage to be applied to subsystems
 
-	Assert(ship_obj->instance >= 0);
-	Assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->instance >= 0);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
 	shipp = &Ships[ship_obj->instance];
 
 	// maybe adjust damage done by shockwave for BIG|HUGE
@@ -2274,11 +2274,11 @@ static void ship_do_damage(object *ship_obj, object *other_obj, vector *hitpos, 
 	// if the hitting object is a weapon, maybe do some fun stuff here
 	if(other_obj->type == OBJ_WEAPON){
 		weapon_info *wip;
-		Assert(other_obj->instance >= 0);
+		SDL_assert(other_obj->instance >= 0);
 		if(other_obj->instance < 0){
 			return;
 		}
-		Assert(Weapons[other_obj->instance].weapon_info_index >= 0);
+		SDL_assert(Weapons[other_obj->instance].weapon_info_index >= 0);
 		if(Weapons[other_obj->instance].weapon_info_index < 0){
 			return;
 		}

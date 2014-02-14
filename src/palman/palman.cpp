@@ -367,7 +367,7 @@ void palette_load_table( const char * filename )
 			Error( LOCATION, "Can't open palette file <%s>",palette_base_filename);
 
 		fsize	= cfilelength( fp );
-		Assert( fsize == 9472 );
+		SDL_assert( fsize == 9472 );
 		cfread( palette_org, 256*3, 1, fp );
 		cfclose(fp);
 
@@ -703,7 +703,7 @@ void palette_flush()
 {
 	// DB 2/3/99 - I think this was causing some wacky unhandled exceptions at game shutdown. Since we don't use palettes anymore.....
 	/*
-	if ( stricmp( palette_name, "none" ) )	{
+	if ( SDL_strcasecmp( palette_name, "none" ) )	{
 		palette_write_cached1( palette_name );
 	}
 	*/
@@ -740,7 +740,7 @@ void palette_update(const char *name_with_extension, int restrict_font_to_128)
 	palette_fade_table_calculated = 0;
 
 	// For "none" palettes, don't calculate tables
-	if ( !stricmp( name, "none" ) ) {
+	if ( !SDL_strcasecmp( name, "none" ) ) {
 		bm_update();			// update the bitmap palette's
 		return;
 	}

@@ -32,7 +32,7 @@
  *
  * 
  * 47    9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 46    9/07/99 11:26p Andsager
@@ -267,7 +267,7 @@
  * 
  * 368   4/27/98 9:03a Dave
  * Fixed a multiplayer sequencing bug where paused players who were in the
- * options screen got an Assert when unpausing. Removed an optimiized
+ * options screen got an SDL_assert when unpausing. Removed an optimiized
  * build warning in keycontrol. 
  * 
  * 367   4/26/98 4:29p Lawrance
@@ -697,7 +697,7 @@ void debug_cycle_targeted_ship(int delta)
 		return;
 
 	si_index = Ships[objp->instance].ship_info_index;
-	Assert(si_index != -1 );
+	SDL_assert(si_index != -1 );
 	species = Ship_info[si_index].species;
 
 	int sanity = 0;
@@ -714,7 +714,7 @@ void debug_cycle_targeted_ship(int delta)
 	
 		// if it has test in the name, jump over it
 		strcpy(name, sip->name);
-		_strlwr(name);
+		SDL_strlwr(name);
 		if ( strstr(name,NOX("test")) != NULL )
 			continue;
 
@@ -1726,8 +1726,8 @@ void game_process_cheats(int k)
 						// don't check the new_obj itself!!
 						if(moveup->objnum != objnum){
 							hit_check = &Objects[moveup->objnum];
-							Assert(hit_check->type == OBJ_SHIP);
-							Assert(hit_check->instance >= 0);
+							SDL_assert(hit_check->type == OBJ_SHIP);
+							SDL_assert(hit_check->instance >= 0);
 							if((hit_check->type != OBJ_SHIP) || (hit_check->instance < 0)){
 								continue;
 							}
@@ -1892,7 +1892,7 @@ int button_function_critical(int n, net_player *p = NULL)
 	net_player *npl;
 	int at_self;    // flag indicating the object is local (for hud messages, etc)
 
-	Assert(n >= 0);
+	SDL_assert(n >= 0);
    
 	// multiplayer clients should leave critical button bits alone and pass them to the server instead
 	if ((Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER)) {
@@ -1942,7 +1942,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 				// multiplayer server should maintain bank/link status here
 				if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-					Assert(npl != NULL);
+					SDL_assert(npl != NULL);
 					multi_server_update_player_weapons(npl,shipp);										
 				}					
 			}			
@@ -1979,7 +1979,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}					
 			break;
@@ -1992,7 +1992,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}					
 			break;
@@ -2005,7 +2005,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}								
 			break;
@@ -2018,7 +2018,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}								
 			break;
@@ -2031,7 +2031,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}								
 			break;
@@ -2044,7 +2044,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}							
 			break;
@@ -2057,7 +2057,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}										
 			break;
@@ -2072,7 +2072,7 @@ int button_function_critical(int n, net_player *p = NULL)
 			snd_play( &Snds[SND_ENERGY_TRANS] );
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}										
 			break;
@@ -2269,7 +2269,7 @@ int button_function_demo_valid(int n)
 // execute function corresponding to action n (BUTTON_ #define from KeyControl.h)
 int button_function(int n)
 {
-	Assert(n >= 0);
+	SDL_assert(n >= 0);
 
 	if ( !button_allowed(n) ) {
 		return 0;
@@ -2294,7 +2294,7 @@ int button_function(int n)
 				shipp->weapons.next_primary_fire_stamp[shipp->weapons.current_primary_bank] = timestamp(250);	//	1/4 second delay until can fire				
 				// multiplayer server should maintain bank/link status here
 				// if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-//					Assert(npl != NULL);
+//					SDL_assert(npl != NULL);
 //					multi_server_update_player_weapons(npl,shipp);										
 //				}					
 			}			
@@ -2314,7 +2314,7 @@ int button_function(int n)
 
 				// multiplayer server should maintain bank/link status here
 				// if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-					// Assert(npl != NULL);
+					// SDL_assert(npl != NULL);
 					// multi_server_update_player_weapons(npl,shipp);										
 				// }					
 			}			

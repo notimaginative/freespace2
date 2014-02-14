@@ -611,7 +611,7 @@ void grx_tmapper( int nverts, vertex **verts, uint flags )
 	Tmap_npolys++;
 	Tmap_nverts += nverts;
 
-	Assert(nverts <= TMAP_MAX_VERTS );
+	SDL_assert(nverts <= TMAP_MAX_VERTS );
 
 #endif
 	
@@ -629,7 +629,7 @@ void grx_tmapper( int nverts, vertex **verts, uint flags )
 //	tmap_scanline = tmap_scan_generic;
 
 #ifndef NDEBUG
-	Assert( tmap_scanline != NULL );
+	SDL_assert( tmap_scanline != NULL );
 
 	if (Tmap_show_layers)
 		tmap_scanline = tmapper_show_layers;
@@ -851,10 +851,10 @@ void grx_tmapper( int nverts, vertex **verts, uint flags )
 								Tmap.fx_dl_dx = -Tmap.fx_dl_dx;
 								Tmap.fx_l = (67*F1_0)-Tmap.fx_l;
 								Tmap.fx_l_right = (67*F1_0)-Tmap.fx_l_right;
-						//		Assert( Tmap.fx_l > 31*F1_0 );
-						//		Assert( Tmap.fx_l < 66*F1_0 );
-						//		Assert( Tmap.fx_dl_dx >= 0 );
-						//		Assert( Tmap.fx_dl_dx < 31*F1_0 );
+						//		SDL_assert( Tmap.fx_l > 31*F1_0 );
+						//		SDL_assert( Tmap.fx_l < 66*F1_0 );
+						//		SDL_assert( Tmap.fx_dl_dx >= 0 );
+						//		SDL_assert( Tmap.fx_dl_dx < 31*F1_0 );
 							}
 						}
 					}

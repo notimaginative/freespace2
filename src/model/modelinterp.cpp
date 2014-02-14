@@ -516,8 +516,8 @@ void model_interp_defpoints(ubyte * p, polymodel *pm, bsp_info *sm)
 	// Get pointer to lights
 	Interp_lights = p+20+nverts;
 
-	Assert( nverts < MAX_POLYGON_VECS );
-	// Assert( nnorms < MAX_POLYGON_NORMS );
+	SDL_assert( nverts < MAX_POLYGON_VECS );
+	// SDL_assert( nnorms < MAX_POLYGON_NORMS );
 
 	Interp_num_verts = nverts;
 	#ifndef NDEBUG
@@ -818,11 +818,11 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 		} else {
 
 	//		if ( !(pm->flags & PM_FLAG_ALLOW_TILING) )	{
-	//			Assert(verts[i].u <= 1.0f );
-	//			Assert(verts[i].v <= 1.0f );
+	//			SDL_assert(verts[i].u <= 1.0f );
+	//			SDL_assert(verts[i].v <= 1.0f );
 	//		}
 
-	//		Assert( verts[i].normnum == verts[i].vertnum );
+	//		SDL_assert( verts[i].normnum == verts[i].vertnum );
 
 			if ( Interp_flags & MR_NO_LIGHTING )	{
 				if ( D3D_enabled )	{
@@ -892,8 +892,8 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 			}
 		}
 
-//		Assert(verts[i].u >= 0.0f );
-//		Assert(verts[i].v >= 0.0f );
+//		SDL_assert(verts[i].u >= 0.0f );
+//		SDL_assert(verts[i].v >= 0.0f );
 	}
 
 	#ifndef NDEBUG
@@ -1029,7 +1029,7 @@ void model_interp_sortnorm(ubyte * p,polymodel * pm, bsp_info *sm, int do_box_ch
 	modelstats_num_sortnorms++;
 	#endif
 
-//	Assert( w(p+4) == 56 );
+//	SDL_assert( w(p+4) == 56 );
 
 	int frontlist = w(p+36);
 	int backlist = w(p+40);
@@ -1270,7 +1270,7 @@ void model_draw_bay_paths(int model_num)
 		
 	// iterate through the paths that exist in the polymodel, searching for $bayN pathnames
 	for (idx = 0; idx<pm->n_paths; idx++) {
-		if ( !strnicmp(pm->paths[idx].name, NOX("$bay"), 4) ) {						
+		if ( !SDL_strncasecmp(pm->paths[idx].name, NOX("$bay"), 4) ) {						
 			for(s_idx=0; s_idx<pm->paths[idx].nverts-1; s_idx++){
 				v1 = pm->paths[idx].verts[s_idx].pos;
 				v2 = pm->paths[idx].verts[s_idx+1].pos;
@@ -1354,7 +1354,7 @@ int AG2 = 128;
 int AB2 = 10;
 void interp_render_lightning( polymodel *pm, bsp_info * sm )
 {
-	Assert( sm->num_arcs > 0 );
+	SDL_assert( sm->num_arcs > 0 );
 
 	int i;
 
@@ -1405,8 +1405,8 @@ void model_interp_subcall(polymodel * pm, int mn, int detail_level)
 	if ( (mn < 0) || (mn>=pm->n_models) )
 		return;
 
-	Assert( mn >= 0 );
-	Assert( mn < pm->n_models );
+	SDL_assert( mn >= 0 );
+	SDL_assert( mn < pm->n_models );
 
 //	mprintf(( "Name = '%s'\n", pm->submodel[mn].name ));
 //	char * p = pm->submodel[mn].name;
@@ -1785,7 +1785,7 @@ int model_get_rotated_bitmap_points(vertex *pnt,float angle, float rad, vertex *
 	float sa, ca;
 	int i;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 
 
@@ -2081,7 +2081,7 @@ void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint fl
 		return;
 	}
 
-	Assert( mc != NULL );
+	SDL_assert( mc != NULL );
 
 	// Fake the detail level based on framerate.
 	if ( 1.0f / flFrametime < Mc_framerate_lo[Model_object_caching_tmp] )	{
@@ -2163,7 +2163,7 @@ void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint fl
 		goto RedrawIt;
 	}
 
-	Assert( mc->data != NULL );
+	SDL_assert( mc->data != NULL );
 
 	if (Framecount - mc->last_frame_rendered > 1 + 2*(MAX_DETAIL_LEVEL - Detail.object_caching - 1)) {
 		goto RedrawIt;
@@ -2611,7 +2611,7 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 		}
 	}
 
-	Assert( pm->n_detail_levels < MAX_MODEL_DETAIL_LEVELS );
+	SDL_assert( pm->n_detail_levels < MAX_MODEL_DETAIL_LEVELS );
 
 	vector closest_pos;
 	float depth = model_find_closest_point( &closest_pos, model_num, -1, orient, pos, &Eye_position );

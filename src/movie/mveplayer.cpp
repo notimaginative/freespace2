@@ -171,12 +171,12 @@ static int mve_do_timer_wait(void)
 
 	ts = timer_expire - tv;
 
-	Sleep(ts / 1000);
+	SDL_Delay(ts / 1000);
 
 	// try and burn off excess in attempt to keep sync
 	if (ts % 1000) {
 		for (int i = 0; i < 10; i++) {
-			Sleep(0);
+			SDL_Delay(0);
 		}
 	}
 end:
@@ -696,7 +696,7 @@ int mve_video_init(ubyte *data)
 
 	glGenTextures(1, &tex);
 
-	Assert(tex != 0);
+	SDL_assert(tex != 0);
 
 	if ( tex == 0 ) {
 		mprintf(("MOVIE", "ERROR: Can't create a GL texture"));

@@ -311,7 +311,7 @@ void hud_shield_game_init()
 		stuff_string(name, F_NAME, NULL);
 
 		// maybe store
-		Assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
+		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
 		if(Hud_shield_filename_count < MAX_SHIELD_ICONS){
 			strcpy(Hud_shield_filenames[Hud_shield_filename_count++], name);
 		}
@@ -325,13 +325,13 @@ void hud_shield_game_init()
 	// for fighters
 	for (i = 1; i < 14; i++) {
 		snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-f%02d", i);
-		Assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
+		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
 	}
 
 	// for bombers
 	for (i = 1; i < 11; i++) {
 		snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-b%02d", i);
-		Assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
+		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
 	}
 #endif
 }
@@ -422,8 +422,8 @@ void hud_shield_show(object *objp)
 
 	// load in shield frames if not already loaded
 	// DDOI - shield_icon_index is unsigned
-	// Assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
-	Assert(sip->shield_icon_index < Hud_shield_filename_count);
+	// SDL_assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
+	SDL_assert(sip->shield_icon_index < Hud_shield_filename_count);
 	
 	sgp = &Shield_gauges[sip->shield_icon_index];
 
@@ -472,7 +472,7 @@ void hud_shield_show(object *objp)
 
 		range = max(HUD_COLOR_ALPHA_MAX, HUD_color_alpha + 4);
 		hud_color_index = fl2i( (objp->shields[Quadrant_xlate[i]] / max_shield) * range + 0.5);
-		Assert(hud_color_index >= 0 && hud_color_index <= range);
+		SDL_assert(hud_color_index >= 0 && hud_color_index <= range);
 
 		if ( hud_color_index < 0 ) {
 			hud_color_index = 0;
@@ -515,8 +515,8 @@ void hud_ship_icon_page_in(ship_info *sip)
 
 	// load in shield frames if not already loaded
 	// DDOI - shield_icon_index is unsigned
-	// Assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
-	Assert(sip->shield_icon_index < Hud_shield_filename_count);
+	// SDL_assert(sip->shield_icon_index >= 0 && sip->shield_icon_index < Hud_shield_filename_count);
+	SDL_assert(sip->shield_icon_index < Hud_shield_filename_count);
 	sgp = &Shield_gauges[sip->shield_icon_index];
 
 	if ( sgp->first_frame == -1 ) {
@@ -545,15 +545,15 @@ void hud_shield_equalize(object *objp, player *pl)
 	int idx;
 	int all_equal = 1;
 
-	Assert(objp != NULL);
+	SDL_assert(objp != NULL);
 	if(objp == NULL){
 		return;
 	}
-	Assert(pl != NULL);
+	SDL_assert(pl != NULL);
 	if(pl == NULL){
 		return;
 	}
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	if(objp->type != OBJ_SHIP){
 		return;
 	}
@@ -609,8 +609,8 @@ void hud_augment_shield_quadrant(object *objp, int direction)
 	float	max_quadrant_val;
 	int	i;
 
-	Assert(direction >= 0 && direction < 4);
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(direction >= 0 && direction < 4);
+	SDL_assert(objp->type == OBJ_SHIP);
 	full_shields = Ship_info[Ships[objp->instance].ship_info_index].shields;
 	
 	xfer_amount = full_shields * SHIELD_TRANSFER_PERCENT;
@@ -619,7 +619,7 @@ void hud_augment_shield_quadrant(object *objp, int direction)
 	if ( (objp->shields[direction] + xfer_amount) > max_quadrant_val )
 		xfer_amount = max_quadrant_val - objp->shields[direction];
 
-	Assert(xfer_amount >= 0);
+	SDL_assert(xfer_amount >= 0);
 	if ( xfer_amount == 0 ) {
 		// TODO: provide a feedback sound
 		return;
@@ -644,7 +644,7 @@ void hud_augment_shield_quadrant(object *objp, int direction)
 			continue;
 		delta = percent_to_take * objp->shields[i];
 		objp->shields[i] -= delta;
-		Assert(objp->shields[i] >= 0 );
+		SDL_assert(objp->shields[i] >= 0 );
 		objp->shields[direction] += delta;
 		if ( objp->shields[direction] > max_quadrant_val )
 			objp->shields[direction] = max_quadrant_val;
@@ -659,7 +659,7 @@ void hud_shield_assign_info(ship_info *sip, char *filename)
 	ubyte i;
 
 	for ( i = 0; i < Hud_shield_filename_count; i++ ) {
-		if ( !stricmp(filename, Hud_shield_filenames[i]) ) {
+		if ( !SDL_strcasecmp(filename, Hud_shield_filenames[i]) ) {
 			sip->shield_icon_index = i;
 		}
 	}		
@@ -687,7 +687,7 @@ void hud_show_mini_ship_integrity(object *objp, int x_force, int y_force)
 	if(numeric_integrity > 100){
 		numeric_integrity = 100;
 	}
-	// Assert(numeric_integrity <= 100);
+	// SDL_assert(numeric_integrity <= 100);
 
 	// base coords
 	nx = (x_force == -1) ? Hud_mini_base[gr_screen.res][0] : x_force;
@@ -776,7 +776,7 @@ void hud_shield_show_mini(object *objp, int x_force, int y_force, int x_hull_off
 				
 		range = HUD_color_alpha;
 		hud_color_index = fl2i( (objp->shields[Quadrant_xlate[i]] / max_shield) * range + 0.5);
-		Assert(hud_color_index >= 0 && hud_color_index <= range);
+		SDL_assert(hud_color_index >= 0 && hud_color_index <= range);
 	
 		if ( hud_color_index < 0 ) {
 			hud_color_index = 0;

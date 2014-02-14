@@ -338,8 +338,8 @@ void obj_add_pair( object *A, object *B, int check_time, int add_to_end )
 		return;
 	}
 
-	Assert( A->type < 127 );
-	Assert( B->type < 127 );
+	SDL_assert( A->type < 127 );
+	SDL_assert( B->type < 127 );
 
 	ctype = COLLISION_OF(A->type,B->type);
 	switch( ctype )	{
@@ -569,7 +569,7 @@ void obj_add_pair( object *A, object *B, int check_time, int add_to_end )
 			last = &pair_used_list;
 			
 		last->next = new_pair;
-		Assert(new_pair != NULL);
+		SDL_assert(new_pair != NULL);
 		new_pair->next = NULL;
 	}
 	else {
@@ -631,11 +631,11 @@ void obj_check_all_collisions()
 					// Never check it again, so remove the pair
 					removed = 1;
 					tmp->a->num_pairs--;	
-					Assert( tmp->a->num_pairs > -1 );
+					SDL_assert( tmp->a->num_pairs > -1 );
 					tmp->b->num_pairs--;
-					Assert( tmp->b->num_pairs > -1 );
+					SDL_assert( tmp->b->num_pairs > -1 );
 					Num_pairs--;
-					// Assert(Num_pairs >= 0);
+					// SDL_assert(Num_pairs >= 0);
 					parent->next = tmp->next;
 					tmp->a = tmp->b = NULL;
 					tmp->next = pair_free_list.next;
@@ -785,7 +785,7 @@ int vector_object_collision(vector *start_pos, vector *end_pos, object *objp, fl
 int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pair )
 {
 
-	Assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( weapon->type == OBJ_WEAPON );
 
 //	mprintf(( "Frame: %d,  Weapon=%d, Other=%d, pair=$%08x\n", G3_frame_count, OBJ_INDEX(weapon), OBJ_INDEX(other), current_pair ));
 	
@@ -952,7 +952,7 @@ int pp_collide(vector *curpos, vector *goalpos, object *goalobjp, float radius)
 {
 	mc_info mc;
 
-	Assert(goalobjp->type == OBJ_SHIP);
+	SDL_assert(goalobjp->type == OBJ_SHIP);
 
 	ship_model_start(goalobjp);
 
@@ -1105,7 +1105,7 @@ int collide_remove_weapons( )
 	num_deleted = 0;
 	for ( i = 0; i < MAX_WEAPONS; i++ ) {
 		if ( crw_status[i] == CRW_CAN_DELETE ) {
-			Assert( Weapons[i].objnum != -1 );
+			SDL_assert( Weapons[i].objnum != -1 );
 			obj_delete( Weapons[i].objnum );
 			num_deleted++;
 		}

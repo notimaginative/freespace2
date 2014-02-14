@@ -1026,7 +1026,7 @@ void hud_config_init_ui()
 
 	for (i=0; i<NUM_HUD_GAUGES; i++) {
 		hg = &HC_gauge_regions[gr_screen.res][i];
-		if ( !stricmp(hg->filename, NOX("none")) ) {
+		if ( !SDL_strcasecmp(hg->filename, NOX("none")) ) {
 			continue;
 		}
 		hg->button.create(&HC_ui_window, "", hg->x, hg->y, 60, 30, 0, 1);
@@ -1219,7 +1219,7 @@ void hud_config_render_gauges()
 					}
 
 					if ( HC_gauge_regions[gr_screen.res][i].bitmap >= 0 ) {
-						Assert(offset < HC_gauge_regions[gr_screen.res][i].nframes);
+						SDL_assert(offset < HC_gauge_regions[gr_screen.res][i].nframes);
 						gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap+offset, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(HC_gauge_regions[gr_screen.res][i].x, HC_gauge_regions[gr_screen.res][i].y);
 					}
@@ -1257,7 +1257,7 @@ void hud_config_render_gauges()
 			}
 
 			if ( HC_gauge_regions[i].bitmap >= 0 ) {
-				Assert(offset < HC_gauge_regions[i].nframes);
+				SDL_assert(offset < HC_gauge_regions[i].nframes);
 				gr_set_bitmap(HC_gauge_regions[i].bitmap+offset);
 				gr_bitmap(HC_gauge_regions[i].x, HC_gauge_regions[i].y);
 			}
@@ -1586,7 +1586,7 @@ void hud_config_button_do(int n)
 		if(strlen(name) > 0){
 			// if the filename in there already exists
 			for(idx=0; idx<HC_num_files; idx++){
-				if(!stricmp(HC_filenames[idx], name)){
+				if(!SDL_strcasecmp(HC_filenames[idx], name)){
 					exists = 1;
 				}
 			}
@@ -1799,8 +1799,8 @@ void hud_config_update_brightness()
 {
 #ifdef MAKE_FS1
 	HUD_color_alpha = HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos+3;
-	Assert(HUD_color_alpha >= HUD_COLOR_ALPHA_USER_MIN);
-	Assert(HUD_color_alpha <= HUD_COLOR_ALPHA_USER_MAX);
+	SDL_assert(HUD_color_alpha >= HUD_COLOR_ALPHA_USER_MIN);
+	SDL_assert(HUD_color_alpha <= HUD_COLOR_ALPHA_USER_MAX);
 #endif
 }
 

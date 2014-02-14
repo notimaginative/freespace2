@@ -219,7 +219,7 @@ void cutscene_init()
 	skip_to_string("#Cutscenes");
 	ignore_white_space();
 	while ( required_string_either("#End", "$Filename:") ) {
-		Assert ( Num_cutscenes < MAX_CUTSCENES );
+		SDL_assert ( Num_cutscenes < MAX_CUTSCENES );
 		required_string("$Filename:");
 		stuff_string( Cutscenes[Num_cutscenes].filename, F_PATHNAME, NULL );
 		required_string("$Name:");
@@ -263,7 +263,7 @@ void cutscene_mark_viewable(const char *filename)
 	int i;
 
 	for (i = 0; i < Num_cutscenes; i++ ) {
-		if ( !stricmp(Cutscenes[i].filename, filename) ) {
+		if ( !SDL_strcasecmp(Cutscenes[i].filename, filename) ) {
 			Cutscenes_viewable |= (1<<i);
 			return;
 		}
@@ -397,7 +397,7 @@ void cutscenes_screen_play()
 	char name[MAX_FILENAME_LEN], *full_name;
 	int which_cutscene;
 
-	Assert( (Selected_line >= 0) && (Selected_line < Num_files) );
+	SDL_assert( (Selected_line >= 0) && (Selected_line < Num_files) );
 	which_cutscene = Cutscene_list[Selected_line];
 
 	strcpy(name, Cutscenes[which_cutscene].filename );
@@ -448,7 +448,7 @@ void cutscenes_screen_scroll_screen_up()
 
 	if (Scroll_offset) {
 		Scroll_offset--;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		h = Cutscene_list_coords[gr_screen.res][3] / gr_get_font_height();
 		while (Selected_line >= Scroll_offset + h){
 			Selected_line--;
@@ -695,7 +695,7 @@ void cutscenes_screen_do_frame()
 		src = Cutscenes[Cutscene_list[Description_index]].description;
 		if (src) {
 			Text_size = split_str(src, Cutscene_desc_coords[gr_screen.res][2], Text_line_size, Text_lines, Cutscene_max_text_lines[gr_screen.res]);
-			Assert(Text_size >= 0 && Text_size < Cutscene_max_text_lines[gr_screen.res]);
+			SDL_assert(Text_size >= 0 && Text_size < Cutscene_max_text_lines[gr_screen.res]);
 		}
 	}
 

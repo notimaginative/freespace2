@@ -38,7 +38,7 @@
  *
  * 
  * 68    9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 67    9/09/99 2:36p Mikek
@@ -635,14 +635,14 @@ int beam_fire(beam_fire_info *fire_info)
 	}	
 
 	// make sure the beam_info_index is valid
-	Assert((fire_info->beam_info_index >= 0) && (fire_info->beam_info_index < MAX_WEAPON_TYPES) && (Weapon_info[fire_info->beam_info_index].wi_flags & WIF_BEAM));
+	SDL_assert((fire_info->beam_info_index >= 0) && (fire_info->beam_info_index < MAX_WEAPON_TYPES) && (Weapon_info[fire_info->beam_info_index].wi_flags & WIF_BEAM));
 	if((fire_info->beam_info_index < 0) || (fire_info->beam_info_index >= MAX_WEAPON_TYPES) || !(Weapon_info[fire_info->beam_info_index].wi_flags & WIF_BEAM)){
 		return -1;
 	}
 	wip = &Weapon_info[fire_info->beam_info_index];	
 
 	// make sure a ship is firing this
-	Assert((fire_info->shooter->type == OBJ_SHIP) && (fire_info->shooter->instance >= 0) && (fire_info->shooter->instance < MAX_SHIPS));
+	SDL_assert((fire_info->shooter->type == OBJ_SHIP) && (fire_info->shooter->instance >= 0) && (fire_info->shooter->instance < MAX_SHIPS));
 	if((fire_info->shooter->type != OBJ_SHIP) || (fire_info->shooter->instance < 0) || (fire_info->shooter->instance >= MAX_SHIPS)){
 		return -1;
 	}
@@ -650,7 +650,7 @@ int beam_fire(beam_fire_info *fire_info)
 
 	// get a free beam
 	new_item = GET_FIRST(&Beam_free_list);
-	Assert( new_item != &Beam_free_list );		// shouldn't have the dummy element
+	SDL_assert( new_item != &Beam_free_list );		// shouldn't have the dummy element
 	if(new_item == &Beam_free_list){
 		return -1;
 	}
@@ -770,14 +770,14 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 	}
 	
 	// make sure the beam_info_index is valid
-	Assert((fire_info->beam_info_index >= 0) && (fire_info->beam_info_index < MAX_WEAPON_TYPES) && (Weapon_info[fire_info->beam_info_index].wi_flags & WIF_BEAM));
+	SDL_assert((fire_info->beam_info_index >= 0) && (fire_info->beam_info_index < MAX_WEAPON_TYPES) && (Weapon_info[fire_info->beam_info_index].wi_flags & WIF_BEAM));
 	if((fire_info->beam_info_index < 0) || (fire_info->beam_info_index >= MAX_WEAPON_TYPES) || !(Weapon_info[fire_info->beam_info_index].wi_flags & WIF_BEAM)){
 		return -1;
 	}
 	wip = &Weapon_info[fire_info->beam_info_index];	
 
 	// make sure a ship is firing this
-	Assert((fire_info->shooter->type == OBJ_SHIP) && (fire_info->shooter->instance >= 0) && (fire_info->shooter->instance < MAX_SHIPS));
+	SDL_assert((fire_info->shooter->type == OBJ_SHIP) && (fire_info->shooter->instance >= 0) && (fire_info->shooter->instance < MAX_SHIPS));
 	if((fire_info->shooter->type != OBJ_SHIP) || (fire_info->shooter->instance < 0) || (fire_info->shooter->instance >= MAX_SHIPS)){
 		return -1;
 	}
@@ -786,7 +786,7 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 
 	// get a free beam
 	new_item = GET_FIRST(&Beam_free_list);
-	Assert( new_item != &Beam_free_list );		// shouldn't have the dummy element
+	SDL_assert( new_item != &Beam_free_list );		// shouldn't have the dummy element
 
 	// remove from the free list
 	list_remove( &Beam_free_list, new_item );
@@ -798,7 +798,7 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 	Beam_count++;
 
 	// maybe allocate some extra data based on the beam type
-	Assert(wip->b_info.beam_type == BEAM_TYPE_C);
+	SDL_assert(wip->b_info.beam_type == BEAM_TYPE_C);
 	if(wip->b_info.beam_type != BEAM_TYPE_C){
 		return -1;
 	}
@@ -849,8 +849,8 @@ int beam_get_parent(object *bm)
 	beam *b;
 
 	// get a handle to the beam
-	Assert(bm->type == OBJ_BEAM);
-	Assert(bm->instance >= 0);	
+	SDL_assert(bm->type == OBJ_BEAM);
+	SDL_assert(bm->instance >= 0);	
 	if(bm->type != OBJ_BEAM){
 		return -1;
 	}
@@ -859,7 +859,7 @@ int beam_get_parent(object *bm)
 	}
 	b = &Beams[bm->instance];
 
-	Assert(b->objp != NULL);
+	SDL_assert(b->objp != NULL);
 	if(b->objp == NULL){
 		return -1;
 	}
@@ -876,12 +876,12 @@ int beam_get_parent(object *bm)
 // return weapon_info_index of beam
 int beam_get_weapon_info_index(object *bm)
 {
-	Assert(bm->type == OBJ_BEAM);
+	SDL_assert(bm->type == OBJ_BEAM);
 	if (bm->type != OBJ_BEAM) {
 		return -1;
 	}
 
-	Assert(bm->instance >= 0 && bm->instance < MAX_BEAMS);
+	SDL_assert(bm->instance >= 0 && bm->instance < MAX_BEAMS);
 	if (bm->instance < 0) {
 		return -1;
 	}
@@ -1003,7 +1003,7 @@ void beam_type_a_move(beam *b)
 	vm_vec_sub(&dir, &b->last_shot, &b->last_start);
 	vm_vec_normalize_quick(&dir);
 	vm_vec_scale_add(&b->last_shot, &b->last_start, &dir, BEAM_FAR_LENGTH);
-	Assert(is_valid_vec(&b->last_shot));
+	SDL_assert(is_valid_vec(&b->last_shot));
 }
 
 // move a type B beam weapon
@@ -1036,7 +1036,7 @@ void beam_type_b_move(beam *b)
 	// now recalculate shot_point to be shooting through our new point
 	vm_vec_scale_add(&b->last_shot, &b->last_start, &actual_dir, BEAM_FAR_LENGTH);
 	int is_valid = is_valid_vec(&b->last_shot);
-	Assert(is_valid);
+	SDL_assert(is_valid);
 	if(!is_valid){
 		actual_dir = b->binfo.dir_a;
 		vm_vec_scale_add(&b->last_shot, &b->last_start, &actual_dir, BEAM_FAR_LENGTH);
@@ -1098,7 +1098,7 @@ void beam_type_d_move(beam *b)
 	vm_vec_sub(&dir, &b->last_shot, &b->last_start);
 	vm_vec_normalize_quick(&dir);
 	vm_vec_scale_add(&b->last_shot, &b->last_start, &dir, BEAM_FAR_LENGTH);
-	Assert(is_valid_vec(&b->last_shot));
+	SDL_assert(is_valid_vec(&b->last_shot));
 }
 void beam_type_d_get_status(beam *b, int *shot_index, int *fire_wait)
 {	
@@ -1107,7 +1107,7 @@ void beam_type_d_get_status(beam *b, int *shot_index, int *fire_wait)
 
 	// determine what "shot" we're on	
 	*shot_index = (int)(beam_time / shot_time);
-	Assert(*shot_index < b->binfo.shot_count);
+	SDL_assert(*shot_index < b->binfo.shot_count);
 	if(*shot_index >= b->binfo.shot_count){
 		*shot_index = b->binfo.shot_count - 1;
 	}	
@@ -1135,7 +1135,7 @@ void beam_type_e_move(beam *b)
 
 	// put the "last_shot" point arbitrarily far away
 	vm_vec_scale_add(&b->last_shot, &b->last_start, &turret_norm, BEAM_FAR_LENGTH);	
-	Assert(is_valid_vec(&b->last_shot));
+	SDL_assert(is_valid_vec(&b->last_shot));
 }
 
 // pre-move (before collision checking - but AFTER ALL OTHER OBJECTS HAVE BEEN MOVED)
@@ -1556,7 +1556,7 @@ void beam_render_all()
 			}			
 
 			// render the beam itself
-			Assert(moveup->weapon_info_index >= 0);
+			SDL_assert(moveup->weapon_info_index >= 0);
 			if(moveup->weapon_info_index < 0){
 				moveup = GET_NEXT(moveup);
 				continue;
@@ -1617,15 +1617,15 @@ void beam_add_light_small(beam *bm, object *objp, vector *pt_override = NULL)
 	}
 
 	// sanity
-	Assert(bm != NULL);
+	SDL_assert(bm != NULL);
 	if(bm == NULL){
 		return;
 	}
-	Assert(objp != NULL);
+	SDL_assert(objp != NULL);
 	if(objp == NULL){
 		return;
 	}
-	Assert(bm->weapon_info_index >= 0);
+	SDL_assert(bm->weapon_info_index >= 0);
 	wip = &Weapon_info[bm->weapon_info_index];
 	bwi = &wip->b_info;
 
@@ -1670,15 +1670,15 @@ void beam_add_light_large(beam *bm, object *objp, vector *pt0, vector *pt1)
 	}
 
 	// sanity
-	Assert(bm != NULL);
+	SDL_assert(bm != NULL);
 	if(bm == NULL){
 		return;
 	}
-	Assert(objp != NULL);
+	SDL_assert(objp != NULL);
 	if(objp == NULL){
 		return;
 	}
-	Assert(bm->weapon_info_index >= 0);
+	SDL_assert(bm->weapon_info_index >= 0);
 	wip = &Weapon_info[bm->weapon_info_index];
 	bwi = &wip->b_info;
 
@@ -1719,7 +1719,7 @@ void beam_add_light(beam *b, int objnum, int source, vector *c_point)
 	if(c_point != NULL){
 		l->c_point = *c_point;
 	} else {
-		Assert(source != 2);
+		SDL_assert(source != 2);
 		if(source == 2){
 			Beam_light_count--;
 		}
@@ -1763,7 +1763,7 @@ void beam_apply_lighting()
 			// object type
 			switch(Objects[l->objnum].type){
 			case OBJ_SHIP:
-				Assert(Objects[l->objnum].instance >= 0);
+				SDL_assert(Objects[l->objnum].instance >= 0);
 
 				// large ships
 				if(Ship_info[Ships[Objects[l->objnum].instance].ship_info_index].flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)){
@@ -1812,7 +1812,7 @@ void beam_delete(beam *b)
 	list_append(&Beam_free_list, b);
 
 	// delete our associated object
-	// Assert(b->objnum >= 0);
+	// SDL_assert(b->objnum >= 0);
 	if(b->objnum >= 0){
 		obj_delete(b->objnum);
 	}
@@ -1826,7 +1826,7 @@ void beam_delete(beam *b)
 
 	// subtract one
 	Beam_count--;
-	Assert(Beam_count >= 0);
+	SDL_assert(Beam_count >= 0);
 	nprintf(("General", "Recycled beam (%d beams remaining)\n", Beam_count));
 }
 
@@ -1834,7 +1834,7 @@ void beam_delete(beam *b)
 int beam_get_model(object *objp)
 {
 	int subtype;
-	Assert(objp->instance >= 0);
+	SDL_assert(objp->instance >= 0);
 	if(objp->instance < 0){
 		return -1;
 	}
@@ -1845,14 +1845,14 @@ int beam_get_model(object *objp)
 		return Ships[objp->instance].modelnum;
 
 	case OBJ_WEAPON:
-		Assert(Weapons[objp->instance].weapon_info_index >= 0);
+		SDL_assert(Weapons[objp->instance].weapon_info_index >= 0);
 		if(Weapons[objp->instance].weapon_info_index < 0){
 			return -1;
 		}
 		return Weapon_info[Weapons[objp->instance].weapon_info_index].model_num;
 
 	case OBJ_DEBRIS:
-		Assert(Debris[objp->instance].is_hull);
+		SDL_assert(Debris[objp->instance].is_hull);
 		if(!Debris[objp->instance].is_hull){
 			return -1;
 		}
@@ -1861,7 +1861,7 @@ int beam_get_model(object *objp)
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	case OBJ_ASTEROID:
 		subtype = Asteroids[objp->instance].asteroid_subtype;
-		Assert(Asteroids[objp->instance].type >= 0);
+		SDL_assert(Asteroids[objp->instance].type >= 0);
 		if(Asteroids[objp->instance].type < 0){
 			return -1;
 		}
@@ -1964,7 +1964,7 @@ void beam_recalc_sounds(beam *b)
 	beam_weapon_info *bwi;
 	vector pos;	
 
-	Assert(b->weapon_info_index >= 0);
+	SDL_assert(b->weapon_info_index >= 0);
 	if(b->weapon_info_index < 0){
 		return;
 	}
@@ -2019,7 +2019,7 @@ void beam_get_binfo(beam *b, float accuracy, int num_shots)
 	}	
 
 	// get beam weapon info
-	Assert(b->weapon_info_index >= 0);
+	SDL_assert(b->weapon_info_index >= 0);
 	if(b->weapon_info_index < 0){
 		return;
 	}
@@ -2103,7 +2103,7 @@ void beam_aim(beam *b)
 	
 	// type C beam weapons have no target
 	if(b->target == NULL){
-		Assert(b->type == BEAM_TYPE_C);
+		SDL_assert(b->type == BEAM_TYPE_C);
 		if(b->type != BEAM_TYPE_C){
 			return;
 		}
@@ -2156,7 +2156,7 @@ void beam_aim(beam *b)
 
 		// set the shot point
 		vm_vec_scale_add(&b->last_shot, &b->last_start, &b->binfo.dir_a, BEAM_FAR_LENGTH);
-		Assert(is_valid_vec(&b->last_shot));		
+		SDL_assert(is_valid_vec(&b->last_shot));		
 		break;
 
 	case BEAM_TYPE_C:
@@ -2205,12 +2205,12 @@ void beam_get_octant_points(int modelnum, object *objp, int oct_index, int oct_a
 		return;
 	}
 
-	Assert((oct_index >= 0) && (oct_index < BEAM_NUM_GOOD_OCTANTS));
+	SDL_assert((oct_index >= 0) && (oct_index < BEAM_NUM_GOOD_OCTANTS));
 
 	// randomly pick octants	
 	t1 = oct_array[oct_index][2] ? m->octants[oct_array[oct_index][0]].max : m->octants[oct_array[oct_index][0]].min;
 	t2 = oct_array[oct_index][3] ? m->octants[oct_array[oct_index][1]].max : m->octants[oct_array[oct_index][1]].min;
-	Assert(!vm_vec_same(&t1, &t2));
+	SDL_assert(!vm_vec_same(&t1, &t2));
 
 	// get them in world coords
 	vm_vec_unrotate(&temp, &t1, &objp->orient);
@@ -2273,9 +2273,9 @@ int beam_collide_ship(obj_pair *pair)
 	}
 
 	// get the beam
-	Assert(pair->a->instance >= 0);
-	Assert(pair->a->type == OBJ_BEAM);
-	Assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
+	SDL_assert(pair->a->instance >= 0);
+	SDL_assert(pair->a->type == OBJ_BEAM);
+	SDL_assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
 	b = &Beams[pair->a->instance];
 
 	// Don't check collisions for warping out player if past stage 1.
@@ -2312,8 +2312,8 @@ int beam_collide_ship(obj_pair *pair)
 #endif
 
 	// bad
-	Assert(pair->b->type == OBJ_SHIP);
-	Assert(pair->b->instance >= 0);
+	SDL_assert(pair->b->type == OBJ_SHIP);
+	SDL_assert(pair->b->instance >= 0);
 	if((pair->b->type != OBJ_SHIP) || (pair->b->instance < 0)){
 		return 1;
 	}
@@ -2368,9 +2368,9 @@ int beam_collide_asteroid(obj_pair *pair)
 	}
 
 	// get the beam
-	Assert(pair->a->instance >= 0);
-	Assert(pair->a->type == OBJ_BEAM);
-	Assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
+	SDL_assert(pair->a->instance >= 0);
+	SDL_assert(pair->a->type == OBJ_BEAM);
+	SDL_assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
 	b = &Beams[pair->a->instance];
 
 	// if the "warming up" timestamp has not expired
@@ -2438,9 +2438,9 @@ int beam_collide_missile(obj_pair *pair)
 	}
 
 	// get the beam
-	Assert(pair->a->instance >= 0);
-	Assert(pair->a->type == OBJ_BEAM);
-	Assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
+	SDL_assert(pair->a->instance >= 0);
+	SDL_assert(pair->a->type == OBJ_BEAM);
+	SDL_assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
 	b = &Beams[pair->a->instance];
 
 	// if the "warming up" timestamp has not expired
@@ -2504,9 +2504,9 @@ int beam_collide_debris(obj_pair *pair)
 	}
 
 	// get the beam
-	Assert(pair->a->instance >= 0);
-	Assert(pair->a->type == OBJ_BEAM);
-	Assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
+	SDL_assert(pair->a->instance >= 0);
+	SDL_assert(pair->a->type == OBJ_BEAM);
+	SDL_assert(Beams[pair->a->instance].objnum == OBJ_INDEX(pair->a));
 	b = &Beams[pair->a->instance];
 
 	// if the "warming up" timestamp has not expired
@@ -2569,20 +2569,20 @@ int beam_collide_early_out(object *a, object *b)
 	vector dot_test, dot_test2, dist_test;	
 		
 	// get the beam
-	Assert(a->instance >= 0);
+	SDL_assert(a->instance >= 0);
 	if(a->instance < 0){
 		return 1;
 	}
-	Assert(a->type == OBJ_BEAM);
+	SDL_assert(a->type == OBJ_BEAM);
 	if(a->type != OBJ_BEAM){
 		return 1;
 	}
-	Assert(Beams[a->instance].objnum == OBJ_INDEX(a));
+	SDL_assert(Beams[a->instance].objnum == OBJ_INDEX(a));
 	if(Beams[a->instance].objnum != OBJ_INDEX(a)){
 		return 1;
 	}	
 	bm = &Beams[a->instance];
-	Assert(bm->weapon_info_index >= 0);
+	SDL_assert(bm->weapon_info_index >= 0);
 	if(bm->weapon_info_index < 0){
 		return 1;
 	}
@@ -2669,7 +2669,7 @@ void beam_add_collision(beam *b, object *hit_object, mc_info *cinfo)
 	}
 
 	// copy in
-	Assert(bc != NULL);
+	SDL_assert(bc != NULL);
 	if(bc == NULL){
 		return;
 	}
@@ -2789,7 +2789,7 @@ void beam_handle_collisions(beam *b)
 
 			case OBJ_WEAPON:
 				// detonate the missile
-				Assert(Weapon_info[Weapons[Objects[target].instance].weapon_info_index].subtype == WP_MISSILE);
+				SDL_assert(Weapon_info[Weapons[Objects[target].instance].weapon_info_index].subtype == WP_MISSILE);
 				if(!(Game_mode & GM_MULTIPLAYER) || MULTIPLAYER_MASTER){
 					weapon_hit(&Objects[target], NULL, &Objects[target].pos);
 				}
@@ -2820,7 +2820,7 @@ void beam_handle_collisions(beam *b)
 		if(widest <= (Objects[target].radius * BEAM_AREA_PERCENT) && !beam_will_tool_target(b, &Objects[target])){	
 			// set last_shot so we know where to properly draw the beam		
 			b->last_shot = b->f_collisions[idx].cinfo.hit_point_world;
-			Assert(is_valid_vec(&b->last_shot));		
+			SDL_assert(is_valid_vec(&b->last_shot));		
 
 			// done wif the beam
 			break;
@@ -2954,7 +2954,7 @@ float beam_get_widest(beam *b)
 	float widest = -1.0f;
 
 	// sanity
-	Assert(b->weapon_info_index >= 0);
+	SDL_assert(b->weapon_info_index >= 0);
 	if(b->weapon_info_index < 0){
 		return -1.0f;
 	}
@@ -2977,13 +2977,13 @@ void beam_apply_whack(beam *b, object *objp, vector *hit_point)
 	ship *shipp;
 
 	// sanity
-	Assert((b != NULL) && (objp != NULL) && (hit_point != NULL));
+	SDL_assert((b != NULL) && (objp != NULL) && (hit_point != NULL));
 	if((b == NULL) || (objp == NULL) || (hit_point == NULL)){
 		return;
 	}	
-	Assert(b->weapon_info_index >= 0);
+	SDL_assert(b->weapon_info_index >= 0);
 	wip = &Weapon_info[b->weapon_info_index];	
-	Assert((objp != NULL) && (objp->type == OBJ_SHIP) && (objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+	SDL_assert((objp != NULL) && (objp->type == OBJ_SHIP) && (objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 	if((objp == NULL) || (objp->type != OBJ_SHIP) || (objp->instance < 0) || (objp->instance >= MAX_SHIPS)){
 		return;
 	}
@@ -3022,11 +3022,11 @@ void beam_apply_whack(beam *b, object *objp, vector *hit_point)
 float beam_get_ship_damage(beam *b, object *objp)
 {	
 	// if the beam is on the same team as the object
-	Assert((objp != NULL) && (b != NULL));
+	SDL_assert((objp != NULL) && (b != NULL));
 	if((objp == NULL) || (b == NULL)){
 		return 0.0f;
 	}
-	Assert((objp->type == OBJ_SHIP) && (objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+	SDL_assert((objp->type == OBJ_SHIP) && (objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 	if((objp->type != OBJ_SHIP) || (objp->instance < 0) || (objp->instance >= MAX_SHIPS)){
 		return 0.0f;
 	}
@@ -3099,10 +3099,10 @@ void beam_test(int whee)
 
 	// lookup some stuff 
 	s1 = ship_name_lookup("GTD Orion 1");
-	Assert(s1 >= 0);
+	SDL_assert(s1 >= 0);
 	orion = &Objects[Ships[s1].objnum];
 	s2 = ship_name_lookup("GTC Fenris 2");
-	Assert(s2 >= 0);
+	SDL_assert(s2 >= 0);
 	fenris = &Objects[Ships[s2].objnum];		
 
 	// get beam weapons
@@ -3111,7 +3111,7 @@ void beam_test(int whee)
 	orion_radar = NULL;
 	while(lookup != END_OF_LIST(&Ships[s1].subsys_list)){
 		// turret		
-		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !stricmp(lookup->system_info->subobj_name, "turret07")){
+		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !SDL_strcasecmp(lookup->system_info->subobj_name, "turret07")){
 			orion_turret = lookup;			
 		}
 
@@ -3122,14 +3122,14 @@ void beam_test(int whee)
 
 		lookup = GET_NEXT(lookup);
 	}
-	Assert(orion_turret != NULL);
-	Assert(orion_radar != NULL);
+	SDL_assert(orion_turret != NULL);
+	SDL_assert(orion_radar != NULL);
 	lookup = GET_FIRST(&Ships[s2].subsys_list);
 	fenris_turret = NULL;
 	fenris_radar = NULL;
 	while(lookup != END_OF_LIST(&Ships[s2].subsys_list)){
 		// turret
-		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !stricmp(lookup->system_info->subobj_name, "turret07")){
+		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !SDL_strcasecmp(lookup->system_info->subobj_name, "turret07")){
 			fenris_turret = lookup;			
 		}
 
@@ -3140,8 +3140,8 @@ void beam_test(int whee)
 
 		lookup = GET_NEXT(lookup);
 	}
-	Assert(fenris_turret != NULL);	
-	Assert(fenris_radar != NULL);
+	SDL_assert(fenris_turret != NULL);	
+	SDL_assert(fenris_radar != NULL);
 
 	memset(&f, 0, sizeof(beam_fire_info));
 	f.accuracy = beam_accuracy;
@@ -3189,22 +3189,22 @@ void beam_test_new(int whee)
 
 	// lookup some stuff 
 	s1 = ship_name_lookup("GTD Orion 1");
-	Assert(s1 >= 0);
+	SDL_assert(s1 >= 0);
 	orion = &Objects[Ships[s1].objnum];
 	s2 = ship_name_lookup("GTC Fenris 2");
-	Assert(s2 >= 0);
+	SDL_assert(s2 >= 0);
 	fenris = &Objects[Ships[s2].objnum];	
 	s3 = ship_name_lookup("GTF Hercules 2");
-	Assert(s3 >= 0);
+	SDL_assert(s3 >= 0);
 	herc2 = &Objects[Ships[s3].objnum];
 	s3 = ship_name_lookup("GTF Hercules 3");
-	Assert(s3 >= 0);
+	SDL_assert(s3 >= 0);
 	herc3 = &Objects[Ships[s3].objnum];
 	s3 = ship_name_lookup("GTF Hercules 6");
-	Assert(s3 >= 0);
+	SDL_assert(s3 >= 0);
 	herc6 = &Objects[Ships[s3].objnum];
 	s3 = ship_name_lookup("Alpha 1");
-	Assert(s3 >= 0);
+	SDL_assert(s3 >= 0);
 	alpha = &Objects[Ships[s3].objnum];	
 
 	// get beam weapons
@@ -3213,7 +3213,7 @@ void beam_test_new(int whee)
 	orion_radar = NULL;
 	while(lookup != END_OF_LIST(&Ships[s1].subsys_list)){
 		// turret		
-		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !stricmp(lookup->system_info->subobj_name, "turret07")){
+		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !SDL_strcasecmp(lookup->system_info->subobj_name, "turret07")){
 			orion_turret = lookup;			
 		}
 
@@ -3224,14 +3224,14 @@ void beam_test_new(int whee)
 
 		lookup = GET_NEXT(lookup);
 	}
-	Assert(orion_turret != NULL);
-	Assert(orion_radar != NULL);
+	SDL_assert(orion_turret != NULL);
+	SDL_assert(orion_radar != NULL);
 	lookup = GET_FIRST(&Ships[s2].subsys_list);
 	fenris_turret = NULL;
 	fenris_radar = NULL;
 	while(lookup != END_OF_LIST(&Ships[s2].subsys_list)){
 		// turret
-		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !stricmp(lookup->system_info->subobj_name, "turret03")){
+		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !SDL_strcasecmp(lookup->system_info->subobj_name, "turret03")){
 			fenris_turret = lookup;			
 		}
 
@@ -3242,8 +3242,8 @@ void beam_test_new(int whee)
 
 		lookup = GET_NEXT(lookup);
 	}
-	Assert(fenris_turret != NULL);	
-	Assert(fenris_radar != NULL);
+	SDL_assert(fenris_turret != NULL);	
+	SDL_assert(fenris_radar != NULL);
 
 	memset(&f, 0, sizeof(beam_fire_info));
 	f.accuracy = beam_accuracy;	

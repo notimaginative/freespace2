@@ -247,7 +247,7 @@ void InitBlocks(uint min, uint max, int num_blocks)
 
 	if(Tblocks == NULL){
 		Tblocks = (tblock *)malloc(Tblock_num_blocks*sizeof(tblock));
-		Assert(Tblocks!=NULL);
+		SDL_assert(Tblocks!=NULL);
 	}
 
 	FlushBlocks();
@@ -651,8 +651,8 @@ int glide_create_texture_sub(int bitmap_type, int bitmap_handle, ushort *data, i
 
 	// sanity - make sure we're not going to run off the end of the bitmap
 #ifndef NDEBUG
-	Assert(src_w <= (bmap_w - sx));
-	Assert(src_h <= (bmap_h - sy));
+	SDL_assert(src_w <= (bmap_w - sx));
+	SDL_assert(src_h <= (bmap_h - sy));
 #endif
 
 	if ( tex_w <= 16 ) tex_w = 16;
@@ -914,7 +914,7 @@ int glide_create_texture_sectioned(int bitmap_handle, int bitmap_type, tcache_sl
 	int section_x, section_y;
 
 	// setup texture/bitmap flags
-	Assert(bitmap_type == TCACHE_TYPE_BITMAP_SECTION);
+	SDL_assert(bitmap_type == TCACHE_TYPE_BITMAP_SECTION);
 	if(bitmap_type != TCACHE_TYPE_BITMAP_SECTION){
 		bitmap_type = TCACHE_TYPE_BITMAP_SECTION;
 	}

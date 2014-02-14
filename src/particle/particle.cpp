@@ -462,7 +462,7 @@ void particle_move_all(float frametime)
 			// decrement counter
 			Num_particles--;
 	
-			Assert(Num_particles >= 0);
+			SDL_assert(Num_particles >= 0);
 			continue;
 		}
 
@@ -475,7 +475,7 @@ void particle_move_all(float frametime)
 				// decrement counter
 				Num_particles--;
 
-				Assert(Num_particles >= 0);
+				SDL_assert(Num_particles >= 0);
 				continue;
 			}
 		}
@@ -496,7 +496,7 @@ void particle_move_all(float frametime)
 			// decrement counter
 			Num_particles--;
 
-			Assert(Num_particles >= 0);
+			SDL_assert(Num_particles >= 0);
 		}
 	}
 }

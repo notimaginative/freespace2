@@ -4802,7 +4802,7 @@ void game_do_frame()
 	if ( game_single_step && (last_single_step == game_single_step) ) {
 		os_set_title( NOX("SINGLE STEP MODE (Pause exits, any other key steps)") );
 		while( key_checkch() == 0 )
-			os_sleep(10);
+			SDL_Delay(10);
 		os_set_title( XSTR( "FreeSpace", 171) );
   		Last_time = timer_get_fixed_seconds();
 	}
@@ -4929,7 +4929,7 @@ int game_poll()
 
 	if (!os_foreground()) {		
 		game_stop_time();
-		os_sleep(100);
+		SDL_Delay(100);
 		game_start_time();
 
 		// If we're in a single player game, pause it.

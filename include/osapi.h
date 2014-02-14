@@ -54,9 +54,6 @@ uint os_get_window();
 // call to process windows messages. only does something in non THREADED mode
 void os_poll();
 
-// Sleeps for n milliseconds or until app becomes active.
-void os_sleep(int ms);
-
 // Used to stop message processing
 void os_suspend();
 

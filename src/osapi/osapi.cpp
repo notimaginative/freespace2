@@ -161,10 +161,6 @@
 
 // os-wide globals
 static int			fAppActive = 1;
-//static int		main_window_inited = 0;		// not used (here)
-//static char		szWinTitle[128];			// not used (here)
-//static char		szWinClass[128];			// not used (here)
-//static int		WinX, WinY, WinW, WinH;		// not used (grsoft.cpp) in UNIX build
 static int			Os_inited = 0;
 
 static SDL_mutex *Os_lock;
@@ -221,8 +217,6 @@ void os_set_title( const char *title )
 // call at program end
 void os_cleanup()
 {
-	STUB_FUNCTION;
-
 #ifndef NDEBUG
 		outwnd_close();
 #endif
@@ -246,12 +240,6 @@ uint os_get_window()
 
 
 // process management -----------------------------------------------------------------
-
-// Sleeps for n milliseconds or until app becomes active.
-void os_sleep(int ms)
-{
-	usleep(ms*1000);
-}
 
 // Used to stop message processing
 void os_suspend()

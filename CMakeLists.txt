@@ -48,19 +48,8 @@ include_directories(
 set(fs_SOURCE
   src/freespace2/freespace.cpp
   src/freespace2/levelpaging.cpp
+  src/freespace2/main.cpp
 )
-
-if(WIN32)
-  set(fs_SOURCE
-    ${fs_SOURCE}
-    src/freespace2/winmain.cpp
-  )
-else()
-  set(fs_SOURCE
-    ${fs_SOURCE}
-    src/freespace2/unixmain.cpp
-  )
-endif()
 
 set(FS_BINARY freespace2)
 

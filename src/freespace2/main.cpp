@@ -6,11 +6,7 @@
  * the source.
  */
 
-#include <sys/stat.h>
-
 #include "pstypes.h"
-#include "osregistry.h"
-#include "osapi.h"
 
 #undef malloc
 #undef free
@@ -35,7 +31,7 @@ int main(int argc, char **argv)
 		argptr = (char *)malloc(len+5);
 
 		if (argptr == NULL) {
-			fprintf(stderr, "ERROR: out of memory in main!\n");
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Ran out of memory in main()!", NULL);
 			exit(1);
 		}
 
@@ -50,8 +46,7 @@ int main(int argc, char **argv)
 	try {
 		retr = game_main(argptr);
 	} catch(...) {
-		mprintf(("ERROR!! Exception caught in main()"));
-		fprintf(stderr, "ERROR!! Exception caught in main()");
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Exception caught in main()!", NULL);
 	}
 
 	if (argptr) {

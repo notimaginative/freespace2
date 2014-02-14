@@ -412,7 +412,7 @@ int joy_init()
 	for (i = 0; i < JOY_NUM_AXES; i++) {
 		joystick.axis_min[i] = 0;
 		joystick.axis_max[i] = 65536;
-		joystick.axis_current[i] = 32768;
+		joystick.axis_current[i] = joystick.axis_center[i];
 	}
 
 	joy_ff_init();

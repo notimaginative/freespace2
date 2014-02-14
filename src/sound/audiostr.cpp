@@ -920,11 +920,11 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 	*num_bytes_written = 0;
 
 	if ( (size == 0) || m_bReadingDone ) {
-		return false;
+		return true;
 	}
 
 	if ( (m_buffer_ids[0] == 0) || !m_pwavefile ) {
-		return false;
+		return true;
 	}
 
 	if ( service ) {

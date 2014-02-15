@@ -445,7 +445,7 @@ void os_poll()
 			case SDL_WINDOWEVENT: {
 				switch (e.window.event) {
 					case SDL_WINDOWEVENT_RESIZED:
-						gr_opengl_set_viewport(e.window.data1, e.window.data2);
+						gr_set_viewport(e.window.data1, e.window.data2);
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_LOST:

@@ -1019,7 +1019,7 @@ void gr_force_fullscreen()
 	}
 
 	if (Os_debugger_running) {
-		Sleep(1000);
+		SDL_Delay(1000);
 	}
 }
 

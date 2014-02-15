@@ -426,9 +426,9 @@ void gr_opengl1_print_screen(const char *filename)
 
 void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
 {
-	Assert((r >= 0) && (r < 256));
-	Assert((g >= 0) && (g < 256));
-	Assert((b >= 0) && (b < 256));
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
 
 	if (fog_mode == GR_FOGMODE_NONE) {
 		if (gr_screen.current_fog_mode != fog_mode) {

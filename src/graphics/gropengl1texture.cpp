@@ -267,7 +267,7 @@ void opengl1_tcache_frame()
 
 		// data sections
 		if(Textures[i].data_sections[0][0] != NULL){
-			Assert(GL_texture_sections);
+			SDL_assert(GL_texture_sections);
 			if(GL_texture_sections){
 				for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
 					for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
@@ -489,7 +489,7 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 				texmem = (ubyte *) malloc (tex_w*tex_h*2);
 				texmemp = texmem;
 
-				Assert( texmem != NULL );
+				SDL_assert( texmem != NULL );
 
 				fix u, utmp, v, du, dv;
 
@@ -636,10 +636,10 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 	int reload = 0;
 	int resize = 1;
 
-	Assert( gr_screen.use_sections );
+	SDL_assert( gr_screen.use_sections );
 
 	// setup texture/bitmap flags
-	Assert(bitmap_type == TCACHE_TYPE_BITMAP_SECTION);
+	SDL_assert(bitmap_type == TCACHE_TYPE_BITMAP_SECTION);
 	if(bitmap_type != TCACHE_TYPE_BITMAP_SECTION){
 		bitmap_type = TCACHE_TYPE_BITMAP_SECTION;
 	}
@@ -734,8 +734,8 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 	}
 
 	if (bitmap_type == TCACHE_TYPE_BITMAP_SECTION){
-		Assert( gr_screen.use_sections );
-		Assert((sx >= 0) && (sy >= 0) && (sx < MAX_BMAP_SECTIONS_X) && (sy < MAX_BMAP_SECTIONS_Y));
+		SDL_assert( gr_screen.use_sections );
+		SDL_assert((sx >= 0) && (sy >= 0) && (sx < MAX_BMAP_SECTIONS_X) && (sy < MAX_BMAP_SECTIONS_Y));
 		if(!((sx >= 0) && (sy >= 0) && (sx < MAX_BMAP_SECTIONS_X) && (sy < MAX_BMAP_SECTIONS_Y))){
 			return 0;
 		}

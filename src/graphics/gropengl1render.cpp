@@ -248,10 +248,10 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	}
 
 	if (flags & TMAP_FLAG_BITMAP_SECTION) {
-		Assert( !(flags & TMAP_FLAG_BITMAP_INTERFACE) );
+		SDL_assert( !(flags & TMAP_FLAG_BITMAP_INTERFACE) );
 		tmap_type = TCACHE_TYPE_BITMAP_SECTION;
 	} else if (flags & TMAP_FLAG_BITMAP_INTERFACE) {
-		Assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
+		SDL_assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
 		tmap_type = TCACHE_TYPE_BITMAP_INTERFACE;
 	}
 
@@ -520,20 +520,20 @@ void gr_opengl1_aabitmap_ex(int x,int y,int w,int h,int sx,int sy)
 
 	// Make sure clipping algorithm works
 	#ifndef NDEBUG
-		Assert( w > 0 );
-		Assert( h > 0 );
-		Assert( w == (dx2-dx1+1) );
-		Assert( h == (dy2-dy1+1) );
-		Assert( sx >= 0 );
-		Assert( sy >= 0 );
-		Assert( sx+w <= bw );
-		Assert( sy+h <= bh );
-		Assert( dx2 >= dx1 );
-		Assert( dy2 >= dy1 );
-		Assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
-		Assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
-		Assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
-		Assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
+		SDL_assert( w > 0 );
+		SDL_assert( h > 0 );
+		SDL_assert( w == (dx2-dx1+1) );
+		SDL_assert( h == (dy2-dy1+1) );
+		SDL_assert( sx >= 0 );
+		SDL_assert( sy >= 0 );
+		SDL_assert( sx+w <= bw );
+		SDL_assert( sy+h <= bh );
+		SDL_assert( dx2 >= dx1 );
+		SDL_assert( dy2 >= dy1 );
+		SDL_assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
+		SDL_assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
+		SDL_assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
+		SDL_assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
 	#endif
 
 	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.

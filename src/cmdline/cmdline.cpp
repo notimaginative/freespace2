@@ -781,5 +781,11 @@ int parse_cmdline(const char *cmdline)
 		exit(0);
 	}
 
+#ifndef NDEBUG
+	// default to windowed mode in debug builds
+	Cmdline_fullscreen = 0;
+	Cmdline_window = 1;
+#endif
+
 	return 1;
 }

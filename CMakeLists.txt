@@ -51,6 +51,8 @@ set(fs_SOURCE
   src/freespace2/main.cpp
 )
 
+include(includes.cmake)
+
 set(FS_BINARY freespace2)
 
 if(FS1)
@@ -70,7 +72,7 @@ else()
   endif()
 endif()
 
-add_executable(${FS_BINARY} ${fs_SOURCE})
+add_executable(${FS_BINARY} ${fs_SOURCE} ${fs_INCLUDES})
 
 target_link_libraries(
   ${FS_BINARY}

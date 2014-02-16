@@ -82,21 +82,61 @@ target_link_libraries(
   ${OPENAL_LIBRARY}
 )
 
+add_executable(ac
+  EXCLUDE_FROM_ALL
+  src/ac/ac.cpp
+  src/ac/ac_stubs.cpp
+  src/ac/convert.cpp
+)
+
+target_link_libraries(
+  ac
+  code
+  ${SDL2_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${OPENAL_LIBRARY}
+)
+
 add_executable(cfilearchiver
   EXCLUDE_FROM_ALL
   src/cfilearchiver/cfilearchiver.cpp
 )
 
-add_executable(scramble
-  EXCLUDE_FROM_ALL
-  src/platform/unix.cpp
-  src/parse/encrypt.cpp
-  src/scramble/scramble.cpp
-)
-
 add_executable(cryptstring
   EXCLUDE_FROM_ALL
   src/cryptstring/cryptstring.cpp
+)
+
+add_executable(nebedit
+  EXCLUDE_FROM_ALL
+  src/nebedit/nebedit.cpp
+  src/nebedit/nebstubs.cpp
+)
+
+target_link_libraries(
+  nebedit
+  code
+  ${SDL2_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${OPENAL_LIBRARY}
+)
+
+add_executable(pofview
+  EXCLUDE_FROM_ALL
+  src/pofview/childfrm.cpp
+  src/pofview/mainfrm.cpp
+  src/pofview/objecttree.cpp
+  src/pofview/pofview.cpp
+  src/pofview/pofviewdoc.cpp
+  src/pofview/pofviewstubs.cpp
+  src/pofview/pofviewview.cpp
+  src/pofview/stdafx.cpp
+)
+
+add_executable(scramble
+  EXCLUDE_FROM_ALL
+  src/parse/encrypt.cpp
+  src/scramble/scramble.cpp
 )
 
 add_executable(fonttool

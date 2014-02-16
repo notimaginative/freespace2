@@ -342,14 +342,6 @@
 #include <time.h>
 #include "pstypes.h"
 
-// same thing that's in FS2_Open (credit: Mike Harris)
-#ifdef PLAT_UNIX
-#define DIR_SEPARATOR_CHAR '/'
-#define DIR_SEPARATOR_STR "/"
-#else
-#define DIR_SEPARATOR_CHAR '\\'
-#define DIR_SEPARATOR_STR "\\"
-#endif
 
 #define CF_EOF (-1)
 

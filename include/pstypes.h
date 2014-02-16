@@ -269,6 +269,15 @@
 #include "unix.h"
 #endif
 
+// same thing that's in FS2_Open (credit: Mike Harris)
+#ifdef PLAT_UNIX
+#define DIR_SEPARATOR_CHAR '/'
+#define DIR_SEPARATOR_STR "/"
+#else
+#define DIR_SEPARATOR_CHAR '\\'
+#define DIR_SEPARATOR_STR "\\"
+#endif
+
 // value to represent an uninitialized state in any int or uint
 #define UNINITIALIZED 0x7f8e6d9c
 

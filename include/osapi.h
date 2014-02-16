@@ -32,6 +32,8 @@ void os_init(const char *wclass, const char *title, const char *app_name = NULL,
 
 // set the main window title
 void os_set_title( const char *title );
+// get the main window title
+const char *os_get_title();
 
 // call at program end
 void os_cleanup();

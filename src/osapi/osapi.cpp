@@ -162,6 +162,7 @@
 // os-wide globals
 static int			fAppActive = 1;
 static int			Os_inited = 0;
+static char			windowTitle[128];
 
 static SDL_mutex *Os_lock;
 
@@ -190,6 +191,8 @@ extern void cf_create_directory( int dir_type );
 // for the app name, which is where registry keys are stored.
 void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)
 {
+	os_set_title( (app_name != NULL) ? app_name : title );
+
 	// do some first-run stuff if needed
 	if ( os_config_read_uint(NULL, NOX("StraightToSetup"), 1) == 1 ) {
 		// set some sane config defaults
@@ -246,7 +249,22 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 // set the main window title
 void os_set_title( const char *title )
 {
-	// the title is already set by SDL in gropengl.cpp
+	extern SDL_Window *GL_window;
+
+	if ( !title ) {
+		return;
+	}
+
+	memset(windowTitle, 0, sizeof(windowTitle));
+
+	strncpy(windowTitle, title, sizeof(windowTitle)-1);
+
+	SDL_SetWindowTitle(GL_window, title);
+}
+
+const char *os_get_title()
+{
+	return windowTitle;
 }
 
 // call at program end

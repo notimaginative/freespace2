@@ -92,12 +92,14 @@
  */
 
 
+#ifndef PLAT_UNIX
 #include <windows.h>
+#include <dos.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <dos.h>
 
 #include "pstypes.h"
 #include "2d.h"
@@ -116,6 +118,7 @@
 #include "physics.h"
 #include "model.h"
 #include "font.h"
+#include "cmdline.h"
 
 
 #define SCREEN_W	640	
@@ -181,8 +184,8 @@ int Neb_created = 0;
 
 int Nebedit_running = 1;
 
-extern int load_nebula_sub(char*);
 extern void project_2d_onto_sphere(vector *, float, float);
+
 
 void create_default_neb()
 {
@@ -226,36 +229,114 @@ void create_default_neb()
 #define NEBULA_MAJOR_VERSION 1		// Can be 1-?
 #define NEBULA_MINOR_VERSION 0		// Can be 0-99
 
-void save_nebula_sub(char *filename)
+void save_nebula_sub(const char *filename)
 {
 	FILE *fp;
 	float xf, yf;
 	int version;
+	int i;
+	int tmp;
 
 	fp = fopen(filename, "wb");
 
 	// ID of NEBU
-	fwrite( "NEBU", 4, 1, fp );	
+	fwrite( "NEBU", 4, 1, fp );
 	version = NEBULA_MAJOR_VERSION*100+NEBULA_MINOR_VERSION;
-	fwrite( &version, sizeof(int), 1, fp );
-	fwrite( &num_pts, sizeof(int), 1, fp );
-	fwrite( &num_tris, sizeof(int), 1, fp );
+	tmp = INTEL_INT(version);
+	fwrite( &tmp, sizeof(int), 1, fp );
+	tmp = INTEL_INT(num_pts);
+	fwrite( &tmp, sizeof(int), 1, fp );
+	tmp = INTEL_INT(num_tris);
+	fwrite( &tmp, sizeof(int), 1, fp );
 
-	for (int i=0; i<num_pts; i++ )	{
-		xf = float(x[i])/640.0f;
-		yf = float(y[i])/480.0f;
+
+	for (i=0; i<num_pts; i++ )	{
+		xf = INTEL_FLOAT(float(x[i])/640.0f);
+		yf = INTEL_FLOAT(float(y[i])/480.0f);
 		fwrite( &xf, sizeof(float), 1, fp );
 		fwrite( &yf, sizeof(float), 1, fp );
-		fwrite( &l[i], sizeof(int), 1, fp );
+		tmp = INTEL_INT(l[i]);
+		fwrite( &tmp, sizeof(int), 1, fp );
 	}
 
 	for (i=0; i<num_tris; i++ )	{
-		fwrite( &tri[i][0], sizeof(int), 1, fp );
-		fwrite( &tri[i][1], sizeof(int), 1, fp );
-		fwrite( &tri[i][2], sizeof(int), 1, fp );
+		tmp = INTEL_INT(tri[i][0]);
+		fwrite( &tmp, sizeof(int), 1, fp );
+		tmp = INTEL_INT(tri[i][1]);
+		fwrite( &tmp, sizeof(int), 1, fp );
+		tmp = INTEL_INT(tri[i][2]);
+		fwrite( &tmp, sizeof(int), 1, fp );
 	}
 
 	fclose(fp);
+}
+
+// returns 0 if failed
+int load_nebula_sub(const char *filename)
+{
+	FILE *fp;
+	char id[16];
+	int version, major, minor;
+
+	fp = fopen(filename, "rb");
+
+	if ( !fp )	{
+		return 0;
+	}
+
+	// ID of NEBU
+	fread( id, 4, 1, fp );
+	if ( strncmp( id, NEBULA_FILE_ID, 4))	{
+		mprintf(( "Not a valid nebula file.\n" ));
+		return 0;
+	}
+
+	fread( &version, sizeof(int), 1, fp );
+	version = INTEL_INT(version);
+	major = version / 100;
+	minor = version % 100;
+
+	if ( (major != NEBULA_MAJOR_VERSION) && (minor != NEBULA_MINOR_VERSION) ) {
+		mprintf(( "An out of date nebula file.\n" ));
+		return 0;
+	}
+
+	fread( &num_pts, sizeof(int), 1, fp );
+	num_pts = INTEL_INT(num_pts);
+	SDL_assert( num_pts < MAX_POINTS );
+	fread( &num_tris, sizeof(int), 1, fp );
+	num_tris = INTEL_INT(num_tris);
+	SDL_assert( num_tris < MAX_TRIS );
+
+	for (int i=0; i<num_pts; i++ )	{
+		float xf, yf;
+		int li;
+
+		fread( &xf, sizeof(float), 1, fp );
+		fread( &yf, sizeof(float), 1, fp );
+		fread( &li, sizeof(int), 1, fp );
+
+		xf = INTEL_FLOAT(xf);
+		yf = INTEL_FLOAT(yf);
+		li = INTEL_INT(li);
+
+		x[i] = (int)(xf*640.0f);
+		y[i] = (int)(yf*480.0f);
+		l[i] = li;
+	}
+
+	for (int i=0; i<num_tris; i++ )	{
+		fread( &tri[i][0], sizeof(int), 1, fp );
+		fread( &tri[i][1], sizeof(int), 1, fp );
+		fread( &tri[i][2], sizeof(int), 1, fp );
+		tri[i][0] = INTEL_INT(tri[i][0]);
+		tri[i][1] = INTEL_INT(tri[i][1]);
+		tri[i][2] = INTEL_INT(tri[i][2]);
+	}
+
+	fclose(fp);
+
+	return 1;
 }
 
 void nebedit_close()
@@ -265,6 +346,9 @@ void nebedit_close()
 
 void save_nebula()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+#else
 	char filename[255] = "\0";
 	//char filter[255] = "Nebula Files\0
 	OPENFILENAME o;
@@ -279,10 +363,26 @@ void save_nebula()
 	if (!GetSaveFileName(&o)) return;
 
 	save_nebula_sub(filename);
+#endif
 }
 
 void load_nebula()
 {
+#ifdef PLAT_UNIX
+	STUB_FUNCTION;
+
+	int create_default = 0;
+
+	if ( !load_nebula_sub("nebula01.neb"))	{
+		create_default = 1;
+	}
+
+	if ( create_default )	{
+		create_default_neb();
+	}
+
+	Neb_created = 1;
+#else
 	char filename[255] = "\0";
 	OPENFILENAME o;
 	memset(&o,0,sizeof(o));
@@ -308,6 +408,7 @@ void load_nebula()
 	}
 
 	Neb_created = 1;
+#endif
 }
 
 void nebula_init()
@@ -317,7 +418,7 @@ void nebula_init()
 	nebula_inited++;
 
 	create_default_neb();	
-	gr_init_alphacolor( &nebula_color, 0, 255, 0, 255 );
+	gr_init_alphacolor( &nebula_color, 0, 255, 0, 255, AC_TYPE_HUD );
 
 	return;
 }
@@ -339,8 +440,7 @@ void draw_tri_2d( int i, int j, int k )
 		verts[v]->u = 0.0f;
 		verts[v]->v = 0.0f;
 		verts[v]->sw = 1.0f; 
-		verts[v]->r = verts[v]->g = verts[v]->b = (ubyte)(i2fl(l[index[v]])/31.0f);
-
+		verts[v]->b = (ubyte)(i2fl(l[index[v]]*255)/31.0f);
 	}
 
 //	gr_set_color( 0, 0, 0 );
@@ -421,7 +521,7 @@ void draw_tri_3d( int i, int j, int k )
 		//g3_rotate_vertex( verts[v], &tmp );
 		g3_project_vertex( verts[v] );
 
-		verts[v]->r = verts[v]->g = verts[v]->b = (ubyte)(i2fl(l[index[v]])/31.0f);
+		verts[v]->b = (ubyte)(i2fl(l[index[v]]*255)/31.0f);
 	}
 
 	//gr_zbuffering = 0;
@@ -470,9 +570,9 @@ void render_frame()
 		}
 		char blah[255];
 		gr_printf(20,30,"# Points:");
-		gr_printf(100,30, itoa(num_pts, blah, 10));
+		gr_printf(100,30, SDL_itoa(num_pts, blah, 10));
 		gr_printf(220,30,"# Polys:");
-		gr_printf(300,30, itoa(num_tris, blah, 10));		
+		gr_printf(300,30, SDL_itoa(num_tris, blah, 10));
 	} else {
 		nebula_draw_3d();
 		model_render( test_model, &ModelOrient, &ModelPos );
@@ -550,7 +650,9 @@ void delete_face(int i)
 
 void delete_vert(int i)
 {
-	for (int j=0;j<num_tris;j++) {
+	int j;
+
+	for (j=0;j<num_tris;j++) {
 		if ((tri[j][0]==i)||(tri[j][1]==i)||(tri[j][2]==i)) {
 			delete_face(j);
 			j=0;
@@ -778,7 +880,7 @@ int newtri[3];
 
 int mdflag = 0;
 
-int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
+int main(int argc, char *argv[])
 {
 	int i;
 	fix t1, t2;
@@ -793,34 +895,38 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	SDL_assert(tok != NULL);	
 	*/
 
+	Cmdline_window = 1; // always windowed
+
 	timer_init();
 	// cfile_init(tok);
-	cfile_init(__argv[0]);
+	cfile_init(argv[0]);
 	os_init( "NebEdit", "NebEdit" );	//SCREEN_W, SCREEN_H );
-	palette_load_table( "gamepalette1-01.pcx" );	
-	gr_init(GR_640, GR_SOFTWARE, 8);
+	os_set_title("NebEdit");
+	gr_init(GR_640, GR_OPENGL, 16);
+	palette_load_table( "gamepalette1-01.pcx" );
 	key_init();
 	mouse_init();
+	SDL_ShowCursor(1);
 	Font1 = gr_init_font( "font01.vf" );
-	gr_init_alphacolor( &color_green, 0,255,0,255 );
+	gr_init_alphacolor( &color_green, 0,255,0,255,AC_TYPE_HUD );
 
 	test_model = model_load( "fighter01.pof", 0, NULL );
 
 	physics_init( &ViewerPhysics );
 	ViewerPhysics.flags |= PF_ACCELERATES | PF_SLIDE_ENABLED;
-	
-	ViewerPhysics.max_vel.x = 2.0f*speed;		//sideways
-	ViewerPhysics.max_vel.y = 2.0f*speed;		//up/down
-	ViewerPhysics.max_vel.z = 2.0f*speed;		//forward
+
+	ViewerPhysics.max_vel.xyz.x = 2.0f*speed;		//sideways
+	ViewerPhysics.max_vel.xyz.y = 2.0f*speed;		//up/down
+	ViewerPhysics.max_vel.xyz.z = 2.0f*speed;		//forward
 	ViewerPhysics.max_rear_vel = 2.0f*speed;	//backward -- controlled seperately
 	
 	memset( &ci, 0, sizeof(control_info) );
 
 	ModelOrient = vmd_identity_matrix;
-	ModelPos.x=0.0f; ModelPos.y = 0.0f; ModelPos.z = 0.0f;
+	ModelPos.xyz.x=0.0f; ModelPos.xyz.y = 0.0f; ModelPos.xyz.z = 0.0f;
 
 	ViewerOrient = vmd_identity_matrix;
-	ViewerPos.x=0.0f; ViewerPos.y = 0.0f; ViewerPos.z = -50.0f;
+	ViewerPos.xyz.x=0.0f; ViewerPos.xyz.y = 0.0f; ViewerPos.xyz.z = -50.0f;
 
 	flFrametime = 0.033f;
 
@@ -831,6 +937,8 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	int some_selected = 0;
 
 	while(1)	{
+		os_poll();
+
 		some_selected = FALSE;
 		if (Sel_mode==1) {
 			for (i=0;i<num_pts;i++) {
@@ -949,6 +1057,8 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 		}
 
 		t1 = t2;
+
+		SDL_Delay(10);
 	}
 
 	nebedit_close();

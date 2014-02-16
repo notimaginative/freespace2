@@ -217,7 +217,7 @@ void project_2d_onto_sphere( vector *pnt, float u, float v )
 // 1.00 - initial version
 
 // returns 0 if failed
-int load_nebula_sub(const char *filename)
+int load_nebula(const char *filename)
 {
 	CFILE *fp;
 	char id[16];
@@ -299,7 +299,7 @@ void nebula_init( const char *filename, angles * pbh )
 		nebula_close();
 	}
 
-	if ( load_nebula_sub( cf_add_ext(filename, NOX(".neb")) ) ) {
+	if ( load_nebula( cf_add_ext(filename, NOX(".neb")) ) ) {
 		Nebula_loaded = 1;
 	}
 

@@ -113,10 +113,7 @@
  * $NoKeywords: $
  */
 
-#pragma warning(disable: 4201)
 
-#include <wtypes.h>
-#include <vfw.h>		/* Video For Windows header file */
 #include "pstypes.h"
 #include "convert.h"
 #include "pcxutils.h"
@@ -125,9 +122,15 @@
 
 #define AVI_STREAM_F_USED	( 1 << 0 )
 
+typedef struct _frame_index {
+	unsigned int offset;
+	unsigned int size;
+} FRAMEINDEX;
+
 typedef struct AVI_STREAM_TYPE {
-	PAVISTREAM	pstream;
-	PAVIFILE		pfile; 
+	FILE		*pfile;
+	FRAMEINDEX	*frame_index;
+	unsigned int	movi_offset;
 	int			num_frames;
 	int			current_frame;
 	int			w,h,bpp;
@@ -138,11 +141,81 @@ typedef struct AVI_STREAM_TYPE {
 	int		flags;
 }	AVI_STREAM_TYPE;
 
+#define AVIF_HASINDEX 0x00000010
+
+typedef struct _avimainheader {
+	unsigned int fcc;
+	unsigned int cb;
+	unsigned int dwMicroSecPerFrame;
+	unsigned int dwMaxBytesPerSec;
+	unsigned int dwPaddingGranularity;
+	unsigned int dwFlags;
+	unsigned int dwTotalFrames;
+	unsigned int dwInitialFrames;
+	unsigned int dwStreams;
+	unsigned int dwSuggestedBufferSize;
+	unsigned int dwWidth;
+	unsigned int dwHeight;
+	unsigned int dwReserved[4];
+} AVIMAINHEADER;
+
+#define AVISF_VIDEO_PALCHANGES 0x00010000
+
+typedef struct _avistreamheader {
+	unsigned int fcc;
+	unsigned int cb;
+	unsigned int fccType;
+	unsigned int fccHandler;
+	unsigned int dwFlags;
+	unsigned short wPriority;
+	unsigned short wLanguage;
+	unsigned int dwInitialFrames;
+	unsigned int dwScale;
+	unsigned int dwRate;
+	unsigned int dwStart;
+	unsigned int dwLength;
+	unsigned int dwSuggestedBufferSize;
+	unsigned int dwQuality;
+	unsigned int dwSampleSize;
+	struct {
+		short left;
+		short top;
+		short right;
+		short bottom;
+	} rcFrame;
+} AVISTREAMHEADER;
+
+#define BI_RLE8 0x00000001
+
+typedef struct _bitmapinfo {
+	struct {
+		unsigned int biSize;
+		int biWidth;
+		int biHeight;
+		unsigned short biPlanes;
+		unsigned short biBitCount;
+		unsigned int biCompression;
+		unsigned int biSizeImage;
+		int biXPelsPerMeter;
+		int biYPelsPerMeter;
+		unsigned int biClrUsed;
+		unsigned int biClrImportant;
+	} bmiHeader;
+
+	struct {
+		ubyte b;
+		ubyte g;
+		ubyte r;
+		ubyte p;
+	} bmiColors[256];
+} BITMAPINFO;
+
+
 // Internal function prototypes
 int	AVI_stream_open(char* filename);
 void	AVI_stream_close();
 int	AVI_stream_get_frame(ubyte* buffer, int frame_number);
-void	AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h);
+void	AVI_decompress_RLE8(ubyte* src, ubyte* dest, unsigned int srcSize);
 
 // Global to file
 static		AVI_STREAM_TYPE AVI_stream;	
@@ -180,7 +253,8 @@ void AVI_stream_init()
 	AVI_stream.current_frame = 0;
 	AVI_stream_inited = 1;
 
-	AVIFileInit();						// opens AVIFile library 
+	AVI_stream.pfile = NULL;
+	AVI_stream.frame_index = NULL;
 }
 
 // AVI_stream_open() will open the AVI file and prepare it for reading, but will not 
@@ -196,133 +270,321 @@ int AVI_stream_open(char* filename)
 	if ( !AVI_stream_inited )
 		AVI_stream_init();
 
-	int				hr; 
-	PAVIFILE			pfile; 
-	PAVISTREAM		pstream;
-	AVISTREAMINFO	avi_stream_info;
+	FILE *pfile = NULL;
+	int id = 0;
+	unsigned int tag = 0, size = 0, next_chunk;
+	unsigned int s_tag, tmp;
+	AVIMAINHEADER avi_header;
+	AVISTREAMHEADER stream_header;
+	BITMAPINFO bitmap_header;
+	unsigned int file_size = 0;
 
 	SDL_assert( !(AVI_stream.flags & AVI_STREAM_F_USED) );
 
-	// Open the AVI file
-	hr = AVIFileOpen(&pfile, filename, OF_SHARE_DENY_WRITE, 0); 
-	if (hr != 0){ 
-//		nprintf(("Warning", "AVI ==> Unable to open %s", filename)); 
-		return -1; 
-	} 
- 
+	pfile = fopen(filename, "rb");
+
+	if (pfile == NULL) {
+		printf("AVI ==> Unable to open %s", filename);
+		return -1;
+	}
+
+	// get file size
+	fseek(pfile, 0, SEEK_END);
+	file_size = ftell(pfile);
+	fseek(pfile, 0, SEEK_SET);
+
+	// check for valid file type
+	fread(&id, 1, 4, pfile);
+
+	// 'RIFF'
+	if (id != 0x46464952) {
+		printf("Not a RIFF file '%s'\n", filename);
+		fclose(pfile);
+		return -1;
+	}
+
+	// skip RIFF size
+	fread(&id, 1, 4, pfile);
+
+	// check for valid RIFF type
+	fread(&id, 1, 4, pfile);
+
+	// 'AVI '
+	if (id != 0x20495641) {
+		printf("Not an AVI file '%s'\n", filename);
+		fclose(pfile);
+		return -1;
+	}
+
+	// used for main 'LIST' chunks
+	unsigned int offset_tmp = 0;
+
+	// parse WAVE tags
+	while ( ftell(pfile) < file_size ) {
+		fread(&tag, 1, 4, pfile);
+		fread(&size, 1, 4, pfile);
+
+		next_chunk = ftell(pfile) + size;
+
+		switch (tag) {
+			// 'LIST'
+			case 0x5453494c: {
+				// sub tag
+				fread(&s_tag, 1, 4, pfile);
+
+				switch (s_tag) {
+					// 'hdrl'
+					case 0x6c726468: {
+						fread(&avi_header.fcc, 1, sizeof(int), pfile);
+						fread(&avi_header.cb, 1, sizeof(int), pfile);
+						fread(&avi_header.dwMicroSecPerFrame, 1, sizeof(int), pfile);
+						fread(&avi_header.dwMaxBytesPerSec, 1, sizeof(int), pfile);
+						fread(&avi_header.dwPaddingGranularity, 1, sizeof(int), pfile);
+						fread(&avi_header.dwFlags, 1, sizeof(int), pfile);
+						fread(&avi_header.dwTotalFrames, 1, sizeof(int), pfile);
+						fread(&avi_header.dwInitialFrames, 1, sizeof(int), pfile);
+						fread(&avi_header.dwStreams, 1, sizeof(int), pfile);
+						fread(&avi_header.dwSuggestedBufferSize, 1, sizeof(int), pfile);
+						fread(&avi_header.dwWidth, 1, sizeof(int), pfile);
+						fread(&avi_header.dwHeight, 1, sizeof(int), pfile);
+						fread(&avi_header.dwReserved, 1, sizeof(avi_header.dwReserved), pfile);
+
+						// check for 'avih'
+						SDL_assert(avi_header.fcc == 0x68697661);
+
+						// we're stupid, can only handle a single stream
+					//	if (avi_header.dwStreams != 1) {
+					//		printf("AVI has more than one stream '%s'\n", filename);
+					//		fclose(pfile);
+					//		return -1;
+					//	}
+
+						// update next_chunk offset for sub-chunk
+						offset_tmp = next_chunk;
+						next_chunk = ftell(pfile);
+
+						break;
+					}
+
+					// 'strl' - subchunk of 'hdrl'
+					case 0x6c727473: {
+						fread(&stream_header.fcc, 1, sizeof(int), pfile);
+						fread(&stream_header.cb, 1, sizeof(int), pfile);
+						fread(&stream_header.fccType, 1, sizeof(int), pfile);
+						fread(&stream_header.fccHandler, 1, sizeof(int), pfile);
+						fread(&stream_header.dwFlags, 1, sizeof(int), pfile);
+						fread(&stream_header.wPriority, 1, sizeof(short), pfile);
+						fread(&stream_header.wLanguage, 1, sizeof(short), pfile);
+						fread(&stream_header.dwInitialFrames, 1, sizeof(int), pfile);
+						fread(&stream_header.dwScale, 1, sizeof(int), pfile);
+						fread(&stream_header.dwRate, 1, sizeof(int), pfile);
+						fread(&stream_header.dwStart, 1, sizeof(int), pfile);
+						fread(&stream_header.dwLength, 1, sizeof(int), pfile);
+						fread(&stream_header.dwSuggestedBufferSize, 1, sizeof(int), pfile);
+						fread(&stream_header.dwQuality, 1, sizeof(int), pfile);
+						fread(&stream_header.dwSampleSize, 1, sizeof(int), pfile);
+						fread(&stream_header.rcFrame.left, 1, sizeof(short), pfile);
+						fread(&stream_header.rcFrame.top, 1, sizeof(short), pfile);
+						fread(&stream_header.rcFrame.right, 1, sizeof(short), pfile);
+						fread(&stream_header.rcFrame.bottom, 1, sizeof(short), pfile);
+
+						// check for 'strh'
+						SDL_assert(stream_header.fcc == 0x68727473);
+
+						// check stream type, can only handle 'vids'
+						if (stream_header.fccType != 0x73646976) {
+							printf("AVI => first stream must be video '%s'\n", filename);
+							fclose(pfile);
+							return -1;
+						}
+						SDL_assert(stream_header.fccType == 0x73646976);
+
+						// only handle 'MRLE' encoding (or 'mrle' if wrong)
+						if ( (stream_header.fccHandler != 0x454c524d) && (stream_header.fccHandler != 0x656c726d) ) {
+							printf("AVI is not MRLE encoded '%s'\n", filename);
+							fclose(pfile);
+							return -1;
+						}
+
+						// no pal changes for you cowboy
+						if (stream_header.dwFlags & AVISF_VIDEO_PALCHANGES) {
+							printf("AVI cannot have palette changes '%s'\n", filename);
+							fclose(pfile);
+							return -1;
+						}
+
+						// next stream sub-chunk -------------------------------
+
+						// check for 'strf'
+						fread(&tmp, 1, 4, pfile);
+						SDL_assert(tmp == 0x66727473);
+
+						// size of 'strf'
+						fread(&tmp, 1, 4, pfile);
+
+						fread(&bitmap_header.bmiHeader.biSize, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biWidth, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biHeight, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biPlanes, 1, sizeof(short), pfile);
+						fread(&bitmap_header.bmiHeader.biBitCount, 1, sizeof(short), pfile);
+						fread(&bitmap_header.bmiHeader.biCompression, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biSizeImage, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biXPelsPerMeter, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biYPelsPerMeter, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biClrUsed, 1, sizeof(int), pfile);
+						fread(&bitmap_header.bmiHeader.biClrImportant, 1, sizeof(int), pfile);
+
+						// verify bpp is 8 and compression is RLE8
+						if ( (bitmap_header.bmiHeader.biBitCount != 8) || (bitmap_header.bmiHeader.biCompression != BI_RLE8) ) {
+							printf("AVI has wrong bpp or compression '%s'\n", filename);
+							fclose(pfile);
+							return -1;
+						}
+
+						// palette
+						for (int i = 0; i < 256; i++) {
+							fread(&bitmap_header.bmiColors[i].b, 1, 1, pfile);
+							fread(&bitmap_header.bmiColors[i].g, 1, 1, pfile);
+							fread(&bitmap_header.bmiColors[i].r, 1, 1, pfile);
+							fread(&bitmap_header.bmiColors[i].p, 1, 1, pfile);
+						}
+
+						// reset next_chunk back to main 'LIST'
+						next_chunk = offset_tmp;
+
+						break;
+					}
+
+					// 'movi'
+					case 0x69766f6d: {
+						// need this for later
+						AVI_stream.movi_offset = ftell(pfile);
+
+#if 0
+						// TODO: this crap is broken and unsafe!
+
+						if ( !(avi_header.dwFlags & AVIF_HASINDEX) ) {
+					//		printf("AVI => Building index... (%d)", avi_header.dwTotalFrames);
+
+							SDL_assert(AVI_stream.frame_index == NULL);
+
+							AVI_stream.frame_index = (FRAMEINDEX*) malloc(sizeof(FRAMEINDEX) * avi_header.dwTotalFrames);
+							SDL_assert(AVI_stream.frame_index != NULL);
+
+							memset(AVI_stream.frame_index, 0, sizeof(FRAMEINDEX) * avi_header.dwTotalFrames);
+
+							unsigned short b1, b2;
+							unsigned int i = 0;
+
+							while ( ftell(pfile) < next_chunk ) {
+								fread(&b1, 1, 2, pfile);
+								fread(&b2, 1, 2, pfile);
+
+								// check for compressed DIB on first stream '00dc'
+								if ( (b1 == 0x3030) && (b2 == 0x6364) ) {
+									SDL_assert(i < avi_header.dwTotalFrames);
+
+								//	printf("\rAVI => Building index... %d / %d", i+1, avi_header.dwTotalFrames);
+
+									AVI_stream.frame_index[i].offset = ftell(pfile) - AVI_stream.movi_offset;
+
+									if (i > 0) {
+										AVI_stream.frame_index[i-1].size = AVI_stream.frame_index[i].offset - AVI_stream.frame_index[i-1].offset - 4;
+									} else if (i == avi_header.dwTotalFrames-1) {
+										AVI_stream.frame_index[i].size = next_chunk - ftell(pfile);
+										printf("HERERERERERERE\n");
+									}
+				//	printf("%d, %d, %d\n", ftell(pfile), AVI_stream.movi_offset, i);
+									i++;
+								}
+							}
+
+						//	printf("\rAVI => Building index... done              \n");
+						}
+#endif
+
+						break;
+					}
+
+					default:
+						printf("sub-something else: 0x%x\n", tag);
+						break;
+				}
+
+				break;
+			}
+
+			// 'idx1'
+			case 0x31786469: {
+				SDL_assert(AVI_stream.frame_index == NULL);
+
+				AVI_stream.frame_index = (FRAMEINDEX*) malloc(sizeof(FRAMEINDEX) * avi_header.dwTotalFrames);
+				SDL_assert(AVI_stream.frame_index != NULL);
+
+				memset(AVI_stream.frame_index, 0, sizeof(FRAMEINDEX) * avi_header.dwTotalFrames);
+
+				unsigned int c_id, c_flags, c_offset, c_size, i = 0;
+
+				while ( ftell(pfile) < next_chunk ) {
+					fread(&c_id, 1, sizeof(int), pfile);
+					fread(&c_flags, 1, sizeof(int), pfile);
+					fread(&c_offset, 1, sizeof(int), pfile);
+					fread(&c_size, 1, sizeof(int), pfile);
+
+					// only interested in stream 0, compressed data: '00dc'
+					if (c_id == 0x63643030) {
+						SDL_assert(i < avi_header.dwTotalFrames);
+
+						AVI_stream.frame_index[i].offset = c_offset;
+						AVI_stream.frame_index[i].size = c_size;
+						i++;
+					}
+				}
+
+				break;
+			}
+
+			// drop everything else
+			default:
+				break;
+		}
+
+		fseek(pfile, next_chunk, SEEK_SET);
+	}
+
+	// make sure we have a frame index
+	if (AVI_stream.frame_index == NULL) {
+		printf("No frame index found or created '%s'\n", filename);
+		fclose(pfile);
+		return -1;
+	}
+
 	strcpy(AVI_stream.filename, filename);
-
-	// Get a handle to the video stream within the AVI file	
-	hr = AVIFileGetStream(pfile, &pstream, streamtypeVIDEO, 0); 
-	if (hr != 0){ 
-		//nprintf(("Warning", "AVI ==> Unable to open video stream in %s", filename)); 
-		return -1; 
-	} 
-
-	// Store the pointer to stream, since we'll need it later to read from disk
-	AVI_stream.pstream = pstream;
 	AVI_stream.pfile = pfile;
 
-	// Get information on the stream
-	hr = AVIStreamInfo( pstream, &avi_stream_info, sizeof(AVISTREAMINFO) );
-	if (hr != 0){ 
-		//nprintf(("Warning", "AVI ==> Unable to retreive stream info in %s", filename)); 
-		return -1; 
-	} 
+	AVI_stream.min_compressed_buffer_size = max(avi_header.dwSuggestedBufferSize, stream_header.dwSuggestedBufferSize);
+	AVI_stream.min_compressed_buffer_size = max(AVI_stream.min_compressed_buffer_size, bitmap_header.bmiHeader.biWidth*bitmap_header.bmiHeader.biHeight);
 
-
-	int buffer_size;
-	
-	int start_sample = AVIStreamStart(pstream);
-	SDL_assert( start_sample == 0 );
-
-	int end_sample = AVIStreamEnd(pstream);
-	SDL_assert( end_sample >= start_sample );
+	AVI_stream.w = bitmap_header.bmiHeader.biWidth;
+	AVI_stream.h = bitmap_header.bmiHeader.biHeight;
+	AVI_stream.bpp = bitmap_header.bmiHeader.biBitCount;
 
 	// store the number of frames in the AVI_info[] structure
-	AVI_stream.num_frames = end_sample;		// start sample must be 0
-	SDL_assert(AVI_stream.num_frames == AVIStreamLength(pstream) );
-
-
-	// Get information on the stream
-	hr = AVIStreamInfo( pstream, &avi_stream_info, sizeof(AVISTREAMINFO) );
-	if (hr != 0){ 
-		//nprintf(("Warning", "AVI ==> Unable to retreive stream info in %s", filename)); 
-		return -1; 
-	} 
-
-	buffer_size = avi_stream_info.dwSuggestedBufferSize;
-	SDL_assert( buffer_size > 0 );
-	AVI_stream.min_compressed_buffer_size = buffer_size;
-
-	// determine the format of the AVI image data
-	ubyte* format_buffer;
-	long format_buffer_size;
-	BITMAPINFO* bitmap_info;
-
-	hr = AVIStreamFormatSize(pstream, 0, &format_buffer_size);
-	SDL_assert( format_buffer_size > 0 );
-
-	format_buffer = (ubyte*) malloc(format_buffer_size);
-	SDL_assert(format_buffer != NULL);	// format_buffer is free'ed when AVI is free'ed, since memory is used by b_info member in AVI_info[] structure
-
-	hr = AVIStreamReadFormat(pstream, 0, format_buffer, &format_buffer_size);
-	bitmap_info = (BITMAPINFO*)format_buffer;
-
-
-	switch ( bitmap_info->bmiHeader.biCompression ) {
-		case BI_RLE8:
-			break;
-
-		default:
-			SDL_assert(0);
-			break;
-	}
-
-	AVI_stream.w = bitmap_info->bmiHeader.biWidth;
-	AVI_stream.h = bitmap_info->bmiHeader.biHeight;
-	AVI_stream.bpp = bitmap_info->bmiHeader.biBitCount;
-		
-	// create the palette translation look-up table
-	//
-	// Transparency:  If the palette color is full green, then treat as transparent
-	//						
-	RGBQUAD* pal;
-	pal = (RGBQUAD*)(bitmap_info->bmiColors);
+	AVI_stream.num_frames = avi_header.dwTotalFrames;
 
 	// Store the palette in the AVI stream structure
-	for ( int i = 0; i < 256; i++ ) {
-		AVI_stream.palette[i*3]	  = pal[i].rgbRed;
-		AVI_stream.palette[i*3+1] = pal[i].rgbGreen;
-		AVI_stream.palette[i*3+2] = pal[i].rgbBlue;
-	}	
-
-
-	//	memcpy(AVI_stream.palette, pal, 256*3);
-	
-/*
-	int transparent_found = 0;
-	for ( i = 0; i < 256; i++ ) {
-
-		//nprintf(("AVI", "AVI ==> R: %d  G: %d  B: %d\n", pal[i].rgbRed, pal[i].rgbGreen, pal[i].rgbBlue));
-		if ( pal[i].rgbRed < 5 && pal[i].rgbGreen > 250 && pal[i].rgbBlue < 5 ) {
-			avi_stream->pal_translation[i]	= TRANSPARENT_INDEX;
-			break;	// found transparent, continue in j for loop, since don't need check any more
-		}
-		else
-			avi_stream->pal_translation[i] = palette_find(	pal[i].rgbRed, pal[i].rgbGreen, pal[i].rgbBlue ); 
-	}	
-
-	for ( j = i+1; j < 256; j++ ) {
-		avi_stream->pal_translation[j] = palette_find(	pal[j].rgbRed, pal[j].rgbGreen, pal[j].rgbBlue ); 
+	for (int i = 0; i < 256; i++) {
+		AVI_stream.palette[i*3]	  = bitmap_header.bmiColors[i].r;
+		AVI_stream.palette[i*3+1] = bitmap_header.bmiColors[i].g;
+		AVI_stream.palette[i*3+2] = bitmap_header.bmiColors[i].b;
 	}
-*/
 
-	free(format_buffer);
+	printf("filename: %s\n", filename);
+	printf("w: %d, h: %d, bpp: %d\n", AVI_stream.w, AVI_stream.h, AVI_stream.bpp);
+	printf("num frames: %d\n", AVI_stream.num_frames);
 
 	// set the flag to used, so to make sure we only process one AVI stream at a time
 	AVI_stream.flags |= AVI_STREAM_F_USED;	
-
 
 	return 0;
 }
@@ -334,13 +596,19 @@ void AVI_stream_close()
 {	
 //	SDL_assert( AVI_stream.flags & AVI_STREAM_F_USED);
 
-   AVIStreamRelease(AVI_stream.pstream);				// closes the video stream
-	AVIFileRelease(AVI_stream.pfile);					// closes the file 
+	if (AVI_stream.pfile && fi) {
+		fclose(AVI_stream.pfile);
+		AVI_stream.pfile = NULL;
+	}
+
+	if (AVI_stream.frame_index) {
+		free(AVI_stream.frame_index);
+		AVI_stream.frame_index = NULL;
+	}
+
 	AVI_stream.flags &= ~AVI_STREAM_F_USED;			// clear the used flag
 
-	AVIFileExit();          // releases AVIFile library 
 	AVI_stream_inited = 0;
-
 }
 
 
@@ -356,6 +624,7 @@ void AVI_stream_close()
 //
 int AVI_stream_get_frame(ubyte* buffer, int frame_number)
 {
+	return -1;
 	if ( frame_number > AVI_stream.num_frames ) {
 		buffer = NULL;
 		return -1;
@@ -366,13 +635,20 @@ int AVI_stream_get_frame(ubyte* buffer, int frame_number)
 	ubyte* compressed_frame = (ubyte*)malloc(AVI_stream.min_compressed_buffer_size);
 	SDL_assert( compressed_frame != NULL );
 
-	long num_bytes_used;
-	long num_samples_used;
+	unsigned int offset;
 
-	AVIStreamRead( AVI_stream.pstream, frame_number-1, 1, compressed_frame, AVI_stream.min_compressed_buffer_size, &num_bytes_used, &num_samples_used);
-	SDL_assert(num_samples_used == 1);
-		
-	AVI_decompress_RLE8(compressed_frame, buffer, AVI_stream.w, AVI_stream.h);
+	if (AVI_stream.frame_index[frame_number-1].offset > AVI_stream.movi_offset) {
+		offset = AVI_stream.frame_index[frame_number-1].offset;
+	} else if (AVI_stream.frame_index[frame_number-1].offset == AVI_stream.movi_offset) {
+		offset = AVI_stream.frame_index[frame_number-1].offset + sizeof(int);
+	} else {
+		offset = AVI_stream.movi_offset + AVI_stream.frame_index[frame_number-1].offset;
+	}
+
+	fseek(AVI_stream.pfile, offset, SEEK_SET);
+	fread(compressed_frame, 1, AVI_stream.frame_index[frame_number-1].size, AVI_stream.pfile);
+
+	AVI_decompress_RLE8(compressed_frame, buffer, AVI_stream.frame_index[frame_number-1].size);
 
 	free( compressed_frame );
 	return 0;
@@ -387,7 +663,7 @@ int AVI_stream_get_frame(ubyte* buffer, int frame_number)
 //	NOTE:  1. memory for dest must be already allocated before calling function
 //
 
-void AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h)
+void AVI_decompress_RLE8(ubyte* src, ubyte* dest, unsigned int srcSize)
 {
 	int src_index = 0;
 	int dest_index = 0;
@@ -395,17 +671,18 @@ void AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h)
 
 	SDL_assert( src != NULL);
 	SDL_assert( dest != NULL);
-	SDL_assert( w > 0 );
-	SDL_assert( h > 0 );
+	SDL_assert( srcSize > 0 );
 
 	ubyte count;
 	ubyte run;
 	ubyte control_code;
+	ubyte x_off;
+	ubyte y_off;
 
-	int size_src = w * h + 1;
+	int size_src = srcSize;
 
-	int scan_line = h-1;	
-	int height_offset = scan_line * w;
+	int scan_line = AVI_stream.h-1;
+	int height_offset = scan_line * AVI_stream.w;
 
 	while ( src_index < size_src ) {
 		
@@ -422,18 +699,34 @@ void AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h)
 			else if ( control_code == 0 ) {
 				src_index++;
 				scan_line--;
-				height_offset = scan_line * w;	// only need to calc once per scanline
+				height_offset = scan_line * AVI_stream.w;	// only need to calc once per scanline
 				dest_index = 0;
 				//nprintf(("AVI","AVI ==> Reached end of line in compressed image\n"));
 			}
 			else if ( control_code == 2 ) {
-				SDL_assert(0);
+				// delta - horizontal and veritcal offsets
+				src_index++;
+				x_off = src[src_index];
+
+				if (x_off) {
+					dest_index += x_off;
+				}
+
+				src_index++;
+				y_off = src[src_index];
+
+				if (y_off) {
+					scan_line -= y_off;
+					height_offset = scan_line * AVI_stream.w;
+				}
+
+				src_index++;
 			}
 			else {
 				// in absolute mode
 				src_index++;
 				for ( i = 0; i < control_code; i++ ) {
-
+					SDL_assert( (height_offset + dest_index) < (AVI_stream.w * AVI_stream.h) );
 					dest[height_offset + dest_index] = src[src_index];
 					dest_index++;
 					src_index++;
@@ -447,6 +740,8 @@ void AVI_decompress_RLE8(ubyte* src, ubyte* dest, int w, int h)
 			src_index++;
 			run = src[src_index];
 			// nprintf(("AVI","AVI ==> Got %d pixel run of %d\n", src[src_index], count));
+			if (dest_index+count > AVI_stream.w) count = AVI_stream.w - dest_index;
+			SDL_assert( (height_offset + dest_index + count) <= (AVI_stream.w * AVI_stream.h) );
 			memset( &dest[height_offset + dest_index], run, count );
 			dest_index += count;
 			src_index++;
@@ -656,6 +951,9 @@ int convert_avi_to_anim(char* filename)
 	if (Use_custom_xparent_color) {
 		// Need to look at pixel in top-left 
 		rc = AVI_stream_get_frame(cur_frame, 1);
+		if ( rc != 0 )
+			goto Finish;
+
 		xparent_pal_index = cur_frame[0];
 		Xparent_color.r = Anim.palette[xparent_pal_index * 3];
 		Xparent_color.g = Anim.palette[xparent_pal_index * 3 + 1];
@@ -725,7 +1023,7 @@ int convert_frames_to_anim(char *filename)
 		do {
 			fclose(fp);
 			frame++;
-			sprintf(temp, "%04.4d", frame);
+			sprintf(temp, "%04d", frame);
 			strncpy(&name[pos], temp, 4);	
 
 			// next file
@@ -765,7 +1063,7 @@ int convert_frames_to_anim(char *filename)
 		goto done;
 
 	while (first_frame < frame) {
-		sprintf(temp, "%04.4d", first_frame);
+		sprintf(temp, "%04d", first_frame);
 		strncpy(&name[pos], temp, 4);
 		rc = pcx_read_bitmap_8bpp(name, cur_frame, Anim.palette);
 		if (rc != PCX_ERROR_NONE)

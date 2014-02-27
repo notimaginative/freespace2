@@ -91,11 +91,16 @@
  * $NoKeywords: $
  */
 
+#if 0
+#include "wx/wxprec.h"
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#include <dos.h>
+#ifndef WX_PRECOMP
+#include "wx/wx.h"
 #endif
+
+#include "wx/filedlg.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,8 +169,8 @@ color nebula_color;
 
 int Mouse_x, Mouse_y;
 int Current_point;
-BOOL Selected[MAX_POINTS];
-BOOL Sel_mode = 0;   // 0 = 1 point at a time, 1 = select multiple points
+bool Selected[MAX_POINTS];
+bool Sel_mode = false;   // false = 1 point at a time, true = select multiple points
 int Current_face;
 
 int View_mode = 0;	// 0 = 2d editor, 1 = 3d viewer
@@ -178,14 +183,13 @@ int Orig_pos_x;
 int Orig_pos_y;
 int End_pos_x;
 int End_pos_y;
-BOOL Draw_sel_box = FALSE;
+bool Draw_sel_box = false;
 
 int Neb_created = 0;
 
 int Nebedit_running = 1;
 
 extern void project_2d_onto_sphere(vector *, float, float);
-
 
 void create_default_neb()
 {
@@ -346,69 +350,34 @@ void nebedit_close()
 
 void save_nebula()
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
-	char filename[255] = "\0";
-	//char filter[255] = "Nebula Files\0
-	OPENFILENAME o;
-	memset(&o,0,sizeof(o));
-	o.lStructSize = sizeof(o);
-	//o.hwndOwner = GetActiveWindow();
-	o.lpstrFilter = "Nebula Files\0*.NEB\0\0";
-	o.lpstrFile = filename;
-	o.nMaxFile = 256;
-	o.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-	o.lpstrDefExt = "*.NEB";
-	if (!GetSaveFileName(&o)) return;
+#if 0
+	wxFileDialog saveFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
+								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
+								wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 
-	save_nebula_sub(filename);
+	if (saveFileDialog.Show() == wxID_OK) {
+		save_nebula_sub(saveFileDialog.GetPath().ToAscii());
+	}
 #endif
 }
 
 void load_nebula()
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
+	int create_default = 1;
+#if 0
+	wxFileDialog openFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
+								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
+								wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 
-	int create_default = 0;
-
-	if ( !load_nebula_sub("nebula01.neb"))	{
-		create_default = 1;
+	if (openFileDialog.Show() == wxID_OK) {
+		create_default = !load_nebula_sub(openFileDialog.GetPath().ToAscii());
 	}
-
+#endif
 	if ( create_default )	{
 		create_default_neb();
 	}
 
 	Neb_created = 1;
-#else
-	char filename[255] = "\0";
-	OPENFILENAME o;
-	memset(&o,0,sizeof(o));
-	o.lStructSize = sizeof(OPENFILENAME);
-	//o.hwndOwner = GetActiveWindow();
-	o.lpstrFilter = "Nebula Files\0*.NEB\0\0";
-	o.lpstrFile = filename;
-	o.nMaxFile = 256;
-	o.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-	o.lpstrDefExt = "*.NEB";
-
-	int create_default = 0;
-	if (!GetOpenFileName(&o)) {
-		create_default = 1;
-	} else {
-		if ( !load_nebula_sub(filename))	{
-			create_default = 1;
-		}
-	}
-
-	if ( create_default )	{	
-		create_default_neb();	
-	}
-
-	Neb_created = 1;
-#endif
 }
 
 void nebula_init()
@@ -696,7 +665,7 @@ void select_by_box(int x1, int y1, int x2, int y2)
 	for (int i=0;i<num_pts;i++) {
 		if ((x[i]<=x2) && (x[i]>=x1) &&
 			 (y[i]<=y2) && (y[i]>=y1)) {
-			Selected[i] = TRUE;
+			Selected[i] = true;
 		}
 	}
 }
@@ -769,7 +738,7 @@ int check_keys()
 
 		switch( k )	{
 		case SDLK_RETURN:
-			Sel_mode = FALSE;
+			Sel_mode = false;
 			Vert_mode = !Vert_mode;
 			Which_vert = 0;
 			break;
@@ -878,7 +847,7 @@ void os_close()
 
 int newtri[3];
 
-int mdflag = 0;
+bool mdflag = false;
 
 int main(int argc, char *argv[])
 {
@@ -934,20 +903,20 @@ int main(int argc, char *argv[])
 
 	nebula_init();
 
-	int some_selected = 0;
+	//bool some_selected = false;
 
 	while(1)	{
 		os_poll();
 
-		some_selected = FALSE;
-		if (Sel_mode==1) {
+		/*some_selected = false;
+		if (Sel_mode) {
 			for (i=0;i<num_pts;i++) {
 				if (Selected[i]) {
-					some_selected = TRUE;
+					some_selected = true;
 					break;
 				}
 			}
-		}
+		}*/
 
 		mouse_get_pos( &Mouse_x, &Mouse_y );
 
@@ -983,12 +952,12 @@ int main(int argc, char *argv[])
 				}
 			}
 			if (mouse_down(MOUSE_RIGHT_BUTTON)) {
-				Draw_sel_box = TRUE;
+				Draw_sel_box = true;
 				End_pos_x = Mouse_x;
 				End_pos_y = Mouse_y;
 			}
 			if (mouse_up_count(MOUSE_RIGHT_BUTTON)) {
-				Draw_sel_box = FALSE;
+				Draw_sel_box = false;
 				End_pos_x = Mouse_x;
 				End_pos_y = Mouse_y;
 				select_by_box(Orig_pos_x, Orig_pos_y, End_pos_x, End_pos_y);
@@ -996,54 +965,54 @@ int main(int argc, char *argv[])
 
 		} else {
 
-		if ( mouse_down(LOWEST_MOUSE_BUTTON) )	{
-			if ( mdflag )	{
-				if (Vert_mode==0) {
-					x[Current_point] = Mouse_x;
-					y[Current_point] = Mouse_y;
-				} else if (Vert_mode==1) {
-					x[tri[Current_face][0]] += Mouse_x - Orig_pos_x;
-					y[tri[Current_face][0]] += Mouse_y - Orig_pos_y;
-					x[tri[Current_face][1]] += Mouse_x - Orig_pos_x;
-					y[tri[Current_face][1]] += Mouse_y - Orig_pos_y;
-					x[tri[Current_face][2]] += Mouse_x - Orig_pos_x;
-					y[tri[Current_face][2]] += Mouse_y - Orig_pos_y;
-					Orig_pos_x = Mouse_x;
-					Orig_pos_y = Mouse_y;
+			if ( mouse_down(LOWEST_MOUSE_BUTTON) )	{
+				if ( mdflag )	{
+					if (Vert_mode==0) {
+						x[Current_point] = Mouse_x;
+						y[Current_point] = Mouse_y;
+					} else if (Vert_mode==1) {
+						x[tri[Current_face][0]] += Mouse_x - Orig_pos_x;
+						y[tri[Current_face][0]] += Mouse_y - Orig_pos_y;
+						x[tri[Current_face][1]] += Mouse_x - Orig_pos_x;
+						y[tri[Current_face][1]] += Mouse_y - Orig_pos_y;
+						x[tri[Current_face][2]] += Mouse_x - Orig_pos_x;
+						y[tri[Current_face][2]] += Mouse_y - Orig_pos_y;
+						Orig_pos_x = Mouse_x;
+						Orig_pos_y = Mouse_y;
+					}
+				} else {
+					if (Vert_mode == 1) {
+						Current_face = get_closest_face(Mouse_x, Mouse_y);
+						Orig_pos_x = Mouse_x;
+						Orig_pos_y = Mouse_y;
+					}
+					if (Vert_mode==0) {
+						Current_point = get_closest(Mouse_x, Mouse_y);
+						mouse_set_pos(x[Current_point], y[Current_point]);
+					}
+					mdflag = true;
 				}
-			} else {
-				if (Vert_mode == 1) {
-					Current_face = get_closest_face(Mouse_x, Mouse_y);
-					Orig_pos_x = Mouse_x;
-					Orig_pos_y = Mouse_y;
-				}
-				if (Vert_mode==0) {
-					Current_point = get_closest(Mouse_x, Mouse_y);
-					mouse_set_pos(x[Current_point], y[Current_point]);
-				}
-				mdflag = TRUE;
 			}
-		}
-		if ( mouse_up_count(LOWEST_MOUSE_BUTTON)) {
-			//Current_point = -1;
-			//Current_face = -1;
-			mdflag = FALSE;
-		}
+			if ( mouse_up_count(LOWEST_MOUSE_BUTTON)) {
+				//Current_point = -1;
+				//Current_face = -1;
+				mdflag = false;
+			}
 
-		if ( mouse_up_count(MOUSE_RIGHT_BUTTON) ) {
-			if (Vert_mode==0) {
-				Current_point = add_vert(Mouse_x, Mouse_y);
-			} else if (Vert_mode==1) {
-				if ((num_tris<MAX_TRIS-1)) { 
-					tri[num_tris][Which_vert] = get_closest(Mouse_x, Mouse_y);
-					Which_vert++;
-					if (Which_vert>2) {
-						Which_vert = 0;
-						num_tris++;
+			if ( mouse_up_count(MOUSE_RIGHT_BUTTON) ) {
+				if (Vert_mode==0) {
+					Current_point = add_vert(Mouse_x, Mouse_y);
+				} else if (Vert_mode==1) {
+					if ((num_tris<MAX_TRIS-1)) {
+						tri[num_tris][Which_vert] = get_closest(Mouse_x, Mouse_y);
+						Which_vert++;
+						if (Which_vert>2) {
+							Which_vert = 0;
+							num_tris++;
+						}
 					}
 				}
 			}
-		}
 		}
 		controls_read_all(&ci, flFrametime );
 		physics_read_flying_controls( &ViewerOrient, &ViewerPhysics, &ci, flFrametime );

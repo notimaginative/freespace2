@@ -13,6 +13,9 @@ pkg_search_module(SDL2 REQUIRED sdl2 >= 2.0.1)
 
 find_package(OpenGL)
 find_package(OpenAL)
+find_package(wxWidgets COMPONENTS core base)
+
+include(${wxWidgets_USE_FILE})
 
 option(FS1 "Build original FreeSpace" OFF)
 option(DEMO "Create demo build" OFF)
@@ -37,12 +40,14 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
 endif()
 
+
 add_subdirectory(src)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${SDL2_INCLUDE_DIRS}
   ${OPENAL_INCLUDE_DIR}
+  ${wxWidgets_INCLUDE_DIRS}
 )
 
 set(fs_SOURCE
@@ -119,6 +124,7 @@ target_link_libraries(
   ${SDL2_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${wxWidgets_LIBRARIES}
 )
 
 add_executable(pofview

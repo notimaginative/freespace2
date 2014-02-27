@@ -37,6 +37,7 @@ set(code_SOURCE
   graphics/gropengl1.cpp
   graphics/gropengl1render.cpp
   graphics/gropengl1texture.cpp
+  graphics/gropengl2.cpp
   graphics/gropengl.cpp
   hud/hud.cpp
   hud/hudartillery.cpp

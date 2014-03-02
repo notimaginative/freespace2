@@ -91,7 +91,7 @@
  * $NoKeywords: $
  */
 
-#if 0
+
 #include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
@@ -99,7 +99,6 @@
 #endif
 
 #include "wx/filedlg.h"
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -190,6 +189,19 @@ int Neb_created = 0;
 int Nebedit_running = 1;
 
 extern void project_2d_onto_sphere(vector *, float, float);
+
+class MyApp: public wxApp
+{
+public:
+	virtual bool OnInit();
+};
+
+bool MyApp::OnInit()
+{
+	return false;
+}
+
+IMPLEMENT_APP_NO_MAIN(MyApp)
 
 void create_default_neb()
 {
@@ -350,29 +362,45 @@ void nebedit_close()
 
 void save_nebula()
 {
-#if 0
-	wxFileDialog saveFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
+	wxTheApp->OnInit();
+
+	wxFileDialog *saveFileDialog = new wxFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
 								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
 								wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 
-	if (saveFileDialog.Show() == wxID_OK) {
-		save_nebula_sub(saveFileDialog.GetPath().ToAscii());
+	wxTheApp->SetTopWindow(saveFileDialog);
+
+	if (saveFileDialog->ShowModal() == wxID_OK) {
+		save_nebula_sub(saveFileDialog->GetPath().ToAscii());
 	}
-#endif
+
+	saveFileDialog->Destroy();
+
+	wxTheApp->OnRun();
+	wxTheApp->OnExit();
 }
 
 void load_nebula()
 {
 	int create_default = 1;
-#if 0
-	wxFileDialog openFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
+
+	wxTheApp->OnInit();
+
+	wxFileDialog *openFileDialog = new wxFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
 								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
 								wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 
-	if (openFileDialog.Show() == wxID_OK) {
-		create_default = !load_nebula_sub(openFileDialog.GetPath().ToAscii());
+	wxTheApp->SetTopWindow(openFileDialog);
+
+	if (openFileDialog->ShowModal() == wxID_OK) {
+		create_default = !load_nebula_sub(openFileDialog->GetPath().ToAscii());
 	}
-#endif
+
+	openFileDialog->Destroy();
+
+	wxTheApp->OnRun();
+	wxTheApp->OnExit();
+
 	if ( create_default )	{
 		create_default_neb();
 	}
@@ -383,7 +411,7 @@ void load_nebula()
 void nebula_init()
 {
 	if ( nebula_inited ) return;
-	memset(Selected, 0, sizeof(BOOL)*MAX_POINTS);
+	memset(Selected, 0, sizeof(bool)*MAX_POINTS);
 	nebula_inited++;
 
 	create_default_neb();	
@@ -903,6 +931,10 @@ int main(int argc, char *argv[])
 
 	nebula_init();
 
+	wxApp::SetInstance( new MyApp() );
+
+	wxEntryStart(argc, argv);
+
 	//bool some_selected = false;
 
 	while(1)	{
@@ -1031,6 +1063,8 @@ int main(int argc, char *argv[])
 	}
 
 	nebedit_close();
+
+	wxEntryCleanup();
 
 	return 0;
 }

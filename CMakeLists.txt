@@ -171,6 +171,8 @@ target_link_libraries(
 add_custom_target(tools)
 
 add_dependencies(tools
+  ac
+  nebedit
   cfilearchiver
   scramble
   cryptstring

@@ -1116,7 +1116,7 @@ void options_multi_init_protocol_vars()
 	Om_local_broadcast = (Player->m_local_options.flags & MLO_FLAG_LOCAL_BROADCAST) ? 1 : 0;
 
 	// whether or not we're playing on the tracker
-	Om_tracker_flag = 0; // (Multi_options_g.protocol == NET_TCP) && Multi_options_g.pxo ? 1 : 0;	
+	Om_tracker_flag = (Multi_options_g.protocol == NET_TCP) && Multi_options_g.pxo ? 1 : 0;
 
 	// load the ip address list	
 	Om_ip_disp_count = 0;
@@ -1263,6 +1263,9 @@ void options_multi_protocol_accept()
 
 	// active protocol
 	Multi_options_g.protocol = Om_protocol;
+
+	// VMT status
+	Multi_options_g.pxo = Om_tracker_flag;
 
 	// copy the VMT login and password data
 	Om_tracker_login.get_text(Multi_tracker_login);

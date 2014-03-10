@@ -341,7 +341,9 @@ const char *GS_event_text[] =
 	"GS_EVENT_TOGGLE_GLIDE",							// 70
 	"GS_EVENT_RED_ALERT",								
 	"GS_EVENT_SIMULATOR_ROOM",
-	"GS_EVENT_EMD_CAMPAIGN",	
+	"GS_EVENT_EMD_CAMPAIGN",
+	"GS_EVENT_PXO",
+	"GS_EVENT_PXO_HELP"
 };
 //XSTR:ON
 
@@ -408,6 +410,8 @@ const char *GS_state_text[] =
 	"GS_STATE_CMD_BRIEF",
 	"GS_STATE_RED_ALERT",
 	"GS_STATE_END_OF_CAMPAIGN",
+	"GS_STATE_PXO",
+	"GS_STATE_PXO_HELP"								// 60
 };
 //XSTR:ON
 

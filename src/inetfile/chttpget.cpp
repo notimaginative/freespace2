@@ -163,7 +163,7 @@ int HTTPObjThread( void * obj )
 void ChttpGet::AbortGet()
 {
 	m_Aborting = true;
-	while(!m_Aborted) SDL_Delay(10); //Wait for the thread to end
+	while(!m_Aborted) SDL_Delay(50); //Wait for the thread to end
 }
 
 ChttpGet::ChttpGet(char *URL,char *localfile,char *proxyip,unsigned short proxyport)
@@ -260,16 +260,11 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 		SDL_strlcpy(m_szDir, dirstart, SDL_arraysize(m_szDir));//,(filestart-dirstart));
 		int len = min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
-	}
 
 	SDL_Thread *thread = SDL_CreateThread(HTTPObjThread, "HTTPObjThread", this);
 
 	if(thread == NULL)
-	{
-		m_State = HTTP_STATE_INTERNAL_ERROR;
 		m_Aborted = true;
-		return;
-	}
 	else
 	{
 		int ret_val = 0;

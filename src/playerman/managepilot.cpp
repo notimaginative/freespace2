@@ -758,15 +758,21 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	// restore the default netgame protocol mode
 	int protocol_temp = cfread_int(file);
 	switch(protocol_temp){
-	// plain TCP
-	case NET_VMT:	
-	case NET_TCP:
-		Multi_options_g.protocol = NET_TCP;
-		break;
-	// IPX
-	case NET_IPX:		
-		Multi_options_g.protocol = NET_IPX;
-		break;			
+		// TCP & PXO
+		case NET_VMT:
+			Multi_options_g.pxo = 1;
+			Multi_options_g.protocol = NET_TCP;
+			break;
+
+		// plain TCP
+		case NET_TCP:
+			Multi_options_g.protocol = NET_TCP;
+			break;
+
+		// IPX
+		case NET_IPX:
+			Multi_options_g.protocol = NET_IPX;
+			break;
 	}	
 
 	// restore wingman status used by red alert missions
@@ -1066,8 +1072,12 @@ int write_pilot_file_core(player *p)
    cfwrite_int(Briefing_voice_enabled, file);
 
 	// store the default netgame protocol mode for this pilot
-	if (Multi_options_g.protocol == NET_TCP) {		
-		cfwrite_int(NET_TCP, file);		
+	if (Multi_options_g.protocol == NET_TCP) {
+		if (Multi_options_g.pxo == 1) {
+			cfwrite_int(NET_VMT, file);
+		} else {
+			cfwrite_int(NET_TCP, file);
+		}
 	} else {
 		cfwrite_int(NET_IPX, file);
 	}	

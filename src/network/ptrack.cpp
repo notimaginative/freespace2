@@ -175,6 +175,7 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_packet_header *uph)
 {
 	int offset = 0;
+	int i;
 
 	memset(uph, 0, sizeof(udp_packet_header));
 
@@ -648,7 +649,7 @@ void IdlePTrack()
 			FSReadState = STATE_TIMED_OUT;
 		} else if((timer_get_milliseconds()-FSLastSent)>=PILOT_REQ_RESEND_TIME){
 			//Send 'da packet
-			packet_length = SerializeValidatePacket(&fs_pilot_req, packet_data);
+			packet_length = SerializePilotPacket(&fs_pilot_req, packet_data);
 			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 			FSLastSent = timer_get_milliseconds();
 		}
@@ -661,7 +662,7 @@ void IdlePTrack()
 
 		} else if((timer_get_milliseconds()-FSLastSentWrite)>=PILOT_REQ_RESEND_TIME){
 			// Send 'da packet
-			packet_length = SerializeValidatePacket(&fs_pilot_write, packet_data);
+			packet_length = SerializePilotPacket(&fs_pilot_write, packet_data);
 			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 			FSLastSentWrite = timer_get_milliseconds();
 		}
@@ -673,7 +674,7 @@ void IdlePTrack()
 			SWWriteState = STATE_TIMED_OUT;
 		} else if((timer_get_milliseconds()-SWLastSentWrite) >= PILOT_REQ_RESEND_TIME){
 			// Send 'da packet
-			packet_length = SerializeValidatePacket(&sw_res_write, packet_data);
+			packet_length = SerializePilotPacket(&sw_res_write, packet_data);
 			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 			SWLastSentWrite = timer_get_milliseconds();
 		}
@@ -684,6 +685,7 @@ void PollPTrackNet()
 {
 	fd_set read_fds;	           
 	TIMEVAL timeout;
+	ubyte packet_data[sizeof(udp_packet_header)];
 
 	IdlePTrack();
 	
@@ -705,7 +707,8 @@ void PollPTrackNet()
 		udp_packet_header inpacket;
 		addrsize = sizeof(SOCKADDR_IN);
 
-		bytesin = RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(SOCKADDR *)&fromaddr,&addrsize, PSNET_TYPE_USER_TRACKER);
+		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(udp_packet_header), 0, (SOCKADDR *)&fromaddr, &addrsize, PSNET_TYPE_USER_TRACKER);
+		DeserializePilotPacket(packet_data, bytesin, &inpacket);
 		if(bytesin==-1){
 			int wserr=WSAGetLastError();
 			printf("recvfrom() failure. WSAGetLastError() returned %d\n",wserr);

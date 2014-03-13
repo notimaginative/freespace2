@@ -172,7 +172,7 @@ static void DeserializeValidatePacket(const ubyte *data, const int data_size, ud
 			break;
 
 		case UNT_LOGIN_AUTHENTICATED: {
-			SDL_strlcpy(uph->data, data+offset, TRACKER_ID_LEN);
+			SDL_strlcpy((char *)uph->data, (const char *)(data+offset), TRACKER_ID_LEN);
 			break;
 		}
 

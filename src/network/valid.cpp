@@ -25,6 +25,10 @@
 #include "timer.h"
 
 
+// check structs for size compatibility
+SDL_COMPILE_TIME_ASSERT(vmt_validate_mission_req_struct, sizeof(vmt_validate_mission_req_struct) == 104);
+
+
 // Variables
 udp_packet_header PacketHeader;
 validate_id_request *ValidIDReq;
@@ -51,6 +55,143 @@ int SquadWarLastSent;
 
 // squad war response
 squad_war_response SquadWarValidateResponse;
+
+
+static int SerializeValidatePacket(const udp_packet_header *uph, ubyte *data)
+{
+	int packet_size = 0;
+	int i;
+
+	PXO_ADD_DATA(uph->type);
+	PXO_ADD_USHORT(uph->len);
+	PXO_ADD_UINT(uph->code);
+	PXO_ADD_USHORT(uph->xcode);
+	PXO_ADD_UINT(uph->sig);
+	PXO_ADD_UINT(uph->security);
+
+	switch (uph->type) {
+		// no extra data for this
+		case UNT_CONTROL:
+			break;
+
+		case UNT_LOGIN_AUTH_REQUEST: {
+			validate_id_request *id_req = (validate_id_request *)&uph->data;
+
+			PXO_ADD_DATA(id_req->login);
+			PXO_ADD_DATA(id_req->password);
+			PXO_ADD_DATA(id_req->tracker_id);	// junk here, just for size
+
+			break;
+		}
+
+		case UNT_VALID_FS2_MSN_REQ: {
+			vmt_validate_mission_req_struct *mis_req = (vmt_validate_mission_req_struct *)&uph->data;
+
+			PXO_ADD_UINT(mis_req->checksum);
+
+			memcpy(data+packet_size, mis_req->file_name, strlen(mis_req->file_name));
+			packet_size += strlen(mis_req->file_name);
+
+			data[packet_size] = '\0';
+			packet_size++;
+
+			break;
+		}
+
+		case UNT_VALID_SW_MSN_REQ: {
+			squad_war_request *sw_req = (squad_war_request *)&uph->data;
+
+			for (i = 0; i < MAX_SQUAD_PLAYERS; i++) {
+				PXO_ADD_INT(sw_req->squad_plr1[i]);
+			}
+
+			for (i = 0; i < MAX_SQUAD_PLAYERS; i++) {
+				PXO_ADD_INT(sw_req->squad_plr2[i]);
+			}
+
+			PXO_ADD_DATA(sw_req->squad_count1);
+			PXO_ADD_DATA(sw_req->squad_count2);
+
+			PXO_ADD_DATA(sw_req->match_code);
+
+			PXO_ADD_DATA(sw_req->mission_filename);
+			PXO_ADD_INT(sw_req->mission_checksum);
+
+			break;
+		}
+
+		// we shouldn't be sending any other packet types
+		default:
+			Int3();
+			break;
+	}
+
+	SDL_assert(packet_size >= (int)PACKED_HEADER_ONLY_SIZE);
+	SDL_assert(packet_size == (int)uph->len);
+
+	return packet_size;
+}
+
+static void DeserializeValidatePacket(const ubyte *data, const int data_size, udp_packet_header *uph)
+{
+	int offset = 0;
+
+	memset(uph, 0, sizeof(udp_packet_header));
+
+	// make sure we received a complete base packet
+	if (data_size < (int)PACKED_HEADER_ONLY_SIZE) {
+		uph->len = 0;
+		uph->type = -1;
+
+		return;
+	}
+
+	PXO_GET_DATA(uph->type);
+	PXO_GET_USHORT(uph->len);
+	PXO_GET_UINT(uph->code);
+	PXO_GET_USHORT(uph->xcode);
+	PXO_GET_UINT(uph->sig);
+	PXO_GET_UINT(uph->security);
+
+	// sanity check data size to make sure we reveived all of the expected packet
+	// (not exactly sure what -1 is for, but that's how it is later)
+	if ((int)uph->len-1 > data_size) {
+		uph->len = 0;
+		uph->type = -1;
+
+		return;
+	}
+
+	switch (uph->type) {
+		// no extra data for these
+		case UNT_CONTROL:
+		case UNT_CONTROL_VALIDATION:
+		case UNT_LOGIN_NO_AUTH:
+		case UNT_VALID_FS_MSN_RSP:
+		case UNT_VALID_FS2_MSN_RSP:
+			break;
+
+		case UNT_LOGIN_AUTHENTICATED: {
+			SDL_strlcpy(uph->data, data+offset, TRACKER_ID_LEN);
+			break;
+		}
+
+		case UNT_VALID_SW_MSN_RSP: {
+			squad_war_response *sw_resp = (squad_war_response *)&uph->data;
+
+			PXO_GET_DATA(sw_resp->reason);
+			PXO_GET_DATA(sw_resp->accepted);
+
+			break;
+		}
+
+		default:
+			break;
+	}
+
+	//SDL_assert(offset == data_size);
+}
+
 
 int InitValidateClient(void)
 {
@@ -129,7 +270,10 @@ int InitValidateClient(void)
 //  0	Still waiting for response from tracker/Idle
 //  1	User valid
 int ValidateUser(validate_id_request *valid_id, char *trackerid)
-{	
+{
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
+
 	ValidIdle();
 	if(valid_id==NULL)
 	{
@@ -190,7 +334,8 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 			strcpy(ValidIDReq->login,valid_id->login);
 			strcpy(ValidIDReq->password,valid_id->password);
 
-			SENDTO(Unreliable_socket, (char *)&PacketHeader,PacketHeader.len,0,(SOCKADDR *)&rtrackaddr,sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
 			ValidState = VALID_STATE_WAITING;
 			ValidFirstSent = timer_get_milliseconds();
 			ValidLastSent = timer_get_milliseconds();
@@ -207,7 +352,9 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 void ValidIdle()
 {
 	fd_set read_fds;	           
-	TIMEVAL timeout;   
+	TIMEVAL timeout;
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
 
 	PSNET_TOP_LAYER_PROCESS();
 	
@@ -229,7 +376,8 @@ void ValidIdle()
 		udp_packet_header inpacket;
 		addrsize = sizeof(SOCKADDR_IN);
 
-		bytesin = RECVFROM(Unreliable_socket, (char *)&inpacket, sizeof(udp_packet_header),0,(SOCKADDR *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(udp_packet_header), 0, (SOCKADDR *)&fromaddr, &addrsize, PSNET_TYPE_VALIDATION);
+		DeserializeValidatePacket(packet_data, bytesin, &inpacket);
 		if(bytesin==-1){
 			int wserr=WSAGetLastError();
 			printf("recvfrom() failure. WSAGetLastError() returned %d\n",wserr);
@@ -317,7 +465,8 @@ void ValidIdle()
 		else if((timer_get_milliseconds()-ValidLastSent)>=PILOT_REQ_RESEND_TIME)
 		{
 			//Send 'da packet
-			SENDTO(Unreliable_socket, (char *)&PacketHeader, PacketHeader.len, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
 			ValidLastSent = timer_get_milliseconds();
 		}
 	}
@@ -328,13 +477,17 @@ void ValidIdle()
 void AckValidServer(unsigned int sig)
 {
 	udp_packet_header ack_pack;
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
 
 	ack_pack.type = UNT_CONTROL;
 	ack_pack.sig = sig;
 	ack_pack.code = CMD_CLIENT_RECEIVED;
 	ack_pack.len = PACKED_HEADER_ONLY_SIZE;
-	
-	SENDTO(Unreliable_socket, (char *)&ack_pack,PACKED_HEADER_ONLY_SIZE,0,(SOCKADDR *)&rtrackaddr,sizeof(SOCKADDR_IN), PSNET_TYPE_VALIDATION);
+
+	packet_length = SerializeValidatePacket(&ack_pack, packet_data);
+	SDL_assert(packet_length == PACKED_HEADER_ONLY_SIZE);
+	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_VALIDATION);
 }
 
 // call with a valid struct to validate a mission
@@ -347,7 +500,10 @@ void AckValidServer(unsigned int sig)
 //  0	Still waiting for response from tracker/Idle
 //  1	User valid
 int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
-{	
+{
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
+
 	ValidIdle();
 	if(valid_msn==NULL)
 	{
@@ -405,7 +561,8 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 			PacketHeader.type = UNT_VALID_FS2_MSN_REQ;
 			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(int)+1+strlen(valid_msn->file_name));
 			memcpy(PacketHeader.data,valid_msn,PacketHeader.len-PACKED_HEADER_ONLY_SIZE);
-			SENDTO(Unreliable_socket, (char *)&PacketHeader,PacketHeader.len,0,(SOCKADDR *)&rtrackaddr,sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
 			MissionValidState = VALID_STATE_WAITING;
 			MissionValidFirstSent = timer_get_milliseconds();
 			MissionValidLastSent = timer_get_milliseconds();
@@ -430,6 +587,9 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 //  1	match valid
 int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 {
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
+
 	ValidIdle();
 	if(sw_req==NULL){
 		switch(SquadWarValidState){
@@ -491,7 +651,8 @@ int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 			PacketHeader.type = UNT_VALID_SW_MSN_REQ;
 			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(squad_war_request));
 			memcpy(PacketHeader.data, sw_req, PacketHeader.len-PACKED_HEADER_ONLY_SIZE);
-			SENDTO(Unreliable_socket, (char *)&PacketHeader, PacketHeader.len, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
 			SquadWarValidState = VALID_STATE_WAITING;
 			SquadWarFirstSent = timer_get_milliseconds();
 			SquadWarLastSent = timer_get_milliseconds();

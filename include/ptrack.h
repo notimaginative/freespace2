@@ -139,6 +139,7 @@ typedef struct {
 typedef struct {
 	char pilot_name[PILOT_NAME_LEN];		// Login id
 	char tracker_id[TRACKER_ID_LEN];		// Tracker ID
+	char pad[2];							// 2-bytes padding
 } pilot_request;
 
 // type == UNT_VALID_SW_MSN_REQ
@@ -161,6 +162,7 @@ typedef struct squad_war_result {
 	ubyte result;									// result of the match, 0 == tie, 1 == one team won
 	ubyte squad_count1;							// # of players in winning squad
 	ubyte squad_count2;							// # of players in the losing squad
+	char pad[3];							// 3-bytes padding
 	int squad_winners[MAX_SQUAD_PLAYERS];	// list of players on the winning team
 	int squad_losers[MAX_SQUAD_PLAYERS];	// list of players on the losing team
 } squad_war_result;
@@ -271,6 +273,8 @@ typedef struct vmt_freespace_struct {
 		char				tracker_id[TRACKER_ID_LEN];
 		char				pilot_name[PILOT_NAME_LEN];
 
+		char			pad_a[2];			// 2-bytes padding
+
 		int				score;
 		int				rank;		
 		int				assists;
@@ -288,6 +292,9 @@ typedef struct vmt_freespace_struct {
 
 		int				security;			 	
 		unsigned char	virgin_pilot;	//This pilot was just created if TRUE
+
+		char			pad_b[3];			// 3-bytes padding
+
 		unsigned int	checksum;			//This value needs to be equal to whatever the checksum is once the packet is decoded
 			
 		unsigned int	missions_flown;			// # of missions flown to completion
@@ -332,6 +339,18 @@ void PollPTrackNet();
 #define PILOT_REQ_TIMEOUT			30000
 #define PILOT_REQ_RESEND_TIME		3500
 
+
+#define PXO_ADD_DATA(d) do { memcpy(data+packet_size, &d, sizeof(d) ); packet_size += sizeof(d); } while (0)
+#define PXO_ADD_SHORT(d) do { short swap = INTEL_SHORT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
+#define PXO_ADD_USHORT(d) do { ushort swap = INTEL_SHORT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
+#define PXO_ADD_INT(d) do { int swap = INTEL_INT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
+#define PXO_ADD_UINT(d) do { uint swap = INTEL_INT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
+
+#define PXO_GET_DATA(d) do { memcpy(&d, data+offset, sizeof(d) ); offset += sizeof(d); } while(0)
+#define PXO_GET_SHORT(d) do { short swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(0)
+#define PXO_GET_USHORT(d) do { ushort swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(0)
+#define PXO_GET_INT(d) do { int swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(0)
+#define PXO_GET_UINT(d) do { uint swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(0)
 
 #endif
 

@@ -22,6 +22,17 @@
 #include "ptrack.h"
 #include "psnet.h"
 
+
+// check structs for size compatibility
+SDL_COMPILE_TIME_ASSERT(udp_packet_header, sizeof(udp_packet_header) == 497);
+SDL_COMPILE_TIME_ASSERT(vmt_freespace2_struct, sizeof(vmt_freespace2_struct) == 440);
+SDL_COMPILE_TIME_ASSERT(validate_id_request, sizeof(validate_id_request) == 60);
+SDL_COMPILE_TIME_ASSERT(squad_war_request, sizeof(squad_war_request) == 104);
+SDL_COMPILE_TIME_ASSERT(squad_war_response, sizeof(squad_war_response) == 256);
+SDL_COMPILE_TIME_ASSERT(squad_war_result, sizeof(squad_war_result) == 72);
+SDL_COMPILE_TIME_ASSERT(pilot_request, sizeof(pilot_request) == 32);
+
+
 //Variables
 
 // SOCKET	pilotsock;
@@ -51,6 +62,217 @@ vmt_freespace2_struct *ReadFSPilot;
 
 // squad war response
 squad_war_response SquadWarWriteResponse;
+
+
+static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
+{
+	int packet_size = 0;
+	int i;
+
+	PXO_ADD_DATA(uph->type);
+	PXO_ADD_USHORT(uph->len);
+	PXO_ADD_UINT(uph->code);
+	PXO_ADD_USHORT(uph->xcode);
+	PXO_ADD_UINT(uph->sig);
+	PXO_ADD_UINT(uph->security);
+
+	switch (uph->type) {
+		// no extra data for this
+		case UNT_CONTROL:
+			break;
+
+		case UNT_PILOT_DATA_WRITE_NEW: {
+			vmt_freespace2_struct *fs2 = (vmt_freespace2_struct *)&uph->data;
+
+			PXO_ADD_DATA(fs2->tracker_id);
+			PXO_ADD_DATA(fs2->pilot_name);
+
+			PXO_ADD_DATA(fs2->pad_a);	// junk, for size/alignment
+
+			PXO_ADD_INT(fs2->score);
+			PXO_ADD_INT(fs2->rank);
+			PXO_ADD_INT(fs2->assists);
+			PXO_ADD_INT(fs2->kill_count);
+			PXO_ADD_INT(fs2->kill_count_ok);
+			PXO_ADD_UINT(fs2->p_shots_fired);
+			PXO_ADD_UINT(fs2->s_shots_fired);
+
+			PXO_ADD_UINT(fs2->p_shots_hit);
+			PXO_ADD_UINT(fs2->s_shots_hit);
+
+			PXO_ADD_UINT(fs2->p_bonehead_hits);
+			PXO_ADD_UINT(fs2->s_bonehead_hits);
+			PXO_ADD_INT(fs2->bonehead_kills);
+
+			PXO_ADD_INT(fs2->security);
+			PXO_ADD_DATA(fs2->virgin_pilot);
+
+			PXO_ADD_DATA(fs2->pad_b);	// junk, for size/alignment
+
+			PXO_ADD_UINT(fs2->checksum);
+
+			PXO_ADD_UINT(fs2->missions_flown);
+			PXO_ADD_UINT(fs2->flight_time);
+			PXO_ADD_UINT(fs2->last_flown);
+
+			PXO_ADD_USHORT(fs2->num_medals);
+			PXO_ADD_USHORT(fs2->num_ship_types);
+
+			for (i = 0; i < MAX_FS2_MEDALS; i++) {
+				PXO_ADD_INT(fs2->medals[i]);
+			}
+
+			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
+				PXO_ADD_USHORT(fs2->kills[i]);
+			}
+
+			break;
+		}
+
+		case UNT_SW_RESULT_WRITE: {
+			squad_war_result *sw_result	= (squad_war_result *)&uph->data;
+
+			PXO_ADD_DATA(sw_result->match_code);
+			PXO_ADD_DATA(sw_result->result);
+			PXO_ADD_DATA(sw_result->squad_count1);
+			PXO_ADD_DATA(sw_result->squad_count2);
+			PXO_ADD_DATA(sw_result->pad);		// junk, for size/alignment
+
+			for (i = 0; i < MAX_SQUAD_PLAYERS; i++) {
+				PXO_ADD_INT(sw_result->squad_winners[i]);
+			}
+
+			for (i = 0; i < MAX_SQUAD_PLAYERS; i++) {
+				PXO_ADD_INT(sw_result->squad_losers[i]);
+			}
+
+			break;
+		}
+
+		case UNT_PILOT_DATA_READ_NEW:
+		case UNT_PILOT_DATA_READ: {
+			pilot_request *pr = (pilot_request *)&uph->data;
+
+			PXO_ADD_DATA(pr->pilot_name);
+			PXO_ADD_DATA(pr->tracker_id);
+			PXO_ADD_DATA(pr->pad);		// junk, for size/alignment
+
+			break;
+		}
+
+		// we shouldn't be sending any other packet types
+		default:
+			Int3();
+			break;
+	}
+
+	SDL_assert(packet_size >= (int)PACKED_HEADER_ONLY_SIZE);
+	SDL_assert(packet_size == (int)uph->len);
+
+	return packet_size;
+}
+
+static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_packet_header *uph)
+{
+	int offset = 0;
+
+	memset(uph, 0, sizeof(udp_packet_header));
+
+	// make sure we received a complete base packet
+	if (data_size < (int)PACKED_HEADER_ONLY_SIZE) {
+		uph->len = 0;
+		uph->type = -1;
+
+		return;
+	}
+
+	PXO_GET_DATA(uph->type);
+	PXO_GET_USHORT(uph->len);
+	PXO_GET_UINT(uph->code);
+	PXO_GET_USHORT(uph->xcode);
+	PXO_GET_UINT(uph->sig);
+	PXO_GET_UINT(uph->security);
+
+	// sanity check data size to make sure we reveived all of the expected packet
+	// (not exactly sure what -1 is for, but that's how it is later)
+	if ((int)uph->len-1 > data_size) {
+		uph->len = 0;
+		uph->type = -1;
+
+		return;
+	}
+
+	switch (uph->type) {
+		// no extra data for these
+		case UNT_PILOT_READ_FAILED:
+		case UNT_PILOT_WRITE_SUCCESS:
+		case UNT_PILOT_WRITE_FAILED:
+			break;
+
+		case UNT_PILOT_DATA_RESPONSE: {
+			vmt_freespace2_struct *fs2 = (vmt_freespace2_struct *)&uph->data;
+
+			PXO_GET_DATA(fs2->tracker_id);
+			PXO_GET_DATA(fs2->pilot_name);
+
+			PXO_GET_DATA(fs2->pad_a);	// junk, for size/alignment
+
+			PXO_GET_INT(fs2->score);
+			PXO_GET_INT(fs2->rank);
+			PXO_GET_INT(fs2->assists);
+			PXO_GET_INT(fs2->kill_count);
+			PXO_GET_INT(fs2->kill_count_ok);
+			PXO_GET_UINT(fs2->p_shots_fired);
+			PXO_GET_UINT(fs2->s_shots_fired);
+
+			PXO_GET_UINT(fs2->p_shots_hit);
+			PXO_GET_UINT(fs2->s_shots_hit);
+
+			PXO_GET_UINT(fs2->p_bonehead_hits);
+			PXO_GET_UINT(fs2->s_bonehead_hits);
+			PXO_GET_INT(fs2->bonehead_kills);
+
+			PXO_GET_INT(fs2->security);
+			PXO_GET_DATA(fs2->virgin_pilot);
+
+			PXO_GET_DATA(fs2->pad_b);	// junk, for size/alignment
+
+			PXO_GET_UINT(fs2->checksum);
+
+			PXO_GET_UINT(fs2->missions_flown);
+			PXO_GET_UINT(fs2->flight_time);
+			PXO_GET_UINT(fs2->last_flown);
+
+			PXO_GET_USHORT(fs2->num_medals);
+			PXO_GET_USHORT(fs2->num_ship_types);
+
+			for (i = 0; i < MAX_FS2_MEDALS; i++) {
+				PXO_GET_INT(fs2->medals[i]);
+			}
+
+			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
+				PXO_GET_USHORT(fs2->kills[i]);
+			}
+
+			break;
+		}
+
+		case UNT_SW_RESULT_RESPONSE: {
+			squad_war_response *sw_resp = (squad_war_response *)&uph->data;
+
+			PXO_GET_DATA(sw_resp->reason);
+			PXO_GET_DATA(sw_resp->accepted);
+
+			break;
+		}
+
+		default:
+			break;
+	}
+
+	//SDL_assert(offset == data_size);
+}
+
 
 int InitPilotTrackerClient()
 {
@@ -400,17 +622,24 @@ int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, cons
 void AckServer(unsigned int sig)
 {
 	udp_packet_header ack_pack;
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
 
 	ack_pack.type = UNT_CONTROL;
 	ack_pack.sig = sig;
 	ack_pack.code = CMD_CLIENT_RECEIVED;
 	ack_pack.len = PACKED_HEADER_ONLY_SIZE;	
-	
-	SENDTO(Unreliable_socket, (char *)&ack_pack,PACKED_HEADER_ONLY_SIZE,0,(SOCKADDR *)&ptrackaddr,sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
+
+	packet_length = SerializePilotPacket(&ack_pack, packet_data);
+	SDL_assert(packet_length == PACKED_HEADER_ONLY_SIZE);
+	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 }
 
 void IdlePTrack()
 {
+	ubyte packet_data[sizeof(udp_packet_header)];
+	int packet_length = 0;
+
 	PSNET_TOP_LAYER_PROCESS();
 
 	// reading pilot data
@@ -419,7 +648,8 @@ void IdlePTrack()
 			FSReadState = STATE_TIMED_OUT;
 		} else if((timer_get_milliseconds()-FSLastSent)>=PILOT_REQ_RESEND_TIME){
 			//Send 'da packet
-			SENDTO(Unreliable_socket, (char *)&fs_pilot_req,fs_pilot_req.len,0,(SOCKADDR *)&ptrackaddr,sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
+			packet_length = SerializeValidatePacket(&fs_pilot_req, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 			FSLastSent = timer_get_milliseconds();
 		}
 	}
@@ -431,7 +661,8 @@ void IdlePTrack()
 
 		} else if((timer_get_milliseconds()-FSLastSentWrite)>=PILOT_REQ_RESEND_TIME){
 			// Send 'da packet
-			SENDTO(Unreliable_socket, (char *)&fs_pilot_write,fs_pilot_write.len,0,(SOCKADDR *)&ptrackaddr,sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
+			packet_length = SerializeValidatePacket(&fs_pilot_write, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 			FSLastSentWrite = timer_get_milliseconds();
 		}
 	}
@@ -442,7 +673,8 @@ void IdlePTrack()
 			SWWriteState = STATE_TIMED_OUT;
 		} else if((timer_get_milliseconds()-SWLastSentWrite) >= PILOT_REQ_RESEND_TIME){
 			// Send 'da packet
-			SENDTO(Unreliable_socket, (char *)&sw_res_write, sw_res_write.len, 0, (SOCKADDR *)&ptrackaddr,sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
+			packet_length = SerializeValidatePacket(&sw_res_write, packet_data);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&ptrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_USER_TRACKER);
 			SWLastSentWrite = timer_get_milliseconds();
 		}
 	}

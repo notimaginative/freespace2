@@ -53,7 +53,7 @@
 	typedef struct {
 		unsigned int len;				//Length of entire packet;
 		unsigned char game_type;	//1==freespace (GT_FREESPACE), 2==D3, 3==tuberacer, etc.
-		SOCKADDR_IN	addr;
+		char junk[16];				// not used but need constant size for compatibility (SOCKADDR_IN	addr);
 		int	type;	//Used to specify what to do ie. Add a new net game (GNT_GAMESTARTED), remove a net game (game over), etc.
 		unsigned int	sig;	//Unique identifier for client ACKs (The server always fills this in, the client responds)
 

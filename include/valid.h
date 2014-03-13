@@ -47,7 +47,7 @@ void ValidIdle();
 #define VALID_STATE_TIMEOUT	5
 
 typedef struct vmt_validate_mission_req_struct {
-	long checksum;
+	unsigned int checksum;
 	char file_name[100];
 } vmt_validate_mission_req_struct;
 

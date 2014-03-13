@@ -1508,8 +1508,7 @@ int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply)
 
 		return ret_code;
 	} else {
-		memset(popup_string, 0, 512);
-		sprintf(popup_string, XSTR("Validating squad war", 1075));
+		SDL_strlcpy(popup_string, XSTR("Validating squad war", 1075), sizeof(popup_string));
 
 		// run a popup
 		switch(popup_till_condition(multi_fs_tracker_validate_sw_normal, XSTR("&Cancel", 645), popup_string)){
@@ -1602,8 +1601,7 @@ int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply)
 	}
 	// non-standalone
 	else {
-		memset(popup_string, 0, 512);
-		sprintf(popup_string, XSTR("Storing SquadWar results", 1078));
+		SDL_strlcpy(popup_string, XSTR("Storing SquadWar results", 1078), sizeof(popup_string));
 
 		// wait for a response
 		if(popup_till_condition(multi_fs_tracker_store_sw_do, XSTR("&Cancel", 645), popup_string) == 10){

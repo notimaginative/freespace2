@@ -22,11 +22,10 @@
 #define byte unsigned char
 
 extern int filelength (int fd);
-
 extern int WSAGetLastError ();
-extern int _mkdir(const char *path);
 extern void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ext);
 
+#define _mkdir(A) mkdir(A,0700)
 #define closesocket(A) close(A)
 #define CopyMemory(A,B,C) memcpy(A,B,C)
 #define UINT unsigned int

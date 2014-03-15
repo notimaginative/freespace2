@@ -33,41 +33,6 @@ int WSAGetLastError()
 	return errno;
 }
 
-// make specified directory, recursively
-// NOTE: since this is for use with CFILE this code assumes that there will be a trailing '/'
-//       or a trailing filename.  any directory name not followed by a '/' will be considered a file
-int _mkdir(const char *path)
-{
-	int status = 1;		// if we don't ever call mkdir() to update this then assume we are in error
-	char *c, tmp_path[MAX_PATH] = { 0 };
-
-	strncpy(tmp_path, path, MAX_PATH-1);
-
-	c = &tmp_path[1];
-
-	while (c++) {
-		c = strchr(c, '/');
-
-		if (c) {
-			*c = '\0';
-
-			status = mkdir(tmp_path, 0700);
-
-#ifndef NDEBUG
-			int m_error = errno;
-
-			if (status && (m_error != EEXIST) ) {
-				Warning(__FILE__, __LINE__, "Cannot mkdir %s: %s", tmp_path, strerror(m_error));
-			}
-#endif
-
-			*c = '/';
-		}
-	}
-
-	return status;
-}
-
 void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ext)
 {
 	if (path == NULL)

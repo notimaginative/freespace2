@@ -163,7 +163,7 @@ int HTTPObjThread( void * obj )
 void ChttpGet::AbortGet()
 {
 	m_Aborting = true;
-	while(!m_Aborted) SDL_Delay(50); //Wait for the thread to end
+	while(!m_Aborted) SDL_Delay(10); //Wait for the thread to end
 }
 
 ChttpGet::ChttpGet(char *URL,char *localfile,char *proxyip,unsigned short proxyport)
@@ -265,6 +265,11 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 
 	if(thread == NULL)
 		m_Aborted = true;
+	else
+	{
+		int ret_val = 0;
+		SDL_WaitThread(thread, &ret_val);
+	}
 	else
 	{
 		int ret_val = 0;

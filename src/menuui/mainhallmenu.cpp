@@ -760,9 +760,12 @@ void main_hall_do_multi_ready()
 	Multi_options_g.protocol = NET_TCP;	
 	gameseq_post_event( GS_EVENT_PXO );
 #else
-	
-	// go to the regular join game screen 	
-	gameseq_post_event( GS_EVENT_MULTI_JOIN_GAME );	
+	if ( (Multi_options_g.pxo == 1) && (Multi_options_g.protocol == NET_TCP) ) {
+		gameseq_post_event( GS_EVENT_PXO );
+	} else {
+		// go to the regular join game screen
+		gameseq_post_event( GS_EVENT_MULTI_JOIN_GAME );
+	}
 #endif	
 
 	// select protocol

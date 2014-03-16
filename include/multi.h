@@ -294,6 +294,7 @@
 #include "multi_ping.h"
 #include "missionparse.h"
 #include "multi_options.h"
+#include "ptrack.h"
 
 // ----------------------------------------------------------------------------------------
 // Basic defines
@@ -359,8 +360,6 @@ struct CFILE;
 
 // the max # of observers ever allowed
 #define MAX_OBSERVERS						4
-
-#define LOGIN_LEN								33
 
 // string length defines
 #define MAX_GAMENAME_LEN					32				// maximum length in characters of a game name

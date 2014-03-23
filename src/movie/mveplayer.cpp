@@ -92,14 +92,19 @@ void *g_vBuffers = NULL;
 void *g_vBackBuf1, *g_vBackBuf2;
 ushort *pixelbuf = NULL;
 static int g_screenWidth, g_screenHeight;
-static ubyte g_palette[768];
 static ubyte *g_pCurMap=NULL;
 static int g_nMapLength=0;
 static int videobuf_created, video_inited;
-static int hp2, wp2;
-static uint mve_video_skiptimer = 0;
 static int mve_scale_video = 0;
 static GLuint tex = 0;
+
+struct g_coords_t {
+	int x, y;
+	float u, v;
+};
+
+static g_coords_t g_coords[4];
+
 
 // the decoder
 void decodeFrame16(ubyte *pFrame, ubyte *pMap, int mapRemain, ubyte *pData, int dataRemain);
@@ -461,22 +466,15 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	if (videobuf_created)
 		return 1;
 
+	if ( (gr_screen.mode != GR_OPENGL) || (gr_screen.use_sections == 1) ) {
+		videobuf_created = 1;
+		return 0;
+	}
+
 	short w, h;
-	short count, truecolor;
+
 	w = mve_get_short(data);
 	h = mve_get_short(data+2);
-	
-	if (minor > 0) {
-		count = mve_get_short(data+4);
-	} else {
-		count = 1;
-	}
-	
-	if (minor > 1) {
-		truecolor = mve_get_short(data+6);
-	} else {
-		truecolor = 0;
-	}
 
 	g_width = w << 3;
 	g_height = h << 3;
@@ -485,13 +483,13 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	g_vBackBuf1 = g_vBuffers = malloc(g_width * g_height * 4);
 
 	if (g_vBackBuf1 == NULL) {
-		mprintf(("MOVIE", "ERROR: Can't allocate video buffer"));
+		mprintf(("MVE-ERROR: Can't allocate video buffer"));
 		videobuf_created = 1;
 		return 0;
 	}
 
 	g_vBackBuf2 = (ushort *)g_vBackBuf1 + (g_width * g_height);
-		
+
 	memset(g_vBackBuf1, 0, g_width * g_height * 4);
 
 	videobuf_created = 1;
@@ -529,21 +527,11 @@ static void mve_convert_and_draw()
 
 void mve_video_display()
 {
+	static uint mve_video_skiptimer = 0;
+
 	fix t1 = timer_get_fixed_seconds();
+
 	mve_convert_and_draw();
-
-	int x, y;
-	int h = g_screenHeight;
-	int w = g_screenWidth;
-
-#ifdef PLAT_UNIX
-	if (mve_scale_video) {
-		x = y = 0;
-	} else {
-		// centers on 1024x768, fills on 640x480
-		x = ((gr_screen.max_w - g_screenWidth) / 2);
-		y = ((gr_screen.max_h - g_screenHeight) / 2);
-	}
 
 	// micro_frame_delay is divided by 10 to match mve_video_skiptimer overflow catch
 	if ( mve_video_skiptimer > (uint)(micro_frame_delay/10) ) {
@@ -554,74 +542,12 @@ void mve_video_display()
 		// zero out so we can get a new count
 		mve_video_skiptimer = 0;
 	}
-
-	glBindTexture(GL_TEXTURE_2D, tex);
 	
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_screenWidth, g_screenHeight, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
 
-	// 0, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,0);										glVertex2i(x,y);
-		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
-	glEnd();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	// 0, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
-		glTexCoord2f(0,i2fl(h)/i2fl(hp2));						glVertex2i(x,y+h);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-	glEnd();
-
-	// 256, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
-	glEnd();
-
-	// 256, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-	glEnd();
-
-	// 512, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),0);						glVertex2i(x+w,y);
-	glEnd();
-
-	// 512, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(h)/i2fl(hp2));		glVertex2i(x+w,y+h);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
-	glEnd();
-#else
-	// centers on 1024x768, fills on 640x480
-	x = ((gr_screen.max_w - g_screenWidth) / 2);
-	y = ((gr_screen.max_h - g_screenHeight) / 2);
-
-	// DDOI - This is probably really fricking slow
-	int bitmap = bm_create (16, w, h, pixelbuf, 0);
-	gr_set_bitmap (bitmap);
-	gr_bitmap (x, y);
-	bm_release (bitmap);
-#endif
-
-	gr_flip ();
-#ifdef PLAT_UNIX
-	os_poll ();	/* DDOI - run event loop(s) */
-#endif
+	gr_flip();
 
 	fix t2 = timer_get_fixed_seconds();
 
@@ -631,21 +557,20 @@ void mve_video_display()
 		// by one-hundred-thousand before converting to an uint.
 		mve_video_skiptimer = (uint)(f2fl(t2-t1) * 100000);
 	}
-
-	int k = key_inkey();
-	if ( k == SDLK_ESCAPE ) {
-		mve_playing = 0;
-	}
-
-//	fprintf(stderr, "mve frame took this long: %.6f\n", f2fl(t2-t1));
 }
 
 int mve_video_init(ubyte *data)
 {
+	short width, height;
+	int tex_w, tex_h;
+
 	if (video_inited)
 		return 1;
 
-	short width, height;
+	if ( (gr_screen.mode != GR_OPENGL) || (gr_screen.use_sections == 1) ) {
+		video_inited = 1;
+		return 0;
+	}
 
 	width = mve_get_short(data);
 	height = mve_get_short(data+2);
@@ -654,7 +579,7 @@ int mve_video_init(ubyte *data)
 	pixelbuf = (ushort *)malloc (width * height * 2);
 
 	if (pixelbuf == NULL) {
-		mprintf(("MOVIE", "ERROR: Can't allocate memory for pixelbuf"));
+		mprintf(("MVE-ERROR: Can't allocate memory for pixelbuf"));
 		video_inited = 1;
 		return 0;
 	}
@@ -664,42 +589,17 @@ int mve_video_init(ubyte *data)
 	g_screenWidth = width;
 	g_screenHeight = height;
 
-#ifdef PLAT_UNIX
-	int i, tex_w, tex_h;
-
-	tex_w = g_screenWidth;
-	tex_h = g_screenHeight;
-
 	// set height and width to a power of 2
-	for (i=0; i<16; i++ )	{
-		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )	{
-			tex_w = 1 << (i+1);
-			break;
-		}
-	}
+	tex_w = next_pow2(g_screenWidth);
+	tex_h = next_pow2(g_screenHeight);
 
-	for (i=0; i<16; i++ )	{
-		if ( (tex_h > (1<<i)) && (tex_h <= (1<<(i+1))) )	{
-			tex_h = 1 << (i+1);
-			break;
-		}
-	}
-
-	// try to keep an 8:1 size ratio
-	if (tex_w/tex_h > 8)
-		tex_h = tex_w/8;
-	if (tex_h/tex_w > 8)
-		tex_w = tex_h/8;
-
-	wp2 = tex_w;
-	hp2 = tex_h;
+	SDL_assert(tex_w > 0);
+	SDL_assert(tex_h > 0);
 
 	glGenTextures(1, &tex);
 
-	SDL_assert(tex != 0);
-
 	if ( tex == 0 ) {
-		mprintf(("MOVIE", "ERROR: Can't create a GL texture"));
+		mprintf(("MVE-ERROR: Can't create a GL texture"));
 		video_inited = 1;
 		return 0;
 	}
@@ -727,23 +627,48 @@ int mve_video_init(ubyte *data)
 		}
 	}
 
+	int x, y;
+
+	if (mve_scale_video) {
+		x = y = 0;
+	} else {
+		// centers on 1024x768, fills on 640x480
+		x = ((gr_screen.max_w - g_screenWidth) / 2);
+		y = ((gr_screen.max_h - g_screenHeight) / 2);
+	}
+
+	g_coords[0].x = x;
+	g_coords[0].y = y;
+	g_coords[0].u = 0.0f;
+	g_coords[0].v = 0.0f;
+
+	g_coords[1].x = x;
+	g_coords[1].y = y + g_screenHeight;
+	g_coords[1].u = 0.0f;
+	g_coords[1].v = i2fl(g_screenHeight) / i2fl(tex_h);
+
+	g_coords[2].x = x + g_screenWidth;
+	g_coords[2].y = y;
+	g_coords[2].u = i2fl(g_screenWidth) / i2fl(tex_w);
+	g_coords[2].v = 0.0f;
+
+	g_coords[3].x = x + g_screenWidth;
+	g_coords[3].y = y + g_screenHeight;
+	g_coords[3].u = i2fl(g_screenWidth) / i2fl(tex_w);
+	g_coords[3].v = i2fl(g_screenHeight) / i2fl(tex_h);
+
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glTexCoordPointer(2, GL_FLOAT, sizeof(g_coords_t), &g_coords[0].u);
+	glVertexPointer(2, GL_INT, sizeof(g_coords_t), &g_coords[0].x);
+
 	// NOTE: using NULL instead of pixelbuf crashes some drivers, but then so does pixelbuf so less of two evils...
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, wp2, hp2, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
-#endif
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
 
-	memset(g_palette, 0, 768);
-	
 	video_inited = 1;
-	
-	return 1;
-}
 
-void mve_video_palette(ubyte *data)
-{
-	short start, count;
-	start = mve_get_short(data);
-	count = mve_get_short(data+2);
-	memcpy(g_palette + 3*start, data+4, 3*count);
+	return 1;
 }
 
 void mve_video_codemap(ubyte *data, int len)
@@ -754,18 +679,9 @@ void mve_video_codemap(ubyte *data, int len)
 
 void mve_video_data(ubyte *data, int len)
 {
-	short nFrameHot, nFrameCold;
-	short nXoffset, nYoffset;
-	short nXsize, nYsize;
 	ushort nFlags;
 	ubyte *temp;
 
-	nFrameHot = mve_get_short(data);
-	nFrameCold = mve_get_short(data+2);
-	nXoffset = mve_get_short(data+4);
-	nYoffset = mve_get_short(data+6);
-	nXsize = mve_get_short(data+8);
-	nYsize = mve_get_short(data+10);
 	nFlags = mve_get_ushort(data+12);
 
 	if (nFlags & 1) {
@@ -815,6 +731,12 @@ void mve_play(MVESTREAM *mve)
 		}
 
 		timer_error = mve_do_timer_wait();
+
+		os_poll();
+
+		if (key_inkey() == SDLK_ESCAPE) {
+			mve_playing = 0;
+		}
 	}
 }
 
@@ -834,16 +756,22 @@ void mve_shutdown()
 		g_vBuffers = NULL;
 	}
 
-#ifdef PLAT_UNIX
-	if (mve_scale_video) {
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glLoadIdentity();
+	if (gr_screen.mode == GR_OPENGL) {
+		if (tex > 0) {
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDeleteTextures(1, &tex);
+			tex = 0;
+		}
+
+		if (mve_scale_video) {
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+			glLoadIdentity();
+		}
+
+		glEnable(GL_DEPTH_TEST);
 	}
-
-	glDeleteTextures(1, &tex);
-	tex = 0;
-
-	glEnable(GL_DEPTH_TEST);
-#endif
 }

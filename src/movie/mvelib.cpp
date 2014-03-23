@@ -380,9 +380,6 @@ int mve_play_next_chunk(MVESTREAM *stream)
 					if (!mve_video_init(data))
 						return 0;
 					break;
-				case 0x0c:
-					mve_video_palette(data);
-					break;
 				case 0x0f:
 					mve_video_codemap(data, len);
 					break;

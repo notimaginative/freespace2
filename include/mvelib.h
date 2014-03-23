@@ -92,7 +92,6 @@ void mve_audio_play();
 // video
 int mve_video_createbuf(ubyte minor, ubyte *data);
 int mve_video_init(ubyte *data);
-void mve_video_palette(ubyte *data);
 void mve_video_data(ubyte *data, int len);
 void mve_video_codemap(ubyte *data, int len);
 void mve_video_display();

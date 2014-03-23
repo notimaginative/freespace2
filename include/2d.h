@@ -728,5 +728,21 @@ void gr_bitmap(int x, int y);
 // Moreover, it is _really_ intended for use with 45 degree angles. 
 void gr_pline_special(vector **pts, int num_pts, int thickness);
 
+// return next power-of-2
+inline int next_pow2(int p)
+{
+	if (p < 0)
+		return 0;
+
+	--p;
+	p |= p >> 1;
+	p |= p >> 2;
+	p |= p >> 4;
+	p |= p >> 8;
+	p |= p >> 16;
+
+	return p+1;
+}
+
 #endif
 

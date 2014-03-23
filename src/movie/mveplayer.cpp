@@ -363,7 +363,7 @@ static void mve_audio_stop()
 
 		for (int i = 0; i < MVE_AUDIO_BUFFERS; i++) {
 			if ( alIsBuffer(mas->buffers[i]) ) {
-				alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->buffers);
+				alDeleteBuffers(1, &mas->buffers[i]);
 			}
 		}
 	}

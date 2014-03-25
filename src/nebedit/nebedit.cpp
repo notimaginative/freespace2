@@ -362,44 +362,26 @@ void nebedit_close()
 
 void save_nebula()
 {
-	wxTheApp->OnInit();
-
-	wxFileDialog *saveFileDialog = new wxFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
+	wxFileDialog saveFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
 								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
 								wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 
-	wxTheApp->SetTopWindow(saveFileDialog);
-
-	if (saveFileDialog->ShowModal() == wxID_OK) {
-		save_nebula_sub(saveFileDialog->GetPath().ToAscii());
+	if (saveFileDialog.ShowModal() == wxID_OK) {
+		save_nebula_sub(saveFileDialog.GetPath().ToAscii());
 	}
-
-	saveFileDialog->Destroy();
-
-	wxTheApp->OnRun();
-	wxTheApp->OnExit();
 }
 
 void load_nebula()
 {
 	int create_default = 1;
 
-	wxTheApp->OnInit();
-
-	wxFileDialog *openFileDialog = new wxFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
+	wxFileDialog openFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
 								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
 								wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 
-	wxTheApp->SetTopWindow(openFileDialog);
-
-	if (openFileDialog->ShowModal() == wxID_OK) {
-		create_default = !load_nebula_sub(openFileDialog->GetPath().ToAscii());
+	if (openFileDialog.ShowModal() == wxID_OK) {
+		create_default = !load_nebula_sub(openFileDialog.GetPath().ToAscii());
 	}
-
-	openFileDialog->Destroy();
-
-	wxTheApp->OnRun();
-	wxTheApp->OnExit();
 
 	if ( create_default )	{
 		create_default_neb();

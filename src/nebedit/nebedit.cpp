@@ -100,11 +100,6 @@
 
 #include "wx/filedlg.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
 #include "pstypes.h"
 #include "2d.h"
 #include "3d.h"
@@ -123,6 +118,7 @@
 #include "model.h"
 #include "font.h"
 #include "cmdline.h"
+#include "cfilesystem.h"
 
 
 #define SCREEN_W	640	
@@ -190,18 +186,17 @@ int Nebedit_running = 1;
 
 extern void project_2d_onto_sphere(vector *, float, float);
 
-class MyApp: public wxApp
+class NebeditApp: public wxApp
 {
 public:
 	virtual bool OnInit();
 };
 
-bool MyApp::OnInit()
+bool NebeditApp::OnInit()
 {
 	return false;
 }
 
-IMPLEMENT_APP_NO_MAIN(MyApp)
 
 void create_default_neb()
 {
@@ -247,68 +242,62 @@ void create_default_neb()
 
 void save_nebula_sub(const char *filename)
 {
-	FILE *fp;
+	CFILE *fp;
 	float xf, yf;
 	int version;
 	int i;
-	int tmp;
 
-	fp = fopen(filename, "wb");
+	fp = cfopen(filename, "wb");
+
+	if ( !fp )	{
+		return;
+	}
 
 	// ID of NEBU
-	fwrite( "NEBU", 4, 1, fp );
+	cfwrite( "NEBU", 4, 1, fp );
 	version = NEBULA_MAJOR_VERSION*100+NEBULA_MINOR_VERSION;
-	tmp = INTEL_INT(version);
-	fwrite( &tmp, sizeof(int), 1, fp );
-	tmp = INTEL_INT(num_pts);
-	fwrite( &tmp, sizeof(int), 1, fp );
-	tmp = INTEL_INT(num_tris);
-	fwrite( &tmp, sizeof(int), 1, fp );
-
+	cfwrite_int(version, fp);
+	cfwrite_int(num_pts, fp);
+	cfwrite_int(num_tris, fp);
 
 	for (i=0; i<num_pts; i++ )	{
 		xf = INTEL_FLOAT(float(x[i])/640.0f);
 		yf = INTEL_FLOAT(float(y[i])/480.0f);
-		fwrite( &xf, sizeof(float), 1, fp );
-		fwrite( &yf, sizeof(float), 1, fp );
-		tmp = INTEL_INT(l[i]);
-		fwrite( &tmp, sizeof(int), 1, fp );
+		cfwrite_float(xf, fp);
+		cfwrite_float(yf, fp);
+		cfwrite_int(l[i], fp);
 	}
 
 	for (i=0; i<num_tris; i++ )	{
-		tmp = INTEL_INT(tri[i][0]);
-		fwrite( &tmp, sizeof(int), 1, fp );
-		tmp = INTEL_INT(tri[i][1]);
-		fwrite( &tmp, sizeof(int), 1, fp );
-		tmp = INTEL_INT(tri[i][2]);
-		fwrite( &tmp, sizeof(int), 1, fp );
+		cfwrite_int(tri[i][0], fp);
+		cfwrite_int(tri[i][1], fp);
+		cfwrite_int(tri[i][2], fp);
 	}
 
-	fclose(fp);
+	cfclose(fp);
 }
 
 // returns 0 if failed
 int load_nebula_sub(const char *filename)
 {
-	FILE *fp;
+	CFILE *fp;
 	char id[16];
 	int version, major, minor;
 
-	fp = fopen(filename, "rb");
+	fp = cfopen(filename, "rb");
 
 	if ( !fp )	{
 		return 0;
 	}
 
 	// ID of NEBU
-	fread( id, 4, 1, fp );
+	cfread( id, 4, 1, fp );
 	if ( strncmp( id, NEBULA_FILE_ID, 4))	{
 		mprintf(( "Not a valid nebula file.\n" ));
 		return 0;
 	}
 
-	fread( &version, sizeof(int), 1, fp );
-	version = INTEL_INT(version);
+	version = cfread_int(fp);
 	major = version / 100;
 	minor = version % 100;
 
@@ -317,47 +306,35 @@ int load_nebula_sub(const char *filename)
 		return 0;
 	}
 
-	fread( &num_pts, sizeof(int), 1, fp );
-	num_pts = INTEL_INT(num_pts);
+	num_pts = cfread_int(fp);
 	SDL_assert( num_pts < MAX_POINTS );
-	fread( &num_tris, sizeof(int), 1, fp );
-	num_tris = INTEL_INT(num_tris);
+	num_tris = cfread_int(fp);
 	SDL_assert( num_tris < MAX_TRIS );
 
 	for (int i=0; i<num_pts; i++ )	{
-		float xf, yf;
-		int li;
-
-		fread( &xf, sizeof(float), 1, fp );
-		fread( &yf, sizeof(float), 1, fp );
-		fread( &li, sizeof(int), 1, fp );
-
-		xf = INTEL_FLOAT(xf);
-		yf = INTEL_FLOAT(yf);
-		li = INTEL_INT(li);
-
-		x[i] = (int)(xf*640.0f);
-		y[i] = (int)(yf*480.0f);
-		l[i] = li;
+		x[i] = fl2i(cfread_float(fp) * 640.0f);
+		y[i] = fl2i(cfread_float(fp) * 480.0f);
+		l[i] = cfread_int(fp);
 	}
 
 	for (int i=0; i<num_tris; i++ )	{
-		fread( &tri[i][0], sizeof(int), 1, fp );
-		fread( &tri[i][1], sizeof(int), 1, fp );
-		fread( &tri[i][2], sizeof(int), 1, fp );
-		tri[i][0] = INTEL_INT(tri[i][0]);
-		tri[i][1] = INTEL_INT(tri[i][1]);
-		tri[i][2] = INTEL_INT(tri[i][2]);
+		tri[i][0] = cfread_int(fp);
+		tri[i][1] = cfread_int(fp);
+		tri[i][2] = cfread_int(fp);
 	}
 
-	fclose(fp);
+	cfclose(fp);
 
 	return 1;
 }
 
 void nebedit_close()
 {
-	save_nebula_sub( "autosaved.neb" );
+	char a_path[MAX_PATH];
+
+	cf_create_default_path_string(a_path, CF_TYPE_CACHE, "autosaved.neb");
+
+	save_nebula_sub( a_path );
 }
 
 void save_nebula()
@@ -913,7 +890,7 @@ int main(int argc, char *argv[])
 
 	nebula_init();
 
-	wxApp::SetInstance( new MyApp() );
+	wxApp::SetInstance( new NebeditApp() );
 
 	wxEntryStart(argc, argv);
 

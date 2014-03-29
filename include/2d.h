@@ -559,12 +559,6 @@ typedef struct screen {
 	void (*gf_activate)(int active);
 } screen;
 
-// cpu types
-extern int Gr_amd3d;
-extern int Gr_katmai;
-extern int Gr_cpu;	
-extern int Gr_mmx;
-
 // handy macro
 #define GR_MAYBE_CLEAR_RES(bmap)		do  { int bmw = -1; int bmh = -1; if(bmap != -1){ bm_get_info( bmap, &bmw, &bmh); if((bmw != gr_screen.max_w) || (bmh != gr_screen.max_h)){gr_clear();} } else {gr_clear();} } while(0);
 

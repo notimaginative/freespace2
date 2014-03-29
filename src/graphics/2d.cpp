@@ -518,12 +518,6 @@ int Web_cursor_bitmap = -1;
 
 int Gr_inited = 0;
 
-// cpu types
-int Gr_cpu = 0;	
-int Gr_amd3d = 0;
-int Gr_katmai = 0;
-int Gr_mmx = 0;
-
 uint Gr_signature = 0;
 
 float Gr_gamma = 1.8f;
@@ -710,175 +704,12 @@ void gr_set_palette( const char *name, ubyte * palette, int restrict_font_to_128
 
 //void gr_test();
 
-#define CPUID _asm _emit 0fh _asm _emit 0a2h
-
-// -----------------------------------------------------------------------
-// Returns cpu type.
-void gr_detect_cpu(int *cpu, int *mmx, int *amd3d, int *katmai )
-{
-	// Set defaults
-	*cpu = 0;
-	*mmx = 0;
-	*amd3d = 0;
-	*katmai = 0;
-
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
-	DWORD RegEDX;
-	DWORD RegEAX;
-
-	char cpu_vender[16];
-	memset( cpu_vender, 0, sizeof(cpu_vender) );
-		
-  _asm {
-
-		// Check for prescence of 
-		push	eax
-		push	ebx
-		push	ecx
-		push	edx
-
-		pushfd			// get extended flags
-		pop	eax
-		mov	ebx, eax		// save current flags
-		xor	eax, 200000h	// toggle bit 21
-		push	eax			// push new flags on stack
-		popfd					// flags updated now in flags
-		pushfd			// get extended flags
-		pop	eax		// store extended flags in eax
-		xor	eax, ebx	// if bit 21 r/w then eax <> 0
-		je		no_cpuid		
-
-		mov	eax, 0		// setup CPUID to return vender id
-      CPUID           // code bytes = 0fh,  0a2h
-		mov	DWORD PTR cpu_vender[0], ebx
-		mov	DWORD PTR cpu_vender[4], edx
-		mov	DWORD PTR cpu_vender[8], ecx
-		
-      mov eax, 1      // setup CPUID to return features
-
-      CPUID           // code bytes = 0fh,  0a2h
-
-		mov RegEAX, eax	// family, etc returned in eax
-      mov RegEDX, edx	// features returned in edx
-		jmp	done_checking_cpuid
-
-
-no_cpuid:
-		mov RegEAX, 4<<8	// family, etc returned in eax
-      mov RegEDX, 0		// features returned in edx
-
-done_checking_cpuid:								
-		pop	edx
-		pop	ecx
-		pop	ebx
-		pop	eax
-
-	}
-	
-
-
-	//RegEAX	.  Bits 11:8 is family
-	*cpu = (RegEAX >>8) & 0xF;
-
-	if ( *cpu < 5 )	{
-		*cpu = 4;								// processor does not support CPUID
-		*mmx = 0;
-	}
-
-	//RegEAX	.  Bits 11:8 is family
-	*cpu = (RegEAX >>8) & 0xF;
-
-	// Check for MMX
-	BOOL retval = TRUE;
-   if (RegEDX & 0x800000)               // bit 23 is set for MMX technology
-   {
-
-           __try { _asm emms }          // try executing an MMX instruction "emms"
-
-           __except(EXCEPTION_EXECUTE_HANDLER) { retval = FALSE; }
-
-   } else {
-		retval = FALSE;
-	}
-	if ( retval )	{
-		*mmx = 1;			// processor supports CPUID but does not support MMX technology
-	}
-
-	// Check for Katmai
-   if (RegEDX & (1<<25) )               // bit 25 is set for Katmai technology
-   {
-		*katmai = 1;
-   }
-
-	// Check for Amd 3dnow
-	/*
-	if ( !SDL_strcasecmp( cpu_vender, NOX("AuthenticAMD")) )	{
-
-		_asm {
-			mov eax, 0x80000000      // setup CPUID to return extended number of functions
-
-			CPUID           // code bytes = 0fh,  0a2h
-
-			mov RegEAX, eax	// highest extended function value
-		}
-
-		if ( RegEAX > 0x80000000 )	{
-
-			_asm {
-				mov eax, 0x80000001      // setup CPUID to return extended flags
-
-				CPUID           // code bytes = 0fh,  0a2h
-
-				mov RegEAX, eax	// family, etc returned in eax
-				mov RegEDX, edx	// flags in edx
-			}
-
-			if (RegEDX & 0x80000000)               // bit 31 is set for AMD-3D technology
-			{
-				// try executing some 3Dnow instructions
-				__try { 
-
-					float x = (float)1.25;            
-					float y = (float)1.25;            
-					float z;                      
-
-					_asm {
-						movd		mm1, x
-						movd		mm2, y                  
-						PFMUL(AMD_M1, AMD_M2);               
-						movd		z, mm1
-						femms
-						emms
-					}
-
-					int should_be_156 = int(z*100);
-
-					if ( should_be_156 == 156 )	{
-						*amd3d = 1;
-					}
-
-				}          
-
-				__except(EXCEPTION_EXECUTE_HANDLER) { }
-			}
-
-		}		
-	}
-	*/
-#endif
-}
 
 // --------------------------------------------------------------------------
 
 int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 {
 	int max_w, max_h;
-
-	gr_detect_cpu(&Gr_cpu, &Gr_mmx, &Gr_amd3d, &Gr_katmai );
-
-	mprintf(( "GR_CPU: Family %d, MMX=%s\n", Gr_cpu, (Gr_mmx?"Yes":"No") ));
 	
 //	gr_test();
 

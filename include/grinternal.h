@@ -209,10 +209,6 @@ extern int Gr_global_zbuffering;
 // bytes per element.
 void gr_xlat_palette( void *dst, bitmap *bmp );
 
-// CPU identification variables
-extern int Gr_cpu;			// What type of CPU.  5=Pentium, 6=Ppro/PII
-extern int Gr_mmx;			// MMX capabilities?  0=No, 1=Yes
-
 extern float Gr_gamma;
 extern int Gr_gamma_int;				// int(Gr_gamma*100)
 extern int Gr_gamma_lookup[256];

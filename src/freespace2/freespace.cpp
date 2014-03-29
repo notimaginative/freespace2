@@ -6941,10 +6941,17 @@ int game_main(const char *szCmdLine)
 	outwnd_init(1);
 #endif
 
-	mprintf(("Total RAM: %dMB\n", Freespace_total_ram));
+	int cpu_cores = SDL_GetCPUCount();
+	int le = (SDL_BYTEORDER == SDL_LIL_ENDIAN);
+
 	mprintf(("Platform: %s\n", SDL_GetPlatform()));
+	mprintf(("CPU: %d %s\n", cpu_cores, (cpu_cores == 1) ? "core" : "cores"));
+	mprintf(("Memory: %dMB\n", Freespace_total_ram));
+	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, le ? "little" : "big"));
 
 	parse_cmdline(szCmdLine);	
+
+	mprintf(("--------------------------------------------------------------------------------\n"));
 
 #ifdef STANDALONE_ONLY_BUILD
 	Is_standalone = 1;

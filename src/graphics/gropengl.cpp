@@ -348,11 +348,7 @@ void gr_opengl_init()
 	// set up generic variables before further init() calls
 	opengl_set_variables();
 
-//	if (v_major >= 2) {
-//		opengl2_init();
-//	} else {
-		opengl1_init();
-//	}
+	opengl1_init();
 
 	mprintf(("\n"));
 

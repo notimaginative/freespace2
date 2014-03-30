@@ -93,7 +93,6 @@ set(fs_INCLUDES
   include/grid.h
   include/grinternal.h
   include/gropengl1.h
-  include/gropengl2.h
   include/gropengl.h
   include/gropenglinternal.h
   include/grsoft.h

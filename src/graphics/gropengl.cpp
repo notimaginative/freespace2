@@ -10,7 +10,6 @@
 #include "osregistry.h"
 #include "gropengl.h"
 #include "gropengl1.h"
-#include "gropengl2.h"
 #include "gropenglinternal.h"
 #include "2d.h"
 #include "bmpman.h"
@@ -325,7 +324,7 @@ void gr_opengl_init()
 	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &db);
 	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
 
-	mprintf(("  Attributes received:  ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
+	mprintf(("  Attributes received : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
 
 
 	SDL_ShowCursor(0);
@@ -348,6 +347,7 @@ void gr_opengl_init()
 	// set up generic variables before further init() calls
 	opengl_set_variables();
 
+	// main GL init
 	opengl1_init();
 
 	mprintf(("\n"));

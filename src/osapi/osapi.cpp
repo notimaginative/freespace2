@@ -339,9 +339,7 @@ void os_poll()
 			case SDL_KEYDOWN: {
 				if (e.key.keysym.mod & KMOD_GUI) {
 					if (e.key.keysym.sym == SDLK_f ) {
-						gr_force_fullscreen();
-					} else if (e.key.keysym.sym == SDLK_w) {
-						gr_force_windowed();
+						gr_toggle_fullscreen();
 				//	} else if (e.key.keysym.sym == SDLK_z) {
 				//		SDL_MinimizeWindow(GL_window);
 					}

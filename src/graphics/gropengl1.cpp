@@ -182,6 +182,8 @@ static void opengl1_init_func_pointers()
 
 	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
 	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
+	gr_screen.gf_toggle_fullscreen = gr_opengl_toggle_fullscreen;
+
 	gr_screen.gf_set_viewport = gr_opengl_set_viewport;
 
 	gr_screen.gf_activate = gr_opengl1_activate;

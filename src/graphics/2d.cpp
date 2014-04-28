@@ -747,7 +747,18 @@ void gr_toggle_fullscreen()
 		return;
 	}
 
-	STUB_FUNCTION;
+	// skip if a tool is running
+	if ( Fred_running || Pofview_running || Nebedit_running ) {
+		return;
+	}
+
+	if (gr_screen.gf_toggle_fullscreen) {
+		(*gr_screen.gf_toggle_fullscreen)();
+	}
+
+	if (Os_debugger_running) {
+		SDL_Delay(1000);
+	}
 }
 
 void gr_activate(int active)

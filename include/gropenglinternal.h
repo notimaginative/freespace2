@@ -53,6 +53,7 @@ void gr_opengl_get_color( int * r, int * g, int * b );
 void gr_opengl_set_color_fast(color *dst);
 void gr_opengl_force_fullscreen();
 void gr_opengl_force_windowed();
+void gr_opengl_toggle_fullscreen();
 void gr_opengl_set_viewport(int width, int height);
 int gr_opengl_zbuffer_get();
 int gr_opengl_zbuffer_set(int mode);

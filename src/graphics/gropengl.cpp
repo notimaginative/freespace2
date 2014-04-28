@@ -16,6 +16,7 @@
 #include "grinternal.h"
 #include "cmdline.h"
 #include "mouse.h"
+#include "osapi.h"
 
 
 bool OGL_inited = false;
@@ -123,14 +124,18 @@ void gr_opengl_force_windowed()
 
 void gr_opengl_force_fullscreen()
 {
-	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
-	int flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+	SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+}
 
-	if (fullscreen == 2) {
-		flag = SDL_WINDOW_FULLSCREEN;
+void gr_opengl_toggle_fullscreen()
+{
+	Uint32 flags = SDL_GetWindowFlags(GL_window);
+
+	if ( (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP ) {
+		gr_opengl_force_windowed();
+	} else {
+		gr_opengl_force_fullscreen();
 	}
-
-	SDL_SetWindowFullscreen(GL_window, flag);
 }
 
 void gr_opengl_set_color_fast(color *dst)
@@ -330,26 +335,22 @@ void gr_opengl_init()
 	SDL_DisableScreenSaver();
 	SDL_ShowCursor(0);
 
-	// initial setup viewport
+	// initial viewport setup
 	gr_opengl_set_viewport(gr_screen.max_w, gr_screen.max_h);
-
-	// maybe go fullscreen - should be done *after* initial viewport setup
-	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
-	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
-		int flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
-
-		if (fullscreen == 2) {
-			flag = SDL_WINDOW_FULLSCREEN;
-		}
-
-		SDL_SetWindowFullscreen(GL_window, flag);
-	}
 
 	// set up generic variables before further init() calls
 	opengl_set_variables();
 
 	// main GL init
 	opengl1_init();
+
+	// maybe go fullscreen - should be done *after* main GL init
+	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
+	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
+		SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		// poll for window events
+		os_poll();
+	}
 
 	mprintf(("\n"));
 

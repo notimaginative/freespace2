@@ -549,6 +549,8 @@ typedef struct screen {
 
 	void (*gf_force_windowed)();
 	void (*gf_force_fullscreen)();
+	void (*gf_toggle_fullscreen)();
+
 	void (*gf_set_viewport)(int width, int height);
 
 	void (*gf_activate)(int active);

@@ -701,9 +701,6 @@
 #include "version.h"
 #include "mainhalltemp.h"
 #include "exceptionhandler.h"
-#ifndef PLAT_UNIX
-#include "glide.h"
-#endif
 #include "supernova.h"
 #include "hudshield.h"
 // #include "names.h"
@@ -1656,7 +1653,6 @@ void game_level_close()
 	shield_hit_close();
 	mission_event_shutdown();
 	asteroid_level_close();
-	model_cache_reset();						// Reset/free all the model caching stuff
 	flak_level_close();						// unload flak stuff
 	neb2_level_close();						// shutdown gaseous nebula stuff
 	ct_level_close();
@@ -2439,17 +2435,6 @@ void game_init()
 		exit(1);
 	}
 
-	if(!Is_standalone){
-		if(!SDL_strcasecmp(ptr, "Aucune acc�l�ration 3D") || !SDL_strcasecmp(ptr, "Keine 3D-Beschleunigerkarte") || !SDL_strcasecmp(ptr, "No 3D acceleration")){
-#ifndef PLAT_UNIX		
-			MessageBox((HWND)os_get_window(), XSTR("Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it.", 1448), XSTR("Warning", 1449), MB_OK);
-#else
-			STUB_FUNCTION;
-#endif						
-			exit(1);
-		}
-	}
-
 	// check for hi res pack file 
 	int has_sparky_hi = 0;
 
@@ -2464,62 +2449,7 @@ void game_init()
 	}
 #endif
 
-#ifndef PLAT_UNIX	
-	if (!Is_standalone && ptr && (strstr(ptr, NOX("3DFX Glide")))) {
-#ifdef E3_BUILD
-		// always 640 for E3
-		gr_init(GR_640, GR_GLIDE);
-#else
-		// regular or hi-res ?
-#ifdef NDEBUG
-		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
-#else
-		if(strstr(ptr, NOX("(1024x768)"))){
-#endif // NDEBUG
-			gr_init(GR_1024, GR_GLIDE);
-		} else {			
-			gr_init(GR_640, GR_GLIDE);
-		}
-#endif // E3_BUILD
-	} else if (!Is_standalone && ptr && (strstr(ptr, NOX("Direct 3D -") )))	{
-#ifdef E3_BUILD		
-		// always 640 for E3
-		trying_d3d = 1;
-		gr_init(GR_640, GR_DIRECT3D, depth);		
-#else
-		// regular or hi-res ?
-#ifdef NDEBUG
-		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
-#else
-		if(strstr(ptr, NOX("(1024x768)"))){
-#endif // NDEBUG
-			// Direct 3D
-			trying_d3d = 1;
-			gr_init(GR_1024, GR_DIRECT3D, depth);
-		} else {
-			// Direct 3D
-			trying_d3d = 1;
-			gr_init(GR_640, GR_DIRECT3D, depth);
-		}
-#endif // E3_BUILD
-	} else {
-		// Software
-#ifndef NDEBUG
-			if ( Use_fullscreen_at_startup && !Is_standalone)	{		
-				gr_init(GR_640, GR_DIRECTDRAW);
-			} else {
-				gr_init(GR_640, GR_SOFTWARE);
-			}
-#else
-			if ( !Is_standalone ) {
-				gr_init(GR_640, GR_DIRECTDRAW);
-			} else {
-				gr_init(GR_640, GR_SOFTWARE);
-			}
-#endif // !NDEBUG
-	}
-#else
-	if (!Is_standalone /* && ptr && (strstr(ptr, NOX("OpenGL"))) */) {
+	if ( !Is_standalone && ptr && strstr(ptr, NOX("OpenGL")) ) {
 		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
 			gr_init(GR_1024, GR_OPENGL);
 		} else {
@@ -2527,9 +2457,9 @@ void game_init()
 		}
 	} else {
 		STUB_FUNCTION;
-		gr_init(GR_640, GR_SDL);
+		Int3();
+		//gr_init(GR_640, GR_OPENGL);
 	}
-#endif // !PLAT_UNIX
 
 	// Set the gamma
 	ptr = os_config_read_string(NULL,NOX("Gamma"),NOX("1.80"));
@@ -5289,15 +5219,7 @@ void game_process_event( int current_state, int event )
 			break;
 
 		case GS_EVENT_TOGGLE_FULLSCREEN:
-			#ifndef HARDWARE_ONLY
-				#ifndef NDEBUG
-				if ( gr_screen.mode == GR_SOFTWARE )	{
-					gr_init( GR_640, GR_DIRECTDRAW );
-				} else if ( gr_screen.mode == GR_DIRECTDRAW )	{
-					gr_init( GR_640, GR_SOFTWARE );
-				}
-				#endif
-			#endif
+			gr_toggle_fullscreen();
 			break;
 
 		case GS_EVENT_TOGGLE_GLIDE:
@@ -8029,16 +7951,6 @@ void demo_upsell_next_screen()
 	} else {
 		Demo_upsell_show_next_bitmap_time = timer_get_milliseconds() + DEMO_UPSELL_SCREEN_DELAY;
 	}
-
-	/*
-	if ( Demo_upsell_screen_number < NUM_DEMO_UPSELL_SCREENS ) {
-		if ( Demo_upsell_bitmap_filenames[gr_screen.res][Demo_upsell_screen_number] >= 0 ) {
-#ifndef HARDWARE_ONLY
-			palette_use_bm_palette(Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number]);
-#endif
-		}
-	}
-	*/
 }
 
 void demo_upsell_load_bitmaps()

@@ -660,10 +660,6 @@ void common_set_interface_palette(const char *filename)
 		Error(LOCATION, "Could not load in \"%s\"!", filename);
 	}
 #endif
-
-#ifndef HARDWARE_ONLY
-	palette_use_bm_palette(InterfacePaletteBitmap);
-#endif
 }
 
 // release the interface palette .pcx file, and restore the game palette

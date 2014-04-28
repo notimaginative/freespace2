@@ -115,7 +115,6 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_flip = gr_opengl1_flip;
 	gr_screen.gf_set_clip = gr_opengl1_set_clip;
 	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
-	gr_screen.gf_set_font = grx_set_font;
 
 	gr_screen.gf_set_color = gr_opengl_set_color;
 	gr_screen.gf_set_bitmap = gr_opengl_set_bitmap;

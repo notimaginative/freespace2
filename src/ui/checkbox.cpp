@@ -75,6 +75,7 @@
 #include "uidefs.h"
 #include "ui.h"
 #include "alphacolors.h"
+#include "font.h"
 
 void UI_CHECKBOX::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _state )
 {

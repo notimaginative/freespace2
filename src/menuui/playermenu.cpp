@@ -354,7 +354,6 @@ UI_INPUTBOX Player_select_input_box;						// input box for adding new pilot name
 int Player_select_background_bitmap;						// bitmap for this screen
 // int Player_select_palette;										// palette bitmap for this screen
 int Player_select_autoaccept = 0;
-// int Player_select_palette_set = 0;
 
 // flag indicating if this is the absolute first pilot created and selected. Used to determine
 // if the main hall should display the help overlay screen
@@ -456,9 +455,6 @@ void player_select_init()
 	/*
 	Demo_title_bitmap = bm_load(Demo_title_bitmap_filename);
 	if ( Demo_title_bitmap >= 0 ) {
-#ifndef HARDWARE_ONLY
-		palette_use_bm_palette(Demo_title_bitmap);
-#endif
 		Demo_title_active = 1;
 		Demo_title_expire_timestamp = timestamp(5000);
 	} else {
@@ -631,14 +627,6 @@ void player_select_do()
 	}
 #endif
 
-	//if ( !Player_select_palette_set ) {
-	//	SDL_assert(Player_select_palette >= 0);
-//#ifndef HARDWARE_ONLY
-//		palette_use_bm_palette(Player_select_palette);
-//#endif
-//		Player_select_palette_set = 1;
-//	}
-		
 	// set the input box at the "virtual" line 0 to be active so the player can enter a callsign
 	if (Player_select_input_mode){
 		Player_select_input_box.set_focus();

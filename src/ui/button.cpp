@@ -201,6 +201,7 @@
 #include "timer.h"
 #include "gamesnd.h"
 #include "alphacolors.h"
+#include "font.h"
 
 // ---------------------------------------------------------------------------------------
 // input:

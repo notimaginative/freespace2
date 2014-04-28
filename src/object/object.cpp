@@ -1201,16 +1201,7 @@ void obj_move_call_physics(object *objp, float frametime)
 				goto obj_maybe_fire;
 			}
 
-			if ( (objp->type == OBJ_ASTEROID) && (Model_caching && (!D3D_enabled) ) )	{
-				// If we're doing model caching, don't rotate asteroids
-				vector tmp = objp->phys_info.rotvel;
-
-				objp->phys_info.rotvel = vmd_zero_vector;
-				physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
-				objp->phys_info.rotvel = tmp;
-			} else {
-				physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
-			}
+			physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
 
 			// This code seems to have no effect - DB 1/12/99
 			//if ( MULTIPLAYER_CLIENT && (objp != Player_obj) ){
@@ -1480,24 +1471,20 @@ void obj_move_all_post(object *objp, float frametime)
 			}
 
 			if ( cast_light )	{
-				if ( D3D_enabled )	{
-					weapon_info * wi = &Weapon_info[Weapons[objp->instance].weapon_info_index];
+				weapon_info * wi = &Weapon_info[Weapons[objp->instance].weapon_info_index];
 
-					if ( wi->render_type == WRT_LASER )	{
-						color c;
-						float r,g,b;
+				if ( wi->render_type == WRT_LASER )	{
+					color c;
+					float r,g,b;
 
-						// get the laser color
-						weapon_get_laser_color(&c, objp);
+					// get the laser color
+					weapon_get_laser_color(&c, objp);
 
-						r = i2fl(c.red)/255.0f;
-						g = i2fl(c.green)/255.0f;
-						b = i2fl(c.blue)/255.0f;
-						light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, r, g, b, objp->parent );
-						//light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 0.0f, 0.0f, 1.0f, objp->parent );
-					} else {
-						light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f, objp->parent );
-					} 
+					r = i2fl(c.red)/255.0f;
+					g = i2fl(c.green)/255.0f;
+					b = i2fl(c.blue)/255.0f;
+					light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, r, g, b, objp->parent );
+					//light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 0.0f, 0.0f, 1.0f, objp->parent );
 				} else {
 					light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f, objp->parent );
 				}

@@ -175,7 +175,6 @@
 
 #include "3dinternal.h"
 #include "tmapper.h"
-#include "scaler.h"
 #include "2d.h"
 #include "floating.h"
 #include "physics.h"		// For Physics_viewer_bank for g3_draw_rotated_bitmap

@@ -352,8 +352,6 @@ void gr_opengl_init()
 
 	mprintf(("\n"));
 
-	extern int D3D_enabled;
-	D3D_enabled = 1;
 
 	switch (bpp) {
 		case 15:

@@ -779,9 +779,6 @@ void multi_pinfo_do_medals()
 // load up and use the proper palette
 void multi_pinfo_set_palette()
 {
-#ifndef HARDWARE_ONLY
-	palette_use_bm_palette(Multi_pinfo_bitmap);
-#endif
 }
 
 // build the stats value strings for this player

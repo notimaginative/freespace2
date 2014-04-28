@@ -484,17 +484,8 @@
 #include "systemvars.h"
 #include "cmdline.h"
 
-// 3dnow stuff
-// #include "amd3d.h"
-
 // Includes for different rendering systems
-#include "grsoft.h"
-#include "grd3d.h"
-#ifndef PLAT_UNIX
-#include "grglide.h"
-#endif
 #include "gropengl.h"
-#include "grdirectdraw.h"
 
 screen gr_screen;
 
@@ -530,113 +521,20 @@ void gr_close()
 
 	palette_flush();
 
-	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-	case GR_SOFTWARE:		
-		gr_soft_cleanup();
-		break;	
-	case GR_DIRECTDRAW:
-		Int3();
-		gr_directdraw_cleanup();
-		break;
-	case GR_DIRECT3D:		
-		gr_d3d_cleanup();
-		break;
-	case GR_GLIDE:
-		gr_glide_cleanup();
-		break;
-#endif		
-	case GR_OPENGL:
-		gr_opengl_cleanup();
-		break;
-	default:
-		Int3();		// Invalid graphics mode
-		break;
+	switch (gr_screen.mode) {
+		case GR_OPENGL:
+			gr_opengl_cleanup();
+			break;
+
+		default:
+			Int3();		// Invalid graphics mode
+			break;
 	}
 
 	gr_font_close();
 
 	Gr_inited = 0;
 }
-
-//XSTR:OFF
-DCF(gr,"Changes graphics mode")
-{
-#ifndef HARDWARE_ONLY
-	int mode = gr_screen.mode;
-
-	if ( Dc_command )	{
-		dc_get_arg(ARG_STRING);
-		
-		if ( !strcmp( Dc_arg, "a"))	{
-			Int3();
-			mode = GR_SOFTWARE;
-		} else if ( !strcmp( Dc_arg, "b"))	{
-			Int3();
-			mode = GR_DIRECTDRAW;
-		} else if ( !strcmp( Dc_arg, "d"))	{
-			mode = GR_DIRECT3D;
-		} else if ( !strcmp( Dc_arg, "g"))	{
-#ifndef PLAT_UNIX
-			mode = GR_GLIDE;
-#endif
-		} else if ( !strcmp( Dc_arg, "o"))	{
-			mode = GR_OPENGL;
-		} else {
-			// print usage, not stats
-			Dc_help = 1;
-		}
-
-		/*
-		if ( mode != gr_screen.mode )	{
-			dc_printf( "Setting new video mode...\n" );
-			int errcode = gr_init( gr_screen.max_w, gr_screen.max_h, mode );
-			if (errcode)	{
-				dc_printf( "Error %d.  Graphics unchanged.\n", errcode );
-			}
-		}
-		*/
-	}
-
-	if ( Dc_help )	{
-		dc_printf( "Usage: gr mode\n" );
-		dc_printf( "The options can be:\n" );
-		dc_printf( "Macros:  A=software win32 window (obsolete)\n" );
-		dc_printf( "         B=software directdraw fullscreen (obsolete)\n" );
-		dc_printf( "         D=Direct3d\n" );
-		dc_printf( "         G=Glide\n" );
-		dc_printf( "         O=OpenGl (obsolete)\n" );
-		Dc_status = 0;	// don't print status if help is printed.  Too messy.
-	}
-
-	if ( Dc_status )	{
-		switch( gr_screen.mode )	{
-		case GR_SOFTWARE:
-			Int3();
-			dc_printf( "Win32 software windowed\n" );
-			break;
-		case GR_DIRECTDRAW:
-			Int3();
-			dc_printf( "DirectDraw software windowed\n" );
-			break;
-		case GR_DIRECT3D:
-			dc_printf( "Direct3D\n" );
-			break;
-		case GR_GLIDE:
-#ifndef PLAT_UNIX
-			dc_printf( "3Dfx Glide\n" );
-#endif
-			break;
-		case GR_OPENGL:
-			dc_printf( "OpenGl\n" );
-			break;
-		default:
-			Int3();		// Invalid graphics mode
-		}
-	}
-#endif
-}
-//XSTR:ON
 
 // set screen clear color
 DCF(clear_color, "set clear color r, g, b")
@@ -722,24 +620,13 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 			case GR_OPENGL:
 				gr_opengl_cleanup();
 				break;
+
 			default:
 				Int3();		// Invalid graphics mode
 				break;
 		}
 	}
 
-#if defined(HARDWARE_ONLY)
-#ifndef PLAT_UNIX
-	if(!Fred_running && !Pofview_running && !Nebedit_running && !Is_standalone){
-		if((mode != GR_GLIDE) && (mode != GR_DIRECT3D) && (mode != GR_OPENGL)){
-			mprintf(("Forcing glide startup!\n"));
-			mode = GR_GLIDE;
-		}	
-	}
-#endif
-#endif
-
-	D3D_enabled = 0;
 	Gr_inited = 1;
 
 	max_w = -1;
@@ -852,6 +739,15 @@ void gr_force_fullscreen()
 	if (Os_debugger_running) {
 		SDL_Delay(1000);
 	}
+}
+
+void gr_toggle_fullscreen()
+{
+	if ( !Gr_inited ) {
+		return;
+	}
+
+	STUB_FUNCTION;
 }
 
 void gr_activate(int active)

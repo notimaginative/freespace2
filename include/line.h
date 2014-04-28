@@ -62,9 +62,6 @@
 
 #ifndef _LINE_H
 #define _LINE_H
-
-void gr8_line(int x1,int y1,int x2,int y2);
-void gr8_aaline(vertex *v1, vertex *v2);
 											
 
 #define INT_EXCHG(a,b) do {                                              \

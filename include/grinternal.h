@@ -144,9 +144,6 @@
 
 extern int Gr_cursor;
 
-#define GR_SCREEN_PTR(type,x,y) ((type *)(ptr_u(gr_screen.offscreen_buffer) + ptr_u(((x)+gr_screen.offset_x)*sizeof(type)) + ptr_u(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
-#define GR_SCREEN_PTR_SIZE(bpp,x,y) ((ptr_u)(ptr_u(gr_screen.offscreen_buffer) + ptr_u(((x)+gr_screen.offset_x)*(bpp)) + ptr_u(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
-
 extern ubyte Gr_original_palette[768];		// The palette 
 extern ubyte Gr_current_palette[768];
 
@@ -155,23 +152,7 @@ typedef struct alphacolor {
 	int	r,g,b,alpha;
 	int	type;						// See AC_TYPE_??? define
 	color	*clr;
-	/*
-	union {
-		ubyte		lookup[16][256];		// For 8-bpp rendering modes
-	} table;
-	*/
 } alphacolor;
-
-// for backwards fred aabitmap compatibility
-typedef struct alphacolor_old {
-	int	used;
-	int	r,g,b,alpha;
-	int	type;						// See AC_TYPE_??? define
-	color	*clr;	
-	union {
-		ubyte		lookup[16][256];		// For 8-bpp rendering modes
-	} table;	
-} alphacolor_old;
 
 extern alphacolor * Current_alphacolor;
 void gr_init_alphacolors();

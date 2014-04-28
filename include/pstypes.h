@@ -309,8 +309,6 @@ typedef Sint32 ptr_s;
 typedef Uint32 ptr_u;
 #endif
 
-#define HARDWARE_ONLY
-
 //Stucture to store clipping codes in a word
 typedef struct ccodes {
 	ubyte vor,vand;	//or is low byte, and is high byte

@@ -687,41 +687,25 @@ void model_interp_flatpoly(ubyte * p,polymodel * pm)
 		Interp_list[i] = &Interp_points[verts[i*2]];
 
 		if ( Interp_flags & MR_NO_LIGHTING )	{
-			if ( D3D_enabled )	{
-				Interp_list[i]->r = 191;
-				Interp_list[i]->g = 191;
-				Interp_list[i]->b = 191;
-			} else {
-				Interp_list[i]->b = 191;
-			}
+			Interp_list[i]->r = 191;
+			Interp_list[i]->g = 191;
+			Interp_list[i]->b = 191;
 		} else {
 			int vertnum = verts[i*2+0];
 			int norm = verts[i*2+1];
 	
 			if ( Interp_flags & MR_NO_SMOOTHING )	{
-				if ( D3D_enabled )	{
-					light_apply_rgb( &Interp_list[i]->r, &Interp_list[i]->g, &Interp_list[i]->b, Interp_verts[vertnum], vp(p+8), Interp_light );
-				} else {
-					Interp_list[i]->b = light_apply( Interp_verts[vertnum], vp(p+8), Interp_light );
-				}
+				light_apply_rgb( &Interp_list[i]->r, &Interp_list[i]->g, &Interp_list[i]->b, Interp_verts[vertnum], vp(p+8), Interp_light );
 			} else {
 				// if we're not using saved lighting
 				if ( !Interp_use_saved_lighting && !Interp_light_applied[norm] )	{
-					if ( D3D_enabled )	{
-						light_apply_rgb( &Interp_lighting->r[norm], &Interp_lighting->g[norm], &Interp_lighting->b[norm], Interp_verts[vertnum], vp(p+8), Interp_light );
-					} else {
-						Interp_lighting->b[norm] = light_apply( Interp_verts[vertnum], Interp_norms[norm], Interp_light );
-					}
+					light_apply_rgb( &Interp_lighting->r[norm], &Interp_lighting->g[norm], &Interp_lighting->b[norm], Interp_verts[vertnum], vp(p+8), Interp_light );
 					Interp_light_applied[norm] = 1;
 				}
 
-				if ( D3D_enabled )	{
-					Interp_list[i]->r = Interp_lighting->r[norm];
-					Interp_list[i]->g = Interp_lighting->g[norm];
-					Interp_list[i]->b = Interp_lighting->b[norm];
-				} else {
-					Interp_list[i]->b = Interp_lighting->b[norm];
-				}
+				Interp_list[i]->r = Interp_lighting->r[norm];
+				Interp_list[i]->g = Interp_lighting->g[norm];
+				Interp_list[i]->b = Interp_lighting->b[norm];
 			}
 		}
 	}
@@ -732,11 +716,7 @@ void model_interp_flatpoly(ubyte * p,polymodel * pm)
 	}
 
 	if ( !(Interp_flags & MR_NO_POLYS))	{
-		if ( D3D_enabled )	{
-			g3_draw_poly( nv, Interp_list, TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB );	
-		} else {
-			g3_draw_poly( nv, Interp_list, TMAP_FLAG_GOURAUD | TMAP_FLAG_RAMP );	
-		}
+		g3_draw_poly( nv, Interp_list, TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB );
 	}
 
 	if (Interp_flags & (MR_SHOW_OUTLINE|MR_SHOW_OUTLINE_PRESET))	{
@@ -825,69 +805,26 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 	//		SDL_assert( verts[i].normnum == verts[i].vertnum );
 
 			if ( Interp_flags & MR_NO_LIGHTING )	{
-				if ( D3D_enabled )	{
-					Interp_list[i]->r = 191;
-					Interp_list[i]->g = 191;
-					Interp_list[i]->b = 191;
-				} else {
-					Interp_list[i]->b = 191;
-				}
+				Interp_list[i]->r = 191;
+				Interp_list[i]->g = 191;
+				Interp_list[i]->b = 191;
 			} else {
 				int vertnum = verts[i].vertnum;
 				int norm = verts[i].normnum;
 		
 				if ( Interp_flags & MR_NO_SMOOTHING )	{
-					if ( D3D_enabled )	{
-						light_apply_rgb( &Interp_list[i]->r, &Interp_list[i]->g, &Interp_list[i]->b, Interp_verts[vertnum], vp(p+8), Interp_light );
-					} else {
-						Interp_list[i]->b = light_apply( Interp_verts[vertnum], vp(p+8), Interp_light );
-					}
+					light_apply_rgb( &Interp_list[i]->r, &Interp_list[i]->g, &Interp_list[i]->b, Interp_verts[vertnum], vp(p+8), Interp_light );
 				} else {					
 					// if we're applying lighting as normal, and not using saved lighting
 					if ( !Interp_use_saved_lighting && !Interp_light_applied[norm] )	{
-
-						if ( D3D_enabled )	{
-							light_apply_rgb( &Interp_lighting->r[norm], &Interp_lighting->g[norm], &Interp_lighting->b[norm], Interp_verts[vertnum], Interp_norms[norm], Interp_light );
-
-						} else {
-							int li;
-							ubyte l;
-							l = light_apply( Interp_verts[vertnum], Interp_norms[norm], Interp_light );
-
-
-							if ( Detail.lighting > 1 )	{
-								// Add in precalculated muzzle flashes
-								float fl = i2fl(l)/255.0f;
-								ubyte *tmp = &Interp_lights[norm*pm->num_lights];
-
-								for ( li=0; li<pm->num_lights; li++ )	{
-									fl += i2fl(tmp[li])*pm->lights[li].value;
-								}
-
-								if ( fl < 0.0f )	{
-									fl = 0.0f;
-								} else if ( fl > 1.0f )	{
-									fl = 1.0f;
-								}
-
-								l = (ubyte)fl2i(fl*255.0f);
-
-							}
-
-							Interp_lighting->b[norm] = l;
-						}
-
+						light_apply_rgb( &Interp_lighting->r[norm], &Interp_lighting->g[norm], &Interp_lighting->b[norm], Interp_verts[vertnum], Interp_norms[norm], Interp_light );
 
 						Interp_light_applied[norm] = 1;
 					}
 
-					if ( D3D_enabled )	{
-						Interp_list[i]->r = Interp_lighting->r[norm];
-						Interp_list[i]->g = Interp_lighting->g[norm];
-						Interp_list[i]->b = Interp_lighting->b[norm];
-					} else {
-						Interp_list[i]->b = Interp_lighting->b[norm];
-					}
+					Interp_list[i]->r = Interp_lighting->r[norm];
+					Interp_list[i]->g = Interp_lighting->g[norm];
+					Interp_list[i]->b = Interp_lighting->b[norm];
 				}
 			}
 		}
@@ -920,7 +857,7 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 			// all textured polys go through here
 			if ( Interp_tmap_flags & TMAP_FLAG_TEXTURED )	{
 				// subspace special case
-				if ( Interp_subspace && D3D_enabled )	{										
+				if (Interp_subspace) {
 					gr_set_bitmap( pm->textures[w(p+40)], GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.2f, -1, -1);
 				}
 				// all other textures
@@ -1704,77 +1641,6 @@ MONITOR( NumMedModelsRend );
 MONITOR( NumLowModelsRend );	
 
 
-typedef struct model_cache {
-	int		model_num;
-	//matrix	orient;
-	vector	pos;
-	int		num_lights;
-
-	float		last_dot;
-
-	float		cr;
-
-	int		w, h;
-	ubyte		*data;
-	int		cached_valid;
-	int		bitmap_id;
-
-	angles	angs;
-
-	// thrust stuff
-	float		thrust_scale;
-	int		thrust_bitmap;
-	int		thrust_glow_bitmap;
-	float		thrust_glow_noise;
-
-	int		last_frame_rendered;		//	last frame in which this model was rendered not from the cache
-} model_cache;
-
-#define MAX_MODEL_CACHE MAX_OBJECTS
-model_cache Model_cache[MAX_MODEL_CACHE];		// Indexed by objnum
-int Model_cache_inited = 0;
-
-
-
-// Returns 0 if not valid points
-int model_cache_calc_coords(vector *pnt,float rad, float *cx, float *cy, float *cr)
-{
-	vertex pt;
-	ubyte flags;
-
-	flags = g3_rotate_vertex(&pt,pnt);
-
-	if (flags == 0) {
-
-		g3_project_vertex(&pt);
-
-		if (!(pt.flags & (PF_OVERFLOW|CC_BEHIND)))	{
-
-			*cx = pt.sx;
-			*cy = pt.sy;
-			*cr = rad*Matrix_scale.xyz.x*Canv_w2/pt.z;
-
-			if ( *cr < 1.0f )	{
-				*cr = 1.0f;
-			}
-
-			int x1, x2, y1, y2;
-
-			x1 = fl2i(*cx-*cr); 
-			if ( x1 < gr_screen.clip_left ) return 0;
-			x2 = fl2i(*cx+*cr);
-			if ( x2 > gr_screen.clip_right ) return 0;
-			y1 = fl2i(*cy-*cr);
-			if ( y1 < gr_screen.clip_top ) return 0;
-			y2 = fl2i(*cy+*cr);
-			if ( y2 > gr_screen.clip_bottom ) return 0;
-
-			return 1;
-		}
-	}
-	return 0;
-}
-
 void model_really_render(int model_num, matrix *orient, vector * pos, uint flags, int light_ignore_id );
 
 
@@ -1848,49 +1714,6 @@ int model_get_rotated_bitmap_points(vertex *pnt,float angle, float rad, vertex *
 }
 
 
-int Model_caching = 1;
-DCF_BOOL( model_caching, Model_caching );
-
-extern int Tmap_scan_read;		// 0 = normal mapper, 1=read, 2=write
-
-#define MODEL_MAX_BITMAP_SIZE 128
-ubyte tmp_bitmap[MODEL_MAX_BITMAP_SIZE*MODEL_MAX_BITMAP_SIZE];
-
-void mc_get_bmp( ubyte *data, int x, int y, int w, int h )
-{
-	gr_lock();
-
-	int i,j;
-
-	for (i = 0; i < h; i++)	{
-		ubyte *dptr = GR_SCREEN_PTR(ubyte,x,i+y);
-		ubyte *sptr = data+(i*w);
-		for (j=0; j<w; j++ )	{
-			*sptr++ = *dptr;
-			*dptr++ = 255;				// XPARENT!
-		}
-	}
-
-	gr_unlock();
-}
-
-void mc_put_bmp( ubyte *data, int x, int y, int w, int h )
-{
-	gr_lock();
-
-	int i,j;
-
-	for (i = 0; i < h; i++)	{
-		ubyte *dptr = GR_SCREEN_PTR(ubyte,x,i+y);
-		ubyte *sptr = data+(i*w);
-		for (j=0; j<w; j++ )	{
-			*dptr++ = *sptr++;
-		}
-	}
-
-	gr_unlock();
-}
-
 float Interp_depth_scale = 1500.0f;
 
 DCF(model_darkening,"Makes models darker with distance")
@@ -1909,8 +1732,6 @@ DCF(model_darkening,"Makes models darker with distance")
 		dc_printf( "model_darkening = %.1f\n", Interp_depth_scale );
 	}
 }
-
-void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint flags, int objnum, int num_lights );
 
 		// Compare it to 999.75f at R = 64.0f
 		//               0.0000f at R = 4.0f
@@ -1974,14 +1795,10 @@ void model_render(int model_num, matrix *orient, vector * pos, uint flags, int o
 	int num_lights = 0;
 
 	if ( !(flags & MR_NO_LIGHTING ) )	{
-		if ( D3D_enabled )	{
-			num_lights = light_filter_push( objnum, pos, pm->rad );
-		} else {
-			num_lights = light_filter_push( objnum, pos, pm->rad );
-		}
+		num_lights = light_filter_push( objnum, pos, pm->rad );
 	}
 
-	model_try_cache_render(model_num, orient, pos, flags, objnum, num_lights );
+	model_really_render(model_num, orient, pos, flags, objnum);
 	
 	if ( !(flags & MR_NO_LIGHTING ) )	{
 		light_filter_pop();
@@ -1998,42 +1815,6 @@ void model_render(int model_num, matrix *orient, vector * pos, uint flags, int o
 	}
 }
 
-
-void model_cache_init()
-{
-	if ( !Model_cache_inited )	{
-		int i;
-
-		Model_cache_inited = 1;
-
-		for (i=0; i<MAX_MODEL_CACHE; i++ )	{
-			Model_cache[i].cached_valid = 0;
-			Model_cache[i].data = NULL;
-			Model_cache[i].bitmap_id = -1;
-			Model_cache[i].last_frame_rendered = -1;
-		}
-	}
-}
-
-void model_cache_reset()
-{
-	if ( Model_cache_inited )	{
-		int i;
-
-		for (i=0; i<MAX_MODEL_CACHE; i++ )	{
-			Model_cache[i].cached_valid = 0;
-			if ( Model_cache[i].data )	{
-				free(Model_cache[i].data);
-				Model_cache[i].data = NULL;
-			}
-			if ( Model_cache[i].bitmap_id != -1 )	{
-				bm_release(Model_cache[i].bitmap_id);
-				Model_cache[i].bitmap_id = -1;
-			}
-		}
-	}
-}
-
 // tmp_detail_level
 // 0 - Max
 // 1
@@ -2044,423 +1825,6 @@ void model_cache_reset()
 #if MAX_DETAIL_LEVEL != 4
 #error MAX_DETAIL_LEVEL is assumed to be 4 in ModelInterp.cpp
 #endif
-
-// Given detail level, what is the threshold for how far viewer
-// can move in the object's frame of reference before a redraw.
-float Mc_viewer_pos_factor[MAX_DETAIL_LEVEL+1] = {  0.080f, 0.040f, 0.020f, 0.010f, 0.0f };
-float Mc_size_factor[MAX_DETAIL_LEVEL+1] = {  1.40f, 1.30f, 1.20f, 1.10f, 0.0f };
-
-int Model_object_caching_tmp = MAX_DETAIL_LEVEL;
-
-// When framerate goes below this, knock it down a notch.
-float Mc_framerate_lo[MAX_DETAIL_LEVEL+1] = { 0.0f, 10.0f, 15.0f, 20.0f, 25.0f };
-// When it goes above this, knock it up a notch.
-float Mc_framerate_hi[MAX_DETAIL_LEVEL+1] = { 15.0f, 20.0f, 25.0f, 30.0f, 100000.0f };
-
-int Mc_detail_add[MAX_DETAIL_LEVEL+1] = { -2, -1, +1, +2, +4 };
-
-extern float flFrametime;
-
-void model_try_cache_render(int model_num, matrix *orient, vector * pos, uint flags, int objnum, int num_lights )
-{
-	model_really_render(model_num, orient, pos, flags, objnum);
-	/*
-	int i;
-
-	model_cache *mc = NULL;
-	
-	if ( (objnum>-1) && (objnum<MAX_MODEL_CACHE) )	{
-		mc = &Model_cache[objnum];
-	}
-	
-	if ( (!mc) || (!Model_caching) || (D3D_enabled) || (!Model_cache_inited) || (flags & MR_ALWAYS_REDRAW) || (Detail.object_caching > 3) )	{
-		if ( mc )	{
-			mc->cached_valid = 0;
-		}
-		model_really_render(model_num, orient, pos, flags, objnum );
-		return;
-	}
-
-	SDL_assert( mc != NULL );
-
-	// Fake the detail level based on framerate.
-	if ( 1.0f / flFrametime < Mc_framerate_lo[Model_object_caching_tmp] )	{
-		Model_object_caching_tmp--;
-		//	mprintf(( "Model cache level bumped down to %d\n", Model_object_caching ));
-	} else if ( 1.0f / flFrametime > Mc_framerate_hi[Model_object_caching_tmp] )	{
-		Model_object_caching_tmp++;
-		//	mprintf(( "Model cache level bumped up to %d\n", Model_object_caching ));
-	}
-
-	int tmp_detail_level = Model_object_caching_tmp + Mc_detail_add[Detail.object_caching];
-
-	if ( tmp_detail_level < 0 )	{
-		tmp_detail_level = 0;
-	} else if (tmp_detail_level > MAX_DETAIL_LEVEL )  {
-		tmp_detail_level = MAX_DETAIL_LEVEL;
-	}
-
-	if ( tmp_detail_level > 3 )	{
-		if ( mc )	{
-			mc->cached_valid = 0;
-		}
-		model_really_render(model_num, orient, pos, flags, objnum );
-		return;
-	}
-
-	
-//	static int last_one = -1;
-//	if ( last_one != tmp_detail_level )	{
-//		last_one = tmp_detail_level;
-//		mprintf(( "Detail level %d\n", tmp_detail_level ));
-//	}
-
-//	if ( key_pressed(SDLK_LSHIFT) )	{
-//		mc->cached_valid = 0;
-//		model_really_render(model_num, orient, pos, flags, objnum );
-//		return;
-//	}
-
-
-//	mprintf(( "Rendering cache model\n" ));
-
-	polymodel *pm = model_get(model_num);
-	vertex v[4];
-	vertex *vertlist[4] = { &v[0], &v[1], &v[2], &v[3] };
-	float cx, cy, cr;
-	vertex pt;
-	ubyte ccflags;
-
-	matrix tempm, tempm2;
-	angles new_angles;
-
-	vm_copy_transpose_matrix(&tempm2,orient);
-	vm_matrix_x_matrix(&tempm,&tempm2,&Eye_matrix);
-	vm_extract_angles_matrix(&new_angles, &tempm );
-	
-	if ( !model_cache_calc_coords(pos,pm->rad, &cx, &cy, &cr) )	{
-		// Not onscreen, do a real render and exit
-		mc->cached_valid = 0;
-		model_really_render(model_num, orient, pos, flags, objnum );
-		return;
-	}
-
-	//================================================================
-	// A bunch of checks to see if we need to redraw the model or not
-
-	
-	vector ship_to_eye;
-
-	vm_vec_sub( &ship_to_eye, &Eye_position, pos );
-	vm_vec_normalize_safe(&ship_to_eye);
-	float this_dot = vm_vec_dot( &ship_to_eye, &orient->fvec );
-	this_dot += vm_vec_dot( &ship_to_eye, &orient->rvec );
-
-	float diff = 0.0f;
-	
-	if ( !mc->cached_valid )	{
-		// Nothing cached
-		goto RedrawIt;
-	}
-
-	SDL_assert( mc->data != NULL );
-
-	if (Framecount - mc->last_frame_rendered > 1 + 2*(MAX_DETAIL_LEVEL - Detail.object_caching - 1)) {
-		goto RedrawIt;
-	}
-
-	diff = fl_abs( this_dot - mc->last_dot );
-
-	if ( diff > Mc_viewer_pos_factor[tmp_detail_level] )	{
-//		mprintf(( "Redraw!!! %.4f\n", diff ));
-		goto RedrawIt;
-	}
-
-//	if ( key_pressed(SDLK_LSHIFT) )	{
-//		goto RedrawIt;
-//	}
-
-	if (tmp_detail_level > 2)	{
-		if ( mc->thrust_glow_bitmap != Interp_thrust_glow_bitmap )	{
-			// Engline glow bitmap changed
-			//	mprintf(( "MC: Glow bitmap changed! %d -> %d\n", mc->thrust_glow_bitmap, Interp_thrust_glow_bitmap ));
-			goto RedrawIt;
-		}
-	}
-
-	if (tmp_detail_level > 2)	{
-		if ( cr > 4.0f ) {
-			float diff = fl_abs( mc->thrust_scale - Interp_thrust_scale );
-
-			if ( diff > 0.1f )	{
-				// Thruster size has changed
-				//mprintf(( "MC: Thruster size changed! %.2f -> %.2f\n", mc->thrust_scale, Interp_thrust_scale ));
-				goto RedrawIt;
-			}
-		}
-	}
-
-//		if (0) {
-//			float diff = fl_abs( mc->thrust_glow_noise - Interp_thrust_glow_noise );
-
-//			if ( diff > 0.1f )	{
-				// Glow noise has changed
-				//mprintf(( "MC: Thruster glow changed! %.2f -> %.2f\n", mc->thrust_glow_noise, Interp_thrust_glow_noise ));
-//				goto RedrawIt;
-//			}
-//		}
-
-
-	if ( mc->model_num != model_num )	{
-		// Model changed
-		goto RedrawIt;
-	}
-
-	if ( cr>mc->cr*Mc_size_factor[tmp_detail_level] )	{
-		// Scaling up too far
-		goto RedrawIt;
-	}
-		
-	if (tmp_detail_level > 2)	{
-		if ( cr > 4.0f )	{
-			if ( !(Interp_flags & MR_NO_LIGHTING ) )	{
-				if (mc->num_lights != num_lights)	{
-					// Lighting changed
-					goto RedrawIt;
-				}
-			}
-		}
-	}
-
-		// This method is correct, but rotating ship makes things redraw which is too slow.
-	#if 0
-		if ( cr > 4.0f )	{
-			// Check orientation
-			float angle_error = max( fl_abs( mc->angs.p-new_angles.p ),fl_abs( mc->angs.h-new_angles.h ));
-
-			// Exact
-			//if ( angle_error > 0.075f  )	{	
-
-			// Rough
-			if ( angle_error > 0.40f  )	{	
-				// Ship/view turned too much
-				//mprintf(( "Ship/view turned too much %.4f\n", angle_error ));
-
-				goto RedrawIt;
-			}
-		}
-	#endif
-
-
-//		mprintf(( "Dot = %.5f\n", dot ));
-
-#if 0
-	if (0) {
-		float dx, dy, dz;
-
-		dx = vm_vec_dot( &orient->rvec, &mc->orient.rvec )+1.0f;
-		dy = vm_vec_dot( &orient->uvec, &mc->orient.uvec )+1.0f;
-		dz = vm_vec_dot( &orient->fvec, &mc->orient.fvec )+1.0f;
-			
-		float angle_error = (dx+dy+dz)*1000.0f/6.0f;		
-
-		//mprintf(( "Angle_error = %.4f\n", angle_error ));
-
-		// Compare it to 999.75f at R = 64.0f
-		//               0.0000f at R = 0.0f
-		
-		float cmp_val = 999.75f;		// old
-//			if ( is_asteroid )	{
-//				cmp_val = scale_it( 0.0f, 999.75f, cr, 0.0f, 64.0f );
-//			}
-											
-		if ( angle_error < cmp_val ) {
-			// Ship turned too much
-			goto RedrawIt;
-		}
-	}	
-#endif
-
-
-	// Have a valid cache entry, mc
-	ccflags = g3_rotate_vertex(&pt,pos);
-
-	if ( ccflags )	{
-		// offscreen		
-		goto RedrawIt;
-	}
-
-	if ( model_get_rotated_bitmap_points(&pt,mc->angs.b - new_angles.b, pm->rad, v ))	{
-		// offscreen		
-		goto RedrawIt;
-	}
-
-
-	gr_set_bitmap( mc->bitmap_id );
-
-	Tmap_scan_read = 2;
-	g3_draw_poly(4, vertlist, TMAP_FLAG_TEXTURED );	
-	Tmap_scan_read = 0;
-
-	//	if ( key_pressed(SDLK_LSHIFT) )	{
-	//	gr_set_color( 255, 0, 0 );
-	//	gr_pixel( fl2i(v[0].sx), fl2i(v[0].sy) );
-	//	}
-
-	//if ( key_pressed(SDLK_RSHIFT) )	{
-	//	gr_line( fl2i(v[0].sx), fl2i(v[0].sy), fl2i(v[1].sx), fl2i(v[1].sy) );
-	//	gr_line( fl2i(v[1].sx), fl2i(v[1].sy), fl2i(v[2].sx), fl2i(v[2].sy) );
-	//	gr_line( fl2i(v[2].sx), fl2i(v[2].sy), fl2i(v[3].sx), fl2i(v[3].sy) );
-	//	gr_line( fl2i(v[3].sx), fl2i(v[3].sy), fl2i(v[0].sx), fl2i(v[0].sy) );
-	//}
-
-
-	return;
-
-
-	//==========================================================
-	// Cache is bad for model, so draw it and save it
-RedrawIt:
-
-
-//	if ( mc->data != NULL )	{
-//		free(mc->data);
-//		mc->data = NULL;
-//	}
-
-	if ( mc->bitmap_id != -1 )	{
-		bm_release(mc->bitmap_id);
-		mc->bitmap_id = -1;
-	}
-
-	mc->cached_valid = 0;
-	mc->model_num = model_num;
-	mc->pos = *pos;
-	//mc->orient = *orient;
-	mc->cr = cr;
-	mc->angs = new_angles;	//-Physics_viewer_bank;
-
-	mc->thrust_scale = Interp_thrust_scale;
-	mc->thrust_bitmap = Interp_thrust_bitmap;
-	mc->thrust_glow_bitmap = Interp_thrust_glow_bitmap;
-	mc->thrust_glow_noise = Interp_thrust_glow_noise;
-
-	mc->last_dot = this_dot;
-
-	if ( cr > MODEL_MAX_BITMAP_SIZE/2-1 )	
-		goto JustDrawIt;
-
-	//Physics_viewer_bank
-
-	ccflags = g3_rotate_vertex(&pt,pos);
-
-	if ( ccflags ) {
-		goto JustDrawIt;
-	}
-
-	model_get_rotated_bitmap_points(&pt,0.0f, pm->rad, v );
-				
-	int x1, y1, x2, y2, w, h;
-
-	x1 = fl_round_2048( v[0].sx );
-	y1 = fl_round_2048( v[0].sy );
-
-	x2 = fl_round_2048( v[2].sx );	//+0.5f );
-	y2 = fl_round_2048( v[2].sy );	//+0.5f );
-
-	if ( x1 < gr_screen.clip_left)	
-		goto JustDrawIt;
-	
-	if ( y1 < gr_screen.clip_top )
-		goto JustDrawIt;
-	
-	if ( x2 > gr_screen.clip_right)
-		goto JustDrawIt;
-
-	if ( y2 > gr_screen.clip_bottom) 
-		goto JustDrawIt;
-
-	w = x2 - x1 + 1;	
-	if ( w < 0 )
-		Int3();
-
-	if ( w < 2 ) 
-		w = 2;
-
-	h = y2 - y1 + 1;	
-
-	if ( h < 0 )
-		Int3();
-
-	if ( h < 2 ) 
-		h = 2;
-
-	if ( w > MODEL_MAX_BITMAP_SIZE )
-		goto JustDrawIt;
-		
-	if ( h > MODEL_MAX_BITMAP_SIZE )
-		goto JustDrawIt;
-
-	mc->w = w;
-	mc->h = h;
-
-//	mprintf(( "Mallocing a %dx%d bitmap\n", w, h ));
-
-	if ( mc->data == NULL )	{
-		mc->data = (ubyte *)malloc( MODEL_MAX_BITMAP_SIZE * MODEL_MAX_BITMAP_SIZE );
-	}
-
-//	mprintf(( "Done mallocing a %dx%d bitmap\n", w, h ));
-
-	if ( mc->data == NULL )	{
-		goto JustDrawIt;
-	}
-	for (i = 0; i < w*h; i++)	{
-		mc->data[i] = 255;
-	}
-
-
-	mc->bitmap_id = bm_create( 8, mc->w, mc->h, mc->data, 0 );
-
-	if ( mc->bitmap_id < 0 )	{
-		goto JustDrawIt;
-	}
-
-	// Save stars and stuff on screen
-	mc_get_bmp( tmp_bitmap, x1, y1, w, h );
-
-	mc->num_lights = num_lights;
-
-	// Didn't render a cached one... so render it and then save it in the cache
-
-	// Turn on stippling
-	model_really_render(model_num, orient, pos, flags, objnum );
-
-	// Save screen to bitmap 
-	gr_set_bitmap( mc->bitmap_id );
-	Tmap_scan_read = 1;
-	g3_draw_poly(4, vertlist, TMAP_FLAG_TEXTURED );	
-	Tmap_scan_read = 0;
-
-	// Restore stars and stuff to screen
-	mc_put_bmp( tmp_bitmap, x1, y1, w, h );
-
-	// Draw the model
-	gr_set_bitmap( mc->bitmap_id );
-	Tmap_scan_read = 2;
-	g3_draw_poly(4, vertlist, TMAP_FLAG_TEXTURED );	
-	Tmap_scan_read = 0;
-
-	mc->cached_valid = 1;
-	mc->last_frame_rendered = Framecount;
-	return;
-	
-JustDrawIt:
-
-	// Too big to save
-	model_really_render(model_num, orient, pos, flags, objnum );
-	*/
-}
 
 // Find the distance from p0 to the closest point on a box.
 // The box's dimensions from 'min' to 'max'.
@@ -2532,8 +1896,6 @@ DCF(tiling, "")
 	}
 }
 
-extern void d3d_zbias(int bias);
-extern void opengl_zbias(int bias);
 void model_really_render(int model_num, matrix *orient, vector * pos, uint flags, int light_ignore_id )
 {
 	int i, detail_level;
@@ -2571,11 +1933,7 @@ void model_really_render(int model_num, matrix *orient, vector * pos, uint flags
 	pm = model_get(model_num);	
 
 	// Set the flags we will pass to the tmapper
-	if ( D3D_enabled )	{
-		Interp_tmap_flags = TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB;
-	} else {
-		Interp_tmap_flags = TMAP_FLAG_GOURAUD | TMAP_FLAG_RAMP;
-	}
+	Interp_tmap_flags = TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB;
 
 	// if we're in nebula mode
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode != NEB2_RENDER_NONE)){
@@ -2892,11 +2250,7 @@ void submodel_render(int model_num, int submodel_num, matrix *orient, vector * p
 	pm = model_get(model_num);
 
 	// Set the flags we will pass to the tmapper
-	if ( D3D_enabled )	{
-		Interp_tmap_flags = TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB;
-	} else {
-		Interp_tmap_flags = TMAP_FLAG_GOURAUD | TMAP_FLAG_RAMP;
-	}
+	Interp_tmap_flags = TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB;
 
 	// if we're in nebula mode
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode != NEB2_RENDER_NONE)){
@@ -2915,11 +2269,7 @@ void submodel_render(int model_num, int submodel_num, matrix *orient, vector * p
 	}
 
 	if ( !(Interp_flags & MR_NO_LIGHTING ) )	{
-		if ( D3D_enabled )	{
-			light_filter_push( -1, pos, pm->submodel[submodel_num].rad );
-		} else {
-			light_filter_push( light_ignore_id, pos, pm->submodel[submodel_num].rad );
-		}
+		light_filter_push( -1, pos, pm->submodel[submodel_num].rad );
 	}
 
 	g3_start_instance_matrix(pos,orient);

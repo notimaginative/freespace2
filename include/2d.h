@@ -378,7 +378,6 @@ typedef struct screen {
 	int	mode;					// What mode gr_init was called with.
 	int use_sections;			// whether to use bitmap sections or not
 	float	aspect;				// Aspect ratio
-	int	rowsize;				// What you need to add to go to next row (includes bytes_per_pixel)
 	int	bits_per_pixel;	// How many bits per pixel it is. (7,8,15,16,24,32)
 	int	bytes_per_pixel;	// How many bytes per pixel (1,2,3,4)
 	int	offset_x, offset_y;		// The offsets into the screen
@@ -402,8 +401,6 @@ typedef struct screen {
 	color		current_clear_color;				// current clear color
 	shader	current_shader;
 	float		current_alpha;
-	void		*offscreen_buffer;				// NEVER ACCESS!  This+rowsize*y = screen offset
-	void		*offscreen_buffer_base;			// Pointer to lowest address of offscreen buffer
 
 	//switch onscreen, offscreen
 	void (*gf_flip)();
@@ -427,8 +424,6 @@ typedef struct screen {
 
 	void (*gf_init_alphacolor)( color * dst, int r, int g, int b, int alpha, int type );
 	void (*gf_set_color_fast)( color * dst );
-
-	void (*gf_set_font)(int fontnum);
 
 	// Sets the current bitmap
 	void (*gf_set_bitmap)( int bitmap_num, int alphablend, int bitbltmode, float alpha, int sx, int sy );
@@ -566,8 +561,7 @@ typedef struct screen {
 //--------------------------------------
 // Call this at application startup
 
-#define GR_SDL					(100)		// SDL2 renderer
-#define GR_OPENGL				(101)		// OpenGL (generic)
+#define GR_OPENGL				(100)		// OpenGL (generic)
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
 #define GR_NUM_RESOLUTIONS			2
@@ -632,7 +626,6 @@ extern void gr_activate(int active);
 
 #define gr_set_clip			GR_CALL(gr_screen.gf_set_clip)
 #define gr_reset_clip		GR_CALL(gr_screen.gf_reset_clip)
-#define gr_set_font			GR_CALL(gr_screen.gf_set_font)
 
 #define gr_init_color		GR_CALL(gr_screen.gf_init_color)
 #define gr_init_alphacolor	GR_CALL(gr_screen.gf_init_alphacolor)
@@ -713,6 +706,7 @@ __inline bool gr_is_32bit()
 
 void gr_force_fullscreen();
 void gr_force_windowed();
+void gr_toggle_fullscreen();
 
 // new bitmap functions
 void gr_bitmap(int x, int y);

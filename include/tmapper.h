@@ -87,18 +87,6 @@
 #ifndef _TMAPPER_H
 #define _TMAPPER_H
 
-// call this to reinit the scanline function pointers.
-extern void tmapper_setup();
-
-// Used to tell the tmapper what the current lighting values are
-// if the TMAP_FLAG_RAMP or TMAP_FLAG_RGB are set and the TMAP_FLAG_GOURAUD 
-// isn't set.   
-void tmapper_set_light(vertex *v, uint flags);
-
-// DO NOT CALL grx_tmapper DIRECTLY!!!! Only use the 
-// gr_tmapper equivalent!!!!
-extern void grx_tmapper( int nv, vertex * verts[], uint flags );
-
 #define TMAP_MAX_VERTS	25		// Max number of vertices per polygon
 
 // Flags to pass to g3_draw_??? routines

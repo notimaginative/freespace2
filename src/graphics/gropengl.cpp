@@ -281,7 +281,7 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, db);
 
-	FSAA = os_config_read_uint(NULL, "FSAA", 2);
+	FSAA = os_config_read_uint(NULL, "FSAA", 0);
 
 	if (FSAA) {
 	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);

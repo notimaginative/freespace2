@@ -541,7 +541,9 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	y = ((gr_screen.max_h - g_height) / 2);
 
 	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 1) == 1 ) {
-		float scale_by = (float)gr_screen.max_w / (float)g_width;
+		extern int GL_viewport_w;
+
+		float scale_by = GL_viewport_w / (float)g_width;
 
 		// don't bother setting anything if we aren't going to need it
 		if (scale_by != 1.0f) {
@@ -742,7 +744,6 @@ void mve_shutdown()
 		if (mve_scale_video) {
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
-			glLoadIdentity();
 		}
 
 		glEnable(GL_DEPTH_TEST);

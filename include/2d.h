@@ -418,34 +418,6 @@ typedef struct screen {
 	// resets the clipping region to entire screen
 	void (*gf_reset_clip)();
 
-	void (*gf_set_color)( int r, int g, int b );
-	void (*gf_get_color)( int * r, int * g, int * b );
-	void (*gf_init_color)( color * dst, int r, int g, int b );
-
-	void (*gf_init_alphacolor)( color * dst, int r, int g, int b, int alpha, int type );
-	void (*gf_set_color_fast)( color * dst );
-
-	// Sets the current bitmap
-	void (*gf_set_bitmap)( int bitmap_num, int alphablend, int bitbltmode, float alpha, int sx, int sy );
-
-	// Call this to create a shader.   
-	// This function takes a while, so don't call it once a frame!
-	// r,g,b, and c should be between -1.0 and 1.0f
-
-	// The matrix is used as follows:
-	// Dest(r) = Src(r)*r + Src(g)*r + Src(b)*r + c;
-	// Dest(g) = Src(r)*g + Src(g)*g + Src(b)*g + c;
-	// Dest(b) = Src(r)*b + Src(g)*b + Src(b)*b + c;
-	// For instance, to convert to greyscale, use
-	// .3 .3 .3  0
-	// To turn everything green, use:
-	//  0 .3  0  0
-	void (*gf_create_shader)(shader * shade, float r, float g, float b, float c );
-
-	// Initialize the "shader" by calling gr_create_shader()
-	// Passing a NULL makes a shader that turns everything black.
-	void (*gf_set_shader)( shader * shade );
-
 	// clears entire clipping region to current color
 	void (*gf_clear)();
 
@@ -491,12 +463,6 @@ typedef struct screen {
 	// Call after rendering is over.
 	void (*gf_stop_frame)();
 
-	// Retrieves the zbuffer mode.
-	int (*gf_zbuffer_get)();
-
-	// Sets mode.  Returns previous mode.
-	int (*gf_zbuffer_set)(int mode);
-
 	// Clears the zbuffer.  If use_zbuffer is FALSE, then zbuffering mode is ignored and zbuffer is always off.
 	void (*gf_zbuffer_clear)(int use_zbuffer);
 	
@@ -538,9 +504,6 @@ typedef struct screen {
 
 	// cross fade
 	void (*gf_cross_fade)(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct);
-
-	// set the color to be used when clearing the background
-	void (*gf_set_clear_color)(int r, int g, int b);
 
 	void (*gf_preload_init)();
 	int (*gf_preload)(int bitmap_num, int is_aabitmap);
@@ -629,26 +592,39 @@ extern void gr_activate(int active);
 #define gr_set_clip			GR_CALL(gr_screen.gf_set_clip)
 #define gr_reset_clip		GR_CALL(gr_screen.gf_reset_clip)
 
-#define gr_init_color		GR_CALL(gr_screen.gf_init_color)
-#define gr_init_alphacolor	GR_CALL(gr_screen.gf_init_alphacolor)
-#define gr_set_color			GR_CALL(gr_screen.gf_set_color)
-#define gr_get_color			GR_CALL(gr_screen.gf_get_color)
-#define gr_set_color_fast	GR_CALL(gr_screen.gf_set_color_fast)
+void gr_set_color_fast(color *dst);
+void gr_get_color(int *r, int *g, int *b);
+void gr_init_color(color *c, int r, int g, int b);
+void gr_init_alphacolor(color *clr, int r, int g, int b, int alpha, int type);
+void gr_set_color(int r, int g, int b);
 
-//#define gr_set_bitmap		GR_CALL(gr_screen.gf_set_bitmap)
-__inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, int bitbltmode=GR_BITBLT_MODE_NORMAL, float alpha=1.0f, int sx = -1, int sy = -1 )
-{
-	(*gr_screen.gf_set_bitmap)(bitmap_num, alphablend, bitbltmode, alpha, sx, sy);
-}
+// Sets the current bitmap
+void gr_set_bitmap(int bitmap_num, int alphablend = GR_ALPHABLEND_NONE, int bitbltmode = GR_BITBLT_MODE_NORMAL, float alpha = 1.0f, int sx = -1, int sy = -1);
 
 __inline bool gr_is_32bit()
 {
 	return (gr_screen.bytes_per_pixel == 4);
 }
 
-#define gr_create_shader	GR_CALL(gr_screen.gf_create_shader)
-#define gr_set_shader		GR_CALL(gr_screen.gf_set_shader)
 #define gr_clear				GR_CALL(gr_screen.gf_clear)
+
+// Call this to create a shader.
+// This function takes a while, so don't call it once a frame!
+// r,g,b, and c should be between -1.0 and 1.0f
+
+// The matrix is used as follows:
+// Dest(r) = Src(r)*r + Src(g)*r + Src(b)*r + c;
+// Dest(g) = Src(r)*g + Src(g)*g + Src(b)*g + c;
+// Dest(b) = Src(r)*b + Src(g)*b + Src(b)*b + c;
+// For instance, to convert to greyscale, use
+// .3 .3 .3  0
+// To turn everything green, use:
+//  0 .3  0  0
+void gr_create_shader(shader *shade, float r, float g, float b, float c);
+
+// Initialize the "shader" by calling gr_create_shader()
+// Passing a NULL makes a shader that turns everything black.
+void gr_set_shader(shader *shade);
 
 #define gr_aabitmap			GR_CALL(gr_screen.gf_aabitmap)
 #define gr_aabitmap_ex		GR_CALL(gr_screen.gf_aabitmap_ex)
@@ -672,9 +648,15 @@ __inline bool gr_is_32bit()
 #define gr_fade_out			GR_CALL(gr_screen.gf_fade_out)
 #define gr_flash				GR_CALL(gr_screen.gf_flash)
 
-#define gr_zbuffer_get		GR_CALL(gr_screen.gf_zbuffer_get)
-#define gr_zbuffer_set		GR_CALL(gr_screen.gf_zbuffer_set)
+
+// Retrieves the zbuffer mode.
+int gr_zbuffer_get();
+
+// Sets mode.  Returns previous mode.
+int gr_zbuffer_set(int mode);
+
 #define gr_zbuffer_clear	GR_CALL(gr_screen.gf_zbuffer_clear)
+
 
 #define gr_save_screen		GR_CALL(gr_screen.gf_save_screen)
 #define gr_restore_screen	GR_CALL(gr_screen.gf_restore_screen)
@@ -697,7 +679,8 @@ __inline bool gr_is_32bit()
 
 #define gr_cross_fade		GR_CALL(gr_screen.gf_cross_fade)
 
-#define gr_set_clear_color	GR_CALL(gr_screen.gf_set_clear_color)
+// set the color to be used when clearing the background
+void gr_set_clear_color(int r, int g, int b);
 
 #define gr_preload_init		GR_CALL(gr_screen.gf_preload_init)
 #define gr_preload			GR_CALL(gr_screen.gf_preload)

@@ -116,10 +116,6 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_set_clip = gr_opengl1_set_clip;
 	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
 
-	gr_screen.gf_set_color = gr_opengl_set_color;
-	gr_screen.gf_set_bitmap = gr_opengl_set_bitmap;
-	gr_screen.gf_create_shader = gr_opengl_create_shader;
-	gr_screen.gf_set_shader = gr_opengl_set_shader;
 	gr_screen.gf_clear = gr_opengl1_clear;
 
 	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
@@ -138,18 +134,12 @@ static void opengl1_init_func_pointers()
 
 	gr_screen.gf_gradient = gr_opengl1_gradient;
 
-	gr_screen.gf_get_color = gr_opengl_get_color;
-	gr_screen.gf_init_color = gr_opengl_init_color;
-	gr_screen.gf_init_alphacolor = gr_opengl_init_alphacolor;
-	gr_screen.gf_set_color_fast = gr_opengl_set_color_fast;
 	gr_screen.gf_print_screen = gr_opengl1_print_screen;
 
 	gr_screen.gf_fade_in = gr_opengl1_fade_in;
 	gr_screen.gf_fade_out = gr_opengl1_fade_out;
 	gr_screen.gf_flash = gr_opengl1_flash;
 
-	gr_screen.gf_zbuffer_get = gr_opengl_zbuffer_get;
-	gr_screen.gf_zbuffer_set = gr_opengl_zbuffer_set;
 	gr_screen.gf_zbuffer_clear = gr_opengl1_zbuffer_clear;
 
 	gr_screen.gf_save_screen = gr_opengl1_save_screen;
@@ -172,8 +162,6 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_set_cull = gr_opengl1_set_cull;
 
 	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
-
-	gr_screen.gf_set_clear_color = gr_opengl_set_clear_color;
 
 	gr_screen.gf_preload_init = gr_opengl1_preload_init;
 	gr_screen.gf_preload = gr_opengl1_preload;
@@ -462,7 +450,7 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 			(gr_screen.current_fog_color.blue != b) ) {
 		GLfloat fc[4];
 
-		gr_opengl_init_color( &gr_screen.current_fog_color, r, g, b );
+		gr_init_color( &gr_screen.current_fog_color, r, g, b );
 
 		fc[0] = (float)r/255.0;
 		fc[1] = (float)g/255.0;

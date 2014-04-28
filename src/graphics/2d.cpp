@@ -1012,3 +1012,121 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 	gr_set_cull(1);		
 }
 
+void gr_set_color_fast(color *dst)
+{
+	if (dst->screen_sig != gr_screen.signature) {
+		if (dst->is_alphacolor) {
+			gr_init_alphacolor(dst, dst->red, dst->green, dst->blue, dst->alpha, dst->ac_type);
+		} else {
+			gr_init_color(dst, dst->red, dst->green, dst->blue);
+		}
+	}
+
+	gr_screen.current_color = *dst;
+}
+
+void gr_get_color(int *r, int *g, int *b)
+{
+	if (r) *r = gr_screen.current_color.red;
+	if (g) *g = gr_screen.current_color.green;
+	if (b) *b = gr_screen.current_color.blue;
+}
+
+void gr_init_color(color *c, int r, int g, int b)
+{
+	c->screen_sig = gr_screen.signature;
+	c->red = (unsigned char)r;
+	c->green = (unsigned char)g;
+	c->blue = (unsigned char)b;
+	c->alpha = 255;
+	c->ac_type = AC_TYPE_NONE;
+	c->alphacolor = -1;
+	c->is_alphacolor = 0;
+	c->magic = 0xAC01;
+}
+
+void gr_init_alphacolor(color *clr, int r, int g, int b, int alpha, int type)
+{
+	CAP(r, 0, 255);
+	CAP(g, 0, 255);
+	CAP(b, 0, 255);
+	CAP(alpha, 0, 255);
+
+	gr_init_color(clr, r, g, b);
+
+	clr->alpha = (unsigned char)alpha;
+	clr->ac_type = (ubyte)type;
+	clr->alphacolor = -1;
+	clr->is_alphacolor = 1;
+}
+
+void gr_set_color(int r, int g, int b)
+{
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
+
+	gr_init_color(&gr_screen.current_color, r, g, b);
+}
+
+void gr_set_clear_color(int r, int g, int b)
+{
+	gr_init_color(&gr_screen.current_clear_color, r, g, b);
+}
+
+void gr_set_bitmap(int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy)
+{
+	gr_screen.current_alpha = alpha;
+	gr_screen.current_alphablend_mode = alphablend_mode;
+	gr_screen.current_bitblt_mode = bitblt_mode;
+	gr_screen.current_bitmap = bitmap_num;
+
+	gr_screen.current_bitmap_sx = sx;
+	gr_screen.current_bitmap_sy = sy;
+}
+
+void gr_create_shader(shader *shade, float r, float g, float b, float c)
+{
+	shade->screen_sig = gr_screen.signature;
+	shade->r = r;
+	shade->g = g;
+	shade->b = b;
+	shade->c = c;
+}
+
+void gr_set_shader(shader *shade)
+{
+	if (shade) {
+		if (shade->screen_sig != gr_screen.signature) {
+			gr_create_shader(shade, shade->r, shade->g, shade->b, shade->c);
+		}
+
+		gr_screen.current_shader = *shade;
+	} else {
+		gr_create_shader(&gr_screen.current_shader, 0.0f, 0.0f, 0.0f, 0.0f);
+	}
+}
+
+int gr_zbuffer_get()
+{
+	if ( !Gr_global_zbuffering ) {
+		return GR_ZBUFF_NONE;
+	}
+
+	return Gr_zbuffering_mode;
+}
+
+int gr_zbuffer_set(int mode)
+{
+	int tmp = Gr_zbuffering_mode;
+
+	Gr_zbuffering_mode = mode;
+
+	if (Gr_zbuffering_mode == GR_ZBUFF_NONE) {
+		Gr_zbuffering = 0;
+	} else {
+		Gr_zbuffering = 1;
+	}
+
+	return tmp;
+}

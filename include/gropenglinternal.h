@@ -42,19 +42,8 @@ extern rb_t *render_buffer;
 
 
 // gr_* pointer functions
-void gr_opengl_set_shader( shader * shade );
-void gr_opengl_create_shader(shader * shade, float r, float g, float b, float c );
-void gr_opengl_set_bitmap( int bitmap_num, int alphablend_mode = GR_ALPHABLEND_NONE, int bitblt_mode = GR_BITBLT_MODE_NORMAL, float alpha = 1.0f, int sx = -1, int sy = -1 );
-void gr_opengl_set_clear_color(int r, int g, int b);
-void gr_opengl_set_color( int r, int g, int b );
-void gr_opengl_init_alphacolor( color *clr, int r, int g, int b, int alpha, int type );
-void gr_opengl_init_color(color *c, int r, int g, int b);
-void gr_opengl_get_color( int * r, int * g, int * b );
-void gr_opengl_set_color_fast(color *dst);
 void gr_opengl_force_fullscreen();
 void gr_opengl_force_windowed();
 void gr_opengl_toggle_fullscreen();
-int gr_opengl_zbuffer_get();
-int gr_opengl_zbuffer_set(int mode);
 
 #endif	// _OPENGLINTERNAL_H

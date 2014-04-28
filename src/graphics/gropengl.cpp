@@ -458,9 +458,11 @@ void gr_opengl_init()
 	Gr_current_green = &Gr_green;
 	Gr_current_alpha = &Gr_alpha;
 
+
 	Mouse_hidden++;
 	gr_reset_clip();
 	gr_clear();
 	gr_flip();
+	gr_clear();
 	Mouse_hidden--;
 }

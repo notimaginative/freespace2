@@ -73,7 +73,7 @@
 #include "packunpack.h"
 
 #ifdef NDEBUG
-char *help_text = "AC ANI Converter Copyright (C) 1998, Volition, Inc.  All Rights Reserved.\n"
+static const char *help_text = "AC ANI Converter Copyright (C) 1998, Volition, Inc.  All Rights Reserved.\n"
 						"For exclusive use in FreeSpace missions only.\n\n"
 						"Usage: ac [-fps n] [-v] filename\n\n" \
 						"-i     => display information and statistics about the ani file\n" \
@@ -86,7 +86,7 @@ char *help_text = "AC ANI Converter Copyright (C) 1998, Volition, Inc.  All Righ
 						"ac test0000.pcx => converts test0000.pcx up to highest testxxxx.pcx to test.ani\n";
 
 #else
-char *help_text = "Usage: ac [-c n] [-k n] [-ke n] [-fps n] [-to] [-v] filename\n\n" \
+static const char *help_text = "Usage: ac [-c n] [-k n] [-ke n] [-fps n] [-to] [-v] filename\n\n" \
 						"-c   n => which kind of compression to use (default is 1):\n" \
 						"     -c 0 => compression using up to 255 count, takes 3 bytes for a run\n" \
 						"     -c 1 => compression using up to 127 count, takes 2 bytes for a run\n" \
@@ -111,7 +111,7 @@ char *help_text = "Usage: ac [-c n] [-k n] [-ke n] [-fps n] [-to] [-v] filename\
 static char buffer[255];
 
 // Internal function prototypes
-void ac_error(char *msg);
+void ac_error(const char *msg);
 void start_convert_with(char* filename);
 
 int main(int argc, char *argv[])
@@ -129,13 +129,13 @@ int main(int argc, char *argv[])
 	vm_init(16*1024*1024);
 
 	if ( argc <= 1 ) {
-		printf(help_text);
+		printf("%s", help_text);
 		exit(0);
 	}
 
 	for ( i = 1; i < argc; i++ ) {
 		if ( !SDL_strcasecmp(argv[i], "-h" ) ) {
-			printf(help_text);
+			printf("%s", help_text);
 			exit(0);
 
 #ifndef NDEBUG
@@ -197,9 +197,9 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void ac_error(char *msg)
+void ac_error(const char *msg)
 {
-	fprintf(stderr, msg);
+	fprintf(stderr, "%s", msg);
 	exit(1);
 }
 

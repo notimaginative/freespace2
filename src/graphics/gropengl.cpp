@@ -327,6 +327,7 @@ void gr_opengl_init()
 	mprintf(("  Attributes received : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
 
 
+	SDL_DisableScreenSaver();
 	SDL_ShowCursor(0);
 
 	// initial setup viewport

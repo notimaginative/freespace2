@@ -196,11 +196,6 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	int i;
 	float u_scale = 1.0f, v_scale = 1.0f;
 
-	// Make nebula use the texture mapper... this blends the colors better.
-	if ( flags & TMAP_FLAG_NEBULA ){
-		Int3 ();
-	}
-
 	gr_texture_source texture_source = (gr_texture_source)-1;
 	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
 	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;

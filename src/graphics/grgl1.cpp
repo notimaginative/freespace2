@@ -184,7 +184,7 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
 	gr_screen.gf_toggle_fullscreen = gr_opengl_toggle_fullscreen;
 
-	gr_screen.gf_set_viewport = gr_opengl_set_viewport;
+	gr_screen.gf_set_viewport = gr_opengl1_set_viewport;
 
 	gr_screen.gf_activate = gr_opengl1_activate;
 }
@@ -742,4 +742,38 @@ void gr_opengl1_zbias(int bias)
 	} else {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
+}
+
+void gr_opengl1_set_viewport(int width, int height)
+{
+	int w, h, x, y;
+
+	float ratio = gr_screen.max_w / i2fl(gr_screen.max_h);
+
+	w = width;
+	h = i2fl((width / ratio) + 0.5f);
+
+	if (h > height) {
+		h = height;
+		w = i2fl((height * ratio) + 0.5f);
+	}
+
+	x = (width - w) / 2;
+	y = (height - h) / 2;
+
+	GL_viewport_x = x;
+	GL_viewport_y = y;
+	GL_viewport_w = w;
+	GL_viewport_h = h;
+	GL_viewport_scale_w = w / i2fl(gr_screen.max_w);
+	GL_viewport_scale_h = h / i2fl(gr_screen.max_h);
+
+	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, GL_viewport_w, GL_viewport_h, 0, 0.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
 }

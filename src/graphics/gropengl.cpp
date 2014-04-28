@@ -83,29 +83,14 @@ static void opengl_set_variables()
 	}
 }
 
-void gr_opengl_set_viewport(int width, int height)
+static void opengl_init_viewport()
 {
-	int w, h, x, y;
-
-	float ratio = gr_screen.max_w / i2fl(gr_screen.max_h);
-
-	w = width;
-	h = i2fl((width / ratio) + 0.5f);
-
-	if (h > height) {
-		h = height;
-		w = i2fl((height * ratio) + 0.5f);
-	}
-
-	x = (width - w) / 2;
-	y = (height - h) / 2;
-
-	GL_viewport_x = x;
-	GL_viewport_y = y;
-	GL_viewport_w = w;
-	GL_viewport_h = h;
-	GL_viewport_scale_w = w / i2fl(gr_screen.max_w);
-	GL_viewport_scale_h = h / i2fl(gr_screen.max_h);
+	GL_viewport_x = 0;
+	GL_viewport_y = 0;
+	GL_viewport_w = gr_screen.max_w;
+	GL_viewport_h = gr_screen.max_h;
+	GL_viewport_scale_w = 1.0f;
+	GL_viewport_scale_h = 1.0f;
 
 	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
 
@@ -114,7 +99,6 @@ void gr_opengl_set_viewport(int width, int height)
 	glOrtho(0, GL_viewport_w, GL_viewport_h, 0, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
 }
 
 void gr_opengl_force_windowed()
@@ -336,7 +320,7 @@ void gr_opengl_init()
 	SDL_ShowCursor(0);
 
 	// initial viewport setup
-	gr_opengl_set_viewport(gr_screen.max_w, gr_screen.max_h);
+	opengl_init_viewport();
 
 	// set up generic variables before further init() calls
 	opengl_set_variables();

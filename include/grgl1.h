@@ -88,5 +88,6 @@ void gr_opengl1_dump_frame();
 uint gr_opengl1_lock();
 void gr_opengl1_unlock();
 void gr_opengl1_zbias(int bias);
+void gr_opengl1_set_viewport(int width, int height);
 
 #endif	// _GROPENGL1_H

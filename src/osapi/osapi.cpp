@@ -306,10 +306,6 @@ void os_deinit()
 	SDL_Quit();
 }
 
-extern void gr_opengl_set_viewport(int width, int height);
-extern void gr_opengl_force_windowed();
-extern void gr_opengl_force_fullscreen();
-
 void os_poll()
 {
 	SDL_Event e;
@@ -343,9 +339,7 @@ void os_poll()
 			case SDL_KEYDOWN: {
 				if (e.key.keysym.mod & KMOD_GUI) {
 					if (e.key.keysym.sym == SDLK_f ) {
-						gr_opengl_force_fullscreen();
-					} else if (e.key.keysym.sym == SDLK_w) {
-						gr_opengl_force_windowed();
+						gr_toggle_fullscreen();
 				//	} else if (e.key.keysym.sym == SDLK_z) {
 				//		SDL_MinimizeWindow(GL_window);
 					}
@@ -449,7 +443,7 @@ void os_poll()
 			case SDL_WINDOWEVENT: {
 				switch (e.window.event) {
 					case SDL_WINDOWEVENT_RESIZED:
-						gr_opengl_set_viewport(e.window.data1, e.window.data2);
+						gr_set_viewport(e.window.data1, e.window.data2);
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_LOST:

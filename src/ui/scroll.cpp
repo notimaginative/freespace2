@@ -92,6 +92,7 @@
 #include "ui.h"
 #include "timer.h"
 #include "alphacolors.h"
+#include "font.h"
 
 
 // --------------------------------------------------------------------

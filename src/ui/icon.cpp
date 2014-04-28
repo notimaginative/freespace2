@@ -62,6 +62,7 @@
 #include "uidefs.h"
 #include "ui.h"
 #include "alphacolors.h"
+#include "font.h"
 
 // ---------------------------------------------------------------------------------------
 // UI_ICON::create()

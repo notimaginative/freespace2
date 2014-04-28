@@ -1078,45 +1078,30 @@ void subspace_render()
 
 	gr_zbuffer_set(GR_ZBUFF_NONE);
 
-	if ( !D3D_enabled )	{
+	int render_flags = MR_NO_LIGHTING | MR_ALWAYS_REDRAW;
 
-		int render_flags = MR_NO_LIGHTING | MR_ALWAYS_REDRAW;
+	Interp_subspace = 1;
+	Interp_subspace_offset_u = 1.0f - subspace_offset_u;
+	Interp_subspace_offset_v = 0.0f;
 
-		Interp_subspace = 1;	
-		Interp_subspace_offset_u = 1.0f - subspace_offset_u;
-		Interp_subspace_offset_v = 0.0f;
+	model_set_thrust( Subspace_model_inner, 1.0f, -1, Subspace_glow_bitmap, Noise[framenum] );
+	render_flags |= MR_SHOW_THRUSTERS;
+	model_render( Subspace_model_outer, &tmp, &Eye_position, render_flags );	//MR_NO_CORRECT|MR_SHOW_OUTLINE
 
-		model_set_thrust( Subspace_model_inner, 1.0f, -1, Subspace_glow_bitmap, Noise[framenum] );
-		render_flags |= MR_SHOW_THRUSTERS;
-		model_render( Subspace_model_outer, &tmp, &Eye_position, render_flags );	//MR_NO_CORRECT|MR_SHOW_OUTLINE 
+	Interp_subspace = 1;
+	Interp_subspace_offset_u = 1.0f - subspace_offset_u_inner;
+	Interp_subspace_offset_v = 0.0f;
 
-	} else {
+	angs.b = -subspace_offset_v * PI2;
 
-		int render_flags = MR_NO_LIGHTING | MR_ALWAYS_REDRAW;
+	vm_angles_2_matrix(&tmp,&angs);
 
-		Interp_subspace = 1;	
-		Interp_subspace_offset_u = 1.0f - subspace_offset_u;
-		Interp_subspace_offset_v = 0.0f;
+	model_set_outline_color(255,255,255);
 
-		model_set_thrust( Subspace_model_inner, 1.0f, -1, Subspace_glow_bitmap, Noise[framenum] );
-		render_flags |= MR_SHOW_THRUSTERS;
-		model_render( Subspace_model_outer, &tmp, &Eye_position, render_flags );	//MR_NO_CORRECT|MR_SHOW_OUTLINE 
-		
-		Interp_subspace = 1;	
-		Interp_subspace_offset_u = 1.0f - subspace_offset_u_inner;
-		Interp_subspace_offset_v = 0.0f;	
+	model_set_thrust( Subspace_model_inner, 1.0f, -1, Subspace_glow_bitmap, Noise[framenum] );
+	render_flags |= MR_SHOW_THRUSTERS;
 
-		angs.b = -subspace_offset_v * PI2;
-
-		vm_angles_2_matrix(&tmp,&angs);
-
-		model_set_outline_color(255,255,255);
-
-		model_set_thrust( Subspace_model_inner, 1.0f, -1, Subspace_glow_bitmap, Noise[framenum] );
-		render_flags |= MR_SHOW_THRUSTERS;
-
-		model_render( Subspace_model_inner, &tmp, &Eye_position, render_flags  );	//MR_NO_CORRECT|MR_SHOW_OUTLINE 
-	}
+	model_render( Subspace_model_inner, &tmp, &Eye_position, render_flags  );	//MR_NO_CORRECT|MR_SHOW_OUTLINE
 
 	Interp_subspace = 0;
 	gr_zbuffer_set(saved_gr_zbuffering);
@@ -1256,23 +1241,14 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				color = i & 7;
 			}
 
-			if ( (Star_flags & STAR_FLAG_ANTIALIAS) || (D3D_enabled) )	{
-				gr_set_color_fast( &star_aacolors[color] );
+			gr_set_color_fast( &star_aacolors[color] );
 
-				// if the two points are the same, fudge it, since some D3D cards (G200 and G400) are lame.				
-				if( (fl2i(p1.sx) == fl2i(p2.sx)) && (fl2i(p1.sy) == fl2i(p2.sy)) ){					
-					p1.sx += 1.0f;
-				}								
-				gr_aaline(&p1,&p2);
-			} else {
-				// use alphablended line so that dark stars don't look bad on top of nebulas
-				gr_set_color_fast( &star_aacolors[color] );
-				if ( Star_flags & STAR_FLAG_TAIL )	{
-					gr_line(fl2i(p1.sx),fl2i(p1.sy),fl2i(p2.sx),fl2i(p2.sy));
-				} else {
-					gr_pixel( fl2i(p2.sx),fl2i(p2.sy) );
-				}
+			// if the two points are the same, fudge it, since some D3D cards (G200 and G400) are lame.
+			if ( (fl2i(p1.sx) == fl2i(p2.sx)) && (fl2i(p1.sy) == fl2i(p2.sy)) ) {
+				p1.sx += 1.0f;
 			}
+
+			gr_aaline(&p1,&p2);
 		}
 	}
 

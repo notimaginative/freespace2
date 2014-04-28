@@ -295,11 +295,6 @@ extern int Fred_found_unknown_ship_during_parsing;
 // Noise numbers go from 0 to 1.0
 extern float Noise[NOISE_NUM_FRAMES];
 
-
-// If true, then we are using Direct3D hardware.  This is used for game type stuff
-// that changes when you're using hardware.
-extern int D3D_enabled;
-
 // game skill levels 
 #define	NUM_SKILL_LEVELS	5
 

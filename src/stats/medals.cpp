@@ -953,18 +953,6 @@ void medal_tbl_close()
 	}
 }
 
-/*
-void init_medal_palette()
-{
-	Medal_palette = bm_load("MedalsPalette.pcx");
-	if(Medal_palette > -1){
-#ifndef HARDWARE_ONLY
-		palette_use_bm_palette(Medal_palette);
-#endif
-	}
-}
-*/
-
 // function to load in the medals for this player.  It loads medals that the player has (known
 // by whether or not a non-zero number is present in the player's medal array), then loads the
 // rank bitmap

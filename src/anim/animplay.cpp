@@ -625,10 +625,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 			ubyte *temp = NULL;
 			int temp_file_offset = 0;			
 
-			// if we're using bitmap polys
-			if(Gr_bitmap_poly){
-				BM_SELECT_TEX_FORMAT();
-			}
+			BM_SELECT_TEX_FORMAT();
 
 			if ( anim_instance_is_streamed(instance) ) {
 				if ( instance->xlate_pal ){

@@ -91,15 +91,19 @@ int g_width, g_height;
 void *g_vBuffers = NULL;
 void *g_vBackBuf1, *g_vBackBuf2;
 ushort *pixelbuf = NULL;
-static int g_screenWidth, g_screenHeight;
-static ubyte g_palette[768];
 static ubyte *g_pCurMap=NULL;
 static int g_nMapLength=0;
-static int videobuf_created, video_inited;
-static int hp2, wp2;
-static uint mve_video_skiptimer = 0;
+static int videobuf_created;
 static int mve_scale_video = 0;
 static GLuint tex = 0;
+
+struct g_coords_t {
+	int x, y;
+	float u, v;
+};
+
+static g_coords_t g_coords[4];
+
 
 // the decoder
 void decodeFrame16(ubyte *pFrame, ubyte *pMap, int mapRemain, ubyte *pData, int dataRemain);
@@ -461,22 +465,23 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	if (videobuf_created)
 		return 1;
 
+	if (gr_screen.mode != GR_OPENGL) {
+		mprintf(("MVE-ERROR: Movie playback requires OpenGL renderer\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	if (gr_screen.use_sections) {
+		mprintf(("MVE-ERROR: Bitmap sections not supported\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	int tex_w, tex_h;
 	short w, h;
-	short count, truecolor;
+
 	w = mve_get_short(data);
 	h = mve_get_short(data+2);
-	
-	if (minor > 0) {
-		count = mve_get_short(data+4);
-	} else {
-		count = 1;
-	}
-	
-	if (minor > 1) {
-		truecolor = mve_get_short(data+6);
-	} else {
-		truecolor = 0;
-	}
 
 	g_width = w << 3;
 	g_height = h << 3;
@@ -485,14 +490,102 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	g_vBackBuf1 = g_vBuffers = malloc(g_width * g_height * 4);
 
 	if (g_vBackBuf1 == NULL) {
-		mprintf(("MOVIE", "ERROR: Can't allocate video buffer"));
+		mprintf(("MVE-ERROR: Can't allocate video buffer\n"));
 		videobuf_created = 1;
 		return 0;
 	}
 
 	g_vBackBuf2 = (ushort *)g_vBackBuf1 + (g_width * g_height);
-		
+
 	memset(g_vBackBuf1, 0, g_width * g_height * 4);
+
+	// DDOI - Allocate RGB565 pixel buffer
+	pixelbuf = (ushort *)malloc (g_width * g_height * 2);
+
+	if (pixelbuf == NULL) {
+		mprintf(("MVE-ERROR: Can't allocate memory for pixelbuf\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	memset(pixelbuf, 0, g_width * g_height * 2);
+
+	// set height and width to a power of 2
+	tex_w = next_pow2(g_width);
+	tex_h = next_pow2(g_height);
+
+	SDL_assert(tex_w > 0);
+	SDL_assert(tex_h > 0);
+
+	glGenTextures(1, &tex);
+
+	if (tex == 0) {
+		mprintf(("MVE-ERROR: Can't create a GL texture\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, tex);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthFunc(GL_ALWAYS);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int x, y;
+
+	// centers
+	x = ((gr_screen.max_w - g_width) / 2);
+	y = ((gr_screen.max_h - g_height) / 2);
+
+	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 1) == 1 ) {
+		extern int GL_viewport_w;
+
+		float scale_by = GL_viewport_w / (float)g_width;
+
+		// don't bother setting anything if we aren't going to need it
+		if (scale_by != 1.0f) {
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glScalef( scale_by, scale_by, 1.0f );
+			mve_scale_video = 1;
+
+			x = 0;
+			y = ((480 - g_height) / 2);
+		}
+	}
+
+	g_coords[0].x = x;
+	g_coords[0].y = y;
+	g_coords[0].u = 0.0f;
+	g_coords[0].v = 0.0f;
+
+	g_coords[1].x = x;
+	g_coords[1].y = y + g_height;
+	g_coords[1].u = 0.0f;
+	g_coords[1].v = i2fl(g_height) / i2fl(tex_h);
+
+	g_coords[2].x = x + g_width;
+	g_coords[2].y = y;
+	g_coords[2].u = i2fl(g_width) / i2fl(tex_w);
+	g_coords[2].v = 0.0f;
+
+	g_coords[3].x = x + g_width;
+	g_coords[3].y = y + g_height;
+	g_coords[3].u = i2fl(g_width) / i2fl(tex_w);
+	g_coords[3].v = i2fl(g_height) / i2fl(tex_h);
+
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glTexCoordPointer(2, GL_FLOAT, sizeof(g_coords_t), &g_coords[0].u);
+	glVertexPointer(2, GL_INT, sizeof(g_coords_t), &g_coords[0].x);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
 
 	videobuf_created = 1;
 
@@ -510,40 +603,21 @@ static void mve_convert_and_draw()
 
 	pDests = pixelbuf;
 
-	if (g_screenWidth > g_width) {
-		pDests += ((g_screenWidth - g_width) / 2) / 2;
-	}
-	if (g_screenHeight > g_height) {
-		pDests += ((g_screenHeight - g_height) / 2) * g_screenWidth;
-	}
-
 	for (y=0; y<g_height; y++) {
 		for (x = 0; x < g_width; x++) {
 			pDests[x] = (1<<15)|*pSrcs;
 
 			pSrcs++;
 		}
-		pDests += g_screenWidth;
+		pDests += g_width;
 	}
 }
 
 void mve_video_display()
 {
+	static uint mve_video_skiptimer = 0;
+
 	fix t1 = timer_get_fixed_seconds();
-	mve_convert_and_draw();
-
-	int x, y;
-	int h = g_screenHeight;
-	int w = g_screenWidth;
-
-#ifdef PLAT_UNIX
-	if (mve_scale_video) {
-		x = y = 0;
-	} else {
-		// centers on 1024x768, fills on 640x480
-		x = ((gr_screen.max_w - g_screenWidth) / 2);
-		y = ((gr_screen.max_h - g_screenHeight) / 2);
-	}
 
 	// micro_frame_delay is divided by 10 to match mve_video_skiptimer overflow catch
 	if ( mve_video_skiptimer > (uint)(micro_frame_delay/10) ) {
@@ -555,73 +629,13 @@ void mve_video_display()
 		mve_video_skiptimer = 0;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, tex);
-	
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
+	mve_convert_and_draw();
 
-	// 0, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,0);										glVertex2i(x,y);
-		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
-	glEnd();
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_width, g_height, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
 
-	// 0, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
-		glTexCoord2f(0,i2fl(h)/i2fl(hp2));						glVertex2i(x,y+h);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-	glEnd();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	// 256, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
-	glEnd();
-
-	// 256, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-	glEnd();
-
-	// 512, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),0);						glVertex2i(x+w,y);
-	glEnd();
-
-	// 512, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(h)/i2fl(hp2));		glVertex2i(x+w,y+h);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
-	glEnd();
-#else
-	// centers on 1024x768, fills on 640x480
-	x = ((gr_screen.max_w - g_screenWidth) / 2);
-	y = ((gr_screen.max_h - g_screenHeight) / 2);
-
-	// DDOI - This is probably really fricking slow
-	int bitmap = bm_create (16, w, h, pixelbuf, 0);
-	gr_set_bitmap (bitmap);
-	gr_bitmap (x, y);
-	bm_release (bitmap);
-#endif
-
-	gr_flip ();
-#ifdef PLAT_UNIX
-	os_poll ();	/* DDOI - run event loop(s) */
-#endif
+	gr_flip();
 
 	fix t2 = timer_get_fixed_seconds();
 
@@ -631,119 +645,6 @@ void mve_video_display()
 		// by one-hundred-thousand before converting to an uint.
 		mve_video_skiptimer = (uint)(f2fl(t2-t1) * 100000);
 	}
-
-	int k = key_inkey();
-	if ( k == SDLK_ESCAPE ) {
-		mve_playing = 0;
-	}
-
-//	fprintf(stderr, "mve frame took this long: %.6f\n", f2fl(t2-t1));
-}
-
-int mve_video_init(ubyte *data)
-{
-	if (video_inited)
-		return 1;
-
-	short width, height;
-
-	width = mve_get_short(data);
-	height = mve_get_short(data+2);
-
-	// DDOI - Allocate RGB565 pixel buffer
-	pixelbuf = (ushort *)malloc (width * height * 2);
-
-	if (pixelbuf == NULL) {
-		mprintf(("MOVIE", "ERROR: Can't allocate memory for pixelbuf"));
-		video_inited = 1;
-		return 0;
-	}
-
-	memset(pixelbuf, 0, width * height * 2);
-
-	g_screenWidth = width;
-	g_screenHeight = height;
-
-#ifdef PLAT_UNIX
-	int i, tex_w, tex_h;
-
-	tex_w = g_screenWidth;
-	tex_h = g_screenHeight;
-
-	// set height and width to a power of 2
-	for (i=0; i<16; i++ )	{
-		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )	{
-			tex_w = 1 << (i+1);
-			break;
-		}
-	}
-
-	for (i=0; i<16; i++ )	{
-		if ( (tex_h > (1<<i)) && (tex_h <= (1<<(i+1))) )	{
-			tex_h = 1 << (i+1);
-			break;
-		}
-	}
-
-	// try to keep an 8:1 size ratio
-	if (tex_w/tex_h > 8)
-		tex_h = tex_w/8;
-	if (tex_h/tex_w > 8)
-		tex_w = tex_h/8;
-
-	wp2 = tex_w;
-	hp2 = tex_h;
-
-	glGenTextures(1, &tex);
-
-	SDL_assert(tex != 0);
-
-	if ( tex == 0 ) {
-		mprintf(("MOVIE", "ERROR: Can't create a GL texture"));
-		video_inited = 1;
-		return 0;
-	}
-
-	glBindTexture(GL_TEXTURE_2D, tex);
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthFunc(GL_ALWAYS);
-	glDepthMask(GL_FALSE);
-	glDisable(GL_DEPTH_TEST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 0) == 1 ) {
-		float scale_by = (float)gr_screen.max_w / (float)g_screenWidth;
-
-		// don't bother setting anything if we aren't going to need it
-		if (scale_by != 1.0f) {
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-
-			glScalef( scale_by, scale_by, 1.0f );
-			mve_scale_video = 1;
-		}
-	}
-
-	// NOTE: using NULL instead of pixelbuf crashes some drivers, but then so does pixelbuf so less of two evils...
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, wp2, hp2, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
-#endif
-
-	memset(g_palette, 0, 768);
-	
-	video_inited = 1;
-	
-	return 1;
-}
-
-void mve_video_palette(ubyte *data)
-{
-	short start, count;
-	start = mve_get_short(data);
-	count = mve_get_short(data+2);
-	memcpy(g_palette + 3*start, data+4, 3*count);
 }
 
 void mve_video_codemap(ubyte *data, int len)
@@ -754,18 +655,9 @@ void mve_video_codemap(ubyte *data, int len)
 
 void mve_video_data(ubyte *data, int len)
 {
-	short nFrameHot, nFrameCold;
-	short nXoffset, nYoffset;
-	short nXsize, nYsize;
 	ushort nFlags;
 	ubyte *temp;
 
-	nFrameHot = mve_get_short(data);
-	nFrameCold = mve_get_short(data+2);
-	nXoffset = mve_get_short(data+4);
-	nYoffset = mve_get_short(data+6);
-	nXsize = mve_get_short(data+8);
-	nYsize = mve_get_short(data+10);
 	nFlags = mve_get_ushort(data+12);
 
 	if (nFlags & 1) {
@@ -792,7 +684,6 @@ void mve_init(MVESTREAM *mve)
 	audiobuf_created = 0;
 
 	videobuf_created = 0;
-	video_inited = 0;
 	mve_scale_video = 0;
 
 	mve_playing = 1;
@@ -815,6 +706,12 @@ void mve_play(MVESTREAM *mve)
 		}
 
 		timer_error = mve_do_timer_wait();
+
+		os_poll();
+
+		if (key_inkey() == SDLK_ESCAPE) {
+			mve_playing = 0;
+		}
 	}
 }
 
@@ -834,16 +731,21 @@ void mve_shutdown()
 		g_vBuffers = NULL;
 	}
 
-#ifdef PLAT_UNIX
-	if (mve_scale_video) {
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glLoadIdentity();
+	if (gr_screen.mode == GR_OPENGL) {
+		if (tex > 0) {
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDeleteTextures(1, &tex);
+			tex = 0;
+		}
+
+		if (mve_scale_video) {
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
+
+		glEnable(GL_DEPTH_TEST);
 	}
-
-	glDeleteTextures(1, &tex);
-	tex = 0;
-
-	glEnable(GL_DEPTH_TEST);
-#endif
 }

@@ -309,8 +309,6 @@ typedef Sint32 ptr_s;
 typedef Uint32 ptr_u;
 #endif
 
-#define HARDWARE_ONLY
-
 //Stucture to store clipping codes in a word
 typedef struct ccodes {
 	ubyte vor,vand;	//or is low byte, and is high byte
@@ -371,11 +369,10 @@ typedef struct vertex {
 
 #define	BMP_AABITMAP		(1<<0)				// antialiased bitmap
 #define	BMP_TEX_XPARENT		(1<<1)				// transparent texture
-#define	BMP_TEX_NONDARK		(1<<2)				// nondarkening texture
-#define	BMP_TEX_OTHER		(1<<3)				// so we can identify all "normal" textures
+#define	BMP_TEX_OTHER		(1<<2)				// so we can identify all "normal" textures
 
 // any texture type
-#define	BMP_TEX_ANY				( BMP_TEX_XPARENT | BMP_TEX_NONDARK | BMP_TEX_OTHER )
+#define	BMP_TEX_ANY				( BMP_TEX_XPARENT | BMP_TEX_OTHER )
 
 // max res == 1024x768. max texture size == 256
 #define MAX_BMAP_SECTIONS_X				4

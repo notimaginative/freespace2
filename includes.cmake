@@ -22,7 +22,6 @@ set(fs_INCLUDES
   include/barracks.h
   include/beam.h
   include/bgbitmapdlg.h
-  include/bitblt.h
   include/bmpman.h
   include/briefingeditordlg.h
   include/campaigneditordlg.h
@@ -36,12 +35,10 @@ set(fs_INCLUDES
   include/chatbox.h
   include/childfrm.h
   include/chttpget.h
-  include/circle.h
   include/cmdbrief.h
   include/cmdline.h
   include/cmeasure.h
   include/codec1.h
-  include/colors.h
   include/contexthelp.h
   include/controlsconfig.h
   include/convert.h
@@ -76,27 +73,14 @@ set(fs_INCLUDES
   include/freespace.h
   include/freespaceresource.h
   include/fvi.h
-  include/fxdll.h
-  include/fxglob.h
   include/gameplayhelp.h
   include/gamesequence.h
   include/gamesnd.h
-  include/glide.h
-  include/glidesys.h
-  include/glideutl.h
-  include/gradient.h
-  include/grd3d.h
-  include/grd3dinternal.h
-  include/grdirectdraw.h
-  include/grglide.h
-  include/grglideinternal.h
   include/grid.h
   include/grinternal.h
-  include/gropengl1.h
-  include/gropengl2.h
+  include/grgl1.h
   include/gropengl.h
   include/gropenglinternal.h
-  include/grsoft.h
   include/helpeddoc.h
   include/helped.h
   include/helpedline.h
@@ -221,7 +205,6 @@ set(fs_INCLUDES
   include/particle.h
   include/pcxutils.h
   include/physics.h
-  include/pixel.h
   include/player.h
   include/playermenu.h
   include/playerstarteditor.h
@@ -241,12 +224,10 @@ set(fs_INCLUDES
   include/reinforcementeditordlg.h
   include/resource.h
   include/rtvoice.h
-  include/scaler.h
   include/scoring.h
   include/scramble.h
   include/sexp.h
   include/sexp_tree.h
-  include/shade.h
   include/shieldsysdlg.h
   include/shipchecklistbox.h
   include/shipclasseditordlg.h
@@ -263,7 +244,6 @@ set(fs_INCLUDES
   include/snazzyui.h
   include/sound.h
   include/spline.h
-  include/sst1vid.h
   include/stand_gui.h
   include/starfieldeditor.h
   include/starfield.h
@@ -273,7 +253,6 @@ set(fs_INCLUDES
   include/subsysdamage.h
   include/supernova.h
   include/swarm.h
-  include/sw_force.h
   include/systemvars.h
   include/techmenu.h
   include/textviewdlg.h
@@ -281,28 +260,11 @@ set(fs_INCLUDES
   include/tgautils.h
   include/timer.h
   include/tmapper.h
-  include/tmapscanline.h
   include/trails.h
   include/trainingmenu.h
   include/uidefs.h
   include/ui.h
   include/unix.h
-  include/vasync.h
-  include/vd3dcaps.h
-  include/vd3d.h
-  include/vd3di.h
-  include/vd3drmdef.h
-  include/vd3drm.h
-  include/vd3drmobj.h
-  include/vd3drmwin.h
-  include/vd3dtypes.h
-  include/vddraw.h
-  include/vdinput.h
-  include/vdplay.h
-  include/vdplobby.h
-  include/vdsetup.h
-  include/vdsound.h
-  include/vdvp.h
   include/vecmat.h
   include/version.h
   include/waypointpathdlg.h

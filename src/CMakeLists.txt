@@ -34,8 +34,10 @@ set(code_SOURCE
   globalincs/version.cpp
   graphics/2d.cpp
   graphics/font.cpp
+  graphics/grgl1.cpp
+  graphics/grgl1render.cpp
+  graphics/grgl1texture.cpp
   graphics/gropengl.cpp
-  graphics/grzbuffer.cpp
   hud/hud.cpp
   hud/hudartillery.cpp
   hud/hudbrackets.cpp

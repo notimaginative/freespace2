@@ -175,7 +175,6 @@
 
 #include "3dinternal.h"
 #include "tmapper.h"
-#include "scaler.h"
 #include "2d.h"
 #include "floating.h"
 #include "physics.h"		// For Physics_viewer_bank for g3_draw_rotated_bitmap
@@ -1763,7 +1762,7 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	vertex v[4];
 	vertex *vertlist[4] = { &v[0], &v[1], &v[2], &v[3] };
 
-	int bw, bh;
+//	int bw, bh;
 
 	g3_start_frame(1);
 
@@ -1771,7 +1770,7 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	saved_zbuffer_mode = gr_zbuffer_get();
 	gr_zbuffer_set(GR_ZBUFF_NONE);	
 
-	bm_get_section_size(gr_screen.current_bitmap, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, &bw, &bh);
+//	bm_get_section_size(gr_screen.current_bitmap, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, &bw, &bh);
 
 	// stuff coords	
 	v[0].sx = (float)x;
@@ -1839,9 +1838,6 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	v[3].flags = PF_PROJECTED;
 	v[3].codes = 0;	
 	*/
-		
-	// no filtering
-	gr_filter_set(0);
 
 	// set debrief	
 	ret = g3_draw_poly_constant_sw(4, vertlist, TMAP_FLAG_TEXTURED | additional_tmap_flags, 0.1f);
@@ -1849,9 +1845,6 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	g3_end_frame();
 	
 	gr_zbuffer_set(saved_zbuffer_mode);	
-
-	// put filtering back on
-	gr_filter_set(1);
 
 	return ret;
 }

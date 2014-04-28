@@ -196,7 +196,6 @@
 
 #include "hudreticle.h"
 #include "hud.h"
-#include "pixel.h"
 #include "math.h"
 #include "player.h"
 #include "ship.h"

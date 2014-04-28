@@ -376,8 +376,8 @@ typedef struct screen {
 	int	max_w, max_h;		// Width and height
 	int	res;					// GR_640 or GR_1024
 	int	mode;					// What mode gr_init was called with.
+	int use_sections;			// whether to use bitmap sections or not
 	float	aspect;				// Aspect ratio
-	int	rowsize;				// What you need to add to go to next row (includes bytes_per_pixel)
 	int	bits_per_pixel;	// How many bits per pixel it is. (7,8,15,16,24,32)
 	int	bytes_per_pixel;	// How many bytes per pixel (1,2,3,4)
 	int	offset_x, offset_y;		// The offsets into the screen
@@ -401,15 +401,9 @@ typedef struct screen {
 	color		current_clear_color;				// current clear color
 	shader	current_shader;
 	float		current_alpha;
-	void		*offscreen_buffer;				// NEVER ACCESS!  This+rowsize*y = screen offset
-	void		*offscreen_buffer_base;			// Pointer to lowest address of offscreen buffer
 
 	//switch onscreen, offscreen
 	void (*gf_flip)();
-	void (*gf_flip_window)(uint _hdc, int x, int y, int w, int h );
-
-	// Sets the current palette
-	void (*gf_set_palette)(ubyte * new_pal, int restrict_alphacolor);
 
 	// Fade the screen in/out
 	void (*gf_fade_in)(int instantaneous);
@@ -424,41 +418,8 @@ typedef struct screen {
 	// resets the clipping region to entire screen
 	void (*gf_reset_clip)();
 
-	void (*gf_set_color)( int r, int g, int b );
-	void (*gf_get_color)( int * r, int * g, int * b );
-	void (*gf_init_color)( color * dst, int r, int g, int b );
-
-	void (*gf_init_alphacolor)( color * dst, int r, int g, int b, int alpha, int type );
-	void (*gf_set_color_fast)( color * dst );
-
-	void (*gf_set_font)(int fontnum);
-
-	// Sets the current bitmap
-	void (*gf_set_bitmap)( int bitmap_num, int alphablend, int bitbltmode, float alpha, int sx, int sy );
-
-	// Call this to create a shader.   
-	// This function takes a while, so don't call it once a frame!
-	// r,g,b, and c should be between -1.0 and 1.0f
-
-	// The matrix is used as follows:
-	// Dest(r) = Src(r)*r + Src(g)*r + Src(b)*r + c;
-	// Dest(g) = Src(r)*g + Src(g)*g + Src(b)*g + c;
-	// Dest(b) = Src(r)*b + Src(g)*b + Src(b)*b + c;
-	// For instance, to convert to greyscale, use
-	// .3 .3 .3  0
-	// To turn everything green, use:
-	//  0 .3  0  0
-	void (*gf_create_shader)(shader * shade, float r, float g, float b, float c );
-
-	// Initialize the "shader" by calling gr_create_shader()
-	// Passing a NULL makes a shader that turns everything black.
-	void (*gf_set_shader)( shader * shade );
-
 	// clears entire clipping region to current color
 	void (*gf_clear)();
-
-	// void (*gf_bitmap)(int x,int y);
-	// void (*gf_bitmap_ex)(int x,int y,int w,int h,int sx,int sy);
 
 	void (*gf_aabitmap)(int x, int y);
 	void (*gf_aabitmap_ex)(int x, int y, int w, int h, int sx, int sy);
@@ -502,12 +463,6 @@ typedef struct screen {
 	// Call after rendering is over.
 	void (*gf_stop_frame)();
 
-	// Retrieves the zbuffer mode.
-	int (*gf_zbuffer_get)();
-
-	// Sets mode.  Returns previous mode.
-	int (*gf_zbuffer_set)(int mode);
-
 	// Clears the zbuffer.  If use_zbuffer is FALSE, then zbuffering mode is ignored and zbuffer is always off.
 	void (*gf_zbuffer_clear)(int use_zbuffer);
 	
@@ -544,30 +499,25 @@ typedef struct screen {
 	// set fog attributes
 	void (*gf_fog_set)(int fog_mode, int r, int g, int b, float fog_near, float fog_far);	
 
-	// get the current pixel color in the framebuffer 
-	void (*gf_get_pixel)(int x, int y, int *r, int *g, int *b);
-
 	// poly culling
 	void (*gf_set_cull)(int cull);
 
 	// cross fade
 	void (*gf_cross_fade)(int bmap1, int bmap2, int x1, int y1, int x2, int y2, float pct);
 
-	// filtering
-	void (*gf_filter_set)(int filter);
+	void (*gf_preload_init)();
+	int (*gf_preload)(int bitmap_num, int is_aabitmap);
 
-	// set a texture into cache. for sectioned bitmaps, pass in sx and sy to set that particular section of the bitmap
-	int (*gf_tcache_set)(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full, int sx, int sy, int force);	
+	void (*gf_zbias)(int bias);
 
-	// set the color to be used when clearing the background
-	void (*gf_set_clear_color)(int r, int g, int b);
+	void (*gf_force_windowed)();
+	void (*gf_force_fullscreen)();
+	void (*gf_toggle_fullscreen)();
+
+	void (*gf_set_viewport)(int width, int height);
+
+	void (*gf_activate)(int active);
 } screen;
-
-// cpu types
-extern int Gr_amd3d;
-extern int Gr_katmai;
-extern int Gr_cpu;	
-extern int Gr_mmx;
 
 // handy macro
 #define GR_MAYBE_CLEAR_RES(bmap)		do  { int bmw = -1; int bmh = -1; if(bmap != -1){ bm_get_info( bmap, &bmw, &bmh); if((bmw != gr_screen.max_w) || (bmh != gr_screen.max_h)){gr_clear();} } else {gr_clear();} } while(0);
@@ -576,11 +526,7 @@ extern int Gr_mmx;
 //--------------------------------------
 // Call this at application startup
 
-#define GR_SOFTWARE					(100)		// Software renderer using standard Win32 functions in a window.
-#define GR_DIRECTDRAW				(101)		// Software renderer using DirectDraw fullscreen.
-#define GR_DIRECT3D					(102)		// Use Direct3d hardware renderer
-#define GR_GLIDE						(103)		// Use Glide hardware renderer
-#define GR_OPENGL						(104)		// Use OpenGl hardware renderer
+#define GR_OPENGL				(100)		// OpenGL (generic)
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
 #define GR_NUM_RESOLUTIONS			2
@@ -642,29 +588,44 @@ extern void gr_activate(int active);
 #define gr_print_screen		GR_CALL(gr_screen.gf_print_screen)
 
 #define gr_flip				GR_CALL(gr_screen.gf_flip)
-#define gr_flip_window		GR_CALL(gr_screen.gf_flip_window)
 
 #define gr_set_clip			GR_CALL(gr_screen.gf_set_clip)
 #define gr_reset_clip		GR_CALL(gr_screen.gf_reset_clip)
-#define gr_set_font			GR_CALL(gr_screen.gf_set_font)
 
-#define gr_init_color		GR_CALL(gr_screen.gf_init_color)
-#define gr_init_alphacolor	GR_CALL(gr_screen.gf_init_alphacolor)
-#define gr_set_color			GR_CALL(gr_screen.gf_set_color)
-#define gr_get_color			GR_CALL(gr_screen.gf_get_color)
-#define gr_set_color_fast	GR_CALL(gr_screen.gf_set_color_fast)
+void gr_set_color_fast(color *dst);
+void gr_get_color(int *r, int *g, int *b);
+void gr_init_color(color *c, int r, int g, int b);
+void gr_init_alphacolor(color *clr, int r, int g, int b, int alpha, int type);
+void gr_set_color(int r, int g, int b);
 
-//#define gr_set_bitmap		GR_CALL(gr_screen.gf_set_bitmap)
-__inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, int bitbltmode=GR_BITBLT_MODE_NORMAL, float alpha=1.0f, int sx = -1, int sy = -1 )
+// Sets the current bitmap
+void gr_set_bitmap(int bitmap_num, int alphablend = GR_ALPHABLEND_NONE, int bitbltmode = GR_BITBLT_MODE_NORMAL, float alpha = 1.0f, int sx = -1, int sy = -1);
+
+__inline bool gr_is_32bit()
 {
-	(*gr_screen.gf_set_bitmap)(bitmap_num, alphablend, bitbltmode, alpha, sx, sy);
+	return (gr_screen.bytes_per_pixel == 4);
 }
 
-#define gr_create_shader	GR_CALL(gr_screen.gf_create_shader)
-#define gr_set_shader		GR_CALL(gr_screen.gf_set_shader)
 #define gr_clear				GR_CALL(gr_screen.gf_clear)
-// #define gr_bitmap				GR_CALL(gr_screen.gf_bitmap)
-// #define gr_bitmap_ex			GR_CALL(gr_screen.gf_bitmap_ex)
+
+// Call this to create a shader.
+// This function takes a while, so don't call it once a frame!
+// r,g,b, and c should be between -1.0 and 1.0f
+
+// The matrix is used as follows:
+// Dest(r) = Src(r)*r + Src(g)*r + Src(b)*r + c;
+// Dest(g) = Src(r)*g + Src(g)*g + Src(b)*g + c;
+// Dest(b) = Src(r)*b + Src(g)*b + Src(b)*b + c;
+// For instance, to convert to greyscale, use
+// .3 .3 .3  0
+// To turn everything green, use:
+//  0 .3  0  0
+void gr_create_shader(shader *shade, float r, float g, float b, float c);
+
+// Initialize the "shader" by calling gr_create_shader()
+// Passing a NULL makes a shader that turns everything black.
+void gr_set_shader(shader *shade);
+
 #define gr_aabitmap			GR_CALL(gr_screen.gf_aabitmap)
 #define gr_aabitmap_ex		GR_CALL(gr_screen.gf_aabitmap_ex)
 #define gr_rect				GR_CALL(gr_screen.gf_rect)
@@ -687,9 +648,15 @@ __inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, 
 #define gr_fade_out			GR_CALL(gr_screen.gf_fade_out)
 #define gr_flash				GR_CALL(gr_screen.gf_flash)
 
-#define gr_zbuffer_get		GR_CALL(gr_screen.gf_zbuffer_get)
-#define gr_zbuffer_set		GR_CALL(gr_screen.gf_zbuffer_set)
+
+// Retrieves the zbuffer mode.
+int gr_zbuffer_get();
+
+// Sets mode.  Returns previous mode.
+int gr_zbuffer_set(int mode);
+
 #define gr_zbuffer_clear	GR_CALL(gr_screen.gf_zbuffer_clear)
+
 
 #define gr_save_screen		GR_CALL(gr_screen.gf_save_screen)
 #define gr_restore_screen	GR_CALL(gr_screen.gf_restore_screen)
@@ -708,27 +675,47 @@ __inline void gr_set_bitmap( int bitmap_num, int alphablend=GR_ALPHABLEND_NONE, 
 
 #define gr_fog_set			GR_CALL(gr_screen.gf_fog_set)
 
-#define gr_get_pixel			GR_CALL(gr_screen.gf_get_pixel)
-
 #define gr_set_cull			GR_CALL(gr_screen.gf_set_cull)
 
 #define gr_cross_fade		GR_CALL(gr_screen.gf_cross_fade)
 
-#define gr_filter_set		GR_CALL(gr_screen.gf_filter_set)
+// set the color to be used when clearing the background
+void gr_set_clear_color(int r, int g, int b);
 
-#define gr_tcache_set		GR_CALL(gr_screen.gf_tcache_set)
+#define gr_preload_init		GR_CALL(gr_screen.gf_preload_init)
+#define gr_preload			GR_CALL(gr_screen.gf_preload)
 
-#define gr_set_clear_color	GR_CALL(gr_screen.gf_set_clear_color)
+#define gr_zbias			GR_CALL(gr_screen.gf_zbias)
+
+#define gr_set_viewport		GR_CALL(gr_screen.gf_set_viewport)
+
+void gr_force_fullscreen();
+void gr_force_windowed();
+void gr_toggle_fullscreen();
 
 // new bitmap functions
-extern int Gr_bitmap_poly;
 void gr_bitmap(int x, int y);
-void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy);
 
 // special function for drawing polylines. this function is specifically intended for
 // polylines where each section is no more than 90 degrees away from a previous section.
 // Moreover, it is _really_ intended for use with 45 degree angles. 
 void gr_pline_special(vector **pts, int num_pts, int thickness);
+
+// return next power-of-2
+inline int next_pow2(int p)
+{
+	if (p < 0)
+		return 0;
+
+	--p;
+	p |= p >> 1;
+	p |= p >> 2;
+	p |= p >> 4;
+	p |= p >> 8;
+	p |= p >> 16;
+
+	return p+1;
+}
 
 #endif
 

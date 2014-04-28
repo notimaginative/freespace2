@@ -204,6 +204,7 @@
 #include "bmpman.h"
 #include "timer.h"
 #include "alphacolors.h"
+#include "font.h"
 
 
 #define INPUTBOX_PASSWD_CHAR        '*'   // the password protected char

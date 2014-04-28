@@ -54,11 +54,13 @@ int movie_play(const char *filename)
 
 			// clear the screen and hide the mouse cursor
 			Mouse_hidden++;
+			gr_set_clear_color(0, 0, 0);
 			gr_reset_clip();
 			gr_clear();
 			gr_flip();
+			gr_clear();
 			gr_zbuffer_clear(1);	// G400, blah
-			
+
 			// ready to play...
 			mve_init(movie);
 			mve_play(movie);

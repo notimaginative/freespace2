@@ -167,14 +167,6 @@
 	#define MAX_BITMAPS 3500			// How many bitmaps the game can handle
 #endif
 
-// 16 bit pixel formats
-#define BM_PIXEL_FORMAT_ARGB				0						// for glide - can assume certain things, like 1555 LFB writes, whee!
-#define BM_PIXEL_FORMAT_D3D				1						// d3d - card dependant. booo!
-#define BM_PIXEL_FORMAT_ARGB_D3D			2						// this card has nice 1555 textures like Glide - ahhhhh!
-
-// 16 bit pixel formats
-extern int Bm_pixel_format;
-
 #define BYTES_PER_PIXEL(x)	((x+7)/8)
 
 // how many bytes of textures are used.
@@ -310,10 +302,6 @@ void bm_page_in_stop();
 // Marks a texture as being used for this level
 // If num_frames is passed, assume this is an animation
 void bm_page_in_texture( int bitmapnum, int num_frames=1 );
-
-// Marks a texture as being used for this level
-// If num_frames is passed, assume this is an animation
-void bm_page_in_nondarkening_texture( int bitmap, int num_frames=1 );
 
 // marks a texture as being a transparent textyre used for this level
 // Marks a texture as being used for this level

@@ -1451,12 +1451,7 @@ void draw_gamma_box()
 		ushort clr_half_white = 0;
 		ubyte r, g, b, a;
 
-		// if we're in bitmap poly mode
-		if(Gr_bitmap_poly){
-			BM_SELECT_TEX_FORMAT();
-		} else {
-			BM_SELECT_SCREEN_FORMAT();
-		}
+		BM_SELECT_TEX_FORMAT();
 
 		// set full white
 		r = g = b = a = 255;		

@@ -114,6 +114,7 @@
 #include "timer.h"
 #include "key.h"
 #include "alphacolors.h"
+#include "font.h"
 
 #define KEY_BUFFER_TIMEOUT		1000		// time to clear buffer in milliseconds
 

@@ -1714,13 +1714,8 @@ void shipfx_emit_spark( int n, int sn )
 				}
 			}
 
-			if ( D3D_enabled ) {
-				pe.num_low  = 25;				// Lowest number of particles to create (hardware)
-				pe.num_high = 30;				// Highest number of particles to create (hardware)
-			} else {
-				pe.num_low  = 5;				// Lowest number of particles to create (software)
-				pe.num_high = 7;				// Highest number of particles to create (software)
-			}
+			pe.num_low  = 25;				// Lowest number of particles to create (hardware)
+			pe.num_high = 30;				// Highest number of particles to create (hardware)
 			pe.normal_variance = 1.0f;	//	How close they stick to that normal 0=good, 1=360 degree
 			pe.min_vel = 2.0f;				// How fast the slowest particle can move
 			pe.max_vel = 12.0f;				// How fast the fastest particle can move
@@ -1732,13 +1727,8 @@ void shipfx_emit_spark( int n, int sn )
 
 			pe.min_rad = 0.7f;				// Min radius
 			pe.max_rad = 1.3f;				// Max radius
-			if ( D3D_enabled ) {
-				pe.num_low  = int (20 * spark_num_scale);		// Lowest number of particles to create (hardware)
-				pe.num_high = int (50 * spark_num_scale);		// Highest number of particles to create (hardware)
-			} else {
-				pe.num_low  = 2;			// Lowest number of particles to create (software)
-				pe.num_high = 8;		// Highest number of particles to create (software)
-			}
+			pe.num_low  = int (20 * spark_num_scale);		// Lowest number of particles to create (hardware)
+			pe.num_high = int (50 * spark_num_scale);		// Highest number of particles to create (hardware)
 			pe.normal_variance = 0.2f * spark_width_scale;		//	How close they stick to that normal 0=good, 1=360 degree
 			pe.min_vel = 3.0f;				// How fast the slowest particle can move
 			pe.max_vel = 12.0f;				// How fast the fastest particle can move

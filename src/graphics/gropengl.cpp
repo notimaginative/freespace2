@@ -9,7 +9,7 @@
 #include "pstypes.h"
 #include "osregistry.h"
 #include "gropengl.h"
-#include "gropengl1.h"
+#include "grgl1.h"
 #include "gropenglinternal.h"
 #include "2d.h"
 #include "bmpman.h"

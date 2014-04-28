@@ -78,7 +78,7 @@ set(fs_INCLUDES
   include/gamesnd.h
   include/grid.h
   include/grinternal.h
-  include/gropengl1.h
+  include/grgl1.h
   include/gropengl.h
   include/gropenglinternal.h
   include/helpeddoc.h

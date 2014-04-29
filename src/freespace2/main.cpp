@@ -18,8 +18,6 @@
 
 extern int game_main(const char *szCmdLine);
 
-void vm_dump();
-
 
 int main(int argc, char **argv)
 {
@@ -62,8 +60,6 @@ int main(int argc, char **argv)
 	if (argptr) {
 		free(argptr);
 	}
-		
-	vm_dump();
-	
+
 	return retr;	
 }

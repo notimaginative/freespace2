@@ -61,30 +61,35 @@ void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ex
 	}
 }
 
-/* mem debug junk */
-#ifndef NDEBUG
-//#define WANT_DEBUG
-#endif
-
 int TotalRam = 0;
 
-#ifdef WANT_DEBUG
-typedef struct RAM {
-	void *addr;
-	int size;
-	
-	char *file;
-	int line;
-	
-	RAM *next;
-} RAM;
-
-static RAM *RamTable;
-#endif
 
 int vm_init(int min_heap_size)
 {
 	return 1;
+}
+
+#if defined(__MACOSX__)
+#define MALLOC_SIZE(x)		malloc_size(x)
+#elif defined(__GNUC__)
+#define MALLOC_SIZE(x)		malloc_usable_size(x)
+#else
+#define MALLOC_SIZE(x)		0
+#endif
+
+int Watch_malloc = 0;
+
+DCF_BOOL(watch_malloc, Watch_malloc)
+
+static const char *clean_filename(const char *name)
+{
+	const char *p = name+strlen(name)-1;
+	// Move p to point to first letter of EXE filename
+	while( (*p!='\\') && (*p!='/') && (*p!=':') )
+		p--;
+	p++;
+
+	return p;
 }
 
 #ifndef NDEBUG
@@ -93,33 +98,24 @@ void vm_free(void* ptr, const char *file, int line)
 void vm_free(void* ptr)
 #endif
 {
-#ifdef WANT_DEBUG
-	fprintf(stderr, "FREE: %s:%d addr = %p\n", file, line, ptr);
-	
-	RAM *item = RamTable;
-	RAM **mark = &RamTable;
-	
-	while (item != NULL) {
-		if (item->addr == ptr) {
-			RAM *tmp = item;
-			
-			*mark = item->next;
-			
-			free(tmp->addr);
-			free(tmp);
-			
-			return;
-		}
-		
-		mark = &(item->next);
-		
-		item = item->next;
-	}
-	
-	fprintf(stderr, "ERROR: vm_free caught invalid free: addr = %p, file = %s/%d\n", ptr, file, line);
-#else	
-	free(ptr);
+	if ( !ptr ) {
+#ifndef NDEBUG
+		mprintf(("Why are you trying to free a NULL pointer?  [%s(%d)]\n", clean_filename(file), line));
 #endif
+		return;
+	}
+
+#ifndef NDEBUG
+	size_t actual_size = MALLOC_SIZE(ptr);
+
+	if (Watch_malloc) {
+		mprintf(( "Free %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
+	}
+
+	TotalRam -= actual_size;
+#endif
+
+	free(ptr);
 }
 
 #ifndef NDEBUG
@@ -128,23 +124,28 @@ void *vm_malloc(int size, const char *file, int line)
 void *vm_malloc(int size)
 #endif
 {
-#ifdef WANT_DEBUG
-	fprintf(stderr, "MALLOC: %s:%d %d bytes\n", file, line, size);
-	
-	RAM *next = (RAM *)malloc(sizeof(RAM));
-	
-	next->addr = malloc(size);
-	next->size = size;
-	next->file = file;
-	next->line = line;
-	
-	next->next = RamTable;
-	RamTable = next;
-	
-	return next->addr;
-#else
-	return malloc(size);
-#endif	
+	void *ptr = malloc(size);
+
+	if ( !ptr )	{
+		mprintf(( "Malloc failed!!!!!!!!!!!!!!!!!!!\n" ));
+
+		Error(LOCATION, "Out of memory.  Try closing down other applications, increasing your\n"
+				"virtual memory size, or installing more physical RAM.\n");
+
+		return NULL;
+	}
+
+#ifndef NDEBUG
+	size_t actual_size = MALLOC_SIZE(ptr);
+
+	if ( Watch_malloc )	{
+		mprintf(( "Malloc %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
+	}
+
+	TotalRam += actual_size;
+#endif
+
+	return ptr;
 }
 
 #ifndef NDEBUG
@@ -153,42 +154,26 @@ char *vm_strdup(char const* str, const char *file, int line)
 char *vm_strdup(char const* str)
 #endif
 {
-#ifdef WANT_DEBUG
-	fprintf(stderr, "STRDUP: %s:%d\n", file, line);
-	
-	RAM *next = (RAM *)malloc(sizeof(RAM));
-	
-	next->addr = strdup(str);
-	next->size = strlen(str)+1;
-	next->file = file;
-	next->line = line;
-	
-	next->next = RamTable;
-	RamTable = next;
-	
-	return (char *)next->addr;
-#else
-	return strdup(str);
-#endif
-}
+	char *ptr = strdup(str);
 
-void vm_dump()
-{
-#ifdef WANT_DEBUG
-	int i = 0;
-	int mem = 0;
-	fprintf(stderr, "\nDumping allocated memory:\n");
-	
-	RAM *ptr = RamTable;
-	while (ptr) {
-		fprintf(stderr, "%d: file: %s:%d: addr:%p size:%d\n", i, ptr->file, ptr->line, ptr->addr, ptr->size);
-		mem += ptr->size;
-		ptr = ptr->next;
-		i++;
+	if ( !ptr )	{
+		mprintf(( "Strdup failed!!!!!!!!!!!!!!!!!!!\n" ));
+
+		Error(LOCATION, "Out of memory.  Try closing down other applications, increasing your\n"
+				"virtual memory size, or installing more physical RAM.\n");
 	}
-	
-	fprintf(stderr, "\nTotal of %d left-over bytes from %d allocations\n", mem, i);
-#endif	
+
+#ifndef NDEBUG
+	size_t actual_size = MALLOC_SIZE(ptr);
+
+	if ( Watch_malloc )	{
+		mprintf(( "Strdup %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
+	}
+
+	TotalRam += actual_size;
+#endif
+
+	return ptr;
 }
 
 void windebug_memwatch_init()

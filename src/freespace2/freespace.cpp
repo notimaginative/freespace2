@@ -2440,12 +2440,13 @@ void game_init()
 
 	// check if sparky_hi exists -- access mode 0 means does file exist
 #ifndef MAKE_FS1 // shoudn't have it so don't check
-	char dir[128];
-	_getcwd(dir, 128);
-	if ( _access("sparky_hi_fs2.vp", 0) == 0) {
+	char sparky_path[MAX_PATH];
+	SDL_snprintf(sparky_path, sizeof(sparky_path), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, "sparky_hi_fs2.vp");
+
+	if ( access(sparky_path, 0) == 0 ) {
 		has_sparky_hi = 1;
 	} else {
-		mprintf(("No sparky_hi_fs2.vp in directory %s\n", dir));
+		mprintf(("No sparky_hi_fs2.vp in directory %s\n", Cfile_root_dir));
 	}
 #endif
 

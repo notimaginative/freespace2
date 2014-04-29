@@ -2687,19 +2687,9 @@ void game_show_framerate()
 		gr_set_color_fast(&HUD_color_debug);
 
 		{
-#ifndef PLAT_UNIX
-			extern int D3D_textures_in;
-			extern int D3D_textures_in_frame;
-			extern int Glide_textures_in;
-			extern int Glide_textures_in_frame;
-			extern int Glide_explosion_vram;
-			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), (D3D_textures_in+Glide_textures_in)/1024 );
+			extern int Gr_textures_in;
+			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), Gr_textures_in/1024 );
 			sy += dy;
-			gr_printf( sx, sy, NOX("VRAM: +%d KB\n"), (Glide_textures_in_frame+D3D_textures_in_frame)/1024 );
-			sy += dy;
-			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
-			sy += dy;
-#endif
 		}
 //		gr_printf( sx, sy, "BPP: %d", gr_screen.bits_per_pixel );
 //		sy += dy;
@@ -2767,26 +2757,11 @@ void game_show_framerate()
 		sy += dy;
 		gr_printf( sx, sy, NOX("S-SRAM: %d KB\n"), Snd_sram/1024 );		// mem used to store game sound
 		sy += dy;
-#ifndef PLAT_UNIX
-		gr_printf( sx, sy, NOX("S-HRAM: %d KB\n"), Snd_hram/1024 );		// mem used to store game sound
-		sy += dy;
+
 		{
-			extern int D3D_textures_in;
-			extern int Glide_textures_in;
-			extern int Glide_textures_in_frame;
-			extern int Glide_explosion_vram;
-			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), (D3D_textures_in+Glide_textures_in)/1024 );
+			extern int Gr_textures_in;
+			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), Gr_textures_in/1024 );
 			sy += dy;
-			gr_printf( sx, sy, NOX("VRAM: +%d KB\n"), (Glide_textures_in_frame)/1024 );
-			sy += dy;
-			gr_printf( sx, sy, NOX("EXP VRAM: %dKB\n"), (Glide_explosion_vram)/1024 );
-			sy += dy;
-#else
-		{
-			extern int GL_textures_in;
-			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), (GL_textures_in)/1024 );
-			sy += dy;
-#endif
 		}
 	}
 

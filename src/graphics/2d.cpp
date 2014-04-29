@@ -515,6 +515,9 @@ float Gr_gamma = 1.8f;
 int Gr_gamma_int = 180;
 int Gr_gamma_lookup[256];
 
+int Gr_textures_in = 0;
+
+
 void gr_close()
 {
 	if ( !Gr_inited )	return;
@@ -530,6 +533,8 @@ void gr_close()
 			Int3();		// Invalid graphics mode
 			break;
 	}
+
+	Gr_textures_in = 0;
 
 	gr_font_close();
 
@@ -675,6 +680,8 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	gr_screen.clip_bottom = gr_screen.max_h - 1;
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
+
+	Gr_textures_in = 0;
 
 	switch( gr_screen.mode )	{
 		case GR_OPENGL:

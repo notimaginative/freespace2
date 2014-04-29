@@ -41,7 +41,6 @@ static tcache_slot_opengl *Textures = NULL;
 static tcache_slot_opengl *GL_bound_texture;
 
 static int GL_frame_count = 0;
-static int GL_textures_in_frame = 0;
 static int GL_last_bitmap_id = -1;
 static int GL_last_detail = -1;
 static int GL_last_bitmap_type = -1;
@@ -49,7 +48,7 @@ static int GL_last_section_x = -1;
 static int GL_last_section_y = -1;
 static int GL_should_preload = 0;
 
-int GL_textures_in = 0;
+extern int Gr_textures_in;
 
 static gr_texture_source GL_current_texture_source = (gr_texture_source) -1;
 
@@ -150,9 +149,6 @@ void opengl1_tcache_init()
 
 	GL_last_section_x = -1;
 	GL_last_section_y = -1;
-
-	GL_textures_in = 0;
-	GL_textures_in_frame = 0;
 }
 
 static int opengl1_free_texture ( tcache_slot_opengl *t )
@@ -200,7 +196,7 @@ static int opengl1_free_texture ( tcache_slot_opengl *t )
 
 		t->bitmap_id = -1;
 		t->used_this_frame = 0;
-		GL_textures_in -= t->size;
+		Gr_textures_in -= t->size;
 		t->size = 0;
 	}
 
@@ -224,9 +220,9 @@ void opengl1_tcache_flush()
 	for( i=0; i<MAX_BITMAPS; i++ )  {
 		opengl1_free_texture ( &Textures[i] );
 	}
-	if (GL_textures_in != 0) {
-		mprintf(( "WARNING: VRAM is at %d instead of zero after flushing!\n", GL_textures_in ));
-		GL_textures_in = 0;
+	if (Gr_textures_in != 0) {
+		mprintf(( "WARNING: VRAM is at %d instead of zero after flushing!\n", Gr_textures_in ));
+		Gr_textures_in = 0;
 	}
 
 	GL_last_bitmap_id = -1;
@@ -237,9 +233,6 @@ void opengl1_tcache_flush()
 void opengl1_tcache_cleanup()
 {
 	opengl1_tcache_flush ();
-
-	GL_textures_in = 0;
-	GL_textures_in_frame = 0;
 
 	if ( Textures ) {
 		free(Textures);
@@ -255,7 +248,6 @@ void opengl1_tcache_cleanup()
 void opengl1_tcache_frame()
 {
 	GL_last_bitmap_id = -1;
-	GL_textures_in_frame = 0;
 
 	GL_frame_count++;
 
@@ -531,9 +523,8 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 	t->w = (ushort)tex_w;
 	t->h = (ushort)tex_h;
 
-	GL_textures_in_frame += t->size;
 	if (!reload) {
-		GL_textures_in += t->size;
+		Gr_textures_in += t->size;
 	}
 
 	return ret_val;

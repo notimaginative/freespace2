@@ -752,7 +752,7 @@ void playercontrol_read_stick(int *axis, float frame_time)
 void read_keyboard_controls( control_info * ci, float frame_time, physics_info *pi )
 {
 	float kh=0.0f, scaled, newspeed, delta, oldspeed;
-	int axis[JOY_NUM_AXES], ignore_pitch, slew_active=0;
+	int axis[JOY_NUM_AXES], slew_active=0;
 	static int afterburner_last = 0;
 	static float analog_throttle_last = 9e9f;
 	static int override_analog_throttle = 0; 
@@ -962,15 +962,12 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 			axis[0] = axis[1] = axis[2] = axis[3] = axis[4] = 0;
 		}
 
-		ignore_pitch = FALSE;
-
 		if (Axis_map_to[JOY_HEADING_AXIS] >= 0) {
 			// check the heading on the x axis
 			if ( check_control(BANK_WHEN_PRESSED) ) {
 				delta = f2fl( axis[JOY_HEADING_AXIS] );
 				if ( (delta > 0.05f) || (delta < -0.05f) ) {
 					ci->bank -= delta;
-					ignore_pitch = TRUE;
 				}
 
 			} else {
@@ -989,7 +986,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 		// axis 2 is for throttle
 		if (Axis_map_to[JOY_ABS_THROTTLE_AXIS] >= 0) {
 			scaled = (float) axis[JOY_ABS_THROTTLE_AXIS] * 1.2f / (float) F1_0 - 0.1f;  // convert to -0.1 - 1.1 range
-			oldspeed = ci->forward_cruise_percent;
+//			oldspeed = ci->forward_cruise_percent;
 
 //			scaled = (scaled + 1.0f) / 1.85f;
 			newspeed = (1.0f - scaled) * 100.0f;

@@ -3196,7 +3196,7 @@ void ss_synch_interface()
 // exit: data changed flag
 int ss_swap_slot_slot(int from_slot, int to_slot, int *sound)
 {
-	int i, tmp, fwnum, fsnum, twnum, tsnum;
+	int i, tmp;
 
 	if ( from_slot == to_slot ) {
 		*sound=SND_ICON_DROP_ON_WING;
@@ -3208,12 +3208,6 @@ int ss_swap_slot_slot(int from_slot, int to_slot, int *sound)
 		*sound=SND_ICON_DROP;
 		return 0;
 	}
-
-	fwnum = from_slot/4;
-	fsnum = from_slot%4;
-
-	twnum = to_slot/4;
-	tsnum = to_slot%4;
 
 	// swap ship class
 	tmp = Wss_slots[from_slot].ship_class;
@@ -3238,7 +3232,7 @@ int ss_swap_slot_slot(int from_slot, int to_slot, int *sound)
 // exit: data changed flag
 int ss_dump_to_list(int from_slot, int to_list, int *sound)
 {
-	int i, fwnum, fsnum;
+	int i;
 	wss_unit	*slot;
 
 	slot = &Wss_slots[from_slot];
@@ -3248,9 +3242,6 @@ int ss_dump_to_list(int from_slot, int to_list, int *sound)
 		*sound=SND_ICON_DROP;
 		return 0;
 	}
-
-	fwnum = from_slot/4;
-	fsnum = from_slot%4;
 
 	// put ship back in list
 	Ss_pool[to_list]++;		// return to list
@@ -3398,7 +3389,7 @@ void ss_drop(int from_slot,int from_list,int to_slot,int to_list,int player_inde
 // lock/unlock any necessary slots for multiplayer
 void ss_recalc_multiplayer_slots()
 {
-	int				i,j,objnum;
+	int				i,j;
 	wing				*wp;
 	ss_slot_info	*ss_slot;
 	ss_wing_info	*ss_wing;
@@ -3421,9 +3412,6 @@ void ss_recalc_multiplayer_slots()
 		// get the wing pointer
 		wp = &Wings[ss_wing->wingnum];		
 		for ( j = 0; j < ss_wing->num_slots; j++ ) {				
-			// get the objnum of the ship in this slot
-			objnum = Ships[wp->ship_index[j]].objnum;
-
 			// get the slot pointer
 			ss_slot = &ss_wing->ss_slots[j];			
 			

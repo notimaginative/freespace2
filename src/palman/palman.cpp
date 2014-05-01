@@ -789,19 +789,11 @@ ubyte *palette_get_fade_table()
 						ub = fl2i(i2fl(b)*f); if ( ub > 255 ) ub = 255;
 					} else {
 						int x,y;
-						int gi, gr, gg, gb;
-			
-						gi = (r+g+b)/3;
+						int gr, gg, gb;
 
-						#ifdef RGB_LIGHTING
-							gr = r;
-							gg = g;
-							gb = gi*2;
-						#else
-							gr = r*2;
-							gg = g*2;
-							gb = b*2;
-						#endif
+						gr = r*2;
+						gg = g*2;
+						gb = b*2;
 				
 						x = l-24;			// x goes from 0 to 7
 						y = 31-l;			// y goes from 7 to 0

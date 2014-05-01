@@ -1382,12 +1382,10 @@ void mission_campaign_eval_next_mission()
 // Store mission's goals and events in Campaign struct
 void mission_campaign_store_goals_and_events()
 {
-	char *name;
 	int cur, i;
 	cmission *mission;
 
 	cur = Campaign.current_mission;
-	name = Campaign.missions[cur].name;
 
 	mission = &Campaign.missions[cur];
 

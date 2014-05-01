@@ -585,7 +585,6 @@ void hud_squadmsg_end()
 // in the mission
 int hud_squadmsg_count_fighters( )
 {
-	int count;
 	int team;
 	object *objp;
 	ship *shipp;
@@ -598,7 +597,6 @@ int hud_squadmsg_count_fighters( )
 		team = opposing_team_mask(Player_ship->team);
 #endif
 
-	count = 0;
 	for ( objp = GET_FIRST(&obj_used_list); objp != END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
 		if ( objp->type != OBJ_SHIP )
 			continue;
@@ -2617,21 +2615,6 @@ int hud_squadmsg_do_frame( )
 
 	// check for multiplayer mode - this is really a special case checker for support ship requesting and aborting
 	if((Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER) && (Squad_msg_mode == SM_MODE_REPAIR_REARM || Squad_msg_mode == SM_MODE_REPAIR_REARM_ABORT)){
-		char *subsys_name;
-//		int who_to_sig;
-		ushort net_sig;
-		
-		// who_to_sig = Objects[Ships[shipnum].objnum].net_signature;
-		if(Player_ai->target_objnum != -1)
-			net_sig = Objects[Player_ai->target_objnum].net_signature;
-		else 
-			net_sig = 0;
-
-      if ((Player_ai->targeted_subsys != NULL) && (Player_ai->targeted_subsys->current_hits > 0.0f))
-			subsys_name = Player_ai->targeted_subsys->system_info->subobj_name;
-		else
-			subsys_name = NULL;
-		
 		// send the correct packet
 		if(Squad_msg_mode == SM_MODE_REPAIR_REARM)		
 			send_player_order_packet(SQUAD_MSG_SHIP, 0, REARM_REPAIR_ME_ITEM);

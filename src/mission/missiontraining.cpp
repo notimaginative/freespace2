@@ -800,10 +800,9 @@ char *translate_msg_token(char *str)
 // translates all special tokens in a message, producing the new finalized message to be displayed
 void message_translate_tokens(char *buf, char *text)
 {
-	char temp[40], *toke1, *toke2, *ptr, *orig_buf;
+	char temp[40], *toke1, *toke2, *ptr;
 	int r;
 
-	orig_buf = buf;
 	*buf = 0;
 	toke1 = strchr(text, '$');
 	toke2 = strchr(text, '#');

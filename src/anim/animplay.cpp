@@ -218,8 +218,6 @@ anim_instance anim_render_instance[MAX_ANIM_INSTANCES];
 int Anim_paused;	// global variable to pause the playing back of anims
 int Anim_inited = FALSE;
 
-fix t1,t2;
-
 int Anim_ignore_frametime=0;	// flag used to ignore frametime... useful when need to avoid saturated frametimes
 
 // -------------------------------------------------------------------------------------------------
@@ -465,7 +463,7 @@ anim_instance *anim_play(anim_play_struct *aps)
 int anim_show_next_frame(anim_instance *instance, float frametime)
 {
 	int		bitmap_id, bitmap_flags=0, new_frame_num, frame_diff=0, i, n_frames=0,frame_save;
-	float		percent_through, decompress_time, render_time, time;
+	float		percent_through, time;
 	vertex	image_vertex;
 	int aabitmap = 0;
 	int bpp = 16;
@@ -609,7 +607,6 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 	if ( frame_diff > 0 ) {
 		instance->last_frame_num = instance->frame_num;		
 
-		t1 = timer_get_fixed_seconds();
 		for ( i = 0; i < frame_diff; i++ ) {
 			anim_check_for_palette_change(instance);			
 
@@ -652,10 +649,6 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 				}
 			}			
 		}
-		t2 = timer_get_fixed_seconds();
-	}
-	else {
-		t2=t1=0;
 	}
 
 	// this only happens when the anim is being looped, we need to reset the last_frame_num
@@ -667,9 +660,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 		instance->loop_count++;
 	}
 		
-	decompress_time = f2fl(t2-t1);
 
-	t1 = timer_get_fixed_seconds();
 	if ( frame_diff == 0 && instance->last_bitmap != -1 ) {
 		bitmap_id = instance->last_bitmap;
 	}
@@ -710,11 +701,6 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 		//bm_release(bitmap_id);
 		instance->last_bitmap = bitmap_id;
 	}
-
-	t2 = timer_get_fixed_seconds();
-	render_time = f2fl(t2-t1);
-
-//	nprintf(("Alan","DECOMPRESS: %.3fms  RENDER: %.3fms\n", decompress_time*1000, render_time*1000));
 
 	return 0;
 }

@@ -1459,8 +1459,6 @@ void brief_start_highlight_anims(int stage_num)
 //
 void brief_render_map(int stage_num, float frametime)
 {
-	brief_stage *bs;
-
 	gr_set_clip(bscreen.map_x1 + 1, bscreen.map_y1 + 1, bscreen.map_x2 - bscreen.map_x1 - 1, bscreen.map_y2 - bscreen.map_y1 - 2);
 	
 	// REMOVED by neilk: removed gr_clear for FS2 because interface no longer calls for black background on grid
@@ -1468,13 +1466,12 @@ void brief_render_map(int stage_num, float frametime)
 	gr_clear();
 #endif
 
-  if (stage_num >= Briefing->num_stages) {
+	SDL_assert(Briefing);
+
+	if (stage_num >= Briefing->num_stages) {
 		gr_reset_clip();
 		return;
 	}
-
-	SDL_assert(Briefing);
-	bs = &Briefing->stages[stage_num];
 
 	g3_start_frame(0);
 	g3_set_view_matrix(&Current_cam_pos, &Current_cam_orient, 0.5f);
@@ -1737,7 +1734,7 @@ void brief_render_elements(vector *pos, grid* gridp)
 {
 	vector	gpos;	//	Location of point on grid.
 //	vector	tpos;
-	float		dxz;
+//	float		dxz;
 	plane		tplane;
 	vector	*gv;
 	
@@ -1751,7 +1748,7 @@ void brief_render_elements(vector *pos, grid* gridp)
 
 	compute_point_on_plane(&gpos, &tplane, pos);
 
-	dxz = vm_vec_dist(pos, &gpos)/8.0f;
+//	dxz = vm_vec_dist(pos, &gpos)/8.0f;
 
 	gv = &gridp->gmatrix.v.uvec;
 	if (gv->xyz.x * pos->xyz.x + gv->xyz.y * pos->xyz.y + gv->xyz.z * pos->xyz.z < -gridp->planeD)

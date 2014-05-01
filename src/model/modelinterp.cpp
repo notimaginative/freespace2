@@ -1792,10 +1792,8 @@ void model_render(int model_num, matrix *orient, vector * pos, uint flags, int o
 		model_set_saved_lighting(objnum, hack_skip_max);
 	}
 
-	int num_lights = 0;
-
 	if ( !(flags & MR_NO_LIGHTING ) )	{
-		num_lights = light_filter_push( objnum, pos, pm->rad );
+		light_filter_push( objnum, pos, pm->rad );
 	}
 
 	model_really_render(model_num, orient, pos, flags, objnum);

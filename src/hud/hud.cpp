@@ -1788,7 +1788,6 @@ void hud_show_damage_popup()
 {
 	model_subsystem	*psub;
 	ship_subsys			*pss;
-	ship_info			*sip;
 	int					sx, sy, bx, by, w, h, screen_integrity, num, best_str, best_index;
 	float					strength, shield, integrity;
 	char					buf[128];
@@ -1802,7 +1801,6 @@ void hud_show_damage_popup()
 		return;
 	}
 		
-	sip = &Ship_info[Player_ship->ship_info_index];
 	hud_get_target_strength(Player_obj, &shield, &integrity);
 	screen_integrity = fl2i(integrity*100);
 
@@ -2978,7 +2976,7 @@ int hud_wing_index_from_ship(int shipnum)
 
 	shipp = &Ships[shipnum];
 
-	int wing_num=0, wing_slot=0;
+	int wing_slot = 0;
 
 	for (i=0; i<3; i++) {
 		if ( Starting_wings[i] < 0 ) {
@@ -2986,7 +2984,6 @@ int hud_wing_index_from_ship(int shipnum)
 		}
 
 		if (shipp->wingnum == Starting_wings[i]) {
-			wing_num=i;
 			break;
 		}
 	}

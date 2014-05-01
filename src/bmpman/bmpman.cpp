@@ -1350,7 +1350,6 @@ static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flag
 // Fred, since its the only thing that uses the software tmapper
 void bm_swizzle_8bit_for_fred(bitmap_entry *be, bitmap *bmp, ubyte *data, ubyte *palette)
 {		
-	int pcx_xparent_index = -1;
 	int i;
 	int r, g, b;
 	ubyte palxlat[256];
@@ -1361,7 +1360,6 @@ void bm_swizzle_8bit_for_fred(bitmap_entry *be, bitmap *bmp, ubyte *data, ubyte 
 		b = palette[i*3+2];
 		if ( g == 255 && r == 0 && b == 0 ) {
 			palxlat[i] = 255;
-			pcx_xparent_index = i;
 		} else {			
 			palxlat[i] = (ubyte)(palette_find( r, g, b ));			
 		}
@@ -1834,7 +1832,6 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 void bm_unlock( int handle )
 {
 	bitmap_entry	*be;
-	bitmap			*bmp;
 
 	int bitmapnum = handle % MAX_BITMAPS;
 	SDL_assert( bm_bitmaps[bitmapnum].handle == handle );	// INVALID BITMAP HANDLE
@@ -1843,7 +1840,6 @@ void bm_unlock( int handle )
 	if ( !bm_inited ) bm_init();
 
 	be = &bm_bitmaps[bitmapnum];
-	bmp = &be->bm;
 
 	be->ref_count--;
 	SDL_assert(be->ref_count >= 0);		// Trying to unlock data more times than lock was called!!!

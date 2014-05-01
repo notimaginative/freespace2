@@ -126,12 +126,8 @@ float fl_isqrt_c( float x )
 //	union _flint seed;
 //	FLOAT r;
 
-	int t1, t2, t3;
-	t1 = timer_get_microseconds();
 	float r1 =  1.0f / (float)sqrt((double)x);
-	t2 = timer_get_microseconds();
 //	float r2 = fl_isqrt_asm(x);
-	t3 = timer_get_microseconds();	
 
 	return r1;
 

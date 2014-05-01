@@ -895,7 +895,7 @@ static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
 					 t_Sample* bufOutEnd)
 {
-    unsigned int mult, data;
+	unsigned int data; //, mult;
     t_Sample level = *(q-1);
 
 	if (q > bufOutEnd - 4)
@@ -906,7 +906,7 @@ static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
     if (packetPos)
     {
-        mult = ((t_PacketMF1*)p)->Mult; // currently unused
+		//mult = ((t_PacketMF1*)p)->Mult; // currently unused
         data = ((t_PacketMF1*)p)->Data1; 
         // Make each of the 4 points is computed in a way equivalent to that
         // used in the encoder.
@@ -921,7 +921,7 @@ static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q,
     }
     else
     {
-        mult = ((t_PacketMF0*)p)->Mult; // currently unused
+		//mult = ((t_PacketMF0*)p)->Mult; // currently unused
         data = ((t_PacketMF0*)p)->Data0;
 
         p += sizeof(t_PacketMF0);
@@ -1275,8 +1275,8 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         { // medium frequency mode
           #if defined(CODEC_DEMO)
             int temp1;
-          #endif
             int temp2;
+		  #endif
             in += 4;
             if (packetPos)
             {
@@ -1284,7 +1284,9 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 packet.Mode = e_emMF;
                 packet.Mult = 0; //!!! should implement .Mult
                 packet.Data1 = delta;
+			  #if defined(CODEC_DEMO)
                 temp2 = level;
+			  #endif
                 level += packet.Data1;
                 delta = short(in[3] - level);
                 if (delta > 31)       packet.Data0 = 31;

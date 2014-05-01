@@ -1532,7 +1532,7 @@ float vm_vec_dot_to_point(vector *dir, vector *p1, vector *p2)
 //	Result returned in q.
 void compute_point_on_plane(vector *q, plane *planep, vector *p)
 {
-	float	k, tv;
+	float	k;
 	vector	normal;
 
 	normal.xyz.x = planep->A;
@@ -1542,8 +1542,6 @@ void compute_point_on_plane(vector *q, plane *planep, vector *p)
 	k = (planep->D + vm_vec_dot(&normal, p)) / vm_vec_dot(&normal, &normal);
 
 	vm_vec_scale_add(q, p, &normal, -k);
-
-	tv = planep->A * q->xyz.x + planep->B * q->xyz.y + planep->C * q->xyz.z + planep->D;
 }
 
 

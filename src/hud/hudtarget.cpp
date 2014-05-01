@@ -2555,7 +2555,7 @@ void hud_target_in_reticle_new()
 void hud_target_in_reticle_old()
 {
 	object	*A, *target_obj;
-	float		dist, dot;
+	float		dot;
 	vector	vec_to_target;
 
 	for ( A = GET_FIRST(&obj_used_list); A !=END_OF_LIST(&obj_used_list); A = GET_NEXT(A) ) {
@@ -2584,7 +2584,7 @@ void hud_target_in_reticle_old()
 			continue;
 		}
 
-		dist = vm_vec_normalized_dir(&vec_to_target, &A->pos, &Eye_position);
+		vm_vec_normalized_dir(&vec_to_target, &A->pos, &Eye_position);
 		dot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 		if ( dot > MIN_DOT_FOR_TARGET ) {
@@ -2624,7 +2624,7 @@ void hud_target_subsystem_in_reticle()
 	ship_subsys *nearest_subsys = NULL;
 	vector subobj_pos;
 
-	float dist, dot, best_dot;
+	float dot, best_dot;
 	vector vec_to_target;
 	best_dot = -1.0f;
 
@@ -2648,7 +2648,7 @@ void hud_target_subsystem_in_reticle()
 	for (subsys = GET_FIRST(&Ships[shipnum].subsys_list); subsys != END_OF_LIST(&Ships[shipnum].subsys_list)  ; subsys = GET_NEXT( subsys ) ) {
 		get_subsystem_world_pos(targetp, subsys, &subobj_pos);
 
-		dist = vm_vec_normalized_dir(&vec_to_target, &subobj_pos, &Eye_position);
+		vm_vec_normalized_dir(&vec_to_target, &subobj_pos, &Eye_position);
 		dot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 		if ( dot > best_dot ) {
@@ -3674,7 +3674,7 @@ void hud_show_hostile_triangle()
 	ai_info *aip;
 	ship_obj	*so;
 	ship		*sp;
-	ship_subsys *ss, *nearest_turret_subsys = NULL;
+	ship_subsys *ss;
 
 	int player_obj_index = OBJ_INDEX(Player_obj);
 	int turret_is_attacking = 0;
@@ -3726,7 +3726,6 @@ void hud_show_hostile_triangle()
 						if (new_distance <= min_distance) {
 							min_distance=new_distance;
 							nearest_obj = A;
-							nearest_turret_subsys = ss;
 						}
 					}
 				}
@@ -3749,7 +3748,6 @@ void hud_show_hostile_triangle()
 			if (new_distance <= min_distance) {
 				min_distance=new_distance;
 				nearest_obj = A;
-				nearest_turret_subsys = NULL;
 			}
 		}
 	}
@@ -4231,7 +4229,6 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	char buf[32];
 	int w = 0, h = 0;
 	int on_top, on_right, on_left, on_bottom;
-	float target_x, target_y;
 
 	float xpos,ypos;
 	// points to draw triangles
@@ -4252,7 +4249,6 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	float dist_behind;
 	float triangle_sep;
 	float half_gauge_length, half_triangle_sep;
-	int in_front;
 
 	// calculate the dot product between the players forward vector and the vector connecting
 	// the player to the target. Normalize targ_to_player since we want the dot product
@@ -4261,10 +4257,7 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	vm_vec_normalize(&targ_to_player);
 	dist_behind = vm_vec_dot(&Player_obj->orient.v.fvec, &targ_to_player);
 
-	in_front = 0;
-
 	if (dist_behind < 0) {	// still in front of player, but not in view
-		in_front = 1;
 		dist_behind = dist_behind + 1.0f;
 		if (dist_behind > 0.2 ){
 			triangle_sep = ( dist_behind ) * Max_front_seperation[gr_screen.res];
@@ -4283,9 +4276,6 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	// calculate these values only once, since it will be used in several places
 	half_triangle_sep = 0.5f * triangle_sep;
 	half_gauge_length = half_triangle_sep + Offscreen_tri_base[gr_screen.res];
-
-	target_x = target_point->x;
-	target_y = target_point->y;
 
 	// We need to find the screen (x,y) for where to draw the offscreen indicator
 	//

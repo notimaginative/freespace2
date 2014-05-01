@@ -2522,14 +2522,13 @@ int model_find_2d_bound(int model_num,matrix *orient, vector * pos,int *x1, int 
 {
 	float t,w,h;
 	vertex pnt;
-	ubyte flags;
 	polymodel * po;
 
 	po = model_get(model_num);
 	float width = po->rad;
 	float height = po->rad;
 
-	flags = g3_rotate_vertex(&pnt,pos);
+	g3_rotate_vertex(&pnt,pos);
 
 	if ( pnt.flags & CC_BEHIND ) 
 		return 2;
@@ -2562,12 +2561,11 @@ int subobj_find_2d_bound(float radius ,matrix *orient, vector * pos,int *x1, int
 {
 	float t,w,h;
 	vertex pnt;
-	ubyte flags;
 
 	float width = radius;
 	float height = radius;
 
-	flags = g3_rotate_vertex(&pnt,pos);
+	g3_rotate_vertex(&pnt,pos);
 
 	if ( pnt.flags & CC_BEHIND ) 
 		return 2;
@@ -2699,20 +2697,17 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 	sii->prev_angs = sii->angs;
 
 	// float pointer into struct to get angle (either p,b,h)
-	float *ang_prev = NULL, *ang_next = NULL;
+	float *ang_next = NULL;
 	switch( sm->movement_axis ) {
 	case MOVEMENT_AXIS_X:
-		ang_prev = &sii->prev_angs.p;
 		ang_next = &sii->angs.p;
 		break;
 
 	case MOVEMENT_AXIS_Y:	
-		ang_prev = &sii->prev_angs.h;
 		ang_next = &sii->angs.h;
 		break;
 
 	case MOVEMENT_AXIS_Z:	
-		ang_prev = &sii->prev_angs.b;
 		ang_next = &sii->angs.b;
 		break;
 	}

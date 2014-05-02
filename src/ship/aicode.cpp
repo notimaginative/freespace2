@@ -12776,6 +12776,11 @@ int ai_acquire_depart_path(object *pl_objp, int parent_objnum)
 	// take the closest path we can find
 	int ship_bay_path;
 	ship_bay_path = ai_find_closest_depart_path(aip, pm);
+
+	if (ship_bay_path == -1) {
+		return -1;
+	}
+
 	path_index = sb->paths[ship_bay_path];
 	aip->submode_parm0 = ship_bay_path;
 	sb->depart_flags |= (1<<ship_bay_path);

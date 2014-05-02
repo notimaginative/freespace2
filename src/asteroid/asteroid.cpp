@@ -602,10 +602,6 @@ object *asteroid_create(asteroid_field *asfieldp, int asteroid_type, int asteroi
 
 	Num_asteroids++;
 
-	if (radius < 1.0) {
-		radius = 1.0f;
-	}
-
 	vector rotvel;
 	if ( Game_mode & GM_NORMAL ) {
 		vm_vec_rand_vec_quick(&rotvel);
@@ -792,6 +788,8 @@ void asteroid_create_all()
 	if (Asteroid_field.num_initial_asteroids <= 0 ) {
 		return;
 	}
+
+	SDL_zero(ship_debris_odds_table);
 
 	int max_asteroids = Asteroid_field.num_initial_asteroids; // * (1.0f - 0.1f*(MAX_DETAIL_LEVEL-Detail.asteroid_density)));
 

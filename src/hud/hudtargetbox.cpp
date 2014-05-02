@@ -999,6 +999,7 @@ void hud_render_target_ship_info(object *target_objp)
 	emp_hud_printf(Targetbox_coords[gr_screen.res][TBOX_CLASS][0], Targetbox_coords[gr_screen.res][TBOX_CLASS][1], EG_TBOX_CLASS, temp_name);
 
 	ship_integrity = 1.0f;
+	shield_strength = 1.0f;
 	hud_get_target_strength(target_objp, &shield_strength, &ship_integrity);
 
 	// convert to values of 0->100
@@ -1753,7 +1754,6 @@ void hud_show_target_data(float frametime)
 					sprintf(outstr, "Subsys: %s", aip->targeted_subsys->system_info->name);
 					gr_printf(sx, sy, outstr);
 				}
-				sy += dy;
 			}
 
 			// print out energy transfer information on the ship
@@ -1830,7 +1830,6 @@ void hud_show_target_data(float frametime)
 			sy += dy;
 
 			gr_printf(sx, sy, "Mass: %.2f\n", pm->mass);
-			sy += dy;
 		}
 	}
 

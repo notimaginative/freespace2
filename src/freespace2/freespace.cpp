@@ -1372,8 +1372,6 @@ void game_framerate_check()
 		}
 
 		gr_printf(200, y_start, "%d%%", (int)pct);
-
-		y_start += 10;
 	}
 }
 
@@ -2729,7 +2727,6 @@ void game_show_framerate()
 			gr_printf( sx, sy, NOX("FLIP: %.0f%%"), Timing_flip*100.0f/Timing_total );
 			sy += dy;
 			gr_printf( sx, sy, NOX("GAME: %.0f%%"), (Timing_total-(Timing_render2+Timing_render3+Timing_flip+Timing_clear))*100.0f/Timing_total );
-			sy += dy;
 		}
 	}
 	 	
@@ -2762,7 +2759,6 @@ void game_show_framerate()
 		{
 			extern int Gr_textures_in;
 			gr_printf( sx, sy, NOX("VRAM: %d KB\n"), Gr_textures_in/1024 );
-			sy += dy;
 		}
 	}
 
@@ -7400,10 +7396,6 @@ void game_show_event_debug(float frametime)
 FILE * Time_fp;
 FILE * Texture_fp;
 
-#ifndef PLAT_UNIX
-extern int Tmap_npixels;
-#endif
-
 int Tmap_num_too_big = 0;
 int Num_models_needing_splitting = 0;
 
@@ -7470,10 +7462,6 @@ void Time_model( int modelnum )
 	ta.p = ta.b = ta.h = 0.0f; 
 	int framecount = 0;
 
-#ifndef PLAT_UNIX
-	Tmap_npixels = 0;
-#endif
-
 	int bitmaps_used_this_frame, bitmaps_new_this_frame;
 		
 	bm_get_frame_usage(&bitmaps_used_this_frame,&bitmaps_new_this_frame);
@@ -7511,23 +7499,20 @@ void Time_model( int modelnum )
 
 	fix t2 = timer_get_fixed_seconds();
 
+	if (framecount < 1) {
+		return;
+	}
+
 	bm_get_frame_usage(&bitmaps_used_this_frame,&bitmaps_new_this_frame);
 	//bitmaps_used_this_frame /= framecount;
 
 	modelstats_num_polys /= framecount;
 	modelstats_num_verts /= framecount;
 
-#ifndef PLAT_UNIX
-	Tmap_npixels /=framecount;
-#endif
-
 	mprintf(( "'%s' is %.2f FPS\n", pof_file, i2fl(framecount)/f2fl(t2-t1) ));
-#ifndef PLAT_UNIX
-	fprintf( Time_fp, "\"%s\"\t%.0f\t%d\t%d\t%d\t%d\n", pof_file, i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts, Tmap_npixels );
-#else
-		fprintf( Time_fp, "\"%s\"\t%.0f\t%d\t%d\t%d\n", pof_file, i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts );
-#endif
-//	fprintf( Time_fp, "%.0f\t%d\t%d\t%d\t%d\n", i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts, Tmap_npixels );
+	fprintf( Time_fp, "\"%s\"\t%.0f\t%d\t%d\t%d\n", pof_file, i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts );
+
+//	fprintf( Time_fp, "%.0f\t%d\t%d\t%d\n", i2fl(framecount)/f2fl(t2-t1), bitmaps_used_this_frame, modelstats_num_polys, modelstats_num_verts );
 
 		
 //	key_getch();

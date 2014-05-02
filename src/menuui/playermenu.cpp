@@ -764,6 +764,7 @@ void player_select_close()
 	if (read_pilot_file(Pilots[Player_select_pilot], !Player_select_mode, Player) != 0) {
 		Error(LOCATION,"Couldn't load pilot file, bailing");
 		Player = NULL;
+		return;
 	} 		
 
 	if (Player_select_force_bastion) {
@@ -1106,8 +1107,8 @@ int player_select_get_last_pilot()
 		}
 
 		Player_select_pilot = -1;
-		idx = 0;
-		// pick the last player		
+
+		// pick the last player
 		for(idx=0;idx<Player_select_num_pilots;idx++){
 			if(strcmp(Player_select_last_pilot,Pilots_arr[idx])==0){
 				Player_select_pilot = idx;

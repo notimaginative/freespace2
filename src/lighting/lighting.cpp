@@ -689,7 +689,6 @@ void light_rotate_all()
 
 	int n = Num_light_levels-1;
 
-	l = Lights;
 	for (i=0; i<Num_relevent_lights[n]; i++ )	{
 		l = Relevent_lights[i][n];
 		light_rotate(l);

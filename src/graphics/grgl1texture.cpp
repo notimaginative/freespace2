@@ -343,7 +343,7 @@ static void opengl1_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_
 static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushort *data, int sx, int sy, int src_w, int src_h, int bmap_w, int bmap_h, int tex_w, int tex_h, tcache_slot_opengl *t, int reload, int resize, int fail_on_full)
 {
 	int ret_val = 1;
-	int size;
+	int size = 0;
 	int i, j;
 	ubyte *bmp_data = ((ubyte*)data);
 	ubyte *texmem = NULL, *texmemp;
@@ -405,8 +405,6 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 //	if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
 //		gr_opengl_set_texture_state(GL_current_texture_source);
 //	}
-
-	size = 0;
 
 	switch (bitmap_type) {
 		case TCACHE_TYPE_AABITMAP:

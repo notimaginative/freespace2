@@ -1377,14 +1377,13 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 //
 int cfputc(int c, CFILE *cfile)
 {
-	int result;
+	int result = 0;
 
 	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	result = 0;
 	// cfputc() not supported for memory-mapped files
 	SDL_assert( !cb->data );
 
@@ -1471,9 +1470,8 @@ int cfputs(const char *str, CFILE *cfile)
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int result;
+	int result = 0;
 
-	result = 0;
 	// cfputs() not supported for memory-mapped files
 	SDL_assert( !cb->data );
 	SDL_assert(cb->fp != NULL);

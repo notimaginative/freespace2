@@ -608,7 +608,6 @@ void gr_opengl1_string( int sx, int sy, const char *s )
 	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
 	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
 
-	x = sx;
 	y = sy;
 
 	if (sx==0x8000) {			//centered

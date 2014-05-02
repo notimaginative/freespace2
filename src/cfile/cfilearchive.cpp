@@ -139,9 +139,7 @@ int cfeof(CFILE *cfile)
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int result;
-
-	result = 0;
+	int result = 0;
 
 	// cfeof() not supported for memory-mapped files
 	SDL_assert( !cb->data );

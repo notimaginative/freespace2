@@ -2306,7 +2306,6 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 	//	normalize rotation axis and determine total rotation angle
 	theta = vm_vec_mag(&rot_axis);
 	if (theta < SMALL_NUM)  {
-		theta = 0.0f;
 		M_intermed = *orient;
 	} else {
 		vm_vec_scale ( &rot_axis, 1/theta );		
@@ -2657,7 +2656,6 @@ void vm_find_bounding_sphere(vector *pnts, int num_pnts, vector *center, float *
 		dia2 = ymax;
 	}
 	if ( zspan > maxspan ) {
-		maxspan = yspan;
 		dia1 = zmin;
 		dia2 = zmax;
 	}

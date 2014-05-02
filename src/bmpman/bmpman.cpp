@@ -978,7 +978,6 @@ int bm_load( const char * real_filename )
 
 	// found as pre-existing
 	case 1:
-		found = 1;
 		return handle;		
 	}
 
@@ -1318,7 +1317,6 @@ extern int palman_is_nondarkening(int r,int g, int b);
 static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flags )
 {	
 	int idx;	
-	int r, g, b, a;
 
 	if(Fred_running || Pofview_running || Is_standalone){
 		SDL_assert(bmp->bpp == 8);
@@ -1456,14 +1454,12 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	first_frame = be->info.ani.first_frame;
 	nframes = bm_bitmaps[first_frame].info.ani.num_frames;
 
-	if ( (the_anim = anim_load(bm_bitmaps[first_frame].filename)) == NULL ) {
-		// Error(LOCATION, "Error opening %s in bm_lock\n", be->filename);
-	}
 
-	if ( (the_anim_instance = init_anim_instance(the_anim, bpp)) == NULL ) {
-		// Error(LOCATION, "Error opening %s in bm_lock\n", be->filename);
-		anim_free(the_anim);
-	}
+	the_anim = anim_load(bm_bitmaps[first_frame].filename);
+	SDL_assert_release(the_anim);	// should never have gotten this far
+
+	the_anim_instance = init_anim_instance(the_anim, bpp);
+	SDL_assert_release(the_anim);	// should never have gotten this far
 
 	int can_drop_frames = 0;
 
@@ -1478,7 +1474,6 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	}
 		
 	for ( i=0; i<nframes; i++ )	{
-		be = &bm_bitmaps[first_frame+i];
 		bm = &bm_bitmaps[first_frame+i].bm;
 
 		// Unload any existing data
@@ -1491,14 +1486,18 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		} else {
 			bm->bpp = bpp;
 		}
-		bm->data = (ptr_u)bm_malloc(first_frame + i, size);
 
 		frame_data = anim_get_next_raw_buffer(the_anim_instance, 0 ,flags & BMP_AABITMAP ? 1 : 0, bm->bpp);
 
-		if ( frame_data == NULL ) {
+		if (frame_data == NULL) {
+			Int3();
+			break;
 			// Error(LOCATION,"Fatal error locking .ani file: %s\n", be->filename);
-		}		
-		
+		}
+
+		bm->data = (ptr_u)bm_malloc(first_frame + i, size);
+
+
 		ubyte *dptr, *sptr;
 
 		sptr = frame_data;
@@ -1563,7 +1562,7 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 
 		// Skip a frame
 		if ( (i < nframes-1)  && can_drop_frames )	{
-			frame_data = anim_get_next_raw_buffer(the_anim_instance, 0, flags & BMP_AABITMAP ? 1 : 0, bm->bpp);
+			anim_get_next_raw_buffer(the_anim_instance, 0, flags & BMP_AABITMAP ? 1 : 0, bm->bpp);
 		}
 
 		//mprintf(( "Checksum = %d\n", be->palette_checksum ));
@@ -2465,8 +2464,8 @@ void bm_get_filename(int bitmapnum, char *filename)
 // given a bitmap and a section, return the size (w, h)
 void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h)
 {
-	int bw, bh;
-	bitmap_section_info *sections;
+	int bw = 0, bh = 0;
+	bitmap_section_info *sections = NULL;
 
 	// bogus input?
 	SDL_assert((w != NULL) && (h != NULL));
@@ -2478,7 +2477,7 @@ void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h)
 	bm_get_info(bitmapnum, &bw, &bh, NULL, NULL, NULL, &sections);
 
 	// determine the width and height of this section
-	if (gr_screen.use_sections) {
+	if ( gr_screen.use_sections && (sections != NULL) ) {
 		*w = sx < (sections->num_x - 1) ? MAX_BMAP_SECTION_SIZE : bw - sections->sx[sx];
 		*h = sy < (sections->num_y - 1) ? MAX_BMAP_SECTION_SIZE : bh - sections->sy[sy];
 	} else {

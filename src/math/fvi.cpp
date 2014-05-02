@@ -462,7 +462,7 @@ int fvi_ray_boundingbox( vector *min, vector *max, vector * p0, vector *pdir, ve
 	int i;
 	int which_plane;
 	float maxt[3];
-	float candidate_plane[3];
+	float candidate_plane[3] = { 0.0f, 0.0f, 0.0f };
 
 	for (i=0; i<3; i++ )	{
 		if ( origin[i] < minB[i] )	{
@@ -1132,7 +1132,7 @@ int fvi_polyedge_sphereline(vector *hit_point, vector *xs0, vector *vs, float Rs
 		ve_sqr = vm_vec_mag_squared(&ve);
 		vs_sqr = vm_vec_mag_squared(vs);
 
-		float t_sphere_hit, temp;
+		float t_sphere_hit;
 
 		// solve for sphere time
 		double A, B, C, root, discriminant;
@@ -1150,9 +1150,7 @@ int fvi_polyedge_sphereline(vector *hit_point, vector *xs0, vector *vs, float Rs
 
 			// sort root1 and root2
 			if (root2 < root1) {
-				temp = root1;
 				root1 = root2;
-				root2 = temp;
 			}
 
 			if (root1 >= -0.05f && root1 < 0.0f) {
@@ -1242,9 +1240,7 @@ TryVertex:
 			root2 = (float) ((-B - root)/(2*A));
 
 			if (root1 > root2) {
-				temp = root1;
 				root1 = root2;
-				root2 = temp;
 			}
 
 			// look only at the fist hit  (ignore negative first hit)
@@ -1275,9 +1271,7 @@ TryVertex:
 			root2 = (float) ((-B - root)/(2*A));
 
 			if (root1 > root2) {
-				temp = root1;
 				root1 = root2;
-				root2 = temp;
 			}
 
 			// look only at the first hit (ignore negative first hit)
@@ -1313,7 +1307,7 @@ TryVertex:
 		}
 
 		vm_vec_scale_add( &temp_sphere_hit, xs0, vs, t_sphere_hit );
-		q = vm_vec_dist_squared(&temp_edge_hit, &temp_sphere_hit);
+		//q = vm_vec_dist_squared(&temp_edge_hit, &temp_sphere_hit);
 		// if ( fl_abs(q - Rs*Rs) > 2*WARN_DIST*Rs ) {
 		//	mprintf(("Estimated radius error: Estimate %f, actual %f  Get Dave A.\n", fl_sqrt(q), Rs));
 		// } 

@@ -589,8 +589,7 @@ void hud_wingman_status_blit_middle_frame(int num_wings_to_draw)
 		Int3();
 		return;
 	}	
-	sx = -1;
-	sy = -1;
+
 	for(idx=num_wings_to_draw; idx>=3; idx--){
 		sx = HUD_wingman_middle_coords[gr_screen.res][idx - 1][0];	
 		sy = HUD_wingman_middle_coords[gr_screen.res][idx - 1][1];		

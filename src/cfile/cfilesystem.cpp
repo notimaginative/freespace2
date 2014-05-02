@@ -1381,7 +1381,7 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 
 	} else {
 		if ( cfile_init_paths() ) {
-			strcpy(path, filename);
+			strcpy(path, (filename) ? filename : "");
 			return;
 		}
 

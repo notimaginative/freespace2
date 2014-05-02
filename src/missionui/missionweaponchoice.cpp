@@ -3922,7 +3922,8 @@ void wl_drop(int from_bank,int from_list,int to_bank,int to_list, int ship_slot,
 
 	common_flash_button_init();
 	if ( !(Game_mode & GM_MULTIPLAYER) || MULTIPLAYER_HOST ) {
-		if((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_TEAM)){
+		if ( (Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_TEAM) ) {
+			SDL_assert(pl != NULL);
 			// set the global pointers to the right pools
 			ss_set_team_pointers(pl->p_info.team);
 		}

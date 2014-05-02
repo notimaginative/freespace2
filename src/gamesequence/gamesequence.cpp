@@ -553,7 +553,6 @@ void gameseq_pop_state()
 
 		// set the popped_state to be the one we moved into
 		gs_current_stack--;
-		popped_state = gs[gs_current_stack].current_state;
 
 		// swap all remaining events from the state which just got popped to this new state
 		while(gs[gs_current_stack+1].queue_head != gs[gs_current_stack+1].queue_tail){

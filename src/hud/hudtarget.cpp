@@ -841,6 +841,10 @@ object *hud_reticle_pick_target()
 
 	return_objp = NULL;
 
+	if ( EMPTY(&Reticle_cur_list) ) {
+		return NULL;
+	}
+
 	// As a first step, see if both ships and debris are in the list.  If so, cull the debris.
 	int debris_in_list = 0;
 	int ship_in_list = 0;
@@ -3679,7 +3683,6 @@ void hud_show_hostile_triangle()
 	int player_obj_index = OBJ_INDEX(Player_obj);
 	int turret_is_attacking = 0;
 	
-	so = GET_FIRST(&Ship_obj_list);
 	for ( so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list);  so = GET_NEXT(so) ) {
 
 		A = &Objects[so->objnum];

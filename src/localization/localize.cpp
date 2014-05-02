@@ -540,6 +540,7 @@ void lcl_xstr_init()
 	int z, index, rval;
 	char *p_offset = NULL;
 	int offset_lo = 0, offset_hi = 0;
+	int num_offsets_on_this_line = 0;
 
 	for (i=0; i<XSTR_SIZE; i++){
 		Xstr_table[i].str = NULL;
@@ -564,8 +565,6 @@ void lcl_xstr_init()
 
 		// parse all the strings in this section of the table
 		while (!check_for_string("#")) {
-			int num_offsets_on_this_line = 0;
-
 			stuff_int(&index);
 			stuff_string(buf, F_NAME, NULL, 4096);
 
@@ -988,7 +987,7 @@ void lcl_ext_associate(const char *filename)
 // given a valid XSTR() tag piece of text, extract the string portion, return it in out, nonzero on success
 int lcl_ext_get_text(char *xstr, char *out)
 {
-	int str_start, str_end;
+	int str_start = 0, str_end = 0;
 	int str_len;
 	char *p, *p2;
 
@@ -998,7 +997,6 @@ int lcl_ext_get_text(char *xstr, char *out)
 	
 	// this is some crazy wack-ass code.
 	// look for the open quote
-	str_start = str_end = 0;
 	p = strstr(xstr, "\"");
 	if(p == NULL){
 		error_display(0, "Error parsing XSTR() tag %s\n", xstr);		

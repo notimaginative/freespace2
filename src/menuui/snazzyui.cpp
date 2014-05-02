@@ -312,7 +312,6 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 
 	} // end switch
 
-	i = -1;
 	//if (pixel_value >= 0) {	// always true
 		for (i=0; i<num_regions; i++) {
 			if (pixel_value == regions[i].mask) {

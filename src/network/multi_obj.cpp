@@ -874,6 +874,8 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 		float val;		
 		int i;		
 
+		SDL_zero(subsystem_percent);
+
 		// get the data for the subsystems
 		GET_DATA( n_subsystems );
 		for ( i = 0; i < n_subsystems; i++ ){

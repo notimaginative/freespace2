@@ -1310,7 +1310,6 @@ void barracks_accept_new_pilot_callsign()
 	} else {
 		for (i=1; buf[i]; i++) {
 			if (!isalpha(buf[i]) && !isdigit(buf[i]) && !strchr(VALID_PILOT_CHARS, buf[i])) {
-				z = 1;
 				return;
 			}
 		}
@@ -1318,7 +1317,6 @@ void barracks_accept_new_pilot_callsign()
 
 	for (i=1; i<Num_pilots; i++) {
 		if (!SDL_strcasecmp(buf, Pilots[i])) {
-			z = 1;
 			if (pilot_verify_overwrite() == 1) {
 				strcpy(name, Pilots[Selected_line]);
 				for (z=i; z<Num_pilots-1; z++) {
@@ -1328,7 +1326,6 @@ void barracks_accept_new_pilot_callsign()
 
 				Num_pilots--;
 				delete_pilot_file(name, Player_sel_mode == PLAYER_SELECT_MODE_SINGLE ? 1 : 0);
-				z = 0;
 			}
 			return;
 		}

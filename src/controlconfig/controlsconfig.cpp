@@ -770,10 +770,11 @@ void control_config_conflict_check()
 {
 	int i, j, a, b;
 
-/*	int shift = -1, alt = -1;
+//	int shift = -1, alt = -1;
 
 	for (i=0; i<CCFG_MAX; i++) {
 		Conflicts[i].key = Conflicts[i].joy = -1;
+		/*
 		switch (Control_config[i].key_id) {
 			case SDLK_LSHIFT:
 			case SDLK_RSHIFT:
@@ -785,8 +786,9 @@ void control_config_conflict_check()
 				alt = i;
 				break;
 		}
+		*/
 	}
-*/
+
 
 	for (i=0; i<NUM_TABS; i++)
 		Conflicts_tabs[i] = 0;

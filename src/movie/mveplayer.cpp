@@ -313,6 +313,7 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 	alSource3f(mas->chan->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
 	alSourcef(mas->chan->source_id, AL_ROLLOFF_FACTOR, 0.0f);
 	alSourcei(mas->chan->source_id, AL_SOURCE_RELATIVE, AL_TRUE);
+	alSourcei(mas->chan->source_id, AL_LOOPING, AL_FALSE);
 
 	oal_check_for_errors("mve_audio_createbuf() end");
 

@@ -1194,6 +1194,7 @@ void AudioStream::Play(float volume, int looping)
 		alSource3f(m_source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
 		alSourcef(m_source_id, AL_ROLLOFF_FACTOR, 0.0f);
 		alSourcei(m_source_id, AL_SOURCE_RELATIVE, AL_TRUE);
+		alSourcei(m_source_id, AL_LOOPING, AL_FALSE);
 
 		alSourcePlay(m_source_id);
 

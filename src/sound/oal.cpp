@@ -52,6 +52,7 @@ bool oal_check_for_errors(const char *location)
 	ALenum err = alGetError();
 
 	if (err != AL_NO_ERROR) {
+#ifndef NDEBUG
 		if (location) {
 			const char *str = alGetString(err);
 
@@ -59,7 +60,7 @@ bool oal_check_for_errors(const char *location)
 		} else {
 			nprintf(("OpenAL", "AL-ERROR => 0x%x: %s\n", err, alGetString(err)));
 		}
-
+#endif
 		return true;
 	}
 

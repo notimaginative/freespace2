@@ -270,6 +270,10 @@ void oal_stop_channel(int channel)
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
 
+	if (Channels[channel].flags & SND_FLAG_EXT) {
+		return;
+	}
+
 	oal_check_for_errors("oal_stop_channel() begin");
 
 	alSourceStop(Channels[channel].source_id);
@@ -289,6 +293,10 @@ void oal_stop_channel_all()
 	int size = (int)Channels.size();
 
 	for (int i = 0; i < size; i++) {
+		if (Channels[i].flags & SND_FLAG_EXT) {
+			continue;
+		}
+
 		oal_stop_channel(i);
 	}
 }
@@ -337,6 +345,7 @@ void oal_set_volume(int channel, float volume)
 
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
+	SDL_assert( !(Channels[channel].flags & SND_FLAG_EXT) );
 
 	oal_check_for_errors("oal_set_volume() begin");
 
@@ -353,6 +362,7 @@ void oal_set_pan(int channel, float pan)
 
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
+	SDL_assert( !(Channels[channel].flags & SND_FLAG_EXT) );
 
 	oal_check_for_errors("oal_set_pan() begin");
 
@@ -369,6 +379,7 @@ void oal_set_pitch(int channel, float pitch)
 
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
+	SDL_assert( !(Channels[channel].flags & SND_FLAG_EXT) );
 
 	oal_check_for_errors("oal_set_pitch() begin");
 
@@ -385,6 +396,7 @@ void oal_set_play_position(int channel, int position)
 
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
+	SDL_assert( !(Channels[channel].flags & SND_FLAG_EXT) );
 
 	oal_check_for_errors("oal_set_play_position() begin");
 
@@ -409,6 +421,7 @@ float oal_get_pitch(int channel)
 
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
+	SDL_assert( !(Channels[channel].flags & SND_FLAG_EXT) );
 
 	oal_check_for_errors("oal_get_pitch() begin");
 
@@ -484,6 +497,7 @@ void oal_chg_loop_status(int channel, int loop)
 
 	SDL_assert( channel >= 0 );
 	SDL_assert( channel < (int)Channels.size() );
+	SDL_assert( !(Channels[channel].flags & SND_FLAG_EXT) );
 
 	oal_check_for_errors("oal_chg_loop_status() begin");
 
@@ -633,7 +647,7 @@ sound_channel *oal_get_free_channel(float volume, int snd_id, int priority)
 	Channels[chan].vol = volume;
 	Channels[chan].priority = priority;
 	Channels[chan].last_position = 0;
-	Channels[chan].flags = 0;
+	Channels[chan].flags = SND_FLAG_EXT;
 	Channels[chan].buf_idx = -1;
 	Channels[chan].snd_id = snd_id;
 	Channels[chan].sig = channel_next_sig++;
@@ -1164,6 +1178,11 @@ void oal_do_frame()
 
 	// make sure there aren't any looping voice messages
 	for (int i = 0; i < size; i++) {
+		if (Channels[i].flags & SND_FLAG_EXT) {
+			// streaming sources should be managed elsewhere
+			continue;
+		}
+
 		if ( (Channels[i].flags & SND_FLAG_VOICE) && (Channels[i].flags & SND_FLAG_LOOPING) ) {
 			alGetSourcei(Channels[i].source_id, AL_SOURCE_STATE, &state);
 

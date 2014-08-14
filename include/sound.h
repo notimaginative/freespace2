@@ -217,6 +217,7 @@
 #define SND_FLAG_3D			(1<<1)
 #define SND_FLAG_VOICE		(1<<2)
 #define SND_FLAG_LOOPING	(1<<3)
+#define SND_FLAG_EXT		(1<<4)
 
 // Priorities that can be passed to snd_play() functions to limit how many concurrent sounds of a 
 // given type are played.

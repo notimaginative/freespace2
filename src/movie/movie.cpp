@@ -33,6 +33,8 @@
 #include "cmdline.h"
 #include "gamesequence.h"
 #include "mainhallmenu.h"
+#include "audiostr.h"
+
 
 int movie_play(const char *filename)
 {
@@ -41,44 +43,44 @@ int movie_play(const char *filename)
 		cutscene_mark_viewable(filename);
 	}
 
-	if (Cmdline_play_movies) {
-		MVESTREAM *movie;
-
-		movie = mve_open(filename);
-
-		if (movie) {
-			// kill all background sounds
-			game_stop_looped_sounds();
-			main_hall_stop_music();
-			main_hall_stop_ambient();
-
-			// clear the screen and hide the mouse cursor
-			Mouse_hidden++;
-			gr_set_clear_color(0, 0, 0);
-			gr_reset_clip();
-			gr_clear();
-			gr_flip();
-			gr_clear();
-			gr_zbuffer_clear(1);	// G400, blah
-
-			// ready to play...
-			mve_init(movie);
-			mve_play(movie);
-
-			// ...done playing, close the mve and show the cursor again
-			mve_shutdown();
-			mve_close(movie);
-
-			Mouse_hidden--;
-			main_hall_start_ambient();
-		} else {
-			printf("Can't open movie file: '%s'\n", filename);
-			return 0;
-		}
-	
-	} else {
-		mprintf(("Movies are disabled, skipping...\n"));
+	if ( !Cmdline_play_movies ) {
+		mprintf(("Movies are disabled, skipping playback of '%s'...\n", filename));
+		return 1;
 	}
+
+	MVESTREAM *movie = NULL;
+
+	movie = mve_open(filename);
+
+	if (movie == NULL) {
+		mprintf(("Can't open movie file: '%s'\n", filename));
+		return 0;
+	}
+
+	// kill all background sounds
+	snd_stop_all();
+	audiostream_pause_all();
+
+	// clear the screen and hide the mouse cursor
+	Mouse_hidden++;
+	gr_set_clear_color(0, 0, 0);
+	gr_reset_clip();
+	gr_clear();
+	gr_flip();
+	gr_clear();
+	gr_zbuffer_clear(1);	// G400, blah
+
+	// ready to play...
+	mve_init(movie);
+	mve_play(movie);
+
+	// ...done playing, close the mve and show the cursor again
+	mve_shutdown();
+	mve_close(movie);
+
+	Mouse_hidden--;
+
+	audiostream_unpause_all();
 
 	return 1;
 }

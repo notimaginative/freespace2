@@ -44,7 +44,7 @@ static size_t render_buffer_size = 0;
 
 void opengl_alloc_render_buffer(unsigned int nelems)
 {
-	if (nelems < 0) {
+	if (nelems < 1) {
 		nelems = 1;
 	}
 
@@ -69,7 +69,7 @@ void opengl_free_render_buffer()
 	}
 }
 
-static void opengl_set_variables()
+void opengl_set_variables()
 {
 	GL_min_texture_height = 16;
 	GL_min_texture_width = 16;
@@ -83,7 +83,7 @@ static void opengl_set_variables()
 	}
 }
 
-static void opengl_init_viewport()
+void opengl_init_viewport()
 {
 	GL_viewport_x = 0;
 	GL_viewport_y = 0;

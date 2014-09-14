@@ -19,7 +19,7 @@
 
 int OGL_fog_mode = 0;
 
-static int GL_one_inited = 0;
+int GL_one_inited = 0;
 
 
 volatile int GL_activate = 0;

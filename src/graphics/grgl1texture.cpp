@@ -813,18 +813,18 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 
 void gr_opengl1_preload_init()
 {
-	if (gr_screen.mode != GR_OPENGL) {
-		return;
-	}
+//	if (gr_screen.mode != GR_OPENGL) {
+//		return;
+//	}
 
 	opengl1_tcache_flush();
 }
 
 int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
 {
-	if ( gr_screen.mode != GR_OPENGL) {
-		return 0;
-	}
+//	if ( gr_screen.mode != GR_OPENGL) {
+//		return 0;
+//	}
 
 	if ( !GL_should_preload )      {
 		return 0;

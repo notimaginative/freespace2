@@ -81,6 +81,7 @@ set(fs_INCLUDES
   include/grgl1.h
   include/gropengl.h
   include/gropenglinternal.h
+  include/grwxgl.h
   include/helpeddoc.h
   include/helped.h
   include/helpedline.h

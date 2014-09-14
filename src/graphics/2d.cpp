@@ -486,6 +486,7 @@
 
 // Includes for different rendering systems
 #include "gropengl.h"
+#include "grwxgl.h"
 
 screen gr_screen;
 
@@ -527,6 +528,10 @@ void gr_close()
 	switch (gr_screen.mode) {
 		case GR_OPENGL:
 			gr_opengl_cleanup();
+			break;
+
+		case GR_WXGL:
+			gr_wxgl_cleanup();
 			break;
 
 		default:
@@ -626,6 +631,9 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 				gr_opengl_cleanup();
 				break;
 
+			case GR_WXGL:
+				gr_wxgl_cleanup();
+
 			default:
 				Int3();		// Invalid graphics mode
 				break;
@@ -686,6 +694,10 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	switch( gr_screen.mode )	{
 		case GR_OPENGL:
 			gr_opengl_init();
+			break;
+		case GR_WXGL:
+			SDL_assert( Pofview_running || Fred_running );
+			gr_wxgl_init();
 			break;
 		default:
 			Int3();		// Invalid graphics mode

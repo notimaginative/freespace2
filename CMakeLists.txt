@@ -13,7 +13,7 @@ pkg_search_module(SDL2 REQUIRED sdl2 >= 2.0.1)
 
 find_package(OpenGL)
 find_package(OpenAL)
-find_package(wxWidgets COMPONENTS core base)
+find_package(wxWidgets COMPONENTS core base gl)
 
 include(${wxWidgets_USE_FILE})
 
@@ -129,15 +129,36 @@ target_link_libraries(
 
 add_executable(pofview
   EXCLUDE_FROM_ALL
-  src/pofview/childfrm.cpp
-  src/pofview/mainfrm.cpp
-  src/pofview/objecttree.cpp
   src/pofview/pofview.cpp
-  src/pofview/pofviewdoc.cpp
+  src/pofview/pofviewdialogs.cpp
+  src/pofview/pofviewcanvas.cpp
   src/pofview/pofviewstubs.cpp
-  src/pofview/pofviewview.cpp
-  src/pofview/stdafx.cpp
+  src/pofview/res/pofview_ico.xpm
+  src/pofview/res/tool_about.xpm
+  src/pofview/res/tool_damaged.xpm
+  src/pofview/res/tool_debris.xpm
+  src/pofview/res/tool_detail1.xpm
+  src/pofview/res/tool_detail2.xpm
+  src/pofview/res/tool_detail3.xpm
+  src/pofview/res/tool_detail4.xpm
+  src/pofview/res/tool_detail5.xpm
+  src/pofview/res/tool_detail6.xpm
+  src/pofview/res/tool_lights.xpm
+  src/pofview/res/tool_tree.xpm
 )
+
+target_link_libraries(
+  pofview
+  code
+  ${SDL2_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${OPENAL_LIBRARY}
+  ${wxWidgets_LIBRARIES}
+)
+
+if(NOT WIN32)
+  set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
+endif()
 
 add_executable(scramble
   EXCLUDE_FROM_ALL

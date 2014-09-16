@@ -842,10 +842,10 @@ void model_interp_tmappoly(ubyte * p,polymodel * pm)
 			gr_set_color( 0, 255, 0 );
 			g3_draw_poly( nv, Interp_list, 0 );		
 		} else if (Interp_thrust_scale_subobj)	{
-			if ((Interp_thrust_bitmap>-1)	&& (Interp_thrust_scale > 0.0f) && !Pofview_running) {
+			if ( (Interp_thrust_bitmap > -1) && (Interp_thrust_scale > 0.0f) ) {
 				gr_set_bitmap( Interp_thrust_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.2f, -1, -1);
 				g3_draw_poly( nv, Interp_list, TMAP_FLAG_TEXTURED );		
-			} else if(!Pofview_running){
+			} else if ( !Pofview_running ) {
 				if ( !(Interp_flags & MR_SHOW_OUTLINE_PRESET) )	{
 					gr_set_color( 128, 128, 255 );
 				}

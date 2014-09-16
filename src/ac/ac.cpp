@@ -61,7 +61,9 @@
  * $NoKeywords: $
  */
 
+#ifdef WIN32
 #include <windows.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,7 +73,7 @@
 #include "packunpack.h"
 
 #ifdef NDEBUG
-char *help_text = "AC ANI Converter Copyright (C) 1998, Volition, Inc.  All Rights Reserved.\n"
+static const char *help_text = "AC ANI Converter Copyright (C) 1998, Volition, Inc.  All Rights Reserved.\n"
 						"For exclusive use in FreeSpace missions only.\n\n"
 						"Usage: ac [-fps n] [-v] filename\n\n" \
 						"-i     => display information and statistics about the ani file\n" \
@@ -84,7 +86,7 @@ char *help_text = "AC ANI Converter Copyright (C) 1998, Volition, Inc.  All Righ
 						"ac test0000.pcx => converts test0000.pcx up to highest testxxxx.pcx to test.ani\n";
 
 #else
-char *help_text = "Usage: ac [-c n] [-k n] [-ke n] [-fps n] [-to] [-v] filename\n\n" \
+static const char *help_text = "Usage: ac [-c n] [-k n] [-ke n] [-fps n] [-to] [-v] filename\n\n" \
 						"-c   n => which kind of compression to use (default is 1):\n" \
 						"     -c 0 => compression using up to 255 count, takes 3 bytes for a run\n" \
 						"     -c 1 => compression using up to 127 count, takes 2 bytes for a run\n" \
@@ -109,7 +111,7 @@ char *help_text = "Usage: ac [-c n] [-k n] [-ke n] [-fps n] [-to] [-v] filename\
 static char buffer[255];
 
 // Internal function prototypes
-void ac_error(char *msg);
+void ac_error(const char *msg);
 void start_convert_with(char* filename);
 
 int main(int argc, char *argv[])
@@ -127,20 +129,20 @@ int main(int argc, char *argv[])
 	vm_init(16*1024*1024);
 
 	if ( argc <= 1 ) {
-		printf(help_text);
+		printf("%s", help_text);
 		exit(0);
 	}
 
 	for ( i = 1; i < argc; i++ ) {
-		if ( !stricmp(argv[i], "-h" ) ) {
-			printf(help_text);
+		if ( !SDL_strcasecmp(argv[i], "-h" ) ) {
+			printf("%s", help_text);
 			exit(0);
 
 #ifndef NDEBUG
-		} else if ( !stricmp(argv[i], "-c" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-c" ) ) {
 			int mode;
 			if ( i+1 >= argc ) ac_error("-c switch requires a parameter\n");
-			mode = atoi(argv[i+1]);
+			mode = SDL_atoi(argv[i+1]);
 			i++;
 			switch ( mode ) {
 				case 0:
@@ -154,34 +156,34 @@ int main(int argc, char *argv[])
 					break;
 			}	// end switch
 
-		} else if ( !stricmp(argv[i], "-k" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-k" ) ) {
 			if ( i+1 >= argc ) ac_error("-k switch requires a parameter\n");
-			force_key_frame = atoi(argv[i+1]);
+			force_key_frame = SDL_atoi(argv[i+1]);
 			i++;
 
-		} else if ( !stricmp(argv[i], "-ke" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-ke" ) ) {
 			if ( i+1 >= argc ) ac_error("-ke switch requires a parameter\n");
-			key_frame_rate = atoi(argv[i+1]);
+			key_frame_rate = SDL_atoi(argv[i+1]);
 			i++;
 
-		} else if ( !stricmp(argv[i], "-to" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-to" ) ) {
 			Use_custom_xparent_color = 1;
 #endif
 
-		} else if ( !stricmp(argv[i], "-fps" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-fps" ) ) {
 			if ( i+1 >= argc ) ac_error("-fps switch requires a parameter\n");
-			Default_fps = atoi(argv[i+1]);
+			Default_fps = SDL_atoi(argv[i+1]);
 			i++;
 
-		} else if ( !stricmp(argv[i], "-v" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-v" ) ) {
 			printf("AC version: %.2f\n", float(ANIM_VERSION));
 
-		} else if ( !stricmp(argv[i], "-i" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-i" ) ) {
 			if ( i+1 >= argc ) ac_error("-i switch requires filename of ani\n");
 			anim_display_info(argv[i+1]);
 			exit(0);
 
-		} else if ( !stricmp(argv[i], "-x" ) ) {
+		} else if ( !SDL_strcasecmp(argv[i], "-x" ) ) {
 			if ( i+1 >= argc ) ac_error("-x switch requires filename of ani\n");
 			anim_write_frames_out(argv[i+1]);
 			exit(0);
@@ -195,9 +197,9 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void ac_error(char *msg)
+void ac_error(const char *msg)
 {
-	fprintf(stderr, msg);
+	fprintf(stderr, "%s", msg);
 	exit(1);
 }
 
@@ -211,7 +213,7 @@ void start_convert_with(char* filename)
 		ac_error("Extension must be specified for file to convert");
 
 	extension = filename + strlen(filename) - 3;
-	if (!stricmp(extension, "avi")) {
+	if (!SDL_strcasecmp(extension, "avi")) {
 		if ( key_frame_rate > 0 )
 			key_frame_rate--;
 		rc = convert_avi_to_anim(filename);
@@ -220,7 +222,7 @@ void start_convert_with(char* filename)
 			ac_error(buffer);
 		}
 	}
-	else if (!stricmp(extension, "pcx")) {
+	else if (!SDL_strcasecmp(extension, "pcx")) {
 		rc = convert_frames_to_anim(filename);
 		if (rc) {
 			sprintf(buffer,"Could not convert %s to ani format\n", filename);

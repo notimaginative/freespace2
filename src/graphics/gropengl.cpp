@@ -44,7 +44,7 @@ static size_t render_buffer_size = 0;
 
 void opengl_alloc_render_buffer(unsigned int nelems)
 {
-	if (nelems < 0) {
+	if (nelems < 1) {
 		nelems = 1;
 	}
 
@@ -69,7 +69,7 @@ void opengl_free_render_buffer()
 	}
 }
 
-static void opengl_set_variables()
+void opengl_set_variables()
 {
 	GL_min_texture_height = 16;
 	GL_min_texture_width = 16;
@@ -83,7 +83,7 @@ static void opengl_set_variables()
 	}
 }
 
-static void opengl_init_viewport()
+void opengl_init_viewport()
 {
 	GL_viewport_x = 0;
 	GL_viewport_y = 0;
@@ -160,7 +160,7 @@ void gr_opengl_init()
 	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
-	GL_window = SDL_CreateWindow(Osreg_title, SDL_WINDOWPOS_CENTERED,
+	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
 						SDL_WINDOWPOS_CENTERED,
 						gr_screen.max_w, gr_screen.max_h, SDL_WINDOW_OPENGL);
 

@@ -81,6 +81,7 @@ set(fs_INCLUDES
   include/grgl1.h
   include/gropengl.h
   include/gropenglinternal.h
+  include/grwxgl.h
   include/helpeddoc.h
   include/helped.h
   include/helpedline.h
@@ -190,7 +191,6 @@ set(fs_INCLUDES
   include/objcollide.h
   include/object.h
   include/objectsnd.h
-  include/objecttree.h
   include/observer.h
   include/operatorargtypeselect.h
   include/optionsmenu.h
@@ -208,9 +208,7 @@ set(fs_INCLUDES
   include/player.h
   include/playermenu.h
   include/playerstarteditor.h
-  include/pofviewdoc.h
   include/pofview.h
-  include/pofviewview.h
   include/popupdead.h
   include/popup.h
   include/prefsdlg.h

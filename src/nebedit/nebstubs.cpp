@@ -71,14 +71,14 @@ void game_level_close(){}
 void game_flash(float, float, float){}
 void game_whack_apply(float, float){}
 int game_do_cd_check(char*){return 0;}
-struct fs_builtin_mission *game_find_builtin_mission(char*){return 0;}
+struct fs_builtin_mission *game_find_builtin_mission(const char*){return 0;}
 int Game_do_state_should_skip;
 int Show_target_weapons;
 int Show_target_debug_info;
 int Sun_drew;
 int Game_subspace_effect;
 void game_load_palette(){}
-void game_format_time(long, char*){}
+void game_format_time(int, char*){}
 float Freespace_gamma;
 void get_version_string(char*){}
 int game_get_default_skill_level(){return 0;}

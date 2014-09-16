@@ -90,7 +90,7 @@ int Show_target_debug_info;
 int Sun_drew;
 int Game_subspace_effect;
 void game_load_palette(){}
-void game_format_time(long, char*){}
+void game_format_time(int, char*){}
 float Freespace_gamma;
 void get_version_string(char*){}
 int game_get_default_skill_level(){return 0;}

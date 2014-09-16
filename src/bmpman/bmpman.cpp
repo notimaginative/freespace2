@@ -1318,7 +1318,7 @@ static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flag
 {	
 	int idx;	
 
-	if(Fred_running || Pofview_running || Is_standalone){
+	if (Is_standalone) {
 		SDL_assert(bmp->bpp == 8);
 
 		return;
@@ -1412,11 +1412,6 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 			// Error( LOCATION, "Couldn't open '%s'\n", be->filename );
 			//Error( LOCATION, "Couldn't open '%s'\n", filename );
 			//return -1;
-		}
-
-		// now swizzle the thing into the proper format
-		if(Fred_running || Pofview_running){
-			bm_swizzle_8bit_for_fred(be, bmp, data, palette);
 		}
 	} else {	
 		int pcx_error;
@@ -1696,15 +1691,10 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 	} 
 	// otherwise do it as normal
 	else {
-		if(Fred_running || Pofview_running){
+		if (flags & BMP_AABITMAP) {
 			SDL_assert( bpp == 8 );
-			SDL_assert( (bm_bitmaps[bitmapnum].type == BM_TYPE_PCX) || (bm_bitmaps[bitmapnum].type == BM_TYPE_ANI) || (bm_bitmaps[bitmapnum].type == BM_TYPE_TGA));
 		} else {
-			if(flags & BMP_AABITMAP){
-				SDL_assert( bpp == 8 );
-			} else {
-				SDL_assert( bpp == 16 );
-			}
+			SDL_assert( bpp == 16 );
 		}
 	}
 

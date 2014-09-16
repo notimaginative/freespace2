@@ -527,6 +527,7 @@ typedef struct screen {
 // Call this at application startup
 
 #define GR_OPENGL				(100)		// OpenGL (generic)
+#define GR_WXGL					(101)		// OpenGL for use with wxWidgets toolkit
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
 #define GR_NUM_RESOLUTIONS			2

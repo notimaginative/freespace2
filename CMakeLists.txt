@@ -17,6 +17,9 @@ find_package(wxWidgets COMPONENTS core base gl)
 
 include(${wxWidgets_USE_FILE})
 
+
+# ##############################################################################
+
 option(FS1 "Build original FreeSpace" OFF)
 option(DEMO "Create demo build" OFF)
 
@@ -29,6 +32,18 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 
+if(FS1)
+  add_definitions(-DMAKE_FS1)
+
+  if(DEMO)
+	add_definitions(-DDEMO -DFS1_DEMO)
+  endif()
+else()
+  if(DEMO)
+	add_definitions(-DFS2_DEMO)
+  endif()
+endif()
+
 if(NOT WIN32)
   add_definitions(-DPLAT_UNIX)
   add_definitions(-Wall -Wno-format-y2k -Wno-deprecated)
@@ -40,8 +55,8 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
 endif()
 
+# ##############################################################################
 
-add_subdirectory(src)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
@@ -50,34 +65,46 @@ include_directories(
   ${wxWidgets_INCLUDE_DIRS}
 )
 
-set(fs_SOURCE
-  src/freespace2/freespace.cpp
-  src/freespace2/levelpaging.cpp
-  src/freespace2/main.cpp
+
+add_subdirectory(src)
+add_subdirectory(include)
+
+
+# ##############################################################################
+#
+
+#
+# main code/game library
+#
+
+add_library(code
+  STATIC
+  ${code_SOURCE}
+  ${code_HEADERS}
 )
 
-include(includes.cmake)
-
-set(FS_BINARY freespace2)
+#
+# the game itself
+#
 
 if(FS1)
-  add_definitions(-DMAKE_FS1)
   if(DEMO)
-    add_definitions(-DDEMO -DFS1_DEMO)
     set(FS_BINARY freespace_demo)
   else()
     set(FS_BINARY freespace)
   endif()
 else()
   if(DEMO)
-    add_definitions(-DFS2_DEMO)
     set(FS_BINARY freespace2_demo)
   else()
-    set(FS_BINARY freespace2)
+	set(FS_BINARY freespace2)
   endif()
 endif()
 
-add_executable(${FS_BINARY} ${fs_SOURCE} ${fs_INCLUDES})
+add_executable(${FS_BINARY}
+  ${freespace_SOURCE}
+  ${freespace_HEADERS}
+)
 
 target_link_libraries(
   ${FS_BINARY}
@@ -87,11 +114,22 @@ target_link_libraries(
   ${OPENAL_LIBRARY}
 )
 
+#
+# ##############################################################################
+
+# ##############################################################################
+#
+# toolset: targets for creating/modifying game assets
+#
+
+#
+# AC: anim converter
+#
+
 add_executable(ac
   EXCLUDE_FROM_ALL
-  src/ac/ac.cpp
-  src/ac/ac_stubs.cpp
-  src/ac/convert.cpp
+  ${ac_SOURCE}
+  ${ac_HEADERS}
 )
 
 target_link_libraries(
@@ -102,20 +140,31 @@ target_link_libraries(
   ${OPENAL_LIBRARY}
 )
 
+#
+# CFILEARCHIVER: to create VP file archives
+#
+
 add_executable(cfilearchiver
   EXCLUDE_FROM_ALL
-  src/cfilearchiver/cfilearchiver.cpp
+  ${cfilearchiver_SOURCE}
 )
+
+#
+# CRYPTSTRING: string encryption (for embedded cheat codes)
+#
 
 add_executable(cryptstring
   EXCLUDE_FROM_ALL
-  src/cryptstring/cryptstring.cpp
+  ${cryptstring_SOURCE}
 )
+
+#
+# NEBEDIT: FS1 style nebula editor/creator
+#
 
 add_executable(nebedit
   EXCLUDE_FROM_ALL
-  src/nebedit/nebedit.cpp
-  src/nebedit/nebstubs.cpp
+  ${nebedit_SOURCE}
 )
 
 target_link_libraries(
@@ -127,24 +176,14 @@ target_link_libraries(
   ${wxWidgets_LIBRARIES}
 )
 
+#
+# POFVIEW: model viewer
+#
+
 add_executable(pofview
   EXCLUDE_FROM_ALL
-  src/pofview/pofview.cpp
-  src/pofview/pofviewdialogs.cpp
-  src/pofview/pofviewcanvas.cpp
-  src/pofview/pofviewstubs.cpp
-  src/pofview/res/pofview_ico.xpm
-  src/pofview/res/tool_about.xpm
-  src/pofview/res/tool_damaged.xpm
-  src/pofview/res/tool_debris.xpm
-  src/pofview/res/tool_detail1.xpm
-  src/pofview/res/tool_detail2.xpm
-  src/pofview/res/tool_detail3.xpm
-  src/pofview/res/tool_detail4.xpm
-  src/pofview/res/tool_detail5.xpm
-  src/pofview/res/tool_detail6.xpm
-  src/pofview/res/tool_lights.xpm
-  src/pofview/res/tool_tree.xpm
+  ${pofview_SOURCE}
+  ${pofview_HEADERS}
 )
 
 target_link_libraries(
@@ -156,25 +195,32 @@ target_link_libraries(
   ${wxWidgets_LIBRARIES}
 )
 
+# wxWidgets appears to need c++11 for one or more headers
 if(NOT WIN32)
   set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
 endif()
 
+#
+# SCRAMBLE: file-based encryption for TBLs
+#
+
 add_executable(scramble
   EXCLUDE_FROM_ALL
-  src/parse/encrypt.cpp
-  src/scramble/scramble.cpp
+  ${scramble_SOURCE}
+  ${scramble_HEADERS}
 )
+
+#
+# FONTTOOL: create font files / edit kerning data
+#
 
 add_executable(fonttool
   EXCLUDE_FROM_ALL
-  src/fonttool/fontstubs.cpp
-  src/fonttool/fontcreate.cpp
-  src/fonttool/fontkern.cpp
-  src/fonttool/fontkerncopy.cpp
-  src/fonttool/fonttool.cpp
+  ${fonttool_SOURCE}
+  ${fonttool_HEADERS}
 )
 
+# background setup, to allow running from build location without installing
 add_custom_command(TARGET fonttool
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
@@ -189,15 +235,27 @@ target_link_libraries(
   ${OPENAL_LIBRARY}
 )
 
+#
+# custom target to build all tools in one pass
+#
+
 add_custom_target(tools)
 
 add_dependencies(tools
   ac
-  nebedit
   cfilearchiver
-  scramble
   cryptstring
+  nebedit
+  pofview
+  scramble
   fonttool
 )
+
+#
+# ##############################################################################
+
+#
+# optionally include any dev/user preferred build commands and/or options
+#
 
 include(custom.cmake OPTIONAL)

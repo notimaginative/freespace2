@@ -380,14 +380,14 @@ static void os_parse_parms(char *cmdline)
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		// check with space to make sure we get the correct option name
-		snprintf(pname, sizeof(pname)-1, "%s ", parmp->name);
+		SDL_snprintf(pname, sizeof(pname)-1, "%s ", parmp->name);
 		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
 			cmdline_offset += strlen(parmp->name);
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
-			snprintf(pname, sizeof(pname)-1, "%s ", parmp->name2);
+			SDL_snprintf(pname, sizeof(pname)-1, "%s ", parmp->name2);
 			cmdline_offset = strstr(cmdline, pname);
 
 			if (cmdline_offset) {
@@ -523,13 +523,13 @@ static void os_init_cmdline(const char *cmdline)
 
 	mprintf(("Command line: "));
 
-	snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	SDL_snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen (cmdname, "rt");
 
 	if ( !fp ) {
 		// if not already found check exec directory
-		snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+		SDL_snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 		fp = fopen (cmdname, "rt");
 	}

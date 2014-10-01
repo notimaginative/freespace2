@@ -77,6 +77,7 @@ add_library(code
   STATIC
   ${code_SOURCE}
   ${code_HEADERS}
+  ${platform_SOURCE}
 )
 
 #

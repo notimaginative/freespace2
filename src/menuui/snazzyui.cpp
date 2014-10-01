@@ -189,6 +189,7 @@
 
 
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "pstypes.h"
 #include "2d.h"

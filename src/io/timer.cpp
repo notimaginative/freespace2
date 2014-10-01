@@ -124,7 +124,7 @@ void timer_init()
 
 fix timer_get_fixed_seconds()
 {
-	__extension__ long long a = SDL_GetTicks();
+	Sint64 a = SDL_GetTicks();
 	
 	a *= 65536;
 	return (fix)(a / 1000);

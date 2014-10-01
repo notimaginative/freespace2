@@ -27,6 +27,7 @@ extern int WSAGetLastError ();
 extern void _splitpath (const char *path, char *drive, char *dir, char *fname, char *ext);
 
 #define _mkdir(A) mkdir(A,0700)
+#define ioctlsocket(A,B,C) ioctl(A,B,C)
 #define closesocket(A) close(A)
 #define CopyMemory(A,B,C) memcpy(A,B,C)
 #define UINT unsigned int

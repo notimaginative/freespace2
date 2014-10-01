@@ -116,15 +116,10 @@
 * $NoKeywords: $
 */
 
-#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
 
 #ifndef PLAT_UNIX
-// #define WIN32
-
-// #ifdef WIN32
 #include <windows.h>
 #include <process.h>
-// #endif
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -135,9 +130,6 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include "unix.h"
-
 #endif
 
 #include <string.h>
@@ -145,57 +137,33 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include "pstypes.h"
 #include "inetgetfile.h"
 #include "chttpget.h"
 
-#ifdef __LINUX__
 
-inline void Sleep(int millis)
-{
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = millis*1000;
-	select(0,NULL,NULL,NULL,&tv);
-}
-#endif
 
 #define NW_AGHBN_CANCEL		1
 #define NW_AGHBN_LOOKUP		2
 #define NW_AGHBN_READ		3
 
-#ifndef __LINUX__
-void __cdecl http_gethostbynameworker(void *parm);
-#else
-void *http_gethostbynameworker(void *parm);
-#endif
+int http_gethostbynameworker(void *parm);
+
 
 int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname);
 
-#ifndef __LINUX__
-void HTTPObjThread( void * obj )
-#else
-void *HTTPObjThread( void * obj )
-#endif
+int HTTPObjThread( void * obj )
 {
 	((ChttpGet *)obj)->WorkerThread();
 	((ChttpGet *)obj)->m_Aborted = true;
-	//OutputDebugString("http transfer exiting....\n");
 
-	#ifdef __LINUX__
-	return NULL;
-	#endif
+	return ((ChttpGet *)obj)->GetStatus();
 }
 
 void ChttpGet::AbortGet()
 {
-// #ifdef WIN32
-	OutputDebugString("Aborting....\n");
-// #endif
 	m_Aborting = true;
-	while(!m_Aborted) Sleep(50); //Wait for the thread to end
-// #ifdef WIN32
-	OutputDebugString("Aborted....\n");
-// #endif
+	while(!m_Aborted) SDL_Delay(10); //Wait for the thread to end
 }
 
 ChttpGet::ChttpGet(char *URL,char *localfile,char *proxyip,unsigned short proxyport)
@@ -229,23 +197,21 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	if(NULL == LOCALFILE)
 	{
 		m_State = HTTP_STATE_CANT_WRITE_FILE;
+		m_Aborted = true;
 		return;
 	}
 	m_DataSock = socket(AF_INET, SOCK_STREAM, 0);
 	if(INVALID_SOCKET == m_DataSock)
 	{
 		m_State = HTTP_STATE_SOCKET_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	unsigned long arg;
 
 	arg = true;
-//#ifndef __LINUX__
-#ifndef PLAT_UNIX
+
 	ioctlsocket( m_DataSock, FIONBIO, &arg );
-#else
-	ioctl( m_DataSock, FIONBIO, &arg );
-#endif
 
 	char *pURL = URL;
 	if(SDL_strncasecmp(URL,"http:",5)==0)
@@ -260,6 +226,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	if(strchr(pURL,':'))
 	{
 		m_State = HTTP_STATE_URL_PARSING_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	//read the filename by searching backwards for a /
@@ -286,6 +253,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	if((dirstart==NULL) || (filestart==NULL))
 	{
 		m_State = HTTP_STATE_URL_PARSING_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	else
@@ -295,27 +263,20 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 		strncpy(m_szHost,pURL,(dirstart-pURL));
 		m_szHost[(dirstart-pURL)-1] = '\0';
 	}
-// #ifdef WIN32
-	if(0==_beginthread(HTTPObjThread,0,this))
+
+	SDL_Thread *thread = SDL_CreateThread(HTTPObjThread, "HTTPObjThread", this);
+
+	if(thread == NULL)
 	{
 		m_State = HTTP_STATE_INTERNAL_ERROR;
+		m_Aborted = true;
 		return;
 	}
-	/*
-#elif defined(__LINUX__)
-	pthread_t thread;
-	if(!inet_LoadThreadLib())
+	else
 	{
-		m_State = HTTP_STATE_INTERNAL_ERROR;
-		return;
+		int ret_val = 0;
+		SDL_WaitThread(thread, &ret_val);
 	}
-	if(df_pthread_create(&thread,NULL,HTTPObjThread,this)!=0)
-	{
-		m_State = HTTP_STATE_INTERNAL_ERROR;
-		return;
-	}
-#endif
-	*/
 }
 
 
@@ -324,11 +285,12 @@ ChttpGet::~ChttpGet()
 	if(m_DataSock != INVALID_SOCKET)
 	{
 		shutdown(m_DataSock,2);
-#ifndef __LINUX__
 		closesocket(m_DataSock);
-#else
-		close(m_DataSock);
-#endif
+	}
+
+	if(LOCALFILE != NULL)
+	{
+		fclose(LOCALFILE);
 	}
 }
 
@@ -357,11 +319,13 @@ void ChttpGet::WorkerThread()
 	if(m_Aborting)
 	{
 		fclose(LOCALFILE);
+		LOCALFILE = NULL;
 		return;
 	}
 	if(m_State != HTTP_STATE_CONNECTED)
 	{
 		fclose(LOCALFILE);
+		LOCALFILE = NULL;
 		return;
 	}
 	sprintf(szCommand,"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
@@ -375,6 +339,7 @@ void ChttpGet::WorkerThread()
 		{
 			m_State = HTTP_STATE_UNKNOWN_ERROR;	
 			fclose(LOCALFILE);
+			LOCALFILE = NULL;
 			return;
 
 		}
@@ -385,6 +350,7 @@ void ChttpGet::WorkerThread()
 		{
 			m_State = HTTP_STATE_UNKNOWN_ERROR;	
 			fclose(LOCALFILE);
+			LOCALFILE = NULL;
 			return;
 		}
 		if(irsp==200)
@@ -397,6 +363,7 @@ void ChttpGet::WorkerThread()
 				{
 					m_State = HTTP_STATE_UNKNOWN_ERROR;	
 					fclose(LOCALFILE);
+					LOCALFILE = NULL;
 					return;
 				}
 				if(*p=='\0')
@@ -423,19 +390,21 @@ void ChttpGet::WorkerThread()
 
 				}
 
-				Sleep(1);
+				SDL_Delay(1);
 			}while(!idataready);
 		ReadDataChannel();
 		return;
 		}
 		m_State = HTTP_STATE_FILE_NOT_FOUND;
 		fclose(LOCALFILE);
+		LOCALFILE = NULL;
 		return;
 	}
 	else
 	{
 		m_State = HTTP_STATE_UNKNOWN_ERROR;
 		fclose(LOCALFILE);
+		LOCALFILE = NULL;
 		return;
 	}
 }
@@ -465,7 +434,7 @@ int ChttpGet::ConnectSocket()
 			}
 			rcode = http_Asyncgethostbyname(&ip,NW_AGHBN_READ,m_szHost);
 
-			Sleep(1);
+			SDL_Delay(1);
 		}while(rcode==0);
 	}
 	
@@ -510,7 +479,7 @@ int ChttpGet::ConnectSocket()
 				}
 				rcode = http_Asyncgethostbyname(&ip,NW_AGHBN_READ,m_ProxyIP);
 
-				Sleep(1);
+				SDL_Delay(1);
 			}while(rcode==0);
 			
 			
@@ -558,7 +527,7 @@ int ChttpGet::ConnectSocket()
 				break;
 			}
 
-			Sleep(1);
+			SDL_Delay(1);
 		};
 	}
 	if(serr)
@@ -600,7 +569,7 @@ char *ChttpGet::GetHTTPLine()
 				gotdata = true;
 			}
 
-			Sleep(1);
+			SDL_Delay(1);
 		}while(!gotdata);
 		
 		if(chunk[0]==0x0d)
@@ -626,7 +595,7 @@ char *ChttpGet::GetHTTPLine()
 					gotdata = true;
 				}
 
-				Sleep(1);
+				SDL_Delay(1);
 			}while(!gotdata);
 			igotcrlf = 1;	
 		}
@@ -635,7 +604,7 @@ char *ChttpGet::GetHTTPLine()
 			strcat(recv_buffer,chunk);
 		}
 		
-		Sleep(1);
+		SDL_Delay(1);
 	}while(igotcrlf==0);
 	return recv_buffer;	
 }
@@ -689,7 +658,7 @@ unsigned int ChttpGet::ReadDataChannel()
 			//Write sDataBuffer, nBytesRecv
     	}
 		
-		Sleep(1);
+		SDL_Delay(1);
 	}while (nBytesRecv > 0);
 	fclose(LOCALFILE);							
 	// Close the file and check for error returns.
@@ -721,11 +690,7 @@ typedef struct _async_dns_lookup
 async_dns_lookup httpaslu;
 async_dns_lookup *http_lastaslu = NULL;
 
-#ifndef __LINUX__
-void __cdecl http_gethostbynameworker(void *parm);
-#else
-void *http_gethostbynameworker(void *parm);
-#endif
+int http_gethostbynameworker(void *parm);
 
 int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
 {
@@ -745,19 +710,8 @@ int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
 		http_lastaslu = newaslu;
 		httpaslu.done = false;
 
-// #ifdef WIN32
-		_beginthread(http_gethostbynameworker,0,newaslu);
-	/*
-#elif defined(__LINUX__)
-		pthread_t thread;
-		if(!inet_LoadThreadLib())
-		{
-			return 0;
-		}
+		SDL_CreateThread(http_gethostbynameworker, "GetHostByNameWorker", newaslu);
 
-		df_pthread_create(&thread,NULL,http_gethostbynameworker,newaslu);
-#endif
-		*/
 		return 1;
 	}
 	else if(command==NW_AGHBN_CANCEL)
@@ -790,25 +744,14 @@ int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
 }
 
 // This is the worker thread which does the lookup.
-#ifndef __LINUX__
-void __cdecl http_gethostbynameworker(void *parm)
-#else
-void *http_gethostbynameworker(void *parm)
-#endif
+int http_gethostbynameworker(void *parm)
 {
-#ifdef __LINUX__
-	df_pthread_detach(df_pthread_self());
-#endif
 	async_dns_lookup *lookup = (async_dns_lookup *)parm;
 	HOSTENT *he = gethostbyname(lookup->host);
 	if(he==NULL)
 	{
 		lookup->error = true;
-		#ifdef __LINUX__
-		return NULL;
-		#else
-		return;
-		#endif
+		return 1;
 	}
 	else if(!lookup->abort)
 	{
@@ -818,9 +761,5 @@ void *http_gethostbynameworker(void *parm)
 	}
 	free(lookup);
 
-#ifdef __LINUX__
-	return NULL;
-#endif
+	return 0;
 }
-
-#endif // !PLAT_UNIX

@@ -54,26 +54,22 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
 
 #ifndef PLAT_UNIX
 #include <windows.h>
-#include <direct.h>
-#else
-#include <sys/stat.h>	// mkdir
-#include <sys/types.h>	// mkdir
-              
-#include "pstypes.h"
+#include <direct.h> 
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "pstypes.h"
 #include "cftp.h"
 #include "chttpget.h"
 
 #include "inetgetfile.h"
+
 
 #define INET_STATE_CONNECTING		1
 #define INET_STATE_ERROR			2
@@ -105,13 +101,13 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 	char dir_name[256], *end;
 
 	// make sure localfile has \ in it or we'll be here a long time.
-	if (strstr(localfile, "\\")) {
+	if (strstr(localfile, DIR_SEPARATOR_STR)) {
 		strcpy(dir_name, localfile);
 		int len = strlen(localfile);
 		end = dir_name + len;
 
 		// start from end of localfile and go to first \ to get dirname
-		while ( *end != '\\' ) {
+		while ( *end != DIR_SEPARATOR_CHAR ) {
 			end--;
 		}
 		*end = '\0';
@@ -145,7 +141,7 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 	} else {
 		m_HardError = INET_ERROR_CANT_PARSE_URL;
 	}
-	Sleep(1000);
+	SDL_Delay(1000);
 }
 
 InetGetFile::~InetGetFile()
@@ -317,5 +313,3 @@ int InetGetFile::GetBytesIn()
 		return ftp->GetBytesIn();
 	}
 }
-
-#endif // !PLAT_UNIX

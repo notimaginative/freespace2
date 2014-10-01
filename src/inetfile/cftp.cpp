@@ -67,7 +67,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
 
 #ifndef PLAT_UNIX
 #include <windows.h>
@@ -80,8 +79,6 @@
 #include <netdb.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include "unix.h" // unix.h
 #endif
 
 #include <stdio.h>
@@ -91,16 +88,24 @@
 #include "pstypes.h"
 #include "cftp.h"
 
-void FTPObjThread( void * obj )
+
+int FTPObjThread( void * obj )
 {
 	((CFtpGet *)obj)->WorkerThread();
+
+	return ((CFtpGet *)obj)->GetStatus();
 }
 
 void CFtpGet::AbortGet()
 {
 	m_Aborting = true;
-	while(!m_Aborted) ; //Wait for the thread to end
-	fclose(LOCALFILE);
+	while(!m_Aborted) SDL_Delay(10); //Wait for the thread to end
+
+	if(LOCALFILE != NULL)
+	{
+		fclose(LOCALFILE);
+		LOCALFILE = NULL;
+	}
 }
 
 CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
@@ -120,6 +125,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if(NULL == LOCALFILE)
 	{
 		m_State = FTP_STATE_CANT_WRITE_FILE;
+		m_Aborted = true;
 		return;
 	}
 
@@ -144,6 +150,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	{
 		// vint iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_SOCKET_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	else
@@ -158,6 +165,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 			//Couldn't bind the socket
 			// int iWinsockErr = WSAGetLastError();
 			m_State = FTP_STATE_SOCKET_ERROR;
+			m_Aborted = true;
 			return;
 		}
 
@@ -167,6 +175,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 			//Couldn't listen on the socket
 			// int iWinsockErr = WSAGetLastError();
 			m_State = FTP_STATE_SOCKET_ERROR;
+			m_Aborted = true;
 			return;
 		}
 	}
@@ -174,6 +183,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if(INVALID_SOCKET == m_ControlSock)
 	{
 		m_State = FTP_STATE_SOCKET_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	//Parse the URL
@@ -191,6 +201,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if(strchr(pURL,':'))
 	{
 		m_State = FTP_STATE_URL_PARSING_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	//read the filename by searching backwards for a /
@@ -217,6 +228,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if((dirstart==NULL) || (filestart==NULL))
 	{
 		m_State = FTP_STATE_URL_PARSING_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	else
@@ -227,12 +239,19 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 		m_szHost[(dirstart-pURL)-1] = 0;
 	}
 	//At this point we should have a nice host,dir and filename
-	
-	//if(NULL==CreateThread(NULL,0,ObjThread,this,0,&m_dwThreadId))
-	if(0==_beginthread(FTPObjThread,0,this))
+
+	SDL_Thread *thread = SDL_CreateThread(FTPObjThread, "FTPObjThread", this);
+
+	if(thread == NULL)
 	{
 		m_State = FTP_STATE_INTERNAL_ERROR;
+		m_Aborted = true;
 		return;
+	}
+	else
+	{
+		int ret_val;
+		SDL_WaitThread(thread, &ret_val);
 	}
 	m_State = FTP_STATE_CONNECTING;
 }
@@ -256,8 +275,10 @@ CFtpGet::~CFtpGet()
 		shutdown(m_ControlSock,2);
 		closesocket(m_ControlSock);
 	}
-
-
+	if(LOCALFILE != NULL)
+	{
+		fclose(LOCALFILE);
+	}
 }
 
 //Returns a value to specify the status (ie. connecting/connected/transferring/done)
@@ -553,7 +574,7 @@ unsigned int CFtpGet::ReadFTPServerReply()
 			strcat(recv_buffer,chunk);
 		}
 		
-		Sleep(1);	
+		SDL_Delay(1);
 	}while(igotcrlf==0);
 					
 	if(recv_buffer[3] == '-')
@@ -585,7 +606,7 @@ unsigned int CFtpGet::ReadDataChannel()
    {
 		if(m_Aborting)
 			return 0;
-		nBytesRecv = recv(m_DataSock, (LPSTR)&sDataBuffer,sizeof(sDataBuffer), 0);
+		nBytesRecv = recv(m_DataSock, (char *)&sDataBuffer,sizeof(sDataBuffer), 0);
     					
 		m_iBytesIn += nBytesRecv;
 		if (nBytesRecv > 0 )
@@ -594,7 +615,7 @@ unsigned int CFtpGet::ReadDataChannel()
 			//Write sDataBuffer, nBytesRecv
     	}
 
-		Sleep(1);
+		SDL_Delay(1);
 	}while (nBytesRecv > 0);
 	fclose(LOCALFILE);							
 	// Close the file and check for error returns.
@@ -629,8 +650,6 @@ void CFtpGet::FlushControlChannel()
 	{
 		recv(m_ControlSock,flushbuff,1,0);
 
-		Sleep(1);
+		SDL_Delay(1);
 	}
 }
-
-#endif	// !PLAT_UNIX

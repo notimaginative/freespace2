@@ -1601,23 +1601,16 @@ void standalone_main_init()
 	// multi_options_read_config();   
 
 	// if we failed to startup on our desired protocol, fail	
-	if((Multi_options_g.protocol == NET_IPX) && !Ipx_active){						
-#ifndef PLAT_UNIX
-		MessageBox((HWND)os_get_window(), XSTR( "You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.", 1402), "Error", MB_OK);
-#else
-		fprintf (stderr, "ERROR: You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.\n");
-#endif
-		exit(1);
-	} 
-	if((Multi_options_g.protocol == NET_TCP) && !Tcp_active){		
-#ifndef PLAT_UNIX
-		MessageBox((HWND)os_get_window(), XSTR("You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362), "Error", MB_OK);
-#else
-		fprintf (stderr, "ERROR: You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.\n");
-#endif
+	if ( (Multi_options_g.protocol == NET_IPX) && !Ipx_active ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", XSTR( "You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.", 1402), NULL);
 		exit(1);
 	}
-	
+
+	if ( (Multi_options_g.protocol == NET_TCP) && !Tcp_active ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", XSTR("You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362), NULL);
+		exit(1);
+	}
+
 	// set the protocol
 #ifdef MULTIPLAYER_BETA_BUILD
 	Multi_options_g.protocol = NET_TCP;

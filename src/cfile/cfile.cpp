@@ -634,28 +634,6 @@ int cf_exist( const char *filename, int dir_type )
 	return 0;
 }
 
-void cf_attrib(const char *filename, int set, int clear, int dir_type)
-{
-	char longname[MAX_PATH_LEN];
-
-	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
-
-	cf_create_default_path_string( longname, dir_type, filename );
-
-	FILE *fp = fopen(longname, "rb");
-	if (fp) {
-		fclose(fp);
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		DWORD z = GetFileAttributes(longname);
-		SetFileAttributes(longname, z | set & ~clear);
-#endif
-	}
-
-}
-
 int cf_rename(const char *old_name, const char *name, int dir_type)
 {
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );

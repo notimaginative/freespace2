@@ -533,9 +533,6 @@ int cfexist(const char *filename);	// Returns true if file exists on disk (1) or
 #define CF_RENAME_FAIL_EXIST			2					// old name does not exist
 int cf_rename(const char *old_name, const char *name, int type = CF_TYPE_ANY );
 
-// changes the attributes of a file
-void cf_attrib(const char *name, int set, int clear, int type);
-
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES
 int cfile_flush_dir(int type);

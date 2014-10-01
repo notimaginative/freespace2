@@ -106,9 +106,6 @@
 #include "bmpman.h"
 #include "2d.h"
 #include "object.h"
-#ifndef PLAT_UNIX
-#include "glide.h"
-#endif
 #include "timer.h"
 #include "multi.h"
 #include "freespace.h"

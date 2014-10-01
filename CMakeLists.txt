@@ -1,20 +1,16 @@
 
 project(freespace2)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 
-include(CheckCXXCompilerFlag)
-include(CheckCXXSourceCompiles)
-include(CheckTypeSize)
-include(FindPkgConfig)
+find_package(SDL2 "2.0.1" REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
 
-pkg_search_module(SDL2 REQUIRED sdl2 >= 2.0.1)
-
-find_package(OpenGL)
-find_package(OpenAL)
 find_package(wxWidgets COMPONENTS core base gl)
-
 include(${wxWidgets_USE_FILE})
 
 
@@ -60,7 +56,7 @@ endif()
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
-  ${SDL2_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
   ${wxWidgets_INCLUDE_DIRS}
 )
@@ -109,7 +105,7 @@ add_executable(${FS_BINARY}
 target_link_libraries(
   ${FS_BINARY}
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
 )
@@ -135,7 +131,7 @@ add_executable(ac
 target_link_libraries(
   ac
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
 )
@@ -170,7 +166,7 @@ add_executable(nebedit
 target_link_libraries(
   nebedit
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
@@ -189,7 +185,7 @@ add_executable(pofview
 target_link_libraries(
   pofview
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
@@ -230,7 +226,7 @@ add_custom_command(TARGET fonttool
 target_link_libraries(
   fonttool
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
 )

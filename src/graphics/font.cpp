@@ -248,10 +248,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#include <windowsx.h>
-#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "grinternal.h"
@@ -466,103 +463,14 @@ void gr_get_string_size(int *w1, int *h1, const char *text, int len)
 MONITOR( FontChars );	
 
 
-#ifndef PLAT_UNIX
-HFONT MyhFont = NULL;
-extern HDC hDibDC;
-#endif
-
 void gr_string_win(int x, int y, const char *s)
 {
-#ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-#else
-	char *ptr;
-	SIZE size;
-
-	if ( MyhFont==NULL )	{
-		MyhFont = CreateFont(14, 0, 0, 0,				// height,width,?,?
-				700,
-				FALSE,
-				FALSE,
-				FALSE,											// strikeout?
-				ANSI_CHARSET,									// character set
-				OUT_DEVICE_PRECIS,
-				CLIP_DEFAULT_PRECIS,
-				DEFAULT_QUALITY,
-				DEFAULT_PITCH | FF_DONTCARE,
-//				NULL );
-//				"Times New Roman" );
-//XSTR:OFF
-				"Ariel" );
-//XSTR:ON
-	}
-
-	SelectObject( hDibDC, MyhFont );
-
-	if ( gr_screen.bits_per_pixel==8 )
-		SetTextColor(hDibDC, PALETTEINDEX(gr_screen.current_color.raw8));
-	else
-		SetTextColor(hDibDC, RGB(gr_screen.current_color.red,gr_screen.current_color.green,gr_screen.current_color.blue));
-
-	SetBkMode(hDibDC,TRANSPARENT);
-
-
-	HRGN hclip;
-	hclip = CreateRectRgn( gr_screen.offset_x, 
-								  gr_screen.offset_y, 
-								  gr_screen.offset_x+gr_screen.clip_width-1, 
-								  gr_screen.offset_y+gr_screen.clip_height-1 );
-
-	SelectClipRgn(hDibDC, hclip );
-	x += gr_screen.offset_x;
-	y += gr_screen.offset_y;
-	//ptr = strchr(s,'\n);
-	while ((ptr = strchr(s, '\n'))!=NULL) {
-		TextOut(hDibDC, x, y, s, ptr - s);
-		GetTextExtentPoint32(hDibDC, s, ptr - s, &size);
-		y += size.cy;
-		s = ptr + 1;
-	}
-
-	TextOut(hDibDC, x, y, s, strlen(s));
-	SelectClipRgn(hDibDC, NULL);
-	DeleteObject(hclip);
-#endif
+	STUB_FUNCTION;
 }
 
 void gr_get_string_size_win(int *w, int *h, const char *text)
 {
-#ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-#else
-	char *ptr;
-	SIZE size;
-
-	ptr = strchr(text, '\n');
-
-	if (MyhFont==NULL)	{
-		if (w) *w = 0;
-		if (h) *h = 0;
-		return;
-	}
-
-	SelectObject( hDibDC, MyhFont );
-
-	if (!ptr)	{
-		GetTextExtentPoint32( hDibDC, text, strlen(text), &size);
-		if (w) *w = size.cx;
-		if (h) *h = size.cy;
-		return;
-	}
-
-	GetTextExtentPoint32(hDibDC, text, ptr - text, &size);
-	gr_get_string_size_win(w, h, ptr+1);
-	if (w && (size.cx > *w) )
-		*w = size.cx;
-
-	if (h)
-		*h += size.cy;
-#endif
+	STUB_FUNCTION;
 }
 
 char grx_printf_text[2048];	

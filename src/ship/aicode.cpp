@@ -9342,7 +9342,7 @@ void ai_big_guard()
 		// get desired z
 		// how often to choose new desired_z
 		// 1*(64) sec < 2000, 2*(64) < 2-4000 3*(64) > 4-8000, etc (Missiontime >> 22 is 64 sec intervals)
-		int time_choose = int(floor(log(length * 0.001) / log(2)));
+		int time_choose = int(floor(log(length * 0.001) / log(2.0)));
 		float desired_z = min_z + length * static_randf( (Pl_objp-Objects) ^ (Missiontime >> (22 + time_choose)) );
 
 		// get r from guard_ship

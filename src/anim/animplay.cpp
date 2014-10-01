@@ -841,7 +841,7 @@ void anim_read_header(anim *ptr, CFILE *fp)
 		floor_pow++;
 	}
 
-	int floor_size = (int) pow(2, floor_pow);
+	int floor_size = (int) pow(2.0, floor_pow);
 	int diff = ptr->height - floor_size;
 	float waste = 100.0f * float((floor_size - diff))/(2.0f *(float)floor_size);
 

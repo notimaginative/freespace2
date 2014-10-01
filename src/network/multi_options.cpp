@@ -341,7 +341,7 @@ void multi_options_read_config()
 					STUB_FUNCTION;
 #else
 					extern HWND Multi_std_host_passwd;
-					SetWindowText(Multi_std_host_passwd, Multi_options_g.std_passwd);
+					SetWindowText(Multi_std_host_passwd, (LPCWSTR)Multi_options_g.std_passwd);
 #endif
 				}
 			} else 

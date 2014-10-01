@@ -785,7 +785,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 #else
 				HANDLE hFile;
 
-				hFile = CreateFile(longname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+				hFile = CreateFile((LPCWSTR)longname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 				if (hFile != INVALID_HANDLE_VALUE)	{
 					return cf_open_mapped_fill_cfblock(hFile, dir_type);

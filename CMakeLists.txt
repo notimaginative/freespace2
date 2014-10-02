@@ -41,6 +41,8 @@ else()
 endif()
 
 if(NOT WIN32)
+  set(PLATFORM_LIBRARIES "")
+
   add_definitions(-DPLAT_UNIX)
   add_definitions(-Wall -Wno-format-y2k -Wno-deprecated)
   add_definitions(-fsigned-char)
@@ -49,7 +51,13 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -DNDEBUG -Os")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O2")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
+else()
+  set(PLATFORM_LIBRARIES
+	wsock32.lib
+	winmm.lib
+  )
 endif()
+
 
 # ##############################################################################
 
@@ -109,6 +117,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${PLATFORM_LIBRARIES}
 )
 
 #

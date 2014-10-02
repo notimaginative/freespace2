@@ -336,13 +336,7 @@ void multi_options_read_config()
 				if(tok != NULL){
 					strncpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
 
-					// yuck
-#ifdef PLAT_UNIX
 					STUB_FUNCTION;
-#else
-					extern HWND Multi_std_host_passwd;
-					SetWindowText(Multi_std_host_passwd, (LPCWSTR)Multi_options_g.std_passwd);
-#endif
 				}
 			} else 
 			if(SETTING("+low_update")){

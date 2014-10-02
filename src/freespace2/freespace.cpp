@@ -2401,35 +2401,7 @@ void game_init()
 	
 	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);
 	if (ptr == NULL) {
-#ifndef PLAT_UNIX	
-		MessageBox((HWND)os_get_window(), XSTR("Please configure your system in the Launcher before running FS2.\n\n The Launcher will now be started!", 1446), XSTR("Attention!", 1447), MB_OK);
-
-		// fire up the UpdateLauncher executable
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-
-		memset( &si, 0, sizeof(STARTUPINFO) );
-		si.cb = sizeof(si);
-
-		BOOL ret = CreateProcess(	LAUNCHER_FNAME,	// pointer to name of executable module 
-									NULL,							// pointer to command line string
-									NULL,							// pointer to process security attributes 
-									NULL,							// pointer to thread security attributes 
-									FALSE,							// handle inheritance flag 
-									CREATE_DEFAULT_ERROR_MODE,		// creation flags 
-									NULL,							// pointer to new environment block 
-									NULL,	// pointer to current directory name 
-									&si,	// pointer to STARTUPINFO 
-									&pi 	// pointer to PROCESS_INFORMATION  
-								);			
-
-		// If the Launcher could not be started up, let the user know
-		if (!ret) {
-			MessageBox((HWND)os_get_window(), XSTR("The Launcher could not be restarted.", 1450), XSTR("Error", 1451), MB_OK);
-		}
-#else
-		STUB_FUNCTION;
-#endif		
+		STUB_FUNCTION;	
 		exit(1);
 	}
 
@@ -6639,43 +6611,7 @@ int game_do_ram_check(int ram_in_mbytes)
 // If so, copy it over and remove the update directory.
 void game_maybe_update_launcher(char *exe_dir)
 {
-#ifndef PLAT_UNIX
-	char src_filename[MAX_PATH];
-	char dest_filename[MAX_PATH];
-
-	strcpy(src_filename, exe_dir);
-	strcat(src_filename, NOX("\\update\\freespace.exe"));
-
-	strcpy(dest_filename, exe_dir);
-	strcat(dest_filename, NOX("\\freespace.exe"));
-
-	// see if src_filename exists
-	FILE *fp;
-	fp = fopen(src_filename, "rb");
-	if ( !fp ) {
-		return;
-	}
-	fclose(fp);
-
-	SetFileAttributes(dest_filename, FILE_ATTRIBUTE_NORMAL);
-
-	// copy updated freespace.exe to freespace exe dir
-	if ( CopyFile(src_filename, dest_filename, 0) == 0 ) {
-		MessageBox( NULL, XSTR("Unable to copy freespace.exe from update directory to installed directory.  You should copy freespace.exe from the update directory (located in your FreeSpace install directory) to your install directory", 988), NULL, MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
-		return;
-	}
-
-	// delete the file in the update directory
-	DeleteFile(src_filename);
-
-	// safe to assume directory is empty, since freespace.exe should only be the file ever in the update dir
-	char update_dir[MAX_PATH];
-	strcpy(update_dir, exe_dir);
-	strcat(update_dir, NOX("\\update"));
-	RemoveDirectory(update_dir);
-#else
 	STUB_FUNCTION;
-#endif	
 }
 
 void game_spew_pof_info_sub(int model_num, polymodel *pm, int sm, CFILE *out, int *out_total, int *out_destroyed_total)
@@ -6923,40 +6859,7 @@ int game_main(const char *szCmdLine)
 // launcher the fslauncher program on exit
 void game_launch_launcher_on_exit()
 {
-#ifndef PLAT_UNIX
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-	char cmd_line[2048];
-	char original_path[1024] = "";
-	
-	memset( &si, 0, sizeof(STARTUPINFO) );
-	si.cb = sizeof(si);
-
-	// directory
-	_getcwd(original_path, 1023);
-
-	// set up command line
-	strcpy(cmd_line, original_path);
-	strcat(cmd_line, "\\");
-	strcat(cmd_line, LAUNCHER_FNAME);
-	strcat(cmd_line, " -straight_to_update");		
-
-	BOOL ret = CreateProcess(	NULL,									// pointer to name of executable module 
-										cmd_line,							// pointer to command line string
-										NULL,									// pointer to process security attributes 
-										NULL,									// pointer to thread security attributes 
-										FALSE,								// handle inheritance flag 
-										CREATE_DEFAULT_ERROR_MODE,		// creation flags 
-										NULL,									// pointer to new environment block 
-										NULL,									// pointer to current directory name 
-										&si,									// pointer to STARTUPINFO 
-										&pi									// pointer to PROCESS_INFORMATION  
-										);			
-	// to eliminate build warnings
-	ret;
-#else
 	STUB_FUNCTION;
-#endif		
 }
 
 

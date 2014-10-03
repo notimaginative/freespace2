@@ -13,13 +13,12 @@
 #include <sys/stat.h>
 #endif
 
-#undef malloc
-#undef free
 
 extern int game_main(const char *szCmdLine);
 
 
-int main(int argc, char **argv)
+extern "C"
+int main(int argc, char *argv[])
 {
 	char *argptr = NULL;
 	int i;
@@ -36,7 +35,7 @@ int main(int argc, char **argv)
 	}
 
 	if (len > 0) {
-		argptr = (char *)malloc(len+5);
+		argptr = (char *)SDL_malloc(len+5);
 
 		if (argptr == NULL) {
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Ran out of memory in main()!", NULL);
@@ -58,7 +57,7 @@ int main(int argc, char **argv)
 	}
 
 	if (argptr) {
-		free(argptr);
+		SDL_free(argptr);
 	}
 
 	return retr;	

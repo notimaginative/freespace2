@@ -187,6 +187,11 @@ target_link_libraries(
   ${PLATFORM_LIBRARIES}
 )
 
+# wxWidgets appears to need c++11 for one or more headers
+if(NOT WIN32)
+  set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
+endif()
+
 #
 # POFVIEW: model viewer
 #

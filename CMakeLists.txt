@@ -145,6 +145,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${PLATFORM_LIBRARIES}
 )
 
 #
@@ -182,6 +183,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
+  ${PLATFORM_LIBRARIES}
 )
 
 #
@@ -202,6 +204,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
+  ${PLATFORM_LIBRARIES}
 )
 
 # wxWidgets appears to need c++11 for one or more headers
@@ -243,6 +246,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${PLATFORM_LIBRARIES}
 )
 
 #

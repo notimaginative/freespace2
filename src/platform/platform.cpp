@@ -36,7 +36,7 @@ int vm_init(int min_heap_size)
 #define MALLOC_SIZE(x)		malloc_size(x)
 #elif defined(__GNUC__)
 #define MALLOC_SIZE(x)		malloc_usable_size(x)
-#elif defined(_WIN32)
+#elif defined(__WIN32__)
 #define MALLOC_SIZE(x)		_msize(x)
 #else
 #define MALLOC_SIZE(x)		0
@@ -80,7 +80,7 @@ void vm_free(void* ptr)
 	TotalRam -= actual_size;
 #endif
 
-	SDL_free(ptr);
+	free(ptr);
 }
 
 #ifndef NDEBUG
@@ -89,7 +89,7 @@ void *vm_malloc(int size, const char *file, int line)
 void *vm_malloc(int size)
 #endif
 {
-	void *ptr = SDL_malloc(size);
+	void *ptr = malloc(size);
 
 	if ( !ptr )	{
 		mprintf(( "Malloc failed!!!!!!!!!!!!!!!!!!!\n" ));
@@ -119,7 +119,7 @@ char *vm_strdup(char const* str, const char *file, int line)
 char *vm_strdup(char const* str)
 #endif
 {
-	char *ptr = SDL_strdup(str);
+	char *ptr = strdup(str);
 
 	if ( !ptr )	{
 		mprintf(( "Strdup failed!!!!!!!!!!!!!!!!!!!\n" ));

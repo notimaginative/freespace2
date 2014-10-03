@@ -107,6 +107,7 @@ else()
 endif()
 
 add_executable(${FS_BINARY}
+  WIN32
   ${freespace_SOURCE}
   ${freespace_HEADERS}
 )
@@ -170,6 +171,7 @@ add_executable(cryptstring
 
 add_executable(nebedit
   EXCLUDE_FROM_ALL
+  WIN32
   ${nebedit_SOURCE}
 )
 
@@ -188,6 +190,7 @@ target_link_libraries(
 
 add_executable(pofview
   EXCLUDE_FROM_ALL
+  WIN32
   ${pofview_SOURCE}
   ${pofview_HEADERS}
 )
@@ -222,6 +225,7 @@ add_executable(scramble
 
 add_executable(fonttool
   EXCLUDE_FROM_ALL
+  WIN32
   ${fonttool_SOURCE}
   ${fonttool_HEADERS}
 )

@@ -64,6 +64,8 @@
 #endif
 #include <string.h>
 
+#define SDL_MAIN_HANDLED
+
 #include "pstypes.h"
 #include "encrypt.h"
 #include "scramble.h"

@@ -106,7 +106,7 @@ void game_do_state_common(int, int){}
 void game_start_time(){}
 void game_set_frametime(int){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 int game_poll() {return 0;}
 char *Game_current_mission_filename;

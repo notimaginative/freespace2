@@ -73,7 +73,7 @@ void game_do_state_common(int, int){}
 void game_set_frametime(int){}
 void game_increase_skill_level(){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 char *Game_current_mission_filename;
 int Warpout_forced;

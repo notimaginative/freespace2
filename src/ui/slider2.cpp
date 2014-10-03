@@ -250,7 +250,7 @@ void UI_SLIDER2::process(int focus)
 	}
 }
 
-void UI_SLIDER2::hide()
+void UI_SLIDER2::hide(int n)
 {
 	hidden = 1;
 }

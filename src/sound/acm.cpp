@@ -325,7 +325,7 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	if ( *dest == NULL ) {
 		*dest = (ubyte *)malloc(new_size);
 
-		if ( (*dest == NULL) ) {
+		if (*dest == NULL) {
 			goto Fail;
 		}
 

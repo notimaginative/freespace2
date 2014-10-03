@@ -140,7 +140,7 @@ int Font1 = -1;
 
 color color_green;
 
-vector Global_light_world = { 0.208758f, -0.688253f, -0.694782f };
+vector Global_light_world = { { { 0.208758f, -0.688253f, -0.694782f } } };
 
 // nebula stuff
 
@@ -422,7 +422,7 @@ void nebula_draw_2d()
 		for (i=0; i<num_pts; i++ )	{
 			gr_circle( x[i], y[i], 4 );
 		}
-		if ((Sel_mode==1)) { // multiple selection
+		if (Sel_mode == 1) { // multiple selection
 			if (Draw_sel_box) {
 				gr_set_color(200,0,200);
 				gr_line(Orig_pos_x, Orig_pos_y, Orig_pos_x, End_pos_y);

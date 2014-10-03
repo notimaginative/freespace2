@@ -630,7 +630,7 @@ void turret_swarm_maybe_fire_missile(int shipnum)
 			tsi = &Turret_swarm_info[subsys->turret_swarm_info_index];
 
 			// check if parent ship is valid (via signature)
-			if ( (tsi->parent_sig == parent_obj->signature) ) {
+			if (tsi->parent_sig == parent_obj->signature) {
 
 				// make sure we have the right turret.
 				SDL_assert(tsi->turret == subsys);

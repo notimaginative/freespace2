@@ -44,7 +44,8 @@ if(NOT WIN32)
   set(PLATFORM_LIBRARIES "")
 
   add_definitions(-DPLAT_UNIX)
-  add_definitions(-Wall -Wno-format-y2k -Wno-deprecated)
+  add_definitions(-Wall)
+# add_definitions(-Wno-format-y2k -Wno-deprecated)
   add_definitions(-fsigned-char)
 
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG -g -O2")

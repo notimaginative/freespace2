@@ -135,7 +135,7 @@ int UI_SCROLLBAR::set_bmaps(const char *up_button_fname, const char *down_button
 	return 0;
 }
 
-void UI_SCROLLBAR::hide()
+void UI_SCROLLBAR::hide(int n)
 {
 	hidden = 1;
 	up_button.hide();

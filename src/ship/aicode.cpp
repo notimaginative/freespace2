@@ -2524,7 +2524,7 @@ int valid_turret_enemy(object *objp, object *turret_parent)
 		return 1;
 	}
 
-	if ( (objp->type == OBJ_SHIP) ) {
+	if ( objp->type == OBJ_SHIP ) {
 		ship *shipp;
 		shipp = &Ships[objp->instance];
 
@@ -2948,7 +2948,7 @@ int find_enemy(int objnum, float range, int max_attackers)
 
 			// DKA don't undo object as target in nebula missions.
 			// This could cause attack on ship on fringe on nebula to stop if attackee moves our of nebula range.  (BAD)
-			if ( (Objects[target_objnum].signature == aip->target_signature) ) {
+			if (Objects[target_objnum].signature == aip->target_signature) {
 				if (Ships[Objects[target_objnum].instance].team & enemy_team_mask) {
 					if (!(Objects[target_objnum].flags & OF_PROTECTED)) {
 						// nprintf(("AI", "Frame %i: Object %i resuming goal of object %i\n", AI_FrameCount, objnum, target_objnum));

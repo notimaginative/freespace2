@@ -672,7 +672,7 @@ int hud_bracket_num_ships_attacking(int objnum)
 			aip = &Ai_info[Ships[objp->instance].ai_index];
 
 			// don't count instructor
-			int is_training_mission();
+			extern int is_training_mission();
 			if ( is_training_mission() && SDL_strcasecmp(Ships[objp->instance].ship_name, "Instructor") == 0) {
 				break;
 			}

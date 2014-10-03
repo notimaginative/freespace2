@@ -2192,7 +2192,7 @@ void hud_squadmsg_reinforcement_select()
 			rp = &Reinforcements[i];
 
 			// don't put reinforcements onto the list that have already been used up.
-			if ( (rp->num_uses == rp->uses) ){
+			if (rp->num_uses == rp->uses) {
 				continue;
 			}
 

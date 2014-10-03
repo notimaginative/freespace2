@@ -643,7 +643,7 @@ static void bm_free_data(int n)
 
 	// Don't free up memory for user defined bitmaps, since
 	// BmpMan isn't the one in charge of allocating/deallocing them.
-	if ( ( be->type==BM_TYPE_USER ) )	
+	if (be->type == BM_TYPE_USER)
 		goto SkipFree;
 
 	// Free up the data now!

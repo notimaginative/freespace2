@@ -96,6 +96,7 @@ void freespace_menu_background()
 	gr_clear();
 }
 
+extern "C"
 int main(int argc, char *argv[] )
 {
 	int t1, t2;

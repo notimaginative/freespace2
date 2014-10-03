@@ -836,6 +836,7 @@ int newtri[3];
 
 bool mdflag = false;
 
+extern "C"
 int main(int argc, char *argv[])
 {
 	int i;

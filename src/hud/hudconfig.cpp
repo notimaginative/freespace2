@@ -1105,7 +1105,7 @@ void hud_config_init_ui()
 
 	HC_select_all = 0;
 
-	strcpy(HC_fname, "");
+	SDL_strlcpy(HC_fname, "", sizeof(HC_fname));
 }
 
 int hud_config_show_flag_is_set(int i)
@@ -1608,7 +1608,7 @@ void hud_config_button_do(int n)
 
 		// save the file, maybe generating a new filename
 		if(strlen(name) <= 0){
-			sprintf(name, "hud_%d.hcf", HC_num_files + 1);
+			SDL_snprintf(name, sizeof(name), "hud_%d.hcf", HC_num_files + 1);
 			out = name;
 		} else {
 			out = cf_add_ext(name, ".hcf");
@@ -1993,7 +1993,7 @@ void hud_config_color_save(const char *name)
 		cfputs(HC_gauge_descriptions(idx), out);		
 		cfputs("\n", out);
 		cfputs("+RGBA: ", out);
-		sprintf(vals, "%d %d %d %d\n\n", HUD_config.clr[idx].red, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
+		SDL_snprintf(vals, sizeof(vals), "%d %d %d %d\n\n", HUD_config.clr[idx].red, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
 		cfputs(vals, out);
 	}
 	

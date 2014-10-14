@@ -268,7 +268,7 @@ void ss_blit_ship_icon(int x,int y,int ship_class,int bmap_num);
 
 // called from weapon select
 int	ss_return_ship(int wing_block, int wing_slot, int *ship_index, p_object **ppobjp);
-void	ss_return_name(int wing_block, int wing_slot, char *name);
+void	ss_return_name(int wing_block, int wing_slot, char *name, const int max_namelen);
 int	ss_return_original_ship_class(int slot_num);
 int	ss_return_saindex(int slot_num);
 int	ss_disabled_slot(int slot_num);

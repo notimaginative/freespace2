@@ -822,7 +822,7 @@ void main_hall_init(int main_hall_num)
 
 	// create the snazzy interface and load up the info from the table
 	snazzy_menu_init();
-	read_menu_tbl(NOX("MAIN HALL"), temp, whee, Main_hall_region, &Main_hall_num_options, 0);
+	read_menu_tbl(NOX("MAIN HALL"), temp, sizeof(temp), whee, sizeof(whee), Main_hall_region, &Main_hall_num_options, 0);
 
 	// assign the proper main hall data
 	SDL_assert((main_hall_num >= 0) && (main_hall_num < NUM_MAIN_HALLS));
@@ -935,7 +935,7 @@ void main_hall_init(int main_hall_num)
 */
 	Main_hall_region_linger_stamp = -1;
 
-	strcpy(Main_hall_campaign_cheat, "");
+	SDL_strlcpy(Main_hall_campaign_cheat, "", sizeof(Main_hall_campaign_cheat));
 
 	// zero out the door sounds
 	for(idx=0;idx<Main_hall->num_door_sounds;idx++){
@@ -1189,10 +1189,10 @@ void main_hall_do(float frametime)
 			} else {
 
 				if (Num_recent_missions > 0)	{
-					strncpy( Game_current_mission_filename, Recent_missions[0], MAX_FILENAME_LEN );
+					SDL_strlcpy( Game_current_mission_filename, Recent_missions[0], sizeof(Game_current_mission_filename) );
 				} else {
 					mission_load_up_campaign();
-					strncpy( Game_current_mission_filename, Campaign.missions[0].name, MAX_FILENAME_LEN );
+					SDL_strlcpy( Game_current_mission_filename, Campaign.missions[0].name, sizeof(Game_current_mission_filename) );
 				}
 
 				Campaign.current_mission = -1;
@@ -1212,7 +1212,7 @@ void main_hall_do(float frametime)
 			char temp[100];
 
 			game_increase_skill_level();
-			sprintf(temp, XSTR( "Skill level set to %s.", 370), Skill_level_names(Game_skill_level));
+			SDL_snprintf(temp, sizeof(temp), XSTR( "Skill level set to %s.", 370), Skill_level_names(Game_skill_level));
 			main_hall_set_notify_string(temp);
 			break;				
 
@@ -1811,7 +1811,7 @@ void main_hall_handle_random_intercom_sounds()
 // set the notification string with its decay timeout
 void main_hall_set_notify_string(const char *str)
 {
-	strcpy(Main_hall_notify_text,str);
+	SDL_strlcpy(Main_hall_notify_text, str, sizeof(Main_hall_notify_text));
 	Main_hall_notify_stamp = timestamp(MAIN_HALL_NOTIFY_TIME);
 }
 
@@ -1821,7 +1821,7 @@ void main_hall_notify_do()
 	if(Main_hall_notify_stamp != -1){
 	   // if the text time has expired
 		if(timestamp_elapsed(Main_hall_notify_stamp)){
-			strcpy(Main_hall_notify_text,"");
+			SDL_strlcpy(Main_hall_notify_text, "", sizeof(Main_hall_notify_text));
 			Main_hall_notify_stamp = -1;
 		} else {
 			int w,h;
@@ -1881,7 +1881,7 @@ void main_hall_blit_version()
 	int w;
 
 	// format the version string
-	get_version_string(version_string);
+	get_version_string(version_string, sizeof(version_string));
 
 	// get the length of the string
 	gr_get_string_size(&w,NULL,version_string);
@@ -1952,7 +1952,7 @@ void main_hall_process_help_stuff()
 	}
 
 	// otherwise print out the message
-	strcpy(str, XSTR( "Press F1 for help", 371));
+	SDL_strlcpy(str, XSTR( "Press F1 for help", 371), sizeof(str));
 	gr_get_string_size(&w, &h, str);
 
 	int y_anim_offset = Main_hall_f1_text_frame;
@@ -2148,9 +2148,9 @@ void main_hall_read_table()
 	int idx;
 
 	// Terran main hall
-	strncpy(Main_hall_defines[0][0].bitmap, "MainHall1", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].mask, "MainHall1-m", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].music, "main_amb", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].bitmap, "MainHall1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].mask, "MainHall1-m", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].music, "main_amb", MAX_FILENAME_LEN);
 	
 	Main_hall_defines[0][0].num_random_intercom_sounds = 3;
 	Main_hall_defines[0][0].intercom_delay[0][0] = 8000;
@@ -2167,8 +2167,8 @@ void main_hall_read_table()
 	Main_hall_defines[0][0].intercom_sound_pan[2] = 0.0f;
 	
 	Main_hall_defines[0][0].num_misc_animations = 2;
-	strncpy(Main_hall_defines[0][0].misc_anim_name[0], "main1-m1", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].misc_anim_name[1], "main1-m2", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].misc_anim_name[0], "main1-m1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].misc_anim_name[1], "main1-m2", MAX_FILENAME_LEN);
 	Main_hall_defines[0][0].misc_anim_delay[0][0] = -1;
 	Main_hall_defines[0][0].misc_anim_delay[0][1] = 15000;
 	Main_hall_defines[0][0].misc_anim_delay[0][2] = 20000;
@@ -2205,12 +2205,12 @@ void main_hall_read_table()
 	Main_hall_defines[0][0].misc_anim_sound_flag[1][0] = 2;
 	
 	Main_hall_defines[0][0].num_door_animations = 6;
-	strncpy(Main_hall_defines[0][0].door_anim_name[0], "main1-d1", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].door_anim_name[1], "main1-d6", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].door_anim_name[2], "main1-d3", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].door_anim_name[3], "main1-d4", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].door_anim_name[4], "main1-d5", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][0].door_anim_name[5], "main1-d2", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].door_anim_name[0], "main1-d1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].door_anim_name[1], "main1-d6", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].door_anim_name[2], "main1-d3", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].door_anim_name[3], "main1-d4", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].door_anim_name[4], "main1-d5", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].door_anim_name[5], "main1-d2", MAX_FILENAME_LEN);
 	Main_hall_defines[0][0].door_anim_coords[0][0] = 68;
 	Main_hall_defines[0][0].door_anim_coords[0][1] = 260;
 	Main_hall_defines[0][0].door_anim_coords[0][2] = 103;
@@ -2262,9 +2262,9 @@ void main_hall_read_table()
 	
 	
 	// Vasudan main hall
-	strncpy(Main_hall_defines[0][1].bitmap, "MainHall2", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].mask, "MainHall2-m", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].music, "main_amb", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].bitmap, "MainHall2", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].mask, "MainHall2-m", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].music, "main_amb", MAX_FILENAME_LEN);
 	
 	Main_hall_defines[0][1].num_random_intercom_sounds = 3;
 	Main_hall_defines[0][1].intercom_delay[0][0] = 8000;
@@ -2281,10 +2281,10 @@ void main_hall_read_table()
 	Main_hall_defines[0][1].intercom_sound_pan[2] = 0.0f;
 	
 	Main_hall_defines[0][1].num_misc_animations = 4;
-	strncpy(Main_hall_defines[0][1].misc_anim_name[0], "main2-m1", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].misc_anim_name[1], "main2-m2", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].misc_anim_name[2], "main2-m3", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].misc_anim_name[3], "main2-m4", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].misc_anim_name[0], "main2-m1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].misc_anim_name[1], "main2-m2", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].misc_anim_name[2], "main2-m3", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].misc_anim_name[3], "main2-m4", MAX_FILENAME_LEN);
 	Main_hall_defines[0][1].misc_anim_delay[0][0] = -1;
 	Main_hall_defines[0][1].misc_anim_delay[0][1] = 0;
 	Main_hall_defines[0][1].misc_anim_delay[0][2] = 0;
@@ -2347,12 +2347,12 @@ void main_hall_read_table()
 	Main_hall_defines[0][1].misc_anim_sound_flag[3][0] = 2;
 	
 	Main_hall_defines[0][1].num_door_animations = 6;
-	strncpy(Main_hall_defines[0][1].door_anim_name[0], "main2-d1", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].door_anim_name[1], "main2-d6", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].door_anim_name[2], "main2-d3", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].door_anim_name[3], "main2-d4", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].door_anim_name[4], "main2-d5", MAX_FILENAME_LEN);
-	strncpy(Main_hall_defines[0][1].door_anim_name[5], "main2-d2", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].door_anim_name[0], "main2-d1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].door_anim_name[1], "main2-d6", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].door_anim_name[2], "main2-d3", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].door_anim_name[3], "main2-d4", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].door_anim_name[4], "main2-d5", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].door_anim_name[5], "main2-d2", MAX_FILENAME_LEN);
 	Main_hall_defines[0][1].door_anim_coords[0][0] = 199;
 	Main_hall_defines[0][1].door_anim_coords[0][1] = 265;
 	Main_hall_defines[0][1].door_anim_coords[0][2] = 263;
@@ -2412,12 +2412,12 @@ void main_hall_read_table()
 		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
 
 		// set head anim. hehe
-		strcpy(Main_hall_defines[GR_640][1].door_anim_name[OPTIONS_REGION], "vhallheads");
-		strcpy(Main_hall_defines[GR_1024][1].door_anim_name[OPTIONS_REGION], "2_vhallheads");
+		SDL_strlcpy(Main_hall_defines[GR_640][1].door_anim_name[OPTIONS_REGION], "vhallheads", MAX_FILENAME_LEN);
+		SDL_strlcpy(Main_hall_defines[GR_1024][1].door_anim_name[OPTIONS_REGION], "2_vhallheads", MAX_FILENAME_LEN);
 
 		// set the background
-		strcpy(Main_hall_defines[GR_640][1].bitmap, "vhallhead");
-		strcpy(Main_hall_defines[GR_1024][1].bitmap, "2_vhallhead");		
+		SDL_strlcpy(Main_hall_defines[GR_640][1].bitmap, "vhallhead", MAX_FILENAME_LEN);
+		SDL_strlcpy(Main_hall_defines[GR_1024][1].bitmap, "2_vhallhead", MAX_FILENAME_LEN);
 	}
 }
 

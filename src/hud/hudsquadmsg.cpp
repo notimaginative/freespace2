@@ -677,7 +677,7 @@ int hud_squadmsg_count_ships( int add_to_menu )
 		count++;
 		if ( add_to_menu ) {
 			SDL_assert ( Num_menu_items < MAX_MENU_ITEMS );
-			strcpy( MsgItems[Num_menu_items].text, shipp->ship_name );
+			SDL_strlcpy( MsgItems[Num_menu_items].text, shipp->ship_name, sizeof(MsgItems[0].text) );
 			MsgItems[Num_menu_items].instance = SHIP_INDEX(shipp);
 			MsgItems[Num_menu_items].active = 1;
 			Num_menu_items++;
@@ -767,7 +767,7 @@ int hud_squadmsg_count_wings( int add_to_menu )
 			count++;
 			if ( add_to_menu ) {
 				SDL_assert ( Num_menu_items < MAX_MENU_ITEMS );
-				strcpy( MsgItems[Num_menu_items].text, Wings[wingnum].name );
+				SDL_strlcpy( MsgItems[Num_menu_items].text, Wings[wingnum].name, sizeof(MsgItems[0].text) );
 				MsgItems[Num_menu_items].instance = wingnum;
 				MsgItems[Num_menu_items].active = 1;
 				Num_menu_items++;
@@ -788,7 +788,7 @@ int hud_squadmsg_count_wings( int add_to_menu )
 			count++;
 			if ( add_to_menu ) {
 				SDL_assert ( Num_menu_items < MAX_MENU_ITEMS );
-				strcpy( MsgItems[Num_menu_items].text, Wings[i].name );
+				SDL_strlcpy( MsgItems[Num_menu_items].text, Wings[i].name, sizeof(MsgItems[0].text) );
 				MsgItems[Num_menu_items].instance = i;
 				MsgItems[Num_menu_items].active = 1;
 				Num_menu_items++;
@@ -1936,7 +1936,7 @@ void hud_squadmsg_type_select( )
 
 	// Add the items
 	for (i=0; i<NUM_TYPE_SELECT; i++ )	{
-		strcpy( MsgItems[i].text, type_select_str(i) );
+		SDL_strlcpy( MsgItems[i].text, type_select_str(i), sizeof(MsgItems[0].text) );
 		MsgItems[i].active = 1;						// assume active
 	}
 	Num_menu_items = NUM_TYPE_SELECT;
@@ -2202,7 +2202,7 @@ void hud_squadmsg_reinforcement_select()
 			} 
 
 			SDL_assert ( Num_menu_items < MAX_MENU_ITEMS );
-			strcpy( MsgItems[Num_menu_items].text, rp->name );
+			SDL_strlcpy( MsgItems[Num_menu_items].text, rp->name, sizeof(MsgItems[0].text) );
 			MsgItems[Num_menu_items].instance = i;
 			MsgItems[Num_menu_items].active = 0;
 
@@ -2268,7 +2268,7 @@ void hud_squadmsg_ship_command()
 		// the order will be activated if the bit is set for the ship.
 		if ( default_orders & Comm_orders[i].value ) {
 			SDL_assert ( Num_menu_items < MAX_MENU_ITEMS );
-			strcpy( MsgItems[Num_menu_items].text, comm_order_menu_text(i) );
+			SDL_strlcpy( MsgItems[Num_menu_items].text, comm_order_menu_text(i), sizeof(MsgItems[0].text) );
 			MsgItems[Num_menu_items].instance = Comm_orders[i].value;
 			MsgItems[Num_menu_items].active = 0;
 			// check the bit to see if the command is active
@@ -2311,7 +2311,7 @@ void hud_squadmsg_ship_command()
 				if ( !all_accept ) {
 					// either modify the text if a partial accept, or grey it out if no one accepts
 					if ( partial_accept ) {
-						strcat( MsgItems[Num_menu_items].text, XSTR( "(*)", 320) );
+						SDL_strlcat( MsgItems[Num_menu_items].text, XSTR( "(*)", 320), sizeof(MsgItems[0].text) );
 					} else {
 						MsgItems[Num_menu_items].active = 0;
 					}
@@ -2365,7 +2365,7 @@ void hud_squadmsg_wing_command()
 		// to be available in the wing.
 		if ( default_orders & Comm_orders[i].value ) {
 			SDL_assert ( Num_menu_items < MAX_MENU_ITEMS );
-			strcpy( MsgItems[Num_menu_items].text, comm_order_menu_text(i) );
+			SDL_strlcpy( MsgItems[Num_menu_items].text, comm_order_menu_text(i), sizeof(MsgItems[0].text) );
 			MsgItems[Num_menu_items].instance = Comm_orders[i].value;
 			MsgItems[Num_menu_items].active = 0;
 

@@ -741,9 +741,9 @@ void multi_team_report()
 	SEND_AND_DISPLAY("----****");	
 
 	// display scores
-	sprintf(report, XSTR("<Team 1 had %d points>", 1275), Multi_team0_score);
+	SDL_snprintf(report, sizeof(report), XSTR("<Team 1 had %d points>", 1275), Multi_team0_score);
 	SEND_AND_DISPLAY(report);
-	sprintf(report, XSTR("<Team 2 had %d points>", 1276), Multi_team1_score);
+	SDL_snprintf(report, sizeof(report), XSTR("<Team 2 had %d points>", 1276), Multi_team1_score);
 	SEND_AND_DISPLAY(report);
 
 	// display winner

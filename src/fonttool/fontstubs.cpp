@@ -92,7 +92,7 @@ int Game_subspace_effect;
 void game_load_palette(){}
 void game_format_time(int, char*){}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int game_get_default_skill_level(){return 0;}
 int Interface_framerate;
 vector Camera_pos;

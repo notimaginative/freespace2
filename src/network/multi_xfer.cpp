@@ -323,7 +323,7 @@ void multi_xfer_send_final(xfer_entry *xe);
 void multi_xfer_send_header(xfer_entry *xe);
 
 // convert the filename into the prefixed ex_filename
-void multi_xfer_conv_prefix(char *filename, char *ex_filename);
+void multi_xfer_conv_prefix(char *filename, char *ex_filename, const int max_len);
 
 // get a new xfer sig
 ushort multi_xfer_get_sig();
@@ -416,7 +416,7 @@ int multi_xfer_send_file(PSNET_SOCKET_RELIABLE who, char *filename, int cfile_fl
 	memset(&temp_entry,0,sizeof(xfer_entry));
 
 	// set the filename
-	strcpy(temp_entry.filename,filename);	
+	SDL_strlcpy(temp_entry.filename, filename, sizeof(temp_entry.filename));
 
 	// attempt to open the file
 	temp_entry.file = NULL;
@@ -1128,16 +1128,11 @@ void multi_xfer_process_header(ubyte *data, PSNET_SOCKET_RELIABLE who, ushort si
 	xe->sig = sig;
 
 	// copy the filename and get the prefixed xfer filename
-#ifdef PLAT_UNIX
+	SDL_strlcpy(xe->filename, filename, sizeof(xe->filename));
 	// lower case all filenames to avoid case issues
-	char *tmp_filename = filename;
-	
-	SDL_strlwr(tmp_filename);
-	strcpy(xe->filename, tmp_filename);
-#else
-	strcpy(xe->filename, filename);
-#endif
-	multi_xfer_conv_prefix(xe->filename, xe->ex_filename);
+	SDL_strlwr(xe->filename);
+
+	multi_xfer_conv_prefix(xe->filename, xe->ex_filename, sizeof(xe->ex_filename));
 #ifdef MULTI_XFER_VERBOSE
 	nprintf(("Network","MULTI XFER : converted filename %s to %s\n",xe->filename, xe->ex_filename));
 #endif
@@ -1342,7 +1337,7 @@ void multi_xfer_send_header(xfer_entry *xe)
 }
 
 // convert the filename into the prefixed ex_filename
-void multi_xfer_conv_prefix(char *filename,char *ex_filename)
+void multi_xfer_conv_prefix(char *filename, char *ex_filename, const int max_len)
 {
 	char temp[MAX_FILENAME_LEN+50];
 	
@@ -1350,13 +1345,13 @@ void multi_xfer_conv_prefix(char *filename,char *ex_filename)
 	memset(temp, 0, MAX_FILENAME_LEN+50);
 
 	// copy in the prefix
-	strcpy(temp, MULTI_XFER_FNAME_PREFIX);
+	SDL_strlcpy(temp, MULTI_XFER_FNAME_PREFIX, sizeof(temp));
 
 	// stick on the original name
-	strcat(temp, filename);
+	SDL_strlcat(temp, filename, sizeof(temp));
 
 	// copy the whole thing to the outgoing filename
-	strcpy(ex_filename, temp);
+	SDL_strlcpy(ex_filename, temp, max_len);
 }
 
 // get a new xfer sig

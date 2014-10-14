@@ -583,6 +583,7 @@ void popup_split_lines(popup_info *pi, int flags)
 	int	nlines, i, body_offset = 0;
 	int	n_chars[POPUP_MAX_LINES];
 	char	*p_str[POPUP_MAX_LINES];
+	int len;
 
 	gr_set_font(FONT1);
 	n_chars[0]=0;
@@ -592,8 +593,8 @@ void popup_split_lines(popup_info *pi, int flags)
 
 	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
 		// get first line out
-		strncpy(pi->title, p_str[0], n_chars[0]);
-		pi->title[n_chars[0]] = 0;
+		len = min(n_chars[0] + 1, POPUP_MAX_LINE_CHARS);
+		SDL_strlcpy(pi->title, p_str[0], len);
 		body_offset = 1;
 	}
 
@@ -608,8 +609,8 @@ void popup_split_lines(popup_info *pi, int flags)
 
 	for ( i = 0; i < pi->nlines; i++ ) {
 		SDL_assert(n_chars[i+body_offset] < POPUP_MAX_LINE_CHARS);
-		strncpy(pi->msg_lines[i], p_str[i+body_offset], n_chars[i+body_offset]);
-		pi->msg_lines[i][n_chars[i+body_offset]] = 0;
+		len = min(n_chars[i+body_offset] + 1, POPUP_MAX_LINE_CHARS);
+		SDL_strlcpy(pi->msg_lines[i], p_str[i+body_offset], len);
 	}
 
 	gr_set_font(FONT1);
@@ -1234,9 +1235,8 @@ int popup(int flags, int nchoices, ... )
 	// get msg text
 	format = va_arg( args, char * );
 	Popup_info.raw_text[0] = 0;
-	vsprintf(Popup_info.raw_text, format, args);
+	SDL_vsnprintf(Popup_info.raw_text, sizeof(Popup_info.raw_text), format, args);
 	va_end(args);
-	SDL_assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
 	
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
@@ -1288,9 +1288,8 @@ int popup_till_condition(int (*condition)(), ...)
 	// get msg text
 	format = va_arg( args, char * );
 	Popup_info.raw_text[0] = 0;
-	vsprintf(Popup_info.raw_text, format, args);
+	SDL_vsnprintf(Popup_info.raw_text, sizeof(Popup_info.raw_text), format, args);
 	va_end(args);
-	Popup_info.raw_text[POPUP_MAX_CHARS-1] = '\0';
 		
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
@@ -1324,7 +1323,7 @@ char *popup_input(int flags, const char *caption, int max_output_len)
 
 	// get msg text
 	SDL_assert(caption != NULL);
-	strcpy(Popup_info.raw_text, caption);	
+	SDL_strlcpy(Popup_info.raw_text, caption, sizeof(Popup_info.raw_text));
 	SDL_assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
 
 	// set input text length
@@ -1368,7 +1367,7 @@ void popup_kill_any_active()
 void popup_change_text(const char *new_text)
 {
 	// copy the raw text
-	strncpy(Popup_info.raw_text,new_text,POPUP_MAX_CHARS);
+	SDL_strlcpy(Popup_info.raw_text, new_text, sizeof(Popup_info.raw_text));
 
 	// recalculate all display information
 	popup_split_lines(&Popup_info,Popup_flags);

@@ -128,7 +128,7 @@ void game_load_palette(){}
 void game_format_time(int, char*){}
 int game_get_default_skill_level(){return 0;}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int Sun_drew;
 int Interface_framerate;
 void game_set_view_clip(){}

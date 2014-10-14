@@ -684,13 +684,12 @@ void techroom_render_desc(int xo, int yo, int h)
 			break;
 		}
 
-		len = Text_line_size[z];
+		len = Text_line_size[z] + 1;
 		if (len > MAX_TEXT_LINE_LEN){
 			len = MAX_TEXT_LINE_LEN;
 		}
 
-		strncpy(line, Text_lines[z], len);
-		line[len] = 0;
+		SDL_strlcpy(line, Text_lines[z], len);
 		gr_string(xo, yo + y, line);
 
 		y += font_height;
@@ -770,9 +769,9 @@ void tech_common_render()
 			gr_set_color_fast(&Color_text_normal);
 		}
 
-		strcpy(buf, Current_list[z].name);
+		SDL_strlcpy(buf, Current_list[z].name, sizeof(buf));
 		if (Lcl_gr) {
-			lcl_translate_ship_name(buf);
+			lcl_translate_ship_name(buf, sizeof(buf));
 		}
 
 		gr_force_fit_string(buf, 255, Tech_list_coords[gr_screen.res][SHIP_W_COORD]);
@@ -1216,47 +1215,47 @@ void techroom_change_tab(int num)
 #ifdef MAKE_FS1
 						// figure out the animation based on weapon name
 						if (!strcmp(Weapon_info[i].name, "ML-16 Laser")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_ML16.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_ML16.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Disruptor")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Disruptor.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Disruptor.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "D-Advanced")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_DAdvanced.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_DAdvanced.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Avenger")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Avenger.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Avenger.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Flail")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Flail.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Flail.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Prometheus")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Prometheus.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Prometheus.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Banshee")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Banshee.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Banshee.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "MX-50")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_MX50.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_MX50.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "D-Missile")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_DisruptorMissile.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_DisruptorMissile.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Fury")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Fury.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Fury.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Hornet")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Hornet.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Hornet.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Interceptor")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Interceptor.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Interceptor.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Phoenix V")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Phoenix.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Phoenix.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Synaptic")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Synaptic.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Synaptic.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Stiletto")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Stiletto.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Stiletto.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Tsunami")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Tsunami.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Tsunami.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Harbinger")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Harbinger.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Harbinger.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Leech Cannon")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_leech.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_leech.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "EM Pulse")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_empulse.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_empulse.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "S-Breaker")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_sbreaker.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_sbreaker.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Cluster Bomb")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_cluster.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_cluster.ani", NAME_LENGTH);
 						}
 #endif
 
@@ -1451,9 +1450,9 @@ int techroom_load_ani(anim **animpp, char *name)
 	// hi-res support
 	// (i dont think there are any hi-res anims for these tho)
 	if (gr_screen.res == GR_1024) {
-		strcat(anim_filename, name);
+		SDL_strlcat(anim_filename, name, sizeof(anim_filename));
 	} else {
-		strcpy(anim_filename, name);
+		SDL_strlcpy(anim_filename, name, sizeof(anim_filename));
 	}
 
 	while(1) {
@@ -1527,8 +1526,8 @@ void techroom_intel_init()
 #else
 			if (optional_string("$Terran Tech Description:")) {
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				strcpy(Intel_info[Intel_info_size].name, "Terran");
-				strcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[0]);
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Terran", sizeof(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[0], sizeof(Intel_info[0].anim_filename));
 				Intel_info[Intel_info_size].in_tech_db = 1;
 
 				Intel_info_size++;
@@ -1537,8 +1536,8 @@ void techroom_intel_init()
 			if (optional_string("$Vasudan Tech Description:")) {
 
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				strcpy(Intel_info[Intel_info_size].name, "Vasudan");
-				strcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[1]);
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Vasudan", sizeof(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[1], sizeof(Intel_info[0].anim_filename));
 				Intel_info[Intel_info_size].in_tech_db = 1;
 
 				Intel_info_size++;
@@ -1547,8 +1546,8 @@ void techroom_intel_init()
 			if (optional_string("$Shivan Tech Description:")) {
 
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				strcpy(Intel_info[Intel_info_size].name, "Shivan");
-				strcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2]);
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Shivan", sizeof(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2], sizeof(Intel_info[0].anim_filename));
 				// FIXME: shouldn't always be in the intel database but no choice at this point
 				// there are only about 4 missions before they show up anyway so it may not be worth it
 				Intel_info[Intel_info_size].in_tech_db = 1;

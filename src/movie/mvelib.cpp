@@ -76,10 +76,10 @@ MVEFILE *mvefile_open(const char *filename)
 	file->next_segment = 0;
 
 	// lower case filename for checking
-	strncpy(lower_name, filename, strlen(filename)+1);
+	SDL_strlcpy(lower_name, filename, sizeof(lower_name));
 	SDL_strlwr(lower_name);
 	// upper case filename for checking
-	strncpy(upper_name, filename, strlen(filename)+1);
+	SDL_strlcpy(upper_name, filename, sizeof(upper_name));
 	SDL_strupr(upper_name);
 
 	// NOTE: CF_TYPE *must* be ANY to get movies off of the CDs

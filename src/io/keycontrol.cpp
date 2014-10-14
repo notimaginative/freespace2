@@ -713,7 +713,7 @@ void debug_cycle_targeted_ship(int delta)
 		sip = &Ship_info[si_index];
 	
 		// if it has test in the name, jump over it
-		strcpy(name, sip->name);
+		SDL_strlcpy(name, sip->name, sizeof(name));
 		SDL_strlwr(name);
 		if ( strstr(name,NOX("test")) != NULL )
 			continue;
@@ -746,7 +746,7 @@ void debug_change_song(int delta)
 {
 	char buf[256];
 	if ( event_music_next_soundtrack(delta) != -1 ) {
-		event_music_get_soundtrack_name(buf);
+		event_music_get_soundtrack_name(buf, sizeof(buf));
 		HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Soundtrack changed to: %s", 2), buf);
 
 	} else {
@@ -1294,7 +1294,7 @@ void process_debug_keys(int k)
 					
 		case KEY_DEBUGGED + SDLK_t: {
 			char buf[256];
-			event_music_get_info(buf);
+			event_music_get_info(buf, sizeof(buf));
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, buf);
 			break;
 		}

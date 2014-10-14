@@ -227,7 +227,7 @@ extern void bm_unlock( int bitmapnum );
 extern void bm_get_info( int bitmapnum, int *w=NULL, int * h=NULL, ubyte * flags=NULL, int *nframes=NULL, int *fps=NULL, bitmap_section_info **sections = NULL );
 
 // get filename
-extern void bm_get_filename(int bitmapnum, char *filename);
+extern void bm_get_filename(int bitmapnum, char *filename, const int max_len);
 
 // resyncs all the bitmap palette
 extern void bm_update();
@@ -237,7 +237,7 @@ extern void bm_load_all();
 extern void bm_unload_all();
 
 // call to get the palette for a bitmap
-extern void bm_get_palette(int n, ubyte *pal, char *name);
+extern void bm_get_palette(int n, ubyte *pal, char *name, const int name_len);
 
 // Hacked function to get a pixel from a bitmap.
 // Only works good in 8bpp mode.

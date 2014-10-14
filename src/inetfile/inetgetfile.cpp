@@ -102,7 +102,7 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 
 	// make sure localfile has \ in it or we'll be here a long time.
 	if (strstr(localfile, DIR_SEPARATOR_STR)) {
-		strcpy(dir_name, localfile);
+		SDL_strlcpy(dir_name, localfile, sizeof(dir_name));
 		int len = strlen(localfile);
 		end = dir_name + len;
 

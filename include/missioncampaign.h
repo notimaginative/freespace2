@@ -418,7 +418,7 @@ extern void mission_campaign_savefile_delete( const char *cfilename, int is_mult
 extern void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi );
 
 // if a given campaign is a multiplayer campaign, we can load and save the multiplayer info portion with these functions
-extern int mission_campaign_parse_is_multi(const char *filename, char *name);
+extern int mission_campaign_parse_is_multi(const char *filename, char *name, const int max_len);
 
 // function which sets up internal variable for player to play next mission in the campaign
 extern int mission_campaign_next_mission( void );
@@ -447,7 +447,7 @@ extern void mission_campaign_maybe_play_movie(int type);
 // save persistent information
 extern void mission_campaign_save_persistent( int type, int index );
 
-void mission_campaign_savefile_generate_root(char *filename);
+void mission_campaign_savefile_generate_root(char *filename, const int max_len);
 
 // The following are functions I added to set up the globals and then
 // execute the corresponding mission_campaign_savefile functions.

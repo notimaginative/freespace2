@@ -152,7 +152,7 @@ void mflash_game_init()
 
 			// if we have room left
 			if(m->num_blobs < MAX_MFLASH_BLOBS){
-				strcpy(m->blob_names[m->num_blobs], name);
+				SDL_strlcpy(m->blob_names[m->num_blobs], name, MAX_MFLASH_NAME_LEN);
 				m->blob_offset[m->num_blobs] = offset;
 				m->blob_radius[m->num_blobs] = radius;				
 
@@ -177,28 +177,28 @@ void mflash_game_init()
 		m->blob_anims[idx] = -1;
 	}
 
-	strncpy(m->name, "mflash_small", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->name, "mflash_small", MAX_MFLASH_NAME_LEN);
 
 	m->num_blobs = 4;
 	SDL_assert(m->num_blobs <= MAX_MFLASH_BLOBS);
 
 	idx = 0;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 1.0f;
 	m->blob_radius[idx] = 6.0f;
 
 	idx++;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 4.5f;
 	m->blob_radius[idx] = 4.0f;
 
 	idx++;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 6.0f;
 	m->blob_radius[idx] = 3.0f;
 
 	idx++;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 8.5f;
 	m->blob_radius[idx] = 3.0f;
 #endif

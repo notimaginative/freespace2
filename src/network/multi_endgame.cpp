@@ -606,40 +606,40 @@ void multi_endgame_popup(int notify_code,int error_code,int wsa_error)
 	} else {
 		// if there is a winsock error code, stick it on the end of the text
 		if(wsa_error != -1){		
-			sprintf(err_msg,NOX("WSAERROR : %d\n\n"),wsa_error);
+			SDL_snprintf(err_msg, sizeof(err_msg), NOX("WSAERROR : %d\n\n"), wsa_error);
 			flags |= PF_TITLE_RED;
 		} else {
-			strcpy(err_msg,"");
+			SDL_strlcpy(err_msg, "", sizeof(err_msg));
 		}
 
 		// setup the error message string
 		if(notify_code != MULTI_END_NOTIFY_NONE){
 			switch(notify_code){
 			case MULTI_END_NOTIFY_KICKED :
-				strcat(err_msg,XSTR("You have been kicked",651));
+				SDL_strlcat(err_msg,XSTR("You have been kicked",651),sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_SERVER_LEFT:
-				strcat(err_msg,XSTR("The server has left the game",652));
+				SDL_strlcat(err_msg,XSTR("The server has left the game",652),sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_FILE_REJECTED:
-				strcat(err_msg,XSTR("Your mission file has been rejected by the server",653));
+				SDL_strlcat(err_msg,XSTR("Your mission file has been rejected by the server",653),sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_EARLY_END:
-				strcat(err_msg,XSTR("The game has ended while you were ingame joining",654));
+				SDL_strlcat(err_msg,XSTR("The game has ended while you were ingame joining",654),sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_INGAME_TIMEOUT:
-				strcat(err_msg,XSTR("You have waited too long to select a ship",655));
+				SDL_strlcat(err_msg,XSTR("You have waited too long to select a ship",655),sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_KICKED_BAD_XFER:
-				strcat(err_msg,XSTR("You were kicked because mission file xfer failed",998));
+				SDL_strlcat(err_msg,XSTR("You were kicked because mission file xfer failed",998),sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_KICKED_CANT_XFER:
-				strcat(err_msg,XSTR("You were kicked because you do not have the builtin mission",999));
-				strcat(err_msg, NOX(" "));
-				strcat(err_msg, Game_current_mission_filename);
+				SDL_strlcat(err_msg,XSTR("You were kicked because you do not have the builtin mission",999),sizeof(err_msg));
+				SDL_strlcat(err_msg, NOX(" "), sizeof(err_msg));
+				SDL_strlcat(err_msg, Game_current_mission_filename, sizeof(err_msg));
 				break;
 			case MULTI_END_NOTIFY_KICKED_INGAME_ENDED:
-				strcat(err_msg,XSTR("You were kicked because you were ingame joining a game that has ended",1000));
+				SDL_strlcat(err_msg,XSTR("You were kicked because you were ingame joining a game that has ended",1000),sizeof(err_msg));
 				break;
 			default : 
 				Int3();
@@ -647,43 +647,43 @@ void multi_endgame_popup(int notify_code,int error_code,int wsa_error)
 		} else {	
 			switch(error_code){
 			case MULTI_END_ERROR_CONTACT_LOST :
-				strcat(err_msg,XSTR("Contact with server has been lost",656));
+				SDL_strlcat(err_msg,XSTR("Contact with server has been lost",656),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_CONNECT_FAIL :
-				strcat(err_msg,XSTR("Failed to connect to server on reliable socket",657));
+				SDL_strlcat(err_msg,XSTR("Failed to connect to server on reliable socket",657),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_LOAD_FAIL :
-				strcat(err_msg,XSTR("Failed to load mission file properly",658));
+				SDL_strlcat(err_msg,XSTR("Failed to load mission file properly",658),sizeof(err_msg));
 				break;						
 			case MULTI_END_ERROR_INGAME_SHIP :
-				strcat(err_msg,XSTR("Unable to create ingame join player ship",659));
+				SDL_strlcat(err_msg,XSTR("Unable to create ingame join player ship",659),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_INGAME_BOGUS :
-				strcat(err_msg,XSTR("Recevied bogus packet data while ingame joining",660));
+				SDL_strlcat(err_msg,XSTR("Recevied bogus packet data while ingame joining",660),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_STRANS_FAIL :
-				strcat(err_msg,XSTR("Server transfer failed (obsolete)",661));
+				SDL_strlcat(err_msg,XSTR("Server transfer failed (obsolete)",661),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_SHIP_ASSIGN:
-				strcat(err_msg,XSTR("Server encountered errors trying to assign players to ships",662));
+				SDL_strlcat(err_msg,XSTR("Server encountered errors trying to assign players to ships",662),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_HOST_LEFT:
-				strcat(err_msg,XSTR("Host has left the game, aborting...",663));
+				SDL_strlcat(err_msg,XSTR("Host has left the game, aborting...",663),sizeof(err_msg));
 				break;			
 			case MULTI_END_ERROR_XFER_FAIL:
-				strcat(err_msg,XSTR("There was an error receiving the mission file!",665));
+				SDL_strlcat(err_msg,XSTR("There was an error receiving the mission file!",665),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_WAVE_COUNT:
-				strcat(err_msg,XSTR("The player wings Alpha, Beta, Gamma, and Zeta must have only 1 wave.  One of these wings currently has more than 1 wave.", 987));
+				SDL_strlcat(err_msg,XSTR("The player wings Alpha, Beta, Gamma, and Zeta must have only 1 wave.  One of these wings currently has more than 1 wave.", 987),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_TEAM0_EMPTY:
-				strcat(err_msg,XSTR("All players from team 1 have left the game", 1466));
+				SDL_strlcat(err_msg,XSTR("All players from team 1 have left the game", 1466),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_TEAM1_EMPTY:
-				strcat(err_msg,XSTR("All players from team 2 have left the game", 1467));
+				SDL_strlcat(err_msg,XSTR("All players from team 2 have left the game", 1467),sizeof(err_msg));
 				break;
 			case MULTI_END_ERROR_CAPTAIN_LEFT:
-				strcat(err_msg,XSTR("Team captain(s) have left the game, aborting...",664));
+				SDL_strlcat(err_msg,XSTR("Team captain(s) have left the game, aborting...",664),sizeof(err_msg));
 				break;
 			default :
 				Int3();

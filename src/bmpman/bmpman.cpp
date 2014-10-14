@@ -866,7 +866,7 @@ int bm_create( int bpp, int w, int h, void *data, int flags )
 
 	memset( &bm_bitmaps[n], 0, sizeof(bitmap_entry) );
 
-	sprintf( bm_bitmaps[n].filename, "TMP%dx%d", w, h );
+	SDL_snprintf( bm_bitmaps[n].filename, MAX_FILENAME_LEN, "TMP%dx%d", w, h );
 	bm_bitmaps[n].type = BM_TYPE_USER;
 	bm_bitmaps[n].palette_checksum = 0;
 
@@ -904,8 +904,8 @@ int bm_load_sub(const char *real_filename, const char *ext, int *handle)
 	int i;
 	char filename[MAX_FILENAME_LEN] = "";
 	
-	strcpy( filename, real_filename );
-	strcat( filename, ext );	
+	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcat( filename, ext, sizeof(filename) );
 	for (i=0; i<(int)strlen(filename); i++ ){
 		filename[i] = char(tolower(filename[i]));
 	}		
@@ -952,12 +952,12 @@ int bm_load( const char * real_filename )
 
 	// nice little trick for keeping standalone memory usage way low - always return a bogus bitmap 
 	if(Game_mode & GM_STANDALONE_SERVER){
-		strcpy(filename,"test128");
+		SDL_strlcpy(filename,"test128", sizeof(filename));
 	}
 
 	// make sure no one passed an extension
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		mprintf(( "Someone passed an extension to bm_load for file '%s'\n", real_filename ));
 		//Int3();
@@ -973,7 +973,7 @@ int bm_load( const char * real_filename )
 	// found as a file
 	case 0:
 		found = 1;
-		strcat(filename, ".pcx");
+		SDL_strlcat(filename, ".pcx", sizeof(filename));
 		break;
 
 	// found as pre-existing
@@ -991,7 +991,7 @@ int bm_load( const char * real_filename )
 
 		// found as a file
 		case 0:			
-			strcat(filename, ".tga");
+			SDL_strlcat(filename, ".tga", sizeof(filename));
 			tga = 1;
 			break;
 
@@ -1044,7 +1044,7 @@ int bm_load( const char * real_filename )
 	bm_bitmaps[n].type = tga ? (ubyte)BM_TYPE_TGA : (ubyte)BM_TYPE_PCX;
 	bm_bitmaps[n].signature = Bm_next_signature++;
 	SDL_assert ( strlen(filename) < MAX_FILENAME_LEN );
-	strncpy(bm_bitmaps[n].filename, filename, MAX_FILENAME_LEN-1 );
+	SDL_strlcpy(bm_bitmaps[n].filename, filename, MAX_FILENAME_LEN );
 	bm_bitmaps[n].bm.w = short(w);
 	bm_bitmaps[n].bm.rowsize = short(w);
 	bm_bitmaps[n].bm.h = short(h);
@@ -1159,14 +1159,14 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 
 	if ( !bm_inited ) bm_init();
 
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		mprintf(( "Someone passed an extension to bm_load_animation for file '%s'\n", real_filename ));
 		//Int3();
 		*p = 0;
 	}
-	strcat( filename, ".ani" );
+	SDL_strlcat( filename, ".ani", sizeof(filename) );
 
 	if ( (fp = cfopen(filename, "rb")) == NULL ) {
 //		Error(LOCATION,"Could not open filename %s in bm_load_ani()\n", filename);
@@ -1176,7 +1176,7 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 	int reduced = 0;
 #ifndef NDEBUG
 	// for debug of ANI sizes
-	strcpy(the_anim.name, real_filename);
+	SDL_strlcpy(the_anim.name, real_filename, sizeof(the_anim.name));
 #endif
 	anim_read_header(&the_anim, fp);
 	if ( can_drop_frames )	{
@@ -1249,9 +1249,9 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 		bm_calc_sections(&bm_bitmaps[n+i].bm);
 
 		if ( i == 0 )	{
-			sprintf( bm_bitmaps[n+i].filename, "%s", filename );
+			SDL_snprintf( bm_bitmaps[n+i].filename, MAX_FILENAME_LEN, "%s", filename );
 		} else {
-			sprintf( bm_bitmaps[n+i].filename, "%s[%d]", filename, i );
+			SDL_snprintf( bm_bitmaps[n+i].filename, MAX_FILENAME_LEN, "%s[%d]", filename, i );
 		}
 	}
 
@@ -1745,9 +1745,7 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 
 		if ( !Bm_paging )	{
 			if ( be->type != BM_TYPE_USER ) {
-				char flag_text[64];
-				strcpy( flag_text, "--" );							
-				nprintf(( "Paging", "Loading %s (%dx%dx%dx%s)\n", be->filename, bmp->w, bmp->h, bpp, flag_text ));
+				nprintf(( "Paging", "Loading %s (%dx%dx%dx--)\n", be->filename, bmp->w, bmp->h, bpp ));
 			}
 		}
 
@@ -1849,7 +1847,7 @@ char *bm_get_filename(int handle)
 	return bm_bitmaps[n].filename;
 }
 
-void bm_get_palette(int handle, ubyte *pal, char *name)
+void bm_get_palette(int handle, ubyte *pal, char *name, const int name_len)
 {
 	char *filename;
 	int w,h;
@@ -1860,7 +1858,7 @@ void bm_get_palette(int handle, ubyte *pal, char *name)
 	filename = bm_bitmaps[n].filename;
 
 	if (name)	{
-		strcpy( name, filename );
+		SDL_strlcpy( name, filename, name_len );
 	}
 
 	int pcx_error=pcx_read_header( filename, &w, &h, pal );
@@ -1921,7 +1919,7 @@ void bm_release(int handle)
 	// Fill in bogus structures!
 
 	// For debugging:
-	strcpy( bm_bitmaps[n].filename, "IVE_BEEN_RELEASED!" );
+	SDL_strlcpy( bm_bitmaps[n].filename, "IVE_BEEN_RELEASED!", sizeof(bm_bitmaps[0].filename) );
 	bm_bitmaps[n].signature = 0xDEADBEEF;									// a unique signature identifying the data
 	bm_bitmaps[n].palette_checksum = 0xDEADBEEF;							// checksum used to be sure bitmap is in current palette
 
@@ -2443,12 +2441,12 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 }
 
 // get filename
-void bm_get_filename(int bitmapnum, char *filename)
+void bm_get_filename(int bitmapnum, char *filename, const int max_len)
 {
 	int n = bitmapnum % MAX_BITMAPS;
 
 	// return filename
-	strcpy(filename, bm_bitmaps[n].filename);
+	SDL_strlcpy(filename, bm_bitmaps[n].filename, max_len);
 }
 
 // given a bitmap and a section, return the size (w, h)

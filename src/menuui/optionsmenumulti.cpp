@@ -936,7 +936,7 @@ void options_multi_add_notify(const char *str)
 	// copy the string
 	memset(Om_notify_string,0,255);
 	if(str != NULL){		
-		strcpy(Om_notify_string,str);
+		SDL_strlcpy(Om_notify_string, str, sizeof(Om_notify_string));
 	} 		
 
 	// set the timestamp
@@ -953,6 +953,7 @@ void options_multi_notify_process()
 	int line_count;
 	int y_start;
 	int idx;
+	int len;
 	
 	// if there is no timestamp, do nothing
 	if(Om_notify_stamp == -1){
@@ -970,9 +971,9 @@ void options_multi_notify_process()
 	y_start = OM_NOTIFY_Y;
 	gr_set_color_fast(&Color_bright);
 	for(idx=0;idx<line_count;idx++){
-		memset(line, 0, 255);
-		strncpy(line, p_str[idx], n_chars[idx]);
-				
+		len = min(n_chars[idx] + 1, sizeof(line));
+		SDL_strlcpy(line, p_str[idx], len);
+
 		gr_get_string_size(&w,NULL,line);
 		gr_string((600 - w)/2,y_start,line);
 
@@ -1523,7 +1524,7 @@ void options_multi_protocol_load_ip_file()
 			nprintf(("Network","Invalid ip string (%s)\n",line));
 		} else {
 			if(Om_num_ips < MAX_IP_ADDRS-1){
-				strcpy(Om_ip_addrs[Om_num_ips++],line);
+				SDL_strlcpy(Om_ip_addrs[Om_num_ips++], line, IP_STRING_LEN);
 			}
 		}
 	}
@@ -1638,7 +1639,7 @@ void options_multi_protocol_delete_ip()
 
 		// move down all the other items				
 		for(idx=Om_ip_selected; idx < Om_num_ips; idx++){
-			strcpy(Om_ip_addrs[idx],Om_ip_addrs[idx+1]);
+			SDL_strlcpy(Om_ip_addrs[idx], Om_ip_addrs[idx+1], IP_STRING_LEN);
 		}
 
 		// make sure to decrement the starting index
@@ -1694,7 +1695,7 @@ void options_multi_protocol_add_current_ip()
 	Ip_validated_already = 0;
 	if(popup_till_condition(options_multi_verify_ip, XSTR( "Cancel", 387), XSTR( "Verifying ip address", 388)) == 10){
 		if(Om_num_ips < MAX_IP_ADDRS){
-			strcpy(Om_ip_addrs[Om_num_ips],Ip_str);
+			SDL_strlcpy(Om_ip_addrs[Om_num_ips], Ip_str, IP_STRING_LEN);
 			Om_ip_start = Om_num_ips;
 			Om_num_ips++;
 			
@@ -2467,7 +2468,7 @@ void options_multi_vox_process_player_list()
 			}
 
 			// force fit his callsign
-			strcpy(str,Om_vox_players[idx]->player->callsign);
+			SDL_strlcpy(str, Om_vox_players[idx]->player->callsign, sizeof(str));
 			gr_force_fit_string(str, CALLSIGN_LEN+1, Om_vox_plist_coords[gr_screen.res][2]);
 
 			// blit the callsign

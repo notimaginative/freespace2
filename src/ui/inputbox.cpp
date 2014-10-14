@@ -279,7 +279,7 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 	init_cursor();
 
 	if ( _text_len > 0 ) {
-		strncpy( text, _text, _text_len );
+		SDL_strlcpy( text, _text, _text_len+1 );
 	}
 	text[_text_len] = 0;
 	position = strlen(_text);
@@ -474,12 +474,12 @@ int UI_INPUTBOX::validate_input(int chr)
 	}
 
 	// otherwise compare against the valid chars list
-	if((valid_chars) && strchr(valid_chars, chr)){
+	if((valid_chars) && SDL_strchr(valid_chars, chr)){
 		return chr;
 	}
 
 	// otherwise compare against the invalid chars list0
-	if((invalid_chars) && !strchr(invalid_chars,chr)){
+	if((invalid_chars) && !SDL_strchr(invalid_chars,chr)){
 		return chr;
 	}
 
@@ -654,8 +654,7 @@ int UI_INPUTBOX::pressed()
 
 void UI_INPUTBOX::get_text(char *out)
 {
-	strncpy(out, text, length);
-	out[length] = 0;
+	SDL_strlcpy(out, text, length+1);
 }
 
 void UI_INPUTBOX::set_text(const char *in)
@@ -666,7 +665,7 @@ void UI_INPUTBOX::set_text(const char *in)
 	if (in_length > length)
 		SDL_assert(0);	// tried to force text into an input box that won't fit into allocated memory
 
-	strcpy(text, in);
+	SDL_strlcpy(text, in, length+1);
 	
 	if (flags & UI_INPUTBOX_FLAG_PASSWD) {
 		memset(passwd_text, INPUTBOX_PASSWD_CHAR, strlen(text));

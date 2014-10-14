@@ -282,11 +282,11 @@ char *gr_force_fit_string(char *str, int max_str, int max_width)
 			str[max_str - 3] = 0;
 		}
 
-		strcpy(str + strlen(str) - 1, "...");
+		SDL_strlcpy(str + strlen(str) - 1, "...", max_str);
 		gr_get_string_size(&w, NULL, str);
 		while (w > max_width) {
 			SDL_assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
-			strcpy(str + strlen(str) - 4, "...");
+			SDL_strlcpy(str + strlen(str) - 4, "...", max_str);
 			gr_get_string_size(&w, NULL, str);
 		}
 	}
@@ -373,9 +373,9 @@ void gr_print_timestamp(int x, int y, int timestamp)
 	int w, c;
 
 	// format the time information into strings
-	sprintf(h, "%.1d", (timestamp / 3600000) % 10);
-	sprintf(m, "%.2d", (timestamp / 60000) % 60);
-	sprintf(s, "%.2d", (timestamp / 1000) % 60);
+	SDL_snprintf(h, sizeof(h), "%.1d", (timestamp / 3600000) % 10);
+	SDL_snprintf(m, sizeof(m), "%.2d", (timestamp / 60000) % 60);
+	SDL_snprintf(s, sizeof(s), "%.2d", (timestamp / 1000) % 60);
 
 	gr_get_string_size(&w, NULL, "0");
 	gr_get_string_size(&c, NULL, ":");
@@ -482,7 +482,7 @@ void __cdecl gr_printf( int x, int y, const char * format, ... )
 	if ( !Current_font ) return;
 	
 	va_start(args, format);
-	vsprintf(grx_printf_text,format,args);
+	SDL_vsnprintf(grx_printf_text, sizeof(grx_printf_text), format, args);
 	va_end(args);
 
 	gr_string(x,y,grx_printf_text);
@@ -567,7 +567,7 @@ int gr_create_font(const char * typeface)
 	fp = cfopen( typeface, "rb", CFILE_NORMAL, CF_TYPE_ANY, localize );
 	if ( fp == NULL ) return -1;
 
-	strncpy( fnt->filename, typeface, MAX_FILENAME_LEN );
+	SDL_strlcpy( fnt->filename, typeface, MAX_FILENAME_LEN );
 	cfread( &fnt->id, 4, 1, fp );
 	cfread( &fnt->version, sizeof(int), 1, fp );
 	cfread( &fnt->num_chars, sizeof(int), 1, fp );

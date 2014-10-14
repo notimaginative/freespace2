@@ -348,17 +348,17 @@ DCF(objsnd, "Persistant sound stuff" )
 					continue;
 					//strcpy(buf1,"OFF");
 				} else {
-					strcpy(buf1,"ON");
+					SDL_strlcpy(buf1, "ON", sizeof(buf1));
 				}
 
 				if ( Objects[osp->objnum].type == OBJ_SHIP ) {
-					strcpy(buf2, Ships[Objects[osp->objnum].instance].ship_name);
+					SDL_strlcpy(buf2, Ships[Objects[osp->objnum].instance].ship_name, sizeof(buf2));
 				}
 				else if ( Objects[osp->objnum].type == OBJ_DEBRIS ) {
-					strcpy(buf2, "Debris");
+					SDL_strlcpy(buf2, "Debris", sizeof(buf2));
 				}
 				else {
-					strcpy(buf2, "Unknown");
+					SDL_strlcpy(buf2, "Unknown", sizeof(buf2));
 				}
 
 				vector source_pos;

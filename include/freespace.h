@@ -323,10 +323,10 @@ void game_shudder_apply(int time, float intensity);
 void game_feature_not_in_demo_popup();
 
 //	Return version string for demo or full version, depending on build.
-void get_version_string(char *str);
+void get_version_string(char *str, const int str_len);
 
 // format the specified time (fixed point) into a nice string
-void game_format_time(fix m_time, char *time_str);
+void game_format_time(fix m_time, char *time_str, const int time_str_len);
 
 // if the game is running using hacked data
 int game_hacked_data();

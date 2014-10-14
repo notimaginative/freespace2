@@ -257,7 +257,7 @@ void os_set_title( const char *title )
 
 	memset(windowTitle, 0, sizeof(windowTitle));
 
-	strncpy(windowTitle, title, sizeof(windowTitle)-1);
+	SDL_strlcpy(windowTitle, title, sizeof(windowTitle));
 
 	SDL_SetWindowTitle(GL_window, title);
 }

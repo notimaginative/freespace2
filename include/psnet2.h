@@ -207,10 +207,10 @@ int psnet_use_protocol(int type);
 int psnet_get_network_status();
 
 // convert a net_addr to a string
-char *psnet_addr_to_string( char * text, net_addr_t * address );
+char *psnet_addr_to_string(char * text, const int max_textlen, net_addr_t * address );
 
 // convert a string to a net addr
-void psnet_string_to_addr( net_addr_t * address, char * text );
+void psnet_string_to_addr(net_addr_t * address, char * text , const int max_textlen);
 
 // compare 2 addresses
 int psnet_same( net_addr_t * a1, net_addr_t * a2 );

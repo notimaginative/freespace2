@@ -190,8 +190,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	m_Aborting = false;
 	m_Aborted = false;
 
-	strncpy(m_URL,URL,MAX_URL_LEN-1);
-	m_URL[MAX_URL_LEN-1] = 0;
+	SDL_strlcpy(m_URL, URL, sizeof(m_URL));
 
 	LOCALFILE = fopen(localfile,"wb");
 	if(NULL == LOCALFILE)
@@ -223,7 +222,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 		}
 	}
 	//There shouldn't be any : in this string
-	if(strchr(pURL,':'))
+	if(SDL_strchr(pURL,':'))
 	{
 		m_State = HTTP_STATE_URL_PARSING_ERROR;
 		m_Aborted = true;
@@ -242,7 +241,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 			{
 				filestart = pURL+i+1;
 				dirstart = pURL+i+1;
-				strcpy(m_szFilename,filestart);
+				SDL_strlcpy(m_szFilename, filestart, sizeof(m_szFilename));
 			}
 			else
 			{
@@ -258,10 +257,9 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	}
 	else
 	{
-		strcpy(m_szDir,dirstart);//,(filestart-dirstart));
-		//m_szDir[(filestart-dirstart)] = NULL;
-		strncpy(m_szHost,pURL,(dirstart-pURL));
-		m_szHost[(dirstart-pURL)-1] = '\0';
+		SDL_strlcpy(m_szDir, dirstart, sizeof(m_szDir));//,(filestart-dirstart));
+		int len = min((dirstart-pURL), sizeof(m_szHost));
+		SDL_strlcpy(m_szHost, pURL, len);
 	}
 
 	SDL_Thread *thread = SDL_CreateThread(HTTPObjThread, "HTTPObjThread", this);
@@ -328,13 +326,13 @@ void ChttpGet::WorkerThread()
 		LOCALFILE = NULL;
 		return;
 	}
-	sprintf(szCommand,"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
+	SDL_snprintf(szCommand,sizeof(szCommand),"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
 	send(m_DataSock,szCommand,strlen(szCommand),0);
 	p = GetHTTPLine();
 	if(SDL_strncasecmp("HTTP/",p,5)==0)
 	{
 		char *pcode;
-		pcode = strchr(p,' ')+1;
+		pcode = SDL_strchr(p,' ')+1;
 		if(!pcode)
 		{
 			m_State = HTTP_STATE_UNKNOWN_ERROR;	
@@ -373,7 +371,7 @@ void ChttpGet::WorkerThread()
 				}
 				if(SDL_strncasecmp(p,"Content-Length:",strlen("Content-Length:"))==0)
 				{
-					char *s = strchr(p,' ')+1;
+					char *s = SDL_strchr(p,' ')+1;
 					p = s;
 					if(s)
 					{
@@ -601,7 +599,7 @@ char *ChttpGet::GetHTTPLine()
 		}
 		else
 		{	chunk[1] = '\0';
-			strcat(recv_buffer,chunk);
+			SDL_strlcat(recv_buffer, chunk, sizeof(recv_buffer));
 		}
 		
 		SDL_Delay(1);

@@ -325,7 +325,7 @@ void neb2_init()
 		stuff_string(name, F_NAME, NULL);
 
 		if(Neb2_bitmap_count < MAX_NEB2_BITMAPS){
-			strcpy(Neb2_bitmap_filenames[Neb2_bitmap_count++], name);
+			SDL_strlcpy(Neb2_bitmap_filenames[Neb2_bitmap_count++], name, sizeof(Neb2_bitmap_filenames[0]));
 		}
 	}
 
@@ -337,7 +337,7 @@ void neb2_init()
 		stuff_string(name, F_NAME, NULL);
 
 		if(Neb2_poof_count < MAX_NEB2_POOFS){
-			strcpy(Neb2_poof_filenames[Neb2_poof_count++], name);
+			SDL_strlcpy(Neb2_poof_filenames[Neb2_poof_count++], name, sizeof(Neb2_poof_filenames[0]));
 		}
 	}
 

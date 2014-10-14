@@ -217,17 +217,17 @@ void load_filter_info(void)
 		Outwnd_no_filter_file = 1;
 
 		outwnd_filter[outwnd_filter_count] = &real_outwnd_filter[outwnd_filter_count];
-		strcpy( outwnd_filter[outwnd_filter_count]->name, "error" );
+		SDL_strlcpy( outwnd_filter[outwnd_filter_count]->name, "error", FILTER_NAME_LENGTH );
 		outwnd_filter[outwnd_filter_count]->state = 1;
 		outwnd_filter_count++;
 
 		outwnd_filter[outwnd_filter_count] = &real_outwnd_filter[outwnd_filter_count];
-		strcpy( outwnd_filter[outwnd_filter_count]->name, "general" );
+		SDL_strlcpy( outwnd_filter[outwnd_filter_count]->name, "general", FILTER_NAME_LENGTH );
 		outwnd_filter[outwnd_filter_count]->state = 1;
 		outwnd_filter_count++;
 
 		outwnd_filter[outwnd_filter_count] = &real_outwnd_filter[outwnd_filter_count];
-		strcpy( outwnd_filter[outwnd_filter_count]->name, "warning" );
+		SDL_strlcpy( outwnd_filter[outwnd_filter_count]->name, "warning", FILTER_NAME_LENGTH );
 		outwnd_filter[outwnd_filter_count]->state = 1;
 		outwnd_filter_count++;
 
@@ -253,7 +253,7 @@ void load_filter_info(void)
 			inbuf[z] = 0;
 
 		SDL_assert(strlen(inbuf+1) < FILTER_NAME_LENGTH);
-		strcpy(outwnd_filter[outwnd_filter_count]->name, inbuf + 1);
+		SDL_strlcpy(outwnd_filter[outwnd_filter_count]->name, inbuf + 1, FILTER_NAME_LENGTH);
 
 		if ( !SDL_strcasecmp( outwnd_filter[outwnd_filter_count]->name, "error" ) )	{
 			outwnd_filter[outwnd_filter_count]->state = 1;
@@ -307,7 +307,7 @@ void outwnd_printf2(const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
 	outwnd_print("General", tmp);
 }
@@ -318,7 +318,7 @@ void outwnd_printf(const char *id, const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
 	outwnd_print(id, tmp);
 }
@@ -369,7 +369,7 @@ void outwnd_print(const char *id, const char *tmp)
 
 		SDL_assert(strlen(id) < FILTER_NAME_LENGTH);
 		outwnd_filter[i] = &real_outwnd_filter[i];  // note: this assumes the list doesn't have gaps (from deleting an element for example)
-		strcpy(outwnd_filter[i]->name, id);
+		SDL_strlcpy(outwnd_filter[i]->name, id, FILTER_NAME_LENGTH);
 		outwnd_filter[i]->state = 1;
 		outwnd_filter_count = i + 1;
 		save_filter_info();

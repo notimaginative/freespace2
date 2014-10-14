@@ -416,7 +416,7 @@ void credits_init()
 		reset_parse();
 
 		// keep reading everything in
-		strcpy(Credit_text,"");		
+		SDL_strlcpy(Credit_text, "", size+200);
 #ifndef MAKE_FS1
 		while(!check_for_string_raw("#end")){
 #else
@@ -444,8 +444,8 @@ void credits_init()
 
 			do {
 				linep2 = split_str_once(linep1, Credits_text_coords[gr_screen.res][2]);
-				strcat(Credit_text, linep1);
-				strcat(Credit_text, "\n");			
+				SDL_strlcat(Credit_text, linep1, size+200);
+				SDL_strlcat(Credit_text, "\n", size+200);
 				linep1 = linep2;
 			} while (linep2 != NULL);
 		}		
@@ -454,7 +454,7 @@ void credits_init()
 		lcl_ext_close();	
 	} else {
 		Credit_text = (char *) malloc(25 + 200);
-		strcpy(Credit_text, NOX("No credits available.\n"));
+		SDL_strlcpy(Credit_text, NOX("No credits available.\n"), 25+200);
 	}	
 
 	int ch;
@@ -724,9 +724,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			sprintf(buf, NOX("2_CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, sizeof(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			sprintf(buf, NOX("CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, sizeof(buf), NOX("CrIm%.2d"), Credits_artwork_index);
 		}
 		Credits_bmps[Credits_artwork_index] = bm_load(buf);
 	}
@@ -735,9 +735,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			sprintf(buf, NOX("2_CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, sizeof(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			sprintf(buf, NOX("CrIm%.2d"), next);
+			SDL_snprintf(buf, sizeof(buf), NOX("CrIm%.2d"), next);
 		}
 		Credits_bmps[next] = bm_load(buf);
 	}

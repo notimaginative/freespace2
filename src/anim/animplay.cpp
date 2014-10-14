@@ -892,12 +892,12 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 	SDL_assert ( real_filename != NULL );
 
-	strcpy( name, real_filename );
-	char *p = strchr( name, '.' );
+	SDL_strlcpy(name, real_filename, sizeof(name));
+	char *p = SDL_strchr( name, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	strcat( name, ".ani" );
+	SDL_strlcat(name, ".ani", sizeof(name));
 
 	ptr = first_anim;
 	while (ptr) {
@@ -919,7 +919,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 		ptr->next = first_anim;
 		first_anim = ptr;
 		SDL_assert(strlen(name) < _MAX_PATH - 1);
-		strcpy(ptr->name, name);
+		SDL_strlcpy(ptr->name, name, sizeof(ptr->name));
 		ptr->instance_count = 0;
 		ptr->width = 0;
 		ptr->height = 0;
@@ -1123,7 +1123,7 @@ int anim_write_frames_out(const char *filename)
 	int				i,j;
 	ubyte				**row_data;
 
-	strcpy(root_name, filename);
+	SDL_strlcpy(root_name, filename, sizeof(root_name));
 	root_name[strlen(filename)-4] = 0;
 
 	source_anim = anim_load(filename);
@@ -1136,9 +1136,9 @@ int anim_write_frames_out(const char *filename)
 
 	for ( i = 0; i < source_anim->total_frames; i++ ) {
 		anim_get_next_raw_buffer(ai, 0, 0, 16);
-		strcpy(pcxname, root_name);
-		sprintf(buf,"%04d",i);
-		strcat(pcxname, buf);
+		SDL_strlcpy(pcxname, root_name, sizeof(pcxname));
+		SDL_snprintf(buf, sizeof(buf), "%04d", i);
+		SDL_strlcat(pcxname, buf, sizeof(pcxname));
 
 		for ( j = 0; j < source_anim->height; j++ ) {
 			row_data[j] = &ai->frame[j*source_anim->width];
@@ -1173,12 +1173,12 @@ void anim_display_info(const char *real_filename)
 	int				i, uncompressed, compressed, *key_frame_nums=NULL, tmp;
 	char filename[MAX_FILENAME_LEN];
 
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	strcat( filename, ".ani" );
+	SDL_strlcat( filename, ".ani", sizeof(filename) );
 
 	fp = cfopen(filename, "rb");
 	if ( !fp ) {

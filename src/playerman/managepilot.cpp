@@ -309,8 +309,8 @@ void delete_pilot_file( const char *pilot_name, int single )
 
 	_splitpath(pilot_name, NULL, NULL, basename, NULL);
 
-	strcpy( filename, basename );
-	strcat( filename, NOX(".plr") );
+	SDL_strlcpy( filename, basename, sizeof(filename) );
+	SDL_strlcat(filename, NOX(".plr"), sizeof(filename) );
 	if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE){
 		cf_delete(filename, CF_TYPE_SINGLE_PLAYERS);
 	} else {
@@ -563,14 +563,14 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 	//sprintf(filename, "%-.8s.plr",Players[Player_num].callsign);
 	SDL_assert(strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
-	strcpy( filename, callsign );
-	strcat( filename, NOX(".plr") );
+	SDL_strlcpy( filename, callsign, sizeof(filename) );
+	SDL_strlcat( filename, NOX(".plr"), sizeof(filename) );
 
 	// if we're a standalone server in multiplayer, just fill in some bogus values since we don't have a pilot file
 	if ((Game_mode & GM_MULTIPLAYER) && (Game_mode & GM_STANDALONE_SERVER)) {
 		memset(Player, 0, sizeof(player));
-		strcpy(Player->callsign, NOX("Standalone"));
-		strcpy(Player->short_callsign, NOX("Standalone"));
+		SDL_strlcpy(Player->callsign, NOX("Standalone"), sizeof(Player->callsign));
+		SDL_strlcpy(Player->short_callsign, NOX("Standalone"), sizeof(Player->short_callsign));
 		return 0;
 	}
 	
@@ -728,7 +728,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 		cfread_string_len( Recent_missions[i], MAX_FILENAME_LEN, file);
 		// Remove the extension
-		p = strchr(Recent_missions[i], '.');
+		p = SDL_strchr(Recent_missions[i], '.');
 		if (p)
 			*p = 0;
 	}
@@ -787,7 +787,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		return errno;
 
 	// restore the callsign into the Player structure
-	strcpy(p->callsign, callsign);
+	SDL_strlcpy(p->callsign, callsign, sizeof(p->callsign));
 
 	// restore the truncated callsign into Player structure
 	pilot_set_short_callsign(p, SHORT_CALLSIGN_PIXEL_W);
@@ -797,11 +797,11 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	// we'll distinguish them by putting an M and the end of the multiplayer callsign and a P at the end of a single player
 	char cat[35];
 
-	strcpy(cat, p->callsign);
+	SDL_strlcpy(cat, p->callsign, sizeof(cat));
 	if (is_multi)
-		strcat(cat, NOX("M"));
+		SDL_strlcat(cat, NOX("M"), sizeof(cat));
 	else
-		strcat(cat, NOX("S"));
+		SDL_strlcat(cat, NOX("S"), sizeof(cat));
 
 	os_config_write_string( NULL, "LastPlayer", cat );
 /*
@@ -930,8 +930,8 @@ int write_pilot_file_core(player *p)
 		return 0;	//	This means there is no player, probably meaning he was deleted and game exited from same screen.
 
 	SDL_assert((i > 0) && (i <= MAX_FILENAME_LEN - 4));  // ensure we won't overrun the buffer
-	strcpy( filename, p->callsign);
-	strcat( filename, NOX(".plr") );
+	SDL_strlcpy( filename, p->callsign, sizeof(filename));
+	SDL_strlcat( filename, NOX(".plr"), sizeof(filename) );
 
 	// determine if this pilot is a multiplayer pilot or not
 	if (p->flags & PLAYER_FLAGS_IS_MULTI){
@@ -1304,8 +1304,8 @@ void init_new_pilot(player *p, int reset)
 	}
 
 	// unassigned squadron
-	strcpy(p->squad_name, XSTR("Unassigned", 1255));
-	strcpy(p->squad_filename, "");
+	SDL_strlcpy(p->squad_name, XSTR("Unassigned", 1255), sizeof(p->squad_name));
+	SDL_strlcpy(p->squad_filename, "", sizeof(p->squad_filename));
 
 	// set him to be a single player pilot by default (the actual creation routines will change this if necessary)
 	p->flags &= ~PLAYER_FLAGS_IS_MULTI;
@@ -1344,7 +1344,7 @@ void init_new_pilot(player *p, int reset)
 
 void pilot_set_short_callsign(player *p, int max_width)
 {
-	strcpy(p->short_callsign, p->callsign);
+	SDL_strlcpy(p->short_callsign, p->callsign, sizeof(p->short_callsign));
 	gr_set_font(FONT1);
 	gr_force_fit_string(p->short_callsign, CALLSIGN_LEN - 1, max_width);
 	gr_get_string_size( &(p->short_callsign_width), NULL, p->short_callsign );
@@ -1355,12 +1355,12 @@ void pilot_set_random_pic(player *p)
 {
 	// if there are no available pilot pics, set the image filename to null
 	if (Num_pilot_images <= 0) {
-		strcpy(p->image_filename, "");
+		SDL_strlcpy(p->image_filename, "", sizeof(p->image_filename));
 	} else {
 		// pick a random name from the list
 		int random_index = rand() % Num_pilot_images;
 		SDL_assert((random_index >= 0) && (random_index < Num_pilot_images));
-		strcpy(p->image_filename, Pilot_images_arr[random_index]);
+		SDL_strlcpy(p->image_filename, Pilot_images_arr[random_index], sizeof(p->image_filename));
 	}	
 }
 
@@ -1381,7 +1381,7 @@ void pilot_set_random_squad_pic(player *p)
 }
 
 // format a pilot's callsign into a "personal" form - ie, adding a 's or just an ' as appropriate
-void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign)
+void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign, const int out_size)
 {
 	// don't do anything if we've got invalid strings
 	if((in_callsign == NULL) || (out_callsign == NULL)){
@@ -1389,13 +1389,13 @@ void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign)
 	}
 
 	// copy the original string
-	strcpy(out_callsign,in_callsign);
+	SDL_strlcpy(out_callsign, in_callsign, out_size);
 
 	// tack on the appropriate postfix
 	if(in_callsign[strlen(in_callsign) - 1] == 's'){		
-		strcat(out_callsign,XSTR( "\'", 45));
+		SDL_strlcat(out_callsign,XSTR( "\'", 45), out_size);
 	} else {
-		strcat(out_callsign,XSTR( "\'s", 46));
+		SDL_strlcat(out_callsign,XSTR( "\'s", 46), out_size);
 	}
 }
 
@@ -1450,7 +1450,7 @@ void player_set_squad_bitmap(player *p, const char *fname)
 
 	// try and set the new one
 	if (fname != p->squad_filename) {
-		strncpy(p->squad_filename, fname, MAX_FILENAME_LEN);
+		SDL_strlcpy(p->squad_filename, fname, sizeof(p->squad_filename));
 	}
 
 	if(strlen(p->squad_filename) > 0){
@@ -1483,7 +1483,7 @@ void player_set_squad(player *p, const char *squad_name)
 		return;
 	}
 
-	strncpy(p->squad_name, squad_name, NAME_LENGTH+1);
+	SDL_strlcpy(p->squad_name, squad_name, sizeof(p->squad_name));
 }
 
 DCF(pilot,"Changes pilot stats. (Like reset campaign)" )

@@ -978,7 +978,7 @@ int player_select_create_new_pilot()
 	
 	// move all the pilots in the list up
 	while (idx--) {
-		strcpy(Pilots[idx + 1], Pilots[idx]);		
+		SDL_strlcpy(Pilots[idx + 1], Pilots[idx], MAX_FILENAME_LEN);
 	}	
 
 	// by default, set the default netgame protocol to be VMT
@@ -1009,8 +1009,8 @@ void player_select_delete_pilot()
 	// tack on the full path and the pilot file extension
 	// build up the path name length
 	// make sure we do this based upon whether we're in single or multiplayer mode
-	strcpy( filename, Pilots[Player_select_pilot] );
-	strcat( filename, NOX(".plr") );
+	SDL_strlcpy( filename, Pilots[Player_select_pilot], sizeof(filename) );
+	SDL_strlcat( filename, NOX(".plr"), sizeof(filename) );
 
 	// attempt to delete the pilot
 	if (Player_select_mode == PLAYER_SELECT_MODE_SINGLE) {
@@ -1024,7 +1024,7 @@ void player_select_delete_pilot()
 
 	// move all the players down
 	for (i=Player_select_pilot; i<Player_select_num_pilots-1; i++){
-		strcpy(Pilots[i], Pilots[i + 1]);		
+		SDL_strlcpy(Pilots[i], Pilots[i + 1], MAX_FILENAME_LEN);
 	}		
 
 	// correcly set the # of pilots and the currently selected pilot
@@ -1080,7 +1080,7 @@ int player_select_get_last_pilot_info()
 	if(last_player == NULL){
 		return 0;		
 	} else {
-		strcpy(Player_select_last_pilot,last_player);
+		SDL_strlcpy(Player_select_last_pilot, last_player, sizeof(Player_select_last_pilot));
 	}
 
 	// determine if he was a single or multi-player based upon the last character in his callsign
@@ -1274,7 +1274,7 @@ void player_select_process_input(int k)
 			z = 1;
 		} else {
 			for (idx=1; buf[idx]; idx++) {
-				if (!isalpha(buf[idx]) && !isdigit(buf[idx]) && !strchr(VALID_PILOT_CHARS, buf[idx])) {
+				if (!isalpha(buf[idx]) && !isdigit(buf[idx]) && !SDL_strchr(VALID_PILOT_CHARS, buf[idx])) {
 					z = 1;
 					break;
 				}
@@ -1309,7 +1309,7 @@ void player_select_process_input(int k)
 		}		
 
 		// Create the new pilot, and write out his file
-		strcpy(Pilots[0], buf);
+		SDL_strlcpy(Pilots[0], buf, MAX_FILENAME_LEN);
 
 		// if this is the first guy, we should set the Player struct
 		if (Player == NULL) {
@@ -1318,7 +1318,7 @@ void player_select_process_input(int k)
 			Player->flags |= PLAYER_FLAGS_STRUCTURE_IN_USE;
 		}
 
-		strcpy(Player->callsign, buf);
+		SDL_strlcpy(Player->callsign, buf, sizeof(Player->callsign));
 		init_new_pilot(Player, !Player_select_clone_flag);
 
 		// set him as being a multiplayer pilot if we're in the correct mode
@@ -1373,19 +1373,19 @@ void player_select_display_copyright()
 	gr_set_color_fast(&Color_bright);
 
 	if (Lcl_gr) {
-		sprintf(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\xA8');
+		SDL_snprintf(Copyright_msg1, sizeof(Copyright_msg1), XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\xA8');
 	} else {
-		sprintf(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\x83');
+		SDL_snprintf(Copyright_msg1, sizeof(Copyright_msg1), XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\x83');
 	}
-	sprintf(Copyright_msg2, XSTR("All Rights Reserved", 385));
+	SDL_snprintf(Copyright_msg2, sizeof(Copyright_msg2), XSTR("All Rights Reserved", 385));
 #else
 	gr_set_color_fast(&Color_white);
 
-	sprintf(Copyright_msg1, NOX("FreeSpace 2"));
+	SDL_snprintf(Copyright_msg1, sizeof(Copyright_msg1), NOX("FreeSpace 2"));
 	if (Lcl_gr) {
-		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\xA8');
+		SDL_snprintf(Copyright_msg2, sizeof(Copyright_msg2), XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\xA8');
 	} else {
-		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
+		SDL_snprintf(Copyright_msg2, sizeof(Copyright_msg2), XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
 	}
 #endif // MAKE_FS1
 
@@ -1435,14 +1435,14 @@ int player_select_pilot_file_filter(const char *filename)
 void player_select_set_bottom_text(const char *txt)
 {
 	if (txt) {
-		strncpy(Player_select_bottom_text, txt, 149);
+		SDL_strlcpy(Player_select_bottom_text, txt, sizeof(Player_select_bottom_text));
 	}
 }
 
 void player_select_set_middle_text(const char *txt)
 {
 	if (txt) {
-		strncpy(Player_select_middle_text, txt, 149);
+		SDL_strlcpy(Player_select_middle_text, txt, sizeof(Player_select_middle_text));
 	}
 }
 
@@ -1463,7 +1463,7 @@ void player_select_eval_very_first_pilot()
 		if((Player_select_num_pilots == 1) && (Player_select_initial_count == 0)){
 			// set up the data
 			Player_select_very_first_pilot = 1;
-			strcpy(Player_select_very_first_pilot_callsign,Pilots[Player_select_pilot]);
+			SDL_strlcpy(Player_select_very_first_pilot_callsign, Pilots[Player_select_pilot], sizeof(Player_select_very_first_pilot_callsign));
 		}
 	}
 }
@@ -1493,7 +1493,7 @@ void player_select_cancel_create()
 
 	// move all pilots down
 	for (idx=0; idx<Player_select_num_pilots; idx++) {
-		strcpy(Pilots[idx], Pilots[idx + 1]);
+		SDL_strlcpy(Pilots[idx], Pilots[idx + 1], MAX_FILENAME_LEN);
 	}
 
 	// unset the input mode
@@ -1587,7 +1587,7 @@ void player_tips_popup()
 	char all_txt[2048];	
 
 	do {
-		sprintf(all_txt, XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[tip]);
+		SDL_snprintf(all_txt, sizeof(all_txt), XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[tip]);
 		ret = popup(PF_NO_SPECIAL_BUTTONS | PF_TITLE | PF_TITLE_WHITE, 3, XSTR("&Ok", 669), XSTR("&Next", 1444), XSTR("Don't show me this again", 1443), all_txt);
 		
 		// now what?

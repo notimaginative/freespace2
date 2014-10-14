@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
 		memset(argptr, 0, len+5);
 
 		for (i = 1; i < argc; i++) {
-			strcat(argptr, argv[i]);
-			strcat(argptr, " ");
+			SDL_strlcat(argptr, argv[i], len+5);
+			SDL_strlcat(argptr, " ", len+5);
 		}
 	}
 

@@ -322,63 +322,63 @@ void show_stats_numbers(int stage, int sx, int sy, int dy,int add_mission)
 	switch ( stage ) {
 		case MISSION_STATS:
          // mission kills stats
-			sprintf(text,"%d",Active_player->stats.m_kill_count_ok);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.m_kill_count_ok);
 			gr_printf(sx,sy,text);
 			// stats_underline_text(sx,sy,text);
 			sy += 2*dy;
          // mission primary weapon stats
-			sprintf(text,"%d",Active_player->stats.mp_shots_fired);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.mp_shots_fired);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.mp_shots_hit);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.mp_shots_hit);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.mp_bonehead_hits);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.mp_bonehead_hits);
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if(Active_player->stats.mp_shots_fired>0)
 				pct=(float)100.0*((float)Active_player->stats.mp_shots_hit/(float)Active_player->stats.mp_shots_fired);
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if(Active_player->stats.mp_bonehead_hits>0)
 				pct=(float)100.0*((float)Active_player->stats.mp_bonehead_hits/(float)Active_player->stats.mp_shots_fired);
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += 2*dy;
 
 			// mission secondary weapon stats
-			sprintf(text,"%d",Active_player->stats.ms_shots_fired);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.ms_shots_fired);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.ms_shots_hit);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.ms_shots_hit);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.ms_bonehead_hits);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.ms_bonehead_hits);
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if(Active_player->stats.ms_shots_fired>0)
 				pct=(float)100.0*((float)Active_player->stats.ms_shots_hit/(float)Active_player->stats.ms_shots_fired);
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if(Active_player->stats.ms_bonehead_hits>0)
 				pct=(float)100.0*((float)Active_player->stats.ms_bonehead_hits/(float)Active_player->stats.ms_shots_fired);
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += 2*dy;
 
 			// mission assists and player rescues (respawns)
-			sprintf(text,"%d",(int)Active_player->stats.m_assists);
+			SDL_snprintf(text,sizeof(text),"%d",(int)Active_player->stats.m_assists);
 			gr_printf(sx,sy,text);
 			sy += 2*dy;
 
 			if(Game_mode & GM_MULTIPLAYER){
-				sprintf(text,"%d",(int)Active_player->stats.m_player_deaths);
+				SDL_snprintf(text,sizeof(text),"%d",(int)Active_player->stats.m_player_deaths);
 				gr_printf(sx,sy,text);
 				sy += 2*dy;
 
@@ -407,59 +407,59 @@ void show_stats_numbers(int stage, int sx, int sy, int dy,int add_mission)
 			}			
 
          // mission kills stats
-			sprintf(text,"%d",Active_player->stats.kill_count_ok + add.kill_count_ok);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.kill_count_ok + add.kill_count_ok);
 			hud_num_make_mono(text);
 			gr_printf(sx,sy,text);
 			// stats_underline_text(sx,sy,text);
 			sy += 2*dy;
          // alltime primary weapon stats
-			sprintf(text,"%d",Active_player->stats.p_shots_fired + add.p_shots_fired);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.p_shots_fired + add.p_shots_fired);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.p_shots_hit + add.p_shots_hit);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.p_shots_hit + add.p_shots_hit);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.p_bonehead_hits + add.p_bonehead_hits);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.p_bonehead_hits + add.p_bonehead_hits);
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if((Active_player->stats.p_shots_fired + add.p_shots_fired)>0)
 				pct=(float)100.0*((float)(Active_player->stats.p_shots_hit+add.p_shots_hit)/(float)(Active_player->stats.p_shots_fired + add.p_shots_fired));
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if((Active_player->stats.p_bonehead_hits + add.p_bonehead_hits)>0)
 				pct=(float)100.0*((float)(Active_player->stats.p_bonehead_hits+add.p_bonehead_hits)/(float)(Active_player->stats.p_shots_fired + add.p_shots_fired));
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += 2*dy;
 
 			// alltime secondary weapon stats
-			sprintf(text,"%d",Active_player->stats.s_shots_fired + add.s_shots_fired);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.s_shots_fired + add.s_shots_fired);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.s_shots_hit + add.s_shots_hit);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.s_shots_hit + add.s_shots_hit);
 			gr_printf(sx,sy,text);
 			sy += dy;
-			sprintf(text,"%d",Active_player->stats.s_bonehead_hits + add.s_bonehead_hits);
+			SDL_snprintf(text,sizeof(text),"%d",Active_player->stats.s_bonehead_hits + add.s_bonehead_hits);
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if((Active_player->stats.s_shots_fired+add.s_shots_fired)>0)
 				pct=(float)100.0*((float)(Active_player->stats.s_shots_hit + add.s_shots_hit)/(float)(Active_player->stats.s_shots_fired + add.s_shots_fired));
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += dy;
 			if((Active_player->stats.s_bonehead_hits + add.s_bonehead_hits)>0)
 				pct=(float)100.0*((float)(Active_player->stats.s_bonehead_hits+add.s_bonehead_hits)/(float)(Active_player->stats.s_shots_fired+add.s_shots_fired));
 			else pct=(float)0.0;
-			sprintf(text,"%d",(int)pct); strcat(text," %%");
+			SDL_snprintf(text,sizeof(text),"%d",(int)pct); SDL_strlcat(text," %%", sizeof(text));
 			gr_printf(sx,sy,text);
 			sy += 2*dy;
 
 			// alltime assists
-			sprintf(text,"%d",(int)Active_player->stats.assists + add.assists);
+			SDL_snprintf(text,sizeof(text),"%d",(int)Active_player->stats.assists + add.assists);
 			gr_printf(sx,sy,text);
 			sy += 2*dy;
 

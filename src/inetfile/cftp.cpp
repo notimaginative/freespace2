@@ -131,19 +131,19 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 
 	if(Username)
 	{
-		strcpy(m_szUserName,Username);
+		SDL_strlcpy(m_szUserName, Username, sizeof(m_szUserName));
 	}
 	else
 	{
-		strcpy(m_szUserName,"anonymous");
+		SDL_strlcpy(m_szUserName, "anonymous", sizeof(m_szUserName));
 	}
 	if(Password)
 	{
-		strcpy(m_szPassword,Password);
+		SDL_strlcpy(m_szPassword, Password, sizeof(m_szPassword));
 	}
 	else
 	{
-		strcpy(m_szPassword,"pxouser@pxo.net");
+		SDL_strlcpy(m_szPassword, "pxouser@pxo.net", sizeof(m_szPassword));
 	}
 	m_ListenSock = socket(AF_INET, SOCK_STREAM, 0);
 	if(INVALID_SOCKET == m_ListenSock)
@@ -198,7 +198,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 		}
 	}
 	//There shouldn't be any : in this string
-	if(strchr(pURL,':'))
+	if(SDL_strchr(pURL,':'))
 	{
 		m_State = FTP_STATE_URL_PARSING_ERROR;
 		m_Aborted = true;
@@ -217,7 +217,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 			{
 				filestart = pURL+i+1;
 				dirstart = pURL+i+1;
-				strcpy(m_szFilename,filestart);
+				SDL_strlcpy(m_szFilename, filestart, sizeof(m_szFilename));
 			}
 			else
 			{
@@ -233,10 +233,10 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	}
 	else
 	{
-		strncpy(m_szDir,dirstart,(filestart-dirstart));
-		m_szDir[(filestart-dirstart)] = 0;
-		strncpy(m_szHost,pURL,(dirstart-pURL));
-		m_szHost[(dirstart-pURL)-1] = 0;
+		int len = min((filestart-dirstart)+1, sizeof(m_szDir));
+		SDL_strlcpy(m_szDir, dirstart, len);
+		len = min((dirstart-pURL), sizeof(m_szHost));
+		SDL_strlcpy(m_szHost, pURL, len);
 	}
 	//At this point we should have a nice host,dir and filename
 
@@ -327,7 +327,7 @@ unsigned int CFtpGet::GetFile()
 	char szCommandString[200];
 	int rcode;
 	
-	sprintf(szCommandString,"TYPE I\r\n");
+	SDL_strlcpy(szCommandString, "TYPE I\r\n", sizeof(szCommandString));
 	rcode = SendFTPCommand(szCommandString);
 	if(rcode >=400)
 	{
@@ -338,7 +338,7 @@ unsigned int CFtpGet::GetFile()
 		return 0;
 	if(m_szDir[0])
 	{
-		sprintf(szCommandString,"CWD %s\r\n",m_szDir);
+		SDL_snprintf(szCommandString, sizeof(szCommandString), "CWD %s\r\n", m_szDir);
 		rcode = SendFTPCommand(szCommandString);
 		if(rcode >=400)
 		{
@@ -355,7 +355,7 @@ unsigned int CFtpGet::GetFile()
 	}
 	if(m_Aborting)
 		return 0;
-	sprintf(szCommandString,"RETR %s\r\n",m_szFilename);
+	SDL_snprintf(szCommandString, sizeof(szCommandString), "RETR %s\r\n", m_szFilename);
 	rcode = SendFTPCommand(szCommandString);
 	if(rcode >=400)
 	{
@@ -366,11 +366,11 @@ unsigned int CFtpGet::GetFile()
 		return 0;
 	//Now we will try to determine the file size...
 	char *p,*s;
-	p = strchr(recv_buffer,'(');
+	p = SDL_strchr(recv_buffer,'(');
 	p++;
 	if(p)
 	{
-		s = strchr(p,' ');
+		s = SDL_strchr(p,' ');
 		*s = 0;
 		m_iBytesTotal = atoi(p);
 	}
@@ -431,7 +431,7 @@ unsigned int CFtpGet::IssuePort()
 				
 	// Format the PORT command with the correct numbers.
 #ifndef PLAT_UNIX
-	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n", 
+	SDL_snprintf(szCommandString, sizeof(szCommandString), "PORT %d,%d,%d,%d,%d,%d\r\n",
 				listenaddr.sin_addr.S_un.S_un_b.s_b1, 
 				listenaddr.sin_addr.S_un.S_un_b.s_b2,
 				listenaddr.sin_addr.S_un.S_un_b.s_b3,
@@ -439,7 +439,7 @@ unsigned int CFtpGet::IssuePort()
 				nLocalPort & 0xFF,	
 				nLocalPort >> 8);
 #else
-	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n",
+	SDL_snprintf(szCommandString, sizeof(szCommandString), "PORT %d,%d,%d,%d,%d,%d\r\n",
 				(listenaddr.sin_addr.s_addr >> 0)  & 0xFF,
 				(listenaddr.sin_addr.s_addr >> 8)  & 0xFF,
 				(listenaddr.sin_addr.s_addr >> 16) & 0xFF,
@@ -504,14 +504,14 @@ int CFtpGet::LoginHost()
 	char szLoginString[200];
 	int rcode;
 	
-	sprintf(szLoginString,"USER %s\r\n",m_szUserName);
+	SDL_snprintf(szLoginString, sizeof(szLoginString), "USER %s\r\n" ,m_szUserName);
 	rcode = SendFTPCommand(szLoginString);
 	if(rcode >=400)
 	{
 		m_State = FTP_STATE_LOGIN_ERROR;	
 		return 0;
 	}
-	sprintf(szLoginString,"PASS %s\r\n",m_szPassword);
+	SDL_snprintf(szLoginString, sizeof(szLoginString), "PASS %s\r\n" ,m_szPassword);
 	rcode = SendFTPCommand(szLoginString);
 	if(rcode >=400)
 	{
@@ -571,7 +571,7 @@ unsigned int CFtpGet::ReadFTPServerReply()
 		}
 		else
 		{	chunk[1] = 0;
-			strcat(recv_buffer,chunk);
+			SDL_strlcat(recv_buffer, chunk, sizeof(recv_buffer));
 		}
 		
 		SDL_Delay(1);

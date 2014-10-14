@@ -1633,7 +1633,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		// debug code to save off the name of the dockpoints (if they exist).
 		docker_name[0] = dockee_name[0] = '\0';
 		if ( aigp->flags & AIGF_DOCKER_NAME_VALID ) {
-			strcpy(docker_name, aigp->docker.name);
+			SDL_strlcpy(docker_name, aigp->docker.name, sizeof(docker_name));
 			modelnum = Ships[objp->instance].modelnum;
 			index = model_find_dock_name_index(modelnum, aigp->docker.name);
 			aigp->docker.index = index;
@@ -1642,7 +1642,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		if ( aigp->flags & AIGF_DOCKEE_NAME_VALID ) {
 			shipnum = ship_name_lookup(aigp->ship_name);
 			if ( shipnum != -1 ) {
-				strcpy(dockee_name, aigp->dockee.name);
+				SDL_strlcpy(dockee_name, aigp->dockee.name, sizeof(dockee_name));
 				modelnum = Ships[shipnum].modelnum;
 				index = model_find_dock_name_index(modelnum, aigp->dockee.name);
 				aigp->dockee.index = index;
@@ -2343,6 +2343,6 @@ char *ai_add_dock_name(const char *str)
 
 	SDL_assert(Num_ai_dock_names < MAX_AI_DOCK_NAMES);
 	ptr = Ai_dock_names[Num_ai_dock_names++];
-	strcpy(ptr, str);
+	SDL_strlcpy(ptr, str, NAME_LENGTH);
 	return ptr;
 }

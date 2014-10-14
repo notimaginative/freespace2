@@ -910,7 +910,7 @@ void brief_parse_icon_tbl()
 		hf = &Icon_bitmaps[idx][0];
 
 		// load in regular frames
-		strncpy(name, fs1_icon_tbl[idx][0], NAME_LENGTH);
+		SDL_strlcpy(name, fs1_icon_tbl[idx][0], NAME_LENGTH);
 
 		if ( Fred_running ) {
 			load_this_icon = 1;
@@ -926,12 +926,12 @@ void brief_parse_icon_tbl()
 		}
 
 		// load in fade frames
-		strncpy(name, fs1_icon_tbl[idx][1], NAME_LENGTH);
+		SDL_strlcpy(name, fs1_icon_tbl[idx][1], NAME_LENGTH);
 		ha = &Icon_fade_anims[idx][0];
 		hud_anim_init(ha, 0, 0, name);
 
 		// load in highlighting frames
-		strncpy(name, fs1_icon_tbl[idx][2], NAME_LENGTH);
+		SDL_strlcpy(name, fs1_icon_tbl[idx][2], NAME_LENGTH);
 		ha = &Icon_highlight_anims[idx][0];
 		hud_anim_init(ha, 0, 0, name);
 	}
@@ -1359,14 +1359,14 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 			else {
 				if (Lcl_gr) {
 					char buf[128];
-					strcpy(buf, bi->label);
-					lcl_translate_brief_icon_name(buf);
+					SDL_strlcpy(buf, bi->label, sizeof(buf));
+					lcl_translate_brief_icon_name(buf, sizeof(buf));
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else if(Lcl_pl) {
 					char buf[128];
-					strcpy(buf, bi->label);
-					lcl_translate_brief_icon_name_pl(buf);
+					SDL_strlcpy(buf, bi->label, sizeof(buf));
+					lcl_translate_brief_icon_name_pl(buf, sizeof(buf));
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else {
@@ -1545,7 +1545,7 @@ void brief_blit_stage_num(int stage_num, int stage_max)
 #else
 	gr_set_color_fast(&Color_text_heading);
 #endif
-	sprintf(buf, XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
+	SDL_snprintf(buf, sizeof(buf), XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
 	if (Game_mode & GM_MULTIPLAYER) {
 		gr_printf(Brief_stage_text_coords_multi[gr_screen.res][0], Brief_stage_text_coords_multi[gr_screen.res][1], buf);
 	} else {
@@ -1962,7 +1962,8 @@ int brief_color_text_init(char *src, int w, int instance)
 	Max_briefing_line_len = 1;
 	for (i=0; i<n_lines; i++) {
 		SDL_assert(n_chars[i] < MAX_BRIEF_LINE_LEN);
-		strncpy(Brief_text[i], p_str[i], n_chars[i]);
+		len = min(n_chars[i] + 1, MAX_BRIEF_LINE_LEN);
+		SDL_strlcpy(Brief_text[i], p_str[i], len);
 		Brief_text[i][n_chars[i]] = 0;
 		drop_leading_white_space(Brief_text[i]);
 		len = brief_text_colorize(i, instance);
@@ -2160,12 +2161,12 @@ void brief_set_new_stage(vector *pos, matrix *orient, int time, int stage_num)
 
 	if (not_objv) {
 		if(Briefing->stages[stage_num].new_text == NULL){
-			strcpy(msg, "");
+			SDL_strlcpy(msg, "", sizeof(msg));
 		} else {
-			strcpy(msg, Briefing->stages[stage_num].new_text);
+			SDL_strlcpy(msg, Briefing->stages[stage_num].new_text, sizeof(msg));
 		}
 	} else {
-		strcpy(msg, XSTR( "Please review your objectives for this mission.", 395));
+		SDL_strlcpy(msg, XSTR( "Please review your objectives for this mission.", 395), sizeof(msg));
 	}
 
 	if (gr_screen.res == GR_640) {

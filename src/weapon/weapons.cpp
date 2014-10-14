@@ -546,7 +546,7 @@ void parse_weapon_expl_tbl()
 		}
 
 		// stuff default filename
-		strcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename);
+		SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename, MAX_FILENAME_LEN);
 
 		// stuff LOD level filenames
 		for(idx=1; idx<Weapon_expl_info[Num_weapon_expl].lod_count; idx++){
@@ -554,7 +554,7 @@ void parse_weapon_expl_tbl()
 				break;
 			}
 
-			sprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, "%s_%d", base_filename, idx);
+			SDL_snprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
 		}
 
 		Num_weapon_expl++;
@@ -568,7 +568,7 @@ void parse_weapon_expl_tbl()
 	Num_weapon_expl = 0;
 
 	Weapon_expl_info[Num_weapon_expl].lod_count = 1;
-	strncpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
 
 	Num_weapon_expl++;
 #endif
@@ -729,16 +729,16 @@ void parse_wi_flags(weapon_info *weaponp)
 				weaponp->wi_flags |= WIF_SPAWN;
 				weaponp->spawn_type = (short)Num_spawn_types;
 				skip_length = strlen(NOX("Spawn")) + strspn(&temp_string[strlen(NOX("Spawn"))], NOX(" \t"));
-				char *num_start = strchr(&temp_string[skip_length], ',');
+				char *num_start = SDL_strchr(&temp_string[skip_length], ',');
 				if (num_start == NULL) {
 					weaponp->spawn_count = DEFAULT_WEAPON_SPAWN_COUNT;
-					name_length = 999;
+					name_length = NAME_LENGTH;
 				} else {
 					weaponp->spawn_count = (short)atoi(num_start+1);
-					name_length = num_start - temp_string - skip_length;
+					name_length = min(num_start - temp_string - skip_length + 1, NAME_LENGTH);
 				}
 
-				strncpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
+				SDL_strlcpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
 				SDL_assert(Num_spawn_types < MAX_SPAWN_WEAPONS);
 			} else
 				Warning(LOCATION, "Illegal to have two spawn types for one weapon.\n"
@@ -844,8 +844,8 @@ int parse_weapon()
 
 	if ( wip->name[0] == '@' ) {
 		char old_name[NAME_LENGTH];
-		strcpy(old_name, wip->name);
-		strcpy(wip->name, old_name+1);
+		SDL_strlcpy(old_name, wip->name, sizeof(old_name));
+		SDL_strlcpy(wip->name, old_name+1, sizeof(wip->name));
 	}
 
 	wip->title[0] = 0;

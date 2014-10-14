@@ -299,9 +299,9 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 #define CFILE_STACK_MAX	8
 
 int cfile_inited = 0;
-int Cfile_stack_pos = 0;
+static int Cfile_stack_pos = 0;
 
-char Cfile_stack[128][CFILE_STACK_MAX];
+static char Cfile_stack[CFILE_STACK_MAX][MAX_PATH_LEN];
 
 Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 CFILE Cfile_list[MAX_CFILE_BLOCKS];
@@ -334,7 +334,7 @@ int cfile_in_root_dir(char *exe_path)
 
 	// copy the path
 	memset(path_copy, 0, 2048);
-	strncpy(path_copy, exe_path, 2047);
+	SDL_strlcpy(path_copy, exe_path, sizeof(path_copy));
 
 	// count how many slashes there are in the path
 	tok = strtok(path_copy, DIR_SEPARATOR_STR);
@@ -439,12 +439,12 @@ int cfile_push_chdir(int type)
 
 	_getcwd(OriginalDirectory, 127);
 	SDL_assert(Cfile_stack_pos < CFILE_STACK_MAX);
-	strcpy(Cfile_stack[Cfile_stack_pos++], OriginalDirectory);
+	SDL_strlcpy(Cfile_stack[Cfile_stack_pos++], OriginalDirectory, MAX_PATH_LEN);
 
 	cf_create_default_path_string( dir, type, NULL );
 	SDL_strlwr(dir);
 #ifndef PLAT_UNIX
-	char *Drive = strchr(dir, ':');
+	char *Drive = SDL_strchr(dir, ':');
 
 	if (Drive) {
 		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
@@ -484,7 +484,7 @@ int cfile_chdir(char *dir)
 	SDL_strlwr(dir);
 
 #ifndef PLAT_UNIX
-	char *Drive = strchr(dir, ':');
+	char *Drive = SDL_strchr(dir, ':');
 	if (Drive)	{
 		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
 			return 1;
@@ -575,10 +575,10 @@ char *cf_add_ext(const char *filename, const char *ext)
 	flen = strlen(filename);
 	elen = strlen(ext);
 	SDL_assert(flen < MAX_PATH_LEN);
-	strcpy(path, filename);
+	SDL_strlcpy(path, filename, sizeof(path));
 	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
 		SDL_assert(flen + elen < MAX_PATH_LEN);
-		strcat(path, ext);
+		SDL_strlcat(path, ext, sizeof(path));
 	}
 
 	return path;
@@ -734,7 +734,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 	// If in write mode, just try to open the file straight off
 	// the harddisk.  No fancy packfile stuff here!
 	
-	if ( strchr(mode,'w') )	{
+	if ( SDL_strchr(mode,'w') )	{
 		// For write-only files, require a full path or a path type
 #ifdef PLAT_UNIX
 		if ( strpbrk(file_path, "/") ) {
@@ -742,7 +742,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 		if ( strpbrk(file_path,"/\\:")  ) {  
 #endif
 			// Full path given?
-			strcpy(longname, file_path );
+			SDL_strlcpy(longname, file_path, sizeof(longname));
 		} else {
 			// Path type given?
 			SDL_assert( dir_type != CF_TYPE_ANY );
@@ -769,7 +769,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	int offset, size;
 	char copy_file_path[MAX_PATH_LEN];  // FIX change in memory from cf_find_file_location
-	strcpy(copy_file_path, file_path);
+	SDL_strlcpy(copy_file_path, file_path, sizeof(copy_file_path));
 
 
 	if ( cf_find_file_location( copy_file_path, dir_type, longname, &size, &offset, localize ) )	{
@@ -1722,7 +1722,7 @@ int cfile_init_paths()
 	}
 
 	// set root directory
-	strcpy(Cfile_root_dir, t_path);
+	SDL_strlcpy(Cfile_root_dir, t_path, sizeof(Cfile_root_dir));
 	// free SDL copy
 	SDL_free(t_path);
 	t_path = NULL;
@@ -1749,7 +1749,7 @@ int cfile_init_paths()
 	}
 
 	// set user/pref directory
-	strcpy(Cfile_user_dir, u_path);
+	SDL_strlcpy(Cfile_user_dir, u_path, sizeof(Cfile_user_dir));
 	// free SDL copy
 	SDL_free(u_path);
 	u_path = NULL;

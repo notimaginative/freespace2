@@ -114,10 +114,10 @@ static char *trim_string(char *str)
 		return NULL;
 	
 	/* kill any comment */
-	ptr = strchr(str, ';');
+	ptr = SDL_strchr(str, ';');
 	if (ptr)
 		*ptr = 0;
-	ptr = strchr(str, '#');
+	ptr = SDL_strchr(str, '#');
 	if (ptr)
 		*ptr = 0;
 	
@@ -165,7 +165,7 @@ static Profile *profile_read(const char *file)
 		if (*ptr == '[') {
 			ptr++;
 			
-			char *pend = strchr(ptr, ']');
+			char *pend = SDL_strchr(ptr, ']');
 			if (pend != NULL) {
 				// if (pend[1]) { /* trailing garbage! */ }
 				
@@ -189,7 +189,7 @@ static Profile *profile_read(const char *file)
 				char *key = ptr;
 				char *value = NULL;
 				
-				ptr = strchr(ptr, '=');
+				ptr = SDL_strchr(ptr, '=');
 				if (ptr != NULL) {
 					*ptr = 0;
 					ptr++;

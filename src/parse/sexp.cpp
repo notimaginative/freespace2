@@ -649,6 +649,7 @@ int	Training_context_at_waypoint;
 float	Training_context_distance;
 char	Sexp_error_text[MAX_SEXP_TEXT];
 char	*Sexp_string; //[1024] = {0};
+int Sexp_string_len;
 sexp_node Sexp_nodes[MAX_SEXP_NODES];
 sexp_variable Sexp_variables[MAX_SEXP_VARIABLES];
 
@@ -708,7 +709,7 @@ int alloc_sexp(const char *text, int type, int subtype, int first, int rest)
 	}
 
 	SDL_assert(strlen(text) < TOKEN_LENGTH);
-	strcpy(Sexp_nodes[i].text, text);
+	SDL_strlcpy(Sexp_nodes[i].text, text, TOKEN_LENGTH);
 	SDL_assert(type >= 0);
 	Sexp_nodes[i].type = type;
 	Sexp_nodes[i].subtype = subtype;
@@ -1870,8 +1871,7 @@ int get_string(char *str)
 	int	len;
 
 	len = strcspn(Mp + 1, "\"");
-	strncpy(str, Mp + 1, len);
-	str[len] = 0;
+	SDL_strlcpy(str, Mp + 1, len+1);
 
 	Mp += len + 2;
 	return len;
@@ -1889,14 +1889,13 @@ void get_sexp_text_for_variable(char *text, char *token)
 	// get variable name (up to '['
 	end_index = strcspn(token, "[");
 	SDL_assert( (end_index != 0) && (end_index < TOKEN_LENGTH-1) );
-	strncpy(text, token, end_index);
-	text[end_index] = '\0';
+	SDL_strlcpy(text, token, end_index+1);
 
 	if ( !Fred_running ) {
 		// freespace - get index into Sexp_variables array
 		sexp_var_index = get_index_sexp_variable_name(text);
 		SDL_assert(sexp_var_index != -1);
-		sprintf(text, "%d", sexp_var_index);
+		SDL_snprintf(text, TOKEN_LENGTH, "%d", sexp_var_index);
 	}
 }
 
@@ -1930,24 +1929,24 @@ int get_sexp(char *token)
 			len = strcspn(Mp + 1, "\"");
 			
 			SDL_assert(Mp[len + 1] == '\"');    // hit EOF first (unterminated string)
-			SDL_assert(len < TOKEN_LENGTH);  // token is too long.
+			SDL_assert_release(len < TOKEN_LENGTH);  // token is too long.
 
 			// check if string variable
 			if ( *(Mp + 1) == SEXP_VARIABLE_CHAR ) {
 
 				// reduce length by 1 for end \"
 				int length = len - 1;
-				SDL_assert(length < 2*TOKEN_LENGTH+2);
+				SDL_assert_release(length >= 1);
+			//	SDL_assert(length < 2*TOKEN_LENGTH+2);
 
 				// start copying after skipping 1st char
-				strncpy(token, Mp + 2, length);
-				token[length] = 0;
+				SDL_strlcpy(token, Mp + 2, length+1);
 
 				get_sexp_text_for_variable(variable_text, token);
 				node = alloc_sexp(variable_text, (SEXP_ATOM | SEXP_FLAG_VARIABLE), SEXP_ATOM_STRING, -1, -1);
 			} else {
-				strncpy(token, Mp + 1, len);
-				token[len] = 0;
+				SDL_strlcpy(token, Mp + 1, len+1);
+
 				node = alloc_sexp(token, SEXP_ATOM, SEXP_ATOM_STRING, -1, -1);
 			}
 
@@ -2074,7 +2073,7 @@ int stuff_sexp_variable_list()
 }
 
 //
-void build_sexp_text_string(char *buffer, int node, int mode)
+void build_sexp_text_string(char *buffer, const int max_bufsize, int node, int mode)
 {
 	if (Sexp_nodes[node].type & SEXP_FLAG_VARIABLE) {
 
@@ -2089,14 +2088,14 @@ void build_sexp_text_string(char *buffer, int node, int mode)
 			// Error check - can be Fred or Freespace
 			if (mode == SEXP_ERROR_CHECK_MODE) {
 				if ( Fred_running ) {
-					sprintf(buffer, "%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
+					SDL_snprintf(buffer, max_bufsize, "%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
 				} else {
-					sprintf(buffer, "%s[%s] ", Sexp_variables[sexp_variables_index].variable_name, Sexp_variables[sexp_variables_index].text);
+					SDL_snprintf(buffer, max_bufsize, "%s[%s] ", Sexp_variables[sexp_variables_index].variable_name, Sexp_variables[sexp_variables_index].text);
 				}
 			} else {
 				// Save as string - only  Fred
 				SDL_assert(mode == SEXP_SAVE_MODE);
-				sprintf(buffer, "@%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
+				SDL_snprintf(buffer, max_bufsize, "@%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
 			}
 		} else {
 			// string
@@ -2106,22 +2105,22 @@ void build_sexp_text_string(char *buffer, int node, int mode)
 			// Error check - can be Fred or Freespace
 			if (mode == SEXP_ERROR_CHECK_MODE) {
 				if ( Fred_running ) {
-					sprintf(buffer, "%s[%s] ", Sexp_variables[sexp_variables_index].variable_name, Sexp_variables[sexp_variables_index].text);
+					SDL_snprintf(buffer, max_bufsize, "%s[%s] ", Sexp_variables[sexp_variables_index].variable_name, Sexp_variables[sexp_variables_index].text);
 				} else {
-					sprintf(buffer, "%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
+					SDL_snprintf(buffer, max_bufsize, "%s[%s] ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
 				}
 			} else {
 				// Save as string - only Fred
 				SDL_assert(mode == SEXP_SAVE_MODE);
-				sprintf(buffer, "\"@%s[%s]\" ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
+				SDL_snprintf(buffer, max_bufsize, "\"@%s[%s]\" ", Sexp_nodes[node].text, Sexp_variables[sexp_variables_index].text);
 			}
 		}
 	} else {
 		// not a variable
 		if (Sexp_nodes[node].subtype == SEXP_ATOM_STRING) {
-			sprintf(buffer, "\"%s\" ", CTEXT(node));
+			SDL_snprintf(buffer, max_bufsize, "\"%s\" ", CTEXT(node));
 		} else {
-			sprintf(buffer, "%s ", CTEXT(node));
+			SDL_snprintf(buffer, max_bufsize, "%s ", CTEXT(node));
 		}
 	}
 
@@ -2135,14 +2134,14 @@ int build_sexp_string(int cur_node, int level, int mode)
 
 	Sexp_build_flag = 0;
 	offset = strlen(Sexp_string);
-	strcat(Sexp_string, "( ");
+	SDL_strlcat(Sexp_string, "( ", Sexp_string_len);
 	node = cur_node;
 	while (node != -1) {
 		SDL_assert(node >= 0 && node < MAX_SEXP_NODES);
 		if (Sexp_nodes[node].first == -1) {
 			// build text to string
-			build_sexp_text_string(pstr, node, mode);
-			strcat(Sexp_string, pstr);
+			build_sexp_text_string(pstr, sizeof(pstr), node, mode);
+			SDL_strlcat(Sexp_string, pstr, Sexp_string_len);
 
 		} else {
 			build_sexp_string(Sexp_nodes[node].first, level + 1, mode);
@@ -2151,7 +2150,7 @@ int build_sexp_string(int cur_node, int level, int mode)
 		node = Sexp_nodes[node].rest;
 	}
 
-	strcat(Sexp_string, ") ");
+	SDL_strlcat(Sexp_string, ") ", Sexp_string_len);
 	len = strlen(Sexp_string) - offset;
 	if (len > 40) {
 		Sexp_string[offset] = 0;
@@ -2167,41 +2166,42 @@ void build_extended_sexp_string(int cur_node, int level, int mode)
 	char pstr[128];
 	int i, flag = 0, node;
 
-	strcat(Sexp_string, "( ");
+	SDL_strlcat(Sexp_string, "( ", Sexp_string_len);
 	node = cur_node;
 	while (node != -1) {
 		if (flag)  // not the first line?
 			for (i=0; i<level + 1; i++)
-				strcat(Sexp_string, "   ");
+				SDL_strlcat(Sexp_string, "   ", Sexp_string_len);
 
 		flag = 1;
 		SDL_assert(node >= 0 && node < MAX_SEXP_NODES);
 		if (Sexp_nodes[node].first == -1) {
-			build_sexp_text_string(pstr,node, mode);
-			strcat(Sexp_string, pstr);
+			build_sexp_text_string(pstr, sizeof(pstr),node, mode);
+			SDL_strlcat(Sexp_string, pstr, Sexp_string_len);
 
 		} else {
 			build_sexp_string(Sexp_nodes[node].first, level + 1, mode);
 		}
 
-		strcat(Sexp_string, "\n");
+		SDL_strlcat(Sexp_string, "\n", Sexp_string_len);
 		node = Sexp_nodes[node].rest;
 	}
 
 	for (i=0; i<level; i++)
-		strcat(Sexp_string, "   ");
+		SDL_strlcat(Sexp_string, "   ", Sexp_string_len);
 
-	strcat(Sexp_string, ")");
+	SDL_strlcat(Sexp_string, ")", Sexp_string_len);
 }
 
-void convert_sexp_to_string(int cur_node, char *outstr, int mode)
+void convert_sexp_to_string(int cur_node, char *outstr, const int outstr_len, int mode)
 {
 	Sexp_string = outstr;
+	Sexp_string_len = outstr_len;
 	*outstr = 0;
 	if (cur_node >= 0)
 		build_sexp_string(cur_node, 0, mode);
 	else
-		strcpy(Sexp_string, "( )");
+		SDL_strlcpy(Sexp_string, "( )", Sexp_string_len);
 }
 
 // determine if the named ship or wing hasn't arrived yet (wing or ship must be on arrival list)
@@ -2379,7 +2379,7 @@ int rand_sexp(int n, int multiple=0)
 			if (!multiple) {
 				// set .value and .text so random number is generated only once.
 				Sexp_nodes[n].value = SEXP_NUM_EVAL;
-				sprintf(Sexp_nodes[n].text, "%d", rand_num);
+				SDL_snprintf(Sexp_nodes[n].text, TOKEN_LENGTH, "%d", rand_num);
 			}
 		}
 	}
@@ -4217,7 +4217,7 @@ int waypoint_lookup(char *name)
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (ptr->type == OBJ_WAYPOINT) {
 			i = ptr->instance;
-			sprintf(buf, "%s:%d", Waypoint_lists[i / 65536].name, (i & 0xffff) + 1);
+			SDL_snprintf(buf, sizeof(buf), "%s:%d", Waypoint_lists[i / 65536].name, (i & 0xffff) + 1);
 			if ( !SDL_strcasecmp(buf, name) )
 				return OBJ_INDEX(ptr);
 		}
@@ -4975,7 +4975,7 @@ void sexp_transfer_cargo( int n )
 				return;
 			}
 		}
-		strcpy(Cargo_names[i], "Nothing");
+		SDL_strlcpy(Cargo_names[i], "Nothing", NAME_LENGTH);
 		Num_cargo++;
 	}
 }
@@ -8940,7 +8940,7 @@ void update_block_names(const char *old_name, const char *new_name)
 	for (i=0; i<MAX_SEXP_VARIABLES; i++) {
 		if (Sexp_variables[i].type & SEXP_VARIABLE_BLOCK) {
 			if ( !SDL_strcasecmp(old_name, Sexp_variables[i].variable_name) ) {
-				strcpy(Sexp_variables[i].variable_name, new_name);
+				SDL_strlcpy(Sexp_variables[i].variable_name, new_name, TOKEN_LENGTH);
 			}
 		}
 	}
@@ -8959,7 +8959,7 @@ void update_sexp_references(char *old_name, char *new_name)
 	for (i=0; i<MAX_SEXP_NODES; i++){
 		if ((SEXP_NODE_TYPE(i) == SEXP_ATOM) && (Sexp_nodes[i].subtype == SEXP_ATOM_STRING)){
 			if (!SDL_strcasecmp(CTEXT(i), old_name)){
-				strcpy(CTEXT(i), new_name);
+				SDL_strlcpy(CTEXT(i), new_name, TOKEN_LENGTH);
 			}
 		}
 	}
@@ -9019,7 +9019,7 @@ void update_sexp_references(char *old_name, char *new_name, int format, int node
 			SDL_assert((SEXP_NODE_TYPE(n) == SEXP_ATOM) && ((Sexp_nodes[n].subtype == SEXP_ATOM_NUMBER) || (Sexp_nodes[n].subtype == SEXP_ATOM_STRING)));
 			if (query_operator_argument_type(op, i) == format) {
 				if (!SDL_strcasecmp(CTEXT(n), old_name)){
-					strcpy(CTEXT(n), new_name);
+					SDL_strlcpy(CTEXT(n), new_name, TOKEN_LENGTH);
 				}
 			}
 		}
@@ -9334,7 +9334,7 @@ const char *sexp_error_message(int num)
 			return "Invalid Jump Node name";
 	}
 
-	sprintf(Sexp_error_text, "Sexp error code %d", num);
+	SDL_snprintf(Sexp_error_text, sizeof(Sexp_error_text), "Sexp error code %d", num);
 	return Sexp_error_text;
 }
 
@@ -9438,8 +9438,8 @@ int sexp_add_variable(const char *text, const char *var_name, int type, int inde
 	}
 
 	if (index >= 0) {
-		strcpy(Sexp_variables[index].text, text);
-		strcpy(Sexp_variables[index].variable_name, var_name);
+		SDL_strlcpy(Sexp_variables[index].text, text, TOKEN_LENGTH);
+		SDL_strlcpy(Sexp_variables[index].variable_name, var_name, TOKEN_LENGTH);
 		Sexp_variables[index].type &= ~SEXP_VARIABLE_NOT_USED;
 		Sexp_variables[index].type = (type | SEXP_VARIABLE_SET);
 	}
@@ -9456,7 +9456,7 @@ void sexp_modify_variable(char *text, int index)
 	SDL_assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
 	SDL_assert( !MULTIPLAYER_CLIENT );
 
-	strcpy(Sexp_variables[index].text, text);
+	SDL_strlcpy(Sexp_variables[index].text, text, TOKEN_LENGTH);
 	Sexp_variables[index].type |= SEXP_VARIABLE_MODIFIED;
 
 	// do multi_callback_here
@@ -9487,7 +9487,7 @@ void sexp_modify_variable(int n)
 			// get new numerical value
 			new_number = eval_sexp(Sexp_nodes[n].rest);
 
-			sprintf(number_as_str, "%d", new_number);
+			SDL_snprintf(number_as_str, sizeof(number_as_str), "%d", new_number);
 			sexp_modify_variable(number_as_str, sexp_variable_index);
 		} else {
 			// get new string
@@ -9508,8 +9508,8 @@ void sexp_fred_modify_variable(const char *text, const char *var_name, int index
 	SDL_assert(Sexp_variables[index].type & SEXP_VARIABLE_SET);
 	SDL_assert( (type & SEXP_VARIABLE_NUMBER) || (type & SEXP_VARIABLE_STRING) );
 
-	strcpy(Sexp_variables[index].text, text);
-	strcpy(Sexp_variables[index].variable_name, var_name);
+	SDL_strlcpy(Sexp_variables[index].text, text, TOKEN_LENGTH);
+	SDL_strlcpy(Sexp_variables[index].variable_name, var_name, TOKEN_LENGTH);
 	Sexp_variables[index].type = (SEXP_VARIABLE_SET | SEXP_VARIABLE_MODIFIED | type);
 }
 
@@ -9623,7 +9623,7 @@ int sexp_variable_allocate_block(const char* block_name, int block_type)
 	for (int idx=start; idx<start+num_blocks; idx++) {
 		SDL_assert(Sexp_variables[idx].type == SEXP_VARIABLE_NOT_USED);
 		Sexp_variables[idx].type = SEXP_VARIABLE_BLOCK | block_type;
-		strcpy(Sexp_variables[idx].variable_name, block_name);
+		SDL_strlcpy(Sexp_variables[idx].variable_name, block_name, TOKEN_LENGTH);
 	}
 
 	return start;

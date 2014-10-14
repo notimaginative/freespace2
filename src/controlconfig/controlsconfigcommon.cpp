@@ -1080,27 +1080,27 @@ const char *textify_scancode(int code)
 	*text = 0;
 	if (code & KEY_ALTED) {
 		if(Lcl_gr){		
-			strcat(text, "Alt-");
+			SDL_strlcat(text, "Alt-", sizeof(text));
 		} else if(Lcl_fr){		
-			strcat(text, "Alt-");
+			SDL_strlcat(text, "Alt-", sizeof(text));
 		} else {		
-			strcat(text, "Alt-");
+			SDL_strlcat(text, "Alt-", sizeof(text));
 		}		
 	}
 
 	if (code & KEY_SHIFTED) {		
 		if(Lcl_gr){
-			strcat(text, "Shift-");
+			SDL_strlcat(text, "Shift-", sizeof(text));
 		} else if(Lcl_fr){		
-			strcat(text, "Maj.-");
+			SDL_strlcat(text, "Maj.-", sizeof(text));
 		} else {		
-			strcat(text, "Shift-");
+			SDL_strlcat(text, "Shift-", sizeof(text));
 		}
 	}
 
 	code = SDL_GetScancodeFromKey(code & KEY_MASK);
 
-	strcat(text, Scan_code_text[code]);
+	SDL_strlcat(text, Scan_code_text[code], sizeof(text));
 	return text;
 }
 //XSTR:ON

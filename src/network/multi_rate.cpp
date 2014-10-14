@@ -152,7 +152,7 @@ int multi_rate_add(int np_index, const char *type, int size)
 	m = &Multi_rate[np_index][idx];
 
 	// type string
-	strcpy(m->type, type);
+	SDL_strlcpy(m->type, type, sizeof(m->type));
 
 	// alltime
 	m->total_bytes += size;

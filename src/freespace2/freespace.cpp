@@ -1804,16 +1804,16 @@ void game_load_palette()
 
 #ifdef MAKE_FS1
 	if ( The_mission.flags & MISSION_FLAG_SUBSPACE )	{
-		strcpy( palette_filename, NOX("gamepalette-subspace") );
+		SDL_strlcpy( palette_filename, NOX("gamepalette-subspace"), sizeof(palette_filename) );
 	} else {
-		sprintf( palette_filename, NOX("gamepalette%d-%02d"), HUD_config.main_color+1, Mission_palette+1 );
+		SDL_snprintf( palette_filename, sizeof(palette_filename), NOX("gamepalette%d-%02d"), HUD_config.main_color+1, Mission_palette+1 );
 	}
 
 	mprintf(( "Loading palette %s\n", palette_filename ));
 
 	palette_load_table(palette_filename);
 #else
-	strcpy( palette_filename, NOX("gamepalette-subspace") );
+	SDL_strlcpy( palette_filename, NOX("gamepalette-subspace"), sizeof(palette_filename) );
 
 	mprintf(( "Loading palette %s\n", palette_filename ));
 #endif
@@ -2270,7 +2270,7 @@ DCF(gamma,"Sets Gamma factor")
 		gr_set_gamma(Freespace_gamma);
 
 		char tmp_gamma_string[32];
-		sprintf( tmp_gamma_string, NOX("%.2f"), Freespace_gamma );
+		SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma );
 		os_config_write_string( NULL, NOX("Gamma"), tmp_gamma_string );
 	}
 
@@ -2443,7 +2443,7 @@ void game_init()
 		Freespace_gamma = 5.0f;
 	}
 	char tmp_gamma_string[32];
-	sprintf( tmp_gamma_string, NOX("%.2f"), Freespace_gamma );
+	SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma );
 	os_config_write_string( NULL, NOX("Gamma"), tmp_gamma_string );
 
 	gr_set_gamma(Freespace_gamma);
@@ -2462,25 +2462,25 @@ void game_init()
 	ptr = os_config_read_string(NOX("PXO"),NOX("Login"),NULL);
 	if(ptr == NULL){
 		nprintf(("Network","Error reading in PXO login data\n"));
-		strcpy(Multi_tracker_login,"");
+		SDL_strlcpy(Multi_tracker_login, "", sizeof(Multi_tracker_login));
 	} else {		
-		strcpy(Multi_tracker_login,ptr);
+		SDL_strlcpy(Multi_tracker_login, ptr, sizeof(Multi_tracker_login));
 	}
 	ptr = os_config_read_string(NOX("PXO"),NOX("Password"),NULL);
 	if(ptr == NULL){		
 		nprintf(("Network","Error reading PXO password\n"));
-		strcpy(Multi_tracker_passwd,"");
+		SDL_strlcpy(Multi_tracker_passwd, "", sizeof(Multi_tracker_passwd));
 	} else {		
-		strcpy(Multi_tracker_passwd,ptr);
+		SDL_strlcpy(Multi_tracker_passwd, ptr, sizeof(Multi_tracker_passwd));
 	}	
 
 	// pxo squad name and password
 	ptr = os_config_read_string(NOX("PXO"),NOX("SquadName"),NULL);
 	if(ptr == NULL){
 		nprintf(("Network","Error reading in PXO squad name\n"));
-		strcpy(Multi_tracker_squad_name, "");
+		SDL_strlcpy(Multi_tracker_squad_name, "", sizeof(Multi_tracker_squad_name));
 	} else {		
-		strcpy(Multi_tracker_squad_name, ptr);
+		SDL_strlcpy(Multi_tracker_squad_name, ptr, sizeof(Multi_tracker_squad_name));
 	}
 
 	// If less than 48MB of RAM, use low memory model.
@@ -2610,9 +2610,9 @@ void game_get_framerate()
 			Framerate = FRAME_FILTER / frametotal;
 		else
 			Framerate = Framecount / frametotal;
-		sprintf( text, NOX("FPS: %.1f"), Framerate );
+		SDL_snprintf( text, sizeof(text), NOX("FPS: %.1f"), Framerate );
 	} else {
-		sprintf( text, NOX("FPS: ?") );
+		SDL_snprintf( text, sizeof(text), NOX("FPS: ?") );
 	}
 	Framecount++;
 
@@ -3286,7 +3286,7 @@ void say_view_target()
 				break;
 			case OBJ_JUMP_NODE: {
 				char	jump_node_name[128];
-				strcpy(jump_node_name, XSTR( "jump node", 184));
+				SDL_strlcpy(jump_node_name, XSTR( "jump node", 184), sizeof(jump_node_name));
 				view_target_name = jump_node_name;
 				Viewer_mode &= ~VM_OTHER_SHIP;
 				break;
@@ -3897,7 +3897,7 @@ void game_flip_page_and_time_it()
 	d = t2 - t1;
 	if (d != 0) {
 		t = (gr_screen.max_w*gr_screen.max_h*gr_screen.bytes_per_pixel)/1024;
-		sprintf( transfer_text, NOX("%d MB/s"), fixmuldiv(t,65,d) );
+		SDL_snprintf( transfer_text, sizeof(transfer_text), NOX("%d MB/s"), fixmuldiv(t,65,d) );
 	}
 #else
 	gr_flip ();
@@ -4889,7 +4889,7 @@ int game_poll()
 
 				game_stop_time();
 
-				sprintf( tmp_name, NOX("screen%02d"), counter );
+				SDL_snprintf( tmp_name, sizeof(tmp_name), NOX("screen%02d"), counter );
 				counter++;
 				mprintf(( "Dumping screen to '%s'\n", tmp_name ));
 				gr_print_screen(tmp_name);
@@ -6569,7 +6569,7 @@ int game_do_ram_check(int ram_in_mbytes)
 			// not a translated string, but it's too long and smartdrv isn't
 			// really a thing for any OS we now support :p
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), ram_in_mbytes, ram_in_mbytes);
-			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
+			SDL_snprintf( tmp, sizeof(tmp), "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
 
 			mboxbuttons[0].buttonid = 0;
 			mboxbuttons[0].text = XSTR("Ok", 503);
@@ -6596,7 +6596,7 @@ int game_do_ram_check(int ram_in_mbytes)
 			// not a translated string, but it's too long and smartdrv isn't
 			// really a thing for any OS we now support :p
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n", 195), ram_in_mbytes, ram_in_mbytes);
-			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n", ram_in_mbytes);
+			SDL_snprintf( tmp, sizeof(tmp), "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n", ram_in_mbytes);
 
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough RAM", 194), tmp, NULL);
 
@@ -6634,7 +6634,7 @@ void game_spew_pof_info_sub(int model_num, polymodel *pm, int sm, CFILE *out, in
 	}
 	
 	// write out total
-	sprintf(str, "Submodel %s total : %d faces\n", pm->submodel[sm].name, total);
+	SDL_snprintf(str, sizeof(str), "Submodel %s total : %d faces\n", pm->submodel[sm].name, total);
 	cfputs(str, out);		
 
 	*out_total += total + sub_total;
@@ -6667,7 +6667,7 @@ void game_spew_pof_info()
 	}	
 	counted = 0;	
 	for(idx=0; idx<num_files; idx++, counted++){
-		sprintf(str, "%s.pof", pof_list[idx]);
+		SDL_snprintf(str, sizeof(str), "%s.pof", pof_list[idx]);
 		model_num = model_load(str, 0, NULL);
 		if(model_num >= 0){
 			pm = model_get(model_num);
@@ -6685,16 +6685,16 @@ void game_spew_pof_info()
 					total = submodel_get_num_polys(model_num, i);					
 					
 					model_total += total;
-					sprintf(str, "Submodel %s total : %d faces\n", pm->submodel[i].name, total);
+					SDL_snprintf(str, sizeof(str), "Submodel %s total : %d faces\n", pm->submodel[i].name, total);
 					cfputs(str, out);
 				}				
-				sprintf(str, "Model total %d\n", model_total);				
+				SDL_snprintf(str, sizeof(str), "Model total %d\n", model_total);
 				cfputs(str, out);				
 
 				// now go through and do it by LOD
 				cfputs("BY LOD\n\n", out);				
 				for(i=0; i<pm->n_detail_levels; i++){
-					sprintf(str, "LOD %d\n", i);
+					SDL_snprintf(str, sizeof(str), "LOD %d\n", i);
 					cfputs(str, out);
 
 					// submodels
@@ -6705,14 +6705,14 @@ void game_spew_pof_info()
 						game_spew_pof_info_sub(model_num, pm, j, out, &total, &destroyed_total);
 					}
 
-					sprintf(str, "Submodel %s total : %d faces\n", pm->submodel[pm->detail[i]].name, root_total);
+					SDL_snprintf(str, sizeof(str), "Submodel %s total : %d faces\n", pm->submodel[pm->detail[i]].name, root_total);
 					cfputs(str, out);
 
-					sprintf(str, "TOTAL: %d\n", total + root_total);					
+					SDL_snprintf(str, sizeof(str), "TOTAL: %d\n", total + root_total);
 					cfputs(str, out);
-					sprintf(str, "TOTAL not counting destroyed faces %d\n", (total + root_total) - destroyed_total);
+					SDL_snprintf(str, sizeof(str), "TOTAL not counting destroyed faces %d\n", (total + root_total) - destroyed_total);
 					cfputs(str, out);
-					sprintf(str, "TOTAL destroyed faces %d\n\n", destroyed_total);
+					SDL_snprintf(str, sizeof(str), "TOTAL destroyed faces %d\n\n", destroyed_total);
 					cfputs(str, out);
 				}				
 				cfputs("------------------------------------------------------------------------\n\n", out);				
@@ -7245,7 +7245,7 @@ void game_show_event_debug(float frametime)
 		z = Event_debug_index[k];
 		if (z & EVENT_DEBUG_EVENT) {
 			z &= 0x7fff;
-			sprintf(buf, NOX("%s%s (%s) %s%d %d"), (Mission_events[z].flags & MEF_CURRENT) ? NOX("* ") : "",
+			SDL_snprintf(buf, sizeof(buf), NOX("%s%s (%s) %s%d %d"), (Mission_events[z].flags & MEF_CURRENT) ? NOX("* ") : "",
 				Mission_events[z].name, Mission_events[z].result ? NOX("True") : NOX("False"),
 				(Mission_events[z].chain_delay < 0) ? "" : NOX("x "),
 				Mission_events[z].repeat_count, Mission_events[z].interval);
@@ -7256,31 +7256,31 @@ void game_show_event_debug(float frametime)
 			while (i--)
 				buf[i] = ' ';
 
-			strcat(buf, Sexp_nodes[z & 0x7fff].text);
+			SDL_strlcat(buf, Sexp_nodes[z & 0x7fff].text, sizeof(buf));
 			switch (Sexp_nodes[z & 0x7fff].value) {
 				case SEXP_TRUE:
-					strcat(buf, NOX(" (True)"));
+					SDL_strlcat(buf, NOX(" (True)"), sizeof(buf));
 					break;
 
 				case SEXP_FALSE:
-					strcat(buf, NOX(" (False)"));
+					SDL_strlcat(buf, NOX(" (False)"), sizeof(buf));
 					break;
 
 				case SEXP_KNOWN_TRUE:
-					strcat(buf, NOX(" (Always true)"));
+					SDL_strlcat(buf, NOX(" (Always true)"), sizeof(buf));
 					break;
 
 				case SEXP_KNOWN_FALSE:
-					strcat(buf, NOX(" (Always false)"));
+					SDL_strlcat(buf, NOX(" (Always false)"), sizeof(buf));
 					break;
 
 				case SEXP_CANT_EVAL:
-					strcat(buf, NOX(" (Can't eval)"));
+					SDL_strlcat(buf, NOX(" (Can't eval)"), sizeof(buf));
 					break;
 
 				case SEXP_NAN:
 				case SEXP_NAN_FOREVER:
-					strcat(buf, NOX(" (Not a number)"));
+					SDL_strlcat(buf, NOX(" (Not a number)"), sizeof(buf));
 					break;
 			}
 		}
@@ -7331,7 +7331,7 @@ void Time_model( int modelnum )
 
 		int bmp_num = pm->original_textures[i];
 		if ( bmp_num > -1 )	{
-			bm_get_palette(pm->original_textures[i], pal, filename );		
+			bm_get_palette(pm->original_textures[i], pal, filename, sizeof(filename) );
 			int w,h;
 			bm_get_info( pm->original_textures[i],&w, &h );
 
@@ -7481,11 +7481,10 @@ void game_feature_not_in_demo_popup()
 }
 
 // format the specified time (fixed point) into a nice string
-void game_format_time(fix m_time,char *time_str)
+void game_format_time(fix m_time, char *time_str, const int time_str_len)
 {
 	float mtime;
 	int hours,minutes,seconds;
-	char tmp[10];
 
 	mtime = f2fl(m_time);		
 
@@ -7497,47 +7496,27 @@ void game_format_time(fix m_time,char *time_str)
 	seconds = (int)mtime%60;
 	minutes = (int)mtime/60;			
 
-	// print the hour if necessary
-	if(hours > 0){		
-		sprintf(time_str,XSTR( "%d:", 201),hours);
-		// if there are less than 10 minutes, print a leading 0
-		if(minutes < 10){
-			strcpy(tmp,NOX("0"));
-			strcat(time_str,tmp);
-		}		
-	}	
-	
-	// print the minutes
-	if(hours){
-		sprintf(tmp,XSTR( "%d:", 201),minutes);
-		strcat(time_str,tmp);
+	if (hours > 0) {
+		SDL_snprintf(time_str, time_str_len, "%d:%02d:%02d", hours, minutes, seconds);
 	} else {
-		sprintf(time_str,XSTR( "%d:", 201),minutes);
+		SDL_snprintf(time_str, time_str_len, "%d:%02d", minutes, seconds);
 	}
-
-	// print the seconds
-	if(seconds < 10){
-		strcpy(tmp,NOX("0"));
-		strcat(time_str,tmp);
-	} 
-	sprintf(tmp,"%d",seconds);
-	strcat(time_str,tmp);
 }
 
 //	Stuff version string in *str.
-void get_version_string(char *str)
+void get_version_string(char *str, const int str_len)
 {
 //XSTR:OFF
-if ( FS_VERSION_BUILD == 0 ) {
-	sprintf(str,"v%d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR);
-} else {
-	sprintf(str,"v%d.%02d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
-}
+	if ( FS_VERSION_BUILD == 0 ) {
+		SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	} else {
+		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
+	}
 
 #if defined (FS2_DEMO) || defined(FS1_DEMO)
-	strcat(str, " D");
+	SDL_strlcat(str, " D", str_len);
 #elif defined (OEM_BUILD)
-	strcat(str, " (OEM)");
+	SDL_strlcat(str, " (OEM)", str_len);
 #endif
 //XSTR:ON
 	/*
@@ -7570,9 +7549,9 @@ if ( FS_VERSION_BUILD == 0 ) {
 	*/
 }
 
-void get_version_string_short(char *str)
+void get_version_string_short(char *str, const int str_len)
 {
-	sprintf(str,"v%d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 }
 
 // ----------------------------------------------------------------

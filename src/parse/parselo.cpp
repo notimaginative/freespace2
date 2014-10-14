@@ -239,7 +239,7 @@ void diag_printf(const char *format, ...)
 	va_list args;
 
 	va_start(args, format);
-	vsprintf(buffer, format, args);
+	SDL_vsnprintf(buffer, sizeof(buffer), format, args);
 	va_end(args);
 
 	nprintf(("Parse", "%s", buffer));
@@ -321,19 +321,18 @@ void error_display(int error_level, const char *format, ...)
 	va_list args;
 
 	if (error_level == 0) {
-		strcpy(error_text, "Warning");
+		SDL_strlcpy(error_text, "Warning", sizeof(error_text));
 		Warning_count++;
 	} else {
-		strcpy(error_text, "Error");
+		SDL_strlcpy(error_text, "Error", sizeof(error_text));
 		Error_count++;
 	}
 
 	nprintf((error_text, "%s(%i):%s: ", Current_filename, get_line_num(), error_text));
 
 	va_start(args, format);
-	vsprintf(buffer, format, args);
+	SDL_vsnprintf(buffer, sizeof(buffer), format, args);
 	va_end(args);
-	SDL_assert(strlen(buffer) < 1024);
 
 	nprintf((error_text, "%s", buffer));
 	Warning(LOCATION, "%s(%i):\n%s: %s", Current_filename, get_line_num(), error_text, buffer);
@@ -349,11 +348,11 @@ void advance_to_eoln(const char *more_terminators)
 	terminators[0] = EOLN;
 	terminators[1] = (char)EOF_CHAR;
 	if (more_terminators != NULL)
-		strcpy(&terminators[2], more_terminators);
+		SDL_strlcpy(&terminators[2], more_terminators, sizeof(terminators));
 	else
 		terminators[2] = 0;
 
-	while (strchr(terminators, *Mp) == NULL)
+	while (SDL_strchr(terminators, *Mp) == NULL)
 		Mp++;
 }
 
@@ -671,11 +670,11 @@ void copy_to_eoln(char *outstr, const char *more_terminators, const char *instr,
 	terminators[0] = EOLN;
 	terminators[1] = (char)EOF_CHAR;
 	if (more_terminators != NULL)
-		strcpy(&terminators[2], more_terminators);
+		SDL_strlcpy(&terminators[2], more_terminators, sizeof(terminators));
 	else
 		terminators[2] = 0;
 
-	while (((ch = *instr++) != 0) && (strchr(terminators, ch) == NULL)  && (count < max)) {
+	while (((ch = *instr++) != 0) && (SDL_strchr(terminators, ch) == NULL)  && (count < max)) {
 		*outstr++ = ch;
 		count++;
 	}
@@ -726,8 +725,7 @@ void copy_text_until(char *outstr, const char *instr, const char *endstr, int ma
 	}
 
 	if (foundstr - instr + strlen(endstr) < (uint) max_chars) {
-		strncpy(outstr, instr, foundstr - instr);
-		outstr[foundstr - instr] = 0;
+		SDL_strlcpy(outstr, instr, foundstr - instr + 1);
 
 	} else {
 		nprintf(("Error", "Error.  Too much text (%i chars, %i allowed) before %s\n",
@@ -1156,7 +1154,7 @@ void read_file_text(const char *filename, int mode)
 	if (!filename)
 		longjmp(parse_abort, 10);
 
-	strcpy(Current_filename, filename);
+	SDL_strlcpy(Current_filename, filename, sizeof(Current_filename));
 	mf = cfopen(filename, "rb", CFILE_NORMAL, mode);
 	if (mf == NULL) {
 		nprintf(("Error", "Wokka!  Error opening mission.txt!\n"));
@@ -1673,8 +1671,8 @@ int match_and_stuff(int f_type, const char *strlist[], int max, const char *desc
 	return string_lookup(token, strlist, max, description, 0);
 }
 
-void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[], int *total,
-	int max, const char *description)
+void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[], const int max_strlen,
+							int *total, int max, const char *description)
 {
 	char	token[128];
 
@@ -1687,7 +1685,7 @@ void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[
 	if (*addr == -1)  // not in list, so lets try and add it.
 	{
 		SDL_assert(*total < max);
-		strcpy(strlist[*total], token);
+		SDL_strlcpy(strlist[*total], token, max_strlen);
 		*addr = (*total)++;
 	}
 }

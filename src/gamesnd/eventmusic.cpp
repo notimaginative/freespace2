@@ -1123,7 +1123,7 @@ void event_music_parse_musictbl()
 				char *token;
 				int count = 0;
 				token = strtok( line_buf, NOX(" ,\t"));
-				strcpy(fname, token);
+				SDL_strlcpy(fname, token, sizeof(fname));
 				while ( token != NULL ) {
 					token = strtok( NULL, NOX(" ,\t") );
 					if ( token == NULL ) {
@@ -1143,7 +1143,7 @@ void event_music_parse_musictbl()
 
 				// convert from samples per measure to bytes per measure
 				Pattern_bytes_per_measure[Num_soundtracks][num_patterns] *= 2;
-				strcpy(Soundtracks[Num_soundtracks].pattern_fnames[num_patterns], fname);
+				SDL_strlcpy(Soundtracks[Num_soundtracks].pattern_fnames[num_patterns], fname, MAX_FILENAME_LEN);
 				num_patterns++;
 			}
 
@@ -1161,13 +1161,13 @@ void event_music_parse_musictbl()
 			required_string("$Name:");
 			stuff_string(fname, F_PATHNAME, NULL);
 			SDL_assert( strlen(fname) < (NAME_LENGTH-1) );
-			strcpy( Spooled_music[Num_music_files].name, fname );
+			SDL_strlcpy( Spooled_music[Num_music_files].name, fname, sizeof(Spooled_music[0].name) );
 
 			required_string("$Filename:");
 			stuff_string(fname, F_PATHNAME, NULL);
 			if ( SDL_strcasecmp(fname, NOX("none.wav"))  ) {
 				SDL_assert( strlen(fname) < (MAX_FILENAME_LEN-1) );
-				strcpy( Spooled_music[Num_music_files].filename, fname );
+				SDL_strlcpy( Spooled_music[Num_music_files].filename, fname, sizeof(Spooled_music[0].filename) );
 			}
 
 			Num_music_files++;			
@@ -1435,13 +1435,13 @@ int hostile_ships_to_arrive()
 //
 // Return information about the event music in the buffer outbuf
 // NOTE: callers to this function are advised to allocate a 256 byte buffer
-void event_music_get_info(char *outbuf)
+void event_music_get_info(char *outbuf, const int outbuf_size)
 {
 	if ( Event_music_enabled == FALSE || Event_music_level_inited == FALSE || Current_pattern == -1 ) {
-		strcpy(outbuf,XSTR( "Event music is not playing", 213));
+		SDL_strlcpy(outbuf, XSTR( "Event music is not playing", 213), outbuf_size);
 	}
 	else {	
-		sprintf(outbuf,XSTR( "soundtrack: %s [%s]", 214), Soundtracks[Current_soundtrack_num].name, Pattern_description[Current_pattern]);
+		SDL_snprintf(outbuf, outbuf_size, XSTR( "soundtrack: %s [%s]", 214), Soundtracks[Current_soundtrack_num].name, Pattern_description[Current_pattern]);
 	}
 }
 
@@ -1475,13 +1475,13 @@ int event_music_next_soundtrack(int delta)
 //
 // Return information about the event music in the buffer outbuf
 // NOTE: callers to this function are advised to allocate a NAME_LENGTH buffer
-void event_music_get_soundtrack_name(char *outbuf)
+void event_music_get_soundtrack_name(char *outbuf, const int outbuf_size)
 {
 	if ( Event_music_enabled == FALSE || Event_music_level_inited == FALSE ) {
-		strcpy(outbuf, XSTR( "Event music is not playing", 213));
+		SDL_strlcpy(outbuf, XSTR( "Event music is not playing", 213), outbuf_size);
 	}
 	else {
-		strcpy(outbuf, Soundtracks[Current_soundtrack_num].name);
+		SDL_strlcpy(outbuf, Soundtracks[Current_soundtrack_num].name, outbuf_size);
 	}
 }
 

@@ -234,7 +234,7 @@ void ml_update_recent_missions(char *filename)
 	
 
 	for ( i = 0; i < Num_recent_missions; i++ ) {
-		strcpy( tmp[i], Recent_missions[i] );
+		SDL_strlcpy( tmp[i], Recent_missions[i], sizeof(tmp[0]) );
 	}
 
 	// get a pointer to just the basename of the filename (including extension)
@@ -246,12 +246,12 @@ void ml_update_recent_missions(char *filename)
 	}
 
 	SDL_assert(strlen(p) < MAX_FILENAME_LEN);
-	strcpy( Recent_missions[0], p );
+	SDL_strlcpy( Recent_missions[0], p, sizeof(Recent_missions[0]) );
 
 	j = 1;
 	for ( i = 0; i < Num_recent_missions; i++ ) {
 		if ( SDL_strcasecmp(Recent_missions[0], tmp[i]) ) {
-			strcpy(Recent_missions[j++], tmp[i]);
+			SDL_strlcpy(Recent_missions[j++], tmp[i], sizeof(Recent_missions[0]));
 			if ( j >= MAX_RECENT_MISSIONS ) {
 				break;
 			}
@@ -273,14 +273,14 @@ int mission_load()
 
 	mprintf(("MISSION LOAD: '%s'\n", Game_current_mission_filename));
 
-	strncpy(filename, Game_current_mission_filename, 127);
-	ext = strchr(filename, '.');
+	SDL_strlcpy(filename, Game_current_mission_filename, sizeof(filename));
+	ext = SDL_strchr(filename, '.');
 	if (ext) {
 		mprintf(( "Hmmm... Extension passed to mission_load...\n" ));
 		*ext = 0;				// remove any extension!
 	}
 
-	strcat(filename, FS_MISSION_FILE_EXT);
+	SDL_strlcat(filename, FS_MISSION_FILE_EXT, sizeof(filename));
 
 	// does the magical mission parsing
 	// creates all objects, except for the player object
@@ -357,13 +357,11 @@ extern int mission_campaign_get_filenames(const char *filename, char dest[][NAME
 void mission_load_menu_init()
 {
 	int i;
-	char wild_card[256];
+	char wild_card[6];
 	SDL_assert( mlm_active == 0 );
 	mlm_active = 1;
 
-	memset(wild_card, 0, 256);
-	strcpy(wild_card, NOX("*"));
-	strcat(wild_card, FS_MISSION_FILE_EXT);
+	SDL_snprintf(wild_card, sizeof(wild_card), "*%s", FS_MISSION_FILE_EXT);
 	mlm_nfiles = cf_get_file_list( MLM_MAX_MISSIONS, mlm_missions, CF_TYPE_MISSIONS, wild_card, CF_SORT_NAME );
 	jtmp_nfiles = 0;	
 		
@@ -388,10 +386,10 @@ void mission_load_menu_init()
 
 	mission_campaign_build_list(0);
 	for ( i = 0; i < Num_campaigns; i++ ) {
-		strcpy(Campaign_name_list[i+1], Campaign_names[i]);
+		SDL_strlcpy(Campaign_name_list[i+1], Campaign_names[i], sizeof(Campaign_name_list[0]));
 	}
-	strcpy(Campaign_name_list[0], NOX("All campaigns"));
-	strcpy(Campaign_name_list[1], NOX("Player Missions"));
+	SDL_strlcpy(Campaign_name_list[0], NOX("All campaigns"), sizeof(Campaign_name_list[0]));
+	SDL_strlcpy(Campaign_name_list[1], NOX("Player Missions"), sizeof(Campaign_name_list[0]));
 
 	for ( i = 0; i < Num_campaigns+2; i++ ) {
 		campaign_names[i] = Campaign_name_list[i];
@@ -496,34 +494,34 @@ void mission_load_menu_do()
 		}
 	}
 
-	char mission_name_final[512] = "";
+	char mission_name_final[MAX_FILENAME_LEN] = "";
 
 	if ( selected > -1  )	{
 		Campaign.current_mission = -1;
 		if ( use_recent_flag ) {
-			strncpy( mission_name_final, recent_missions[selected], MAX_FILENAME_LEN );
+			SDL_strlcpy( mission_name_final, recent_missions[selected], sizeof(mission_name_final) );
 		} else {
 			char mission_name[NAME_LENGTH];
 			if ( Campaign_filter_index == 0 )	{
-				strcpy(mission_name, mlm_missions[selected]);
+				SDL_strlcpy(mission_name, mlm_missions[selected], sizeof(mission_name));
 			} else if (Campaign_filter_index == 1 )	{
-				strcpy( mission_name, jtmp_missions[selected]);
+				SDL_strlcpy( mission_name, jtmp_missions[selected], sizeof(mission_name) );
 			} else {
-				strcpy(mission_name, Campaign_missions[selected]);
+				SDL_strlcpy(mission_name, Campaign_missions[selected], sizeof(mission_name));
 			}
-			strncpy( mission_name_final, mission_name, MAX_FILENAME_LEN );
+			SDL_strlcpy( mission_name_final, mission_name, sizeof(mission_name_final) );
 		}
 
 		// go
 #ifdef PD_BUILD
 		// if this valid
 		if((game_find_builtin_mission(mission_name_final) != NULL) || strstr(mission_name_final, "peterdrake")){
-			strcpy(Game_current_mission_filename, mission_name_final);
+			SDL_strlcpy(Game_current_mission_filename, mission_name_final, sizeof(Game_current_mission_filename));
 			mprintf(( "Selected '%s'\n", Game_current_mission_filename ));
 			gameseq_post_event(GS_EVENT_START_GAME);			
 		}
 #else
-		strcpy(Game_current_mission_filename, mission_name_final);
+		SDL_strlcpy(Game_current_mission_filename, mission_name_final, sizeof(Game_current_mission_filename));
 		mprintf(( "Selected '%s'\n", Game_current_mission_filename ));
 		gameseq_post_event(GS_EVENT_START_GAME);			
 #endif

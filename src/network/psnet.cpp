@@ -1273,11 +1273,11 @@ int psnet_same( net_addr * a1, net_addr * a2 )
 //
 //
 
-char* psnet_addr_to_string( char * text, net_addr * address )
+char* psnet_addr_to_string( char * text, const int max_textlen, net_addr * address )
 {
 
 	if ( Network_status != NETWORK_STATUS_RUNNING )		{
-		strcpy( text, XSTR("[no networking]",910) );
+		SDL_strlcpy( text, XSTR("[no networking]",910), max_textlen );
 		return text;
 	}
 
@@ -1285,7 +1285,7 @@ char* psnet_addr_to_string( char * text, net_addr * address )
 
 	switch ( address->type ) {
 		case NET_IPX:
-			sprintf(text, "%x %x %x %x: %x %x %x %x %x %x", address->net_id[0],
+			SDL_snprintf(text, max_textlen, "%x %x %x %x: %x %x %x %x %x %x", address->net_id[0],
 																			address->net_id[1],
 																			address->net_id[2],
 																			address->net_id[3],
@@ -1299,7 +1299,7 @@ char* psnet_addr_to_string( char * text, net_addr * address )
 
 		case NET_TCP:
 			memcpy(&temp_addr.s_addr, address->addr, 4);
-			strcpy( text, inet_ntoa(temp_addr) );
+			SDL_strlcpy( text, inet_ntoa(temp_addr), max_textlen );
 			break;
 
 		default:
@@ -1317,20 +1317,20 @@ char* psnet_addr_to_string( char * text, net_addr * address )
 //
 //
 
-void psnet_string_to_addr( net_addr * address, char * text )
+void psnet_string_to_addr( net_addr * address, char * text, const int max_textlen )
 {
 	struct hostent *he;
 	char str[255], *c, *port;
 	in_addr addr;
 
 	if ( Network_status != NETWORK_STATUS_RUNNING ) {
-		strcpy( text, XSTR("[no networking]",910) );
+		SDL_strlcpy( text, XSTR("[no networking]",910), max_textlen );
 		return;
 	}
 
 	// copy the text string to local storage to look for ports
 	SDL_assert( strlen(text) < 255 );
-	strcpy(str, text);
+	SDL_strlcpy(str, text, sizeof(str));
 	c = strrchr(str, ':');
 	port = NULL;
 	if ( c ) {
@@ -2217,7 +2217,7 @@ int psnet_is_valid_numeric_ip(char *ip)
 	int val1,val2,val3,val4;
 
 	// get the first ip value
-	strcpy(copy,ip);
+	SDL_strlcpy(copy, ip, sizeof(copy));
 	token = strtok(copy,".");
 	if(token == NULL){
 		return 0;
@@ -2287,7 +2287,7 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 
 	// our addresses may have ports, so make local copy and remove port number
 	SDL_assert( strlen(ip_string) < 255 );
-	strcpy(str, ip_string);
+	SDL_strlcpy(str, ip_string, sizeof(str));
 	c = strrchr(str, ':');
 	if ( c ){
 		*c = '\0';

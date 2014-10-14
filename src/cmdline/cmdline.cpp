@@ -359,7 +359,7 @@ static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 		if (parm->args != NULL) {
 			memset(parm->args, 0, size+1);
-			strcpy(parm->args, buffer);
+			SDL_strlcpy(parm->args, buffer, size+1);
 		}
 	}
 }
@@ -546,7 +546,7 @@ static void os_init_cmdline(const char *cmdline)
 
 			// make sure that we have a trailing space for option finding to
 			// work properly with single args
-			strcat(buf, " ");
+			SDL_strlcat(buf, " ", sizeof(buf));
 
 			mprintf(("%s", buf));
 
@@ -561,11 +561,12 @@ static void os_init_cmdline(const char *cmdline)
 		mprintf(("%s", cmdline));
 
 		// for proper arg handling make sure cmdline has trailing space
-		char *m_cmdline = (char*) malloc(strlen(cmdline)+2);
+		int len = strlen(cmdline) + 2;
+		char *m_cmdline = (char*) malloc(len);
 
 		if (m_cmdline) {
-			strcpy(m_cmdline, cmdline);
-			strcat(m_cmdline, " ");
+			SDL_strlcpy(m_cmdline, cmdline, len);
+			SDL_strlcat(m_cmdline, " ", len);
 
 			os_parse_parms(m_cmdline);
 			os_validate_parms(m_cmdline);

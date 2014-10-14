@@ -290,7 +290,7 @@ int demo_start_record(const char *file)
 	}
 
 	// open the outfile
-	strcpy(full_name, file);
+	SDL_strlcpy(full_name, file, sizeof(full_name));
 	cf_add_ext(full_name, ".fsd");
 	Demo_file = cfopen(full_name, "wb", CFILE_NORMAL, CF_TYPE_DEMOS);
 	if(Demo_file == NULL){
@@ -334,7 +334,7 @@ int demo_start_playback(const char *file)
 	}
 
 	// open the outfile
-	strcpy(full_name, file);
+	SDL_strlcpy(full_name, file, sizeof(full_name));
 	cf_add_ext(full_name, ".fsd");
 	Demo_file = cfopen(full_name, "rb", CFILE_NORMAL, CF_TYPE_DEMOS);
 	if(Demo_file == NULL){

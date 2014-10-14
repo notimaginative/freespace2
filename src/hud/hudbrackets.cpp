@@ -642,7 +642,7 @@ void hud_target_show_dist_on_bracket(int x, int y, float distance)
 		return;
 	}
 
-	sprintf(text_dist, "%d", fl2i(distance+0.5f));
+	SDL_snprintf(text_dist, sizeof(text_dist), "%d", fl2i(distance+0.5f));
 	hud_num_make_mono(text_dist);
 	gr_get_string_size(&w,&h,text_dist);
 

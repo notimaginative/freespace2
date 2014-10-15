@@ -4425,7 +4425,7 @@ void send_file_sig_packet(ushort sum_sig,int length_sig)
 
 	BUILD_HEADER(FILE_SIG_INFO);
 	ADD_USHORT(sum_sig);
-	ADD_SHORT(length_sig);
+	ADD_INT(length_sig);
 		
 	multi_io_send_reliable(Net_player, data, packet_size);
 }

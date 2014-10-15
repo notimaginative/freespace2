@@ -1599,7 +1599,7 @@ void options_menu_do_frame(float frametime)
 		}
 	}
 
-	if ((i == NUM_TABS) /*&& (Tab != MULTIPLAYER_TAB)*/ ){
+	if (i == NUM_TABS /*&& (Tab != MULTIPLAYER_TAB)*/ ){
 		Buttons[gr_screen.res][Tab].button.draw_forced(2);
 	}
 

@@ -627,8 +627,8 @@ int cf_exist( const char *filename, int dir_type )
 
 	FILE *fp = fopen(longname, "rb");
 	if (fp) {
-		return 1;
 		fclose(fp);
+		return 1;
 	}
 
 	return 0;

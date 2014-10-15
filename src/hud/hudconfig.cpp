@@ -444,10 +444,6 @@ int HC_select_all = 0;
 // Module Globals
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef PLAT_UNIX
-#pragma warning(disable:4710)
-#endif
-
 const char *Hud_config_fname[GR_NUM_RESOLUTIONS] = {
 	"HUDConfig",
 	"2_HUDConfig"
@@ -606,10 +602,6 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 	}
 };
 
-#ifndef PLAT_UNIX
-#pragma warning(default:4710)
-#endif
-
 int HC_gauge_description_coords[GR_NUM_RESOLUTIONS][3] = {
 	{	// GR_640
 #ifdef MAKE_FS1
@@ -746,9 +738,6 @@ const char *HC_gauge_descriptions(int n)
 #define HCB_ACCEPT				7
 #endif
 
-#ifndef PLAT_UNIX
-#pragma warning(disable : 4710)
-#endif
 
 ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 	{ // GR_640

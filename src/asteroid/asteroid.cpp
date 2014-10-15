@@ -1140,10 +1140,6 @@ void asteroid_process_pre( object *objp, float frame_time)
 	}
 }
 
-#ifndef PLAT_UNIX
-#pragma warning ( push )
-#pragma warning ( disable : 4701 )
-#endif
 int asteroid_check_collision(object *pasteroid, object *other_obj, vector *hitpos, collision_info_struct *asteroid_hit_info)
 {
 	if (!Asteroids_enabled) {
@@ -1398,10 +1394,6 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vector *hitpo
 		return 0;
 	}
 }
-#ifndef PLAT_UNIX
-#pragma warning ( pop )
-#endif
-
 
 void asteroid_render(object * obj)
 {

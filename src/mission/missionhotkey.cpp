@@ -370,12 +370,6 @@ static int Hotkey_ship_x[GR_NUM_RESOLUTIONS] = {
 	448			// GR_1024
 };
 
-#ifndef PLAT_UNIX
-// pragma pair put into place because of compiler warnings about being unable to inline
-// the constructor function of the hotkey_buttons set.
-#pragma warning(disable: 4710)
-#endif
-
 struct hotkey_buttons {
 	const char *filename;
 	int x, y;
@@ -429,10 +423,6 @@ static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	}
 //XSTR:ON
 };
-
-#ifndef PLAT_UNIX
-#pragma warning(default: 4710)
-#endif
 
 #ifndef MAKE_FS1
 #define HOTKEY_NUM_TEXT		6

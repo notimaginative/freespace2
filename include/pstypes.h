@@ -235,23 +235,6 @@
 	#define GAME_CD_CHECK
 #endif
 
-// 4127 is constant conditional (assert)
-// 4100 is unreferenced formal parameters,
-// 4514 is unreferenced inline function removed, 
-// 4201 is nameless struct extension used. (used by windows header files)
-// 4410 illegal size for operand... ie... 	fxch st(1)
-// 4611 is _setjmp warning.  Since we use setjmp alot, and we don't really use constructors or destructors, this warning doesn't really apply to us.
-// 4725 is the pentium division bug warning, and I can't seem to get rid of it, even with this pragma.
-//      JS: I figured out the disabling 4725 works, but not on the first function in the module.
-//      So to disable this, I add in a stub function at the top of each module that does nothing.
-// 4710 is inline function not expanded (who cares?)
-// 4711 tells us an inline function was expanded (who cares?)
-// 4702 unreachable code.  I care, but too many to deal with
-// 4201 nonstandard extension used : nameless struct/union (happens a lot in Windows include headers)
-// 4390 emptry control statement (triggered by nprintf and mprintf's inside of one-line if's, etc)
-#ifndef PLAT_UNIX
-#pragma warning(disable: 4127 4100 4514 4201 4410 4611 4725 4710 4711 4702 4201 4390)
-#endif
 
 #include "SDL.h"
 

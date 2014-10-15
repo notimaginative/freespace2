@@ -45,7 +45,8 @@ if(NOT WIN32)
 
   add_definitions(-DPLAT_UNIX)
   add_definitions(-Wall)
-# add_definitions(-Wno-format-y2k -Wno-deprecated)
+# add_definitions(-Wno-format-y2k)
+# add_definitions(-Wno-deprecated)
   add_definitions(-fsigned-char)
 
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG -g -O2")
@@ -59,6 +60,11 @@ else()
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)
+  add_definitions(/W4)
+  add_definitions(/wd4100) # unreferenced parameter
+  add_definitions(/wd4127) # conditional expression is constant: do { } while (0)
+  add_definitions(/wd4611) # non-portable interaction between setjmp() and C++ object destruction
+  add_definitions(/wd4996) # deprecated functions: fopen, fileno, ...
 endif()
 
 

@@ -42,7 +42,7 @@ void decodeFrame16(unsigned char *pFrame, unsigned char *pMap, int mapRemain, un
 	unsigned char *pOffData;
 	ushort offset;
 	int length;
-	int op;
+	unsigned char op;
 	int i, j;
 	int xb, yb;
 

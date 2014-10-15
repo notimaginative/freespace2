@@ -317,13 +317,9 @@ void nebula_init( const char *filename, angles * pbh )
 
 void nebula_render()
 {
+#ifdef MAKE_FS1
 	int i;
 	// int r, g, b;
-
-	// no nebula for you!
-#ifndef MAKE_FS1
-	return;
-#endif
 
 	if ( !Nebula_loaded ) {
 		return;
@@ -365,6 +361,7 @@ void nebula_render()
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode == NEB2_RENDER_NONE)){
 		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
+#endif
 }
 
 DCF(nebula,"Loads a different nebula")

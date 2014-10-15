@@ -861,7 +861,7 @@ int Debug_dump_frame_num = 0;
 // amount of time to wait after the player has died before we display the death died popup
 #define PLAYER_DIED_POPUP_WAIT		2500
 int Player_died_popup_wait = -1;
-int Player_multi_died_check = -1;
+time_t Player_multi_died_check = -1;
 
 // builtin mission list stuff
 #ifdef FS2_DEMO
@@ -1673,7 +1673,7 @@ void game_level_init(int seed)
 		// netgame security flags -- ensures that all players in multiplayer game will have the
 		// same randon number sequence (with static rand functions)
 		if ( Game_mode & GM_NORMAL ) {
-			Game_level_seed = time(NULL);
+			Game_level_seed = (int)time(NULL);
 		} else {
 			Game_level_seed = Netgame.security;
 		}
@@ -2052,10 +2052,10 @@ void freespace_mission_load_stuff()
 	}
 }
 
-uint load_gl_init;
-uint load_mission_load;
-uint load_post_level_init;
-uint load_mission_stuff;
+time_t load_gl_init;
+time_t load_mission_load;
+time_t load_post_level_init;
+time_t load_mission_stuff;
 
 // tells the server to load the mission and initialize structures
 int game_start_mission()
@@ -2292,7 +2292,7 @@ void game_init()
 	Game_current_mission_filename[0] = 0;
 
 	// seed the random number generator
-	Game_init_seed = time(NULL);
+	Game_init_seed = (int)time(NULL);
 	srand( Game_init_seed );
 
 	Framerate_delay = 0;
@@ -2958,7 +2958,7 @@ void show_debug_stuff()
 
 extern int Tool_enabled;
 int tst = 0;
-int tst_time = 0;
+time_t tst_time = 0;
 int tst_big = 0;
 vector tst_pos;
 int tst_bitmap = -1;
@@ -4547,17 +4547,17 @@ void game_set_frametime(int state)
 		if (Frametime < cap) {
 			thistime = cap - Frametime;
 			//mprintf(("Sleeping for %6.3f seconds.\n", f2fl(thistime)));
-			SDL_Delay( (f2fl(thistime) * 1000.0f) );
+			SDL_Delay( fl2i(f2fl(thistime) * 1000.0f) );
 			Frametime = cap;
 			thistime = timer_get_fixed_seconds();
 		}
 	}
 
 	if((Game_mode & GM_STANDALONE_SERVER) && 
-		(f2fl(Frametime) < ((float)1.0/(float)Multi_options_g.std_framecap))){
+		(f2fl(Frametime) < (1.0f/(float)Multi_options_g.std_framecap))){
 
-		frame_cap_diff = ((float)1.0/(float)Multi_options_g.std_framecap) - f2fl(Frametime);		
-		SDL_Delay((frame_cap_diff*1000));
+		frame_cap_diff = (1.0f/(float)Multi_options_g.std_framecap) - f2fl(Frametime);
+		SDL_Delay( fl2i(frame_cap_diff * 1000.0f) );
 		
 		thistime += fl2f((frame_cap_diff));		
 

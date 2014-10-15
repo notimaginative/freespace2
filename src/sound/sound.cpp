@@ -1329,7 +1329,7 @@ void snd_rewind(int snd_handle, game_snd *gs, float seconds)
 		return;
 
 	desired_time = current_time - seconds;											// where we want to be
-	desired_offset = desired_time * bps;								// the target
+	desired_offset = fl2i(desired_time * bps);								// the target
 			
 	oal_set_play_position(channel, desired_offset);
 }
@@ -1369,7 +1369,7 @@ void snd_ffwd(int snd_handle, game_snd *gs, float seconds)
 		return;
 
 	desired_time = current_time + seconds;											// where we want to be
-	desired_offset = desired_time * bps;								// the target
+	desired_offset = fl2i(desired_time * bps);								// the target
 			
 	oal_set_play_position(channel, desired_offset);
 }

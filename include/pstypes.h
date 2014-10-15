@@ -424,7 +424,7 @@ extern void __cdecl Warning( const char * filename, int line, const char * forma
 #define STUB_FUNCTION
 #else
 void gr_activate(int);
-#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d, thread %d\n", __FUNCTION__, LOCATION, getpid()))
+#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d\n", __FUNCTION__, LOCATION))
 #endif
 
 //#define Int3() _asm { int 3 }

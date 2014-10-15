@@ -522,7 +522,7 @@ void joy_ff_play_dir_effect(float x, float y)
 
 		if (pHitEffect1.loaded) {
 			pHitEffect1.eff.constant.direction.dir[0] = idegs;
-			pHitEffect1.eff.constant.level = fl2i(0x7FFF * (imag / 10000.0f));
+			pHitEffect1.eff.constant.level = (Sint16)(32767.0f * (imag / 10000.0f));
 
 			if ( SDL_HapticUpdateEffect(haptic, pHitEffect1.id, &pHitEffect1.eff) < 0 ) {
 				mprintf(("HapticERROR:  Unable to update pHitEffect1:\n  %s\n", SDL_GetError()));
@@ -535,7 +535,7 @@ void joy_ff_play_dir_effect(float x, float y)
 
 		if (pHitEffect2.loaded) {
 			pHitEffect2.eff.periodic.direction.dir[0] = idegs;
-			pHitEffect2.eff.periodic.magnitude = fl2i(0x7FFF * (imag / 10000.0f));
+			pHitEffect2.eff.periodic.magnitude = (Sint16)(32767.0f * (imag / 10000.0f));
 
 			if ( SDL_HapticUpdateEffect(haptic, pHitEffect2.id, &pHitEffect2.eff) < 0 ) {
 				mprintf(("HapticERROR:  Unable to update pHitEffect2:\n  %s\n", SDL_GetError()));
@@ -575,7 +575,7 @@ void joy_ff_play_primary_shoot(int gain)
 		if (gain != primary_ff_level) {
 			pShootEffect.eff.periodic.direction.dir[0] = 0;
 			pShootEffect.eff.periodic.length = 160;
-			pShootEffect.eff.periodic.magnitude = fl2i(0x7FFF * (gain / 10000.0f));
+			pShootEffect.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
 			pShootEffect.eff.periodic.fade_length = 120;
 
 			if ( SDL_HapticUpdateEffect(haptic, pShootEffect.id, &pShootEffect.eff) < 0 ) {
@@ -619,7 +619,7 @@ void joy_ff_play_secondary_shoot(int gain)
 		SDL_HapticStopEffect(haptic, pSecShootEffect.id);
 
 		if (gain != secondary_ff_level) {
-			pSecShootEffect.eff.constant.level = fl2i(0x7FFF * (gain / 10000.0f));
+			pSecShootEffect.eff.constant.level = (Sint16)(32767.0f * (gain / 10000.0f));
 			pSecShootEffect.eff.constant.length = (150000 + gain * 25) / 1000;
 
 			if ( SDL_HapticUpdateEffect(haptic, pSecShootEffect.id, &pSecShootEffect.eff) < 0 ) {
@@ -663,7 +663,7 @@ void joy_ff_adjust_handling(int speed)
 		v = 10000;
 	}
 
-	coeff = fl2i(0x7FFF * (v / 10000.0f));
+	coeff = (short)(32767.0f * (v / 10000.0f));
 
 	for (int i = 0; i < SDL_HapticNumAxes(haptic); i++) {
 		pSpring.eff.condition.right_coeff[i] = coeff;
@@ -894,7 +894,7 @@ void joy_ff_fly_by(int mag)
 
 	pAfterburn1.eff.periodic.length = (6000 * mag + 400000) / 1000;
 	pAfterburn1.eff.periodic.period = 20;
-	pAfterburn1.eff.periodic.magnitude = fl2i(0x7FFF * (gain / 10000.0f));
+	pAfterburn1.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
 	pAfterburn1.eff.periodic.attack_length = 0;
 
 	if ( SDL_HapticUpdateEffect(haptic, pAfterburn1.id, &pAfterburn1.eff) < 0 ) {
@@ -906,7 +906,7 @@ void joy_ff_fly_by(int mag)
 
 	pAfterburn2.eff.periodic.length = (6000 * mag + 400000) / 1000;
 	pAfterburn2.eff.periodic.period = 100;
-	pAfterburn2.eff.periodic.magnitude = fl2i(0x7FFF * (gain / 10000.0f));
+	pAfterburn2.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
 	pAfterburn2.eff.periodic.attack_length = 0;
 
 	if ( SDL_HapticUpdateEffect(haptic, pAfterburn2.id, &pAfterburn2.eff) < 0 ) {

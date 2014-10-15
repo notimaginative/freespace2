@@ -102,5 +102,5 @@ int game_single_step;
 int last_single_step;
 void game_tst_mark(struct object*, struct ship*){}
 int tst;
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 int Nebedit_running = 0;

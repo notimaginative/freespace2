@@ -326,12 +326,12 @@ short Multi_id_num = 0;												// for assigning player id #'s
 server_item* Game_server_head;								// list of permanent game servers to be querying
 
 // timestamp data
-int Netgame_send_time = -1;							// timestamp used to send netgame info to players before misison starts
-int State_send_time = -1;								// timestamp used to send state information to the host before a mission starts
-int Gameinfo_send_time = -1;							// timestamp used by master to send game information to clients
-int Next_ping_time = -1;								// when we should next ping all
+time_t Netgame_send_time = -1;							// timestamp used to send netgame info to players before misison starts
+time_t State_send_time = -1;								// timestamp used to send state information to the host before a mission starts
+time_t Gameinfo_send_time = -1;							// timestamp used by master to send game information to clients
+time_t Next_ping_time = -1;								// when we should next ping all
 int Multi_server_check_count = 0;					// var to keep track of reentrancy when checking server status
-int Next_bytes_time = -1;								// bytes sent
+time_t Next_bytes_time = -1;								// bytes sent
 
 // how often each player gets updated
 int Multi_client_update_times[MAX_PLAYERS];	// client update packet timestamp
@@ -1338,7 +1338,7 @@ void multi_do_frame()
 		
 		// ping everyone
 		multi_ping_send_all();
-		Next_ping_time = time(NULL);		
+		Next_ping_time = time(NULL);
 	}	
 	
 	// if I am the master, and we are not yet actually playing the mission, send off netgame

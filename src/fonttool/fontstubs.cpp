@@ -107,7 +107,7 @@ int game_hacked_data(){return 0;}
 int Nebedit_running = 0;
 void game_tst_mark(struct object *, struct ship*){}
 int game_do_cd_mission_check(const char*){return 0;}
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 int tst;
 int game_single_step;
 int last_single_step;

@@ -526,7 +526,7 @@ void scoring_do_accept(scoring_struct *score)
 	// add in mission time
 	score->flight_time += (unsigned int)f2fl(Missiontime);
 	score->last_backup = score->last_flown;
-	score->last_flown = time(NULL);
+	score->last_flown = (fs_time_t)time(NULL);
 	score->missions_flown++;
 }
 

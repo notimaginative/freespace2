@@ -1873,10 +1873,6 @@ int beam_get_model(object *objp)
 		mprintf(("Beam couldn't find a good find a good object model/type!! (%d)", objp->type));
 		return -1;
 	}
-
-	// can't happen
-	Int3();
-	return -1;
 }
 
 // start the warmup phase for the beam

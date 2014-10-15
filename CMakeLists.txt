@@ -57,6 +57,8 @@ else()
 	wsock32.lib
 	winmm.lib
   )
+
+  add_definitions(/D _CRT_SECURE_NO_WARNINGS)
 endif()
 
 

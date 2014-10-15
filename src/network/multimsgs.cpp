@@ -1332,6 +1332,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 	// get the new players information
 	GET_INT(new_player_num);
+	memset(&new_addr, 0, sizeof(net_addr));
 	get_net_addr(data, &offset, new_addr);
 
 	GET_SHORT(new_id);
@@ -1610,6 +1611,7 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 		GET_INT(player_num);
 
 		// add the player's address
+		memset(&addr, 0, sizeof(net_addr));
 		get_net_addr(data, &offset, addr);
 
 		// get the player's id#
@@ -4509,7 +4511,7 @@ void process_subsystem_destroyed_packet( ubyte *data, header *hinfo )
 	ushort signature;
 	ubyte uindex;
 	object *objp;
-	vector local_hit_pos, world_hit_pos;
+	vector local_hit_pos = ZERO_VECTOR, world_hit_pos;
 
 	offset = HEADER_LENGTH;
 
@@ -4736,7 +4738,7 @@ void process_jump_into_mission_packet(ubyte *data, header *hinfo)
 		}		
 	}
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 
 	// recalc all object pairs now	
@@ -6617,7 +6619,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	case ASTEROID_CREATE: {
 		ushort psignature, signature;
 		ubyte atype;
-		vector relvec;
+		vector relvec = ZERO_VECTOR;
 		object *parent_objp;
 
 		GET_USHORT( psignature );
@@ -6642,7 +6644,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 		// asteroid throw packet -- asteroid has wrapped bounds
 	case ASTEROID_THROW: {
 		ushort signature;
-		vector pos, vel;
+		vector pos = ZERO_VECTOR, vel = ZERO_VECTOR;
 		object *objp;
 
 		GET_USHORT( signature );
@@ -6664,7 +6666,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	case ASTEROID_HIT: {
 		ushort signature, osignature;
 		object *objp, *other_objp;
-		vector hitpos;
+		vector hitpos = ZERO_VECTOR;
 		float damage;
 
 		GET_USHORT( signature );
@@ -7966,8 +7968,8 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	int offset;
 	ubyte windex;
 	ushort udamage;
-	vector force;
-	vector local_hit_pos;
+	vector force = ZERO_VECTOR;
+	vector local_hit_pos = ZERO_VECTOR;
 	weapon_info *wip;
 
 	// get the data for the pain packet
@@ -8027,7 +8029,7 @@ void process_lightning_packet(ubyte *data, header *hinfo)
 {
 	int offset;
 	char bolt_type;
-	vector start, strike;
+	vector start = ZERO_VECTOR, strike = ZERO_VECTOR;
 
 	// read the data
 	offset = HEADER_LENGTH;

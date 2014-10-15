@@ -90,10 +90,10 @@
 CFILE *Multi_log_out = NULL;
 
 // time when the logfile was opened
-int Multi_log_open_systime = -1;
+time_t Multi_log_open_systime = -1;
 
 // time when we last updated the logfile
-int Multi_log_update_systime = -1;
+time_t Multi_log_update_systime = -1;
 
 // ----------------------------------------------------------------------------------------------------
 // MULTI LOGFILE FUNCTIONS

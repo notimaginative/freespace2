@@ -92,7 +92,7 @@ void game_shudder_apply(int, float){}
 int Debug_octant;
 int game_hacked_data(){return 0;}
 int game_do_cd_mission_check(char*){return 0;}
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 void game_tst_mark(struct object*, struct ship*){}
 int tst;
 int game_single_step;

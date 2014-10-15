@@ -199,7 +199,7 @@ public:
 	bool Create(const char *pszFilename);
 	bool Destroy();
 	void Play(float volume, int looping);
-	void Stop(int paused = 0);
+	void Stop(bool paused = false);
 	void Stop_and_Rewind();
 	void Fade_and_Destroy();
 	void Fade_and_Stop();
@@ -209,17 +209,17 @@ public:
 	void Set_Byte_Cutoff(uint num_bytes_cutoff);
 	uint Get_Bytes_Committed();
 
-	int Is_Playing()
+	bool Is_Playing()
 	{
 		return m_fPlaying;
 	}
 
-	int Is_Paused()
+	bool Is_Paused()
 	{
 		return m_bIsPaused;
 	}
 
-	int Is_Past_Limit()
+	bool Is_Past_Limit()
 	{
 		return m_bPastLimit;
 	}
@@ -234,7 +234,7 @@ public:
 		return m_lDefaultVolume;
 	}
 
-	int	Is_looping()
+	bool Is_looping()
 	{
 		return m_bLooping;
 	}
@@ -1017,7 +1017,7 @@ uint AudioStream::GetMaxWriteSize()
 bool AudioStream::ServiceBuffer()
 {
 	float vol;
-	int	fRtn = true;
+	bool fRtn = true;
 
 	if (type == ASF_FREE) {
 		return false;
@@ -1108,7 +1108,7 @@ bool AudioStream::ServiceBuffer()
 		}
 	}
 
-	return (fRtn);
+	return fRtn;
 }
 
 // Cue
@@ -1247,7 +1247,7 @@ void AudioStream::Fade_and_Stop()
 }
 
 // Stop
-void AudioStream::Stop(int paused)
+void AudioStream::Stop(bool paused)
 {
 	if (m_fPlaying) {
 		if (paused) {
@@ -1598,7 +1598,7 @@ void audiostream_stop(int i, int rewind, int paused)
 	if (rewind) {
 		Audio_streams[i].Stop_and_Rewind();
 	} else {
-		Audio_streams[i].Stop(paused);
+		Audio_streams[i].Stop( (paused != 0) );
 	}
 }
 

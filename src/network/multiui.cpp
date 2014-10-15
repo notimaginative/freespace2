@@ -7973,7 +7973,7 @@ void multi_sync_init()
 	// reset all timestamp
 	multi_reset_timestamps();
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 
 	if(!(Game_mode & GM_STANDALONE_SERVER)){
@@ -8181,7 +8181,7 @@ void multi_sync_common_close()
 		nprintf(("General","WARNING : could not unload background bitmap %s\n",Multi_sync_bitmap_fname[gr_screen.res]));
 	}	
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 	
 	// destroy the UI_WINDOW

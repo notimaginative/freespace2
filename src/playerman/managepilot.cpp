@@ -1656,7 +1656,7 @@ static short keycode_translate_to(SDL_Keycode keycode)
 
 	for (int i = 0; i < tbl_size; i++) {
 		if (keycode_lookup[i].sdl_code == keycode) {
-			return (keycode_lookup[i].fs_code | mods);
+			return (short)(keycode_lookup[i].fs_code | mods);
 		}
 	}
 

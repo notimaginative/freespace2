@@ -1435,7 +1435,7 @@ void ai_copy_mission_wing_goal( ai_goal *aigp, ai_info *aip )
 int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 {
 	int status;
-	char *ai_shipname;
+	//char *ai_shipname;
 	int return_val;
 	object *objp;
 	ai_info *aip;
@@ -1475,7 +1475,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 
 	objp = &Objects[objnum];
 	SDL_assert( objp->instance != -1 );
-	ai_shipname = Ships[objp->instance].ship_name;
+	//ai_shipname = Ships[objp->instance].ship_name;
 	aip = &Ai_info[Ships[objp->instance].ai_index];
 
 	return_val = AI_GOAL_SATISFIED;
@@ -2133,9 +2133,6 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 		break;
 
 	case AI_GOAL_WARP: {
-		int index;
-
-		index = current_goal->wp_index;
 		ai_set_mode_warp_out( objp, aip );
 		break;
 	}

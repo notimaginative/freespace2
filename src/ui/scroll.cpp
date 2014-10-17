@@ -240,7 +240,7 @@ void UI_SCROLLBAR::draw()
 void UI_SCROLLBAR::process(int focus)
 {
 	int OnMe, OnSlider;
-	int oldpos, op;
+	int op;
 
 	moved = 0;
 	if (disabled_flag) {
@@ -260,7 +260,6 @@ void UI_SCROLLBAR::process(int focus)
 	}
 
 	op = position;
-	oldpos = bar_position;
 
 	if (up_button.pressed()) {
 		position--;

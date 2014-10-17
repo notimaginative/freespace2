@@ -557,6 +557,7 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 		return TARGA_ERROR_READING;
 	}
 
+	/*
 	int xo, yo;
 	if ( header.image_descriptor & 0x10 )	{
 		xo = 1;
@@ -569,6 +570,7 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 	} else {
 		yo = 0;
 	}		
+	*/
 
 	// only accept 16 bit, compressed
 	if(header.pixel_depth!=16) {

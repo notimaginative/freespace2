@@ -2193,7 +2193,7 @@ void send_netgame_update_packet(net_player *pl)
 // process information about the netgame sent from the server/host
 void process_netgame_update_packet( ubyte *data, header *hinfo )
 {
-	int offset,old_flags;	
+	int offset;//,old_flags;
 	int ng_state;
 		
 	SDL_assert(!(Game_mode & GM_STANDALONE_SERVER));
@@ -2211,7 +2211,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 	GET_UINT(Netgame.respawn);		
 	
 	// be sure not to blast the quitting flag because of the "one frame extra" problem
-	old_flags = Netgame.flags;	
+//	old_flags = Netgame.flags;
 	GET_INT(Netgame.flags);	
 	GET_INT(Netgame.type_flags);
 	GET_INT(Netgame.version_info);
@@ -3847,7 +3847,7 @@ void process_ingame_nak(ubyte *data, header *hinfo)
 	
 	switch(state){
 	case ACK_FILE_ACCEPTED :
-		SDL_assert(Net_player->flags & NETINFO_FLAG_INGAME_JOIN);
+		SDL_assert(pl->flags & NETINFO_FLAG_INGAME_JOIN);
 		nprintf(("Network","Mission file rejected by server, aborting...\n"));
 		multi_quit_game(PROMPT_NONE, MULTI_END_NOTIFY_FILE_REJECTED);		
 		break;
@@ -7449,7 +7449,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	int offset; // linked;	
 	// ubyte banks_fired, current_bank;
 	object* objp;	
-	ship *shipp;
+//	ship *shipp;
 	ushort shooter_sig;	
 
 	// read all packet info
@@ -7471,7 +7471,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	if(objp->instance < 0){
 		return;
 	}
-	shipp = &Ships[objp->instance];
+//	shipp = &Ships[objp->instance];
 	
 	// get the link status of the primary banks
 	// linked = 0;

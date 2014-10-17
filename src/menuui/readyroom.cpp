@@ -1285,16 +1285,9 @@ void sim_room_close()
 void sim_room_do_frame(float frametime)
 {
 	char buf[256];
-	int i, k, y, z, line;
+	int i, k, y, line;
 	int font_height = gr_get_font_height();
 	int select_tease_line = -1;  // line mouse is down on, but won't be selected until button released	
-
-	z = -1;
-	for (i=0; i<Num_campaigns; i++)
-		if (!SDL_strcasecmp(Campaign_file_names[i], Campaign.filename)) {
-			z = i;
-			break;
-		}
 
 	if ( help_overlay_active(SIM_ROOM_OVERLAY) ) {
 		Buttons[gr_screen.res][HELP_BUTTON].button.reset_status();

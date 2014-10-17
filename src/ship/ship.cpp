@@ -2847,10 +2847,8 @@ void ship_wing_cleanup( int shipnum, wing *wingp )
 void ship_destroyed( int num )
 {
 	ship		*shipp;
-	object	*objp;
 
 	shipp = &Ships[num];
-	objp = &Objects[shipp->objnum];
 
 	// add the information to the exited ship list
 	ship_add_exited_ship( shipp, SEF_DESTROYED );
@@ -2894,10 +2892,8 @@ void ship_destroyed( int num )
 void ship_vanished(int num)
 {
 	ship *sp;
-	object *objp;	
 
 	sp = &Ships[num];
-	objp = &Objects[sp->objnum];
 
 	// demo recording
 	if(Game_mode & GM_DEMO_RECORD){
@@ -5075,12 +5071,11 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 	int			n = obj->instance;
 	ship			*shipp;
 	ship_weapon	*swp;
-	ship_info	*sip;
 	ai_info		*aip;
 	int			weapon, i, j, weapon_objnum;
 	int			bank_to_fire, num_fired = 0;	
-	int			banks_fired, have_timeout;				// used for multiplayer to help determine whether or not to send packet
-	have_timeout = 0;			// used to help tell us whether or not we need to send a packet
+	int			banks_fired;//, have_timeout;				// used for multiplayer to help determine whether or not to send packet
+//	have_timeout = 0;			// used to help tell us whether or not we need to send a packet
 	banks_fired = 0;			// used in multiplayer -- bitfield of banks that were fired
 
 	int			sound_played;	// used to track what sound is played.  If the player is firing two banks
@@ -5113,7 +5108,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 	if((shipp->ai_index < 0) || (shipp->ai_index >= MAX_AI_INFO)){
 		return 0;
 	}
-	sip = &Ship_info[shipp->ship_info_index];
+
 	aip = &Ai_info[shipp->ai_index];
 
 	if ( swp->num_primary_banks <= 0 ) {
@@ -5178,7 +5173,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 				swp->next_primary_fire_stamp[bank_to_fire] = timestamp(1000);
 			}
 
-			have_timeout = 1;
+		//	have_timeout = 1;
 			continue;
 		}
 
@@ -5578,11 +5573,11 @@ extern void ai_maybe_announce_shockwave_weapon(object *firing_objp, int weapon_i
 //                need to avoid firing when normally called
 int ship_fire_secondary( object *obj, int allow_swarm )
 {
-	int			n, weapon, j, bank, have_timeout, starting_bank_count = -1, num_fired;
+	int			n, weapon, j, bank, starting_bank_count = -1, num_fired;
+//	int			have_timeout;
 	ushort		starting_sig = 0;
 	ship			*shipp;
 	ship_weapon *swp;
-	ship_info	*sip;
 	weapon_info	*wip;
 	ai_info		*aip;
 	polymodel	*po;
@@ -5616,7 +5611,6 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 	
 	shipp = &Ships[n];
 	swp = &shipp->weapons;
-	sip = &Ship_info[shipp->ship_info_index];
 	aip = &Ai_info[shipp->ai_index];
 
 	// if no secondary weapons are present on ship, return
@@ -5643,7 +5637,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 	}
 	wip = &Weapon_info[swp->secondary_bank_weapons[bank]];
 
-	have_timeout = 0;			// used to help tell whether or not we have a timeout
+//	have_timeout = 0;			// used to help tell whether or not we have a timeout
 	if ( MULTIPLAYER_MASTER ) {
 		starting_sig = multi_get_next_network_signature( MULTI_SIG_NON_PERMANENT );
 		starting_bank_count = swp->secondary_bank_ammo[bank];
@@ -5677,7 +5671,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 		if (timestamp_until(swp->next_secondary_fire_stamp[bank]) > 60000){
 			swp->next_secondary_fire_stamp[bank] = timestamp(1000);
 		}
-		have_timeout = 1;
+	//	have_timeout = 1;
 		goto done_secondary;
 	}
 
@@ -6246,10 +6240,8 @@ int get_subsystem_pos(vector *pos, object *objp, ship_subsys *subsysp)
 	matrix	m;
 	model_subsystem	*psub;
 	vector	pnt;
-	ship		*shipp;
 
 	SDL_assert(objp->type == OBJ_SHIP);
-	shipp = &Ships[objp->instance];
 
 	SDL_assert ( subsysp != NULL );
 
@@ -9345,7 +9337,6 @@ void ship_update_artillery_lock()
 	return;
 #else
 	ai_info *aip = NULL;
-	weapon_info *tlaser = NULL;
 	mc_info *cinfo = NULL;
 	int c_objnum;
 	vector temp, local_hit;
@@ -9389,7 +9380,6 @@ void ship_update_artillery_lock()
 		if(!(Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].wi_flags & WIF_BEAM) || (Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].b_info.beam_type != BEAM_TYPE_C)){
 			continue;
 		}
-		tlaser = &Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]];	
 
 		// get collision info
 		if(!beam_get_collision(shipp->targeting_laser_objnum, 0, &c_objnum, &cinfo)){

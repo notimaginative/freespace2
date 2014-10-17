@@ -221,7 +221,7 @@ int load_nebula(const char *filename)
 {
 	CFILE *fp;
 	char id[16];
-	int version, major, minor;
+	int version, major;//, minor;
 
 	fp = cfopen(filename, "rb");
 
@@ -238,7 +238,7 @@ int load_nebula(const char *filename)
 	cfread( &version, sizeof(int), 1, fp );
     version = INTEL_INT(version);
 	major = version / 100;
-	minor = version % 100;
+	//minor = version % 100;
 
 	if ( major != NEBULA_MAJOR_VERSION )	{
 		mprintf(( "An out of date nebula file.\n" ));

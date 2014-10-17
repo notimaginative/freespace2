@@ -5040,11 +5040,11 @@ void sexp_cap_waypont_speed(int n)
 void sexp_jettison_cargo( int n )
 {
 	char *shipname;
-	int jettison_delay, ship_index;	
+	int ship_index;//, jettison_delay;
 
 	// get some data
 	shipname = CTEXT(n);
-	jettison_delay = atoi(CTEXT(CDR(n)));
+//	jettison_delay = atoi(CTEXT(CDR(n)));
 
 	// lookup the ship
 	ship_index = ship_name_lookup(shipname);
@@ -6641,7 +6641,6 @@ void sexp_add_remove_escort(int node)
 {
 	int sindex;
 	int flag;
-	char *whee;
 
 	// get the firing ship
 	sindex = ship_name_lookup(CTEXT(node));
@@ -6653,7 +6652,6 @@ void sexp_add_remove_escort(int node)
 	}
 
 	// determine whether to add or remove it
-	whee = CTEXT(CDR(node));
 	flag = atoi(CTEXT(CDR(node)));
 
 	// add/remove

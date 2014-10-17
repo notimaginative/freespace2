@@ -233,9 +233,9 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	}
 	else
 	{
-		int len = min((filestart-dirstart)+1, sizeof(m_szDir));
+		int len = min((filestart-dirstart)+1, (int)sizeof(m_szDir));
 		SDL_strlcpy(m_szDir, dirstart, len);
-		len = min((dirstart-pURL), sizeof(m_szHost));
+		len = min((dirstart-pURL), (int)sizeof(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
 	}
 	//At this point we should have a nice host,dir and filename

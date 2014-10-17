@@ -303,7 +303,7 @@ void UI_LISTBOX::draw()
 
 void UI_LISTBOX::process(int focus)
 {
-	int OnMe, mitem, oldbarpos, kf = 0;
+	int OnMe, mitem, kf = 0;
 	int i, j;
 
 	selected_item = -1;
@@ -456,7 +456,6 @@ void UI_LISTBOX::process(int focus)
 
 			} else {
 				if (has_scrollbar) {
-					oldbarpos = scrollbar.position;
 					scrollbar.position = first_item;
 
 					scrollbar.bar_position = scrollbar.position - scrollbar.start;
@@ -513,7 +512,6 @@ void UI_LISTBOX::process(int focus)
 				first_item = 0;
 
 			} else if (has_scrollbar) {
-				oldbarpos = scrollbar.position;
 				scrollbar.position = first_item;
 
 				scrollbar.bar_position = scrollbar.position - scrollbar.start;

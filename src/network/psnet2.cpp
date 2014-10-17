@@ -1225,7 +1225,7 @@ int psnet_rel_ping_compare( const void *arg1, const void *arg2 )
 
 void psnet_rel_send_ack(SOCKADDR *raddr, unsigned int sig, ubyte link_type, float time_sent)
 {
-	int ret, sig_tmp;
+	int sig_tmp;
 	reliable_header ack_header;
 	ack_header.type = RNT_ACK;	
 	ack_header.data_len = sizeof(unsigned int);
@@ -1238,14 +1238,14 @@ void psnet_rel_send_ack(SOCKADDR *raddr, unsigned int sig, ubyte link_type, floa
 			ml_string("No IPX in rel_send_ack()");
 			return;
 		}		
-		ret = SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+		SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
 		break;
 	case NET_TCP:
 		if(!Tcp_active){
 			ml_string("No TCP in rel_send_ack()");
 			return;
 		}
-		ret = SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+		SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
 		break;
 	default:		
 		ml_string("Unknown protocol type in nw_SendReliable()");
@@ -1453,7 +1453,6 @@ void psnet_rel_work()
 	static SOCKADDR rcv_addr;
 	int bytesin = 0;
 	int addrlen = sizeof(SOCKADDR);
-	unsigned int rcvid;//The id of who we actually received a packet from, as opposed to socketid parm
 	timeout.tv_sec=0;            
 	timeout.tv_usec=0;
 
@@ -1504,7 +1503,7 @@ void psnet_rel_work()
 
 	ubyte link_type;
 	net_addr_t d3_rcv_addr;
-	SOCKADDR_IN *rcvaddr,*rsockaddr;
+	SOCKADDR_IN *rcvaddr;
 	int ipx_has_data = 0;
 	int udp_has_data = 0;
 	do {		
@@ -1608,10 +1607,8 @@ void psnet_rel_work()
 			//Find out if this is a packet from someone we were expecting a packet.
 			rcvaddr = (SOCKADDR_IN *)&rcv_addr;
 			for(i=1; i<MAXRELIABLESOCKETS; i++){
-				rsockaddr = (SOCKADDR_IN *)&Reliable_sockets[i].addr;
 				if(memcmp(&d3_rcv_addr,&Reliable_sockets[i].net_addr,sizeof(net_addr_t)) == 0){
 					rsocket=&Reliable_sockets[i];
-					rcvid = i;
 					break;
 				}				
 			}
@@ -1915,8 +1912,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 	int addrlen;
 	ubyte iaddr[6];
 	ushort port;
-	int name_length;
-	float time_sent_req = 0;
+//	float time_sent_req = 0;
 	float first_sent_req = 0;
 	static reliable_header conn_header;
 	static reliable_header ack_header;
@@ -1999,7 +1995,6 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 			memcpy(ipx_addr.sa_netnum, server_addr->net_id, 4);
 			ipx_addr.sa_socket = htons(port);
 			addr = (SOCKADDR *)&ipx_addr;
-			name_length = sizeof(ipx_addr);
 			if( SOCKET_ERROR == SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE) ){
 				ml_printf("Unable to send IPX packet in nw_ConnectToServer()! -- %d\n",WSAGetLastError());
 				return;
@@ -2015,7 +2010,6 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 			memcpy(&sockaddr.sin_addr.s_addr, iaddr, 4);
 			sockaddr.sin_port = htons(port); 
 			addr = (SOCKADDR *)&sockaddr;
-			name_length = sizeof(sockaddr);
 			if( SOCKET_ERROR == SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE) ){
 				ml_printf("Unable to send UDP packet in nw_ConnectToServer()! -- %d\n",WSAGetLastError());
 				return;
@@ -2034,7 +2028,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 
 	
 	first_sent_req = psnet_get_time();
-	time_sent_req = psnet_get_time();
+//	time_sent_req = psnet_get_time();
 	
 	//Wait until we get a response from the server or we timeout
 	
@@ -2634,7 +2628,7 @@ void psnet_ras_status()
 // set some options on a socket
 void psnet_socket_options( SOCKET sock )
 {
-	int broadcast, ret;
+	int broadcast;//, ret;
 #ifndef PLAT_UNIX
 	int cursize, cursizesize, bufsize; 
 #else
@@ -2660,14 +2654,14 @@ void psnet_socket_options( SOCKET sock )
 	cursizesize = sizeof(int);
 	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&cursize, &cursizesize);
 	// for ( trysize = bufsize; trysize >= cursize; trysize >>= 1 ) {
-	ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize, sizeof(bufsize));
-	if ( ret == SOCKET_ERROR ) {
+	/*ret =*/ setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize, sizeof(bufsize));
+	/*if ( ret == SOCKET_ERROR ) {
 		int wserr;
 
 		wserr = WSAGetLastError();
 		// if ( (wserr == WSAENOPROTOOPT) || (wserr == WSAEINVAL) )
 			// break;
-	}
+	}*/
 	// }
 	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&cursize, &cursizesize);
 	ml_printf("Receive buffer set to %d\n", cursize);
@@ -2676,15 +2670,15 @@ void psnet_socket_options( SOCKET sock )
 	cursizesize = sizeof(int);
 	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&cursize, &cursizesize);
 	// for ( trysize = bufsize; trysize >= cursize; trysize >>= 1 ) {
-	ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize, sizeof(bufsize));
-	if ( ret == SOCKET_ERROR ) {
+	/*ret =*/ setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize, sizeof(bufsize));
+	/*if ( ret == SOCKET_ERROR ) {
 		int wserr;
 
 		wserr = WSAGetLastError();
 		// if ( (wserr == WSAENOPROTOOPT) || (wserr == WSAEINVAL) ){
 			// break;
 		// }
-	} 
+	}*/
 	getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&cursize, &cursizesize);
 	ml_printf("Send buffer set to %d\n", cursize);
 }

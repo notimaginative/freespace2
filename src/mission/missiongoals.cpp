@@ -668,7 +668,7 @@ void goal_text::display(int n, int y)
 	y += Goal_screen_text_y;
 	if (*m_lines[n] == '*') {  // header line
 		gr_set_color_fast(&Color_text_heading);
-		len = min(m_line_sizes[n], sizeof(buf));
+		len = min(m_line_sizes[n], (int)sizeof(buf));
 		SDL_strlcpy(buf, m_lines[n] + 1, len);
 
 		gr_get_string_size(&w, &h, buf);
@@ -678,7 +678,7 @@ void goal_text::display(int n, int y)
 
 	} else {
 		gr_set_color_fast(&Color_text_normal);
-		len = min(m_line_sizes[n] + 1, sizeof(buf));
+		len = min(m_line_sizes[n] + 1, (int)sizeof(buf));
 		SDL_strlcpy(buf, m_lines[n], len);
 	}
 

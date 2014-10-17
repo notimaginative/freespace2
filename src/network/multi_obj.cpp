@@ -1082,7 +1082,6 @@ int multi_oo_maybe_update(net_player *pl, object *obj, ubyte *data)
 	float eye_dot, dist;
 	int in_cone;
 	int range;
-	int ship_index;
 	ship *shipp;
 	ship_info *sip;
 	ushort cur_pos_chksum = 0;
@@ -1097,7 +1096,6 @@ int multi_oo_maybe_update(net_player *pl, object *obj, ubyte *data)
 	// determine what the timestamp is for this object
 	if(obj->type == OBJ_SHIP){
 		stamp = Ships[obj->instance].np_updates[NET_PLAYER_NUM(pl)].update_stamp;
-		ship_index = &Ships[obj->instance] - Ships;
 	} else {
 		return 0;
 	}
@@ -1235,15 +1233,11 @@ void multi_oo_process_all(net_player *pl)
 	int idx;
 		
 	object *moveup;
-	object *pobj;	
 
 	// if the player has an invalid objnum..
 	if(pl->player->objnum < 0){
 		return;
 	}
-
-	// get the player's object
-	pobj = &Objects[pl->player->objnum];
 
 	object *targ_obj;	
 

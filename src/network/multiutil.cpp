@@ -2464,8 +2464,6 @@ void multi_handle_state_special()
 void multi_file_xfer_notify(int handle)
 {
 	char *filename;
-	int len,idx;
-	int force_dir;
 	int cf_type;
 	int is_mission = 0;	
 
@@ -2473,19 +2471,13 @@ void multi_file_xfer_notify(int handle)
 	filename = NULL;
 	filename = multi_xfer_get_filename(handle);
 
-	// get the directory the file is forced into
-	force_dir = multi_xfer_get_force_dir(handle);
-		
 	// something is messed up
 	if(filename == NULL){
 		return;
 	}
 
 	// convert the filename to all lowercase
-	len = strlen(filename);
-	for(idx=0;idx<len;idx++){
-		filename[idx] = (char)tolower(filename[idx]);
-	}		
+	SDL_strlwr(filename);
 
 	// if this is a mission file
 	is_mission = (strstr(filename, FS_MISSION_FILE_EXT) != NULL);
@@ -3321,7 +3313,8 @@ DCF(multi,"changes multiplayer settings")
 		} else if(strcmp(Dc_arg, "givecd")==0){
 			extern int Multi_has_cd;
 			Multi_has_cd = 1;
-		} else if(strcmp(Dc_arg, "oo")==0){						
+		/*
+		} else if(strcmp(Dc_arg, "oo")==0){
 			int new_flags = -1;
 
 			dc_get_arg(ARG_INT);
@@ -3330,7 +3323,8 @@ DCF(multi,"changes multiplayer settings")
 			}
 
 			dc_printf("Interesting flags\nPos : %d\nVelocity : %d\nDesired vel : %d\nOrient : %d\nRotvel : %d\nDesired rotvel %d\n",
-						 1<<0, 1<<7, 1<<8, 1<<1, 1<<9, 1<<10);						
+						 1<<0, 1<<7, 1<<8, 1<<1, 1<<9, 1<<10);
+		*/
 		} else if(strcmp(Dc_arg, "oo_sort")==0){			
 			extern int OO_sort;
 

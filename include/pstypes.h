@@ -238,28 +238,8 @@
 
 #include "SDL.h"
 
-#include <stdio.h>	// For NULL, etc
-#include <stdlib.h>
-#include <memory.h>
+#include "platform.h"
 
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
-
-#include <string.h>
-
-#ifdef PLAT_UNIX
-#include "unix.h"
-#endif
-
-// same thing that's in FS2_Open (credit: Mike Harris)
-#ifdef PLAT_UNIX
-#define DIR_SEPARATOR_CHAR '/'
-#define DIR_SEPARATOR_STR "/"
-#else
-#define DIR_SEPARATOR_CHAR '\\'
-#define DIR_SEPARATOR_STR "\\"
-#endif
 
 // value to represent an uninitialized state in any int or uint
 #define UNINITIALIZED 0x7f8e6d9c
@@ -273,9 +253,7 @@
 #define MAX_TEAMS		3
 
 #define USE_INLINE_ASM 1		// Define this to use inline assembly
-#define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(a))
 
-#define LOCAL static			// make module local varilable static.
 
 typedef Sint32 fix;
 typedef Uint8 ubyte;
@@ -310,15 +288,6 @@ typedef struct vector {
 typedef struct vectora {
 	float	xyz[3];
 } vectora;
-
-typedef struct vec2d {
-	float i,j;
-} vec2d;
-
-// Used for some 2d primitives, like gr_poly
-typedef struct vert2df {
-	float x, y;
-} vert2df;
 
 typedef struct angles {
 	float	p, b, h;

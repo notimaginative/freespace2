@@ -184,3 +184,38 @@ void Error( const char * filename, int line, const char * format, ... )
 
 	exit (1);
 }
+
+void base_filename(const char *path, char *filename, const int max_fname)
+{
+	if ( (filename == NULL) || (max_fname <= 0) ) {
+		return;
+	}
+
+	if (path == NULL) {
+		filename[0] = '\0';
+		return;
+	}
+
+	const char *sep = SDL_strrchr(path, DIR_SEPARATOR_CHAR);
+
+	if (sep) {
+		sep++;	// move past separator
+	} else {
+		sep = path;
+	}
+
+	const char *ext = SDL_strrchr(path, '.');
+
+	if (ext == NULL) {
+		ext = sep + SDL_strlen(sep);	// to end
+	}
+
+	// NOTE: 'size' must include NULL terminator
+	int size = min((int)(ext - sep + 1), max_fname);
+
+	if (size <= 0) {
+		filename[0] = '\0';
+	} else {
+		SDL_strlcpy(filename, sep, size);
+	}
+}

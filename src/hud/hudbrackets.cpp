@@ -464,8 +464,8 @@ void draw_brackets_diamond(int x1, int y1, int x2, int y2)
 	half_width = fl2i( width/2.0f + 0.5f );
 	half_height = fl2i( height/2.0f +0.5f );
 
-	side_len = (float)_hypot(half_width, half_height);
-	bracket_len = side_len / 8;
+	side_len = hypotf(i2fl(half_width), i2fl(half_height));
+	bracket_len = side_len / 8.0f;
 	
 	x_delta = fl2i(bracket_len * width / side_len + 0.5f);
 	y_delta = fl2i(bracket_len * height / side_len + 0.5f);
@@ -505,8 +505,8 @@ void draw_brackets_diamond_quick(int x1, int y1, int x2, int y2, int thick)
 	half_width = fl2i( width/2.0f + 0.5f);
 	half_height = fl2i( height/2.0f + 0.5f);
 
-	side_len = (float)_hypot(half_width, half_height);
-	bracket_len = side_len / 8;
+	side_len = hypotf(i2fl(half_width), i2fl(half_height));
+	bracket_len = side_len / 8.0f;
 	
 	x_delta = fl2i(bracket_len * width / side_len + 0.5f);
 	y_delta = fl2i(bracket_len * height / side_len + 0.5f);

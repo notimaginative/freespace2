@@ -1310,7 +1310,7 @@ void player_match_target_speed(char *no_target_text, char *match_off_text, char 
 // and a descent style ship.
 
 int use_descent = 0;
-LOCAL physics_info phys_save;
+static physics_info phys_save;
 
 void toggle_player_object()
 {

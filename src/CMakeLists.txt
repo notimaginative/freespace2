@@ -234,18 +234,12 @@ set(code_SOURCE
 )
 
 
-if(WIN32)
-  set(platform_SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/platform/platform.cpp
-	PARENT_SCOPE
-  )
-else()
-  set(platform_SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/platform/platform.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/platform/unix.cpp
-    PARENT_SCOPE
-  )
-endif()
+set(platform_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform/platform.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform/unix.cpp
+  PARENT_SCOPE
+)
+
 
 #
 # the game itself

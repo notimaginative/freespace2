@@ -385,7 +385,7 @@
 #include "neblightning.h"
 #include "fvi.h"
 
-LOCAL struct {
+static struct {
 	p_object *docker;
 	char dockee[NAME_LENGTH];
 	char docker_point[NAME_LENGTH];

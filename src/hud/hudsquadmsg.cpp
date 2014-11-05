@@ -280,20 +280,20 @@
 #define DEFAULT_MSG_TIMEOUT		(8 * 1000)		// number of seconds * 1000 to get milliseconds
 #define MSG_KEY_EAT_TIME			(300)
 
-LOCAL int Squad_msg_mode;							// current mode that the messaging system is in
-LOCAL int Msg_key_used;								// local variable which tells if the key being processed
+static int Squad_msg_mode;							// current mode that the messaging system is in
+static int Msg_key_used;								// local variable which tells if the key being processed
 															// with the messaging system was actually used
-LOCAL int Msg_key;									// global which indicates which key was currently pressed
-LOCAL int Msg_mode_timestamp;
-LOCAL int Msg_instance;						// variable which holds ship/wing instance to send the message to
-LOCAL int Msg_shortcut_command;			// holds command when using a shortcut key
-LOCAL int Msg_target_objnum;				// id of the current target of the player
-LOCAL ship_subsys *Msg_targeted_subsys;// pointer to current subsystem which is targeted
+static int Msg_key;									// global which indicates which key was currently pressed
+static int Msg_mode_timestamp;
+static int Msg_instance;						// variable which holds ship/wing instance to send the message to
+static int Msg_shortcut_command;			// holds command when using a shortcut key
+static int Msg_target_objnum;				// id of the current target of the player
+static ship_subsys *Msg_targeted_subsys;// pointer to current subsystem which is targeted
 //#ifndef NDEBUG
-LOCAL	int Msg_enemies;						// tells us whether or not to message enemy ships or friendlies
+static	int Msg_enemies;						// tells us whether or not to message enemy ships or friendlies
 //#endif
 
-LOCAL int Msg_eat_key_timestamp;			// used to temporarily "eat" keys
+static int Msg_eat_key_timestamp;			// used to temporarily "eat" keys
 
 // defined to position the messaging box
 int Mbox_item_h[GR_NUM_RESOLUTIONS] = {

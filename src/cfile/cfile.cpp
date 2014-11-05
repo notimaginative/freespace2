@@ -220,6 +220,8 @@
 #include <winbase.h>		/* needed for memory mapping of file functions */
 #else
 #include <unistd.h>
+#include <dirent.h>
+#include <fnmatch.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
@@ -299,9 +301,6 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 #define CFILE_STACK_MAX	8
 
 int cfile_inited = 0;
-static int Cfile_stack_pos = 0;
-
-static char Cfile_stack[CFILE_STACK_MAX][MAX_PATH_LEN];
 
 Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 CFILE Cfile_list[MAX_CFILE_BLOCKS];
@@ -399,166 +398,75 @@ int cfile_init(const char *extras_dir)
 }
 
 
-// Changes to a drive if valid.. 1=A, 2=B, etc
-// If flag, then changes to it.
-// Returns 0 if not-valid, 1 if valid.
-int cfile_chdrive( int DriveNum, int flag )
-{
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
-#else
-	int n, org;
-	int Valid = 0;
-
-	org = -1;
-	if (!flag)
-		org = _getdrive();
-
-	_chdrive( DriveNum );
-	n = _getdrive();
-
-
-	if (n == DriveNum )
-		Valid = 1;
-
-	if ( (!flag) && (n != org) )
-		_chdrive( org );
-	return Valid;
-#endif
-}
-
-// push current directory on a 'stack' (so we can restore it) and change the directory
-int cfile_push_chdir(int type)
-{
-	int e;
-	char dir[128];
-	char OriginalDirectory[128];
-	char *Path;
-	char NoDir[] = "\\.";
-
-	_getcwd(OriginalDirectory, 127);
-	SDL_assert(Cfile_stack_pos < CFILE_STACK_MAX);
-	SDL_strlcpy(Cfile_stack[Cfile_stack_pos++], OriginalDirectory, MAX_PATH_LEN);
-
-	cf_create_default_path_string( dir, type, NULL );
-	SDL_strlwr(dir);
-#ifndef PLAT_UNIX
-	char *Drive = SDL_strchr(dir, ':');
-
-	if (Drive) {
-		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
-			return 1;
-
-		Path = Drive+1;
-
-	} else 
-#endif
-	{
-		Path = dir;
-	}
-
-	if (!(*Path)) {
-		Path = NoDir;
-	}
-
-	// This chdir might get a critical error!
-	e = _chdir( Path );
-	if (e) {
-		cfile_chdrive( OriginalDirectory[0] - 'a' + 1, 1 );
-		return 2;
-	}
-
-	return 0;
-}
-
-
-int cfile_chdir(char *dir)
-{
-	int e;
-	char OriginalDirectory[128];
-	char *Path;
-	char NoDir[] = "\\.";
-
-	_getcwd(OriginalDirectory, 127);
-	SDL_strlwr(dir);
-
-#ifndef PLAT_UNIX
-	char *Drive = SDL_strchr(dir, ':');
-	if (Drive)	{
-		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
-			return 1;
-
-		Path = Drive+1;
-
-	} else 
-#endif
-	{
-		Path = dir;
-	}
-
-	if (!(*Path)) {
-		Path = NoDir;
-	}
-
-	// This chdir might get a critical error!
-	e = _chdir( Path );
-	if (e) {
-		cfile_chdrive( OriginalDirectory[0] - 'a' + 1, 1 );
-		return 2;
-	}
-
-	return 0;
-}
-
-int cfile_pop_dir()
-{
-	SDL_assert(Cfile_stack_pos);
-	Cfile_stack_pos--;
-	return cfile_chdir(Cfile_stack[Cfile_stack_pos]);
-}
-
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES
 int cfile_flush_dir(int dir_type)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
-#else
-	int find_handle;
+	char filespec[MAX_PATH_LEN];
 	int del_count;
-	_finddata_t find;
 
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
-	// attempt to change the directory to the passed type
-	if(cfile_push_chdir(dir_type)){
-		return 0;
-	}
+	cf_create_default_path_string(filespec, dir_type);
 
 	// proceed to delete the files
-	find_handle = _findfirst( "*", &find );
 	del_count = 0;
+
+#ifdef PLAT_UNIX
+	DIR *dirp;
+	struct dirent *dir;
+
+	dirp = opendir(filespec);
+	if (dirp) {
+		while ( (dir = readdir(dirp)) != NULL ) {
+			if ( !fnmatch("*", dir->d_name, 0) ) {
+				char fn[MAX_PATH_LEN];
+				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
+
+				struct stat buf;
+				if (stat(fn, &buf) == -1) {
+					continue;
+				}
+
+				if (!S_ISREG(buf.st_mode)) {
+					continue;
+				}
+
+				// delete the file
+				cf_delete(dir->d_name, dir_type);
+
+				// increment the deleted count
+				del_count++;
+			}
+		}
+
+		closedir(dirp);
+	}
+#else
+	int find_handle;
+	_finddata_t find;
+
+	SDL_strlcat( filespec, "*", sizeof(filespec) );
+
+	find_handle = _findfirst( filespec, &find );
+
 	if (find_handle != -1) {
-		do {			
+		do {
 			if (!(find.attrib & _A_SUBDIR) && !(find.attrib & _A_RDONLY)) {
 				// delete the file
-				cf_delete(find.name,dir_type);				
+				cf_delete(find.name, dir_type);
 
 				// increment the deleted count
 				del_count++;
 			}
 		} while (!_findnext(find_handle, &find));
+
 		_findclose( find_handle );
 	}
-
-	// pop the directory back
-	cfile_pop_dir();
+#endif
 
 	// return the # of files deleted
 	return del_count;
-#endif
 }
 
 
@@ -597,7 +505,7 @@ void cf_delete( const char *filename, int dir_type )
 	if (fp) {
 		// delete the file
 		fclose(fp);
-		_unlink(longname);
+		unlink(longname);
 	}
 
 }
@@ -639,8 +547,8 @@ int cf_rename(const char *old_name, const char *name, int dir_type)
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	int ret_code;
-	char old_longname[_MAX_PATH];
-	char new_longname[_MAX_PATH];
+	char old_longname[MAX_PATH_LEN];
+	char new_longname[MAX_PATH_LEN];
 	
 	cf_create_default_path_string( old_longname, dir_type, old_name );
 	cf_create_default_path_string( new_longname, dir_type, name );
@@ -687,7 +595,7 @@ void cf_create_directory( int dir_type )
 	for (i=num_dirs-1; i>=0; i-- )	{
 		cf_create_default_path_string( longname, dir_tree[i], NULL );
 
-		if ( _mkdir(longname)==0 )	{
+		if ( mkdir(longname, 0700) == 0 )	{
 			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
 		}
 	}
@@ -714,7 +622,7 @@ void cf_create_directory( int dir_type )
 
 CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, bool localize)
 {
-	char longname[_MAX_PATH];
+	char longname[MAX_PATH_LEN];
 
 //	nprintf(("CFILE", "CFILE -- trying to open %s\n", file_path ));
 // #if !defined(MULTIPLAYER_BETA_BUILD) && !defined(FS2_DEMO)

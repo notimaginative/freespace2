@@ -185,7 +185,6 @@ void os_deinit();
 
 // initialization/shutdown functions -----------------------------------------------
 
-extern void cf_create_directory( int dir_type );
 
 // If app_name is NULL or ommited, then TITLE is used
 // for the app name, which is where registry keys are stored.

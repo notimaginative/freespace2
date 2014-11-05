@@ -736,10 +736,10 @@ static int model_initted = 0;
 
 #ifndef NDEBUG
 CFILE *ss_fp;			// file pointer used to dump subsystem information
-char  model_filename[_MAX_PATH];		// temp used to store filename
-char	debug_name[_MAX_PATH];
+char  model_filename[MAX_PATH_LEN];		// temp used to store filename
+char	debug_name[MAX_PATH_LEN];
 int ss_warning_shown;		// have we shown the warning dialog concerning the subsystems?
-char	Global_filename[256];
+char	Global_filename[MAX_PATH_LEN];
 int Model_ram = 0;			// How much RAM the models use total
 #endif
 
@@ -1142,9 +1142,9 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 	}
 #ifndef NDEBUG
 	if ( !ss_warning_shown) {
-		char bname[_MAX_FNAME];
+		char bname[MAX_FILENAME_LEN];
 
-		_splitpath(model_filename, NULL, NULL, bname, NULL);
+		base_filename(model_filename, bname, sizeof(bname));
 		Warning(LOCATION, "A subsystem was found in model %s that does not have a record in ships.tbl.\nA list of subsystems for this ship will be dumped to:\n\ndata\\tables\\%s.subsystems for inclusion\n into ships.tbl.", model_filename, bname);
 
 		ss_warning_shown = 1;
@@ -1261,15 +1261,15 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	// into the game quicker
 #if 0
 	{
-		char bname[_MAX_FNAME];
+		char bname[MAX_PATH_LEN];
 
-		_splitpath(filename, NULL, NULL, bname, NULL);
-		sprintf(debug_name, sizeof(), "%s.subsystems", bname);
+		base_filename(filename, bname, sizeof(bname));
+		SDL_snprintf(debug_name, sizeof(debug_name), "%s.subsystems", bname);
 		ss_fp = cfopen(debug_name, "wb", CFILE_NORMAL, CF_TYPE_TABLES );
 		if ( !ss_fp )	{
 			mprintf(( "Can't open debug file for writing subsystems for %s\n", filename));
 		} else {
-			strcpy(model_filename, filename);
+			SDL_strlcpy(model_filename, filename, sizeof(model_filename));
 			ss_warning_shown = 0;
 		}
 	}
@@ -2038,7 +2038,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			size = cfilelength(ss_fp);
 			cfclose(ss_fp);
 			if ( size <= 0 )	{
-				_unlink(debug_name);
+				cf_delete(debug_name, CF_TYPE_TABLES);
 			}
 		}
 	}

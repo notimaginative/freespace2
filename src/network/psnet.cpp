@@ -235,10 +235,10 @@ typedef struct network_packet_buffer
 #define MAX_PACKET_BUFFERS		96
 
 #ifdef PSNET_BUFFER_OLD_SCHOOL
-	LOCAL network_packet_buffer packet_buffers[MAX_PACKET_BUFFERS];		// buffer to hold packets sent to us
-	LOCAL short packet_free_list[MAX_PACKET_BUFFERS];							// contains id's of free packet buffers
-	LOCAL Num_packet_buffers;
-	LOCAL int Largest_packet_index = 0;
+	static network_packet_buffer packet_buffers[MAX_PACKET_BUFFERS];		// buffer to hold packets sent to us
+	static short packet_free_list[MAX_PACKET_BUFFERS];							// contains id's of free packet buffers
+	static Num_packet_buffers;
+	static int Largest_packet_index = 0;
 
 	int	Next_packet_id;
 	int	Last_packet_id;
@@ -531,8 +531,8 @@ uint sock_get_ip()
 {
 	char LclHost[MAXHOSTNAME];
 	LPHOSTENT Hostent;
-	SOCKADDR_IN LclAddr;
-	SOCKADDR_IN RmtAddr;	
+	struct sockaddr_in LclAddr;
+	struct sockaddr_in RmtAddr;
 	SOCKET hSock;
 	int nRet;
 
@@ -559,15 +559,15 @@ uint sock_get_ip()
 int psnet_get_ip( SOCKET s )
 {
 	int rval, len;
-	SOCKADDR_IN local_addr;
+	struct sockaddr_in local_addr;
 
 	if ( Psnet_my_addr_valid ){
 		return 1;
 	}
 
-	memset(&local_addr, 0, sizeof(SOCKADDR_IN));
-	len = sizeof(SOCKADDR_IN);
-	rval = getsockname(s, (SOCKADDR *)&local_addr, &len );
+	memset(&local_addr, 0, sizeof(struct sockaddr_in));
+	len = sizeof(struct sockaddr_in);
+	rval = getsockname(s, (struct sockaddr *)&local_addr, &len );
 	if ( rval == SOCKET_ERROR )
 		return 0;
 
@@ -650,7 +650,7 @@ int psnet_init_stream( SOCKET *s, int type )
 int psnet_init_reliable(ushort port, int should_listen, int type)
 {
 	SOCKET sock = 0;		// JAS: Get rid of optimized warning
-	SOCKADDR_IN sockaddr;		// UDP/TCP socket structure
+	struct sockaddr_in sockaddr;		// UDP/TCP socket structure
 	SOCKADDR_IPX ipx_addr;		// IPX socket structure
 
 	// set up the reliable TCP transport socket
@@ -665,18 +665,18 @@ int psnet_init_reliable(ushort port, int should_listen, int type)
 		memset(&ipx_addr, 0, sizeof(SOCKADDR_IPX));
 		ipx_addr.sa_socket = htons( port );
 		ipx_addr.sa_family = AF_IPX;
-		if (bind(sock, (SOCKADDR *)&ipx_addr, sizeof(SOCKADDR_IPX)) == SOCKET_ERROR) {
+		if (bind(sock, (struct sockaddr *)&ipx_addr, sizeof(SOCKADDR_IPX)) == SOCKET_ERROR) {
 			nprintf(("Network", "Unable to bind reliable socket on port %d (%d)!\n"  , port, WSAGetLastError() )); 
 			return INVALID_SOCKET;
 		}
 		break;
 
 	case NET_TCP:
-		memset( &sockaddr, 0, sizeof(SOCKADDR_IN) );
+		memset( &sockaddr, 0, sizeof(struct sockaddr_in) );
 		sockaddr.sin_family = AF_INET; 
 		sockaddr.sin_addr.s_addr = INADDR_ANY;  //fill in with our IP
 		sockaddr.sin_port = htons( port );
-		if ( bind(sock, (SOCKADDR*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {	
+		if ( bind(sock, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 			nprintf(("Network", "Unable to bind reliable socket on port %d (%d)!\n"  , port, WSAGetLastError() )); 
 			return INVALID_SOCKET;
 		}
@@ -778,7 +778,7 @@ void psnet_init( int protocol, int port_num )
 	WSADATA wsa_data; 	
 
 	// UDP/TCP socket structure
-	SOCKADDR_IN sockaddr; 
+	struct sockaddr_in sockaddr;
 
 	// IPX socket structure
 	//SOCKADDR_IPX ipx_addr;
@@ -832,13 +832,13 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	// bind the socket
-	memset(&sockaddr,0,sizeof(SOCKADDR_IN));
+	memset(&sockaddr,0,sizeof(struct sockaddr_in));
 	sockaddr.sin_family = AF_INET; 
 
 	sockaddr.sin_addr.s_addr = INADDR_ANY;  //fill in with our IP
 
 	sockaddr.sin_port = htons( Psnet_default_port );
-	if ( bind(TCP_socket, (SOCKADDR*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {	
+	if ( bind(TCP_socket, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 		Tcp_failure_code = WSAGetLastError();
 		nprintf(( "Network", "Couldn't bind TCP socket (%d)! Invalidating TCP\n", Tcp_failure_code )); 
 		return;
@@ -870,7 +870,7 @@ void psnet_init( int protocol, int port_num )
 	TCP_reliable_socket = socket( AF_INET, SOCK_DGRAM, 0 );
 	if ( TCP_reliable_socket != INVALID_SOCKET )	{
 		// bind the socket
-		memset(&sockaddr,0,sizeof(SOCKADDR_IN));
+		memset(&sockaddr,0,sizeof(struct sockaddr_in));
 		sockaddr.sin_family = AF_INET; 
 
 		sockaddr.sin_addr.s_addr = INADDR_ANY;  //fill in with our IP
@@ -878,7 +878,7 @@ void psnet_init( int protocol, int port_num )
 		//memcpy(&sockaddr.sin_addr.s_addr,&my_ip,sizeof(uint));
 
 		sockaddr.sin_port = htons( (ushort)(port+1) );
-		if ( bind(TCP_reliable_socket, (SOCKADDR*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {	
+		if ( bind(TCP_reliable_socket, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 			nprintf(( "Network", "Couldn't bind TCP socket (%d)! Invalidating TCP\n", WSAGetLastError() )); 
 			goto tcp_done;
 		}
@@ -1094,7 +1094,7 @@ int psnet_use_protocol( int protocol )
 
 		// get the socket name for the IPX_socket, and put it into My_addr
 		len = sizeof(SOCKADDR_IPX);
-		if ( getsockname(IPX_socket, (SOCKADDR *)&ipx_addr, &len) == SOCKET_ERROR ) {
+		if ( getsockname(IPX_socket, (struct sockaddr *)&ipx_addr, &len) == SOCKET_ERROR ) {
 			nprintf(("Network", "Unable to get sock name for IPX unreliable socket (%d)\n", WSAGetLastError() ));
 			return 0;
 		}
@@ -1140,9 +1140,9 @@ int psnet_use_protocol( int protocol )
 // Reliable_socket socket created in psnet_init
 void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr *server_addr)
 {
-	SOCKADDR_IN sockaddr;				// UDP/TCP socket structure
+	struct sockaddr_in sockaddr;				// UDP/TCP socket structure
 	SOCKADDR_IPX ipx_addr;				// IPX socket structure
-	SOCKADDR *addr;						// pointer to SOCKADDR to make coding easier
+	struct sockaddr *addr;						// pointer to struct sockaddr to make coding easier
 	SOCKET *socket;
 	ubyte iaddr[6];
 	u_short port;
@@ -1160,7 +1160,7 @@ void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr *server_addr)
 		memcpy(ipx_addr.sa_nodenum, iaddr, 6);
 		memcpy(ipx_addr.sa_netnum, server_addr->net_id, 4);
 		ipx_addr.sa_socket = htons(port);
-		addr = (SOCKADDR *)&ipx_addr;
+		addr = (struct sockaddr *)&ipx_addr;
 		name_length = sizeof(ipx_addr);
 		break;
 
@@ -1168,7 +1168,7 @@ void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr *server_addr)
 		sockaddr.sin_family = AF_INET; 
 		memcpy(&sockaddr.sin_addr.s_addr, iaddr, 4);
 		sockaddr.sin_port = htons(port); 
-		addr = (SOCKADDR *)&sockaddr;
+		addr = (struct sockaddr *)&sockaddr;
 		name_length = sizeof(sockaddr);
 		break;
 
@@ -1376,7 +1376,7 @@ void psnet_string_to_addr( net_addr * address, char * text, const int max_textle
 // to package up and use
 void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 {
-	SOCKADDR_IN ip_addr;				// UDP/TCP socket structure
+	struct sockaddr_in ip_addr;				// UDP/TCP socket structure
 	SOCKADDR_IPX ipx_addr;			// IPX socket structure
 	fd_set	rfds;
 	timeval	timeout;
@@ -1386,7 +1386,7 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 	network_checksum_packet packet_data;
 
 	// clear the addresses to remove compiler warnings
-	memset(&ip_addr, 0, sizeof(SOCKADDR_IN));
+	memset(&ip_addr, 0, sizeof(struct sockaddr_in));
 	memset(&ipx_addr, 0, sizeof(SOCKADDR_IPX));
 
 	if ( Network_status != NETWORK_STATUS_RUNNING ) {
@@ -1432,18 +1432,18 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 		case NET_IPX:
 			from_len = sizeof(SOCKADDR_IPX);
 			if(flags & PSNET_FLAG_RAW){
-				read_len = recvfrom( socket, (char*)packet_read.data, MAX_PACKET_SIZE, 0,  (SOCKADDR*)&ipx_addr, &from_len );
+				read_len = recvfrom( socket, (char*)packet_read.data, MAX_PACKET_SIZE, 0,  (struct sockaddr*)&ipx_addr, &from_len );
 			} else {
-				read_len = recvfrom( socket, (char *)&packet_read, sizeof(packet_data), 0,  (SOCKADDR*)&ipx_addr, &from_len );
+				read_len = recvfrom( socket, (char *)&packet_read, sizeof(packet_data), 0,  (struct sockaddr*)&ipx_addr, &from_len );
 			}
 			break;
 
 		case NET_TCP:
-			from_len = sizeof(SOCKADDR_IN);
+			from_len = sizeof(struct sockaddr_in);
 			if(flags & PSNET_FLAG_RAW){
-				read_len = recvfrom( socket, (char*)packet_read.data, MAX_PACKET_SIZE, 0,  (SOCKADDR*)&ip_addr, &from_len );
+				read_len = recvfrom( socket, (char*)packet_read.data, MAX_PACKET_SIZE, 0,  (struct sockaddr*)&ip_addr, &from_len );
 			} else {
-				read_len = recvfrom( socket, (char *)&packet_read, sizeof(packet_data), 0,  (SOCKADDR*)&ip_addr, &from_len );
+				read_len = recvfrom( socket, (char *)&packet_read, sizeof(packet_data), 0,  (struct sockaddr*)&ip_addr, &from_len );
 			}
 			break;
 		
@@ -1595,7 +1595,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int flags, int reliable
 {
 	
 	SOCKET send_sock;
-	SOCKADDR_IN sockaddr;				// UDP/TCP socket structure
+	struct sockaddr_in sockaddr;				// UDP/TCP socket structure
 	SOCKADDR_IPX ipx_addr;				// IPX socket structure
 	int ret, send_len;
 	ubyte iaddr[6], *send_data;
@@ -1704,7 +1704,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int flags, int reliable
 			memcpy(ipx_addr.sa_nodenum, iaddr, 6);
 			memcpy(ipx_addr.sa_netnum, who_to->net_id, 4);
 				
-			ret = sendto(send_sock, (char *)send_data, send_len, 0, (SOCKADDR*)&ipx_addr, sizeof(ipx_addr));
+			ret = sendto(send_sock, (char *)send_data, send_len, 0, (struct sockaddr*)&ipx_addr, sizeof(ipx_addr));
 			if ( (ret != SOCKET_ERROR) && (ret != send_len) )
 				nprintf(("Network", "requested to send %d bytes -- sent %d instead!!!\n", send_len, ret));
 			break;
@@ -1716,7 +1716,7 @@ int psnet_send( net_addr * who_to, void * data, int len, int flags, int reliable
 			memcpy(&sockaddr.sin_addr.s_addr, iaddr, 4);
 			sockaddr.sin_port = htons(port); 
 
-			ret = sendto( send_sock, (char *)send_data, send_len, 0, (SOCKADDR*)&sockaddr, sizeof(sockaddr) );
+			ret = sendto( send_sock, (char *)send_data, send_len, 0, (struct sockaddr*)&sockaddr, sizeof(sockaddr) );
 			break;
 
 		default:
@@ -1969,7 +1969,7 @@ int psnet_rel_check_for_listen(net_addr *from_addr)
 	fd_set	rfds;
 	timeval	timeout;
 	SOCKET	sock;				// when trying to accept, this is new socket
-	SOCKADDR_IN ip_addr;				// UDP/TCP socket structure
+	struct sockaddr_in ip_addr;				// UDP/TCP socket structure
 	SOCKADDR_IPX ipx_addr;			// IPX socket structure
 	int from_len, error;
 	unsigned long arg;
@@ -1996,7 +1996,7 @@ int psnet_rel_check_for_listen(net_addr *from_addr)
 	switch ( Socket_type ) {
 	case NET_IPX:
 		from_len = sizeof(SOCKADDR_IPX);
-		sock = accept( Listen_socket, (SOCKADDR*)&ipx_addr, &from_len );
+		sock = accept( Listen_socket, (struct sockaddr*)&ipx_addr, &from_len );
 		from_addr->port = ntohs( ipx_addr.sa_socket );
 		memcpy(from_addr->addr, ipx_addr.sa_nodenum, 6 );
 		memcpy(from_addr->net_id, ipx_addr.sa_netnum, 4 );
@@ -2004,8 +2004,8 @@ int psnet_rel_check_for_listen(net_addr *from_addr)
 		break;
 
 	case NET_TCP:
-		from_len = sizeof(SOCKADDR_IN);
-		sock = accept( Listen_socket, (SOCKADDR*)&ip_addr, &from_len );
+		from_len = sizeof(struct sockaddr_in);
+		sock = accept( Listen_socket, (struct sockaddr*)&ip_addr, &from_len );
 		from_addr->port = ntohs( ip_addr.sin_port );
 		memset(from_addr->addr, 0x00, 6);
 		memcpy(from_addr->addr, &ip_addr.sin_addr.S_un.S_addr, 4);
@@ -2045,7 +2045,7 @@ int psnet_get( void * data, net_addr* from_addr, int flags )
 	fd_set	rfds;
 	timeval	timeout;
 	int read_len,from_len;
-	SOCKADDR_IN ip_addr;
+	struct sockaddr_in ip_addr;
 	FD_ZERO(&rfds);
 	FD_SET( Unreliable_socket, &rfds );
 	timeout.tv_sec = 0;
@@ -2066,8 +2066,8 @@ int psnet_get( void * data, net_addr* from_addr, int flags )
 
 	// get data off the socket and process
 	read_len = SOCKET_ERROR;	
-	from_len = sizeof(SOCKADDR_IN);	
-	read_len = recvfrom( Unreliable_socket, (char*)data, MAX_PACKET_SIZE, 0,  (SOCKADDR*)&ip_addr, &from_len );	
+	from_len = sizeof(struct sockaddr_in);
+	read_len = recvfrom( Unreliable_socket, (char*)data, MAX_PACKET_SIZE, 0,  (struct sockaddr*)&ip_addr, &from_len );
 	from_addr->port = ntohs( ip_addr.sin_port );	
 	memset(from_addr->addr, 0x00, 6);
 	memcpy(from_addr->addr, &ip_addr.sin_addr.S_un.S_addr, 4);	
@@ -2319,10 +2319,10 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 #ifndef PSNET_BUFFER_OLD_SCHOOL
 
 // a sequence number of -1 will indicate that this packet is not valid
-LOCAL network_packet_buffer Psnet_buffers[MAX_PACKET_BUFFERS];
-LOCAL int Psnet_seq_number = 0;
-LOCAL int Psnet_lowest_id = 0;
-LOCAL int Psnet_highest_id = 0;
+static network_packet_buffer Psnet_buffers[MAX_PACKET_BUFFERS];
+static int Psnet_seq_number = 0;
+static int Psnet_lowest_id = 0;
+static int Psnet_highest_id = 0;
 
 // initialize the buffering system
 void psnet_buffer_init()

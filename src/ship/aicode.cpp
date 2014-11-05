@@ -1099,7 +1099,7 @@ void parse_aitbl()
 	lcl_ext_close();
 }
 
-LOCAL int ai_inited = 0;
+static int ai_inited = 0;
 
 //========================= BOOK-KEEPING FUNCTIONS =======================
 

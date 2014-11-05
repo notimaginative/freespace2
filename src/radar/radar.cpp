@@ -506,7 +506,7 @@ void radar_plot_object( object *objp )
 		float hypotenuse;
 		float max_radius;
 
-		hypotenuse = (float)_hypot(new_x_dist, new_y_dist);
+		hypotenuse = hypotf(new_x_dist, new_y_dist);
 		max_radius = i2fl(Radar_radius[gr_screen.res][0] - 5);
 
 		if (hypotenuse >= (max_radius) ) {

@@ -589,18 +589,12 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info = NUL
 // Returns: If not found returns 0.
 int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize = false);
 
-// Functions to change directories
-int cfile_chdir(char *dir);
-int cfile_chdrive(int DriveNum, int flag);
-
-// push current directory on a 'stack' (so we can restore it) and change the directory
-int cfile_push_chdir(int type);
-
-// restore directory on top of the stack
-int cfile_pop_dir();
-
 // initializes Cfile_root_dir[] and Cfile_user_dir[]
 int cfile_init_paths();
+
+// Creates the directory path if it doesn't exist. Even creates all its
+// parent paths.
+void cf_create_directory( int dir_type );
 
 #endif	/* __CFILE_H__ */
 

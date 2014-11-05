@@ -251,9 +251,9 @@ int Granted_ships[MAX_SHIP_TYPES];
 int Granted_weapons[MAX_WEAPON_TYPES];
 
 // variables to control the UI stuff for loading campaigns
-LOCAL UI_WINDOW Campaign_window;
-LOCAL UI_LISTBOX Campaign_listbox;
-LOCAL UI_BUTTON Campaign_okb, Campaign_cancelb;
+static UI_WINDOW Campaign_window;
+static UI_LISTBOX Campaign_listbox;
+static UI_BUTTON Campaign_okb, Campaign_cancelb;
 
 // the campaign!!!!!
 campaign Campaign;
@@ -428,7 +428,7 @@ void mission_campaign_build_list( int multiplayer )
 				if (SDL_strcasecmp(dir->d_name, BUILTIN_CAMPAIGN) == 0)
 					continue;
 				
-				char fn[MAX_PATH];
+				char fn[MAX_PATH_LEN];
 				SDL_snprintf(fn, sizeof(fn), "%s/%s", wild_card, dir->d_name);
 			
 				struct stat buf;
@@ -448,12 +448,12 @@ void mission_campaign_build_list( int multiplayer )
 #else
 	int find_handle;
 	_finddata_t find;
-	char wild_card[256];
+	char wild_card[MAX_PATH_LEN];
 
 	Num_campaigns = 0;
 	mission_campaign_maybe_add( BUILTIN_CAMPAIGN, multiplayer);
 
-	memset(wild_card, 0, 256);
+	memset(wild_card, 0, sizeof(wild_card));
 	SDL_strlcpy(wild_card, NOX("data\\missions\\*"), sizeof(wild_card));
 	SDL_strlcat(wild_card, FS_CAMPAIGN_FILE_EXT, sizeof(wild_card));
 	find_handle = _findfirst( wild_card, &find );
@@ -779,14 +779,14 @@ void mission_campaign_init()
 // Fill in the root of the campaign save filename
 void mission_campaign_savefile_generate_root(char *filename, const int max_len)
 {
-	char base[_MAX_FNAME];
+	char base[MAX_FILENAME_LEN];
 
 	SDL_assert ( strlen(Campaign.filename) != 0 );
 
 	// build up the filename for the save file.  There could be a problem with filename length,
 	// but this problem can get fixed in several ways -- ignore the problem for now though.
-	_splitpath( Campaign.filename, NULL, NULL, base, NULL );
-	SDL_assert ( (strlen(base) + strlen(Player->callsign) + 1) < _MAX_FNAME );
+	base_filename(Campaign.filename, base, sizeof(base));
+	SDL_assert ( (int)(strlen(base) + strlen(Player->callsign)) < max_len );
 
 	SDL_snprintf( filename, max_len, NOX("%s.%s."), Player->callsign, base );
 }
@@ -797,11 +797,11 @@ void mission_campaign_savefile_generate_root(char *filename, const int max_len)
 
 int mission_campaign_savefile_save()
 {
-	char filename[_MAX_FNAME];
+	char filename[MAX_PATH_LEN];
 	CFILE *fp;
 	int i,j, mission_count;
 
-	memset(filename, 0, _MAX_FNAME);
+	memset(filename, 0, sizeof(filename));
 	mission_campaign_savefile_generate_root(filename, sizeof(filename));
 
 	// name the file differently depending on whether we're in single player or multiplayer mode
@@ -867,7 +867,7 @@ int mission_campaign_savefile_save()
 	// ugh!  due to horrible bug, the stats saved at the end of every level were not written
 	// out to disk.  Write out a seperate file to do this.  We will only read it in if we actually
 	// find the file.
-	memset(filename, 0, _MAX_FNAME);
+	memset(filename, 0, sizeof(filename));
 	mission_campaign_savefile_generate_root(filename, sizeof(filename));
 
 	// name the file differently depending on whether we're in single player or multiplayer mode
@@ -928,9 +928,9 @@ int campaign_savefile_save(const char *pname)
 // campaign filename
 void mission_campaign_savefile_delete( const char *cfilename, int is_multi )
 {
-	char filename[_MAX_FNAME], base[_MAX_FNAME];
+	char filename[MAX_PATH_LEN], base[MAX_FILENAME_LEN];
 
-	_splitpath( cfilename, NULL, NULL, base, NULL );
+	base_filename(cfilename, base, sizeof(base));
 
 	if ( Player->flags & PLAYER_FLAGS_IS_MULTI ) {
 		return;	// no such thing as a multiplayer campaign savefile
@@ -986,7 +986,7 @@ void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi
 // of the information stored in the campaign file.
 void mission_campaign_savefile_load( const char *cfilename )
 {
-	char filename[_MAX_FNAME], base[_MAX_FNAME];
+	char filename[MAX_PATH_LEN], base[MAX_FILENAME_LEN];
 	int version, i, num, j, num_stats_blocks;
 	uint id, type_sig;
 	CFILE *fp;
@@ -998,8 +998,8 @@ void mission_campaign_savefile_load( const char *cfilename )
 
 	// build up the filename for the save file.  There could be a problem with filename length,
 	// but this problem can get fixed in several ways -- ignore the problem for now though.
-	_splitpath( cfilename, NULL, NULL, base, NULL );
-	SDL_assert ( (strlen(base) + strlen(Player->callsign) + 1) < _MAX_FNAME );
+	base_filename(cfilename, base, sizeof(base));
+	SDL_assert ( (strlen(base) + strlen(Player->callsign)) < sizeof(filename) );
 
 	if(Game_mode & GM_MULTIPLAYER)
 		SDL_snprintf( filename, sizeof(filename), NOX("%s.%s.msg"), Player->callsign, base );
@@ -1038,7 +1038,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 	// read in the filename of the campaign and compare the filenames to be sure that
 	// we are reading data that really belongs to this campaign.  I think that this check
 	// is redundant.
-	cfread_string_len( filename, _MAX_FNAME, fp );
+	cfread_string_len( filename, sizeof(filename), fp );
 	/*if ( SDL_strcasecmp( filename, cfilename) ) {	//	Used to be !SDL_strcasecmp.  How did this ever work? --MK, 11/9/97
 		Warning(LOCATION, "Campaign save file appears corrupt because of mismatching filenames.");
 		cfclose(fp);
@@ -1742,7 +1742,7 @@ void read_mission_goal_list(int num)
 int mission_campaign_find_mission( const char *name )
 {
 	int i;
-	char realname[_MAX_PATH];
+	char realname[MAX_FILENAME_LEN];
 
 	// look for an extension on the file.  If no extension, add default ".fsm" onto the
 	// end of the filename

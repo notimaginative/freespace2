@@ -886,7 +886,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 	anim			*ptr;
 	CFILE			*fp;
 	int			count,idx;
-	char name[_MAX_PATH];
+	char name[MAX_PATH_LEN];
 
 //	file_mapped = 0;
 
@@ -918,7 +918,6 @@ anim *anim_load(const char *real_filename, int file_mapped)
 		ptr->flags = 0;
 		ptr->next = first_anim;
 		first_anim = ptr;
-		SDL_assert(strlen(name) < _MAX_PATH - 1);
 		SDL_strlcpy(ptr->name, name, sizeof(ptr->name));
 		ptr->instance_count = 0;
 		ptr->width = 0;

@@ -972,7 +972,7 @@ void init_medal_bitmaps()
 			// which of the possible version to use based on the player's count of this medal
 			SDL_strlcpy( filename, Medals[idx].bitmap, sizeof(filename) );
 
-			_splitpath( filename, NULL, NULL, base, NULL );
+			base_filename(filename, base, sizeof(base));
 
 			num_medals = Player_score->medals[idx];
 

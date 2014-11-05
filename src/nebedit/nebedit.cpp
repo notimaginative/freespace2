@@ -330,7 +330,7 @@ int load_nebula_sub(const char *filename)
 
 void nebedit_close()
 {
-	char a_path[MAX_PATH];
+	char a_path[MAX_PATH_LEN];
 
 	cf_create_default_path_string(a_path, CF_TYPE_CACHE, "autosaved.neb");
 

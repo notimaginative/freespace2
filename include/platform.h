@@ -1,0 +1,25 @@
+#ifndef PLATFORM_H
+#define PLATFORM_H
+
+
+#include <stdio.h>	// For NULL, etc
+#include <stdlib.h>
+#include <memory.h>
+
+#ifndef __APPLE__
+#include <malloc.h>
+#endif
+
+#include <string.h>
+
+#ifdef PLAT_UNIX
+#include "unix.h"
+#else
+#include "win.h"
+#endif
+
+
+void base_filename(const char *path, char *filename, const int max_fname);
+
+
+#endif // PLATFORM_H

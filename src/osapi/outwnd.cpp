@@ -170,8 +170,6 @@
 #include "cfilesystem.h"
 
 
-extern void cf_create_directory( int dir_type );
-
 void outwnd_print(const char *id, const char *tmp);
 
 #define MAX_FILTERS 48

@@ -495,7 +495,7 @@ typedef struct pmessage {
 	int builtin_type;			// if a builtin message, type of the message
 } pmessage;
 
-LOCAL pmessage Playing_messages[MAX_PLAYING_MESSAGES];
+static pmessage Playing_messages[MAX_PLAYING_MESSAGES];
 
 int Message_shipnum;						// ship number of who is sending message to player -- used outside this module
 

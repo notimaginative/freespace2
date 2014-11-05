@@ -356,7 +356,7 @@ void swarm_update_direction(object *objp, float frametime)
 				missile_dist=i2fl(SWARM_DIST_OFFSET);
 			}
 			swarmp->angle_offset = (float)(asin(SWARM_DIST_OFFSET / missile_dist));
-			SDL_assert(!_isnan(swarmp->angle_offset) );
+			SDL_assert(!isnan(swarmp->angle_offset) );
 		}
 
 		swarmp->change_timestamp = timestamp(swarmp->change_time);
@@ -374,7 +374,7 @@ void swarm_update_direction(object *objp, float frametime)
 			missile_speed = pi->speed;
 			missile_dist = missile_speed * swarmp->change_time/1000.0f;
 			swarmp->angle_offset = (float)(asin(SWARM_DIST_OFFSET / missile_dist));
-			SDL_assert(!_isnan(swarmp->angle_offset) );
+			SDL_assert(!isnan(swarmp->angle_offset) );
 		}
 
 		vm_vec_sub(&obj_to_target, &swarmp->original_target, &objp->pos);

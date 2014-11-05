@@ -2435,7 +2435,7 @@ grid *brief_create_grid(grid *gridp, vector *forward, vector *right, vector *cen
 	gridp->gmatrix.v.uvec = uvec;
 
 	gridp->planeD = -(center->xyz.x * uvec.xyz.x + center->xyz.y * uvec.xyz.y + center->xyz.z * uvec.xyz.z);
-	SDL_assert(!_isnan(gridp->planeD));
+	SDL_assert(!isnan(gridp->planeD));
 
 	gridp->gmatrix.v.fvec = dfvec;
 	gridp->gmatrix.v.rvec = drvec;

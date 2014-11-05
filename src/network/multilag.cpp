@@ -156,7 +156,7 @@ typedef struct lag_buf {
 	int data_len;								// length of the data
 	uint socket;								// this can be either a PSNET_SOCKET or a PSNET_SOCKET_RELIABLE
 	int stamp;									// when this expires, make this packet available	
-	SOCKADDR_IN ip_addr;						// ip address when in TCP
+	struct sockaddr_in ip_addr;						// ip address when in TCP
 #ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;					// ipx address when in IPX mode
 #endif
@@ -273,7 +273,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 #else
 	char t_buf[1024];
 	int t_from_len;
-	SOCKADDR_IN ip_addr;
+	struct sockaddr_in ip_addr;
 #ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;
 #endif
@@ -285,7 +285,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	SDL_assert(except_fds == NULL);
 
 	// clear out addresses
-	memset(&ip_addr, 0, sizeof(SOCKADDR_IN));
+	memset(&ip_addr, 0, sizeof(struct sockaddr_in));
 #ifndef PLAT_UNIX
 	memset(&ipx_addr, 0, sizeof(SOCKADDR_IPX));
 #endif
@@ -294,12 +294,12 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	if(select(nfds, readfds, writefds, except_fds, timeout)){		
 		// read the data and stuff it
 		if(Tcp_active){						
-			t_from_len = sizeof(SOCKADDR_IN);
-			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (SOCKADDR*)&ip_addr, &t_from_len);
+			t_from_len = sizeof(struct sockaddr_in);
+			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
 #ifndef PLAT_UNIX
 		} else {
 			t_from_len = sizeof(SOCKADDR_IPX);
-			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (SOCKADDR*)&ipx_addr, &t_from_len);
+			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (struct sockaddr*)&ipx_addr, &t_from_len);
 #endif
 		}
 			
@@ -372,7 +372,7 @@ int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *f
 	SDL_assert(item->data_len <= len);
 	memcpy(buf, item->data, item->data_len);
 	if(Tcp_active){
-		memcpy(from, &item->ip_addr, sizeof(SOCKADDR_IN));
+		memcpy(from, &item->ip_addr, sizeof(struct sockaddr_in));
 #ifndef PLAT_UNIX
 	} else {
 		memcpy(from, &item->ipx_addr, sizeof(SOCKADDR_IPX));

@@ -394,8 +394,8 @@ extern void add_vector_data(ubyte *data, int *size, vector vec);
 // --------------------------------------------------------------------------------------------------
 
 
-LOCAL	int	Ingame_ships_deleted = 0;
-//LOCAL	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
+static	int	Ingame_ships_deleted = 0;
+//static	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
 
 
 // --------------------------------------------------------------------------------------------------
@@ -788,7 +788,7 @@ static int Multi_ingame_timer_coords[GR_NUM_RESOLUTIONS][2] = {
 //#define MULTI_INGAME_TIME_LEFT_Y			411
 
 #define MULTI_INGAME_TIME_SECONDS		(1000 * 15)
-LOCAL int Ingame_time_left;
+static int Ingame_time_left;
 
 // uses MULTI_JOIN_REFRESH_TIME as its timestamp
 UI_WINDOW Multi_ingame_window;											// the window object for the join screen

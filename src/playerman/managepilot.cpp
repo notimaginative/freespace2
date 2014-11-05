@@ -307,7 +307,7 @@ void delete_pilot_file( const char *pilot_name, int single )
 
 	// get the player file.
 
-	_splitpath(pilot_name, NULL, NULL, basename, NULL);
+	base_filename(pilot_name, basename, sizeof(basename));
 
 	SDL_strlcpy( filename, basename, sizeof(filename) );
 	SDL_strlcat(filename, NOX(".plr"), sizeof(filename) );

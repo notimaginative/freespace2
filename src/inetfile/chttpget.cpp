@@ -409,10 +409,9 @@ void ChttpGet::WorkerThread()
 
 int ChttpGet::ConnectSocket()
 {
-	//HOSTENT *he;
 	unsigned int ip;
-	SERVENT *se;
-	SOCKADDR_IN hostaddr;
+	struct servent *se;
+	struct sockaddr_in hostaddr;
 	if(m_Aborting){
 		return 0;
 	}
@@ -500,7 +499,7 @@ int ChttpGet::ConnectSocket()
 	timeval timeout;
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
-	int serr = connect(m_DataSock, (SOCKADDR *)&hostaddr, sizeof(SOCKADDR));
+	int serr = connect(m_DataSock, (struct sockaddr *)&hostaddr, sizeof(struct sockaddr));
 	int cerr = WSAGetLastError();
 	if(serr)
 	{
@@ -515,7 +514,7 @@ int ChttpGet::ConnectSocket()
 			}
 			if(m_Aborting)
 				return 0;
-			serr = connect(m_DataSock, (SOCKADDR *)&hostaddr, sizeof(SOCKADDR));
+			serr = connect(m_DataSock, (struct sockaddr *)&hostaddr, sizeof(struct sockaddr));
 			if(serr == 0)
 				break;
 			cerr = WSAGetLastError();
@@ -745,7 +744,7 @@ int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
 int http_gethostbynameworker(void *parm)
 {
 	async_dns_lookup *lookup = (async_dns_lookup *)parm;
-	HOSTENT *he = gethostbyname(lookup->host);
+	struct hostent *he = gethostbyname(lookup->host);
 	if(he==NULL)
 	{
 		lookup->error = true;

@@ -110,7 +110,7 @@ void CFtpGet::AbortGet()
 
 CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 {
-	SOCKADDR_IN listensockaddr;
+	struct sockaddr_in listensockaddr;
 	m_State = FTP_STATE_STARTUP;
 
 	m_ListenSock = INVALID_SOCKET;
@@ -160,7 +160,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 		listensockaddr.sin_addr.s_addr = INADDR_ANY;
 							
 		// Bind the listen socket
-		if (bind(m_ListenSock, (SOCKADDR *)&listensockaddr, sizeof(SOCKADDR)))
+		if (bind(m_ListenSock, (struct sockaddr *)&listensockaddr, sizeof(struct sockaddr)))
 		{
 			//Couldn't bind the socket
 			// int iWinsockErr = WSAGetLastError();
@@ -377,7 +377,7 @@ unsigned int CFtpGet::GetFile()
 	if(m_Aborting)
 		return 0;
 
-	m_DataSock = accept(m_ListenSock, NULL,NULL);//(SOCKADDR *)&sockaddr,&iAddrLength); 
+	m_DataSock = accept(m_ListenSock, NULL,NULL);//(struct sockaddr *)&sockaddr,&iAddrLength);
 	// Close the listen socket
 	closesocket(m_ListenSock);
 	if (m_DataSock == INVALID_SOCKET)
@@ -398,19 +398,19 @@ unsigned int CFtpGet::IssuePort()
 {
 
 	char szCommandString[200];
-	SOCKADDR_IN listenaddr;					// Socket address structure
+	struct sockaddr_in listenaddr;					// Socket address structure
 #ifndef PLAT_UNIX	
    int iLength;									// Length of the address structure
 #else
    socklen_t iLength;
 #endif   
-   UINT nLocalPort;							// Local port for listening
-	UINT nReplyCode;							// FTP server reply code
+	uint nLocalPort;							// Local port for listening
+	uint nReplyCode;							// FTP server reply code
 
 
    // Get the address for the hListenSocket
 	iLength = sizeof(listenaddr);
-	if (getsockname(m_ListenSock, (LPSOCKADDR)&listenaddr,&iLength) == SOCKET_ERROR)
+	if (getsockname(m_ListenSock, (struct sockaddr*)&listenaddr, &iLength) == SOCKET_ERROR)
 	{
 		// int iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_SOCKET_ERROR;
@@ -422,7 +422,7 @@ unsigned int CFtpGet::IssuePort()
 							
 	// Now, reuse the socket address structure to 
 	// get the IP address from the control socket.
-	if (getsockname(m_ControlSock, (LPSOCKADDR)&listenaddr,&iLength) == SOCKET_ERROR)
+	if (getsockname(m_ControlSock, (struct sockaddr*)&listenaddr, &iLength) == SOCKET_ERROR)
 	{
 		// int iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_SOCKET_ERROR;
@@ -461,9 +461,9 @@ unsigned int CFtpGet::IssuePort()
 
 int CFtpGet::ConnectControlSocket()
 {
-	HOSTENT *he;
-	SERVENT *se;
-	SOCKADDR_IN hostaddr;
+	struct hostent *he;
+	struct servent *se;
+	struct sockaddr_in hostaddr;
 	he = gethostbyname(m_szHost);
 	if(he == NULL)
 	{
@@ -488,7 +488,7 @@ int CFtpGet::ConnectControlSocket()
 	if(m_Aborting)
 		return 0;
 	//Now we will connect to the host					
-	if(connect(m_ControlSock, (SOCKADDR *)&hostaddr, sizeof(SOCKADDR)))
+	if(connect(m_ControlSock, (struct sockaddr *)&hostaddr, sizeof(struct sockaddr)))
 	{
 		// int iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_CANT_CONNECT;
@@ -637,7 +637,7 @@ unsigned int CFtpGet::ReadDataChannel()
 void CFtpGet::FlushControlChannel()
 {
 	fd_set read_fds;	           
-	TIMEVAL timeout;   	
+	struct timeval timeout;
 	char flushbuff[3];
 
 	timeout.tv_sec=0;            

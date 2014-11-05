@@ -337,15 +337,15 @@ time_t Next_bytes_time = -1;								// bytes sent
 int Multi_client_update_times[MAX_PLAYERS];	// client update packet timestamp
 
 // local network buffer data
-LOCAL ubyte net_buffer[NUM_REENTRANT_LEVELS][MAX_NET_BUFFER];
-LOCAL ubyte Multi_read_count;
+static ubyte net_buffer[NUM_REENTRANT_LEVELS][MAX_NET_BUFFER];
+static ubyte Multi_read_count;
 
 int Multi_restr_query_timestamp = -1;
 join_request Multi_restr_join_request;
 net_addr_t Multi_restr_addr;				
 int Multi_join_restr_mode = -1;
 
-LOCAL fix Multi_server_wait_start;				// variable to hold start time when waiting to reestablish with server
+static fix Multi_server_wait_start;				// variable to hold start time when waiting to reestablish with server
 
 // non API master tracker vars
 char Multi_tracker_login[100] = "";

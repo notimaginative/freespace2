@@ -375,7 +375,7 @@ void cf_build_pack_list( cf_root *root )
 				{
 					SDL_assert(root_index < temp_root_count);
 
-					char fn[MAX_PATH];
+					char fn[MAX_PATH_LEN];
 					SDL_snprintf(fn, sizeof(fn), "%s/%s", filespec, dir->d_name);
 							
 					struct stat buf;
@@ -572,8 +572,8 @@ void cf_search_root_path(int root_index)
 			{
 				if (!fnmatch ("*.*", dir->d_name, 0))
 				{
-					char fn[MAX_PATH];
-					SDL_snprintf(fn, MAX_PATH, "%s/%s", search_path, dir->d_name);
+					char fn[MAX_PATH_LEN];
+					SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", search_path, dir->d_name);
 							
 					struct stat buf;
 					if (stat(fn, &buf) == -1) {
@@ -1050,8 +1050,8 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 				if (fnmatch(filter, dir->d_name, 0) != 0)
 					continue;
 				
-				char fn[MAX_PATH];
-				SDL_snprintf(fn, MAX_PATH, "%s/%s", filespec, dir->d_name);
+				char fn[MAX_PATH_LEN];
+				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
 							
 				struct stat buf;
 				if (stat(fn, &buf) == -1) {
@@ -1234,8 +1234,8 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 				if (fnmatch(filter, dir->d_name, 0) != 0)
 					continue;
 				
-				char fn[MAX_PATH];
-				SDL_snprintf(fn, MAX_PATH, "%s/%s", filespec, dir->d_name);
+				char fn[MAX_PATH_LEN];
+				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
 							
 				struct stat buf;
 				if (stat(fn, &buf) == -1) {

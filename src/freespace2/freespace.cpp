@@ -847,7 +847,7 @@ extern void ssm_process();
 // static variable to contain the time this version was built
 // commented out for now until
 // I figure out how to get the username into the file
-//LOCAL char freespace_build_time[] = "Compiled on:"__DATE__" "__TIME__" by "__USER__;
+//static char freespace_build_time[] = "Compiled on:"__DATE__" "__TIME__" by "__USER__;
 
 // defines and variables used for dumping frame for making trailers.
 #ifndef NDEBUG
@@ -2410,7 +2410,7 @@ void game_init()
 
 	// check if sparky_hi exists -- access mode 0 means does file exist
 #ifndef MAKE_FS1 // shoudn't have it so don't check
-	char sparky_path[MAX_PATH];
+	char sparky_path[MAX_PATH_LEN];
 	SDL_snprintf(sparky_path, sizeof(sparky_path), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, "sparky_hi_fs2.vp");
 
 	if ( access(sparky_path, 0) == 0 ) {

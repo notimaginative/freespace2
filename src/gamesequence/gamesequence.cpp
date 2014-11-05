@@ -257,8 +257,8 @@ typedef struct state_stack {
 } state_stack;
 
 // DO NOT MAKE THIS NON-STATIC!!!!
-LOCAL state_stack gs[GS_STACK_SIZE];
-LOCAL int gs_current_stack = -1;						// index of top state on stack.
+static state_stack gs[GS_STACK_SIZE];
+static int gs_current_stack = -1;						// index of top state on stack.
 
 static int state_reentry = 0;  // set if we are already in state processing
 static int state_processing_event_post = 0;  // set if we are already processing an event to switch states

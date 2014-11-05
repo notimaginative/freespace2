@@ -180,7 +180,7 @@
 // PSNET 2 DEFINES/VARS
 //
 
-BOOL		Psnet_my_addr_valid;
+int		Psnet_my_addr_valid;
 net_addr_t Psnet_my_addr;
 
 ubyte Null_address[6];
@@ -327,7 +327,7 @@ typedef struct {
 	unsigned short rsequence[MAXNETBUFFERS];				// This is the sequence number of the given packet
 	float last_packet_received;								// For a given connection, this is the last packet we received
 	float last_packet_sent;
-	SOCKADDR addr;													// SOCKADDR of our peer
+	struct sockaddr addr;													// struct sockaddr of our peer
 	ushort status;													// Status of this connection
 	unsigned short oursequence;								// This is the next sequence number the application is expecting
 	unsigned short theirsequence;								// This is the next sequence number the peer is expecting
@@ -453,14 +453,14 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 		break;
 
 	case NET_TCP:			
-		((SOCKADDR_IN*)from)->sin_port = htons(addr.port);
+		((struct sockaddr_in*)from)->sin_port = htons(addr.port);
 #ifdef PLAT_UNIX
-		memcpy(&((SOCKADDR_IN*)from)->sin_addr.s_addr, addr.addr, 4);		
+		memcpy(&((struct sockaddr_in*)from)->sin_addr.s_addr, addr.addr, 4);
 #else
-		memcpy(&((SOCKADDR_IN*)from)->sin_addr.S_un.S_addr, addr.addr, 4);		
+		memcpy(&((struct sockaddr_in*)from)->sin_addr.S_un.S_addr, addr.addr, 4);
 #endif
-		((SOCKADDR_IN*)from)->sin_family = AF_INET;
-		*fromlen = sizeof(SOCKADDR_IN);
+		((struct sockaddr_in*)from)->sin_family = AF_INET;
+		*fromlen = sizeof(struct sockaddr_in);
 		break;
 
 	default:
@@ -513,14 +513,14 @@ int SENDTO(SOCKET s, char * buf, int len, int flags, sockaddr *to, int tolen, in
 	// is the socket writeable?
 	
 	// send it
-	return sendto(s, outbuf, len + 1, flags, (SOCKADDR*)to, tolen);
+	return sendto(s, outbuf, len + 1, flags, (struct sockaddr*)to, tolen);
 }
 
 // call this once per frame to read everything off of our socket
 void PSNET_TOP_LAYER_PROCESS()
 {
 	// read socket stuff
-	SOCKADDR_IN ip_addr;				// UDP/TCP socket structure
+	struct sockaddr_in ip_addr;				// UDP/TCP socket structure
 #ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;			// IPX socket structure
 #endif
@@ -536,7 +536,7 @@ void PSNET_TOP_LAYER_PROCESS()
 	network_naked_packet packet_read;		
 
 	// clear the addresses to remove compiler warnings
-	memset(&ip_addr, 0, sizeof(SOCKADDR_IN));
+	memset(&ip_addr, 0, sizeof(struct sockaddr_in));
 #ifndef PLAT_UNIX
 	memset(&ipx_addr, 0, sizeof(SOCKADDR_IPX));
 #endif
@@ -575,13 +575,13 @@ void PSNET_TOP_LAYER_PROCESS()
 		case NET_IPX:
 #ifndef PLAT_UNIX
 			from_len = sizeof(SOCKADDR_IPX);			
-			read_len = recvfrom( Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0,  (SOCKADDR*)&ipx_addr, &from_len);
+			read_len = recvfrom( Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0,  (struct sockaddr*)&ipx_addr, &from_len);
 #endif
 			break;
 
 		case NET_TCP:
-			from_len = sizeof(SOCKADDR_IN);			
-			read_len = recvfrom( Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0,  (SOCKADDR*)&ip_addr, &from_len);
+			from_len = sizeof(struct sockaddr_in);
+			read_len = recvfrom( Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0,  (struct sockaddr*)&ip_addr, &from_len);
 			break;
 		
 		default:
@@ -802,7 +802,7 @@ int psnet_use_protocol( int protocol )
 #else
 	socklen_t len;
 #endif
-	SOCKADDR_IN		ip_addr;
+	struct sockaddr_in		ip_addr;
 
 	// zero out my address
 	Psnet_my_addr_valid = 0;
@@ -828,7 +828,7 @@ int psnet_use_protocol( int protocol )
 
 		// get the socket name for the IPX_socket, and put it into My_addr
 		len = sizeof(SOCKADDR_IPX);
-		if ( getsockname(IPX_socket, (SOCKADDR *)&ipx_addr, &len) == SOCKET_ERROR ) {
+		if ( getsockname(IPX_socket, (struct sockaddr *)&ipx_addr, &len) == SOCKET_ERROR ) {
 			ml_printf("Unable to get sock name for IPX unreliable socket (%d)\n", WSAGetLastError() );
 			return 0;
 		}
@@ -856,8 +856,8 @@ int psnet_use_protocol( int protocol )
 		}
 
 		// get the socket name for the IPX_socket, and put it into My_addr
-		len = sizeof(SOCKADDR_IN);
-		if ( getsockname(TCP_socket, (SOCKADDR *)&ip_addr, &len) == SOCKET_ERROR ) {
+		len = sizeof(struct sockaddr_in);
+		if ( getsockname(TCP_socket, (struct sockaddr *)&ip_addr, &len) == SOCKET_ERROR ) {
 			ml_printf("Unable to get sock name for TCP unreliable socket (%d)\n", WSAGetLastError() );			
 
 			return 0;
@@ -1019,7 +1019,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 {
 	// send data unreliably
 	SOCKET send_sock;
-	SOCKADDR_IN sockaddr;				// UDP/TCP socket structure
+	struct sockaddr_in sockaddr;				// UDP/TCP socket structure
 #ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;				// IPX socket structure
 #endif
@@ -1088,7 +1088,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 			memcpy(ipx_addr.sa_nodenum, iaddr, 6);
 			memcpy(ipx_addr.sa_netnum, who_to->net_id, 4);
 				
-			ret = SENDTO(send_sock, (char *)send_data, send_len, 0, (SOCKADDR*)&ipx_addr, sizeof(ipx_addr), PSNET_TYPE_UNRELIABLE);
+			ret = SENDTO(send_sock, (char *)send_data, send_len, 0, (struct sockaddr*)&ipx_addr, sizeof(ipx_addr), PSNET_TYPE_UNRELIABLE);
 
 			multi_rate_add(np_index, "ipx", send_len);
 			if ( (ret != SOCKET_ERROR) && (ret != send_len) ){
@@ -1104,7 +1104,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 
 			multi_rate_add(np_index, "udp(h)", send_len + UDP_HEADER_SIZE);
 			multi_rate_add(np_index, "udp", send_len);
-			ret = SENDTO( send_sock, (char *)send_data, send_len, 0, (SOCKADDR*)&sockaddr, sizeof(sockaddr), PSNET_TYPE_UNRELIABLE );
+			ret = SENDTO( send_sock, (char *)send_data, send_len, 0, (struct sockaddr*)&sockaddr, sizeof(sockaddr), PSNET_TYPE_UNRELIABLE );
 			break;
 
 		default:
@@ -1223,7 +1223,7 @@ int psnet_rel_ping_compare( const void *arg1, const void *arg2 )
 	return 0;
 }
 
-void psnet_rel_send_ack(SOCKADDR *raddr, unsigned int sig, ubyte link_type, float time_sent)
+void psnet_rel_send_ack(struct sockaddr *raddr, unsigned int sig, ubyte link_type, float time_sent)
 {
 	int sig_tmp;
 	reliable_header ack_header;
@@ -1238,14 +1238,14 @@ void psnet_rel_send_ack(SOCKADDR *raddr, unsigned int sig, ubyte link_type, floa
 			ml_string("No IPX in rel_send_ack()");
 			return;
 		}		
-		SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+		SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 		break;
 	case NET_TCP:
 		if(!Tcp_active){
 			ml_string("No TCP in rel_send_ack()");
 			return;
 		}
-		SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+		SENDTO(Unreliable_socket, (char *)&ack_header, RELIABLE_PACKET_HEADER_ONLY_SIZE+sizeof(unsigned int), 0, raddr, sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 		break;
 	default:		
 		ml_string("Unknown protocol type in nw_SendReliable()");
@@ -1299,13 +1299,13 @@ void psnet_rel_close_socket( PSNET_SOCKET_RELIABLE *sockp )
 			if(!Ipx_active){
 				 return;
 			}
-			SENDTO(Unreliable_socket, (char *)&diss_conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[*sockp].addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+			SENDTO(Unreliable_socket, (char *)&diss_conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[*sockp].addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 			break;
 		case NET_TCP:
 			if(!Tcp_active){
 				return;
 			}
-			SENDTO(Unreliable_socket, (char *)&diss_conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[*sockp].addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+			SENDTO(Unreliable_socket, (char *)&diss_conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[*sockp].addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 			break;
 		default:
 			ml_printf("Unknown protocol type in nw_CloseSocket()!\n");			
@@ -1365,7 +1365,7 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 			send_header.type = RNT_DATA;
 			send_header.send_time = psnet_get_time();
 			send_header.send_time = INTEL_FLOAT( send_header.send_time );
-			// SOCKADDR_IN * rsockaddr = (SOCKADDR_IN *)&rsocket->addr;
+			// struct sockaddr_in * rsockaddr = (struct sockaddr_in *)&rsocket->addr;
 					
 			if (send_this_packet){
 				switch ( rsocket->connection_type ){
@@ -1373,14 +1373,14 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 						if(!Ipx_active){
 							return 0;
 						}
-						bytesout = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+						bytesout = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 						break;
 					case NET_TCP:
 						if(!Tcp_active){
 							return 0;
 						}
 						multi_rate_add(np_index, "tcp(h)", RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i]);
-						bytesout = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+						bytesout = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 						break;
 					default:
 						ml_printf("Unknown protocol type in nw_SendReliable()!\n");
@@ -1448,11 +1448,11 @@ void psnet_rel_work()
 	int rcode = -1;
 	int max_len = NETBUFFERSIZE;
 	fd_set read_fds;	           
-	TIMEVAL timeout; 
+	struct timeval timeout;
 	static reliable_header rcv_buff;
-	static SOCKADDR rcv_addr;
+	static struct sockaddr rcv_addr;
 	int bytesin = 0;
-	int addrlen = sizeof(SOCKADDR);
+	int addrlen = sizeof(struct sockaddr);
 	timeout.tv_sec=0;            
 	timeout.tv_usec=0;
 
@@ -1477,7 +1477,7 @@ void psnet_rel_work()
 					Int3();
 					return;
 				}
-				ret = SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[Serverconn].addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+				ret = SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[Serverconn].addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 				break;
 			case NET_TCP:
 				if(!Tcp_active){
@@ -1485,7 +1485,7 @@ void psnet_rel_work()
 					Int3();
 					return;
 				}
-				ret = SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[Serverconn].addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+				ret = SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[Serverconn].addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 				break;
 			default:
 				ml_printf("Unknown protocol type in nw_WorkReliable()!\n");
@@ -1503,7 +1503,7 @@ void psnet_rel_work()
 
 	ubyte link_type;
 	net_addr_t d3_rcv_addr;
-	SOCKADDR_IN *rcvaddr;
+	struct sockaddr_in *rcvaddr;
 	int ipx_has_data = 0;
 	int udp_has_data = 0;
 	do {		
@@ -1528,23 +1528,23 @@ void psnet_rel_work()
 #endif			
 		}
 		bytesin = 0;
-		addrlen = sizeof(SOCKADDR);
+		addrlen = sizeof(struct sockaddr);
 		if(ipx_has_data){
 #ifndef PLAT_UNIX
 			SOCKADDR_IPX *ipx_addr = (SOCKADDR_IPX *)&rcv_addr;
 			memset(&d3_rcv_addr,0,sizeof(net_addr_t));
-			memset(&rcv_addr,0,sizeof(SOCKADDR));
-			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
+			memset(&rcv_addr,0,sizeof(struct sockaddr));
+			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header),0,(struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			memcpy(d3_rcv_addr.addr, ipx_addr->sa_nodenum, 6);
 			memcpy(d3_rcv_addr.net_id, ipx_addr->sa_netnum, 4);				
 			d3_rcv_addr.type = NET_IPX;
 			link_type = NET_IPX;
 #endif
 		} else if(udp_has_data){
-			SOCKADDR_IN *tcp_addr = (SOCKADDR_IN *)&rcv_addr;
+			struct sockaddr_in *tcp_addr = (struct sockaddr_in *)&rcv_addr;
 			memset(&d3_rcv_addr,0,sizeof(net_addr_t));
-			memset(&rcv_addr,0,sizeof(SOCKADDR));
-			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
+			memset(&rcv_addr,0,sizeof(struct sockaddr));
+			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			rcv_buff.seq = INTEL_SHORT( rcv_buff.seq );
 			rcv_buff.data_len = INTEL_SHORT( rcv_buff.data_len );
 			rcv_buff.send_time = INTEL_FLOAT( rcv_buff.send_time );
@@ -1567,7 +1567,7 @@ void psnet_rel_work()
 			if(rcv_buff.type == RNT_REQ_CONN){
 				for(i=1; i<MAXRELIABLESOCKETS; i++){
 					if( (Reliable_sockets[i].status == RNF_CONNECTED) || (Reliable_sockets[i].status == RNF_LIMBO) ){
-						//if(memcmp(&rcv_addr,&reliable_sockets[i].addr,sizeof(SOCKADDR))==0)
+						//if(memcmp(&rcv_addr,&reliable_sockets[i].addr,sizeof(struct sockaddr))==0)
 						if(memcmp(&d3_rcv_addr, &Reliable_sockets[i].net_addr, sizeof(net_addr_t)) == 0){
 							//We already have a reliable link to this user, so we will ignore it...
 							ml_printf("Received duplicate connection request. %d\n",i);
@@ -1584,13 +1584,13 @@ void psnet_rel_work()
 						//Add the new connection here.
 						Reliable_sockets[i].connection_type=link_type;
 						memcpy(&Reliable_sockets[i].net_addr, &d3_rcv_addr, sizeof(net_addr_t));
-						memcpy(&Reliable_sockets[i].addr ,&rcv_addr, sizeof(SOCKADDR));
+						memcpy(&Reliable_sockets[i].addr ,&rcv_addr, sizeof(struct sockaddr));
 						Reliable_sockets[i].ping_pos = 0;
 						Reliable_sockets[i].num_ping_samples = 0;
 						Reliable_sockets[i].status = RNF_LIMBO;
 						Reliable_sockets[i].last_packet_received = psnet_get_time();
 						rsocket = &Reliable_sockets[i];
-						rcvaddr = (SOCKADDR_IN *)&rcv_addr;
+						rcvaddr = (struct sockaddr_in *)&rcv_addr;
 						ml_printf("Connect from %s:%d\n", inet_ntoa(rcvaddr->sin_addr), htons(rcvaddr->sin_port));
 						break;
 					}
@@ -1605,7 +1605,7 @@ void psnet_rel_work()
 			}
 			
 			//Find out if this is a packet from someone we were expecting a packet.
-			rcvaddr = (SOCKADDR_IN *)&rcv_addr;
+			rcvaddr = (struct sockaddr_in *)&rcv_addr;
 			for(i=1; i<MAXRELIABLESOCKETS; i++){
 				if(memcmp(&d3_rcv_addr,&Reliable_sockets[i].net_addr,sizeof(net_addr_t)) == 0){
 					rsocket=&Reliable_sockets[i];
@@ -1788,9 +1788,9 @@ void psnet_rel_work()
 					send_header.data_len = INTEL_SHORT( (ushort)rsocket->send_len[i] );
 					send_header.type = RNT_DATA;
 					if(rsocket->connection_type == NET_TCP){
-						rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+						rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 					} else if(rsocket->connection_type == NET_IPX){
-						rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+						rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 					}
 					if((rcode == SOCKET_ERROR) && (WSAEWOULDBLOCK == WSAGetLastError())){
 						//The packet didn't get sent, flag it to try again next frame
@@ -1813,9 +1813,9 @@ void psnet_rel_work()
 
 				rcode = -1;
 				if(rsocket->connection_type == NET_TCP){
-					rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&rsocket->addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+					rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 				} else if(rsocket->connection_type == NET_IPX){
-					rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&rsocket->addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+					rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 				}
 				if((rcode != SOCKET_ERROR) && (WSAEWOULDBLOCK != WSAGetLastError())){
 					//It must have been sent
@@ -1846,7 +1846,7 @@ int psnet_rel_get_status(PSNET_SOCKET_RELIABLE socketid)
 // returns 0 on error or nothing waiting.  1 if we should try to accept
 int psnet_rel_check_for_listen(net_addr_t *from_addr)
 {	
-	SOCKADDR_IN *ip_addr;				// UDP/TCP socket structure
+	struct sockaddr_in *ip_addr;				// UDP/TCP socket structure
 #ifndef PLAT_UNIX
 	SOCKADDR_IPX *ipx_addr;			// IPX socket structure	
 #endif
@@ -1856,7 +1856,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 	for(i=1; i<MAXRELIABLESOCKETS; i++){
 		if(Reliable_sockets[i].status == RNF_CONNECTING){
 			Reliable_sockets[i].status = RNF_CONNECTED;
-			//memcpy(from_addr,&reliable_sockets[i].addr,sizeof(SOCKADDR));
+			//memcpy(from_addr,&reliable_sockets[i].addr,sizeof(struct sockaddr));
 			ml_printf("New reliable connection in nw_CheckListenSocket().\n");
 			
 			switch ( Reliable_sockets[i].connection_type ){
@@ -1872,7 +1872,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 				break;
 
 			case NET_TCP:
-				ip_addr = (SOCKADDR_IN *)&Reliable_sockets[i].addr;
+				ip_addr = (struct sockaddr_in *)&Reliable_sockets[i].addr;
 				memset(from_addr, 0x00, sizeof(net_addr_t));
 				from_addr->port = ntohs( ip_addr->sin_port );
 				from_addr->type = NET_TCP;
@@ -1903,12 +1903,12 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 {	
 	//Send out a RNT_REQ_CONN packet, and wait for it to be acked.
-	SOCKADDR_IN sockaddr;				// UDP/TCP socket structure
+	struct sockaddr_in sockaddr;				// UDP/TCP socket structure
 #ifndef PLAT_UNIX
 	SOCKADDR_IPX ipx_addr;				// IPX socket structure
 #endif
-	SOCKADDR *addr = NULL;						// pointer to SOCKADDR to make coding easier
-	SOCKADDR rcv_addr;
+	struct sockaddr *addr = NULL;						// pointer to struct sockaddr to make coding easier
+	struct sockaddr rcv_addr;
 	int addrlen;
 	ubyte iaddr[6];
 	ushort port;
@@ -1948,8 +1948,8 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 #else
 		while(SELECT(Unreliable_socket+1, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE)){		
 #endif		
-			addrlen = sizeof(SOCKADDR);
-			bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
+			addrlen = sizeof(struct sockaddr);
+			bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			if(bytesin==-1){
 				//Int3();//See Kevin
 				ml_printf("UDP recvfrom returned an error! -- %d\n",WSAGetLastError());
@@ -1969,8 +1969,8 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 		while(SELECT(Unreliable_socket+1, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE))		
 #endif		
 		{
-			addrlen = sizeof(SOCKADDR);
-			bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
+			addrlen = sizeof(struct sockaddr);
+			bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			if(bytesin==-1)
 			{
 				//Int3();//See Kevin
@@ -1994,8 +1994,8 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 			memcpy(ipx_addr.sa_nodenum, iaddr, 6);
 			memcpy(ipx_addr.sa_netnum, server_addr->net_id, 4);
 			ipx_addr.sa_socket = htons(port);
-			addr = (SOCKADDR *)&ipx_addr;
-			if( SOCKET_ERROR == SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE) ){
+			addr = (struct sockaddr *)&ipx_addr;
+			if( SOCKET_ERROR == SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE) ){
 				ml_printf("Unable to send IPX packet in nw_ConnectToServer()! -- %d\n",WSAGetLastError());
 				return;
 			}
@@ -2009,8 +2009,8 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 			sockaddr.sin_family = AF_INET; 
 			memcpy(&sockaddr.sin_addr.s_addr, iaddr, 4);
 			sockaddr.sin_port = htons(port); 
-			addr = (SOCKADDR *)&sockaddr;
-			if( SOCKET_ERROR == SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE) ){
+			addr = (struct sockaddr *)&sockaddr;
+			if( SOCKET_ERROR == SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE) ){
 				ml_printf("Unable to send UDP packet in nw_ConnectToServer()! -- %d\n",WSAGetLastError());
 				return;
 			}
@@ -2044,8 +2044,8 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 #endif		
 			ml_string("selected() in psnet_rel_connect_to_server()");
 
-			addrlen = sizeof(SOCKADDR);
-			bytesin = RECVFROM(typeless_sock,(char *)&ack_header,sizeof(reliable_header),0,(SOCKADDR *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
+			addrlen = sizeof(struct sockaddr);
+			bytesin = RECVFROM(typeless_sock,(char *)&ack_header,sizeof(reliable_header),0,(struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 			if(bytesin==-1){
 				ml_printf("recvfrom returned an error! -- %d\n",WSAGetLastError());
 				Int3();//See Kevin
@@ -2065,7 +2065,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 								Reliable_sockets[i].connection_type = (ubyte)server_addr->type;
 								memcpy(&Reliable_sockets[i].net_addr,&d3_rcv_addr,sizeof(net_addr_t));
 								Reliable_sockets[i].last_packet_received = psnet_get_time();
-								memcpy(&Reliable_sockets[i].addr,&rcv_addr,sizeof(SOCKADDR));
+								memcpy(&Reliable_sockets[i].addr,&rcv_addr,sizeof(struct sockaddr));
 								Reliable_sockets[i].status = RNF_LIMBO;
 								*socket = i;
 								ml_printf("Succesfully connected to server in nw_ConnectToServer().\n");
@@ -2076,7 +2076,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 								Serverconn = i;
 								First_sent_iamhere = psnet_get_time();
 								Last_sent_iamhere = psnet_get_time();
-								int rcode = SENDTO(typeless_sock,(char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+								int rcode = SENDTO(typeless_sock,(char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 								if(rcode == SOCKET_ERROR){
 									*socket = INVALID_SOCKET;
 									Reliable_sockets[i].status = RNF_UNUSED;
@@ -2104,7 +2104,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 		if((psnet_get_time()-time_sent_req)>2)
 		{
 			ml_printf("Resending connect request.\n");
-			int ret = SENDTO(typeless_sock,(char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(SOCKADDR), PSNET_TYPE_RELIABLE);
+			int ret = SENDTO(typeless_sock,(char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 			if(ret != SOCKET_ERROR){
 				time_sent_req = psnet_get_time();
 			} else {
@@ -2122,7 +2122,7 @@ int psnet_rel_get_ip()
 {
 	char local[255];
 	LPHOSTENT hostent;
-	SOCKADDR_IN local_address;	
+	struct sockaddr_in local_address;
 	int ret;
 	
 	// Get the local host name
@@ -2145,7 +2145,7 @@ int psnet_rel_get_ip()
 // returns the ip address of this computer
 int psnet_get_ip()
 {	
-	SOCKADDR_IN local_address;
+	struct sockaddr_in local_address;
 
 	if(Psnet_connection == NETWORK_CONNECTION_DIALUP){	
 		local_address.sin_addr.s_addr = psnet_ras_status();
@@ -2167,7 +2167,7 @@ int psnet_get_ip()
 int psnet_init_rel_tcp(int port, int should_listen)
 {
 	/*
-	SOCKADDR_IN sockaddr;		
+	struct sockaddr_in sockaddr;
 
 	sockaddr.sin_port = htons((ushort)port);
 	sockaddr.sin_family = AF_INET; 
@@ -2183,7 +2183,7 @@ int psnet_init_rel_tcp(int port, int should_listen)
 		ml_printf("Unable to create reliable UDP socket -- %d\n", WSAGetLastError() );
 		
 		return 0;
-	} else if(bind(Reliable_UDP_socket,(SOCKADDR *)&sockaddr,sizeof(SOCKADDR))!=0){
+	} else if(bind(Reliable_UDP_socket,(struct sockaddr *)&sockaddr,sizeof(struct sockaddr))!=0){
 		ml_printf("Unable to bind reliable socket -- %d\n", WSAGetLastError() );
 		
 		return 0;
@@ -2224,7 +2224,7 @@ int psnet_init_rel_ipx(int port, int should_listen)
 		ml_printf("Unable to create reliable IPX socket -- %d\n", WSAGetLastError() );
 		
 		return 0;
-	} else if(bind(Reliable_IPX_socket,(SOCKADDR *)&ipx_addr,sizeof(SOCKADDR))!=0){
+	} else if(bind(Reliable_IPX_socket,(struct sockaddr *)&ipx_addr,sizeof(struct sockaddr))!=0){
 		ml_printf("Unable to bind reliable IPX socket -- %d\n", WSAGetLastError() );
 		
 		return 0;
@@ -2704,7 +2704,7 @@ int psnet_init_ipx()
 	memset(&sockaddr,0,sizeof(SOCKADDR_IPX));
 	sockaddr.sa_family = AF_IPX; 	
 	sockaddr.sa_socket = htons( Psnet_default_port );
-	if ( bind(IPX_socket, (SOCKADDR*)&sockaddr, sizeof (SOCKADDR_IPX)) == SOCKET_ERROR) {	
+	if ( bind(IPX_socket, (struct sockaddr*)&sockaddr, sizeof (SOCKADDR_IPX)) == SOCKET_ERROR) {
 		Ipx_failure_code = WSAGetLastError();
 		ml_printf("Couldn't bind IPX socket (%d)! Invalidating IPX\n", Ipx_failure_code ); 
 		return 0;
@@ -2722,7 +2722,7 @@ int psnet_init_ipx()
 // initialize tcp socket
 int psnet_init_tcp()
 {	
-	SOCKADDR_IN sockaddr;
+	struct sockaddr_in sockaddr;
 
 	TCP_socket = INVALID_SOCKET;	
 	
@@ -2734,11 +2734,11 @@ int psnet_init_tcp()
 	}
 
 	// bind the socket
-	memset(&sockaddr,0,sizeof(SOCKADDR_IN));
+	memset(&sockaddr,0,sizeof(struct sockaddr_in));
 	sockaddr.sin_family = AF_INET; 
 	sockaddr.sin_addr.s_addr = psnet_get_ip();
 	sockaddr.sin_port = htons( Psnet_default_port );
-	if ( bind(TCP_socket, (SOCKADDR*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {	
+	if ( bind(TCP_socket, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 		Tcp_failure_code = WSAGetLastError();
 		ml_printf("Couldn't bind TCP socket (%d)! Invalidating TCP\n", Tcp_failure_code ); 
 		return 0;

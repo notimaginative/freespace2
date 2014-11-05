@@ -95,6 +95,7 @@ add_library(code
   ${code_SOURCE}
   ${code_HEADERS}
   ${platform_SOURCE}
+  ${platform_HEADERS}
 )
 
 #

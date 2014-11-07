@@ -54,11 +54,13 @@ fix fixmul(fix a, fix b)
 
 fix fixdiv(fix a, fix b)
 {
-	return mul_div(a,65536,b);
+	Sint64 ret = (Sint64)a << 16;
+	return (fix)(ret / b);
 }
 
 fix fixmuldiv(fix a, fix b,fix c)
 {
-	return mul_div(a,b,c);
+	Sint64 ret = (Sint64)a * (Sint64)b;
+	return (fix)(ret / c);
 }
 

@@ -62,7 +62,7 @@
 
 #ifndef _LINE_H
 #define _LINE_H
-											
+
 
 #define INT_EXCHG(a,b) do {                                              \
     int __temp__ = (a);                                                 \
@@ -70,11 +70,11 @@
     (b) = __temp__;                                                     \
 } while(0)
 
-//#define INT_SCALE(var,arg,num,den) ((var) = ((arg) * (num)) / (den))
-#define INT_SCALE(var,arg,num,den) ((var) = mul_div(arg, num, den))
+#define INT_SCALE(var,arg,num,den) ((var) = ((arg) * (num)) / (den))
+//#define INT_SCALE(var,arg,num,den) ((var) = mul_div(arg, num, den))
 
 #define INT_CLIPLINE(x1,y1,x2,y2,XMIN,YMIN,XMAX,YMAX,WHEN_OUTSIDE,WHEN_CLIPPED,WHEN_SWAPPED) do {                                    \
-    int temp;                                                  \
+	int temp;                                                  \
                                                                         \
     if(y1 > y2)                                                         \
         { INT_EXCHG(y1,y2); INT_EXCHG(x1,x2); WHEN_SWAPPED; }                                 \

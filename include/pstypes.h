@@ -523,14 +523,6 @@ void dc_printf( const char *format, ... );
 //======================================================================================
 //======================================================================================
 
-inline int mul_div(int n, int num, int dem)
-{
-	Sint64 ret = n;
-	ret *= num;
-	ret /= dem;
-	return (int)ret;
-}
-
 #include "fix.h"
 #include "floating.h"
 

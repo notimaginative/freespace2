@@ -2367,10 +2367,8 @@ void game_init()
 	Use_fullscreen_at_startup = os_config_read_uint( NULL, NOX("ForceFullscreen"), 1 );
 #endif
 
-#if defined (PLAT_UNIX) && defined(RELEASE_REAL)
 	// show the FPS counter if the config file says so
-	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), 0 );
-#endif
+	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), Show_framerate );
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	Asteroids_enabled = 1;		

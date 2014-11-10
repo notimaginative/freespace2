@@ -310,7 +310,7 @@ void fonttool_remove_kerning( font *fnt )
 }
 
 
-void fonttool_edit_kerning(char *fname1, char *extras_dir)
+void fonttool_edit_kerning(char *fname1)
 {
 	int i, k,x;
 	int done;
@@ -338,7 +338,7 @@ void fonttool_edit_kerning(char *fname1, char *extras_dir)
 	//char *tok = strtok(c, " ");
 	//SDL_assert(tok != NULL);	
 
-	cfile_init(extras_dir);
+	cfile_init();
 
 	os_init( "FontTool", "FontTool - Kerning Table Editor" );
 

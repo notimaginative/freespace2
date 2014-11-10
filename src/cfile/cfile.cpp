@@ -359,7 +359,7 @@ int cfile_in_root_dir(char *exe_path)
 //	returns:  success ==> 0
 //           error   ==> non-zero
 //
-int cfile_init(const char *extras_dir)
+int cfile_init()
 {
 	int i;
 

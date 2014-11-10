@@ -856,7 +856,7 @@ int main(int argc, char *argv[])
 
 	timer_init();
 	// cfile_init(tok);
-	cfile_init(argv[0]);
+	cfile_init();
 	os_init( "NebEdit", "NebEdit" );	//SCREEN_W, SCREEN_H );
 	os_set_title("NebEdit");
 	gr_init(GR_640, GR_OPENGL, 16);

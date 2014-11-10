@@ -429,7 +429,7 @@ extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
 
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program
-int cfile_init(const char *extras_dir = NULL);
+int cfile_init();
 
 // add an extension to a filename if it doesn't already have it
 char *cf_add_ext(const char *filename, const char *ext);

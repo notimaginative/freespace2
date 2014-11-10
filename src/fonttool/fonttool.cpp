@@ -132,7 +132,7 @@ int main(int argc, char *argv[] )
 	else if ( (t1==PCX) && (t2==FONT) )
 		fonttool_create_font( argv[1], argv[2] );
 	else if ( (t1==FONT) && (t2==NONE) )
-		fonttool_edit_kerning( argv[1], argv[0] );
+		fonttool_edit_kerning( argv[1] );
 	else if ( (t1==FONT) && (t2==FONT) )
 		fonttool_kerning_copy( argv[1], argv[2] );
 	else

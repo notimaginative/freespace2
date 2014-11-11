@@ -517,6 +517,8 @@ typedef struct screen {
 	void (*gf_set_viewport)(int width, int height);
 
 	void (*gf_activate)(int active);
+
+	void (*gf_release_texture)(int handle);
 } screen;
 
 // handy macro
@@ -689,6 +691,8 @@ void gr_set_clear_color(int r, int g, int b);
 #define gr_zbias			GR_CALL(gr_screen.gf_zbias)
 
 #define gr_set_viewport		GR_CALL(gr_screen.gf_set_viewport)
+
+#define gr_release_texture	GR_CALL(gr_screen.gf_release_texture)
 
 void gr_force_fullscreen();
 void gr_force_windowed();

@@ -203,16 +203,6 @@ static int opengl1_free_texture ( tcache_slot_opengl *t )
 	return 1;
 }
 
-void opengl1_free_texture_with_handle(int handle)
-{
-	for(int i=0; i<MAX_BITMAPS; i++ )  {
-		if (Textures[i].bitmap_id == handle) {
-			Textures[i].used_this_frame = 0; // this bmp doesn't even exist any longer...
-			opengl1_free_texture ( &Textures[i] );
-		}
-	}
-}
-
 void opengl1_tcache_flush()
 {
 	int i;
@@ -877,4 +867,14 @@ void gr_opengl1_set_gamma(float gamma)
 
 	// Flush any existing textures
 	opengl1_tcache_flush();
+}
+
+void gr_opengl1_release_texture(int handle)
+{
+	for(int i=0; i<MAX_BITMAPS; i++ )  {
+		if (Textures[i].bitmap_id == handle) {
+			Textures[i].used_this_frame = 0; // this bmp doesn't even exist any longer...
+			opengl1_free_texture( &Textures[i] );
+		}
+	}
 }

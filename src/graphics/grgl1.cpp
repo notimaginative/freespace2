@@ -175,6 +175,8 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_set_viewport = gr_opengl1_set_viewport;
 
 	gr_screen.gf_activate = gr_opengl1_activate;
+
+	gr_screen.gf_release_texture = gr_opengl1_release_texture;
 }
 
 void opengl1_init()

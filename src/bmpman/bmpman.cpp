@@ -1874,8 +1874,6 @@ void bm_get_palette(int handle, ubyte *pal, char *name, const int name_len)
 //
 // returns:			nothing
 
-// opengl hack
-void opengl1_free_texture_with_handle(int handle);
 void bm_release(int handle)
 {
 	bitmap_entry	*be;
@@ -1901,10 +1899,10 @@ void bm_release(int handle)
 		return;
 	}
 
-// until opengl mode gets a proper texture manager, this will have to do
-#ifdef PLAT_UNIX
-	opengl1_free_texture_with_handle(handle);
-#endif
+	// free texture, if we should
+	if (gr_screen.gf_release_texture) {
+		gr_release_texture(handle);
+	}
 
 	bm_free_data(n);
 

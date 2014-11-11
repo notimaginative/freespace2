@@ -38,10 +38,6 @@
  */
 
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#endif
-
 #include "pstypes.h"
 #include "fix.h"
 

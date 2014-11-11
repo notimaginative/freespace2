@@ -1461,12 +1461,12 @@ int techroom_load_ani(anim **animpp, char *name)
 			return 0;
 		}
 
-		*animpp = anim_load(anim_filename, 1);
+		*animpp = anim_load(anim_filename);
 		if ( *animpp ) {
 			return 1;
 		} else if (gr_screen.res == GR_1024) {
 			// try to load low-res version if hi-res failed
-			*animpp = anim_load(name, 1);
+			*animpp = anim_load(name);
 			if (*animpp) {
 				return 1;
 			}

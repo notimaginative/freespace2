@@ -1453,12 +1453,12 @@ void wl_load_anim(int weapon_class)
 		// now check if file exists
 		// GRR must add a .ANI at the end for detection
 		SDL_strlcat(animation_filename,".ani", sizeof(animation_filename));
-		icon->anim = anim_load(animation_filename, 1);
+		icon->anim = anim_load(animation_filename);
 
 		if (icon->anim == NULL) {
 			mprintf(("Weapon ANI: Can not find %s, using lowres version instead.\n",animation_filename)); 
 			SDL_strlcpy(animation_filename, Weapon_info[weapon_class].anim_filename, sizeof(animation_filename));
-			icon->anim = anim_load(animation_filename, 1);
+			icon->anim = anim_load(animation_filename);
 		}
 
 		/*
@@ -1474,8 +1474,7 @@ void wl_load_anim(int weapon_class)
 	} else {
 		SDL_strlcpy(animation_filename, Weapon_info[weapon_class].anim_filename, sizeof(animation_filename));
 		// load the compressed ship animation into memory 
-		// NOTE: if last parm of load_anim is 1, the anim file is mapped to memory 
-		icon->anim = anim_load(animation_filename, 1);
+		icon->anim = anim_load(animation_filename);
 	}
 
 	if ( icon->anim == NULL ) {

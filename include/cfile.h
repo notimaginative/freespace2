@@ -409,7 +409,6 @@ typedef struct {
 
 // #define's for the type parameter in cfopen.  
 #define CFILE_NORMAL				0			// open file normally
-#define CFILE_MEMORY_MAPPED	(1<<0)	//	open file as a memory-mapped file
 
 #define CF_SORT_NONE	0
 #define CF_SORT_NAME 1
@@ -496,9 +495,6 @@ char *cfgets(char *buf, int n, CFILE *cfile);
 
 // cfeof() Tests for end-of-file on a stream
 int cfeof(CFILE *cfile);
-
-// Return the data pointer associated with the CFILE structure (for memory mapped files)
-void *cf_returndata(CFILE *cfile);
 
 // get the 2 byte checksum of the passed filename - return 0 if operation failed, 1 if succeeded
 int cf_chksum_short(const char *filename, ushort *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );

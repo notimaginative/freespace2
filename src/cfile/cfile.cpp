@@ -311,7 +311,6 @@ CFILE Cfile_list[MAX_CFILE_BLOCKS];
 int cfget_cfile_block();
 CFILE *cf_open_fill_cfblock(FILE * fp, int type);
 CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size);
-CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type);
 void cf_chksum_long_init();
 
 void cfile_close()
@@ -609,8 +608,7 @@ void cf_create_directory( int dir_type )
 // parameters:  *filepath ==> name of file to open (may be path+name)
 //              *mode     ==> specifies how file should be opened (eg "rb" for read binary)
 //                            passing NULL to mode deletes the file if it exists and returns NULL
-//               type     ==> one of:    CFILE_NORMAL
-//                                       CFILE_MEMORY_MAPPED
+//               type     ==> CFILE_NORMAL
 //					  dir_type	=>	override extension check, value is one of CF_TYPE* #defines
 //
 //               NOTE: type parameter is an optional parameter.  The default value is CFILE_NORMAL
@@ -631,24 +629,20 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 	// Check that all the parameters make sense
 	SDL_assert(file_path && strlen(file_path));
 	SDL_assert( mode != NULL );
-	
-	// Can only open read-only binary files in memory mapped mode.
-	if ( (type & CFILE_MEMORY_MAPPED) && strcmp(mode,"rb") ) {
-		Int3();				
-		return NULL;
-	}
 
 	//===========================================================
 	// If in write mode, just try to open the file straight off
 	// the harddisk.  No fancy packfile stuff here!
 	
 	if ( SDL_strchr(mode,'w') )	{
-		// For write-only files, require a full path or a path type
 #ifdef PLAT_UNIX
-		if ( strpbrk(file_path, "/") ) {
+		const char *toks = "/";
 #else
-		if ( strpbrk(file_path,"/\\:")  ) {  
+		const char *toks = "/\\:";
 #endif
+
+		// For write-only files, require a full path or a path type
+		if ( strpbrk(file_path, toks) ) {
 			// Full path given?
 			SDL_strlcpy(longname, file_path, sizeof(longname));
 		} else {
@@ -660,7 +654,6 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 			cf_create_default_path_string( longname, dir_type, file_path );
 		}
-		SDL_assert( !(type & CFILE_MEMORY_MAPPED) );
 
 		// JOHN: TODO, you should create the path if it doesn't exist.
 				
@@ -681,41 +674,18 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 
 	if ( cf_find_file_location( copy_file_path, dir_type, longname, &size, &offset, localize ) )	{
-
 		// Fount it, now create a cfile out of it
-		
-		if ( type & CFILE_MEMORY_MAPPED ) {
-		
-			// Can't open memory mapped files out of pack files
-			if ( offset == 0 )	{
-#ifdef PLAT_UNIX
-				STUB_FUNCTION;
-#else
-				HANDLE hFile;
+		FILE *fp = fopen( longname, "rb" );
 
-				hFile = CreateFile((LPCWSTR)longname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-				if (hFile != INVALID_HANDLE_VALUE)	{
-					return cf_open_mapped_fill_cfblock(hFile, dir_type);
-				}
-#endif
-			} 
-
-		} else {
-
-			FILE *fp = fopen( longname, "rb" );
-
-			if ( fp )	{
-				if ( offset )	{
-					// Found it in a pack file
-					return cf_open_packed_cfblock(fp, dir_type, offset, size );
-				} else {
-					// Found it in a normal file
-					return cf_open_fill_cfblock(fp, dir_type);
-				} 
+		if ( fp )	{
+			if ( offset )	{
+				// Found it in a pack file
+				return cf_open_packed_cfblock(fp, dir_type, offset, size );
+			} else {
+				// Found it in a normal file
+				return cf_open_fill_cfblock(fp, dir_type);
 			}
 		}
-
 	}
 
 	return NULL;
@@ -757,7 +727,6 @@ int cfget_cfile_block()
 	for ( i = 0; i < MAX_CFILE_BLOCKS; i++ ) {
 		cb = &Cfile_block_list[i];
 		if ( cb->type == CFILE_BLOCK_UNUSED ) {
-			cb->data = NULL;
 			cb->fp = NULL;
 			cb->type = CFILE_BLOCK_USED;
 			return i;
@@ -786,21 +755,8 @@ int cfclose( CFILE * cfile )
 	cb = &Cfile_block_list[cfile->id];	
 
 	result = 0;
-	if ( cb->data ) {
-		// close memory mapped file
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		result = UnmapViewOfFile((void*)cb->data);
-		SDL_assert(result);
-		result = CloseHandle(cb->hInFile);		
-		SDL_assert(result);	// Ensure file handle is closed properly
-		result = CloseHandle(cb->hMapFile);		
-		SDL_assert(result);	// Ensure file handle is closed properly
-#endif
-		result = 0;
 
-	} else if ( cb->fp != NULL )	{
+	if (cb->fp != NULL) {
 		SDL_assert(cb->fp != NULL);
 		result = fclose(cb->fp);
 	} else {
@@ -834,7 +790,6 @@ CFILE *cf_open_fill_cfblock(FILE *fp, int type)
 		cfp = &Cfile_list[cfile_block_index];;
 		cfp->id = cfile_block_index;
 		cfp->version = 0;
-		cfbp->data = NULL;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
 		
@@ -867,7 +822,6 @@ CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
 		cfp = &Cfile_list[cfile_block_index];
 		cfp->id = cfile_block_index;
 		cfp->version = 0;
-		cfbp->data = NULL;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
 
@@ -879,69 +833,10 @@ CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
 }
 
 
-
-// cf_open_mapped_fill_cfblock() will fill up a Cfile_block element in the Cfile_block_list[] array
-// for the case of a file being opened by cf_open_mapped();
-//
-// returns:   ptr CFILE structure.  
-//
-CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type)
-{
-	int cfile_block_index;
-
-	cfile_block_index = cfget_cfile_block();
-	if ( cfile_block_index == -1 ) {
-		return NULL;
-	}
-	else {
-		CFILE *cfp;
-		Cfile_block *cfbp;
-		cfbp = &Cfile_block_list[cfile_block_index];
-
-		cfp = &Cfile_list[cfile_block_index];
-		cfp->id = cfile_block_index;
-		cfbp->fp = NULL;
-		cfbp->hInFile = hFile;
-		cfbp->dir_type = type;
-
-		cf_init_lowlevel_read_code(cfp,0 , 0 );
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		cfbp->hMapFile = CreateFileMapping(cfbp->hInFile, NULL, PAGE_READONLY, 0, 0, NULL);
-		if (cfbp->hMapFile == NULL) { 
-			nprintf(("Error", "Could not create file-mapping object.\n")); 
-			return NULL;
-		} 
-	
-		cfbp->data = (ubyte*)MapViewOfFile(cfbp->hMapFile, FILE_MAP_READ, 0, 0, 0);
-		SDL_assert( cfbp->data != NULL );		
-#endif
-		return cfp;
-	}
-}
-
 int cf_get_dir_type(CFILE *cfile)
 {
 	return Cfile_block_list[cfile->id].dir_type;
 }
-
-// cf_returndata() returns the data pointer for a memory-mapped file that is associated
-// with the CFILE structure passed as a parameter
-//
-// 
-
-void *cf_returndata(CFILE *cfile)
-{
-	SDL_assert(cfile != NULL);
-	Cfile_block *cb;
-	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
-	cb = &Cfile_block_list[cfile->id];	
-	SDL_assert(cb->data != NULL);
-	return cb->data;
-}
-
 
 
 // version number of opened file.  Will be 0 unless you put something else here after you
@@ -1209,9 +1104,6 @@ int cfilelength( CFILE * cfile )
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	// TODO: return length of memory mapped file
-	SDL_assert( !cb->data );
-
 	SDL_assert(cb->fp != NULL);
 
 	// cb->size gets set at cfopen
@@ -1235,9 +1127,6 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 	cb = &Cfile_block_list[cfile->id];	
 
 	int size = elsize * nelem;
-
-	// cfwrite() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 
 	SDL_assert(cb->fp != NULL);
 	SDL_assert(cb->lib_offset == 0 );
@@ -1269,9 +1158,6 @@ int cfputc(int c, CFILE *cfile)
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
-
-	// cfputc() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 
 	SDL_assert(cb->fp != NULL);
 	result = fputc(c, cb->fp);
@@ -1359,7 +1245,6 @@ int cfputs(const char *str, CFILE *cfile)
 	int result = 0;
 
 	// cfputs() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 	SDL_assert(cb->fp != NULL);
 	result = fputs(str, cb->fp);
 
@@ -1598,9 +1483,6 @@ int cflush(CFILE *cfile)
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
-
-	// not supported for memory mapped files
-	SDL_assert( !cb->data );
 
 	SDL_assert(cb->fp != NULL);
 	return fflush(cb->fp);

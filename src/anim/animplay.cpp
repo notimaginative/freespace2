@@ -874,21 +874,16 @@ void anim_read_header(anim *ptr, CFILE *fp)
 // of the animation can reference.  Must be free'ed later with anim_free()
 //
 // input:	name				=>		filename of animation
-//				file_mapped		=>		boolean, whether to use memory-mapped file or not.
-//											Memory-mapped files will page in the animation from disk
-//											as it is needed, but performance is not as good
 //
 //	returns:	pointer to anim that is loaded	=> sucess
 //				NULL										=>	failure
 //
-anim *anim_load(const char *real_filename, int file_mapped)
+anim *anim_load(const char *real_filename)
 {
 	anim			*ptr;
 	CFILE			*fp;
 	int			count,idx;
 	char name[MAX_PATH_LEN];
-
-//	file_mapped = 0;
 
 	SDL_assert ( real_filename != NULL );
 
@@ -961,18 +956,9 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 		ptr->cfile_ptr = NULL;
 
-		if ( file_mapped ) {
-			// Try mapping the file to memory 
-			ptr->flags |= ANF_MEM_MAPPED;
-			ptr->cfile_ptr = cfopen(name, "rb", CFILE_MEMORY_MAPPED);
-		}
-
-		// couldn't memory-map file... must be in a packfile, so stream manually
-		if ( file_mapped && !ptr->cfile_ptr ) {
-			ptr->flags &= ~ANF_MEM_MAPPED;
-			ptr->flags |= ANF_STREAMED;
-			ptr->cfile_ptr = cfopen(name, "rb");
-		}
+		// NOTE: mapped files no longer supported!!
+		ptr->flags |= ANF_STREAMED;
+		ptr->cfile_ptr = cfopen(name, "rb");
 
 		ptr->cache = NULL;
 
@@ -993,7 +979,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 				cfseek(ptr->cfile_ptr, offset, CF_SEEK_SET);
 				cfread(ptr->cache, ANI_STREAM_CACHE_SIZE, 1, ptr->cfile_ptr);
 			} else {
-				ptr->data = (ubyte*)cf_returndata(ptr->cfile_ptr) + offset;
+				Int3();
 			}
 		} else {
 			// Not a memory mapped file (or streamed)

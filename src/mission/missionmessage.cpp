@@ -1274,7 +1274,7 @@ void message_play_anim( message_q *q )
 	if ( (anim_info->anim_data != NULL) && !strstr(anim_info->anim_data->name, ani_name) )
 		message_mission_free_avi( m->avi_info.index );
 
-	anim_info->anim_data = anim_load( ani_name, 0 );
+	anim_info->anim_data = anim_load( ani_name );
 
 	if ( anim_info->anim_data == NULL ) {
 		nprintf (("messaging", "Cannot load message avi %s.  Will not play.\n", ani_name));

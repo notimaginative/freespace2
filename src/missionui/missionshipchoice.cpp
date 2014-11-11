@@ -1901,11 +1901,11 @@ anim* ss_load_individual_animation(int ship_class)
 		// GRR must add a .ANI at the end for detection
 		SDL_strlcat(animation_filename, ".ani", sizeof(animation_filename));
 		
-		p_anim = anim_load(animation_filename, 1);
+		p_anim = anim_load(animation_filename);
 		if (p_anim == NULL) {
 			// failed loading hi-res, revert to low res
 			SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
-			p_anim = anim_load(animation_filename, 1);
+			p_anim = anim_load(animation_filename);
 			mprintf(("Ship ANI: Can not find %s, using lowres version instead.\n", animation_filename)); 
 		} else {
 			mprintf(("SHIP ANI: Found hires version of %s\n",animation_filename));
@@ -1923,7 +1923,7 @@ anim* ss_load_individual_animation(int ship_class)
 		*/
 	} else {
 		SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
-		p_anim = anim_load(animation_filename, 1);
+		p_anim = anim_load(animation_filename);
 	}
 	
 	return p_anim;

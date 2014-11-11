@@ -650,7 +650,7 @@ void cmd_brief_ani_wave_init(int index)
 			break;
 		}
 
-		Cur_cmd_brief->stage[index].anim = anim_load(name, 1);
+		Cur_cmd_brief->stage[index].anim = anim_load(name);
 		if ( Cur_cmd_brief->stage[index].anim ) {
 			break;
 		}
@@ -666,7 +666,7 @@ void cmd_brief_ani_wave_init(int index)
 
 	// check to see if cb anim loaded, if not, try the default one
 	if ( !Cur_cmd_brief->stage[index].anim ) {
-		Cur_cmd_brief->stage[index].anim = anim_load(NOX("CB_default"), 1);
+		Cur_cmd_brief->stage[index].anim = anim_load(NOX("CB_default"));
 	}
 }
 

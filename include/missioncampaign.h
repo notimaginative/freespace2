@@ -436,8 +436,6 @@ int mission_campaign_load_fred(const char *filename, const char *name_verify = N
 // used by Fred to get a mission's list of goals.
 void read_mission_goal_list(int num);
 
-void mission_campaign_build_list( int multiplayer );
-
 // returns index of mission with passed name
 extern int mission_campaign_find_mission( const char *name );
 

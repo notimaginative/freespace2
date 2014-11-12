@@ -4851,7 +4851,7 @@ int game_poll()
 		case KEY_DEBUGGED + SDLK_F4:
 			gameseq_post_event( GS_EVENT_TOGGLE_GLIDE );
 			break;
-		
+
 		case SDLK_F4:
 			if(Game_mode & GM_MULTIPLAYER){
 				if((state == GS_STATE_GAME_PLAY) || (state == GS_STATE_MULTI_PAUSED)){
@@ -5168,7 +5168,6 @@ void game_process_event( int current_state, int event )
 			break;						
  
 		case GS_EVENT_LOAD_MISSION_MENU:
-			gameseq_set_state(GS_STATE_LOAD_MISSION_MENU);
 			break;
 
 		case GS_EVENT_MISSION_LOG_SCROLLBACK:
@@ -5510,7 +5509,6 @@ void game_leave_state( int old_state, int new_state )
 			break;
 
 		case GS_STATE_LOAD_MISSION_MENU:
-			mission_load_menu_close();
 			break;
 
 		case GS_STATE_SIMULATOR_ROOM:
@@ -5884,7 +5882,6 @@ void game_enter_state( int old_state, int new_state )
 			break;
 
 		case GS_STATE_LOAD_MISSION_MENU:
-			mission_load_menu_init();
 			break;
 
 		case GS_STATE_SIMULATOR_ROOM:
@@ -6361,8 +6358,7 @@ void game_do_state(int state)
 			break;
 
 		case GS_STATE_LOAD_MISSION_MENU:
-			game_set_frametime(GS_STATE_LOAD_MISSION_MENU);
-			mission_load_menu_do();
+			Int3();
 			break;
 		
 		case GS_STATE_BRIEFING:

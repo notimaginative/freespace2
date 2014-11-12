@@ -5,11 +5,7 @@
 #include <stdio.h>	// For NULL, etc
 #include <stdlib.h>
 #include <memory.h>
-
-#ifndef __APPLE__
 #include <malloc.h>
-#endif
-
 #include <string.h>
 
 #ifdef PLAT_UNIX

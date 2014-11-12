@@ -850,9 +850,6 @@ void cf_set_version( CFILE * cfile, int version )
 
 // routines to read basic data types from CFILE's.  Put here to
 // simplify mac/pc reading from cfiles.
-#ifdef __APPLE__
-#include <stddef.h>
-#endif
 
 float cfread_float(CFILE *file, int ver, float deflt)
 {

@@ -81,9 +81,6 @@
 
 #include "pstypes.h"
 
-#if defined(__APPLE__) && !defined(_SOCKLEN_T)
-typedef int socklen_t;
-#endif
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 DEFINES/VARS

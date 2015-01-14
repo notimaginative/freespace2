@@ -73,7 +73,7 @@ void game_do_state_common(int, int){}
 void game_set_frametime(int){}
 void game_increase_skill_level(){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 char *Game_current_mission_filename;
 int Warpout_forced;
@@ -92,7 +92,7 @@ int Game_subspace_effect;
 void game_load_palette(){}
 void game_format_time(int, char*){}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int game_get_default_skill_level(){return 0;}
 int Interface_framerate;
 vector Camera_pos;
@@ -107,7 +107,7 @@ int game_hacked_data(){return 0;}
 int Nebedit_running = 0;
 void game_tst_mark(struct object *, struct ship*){}
 int game_do_cd_mission_check(const char*){return 0;}
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 int tst;
 int game_single_step;
 int last_single_step;

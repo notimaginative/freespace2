@@ -224,6 +224,14 @@ set(code_HEADERS
   PARENT_SCOPE
 )
 
+
+set(platform_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/unix.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/win.h
+  PARENT_SCOPE
+)
+
 #
 # the game itself
 #

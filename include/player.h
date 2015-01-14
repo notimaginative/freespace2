@@ -362,7 +362,7 @@ void player_set_squad_bitmap(player *p, const char *fname);
 // set squadron
 void player_set_squad(player *p, const char *squad_name);
 
-int player_inspect_cargo(float frametime, char *outstr);
+int player_inspect_cargo(float frametime, char *outstr, const int max_outstr);
 
 //#ifndef NDEBUG
 extern int use_descent;						// player is using descent-style physics
@@ -372,7 +372,7 @@ extern void toggle_player_object();		// toggles between descent-style ship and p
 extern void read_player_controls( object *obj, float frametime);
 extern void player_control_reset_ci( control_info *ci );
 
-char *player_generate_death_text( player *player_p, char *text );
+char *player_generate_death_text(player *player_p, char *text , const int max_dtlen);
 void player_show_death_message();
 void player_maybe_fire_turret(object *objp);
 void player_maybe_play_all_alone_msg();

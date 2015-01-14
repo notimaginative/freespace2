@@ -538,7 +538,7 @@ void hud_render_throttle_speed(float current_speed, int y_end)
 	x_pos = Hud_reticle_center[gr_screen.res][0] - x_pos;
 
 	// draw current speed at (x_pos, y_end);
-	sprintf(buf, "%d", fl2i(current_speed+0.5f));
+	SDL_snprintf(buf, sizeof(buf), "%d", fl2i(current_speed+0.5f));
 	hud_num_make_mono(buf);
 	gr_get_string_size(&w, &h, buf);
 	sx = x_pos - w - 2;

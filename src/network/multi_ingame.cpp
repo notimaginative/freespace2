@@ -394,8 +394,8 @@ extern void add_vector_data(ubyte *data, int *size, vector vec);
 // --------------------------------------------------------------------------------------------------
 
 
-LOCAL	int	Ingame_ships_deleted = 0;
-//LOCAL	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
+static	int	Ingame_ships_deleted = 0;
+//static	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
 
 
 // --------------------------------------------------------------------------------------------------
@@ -593,7 +593,7 @@ void multi_ingame_sync_init()
 	multi_oo_reset_sequencing();
 
 	// send the file signature to the host for possible mission file transfer
-	strcpy(Netgame.mission_name,Game_current_mission_filename);
+	SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, sizeof(Netgame.mission_name));
 	send_file_sig_packet(Multi_current_file_checksum,Multi_current_file_length);
 	
 	Ingame_ships_deleted = 0;
@@ -788,7 +788,7 @@ static int Multi_ingame_timer_coords[GR_NUM_RESOLUTIONS][2] = {
 //#define MULTI_INGAME_TIME_LEFT_Y			411
 
 #define MULTI_INGAME_TIME_SECONDS		(1000 * 15)
-LOCAL int Ingame_time_left;
+static int Ingame_time_left;
 
 // uses MULTI_JOIN_REFRESH_TIME as its timestamp
 UI_WINDOW Multi_ingame_window;											// the window object for the join screen
@@ -1150,11 +1150,8 @@ void multi_ingame_select_close()
 void multi_ingame_join_display_ship(object *objp,int y_start)
 {
 	int icon_num,idx;
-	ship_info *sip;
 	int y_spacing;
 	ship_weapon *wp;
-
-	sip = &Ship_info[Ships[objp->instance].ship_info_index];
 	
 	// blit the ship name itself
 	gr_set_color_fast(&Color_normal);
@@ -1264,8 +1261,7 @@ void multi_ingame_handle_timeout()
 	int time_left = timestamp_until(Ingame_time_left) / 1000;
 	char tl_string[100];
 	gr_set_color_fast(&Color_bright);
-	memset(tl_string,0,100);
-	sprintf(tl_string,XSTR("Time remaining : %d s\n",682),time_left);	
+	SDL_snprintf(tl_string,sizeof(tl_string),XSTR("Time remaining : %d s\n",682),time_left);
 	gr_string(Multi_ingame_timer_coords[gr_screen.res][0], Multi_ingame_timer_coords[gr_screen.res][1], tl_string);
 }
 
@@ -1349,7 +1345,7 @@ void process_ingame_ships_packet( ubyte *data, header *hinfo )
 		Objects[objnum].net_signature = net_signature;
 
 		// assign any common data
-		strcpy(Ships[ship_num].ship_name, ship_name);
+		SDL_strlcpy(Ships[ship_num].ship_name, ship_name, NAME_LENGTH);
 		Ships[ship_num].flags = sflags;
 		Ships[ship_num].team = team;
 		Ships[ship_num].wingnum = (int)wing_data;				

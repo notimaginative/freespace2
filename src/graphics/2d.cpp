@@ -602,8 +602,8 @@ void gr_set_palette( const char *name, ubyte * palette, int restrict_font_to_128
 {
 	char *p;
 	palette_flush();
-	strcpy( Gr_current_palette_name, name );
-	p = strchr( Gr_current_palette_name, '.' );
+	SDL_strlcpy( Gr_current_palette_name, name, sizeof(Gr_current_palette_name) );
+	p = SDL_strchr( Gr_current_palette_name, '.' );
 	if ( p ) *p = 0;
 	gr_screen.signature = Gr_signature++;
 	gr_set_palette_internal( name, palette, restrict_font_to_128 );

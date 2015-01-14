@@ -1,20 +1,16 @@
 
 project(freespace2)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 
-include(CheckCXXCompilerFlag)
-include(CheckCXXSourceCompiles)
-include(CheckTypeSize)
-include(FindPkgConfig)
+find_package(SDL2 "2.0.1" REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
 
-pkg_search_module(SDL2 REQUIRED sdl2 >= 2.0.1)
-
-find_package(OpenGL)
-find_package(OpenAL)
 find_package(wxWidgets COMPONENTS core base gl)
-
 include(${wxWidgets_USE_FILE})
 
 
@@ -45,22 +41,39 @@ else()
 endif()
 
 if(NOT WIN32)
+  set(PLATFORM_LIBRARIES "")
+
   add_definitions(-DPLAT_UNIX)
-  add_definitions(-Wall -Wno-format-y2k -Wno-deprecated)
+  add_definitions(-Wall)
+# add_definitions(-Wno-format-y2k)
+# add_definitions(-Wno-deprecated)
   add_definitions(-fsigned-char)
 
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG -g -O2")
   set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -DNDEBUG -Os")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O2")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
+else()
+  set(PLATFORM_LIBRARIES
+	wsock32.lib
+	winmm.lib
+  )
+
+  add_definitions(/D _CRT_SECURE_NO_WARNINGS)
+  add_definitions(/W4)
+  add_definitions(/wd4100) # unreferenced parameter
+  add_definitions(/wd4127) # conditional expression is constant: do { } while (0)
+  add_definitions(/wd4611) # non-portable interaction between setjmp() and C++ object destruction
+  add_definitions(/wd4996) # deprecated functions: fopen, fileno, ...
 endif()
+
 
 # ##############################################################################
 
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
-  ${SDL2_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
   ${wxWidgets_INCLUDE_DIRS}
 )
@@ -81,6 +94,8 @@ add_library(code
   STATIC
   ${code_SOURCE}
   ${code_HEADERS}
+  ${platform_SOURCE}
+  ${platform_HEADERS}
 )
 
 #
@@ -102,6 +117,7 @@ else()
 endif()
 
 add_executable(${FS_BINARY}
+  WIN32
   ${freespace_SOURCE}
   ${freespace_HEADERS}
 )
@@ -109,9 +125,10 @@ add_executable(${FS_BINARY}
 target_link_libraries(
   ${FS_BINARY}
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${PLATFORM_LIBRARIES}
 )
 
 #
@@ -135,9 +152,10 @@ add_executable(ac
 target_link_libraries(
   ac
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${PLATFORM_LIBRARIES}
 )
 
 #
@@ -164,17 +182,24 @@ add_executable(cryptstring
 
 add_executable(nebedit
   EXCLUDE_FROM_ALL
+  WIN32
   ${nebedit_SOURCE}
 )
 
 target_link_libraries(
   nebedit
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
+  ${PLATFORM_LIBRARIES}
 )
+
+# wxWidgets appears to need c++11 for one or more headers
+if(NOT WIN32)
+  set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
+endif()
 
 #
 # POFVIEW: model viewer
@@ -182,6 +207,7 @@ target_link_libraries(
 
 add_executable(pofview
   EXCLUDE_FROM_ALL
+  WIN32
   ${pofview_SOURCE}
   ${pofview_HEADERS}
 )
@@ -189,10 +215,11 @@ add_executable(pofview
 target_link_libraries(
   pofview
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
+  ${PLATFORM_LIBRARIES}
 )
 
 # wxWidgets appears to need c++11 for one or more headers
@@ -216,6 +243,7 @@ add_executable(scramble
 
 add_executable(fonttool
   EXCLUDE_FROM_ALL
+  WIN32
   ${fonttool_SOURCE}
   ${fonttool_HEADERS}
 )
@@ -230,9 +258,10 @@ add_custom_command(TARGET fonttool
 target_link_libraries(
   fonttool
   code
-  ${SDL2_LIBRARIES}
+  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${PLATFORM_LIBRARIES}
 )
 
 #

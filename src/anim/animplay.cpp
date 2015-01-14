@@ -841,7 +841,7 @@ void anim_read_header(anim *ptr, CFILE *fp)
 		floor_pow++;
 	}
 
-	int floor_size = (int) pow(2, floor_pow);
+	int floor_size = (int) pow(2.0, floor_pow);
 	int diff = ptr->height - floor_size;
 	float waste = 100.0f * float((floor_size - diff))/(2.0f *(float)floor_size);
 
@@ -874,30 +874,25 @@ void anim_read_header(anim *ptr, CFILE *fp)
 // of the animation can reference.  Must be free'ed later with anim_free()
 //
 // input:	name				=>		filename of animation
-//				file_mapped		=>		boolean, whether to use memory-mapped file or not.
-//											Memory-mapped files will page in the animation from disk
-//											as it is needed, but performance is not as good
 //
 //	returns:	pointer to anim that is loaded	=> sucess
 //				NULL										=>	failure
 //
-anim *anim_load(const char *real_filename, int file_mapped)
+anim *anim_load(const char *real_filename)
 {
 	anim			*ptr;
 	CFILE			*fp;
 	int			count,idx;
-	char name[_MAX_PATH];
-
-//	file_mapped = 0;
+	char name[MAX_PATH_LEN];
 
 	SDL_assert ( real_filename != NULL );
 
-	strcpy( name, real_filename );
-	char *p = strchr( name, '.' );
+	SDL_strlcpy(name, real_filename, sizeof(name));
+	char *p = SDL_strchr( name, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	strcat( name, ".ani" );
+	SDL_strlcat(name, ".ani", sizeof(name));
 
 	ptr = first_anim;
 	while (ptr) {
@@ -918,8 +913,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 		ptr->flags = 0;
 		ptr->next = first_anim;
 		first_anim = ptr;
-		SDL_assert(strlen(name) < _MAX_PATH - 1);
-		strcpy(ptr->name, name);
+		SDL_strlcpy(ptr->name, name, sizeof(ptr->name));
 		ptr->instance_count = 0;
 		ptr->width = 0;
 		ptr->height = 0;
@@ -962,18 +956,9 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 		ptr->cfile_ptr = NULL;
 
-		if ( file_mapped ) {
-			// Try mapping the file to memory 
-			ptr->flags |= ANF_MEM_MAPPED;
-			ptr->cfile_ptr = cfopen(name, "rb", CFILE_MEMORY_MAPPED);
-		}
-
-		// couldn't memory-map file... must be in a packfile, so stream manually
-		if ( file_mapped && !ptr->cfile_ptr ) {
-			ptr->flags &= ~ANF_MEM_MAPPED;
-			ptr->flags |= ANF_STREAMED;
-			ptr->cfile_ptr = cfopen(name, "rb");
-		}
+		// NOTE: mapped files no longer supported!!
+		ptr->flags |= ANF_STREAMED;
+		ptr->cfile_ptr = cfopen(name, "rb");
 
 		ptr->cache = NULL;
 
@@ -994,7 +979,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 				cfseek(ptr->cfile_ptr, offset, CF_SEEK_SET);
 				cfread(ptr->cache, ANI_STREAM_CACHE_SIZE, 1, ptr->cfile_ptr);
 			} else {
-				ptr->data = (ubyte*)cf_returndata(ptr->cfile_ptr) + offset;
+				Int3();
 			}
 		} else {
 			// Not a memory mapped file (or streamed)
@@ -1123,7 +1108,7 @@ int anim_write_frames_out(const char *filename)
 	int				i,j;
 	ubyte				**row_data;
 
-	strcpy(root_name, filename);
+	SDL_strlcpy(root_name, filename, sizeof(root_name));
 	root_name[strlen(filename)-4] = 0;
 
 	source_anim = anim_load(filename);
@@ -1136,9 +1121,9 @@ int anim_write_frames_out(const char *filename)
 
 	for ( i = 0; i < source_anim->total_frames; i++ ) {
 		anim_get_next_raw_buffer(ai, 0, 0, 16);
-		strcpy(pcxname, root_name);
-		sprintf(buf,"%04d",i);
-		strcat(pcxname, buf);
+		SDL_strlcpy(pcxname, root_name, sizeof(pcxname));
+		SDL_snprintf(buf, sizeof(buf), "%04d", i);
+		SDL_strlcat(pcxname, buf, sizeof(pcxname));
 
 		for ( j = 0; j < source_anim->height; j++ ) {
 			row_data[j] = &ai->frame[j*source_anim->width];
@@ -1173,12 +1158,12 @@ void anim_display_info(const char *real_filename)
 	int				i, uncompressed, compressed, *key_frame_nums=NULL, tmp;
 	char filename[MAX_FILENAME_LEN];
 
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	strcat( filename, ".ani" );
+	SDL_strlcat( filename, ".ani", sizeof(filename) );
 
 	fp = cfopen(filename, "rb");
 	if ( !fp ) {

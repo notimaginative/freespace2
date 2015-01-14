@@ -848,18 +848,17 @@ void HUD_fixed_printf(float duration, const char * format, ...)
 	}
 
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
 
 	msg_length = strlen(tmp);
-	SDL_assert(msg_length < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 
 	if ( !msg_length ) {
 		nprintf(("Warning", "HUD_fixed_printf ==> attempt to print a 0 length string in msg window\n"));
 		return;
 
-	} else if (msg_length > MAX_HUD_LINE_LEN - 1){
-		nprintf(("Warning", "HUD_fixed_printf ==> Following string truncated to %d chars: %s\n",MAX_HUD_LINE_LEN,tmp));
+//	} else if (msg_length > MAX_HUD_LINE_LEN - 1){
+//		nprintf(("Warning", "HUD_fixed_printf ==> Following string truncated to %d chars: %s\n",MAX_HUD_LINE_LEN,tmp));
 	}
 
 	if (duration == 0.0f){
@@ -868,7 +867,7 @@ void HUD_fixed_printf(float duration, const char * format, ...)
 		HUD_fixed_text[0].end_time = timestamp((int) (1000.0f * duration));
 	}
 
-	strncpy(HUD_fixed_text[0].text, tmp, MAX_HUD_LINE_LEN - 1);
+	SDL_strlcpy(HUD_fixed_text[0].text, tmp, MAX_HUD_LINE_LEN);
 	HUD_fixed_text[0].color = 0xff0000;
 }
 
@@ -906,8 +905,7 @@ void HUD_printf_line(const char *text, int source, int time = 0, int x = 0)
 		nprintf(("Warning", "HUD_printf_line() ==> Following string truncated to %d chars: %s\n", MAX_HUD_LINE_LEN, text));
 	}
 
-	strncpy(HUD_pending[Hud_list_end].text, text, MAX_HUD_LINE_LEN - 1);
-	HUD_pending[Hud_list_end].text[MAX_HUD_LINE_LEN - 1] = 0;
+	SDL_strlcpy(HUD_pending[Hud_list_end].text, text, MAX_HUD_LINE_LEN);
 	HUD_pending[Hud_list_end].source = source;
 	HUD_pending[Hud_list_end].time = time;
 	HUD_pending[Hud_list_end].x = x;
@@ -941,7 +939,6 @@ void HUD_printf(const char *format, ...)
 {
 	va_list args;
 	char tmp[HUD_MSG_LENGTH_MAX];
-	int len;
 
 	// make sure we only print these messages if we're in the correct state
 	if((Game_mode & GM_MULTIPLAYER) && (Net_player->state != NETPLAYER_STATE_IN_MISSION)){
@@ -950,11 +947,9 @@ void HUD_printf(const char *format, ...)
 	}
 
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
 
-	len = strlen(tmp);
-	SDL_assert(len < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 	hud_sourced_print(HUD_SOURCE_COMPUTER, tmp);
 }
 
@@ -964,16 +959,15 @@ void HUD_ship_sent_printf(int sh, const char *format, ...)
 	char tmp[HUD_MSG_LENGTH_MAX];
 	int len;
 
-	sprintf(tmp, NOX("%s: "), Ships[sh].ship_name);
+	SDL_assert(HUD_MSG_LENGTH_MAX > NAME_LENGTH+2);
+
+	SDL_snprintf(tmp, NAME_LENGTH + 2, NOX("%s: "), Ships[sh].ship_name);
 	len = strlen(tmp);
-	SDL_assert(len < HUD_MSG_LENGTH_MAX);
 
 	va_start(args, format);
-	vsprintf(tmp + len, format, args);
+	SDL_vsnprintf(tmp + len, HUD_MSG_LENGTH_MAX - len, format, args);
 	va_end(args);
 
-	len = strlen(tmp);
-	SDL_assert(len < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
 	hud_sourced_print(HUD_get_team_source(Ships[sh].team), tmp);
 }
 
@@ -996,9 +990,9 @@ void HUD_sourced_printf(int source, const char *format, ...)
 	}
 	
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
-	SDL_assert(strlen(tmp) < HUD_MSG_LENGTH_MAX);	//	If greater than this, probably crashed anyway.
+
 	hud_sourced_print(source, tmp);
 }
 
@@ -1098,7 +1092,7 @@ void hud_add_line_to_scrollback(const char *text, int source, int t, int x, int 
 	new_line->time = t;
 	new_line->source = source;
 	new_line->text = (char *) malloc( strlen(text) + 1 );
-	strcpy(new_line->text, text);
+	SDL_strlcpy(new_line->text, text, strlen(text) + 1);
 	list_append(&Msg_scrollback_used_list, new_line);
 }
 
@@ -1114,7 +1108,7 @@ void hud_add_msg_to_scrollback(const char *text, int source, int t)
 
 	w = 0;
 	SDL_assert(msg_len < HUD_MSG_LENGTH_MAX);
-	strcpy(buf, text);
+	SDL_strlcpy(buf, text, sizeof(buf));
 	ptr = strstr(buf, NOX(": "));
 	if (ptr) {
 		gr_get_string_size(&w, NULL, buf, ptr - buf);

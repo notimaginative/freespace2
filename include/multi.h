@@ -672,7 +672,7 @@ typedef struct net_player_server_info {
 	int				kick_timestamp;									// timestamp with which we'll disconnect a player if he hasn't reponded to a kick packet
 	int				kick_reason;										// reason he was kicked
 	int            voice_token_timestamp;							// timestamp set when a player loses a token (so we can prevent him from getting it again too quickly)
-	int				reliable_connect_time;							// after sending an accept packet, wait for this long for the guy to connect on the reliable socket
+	time_t			reliable_connect_time;							// after sending an accept packet, wait for this long for the guy to connect on the reliable socket
 
 	// weapon select/linking information (maintained on the server and passed on respawn to all clients)
 	char				cur_primary_bank;									// currently selected primary bank

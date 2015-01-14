@@ -400,14 +400,14 @@ void cutscenes_screen_play()
 	SDL_assert( (Selected_line >= 0) && (Selected_line < Num_files) );
 	which_cutscene = Cutscene_list[Selected_line];
 
-	strcpy(name, Cutscenes[which_cutscene].filename );
+	SDL_strlcpy(name, Cutscenes[which_cutscene].filename, sizeof(name));
 	full_name = cf_add_ext(name, NOX(".mve"));
 
 	int rval = movie_play(full_name);
 	if ( !rval ) {
 		char str[256];
 
-		sprintf(str, XSTR( "Unable to play movie %s.", 204), Cutscenes[which_cutscene].name );
+		SDL_snprintf(str, sizeof(str), XSTR( "Unable to play movie %s.", 204), Cutscenes[which_cutscene].name );
 		popup(0, 1, POPUP_OK, str );
 	}
 }
@@ -715,8 +715,7 @@ void cutscenes_screen_do_frame()
 			if (len > MAX_TEXT_LINE_LEN)
 				len = MAX_TEXT_LINE_LEN;
 
-			strncpy(line, Text_lines[z], len);
-			line[len] = 0;
+			SDL_strlcpy(line, Text_lines[z], len+1);
 			gr_string(Cutscene_desc_coords[gr_screen.res][0], Cutscene_desc_coords[gr_screen.res][1] + y, line);
 
 			y += font_height;

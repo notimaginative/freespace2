@@ -313,7 +313,7 @@ void hud_shield_game_init()
 		// maybe store
 		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
 		if(Hud_shield_filename_count < MAX_SHIELD_ICONS){
-			strcpy(Hud_shield_filenames[Hud_shield_filename_count++], name);
+			SDL_strlcpy(Hud_shield_filenames[Hud_shield_filename_count++], name, MAX_FILENAME_LEN);
 		}
 	}
 #else
@@ -324,13 +324,13 @@ void hud_shield_game_init()
 
 	// for fighters
 	for (i = 1; i < 14; i++) {
-		snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-f%02d", i);
+		SDL_snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-f%02d", i);
 		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
 	}
 
 	// for bombers
 	for (i = 1; i < 11; i++) {
-		snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-b%02d", i);
+		SDL_snprintf(Hud_shield_filenames[Hud_shield_filename_count++], MAX_FILENAME_LEN, "shield-b%02d", i);
 		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
 	}
 #endif
@@ -715,7 +715,7 @@ void hud_show_mini_ship_integrity(object *objp, int x_force, int y_force)
 	nx += fl2i( HUD_offset_x );
 	ny += fl2i( HUD_offset_y );
 
-	sprintf(text_integrity, "%d", numeric_integrity);
+	SDL_snprintf(text_integrity, sizeof(text_integrity), "%d", numeric_integrity);
 	if ( numeric_integrity < 100 ) {
 		hud_num_make_mono(text_integrity);
 	}	

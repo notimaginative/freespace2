@@ -326,26 +326,26 @@ short Multi_id_num = 0;												// for assigning player id #'s
 server_item* Game_server_head;								// list of permanent game servers to be querying
 
 // timestamp data
-int Netgame_send_time = -1;							// timestamp used to send netgame info to players before misison starts
-int State_send_time = -1;								// timestamp used to send state information to the host before a mission starts
-int Gameinfo_send_time = -1;							// timestamp used by master to send game information to clients
-int Next_ping_time = -1;								// when we should next ping all
+time_t Netgame_send_time = -1;							// timestamp used to send netgame info to players before misison starts
+time_t State_send_time = -1;								// timestamp used to send state information to the host before a mission starts
+time_t Gameinfo_send_time = -1;							// timestamp used by master to send game information to clients
+time_t Next_ping_time = -1;								// when we should next ping all
 int Multi_server_check_count = 0;					// var to keep track of reentrancy when checking server status
-int Next_bytes_time = -1;								// bytes sent
+time_t Next_bytes_time = -1;								// bytes sent
 
 // how often each player gets updated
 int Multi_client_update_times[MAX_PLAYERS];	// client update packet timestamp
 
 // local network buffer data
-LOCAL ubyte net_buffer[NUM_REENTRANT_LEVELS][MAX_NET_BUFFER];
-LOCAL ubyte Multi_read_count;
+static ubyte net_buffer[NUM_REENTRANT_LEVELS][MAX_NET_BUFFER];
+static ubyte Multi_read_count;
 
 int Multi_restr_query_timestamp = -1;
 join_request Multi_restr_join_request;
 net_addr_t Multi_restr_addr;				
 int Multi_join_restr_mode = -1;
 
-LOCAL fix Multi_server_wait_start;				// variable to hold start time when waiting to reestablish with server
+static fix Multi_server_wait_start;				// variable to hold start time when waiting to reestablish with server
 
 // non API master tracker vars
 char Multi_tracker_login[100] = "";
@@ -1338,7 +1338,7 @@ void multi_do_frame()
 		
 		// ping everyone
 		multi_ping_send_all();
-		Next_ping_time = time(NULL);		
+		Next_ping_time = time(NULL);
 	}	
 	
 	// if I am the master, and we are not yet actually playing the mission, send off netgame
@@ -1601,23 +1601,16 @@ void standalone_main_init()
 	// multi_options_read_config();   
 
 	// if we failed to startup on our desired protocol, fail	
-	if((Multi_options_g.protocol == NET_IPX) && !Ipx_active){						
-#ifndef PLAT_UNIX
-		MessageBox((HWND)os_get_window(), XSTR( "You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.", 1402), "Error", MB_OK);
-#else
-		fprintf (stderr, "ERROR: You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.\n");
-#endif
-		exit(1);
-	} 
-	if((Multi_options_g.protocol == NET_TCP) && !Tcp_active){		
-#ifndef PLAT_UNIX
-		MessageBox((HWND)os_get_window(), XSTR("You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362), "Error", MB_OK);
-#else
-		fprintf (stderr, "ERROR: You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.\n");
-#endif
+	if ( (Multi_options_g.protocol == NET_IPX) && !Ipx_active ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", XSTR( "You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.", 1402), NULL);
 		exit(1);
 	}
-	
+
+	if ( (Multi_options_g.protocol == NET_TCP) && !Tcp_active ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", XSTR("You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362), NULL);
+		exit(1);
+	}
+
 	// set the protocol
 #ifdef MULTIPLAYER_BETA_BUILD
 	Multi_options_g.protocol = NET_TCP;
@@ -1673,7 +1666,7 @@ void standalone_main_init()
 	Net_player->flags |= (NETINFO_FLAG_AM_MASTER | NETINFO_FLAG_CONNECTED | NETINFO_FLAG_DO_NETWORKING | NETINFO_FLAG_MISSION_OK);
 	Net_player->state = NETPLAYER_STATE_WAITING;
 	Net_player->player = Player;
-	strcpy(Player->callsign, "server");
+	SDL_strlcpy(Player->callsign, "server", sizeof(Player->callsign));
 	Net_player->p_info.addr = Psnet_my_addr;
 	Net_player->s_info.xfer_handle = -1;	
 	Net_player->player_id = multi_get_new_id();	

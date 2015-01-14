@@ -96,9 +96,10 @@ PofViewCanvas::PofViewCanvas(wxWindow *parent, wxWindowID id, const wxPoint& pos
 {
 	first_frame = true;
 	m_ViewerZoom = 0.8f;
-	m_ViewerPos = { { { 0.0f, 0.0f, -10.0f } } };
-	m_ViewerOrient = IDENTITY_MATRIX;
-	m_ObjectOrient = IDENTITY_MATRIX;
+	m_ViewerPos = vmd_zero_vector;
+	m_ViewerPos.xyz.z = -10.0f;
+	m_ViewerOrient = vmd_identity_matrix;
+	m_ObjectOrient = vmd_identity_matrix;
 
 	physics_init( &m_ViewerPhysics );
 	m_ViewerPhysics.flags |= PF_ACCELERATES | PF_SLIDE_ENABLED;

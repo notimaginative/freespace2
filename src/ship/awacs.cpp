@@ -376,9 +376,6 @@ float awacs_get_level(object *target, ship *viewer, int use_awacs)
 		// untargetable at longer range
 		return -1.0f;	
 	}		
-
-	Int3();
-	return 1.5f;
 }
 
 

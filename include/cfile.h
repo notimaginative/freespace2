@@ -409,7 +409,6 @@ typedef struct {
 
 // #define's for the type parameter in cfopen.  
 #define CFILE_NORMAL				0			// open file normally
-#define CFILE_MEMORY_MAPPED	(1<<0)	//	open file as a memory-mapped file
 
 #define CF_SORT_NONE	0
 #define CF_SORT_NAME 1
@@ -429,7 +428,7 @@ extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
 
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program
-int cfile_init(const char *extras_dir = NULL);
+int cfile_init();
 
 // add an extension to a filename if it doesn't already have it
 char *cf_add_ext(const char *filename, const char *ext);
@@ -497,9 +496,6 @@ char *cfgets(char *buf, int n, CFILE *cfile);
 // cfeof() Tests for end-of-file on a stream
 int cfeof(CFILE *cfile);
 
-// Return the data pointer associated with the CFILE structure (for memory mapped files)
-void *cf_returndata(CFILE *cfile);
-
 // get the 2 byte checksum of the passed filename - return 0 if operation failed, 1 if succeeded
 int cf_chksum_short(const char *filename, ushort *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );
 
@@ -532,9 +528,6 @@ int cfexist(const char *filename);	// Returns true if file exists on disk (1) or
 #define CF_RENAME_FAIL_ACCESS			1					// new name could not be created
 #define CF_RENAME_FAIL_EXIST			2					// old name does not exist
 int cf_rename(const char *old_name, const char *name, int type = CF_TYPE_ANY );
-
-// changes the attributes of a file
-void cf_attrib(const char *name, int set, int clear, int type);
 
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES
@@ -592,18 +585,12 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info = NUL
 // Returns: If not found returns 0.
 int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize = false);
 
-// Functions to change directories
-int cfile_chdir(char *dir);
-int cfile_chdrive(int DriveNum, int flag);
-
-// push current directory on a 'stack' (so we can restore it) and change the directory
-int cfile_push_chdir(int type);
-
-// restore directory on top of the stack
-int cfile_pop_dir();
-
 // initializes Cfile_root_dir[] and Cfile_user_dir[]
 int cfile_init_paths();
+
+// Creates the directory path if it doesn't exist. Even creates all its
+// parent paths.
+void cf_create_directory( int dir_type );
 
 #endif	/* __CFILE_H__ */
 

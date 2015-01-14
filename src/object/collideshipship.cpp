@@ -1470,7 +1470,7 @@ void collide_ship_ship_do_sound(vector *world_hit_pos, object *A, object *B, int
 {
 	vector	rel_vel;
 	float		rel_speed;
-	int		light_collision=0;
+//	int		light_collision=0;
 			
 	vm_vec_sub(&rel_vel, &A->phys_info.desired_vel, &B->phys_info.desired_vel);
 	rel_speed = vm_vec_mag_quick(&rel_vel);
@@ -1478,7 +1478,7 @@ void collide_ship_ship_do_sound(vector *world_hit_pos, object *A, object *B, int
 	if ( rel_speed > MIN_REL_SPEED_FOR_LOUD_COLLISION ) {
 		snd_play_3d( &Snds[SND_SHIP_SHIP_HEAVY], world_hit_pos, &View_position );
 	} else {
-		light_collision=1;
+	//	light_collision=1;
 		if ( player_involved ) {
 			if ( !snd_is_playing(Player_collide_sound) ) {
 				Player_collide_sound = snd_play_3d( &Snds[SND_SHIP_SHIP_LIGHT], world_hit_pos, &View_position );
@@ -1492,10 +1492,10 @@ void collide_ship_ship_do_sound(vector *world_hit_pos, object *A, object *B, int
 
 	// maybe play a "shield" collision sound overlay if appropriate
 	if ( (get_shield_strength(A) > 5) || (get_shield_strength(B) > 5) ) {
-		float vol_scale=1.0f;
-		if ( light_collision ) {
-			vol_scale=0.7f;
-		}
+	//	float vol_scale=1.0f;
+	//	if ( light_collision ) {
+	//		vol_scale=0.7f;
+	//	}
 
 		if ( player_involved ) {
 			if ( !snd_is_playing(Player_collide_sound) ) {

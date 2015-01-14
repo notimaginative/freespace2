@@ -248,10 +248,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#include <windowsx.h>
-#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "grinternal.h"
@@ -285,11 +282,11 @@ char *gr_force_fit_string(char *str, int max_str, int max_width)
 			str[max_str - 3] = 0;
 		}
 
-		strcpy(str + strlen(str) - 1, "...");
+		SDL_strlcpy(str + strlen(str) - 1, "...", max_str);
 		gr_get_string_size(&w, NULL, str);
 		while (w > max_width) {
 			SDL_assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
-			strcpy(str + strlen(str) - 4, "...");
+			SDL_strlcpy(str + strlen(str) - 4, "...", max_str);
 			gr_get_string_size(&w, NULL, str);
 		}
 	}
@@ -376,9 +373,9 @@ void gr_print_timestamp(int x, int y, int timestamp)
 	int w, c;
 
 	// format the time information into strings
-	sprintf(h, "%.1d", (timestamp / 3600000) % 10);
-	sprintf(m, "%.2d", (timestamp / 60000) % 60);
-	sprintf(s, "%.2d", (timestamp / 1000) % 60);
+	SDL_snprintf(h, sizeof(h), "%.1d", (timestamp / 3600000) % 10);
+	SDL_snprintf(m, sizeof(m), "%.2d", (timestamp / 60000) % 60);
+	SDL_snprintf(s, sizeof(s), "%.2d", (timestamp / 1000) % 60);
 
 	gr_get_string_size(&w, NULL, "0");
 	gr_get_string_size(&c, NULL, ":");
@@ -466,103 +463,14 @@ void gr_get_string_size(int *w1, int *h1, const char *text, int len)
 MONITOR( FontChars );	
 
 
-#ifndef PLAT_UNIX
-HFONT MyhFont = NULL;
-extern HDC hDibDC;
-#endif
-
 void gr_string_win(int x, int y, const char *s)
 {
-#ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-#else
-	char *ptr;
-	SIZE size;
-
-	if ( MyhFont==NULL )	{
-		MyhFont = CreateFont(14, 0, 0, 0,				// height,width,?,?
-				700,
-				FALSE,
-				FALSE,
-				FALSE,											// strikeout?
-				ANSI_CHARSET,									// character set
-				OUT_DEVICE_PRECIS,
-				CLIP_DEFAULT_PRECIS,
-				DEFAULT_QUALITY,
-				DEFAULT_PITCH | FF_DONTCARE,
-//				NULL );
-//				"Times New Roman" );
-//XSTR:OFF
-				"Ariel" );
-//XSTR:ON
-	}
-
-	SelectObject( hDibDC, MyhFont );
-
-	if ( gr_screen.bits_per_pixel==8 )
-		SetTextColor(hDibDC, PALETTEINDEX(gr_screen.current_color.raw8));
-	else
-		SetTextColor(hDibDC, RGB(gr_screen.current_color.red,gr_screen.current_color.green,gr_screen.current_color.blue));
-
-	SetBkMode(hDibDC,TRANSPARENT);
-
-
-	HRGN hclip;
-	hclip = CreateRectRgn( gr_screen.offset_x, 
-								  gr_screen.offset_y, 
-								  gr_screen.offset_x+gr_screen.clip_width-1, 
-								  gr_screen.offset_y+gr_screen.clip_height-1 );
-
-	SelectClipRgn(hDibDC, hclip );
-	x += gr_screen.offset_x;
-	y += gr_screen.offset_y;
-	//ptr = strchr(s,'\n);
-	while ((ptr = strchr(s, '\n'))!=NULL) {
-		TextOut(hDibDC, x, y, s, ptr - s);
-		GetTextExtentPoint32(hDibDC, s, ptr - s, &size);
-		y += size.cy;
-		s = ptr + 1;
-	}
-
-	TextOut(hDibDC, x, y, s, strlen(s));
-	SelectClipRgn(hDibDC, NULL);
-	DeleteObject(hclip);
-#endif
+	STUB_FUNCTION;
 }
 
 void gr_get_string_size_win(int *w, int *h, const char *text)
 {
-#ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-#else
-	char *ptr;
-	SIZE size;
-
-	ptr = strchr(text, '\n');
-
-	if (MyhFont==NULL)	{
-		if (w) *w = 0;
-		if (h) *h = 0;
-		return;
-	}
-
-	SelectObject( hDibDC, MyhFont );
-
-	if (!ptr)	{
-		GetTextExtentPoint32( hDibDC, text, strlen(text), &size);
-		if (w) *w = size.cx;
-		if (h) *h = size.cy;
-		return;
-	}
-
-	GetTextExtentPoint32(hDibDC, text, ptr - text, &size);
-	gr_get_string_size_win(w, h, ptr+1);
-	if (w && (size.cx > *w) )
-		*w = size.cx;
-
-	if (h)
-		*h += size.cy;
-#endif
+	STUB_FUNCTION;
 }
 
 char grx_printf_text[2048];	
@@ -574,7 +482,7 @@ void __cdecl gr_printf( int x, int y, const char * format, ... )
 	if ( !Current_font ) return;
 	
 	va_start(args, format);
-	vsprintf(grx_printf_text,format,args);
+	SDL_vsnprintf(grx_printf_text, sizeof(grx_printf_text), format, args);
 	va_end(args);
 
 	gr_string(x,y,grx_printf_text);
@@ -659,7 +567,7 @@ int gr_create_font(const char * typeface)
 	fp = cfopen( typeface, "rb", CFILE_NORMAL, CF_TYPE_ANY, localize );
 	if ( fp == NULL ) return -1;
 
-	strncpy( fnt->filename, typeface, MAX_FILENAME_LEN );
+	SDL_strlcpy( fnt->filename, typeface, MAX_FILENAME_LEN );
 	cfread( &fnt->id, 4, 1, fp );
 	cfread( &fnt->version, sizeof(int), 1, fp );
 	cfread( &fnt->num_chars, sizeof(int), 1, fp );

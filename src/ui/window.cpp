@@ -754,7 +754,7 @@ void UI_WINDOW::draw_one_xstr(UI_XSTR *x, int frame)
 
 	// print this puppy out	
 	int xoffset = lcl_get_xstr_offset(x->xstr_id, gr_screen.res);
-	strncpy(str, XSTR(x->xstr, x->xstr_id), 254);
+	SDL_strlcpy(str, XSTR(x->xstr, x->xstr_id), sizeof(str));
 	if(str[0] == '&'){
 		if(strlen(str) > 1){			
 			gr_string((x->x) + xoffset, x->y, str + 1);

@@ -235,48 +235,11 @@
 	#define GAME_CD_CHECK
 #endif
 
-// 4127 is constant conditional (assert)
-// 4100 is unreferenced formal parameters,
-// 4514 is unreferenced inline function removed, 
-// 4201 is nameless struct extension used. (used by windows header files)
-// 4410 illegal size for operand... ie... 	fxch st(1)
-// 4611 is _setjmp warning.  Since we use setjmp alot, and we don't really use constructors or destructors, this warning doesn't really apply to us.
-// 4725 is the pentium division bug warning, and I can't seem to get rid of it, even with this pragma.
-//      JS: I figured out the disabling 4725 works, but not on the first function in the module.
-//      So to disable this, I add in a stub function at the top of each module that does nothing.
-// 4710 is inline function not expanded (who cares?)
-// 4711 tells us an inline function was expanded (who cares?)
-// 4702 unreachable code.  I care, but too many to deal with
-// 4201 nonstandard extension used : nameless struct/union (happens a lot in Windows include headers)
-// 4390 emptry control statement (triggered by nprintf and mprintf's inside of one-line if's, etc)
-#ifndef PLAT_UNIX
-#pragma warning(disable: 4127 4100 4514 4201 4410 4611 4725 4710 4711 4702 4201 4390)
-#endif
 
 #include "SDL.h"
 
-#include <stdio.h>	// For NULL, etc
-#include <stdlib.h>
-#include <memory.h>
+#include "platform.h"
 
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
-
-#include <string.h>
-
-#ifdef PLAT_UNIX
-#include "unix.h"
-#endif
-
-// same thing that's in FS2_Open (credit: Mike Harris)
-#ifdef PLAT_UNIX
-#define DIR_SEPARATOR_CHAR '/'
-#define DIR_SEPARATOR_STR "/"
-#else
-#define DIR_SEPARATOR_CHAR '\\'
-#define DIR_SEPARATOR_STR "\\"
-#endif
 
 // value to represent an uninitialized state in any int or uint
 #define UNINITIALIZED 0x7f8e6d9c
@@ -290,9 +253,7 @@
 #define MAX_TEAMS		3
 
 #define USE_INLINE_ASM 1		// Define this to use inline assembly
-#define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(a))
 
-#define LOCAL static			// make module local varilable static.
 
 typedef Sint32 fix;
 typedef Uint8 ubyte;
@@ -327,15 +288,6 @@ typedef struct vector {
 typedef struct vectora {
 	float	xyz[3];
 } vectora;
-
-typedef struct vec2d {
-	float i,j;
-} vec2d;
-
-// Used for some 2d primitives, like gr_poly
-typedef struct vert2df {
-	float x, y;
-} vert2df;
 
 typedef struct angles {
 	float	p, b, h;
@@ -424,7 +376,7 @@ extern void __cdecl Warning( const char * filename, int line, const char * forma
 #define STUB_FUNCTION
 #else
 void gr_activate(int);
-#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d, thread %d\n", __FUNCTION__, LOCATION, getpid()))
+#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d\n", __FUNCTION__, LOCATION))
 #endif
 
 //#define Int3() _asm { int 3 }
@@ -571,20 +523,12 @@ void dc_printf( const char *format, ... );
 //======================================================================================
 //======================================================================================
 
-inline int mul_div(int n, int num, int dem)
-{
-	Sint64 ret = n;
-	ret *= num;
-	ret /= dem;
-	return (int)ret;
-}
-
 #include "fix.h"
 #include "floating.h"
 
 // Some constants for stuff
 #define MAX_FILENAME_LEN	32			// Length for filenames, ie "title.pcx"
-#define MAX_PATH_LEN			128		// Length for pathnames, ie "c:\bitmaps\title.pcx"
+#define MAX_PATH_LEN		256			// Length for pathnames, ie "c:\bitmaps\title.pcx"
 
 // contants and defined for byteswapping routines (useful for mac)
 

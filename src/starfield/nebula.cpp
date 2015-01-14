@@ -221,7 +221,7 @@ int load_nebula(const char *filename)
 {
 	CFILE *fp;
 	char id[16];
-	int version, major, minor;
+	int version, major;//, minor;
 
 	fp = cfopen(filename, "rb");
 
@@ -238,7 +238,7 @@ int load_nebula(const char *filename)
 	cfread( &version, sizeof(int), 1, fp );
     version = INTEL_INT(version);
 	major = version / 100;
-	minor = version % 100;
+	//minor = version % 100;
 
 	if ( major != NEBULA_MAJOR_VERSION )	{
 		mprintf(( "An out of date nebula file.\n" ));
@@ -317,13 +317,9 @@ void nebula_init( const char *filename, angles * pbh )
 
 void nebula_render()
 {
+#ifdef MAKE_FS1
 	int i;
 	// int r, g, b;
-
-	// no nebula for you!
-#ifndef MAKE_FS1
-	return;
-#endif
 
 	if ( !Nebula_loaded ) {
 		return;
@@ -365,6 +361,7 @@ void nebula_render()
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode == NEB2_RENDER_NONE)){
 		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
+#endif
 }
 
 DCF(nebula,"Loads a different nebula")

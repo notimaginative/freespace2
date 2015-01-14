@@ -52,12 +52,12 @@
 class InetGetFile
 {
 public:
-	InetGetFile(char *URL,char *localfile);
+	InetGetFile(char *URL, char *filename, int cf_type = 1 /* CF_TYPE_ROOT */);
 	~InetGetFile();
-	BOOL IsFileReceived();
-	BOOL IsFileError();
-	BOOL IsConnecting();
-	BOOL IsReceiving();
+	bool IsFileReceived();
+	bool IsFileError();
+	bool IsConnecting();
+	bool IsReceiving();
 	int GetErrorCode();
 	int GetBytesIn();
 	int GetTotalBytes();
@@ -66,7 +66,7 @@ public:
 protected:
 	CFtpGet *ftp;
 	ChttpGet *http;
-	BOOL m_bUseHTTP;
+	bool m_bUseHTTP;
 	int m_ErrorCode;
 	int m_State;
 	int m_HardError;

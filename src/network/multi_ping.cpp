@@ -172,7 +172,7 @@ void multi_ping_send_all()
 // get the lowest existing ping in the ping struct, returning -1 if no pings
 int multi_ping_get_lowest(ping_struct *ps)
 {
-	int idx, lowest_index;
+	int idx;
 	float lowest;
 	
 	// if there are no recorded pings, return -1
@@ -184,9 +184,8 @@ int multi_ping_get_lowest(ping_struct *ps)
 	lowest = -1.0f;
 	for(idx=0;idx<ps->num_pings;idx++){
 		// if we found a lower value
-		if((lowest == -1) || (ps->ping_times[idx] < lowest)){
+		if((lowest == -1.0f) || (ps->ping_times[idx] < lowest)){
 			lowest = ps->ping_times[idx];
-			lowest_index = idx;
 		}
 	}
 

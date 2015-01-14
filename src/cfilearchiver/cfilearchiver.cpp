@@ -58,6 +58,8 @@
 #include <sys/types.h>
 #endif
 
+#define SDL_MAIN_HANDLED
+
 #include "pstypes.h"
 
 #ifndef PLAT_UNIX

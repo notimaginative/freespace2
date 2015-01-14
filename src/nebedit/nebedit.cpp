@@ -140,7 +140,7 @@ int Font1 = -1;
 
 color color_green;
 
-vector Global_light_world = { 0.208758f, -0.688253f, -0.694782f };
+vector Global_light_world = { { { 0.208758f, -0.688253f, -0.694782f } } };
 
 // nebula stuff
 
@@ -330,7 +330,7 @@ int load_nebula_sub(const char *filename)
 
 void nebedit_close()
 {
-	char a_path[MAX_PATH];
+	char a_path[MAX_PATH_LEN];
 
 	cf_create_default_path_string(a_path, CF_TYPE_CACHE, "autosaved.neb");
 
@@ -422,7 +422,7 @@ void nebula_draw_2d()
 		for (i=0; i<num_pts; i++ )	{
 			gr_circle( x[i], y[i], 4 );
 		}
-		if ((Sel_mode==1)) { // multiple selection
+		if (Sel_mode == 1) { // multiple selection
 			if (Draw_sel_box) {
 				gr_set_color(200,0,200);
 				gr_line(Orig_pos_x, Orig_pos_y, Orig_pos_x, End_pos_y);
@@ -836,6 +836,7 @@ int newtri[3];
 
 bool mdflag = false;
 
+extern "C"
 int main(int argc, char *argv[])
 {
 	int i;
@@ -855,7 +856,7 @@ int main(int argc, char *argv[])
 
 	timer_init();
 	// cfile_init(tok);
-	cfile_init(argv[0]);
+	cfile_init();
 	os_init( "NebEdit", "NebEdit" );	//SCREEN_W, SCREEN_H );
 	os_set_title("NebEdit");
 	gr_init(GR_640, GR_OPENGL, 16);

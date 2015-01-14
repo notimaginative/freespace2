@@ -175,6 +175,8 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_set_viewport = gr_opengl1_set_viewport;
 
 	gr_screen.gf_activate = gr_opengl1_activate;
+
+	gr_screen.gf_release_texture = gr_opengl1_release_texture;
 }
 
 void opengl1_init()
@@ -242,9 +244,9 @@ void gr_opengl1_activate(int active)
 
 void gr_opengl1_clear()
 {
-	glClearColor(gr_screen.current_clear_color.red / 255.0,
-		gr_screen.current_clear_color.green / 255.0,
-		gr_screen.current_clear_color.blue / 255.0, 1.0);
+	glClearColor(gr_screen.current_clear_color.red / 255.0f,
+		gr_screen.current_clear_color.green / 255.0f,
+		gr_screen.current_clear_color.blue / 255.0f, 1.0f);
 
 	glClear( GL_COLOR_BUFFER_BIT );
 }
@@ -372,8 +374,8 @@ void gr_opengl1_print_screen(const char *filename)
 	char tmp[MAX_FILENAME_LEN];
 	ubyte *buf = NULL;
 
-	strcpy( tmp, filename );
-	strcat( tmp, NOX(".tga"));
+	SDL_strlcpy( tmp, filename, sizeof(tmp) );
+	SDL_strlcat( tmp, NOX(".tga"), sizeof(tmp) );
 
 	buf = (ubyte*)malloc(GL_viewport_w * GL_viewport_h * 3);
 
@@ -452,10 +454,10 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 
 		gr_init_color( &gr_screen.current_fog_color, r, g, b );
 
-		fc[0] = (float)r/255.0;
-		fc[1] = (float)g/255.0;
-		fc[2] = (float)b/255.0;
-		fc[3] = 1.0;
+		fc[0] = r / 255.0f;
+		fc[1] = g / 255.0f;
+		fc[2] = b / 255.0f;
+		fc[3] = 1.0f;
 
 		glFogfv(GL_FOG_COLOR, fc);
 	}
@@ -726,7 +728,7 @@ void gr_opengl1_zbias(int bias)
 {
 	if (bias) {
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0.0, -bias);
+		glPolygonOffset(0.0f, GLfloat(-bias));
 	} else {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
@@ -739,11 +741,11 @@ void gr_opengl1_set_viewport(int width, int height)
 	float ratio = gr_screen.max_w / i2fl(gr_screen.max_h);
 
 	w = width;
-	h = i2fl((width / ratio) + 0.5f);
+	h = fl2i((width / ratio) + 0.5f);
 
 	if (h > height) {
 		h = height;
-		w = i2fl((height * ratio) + 0.5f);
+		w = fl2i((height * ratio) + 0.5f);
 	}
 
 	x = (width - w) / 2;

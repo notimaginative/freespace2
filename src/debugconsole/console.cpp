@@ -263,7 +263,7 @@ void scanner_downshift_word()
 	int offset = 'a' - 'A';
 	char * tp;
 
-	strcpy( scanner_word_string, scanner_token_string );
+	SDL_strlcpy( scanner_word_string, scanner_token_string, sizeof(scanner_word_string) );
 	
 	tp = scanner_word_string;
 	do {
@@ -370,7 +370,7 @@ void dc_get_arg(uint type)
 		if ( num_digits==len )	{
 			Dc_arg_type |= ARG_FLOAT;
 			Dc_arg_float = (float)atof(Dc_arg);
-			if ( !strchr( Dc_arg, '.' ))	{
+			if ( !SDL_strchr( Dc_arg, '.' ))	{
 				Dc_arg_type |= ARG_INT;
 				Dc_arg_int = atoi(Dc_arg);
 			}
@@ -578,7 +578,7 @@ void debug_output( char c )
 			if ( debug_y >= DROWS )	{
 				int i;
 				for (i=1; i<DROWS; i++ )
-					strcpy( debug_text[i-1], debug_text[i] );
+					SDL_strlcpy( debug_text[i-1], debug_text[i], DCOLS );
 				debug_y = DROWS-1;
 				debug_x = 0;
 				debug_text[debug_y][debug_x] = 0;
@@ -600,7 +600,7 @@ void debug_output( char c )
 		if ( debug_y >= DROWS )	{
 			int i;
 			for (i=1; i<DROWS; i++ )
-				strcpy( debug_text[i-1], debug_text[i] );
+				SDL_strlcpy( debug_text[i-1], debug_text[i], DCOLS );
 			debug_y = DROWS-1;
 			debug_x = 0;
 			debug_text[debug_y][debug_x] = 0;
@@ -619,7 +619,7 @@ void dc_printf(const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
 
 	char *p = tmp;
@@ -683,7 +683,7 @@ void debug_console( void (*_func)() )
 
 		case SDLK_F3:
 			if ( last_oldcommand > -1 )	{
-				strcpy( command_line, oldcommand_line[last_oldcommand] );
+				SDL_strlcpy( command_line, oldcommand_line[last_oldcommand], sizeof(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
@@ -695,7 +695,7 @@ void debug_console( void (*_func)() )
 				command_scroll = last_oldcommand;
 
 			if ( command_scroll > -1 )	{
-				strcpy( command_line, oldcommand_line[command_scroll] );
+				SDL_strlcpy( command_line, oldcommand_line[command_scroll], sizeof(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
@@ -708,7 +708,7 @@ void debug_console( void (*_func)() )
 			if (command_scroll>last_oldcommand) 
 				command_scroll = -1;
 			if ( command_scroll > -1 )	{
-				strcpy( command_line, oldcommand_line[command_scroll] );
+				SDL_strlcpy( command_line, oldcommand_line[command_scroll], sizeof(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
@@ -729,13 +729,13 @@ void debug_console( void (*_func)() )
 			if ( !found )	{
 				if ( last_oldcommand < DEBUG_HISTORY-1 )	{
 					last_oldcommand++;
-					strcpy( oldcommand_line[last_oldcommand], command_line);
+					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, sizeof(oldcommand_line[0]) );
 				} else {
 					int i;
 					for (i=0; i<last_oldcommand; i++ )	{
-						strcpy( oldcommand_line[i], oldcommand_line[i+1] );
+						SDL_strlcpy( oldcommand_line[i], oldcommand_line[i+1], sizeof(oldcommand_line[0]) );
 					}
-					strcpy( oldcommand_line[last_oldcommand], command_line);
+					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, sizeof(oldcommand_line[0]) );
 				}
 			}
 //			int i;
@@ -762,8 +762,8 @@ void debug_console( void (*_func)() )
 
 		}
 
-		strcpy( debug_text[debug_y], ">" );
-		strcat( debug_text[debug_y], command_line );
+		SDL_strlcpy( debug_text[debug_y], ">", DCOLS );
+		SDL_strlcat( debug_text[debug_y], command_line, DCOLS );
 		debug_draw();
 
 		if ( _func ){

@@ -106,7 +106,7 @@ void game_do_state_common(int, int){}
 void game_start_time(){}
 void game_set_frametime(int){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 int game_poll() {return 0;}
 char *Game_current_mission_filename;
@@ -128,7 +128,7 @@ void game_load_palette(){}
 void game_format_time(int, char*){}
 int game_get_default_skill_level(){return 0;}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int Sun_drew;
 int Interface_framerate;
 void game_set_view_clip(){}
@@ -145,5 +145,5 @@ int last_single_step;
 int Nebedit_running;
 void game_tst_mark(struct object*, struct ship*){}
 int game_do_cd_mission_check(char*){return 0;}
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 int tst;

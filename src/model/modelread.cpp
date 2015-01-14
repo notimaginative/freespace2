@@ -736,10 +736,10 @@ static int model_initted = 0;
 
 #ifndef NDEBUG
 CFILE *ss_fp;			// file pointer used to dump subsystem information
-char  model_filename[_MAX_PATH];		// temp used to store filename
-char	debug_name[_MAX_PATH];
+char  model_filename[MAX_PATH_LEN];		// temp used to store filename
+char	debug_name[MAX_PATH_LEN];
 int ss_warning_shown;		// have we shown the warning dialog concerning the subsystems?
-char	Global_filename[256];
+char	Global_filename[MAX_PATH_LEN];
 int Model_ram = 0;			// How much RAM the models use total
 #endif
 
@@ -897,7 +897,7 @@ void model_init()
 }
 
 // routine to parse out values from a user property field of an object
-void get_user_prop_value(char *buf, char *value)
+void get_user_prop_value(char *buf, char *value, const int max_vlen)
 {
 	char *p, *p1, c;
 
@@ -909,7 +909,7 @@ void get_user_prop_value(char *buf, char *value)
 		p1++;
 	c = *p1;
 	*p1 = '\0';
-	strcpy(value, p);
+	SDL_strlcpy(value, p, max_vlen);
 	*p1 = c;
 }
 
@@ -936,7 +936,7 @@ void model_copy_subsystems( int n_subsystems, model_subsystem *d_sp, model_subsy
 				dest->turn_rate = source->turn_rate;
 				dest->turret_gun_sobj = source->turret_gun_sobj;
 
-				strcpy( dest->name, source->name );
+				SDL_strlcpy( dest->name, source->name, sizeof(dest->name) );
 
 				if ( dest->type == SUBSYSTEM_TURRET ) {
 					int nfp;
@@ -950,7 +950,7 @@ void model_copy_subsystems( int n_subsystems, model_subsystem *d_sp, model_subsy
 						dest->turret_firing_point[nfp] = source->turret_firing_point[nfp];
 
 					if ( dest->flags & MSS_FLAG_CREWPOINT )
-						strcpy(dest->crewspot, source->crewspot);
+						SDL_strlcpy(dest->crewspot, source->crewspot, sizeof(dest->crewspot));
 				}
 				break;
 			}
@@ -969,11 +969,11 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 	char	lcdname[256];
 
 	if ( (p = strstr(props, "$name")) != NULL)
-		get_user_prop_value(p+5, subsystemp->name);
+		get_user_prop_value(p+5, subsystemp->name, sizeof(subsystemp->name));
 	else
-		strcpy( subsystemp->name, dname );
+		SDL_strlcpy( subsystemp->name, dname, sizeof(subsystemp->name) );
 
-	strcpy(lcdname, dname);
+	SDL_strlcpy(lcdname, dname, sizeof(lcdname));
 	SDL_strlwr(lcdname);
 
 	// check the name for it's specific type
@@ -986,16 +986,16 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 		subsystemp->type = SUBSYSTEM_TURRET;
 		if ( (p = strstr(props, "$fov")) != NULL )
-			get_user_prop_value(p+4, buf);			// get the value of the fov
+			get_user_prop_value(p+4, buf, sizeof(buf));			// get the value of the fov
 		else
-			strcpy(buf,"180");
+			SDL_strlcpy(buf,"180", sizeof(buf));
 		angle = ANG_TO_RAD(atoi(buf))/2.0f;
 		subsystemp->turret_fov = (float)cos(angle);
 		subsystemp->turret_num_firing_points = 0;
 
 		if ( (p = strstr(props, "$crewspot")) != NULL) {
 			subsystemp->flags |= MSS_FLAG_CREWPOINT;
-			get_user_prop_value(p+9, subsystemp->crewspot);
+			get_user_prop_value(p+9, subsystemp->crewspot, sizeof(subsystemp->crewspot));
 		}
 
 	} else if ( strstr(lcdname, "navigation") ) {
@@ -1023,7 +1023,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 		// get time for (a) complete rotation (b) step (c) activation
 		float turn_time;
-		get_user_prop_value(p+7, buf);
+		get_user_prop_value(p+7, buf, sizeof(buf));
 		turn_time = (float)atof(buf);
 
 		// CASE OF STEPPED ROTATION
@@ -1034,7 +1034,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get number of steps
 			if ( (p = strstr(props, "$steps")) != NULL) {
-				get_user_prop_value(p+6, buf);
+				get_user_prop_value(p+6, buf, sizeof(buf));
 			   subsystemp->stepped_rotation->num_steps = atoi(buf);
 			 } else {
 			    subsystemp->stepped_rotation->num_steps = 8;
@@ -1042,7 +1042,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get pause time
 			if ( (p = strstr(props, "$t_paused")) != NULL) {
-				get_user_prop_value(p+9, buf);
+				get_user_prop_value(p+9, buf, sizeof(buf));
 			   subsystemp->stepped_rotation->t_pause = (float)atof(buf);
 			 } else {
 			    subsystemp->stepped_rotation->t_pause = 2.0f;
@@ -1050,7 +1050,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get transition time - time to go between steps
 			if ( (p = strstr(props, "$t_transit")) != NULL) {
-				get_user_prop_value(p+10, buf);
+				get_user_prop_value(p+10, buf, sizeof(buf));
 			    subsystemp->stepped_rotation->t_transit = (float)atof(buf);
 			} else {
 			    subsystemp->stepped_rotation->t_transit = 2.0f;
@@ -1058,7 +1058,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get fraction of time spent in accel
 			if ( (p = strstr(props, "$fraction_accel")) != NULL) {
-				get_user_prop_value(p+15, buf);
+				get_user_prop_value(p+15, buf, sizeof(buf));
 			    subsystemp->stepped_rotation->fraction = (float)atof(buf);
 			   SDL_assert(subsystemp->stepped_rotation->fraction > 0 && subsystemp->stepped_rotation->fraction < 0.5);
 			} else {
@@ -1076,7 +1076,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 		// CASE OF AI ROTATION
 		else if ( (p = strstr(props, "$ai")) != NULL) {
-			get_user_prop_value(p+8, buf);
+			get_user_prop_value(p+8, buf, sizeof(buf));
 			subsystemp->flags |= MSS_FLAG_AI_ROTATE;
 
 			// get parameters - ie, speed / dist / other ??
@@ -1136,15 +1136,15 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 			subsystemp->pnt = *pnt;				// use the offset to get the center point of the subsystem
 			subsystemp->radius = rad;
 			set_subsystem_info( subsystemp, props, subobj_name);
-			strcpy(subsystemp->subobj_name, subobj_name);						// copy the object name
+			SDL_strlcpy(subsystemp->subobj_name, subobj_name, sizeof(subsystemp->subobj_name));						// copy the object name
 			return;
 		}
 	}
 #ifndef NDEBUG
 	if ( !ss_warning_shown) {
-		char bname[_MAX_FNAME];
+		char bname[MAX_FILENAME_LEN];
 
-		_splitpath(model_filename, NULL, NULL, bname, NULL);
+		base_filename(model_filename, bname, sizeof(bname));
 		Warning(LOCATION, "A subsystem was found in model %s that does not have a record in ships.tbl.\nA list of subsystems for this ship will be dumped to:\n\ndata\\tables\\%s.subsystems for inclusion\n into ships.tbl.", model_filename, bname);
 
 		ss_warning_shown = 1;
@@ -1154,7 +1154,7 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 #ifndef NDEBUG
 	if ( ss_fp )	{
 		char tmp_buffer[128];
-		sprintf(tmp_buffer, "$Subsystem:\t\t\t%s,1,0.0\n", subobj_name);
+		SDL_snprintf(tmp_buffer, sizeof(tmp_buffer), "$Subsystem:\t\t\t%s,1,0.0\n", subobj_name);
 		cfputs(tmp_buffer, ss_fp);
 	}
 #endif
@@ -1170,13 +1170,13 @@ void print_family_tree( polymodel *obj, int modelnum, const char * ident, int is
 
 	if (strlen(ident)==0 )	{
 		mprintf(( " %s", obj->submodel[modelnum].name ));
-		sprintf( temp, " " );
+		SDL_snprintf( temp, sizeof(temp), " " );
 	} else if ( islast ) 	{
 		mprintf(( "%s��%s", ident, obj->submodel[modelnum].name ));
-		sprintf( temp, "%s  ", ident );
+		SDL_snprintf( temp, sizeof(temp), "%s  ", ident );
 	} else {
 		mprintf(( "%s��%s", ident, obj->submodel[modelnum].name ));
-		sprintf( temp, "%s� ", ident );
+		SDL_snprintf( temp, sizeof(temp), "%s� ", ident );
 	}
 
 	mprintf(( "\n" ));
@@ -1247,7 +1247,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	int i,j;
 
 #ifndef NDEBUG
-	strcpy(Global_filename, filename);
+	SDL_strlcpy(Global_filename, filename, sizeof(Global_filename));
 #endif
 
 	fp = cfopen(filename,"rb");
@@ -1261,15 +1261,15 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	// into the game quicker
 #if 0
 	{
-		char bname[_MAX_FNAME];
+		char bname[MAX_PATH_LEN];
 
-		_splitpath(filename, NULL, NULL, bname, NULL);
-		sprintf(debug_name, "%s.subsystems", bname);
+		base_filename(filename, bname, sizeof(bname));
+		SDL_snprintf(debug_name, sizeof(debug_name), "%s.subsystems", bname);
 		ss_fp = cfopen(debug_name, "wb", CFILE_NORMAL, CF_TYPE_TABLES );
 		if ( !ss_fp )	{
 			mprintf(( "Can't open debug file for writing subsystems for %s\n", filename));
 		} else {
-			strcpy(model_filename, filename);
+			SDL_strlcpy(model_filename, filename, sizeof(model_filename));
 			ss_warning_shown = 0;
 		}
 	}
@@ -1294,7 +1294,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 	pm->version = version;
 	SDL_assert( strlen(filename) < FILENAME_LEN );
-	strncpy(pm->filename, filename, FILENAME_LEN);
+	SDL_strlcpy(pm->filename, filename, FILENAME_LEN);
 
 	memset( &pm->view_positions, 0, sizeof(pm->view_positions) );
 
@@ -1493,14 +1493,14 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				}
 
 				if ( pm->submodel[n].name[0] == '\0' ) {
-					strcpy(pm->submodel[n].name, "unknown object name");
+					SDL_strlcpy(pm->submodel[n].name, "unknown object name", MAX_NAME_LEN);
 				}
 
 				bool rotating_submodel_has_subsystem = !(pm->submodel[n].movement_type == MOVEMENT_TYPE_ROT);
 				if ( ( p = strstr(props, "$special"))!= NULL ) {
 					char type[32];
 
-					get_user_prop_value(p+9, type);
+					get_user_prop_value(p+9, type, sizeof(type));
 					if ( !SDL_strcasecmp(type, "subsystem") ) {	// if we have a subsystem, put it into the list!
 						do_new_subsystem( n_subsystems, subsystems, n, pm->submodel[n].rad, &pm->submodel[n].offset, props, pm->submodel[n].name, pm->id );
 						rotating_submodel_has_subsystem = true;
@@ -1652,9 +1652,9 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 					cfread_string_len( props, MAX_PROP_LEN, fp );
 					if ( (p = strstr(props, "$name"))!= NULL )
-						get_user_prop_value(p+5, bay->name);
+						get_user_prop_value(p+5, bay->name, sizeof(bay->name));
 					else
-						sprintf(bay->name, "<unnamed bay %c>", 'A' + i);
+						SDL_snprintf(bay->name, sizeof(bay->name), "<unnamed bay %c>", 'A' + i);
 					bay->num_spline_paths = cfread_int( fp );
 					if ( bay->num_spline_paths > 0 ) {
 						bay->splines = (int *)malloc(sizeof(int) * bay->num_spline_paths);
@@ -1829,7 +1829,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					} else if ( ( p = strstr(props, "$special"))!= NULL ) {
 						char type[32];
 
-						get_user_prop_value(p+9, type);
+						get_user_prop_value(p+9, type, sizeof(type));
 						if ( !SDL_strcasecmp(type, "subsystem") )						// if we have a subsystem, put it into the list!
 							do_new_subsystem( n_subsystems, subsystems, -1, radius, &pnt, props, &name[1], pm->id );		// skip the first '$' character of the name
 					} else if ( strstr(name, "$enginelarge") || strstr(name, "$enginehuge") ){
@@ -1911,8 +1911,8 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 						// get rid of leading '$' char in name
 						if ( pm->paths[i].parent_name[0] == '$' ) {
 							char tmpbuf[MAX_NAME_LEN];
-							strcpy(tmpbuf, pm->paths[i].parent_name+1);
-							strcpy(pm->paths[i].parent_name, tmpbuf);
+							SDL_strlcpy(tmpbuf, pm->paths[i].parent_name+1, sizeof(tmpbuf));
+							SDL_strlcpy(pm->paths[i].parent_name, tmpbuf, MAX_NAME_LEN);
 						}
 						// store the sub_model index (ie index into pm->submodel) of the parent
 						pm->paths[i].parent_submodel = -1;
@@ -2038,7 +2038,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			size = cfilelength(ss_fp);
 			cfclose(ss_fp);
 			if ( size <= 0 )	{
-				_unlink(debug_name);
+				cf_delete(debug_name, CF_TYPE_TABLES);
 			}
 		}
 	}
@@ -2127,8 +2127,8 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 		int j;
 		char destroyed_name[128];
 
-		strcpy( destroyed_name, pm->submodel[i].name );
-		strcat( destroyed_name, "-destroyed" );
+		SDL_strlcpy( destroyed_name, pm->submodel[i].name, sizeof(destroyed_name) );
+		SDL_strlcat( destroyed_name, "-destroyed", sizeof(destroyed_name) );
 		for (j=0; j<pm->n_models; j++ )	{
 			if ( !SDL_strcasecmp( pm->submodel[j].name, destroyed_name ))	{
 				// mprintf(( "Found destroyed model for '%s'\n", pm->submodel[i].name ));
@@ -2141,8 +2141,8 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 		// This debris comes from a destroyed subsystem when ship is still alive
 		char live_debris_name[128];
 
-		strcpy( live_debris_name, "debris-" );
-		strcat( live_debris_name, pm->submodel[i].name );
+		SDL_strlcpy( live_debris_name, "debris-", sizeof(live_debris_name) );
+		SDL_strlcat( live_debris_name, pm->submodel[i].name, sizeof(live_debris_name) );
 
 
 		pm->submodel[i].num_live_debris = 0;
@@ -2673,10 +2673,6 @@ void model_get_rotating_submodel_axis(vector *model_axis, vector *world_axis, in
 
 
 // Does stepped rotation of a submodel
-#ifndef PLAT_UNIX
-#pragma warning ( push )
-#pragma warning (disable : 4701)
-#endif
 void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 {
 	SDL_assert(psub->flags & MSS_FLAG_STEPPED_ROTATE);
@@ -2765,9 +2761,6 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 		sii->cur_turn_rate = 0.0f;
 	}
 }
-#ifndef PLAT_UNIX
-#pragma warning ( pop )
-#endif
 
 // Rotates the angle of a submodel.  Use this so the right unlocked axis
 // gets stuffed.

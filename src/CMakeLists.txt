@@ -150,6 +150,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multiutil.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet2.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisship.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisweapon.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collideshipship.cpp
@@ -229,23 +230,16 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/weapon/swarm.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/weapon/trails.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/weapon/weapons.cpp
-  # no PARENT_SCOPE here; do it below
+  PARENT_SCOPE
 )
 
-if(WIN32)
-  set(code_SOURCE
-    ${code_SOURCE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
-    PARENT_SCOPE
-  )
-else()
-  set(code_SOURCE
-    ${code_SOURCE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui-unix.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/platform/unix.cpp
-    PARENT_SCOPE
-  )
-endif()
+
+set(platform_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform/platform.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform/unix.cpp
+  PARENT_SCOPE
+)
+
 
 #
 # the game itself

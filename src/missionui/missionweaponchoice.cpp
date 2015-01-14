@@ -1245,7 +1245,7 @@ void wl_render_overhead_view(float frametime)
 			} else {
 				// high-res
 				char filename[NAME_LENGTH+2] = "2_";
-				strcat(filename, Ship_info[ship_class].overhead_filename);
+				SDL_strlcat(filename, Ship_info[ship_class].overhead_filename, sizeof(filename));
 				wl_ship->overhead_bitmap = bm_load(filename);
 			}
 			if ( wl_ship->overhead_bitmap < 0 ) {
@@ -1257,7 +1257,7 @@ void wl_render_overhead_view(float frametime)
 		gr_bitmap(Wl_overhead_coords[gr_screen.res][0], Wl_overhead_coords[gr_screen.res][1]);
 	}
 
-	ss_return_name(Selected_wl_slot/4, Selected_wl_slot%4, name);
+	ss_return_name(Selected_wl_slot/4, Selected_wl_slot%4, name, sizeof(name));
 	gr_set_color_fast(&Color_normal);
 	gr_string(Wl_ship_name_coords[gr_screen.res][0], Wl_ship_name_coords[gr_screen.res][1], name);
 }
@@ -1447,18 +1447,18 @@ void wl_load_anim(int weapon_class)
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
 		SDL_assert(strlen(Weapon_info[weapon_class].anim_filename) <= 30);
-		strcpy(animation_filename, "2_");
-		strcat(animation_filename, Weapon_info[weapon_class].anim_filename);
+		SDL_strlcpy(animation_filename, "2_", sizeof(animation_filename));
+		SDL_strlcat(animation_filename, Weapon_info[weapon_class].anim_filename, sizeof(animation_filename));
 
 		// now check if file exists
 		// GRR must add a .ANI at the end for detection
-		strcat(animation_filename,".ani");
-		icon->anim = anim_load(animation_filename, 1);
+		SDL_strlcat(animation_filename,".ani", sizeof(animation_filename));
+		icon->anim = anim_load(animation_filename);
 
 		if (icon->anim == NULL) {
 			mprintf(("Weapon ANI: Can not find %s, using lowres version instead.\n",animation_filename)); 
-			strcpy(animation_filename, Weapon_info[weapon_class].anim_filename);
-			icon->anim = anim_load(animation_filename, 1);
+			SDL_strlcpy(animation_filename, Weapon_info[weapon_class].anim_filename, sizeof(animation_filename));
+			icon->anim = anim_load(animation_filename);
 		}
 
 		/*
@@ -1472,10 +1472,9 @@ void wl_load_anim(int weapon_class)
 		}
 		*/
 	} else {
-		strcpy(animation_filename, Weapon_info[weapon_class].anim_filename);
+		SDL_strlcpy(animation_filename, Weapon_info[weapon_class].anim_filename, sizeof(animation_filename));
 		// load the compressed ship animation into memory 
-		// NOTE: if last parm of load_anim is 1, the anim file is mapped to memory 
-		icon->anim = anim_load(animation_filename, 1);
+		icon->anim = anim_load(animation_filename);
 	}
 
 	if ( icon->anim == NULL ) {
@@ -2603,7 +2602,7 @@ void wl_weapon_desc_start_wipe()
 	Weapon_desc_wipe_done = 0;
 
 	// break title into two lines if too long
-	strcpy(Weapon_desc_lines[0], Weapon_info[Selected_wl_class].title);
+	SDL_strlcpy(Weapon_desc_lines[0], Weapon_info[Selected_wl_class].title, WEAPON_DESC_MAX_LENGTH);
 	gr_get_string_size(&w, &h, Weapon_info[Selected_wl_class].title, title_len);
 	if (w > Weapon_title_max_width[gr_screen.res]) {
 		// split
@@ -2617,7 +2616,7 @@ void wl_weapon_desc_start_wipe()
 		}
 
 		Weapon_desc_lines[0][currchar_src] = '\0';										// shorten line 0
-		strcpy(Weapon_desc_lines[1], &(Weapon_desc_lines[0][currchar_src+1]));		// copy remainder into line 1
+		SDL_strlcpy(Weapon_desc_lines[1], &(Weapon_desc_lines[0][currchar_src+1]), WEAPON_DESC_MAX_LENGTH);		// copy remainder into line 1
 	} else {
 		// entire title in line 0, thus line 1 is empty
 		Weapon_desc_lines[1][0] = '\0';
@@ -2991,8 +2990,8 @@ void weapon_select_do(float frametime)
 				if (Lcl_gr) {
 					// might have to get weapon name translation
 					char display_name[128];
-					strncpy(display_name, Weapon_info[Carried_wl_icon.weapon_class].name, 128);
-					lcl_translate_wep_name(display_name);
+					SDL_strlcpy(display_name, Weapon_info[Carried_wl_icon.weapon_class].name, sizeof(display_name));
+					lcl_translate_wep_name(display_name, sizeof(display_name));
 					popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR( "A %s is unable to carry %s weaponry", 633), Ship_info[ship_class].name, display_name);
 				} else {
 					popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR( "A %s is unable to carry %s weaponry", 633), Ship_info[ship_class].name, Weapon_info[Carried_wl_icon.weapon_class].name);
@@ -3103,7 +3102,7 @@ void wl_render_icon_count(int num, int x, int y)
 	int number_to_draw = (num > 1000) ? 999 : num;		// cap count @ 999
 	SDL_assert(number_to_draw >= 0);
 
-	sprintf(buf, "%d", number_to_draw);
+	SDL_snprintf(buf, sizeof(buf), "%d", number_to_draw);
 	gr_get_string_size(&num_w, &num_h, buf, strlen(buf));
 
 	// render

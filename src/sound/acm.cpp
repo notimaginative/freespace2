@@ -170,7 +170,7 @@ static void do_adpcm_nibble(ubyte nib, ADPCMBLOCKHEADER *header, int lPredSamp)
 
 	header->iDelta = delta;
 	header->iSamp2 = header->iSamp1;
-	header->iSamp1 = lNewSamp;
+	header->iSamp1 = (short)lNewSamp;
 }
 
 static int decode_adpcm_sample_frame(SDL_RWops *rw, adpcm_fmt_t *fmt)
@@ -325,7 +325,7 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	if ( *dest == NULL ) {
 		*dest = (ubyte *)malloc(new_size);
 
-		if ( (*dest == NULL) ) {
+		if (*dest == NULL) {
 			goto Fail;
 		}
 
@@ -500,7 +500,7 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 	}
 
 	str->fmt = fmt;
-	str->dest_bps = dest_bps;
+	str->dest_bps = (ushort)dest_bps;
 	str->src_bps = pwfxSrc->bits_per_sample;
 	*stream = str;
 

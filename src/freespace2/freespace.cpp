@@ -847,7 +847,7 @@ extern void ssm_process();
 // static variable to contain the time this version was built
 // commented out for now until
 // I figure out how to get the username into the file
-//LOCAL char freespace_build_time[] = "Compiled on:"__DATE__" "__TIME__" by "__USER__;
+//static char freespace_build_time[] = "Compiled on:"__DATE__" "__TIME__" by "__USER__;
 
 // defines and variables used for dumping frame for making trailers.
 #ifndef NDEBUG
@@ -861,7 +861,7 @@ int Debug_dump_frame_num = 0;
 // amount of time to wait after the player has died before we display the death died popup
 #define PLAYER_DIED_POPUP_WAIT		2500
 int Player_died_popup_wait = -1;
-int Player_multi_died_check = -1;
+time_t Player_multi_died_check = -1;
 
 // builtin mission list stuff
 #ifdef FS2_DEMO
@@ -1673,7 +1673,7 @@ void game_level_init(int seed)
 		// netgame security flags -- ensures that all players in multiplayer game will have the
 		// same randon number sequence (with static rand functions)
 		if ( Game_mode & GM_NORMAL ) {
-			Game_level_seed = time(NULL);
+			Game_level_seed = (int)time(NULL);
 		} else {
 			Game_level_seed = Netgame.security;
 		}
@@ -1804,16 +1804,16 @@ void game_load_palette()
 
 #ifdef MAKE_FS1
 	if ( The_mission.flags & MISSION_FLAG_SUBSPACE )	{
-		strcpy( palette_filename, NOX("gamepalette-subspace") );
+		SDL_strlcpy( palette_filename, NOX("gamepalette-subspace"), sizeof(palette_filename) );
 	} else {
-		sprintf( palette_filename, NOX("gamepalette%d-%02d"), HUD_config.main_color+1, Mission_palette+1 );
+		SDL_snprintf( palette_filename, sizeof(palette_filename), NOX("gamepalette%d-%02d"), HUD_config.main_color+1, Mission_palette+1 );
 	}
 
 	mprintf(( "Loading palette %s\n", palette_filename ));
 
 	palette_load_table(palette_filename);
 #else
-	strcpy( palette_filename, NOX("gamepalette-subspace") );
+	SDL_strlcpy( palette_filename, NOX("gamepalette-subspace"), sizeof(palette_filename) );
 
 	mprintf(( "Loading palette %s\n", palette_filename ));
 #endif
@@ -2052,10 +2052,10 @@ void freespace_mission_load_stuff()
 	}
 }
 
-uint load_gl_init;
-uint load_mission_load;
-uint load_post_level_init;
-uint load_mission_stuff;
+time_t load_gl_init;
+time_t load_mission_load;
+time_t load_post_level_init;
+time_t load_mission_stuff;
 
 // tells the server to load the mission and initialize structures
 int game_start_mission()
@@ -2270,7 +2270,7 @@ DCF(gamma,"Sets Gamma factor")
 		gr_set_gamma(Freespace_gamma);
 
 		char tmp_gamma_string[32];
-		sprintf( tmp_gamma_string, NOX("%.2f"), Freespace_gamma );
+		SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma );
 		os_config_write_string( NULL, NOX("Gamma"), tmp_gamma_string );
 	}
 
@@ -2292,7 +2292,7 @@ void game_init()
 	Game_current_mission_filename[0] = 0;
 
 	// seed the random number generator
-	Game_init_seed = time(NULL);
+	Game_init_seed = (int)time(NULL);
 	srand( Game_init_seed );
 
 	Framerate_delay = 0;
@@ -2367,10 +2367,8 @@ void game_init()
 	Use_fullscreen_at_startup = os_config_read_uint( NULL, NOX("ForceFullscreen"), 1 );
 #endif
 
-#if defined (PLAT_UNIX) && defined(RELEASE_REAL)
 	// show the FPS counter if the config file says so
-	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), 0 );
-#endif
+	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), Show_framerate );
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	Asteroids_enabled = 1;		
@@ -2401,35 +2399,7 @@ void game_init()
 	
 	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);
 	if (ptr == NULL) {
-#ifndef PLAT_UNIX	
-		MessageBox((HWND)os_get_window(), XSTR("Please configure your system in the Launcher before running FS2.\n\n The Launcher will now be started!", 1446), XSTR("Attention!", 1447), MB_OK);
-
-		// fire up the UpdateLauncher executable
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-
-		memset( &si, 0, sizeof(STARTUPINFO) );
-		si.cb = sizeof(si);
-
-		BOOL ret = CreateProcess(	LAUNCHER_FNAME,	// pointer to name of executable module 
-									NULL,							// pointer to command line string
-									NULL,							// pointer to process security attributes 
-									NULL,							// pointer to thread security attributes 
-									FALSE,							// handle inheritance flag 
-									CREATE_DEFAULT_ERROR_MODE,		// creation flags 
-									NULL,							// pointer to new environment block 
-									NULL,	// pointer to current directory name 
-									&si,	// pointer to STARTUPINFO 
-									&pi 	// pointer to PROCESS_INFORMATION  
-								);			
-
-		// If the Launcher could not be started up, let the user know
-		if (!ret) {
-			MessageBox((HWND)os_get_window(), XSTR("The Launcher could not be restarted.", 1450), XSTR("Error", 1451), MB_OK);
-		}
-#else
-		STUB_FUNCTION;
-#endif		
+		STUB_FUNCTION;	
 		exit(1);
 	}
 
@@ -2438,7 +2408,7 @@ void game_init()
 
 	// check if sparky_hi exists -- access mode 0 means does file exist
 #ifndef MAKE_FS1 // shoudn't have it so don't check
-	char sparky_path[MAX_PATH];
+	char sparky_path[MAX_PATH_LEN];
 	SDL_snprintf(sparky_path, sizeof(sparky_path), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, "sparky_hi_fs2.vp");
 
 	if ( access(sparky_path, 0) == 0 ) {
@@ -2471,7 +2441,7 @@ void game_init()
 		Freespace_gamma = 5.0f;
 	}
 	char tmp_gamma_string[32];
-	sprintf( tmp_gamma_string, NOX("%.2f"), Freespace_gamma );
+	SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma );
 	os_config_write_string( NULL, NOX("Gamma"), tmp_gamma_string );
 
 	gr_set_gamma(Freespace_gamma);
@@ -2490,25 +2460,25 @@ void game_init()
 	ptr = os_config_read_string(NOX("PXO"),NOX("Login"),NULL);
 	if(ptr == NULL){
 		nprintf(("Network","Error reading in PXO login data\n"));
-		strcpy(Multi_tracker_login,"");
+		SDL_strlcpy(Multi_tracker_login, "", sizeof(Multi_tracker_login));
 	} else {		
-		strcpy(Multi_tracker_login,ptr);
+		SDL_strlcpy(Multi_tracker_login, ptr, sizeof(Multi_tracker_login));
 	}
 	ptr = os_config_read_string(NOX("PXO"),NOX("Password"),NULL);
 	if(ptr == NULL){		
 		nprintf(("Network","Error reading PXO password\n"));
-		strcpy(Multi_tracker_passwd,"");
+		SDL_strlcpy(Multi_tracker_passwd, "", sizeof(Multi_tracker_passwd));
 	} else {		
-		strcpy(Multi_tracker_passwd,ptr);
+		SDL_strlcpy(Multi_tracker_passwd, ptr, sizeof(Multi_tracker_passwd));
 	}	
 
 	// pxo squad name and password
 	ptr = os_config_read_string(NOX("PXO"),NOX("SquadName"),NULL);
 	if(ptr == NULL){
 		nprintf(("Network","Error reading in PXO squad name\n"));
-		strcpy(Multi_tracker_squad_name, "");
+		SDL_strlcpy(Multi_tracker_squad_name, "", sizeof(Multi_tracker_squad_name));
 	} else {		
-		strcpy(Multi_tracker_squad_name, ptr);
+		SDL_strlcpy(Multi_tracker_squad_name, ptr, sizeof(Multi_tracker_squad_name));
 	}
 
 	// If less than 48MB of RAM, use low memory model.
@@ -2638,9 +2608,9 @@ void game_get_framerate()
 			Framerate = FRAME_FILTER / frametotal;
 		else
 			Framerate = Framecount / frametotal;
-		sprintf( text, NOX("FPS: %.1f"), Framerate );
+		SDL_snprintf( text, sizeof(text), NOX("FPS: %.1f"), Framerate );
 	} else {
-		sprintf( text, NOX("FPS: ?") );
+		SDL_snprintf( text, sizeof(text), NOX("FPS: ?") );
 	}
 	Framecount++;
 
@@ -2986,7 +2956,7 @@ void show_debug_stuff()
 
 extern int Tool_enabled;
 int tst = 0;
-int tst_time = 0;
+time_t tst_time = 0;
 int tst_big = 0;
 vector tst_pos;
 int tst_bitmap = -1;
@@ -3314,7 +3284,7 @@ void say_view_target()
 				break;
 			case OBJ_JUMP_NODE: {
 				char	jump_node_name[128];
-				strcpy(jump_node_name, XSTR( "jump node", 184));
+				SDL_strlcpy(jump_node_name, XSTR( "jump node", 184), sizeof(jump_node_name));
 				view_target_name = jump_node_name;
 				Viewer_mode &= ~VM_OTHER_SHIP;
 				break;
@@ -3925,7 +3895,7 @@ void game_flip_page_and_time_it()
 	d = t2 - t1;
 	if (d != 0) {
 		t = (gr_screen.max_w*gr_screen.max_h*gr_screen.bytes_per_pixel)/1024;
-		sprintf( transfer_text, NOX("%d MB/s"), fixmuldiv(t,65,d) );
+		SDL_snprintf( transfer_text, sizeof(transfer_text), NOX("%d MB/s"), fixmuldiv(t,65,d) );
 	}
 #else
 	gr_flip ();
@@ -4575,17 +4545,17 @@ void game_set_frametime(int state)
 		if (Frametime < cap) {
 			thistime = cap - Frametime;
 			//mprintf(("Sleeping for %6.3f seconds.\n", f2fl(thistime)));
-			SDL_Delay( (f2fl(thistime) * 1000.0f) );
+			SDL_Delay( fl2i(f2fl(thistime) * 1000.0f) );
 			Frametime = cap;
 			thistime = timer_get_fixed_seconds();
 		}
 	}
 
 	if((Game_mode & GM_STANDALONE_SERVER) && 
-		(f2fl(Frametime) < ((float)1.0/(float)Multi_options_g.std_framecap))){
+		(f2fl(Frametime) < (1.0f/(float)Multi_options_g.std_framecap))){
 
-		frame_cap_diff = ((float)1.0/(float)Multi_options_g.std_framecap) - f2fl(Frametime);		
-		SDL_Delay((frame_cap_diff*1000));
+		frame_cap_diff = (1.0f/(float)Multi_options_g.std_framecap) - f2fl(Frametime);
+		SDL_Delay( fl2i(frame_cap_diff * 1000.0f) );
 		
 		thistime += fl2f((frame_cap_diff));		
 
@@ -4881,7 +4851,7 @@ int game_poll()
 		case KEY_DEBUGGED + SDLK_F4:
 			gameseq_post_event( GS_EVENT_TOGGLE_GLIDE );
 			break;
-		
+
 		case SDLK_F4:
 			if(Game_mode & GM_MULTIPLAYER){
 				if((state == GS_STATE_GAME_PLAY) || (state == GS_STATE_MULTI_PAUSED)){
@@ -4917,7 +4887,7 @@ int game_poll()
 
 				game_stop_time();
 
-				sprintf( tmp_name, NOX("screen%02d"), counter );
+				SDL_snprintf( tmp_name, sizeof(tmp_name), NOX("screen%02d"), counter );
 				counter++;
 				mprintf(( "Dumping screen to '%s'\n", tmp_name ));
 				gr_print_screen(tmp_name);
@@ -5198,7 +5168,6 @@ void game_process_event( int current_state, int event )
 			break;						
  
 		case GS_EVENT_LOAD_MISSION_MENU:
-			gameseq_set_state(GS_STATE_LOAD_MISSION_MENU);
 			break;
 
 		case GS_EVENT_MISSION_LOG_SCROLLBACK:
@@ -5540,7 +5509,6 @@ void game_leave_state( int old_state, int new_state )
 			break;
 
 		case GS_STATE_LOAD_MISSION_MENU:
-			mission_load_menu_close();
 			break;
 
 		case GS_STATE_SIMULATOR_ROOM:
@@ -5914,7 +5882,6 @@ void game_enter_state( int old_state, int new_state )
 			break;
 
 		case GS_STATE_LOAD_MISSION_MENU:
-			mission_load_menu_init();
 			break;
 
 		case GS_STATE_SIMULATOR_ROOM:
@@ -6391,8 +6358,7 @@ void game_do_state(int state)
 			break;
 
 		case GS_STATE_LOAD_MISSION_MENU:
-			game_set_frametime(GS_STATE_LOAD_MISSION_MENU);
-			mission_load_menu_do();
+			Int3();
 			break;
 		
 		case GS_STATE_BRIEFING:
@@ -6597,7 +6563,7 @@ int game_do_ram_check(int ram_in_mbytes)
 			// not a translated string, but it's too long and smartdrv isn't
 			// really a thing for any OS we now support :p
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), ram_in_mbytes, ram_in_mbytes);
-			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
+			SDL_snprintf( tmp, sizeof(tmp), "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
 
 			mboxbuttons[0].buttonid = 0;
 			mboxbuttons[0].text = XSTR("Ok", 503);
@@ -6624,7 +6590,7 @@ int game_do_ram_check(int ram_in_mbytes)
 			// not a translated string, but it's too long and smartdrv isn't
 			// really a thing for any OS we now support :p
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n", 195), ram_in_mbytes, ram_in_mbytes);
-			sprintf( tmp, "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n", ram_in_mbytes);
+			SDL_snprintf( tmp, sizeof(tmp), "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n", ram_in_mbytes);
 
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough RAM", 194), tmp, NULL);
 
@@ -6639,43 +6605,7 @@ int game_do_ram_check(int ram_in_mbytes)
 // If so, copy it over and remove the update directory.
 void game_maybe_update_launcher(char *exe_dir)
 {
-#ifndef PLAT_UNIX
-	char src_filename[MAX_PATH];
-	char dest_filename[MAX_PATH];
-
-	strcpy(src_filename, exe_dir);
-	strcat(src_filename, NOX("\\update\\freespace.exe"));
-
-	strcpy(dest_filename, exe_dir);
-	strcat(dest_filename, NOX("\\freespace.exe"));
-
-	// see if src_filename exists
-	FILE *fp;
-	fp = fopen(src_filename, "rb");
-	if ( !fp ) {
-		return;
-	}
-	fclose(fp);
-
-	SetFileAttributes(dest_filename, FILE_ATTRIBUTE_NORMAL);
-
-	// copy updated freespace.exe to freespace exe dir
-	if ( CopyFile(src_filename, dest_filename, 0) == 0 ) {
-		MessageBox( NULL, XSTR("Unable to copy freespace.exe from update directory to installed directory.  You should copy freespace.exe from the update directory (located in your FreeSpace install directory) to your install directory", 988), NULL, MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
-		return;
-	}
-
-	// delete the file in the update directory
-	DeleteFile(src_filename);
-
-	// safe to assume directory is empty, since freespace.exe should only be the file ever in the update dir
-	char update_dir[MAX_PATH];
-	strcpy(update_dir, exe_dir);
-	strcat(update_dir, NOX("\\update"));
-	RemoveDirectory(update_dir);
-#else
 	STUB_FUNCTION;
-#endif	
 }
 
 void game_spew_pof_info_sub(int model_num, polymodel *pm, int sm, CFILE *out, int *out_total, int *out_destroyed_total)
@@ -6698,7 +6628,7 @@ void game_spew_pof_info_sub(int model_num, polymodel *pm, int sm, CFILE *out, in
 	}
 	
 	// write out total
-	sprintf(str, "Submodel %s total : %d faces\n", pm->submodel[sm].name, total);
+	SDL_snprintf(str, sizeof(str), "Submodel %s total : %d faces\n", pm->submodel[sm].name, total);
 	cfputs(str, out);		
 
 	*out_total += total + sub_total;
@@ -6731,7 +6661,7 @@ void game_spew_pof_info()
 	}	
 	counted = 0;	
 	for(idx=0; idx<num_files; idx++, counted++){
-		sprintf(str, "%s.pof", pof_list[idx]);
+		SDL_snprintf(str, sizeof(str), "%s.pof", pof_list[idx]);
 		model_num = model_load(str, 0, NULL);
 		if(model_num >= 0){
 			pm = model_get(model_num);
@@ -6749,16 +6679,16 @@ void game_spew_pof_info()
 					total = submodel_get_num_polys(model_num, i);					
 					
 					model_total += total;
-					sprintf(str, "Submodel %s total : %d faces\n", pm->submodel[i].name, total);
+					SDL_snprintf(str, sizeof(str), "Submodel %s total : %d faces\n", pm->submodel[i].name, total);
 					cfputs(str, out);
 				}				
-				sprintf(str, "Model total %d\n", model_total);				
+				SDL_snprintf(str, sizeof(str), "Model total %d\n", model_total);
 				cfputs(str, out);				
 
 				// now go through and do it by LOD
 				cfputs("BY LOD\n\n", out);				
 				for(i=0; i<pm->n_detail_levels; i++){
-					sprintf(str, "LOD %d\n", i);
+					SDL_snprintf(str, sizeof(str), "LOD %d\n", i);
 					cfputs(str, out);
 
 					// submodels
@@ -6769,14 +6699,14 @@ void game_spew_pof_info()
 						game_spew_pof_info_sub(model_num, pm, j, out, &total, &destroyed_total);
 					}
 
-					sprintf(str, "Submodel %s total : %d faces\n", pm->submodel[pm->detail[i]].name, root_total);
+					SDL_snprintf(str, sizeof(str), "Submodel %s total : %d faces\n", pm->submodel[pm->detail[i]].name, root_total);
 					cfputs(str, out);
 
-					sprintf(str, "TOTAL: %d\n", total + root_total);					
+					SDL_snprintf(str, sizeof(str), "TOTAL: %d\n", total + root_total);
 					cfputs(str, out);
-					sprintf(str, "TOTAL not counting destroyed faces %d\n", (total + root_total) - destroyed_total);
+					SDL_snprintf(str, sizeof(str), "TOTAL not counting destroyed faces %d\n", (total + root_total) - destroyed_total);
 					cfputs(str, out);
-					sprintf(str, "TOTAL destroyed faces %d\n\n", destroyed_total);
+					SDL_snprintf(str, sizeof(str), "TOTAL destroyed faces %d\n\n", destroyed_total);
 					cfputs(str, out);
 				}				
 				cfputs("------------------------------------------------------------------------\n\n", out);				
@@ -6923,40 +6853,7 @@ int game_main(const char *szCmdLine)
 // launcher the fslauncher program on exit
 void game_launch_launcher_on_exit()
 {
-#ifndef PLAT_UNIX
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-	char cmd_line[2048];
-	char original_path[1024] = "";
-	
-	memset( &si, 0, sizeof(STARTUPINFO) );
-	si.cb = sizeof(si);
-
-	// directory
-	_getcwd(original_path, 1023);
-
-	// set up command line
-	strcpy(cmd_line, original_path);
-	strcat(cmd_line, "\\");
-	strcat(cmd_line, LAUNCHER_FNAME);
-	strcat(cmd_line, " -straight_to_update");		
-
-	BOOL ret = CreateProcess(	NULL,									// pointer to name of executable module 
-										cmd_line,							// pointer to command line string
-										NULL,									// pointer to process security attributes 
-										NULL,									// pointer to thread security attributes 
-										FALSE,								// handle inheritance flag 
-										CREATE_DEFAULT_ERROR_MODE,		// creation flags 
-										NULL,									// pointer to new environment block 
-										NULL,									// pointer to current directory name 
-										&si,									// pointer to STARTUPINFO 
-										&pi									// pointer to PROCESS_INFORMATION  
-										);			
-	// to eliminate build warnings
-	ret;
-#else
 	STUB_FUNCTION;
-#endif		
 }
 
 
@@ -7342,7 +7239,7 @@ void game_show_event_debug(float frametime)
 		z = Event_debug_index[k];
 		if (z & EVENT_DEBUG_EVENT) {
 			z &= 0x7fff;
-			sprintf(buf, NOX("%s%s (%s) %s%d %d"), (Mission_events[z].flags & MEF_CURRENT) ? NOX("* ") : "",
+			SDL_snprintf(buf, sizeof(buf), NOX("%s%s (%s) %s%d %d"), (Mission_events[z].flags & MEF_CURRENT) ? NOX("* ") : "",
 				Mission_events[z].name, Mission_events[z].result ? NOX("True") : NOX("False"),
 				(Mission_events[z].chain_delay < 0) ? "" : NOX("x "),
 				Mission_events[z].repeat_count, Mission_events[z].interval);
@@ -7353,31 +7250,31 @@ void game_show_event_debug(float frametime)
 			while (i--)
 				buf[i] = ' ';
 
-			strcat(buf, Sexp_nodes[z & 0x7fff].text);
+			SDL_strlcat(buf, Sexp_nodes[z & 0x7fff].text, sizeof(buf));
 			switch (Sexp_nodes[z & 0x7fff].value) {
 				case SEXP_TRUE:
-					strcat(buf, NOX(" (True)"));
+					SDL_strlcat(buf, NOX(" (True)"), sizeof(buf));
 					break;
 
 				case SEXP_FALSE:
-					strcat(buf, NOX(" (False)"));
+					SDL_strlcat(buf, NOX(" (False)"), sizeof(buf));
 					break;
 
 				case SEXP_KNOWN_TRUE:
-					strcat(buf, NOX(" (Always true)"));
+					SDL_strlcat(buf, NOX(" (Always true)"), sizeof(buf));
 					break;
 
 				case SEXP_KNOWN_FALSE:
-					strcat(buf, NOX(" (Always false)"));
+					SDL_strlcat(buf, NOX(" (Always false)"), sizeof(buf));
 					break;
 
 				case SEXP_CANT_EVAL:
-					strcat(buf, NOX(" (Can't eval)"));
+					SDL_strlcat(buf, NOX(" (Can't eval)"), sizeof(buf));
 					break;
 
 				case SEXP_NAN:
 				case SEXP_NAN_FOREVER:
-					strcat(buf, NOX(" (Not a number)"));
+					SDL_strlcat(buf, NOX(" (Not a number)"), sizeof(buf));
 					break;
 			}
 		}
@@ -7428,7 +7325,7 @@ void Time_model( int modelnum )
 
 		int bmp_num = pm->original_textures[i];
 		if ( bmp_num > -1 )	{
-			bm_get_palette(pm->original_textures[i], pal, filename );		
+			bm_get_palette(pm->original_textures[i], pal, filename, sizeof(filename) );
 			int w,h;
 			bm_get_info( pm->original_textures[i],&w, &h );
 
@@ -7578,11 +7475,10 @@ void game_feature_not_in_demo_popup()
 }
 
 // format the specified time (fixed point) into a nice string
-void game_format_time(fix m_time,char *time_str)
+void game_format_time(fix m_time, char *time_str, const int time_str_len)
 {
 	float mtime;
 	int hours,minutes,seconds;
-	char tmp[10];
 
 	mtime = f2fl(m_time);		
 
@@ -7594,47 +7490,27 @@ void game_format_time(fix m_time,char *time_str)
 	seconds = (int)mtime%60;
 	minutes = (int)mtime/60;			
 
-	// print the hour if necessary
-	if(hours > 0){		
-		sprintf(time_str,XSTR( "%d:", 201),hours);
-		// if there are less than 10 minutes, print a leading 0
-		if(minutes < 10){
-			strcpy(tmp,NOX("0"));
-			strcat(time_str,tmp);
-		}		
-	}	
-	
-	// print the minutes
-	if(hours){
-		sprintf(tmp,XSTR( "%d:", 201),minutes);
-		strcat(time_str,tmp);
+	if (hours > 0) {
+		SDL_snprintf(time_str, time_str_len, "%d:%02d:%02d", hours, minutes, seconds);
 	} else {
-		sprintf(time_str,XSTR( "%d:", 201),minutes);
+		SDL_snprintf(time_str, time_str_len, "%d:%02d", minutes, seconds);
 	}
-
-	// print the seconds
-	if(seconds < 10){
-		strcpy(tmp,NOX("0"));
-		strcat(time_str,tmp);
-	} 
-	sprintf(tmp,"%d",seconds);
-	strcat(time_str,tmp);
 }
 
 //	Stuff version string in *str.
-void get_version_string(char *str)
+void get_version_string(char *str, const int str_len)
 {
 //XSTR:OFF
-if ( FS_VERSION_BUILD == 0 ) {
-	sprintf(str,"v%d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR);
-} else {
-	sprintf(str,"v%d.%02d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
-}
+	if ( FS_VERSION_BUILD == 0 ) {
+		SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	} else {
+		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
+	}
 
 #if defined (FS2_DEMO) || defined(FS1_DEMO)
-	strcat(str, " D");
+	SDL_strlcat(str, " D", str_len);
 #elif defined (OEM_BUILD)
-	strcat(str, " (OEM)");
+	SDL_strlcat(str, " (OEM)", str_len);
 #endif
 //XSTR:ON
 	/*
@@ -7667,9 +7543,9 @@ if ( FS_VERSION_BUILD == 0 ) {
 	*/
 }
 
-void get_version_string_short(char *str)
+void get_version_string_short(char *str, const int str_len)
 {
-	sprintf(str,"v%d.%02d",FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 }
 
 // ----------------------------------------------------------------

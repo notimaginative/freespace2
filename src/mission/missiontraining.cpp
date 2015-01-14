@@ -352,7 +352,7 @@ training_msg_mods Training_msg_mods[MAX_TRAINING_MSG_MODS];
 
 // local module prototypes
 void training_process_msg(char *msg);
-void message_translate_tokens(char *buf, char *text);
+void message_translate_tokens(char *buf, const int max_buflen, char *text);
 
 
 #define NUM_DIRECTIVE_GAUGES			3
@@ -445,13 +445,14 @@ void training_obj_display()
 
 		c = &Color_normal;
 		if (Training_obj_lines[i + offset] & TRAINING_OBJ_LINES_KEY) {
-			message_translate_tokens(buf, Mission_events[z].objective_key_text);  // remap keys
+			message_translate_tokens(buf, sizeof(buf), Mission_events[z].objective_key_text);  // remap keys
 //			gr_set_color_fast(&Color_normal);
 			c = &Color_bright_green;
 		} else {
-			strcpy(buf, Mission_events[z].objective_text);
+			SDL_strlcpy(buf, Mission_events[z].objective_text, sizeof(buf));
 			if (Mission_events[z].count){
-				sprintf(buf + strlen(buf), NOX(" [%d]"), Mission_events[z].count);
+				int len = strlen(buf);
+				SDL_snprintf(buf + len, sizeof(buf) - len, NOX(" [%d]"), Mission_events[z].count);
 			}
 
 			// if this is a multiplayer tvt game, and this is event is not for my team, don't display it
@@ -787,10 +788,10 @@ void training_mission_shutdown()
 }
 
 // translates special tokens.  Handles one token only.
-char *translate_msg_token(char *str)
+char *translate_msg_token(char *str, const int max_len)
 {
 	if (!SDL_strcasecmp(str, NOX("wp"))) {
-		sprintf(str, "%d", Training_context_goal_waypoint + 1);
+		SDL_snprintf(str, max_len, "%d", Training_context_goal_waypoint + 1);
 		return str;
 	}
 
@@ -798,26 +799,28 @@ char *translate_msg_token(char *str)
 }
 
 // translates all special tokens in a message, producing the new finalized message to be displayed
-void message_translate_tokens(char *buf, char *text)
+void message_translate_tokens(char *buf, const int max_buflen, char *text)
 {
 	char temp[40], *toke1, *toke2, *ptr;
 	int r;
+	int len;
 
 	*buf = 0;
-	toke1 = strchr(text, '$');
-	toke2 = strchr(text, '#');
+	toke1 = SDL_strchr(text, '$');
+	toke2 = SDL_strchr(text, '#');
 	while (toke1 || toke2) {  // is either token types present?
 		if (!toke2 || (toke1 && (toke1 < toke2))) {  // found $ before #
-			strncpy(buf, text, toke1 - text + 1);  // copy text up to token
+			len = min(toke1 - text + 1, max_buflen);
+			SDL_strlcpy(buf, text, len);  // copy text up to token
 			buf += toke1 - text + 1;
 			text = toke1 + 1;  // advance pointers past processed data
 
-			toke2 = strchr(text, '$');
+			toke2 = SDL_strchr(text, '$');
 			if (!toke2)  // No second one?
 				break;
 
-			strncpy(temp, text, toke2 - text);  // isolate token into seperate buffer
-			temp[toke2 - text] = 0;  // null terminate string
+			len = min(toke2 - text + 1, max_buflen);
+			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
 			ptr = (char *)translate_key(temp);  // try and translate key
 			if (ptr) {  // was key translated properly?
 				if (!SDL_strcasecmp(ptr, NOX("none")) && (Training_bind_warning != Missiontime)) {
@@ -836,36 +839,37 @@ void message_translate_tokens(char *buf, char *text)
 				}
 
 				buf--;  // erase the $
-				strcpy(buf, ptr);  // put translated key in place of token
+				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
 				buf += strlen(buf);
 				text = toke2 + 1;
 			}
 
 		} else {
-			strncpy(buf, text, toke2 - text + 1);  // copy text up to token
+			len = min(toke2 - text + 1, max_buflen);
+			SDL_strlcpy(buf, text, len);  // copy text up to token
 			buf += toke2 - text + 1;
 			text = toke2 + 1;  // advance pointers past processed data
 
-			toke1 = strchr(text, '#');
+			toke1 = SDL_strchr(text, '#');
 			if (toke1)  // No second one?
 				break;
 
-			strncpy(temp, text, toke1 - text);  // isolate token into seperate buffer
-			temp[toke1 - text] = 0;  // null terminate string
-			ptr = translate_msg_token(temp);  // try and translate key
+			len = min(toke1 - text + 1, max_buflen);
+			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
+			ptr = translate_msg_token(temp, sizeof(temp));  // try and translate key
 			if (ptr) {  // was key translated properly?
 				buf--;  // erase the #
-				strcpy(buf, ptr);  // put translated key in place of token
+				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
 				buf += strlen(buf);
 				text = toke1 + 1;
 			}
 		}
 
-		toke1 = strchr(text, '$');
-		toke2 = strchr(text, '#');
+		toke1 = SDL_strchr(text, '$');
+		toke2 = SDL_strchr(text, '#');
 	}
 
-	strcpy(buf, text);
+	SDL_strlcpy(buf, text, max_buflen);
 	return;
 }
 
@@ -931,7 +935,7 @@ int message_play_training_voice(int index)
 		} else {
 			game_snd tmp_gs;
 			memset(&tmp_gs, 0, sizeof(game_snd));
-			strcpy(tmp_gs.filename, Message_waves[index].name);
+			SDL_strlcpy(tmp_gs.filename, Message_waves[index].name, sizeof(tmp_gs.filename));
 			Message_waves[index].num = snd_load(&tmp_gs);
 			if (Message_waves[index].num < 0) {
 				nprintf(("Warning", "Cannot load message wave: %s.  Will not play\n", Message_waves[index].name));
@@ -969,9 +973,9 @@ void message_training_setup(int m, int length)
 		return;
 	}
 
-	message_translate_tokens(Training_buf, Messages[m].message);
+	message_translate_tokens(Training_buf, sizeof(Training_buf), Messages[m].message);
 	HUD_add_to_scrollback(Training_buf, HUD_SOURCE_TRAINING);
-	strcpy(Training_text, Messages[m].message);
+	SDL_strlcpy(Training_text, Messages[m].message, sizeof(Training_text));
 
 	if (message_play_training_voice(Messages[m].wave_info.index) < 0) {
 		if (length > 0)
@@ -1073,7 +1077,7 @@ void message_training_display()
 		return;
 	}
 
-	message_translate_tokens(Training_buf, Training_text);
+	message_translate_tokens(Training_buf, sizeof(Training_buf), Training_text);
 	training_process_msg(Training_text);
 	Training_num_lines = split_str(Training_buf, TRAINING_LINE_WIDTH, Training_line_sizes, Training_lines, MAX_TRAINING_MSG_LINES);
 	SDL_assert(Training_num_lines > 0);
@@ -1153,7 +1157,7 @@ void training_process_msg(char *msg)
 	int count;
 	char *src, *dest, buf[8192];
 
-	message_translate_tokens(buf, msg);
+	message_translate_tokens(buf, sizeof(buf), msg);
 	count = 0;
 	src = buf;
 	dest = Training_buf;

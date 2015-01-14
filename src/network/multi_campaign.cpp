@@ -217,14 +217,14 @@ int Multi_campaign_accept_flags[MAX_PLAYERS];
 // load a new campaign file or notify the standalone if we're not the server
 void multi_campaign_start(char *filename)
 {
-	int max_players;
+//	int max_players;
 	char str[255];
 	
 	// set the netgame mode
 	Netgame.campaign_mode = MP_CAMPAIGN;		
 	
 	// set the campaign filename
-	strcpy(Netgame.campaign_name,filename);
+	SDL_strlcpy(Netgame.campaign_name, filename, sizeof(Netgame.campaign_name));
 
 	// add the campaign mode flag
 	Game_mode |= GM_CAMPAIGN_MODE;
@@ -237,24 +237,21 @@ void multi_campaign_start(char *filename)
 		mission_campaign_next_mission();
 			
 		// setup various filenames and mission names
-		strcpy(Netgame.mission_name,Campaign.missions[Campaign.current_mission].name);
-		strcpy(Netgame.campaign_name,filename);
-		strcpy(Game_current_mission_filename,Netgame.mission_name);
+		SDL_strlcpy(Netgame.mission_name ,Campaign.missions[Campaign.current_mission].name, sizeof(Netgame.mission_name));
+		SDL_strlcpy(Netgame.campaign_name, filename, sizeof(Netgame.campaign_name));
+		SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, sizeof(Game_current_mission_filename));
 
 		// if we're the standalone server, set the mission and campaign names
 		if(Game_mode & GM_STANDALONE_SERVER){
 			memset(str,0,255);
-			strcpy(str,Netgame.mission_name);
-			strcat(str," (");
-			strcat(str,Netgame.campaign_name);
-			strcat(str,")");
+			SDL_snprintf(str, sizeof(str), "%s (%s)", Netgame.mission_name,Netgame.campaign_name );
 
 			// set the control on the stand_gui
 			std_multi_set_standalone_mission_name(str);
 		}
 
 		// maybe override the Netgame.respawn setting
-		max_players = mission_parse_get_multi_mission_info( Netgame.mission_name );				
+	//	max_players = mission_parse_get_multi_mission_info( Netgame.mission_name );
 		Netgame.respawn = The_mission.num_respawns;
 		nprintf(("Network","MULTI CAMPAIGN : overriding respawn setting with mission max %d\n",The_mission.num_respawns));		
 
@@ -286,16 +283,13 @@ void multi_campaign_next_mission()
 	// now we should be sequencing through the next stage (mission load, etc)
 	// this will eventually be replaced with the real filename of the next mission
 	if(Campaign.current_mission != -1){
-		strncpy(Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, MAX_FILENAME_LEN);
-		strcpy(Netgame.mission_name,Game_current_mission_filename);			
+		SDL_strlcpy(Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, sizeof(Game_current_mission_filename));
+		SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, sizeof(Netgame.mission_name));
 
 		// if we're the standalone server, set the mission and campaign names
 		if(Game_mode & GM_STANDALONE_SERVER){
 			memset(str,0,255);
-			strcpy(str,Netgame.mission_name);
-			strcat(str," (");
-			strcat(str,Netgame.campaign_name);
-			strcat(str,")");
+			SDL_snprintf(str, sizeof(str), "%s (%s)", Netgame.mission_name, Netgame.campaign_name);
 
 			// set the control on the stand_gui
 			std_multi_set_standalone_mission_name(str);
@@ -391,12 +385,12 @@ void multi_campaign_client_store_goals(int mission_num)
 	
 	// copy mission goals into the campaign goals
 	for(idx=0;idx<Num_goals;idx++){
-		strcpy(Campaign.missions[mission_num].goals[idx].name,Mission_goals[idx].name);
+		SDL_strlcpy(Campaign.missions[mission_num].goals[idx].name, Mission_goals[idx].name, NAME_LENGTH);
 	}
 
 	// copy mission events into the campaign events
 	for(idx=0;idx<Num_mission_events;idx++){
-		strcpy(Campaign.missions[mission_num].events[idx].name,Mission_events[idx].name);
+		SDL_strlcpy(Campaign.missions[mission_num].events[idx].name, Mission_events[idx].name, NAME_LENGTH);
 	}
 }
 

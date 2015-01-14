@@ -658,7 +658,7 @@ int goal_text::add(const char *text)
 //   y = y offset to draw relative to goal text area top
 void goal_text::display(int n, int y)
 {
-	int y1, w, h;
+	int y1, w, h, len;
 	char buf[MAX_GOAL_TEXT];
 
 	if ((n < 0) || (n >= m_num_lines) || (m_line_sizes[n] < 1))
@@ -668,8 +668,8 @@ void goal_text::display(int n, int y)
 	y += Goal_screen_text_y;
 	if (*m_lines[n] == '*') {  // header line
 		gr_set_color_fast(&Color_text_heading);
-		strncpy(buf, m_lines[n] + 1, m_line_sizes[n] - 1);
-		buf[m_line_sizes[n] - 1] = 0;
+		len = min(m_line_sizes[n], (int)sizeof(buf));
+		SDL_strlcpy(buf, m_lines[n] + 1, len);
 
 		gr_get_string_size(&w, &h, buf);
 		y1 = y + h / 2 - 1;
@@ -678,8 +678,8 @@ void goal_text::display(int n, int y)
 
 	} else {
 		gr_set_color_fast(&Color_text_normal);
-		strncpy(buf, m_lines[n], m_line_sizes[n]);
-		buf[m_line_sizes[n]] = 0;
+		len = min(m_line_sizes[n] + 1, (int)sizeof(buf));
+		SDL_strlcpy(buf, m_lines[n], len);
 	}
 
 	gr_printf(Goal_screen_text_x, y, buf);

@@ -1215,7 +1215,7 @@ int oal_update_source(int channel, int min, int max, vector *pos, vector *vel)
 		return 0;
 	}
 
-	if ( !Channels[channel].flags & SND_FLAG_3D ) {
+	if ( !(Channels[channel].flags & SND_FLAG_3D) ) {
 		return 1;
 	}
 

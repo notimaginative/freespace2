@@ -359,7 +359,7 @@ static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 		if (parm->args != NULL) {
 			memset(parm->args, 0, size+1);
-			strcpy(parm->args, buffer);
+			SDL_strlcpy(parm->args, buffer, size+1);
 		}
 	}
 }
@@ -380,14 +380,14 @@ static void os_parse_parms(char *cmdline)
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		// check with space to make sure we get the correct option name
-		snprintf(pname, sizeof(pname)-1, "%s ", parmp->name);
+		SDL_snprintf(pname, sizeof(pname)-1, "%s ", parmp->name);
 		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
 			cmdline_offset += strlen(parmp->name);
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
-			snprintf(pname, sizeof(pname)-1, "%s ", parmp->name2);
+			SDL_snprintf(pname, sizeof(pname)-1, "%s ", parmp->name2);
 			cmdline_offset = strstr(cmdline, pname);
 
 			if (cmdline_offset) {
@@ -523,13 +523,13 @@ static void os_init_cmdline(const char *cmdline)
 
 	mprintf(("Command line: "));
 
-	snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	SDL_snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen (cmdname, "rt");
 
 	if ( !fp ) {
 		// if not already found check exec directory
-		snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+		SDL_snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 		fp = fopen (cmdname, "rt");
 	}
@@ -546,7 +546,7 @@ static void os_init_cmdline(const char *cmdline)
 
 			// make sure that we have a trailing space for option finding to
 			// work properly with single args
-			strcat(buf, " ");
+			SDL_strlcat(buf, " ", sizeof(buf));
 
 			mprintf(("%s", buf));
 
@@ -561,11 +561,12 @@ static void os_init_cmdline(const char *cmdline)
 		mprintf(("%s", cmdline));
 
 		// for proper arg handling make sure cmdline has trailing space
-		char *m_cmdline = (char*) malloc(strlen(cmdline)+2);
+		int len = strlen(cmdline) + 2;
+		char *m_cmdline = (char*) malloc(len);
 
 		if (m_cmdline) {
-			strcpy(m_cmdline, cmdline);
-			strcat(m_cmdline, " ");
+			SDL_strlcpy(m_cmdline, cmdline, len);
+			SDL_strlcat(m_cmdline, " ", len);
 
 			os_parse_parms(m_cmdline);
 			os_validate_parms(m_cmdline);

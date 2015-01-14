@@ -803,7 +803,7 @@ void options_play_voice_clip()
 
 void options_add_notify(const char *str)
 {
-	strcpy(Options_notify_string, str);
+	SDL_strlcpy(Options_notify_string, str, sizeof(Options_notify_string));
 	Options_notify_stamp = timestamp(OPTIONS_NOTIFY_TIME);
 }
 
@@ -1037,7 +1037,7 @@ void options_change_gamma(float delta)
 	}
 
 	gr_set_gamma(Freespace_gamma);
-	sprintf(tmp_gamma_string, NOX("%.2f"), Freespace_gamma);
+	SDL_snprintf(tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma);
 	os_config_write_string(NULL, NOX("Gamma"), tmp_gamma_string);
 }
 
@@ -1599,7 +1599,7 @@ void options_menu_do_frame(float frametime)
 		}
 	}
 
-	if ((i == NUM_TABS) /*&& (Tab != MULTIPLAYER_TAB)*/ ){
+	if (i == NUM_TABS /*&& (Tab != MULTIPLAYER_TAB)*/ ){
 		Buttons[gr_screen.res][Tab].button.draw_forced(2);
 	}
 

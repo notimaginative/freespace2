@@ -464,8 +464,8 @@ void draw_brackets_diamond(int x1, int y1, int x2, int y2)
 	half_width = fl2i( width/2.0f + 0.5f );
 	half_height = fl2i( height/2.0f +0.5f );
 
-	side_len = (float)_hypot(half_width, half_height);
-	bracket_len = side_len / 8;
+	side_len = hypotf(i2fl(half_width), i2fl(half_height));
+	bracket_len = side_len / 8.0f;
 	
 	x_delta = fl2i(bracket_len * width / side_len + 0.5f);
 	y_delta = fl2i(bracket_len * height / side_len + 0.5f);
@@ -505,8 +505,8 @@ void draw_brackets_diamond_quick(int x1, int y1, int x2, int y2, int thick)
 	half_width = fl2i( width/2.0f + 0.5f);
 	half_height = fl2i( height/2.0f + 0.5f);
 
-	side_len = (float)_hypot(half_width, half_height);
-	bracket_len = side_len / 8;
+	side_len = hypotf(i2fl(half_width), i2fl(half_height));
+	bracket_len = side_len / 8.0f;
 	
 	x_delta = fl2i(bracket_len * width / side_len + 0.5f);
 	y_delta = fl2i(bracket_len * height / side_len + 0.5f);
@@ -642,7 +642,7 @@ void hud_target_show_dist_on_bracket(int x, int y, float distance)
 		return;
 	}
 
-	sprintf(text_dist, "%d", fl2i(distance+0.5f));
+	SDL_snprintf(text_dist, sizeof(text_dist), "%d", fl2i(distance+0.5f));
 	hud_num_make_mono(text_dist);
 	gr_get_string_size(&w,&h,text_dist);
 
@@ -672,7 +672,7 @@ int hud_bracket_num_ships_attacking(int objnum)
 			aip = &Ai_info[Ships[objp->instance].ai_index];
 
 			// don't count instructor
-			int is_training_mission();
+			extern int is_training_mission();
 			if ( is_training_mission() && SDL_strcasecmp(Ships[objp->instance].ship_name, "Instructor") == 0) {
 				break;
 			}

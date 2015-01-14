@@ -1221,7 +1221,7 @@ void multi_voice_set_vars(int qos,int duration)
 // <server> process a request for the token
 void multi_voice_process_token_request(int player_index)
 {
-	int stream_index,idx;
+	int idx;
 	
 	// if we're not doing voice on this server, return now
 	if(Netgame.options.flags & MSO_FLAG_NO_VOICE){
@@ -1240,7 +1240,6 @@ void multi_voice_process_token_request(int player_index)
 	}
 
 	// attempt to find a free token token
-	stream_index = -1;
 	for(idx=0;idx<MULTI_VOICE_MAX_STREAMS;idx++){
 		if(Multi_voice_stream[idx].token_status == MULTI_VOICE_TOKEN_INDEX_FREE){
 			multi_voice_give_token(idx,player_index);
@@ -1691,7 +1690,6 @@ int multi_voice_max_chunk_size(int msg_mode)
 void multi_voice_process_next_chunk()
 {			
 	int sound_size,uncompressed_size;	
-	float gain;
 	double d_gain;
 	voice_stream *str;
 
@@ -1700,7 +1698,6 @@ void multi_voice_process_next_chunk()
 
 	// get the data	
 	rtvoice_get_data((unsigned char**)&Multi_voice_record_buffer,&sound_size,&uncompressed_size,&d_gain);		
-	gain = (float)d_gain;
 
 	// if we've reached the max # of packets for this stream, bail
 	if(Multi_voice_current_stream_index >= (MULTI_VOICE_ACCUM_BUFFER_COUNT - 1)){
@@ -2148,8 +2145,7 @@ void multi_voice_alg_play_window(int stream_index)
 			int player_index = find_player_id(Multi_voice_stream[stream_index].stream_from);
 
 			if(player_index != -1){
-				memset(voice_msg,0,256);
-				sprintf(voice_msg,XSTR("<%s is speaking>",712),Net_players[player_index].player->callsign);
+				SDL_snprintf(voice_msg, sizeof(voice_msg), XSTR("<%s is speaking>", 712), Net_players[player_index].player->callsign);
 
 				// display a chat message (write to the correct spot - hud, standalone gui, chatbox, etc)
 				multi_display_chat_msg(voice_msg,player_index,0);

@@ -141,9 +141,6 @@ int cfeof(CFILE *cfile)
 
 	int result = 0;
 
-	// cfeof() not supported for memory-mapped files
-	SDL_assert( !cb->data );
-
 	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
@@ -172,9 +169,6 @@ int cftell( CFILE * cfile )
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	// Doesn't work for memory mapped files
-	SDL_assert( !cb->data );
-
 	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
@@ -199,9 +193,6 @@ int cfseek( CFILE *cfile, int offset, int where )
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-
-	// TODO: seek to offset in memory mapped file
-	SDL_assert( !cb->data );
 	SDL_assert( cb->fp != NULL );
 	
 	int goal_position;
@@ -249,8 +240,6 @@ int cfread(void *buf, int elsize, int nelem, CFILE *cfile)
 	Cfile_block *cb;
 	cb = &Cfile_block_list[cfile->id];	
 
-	// cfread() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 	SDL_assert(cb->fp != NULL);
 
 	int size = elsize*nelem;

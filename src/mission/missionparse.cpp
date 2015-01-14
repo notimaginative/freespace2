@@ -385,7 +385,7 @@
 #include "neblightning.h"
 #include "fvi.h"
 
-LOCAL struct {
+static struct {
 	p_object *docker;
 	char dockee[NAME_LENGTH];
 	char docker_point[NAME_LENGTH];
@@ -695,7 +695,7 @@ void parse_mission_info(mission *pm)
 	if (optional_string("$Mission Desc:"))
 		stuff_string(pm->mission_desc, F_MULTITEXT, NULL, MISSION_DESC_LENGTH);
 	else
-		strcpy(pm->mission_desc, NOX("No description\n"));
+		SDL_strlcpy(pm->mission_desc, NOX("No description\n"), sizeof(pm->mission_desc));
 
 	pm->game_type = MISSION_TYPE_SINGLE;				// default to single player only
 	if ( optional_string("+Game Type:")) {
@@ -807,8 +807,8 @@ void parse_mission_info(mission *pm)
 	}
 
 	// possible squadron reassignment
-	strcpy(The_mission.squad_name, "");
-	strcpy(The_mission.squad_filename, "");
+	SDL_strlcpy(The_mission.squad_name, "", sizeof(The_mission.squad_name));
+	SDL_strlcpy(The_mission.squad_filename, "", sizeof(The_mission.squad_filename));
 	if(optional_string("+SquadReassignName:")){
 		stuff_string(The_mission.squad_name, F_NAME, NULL);
 		if(optional_string("+SquadReassignLogo:")){
@@ -817,8 +817,8 @@ void parse_mission_info(mission *pm)
 	}	
 	// always clear out squad reassignments if not single player
 	if(Game_mode & GM_MULTIPLAYER){
-		strcpy(The_mission.squad_name, "");
-		strcpy(The_mission.squad_filename, "");
+		SDL_strlcpy(The_mission.squad_name, "", sizeof(The_mission.squad_name));
+		SDL_strlcpy(The_mission.squad_filename, "", sizeof(The_mission.squad_filename));
 		mprintf(("Ignoring squadron reassignment"));
 	}
 	// reassign the player
@@ -1415,7 +1415,7 @@ int parse_create_object(p_object *objp)
 
 	Ships[shipnum].group = objp->group;
 	Ships[shipnum].team = objp->team;
-	strcpy(Ships[shipnum].ship_name, objp->name);
+	SDL_strlcpy(Ships[shipnum].ship_name, objp->name, sizeof(Ships[0].ship_name));
 	Ships[shipnum].escort_priority = objp->escort_priority;
 	Ships[shipnum].special_exp_index = objp->special_exp_index;
 	Ships[shipnum].respawn_priority = objp->respawn_priority;
@@ -1888,7 +1888,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 	objp->cargo1 = -1;
 	int temp;
-	find_and_stuff_or_add("$Cargo 1:", &temp, F_NAME, Cargo_names, &Num_cargo, MAX_CARGO, "cargo");
+	find_and_stuff_or_add("$Cargo 1:", &temp, F_NAME, Cargo_names, NAME_LENGTH, &Num_cargo, MAX_CARGO, "cargo");
 	objp->cargo1 = char(temp);
 	if ( optional_string("$Cargo 2:") ) {
 		char buf[NAME_LENGTH];
@@ -2040,9 +2040,9 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 		// put this information into the Initially_docked array.  We will need to use this
 		// informatin later since not all ships will initially get created.
-		strcpy(Initially_docked[Total_initially_docked].dockee, objp->docked_with);
-		strcpy(Initially_docked[Total_initially_docked].docker_point, objp->docker_point);
-		strcpy(Initially_docked[Total_initially_docked].dockee_point, objp->dockee_point);
+		SDL_strlcpy(Initially_docked[Total_initially_docked].dockee, objp->docked_with, NAME_LENGTH);
+		SDL_strlcpy(Initially_docked[Total_initially_docked].docker_point, objp->docker_point, NAME_LENGTH);
+		SDL_strlcpy(Initially_docked[Total_initially_docked].dockee_point, objp->dockee_point, NAME_LENGTH);
 		Initially_docked[Total_initially_docked].docker = objp;
 		Total_initially_docked++;
 	}
@@ -2215,7 +2215,7 @@ void parse_common_object_data(p_object	*objp)
 			int index = string_lookup(cargo_name, (const char **)Cargo_names, Num_cargo, "cargo", 0);
 			if (index == -1 && (Num_cargo < MAX_CARGO)) {
 				index = Num_cargo;
-				strcpy(Cargo_names[Num_cargo++], cargo_name);
+				SDL_strlcpy(Cargo_names[Num_cargo++], cargo_name, NAME_LENGTH);
 			}
 			Subsys_status[i].subsys_cargo_name = index;
 		}
@@ -2463,7 +2463,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 
 			wingp->total_arrived_count++;
 			if ( wingp->num_waves > 1 ){
-				sprintf(objp->name, NOX("%s %d"), wingp->name, wingp->total_arrived_count);
+				SDL_snprintf(objp->name, sizeof(objp->name), NOX("%s %d"), wingp->name, wingp->total_arrived_count);
 			}
 
 			objnum = parse_create_object(objp);
@@ -3040,7 +3040,7 @@ void parse_waypoints(mission *pm)
 
 		// If no name exists, then use a standard name
 		if ( Jump_nodes[Num_jump_nodes - 1].name[0] == 0 ) {
-			sprintf(Jump_nodes[Num_jump_nodes - 1].name, "Jump Node %d", Num_jump_nodes);
+			SDL_snprintf(Jump_nodes[Num_jump_nodes - 1].name, NAME_LENGTH, "Jump Node %d", Num_jump_nodes);
 		}
 	}
 
@@ -3162,7 +3162,7 @@ void parse_bitmap(mission *pm)
 
 		if(Num_suns < MAX_STARFIELD_BITMAPS){
 			Suns[Num_suns] = b;
-			strcpy(Suns[Num_suns].filename, b.filename);
+			SDL_strlcpy(Suns[Num_suns].filename, b.filename, sizeof(b.filename));
 			Num_suns++;
 		}
 	}
@@ -3237,7 +3237,7 @@ void parse_bitmaps(mission *pm)
 		nebula_close();
 
 		// neb2 info
-		strcpy(Neb2_texture_name, "Eraseme3");
+		SDL_strlcpy(Neb2_texture_name, "Eraseme3", sizeof(Neb2_texture_name));
 		Neb2_poof_flags = ((1<<0) | (1<<1) | (1<<2) | (1<<3) | (1<<4) | (1<<5));
 		if(optional_string("+Neb2:")){
 			stuff_string(Neb2_texture_name, F_NAME, NULL);
@@ -3327,7 +3327,7 @@ void parse_bitmaps(mission *pm)
 		// if we have room, store it
 		if(Num_suns < MAX_STARFIELD_BITMAPS){
 			Suns[Num_suns] = b;
-			strcpy(Suns[Num_suns].filename, b.filename);
+			SDL_strlcpy(Suns[Num_suns].filename, b.filename, sizeof(b.filename));
 			Num_suns++;
 		}
 	}
@@ -3368,7 +3368,7 @@ void parse_bitmaps(mission *pm)
 		// if we have room, store it
 		if(Num_starfield_bitmaps < MAX_STARFIELD_BITMAPS){
 			Starfield_bitmap_instance[Num_starfield_bitmaps] = b;
-			strcpy(Starfield_bitmap_instance[Num_starfield_bitmaps].filename, b.filename);
+			SDL_strlcpy(Starfield_bitmap_instance[Num_starfield_bitmaps].filename, b.filename, sizeof(b.filename));
 			Num_starfield_bitmaps++;
 		}
 	}
@@ -3637,8 +3637,8 @@ void post_process_mission()
 			if ( result ) {
 				char sexp_str[8192], text[8192];
 
-				convert_sexp_to_string( i, sexp_str, SEXP_ERROR_CHECK_MODE);
-				sprintf(text, "%s.\n\nIn sexpression: %s\n(Error appears to be: %s)",
+				convert_sexp_to_string( i, sexp_str, sizeof(sexp_str), SEXP_ERROR_CHECK_MODE);
+				SDL_snprintf(text, sizeof(text), "%s.\n\nIn sexpression: %s\n(Error appears to be: %s)",
 					sexp_error_message(result), sexp_str, Sexp_nodes[bindex].text);
 
 				if (!Fred_running)
@@ -3875,7 +3875,7 @@ int parse_main(const char *mission_name, int flags)
 	}
 
 	if (!Fred_running)
-		strcpy(Mission_filename, mission_name);
+		SDL_strlcpy(Mission_filename, mission_name, sizeof(Mission_filename));
 
 	return 0;
 }
@@ -4829,7 +4829,7 @@ int get_parse_name_index(const char *name)
 
 	SDL_assert(i < MAX_SHIPS + MAX_WINGS);
 	SDL_assert(strlen(name) < NAME_LENGTH);
-	strcpy(Parse_names[i], name);
+	SDL_strlcpy(Parse_names[i], name, NAME_LENGTH);
 	return Num_parse_names++;
 }
 
@@ -4892,7 +4892,7 @@ void mission_add_to_arriving_support( object *requester_objp )
 		return;
 	}
 
-	strcpy( Arriving_repair_targets[Num_arriving_repair_targets], Ships[requester_objp->instance].ship_name );
+	SDL_strlcpy( Arriving_repair_targets[Num_arriving_repair_targets], Ships[requester_objp->instance].ship_name, NAME_LENGTH );
 	Num_arriving_repair_targets++;
 
 	if ( MULTIPLAYER_MASTER ){
@@ -4983,7 +4983,7 @@ void mission_warp_in_support_ship( object *requester_objp )
 	// create a name for the ship.  use "Support #".  look for collisions until one isn't found anymore
 	i = 1;
 	do {
-		sprintf(pobj->name, NOX("Support %d"), i);
+		SDL_snprintf(pobj->name, sizeof(pobj->name), NOX("Support %d"), i);
 		if ( (ship_name_lookup(pobj->name) == -1) && (ship_find_exited_ship_by_name(pobj->name) == -1) )
 			break;
 		i++;
@@ -5032,7 +5032,7 @@ void mission_warp_in_support_ship( object *requester_objp )
 			break;
 
 	if ( i == Num_cargo ) {
-		strcpy(Cargo_names[i], NOX("Nothing"));
+		SDL_strlcpy(Cargo_names[i], NOX("Nothing"), NAME_LENGTH);
 		Num_cargo++;
 	}
 	pobj->cargo1 = char(i);
@@ -5126,7 +5126,7 @@ int mission_remove_scheduled_repair( object *objp )
 
 	// ship is found -- compress the array
 	for ( i = index; i < Num_arriving_repair_targets - 1; i++ )
-		strcpy( Arriving_repair_targets[i], Arriving_repair_targets[i+1] );
+		SDL_strlcpy( Arriving_repair_targets[i], Arriving_repair_targets[i+1], NAME_LENGTH );
 
 	Num_arriving_repair_targets--;
 
@@ -5158,7 +5158,7 @@ int mission_parse_lookup_alt(char *name)
 }
 
 static int mission_parse_lookup_alt_index_warn = 1;
-void mission_parse_lookup_alt_index(int index, char *out)
+void mission_parse_lookup_alt_index(int index, char *out, const int max_outlen)
 {
 	// sanity
 	if(out == NULL){
@@ -5173,7 +5173,7 @@ void mission_parse_lookup_alt_index(int index, char *out)
 	}
 
 	// stuff it
-	strcpy(out, Mission_alt_types[index]);
+	SDL_strlcpy(out, Mission_alt_types[index], max_outlen);
 }
 
 int mission_parse_add_alt(char *name)
@@ -5186,7 +5186,7 @@ int mission_parse_add_alt(char *name)
 	// maybe add
 	if(Mission_alt_type_count < MAX_ALT_TYPE_NAMES){
 		// stuff the name
-		strncpy(Mission_alt_types[Mission_alt_type_count++], name, NAME_LENGTH);
+		SDL_strlcpy(Mission_alt_types[Mission_alt_type_count++], name, NAME_LENGTH);
 
 		// done
 		return Mission_alt_type_count - 1;

@@ -444,10 +444,6 @@ int HC_select_all = 0;
 // Module Globals
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef PLAT_UNIX
-#pragma warning(disable:4710)
-#endif
-
 const char *Hud_config_fname[GR_NUM_RESOLUTIONS] = {
 	"HUDConfig",
 	"2_HUDConfig"
@@ -606,10 +602,6 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 	}
 };
 
-#ifndef PLAT_UNIX
-#pragma warning(default:4710)
-#endif
-
 int HC_gauge_description_coords[GR_NUM_RESOLUTIONS][3] = {
 	{	// GR_640
 #ifdef MAKE_FS1
@@ -746,9 +738,6 @@ const char *HC_gauge_descriptions(int n)
 #define HCB_ACCEPT				7
 #endif
 
-#ifndef PLAT_UNIX
-#pragma warning(disable : 4710)
-#endif
 
 ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 	{ // GR_640
@@ -1105,7 +1094,7 @@ void hud_config_init_ui()
 
 	HC_select_all = 0;
 
-	strcpy(HC_fname, "");
+	SDL_strlcpy(HC_fname, "", sizeof(HC_fname));
 }
 
 int hud_config_show_flag_is_set(int i)
@@ -1608,7 +1597,7 @@ void hud_config_button_do(int n)
 
 		// save the file, maybe generating a new filename
 		if(strlen(name) <= 0){
-			sprintf(name, "hud_%d.hcf", HC_num_files + 1);
+			SDL_snprintf(name, sizeof(name), "hud_%d.hcf", HC_num_files + 1);
 			out = name;
 		} else {
 			out = cf_add_ext(name, ".hcf");
@@ -1993,7 +1982,7 @@ void hud_config_color_save(const char *name)
 		cfputs(HC_gauge_descriptions(idx), out);		
 		cfputs("\n", out);
 		cfputs("+RGBA: ", out);
-		sprintf(vals, "%d %d %d %d\n\n", HUD_config.clr[idx].red, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
+		SDL_snprintf(vals, sizeof(vals), "%d %d %d %d\n\n", HUD_config.clr[idx].red, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
 		cfputs(vals, out);
 	}
 	

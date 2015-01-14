@@ -330,7 +330,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		vertex * va = verts[i];
 
 		if ( Gr_zbuffering || (flags & TMAP_FLAG_NEBULA) ) {
-			sz = 1.0 - 1.0 / (1.0 + va->z / (32768.0 / 256.0));
+			sz = 1.0f - 1.0f / (1.0f + va->z / (32768.0f / 256.0f));
 
 			if ( sz > 0.98f ) {
 				sz = 0.98f;
@@ -369,19 +369,19 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			// use constant RGB values...
 		}
 
-		render_buffer[rb_offset].r = r;
-		render_buffer[rb_offset].g = g;
-		render_buffer[rb_offset].b = b;
-		render_buffer[rb_offset].a = a;
+		render_buffer[rb_offset].r = (ubyte)r;
+		render_buffer[rb_offset].g = (ubyte)g;
+		render_buffer[rb_offset].b = (ubyte)b;
+		render_buffer[rb_offset].a = (ubyte)a;
 
 		if ( (flags & TMAP_FLAG_PIXEL_FOG) && (OGL_fog_mode == 1) ) {
 			float f_val;
 
 			opengl1_stuff_fog_value(va->z, &f_val);
 
-			render_buffer[rb_offset].sr = fl2i(((fr * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sg = fl2i(((fg * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sb = fl2i(((fb * f_val) * 255.0f) + 0.5f);
+			render_buffer[rb_offset].sr = (ubyte)(((fr * f_val) * 255.0f) + 0.5f);
+			render_buffer[rb_offset].sg = (ubyte)(((fg * f_val) * 255.0f) + 0.5f);
+			render_buffer[rb_offset].sb = (ubyte)(((fb * f_val) * 255.0f) + 0.5f);
 		}
 
 		x = fl2i(va->sx*16.0f);
@@ -721,10 +721,10 @@ void gr_opengl1_line(int x1,int y1,int x2,int y2)
 	float sx1, sy1;
 	float sx2, sy2;
 
-	sx1 = i2fl(x1 + gr_screen.offset_x)+0.5;
-	sy1 = i2fl(y1 + gr_screen.offset_y)+0.5;
-	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5;
-	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5;
+	sx1 = i2fl(x1 + gr_screen.offset_x)+0.5f;
+	sy1 = i2fl(y1 + gr_screen.offset_y)+0.5f;
+	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5f;
+	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5f;
 
 	opengl_alloc_render_buffer(2);
 
@@ -804,10 +804,10 @@ void gr_opengl1_gradient(int x1,int y1,int x2,int y2)
 	float sx1, sy1;
 	float sx2, sy2;
 
-	sx1 = i2fl(x1 + gr_screen.offset_x)+0.5;
-	sy1 = i2fl(y1 + gr_screen.offset_y)+0.5;
-	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5;
-	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5;
+	sx1 = i2fl(x1 + gr_screen.offset_x)+0.5f;
+	sy1 = i2fl(y1 + gr_screen.offset_y)+0.5f;
+	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5f;
+	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5f;
 
 	if ( x1 == x2 ) {
 		if ( sy1 < sy2 )    {
@@ -828,7 +828,7 @@ void gr_opengl1_gradient(int x1,int y1,int x2,int y2)
 	render_buffer[0].r = gr_screen.current_color.red;
 	render_buffer[0].g = gr_screen.current_color.green;
 	render_buffer[0].b = gr_screen.current_color.blue;
-	render_buffer[0].a = ba;
+	render_buffer[0].a = (ubyte)ba;
 	render_buffer[0].x = sx2;
 	render_buffer[0].y = sy2;
 	render_buffer[0].z = -0.99f;
@@ -836,7 +836,7 @@ void gr_opengl1_gradient(int x1,int y1,int x2,int y2)
 	render_buffer[1].r = gr_screen.current_color.red;
 	render_buffer[1].g = gr_screen.current_color.green;
 	render_buffer[1].b = gr_screen.current_color.blue;
-	render_buffer[1].a = aa;
+	render_buffer[1].a = (ubyte)aa;
 	render_buffer[1].x = sx1;
 	render_buffer[1].y = sy1;
 	render_buffer[1].z = -0.99f;
@@ -923,7 +923,7 @@ void gr_opengl1_flash(int r, int g, int b)
 		x2 = i2fl(gr_screen.clip_right+gr_screen.offset_x);
 		y2 = i2fl(gr_screen.clip_bottom+gr_screen.offset_y);
 
-		glColor4ub(r, g, b, 255);
+		glColor4ub((GLubyte)r, (GLubyte)g, (GLubyte)b, 255);
 
 		opengl_alloc_render_buffer(4);
 

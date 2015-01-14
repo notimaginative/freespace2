@@ -506,7 +506,7 @@ void radar_plot_object( object *objp )
 		float hypotenuse;
 		float max_radius;
 
-		hypotenuse = (float)_hypot(new_x_dist, new_y_dist);
+		hypotenuse = hypotf(new_x_dist, new_y_dist);
 		max_radius = i2fl(Radar_radius[gr_screen.res][0] - 5);
 
 		if (hypotenuse >= (max_radius) ) {
@@ -786,7 +786,7 @@ void radar_draw_range()
 		break;
 
 	case RR_INFINITY:
-		sprintf(buf, NOX("%c"), Lcl_special_chars);
+		SDL_snprintf(buf, sizeof(buf), NOX("%c"), Lcl_special_chars);
 		gr_printf(Radar_dist_coords[gr_screen.res][RR_INFINITY][0], Radar_dist_coords[gr_screen.res][RR_INFINITY][1], buf);
 		break;
 

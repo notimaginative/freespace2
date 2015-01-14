@@ -645,7 +645,7 @@ void common_set_interface_palette(const char *filename)
 	if ( (InterfacePaletteBitmap != -1) && !SDL_strcasecmp(filename, buf) )
 		return;  // already set to this palette
 
-	strcpy(buf, filename);
+	SDL_strlcpy(buf, filename, sizeof(buf));
 
 	// unload the interface bitmap from memory
 	if (InterfacePaletteBitmap != -1) {

@@ -90,10 +90,10 @@
 CFILE *Multi_log_out = NULL;
 
 // time when the logfile was opened
-int Multi_log_open_systime = -1;
+time_t Multi_log_open_systime = -1;
 
 // time when we last updated the logfile
-int Multi_log_update_systime = -1;
+time_t Multi_log_update_systime = -1;
 
 // ----------------------------------------------------------------------------------------------------
 // MULTI LOGFILE FUNCTIONS
@@ -198,7 +198,7 @@ void ml_printf(const char *format, ...)
 	
 	// format the text
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
 	va_end(args);
 	
 	// log the string
@@ -227,12 +227,12 @@ void ml_string(const char *string, int add_time)
 		timer = time(NULL);
 
 		strftime(time_str, 128, "%m/%d %H:%M:%S~   ", localtime(&timer));
-		strcpy(tmp, time_str);
-		strcat(tmp, string);
+		SDL_strlcpy(tmp, time_str, sizeof(tmp));
+		SDL_strlcat(tmp, string, sizeof(tmp));
 	} else{
-		strcpy(tmp, string);
+		SDL_strlcpy(tmp, string, sizeof(tmp));
 	}
-	strcat(tmp, "\n");
+	SDL_strlcat(tmp, "\n", sizeof(tmp));
 
 	// now print it to the logfile if necessary	
 	cfputs(tmp, Multi_log_out);

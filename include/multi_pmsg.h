@@ -102,7 +102,7 @@ int multi_msg_text_process(int k);
 int multi_msg_text_mode();
 
 // return 0 or 1 if there is multi text to be rendered (filling in txt if necessary)
-int multi_msg_message_text(char *txt);
+int multi_msg_message_text(char *txt, const int txt_len);
 
 // display ingame,inmission message text
 void multi_msg_display_mission_text(const char *msg, int player_index);

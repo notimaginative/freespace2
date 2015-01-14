@@ -546,7 +546,7 @@ void parse_weapon_expl_tbl()
 		}
 
 		// stuff default filename
-		strcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename);
+		SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename, MAX_FILENAME_LEN);
 
 		// stuff LOD level filenames
 		for(idx=1; idx<Weapon_expl_info[Num_weapon_expl].lod_count; idx++){
@@ -554,7 +554,7 @@ void parse_weapon_expl_tbl()
 				break;
 			}
 
-			sprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, "%s_%d", base_filename, idx);
+			SDL_snprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
 		}
 
 		Num_weapon_expl++;
@@ -568,7 +568,7 @@ void parse_weapon_expl_tbl()
 	Num_weapon_expl = 0;
 
 	Weapon_expl_info[Num_weapon_expl].lod_count = 1;
-	strncpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
 
 	Num_weapon_expl++;
 #endif
@@ -729,16 +729,16 @@ void parse_wi_flags(weapon_info *weaponp)
 				weaponp->wi_flags |= WIF_SPAWN;
 				weaponp->spawn_type = (short)Num_spawn_types;
 				skip_length = strlen(NOX("Spawn")) + strspn(&temp_string[strlen(NOX("Spawn"))], NOX(" \t"));
-				char *num_start = strchr(&temp_string[skip_length], ',');
+				char *num_start = SDL_strchr(&temp_string[skip_length], ',');
 				if (num_start == NULL) {
 					weaponp->spawn_count = DEFAULT_WEAPON_SPAWN_COUNT;
-					name_length = 999;
+					name_length = NAME_LENGTH;
 				} else {
 					weaponp->spawn_count = (short)atoi(num_start+1);
-					name_length = num_start - temp_string - skip_length;
+					name_length = min(num_start - temp_string - skip_length + 1, NAME_LENGTH);
 				}
 
-				strncpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
+				SDL_strlcpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
 				SDL_assert(Num_spawn_types < MAX_SPAWN_WEAPONS);
 			} else
 				Warning(LOCATION, "Illegal to have two spawn types for one weapon.\n"
@@ -844,8 +844,8 @@ int parse_weapon()
 
 	if ( wip->name[0] == '@' ) {
 		char old_name[NAME_LENGTH];
-		strcpy(old_name, wip->name);
-		strcpy(wip->name, old_name+1);
+		SDL_strlcpy(old_name, wip->name, sizeof(old_name));
+		SDL_strlcpy(wip->name, old_name+1, sizeof(wip->name));
 	}
 
 	wip->title[0] = 0;
@@ -2464,12 +2464,12 @@ void weapon_process_post(object * obj, float frame_time)
 				float		dot;
 				vector	tvec;
 				ai_info	*parent_aip;
-				float		lead_scale = 0.0f;
+			//	float		lead_scale = 0.0f;
 
 				parent_aip = NULL;
 				if (obj->parent != Player_obj-Objects) {
 					parent_aip = &Ai_info[Ships[Objects[obj->parent].instance].ai_index];
-					lead_scale = parent_aip->lead_scale;
+				//	lead_scale = parent_aip->lead_scale;
 				}
 
 				vm_vec_normalized_dir(&tvec, &v0, &Objects[wp->target_num].pos);
@@ -3165,13 +3165,12 @@ void weapon_area_apply_blast(vector *force_apply_pos, object *ship_obj, vector *
 void weapon_do_area_effect(object *wobjp, vector *pos, object *other_obj)
 {
 	weapon_info	*wip;
-	weapon *wp;
 	object		*objp;
 	float			damage, blast;
 
 	wip = &Weapon_info[Weapons[wobjp->instance].weapon_info_index];	
-	wp = &Weapons[wobjp->instance];
-	SDL_assert(wip->inner_radius != 0);	
+
+	SDL_assert(wip->inner_radius != 0);
 
 	// only blast ships and asteroids
 	for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
@@ -3236,7 +3235,6 @@ void weapon_hit( object * weapon_obj, object * other_obj, vector * hitpos )
 
 	int			num = weapon_obj->instance;
 	int			weapon_type = Weapons[num].weapon_info_index;
-	object		*weapon_parent_objp;
 	weapon_info	*wip;
 	// int np_index;
 
@@ -3245,7 +3243,6 @@ void weapon_hit( object * weapon_obj, object * other_obj, vector * hitpos )
 		return;
 	}
 	wip = &Weapon_info[weapon_type];
-	weapon_parent_objp = &Objects[weapon_obj->parent];
 
 	// if this is the player ship, and is a laser hit, skip it. wait for player "pain" to take care of it
 	// if( ((wip->subtype != WP_LASER) || !MULTIPLAYER_CLIENT) && (Player_obj != NULL) && (other_obj == Player_obj) ){
@@ -3691,7 +3688,6 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 #ifndef MAKE_FS1 // don't do special damage scaling for capships in FS1
 	// if the hit object was a ship
 	if(target->type == OBJ_SHIP){
-		ship *shipp;
 		ship_info *sip;
 
 		// get some info on the ship
@@ -3699,7 +3695,7 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 		if((target->instance < 0) || (target->instance >= MAX_SHIPS)){
 			return total_scale;
 		}
-		shipp = &Ships[target->instance];
+
 		sip = &Ship_info[Ships[target->instance].ship_info_index];
 
 		// get hull pct of the ship currently

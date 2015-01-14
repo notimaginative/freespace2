@@ -526,7 +526,7 @@ void scoring_do_accept(scoring_struct *score)
 	// add in mission time
 	score->flight_time += (unsigned int)f2fl(Missiontime);
 	score->last_backup = score->last_flown;
-	score->last_flown = time(NULL);
+	score->last_flown = (fs_time_t)time(NULL);
 	score->missions_flown++;
 }
 
@@ -918,7 +918,7 @@ void scoring_eval_kill(object *ship_obj)
 						if((Net_player != NULL) && (Net_player->flags & NETINFO_FLAG_AM_MASTER) && (net_plr != NULL) && (dead_plr != NULL) && (net_plr->player != NULL) && (dead_plr->player != NULL)){
 							char dead_text[1024] = "";
 
-							sprintf(dead_text, "%s gets the kill for %s", net_plr->player->callsign, dead_plr->player->callsign);							
+							SDL_snprintf(dead_text, sizeof(dead_text), "%s gets the kill for %s", net_plr->player->callsign, dead_plr->player->callsign);
 							send_game_chat_packet(Net_player, dead_text, MULTI_MSG_ALL, NULL, NULL, 2);
 							HUD_printf(dead_text);
 						}

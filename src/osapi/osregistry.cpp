@@ -114,10 +114,10 @@ static char *trim_string(char *str)
 		return NULL;
 	
 	/* kill any comment */
-	ptr = strchr(str, ';');
+	ptr = SDL_strchr(str, ';');
 	if (ptr)
 		*ptr = 0;
-	ptr = strchr(str, '#');
+	ptr = SDL_strchr(str, '#');
 	if (ptr)
 		*ptr = 0;
 	
@@ -165,7 +165,7 @@ static Profile *profile_read(const char *file)
 		if (*ptr == '[') {
 			ptr++;
 			
-			char *pend = strchr(ptr, ']');
+			char *pend = SDL_strchr(ptr, ']');
 			if (pend != NULL) {
 				// if (pend[1]) { /* trailing garbage! */ }
 				
@@ -189,7 +189,7 @@ static Profile *profile_read(const char *file)
 				char *key = ptr;
 				char *value = NULL;
 				
-				ptr = strchr(ptr, '=');
+				ptr = SDL_strchr(ptr, '=');
 				if (ptr != NULL) {
 					*ptr = 0;
 					ptr++;
@@ -348,13 +348,12 @@ static const char *profile_get_value(Profile *profile, const char *section, cons
 	return NULL;
 }
 
+static char tmp_string_data[1024];
+
 static void profile_save(Profile *profile, const char *file)
 {
 	CFILE *fp;
-	
-	char tmp[MAX_PATH] = "";
-	char tmp2[MAX_PATH] = "";
-	
+
 	if (profile == NULL)
 		return;
 		
@@ -364,13 +363,13 @@ static void profile_save(Profile *profile, const char *file)
 	
 	Section *sp = profile->sections;
 	while (sp != NULL) {
-		sprintf(tmp, NOX("[%s]\n"), sp->name);
-		cfputs(tmp, fp);
+		SDL_snprintf(tmp_string_data, sizeof(tmp_string_data), NOX("[%s]\n"), sp->name);
+		cfputs(tmp_string_data, fp);
 		
 		KeyValue *kvp = sp->pairs;
 		while (kvp != NULL) {
-			sprintf(tmp2, NOX("%s=%s\n"), kvp->key, kvp->value);
-			cfputs(tmp2, fp);
+			SDL_snprintf(tmp_string_data, sizeof(tmp_string_data), NOX("%s=%s\n"), kvp->key, kvp->value);
+			cfputs(tmp_string_data, fp);
 			kvp = kvp->next;
 		}
 		
@@ -382,8 +381,6 @@ static void profile_save(Profile *profile, const char *file)
 	cfclose(fp);
 }
 
-static char tmp_string_data[1024];
-
 const char *os_config_read_string(const char *section, const char *name, const char *default_value)
 {
 	Profile *p = profile_read(PROFILE_NAME);
@@ -393,7 +390,7 @@ const char *os_config_read_string(const char *section, const char *name, const c
 		
 	const char *ptr = profile_get_value(p, section, name);
 	if (ptr != NULL) {
-		strncpy(tmp_string_data, ptr, 1023);
+		SDL_strlcpy(tmp_string_data, ptr, sizeof(tmp_string_data));
 		default_value = tmp_string_data;
 	}
 	
@@ -435,7 +432,7 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 {
 	static char buf[21];
 	
-	snprintf(buf, 20, "%u", value);
+	SDL_snprintf(buf, 20, "%u", value);
 	
 	Profile *p = profile_read(PROFILE_NAME);
 

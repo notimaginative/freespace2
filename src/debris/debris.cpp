@@ -997,10 +997,6 @@ void debris_hit(object *debris_obj, object *other_obj, vector *hitpos, float dam
 // NOTE: debris_hit_info pointer NULL for debris:weapon collision, otherwise debris:ship collision.
 //	Return true if hit, else return false.
 //
-#ifndef PLAT_UNIX
-#pragma warning ( push )
-#pragma warning ( disable : 4701 )
-#endif
 int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, collision_info_struct *debris_hit_info)
 {
 	mc_info	mc;
@@ -1247,9 +1243,6 @@ int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, c
 		return 0;
 	}
 }
-#ifndef PLAT_UNIX
-#pragma warning ( pop )
-#endif
 
 // ---------------------------------------------------------------------------------------
 // debris_get_team()

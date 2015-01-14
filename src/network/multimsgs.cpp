@@ -1250,7 +1250,7 @@ void process_join_packet(ubyte* data, header* hinfo)
 //			}
 //		} else if(Netgame.mode == NG_MODE_RESTRICTED){
 			host_restr_mode = MULTI_JOIN_RESTR_MODE_1;
-			sprintf(join_string,XSTR("Player %s has tried to join, accept y/n ?",715),jr.callsign);
+			SDL_snprintf(join_string,sizeof(join_string),XSTR("Player %s has tried to join, accept y/n ?",715),jr.callsign);
 //		}
 		SDL_assert(host_restr_mode != -1);
 
@@ -1332,6 +1332,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 	// get the new players information
 	GET_INT(new_player_num);
+	memset(&new_addr, 0, sizeof(net_addr));
 	get_net_addr(data, &offset, new_addr);
 
 	GET_SHORT(new_id);
@@ -1371,16 +1372,16 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 		// copy in the filename
 		if(strlen(new_player_image) > 0){
-			strcpy(Net_players[new_player_num].player->image_filename, new_player_image);
+			SDL_strlcpy(Net_players[new_player_num].player->image_filename, new_player_image, MAX_FILENAME_LEN);
 		} else {
-			strcpy(Net_players[new_player_num].player->image_filename, "");
+			SDL_strlcpy(Net_players[new_player_num].player->image_filename, "", MAX_FILENAME_LEN);
 		}
 		// copy his pilot squad filename
 		Net_players[new_player_num].player->insignia_texture = -1;
 		player_set_squad_bitmap(Net_players[new_player_num].player, new_player_squad);				
 
 		// copy in his pxo squad name
-		strcpy(Net_players[new_player_num].p_info.pxo_squad_name, new_player_pxo_squad);
+		SDL_strlcpy(Net_players[new_player_num].p_info.pxo_squad_name, new_player_pxo_squad, LOGIN_LEN);
 
 		// since we just created the player, set the last_heard_time here.
 		Net_players[new_player_num].last_heard_time = timer_get_fixed_seconds();
@@ -1394,7 +1395,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 		// add a chat message
 		if(Net_players[new_player_num].player->callsign != NULL){
-			sprintf(notify_string,XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
+			SDL_snprintf(notify_string,sizeof(notify_string),XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
 			multi_display_chat_msg(notify_string,0,0);
 		}
 	}		
@@ -1568,7 +1569,7 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 
 	// add a chat message
 	if(Net_players[new_player_num].player->callsign != NULL){
-		sprintf(notify_string,XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
+		SDL_snprintf(notify_string,sizeof(notify_string),XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
 		multi_display_chat_msg(notify_string, 0, 0);
 	}	
 
@@ -1610,6 +1611,7 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 		GET_INT(player_num);
 
 		// add the player's address
+		memset(&addr, 0, sizeof(net_addr));
 		get_net_addr(data, &offset, addr);
 
 		// get the player's id#
@@ -1644,14 +1646,14 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 		}
 
 		// copy his image filename
-		strcpy(Net_players[player_num].player->image_filename, image_name);
+		SDL_strlcpy(Net_players[player_num].player->image_filename, image_name, MAX_FILENAME_LEN);
 		
 		// copy his pilot squad filename
 		Net_players[player_num].player->insignia_texture = -1;
 		player_set_squad_bitmap(Net_players[player_num].player, squad_name);
 
 		// copy his pxo squad name
-		strcpy(Net_players[player_num].p_info.pxo_squad_name, pxo_squad_name);
+		SDL_strlcpy(Net_players[player_num].p_info.pxo_squad_name, pxo_squad_name, LOGIN_LEN);
 
 		// set his player id#
 		Net_players[player_num].player_id = player_id;
@@ -1956,7 +1958,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 
 			// display the result
 			memset(str, 0, 512);
-			multi_kick_get_text(&Net_players[player_num], kicked_reason, str);			
+			multi_kick_get_text(&Net_players[player_num], kicked_reason, str, sizeof(str));
 			multi_display_chat_msg(str, player_num, 0);
 		}
 	}
@@ -1965,7 +1967,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 	if (Net_player->flags & NETINFO_FLAG_AM_MASTER) {
 		char msg[255];
 
-		sprintf(msg, XSTR("%s has left the game",719), Net_players[player_num].player->callsign );
+		SDL_snprintf(msg, sizeof(msg), XSTR("%s has left the game",719), Net_players[player_num].player->callsign );
 
 		if (!(Game_mode & GM_STANDALONE_SERVER)){
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, msg);
@@ -2191,7 +2193,7 @@ void send_netgame_update_packet(net_player *pl)
 // process information about the netgame sent from the server/host
 void process_netgame_update_packet( ubyte *data, header *hinfo )
 {
-	int offset,old_flags;	
+	int offset;//,old_flags;
 	int ng_state;
 		
 	SDL_assert(!(Game_mode & GM_STANDALONE_SERVER));
@@ -2209,7 +2211,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 	GET_UINT(Netgame.respawn);		
 	
 	// be sure not to blast the quitting flag because of the "one frame extra" problem
-	old_flags = Netgame.flags;	
+//	old_flags = Netgame.flags;
 	GET_INT(Netgame.flags);	
 	GET_INT(Netgame.type_flags);
 	GET_INT(Netgame.version_info);
@@ -2231,7 +2233,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 			multi_handle_state_special();
 						
 			Multi_sync_mode = MULTI_SYNC_PRE_BRIEFING;
-			strncpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );					
+			SDL_strlcpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );
 			gameseq_post_event(GS_EVENT_MULTI_MISSION_SYNC);
 		} 
 		// if coming from the debriefing state
@@ -2244,7 +2246,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 			multi_flush_mission_stuff();
 						
 			Multi_sync_mode = MULTI_SYNC_PRE_BRIEFING;
-			strncpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );					
+			SDL_strlcpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );
 			gameseq_post_event(GS_EVENT_MULTI_MISSION_SYNC);
 		}
 	} 
@@ -2256,7 +2258,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 			// do any special processing for forced state transitions
 			multi_handle_state_special();
 
-			strncpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );					
+			SDL_strlcpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );
 			gameseq_post_event(GS_EVENT_START_BRIEFING);			
 		}
 	} 		
@@ -2734,7 +2736,7 @@ void process_ship_kill_packet( ubyte *data, header *hinfo )
 			Net_players[pnum].player->killer_objtype = killer_objtype;
 			Net_players[pnum].player->killer_species = killer_species;
 			Net_players[pnum].player->killer_weapon_index = killer_weapon_index;
-			strcpy( Net_players[pnum].player->killer_parent_name, killer_name );
+			SDL_strlcpy( Net_players[pnum].player->killer_parent_name, killer_name, NAME_LENGTH );
 		}
 	}	   
 
@@ -3707,8 +3709,8 @@ void process_mission_item_packet(ubyte *data,header *hinfo)
 			GET_DATA(valid_status);
 
 			if ( Multi_create_mission_count < MULTI_CREATE_MAX_LIST_ITEMS ) {
-				strcpy(Multi_create_mission_list[Multi_create_mission_count].filename, filename );
-				strcpy(Multi_create_mission_list[Multi_create_mission_count].name, name );
+				SDL_strlcpy(Multi_create_mission_list[Multi_create_mission_count].filename, filename, MAX_FILENAME_LEN );
+				SDL_strlcpy(Multi_create_mission_list[Multi_create_mission_count].name, name, NAME_LENGTH );
 				Multi_create_mission_list[Multi_create_mission_count].flags = flags;
 				Multi_create_mission_list[Multi_create_mission_count].respawn = respawn;
 				Multi_create_mission_list[Multi_create_mission_count].max_players = max_players;
@@ -3720,8 +3722,8 @@ void process_mission_item_packet(ubyte *data,header *hinfo)
 			}
 		} else if ( type == CAMPAIGN_LIST_ITEMS ) {
 			if ( Multi_create_campaign_count < MULTI_CREATE_MAX_LIST_ITEMS ) {
-				strcpy(Multi_create_campaign_list[Multi_create_campaign_count].filename, filename );
-				strcpy(Multi_create_campaign_list[Multi_create_campaign_count].name, name );
+				SDL_strlcpy(Multi_create_campaign_list[Multi_create_campaign_count].filename, filename, MAX_FILENAME_LEN );
+				SDL_strlcpy(Multi_create_campaign_list[Multi_create_campaign_count].name, name, NAME_LENGTH );
 				Multi_create_campaign_list[Multi_create_campaign_count].flags = flags;
 				Multi_create_campaign_list[Multi_create_campaign_count].respawn = 0;
 				Multi_create_campaign_list[Multi_create_campaign_count].max_players = max_players;
@@ -3845,7 +3847,7 @@ void process_ingame_nak(ubyte *data, header *hinfo)
 	
 	switch(state){
 	case ACK_FILE_ACCEPTED :
-		SDL_assert(Net_player->flags & NETINFO_FLAG_INGAME_JOIN);
+		SDL_assert(pl->flags & NETINFO_FLAG_INGAME_JOIN);
 		nprintf(("Network","Mission file rejected by server, aborting...\n"));
 		multi_quit_game(PROMPT_NONE, MULTI_END_NOTIFY_FILE_REJECTED);		
 		break;
@@ -4423,7 +4425,7 @@ void send_file_sig_packet(ushort sum_sig,int length_sig)
 
 	BUILD_HEADER(FILE_SIG_INFO);
 	ADD_USHORT(sum_sig);
-	ADD_SHORT(length_sig);
+	ADD_INT(length_sig);
 		
 	multi_io_send_reliable(Net_player, data, packet_size);
 }
@@ -4466,7 +4468,7 @@ void process_file_sig_request(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();	
 
 	// set the current mission filename
-	strcpy(Game_current_mission_filename,Netgame.mission_name);
+	SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, sizeof(Game_current_mission_filename));
 
 	// get the checksum
 	multi_get_mission_checksum(Game_current_mission_filename);	
@@ -4509,7 +4511,7 @@ void process_subsystem_destroyed_packet( ubyte *data, header *hinfo )
 	ushort signature;
 	ubyte uindex;
 	object *objp;
-	vector local_hit_pos, world_hit_pos;
+	vector local_hit_pos = ZERO_VECTOR, world_hit_pos;
 
 	offset = HEADER_LENGTH;
 
@@ -4641,8 +4643,8 @@ void process_netplayer_load_packet(ubyte *data, header *hinfo)
 	GET_STRING(str);
 	PACKET_SET_SIZE();
 
-	strcpy(Netgame.mission_name,str);
-	strcpy(Game_current_mission_filename,str);
+	SDL_strlcpy(Netgame.mission_name, str, sizeof(Netgame.mission_name));
+	SDL_strlcpy(Game_current_mission_filename, str, sizeof(Game_current_mission_filename));
 	if(!Multi_mission_loaded){
 
 		// MWA 2/3/98 -- ingame join changes!!!
@@ -4736,7 +4738,7 @@ void process_jump_into_mission_packet(ubyte *data, header *hinfo)
 		}		
 	}
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 
 	// recalc all object pairs now	
@@ -5134,7 +5136,7 @@ void process_mission_sync_packet(ubyte *data, header *hinfo)
 
 			// get the single mission filename
 			GET_STRING(Game_current_mission_filename);
-			strcpy(Netgame.mission_name,Game_current_mission_filename);
+			SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, sizeof(Netgame.mission_name));
 		}
 	}
 	PACKET_SET_SIZE();
@@ -6617,7 +6619,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	case ASTEROID_CREATE: {
 		ushort psignature, signature;
 		ubyte atype;
-		vector relvec;
+		vector relvec = ZERO_VECTOR;
 		object *parent_objp;
 
 		GET_USHORT( psignature );
@@ -6642,7 +6644,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 		// asteroid throw packet -- asteroid has wrapped bounds
 	case ASTEROID_THROW: {
 		ushort signature;
-		vector pos, vel;
+		vector pos = ZERO_VECTOR, vel = ZERO_VECTOR;
 		object *objp;
 
 		GET_USHORT( signature );
@@ -6664,7 +6666,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	case ASTEROID_HIT: {
 		ushort signature, osignature;
 		object *objp, *other_objp;
-		vector hitpos;
+		vector hitpos = ZERO_VECTOR;
 		float damage;
 
 		GET_USHORT( signature );
@@ -7447,7 +7449,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	int offset; // linked;	
 	// ubyte banks_fired, current_bank;
 	object* objp;	
-	ship *shipp;
+//	ship *shipp;
 	ushort shooter_sig;	
 
 	// read all packet info
@@ -7469,7 +7471,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	if(objp->instance < 0){
 		return;
 	}
-	shipp = &Ships[objp->instance];
+//	shipp = &Ships[objp->instance];
 	
 	// get the link status of the primary banks
 	// linked = 0;
@@ -7966,8 +7968,8 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	int offset;
 	ubyte windex;
 	ushort udamage;
-	vector force;
-	vector local_hit_pos;
+	vector force = ZERO_VECTOR;
+	vector local_hit_pos = ZERO_VECTOR;
 	weapon_info *wip;
 
 	// get the data for the pain packet
@@ -8027,7 +8029,7 @@ void process_lightning_packet(ubyte *data, header *hinfo)
 {
 	int offset;
 	char bolt_type;
-	vector start, strike;
+	vector start = ZERO_VECTOR, strike = ZERO_VECTOR;
 
 	// read the data
 	offset = HEADER_LENGTH;

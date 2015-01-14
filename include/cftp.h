@@ -54,7 +54,7 @@
 #define FTP_STATE_STARTUP				16
 
 
-extern void FTPObjThread( void * obj );
+extern int FTPObjThread( void * obj );
 
 class CFtpGet
 {

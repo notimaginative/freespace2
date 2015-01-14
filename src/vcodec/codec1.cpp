@@ -72,21 +72,21 @@ static void SkipEveryOther(t_Sample* bufIn, t_Sample* bufOut, int size);
 static void InterpolateEveryOther(t_Sample* bufIn, t_Sample* bufOut, int size);
 
 #if defined(CODEC_DEMO)
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level, t_Sample*& levels, int*& modes, 
                     int samples[9], int storage[9]);
 #else
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level);
 #endif
 
-static void DecodeRL(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeRL(int packetPos, t_Sample*& p, t_Sample*& q,
                      t_Sample* bufEnd, t_Sample* bufOutEnd);
-static void DecodeHF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeHF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd);
-static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeNom(int packetPos, t_Sample*& p, t_Sample*& q,
                       unsigned int mode, t_Sample* bufOutEnd);
-static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeMF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd);
 static void InitLowPassFilter(int QoS, double LPF_Coef[LPF_NUM_POINTS],
 							  char LPF_CoefTimesSample[LPF_NUM_POINTS][256]);
@@ -683,7 +683,7 @@ int DecTable[8][8] =
 static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 {
     unsigned int mode, modeEx;
-    BOOL packetPos = 1; // 1 = first packet of packet pair, 0 = second
+	int packetPos = 1; // 1 = first packet of packet pair, 0 = second
     t_Sample* bufEnd = bufIn + size - 1;
     t_Sample* bufOutEnd = bufOut + sizeOut - 1;
     t_Sample* p = bufIn;  // current position in input buffer
@@ -737,7 +737,7 @@ static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         int leftIn = bufEnd - p,
             leftOut = bufOutEnd - q;
         char str[80];
-        sprintf(str, "%d bytes left in source, %d bytes left in dest", 
+		SDL_snprintf(str, sizeof(str), "%d bytes left in source, %d bytes left in dest",
                 leftIn, leftOut);
         AfxMessageBox(str);
         
@@ -746,7 +746,7 @@ static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 }
 
 // Run-length decoder.  Very straightforward.
-static void DecodeRL(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeRL(int packetPos, t_Sample*& p, t_Sample*& q,
                      t_Sample* bufEnd, t_Sample* bufOutEnd)
 {
     int len;
@@ -782,7 +782,7 @@ static void DecodeRL(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
 // High-frequency decoder.  Each sample is the data value for that sample
 // multiplied by the current multiplier.
-static void DecodeHF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeHF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd)
 {
     static unsigned int table = 1;
@@ -850,7 +850,7 @@ static void DecodeHF(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
 // Nominal packet decoder.  Each sample is equal to the previous sample
 // +/- an offset.
-static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q,
+static void DecodeNom(int packetPos, t_Sample*& p, t_Sample*& q,
                       unsigned int mode, t_Sample* bufOutEnd)
 {
     unsigned int data;
@@ -892,7 +892,7 @@ static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
 // Medium-frequency decoder.  Uses a straight line to approximate 4 
 // consecutive samples.
-static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeMF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd)
 {
 	unsigned int data; //, mult;
@@ -1034,7 +1034,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         smin, smax,         // min and max of current set of samples
         hist[CUTOFF*2 + 1], // histogram of sample-to-sample deltas
         upMove, downMove;   // total up/down deltas
-    BOOL packetPos = 1; // 1 = first packet of packet pair, 0 = second
+	int packetPos = 1; // 1 = first packet of packet pair, 0 = second
 	int tableNum = 0;
 
 
@@ -1150,7 +1150,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         // is the most efficient.
         else if (upMove <= SMALL_MOVE3 && downMove <= SMALL_MOVE3)
         { // low frequency mode
-            BOOL runLengthMode = FALSE;
+			int runLengthMode = FALSE;
             if (hist[CUTOFF] == 9)
             { // possible 0-run starting; check ahead
 
@@ -1640,12 +1640,12 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
 // so the mode is passed in.
 #if defined(CODEC_DEMO)
 #define EXTRA_CODEC_DEMO_ARGS1 , levels
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level, t_Sample*& levels, int*& modes, 
                     int samples[9], int storage[9])
 #else
 #define EXTRA_CODEC_DEMO_ARGS1
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level)
 #endif
 {

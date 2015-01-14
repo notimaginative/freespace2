@@ -1452,9 +1452,9 @@ void hud_render_multi_ping()
 		if((Netgame.server != NULL) && (Netgame.server->s_info.ping.ping_avg > 0)){
 			// get the string
 			if(Netgame.server->s_info.ping.ping_avg >= 1000){
-				strcpy(ping_str,XSTR("> 1 sec",628));
+				SDL_strlcpy(ping_str, XSTR("> 1 sec",628), sizeof(ping_str));
 			} else {
-				sprintf(ping_str,XSTR("%d ms",629),Netgame.server->s_info.ping.ping_avg);
+				SDL_snprintf(ping_str, sizeof(ping_str), XSTR("%d ms", 629), Netgame.server->s_info.ping.ping_avg);
 			}
 
 			// blit the string out
@@ -1826,7 +1826,7 @@ void hud_show_damage_popup()
 		if ( screen_integrity == 0 ) {
 			screen_integrity = 1;
 		}
-		sprintf(buf, XSTR( "%d%%", 219), screen_integrity);
+		SDL_snprintf(buf, sizeof(buf), XSTR( "%d%%", 219), screen_integrity);
 		hud_num_make_mono(buf);
 		gr_get_string_size(&w, &h, buf);
 		if ( screen_integrity < 30 ) {
@@ -1921,8 +1921,8 @@ void hud_show_damage_popup()
 			hud_set_gauge_color(HUD_DAMAGE_GAUGE);
 		}		
 
-		gr_string(sx, sy, hud_targetbox_truncate_subsys_name(hud_subsys_list[best_index].name));
-		sprintf(buf, XSTR( "%d%%", 219), best_str);
+		gr_string(sx, sy, hud_targetbox_truncate_subsys_name(hud_subsys_list[best_index].name, MAX_NAME_LEN));
+		SDL_snprintf(buf, sizeof(buf), XSTR( "%d%%", 219), best_str);
 		hud_num_make_mono(buf);
 		gr_get_string_size(&w, &h, buf);
 		gr_string(Hull_integ_val_coords[gr_screen.res][0] - w, sy, buf);
@@ -1950,7 +1950,7 @@ void hud_anim_init(hud_anim *ha, int sx, int sy, const char *filename)
 	ha->time_elapsed	= 0.0f;
 	ha->sx				= sx;
 	ha->sy				= sy;
-	strcpy(ha->name, filename);
+	SDL_strlcpy(ha->name, filename, sizeof(ha->name));
 }
 
 // call to unload the targetbox static animation
@@ -2057,7 +2057,7 @@ void hud_start_text_flash(const char *txt, int t)
 {
 	// bogus
 	if(txt == NULL){
-		strcpy(Hud_text_flash, "");
+		SDL_strlcpy(Hud_text_flash, "", sizeof(Hud_text_flash));
 		return;
 	}
 
@@ -2066,7 +2066,7 @@ void hud_start_text_flash(const char *txt, int t)
 		return;
 	}
 
-	strncpy(Hud_text_flash, txt, 500);
+	SDL_strlcpy(Hud_text_flash, txt, sizeof(Hud_text_flash));
 	hud_targetbox_start_flash(TBOX_FLASH_CMEASURE, t);	
 }
 
@@ -2143,7 +2143,7 @@ void hud_show_kills_gauge()
 		return;
 	}
 
-	sprintf(num_kills_string, "%d", Player->stats.m_kill_count_ok);
+	SDL_snprintf(num_kills_string, sizeof(num_kills_string), "%d", Player->stats.m_kill_count_ok);
 
 	gr_get_string_size(&w, &h, num_kills_string);
 	if (Lcl_gr) {
@@ -2448,17 +2448,17 @@ void hud_support_view_blit()
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_SENSORS) < 1.0 ) ||
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_WEAPONS) < 1.0 ) ||
 				(ship_get_subsystem_strength(Player_ship, SUBSYSTEM_COMMUNICATION) < 1.0 ) ) {
-			strcpy(outstr, XSTR( "repairing", 227));
+			SDL_strlcpy(outstr, XSTR( "repairing", 227), sizeof(outstr));
 		} else {
-			strcpy(outstr, XSTR( "rearming", 228));
+			SDL_strlcpy(outstr, XSTR( "rearming", 228), sizeof(outstr));
 		}
 		gr_string(0x8000, Support_text_val_coords[gr_screen.res][1], outstr);
 	} else if (Player_ai->ai_flags & AIF_REPAIR_OBSTRUCTED) {
-		strcpy(outstr, XSTR( "obstructed", 229));
+		SDL_strlcpy(outstr, XSTR( "obstructed", 229), sizeof(outstr));
 		gr_string(0x8000, Support_text_val_coords[gr_screen.res][1], outstr);
 	} else {
 		if ( Hud_support_objnum == -1 ) {
-			strcpy(outstr, XSTR( "warping in", 230));
+			SDL_strlcpy(outstr, XSTR( "warping in", 230), sizeof(outstr));
 			gr_string(0x8000, Support_text_val_coords[gr_screen.res][1], outstr);
 		} else {
 			ai_info *aip;
@@ -2466,11 +2466,11 @@ void hud_support_view_blit()
 			// display "busy" when support ship isn't actually enroute to me
 			aip = &Ai_info[Ships[Objects[Hud_support_objnum].instance].ai_index];
 			if ( aip->goal_objnum != OBJ_INDEX(Player_obj) ) {
-				strcpy(outstr, XSTR( "busy", 231));
+				SDL_strlcpy(outstr, XSTR( "busy", 231), sizeof(outstr));
 				show_time = 0;
 
 			} else {
-				strcpy(outstr, XSTR( "dock in:", 232));
+				SDL_strlcpy(outstr, XSTR( "dock in:", 232), sizeof(outstr));
 				show_time = 1;
 			}		
 
@@ -2931,11 +2931,11 @@ void hud_maybe_display_objective_message()
 	case SECONDARY_GOAL:
 		switch(Objective_display.goal_status) {
 		case GOAL_FAILED:
-			sprintf(buf, XSTR( "failed (%d/%d)", 240), Objective_display.goal_nresolved, Objective_display.goal_ntotal);
+			SDL_snprintf(buf, sizeof(buf), XSTR( "failed (%d/%d)", 240), Objective_display.goal_nresolved, Objective_display.goal_ntotal);
 			gr_string(0x8000, Objective_text_val_coords[gr_screen.res][1], buf);
 			break;
 		default:
-			sprintf(buf, XSTR( "complete (%d/%d)", 241), Objective_display.goal_nresolved, Objective_display.goal_ntotal);
+			SDL_snprintf(buf, sizeof(buf), XSTR( "complete (%d/%d)", 241), Objective_display.goal_nresolved, Objective_display.goal_ntotal);
 			gr_string(0x8000, Objective_text_val_coords[gr_screen.res][1], buf);
 			break;
 		}		
@@ -3072,7 +3072,7 @@ void hud_maybe_render_multi_text()
 	memset(txt,0,MULTI_MSG_MAX_TEXT_LEN+1);
 
 	// if there is valid multiplayer message text to be displayed
-	if(multi_msg_message_text(txt)){
+	if(multi_msg_message_text(txt, sizeof(txt))){
 		gr_set_color_fast(&Color_normal);
 		gr_string(Multi_msg_coords[gr_screen.res][0], Multi_msg_coords[gr_screen.res][1], txt);
 	}

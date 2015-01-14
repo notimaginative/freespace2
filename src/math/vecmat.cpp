@@ -1750,7 +1750,7 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 		(void) vm_vec_make(rot_axis, 1.0f, 0.0f, 0.0f);
 	} else if (cos_theta > -0.999999875f) { // angle is within limits between 0 and PI
 		*theta = float(acos(cos_theta));
-		SDL_assert(!_isnan(*theta));
+		SDL_assert(!isnan(*theta));
 
 		rot_axis->xyz.x = (m->v.uvec.xyz.z - m->v.fvec.xyz.y);
 		rot_axis->xyz.y = (m->v.fvec.xyz.x - m->v.rvec.xyz.z);
@@ -2667,7 +2667,7 @@ void vm_find_bounding_sphere(vector *pnts, int num_pnts, vector *center, float *
 	vm_vec_sub(&diff, &dia2, center);
 	rad_sq = vm_vec_mag_squared(&diff);
 	rad = fl_sqrt(rad_sq);
-	SDL_assert( !_isnan(rad) );
+	SDL_assert( !isnan(rad) );
 
 	// second pass
 	for ( i = 0; i < num_pnts; i++ ) {
@@ -2745,7 +2745,7 @@ void vm_estimate_next_orientation(matrix *last_orient, matrix *current_orient, m
 //	Return true if all elements of *vec are legal, that is, not a NAN.
 int is_valid_vec(vector *vec)
 {
-	return !_isnan(vec->xyz.x) && !_isnan(vec->xyz.y) && !_isnan(vec->xyz.z);
+	return !isnan(vec->xyz.x) && !isnan(vec->xyz.y) && !isnan(vec->xyz.z);
 }
 
 //	Return true if all elements of *m are legal, that is, not a NAN.

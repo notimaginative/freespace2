@@ -65,6 +65,6 @@ void training_check_objectives();
 void message_training_que(char *text, int timestamp, int length = -1);
 void message_training_setup(int num, int length = -1);
 void message_training_display();
-void message_translate_tokens(char *buf, char *text);
+void message_translate_tokens(char *buf, const int max_buflen, char *text);
 void training_fail();
 

@@ -169,7 +169,7 @@ void pilot_set_random_pic(player *p);
 void pilot_set_random_squad_pic(player *p);
 
 // format a pilot's callsign into a "personal" form - ie, adding a 's or just an ' as appropriate
-void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign);
+void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign, const int out_size);
 
 // throw up a popup asking the user to verify the overwrite of an existing pilot name
 // 1 == ok to overwrite, 0 == not ok

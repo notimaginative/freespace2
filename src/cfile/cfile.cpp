@@ -220,6 +220,8 @@
 #include <winbase.h>		/* needed for memory mapping of file functions */
 #else
 #include <unistd.h>
+#include <dirent.h>
+#include <fnmatch.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
@@ -299,9 +301,6 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 #define CFILE_STACK_MAX	8
 
 int cfile_inited = 0;
-int Cfile_stack_pos = 0;
-
-char Cfile_stack[128][CFILE_STACK_MAX];
 
 Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 CFILE Cfile_list[MAX_CFILE_BLOCKS];
@@ -312,7 +311,6 @@ CFILE Cfile_list[MAX_CFILE_BLOCKS];
 int cfget_cfile_block();
 CFILE *cf_open_fill_cfblock(FILE * fp, int type);
 CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size);
-CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type);
 void cf_chksum_long_init();
 
 void cfile_close()
@@ -334,7 +332,7 @@ int cfile_in_root_dir(char *exe_path)
 
 	// copy the path
 	memset(path_copy, 0, 2048);
-	strncpy(path_copy, exe_path, 2047);
+	SDL_strlcpy(path_copy, exe_path, sizeof(path_copy));
 
 	// count how many slashes there are in the path
 	tok = strtok(path_copy, DIR_SEPARATOR_STR);
@@ -360,7 +358,7 @@ int cfile_in_root_dir(char *exe_path)
 //	returns:  success ==> 0
 //           error   ==> non-zero
 //
-int cfile_init(const char *extras_dir)
+int cfile_init()
 {
 	int i;
 
@@ -399,166 +397,75 @@ int cfile_init(const char *extras_dir)
 }
 
 
-// Changes to a drive if valid.. 1=A, 2=B, etc
-// If flag, then changes to it.
-// Returns 0 if not-valid, 1 if valid.
-int cfile_chdrive( int DriveNum, int flag )
-{
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
-#else
-	int n, org;
-	int Valid = 0;
-
-	org = -1;
-	if (!flag)
-		org = _getdrive();
-
-	_chdrive( DriveNum );
-	n = _getdrive();
-
-
-	if (n == DriveNum )
-		Valid = 1;
-
-	if ( (!flag) && (n != org) )
-		_chdrive( org );
-	return Valid;
-#endif
-}
-
-// push current directory on a 'stack' (so we can restore it) and change the directory
-int cfile_push_chdir(int type)
-{
-	int e;
-	char dir[128];
-	char OriginalDirectory[128];
-	char *Path;
-	char NoDir[] = "\\.";
-
-	_getcwd(OriginalDirectory, 127);
-	SDL_assert(Cfile_stack_pos < CFILE_STACK_MAX);
-	strcpy(Cfile_stack[Cfile_stack_pos++], OriginalDirectory);
-
-	cf_create_default_path_string( dir, type, NULL );
-	SDL_strlwr(dir);
-#ifndef PLAT_UNIX
-	char *Drive = strchr(dir, ':');
-
-	if (Drive) {
-		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
-			return 1;
-
-		Path = Drive+1;
-
-	} else 
-#endif
-	{
-		Path = dir;
-	}
-
-	if (!(*Path)) {
-		Path = NoDir;
-	}
-
-	// This chdir might get a critical error!
-	e = _chdir( Path );
-	if (e) {
-		cfile_chdrive( OriginalDirectory[0] - 'a' + 1, 1 );
-		return 2;
-	}
-
-	return 0;
-}
-
-
-int cfile_chdir(char *dir)
-{
-	int e;
-	char OriginalDirectory[128];
-	char *Path;
-	char NoDir[] = "\\.";
-
-	_getcwd(OriginalDirectory, 127);
-	SDL_strlwr(dir);
-
-#ifndef PLAT_UNIX
-	char *Drive = strchr(dir, ':');
-	if (Drive)	{
-		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
-			return 1;
-
-		Path = Drive+1;
-
-	} else 
-#endif
-	{
-		Path = dir;
-	}
-
-	if (!(*Path)) {
-		Path = NoDir;
-	}
-
-	// This chdir might get a critical error!
-	e = _chdir( Path );
-	if (e) {
-		cfile_chdrive( OriginalDirectory[0] - 'a' + 1, 1 );
-		return 2;
-	}
-
-	return 0;
-}
-
-int cfile_pop_dir()
-{
-	SDL_assert(Cfile_stack_pos);
-	Cfile_stack_pos--;
-	return cfile_chdir(Cfile_stack[Cfile_stack_pos]);
-}
-
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES
 int cfile_flush_dir(int dir_type)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
-#else
-	int find_handle;
+	char filespec[MAX_PATH_LEN];
 	int del_count;
-	_finddata_t find;
 
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
-	// attempt to change the directory to the passed type
-	if(cfile_push_chdir(dir_type)){
-		return 0;
-	}
+	cf_create_default_path_string(filespec, dir_type);
 
 	// proceed to delete the files
-	find_handle = _findfirst( "*", &find );
 	del_count = 0;
+
+#ifdef PLAT_UNIX
+	DIR *dirp;
+	struct dirent *dir;
+
+	dirp = opendir(filespec);
+	if (dirp) {
+		while ( (dir = readdir(dirp)) != NULL ) {
+			if ( !fnmatch("*", dir->d_name, 0) ) {
+				char fn[MAX_PATH_LEN];
+				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
+
+				struct stat buf;
+				if (stat(fn, &buf) == -1) {
+					continue;
+				}
+
+				if (!S_ISREG(buf.st_mode)) {
+					continue;
+				}
+
+				// delete the file
+				cf_delete(dir->d_name, dir_type);
+
+				// increment the deleted count
+				del_count++;
+			}
+		}
+
+		closedir(dirp);
+	}
+#else
+	int find_handle;
+	_finddata_t find;
+
+	SDL_strlcat( filespec, "*", sizeof(filespec) );
+
+	find_handle = _findfirst( filespec, &find );
+
 	if (find_handle != -1) {
-		do {			
+		do {
 			if (!(find.attrib & _A_SUBDIR) && !(find.attrib & _A_RDONLY)) {
 				// delete the file
-				cf_delete(find.name,dir_type);				
+				cf_delete(find.name, dir_type);
 
 				// increment the deleted count
 				del_count++;
 			}
 		} while (!_findnext(find_handle, &find));
+
 		_findclose( find_handle );
 	}
-
-	// pop the directory back
-	cfile_pop_dir();
+#endif
 
 	// return the # of files deleted
 	return del_count;
-#endif
 }
 
 
@@ -575,10 +482,10 @@ char *cf_add_ext(const char *filename, const char *ext)
 	flen = strlen(filename);
 	elen = strlen(ext);
 	SDL_assert(flen < MAX_PATH_LEN);
-	strcpy(path, filename);
+	SDL_strlcpy(path, filename, sizeof(path));
 	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
 		SDL_assert(flen + elen < MAX_PATH_LEN);
-		strcat(path, ext);
+		SDL_strlcat(path, ext, sizeof(path));
 	}
 
 	return path;
@@ -597,7 +504,7 @@ void cf_delete( const char *filename, int dir_type )
 	if (fp) {
 		// delete the file
 		fclose(fp);
-		_unlink(longname);
+		unlink(longname);
 	}
 
 }
@@ -627,33 +534,11 @@ int cf_exist( const char *filename, int dir_type )
 
 	FILE *fp = fopen(longname, "rb");
 	if (fp) {
-		return 1;
 		fclose(fp);
+		return 1;
 	}
 
 	return 0;
-}
-
-void cf_attrib(const char *filename, int set, int clear, int dir_type)
-{
-	char longname[MAX_PATH_LEN];
-
-	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
-
-	cf_create_default_path_string( longname, dir_type, filename );
-
-	FILE *fp = fopen(longname, "rb");
-	if (fp) {
-		fclose(fp);
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		DWORD z = GetFileAttributes(longname);
-		SetFileAttributes(longname, z | set & ~clear);
-#endif
-	}
-
 }
 
 int cf_rename(const char *old_name, const char *name, int dir_type)
@@ -661,8 +546,8 @@ int cf_rename(const char *old_name, const char *name, int dir_type)
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	int ret_code;
-	char old_longname[_MAX_PATH];
-	char new_longname[_MAX_PATH];
+	char old_longname[MAX_PATH_LEN];
+	char new_longname[MAX_PATH_LEN];
 	
 	cf_create_default_path_string( old_longname, dir_type, old_name );
 	cf_create_default_path_string( new_longname, dir_type, name );
@@ -709,7 +594,7 @@ void cf_create_directory( int dir_type )
 	for (i=num_dirs-1; i>=0; i-- )	{
 		cf_create_default_path_string( longname, dir_tree[i], NULL );
 
-		if ( _mkdir(longname)==0 )	{
+		if ( mkdir(longname, 0700) == 0 )	{
 			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
 		}
 	}
@@ -723,8 +608,7 @@ void cf_create_directory( int dir_type )
 // parameters:  *filepath ==> name of file to open (may be path+name)
 //              *mode     ==> specifies how file should be opened (eg "rb" for read binary)
 //                            passing NULL to mode deletes the file if it exists and returns NULL
-//               type     ==> one of:    CFILE_NORMAL
-//                                       CFILE_MEMORY_MAPPED
+//               type     ==> CFILE_NORMAL
 //					  dir_type	=>	override extension check, value is one of CF_TYPE* #defines
 //
 //               NOTE: type parameter is an optional parameter.  The default value is CFILE_NORMAL
@@ -736,7 +620,7 @@ void cf_create_directory( int dir_type )
 
 CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, bool localize)
 {
-	char longname[_MAX_PATH];
+	char longname[MAX_PATH_LEN];
 
 //	nprintf(("CFILE", "CFILE -- trying to open %s\n", file_path ));
 // #if !defined(MULTIPLAYER_BETA_BUILD) && !defined(FS2_DEMO)
@@ -745,26 +629,22 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 	// Check that all the parameters make sense
 	SDL_assert(file_path && strlen(file_path));
 	SDL_assert( mode != NULL );
-	
-	// Can only open read-only binary files in memory mapped mode.
-	if ( (type & CFILE_MEMORY_MAPPED) && strcmp(mode,"rb") ) {
-		Int3();				
-		return NULL;
-	}
 
 	//===========================================================
 	// If in write mode, just try to open the file straight off
 	// the harddisk.  No fancy packfile stuff here!
 	
-	if ( strchr(mode,'w') )	{
-		// For write-only files, require a full path or a path type
+	if ( SDL_strchr(mode,'w') )	{
 #ifdef PLAT_UNIX
-		if ( strpbrk(file_path, "/") ) {
+		const char *toks = "/";
 #else
-		if ( strpbrk(file_path,"/\\:")  ) {  
+		const char *toks = "/\\:";
 #endif
+
+		// For write-only files, require a full path or a path type
+		if ( strpbrk(file_path, toks) ) {
 			// Full path given?
-			strcpy(longname, file_path );
+			SDL_strlcpy(longname, file_path, sizeof(longname));
 		} else {
 			// Path type given?
 			SDL_assert( dir_type != CF_TYPE_ANY );
@@ -774,7 +654,6 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 			cf_create_default_path_string( longname, dir_type, file_path );
 		}
-		SDL_assert( !(type & CFILE_MEMORY_MAPPED) );
 
 		// JOHN: TODO, you should create the path if it doesn't exist.
 				
@@ -791,45 +670,22 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	int offset, size;
 	char copy_file_path[MAX_PATH_LEN];  // FIX change in memory from cf_find_file_location
-	strcpy(copy_file_path, file_path);
+	SDL_strlcpy(copy_file_path, file_path, sizeof(copy_file_path));
 
 
 	if ( cf_find_file_location( copy_file_path, dir_type, longname, &size, &offset, localize ) )	{
-
 		// Fount it, now create a cfile out of it
-		
-		if ( type & CFILE_MEMORY_MAPPED ) {
-		
-			// Can't open memory mapped files out of pack files
-			if ( offset == 0 )	{
-#ifdef PLAT_UNIX
-				STUB_FUNCTION;
-#else
-				HANDLE hFile;
+		FILE *fp = fopen( longname, "rb" );
 
-				hFile = CreateFile(longname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-				if (hFile != INVALID_HANDLE_VALUE)	{
-					return cf_open_mapped_fill_cfblock(hFile, dir_type);
-				}
-#endif
-			} 
-
-		} else {
-
-			FILE *fp = fopen( longname, "rb" );
-
-			if ( fp )	{
-				if ( offset )	{
-					// Found it in a pack file
-					return cf_open_packed_cfblock(fp, dir_type, offset, size );
-				} else {
-					// Found it in a normal file
-					return cf_open_fill_cfblock(fp, dir_type);
-				} 
+		if ( fp )	{
+			if ( offset )	{
+				// Found it in a pack file
+				return cf_open_packed_cfblock(fp, dir_type, offset, size );
+			} else {
+				// Found it in a normal file
+				return cf_open_fill_cfblock(fp, dir_type);
 			}
 		}
-
 	}
 
 	return NULL;
@@ -871,7 +727,6 @@ int cfget_cfile_block()
 	for ( i = 0; i < MAX_CFILE_BLOCKS; i++ ) {
 		cb = &Cfile_block_list[i];
 		if ( cb->type == CFILE_BLOCK_UNUSED ) {
-			cb->data = NULL;
 			cb->fp = NULL;
 			cb->type = CFILE_BLOCK_USED;
 			return i;
@@ -900,21 +755,8 @@ int cfclose( CFILE * cfile )
 	cb = &Cfile_block_list[cfile->id];	
 
 	result = 0;
-	if ( cb->data ) {
-		// close memory mapped file
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		result = UnmapViewOfFile((void*)cb->data);
-		SDL_assert(result);
-		result = CloseHandle(cb->hInFile);		
-		SDL_assert(result);	// Ensure file handle is closed properly
-		result = CloseHandle(cb->hMapFile);		
-		SDL_assert(result);	// Ensure file handle is closed properly
-#endif
-		result = 0;
 
-	} else if ( cb->fp != NULL )	{
+	if (cb->fp != NULL) {
 		SDL_assert(cb->fp != NULL);
 		result = fclose(cb->fp);
 	} else {
@@ -948,7 +790,6 @@ CFILE *cf_open_fill_cfblock(FILE *fp, int type)
 		cfp = &Cfile_list[cfile_block_index];;
 		cfp->id = cfile_block_index;
 		cfp->version = 0;
-		cfbp->data = NULL;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
 		
@@ -981,7 +822,6 @@ CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
 		cfp = &Cfile_list[cfile_block_index];
 		cfp->id = cfile_block_index;
 		cfp->version = 0;
-		cfbp->data = NULL;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
 
@@ -993,69 +833,10 @@ CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
 }
 
 
-
-// cf_open_mapped_fill_cfblock() will fill up a Cfile_block element in the Cfile_block_list[] array
-// for the case of a file being opened by cf_open_mapped();
-//
-// returns:   ptr CFILE structure.  
-//
-CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type)
-{
-	int cfile_block_index;
-
-	cfile_block_index = cfget_cfile_block();
-	if ( cfile_block_index == -1 ) {
-		return NULL;
-	}
-	else {
-		CFILE *cfp;
-		Cfile_block *cfbp;
-		cfbp = &Cfile_block_list[cfile_block_index];
-
-		cfp = &Cfile_list[cfile_block_index];
-		cfp->id = cfile_block_index;
-		cfbp->fp = NULL;
-		cfbp->hInFile = hFile;
-		cfbp->dir_type = type;
-
-		cf_init_lowlevel_read_code(cfp,0 , 0 );
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		cfbp->hMapFile = CreateFileMapping(cfbp->hInFile, NULL, PAGE_READONLY, 0, 0, NULL);
-		if (cfbp->hMapFile == NULL) { 
-			nprintf(("Error", "Could not create file-mapping object.\n")); 
-			return NULL;
-		} 
-	
-		cfbp->data = (ubyte*)MapViewOfFile(cfbp->hMapFile, FILE_MAP_READ, 0, 0, 0);
-		SDL_assert( cfbp->data != NULL );		
-#endif
-		return cfp;
-	}
-}
-
 int cf_get_dir_type(CFILE *cfile)
 {
 	return Cfile_block_list[cfile->id].dir_type;
 }
-
-// cf_returndata() returns the data pointer for a memory-mapped file that is associated
-// with the CFILE structure passed as a parameter
-//
-// 
-
-void *cf_returndata(CFILE *cfile)
-{
-	SDL_assert(cfile != NULL);
-	Cfile_block *cb;
-	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
-	cb = &Cfile_block_list[cfile->id];	
-	SDL_assert(cb->data != NULL);
-	return cb->data;
-}
-
 
 
 // version number of opened file.  Will be 0 unless you put something else here after you
@@ -1069,9 +850,6 @@ void cf_set_version( CFILE * cfile, int version )
 
 // routines to read basic data types from CFILE's.  Put here to
 // simplify mac/pc reading from cfiles.
-#ifdef __APPLE__
-#include <stddef.h>
-#endif
 
 float cfread_float(CFILE *file, int ver, float deflt)
 {
@@ -1323,9 +1101,6 @@ int cfilelength( CFILE * cfile )
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	// TODO: return length of memory mapped file
-	SDL_assert( !cb->data );
-
 	SDL_assert(cb->fp != NULL);
 
 	// cb->size gets set at cfopen
@@ -1349,9 +1124,6 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 	cb = &Cfile_block_list[cfile->id];	
 
 	int size = elsize * nelem;
-
-	// cfwrite() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 
 	SDL_assert(cb->fp != NULL);
 	SDL_assert(cb->lib_offset == 0 );
@@ -1383,9 +1155,6 @@ int cfputc(int c, CFILE *cfile)
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
-
-	// cfputc() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 
 	SDL_assert(cb->fp != NULL);
 	result = fputc(c, cb->fp);
@@ -1473,7 +1242,6 @@ int cfputs(const char *str, CFILE *cfile)
 	int result = 0;
 
 	// cfputs() not supported for memory-mapped files
-	SDL_assert( !cb->data );
 	SDL_assert(cb->fp != NULL);
 	result = fputs(str, cb->fp);
 
@@ -1713,9 +1481,6 @@ int cflush(CFILE *cfile)
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	// not supported for memory mapped files
-	SDL_assert( !cb->data );
-
 	SDL_assert(cb->fp != NULL);
 	return fflush(cb->fp);
 }
@@ -1744,7 +1509,7 @@ int cfile_init_paths()
 	}
 
 	// set root directory
-	strcpy(Cfile_root_dir, t_path);
+	SDL_strlcpy(Cfile_root_dir, t_path, sizeof(Cfile_root_dir));
 	// free SDL copy
 	SDL_free(t_path);
 	t_path = NULL;
@@ -1771,7 +1536,7 @@ int cfile_init_paths()
 	}
 
 	// set user/pref directory
-	strcpy(Cfile_user_dir, u_path);
+	SDL_strlcpy(Cfile_user_dir, u_path, sizeof(Cfile_user_dir));
 	// free SDL copy
 	SDL_free(u_path);
 	u_path = NULL;

@@ -1400,7 +1400,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Max Velocity",742));	
 	y_start += 10;
-	sprintf(str,XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
+	SDL_snprintf(str,sizeof(str),XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
 	gr_set_color_fast(text);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,str);
 	y_start += 10;
@@ -1855,7 +1855,7 @@ void draw_ship_icon_with_number(int screen_offset, int ship_class)
 	gr_bitmap(Ship_list_coords[gr_screen.res][screen_offset][0], Ship_list_coords[gr_screen.res][screen_offset][1]);
 
 	// blit the number
-	sprintf(buf, "%d", Ss_pool[ship_class] );
+	SDL_snprintf(buf, sizeof(buf), "%d", Ss_pool[ship_class] );
 	gr_set_color_fast(&Color_white);
 	gr_string(num_x, num_y, buf);
 }
@@ -1895,17 +1895,17 @@ anim* ss_load_individual_animation(int ship_class)
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
 		SDL_assert(strlen(Ship_info[ship_class].anim_filename) <= 30);
-		strcpy(animation_filename, "2_");
-		strcat(animation_filename, Ship_info[ship_class].anim_filename);
+		SDL_strlcpy(animation_filename, "2_", sizeof(animation_filename));
+		SDL_strlcat(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
 		// now check if file exists
 		// GRR must add a .ANI at the end for detection
-		strcat(animation_filename, ".ani");
+		SDL_strlcat(animation_filename, ".ani", sizeof(animation_filename));
 		
-		p_anim = anim_load(animation_filename, 1);
+		p_anim = anim_load(animation_filename);
 		if (p_anim == NULL) {
 			// failed loading hi-res, revert to low res
-			strcpy(animation_filename, Ship_info[ship_class].anim_filename);
-			p_anim = anim_load(animation_filename, 1);
+			SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
+			p_anim = anim_load(animation_filename);
 			mprintf(("Ship ANI: Can not find %s, using lowres version instead.\n", animation_filename)); 
 		} else {
 			mprintf(("SHIP ANI: Found hires version of %s\n",animation_filename));
@@ -1922,8 +1922,8 @@ anim* ss_load_individual_animation(int ship_class)
 		}
 		*/
 	} else {
-		strcpy(animation_filename, Ship_info[ship_class].anim_filename);
-		p_anim = anim_load(animation_filename, 1);
+		SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
+		p_anim = anim_load(animation_filename);
 	}
 	
 	return p_anim;
@@ -2042,8 +2042,8 @@ void commit_pressed()
 
 	// save the player loadout
 	if ( !(Game_mode & GM_MULTIPLAYER) ) {
-		strcpy(Player_loadout.filename, Game_current_mission_filename);
-		strcpy(Player_loadout.last_modified, The_mission.modified);
+		SDL_strlcpy(Player_loadout.filename, Game_current_mission_filename, sizeof(Player_loadout.filename));
+		SDL_strlcpy(Player_loadout.last_modified, The_mission.modified, sizeof(Player_loadout.last_modified));
 		wss_save_loadout();
 	}
 
@@ -2649,7 +2649,7 @@ int ss_return_ship(int wing_block, int wing_slot, int *ship_index, p_object **pp
 // player ship, return the player callsign
 //
 // input: ensure at least NAME_LENGTH bytes allocated for name buffer
-void ss_return_name(int wing_block, int wing_slot, char *name)
+void ss_return_name(int wing_block, int wing_slot, char *name, const int max_namelen)
 {
 	ss_slot_info	*ws;
 	wing				*wp;
@@ -2658,13 +2658,13 @@ void ss_return_name(int wing_block, int wing_slot, char *name)
 	wp = &Wings[Ss_wings[wing_block].wingnum];		
 
 	if (!Wss_num_wings) {
-		strcpy(name, Player->callsign);
+		SDL_strlcpy(name, Player->callsign, max_namelen);
 		return;
 	}
 
 	// Check to see if ship is on the ship_arrivals[] list
 	if ( ws->sa_index != -1 ) {
-		strcpy(name, ship_arrivals[ws->sa_index].name);
+		SDL_strlcpy(name, ship_arrivals[ws->sa_index].name, max_namelen);
 	} else {
 		ship *sp;
 		sp = &Ships[wp->ship_index[wing_slot]];
@@ -2673,12 +2673,12 @@ void ss_return_name(int wing_block, int wing_slot, char *name)
 		if(Game_mode & GM_MULTIPLAYER){
 			int player_index = multi_find_player_by_object(&Objects[sp->objnum]);
 			if(player_index != -1){
-				strcpy(name,Net_players[player_index].player->callsign);
+				SDL_strlcpy(name,Net_players[player_index].player->callsign, max_namelen);
 			} else {
-				strcpy(name,sp->ship_name);
+				SDL_strlcpy(name,sp->ship_name, max_namelen);
 			}
 		} else {		
-			strcpy(name, sp->ship_name);
+			SDL_strlcpy(name, sp->ship_name, max_namelen);
 		}
 	}
 }
@@ -3390,7 +3390,6 @@ void ss_drop(int from_slot,int from_list,int to_slot,int to_list,int player_inde
 void ss_recalc_multiplayer_slots()
 {
 	int				i,j;
-	wing				*wp;
 	ss_slot_info	*ss_slot;
 	ss_wing_info	*ss_wing;
 	
@@ -3410,7 +3409,6 @@ void ss_recalc_multiplayer_slots()
 		// NOTE : the method below will eventually have to change to account for all possible netgame options
 		
 		// get the wing pointer
-		wp = &Wings[ss_wing->wingnum];		
 		for ( j = 0; j < ss_wing->num_slots; j++ ) {				
 			// get the slot pointer
 			ss_slot = &ss_wing->ss_slots[j];			

@@ -77,6 +77,7 @@ PofViewFrame::PofViewFrame( wxWindow* parent, wxWindowID id, const wxString& tit
 {
 	m_model_num = -1;
 	m_glContext = NULL;
+	m_canvas = NULL;
 
 	pofview_initted = false;
 

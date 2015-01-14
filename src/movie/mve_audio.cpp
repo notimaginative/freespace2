@@ -47,7 +47,7 @@ static int getWord(unsigned char **fin)
 
 static void sendWord(short **fout, int nOffset)
 {
-    *(*fout)++ = nOffset;
+	*(*fout)++ = (short)nOffset;
 }
 
 static void processSwath(short *fout, unsigned char *data, int swath, int *offsets)

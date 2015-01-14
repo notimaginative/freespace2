@@ -332,7 +332,7 @@ extern void stuff_matrix(matrix *mp);
 extern int string_lookup(const char *str1, const char *strlist[], int max, const char *description = NULL, int say_errors = 0);
 extern void find_and_stuff(const char *id, int *addr, int f_type, const char *strlist[], int max, const char *description);
 extern int match_and_stuff(int f_type, const char *strlist[], int max, const char *description);
-extern void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[], int *total,
+extern void find_and_stuff_or_add(const char *id, int *addr, int f_type, char *strlist[], const int max_strlen, int *total,
 	int max, const char *description);
 extern int get_string(char *str);
 extern void stuff_parenthesized_vector(vector *vp);
@@ -351,7 +351,7 @@ extern void mark_int_list(int *ilp, int max_ints, int lookup_type);
 extern void compact_multitext_string(char *str);
 extern void read_file_text(const char *filename, int mode = CF_TYPE_ANY );
 extern void debug_show_mission_text();
-extern void convert_sexp_to_string(int cur_node, char *outstr, int mode);
+extern void convert_sexp_to_string(int cur_node, char *outstr, const int outstr_len, int mode);
 char *split_str_once(char *src, int max_pixel_w);
 int split_str(const char *src, int max_pixel_w, int *n_chars, char **p_str, int max_lines, char ignore_char = -1);
 

@@ -81,9 +81,6 @@
 
 #include "pstypes.h"
 
-#if defined(__APPLE__) && !defined(_SOCKLEN_T)
-typedef int socklen_t;
-#endif
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 DEFINES/VARS
@@ -167,7 +164,7 @@ extern ushort Psnet_default_port;
 #define RNF_CONNECTING		4		// We received the connecting message, but haven't told the game yet.
 #define RNF_LIMBO				5		// between connecting and connected
 
-extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send and receive on
+//extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send and receive on
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
@@ -207,10 +204,10 @@ int psnet_use_protocol(int type);
 int psnet_get_network_status();
 
 // convert a net_addr to a string
-char *psnet_addr_to_string( char * text, net_addr_t * address );
+char *psnet_addr_to_string(char * text, const int max_textlen, net_addr_t * address );
 
 // convert a string to a net addr
-void psnet_string_to_addr( net_addr_t * address, char * text );
+void psnet_string_to_addr(net_addr_t * address, char * text , const int max_textlen);
 
 // compare 2 addresses
 int psnet_same( net_addr_t * a1, net_addr_t * a2 );

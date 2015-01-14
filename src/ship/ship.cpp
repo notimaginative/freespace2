@@ -1078,14 +1078,14 @@ int parse_ship()
 #endif
 
 #ifdef NDEBUG
-	if (strchr(sip->name, '#') && Fred_running)
+	if (SDL_strchr(sip->name, '#') && Fred_running)
 		rtn = 1;
 #endif
 
 	if ( sip->name[0] == '@' ) {
 		char old_name[NAME_LENGTH];
-		strcpy(old_name, sip->name);
-		strcpy(sip->name, old_name+1);
+		SDL_strlcpy(old_name, sip->name, sizeof(old_name));
+		SDL_strlcpy(sip->name, old_name+1, sizeof(sip->name));
 	}
 
 	diag_printf ("Ship name -- %s\n", sip->name);
@@ -1162,7 +1162,7 @@ int parse_ship()
 	stuff_string( sip->pof_file, F_NAME, NULL );
 
 	// optional hud targeting model
-	strcpy(sip->pof_file_hud, "");
+	SDL_strlcpy(sip->pof_file_hud, "", sizeof(sip->pof_file_hud));
 	if(optional_string( "$POF target file:")){
 		stuff_string(sip->pof_file_hud, F_NAME, NULL);
 	}
@@ -1661,8 +1661,8 @@ int parse_ship()
 		if ( index == -1 ) {
 			char *p, name[NAME_LENGTH];;
 
-			strcpy( name, sip->name );
-			p = strchr(name, '#');
+			SDL_strlcpy( name, sip->name, sizeof(name) );
+			p = SDL_strchr(name, '#');
 			if ( p )
 				*p = '\0';
 			Error(LOCATION, "Ship %s is a copy, but base ship %s couldn't be found.", sip->name, name);
@@ -1848,7 +1848,7 @@ void ship_add_exited_ship( ship *sp, int reason )
 		Num_exited_ships++;
 	}
 
-	strcpy( Ships_exited[entry].ship_name, sp->ship_name );
+	SDL_strlcpy( Ships_exited[entry].ship_name, sp->ship_name, sizeof(Ships_exited[0].ship_name) );
 	Ships_exited[entry].obj_signature = Objects[sp->objnum].signature;
 	Ships_exited[entry].team = sp->team;
 	Ships_exited[entry].flags = reason;
@@ -2847,10 +2847,8 @@ void ship_wing_cleanup( int shipnum, wing *wingp )
 void ship_destroyed( int num )
 {
 	ship		*shipp;
-	object	*objp;
 
 	shipp = &Ships[num];
-	objp = &Objects[shipp->objnum];
 
 	// add the information to the exited ship list
 	ship_add_exited_ship( shipp, SEF_DESTROYED );
@@ -2894,10 +2892,8 @@ void ship_destroyed( int num )
 void ship_vanished(int num)
 {
 	ship *sp;
-	object *objp;	
 
 	sp = &Ships[num];
-	objp = &Objects[sp->objnum];
 
 	// demo recording
 	if(Game_mode & GM_DEMO_RECORD){
@@ -4457,8 +4453,7 @@ void ship_set_bay_path_nums(ship_info *sip, polymodel *pm)
 	// iterate through the paths that exist in the polymodel, searching for $bayN pathnames
 	for ( i = 0; i < pm->n_paths; i++ ) {
 		if ( !SDL_strncasecmp(pm->paths[i].name, NOX("$bay"), 4) ) {
-			strncpy(bay_num_str, pm->paths[i].name+4, 2);
-			bay_num_str[2] = 0;
+			SDL_strlcpy(bay_num_str, pm->paths[i].name+4, sizeof(bay_num_str));
 			bay_num = atoi(bay_num_str);
 			SDL_assert(bay_num >= 1 && bay_num <= MAX_SHIP_BAY_PATHS);
 			pm->ship_bay->paths[bay_num-1] = i;
@@ -4620,7 +4615,7 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 	shipp->ai_index = ai_get_slot(n);
 	SDL_assert( shipp->ai_index >= 0 );
 
-	sprintf(shipp->ship_name, NOX("%s %d"), Ship_info[ship_type].name, n);
+	SDL_snprintf(shipp->ship_name, sizeof(shipp->ship_name), NOX("%s %d"), Ship_info[ship_type].name, n);
 	ship_set_default_weapons(shipp, sip);	//	Moved up here because ship_set requires that weapon info be valid.  MK, 4/28/98
 	ship_set(n, objnum, ship_type);
 
@@ -5076,12 +5071,11 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 	int			n = obj->instance;
 	ship			*shipp;
 	ship_weapon	*swp;
-	ship_info	*sip;
 	ai_info		*aip;
 	int			weapon, i, j, weapon_objnum;
 	int			bank_to_fire, num_fired = 0;	
-	int			banks_fired, have_timeout;				// used for multiplayer to help determine whether or not to send packet
-	have_timeout = 0;			// used to help tell us whether or not we need to send a packet
+	int			banks_fired;//, have_timeout;				// used for multiplayer to help determine whether or not to send packet
+//	have_timeout = 0;			// used to help tell us whether or not we need to send a packet
 	banks_fired = 0;			// used in multiplayer -- bitfield of banks that were fired
 
 	int			sound_played;	// used to track what sound is played.  If the player is firing two banks
@@ -5114,7 +5108,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 	if((shipp->ai_index < 0) || (shipp->ai_index >= MAX_AI_INFO)){
 		return 0;
 	}
-	sip = &Ship_info[shipp->ship_info_index];
+
 	aip = &Ai_info[shipp->ai_index];
 
 	if ( swp->num_primary_banks <= 0 ) {
@@ -5179,7 +5173,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 				swp->next_primary_fire_stamp[bank_to_fire] = timestamp(1000);
 			}
 
-			have_timeout = 1;
+		//	have_timeout = 1;
 			continue;
 		}
 
@@ -5579,11 +5573,11 @@ extern void ai_maybe_announce_shockwave_weapon(object *firing_objp, int weapon_i
 //                need to avoid firing when normally called
 int ship_fire_secondary( object *obj, int allow_swarm )
 {
-	int			n, weapon, j, bank, have_timeout, starting_bank_count = -1, num_fired;
+	int			n, weapon, j, bank, starting_bank_count = -1, num_fired;
+//	int			have_timeout;
 	ushort		starting_sig = 0;
 	ship			*shipp;
 	ship_weapon *swp;
-	ship_info	*sip;
 	weapon_info	*wip;
 	ai_info		*aip;
 	polymodel	*po;
@@ -5617,7 +5611,6 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 	
 	shipp = &Ships[n];
 	swp = &shipp->weapons;
-	sip = &Ship_info[shipp->ship_info_index];
 	aip = &Ai_info[shipp->ai_index];
 
 	// if no secondary weapons are present on ship, return
@@ -5644,7 +5637,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 	}
 	wip = &Weapon_info[swp->secondary_bank_weapons[bank]];
 
-	have_timeout = 0;			// used to help tell whether or not we have a timeout
+//	have_timeout = 0;			// used to help tell whether or not we have a timeout
 	if ( MULTIPLAYER_MASTER ) {
 		starting_sig = multi_get_next_network_signature( MULTI_SIG_NON_PERMANENT );
 		starting_bank_count = swp->secondary_bank_ammo[bank];
@@ -5678,7 +5671,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 		if (timestamp_until(swp->next_secondary_fire_stamp[bank]) > 60000){
 			swp->next_secondary_fire_stamp[bank] = timestamp(1000);
 		}
-		have_timeout = 1;
+	//	have_timeout = 1;
 		goto done_secondary;
 	}
 
@@ -5691,7 +5684,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 						HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Too far from target to acquire lock", 487));
 					} else {
 						char missile_name[NAME_LENGTH];
-						strcpy(missile_name, wip->name);
+						SDL_strlcpy(missile_name, wip->name, sizeof(missile_name));
 						hud_end_string_at_first_hash_symbol(missile_name);
 						HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Cannot fire %s without a lock", 488), missile_name);
 					}
@@ -5736,7 +5729,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 			if ( obj == Player_obj ) 
 				if ( ship_maybe_play_secondary_fail_sound(wip) ) {
 					char missile_name[NAME_LENGTH];
-					strcpy(missile_name, Weapon_info[weapon].name);
+					SDL_strlcpy(missile_name, Weapon_info[weapon].name, sizeof(missile_name));
 					hud_end_string_at_first_hash_symbol(missile_name);
 					HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Cannot fire %s due to weapons system damage", 489), missile_name);
 				}
@@ -6145,8 +6138,8 @@ int ship_info_base_lookup(int si_index)
 	int	i;
 	char name[NAME_LENGTH], *p;
 
-	strcpy( name, Ship_info[si_index].name );
-	p = strchr( name, '#' );
+	SDL_strlcpy( name, Ship_info[si_index].name, sizeof(name) );
+	p = SDL_strchr( name, '#' );
 	SDL_assert( p );						// get allender -- something bogus with ship copy
 	*p = '\0';
 
@@ -6247,10 +6240,8 @@ int get_subsystem_pos(vector *pos, object *objp, ship_subsys *subsysp)
 	matrix	m;
 	model_subsystem	*psub;
 	vector	pnt;
-	ship		*shipp;
 
 	SDL_assert(objp->type == OBJ_SHIP);
-	shipp = &Ships[objp->instance];
 
 	SDL_assert ( subsysp != NULL );
 
@@ -8058,7 +8049,7 @@ int bitmask_2_bitnum(int num)
 // of what a ship's orders are.  Feel free to use this function if 
 // it suits your needs for something.
 //
-char *ship_return_orders(char *outbuf, ship *sp)
+char *ship_return_orders(char *outbuf, const int max_outbuf, ship *sp)
 {
 	ai_info	*aip;
 	ai_goal	*aigp;
@@ -8077,17 +8068,17 @@ char *ship_return_orders(char *outbuf, ship *sp)
 	if ( order_text == NULL )
 		return NULL;
 
-	strcpy(outbuf, order_text);
+	SDL_strlcpy(outbuf, order_text, max_outbuf);
 	switch (aigp->ai_mode ) {
 
 		case AI_GOAL_FORM_ON_WING:
 		case AI_GOAL_GUARD_WING:
 		case AI_GOAL_CHASE_WING:
 			if ( aigp->ship_name ) {
-				strcat(outbuf, aigp->ship_name);
-				strcat(outbuf, XSTR( " Wing", 494));
+				SDL_strlcat(outbuf, aigp->ship_name, max_outbuf);
+				SDL_strlcat(outbuf, XSTR( " Wing", 494), max_outbuf);
 			} else {
-				strcpy(outbuf, XSTR( "no orders", 495));
+				SDL_strlcpy(outbuf, XSTR( "no orders", 495), max_outbuf);
 			}
 			break;
 	
@@ -8100,19 +8091,19 @@ char *ship_return_orders(char *outbuf, ship *sp)
 		case AI_GOAL_EVADE_SHIP:
 		case AI_GOAL_REARM_REPAIR:
 			if ( aigp->ship_name ) {
-				strcat(outbuf, aigp->ship_name);
+				SDL_strlcat(outbuf, aigp->ship_name, max_outbuf);
 			} else {
-				strcpy(outbuf, XSTR( "no orders", 495));
+				SDL_strlcpy(outbuf, XSTR( "no orders", 495), max_outbuf);
 			}
 			break;
 
 		case AI_GOAL_DESTROY_SUBSYSTEM: {
 			char name[NAME_LENGTH];
 			if ( aip->targeted_subsys != NULL ) {
-				sprintf(outbuf, XSTR( "atk %s %s", 496), aigp->ship_name, hud_targetbox_truncate_subsys_name(aip->targeted_subsys->system_info->name));
-				strcat(outbuf, name);
+				SDL_snprintf(outbuf, max_outbuf, XSTR( "atk %s %s", 496), aigp->ship_name, hud_targetbox_truncate_subsys_name(aip->targeted_subsys->system_info->name, sizeof(aip->targeted_subsys->system_info->name)));
+				SDL_strlcat(outbuf, name, max_outbuf);
 			} else {
-				strcpy(outbuf, XSTR( "no orders", 495) );
+				SDL_strlcpy(outbuf, XSTR( "no orders", 495), max_outbuf);
 			}
 			break;
 		}
@@ -8139,7 +8130,7 @@ char *ship_return_orders(char *outbuf, ship *sp)
 // This function is called from HUD code to get a text description
 // of what a ship's orders are.  Feel free to use this function if 
 // it suits your needs for something.
-char *ship_return_time_to_goal(char *outbuf, ship *sp)
+char *ship_return_time_to_goal(char *outbuf, const int max_outbuf, ship *sp)
 {
 	ai_info	*aip;
 	int		time, seconds, minutes;
@@ -8205,9 +8196,9 @@ char *ship_return_time_to_goal(char *outbuf, ship *sp)
 			minutes = 99;
 			seconds = 99;
 		}
-		sprintf(outbuf, NOX("%02d:%02d"), minutes, seconds);
+		SDL_snprintf(outbuf, max_outbuf, NOX("%02d:%02d"), minutes, seconds);
 	} else {
-		strcpy( outbuf, XSTR( "Unknown", 497) );
+		SDL_strlcpy( outbuf, XSTR( "Unknown", 497), max_outbuf );
 	}
 
 	return outbuf;
@@ -9346,7 +9337,6 @@ void ship_update_artillery_lock()
 	return;
 #else
 	ai_info *aip = NULL;
-	weapon_info *tlaser = NULL;
 	mc_info *cinfo = NULL;
 	int c_objnum;
 	vector temp, local_hit;
@@ -9390,7 +9380,6 @@ void ship_update_artillery_lock()
 		if(!(Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].wi_flags & WIF_BEAM) || (Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]].b_info.beam_type != BEAM_TYPE_C)){
 			continue;
 		}
-		tlaser = &Weapon_info[shipp->weapons.primary_bank_weapons[shipp->weapons.current_primary_bank]];	
 
 		// get collision info
 		if(!beam_get_collision(shipp->targeting_laser_objnum, 0, &c_objnum, &cinfo)){

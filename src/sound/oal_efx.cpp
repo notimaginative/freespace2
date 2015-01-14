@@ -365,13 +365,11 @@ int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 		return -1;
 	}
 
-	uint active_env_save;
-	EFXEAXREVERBPROPERTIES env_save;
+	uint active_env_save = EFX_active_environment;
+	EFXEAXREVERBPROPERTIES env_save = EFX_env_properties;
 	bool saved = false;
 
 	if ( (id >= 0) && (id != (int)EFX_active_environment) ) {
-		active_env_save = EFX_active_environment;
-		env_save = EFX_env_properties;
 		saved = true;
 
 		oal_efx_set_environment(id);

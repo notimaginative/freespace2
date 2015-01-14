@@ -68,7 +68,7 @@ void game_do_state_common(int, int){}
 void game_set_frametime(int){}
 void game_increase_skill_level(){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 char *Game_current_mission_filename;
 int Warpout_forced;
@@ -87,7 +87,7 @@ void game_load_palette(){}
 void game_format_time(int, char*){}
 int game_get_default_skill_level(){return 0;}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int Game_do_state_should_skip;
 vector Camera_pos;
 vector Dead_player_last_vel;
@@ -102,5 +102,5 @@ int game_single_step;
 int last_single_step;
 void game_tst_mark(struct object*, struct ship*){}
 int tst;
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 int Nebedit_running = 0;

@@ -640,7 +640,7 @@ void cmd_brief_ani_wave_init(int index)
 	name = Cur_cmd_brief->stage[index].ani_filename;
 	if (!name[0] || !SDL_strcasecmp(name, NOX("<default>")) || !SDL_strcasecmp(name, NOX("none.ani"))) {
 		name = NOX("CB_default");
-		strcpy(Cur_cmd_brief->stage[index].ani_filename, name);
+		SDL_strlcpy(Cur_cmd_brief->stage[index].ani_filename, name, sizeof(Cur_cmd_brief->stage[0].ani_filename));
 	}
 
 	int load_attempts = 0;
@@ -650,7 +650,7 @@ void cmd_brief_ani_wave_init(int index)
 			break;
 		}
 
-		Cur_cmd_brief->stage[index].anim = anim_load(name, 1);
+		Cur_cmd_brief->stage[index].anim = anim_load(name);
 		if ( Cur_cmd_brief->stage[index].anim ) {
 			break;
 		}
@@ -666,7 +666,7 @@ void cmd_brief_ani_wave_init(int index)
 
 	// check to see if cb anim loaded, if not, try the default one
 	if ( !Cur_cmd_brief->stage[index].anim ) {
-		Cur_cmd_brief->stage[index].anim = anim_load(NOX("CB_default"), 1);
+		Cur_cmd_brief->stage[index].anim = anim_load(NOX("CB_default"));
 	}
 }
 
@@ -872,7 +872,7 @@ void cmd_brief_do_frame(float frametime)
 	gr_set_font(FONT1);
 	gr_set_color_fast(&Color_text_heading);
 
-	sprintf(buf, XSTR( "Stage %d of %d", 464), Cur_stage + 1, Cur_cmd_brief->num_stages);
+	SDL_snprintf(buf, sizeof(buf), XSTR( "Stage %d of %d", 464), Cur_stage + 1, Cur_cmd_brief->num_stages);
 	gr_get_string_size(&w, NULL, buf);
 	gr_string(Cmd_text_wnd_coords[gr_screen.res][CMD_X_COORD] + Cmd_text_wnd_coords[gr_screen.res][CMD_W_COORD] - w, Cmd_stage_y[gr_screen.res], buf);
 

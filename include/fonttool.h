@@ -43,7 +43,7 @@
 #include "2d.h"
 #include "font.h"
 
-void fonttool_edit_kerning(char *fname1, char *extras_dir);
+void fonttool_edit_kerning(char *fname1);
 void fonttool_kerning_copy( char *fname1, char *fname2 );
 void fonttool_create_font(char *pcx_filename, char *font_filename);
 

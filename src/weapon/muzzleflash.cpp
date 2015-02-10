@@ -117,52 +117,56 @@ void mflash_game_init()
 	float offset, radius;
 	int idx;
 
-	read_file_text("mflash.tbl");
-	reset_parse();
+	try {
+		read_file_text("mflash.tbl");
+		reset_parse();
 
-	// header
-	required_string("#Muzzle flash types");
+		// header
+		required_string("#Muzzle flash types");
 
-	// read em in
-	Num_mflash_types = 0;	
-	while(optional_string("$Mflash:")){
-		if(Num_mflash_types < MAX_MUZZLE_FLASH_TYPES){
-			m = &Mflash_info[Num_mflash_types++];
-		} else {
-			m = &bogus;
-		}
-		memset(m, 0, sizeof(mflash_info));
-		for(idx=0; idx<MAX_MFLASH_BLOBS; idx++){
-			m->blob_anims[idx] = -1;
-		}
+		// read em in
+		Num_mflash_types = 0;
+		while(optional_string("$Mflash:")){
+			if(Num_mflash_types < MAX_MUZZLE_FLASH_TYPES){
+				m = &Mflash_info[Num_mflash_types++];
+			} else {
+				m = &bogus;
+			}
+			memset(m, 0, sizeof(mflash_info));
+			for(idx=0; idx<MAX_MFLASH_BLOBS; idx++){
+				m->blob_anims[idx] = -1;
+			}
 
-		required_string("+name:");
-		stuff_string(m->name, F_NAME, NULL);
+			required_string("+name:");
+			stuff_string(m->name, F_NAME, NULL);
 
-		// read in all blobs
-		m->num_blobs = 0;
-		while(optional_string("+blob_name:")){
-			stuff_string(name, F_NAME, NULL, MAX_MFLASH_NAME_LEN);
+			// read in all blobs
+			m->num_blobs = 0;
+			while(optional_string("+blob_name:")){
+				stuff_string(name, F_NAME, NULL, MAX_MFLASH_NAME_LEN);
 
-			required_string("+blob_offset:");
-			stuff_float(&offset);
+				required_string("+blob_offset:");
+				stuff_float(&offset);
 
-			required_string("+blob_radius:");
-			stuff_float(&radius);
+				required_string("+blob_radius:");
+				stuff_float(&radius);
 
-			// if we have room left
-			if(m->num_blobs < MAX_MFLASH_BLOBS){
-				SDL_strlcpy(m->blob_names[m->num_blobs], name, MAX_MFLASH_NAME_LEN);
-				m->blob_offset[m->num_blobs] = offset;
-				m->blob_radius[m->num_blobs] = radius;				
+				// if we have room left
+				if(m->num_blobs < MAX_MFLASH_BLOBS){
+					SDL_strlcpy(m->blob_names[m->num_blobs], name, MAX_MFLASH_NAME_LEN);
+					m->blob_offset[m->num_blobs] = offset;
+					m->blob_radius[m->num_blobs] = radius;
 
-				m->num_blobs++;
+					m->num_blobs++;
+				}
 			}
 		}
-	}
 
-	// close
-	required_string("#end");
+		// close
+		required_string("#end");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'mflash.tbl'\r\nError code = %i.\r\n", (int)rval);
+	}
 #else
 	// hardcoded FS1 values
 	int idx;

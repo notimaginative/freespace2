@@ -412,43 +412,48 @@ void credits_init()
 
 		// open localization and parse
 		lcl_ext_open();
-		read_file_text("credits.tbl");
-		reset_parse();
 
-		// keep reading everything in
-		SDL_strlcpy(Credit_text, "", size+200);
+		try {
+			read_file_text("credits.tbl");
+			reset_parse();
+
+			// keep reading everything in
+			SDL_strlcpy(Credit_text, "", size+200);
 #ifndef MAKE_FS1
-		while(!check_for_string_raw("#end")){
+			while(!check_for_string_raw("#end")){
 #else
-		char *ugh = Mp;
-		char ch;
-		int line_count = 0;
+			char *ugh = Mp;
+			char ch;
+			int line_count = 0;
 
-		// get the line count, probably a crappy way to do it but it's the best way i've
-		// found to step through the credits without crashing problems since there's no
-		// definite end line in FS1
-		while (*ugh && *ugh != EOF_CHAR) {
-			ch = *ugh;
+			// get the line count, probably a crappy way to do it but it's the best way i've
+			// found to step through the credits without crashing problems since there's no
+			// definite end line in FS1
+			while (*ugh && *ugh != EOF_CHAR) {
+				ch = *ugh;
 
-			if (ch == '\n'){
-				line_count++;
+				if (ch == '\n'){
+					line_count++;
+				}
+				ugh++;
 			}
-			ugh++;
-		}
 
-		while(line_count > 0){
-			line_count--;
+			while(line_count > 0){
+				line_count--;
 #endif
-			stuff_string_line(line, 511);
-			linep1 = line;
+				stuff_string_line(line, 511);
+				linep1 = line;
 
-			do {
-				linep2 = split_str_once(linep1, Credits_text_coords[gr_screen.res][2]);
-				SDL_strlcat(Credit_text, linep1, size+200);
-				SDL_strlcat(Credit_text, "\n", size+200);
-				linep1 = linep2;
-			} while (linep2 != NULL);
-		}		
+				do {
+					linep2 = split_str_once(linep1, Credits_text_coords[gr_screen.res][2]);
+					SDL_strlcat(Credit_text, linep1, size+200);
+					SDL_strlcat(Credit_text, "\n", size+200);
+					linep1 = linep2;
+				} while (linep2 != NULL);
+			}
+		} catch (parse_error_t rval) {
+			mprintf(("Error parsing 'credits.tbl'\nError code = %i.\n", (int)rval));
+		}
 
 		// close localization
 		lcl_ext_close();	

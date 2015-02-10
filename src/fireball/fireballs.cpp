@@ -448,50 +448,50 @@ void fireball_play_warphole_close_sound(fireball *fb)
 
 void fireball_parse_tbl()
 {
-	int	rval, idx;
+	int idx;
 	char base_filename[256] = "";
 
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse fireball.tbl!  Code = %i.\n", rval);
-	}
-	else {
+	try {
 		read_file_text(NOX("fireball.tbl"));
 		reset_parse();		
-	}
 
-	int ntypes = 0;
-	required_string("#Start");
-	while (required_string_either("#End","$Name:")) {
-		SDL_assert( ntypes < MAX_FIREBALL_TYPES);
+		int ntypes = 0;
+		required_string("#Start");
+		while (required_string_either("#End","$Name:")) {
+			SDL_assert( ntypes < MAX_FIREBALL_TYPES);
 
-		// base filename
-		required_string("$Name:");
-		stuff_string(base_filename, F_NAME, NULL);
+			// base filename
+			required_string("$Name:");
+			stuff_string(base_filename, F_NAME, NULL);
 
-		// # of lod levels - make sure old fireball.tbl is compatible
-		Fireball_info[ntypes].lod_count = 1;
-		if(optional_string("$LOD:")){
-			stuff_int(&Fireball_info[ntypes].lod_count);
-		}
-
-		// stuff default filename
-		SDL_strlcpy(Fireball_info[ntypes].lod[0].filename, base_filename, sizeof(Fireball_info[0].lod[0].filename));
-
-		// stuff LOD level filenames
-		for(idx=1; idx<Fireball_info[ntypes].lod_count; idx++){
-			if(idx >= MAX_FIREBALL_LOD){
-				break;
+			// # of lod levels - make sure old fireball.tbl is compatible
+			Fireball_info[ntypes].lod_count = 1;
+			if(optional_string("$LOD:")){
+				stuff_int(&Fireball_info[ntypes].lod_count);
 			}
 
-			SDL_snprintf(Fireball_info[ntypes].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
-		}
+			// stuff default filename
+			SDL_strlcpy(Fireball_info[ntypes].lod[0].filename, base_filename, sizeof(Fireball_info[0].lod[0].filename));
 
-		ntypes++;
+			// stuff LOD level filenames
+			for(idx=1; idx<Fireball_info[ntypes].lod_count; idx++){
+				if(idx >= MAX_FIREBALL_LOD){
+					break;
+				}
+
+				SDL_snprintf(Fireball_info[ntypes].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
+			}
+
+			ntypes++;
+		}
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse fireball.tbl!  Code = %i.\n", (int)rval);
 	}
-	required_string("#End");
+
 
 	// close localization
 	lcl_ext_close();

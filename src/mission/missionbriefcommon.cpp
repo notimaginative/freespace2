@@ -833,7 +833,7 @@ int brief_icon_used_in_briefing(int icon_type)
 void brief_parse_icon_tbl()
 {
 #ifndef MAKE_FS1
-	int			num_icons, rval;
+	int			num_icons;
 	char			name[NAME_LENGTH];
 	hud_frames	*hf;
 	hud_anim		*ha;
@@ -842,59 +842,58 @@ void brief_parse_icon_tbl()
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse icons.tbl!  Code = %i.\n", rval);
-	}
-	else {
+	try {
 		read_file_text("icons.tbl");
 		reset_parse();		
-	}
 
-	num_icons = 0;
-	required_string("#Start");
+		num_icons = 0;
+		required_string("#Start");
 
 
-	int load_this_icon = 0;
+		int load_this_icon = 0;
 
-	while (required_string_either("#End","$Name:")) {
-		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
-			SDL_assert( num_icons < MAX_BRIEF_ICONS);
-			hf = &Icon_bitmaps[num_icons][idx];
+		while (required_string_either("#End","$Name:")) {
+			for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
+				SDL_assert( num_icons < MAX_BRIEF_ICONS);
+				hf = &Icon_bitmaps[num_icons][idx];
 
-			// load in regular frames
-			required_string("$Name:");
-			stuff_string(name, F_NAME, NULL);
+				// load in regular frames
+				required_string("$Name:");
+				stuff_string(name, F_NAME, NULL);
 
-			if ( Fred_running ) {
-				load_this_icon = 1;
-			} else {
-				load_this_icon = brief_icon_used_in_briefing(num_icons);
-			}
-
-			if ( load_this_icon ) {
-				hf->first_frame = bm_load_animation(name, &hf->num_frames);
-				if ( hf->first_frame == -1 ) {
-					Int3();	// missing briefing icon
+				if ( Fred_running ) {
+					load_this_icon = 1;
+				} else {
+					load_this_icon = brief_icon_used_in_briefing(num_icons);
 				}
+
+				if ( load_this_icon ) {
+					hf->first_frame = bm_load_animation(name, &hf->num_frames);
+					if ( hf->first_frame == -1 ) {
+						Int3();	// missing briefing icon
+					}
+				}
+
+				// load in fade frames
+				required_string("$Name:");
+				stuff_string(name, F_NAME, NULL);
+				ha = &Icon_fade_anims[num_icons][idx];
+				hud_anim_init(ha, 0, 0, name);
+
+				// load in highlighting frames
+				required_string("$Name:");
+				stuff_string(name, F_NAME, NULL);
+				ha = &Icon_highlight_anims[num_icons][idx];
+				hud_anim_init(ha, 0, 0, name);
 			}
 
-			// load in fade frames
-			required_string("$Name:");
-			stuff_string(name, F_NAME, NULL);
-			ha = &Icon_fade_anims[num_icons][idx];
-			hud_anim_init(ha, 0, 0, name);
-
-			// load in highlighting frames
-			required_string("$Name:");
-			stuff_string(name, F_NAME, NULL);
-			ha = &Icon_highlight_anims[num_icons][idx];
-			hud_anim_init(ha, 0, 0, name);
+			// next icon _type_
+			num_icons++;
 		}
-
-		// next icon _type_
-		num_icons++;
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse icons.tbl!  Code = %i.\n", (int)rval);
 	}
-	required_string("#End");
 
 	// close localization
 	lcl_ext_close();

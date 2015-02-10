@@ -198,7 +198,6 @@
 #include <fnmatch.h>
 #endif
 #include <string.h>
-#include <setjmp.h>
 #include <errno.h>
 
 #include "key.h"
@@ -274,7 +273,7 @@ campaign Campaign;
 // player or multiplayer campaign.  The type field will only be valid if the name returned is non-NULL
 int mission_campaign_get_info(const char *filename, char *name, int *type, int *max_players, char **desc)
 {
-	int rval, i;
+	int i;
 	char campaign_type[NAME_LENGTH], fname[MAX_FILENAME_LEN];
 
 	SDL_assert( name != NULL );
@@ -290,17 +289,7 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 
 	SDL_assert(strlen(fname) < MAX_FILENAME_LEN);
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		if (rval == 5){
-			// close localization
-			lcl_ext_close();
-
-			return 0;
-		}
-
-		Error(LOCATION, "Error parsing '%s'\r\nError code = %i.\r\n", fname, rval);
-
-	} else {
+	try {
 		read_file_text( fname );
 		reset_parse();
 		required_string("$Name:");
@@ -346,6 +335,15 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 
 			return 1;
 		}
+	} catch (parse_error_t rval) {
+		if (rval == PARSE_ERROR_FILE_NOT_FOUND) {
+			// close localization
+			lcl_ext_close();
+
+			return 0;
+		}
+
+		Error(LOCATION, "Error parsing '%s'\r\nError code = %i.\r\n", fname, (int)rval);
 	}
 
 	Int3();		// get Allender -- incorrect type found
@@ -361,20 +359,13 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 //
 int mission_campaign_get_mission_list(const char *filename, char **list, int max)
 {
-	int rval, i, num = 0;
+	int i, num = 0;
 	char name[NAME_LENGTH];
 
 	filename = cf_add_ext(filename, FS_CAMPAIGN_FILE_EXT);
 
 	// read the mission file and get the list of mission filenames
-	if ((rval = setjmp(parse_abort)) != 0) {
-		// since we can't return count of allocated elements, free them instead
-		for (i=0; i<num; i++)
-			free(list[i]);
-
-		return -1;
-
-	} else {
+	try {
 		read_file_text(filename);
 		reset_parse();
 
@@ -383,6 +374,12 @@ int mission_campaign_get_mission_list(const char *filename, char **list, int max
 			if (num < max)
 				list[num++] = strdup(name);
 		}
+	} catch (parse_error_t) {
+		// since we can't return count of allocated elements, free them instead
+		for (i=0; i<num; i++)
+			free(list[i]);
+
+		return -1;
 	}
 
 	return num;
@@ -436,7 +433,7 @@ void mission_campaign_get_sw_info()
 // functions work properly and update them if it breaks them.
 int mission_campaign_load( const char *filename, int load_savefile )
 {
-	int len, rval, i;
+	int len, i;
 	char name[NAME_LENGTH], type[NAME_LENGTH];
 
 	filename = cf_add_ext(filename, FS_CAMPAIGN_FILE_EXT);
@@ -445,15 +442,7 @@ int mission_campaign_load( const char *filename, int load_savefile )
 	lcl_ext_open();	
 
 	// read the mission file and get the list of mission filenames
-	if ((rval = setjmp(parse_abort)) != 0) {
-		mprintf(("Error parsing '%s'\r\nError code = %i.\r\n", filename, rval));
-
-		// close localization
-		lcl_ext_close();
-
-		return CAMPAIGN_ERROR_CORRUPT;
-
-	} else {
+	try {
 		// be sure to remove all old malloced strings of Mission_names
 		// we must also free any goal stuff that was from a previous campaign
 		// this also frees sexpressions so the next call to init_sexp will be able to reclaim
@@ -615,6 +604,13 @@ int mission_campaign_load( const char *filename, int load_savefile )
 			cm->events = NULL;
 			Campaign.num_missions++;
 		}
+	} catch (parse_error_t rval) {
+		mprintf(("Error parsing '%s'\r\nError code = %i.\r\n", filename, (int)rval));
+
+		// close localization
+		lcl_ext_close();
+
+		return CAMPAIGN_ERROR_CORRUPT;
 	}
 
 	// set up the other variables for the campaign stuff.  After initializing, we must try and load
@@ -1513,13 +1509,8 @@ void mission_campaign_shutdown()
 // note that dest should allocate at least dest[MAX_CAMPAIGN_MISSIONS][NAME_LENGTH]
 int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH], int *num)
 {
-	int	rval;
-
 	// read the mission file and get the list of mission filenames
-	if ((rval = setjmp(parse_abort)) != 0) {
-		return rval;
-
-	} else {
+	try {
 		read_file_text(filename);
 		SDL_assert(strlen(filename) < MAX_FILENAME_LEN - 1);  // make sure no overflow
 
@@ -1536,6 +1527,8 @@ int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH
 			stuff_string(dest[*num], F_NAME, NULL);
 			(*num)++;
 		}
+	} catch (parse_error_t rval) {
+		return (int)rval;
 	}
 
 	return 0;
@@ -1547,78 +1540,80 @@ void read_mission_goal_list(int num)
 {
 	char *filename, notes[NOTES_LENGTH], goals[MAX_GOALS][NAME_LENGTH];
 	char events[MAX_MISSION_EVENTS][NAME_LENGTH];
-	int i, z, r, event_count, count = 0;
+	int i, z, event_count, count = 0;
 
 	filename = Campaign.missions[num].name;
-	if ((r = setjmp(parse_abort))>0) {
-		Warning(LOCATION, "Error reading \"%s\" (code = %d)", filename, r);
-		return;
-	}
 
 	// open localization
 	lcl_ext_open();	
-	
-	read_file_text(filename);
-	init_parse();
 
-	// first, read the mission notes for this mission.  Used in campaign editor
-	if (skip_to_string("#Mission Info")) {
-		if (skip_to_string("$Notes:")) {
-			stuff_string(notes, F_NOTES, NULL);
-			if (Campaign.missions[num].notes){
-				free(Campaign.missions[num].notes);
-			}
-
-			Campaign.missions[num].notes = (char *) malloc(strlen(notes) + 1);
-			SDL_strlcpy(Campaign.missions[num].notes, notes, strlen(notes) + 1);
-		}
-	}
-
+	// default counts to zero
 	event_count = 0;
-	// skip to events section in the mission file.  Events come before goals, so we process them first
-	if ( skip_to_string("#Events") ) {
-		while (1) {
-			if (skip_to_string("$Formula:", "#Goals") != 1){
-				break;
-			}
-
-			z = skip_to_string("+Name:", "$Formula:");
-			if (!z){
-				break;
-			}
-
-			if (z == 1){
-				stuff_string(events[event_count], F_NAME, NULL);
-			} else {
-				SDL_snprintf(events[event_count], NAME_LENGTH, NOX("Event #%d"), event_count + 1);
-			}
-
-			event_count++;
-			SDL_assert(event_count < MAX_MISSION_EVENTS);
-		}
-	}
-
 	count = 0;
-	if (skip_to_string("#Goals")) {
-		while (1) {
-			if (skip_to_string("$Type:", "#End") != 1){
-				break;
-			}
 
-			z = skip_to_string("+Name:", "$Type:");
-			if (!z){
-				break;
-			}
+	try {
+		read_file_text(filename);
+		init_parse();
 
-			if (z == 1){
-				stuff_string(goals[count], F_NAME, NULL);
-			} else {
-				SDL_snprintf(goals[count], NAME_LENGTH, NOX("Goal #%d"), count + 1);
-			}
+		// first, read the mission notes for this mission.  Used in campaign editor
+		if (skip_to_string("#Mission Info")) {
+			if (skip_to_string("$Notes:")) {
+				stuff_string(notes, F_NOTES, NULL);
+				if (Campaign.missions[num].notes){
+					free(Campaign.missions[num].notes);
+				}
 
-			count++;
-			SDL_assert(count < MAX_GOALS);
+				Campaign.missions[num].notes = (char *) malloc(strlen(notes) + 1);
+				SDL_strlcpy(Campaign.missions[num].notes, notes, strlen(notes) + 1);
+			}
 		}
+
+		// skip to events section in the mission file.  Events come before goals, so we process them first
+		if ( skip_to_string("#Events") ) {
+			while (1) {
+				if (skip_to_string("$Formula:", "#Goals") != 1){
+					break;
+				}
+
+				z = skip_to_string("+Name:", "$Formula:");
+				if (!z){
+					break;
+				}
+
+				if (z == 1){
+					stuff_string(events[event_count], F_NAME, NULL);
+				} else {
+					SDL_snprintf(events[event_count], NAME_LENGTH, NOX("Event #%d"), event_count + 1);
+				}
+
+				event_count++;
+				SDL_assert(event_count < MAX_MISSION_EVENTS);
+			}
+		}
+
+		if (skip_to_string("#Goals")) {
+			while (1) {
+				if (skip_to_string("$Type:", "#End") != 1){
+					break;
+				}
+
+				z = skip_to_string("+Name:", "$Type:");
+				if (!z){
+					break;
+				}
+
+				if (z == 1){
+					stuff_string(goals[count], F_NAME, NULL);
+				} else {
+					SDL_snprintf(goals[count], NAME_LENGTH, NOX("Goal #%d"), count + 1);
+				}
+
+				count++;
+				SDL_assert(count < MAX_GOALS);
+			}
+		}
+	} catch (parse_error_t rval) {
+		Warning(LOCATION, "Error reading \"%s\" (code = %d)", filename, (int)rval);
 	}
 
 	Campaign.missions[num].num_goals = count;
@@ -1712,22 +1707,26 @@ int mission_campaign_parse_is_multi(const char *filename, char *name, const int 
 {	
 	int i;
 	char temp[50];
-	
-	read_file_text( filename );
-	reset_parse();
-	
-	required_string("$Name:");
-	stuff_string( temp, F_NAME, NULL );	
-	if ( name )
-		SDL_strlcpy( name, temp, max_len );
 
-	required_string( "$Type:" );
-	stuff_string( temp, F_NAME, NULL );
+	try {
+		read_file_text( filename );
+		reset_parse();
 
-	for (i = 0; i < MAX_CAMPAIGN_TYPES; i++ ) {
-		if ( !SDL_strcasecmp(temp, campaign_types[i]) ) {
-			return i;
+		required_string("$Name:");
+		stuff_string( temp, F_NAME, NULL );
+		if ( name )
+			SDL_strlcpy( name, temp, max_len );
+
+		required_string( "$Type:" );
+		stuff_string( temp, F_NAME, NULL );
+
+		for (i = 0; i < MAX_CAMPAIGN_TYPES; i++ ) {
+			if ( !SDL_strcasecmp(temp, campaign_types[i]) ) {
+				return i;
+			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse %s!  Code = %i.\n", filename, (int)rval);
 	}
 
 	Error(LOCATION, "Unknown campaign type %s", temp );

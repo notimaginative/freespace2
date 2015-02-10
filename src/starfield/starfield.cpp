@@ -382,132 +382,136 @@ void stars_init()
 	char glow_filename[MAX_FILENAME_LEN+1] = "";
 	float r, g, b, i;
 
-	// parse stars.tbl
-	read_file_text("stars.tbl");
-	reset_parse();
+	try {
+		// parse stars.tbl
+		read_file_text("stars.tbl");
+		reset_parse();
 
-	// make all bitmaps invalid
-	for(idx=0; idx<MAX_STARFIELD_BITMAPS; idx++){
-		Starfield_bitmaps[idx].bitmap = -1;
-		Starfield_bitmaps[idx].glow_bitmap = -1;		
-		SDL_strlcpy(Starfield_bitmaps[idx].filename, "", sizeof(Starfield_bitmaps[0].filename));
-		SDL_strlcpy(Starfield_bitmaps[idx].glow_filename, "", sizeof(Starfield_bitmaps[0].glow_filename));
+		// make all bitmaps invalid
+		for(idx=0; idx<MAX_STARFIELD_BITMAPS; idx++){
+			Starfield_bitmaps[idx].bitmap = -1;
+			Starfield_bitmaps[idx].glow_bitmap = -1;
+			SDL_strlcpy(Starfield_bitmaps[idx].filename, "", sizeof(Starfield_bitmaps[0].filename));
+			SDL_strlcpy(Starfield_bitmaps[idx].glow_filename, "", sizeof(Starfield_bitmaps[0].glow_filename));
 
-		Sun_bitmaps[idx].bitmap = -1;		
-		Sun_bitmaps[idx].glow_bitmap = -1;		
-		SDL_strlcpy(Sun_bitmaps[idx].filename, "", sizeof(Sun_bitmaps[0].filename));
-		SDL_strlcpy(Sun_bitmaps[idx].glow_filename, "", sizeof(Sun_bitmaps[0].glow_filename));
-	}
-
-	// starfield bitmaps
-	count = 0;
-	while(!optional_string("#end")){
-		// intensity alpha bitmap
-		if(optional_string("$Bitmap:")){
-			stuff_string(filename, F_NAME, NULL);
-			if(count < MAX_STARFIELD_BITMAPS){
-				bm = &Starfield_bitmaps[count++];
-				SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
-				bm->xparent = 0;
-				bm->bitmap = bm_load(bm->filename);				
-				SDL_assert(bm->bitmap != -1);
-
-				// if fred is running we should lock the bitmap now
-				if(Fred_running && (bm->bitmap >= 0)){
-					bm_lock(bm->bitmap, 8, BMP_TEX_OTHER);
-					bm_unlock(bm->bitmap);
-				} 
-			}
+			Sun_bitmaps[idx].bitmap = -1;
+			Sun_bitmaps[idx].glow_bitmap = -1;
+			SDL_strlcpy(Sun_bitmaps[idx].filename, "", sizeof(Sun_bitmaps[0].filename));
+			SDL_strlcpy(Sun_bitmaps[idx].glow_filename, "", sizeof(Sun_bitmaps[0].glow_filename));
 		}
-		// green xparency bitmap
-		else if(optional_string("$BitmapX:")){
-			stuff_string(filename, F_NAME, NULL);
-			if(count < MAX_STARFIELD_BITMAPS){
-				bm = &Starfield_bitmaps[count++];
-				SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
-				bm->xparent = 1;
-				bm->bitmap = bm_load(bm->filename);
-				SDL_assert(bm->bitmap != -1);
 
-				// if fred is running we should lock as a 0, 255, 0 bitmap now
-				if(Fred_running && (bm->bitmap >= 0)){
-					bm_lock(bm->bitmap, 8, BMP_TEX_XPARENT);
-					bm_unlock(bm->bitmap);
-				} 
-			}
-		}
-	}
+		// starfield bitmaps
+		count = 0;
+		while(!optional_string("#end")){
+			// intensity alpha bitmap
+			if(optional_string("$Bitmap:")){
+				stuff_string(filename, F_NAME, NULL);
+				if(count < MAX_STARFIELD_BITMAPS){
+					bm = &Starfield_bitmaps[count++];
+					SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
+					bm->xparent = 0;
+					bm->bitmap = bm_load(bm->filename);
+					SDL_assert(bm->bitmap != -1);
 
-	// sun bitmaps
-	count = 0;
-	while(!optional_string("#end")){
-		if(optional_string("$Sun:")){
-			stuff_string(filename, F_NAME, NULL);
-
-			// associated glow
-			required_string("$Sunglow:");
-			stuff_string(glow_filename, F_NAME, NULL);
-
-			// associated lighting values
-			required_string("$SunRGBI:");
-			stuff_float(&r);
-			stuff_float(&g);
-			stuff_float(&b);
-			stuff_float(&i);
-
-			if(count < MAX_STARFIELD_BITMAPS){
-				bm = &Sun_bitmaps[count++];
-				SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
-				SDL_strlcpy(bm->glow_filename, glow_filename, sizeof(bm->glow_filename));
-				bm->xparent = 1;
-				bm->bitmap = bm_load(bm->filename);
-				bm->glow_bitmap = bm_load(bm->glow_filename);
-				SDL_assert(bm->bitmap != -1);
-				SDL_assert(bm->glow_bitmap != -1);
-				bm->r = r;
-				bm->g = g;
-				bm->b = b;
-				bm->i = i;
-
-				// if fred is running we should lock the bitmap now
-				if(Fred_running){
-					if(bm->bitmap >= 0){
+					// if fred is running we should lock the bitmap now
+					if(Fred_running && (bm->bitmap >= 0)){
 						bm_lock(bm->bitmap, 8, BMP_TEX_OTHER);
 						bm_unlock(bm->bitmap);
 					}
-					if(bm->glow_bitmap >= 0){
-						bm_lock(bm->glow_bitmap, 8, BMP_TEX_OTHER);
-						bm_unlock(bm->glow_bitmap);
+				}
+			}
+			// green xparency bitmap
+			else if(optional_string("$BitmapX:")){
+				stuff_string(filename, F_NAME, NULL);
+				if(count < MAX_STARFIELD_BITMAPS){
+					bm = &Starfield_bitmaps[count++];
+					SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
+					bm->xparent = 1;
+					bm->bitmap = bm_load(bm->filename);
+					SDL_assert(bm->bitmap != -1);
+
+					// if fred is running we should lock as a 0, 255, 0 bitmap now
+					if(Fred_running && (bm->bitmap >= 0)){
+						bm_lock(bm->bitmap, 8, BMP_TEX_XPARENT);
+						bm_unlock(bm->bitmap);
 					}
-				} 
+				}
 			}
 		}
-	}	
 
-	// normal debris pieces
-	count = 0;
-	while(!optional_string("#end")){
-		required_string("$Debris:");
-		stuff_string(filename, F_NAME, NULL);
+		// sun bitmaps
+		count = 0;
+		while(!optional_string("#end")){
+			if(optional_string("$Sun:")){
+				stuff_string(filename, F_NAME, NULL);
 
-		if(count < MAX_DEBRIS_VCLIPS){
-			SDL_strlcpy(debris_vclips_normal[count++].name, filename, sizeof(debris_vclips_normal[0].name));
+				// associated glow
+				required_string("$Sunglow:");
+				stuff_string(glow_filename, F_NAME, NULL);
+
+				// associated lighting values
+				required_string("$SunRGBI:");
+				stuff_float(&r);
+				stuff_float(&g);
+				stuff_float(&b);
+				stuff_float(&i);
+
+				if(count < MAX_STARFIELD_BITMAPS){
+					bm = &Sun_bitmaps[count++];
+					SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
+					SDL_strlcpy(bm->glow_filename, glow_filename, sizeof(bm->glow_filename));
+					bm->xparent = 1;
+					bm->bitmap = bm_load(bm->filename);
+					bm->glow_bitmap = bm_load(bm->glow_filename);
+					SDL_assert(bm->bitmap != -1);
+					SDL_assert(bm->glow_bitmap != -1);
+					bm->r = r;
+					bm->g = g;
+					bm->b = b;
+					bm->i = i;
+
+					// if fred is running we should lock the bitmap now
+					if(Fred_running){
+						if(bm->bitmap >= 0){
+							bm_lock(bm->bitmap, 8, BMP_TEX_OTHER);
+							bm_unlock(bm->bitmap);
+						}
+						if(bm->glow_bitmap >= 0){
+							bm_lock(bm->glow_bitmap, 8, BMP_TEX_OTHER);
+							bm_unlock(bm->glow_bitmap);
+						}
+					}
+				}
+			}
 		}
-	}
-	SDL_assert(count == 4);
 
-	// nebula debris pieces
-	count = 0;
-	while(!optional_string("#end")){
-		required_string("$DebrisNeb:");
-		stuff_string(filename, F_NAME, NULL);
+		// normal debris pieces
+		count = 0;
+		while(!optional_string("#end")){
+			required_string("$Debris:");
+			stuff_string(filename, F_NAME, NULL);
 
-		if(count < MAX_DEBRIS_VCLIPS){
-			SDL_strlcpy(debris_vclips_nebula[count++].name, filename, sizeof(debris_vclips_nebula[0].name));
+			if(count < MAX_DEBRIS_VCLIPS){
+				SDL_strlcpy(debris_vclips_normal[count++].name, filename, sizeof(debris_vclips_normal[0].name));
+			}
 		}
-	}
+		SDL_assert(count == 4);
 
-	SDL_assert(count == 4);
+		// nebula debris pieces
+		count = 0;
+		while(!optional_string("#end")){
+			required_string("$DebrisNeb:");
+			stuff_string(filename, F_NAME, NULL);
+
+			if(count < MAX_DEBRIS_VCLIPS){
+				SDL_strlcpy(debris_vclips_nebula[count++].name, filename, sizeof(debris_vclips_nebula[0].name));
+			}
+		}
+
+		SDL_assert(count == 4);
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse stars.tbl!  Code = %i.\n", (int)rval);
+	}
 #else
 	// hard-coded for FS1
 	starfield_bitmap *bm;

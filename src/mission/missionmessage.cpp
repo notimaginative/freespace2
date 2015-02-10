@@ -769,17 +769,17 @@ void parse_msgtbl()
 // this is called at the start of each level
 void messages_init()
 {
-	int rval, i;
+	int i;
 	static int table_read = 0;
 
 	if ( !table_read ) {
 		Command_persona = -1;
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Error parsing '%s'\r\nError code = %i.\r\n", "messages.tbl", rval);
 
-		} else {			
+		try {
 			parse_msgtbl();
 			table_read = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Error parsing messages.tbl\r\nError code = %i.\r\n", (int)rval);
 		}
 	}
 

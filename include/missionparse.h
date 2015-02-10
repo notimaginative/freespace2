@@ -171,7 +171,6 @@
 #ifndef _PARSE_H
 #define _PARSE_H
 
-#include <setjmp.h>
 #include "parselo.h"
 #include "ship.h"
 #include "ai.h"

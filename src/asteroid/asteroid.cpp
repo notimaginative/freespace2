@@ -2016,32 +2016,36 @@ void asteroid_parse_tbl()
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("asteroid.tbl");
-	reset_parse();
+	try {
+		read_file_text("asteroid.tbl");
+		reset_parse();
 
-	required_string("#Asteroid Types");
+		required_string("#Asteroid Types");
 
-	while (required_string_either("#End","$Name:")) {
-		SDL_assert( Num_asteroid_types < MAX_DEBRIS_TYPES );
-		asteroid_parse_section();
-		Num_asteroid_types++;
+		while (required_string_either("#End","$Name:")) {
+			SDL_assert( Num_asteroid_types < MAX_DEBRIS_TYPES );
+			asteroid_parse_section();
+			Num_asteroid_types++;
+		}
+
+		required_string("#End");
+
+		// check all read in
+		SDL_assert(Num_asteroid_types == MAX_DEBRIS_TYPES);
+
+		Asteroid_impact_explosion_ani = -1;
+		required_string("$Impact Explosion:");
+		stuff_string(impact_ani_file, F_NAME, NULL);
+		if ( SDL_strcasecmp(impact_ani_file,NOX("none")))	{
+			int num_frames;
+			Asteroid_impact_explosion_ani = bm_load_animation( impact_ani_file, &num_frames, NULL, 1);
+		}
+
+		required_string("$Impact Explosion Radius:");
+		stuff_float(&Asteroid_impact_explosion_radius);
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'asteroid.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
-
-	required_string("#End");
-
-	// check all read in
-	SDL_assert(Num_asteroid_types == MAX_DEBRIS_TYPES);
-
-	Asteroid_impact_explosion_ani = -1;
-	required_string("$Impact Explosion:");
-	stuff_string(impact_ani_file, F_NAME, NULL);
-	if ( SDL_strcasecmp(impact_ani_file,NOX("none")))	{
-		int num_frames;
-		Asteroid_impact_explosion_ani = bm_load_animation( impact_ani_file, &num_frames, NULL, 1);
-	}
-
-	required_string("$Impact Explosion Radius:");
-	stuff_float(&Asteroid_impact_explosion_radius);
 
 	// close localization
 	lcl_ext_close();

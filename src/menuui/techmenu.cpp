@@ -1488,19 +1488,13 @@ int techroom_load_ani(anim **animpp, char *name)
 
 void techroom_intel_init()
 {
-	int rval;
 	static int inited = 0;
 
 	// open localization
 	lcl_ext_open();
 
 	if (!inited) {
-		if ((rval = setjmp(parse_abort)) != 0) {
-			// close localization
-			lcl_ext_close();
-
-			return;
-		} else {
+		try {
 			read_file_text("species.tbl");
 			reset_parse();
 
@@ -1556,6 +1550,8 @@ void techroom_intel_init()
 			}
 #endif
 			inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Unable to parse species.tbl!  Code = %i.\n", (int)rval);
 		}
 	}
 

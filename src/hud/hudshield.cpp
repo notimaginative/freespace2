@@ -299,22 +299,26 @@ void hud_shield_game_init()
 #ifndef MAKE_FS1
 	char name[MAX_FILENAME_LEN+1] = "";
 
-	// read in hud.tbl
-	read_file_text("hud.tbl");
-	reset_parse();
+	try {
+		// read in hud.tbl
+		read_file_text("hud.tbl");
+		reset_parse();
 
-	Hud_shield_filename_count = 0;
-	required_string("#Shield Icons Begin");
-	while(!optional_string("#End")){
-		required_string("$Shield:");
+		Hud_shield_filename_count = 0;
+		required_string("#Shield Icons Begin");
+		while(!optional_string("#End")){
+			required_string("$Shield:");
 
-		stuff_string(name, F_NAME, NULL);
+			stuff_string(name, F_NAME, NULL);
 
-		// maybe store
-		SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
-		if(Hud_shield_filename_count < MAX_SHIELD_ICONS){
-			SDL_strlcpy(Hud_shield_filenames[Hud_shield_filename_count++], name, MAX_FILENAME_LEN);
+			// maybe store
+			SDL_assert(Hud_shield_filename_count < MAX_SHIELD_ICONS);
+			if(Hud_shield_filename_count < MAX_SHIELD_ICONS){
+				SDL_strlcpy(Hud_shield_filenames[Hud_shield_filename_count++], name, MAX_FILENAME_LEN);
+			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse hud.tbl!  Code = %i.\n", (int)rval);
 	}
 #else
 	// hardcoded FS1 table values

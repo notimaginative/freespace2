@@ -113,7 +113,6 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <setjmp.h>
 
 #include "pstypes.h"
 #include "parselo.h"
@@ -134,7 +133,6 @@ int		my_errno;
 int		Warning_count, Error_count;
 int		fred_parse_flag = 0;
 int		Token_found_flag;
-jmp_buf	parse_abort;
 
 char	Mission_text[MISSION_TEXT_SIZE];
 char	Mission_text_raw[MISSION_TEXT_SIZE];
@@ -443,7 +441,7 @@ int required_string(const char *pstr)
 	if (count == RS_MAX_TRIES) {
 		nprintf(("Error", "Error: Unable to find required token [%s]\n", pstr));
 		Warning(LOCATION, "Error: Unable to find required token [%s]\n", pstr);
-		longjmp(parse_abort, 1);
+		throw PARSE_ERROR_MISSING_TOKEN;
 	}
 
 	Mp += strlen(pstr);
@@ -589,7 +587,7 @@ int required_string_either(const char *str1, const char *str2)
 	if (count == RS_MAX_TRIES) {
 		nprintf(("Error", "Error: Unable to find either required token [%s] or [%s]\n", str1, str2));
 		Warning(LOCATION, "Error: Unable to find either required token [%s] or [%s]\n", str1, str2);
-		longjmp(parse_abort, 2);
+		throw PARSE_ERROR_MISSING_TOKEN_EITHER;
 	}
 
 	return -1;
@@ -721,7 +719,7 @@ void copy_text_until(char *outstr, const char *instr, const char *endstr, int ma
 
 	if (foundstr == NULL) {
 		nprintf(("Error", "Error.  Looking for [%s], but never found it.\n", endstr));
-		longjmp(parse_abort, 3);
+		throw PARSE_ERROR_MISSING_STRING;
 	}
 
 	if (foundstr - instr + strlen(endstr) < (uint) max_chars) {
@@ -731,7 +729,7 @@ void copy_text_until(char *outstr, const char *instr, const char *endstr, int ma
 		nprintf(("Error", "Error.  Too much text (%i chars, %i allowed) before %s\n",
 			foundstr - instr - strlen(endstr), max_chars, endstr));
 
-		longjmp(parse_abort, 4);
+		throw PARSE_ERROR_TOO_LONG;
 	}
 
 	diag_printf("Here's the partial wad of text:\n%.30s", outstr);
@@ -1152,13 +1150,13 @@ void read_file_text(const char *filename, int mode)
 	int	file_is_encrypted = 0, in_comment = 0;
 
 	if (!filename)
-		longjmp(parse_abort, 10);
+		throw PARSE_ERROR_EMPTY_FILENAME;
 
 	SDL_strlcpy(Current_filename, filename, sizeof(Current_filename));
 	mf = cfopen(filename, "rb", CFILE_NORMAL, mode);
 	if (mf == NULL) {
 		nprintf(("Error", "Wokka!  Error opening mission.txt!\n"));
-		longjmp(parse_abort, 5);
+		throw PARSE_ERROR_FILE_NOT_FOUND;
 	}
 
 	// read the entire file in
@@ -1386,7 +1384,7 @@ int stuff_string_list(char slp[][NAME_LENGTH], int max_strings)
 
 	if ( *Mp != '(' ) {
 		error_display(1, "Reading string list.  Found [%c].  Expecting '('.\n", *Mp);
-		longjmp(parse_abort, 100);
+		throw PARSE_ERROR_STRING_LIST;
 	}
 
 	Mp++;
@@ -1417,7 +1415,7 @@ int stuff_int_list(int *ilp, int max_ints, int lookup_type)
 
 	if (*Mp != '(') {
 		error_display(1, "Reading integer list.  Found [%c].  Expecting '('.\n", *Mp);
-		longjmp(parse_abort, 6);
+		throw PARSE_ERROR_INT_LIST;
 	}
 
 	Mp++;
@@ -1505,7 +1503,7 @@ void mark_int_list(int *ilp, int max_ints, int lookup_type)
 
 	if (*Mp != '(') {
 		error_display(1, "Marking integer list.  Found [%c].  Expecting '('.\n", *Mp);
-		longjmp(parse_abort, 6);
+		throw PARSE_ERROR_INT_LIST;
 	}
 
 	Mp++;
@@ -1570,14 +1568,14 @@ void stuff_parenthesized_vector(vector *vp)
 
 	if (*Mp != '(') {
 		error_display(1, "Reading parenthesized vector.  Found [%c].  Expecting '('.\n", *Mp);
-		longjmp(parse_abort, 11);
+		throw PARSE_ERROR_VECTOR_PSTART;
 	} else {
 		Mp++;
 		stuff_vector(vp);
 		ignore_white_space();
 		if (*Mp != ')') {
 			error_display(1, "Reading parenthesized vector.  Found [%c].  Expecting ')'.\n", *Mp);
-			longjmp(parse_abort, 12);
+			throw PARSE_ERROR_VECTOR_PEND;
 		}
 		Mp++;
 	}
@@ -1597,7 +1595,7 @@ int stuff_vector_list(vector *vlp, int max_vecs)
 
 	if (*Mp != '(') {
 		error_display(1, "Reading integer list.  Found [%c].  Expecting '('.\n", *Mp);
-		longjmp(parse_abort, 6);
+		throw PARSE_ERROR_INT_LIST;
 	}
 
 	Mp++;

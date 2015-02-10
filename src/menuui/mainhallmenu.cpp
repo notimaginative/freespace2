@@ -818,7 +818,11 @@ void main_hall_init(int main_hall_num)
 	char temp[100], whee[100];	
 
 	// read in the main hall table
-	main_hall_read_table();
+	try {
+		main_hall_read_table();
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse mainhall.tbl!  Code = %i.\n", (int)rval);
+	}
 
 	// create the snazzy interface and load up the info from the table
 	snazzy_menu_init();

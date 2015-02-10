@@ -202,40 +202,39 @@ void cutscene_init()
 {
 #ifndef FS1_DEMO  // no cuscenes in FS1 demo
 	char buf[MULTITEXT_LENGTH];
-	int rval;
-
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Error parsing 'rank.tbl'\r\nError code = %i.\r\n", rval);
-	} 
 
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("cutscenes.tbl");
-	reset_parse();
+	try {
+		read_file_text("cutscenes.tbl");
+		reset_parse();
 
-	// parse in all the rank names
-	Num_cutscenes = 0;
-	skip_to_string("#Cutscenes");
-	ignore_white_space();
-	while ( required_string_either("#End", "$Filename:") ) {
-		SDL_assert ( Num_cutscenes < MAX_CUTSCENES );
-		required_string("$Filename:");
-		stuff_string( Cutscenes[Num_cutscenes].filename, F_PATHNAME, NULL );
-		required_string("$Name:");
-		stuff_string( Cutscenes[Num_cutscenes].name, F_NAME, NULL );
-		required_string("$Description:");
-		stuff_string(buf, F_MULTITEXT, NULL);
-		drop_white_space(buf);
-		compact_multitext_string(buf);
-		Cutscenes[Num_cutscenes].description = strdup(buf);
-		required_string("$cd:");
-		stuff_int( &Cutscenes[Num_cutscenes].cd );
+		// parse in all the rank names
+		Num_cutscenes = 0;
+		skip_to_string("#Cutscenes");
+		ignore_white_space();
+		while ( required_string_either("#End", "$Filename:") ) {
+			SDL_assert ( Num_cutscenes < MAX_CUTSCENES );
+			required_string("$Filename:");
+			stuff_string( Cutscenes[Num_cutscenes].filename, F_PATHNAME, NULL );
+			required_string("$Name:");
+			stuff_string( Cutscenes[Num_cutscenes].name, F_NAME, NULL );
+			required_string("$Description:");
+			stuff_string(buf, F_MULTITEXT, NULL);
+			drop_white_space(buf);
+			compact_multitext_string(buf);
+			Cutscenes[Num_cutscenes].description = strdup(buf);
+			required_string("$cd:");
+			stuff_int( &Cutscenes[Num_cutscenes].cd );
 
-		Num_cutscenes++;
+			Num_cutscenes++;
+		}
+
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'cutscenes.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
-
-	required_string("#End");
 
 	Cutscenes_viewable = INTRO_CUTSCENE_FLAG;
 

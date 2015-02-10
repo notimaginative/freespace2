@@ -335,7 +335,6 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <setjmp.h>
 
 #include "freespace.h"
 #include "parselo.h"
@@ -3778,48 +3777,45 @@ void post_process_mission()
 
 int get_mission_info(char *filename, mission *mission_p)
 {
-	int rval;
-
 	// if mission_p is NULL, make it point to The_mission
 	if ( mission_p == NULL )
 		mission_p = &The_mission;
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		nprintf(("Error", "Error abort!  Code = %d", rval));
-		return rval;
-	
-	} else {
-		int filelength;
+	int filelength;
 
-		// open localization
-		lcl_ext_open();
+	// open localization
+	lcl_ext_open();
 
-		CFILE *ftemp = cfopen(filename, "rt");
-		if (!ftemp){
-			// close localization
-			lcl_ext_close();
+	CFILE *ftemp = cfopen(filename, "rt");
+	if (!ftemp){
+		// close localization
+		lcl_ext_close();
 
-			return -1;
-		}
+		return -1;
+	}
 
-		// 7/9/98 -- MWA -- check for 0 length file.
-		filelength = cfilelength(ftemp);
-		cfclose(ftemp);
-		if ( filelength == 0 ){
-			// close localization
-			lcl_ext_close();	
+	// 7/9/98 -- MWA -- check for 0 length file.
+	filelength = cfilelength(ftemp);
+	cfclose(ftemp);
+	if ( filelength == 0 ){
+		// close localization
+		lcl_ext_close();
 
-			return -1;
-		}
+		return -1;
+	}
 
+	try {
 		read_file_text(filename, CF_TYPE_MISSIONS);
 		memset( mission_p, 0, sizeof(mission) );
 		init_parse();
 		parse_mission_info(mission_p);
-
-		// close localization
-		lcl_ext_close();
+	} catch (parse_error_t rval) {
+		nprintf(("Error", "Error abort!  Code = %d", (int)rval));
+		return (int)rval;
 	}
+
+	// close localization
+	lcl_ext_close();
 
 	return 0;
 }
@@ -3829,7 +3825,7 @@ int get_mission_info(char *filename, mission *mission_p)
 // info such as game type, number of players etc.
 int parse_main(const char *mission_name, int flags)
 {
-	int rval, i;
+	int i;
 
 	// fill in Ship_class_names array with the names from the ship_info struct;
 	Num_parse_names = 0;
@@ -3839,40 +3835,40 @@ int parse_main(const char *mission_name, int flags)
 	for (i = 0; i < Num_ship_types; i++)
 		Ship_class_names[i] = Ship_info[i].name;
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		nprintf(("Error", "Error abort!  Code = %i.", rval));
-		return rval;
-	
-	} else {
-		// open localization
-		lcl_ext_open();
 
-		CFILE *ftemp = cfopen(mission_name, "rt", CFILE_NORMAL, CF_TYPE_MISSIONS);
-		// fail situation.
-		if (!ftemp) {
-			if (!Fred_running)
-				Error( LOCATION, "Couldn't open mission '%s'\n", mission_name );
+	// open localization
+	lcl_ext_open();
 
-			Current_file_length = -1;
-			Current_file_checksum = 0;
+	CFILE *ftemp = cfopen(mission_name, "rt", CFILE_NORMAL, CF_TYPE_MISSIONS);
+	// fail situation.
+	if (!ftemp) {
+		if (!Fred_running)
+			Error( LOCATION, "Couldn't open mission '%s'\n", mission_name );
 
-			// close localization
-			lcl_ext_close();
+		Current_file_length = -1;
+		Current_file_checksum = 0;
 
-			return -1;
-		}
+		// close localization
+		lcl_ext_close();
 
-		Current_file_length = cfilelength(ftemp);
-		cfclose(ftemp);
+		return -1;
+	}
 
+	Current_file_length = cfilelength(ftemp);
+	cfclose(ftemp);
+
+	try {
 		read_file_text(mission_name, CF_TYPE_MISSIONS);
 		memset(&The_mission, 0, sizeof(The_mission));
 		parse_mission(&The_mission, flags);
 		display_parse_diagnostics();
-
-		// close localization
-		lcl_ext_close();
+	} catch (parse_error_t rval) {
+		nprintf(("Error", "Error abort!  Code = %i.", (int)rval));
+		return (int)rval;
 	}
+
+	// close localization
+	lcl_ext_close();
 
 	if (!Fred_running)
 		SDL_strlcpy(Mission_filename, mission_name, sizeof(Mission_filename));
@@ -4024,7 +4020,7 @@ void mission_parse_do_initial_docks()
 // function which returns true or false if the given mission support multiplayers
 int mission_parse_is_multi(const char *filename, char *mission_name)
 {
-	int rval, game_type;
+	int game_type;
 	int filelength;
 	CFILE *ftemp;
 
@@ -4046,9 +4042,7 @@ int mission_parse_is_multi(const char *filename, char *mission_name)
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Bogus!  Trying to get multi game type on mission %s returned as a mission from cf_get_filelist\n");
-	} else	{
+	try {
 		read_file_text(filename, CF_TYPE_MISSIONS);
 		reset_parse();
 		if ( skip_to_string("$Name:") != 1 ) {
@@ -4069,7 +4063,10 @@ int mission_parse_is_multi(const char *filename, char *mission_name)
 			return 0;
 		}
 		stuff_int(&game_type);
+	} catch (parse_error_t) {
+		Error(LOCATION, "Bogus!  Trying to get multi game type on mission %s returned as a mission from cf_get_filelist\n", filename);
 	}
+
 	if ( game_type & MISSION_TYPE_MULTI ){
 		// close localization
 		lcl_ext_close();

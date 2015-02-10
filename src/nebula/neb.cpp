@@ -313,32 +313,36 @@ void neb2_init()
 #ifndef MAKE_FS1
 	char name[255] = "";
 
-	// read in the nebula.tbl
-	read_file_text("nebula.tbl");
-	reset_parse();
+	try {
+		// read in the nebula.tbl
+		read_file_text("nebula.tbl");
+		reset_parse();
 
-	// background bitmaps
-	Neb2_bitmap_count = 0;
-	while(!optional_string("#end")){
-		// nebula
-		required_string("+Nebula:");
-		stuff_string(name, F_NAME, NULL);
+		// background bitmaps
+		Neb2_bitmap_count = 0;
+		while(!optional_string("#end")){
+			// nebula
+			required_string("+Nebula:");
+			stuff_string(name, F_NAME, NULL);
 
-		if(Neb2_bitmap_count < MAX_NEB2_BITMAPS){
-			SDL_strlcpy(Neb2_bitmap_filenames[Neb2_bitmap_count++], name, sizeof(Neb2_bitmap_filenames[0]));
+			if(Neb2_bitmap_count < MAX_NEB2_BITMAPS){
+				SDL_strlcpy(Neb2_bitmap_filenames[Neb2_bitmap_count++], name, sizeof(Neb2_bitmap_filenames[0]));
+			}
 		}
-	}
 
-	// poofs
-	Neb2_poof_count = 0;
-	while(!optional_string("#end")){
-		// nebula
-		required_string("+Poof:");
-		stuff_string(name, F_NAME, NULL);
+		// poofs
+		Neb2_poof_count = 0;
+		while(!optional_string("#end")){
+			// nebula
+			required_string("+Poof:");
+			stuff_string(name, F_NAME, NULL);
 
-		if(Neb2_poof_count < MAX_NEB2_POOFS){
-			SDL_strlcpy(Neb2_poof_filenames[Neb2_poof_count++], name, sizeof(Neb2_poof_filenames[0]));
+			if(Neb2_poof_count < MAX_NEB2_POOFS){
+				SDL_strlcpy(Neb2_poof_filenames[Neb2_poof_count++], name, sizeof(Neb2_poof_filenames[0]));
+			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse nebula.tbl!  Code = %i.\n", (int)rval);
 	}
 
 	// should always have 6 neb poofs

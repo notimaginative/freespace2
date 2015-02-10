@@ -106,7 +106,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <setjmp.h>
 #include <string.h>
 
 #include "pstypes.h"
@@ -333,7 +332,6 @@ void scanner_start_command( const char * s )
 
 
 int Dc_debug_on = 0;
-jmp_buf dc_bad_arg;
 
 void dc_get_arg(uint type)
 {
@@ -428,7 +426,8 @@ void dc_get_arg(uint type)
 			dc_printf( "Error: Not enough parameters.\n" );
 		else
 			dc_printf( "Error: '%s' invalid type\n", Dc_arg );
-		longjmp(dc_bad_arg,1);
+
+		throw (int)1;
 	}
 
 }
@@ -447,85 +446,85 @@ void debug_do_command(const char * command)
 	Dc_command_line = command;
 	scanner_start_command(command);
 
-	if (setjmp(dc_bad_arg) )	{
-		return;
-	}
-	
-	dc_get_arg( ARG_ANY );
-
-	if ( !strcmp( Dc_arg, "debug" ) )	{
-		Dc_debug_on = 1;
-		dc_printf( "Command line: '%s'\n", Dc_command_line );
-		dc_get_arg( ARG_ANY );
-	}
-
-	if ( !strcmp( Dc_arg, "?" ) )	{
-		mode = 1;
+	try {
 		dc_get_arg( ARG_ANY );
 
-		if ( Dc_arg_type&ARG_NONE )	{
-			debug_help();		
-			return;
+		if ( !strcmp( Dc_arg, "debug" ) )	{
+			Dc_debug_on = 1;
+			dc_printf( "Command line: '%s'\n", Dc_command_line );
+			dc_get_arg( ARG_ANY );
 		}
-	}
 
-	if ( !strcmp( Dc_arg, "help" ) || !strcmp( Dc_arg, "man" ) )	{
-		mode = 2;
-		dc_get_arg( ARG_ANY );
-		if ( Dc_arg_type&ARG_NONE )	{
-			debug_help();		
-			return;
-		}
-	}
+		if ( !strcmp( Dc_arg, "?" ) )	{
+			mode = 1;
+			dc_get_arg( ARG_ANY );
 
-	if ( strstr( Dc_command_line, "?" ) )	{
-		mode = 2;
-	}
-
-	if ( !(Dc_arg_type&ARG_STRING) )	{
-		dc_printf( "Invalid keyword '%s'\n", Dc_arg );
-		return;
-	}
-
-
-	if (Dc_debug_on)	{
-		dc_printf( "Searching for command '%s'\n", Dc_arg );
-	}
-
-	for (i=0; i<Num_debug_commands; i++ )	{
-		if ( !SDL_strcasecmp( Debug_command[i]->name, Dc_arg ))	{
-		
-			if (mode==0)	{
-				if (Dc_debug_on)	
-					dc_printf( "Calling function '%s'\n", Dc_arg );
-				Dc_command = 1;
-				Dc_help = 0;
-				Dc_status = 1;
-			} else if (mode==1) {
-				if (Dc_debug_on)	
-					dc_printf( "Checking status for '%s'\n", Dc_arg );
-				Dc_command = 0;
-				Dc_help = 0;
-				Dc_status = 1;
-			} else {
-				if (Dc_debug_on)	
-					dc_printf( "Doing help for '%s'\n", Dc_arg );
-				Dc_command = 0;
-				Dc_help = 1;
-				Dc_status = 0;
+			if ( Dc_arg_type&ARG_NONE )	{
+				debug_help();
+				return;
 			}
+		}
 
-			(*Debug_command[i]->func)();
+		if ( !strcmp( Dc_arg, "help" ) || !strcmp( Dc_arg, "man" ) )	{
+			mode = 2;
+			dc_get_arg( ARG_ANY );
+			if ( Dc_arg_type&ARG_NONE )	{
+				debug_help();
+				return;
+			}
+		}
 
-			if (mode==0)	{
-				dc_get_arg(ARG_ANY);
-				if (!(Dc_arg_type&ARG_NONE))	{
-					dc_printf( "Ignoring the unused command line tail '%s %s'\n", Dc_arg_org, Dc_command_line );
+		if ( strstr( Dc_command_line, "?" ) )	{
+			mode = 2;
+		}
+
+		if ( !(Dc_arg_type&ARG_STRING) )	{
+			dc_printf( "Invalid keyword '%s'\n", Dc_arg );
+			return;
+		}
+
+
+		if (Dc_debug_on)	{
+			dc_printf( "Searching for command '%s'\n", Dc_arg );
+		}
+
+		for (i=0; i<Num_debug_commands; i++ )	{
+			if ( !SDL_strcasecmp( Debug_command[i]->name, Dc_arg ))	{
+
+				if (mode==0)	{
+					if (Dc_debug_on)
+						dc_printf( "Calling function '%s'\n", Dc_arg );
+					Dc_command = 1;
+					Dc_help = 0;
+					Dc_status = 1;
+				} else if (mode==1) {
+					if (Dc_debug_on)
+						dc_printf( "Checking status for '%s'\n", Dc_arg );
+					Dc_command = 0;
+					Dc_help = 0;
+					Dc_status = 1;
+				} else {
+					if (Dc_debug_on)
+						dc_printf( "Doing help for '%s'\n", Dc_arg );
+					Dc_command = 0;
+					Dc_help = 1;
+					Dc_status = 0;
 				}
-			}
 
-			return;
+				(*Debug_command[i]->func)();
+
+				if (mode==0)	{
+					dc_get_arg(ARG_ANY);
+					if (!(Dc_arg_type&ARG_NONE))	{
+						dc_printf( "Ignoring the unused command line tail '%s %s'\n", Dc_arg_org, Dc_command_line );
+					}
+				}
+
+				return;
+			}
 		}
+	} catch (int) {
+		return;
 	}
 
 	dc_printf( "Unknown command '%s'\n", Dc_arg );

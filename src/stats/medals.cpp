@@ -439,69 +439,70 @@ int Init_flags;
 
 void parse_medal_tbl()
 {
-	int rval, num_medals, i, bi;
-
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Error parsing 'medals.tbl'\r\nError code = %i.\r\n", rval);
-	} 
+	int num_medals = 0, i, bi;
 
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("medals.tbl");
+	try {
+		read_file_text("medals.tbl");
 
-	reset_parse();
+		reset_parse();
 
-	// parse in all the rank names
-	num_medals = 0;
-	bi = 0;
-	required_string("#Medals");
-	while ( required_string_either("#End", "$Name:") ) {
-		SDL_assert ( num_medals < NUM_MEDALS);
-		required_string("$Name:");
-		stuff_string( Medals[num_medals].name, F_NAME, NULL );
-		required_string("$Bitmap:");
-		stuff_string( Medals[num_medals].bitmap, F_NAME, NULL );
-		required_string("$Num mods:");
-		stuff_int( &Medals[num_medals].num_versions);
+		// parse in all the rank names
+		num_medals = 0;
+		bi = 0;
+		required_string("#Medals");
+		while ( required_string_either("#End", "$Name:") ) {
+			SDL_assert ( num_medals < NUM_MEDALS);
+			required_string("$Name:");
+			stuff_string( Medals[num_medals].name, F_NAME, NULL );
+			required_string("$Bitmap:");
+			stuff_string( Medals[num_medals].bitmap, F_NAME, NULL );
+			required_string("$Num mods:");
+			stuff_int( &Medals[num_medals].num_versions);
 
-		// some medals are based on kill counts.  When string +Num Kills: is present, we know that
-		// this medal is a badge and should be treated specially
-		Medals[num_medals].kills_needed = 0;
-		if ( optional_string("+Num Kills:") ) {
-			char buf[MULTITEXT_LENGTH + 1];
+			// some medals are based on kill counts.  When string +Num Kills: is present, we know that
+			// this medal is a badge and should be treated specially
+			Medals[num_medals].kills_needed = 0;
+			if ( optional_string("+Num Kills:") ) {
+				char buf[MULTITEXT_LENGTH + 1];
 
-			SDL_assert( bi < MAX_BADGES );
-			stuff_int( &Medals[num_medals].kills_needed );
-			Badge_index[bi] = num_medals;
-#ifdef MAKE_FS1
-			required_string("$Wavefile 1:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-			required_string("$Wavefile 2:");
-			stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
-#elif FS2_DEMO
-#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
-			required_string("$Wavefile 1:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-			required_string("$Wavefile 2:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-			//stuff_string(Badge_info[bi].wave2, F_NAME, NULL, MAX_FILENAME_LEN);
-#else
-			required_string("$Wavefile Base:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-#endif			
+				SDL_assert( bi < MAX_BADGES );
+				stuff_int( &Medals[num_medals].kills_needed );
+				Badge_index[bi] = num_medals;
+	#ifdef MAKE_FS1
+				required_string("$Wavefile 1:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+				required_string("$Wavefile 2:");
+				stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
+	#elif FS2_DEMO
+	#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
+				required_string("$Wavefile 1:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+				required_string("$Wavefile 2:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+				//stuff_string(Badge_info[bi].wave2, F_NAME, NULL, MAX_FILENAME_LEN);
+	#else
+				required_string("$Wavefile Base:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+	#endif
 
-			required_string("$Promotion Text:");
-			stuff_string(buf, F_MULTITEXT, NULL);
-			Badge_info[bi].promotion_text = strdup(buf);
+				required_string("$Promotion Text:");
+				stuff_string(buf, F_MULTITEXT, NULL);
+				Badge_info[bi].promotion_text = strdup(buf);
 
-			bi++;
+				bi++;
+			}
+
+			num_medals++;
 		}
 
-		num_medals++;
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'medals.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
 
-	required_string("#End");
 	SDL_assert( num_medals == NUM_MEDALS );
 
 	// be sure that the badges kill numbers show up in order

@@ -667,7 +667,6 @@
  */
 
 #include <string.h>
-#include <setjmp.h>
 
 #include "pstypes.h"
 #include "object.h"
@@ -1752,15 +1751,12 @@ DCF_BOOL( show_velocity_dot, ship_show_velocity_dot )
 // structure
 void ship_init()
 {
-	int rval;
-
 	if ( !ships_inited ) {
-		
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Error parsing 'ships.tbl'\r\nError code = %i.\r\n", rval);
-		} else {			
+		try {
 			parse_shiptbl();
 			ships_inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Error parsing 'ships.tbl'\r\nError code = %i.\r\n", (int)rval);
 		}
 
 		ship_iff_init_colors();

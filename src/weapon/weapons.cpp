@@ -516,50 +516,49 @@ extern int compute_num_homing_objects(object *target_objp);
 void parse_weapon_expl_tbl()
 {
 #ifndef MAKE_FS1
-	int	rval, idx;
+	int	idx;
 	char base_filename[256] = "";
 
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse weapon_expl.tbl!  Code = %i.\n", rval);
-	}
-	else {
+	try {
 		read_file_text(NOX("weapon_expl.tbl"));
-		reset_parse();		
-	}
+		reset_parse();
 
-	Num_weapon_expl = 0;
-	required_string("#Start");
-	while (required_string_either("#End","$Name:")) {
-		SDL_assert( Num_weapon_expl < MAX_Weapon_expl_info);
+		Num_weapon_expl = 0;
+		required_string("#Start");
+		while (required_string_either("#End","$Name:")) {
+			SDL_assert( Num_weapon_expl < MAX_Weapon_expl_info);
 
-		// base filename
-		required_string("$Name:");
-		stuff_string(base_filename, F_NAME, NULL);
+			// base filename
+			required_string("$Name:");
+			stuff_string(base_filename, F_NAME, NULL);
 
-		// # of lod levels - make sure old fireball.tbl is compatible
-		Weapon_expl_info[Num_weapon_expl].lod_count = 1;
-		if(optional_string("$LOD:")){
-			stuff_int(&Weapon_expl_info[Num_weapon_expl].lod_count);
-		}
-
-		// stuff default filename
-		SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename, MAX_FILENAME_LEN);
-
-		// stuff LOD level filenames
-		for(idx=1; idx<Weapon_expl_info[Num_weapon_expl].lod_count; idx++){
-			if(idx >= MAX_weapon_expl_lod){
-				break;
+			// # of lod levels - make sure old fireball.tbl is compatible
+			Weapon_expl_info[Num_weapon_expl].lod_count = 1;
+			if(optional_string("$LOD:")){
+				stuff_int(&Weapon_expl_info[Num_weapon_expl].lod_count);
 			}
 
-			SDL_snprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
-		}
+			// stuff default filename
+			SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename, MAX_FILENAME_LEN);
 
-		Num_weapon_expl++;
+			// stuff LOD level filenames
+			for(idx=1; idx<Weapon_expl_info[Num_weapon_expl].lod_count; idx++){
+				if(idx >= MAX_weapon_expl_lod){
+					break;
+				}
+
+				SDL_snprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
+			}
+
+			Num_weapon_expl++;
+		}
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse weapon_expl.tbl!  Code = %i.\n", (int)rval);
 	}
-	required_string("#End");
 
 	// close localization
 	lcl_ext_close();
@@ -1534,20 +1533,18 @@ void create_weapon_names()
 // This will get called once at game startup
 void weapon_init()
 {
-	int rval;
-
 	if ( !Weapons_inited ) {
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		// parse weapon_exp.tbl
 		parse_weapon_expl_tbl();
 #endif
 		// parse weapons.tbl
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Error parsing 'weapons.tbl'\r\nError code = %i.\r\n", rval);
-		} else {			
+		try {
 			parse_weaponstbl();
 			create_weapon_names();
 			Weapons_inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Error parsing 'weapons.tbl'\r\nError code = %i.\r\n", (int)rval);
 		}
 	}
 

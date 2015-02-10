@@ -1108,12 +1108,10 @@ void ai_init()
 {
 	if ( !ai_inited )	{
 		// Do the first time initialization stuff here
-		int	rval;
-
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Error parsing 'ai.tbl'\r\nError code = %i.\r\n", rval);
-		} else {			
+		try {
 			parse_aitbl();			
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Error parsing 'ai.tbl'\r\nError code = %i.\r\n", (int)rval);
 		}
 
 		ai_inited = 1;

@@ -352,146 +352,150 @@ void nebl_init()
 	storm_type bogus_storm, *s;
 	int temp;
 
-	// parse the lightning table
-	read_file_text("lightning.tbl");
-	reset_parse();
+	try {
+		// parse the lightning table
+		read_file_text("lightning.tbl");
+		reset_parse();
 
-	Num_bolt_types = 0;
-	Num_storm_types = 0;
+		Num_bolt_types = 0;
+		Num_storm_types = 0;
 
-	memset(Bolt_types, 0, sizeof(bolt_type) * MAX_BOLT_TYPES_INTERNAL);
+		memset(Bolt_types, 0, sizeof(bolt_type) * MAX_BOLT_TYPES_INTERNAL);
 
-	// parse the individual lightning bolt types
-	required_string("#Bolts begin");
-	while(!optional_string("#Bolts end")){
-		// get a pointer
-		if(Num_bolt_types >= MAX_BOLT_TYPES){
-			l = &bogus_lightning;
-		} else {
-			l = &Bolt_types[Num_bolt_types];
+		// parse the individual lightning bolt types
+		required_string("#Bolts begin");
+		while(!optional_string("#Bolts end")){
+			// get a pointer
+			if(Num_bolt_types >= MAX_BOLT_TYPES){
+				l = &bogus_lightning;
+			} else {
+				l = &Bolt_types[Num_bolt_types];
+			}
+
+			// bolt title
+			required_string("$Bolt:");
+			stuff_string(l->name, F_NAME, NULL);
+
+			// b_scale
+			required_string("+b_scale:");
+			stuff_float(&l->b_scale);
+
+			// b_shrink
+			required_string("+b_shrink:");
+			stuff_float(&l->b_shrink);
+
+			// b_poly_pct
+			required_string("+b_poly_pct:");
+			stuff_float(&l->b_poly_pct);
+
+			// child rand
+			required_string("+b_rand:");
+			stuff_float(&l->b_rand);
+
+			// z add
+			required_string("+b_add:");
+			stuff_float(&l->b_add);
+
+			// # strikes
+			required_string("+b_strikes:");
+			stuff_int(&l->num_strikes);
+
+			// lifetime
+			required_string("+b_lifetime:");
+			stuff_int(&l->lifetime);
+
+			// noise
+			required_string("+b_noise:");
+			stuff_float(&l->noise);
+
+			// emp effect
+			required_string("+b_emp:");
+			stuff_float(&l->emp_intensity);
+			stuff_float(&l->emp_time);
+
+			// texture
+			required_string("+b_texture:");
+			stuff_string(name, F_NAME, NULL);
+			if((l != &bogus_lightning) && !Fred_running){
+				l->texture = bm_load(name);
+			}
+
+			// glow
+			required_string("+b_glow:");
+			stuff_string(name, F_NAME, NULL);
+			if((l != &bogus_lightning) && !Fred_running){
+				l->glow = bm_load(name);
+			}
+
+			// brightness
+			required_string("+b_bright:");
+			stuff_float(&l->b_bright);
+
+			// increment the # of bolt types
+			if(l != &bogus_lightning){
+				Num_bolt_types++;
+			}
 		}
 
-		// bolt title
-		required_string("$Bolt:");
-		stuff_string(l->name, F_NAME, NULL);
+		// copy the first bolt to the debug bolt
+		memcpy(&Bolt_types[DEBUG_BOLT], &Bolt_types[0], sizeof(bolt_type));
 
-		// b_scale
-		required_string("+b_scale:");
-		stuff_float(&l->b_scale);
+		// parse storm types
+		required_string("#Storms begin");
+		while(!optional_string("#Storms end")){
+			// get a pointer
+			if(Num_storm_types >= MAX_STORM_TYPES){
+				s = &bogus_storm;
+			} else {
+				s = &Storm_types[Num_storm_types];
+			}
 
-		// b_shrink
-		required_string("+b_shrink:");
-		stuff_float(&l->b_shrink);
+			// bolt title
+			required_string("$Storm:");
+			stuff_string(s->name, F_NAME, NULL);
 
-		// b_poly_pct
-		required_string("+b_poly_pct:");
-		stuff_float(&l->b_poly_pct);		
+			// bolt types
+			s->num_bolt_types = 0;
+			while(optional_string("+bolt:")){
+				stuff_string(name, F_NAME, NULL);
 
-		// child rand
-		required_string("+b_rand:");
-		stuff_float(&l->b_rand);
+				// fill this guy in
+				if(s->num_bolt_types < MAX_BOLT_TYPES){
+					s->bolt_types[s->num_bolt_types] = (char)nebl_get_bolt_index(name);
+					SDL_assert(s->bolt_types[s->num_bolt_types] != -1);
 
-		// z add
-		required_string("+b_add:");
-		stuff_float(&l->b_add);
+					s->num_bolt_types++;
+				}
+				// bogus
+				else {
+					required_string("+bolt_prec:");
+					stuff_int(&temp);
+				}
+			}
 
-		// # strikes
-		required_string("+b_strikes:");
-		stuff_int(&l->num_strikes);
+			// flavor
+			required_string("+flavor:");
+			stuff_float(&s->flavor.xyz.x);
+			stuff_float(&s->flavor.xyz.y);
+			stuff_float(&s->flavor.xyz.z);
 
-		// lifetime
-		required_string("+b_lifetime:");
-		stuff_int(&l->lifetime);
+			// frequencies
+			required_string("+random_freq:");
+			stuff_int(&s->min);
+			stuff_int(&s->max);
 
-		// noise
-		required_string("+b_noise:");
-		stuff_float(&l->noise);
+			// counts
+			required_string("+random_count:");
+			stuff_int(&s->min_count);
+			stuff_int(&s->max_count);
 
-		// emp effect
-		required_string("+b_emp:");
-		stuff_float(&l->emp_intensity);
-		stuff_float(&l->emp_time);
-
-		// texture
-		required_string("+b_texture:");
-		stuff_string(name, F_NAME, NULL);
-		if((l != &bogus_lightning) && !Fred_running){
-			l->texture = bm_load(name);
+			// increment the # of bolt types
+			if(s != &bogus_storm){
+				Num_storm_types++;
+			}
 		}
-
-		// glow
-		required_string("+b_glow:");
-		stuff_string(name, F_NAME, NULL);
-		if((l != &bogus_lightning) && !Fred_running){
-			l->glow = bm_load(name);
-		}
-
-		// brightness
-		required_string("+b_bright:");
-		stuff_float(&l->b_bright);
-
-		// increment the # of bolt types
-		if(l != &bogus_lightning){
-			Num_bolt_types++;
-		}
-	}
-
-	// copy the first bolt to the debug bolt
-	memcpy(&Bolt_types[DEBUG_BOLT], &Bolt_types[0], sizeof(bolt_type));
-
-	// parse storm types
-	required_string("#Storms begin");
-	while(!optional_string("#Storms end")){
-		// get a pointer
-		if(Num_storm_types >= MAX_STORM_TYPES){
-			s = &bogus_storm;
-		} else {
-			s = &Storm_types[Num_storm_types];
-		}
-
-		// bolt title
-		required_string("$Storm:");
-		stuff_string(s->name, F_NAME, NULL);
-
-		// bolt types
-		s->num_bolt_types = 0;
-		while(optional_string("+bolt:")){			
-			stuff_string(name, F_NAME, NULL);			
-
-			// fill this guy in
-			if(s->num_bolt_types < MAX_BOLT_TYPES){
-				s->bolt_types[s->num_bolt_types] = (char)nebl_get_bolt_index(name);
-				SDL_assert(s->bolt_types[s->num_bolt_types] != -1);								
-
-				s->num_bolt_types++;
-			} 
-			// bogus 
-			else {
-				required_string("+bolt_prec:");
-				stuff_int(&temp);
-			}			
-		}
-
-		// flavor
-		required_string("+flavor:");
-		stuff_float(&s->flavor.xyz.x);
-		stuff_float(&s->flavor.xyz.y);
-		stuff_float(&s->flavor.xyz.z);
-
-		// frequencies
-		required_string("+random_freq:");
-		stuff_int(&s->min);
-		stuff_int(&s->max);
-
-		// counts
-		required_string("+random_count:");
-		stuff_int(&s->min_count);
-		stuff_int(&s->max_count);
-
-		// increment the # of bolt types
-		if(s != &bogus_storm){
-			Num_storm_types++;
-		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse lightning.tbl!  Code = %i.\n", (int)rval);
 	}
 #endif
 }

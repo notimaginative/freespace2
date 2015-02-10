@@ -266,19 +266,24 @@ int palman_is_nondarkening(int r,int g, int b)
 void palman_load_pixels()
 {
 #ifndef MAKE_FS1
-	// open pixels.tbl
-	read_file_text("pixels.tbl");
-	reset_parse();
+	try {
+		// open pixels.tbl
+		read_file_text("pixels.tbl");
+		reset_parse();
 
-	// parse pixels	
-	while(!optional_string("#END")){
-		// nondarkening pixel
-		if(required_string("+ND")){
-			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][0]);
-			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][1]);
-			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default++][2]);
+		// parse pixels
+		while(!optional_string("#END")){
+			// nondarkening pixel
+			if(required_string("+ND")){
+				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][0]);
+				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][1]);
+				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default++][2]);
+			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse pixels.tbl!  Code = %i.\n", (int)rval);
 	}
+
 #else
 	// hard-coded FS1 values
 	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 255;

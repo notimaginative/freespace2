@@ -1992,31 +1992,30 @@ void hud_config_color_save(const char *name)
 
 void hud_config_color_load(const char *name)
 {
-	int idx, rval;
+	int idx;
 	char str[1024] = "";
 	char *fname;
 
 	fname = cf_add_ext(name, ".hcf");
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		mprintf(("Error opening hud config file!\n"));
-		return;
-	} else {
+	try {
 		read_file_text(fname);
 		reset_parse();
+
+		// write out all gauges
+		for(idx=0; idx<NUM_HUD_GAUGES; idx++){
+			required_string("+Gauge:");
+			stuff_string(str, F_NAME, NULL, 1023);
+
+			required_string("+RGBA:");
+			stuff_byte(&HUD_config.clr[idx].red);
+			stuff_byte(&HUD_config.clr[idx].green);
+			stuff_byte(&HUD_config.clr[idx].blue);
+			stuff_byte(&HUD_config.clr[idx].alpha);
+		}
+	} catch (parse_error_t) {
+		mprintf(("Error opening hud config file!\n"));
 	}
-
-	// write out all gauges
-	for(idx=0; idx<NUM_HUD_GAUGES; idx++){		
-		required_string("+Gauge:");
-		stuff_string(str, F_NAME, NULL, 1023);
-
-		required_string("+RGBA:");
-		stuff_byte(&HUD_config.clr[idx].red);
-		stuff_byte(&HUD_config.clr[idx].green);
-		stuff_byte(&HUD_config.clr[idx].blue);
-		stuff_byte(&HUD_config.clr[idx].alpha);
-	}	
 }
 
 void hud_config_alpha_slider_up()

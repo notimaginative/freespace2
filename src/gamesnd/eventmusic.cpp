@@ -1089,7 +1089,6 @@ void event_music_parse_musictbl()
 {
 	char fname[MAX_FILENAME_LEN];
 	char line_buf[128];
-	int rval;
 
 	int num_patterns = 0;
 
@@ -1097,13 +1096,10 @@ void event_music_parse_musictbl()
 	Num_soundtracks = 0;		// Global
 	event_music_reset_choices();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse music.tbl!  Code = %i.\n", rval);
+	// open localization
+	lcl_ext_open();
 
-	} else {
-		// open localization
-		lcl_ext_open();
-
+	try {
 		read_file_text("music.tbl");
 		reset_parse();		
 
@@ -1174,10 +1170,12 @@ void event_music_parse_musictbl()
 		}
 
 		required_string("#Menu Music End");
-
-		// close localization
-		lcl_ext_close();
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse music.tbl!  Code = %i.\n", (int)rval);
 	}
+
+	// close localization
+	lcl_ext_close();
 }
 
 // -------------------------------------------------------------------------------------------------

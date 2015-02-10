@@ -1488,60 +1488,59 @@ void debrief_traitor_init()
 	if ( !inited ) {
 		debriefing		*debrief;
 		debrief_stage	*stagep;
-		int rval;
 		int stage_num;
-
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Unable to parse traitor.tbl!  Code = %i.\n", rval);
-		}
-		else {
-			read_file_text("traitor.tbl");
-			reset_parse();		
-		}
 
 		// open localization
 		lcl_ext_open();
 
-		// simplied form of the debriefing stuff.
-		debrief = &Traitor_debriefing;
-		required_string("#Debriefing_info");
+		try {
+			read_file_text("traitor.tbl");
+			reset_parse();		
 
-		required_string("$Num stages:");
-		stuff_int(&debrief->num_stages);
-		SDL_assert(debrief->num_stages == 1);
+			// simplied form of the debriefing stuff.
+			debrief = &Traitor_debriefing;
+			required_string("#Debriefing_info");
 
-		stage_num = 0;
-		stagep = &debrief->stages[stage_num++];
-		required_string("$Formula:");
-		stagep->formula = get_sexp_main();
-		required_string("$multi text");
-		if ( Fred_running )	{
-			stuff_string( stagep->new_text, F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
-		} else {
-			stagep->new_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
-		}
-		required_string("$Voice:");
-		char traitor_voice_file[NAME_LENGTH];
-		stuff_string(traitor_voice_file, F_FILESPEC, NULL);
+			required_string("$Num stages:");
+			stuff_int(&debrief->num_stages);
+			SDL_assert(debrief->num_stages == 1);
+
+			stage_num = 0;
+			stagep = &debrief->stages[stage_num++];
+			required_string("$Formula:");
+			stagep->formula = get_sexp_main();
+			required_string("$multi text");
+			if ( Fred_running )	{
+				stuff_string( stagep->new_text, F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
+			} else {
+				stagep->new_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
+			}
+			required_string("$Voice:");
+			char traitor_voice_file[NAME_LENGTH];
+			stuff_string(traitor_voice_file, F_FILESPEC, NULL);
 
 // DKA 9/13/99 Only 1 traitor msg for FS2
 #ifdef MAKE_FS1
-		if ( Player->on_bastion ) {
-			SDL_strlcpy(stagep->voice, NOX("3_"), sizeof(stagep->voice));
-		} else {
-			SDL_strlcpy(stagep->voice, NOX("1_"), sizeof(stagep->voice));
-		}
+			if ( Player->on_bastion ) {
+				SDL_strlcpy(stagep->voice, NOX("3_"), sizeof(stagep->voice));
+			} else {
+				SDL_strlcpy(stagep->voice, NOX("1_"), sizeof(stagep->voice));
+			}
 #endif
 
-		SDL_strlcat(stagep->voice, traitor_voice_file, sizeof(stagep->voice));
+			SDL_strlcat(stagep->voice, traitor_voice_file, sizeof(stagep->voice));
 
-		required_string("$Recommendation text:");
-		if ( Fred_running )	{
-			stuff_string( stagep->new_recommendation_text, F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
-		} else {
-			stagep->new_recommendation_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
+			required_string("$Recommendation text:");
+			if ( Fred_running )	{
+				stuff_string( stagep->new_recommendation_text, F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
+			} else {
+				stagep->new_recommendation_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
+			}
+
+			inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Unable to parse traitor.tbl!  Code = %i.\n", (int)rval);
 		}
-		inited = 1;
 
 		// close localization
 		lcl_ext_close();

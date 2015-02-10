@@ -2020,7 +2020,7 @@ int stuff_sexp_variable_list()
 	// check for start of list
 	if (*Mp != '(') {
 		error_display(1, "Reading sexp variable list.  Found [%c].  Expecting '('.\n", *Mp);
-		longjmp(parse_abort, 6);
+		throw PARSE_ERROR_INT_LIST;
 	}
 
 	Mp++;

@@ -63,7 +63,6 @@ else()
   add_definitions(/W4)
   add_definitions(/wd4100) # unreferenced parameter
   add_definitions(/wd4127) # conditional expression is constant: do { } while (0)
-  add_definitions(/wd4611) # non-portable interaction between setjmp() and C++ object destruction
   add_definitions(/wd4996) # deprecated functions: fopen, fileno, ...
 endif()
 

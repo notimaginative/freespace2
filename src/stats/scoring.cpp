@@ -234,41 +234,41 @@ float Scoring_scale_factors[NUM_SKILL_LEVELS] = {
 void parse_rank_tbl()
 {
 	char buf[MULTITEXT_LENGTH];
-	int rval, idx;
-
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Error parsing 'rank.tbl'\r\nError code = %i.\r\n", rval);
-	} 
+	int idx;
 
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("rank.tbl");
-	reset_parse();
+	try {
+		read_file_text("rank.tbl");
+		reset_parse();
 
-	// parse in all the rank names
-	idx = 0;
-	skip_to_string("[RANK NAMES]");
-	ignore_white_space();
-	while ( required_string_either("#End", "$Name:") ) {
-		SDL_assert ( idx < NUM_RANKS );
-		required_string("$Name:");
-		stuff_string( Ranks[idx].name, F_NAME, NULL );
-		required_string("$Points:");
-		stuff_int( &Ranks[idx].points );
-		required_string("$Bitmap:");
-		stuff_string( Ranks[idx].bitmap, F_NAME, NULL );
-		required_string("$Promotion Voice Base:");
-		stuff_string( Ranks[idx].promotion_voice_base, F_NAME, NULL, MAX_FILENAME_LEN - 2 );
-		required_string("$Promotion Text:");
-		stuff_string(buf, F_MULTITEXT, NULL);
-		drop_white_space(buf);
-		compact_multitext_string(buf);
-		Ranks[idx].promotion_text = strdup(buf);
-		idx++;
+		// parse in all the rank names
+		idx = 0;
+		skip_to_string("[RANK NAMES]");
+		ignore_white_space();
+		while ( required_string_either("#End", "$Name:") ) {
+			SDL_assert ( idx < NUM_RANKS );
+			required_string("$Name:");
+			stuff_string( Ranks[idx].name, F_NAME, NULL );
+			required_string("$Points:");
+			stuff_int( &Ranks[idx].points );
+			required_string("$Bitmap:");
+			stuff_string( Ranks[idx].bitmap, F_NAME, NULL );
+			required_string("$Promotion Voice Base:");
+			stuff_string( Ranks[idx].promotion_voice_base, F_NAME, NULL, MAX_FILENAME_LEN - 2 );
+			required_string("$Promotion Text:");
+			stuff_string(buf, F_MULTITEXT, NULL);
+			drop_white_space(buf);
+			compact_multitext_string(buf);
+			Ranks[idx].promotion_text = strdup(buf);
+			idx++;
+		}
+
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'rank.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
-
-	required_string("#End");
 
 	// be sure that all rank points are in order
 #ifndef NDEBUG

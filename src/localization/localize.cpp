@@ -537,7 +537,7 @@ void lcl_xstr_init()
 	int i;
 	char chr, buf[4096];
 	char language_tag[512];	
-	int z, index, rval;
+	int z, index;
 	char *p_offset = NULL;
 	int offset_lo = 0, offset_hi = 0;
 	int num_offsets_on_this_line = 0;
@@ -546,12 +546,10 @@ void lcl_xstr_init()
 		Xstr_table[i].str = NULL;
 	}
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", rval));
-	} else {
-		// make sure localization is NOT running
-		lcl_ext_close();
+	// make sure localization is NOT running
+	lcl_ext_close();
 
+	try {
 		read_file_text("strings.tbl");
 		reset_parse();
 
@@ -653,6 +651,8 @@ void lcl_xstr_init()
 			offset_hi = 0;
 			num_offsets_on_this_line = 0;
 		}
+	} catch (parse_error_t rval) {
+		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", (int)rval));
 	}
 #else
 	int i;

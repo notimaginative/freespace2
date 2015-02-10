@@ -1535,16 +1535,20 @@ void player_tips_init()
 	// begin external localization stuff
 	lcl_ext_open();
 
-	read_file_text("tips.tbl");
-	reset_parse();
+	try {
+		read_file_text("tips.tbl");
+		reset_parse();
 
-	while(!optional_string("#end")){
-		required_string("+Tip:");
+		while(!optional_string("#end")){
+			required_string("+Tip:");
 
-		if(Num_player_tips >= MAX_PLAYER_TIPS){
-			break;
+			if(Num_player_tips >= MAX_PLAYER_TIPS){
+				break;
+			}
+			Player_tips[Num_player_tips++] = stuff_and_malloc_string(F_NAME, NULL, 1024);
 		}
-		Player_tips[Num_player_tips++] = stuff_and_malloc_string(F_NAME, NULL, 1024);				
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse tips.tbl!  Code = %i.\n", (int)rval);
 	}
 
 	// stop externalizing, homey

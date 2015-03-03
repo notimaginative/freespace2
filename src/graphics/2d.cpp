@@ -483,6 +483,9 @@
 #include "grinternal.h"
 #include "systemvars.h"
 #include "cmdline.h"
+#include "osregistry.h"
+#include "cfile.h"
+#include "cfilesystem.h"
 
 // Includes for different rendering systems
 #include "gropengl.h"
@@ -609,17 +612,93 @@ void gr_set_palette( const char *name, ubyte * palette, int restrict_font_to_128
 	gr_set_palette_internal( name, palette, restrict_font_to_128 );
 }
 
+void gr_set_gamma(float gamma)
+{
+	int i;
+
+	if ( !Gr_inited ) {
+		return;
+	}
+
+	CAP(gamma, 0.1f, 5.0f);
+
+	Gr_gamma = gamma;
+	Gr_gamma_int = fl2i(gamma * 100.0f);
+
+	// create the gamma lookup table
+	float gamma_1f = 1.0f / gamma;
+
+	for (i = 0; i < 256; i++) {
+		int v = fl2i(pow(i2fl(i)/255.0f, gamma_1f)*255.0f);
+		CAP(v, 0, 255);
+		Gr_gamma_lookup[i] = v;
+	}
+
+	// save new value to cfg file
+	char tmp_gamma_string[10];
+	SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), "%.2f", gamma);
+	os_config_write_string("Video", "Gamma", tmp_gamma_string);
+
+	// call renderer specific functionality, if needed
+	if (gr_screen.gf_set_gamma) {
+		(*gr_screen.gf_set_gamma)(gamma);
+	}
+}
+
+static int gr_get_best_res(int *max_w, int *max_h)
+{
+	if (Fred_running || Pofview_running || Nebedit_running) {
+		(*max_w) = 640;
+		(*max_h) = 480;
+
+		return GR_640;
+	}
+
+	// defaults
+	int res = GR_640;
+	(*max_w) = 640;
+	(*max_h) = 480;
+
+	// quickly bail if we are forcing low-res mode
+	if ( os_config_read_uint("Video", "LowRes", 0) ) {
+		return res;
+	}
+
+#ifndef MAKE_FS1
+	// check to see if we have hi-res art
+	if ( cf_has_packfile("sparky_hi_fs2") ) {
+		// check desktop res to make sure we should use it
+		if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
+			SDL_DisplayMode desk_mode;
+
+			if ( !SDL_GetDesktopDisplayMode(0, &desk_mode) ) {
+				if ( (desk_mode.w >= 1024) && (desk_mode.h >= 768) ) {
+					(*max_w) = 1024;
+					(*max_h) = 768;
+					res = GR_1024;
+				}
+			}
+
+			SDL_QuitSubSystem(SDL_INIT_VIDEO);
+		}
+	}
+#endif
+
+	return res;
+}
 
 //void gr_test();
 
 
 // --------------------------------------------------------------------------
 
-int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
+int gr_init()
 {
+	const char *ptr = NULL;
+	int mode = GR_OPENGL;
+	int res = GR_640;
 	int max_w, max_h;
-	
-//	gr_test();
+
 
 	if ( !Gr_inited )	
 		atexit(gr_close);
@@ -642,34 +721,26 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 
 	Gr_inited = 1;
 
-	max_w = -1;
-	max_h = -1;
-	if(!Fred_running && !Pofview_running){
-		// set resolution based on the res type
-		switch(res){
-		case GR_640:
-			max_w = 640;
-			max_h = 480;
-			break;
+	if (Fred_running || Pofview_running) {
+		mode = GR_WXGL;
+	} else {
+		ptr = os_config_read_string("Video", "Renderer", "OpenGL");
 
-		case GR_1024:
-			max_w = 1024;
-			max_h = 768;
-			break;
-
-		default :
+		if ( !SDL_strcasecmp("OpenGL", ptr) ) {
+			mode = GR_OPENGL;
+		} else {
 			Int3();
-			break;
 		}
-	} else {		
-		max_w = fred_x;
-		max_h = fred_y;
 	}
 
-	// Make w a multiple of 8
-	max_w = ( max_w / 8 )*8;
-	if ( max_w < 8 ) max_w = 8;
-	if ( max_h < 8 ) max_h = 8;
+	max_w = -1;
+	max_h = -1;
+
+	// get best available resolution
+	res = gr_get_best_res(&max_w, &max_h);
+
+	mprintf(("Using %s resolution mode\n", (res == GR_1024) ? "high" : "low" ));
+
 
 	memset( &gr_screen, 0, sizeof(screen) );
 
@@ -707,7 +778,16 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	memmove( Gr_current_palette, Gr_original_palette, 768 );
 	gr_set_palette_internal(Gr_current_palette_name, Gr_current_palette,0);	
 
-	gr_set_gamma(Gr_gamma);
+	// Set the gamma
+	extern float Freespace_gamma;
+
+	ptr = os_config_read_string("Video", "Gamma", "1.8");
+
+	Freespace_gamma = (float)SDL_atof(ptr);
+	CAP(Freespace_gamma, 0.1f, 5.0f);
+
+	gr_set_gamma(Freespace_gamma);
+
 
 	if ( Gr_cursor == -1 ){
 		Gr_cursor = bm_load( "cursor" );

@@ -149,6 +149,8 @@ void opengl1_tcache_init()
 
 	GL_last_section_x = -1;
 	GL_last_section_y = -1;
+
+	memset(GL_xlat, 0, sizeof(GL_xlat));
 }
 
 static int opengl1_free_texture ( tcache_slot_opengl *t )
@@ -837,33 +839,16 @@ int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
 	return retval;
 }
 
-void gr_opengl1_set_gamma(float gamma)
+void gr_opengl1_set_gamma(float)
 {
-	Gr_gamma = gamma;
-	Gr_gamma_int = int (Gr_gamma*10);
-
-	// Create the Gamma lookup table
 	int i;
-	for (i=0;i<256; i++) {
-		int v = fl2i(pow(i2fl(i)/255.0f, 1.0f/Gr_gamma)*255.0f);
-		if ( v > 255 ) {
-			v = 255;
-		} else if ( v < 0 )     {
-			v = 0;
-		}
-		Gr_gamma_lookup[i] = v;
-	}
 
 	// set the alpha gamma settings (for fonts)
-	for (i=0; i<16; i++) {
+	for (i = 0; i < 16; i++) {
 		GL_xlat[i] = (ubyte)Gr_gamma_lookup[(i*255)/15];
 	}
 
 	GL_xlat[15] = GL_xlat[1];
-
-	for (; i<256; i++) {
-		GL_xlat[i] = GL_xlat[0];
-	}
 
 	// Flush any existing textures
 	opengl1_tcache_flush();

@@ -2250,7 +2250,7 @@ DCF(force_fullscreen, "Forces game to startup in fullscreen mode")
 
 int	Framerate_delay = 0;
 
-float Freespace_gamma = 1.0f;
+float Freespace_gamma = 1.8f;
 
 DCF(gamma,"Sets Gamma factor")
 {
@@ -2396,55 +2396,14 @@ void game_init()
 /////////////////////////////
 // SOUND INIT END
 /////////////////////////////
-	
-	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);
-	if (ptr == NULL) {
-		STUB_FUNCTION;	
-		exit(1);
-	}
 
-	// check for hi res pack file 
-	int has_sparky_hi = 0;
-
-	// check if sparky_hi exists -- access mode 0 means does file exist
-#ifndef MAKE_FS1 // shoudn't have it so don't check
-	char sparky_path[MAX_PATH_LEN];
-	SDL_snprintf(sparky_path, sizeof(sparky_path), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, "sparky_hi_fs2.vp");
-
-	if ( access(sparky_path, 0) == 0 ) {
-		has_sparky_hi = 1;
-	} else {
-		mprintf(("No sparky_hi_fs2.vp in directory %s\n", Cfile_root_dir));
-	}
-#endif
-
-	if ( !Is_standalone && ptr && strstr(ptr, NOX("OpenGL")) ) {
-		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
-			gr_init(GR_1024, GR_OPENGL);
-		} else {
-			gr_init(GR_640, GR_OPENGL);
-		}
+	if ( !Is_standalone ) {
+		gr_init();
 	} else {
 		STUB_FUNCTION;
 		Int3();
-		//gr_init(GR_640, GR_OPENGL);
 	}
 
-	// Set the gamma
-	ptr = os_config_read_string(NULL,NOX("Gamma"),NOX("1.80"));
-	Freespace_gamma = (float)atof(ptr);
-	if ( Freespace_gamma == 0.0f ) {
-		Freespace_gamma = 1.80f; 
-	} else if ( Freespace_gamma < 0.1f ) {
-		Freespace_gamma = 0.1f;
-	} else if ( Freespace_gamma > 5.0f ) {
-		Freespace_gamma = 5.0f;
-	}
-	char tmp_gamma_string[32];
-	SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma );
-	os_config_write_string( NULL, NOX("Gamma"), tmp_gamma_string );
-
-	gr_set_gamma(Freespace_gamma);
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 	// add title screen

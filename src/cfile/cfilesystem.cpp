@@ -1401,3 +1401,50 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 		}
 	}
 }
+
+// returns true if packfile has been indexed by CFILE (case-insensitive search)
+bool cf_has_packfile(const char *fn)
+{
+	cf_root *root;
+	char vp_name[CF_MAX_PATHNAME_LENGTH];
+	char *p;
+	int i;
+
+	if (fn == NULL) {
+		return false;
+	}
+
+	if ( !SDL_strlen(fn) || (SDL_strlen(fn) < 4) ) {
+		return false;
+	}
+
+	// add ".vp" if needed
+	SDL_strlcpy(vp_name, fn, CF_MAX_PATHNAME_LENGTH);
+
+	p = &vp_name[SDL_strlen(vp_name)-3];
+
+	if ( SDL_strcasecmp(p, ".vp") ) {
+		SDL_strlcat(vp_name, ".vp", CF_MAX_PATHNAME_LENGTH);
+	}
+
+	// now see if we have the packfile
+	for (i = 0; i < Num_roots; i++) {
+		root = cf_get_root(i);
+
+		if (root->roottype != CF_ROOTTYPE_PACK) {
+			continue;
+		}
+
+		p = SDL_strrchr(root->path, DIR_SEPARATOR_CHAR);
+
+		if (p) {
+			p++;
+
+			if ( !SDL_strcasecmp(p, vp_name) ) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}

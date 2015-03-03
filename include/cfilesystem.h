@@ -79,5 +79,7 @@ extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
 // Output:  path      - Fully qualified pathname.
 void cf_create_default_path_string( char *path, int pathtype, const char *filename=NULL, bool localize = false);
 
+// returns true if packfile has been indexed by CFILE (case-insensitive search)
+bool cf_has_packfile(const char *fn);
 
 #endif	//_CFILESYSTEM_H

@@ -21,6 +21,7 @@ int rtvoice_stream_data(uint, uint, uint )
 }
 
 int Fred_running = 0;
+int Fonttool_running = 0;
 
 
 void demo_set_playback_filter()

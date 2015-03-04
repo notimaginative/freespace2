@@ -741,6 +741,7 @@ int Game_no_clear = 0;
 
 int Pofview_running = 0;
 int Nebedit_running = 0;
+int Fonttool_running = 0;
 
 typedef struct big_expl_flash {
 	float max_flash_intensity;	// max intensity

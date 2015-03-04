@@ -134,6 +134,7 @@ float ViewerZoom = 1.0f;
 int test_model = -1;
 int Fred_running = 0;
 int Pofview_running = 0;
+int Fonttool_running = 0;
 float flFrametime = 0.0f;
 
 int Font1 = -1;

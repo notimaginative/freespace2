@@ -647,7 +647,7 @@ void gr_set_gamma(float gamma)
 
 static int gr_get_best_res(int *max_w, int *max_h)
 {
-	if (Fred_running || Pofview_running || Nebedit_running) {
+	if (Fred_running || Pofview_running || Nebedit_running || Fonttool_running) {
 		(*max_w) = 640;
 		(*max_h) = 480;
 
@@ -846,8 +846,8 @@ void gr_toggle_fullscreen()
 		return;
 	}
 
-	// skip if a tool is running
-	if ( Fred_running || Pofview_running || Nebedit_running ) {
+	// skip if a tool is running (except fonttool)
+	if (Fred_running || Pofview_running || Nebedit_running) {
 		return;
 	}
 

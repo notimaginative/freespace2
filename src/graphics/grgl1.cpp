@@ -105,6 +105,13 @@ void opengl1_cleanup()
 	gr_opengl1_clear();
 	gr_opengl1_flip();
 
+	gr_opengl1_free_screen(0);
+
+	if (Gr_opengl_mouse_saved_data) {
+		free(Gr_opengl_mouse_saved_data);
+		Gr_opengl_mouse_saved_data = NULL;
+	}
+
 	opengl1_tcache_cleanup();
 
 	GL_one_inited = 0;
@@ -766,4 +773,10 @@ void gr_opengl1_set_viewport(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
+
+	// free mouse cursor storage, since the size might have changed
+	if (Gr_opengl_mouse_saved_data) {
+		free(Gr_opengl_mouse_saved_data);
+		Gr_opengl_mouse_saved_data = NULL;
+	}
 }

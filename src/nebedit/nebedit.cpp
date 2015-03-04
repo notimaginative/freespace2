@@ -860,7 +860,7 @@ int main(int argc, char *argv[])
 	cfile_init();
 	os_init( "NebEdit", "NebEdit" );	//SCREEN_W, SCREEN_H );
 	os_set_title("NebEdit");
-	gr_init(GR_640, GR_OPENGL, 16);
+	gr_init();
 	palette_load_table( "gamepalette1-01.pcx" );
 	key_init();
 	mouse_init();

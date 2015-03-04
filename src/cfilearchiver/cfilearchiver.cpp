@@ -280,9 +280,9 @@ void pack_directory(const char * filespec)
 	if ( dirp ) {
 		while ((dir = readdir(dirp)) != NULL) {
 
-			char fn[MAX_PATH];
-			snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
-			fn[MAX_PATH-1] = 0;
+			char fn[MAX_PATH_LEN];
+			snprintf(fn, MAX_PATH_LEN-1, "%s/%s", filespec, dir->d_name);
+			fn[MAX_PATH_LEN-1] = 0;
 			
 			struct stat buf;
 			if (stat(fn, &buf) == -1) {

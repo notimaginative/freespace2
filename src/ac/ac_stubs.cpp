@@ -87,7 +87,7 @@ long	fixdiv(long, long) { return 0; }
 int game_cd_changed() { return 0; }
 int Font1;
 void freespace_menu_background() {}
-int Fred_running;
+int Fred_running = 0;
 int Pofview_running = 0;
 char *Game_CDROM_dir;
 void game_stop_looped_sounds() {}
@@ -125,7 +125,7 @@ int Show_target_weapons;
 int Show_target_debug_info;
 int Game_subspace_effect;
 void game_load_palette(){}
-void game_format_time(int, char*){}
+void game_format_time(int, char*, int){}
 int game_get_default_skill_level(){return 0;}
 float Freespace_gamma;
 void get_version_string(char*, const int){}
@@ -142,7 +142,7 @@ void game_shudder_apply(int, float){}
 int game_hacked_data() {return 0;}
 int game_single_step;
 int last_single_step;
-int Nebedit_running;
+int Nebedit_running = 0;
 void game_tst_mark(struct object*, struct ship*){}
 int game_do_cd_mission_check(char*){return 0;}
 time_t Player_multi_died_check;

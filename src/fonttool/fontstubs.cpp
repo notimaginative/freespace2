@@ -61,7 +61,7 @@ void game_do_state(int){}
 void game_process_event(int, int){}
 char *Game_CDROM_dir;
 void game_stop_looped_sounds(){}
-int Fred_running;
+int Fred_running = 0;
 int Pofview_running = 0;
 int set_cdrom_path(int){return 0;}
 int find_freespace_cd(const char*){return 0;}
@@ -90,7 +90,7 @@ int Show_target_debug_info;
 int Sun_drew;
 int Game_subspace_effect;
 void game_load_palette(){}
-void game_format_time(int, char*){}
+void game_format_time(int, char*, int){}
 float Freespace_gamma;
 void get_version_string(char*, const int){}
 int game_get_default_skill_level(){return 0;}

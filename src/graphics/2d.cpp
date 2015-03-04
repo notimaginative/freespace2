@@ -739,7 +739,7 @@ int gr_init()
 	// get best available resolution
 	res = gr_get_best_res(&max_w, &max_h);
 
-	mprintf(("Using %s resolution mode\n", (res == GR_1024) ? "high" : "low" ));
+	mprintf(("Using %s-res graphics\n", (res == GR_1024) ? "high" : "low" ));
 
 
 	memset( &gr_screen, 0, sizeof(screen) );

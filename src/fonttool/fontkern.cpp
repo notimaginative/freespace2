@@ -378,6 +378,10 @@ void fonttool_edit_kerning(char *fname1)
 		os_poll();
 		k = key_inkey();
 		switch(k)	{		
+		case SDLK_F3:
+			gr_toggle_fullscreen();
+			break;
+
 		case SDLK_F5:
 			fonttool_read( fname1, &tmpfont );
 			fonttool_copy_kern( &tmpfont, &KernFont );

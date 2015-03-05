@@ -548,6 +548,11 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 {
 	int x1, y1, x2, y2;
 
+	if (Gr_saved_screen_tex) {
+		// already saved, don't need it again
+		return;
+	}
+
 	w = fl2i((w * GL_viewport_scale_w) + 0.5f);
 	h = fl2i((h * GL_viewport_scale_h) + 0.5f);
 
@@ -571,27 +576,20 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 	}
 
 	if (Gr_opengl_mouse_saved_data == NULL) {
-		Gr_opengl_mouse_saved_data = (ubyte*)malloc(w * h * gr_screen.bytes_per_pixel);
+		Gr_opengl_mouse_saved_data = (ubyte*)malloc(w * h * 3);
 
 		if ( !Gr_opengl_mouse_saved_data ) {
 			return;
 		}
 	}
 
-	opengl1_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-
 	x1 = GL_viewport_x+Gr_opengl_mouse_saved_x;
 	y1 = (GL_viewport_y+GL_viewport_h)-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
-	GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-
-	if (gr_screen.bytes_per_pixel == 4) {
-		pxtype = GL_UNSIGNED_BYTE;
-	}
-
 	glReadBuffer(GL_BACK);
+
 	glReadPixels(x1, y1, Gr_opengl_mouse_saved_w, Gr_opengl_mouse_saved_h,
-			GL_BGRA, pxtype, Gr_opengl_mouse_saved_data);
+			GL_BGR, GL_UNSIGNED_BYTE, Gr_opengl_mouse_saved_data);
 
 	Gr_opengl_mouse_saved = 1;
 }
@@ -607,12 +605,11 @@ int gr_opengl1_save_screen()
 
 	glGenTextures(1, &Gr_saved_screen_tex);
 
-	if ( !Gr_saved_screen_tex ) {
+	if ( glIsTexture(Gr_saved_screen_tex) == GL_FALSE ) {
 		mprintf(( "Couldn't create texture for saved screen!\n" ));
+		Gr_saved_screen_tex = 0;
 		return -1;
 	}
-
-	opengl1_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
 	glBindTexture(GL_TEXTURE_2D, Gr_saved_screen_tex);
 
@@ -623,6 +620,7 @@ int gr_opengl1_save_screen()
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	glReadBuffer(GL_FRONT);
+
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GL_viewport_x, GL_viewport_y,
 			GL_viewport_w, GL_viewport_h, 0);
 
@@ -630,14 +628,8 @@ int gr_opengl1_save_screen()
 		int x = Gr_opengl_mouse_saved_x;
 		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
-		GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-
-		if (gr_screen.bytes_per_pixel == 4) {
-			pxtype = GL_UNSIGNED_BYTE;
-		}
-
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_BGRA, pxtype,
+				Gr_opengl_mouse_saved_h, GL_BGR, GL_UNSIGNED_BYTE,
 				Gr_opengl_mouse_saved_data);
 	}
 
@@ -646,7 +638,7 @@ int gr_opengl1_save_screen()
 	return 0;
 }
 
-void gr_opengl1_restore_screen(int id)
+void gr_opengl1_restore_screen(int)
 {
 	gr_reset_clip();
 
@@ -655,33 +647,20 @@ void gr_opengl1_restore_screen(int id)
 		return;
 	}
 
+	const float scale_w = 1.0f / GL_viewport_scale_w;
+	const float scale_h = 1.0f / GL_viewport_scale_h;
+
+	const int tex_coord[] = { 0, 1, 0, 0, 1, 1, 1, 0 };	// y-flipped
+	const int ver_coord[] = { GL_viewport_x, GL_viewport_y, GL_viewport_x,
+			(GL_viewport_h * scale_h), (GL_viewport_w * scale_w), GL_viewport_y,
+			(GL_viewport_w * scale_w), (GL_viewport_h * scale_h)
+	};
+
+	glColor4ub(255, 255, 255, 255);
+
 	glBindTexture(GL_TEXTURE_2D, Gr_saved_screen_tex);
 
-	if (Gr_opengl_mouse_saved) {
-		int x = Gr_opengl_mouse_saved_x;
-		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
-
-		GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-
-		if (gr_screen.bytes_per_pixel == 4) {
-			pxtype = GL_UNSIGNED_BYTE;
-		}
-
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_BGRA, pxtype,
-				Gr_opengl_mouse_saved_data);
-	}
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-	glScalef(1.0f, -1.0f, 1.0f);
-
-	int tex_coord[] = { 0, 0, 0, 1, 1, 0, 1, 1 };
-	int ver_coord[] = { GL_viewport_x, GL_viewport_y, GL_viewport_x,
-			GL_viewport_h, GL_viewport_w, GL_viewport_y, GL_viewport_w,
-			GL_viewport_h
-	};
+	opengl1_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -694,12 +673,10 @@ void gr_opengl1_restore_screen(int id)
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	glPopMatrix();
-
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void gr_opengl1_free_screen(int id)
+void gr_opengl1_free_screen(int)
 {
 	if (Gr_saved_screen_tex) {
 		glDeleteTextures(1, &Gr_saved_screen_tex);

@@ -23,11 +23,11 @@ const char *Osreg_title = "FreeSpace Demo";
 #elif defined(FS2_DEMO)
 const char *Osreg_app_name = "FreeSpace2Demo";
 const char *Osreg_title = "Freespace 2 Demo";
-#define PROFILE_NAME "FreeSpace2Demo.ini"
+#define PROFILE_NAME "Freespace2Demo.ini"
 #elif defined(OEM_BUILD)
 const char *Osreg_app_name = "FreeSpace2OEM";
 const char *Osreg_title = "Freespace 2 OEM";
-#define PROFILE_NAME "FreeSpace2OEM.ini"
+#define PROFILE_NAME "Freespace2OEM.ini"
 #elif defined(MAKE_FS1)
 const char *Osreg_app_name = "FreeSpace";
 const char *Osreg_title = "FreeSpace";
@@ -35,7 +35,7 @@ const char *Osreg_title = "FreeSpace";
 #else
 const char *Osreg_app_name = "FreeSpace2";
 const char *Osreg_title = "Freespace 2";
-#define PROFILE_NAME "FreeSpace2.ini"
+#define PROFILE_NAME "Freespace2.ini"
 #endif
 
 #define DEFAULT_SECTION "Default"
@@ -442,4 +442,47 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 	p = profile_update(p, section, name, buf);
 	profile_save(p, PROFILE_NAME);
 	profile_free(p);
+}
+
+// set default config options
+// NOTE: this will * RESET CURRENT OPTIONS TO THEIR DEFAULTS *
+void os_init_registry_stuff()
+{
+	// 'Default' section
+	os_config_write_string(NULL, "Language", "English" /* DEFAULT_LANGUAGE */);
+	os_config_write_string(NULL, "LastPlayer", "");
+	os_config_write_uint(NULL, "ComputerSpeed", 2);
+	os_config_write_string(NULL, "ExtrasPath", "");
+	os_config_write_uint(NULL, "LowMem", 0);
+
+	// 'Video' section
+	os_config_write_string("Video", "Renderer", "OpenGL");
+	os_config_write_uint("Video", "AntiAlias", 0);
+	os_config_write_uint("Video", "Fullscreen", 1);
+	os_config_write_string("Video", "Gamma", "1.8");
+	os_config_write_uint("Video", "ShowFPS", 0);
+	os_config_write_uint("Video", "LowRes", 0);
+	os_config_write_uint("Video", "PreloadTextures", 1);
+	os_config_write_uint("Video", "ScaleMovies", 1);
+
+	// 'Audio' section
+	os_config_write_string("Audio", "CaptureDevice", "");
+	os_config_write_string("Audio", "PlaybackDevice", "");
+	os_config_write_uint("Audio", "EFX", 0);
+
+	// 'Controls' section
+	os_config_write_string("Controls", "CurrentJoystick", "");
+	os_config_write_uint("Controls", "EnableJoystickFF", 1);
+	os_config_write_uint("Controls", "EnableHitEffect", 1);
+
+	// 'Network' section
+	os_config_write_string("Network", "NetworkConnection", "LAN");
+	os_config_write_string("Network", "ConnectionSpeed", "Fast");
+	os_config_write_uint("Network", "ForcePort", 0);
+	os_config_write_uint("Network", "SkipVerify", 0);
+
+	// 'PXO' section
+	os_config_write_string("PXO", "Login", "");
+	os_config_write_string("PXO", "Password", "");
+	os_config_write_string("PXO", "SquadName", "");
 }

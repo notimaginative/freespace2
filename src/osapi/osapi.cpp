@@ -195,9 +195,7 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 	// do some first-run stuff if needed
 	if ( os_config_read_uint(NULL, NOX("StraightToSetup"), 1) == 1 ) {
 		// set some sane config defaults
-		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
-		os_config_write_string(NULL, NOX("NetworkConnection"), NOX("lan"));
-		os_config_write_string(NULL, NOX("ConnectionSpeed"), NOX("Slow"));
+		os_init_registry_stuff();
 
 		// in case an installer didn't do it, populate directory structure to
 		// make sure everything is usable

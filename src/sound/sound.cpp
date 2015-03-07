@@ -395,7 +395,7 @@ void snd_clear()
 // returns:     1		=> init success
 //              0		=> init failed
 //
-int snd_init(int use_eax)
+int snd_init()
 {
 	int rval = 0;
 
@@ -410,7 +410,7 @@ int snd_init(int use_eax)
 	snd_clear();
 
 	// Init OpenAL
-	rval = oal_init(use_eax);
+	rval = oal_init();
 
 	if (rval < 0) {
 		nprintf(( "Sound", "SOUND => Direct Sound init unsuccessful, continuing without sound.\n" ));

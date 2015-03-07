@@ -69,7 +69,7 @@ typedef struct sound_info {
 } sound_info;
 
 
-int oal_init(int use_eax);
+int oal_init();
 void oal_close();
 
 int oal_is_initted();

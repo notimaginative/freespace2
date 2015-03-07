@@ -8,13 +8,16 @@
 
 #include <vector>
 #include <list>
+#include <string>
 
 #include "pstypes.h"
 #include "oal.h"
 #include "oal_efx.h"
+#include "oal_capture.h"
 #include "cfile.h"
 #include "sound.h"
 #include "acm.h"
+#include "osregistry.h"
 
 
 static int OAL_inited = 0;
@@ -86,31 +89,53 @@ static void oal_init_channels()
 	}
 }
 
-int oal_init(int use_eax)
+int oal_init()
 {
 	ALint ver_major = 0, ver_minor = 0;
+	std::string PlaybackDevice;
+	const char *ptr = NULL;
 
 	if (OAL_inited) {
 		return 0;
 	}
 
-	nprintf(( "Sound", "SOUND ==> Initializing OpenAL...\n" ));
+	mprintf(("Initializing OpenAL audio device...\n"));
 
 	alcGetIntegerv(NULL, ALC_MAJOR_VERSION, 1, &ver_major);
 	alcGetIntegerv(NULL, ALC_MINOR_VERSION, 1, &ver_minor);
 
 	if ( (ver_major < 1) || (ver_minor < 1) ) {
-		nprintf(("Sound", "SOUND ==> Minimum supported OpenAL version is 1.1\n"));
+		Warning(LOCATION, "Minimum supported OpenAL version is 1.1!");
 		return -1;
 	}
 
-	al_device = alcOpenDevice(NULL);
+	ptr = os_config_read_string("Audio", "PlaybackDevice", "default");
+
+	if ( ptr && !SDL_strcasecmp(ptr, "default") ) {
+		ptr = NULL;
+	}
+
+	al_device = alcOpenDevice(ptr);
 
 	if (al_device == NULL) {
-		nprintf(("Sound", "SOUND ==> Unable to open device!\n"));
-		nprintf(("Sound", "SOUND ==>    %s", alcGetString(al_device, alcGetError(al_device))));
-		return -1;
+		al_device = alcOpenDevice(NULL);
+
+		if (al_device == NULL) {
+			nprintf(("Sound", "SOUND ==> Unable to open device!\n"));
+			nprintf(("Sound", "SOUND ==>    %s", alcGetString(al_device, alcGetError(al_device))));
+			return -1;
+		}
 	}
+
+	if ( alcIsExtensionPresent(al_device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE ) {
+		ptr = alcGetString(al_device, ALC_ALL_DEVICES_SPECIFIER);
+	} else {
+		ptr = alcGetString(al_device, ALC_DEVICE_SPECIFIER);
+	}
+
+	SDL_assert( ptr );
+
+	PlaybackDevice = ptr;
 
 	al_context = alcCreateContext(al_device, NULL);
 
@@ -132,9 +157,27 @@ int oal_init(int use_eax)
 
 	Buffers.reserve(64);
 
-	if (use_eax) {
-		oal_efx_init();
+	mprintf(("  Vendor   : %s\n", alGetString(AL_VENDOR)));
+	mprintf(("  Renderer : %s\n", alGetString(AL_RENDERER)));
+	mprintf(("  Version  : %s\n", alGetString(AL_VERSION)));
+
+	if ( os_config_read_uint("Audio", "EFX", 0) ) {
+		if (oal_efx_init() < 0) {
+			mprintf(("  EFX      : Not Supported\n"));
+		} else {
+			mprintf(("  EFX      : Enabled\n"));
+		}
+	} else {
+		mprintf(("  EFX      : Disabled\n"));
 	}
+
+	mprintf(("  Channels : %d\n", Channels.size()));
+	mprintf(("  Playback device : %s\n", PlaybackDevice.c_str()));
+
+	oal_capture_init();
+
+	mprintf(("\n"));
+
 
 	oal_check_for_errors("oal_init() end");
 

@@ -2269,8 +2269,6 @@ DCF(gamma,"Sets Gamma factor")
 
 void game_init()
 {
-	const char *ptr;
-
 	Game_current_mission_filename[0] = 0;
 
 	// seed the random number generator
@@ -2378,34 +2376,6 @@ void game_init()
 		display_title_screen();
 	}
 #endif
-	
-	// attempt to load up master tracker registry info (login and password)
-	Multi_tracker_id = -1;		
-
-	// pxo login and password
-	ptr = os_config_read_string(NOX("PXO"),NOX("Login"),NULL);
-	if(ptr == NULL){
-		nprintf(("Network","Error reading in PXO login data\n"));
-		SDL_strlcpy(Multi_tracker_login, "", sizeof(Multi_tracker_login));
-	} else {		
-		SDL_strlcpy(Multi_tracker_login, ptr, sizeof(Multi_tracker_login));
-	}
-	ptr = os_config_read_string(NOX("PXO"),NOX("Password"),NULL);
-	if(ptr == NULL){		
-		nprintf(("Network","Error reading PXO password\n"));
-		SDL_strlcpy(Multi_tracker_passwd, "", sizeof(Multi_tracker_passwd));
-	} else {		
-		SDL_strlcpy(Multi_tracker_passwd, ptr, sizeof(Multi_tracker_passwd));
-	}	
-
-	// pxo squad name and password
-	ptr = os_config_read_string(NOX("PXO"),NOX("SquadName"),NULL);
-	if(ptr == NULL){
-		nprintf(("Network","Error reading in PXO squad name\n"));
-		SDL_strlcpy(Multi_tracker_squad_name, "", sizeof(Multi_tracker_squad_name));
-	} else {		
-		SDL_strlcpy(Multi_tracker_squad_name, ptr, sizeof(Multi_tracker_squad_name));
-	}
 
 	// If less than 48MB of RAM, use low memory model.
 	if ( (Freespace_total_ram < 48) || Use_low_mem )	{

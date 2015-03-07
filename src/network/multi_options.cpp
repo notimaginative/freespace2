@@ -247,7 +247,7 @@ void multi_options_read_config()
 	Multi_options_g.protocol = NET_TCP;	
 
 	// do we have a forced port via commandline or registry?
-	ushort forced_port = (ushort)os_config_read_uint(NULL, "ForcePort", 0);	
+	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
 	Multi_options_g.port = (Cmdline_network_port >= 0) ? (ushort)Cmdline_network_port : forced_port == 0 ? (ushort)DEFAULT_GAME_PORT : forced_port;
 
 	Multi_options_g.log = (Cmdline_multi_log) ? 1 : 0;

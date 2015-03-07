@@ -661,7 +661,9 @@ void psnet_init( int protocol, int port_num )
 		return;
 	}
 
-	internet_connection = os_config_read_string(NULL, "NetworkConnection", "none");
+	// 'lan' should be a safe default in 2015
+	internet_connection = os_config_read_string("Network", "NetworkConnection", "LAN");
+
 	if ( !SDL_strcasecmp(internet_connection, NOX("dialup")) ) {
 		ml_string("psnet_init() detected dialup connection");
 

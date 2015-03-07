@@ -90,9 +90,7 @@ void opengl1_tcache_init()
 {
 	int i, idx, s_idx;
 
-	uint tmp_pl = os_config_read_uint( NULL, NOX("PreloadTextures"), 1 );
-
-	if (tmp_pl == 1) {
+	if ( os_config_read_uint("Video", "PreloadTextures", 1) ) {
 		GL_should_preload = 1;
 	} else {
 		GL_should_preload = 0;

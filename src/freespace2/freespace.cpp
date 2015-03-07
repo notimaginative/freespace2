@@ -775,9 +775,6 @@ int Warpout_sound = -1;
 void camera_move();
 int Use_joy_mouse = 0;
 int Use_palette_flash = 1;
-#ifndef NDEBUG
-int Use_fullscreen_at_startup = 0;
-#endif
 int Show_area_effect = 0;
 object	*Last_view_target = NULL;
 
@@ -2233,22 +2230,6 @@ DCF(low_mem,"Uses low memory settings regardless of RAM")
 }
 
 
-#ifndef NDEBUG
-
-DCF(force_fullscreen, "Forces game to startup in fullscreen mode")
-{
-	if ( Dc_command )	{	
-		dc_get_arg(ARG_TRUE|ARG_FALSE|ARG_NONE);		
-		if ( Dc_arg_type & ARG_TRUE )	Use_fullscreen_at_startup = 1;	
-		else if ( Dc_arg_type & ARG_FALSE ) Use_fullscreen_at_startup = 0;	
-		else if ( Dc_arg_type & ARG_NONE ) Use_fullscreen_at_startup ^= 1;	
-	}	
-	if ( Dc_help )	dc_printf( "Usage: force_fullscreen [bool]\nSets force_fullscreen to true or false.  If nothing passed, then toggles it.\n" );	
-	if ( Dc_status )	dc_printf( "force_fullscreen is %s\n", (Use_fullscreen_at_startup?"TRUE":"FALSE") );	
-	os_config_write_uint( NULL, NOX("ForceFullscreen"), Use_fullscreen_at_startup );
-}
-#endif
-
 int	Framerate_delay = 0;
 
 float Freespace_gamma = 1.8f;
@@ -2364,12 +2345,8 @@ void game_init()
 	//Use_palette_flash = os_config_read_uint( NULL, NOX("PaletteFlash"), 0 );
 	Use_low_mem = os_config_read_uint( NULL, NOX("LowMem"), 0 );
 
-#ifndef NDEBUG
-	Use_fullscreen_at_startup = os_config_read_uint( NULL, NOX("ForceFullscreen"), 1 );
-#endif
-
 	// show the FPS counter if the config file says so
-	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), Show_framerate );
+	Show_framerate = os_config_read_uint( "Video", "ShowFPS", Show_framerate );
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	Asteroids_enabled = 1;		

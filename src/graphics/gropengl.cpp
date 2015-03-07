@@ -153,7 +153,7 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, db);
 
-	FSAA = os_config_read_uint(NULL, "FSAA", 0);
+	FSAA = os_config_read_uint("Video", "AntiAlias", 0);
 
 	if (FSAA) {
 	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -212,7 +212,7 @@ void gr_opengl_init()
 	opengl1_init();
 
 	// maybe go fullscreen - should be done *after* main GL init
-	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
+	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
 	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
 		SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		// poll for window events

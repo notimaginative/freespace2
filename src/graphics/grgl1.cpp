@@ -605,9 +605,8 @@ int gr_opengl1_save_screen()
 
 	glGenTextures(1, &Gr_saved_screen_tex);
 
-	if ( glIsTexture(Gr_saved_screen_tex) == GL_FALSE ) {
+	if ( !Gr_saved_screen_tex ) {
 		mprintf(( "Couldn't create texture for saved screen!\n" ));
-		Gr_saved_screen_tex = 0;
 		return -1;
 	}
 

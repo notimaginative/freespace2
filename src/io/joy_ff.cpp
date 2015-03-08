@@ -51,27 +51,21 @@ int joy_ff_init()
 {
 	int ff_enabled = 0;
 
-	ff_enabled = os_config_read_uint(NULL, "EnableJoystickFF", 1);
+	ff_enabled = os_config_read_uint("Controls", "EnableJoystickFF", 0);
 
-	if ( !ff_enabled ) {
+	if ( !ff_enabled || !SDL_JoystickIsHaptic(sdljoy) ) {
 		return 0;
 	}
 
-//	mprintf(("Initializing Haptic...\n"));
-
 	if (SDL_InitSubSystem(SDL_INIT_HAPTIC) < 0) {
-		return -1;
-	}
-
-	if ( !SDL_JoystickIsHaptic(sdljoy) ) {
-		SDL_QuitSubSystem(SDL_INIT_HAPTIC);
+		mprintf(("  ERROR: Unable to initialize haptic subsystem\n"));
 		return -1;
 	}
 
 	haptic = SDL_HapticOpenFromJoystick(sdljoy);
 
 	if (haptic == NULL) {
-		mprintf(("ERROR: Unable to open haptic joystick\n"));
+		mprintf(("  ERROR: Unable to open haptic joystick\n"));
 		SDL_QuitSubSystem(SDL_INIT_HAPTIC);
 		return -1;
 	}
@@ -81,20 +75,17 @@ int joy_ff_init()
 		Joy_rumble = 1;
 	}
 
-	mprintf(("Haptic device:\n"));
-	mprintf(("  Rumble: %s\n", Joy_rumble ? "Yes" : "No"));
-	mprintf(("  Axes: %d\n", SDL_HapticNumAxes(haptic)));
-	mprintf(("  Max effects: %d\n", SDL_HapticNumEffects(haptic)));
-	mprintf(("  Simultaneous effects: %d\n", SDL_HapticNumEffectsPlaying(haptic)));
+	mprintf(("  Rumble  : %s\n", Joy_rumble ? "Yes" : "No"));
+	mprintf(("  Axes    : %d\n", SDL_HapticNumAxes(haptic)));
+	mprintf(("  Max effects     : %d\n", SDL_HapticNumEffects(haptic)));
+	mprintf(("  Running effects : %d\n", SDL_HapticNumEffectsPlaying(haptic)));
 
 	joy_ff_create_effects();
-
-	mprintf(("\n"));
 
 	Joy_ff_enabled = 1;
 	Joy_ff_acquired = 1;
 
-	Joy_ff_directional_hit_effect_enabled = os_config_read_uint(NULL, "EnableHitEffect", 1);
+	Joy_ff_directional_hit_effect_enabled = os_config_read_uint("Controls", "EnableHitEffect", 1);
 
 	return 0;
 }
@@ -126,29 +117,29 @@ static void joy_ff_create_effects()
 	supported = SDL_HapticQuery(haptic);
 
 	if ( !(supported & SDL_HAPTIC_CONSTANT) ) {
-		mprintf(("  Constant Force: not supported\n"));
+		mprintf(("  Constant Force  : not supported\n"));
 	}
 
 	if ( !(supported & SDL_HAPTIC_SINE) ) {
-		mprintf(("  Sine Wave: not supported\n"));
+		mprintf(("  Sine Wave       : not supported\n"));
 		Warning(LOCATION, "Sine Wave: not supported");
 	}
 
 	if ( !(supported & SDL_HAPTIC_SAWTOOTHDOWN) ) {
-		mprintf(("  Sawtooth Down: not supported\n"));
+		mprintf(("  Sawtooth Down   : not supported\n"));
 	}
 
 	if ( !(supported & SDL_HAPTIC_SPRING) ) {
-		mprintf(("  Spring: not supported\n"));
+		mprintf(("  Spring          : not supported\n"));
 	//	Error(LOCATION, "Spring: not supported");
 	}
 /*
 	if ( !(supported & SDL_HAPTIC_SQUARE) ) {
-		mprintf(("  Square: not supported\n"));
+		mprintf(("  Square          : not supported\n"));
 	}
 */
 	if ( !(supported & SDL_HAPTIC_TRIANGLE) ) {
-		mprintf(("  Triangle: not supported\n"));
+		mprintf(("  Triangle        : not supported\n"));
 	}
 
 

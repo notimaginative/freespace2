@@ -18,7 +18,6 @@
 
 static int Joy_inited = 0;
 int Dead_zone_size = 10;
-int Cur_joystick = -1;
 int Joy_sensitivity = 9;
 
 static int Joy_last_x_reading = 0;
@@ -63,32 +62,6 @@ void joy_close()
 	sdljoy = NULL;
 
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-}
-
-void joy_get_caps()
-{
-	SDL_Joystick *joy;
-	int j, max_count;
-
-	max_count = SDL_NumJoysticks();
-
-	for (j = 0; j < max_count; j++) {
-		joy = SDL_JoystickOpen(j);
-
-		if (joy) {
-		//	nprintf (("JOYSTICK", "Joystick #%d: %s\n", j - JOYSTICKID1 + 1, SDL_JoystickName(j)));
-			mprintf(("Joystick #%d: %s  %s\n", j + 1, SDL_JoystickName(joy), (j == Cur_joystick) ? "*" : " "));
-			mprintf(("  Axes: %d\n", SDL_JoystickNumAxes(joy)));
-			mprintf(("  Buttons: %d\n", SDL_JoystickNumButtons(joy)));
-			mprintf(("  Hats: %d\n", SDL_JoystickNumHats(joy)));
-			mprintf(("  Balls: %d\n", SDL_JoystickNumBalls(joy)));
-			mprintf(("  Haptic: %s\n", SDL_JoystickIsHaptic(joy) ? "Yes" : "No"));
-
-			SDL_JoystickClose (joy);
-		}
-	}
-
-	mprintf(("\n"));
 }
 
 int joy_down(int btn)
@@ -366,37 +339,59 @@ int joy_get_pos(int *x, int *y, int *z, int *rx)
 int joy_init()
 {
 	int i, num_sticks;
+	const char *ptr = NULL;
+	int Cur_joystick;
 
 	if (Joy_inited) {
 		return 0;
 	}
 
+	mprintf(("Initializing Joystick...\n"));
+
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
-		mprintf(("Could not initialize joystick\n"));
+		mprintf(("  Could not initialize joystick subsystem\n\n"));
 		return 0;
 	}
 
 	num_sticks = SDL_NumJoysticks();
 
 	if (num_sticks < 1) {
-		mprintf(("No joysticks found\n"));
+		mprintf(("  No joysticks found\n\n"));
 		return 0;
 	}
 
-	Cur_joystick = os_config_read_uint (NULL, "CurrentJoystick", 0);
+	Cur_joystick = 0;
 
-	if (Cur_joystick >= num_sticks) {
-		Cur_joystick = 0;
+	ptr = os_config_read_string("Controls", "CurrentJoystick", NULL);
+
+	if ( ptr && SDL_strlen(ptr) ) {
+		for (i = 0; i < num_sticks; i++) {
+			const char *jname = SDL_JoystickNameForIndex(i);
+
+			if ( jname && !SDL_strcasecmp(ptr, jname) ) {
+				Cur_joystick = i;
+				break;
+			}
+		}
 	}
-
-	joy_get_caps();
 
 	sdljoy = SDL_JoystickOpen(Cur_joystick);
 
 	if (sdljoy == NULL) {
-		mprintf(("Unable to init joystick %d\n", Cur_joystick));
+		mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_JoystickNameForIndex(Cur_joystick)));
 		return 0;
 	}
+
+	mprintf(("  Name    : %s\n", SDL_JoystickName(sdljoy)));
+	mprintf(("  Axes    : %d\n", SDL_JoystickNumAxes(sdljoy)));
+	mprintf(("  Buttons : %d\n", SDL_JoystickNumButtons(sdljoy)));
+	mprintf(("  Hats    : %d\n", SDL_JoystickNumHats(sdljoy)));
+	mprintf(("  Balls   : %d\n", SDL_JoystickNumBalls(sdljoy)));
+	mprintf(("  Haptic  : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+
+	joy_ff_init();
+
+	mprintf(("\n"));
 
 	Joy_inited = 1;
 
@@ -414,8 +409,6 @@ int joy_init()
 		joystick.axis_max[i] = 65536;
 		joystick.axis_current[i] = joystick.axis_center[i];
 	}
-
-	joy_ff_init();
 
 	return num_sticks;
 }

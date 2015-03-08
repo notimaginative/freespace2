@@ -186,7 +186,16 @@ void gr_opengl_init()
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
 	mprintf(("  Version  : %s\n", gl_version));
 
-	mprintf(("  Attributes requested: ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
+	// initial viewport setup
+	opengl_init_viewport();
+
+	// set up generic variables before further init() calls
+	opengl_set_variables();
+
+	// main GL init
+	opengl1_init();
+
+	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
@@ -196,20 +205,10 @@ void gr_opengl_init()
 	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &db);
 	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
 
-	mprintf(("  Attributes received : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
-
+	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
 
 	SDL_DisableScreenSaver();
 	SDL_ShowCursor(0);
-
-	// initial viewport setup
-	opengl_init_viewport();
-
-	// set up generic variables before further init() calls
-	opengl_set_variables();
-
-	// main GL init
-	opengl1_init();
 
 	// maybe go fullscreen - should be done *after* main GL init
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);

@@ -1,6 +1,7 @@
 #include "pstypes.h"
 #include "osregistry.h"
 #include "cfile.h"
+#include "version.h"
 #undef malloc
 #undef free
 #undef strdup
@@ -448,12 +449,14 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 // NOTE: this will * RESET CURRENT OPTIONS TO THEIR DEFAULTS *
 void os_init_registry_stuff()
 {
+	// NOTE: commented options are for reference to hidden/debug settings
+
 	// 'Default' section
-	os_config_write_string(NULL, "Language", "English" /* DEFAULT_LANGUAGE */);
+	os_config_write_string(NULL, "Language", "" /* DEFAULT_LANGUAGE */);
 	os_config_write_string(NULL, "LastPlayer", "");
 	os_config_write_uint(NULL, "ComputerSpeed", 2);
 	os_config_write_string(NULL, "ExtrasPath", "");
-	os_config_write_uint(NULL, "LowMem", 0);
+//	os_config_write_uint(NULL, "LowMem", 0);
 
 	// 'Video' section
 	os_config_write_string("Video", "Renderer", "OpenGL");
@@ -461,28 +464,33 @@ void os_init_registry_stuff()
 	os_config_write_uint("Video", "Fullscreen", 1);
 	os_config_write_string("Video", "Gamma", "1.8");
 	os_config_write_uint("Video", "ShowFPS", 0);
-	os_config_write_uint("Video", "LowRes", 0);
-	os_config_write_uint("Video", "PreloadTextures", 1);
-	os_config_write_uint("Video", "ScaleMovies", 1);
+//	os_config_write_uint("Video", "LowRes", 0);
+//	os_config_write_uint("Video", "PreloadTextures", 1);
+//	os_config_write_uint("Video", "ScaleMovies", 1);
 
 	// 'Audio' section
-	os_config_write_string("Audio", "CaptureDevice", "");
 	os_config_write_string("Audio", "PlaybackDevice", "");
+	os_config_write_string("Audio", "CaptureDevice", "");
 	os_config_write_uint("Audio", "EFX", 0);
 
 	// 'Controls' section
 	os_config_write_string("Controls", "CurrentJoystick", "");
-	os_config_write_uint("Controls", "EnableJoystickFF", 1);
+	os_config_write_uint("Controls", "EnableJoystickFF", 0);
 	os_config_write_uint("Controls", "EnableHitEffect", 1);
 
 	// 'Network' section
 	os_config_write_string("Network", "NetworkConnection", "LAN");
 	os_config_write_string("Network", "ConnectionSpeed", "Fast");
 	os_config_write_uint("Network", "ForcePort", 0);
-	os_config_write_uint("Network", "SkipVerify", 0);
+//	os_config_write_uint("Network", "SkipVerify", 0);
 
 	// 'PXO' section
 	os_config_write_string("PXO", "Login", "");
 	os_config_write_string("PXO", "Password", "");
 	os_config_write_string("PXO", "SquadName", "");
+
+	// 'Version' section
+	os_config_write_uint("Version", "Major", FS_VERSION_MAJOR);
+	os_config_write_uint("Version", "Minor", FS_VERSION_MINOR);
+	os_config_write_uint("Version", "Build", FS_VERSION_BUILD);
 }

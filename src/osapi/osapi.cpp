@@ -193,7 +193,7 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 	os_set_title( (app_name != NULL) ? app_name : title );
 
 	// do some first-run stuff if needed
-	if ( os_config_read_uint(NULL, NOX("StraightToSetup"), 1) == 1 ) {
+	if ( os_config_read_uint(NULL, "StraightToSetup", 1) == 1 ) {
 		// set some sane config defaults
 		os_init_registry_stuff();
 
@@ -230,7 +230,7 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 		cf_create_directory(CF_TYPE_INTEL_ANIMS);
 
 		// unset FirstRun flag
-		os_config_write_uint(NULL, NOX("StraightToSetup"), 0);
+		os_config_write_uint(NULL, "StraightToSetup", 0);
 	}
 
 	Os_inited = 1;

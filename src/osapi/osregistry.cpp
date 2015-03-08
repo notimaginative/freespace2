@@ -389,7 +389,7 @@ const char *os_config_read_string(const char *section, const char *name, const c
 		section = DEFAULT_SECTION;
 		
 	const char *ptr = profile_get_value(p, section, name);
-	if (ptr != NULL) {
+	if ( (ptr != NULL) && SDL_strlen(ptr) ) {
 		SDL_strlcpy(tmp_string_data, ptr, sizeof(tmp_string_data));
 		default_value = tmp_string_data;
 	}
@@ -407,7 +407,7 @@ unsigned int os_config_read_uint(const char *section, const char *name, unsigned
 		section = DEFAULT_SECTION;
 		
 	const char *ptr = profile_get_value(p, section, name);
-	if (ptr != NULL) {
+	if ( (ptr != NULL) && SDL_strlen(ptr) ) {
 		default_value = atoi(ptr);
 	}
 	

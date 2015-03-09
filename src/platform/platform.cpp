@@ -151,6 +151,7 @@ extern void gr_force_windowed();
 
 void Warning( const char * filename, int line, const char * format, ... )
 {
+#ifndef NDEBUG
 	char tmp[MAX_LINE_WIDTH*4] = { 0 };
 	char tmp2[MAX_LINE_WIDTH*4] = { 0 };
 	va_list args;
@@ -164,6 +165,7 @@ void Warning( const char * filename, int line, const char * format, ... )
 	gr_force_windowed();
 
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning!", tmp2, NULL);
+#endif
 }
 
 void Error( const char * filename, int line, const char * format, ... )

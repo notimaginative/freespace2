@@ -2557,9 +2557,6 @@ void game_init()
 //	Game_music_paused = 0;
 	Game_paused = 0;
 
-#ifndef PLAT_UNIX
-	timeBeginPeriod(1);	
-#endif
 
 	nprintf(("General", "Ships.tbl is : %s\n", Game_ships_tbl_valid ? "VALID" : "INVALID!!!!"));
 	nprintf(("General", "Weapons.tbl is : %s\n", Game_weapons_tbl_valid ? "VALID" : "INVALID!!!!"));
@@ -6863,10 +6860,6 @@ void game_launch_launcher_on_exit()
 //
 void game_shutdown(void)
 {
-#ifndef PLAT_UNIX
-	timeEndPeriod(1);
-#endif
-
 	// don't ever flip a page on the standalone!
 	if(!(Game_mode & GM_STANDALONE_SERVER)){
 		gr_reset_clip();

@@ -114,7 +114,9 @@ void timer_init()
 {
 	if ( !Timer_inited )	{
 		SDL_InitSubSystem(SDL_INIT_TIMER);
-		
+
+		SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "1");
+
 		Timer_inited = 1;
 
 		atexit(timer_close);

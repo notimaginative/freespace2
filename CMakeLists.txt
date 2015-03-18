@@ -136,6 +136,36 @@ target_link_libraries(
 )
 
 #
+# launcher
+#
+
+if(FS1)
+  set(LAUNCHER_BINARY fslaunch)
+else()
+  set(LAUNCHER_BINARY fs2launch)
+endif()
+
+add_executable(${LAUNCHER_BINARY}
+  WIN32
+  ${launcher_SOURCE}
+  ${launcher_HEADERS}
+)
+
+target_link_libraries(
+  ${LAUNCHER_BINARY}
+  ${SDL2_LIBRARY}
+  ${OPENGL_LIBRARIES}
+  ${OPENAL_LIBRARY}
+  ${wxWidgets_LIBRARIES}
+  ${PLATFORM_LIBRARIES}
+)
+
+# wxWidgets appears to need c++11 for one or more headers
+if(NOT WIN32)
+  set_target_properties(${LAUNCHER_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+endif()
+
+#
 # ##############################################################################
 
 # ##############################################################################

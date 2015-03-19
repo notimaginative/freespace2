@@ -469,22 +469,24 @@ void os_init_registry_stuff()
 	os_config_write_string("Audio", "PlaybackDevice", "");
 	os_config_write_string("Audio", "CaptureDevice", "");
 	os_config_write_uint("Audio", "EFX", 0);
+//	os_config_write_uint("Audio", "LauncherSoundEnabled", 1);
 
 	// 'Controls' section
 	os_config_write_string("Controls", "CurrentJoystick", "");
 	os_config_write_uint("Controls", "EnableJoystickFF", 0);
-	os_config_write_uint("Controls", "EnableHitEffect", 1);
+	os_config_write_uint("Controls", "EnableHitEffect", 0);
 
 	// 'Network' section
 	os_config_write_string("Network", "NetworkConnection", "LAN");
 	os_config_write_string("Network", "ConnectionSpeed", "Fast");
 	os_config_write_uint("Network", "ForcePort", 0);
-//	os_config_write_uint("Network", "SkipVerify", 0);
 
 	// 'PXO' section
 	os_config_write_string("PXO", "Login", "");
 	os_config_write_string("PXO", "Password", "");
 	os_config_write_string("PXO", "SquadName", "");
+	os_config_write_uint("PXO", "Banners", 1);
+//	os_config_write_uint("PXO", "SkipVerify", 0);
 
 	// 'Version' section
 	os_config_write_uint("Version", "Major", FS_VERSION_MAJOR);

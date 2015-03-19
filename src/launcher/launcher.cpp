@@ -7,6 +7,7 @@
  */
 
 #include "launcher.h"
+#include "launchersetup.h"
 
 #include "wx/filename.h"
 #include "wx/stdpaths.h"
@@ -337,7 +338,9 @@ void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnSetup( wxCommandEvent& WXUNUSED(event) )
 {
+	LauncherSetup setup(this);
 
+	setup.ShowModal();
 }
 
 void Launcher::OnReadme( wxCommandEvent& WXUNUSED(event) )
@@ -396,7 +399,7 @@ void Launcher::init_sound()
 		return;
 	}
 
-	if ( os_config_read_uint(NULL, "LauncherSoundEnabled", 1) == 0 ) {
+	if ( os_config_read_uint("Audio", "LauncherSoundEnabled", 1) == 0 ) {
 		return;
 	}
 

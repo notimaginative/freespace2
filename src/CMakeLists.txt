@@ -259,6 +259,7 @@ set(freespace_SOURCE
 set(launcher_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcher.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcherini.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launchersetup.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/freespace_img.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_background.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_help-click.xpm

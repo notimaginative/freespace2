@@ -142,8 +142,11 @@ class Launcher : public wxDialog
 		Launcher( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Launcher"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
 		~Launcher();
 
+		void JumpToSetup();
+
 		void SndPlayHover();
 		void SndPlayPressed();
+		void SndEnable(bool enabled	= true);
 };
 
 #endif // LAUNCHER_H

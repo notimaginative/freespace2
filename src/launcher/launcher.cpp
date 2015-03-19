@@ -71,6 +71,8 @@ bool LauncherApp::OnInit()
 	frame->Show();
 	SetTopWindow(frame);
 
+	frame->JumpToSetup();
+
 	return true;
 }
 
@@ -295,6 +297,7 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	bSizer3->Fit( this );
 #endif
 
+
 	this->Centre( wxBOTH );
 }
 
@@ -378,6 +381,43 @@ void Launcher::OnQuit( wxCommandEvent& WXUNUSED(event) )
 	this->Close();
 }
 
+void Launcher::JumpToSetup()
+{
+	if ( !os_config_read_uint(NULL, "StraightToSetup", 1) ) {
+		return;
+	}
+
+	// FS1 doesn't do a setup jump so just go with what the user sets up
+	// and/or what the game binary will set
+
+#ifndef MAKE_FS1
+	wxString title( wxT("Welcome to FreeSpace 2!") );
+
+	wxString message( wxT("Since this is your first time running FreeSapce2, "
+						  "you will now be automatically taken to the Setup "
+						  "window.") );
+
+	wxString ext_message( wxT("NOTE TO USER:\n"
+							  "It is important that you view each section of "
+							  "the Setup window and configure it to your "
+							  "liking. Press the Help button if you have "
+							  "questions about a particular section. Once you "
+							  "are satisfied with your settings, select the OK "
+							  "button at the bottom of the Setup window to "
+							  "save them.") );
+
+	wxMessageDialog prompt(this, message, title, wxOK | wxICON_INFORMATION);
+	prompt.SetExtendedMessage(ext_message);
+
+	prompt.ShowModal();
+
+	// now jump to setup dialog
+	LauncherSetup setup(this);
+
+	setup.ShowModal();
+#endif
+}
+
 void Launcher::SndPlayHover()
 {
 	if (use_sound) {
@@ -389,6 +429,15 @@ void Launcher::SndPlayPressed()
 {
 	if (use_sound) {
 		alSourcePlay(m_snd_click_source_id);
+	}
+}
+
+void Launcher::SndEnable(bool enabled)
+{
+	if (enabled) {
+		init_sound();
+	} else {
+		close_sound();
 	}
 }
 

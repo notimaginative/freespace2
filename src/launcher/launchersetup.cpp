@@ -8,6 +8,12 @@
 #include "wx/valnum.h"
 
 
+wxBEGIN_EVENT_TABLE(LauncherSetup, wxDialog)
+	EVT_BUTTON(wxID_OK, LauncherSetup::onOk)
+	EVT_CHECKBOX(ID_CB_MSAA, LauncherSetup::onToggleMSAA)
+wxEND_EVENT_TABLE()
+
+
 LauncherSetup::LauncherSetup( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxSize(370, -1), wxDefaultSize );
@@ -85,7 +91,7 @@ void LauncherSetup::initTab_Video(wxNotebook *parent)
 	// 'anti-alias'
 	wxBoxSizer* bSizer_aa = new wxBoxSizer( wxHORIZONTAL );
 
-	m_Video_MSAA = new wxCheckBox( panel, wxID_ANY, wxT("Anti-Alias"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Video_MSAA = new wxCheckBox( panel, ID_CB_MSAA, wxT("Anti-Alias"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer_aa->Add( m_Video_MSAA, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
 	const wxString msaa_samples[] = { wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x") };
@@ -111,6 +117,7 @@ void LauncherSetup::initTab_Video(wxNotebook *parent)
 		}
 	} else {
 		m_Video_MSAA->SetValue(false);
+		m_Video_MSAASamples->SetSelection(wxNOT_FOUND);
 		m_Video_MSAASamples->Disable();
 	}
 
@@ -121,6 +128,28 @@ void LauncherSetup::initTab_Video(wxNotebook *parent)
 	bSizer->Fit( panel );
 
 	parent->AddPage( panel, wxT("Video"), true );
+}
+
+void LauncherSetup::saveTab_Video()
+{
+	wxString value;
+	unsigned int msaa = 0;
+
+	value = m_Video_Renderer->GetValue();
+
+	os_config_write_string("Video", "Renderer", value.c_str());
+
+	if ( m_Video_MSAA->IsChecked() ) {
+		int sel = m_Video_MSAASamples->GetSelection();
+		wxASSERT( sel != wxNOT_FOUND );
+
+		msaa = 2 << sel;
+	}
+
+	os_config_write_uint("Video", "AntiAlias", msaa);
+
+	os_config_write_uint("Video", "Fullscreen", m_Video_Fullscreen->IsChecked() ? 1 : 0);
+	os_config_write_uint("Video", "ShowFPS", m_Video_ShowFPS->IsChecked() ? 1 : 0);
 }
 
 void LauncherSetup::initTab_Audio(wxNotebook *parent)
@@ -232,14 +261,41 @@ void LauncherSetup::initTab_Audio(wxNotebook *parent)
 #endif
 
 
-//	bSizer->Add( fgSizer, 1, wxEXPAND, 5 );
-
 	panel->SetSizer( bSizer );
 	panel->Layout();
 
 	bSizer->Fit( panel );
 
 	parent->AddPage( panel, wxT("Audio"), false );
+}
+
+void LauncherSetup::saveTab_Audio()
+{
+	wxString value;
+
+	value = m_Audio_PlaybackDevice->GetValue();
+
+	if ( value.IsSameAs( wxT("<Default>") ) ) {
+		os_config_write_string("Audio", "PlaybackDevice", "");
+	} else {
+		os_config_write_string("Audio", "PlaybackDevice", value.c_str());
+	}
+
+	value = m_Audio_CaptureDevice->GetValue();
+
+	if ( value.IsSameAs( wxT("<Default>") ) ) {
+		os_config_write_string("Audio", "CaptureDevice", "");
+	} else {
+		os_config_write_string("Audio", "CaptureDevice", value.c_str());
+	}
+
+	os_config_write_uint("Audio", "EFX", m_Audio_EFX->IsChecked() ? 1 : 0);
+#ifndef MAKE_FS1
+	os_config_write_uint("Audio", "LauncherSoundEnabled", m_Audio_LauncherSounds->IsChecked() ? 1 : 0);
+
+	Launcher* parent = (Launcher*)GetParent();
+	parent->SndEnable( m_Audio_LauncherSounds->IsChecked() );
+#endif
 }
 
 void LauncherSetup::initTab_Joystick(wxNotebook *parent)
@@ -317,6 +373,22 @@ void LauncherSetup::initTab_Joystick(wxNotebook *parent)
 	parent->AddPage( panel, wxT("Joystick"), false );
 }
 
+void LauncherSetup::saveTab_Joystick()
+{
+	wxString value;
+
+	value = m_Joystick_Device->GetValue();
+
+	if ( value.IsSameAs( wxT("<Default>") ) ) {
+		os_config_write_string("Controls", "CurrentJoystick", "");
+	} else {
+		os_config_write_string("Controls", "CurrentJoystick", value.c_str());
+	}
+
+	os_config_write_uint("Controls", "EnableJoystickFF", m_Joystick_FF->IsChecked() ? 1 : 0);
+	os_config_write_uint("Controls", "EnableHitEffect", m_Joystick_Directional->IsChecked() ? 1 : 0);
+}
+
 void LauncherSetup::initTab_Speed(wxNotebook *parent)
 {
 	unsigned int detail_lvl = 0;
@@ -353,6 +425,19 @@ void LauncherSetup::initTab_Speed(wxNotebook *parent)
 	bSizer->Fit( panel );
 
 	parent->AddPage( panel, wxT("Speed"), false );
+}
+
+void LauncherSetup::saveTab_Speed()
+{
+	int sel;
+
+	sel = m_Speed_DefaultDetail->GetSelection();
+
+	if ( (sel < 0) || (sel > 3) ) {
+		sel = 0;
+	}
+
+	os_config_write_uint(NULL, "ComputerSpeed", sel);
 }
 
 void LauncherSetup::initTab_Network(wxNotebook* parent)
@@ -448,6 +533,37 @@ void LauncherSetup::initTab_Network(wxNotebook* parent)
 	parent->AddPage( panel, wxT("Network"), false );
 }
 
+void LauncherSetup::saveTab_Network()
+{
+	const char *conn_types[] = { "none", "dialup", "lan" };
+	const char *conn_speed[] = { "none", "Slow", "56K", "ISDN", "Cable", "Fast" };
+	int sel = 0;
+	long port = 0;
+
+	sel = m_Network_Connection->GetSelection();
+
+	if ( (sel < 0) || (sel > 2) ) {
+		sel = 0;
+	}
+
+	os_config_write_string("Network", "NetworkConnection", conn_types[sel]);
+
+	sel = m_Network_Speed->GetSelection();
+
+	if ( (sel < 0) || (sel > 5) ) {
+		sel = 0;
+	}
+
+	os_config_write_string("Network", "ConnectionSpeed", conn_speed[sel]);
+
+	if ( !m_Network_Port->GetValue().IsEmpty() ) {
+		m_Network_Port->GetValue().ToLong(&port);
+		wxASSERT( port <= USHRT_MAX );
+	}
+
+	os_config_write_uint("Network", "ForcePort", (unsigned int)port);
+}
+
 void LauncherSetup::initTab_PXO(wxNotebook* parent)
 {
 	const char *conf_ptr = NULL;
@@ -522,4 +638,85 @@ void LauncherSetup::initTab_PXO(wxNotebook* parent)
 	bSizer->Fit( panel );
 
 	parent->AddPage( panel, wxT("PXO"), false );
+}
+
+void LauncherSetup::saveTab_PXO()
+{
+
+}
+
+void LauncherSetup::save_settings()
+{
+	const char *ptr = NULL;
+
+	// 'Default' section
+	ptr = os_config_read_string(NULL, "Language", NULL);
+
+	if (ptr) {
+		os_config_write_string(NULL, "Language", ptr);
+	} else {
+		os_config_write_string(NULL, "Language", "");
+	}
+
+	ptr = os_config_read_string(NULL, "LastPlayer", NULL);
+
+	if (ptr) {
+		os_config_write_string(NULL, "LastPlayer", ptr);
+	} else {
+		os_config_write_string(NULL, "LastPlayer", "");
+	}
+
+	ptr = os_config_read_string(NULL, "ExtrasPath", NULL);
+
+	if (ptr) {
+		os_config_write_string(NULL, "ExtrasPath", ptr);
+	} else {
+		os_config_write_string(NULL, "ExtrasPath", "");
+	}
+
+	os_config_write_uint(NULL, "StraightToSetup", 0);
+
+	saveTab_Speed();
+
+	// 'Video' section
+	saveTab_Video();
+
+	// 'Audio' section
+	saveTab_Audio();
+
+	// 'Controls' section
+	saveTab_Joystick();
+
+	// 'Network' section
+	saveTab_Network();
+
+	// 'PXO' section
+	saveTab_PXO();
+}
+
+void LauncherSetup::onOk(wxCommandEvent& WXUNUSED(event))
+{
+	if ( Validate() && TransferDataFromWindow() ) {
+		save_settings();
+
+		if ( IsModal() ) {
+			EndModal(wxID_OK);
+		} else {
+			SetReturnCode(wxID_OK);
+			Show(false);
+		}
+	}
+}
+
+void LauncherSetup::onToggleMSAA(wxCommandEvent& event)
+{
+	if ( event.IsChecked() ) {
+		m_Video_MSAASamples->Enable();
+
+		if (m_Video_MSAASamples->GetSelection() == wxNOT_FOUND) {
+			m_Video_MSAASamples->SetSelection(0);
+		}
+	} else {
+		m_Video_MSAASamples->Disable();
+	}
 }

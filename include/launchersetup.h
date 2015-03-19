@@ -21,40 +21,21 @@ class LauncherSetup : public wxDialog
 		void initTab_Network(wxNotebook* parent);
 		void initTab_PXO(wxNotebook* parent);
 
+		void saveTab_Video();
+		void saveTab_Audio();
+		void saveTab_Joystick();
+		void saveTab_Speed();
+		void saveTab_Network();
+		void saveTab_PXO();
+
+		void save_settings();
+
+		wxDECLARE_EVENT_TABLE();
+
 	protected:
-		/*
-		wxNotebook* m_notebook4;
-		wxPanel* m_P_Video;
-		wxComboBox* m_comboBox1;
-		wxCheckBox* m_checkBox2;
-		wxCheckBox* m_checkBox1;
-		wxPanel* m_P_Audio;
-		wxComboBox* m_comboBox41;
-		wxComboBox* m_comboBox51;
-		wxCheckBox* m_checkBox51;
-		wxCheckBox* m_checkBox6;
-		wxPanel* m_P_Joystick;
-		wxComboBox* m_comboBox5;
-		wxCheckBox* m_checkBox4;
-		wxCheckBox* m_checkBox5;
-		wxPanel* m_P_Speed;
-		wxComboBox* m_comboBox4;
-		wxPanel* m_P_Network;
-		wxRadioBox* m_radioBox3;
-		wxRadioBox* m_radioBox4;
-		wxStaticText* m_staticText5;
-		wxTextCtrl* m_textCtrl5;
-		wxPanel* m_P_PXO;
-		wxStaticText* m_staticText3;
-		wxTextCtrl* m_textCtrl3;
-		wxStaticText* m_staticText4;
-		wxTextCtrl* m_textCtrl4;
-		wxCheckBox* m_checkBox7;
-		wxCheckBox* m_checkBox8;
-		*/
-		wxStdDialogButtonSizer* m_sdbSizer1;
-		wxButton* m_sdbSizer1OK;
-		wxButton* m_sdbSizer1Cancel;
+		enum {
+			ID_CB_MSAA = 1000
+		};
 
 		wxComboBox* m_Video_Renderer;
 		wxCheckBox* m_Video_Fullscreen;
@@ -82,6 +63,9 @@ class LauncherSetup : public wxDialog
 		wxTextCtrl* m_PXO_Password;
 		wxCheckBox* m_PXO_SkipVerify;
 		wxCheckBox* m_PXO_Banners;
+
+		void onOk(wxCommandEvent& event);
+		void onToggleMSAA(wxCommandEvent& event);
 
 	public:
 

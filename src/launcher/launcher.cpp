@@ -16,6 +16,11 @@
 #include "osregistry.h"
 #include "cfile.h"
 
+#ifdef PLAT_UNIX
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+
 #ifndef MAKE_FS1
 #include "res/fs2_background.xpm"
 #include "res/fs2_btn_help.xpm"
@@ -66,6 +71,11 @@ IMPLEMENT_APP(LauncherApp)
 
 bool LauncherApp::OnInit()
 {
+#ifdef PLAT_UNIX
+	// make sure we create files with user access only
+	umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+#endif
+
 	Launcher *frame = new Launcher(NULL);
 
 	frame->Show();

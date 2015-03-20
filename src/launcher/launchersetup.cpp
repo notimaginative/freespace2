@@ -458,7 +458,7 @@ void LauncherSetup::initTab_Network(wxNotebook* parent)
 	// 'connection type'
 	const wxString conn_types[] = { wxT("None"), wxT("Dialup Networking"), wxT("LAN/Direct Connection") };
 	const int num_conn_types = sizeof( conn_types ) / sizeof( wxString );
-	m_Network_Connection = new wxRadioBox( panel, wxID_ANY, wxT("Internet Connection"), wxDefaultPosition, wxDefaultSize, num_conn_types, conn_types, 1, wxRA_SPECIFY_COLS|wxSTATIC_BORDER );
+	m_Network_Connection = new wxRadioBox( panel, wxID_ANY, wxT("Internet Connection"), wxDefaultPosition, wxDefaultSize, num_conn_types, conn_types, 1, wxRA_SPECIFY_COLS );
 	bSizer->Add( m_Network_Connection, 0, wxALL|wxEXPAND, 5 );
 
 	conf_ptr = os_config_read_string("Network", "NetworkConnection", NULL);

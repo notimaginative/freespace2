@@ -19,14 +19,12 @@ class LauncherSetup : public wxDialog
 		void initTab_Joystick(wxNotebook* parent);
 		void initTab_Speed(wxNotebook* parent);
 		void initTab_Network(wxNotebook* parent);
-		void initTab_PXO(wxNotebook* parent);
 
 		void saveTab_Video();
 		void saveTab_Audio();
 		void saveTab_Joystick();
 		void saveTab_Speed();
 		void saveTab_Network();
-		void saveTab_PXO();
 
 		void save_settings();
 
@@ -58,11 +56,6 @@ class LauncherSetup : public wxDialog
 		wxRadioBox* m_Network_Speed;
 		wxTextCtrl* m_Network_Port;
 		unsigned short m_port_validate;
-
-		wxTextCtrl* m_PXO_Username;
-		wxTextCtrl* m_PXO_Password;
-		wxCheckBox* m_PXO_SkipVerify;
-		wxCheckBox* m_PXO_Banners;
 
 		void onOk(wxCommandEvent& event);
 		void onToggleMSAA(wxCommandEvent& event);

@@ -26,7 +26,6 @@ LauncherSetup::LauncherSetup( wxWindow* parent, wxWindowID id, const wxString& t
 	initTab_Joystick(nbook);
 	initTab_Speed(nbook);
 	initTab_Network(nbook);
-	initTab_PXO(nbook);
 
 	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
 	bSizer->Add( nbook, 0, wxALL|wxEXPAND, 5 );
@@ -564,87 +563,6 @@ void LauncherSetup::saveTab_Network()
 	os_config_write_uint("Network", "ForcePort", (unsigned int)port);
 }
 
-void LauncherSetup::initTab_PXO(wxNotebook* parent)
-{
-	const char *conf_ptr = NULL;
-	unsigned int checked = 0;
-
-	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-
-	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
-
-	wxStaticBoxSizer* sbSizer = new wxStaticBoxSizer( new wxStaticBox( panel, wxID_ANY, wxT("PXO Account") ), wxVERTICAL );
-
-	wxFlexGridSizer* fgSizer = new wxFlexGridSizer( 0, 2, 0, 0 );
-	fgSizer->SetFlexibleDirection( wxBOTH );
-	fgSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_ALL );
-
-	// 'pxo login'
-	wxStaticText* pxo_login = new wxStaticText( panel, wxID_ANY, wxT("Login"), wxDefaultPosition, wxDefaultSize, 0 );
-	pxo_login->Wrap( -1 );
-	fgSizer->Add( pxo_login, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-	m_PXO_Username = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	fgSizer->Add( m_PXO_Username, 0, wxALL|wxEXPAND, 5 );
-
-	m_PXO_Username->SetMaxLength(32);
-
-	conf_ptr = os_config_read_string("PXO", "Login", NULL);
-
-	if (conf_ptr) {
-		m_PXO_Username->SetValue(conf_ptr);
-	}
-
-	// 'pxo password'
-	wxStaticText* pxo_pass = new wxStaticText( panel, wxID_ANY, wxT("Password"), wxDefaultPosition, wxDefaultSize, 0 );
-	pxo_pass->Wrap( -1 );
-	fgSizer->Add( pxo_pass, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-	m_PXO_Password = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD );
-	fgSizer->Add( m_PXO_Password, 0, wxALL|wxEXPAND, 5 );
-
-	m_PXO_Password->SetMaxLength(32);
-
-	conf_ptr = os_config_read_string("PXO", "Password", NULL);
-
-	if (conf_ptr) {
-		m_PXO_Password->SetValue(conf_ptr);
-	}
-
-	sbSizer->Add( fgSizer, 1, wxEXPAND, 5 );
-
-	bSizer->Add( sbSizer, 0, wxALL|wxEXPAND, 5 );
-
-	// 'multi version check'
-	m_PXO_SkipVerify = new wxCheckBox( panel, wxID_ANY, wxT("Skip version check in PXO"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer->Add( m_PXO_SkipVerify, 0, wxALL, 5 );
-
-	checked = os_config_read_uint("PXO", "SkipVerify", 0);
-
-	m_PXO_SkipVerify->SetValue( (checked == 1) );
-
-	// 'banners'
-	m_PXO_Banners = new wxCheckBox( panel, wxID_ANY, wxT("PXO Banners"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer->Add( m_PXO_Banners, 0, wxALL, 5 );
-
-	checked = os_config_read_uint("PXO", "Banners", 1);
-
-	m_PXO_Banners->SetValue( (checked == 1) );
-
-
-	panel->SetSizer( bSizer );
-	panel->Layout();
-
-	bSizer->Fit( panel );
-
-	parent->AddPage( panel, wxT("PXO"), false );
-}
-
-void LauncherSetup::saveTab_PXO()
-{
-
-}
-
 void LauncherSetup::save_settings()
 {
 	const char *ptr = NULL;
@@ -689,9 +607,6 @@ void LauncherSetup::save_settings()
 
 	// 'Network' section
 	saveTab_Network();
-
-	// 'PXO' section
-	saveTab_PXO();
 }
 
 void LauncherSetup::onOk(wxCommandEvent& WXUNUSED(event))

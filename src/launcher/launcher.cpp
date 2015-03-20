@@ -403,18 +403,18 @@ void Launcher::JumpToSetup()
 #ifndef MAKE_FS1
 	wxString title( wxT("Welcome to FreeSpace 2!") );
 
-	wxString message( wxT("Since this is your first time running FreeSapce2, "
-						  "you will now be automatically taken to the Setup "
-						  "window.") );
+	wxString message( wxT("Since this is your first time running FreeSapce2, ")
+					  wxT("you will now be automatically taken to the Setup ")
+					  wxT("window.") );
 
-	wxString ext_message( wxT("NOTE TO USER:\n"
-							  "It is important that you view each section of "
-							  "the Setup window and configure it to your "
-							  "liking. Press the Help button if you have "
-							  "questions about a particular section. Once you "
-							  "are satisfied with your settings, select the OK "
-							  "button at the bottom of the Setup window to "
-							  "save them.") );
+	wxString ext_message( wxT("NOTE TO USER:\n")
+						  wxT("It is important that you view each section of ")
+						  wxT("the Setup window and configure it to your ")
+						  wxT("liking. Press the Help button if you have ")
+						  wxT("questions about a particular section. Once you ")
+						  wxT("are satisfied with your settings, select the OK ")
+						  wxT("button at the bottom of the Setup window to ")
+						  wxT("save them.") );
 
 	wxMessageDialog prompt(this, message, title, wxOK | wxICON_INFORMATION);
 	prompt.SetExtendedMessage(ext_message);

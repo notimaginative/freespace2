@@ -11,5 +11,6 @@
 #define isnan _isnan
 #define unlink _unlink
 #define access _access
+#define stat _stat
 
 #endif // WIN_H

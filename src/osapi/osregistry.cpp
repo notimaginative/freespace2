@@ -12,7 +12,7 @@ const char *Osreg_company_name = "Volition";
 #if defined(MAKE_FS1)
 const char *Osreg_class_name = "FreeSpaceClass";
 #else
-const char *Osreg_class_name = "Freespace2Class";
+const char *Osreg_class_name = "FreeSpace2Class";
 #endif
 #if defined(FS1_DEMO)
 const char *Osreg_app_name = "FreeSpaceDemo";
@@ -20,20 +20,20 @@ const char *Osreg_title = "FreeSpace Demo";
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
 const char *Osreg_app_name = "FreeSpace2Demo";
-const char *Osreg_title = "Freespace 2 Demo";
-#define PROFILE_NAME "Freespace2Demo.ini"
+const char *Osreg_title = "FreeSpace 2 Demo";
+#define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
 const char *Osreg_app_name = "FreeSpace2OEM";
-const char *Osreg_title = "Freespace 2 OEM";
-#define PROFILE_NAME "Freespace2OEM.ini"
+const char *Osreg_title = "FreeSpace 2 OEM";
+#define PROFILE_NAME "FreeSpace2OEM.ini"
 #elif defined(MAKE_FS1)
 const char *Osreg_app_name = "FreeSpace";
 const char *Osreg_title = "FreeSpace";
 #define PROFILE_NAME "FreeSpace.ini"
 #else
 const char *Osreg_app_name = "FreeSpace2";
-const char *Osreg_title = "Freespace 2";
-#define PROFILE_NAME "Freespace2.ini"
+const char *Osreg_title = "FreeSpace 2";
+#define PROFILE_NAME "FreeSpace2.ini"
 #endif
 
 #define DEFAULT_SECTION "Default"

@@ -485,7 +485,7 @@ void os_init_registry_stuff()
 	os_config_write_string("PXO", "Login", "");
 	os_config_write_string("PXO", "Password", "");
 	os_config_write_string("PXO", "SquadName", "");
-	os_config_write_uint("PXO", "Banners", 1);
+//	os_config_write_uint("PXO", "Banners", 1);
 //	os_config_write_uint("PXO", "SkipVerify", 0);
 
 	// 'Version' section

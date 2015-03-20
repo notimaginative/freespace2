@@ -3445,7 +3445,7 @@ void multi_sg_rank_display_stuff()
 	// display the selected rank
 #ifdef MAKE_FS1
 	gr_set_color_fast(&Color_bright);
-	multi_sg_rank_build_name(Ranks[Multi_sg_netgame->rank_base].name,rank_name);
+	multi_sg_rank_build_name(Ranks[Multi_sg_netgame->rank_base].name, rank_name, SDL_arraysize(rank_name));
 	gr_string(Msg_rank_sel_coords[gr_screen.res][MSG_X_COORD],Msg_rank_sel_coords[gr_screen.res][MSG_Y_COORD],rank_name);
 #endif
 }

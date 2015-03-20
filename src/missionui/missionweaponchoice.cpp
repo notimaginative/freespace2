@@ -1753,7 +1753,7 @@ void wl_start_slot_animation(int n)
 	
 	// maybe we have to load this animation
 	if ( wl_ship->anim == NULL ) {
-		wl_ship->anim = anim_load(Ship_info[ship_class].overhead_filename, 1);
+		wl_ship->anim = anim_load(Ship_info[ship_class].overhead_filename);
 		if ( wl_ship->anim == NULL ) {
 			Int3();		// couldn't load anim filename.. get Alan
 			return;

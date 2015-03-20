@@ -724,9 +724,9 @@ void common_select_init()
 
 		// Load in the background transition anim
 		if ( Game_mode & GM_MULTIPLAYER )
-			Background_anim = anim_load("BriefTransMulti", 1);	// 1 as last parm means file is mem-mapped
+			Background_anim = anim_load("BriefTransMulti");
 		else  {
-			Background_anim = anim_load("BriefTrans", 1);	// 1 as last parm means file is mem-mapped
+			Background_anim = anim_load("BriefTrans");
 		}
 
 		SDL_assert( Background_anim != NULL );

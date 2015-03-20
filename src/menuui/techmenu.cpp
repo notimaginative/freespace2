@@ -658,7 +658,7 @@ void techroom_select_new_entry()
 //	Techroom_ship_rot = PI;
 
 #ifdef MAKE_FS1
-	if (Tab == (WEAPONS_DATA_TAB || INTEL_DATA_TAB)){
+	if ( (Tab == WEAPONS_DATA_TAB) || (Tab == INTEL_DATA_TAB) ) {
 		techroom_init_desc(Current_list[Cur_entry].desc, Tech_data_desc_coords[gr_screen.res][SHIP_W_COORD]);
 	} else {
 		techroom_init_desc(Current_list[Cur_entry].desc, Tech_desc_coords[gr_screen.res][SHIP_W_COORD]);

@@ -51,8 +51,8 @@
 #include "res/fs2_btn_volition-hover.xpm"
 #include "res/fs2_btn_volition-click.xpm"
 #include "res/fs2_help_txt.h"
-#include "res/fs2_snd_hover_wav.inc"
-#include "res/fs2_snd_click_wav.inc"
+#include "res/fs2_snd_hover_wav.h"
+#include "res/fs2_snd_click_wav.h"
 #else
 #include "res/freespace_img.xpm"
 #include "res/volition_img.xpm"

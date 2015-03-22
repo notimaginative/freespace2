@@ -289,8 +289,9 @@ set(launcher_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition-click.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition-hover.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition.xpm
-  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_click_wav.inc
-  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_hover_wav.inc
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_help_txt.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_click_wav.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_hover_wav.h
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/volition_img.xpm
   PARENT_SCOPE
 )

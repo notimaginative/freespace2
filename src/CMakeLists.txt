@@ -253,6 +253,49 @@ set(freespace_SOURCE
 )
 
 #
+# launcher
+#
+
+set(launcher_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcher.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcherini.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launchersetup.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/freespace_img.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_background.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_help-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_help-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_help.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_play-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_play-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_play.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_pxo-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_pxo-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_pxo.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_quit-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_quit-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_quit.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_readme-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_readme-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_readme.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_setup-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_setup-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_setup.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_uninstall-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_uninstall-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_uninstall.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_update-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_update-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_update.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition-click.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition-hover.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_click_wav.inc
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_hover_wav.inc
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/volition_img.xpm
+  PARENT_SCOPE
+)
+
+#
 # ##############################################################################
 
 # ##############################################################################

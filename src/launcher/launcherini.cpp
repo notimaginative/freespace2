@@ -1,3 +1,13 @@
+
+/*
+ * Basically the same as osregistry.cpp but without having to be tied into
+ * cfile.
+ *
+ * External function calls should remain identical to what's in core lib so that
+ * the launcher can just include osregistry.h like elsewhere
+ */
+
+
 #include "pstypes.h"
 #include "osregistry.h"
 #include "cfile.h"
@@ -38,6 +48,9 @@ const char *Osreg_title = "FreeSpace 2";
 
 #define DEFAULT_SECTION "Default"
 
+static int Profile_initted = 0;
+static char PROFILE_PATH[MAX_PATH_LEN] = { 0 };
+
 
 typedef struct KeyValue
 {
@@ -60,7 +73,37 @@ typedef struct Profile
 	struct Section *sections;
 } Profile;
 
-static char *read_line_from_file(CFILE *fp)
+static int profile_init()
+{
+	if (Profile_initted) {
+		return 0;
+	}
+
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+
+	// make sure we have something
+	if (u_path == NULL) {
+		return 1;
+	}
+
+	// size check
+	if ( (strlen(u_path) + strlen(PROFILE_NAME) + 1) >= MAX_PATH_LEN ) {
+		SDL_free(u_path);
+		return 1;
+	}
+
+	// set profile location
+	SDL_snprintf(PROFILE_PATH, SDL_arraysize(PROFILE_PATH), "%s%s%s", u_path, DIR_SEPARATOR_STR, PROFILE_NAME);
+
+	// free SDL copy
+	SDL_free(u_path);
+
+	Profile_initted = 1;
+
+	return 0;
+}
+
+static char *read_line_from_file(FILE *fp)
 {
 	char *buf, *buf_start;
 	int buflen, len, eol;
@@ -75,7 +118,7 @@ static char *read_line_from_file(CFILE *fp)
 			return NULL;
 		}
 		
-		if (cfgets(buf_start, 80, fp) == NULL) {
+		if (fgets(buf_start, 80, fp) == NULL) {
 			if (buf_start == buf) {
 				SDL_free(buf);
 				return NULL;
@@ -142,9 +185,13 @@ static char *trim_string(char *str)
 	return ptr;
 }
 
-static Profile *profile_read(const char *file)
+static Profile *profile_read()
 {
-	CFILE *fp = cfopen(file, "rt", CFILE_NORMAL, CF_TYPE_ROOT);
+	if ( profile_init() ) {
+		return NULL;
+	}
+
+	FILE *fp = fopen(PROFILE_PATH, "rt");
 	if (fp == NULL)
 		return NULL;
 	
@@ -214,7 +261,7 @@ static Profile *profile_read(const char *file)
 		SDL_free(str);
 	}
 	
-	cfclose(fp);
+	fclose(fp);
 
 	return profile;
 }
@@ -348,40 +395,44 @@ static const char *profile_get_value(Profile *profile, const char *section, cons
 
 static char tmp_string_data[1024];
 
-static void profile_save(Profile *profile, const char *file)
+static void profile_save(Profile *profile)
 {
-	CFILE *fp;
+	FILE *fp;
 
 	if (profile == NULL)
 		return;
-		
-	fp = cfopen(file, "wt", CFILE_NORMAL, CF_TYPE_ROOT);
+
+	if ( profile_init() ) {
+		return;
+	}
+
+	fp = fopen(PROFILE_PATH, "wt");
 	if (fp == NULL)
 		return;
 	
 	Section *sp = profile->sections;
 	while (sp != NULL) {
 		SDL_snprintf(tmp_string_data, SDL_arraysize(tmp_string_data), "[%s]\n", sp->name);
-		cfputs(tmp_string_data, fp);
+		fputs(tmp_string_data, fp);
 		
 		KeyValue *kvp = sp->pairs;
 		while (kvp != NULL) {
 			SDL_snprintf(tmp_string_data, SDL_arraysize(tmp_string_data), "%s=%s\n", kvp->key, kvp->value);
-			cfputs(tmp_string_data, fp);
+			fputs(tmp_string_data, fp);
 			kvp = kvp->next;
 		}
 		
-		cfwrite_char('\n', fp);
-		
+		fputc('\n', fp);
+
 		sp = sp->next;
 	}
 	
-	cfclose(fp);
+	fclose(fp);
 }
 
 const char *os_config_read_string(const char *section, const char *name, const char *default_value)
 {
-	Profile *p = profile_read(PROFILE_NAME);
+	Profile *p = profile_read();
 
 	if (section == NULL)
 		section = DEFAULT_SECTION;
@@ -399,7 +450,7 @@ const char *os_config_read_string(const char *section, const char *name, const c
 
 unsigned int os_config_read_uint(const char *section, const char *name, unsigned int default_value)
 {
-	Profile *p = profile_read(PROFILE_NAME);
+	Profile *p = profile_read();
 	
 	if (section == NULL)
 		section = DEFAULT_SECTION;
@@ -416,13 +467,13 @@ unsigned int os_config_read_uint(const char *section, const char *name, unsigned
 
 void os_config_write_string(const char *section, const char *name, const char *value)
 {
-	Profile *p = profile_read(PROFILE_NAME);
+	Profile *p = profile_read();
 	
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 		
 	p = profile_update(p, section, name, value);
-	profile_save(p, PROFILE_NAME);
+	profile_save(p);
 	profile_free(p);	
 }
 
@@ -432,64 +483,12 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 	
 	SDL_snprintf(buf, SDL_arraysize(buf), "%u", value);
 	
-	Profile *p = profile_read(PROFILE_NAME);
+	Profile *p = profile_read();
 
 	if (section == NULL)
 		section = DEFAULT_SECTION;
 	
 	p = profile_update(p, section, name, buf);
-	profile_save(p, PROFILE_NAME);
+	profile_save(p);
 	profile_free(p);
-}
-
-// set default config options
-// NOTE: this will * RESET CURRENT OPTIONS TO THEIR DEFAULTS *
-void os_init_registry_stuff()
-{
-	// NOTE: commented options are for reference to hidden/debug settings
-
-	// 'Default' section
-	os_config_write_string(NULL, "Language", "" /* DEFAULT_LANGUAGE */);
-	os_config_write_string(NULL, "LastPlayer", "");
-	os_config_write_uint(NULL, "ComputerSpeed", 2);
-	os_config_write_string(NULL, "ExtrasPath", "");
-//	os_config_write_uint(NULL, "LowMem", 0);
-
-	// 'Video' section
-	os_config_write_string("Video", "Renderer", "OpenGL");
-	os_config_write_uint("Video", "AntiAlias", 0);
-	os_config_write_uint("Video", "Fullscreen", 1);
-	os_config_write_string("Video", "Gamma", "1.8");
-	os_config_write_uint("Video", "ShowFPS", 0);
-//	os_config_write_uint("Video", "LowRes", 0);
-//	os_config_write_uint("Video", "PreloadTextures", 1);
-//	os_config_write_uint("Video", "ScaleMovies", 1);
-
-	// 'Audio' section
-	os_config_write_string("Audio", "PlaybackDevice", "");
-	os_config_write_string("Audio", "CaptureDevice", "");
-	os_config_write_uint("Audio", "EFX", 0);
-//	os_config_write_uint("Audio", "LauncherSoundEnabled", 1);
-
-	// 'Controls' section
-	os_config_write_string("Controls", "CurrentJoystick", "");
-	os_config_write_uint("Controls", "EnableJoystickFF", 0);
-	os_config_write_uint("Controls", "EnableHitEffect", 0);
-
-	// 'Network' section
-	os_config_write_string("Network", "NetworkConnection", "LAN");
-	os_config_write_string("Network", "ConnectionSpeed", "Fast");
-	os_config_write_uint("Network", "ForcePort", 0);
-
-	// 'PXO' section
-	os_config_write_string("PXO", "Login", "");
-	os_config_write_string("PXO", "Password", "");
-	os_config_write_string("PXO", "SquadName", "");
-//	os_config_write_uint("PXO", "Banners", 1);
-//	os_config_write_uint("PXO", "SkipVerify", 0);
-
-	// 'Version' section
-	os_config_write_uint("Version", "Major", FS_VERSION_MAJOR);
-	os_config_write_uint("Version", "Minor", FS_VERSION_MINOR);
-	os_config_write_uint("Version", "Build", FS_VERSION_BUILD);
 }

@@ -222,9 +222,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
-#endif
 
 #include "pstypes.h"
 #include "cfile.h"
@@ -1540,6 +1540,46 @@ int cfile_init_paths()
 	// free SDL copy
 	SDL_free(u_path);
 	u_path = NULL;
+
+	// see if CF_TYPE_DATA exists for user and if not populate user path
+	// with full directory tree
+	char pathname[MAX_PATH_LEN];
+	struct stat info;
+
+	SDL_strlcpy(pathname, Cfile_user_dir, MAX_PATH_LEN);
+	SDL_strlcat(pathname, Pathtypes[CF_TYPE_DATA].path, MAX_PATH_LEN);
+
+	if ( stat(pathname, &info) != 0 ) {
+		cf_create_directory(CF_TYPE_MAPS);
+		cf_create_directory(CF_TYPE_TEXT);
+		cf_create_directory(CF_TYPE_MISSIONS);
+		cf_create_directory(CF_TYPE_MODELS);
+		cf_create_directory(CF_TYPE_TABLES);
+		cf_create_directory(CF_TYPE_SOUNDS_8B22K);
+		cf_create_directory(CF_TYPE_SOUNDS_16B11K);
+		cf_create_directory(CF_TYPE_VOICE_BRIEFINGS);
+		cf_create_directory(CF_TYPE_VOICE_CMD_BRIEF);
+		cf_create_directory(CF_TYPE_VOICE_DEBRIEFINGS);
+		cf_create_directory(CF_TYPE_VOICE_PERSONAS);
+		cf_create_directory(CF_TYPE_VOICE_SPECIAL);
+		cf_create_directory(CF_TYPE_VOICE_TRAINING);
+		cf_create_directory(CF_TYPE_MUSIC);
+		cf_create_directory(CF_TYPE_MOVIES);
+		cf_create_directory(CF_TYPE_INTERFACE);
+		cf_create_directory(CF_TYPE_FONT);
+		cf_create_directory(CF_TYPE_EFFECTS);
+		cf_create_directory(CF_TYPE_HUD);
+		cf_create_directory(CF_TYPE_PLAYER_IMAGES_MAIN);
+		cf_create_directory(CF_TYPE_CACHE);
+		cf_create_directory(CF_TYPE_SINGLE_PLAYERS);
+		cf_create_directory(CF_TYPE_MULTI_PLAYERS);
+		cf_create_directory(CF_TYPE_MULTI_CACHE);
+		cf_create_directory(CF_TYPE_CONFIG);
+		cf_create_directory(CF_TYPE_SQUAD_IMAGES_MAIN);
+		cf_create_directory(CF_TYPE_DEMOS);
+		cf_create_directory(CF_TYPE_CBANIMS);
+		cf_create_directory(CF_TYPE_INTEL_ANIMS);
+	}
 
 	return 0;
 }

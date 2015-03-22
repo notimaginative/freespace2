@@ -50,7 +50,7 @@
 #include "res/fs2_btn_volition.xpm"
 #include "res/fs2_btn_volition-hover.xpm"
 #include "res/fs2_btn_volition-click.xpm"
-
+#include "res/fs2_help_txt.h"
 #include "res/fs2_snd_hover_wav.inc"
 #include "res/fs2_snd_click_wav.inc"
 #else
@@ -368,7 +368,33 @@ void Launcher::OnUpdate( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 {
+	wxDialog *help = new wxDialog(this, wxID_ANY, wxT("Launcher Help"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxSYSTEM_MENU);
 
+	wxBoxSizer* bSizer;
+	bSizer = new wxBoxSizer( wxVERTICAL );
+
+	// stupid
+	wxSize txtsize = help->GetTextExtent( wxT("  This opens a Help document containing information about the LauncherWW") );
+	txtsize.SetHeight(420);
+
+	wxTextCtrl *m_help_txt = new wxTextCtrl( help, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
+	m_help_txt->SetMinSize(txtsize);
+	m_help_txt->AppendText(fs2_help_txt);
+	m_help_txt->SetInsertionPoint(0);
+	bSizer->Add( m_help_txt, 0, wxALL|wxEXPAND, 5 );
+
+	wxButton *m_b_Ok = new wxButton( help, wxID_OK, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer->Add( m_b_Ok, 0, wxALIGN_BOTTOM|wxALIGN_RIGHT|wxALL, 5 );
+
+	help->SetSizer( bSizer );
+	help->Layout();
+	bSizer->Fit(help);
+
+	help->Centre( wxBOTH );
+
+	help->ShowModal();
+
+	help->Destroy();
 }
 
 void Launcher::OnUninstall( wxCommandEvent& WXUNUSED(event) )

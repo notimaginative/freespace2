@@ -16,11 +16,6 @@
 #include "osregistry.h"
 #include "cfile.h"
 
-#ifdef PLAT_UNIX
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-
 #ifndef MAKE_FS1
 #include "res/fs2_background.xpm"
 #include "res/fs2_btn_help.xpm"

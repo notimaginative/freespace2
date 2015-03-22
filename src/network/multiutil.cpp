@@ -3115,8 +3115,9 @@ int multi_get_connection_speed()
 {
 	int cspeed;
 	const char *connection_speed;
-	
-	connection_speed = os_config_read_string(NULL, "ConnectionSpeed", "");	
+
+	// 'Fast' should be a safe default in 2015
+	connection_speed = os_config_read_string("Network", "ConnectionSpeed", "Fast");
 
 	if ( !SDL_strcasecmp(connection_speed, NOX("Slow")) ) {
 		cspeed = CONNECTION_SPEED_288;

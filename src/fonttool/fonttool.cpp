@@ -87,6 +87,8 @@ static const char Usage[] = "Usage:\n"	\
 
 int Font1 = -1;
 
+int Fonttool_running = 1;
+
 void demo_set_playback_filter() {}
 float flFrametime = 0.0f;
 

@@ -541,7 +541,7 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	x = ((gr_screen.max_w - g_width) / 2);
 	y = ((gr_screen.max_h - g_height) / 2);
 
-	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 1) == 1 ) {
+	if ( os_config_read_uint("Video", "ScaleMovies", 1) ) {
 		extern int GL_viewport_w;
 
 		float scale_by = GL_viewport_w / (float)g_width;

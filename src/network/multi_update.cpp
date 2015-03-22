@@ -242,7 +242,7 @@ int multi_update_gobaby()
 	int my_code = MULTI_UPDATE_MAIN_MENU;
 
 	// maybe skip
-	if(os_config_read_uint(NULL, "SkipVerify", 0)){
+	if ( os_config_read_uint("PXO", "SkipVerify", 0) ) {
 		return MULTI_UPDATE_CONTINUE;
 	}
 

@@ -276,28 +276,28 @@ int oal_efx_init()
 	alGenAuxiliaryEffectSlots(1, &AL_EFX_aux_id);
 
 	if (alGetError() != AL_NO_ERROR) {
-		mprintf(("\n  EFX:  Unable to create Aux effect!\n"));
+		nprintf(("Sound", "SOUND ==>  EFX:  Unable to create Aux effect!\n"));
 		return -1;
 	}
 
 	alGenEffects(1, &AL_EFX_effect_id);
 
 	if (alGetError() != AL_NO_ERROR) {
-		mprintf(("\n  EFX:  Unable to create effect!\n"));
+		nprintf(("Sound", "SOUND ==>  EFX:  Unable to create effect!\n"));
 		return -1;
 	}
 
 	alEffecti(AL_EFX_effect_id, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
 
 	if (alGetError() != AL_NO_ERROR) {
-		mprintf(("\n  EFX:  EAXReverb not supported!\n"));
+		nprintf(("Sound", "SOUND ==>  EFX:  EAXReverb not supported!\n"));
 		return -1;
 	}
 
 	alAuxiliaryEffectSloti(AL_EFX_aux_id, AL_EFFECTSLOT_EFFECT, AL_EFX_effect_id);
 
 	if (alGetError() != AL_NO_ERROR) {
-		mprintf(("\n  EFX:  Couldn't load effect!\n"));
+		nprintf(("Sound", "SOUND ==>  EFX:  Couldn't load effect!\n"));
 		return -1;
 	}
 

@@ -324,8 +324,8 @@ void PofViewFrame::PofviewInit()
 
 	m_canvas->GetClientSize(&w, &h);
 
-	gr_init(GR_640, GR_WXGL, 16, w, h);
-
+	gr_init();
+	gr_set_viewport(w, h);
 	gr_set_gamma(2.0f);
 
 	gr_init_font( "font01.vf" );

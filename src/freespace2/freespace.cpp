@@ -741,6 +741,7 @@ int Game_no_clear = 0;
 
 int Pofview_running = 0;
 int Nebedit_running = 0;
+int Fonttool_running = 0;
 
 typedef struct big_expl_flash {
 	float max_flash_intensity;	// max intensity
@@ -774,9 +775,6 @@ int Warpout_sound = -1;
 void camera_move();
 int Use_joy_mouse = 0;
 int Use_palette_flash = 1;
-#ifndef NDEBUG
-int Use_fullscreen_at_startup = 0;
-#endif
 int Show_area_effect = 0;
 object	*Last_view_target = NULL;
 
@@ -2232,25 +2230,9 @@ DCF(low_mem,"Uses low memory settings regardless of RAM")
 }
 
 
-#ifndef NDEBUG
-
-DCF(force_fullscreen, "Forces game to startup in fullscreen mode")
-{
-	if ( Dc_command )	{	
-		dc_get_arg(ARG_TRUE|ARG_FALSE|ARG_NONE);		
-		if ( Dc_arg_type & ARG_TRUE )	Use_fullscreen_at_startup = 1;	
-		else if ( Dc_arg_type & ARG_FALSE ) Use_fullscreen_at_startup = 0;	
-		else if ( Dc_arg_type & ARG_NONE ) Use_fullscreen_at_startup ^= 1;	
-	}	
-	if ( Dc_help )	dc_printf( "Usage: force_fullscreen [bool]\nSets force_fullscreen to true or false.  If nothing passed, then toggles it.\n" );	
-	if ( Dc_status )	dc_printf( "force_fullscreen is %s\n", (Use_fullscreen_at_startup?"TRUE":"FALSE") );	
-	os_config_write_uint( NULL, NOX("ForceFullscreen"), Use_fullscreen_at_startup );
-}
-#endif
-
 int	Framerate_delay = 0;
 
-float Freespace_gamma = 1.0f;
+float Freespace_gamma = 1.8f;
 
 DCF(gamma,"Sets Gamma factor")
 {
@@ -2287,8 +2269,6 @@ DCF(gamma,"Sets Gamma factor")
 
 void game_init()
 {
-	const char *ptr;
-
 	Game_current_mission_filename[0] = 0;
 
 	// seed the random number generator
@@ -2363,12 +2343,8 @@ void game_init()
 	//Use_palette_flash = os_config_read_uint( NULL, NOX("PaletteFlash"), 0 );
 	Use_low_mem = os_config_read_uint( NULL, NOX("LowMem"), 0 );
 
-#ifndef NDEBUG
-	Use_fullscreen_at_startup = os_config_read_uint( NULL, NOX("ForceFullscreen"), 1 );
-#endif
-
 	// show the FPS counter if the config file says so
-	Show_framerate = os_config_read_uint( NULL, NOX("ShowFPS"), Show_framerate );
+	Show_framerate = os_config_read_uint( "Video", "ShowFPS", Show_framerate );
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	Asteroids_enabled = 1;		
@@ -2378,73 +2354,21 @@ void game_init()
 // SOUND INIT START
 /////////////////////////////
 
-	int use_eax = 0;
-
-	ptr = os_config_read_string(NULL, NOX("Soundcard"), NULL);
-	mprintf(("soundcard = %s\n", ptr ? ptr : "<nothing>"));
-	if (ptr) {
-		if (!SDL_strcasecmp(ptr, NOX("no sound"))) {
-			Cmdline_freespace_no_sound = 1;
-		} else if ( !SDL_strcasecmp(ptr, NOX("EAX")) || !SDL_strcasecmp(ptr, NOX("Aureal A3D")) ) {
-			use_eax = 1;
-		}
-	}
-
 	if (!Is_standalone) {
-		snd_init(use_eax);
+		snd_init();
 	}
+
 /////////////////////////////
 // SOUND INIT END
 /////////////////////////////
-	
-	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);
-	if (ptr == NULL) {
-		STUB_FUNCTION;	
-		exit(1);
-	}
 
-	// check for hi res pack file 
-	int has_sparky_hi = 0;
-
-	// check if sparky_hi exists -- access mode 0 means does file exist
-#ifndef MAKE_FS1 // shoudn't have it so don't check
-	char sparky_path[MAX_PATH_LEN];
-	SDL_snprintf(sparky_path, sizeof(sparky_path), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, "sparky_hi_fs2.vp");
-
-	if ( access(sparky_path, 0) == 0 ) {
-		has_sparky_hi = 1;
-	} else {
-		mprintf(("No sparky_hi_fs2.vp in directory %s\n", Cfile_root_dir));
-	}
-#endif
-
-	if ( !Is_standalone && ptr && strstr(ptr, NOX("OpenGL")) ) {
-		if(has_sparky_hi && strstr(ptr, NOX("(1024x768)"))){
-			gr_init(GR_1024, GR_OPENGL);
-		} else {
-			gr_init(GR_640, GR_OPENGL);
-		}
+	if ( !Is_standalone ) {
+		gr_init();
 	} else {
 		STUB_FUNCTION;
 		Int3();
-		//gr_init(GR_640, GR_OPENGL);
 	}
 
-	// Set the gamma
-	ptr = os_config_read_string(NULL,NOX("Gamma"),NOX("1.80"));
-	Freespace_gamma = (float)atof(ptr);
-	if ( Freespace_gamma == 0.0f ) {
-		Freespace_gamma = 1.80f; 
-	} else if ( Freespace_gamma < 0.1f ) {
-		Freespace_gamma = 0.1f;
-	} else if ( Freespace_gamma > 5.0f ) {
-		Freespace_gamma = 5.0f;
-	}
-	char tmp_gamma_string[32];
-	SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma );
-	os_config_write_string( NULL, NOX("Gamma"), tmp_gamma_string );
-
-	gr_set_gamma(Freespace_gamma);
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 	// add title screen
@@ -2452,34 +2376,6 @@ void game_init()
 		display_title_screen();
 	}
 #endif
-	
-	// attempt to load up master tracker registry info (login and password)
-	Multi_tracker_id = -1;		
-
-	// pxo login and password
-	ptr = os_config_read_string(NOX("PXO"),NOX("Login"),NULL);
-	if(ptr == NULL){
-		nprintf(("Network","Error reading in PXO login data\n"));
-		SDL_strlcpy(Multi_tracker_login, "", sizeof(Multi_tracker_login));
-	} else {		
-		SDL_strlcpy(Multi_tracker_login, ptr, sizeof(Multi_tracker_login));
-	}
-	ptr = os_config_read_string(NOX("PXO"),NOX("Password"),NULL);
-	if(ptr == NULL){		
-		nprintf(("Network","Error reading PXO password\n"));
-		SDL_strlcpy(Multi_tracker_passwd, "", sizeof(Multi_tracker_passwd));
-	} else {		
-		SDL_strlcpy(Multi_tracker_passwd, ptr, sizeof(Multi_tracker_passwd));
-	}	
-
-	// pxo squad name and password
-	ptr = os_config_read_string(NOX("PXO"),NOX("SquadName"),NULL);
-	if(ptr == NULL){
-		nprintf(("Network","Error reading in PXO squad name\n"));
-		SDL_strlcpy(Multi_tracker_squad_name, "", sizeof(Multi_tracker_squad_name));
-	} else {		
-		SDL_strlcpy(Multi_tracker_squad_name, ptr, sizeof(Multi_tracker_squad_name));
-	}
 
 	// If less than 48MB of RAM, use low memory model.
 	if ( (Freespace_total_ram < 48) || Use_low_mem )	{

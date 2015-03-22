@@ -346,7 +346,7 @@ void fonttool_edit_kerning(char *fname1)
 	Cmdline_fullscreen = 0;
 	Cmdline_window = 1;
 
-	gr_init(GR_640, GR_OPENGL);
+	gr_init();
 
 	gr_set_palette("none",NULL);
 

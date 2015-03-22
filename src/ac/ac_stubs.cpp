@@ -89,6 +89,7 @@ int Font1;
 void freespace_menu_background() {}
 int Fred_running = 0;
 int Pofview_running = 0;
+int Fonttool_running = 0;
 char *Game_CDROM_dir;
 void game_stop_looped_sounds() {}
 void game_enter_state(int, int){}

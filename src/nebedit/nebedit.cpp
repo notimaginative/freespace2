@@ -134,6 +134,7 @@ float ViewerZoom = 1.0f;
 int test_model = -1;
 int Fred_running = 0;
 int Pofview_running = 0;
+int Fonttool_running = 0;
 float flFrametime = 0.0f;
 
 int Font1 = -1;
@@ -859,7 +860,7 @@ int main(int argc, char *argv[])
 	cfile_init();
 	os_init( "NebEdit", "NebEdit" );	//SCREEN_W, SCREEN_H );
 	os_set_title("NebEdit");
-	gr_init(GR_640, GR_OPENGL, 16);
+	gr_init();
 	palette_load_table( "gamepalette1-01.pcx" );
 	key_init();
 	mouse_init();

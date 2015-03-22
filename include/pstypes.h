@@ -412,6 +412,7 @@ void gr_activate(int);
 extern int	Fred_running;  // Is Fred running, or FreeSpace?
 extern int Pofview_running;
 extern int Nebedit_running;
+extern int Fonttool_running;
 
 
 //======================================================================================

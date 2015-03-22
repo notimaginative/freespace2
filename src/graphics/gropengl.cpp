@@ -153,7 +153,7 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, db);
 
-	FSAA = os_config_read_uint(NULL, "FSAA", 0);
+	FSAA = os_config_read_uint("Video", "AntiAlias", 0);
 
 	if (FSAA) {
 	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -186,22 +186,6 @@ void gr_opengl_init()
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
 	mprintf(("  Version  : %s\n", gl_version));
 
-	mprintf(("  Attributes requested: ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
-
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
-	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &db);
-	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
-
-	mprintf(("  Attributes received : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
-
-
-	SDL_DisableScreenSaver();
-	SDL_ShowCursor(0);
-
 	// initial viewport setup
 	opengl_init_viewport();
 
@@ -211,8 +195,23 @@ void gr_opengl_init()
 	// main GL init
 	opengl1_init();
 
+	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
+
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
+	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &db);
+	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
+
+	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
+
+	SDL_DisableScreenSaver();
+	SDL_ShowCursor(0);
+
 	// maybe go fullscreen - should be done *after* main GL init
-	int fullscreen = os_config_read_uint(NULL, "Fullscreen", 1);
+	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
 	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
 		SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		// poll for window events

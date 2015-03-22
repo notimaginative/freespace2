@@ -241,6 +241,8 @@
 #include "multi_rate.h"
 #include "hudescort.h"
 #include "alphacolors.h"
+#include "osregistry.h"
+
 
 // ----------------------------------------------------------------------------------------
 // Basic module scope defines
@@ -368,6 +370,7 @@ int Multi_current_file_length = -1;
 void multi_init()
 {
 	int idx;
+	const char *ptr = NULL;
 
 	// read in config file
 	multi_options_read_config();
@@ -399,6 +402,39 @@ void multi_init()
 
 	// load up common multiplayer icons
 	multi_load_common_icons();	
+
+
+	// attempt to load up master tracker registry info (login and password)
+	Multi_tracker_id = -1;
+
+	// pxo login and password
+	ptr = os_config_read_string("PXO", "Login", NULL);
+
+	if (ptr) {
+		SDL_strlcpy(Multi_tracker_login, ptr, SDL_arraysize(Multi_tracker_login));
+	} else {
+		nprintf(("Network", "Error reading in PXO login data\n"));
+		SDL_zero(Multi_tracker_login);
+	}
+
+	ptr = os_config_read_string("PXO", "Password", NULL);
+
+	if (ptr) {
+		SDL_strlcpy(Multi_tracker_passwd, ptr, SDL_arraysize(Multi_tracker_passwd));
+	} else {
+		nprintf(("Network", "Error reading PXO password\n"));
+		SDL_zero(Multi_tracker_passwd);
+	}
+
+	// pxo squad name
+	ptr = os_config_read_string("PXO", "SquadName", NULL);
+
+	if (ptr) {
+		SDL_strlcpy(Multi_tracker_squad_name, ptr, SDL_arraysize(Multi_tracker_squad_name));
+	} else {
+		nprintf(("Network", "Error reading in PXO squad name\n"));
+		SDL_zero(Multi_tracker_squad_name);
+	}
 }
 
 // this is an important function which re-initializes any variables required in multiplayer games. 

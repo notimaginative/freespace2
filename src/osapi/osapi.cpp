@@ -193,46 +193,12 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 	os_set_title( (app_name != NULL) ? app_name : title );
 
 	// do some first-run stuff if needed
-	if ( os_config_read_uint(NULL, NOX("StraightToSetup"), 1) == 1 ) {
+	if ( os_config_read_uint(NULL, "StraightToSetup", 1) == 1 ) {
 		// set some sane config defaults
-		os_config_write_string(NULL, NOX("Videocard"), NOX("OpenGL (640x480)"));
-		os_config_write_string(NULL, NOX("NetworkConnection"), NOX("lan"));
-		os_config_write_string(NULL, NOX("ConnectionSpeed"), NOX("Slow"));
+		os_init_registry_stuff();
 
-		// in case an installer didn't do it, populate directory structure to
-		// make sure everything is usable
-		cf_create_directory(CF_TYPE_MAPS);
-		cf_create_directory(CF_TYPE_TEXT);
-		cf_create_directory(CF_TYPE_MISSIONS);
-		cf_create_directory(CF_TYPE_MODELS);
-		cf_create_directory(CF_TYPE_TABLES);
-		cf_create_directory(CF_TYPE_SOUNDS_8B22K);
-		cf_create_directory(CF_TYPE_SOUNDS_16B11K);
-		cf_create_directory(CF_TYPE_VOICE_BRIEFINGS);
-		cf_create_directory(CF_TYPE_VOICE_CMD_BRIEF);
-		cf_create_directory(CF_TYPE_VOICE_DEBRIEFINGS);
-		cf_create_directory(CF_TYPE_VOICE_PERSONAS);
-		cf_create_directory(CF_TYPE_VOICE_SPECIAL);
-		cf_create_directory(CF_TYPE_VOICE_TRAINING);
-		cf_create_directory(CF_TYPE_MUSIC);
-		cf_create_directory(CF_TYPE_MOVIES);
-		cf_create_directory(CF_TYPE_INTERFACE);
-		cf_create_directory(CF_TYPE_FONT);
-		cf_create_directory(CF_TYPE_EFFECTS);
-		cf_create_directory(CF_TYPE_HUD);
-		cf_create_directory(CF_TYPE_PLAYER_IMAGES_MAIN);
-		cf_create_directory(CF_TYPE_CACHE);
-		cf_create_directory(CF_TYPE_SINGLE_PLAYERS);
-		cf_create_directory(CF_TYPE_MULTI_PLAYERS);
-		cf_create_directory(CF_TYPE_MULTI_CACHE);
-		cf_create_directory(CF_TYPE_CONFIG);
-		cf_create_directory(CF_TYPE_SQUAD_IMAGES_MAIN);
-		cf_create_directory(CF_TYPE_DEMOS);
-		cf_create_directory(CF_TYPE_CBANIMS);
-		cf_create_directory(CF_TYPE_INTEL_ANIMS);
-
-		// unset FirstRun flag
-		os_config_write_uint(NULL, NOX("StraightToSetup"), 0);
+		// unset first-run flag
+		os_config_write_uint(NULL, "StraightToSetup", 0);
 	}
 
 	Os_inited = 1;

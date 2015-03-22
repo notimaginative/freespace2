@@ -536,7 +536,7 @@ typedef struct screen {
 #define GR_640							0		// 640 x 480
 #define GR_1024						1		// 1024 x 768
 
-extern int gr_init(int res, int mode, int depth = 16, int fred_x = -1, int fred_y = -1 );
+extern int gr_init();
 
 // Call this when your app ends.
 extern void gr_close();
@@ -669,7 +669,7 @@ int gr_zbuffer_set(int mode);
 #define gr_dump_frame_stop		GR_CALL(gr_screen.gf_dump_frame_stop)
 #define gr_dump_frame			GR_CALL(gr_screen.gf_dump_frame)
 
-#define gr_set_gamma			GR_CALL(gr_screen.gf_set_gamma)
+void gr_set_gamma(float gamma);
 
 #define gr_lock				GR_CALL(gr_screen.gf_lock)
 #define gr_unlock				GR_CALL(gr_screen.gf_unlock)

@@ -10,6 +10,8 @@
 #ifndef _OAL_CAPTURE_H
 #define _OAL_CAPTURE_H
 
+void oal_capture_init();
+
 int oal_capture_create_buffer(int freq, int bits_per_sample, int nchannels, int nseconds);
 void oal_capture_release_buffer();
 

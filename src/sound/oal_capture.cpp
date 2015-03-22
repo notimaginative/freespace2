@@ -7,8 +7,11 @@
  *
 */
 
+#include <string>
+
 #include "pstypes.h"
 #include "oal.h"
+#include "osregistry.h"
 
 
 static int OAL_capture_recording = 0;
@@ -26,6 +29,7 @@ struct capture_buffer {
 static capture_buffer Capture;
 
 static ALCdevice *al_capture_device = NULL;
+static std::string CaptureDevice;
 
 
 void oal_capture_release_buffer()
@@ -65,13 +69,15 @@ int oal_capture_create_buffer(int freq, int bits_per_sample, int nchannels, int 
 		}
 	}
 
-	al_capture_device = alcCaptureOpenDevice(NULL, freq, al_format, buf_size);
+	al_capture_device = alcCaptureOpenDevice(CaptureDevice.c_str(), freq, al_format, buf_size);
 
 	if (al_capture_device == NULL) {
 		return -1;
 	}
 
 	if ( alcGetError(al_capture_device) != ALC_NO_ERROR ) {
+		alcCaptureCloseDevice(al_capture_device);
+
 		return -1;
 	}
 
@@ -82,6 +88,46 @@ int oal_capture_create_buffer(int freq, int bits_per_sample, int nchannels, int 
 	Capture.block_align = (nchannels * bits_per_sample) / 8;
 
 	return 0;
+}
+
+void oal_capture_init()
+{
+	const char *ptr = NULL;
+	ALCdevice *tdevice = NULL;
+
+	ptr = os_config_read_string("Audio", "CaptureDevice", "default");
+
+	if ( ptr && !SDL_strcasecmp(ptr, "default") ) {
+		ptr = NULL;
+	}
+
+	tdevice = alcCaptureOpenDevice(ptr, 11025, AL_FORMAT_MONO8, 11025 * 2);
+
+	if (tdevice == NULL) {
+		tdevice = alcCaptureOpenDevice(NULL, 11025, AL_FORMAT_MONO8, 11025 * 2);
+
+		if (tdevice == NULL) {
+			mprintf(("  Capture device  : * Unavailable *\n"));
+
+			return;
+		}
+	}
+
+	if ( alcGetError(tdevice) != ALC_NO_ERROR ) {
+		mprintf(("  Capture device  : * Unavailable *\n"));
+		alcCaptureCloseDevice(tdevice);
+
+		return;
+	}
+
+	ptr = alcGetString(tdevice, ALC_CAPTURE_DEVICE_SPECIFIER);
+	SDL_assert( ptr );
+
+	mprintf(("  Capture device  : %s\n", ptr));
+
+	CaptureDevice = ptr;
+
+	alcCaptureCloseDevice(tdevice);
 }
 
 int oal_capture_supported()

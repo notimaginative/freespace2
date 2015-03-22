@@ -1021,8 +1021,6 @@ void options_cancel_exit()
 
 void options_change_gamma(float delta)
 {
-	char tmp_gamma_string[32];
-
 	Freespace_gamma += delta;
 	if (Freespace_gamma < 0.1f) {
 		Freespace_gamma = 0.1f;
@@ -1037,8 +1035,6 @@ void options_change_gamma(float delta)
 	}
 
 	gr_set_gamma(Freespace_gamma);
-	SDL_snprintf(tmp_gamma_string, sizeof(tmp_gamma_string), NOX("%.2f"), Freespace_gamma);
-	os_config_write_string(NULL, NOX("Gamma"), tmp_gamma_string);
 }
 
 void options_button_pressed(int n)

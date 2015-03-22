@@ -1,9 +1,7 @@
 #include "pstypes.h"
 #include "osregistry.h"
 #include "cfile.h"
-#undef malloc
-#undef free
-#undef strdup
+#include "version.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +12,7 @@ const char *Osreg_company_name = "Volition";
 #if defined(MAKE_FS1)
 const char *Osreg_class_name = "FreeSpaceClass";
 #else
-const char *Osreg_class_name = "Freespace2Class";
+const char *Osreg_class_name = "FreeSpace2Class";
 #endif
 #if defined(FS1_DEMO)
 const char *Osreg_app_name = "FreeSpaceDemo";
@@ -22,11 +20,11 @@ const char *Osreg_title = "FreeSpace Demo";
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
 const char *Osreg_app_name = "FreeSpace2Demo";
-const char *Osreg_title = "Freespace 2 Demo";
+const char *Osreg_title = "FreeSpace 2 Demo";
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
 const char *Osreg_app_name = "FreeSpace2OEM";
-const char *Osreg_title = "Freespace 2 OEM";
+const char *Osreg_title = "FreeSpace 2 OEM";
 #define PROFILE_NAME "FreeSpace2OEM.ini"
 #elif defined(MAKE_FS1)
 const char *Osreg_app_name = "FreeSpace";
@@ -34,7 +32,7 @@ const char *Osreg_title = "FreeSpace";
 #define PROFILE_NAME "FreeSpace.ini"
 #else
 const char *Osreg_app_name = "FreeSpace2";
-const char *Osreg_title = "Freespace 2";
+const char *Osreg_title = "FreeSpace 2";
 #define PROFILE_NAME "FreeSpace2.ini"
 #endif
 
@@ -68,7 +66,7 @@ static char *read_line_from_file(CFILE *fp)
 	int buflen, len, eol;
 	
 	buflen = 80;
-	buf = (char *)malloc(buflen);
+	buf = (char *)SDL_malloc(buflen);
 	buf_start = buf;
 	eol = 0;
 	
@@ -79,7 +77,7 @@ static char *read_line_from_file(CFILE *fp)
 		
 		if (cfgets(buf_start, 80, fp) == NULL) {
 			if (buf_start == buf) {
-				free(buf);
+				SDL_free(buf);
 				return NULL;
 			} else {
 				*buf_start = 0;
@@ -87,7 +85,7 @@ static char *read_line_from_file(CFILE *fp)
 			}
 		}
 		
-		len = strlen(buf_start);
+		len = SDL_strlen(buf_start);
 		
 		if (buf_start[len-1] == '\n') {
 			buf_start[len-1] = 0;
@@ -95,7 +93,7 @@ static char *read_line_from_file(CFILE *fp)
 		} else {
 			buflen += 80;
 			
-			buf = (char *)realloc(buf, buflen);
+			buf = (char *)SDL_realloc(buf, buflen);
 			
 			/* be sure to skip over the proper amount of nulls */
 			buf_start = buf+(buflen-80)-(buflen/80)+1;
@@ -122,22 +120,22 @@ static char *trim_string(char *str)
 		*ptr = 0;
 	
 	ptr = str;
-	len = strlen(str);
+	len = SDL_strlen(str);
 	if (len > 0) {
 		ptr += len-1;
 	}
 	
-	while ((ptr > str) && isspace(*ptr)) {
+	while ((ptr > str) && SDL_isspace(*ptr)) {
 		ptr--;
 	}
-	
+
 	if (*ptr) {
 		ptr++;
 		*ptr = 0;
 	}
 	
 	ptr = str;
-	while (*ptr && isspace(*ptr)) {
+	while (*ptr && SDL_isspace(*ptr)) {
 		ptr++;
 	}
 	
@@ -150,7 +148,7 @@ static Profile *profile_read(const char *file)
 	if (fp == NULL)
 		return NULL;
 	
-	Profile *profile = (Profile *)malloc(sizeof(Profile));
+	Profile *profile = (Profile *)SDL_malloc(sizeof(Profile));
 	profile->sections = NULL;
 	
 	Section **sp_ptr = &(profile->sections);
@@ -172,10 +170,10 @@ static Profile *profile_read(const char *file)
 				*pend = 0;				
 				
 				if (*ptr) {
-					sp = (Section *)malloc(sizeof(Section));
+					sp = (Section *)SDL_malloc(sizeof(Section));
 					sp->next = NULL;
 				
-					sp->name = strdup(ptr);
+					sp->name = SDL_strdup(ptr);
 					sp->pairs = NULL;
 					
 					*sp_ptr = sp;
@@ -199,10 +197,10 @@ static Profile *profile_read(const char *file)
 				
 				if (key && *key && value /* && *value */) {
 					if (sp != NULL) {
-						KeyValue *kvp = (KeyValue *)malloc(sizeof(KeyValue));
+						KeyValue *kvp = (KeyValue *)SDL_malloc(sizeof(KeyValue));
 						
-						kvp->key = strdup(key);
-						kvp->value = strdup(value);
+						kvp->key = SDL_strdup(key);
+						kvp->value = SDL_strdup(value);
 						
 						kvp->next = NULL;
 						
@@ -213,7 +211,7 @@ static Profile *profile_read(const char *file)
 			} // else it's just a comment or empty string
 		}
 				
-		free(str);
+		SDL_free(str);
 	}
 	
 	cfclose(fp);
@@ -234,26 +232,26 @@ static void profile_free(Profile *profile)
 		while (kvp != NULL) {
 			KeyValue *kvt = kvp;
 			
-			free(kvp->key);
-			free(kvp->value);
+			SDL_free(kvp->key);
+			SDL_free(kvp->value);
 			
 			kvp = kvp->next;
-			free(kvt);
+			SDL_free(kvt);
 		}
 		
-		free(sp->name);
+		SDL_free(sp->name);
 		
 		sp = sp->next;
-		free(st);
+		SDL_free(st);
 	}
 	
-	free(profile);
+	SDL_free(profile);
 }
 
 static Profile *profile_update(Profile *profile, const char *section, const char *key, const char *value)
 {
 	if (profile == NULL) {
-		profile = (Profile *)malloc(sizeof(Profile));
+		profile = (Profile *)SDL_malloc(sizeof(Profile));
 		
 		profile->sections = NULL;
 	}
@@ -263,21 +261,21 @@ static Profile *profile_update(Profile *profile, const char *section, const char
 	Section **sp_ptr = &(profile->sections);
 	Section *sp = profile->sections;
 	while (sp != NULL) {
-		if (strcmp(section, sp->name) == 0) {
+		if (SDL_strcmp(section, sp->name) == 0) {
 			KeyValue **kvp_ptr = &(sp->pairs);
 			kvp = sp->pairs;
 			
 			while (kvp != NULL) {
-				if (strcmp(key, kvp->key) == 0) {
-					free(kvp->value);
+				if (SDL_strcmp(key, kvp->key) == 0) {
+					SDL_free(kvp->value);
 					
 					if (value == NULL) {
 						*kvp_ptr = kvp->next;
 						
-						free(kvp->key);
-						free(kvp);
+						SDL_free(kvp->key);
+						SDL_free(kvp);
 					} else {
-						kvp->value = strdup(value);
+						kvp->value = SDL_strdup(value);
 					}
 					
 					/* all done */
@@ -290,10 +288,10 @@ static Profile *profile_update(Profile *profile, const char *section, const char
 			
 			if (value != NULL) {
 				/* key not found */
-				kvp = (KeyValue *)malloc(sizeof(KeyValue));
+				kvp = (KeyValue *)SDL_malloc(sizeof(KeyValue));
 				kvp->next = NULL;
-				kvp->key = strdup(key);
-				kvp->value = strdup(value);
+				kvp->key = SDL_strdup(key);
+				kvp->value = SDL_strdup(value);
 			}
 					
 			*kvp_ptr = kvp;
@@ -307,14 +305,14 @@ static Profile *profile_update(Profile *profile, const char *section, const char
 	}
 	
 	/* section not found */
-	sp = (Section *)malloc(sizeof(Section));
+	sp = (Section *)SDL_malloc(sizeof(Section));
 	sp->next = NULL;
-	sp->name = strdup(section);
+	sp->name = SDL_strdup(section);
 	
-	kvp = (KeyValue *)malloc(sizeof(KeyValue));
+	kvp = (KeyValue *)SDL_malloc(sizeof(KeyValue));
 	kvp->next = NULL;
-	kvp->key = strdup(key);
-	kvp->value = strdup(value);
+	kvp->key = SDL_strdup(key);
+	kvp->value = SDL_strdup(value);
 	
 	sp->pairs = kvp;
 	
@@ -330,11 +328,11 @@ static const char *profile_get_value(Profile *profile, const char *section, cons
 	
 	Section *sp = profile->sections;
 	while (sp != NULL) {
-		if (strcmp(section, sp->name) == 0) {
+		if (SDL_strcmp(section, sp->name) == 0) {
 			KeyValue *kvp = sp->pairs;
 		
 			while (kvp != NULL) {
-				if (strcmp(key, kvp->key) == 0) {
+				if (SDL_strcmp(key, kvp->key) == 0) {
 					return kvp->value;
 				}
 				kvp = kvp->next;
@@ -363,12 +361,12 @@ static void profile_save(Profile *profile, const char *file)
 	
 	Section *sp = profile->sections;
 	while (sp != NULL) {
-		SDL_snprintf(tmp_string_data, sizeof(tmp_string_data), NOX("[%s]\n"), sp->name);
+		SDL_snprintf(tmp_string_data, SDL_arraysize(tmp_string_data), "[%s]\n", sp->name);
 		cfputs(tmp_string_data, fp);
 		
 		KeyValue *kvp = sp->pairs;
 		while (kvp != NULL) {
-			SDL_snprintf(tmp_string_data, sizeof(tmp_string_data), NOX("%s=%s\n"), kvp->key, kvp->value);
+			SDL_snprintf(tmp_string_data, SDL_arraysize(tmp_string_data), "%s=%s\n", kvp->key, kvp->value);
 			cfputs(tmp_string_data, fp);
 			kvp = kvp->next;
 		}
@@ -389,8 +387,8 @@ const char *os_config_read_string(const char *section, const char *name, const c
 		section = DEFAULT_SECTION;
 		
 	const char *ptr = profile_get_value(p, section, name);
-	if (ptr != NULL) {
-		SDL_strlcpy(tmp_string_data, ptr, sizeof(tmp_string_data));
+	if ( (ptr != NULL) && SDL_strlen(ptr) ) {
+		SDL_strlcpy(tmp_string_data, ptr, SDL_arraysize(tmp_string_data));
 		default_value = tmp_string_data;
 	}
 	
@@ -407,8 +405,8 @@ unsigned int os_config_read_uint(const char *section, const char *name, unsigned
 		section = DEFAULT_SECTION;
 		
 	const char *ptr = profile_get_value(p, section, name);
-	if (ptr != NULL) {
-		default_value = atoi(ptr);
+	if ( (ptr != NULL) && SDL_strlen(ptr) ) {
+		default_value = SDL_atoi(ptr);
 	}
 	
 	profile_free(p);
@@ -432,7 +430,7 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 {
 	static char buf[21];
 	
-	SDL_snprintf(buf, 20, "%u", value);
+	SDL_snprintf(buf, SDL_arraysize(buf), "%u", value);
 	
 	Profile *p = profile_read(PROFILE_NAME);
 
@@ -442,4 +440,56 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 	p = profile_update(p, section, name, buf);
 	profile_save(p, PROFILE_NAME);
 	profile_free(p);
+}
+
+// set default config options
+// NOTE: this will * RESET CURRENT OPTIONS TO THEIR DEFAULTS *
+void os_init_registry_stuff()
+{
+	// NOTE: commented options are for reference to hidden/debug settings
+
+	// 'Default' section
+	os_config_write_string(NULL, "Language", "" /* DEFAULT_LANGUAGE */);
+	os_config_write_string(NULL, "LastPlayer", "");
+	os_config_write_uint(NULL, "ComputerSpeed", 2);
+	os_config_write_string(NULL, "ExtrasPath", "");
+//	os_config_write_uint(NULL, "LowMem", 0);
+
+	// 'Video' section
+	os_config_write_string("Video", "Renderer", "OpenGL");
+	os_config_write_uint("Video", "AntiAlias", 0);
+	os_config_write_uint("Video", "Fullscreen", 1);
+	os_config_write_string("Video", "Gamma", "1.8");
+	os_config_write_uint("Video", "ShowFPS", 0);
+//	os_config_write_uint("Video", "LowRes", 0);
+//	os_config_write_uint("Video", "PreloadTextures", 1);
+//	os_config_write_uint("Video", "ScaleMovies", 1);
+
+	// 'Audio' section
+	os_config_write_string("Audio", "PlaybackDevice", "");
+	os_config_write_string("Audio", "CaptureDevice", "");
+	os_config_write_uint("Audio", "EFX", 0);
+//	os_config_write_uint("Audio", "LauncherSoundEnabled", 1);
+
+	// 'Controls' section
+	os_config_write_string("Controls", "CurrentJoystick", "");
+	os_config_write_uint("Controls", "EnableJoystickFF", 0);
+	os_config_write_uint("Controls", "EnableHitEffect", 0);
+
+	// 'Network' section
+	os_config_write_string("Network", "NetworkConnection", "LAN");
+	os_config_write_string("Network", "ConnectionSpeed", "Fast");
+	os_config_write_uint("Network", "ForcePort", 0);
+
+	// 'PXO' section
+	os_config_write_string("PXO", "Login", "");
+	os_config_write_string("PXO", "Password", "");
+	os_config_write_string("PXO", "SquadName", "");
+//	os_config_write_uint("PXO", "Banners", 1);
+//	os_config_write_uint("PXO", "SkipVerify", 0);
+
+	// 'Version' section
+	os_config_write_uint("Version", "Major", FS_VERSION_MAJOR);
+	os_config_write_uint("Version", "Minor", FS_VERSION_MINOR);
+	os_config_write_uint("Version", "Build", FS_VERSION_BUILD);
 }

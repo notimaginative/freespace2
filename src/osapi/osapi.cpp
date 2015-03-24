@@ -165,6 +165,7 @@ static int			Os_inited = 0;
 static char			windowTitle[128];
 
 static SDL_mutex *Os_lock;
+static SDL_Window *Os_window = NULL;
 
 int Os_debugger_running = 0;
 
@@ -214,17 +215,17 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 // set the main window title
 void os_set_title( const char *title )
 {
-	extern SDL_Window *GL_window;
-
 	if ( !title ) {
 		return;
 	}
 
-	memset(windowTitle, 0, sizeof(windowTitle));
+	SDL_strlcpy(windowTitle, title, SDL_arraysize(windowTitle));
 
-	SDL_strlcpy(windowTitle, title, sizeof(windowTitle));
+	if ( !Os_window ) {
+		return;
+	}
 
-	SDL_SetWindowTitle(GL_window, title);
+	SDL_SetWindowTitle(Os_window, title);
 }
 
 const char *os_get_title()
@@ -250,12 +251,15 @@ int os_foreground()
 }
 
 // Returns the handle to the main window
-uint os_get_window()
+SDL_Window *os_get_window()
 {
-//	STUB_FUNCTION;	// not used/needed with UNIX builds?
-	return 0;
+	return Os_window;
 }
 
+void os_set_window(SDL_Window *win)
+{
+	Os_window = win;
+}
 
 // process management -----------------------------------------------------------------
 

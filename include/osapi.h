@@ -48,8 +48,9 @@ void os_toggle_fullscreen();
 int os_foreground();
 
 // Returns the handle to the main window
-uint os_get_window();
-
+SDL_Window *os_get_window();
+// Sets the handle to the main window
+void os_set_window(SDL_Window *win);
 
 // process management --------------------------------------------------------------
 

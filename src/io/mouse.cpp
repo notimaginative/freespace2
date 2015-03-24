@@ -419,13 +419,11 @@ void mouse_get_delta(int *dx, int *dy, int *dz)
 		*dz = Mouse_dz;
 }
 
-extern SDL_Window *GL_window;
-
 // Forces the actual windows cursor to be at (x,y).  This may be independent of our tracked (x,y) mouse pos.
 void mouse_force_pos(int x, int y)
 {
 	if (os_foreground()) {  // only mess with windows's mouse if we are in control of it
-		SDL_WarpMouseInWindow(GL_window, x, y);
+		SDL_WarpMouseInWindow(os_get_window(), x, y);
 	}
 }
 
@@ -441,13 +439,13 @@ void mouse_eval_deltas()
 	if (Keep_mouse_centered && Mouse_hidden) {
 		if ( !Mouse_grabbed ) {
 			SDL_SetRelativeMouseMode(SDL_TRUE);
-			SDL_SetWindowGrab(GL_window, SDL_TRUE);
+			SDL_SetWindowGrab(os_get_window(), SDL_TRUE);
 			Mouse_grabbed = true;
 		}
 	} else {
 		if (Mouse_grabbed) {
 			SDL_SetRelativeMouseMode(SDL_FALSE);
-			SDL_SetWindowGrab(GL_window, SDL_FALSE);
+			SDL_SetWindowGrab(os_get_window(), SDL_FALSE);
 			Mouse_grabbed = false;
 		}
 	}

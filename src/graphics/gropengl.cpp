@@ -127,13 +127,22 @@ void gr_opengl_cleanup()
 	opengl1_cleanup();
 
 	opengl_free_render_buffer();
+
+	os_set_window(NULL);
+
+	SDL_GL_DeleteContext(GL_context);
+	GL_context = NULL;
+
+	SDL_DestroyWindow(GL_window);
+	GL_window = NULL;
+
+	OGL_inited = false;
 }
 
 void gr_opengl_init()
 {
 	if ( OGL_inited )	{
 		gr_opengl_cleanup();
-		OGL_inited = false;
 	}
 
 	mprintf(( "Initializing OpenGL graphics device...\n" ));
@@ -167,6 +176,8 @@ void gr_opengl_init()
 	if ( !GL_window ) {
 		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
 	}
+
+	os_set_window(GL_window);
 
 	GL_context = SDL_GL_CreateContext(GL_window);
 

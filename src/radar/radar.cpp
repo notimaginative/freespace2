@@ -786,7 +786,7 @@ void radar_draw_range()
 		break;
 
 	case RR_INFINITY:
-		SDL_snprintf(buf, sizeof(buf), NOX("%c"), Lcl_special_chars);
+		SDL_snprintf(buf, SDL_arraysize(buf), NOX("%c"), Lcl_special_chars);
 		gr_printf(Radar_dist_coords[gr_screen.res][RR_INFINITY][0], Radar_dist_coords[gr_screen.res][RR_INFINITY][1], buf);
 		break;
 

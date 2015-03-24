@@ -1358,14 +1358,14 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 			else {
 				if (Lcl_gr) {
 					char buf[128];
-					SDL_strlcpy(buf, bi->label, sizeof(buf));
-					lcl_translate_brief_icon_name(buf, sizeof(buf));
+					SDL_strlcpy(buf, bi->label, SDL_arraysize(buf));
+					lcl_translate_brief_icon_name(buf, SDL_arraysize(buf));
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else if(Lcl_pl) {
 					char buf[128];
-					SDL_strlcpy(buf, bi->label, sizeof(buf));
-					lcl_translate_brief_icon_name_pl(buf, sizeof(buf));
+					SDL_strlcpy(buf, bi->label, SDL_arraysize(buf));
+					lcl_translate_brief_icon_name_pl(buf, SDL_arraysize(buf));
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else {
@@ -1544,7 +1544,7 @@ void brief_blit_stage_num(int stage_num, int stage_max)
 #else
 	gr_set_color_fast(&Color_text_heading);
 #endif
-	SDL_snprintf(buf, sizeof(buf), XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
 	if (Game_mode & GM_MULTIPLAYER) {
 		gr_printf(Brief_stage_text_coords_multi[gr_screen.res][0], Brief_stage_text_coords_multi[gr_screen.res][1], buf);
 	} else {
@@ -2160,12 +2160,12 @@ void brief_set_new_stage(vector *pos, matrix *orient, int time, int stage_num)
 
 	if (not_objv) {
 		if(Briefing->stages[stage_num].new_text == NULL){
-			SDL_strlcpy(msg, "", sizeof(msg));
+			SDL_strlcpy(msg, "", SDL_arraysize(msg));
 		} else {
-			SDL_strlcpy(msg, Briefing->stages[stage_num].new_text, sizeof(msg));
+			SDL_strlcpy(msg, Briefing->stages[stage_num].new_text, SDL_arraysize(msg));
 		}
 	} else {
-		SDL_strlcpy(msg, XSTR( "Please review your objectives for this mission.", 395), sizeof(msg));
+		SDL_strlcpy(msg, XSTR( "Please review your objectives for this mission.", 395), SDL_arraysize(msg));
 	}
 
 	if (gr_screen.res == GR_640) {

@@ -391,13 +391,13 @@ void stars_init()
 		for(idx=0; idx<MAX_STARFIELD_BITMAPS; idx++){
 			Starfield_bitmaps[idx].bitmap = -1;
 			Starfield_bitmaps[idx].glow_bitmap = -1;
-			SDL_strlcpy(Starfield_bitmaps[idx].filename, "", sizeof(Starfield_bitmaps[0].filename));
-			SDL_strlcpy(Starfield_bitmaps[idx].glow_filename, "", sizeof(Starfield_bitmaps[0].glow_filename));
+			SDL_strlcpy(Starfield_bitmaps[idx].filename, "", SDL_arraysize(Starfield_bitmaps[0].filename));
+			SDL_strlcpy(Starfield_bitmaps[idx].glow_filename, "", SDL_arraysize(Starfield_bitmaps[0].glow_filename));
 
 			Sun_bitmaps[idx].bitmap = -1;
 			Sun_bitmaps[idx].glow_bitmap = -1;
-			SDL_strlcpy(Sun_bitmaps[idx].filename, "", sizeof(Sun_bitmaps[0].filename));
-			SDL_strlcpy(Sun_bitmaps[idx].glow_filename, "", sizeof(Sun_bitmaps[0].glow_filename));
+			SDL_strlcpy(Sun_bitmaps[idx].filename, "", SDL_arraysize(Sun_bitmaps[0].filename));
+			SDL_strlcpy(Sun_bitmaps[idx].glow_filename, "", SDL_arraysize(Sun_bitmaps[0].glow_filename));
 		}
 
 		// starfield bitmaps
@@ -408,7 +408,7 @@ void stars_init()
 				stuff_string(filename, F_NAME, NULL);
 				if(count < MAX_STARFIELD_BITMAPS){
 					bm = &Starfield_bitmaps[count++];
-					SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
+					SDL_strlcpy(bm->filename, filename, SDL_arraysize(bm->filename));
 					bm->xparent = 0;
 					bm->bitmap = bm_load(bm->filename);
 					SDL_assert(bm->bitmap != -1);
@@ -425,7 +425,7 @@ void stars_init()
 				stuff_string(filename, F_NAME, NULL);
 				if(count < MAX_STARFIELD_BITMAPS){
 					bm = &Starfield_bitmaps[count++];
-					SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
+					SDL_strlcpy(bm->filename, filename, SDL_arraysize(bm->filename));
 					bm->xparent = 1;
 					bm->bitmap = bm_load(bm->filename);
 					SDL_assert(bm->bitmap != -1);
@@ -458,8 +458,8 @@ void stars_init()
 
 				if(count < MAX_STARFIELD_BITMAPS){
 					bm = &Sun_bitmaps[count++];
-					SDL_strlcpy(bm->filename, filename, sizeof(bm->filename));
-					SDL_strlcpy(bm->glow_filename, glow_filename, sizeof(bm->glow_filename));
+					SDL_strlcpy(bm->filename, filename, SDL_arraysize(bm->filename));
+					SDL_strlcpy(bm->glow_filename, glow_filename, SDL_arraysize(bm->glow_filename));
 					bm->xparent = 1;
 					bm->bitmap = bm_load(bm->filename);
 					bm->glow_bitmap = bm_load(bm->glow_filename);
@@ -492,7 +492,7 @@ void stars_init()
 			stuff_string(filename, F_NAME, NULL);
 
 			if(count < MAX_DEBRIS_VCLIPS){
-				SDL_strlcpy(debris_vclips_normal[count++].name, filename, sizeof(debris_vclips_normal[0].name));
+				SDL_strlcpy(debris_vclips_normal[count++].name, filename, SDL_arraysize(debris_vclips_normal[0].name));
 			}
 		}
 		SDL_assert(count == 4);
@@ -504,7 +504,7 @@ void stars_init()
 			stuff_string(filename, F_NAME, NULL);
 
 			if(count < MAX_DEBRIS_VCLIPS){
-				SDL_strlcpy(debris_vclips_nebula[count++].name, filename, sizeof(debris_vclips_nebula[0].name));
+				SDL_strlcpy(debris_vclips_nebula[count++].name, filename, SDL_arraysize(debris_vclips_nebula[0].name));
 			}
 		}
 
@@ -521,21 +521,21 @@ void stars_init()
 	for (idx=0; idx<MAX_STARFIELD_BITMAPS; idx++) {
 		Starfield_bitmaps[idx].bitmap = -1;
 		Starfield_bitmaps[idx].glow_bitmap = -1;		
-		SDL_strlcpy(Starfield_bitmaps[idx].filename, "", sizeof(Starfield_bitmaps[0].filename));
-		SDL_strlcpy(Starfield_bitmaps[idx].glow_filename, "", sizeof(Starfield_bitmaps[0].glow_filename));
+		SDL_strlcpy(Starfield_bitmaps[idx].filename, "", SDL_arraysize(Starfield_bitmaps[0].filename));
+		SDL_strlcpy(Starfield_bitmaps[idx].glow_filename, "", SDL_arraysize(Starfield_bitmaps[0].glow_filename));
 		
 		Sun_bitmaps[idx].bitmap = -1;		
 		Sun_bitmaps[idx].glow_bitmap = -1;		
-		SDL_strlcpy(Sun_bitmaps[idx].filename, "", sizeof(Sun_bitmaps[0].filename));
-		SDL_strlcpy(Sun_bitmaps[idx].glow_filename, "", sizeof(Sun_bitmaps[0].glow_filename));
+		SDL_strlcpy(Sun_bitmaps[idx].filename, "", SDL_arraysize(Sun_bitmaps[0].filename));
+		SDL_strlcpy(Sun_bitmaps[idx].glow_filename, "", SDL_arraysize(Sun_bitmaps[0].glow_filename));
 	}
 
 	// the sun
 	count = 0;
 	bm = &Sun_bitmaps[count++];
 
-	SDL_strlcpy(bm->filename, "Sun01", sizeof(bm->filename));
-	SDL_strlcpy(bm->glow_filename, "Sunglow01", sizeof(bm->glow_filename));
+	SDL_strlcpy(bm->filename, "Sun01", SDL_arraysize(bm->filename));
+	SDL_strlcpy(bm->glow_filename, "Sunglow01", SDL_arraysize(bm->glow_filename));
 	bm->xparent = 1;
 	bm->bitmap = bm_load(bm->filename);
 	bm->glow_bitmap = bm_load(bm->glow_filename);
@@ -602,7 +602,7 @@ void stars_level_init()
 		mprintf(("Adding default sun\n"));
 		
 		// stuff some values
-		SDL_strlcpy(Suns[0].filename, Sun_bitmaps[0].filename, sizeof(Suns[0].filename));
+		SDL_strlcpy(Suns[0].filename, Sun_bitmaps[0].filename, SDL_arraysize(Suns[0].filename));
 		Suns[0].scale_x = 1.0f;
 		Suns[0].scale_y = 1.0f;
 		Suns[0].div_x = 1;

@@ -784,31 +784,31 @@ void blit_label(char *label, int *coords, int num)
 	// translate medal names before displaying
 	// cant translate in table cuz the names are used in comparisons
 	if (Lcl_gr) {
-		SDL_strlcpy(translated_label, label, sizeof(translated_label));
-		medals_translate_name(translated_label, sizeof(translated_label));
+		SDL_strlcpy(translated_label, label, SDL_arraysize(translated_label));
+		medals_translate_name(translated_label, SDL_arraysize(translated_label));
 
 		// set correct string
 		if ( num > 1 ) {
-			SDL_snprintf( text, sizeof(text), NOX("%s (%d)"), translated_label, num );
+			SDL_snprintf( text, SDL_arraysize(text), NOX("%s (%d)"), translated_label, num );
 		} else {
-			SDL_snprintf( text, sizeof(text), "%s", translated_label );
+			SDL_snprintf( text, SDL_arraysize(text), "%s", translated_label );
 		}
 	} else if(Lcl_pl) {
-		SDL_strlcpy(translated_label, label, sizeof(translated_label));
-		medals_translate_name_pl(translated_label, sizeof(translated_label));
+		SDL_strlcpy(translated_label, label, SDL_arraysize(translated_label));
+		medals_translate_name_pl(translated_label, SDL_arraysize(translated_label));
 
 		// set correct string
 		if ( num > 1 ) {
-			SDL_snprintf( text, sizeof(text), NOX("%s (%d)"), translated_label, num );
+			SDL_snprintf( text, SDL_arraysize(text), NOX("%s (%d)"), translated_label, num );
 		} else {
-			SDL_snprintf( text, sizeof(text), "%s", translated_label );
+			SDL_snprintf( text, SDL_arraysize(text), "%s", translated_label );
 		}
 	} else {
 		// set correct string
 		if ( num > 1 ) {
-			SDL_snprintf( text, sizeof(text), NOX("%s (%d)"), label, num );
+			SDL_snprintf( text, SDL_arraysize(text), NOX("%s (%d)"), label, num );
 		} else {
-			SDL_snprintf( text, sizeof(text), "%s", label );
+			SDL_snprintf( text, SDL_arraysize(text), "%s", label );
 		}
 	}
 
@@ -971,9 +971,9 @@ void init_medal_bitmaps()
 			// possibly load a different filename that is specified by the bitmap filename
 			// for this medal.  if the player has > 1 of these types of medals, then determien
 			// which of the possible version to use based on the player's count of this medal
-			SDL_strlcpy( filename, Medals[idx].bitmap, sizeof(filename) );
+			SDL_strlcpy( filename, Medals[idx].bitmap, SDL_arraysize(filename) );
 
-			base_filename(filename, base, sizeof(base));
+			base_filename(filename, base, SDL_arraysize(base));
 
 			num_medals = Player_score->medals[idx];
 
@@ -984,12 +984,12 @@ void init_medal_bitmaps()
 			if ( num_medals > 1 ) {
 				// append the proper character onto the end of the medal filename.  Base version
 				// has no character. next version is a, then b, etc.
-				SDL_snprintf( base, sizeof(base), "%s%c", base, (num_medals-2)+'a');
+				SDL_snprintf( base, SDL_arraysize(base), "%s%c", base, (num_medals-2)+'a');
 			}
 	
 			// hi-res support
 			if (gr_screen.res == GR_1024) {
-				SDL_snprintf( filename, sizeof(filename), "2_%s", base );
+				SDL_snprintf( filename, SDL_arraysize(filename), "2_%s", base );
 			}
 
 			// base now contains the actual medal bitmap filename needed to load
@@ -1003,7 +1003,7 @@ void init_medal_bitmaps()
 	// load up rank insignia
 	if (gr_screen.res == GR_1024) {
 		char filename[NAME_LENGTH];
-		SDL_snprintf(filename, sizeof(filename), "2_%s", Ranks[Player_score->rank].bitmap);
+		SDL_snprintf(filename, SDL_arraysize(filename), "2_%s", Ranks[Player_score->rank].bitmap);
 		Rank_bm = bm_load(filename);
 	} else {
 		Rank_bm = bm_load(Ranks[Player_score->rank].bitmap);

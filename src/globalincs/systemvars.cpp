@@ -428,7 +428,7 @@ DCF(monitor,"Monitors game performace")
 			} else {
 				Monitor_inited = 1;
 
-				SDL_strlcpy( Monitor_filename, Dc_arg, sizeof(Monitor_filename) );
+				SDL_strlcpy( Monitor_filename, Dc_arg, SDL_arraysize(Monitor_filename) );
 
 				// Reset them all
 				int i;

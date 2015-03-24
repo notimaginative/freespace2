@@ -1557,7 +1557,7 @@ void brief_render(float frametime)
 #endif
 	if (Game_mode & GM_MULTIPLAYER) {
 		char buf[256];
-		SDL_strlcpy(buf, The_mission.name, sizeof(buf));
+		SDL_strlcpy(buf, The_mission.name, SDL_arraysize(buf));
 		gr_force_fit_string(buf, 255, Title_coords_multi[gr_screen.res][2]);
 #ifdef MAKE_FS1
 		// align from the end of the string instead of the beginning
@@ -1653,23 +1653,23 @@ int brief_setup_closeup(brief_icon *bi)
 		break;
 	case ICON_ASTEROID_FIELD:
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
-		SDL_strlcpy(pof_filename, Asteroid_info[ASTEROID_TYPE_BIG].pof_files[0], sizeof(pof_filename));
-		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "asteroid", 431), sizeof(Closeup_icon->closeup_label));
+		SDL_strlcpy(pof_filename, Asteroid_info[ASTEROID_TYPE_BIG].pof_files[0], SDL_arraysize(pof_filename));
+		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "asteroid", 431), SDL_arraysize(Closeup_icon->closeup_label));
 		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -334.0f);
 		Closeup_zoom = 0.5f;
 #endif
 		break;
 	case ICON_JUMP_NODE:
-		SDL_strlcpy(pof_filename, NOX("subspacenode.pof"), sizeof(pof_filename));
-		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "jump node", 432), sizeof(Closeup_icon->closeup_label));
+		SDL_strlcpy(pof_filename, NOX("subspacenode.pof"), SDL_arraysize(pof_filename));
+		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "jump node", 432), SDL_arraysize(Closeup_icon->closeup_label));
 		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -2700.0f);
 		Closeup_zoom = 0.5f;
 		Closeup_one_revolution_time = ONE_REV_TIME * 3;
 		break;
 	case ICON_UNKNOWN:
 	case ICON_UNKNOWN_WING:
-		SDL_strlcpy(pof_filename, NOX("unknownship.pof"), sizeof(pof_filename));
-		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "unknown", 433), sizeof(Closeup_icon->closeup_label));
+		SDL_strlcpy(pof_filename, NOX("unknownship.pof"), SDL_arraysize(pof_filename));
+		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "unknown", 433), SDL_arraysize(Closeup_icon->closeup_label));
 		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -22.0f);
 		Closeup_zoom = 0.5f;
 		break;
@@ -1678,7 +1678,7 @@ int brief_setup_closeup(brief_icon *bi)
 		SDL_assert( Closeup_icon->ship_class != -1 );
 		sip = &Ship_info[Closeup_icon->ship_class];
 
-		SDL_strlcpy(Closeup_icon->closeup_label,sip->name, sizeof(Closeup_icon->closeup_label));
+		SDL_strlcpy(Closeup_icon->closeup_label,sip->name, SDL_arraysize(Closeup_icon->closeup_label));
 
 		// cut any text off after (and including) '#' char
 		brief_truncate_label(Closeup_icon->closeup_label);

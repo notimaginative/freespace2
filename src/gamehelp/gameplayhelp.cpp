@@ -292,20 +292,20 @@ void gameplay_help_blit_control_line(int x, int y, int id)
 	buf[0] = 0;
 
 	if ( ci->key_id >= 0 ) {
-		SDL_strlcpy(buf, textify_scancode(ci->key_id), sizeof(buf));
+		SDL_strlcpy(buf, textify_scancode(ci->key_id), SDL_arraysize(buf));
 		has_key=1;
 	}
 
 	if ( ci->joy_id >= 0 ) {
 		if ( has_key ) {
-			SDL_strlcat(buf, XSTR( ", ", 129), sizeof(buf));
+			SDL_strlcat(buf, XSTR( ", ", 129), SDL_arraysize(buf));
 		}
-		SDL_strlcat(buf, Joy_button_text[ci->joy_id], sizeof(buf));
+		SDL_strlcat(buf, Joy_button_text[ci->joy_id], SDL_arraysize(buf));
 		has_joy=1;
 	}
 
 	if ( !has_key && !has_joy ) {
-		SDL_strlcpy(buf, XSTR( "no binding", 130), sizeof(buf));
+		SDL_strlcpy(buf, XSTR( "no binding", 130), SDL_arraysize(buf));
 	}
 
 	gr_string(x,y,buf);
@@ -329,7 +329,7 @@ void gameplay_help_set_title(const char *title)
 
 	gr_set_color_fast(&Color_bright);
 	gr_printf(0x8000,sy,title);
-	SDL_snprintf(buf, sizeof(buf), XSTR( "Page %d of %d", 132),  Current_help_page+1, Gp_last_screen+1);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "Page %d of %d", 132),  Current_help_page+1, Gp_last_screen+1);
 	gr_printf(0x8000,sy+gr_get_font_height()+2,buf);
 	gr_set_color_fast(&Color_normal);
 }

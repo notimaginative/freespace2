@@ -445,14 +445,14 @@ void training_obj_display()
 
 		c = &Color_normal;
 		if (Training_obj_lines[i + offset] & TRAINING_OBJ_LINES_KEY) {
-			message_translate_tokens(buf, sizeof(buf), Mission_events[z].objective_key_text);  // remap keys
+			message_translate_tokens(buf, SDL_arraysize(buf), Mission_events[z].objective_key_text);  // remap keys
 //			gr_set_color_fast(&Color_normal);
 			c = &Color_bright_green;
 		} else {
-			SDL_strlcpy(buf, Mission_events[z].objective_text, sizeof(buf));
+			SDL_strlcpy(buf, Mission_events[z].objective_text, SDL_arraysize(buf));
 			if (Mission_events[z].count){
 				int len = strlen(buf);
-				SDL_snprintf(buf + len, sizeof(buf) - len, NOX(" [%d]"), Mission_events[z].count);
+				SDL_snprintf(buf + len, SDL_arraysize(buf) - len, NOX(" [%d]"), Mission_events[z].count);
 			}
 
 			// if this is a multiplayer tvt game, and this is event is not for my team, don't display it
@@ -856,7 +856,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 
 			len = min(toke1 - text + 1, max_buflen);
 			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
-			ptr = translate_msg_token(temp, sizeof(temp));  // try and translate key
+			ptr = translate_msg_token(temp, SDL_arraysize(temp));  // try and translate key
 			if (ptr) {  // was key translated properly?
 				buf--;  // erase the #
 				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
@@ -935,7 +935,7 @@ int message_play_training_voice(int index)
 		} else {
 			game_snd tmp_gs;
 			memset(&tmp_gs, 0, sizeof(game_snd));
-			SDL_strlcpy(tmp_gs.filename, Message_waves[index].name, sizeof(tmp_gs.filename));
+			SDL_strlcpy(tmp_gs.filename, Message_waves[index].name, SDL_arraysize(tmp_gs.filename));
 			Message_waves[index].num = snd_load(&tmp_gs);
 			if (Message_waves[index].num < 0) {
 				nprintf(("Warning", "Cannot load message wave: %s.  Will not play\n", Message_waves[index].name));
@@ -973,9 +973,9 @@ void message_training_setup(int m, int length)
 		return;
 	}
 
-	message_translate_tokens(Training_buf, sizeof(Training_buf), Messages[m].message);
+	message_translate_tokens(Training_buf, SDL_arraysize(Training_buf), Messages[m].message);
 	HUD_add_to_scrollback(Training_buf, HUD_SOURCE_TRAINING);
-	SDL_strlcpy(Training_text, Messages[m].message, sizeof(Training_text));
+	SDL_strlcpy(Training_text, Messages[m].message, SDL_arraysize(Training_text));
 
 	if (message_play_training_voice(Messages[m].wave_info.index) < 0) {
 		if (length > 0)
@@ -1077,7 +1077,7 @@ void message_training_display()
 		return;
 	}
 
-	message_translate_tokens(Training_buf, sizeof(Training_buf), Training_text);
+	message_translate_tokens(Training_buf, SDL_arraysize(Training_buf), Training_text);
 	training_process_msg(Training_text);
 	Training_num_lines = split_str(Training_buf, TRAINING_LINE_WIDTH, Training_line_sizes, Training_lines, MAX_TRAINING_MSG_LINES);
 	SDL_assert(Training_num_lines > 0);
@@ -1157,7 +1157,7 @@ void training_process_msg(char *msg)
 	int count;
 	char *src, *dest, buf[8192];
 
-	message_translate_tokens(buf, sizeof(buf), msg);
+	message_translate_tokens(buf, SDL_arraysize(buf), msg);
 	count = 0;
 	src = buf;
 	dest = Training_buf;

@@ -729,9 +729,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			SDL_snprintf(buf, sizeof(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			SDL_snprintf(buf, sizeof(buf), NOX("CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("CrIm%.2d"), Credits_artwork_index);
 		}
 		Credits_bmps[Credits_artwork_index] = bm_load(buf);
 	}
@@ -740,9 +740,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			SDL_snprintf(buf, sizeof(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			SDL_snprintf(buf, sizeof(buf), NOX("CrIm%.2d"), next);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("CrIm%.2d"), next);
 		}
 		Credits_bmps[next] = bm_load(buf);
 	}

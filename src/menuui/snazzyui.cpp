@@ -357,7 +357,7 @@ void snazzy_menu_add_region(MENU_REGION* region, const char* text, int mask, int
 {
 	region->mask = mask;
 	region->key = key;
-	SDL_strlcpy(region->text, text, sizeof(region->text));
+	SDL_strlcpy(region->text, text, SDL_arraysize(region->text));
 	region->click_sound = click_sound;
 }
  
@@ -433,7 +433,7 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, const int max_bkg_
 					return;
 				}
 				*p2 = 0;
-				SDL_strlcpy(regions[*num_regions].text, ++p1, sizeof(regions[0].text));
+				SDL_strlcpy(regions[*num_regions].text, ++p1, SDL_arraysize(regions[0].text));
 				p2++;
 
 				// get the tokens mask number

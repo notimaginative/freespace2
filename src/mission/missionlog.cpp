@@ -409,15 +409,15 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 	entry->type = type;
 	if ( pname ) {
 		SDL_assert (strlen(pname) < NAME_LENGTH);
-		SDL_strlcpy(entry->pname, pname, sizeof(entry->pname));
+		SDL_strlcpy(entry->pname, pname, SDL_arraysize(entry->pname));
 	} else
-		SDL_strlcpy( entry->pname, EMPTY_LOG_NAME, sizeof(entry->pname) );
+		SDL_strlcpy( entry->pname, EMPTY_LOG_NAME, SDL_arraysize(entry->pname) );
 
 	if ( sname ) {
 		SDL_assert (strlen(sname) < NAME_LENGTH);
-		SDL_strlcpy(entry->sname, sname, sizeof(entry->sname));
+		SDL_strlcpy(entry->sname, sname, SDL_arraysize(entry->sname));
 	} else
-		SDL_strlcpy( entry->sname, EMPTY_LOG_NAME, sizeof(entry->sname) );
+		SDL_strlcpy( entry->sname, EMPTY_LOG_NAME, SDL_arraysize(entry->sname) );
 
 	entry->index = info_index;
 	entry->flags = 0;
@@ -603,11 +603,11 @@ void mission_log_add_entry_multi( int type, const char *pname, const char *sname
 	entry->type = type;
 	if ( pname ) {
 		SDL_assert (strlen(pname) < NAME_LENGTH);
-		SDL_strlcpy(entry->pname, pname, sizeof(entry->pname));
+		SDL_strlcpy(entry->pname, pname, SDL_arraysize(entry->pname));
 	}
 	if ( sname ) {
 		SDL_assert (strlen(sname) < NAME_LENGTH);
-		SDL_strlcpy(entry->sname, sname, sizeof(entry->sname));
+		SDL_strlcpy(entry->sname, sname, SDL_arraysize(entry->sname));
 	}
 	entry->index = index;
 
@@ -818,7 +818,7 @@ void message_log_init_scrollback(int pw)
 					message_log_add_segs(XSTR( "  Kill: ", 405), LOG_COLOR_NORMAL);
 					message_log_add_segs(entry->sname, c);
 					if (entry->index >= 0) {
-						SDL_snprintf(text, sizeof(text), NOX(" (%d%%)"), entry->index);
+						SDL_snprintf(text, SDL_arraysize(text), NOX(" (%d%%)"), entry->index);
 						message_log_add_segs(text, LOG_COLOR_BRIGHT);
 					}
 				}
@@ -838,9 +838,9 @@ void message_log_init_scrollback(int pw)
 
 			case LOG_WING_ARRIVE:
 				if (entry->index > 1){
-					SDL_snprintf(text, sizeof(text), XSTR( "Arrived (wave %d)", 407), entry->index);
+					SDL_snprintf(text, SDL_arraysize(text), XSTR( "Arrived (wave %d)", 407), entry->index);
 				} else {
-					SDL_strlcpy(text, XSTR( "Arrived", 406), sizeof(text));
+					SDL_strlcpy(text, XSTR( "Arrived", 406), SDL_arraysize(text));
 				}
 				message_log_add_segs(text, LOG_COLOR_NORMAL);
 				break;
@@ -924,11 +924,11 @@ void message_log_init_scrollback(int pw)
 					break;  // don't display this line
 				}
 
-				SDL_snprintf( text, sizeof(text), XSTR( "%s objective ", 419), Goal_type_text(type) );
+				SDL_snprintf( text, SDL_arraysize(text), XSTR( "%s objective ", 419), Goal_type_text(type) );
 				if ( entry->type == LOG_GOAL_SATISFIED )
-					SDL_strlcat(text, XSTR( "satisfied.", 420), sizeof(text));
+					SDL_strlcat(text, XSTR( "satisfied.", 420), SDL_arraysize(text));
 				else
-					SDL_strlcat(text, XSTR( "failed.", 421), sizeof(text));
+					SDL_strlcat(text, XSTR( "failed.", 421), SDL_arraysize(text));
 
 				message_log_add_segs(text, LOG_COLOR_BRIGHT, (entry->type == LOG_GOAL_SATISFIED?LOG_FLAG_GOAL_TRUE:LOG_FLAG_GOAL_FAILED) );
 				break;
@@ -998,7 +998,7 @@ void mission_log_scrollback(int line, int list_x, int list_y, int list_w, int li
 					break;
 			}
 
-			SDL_strlcpy(buf, seg->text, sizeof(buf));
+			SDL_strlcpy(buf, seg->text, SDL_arraysize(buf));
 			if (seg->x < ACTION_X)
 				gr_force_fit_string(buf, 256, ACTION_X - OBJECT_X - 8);
 			else

@@ -628,7 +628,7 @@ void hud_escort_show_icon(int index, object *objp)
 	}
 
 	// print out ship name
-	SDL_strlcpy(buf, sp->ship_name, sizeof(buf));
+	SDL_strlcpy(buf, sp->ship_name, SDL_arraysize(buf));
 	gr_force_fit_string(buf, 255, 100);	
 	
 	emp_hud_string( Escort_gauge_text_coords[gr_screen.res][index][0][0], Escort_gauge_text_coords[gr_screen.res][index][0][1], EG_ESCORT1 + index, buf);	
@@ -669,7 +669,7 @@ void hud_escort_show_icon_dogfight(int index)
 	}
 	
 	// print out player name
-	SDL_strlcpy(buf, Net_players[np_index].player->callsign, sizeof(buf));
+	SDL_strlcpy(buf, Net_players[np_index].player->callsign, SDL_arraysize(buf));
 	gr_force_fit_string(buf, 255, 100 - stat_shift);
 	emp_hud_string( Escort_gauge_text_coords[gr_screen.res][index][0][0], Escort_gauge_text_coords[gr_screen.res][index][0][1], EG_ESCORT1 + index, buf);	
 

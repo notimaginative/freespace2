@@ -249,19 +249,19 @@ int UI_GADGET::set_bmaps(const char *ani_fname, int nframes, int start_frame)
 	// searching and therefore loading
 	for(idx=start_frame; idx<nframes; idx++){
 		// clear the string
-		SDL_strlcpy(full_name, "", sizeof(full_name));
+		SDL_strlcpy(full_name, "", SDL_arraysize(full_name));
 
 		// get the # of digits for this index
 		num_digits = (idx < 10) ? 1 : (idx < 100) ? 2 : (idx < 1000) ? 3 : 4;
 
 		// build the actual filename
-		SDL_strlcpy(full_name, ani_fname, sizeof(full_name));
+		SDL_strlcpy(full_name, ani_fname, SDL_arraysize(full_name));
 		for(s_idx=0; s_idx<(4-num_digits); s_idx++){
-			SDL_strlcat(full_name, NOX("0"), sizeof(full_name));
+			SDL_strlcat(full_name, NOX("0"), SDL_arraysize(full_name));
 		}
 
-		SDL_snprintf(tmp, sizeof(tmp), "%d", idx);
-		SDL_strlcat(full_name, tmp, sizeof(full_name));
+		SDL_snprintf(tmp, SDL_arraysize(tmp), "%d", idx);
+		SDL_strlcat(full_name, tmp, SDL_arraysize(full_name));
 
 		// try and load the bitmap				
 		bmap_ids[idx] = bm_load(full_name);	

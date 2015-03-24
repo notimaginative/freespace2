@@ -605,7 +605,7 @@ void gr_set_palette( const char *name, ubyte * palette, int restrict_font_to_128
 {
 	char *p;
 	palette_flush();
-	SDL_strlcpy( Gr_current_palette_name, name, sizeof(Gr_current_palette_name) );
+	SDL_strlcpy( Gr_current_palette_name, name, SDL_arraysize(Gr_current_palette_name) );
 	p = SDL_strchr( Gr_current_palette_name, '.' );
 	if ( p ) *p = 0;
 	gr_screen.signature = Gr_signature++;
@@ -636,7 +636,7 @@ void gr_set_gamma(float gamma)
 
 	// save new value to cfg file
 	char tmp_gamma_string[10];
-	SDL_snprintf( tmp_gamma_string, sizeof(tmp_gamma_string), "%.2f", gamma);
+	SDL_snprintf( tmp_gamma_string, SDL_arraysize(tmp_gamma_string), "%.2f", gamma);
 	os_config_write_string("Video", "Gamma", tmp_gamma_string);
 
 	// call renderer specific functionality, if needed

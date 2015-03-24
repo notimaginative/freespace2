@@ -645,7 +645,7 @@ void chatbox_set_mode(int mode_flags)
 	// set up the display/init variables based upon what mode we chode
 	switch(size){
 	case 0:		
-		SDL_strlcpy(Chatbox_mask, Chatbox_small_bitmap_mask_fname[gr_screen.res], sizeof(Chatbox_mask));
+		SDL_strlcpy(Chatbox_mask, Chatbox_small_bitmap_mask_fname[gr_screen.res], SDL_arraysize(Chatbox_mask));
 		Chatbox_x1 = Chatbox_small_coords[gr_screen.res][CHATBOX_X_COORD];
 		Chatbox_y1 = Chatbox_small_coords[gr_screen.res][CHATBOX_Y_COORD];		
 		Chatbox_icon_x = Chatbox_small_display_coords[gr_screen.res][CHATBOX_X_COORD] - CHATBOX_TEAM_ICON_SPACE;
@@ -661,7 +661,7 @@ void chatbox_set_mode(int mode_flags)
 		break;
 
 	case 1:		
-		SDL_strlcpy(Chatbox_mask, Chatbox_big_bitmap_mask_fname[gr_screen.res], sizeof(Chatbox_mask));
+		SDL_strlcpy(Chatbox_mask, Chatbox_big_bitmap_mask_fname[gr_screen.res], SDL_arraysize(Chatbox_mask));
 		Chatbox_x1 = Chatbox_big_coords[gr_screen.res][CHATBOX_X_COORD];
 		Chatbox_y1 = Chatbox_big_coords[gr_screen.res][CHATBOX_Y_COORD];		
 		Chatbox_icon_x = Chatbox_big_display_coords[gr_screen.res][CHATBOX_X_COORD] - CHATBOX_TEAM_ICON_SPACE;
@@ -1030,12 +1030,12 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	// maybe stick on who sent the message	
 	if(add_id){
 		if(MULTI_STANDALONE(Net_players[pid])){
-			SDL_snprintf(msg_extra, sizeof(msg_extra), NOX("%s %s"), NOX("<SERVER>"), msg );
+			SDL_snprintf(msg_extra, SDL_arraysize(msg_extra), NOX("%s %s"), NOX("<SERVER>"), msg );
 		} else {
-			SDL_snprintf(msg_extra, sizeof(msg_extra), NOX("%s: %s"), Net_players[pid].player->short_callsign, msg );
+			SDL_snprintf(msg_extra, SDL_arraysize(msg_extra), NOX("%s: %s"), Net_players[pid].player->short_callsign, msg );
 		}
 	} else {
-		SDL_strlcpy(msg_extra, msg, sizeof(msg_extra));
+		SDL_strlcpy(msg_extra, msg, SDL_arraysize(msg_extra));
 	}	
 	SDL_assert(strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
 

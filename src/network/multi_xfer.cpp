@@ -416,7 +416,7 @@ int multi_xfer_send_file(PSNET_SOCKET_RELIABLE who, char *filename, int cfile_fl
 	memset(&temp_entry,0,sizeof(xfer_entry));
 
 	// set the filename
-	SDL_strlcpy(temp_entry.filename, filename, sizeof(temp_entry.filename));
+	SDL_strlcpy(temp_entry.filename, filename, SDL_arraysize(temp_entry.filename));
 
 	// attempt to open the file
 	temp_entry.file = NULL;
@@ -1128,11 +1128,11 @@ void multi_xfer_process_header(ubyte *data, PSNET_SOCKET_RELIABLE who, ushort si
 	xe->sig = sig;
 
 	// copy the filename and get the prefixed xfer filename
-	SDL_strlcpy(xe->filename, filename, sizeof(xe->filename));
+	SDL_strlcpy(xe->filename, filename, SDL_arraysize(xe->filename));
 	// lower case all filenames to avoid case issues
 	SDL_strlwr(xe->filename);
 
-	multi_xfer_conv_prefix(xe->filename, xe->ex_filename, sizeof(xe->ex_filename));
+	multi_xfer_conv_prefix(xe->filename, xe->ex_filename, SDL_arraysize(xe->ex_filename));
 #ifdef MULTI_XFER_VERBOSE
 	nprintf(("Network","MULTI XFER : converted filename %s to %s\n",xe->filename, xe->ex_filename));
 #endif
@@ -1345,10 +1345,10 @@ void multi_xfer_conv_prefix(char *filename, char *ex_filename, const int max_len
 	memset(temp, 0, MAX_FILENAME_LEN+50);
 
 	// copy in the prefix
-	SDL_strlcpy(temp, MULTI_XFER_FNAME_PREFIX, sizeof(temp));
+	SDL_strlcpy(temp, MULTI_XFER_FNAME_PREFIX, SDL_arraysize(temp));
 
 	// stick on the original name
-	SDL_strlcat(temp, filename, sizeof(temp));
+	SDL_strlcat(temp, filename, SDL_arraysize(temp));
 
 	// copy the whole thing to the outgoing filename
 	SDL_strlcpy(ex_filename, temp, max_len);

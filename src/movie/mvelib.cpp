@@ -82,7 +82,7 @@ MVEFILE *mvefile_open(const char *filename)
 		char upper_name[MAX_FILENAME_LEN];
 
 		// upper case filename for checking
-		SDL_strlcpy(upper_name, filename, sizeof(upper_name));
+		SDL_strlcpy(upper_name, filename, SDL_arraysize(upper_name));
 		SDL_strupr(upper_name);
 
 		file->stream = cfopen(upper_name, "rb", CFILE_NORMAL, CF_TYPE_ANY);

@@ -262,7 +262,7 @@ void scanner_downshift_word()
 	int offset = 'a' - 'A';
 	char * tp;
 
-	SDL_strlcpy( scanner_word_string, scanner_token_string, sizeof(scanner_word_string) );
+	SDL_strlcpy( scanner_word_string, scanner_token_string, SDL_arraysize(scanner_word_string) );
 	
 	tp = scanner_word_string;
 	do {
@@ -618,7 +618,7 @@ void dc_printf(const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
 	char *p = tmp;
@@ -682,7 +682,7 @@ void debug_console( void (*_func)() )
 
 		case SDLK_F3:
 			if ( last_oldcommand > -1 )	{
-				SDL_strlcpy( command_line, oldcommand_line[last_oldcommand], sizeof(command_line) );
+				SDL_strlcpy( command_line, oldcommand_line[last_oldcommand], SDL_arraysize(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
@@ -694,7 +694,7 @@ void debug_console( void (*_func)() )
 				command_scroll = last_oldcommand;
 
 			if ( command_scroll > -1 )	{
-				SDL_strlcpy( command_line, oldcommand_line[command_scroll], sizeof(command_line) );
+				SDL_strlcpy( command_line, oldcommand_line[command_scroll], SDL_arraysize(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
@@ -707,7 +707,7 @@ void debug_console( void (*_func)() )
 			if (command_scroll>last_oldcommand) 
 				command_scroll = -1;
 			if ( command_scroll > -1 )	{
-				SDL_strlcpy( command_line, oldcommand_line[command_scroll], sizeof(command_line) );
+				SDL_strlcpy( command_line, oldcommand_line[command_scroll], SDL_arraysize(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
@@ -728,13 +728,13 @@ void debug_console( void (*_func)() )
 			if ( !found )	{
 				if ( last_oldcommand < DEBUG_HISTORY-1 )	{
 					last_oldcommand++;
-					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, sizeof(oldcommand_line[0]) );
+					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, SDL_arraysize(oldcommand_line[0]) );
 				} else {
 					int i;
 					for (i=0; i<last_oldcommand; i++ )	{
-						SDL_strlcpy( oldcommand_line[i], oldcommand_line[i+1], sizeof(oldcommand_line[0]) );
+						SDL_strlcpy( oldcommand_line[i], oldcommand_line[i+1], SDL_arraysize(oldcommand_line[0]) );
 					}
-					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, sizeof(oldcommand_line[0]) );
+					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, SDL_arraysize(oldcommand_line[0]) );
 				}
 			}
 //			int i;

@@ -339,7 +339,7 @@ static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 	char buffer[1024] = { 0 };
 	char *dest = buffer;
 
-	while ((*cmdline != 0) && (*cmdline != '-') && ((size_t)(dest-buffer) < sizeof(buffer))) {
+	while ((*cmdline != 0) && (*cmdline != '-') && ((size_t)(dest-buffer) < SDL_arraysize(buffer))) {
 		*dest++ = *cmdline++;
 	}
 
@@ -380,14 +380,14 @@ static void os_parse_parms(char *cmdline)
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		// check with space to make sure we get the correct option name
-		SDL_snprintf(pname, sizeof(pname)-1, "%s ", parmp->name);
+		SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name);
 		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
 			cmdline_offset += strlen(parmp->name);
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
-			SDL_snprintf(pname, sizeof(pname)-1, "%s ", parmp->name2);
+			SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name2);
 			cmdline_offset = strstr(cmdline, pname);
 
 			if (cmdline_offset) {
@@ -523,13 +523,13 @@ static void os_init_cmdline(const char *cmdline)
 
 	mprintf(("Command line: "));
 
-	SDL_snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	SDL_snprintf(cmdname, SDL_arraysize(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen (cmdname, "rt");
 
 	if ( !fp ) {
 		// if not already found check exec directory
-		SDL_snprintf(cmdname, sizeof(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+		SDL_snprintf(cmdname, SDL_arraysize(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 		fp = fopen (cmdname, "rt");
 	}
@@ -538,7 +538,7 @@ static void os_init_cmdline(const char *cmdline)
 	if ( fp ) {
 		char buf[1024] = { 0 }, *p;
 
-		while (fgets(buf, sizeof(buf), fp) != NULL) {
+		while (fgets(buf, SDL_arraysize(buf), fp) != NULL) {
 			// replace the newline character with a NUL:
 			if ( (p = strrchr(buf, '\n')) != NULL ) {
 				*p = '\0';
@@ -546,7 +546,7 @@ static void os_init_cmdline(const char *cmdline)
 
 			// make sure that we have a trailing space for option finding to
 			// work properly with single args
-			SDL_strlcat(buf, " ", sizeof(buf));
+			SDL_strlcat(buf, " ", SDL_arraysize(buf));
 
 			mprintf(("%s", buf));
 

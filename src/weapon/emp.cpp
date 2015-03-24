@@ -517,7 +517,7 @@ void emp_hud_string(int x, int y, int gauge_id, const char *str)
 	char tmp[256] = "";
 
 	// copy the string
-	SDL_strlcpy(tmp, str, sizeof(tmp));
+	SDL_strlcpy(tmp, str, SDL_arraysize(tmp));
 
 	// if the emp effect is not active, don't even bother messing with the text
 	if(emp_active_local()){
@@ -539,7 +539,7 @@ void emp_hud_printf(int x, int y, int gauge_id, const char *format, ...)
 	
 	// format the text
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 	
 	// if the emp effect is not active, don't even bother messing with the text
@@ -586,7 +586,7 @@ void emp_maybe_reformat_text(char *text, const int max_len, int gauge_id)
 		case EG_WEAPON_TITLE: case EG_WEAPON_P1: case EG_WEAPON_P2: case EG_WEAPON_P3: case EG_WEAPON_S1: case EG_WEAPON_S2:			
 			int wep_index;
 			wep_index = (int)frand_range(0.0f, (float)(MAX_WEAPON_TYPES - 1));
-			SDL_strlcpy(wt->str, Weapon_info[ wep_index >= MAX_WEAPON_TYPES ? 0 : wep_index ].name, sizeof(wt->str));
+			SDL_strlcpy(wt->str, Weapon_info[ wep_index >= MAX_WEAPON_TYPES ? 0 : wep_index ].name, SDL_arraysize(wt->str));
 			break;		
 
 		// escort list
@@ -595,32 +595,32 @@ void emp_maybe_reformat_text(char *text, const int max_len, int gauge_id)
 			int shipnum;
 			shipnum = ship_get_random_ship();
 			if(shipnum >= 0){
-				SDL_strlcpy(wt->str, Ships[shipnum].ship_name, sizeof(wt->str));
+				SDL_strlcpy(wt->str, Ships[shipnum].ship_name, SDL_arraysize(wt->str));
 			}
 			break;
 
 		// directives title
 		case EG_OBJ_TITLE:
-			SDL_strlcpy(wt->str, "", sizeof(wt->str));
+			SDL_strlcpy(wt->str, "", SDL_arraysize(wt->str));
 			break;
 
 		// directives themselves
 		case EG_OBJ1: case EG_OBJ2: case EG_OBJ3: case EG_OBJ4: case EG_OBJ5:
-			SDL_strlcpy(wt->str, text, sizeof(wt->str));
+			SDL_strlcpy(wt->str, text, SDL_arraysize(wt->str));
 			emp_randomize_chars(wt->str);
 			break;
 
 		// target box info
 		case EG_TBOX_EXTRA1: case EG_TBOX_EXTRA2: case EG_TBOX_EXTRA3: case EG_TBOX_CLASS:
 		case EG_TBOX_DIST: case EG_TBOX_CARGO: case EG_TBOX_HULL: case EG_TBOX_NAME: case EG_TBOX_INTEG:
-			SDL_strlcpy(wt->str, text, sizeof(wt->str));
+			SDL_strlcpy(wt->str, text, SDL_arraysize(wt->str));
 			emp_randomize_chars(wt->str);
 			break;
 
 		// squadmsg menu
 		case EG_SQ1: case EG_SQ2: case EG_SQ3: case EG_SQ4: case EG_SQ5: case EG_SQ6: case EG_SQ7:
 		case EG_SQ8: case EG_SQ9: case EG_SQ10:
-			SDL_strlcpy(wt->str, text, sizeof(wt->str));
+			SDL_strlcpy(wt->str, text, SDL_arraysize(wt->str));
 			emp_randomize_chars(wt->str);
 			break;
 			

@@ -224,7 +224,7 @@ void multi_campaign_start(char *filename)
 	Netgame.campaign_mode = MP_CAMPAIGN;		
 	
 	// set the campaign filename
-	SDL_strlcpy(Netgame.campaign_name, filename, sizeof(Netgame.campaign_name));
+	SDL_strlcpy(Netgame.campaign_name, filename, SDL_arraysize(Netgame.campaign_name));
 
 	// add the campaign mode flag
 	Game_mode |= GM_CAMPAIGN_MODE;
@@ -237,14 +237,14 @@ void multi_campaign_start(char *filename)
 		mission_campaign_next_mission();
 			
 		// setup various filenames and mission names
-		SDL_strlcpy(Netgame.mission_name ,Campaign.missions[Campaign.current_mission].name, sizeof(Netgame.mission_name));
-		SDL_strlcpy(Netgame.campaign_name, filename, sizeof(Netgame.campaign_name));
-		SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, sizeof(Game_current_mission_filename));
+		SDL_strlcpy(Netgame.mission_name ,Campaign.missions[Campaign.current_mission].name, SDL_arraysize(Netgame.mission_name));
+		SDL_strlcpy(Netgame.campaign_name, filename, SDL_arraysize(Netgame.campaign_name));
+		SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 
 		// if we're the standalone server, set the mission and campaign names
 		if(Game_mode & GM_STANDALONE_SERVER){
 			memset(str,0,255);
-			SDL_snprintf(str, sizeof(str), "%s (%s)", Netgame.mission_name,Netgame.campaign_name );
+			SDL_snprintf(str, SDL_arraysize(str), "%s (%s)", Netgame.mission_name,Netgame.campaign_name );
 
 			// set the control on the stand_gui
 			std_multi_set_standalone_mission_name(str);
@@ -283,13 +283,13 @@ void multi_campaign_next_mission()
 	// now we should be sequencing through the next stage (mission load, etc)
 	// this will eventually be replaced with the real filename of the next mission
 	if(Campaign.current_mission != -1){
-		SDL_strlcpy(Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, sizeof(Game_current_mission_filename));
-		SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, sizeof(Netgame.mission_name));
+		SDL_strlcpy(Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, SDL_arraysize(Game_current_mission_filename));
+		SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, SDL_arraysize(Netgame.mission_name));
 
 		// if we're the standalone server, set the mission and campaign names
 		if(Game_mode & GM_STANDALONE_SERVER){
 			memset(str,0,255);
-			SDL_snprintf(str, sizeof(str), "%s (%s)", Netgame.mission_name, Netgame.campaign_name);
+			SDL_snprintf(str, SDL_arraysize(str), "%s (%s)", Netgame.mission_name, Netgame.campaign_name);
 
 			// set the control on the stand_gui
 			std_multi_set_standalone_mission_name(str);

@@ -1775,7 +1775,7 @@ void control_config_do_frame(float frametime)
 			Ui_window.process(0);
 
 			if (k == SDLK_ESCAPE) {
-				SDL_strlcpy(bound_string, XSTR( "Canceled", 206), sizeof(bound_string));
+				SDL_strlcpy(bound_string, XSTR( "Canceled", 206), SDL_arraysize(bound_string));
 				bound_timestamp = timestamp(2500);
 				control_config_do_cancel();
 
@@ -1790,7 +1790,7 @@ void control_config_do_frame(float frametime)
 				if (bind) {
 					if (Axis_override >= 0) {
 						control_config_bind_axis(z, Axis_override);
-						SDL_strlcpy(bound_string, Joy_axis_text[Axis_override], sizeof(bound_string));
+						SDL_strlcpy(bound_string, Joy_axis_text[Axis_override], SDL_arraysize(bound_string));
 						gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 						bound_timestamp = timestamp(2500);
 						control_config_conflict_check();
@@ -1826,7 +1826,7 @@ void control_config_do_frame(float frametime)
 			}
 
 			if (k == SDLK_ESCAPE) {
-				SDL_strlcpy(bound_string, XSTR( "Canceled", 206), sizeof(bound_string));
+				SDL_strlcpy(bound_string, XSTR( "Canceled", 206), SDL_arraysize(bound_string));
 				bound_timestamp = timestamp(2500);
 				control_config_do_cancel();
 
@@ -1856,7 +1856,7 @@ void control_config_do_frame(float frametime)
 					SDL_assert(!(z & JOY_AXIS));
 					control_config_bind_key(z, k);
 
-					SDL_strlcpy(bound_string, textify_scancode(k), sizeof(bound_string));
+					SDL_strlcpy(bound_string, textify_scancode(k), SDL_arraysize(bound_string));
 					gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 					bound_timestamp = timestamp(2500);
 					control_config_conflict_check();
@@ -1870,7 +1870,7 @@ void control_config_do_frame(float frametime)
 						SDL_assert(!(z & JOY_AXIS));
 						control_config_bind_joy(z, i);
 
-						SDL_strlcpy(bound_string, Joy_button_text[i], sizeof(bound_string));
+						SDL_strlcpy(bound_string, Joy_button_text[i], SDL_arraysize(bound_string));
 						gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 						bound_timestamp = timestamp(2500);
 						control_config_conflict_check();
@@ -1893,7 +1893,7 @@ void control_config_do_frame(float frametime)
 								SDL_assert(!(z & JOY_AXIS));
 								control_config_bind_joy(z, i);
 
-								SDL_strlcpy(bound_string, Joy_button_text[i], sizeof(bound_string));
+								SDL_strlcpy(bound_string, Joy_button_text[i], SDL_arraysize(bound_string));
 								gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 								bound_timestamp = timestamp(2500);
 								control_config_conflict_check();
@@ -2163,7 +2163,7 @@ void control_config_do_frame(float frametime)
 
 		// setup the conflict string
 		char conflict_str[512] = "";
-		SDL_strlcpy(conflict_str, XSTR("Conflict!", 205), sizeof(conflict_str));
+		SDL_strlcpy(conflict_str, XSTR("Conflict!", 205), SDL_arraysize(conflict_str));
 		int sw, sh;
 		gr_get_string_size(&sw, &sh, conflict_str);
 
@@ -2239,7 +2239,7 @@ void control_config_do_frame(float frametime)
 		gr_get_string_size(&w, NULL, str);
 		gr_printf(x - w / 2, y - font_height, str);
 
-		SDL_strlcpy(buf, XSTR(Control_config[i].text, CONTROL_CONFIG_XSTR + i), sizeof(buf));
+		SDL_strlcpy(buf, XSTR(Control_config[i].text, CONTROL_CONFIG_XSTR + i), SDL_arraysize(buf));
 		gr_force_fit_string(buf, 255, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 		gr_get_string_size(&w, NULL, buf);
 		gr_printf(x - w / 2, y, buf);
@@ -2286,7 +2286,7 @@ void control_config_do_frame(float frametime)
 
 		gr_set_color_fast(c);
 		if (Cc_lines[line].label) {
-			SDL_strlcpy(buf, Cc_lines[line].label, sizeof(buf));
+			SDL_strlcpy(buf, Cc_lines[line].label, SDL_arraysize(buf));
 			gr_force_fit_string(buf, 255, Control_list_ctrl_w[gr_screen.res]);
 			gr_printf(Control_list_coords[gr_screen.res][CONTROL_X_COORD], y, buf);
 		}
@@ -2303,7 +2303,7 @@ void control_config_do_frame(float frametime)
 
 			} else {
 				if (k >= 0) {
-					SDL_strlcpy(buf, textify_scancode(k), sizeof(buf));
+					SDL_strlcpy(buf, textify_scancode(k), SDL_arraysize(buf));
 					if (Conflicts[z].key >= 0) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);
@@ -2334,7 +2334,7 @@ void control_config_do_frame(float frametime)
 				}
 
 				if (j >= 0) {
-					SDL_strlcpy(buf, Joy_button_text[j], sizeof(buf));
+					SDL_strlcpy(buf, Joy_button_text[j], SDL_arraysize(buf));
 					if (Conflicts[z].joy >= 0) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);

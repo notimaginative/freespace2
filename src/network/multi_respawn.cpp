@@ -402,7 +402,7 @@ void multi_respawn_build_points()
 		if((Ships[Objects[moveup->objnum].instance].respawn_priority > 0) && (Multi_respawn_priority_count < MAX_PRIORITY_POINTS)){
 			r = &Multi_respawn_priority_ships[Multi_respawn_priority_count++];
 
-			SDL_strlcpy(r->ship_name, Ships[Objects[moveup->objnum].instance].ship_name, sizeof(r->ship_name));
+			SDL_strlcpy(r->ship_name, Ships[Objects[moveup->objnum].instance].ship_name, SDL_arraysize(r->ship_name));
 			r->team = Ships[Objects[moveup->objnum].instance].team;
 		}
 		moveup = GET_NEXT(moveup);

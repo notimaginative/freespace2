@@ -843,8 +843,8 @@ int parse_weapon()
 
 	if ( wip->name[0] == '@' ) {
 		char old_name[NAME_LENGTH];
-		SDL_strlcpy(old_name, wip->name, sizeof(old_name));
-		SDL_strlcpy(wip->name, old_name+1, sizeof(wip->name));
+		SDL_strlcpy(old_name, wip->name, SDL_arraysize(old_name));
+		SDL_strlcpy(wip->name, old_name+1, SDL_arraysize(wip->name));
 	}
 
 	wip->title[0] = 0;

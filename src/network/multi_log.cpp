@@ -198,7 +198,7 @@ void ml_printf(const char *format, ...)
 	
 	// format the text
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 	
 	// log the string
@@ -227,12 +227,12 @@ void ml_string(const char *string, int add_time)
 		timer = time(NULL);
 
 		strftime(time_str, 128, "%m/%d %H:%M:%S~   ", localtime(&timer));
-		SDL_strlcpy(tmp, time_str, sizeof(tmp));
-		SDL_strlcat(tmp, string, sizeof(tmp));
+		SDL_strlcpy(tmp, time_str, SDL_arraysize(tmp));
+		SDL_strlcat(tmp, string, SDL_arraysize(tmp));
 	} else{
-		SDL_strlcpy(tmp, string, sizeof(tmp));
+		SDL_strlcpy(tmp, string, SDL_arraysize(tmp));
 	}
-	SDL_strlcat(tmp, "\n", sizeof(tmp));
+	SDL_strlcat(tmp, "\n", SDL_arraysize(tmp));
 
 	// now print it to the logfile if necessary	
 	cfputs(tmp, Multi_log_out);

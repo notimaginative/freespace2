@@ -376,7 +376,7 @@ int multi_msg_text_process(int k)
 
 			str[0] = (char)key_text;
 			str[1] = '\0';
-			SDL_strlcat(Multi_msg_text, str, sizeof(Multi_msg_text));
+			SDL_strlcat(Multi_msg_text, str, SDL_arraysize(Multi_msg_text));
 		}
 		break;
 	}
@@ -510,7 +510,7 @@ int multi_msg_check_command(char *str)
 	} 
 	
 	// store the text as the actual parameter
-	SDL_strlcpy(param, predicate, sizeof(param));
+	SDL_strlcpy(param, predicate, SDL_arraysize(param));
 	drop_leading_white_space(param);
 
 	// go through all existing commands and see what we can do
@@ -526,7 +526,7 @@ int multi_msg_check_command(char *str)
 	
 	// apply the results as a general expression, if we're in message all mode
 	if(Multi_msg_mode == MULTI_MSG_ALL){
-		SDL_strlcpy(Multi_msg_text, param, sizeof(Multi_msg_text));
+		SDL_strlcpy(Multi_msg_text, param, SDL_arraysize(Multi_msg_text));
 
 		// send the chat packet
 		send_game_chat_packet(Net_player, Multi_msg_text, MULTI_MSG_EXPR,NULL, prefix);
@@ -593,7 +593,7 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	memset(temp_string,0,100);	
 
 	// add the message header
-	SDL_snprintf(hud_string,sizeof(hud_string),XSTR("ORDER FROM <%s> : ",699),source->player->callsign);
+	SDL_snprintf(hud_string,SDL_arraysize(hud_string),XSTR("ORDER FROM <%s> : ",699),source->player->callsign);
 
 	// get the target obj if possible
 	target_obj = NULL;
@@ -606,8 +606,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// attack my target
 	case ATTACK_TARGET_ITEM :
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			SDL_snprintf(temp_string,sizeof(temp_string),XSTR("Attack %s",700),Ships[target_obj->instance].ship_name);
-			SDL_strlcat(hud_string, temp_string, sizeof(hud_string));
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Attack %s",700),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -616,8 +616,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// disable my target
 	case DISABLE_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			SDL_snprintf(temp_string,sizeof(temp_string),XSTR("Disable %s",701),Ships[target_obj->instance].ship_name);
-			SDL_strlcat(hud_string, temp_string, sizeof(hud_string));
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Disable %s",701),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -626,8 +626,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// protect my target
 	case PROTECT_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			SDL_snprintf(temp_string,sizeof(temp_string),XSTR("Protect %s",702),Ships[target_obj->instance].ship_name);
-			SDL_strlcat(hud_string, temp_string, sizeof(hud_string));
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Protect %s",702),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -636,8 +636,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// ignore my target
 	case IGNORE_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			SDL_snprintf(temp_string,sizeof(temp_string),XSTR("Ignore %s",703),Ships[target_obj->instance].ship_name);
-			SDL_strlcat(hud_string, temp_string, sizeof(hud_string));
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Ignore %s",703),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -646,8 +646,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// disarm my target
 	case DISARM_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			SDL_snprintf(temp_string,sizeof(temp_string),XSTR("Disarm %s",704),Ships[target_obj->instance].ship_name);
-			SDL_strlcat(hud_string, temp_string, sizeof(hud_string));
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Disarm %s",704),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -656,8 +656,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// disable subsystem on my target
 	case DISABLE_SUBSYSTEM_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP) && (subsys_type != -1) && (subsys_type != 0)){
-			SDL_snprintf(temp_string,sizeof(temp_string),XSTR("Disable subsystem %s on %s",705),Multi_msg_subsys_name[subsys_type],Ships[target_obj->instance].ship_name);
-			SDL_strlcat(hud_string, temp_string, sizeof(hud_string));
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Disable subsystem %s on %s",705),Multi_msg_subsys_name[subsys_type],Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -665,17 +665,17 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 
 	// form on my wing
 	case FORMATION_ITEM:		
-		SDL_strlcat(hud_string, XSTR("Form on my wing",706), sizeof(hud_string));
+		SDL_strlcat(hud_string, XSTR("Form on my wing",706), SDL_arraysize(hud_string));
 		break;
 
 	// cover me
 	case COVER_ME_ITEM:
-		SDL_strlcat(hud_string, XSTR("Cover me",707), sizeof(hud_string));
+		SDL_strlcat(hud_string, XSTR("Cover me",707), SDL_arraysize(hud_string));
 		break;
 
 	// engage enemy
 	case ENGAGE_ENEMY_ITEM:
-		SDL_strlcat(hud_string, XSTR("Engage enemy!",708), sizeof(hud_string));
+		SDL_strlcat(hud_string, XSTR("Engage enemy!",708), SDL_arraysize(hud_string));
 		break;
 
 	default :

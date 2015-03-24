@@ -713,7 +713,7 @@ void red_alert_store_wingman_status()
 	Red_alert_num_slots_used = 0;
 
 	// store the mission filename for the red alert precursor mission
-	SDL_strlcpy(Red_alert_precursor_mission, Game_current_mission_filename, sizeof(Red_alert_precursor_mission));
+	SDL_strlcpy(Red_alert_precursor_mission, Game_current_mission_filename, SDL_arraysize(Red_alert_precursor_mission));
 
 	// store status for all existing ships
 	for ( so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list); so = GET_NEXT(so) ) {
@@ -737,7 +737,7 @@ void red_alert_store_wingman_status()
 		ras = &Red_alert_wingman_status[Red_alert_num_slots_used];
 		Red_alert_num_slots_used++;
 
-		SDL_strlcpy(ras->name, shipp->ship_name, sizeof(ras->name));
+		SDL_strlcpy(ras->name, shipp->ship_name, SDL_arraysize(ras->name));
 		ras->hull = Objects[shipp->objnum].hull_strength;
 		ras->ship_class = shipp->ship_info_index;
 		red_alert_store_weapons(ras, &shipp->weapons);
@@ -756,7 +756,7 @@ void red_alert_store_wingman_status()
 			ras = &Red_alert_wingman_status[Red_alert_num_slots_used];
 			Red_alert_num_slots_used++;
 
-			SDL_strlcpy(ras->name, Ships_exited[idx].ship_name, sizeof(ras->name));
+			SDL_strlcpy(ras->name, Ships_exited[idx].ship_name, SDL_arraysize(ras->name));
 			ras->hull = float(Ships_exited[idx].hull_strength);
 			ras->ship_class = RED_ALERT_EXITED_SHIP_CLASS; //shipp->ship_info_index;
 			red_alert_store_weapons(ras, NULL);

@@ -737,7 +737,7 @@ static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         int leftIn = bufEnd - p,
             leftOut = bufOutEnd - q;
         char str[80];
-		SDL_snprintf(str, sizeof(str), "%d bytes left in source, %d bytes left in dest",
+		SDL_snprintf(str, SDL_arraysize(str), "%d bytes left in source, %d bytes left in dest",
                 leftIn, leftOut);
         AfxMessageBox(str);
         

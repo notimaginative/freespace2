@@ -713,7 +713,7 @@ void debug_cycle_targeted_ship(int delta)
 		sip = &Ship_info[si_index];
 	
 		// if it has test in the name, jump over it
-		SDL_strlcpy(name, sip->name, sizeof(name));
+		SDL_strlcpy(name, sip->name, SDL_arraysize(name));
 		SDL_strlwr(name);
 		if ( strstr(name,NOX("test")) != NULL )
 			continue;

@@ -373,9 +373,9 @@ void gr_print_timestamp(int x, int y, int timestamp)
 	int w, c;
 
 	// format the time information into strings
-	SDL_snprintf(h, sizeof(h), "%.1d", (timestamp / 3600000) % 10);
-	SDL_snprintf(m, sizeof(m), "%.2d", (timestamp / 60000) % 60);
-	SDL_snprintf(s, sizeof(s), "%.2d", (timestamp / 1000) % 60);
+	SDL_snprintf(h, SDL_arraysize(h), "%.1d", (timestamp / 3600000) % 10);
+	SDL_snprintf(m, SDL_arraysize(m), "%.2d", (timestamp / 60000) % 60);
+	SDL_snprintf(s, SDL_arraysize(s), "%.2d", (timestamp / 1000) % 60);
 
 	gr_get_string_size(&w, NULL, "0");
 	gr_get_string_size(&c, NULL, ":");
@@ -482,7 +482,7 @@ void __cdecl gr_printf( int x, int y, const char * format, ... )
 	if ( !Current_font ) return;
 	
 	va_start(args, format);
-	SDL_vsnprintf(grx_printf_text, sizeof(grx_printf_text), format, args);
+	SDL_vsnprintf(grx_printf_text, SDL_arraysize(grx_printf_text), format, args);
 	va_end(args);
 
 	gr_string(x,y,grx_printf_text);

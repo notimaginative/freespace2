@@ -234,7 +234,7 @@ void ml_update_recent_missions(char *filename)
 	
 
 	for ( i = 0; i < Num_recent_missions; i++ ) {
-		SDL_strlcpy( tmp[i], Recent_missions[i], sizeof(tmp[0]) );
+		SDL_strlcpy( tmp[i], Recent_missions[i], SDL_arraysize(tmp[0]) );
 	}
 
 	// get a pointer to just the basename of the filename (including extension)
@@ -246,12 +246,12 @@ void ml_update_recent_missions(char *filename)
 	}
 
 	SDL_assert(strlen(p) < MAX_FILENAME_LEN);
-	SDL_strlcpy( Recent_missions[0], p, sizeof(Recent_missions[0]) );
+	SDL_strlcpy( Recent_missions[0], p, SDL_arraysize(Recent_missions[0]) );
 
 	j = 1;
 	for ( i = 0; i < Num_recent_missions; i++ ) {
 		if ( SDL_strcasecmp(Recent_missions[0], tmp[i]) ) {
-			SDL_strlcpy(Recent_missions[j++], tmp[i], sizeof(Recent_missions[0]));
+			SDL_strlcpy(Recent_missions[j++], tmp[i], SDL_arraysize(Recent_missions[0]));
 			if ( j >= MAX_RECENT_MISSIONS ) {
 				break;
 			}
@@ -273,14 +273,14 @@ int mission_load()
 
 	mprintf(("MISSION LOAD: '%s'\n", Game_current_mission_filename));
 
-	SDL_strlcpy(filename, Game_current_mission_filename, sizeof(filename));
+	SDL_strlcpy(filename, Game_current_mission_filename, SDL_arraysize(filename));
 	ext = SDL_strchr(filename, '.');
 	if (ext) {
 		mprintf(( "Hmmm... Extension passed to mission_load...\n" ));
 		*ext = 0;				// remove any extension!
 	}
 
-	SDL_strlcat(filename, FS_MISSION_FILE_EXT, sizeof(filename));
+	SDL_strlcat(filename, FS_MISSION_FILE_EXT, SDL_arraysize(filename));
 
 	// does the magical mission parsing
 	// creates all objects, except for the player object

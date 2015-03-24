@@ -848,7 +848,7 @@ void HUD_fixed_printf(float duration, const char * format, ...)
 	}
 
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
 	msg_length = strlen(tmp);
@@ -947,7 +947,7 @@ void HUD_printf(const char *format, ...)
 	}
 
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
 	hud_sourced_print(HUD_SOURCE_COMPUTER, tmp);
@@ -990,7 +990,7 @@ void HUD_sourced_printf(int source, const char *format, ...)
 	}
 	
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
 	hud_sourced_print(source, tmp);
@@ -1108,7 +1108,7 @@ void hud_add_msg_to_scrollback(const char *text, int source, int t)
 
 	w = 0;
 	SDL_assert(msg_len < HUD_MSG_LENGTH_MAX);
-	SDL_strlcpy(buf, text, sizeof(buf));
+	SDL_strlcpy(buf, text, SDL_arraysize(buf));
 	ptr = strstr(buf, NOX(": "));
 	if (ptr) {
 		gr_get_string_size(&w, NULL, buf, ptr - buf);

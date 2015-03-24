@@ -78,8 +78,8 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	// grab the last line in file which isn't empty and isn't a comment
 	char buffer[MAX_LINE_LENGTH+1], verbuffer[MAX_LINE_LENGTH+1];
 
-	SDL_strlcpy(verbuffer, "", sizeof(verbuffer));
-	SDL_strlcpy(buffer, "", sizeof(buffer));
+	SDL_strlcpy(verbuffer, "", SDL_arraysize(verbuffer));
+	SDL_strlcpy(buffer, "", SDL_arraysize(buffer));
 	while ( !feof(f) ) {
 		// Read the line into a temporary buffer
 		fgets(buffer, MAX_LINE_LENGTH, f);
@@ -95,7 +95,7 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 		if (buffer[0] == VERSION_FILE_COMMENT_CHAR) continue;
 
 		// Line is a good one, so save it...
-		SDL_strlcpy(verbuffer, buffer, sizeof(verbuffer));
+		SDL_strlcpy(verbuffer, buffer, SDL_arraysize(verbuffer));
 	}
 	fclose(f);
 

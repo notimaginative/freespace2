@@ -936,7 +936,7 @@ void options_multi_add_notify(const char *str)
 	// copy the string
 	memset(Om_notify_string,0,255);
 	if(str != NULL){		
-		SDL_strlcpy(Om_notify_string, str, sizeof(Om_notify_string));
+		SDL_strlcpy(Om_notify_string, str, SDL_arraysize(Om_notify_string));
 	} 		
 
 	// set the timestamp
@@ -971,7 +971,7 @@ void options_multi_notify_process()
 	y_start = OM_NOTIFY_Y;
 	gr_set_color_fast(&Color_bright);
 	for(idx=0;idx<line_count;idx++){
-		len = min(n_chars[idx] + 1, (int)sizeof(line));
+		len = min(n_chars[idx] + 1, (int)SDL_arraysize(line));
 		SDL_strlcpy(line, p_str[idx], len);
 
 		gr_get_string_size(&w,NULL,line);
@@ -2468,7 +2468,7 @@ void options_multi_vox_process_player_list()
 			}
 
 			// force fit his callsign
-			SDL_strlcpy(str, Om_vox_players[idx]->player->callsign, sizeof(str));
+			SDL_strlcpy(str, Om_vox_players[idx]->player->callsign, SDL_arraysize(str));
 			gr_force_fit_string(str, CALLSIGN_LEN+1, Om_vox_plist_coords[gr_screen.res][2]);
 
 			// blit the callsign

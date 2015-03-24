@@ -171,10 +171,10 @@ void mht_do()
 		}
 
 		if (Num_recent_missions > 0)	{
-			SDL_strlcpy( Game_current_mission_filename, Recent_missions[0], sizeof(Game_current_mission_filename) );
+			SDL_strlcpy( Game_current_mission_filename, Recent_missions[0], SDL_arraysize(Game_current_mission_filename) );
 		} else {
 			mission_load_up_campaign();
-			SDL_strlcpy( Game_current_mission_filename, Campaign.missions[0].name, sizeof(Game_current_mission_filename) );
+			SDL_strlcpy( Game_current_mission_filename, Campaign.missions[0].name, SDL_arraysize(Game_current_mission_filename) );
 		}
 
 		Campaign.current_mission = -1;

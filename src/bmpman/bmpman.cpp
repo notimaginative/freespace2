@@ -904,8 +904,8 @@ int bm_load_sub(const char *real_filename, const char *ext, int *handle)
 	int i;
 	char filename[MAX_FILENAME_LEN] = "";
 	
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
-	SDL_strlcat( filename, ext, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	SDL_strlcat( filename, ext, SDL_arraysize(filename) );
 	for (i=0; i<(int)strlen(filename); i++ ){
 		filename[i] = char(tolower(filename[i]));
 	}		
@@ -952,11 +952,11 @@ int bm_load( const char * real_filename )
 
 	// nice little trick for keeping standalone memory usage way low - always return a bogus bitmap 
 	if(Game_mode & GM_STANDALONE_SERVER){
-		SDL_strlcpy(filename,"test128", sizeof(filename));
+		SDL_strlcpy(filename,"test128", SDL_arraysize(filename));
 	}
 
 	// make sure no one passed an extension
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		mprintf(( "Someone passed an extension to bm_load for file '%s'\n", real_filename ));
@@ -973,7 +973,7 @@ int bm_load( const char * real_filename )
 	// found as a file
 	case 0:
 		found = 1;
-		SDL_strlcat(filename, ".pcx", sizeof(filename));
+		SDL_strlcat(filename, ".pcx", SDL_arraysize(filename));
 		break;
 
 	// found as pre-existing
@@ -991,7 +991,7 @@ int bm_load( const char * real_filename )
 
 		// found as a file
 		case 0:			
-			SDL_strlcat(filename, ".tga", sizeof(filename));
+			SDL_strlcat(filename, ".tga", SDL_arraysize(filename));
 			tga = 1;
 			break;
 
@@ -1159,14 +1159,14 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 
 	if ( !bm_inited ) bm_init();
 
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		mprintf(( "Someone passed an extension to bm_load_animation for file '%s'\n", real_filename ));
 		//Int3();
 		*p = 0;
 	}
-	SDL_strlcat( filename, ".ani", sizeof(filename) );
+	SDL_strlcat( filename, ".ani", SDL_arraysize(filename) );
 
 	if ( (fp = cfopen(filename, "rb")) == NULL ) {
 //		Error(LOCATION,"Could not open filename %s in bm_load_ani()\n", filename);
@@ -1176,7 +1176,7 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 	int reduced = 0;
 #ifndef NDEBUG
 	// for debug of ANI sizes
-	SDL_strlcpy(the_anim.name, real_filename, sizeof(the_anim.name));
+	SDL_strlcpy(the_anim.name, real_filename, SDL_arraysize(the_anim.name));
 #endif
 	anim_read_header(&the_anim, fp);
 	if ( can_drop_frames )	{
@@ -1917,7 +1917,7 @@ void bm_release(int handle)
 	// Fill in bogus structures!
 
 	// For debugging:
-	SDL_strlcpy( bm_bitmaps[n].filename, "IVE_BEEN_RELEASED!", sizeof(bm_bitmaps[0].filename) );
+	SDL_strlcpy( bm_bitmaps[n].filename, "IVE_BEEN_RELEASED!", SDL_arraysize(bm_bitmaps[0].filename) );
 	bm_bitmaps[n].signature = 0xDEADBEEF;									// a unique signature identifying the data
 	bm_bitmaps[n].palette_checksum = 0xDEADBEEF;							// checksum used to be sure bitmap is in current palette
 

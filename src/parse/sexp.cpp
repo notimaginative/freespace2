@@ -2140,7 +2140,7 @@ int build_sexp_string(int cur_node, int level, int mode)
 		SDL_assert(node >= 0 && node < MAX_SEXP_NODES);
 		if (Sexp_nodes[node].first == -1) {
 			// build text to string
-			build_sexp_text_string(pstr, sizeof(pstr), node, mode);
+			build_sexp_text_string(pstr, SDL_arraysize(pstr), node, mode);
 			SDL_strlcat(Sexp_string, pstr, Sexp_string_len);
 
 		} else {
@@ -2176,7 +2176,7 @@ void build_extended_sexp_string(int cur_node, int level, int mode)
 		flag = 1;
 		SDL_assert(node >= 0 && node < MAX_SEXP_NODES);
 		if (Sexp_nodes[node].first == -1) {
-			build_sexp_text_string(pstr, sizeof(pstr),node, mode);
+			build_sexp_text_string(pstr, SDL_arraysize(pstr),node, mode);
 			SDL_strlcat(Sexp_string, pstr, Sexp_string_len);
 
 		} else {
@@ -4217,7 +4217,7 @@ int waypoint_lookup(char *name)
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (ptr->type == OBJ_WAYPOINT) {
 			i = ptr->instance;
-			SDL_snprintf(buf, sizeof(buf), "%s:%d", Waypoint_lists[i / 65536].name, (i & 0xffff) + 1);
+			SDL_snprintf(buf, SDL_arraysize(buf), "%s:%d", Waypoint_lists[i / 65536].name, (i & 0xffff) + 1);
 			if ( !SDL_strcasecmp(buf, name) )
 				return OBJ_INDEX(ptr);
 		}
@@ -9332,7 +9332,7 @@ const char *sexp_error_message(int num)
 			return "Invalid Jump Node name";
 	}
 
-	SDL_snprintf(Sexp_error_text, sizeof(Sexp_error_text), "Sexp error code %d", num);
+	SDL_snprintf(Sexp_error_text, SDL_arraysize(Sexp_error_text), "Sexp error code %d", num);
 	return Sexp_error_text;
 }
 
@@ -9485,7 +9485,7 @@ void sexp_modify_variable(int n)
 			// get new numerical value
 			new_number = eval_sexp(Sexp_nodes[n].rest);
 
-			SDL_snprintf(number_as_str, sizeof(number_as_str), "%d", new_number);
+			SDL_snprintf(number_as_str, SDL_arraysize(number_as_str), "%d", new_number);
 			sexp_modify_variable(number_as_str, sexp_variable_index);
 		} else {
 			// get new string

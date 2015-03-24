@@ -1083,8 +1083,8 @@ int parse_ship()
 
 	if ( sip->name[0] == '@' ) {
 		char old_name[NAME_LENGTH];
-		SDL_strlcpy(old_name, sip->name, sizeof(old_name));
-		SDL_strlcpy(sip->name, old_name+1, sizeof(sip->name));
+		SDL_strlcpy(old_name, sip->name, SDL_arraysize(old_name));
+		SDL_strlcpy(sip->name, old_name+1, SDL_arraysize(sip->name));
 	}
 
 	diag_printf ("Ship name -- %s\n", sip->name);
@@ -1161,7 +1161,7 @@ int parse_ship()
 	stuff_string( sip->pof_file, F_NAME, NULL );
 
 	// optional hud targeting model
-	SDL_strlcpy(sip->pof_file_hud, "", sizeof(sip->pof_file_hud));
+	SDL_strlcpy(sip->pof_file_hud, "", SDL_arraysize(sip->pof_file_hud));
 	if(optional_string( "$POF target file:")){
 		stuff_string(sip->pof_file_hud, F_NAME, NULL);
 	}
@@ -1660,7 +1660,7 @@ int parse_ship()
 		if ( index == -1 ) {
 			char *p, name[NAME_LENGTH];;
 
-			SDL_strlcpy( name, sip->name, sizeof(name) );
+			SDL_strlcpy( name, sip->name, SDL_arraysize(name) );
 			p = SDL_strchr(name, '#');
 			if ( p )
 				*p = '\0';
@@ -1844,7 +1844,7 @@ void ship_add_exited_ship( ship *sp, int reason )
 		Num_exited_ships++;
 	}
 
-	SDL_strlcpy( Ships_exited[entry].ship_name, sp->ship_name, sizeof(Ships_exited[0].ship_name) );
+	SDL_strlcpy( Ships_exited[entry].ship_name, sp->ship_name, SDL_arraysize(Ships_exited[0].ship_name) );
 	Ships_exited[entry].obj_signature = Objects[sp->objnum].signature;
 	Ships_exited[entry].team = sp->team;
 	Ships_exited[entry].flags = reason;
@@ -4449,7 +4449,7 @@ void ship_set_bay_path_nums(ship_info *sip, polymodel *pm)
 	// iterate through the paths that exist in the polymodel, searching for $bayN pathnames
 	for ( i = 0; i < pm->n_paths; i++ ) {
 		if ( !SDL_strncasecmp(pm->paths[i].name, NOX("$bay"), 4) ) {
-			SDL_strlcpy(bay_num_str, pm->paths[i].name+4, sizeof(bay_num_str));
+			SDL_strlcpy(bay_num_str, pm->paths[i].name+4, SDL_arraysize(bay_num_str));
 			bay_num = atoi(bay_num_str);
 			SDL_assert(bay_num >= 1 && bay_num <= MAX_SHIP_BAY_PATHS);
 			pm->ship_bay->paths[bay_num-1] = i;
@@ -4611,7 +4611,7 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 	shipp->ai_index = ai_get_slot(n);
 	SDL_assert( shipp->ai_index >= 0 );
 
-	SDL_snprintf(shipp->ship_name, sizeof(shipp->ship_name), NOX("%s %d"), Ship_info[ship_type].name, n);
+	SDL_snprintf(shipp->ship_name, SDL_arraysize(shipp->ship_name), NOX("%s %d"), Ship_info[ship_type].name, n);
 	ship_set_default_weapons(shipp, sip);	//	Moved up here because ship_set requires that weapon info be valid.  MK, 4/28/98
 	ship_set(n, objnum, ship_type);
 
@@ -5680,7 +5680,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 						HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Too far from target to acquire lock", 487));
 					} else {
 						char missile_name[NAME_LENGTH];
-						SDL_strlcpy(missile_name, wip->name, sizeof(missile_name));
+						SDL_strlcpy(missile_name, wip->name, SDL_arraysize(missile_name));
 						hud_end_string_at_first_hash_symbol(missile_name);
 						HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Cannot fire %s without a lock", 488), missile_name);
 					}
@@ -5725,7 +5725,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 			if ( obj == Player_obj ) 
 				if ( ship_maybe_play_secondary_fail_sound(wip) ) {
 					char missile_name[NAME_LENGTH];
-					SDL_strlcpy(missile_name, Weapon_info[weapon].name, sizeof(missile_name));
+					SDL_strlcpy(missile_name, Weapon_info[weapon].name, SDL_arraysize(missile_name));
 					hud_end_string_at_first_hash_symbol(missile_name);
 					HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Cannot fire %s due to weapons system damage", 489), missile_name);
 				}
@@ -6134,7 +6134,7 @@ int ship_info_base_lookup(int si_index)
 	int	i;
 	char name[NAME_LENGTH], *p;
 
-	SDL_strlcpy( name, Ship_info[si_index].name, sizeof(name) );
+	SDL_strlcpy( name, Ship_info[si_index].name, SDL_arraysize(name) );
 	p = SDL_strchr( name, '#' );
 	SDL_assert( p );						// get allender -- something bogus with ship copy
 	*p = '\0';
@@ -8096,7 +8096,7 @@ char *ship_return_orders(char *outbuf, const int max_outbuf, ship *sp)
 		case AI_GOAL_DESTROY_SUBSYSTEM: {
 			char name[NAME_LENGTH];
 			if ( aip->targeted_subsys != NULL ) {
-				SDL_snprintf(outbuf, max_outbuf, XSTR( "atk %s %s", 496), aigp->ship_name, hud_targetbox_truncate_subsys_name(aip->targeted_subsys->system_info->name, sizeof(aip->targeted_subsys->system_info->name)));
+				SDL_snprintf(outbuf, max_outbuf, XSTR( "atk %s %s", 496), aigp->ship_name, hud_targetbox_truncate_subsys_name(aip->targeted_subsys->system_info->name, SDL_arraysize(aip->targeted_subsys->system_info->name)));
 				SDL_strlcat(outbuf, name, max_outbuf);
 			} else {
 				SDL_strlcpy(outbuf, XSTR( "no orders", 495), max_outbuf);

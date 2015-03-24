@@ -332,7 +332,7 @@ int cfile_in_root_dir(char *exe_path)
 
 	// copy the path
 	memset(path_copy, 0, 2048);
-	SDL_strlcpy(path_copy, exe_path, sizeof(path_copy));
+	SDL_strlcpy(path_copy, exe_path, SDL_arraysize(path_copy));
 
 	// count how many slashes there are in the path
 	tok = strtok(path_copy, DIR_SEPARATOR_STR);
@@ -445,7 +445,7 @@ int cfile_flush_dir(int dir_type)
 	int find_handle;
 	_finddata_t find;
 
-	SDL_strlcat( filespec, "*", sizeof(filespec) );
+	SDL_strlcat( filespec, "*", SDL_arraysize(filespec) );
 
 	find_handle = _findfirst( filespec, &find );
 
@@ -482,10 +482,10 @@ char *cf_add_ext(const char *filename, const char *ext)
 	flen = strlen(filename);
 	elen = strlen(ext);
 	SDL_assert(flen < MAX_PATH_LEN);
-	SDL_strlcpy(path, filename, sizeof(path));
+	SDL_strlcpy(path, filename, SDL_arraysize(path));
 	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
 		SDL_assert(flen + elen < MAX_PATH_LEN);
-		SDL_strlcat(path, ext, sizeof(path));
+		SDL_strlcat(path, ext, SDL_arraysize(path));
 	}
 
 	return path;
@@ -644,7 +644,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 		// For write-only files, require a full path or a path type
 		if ( strpbrk(file_path, toks) ) {
 			// Full path given?
-			SDL_strlcpy(longname, file_path, sizeof(longname));
+			SDL_strlcpy(longname, file_path, SDL_arraysize(longname));
 		} else {
 			// Path type given?
 			SDL_assert( dir_type != CF_TYPE_ANY );
@@ -670,7 +670,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	int offset, size;
 	char copy_file_path[MAX_PATH_LEN];  // FIX change in memory from cf_find_file_location
-	SDL_strlcpy(copy_file_path, file_path, sizeof(copy_file_path));
+	SDL_strlcpy(copy_file_path, file_path, SDL_arraysize(copy_file_path));
 
 
 	if ( cf_find_file_location( copy_file_path, dir_type, longname, &size, &offset, localize ) )	{
@@ -1509,7 +1509,7 @@ int cfile_init_paths()
 	}
 
 	// set root directory
-	SDL_strlcpy(Cfile_root_dir, t_path, sizeof(Cfile_root_dir));
+	SDL_strlcpy(Cfile_root_dir, t_path, SDL_arraysize(Cfile_root_dir));
 	// free SDL copy
 	SDL_free(t_path);
 	t_path = NULL;
@@ -1536,7 +1536,7 @@ int cfile_init_paths()
 	}
 
 	// set user/pref directory
-	SDL_strlcpy(Cfile_user_dir, u_path, sizeof(Cfile_user_dir));
+	SDL_strlcpy(Cfile_user_dir, u_path, SDL_arraysize(Cfile_user_dir));
 	// free SDL copy
 	SDL_free(u_path);
 	u_path = NULL;

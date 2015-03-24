@@ -593,7 +593,7 @@ void multi_ingame_sync_init()
 	multi_oo_reset_sequencing();
 
 	// send the file signature to the host for possible mission file transfer
-	SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, sizeof(Netgame.mission_name));
+	SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, SDL_arraysize(Netgame.mission_name));
 	send_file_sig_packet(Multi_current_file_checksum,Multi_current_file_length);
 	
 	Ingame_ships_deleted = 0;
@@ -1261,7 +1261,7 @@ void multi_ingame_handle_timeout()
 	int time_left = timestamp_until(Ingame_time_left) / 1000;
 	char tl_string[100];
 	gr_set_color_fast(&Color_bright);
-	SDL_snprintf(tl_string,sizeof(tl_string),XSTR("Time remaining : %d s\n",682),time_left);
+	SDL_snprintf(tl_string,SDL_arraysize(tl_string),XSTR("Time remaining : %d s\n",682),time_left);
 	gr_string(Multi_ingame_timer_coords[gr_screen.res][0], Multi_ingame_timer_coords[gr_screen.res][1], tl_string);
 }
 

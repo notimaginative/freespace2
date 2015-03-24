@@ -969,7 +969,7 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 	Net_players[net_player_num].s_info.reliable_buffer_size = 0;
 	
 	// various ack handles	
-	SDL_strlcpy(pl->callsign, name, sizeof(pl->callsign));
+	SDL_strlcpy(pl->callsign, name, SDL_arraysize(pl->callsign));
 	pilot_set_short_callsign(pl, SHORT_CALLSIGN_PIXEL_W);   // calculate the short callsign 
 	pl->flags |= PLAYER_FLAGS_STRUCTURE_IN_USE;
 	pl->objnum = -1;
@@ -1090,7 +1090,7 @@ void delete_player(int player_num,int kicked_reason)
 		if(Net_players[player_num].flags & NETINFO_FLAG_KICKED){
 			char str[512];
 			memset(str, 0, 512);
-			multi_kick_get_text(&Net_players[player_num], Net_players[player_num].s_info.kick_reason, str, sizeof(str));
+			multi_kick_get_text(&Net_players[player_num], Net_players[player_num].s_info.kick_reason, str, SDL_arraysize(str));
 			multi_display_chat_msg(str, player_num, 0);							 
 		} else {
 			send_leave_game_packet(Net_players[player_num].player_id, kicked_reason);
@@ -1138,7 +1138,7 @@ void delete_player(int player_num,int kicked_reason)
 
 	// display a message that this guy has left
 	if(Net_players[player_num].player->callsign){
-		SDL_snprintf(notify_string,sizeof(notify_string),XSTR("<%s has left>",901),Net_players[player_num].player->callsign);
+		SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has left>",901),Net_players[player_num].player->callsign);
 		multi_display_chat_msg(notify_string,0,0);
 	}
 	
@@ -1501,7 +1501,7 @@ int multi_is_builtin_mission()
 
 	// get the full filename
 	memset(name,0,512);
-	SDL_strlcpy(name, Game_current_mission_filename, sizeof(name));
+	SDL_strlcpy(name, Game_current_mission_filename, SDL_arraysize(name));
 	cf_add_ext(name, FS_MISSION_FILE_EXT);
 
 	// if this mission is builtin	
@@ -1805,7 +1805,7 @@ void multi_create_standalone_object()
 	// make ship hidden from sensors so that this observer cannot target it.  Observers really have two ships
 	// one observer, and one "Player_ship".  Observer needs to ignore the Player_ship.
 	Player_ship->flags |= SF_HIDDEN_FROM_SENSORS;
-	SDL_strlcpy(Player_ship->ship_name, XSTR("Standalone Ship",904), sizeof(Player_ship->ship_name));
+	SDL_strlcpy(Player_ship->ship_name, XSTR("Standalone Ship",904), SDL_arraysize(Player_ship->ship_name));
 	Player_ai = &Ai_info[Ships[Objects[pobj_num].instance].ai_index];		
 
 }
@@ -1874,9 +1874,9 @@ active_game *multi_update_active_games(active_game *ag)
 
 			// copy in the game information
 			memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
-			SDL_strlcpy(gp->name, ag->name, sizeof(gp->name));
-			SDL_strlcpy(gp->mission_name, ag->mission_name, sizeof(gp->mission_name));
-			SDL_strlcpy(gp->title, ag->title, sizeof(gp->title));
+			SDL_strlcpy(gp->name, ag->name, SDL_arraysize(gp->name));
+			SDL_strlcpy(gp->mission_name, ag->mission_name, SDL_arraysize(gp->mission_name));
+			SDL_strlcpy(gp->title, ag->title, SDL_arraysize(gp->title));
 			gp->num_players = ag->num_players;
 			gp->flags = ag->flags;
 			
@@ -1892,11 +1892,11 @@ active_game *multi_update_active_games(active_game *ag)
 		// otherwise update the netgame info we have for this guy
 		else {				
 			memset(gp->name,0,MAX_GAMENAME_LEN+1);
-			SDL_strlcpy(gp->name, ag->name, sizeof(gp->name));
+			SDL_strlcpy(gp->name, ag->name, SDL_arraysize(gp->name));
 			memset(gp->mission_name,0,NAME_LENGTH+1);
-			SDL_strlcpy(gp->mission_name, ag->mission_name, sizeof(gp->mission_name));
+			SDL_strlcpy(gp->mission_name, ag->mission_name, SDL_arraysize(gp->mission_name));
 			memset(gp->title,0,NAME_LENGTH+1);
-			SDL_strlcpy(gp->title, ag->title, sizeof(gp->title));
+			SDL_strlcpy(gp->title, ag->title, SDL_arraysize(gp->title));
 			gp->num_players = ag->num_players;
 			gp->flags = ag->flags;			
 		}
@@ -1906,9 +1906,9 @@ active_game *multi_update_active_games(active_game *ag)
 
 		// copy in the game information	
 		memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
-		SDL_strlcpy(gp->name, ag->name, sizeof(gp->name));
-		SDL_strlcpy(gp->mission_name, ag->mission_name, sizeof(gp->mission_name));
-		SDL_strlcpy(gp->title, ag->title, sizeof(gp->title));
+		SDL_strlcpy(gp->name, ag->name, SDL_arraysize(gp->name));
+		SDL_strlcpy(gp->mission_name, ag->mission_name, SDL_arraysize(gp->mission_name));
+		SDL_strlcpy(gp->title, ag->title, SDL_arraysize(gp->title));
 		gp->num_players = ag->num_players;
 		gp->flags = ag->flags;
 		
@@ -3183,10 +3183,10 @@ void multi_update_valid_missions()
 			if(tok == NULL){
 				continue;
 			}			
-			SDL_strlcpy(temp, tok, sizeof(temp));
+			SDL_strlcpy(temp, tok, SDL_arraysize(temp));
 			drop_trailing_white_space(temp);
 			drop_leading_white_space(temp);
-			SDL_strlcpy(next_filename, temp, sizeof(next_filename));
+			SDL_strlcpy(next_filename, temp, SDL_arraysize(next_filename));
 			
 			// read in the status string
 			memset(status_string, 0, 50);
@@ -3195,10 +3195,10 @@ void multi_update_valid_missions()
 			if(tok == NULL){
 				continue;
 			}
-			SDL_strlcpy(temp, tok, sizeof(temp));
+			SDL_strlcpy(temp, tok, SDL_arraysize(temp));
 			drop_trailing_white_space(temp);
 			drop_leading_white_space(temp);
-			SDL_strlcpy(status_string, temp, sizeof(status_string));
+			SDL_strlcpy(status_string, temp, SDL_arraysize(status_string));
 
 			// try and find the file
 			file_index = multi_create_lookup_mission(next_filename);
@@ -3356,7 +3356,7 @@ void multi_spew_pxo_checksums(int max_files, char *outfile)
 	// allocate filename space	
 	file_names = (char**)malloc(sizeof(char*) * max_files);
 	if(file_names != NULL){
-		SDL_snprintf(wild_card, sizeof(wild_card), "*%s", FS_MISSION_FILE_EXT);
+		SDL_snprintf(wild_card, SDL_arraysize(wild_card), "*%s", FS_MISSION_FILE_EXT);
 		count = cf_get_file_list(max_files, file_names, CF_TYPE_MISSIONS, wild_card);	
 	
 		// open the outfile
@@ -3368,7 +3368,7 @@ void multi_spew_pxo_checksums(int max_files, char *outfile)
 		// do all the checksums
 		for(idx=0; idx<count; idx++){
 			memset(full_name, 0, MAX_FILENAME_LEN+1);			
-			SDL_strlcpy(full_name, cf_add_ext(file_names[idx], FS_MISSION_FILE_EXT), sizeof(full_name));
+			SDL_strlcpy(full_name, cf_add_ext(file_names[idx], FS_MISSION_FILE_EXT), SDL_arraysize(full_name));
 
 			if(cf_chksum_long(full_name, &checksum)){
 				fprintf(out, "%s	:	%d\n", full_name, (int)checksum);

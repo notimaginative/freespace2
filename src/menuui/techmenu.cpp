@@ -769,9 +769,9 @@ void tech_common_render()
 			gr_set_color_fast(&Color_text_normal);
 		}
 
-		SDL_strlcpy(buf, Current_list[z].name, sizeof(buf));
+		SDL_strlcpy(buf, Current_list[z].name, SDL_arraysize(buf));
 		if (Lcl_gr) {
-			lcl_translate_ship_name(buf, sizeof(buf));
+			lcl_translate_ship_name(buf, SDL_arraysize(buf));
 		}
 
 		gr_force_fit_string(buf, 255, Tech_list_coords[gr_screen.res][SHIP_W_COORD]);
@@ -1450,9 +1450,9 @@ int techroom_load_ani(anim **animpp, char *name)
 	// hi-res support
 	// (i dont think there are any hi-res anims for these tho)
 	if (gr_screen.res == GR_1024) {
-		SDL_strlcat(anim_filename, name, sizeof(anim_filename));
+		SDL_strlcat(anim_filename, name, SDL_arraysize(anim_filename));
 	} else {
-		SDL_strlcpy(anim_filename, name, sizeof(anim_filename));
+		SDL_strlcpy(anim_filename, name, SDL_arraysize(anim_filename));
 	}
 
 	while(1) {
@@ -1520,8 +1520,8 @@ void techroom_intel_init()
 #else
 			if (optional_string("$Terran Tech Description:")) {
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				SDL_strlcpy(Intel_info[Intel_info_size].name, "Terran", sizeof(Intel_info[0].name));
-				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[0], sizeof(Intel_info[0].anim_filename));
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Terran", SDL_arraysize(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[0], SDL_arraysize(Intel_info[0].anim_filename));
 				Intel_info[Intel_info_size].in_tech_db = 1;
 
 				Intel_info_size++;
@@ -1530,8 +1530,8 @@ void techroom_intel_init()
 			if (optional_string("$Vasudan Tech Description:")) {
 
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				SDL_strlcpy(Intel_info[Intel_info_size].name, "Vasudan", sizeof(Intel_info[0].name));
-				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[1], sizeof(Intel_info[0].anim_filename));
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Vasudan", SDL_arraysize(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[1], SDL_arraysize(Intel_info[0].anim_filename));
 				Intel_info[Intel_info_size].in_tech_db = 1;
 
 				Intel_info_size++;
@@ -1540,8 +1540,8 @@ void techroom_intel_init()
 			if (optional_string("$Shivan Tech Description:")) {
 
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				SDL_strlcpy(Intel_info[Intel_info_size].name, "Shivan", sizeof(Intel_info[0].name));
-				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2], sizeof(Intel_info[0].anim_filename));
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Shivan", SDL_arraysize(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2], SDL_arraysize(Intel_info[0].anim_filename));
 				// FIXME: shouldn't always be in the intel database but no choice at this point
 				// there are only about 4 missions before they show up anyway so it may not be worth it
 				Intel_info[Intel_info_size].in_tech_db = 1;

@@ -208,7 +208,7 @@ void load_filter_info(void)
 		return;
 	}
 
-	SDL_snprintf(pathname, sizeof(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	SDL_snprintf(pathname, SDL_arraysize(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen(pathname, "rt");
 	if (!fp)	{
@@ -287,7 +287,7 @@ void save_filter_info(void)
 		return;
 	}
 
-	SDL_snprintf(pathname, sizeof(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	SDL_snprintf(pathname, SDL_arraysize(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
 
 	fp = fopen(pathname, "wt");
 	if (fp)
@@ -305,7 +305,7 @@ void outwnd_printf2(const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 	outwnd_print("General", tmp);
 }
@@ -316,7 +316,7 @@ void outwnd_printf(const char *id, const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 	outwnd_print(id, tmp);
 }
@@ -406,7 +406,7 @@ void outwnd_init(int display_under_freespace_window)
 
 	char pathname[512];
 
-	SDL_snprintf(pathname, sizeof(pathname), "%s%s%s%s", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR, Freespace_logfilename);
+	SDL_snprintf(pathname, SDL_arraysize(pathname), "%s%s%s%s", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR, Freespace_logfilename);
 	cf_create_directory(CF_TYPE_DATA);
 
 	if ( Log_fp == NULL ) {

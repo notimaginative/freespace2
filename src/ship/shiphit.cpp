@@ -1010,12 +1010,12 @@ void shiphit_record_player_killer(object *killer_objp, player *p)
 
 			pnum = multi_find_player_by_object( &Objects[killer_objp->parent] );
 			if ( pnum != -1 ) {
-				SDL_strlcpy(p->killer_parent_name, Net_players[pnum].player->callsign, sizeof(p->killer_parent_name));
+				SDL_strlcpy(p->killer_parent_name, Net_players[pnum].player->callsign, SDL_arraysize(p->killer_parent_name));
 			} else {
 				nprintf(("Network", "Couldn't find player object of weapon for killer of %s\n", p->callsign));
 			}
 		} else {
-			SDL_strlcpy(p->killer_parent_name, Ships[Objects[killer_objp->parent].instance].ship_name, sizeof(p->killer_parent_name));
+			SDL_strlcpy(p->killer_parent_name, Ships[Objects[killer_objp->parent].instance].ship_name, SDL_arraysize(p->killer_parent_name));
 		}
 		break;
 
@@ -1033,12 +1033,12 @@ void shiphit_record_player_killer(object *killer_objp, player *p)
 
 			pnum = multi_find_player_by_object( &Objects[killer_objp->parent] );
 			if ( pnum != -1 ) {
-				SDL_strlcpy(p->killer_parent_name, Net_players[pnum].player->callsign, sizeof(p->killer_parent_name));
+				SDL_strlcpy(p->killer_parent_name, Net_players[pnum].player->callsign, SDL_arraysize(p->killer_parent_name));
 			} else {
 				nprintf(("Network", "Couldn't find player object of shockwave for killer of %s\n", p->callsign));
 			}
 		} else {
-			SDL_strlcpy(p->killer_parent_name, Ships[Objects[killer_objp->parent].instance].ship_name, sizeof(p->killer_parent_name));
+			SDL_strlcpy(p->killer_parent_name, Ships[Objects[killer_objp->parent].instance].ship_name, SDL_arraysize(p->killer_parent_name));
 		}
 		break;
 
@@ -1061,12 +1061,12 @@ void shiphit_record_player_killer(object *killer_objp, player *p)
 
 			pnum = multi_find_player_by_object( killer_objp );
 			if ( pnum != -1 ) {
-				SDL_strlcpy(p->killer_parent_name, Net_players[pnum].player->callsign, sizeof(p->killer_parent_name));
+				SDL_strlcpy(p->killer_parent_name, Net_players[pnum].player->callsign, SDL_arraysize(p->killer_parent_name));
 			} else {
 				nprintf(("Network", "Couldn't find player object for killer of %s\n", p->callsign));
 			}
 		} else {
-			SDL_strlcpy(p->killer_parent_name, Ships[killer_objp->instance].ship_name, sizeof(p->killer_parent_name));
+			SDL_strlcpy(p->killer_parent_name, Ships[killer_objp->instance].ship_name, SDL_arraysize(p->killer_parent_name));
 		}
 		break;
 	
@@ -1089,11 +1089,11 @@ void shiphit_record_player_killer(object *killer_objp, player *p)
 		p->killer_objtype = OBJ_BEAM;
 		if(beam_obj != -1){			
 			if((Objects[beam_obj].type == OBJ_SHIP) && (Objects[beam_obj].instance >= 0)){
-				SDL_strlcpy(p->killer_parent_name, Ships[Objects[beam_obj].instance].ship_name, sizeof(p->killer_parent_name));
+				SDL_strlcpy(p->killer_parent_name, Ships[Objects[beam_obj].instance].ship_name, SDL_arraysize(p->killer_parent_name));
 			}
 			p->killer_species = Ship_info[Ships[Objects[beam_obj].instance].ship_info_index].species;
 		} else {			
-			SDL_strlcpy(p->killer_parent_name, "", sizeof(p->killer_parent_name));
+			SDL_strlcpy(p->killer_parent_name, "", SDL_arraysize(p->killer_parent_name));
 		}
 		break;
 	
@@ -1806,9 +1806,9 @@ void ship_hit_kill(object *ship_obj, object *other_obj, float percent_killed, in
 				// get first name				
 				np_index = multi_find_player_by_object(ship_obj);				
 				if((np_index >= 0) && (np_index < MAX_PLAYERS) && (Net_players[np_index].player != NULL)){
-					SDL_strlcpy(name1, Net_players[np_index].player->callsign, sizeof(name1));
+					SDL_strlcpy(name1, Net_players[np_index].player->callsign, SDL_arraysize(name1));
 				} else {
-					SDL_strlcpy(name1, sp->ship_name, sizeof(name1));
+					SDL_strlcpy(name1, sp->ship_name, SDL_arraysize(name1));
 				}
 
 				// argh
@@ -1816,13 +1816,13 @@ void ship_hit_kill(object *ship_obj, object *other_obj, float percent_killed, in
 
 					// second name
 					if(killer_objp == NULL){
-						SDL_strlcpy(name2, killer_ship_name, sizeof(name2));
+						SDL_strlcpy(name2, killer_ship_name, SDL_arraysize(name2));
 					} else {
 						np_index = multi_find_player_by_object(killer_objp);
 						if((np_index >= 0) && (np_index < MAX_PLAYERS) && (Net_players[np_index].player != NULL)){
-							SDL_strlcpy(name2, Net_players[np_index].player->callsign, sizeof(name2));
+							SDL_strlcpy(name2, Net_players[np_index].player->callsign, SDL_arraysize(name2));
 						} else {
-							SDL_strlcpy(name2, killer_ship_name, sizeof(name2));
+							SDL_strlcpy(name2, killer_ship_name, SDL_arraysize(name2));
 						}
 					}					
 				}
@@ -1889,7 +1889,7 @@ void ship_self_destruct( object *objp )
 		int np_index = multi_find_player_by_object(objp);
 		if((np_index >= 0) && (np_index < MAX_PLAYERS) && MULTI_CONNECTED(Net_players[np_index]) && (Net_players[np_index].player != NULL)){
 			char msg[512] = "";
-			SDL_snprintf(msg, sizeof(msg), "%s %s", Net_players[np_index].player->callsign, XSTR("Self destructed", 1476));
+			SDL_snprintf(msg, SDL_arraysize(msg), "%s %s", Net_players[np_index].player->callsign, XSTR("Self destructed", 1476));
 
 			// send a message
 			send_game_chat_packet(Net_player, msg, MULTI_MSG_ALL, NULL, NULL, 2);

@@ -1400,7 +1400,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Max Velocity",742));	
 	y_start += 10;
-	SDL_snprintf(str,sizeof(str),XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
+	SDL_snprintf(str,SDL_arraysize(str),XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
 	gr_set_color_fast(text);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,str);
 	y_start += 10;
@@ -1855,7 +1855,7 @@ void draw_ship_icon_with_number(int screen_offset, int ship_class)
 	gr_bitmap(Ship_list_coords[gr_screen.res][screen_offset][0], Ship_list_coords[gr_screen.res][screen_offset][1]);
 
 	// blit the number
-	SDL_snprintf(buf, sizeof(buf), "%d", Ss_pool[ship_class] );
+	SDL_snprintf(buf, SDL_arraysize(buf), "%d", Ss_pool[ship_class] );
 	gr_set_color_fast(&Color_white);
 	gr_string(num_x, num_y, buf);
 }
@@ -1895,16 +1895,16 @@ anim* ss_load_individual_animation(int ship_class)
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
 		SDL_assert(strlen(Ship_info[ship_class].anim_filename) <= 30);
-		SDL_strlcpy(animation_filename, "2_", sizeof(animation_filename));
-		SDL_strlcat(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
+		SDL_strlcpy(animation_filename, "2_", SDL_arraysize(animation_filename));
+		SDL_strlcat(animation_filename, Ship_info[ship_class].anim_filename, SDL_arraysize(animation_filename));
 		// now check if file exists
 		// GRR must add a .ANI at the end for detection
-		SDL_strlcat(animation_filename, ".ani", sizeof(animation_filename));
+		SDL_strlcat(animation_filename, ".ani", SDL_arraysize(animation_filename));
 		
 		p_anim = anim_load(animation_filename);
 		if (p_anim == NULL) {
 			// failed loading hi-res, revert to low res
-			SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
+			SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, SDL_arraysize(animation_filename));
 			p_anim = anim_load(animation_filename);
 			mprintf(("Ship ANI: Can not find %s, using lowres version instead.\n", animation_filename)); 
 		} else {
@@ -1922,7 +1922,7 @@ anim* ss_load_individual_animation(int ship_class)
 		}
 		*/
 	} else {
-		SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, sizeof(animation_filename));
+		SDL_strlcpy(animation_filename, Ship_info[ship_class].anim_filename, SDL_arraysize(animation_filename));
 		p_anim = anim_load(animation_filename);
 	}
 	
@@ -2042,8 +2042,8 @@ void commit_pressed()
 
 	// save the player loadout
 	if ( !(Game_mode & GM_MULTIPLAYER) ) {
-		SDL_strlcpy(Player_loadout.filename, Game_current_mission_filename, sizeof(Player_loadout.filename));
-		SDL_strlcpy(Player_loadout.last_modified, The_mission.modified, sizeof(Player_loadout.last_modified));
+		SDL_strlcpy(Player_loadout.filename, Game_current_mission_filename, SDL_arraysize(Player_loadout.filename));
+		SDL_strlcpy(Player_loadout.last_modified, The_mission.modified, SDL_arraysize(Player_loadout.last_modified));
 		wss_save_loadout();
 	}
 

@@ -190,7 +190,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	m_Aborting = false;
 	m_Aborted = false;
 
-	SDL_strlcpy(m_URL, URL, sizeof(m_URL));
+	SDL_strlcpy(m_URL, URL, SDL_arraysize(m_URL));
 
 	LOCALFILE = fopen(localfile,"wb");
 	if(NULL == LOCALFILE)
@@ -241,7 +241,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 			{
 				filestart = pURL+i+1;
 				dirstart = pURL+i+1;
-				SDL_strlcpy(m_szFilename, filestart, sizeof(m_szFilename));
+				SDL_strlcpy(m_szFilename, filestart, SDL_arraysize(m_szFilename));
 			}
 			else
 			{
@@ -257,8 +257,8 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	}
 	else
 	{
-		SDL_strlcpy(m_szDir, dirstart, sizeof(m_szDir));//,(filestart-dirstart));
-		int len = min((dirstart-pURL), (int)sizeof(m_szHost));
+		SDL_strlcpy(m_szDir, dirstart, SDL_arraysize(m_szDir));//,(filestart-dirstart));
+		int len = min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
 	}
 
@@ -326,7 +326,7 @@ void ChttpGet::WorkerThread()
 		LOCALFILE = NULL;
 		return;
 	}
-	SDL_snprintf(szCommand,sizeof(szCommand),"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
+	SDL_snprintf(szCommand,SDL_arraysize(szCommand),"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
 	send(m_DataSock,szCommand,strlen(szCommand),0);
 	p = GetHTTPLine();
 	if(SDL_strncasecmp("HTTP/",p,5)==0)
@@ -598,7 +598,7 @@ char *ChttpGet::GetHTTPLine()
 		}
 		else
 		{	chunk[1] = '\0';
-			SDL_strlcat(recv_buffer, chunk, sizeof(recv_buffer));
+			SDL_strlcat(recv_buffer, chunk, SDL_arraysize(recv_buffer));
 		}
 		
 		SDL_Delay(1);

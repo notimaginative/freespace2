@@ -281,7 +281,7 @@ void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int i
 
 	num_pos = _num_pos;
 
-	SDL_snprintf(filename, sizeof(filename), "%s%.2d", bm, hotspot);
+	SDL_snprintf(filename, SDL_arraysize(filename), "%s%.2d", bm, hotspot);
 	first_frame = bm_load_animation(filename, &total_frames);
 	if (first_frame < 0) {
 		Error(LOCATION, "Could not load %s.ani\n", filename);
@@ -305,7 +305,7 @@ void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int i
 
 	if ( has_end_buttons ) {
 		// Second button is the up (increase) button
-		SDL_snprintf(filename, sizeof(filename), "%s%.2d", bm, id + 2);
+		SDL_snprintf(filename, SDL_arraysize(filename), "%s%.2d", bm, id + 2);
 		up_button.create( wnd, "", _x + 216, _y, 22, 24, 1, 1 );
 		up_button.set_parent(this);
 		up_button.set_highlight_action(common_play_highlight_sound);
@@ -313,7 +313,7 @@ void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int i
 		up_button.link_hotspot(id + 2);
 
 		// Third button is the down (decrease) button
-		SDL_snprintf(filename, sizeof(filename), "%s%.2d", bm, id);
+		SDL_snprintf(filename, SDL_arraysize(filename), "%s%.2d", bm, id);
 		down_button.create( wnd, "", _x, _y, 22, 24, 1, 1 );
 		down_button.set_parent(this);
 		down_button.set_highlight_action(common_play_highlight_sound);

@@ -640,7 +640,7 @@ int barracks_new_pilot_selected()
 	int i;
 	barracks_init_stats(&Cur_pilot->stats);
 	for (i=0; i<Num_pilot_images; i++) {
-		SDL_strlcpy(stripped, Cur_pilot->image_filename, sizeof(stripped));
+		SDL_strlcpy(stripped, Cur_pilot->image_filename, SDL_arraysize(stripped));
 		barracks_strip_pcx(stripped);
 		if (!SDL_strcasecmp(stripped, Pilot_image_names[i])) {
 			break;
@@ -648,7 +648,7 @@ int barracks_new_pilot_selected()
 	}
 	Pic_number = i;
 	for ( i=0; i<Num_pilot_squad_images; i++) {
-		SDL_strlcpy(stripped, Cur_pilot->squad_filename, sizeof(stripped));
+		SDL_strlcpy(stripped, Cur_pilot->squad_filename, SDL_arraysize(stripped));
 		barracks_strip_pcx(stripped);
 		if (!SDL_strcasecmp(stripped, Pilot_squad_image_names[i])) {
 			break;
@@ -747,8 +747,8 @@ int barracks_pilot_accepted()
 	// when we store the LastPlayer key, we have to mark it as being single or multiplayer, so we know where to look for him
 	// (since we could have a single and a multiplayer pilot with the same callsign)
 	// we'll distinguish them by putting an M and the end of the multiplayer callsign and a P at the end of a single player
-	SDL_strlcpy(str, Cur_pilot->callsign, sizeof(str));
-	SDL_strlcat(str, is_pilot_multi(Cur_pilot) ? NOX("M") : NOX("S"), sizeof(str));
+	SDL_strlcpy(str, Cur_pilot->callsign, SDL_arraysize(str));
+	SDL_strlcat(str, is_pilot_multi(Cur_pilot) ? NOX("M") : NOX("S"), SDL_arraysize(str));
 	os_config_write_string( NULL, "LastPlayer", str );
 	return 0;
 }
@@ -826,7 +826,7 @@ void barracks_prev_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_number >= 0) && (Pic_number < Num_pilot_images)) {
-		SDL_strlcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number], sizeof(Cur_pilot->image_filename));
+		SDL_strlcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number], SDL_arraysize(Cur_pilot->image_filename));
 	}
 
 	// play scroll sound
@@ -850,7 +850,7 @@ void barracks_next_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_number >= 0) && (Pic_number < Num_pilot_images)){
-		SDL_strlcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number], sizeof(Cur_pilot->image_filename));
+		SDL_strlcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number], SDL_arraysize(Cur_pilot->image_filename));
 	}
 
 	// play scroll sound
@@ -874,7 +874,7 @@ void barracks_prev_squad_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_squad_number >= 0) && (Pic_squad_number < Num_pilot_squad_images)) {
-		SDL_strlcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number], sizeof(Cur_pilot->squad_filename));
+		SDL_strlcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number], SDL_arraysize(Cur_pilot->squad_filename));
 	}
 
 	// play scroll sound
@@ -898,7 +898,7 @@ void barracks_next_squad_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_squad_number >= 0) && (Pic_squad_number < Num_pilot_squad_images)){
-		SDL_strlcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number], sizeof(Cur_pilot->squad_filename));
+		SDL_strlcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number], SDL_arraysize(Cur_pilot->squad_filename));
 	}
 
 	// play scroll sound
@@ -924,7 +924,7 @@ void barracks_delete_pilot()
 		active = 1;
 	}
 
-	SDL_strlcpy(buf, Pilots[Selected_line], sizeof(buf));
+	SDL_strlcpy(buf, Pilots[Selected_line], SDL_arraysize(buf));
 	for (int i=Selected_line; i<Num_pilots-1; i++) {
 		SDL_strlcpy(Pilots[i], Pilots[i + 1], MAX_FILENAME_LEN);
 		Pilot_ranks[i] = Pilot_ranks[i + 1];
@@ -1124,20 +1124,20 @@ void barracks_button_pressed(int n)
 				else
 					str = XSTR( "single player", 69);
 
-				SDL_snprintf(temp, sizeof(temp), XSTR( "This will overwrite your %s pilot.  Proceed?", 70), str);
+				SDL_snprintf(temp, SDL_arraysize(temp), XSTR( "This will overwrite your %s pilot.  Proceed?", 70), str);
 				if (!verify_pilot_file(Cur_pilot->callsign, Player_sel_mode == PLAYER_SELECT_MODE_MULTI)) {
 					z = popup(0, 2, POPUP_CANCEL, POPUP_OK, temp);
 					if (z != 1)
 						break;
 				}
 
-				SDL_strlcpy(old_pic, Cur_pilot->image_filename, sizeof(old_pic));
-				SDL_strlcpy(old_squad_pic, Cur_pilot->squad_filename, sizeof(old_squad_pic));
-				SDL_strlcpy(old_squad, Cur_pilot->squad_name, sizeof(old_squad));
+				SDL_strlcpy(old_pic, Cur_pilot->image_filename, SDL_arraysize(old_pic));
+				SDL_strlcpy(old_squad_pic, Cur_pilot->squad_filename, SDL_arraysize(old_squad_pic));
+				SDL_strlcpy(old_squad, Cur_pilot->squad_name, SDL_arraysize(old_squad));
 				init_new_pilot(Cur_pilot, 0);
-				SDL_strlcpy(Cur_pilot->image_filename, old_pic, sizeof(Cur_pilot->image_filename));
-				SDL_strlcpy(Cur_pilot->squad_filename, old_squad_pic, sizeof(Cur_pilot->squad_filename));
-				SDL_strlcpy(Cur_pilot->squad_name, old_squad, sizeof(Cur_pilot->squad_name));
+				SDL_strlcpy(Cur_pilot->image_filename, old_pic, SDL_arraysize(Cur_pilot->image_filename));
+				SDL_strlcpy(Cur_pilot->squad_filename, old_squad_pic, SDL_arraysize(Cur_pilot->squad_filename));
+				SDL_strlcpy(Cur_pilot->squad_name, old_squad, SDL_arraysize(Cur_pilot->squad_name));
 				if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE) {
 					Cur_pilot->flags |= PLAYER_FLAGS_IS_MULTI;
 					write_pilot_file();
@@ -1313,7 +1313,7 @@ void barracks_accept_new_pilot_callsign()
 	for (i=1; i<Num_pilots; i++) {
 		if (!SDL_strcasecmp(buf, Pilots[i])) {
 			if (pilot_verify_overwrite() == 1) {
-				SDL_strlcpy(name, Pilots[Selected_line], sizeof(name));
+				SDL_strlcpy(name, Pilots[Selected_line], SDL_arraysize(name));
 				for (z=i; z<Num_pilots-1; z++) {
 					SDL_strlcpy(Pilots[z], Pilots[z + 1], MAX_FILENAME_LEN);
 					Pilot_ranks[z] = Pilot_ranks[z + 1];
@@ -1336,7 +1336,7 @@ void barracks_accept_new_pilot_callsign()
 	}
 
 	SDL_strlcpy(Pilots[0], buf, MAX_FILENAME_LEN);
-	SDL_strlcpy(Cur_pilot->callsign, buf, sizeof(Cur_pilot->callsign));
+	SDL_strlcpy(Cur_pilot->callsign, buf, SDL_arraysize(Cur_pilot->callsign));
 	init_new_pilot(Cur_pilot, !Clone_flag);
 	
 	// again, make sure we set his flags correctly to ensure that he gets saved to the proper directory and gets
@@ -1373,7 +1373,7 @@ void barracks_draw_pilot_pic()
 
 			// print number of the current pic
 			char buf[40];			
-			SDL_snprintf(buf, sizeof(buf), XSTR( "%d of %d", 71), Pic_number + 1, Num_pilot_images);
+			SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d of %d", 71), Pic_number + 1, Num_pilot_images);
 			gr_printf(Barracks_image_number_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_image_number_coords[gr_screen.res][BARRACKS_Y_COORD], buf);				
 		}
 	} else {
@@ -1398,7 +1398,7 @@ void barracks_draw_squad_pic()
 
 			// print number of current squad pic
 			if(Player_sel_mode != PLAYER_SELECT_MODE_SINGLE){
-				SDL_snprintf(buf, sizeof(buf), XSTR( "%d of %d", 71), Pic_squad_number+1, Num_pilot_squad_images);
+				SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d of %d", 71), Pic_squad_number+1, Num_pilot_squad_images);
 				gr_printf(Barracks_squad_number_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_squad_number_coords[gr_screen.res][BARRACKS_Y_COORD], buf);
 			}
 		}

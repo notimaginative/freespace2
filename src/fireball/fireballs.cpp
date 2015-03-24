@@ -474,7 +474,7 @@ void fireball_parse_tbl()
 			}
 
 			// stuff default filename
-			SDL_strlcpy(Fireball_info[ntypes].lod[0].filename, base_filename, sizeof(Fireball_info[0].lod[0].filename));
+			SDL_strlcpy(Fireball_info[ntypes].lod[0].filename, base_filename, SDL_arraysize(Fireball_info[0].lod[0].filename));
 
 			// stuff LOD level filenames
 			for(idx=1; idx<Fireball_info[ntypes].lod_count; idx++){

@@ -157,10 +157,10 @@ void Warning( const char * filename, int line, const char * format, ... )
 	va_list args;
 
 	va_start(args, format);
-	SDL_vsnprintf(tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
-	SDL_snprintf(tmp2, sizeof(tmp2), "Warning: %s\n\nFile:%s\nLine: %d", tmp, filename, line);
+	SDL_snprintf(tmp2, SDL_arraysize(tmp2), "Warning: %s\n\nFile:%s\nLine: %d", tmp, filename, line);
 
 	gr_force_windowed();
 
@@ -175,10 +175,10 @@ void Error( const char * filename, int line, const char * format, ... )
 	va_list args;
 
 	va_start (args, format);
-	SDL_vsnprintf (tmp, sizeof(tmp), format, args);
+	SDL_vsnprintf (tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
-	SDL_snprintf(tmp2, sizeof(tmp2), "Error: %s\n\nFile:%s\nLine: %d", tmp, filename, line);
+	SDL_snprintf(tmp2, SDL_arraysize(tmp2), "Error: %s\n\nFile:%s\nLine: %d", tmp, filename, line);
 
 	gr_force_windowed();
 

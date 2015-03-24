@@ -1077,7 +1077,7 @@ void message_load_wave(int index, const char *filename)
 
 	game_snd tmp_gs;
 	memset(&tmp_gs, 0, sizeof(game_snd));
-	SDL_strlcpy( tmp_gs.filename, filename, sizeof(tmp_gs.filename) );
+	SDL_strlcpy( tmp_gs.filename, filename, SDL_arraysize(tmp_gs.filename) );
 	Message_waves[index].num = snd_load( &tmp_gs );
 	if ( Message_waves[index].num == -1 ) {
 		nprintf (("messaging", "Cannot load message wave: %s.  Will not play\n", Message_waves[index].name ));
@@ -1114,7 +1114,7 @@ void message_play_wave( message_q *q )
 		}
 
 		// if we need to bash the wave name because of "conversion" to terran command, do it here
-		SDL_strlcpy( filename, Message_waves[index].name, sizeof(filename) );
+		SDL_strlcpy( filename, Message_waves[index].name, SDL_arraysize(filename) );
 		if ( q->flags & MQF_CONVERT_TO_COMMAND ) {
 			char *p, new_filename[MAX_FILENAME_LEN];
 
@@ -1130,9 +1130,9 @@ void message_play_wave( message_q *q )
 
 			// prepend the command name, and then the rest of the filename.
 			p++;
-			SDL_strlcpy( new_filename, COMMAND_WAVE_PREFIX, sizeof(new_filename) );
-			SDL_strlcat( new_filename, p, sizeof(new_filename) );
-			SDL_strlcpy( filename, new_filename, sizeof(filename) );
+			SDL_strlcpy( new_filename, COMMAND_WAVE_PREFIX, SDL_arraysize(new_filename) );
+			SDL_strlcat( new_filename, p, SDL_arraysize(new_filename) );
+			SDL_strlcpy( filename, new_filename, SDL_arraysize(filename) );
 		}
 
 		// load the sound file into memory
@@ -1219,7 +1219,7 @@ void message_play_anim( message_q *q )
 	anim_info = &Message_avis[m->avi_info.index];
 
 	// get the filename.  Strip off the extension since we won't need it anyway
-	SDL_strlcpy(ani_name, anim_info->name, sizeof(ani_name));
+	SDL_strlcpy(ani_name, anim_info->name, SDL_arraysize(ani_name));
 	p = SDL_strchr(ani_name, '.');			// gets us to the extension
 	if ( p ) {
 		*p = '\0';
@@ -1239,7 +1239,7 @@ void message_play_anim( message_q *q )
 		// so the correct head plays.
 		if ( q->flags & MQF_CONVERT_TO_COMMAND ) {
 			persona_index = Command_persona;
-			SDL_strlcpy( ani_name, COMMAND_HEAD_PREFIX, sizeof(ani_name) );
+			SDL_strlcpy( ani_name, COMMAND_HEAD_PREFIX, SDL_arraysize(ani_name) );
 		}
 
 		if ( Personas[persona_index].flags & (PERSONA_FLAG_WINGMAN | PERSONA_FLAG_SUPPORT) ) {
@@ -1250,18 +1250,18 @@ void message_play_anim( message_q *q )
 			} else {
 				rand_index = (Missiontime % MAX_WINGMAN_HEADS);
 			}
-			SDL_snprintf(ani_name, sizeof(ani_name), "%s%c", ani_name, 'a'+rand_index);
+			SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
 			subhead_selected = TRUE;
 		} else if ( Personas[persona_index].flags & (PERSONA_FLAG_COMMAND | PERSONA_FLAG_LARGE) ) {
 			// get a random head -- it's one of two.
 			rand_index = (Missiontime % MAX_COMMAND_HEADS);
-			SDL_snprintf(ani_name, sizeof(ani_name), "%s%c", ani_name, 'a'+rand_index);
+			SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
 			subhead_selected = TRUE;
 		}
 		if (!subhead_selected) {
 			// choose between a and b
 			rand_index = (Missiontime % MAX_WINGMAN_HEADS);
-			SDL_snprintf(ani_name, sizeof(ani_name), "%s%c", ani_name, 'a'+rand_index);
+			SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
 			mprintf(("message '%s' with invalid head.  Fix by assigning persona to the message.\n", m->name));
 		}
 		nprintf(("Messaging", "playing head %s for %s\n", ani_name, q->who_from));
@@ -1570,7 +1570,7 @@ void message_queue_process()
 #ifndef NDEBUG
 	// debug only -- if the message is a builtin message, put in parens whether or not the voice played
 	if ( Playing_messages[Num_messages_playing].wave == -1 ) {
-		SDL_strlcat( buf, NOX("..(no wavefile for voice)"), sizeof(buf));
+		SDL_strlcat( buf, NOX("..(no wavefile for voice)"), SDL_arraysize(buf));
 		snd_play(&Snds[SND_CUE_VOICE]);
 	}
 #endif

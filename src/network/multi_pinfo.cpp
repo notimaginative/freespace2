@@ -422,9 +422,9 @@ void multi_pinfo_popup_init(net_player *np)
 
 	// zero bitmap info
 	Mp_pilot.bitmap = -1;
-	SDL_strlcpy(Mp_pilot.filename, "", sizeof(Mp_pilot.filename));
+	SDL_strlcpy(Mp_pilot.filename, "", SDL_arraysize(Mp_pilot.filename));
 	Mp_squad.bitmap = -1;
-	SDL_strlcpy(Mp_squad.filename, "", sizeof(Mp_squad.filename));
+	SDL_strlcpy(Mp_squad.filename, "", SDL_arraysize(Mp_squad.filename));
 
 	// set the player status
 	multi_pinfo_reset_player(np);	
@@ -583,19 +583,19 @@ void multi_pinfo_blit_pilot_image()
 
 		// if there is no image
 		if(strlen(Mp_pilot.filename) <= 0){
-			SDL_strlcpy(place_text, XSTR("No/Invalid Image", 1053), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("No/Invalid Image", 1053), SDL_arraysize(place_text));
 		} 
 		// if the image is xferring
 		else if(multi_xfer_lookup(Mp_pilot.filename)){
-			SDL_strlcpy(place_text, XSTR("Image Transferring", 691), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("Image Transferring", 691), SDL_arraysize(place_text));
 		}
 		// if we're not accepting images
 		else if(!(Net_player->p_info.options.flags & MLO_FLAG_ACCEPT_PIX) || !(Netgame.options.flags & MSO_FLAG_ACCEPT_PIX)){
-			SDL_strlcpy(place_text, XSTR("No Image", 692), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("No Image", 692), SDL_arraysize(place_text));
 		}
 		// otherwise we wait
 		else {
-			SDL_strlcpy(place_text, XSTR("Waiting", 690), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("Waiting", 690), SDL_arraysize(place_text));
 		}		
 
 		// center the text
@@ -630,19 +630,19 @@ void multi_pinfo_blit_squadron_logo()
 
 		// if there is no image
 		if(strlen(p->squad_filename) <= 0){
-			SDL_strlcpy(place_text, XSTR("No/Invalid Image", 1053), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("No/Invalid Image", 1053), SDL_arraysize(place_text));
 		} 
 		// if the image is xferring
 		else if(multi_xfer_lookup(p->squad_filename)){
-			SDL_strlcpy(place_text, XSTR("Image Transferring", 691), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("Image Transferring", 691), SDL_arraysize(place_text));
 		}
 		// if we're not accepting images
 		else if(!(Net_player->p_info.options.flags & MLO_FLAG_ACCEPT_PIX) || !(Netgame.options.flags & MSO_FLAG_ACCEPT_PIX)){
-			SDL_strlcpy(place_text, XSTR("No Image", 692), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("No Image", 692), SDL_arraysize(place_text));
 		}
 		// otherwise we wait
 		else {
-			SDL_strlcpy(place_text, XSTR("Waiting", 690), sizeof(place_text));
+			SDL_strlcpy(place_text, XSTR("Waiting", 690), SDL_arraysize(place_text));
 		}				
 
 		// center the text
@@ -915,12 +915,12 @@ void multi_pinfo_reset_player(net_player *np)
 	Multi_pinfo_popup_player = np;
 
 	// unload any old image data if necessary
-	SDL_strlcpy(Mp_pilot.filename, "", sizeof(Mp_pilot.filename));
+	SDL_strlcpy(Mp_pilot.filename, "", SDL_arraysize(Mp_pilot.filename));
 	if(Mp_pilot.bitmap != -1){
 		bm_release(Mp_pilot.bitmap);
 		Mp_pilot.bitmap = -1;
 	}
-	SDL_strlcpy(Mp_squad.filename, "", sizeof(Mp_squad.filename));
+	SDL_strlcpy(Mp_squad.filename, "", SDL_arraysize(Mp_squad.filename));
 	if(Mp_squad.bitmap != -1){
 		bm_release(Mp_squad.bitmap);
 		Mp_squad.bitmap = -1;
@@ -928,11 +928,11 @@ void multi_pinfo_reset_player(net_player *np)
 	
 	// try and load pilot pic/squad logo
 	if(strlen(np->player->image_filename) > 0){
-		SDL_strlcpy(Mp_pilot.filename, np->player->image_filename, sizeof(Mp_pilot.filename));
+		SDL_strlcpy(Mp_pilot.filename, np->player->image_filename, SDL_arraysize(Mp_pilot.filename));
 		Mp_pilot.bitmap = bm_load_duplicate(Mp_pilot.filename);
 	}
 	if(strlen(np->player->squad_filename) > 0){
-		SDL_strlcpy(Mp_squad.filename, np->player->squad_filename, sizeof(Mp_squad.filename));
+		SDL_strlcpy(Mp_squad.filename, np->player->squad_filename, SDL_arraysize(Mp_squad.filename));
 		Mp_squad.bitmap = bm_load_duplicate(Mp_squad.filename);
 	}
 

@@ -214,7 +214,7 @@ void multi_kick_player(int player_index, int ban, int reason)
 			// wait until he either shuts his connection down or he times out)
 			// add the string to the chatbox and the hud (always safe - if it is not inited, nothing bad will happen)			
 			char str[512];
-			SDL_snprintf(str, sizeof(str), XSTR("<kicking %s ...>", 1501), Net_players[player_index].player->callsign);
+			SDL_snprintf(str, SDL_arraysize(str), XSTR("<kicking %s ...>", 1501), Net_players[player_index].player->callsign);
 			multi_display_chat_msg(str, player_index, 0);							 
 		}
 		// otherwise, we should send the packet indicating that this guy should be kicked

@@ -381,8 +381,8 @@ void gr_opengl1_print_screen(const char *filename)
 	char tmp[MAX_FILENAME_LEN];
 	ubyte *buf = NULL;
 
-	SDL_strlcpy( tmp, filename, sizeof(tmp) );
-	SDL_strlcat( tmp, NOX(".tga"), sizeof(tmp) );
+	SDL_strlcpy( tmp, filename, SDL_arraysize(tmp) );
+	SDL_strlcat( tmp, NOX(".tga"), SDL_arraysize(tmp) );
 
 	buf = (ubyte*)malloc(GL_viewport_w * GL_viewport_h * 3);
 

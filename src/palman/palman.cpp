@@ -356,7 +356,7 @@ void palette_load_table( const char * filename )
 	int w, h;
 	int pcx_error;
 
-	SDL_strlcpy( palette_base_filename, filename, sizeof(palette_base_filename) );
+	SDL_strlcpy( palette_base_filename, filename, SDL_arraysize(palette_base_filename) );
 	char * p = SDL_strchr(palette_base_filename,'.');
 	if ( p )	{
 		*p = 0;
@@ -504,8 +504,8 @@ void palette_write_cached1( const char *name )
 	CFILE *fp;
 	char new_name[128];
 
-	SDL_strlcpy( new_name, name, sizeof(new_name) );
-	SDL_strlcat( new_name, ".clr", sizeof(new_name) );
+	SDL_strlcpy( new_name, name, SDL_arraysize(new_name) );
+	SDL_strlcat( new_name, ".clr", SDL_arraysize(new_name) );
 	
 //	mprintf(( "Writing palette cache file '%s'\n", new_name ));
 
@@ -549,8 +549,8 @@ int palette_read_cached( const char *name )
 	uint id, new_checksum;
 	ubyte new_palette[768];
 
-	SDL_strlcpy( new_name, name, sizeof(new_name) );
-	SDL_strlcat( new_name, ".clr", sizeof(new_name) );
+	SDL_strlcpy( new_name, name, SDL_arraysize(new_name) );
+	SDL_strlcat( new_name, ".clr", SDL_arraysize(new_name) );
 
 //	mprintf(( "Reading palette '%s'\n", name ));
 	
@@ -728,11 +728,11 @@ void palette_update(const char *name_with_extension, int restrict_font_to_128)
 	
 //	mprintf(( "<<<<<<<<< PALETTE UPDATE (%s) >>>>>>>>>>>\n", (name_with_extension?name_with_extension:"null") ));
 
-	SDL_strlcpy( name, name_with_extension, sizeof(name) );
+	SDL_strlcpy( name, name_with_extension, SDL_arraysize(name) );
 	char *p = SDL_strchr( name, '.' );
 	if ( p ) *p = 0;
 
-	SDL_strlcpy( palette_name, name, sizeof(palette_name) );
+	SDL_strlcpy( palette_name, name, SDL_arraysize(palette_name) );
 
 	tmp_checksum = palette_compute_checksum( gr_palette );
 	if ( tmp_checksum == gr_palette_checksum ) return;
@@ -882,7 +882,7 @@ void palette_use_bm_palette(int n)
 	ubyte tmp[768];
 	char name[128];
 
-	bm_get_palette(n, tmp, name, sizeof(name));				// get the palette for this bitmap
+	bm_get_palette(n, tmp, name, SDL_arraysize(name));				// get the palette for this bitmap
 
 	gr_set_palette(name, tmp);				// load the new palette.
 }

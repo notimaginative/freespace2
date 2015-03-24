@@ -1250,7 +1250,7 @@ void process_join_packet(ubyte* data, header* hinfo)
 //			}
 //		} else if(Netgame.mode == NG_MODE_RESTRICTED){
 			host_restr_mode = MULTI_JOIN_RESTR_MODE_1;
-			SDL_snprintf(join_string,sizeof(join_string),XSTR("Player %s has tried to join, accept y/n ?",715),jr.callsign);
+			SDL_snprintf(join_string,SDL_arraysize(join_string),XSTR("Player %s has tried to join, accept y/n ?",715),jr.callsign);
 //		}
 		SDL_assert(host_restr_mode != -1);
 
@@ -1395,7 +1395,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 		// add a chat message
 		if(Net_players[new_player_num].player->callsign != NULL){
-			SDL_snprintf(notify_string,sizeof(notify_string),XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
+			SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
 			multi_display_chat_msg(notify_string,0,0);
 		}
 	}		
@@ -1569,7 +1569,7 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 
 	// add a chat message
 	if(Net_players[new_player_num].player->callsign != NULL){
-		SDL_snprintf(notify_string,sizeof(notify_string),XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
+		SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
 		multi_display_chat_msg(notify_string, 0, 0);
 	}	
 
@@ -1958,7 +1958,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 
 			// display the result
 			memset(str, 0, 512);
-			multi_kick_get_text(&Net_players[player_num], kicked_reason, str, sizeof(str));
+			multi_kick_get_text(&Net_players[player_num], kicked_reason, str, SDL_arraysize(str));
 			multi_display_chat_msg(str, player_num, 0);
 		}
 	}
@@ -1967,7 +1967,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 	if (Net_player->flags & NETINFO_FLAG_AM_MASTER) {
 		char msg[255];
 
-		SDL_snprintf(msg, sizeof(msg), XSTR("%s has left the game",719), Net_players[player_num].player->callsign );
+		SDL_snprintf(msg, SDL_arraysize(msg), XSTR("%s has left the game",719), Net_players[player_num].player->callsign );
 
 		if (!(Game_mode & GM_STANDALONE_SERVER)){
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, msg);
@@ -4468,7 +4468,7 @@ void process_file_sig_request(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();	
 
 	// set the current mission filename
-	SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, sizeof(Game_current_mission_filename));
+	SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 
 	// get the checksum
 	multi_get_mission_checksum(Game_current_mission_filename);	
@@ -4643,8 +4643,8 @@ void process_netplayer_load_packet(ubyte *data, header *hinfo)
 	GET_STRING(str);
 	PACKET_SET_SIZE();
 
-	SDL_strlcpy(Netgame.mission_name, str, sizeof(Netgame.mission_name));
-	SDL_strlcpy(Game_current_mission_filename, str, sizeof(Game_current_mission_filename));
+	SDL_strlcpy(Netgame.mission_name, str, SDL_arraysize(Netgame.mission_name));
+	SDL_strlcpy(Game_current_mission_filename, str, SDL_arraysize(Game_current_mission_filename));
 	if(!Multi_mission_loaded){
 
 		// MWA 2/3/98 -- ingame join changes!!!
@@ -5136,7 +5136,7 @@ void process_mission_sync_packet(ubyte *data, header *hinfo)
 
 			// get the single mission filename
 			GET_STRING(Game_current_mission_filename);
-			SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, sizeof(Netgame.mission_name));
+			SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, SDL_arraysize(Netgame.mission_name));
 		}
 	}
 	PACKET_SET_SIZE();

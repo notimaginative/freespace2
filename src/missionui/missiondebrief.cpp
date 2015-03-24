@@ -1316,7 +1316,7 @@ void debrief_choose_promotion_voice()
 	int i, j;
 
 	if(Campaign.current_mission < 0){
-		SDL_snprintf(Promotion_stage.voice, sizeof(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
+		SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
 		return;
 	}
 
@@ -1328,7 +1328,7 @@ void debrief_choose_promotion_voice()
 				for (j=0; j<Volition_campaigns[i].num_missions; j++) {
 					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
 						// found it!  set the persona and bail
-						SDL_snprintf(Promotion_stage.voice, sizeof(Promotion_stage.voice), NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Ranks[Promoted].promotion_voice_base);
+						SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Ranks[Promoted].promotion_voice_base);
 						return;
 					}
 				}
@@ -1337,7 +1337,7 @@ void debrief_choose_promotion_voice()
 	}
 
 	// default to petrarch
-	SDL_snprintf(Promotion_stage.voice, sizeof(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
+	SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
 }
 
 // sets Promotion_stage.voice
@@ -1352,20 +1352,20 @@ void debrief_choose_badge_voice()
 	if(Campaign.current_mission < 0){
 #ifndef MAKE_FS1
 		// default to petrarch
-		SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+		SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #else
 		// default to FS1 guy
-		SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+		SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #endif
 	}
 
 	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
 #ifdef MAKE_FS1
 		if ( Player->on_bastion ) {
-			SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base2);
+			SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base2);
 			return;
 		} else {
-			SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+			SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 			return;
 		}
 #else
@@ -1376,7 +1376,7 @@ void debrief_choose_badge_voice()
 				for (j=0; j<Campaign.num_missions; j++) {
 					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
 						// found it!  set the persona and bail
-						SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Badge_info[Player->stats.m_badge_earned].voice_base);
+						SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Badge_info[Player->stats.m_badge_earned].voice_base);
 						return;
 					}
 				}
@@ -1387,10 +1387,10 @@ void debrief_choose_badge_voice()
 
 #ifndef MAKE_FS1
 	// default to petrarch
-	SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+	SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #else
 	// default to FS1 guy
-	SDL_snprintf(Badge_stage.voice, sizeof(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+	SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #endif
 }
 
@@ -1421,14 +1421,14 @@ void debrief_award_init()
 			} else {
 				ver = 0;
 			}
-			SDL_snprintf(buf, sizeof(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);
 			Wings_bitmap = bm_load(buf);
 #ifndef MAKE_FS1
 		} else if (Player->stats.m_medal_earned == 17) {  // special hack for the soc crest
 			Crest_bitmap = bm_load(Debrief_award_filename[gr_screen.res][DB_AWARD_SOC]);
 #endif
 		} else {
-			SDL_snprintf(buf, sizeof(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
 			Medal_bitmap = bm_load(buf);
 		}
 
@@ -1440,7 +1440,7 @@ void debrief_award_init()
 	// handle promotions
 	if ( Player->stats.m_promotion_earned != -1 ) {
 		Promoted = Player->stats.m_promotion_earned;
-		SDL_snprintf(buf, sizeof(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_RANK], Promoted + 1);
+		SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_RANK], Promoted + 1);
 		Rank_bitmap = bm_load(buf);
 
 		Promotion_stage.new_text = Ranks[Promoted].promotion_text;
@@ -1458,7 +1458,7 @@ void debrief_award_init()
 	// only grant badge if earned and allowed.  (no_promotion really means no promotion and no badges)
 	if ( Player->stats.m_badge_earned != -1 ) {
 		i = Player->stats.m_badge_earned;
-		SDL_snprintf(buf, sizeof(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_BADGE], i + 1);
+		SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_BADGE], i + 1);
 		Badge_bitmap = bm_load(buf);
 
 		Badge_stage.new_text = Badge_info[i].promotion_text;
@@ -1522,13 +1522,13 @@ void debrief_traitor_init()
 // DKA 9/13/99 Only 1 traitor msg for FS2
 #ifdef MAKE_FS1
 			if ( Player->on_bastion ) {
-				SDL_strlcpy(stagep->voice, NOX("3_"), sizeof(stagep->voice));
+				SDL_strlcpy(stagep->voice, NOX("3_"), SDL_arraysize(stagep->voice));
 			} else {
-				SDL_strlcpy(stagep->voice, NOX("1_"), sizeof(stagep->voice));
+				SDL_strlcpy(stagep->voice, NOX("1_"), SDL_arraysize(stagep->voice));
 			}
 #endif
 
-			SDL_strlcat(stagep->voice, traitor_voice_file, sizeof(stagep->voice));
+			SDL_strlcat(stagep->voice, traitor_voice_file, SDL_arraysize(stagep->voice));
 
 			required_string("$Recommendation text:");
 			if ( Fred_running )	{
@@ -1583,7 +1583,7 @@ void debrief_multi_list_init()
 
 	// switch stats display to this newly selected player
 	set_player_stats(Multi_list[0].net_player_index);
-	SDL_strlcpy(Debrief_current_callsign, Multi_list[0].callsign, sizeof(Debrief_current_callsign));
+	SDL_strlcpy(Debrief_current_callsign, Multi_list[0].callsign, SDL_arraysize(Debrief_current_callsign));
 	Debrief_player = Player;
 }
 
@@ -1636,7 +1636,7 @@ void debrief_multi_list_draw()
 
 				// switch stats display to this newly selected player
 				set_player_stats(Multi_list[idx].net_player_index);
-				SDL_strlcpy(Debrief_current_callsign, Multi_list[idx].callsign, sizeof(Debrief_current_callsign));
+				SDL_strlcpy(Debrief_current_callsign, Multi_list[idx].callsign, SDL_arraysize(Debrief_current_callsign));
 				Debrief_player = Net_players[Multi_list[idx].net_player_index].player;				
 				break;
 			}
@@ -1703,9 +1703,9 @@ void debrief_multi_list_draw()
 			}
 		}
 
-		SDL_strlcpy(str, Multi_list[z].callsign, sizeof(str));
+		SDL_strlcpy(str, Multi_list[z].callsign, SDL_arraysize(str));
 		if(Net_players[Multi_list[z].net_player_index].flags & NETINFO_FLAG_OBSERVER && !(Net_players[Multi_list[z].net_player_index].flags & NETINFO_FLAG_OBS_PLAYER)){
-			SDL_strlcat(str, XSTR( "(O)", 438), sizeof(str));
+			SDL_strlcat(str, XSTR( "(O)", 438), SDL_arraysize(str));
 		}		
 
 		// bli
@@ -1930,7 +1930,7 @@ void debrief_render_stagenum()
 	if (Num_stages < 2)
 		return;
 		
-	SDL_snprintf(buf, sizeof(buf), XSTR( "%d of %d", 445), Current_stage + 1, Num_stages);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d of %d", 445), Current_stage + 1, Num_stages);
 	gr_get_string_size(&w, NULL, buf);
 	gr_set_color_fast(&Color_bright_blue);
 	gr_string(Debrief_stage_info_coords[gr_screen.res][0] - w, Debrief_stage_info_coords[gr_screen.res][1], buf);
@@ -1942,7 +1942,7 @@ void debrief_render_mission_time(int y_loc)
 {
 	char time_str[30];
 	
-	game_format_time(Missiontime, time_str, sizeof(time_str));
+	game_format_time(Missiontime, time_str, SDL_arraysize(time_str));
 	gr_string(0, y_loc, XSTR( "Mission Time", 446));
 	gr_string(Debrief_text_x2[gr_screen.res], y_loc, time_str);	
 }
@@ -2233,8 +2233,8 @@ void debrief_setup_ship_kill_stats(int stage_num)
 
 		kill_info->num = kill_arr[i];
 
-		SDL_strlcpy(kill_info->text, Ship_info[i].name, sizeof(kill_info->text));
-		SDL_strlcat(kill_info->text, NOX(":"), sizeof(kill_info->text));
+		SDL_strlcpy(kill_info->text, Ship_info[i].name, SDL_arraysize(kill_info->text));
+		SDL_strlcat(kill_info->text, NOX(":"), SDL_arraysize(kill_info->text));
 	}
 
 	Num_text_lines += 2;
@@ -2260,7 +2260,7 @@ void debrief_check_buttons()
 		if ((z >= 0) && (z < Multi_list_size)) {
 			// switch stats display to this newly selected player
 			set_player_stats(Multi_list[z].net_player_index);
-			SDL_strlcpy(Debrief_current_callsign, Multi_list[z].callsign, sizeof(Debrief_current_callsign));
+			SDL_strlcpy(Debrief_current_callsign, Multi_list[z].callsign, SDL_arraysize(Debrief_current_callsign));
 			Debrief_player = Net_players[Multi_list[z].net_player_index].player;
 			Multi_list_select = z;
 			debrief_setup_ship_kill_stats(Current_stage);
@@ -2423,7 +2423,7 @@ void debrief_init()
 //	rank_bitmaps_clear();
 //	rank_bitmaps_load();
 
-	SDL_strlcpy(Debrief_current_callsign, Player->callsign, sizeof(Debrief_current_callsign));
+	SDL_strlcpy(Debrief_current_callsign, Player->callsign, SDL_arraysize(Debrief_current_callsign));
 	Debrief_player = Player;
 //	Debrief_current_net_player_index = debrief_multi_list[0].net_player_index;
 
@@ -2941,7 +2941,7 @@ void debrief_do_frame(float frametime)
 
 	// draw the title of the mission
 	gr_set_color_fast(&Color_bright_white);
-	SDL_strlcpy(buf, The_mission.name, sizeof(buf));
+	SDL_strlcpy(buf, The_mission.name, SDL_arraysize(buf));
 	gr_force_fit_string(buf, 255, Debrief_title_coords[gr_screen.res][2]);
 	gr_string(Debrief_title_coords[gr_screen.res][0], Debrief_title_coords[gr_screen.res][1], buf);	
 
@@ -3062,7 +3062,7 @@ void debrief_rebuild_player_list()
 		if ( MULTI_CONNECTED((*np)) && !MULTI_STANDALONE((*np))){
 			list = &Multi_list[Multi_list_size++];
 			list->net_player_index = i;
-			SDL_strlcpy(list->callsign, np->player->callsign, sizeof(list->callsign));
+			SDL_strlcpy(list->callsign, np->player->callsign, SDL_arraysize(list->callsign));
 			
 			// make sure to leave some room to blit the team indicator
 			gr_force_fit_string(list->callsign, CALLSIGN_LEN - 1, Debrief_list_coords[gr_screen.res][2] - MULTI_LIST_TEAM_OFFSET);

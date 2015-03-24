@@ -1867,7 +1867,7 @@ char *player_generate_death_text( player *player_p, char *death_text, const int 
 	char weapon_name[NAME_LENGTH];
 	weapon_name[0] = 0;	
 
-	player_generate_killer_weapon_name(player_p->killer_weapon_index, player_p->killer_species, weapon_name, sizeof(weapon_name));
+	player_generate_killer_weapon_name(player_p->killer_weapon_index, player_p->killer_species, weapon_name, SDL_arraysize(weapon_name));
 
 	switch ( player_p->killer_objtype ) {
 	case OBJ_SHOCKWAVE:
@@ -1937,17 +1937,17 @@ void player_show_death_message()
 	if ( Player->flags & PLAYER_KILLED_SELF ) {
 		// reasons he killed himself
 		if(Player->flags & PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE){
-			SDL_strlcpy(death_text, XSTR( "You have killed yourself with a shockwave from your own weapon", 1421), sizeof(death_text));
+			SDL_strlcpy(death_text, XSTR( "You have killed yourself with a shockwave from your own weapon", 1421), SDL_arraysize(death_text));
 		}
 		else if(Player->flags & PLAYER_FLAGS_KILLED_SELF_MISSILES){
-			SDL_strlcpy(death_text, XSTR( "You have killed yourself with your own missiles", 1422), sizeof(death_text));
+			SDL_strlcpy(death_text, XSTR( "You have killed yourself with your own missiles", 1422), SDL_arraysize(death_text));
 		} else {
-			SDL_strlcpy(death_text, XSTR( "You have killed yourself", 100), sizeof(death_text));
+			SDL_strlcpy(death_text, XSTR( "You have killed yourself", 100), SDL_arraysize(death_text));
 		}
 
 		Player->flags &= ~(PLAYER_FLAGS_KILLED_SELF_MISSILES | PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE);
 	} else {
-		player_generate_death_text( Player, death_text, sizeof(death_text) );
+		player_generate_death_text( Player, death_text, SDL_arraysize(death_text) );
 	}
 
 	HUD_fixed_printf(30.0f, death_text);
@@ -2132,13 +2132,13 @@ void player_display_packlock_view()
 	if ( !(Viewer_mode & (VM_CHASE|VM_EXTERNAL|VM_SLEWED)) ) {
 		switch (padlock_view_index) {
 		case 0:
-			SDL_strlcpy(str, XSTR( "top view", 101), sizeof(str));	break;
+			SDL_strlcpy(str, XSTR( "top view", 101), SDL_arraysize(str));	break;
 		case 1:
-			SDL_strlcpy(str, XSTR( "rear view", 102), sizeof(str));	break;
+			SDL_strlcpy(str, XSTR( "rear view", 102), SDL_arraysize(str));	break;
 		case 2:
-			SDL_strlcpy(str, XSTR( "left view", 103), sizeof(str));	break;
+			SDL_strlcpy(str, XSTR( "left view", 103), SDL_arraysize(str));	break;
 		case 3:
-			SDL_strlcpy(str, XSTR( "right view", 104), sizeof(str));	break;
+			SDL_strlcpy(str, XSTR( "right view", 104), SDL_arraysize(str));	break;
 			}
 
 		HUD_fixed_printf(0.01f, str);

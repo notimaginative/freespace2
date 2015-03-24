@@ -1030,14 +1030,14 @@ void multi_ts_assign_players_all()
 	if(Netgame.type_flags & NG_TYPE_TEAM){
 		switch(Netgame.host->p_info.team){
 		case 0 :
-			SDL_strlcpy(name_lookup, NOX("alpha 1"), sizeof(name_lookup));
+			SDL_strlcpy(name_lookup, NOX("alpha 1"), SDL_arraysize(name_lookup));
 			break;
 		case 1 :
-			SDL_strlcpy(name_lookup, NOX("zeta 1"), sizeof(name_lookup));
+			SDL_strlcpy(name_lookup, NOX("zeta 1"), SDL_arraysize(name_lookup));
 			break;
 		}
 	} else {
-		SDL_strlcpy(name_lookup, NOX("alpha 1"), sizeof(name_lookup));
+		SDL_strlcpy(name_lookup, NOX("alpha 1"), SDL_arraysize(name_lookup));
 	}
 	shipnum = ship_name_lookup(name_lookup);
 	
@@ -1463,16 +1463,16 @@ void multi_ts_blit_wing_callsigns()
 		// if there is a player in the slot
 		if(Multi_ts_team[Net_player->p_info.team].multi_ts_player[idx] != NULL){
 			// make sure the string fits
-			SDL_strlcpy(callsign, Multi_ts_team[Net_player->p_info.team].multi_ts_player[idx]->player->callsign, sizeof(callsign));
+			SDL_strlcpy(callsign, Multi_ts_team[Net_player->p_info.team].multi_ts_player[idx]->player->callsign, SDL_arraysize(callsign));
 		} else {
 			// determine if this is a locked AI ship
 			pobj = mission_parse_get_arrival_ship(Ships[Objects[Multi_ts_team[Net_player->p_info.team].multi_ts_objnum[idx]].instance].ship_name);			
 			if((pobj == NULL) || !(pobj->flags & OF_PLAYER_SHIP)){
-				SDL_strlcpy(callsign, NOX("<"), sizeof(callsign));
-				SDL_strlcat(callsign, XSTR("AI", 738), sizeof(callsign));  // [[ Artificial Intellegence ]]
-				SDL_strlcat(callsign, NOX(">"), sizeof(callsign));
+				SDL_strlcpy(callsign, NOX("<"), SDL_arraysize(callsign));
+				SDL_strlcat(callsign, XSTR("AI", 738), SDL_arraysize(callsign));  // [[ Artificial Intellegence ]]
+				SDL_strlcat(callsign, NOX(">"), SDL_arraysize(callsign));
 			} else {
-				SDL_strlcpy(callsign, XSTR("AI", 738), sizeof(callsign));  // [[ Artificial Intellegence ]]
+				SDL_strlcpy(callsign, XSTR("AI", 738), SDL_arraysize(callsign));  // [[ Artificial Intellegence ]]
 			}
 		}
 			
@@ -1510,7 +1510,7 @@ void multi_ts_blit_avail_ships()
 				ss_blit_ship_icon(Multi_ts_avail_coords[display_count][gr_screen.res][MULTI_TS_X_COORD],Multi_ts_avail_coords[display_count][gr_screen.res][MULTI_TS_Y_COORD],idx,multi_ts_avail_bmap_num(display_count));
 
 				// blit the ship count available
-				SDL_snprintf(count,sizeof(count),"%d",Ss_pool[idx]);
+				SDL_snprintf(count,SDL_arraysize(count),"%d",Ss_pool[idx]);
 				gr_set_color_fast(&Color_normal);
 				gr_string(Multi_ts_avail_coords[display_count][gr_screen.res][MULTI_TS_X_COORD] - 20,Multi_ts_avail_coords[display_count][gr_screen.res][MULTI_TS_Y_COORD],count);
 
@@ -1730,7 +1730,7 @@ void multi_ts_blit_ship_info()
 	// blit the max velocity
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Max Velocity",742));	
-	SDL_snprintf(str,sizeof(str),XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
+	SDL_snprintf(str,SDL_arraysize(str),XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
 	gr_set_color_fast(&Color_bright);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,str);	
 	y_start += 10;
@@ -1802,11 +1802,11 @@ void multi_ts_blit_status_bar()
 	// mode specific text
 	switch(Multi_ts_status_bar_mode){
 	case 0 :
-		SDL_strlcpy(text, XSTR("Ships/Weapons Locked", 749), sizeof(text));
+		SDL_strlcpy(text, XSTR("Ships/Weapons Locked", 749), SDL_arraysize(text));
 		blit = 1;
 		break;
 	case 1 :
-		SDL_strlcpy(text, XSTR("Ships/Weapons Are Now Free", 750), sizeof(text));
+		SDL_strlcpy(text, XSTR("Ships/Weapons Are Now Free", 750), SDL_arraysize(text));
 		blit = 1;
 		break;
 	}
@@ -2630,7 +2630,7 @@ void multi_ts_blit_carried_icon()
 		break;
 	case MULTI_TS_PLAYER_LIST:
 		// get the final length of the string so we can calculate a valid offset
-		SDL_strlcpy(callsign, Multi_ts_team[Net_player->p_info.team].multi_ts_player[Multi_ts_carried_from_index]->player->callsign, sizeof(callsign));
+		SDL_strlcpy(callsign, Multi_ts_team[Net_player->p_info.team].multi_ts_player[Multi_ts_carried_from_index]->player->callsign, SDL_arraysize(callsign));
 		gr_force_fit_string(callsign,CALLSIGN_LEN,Multi_ts_slot_text_coords[Multi_ts_carried_from_index][gr_screen.res][MULTI_TS_W_COORD]);						
 		gr_get_string_size(&callsign_w,NULL,callsign);
 

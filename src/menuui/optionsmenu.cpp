@@ -803,7 +803,7 @@ void options_play_voice_clip()
 
 void options_add_notify(const char *str)
 {
-	SDL_strlcpy(Options_notify_string, str, sizeof(Options_notify_string));
+	SDL_strlcpy(Options_notify_string, str, SDL_arraysize(Options_notify_string));
 	Options_notify_stamp = timestamp(OPTIONS_NOTIFY_TIME);
 }
 

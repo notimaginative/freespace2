@@ -969,7 +969,7 @@ void psnet_string_to_addr( net_addr_t * address, char * text, const int max_text
 
 	// copy the text string to local storage to look for ports
 	SDL_assert( strlen(text) < 255 );
-	SDL_strlcpy(str, text, sizeof(str));
+	SDL_strlcpy(str, text, SDL_arraysize(str));
 	c = strrchr(str, ':');
 	port = NULL;
 	if ( c ) {
@@ -1183,7 +1183,7 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 
 	// our addresses may have ports, so make local copy and remove port number
 	SDL_assert( strlen(ip_string) < 255 );
-	SDL_strlcpy(str, ip_string, sizeof(str));
+	SDL_strlcpy(str, ip_string, SDL_arraysize(str));
 	c = strrchr(str, ':');
 	if ( c ){
 		*c = '\0';
@@ -2370,7 +2370,7 @@ int psnet_is_valid_numeric_ip(char *ip)
 	int val1,val2,val3,val4;
 
 	// get the first ip value
-	SDL_strlcpy(copy, ip, sizeof(copy));
+	SDL_strlcpy(copy, ip, SDL_arraysize(copy));
 	token = strtok(copy,".");
 	if(token == NULL){
 		return 0;

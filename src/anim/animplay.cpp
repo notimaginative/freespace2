@@ -887,12 +887,12 @@ anim *anim_load(const char *real_filename)
 
 	SDL_assert ( real_filename != NULL );
 
-	SDL_strlcpy(name, real_filename, sizeof(name));
+	SDL_strlcpy(name, real_filename, SDL_arraysize(name));
 	char *p = SDL_strchr( name, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	SDL_strlcat(name, ".ani", sizeof(name));
+	SDL_strlcat(name, ".ani", SDL_arraysize(name));
 
 	ptr = first_anim;
 	while (ptr) {
@@ -913,7 +913,7 @@ anim *anim_load(const char *real_filename)
 		ptr->flags = 0;
 		ptr->next = first_anim;
 		first_anim = ptr;
-		SDL_strlcpy(ptr->name, name, sizeof(ptr->name));
+		SDL_strlcpy(ptr->name, name, SDL_arraysize(ptr->name));
 		ptr->instance_count = 0;
 		ptr->width = 0;
 		ptr->height = 0;
@@ -1108,7 +1108,7 @@ int anim_write_frames_out(const char *filename)
 	int				i,j;
 	ubyte				**row_data;
 
-	SDL_strlcpy(root_name, filename, sizeof(root_name));
+	SDL_strlcpy(root_name, filename, SDL_arraysize(root_name));
 	root_name[strlen(filename)-4] = 0;
 
 	source_anim = anim_load(filename);
@@ -1121,9 +1121,9 @@ int anim_write_frames_out(const char *filename)
 
 	for ( i = 0; i < source_anim->total_frames; i++ ) {
 		anim_get_next_raw_buffer(ai, 0, 0, 16);
-		SDL_strlcpy(pcxname, root_name, sizeof(pcxname));
-		SDL_snprintf(buf, sizeof(buf), "%04d", i);
-		SDL_strlcat(pcxname, buf, sizeof(pcxname));
+		SDL_strlcpy(pcxname, root_name, SDL_arraysize(pcxname));
+		SDL_snprintf(buf, SDL_arraysize(buf), "%04d", i);
+		SDL_strlcat(pcxname, buf, SDL_arraysize(pcxname));
 
 		for ( j = 0; j < source_anim->height; j++ ) {
 			row_data[j] = &ai->frame[j*source_anim->width];
@@ -1158,12 +1158,12 @@ void anim_display_info(const char *real_filename)
 	int				i, uncompressed, compressed, *key_frame_nums=NULL, tmp;
 	char filename[MAX_FILENAME_LEN];
 
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	SDL_strlcat( filename, ".ani", sizeof(filename) );
+	SDL_strlcat( filename, ".ani", SDL_arraysize(filename) );
 
 	fp = cfopen(filename, "rb");
 	if ( !fp ) {

@@ -719,7 +719,7 @@ void hud_show_mini_ship_integrity(object *objp, int x_force, int y_force)
 	nx += fl2i( HUD_offset_x );
 	ny += fl2i( HUD_offset_y );
 
-	SDL_snprintf(text_integrity, sizeof(text_integrity), "%d", numeric_integrity);
+	SDL_snprintf(text_integrity, SDL_arraysize(text_integrity), "%d", numeric_integrity);
 	if ( numeric_integrity < 100 ) {
 		hud_num_make_mono(text_integrity);
 	}	

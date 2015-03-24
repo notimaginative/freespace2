@@ -237,7 +237,7 @@ void diag_printf(const char *format, ...)
 	va_list args;
 
 	va_start(args, format);
-	SDL_vsnprintf(buffer, sizeof(buffer), format, args);
+	SDL_vsnprintf(buffer, SDL_arraysize(buffer), format, args);
 	va_end(args);
 
 	nprintf(("Parse", "%s", buffer));
@@ -319,17 +319,17 @@ void error_display(int error_level, const char *format, ...)
 	va_list args;
 
 	if (error_level == 0) {
-		SDL_strlcpy(error_text, "Warning", sizeof(error_text));
+		SDL_strlcpy(error_text, "Warning", SDL_arraysize(error_text));
 		Warning_count++;
 	} else {
-		SDL_strlcpy(error_text, "Error", sizeof(error_text));
+		SDL_strlcpy(error_text, "Error", SDL_arraysize(error_text));
 		Error_count++;
 	}
 
 	nprintf((error_text, "%s(%i):%s: ", Current_filename, get_line_num(), error_text));
 
 	va_start(args, format);
-	SDL_vsnprintf(buffer, sizeof(buffer), format, args);
+	SDL_vsnprintf(buffer, SDL_arraysize(buffer), format, args);
 	va_end(args);
 
 	nprintf((error_text, "%s", buffer));
@@ -346,7 +346,7 @@ void advance_to_eoln(const char *more_terminators)
 	terminators[0] = EOLN;
 	terminators[1] = (char)EOF_CHAR;
 	if (more_terminators != NULL)
-		SDL_strlcpy(&terminators[2], more_terminators, sizeof(terminators));
+		SDL_strlcpy(&terminators[2], more_terminators, SDL_arraysize(terminators));
 	else
 		terminators[2] = 0;
 
@@ -668,7 +668,7 @@ void copy_to_eoln(char *outstr, const char *more_terminators, const char *instr,
 	terminators[0] = EOLN;
 	terminators[1] = (char)EOF_CHAR;
 	if (more_terminators != NULL)
-		SDL_strlcpy(&terminators[2], more_terminators, sizeof(terminators));
+		SDL_strlcpy(&terminators[2], more_terminators, SDL_arraysize(terminators));
 	else
 		terminators[2] = 0;
 
@@ -1152,7 +1152,7 @@ void read_file_text(const char *filename, int mode)
 	if (!filename)
 		throw PARSE_ERROR_EMPTY_FILENAME;
 
-	SDL_strlcpy(Current_filename, filename, sizeof(Current_filename));
+	SDL_strlcpy(Current_filename, filename, SDL_arraysize(Current_filename));
 	mf = cfopen(filename, "rb", CFILE_NORMAL, mode);
 	if (mf == NULL) {
 		nprintf(("Error", "Wokka!  Error opening mission.txt!\n"));

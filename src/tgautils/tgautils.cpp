@@ -368,10 +368,10 @@ int targa_read_header(char *real_filename, int *w, int *h, int *bpp, ubyte *pale
 	CFILE *targa_file;
 	char filename[MAX_FILENAME_LEN];
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".tga", sizeof(filename) );
+	SDL_strlcat( filename, ".tga", SDL_arraysize(filename) );
 
 	targa_file = cfopen( filename , "rb" );
 	if ( !targa_file ){
@@ -503,10 +503,10 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 	ubyte r, g, b;
 		
 	// open the file
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".tga", sizeof(filename) );
+	SDL_strlcat( filename, ".tga", SDL_arraysize(filename) );
 
 	targa_file = cfopen( filename , "rb" );
 	if ( !targa_file ){
@@ -708,10 +708,10 @@ int targa_write_bitmap(char *real_filename, ubyte *data, ubyte *palette, int w, 
 	int bytes_per_pixel = BYTES_PER_PIXEL(bpp);		
 		
 	// open the file
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".tga", sizeof(filename) );
+	SDL_strlcat( filename, ".tga", SDL_arraysize(filename) );
 
 	f = cfopen( filename , "wb" );
 	if ( !f ){

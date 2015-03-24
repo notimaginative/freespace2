@@ -4396,7 +4396,7 @@ void hud_draw_offscreen_indicator(vertex* target_point, vector *tpos, float dist
 	ypos = (float)floor(ypos);
 
 	if ( hud_gauge_active(HUD_OFFSCREEN_RANGE) && (distance > 0) ) {
-		SDL_snprintf(buf, sizeof(buf), "%d", fl2i(distance+0.5f));
+		SDL_snprintf(buf, SDL_arraysize(buf), "%d", fl2i(distance+0.5f));
 		hud_num_make_mono(buf);
 		gr_get_string_size(&w, &h, buf);	
 	} else {
@@ -4530,7 +4530,7 @@ void hud_show_weapon_energy_gauge()
 		if ( percent_left < 0.1 ) {
 			gr_set_color_fast(&Color_bright_red);
 		}
-		SDL_snprintf(buf, sizeof(buf), XSTR( "%d%%", 326), fl2i(percent_left*100+0.5f));
+		SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d%%", 326), fl2i(percent_left*100+0.5f));
 		hud_num_make_mono(buf);
 		gr_string(Weapon_energy_text_coords[gr_screen.res][0], Weapon_energy_text_coords[gr_screen.res][1], buf);
 	}
@@ -4622,9 +4622,9 @@ void hud_show_secondary_weapon(int count, ship_weapon *sw, int dual_fire)
 		
 		// HACK - make Cluster Bomb fit on the HUD.
 		if(!SDL_strcasecmp(wip->name,"cluster bomb")){
-			SDL_strlcpy(weapon_name, NOX("Cluster"), sizeof(weapon_name));
+			SDL_strlcpy(weapon_name, NOX("Cluster"), SDL_arraysize(weapon_name));
 		} else {
-			SDL_strlcpy(weapon_name, wip->name, sizeof(weapon_name));
+			SDL_strlcpy(weapon_name, wip->name, SDL_arraysize(weapon_name));
 		}
 
 		hud_end_string_at_first_hash_symbol(weapon_name);
@@ -4649,7 +4649,7 @@ void hud_show_secondary_weapon(int count, ship_weapon *sw, int dual_fire)
 		}
 
 		// print out the ammo right justified
-		SDL_snprintf(ammo_str, sizeof(ammo_str), "%d", sw->secondary_bank_ammo[i]);
+		SDL_snprintf(ammo_str, SDL_arraysize(ammo_str), "%d", sw->secondary_bank_ammo[i]);
 		hud_num_make_mono(ammo_str);
 		gr_get_string_size(&w, &h, ammo_str);
 
@@ -4773,9 +4773,9 @@ void hud_show_weapons()
 		// draw bottom of border
 		GR_AABITMAP(Weapon_gauges[2].first_frame, Weapon_gauge_primary_coords[gr_screen.res][1][0], Weapon_gauge_primary_coords[gr_screen.res][1][1]);
 
-		SDL_strlcpy(name, Weapon_info[sw->primary_bank_weapons[0]].name, sizeof(name));
+		SDL_strlcpy(name, Weapon_info[sw->primary_bank_weapons[0]].name, SDL_arraysize(name));
 		if (Lcl_gr) {
-			lcl_translate_wep_name(name, sizeof(name));
+			lcl_translate_wep_name(name, SDL_arraysize(name));
 		}
 		
 		// maybe modify name here to fit
@@ -4797,9 +4797,9 @@ void hud_show_weapons()
 		// draw bottom of border
 		GR_AABITMAP(Weapon_gauges[2].first_frame, Weapon_gauge_primary_coords[gr_screen.res][2][0], Weapon_gauge_primary_coords[gr_screen.res][2][1]);
 
-		SDL_strlcpy(name, Weapon_info[sw->primary_bank_weapons[0]].name, sizeof(name));
+		SDL_strlcpy(name, Weapon_info[sw->primary_bank_weapons[0]].name, SDL_arraysize(name));
 		if (Lcl_gr) {
-			lcl_translate_wep_name(name, sizeof(name));
+			lcl_translate_wep_name(name, SDL_arraysize(name));
 		}
 		// maybe modify name here to fit
 
@@ -4814,9 +4814,9 @@ void hud_show_weapons()
 		}
 		emp_hud_printf(Weapon_pname_coords[gr_screen.res][0][0], Weapon_pname_coords[gr_screen.res][0][1], EG_WEAPON_P1, "%s", name);			
 
-		SDL_strlcpy(name, Weapon_info[sw->primary_bank_weapons[1]].name, sizeof(name));
+		SDL_strlcpy(name, Weapon_info[sw->primary_bank_weapons[1]].name, SDL_arraysize(name));
 		if (Lcl_gr) {
-			lcl_translate_wep_name(name, sizeof(name));
+			lcl_translate_wep_name(name, SDL_arraysize(name));
 		}
 		// maybe modify name here to fit
 		if ( hud_gauge_maybe_flash(HUD_WEAPONS_GAUGE) == 1 ) {

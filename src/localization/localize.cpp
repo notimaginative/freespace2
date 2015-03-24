@@ -475,9 +475,9 @@ void lcl_init(int lang_init)
 
 		if(ret == NULL){
 			Int3();
-			SDL_strlcpy(lang_string, DEFAULT_LANGUAGE, sizeof(lang_string));
+			SDL_strlcpy(lang_string, DEFAULT_LANGUAGE, SDL_arraysize(lang_string));
 		} else {
-			SDL_strlcpy(lang_string, ret, sizeof(lang_string));
+			SDL_strlcpy(lang_string, ret, SDL_arraysize(lang_string));
 		}
 
 		// look it up
@@ -555,8 +555,8 @@ void lcl_xstr_init()
 
 		// move down to the proper section		
 		memset(language_tag, 0, 512);
-		SDL_strlcpy(language_tag, "#", sizeof(language_tag));
-		SDL_strlcat(language_tag, Lcl_languages[Lcl_current_lang].lang_name, sizeof(language_tag));
+		SDL_strlcpy(language_tag, "#", SDL_arraysize(language_tag));
+		SDL_strlcat(language_tag, Lcl_languages[Lcl_current_lang].lang_name, SDL_arraysize(language_tag));
 		if(skip_to_string(language_tag) != 1){
 			Error(LOCATION, NOX("Strings.tbl is corrupt"));
 		}		
@@ -776,10 +776,10 @@ void lcl_add_dir_to_path_with_filename(char *current_path, const int path_len)
 	// mark end of current path with '\0', so strcat will work
 	char *last_slash = strrchr(current_path, DIR_SEPARATOR_CHAR);
 	if (last_slash == NULL) {
-		SDL_strlcpy(temp, current_path, sizeof(temp));
+		SDL_strlcpy(temp, current_path, SDL_arraysize(temp));
 		current_path[0] = '\0';
 	} else {
-		SDL_strlcpy(temp, last_slash+1, sizeof(temp));
+		SDL_strlcpy(temp, last_slash+1, SDL_arraysize(temp));
 		last_slash[1] = '\0';
 	}
 
@@ -872,7 +872,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 
 	// otherwise, check to see if it's an XSTR() tag
 	memset(first_four, 0, 5);
-	SDL_strlcpy(first_four, in, sizeof(first_four));
+	SDL_strlcpy(first_four, in, SDL_arraysize(first_four));
 	if(SDL_strcasecmp(first_four, "XSTR")){
 		// NOT an XSTR() tag
 		if(str_len > max_len){
@@ -913,7 +913,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	}		
 
 	// attempt to find the string
-	if(lcl_ext_lookup(lookup_str, sizeof(lookup_str), str_id)){
+	if(lcl_ext_lookup(lookup_str, SDL_arraysize(lookup_str), str_id)){
 		// copy to the outgoing string
 		SDL_assert(strlen(lookup_str) <= (unsigned int)(max_len - 1));
 
@@ -1179,7 +1179,7 @@ int lcl_ext_lookup_sub(char *text, char *out, const int max_out, int id)
 		// scanning for a line of text
 		case TS_SCANNING:
 			// if the first word is #end, we're done with the file altogether
-			SDL_strlcpy(text_copy, text, sizeof(text_copy));
+			SDL_strlcpy(text_copy, text, SDL_arraysize(text_copy));
 			tok = strtok(text_copy, " \n");
 			if((tok != NULL) && !SDL_strcasecmp(tok, "#end")){
 				return 3;
@@ -1300,11 +1300,11 @@ void lcl_ext_setup_pointers()
 
 	// seek to the currently active language
 	memset(language_string, 0, 128);
-	SDL_strlcpy(language_string, "#", sizeof(language_string));
+	SDL_strlcpy(language_string, "#", SDL_arraysize(language_string));
 	if(!SDL_strcasecmp(DEFAULT_LANGUAGE, Lcl_languages[Lcl_current_lang].lang_name)){
-		SDL_strlcat(language_string, "default", sizeof(language_string));
+		SDL_strlcat(language_string, "default", SDL_arraysize(language_string));
 	} else {
-		SDL_strlcat(language_string, Lcl_languages[Lcl_current_lang].lang_name, sizeof(language_string));
+		SDL_strlcat(language_string, Lcl_languages[Lcl_current_lang].lang_name, SDL_arraysize(language_string));
 	}
 	memset(line, 0, 1024);
 
@@ -1569,14 +1569,14 @@ void lcl_translate_brief_icon_name(char *name, const int max_len)
 
 	} else if ((pos = strstr(name, "Transport")) != NULL) {
 		pos += 9;		// strlen of "transport"
-		SDL_strlcpy(buf, "Transporter", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Transporter", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		SDL_strlcpy(buf, "Sprungknoten", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Sprungknoten", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 	
 	} else if (!SDL_strcasecmp(name, "Orion under repair")) {
@@ -1716,14 +1716,14 @@ void lcl_translate_brief_icon_name_pl(char *name, const int max_len)
 
 	} else if ((pos = strstr(name, "Transport")) != NULL) {
 		pos += 9;		// strlen of "transport"
-		SDL_strlcpy(buf, "Transporter", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Transporter", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		SDL_strlcpy(buf, "W\xEAze\xB3 skokowy", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "W\xEAze\xB3 skokowy", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 	
 	} else if (!SDL_strcasecmp(name, "Orion under repair")) {
@@ -1757,32 +1757,32 @@ void lcl_translate_targetbox_name(char *name, const int max_len)
 	
 	if ((pos = strstr(name, "Sentry")) != NULL) {
 		pos += 6;		// strlen of "sentry"
-		SDL_strlcpy(buf, "Sperrgesch\x81tz", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Sperrgesch\x81tz", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Support")) != NULL) {
 		pos += 7;		// strlen of "support"
-		SDL_strlcpy(buf, "Versorger", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Versorger", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Unknown")) != NULL) {
 		pos += 7;		// strlen of "unknown"
-		SDL_strlcpy(buf, "Unbekannt", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Unbekannt", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Drone")) != NULL) {
 		pos += 5;		// strlen of "drone"
-		SDL_strlcpy(buf, "Drohne", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Drohne", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		SDL_strlcpy(buf, "Sprungknoten", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Sprungknoten", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if (!SDL_strcasecmp(name, "Instructor")) {
@@ -1809,32 +1809,32 @@ void lcl_translate_targetbox_name_pl(char *name, const int max_len)
 	
 	if ((pos = strstr(name, "Sentry")) != NULL) {
 		pos += 6;		// strlen of "sentry"
-		SDL_strlcpy(buf, "Stra\xBFnik", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Stra\xBFnik", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Support")) != NULL) {
 		pos += 7;		// strlen of "support"
-		SDL_strlcpy(buf, "Wsparcie", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Wsparcie", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Unknown")) != NULL) {
 		pos += 7;		// strlen of "unknown"
-		SDL_strlcpy(buf, "Nieznany", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Nieznany", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Drone")) != NULL) {
 		pos += 5;		// strlen of "drone"
-		SDL_strlcpy(buf, "Sonda", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "Sonda", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		SDL_strlcpy(buf, "W\xEAze\xB3 skokowy", sizeof(buf));
-		SDL_strlcat(buf, pos, sizeof(buf));
+		SDL_strlcpy(buf, "W\xEAze\xB3 skokowy", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
 		SDL_strlcpy(name, buf, max_len);
 
 	} else if (!SDL_strcasecmp(name, "Instructor")) {

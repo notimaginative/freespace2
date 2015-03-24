@@ -299,7 +299,7 @@ void timing_frame_start()
 	Timing_frame.start = timer_get_microseconds();
 	for(idx=0; idx<MAX_TIMING_EVENTS; idx++){
 		Timing_events[idx].microseconds_total = 0;
-		SDL_strlcpy(Timing_events[idx].name, "", sizeof(Timing_events[0].name));
+		SDL_strlcpy(Timing_events[idx].name, "", SDL_arraysize(Timing_events[0].name));
 		Timing_events[idx].ref_count = 0;
 	}
 #endif
@@ -356,7 +356,7 @@ void timing_event_start(char *event_name)
 	// if we need to add a new one
 	else {
 		if(Timing_event_count < MAX_TIMING_EVENTS){
-			SDL_strlcpy(Timing_events[Timing_event_count].name, event_name, sizeof(Timing_events[0].name));
+			SDL_strlcpy(Timing_events[Timing_event_count].name, event_name, SDL_arraysize(Timing_events[0].name));
 			Timing_events[Timing_event_count].start = timer_get_microseconds();
 			Timing_events[Timing_event_count++].ref_count++;
 		}

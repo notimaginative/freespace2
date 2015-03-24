@@ -135,10 +135,10 @@ int pcx_read_header(char *real_filename, int *w, int *h, ubyte *pal )
 	CFILE * PCXfile;
 	char filename[MAX_FILENAME_LEN];
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".pcx", sizeof(filename) );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile )
@@ -199,10 +199,10 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 	ubyte *pixdata;
 	char filename[MAX_FILENAME_LEN];
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".pcx", sizeof(filename) );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile )
@@ -297,10 +297,10 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 	ushort bit_16;	
 	ubyte r, g, b, al;
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".pcx", sizeof(filename) );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile ){
@@ -415,11 +415,11 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 	char filename[MAX_FILENAME_LEN];
 	ubyte palette[768];		
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
 
-	SDL_strlcat( filename, ".pcx", sizeof(filename) );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile ){
@@ -519,10 +519,10 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 	ushort bit_16;	
 	ubyte r, g, b, al;
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".pcx", sizeof(filename) );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile ){
@@ -697,10 +697,10 @@ int pcx_write_bitmap( char * real_filename, int w, int h, ubyte ** row_ptrs, uby
 	FILE * PCXfile;
 	char filename[MAX_FILENAME_LEN];
 		
-	SDL_strlcpy( filename, real_filename, sizeof(filename) );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	SDL_strlcat( filename, ".pcx", sizeof(filename) );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	memset( &header, 0, sizeof( PCXHeader ) );
 

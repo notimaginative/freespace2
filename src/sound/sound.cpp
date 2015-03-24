@@ -443,7 +443,7 @@ void snd_spew_info()
 			continue;
 		}
 		
-		SDL_snprintf(txt, sizeof(txt), "%s (%ds)\n", Sounds[idx].filename, Sounds[idx].info.duration);
+		SDL_snprintf(txt, SDL_arraysize(txt), "%s (%ds)\n", Sounds[idx].filename, Sounds[idx].info.duration);
 		cfwrite_string(txt, out);
 	}
 
@@ -592,7 +592,7 @@ int snd_load(game_snd *gs)
 	if ( rc == -1 )
 		return -1;
 
-	SDL_strlcpy( snd->filename, gs->filename, sizeof(snd->filename) );
+	SDL_strlcpy( snd->filename, gs->filename, SDL_arraysize(snd->filename) );
 	snd->flags = SND_F_USED;
 
 	snd->sig = snd_next_sig++;

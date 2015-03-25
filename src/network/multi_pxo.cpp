@@ -4753,7 +4753,7 @@ void multi_pxo_pinfo_build_vals()
 
 	// rank
 	memset(Multi_pxo_pinfo_vals[1],0,50);	
-	multi_sg_rank_build_name(Ranks[fs->rank].name,Multi_pxo_pinfo_vals[1]);	
+	multi_sg_rank_build_name(Ranks[fs->rank].name, Multi_pxo_pinfo_vals[1], SDL_arraysize(Multi_pxo_pinfo_vals[1]));
 	gr_force_fit_string(Multi_pxo_pinfo_vals[1], 49, Multi_pxo_pinfo_coords[gr_screen.res][2] - (Multi_pxo_pinfo_val_x[gr_screen.res] - Multi_pxo_pinfo_coords[gr_screen.res][0]));
 
 	// kills
@@ -4774,7 +4774,7 @@ void multi_pxo_pinfo_build_vals()
 
 	// flight time	
 	memset(Multi_pxo_pinfo_vals[6],0,50);
-	game_format_time(fl2f((float)fs->flight_time),Multi_pxo_pinfo_vals[6]);	
+	game_format_time(fl2f((float)fs->flight_time), Multi_pxo_pinfo_vals[6], SDL_arraysize(Multi_pxo_pinfo_vals[6]));
 
 	// last flown
 	memset(Multi_pxo_pinfo_vals[7],0,50);

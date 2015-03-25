@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 
 #define WSAGetLastError()  (errno)
 #else
@@ -31,7 +32,7 @@ typedef int socklen_t;
 #define MAXCHATBUFFER	500
 
 static SOCKET Chatsock;
-static SOCKADDR_IN Chataddr;
+static struct sockaddr_in Chataddr;
 static int Socket_connecting = 0;
 static char Nick_name[33];
 static char Original_nick_name[33];
@@ -142,12 +143,12 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			return -1;
 		}
 
-		memset( &Chataddr, 0, sizeof(SOCKADDR_IN) );
+		memset( &Chataddr, 0, sizeof(struct sockaddr_in) );
 		Chataddr.sin_family = AF_INET; 
 		Chataddr.sin_addr.s_addr = INADDR_ANY; 
 		Chataddr.sin_port = 0;
 		
-		if (SOCKET_ERROR==bind(Chatsock, (SOCKADDR*)&Chataddr, sizeof (sockaddr))) 
+		if (SOCKET_ERROR==bind(Chatsock, (struct sockaddr *)&Chataddr, sizeof (struct sockaddr)))
 		{
 			//AfxMessageBox("Unable to bind socket!");
 			return -1;
@@ -157,7 +158,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 		// first try and resolve by name
 		iaddr = inet_addr( chat_server );
 		if ( iaddr == INADDR_NONE ) {	
-			HOSTENT *he;
+			struct hostent *he;
 			he = gethostbyname(chat_server);
 			if(!he)
 			{
@@ -184,7 +185,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 
 		Chataddr.sin_port = htons( chat_port );
 
-		if(SOCKET_ERROR == connect(Chatsock,(SOCKADDR *)&Chataddr,sizeof(SOCKADDR_IN)))
+		if(SOCKET_ERROR == connect(Chatsock,(struct sockaddr *)&Chataddr,sizeof(struct sockaddr_in)))
 		{
 			if(WSAEWOULDBLOCK == WSAGetLastError())
 			{
@@ -211,7 +212,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 		{
 			//Do a few select to check for an error, or to see if we are writeable (connected)
 			fd_set write_fds,error_fds;	           
-			TIMEVAL timeout;   
+			struct timeval timeout;
 			
 			timeout.tv_sec=0;            
 			timeout.tv_usec=0;
@@ -456,7 +457,7 @@ int SetNewChatChannel(char *channel)
 char *ChatGetString(void)
 {
 	fd_set read_fds;	           
-	TIMEVAL timeout; 
+	struct timeval timeout;
 	char ch[2];
 	char *p;
 	int bytesread;

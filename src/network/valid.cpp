@@ -36,7 +36,7 @@ validate_id_request *ValidIDReq;
 int ValidState;
 
 // SOCKET validsock;
-SOCKADDR_IN	rtrackaddr;
+struct sockaddr_in	rtrackaddr;
 
 int ValidFirstSent;
 int ValidLastSent;
@@ -195,7 +195,7 @@ static void DeserializeValidatePacket(const ubyte *data, const int data_size, ud
 
 int InitValidateClient(void)
 {
-	SOCKADDR_IN sockaddr;
+	struct sockaddr_in sockaddr;
 	unsigned long iaddr;
 	ValidFirstSent = 0;
 	ValidLastSent = 0;
@@ -218,13 +218,13 @@ int InitValidateClient(void)
 	}
 	*/
 	
-	memset( &sockaddr, 0, sizeof(SOCKADDR_IN) );
+	memset( &sockaddr, 0, sizeof(struct sockaddr_in) );
 	sockaddr.sin_family = AF_INET; 
 	sockaddr.sin_addr.s_addr = INADDR_ANY; 
 	sockaddr.sin_port = 0;
 	
 	/*
-	if (SOCKET_ERROR==bind(validsock, (SOCKADDR*)&sockaddr, sizeof (sockaddr))) 
+	if (SOCKET_ERROR==bind(validsock, (struct sockaddr*)&sockaddr, sizeof (sockaddr)))
 	{	
 		printf("Unable to bind a socket.\n");
 		printf("WSAGetLastError() returned %d.\n",WSAGetLastError());
@@ -235,7 +235,7 @@ int InitValidateClient(void)
 	rtrackaddr.sin_family = AF_INET; 
 	iaddr = inet_addr( Multi_options_g.user_tracker_ip );
 	if ( iaddr == INADDR_NONE ) {
-		HOSTENT *he;
+		struct hostent *he;
 		he = gethostbyname( Multi_options_g.user_tracker_ip );
 		if(!he)
 			return 0;
@@ -304,7 +304,7 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 		{
 			//First, flush the input buffer for the socket
 			fd_set read_fds;	           
-			TIMEVAL timeout;   
+			struct timeval timeout;
 			
 			timeout.tv_sec=0;            
 			timeout.tv_usec=0;
@@ -319,11 +319,11 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 #endif
 			{
 				int addrsize;
-				SOCKADDR_IN fromaddr;
+				struct sockaddr_in fromaddr;
 
 				udp_packet_header inpacket;
-				addrsize = sizeof(SOCKADDR_IN);
-				RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(SOCKADDR *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+				addrsize = sizeof(struct sockaddr_in);
+				RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
 			}
 			Psztracker_id = trackerid;
 
@@ -335,7 +335,7 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 			strcpy(ValidIDReq->password,valid_id->password);
 
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr), PSNET_TYPE_VALIDATION);
 			ValidState = VALID_STATE_WAITING;
 			ValidFirstSent = timer_get_milliseconds();
 			ValidLastSent = timer_get_milliseconds();
@@ -352,7 +352,7 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 void ValidIdle()
 {
 	fd_set read_fds;	           
-	TIMEVAL timeout;
+	struct timeval timeout;
 	ubyte packet_data[sizeof(udp_packet_header)];
 	int packet_length = 0;
 
@@ -371,12 +371,12 @@ void ValidIdle()
 #endif
 		int bytesin;
 		int addrsize;
-		SOCKADDR_IN fromaddr;
+		struct sockaddr_in fromaddr;
 
 		udp_packet_header inpacket;
-		addrsize = sizeof(SOCKADDR_IN);
+		addrsize = sizeof(struct sockaddr_in);
 
-		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(udp_packet_header), 0, (SOCKADDR *)&fromaddr, &addrsize, PSNET_TYPE_VALIDATION);
+		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(udp_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_VALIDATION);
 		DeserializeValidatePacket(packet_data, bytesin, &inpacket);
 		if(bytesin==-1){
 			int wserr=WSAGetLastError();
@@ -466,7 +466,7 @@ void ValidIdle()
 		{
 			//Send 'da packet
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr), PSNET_TYPE_VALIDATION);
 			ValidLastSent = timer_get_milliseconds();
 		}
 	}
@@ -487,7 +487,7 @@ void AckValidServer(unsigned int sig)
 
 	packet_length = SerializeValidatePacket(&ack_pack, packet_data);
 	SDL_assert(packet_length == PACKED_HEADER_ONLY_SIZE);
-	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR_IN), PSNET_TYPE_VALIDATION);
+	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_VALIDATION);
 }
 
 // call with a valid struct to validate a mission
@@ -534,7 +534,7 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 		{
 			//First, flush the input buffer for the socket
 			fd_set read_fds;	           
-			TIMEVAL timeout;   
+			struct timeval timeout;
 			
 			timeout.tv_sec=0;            
 			timeout.tv_usec=0;
@@ -549,11 +549,11 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 #endif
 			{
 				int addrsize;
-				SOCKADDR_IN fromaddr;
+				struct sockaddr_in fromaddr;
 
 				udp_packet_header inpacket;
-				addrsize = sizeof(SOCKADDR_IN);
-				RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(SOCKADDR *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+				addrsize = sizeof(struct sockaddr_in);
+				RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
 				FD_ZERO(&read_fds);
 				FD_SET(Unreliable_socket, &read_fds);    
 			}
@@ -562,7 +562,7 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(int)+1+strlen(valid_msn->file_name));
 			memcpy(PacketHeader.data,valid_msn,PacketHeader.len-PACKED_HEADER_ONLY_SIZE);
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr), PSNET_TYPE_VALIDATION);
 			MissionValidState = VALID_STATE_WAITING;
 			MissionValidFirstSent = timer_get_milliseconds();
 			MissionValidLastSent = timer_get_milliseconds();
@@ -625,7 +625,7 @@ int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 		if(SquadWarValidState==VALID_STATE_IDLE){
 			// First, flush the input buffer for the socket
 			fd_set read_fds;	           
-			TIMEVAL timeout;   
+			struct timeval timeout;
 			
 			timeout.tv_sec=0;            
 			timeout.tv_usec=0;
@@ -639,11 +639,11 @@ int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 			while(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION)){
 #endif
 				int addrsize;
-				SOCKADDR_IN fromaddr;
+				struct sockaddr_in fromaddr;
 
 				udp_packet_header inpacket;
-				addrsize = sizeof(SOCKADDR_IN);
-				RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(SOCKADDR *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+				addrsize = sizeof(struct sockaddr_in);
+				RECVFROM(Unreliable_socket, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
 				FD_ZERO(&read_fds);
 				FD_SET(Unreliable_socket, &read_fds);    
 			}
@@ -652,7 +652,7 @@ int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(squad_war_request));
 			memcpy(PacketHeader.data, sw_req, PacketHeader.len-PACKED_HEADER_ONLY_SIZE);
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (SOCKADDR *)&rtrackaddr, sizeof(SOCKADDR), PSNET_TYPE_VALIDATION);
+			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr), PSNET_TYPE_VALIDATION);
 			SquadWarValidState = VALID_STATE_WAITING;
 			SquadWarFirstSent = timer_get_milliseconds();
 			SquadWarLastSent = timer_get_milliseconds();

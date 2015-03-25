@@ -260,15 +260,14 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 		SDL_strlcpy(m_szDir, dirstart, SDL_arraysize(m_szDir));//,(filestart-dirstart));
 		int len = min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
+	}
 
 	SDL_Thread *thread = SDL_CreateThread(HTTPObjThread, "HTTPObjThread", this);
 
 	if(thread == NULL)
-		m_Aborted = true;
-	else
 	{
-		int ret_val = 0;
-		SDL_WaitThread(thread, &ret_val);
+		m_State = HTTP_STATE_INTERNAL_ERROR;
+		m_Aborted = true;
 	}
 	else
 	{

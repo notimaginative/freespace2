@@ -95,7 +95,7 @@ typedef struct {
 
 typedef struct _active_games{
 	int game_type; //ie. GT_FREESPACE GT_DESCENT3, etc.
-	SOCKADDR	addr;
+	struct sockaddr	addr;
 	unsigned int last_update;	//Time we last got an update from this game
 	char	data[MAX_GAME_DATA_SIZE]; //memory to hold the game specific data
 	_active_games *next;

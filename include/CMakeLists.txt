@@ -28,6 +28,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/cfile.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cfilesystem.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cftp.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/chat_api.h
   ${CMAKE_CURRENT_SOURCE_DIR}/chatbox.h
   ${CMAKE_CURRENT_SOURCE_DIR}/chttpget.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cmdline.h
@@ -63,6 +64,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/gropengl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropenglinternal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grwxgl.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/gtrack.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helpeddoc.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helped.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helpedline.h
@@ -129,6 +131,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_data.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_dogfight.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_endgame.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/multi_fstracker.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_ingame.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_kick.h
@@ -143,8 +146,10 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_pinfo.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_ping.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_pmsg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/multi_pxo.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_rate.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_respawn.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/multi_sw.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multi_team.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multiteamselect.h
   ${CMAKE_CURRENT_SOURCE_DIR}/multiui.h
@@ -183,6 +188,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/psnet2.h
   ${CMAKE_CURRENT_SOURCE_DIR}/psnet.h
   ${CMAKE_CURRENT_SOURCE_DIR}/pstypes.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ptrack.h
   ${CMAKE_CURRENT_SOURCE_DIR}/radar.h
   ${CMAKE_CURRENT_SOURCE_DIR}/readyroom.h
   ${CMAKE_CURRENT_SOURCE_DIR}/rect.h
@@ -218,6 +224,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/trainingmenu.h
   ${CMAKE_CURRENT_SOURCE_DIR}/uidefs.h
   ${CMAKE_CURRENT_SOURCE_DIR}/ui.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/valid.h
   ${CMAKE_CURRENT_SOURCE_DIR}/vecmat.h
   ${CMAKE_CURRENT_SOURCE_DIR}/version.h
   ${CMAKE_CURRENT_SOURCE_DIR}/weapon.h

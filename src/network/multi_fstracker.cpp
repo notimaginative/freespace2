@@ -442,9 +442,9 @@ int multi_fs_tracker_validate(int show_error)
 	while(1){
 		// validate our pilot on the master tracker if possible
 		memset(&vir,0,sizeof(vir));
-		memset(Multi_tracker_id_string,0,255);				
-		strcpy(vir.login,Multi_tracker_login);
-		strcpy(vir.password,Multi_tracker_passwd);
+		SDL_zero(Multi_tracker_id_string);
+		SDL_strlcpy(vir.login, Multi_tracker_login, SDL_arraysize(vir.login));
+		SDL_strlcpy(vir.password, Multi_tracker_passwd, SDL_arraysize(vir.password));
 		ValidateUser(&vir,Multi_tracker_id_string);
 		
 		// set validation mode
@@ -516,7 +516,7 @@ void multi_fs_tracker_login_freespace()
 
 	// pretty much all we do is make 1 call
 	memset(&Multi_tracker_game_data, 0, sizeof(freespace2_net_game_data));
-	strcpy(Multi_tracker_game_data.game_name, Netgame.name);
+	SDL_strlcpy(Multi_tracker_game_data.game_name, Netgame.name, SDL_arraysize(Multi_tracker_game_data.game_name));
 	Multi_tracker_game_data.difficulty = 99;
 	Multi_tracker_game_data.type = 0;
 	Multi_tracker_game_data.state = 1;
@@ -525,7 +525,7 @@ void multi_fs_tracker_login_freespace()
 	
 	// if we have a valid channel string, use it		
 	if(strlen(Multi_fs_tracker_channel)){
-		strcpy(Multi_tracker_game_data.channel,Multi_fs_tracker_channel);
+		SDL_strlcpy(Multi_tracker_game_data.channel, Multi_fs_tracker_channel, SDL_arraysize(Multi_tracker_game_data.channel));
 	}	
 	
 	StartTrackerGame(&Multi_tracker_game_data);
@@ -752,7 +752,7 @@ void multi_fs_tracker_send_game_request()
 	if((len > 0) && (len < CHANNEL_LEN-1) ){
 		memset(&filter,0,sizeof(filter_game_list_struct));		
 
-		strcpy(filter.channel,Multi_fs_tracker_filter);		
+		SDL_strlcpy(filter.channel, Multi_fs_tracker_filter, SDL_arraysize(filter.channel));
 		RequestGameListWithFilter(&filter);
 	} else {	
 		// simple API call
@@ -789,8 +789,7 @@ void multi_fs_tracker_update_game(netgame_info *ng)
 		}
 	}
 	*/
-	memset(Multi_tracker_game_data.mission_name, 0, MAX_FREESPACE_MISSION_NAME_LEN);
-	strcpy(Multi_tracker_game_data.mission_name, ng->name);	
+	SDL_strlcpy(Multi_tracker_game_data.mission_name, ng->name, SDL_arraysize(Multi_tracker_game_data.mission_name));
 
 	// NETLOG
 	ml_string(NOX("Server updating netgame info for Game Tracker"));
@@ -825,7 +824,7 @@ int multi_fs_validate_process()
 		// user invalid
 		case -1:
 			// set tracker id to -1
-			strcpy(Multi_tracker_id_string,"-1");
+			SDL_strlcpy(Multi_tracker_id_string, "-1", SDL_arraysize(Multi_tracker_id_string));
 			Multi_tracker_id = -1;
 			return MT_VALIDATE_FAIL;			
 
@@ -919,7 +918,7 @@ int multi_fs_store_stats_do()
 			multi_fs_tracker_check_dup(Net_players[Multi_store_stats_player_index].tracker_player_id,Multi_store_stats_player_index);
 			multi_fs_tracker_check_dup_callsign(&Net_players[Multi_store_stats_player_index],Multi_store_stats_player_index);
 
-			sprintf(tracker_id_string,"%d",Net_players[Multi_store_stats_player_index].tracker_player_id);
+			SDL_snprintf(tracker_id_string, SDL_arraysize(tracker_id_string), "%d", Net_players[Multi_store_stats_player_index].tracker_player_id);
 			Net_players[Multi_store_stats_player_index].s_info.tracker_security_last = -1;
 			Net_players[Multi_store_stats_player_index].s_info.tracker_checksum = 0;
 
@@ -936,8 +935,7 @@ int multi_fs_store_stats_do()
 
 			// set the popup text
 			if(!(Game_mode & GM_STANDALONE_SERVER)){
-				memset(popup_text,0,100);
-				sprintf(popup_text,XSTR("Getting player stats for %s...\n",680),Net_players[Multi_store_stats_player_index].player->callsign);
+				SDL_snprintf(popup_text, SDL_arraysize(popup_text), XSTR("Getting player stats for %s...\n", 680), Net_players[Multi_store_stats_player_index].player->callsign);
 				popup_change_text(popup_text);
 			}
 			return MT_STATS_NOT_DONE;
@@ -1046,8 +1044,7 @@ int multi_fs_store_stats_do()
 			
 			// set the popup text
 			if(!(Game_mode & GM_STANDALONE_SERVER)){
-				memset(popup_text,0,100);
-				sprintf(popup_text,XSTR("Updating player stats for %s...\n",681),Net_players[Multi_store_stats_player_index].player->callsign);
+				SDL_snprintf(popup_text, SDL_arraysize(popup_text), XSTR("Updating player stats for %s...\n", 681), Net_players[Multi_store_stats_player_index].player->callsign);
 				popup_change_text(popup_text);
 			}
 
@@ -1086,14 +1083,11 @@ void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_freespace2_struct *vmt, p
 	char tracker_id_string[256];
 
 	// tracker id string	
-	memset(vmt->tracker_id,0,TRACKER_ID_LEN);
-	memset(tracker_id_string, 0, 256);
-	sprintf(tracker_id_string,"%d",tracker_id);
-	strncpy(vmt->tracker_id, tracker_id_string, TRACKER_ID_LEN);
+	SDL_snprintf(tracker_id_string, SDL_arraysize(tracker_id_string),"%d", tracker_id);
+	SDL_strlcpy(vmt->tracker_id, tracker_id_string, SDL_arraysize(vmt->tracker_id));
 
 	// pilot callsign
-	memset(vmt->pilot_name,0,PILOT_NAME_LEN);
-	strcpy(vmt->pilot_name,pl->callsign);
+	SDL_strlcpy(vmt->pilot_name, pl->callsign, SDL_arraysize(vmt->pilot_name));
 
 	// score, rank and medals
 	vmt->score = fs->score;
@@ -1185,7 +1179,7 @@ void multi_fs_tracker_process_game_item(game_list *gl)
 
 		// package up the game information
 		memset(&ag,0,sizeof(active_game));
-		strcpy(ag.name,gl->game_name[idx]);
+		SDL_strlcpy(ag.name, gl->game_name[idx], SDL_arraysize(ag.name));
 		memcpy(&ag.server_addr.addr[0],&gl->game_server[idx],sizeof(unsigned long));
 		ag.server_addr.type = NET_TCP;
 		ag.server_addr.port = DEFAULT_GAME_PORT;
@@ -1321,7 +1315,7 @@ int multi_fs_tracker_validate_mission(char *filename)
 	
 	// get the checksum of the local file	
 	memset(&mission, 0, sizeof(mission));
-	strcpy(mission.file_name, filename);
+	SDL_strlcpy(mission.file_name, filename, SDL_arraysize(mission.file_name));
 	if(!cf_chksum_long(mission.file_name, (uint*)&mission.checksum)){
 		return MVALID_STATUS_UNKNOWN;
 	}	
@@ -1348,8 +1342,7 @@ int multi_fs_tracker_validate_mission(char *filename)
 
 		return ret_code;
 	} else {
-		memset(popup_string, 0, 512);
-		sprintf(popup_string, XSTR("Validating mission %s", 1074),filename);
+		SDL_snprintf(popup_string, SDL_arraysize(popup_string), XSTR("Validating mission %s", 1074), filename);
 
 		// run a popup
 		switch(popup_till_condition(multi_fs_tracker_validate_mission_normal, XSTR("&Cancel", 667), popup_string)){
@@ -1384,8 +1377,7 @@ void multi_fs_tracker_report_stats_results()
 	char str[512] = "";
 
 	// tell everyone stats store is complete
-	memset(str, 0, 512);
-	strcpy(str, XSTR("<PXO stats store process complete>", 1001));
+	SDL_strlcpy(str, XSTR("<PXO stats store process complete>", 1001), SDL_arraysize(str));
 	send_game_chat_packet(Net_player, str, MULTI_MSG_ALL, NULL, NULL, 1);	
 	multi_display_chat_msg(str, 0, 0);	
 	ml_string(str);
@@ -1396,8 +1388,7 @@ void multi_fs_tracker_report_stats_results()
 		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx])){
 			// if the stats get or send failed for any player, report as such
 			if(((Net_players[idx].tracker_player_id <= 0) || (Net_players[idx].flags & NETINFO_FLAG_MT_GET_FAILED) || (Net_players[idx].flags & NETINFO_FLAG_MT_SEND_FAILED) || !(Net_players[idx].flags & NETINFO_FLAG_MT_DONE)) && (Net_players[idx].player != NULL)){					
-				memset(str, 0, 512);
-				sprintf(str, XSTR("<PXO stats store failed for player %s>", 1002), Net_players[idx].player->callsign);
+				SDL_snprintf(str, SDL_arraysize(str), XSTR("<PXO stats store failed for player %s>", 1002), Net_players[idx].player->callsign);
 				send_game_chat_packet(Net_player, str, MULTI_MSG_ALL, NULL, NULL, 1);
 				
 				multi_display_chat_msg(str, 0, 0);
@@ -1459,8 +1450,8 @@ int multi_fs_tracker_validate_sw_normal()
 	return 0;
 }	
 
-#define STUFF_SW_RESPONSE(_c) do {\
-	strcpy(_c, "");\
+#define STUFF_SW_RESPONSE(_c, _len) do {\
+	SDL_strlcpy(_c, "", _len);\
 	int _idx;\
 	int _bogus = 1;\
 	for(_idx=0; _idx<MAX_SQUAD_RESPONSE_LEN; _idx++){\
@@ -1470,12 +1461,12 @@ int multi_fs_tracker_validate_sw_normal()
 		}\
 	}\
 	if(!_bogus){\
-		strcpy(_c, Multi_tracker_sw_response.reason);\
+		SDL_strlcpy(_c, Multi_tracker_sw_response.reason, _len);\
 	}\
 } while(0);
 
 // return an MSW_STATUS_* value
-int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply)
+int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply, const int max_reply_len)
 {
 	char popup_string[512] = "";
 
@@ -1488,7 +1479,7 @@ int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply)
 	
 	// try and validate the mission
 	if(ValidateSquadWar(sw_req, &Multi_tracker_sw_response) != 0){
-		sprintf(bad_reply, "Error sending request for Squad War validation");
+		SDL_strlcpy(bad_reply, "Error sending request for Squad War validation", max_reply_len);
 
 		return MSW_STATUS_UNKNOWN;
 	}
@@ -1501,11 +1492,11 @@ int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply)
 		ret_code = multi_fs_tracker_validate_sw_std();		
 
 		// copy the return code
-		STUFF_SW_RESPONSE(bad_reply);		
+		STUFF_SW_RESPONSE(bad_reply, max_reply_len);
 
 		return ret_code;
 	} else {
-		SDL_strlcpy(popup_string, XSTR("Validating squad war", 1075), sizeof(popup_string));
+		SDL_strlcpy(popup_string, XSTR("Validating squad war", 1075), SDL_arraysize(popup_string));
 
 		// run a popup
 		switch(popup_till_condition(multi_fs_tracker_validate_sw_normal, XSTR("&Cancel", 645), popup_string)){
@@ -1517,30 +1508,30 @@ int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply)
 			SquadWarValidState = VALID_STATE_IDLE;
 
 			// copy the return code
-			STUFF_SW_RESPONSE(bad_reply);		
+			STUFF_SW_RESPONSE(bad_reply, max_reply_len);
 			return -2;
 
 		// timeout
 		case 1:
 			// copy the return code			
-			sprintf(bad_reply, "Timeout");
+			SDL_strlcpy(bad_reply, "Timeout", max_reply_len);
 			return MSW_STATUS_UNKNOWN;
 
 		// invalid
 		case 2:
 			// copy the return code
-			STUFF_SW_RESPONSE(bad_reply);		
+			STUFF_SW_RESPONSE(bad_reply, max_reply_len);
 			return MSW_STATUS_INVALID;
 
 		// valid
 		case 3:
 			// copy the return code
-			STUFF_SW_RESPONSE(bad_reply);		
+			STUFF_SW_RESPONSE(bad_reply, max_reply_len);
 			return MSW_STATUS_VALID;
 		}
 	}
 
-	sprintf(bad_reply, "Unknown error");
+	SDL_strlcpy(bad_reply, "Unknown error", max_reply_len);
 	return MSW_STATUS_UNKNOWN;
 }
 
@@ -1574,7 +1565,7 @@ int multi_fs_tracker_store_sw_do()
 }
 
 // store the results of a squad war mission on PXO, return 1 on success
-int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply)
+int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply, const int max_reply_len)
 {
 	char popup_string[512] = "";
 
@@ -1598,7 +1589,7 @@ int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply)
 	}
 	// non-standalone
 	else {
-		SDL_strlcpy(popup_string, XSTR("Storing SquadWar results", 1078), sizeof(popup_string));
+		SDL_strlcpy(popup_string, XSTR("Storing SquadWar results", 1078), SDL_arraysize(popup_string));
 
 		// wait for a response
 		if(popup_till_condition(multi_fs_tracker_store_sw_do, XSTR("&Cancel", 645), popup_string) == 10){

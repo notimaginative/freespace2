@@ -523,7 +523,7 @@ void multi_pxo_handle_disconnect();
 
 // return string2, which is the first substring of string 1 without a space
 // it is safe to pass the same pointer for both parameters
-void multi_pxo_strip_space(char *string1,char *string2);
+void multi_pxo_strip_space(char *string1,char *string2, const int str2_len);
 
 // fire up the given URL
 void multi_pxo_url(char *url);
@@ -538,7 +538,7 @@ void multi_pxo_unload_palette();
 int multi_pxo_on_private_channel();
 
 // convert string 1 into string 2, substituting underscores for spaces
-void multi_pxo_underscore_nick(char *string1,char *string2);
+void multi_pxo_underscore_nick(char *string1, char *string2, const int str2_len);
 
 // if the command is a potential "nick" command
 int multi_pxo_is_nick_command(char *msg);
@@ -768,7 +768,7 @@ DCF(players, "")
 	// add a bunch of bogus players
 	dc_get_arg(ARG_INT);
 	for(int idx=0; idx<Dc_arg_int; idx++){
-		sprintf(name, "player %d", idx);
+		SDL_snprintf(name, SDL_arraysize(name), "player %d", idx);
 		multi_pxo_add_player(name);
 	}
 }
@@ -1447,7 +1447,7 @@ void multi_pxo_init(int use_last_channel)
 	if(use_last_channel && strlen(Multi_pxo_channel_last)){
 		Multi_pxo_use_last_channel = 1;
 	} else {
-		memset(Multi_pxo_channel_last, 0, MAX_CHANNEL_NAME_LEN + 1);
+		SDL_zero(Multi_pxo_channel_last);
 		Multi_pxo_use_last_channel = 0;
 	}
 
@@ -1506,7 +1506,7 @@ void multi_pxo_init(int use_last_channel)
 	Multi_pxo_switch_delay = -1;
 
 	// our nick for this session		
-	multi_pxo_underscore_nick(Player->callsign,Multi_pxo_nick);		
+	multi_pxo_underscore_nick(Player->callsign, Multi_pxo_nick, SDL_arraysize(Multi_pxo_nick));
 
 	// clear the channel list
 	multi_pxo_clear_channels();	
@@ -1523,7 +1523,7 @@ void multi_pxo_init(int use_last_channel)
 	// load the animation up
 	if (gr_screen.res == GR_1024) {
 		char anim_filename[32] = "2_";
-		strcat(anim_filename, MULTI_PXO_ANIM_FNAME);
+		SDL_strlcat(anim_filename, MULTI_PXO_ANIM_FNAME, SDL_arraysize(anim_filename));
 		Multi_pxo_anim = anim_load(anim_filename);
 
 		// if hi-res is not there, fallback to low
@@ -1553,8 +1553,8 @@ void multi_pxo_init(int use_last_channel)
 	Multi_pxo_must_autojoin = 1;
 
 	// clear all tracker channel related strings
-	memset(Multi_fs_tracker_channel,0,255);
-	memset(Multi_fs_tracker_filter,0,255);
+	SDL_zero(Multi_fs_tracker_channel);
+	SDL_zero(Multi_fs_tracker_filter);
 }
 
 // do frame for the PXO screen
@@ -1589,7 +1589,7 @@ void multi_pxo_do()
 			// setup some information
 			memset(&priv_chan,0,sizeof(pxo_channel));
 			priv_chan.num_users = 0;
-			strcpy(priv_chan.name,Multi_pxo_priv_chan);
+			SDL_strlcpy(priv_chan.name, Multi_pxo_priv_chan, SDL_arraysize(priv_chan.name));
 			
 			// see if we know about this channel already
 			multi_pxo_join_channel(&priv_chan);
@@ -1625,7 +1625,7 @@ void multi_pxo_do()
 				// setup the info
 				memset(&join,0,sizeof(pxo_channel));
 				join.num_users = 0;
-				strcpy(join.name,Multi_pxo_find_channel);
+				SDL_strlcpy(join.name, Multi_pxo_find_channel, SDL_arraysize(join.name));
 
 				// try and join
 				multi_pxo_join_channel(&join);
@@ -1648,14 +1648,15 @@ void multi_pxo_close()
 	bm_unload(Multi_pxo_com_bitmap);
 		
 	// record the last channel we were on, if any
-	memset(Multi_fs_tracker_channel,0,255);
-	memset(Multi_fs_tracker_filter,0,255);
+	SDL_zero(Multi_fs_tracker_channel);
+	SDL_zero(Multi_fs_tracker_filter);
+
 	if( ON_CHANNEL() && strlen(Multi_pxo_channel_current.name) ){
 		// channel name
-		strcpy(Multi_fs_tracker_channel,Multi_pxo_channel_current.name);
+		SDL_strlcpy(Multi_fs_tracker_channel, Multi_pxo_channel_current.name, SDL_arraysize(Multi_fs_tracker_channel));
 		
 		// filter name
-		strcpy(Multi_fs_tracker_filter,Multi_pxo_channel_current.name);
+		SDL_strlcpy(Multi_fs_tracker_filter, Multi_pxo_channel_current.name, SDL_arraysize(Multi_fs_tracker_filter));
 	} 
 
 	// disconnect from the server
@@ -1920,18 +1921,18 @@ void multi_pxo_handle_disconnect()
 
 // return string2, which is the first substring of string 1 without a space
 // it is safe to pass the same pointer for both parameters
-void multi_pxo_strip_space(char *string1,char *string2)
+void multi_pxo_strip_space(char *string1, char *string2, const int str2_len)
 {
 	char midway[255];
 	char *tok;
 
 	// copy the original
-	strcpy(midway,string1);
+	SDL_strlcpy(midway, string1, SDL_arraysize(midway));
 	tok = strtok(midway," ");
 	if(tok != NULL){
-		strcpy(string2,tok);
+		SDL_strlcpy(string2, tok, str2_len);
 	} else {
-		strcpy(string2,"");
+		SDL_strlcpy(string2, "", str2_len);
 	}
 }
 
@@ -1997,7 +1998,7 @@ int multi_pxo_on_private_channel()
 }
 
 // convert string 1 into string 2, substituting underscores for spaces
-void multi_pxo_underscore_nick(char *string1,char *string2)
+void multi_pxo_underscore_nick(char *string1, char *string2, const int str2_len)
 {
 	char nick_temp[512];
 	char *tok;
@@ -2008,26 +2009,25 @@ void multi_pxo_underscore_nick(char *string1,char *string2)
 	}
 
 	// copy the nickname
-	memset(nick_temp,0,512);
-	strcpy(nick_temp,string1);
+	SDL_strlcpy(nick_temp, string1, SDL_arraysize(nick_temp));
 
 	// get the first token
-	tok = strtok(nick_temp," ");
+	tok = strtok(nick_temp, " ");
 	if(tok != NULL){
-		strcpy(string2,tok);
+		SDL_strlcpy(string2, tok, str2_len);
 
 		// get the next token
 		tok = strtok(NULL," ");
 		while(tok != NULL){				
 			if(tok != NULL){
-				strcat(string2,"_");
-				strcat(string2,tok);
+				SDL_strlcat(string2, "_", str2_len);
+				SDL_strlcat(string2, tok, str2_len);
 			}
 
 			tok = strtok(NULL," ");
 		}
 	} else {
-		strcpy(string2,string1);
+		SDL_strlcpy(string2, string1, str2_len);
 	}
 }
 
@@ -2038,8 +2038,7 @@ int multi_pxo_is_nick_command(char *msg)
 	char tmp[512];
 
 	// get the first token in the message
-	memset(tmp,0,512);
-	strcpy(tmp,msg);
+	SDL_strlcpy(tmp, msg, SDL_arraysize(tmp));
 	tok = strtok(tmp," ");
 	if(tok == NULL){
 		// can't be a nick message
@@ -2158,8 +2157,7 @@ void multi_pxo_button_pressed(int n)
 			}
 			// if we didn't get stats for this guy.
 			else {
-				memset(stats,0,255);
-				sprintf(stats,XSTR("Could not get stats for %s\n(May not be a registered pilot)",946),Multi_pxo_player_select->name);
+				SDL_snprintf(stats, SDL_arraysize(stats), XSTR("Could not get stats for %s\n(May not be a registered pilot)", 946), Multi_pxo_player_select->name);
 				popup(PF_USE_AFFIRMATIVE_ICON,1,POPUP_OK,stats);
 			}
 		} else {
@@ -2203,12 +2201,10 @@ int multi_pxo_connect_do()
 		SDL_assert(Player);
 
 		// build the tracker id string
-		memset(id_string, 0, 255);
-		sprintf(id_string, "%s %s", Multi_tracker_id_string, Player->callsign);
+		SDL_snprintf(id_string, SDL_arraysize(id_string), "%s %s", Multi_tracker_id_string, Player->callsign);
 		
 		// build the ip string
-		memset(ip_string, 0, 255);
-		sprintf(ip_string, "%s:%d", Multi_options_g.pxo_ip, PXO_CHAT_PORT);
+		SDL_snprintf(ip_string, SDL_arraysize(ip_string), "%s:%d", Multi_options_g.pxo_ip, PXO_CHAT_PORT);
 
 		// connect to the server
 		ret_code = ConnectToChatServer(ip_string, Multi_pxo_nick, id_string);		
@@ -2254,7 +2250,7 @@ int multi_pxo_autojoin_do()
 			// setup the data
 			memset(&last_channel, 0, sizeof(pxo_channel));
 			last_channel.num_users = 0;
-			strcpy(last_channel.name, Multi_pxo_channel_last);
+			SDL_strlcpy(last_channel.name, Multi_pxo_channel_last, SDL_arraysize(last_channel.name));
 
 			// join the channel
 			multi_pxo_join_channel(&last_channel);
@@ -2303,18 +2299,16 @@ int multi_pxo_connect()
 	if(popup_till_condition(multi_pxo_connect_do, XSTR("&Cancel", 779), XSTR("Logging into Parallax Online",949)) == 10){
 		int rval;
 
-		memset(join_str,0,256);
-		memset(join_fail_str,0,256);
 		// if we're going to use the "last" channel
 		if(Multi_pxo_use_last_channel && strlen(Multi_pxo_channel_last)){			
-			strcpy(join_str, XSTR("Joining last channel (",982));
-			strcat(join_str, Multi_pxo_channel_last + 1);
-			strcat(join_str, ")");
+			SDL_strlcpy(join_str, XSTR("Joining last channel (",982), SDL_arraysize(join_str));
+			SDL_strlcat(join_str, Multi_pxo_channel_last + 1, SDL_arraysize(join_str));
+			SDL_strlcat(join_str, ")", SDL_arraysize(join_str));
 
-			strcpy(join_fail_str, XSTR("Unable to join last channel", 983));
+			SDL_strlcpy(join_fail_str, XSTR("Unable to join last channel", 983), SDL_arraysize(join_fail_str));
 		} else {
-			strcpy(join_str, XSTR("Autojoining public channel", 984));
-			strcpy(join_fail_str, XSTR("Unable to autojoin public channel", 985));
+			SDL_strlcpy(join_str, XSTR("Autojoining public channel", 984), SDL_arraysize(join_str));
+			SDL_strlcpy(join_fail_str, XSTR("Unable to autojoin public channel", 985), SDL_arraysize(join_fail_str));
 		}
 
 		// once connected, we should do an autojoin before allowing the guy to continue.
@@ -2396,8 +2390,7 @@ void multi_pxo_api_process()
 			multi_pxo_del_player(cmd->data);
 
 			// add a text message
-			memset(msg_str,0,512);
-			sprintf(msg_str, XSTR("*** %s has left", 950), cmd->data);			
+			SDL_snprintf(msg_str, SDL_arraysize(msg_str), XSTR("*** %s has left", 950), cmd->data);
 			multi_pxo_chat_process_incoming(msg_str);
 
 			// decrease the player count
@@ -2429,7 +2422,7 @@ void multi_pxo_api_process()
 
 			SetNewChatChannel(NULL);
 
-			strcpy(Multi_pxo_channel_current.name,cmd->data);
+			SDL_strlcpy(Multi_pxo_channel_current.name, cmd->data, SDL_arraysize(Multi_pxo_channel_current.name));
 
 			// if we don't already have this guy on the list, add him
 			pxo_channel *lookup;
@@ -2445,7 +2438,7 @@ void multi_pxo_api_process()
 			}
 
 			// set our "last" channel to be this one
-			strcpy(Multi_pxo_channel_last, Multi_pxo_channel_current.name);
+			SDL_strlcpy(Multi_pxo_channel_last, Multi_pxo_channel_current.name, SDL_arraysize(Multi_pxo_channel_last));
 
 			// refresh current channel server count
 			multi_pxo_channel_refresh_current();
@@ -2477,11 +2470,11 @@ void multi_pxo_process_nick_change(char *data)
 	if((from != NULL) && (to != NULL)){
 		lookup = multi_pxo_find_player(from);
 		if(lookup != NULL){
-			strcpy(lookup->name,to);
+			SDL_strlcpy(lookup->name, to, SDL_arraysize(lookup->name));
 
 			// if this is also my nick, change it
 			if(!SDL_strcasecmp(Multi_pxo_nick,from)){
-				strcpy(Multi_pxo_nick,to);
+				SDL_strlcpy(Multi_pxo_nick, to, SDL_arraysize(Multi_pxo_nick));
 			}
 		}		
 	}	
@@ -2494,7 +2487,7 @@ void multi_pxo_autojoin()
 
 	memset(&sw,0,sizeof(pxo_channel));
 	sw.num_users = 0;
-	strcpy(sw.name,MULTI_PXO_AUTOJOIN_CHANNEL);
+	SDL_strlcpy(sw.name, MULTI_PXO_AUTOJOIN_CHANNEL, SDL_arraysize(sw.name));
 
 	// if we found a valid room, attempt to join it	
 	multi_pxo_join_channel(&sw);		
@@ -2533,8 +2526,7 @@ void multi_pxo_channel_count_update(char *name,int count)
 void multi_pxo_set_status_text(const char *txt)
 {
 	// copy in the text
-	memset(Multi_pxo_status_text, 0, 255);
-	strncpy(Multi_pxo_status_text, txt, 254);
+	SDL_strlcpy(Multi_pxo_status_text, txt, SDL_arraysize(Multi_pxo_status_text));
 
 	// make sure it fits properly
 	gr_force_fit_string(Multi_pxo_status_text, 254, Multi_pxo_status_coords[gr_screen.res][2]);
@@ -2648,7 +2640,7 @@ void multi_pxo_make_channels(char *chan_str)
 				if(res != NULL){
 					//Multi_pxo_channel_count++;
 					res->num_users = (short)num_users;
-					strcpy(res->desc,desc_tok);
+					SDL_strlcpy(res->desc, desc_tok, SDL_arraysize(res->desc));
 				}		
 			}
 		}				
@@ -2696,7 +2688,7 @@ pxo_channel *multi_pxo_add_channel(char *name,pxo_channel **list)
 	}	
 	memset(new_channel,0,sizeof(pxo_channel));
 	// try and allocate a string for the channel name
-	strncpy(new_channel->name,name,MAX_CHANNEL_NAME_LEN);	
+	SDL_strlcpy(new_channel->name, name, SDL_arraysize(new_channel->name));
 
 	// insert it on the list
 	if ( *list != NULL ) {
@@ -2818,7 +2810,7 @@ void multi_pxo_channel_refresh_servers()
 		if(strlen(lookup->name)){
 			// copy in the info
 			memset(&filter,0,sizeof(filter_game_list_struct));
-			strcpy(filter.channel,lookup->name);
+			SDL_strlcpy(filter.channel, lookup->name, SDL_arraysize(filter.channel));
 			
 			// send the request
 			RequestGameCountWithFilter(&filter);
@@ -2840,7 +2832,7 @@ void multi_pxo_channel_refresh_current()
 		// fill in the data
 		filter_game_list_struct filter;
 		memset(&filter,0,sizeof(filter_game_list_struct));
-		strcpy(filter.channel,Multi_pxo_channel_current.name);
+		SDL_strlcpy(filter.channel, Multi_pxo_channel_current.name, SDL_arraysize(filter.channel));
 
 		// send the request
 		RequestGameCountWithFilter(&filter);
@@ -2875,23 +2867,20 @@ void multi_pxo_blit_channels()
 		}
 
 		// get the # of users on the channel
-		memset(chan_users, 0, 15);
-		sprintf(chan_users, "%d", moveup->num_users);
+		SDL_snprintf(chan_users, SDL_arraysize(chan_users), "%d", moveup->num_users);
 
 		// get the width of the user count string
 		gr_get_string_size(&user_w, NULL, chan_users);
 
 		// get the # of servers on the channel
-		memset(chan_servers,0,15);
-		sprintf(chan_servers, "%d", moveup->num_servers);
+		SDL_snprintf(chan_servers, SDL_arraysize(chan_servers), "%d", moveup->num_servers);
 
 		// get the width of the user count string
 		gr_get_string_size(&server_w, NULL, chan_servers);
 
 		// make sure the name fits
-		memset(chan_name, 0, 10);
 		SDL_assert(moveup->name);
-		strcpy(chan_name,moveup->name);
+		SDL_strlcpy(chan_name, moveup->name, SDL_arraysize(chan_name));
 		gr_force_fit_string(chan_name, 254, Multi_pxo_chan_coords[gr_screen.res][2] - Multi_pxo_chan_column_offsets[gr_screen.res][CHAN_PLAYERS_COLUMN]);
 
 		// blit the strings
@@ -2987,12 +2976,10 @@ void multi_pxo_join_channel(pxo_channel *chan)
 		multi_pxo_clear_players();
 
 		// display a line of text indicating that we're switching channels
-		memset(switch_msg,0,256);
-
 		if(strlen(Multi_pxo_channel_switch.name) > 1){
-			sprintf(switch_msg, "[Switching to channel %s]", Multi_pxo_channel_switch.name + 1);
+			SDL_snprintf(switch_msg, SDL_arraysize(switch_msg), "[Switching to channel %s]", Multi_pxo_channel_switch.name + 1);
 		} else {
-			sprintf(switch_msg, "[Switching to channel %s]", Multi_pxo_channel_switch.name);
+			SDL_snprintf(switch_msg, SDL_arraysize(switch_msg), "[Switching to channel %s]", Multi_pxo_channel_switch.name);
 		}
 		multi_pxo_chat_process_incoming(switch_msg, CHAT_MODE_CHANNEL_SWITCH);
 		break;
@@ -3033,7 +3020,7 @@ void multi_pxo_handle_channel_change()
 		Multi_pxo_channel_switch.num_users = -1;
 
 		// set our "last" channel
-		strcpy(Multi_pxo_channel_last, Multi_pxo_channel_current.name);
+		SDL_strlcpy(Multi_pxo_channel_last, Multi_pxo_channel_current.name, SDL_arraysize(Multi_pxo_channel_last));
 
 		// notify the user		
 		multi_pxo_set_status_text(XSTR("Connected to Parallax Online",951));
@@ -3118,7 +3105,7 @@ player_list *multi_pxo_add_player(char *name)
 		return NULL;
 	}	
 	// try and allocate a string for the channel name
-	strncpy(new_player->name, name, MAX_PLAYER_NAME_LEN);	
+	SDL_strlcpy(new_player->name, name, SDL_arraysize(new_player->name));
 
 	// insert it on the list
 	if ( Multi_pxo_players != NULL ) {
@@ -3315,7 +3302,7 @@ void multi_pxo_blit_players()
 		}
 
 		// make sure the string fits		
-		strcpy(player_name,moveup->name);		
+		SDL_strlcpy(player_name, moveup->name, SDL_arraysize(player_name));
 		gr_force_fit_string(player_name, 254, Multi_pxo_player_coords[gr_screen.res][2]);
 
 		// blit the string
@@ -3452,7 +3439,7 @@ void multi_pxo_chat_clear()
 	// clear the text in all the lines
 	moveup = Multi_pxo_chat;
 	while(moveup != NULL){
-		memset(moveup->text,0,MAX_CHAT_LINE_LEN+1);
+		SDL_zero(moveup->text);
 		moveup = moveup->next;
 	}
 
@@ -3470,7 +3457,7 @@ void multi_pxo_chat_add_line(char *txt, int mode)
 	
 	// copy in the text
 	SDL_assert(Multi_pxo_chat_add != NULL);
-	strncpy(Multi_pxo_chat_add->text, txt, MAX_CHAT_LINE_LEN);
+	SDL_strlcpy(Multi_pxo_chat_add->text, txt, SDL_arraysize(Multi_pxo_chat_add->text));
 	Multi_pxo_chat_add->mode = mode;
 
 	// if we're at the end of the list, move the front item down
@@ -3489,7 +3476,7 @@ void multi_pxo_chat_add_line(char *txt, int mode)
 
 		// set the new add line
 		Multi_pxo_chat_add = Multi_pxo_chat_add->next;
-		memset(Multi_pxo_chat_add->text, 0, MAX_CHAT_LINE_LEN+1);
+		SDL_zero(Multi_pxo_chat_add->text);
 		Multi_pxo_chat_add->mode = CHAT_MODE_NORMAL;
 	} 
 	// if we're not at the end of the list, just move up by one
@@ -3542,9 +3529,9 @@ void multi_pxo_chat_process_incoming(const char *txt,int mode)
 	// if the text is a private message, return a pointer to the beginning of the message, otherwise return NULL
 	priv_ptr = multi_pxo_chat_is_private(txt);
 	if(priv_ptr != NULL){		
-		strcpy(msg_total, priv_ptr);
+		SDL_strlcpy(msg_total, priv_ptr, SDL_arraysize(msg_total));
 	} else {
-		strcpy(msg_total, txt);
+		SDL_strlcpy(msg_total, txt, SDL_arraysize(msg_total));
 	}	
 
 	// determine what mode to display this text in
@@ -3623,15 +3610,14 @@ void multi_pxo_chat_blit()
 	chat_line *moveup;
 
 	// blit the title line
-	memset(title,0,15);
 	if(ON_CHANNEL()){
 		if(strlen(Multi_pxo_channel_current.name) > 1){
-			sprintf(title, XSTR("%s on %s", 955), Multi_pxo_nick, Multi_pxo_channel_current.name+1);  // [[ <who> on <channel> ]]
+			SDL_snprintf(title, SDL_arraysize(title), XSTR("%s on %s", 955), Multi_pxo_nick, Multi_pxo_channel_current.name+1);  // [[ <who> on <channel> ]]
 		} else {
-			sprintf(title, XSTR("%s on %s", 955), Multi_pxo_nick, Multi_pxo_channel_current.name);	  // [[ <who> on <channel> ]]
+			SDL_snprintf(title, SDL_arraysize(title), XSTR("%s on %s", 955), Multi_pxo_nick, Multi_pxo_channel_current.name);	  // [[ <who> on <channel> ]]
 		}
 	} else {
-		strcpy(title,XSTR("Parallax Online - No Channel", 956));
+		SDL_strlcpy(title, XSTR("Parallax Online - No Channel", 956), SDL_arraysize(title));
 	}	
 	gr_force_fit_string(title, 254, Multi_pxo_chat_coords[gr_screen.res][2] - 10);
 	gr_get_string_size(&token_width,NULL,title);
@@ -3659,7 +3645,7 @@ void multi_pxo_chat_blit()
 		// normal mode, just highlight the server
 		case CHAT_MODE_PRIVATE:		
 		case CHAT_MODE_NORMAL:					
-			strcpy(piece,moveup->text);
+			SDL_strlcpy(piece, moveup->text, SDL_arraysize(piece));
 			tok = strtok(piece," ");
 			if(tok != NULL){
 				// get the width of just the first "piece"
@@ -3805,7 +3791,7 @@ void multi_pxo_chat_process()
 
 	// if the chat line is getting too long, fire off the message, putting the last
 	// word on the next input line.
-	memset(msg, 0, 512);
+	SDL_zero(msg);
 	Multi_pxo_chat_input.get_text(msg);
 
 	// determine if the width of the string in pixels is > than the inputbox width -- if so,
@@ -3933,7 +3919,7 @@ int multi_pxo_chat_is_left_message(const char *txt)
 	}
 
 	// check to see if the last portion is the correct wording
-	memset(last_portion, 0, 100);
+	SDL_zero(last_portion);
 	if((strlen(txt) > strlen(MULTI_PXO_HAS_LEFT)) && !strcmp(&txt[strlen(txt) - strlen(MULTI_PXO_HAS_LEFT)], MULTI_PXO_HAS_LEFT)){
 		return 1;
 	}
@@ -3971,7 +3957,7 @@ void multi_pxo_chat_adjust_start()
 void multi_pxo_motd_init()
 {
 	// zero the motd string
-	strcpy(Pxo_motd, "");
+	SDL_strlcpy(Pxo_motd, "", SDL_arraysize(Pxo_motd));
 
 	// haven't gotten it yet
 	Pxo_motd_end = 0;
@@ -4005,8 +3991,8 @@ void multi_pxo_motd_add_text(const char *text)
 	// add text to the motd
 	new_len = strlen(text + strlen(PXO_CHAT_MOTD_PREFIX)) - 1;
 	if((cur_len + new_len + 1) < MAX_PXO_MOTD_LEN){
-		strcat(Pxo_motd, text + strlen(PXO_CHAT_MOTD_PREFIX) + 1);
-		strcat(Pxo_motd, "\n");
+		SDL_strlcat(Pxo_motd, text + strlen(PXO_CHAT_MOTD_PREFIX) + 1, SDL_arraysize(Pxo_motd));
+		SDL_strlcat(Pxo_motd, "\n", SDL_arraysize(Pxo_motd));
 		mprintf(("MOTD ADD : %s\n", Pxo_motd));
 	}
 }
@@ -4133,9 +4119,9 @@ void multi_pxo_com_init(int input_len)
 	Multi_pxo_com_input.set_focus();
 
 	// clear all text lines
-	memset(Multi_pxo_com_bottom_text, 0, 255);
-	memset(Multi_pxo_com_middle_text, 0, 255);
-	memset(Multi_pxo_com_top_text, 0, 255);
+	SDL_zero(Multi_pxo_com_bottom_text);
+	SDL_zero(Multi_pxo_com_middle_text);
+	SDL_zero(Multi_pxo_com_top_text);
 }
 
 // close down the common dialog
@@ -4167,7 +4153,7 @@ void multi_pxo_com_blit_text()
 void multi_pxo_com_set_top_text(const char *txt)
 {	
 	if((txt != NULL) && strlen(txt)){
-		strcpy(Multi_pxo_com_top_text,txt);
+		SDL_strlcpy(Multi_pxo_com_top_text, txt, SDL_arraysize(Multi_pxo_com_top_text));
 		gr_force_fit_string(Multi_pxo_com_top_text, 254, Multi_pxo_com_input_coords[gr_screen.res][2]);
 	}	
 }
@@ -4176,7 +4162,7 @@ void multi_pxo_com_set_top_text(const char *txt)
 void multi_pxo_com_set_middle_text(const char *txt)
 {
 	if((txt != NULL) && strlen(txt)){
-		strcpy(Multi_pxo_com_middle_text,txt);
+		SDL_strlcpy(Multi_pxo_com_middle_text, txt, SDL_arraysize(Multi_pxo_com_middle_text));
 		gr_force_fit_string(Multi_pxo_com_middle_text, 254, Multi_pxo_com_input_coords[gr_screen.res][2]);
 	}	
 }
@@ -4185,7 +4171,7 @@ void multi_pxo_com_set_middle_text(const char *txt)
 void multi_pxo_com_set_bottom_text(const char *txt)
 {
 	if((txt != NULL) && strlen(txt)){
-		strcpy(Multi_pxo_com_bottom_text,txt);
+		SDL_strlcpy(Multi_pxo_com_bottom_text, txt, SDL_arraysize(Multi_pxo_com_bottom_text));
 		gr_force_fit_string(Multi_pxo_com_bottom_text, 254, Multi_pxo_com_input_coords[gr_screen.res][2]);
 	}	
 }
@@ -4311,7 +4297,7 @@ void multi_pxo_priv_button_pressed(int n)
 	
 	case MULTI_PXO_COM_OK:
 		Multi_pxo_com_input.get_text(priv_chan_name);
-		multi_pxo_strip_space(priv_chan_name,priv_chan_name);
+		multi_pxo_strip_space(priv_chan_name, priv_chan_name, SDL_arraysize(priv_chan_name));
 
 		// if its a 0 length string, interpret as a cancel
 		if(strlen(priv_chan_name) <= 0){
@@ -4332,7 +4318,7 @@ void multi_pxo_priv_process_input()
 	// see if the user has pressed enter
 	if(Multi_pxo_com_input.pressed()){
 		Multi_pxo_com_input.get_text(priv_chan_name);
-		multi_pxo_strip_space(priv_chan_name,priv_chan_name);
+		multi_pxo_strip_space(priv_chan_name, priv_chan_name, SDL_arraysize(priv_chan_name));
 		
 		// if its a 0 length string, interpret as a cancel
 		if(strlen(priv_chan_name) <= 0){
@@ -4344,8 +4330,8 @@ void multi_pxo_priv_process_input()
 		Multi_pxo_priv_return_code = 1;
 
 		// add in the "+" which indicates a private room
-		strcpy(Multi_pxo_priv_chan,"+");
-		strcat(Multi_pxo_priv_chan,priv_chan_name);
+		SDL_strlcpy(Multi_pxo_priv_chan, "+", SDL_arraysize(Multi_pxo_priv_chan));
+		SDL_strlcat(Multi_pxo_priv_chan, priv_chan_name, SDL_arraysize(Multi_pxo_priv_chan));
 	}
 }
 
@@ -4374,10 +4360,10 @@ void multi_pxo_find_init()
 	multi_pxo_com_set_top_text(XSTR("Enter user to be found",962));	
 
 	// 0 length
-	strcpy(Multi_pxo_find_channel,"");
+	SDL_strlcpy(Multi_pxo_find_channel, "", SDL_arraysize(Multi_pxo_find_channel));
 
 	// 0 length
-	strcpy(name_lookup,"");
+	SDL_strlcpy(name_lookup, "", SDL_arraysize(name_lookup));
 }
 
 // close down the popup
@@ -4506,11 +4492,11 @@ void multi_pxo_find_process_input()
 		// if we're not already in search mode
 		if(!Multi_pxo_searching){
 			// clear all text
-			memset(Multi_pxo_com_middle_text,0,255);
-			memset(Multi_pxo_com_bottom_text,0,255);
+			SDL_zero(Multi_pxo_com_middle_text);
+			SDL_zero(Multi_pxo_com_bottom_text);
 
 			Multi_pxo_com_input.get_text(name_lookup);
-			multi_pxo_strip_space(name_lookup,name_lookup);
+			multi_pxo_strip_space(name_lookup, name_lookup, SDL_arraysize(name_lookup));
 
 			// never search with a zero length string
 			if(strlen(name_lookup) > 0){
@@ -4523,13 +4509,12 @@ void multi_pxo_find_process_input()
 				GetChannelByUser(name_lookup);			
 
 				// set the top text
-				memset(search_text,0,512);
-				sprintf(search_text,XSTR("Searching for %s",963),name_lookup);
+				SDL_snprintf(search_text, SDL_arraysize(search_text), XSTR("Searching for %s", 963), name_lookup);
 				multi_pxo_com_set_top_text(search_text);
 			}
 			// clear everything
 			else {
-				memset(Multi_pxo_com_top_text,0,255);
+				SDL_zero(Multi_pxo_com_top_text);
 			}
 		}
 	}
@@ -4553,25 +4538,24 @@ void multi_pxo_find_search_process()
 		// if he couldn't be found
 		if(channel == (char *)-1){
 			multi_pxo_com_set_middle_text(XSTR("User not found",964));									
-			strcpy(Multi_pxo_find_channel,"");
+			SDL_strlcpy(Multi_pxo_find_channel, "", SDL_arraysize(Multi_pxo_find_channel));
 		} else {	
 			if(channel[0] == '*'){
 				multi_pxo_com_set_middle_text(XSTR("Player is logged in but is not on a channel",965));				
-				strcpy(Multi_pxo_find_channel,"");
+				SDL_strlcpy(Multi_pxo_find_channel, "", SDL_arraysize(Multi_pxo_find_channel));
 			} else {
 				char p_text[512];
-				memset(p_text,0,512);
 
 				// if this guy is on a public channel, display which one
 				if(channel[0] == '#'){			
-					sprintf(p_text,XSTR("Found %s on :",966),name_lookup);
+					SDL_snprintf(p_text, SDL_arraysize(p_text), XSTR("Found %s on :", 966), name_lookup);
 
 					// display the results								
 					multi_pxo_com_set_middle_text(p_text);								
 					multi_pxo_com_set_bottom_text(channel+1);
 
 					// mark down the channel name so we know where to find him
-					strcpy(Multi_pxo_find_channel,channel);		
+					SDL_strlcpy(Multi_pxo_find_channel, channel, SDL_arraysize(Multi_pxo_find_channel));
 					// strip out trailing whitespace
 					if(Multi_pxo_find_channel[strlen(Multi_pxo_find_channel) - 1] == ' '){
 						Multi_pxo_find_channel[strlen(Multi_pxo_find_channel) - 1] = '\0';
@@ -4579,10 +4563,10 @@ void multi_pxo_find_search_process()
 				}
 				// if this is a private channel
 				else if(channel[0] == '+'){
-					sprintf(p_text,XSTR("Found %s on a private channel",967),name_lookup);
+					SDL_snprintf(p_text, SDL_arraysize(p_text), XSTR("Found %s on a private channel", 967), name_lookup);
 					multi_pxo_com_set_middle_text(p_text);
 
-					strcpy(Multi_pxo_find_channel,"");
+					SDL_strlcpy(Multi_pxo_find_channel, "", SDL_arraysize(Multi_pxo_find_channel));
 				}								
 			}
 		}
@@ -4629,17 +4613,17 @@ int multi_pxo_pinfo_cond()
 			}
 
 			// otherwise parse into his id and callsign
-			strcpy(temp_string,ret_string);
+			SDL_strlcpy(temp_string, ret_string, SDL_arraysize(temp_string));
 			tok = strtok(temp_string," ");
 			
 			// get tracker id
 			if(tok != NULL){
-				strcpy(Multi_pxo_retrieve_id,tok);
+				SDL_strlcpy(Multi_pxo_retrieve_id, tok, SDL_arraysize(Multi_pxo_retrieve_id));
 
 				// get the callsign
 				tok = strtok(NULL,"");
 				if(tok != NULL){
-					strcpy(Multi_pxo_retrieve_name,tok);
+					SDL_strlcpy(Multi_pxo_retrieve_name, tok, SDL_arraysize(Multi_pxo_retrieve_name));
 				}
 				// failure
 				else {
@@ -4663,8 +4647,8 @@ int multi_pxo_pinfo_cond()
 
 		// fill in the data
 		memset(&Multi_pxo_pinfo, 0, sizeof(vmt_freespace2_struct));
-		strcpy(Multi_pxo_pinfo.pilot_name, Multi_pxo_retrieve_name);
-		strncpy(Multi_pxo_pinfo.tracker_id, Multi_pxo_retrieve_id, TRACKER_ID_LEN);
+		SDL_strlcpy(Multi_pxo_pinfo.pilot_name, Multi_pxo_retrieve_name, SDL_arraysize(Multi_pxo_pinfo.pilot_name));
+		SDL_strlcpy(Multi_pxo_pinfo.tracker_id, Multi_pxo_retrieve_id, SDL_arraysize(Multi_pxo_pinfo.tracker_id));
 
 		// make the initial call to the API
 		GetFSPilotData((vmt_freespace2_struct*)0xffffffff,NULL,NULL,0);
@@ -4707,7 +4691,7 @@ int multi_pxo_pinfo_get(char *name)
 {
 	// run the popup	
 	Multi_pxo_retrieve_mode = 0;
-	strcpy(Multi_pxo_retrieve_name,name);	
+	SDL_strlcpy(Multi_pxo_retrieve_name, name, SDL_arraysize(Multi_pxo_retrieve_name));
 	switch(popup_till_condition(multi_pxo_pinfo_cond,XSTR("&Cancel", 779),XSTR("Retrieving player tracker id",969))){
 	// success
 	case 10 :
@@ -4745,104 +4729,88 @@ void multi_pxo_pinfo_show()
 void multi_pxo_pinfo_build_vals()
 {
 	vmt_freespace2_struct *fs = &Multi_pxo_pinfo;	
-			
+
+	SDL_zero(Multi_pxo_pinfo_vals);
+
 	// pilot name
-	memset(Multi_pxo_pinfo_vals[0],0,50);
-	strcpy(Multi_pxo_pinfo_vals[0],fs->pilot_name);
+	SDL_strlcpy(Multi_pxo_pinfo_vals[0], fs->pilot_name, SDL_arraysize(Multi_pxo_pinfo_vals[0]));
 	gr_force_fit_string(Multi_pxo_pinfo_vals[0], 49, Multi_pxo_pinfo_coords[gr_screen.res][2] - (Multi_pxo_pinfo_val_x[gr_screen.res] - Multi_pxo_pinfo_coords[gr_screen.res][0]));
 
 	// rank
-	memset(Multi_pxo_pinfo_vals[1],0,50);	
 	multi_sg_rank_build_name(Ranks[fs->rank].name, Multi_pxo_pinfo_vals[1], SDL_arraysize(Multi_pxo_pinfo_vals[1]));
 	gr_force_fit_string(Multi_pxo_pinfo_vals[1], 49, Multi_pxo_pinfo_coords[gr_screen.res][2] - (Multi_pxo_pinfo_val_x[gr_screen.res] - Multi_pxo_pinfo_coords[gr_screen.res][0]));
 
 	// kills
-	memset(Multi_pxo_pinfo_vals[2],0,50);
-	sprintf(Multi_pxo_pinfo_vals[2],"%d",fs->kill_count);
+	SDL_snprintf(Multi_pxo_pinfo_vals[2], SDL_arraysize(Multi_pxo_pinfo_vals[2]), "%d", fs->kill_count);
 
 	// assists
-	memset(Multi_pxo_pinfo_vals[3],0,50);
-	sprintf(Multi_pxo_pinfo_vals[3],"%d",fs->assists);
+	SDL_snprintf(Multi_pxo_pinfo_vals[3], SDL_arraysize(Multi_pxo_pinfo_vals[3]), "%d", fs->assists);
 
 	// friendly kills
-	memset(Multi_pxo_pinfo_vals[4],0,50);
-	sprintf(Multi_pxo_pinfo_vals[4],"%d",fs->kill_count - fs->kill_count_ok);
+	SDL_snprintf(Multi_pxo_pinfo_vals[4], SDL_arraysize(Multi_pxo_pinfo_vals[4]), "%d", fs->kill_count - fs->kill_count_ok);
 
 	// missions flown
-	memset(Multi_pxo_pinfo_vals[5],0,50);
-	sprintf(Multi_pxo_pinfo_vals[5],"%d",(int)fs->missions_flown);	
+	SDL_snprintf(Multi_pxo_pinfo_vals[5], SDL_arraysize(Multi_pxo_pinfo_vals[5]), "%d", (int)fs->missions_flown);
 
 	// flight time	
-	memset(Multi_pxo_pinfo_vals[6],0,50);
 	game_format_time(fl2f((float)fs->flight_time), Multi_pxo_pinfo_vals[6], SDL_arraysize(Multi_pxo_pinfo_vals[6]));
 
 	// last flown
-	memset(Multi_pxo_pinfo_vals[7],0,50);
 	if(fs->last_flown == 0){		
-		strcpy(Multi_pxo_pinfo_vals[7],XSTR("No missions flown",970));
+		SDL_strlcpy(Multi_pxo_pinfo_vals[7], XSTR("No missions flown", 970), SDL_arraysize(Multi_pxo_pinfo_vals[7]));
 	} else {
 		tm *tmr = gmtime((time_t*)&fs->last_flown);
 		if(tmr != NULL){
 			strftime(Multi_pxo_pinfo_vals[7],30,"%m/%d/%y %H:%M",tmr);	
 		} else {
-			strcpy(Multi_pxo_pinfo_vals[7], "");
+			SDL_strlcpy(Multi_pxo_pinfo_vals[7], "", SDL_arraysize(Multi_pxo_pinfo_vals[7]));
 		}
 	}		
 
 	// primary shots fired
-	memset(Multi_pxo_pinfo_vals[8],0,50);
-	sprintf(Multi_pxo_pinfo_vals[8],"%d",(int)fs->p_shots_fired);
+	SDL_snprintf(Multi_pxo_pinfo_vals[8], SDL_arraysize(Multi_pxo_pinfo_vals[8]), "%d", (int)fs->p_shots_fired);
 
 	// primary shots hit
-	memset(Multi_pxo_pinfo_vals[9],0,50);
-	sprintf(Multi_pxo_pinfo_vals[9],"%d",(int)fs->p_shots_hit);
+	SDL_snprintf(Multi_pxo_pinfo_vals[9], SDL_arraysize(Multi_pxo_pinfo_vals[9]), "%d", (int)fs->p_shots_hit);
 
 	// primary hit pct
-	memset(Multi_pxo_pinfo_vals[10],0,50);
 	if(fs->p_shots_fired > 0){		
-		sprintf(Multi_pxo_pinfo_vals[10],"%d%%",(int)((float)fs->p_shots_hit / (float)fs->p_shots_fired * 100.0f));
+		SDL_snprintf(Multi_pxo_pinfo_vals[10], SDL_arraysize(Multi_pxo_pinfo_vals[10]), "%d%%", (int)((float)fs->p_shots_hit / (float)fs->p_shots_fired * 100.0f));
 	} else {		
-		strcpy(Multi_pxo_pinfo_vals[10],"0%");
+		SDL_strlcpy(Multi_pxo_pinfo_vals[10], "0%", SDL_arraysize(Multi_pxo_pinfo_vals[10]));
 	}
 
 	// secondary shots fired
-	memset(Multi_pxo_pinfo_vals[11],0,50);
-	sprintf(Multi_pxo_pinfo_vals[11],"%d",(int)fs->s_shots_fired);
+	SDL_snprintf(Multi_pxo_pinfo_vals[11], SDL_arraysize(Multi_pxo_pinfo_vals[11]), "%d", (int)fs->s_shots_fired);
 
 	// secondary shots hit
-	memset(Multi_pxo_pinfo_vals[12],0,50);
-	sprintf(Multi_pxo_pinfo_vals[12],"%d",(int)fs->s_shots_hit);
+	SDL_snprintf(Multi_pxo_pinfo_vals[12], SDL_arraysize(Multi_pxo_pinfo_vals[12]), "%d", (int)fs->s_shots_hit);
 
 	// secondary hit pct
-	memset(Multi_pxo_pinfo_vals[13],0,50);
 	if(fs->s_shots_fired > 0){		
-		sprintf(Multi_pxo_pinfo_vals[13],"%d%%",(int)((float)fs->s_shots_hit / (float)fs->s_shots_fired * 100.0f));
+		SDL_snprintf(Multi_pxo_pinfo_vals[13], SDL_arraysize(Multi_pxo_pinfo_vals[13]), "%d%%", (int)((float)fs->s_shots_hit / (float)fs->s_shots_fired * 100.0f));
 	} else {		
-		strcpy(Multi_pxo_pinfo_vals[13],"0%");
+		SDL_strlcpy(Multi_pxo_pinfo_vals[13], "0%", SDL_arraysize(Multi_pxo_pinfo_vals[13]));
 	}
 
 	// primary friendly hits
-	memset(Multi_pxo_pinfo_vals[14],0,50);
-	sprintf(Multi_pxo_pinfo_vals[14],"%d",fs->p_bonehead_hits);
+	SDL_snprintf(Multi_pxo_pinfo_vals[14], SDL_arraysize(Multi_pxo_pinfo_vals[14]), "%d", fs->p_bonehead_hits);
 
 	// primary friendly hit %
-	memset(Multi_pxo_pinfo_vals[15],0,50);
 	if(fs->p_shots_hit > 0){		
-	   sprintf(Multi_pxo_pinfo_vals[15],"%d%%",(int)((float)100.0f*((float)fs->p_bonehead_hits/(float)fs->p_shots_fired)));
+		SDL_snprintf(Multi_pxo_pinfo_vals[15], SDL_arraysize(Multi_pxo_pinfo_vals[15]), "%d%%", (int)((float)100.0f*((float)fs->p_bonehead_hits/(float)fs->p_shots_fired)));
 	} else {		
-		strcpy(Multi_pxo_pinfo_vals[15],"0%");
+		SDL_strlcpy(Multi_pxo_pinfo_vals[15], "0%", SDL_arraysize(Multi_pxo_pinfo_vals[15]));
 	}
 
 	// secondary friendly hits
-	memset(Multi_pxo_pinfo_vals[16],0,50);
-	sprintf(Multi_pxo_pinfo_vals[16],"%d",fs->s_bonehead_hits);
+	SDL_snprintf(Multi_pxo_pinfo_vals[16], SDL_arraysize(Multi_pxo_pinfo_vals[16]), "%d", fs->s_bonehead_hits);
 
 	// secondary friendly hit %
-	memset(Multi_pxo_pinfo_vals[17],0,50);
 	if(fs->s_shots_hit > 0){
-	   sprintf(Multi_pxo_pinfo_vals[17],"%d%%",(int)((float)100.0f*((float)fs->s_bonehead_hits/(float)fs->s_shots_fired)));
+		SDL_snprintf(Multi_pxo_pinfo_vals[17], SDL_arraysize(Multi_pxo_pinfo_vals[17]), "%d%%", (int)((float)100.0f*((float)fs->s_bonehead_hits/(float)fs->s_shots_fired)));
 	} else {		
-		strcpy(Multi_pxo_pinfo_vals[17],"0%");
+		SDL_strlcpy(Multi_pxo_pinfo_vals[17], "0%", SDL_arraysize(Multi_pxo_pinfo_vals[17]));
 	}
 }
 
@@ -5007,7 +4975,7 @@ void multi_pxo_run_medals()
 
 	// initialize the freespace data and the player struct	
 	multi_stats_tracker_to_fs(&Multi_pxo_pinfo, &Multi_pxo_pinfo_player.stats);
-	strcpy(Multi_pxo_pinfo_player.callsign, Multi_pxo_pinfo.pilot_name);
+	SDL_strlcpy(Multi_pxo_pinfo_player.callsign, Multi_pxo_pinfo.pilot_name, SDL_arraysize(Multi_pxo_pinfo_player.callsign));
 	
 	// initialize the medals screen
 	medal_main_init(&Multi_pxo_pinfo_player, MM_POPUP);
@@ -5036,7 +5004,7 @@ void multi_pxo_run_medals()
 void multi_pxo_notify_add(const char *txt)
 {
 	// copy the text
-	strcpy(Multi_pxo_notify_text, txt);
+	SDL_strlcpy(Multi_pxo_notify_text, txt, SDL_arraysize(Multi_pxo_notify_text));
 
 	// set the timestamp
 	Multi_pxo_notify_stamp = timestamp(MULTI_PXO_NOTIFY_TIME);
@@ -5325,24 +5293,22 @@ void multi_pxo_ban_init()
 	}
 
 	// zero the active banner bitmap
-	Multi_pxo_banner.ban_bitmap = -1;	
-	strcpy(Multi_pxo_banner.ban_file, "");
-	strcpy(Multi_pxo_banner.ban_file_url, "");
-	strcpy(Multi_pxo_banner.ban_url, "");	
+	SDL_zero(Multi_pxo_banner);
+	Multi_pxo_banner.ban_bitmap = -1;
 }
 
 // process http download details
 void multi_pxo_ban_process()
 {
 	char url_string[512] = "";
-	char local_file[512] = "";
+	char local_file[MAX_PATH_LEN] = "";
 
 	// process stuff
 	switch(Multi_pxo_ban_mode){
 	// start downloading list
 	case PXO_BAN_MODE_LIST_STARTUP:		
 		// remote file
-		sprintf(url_string, "%s/%s", Multi_options_g.pxo_banner_url, PXO_BANNERS_CONFIG_FILE);
+		SDL_snprintf(url_string, SDL_arraysize(url_string), "%s/%s", Multi_options_g.pxo_banner_url, PXO_BANNERS_CONFIG_FILE);
 
 		// local file
 		cf_create_default_path_string(local_file, CF_TYPE_MULTI_CACHE, PXO_BANNERS_CONFIG_FILE);
@@ -5485,18 +5451,16 @@ void multi_pxo_ban_close()
 // parse the banners file and maybe fill in Multi_pxo_dl_file
 void multi_pxo_ban_parse_banner_file(int choose_existing)
 {
-	char file_url[512] = "";
-	char banners[10][512];
-	char urls[10][512];
+	char file_url[MAX_PATH_LEN] = "";
+	char banners[10][MAX_PATH_LEN];
+	char urls[10][MAX_PATH_LEN];
 	int exists[10];
 	int exist_count;
 	int num_banners, idx;
 	CFILE *in = cfopen(PXO_BANNERS_CONFIG_FILE, "rt", CFILE_NORMAL, CF_TYPE_MULTI_CACHE);
 
+	SDL_zero(Multi_pxo_banner);
 	Multi_pxo_banner.ban_bitmap = -1;
-	strcpy(Multi_pxo_banner.ban_file, "");
-	strcpy(Multi_pxo_banner.ban_file_url, "");
-	strcpy(Multi_pxo_banner.ban_url, "");		
 
 	// bad
 	if(in == NULL){
@@ -5504,13 +5468,11 @@ void multi_pxo_ban_parse_banner_file(int choose_existing)
 	}
 
 	// clear all strings
-	for(idx=0; idx<10; idx++){
-		strcpy(banners[idx], "");
-		strcpy(urls[idx], "");
-	}
+	SDL_zero(banners);
+	SDL_zero(urls);
 
 	// get the global banner url
-	if(cfgets(file_url, 254, in) == NULL){
+	if(cfgets(file_url, SDL_arraysize(file_url), in) == NULL){
 		cfclose(in);
 		cf_delete(PXO_BANNERS_CONFIG_FILE, CF_TYPE_MULTI_CACHE);
 		return;
@@ -5522,11 +5484,11 @@ void multi_pxo_ban_parse_banner_file(int choose_existing)
 	num_banners = 0;
 	while(num_banners < 10){
 		// try and get the pcx
-		if(cfgets(banners[num_banners], 254, in) == NULL){
+		if(cfgets(banners[num_banners], SDL_arraysize(banners[0]), in) == NULL){
 			break;
 		}
 		// try and get the url
-		if(cfgets(urls[num_banners], 254, in) == NULL){
+		if(cfgets(urls[num_banners], SDL_arraysize(urls[0]), in) == NULL){
 			break;
 		}
 
@@ -5589,14 +5551,14 @@ void multi_pxo_ban_parse_banner_file(int choose_existing)
 		// valid?
 		if(idx < exist_count){
 			// base filename
-			strncpy(Multi_pxo_banner.ban_file, banners[idx], MAX_FILENAME_LEN);
+			SDL_strlcpy(Multi_pxo_banner.ban_file, banners[idx], SDL_arraysize(Multi_pxo_banner.ban_file));
 
 			// get the full file url
-			strncpy(Multi_pxo_banner.ban_file_url, file_url, MULTI_OPTIONS_STRING_LEN);
-			strncat(Multi_pxo_banner.ban_file_url, banners[idx], MULTI_OPTIONS_STRING_LEN);
+			SDL_strlcpy(Multi_pxo_banner.ban_file_url, file_url, SDL_arraysize(Multi_pxo_banner.ban_file_url));
+			SDL_strlcat(Multi_pxo_banner.ban_file_url, banners[idx], SDL_arraysize(Multi_pxo_banner.ban_file_url));
 
 			// url of where to go to when clicked
-			strncpy(Multi_pxo_banner.ban_url, urls[idx], MULTI_OPTIONS_STRING_LEN);		
+			SDL_strlcpy(Multi_pxo_banner.ban_url, urls[idx], SDL_arraysize(Multi_pxo_banner.ban_url));
 		}
 	}
 	// randomly pick a file for download
@@ -5611,14 +5573,14 @@ void multi_pxo_ban_parse_banner_file(int choose_existing)
 		}
 
 		// base filename
-		strncpy(Multi_pxo_banner.ban_file, banners[idx], MAX_FILENAME_LEN);
+		SDL_strlcpy(Multi_pxo_banner.ban_file, banners[idx], SDL_arraysize(Multi_pxo_banner.ban_file));
 
 		// get the full file url
-		strncpy(Multi_pxo_banner.ban_file_url, file_url, MULTI_OPTIONS_STRING_LEN);
-		strncat(Multi_pxo_banner.ban_file_url, banners[idx], MULTI_OPTIONS_STRING_LEN);
+		SDL_strlcpy(Multi_pxo_banner.ban_file_url, file_url, SDL_arraysize(Multi_pxo_banner.ban_file_url));
+		SDL_strlcat(Multi_pxo_banner.ban_file_url, banners[idx], SDL_arraysize(Multi_pxo_banner.ban_file_url));
 
 		// url of where to go to when clicked
-		strncpy(Multi_pxo_banner.ban_url, urls[idx], MULTI_OPTIONS_STRING_LEN);		
+		SDL_strlcpy(Multi_pxo_banner.ban_url, urls[idx], SDL_arraysize(Multi_pxo_banner.ban_url));
 	}
 
 	// delete the banner config file

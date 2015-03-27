@@ -156,9 +156,9 @@ void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt, scoring_struct *fs);
 int multi_fs_tracker_validate_mission(char *filename);
 
 // return an MSW_STATUS_* value
-int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply);
+int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply, const int max_reply_len);
 
 // store the results of a squad war mission on PXO, return 1 on success
-int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply);
+int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply, const int max_reply_len);
 
 #endif

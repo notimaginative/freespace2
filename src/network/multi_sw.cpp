@@ -120,9 +120,7 @@ int multi_sw_ok_to_commit()
 {
 	char *ret;
 	char match_code[MATCH_CODE_LEN] = "";	
-	char bad_response[MAX_SQUAD_RESPONSE_LEN+1];
-
-	memset(bad_response, 0, MAX_SQUAD_RESPONSE_LEN+1);
+	char bad_response[MAX_SQUAD_RESPONSE_LEN+1] = "";
 
 	// make sure we have enough players per team
 	if(!multi_sw_verify_squad_counts()){
@@ -134,9 +132,9 @@ int multi_sw_ok_to_commit()
 	if(ret == NULL){
 		return 0;
 	}
-	strcpy(match_code, ret);
+	SDL_strlcpy(match_code, ret, SDL_arraysize(match_code));
 
-	strcpy(Multi_sw_match_code, "");
+	SDL_strlcpy(Multi_sw_match_code, "", SDL_arraysize(Multi_sw_match_code));
 
 	// if we're the server, do the nice case
 	if(MULTIPLAYER_MASTER){
@@ -144,9 +142,9 @@ int multi_sw_ok_to_commit()
 		multi_sw_stuff_request(match_code);
 		
 		// return an MSW_STATUS_* value
-		if(multi_fs_tracker_validate_sw(&Multi_sw_request, bad_response) == MSW_STATUS_VALID){			
+		if(multi_fs_tracker_validate_sw(&Multi_sw_request, bad_response, SDL_arraysize(bad_response)) == MSW_STATUS_VALID){
 			// store the match code			
-			strncpy(Multi_sw_match_code, match_code, MATCH_CODE_LEN);
+			SDL_strlcpy(Multi_sw_match_code, match_code, SDL_arraysize(Multi_sw_match_code));
 
 			// success		
 			return 1;
@@ -187,19 +185,17 @@ void multi_sw_std_query(char *match_code)
 {
 	char bad_response[MAX_SQUAD_RESPONSE_LEN+1];
 
-	memset(bad_response, 0, MAX_SQUAD_RESPONSE_LEN+1);
-
 	// stuff match request
 	multi_sw_stuff_request(match_code);	
 
-	strcpy(Multi_sw_match_code, "");
+	SDL_strlcpy(Multi_sw_match_code, "", SDL_arraysize(Multi_sw_match_code));
 
 	// return an MSW_STATUS_* value
-	if(multi_fs_tracker_validate_sw(&Multi_sw_request, bad_response) != MSW_STATUS_VALID){
+	if(multi_fs_tracker_validate_sw(&Multi_sw_request, bad_response, SDL_arraysize(bad_response)) != MSW_STATUS_VALID){
 		send_sw_query_packet(SW_STD_BAD, bad_response);
 	} else {
 		// store the match code
-		strncpy(Multi_sw_match_code, match_code, MATCH_CODE_LEN);
+		SDL_strlcpy(Multi_sw_match_code, match_code, SDL_arraysize(Multi_sw_match_code));
 			
 		send_sw_query_packet(SW_STD_OK, NULL);		
 	}
@@ -209,15 +205,14 @@ void multi_sw_std_query(char *match_code)
 #define SEND_AND_DISPLAY(mesg)		do { send_game_chat_packet(Net_player, mesg, MULTI_MSG_ALL, NULL, NULL, 1); multi_display_chat_msg(mesg, 0, 0); } while(0);
 void multi_sw_report(int stats_saved)
 {			
-	char bad_response[MAX_SQUAD_RESPONSE_LEN+1];
-	memset(bad_response, 0, MAX_SQUAD_RESPONSE_LEN+1);	
+	char bad_response[MAX_SQUAD_RESPONSE_LEN+1] = "";
 
 	// stuff Multi_sw_result
 	multi_sw_stuff_result();	
 
 	// update on PXO	
 	if(stats_saved){
-		if(multi_fs_tracker_store_sw(&Multi_sw_result, bad_response)){
+		if ( multi_fs_tracker_store_sw(&Multi_sw_result, bad_response, SDL_arraysize(bad_response)) ) {
 			SEND_AND_DISPLAY(XSTR("<SquadWar results stored on PXO>", 1079));
 		} else {
 			SEND_AND_DISPLAY(XSTR("<SquadWar results rejected by PXO>", 1080));
@@ -280,7 +275,7 @@ void multi_sw_stuff_request(char *match_code)
 	}		
 
 	// stuff match code
-	strncpy(s->match_code, match_code, MATCH_CODE_LEN);
+	SDL_strlcpy(s->match_code, match_code, SDL_arraysize(s->match_code));
 }
 
 // verify that we have the proper # of players
@@ -302,7 +297,7 @@ int multi_sw_verify_squad_counts()
 	}
 	if((team0_count < MULTI_SW_MIN_PLAYERS) || (team1_count < MULTI_SW_MIN_PLAYERS)){	
 		// print up the error string
-		sprintf(err_string, XSTR("You need to have at least %d players per squad for Squad War", 1073), MULTI_SW_MIN_PLAYERS);
+		SDL_snprintf(err_string, SDL_arraysize(err_string), XSTR("You need to have at least %d players per squad for Squad War", 1073), MULTI_SW_MIN_PLAYERS);
 		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, err_string);
 		return 0;
 	}
@@ -318,7 +313,7 @@ void multi_sw_stuff_result()
 	int idx;
 
 	// stuff match code
-	strncpy(s->match_code, Multi_sw_match_code, MATCH_CODE_LEN);
+	SDL_strlcpy(s->match_code, Multi_sw_match_code, SDL_arraysize(s->match_code));
 
 	// determine what happened
 	switch(multi_team_winner()){

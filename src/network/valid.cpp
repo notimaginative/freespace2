@@ -172,7 +172,7 @@ static void DeserializeValidatePacket(const ubyte *data, const int data_size, ud
 			break;
 
 		case UNT_LOGIN_AUTHENTICATED: {
-			SDL_strlcpy((char *)uph->data, (const char *)(data+offset), TRACKER_ID_LEN);
+			SDL_strlcpy((char *)uph->data, (const char *)(data+offset), SDL_arraysize(uph->data));
 			break;
 		}
 
@@ -331,8 +331,8 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 			PacketHeader.type = UNT_LOGIN_AUTH_REQUEST;
 			PacketHeader.len = PACKED_HEADER_ONLY_SIZE+sizeof(validate_id_request);
 			ValidIDReq=(validate_id_request *)&PacketHeader.data;
-			strcpy(ValidIDReq->login,valid_id->login);
-			strcpy(ValidIDReq->password,valid_id->password);
+			SDL_strlcpy(ValidIDReq->login, valid_id->login, SDL_arraysize(ValidIDReq->login));
+			SDL_strlcpy(ValidIDReq->password, valid_id->password, SDL_arraysize(ValidIDReq->password));
 
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
 			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr), PSNET_TYPE_VALIDATION);
@@ -403,7 +403,7 @@ void ValidIdle()
 					if(ValidState == VALID_STATE_WAITING)
 					{
 						ValidState = VALID_STATE_VALID;
-						strncpy(Psztracker_id, (const char *)&inpacket.data, TRACKER_ID_LEN);
+						SDL_strlcpy(Psztracker_id, (const char *)&inpacket.data, TRACKER_ID_LEN);
 					}
 					break;
 				// old - this is a Freespace 1 packet type

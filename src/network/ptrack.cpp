@@ -610,8 +610,8 @@ int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, cons
 #else
 		fs_pilot_req.code = CMD_GAME_FREESPACE2;
 #endif
-		strcpy(fs_pr->pilot_name,pilot_name);
-		strncpy(fs_pr->tracker_id,tracker_id,TRACKER_ID_LEN);
+		SDL_strlcpy(fs_pr->pilot_name, pilot_name, SDL_arraysize(fs_pr->pilot_name));
+		SDL_strlcpy(fs_pr->tracker_id, tracker_id, SDL_arraysize(fs_pr->tracker_id));
 
 		return 0;	
 	}

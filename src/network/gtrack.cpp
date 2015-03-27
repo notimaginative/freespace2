@@ -210,8 +210,7 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 
 			PXO_GET_INT(n_users);
 
-			SDL_zero(channel);
-			SDL_strlcpy(channel, (char *)(data+offset), sizeof(channel));
+			SDL_strlcpy(channel, (char *)(data+offset), SDL_arraysize(channel));
 			offset += strlen(channel);
 
 			memcpy(gph->data, &n_users, sizeof(int));
@@ -457,8 +456,7 @@ void IdleGameTracker()
 				memcpy(&num_servers,inpacket.data,sizeof(int));
 
 				// copy the channel name
-				SDL_zero(channel);
-				SDL_strlcpy(channel, inpacket.data+sizeof(int), sizeof(channel));
+				SDL_strlcpy(channel, inpacket.data+sizeof(int), SDL_arraysize(channel));
 
 				// send it to the PXO screen				
 				multi_pxo_channel_count_update(channel,num_servers);

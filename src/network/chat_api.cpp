@@ -111,9 +111,9 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 	{
 		unsigned long iaddr;
 
-		SDL_strlcpy(Nick_name, nickname, sizeof(Nick_name));
-		SDL_strlcpy(Original_nick_name, nickname, sizeof(Original_nick_name));
-		SDL_strlcpy(Chat_tracker_id, trackerid, sizeof(Chat_tracker_id));
+		SDL_strlcpy(Nick_name, nickname, SDL_arraysize(Nick_name));
+		SDL_strlcpy(Original_nick_name, nickname, SDL_arraysize(Original_nick_name));
+		SDL_strlcpy(Chat_tracker_id, trackerid, SDL_arraysize(Chat_tracker_id));
 		
 		Firstuser = NULL;
 		Firstcommand = NULL;
@@ -127,7 +127,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			//AfxMessageBox("Invalid chat server, must be host.com:port (ie. irc.dal.net:6667)");
 			return -1;
 		}
-		SDL_strlcpy(chat_server, serveraddr, sizeof(chat_server));
+		SDL_strlcpy(chat_server, serveraddr, SDL_arraysize(chat_server));
 		chat_server[p-serveraddr]='\0';
 		chat_port = (short)atoi(p+1);
 		if(0==chat_port)
@@ -223,9 +223,9 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			if(select(0,NULL,&write_fds,NULL,&timeout))
 			{
 				Socket_connected = 1;
-				SDL_snprintf(signon_str, sizeof(signon_str), NOX("/USER %s %s %s :%s"), NOX("user"), NOX("user"), NOX("user"), Chat_tracker_id);
+				SDL_snprintf(signon_str, SDL_arraysize(signon_str), NOX("/USER %s %s %s :%s"), NOX("user"), NOX("user"), NOX("user"), Chat_tracker_id);
 				SendChatString(signon_str,1);
-				SDL_snprintf(signon_str, sizeof(signon_str), NOX("/NICK %s"), Nick_name);
+				SDL_snprintf(signon_str, SDL_arraysize(signon_str), NOX("/NICK %s"), Nick_name);
 				SendChatString(signon_str,1);
 				return 0;
 				//Now we are waiting for Chat_server_connected
@@ -297,11 +297,11 @@ const char * SendChatString(const char *line,int raw)
 	{
 
 		//Start off by getting the command
-		SDL_strlcpy(szCmd, GetWordNum(0,line+1), sizeof(szCmd));
+		SDL_strlcpy(szCmd, GetWordNum(0,line+1), SDL_arraysize(szCmd));
 		if(SDL_strcasecmp(szCmd,NOX("msg"))==0)
 		{
-			SDL_strlcpy(szTarget, GetWordNum(1,line+1), sizeof(szTarget));
-			SDL_snprintf(szCmd, sizeof(szCmd), NOX("PRIVMSG %s :%s\n\r"), szTarget, line+strlen(NOX("/msg "))+strlen(szTarget)+1);
+			SDL_strlcpy(szTarget, GetWordNum(1,line+1), SDL_arraysize(szTarget));
+			SDL_snprintf(szCmd, SDL_arraysize(szCmd), NOX("PRIVMSG %s :%s\n\r"), szTarget, line+strlen(NOX("/msg "))+strlen(szTarget)+1);
 			send(Chatsock,szCmd,strlen(szCmd),0);
 			szCmd[strlen(szCmd)-2]='\0';
 			return ParseIRCMessage(szCmd,MSG_LOCAL);
@@ -309,7 +309,7 @@ const char * SendChatString(const char *line,int raw)
 		}
 		if(SDL_strcasecmp(szCmd,NOX("me"))==0)
 		{
-			SDL_snprintf(szCmd, sizeof(szCmd), NOX("PRIVMSG %s :\001ACTION %s\001\n\r"), szChat_channel, line+strlen(NOX("/me ")));
+			SDL_snprintf(szCmd, SDL_arraysize(szCmd), NOX("PRIVMSG %s :\001ACTION %s\001\n\r"), szChat_channel, line+strlen(NOX("/me ")));
 			send(Chatsock,szCmd,strlen(szCmd),0);
 			szCmd[strlen(szCmd)-2]='\0';
 			return ParseIRCMessage(szCmd,MSG_LOCAL);
@@ -318,19 +318,19 @@ const char * SendChatString(const char *line,int raw)
 		if(SDL_strcasecmp(szCmd,NOX("xyz"))==0)
 		{
 			//Special command to send raw irc commands
-			SDL_snprintf(szCmd, sizeof(szCmd), "%s\n\r", line+strlen(NOX("/xyz ")));
+			SDL_snprintf(szCmd, SDL_arraysize(szCmd), "%s\n\r", line+strlen(NOX("/xyz ")));
 			send(Chatsock,szCmd,strlen(szCmd),0);
 			return NULL;
 		}
 		if(SDL_strcasecmp(szCmd,NOX("list"))==0)
 		{
-			SDL_snprintf(szCmd, sizeof(szCmd), "%s\n\r", line+1);
+			SDL_snprintf(szCmd, SDL_arraysize(szCmd), "%s\n\r", line+1);
 			send(Chatsock,szCmd,strlen(szCmd),0);
 			return NULL;
 		}
 		if(raw)
 		{
-			SDL_snprintf(szCmd, sizeof(szCmd), "%s\n\r", line+1);
+			SDL_snprintf(szCmd, SDL_arraysize(szCmd), "%s\n\r", line+1);
 			send(Chatsock,szCmd,strlen(szCmd),0);
 			return NULL;
 		}
@@ -349,7 +349,7 @@ const char * SendChatString(const char *line,int raw)
 			return ParseIRCMessage((char *)LPCSTR(sndstr),MSG_LOCAL);
 			*/
 
-			SDL_snprintf(szCmd, sizeof(szCmd), NOX("PRIVMSG %s :%s\n\r"), szChat_channel, line);
+			SDL_snprintf(szCmd, SDL_arraysize(szCmd), NOX("PRIVMSG %s :%s\n\r"), szChat_channel, line);
 			send(Chatsock,szCmd,strlen(szCmd),0);			
 			if(strlen(szCmd) >= 2){
 				szCmd[strlen(szCmd)-2] = '\0';
@@ -399,8 +399,8 @@ char *GetChatUserList()
 	User_list[0] = '\0';
 	while(Curruser) 
 	{
-		strcat(User_list,Curruser->nick_name);
-		strcat(User_list," ");
+		SDL_strlcat(User_list, Curruser->nick_name, iuser_list_length+1);
+		SDL_strlcat(User_list, " ", iuser_list_length+1);
 		Curruser = Curruser->next;
 	}
 
@@ -440,11 +440,11 @@ int SetNewChatChannel(char *channel)
 	{
 		if(szChat_channel[0])
 		{
-			SDL_snprintf(partstr, sizeof(partstr), NOX("/PART %s"), szChat_channel);
+			SDL_snprintf(partstr, SDL_arraysize(partstr), NOX("/PART %s"), szChat_channel);
 			SendChatString(partstr,1);
 		}
-		SDL_strlcpy(szChat_channel, channel, sizeof(szChat_channel));
-		SDL_snprintf(partstr, sizeof(partstr), NOX("/JOIN %s"), szChat_channel);
+		SDL_strlcpy(szChat_channel, channel, SDL_arraysize(szChat_channel));
+		SDL_snprintf(partstr, SDL_arraysize(partstr), NOX("/JOIN %s"), szChat_channel);
 		SendChatString(partstr,1);
 		Joining_channel = 1;
 		Joined_channel = 0;
@@ -483,7 +483,7 @@ char *ChatGetString(void)
 					//Blank line, ignore it
 					return NULL;
 				}
-				SDL_strlcpy(return_string, Input_chat_buffer, sizeof(return_string));
+				SDL_strlcpy(return_string, Input_chat_buffer, SDL_arraysize(return_string));
 				Input_chat_buffer[0] = '\0';
 				
 				p = ParseIRCMessage(return_string,MSG_REMOTE);
@@ -491,7 +491,7 @@ char *ChatGetString(void)
 				return p;
 			}
 			SDL_assert(strlen(Input_chat_buffer) < MAXCHATBUFFER-1);
-			SDL_strlcat(Input_chat_buffer, ch, sizeof(Input_chat_buffer));
+			SDL_strlcat(Input_chat_buffer, ch, SDL_arraysize(Input_chat_buffer));
 		}
 		else
 		{
@@ -514,7 +514,7 @@ const char * GetWordNum(int num, const char * l_String)
 
 	strstart = ptokstr;
 
-	SDL_strlcpy(ptokstr, l_String, sizeof(ptokstr));
+	SDL_strlcpy(ptokstr, l_String, SDL_arraysize(ptokstr));
 
 	token=strtok(ptokstr,seps);
 
@@ -524,7 +524,7 @@ const char * GetWordNum(int num, const char * l_String)
 	}
 	if(token)
 	{
-		SDL_strlcpy(strreturn, token, sizeof(strreturn));
+		SDL_strlcpy(strreturn, token, SDL_arraysize(strreturn));
 	}
 	else
 	{
@@ -534,7 +534,7 @@ const char * GetWordNum(int num, const char * l_String)
 	if(token[0]==':')
 	{
 		//Its not pretty, but it works, return the rest of the string
-		SDL_strlcpy(strreturn, l_String+((token-strstart)+1), sizeof(strreturn));
+		SDL_strlcpy(strreturn, l_String+((token-strstart)+1), SDL_arraysize(strreturn));
 	}
 
 	//return the appropriate response.
@@ -555,7 +555,7 @@ int AddChatUser(const char *nickname)
 	{
 		Firstuser = (Chat_user *)malloc(sizeof(Chat_user));
 		SDL_assert(Firstuser);
-		SDL_strlcpy(Firstuser->nick_name, nickname, sizeof(Firstuser->nick_name));
+		SDL_strlcpy(Firstuser->nick_name, nickname, SDL_arraysize(Firstuser->nick_name));
 		Firstuser->next = NULL;
 		AddChatCommandToQueue(CC_USER_JOINING,nickname,strlen(nickname)+1);
 		return 1;
@@ -569,7 +569,7 @@ int AddChatUser(const char *nickname)
 		Curruser->next = (Chat_user *)malloc(sizeof(Chat_user));
 		Curruser = Curruser->next;
 		SDL_assert(Curruser);
-		SDL_strlcpy(Curruser->nick_name, nickname, sizeof(Curruser->nick_name));
+		SDL_strlcpy(Curruser->nick_name, nickname, SDL_arraysize(Curruser->nick_name));
 		Curruser->next = NULL;
 		AddChatCommandToQueue(CC_USER_JOINING,nickname,strlen(nickname)+1);
 		return 1;
@@ -644,25 +644,25 @@ char * ParseIRCMessage(char *Line, int iMode)
 	//Nick included....
 	if(iMode==MSG_REMOTE)
 	{
-		SDL_strlcpy(szRemLine, Line, sizeof(szRemLine));
+		SDL_strlcpy(szRemLine, Line, SDL_arraysize(szRemLine));
 		//Start by getting the prefix
 		if(Line[0]==':')
 		{
 			//
 			pszTempStr=GetWordNum(0,Line+1);
-			SDL_strlcpy(szPrefix, pszTempStr, sizeof(szPrefix));
-			SDL_strlcpy(szHackPrefix, pszTempStr, sizeof(szHackPrefix));
-			SDL_strlcpy(szRemLine, Line+1+strlen(szPrefix), sizeof(szRemLine));
+			SDL_strlcpy(szPrefix, pszTempStr, SDL_arraysize(szPrefix));
+			SDL_strlcpy(szHackPrefix, pszTempStr, SDL_arraysize(szHackPrefix));
+			SDL_strlcpy(szRemLine, Line+1+strlen(szPrefix), SDL_arraysize(szRemLine));
 		}
 		//Next, get the Nick
 		pszTempStr=strtok(szHackPrefix,"!");
 		if(pszTempStr)
 		{
-			SDL_strlcpy(szNick, pszTempStr, sizeof(szNick));
+			SDL_strlcpy(szNick, pszTempStr, SDL_arraysize(szNick));
 		}
 		else
 		{
-			SDL_strlcpy(szNick, szPrefix, sizeof(szNick));
+			SDL_strlcpy(szNick, szPrefix, SDL_arraysize(szNick));
 		}
 		//strcpy(NewMsg.Nickname,szNick);
 		iNickLen=strlen(szNick);
@@ -670,9 +670,9 @@ char * ParseIRCMessage(char *Line, int iMode)
 	}
 	else if(iMode==MSG_LOCAL)
 	{
-		SDL_strlcpy(szRemLine, Line, sizeof(szRemLine));
-		SDL_strlcpy(szNick, Nick_name, sizeof(szNick));
-		SDL_strlcpy(szPrefix, Nick_name, sizeof(szPrefix));
+		SDL_strlcpy(szRemLine, Line, SDL_arraysize(szRemLine));
+		SDL_strlcpy(szNick, Nick_name, SDL_arraysize(szNick));
+		SDL_strlcpy(szPrefix, Nick_name, SDL_arraysize(szPrefix));
 		//strcpy(NewMsg.Nickname,szNick);
 		iNickLen=-2;
 		iPrefixLen=-2;
@@ -681,7 +681,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 	pszTempStr=GetWordNum(0,szRemLine);
 	if(pszTempStr[0])
 	{
-		SDL_strlcpy(szCmd, pszTempStr, sizeof(szCmd));
+		SDL_strlcpy(szCmd, pszTempStr, SDL_arraysize(szCmd));
 	}
 	else
 	{
@@ -690,46 +690,46 @@ char * ParseIRCMessage(char *Line, int iMode)
 	}
 
 	//Move the szRemLine string up
-	SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+2, sizeof(szRemLine));
+	SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+2, SDL_arraysize(szRemLine));
 	//Now parse the commands!
 	//printf("%s",szCmd);
 	if(SDL_strcasecmp(szCmd,NOX("PRIVMSG"))==0)
 	{
 		pszTempStr=GetWordNum(0,szRemLine);
-		SDL_strlcpy(szTarget, pszTempStr, sizeof(szTarget));
-		SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4, sizeof(szRemLine));
+		SDL_strlcpy(szTarget, pszTempStr, SDL_arraysize(szTarget));
+		SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4, SDL_arraysize(szRemLine));
 		if(szRemLine[0]==':')
 		{
-			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine+1), sizeof(szCTCPCmd));
+			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine+1), SDL_arraysize(szCTCPCmd));
 			if(szCTCPCmd[strlen(szCTCPCmd)-1]==0x01) szCTCPCmd[strlen(szCTCPCmd)-1]=0x00;
 
 		}
 		else
 		{
-			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine), sizeof(szCTCPCmd));
+			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine), SDL_arraysize(szCTCPCmd));
 			if(szCTCPCmd[strlen(szCTCPCmd)-1]==0x01) szCTCPCmd[strlen(szCTCPCmd)-1]=0x00;
 		}
 		if(szCTCPCmd[0]==0x01)
 		{
 			//Handle ctcp message
-			SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+strlen(szCTCPCmd)+6, sizeof(szRemLine));
+			SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+strlen(szCTCPCmd)+6, SDL_arraysize(szRemLine));
 			szRemLine[strlen(szRemLine)-1]='\0';//null out the ending 0x01
 			if(SDL_strcasecmp(szCTCPCmd+1,NOX("ACTION"))==0)
 			{
 				//Posture
-				SDL_snprintf(szResponse, sizeof(szResponse), "* %s %s", szNick, szRemLine);
+				SDL_snprintf(szResponse, SDL_arraysize(szResponse), "* %s %s", szNick, szRemLine);
 				return szResponse;
 			}
 			if(iMode==MSG_LOCAL)
 			{
-				SDL_strlcpy(szHackPrefix, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4, sizeof(szHackPrefix));
+				SDL_strlcpy(szHackPrefix, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4, SDL_arraysize(szHackPrefix));
 				szRemLine[strlen(szRemLine)-1]='\0';
-				SDL_snprintf(szResponse, sizeof(szResponse), NOX("** CTCP %s %s %s"), szTarget, szCTCPCmd+1, szRemLine);
+				SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("** CTCP %s %s %s"), szTarget, szCTCPCmd+1, szRemLine);
 				return szResponse;
 			}
 			if(SDL_strcasecmp(szCTCPCmd+1,NOX("PING"))==0)
 			{
-				SDL_snprintf(szResponse, sizeof(szResponse), NOX("/NOTICE %s :\001PING %s\001"), szNick, szRemLine);//Don't need the trailing \001 because szremline has it.
+				SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("/NOTICE %s :\001PING %s\001"), szNick, szRemLine);//Don't need the trailing \001 because szremline has it.
 				SendChatString(szResponse,1);
 				return NULL;
 			}
@@ -740,9 +740,9 @@ char * ParseIRCMessage(char *Line, int iMode)
 
 				return NULL;
 			}
-			SDL_strlcpy(szRemLine, 1 + GetWordNum(0,Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4), sizeof(szRemLine));
+			SDL_strlcpy(szRemLine, 1 + GetWordNum(0,Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4), SDL_arraysize(szRemLine));
 			szRemLine[strlen(szRemLine)-1]='\0';
-			SDL_snprintf(szResponse, sizeof(szResponse), NOX("** CTCP Message from %s (%s)"), szNick, szRemLine);
+			SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("** CTCP Message from %s (%s)"), szNick, szRemLine);
 			return szResponse;
 
 		}
@@ -750,7 +750,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 		if(szTarget[0]=='#')
 		{
 			pszTempStr=GetWordNum(0,szRemLine);
-			SDL_snprintf(szResponse, sizeof(szResponse), "[%s] %s", szNick, pszTempStr);
+			SDL_snprintf(szResponse, SDL_arraysize(szResponse), "[%s] %s", szNick, pszTempStr);
 			return szResponse;
 		}
 		else
@@ -758,12 +758,12 @@ char * ParseIRCMessage(char *Line, int iMode)
 			if(iMode == MSG_LOCAL)
 			{
 				pszTempStr=GetWordNum(0,szRemLine);
-				SDL_snprintf(szResponse, sizeof(szResponse), NOX("Private Message to <%s>: %s"), szNick, pszTempStr);
+				SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("Private Message to <%s>: %s"), szNick, pszTempStr);
 			}
 			else
 			{
 				pszTempStr=GetWordNum(0,szRemLine);
-				SDL_snprintf(szResponse, sizeof(szResponse), NOX("Private Message from <%s>: %s"), szNick, pszTempStr);
+				SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("Private Message from <%s>: %s"), szNick, pszTempStr);
 			}
 			return szResponse;
 		}
@@ -780,23 +780,23 @@ char * ParseIRCMessage(char *Line, int iMode)
 		
 
 		pszTempStr=GetWordNum(0,szRemLine);
-		SDL_strlcpy(szTarget, pszTempStr, sizeof(szTarget));
-		SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4, sizeof(szRemLine));
+		SDL_strlcpy(szTarget, pszTempStr, SDL_arraysize(szTarget));
+		SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4, SDL_arraysize(szRemLine));
 		if(szRemLine[0]==':')
 		{
-			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine+1), sizeof(szCTCPCmd));
+			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine+1), SDL_arraysize(szCTCPCmd));
 			if(szCTCPCmd[strlen(szCTCPCmd)-1]==0x01) szCTCPCmd[strlen(szCTCPCmd)-1]=0x00;
 
 		}
 		else
 		{
-			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine), sizeof(szCTCPCmd));
+			SDL_strlcpy(szCTCPCmd, GetWordNum(0,szRemLine), SDL_arraysize(szCTCPCmd));
 			if(szCTCPCmd[strlen(szCTCPCmd)-1]==0x01) szCTCPCmd[strlen(szCTCPCmd)-1]=0x00;
 		}
 		if(szCTCPCmd[0]==0x01)
 		{
 			//Handle ctcp message
-			SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+strlen(szCTCPCmd)+6, sizeof(szRemLine));
+			SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+strlen(szCTCPCmd)+6, SDL_arraysize(szRemLine));
 			szRemLine[strlen(szRemLine)-1]='\0';//null out the ending 0x01
 			if(SDL_strcasecmp(szCTCPCmd+1,NOX("PING"))==0)
 			{
@@ -806,13 +806,13 @@ char * ParseIRCMessage(char *Line, int iMode)
 			}
 			
 			//Default message
-			SDL_strlcpy(szRemLine, 1 + GetWordNum(0,Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4), sizeof(szRemLine));
+			SDL_strlcpy(szRemLine, 1 + GetWordNum(0,Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+4), SDL_arraysize(szRemLine));
 			szRemLine[strlen(szRemLine)-1]='\0';
-			SDL_snprintf(szResponse, sizeof(szResponse), XSTR("** CTCP Message from %s (%s)",635), szNick, szRemLine);
+			SDL_snprintf(szResponse, SDL_arraysize(szResponse), XSTR("** CTCP Message from %s (%s)",635), szNick, szRemLine);
 			return szResponse;
 			
 		}
-		SDL_snprintf(szResponse, sizeof(szResponse), "%s", szRemLine);
+		SDL_snprintf(szResponse, SDL_arraysize(szResponse), "%s", szRemLine);
 		return NULL;
 	}
 	if(SDL_strcasecmp(szCmd,NOX("JOIN"))==0)
@@ -826,7 +826,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 				Joined_channel = 1;
 				if(SDL_strcasecmp(szChat_channel,NOX("#autoselect"))==0)
 				{
-					SDL_strlcpy(szChat_channel, GetWordNum(0,szRemLine), sizeof(szChat_channel));
+					SDL_strlcpy(szChat_channel, GetWordNum(0,szRemLine), SDL_arraysize(szChat_channel));
 					AddChatCommandToQueue(CC_YOURCHANNEL,szChat_channel,strlen(szChat_channel)+1);
 
 				}
@@ -837,21 +837,21 @@ char * ParseIRCMessage(char *Line, int iMode)
 
 		
 		pszTempStr=GetWordNum(0,szRemLine);
-		SDL_strlcpy(szTarget, pszTempStr, sizeof(szTarget));
+		SDL_strlcpy(szTarget, pszTempStr, SDL_arraysize(szTarget));
 		//strcpy(szRemLine,Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+3);
 
 		//strcpy(NewMsg.Channel,szTarget);
 
 		AddChatUser(szNick);
-		SDL_snprintf(szResponse, sizeof(szResponse), XSTR("** %s has joined %s",636), szNick, szTarget);
+		SDL_snprintf(szResponse, SDL_arraysize(szResponse), XSTR("** %s has joined %s",636), szNick, szTarget);
 		return NULL;//szResponse;
 		//Add them to the userlist too!
 	}
 	if(SDL_strcasecmp(szCmd,NOX("PART"))==0)
 	{
 		pszTempStr=GetWordNum(0,szRemLine);
-		SDL_strlcpy(szTarget, pszTempStr, sizeof(szTarget));
-		SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+3, sizeof(szRemLine));
+		SDL_strlcpy(szTarget, pszTempStr, SDL_arraysize(szTarget));
+		SDL_strlcpy(szRemLine, Line+iPrefixLen+strlen(szCmd)+strlen(szTarget)+3, SDL_arraysize(szRemLine));
 		//see if it is me!
 		if(SDL_strcasecmp(Nick_name,szNick)==0)
 		{
@@ -867,9 +867,9 @@ char * ParseIRCMessage(char *Line, int iMode)
 	if(SDL_strcasecmp(szCmd,NOX("KICK"))==0)
 	{
 		pszTempStr=GetWordNum(0,szRemLine);
-		SDL_strlcpy(szTarget, pszTempStr, sizeof(szTarget));
+		SDL_strlcpy(szTarget, pszTempStr, SDL_arraysize(szTarget));
 		pszTempStr=GetWordNum(1,szRemLine);
-		SDL_strlcpy(szHackPrefix, pszTempStr, sizeof(szHackPrefix));
+		SDL_strlcpy(szHackPrefix, pszTempStr, SDL_arraysize(szHackPrefix));
 		pszTempStr=GetWordNum(2,szRemLine);
 		//see if it is me!
 		if(SDL_strcasecmp(Nick_name,GetWordNum(1,szRemLine))==0)
@@ -880,7 +880,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 			AddChatCommandToQueue(CC_KICKED,NULL,0);			
 			RemoveAllChatUsers();
 		}
-		SDL_snprintf(szResponse, sizeof(szResponse), XSTR("*** %s has kicked %s from channel %s (%s)",637), szNick, szHackPrefix, szTarget, pszTempStr);
+		SDL_snprintf(szResponse, SDL_arraysize(szResponse), XSTR("*** %s has kicked %s from channel %s (%s)",637), szNick, szHackPrefix, szTarget, pszTempStr);
 		//Remove them to the userlist too!
 		RemoveChatUser(szNick);
 		return szResponse;
@@ -892,20 +892,20 @@ char * ParseIRCMessage(char *Line, int iMode)
 		if(SDL_strcasecmp(Nick_name,szNick)==0)
 		{
 			//Yup, it's me!
-			SDL_strlcpy(Nick_name, GetWordNum(0,szRemLine), sizeof(Nick_name));
+			SDL_strlcpy(Nick_name, GetWordNum(0,szRemLine), SDL_arraysize(Nick_name));
 		}
 		char nicks[70];
-		SDL_snprintf(nicks, sizeof(nicks), "%s %s", szNick, GetWordNum(0,szRemLine));
+		SDL_snprintf(nicks, SDL_arraysize(nicks), "%s %s", szNick, GetWordNum(0,szRemLine));
 		AddChatCommandToQueue(CC_NICKCHANGED,nicks,strlen(nicks)+1);
 		RemoveChatUser(szNick);
 		AddChatUser(GetWordNum(0,szRemLine));
-	  SDL_snprintf(szResponse, sizeof(szResponse), XSTR("*** %s is now known as %s",638), szNick, GetWordNum(0,szRemLine));
+	  SDL_snprintf(szResponse, SDL_arraysize(szResponse), XSTR("*** %s is now known as %s",638), szNick, GetWordNum(0,szRemLine));
 		return szResponse;
 	}
 	if(SDL_strcasecmp(szCmd,NOX("PING"))==0)
 	{
 		//respond with pong (GetWordNum(0,szRemLine))
-		SDL_snprintf(szResponse, sizeof(szResponse), NOX("/PONG :%s"), GetWordNum(0,szRemLine));
+		SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("/PONG :%s"), GetWordNum(0,szRemLine));
 		SendChatString(szResponse,1);
 		return NULL;
 	}
@@ -920,33 +920,33 @@ char * ParseIRCMessage(char *Line, int iMode)
 	{
 		//This is whois user info, we can get their tracker info from here.  -5
 		char szWhoisUser[33];
-		SDL_strlcpy(szWhoisUser, GetWordNum(1,szRemLine), sizeof(szWhoisUser));
+		SDL_strlcpy(szWhoisUser, GetWordNum(1,szRemLine), SDL_arraysize(szWhoisUser));
 		Getting_user_tracker_error = 1;			
 		Getting_user_channel_error = 1;				
 						
-		SDL_snprintf(szResponse, sizeof(szResponse), XSTR("**Error: %s is not online!",639), szWhoisUser);
+		SDL_snprintf(szResponse, SDL_arraysize(szResponse), XSTR("**Error: %s is not online!",639), szWhoisUser);
 		return szResponse;
 
 	}
 	if(SDL_strcasecmp(szCmd,"311")==0)
 	{
 		char szWhoisUser[33];
-		SDL_strlcpy(szWhoisUser, GetWordNum(1,szRemLine), sizeof(szWhoisUser));
+		SDL_strlcpy(szWhoisUser, GetWordNum(1,szRemLine), SDL_arraysize(szWhoisUser));
 		//This is whois user info, we can get their tracker info from here.  -5
 		//if(strcmpi(Getting_user_tracker_info_for,szWhoisUser)==0)
 		//{
-			SDL_strlcpy(User_req_tracker_id, GetWordNum(5,szRemLine), sizeof(User_req_tracker_id));
+			SDL_strlcpy(User_req_tracker_id, GetWordNum(5,szRemLine), SDL_arraysize(User_req_tracker_id));
 		//}
 		return NULL;
 	}
 	if(SDL_strcasecmp(szCmd,"319")==0)
 	{
 		char szWhoisUser[33];
-		SDL_strlcpy(szWhoisUser, GetWordNum(1,szRemLine), sizeof(szWhoisUser));
+		SDL_strlcpy(szWhoisUser, GetWordNum(1,szRemLine), SDL_arraysize(szWhoisUser));
 		//This is whois channel info -- what channel they are on		-2
 		//if(strcmpi(Getting_user_channel_info_for,szWhoisUser)==0)
 		//{
-			SDL_strlcpy(User_req_channel, GetWordNum(2,szRemLine), sizeof(User_req_channel));
+			SDL_strlcpy(User_req_channel, GetWordNum(2,szRemLine), SDL_arraysize(User_req_channel));
 		//}
 		return NULL;
 	}
@@ -975,8 +975,8 @@ char * ParseIRCMessage(char *Line, int iMode)
 		{
 			char channel_list_name[33];
 			char sztopic[200];
-			SDL_strlcpy(sztopic, GetWordNum(3,szRemLine), sizeof(sztopic));
-			SDL_strlcpy(channel_list_name, GetWordNum(1,szRemLine), sizeof(channel_list_name));
+			SDL_strlcpy(sztopic, GetWordNum(3,szRemLine), SDL_arraysize(sztopic));
+			SDL_strlcpy(channel_list_name, GetWordNum(1,szRemLine), SDL_arraysize(channel_list_name));
 			AddChannel(channel_list_name,(short)atoi(GetWordNum(2,szRemLine)),sztopic);
 		}
 		return NULL;
@@ -1028,7 +1028,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 		}
 
 		// end of motd
-		SDL_strlcpy(szResponse, PXO_CHAT_END_OF_MOTD_PREFIX, sizeof(szResponse));
+		SDL_strlcpy(szResponse, PXO_CHAT_END_OF_MOTD_PREFIX, SDL_arraysize(szResponse));
 		return szResponse;
 	}
 	if((SDL_strcasecmp(szCmd,"377")==0)||
@@ -1039,8 +1039,8 @@ char * ParseIRCMessage(char *Line, int iMode)
 	{
 		//Stip the message, and display it.
 		pszTempStr=GetWordNum(3,Line);		
-		SDL_strlcpy(szResponse, PXO_CHAT_MOTD_PREFIX, sizeof(szResponse));
-		SDL_strlcat(szResponse, pszTempStr, sizeof(szResponse));
+		SDL_strlcpy(szResponse, PXO_CHAT_MOTD_PREFIX, SDL_arraysize(szResponse));
+		SDL_strlcat(szResponse, pszTempStr, SDL_arraysize(szResponse));
 		return szResponse;
 	}
 	//Ignore these messages
@@ -1066,7 +1066,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 
 		//Names in the channel.
 		pszTempStr = GetWordNum(3,Line+iPrefixLen+strlen(szCmd)+2);
-		SDL_strlcpy(szRemLine, pszTempStr, sizeof(szRemLine));
+		SDL_strlcpy(szRemLine, pszTempStr, SDL_arraysize(szRemLine));
 		pszTempStr = strtok(szRemLine," ");
 
 		while(pszTempStr)
@@ -1111,7 +1111,7 @@ char * ParseIRCMessage(char *Line, int iMode)
 	if(SDL_strcasecmp(szCmd,"432")==0)
 	{
 		//Channel Mode info
-		SDL_strlcpy(szResponse, XSTR("Your nickname contains invalid characters",640), sizeof(szResponse));
+		SDL_strlcpy(szResponse, XSTR("Your nickname contains invalid characters",640), SDL_arraysize(szResponse));
 		AddChatCommandToQueue(CC_DISCONNECTED,NULL,0);
 		return szResponse;
 	}
@@ -1119,15 +1119,15 @@ char * ParseIRCMessage(char *Line, int iMode)
 	{
 		//Channel Mode info
 		char new_nick[33];
-		SDL_snprintf(new_nick, sizeof(new_nick), "%s%d", Original_nick_name, Nick_variety);
-		SDL_strlcpy(Nick_name, new_nick, sizeof(Nick_name));
+		SDL_snprintf(new_nick, SDL_arraysize(new_nick), "%s%d", Original_nick_name, Nick_variety);
+		SDL_strlcpy(Nick_name, new_nick, SDL_arraysize(Nick_name));
 		Nick_variety++;
-		SDL_snprintf(szResponse, sizeof(szResponse), NOX("/NICK %s"), new_nick);
+		SDL_snprintf(szResponse, SDL_arraysize(szResponse), NOX("/NICK %s"), new_nick);
 		SendChatString(szResponse,1);
 		return NULL;
 	}
 	//Default print
-	SDL_strlcpy(szResponse, Line, sizeof(szResponse));
+	SDL_strlcpy(szResponse, Line, SDL_arraysize(szResponse));
 	//return szResponse;
 	return NULL;
 
@@ -1229,13 +1229,13 @@ char *GetChannelList(void)
 	Chan_list[0] = '\0';
 	while(Currchannel) 
 	{
-		strcat(Chan_list,"$");
-		strcat(Chan_list,Currchannel->channel_name);
-		strcat(Chan_list," ");
-		sprintf(sznumusers,"%d ",Currchannel->users);
-		strcat(Chan_list,sznumusers);
-		strcat(Chan_list,Currchannel->topic);//fgets
-		strcat(Chan_list," ");
+		SDL_strlcat(Chan_list, "$", ichan_list_length+1);
+		SDL_strlcat(Chan_list, Currchannel->channel_name, ichan_list_length+1);
+		SDL_strlcat(Chan_list, " ", ichan_list_length+1);
+		SDL_snprintf(sznumusers, SDL_arraysize(sznumusers), "%d ", Currchannel->users);
+		SDL_strlcat(Chan_list, sznumusers, ichan_list_length+1);
+		SDL_strlcat(Chan_list, Currchannel->topic, ichan_list_length+1);//fgets
+		SDL_strlcat(Chan_list, " ", ichan_list_length+1);
 		Currchannel = Currchannel->next;
 	}
 	FlushChannelList();
@@ -1250,8 +1250,8 @@ void AddChannel(char *channel,unsigned short numusers,char *topic)
 	{
 		Firstchannel = (Chat_channel *)malloc(sizeof(Chat_channel));
 		SDL_assert(Firstchannel);
-		SDL_strlcpy(Firstchannel->channel_name, channel, sizeof(Firstchannel->channel_name));
-		SDL_strlcpy(Firstchannel->topic, topic, sizeof(Firstchannel->topic));
+		SDL_strlcpy(Firstchannel->channel_name, channel, SDL_arraysize(Firstchannel->channel_name));
+		SDL_strlcpy(Firstchannel->topic, topic, SDL_arraysize(Firstchannel->topic));
 		Firstchannel->users = numusers;
 		Firstchannel->next = NULL;
 		Currchannel = Firstchannel;
@@ -1265,8 +1265,8 @@ void AddChannel(char *channel,unsigned short numusers,char *topic)
 		Currchannel->next = (Chat_channel *)malloc(sizeof(Chat_channel));
 		SDL_assert(Currchannel->next);
 		Currchannel = Currchannel->next;
-		SDL_strlcpy(Currchannel->channel_name, channel, sizeof(Currchannel->channel_name));
-		SDL_strlcpy(Currchannel->topic, topic, sizeof(Currchannel->topic));
+		SDL_strlcpy(Currchannel->channel_name, channel, SDL_arraysize(Currchannel->channel_name));
+		SDL_strlcpy(Currchannel->topic, topic, SDL_arraysize(Currchannel->topic));
 		Currchannel->users = numusers;
 	}
 	Currchannel->next = NULL;
@@ -1296,8 +1296,8 @@ char *GetTrackerIdByUser(char *nickname)
 	}
 	else
 	{
-		SDL_strlcpy(Getting_user_tracker_info_for, nickname, sizeof(Getting_user_tracker_info_for));
-		SDL_snprintf(szWhoisCmd, sizeof(szWhoisCmd), NOX("/WHOIS %s"), nickname);
+		SDL_strlcpy(Getting_user_tracker_info_for, nickname, SDL_arraysize(Getting_user_tracker_info_for));
+		SDL_snprintf(szWhoisCmd, SDL_arraysize(szWhoisCmd), NOX("/WHOIS %s"), nickname);
 		User_req_tracker_id[0] = '\0';
 		SendChatString(szWhoisCmd,1);		
 		GettingUserTID = 1;
@@ -1325,9 +1325,9 @@ char *GetChannelByUser(char *nickname)
 	}
 	else
 	{
-		SDL_strlcpy(Getting_user_channel_info_for, nickname, sizeof(Getting_user_channel_info_for));
+		SDL_strlcpy(Getting_user_channel_info_for, nickname, SDL_arraysize(Getting_user_channel_info_for));
 		User_req_channel[0] = '\0';
-		SDL_snprintf(szWhoisCmd, sizeof(szWhoisCmd), NOX("/WHOIS %s"), nickname);
+		SDL_snprintf(szWhoisCmd, SDL_arraysize(szWhoisCmd), NOX("/WHOIS %s"), nickname);
 		SendChatString(szWhoisCmd,1);
 		GettingUserChannel = 1;
 	}

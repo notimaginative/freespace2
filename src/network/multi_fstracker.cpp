@@ -1165,10 +1165,7 @@ void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs)
 	// missions flown information
 	fs->missions_flown = vmt->missions_flown;
 	fs->flight_time = vmt->flight_time;
-	if(fs->flight_time < 0){
-		fs->flight_time = 0;
-	}
-	fs->last_flown = (time_t)vmt->last_flown;
+	fs->last_flown = (fs_time_t)vmt->last_flown;
 	if(fs->last_flown < 0){
 		fs->last_flown = 0;
 	}

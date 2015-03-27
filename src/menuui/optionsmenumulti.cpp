@@ -1029,11 +1029,9 @@ void options_multi_load_protocol_controls()
 	Om_ip_input.hide();
 	Om_ip_input.disable();
 	
-	// disable IPX button in demo
-#ifdef FS2_DEMO
+	// disable IPX button
 	Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.disable();
 	Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.hide();
-#endif
 
 	// bogus control
 	Om_pro_bogus.base_create(Om_window, UI_KIND_ICON, 0, 0, 0, 0);
@@ -1209,11 +1207,7 @@ void options_multi_protocol_do(int key)
 
 	// force draw the proper protocol
 #ifndef MAKE_FS1	// not in FS1 menu
-	if (Om_protocol == NET_IPX) {
-		Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.draw_forced(2);
-	} else {
-		Om_pro_buttons[gr_screen.res][OM_PRO_TCP].button.draw_forced(2);
-	}
+	Om_pro_buttons[gr_screen.res][OM_PRO_TCP].button.draw_forced(2);
 #endif
 
 	// force draw the proper tab button
@@ -1477,10 +1471,7 @@ void options_multi_protocol_button_pressed(int n)
 
 	// ipx mode
 	case OM_PRO_IPX:
-#ifndef FS2_DEMO
-		Om_protocol = NET_IPX;
-		gamesnd_play_iface(SND_USER_SELECT);
-#endif
+		gamesnd_play_iface(SND_GENERAL_FAIL);
 		break;
 #endif
 

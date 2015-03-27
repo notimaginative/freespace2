@@ -769,9 +769,9 @@ int read_pilot_file(const char *callsign, int single, player *p)
 			Multi_options_g.protocol = NET_TCP;
 			break;
 
-		// IPX
-		case NET_IPX:
-			Multi_options_g.protocol = NET_IPX;
+		// in case of IPX, which is deprecated
+		default:
+			Multi_options_g.protocol = NET_TCP;
 			break;
 	}	
 
@@ -1072,15 +1072,12 @@ int write_pilot_file_core(player *p)
    cfwrite_int(Briefing_voice_enabled, file);
 
 	// store the default netgame protocol mode for this pilot
-	if (Multi_options_g.protocol == NET_TCP) {
-		if (Multi_options_g.pxo == 1) {
-			cfwrite_int(NET_VMT, file);
-		} else {
-			cfwrite_int(NET_TCP, file);
-		}
+	SDL_assert(Multi_options_g.protocol == NET_TCP);
+	if (Multi_options_g.pxo == 1) {
+		cfwrite_int(NET_VMT, file);
 	} else {
-		cfwrite_int(NET_IPX, file);
-	}	
+		cfwrite_int(NET_TCP, file);
+	}
 
 	red_alert_write_wingman_status(file);
 	pilot_write_techroom_data(file);

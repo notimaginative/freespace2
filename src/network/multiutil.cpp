@@ -1245,17 +1245,8 @@ char* get_text_address( char * text, const int max_textlen, ubyte * address )
 
 	in_addr temp_addr;
 
-	switch ( Multi_options_g.protocol ) {
-		case NET_TCP:
-			memcpy(&temp_addr.s_addr, address, 4);
-			SDL_strlcpy( text, inet_ntoa(temp_addr), max_textlen );
-			break;
-
-		default:
-			SDL_assert(0);
-			break;
-
-	} // end switch
+	memcpy(&temp_addr.s_addr, address, 4);
+	SDL_strlcpy(text, inet_ntoa(temp_addr), max_textlen);
 
 	return text;
 }
@@ -1909,7 +1900,7 @@ active_game *multi_update_active_games(active_game *ag)
 	}
 	
 	// update the last time we heard from him
-	if((Multi_options_g.protocol == NET_TCP) && (Net_player->p_info.options.flags & MLO_FLAG_LOCAL_BROADCAST)){
+	if (Net_player->p_info.options.flags & MLO_FLAG_LOCAL_BROADCAST) {
 		gp->heard_from_timer = timestamp(MULTI_JOIN_SERVER_TIMEOUT_LOCAL);
 	} else {
 		gp->heard_from_timer = timestamp(MULTI_JOIN_SERVER_TIMEOUT);

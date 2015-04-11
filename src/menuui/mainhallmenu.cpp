@@ -730,7 +730,7 @@ void main_hall_do_multi_ready()
 	}
 
 	// if our selected protocol is not active
-	if((Multi_options_g.protocol == NET_TCP) && !Tcp_active){
+	if ( !Tcp_active ) {
 		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362));
 		return;
 	} 

@@ -1339,7 +1339,7 @@ void multi_join_game_init()
 	help_overlay_set_state(MULTI_JOIN_OVERLAY,0);
 	
 	// do TCP and VMT specific initialization
-	if(Multi_options_g.protocol == NET_TCP){		
+	if ( !Multi_options_g.pxo ) {
 		// if this is a TCP (non tracker) game, we'll load up our default address list right now		
 		multi_join_load_tcp_addrs();		
 	}	

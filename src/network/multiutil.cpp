@@ -1221,15 +1221,13 @@ ushort netmisc_calc_checksum( void * vptr, int len )
 //
 //
 
-void fill_net_addr(net_addr_t* addr, ubyte* address, ubyte* net_id, ushort port)
+void fill_net_addr(net_addr_t* addr, ubyte* address, ushort port)
 {
 	SDL_assert(addr != NULL);
 	SDL_assert(address != NULL);
-	SDL_assert(net_id != NULL);
 
 	addr->type = Multi_options_g.protocol;
 	memcpy( addr->addr, address, IP_ADDRESS_LENGTH);
-	memcpy( addr->net_id, net_id, 4);
 	addr->port = port;
 }
 

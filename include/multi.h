@@ -647,7 +647,6 @@ struct CFILE;
 // definition of header packet used in any protocol
 typedef struct header {
 	int		bytes_processed;											// used to determine how many bytes this packet was
-	ubyte		net_id[4];													// obtained from network layer header
 	ubyte		addr[IP_ADDRESS_LENGTH];										// obtained from network-layer header
 	short		port;															// obtained from network-layer header
 	short		id;															// will be stuffed with player_id (short)

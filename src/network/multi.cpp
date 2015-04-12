@@ -1161,7 +1161,6 @@ void multi_process_bigdata(ubyte *data, int len, net_addr_t *from_addr, int reli
 	// store fields that were passed along in the message
 	// store header information that was captured from the network-layer header
 	memcpy(header_info.addr, from_addr->addr, IP_ADDRESS_LENGTH);
-	memcpy(header_info.net_id, from_addr->net_id, 4);
 	header_info.port = from_addr->port;	
 	if(player_num >= 0){
 		header_info.id = Net_players[player_num].player_id;

@@ -1287,23 +1287,6 @@ void multi_join_game_init()
 	SDL_assert( Game_mode & GM_MULTIPLAYER );
 	SDL_assert( Net_player != NULL );
 
-	switch (Multi_options_g.protocol) {	
-	case NET_IPX:
-		ADDRESS_LENGTH = IPX_ADDRESS_LENGTH;
-		PORT_LENGTH = IPX_PORT_LENGTH;
-		break;
-
-	case NET_TCP:
-		ADDRESS_LENGTH = IP_ADDRESS_LENGTH;		
-		PORT_LENGTH = IP_PORT_LENGTH;			
-		break;
-
-	default :
-		Int3();
-	} // end switch
-	
-	HEADER_LENGTH = 1;
-
 	memset( &Netgame, 0, sizeof(Netgame) );
 
 	multi_level_init();		
@@ -1356,7 +1339,7 @@ void multi_join_game_init()
 	help_overlay_set_state(MULTI_JOIN_OVERLAY,0);
 	
 	// do TCP and VMT specific initialization
-	if(Multi_options_g.protocol == NET_TCP){		
+	if ( !Multi_options_g.pxo ) {
 		// if this is a TCP (non tracker) game, we'll load up our default address list right now		
 		multi_join_load_tcp_addrs();		
 	}	
@@ -1432,7 +1415,7 @@ void multi_join_game_init()
 			port_num = (short)atoi(p);
 		}
 		ip_addr = inet_addr(Cmdline_connect_addr);
-		memcpy(Multi_autojoin_addr.addr, &ip_addr, 4);
+		memcpy(Multi_autojoin_addr.addr, &ip_addr, IP_ADDRESS_LENGTH);
 		Multi_autojoin_addr.port = port_num;
 
 		send_server_query(&Multi_autojoin_addr);
@@ -2567,14 +2550,13 @@ void multi_join_blit_protocol()
 	gr_set_color_fast(&Color_bright);
 
 	switch(Socket_type){
-	case NET_TCP:		
-		// straight TCP		
-		gr_string(5, 2, "TCP");		
-		break;
+		case NET_TCP:
+			// straight TCP
+			gr_string(5, 2, "TCP");
+			break;
 
-	case NET_IPX:
-		gr_string(5, 2, "IPX");
-		break;
+		default:
+			Int3();
 	}
 }
 

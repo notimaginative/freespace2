@@ -102,7 +102,6 @@
 
 #ifndef PLAT_UNIX
 #include <winsock.h>
-#include <wsipx.h>
 #else
 #include <sys/time.h>
 #include <sys/types.h>
@@ -157,9 +156,6 @@ typedef struct lag_buf {
 	uint socket;								// this can be either a PSNET_SOCKET or a PSNET_SOCKET_RELIABLE
 	int stamp;									// when this expires, make this packet available	
 	struct sockaddr_in ip_addr;						// ip address when in TCP
-#ifndef PLAT_UNIX
-	SOCKADDR_IPX ipx_addr;					// ipx address when in IPX mode
-#endif
 
 	struct	lag_buf * prev;				// prev in the list
 	struct	lag_buf * next;				// next in the list
@@ -274,9 +270,6 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	char t_buf[1024];
 	int t_from_len;
 	struct sockaddr_in ip_addr;
-#ifndef PLAT_UNIX
-	SOCKADDR_IPX ipx_addr;
-#endif
 	int ret_val;
 	lag_buf *moveup, *item;
 
@@ -286,9 +279,6 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 
 	// clear out addresses
 	memset(&ip_addr, 0, sizeof(struct sockaddr_in));
-#ifndef PLAT_UNIX
-	memset(&ipx_addr, 0, sizeof(SOCKADDR_IPX));
-#endif
 
 	// if there's data on the socket, read it
 	if(select(nfds, readfds, writefds, except_fds, timeout)){		
@@ -296,11 +286,8 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 		if(Tcp_active){						
 			t_from_len = sizeof(struct sockaddr_in);
 			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
-#ifndef PLAT_UNIX
 		} else {
-			t_from_len = sizeof(SOCKADDR_IPX);
-			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (struct sockaddr*)&ipx_addr, &t_from_len);
-#endif
+			Int3();
 		}
 			
 		// wacky socket error
@@ -317,9 +304,6 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 				memcpy(item->data, t_buf, ret_val);			
 				item->data_len = ret_val;
 				item->ip_addr = ip_addr;
-#ifndef PLAT_UNIX
-				item->ipx_addr = ipx_addr;
-#endif
 				item->socket = readfds->fd_array[0];
 				item->stamp = timestamp(multi_lag_get_random_lag());
 			}		
@@ -373,10 +357,8 @@ int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *f
 	memcpy(buf, item->data, item->data_len);
 	if(Tcp_active){
 		memcpy(from, &item->ip_addr, sizeof(struct sockaddr_in));
-#ifndef PLAT_UNIX
 	} else {
-		memcpy(from, &item->ipx_addr, sizeof(SOCKADDR_IPX));
-#endif
+		Int3();
 	}
 
 	// stick the item back on the free list

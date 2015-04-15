@@ -88,7 +88,7 @@
 
 #define NET_NONE		0		// if no protocol is active or none are selected
 #define NET_TCP		1
-#define NET_IPX		2
+#define NET_IPX		2			// ** no longer supported !!!! **
 #define NET_VMT		3
 
 #define MAX_PACKET_SIZE		512
@@ -101,9 +101,9 @@
 
 typedef struct net_addr {
 	uint	type;			// See NET_ defines above
-	ubyte	net_id[4];	// used for IPX only
-	ubyte addr[6];		// address (first 4 used when IP, all 6 used when IPX)
-	short port;			
+	ubyte addr[4];		// address
+	short port;
+	short _pad;			// alignment padding
 } net_addr_t;
 
 // define these in such a manner that a call to psnet_send_reliable is exactly the same and the new code in unobtrusive
@@ -140,10 +140,8 @@ extern int Psnet_my_addr_valid;
 
 extern int Network_status;
 extern int Tcp_failure_code;
-extern int Ipx_failure_code;
 
 extern int Tcp_active;
-extern int Ipx_active;
 
 extern int Socket_type;										// protocol type in use (see NET_* defines above)
 

@@ -516,7 +516,7 @@ int cf_chksum_long(CFILE *file, uint *chksum, int max_size = -1);
 ushort cf_add_chksum_short(ushort seed, const char *buffer, int size);
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int size);
+uint cf_add_chksum_long(uint seed, const char *buffer, int size);
 
 // convenient for misc checksumming purposes ------------------------------------------
 

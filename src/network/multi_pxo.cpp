@@ -4008,8 +4008,8 @@ void multi_pxo_set_end_of_motd()
 	Pxo_motd_read = 0;
 
 	// do we have an old MOTD file laying around? If so, read it in and see if its the same
-	unsigned int old_chksum;
-	unsigned long new_chksum;
+	uint old_chksum;
+	uint new_chksum;
 
 	// checksum the current motd		
 	new_chksum = cf_add_chksum_long(0, Pxo_motd, strlen(Pxo_motd));		
@@ -4018,7 +4018,7 @@ void multi_pxo_set_end_of_motd()
 	CFILE *in = cfopen("oldmotd.txt", "rb");
 	if(in != NULL){
 		// read the old checksum
-		cfread(&old_chksum, sizeof(old_chksum), 1, in);
+		old_chksum = cfread_uint(in);
 		cfclose(in);
 		
 		// same checksum? no blink
@@ -4032,7 +4032,7 @@ void multi_pxo_set_end_of_motd()
 		CFILE *out = cfopen("oldmotd.txt", "wb", CFILE_NORMAL, CF_TYPE_DATA);
 		if(out != NULL){
 			// write all the text
-			cfwrite(&new_chksum, sizeof(new_chksum), 1, out);
+			cfwrite_uint(new_chksum, out);
 			
 			// close the outfile
 			cfclose(out);

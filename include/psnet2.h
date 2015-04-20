@@ -77,6 +77,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <winsock.h>
 #endif
 
 #include "pstypes.h"

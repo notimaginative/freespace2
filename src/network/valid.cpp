@@ -196,7 +196,7 @@ static void DeserializeValidatePacket(const ubyte *data, const int data_size, ud
 int InitValidateClient(void)
 {
 	struct sockaddr_in sockaddr;
-	unsigned long iaddr;
+	in_addr_t iaddr;
 	ValidFirstSent = 0;
 	ValidLastSent = 0;
 	ValidState = VALID_STATE_IDLE;
@@ -250,10 +250,10 @@ int InitValidateClient(void)
 			}
 		}
 	*/
-		memcpy(&iaddr, he->h_addr_list[0],4);
+		iaddr = ((in_addr *)(he->h_addr))->s_addr;
 	}
 	
-	memcpy(&rtrackaddr.sin_addr.s_addr, &iaddr, 4);
+	rtrackaddr.sin_addr.s_addr = iaddr;
 	rtrackaddr.sin_port = htons(REGPORT);
 	
 	return 1;

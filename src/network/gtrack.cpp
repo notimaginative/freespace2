@@ -230,7 +230,7 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 int InitGameTrackerClient(int gametype)
 {
 	struct sockaddr_in sockaddr;
-	unsigned int iaddr;
+	in_addr_t iaddr;
 
 	GameType = gametype;
 	LastTrackerUpdate = 0;
@@ -321,11 +321,12 @@ int InitGameTrackerClient(int gametype)
 			}
 			*/
 		}
-		memcpy(&iaddr, he->h_addr_list[0],4);
+
+		iaddr = ((in_addr *)(he->h_addr))->s_addr;
 	}
 
 	// This would be a good place to resolve the IP based on a domain name
-	memcpy(&gtrackaddr.sin_addr.s_addr, &iaddr, 4);
+	gtrackaddr.sin_addr.s_addr = iaddr;
 	gtrackaddr.sin_family = AF_INET; 
 	gtrackaddr.sin_port = htons( GAMEPORT );
 

@@ -102,14 +102,14 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 	short chat_port;
 	char chat_server[50];
 	char *p;
-	unsigned long argp = 1;
+	unsigned int argp = 1;
 	char signon_str[100];
 
 	//if(Socket_connected && ) return -2;
 
 	if(!Socket_connecting)
 	{
-		unsigned long iaddr;
+		in_addr_t iaddr;
 
 		SDL_strlcpy(Nick_name, nickname, SDL_arraysize(Nick_name));
 		SDL_strlcpy(Original_nick_name, nickname, SDL_arraysize(Original_nick_name));
@@ -175,10 +175,11 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 				}
 				*/
 			}
-			memcpy(&iaddr, he->h_addr_list[0],4);
+
+			iaddr = ((in_addr *)(he->h_addr))->s_addr;
 		}
 		
-		memcpy(&Chataddr.sin_addr.s_addr, &iaddr,4); //&iaddr, 4);				
+		Chataddr.sin_addr.s_addr = iaddr;
 
 		
 		// Chataddr.sin_addr.s_addr = inet_addr(chat_server);

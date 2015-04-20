@@ -278,7 +278,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 int InitPilotTrackerClient()
 {
 	struct sockaddr_in sockaddr;
-	unsigned long iaddr;
+	in_addr_t iaddr;
 
 	FSWriteState = STATE_IDLE;
 	FSReadState = STATE_IDLE;	
@@ -332,10 +332,10 @@ int InitPilotTrackerClient()
 			}
 		}
 	*/
-		memcpy(&iaddr, he->h_addr_list[0],4);
+		iaddr = ((in_addr *)(he->h_addr))->s_addr;
 	}
 	
-	memcpy(&ptrackaddr.sin_addr.s_addr, &iaddr, 4);
+	ptrackaddr.sin_addr.s_addr = iaddr;
 	ptrackaddr.sin_family = AF_INET; 
 	ptrackaddr.sin_port = htons(REGPORT);
 	

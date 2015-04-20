@@ -484,7 +484,7 @@ int CFtpGet::ConnectControlSocket()
 		hostaddr.sin_port = se->s_port;
 	}
 	hostaddr.sin_family = AF_INET;		
-	memcpy(&hostaddr.sin_addr,he->h_addr_list[0],4);
+	hostaddr.sin_addr.s_addr = ((in_addr *)(he->h_addr))->s_addr;
 	if(m_Aborting)
 		return 0;
 	//Now we will connect to the host					

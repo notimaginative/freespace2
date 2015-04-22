@@ -9,6 +9,7 @@
 #ifndef PLAT_UNIX
 
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <shellapi.h>
 
 #include "SDL.h"
@@ -26,7 +27,7 @@ int platform_open_url(const char *url)
 		SDL_strlcat(s_url, url, SDL_arraysize(s_url));
 	}
 
-	int rval = (int) ShellExecute(NULL, "open", s_url, NULL, NULL, SW_SHOW);
+	int rval = (int) ShellExecute(NULL, (LPCTSTR)"open", (LPCTSTR)s_url, NULL, NULL, SW_SHOW);
 
 	if (rval < 32) {
 		switch (rval) {

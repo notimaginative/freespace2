@@ -13,4 +13,6 @@
 #define access _access
 #define stat _stat
 
+typedef unsigned long in_addr_t;
+
 #endif // WIN_H

@@ -102,7 +102,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 	short chat_port;
 	char chat_server[50];
 	char *p;
-	unsigned int argp = 1;
+	unsigned long argp = 1;
 	char signon_str[100];
 
 	//if(Socket_connected && ) return -2;

@@ -206,7 +206,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 		m_Aborted = true;
 		return;
 	}
-	unsigned int arg;
+	unsigned long arg;
 
 	arg = 1;
 

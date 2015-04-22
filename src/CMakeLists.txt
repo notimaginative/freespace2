@@ -244,6 +244,7 @@ set(code_SOURCE
 set(platform_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/platform/platform.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/platform/unix.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform/win.cpp
   PARENT_SCOPE
 )
 

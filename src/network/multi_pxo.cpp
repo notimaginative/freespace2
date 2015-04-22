@@ -1939,31 +1939,9 @@ void multi_pxo_strip_space(char *string1, char *string2, const int str2_len)
 // fire up the given URL
 void multi_pxo_url(char *url)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
-	// execute the shell command
-	int r = (int) ShellExecute(NULL, NOX("open"), url, NULL, NULL, SW_SHOW);
-	if (r < 32) {		
-		switch (r) {
-			case 0:	
-			case ERROR_BAD_FORMAT: 
-			case SE_ERR_ACCESSDENIED: 
-			case SE_ERR_ASSOCINCOMPLETE: 
-			case SE_ERR_DDEBUSY:
-			case SE_ERR_DDEFAIL:
-			case SE_ERR_DDETIMEOUT:
-			case SE_ERR_DLLNOTFOUND:
-			case SE_ERR_OOM:
-			case SE_ERR_SHARE:			
-			case SE_ERR_NOASSOC:
-			case ERROR_FILE_NOT_FOUND:
-			case ERROR_PATH_NOT_FOUND:
-				popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,XSTR("Warning\nCould not locate/launch default Internet Browser",943));
-				break;
-		}					
+	if ( platform_open_url(url) ) {
+		popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,XSTR("Warning\nCould not locate/launch default Internet Browser",943));
 	}
-#endif
 }
 
 // load/set the palette

@@ -430,11 +430,7 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 
 	// otherwise, stuff the outgoing data
 	((struct sockaddr_in*)from)->sin_port = htons(addr.port);
-#ifdef PLAT_UNIX
 	memcpy(&((struct sockaddr_in*)from)->sin_addr.s_addr, addr.addr, 4);
-#else
-	memcpy(&((struct sockaddr_in*)from)->sin_addr.S_un.S_addr, addr.addr, 4);
-#endif
 	((struct sockaddr_in*)from)->sin_family = AF_INET;
 	*fromlen = sizeof(struct sockaddr_in);
 
@@ -540,11 +536,7 @@ void PSNET_TOP_LAYER_PROCESS()
 		// set the from_addr for storage into the packet buffer structure
 		from_addr.type = Socket_type;
 		from_addr.port = ntohs( ip_addr.sin_port );
-#ifndef PLAT_UNIX
-		memcpy(from_addr.addr, &ip_addr.sin_addr.S_un.S_addr, 4);
-#else
 		memcpy(from_addr.addr, &ip_addr.sin_addr.s_addr, 4);
-#endif
 
 		if ( read_len == SOCKET_ERROR ) {
 			// int x = WSAGetLastError();
@@ -1609,11 +1601,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 			memset(from_addr, 0x00, sizeof(net_addr_t));
 			from_addr->port = ntohs( ip_addr->sin_port );
 			from_addr->type = NET_TCP;
-#ifndef PLAT_UNIX
-			memcpy(from_addr->addr, &ip_addr->sin_addr.S_un.S_addr, 4);
-#else
 			memcpy(from_addr->addr, &ip_addr->sin_addr.s_addr, 4);
-#endif
 
 			/*
 			char dbg_output[50];

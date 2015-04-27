@@ -430,15 +430,6 @@ unsigned int CFtpGet::IssuePort()
 	}
 				
 	// Format the PORT command with the correct numbers.
-#ifndef PLAT_UNIX
-	SDL_snprintf(szCommandString, SDL_arraysize(szCommandString), "PORT %d,%d,%d,%d,%d,%d\r\n",
-				listenaddr.sin_addr.S_un.S_un_b.s_b1, 
-				listenaddr.sin_addr.S_un.S_un_b.s_b2,
-				listenaddr.sin_addr.S_un.S_un_b.s_b3,
-				listenaddr.sin_addr.S_un.S_un_b.s_b4,
-				nLocalPort & 0xFF,	
-				nLocalPort >> 8);
-#else
 	SDL_snprintf(szCommandString, SDL_arraysize(szCommandString), "PORT %d,%d,%d,%d,%d,%d\r\n",
 				(listenaddr.sin_addr.s_addr >> 0)  & 0xFF,
 				(listenaddr.sin_addr.s_addr >> 8)  & 0xFF,
@@ -446,7 +437,6 @@ unsigned int CFtpGet::IssuePort()
 				(listenaddr.sin_addr.s_addr >> 24) & 0xFF,
 				nLocalPort & 0xFF,
 				nLocalPort >> 8);
-#endif
 														
 	// Tell the server which port to use for data.
 	nReplyCode = SendFTPCommand(szCommandString);

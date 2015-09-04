@@ -636,7 +636,7 @@ void CFtpGet::FlushControlChannel()
 	FD_ZERO(&read_fds);
 	FD_SET(m_ControlSock,&read_fds);    
 	
-	while(select(0,&read_fds,NULL,NULL,&timeout))
+	while(select(m_ControlSock+1,&read_fds,NULL,NULL,&timeout))
 	{
 		recv(m_ControlSock,flushbuff,1,0);
 

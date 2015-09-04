@@ -506,7 +506,7 @@ int ChttpGet::ConnectSocket()
 		{
 			FD_ZERO(&wfds);
 			FD_SET( m_DataSock, &wfds );
-			if(select(0,NULL,&wfds,NULL,&timeout))
+			if(select(m_DataSock+1,NULL,&wfds,NULL,&timeout))
 			{
 				serr = 0;
 				break;
@@ -626,7 +626,7 @@ unsigned int ChttpGet::ReadDataChannel()
 		{
 			break;
 		}
-		select(0,&wfds,NULL,NULL,&timeout);
+		select(m_DataSock+1,&wfds,NULL,NULL,&timeout);
     	if(m_Aborting)
 		{
 			fclose(LOCALFILE);

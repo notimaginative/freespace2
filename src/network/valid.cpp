@@ -312,11 +312,7 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 			FD_ZERO(&read_fds);
 			FD_SET(Unreliable_socket, &read_fds);    
 
-#ifndef PLAT_UNIX
-			while(SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION))
-#else
 			while(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION))
-#endif
 			{
 				int addrsize;
 				struct sockaddr_in fromaddr;
@@ -364,11 +360,7 @@ void ValidIdle()
 	FD_ZERO(&read_fds);
 	FD_SET(Unreliable_socket, &read_fds);    
 
-#ifndef PLAT_UNIX
-	if(SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION)){
-#else
 	if(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION)){
-#endif
 		int bytesin;
 		int addrsize;
 		struct sockaddr_in fromaddr;
@@ -542,11 +534,7 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 			FD_ZERO(&read_fds);
 			FD_SET(Unreliable_socket, &read_fds);    
 
-#ifndef PLAT_UNIX
-			while(SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION))
-#else
 			while(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION))
-#endif
 			{
 				int addrsize;
 				struct sockaddr_in fromaddr;
@@ -633,11 +621,7 @@ int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 			FD_ZERO(&read_fds);
 			FD_SET(Unreliable_socket, &read_fds);    
 
-#ifndef PLAT_UNIX
-			while(SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION)){
-#else
 			while(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_VALIDATION)){
-#endif
 				int addrsize;
 				struct sockaddr_in fromaddr;
 

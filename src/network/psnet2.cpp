@@ -905,11 +905,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int np_index )
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
-#ifndef PLAT_UNIX
-	if ( SELECT( -1, NULL, &wfds, NULL, &timeout, PSNET_TYPE_UNRELIABLE) == SOCKET_ERROR ) {
-#else
 	if ( SELECT( send_sock+1, NULL, &wfds, NULL, &timeout, PSNET_TYPE_UNRELIABLE) == SOCKET_ERROR ) {	
-#endif
 		ml_printf("Error on blocking select for write %d\n", WSAGetLastError() );
 		return 0;
 	}
@@ -1274,11 +1270,7 @@ void psnet_rel_work()
 		//Check UDP
 		FD_ZERO(&read_fds);
 		FD_SET(Unreliable_socket, &read_fds);
-#ifndef PLAT_UNIX			
-		udp_has_data = SELECT(0,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
-#else
 		udp_has_data = SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
-#endif
 		bytesin = 0;
 		addrlen = sizeof(struct sockaddr);
 		if(udp_has_data){
@@ -1654,11 +1646,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 	//Flush out any left overs
 	FD_ZERO(&read_fds);
 	FD_SET(Unreliable_socket, &read_fds);
-#ifndef PLAT_UNIX		
-	while(SELECT(0, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE)){
-#else
 	while(SELECT(Unreliable_socket+1, &read_fds, NULL, NULL, &timeout, PSNET_TYPE_RELIABLE)){
-#endif		
 		addrlen = sizeof(struct sockaddr);
 		bytesin = RECVFROM(Unreliable_socket, (char *)&ack_header,sizeof(reliable_header),0,(struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
 		if(bytesin==-1){
@@ -1702,11 +1690,7 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 
 		FD_ZERO(&read_fds);
 		FD_SET(typeless_sock, &read_fds);
-#ifndef PLAT_UNIX		
-		if(SELECT(0, &read_fds, NULL,NULL,&timeout, PSNET_TYPE_RELIABLE)){
-#else
 		if(SELECT(typeless_sock+1, &read_fds, NULL,NULL,&timeout, PSNET_TYPE_RELIABLE)){
-#endif		
 			ml_string("selected() in psnet_rel_connect_to_server()");
 
 			addrlen = sizeof(struct sockaddr);

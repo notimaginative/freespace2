@@ -695,11 +695,7 @@ void PollPTrackNet()
 	FD_ZERO(&read_fds);
 	FD_SET(Unreliable_socket, &read_fds);    
 
-#ifndef PLAT_UNIX
-	if(SELECT(0, &read_fds,NULL,NULL,&timeout, PSNET_TYPE_USER_TRACKER)){
-#else
 	if(SELECT(Unreliable_socket+1, &read_fds,NULL,NULL,&timeout, PSNET_TYPE_USER_TRACKER)){
-#endif
 		int bytesin;
 		int addrsize;
 		struct sockaddr_in fromaddr;

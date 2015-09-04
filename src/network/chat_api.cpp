@@ -221,7 +221,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			FD_ZERO(&write_fds);
 			FD_SET(Chatsock,&write_fds);    
 			//Writable -- that means it's connected
-			if(select(0,NULL,&write_fds,NULL,&timeout))
+			if(select(Chatsock+1,NULL,&write_fds,NULL,&timeout))
 			{
 				Socket_connected = 1;
 				SDL_snprintf(signon_str, SDL_arraysize(signon_str), NOX("/USER %s %s %s :%s"), NOX("user"), NOX("user"), NOX("user"), Chat_tracker_id);
@@ -234,7 +234,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			FD_ZERO(&error_fds);
 			FD_SET(Chatsock,&error_fds);    
 			//error -- that means it's not going to connect
-			if(select(0,NULL,NULL,&error_fds,&timeout))
+			if(select(Chatsock+1,NULL,NULL,&error_fds,&timeout))
 			{
 				return -1;
 			}
@@ -470,7 +470,7 @@ char *ChatGetString(void)
 	FD_ZERO(&read_fds);
 	FD_SET(Chatsock,&read_fds);    
 	//Writable -- that means it's connected
-	while(select(0,&read_fds,NULL,NULL,&timeout))
+	while(select(Chatsock+1,&read_fds,NULL,NULL,&timeout))
 	{
 		bytesread = recv(Chatsock,ch,1,0);
 		if(bytesread)

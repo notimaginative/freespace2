@@ -1948,9 +1948,9 @@ void multi_pxo_url(char *url)
 void multi_pxo_load_palette()
 {
 	// use the palette
-#ifndef HARDWARE_ONLY
-	palette_use_bm_palette(Multi_pxo_palette);
-#endif
+//#ifndef HARDWARE_ONLY
+//	palette_use_bm_palette(Multi_pxo_palette);
+//#endif
 }
 
 // unload the palette

@@ -52,6 +52,10 @@ SDL_COMPILE_TIME_ASSERT(freespace2_net_game_data, sizeof(freespace2_net_game_dat
 SDL_COMPILE_TIME_ASSERT(game_list, sizeof(game_list) == 384);
 SDL_COMPILE_TIME_ASSERT(filter_game_list_struct, sizeof(filter_game_list_struct) == 40);
 
+
+#define PXO_ADD_STRING(d) do { SDL_strlcpy((char*)(data+packet_size), d, sizeof(game_packet_header)-packet_size); packet_size += (SDL_strlen((char*)(data+packet_size)) + 1); } while (0)
+
+
 //Variables
 // SOCKET gamesock;
 struct sockaddr_in	gtrackaddr;
@@ -107,7 +111,7 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 				filter_game_list_struct *filter = (filter_game_list_struct *)&gph->data;
 
 				PXO_ADD_INT(filter->rank);
-				PXO_ADD_DATA(filter->channel);
+				PXO_ADD_STRING(filter->channel);
 			}
 
 			break;
@@ -213,10 +217,10 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 			PXO_GET_INT(n_users);
 
 			SDL_strlcpy(channel, (char *)(data+offset), SDL_arraysize(channel));
-			offset += strlen(channel);
+			offset += (strlen(channel) + 1);
 
 			memcpy(gph->data, &n_users, sizeof(int));
-			memcpy(gph->data+sizeof(int), channel, strlen(channel));
+			memcpy(gph->data+sizeof(int), channel, strlen(channel)+1);
 
 			break;
 		}

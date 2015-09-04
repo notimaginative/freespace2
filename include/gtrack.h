@@ -104,6 +104,7 @@ typedef struct _active_games{
 typedef struct {
 	unsigned char game_type;
 	char game_name[MAX_GAME_LISTS_PER_PACKET][MAX_GENERIC_GAME_NAME_LEN];
+	char pad[3];	// ..needs 3-byte padding here for alignment..
 	unsigned int	game_server[MAX_GAME_LISTS_PER_PACKET];
 	unsigned short port[MAX_GAME_LISTS_PER_PACKET];
 } game_list;

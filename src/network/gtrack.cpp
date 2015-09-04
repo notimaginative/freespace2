@@ -193,6 +193,8 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 				PXO_GET_DATA(games->game_name[i]);
 			}
 
+			PXO_GET_DATA(games->pad);	// padded bytes for alignment
+
 			for (i = 0; i < MAX_GAME_LISTS_PER_PACKET; i++) {
 				PXO_GET_UINT(games->game_server[i]);
 			}

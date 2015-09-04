@@ -160,7 +160,7 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 	// make sure we received a complete base packet
 	if (data_size < (int)GAME_HEADER_ONLY_SIZE) {
 		gph->len = 0;
-		gph->type = -1;
+		gph->type = 255;	// invalid = 0xff
 
 		return;
 	}

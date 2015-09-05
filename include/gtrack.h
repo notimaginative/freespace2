@@ -112,6 +112,7 @@ typedef struct {
 typedef struct {
 	int	rank;								// Try to find opponents with a rank similar to this
 	char channel[CHANNEL_LEN];			// only give us games in this channel	
+	char pad[3];					// 3-bytes padding for size/alignment
 } filter_game_list_struct;
 
 

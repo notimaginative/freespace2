@@ -53,8 +53,6 @@ SDL_COMPILE_TIME_ASSERT(game_list, sizeof(game_list) == 384);
 SDL_COMPILE_TIME_ASSERT(filter_game_list_struct, sizeof(filter_game_list_struct) == 40);
 
 
-#define PXO_ADD_STRING(d) do { SDL_strlcpy((char*)(data+packet_size), d, sizeof(game_packet_header)-packet_size); packet_size += (SDL_strlen((char*)(data+packet_size)) + 1); } while (0)
-
 
 //Variables
 // SOCKET gamesock;
@@ -111,7 +109,8 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 				filter_game_list_struct *filter = (filter_game_list_struct *)&gph->data;
 
 				PXO_ADD_INT(filter->rank);
-				PXO_ADD_STRING(filter->channel);
+				PXO_ADD_DATA(filter->channel);
+				PXO_ADD_DATA(filter->pad);		// for sizing, so gph->len will match
 			}
 
 			break;
@@ -133,11 +132,19 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 		}
 
 		case GNT_GAME_COUNT_REQ: {
-			char channel[CHANNEL_LEN];
+			SDL_assert(gph->len == (GAME_HEADER_ONLY_SIZE+sizeof(filter_game_list_struct)));
 
-			memcpy(channel, gph->data, sizeof(channel));
+			filter_game_list_struct filter;
 
-			PXO_ADD_DATA(channel);
+			SDL_zero(filter);
+
+			memcpy(filter.channel, gph->data, sizeof(filter.channel));
+
+			PXO_ADD_DATA(filter.channel);
+
+			// add in junk data (ignored on server) to make packet size match
+			PXO_ADD_INT(filter.rank);
+			PXO_ADD_DATA(filter.pad);
 
 			break;
 		}
@@ -630,8 +637,8 @@ void RequestGameCountWithFilter(void *filter)
 	GameCountReq.game_type = GT_FREESPACE2;
 #endif
 	GameCountReq.type = GNT_GAME_COUNT_REQ;
-	GameCountReq.len = GAME_HEADER_ONLY_SIZE+sizeof(filter_game_list_struct);	
-	memcpy(&GameCountReq.data, ((filter_game_list_struct*)filter)->channel, sizeof(filter_game_list_struct) - 4);
+	GameCountReq.len = GAME_HEADER_ONLY_SIZE+sizeof(filter_game_list_struct);
+	memcpy(&GameCountReq.data, ((filter_game_list_struct*)filter)->channel, CHANNEL_LEN);
 
 	packet_length = SerializeGamePacket(&GameCountReq, packet_data);
 	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);

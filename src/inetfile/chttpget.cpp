@@ -502,7 +502,7 @@ int ChttpGet::ConnectSocket()
 	int cerr = WSAGetLastError();
 	if(serr)
 	{
-		while((cerr==WSAEALREADY)||(cerr==WSAEINVAL)||(cerr==WSAEWOULDBLOCK))
+		while((cerr==WSAEALREADY)||(cerr==WSAEINVAL)||NETCALL_WOULDBLOCK(cerr))
 		{
 			FD_ZERO(&wfds);
 			FD_SET( m_DataSock, &wfds );
@@ -552,7 +552,7 @@ char *ChttpGet::GetHTTPLine()
 			if(SOCKET_ERROR == iBytesRead)
 			{	
 				int error = WSAGetLastError();
-				if(WSAEWOULDBLOCK==error)
+				if(NETCALL_WOULDBLOCK(error))
 				{
 					gotdata = false;
 					continue;
@@ -578,7 +578,7 @@ char *ChttpGet::GetHTTPLine()
 				if(SOCKET_ERROR == iBytesRead)
 				{	
 					int error = WSAGetLastError();
-					if(WSAEWOULDBLOCK==error)
+					if(NETCALL_WOULDBLOCK(error))
 					{
 						gotdata = false;
 						continue;
@@ -641,7 +641,7 @@ unsigned int ChttpGet::ReadDataChannel()
 		if(SOCKET_ERROR == nBytesRecv)
 		{	
 			int error = WSAGetLastError();
-			if(WSAEWOULDBLOCK==error)
+			if(NETCALL_WOULDBLOCK(error))
 			{
 				nBytesRecv = 1;
 				continue;

@@ -31,4 +31,6 @@ extern int WSAGetLastError ();
 #define WSAESHUTDOWN ESHUTDOWN
 #define WSAENOTSOCK ENOTSOCK
 
+#define NETCALL_WOULDBLOCK(err)	(err == EAGAIN || err == EINPROGRESS)
+
 #endif	// _UNIX_H

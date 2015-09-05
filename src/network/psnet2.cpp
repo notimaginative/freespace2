@@ -1165,7 +1165,8 @@ int psnet_rel_send(PSNET_SOCKET_RELIABLE socketid, ubyte *data, int length, int 
 					Int3();
 				}		
 			}
-			if((bytesout==SOCKET_ERROR)&&(WSAEWOULDBLOCK==WSAGetLastError())){
+			int error = WSAGetLastError();
+			if((bytesout==SOCKET_ERROR)&&NETCALL_WOULDBLOCK(error)){
 				//This will cause it to try to send again next frame. (or sooner)
 				rsocket->timesent[i] = psnet_get_time()-(NETRETRYTIME*4);
 			} else {
@@ -1253,7 +1254,8 @@ void psnet_rel_work()
 				ret = SENDTO(Unreliable_socket, (char *)&conn_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&Reliable_sockets[Serverconn].addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 			}
 
-			if((ret == SOCKET_ERROR) && (WSAEWOULDBLOCK == WSAGetLastError())){
+			int error = WSAGetLastError();
+			if((ret == SOCKET_ERROR) && NETCALL_WOULDBLOCK(error)){
 				Reliable_sockets[Serverconn].last_packet_sent = psnet_get_time()-NETRETRYTIME;
 			} else {
 				Reliable_sockets[Serverconn].last_packet_sent = psnet_get_time();
@@ -1523,7 +1525,8 @@ void psnet_rel_work()
 					if(rsocket->connection_type == NET_TCP){
 						rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE+rsocket->send_len[i],0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 					}
-					if((rcode == SOCKET_ERROR) && (WSAEWOULDBLOCK == WSAGetLastError())){
+					int error = WSAGetLastError();
+					if((rcode == SOCKET_ERROR) && NETCALL_WOULDBLOCK(error)){
 						//The packet didn't get sent, flag it to try again next frame
 						rsocket->timesent[i] = psnet_get_time()-(NETRETRYTIME*4);
 					} else {
@@ -1546,7 +1549,8 @@ void psnet_rel_work()
 				if(rsocket->connection_type == NET_TCP){
 					rcode = SENDTO(Unreliable_socket, (char *)&send_header,RELIABLE_PACKET_HEADER_ONLY_SIZE,0,&rsocket->addr,sizeof(struct sockaddr), PSNET_TYPE_RELIABLE);
 				}
-				if((rcode != SOCKET_ERROR) && (WSAEWOULDBLOCK != WSAGetLastError())){
+				int error = WSAGetLastError();
+				if((rcode != SOCKET_ERROR) && NETCALL_WOULDBLOCK(error)){
 					//It must have been sent
 					rsocket->last_packet_sent = psnet_get_time();
 				}

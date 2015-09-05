@@ -188,7 +188,8 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 
 		if(SOCKET_ERROR == connect(Chatsock,(struct sockaddr *)&Chataddr,sizeof(struct sockaddr_in)))
 		{
-			if(WSAEWOULDBLOCK == WSAGetLastError())
+			int error = WSAGetLastError();
+			if ( NETCALL_WOULDBLOCK(error) )
 			{
 				Socket_connecting = 1;
 				return 0;

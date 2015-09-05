@@ -630,12 +630,14 @@ unsigned int ChttpGet::ReadDataChannel()
     	if(m_Aborting)
 		{
 			fclose(LOCALFILE);
+			LOCALFILE = NULL;
 			return 0;		
 		}
 		nBytesRecv = recv(m_DataSock, (char *)&sDataBuffer,sizeof(sDataBuffer), 0);
     	if(m_Aborting)
 		{
 			fclose(LOCALFILE);
+			LOCALFILE = NULL;
 			return 0;
 		}
 		if(SOCKET_ERROR == nBytesRecv)
@@ -656,7 +658,8 @@ unsigned int ChttpGet::ReadDataChannel()
 		
 		SDL_Delay(1);
 	}while (nBytesRecv > 0);
-	fclose(LOCALFILE);							
+	fclose(LOCALFILE);
+	LOCALFILE = NULL;
 	// Close the file and check for error returns.
 	if (nBytesRecv == SOCKET_ERROR)
 	{ 

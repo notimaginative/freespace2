@@ -89,6 +89,7 @@ typedef struct {
 	int	current_num_players;
 	char	mission_name[MAX_FREESPACE_MISSION_NAME_LEN];
 	char	channel[CHANNEL_LEN];
+	char	pad[3];		// 3-byte padding for size/alignment
 } freespace2_net_game_data;
 
 #endif

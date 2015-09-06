@@ -127,6 +127,7 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 			PXO_ADD_INT(game_data->current_num_players);
 			PXO_ADD_DATA(game_data->mission_name);
 			PXO_ADD_DATA(game_data->channel);
+			PXO_ADD_DATA(game_data->pad);		// for sizing, so gph->len will match
 
 			break;
 		}

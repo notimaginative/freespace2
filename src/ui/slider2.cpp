@@ -326,6 +326,7 @@ void UI_SLIDER2::set_currentItem(int _currentItem) {
 	}	
 	
 	currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);	
+	CAP(currentPosition, 0, numberPositions);
 }
 
 void UI_SLIDER2::force_currentItem(int _currentItem) {	
@@ -334,12 +335,14 @@ void UI_SLIDER2::force_currentItem(int _currentItem) {
 		currentItem = 0;
 	};
 	currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);	
+	CAP(currentPosition, 0, numberPositions);
 }
 
 void UI_SLIDER2::forceDown() {
 	if (currentItem < numberItems) {
 		currentItem++;
 		currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);
+		CAP(currentPosition, 0, numberPositions);
 	}
 }
 
@@ -347,6 +350,7 @@ void UI_SLIDER2::forceUp() {
 	if (currentItem > 0) {
 		currentItem--;
 		currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);
+		CAP(currentPosition, 0, numberPositions);
 	}
 }
 

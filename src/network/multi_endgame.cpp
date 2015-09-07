@@ -215,6 +215,7 @@
 #include "multiui.h"
 #include "multiutil.h"
 #include "multi_pmsg.h"
+#include "multi_fstracker.h"
 
 
 // ----------------------------------------------------------------------------------------------------------
@@ -575,6 +576,10 @@ void multi_endgame_cleanup()
 			multi_endgame_popup(Multi_endgame_notify_code,Multi_endgame_error_code,Multi_endgame_wsa_error);			
 		}		
 	}	
+
+	if (MULTI_IS_TRACKER_GAME) {
+		multi_fs_tracker_logout();
+	}
 
 	/*
 	extern CFILE *obj_stream;

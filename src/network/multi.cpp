@@ -242,6 +242,7 @@
 #include "hudescort.h"
 #include "alphacolors.h"
 #include "osregistry.h"
+#include "multi_fstracker.h"
 
 
 // ----------------------------------------------------------------------------------------
@@ -1508,7 +1509,10 @@ void multi_do_frame()
 
 	// process any player messaging details
 	multi_msg_process();		
-	
+
+	// process any tracker messages
+	multi_fs_tracker_process();
+
 	// if on the standalone, do any gui stuff
 	if(Game_mode & GM_STANDALONE_SERVER){
 		std_do_gui_frame();

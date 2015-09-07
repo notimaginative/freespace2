@@ -527,6 +527,8 @@
 #include "animplay.h"
 #include "multi_dogfight.h"
 #include "missionpause.h"
+#include "multi_fstracker.h"
+#include "multi_sw.h"
 
 // -------------------------------------------------------------------------------------------------------------
 // 
@@ -1342,7 +1344,9 @@ void multi_join_game_init()
 	if ( !Multi_options_g.pxo ) {
 		// if this is a TCP (non tracker) game, we'll load up our default address list right now		
 		multi_join_load_tcp_addrs();		
-	}	
+	} else {
+		multi_fs_tracker_send_game_request();
+	}
 
 	// initialize any and all timestamps	
 	Multi_join_glr_stamp = -1;
@@ -2951,6 +2955,10 @@ void multi_start_game_init()
 
 		gameseq_post_event(GS_EVENT_MULTI_HOST_SETUP);
 	}
+
+	if ( multi_fs_tracker_inited() ) {
+		multi_fs_tracker_login_freespace();
+	}
 }
 
 void multi_start_game_do()
@@ -3332,7 +3340,7 @@ void multi_sg_init_gamenet()
 		// NETLOG
 		ml_string(NOX("Flushing multi-data cache"));
 	}
-			
+
 	game_flush();
 }
 
@@ -5308,6 +5316,10 @@ void multi_create_list_select_item(int n)
 
 			// update all machines about stuff like respawns, etc.
 			multi_options_update_netgame();
+
+			if (MULTI_IS_TRACKER_GAME) {
+				multi_fs_tracker_update_game(ng);
+			}
 		} else {
 			multi_options_update_mission(ng, Multi_create_list_mode == MULTI_CREATE_SHOW_CAMPAIGNS ? 1 : 0);
 		}
@@ -5784,7 +5796,8 @@ int multi_create_ok_to_commit()
 			}
 		}
 		// squad war
-		else {			
+		else {
+			return multi_sw_ok_to_commit();
 		}
 	}	
 		
@@ -5910,6 +5923,10 @@ void multi_create_sw_clicked()
 
 		// update all machines about stuff like respawns, etc.
 		multi_options_update_netgame();
+
+		if (MULTI_IS_TRACKER_GAME) {
+			multi_fs_tracker_update_game(ng);
+		}
 	}
 	// on the standalone
 	else {
@@ -6853,7 +6870,11 @@ void multi_ho_apply_options()
 	multi_voice_maybe_update_vars(Netgame.options.voice_qos,Netgame.options.voice_record_time);		
 
 	// send an options update
-	multi_options_update_netgame();	
+	multi_options_update_netgame();
+
+	if (MULTI_IS_TRACKER_GAME) {
+		multi_fs_tracker_update_game(&Netgame);
+	}
 }
 
 // display the voice record time settings
@@ -8415,6 +8436,10 @@ void multi_sync_pre_init()
 		Netgame.options.skill_level = NUM_SKILL_LEVELS / 2;
 		Game_skill_level = NUM_SKILL_LEVELS / 2;
 		multi_options_update_netgame();
+
+		if (MULTI_IS_TRACKER_GAME) {
+			multi_fs_tracker_update_game(&Netgame);
+		}
 	}
 
 	// notify everyone of when we get here
@@ -9299,6 +9324,12 @@ void multi_debrief_accept_hit()
 		if(Net_player->flags & NETINFO_FLAG_GAME_HOST){
 			// if we're on a tracker game, he gets no choice for storing stats
 			if(MULTI_IS_TRACKER_GAME){
+				int stats_saved = multi_fs_tracker_store_stats();
+
+				if (Netgame.type_flags & NG_TYPE_SW) {
+					multi_sw_report(stats_saved);
+				}
+
 				multi_maybe_set_mission_loop();
 			} else {
 				int res = popup(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Continue Netgame)\nDo you wish to accept these stats?",846));
@@ -9347,6 +9378,14 @@ void multi_debrief_esc_hit()
 	if(Net_player->flags & NETINFO_FLAG_GAME_HOST){		
 		// if the stats have already been accepted
 		if((Multi_debrief_stats_accept_code != -1) || (MULTI_IS_TRACKER_GAME)){
+			if (Multi_debrief_stats_accept_code == 1) {
+				int stats_saved = multi_fs_tracker_store_stats();
+
+				if (Netgame.type_flags & NG_TYPE_SW) {
+					multi_sw_report(stats_saved);
+				}
+			}
+
 			multi_quit_game(PROMPT_HOST);
 		} else {
 			res = popup(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Exit Netgame)\nDo you wish to accept these stats?",847));

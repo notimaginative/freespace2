@@ -292,6 +292,7 @@
 #include "multi_rate.h"
 #include "osregistry.h"
 #include "hudescort.h"
+#include "multi_fstracker.h"
 
 extern int MSG_WINDOW_X_START;	// used to position multiplayer text messages
 extern int MSG_WINDOW_Y_START;
@@ -3186,6 +3187,21 @@ void multi_update_valid_missions()
 
 	// now poll for all unknown missions
 	was_cancelled = 0;
+
+	for (idx = 0; idx < Multi_create_mission_count; idx++) {
+		if (Multi_create_mission_list[idx].valid_status != MVALID_STATUS_UNKNOWN) {
+			continue;
+		}
+
+		int rval = multi_fs_tracker_validate_mission(Multi_create_mission_list[idx].filename);
+
+		if (rval == -2) {
+			was_cancelled = 1;
+			break;
+		}
+
+		Multi_create_mission_list[idx].valid_status = rval;
+	}
 
 	// if the operation was cancelled, don't write anything new
 	if(was_cancelled){

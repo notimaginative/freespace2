@@ -438,11 +438,8 @@ int RECVFROM(SOCKET s, char *buf, int len, int flags, sockaddr *from, int *froml
 	return ret_len;
 }
 
-#ifdef PLAT_UNIX
-#define FAR
-#endif
 // wrappers around select() and recvfrom() for lagging/losing data
-int SELECT(int nfds, fd_set FAR * readfds, fd_set FAR * writefds, fd_set FAR * exceptfds, struct timeval FAR * timeout, int psnet_type)
+int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout, int psnet_type)
 {
 	network_packet_buffer_list *l;
 

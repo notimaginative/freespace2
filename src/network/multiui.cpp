@@ -1493,8 +1493,13 @@ void multi_join_game_do_frame()
 	case SDLK_ESCAPE :
 		if(help_overlay_active(MULTI_JOIN_OVERLAY)){
 			help_overlay_set_state(MULTI_JOIN_OVERLAY,0);
-		} else {		
-			gameseq_post_event(GS_EVENT_MAIN_MENU);			
+		} else {
+			if (Multi_options_g.pxo == 1) {
+				gameseq_post_event(GS_EVENT_PXO);
+			} else {
+				gameseq_post_event(GS_EVENT_MAIN_MENU);
+			}
+
 			gamesnd_play_iface(SND_USER_SELECT);
 		}
 		break;
@@ -1635,9 +1640,13 @@ void multi_join_button_pressed(int n)
 {
 	switch(n){
 	case MJ_CANCEL :
-		// if we're player PXO, go back there	
-		gameseq_post_event(GS_EVENT_MAIN_MENU);		
-		gamesnd_play_iface(SND_USER_SELECT);		
+		// if we're player PXO, go back there
+		if (Multi_options_g.pxo == 1) {
+			gameseq_post_event(GS_EVENT_PXO);
+		} else {
+			gameseq_post_event(GS_EVENT_MAIN_MENU);
+		}
+		gamesnd_play_iface(SND_USER_SELECT);
 		break;
 	case MJ_ACCEPT :
 		if(Active_game_count <= 0){

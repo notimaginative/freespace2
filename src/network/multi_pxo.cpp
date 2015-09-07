@@ -4775,7 +4775,7 @@ void multi_pxo_pinfo_build_vals()
 	SDL_snprintf(Multi_pxo_pinfo_vals[14], SDL_arraysize(Multi_pxo_pinfo_vals[14]), "%d", fs->p_bonehead_hits);
 
 	// primary friendly hit %
-	if(fs->p_shots_hit > 0){		
+	if(fs->p_shots_fired > 0){
 		SDL_snprintf(Multi_pxo_pinfo_vals[15], SDL_arraysize(Multi_pxo_pinfo_vals[15]), "%d%%", (int)((float)100.0f*((float)fs->p_bonehead_hits/(float)fs->p_shots_fired)));
 	} else {		
 		SDL_strlcpy(Multi_pxo_pinfo_vals[15], "0%", SDL_arraysize(Multi_pxo_pinfo_vals[15]));
@@ -4785,7 +4785,7 @@ void multi_pxo_pinfo_build_vals()
 	SDL_snprintf(Multi_pxo_pinfo_vals[16], SDL_arraysize(Multi_pxo_pinfo_vals[16]), "%d", fs->s_bonehead_hits);
 
 	// secondary friendly hit %
-	if(fs->s_shots_hit > 0){
+	if(fs->s_shots_fired > 0){
 		SDL_snprintf(Multi_pxo_pinfo_vals[17], SDL_arraysize(Multi_pxo_pinfo_vals[17]), "%d%%", (int)((float)100.0f*((float)fs->s_bonehead_hits/(float)fs->s_shots_fired)));
 	} else {		
 		SDL_strlcpy(Multi_pxo_pinfo_vals[17], "0%", SDL_arraysize(Multi_pxo_pinfo_vals[17]));

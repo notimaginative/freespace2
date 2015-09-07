@@ -836,7 +836,11 @@ void multi_pinfo_build_stats()
 	// sprintf(Multi_pinfo_stats_vals[MPI_PSHOTS_HIT],"%d",sc->p_shots_hit);
 	
 	// primary hit pct
-	SDL_snprintf(Multi_pinfo_stats_vals[MPI_PSHOTS_PCT], MAX_LABEL_TEXT, "%d%%", (int)(100.0f * ((float)sc->p_shots_hit / (float)sc->p_shots_fired)));
+	if (sc->p_shots_fired > 0) {
+		SDL_snprintf(Multi_pinfo_stats_vals[MPI_PSHOTS_PCT], MAX_LABEL_TEXT, "%d%%", (int)(100.0f * ((float)sc->p_shots_hit / (float)sc->p_shots_fired)));
+	} else {
+		SDL_strlcpy(Multi_pinfo_stats_vals[MPI_PSHOTS_PCT], "0%", MAX_LABEL_TEXT);
+	}
 	// primary shots fired
 	SDL_snprintf(Multi_pinfo_stats_vals[MPI_SSHOTS_FIRED], MAX_LABEL_TEXT, "%d", sc->s_shots_fired);
 
@@ -844,7 +848,11 @@ void multi_pinfo_build_stats()
 	// sprintf(Multi_pinfo_stats_vals[MPI_SSHOTS_HIT],"%d",sc->s_shots_hit);
 	
 	// primary hit pct
-	SDL_snprintf(Multi_pinfo_stats_vals[MPI_SSHOTS_PCT], MAX_LABEL_TEXT, "%d%%", (int)(100.0f * ((float)sc->s_shots_hit / (float)sc->s_shots_fired)));
+	if (sc->s_shots_fired > 0) {
+		SDL_snprintf(Multi_pinfo_stats_vals[MPI_SSHOTS_PCT], MAX_LABEL_TEXT, "%d%%", (int)(100.0f * ((float)sc->s_shots_hit / (float)sc->s_shots_fired)));
+	} else {
+		SDL_strlcpy(Multi_pinfo_stats_vals[MPI_SSHOTS_PCT], "0%", MAX_LABEL_TEXT);
+	}
 }
 
 // if the pilot's image was currently loading when we started the popup, load it up now if its finished

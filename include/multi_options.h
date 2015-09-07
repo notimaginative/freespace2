@@ -119,6 +119,7 @@ typedef struct multi_global_options {
 	ushort	port;															// port we're running on - for allowing multiple servers on one machine
 	int		log;															// use a logfile	
 	int		datarate_cap;												// datarate cap for OBJ_UPDATE_HIGH
+	int		pxo;														// PXO enabled
 	char		user_tracker_ip[MULTI_OPTIONS_STRING_LEN];		// ip address of user tracker
 	char		game_tracker_ip[MULTI_OPTIONS_STRING_LEN];		// ip address of game tracker	
 	char		pxo_ip[MULTI_OPTIONS_STRING_LEN];					// ip address of pxo chat server

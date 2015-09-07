@@ -1254,7 +1254,7 @@ int cfputs(const char *str, CFILE *cfile)
 // CRC code for mission validation.  given to us by Kevin Bentley on 7/20/98.   Some sort of
 // checksumming code that he wrote a while ago.  
 #define CRC32_POLYNOMIAL					0xEDB88320L
-unsigned long CRCTable[256];
+uint CRCTable[256];
 
 #define CF_CHKSUM_SAMPLE_SIZE				512
 
@@ -1262,9 +1262,9 @@ unsigned long CRCTable[256];
 ushort cf_add_chksum_short(ushort seed, const char *buffer, int size)
 {
 	const ubyte * ptr = (const ubyte *)buffer;
-	unsigned int sum1,sum2;
+	uint sum1,sum2;
 
-	sum1 = sum2 = (int)(seed);
+	sum1 = sum2 = (uint)(seed);
 
 	while(size--)	{
 		sum1 += *ptr++;
@@ -1273,16 +1273,16 @@ ushort cf_add_chksum_short(ushort seed, const char *buffer, int size)
 	}
 	sum2 %= 255;
 	
-	return (unsigned short)((sum1<<8)+ sum2);
+	return (ushort)((sum1<<8)+ sum2);
 }
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int size)
+uint cf_add_chksum_long(uint seed, const char *buffer, int size)
 {
-	unsigned long crc;
+	uint crc;
 	unsigned const char *p;
-	unsigned long temp1;
-	unsigned long temp2;
+	uint temp1;
+	uint temp2;
 
 	p = (unsigned const char*)buffer;
 	crc = seed;	
@@ -1299,7 +1299,7 @@ unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int siz
 void cf_chksum_long_init()
 {
 	int i,j;
-	unsigned long crc;	
+	uint crc;
 
 	for( i=0;i<=255;i++) {
 		crc=i;

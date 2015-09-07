@@ -242,6 +242,7 @@
 #include "hudescort.h"
 #include "alphacolors.h"
 #include "osregistry.h"
+#include "multi_fstracker.h"
 
 
 // ----------------------------------------------------------------------------------------
@@ -311,9 +312,7 @@ int Multi_button_info_ok = 0;										// flag saying it is ok to apply critical
 int Multi_button_info_id = 0;										// identifier of the stored button info to be applying
 
 // low level networking vars
-int ADDRESS_LENGTH;													// will be 6 for IPX, 4 for IP
-int PORT_LENGTH;														// will be 2 for IPX, 2 for IP
-int HEADER_LENGTH;													// 1 byte (packet type)
+const int HEADER_LENGTH = 1;													// 1 byte (packet type)
 
 // misc data
 active_game* Active_game_head;									// linked list of active games displayed on Join screen
@@ -346,6 +345,8 @@ int Multi_restr_query_timestamp = -1;
 join_request Multi_restr_join_request;
 net_addr_t Multi_restr_addr;				
 int Multi_join_restr_mode = -1;
+
+SDL_COMPILE_TIME_ASSERT(addr, sizeof(Multi_restr_addr.addr) == IP_ADDRESS_LENGTH);
 
 static fix Multi_server_wait_start;				// variable to hold start time when waiting to reestablish with server
 
@@ -583,7 +584,7 @@ void multi_check_listen()
 		// the connection was accepted in check_for_listen.  Find the netplayer whose address we connected
 		// with and assign the socket descriptor
 		for (i = 0; i < MAX_PLAYERS; i++ ) {
-			if ( (Net_players[i].flags & NETINFO_FLAG_CONNECTED) && (!memcmp(&(addr.addr), &(Net_players[i].p_info.addr.addr), 6)) ) {
+			if ( (Net_players[i].flags & NETINFO_FLAG_CONNECTED) && (!memcmp(&(addr.addr), &(Net_players[i].p_info.addr.addr), IP_ADDRESS_LENGTH)) ) {
 				// mark this flag so we know he's "fully" connected
 				Net_players[i].flags |= NETINFO_FLAG_RELIABLE_CONNECTED;
 				Net_players[i].reliable_socket = sock;
@@ -1160,8 +1161,7 @@ void multi_process_bigdata(ubyte *data, int len, net_addr_t *from_addr, int reli
 
 	// store fields that were passed along in the message
 	// store header information that was captured from the network-layer header
-	memcpy(header_info.addr, from_addr->addr, 6);
-	memcpy(header_info.net_id, from_addr->net_id, 4);
+	memcpy(header_info.addr, from_addr->addr, IP_ADDRESS_LENGTH);
 	header_info.port = from_addr->port;	
 	if(player_num >= 0){
 		header_info.id = Net_players[player_num].player_id;
@@ -1509,7 +1509,10 @@ void multi_do_frame()
 
 	// process any player messaging details
 	multi_msg_process();		
-	
+
+	// process any tracker messages
+	multi_fs_tracker_process();
+
 	// if on the standalone, do any gui stuff
 	if(Game_mode & GM_STANDALONE_SERVER){
 		std_do_gui_frame();
@@ -1637,43 +1640,15 @@ void standalone_main_init()
 	// multi_options_read_config();   
 
 	// if we failed to startup on our desired protocol, fail	
-	if ( (Multi_options_g.protocol == NET_IPX) && !Ipx_active ) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", XSTR( "You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.", 1402), NULL);
-		exit(1);
-	}
-
-	if ( (Multi_options_g.protocol == NET_TCP) && !Tcp_active ) {
+	if ( !Tcp_active ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", XSTR("You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362), NULL);
 		exit(1);
 	}
 
 	// set the protocol
-#ifdef MULTIPLAYER_BETA_BUILD
 	Multi_options_g.protocol = NET_TCP;
 	psnet_use_protocol(Multi_options_g.protocol);	
 
-	ADDRESS_LENGTH = IP_ADDRESS_LENGTH;		
-	PORT_LENGTH = IP_PORT_LENGTH;			
-#else
-	psnet_use_protocol(Multi_options_g.protocol);
-	switch (Multi_options_g.protocol) {
-	case NET_IPX:
-		ADDRESS_LENGTH = IPX_ADDRESS_LENGTH;
-		PORT_LENGTH = IPX_PORT_LENGTH;
-		break;
-
-	case NET_TCP:
-		ADDRESS_LENGTH = IP_ADDRESS_LENGTH;		
-		PORT_LENGTH = IP_PORT_LENGTH;			
-		break;
-
-	default:
-		Int3();
-	} // end switch
-#endif
-
-	HEADER_LENGTH = 1;		
-	
 	// clear out the Netgame structure and start filling in the values
 	// NOTE : these values are not incredibly important since they will be overwritten by the host when he joins
 	memset( &Netgame, 0, sizeof(Netgame) );	

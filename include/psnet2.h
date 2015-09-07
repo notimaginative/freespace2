@@ -77,6 +77,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <winsock.h>
 #endif
 
 #include "pstypes.h"
@@ -88,7 +91,7 @@
 
 #define NET_NONE		0		// if no protocol is active or none are selected
 #define NET_TCP		1
-#define NET_IPX		2
+#define NET_IPX		2			// ** no longer supported !!!! **
 #define NET_VMT		3
 
 #define MAX_PACKET_SIZE		512
@@ -101,9 +104,9 @@
 
 typedef struct net_addr {
 	uint	type;			// See NET_ defines above
-	ubyte	net_id[4];	// used for IPX only
-	ubyte addr[6];		// address (first 4 used when IP, all 6 used when IPX)
-	short port;			
+	ubyte addr[4];		// address
+	short port;
+	short _pad;			// alignment padding
 } net_addr_t;
 
 // define these in such a manner that a call to psnet_send_reliable is exactly the same and the new code in unobtrusive
@@ -140,10 +143,8 @@ extern int Psnet_my_addr_valid;
 
 extern int Network_status;
 extern int Tcp_failure_code;
-extern int Ipx_failure_code;
 
 extern int Tcp_active;
-extern int Ipx_active;
 
 extern int Socket_type;										// protocol type in use (see NET_* defines above)
 
@@ -164,7 +165,7 @@ extern ushort Psnet_default_port;
 #define RNF_CONNECTING		4		// We received the connecting message, but haven't told the game yet.
 #define RNF_LIMBO				5		// between connecting and connected
 
-//extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send and receive on
+extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send and receive on
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
@@ -177,11 +178,11 @@ struct timeval;
 #endif
 
 // wrappers around select() and recvfrom() for lagging/losing data, and for sorting through different packet types
-int RECVFROM(uint s, char * buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type);
-int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set*exceptfds, const timeval* timeout, int psnet_type);
+int RECVFROM(SOCKET s, char * buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type);
+int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set*exceptfds, struct timeval* timeout, int psnet_type);
 
 // wrappers around sendto to sorting through different packet types
-int SENDTO(uint s, char * buf, int len, int flags, sockaddr * to, int tolen, int psnet_type);
+int SENDTO(SOCKET s, char * buf, int len, int flags, sockaddr * to, int tolen, int psnet_type);
 
 // call this once per frame to read everything off of our socket
 void PSNET_TOP_LAYER_PROCESS();

@@ -150,7 +150,7 @@
 int http_gethostbynameworker(void *parm);
 
 
-int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname);
+int http_Asyncgethostbyname(in_addr_t *ip, int command, char *hostname);
 
 int HTTPObjThread( void * obj )
 {
@@ -208,7 +208,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	}
 	unsigned long arg;
 
-	arg = true;
+	arg = 1;
 
 	ioctlsocket( m_DataSock, FIONBIO, &arg );
 
@@ -268,7 +268,6 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	{
 		m_State = HTTP_STATE_INTERNAL_ERROR;
 		m_Aborted = true;
-		return;
 	}
 	else
 	{
@@ -409,7 +408,7 @@ void ChttpGet::WorkerThread()
 
 int ChttpGet::ConnectSocket()
 {
-	unsigned int ip;
+	in_addr_t ip;
 	struct servent *se;
 	struct sockaddr_in hostaddr;
 	if(m_Aborting){
@@ -456,7 +455,7 @@ int ChttpGet::ConnectSocket()
 	}
 	hostaddr.sin_family = AF_INET;		
 	//ip = htonl(ip);
-	memcpy(&hostaddr.sin_addr,&ip,4);
+	hostaddr.sin_addr.s_addr = ip;
 
 	if(m_ProxyEnabled)
 	{
@@ -490,7 +489,7 @@ int ChttpGet::ConnectSocket()
 		//Use either the proxy port or 80 if none specified
 		hostaddr.sin_port = htons((ushort)(m_ProxyPort ? m_ProxyPort : 80));
 		//Copy the proxy address...
-		memcpy(&hostaddr.sin_addr,&ip,4);
+		hostaddr.sin_addr.s_addr = ip;
 
 	}
 	//Now we will connect to the host					
@@ -503,11 +502,11 @@ int ChttpGet::ConnectSocket()
 	int cerr = WSAGetLastError();
 	if(serr)
 	{
-		while((cerr==WSAEALREADY)||(cerr==WSAEINVAL)||(cerr==WSAEWOULDBLOCK))
+		while((cerr==WSAEALREADY)||(cerr==WSAEINVAL)||NETCALL_WOULDBLOCK(cerr))
 		{
 			FD_ZERO(&wfds);
 			FD_SET( m_DataSock, &wfds );
-			if(select(0,NULL,&wfds,NULL,&timeout))
+			if(select(m_DataSock+1,NULL,&wfds,NULL,&timeout))
 			{
 				serr = 0;
 				break;
@@ -553,7 +552,7 @@ char *ChttpGet::GetHTTPLine()
 			if(SOCKET_ERROR == iBytesRead)
 			{	
 				int error = WSAGetLastError();
-				if(WSAEWOULDBLOCK==error)
+				if(NETCALL_WOULDBLOCK(error))
 				{
 					gotdata = false;
 					continue;
@@ -579,7 +578,7 @@ char *ChttpGet::GetHTTPLine()
 				if(SOCKET_ERROR == iBytesRead)
 				{	
 					int error = WSAGetLastError();
-					if(WSAEWOULDBLOCK==error)
+					if(NETCALL_WOULDBLOCK(error))
 					{
 						gotdata = false;
 						continue;
@@ -627,22 +626,24 @@ unsigned int ChttpGet::ReadDataChannel()
 		{
 			break;
 		}
-		select(0,&wfds,NULL,NULL,&timeout);
+		select(m_DataSock+1,&wfds,NULL,NULL,&timeout);
     	if(m_Aborting)
 		{
 			fclose(LOCALFILE);
+			LOCALFILE = NULL;
 			return 0;		
 		}
 		nBytesRecv = recv(m_DataSock, (char *)&sDataBuffer,sizeof(sDataBuffer), 0);
     	if(m_Aborting)
 		{
 			fclose(LOCALFILE);
+			LOCALFILE = NULL;
 			return 0;
 		}
 		if(SOCKET_ERROR == nBytesRecv)
 		{	
 			int error = WSAGetLastError();
-			if(WSAEWOULDBLOCK==error)
+			if(NETCALL_WOULDBLOCK(error))
 			{
 				nBytesRecv = 1;
 				continue;
@@ -657,7 +658,8 @@ unsigned int ChttpGet::ReadDataChannel()
 		
 		SDL_Delay(1);
 	}while (nBytesRecv > 0);
-	fclose(LOCALFILE);							
+	fclose(LOCALFILE);
+	LOCALFILE = NULL;
 	// Close the file and check for error returns.
 	if (nBytesRecv == SOCKET_ERROR)
 	{ 
@@ -677,7 +679,7 @@ unsigned int ChttpGet::ReadDataChannel()
 
 typedef struct _async_dns_lookup
 {
-	unsigned int ip;	//resolved host. Write only to worker thread.
+	in_addr_t ip;	//resolved host. Write only to worker thread.
 	char * host;//host name to resolve. read only to worker thread
 	bool done;	//write only to the worker thread. Signals that the operation is complete
 	bool error; //write only to worker thread. Thread sets this if the name doesn't resolve
@@ -689,7 +691,7 @@ async_dns_lookup *http_lastaslu = NULL;
 
 int http_gethostbynameworker(void *parm);
 
-int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
+int http_Asyncgethostbyname(in_addr_t *ip,int command, char *hostname)
 {
 	
 	if(command==NW_AGHBN_LOOKUP)
@@ -699,7 +701,7 @@ int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
 
 		async_dns_lookup *newaslu;
 		newaslu = (async_dns_lookup *)malloc(sizeof(async_dns_lookup));
-		memset(&newaslu->ip,0,sizeof(unsigned int));
+		newaslu->ip = 0;
 		newaslu->host = hostname;
 		newaslu->done = false;
 		newaslu->error = false;
@@ -725,7 +727,7 @@ int http_Asyncgethostbyname(unsigned int *ip,int command, char *hostname)
 		{
 			//free(http_lastaslu);
 			http_lastaslu = NULL;
-			memcpy(ip,&httpaslu.ip,sizeof(unsigned int));
+			*ip = httpaslu.ip;
 			return 1;
 		}
 		else if(httpaslu.error)
@@ -752,7 +754,7 @@ int http_gethostbynameworker(void *parm)
 	}
 	else if(!lookup->abort)
 	{
-		memcpy(&lookup->ip,he->h_addr_list[0],sizeof(unsigned int));
+		lookup->ip = ((in_addr *)(he->h_addr))->s_addr;
 		lookup->done = true;
 		memcpy(&httpaslu,lookup,sizeof(async_dns_lookup));
 	}

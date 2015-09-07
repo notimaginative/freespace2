@@ -604,6 +604,7 @@
 #include "multiutil.h"
 #include "multimsgs.h"
 #include "multiui.h"
+#include "multi_pxo.h"
 #include "cfile.h"
 #include "player.h"
 #include "freespace.h"
@@ -5156,6 +5157,14 @@ void game_process_event( int current_state, int event )
 		
 	// multiplayer stuff follow these comments
 
+		case GS_EVENT_PXO:
+			gameseq_set_state(GS_STATE_PXO);
+			break;
+
+		case GS_EVENT_PXO_HELP:
+			gameseq_set_state(GS_STATE_PXO_HELP);
+			break;
+
 		case GS_EVENT_MULTI_JOIN_GAME:
 			gameseq_set_state( GS_STATE_MULTI_JOIN_GAME );
 			break;
@@ -5699,6 +5708,16 @@ void game_leave_state( int old_state, int new_state )
 		case GS_STATE_LOOP_BRIEF:
 			loop_brief_close();
 			break;
+
+		case GS_STATE_PXO:
+			if (new_state != GS_STATE_PXO_HELP) {
+				multi_pxo_close();
+			}
+			break;
+
+		case GS_STATE_PXO_HELP:
+			multi_pxo_help_close();
+			break;
 	}
 }
 
@@ -6143,6 +6162,19 @@ void mouse_force_pos(int x, int y);
 			loop_brief_init();
 			break;
 
+		case GS_STATE_PXO:
+			if (old_state != GS_STATE_PXO_HELP) {
+				STUB_FUNCTION;
+				// TODO: use_last_channel?
+
+				multi_pxo_init(0);
+			}
+			break;
+
+		case GS_STATE_PXO_HELP:
+			multi_pxo_help_init();
+			break;
+
 	} // end switch
 }
 
@@ -6431,6 +6463,16 @@ void game_do_state(int state)
 		case GS_STATE_LOOP_BRIEF:
 			game_set_frametime(GS_STATE_LOOP_BRIEF);
 			loop_brief_do();
+			break;
+
+		case GS_STATE_PXO:
+			game_set_frametime(GS_STATE_PXO);
+			multi_pxo_do();
+			break;
+
+		case GS_STATE_PXO_HELP:
+			game_set_frametime(GS_STATE_PXO_HELP);
+			multi_pxo_help_do();
 			break;
 
    } // end switch(gs_current_state)

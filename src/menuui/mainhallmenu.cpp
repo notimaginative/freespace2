@@ -714,12 +714,8 @@ void main_hall_do_multi_ready()
 		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "Winsock is not installed.  You must have TCP/IP and Winsock installed to play multiplayer FreeSpace.", 361));
 		break;
 	case NETWORK_ERROR_NO_PROTOCOL:
-		if(Multi_options_g.protocol == NET_TCP){
-			popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "TCP/IP protocol not found.  This protocol is required for multiplayer FreeSpace.", 362));
-		} else {
-			SDL_assert(Multi_options_g.protocol == NET_IPX);
-			popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "IPX protocol not found.  This protocol is required for multiplayer FreeSpace.", 362));
-		}
+		SDL_assert(Multi_options_g.protocol == NET_TCP);
+		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "TCP/IP protocol not found.  This protocol is required for multiplayer FreeSpace.", 362));
 		break;
 	case NETWORK_ERROR_CONNECT_TO_ISP:
 		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected Dial Up Networking as your type of connection to the Internet.  You are not currently connected.  You must connect to your ISP before continuing on past this point.", 363));
@@ -734,12 +730,8 @@ void main_hall_do_multi_ready()
 	}
 
 	// if our selected protocol is not active
-	if((Multi_options_g.protocol == NET_TCP) && !Tcp_active){
+	if ( !Tcp_active ) {
 		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362));
-		return;
-	} 
-	if((Multi_options_g.protocol == NET_IPX) && !Ipx_active){		
-		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected IPX for multiplayer Freespace, but the IPX protocol was not detected on your machine.", 1402));
 		return;
 	} 
 
@@ -760,9 +752,13 @@ void main_hall_do_multi_ready()
 	Multi_options_g.protocol = NET_TCP;	
 	gameseq_post_event( GS_EVENT_PXO );
 #else
-	
-	// go to the regular join game screen 	
-	gameseq_post_event( GS_EVENT_MULTI_JOIN_GAME );	
+	if (Multi_options_g.pxo == 1) {
+		SDL_assert(Multi_options_g.protocol == NET_TCP);
+		gameseq_post_event( GS_EVENT_PXO );
+	} else {
+		// go to the regular join game screen
+		gameseq_post_event( GS_EVENT_MULTI_JOIN_GAME );
+	}
 #endif	
 
 	// select protocol

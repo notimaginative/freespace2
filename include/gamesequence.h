@@ -401,6 +401,8 @@
 #define GS_EVENT_END_DEMO							60		// end of demo campaign
 #define GS_EVENT_LOOP_BRIEF						61		// campaign loop brief
 #define GS_EVENT_CAMPAIGN_CHEAT					62		// skip to a mission in a campaign
+#define GS_EVENT_PXO							74
+#define GS_EVENT_PXO_HELP						75
 
 // IMPORTANT:  When you add a new event, update the initialization for GS_event_text[]
 //             which is done in GameSequence.cpp
@@ -460,6 +462,8 @@ extern const char *GS_event_text[];		// text description for the GS_EVENT_* #def
 #define GS_STATE_GAMEPLAY_HELP					47
 #define GS_STATE_END_DEMO							48		// end of demo campaign (upsell then main menu)
 #define GS_STATE_LOOP_BRIEF						49
+#define GS_STATE_PXO							59
+#define GS_STATE_PXO_HELP						60
 
 
 // IMPORTANT:  When you add a new state, update the initialization for GS_state_text[]

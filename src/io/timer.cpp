@@ -142,6 +142,11 @@ fix timer_get_approx_seconds()
 	return timer_get_fixed_seconds();
 }
 
+int timer_get_seconds()
+{
+	return SDL_GetTicks() / 1000;
+}
+
 int timer_get_milliseconds()
 {
 	return SDL_GetTicks();

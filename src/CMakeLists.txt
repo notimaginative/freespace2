@@ -121,11 +121,14 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/movie/mveplayer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/nebula/neb.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/nebula/neblightning.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/chat_api.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/gtrack.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_campaign.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_dogfight.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_endgame.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_fstracker.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_ingame.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_kick.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_log.cpp
@@ -137,8 +140,10 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_pinfo.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_ping.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_pmsg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_pxo.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_rate.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_respawn.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_sw.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_team.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_update.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multi_voice.cpp
@@ -150,7 +155,9 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/network/multiutil.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet2.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/ptrack.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/valid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisship.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisweapon.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collideshipship.cpp
@@ -237,6 +244,7 @@ set(code_SOURCE
 set(platform_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/platform/platform.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/platform/unix.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/platform/win.cpp
   PARENT_SCOPE
 )
 

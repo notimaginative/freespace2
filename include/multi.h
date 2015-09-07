@@ -294,6 +294,7 @@
 #include "multi_ping.h"
 #include "missionparse.h"
 #include "multi_options.h"
+#include "ptrack.h"
 
 // ----------------------------------------------------------------------------------------
 // Basic defines
@@ -360,8 +361,6 @@ struct CFILE;
 // the max # of observers ever allowed
 #define MAX_OBSERVERS						4
 
-#define LOGIN_LEN								33
-
 // string length defines
 #define MAX_GAMENAME_LEN					32				// maximum length in characters of a game name
 #define DESCRIPT_LENGTH						512			// maximum length of a mission description (as specified by Fred)
@@ -370,8 +369,6 @@ struct CFILE;
 // low level networking defines
 #define IP_ADDRESS_LENGTH					4				// length of the address field for an IP address
 #define IP_PORT_LENGTH						2				// length of the port field for an IP address
-#define IPX_ADDRESS_LENGTH					6				// length of the address field for an IPX address
-#define IPX_PORT_LENGTH						2				// length of the port field for an IPX address
 
 // netgame defines
 #define RESPAWN_ANARCHY						(0xffffffff)// respawn setting for an "anarchy" style game
@@ -424,7 +421,7 @@ struct CFILE;
 #define MULTI_PERM_OBSERVER(np)	((np.flags & NETINFO_FLAG_OBSERVER) && !(np.flags & NETINFO_FLAG_OBS_PLAYER))
 
 // are we playing on a master tracker registered server
-#define MULTI_IS_TRACKER_GAME    (0)
+#define MULTI_IS_TRACKER_GAME    ( (Multi_options_g.pxo == 1) && (Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) )
 // ----------------------------------------------------------------------------------------
 
 
@@ -650,8 +647,7 @@ struct CFILE;
 // definition of header packet used in any protocol
 typedef struct header {
 	int		bytes_processed;											// used to determine how many bytes this packet was
-	ubyte		net_id[4];													// obtained from network layer header
-	ubyte		addr[6];														// obtained from network-layer header
+	ubyte		addr[IP_ADDRESS_LENGTH];										// obtained from network-layer header
 	short		port;															// obtained from network-layer header
 	short		id;															// will be stuffed with player_id (short)
 } header;
@@ -1020,9 +1016,7 @@ extern int Multi_button_info_ok;										// flag saying it is ok to apply criti
 extern int Multi_button_info_id;										// identifier of the stored button info to be applying
 
 // low level networking vars
-extern int ADDRESS_LENGTH;												// will be 6 for IPX, 4 for IP
-extern int PORT_LENGTH;													// will be 2 for IPX, 2 for IP
-extern int HEADER_LENGTH;												// 1 byte (packet type)
+extern const int HEADER_LENGTH;												// 1 byte (packet type)
 
 // misc data
 extern active_game* Active_game_head;								// linked list of active games displayed on Join screen

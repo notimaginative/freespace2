@@ -14,6 +14,7 @@
 extern int filelength (int fd);
 
 #define ioctlsocket(A,B,C) ioctl(A,B,C)
+#define ioctlsocket(A,B,C) ioctl(A,B,C)
 #define closesocket(A) close(A)
 #define SOCKET int
 #define SOCKET_ERROR -1
@@ -29,5 +30,7 @@ extern int WSAGetLastError ();
 #define WSAECONNABORTED ECONNABORTED
 #define WSAESHUTDOWN ESHUTDOWN
 #define WSAENOTSOCK ENOTSOCK
+
+#define NETCALL_WOULDBLOCK(err)	(err == EAGAIN || err == EINPROGRESS)
 
 #endif	// _UNIX_H

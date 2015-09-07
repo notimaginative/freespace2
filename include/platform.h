@@ -17,5 +17,6 @@
 
 void base_filename(const char *path, char *filename, const int max_fname);
 
+int platform_open_url(const char *url);
 
 #endif // PLATFORM_H

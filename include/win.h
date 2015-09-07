@@ -13,4 +13,8 @@
 #define access _access
 #define stat _stat
 
+#define NETCALL_WOULDBLOCK(err)	(err == WSAEWOULDBLOCK)
+
+typedef unsigned long in_addr_t;
+
 #endif // WIN_H

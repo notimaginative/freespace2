@@ -3112,6 +3112,12 @@ int multi_get_connection_speed()
 // return a MVALID_STATUS_* define based upon the passed string
 int multi_string_to_status(char *valid_string)
 {
+	if ( !SDL_strcmp(valid_string, "valid") ) {
+		return MVALID_STATUS_VALID;
+	} else if ( !SDL_strcmp(valid_string, "invalid") ) {
+		return MVALID_STATUS_INVALID;
+	}
+
 	return MVALID_STATUS_UNKNOWN;	
 }
 

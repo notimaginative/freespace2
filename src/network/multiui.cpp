@@ -5316,10 +5316,6 @@ void multi_create_list_select_item(int n)
 
 			// update all machines about stuff like respawns, etc.
 			multi_options_update_netgame();
-
-			if (MULTI_IS_TRACKER_GAME) {
-				multi_fs_tracker_update_game(ng);
-			}
 		} else {
 			multi_options_update_mission(ng, Multi_create_list_mode == MULTI_CREATE_SHOW_CAMPAIGNS ? 1 : 0);
 		}
@@ -5923,10 +5919,6 @@ void multi_create_sw_clicked()
 
 		// update all machines about stuff like respawns, etc.
 		multi_options_update_netgame();
-
-		if (MULTI_IS_TRACKER_GAME) {
-			multi_fs_tracker_update_game(ng);
-		}
 	}
 	// on the standalone
 	else {
@@ -6871,10 +6863,6 @@ void multi_ho_apply_options()
 
 	// send an options update
 	multi_options_update_netgame();
-
-	if (MULTI_IS_TRACKER_GAME) {
-		multi_fs_tracker_update_game(&Netgame);
-	}
 }
 
 // display the voice record time settings
@@ -8436,10 +8424,6 @@ void multi_sync_pre_init()
 		Netgame.options.skill_level = NUM_SKILL_LEVELS / 2;
 		Game_skill_level = NUM_SKILL_LEVELS / 2;
 		multi_options_update_netgame();
-
-		if (MULTI_IS_TRACKER_GAME) {
-			multi_fs_tracker_update_game(&Netgame);
-		}
 	}
 
 	// notify everyone of when we get here

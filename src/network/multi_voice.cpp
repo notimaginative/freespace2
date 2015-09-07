@@ -1216,10 +1216,6 @@ void multi_voice_set_vars(int qos,int duration)
 	// send an options update if necessary
 	if(need_update && !(Game_mode & GM_STANDALONE_SERVER)){
 		multi_options_update_netgame();
-
-		if (MULTI_IS_TRACKER_GAME) {
-			multi_fs_tracker_update_game(&Netgame);
-		}
 	}
 }
 

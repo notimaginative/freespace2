@@ -512,7 +512,9 @@ void multi_fs_tracker_login_freespace()
 	}
 
 	// if we're already logged into a game, don't do anything
-	SDL_assert((Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Net_player->flags & NETINFO_FLAG_MT_CONNECTED));
+	if ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) || (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) ) {
+		return;
+	}
 
 	// pretty much all we do is make 1 call
 	memset(&Multi_tracker_game_data, 0, sizeof(freespace2_net_game_data));

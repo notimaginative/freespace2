@@ -382,7 +382,7 @@
  * 20).
  * 
  * 330   9/17/98 9:43a Allender
- * removed an Assert that Dave called bogus.
+ * removed an SDL_assert that Dave called bogus.
  * 
  * 329   9/16/98 6:54p Dave
  * Upped  max sexpression nodes to 1800 (from 1600). Changed FRED to sort
@@ -527,6 +527,8 @@
 #include "animplay.h"
 #include "multi_dogfight.h"
 #include "missionpause.h"
+#include "multi_fstracker.h"
+#include "multi_sw.h"
 
 // -------------------------------------------------------------------------------------------------------------
 // 
@@ -619,7 +621,7 @@ void multi_common_set_text(const char *str, int auto_scroll)
 	if(strlen(str) > MULTI_COMMON_MAX_TEXT){
 		return ;
 	} else {
-		strcpy(Multi_common_all_text,str);
+		SDL_strlcpy(Multi_common_all_text, str, SDL_arraysize(Multi_common_all_text));
 	}
 	
 	// split the whole thing up
@@ -638,7 +640,7 @@ void multi_common_add_text(const char *str, int auto_scroll)
 	if((strlen(str) + strlen(Multi_common_all_text)) > MULTI_COMMON_MAX_TEXT){
 		return ;
 	} else {
-		strcat(Multi_common_all_text,str);
+		SDL_strlcat(Multi_common_all_text, str, SDL_arraysize(Multi_common_all_text));
 	}
 	
 	// split the whole thing up
@@ -657,11 +659,12 @@ void multi_common_split_text()
 	char	*p_str[MAX_BRIEF_LINES];
 
 	n_lines = split_str(Multi_common_all_text, Multi_common_text_coords[gr_screen.res][2], n_chars, p_str, MULTI_COMMON_TEXT_MAX_LINES, MULTI_COMMON_TEXT_META_CHAR);
-	Assert(n_lines != -1);
+	SDL_assert(n_lines != -1);
 
 	for ( i = 0; i < n_lines; i++ ) {
-		Assert(n_chars[i] < MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
-		strncpy(Multi_common_text[i], p_str[i], n_chars[i]);
+		SDL_assert(n_chars[i] < MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
+		int len	= min(n_chars[i] + 1, MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
+		SDL_strlcpy(Multi_common_text[i], p_str[i], len);
 		Multi_common_text[i][n_chars[i]] = 0;
 		drop_leading_white_space(Multi_common_text[i]);		
 	}
@@ -718,7 +721,7 @@ int Multi_common_notify_stamp;
 
 void multi_common_notify_init()
 {
-	strcpy(Multi_common_notify_text,"");
+	SDL_strlcpy(Multi_common_notify_text, "", SDL_arraysize(Multi_common_notify_text));
 	Multi_common_notify_stamp = -1;
 }
 
@@ -726,7 +729,7 @@ void multi_common_notify_init()
 void multi_common_add_notify(const char *str)
 {
 	if(str){
-		strcpy(Multi_common_notify_text,str);
+		SDL_strlcpy(Multi_common_notify_text, str, SDL_arraysize(Multi_common_notify_text));
 		Multi_common_notify_stamp = timestamp(MULTI_COMMON_NOTIFY_TIME);
 	}
 }
@@ -894,12 +897,6 @@ void multi_common_set_palette()
 	if(Multi_common_interface_palette == -1){
 		multi_common_load_palette();
 	}
-	
-	if(Multi_common_interface_palette != -1){
-#ifndef HARDWARE_ONLY
-		palette_use_bm_palette(Multi_common_interface_palette);
-#endif
-	}
 }
 
 // unload the bitmap palette
@@ -913,19 +910,7 @@ void multi_common_unload_palette()
 
 void multi_common_verify_cd()
 {
-#ifdef GAME_CD_CHECK
-	// otherwise, call the freespace function to determine if we have a cd
-	Multi_has_cd = 0;
-#ifdef MAKE_FS1
-	if((find_freespace_cd(FS_CDROM_VOLUME_1) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_2) >= 0) ){
-#else
-	if((find_freespace_cd(FS_CDROM_VOLUME_1) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_2) >= 0) || (find_freespace_cd(FS_CDROM_VOLUME_3) >= 0) ){
-#endif
-		Multi_has_cd = 1;
-	} 
-#else
 	Multi_has_cd = 1;
-#endif
 }
 
 
@@ -1252,7 +1237,7 @@ DCF(mj_make, "")
 	for(idx=0; idx<Dc_arg_int; idx++){
 		// stuff some fake info
 		memset(&ag, 0, sizeof(active_game));
-		sprintf(ag.name, "Game %d", idx);
+		SDL_snprintf(ag.name, SDL_arraysize(ag.name), "Game %d", idx);
 		ag.version = MULTI_FS_SERVER_VERSION;
 		ag.comp_version = MULTI_FS_SERVER_VERSION;
 		ag.server_addr.addr[0] = (char)idx;
@@ -1301,25 +1286,8 @@ void multi_join_game_init()
 
 	// do the multiplayer init stuff - multi_level_init() now does all net_player zeroing.
 	// setup various multiplayer things
-	Assert( Game_mode & GM_MULTIPLAYER );
-	Assert( Net_player != NULL );
-
-	switch (Multi_options_g.protocol) {	
-	case NET_IPX:
-		ADDRESS_LENGTH = IPX_ADDRESS_LENGTH;
-		PORT_LENGTH = IPX_PORT_LENGTH;
-		break;
-
-	case NET_TCP:
-		ADDRESS_LENGTH = IP_ADDRESS_LENGTH;		
-		PORT_LENGTH = IP_PORT_LENGTH;			
-		break;
-
-	default :
-		Int3();
-	} // end switch
-	
-	HEADER_LENGTH = 1;
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Net_player != NULL );
 
 	memset( &Netgame, 0, sizeof(Netgame) );
 
@@ -1373,10 +1341,12 @@ void multi_join_game_init()
 	help_overlay_set_state(MULTI_JOIN_OVERLAY,0);
 	
 	// do TCP and VMT specific initialization
-	if(Multi_options_g.protocol == NET_TCP){		
+	if ( !Multi_options_g.pxo ) {
 		// if this is a TCP (non tracker) game, we'll load up our default address list right now		
 		multi_join_load_tcp_addrs();		
-	}	
+	} else {
+		multi_fs_tracker_send_game_request();
+	}
 
 	// initialize any and all timestamps	
 	Multi_join_glr_stamp = -1;
@@ -1449,7 +1419,7 @@ void multi_join_game_init()
 			port_num = (short)atoi(p);
 		}
 		ip_addr = inet_addr(Cmdline_connect_addr);
-		memcpy(Multi_autojoin_addr.addr, &ip_addr, 4);
+		memcpy(Multi_autojoin_addr.addr, &ip_addr, IP_ADDRESS_LENGTH);
 		Multi_autojoin_addr.port = port_num;
 
 		send_server_query(&Multi_autojoin_addr);
@@ -1524,29 +1494,34 @@ void multi_join_game_do_frame()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		if(help_overlay_active(MULTI_JOIN_OVERLAY)){
 			help_overlay_set_state(MULTI_JOIN_OVERLAY,0);
-		} else {		
-			gameseq_post_event(GS_EVENT_MAIN_MENU);			
+		} else {
+			if (Multi_options_g.pxo == 1) {
+				gameseq_post_event(GS_EVENT_PXO);
+			} else {
+				gameseq_post_event(GS_EVENT_MAIN_MENU);
+			}
+
 			gamesnd_play_iface(SND_USER_SELECT);
 		}
 		break;
 
 	// page up the game list
-	case KEY_PAGEUP:
+	case SDLK_PAGEUP:
 		multi_join_list_page_up();	
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
 #endif
 		break;
 
-	case KEY_T:
+	case SDLK_t:
 		multi_pinfo_popup(Net_player);
 		break;
 
 	// page down the game list
-	case KEY_PAGEDOWN:
+	case SDLK_PAGEDOWN:
 		multi_join_list_page_down();
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
@@ -1554,18 +1529,18 @@ void multi_join_game_do_frame()
 		break;
 
 	// send out a ping-all
-	case KEY_P :		
+	case SDLK_p :
 		multi_join_ping_all();		
 		Multi_join_ping_stamp = timestamp(MULTI_JOIN_PING_TIME);
 		break;	
 
 	// shortcut to start a game	
-	case KEY_S :		
+	case SDLK_s :
 		multi_join_create_game();		
 		break;
 
 	// scroll the game list up
-	case KEY_UP:
+	case SDLK_UP:
 		multi_join_list_scroll_up();
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
@@ -1573,7 +1548,7 @@ void multi_join_game_do_frame()
 		break;
 
 	// scroll the game list down
-	case KEY_DOWN:
+	case SDLK_DOWN:
 		multi_join_list_scroll_down();
 #ifndef MAKE_FS1
 		Multi_join_slider.force_currentItem(Multi_join_list_start);
@@ -1669,9 +1644,13 @@ void multi_join_button_pressed(int n)
 {
 	switch(n){
 	case MJ_CANCEL :
-		// if we're player PXO, go back there	
-		gameseq_post_event(GS_EVENT_MAIN_MENU);		
-		gamesnd_play_iface(SND_USER_SELECT);		
+		// if we're player PXO, go back there
+		if (Multi_options_g.pxo == 1) {
+			gameseq_post_event(GS_EVENT_PXO);
+		} else {
+			gameseq_post_event(GS_EVENT_MAIN_MENU);
+		}
+		gamesnd_play_iface(SND_USER_SELECT);
 		break;
 	case MJ_ACCEPT :
 		if(Active_game_count <= 0){
@@ -1694,7 +1673,7 @@ void multi_join_button_pressed(int n)
 			*/
 
 			// send the join request here
-			Assert(Multi_join_selected_item != NULL);
+			SDL_assert(Multi_join_selected_item != NULL);
 
 			// send a join request packet
 			Multi_join_should_send = 0;			
@@ -1767,7 +1746,7 @@ void multi_join_button_pressed(int n)
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		} else {			
 			// send the join request here
-			Assert(Multi_join_selected_item != NULL);
+			SDL_assert(Multi_join_selected_item != NULL);
 
 			Multi_join_should_send = 1;		
 
@@ -1805,7 +1784,7 @@ void multi_join_display_games()
 
 			// display the connection speed
 			str[0] = '\0';
-			strcpy(str, Multi_join_speed_labels[con_type]);
+			SDL_strlcpy(str, Multi_join_speed_labels[con_type], SDL_arraysize(str));
 			gr_set_color_fast(Multi_join_speed_colors[con_type]);
 			gr_string(Mj_speed_coords[gr_screen.res][MJ_X_COORD], y_start, str);
 
@@ -1819,18 +1798,18 @@ void multi_join_display_games()
 			// display the game name, adding appropriate status chars
 			str[0] = '\0';
 			if(moveup->flags & AG_FLAG_STANDALONE){
-				strcat(str,MJ_CHAR_STANDALONE);
+				SDL_strlcat(str, MJ_CHAR_STANDALONE, SDL_arraysize(str));
 			}
 			if(moveup->flags & AG_FLAG_CAMPAIGN){
-				strcat(str,MJ_CHAR_CAMPAIGN);
+				SDL_strlcat(str, MJ_CHAR_CAMPAIGN, SDL_arraysize(str));
 			}
 
 			// tack on the actual server name			
-			strcat(str," ");
-			strcat(str,moveup->name);
+			SDL_strlcat(str, " ", SDL_arraysize(str));
+			SDL_strlcat(str, moveup->name, SDL_arraysize(str));
 			if(strlen(moveup->mission_name) > 0){
-				strcat(str, " / ");
-				strcat(str,moveup->mission_name);
+				SDL_strlcat(str, " / ", SDL_arraysize(str));
+				SDL_strlcat(str, moveup->mission_name, SDL_arraysize(str));
 			} 
 
 			// make sure the string fits in the display area and draw it
@@ -1841,7 +1820,7 @@ void multi_join_display_games()
 			if(moveup->ping.ping_avg > 0){
 				if(moveup->ping.ping_avg > 1000){
 					gr_set_color_fast(&Color_bright_red);
-					strcpy(str,XSTR("> 1 sec",761));
+					SDL_strlcpy(str, XSTR("> 1 sec",761), SDL_arraysize(str));
 				} else {
 					// set the appropriate ping time color indicator
 					if(moveup->ping.ping_avg > MJ_PING_YELLOW){
@@ -1852,8 +1831,7 @@ void multi_join_display_games()
 						gr_set_color_fast(&Color_bright_green);
 					}
 
-					sprintf(str,"%d",moveup->ping.ping_avg);
-					strcat(str,XSTR(" ms",762));  // [[ Milliseconds ]]
+					SDL_snprintf(str, SDL_arraysize(str), "%d%s", moveup->ping.ping_avg, XSTR(" ms",762));
 				}
 
 				gr_string(Mj_ping_coords[gr_screen.res][MJ_X_COORD],y_start,str);
@@ -1865,7 +1843,7 @@ void multi_join_display_games()
 			} else {
 				gr_set_color_fast(&Color_text_normal);
 			}
-			sprintf(str,"%d",moveup->num_players);			
+			SDL_snprintf(str, SDL_arraysize(str), "%d", moveup->num_players);
 			gr_get_string_size(&w,&h,str);
 			gr_string(Mj_players_coords[gr_screen.res][MJ_X_COORD] + (Mj_players_coords[gr_screen.res][MJ_W_COORD] - w)/2,y_start,str);			
 
@@ -1926,27 +1904,27 @@ void multi_join_blit_game_status(active_game *game, int y)
 	switch( game->flags & AG_FLAG_STATE_MASK ){
 	case AG_FLAG_FORMING:
 		gr_set_color_fast(&Color_bright_green);
-		strcpy(status_text,XSTR("Forming",764));
+		SDL_strlcpy(status_text, XSTR("Forming", 764), SDL_arraysize(status_text));
 		break;
 	case AG_FLAG_BRIEFING:
 		gr_set_color_fast(&Color_bright_red);
-		strcpy(status_text,XSTR("Briefing",765));
+		SDL_strlcpy(status_text, XSTR("Briefing", 765), SDL_arraysize(status_text));
 		break;
 	case AG_FLAG_DEBRIEF:
 		gr_set_color_fast(&Color_bright_red);
-		strcpy(status_text,XSTR("Debrief",766));
+		SDL_strlcpy(status_text, XSTR("Debrief", 766), SDL_arraysize(status_text));
 		break;
 	case AG_FLAG_PAUSE:
 		gr_set_color_fast(&Color_bright_red);
-		strcpy(status_text,XSTR("Paused",767));
+		SDL_strlcpy(status_text, XSTR("Paused", 767), SDL_arraysize(status_text));
 		break;
 	case AG_FLAG_IN_MISSION:
 		gr_set_color_fast(&Color_bright_red);
-		strcpy(status_text,XSTR("Playing",768));
+		SDL_strlcpy(status_text, XSTR("Playing", 768), SDL_arraysize(status_text));
 		break;
 	default:
 		gr_set_color_fast(&Color_bright);
-		strcpy(status_text,XSTR("Unknown",769));
+		SDL_strlcpy(status_text, XSTR("Unknown", 769), SDL_arraysize(status_text));
 		break;
 	}		
 	gr_get_string_size(&str_w,NULL,status_text);
@@ -1992,7 +1970,7 @@ void multi_join_load_tcp_addrs()
 			// copy the server ip address
 			memset(&addr,0,sizeof(net_addr));
 			addr.type = NET_TCP;
-			psnet_string_to_addr(&addr,line);
+			psnet_string_to_addr(&addr, line, SDL_arraysize(line));
 			if ( addr.port == 0 ){
 				addr.port = DEFAULT_GAME_PORT;
 			}
@@ -2056,14 +2034,14 @@ void multi_join_do_netstuff()
 // evaluate a returned pong.
 void multi_join_eval_pong(net_addr *addr, fix pong_time)
 {	
-	int found;
+//	int found;
 	active_game *moveup = Active_game_head;
 
-	found = 0;
+//	found = 0;
 	if(moveup != NULL){
 		do {				
 			if(psnet_same(&moveup->server_addr,addr)){
-				found = 1;
+			//	found = 1;
 				multi_ping_eval_pong(&moveup->ping);
 				
 				break;
@@ -2116,7 +2094,7 @@ void multi_join_process_select()
 		multi_common_set_text("");
 
 		// I sure hope this doesn't happen
-		Assert(Multi_join_selected_item != NULL);		
+		SDL_assert(Multi_join_selected_item != NULL);		
 		return;
 	} 
 	// otherwise see if he's clicked on an item
@@ -2131,7 +2109,7 @@ void multi_join_process_select()
 			Multi_join_selected_item = multi_join_get_game(Multi_join_list_selected);
 			
 			// I sure hope this doesn't happen
-			Assert(Multi_join_selected_item != NULL);
+			SDL_assert(Multi_join_selected_item != NULL);
 
 			// send a mission description request to this guy
 			send_netgame_descript_packet(&Multi_join_selected_item->server_addr,0);
@@ -2398,7 +2376,7 @@ void multi_join_send_join_request(int as_observer)
 
 	// if the netgame is in password mode, put up a request for the password
 	if(Multi_join_selected_item->flags & AG_FLAG_PASSWD){
-		if(!multi_passwd_popup(Multi_join_request.passwd)){
+		if(!multi_passwd_popup(Multi_join_request.passwd, SDL_arraysize(Multi_join_request.passwd))){
 			return;
 		}
 
@@ -2406,13 +2384,13 @@ void multi_join_send_join_request(int as_observer)
 	}	
 		
 	// fill out the join request struct	
-	strcpy(Multi_join_request.callsign,Player->callsign);
+	SDL_strlcpy(Multi_join_request.callsign, Player->callsign, SDL_arraysize(Multi_join_request.callsign));
 	if(strlen(Player->image_filename) > 0){
-		strcpy(Multi_join_request.image_filename, Player->image_filename);
+		SDL_strlcpy(Multi_join_request.image_filename, Player->image_filename, SDL_arraysize(Multi_join_request.image_filename));
 	}	
 #ifndef MAKE_FS1
 	if(strlen(Player->squad_filename) > 0){
-		strcpy(Multi_join_request.squad_filename, Player->squad_filename);
+		SDL_strlcpy(Multi_join_request.squad_filename, Player->squad_filename, SDL_arraysize(Multi_join_request.squad_filename));
 	}
 #endif
 
@@ -2435,7 +2413,7 @@ void multi_join_send_join_request(int as_observer)
 	
 	// pxo squad info
 #ifndef MAKE_FS1
-	strncpy(Multi_join_request.pxo_squad_name, Multi_tracker_squad_name, LOGIN_LEN);
+	SDL_strlcpy(Multi_join_request.pxo_squad_name, Multi_tracker_squad_name, LOGIN_LEN);
 #endif
 
 	// version of this server
@@ -2585,14 +2563,13 @@ void multi_join_blit_protocol()
 	gr_set_color_fast(&Color_bright);
 
 	switch(Socket_type){
-	case NET_TCP:		
-		// straight TCP		
-		gr_string(5, 2, "TCP");		
-		break;
+		case NET_TCP:
+			// straight TCP
+			gr_string(5, 2, "TCP");
+			break;
 
-	case NET_IPX:
-		gr_string(5, 2, "IPX");
-		break;
+		default:
+			Int3();
 	}
 }
 
@@ -2831,7 +2808,7 @@ void multi_sg_rank_scroll_up();
 void multi_sg_rank_scroll_down();
 void multi_sg_rank_display_stuff();
 void multi_sg_rank_process_select();
-void multi_sg_rank_build_name(char *in,char *out);
+void multi_sg_rank_build_name(char *in, char *out, const int max_outlen);
 void multi_sg_check_passwd();
 void multi_sg_check_name();
 void multi_sg_release_passwd();
@@ -2849,7 +2826,7 @@ int multi_start_game_rank_from_name( char *rank ) {
 #else
 	for ( i = 0; i <= MAX_FREESPACE2_RANK; i++ ) {
 #endif
-		if ( !stricmp(Ranks[i].name, rank) ) {
+		if ( !SDL_strcasecmp(Ranks[i].name, rank) ) {
 			return i;
 		}
 	}
@@ -2933,7 +2910,7 @@ void multi_start_game_init()
 	// if starting a netgame, set the name of the game and any other options that are appropriate
 	if ( Cmdline_start_netgame ) {
 		if ( Cmdline_game_name != NULL ) {
-			strcpy( Multi_sg_netgame->name, Cmdline_game_name );
+			SDL_strlcpy( Multi_sg_netgame->name, Cmdline_game_name, SDL_arraysize(Multi_sg_netgame->name) );
 			Multi_sg_game_name.set_text(Multi_sg_netgame->name);
 		}
 
@@ -2945,7 +2922,7 @@ void multi_start_game_init()
 			Multi_sg_netgame->mode = NG_MODE_RESTRICTED;
 		} else if ( Cmdline_game_password != NULL ) {
 			Multi_sg_netgame->mode = NG_MODE_PASSWORD;
-			strcpy(Multi_sg_netgame->passwd, Cmdline_game_password);
+			SDL_strlcpy(Multi_sg_netgame->passwd, Cmdline_game_password, SDL_arraysize(Multi_sg_netgame->passwd));
 			Multi_sg_game_passwd.set_text(Multi_sg_netgame->passwd);
 		}
 
@@ -2978,6 +2955,10 @@ void multi_start_game_init()
 
 		gameseq_post_event(GS_EVENT_MULTI_HOST_SETUP);
 	}
+
+	if ( multi_fs_tracker_inited() ) {
+		multi_fs_tracker_login_freespace();
+	}
 }
 
 void multi_start_game_do()
@@ -2992,7 +2973,7 @@ void multi_start_game_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :		
+	case SDLK_ESCAPE :
 		if(help_overlay_active(MULTI_START_OVERLAY)){
 			help_overlay_set_state(MULTI_START_OVERLAY,0);
 		} else {
@@ -3002,8 +2983,8 @@ void multi_start_game_do()
 		break;
 	
 	// same as ACCEPT
-	case KEY_LCTRL + KEY_ENTER :
-	case KEY_RCTRL + KEY_ENTER :		
+	case SDLK_LCTRL + SDLK_RETURN :
+	case SDLK_RCTRL + SDLK_RETURN :
 		gamesnd_play_iface(SND_COMMIT_PRESSED);
 		gameseq_post_event(GS_EVENT_MULTI_HOST_SETUP);
 		break;
@@ -3307,12 +3288,12 @@ void multi_sg_init_gamenet()
 	// setup the default game name, taking care of string length and player callsigns
 	memset(out_name,0,128);
 	memset(buf,0,128);
-	pilot_format_callsign_personal(Player->callsign,out_name);
-	sprintf(buf, XSTR("%s game",782), out_name);  // [[ %s will be a pilot's name ]]
+	pilot_format_callsign_personal(Player->callsign, out_name, SDL_arraysize(out_name));
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR("%s game",782), out_name);  // [[ %s will be a pilot's name ]]
 	if ( strlen(buf) > MAX_GAMENAME_LEN ){
-		strcpy(buf, XSTR("Temporary name",783));
+		SDL_strlcpy(buf, XSTR("Temporary name",783), SDL_arraysize(buf));
 	}
-	strcpy(Multi_sg_netgame->name, buf);
+	SDL_strlcpy(Multi_sg_netgame->name, buf, SDL_arraysize(Multi_sg_netgame->name));
 
 	// set the default qos and duration
 	multi_voice_maybe_update_vars(Netgame.options.voice_qos,Netgame.options.voice_record_time);
@@ -3359,7 +3340,7 @@ void multi_sg_init_gamenet()
 		// NETLOG
 		ml_string(NOX("Flushing multi-data cache"));
 	}
-			
+
 	game_flush();
 }
 
@@ -3451,7 +3432,7 @@ void multi_sg_rank_display_stuff()
 		}
 
 		// print the text
-		multi_sg_rank_build_name(Ranks[idx].name,rank_name);
+		multi_sg_rank_build_name(Ranks[idx].name, rank_name, sizeof(rank_name));
 		gr_string(Msg_rank_list_coords[gr_screen.res][MSG_X_COORD],y,rank_name);
 
 		// increment stuff
@@ -3463,7 +3444,7 @@ void multi_sg_rank_display_stuff()
 	// display the selected rank
 #ifdef MAKE_FS1
 	gr_set_color_fast(&Color_bright);
-	multi_sg_rank_build_name(Ranks[Multi_sg_netgame->rank_base].name,rank_name);
+	multi_sg_rank_build_name(Ranks[Multi_sg_netgame->rank_base].name, rank_name, SDL_arraysize(rank_name));
 	gr_string(Msg_rank_sel_coords[gr_screen.res][MSG_X_COORD],Msg_rank_sel_coords[gr_screen.res][MSG_Y_COORD],rank_name);
 #endif
 }
@@ -3496,41 +3477,40 @@ void multi_sg_rank_process_select()
 				gamesnd_play_iface(SND_GENERAL_FAIL);
 
 				memset(string,0,255);
-				sprintf(string,XSTR("Illegal value for a host of your rank (%s)\n",784),Ranks[Net_player->player->stats.rank].name);
+				SDL_snprintf(string,SDL_arraysize(string),XSTR("Illegal value for a host of your rank (%s)\n",784),Ranks[Net_player->player->stats.rank].name);
 				multi_common_add_notify(string);
 			}
 		}		
 	}
 }
 
-void multi_sg_rank_build_name(char *in,char *out)
+void multi_sg_rank_build_name(char *in, char *out, const int max_outlen)
 {
 	char use[100];
 	char *first;
 
-	strcpy(use,in);
+	SDL_strlcpy(use, in, SDL_arraysize(use));
 	first = strtok(use," ");
 
 	// just copy the string
 	if(first == NULL){
-		strcpy(out,in);
+		SDL_strlcpy(out, in, max_outlen);
 	}
 	
 	// if the first part of the string is lieutenant, then abbreivate it and tack on the rest of the string	
-	if (stricmp(first,XSTR("lieutenant",785)) == 0) {
+	if (SDL_strcasecmp(first,XSTR("lieutenant",785)) == 0) {
 		first = strtok(NULL, NOX("\n"));
 
 		// if he's not just a plain lieutenant
 		if(first != NULL){
-			strcpy(out,XSTR("Lt. ",786));  // [[ lieutenant ]]
-			strcat(out,first);
+			SDL_snprintf(out, max_outlen, "%s%s", XSTR("Lt. ",786), first); // [[ lieutenant ]]
 		}
 		// if he _is_ just a plain lieutenant
 		else {
-			strcpy(out,in);
+			SDL_strlcpy(out, in, max_outlen);
 		}
 	} else {
-		strcpy(out,in);
+		SDL_strlcpy(out, in, max_outlen);
 	}
 }
 
@@ -4000,7 +3980,7 @@ void multi_create_sw_clicked();
 
 // since we can selectively filter out mission/campaign types we always need to map a selected index (which is relative 
 // to the displayed list), to an absolute index (which is relative to the total file list - some of which may filtered out)
-void multi_create_select_to_filename(int select_index,char *filename);
+void multi_create_select_to_filename(int select_index, char *filename, const int max_filelen);
 int multi_create_select_to_index(int select_index);
 
 int Multi_create_should_show_popup = 0;
@@ -4211,7 +4191,7 @@ void multi_create_game_init()
 	Multi_create_list_select_button.hide();	
 
 	// set hotkeys for a couple of things.
-	Multi_create_buttons[gr_screen.res][MC_ACCEPT].button.set_hotkey(KEY_CTRLED+KEY_ENTER);	
+	Multi_create_buttons[gr_screen.res][MC_ACCEPT].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
 
 	// init some master tracker stuff
 	Multi_create_frame_count = 0;
@@ -4304,7 +4284,7 @@ void multi_create_game_do()
 
 	switch(k){	
 	// same as the cancel button
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		if(help_overlay_active(MULTI_CREATE_OVERLAY)){
 			help_overlay_set_state(MULTI_CREATE_OVERLAY,0);
 		} else {		
@@ -4791,9 +4771,9 @@ void multi_create_plist_blit_normal()
 			}			
 			
 			// make sure the string will fit, then display it
-			strcpy(str,Net_players[idx].player->callsign);
+			SDL_strlcpy(str, Net_players[idx].player->callsign, SDL_arraysize(str));
 			if(Net_players[idx].flags & NETINFO_FLAG_OBSERVER){
-				strcat(str,XSTR("(O)",787));  // [[ Observer ]]
+				SDL_strlcat(str, XSTR("(O)",787), SDL_arraysize(str));  // [[ Observer ]]
 			}
 			gr_force_fit_string(str,CALLSIGN_LEN,Mc_players_coords[gr_screen.res][MC_W_COORD] - total_offset);
 			gr_string(Mc_players_coords[gr_screen.res][MC_X_COORD] + total_offset,y_start,str);
@@ -4864,9 +4844,9 @@ void multi_create_plist_blit_team()
 			}						
 
 			// make sure the string will fit
-			strcpy(str,Net_players[idx].player->callsign);
+			SDL_strlcpy(str, Net_players[idx].player->callsign, SDL_arraysize(str));
 			if(Net_players[idx].flags & NETINFO_FLAG_OBSERVER){
-				strcat(str,XSTR("(O)",787));
+				SDL_strlcat(str, XSTR("(O)",787), SDL_arraysize(str));
 			}
 			gr_force_fit_string(str,CALLSIGN_LEN,Mc_players_coords[gr_screen.res][MC_W_COORD] - total_offset);
 
@@ -4930,9 +4910,9 @@ void multi_create_plist_blit_team()
 			}
 
 			// make sure the string will fit
-			strcpy(str,Net_players[idx].player->callsign);
+			SDL_strlcpy(str, Net_players[idx].player->callsign, SDL_arraysize(str));
 			if(Net_players[idx].flags & NETINFO_FLAG_OBSERVER){
-				strcat(str,XSTR("(O)",787));
+				SDL_strlcat(str, XSTR("(O)",787), SDL_arraysize(str));
 			}
 			gr_force_fit_string(str,CALLSIGN_LEN,Mc_players_coords[gr_screen.res][MC_W_COORD] - total_offset);
 
@@ -4969,12 +4949,10 @@ void multi_create_list_scroll_down()
 void multi_create_list_load_missions()
 {
 	char *fname, mission_name[NAME_LENGTH+1];
-	char wild_card[256];
+	char wild_card[6];
 	int file_count,idx;
 
-	memset(wild_card, 0, 256);
-	strcpy(wild_card, NOX("*"));
-	strcat(wild_card, FS_MISSION_FILE_EXT);
+	SDL_snprintf(wild_card, SDL_arraysize(wild_card), "*%s", FS_MISSION_FILE_EXT);
 	file_count = cf_get_file_list_preallocated(MULTI_CREATE_MAX_LIST_ITEMS, Multi_create_files_array, NULL, CF_TYPE_MISSIONS, wild_card);
 	Multi_create_mission_count = 0;
 
@@ -5020,8 +4998,8 @@ void multi_create_list_load_missions()
 				multi_create_info *mcip;
 
 				mcip = &Multi_create_mission_list[Multi_create_mission_count];				
-				strcpy(mcip->filename, filename );
-				strcpy(mcip->name, mission_name );
+				SDL_strlcpy(mcip->filename, filename, SDL_arraysize(mcip->filename));
+				SDL_strlcpy(mcip->name, mission_name, SDL_arraysize(mcip->name));
 				mcip->flags = flags;
 				mcip->respawn = m_respawn;
 				mcip->max_players = (ubyte)max_players;
@@ -5052,7 +5030,7 @@ void multi_create_list_load_campaigns()
 	int idx, file_count;
 	int campaign_type,max_players;
 	char title[255];
-	char wild_card[256];
+	char wild_card[6];
 
 	// maybe create a standalone dialog
 	if(Game_mode & GM_STANDALONE_SERVER){
@@ -5061,9 +5039,7 @@ void multi_create_list_load_campaigns()
 	}
 
 	Multi_create_campaign_count = 0;
-	memset(wild_card, 0, 256);
-	strcpy(wild_card, NOX("*"));
-	strcat(wild_card, FS_CAMPAIGN_FILE_EXT);
+	SDL_snprintf(wild_card, SDL_arraysize(wild_card), "*%s", FS_CAMPAIGN_FILE_EXT);
 	file_count = cf_get_file_list_preallocated(MULTI_CREATE_MAX_LIST_ITEMS, Multi_create_files_array, NULL, CF_TYPE_MISSIONS, wild_card);
 	for(idx = 0; idx < file_count; idx++){
 		int flags;
@@ -5090,14 +5066,14 @@ void multi_create_list_load_campaigns()
 		}
 
 		// if the campaign is a multiplayer campaign, then add the data to the campaign list items
-		flags = mission_campaign_parse_is_multi( filename, name );
+		flags = mission_campaign_parse_is_multi( filename, name, SDL_arraysize(name) );
 		if( flags != CAMPAIGN_TYPE_SINGLE && mission_campaign_get_info(filename,title,&campaign_type,&max_players)) {
 			if ( Multi_create_campaign_count < MULTI_CREATE_MAX_LIST_ITEMS ) {
 				multi_create_info *mcip;
 
 				mcip = &Multi_create_campaign_list[Multi_create_campaign_count];
-				strcpy(mcip->filename, filename );
-				strcpy(mcip->name, name );
+				SDL_strlcpy(mcip->filename, filename, SDL_arraysize(mcip->filename));
+				SDL_strlcpy(mcip->name, name, SDL_arraysize(mcip->name));
 				
 				// setup various flags
 				if ( flags == CAMPAIGN_TYPE_MULTI_COOP ){
@@ -5181,7 +5157,7 @@ void multi_create_list_do()
 		}
 		
 		// highlight the selected item
-		multi_create_select_to_filename(Multi_create_list_select,selected_name);
+		multi_create_select_to_filename(Multi_create_list_select, selected_name, SDL_arraysize(selected_name));
 		if(!strcmp(selected_name,Multi_create_file_list[idx].filename)){		
 			gr_set_color_fast(&Color_text_selected);
 		} else {
@@ -5192,16 +5168,16 @@ void multi_create_list_do()
 		multi_create_list_blit_icons(idx, y_start);		
 		
 		// force fit the mission name string
-		strcpy(selected_name,Multi_create_file_list[idx].name);
+		SDL_strlcpy(selected_name, Multi_create_file_list[idx].name, SDL_arraysize(selected_name));
 		gr_force_fit_string(selected_name,255,Mc_column1_w[gr_screen.res]);
 		gr_string(Mc_mission_name_x[gr_screen.res],y_start,selected_name);
 
 		// draw the max players if in mission mode		
-		sprintf(selected_name,"%d",(int)Multi_create_file_list[idx].max_players);
+		SDL_snprintf(selected_name,SDL_arraysize(selected_name),"%d",(int)Multi_create_file_list[idx].max_players);
 		gr_string(Mc_mission_count_x[gr_screen.res],y_start,selected_name);		
 
 		// force fit the mission filename string
-		strcpy(selected_name,Multi_create_file_list[idx].filename);
+		SDL_strlcpy(selected_name, Multi_create_file_list[idx].filename, SDL_arraysize(selected_name));
 		gr_force_fit_string(selected_name,255,Mc_column3_w[gr_screen.res]);
 		gr_string(Mc_mission_fname_x[gr_screen.res],y_start,selected_name);
 
@@ -5241,9 +5217,9 @@ void multi_create_list_select_item(int n)
 				
 		// set the mission name
 		if(Multi_create_list_mode == MULTI_CREATE_SHOW_MISSIONS){
-			multi_create_select_to_filename(n,ng->mission_name);		
+			multi_create_select_to_filename(n, ng->mission_name, SDL_arraysize(ng->mission_name));
 		} else {
-			multi_create_select_to_filename(n,ng->campaign_name);
+			multi_create_select_to_filename(n, ng->campaign_name, SDL_arraysize(ng->campaign_name));
 		}
 
 		// make sure the netgame type is properly set
@@ -5281,8 +5257,8 @@ void multi_create_list_select_item(int n)
 				ship_init();		// mwa -- 10/15/97.  Call this function to reset number of ships in mission
 				ng->max_players = mission_parse_get_multi_mission_info( ng->mission_name );				
 				
-				Assert(ng->max_players > 0);
-				strcpy(ng->title,The_mission.name);								
+				SDL_assert(ng->max_players > 0);
+				SDL_strlcpy(ng->title, The_mission.name, SDL_arraysize(ng->title));
 
 				// set the information area text
 				multi_common_set_text(The_mission.mission_desc);
@@ -5314,7 +5290,7 @@ void multi_create_list_select_item(int n)
 				// if we successfully got the # of players
 				else {
 					memset(ng->title,0,NAME_LENGTH+1);
-					strcpy(ng->title,title);
+					SDL_strlcpy(ng->title, title, SDL_arraysize(ng->title));
 					ng->max_players = max_players;					
 				}
 
@@ -5429,9 +5405,9 @@ void multi_create_accept_hit()
 			Netgame.campaign_mode = MP_SINGLE;
 
 			// setup various filenames and mission names
-			multi_create_select_to_filename(Multi_create_list_select,selected_name);
-			strncpy( Game_current_mission_filename, selected_name, MAX_FILENAME_LEN );
-			strncpy(Netgame.mission_name,selected_name,MAX_FILENAME_LEN);			
+			multi_create_select_to_filename(Multi_create_list_select, selected_name, SDL_arraysize(selected_name));
+			SDL_strlcpy( Game_current_mission_filename, selected_name, MAX_FILENAME_LEN );
+			SDL_strlcpy( Netgame.mission_name, selected_name, MAX_FILENAME_LEN );
 
 			// NETLOG
 			ml_printf(NOX("Starting single mission %s, with %d players"), Game_current_mission_filename, multi_num_players());
@@ -5448,7 +5424,7 @@ void multi_create_accept_hit()
 			Netgame.campaign_mode = MP_CAMPAIGN;
 
 			// start a campaign instead of a single mission
-			multi_create_select_to_filename(Multi_create_list_select,selected_name);
+			multi_create_select_to_filename(Multi_create_list_select, selected_name, SDL_arraysize(selected_name));
 			multi_campaign_start(selected_name);			
 			start_campaign = 1;
 
@@ -5578,7 +5554,7 @@ short multi_create_get_mouse_id()
 	return -1;
 }
 
-void multi_create_select_to_filename(int select_index,char *filename)
+void multi_create_select_to_filename(int select_index, char *filename, const int max_filelen)
 {
 	int idx;
 
@@ -5591,7 +5567,7 @@ void multi_create_select_to_filename(int select_index,char *filename)
 
 			// if we found the item
 			if(select_index < 0){
-				strcpy(filename,Multi_create_file_list[idx].filename);
+				SDL_strlcpy(filename, Multi_create_file_list[idx].filename, max_filelen);
 				return;
 			}
 		}
@@ -5603,13 +5579,13 @@ void multi_create_select_to_filename(int select_index,char *filename)
 
 			// if we found the item
 			if(select_index < 0){
-				strcpy(filename,Multi_create_file_list[idx].filename);
+				SDL_strlcpy(filename, Multi_create_file_list[idx].filename, max_filelen);
 				return;
 			}		
 		}
 	}
 
-	strcpy(filename,"");
+	SDL_strlcpy(filename, "", max_filelen);
 }
 
 int multi_create_select_to_index(int select_index)
@@ -5715,9 +5691,9 @@ int multi_create_ok_to_commit()
 
 			// message everyone - haha
 			if(Net_players[idx].player != NULL){
-				sprintf(err_string, "%s %s", Net_players[idx].player->callsign, XSTR("has hacked tables/data", 1271)); 
+				SDL_snprintf(err_string, SDL_arraysize(err_string), "%s %s", Net_players[idx].player->callsign, XSTR("has hacked tables/data", 1271));
 			} else {
-				sprintf(err_string, "somebody %s", XSTR("has hacked tables/data", 1271)); 
+				SDL_snprintf(err_string, SDL_arraysize(err_string), "somebody %s", XSTR("has hacked tables/data", 1271));
 			}
 			send_game_chat_packet(Net_player, err_string, MULTI_MSG_ALL, NULL, NULL, 1);
 		}
@@ -5755,7 +5731,7 @@ int multi_create_ok_to_commit()
 	observer_count = multi_num_observers();
 	if(observer_count > Netgame.options.max_observers){
 		// print up the error string
-		sprintf(err_string,XSTR("There are too many observers in the game\n\nMax : %d\nCurrently %d\n\nPlease dump a few",791),Netgame.options.max_observers,observer_count);
+		SDL_snprintf(err_string,SDL_arraysize(err_string),XSTR("There are too many observers in the game\n\nMax : %d\nCurrently %d\n\nPlease dump a few",791),Netgame.options.max_observers,observer_count);
 
 		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, err_string);
 		return 0;
@@ -5765,7 +5741,7 @@ int multi_create_ok_to_commit()
 	player_count = multi_num_players();
 	if(player_count > Netgame.max_players){
 		// print up the error string
-		sprintf(err_string,XSTR("There are too many players in the game\n\nMax : %d\nCurrently %d\n\nPlease dump a few", 792), Netgame.max_players,player_count);
+		SDL_snprintf(err_string,SDL_arraysize(err_string),XSTR("There are too many players in the game\n\nMax : %d\nCurrently %d\n\nPlease dump a few", 792), Netgame.max_players,player_count);
 
 		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, err_string);
 		return 0;
@@ -5816,7 +5792,8 @@ int multi_create_ok_to_commit()
 			}
 		}
 		// squad war
-		else {			
+		else {
+			return multi_sw_ok_to_commit();
 		}
 	}	
 		
@@ -5861,7 +5838,7 @@ int multi_create_lookup_mission(char *fname)
 	int idx;
 
 	for(idx=0; idx<Multi_create_mission_count; idx++){
-		if(!stricmp(fname, Multi_create_mission_list[idx].filename)){
+		if(!SDL_strcasecmp(fname, Multi_create_mission_list[idx].filename)){
 			return idx;
 		}
 	}
@@ -5876,7 +5853,7 @@ int multi_create_lookup_campaign(char *fname)
 	int idx;
 
 	for(idx=0; idx<Multi_create_campaign_count; idx++){
-		if(!stricmp(fname, Multi_create_campaign_list[idx].filename)){
+		if(!SDL_strcasecmp(fname, Multi_create_campaign_list[idx].filename)){
 			return idx;
 		}
 	}
@@ -5912,7 +5889,7 @@ void multi_create_sw_clicked()
 	// maybe switch squad war off
 	if(!Multi_create_sw_checkbox.checked()){
 		// if the mission selected is a coop mission, go back to coop mode
-		Assert(file_index != -1);
+		SDL_assert(file_index != -1);
 		if(file_index == -1){
 			ng->type_flags = NG_TYPE_COOP;			
 		}		
@@ -5926,7 +5903,7 @@ void multi_create_sw_clicked()
 	}
 	// switch squad war on
 	else {
-		Assert(file_index != -1);
+		SDL_assert(file_index != -1);
 		if((file_index == -1) || !(Multi_create_file_list[file_index].flags & MISSION_TYPE_MULTI_TEAMS)){			
 			Multi_create_sw_checkbox.set_state(0);			
 		} else {
@@ -6486,11 +6463,11 @@ void multi_host_options_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		gameseq_post_event(GS_EVENT_MULTI_HOST_SETUP);
 		break;
 	// same as ACCEPT
-	case KEY_CTRLED + KEY_ENTER :	
+	case KEY_CTRLED + SDLK_RETURN :
 		gamesnd_play_iface(SND_COMMIT_PRESSED);
 		multi_ho_accept_hit();
 		break;
@@ -6602,7 +6579,7 @@ void multi_ho_button_pressed(int n)
 			break;
 		}
 	}
-	Assert(radio_index != -1);
+	SDL_assert(radio_index != -1);
 
 	// check to see if a radio button was pressed
 	if(radio_index < MULTI_HO_NUM_RADIO_BUTTONS){
@@ -6832,43 +6809,43 @@ void multi_ho_get_options()
 	}	
 
 	// get the voice qos options
-	Assert((Netgame.options.voice_qos >= 1) && (Netgame.options.voice_qos <= 10));
+	SDL_assert((Netgame.options.voice_qos >= 1) && (Netgame.options.voice_qos <= 10));
 	Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_VOICE_QOS].slider.pos = (Netgame.options.voice_qos - 1);
 
 	// get the voice duration options
-	Assert((Netgame.options.voice_record_time > 0) && (Netgame.options.voice_record_time <= MULTI_VOICE_MAX_TIME));
+	SDL_assert((Netgame.options.voice_record_time > 0) && (Netgame.options.voice_record_time <= MULTI_VOICE_MAX_TIME));
 	Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_VOICE_DUR].slider.pos = ((int)((float)Netgame.options.voice_record_time / 500.0f)) - 1;	
 
 	// get the current skill level
-	Assert((Game_skill_level >= 0) && (Game_skill_level < NUM_SKILL_LEVELS));
+	SDL_assert((Game_skill_level >= 0) && (Game_skill_level < NUM_SKILL_LEVELS));
 	Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_SKILL].slider.pos = Game_skill_level;	
 
 	// get the # of observers
 	memset(resp_str,0,10);
-	sprintf(resp_str,"%d",Netgame.options.max_observers);
+	SDL_snprintf(resp_str,SDL_arraysize(resp_str),"%d",Netgame.options.max_observers);
 	Multi_ho_obs.set_text(resp_str);
 
 	// set the respawn count
 	if(Netgame.campaign_mode == MP_SINGLE){
 		memset(resp_str,0,10);
-		sprintf(resp_str,"%d",Netgame.respawn);
+		SDL_snprintf(resp_str,SDL_arraysize(resp_str),"%d",Netgame.respawn);
 		Multi_ho_respawns.set_text(resp_str);	
 	}
 
 	// set the mission time limit
 	memset(resp_str,0,10);
 	float tl = f2fl(Netgame.options.mission_time_limit);
-	sprintf(resp_str,"%d",(int)(tl / 60.0f));
+	SDL_snprintf(resp_str,SDL_arraysize(resp_str),"%d",(int)(tl / 60.0f));
 	Multi_ho_time_limit.set_text(resp_str);
 
 	// set the furball kill limit
 	memset(resp_str,0,10);
-	sprintf(resp_str,"%d",Netgame.options.kill_limit);
+	SDL_snprintf(resp_str,SDL_arraysize(resp_str),"%d",Netgame.options.kill_limit);
 	Multi_ho_kill_limit.set_text(resp_str);
 
 	// set the token wait time
 	memset(resp_str,0,10);
-	sprintf(resp_str,"%d",Netgame.options.voice_token_wait / 1000);
+	SDL_snprintf(resp_str,SDL_arraysize(resp_str),"%d",Netgame.options.voice_token_wait / 1000);
 	Multi_ho_voice_wait.set_text(resp_str);	
 
 	// get whether we're in host/captains only modify mode
@@ -6885,7 +6862,7 @@ void multi_ho_apply_options()
 	multi_voice_maybe_update_vars(Netgame.options.voice_qos,Netgame.options.voice_record_time);		
 
 	// send an options update
-	multi_options_update_netgame();	
+	multi_options_update_netgame();
 }
 
 // display the voice record time settings
@@ -6904,7 +6881,7 @@ void multi_ho_display_record_time()
 	half_seconds = ((((Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_VOICE_DUR].slider.pos + 1) * 500) % 1000) / 500) * 5;
 
 	// format the string
-	sprintf(time_str,"%d.%d",full_seconds,half_seconds);
+	SDL_snprintf(time_str,SDL_arraysize(time_str),"%d.%d",full_seconds,half_seconds);
 	gr_set_color_fast(&Color_bright);
 	gr_string(Ho_vd_coords[gr_screen.res][MULTI_HO_X_COORD],Ho_vd_coords[gr_screen.res][MULTI_HO_Y_COORD],time_str);
 }
@@ -6921,7 +6898,7 @@ int multi_ho_check_values()
 		// if the value is invalid, let the user know
 		if(atoi(val_txt) > Multi_ho_mission_respawn){
 			memset(val_txt,0,255);
-			sprintf(val_txt,XSTR("Warning\nRespawn count in greater than mission specified max (%d)",796),Multi_ho_mission_respawn);			
+			SDL_snprintf(val_txt,SDL_arraysize(val_txt),XSTR("Warning\nRespawn count in greater than mission specified max (%d)",796),Multi_ho_mission_respawn);
 			popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,val_txt);
 			return 0;
 		}
@@ -6932,7 +6909,7 @@ int multi_ho_check_values()
 	// if the value is invalid, force it to be valid
 	if(atoi(val_txt) > MULTI_HO_MAX_TIME_LIMIT){
 		memset(val_txt,0,255);
-		sprintf(val_txt,XSTR("Warning\nMission time limit is greater than max allowed (%d)",797),MULTI_HO_MAX_TIME_LIMIT);		
+		SDL_snprintf(val_txt,SDL_arraysize(val_txt),XSTR("Warning\nMission time limit is greater than max allowed (%d)",797),MULTI_HO_MAX_TIME_LIMIT);
 		popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,val_txt);
 		return 0;
 	}
@@ -6942,7 +6919,7 @@ int multi_ho_check_values()
 	// if the value is invalid, force it to be valid
 	if(atoi(val_txt) > MULTI_HO_MAX_OBS){
 		memset(val_txt,0,255);
-		sprintf(val_txt,XSTR("Warning\nObserver count is greater than max allowed (%d)",798),MULTI_HO_MAX_OBS);		
+		SDL_snprintf(val_txt,SDL_arraysize(val_txt),XSTR("Warning\nObserver count is greater than max allowed (%d)",798),MULTI_HO_MAX_OBS);
 		popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,val_txt);
 		return 0;
 	}
@@ -6952,7 +6929,7 @@ int multi_ho_check_values()
 	// if the value is invalid, force it to be valid
 	if(atoi(val_txt) > MULTI_HO_MAX_KILL_LIMIT){
 		memset(val_txt,0,255);
-		sprintf(val_txt,XSTR("Warning\nMission kill limit is greater than max allowed (%d)",799),MULTI_HO_MAX_KILL_LIMIT);		
+		SDL_snprintf(val_txt,SDL_arraysize(val_txt),XSTR("Warning\nMission kill limit is greater than max allowed (%d)",799),MULTI_HO_MAX_KILL_LIMIT);
 		popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,val_txt);
 		return 0;
 	}
@@ -6961,7 +6938,7 @@ int multi_ho_check_values()
 	Multi_ho_voice_wait.get_text(val_txt);
 	if(atoi(val_txt) > MULTI_HO_MAX_TOKEN_WAIT){
 		memset(val_txt,0,255);
-		sprintf(val_txt,XSTR("Warning\nvoice wait time is greater than max allowed (%d)",800),MULTI_HO_MAX_TOKEN_WAIT);		
+		SDL_snprintf(val_txt,SDL_arraysize(val_txt),XSTR("Warning\nvoice wait time is greater than max allowed (%d)",800),MULTI_HO_MAX_TOKEN_WAIT);
 		popup(PF_USE_AFFIRMATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG,1,POPUP_OK,val_txt);
 		return 0;
 	}
@@ -7019,7 +6996,7 @@ void multi_ho_blit_max_respawns()
 	}
 	
 	// otherwise blit the max as specified by the current mission file	
-	sprintf(string,"(%d)",Multi_ho_mission_respawn);	
+	SDL_snprintf(string,SDL_arraysize(string),"(%d)",Multi_ho_mission_respawn);
 	gr_set_color_fast(&Color_normal);
 	gr_string(Ho_max_rsp_coords[gr_screen.res][MULTI_HO_X_COORD], Ho_max_rsp_coords[gr_screen.res][MULTI_HO_Y_COORD], string);
 }
@@ -7029,7 +7006,7 @@ void multi_ho_display_skill_level()
 	int skill_level = Multi_ho_sliders[gr_screen.res][MULTI_HO_SLIDER_SKILL].slider.pos;
 
 	// sanity
-	Assert((skill_level >= 0) && (skill_level < NUM_SKILL_LEVELS));
+	SDL_assert((skill_level >= 0) && (skill_level < NUM_SKILL_LEVELS));
 	if((skill_level < 0) || (skill_level >= NUM_SKILL_LEVELS)){
 		skill_level = 0;
 	}
@@ -7271,7 +7248,7 @@ void multi_game_client_setup_init()
 	Multi_jw_plist_select_button.hide();
 
 	// set hotkeys
-	Multi_jw_buttons[gr_screen.res][MJW_CANCEL].button.set_hotkey(KEY_ESC);	
+	Multi_jw_buttons[gr_screen.res][MJW_CANCEL].button.set_hotkey(SDLK_ESCAPE);
 
 	// remove campaign flags
 	Game_mode &= ~(GM_CAMPAIGN_MODE);
@@ -7357,11 +7334,11 @@ void multi_game_client_setup_do_frame()
 	// blit the mission filename if possible
 	if(Netgame.campaign_mode){
 		if(strlen(Netgame.campaign_name) > 0){			
-			strcpy(mission_text,Netgame.campaign_name);
+			SDL_strlcpy(mission_text, Netgame.campaign_name, SDL_arraysize(mission_text));
 			
 			if(strlen(Netgame.title) > 0){
-				strcat(mission_text,", ");
-				strcat(mission_text,Netgame.title);
+				SDL_strlcat(mission_text, ", ", SDL_arraysize(mission_text));
+				SDL_strlcat(mission_text, Netgame.title, SDL_arraysize(mission_text));
 			}
 
 			gr_set_color_fast(&Color_bright_white);
@@ -7369,11 +7346,11 @@ void multi_game_client_setup_do_frame()
 		}								
 	} else {
 		if(strlen(Netgame.mission_name) > 0){			
-			strcpy(mission_text,Netgame.mission_name);
+			SDL_strlcpy(mission_text, Netgame.mission_name, SDL_arraysize(mission_text));
 
 			if(strlen(Netgame.title) > 0){
-				strcat(mission_text,", ");
-				strcat(mission_text,Netgame.title);
+				SDL_strlcat(mission_text, ", ", SDL_arraysize(mission_text));
+				SDL_strlcat(mission_text, Netgame.title, SDL_arraysize(mission_text));
 			}			
 
 			gr_set_color_fast(&Color_bright_white);
@@ -7573,9 +7550,9 @@ void multi_jw_plist_blit_normal()
 			}			
 			
 			// make sure the string will fit, then display it
-			strcpy(str,Net_players[idx].player->callsign);
+			SDL_strlcpy(str, Net_players[idx].player->callsign, SDL_arraysize(str));
 			if(Net_players[idx].flags & NETINFO_FLAG_OBSERVER){
-				strcat(str,"(0)");
+				SDL_strlcat(str, "(0)", SDL_arraysize(str));
 			}
 			gr_force_fit_string(str,CALLSIGN_LEN,Mjw_players_coords[gr_screen.res][MJW_W_COORD] - total_offset);
 			gr_string(Mjw_players_coords[gr_screen.res][MJW_X_COORD] + total_offset,y_start,str);
@@ -7647,7 +7624,7 @@ void multi_jw_plist_blit_team()
 			}
 
 			// make sure the string will fit
-			strcpy(str,Net_players[idx].player->callsign);
+			SDL_strlcpy(str, Net_players[idx].player->callsign, SDL_arraysize(str));
 			gr_force_fit_string(str,CALLSIGN_LEN,Mjw_players_coords[gr_screen.res][MJW_W_COORD] - total_offset);
 
 			// display him in the correct half of the list depending on his team
@@ -7704,9 +7681,9 @@ void multi_jw_plist_blit_team()
 			}
 
 			// make sure the string will fit
-			strcpy(str,Net_players[idx].player->callsign);
+			SDL_strlcpy(str, Net_players[idx].player->callsign, SDL_arraysize(str));
 			if(Net_players[idx].flags & NETINFO_FLAG_OBSERVER){
-				strcat(str,"(0)");
+				SDL_strlcat(str, "(0)", SDL_arraysize(str));
 			}
 			gr_force_fit_string(str,CALLSIGN_LEN,Mjw_players_coords[gr_screen.res][MJW_W_COORD] - total_offset);
 
@@ -7996,7 +7973,7 @@ void multi_sync_init()
 	// reset all timestamp
 	multi_reset_timestamps();
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 
 	if(!(Game_mode & GM_STANDALONE_SERVER)){
@@ -8076,7 +8053,7 @@ void multi_sync_close()
 
 const char *multi_sync_tooltip_handler(const char *str)
 {
-	if (!stricmp(str, NOX("@launch"))) {
+	if (!SDL_strcasecmp(str, NOX("@launch"))) {
 		if (Multi_launch_button_created){
 			return XSTR("Launch",801);
 		}
@@ -8173,7 +8150,7 @@ void multi_sync_common_init()
 	Multi_sync_plist_button.hide();
 
 	// set up hotkeys for certain common functions
-	Multi_sync_buttons[gr_screen.res][MS_CANCEL].button.set_hotkey(KEY_ESC);
+	Multi_sync_buttons[gr_screen.res][MS_CANCEL].button.set_hotkey(SDLK_ESCAPE);
 }
 
 void multi_sync_common_do()
@@ -8189,7 +8166,7 @@ void multi_sync_common_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		// Sync_test = 1;
 		gamesnd_play_iface(SND_USER_SELECT);
 		multi_quit_game(PROMPT_ALL);		
@@ -8204,7 +8181,7 @@ void multi_sync_common_close()
 		nprintf(("General","WARNING : could not unload background bitmap %s\n",Multi_sync_bitmap_fname[gr_screen.res]));
 	}	
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 	
 	// destroy the UI_WINDOW
@@ -8330,14 +8307,14 @@ void multi_sync_blit_screen_all()
 
 						// if we've got a valid xfer handle
 						if((pct_complete >= 0.0) && (pct_complete <= 1.0)){						
-							sprintf(txt,XSTR("Mission file xfer %d%%",828),(int)(pct_complete * 100.0f));
+							SDL_snprintf(txt,SDL_arraysize(txt),XSTR("Mission file xfer %d%%",828),(int)(pct_complete * 100.0f));
 						}
 						// otherwise
 						else {
-							strcpy(txt,XSTR("Mission file xfer",829));
+							SDL_strlcpy(txt, XSTR("Mission file xfer", 829), SDL_arraysize(txt));
 						}					
 					} else {
-						strcpy(txt,XSTR("Mission file xfer",829));
+						SDL_strlcpy(txt, XSTR("Mission file xfer", 829), SDL_arraysize(txt));
 					}
 				}
 				// clients should display only for themselves (which is the only thing they know)
@@ -8348,16 +8325,16 @@ void multi_sync_blit_screen_all()
 
 						// if we've got a valid xfer handle
 						if((pct_complete >= 0.0) && (pct_complete <= 1.0)){						
-							sprintf(txt,XSTR("Mission file xfer %d%%",828),(int)(pct_complete * 100.0f));
+							SDL_snprintf(txt,SDL_arraysize(txt),XSTR("Mission file xfer %d%%",828),(int)(pct_complete * 100.0f));
 						}
 						// otherwise
 						else {
-							strcpy(txt,XSTR("Mission file xfer",829));
+							SDL_strlcpy(txt, XSTR("Mission file xfer", 829), SDL_arraysize(txt));
 						}
 					}
 					// otherwise
 					else {
-						strcpy(txt,XSTR("Mission file xfer",829));
+						SDL_strlcpy(txt, XSTR("Mission file xfer", 829), SDL_arraysize(txt));
 					}
 				}
 
@@ -8505,7 +8482,7 @@ void multi_sync_pre_init()
 	}
 
 	// we aren't necessarily xferring the mission file yet	
-	Assert(Net_player->s_info.xfer_handle == -1);
+	SDL_assert(Net_player->s_info.xfer_handle == -1);
 
 	// always call this for good measure
 	multi_campaign_flush_data();
@@ -8935,7 +8912,7 @@ void multi_sync_display_name(const char *name, int index, int np_index)
 	char fit[CALLSIGN_LEN];	
 	
 	// make sure the string actually fits
-	strcpy(fit,name);
+	SDL_strlcpy(fit, name, SDL_arraysize(fit));
 
 	// if we're in team vs. team mode
 	if(Netgame.type_flags & NG_TYPE_TEAM){
@@ -9012,7 +8989,7 @@ void multi_sync_display_status(const char *status, int index)
 	char fit[250];
 
 	// make sure the string actually fits
-	strcpy(fit, status);
+	SDL_strlcpy(fit, status, SDL_arraysize(fit));
 	gr_force_fit_string(fit, 250, Ms_status2_coords[gr_screen.res][MS_W_COORD] - 20);
 	gr_set_color_fast(&Color_bright);	
 	gr_string(Ms_status2_coords[gr_screen.res][MS_X_COORD], Ms_status2_coords[gr_screen.res][MS_Y_COORD] + (index * 10), fit);		
@@ -9077,7 +9054,7 @@ void multi_sync_start_countdown()
 	}
 	// otherwise send the "start countdown" packet to the standalone
 	else {
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 		send_countdown_packet(-1);
 	}
 }
@@ -9124,7 +9101,7 @@ void multi_sync_create_launch_button()
 		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.link_hotspot(Multi_sync_buttons[gr_screen.res][MS_LAUNCH].hotspot);
 
 		// hotkey
-		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
+		Multi_sync_buttons[gr_screen.res][MS_LAUNCH].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
 
 #ifndef MAKE_FS1
 		// create the text for the button
@@ -9286,7 +9263,7 @@ void multi_maybe_set_mission_loop()
 {
 	int cur = Campaign.current_mission;
 	if (Campaign.missions[cur].has_mission_loop) {
-		Assert(Campaign.loop_mission != CAMPAIGN_LOOP_MISSION_UNINITIALIZED);
+		SDL_assert(Campaign.loop_mission != CAMPAIGN_LOOP_MISSION_UNINITIALIZED);
 	}
 	bool require_repeat_mission = (Campaign.current_mission == Campaign.next_mission);
 
@@ -9294,7 +9271,7 @@ void multi_maybe_set_mission_loop()
 	if ( (Campaign.missions[cur].has_mission_loop && (Campaign.loop_mission != -1)) && !require_repeat_mission ) {
 
 		char buffer[512];
-		debrief_assemble_optional_mission_popup_text(buffer, Campaign.missions[cur].mission_loop_desc);
+		debrief_assemble_optional_mission_popup_text(buffer, SDL_arraysize(buffer), Campaign.missions[cur].mission_loop_desc);
 
 		int choice = popup(0 , 2, POPUP_NO, POPUP_YES, buffer);
 		if (choice == 1) {
@@ -9331,6 +9308,12 @@ void multi_debrief_accept_hit()
 		if(Net_player->flags & NETINFO_FLAG_GAME_HOST){
 			// if we're on a tracker game, he gets no choice for storing stats
 			if(MULTI_IS_TRACKER_GAME){
+				int stats_saved = multi_fs_tracker_store_stats();
+
+				if (Netgame.type_flags & NG_TYPE_SW) {
+					multi_sw_report(stats_saved);
+				}
+
 				multi_maybe_set_mission_loop();
 			} else {
 				int res = popup(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Continue Netgame)\nDo you wish to accept these stats?",846));
@@ -9379,6 +9362,14 @@ void multi_debrief_esc_hit()
 	if(Net_player->flags & NETINFO_FLAG_GAME_HOST){		
 		// if the stats have already been accepted
 		if((Multi_debrief_stats_accept_code != -1) || (MULTI_IS_TRACKER_GAME)){
+			if (Multi_debrief_stats_accept_code == 1) {
+				int stats_saved = multi_fs_tracker_store_stats();
+
+				if (Netgame.type_flags & NG_TYPE_SW) {
+					multi_sw_report(stats_saved);
+				}
+			}
+
 			multi_quit_game(PROMPT_HOST);
 		} else {
 			res = popup(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Exit Netgame)\nDo you wish to accept these stats?",847));
@@ -9423,7 +9414,7 @@ void multi_debrief_esc_hit()
 void multi_debrief_replay_hit()
 {
 	// only the host should ever get here
-	Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 
 	// if the button was already pressed, do nothing
 	if(Multi_debrief_accept_hit){
@@ -9726,7 +9717,7 @@ void multi_passwd_init()
 	Multi_pwd_passwd.set_focus();
 	
 	// link the enter key to ACCEPT
-	Multi_pwd_buttons[gr_screen.res][MPWD_COMMIT].button.set_hotkey(KEY_ENTER);
+	Multi_pwd_buttons[gr_screen.res][MPWD_COMMIT].button.set_hotkey(SDLK_RETURN);
 
 	Multi_passwd_done = -1;
 	Multi_passwd_running = 1;
@@ -9767,7 +9758,7 @@ void multi_passwd_process_buttons()
 }
 
 // run the passwd popup
-void multi_passwd_do(char *passwd)
+void multi_passwd_do(char *passwd, const int max_passlen)
 {
 	int k;
 
@@ -9780,7 +9771,7 @@ void multi_passwd_do(char *passwd)
 
 		// process any keypresses
 		switch(k){
-		case KEY_ESC :							
+		case SDLK_ESCAPE :
 			// set this to indicate the user has cancelled for one reason or another
 			Multi_passwd_done = 0;
 			break;		
@@ -9788,7 +9779,7 @@ void multi_passwd_do(char *passwd)
 
 		// if the input box text has changed
 		if(Multi_pwd_passwd.changed()){
-			strcpy(passwd,"");
+			SDL_strlcpy(passwd, "", max_passlen);
 			Multi_pwd_passwd.get_text(passwd);
 		}
 
@@ -9811,7 +9802,7 @@ void multi_passwd_do(char *passwd)
 }
 
 // bring up the password string popup, fill in passwd (return 1 if accept was pressed, 0 if cancel was pressed)
-int multi_passwd_popup(char *passwd)
+int multi_passwd_popup(char *passwd, const int max_plen)
 {
 	// if the popup is already running for some reason, don't do anything
 	if(Multi_passwd_running){
@@ -9822,7 +9813,7 @@ int multi_passwd_popup(char *passwd)
 	multi_passwd_init();
 
 	// run the popup
-	multi_passwd_do(passwd);
+	multi_passwd_do(passwd, max_plen);
 
 	// shut everything down
 	multi_passwd_close();

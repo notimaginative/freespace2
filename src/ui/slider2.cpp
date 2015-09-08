@@ -72,15 +72,15 @@ void UI_SLIDER2::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, int _num
 
 	base_create( wnd, UI_KIND_SLIDER2, _x, _y, _w, _h );
 
-	Assert(_upCallback != NULL);
-	Assert(_downCallback != NULL);
+	SDL_assert(_upCallback != NULL);
+	SDL_assert(_downCallback != NULL);
 
 	upCallback = _upCallback;
 	downCallback = _downCallback;
 
 	captureCallback = _captureCallback;	
 
-	Assert(_bitmapSliderControl > 0);
+	SDL_assert(_bitmapSliderControl > 0);
 
 	last_scrolled = 0;
 
@@ -91,11 +91,11 @@ void UI_SLIDER2::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, int _num
 	bm_get_info(bmap_ids[S2_NORMAL],&buttonWidth, &buttonHeight, NULL, NULL, NULL);
 	slider_w = buttonWidth;
 	slider_h = buttonHeight;
-	Assert(buttonHeight > 5);
+	SDL_assert(buttonHeight > 5);
 	slider_half_h = (int)(buttonHeight / 2);
 	numberPositions = _h - buttonHeight;
 	
-	Assert(numberPositions >= 0);
+	SDL_assert(numberPositions >= 0);
 	currentItem = 0;
 	currentPosition = 0;
 
@@ -108,7 +108,7 @@ void UI_SLIDER2::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, int _num
 }
 
 void UI_SLIDER2::draw() {
-	Assert((currentPosition >= 0) && (currentPosition <= numberPositions));
+	SDL_assert((currentPosition >= 0) && (currentPosition <= numberPositions));
 	if (uses_bmaps & !disabled_flag) {
 		gr_reset_clip();
 		switch (slider_mode) {
@@ -129,15 +129,10 @@ void UI_SLIDER2::draw() {
 
 void UI_SLIDER2::process(int focus)
 {
-	int OnMe, keyfocus, mouse_lock_move;	
+	int OnMe, mouse_lock_move;
 
 	if (disabled_flag) {
 		return;
-	}
-
-	keyfocus = 0;	
-	if (my_wnd->selected_gadget == this){
-		keyfocus = 1;
 	}
 
 	OnMe = is_mouse_on();
@@ -250,7 +245,7 @@ void UI_SLIDER2::process(int focus)
 	}
 }
 
-void UI_SLIDER2::hide()
+void UI_SLIDER2::hide(int n)
 {
 	hidden = 1;
 }
@@ -331,6 +326,7 @@ void UI_SLIDER2::set_currentItem(int _currentItem) {
 	}	
 	
 	currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);	
+	CAP(currentPosition, 0, numberPositions);
 }
 
 void UI_SLIDER2::force_currentItem(int _currentItem) {	
@@ -339,12 +335,14 @@ void UI_SLIDER2::force_currentItem(int _currentItem) {
 		currentItem = 0;
 	};
 	currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);	
+	CAP(currentPosition, 0, numberPositions);
 }
 
 void UI_SLIDER2::forceDown() {
 	if (currentItem < numberItems) {
 		currentItem++;
 		currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);
+		CAP(currentPosition, 0, numberPositions);
 	}
 }
 
@@ -352,6 +350,7 @@ void UI_SLIDER2::forceUp() {
 	if (currentItem > 0) {
 		currentItem--;
 		currentPosition = fl2i(((float)currentItem/(float)numberItems) * (float)numberPositions);
+		CAP(currentPosition, 0, numberPositions);
 	}
 }
 

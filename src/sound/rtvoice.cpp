@@ -111,8 +111,8 @@
 
 #include "pstypes.h"
 #include "sound.h"
-#include "ds.h"
-#include "dscap.h"
+#include "oal.h"
+#include "oal_capture.h"
 #include "codec1.h"
 #include "rtvoice.h"
 
@@ -149,7 +149,7 @@ static int Rtv_recording=0;						// Voice is currently being recorded
 #define RTV_OUT_FLAG_USED		(1<<0)
 typedef struct rtv_out_buffer
 {
-	int ds_handle;		// handle to directsound buffer
+	int buf_handle;		// handle to sound buffer
 	int flags;			// see RTV_OUT_FLAG_ #defines above
 } rtv_out_buffer;
 static rtv_out_buffer Rtv_output_buffers[MAX_RTV_OUT_BUFFERS];		// data for output buffers
@@ -157,7 +157,7 @@ static rtv_out_buffer Rtv_output_buffers[MAX_RTV_OUT_BUFFERS];		// data for outp
 static struct	t_CodeInfo Rtv_code_info;		// Parms will need to be transmitted with packets
 
 // recording timer data
-static int Rtv_record_timer_id;		// unique id for callback timer
+static SDL_TimerID Rtv_record_timer_id;		// unique id for callback timer
 static int Rtv_callback_time;			// callback time in ms
 
 void (*Rtv_callback)();
@@ -182,14 +182,26 @@ static int Decode_buffer_size;
 // RECORD/ENCODE
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CALLBACK TimeProc(unsigned int id, unsigned int msg, unsigned long userdata, unsigned long dw1, unsigned long dw2)
+Uint32 TimeProc(Uint32 interval, void *param)
 {
 	if ( !Rtv_callback ) {
-		return;
+		SDL_RemoveTimer(Rtv_record_timer_id);
+		Rtv_record_timer_id = 0;
+
+		return 0;
 	}
 
 	nprintf(("Alan","In callback\n"));
 	Rtv_callback();
+
+	if (Rtv_callback_time) {
+		return interval;
+	} else {
+		SDL_RemoveTimer(Rtv_record_timer_id);
+		Rtv_record_timer_id = 0;
+
+		return 0;
+	}
 }
 
 // Try to pick the most appropriate recording format
@@ -201,8 +213,8 @@ int rtvoice_pick_record_format()
 	int i;
 
 	for (i=0; i<MAX_RTV_FORMATS; i++) {
-		if ( dscap_create_buffer(Rtv_formats[i].frequency, Rtv_formats[i].bits_per_sample, 1, RTV_BUFFER_TIME) == 0 ) {
-			dscap_release_buffer();
+		if ( oal_capture_create_buffer(Rtv_formats[i].frequency, Rtv_formats[i].bits_per_sample, 1, RTV_BUFFER_TIME) == 0 ) {
+			oal_capture_release_buffer();
 			Rtv_recording_format=i;
 			break;
 		}
@@ -239,19 +251,19 @@ int rtvoice_init_recording(int qos)
 			Encode_buffer1=NULL;
 		}
 
-		if ( dscap_create_buffer(Rtv_formats[Rtv_recording_format].frequency, Rtv_formats[Rtv_recording_format].bits_per_sample, 1, RTV_BUFFER_TIME) ) {
+		if ( oal_capture_create_buffer(Rtv_formats[Rtv_recording_format].frequency, Rtv_formats[Rtv_recording_format].bits_per_sample, 1, RTV_BUFFER_TIME) ) {
 			return -1;
 		}
 
 		Encode_buffer1 = (unsigned char*)malloc(Rtv_capture_raw_buffer_size);
-		Assert(Encode_buffer1);
+		SDL_assert(Encode_buffer1);
 
 		if ( Encode_buffer2 ) {
 			free(Encode_buffer2);
 			Encode_buffer2=NULL;
 		}
 		Encode_buffer2 = (unsigned char*)malloc(Rtv_capture_raw_buffer_size);
-		Assert(Encode_buffer2);
+		SDL_assert(Encode_buffer2);
 
 		// malloc out the voice data buffer for raw (uncompressed) recorded sound
 		if ( Rtv_capture_raw_buffer ) {
@@ -282,14 +294,10 @@ void rtvoice_stop_recording()
 		return;
 	}
 
-	dscap_stop_record();
+	oal_capture_stop_record();
 
 	if ( Rtv_record_timer_id ) {
-#ifndef PLAT_UNIX
-		timeKillEvent(Rtv_record_timer_id);
-#else
-		STUB_FUNCTION;
-#endif		
+		SDL_RemoveTimer(Rtv_record_timer_id);
 		Rtv_record_timer_id = 0;
 	}
 
@@ -323,6 +331,8 @@ void rtvoice_close_recording()
 		Rtv_capture_compressed_buffer=NULL;
 	}
 
+	oal_capture_release_buffer();
+
 	Rtv_recording_inited=0;
 }
 
@@ -331,30 +341,25 @@ void rtvoice_close_recording()
 //			!0	=>	failure
 int rtvoice_start_recording( void (*user_callback)(), int callback_time ) 
 {
-	if ( !dscap_supported() ) {
+	if ( !oal_capture_supported() ) {
 		return -1;
 	}
 
-	Assert(Rtv_recording_inited);
+	SDL_assert(Rtv_recording_inited);
 
 	if ( Rtv_recording ) {
 		return -1;
 	}
 
-	if ( dscap_start_record() ) {
+	if ( oal_capture_start_record() ) {
 		return -1;
 	}
 
 	if ( user_callback ) {
-#ifndef PLAT_UNIX
-		Rtv_record_timer_id = timeSetEvent(callback_time, callback_time, TimeProc, 0, TIME_PERIODIC);
-#else
-		STUB_FUNCTION;
-		
-		return -1;
-#endif		
+		Rtv_record_timer_id = SDL_AddTimer(callback_time, TimeProc, NULL);
+
 		if ( !Rtv_record_timer_id ) {
-			dscap_stop_record();
+			oal_capture_stop_record();
 			return -1;
 		}
 		Rtv_callback = user_callback;
@@ -396,7 +401,7 @@ int rtvoice_16to8(unsigned char *data, int size)
 	unsigned short	sample16;
 	unsigned char	sample8, *dest, *src;
 
-	Assert(size%2 == 0);
+	SDL_assert(size%2 == 0);
 
 	dest = data;
 	src = data;
@@ -473,7 +478,7 @@ int rtvoice_maybe_convert_data(unsigned char *data, int size)
 void rtvoice_get_data(unsigned char **outbuf, int *compressed_size, int *uncompressed_size, double *gain, unsigned char **outbuf_raw, int *outbuf_size_raw)
 {
 	int max_size, raw_size, csize;
-	max_size = dscap_max_buffersize();
+	max_size = oal_capture_max_buffersize();
 
 	*compressed_size=0;
 	*uncompressed_size=0;
@@ -483,7 +488,7 @@ void rtvoice_get_data(unsigned char **outbuf, int *compressed_size, int *uncompr
 		return;
 	}	
 	
-	raw_size = dscap_get_raw_data(Rtv_capture_raw_buffer, max_size);
+	raw_size = oal_capture_get_raw_data(Rtv_capture_raw_buffer, max_size);
 
 	// convert data to 8bit, 11KHz if necessary
 	raw_size = rtvoice_maybe_convert_data(Rtv_capture_raw_buffer, raw_size);
@@ -553,7 +558,7 @@ void rtvoice_reset_out_buffers()
 	
 	for ( i=0; i<MAX_RTV_OUT_BUFFERS; i++ ) {
 		Rtv_output_buffers[i].flags=0;
-		Rtv_output_buffers[i].ds_handle=-1;
+		Rtv_output_buffers[i].buf_handle=-1;
 	}
 }
 
@@ -578,7 +583,7 @@ int rtvoice_init_playback()
 		}
 
 		Decode_buffer = (unsigned char*)malloc(Decode_buffer_size);
-		Assert(Decode_buffer);
+		SDL_assert(Decode_buffer);
 
 		if ( Rtv_playback_uncompressed_buffer ) {
 			free(Rtv_playback_uncompressed_buffer);
@@ -587,7 +592,7 @@ int rtvoice_init_playback()
 
 		Rtv_playback_uncompressed_buffer_size=Decode_buffer_size;
 		Rtv_playback_uncompressed_buffer = (unsigned char*)malloc(Rtv_playback_uncompressed_buffer_size);
-		Assert(Rtv_playback_uncompressed_buffer);
+		SDL_assert(Rtv_playback_uncompressed_buffer);
 
 		InitDecoder(1, Decode_buffer); 
 
@@ -630,8 +635,8 @@ int rtvoice_create_playback_buffer()
 		return -1;
 	}
 	
-	Rtv_output_buffers[index].ds_handle = ds_create_buffer(rtvf->frequency, rtvf->bits_per_sample, 1, RTV_BUFFER_TIME);
-	if ( Rtv_output_buffers[index].ds_handle == -1 ) {
+	Rtv_output_buffers[index].buf_handle = oal_create_buffer(rtvf->frequency, rtvf->bits_per_sample, 1, RTV_BUFFER_TIME);
+	if ( Rtv_output_buffers[index].buf_handle == -1 ) {
 		return -1;
 	}
 
@@ -640,11 +645,11 @@ int rtvoice_create_playback_buffer()
 
 void rtvoice_stop_playback(int index)
 {
-	Assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
+	SDL_assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
 
 	if ( Rtv_output_buffers[index].flags & RTV_OUT_FLAG_USED ) {
-		if ( Rtv_output_buffers[index].ds_handle != -1 ) {
-			ds_stop_easy(Rtv_output_buffers[index].ds_handle);
+		if ( Rtv_output_buffers[index].buf_handle != -1 ) {
+			oal_stop_buffer(Rtv_output_buffers[index].buf_handle);
 		}
 	}
 }
@@ -661,15 +666,15 @@ void rtvoice_stop_playback_all()
 // Close a stream that was opened for real-time voice output
 void rtvoice_free_playback_buffer(int index)
 {
-	Assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
+	SDL_assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
 
 	if ( Rtv_output_buffers[index].flags & RTV_OUT_FLAG_USED ) {
 		Rtv_output_buffers[index].flags=0;
-		if ( Rtv_output_buffers[index].ds_handle != -1 ) {
-			ds_stop_easy(Rtv_output_buffers[index].ds_handle);
-			ds_unload_buffer(Rtv_output_buffers[index].ds_handle, -1);
+		if ( Rtv_output_buffers[index].buf_handle != -1 ) {
+			oal_stop_buffer(Rtv_output_buffers[index].buf_handle);
+			oal_unload_buffer(Rtv_output_buffers[index].buf_handle);
 		}
-		Rtv_output_buffers[index].ds_handle=-1;
+		Rtv_output_buffers[index].buf_handle=-1;
 	}
 }
 
@@ -678,14 +683,14 @@ void rtvoice_free_playback_buffer(int index)
 //			-1		=>	error, voice not played
 int rtvoice_play_compressed(int index, unsigned char *data, int size, int uncompressed_size, double gain)
 {
-	int ds_handle, rval;
+	int buf_handle, rval;
 
-	ds_handle = Rtv_output_buffers[index].ds_handle;
+	buf_handle = Rtv_output_buffers[index].buf_handle;
 
 	// Stop any currently playing voice output
-	ds_stop_easy(ds_handle);
+	oal_stop_buffer(buf_handle);
 
-	Assert(uncompressed_size <= Rtv_playback_uncompressed_buffer_size);
+	SDL_assert(uncompressed_size <= Rtv_playback_uncompressed_buffer_size);
 
 	// uncompress the data into PCM format
 	if ( Rtv_do_compression ) {
@@ -693,12 +698,12 @@ int rtvoice_play_compressed(int index, unsigned char *data, int size, int uncomp
 	}
 
 	// lock the data in
-	if ( ds_lock_data(ds_handle, Rtv_playback_uncompressed_buffer, uncompressed_size) ) {
+	if ( oal_lock_data(buf_handle, Rtv_playback_uncompressed_buffer, uncompressed_size) ) {
 		return -1;
 	}
 
 	// play the voice
-	rval = ds_play(ds_handle, -1, -100, DS_MUST_PLAY, ds_convert_volume(Master_voice_volume), 0, 0);
+	rval = oal_play(buf_handle, -1, SND_PRIORITY_MUST_PLAY, Master_voice_volume, 0.0f, 0);
 	return rval;
 }
 
@@ -707,20 +712,20 @@ int rtvoice_play_compressed(int index, unsigned char *data, int size, int uncomp
 //			-1		=>	error, voice not played
 int rtvoice_play_uncompressed(int index, unsigned char *data, int size)
 {
-	int ds_handle, rval;
+	int buf_handle, rval;
 
-	ds_handle = Rtv_output_buffers[index].ds_handle;
+	buf_handle = Rtv_output_buffers[index].buf_handle;
 
 	// Stop any currently playing voice output
-	ds_stop_easy(ds_handle);
+	oal_stop_buffer(buf_handle);
 
 	// lock the data in
-	if ( ds_lock_data(ds_handle, data, size) ) {
+	if ( oal_lock_data(buf_handle, data, size) ) {
 		return -1;
 	}
 
 	// play the voice
-	rval = ds_play(ds_handle, -1, -100, DS_MUST_PLAY, ds_convert_volume(Master_voice_volume), 0, 0);
+	rval = oal_play(buf_handle, -1, SND_PRIORITY_MUST_PLAY, Master_voice_volume, 0.0f, 0);
 	return rval;
 }
 

@@ -744,12 +744,12 @@ void multi_io_send(net_player *pl, ubyte *data, int len)
 
 	// sanity checks
 	if(MULTIPLAYER_CLIENT){
-		// Assert(pl == Net_player);
+		// SDL_assert(pl == Net_player);
 		if(pl != Net_player){
 			return;
 		}
 	} else {
-		// Assert(pl != Net_player);
+		// SDL_assert(pl != Net_player);
 		if(pl == Net_player){
 			return;
 		}
@@ -761,7 +761,7 @@ void multi_io_send(net_player *pl, ubyte *data, int len)
 		pl->s_info.unreliable_buffer_size = 0;
 	}
 
-	Assert((pl->s_info.unreliable_buffer_size + len) <= MAX_PACKET_SIZE);
+	SDL_assert((pl->s_info.unreliable_buffer_size + len) <= MAX_PACKET_SIZE);
 
 	memcpy(pl->s_info.unreliable_buffer + pl->s_info.unreliable_buffer_size, data, len);
 	pl->s_info.unreliable_buffer_size += len;
@@ -770,7 +770,7 @@ void multi_io_send(net_player *pl, ubyte *data, int len)
 void multi_io_send_to_all(ubyte *data, int length, net_player *ignore)
 {	
 	int i;
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 
   	// need to check for i > 1, hmmm... and connected. I don't know.	
 	for (i = 0; i < MAX_PLAYERS; i++ ) {
@@ -832,12 +832,12 @@ void multi_io_send_reliable(net_player *pl, ubyte *data, int len)
 	
 	// sanity checks
 	if(MULTIPLAYER_CLIENT){
-		// Assert(pl == Net_player);
+		// SDL_assert(pl == Net_player);
 		if(pl != Net_player){
 			return;
 		}
 	} else {
-		// Assert(pl != Net_player);
+		// SDL_assert(pl != Net_player);
 		if(pl == Net_player){
 			return;
 		}
@@ -849,7 +849,7 @@ void multi_io_send_reliable(net_player *pl, ubyte *data, int len)
 		pl->s_info.reliable_buffer_size = 0;
 	}
 
-	Assert((pl->s_info.reliable_buffer_size + len) <= MAX_PACKET_SIZE);
+	SDL_assert((pl->s_info.reliable_buffer_size + len) <= MAX_PACKET_SIZE);
 
 	memcpy(pl->s_info.reliable_buffer + pl->s_info.reliable_buffer_size, data, len);
 	pl->s_info.reliable_buffer_size += len;
@@ -858,7 +858,7 @@ void multi_io_send_reliable(net_player *pl, ubyte *data, int len)
 void multi_io_send_to_all_reliable(ubyte* data, int length, net_player *ignore)
 {	
 	int i;
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 
   	// need to check for i > 1, hmmm... and connected. I don't know.	
 	for (i = 0; i < MAX_PLAYERS; i++ ) {
@@ -963,11 +963,11 @@ void send_game_chat_packet(net_player *from, const char *msg, int msg_mode, net_
 	ADD_DATA(mode);
 	switch(mode){
 	case MULTI_MSG_TARGET:	
-		Assert(to != NULL);
+		SDL_assert(to != NULL);
 		ADD_SHORT(to->player_id);
 		break;
 	case MULTI_MSG_EXPR:
-		Assert(expr != NULL);
+		SDL_assert(expr != NULL);
 		ADD_STRING(expr);
 		break;
 	}
@@ -1005,7 +1005,7 @@ void send_game_chat_packet(net_player *from, const char *msg, int msg_mode, net_
 		
 		// message the player's target
 		case MULTI_MSG_TARGET:
-			Assert(to != NULL);
+			SDL_assert(to != NULL);
 			if(MULTI_CONNECTED((*to)) && !MULTI_STANDALONE((*to))){				
 				multi_io_send_reliable(to, data, packet_size);
 			}
@@ -1013,7 +1013,7 @@ void send_game_chat_packet(net_player *from, const char *msg, int msg_mode, net_
 
 		// message all players who match the expression string
 		case MULTI_MSG_EXPR:
-			Assert(expr != NULL);
+			SDL_assert(expr != NULL);
 			for(idx=0;idx<MAX_PLAYERS;idx++){
 				if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && (&Net_players[idx] != from) && multi_msg_matches_expr(&Net_players[idx],expr) ){					
 					multi_io_send_reliable(&Net_players[idx], data, packet_size);
@@ -1209,7 +1209,7 @@ void process_join_packet(ubyte* data, header* hinfo)
 	PACKET_SET_SIZE();	
 
 	// fill in the address information of where this came from
-	fill_net_addr(&addr, hinfo->addr, hinfo->net_id, hinfo->port);
+	fill_net_addr(&addr, hinfo->addr, hinfo->port);
 
 	// determine if we should accept this guy, or return a reason we should reject him
 	// see the DENY_* codes in multi.h
@@ -1250,9 +1250,9 @@ void process_join_packet(ubyte* data, header* hinfo)
 //			}
 //		} else if(Netgame.mode == NG_MODE_RESTRICTED){
 			host_restr_mode = MULTI_JOIN_RESTR_MODE_1;
-			sprintf(join_string,XSTR("Player %s has tried to join, accept y/n ?",715),jr.callsign);
+			SDL_snprintf(join_string,SDL_arraysize(join_string),XSTR("Player %s has tried to join, accept y/n ?",715),jr.callsign);
 //		}
-		Assert(host_restr_mode != -1);
+		SDL_assert(host_restr_mode != -1);
 
 		// store the request info
 		memcpy(&Multi_restr_join_request,&jr,sizeof(join_request));
@@ -1332,6 +1332,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 	// get the new players information
 	GET_INT(new_player_num);
+	memset(&new_addr, 0, sizeof(net_addr));
 	get_net_addr(data, &offset, new_addr);
 
 	GET_SHORT(new_id);
@@ -1344,7 +1345,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 	PACKET_SET_SIZE();
 
 	player_num = multi_find_open_player_slot();
-	Assert(player_num != -1);
+	SDL_assert(player_num != -1);
 	
 	// note that this new code does not check for duplicate IPs. It merely checks to see if
 	// the slot referenced by new_player_num is already occupied by a connected player
@@ -1359,8 +1360,6 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 		}
 
 		// create the player
-		memcpy(new_addr.net_id, Psnet_my_addr.net_id, 4);
-
 		if(new_flags & NETINFO_FLAG_OBSERVER){
 			multi_obs_create_player(new_player_num,new_player_name,&new_addr,&Players[player_num]);
 			Net_players[new_player_num].flags |= new_flags;
@@ -1371,16 +1370,16 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 		// copy in the filename
 		if(strlen(new_player_image) > 0){
-			strcpy(Net_players[new_player_num].player->image_filename, new_player_image);
+			SDL_strlcpy(Net_players[new_player_num].player->image_filename, new_player_image, MAX_FILENAME_LEN);
 		} else {
-			strcpy(Net_players[new_player_num].player->image_filename, "");
+			SDL_strlcpy(Net_players[new_player_num].player->image_filename, "", MAX_FILENAME_LEN);
 		}
 		// copy his pilot squad filename
 		Net_players[new_player_num].player->insignia_texture = -1;
 		player_set_squad_bitmap(Net_players[new_player_num].player, new_player_squad);				
 
 		// copy in his pxo squad name
-		strcpy(Net_players[new_player_num].p_info.pxo_squad_name, new_player_pxo_squad);
+		SDL_strlcpy(Net_players[new_player_num].p_info.pxo_squad_name, new_player_pxo_squad, LOGIN_LEN);
 
 		// since we just created the player, set the last_heard_time here.
 		Net_players[new_player_num].last_heard_time = timer_get_fixed_seconds();
@@ -1394,7 +1393,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 
 		// add a chat message
 		if(Net_players[new_player_num].player->callsign != NULL){
-			sprintf(notify_string,XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
+			SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
 			multi_display_chat_msg(notify_string,0,0);
 		}
 	}		
@@ -1493,7 +1492,7 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 	char notify_string[256];
 
 	// sanity
-	Assert(new_player_num >= 0);
+	SDL_assert(new_player_num >= 0);
 
 	// setup his "reliable" socket
 	Net_players[new_player_num].last_heard_time = timer_get_fixed_seconds();
@@ -1523,15 +1522,15 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 	} 
 
 	if (code & ACCEPT_OBSERVER) {
-		Assert(!(code & (ACCEPT_CLIENT | ACCEPT_HOST)));
+		SDL_assert(!(code & (ACCEPT_CLIENT | ACCEPT_HOST)));
 	}
 
 	if (code & ACCEPT_HOST) {
-		Assert(!(code & (ACCEPT_CLIENT | ACCEPT_OBSERVER | ACCEPT_INGAME)));
+		SDL_assert(!(code & (ACCEPT_CLIENT | ACCEPT_OBSERVER | ACCEPT_INGAME)));
 	}
 
 	if (code & ACCEPT_CLIENT) {
-		Assert(!(code & (ACCEPT_HOST | ACCEPT_OBSERVER | ACCEPT_INGAME)));
+		SDL_assert(!(code & (ACCEPT_HOST | ACCEPT_OBSERVER | ACCEPT_INGAME)));
 	}
 
 	// add the current skill level setting on the host
@@ -1568,7 +1567,7 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 
 	// add a chat message
 	if(Net_players[new_player_num].player->callsign != NULL){
-		sprintf(notify_string,XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
+		SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
 		multi_display_chat_msg(notify_string, 0, 0);
 	}	
 
@@ -1604,12 +1603,13 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 	GET_DATA(stop);
 	while ( stop == APD_NEXT ) {
 		player_slot_num = multi_find_open_player_slot();
-		Assert(player_slot_num != -1);
+		SDL_assert(player_slot_num != -1);
 
 		// get the player's number
 		GET_INT(player_num);
 
 		// add the player's address
+		memset(&addr, 0, sizeof(net_addr));
 		get_net_addr(data, &offset, addr);
 
 		// get the player's id#
@@ -1644,14 +1644,14 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 		}
 
 		// copy his image filename
-		strcpy(Net_players[player_num].player->image_filename, image_name);
+		SDL_strlcpy(Net_players[player_num].player->image_filename, image_name, MAX_FILENAME_LEN);
 		
 		// copy his pilot squad filename
 		Net_players[player_num].player->insignia_texture = -1;
 		player_set_squad_bitmap(Net_players[player_num].player, squad_name);
 
 		// copy his pxo squad name
-		strcpy(Net_players[player_num].p_info.pxo_squad_name, pxo_squad_name);
+		SDL_strlcpy(Net_players[player_num].p_info.pxo_squad_name, pxo_squad_name, LOGIN_LEN);
 
 		// set his player id#
 		Net_players[player_num].player_id = player_id;
@@ -1667,7 +1667,7 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 
 			// also - always set the server address to be where this data came from, NOT from 
 			// the data in the packet		
-			fill_net_addr(&Net_players[player_num].p_info.addr, hinfo->addr, hinfo->net_id, hinfo->port);
+			fill_net_addr(&Net_players[player_num].p_info.addr, hinfo->addr, hinfo->port);
 		}
 
 		// set the host pointer
@@ -1769,19 +1769,19 @@ void process_accept_packet(ubyte* data, header* hinfo)
 	}
 
 	if (code & ACCEPT_OBSERVER) {
-		Assert(!(code & (ACCEPT_CLIENT | ACCEPT_HOST)));
+		SDL_assert(!(code & (ACCEPT_CLIENT | ACCEPT_HOST)));
 	}
 
 	if (code & ACCEPT_HOST) {
-		Assert(!(code & (ACCEPT_CLIENT | ACCEPT_OBSERVER | ACCEPT_INGAME)));
+		SDL_assert(!(code & (ACCEPT_CLIENT | ACCEPT_OBSERVER | ACCEPT_INGAME)));
 	}
 
 	if (code & ACCEPT_CLIENT) {
-		Assert(!(code & (ACCEPT_HOST | ACCEPT_OBSERVER | ACCEPT_INGAME)));
+		SDL_assert(!(code & (ACCEPT_HOST | ACCEPT_OBSERVER | ACCEPT_INGAME)));
 	}
 
 	// fill in the netgame server address
-	fill_net_addr( &Netgame.server_addr, hinfo->addr, hinfo->net_id, hinfo->port );	
+	fill_net_addr( &Netgame.server_addr, hinfo->addr, hinfo->port );
 
 	// get the skill level setting
 	GET_INT(Game_skill_level);
@@ -1883,8 +1883,8 @@ void send_leave_game_packet(short player_id, int kicked_reason, net_player *targ
 		nprintf(("Network","Sending a leave game packet to all players (server)\n"));
 
 		// a couple of important checks
-		Assert(player_id != Net_player->player_id);
-		Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+		SDL_assert(player_id != Net_player->player_id);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 		// add the id of the guy to be kicked
 		ADD_SHORT(player_id);
@@ -1956,7 +1956,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 
 			// display the result
 			memset(str, 0, 512);
-			multi_kick_get_text(&Net_players[player_num], kicked_reason, str);			
+			multi_kick_get_text(&Net_players[player_num], kicked_reason, str, SDL_arraysize(str));
 			multi_display_chat_msg(str, player_num, 0);
 		}
 	}
@@ -1965,7 +1965,7 @@ void process_leave_game_packet(ubyte* data, header* hinfo)
 	if (Net_player->flags & NETINFO_FLAG_AM_MASTER) {
 		char msg[255];
 
-		sprintf(msg, XSTR("%s has left the game",719), Net_players[player_num].player->callsign );
+		SDL_snprintf(msg, SDL_arraysize(msg), XSTR("%s has left the game",719), Net_players[player_num].player->callsign );
 
 		if (!(Game_mode & GM_STANDALONE_SERVER)){
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, msg);
@@ -2081,7 +2081,7 @@ void send_game_active_packet(net_addr* addr)
 	}
 
 	// add the data about the connection speed of the host machine
-	Assert( (Multi_connection_speed >= 0) && (Multi_connection_speed <= 4) );
+	SDL_assert( (Multi_connection_speed >= 0) && (Multi_connection_speed <= 4) );
 	flags |= (Multi_connection_speed << AG_FLAG_CONNECTION_BIT);
 
 	ADD_USHORT(flags);
@@ -2098,7 +2098,7 @@ void process_game_active_packet(ubyte* data, header* hinfo)
 	active_game ag;
 	int modes_compatible;
 	
-	fill_net_addr(&ag.server_addr, hinfo->addr, hinfo->net_id, hinfo->port);
+	fill_net_addr(&ag.server_addr, hinfo->addr, hinfo->port);
 
 	// read this game into a temporary structure
 	offset = HEADER_LENGTH;
@@ -2178,7 +2178,7 @@ void send_netgame_update_packet(net_player *pl)
 			send_netgame_descript_packet( &pl->p_info.addr , 1 );
 		}
 	} else {
-		Assert( pl == NULL );			// I don't think that a host in a standalone game would get here.
+		SDL_assert( pl == NULL );			// I don't think that a host in a standalone game would get here.
 		multi_io_send_reliable(Net_player, data, packet_size);
 	}		
 
@@ -2191,11 +2191,11 @@ void send_netgame_update_packet(net_player *pl)
 // process information about the netgame sent from the server/host
 void process_netgame_update_packet( ubyte *data, header *hinfo )
 {
-	int offset,old_flags;	
+	int offset;//,old_flags;
 	int ng_state;
 		
-	Assert(!(Game_mode & GM_STANDALONE_SERVER));
-	Assert(!(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+	SDL_assert(!(Game_mode & GM_STANDALONE_SERVER));
+	SDL_assert(!(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 
 	// read in the netgame information
 	offset = HEADER_LENGTH;	
@@ -2209,7 +2209,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 	GET_UINT(Netgame.respawn);		
 	
 	// be sure not to blast the quitting flag because of the "one frame extra" problem
-	old_flags = Netgame.flags;	
+//	old_flags = Netgame.flags;
 	GET_INT(Netgame.flags);	
 	GET_INT(Netgame.type_flags);
 	GET_INT(Netgame.version_info);
@@ -2231,7 +2231,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 			multi_handle_state_special();
 						
 			Multi_sync_mode = MULTI_SYNC_PRE_BRIEFING;
-			strncpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );					
+			SDL_strlcpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );
 			gameseq_post_event(GS_EVENT_MULTI_MISSION_SYNC);
 		} 
 		// if coming from the debriefing state
@@ -2244,7 +2244,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 			multi_flush_mission_stuff();
 						
 			Multi_sync_mode = MULTI_SYNC_PRE_BRIEFING;
-			strncpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );					
+			SDL_strlcpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );
 			gameseq_post_event(GS_EVENT_MULTI_MISSION_SYNC);
 		}
 	} 
@@ -2256,7 +2256,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 			// do any special processing for forced state transitions
 			multi_handle_state_special();
 
-			strncpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );					
+			SDL_strlcpy( Game_current_mission_filename, Netgame.mission_name, MAX_FILENAME_LEN );
 			gameseq_post_event(GS_EVENT_START_BRIEFING);			
 		}
 	} 		
@@ -2307,7 +2307,7 @@ void send_netgame_descript_packet(net_addr *addr, int code)
 		}
 	} 
 	
-	Assert(addr != NULL);
+	SDL_assert(addr != NULL);
 	if(addr != NULL){
 		psnet_send(addr, data, packet_size);
 	}
@@ -2321,7 +2321,7 @@ void process_netgame_descript_packet( ubyte *data, header *hinfo )
 	char mission_desc[MISSION_DESC_LENGTH+2];
 	net_addr addr;
 
-	fill_net_addr(&addr, hinfo->addr, hinfo->net_id, hinfo->port);
+	fill_net_addr(&addr, hinfo->addr, hinfo->port);
 
 	// read this game into a temporary structure
 	offset = HEADER_LENGTH;
@@ -2373,7 +2373,7 @@ void broadcast_game_query()
 		} while(s_moveup != Game_server_head);		
 	}	
 
-	fill_net_addr(&addr, Psnet_my_addr.addr, Psnet_my_addr.net_id, DEFAULT_GAME_PORT);
+	fill_net_addr(&addr, Psnet_my_addr.addr, DEFAULT_GAME_PORT);
 
 	// send out a broadcast if our options allow us
 	if(Net_player->p_info.options.flags & MLO_FLAG_LOCAL_BROADCAST){
@@ -2403,7 +2403,7 @@ void process_game_query(ubyte* data, header* hinfo)
 	PACKET_SET_SIZE();
 
 	// check to be sure that we don't capture our own broadcast message
-	fill_net_addr(&addr, hinfo->addr, hinfo->net_id, hinfo->port);
+	fill_net_addr(&addr, hinfo->addr, hinfo->port);
 	if ( psnet_same( &addr, &Psnet_my_addr) ){
 		return;
 	}
@@ -2496,7 +2496,7 @@ void send_netplayer_update_packet( net_player *pl )
 		ADD_DATA(val);
 
 		// send the packet to the server
-		Assert( pl == NULL );						// shouldn't ever be the case that pl is non-null here.
+		SDL_assert( pl == NULL );						// shouldn't ever be the case that pl is non-null here.
 		if(!(Game_mode & GM_IN_MISSION)){			
 			multi_io_send_reliable(Net_player, data, packet_size);
 		} else {			
@@ -2592,7 +2592,7 @@ void send_ship_kill_packet( object *objp, object *other_objp, float percent_kill
 	polymodel * pm;
 
 	// only sendable from the master
-	Assert ( Net_player->flags & NETINFO_FLAG_AM_MASTER );
+	SDL_assert ( Net_player->flags & NETINFO_FLAG_AM_MASTER );
 
 	// special deaths
 	vaporized = ( (Ships[objp->instance].flags & SF_VAPORIZE) > 0 );
@@ -2647,15 +2647,15 @@ void send_ship_kill_packet( object *objp, object *other_objp, float percent_kill
 			was_player = 1;
 			ADD_DATA( was_player );
 
-			Assert(Net_players[pnum].player->killer_objtype < CHAR_MAX); 
+			SDL_assert(Net_players[pnum].player->killer_objtype < CHAR_MAX); 
 			temp = (char)Net_players[pnum].player->killer_objtype;
 			ADD_DATA( temp );
 
-			Assert(Net_players[pnum].player->killer_species < CHAR_MAX); 
+			SDL_assert(Net_players[pnum].player->killer_species < CHAR_MAX); 
 			temp = (char)Net_players[pnum].player->killer_species;
 			ADD_DATA( temp );
 
-			Assert(Net_players[pnum].player->killer_weapon_index < CHAR_MAX); 
+			SDL_assert(Net_players[pnum].player->killer_weapon_index < CHAR_MAX); 
 			temp = (char)Net_players[pnum].player->killer_weapon_index;
 			ADD_DATA( temp );
 
@@ -2734,7 +2734,7 @@ void process_ship_kill_packet( ubyte *data, header *hinfo )
 			Net_players[pnum].player->killer_objtype = killer_objtype;
 			Net_players[pnum].player->killer_species = killer_species;
 			Net_players[pnum].player->killer_weapon_index = killer_weapon_index;
-			strcpy( Net_players[pnum].player->killer_parent_name, killer_name );
+			SDL_strlcpy( Net_players[pnum].player->killer_parent_name, killer_name, NAME_LENGTH );
 		}
 	}	   
 
@@ -2788,7 +2788,7 @@ void process_ship_create_packet( ubyte *data, header *hinfo )
 	p_object *objp;
 	vector pos = ZERO_VECTOR;
 
-	Assert ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
+	SDL_assert ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 	offset = HEADER_LENGTH;
 	GET_USHORT(signature);
 	GET_INT( is_support );
@@ -2807,14 +2807,14 @@ void process_ship_create_packet( ubyte *data, header *hinfo )
 			nprintf(("Network", "Ship with sig %d not found on ship arrival list -- not creating!!\n", signature));
 		}
 	} else {
-		Assert( Arriving_support_ship );
+		SDL_assert( Arriving_support_ship );
 		if(Arriving_support_ship == NULL){
 			return;
 		}
 		Arriving_support_ship->pos = pos;
 		Arriving_support_ship->net_signature = signature;
 		objnum = parse_create_object( Arriving_support_ship );
-		Assert( objnum != -1 );
+		SDL_assert( objnum != -1 );
 		if(objnum < 0){
 			mission_parse_support_arrived( objnum );
 		}
@@ -2963,7 +2963,7 @@ void process_cargo_revealed_packet( ubyte *data, header *hinfo )
 		return;
 	}
 
-	// Assert( objp->type == OBJ_SHIP );
+	// SDL_assert( objp->type == OBJ_SHIP );
 	if((objp->type != OBJ_SHIP) || (objp->instance < 0) || (objp->instance >= MAX_SHIPS)){
 		return;
 	}
@@ -2992,7 +2992,7 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 	char t_subsys;
 	ai_info *aip;
 
-	// Assert ( starting_count < UCHAR_MAX );
+	// SDL_assert ( starting_count < UCHAR_MAX );
 
 	// get the object for this ship.  If it is an AI object, send all the info to all player.  Otherwise,
 	// we might send the info to the other player different than the one who fired
@@ -3006,7 +3006,7 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 	aip = &Ai_info[shipp->ai_index];
 
 	current_bank = (ubyte)shipp->weapons.current_secondary_bank;
-	//Assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );	// always true
+	//SDL_assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );	// always true
 
 	// build up the header portion
 	BUILD_HEADER( SECONDARY_FIRED_AI );
@@ -3042,12 +3042,12 @@ void send_secondary_fired_packet( ship *shipp, ushort starting_sig, int starting
 			int s_index;
 
 			s_index = ship_get_index_from_subsys( aip->targeted_subsys, aip->target_objnum );
-			Assert( s_index < CHAR_MAX );			// better be less than this!!!!
+			SDL_assert( s_index < CHAR_MAX );			// better be less than this!!!!
 			t_subsys = (char)s_index;
 		}
 
 		if ( Objects[aip->target_objnum].type == OBJ_WEAPON ) {
-			Assert(Weapon_info[Weapons[Objects[aip->target_objnum].instance].weapon_info_index].wi_flags & WIF_BOMB);
+			SDL_assert(Weapon_info[Weapons[Objects[aip->target_objnum].instance].weapon_info_index].wi_flags & WIF_BOMB);
 		}
 
 	}
@@ -3154,7 +3154,7 @@ void process_secondary_fired_packet(ubyte* data, header* hinfo, int from_player)
 	}
 
 	// determine whether current target is locked
-	Assert( shipp->ai_index != -1 );
+	SDL_assert( shipp->ai_index != -1 );
 	aip = &Ai_info[shipp->ai_index];
 	if ( sinfo & SFPF_TARGET_LOCKED ) {
 		aip->current_target_is_locked = 1;
@@ -3164,7 +3164,7 @@ void process_secondary_fired_packet(ubyte* data, header* hinfo, int from_player)
 
 	// find out the current bank
 	current_bank = (ubyte)(sinfo & 0x3);
-	//Assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );	// always true
+	//SDL_assert( (current_bank >= 0) && (current_bank < MAX_SECONDARY_BANKS) );	// always true
 	shipp->weapons.current_secondary_bank = current_bank;
 
 	// make it so we can fire this ship's secondary bank immediately!!!
@@ -3211,7 +3211,7 @@ void send_countermeasure_fired_packet( object *objp, int cmeasure_count, int ran
 
 	Int3();
 
-	Assert ( cmeasure_count < UCHAR_MAX );
+	SDL_assert ( cmeasure_count < UCHAR_MAX );
 	BUILD_HEADER(COUNTERMEASURE_FIRED);
 	ADD_USHORT( objp->net_signature );
 	ADD_INT( rand_val );
@@ -3242,7 +3242,7 @@ void process_countermeasure_fired_packet( ubyte *data, header *hinfo )
 	if(objp->type != OBJ_SHIP){
 		return;
 	}
-	// Assert ( objp->type == OBJ_SHIP );
+	// SDL_assert ( objp->type == OBJ_SHIP );
 
 	// make it so ship can fire right away!
 	Ships[objp->instance].cmeasure_fire_stamp = timestamp(0);
@@ -3271,14 +3271,14 @@ void send_turret_fired_packet( int ship_objnum, int subsys_index, int weapon_obj
 
 	// local setup -- be sure we are actually passing a weapon!!!!
 	objp = &Objects[weapon_objnum];
-	Assert ( objp->type == OBJ_WEAPON );
+	SDL_assert ( objp->type == OBJ_WEAPON );
 	if(Weapon_info[Weapons[objp->instance].weapon_info_index].subtype == WP_MISSILE){
 		has_sig = 1;
 	}
 
 	pnet_signature = Objects[ship_objnum].net_signature;
 
-	Assert( subsys_index < UCHAR_MAX );
+	SDL_assert( subsys_index < UCHAR_MAX );
 	cindex = (ubyte)subsys_index;
 
 	ssp = ship_get_indexed_subsys( &Ships[Objects[ship_objnum].instance], subsys_index, NULL );
@@ -3387,7 +3387,7 @@ void send_mission_log_packet( int num )
 	ushort sindex;
 	log_entry *entry;
 
-	Assert ( (Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER) );
+	SDL_assert ( (Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 
 	// get the data from the log
 	entry = &log_entries[num];
@@ -3415,7 +3415,7 @@ void process_mission_log_packet( ubyte *data, header *hinfo )
 	char pname[NAME_LENGTH], sname[NAME_LENGTH];
 	fix timestamp;
 
-	Assert ( (Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
+	SDL_assert ( (Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 
 	offset = HEADER_LENGTH;
 	GET_DATA(type);
@@ -3436,9 +3436,9 @@ void send_mission_message_packet( int id, const char *who_from, int priority, in
 	int packet_size;
 	ubyte data[MAX_PACKET_SIZE], up, us, utime;
 	
-	Assert ( Net_player->flags & NETINFO_FLAG_AM_MASTER );
-	Assert ( (priority >= 0) && (priority < UCHAR_MAX) );
-	Assert ( (timing >= 0) && (timing < UCHAR_MAX) );	
+	SDL_assert ( Net_player->flags & NETINFO_FLAG_AM_MASTER );
+	SDL_assert ( (priority >= 0) && (priority < UCHAR_MAX) );
+	SDL_assert ( (timing >= 0) && (timing < UCHAR_MAX) );	
 	
 	up = (ubyte) priority;
 	us = (ubyte) source;
@@ -3468,7 +3468,7 @@ void process_mission_message_packet( ubyte *data, header *hinfo )
 	char who_from[NAME_LENGTH];
 	int multi_team_filter;
 
-	Assert( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
+	SDL_assert( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 
 	offset = HEADER_LENGTH;
 	GET_INT(id);
@@ -3503,7 +3503,7 @@ void process_ping_packet(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();
 
 	// get the address to return the pong to
-	fill_net_addr(&addr, hinfo->addr, hinfo->net_id, hinfo->port);	
+	fill_net_addr(&addr, hinfo->addr, hinfo->port);
 	            
 	// send the pong
 	send_pong(&addr);	
@@ -3519,7 +3519,7 @@ void process_pong_packet(ubyte *data, header *hinfo)
 	
 	offset = HEADER_LENGTH;
 
-	fill_net_addr(&addr, hinfo->addr, hinfo->net_id, hinfo->port);
+	fill_net_addr(&addr, hinfo->addr, hinfo->port);
 		
 	PACKET_SET_SIZE();	
 		
@@ -3688,7 +3688,7 @@ void process_mission_item_packet(ubyte *data,header *hinfo)
 	ubyte stop, type,max_players;
 	uint respawn;
 
-	Assert(gameseq_get_state() == GS_STATE_MULTI_HOST_SETUP);
+	SDL_assert(gameseq_get_state() == GS_STATE_MULTI_HOST_SETUP);
 	offset = HEADER_LENGTH;
 
 	GET_DATA( type );
@@ -3707,8 +3707,8 @@ void process_mission_item_packet(ubyte *data,header *hinfo)
 			GET_DATA(valid_status);
 
 			if ( Multi_create_mission_count < MULTI_CREATE_MAX_LIST_ITEMS ) {
-				strcpy(Multi_create_mission_list[Multi_create_mission_count].filename, filename );
-				strcpy(Multi_create_mission_list[Multi_create_mission_count].name, name );
+				SDL_strlcpy(Multi_create_mission_list[Multi_create_mission_count].filename, filename, MAX_FILENAME_LEN );
+				SDL_strlcpy(Multi_create_mission_list[Multi_create_mission_count].name, name, NAME_LENGTH );
 				Multi_create_mission_list[Multi_create_mission_count].flags = flags;
 				Multi_create_mission_list[Multi_create_mission_count].respawn = respawn;
 				Multi_create_mission_list[Multi_create_mission_count].max_players = max_players;
@@ -3720,8 +3720,8 @@ void process_mission_item_packet(ubyte *data,header *hinfo)
 			}
 		} else if ( type == CAMPAIGN_LIST_ITEMS ) {
 			if ( Multi_create_campaign_count < MULTI_CREATE_MAX_LIST_ITEMS ) {
-				strcpy(Multi_create_campaign_list[Multi_create_campaign_count].filename, filename );
-				strcpy(Multi_create_campaign_list[Multi_create_campaign_count].name, name );
+				SDL_strlcpy(Multi_create_campaign_list[Multi_create_campaign_count].filename, filename, MAX_FILENAME_LEN );
+				SDL_strlcpy(Multi_create_campaign_list[Multi_create_campaign_count].name, name, NAME_LENGTH );
 				Multi_create_campaign_list[Multi_create_campaign_count].flags = flags;
 				Multi_create_campaign_list[Multi_create_campaign_count].respawn = 0;
 				Multi_create_campaign_list[Multi_create_campaign_count].max_players = max_players;
@@ -3745,7 +3745,7 @@ void send_multi_pause_packet(int pause)
 	ubyte val;
 	int packet_size = 0;
 	
-	Assert(!(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+	SDL_assert(!(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 	
 	// build the header
 	BUILD_HEADER(MULTI_PAUSE_REQUEST);
@@ -3845,7 +3845,7 @@ void process_ingame_nak(ubyte *data, header *hinfo)
 	
 	switch(state){
 	case ACK_FILE_ACCEPTED :
-		Assert(Net_player->flags & NETINFO_FLAG_INGAME_JOIN);
+		SDL_assert(pl->flags & NETINFO_FLAG_INGAME_JOIN);
 		nprintf(("Network","Mission file rejected by server, aborting...\n"));
 		multi_quit_game(PROMPT_NONE, MULTI_END_NOTIFY_FILE_REJECTED);		
 		break;
@@ -3863,7 +3863,7 @@ void send_endgame_packet(net_player *pl)
 
 	// sending to a specific player?
 	if(pl != NULL){
-		Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 		multi_io_send_reliable(pl, data, packet_size);
 		return;
 	}
@@ -3904,7 +3904,7 @@ void process_endgame_packet(ubyte *data, header *hinfo)
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 		// determine who this came from and make sure he is allowed to end the game		
 		player_num = find_player_id(hinfo->id);
-		Assert(player_num != -1);
+		SDL_assert(player_num != -1);
 		if(player_num < 0){
 			return;
 		}
@@ -4072,7 +4072,7 @@ void process_netplayer_slot_packet(ubyte *data, header *hinfo)
 			// being careful not to muck with the standalone object
 			if(!((player_num == 0) && (Game_mode & GM_STANDALONE_SERVER))){
 				objp = multi_get_network_object(net_sig);
-				Assert(objp != NULL);
+				SDL_assert(objp != NULL);
 				multi_assign_player_ship( player_num, objp, ship_class );
 				Net_players[player_num].p_info.ship_index = ship_index;
 				objp->flags &= ~(OF_COULD_BE_PLAYER);
@@ -4133,7 +4133,7 @@ void process_ship_weapon_change( ubyte *data, header *hinfo )
 		nprintf(("network", "Unable to locate ship with signature %d for weapon state change\n", signature));
 		return;
 	}
-	// Assert( objp->type == OBJ_SHIP );
+	// SDL_assert( objp->type == OBJ_SHIP );
 	if(objp->type != OBJ_SHIP){
 		return;
 	}
@@ -4228,7 +4228,7 @@ void process_ship_status_packet(ubyte *data, header *hinfo)
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){                  // SERVER SIDE
 		// find which net-player has sent us butotn information		
       player_num = find_player_id(hinfo->id);
-		Assert(player_num >= 0);
+		SDL_assert(player_num >= 0);
 		if(player_num < 0){
 			return;
 		}
@@ -4290,7 +4290,7 @@ void send_player_order_packet(int type, int index, int cmd)
 		int s_index;
 
 		s_index = ship_get_index_from_subsys( Player_ai->targeted_subsys, Player_ai->target_objnum );
-		Assert( s_index < CHAR_MAX );			// better be less than this!!!!
+		SDL_assert( s_index < CHAR_MAX );			// better be less than this!!!!
 		t_subsys = (char)s_index;
 	}
 	ADD_DATA(t_subsys);
@@ -4313,7 +4313,7 @@ void process_player_order_packet(ubyte *data, header *hinfo)
 	ship *shipp;
 	ship_subsys *tsubsys_save, *targeted_subsys;
 
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 
 	// packet values - its easier to read all of these in first
 		
@@ -4362,7 +4362,7 @@ void process_player_order_packet(ubyte *data, header *hinfo)
 	// check to see if the type of order is a reinforcement call.  If so, intercept it, and
 	// then call them in.
 	if ( type == SQUAD_MSG_REINFORCEMENT ) {
-		Assert( (index >= 0) && (index < Num_reinforcements) );
+		SDL_assert( (index >= 0) && (index < Num_reinforcements) );
 		hud_squadmsg_call_reinforcement(index, player_num);
 		return;
 	}
@@ -4379,7 +4379,7 @@ void process_player_order_packet(ubyte *data, header *hinfo)
 
 	targeted_subsys = NULL;
 	if ( t_subsys != -1 ) {
-		Assert( target_objp != NULL );
+		SDL_assert( target_objp != NULL );
 		targeted_subsys = ship_get_indexed_subsys( &Ships[target_objp->instance], t_subsys);
 	}
 
@@ -4404,7 +4404,7 @@ void process_player_order_packet(ubyte *data, header *hinfo)
 		hud_squadmsg_send_to_all_fighters( command, player_num );
 	}
 
-	Assert(tobjnum_save != Ships[aip->shipnum].objnum);	//	make sure not targeting self
+	SDL_assert(tobjnum_save != Ships[aip->shipnum].objnum);	//	make sure not targeting self
 	aip->target_objnum = tobjnum_save;
 	aip->targeted_subsys = tsubsys_save;
 }
@@ -4423,7 +4423,7 @@ void send_file_sig_packet(ushort sum_sig,int length_sig)
 
 	BUILD_HEADER(FILE_SIG_INFO);
 	ADD_USHORT(sum_sig);
-	ADD_SHORT(length_sig);
+	ADD_INT(length_sig);
 		
 	multi_io_send_reliable(Net_player, data, packet_size);
 }
@@ -4436,7 +4436,7 @@ void process_file_sig_packet(ubyte *data, header *hinfo)
 	offset = HEADER_LENGTH;
 
 	// should only be received on the server-side
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 	
 	GET_USHORT(sum_sig);
 	GET_INT(length_sig);
@@ -4452,7 +4452,7 @@ void send_file_sig_request(char *file_name)
 	BUILD_HEADER(FILE_SIG_REQUEST);
 	ADD_STRING(file_name);
 
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 		
 	multi_io_send_to_all_reliable(data, packet_size);
 }
@@ -4466,7 +4466,7 @@ void process_file_sig_request(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();	
 
 	// set the current mission filename
-	strcpy(Game_current_mission_filename,Netgame.mission_name);
+	SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 
 	// get the checksum
 	multi_get_mission_checksum(Game_current_mission_filename);	
@@ -4486,7 +4486,7 @@ void send_subsystem_destroyed_packet( ship *shipp, int index, vector world_hitpo
 	vector tmp, local_hitpos;
 	object *objp;
 
-	Assert ( index < UCHAR_MAX );
+	SDL_assert ( index < UCHAR_MAX );
 	uindex = (ubyte)(index);
 
 	objp = &Objects[shipp->objnum];
@@ -4509,7 +4509,7 @@ void process_subsystem_destroyed_packet( ubyte *data, header *hinfo )
 	ushort signature;
 	ubyte uindex;
 	object *objp;
-	vector local_hit_pos, world_hit_pos;
+	vector local_hit_pos = ZERO_VECTOR, world_hit_pos;
 
 	offset = HEADER_LENGTH;
 
@@ -4525,7 +4525,7 @@ void process_subsystem_destroyed_packet( ubyte *data, header *hinfo )
 		ship_subsys *subsysp;
 
 		// be sure we have a ship!!!
-		// Assert ( objp->type == OBJ_SHIP );
+		// SDL_assert ( objp->type == OBJ_SHIP );
 		if(objp->type != OBJ_SHIP){
 			PACKET_SET_SIZE();
 			return;
@@ -4554,7 +4554,7 @@ void send_subsystem_cargo_revealed_packet( ship *shipp, int index )
 	ubyte data[MAX_PACKET_SIZE], uindex;
 	int packet_size;
 
-	Assert ( index < UCHAR_MAX );
+	SDL_assert ( index < UCHAR_MAX );
 	uindex = (ubyte)(index);
 
 	// build the header and add the data
@@ -4594,7 +4594,7 @@ void process_subsystem_cargo_revealed_packet( ubyte *data, header *hinfo )
 		return;
 	}
 
-	// Assert( objp->type == OBJ_SHIP );
+	// SDL_assert( objp->type == OBJ_SHIP );
 	if((objp->type != OBJ_SHIP) || (objp->instance < 0) || (objp->instance >= MAX_SHIPS)){
 		return;
 	}
@@ -4641,8 +4641,8 @@ void process_netplayer_load_packet(ubyte *data, header *hinfo)
 	GET_STRING(str);
 	PACKET_SET_SIZE();
 
-	strcpy(Netgame.mission_name,str);
-	strcpy(Game_current_mission_filename,str);
+	SDL_strlcpy(Netgame.mission_name, str, SDL_arraysize(Netgame.mission_name));
+	SDL_strlcpy(Game_current_mission_filename, str, SDL_arraysize(Game_current_mission_filename));
 	if(!Multi_mission_loaded){
 
 		// MWA 2/3/98 -- ingame join changes!!!
@@ -4676,7 +4676,7 @@ void send_jump_into_mission_packet(net_player *pl)
 	ubyte data[MAX_PACKET_SIZE];
 	int packet_size = 0;
 
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 	BUILD_HEADER(JUMP_INTO_GAME);
 
@@ -4736,7 +4736,7 @@ void process_jump_into_mission_packet(ubyte *data, header *hinfo)
 		}		
 	}
 
-	extern int Player_multi_died_check;
+	extern time_t Player_multi_died_check;
 	Player_multi_died_check = -1;
 
 	// recalc all object pairs now	
@@ -4865,7 +4865,7 @@ void send_ai_info_update_packet( object *objp, char what )
 	ai_info *aip;
 	ubyte dock_index, dockee_index;
 
-	// Assert( objp->type == OBJ_SHIP );
+	// SDL_assert( objp->type == OBJ_SHIP );
 	if(objp->type != OBJ_SHIP){
 		return;
 	}
@@ -4885,7 +4885,7 @@ void send_ai_info_update_packet( object *objp, char what )
 
 	case AI_UPDATE_DOCK:
 		// for docking ships, add the signature of the ship that we are docking with.
-		Assert( aip->dock_objnum != -1 );
+		SDL_assert( aip->dock_objnum != -1 );
 		other_signature = Objects[aip->dock_objnum].net_signature;
 		dock_index = (ubyte)(aip->dock_index);
 		dockee_index = (ubyte)(aip->dockee_index);
@@ -4909,7 +4909,7 @@ void send_ai_info_update_packet( object *objp, char what )
 
 		// for orders, we only need to send a little bit of information here.  Be sure that the
 		// first order for this ship is active
-		Assert( (aip->active_goal != AI_GOAL_NONE) && (aip->active_goal != AI_ACTIVE_GOAL_DYNAMIC) );
+		SDL_assert( (aip->active_goal != AI_GOAL_NONE) && (aip->active_goal != AI_ACTIVE_GOAL_DYNAMIC) );
 		ADD_INT( aip->goals[0].ai_mode );
 		ADD_INT( aip->goals[0].ai_submode );
 		shipnum = -1;
@@ -4919,7 +4919,7 @@ void send_ai_info_update_packet( object *objp, char what )
 		// the ship_name member of the goals structure may or may not contain a real shipname.  If we don't
 		// have a valid shipnum, then don't sweat it since it may not really be a ship.
 		if ( shipnum != -1 ) {
-			Assert( Ships[shipnum].objnum != -1 );
+			SDL_assert( Ships[shipnum].objnum != -1 );
 			other_signature = Objects[Ships[shipnum].objnum].net_signature;
 		} else
 			other_signature = 0;
@@ -4928,8 +4928,8 @@ void send_ai_info_update_packet( object *objp, char what )
 
 		// for docking, add the dock and dockee index
 		if ( aip->goals[0].ai_mode & (AI_GOAL_DOCK|AI_GOAL_REARM_REPAIR) ) {
-			Assert( (aip->goals[0].docker.index >= 0) && (aip->goals[0].docker.index < UCHAR_MAX) );
-			Assert( (aip->goals[0].dockee.index >= 0) && (aip->goals[0].dockee.index < UCHAR_MAX) );
+			SDL_assert( (aip->goals[0].docker.index >= 0) && (aip->goals[0].docker.index < UCHAR_MAX) );
+			SDL_assert( (aip->goals[0].dockee.index >= 0) && (aip->goals[0].dockee.index < UCHAR_MAX) );
 			dock_index = (ubyte)aip->goals[0].docker.index;
 			dockee_index = (ubyte)aip->goals[0].dockee.index;
 			ADD_DATA( dock_index );
@@ -4978,7 +4978,7 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 			break;
 		}
 
-		Assert( other_objp->type == OBJ_SHIP );
+		SDL_assert( other_objp->type == OBJ_SHIP );
 		Ai_info[Ships[objp->instance].ai_index].dock_index = dock_index;
 		Ai_info[Ships[objp->instance].ai_index].dockee_index = dockee_index;
 
@@ -5060,7 +5060,7 @@ void send_mission_sync_packet(int mode,int start_campaign)
 	ubyte data[MAX_PACKET_SIZE],is_campaign;
 	int packet_size = 0;
 
-	Assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+	SDL_assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 
 	// build the header and add the sync mode (pre or post briefing)
 	BUILD_HEADER(MISSION_SYNC_DATA);
@@ -5101,7 +5101,7 @@ void process_mission_sync_packet(ubyte *data, header *hinfo)
 	ubyte campaign_flag;
 	int offset = HEADER_LENGTH;
 
-	Assert(Game_mode & GM_STANDALONE_SERVER);
+	SDL_assert(Game_mode & GM_STANDALONE_SERVER);
 
 	// if this is a team vs team situation, lock the players send a final team update
 	if(Netgame.type_flags & NG_TYPE_TEAM){
@@ -5134,7 +5134,7 @@ void process_mission_sync_packet(ubyte *data, header *hinfo)
 
 			// get the single mission filename
 			GET_STRING(Game_current_mission_filename);
-			strcpy(Netgame.mission_name,Game_current_mission_filename);
+			SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, SDL_arraysize(Netgame.mission_name));
 		}
 	}
 	PACKET_SET_SIZE();
@@ -5244,7 +5244,7 @@ void process_debris_update_packet(ubyte *data, header *hinfo)
 	// simply remove it (no explosion)
 	case DEBRIS_UPDATE_REMOVE:
 		if(objp != &bogus_object){
-			Assert(objp->type == OBJ_DEBRIS);
+			SDL_assert(objp->type == OBJ_DEBRIS);
 			obj_delete(OBJ_INDEX(objp));
 		}
 		break;
@@ -5283,7 +5283,7 @@ void send_wss_request_packet(short player_id, int from_slot, int from_index, int
 	} 
 	// being routed through the standalone to the host of the game
 	else {
-		Assert(Game_mode & GM_STANDALONE_SERVER);			
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);			
 		multi_io_send_reliable(p, data, packet_size);
 	}
 }
@@ -5312,7 +5312,7 @@ void process_wss_request_packet(ubyte *data, header *hinfo)
 	GET_INT(mode);
 	PACKET_SET_SIZE();
 
-	Assert(player_num != -1);	
+	SDL_assert(player_num != -1);	
 	if(player_num == -1){
 		return;
 	}
@@ -5341,7 +5341,7 @@ void send_wss_update_packet(int team_num,ubyte *wss_data,int size)
 	ubyte data[MAX_PACKET_SIZE],team;
 	int packet_size = 0;
 
-	Assert(size <= (MAX_PACKET_SIZE - 10));
+	SDL_assert(size <= (MAX_PACKET_SIZE - 10));
 
 	BUILD_HEADER(WSS_UPDATE_PACKET);
 
@@ -5386,7 +5386,7 @@ void process_wss_update_packet(ubyte *data, header *hinfo)
 
 		// determine where this came from		
 		player_index = find_player_id(hinfo->id);		
-		Assert(player_index != -1);		
+		SDL_assert(player_index != -1);		
 		if(player_index < 0){
 			return;
 		}
@@ -5425,7 +5425,7 @@ void send_firing_info_packet()
 	int packet_size;
 	ubyte plinked, sdual;
 
-	Assert( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
+	SDL_assert( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 
 	BUILD_HEADER(FIRING_INFO);
 	plinked = (ubyte)((Player_ship->flags & SF_PRIMARY_LINKED)?1:0);
@@ -5443,7 +5443,7 @@ void process_firing_info_packet( ubyte *data, header *hinfo )
 	ship *shipp;
 
 	// only the master of the game should be dealing with these packets
-	Assert( Net_player->flags & NETINFO_FLAG_AM_MASTER );
+	SDL_assert( Net_player->flags & NETINFO_FLAG_AM_MASTER );
 
 	offset = HEADER_LENGTH;
 	GET_DATA( plinked );
@@ -5777,14 +5777,14 @@ void send_post_sync_data_packet(net_player *p, int std_request)
 		if(pl != NULL){
 			pl->s_info.cur_primary_bank = bval;
 		}
-		// Assert(bval != -1);
+		// SDL_assert(bval != -1);
 		ADD_DATA(bval);
 
 		bval = (char)(shipp->weapons.current_secondary_bank);
 		if(pl != NULL){
 			pl->s_info.cur_secondary_bank = bval;
 		}
-		// Assert(bval != -1);
+		// SDL_assert(bval != -1);
 		ADD_DATA(bval);
 						
 		// primary weapon info
@@ -5935,7 +5935,7 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 		objp = multi_get_network_object(net_sig);
 
 		// make sure we found a ship
-		Assert((objp != NULL) && (objp->type == OBJ_SHIP));
+		SDL_assert((objp != NULL) && (objp->type == OBJ_SHIP));
 
 		// set the ship to be the right class
 		change_ship_type(objp->instance,(int)sinfo_index);
@@ -5953,18 +5953,18 @@ void process_post_sync_data_packet(ubyte *data, header *hinfo)
 		objp = multi_get_network_object(net_sig);
 
 		// make sure we found a ship
-		Assert((objp != NULL) && (objp->type == OBJ_SHIP));
+		SDL_assert((objp != NULL) && (objp->type == OBJ_SHIP));
 
 		// get a pointer to the ship
 		shipp = &Ships[objp->instance];
 
 		// get number of primary and secondary banks;
 		GET_DATA(b);
-		Assert( b != -1 );
+		SDL_assert( b != -1 );
 		shipp->weapons.num_primary_banks = (int)b;
 
 		GET_DATA(b);
-		Assert( b != -1 );
+		SDL_assert( b != -1 );
 		shipp->weapons.num_secondary_banks = (int)b;
 
 		// get bank selection info
@@ -6207,9 +6207,9 @@ void send_shield_explosion_packet( int objnum, int tri_num, vector hit_pos )
 	ubyte data[MAX_PACKET_SIZE], utri_num;
 
 	Int3();
-	// Assert(!(Netgame.debug_flags & NETD_FLAG_CLIENT_NODAMAGE));
+	// SDL_assert(!(Netgame.debug_flags & NETD_FLAG_CLIENT_NODAMAGE));
 
-	Assert( tri_num < UCHAR_MAX );
+	SDL_assert( tri_num < UCHAR_MAX );
 	utri_num = (ubyte)tri_num;
 
 	// for each player, determine if this object is behind the player -- if so, don't
@@ -6274,14 +6274,14 @@ void process_shield_explosion_packet( ubyte *data, header *hinfo)
 		// given the tri num, find the local position which is the average of the
 		// three vertices of the triangle affected.  Use this average point as the hit
 		// point
-		// Assert( objp->type == OBJ_SHIP );
+		// SDL_assert( objp->type == OBJ_SHIP );
 		if(objp->type != OBJ_SHIP){
 			return;
 		}
 
 		pm = model_get(Ships[objp->instance].modelnum);
 		shieldp = &pm->shield;
-		Assert( utri_num < shieldp->ntris );
+		SDL_assert( utri_num < shieldp->ntris );
 		stri = shieldp->tris[utri_num];
 		vm_vec_zero(&hit_pos);
 		for ( i = 0; i < 3; i++ ) {
@@ -6386,7 +6386,7 @@ void send_player_stats_block_packet(net_player *pl, int stats_code, net_player *
 		break;		
 	}
 
-	Assert(packet_size < MAX_PACKET_SIZE);
+	SDL_assert(packet_size < MAX_PACKET_SIZE);
 
 	// if we're a client, always send the data to the server
 	if(!(Net_player->flags & NETINFO_FLAG_AM_MASTER)){
@@ -6521,7 +6521,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 	// if I'm the server of the game, I should always rebroadcast these stats
 	if ((Net_player->flags & NETINFO_FLAG_AM_MASTER) && (sc != &bogus)) {
 		// make sure these are alltime stats
-		Assert(val == STATS_ALLTIME);
+		SDL_assert(val == STATS_ALLTIME);
 
 		multi_broadcast_stats(STATS_ALLTIME);
 	}
@@ -6542,7 +6542,7 @@ void send_asteroid_create( object *new_objp, object *parent_objp, int asteroid_t
 	BUILD_HEADER( ASTEROID_INFO );
 	packet_type = ASTEROID_CREATE;
 
-	Assert( asteroid_type < UCHAR_MAX );
+	SDL_assert( asteroid_type < UCHAR_MAX );
 	atype = (ubyte)asteroid_type;
 
 	ADD_DATA( packet_type );
@@ -6617,7 +6617,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	case ASTEROID_CREATE: {
 		ushort psignature, signature;
 		ubyte atype;
-		vector relvec;
+		vector relvec = ZERO_VECTOR;
 		object *parent_objp;
 
 		GET_USHORT( psignature );
@@ -6642,7 +6642,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 		// asteroid throw packet -- asteroid has wrapped bounds
 	case ASTEROID_THROW: {
 		ushort signature;
-		vector pos, vel;
+		vector pos = ZERO_VECTOR, vel = ZERO_VECTOR;
 		object *objp;
 
 		GET_USHORT( signature );
@@ -6664,7 +6664,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 	case ASTEROID_HIT: {
 		ushort signature, osignature;
 		object *objp, *other_objp;
-		vector hitpos;
+		vector hitpos = ZERO_VECTOR;
 		float damage;
 
 		GET_USHORT( signature );
@@ -6726,7 +6726,7 @@ void send_host_restr_packet(const char *callsign, int code, int mode)
 	} 
 	// otherwise if I'm the host, I should be sending a reply back to the standalone server
 	else {
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);		
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);		
 		multi_io_send_reliable(Net_player, data, packet_size);
 	}
 }	
@@ -6747,7 +6747,7 @@ void process_host_restr_packet(ubyte *data, header *hinfo)
 	switch(code){
 	// query to the host from standalone
 	case 0:		
-		Assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+		SDL_assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 
 		// set the join mode
 		Multi_join_restr_mode = mode;
@@ -6762,7 +6762,7 @@ void process_host_restr_packet(ubyte *data, header *hinfo)
 		
 	// affirmative reply from the host to the standalone
 	case 1:
-		Assert(Game_mode & GM_STANDALONE_SERVER);		
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);		
 
 		// let the player join if the timestamp has not already elapsed on the server
 		if(Multi_restr_query_timestamp != -1){
@@ -6772,7 +6772,7 @@ void process_host_restr_packet(ubyte *data, header *hinfo)
 
 	// negative reply
 	case 2 :
-		Assert(Game_mode & GM_STANDALONE_SERVER);
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);
 		Netgame.flags &= ~(NG_FLAG_INGAME_JOINING);
 		Multi_restr_query_timestamp = -1;
 		break;
@@ -6786,7 +6786,7 @@ void send_netgame_end_error_packet(int notify_code,int err_code)
 	int packet_size = 0;
 
 	// only the server should ever be here - although this might change if for some reason the host wants to end the game
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	
 	// build the header and add the notification and error codes
 	BUILD_HEADER(NETGAME_END_ERROR);
@@ -6859,14 +6859,14 @@ void send_client_update_packet(net_player *pl)
 		val |= UPDATE_IS_PAUSED;
 	} else if ( (Game_mode & GM_IN_MISSION) && !(pl->flags & NETINFO_FLAG_INGAME_JOIN) && !(NETPLAYER_IS_OBSERVER(pl)) && !(NETPLAYER_IS_DEAD(pl)) && (Objects[pl->player->objnum].type == OBJ_SHIP) ) {
 		val |= UPDATE_HULL_INFO;
-		Assert( Player_ship );			// I"d better have one of these!!!!
+		SDL_assert( Player_ship );			// I"d better have one of these!!!!
 	}
 
 	ADD_DATA(val);
 
 	// if paused, add the net address of the guy who paused
 	if(val & UPDATE_IS_PAUSED){
-		Assert(Multi_pause_pauser != NULL);
+		SDL_assert(Multi_pause_pauser != NULL);
 		ADD_SHORT(Multi_pause_pauser->player_id);
 	}
 
@@ -6880,11 +6880,11 @@ void send_client_update_packet(net_player *pl)
 		int i;
 
 		// get the object for the player
-		Assert( pl->player->objnum != -1 );
+		SDL_assert( pl->player->objnum != -1 );
 
 		objp = &Objects[pl->player->objnum];
 
-		Assert ( objp->type == OBJ_SHIP );
+		SDL_assert ( objp->type == OBJ_SHIP );
 		shipp = &Ships[objp->instance];
 		sip = &Ship_info[shipp->ship_info_index];
 
@@ -7035,7 +7035,7 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 
 					// add the value just generated (it was zero'ed above) into the array of generic system types
 					subsys_type = subsysp->system_info->type;					// this is the generic type of subsystem
-					Assert ( subsys_type < SUBSYSTEM_MAX );
+					SDL_assert ( subsys_type < SUBSYSTEM_MAX );
 					shipp->subsys_info[subsys_type].current_hits += val;
 					n_subsystems++;
 				}
@@ -7088,7 +7088,7 @@ void send_countdown_packet(int time)
 	}
 	// otherwise we'de better be a host sending to the standalone
 	else {
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 		multi_io_send_reliable(Net_player, data, packet_size);
 	}
 }
@@ -7109,7 +7109,7 @@ void process_countdown_packet(ubyte *data, header *hinfo)
 
 	// if we're the standalone, this should be a -1 telling us to start the countdown
 	if(Game_mode & GM_STANDALONE_SERVER){
-		Assert((int)time == -1);
+		SDL_assert((int)time == -1);
 
 		// start the countdown
 		multi_sync_start_countdown();
@@ -7167,7 +7167,7 @@ void process_debrief_info( ubyte *data, header *hinfo )
 
 	// now that we have the stage data for the debriefing stages, call debrief function with the
 	// data so that clients can now see the debriefing stuff.  Do it only for my team.
-	Assert( (Net_player->p_info.team >= 0) && (Net_player->p_info.team < Num_teams) );
+	SDL_assert( (Net_player->p_info.team >= 0) && (Net_player->p_info.team < Num_teams) );
 	debrief_set_multi_clients( stage_counts[Net_player->p_info.team], stages[Net_player->p_info.team] );
 }
 
@@ -7201,7 +7201,7 @@ void send_homing_weapon_info( int weapon_num )
 			int s_index;
 
 			s_index = ship_get_index_from_subsys( wp->homing_subsys, OBJ_INDEX(homing_object), 1 );
-			Assert( s_index < CHAR_MAX );			// better be less than this!!!!
+			SDL_assert( s_index < CHAR_MAX );			// better be less than this!!!!
 			t_subsys = (char)s_index;
 		}
 	}
@@ -7238,7 +7238,7 @@ void process_homing_weapon_info( ubyte *data, header *hinfo )
 		nprintf(("Network", "Couldn't find weapon object for homing update -- skipping update\n"));
 		return;
 	}
-	Assert( weapon_objp->type == OBJ_WEAPON );
+	SDL_assert( weapon_objp->type == OBJ_WEAPON );
 	wp = &Weapons[weapon_objp->instance];
 
 	// be sure that we can find these weapons and 
@@ -7249,7 +7249,7 @@ void process_homing_weapon_info( ubyte *data, header *hinfo )
 	}
 
 	if ( homing_object->type == OBJ_WEAPON ) {
-		Assert(Weapon_info[Weapons[homing_object->instance].weapon_info_index].wi_flags & WIF_BOMB);
+		SDL_assert(Weapon_info[Weapons[homing_object->instance].weapon_info_index].wi_flags & WIF_BOMB);
 	}
 
 	wp->homing_object = homing_object;
@@ -7257,7 +7257,7 @@ void process_homing_weapon_info( ubyte *data, header *hinfo )
 	wp->target_num = OBJ_INDEX(homing_object);
 	wp->target_sig = homing_object->signature;
 	if ( h_subsys != -1 ) {
-		Assert( homing_object->type == OBJ_SHIP );
+		SDL_assert( homing_object->type == OBJ_SHIP );
 		wp->homing_subsys = ship_get_indexed_subsys( &Ships[homing_object->instance], h_subsys);
 	}
 
@@ -7271,7 +7271,7 @@ void send_emp_effect(ushort net_sig, float intensity, float time)
 	ubyte data[25];
 	int packet_size;
 
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 
 	// build the packet and add the opcode
 	BUILD_HEADER(EMP_EFFECT);
@@ -7384,7 +7384,7 @@ void send_NEW_primary_fired_packet(ship *shipp, int banks_fired)
 	net_player *ignore = NULL;
 
 	// sanity checking for now
-	Assert ( banks_fired <= 3 );
+	SDL_assert ( banks_fired <= 3 );
 
 	// get an object pointer for this ship.
 	objnum = shipp->objnum;
@@ -7402,7 +7402,7 @@ void send_NEW_primary_fired_packet(ship *shipp, int banks_fired)
 
 	// ubanks_fired = (ubyte)banks_fired;
 	// current_bank = (ubyte)shipp->weapons.current_primary_bank;
-	// Assert( current_bank <= 3 );
+	// SDL_assert( current_bank <= 3 );
 
 	// insert the current primary bank into this byte
 	// ubanks_fired |= (current_bank << CURRENT_BANK_BIT);
@@ -7447,7 +7447,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	int offset; // linked;	
 	// ubyte banks_fired, current_bank;
 	object* objp;	
-	ship *shipp;
+//	ship *shipp;
 	ushort shooter_sig;	
 
 	// read all packet info
@@ -7469,7 +7469,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	if(objp->instance < 0){
 		return;
 	}
-	shipp = &Ships[objp->instance];
+//	shipp = &Ships[objp->instance];
 	
 	// get the link status of the primary banks
 	// linked = 0;
@@ -7481,7 +7481,7 @@ void process_NEW_primary_fired_packet(ubyte *data, header *hinfo)
 	// get the current primary bank
 	// current_bank = (ubyte)(banks_fired >> CURRENT_BANK_BIT);
 	// current_bank &= 0x3;
-	// Assert( (current_bank >= 0) && (current_bank < MAX_PRIMARY_BANKS) );
+	// SDL_assert( (current_bank >= 0) && (current_bank < MAX_PRIMARY_BANKS) );
 	// shipp->weapons.current_primary_bank = current_bank;
 
 	// strip off all remaining bits and just keep which banks were actually fired.
@@ -7515,7 +7515,7 @@ void send_NEW_countermeasure_fired_packet(object *objp, int cmeasure_count, int 
 		return;
 	}
 
-	Assert ( cmeasure_count < UCHAR_MAX );
+	SDL_assert ( cmeasure_count < UCHAR_MAX );
 	BUILD_HEADER(COUNTERMEASURE_NEW);
 	ADD_USHORT( objp->net_signature );
 	ADD_INT( rand_val );
@@ -7585,37 +7585,37 @@ void send_beam_fired_packet(object *shooter, ship_subsys *turret, object *target
 	beam_info b_info;
 
 	// only the server should ever be doing this
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 
 	// setup outgoing data
-	Assert(shooter != NULL);
-	Assert(turret != NULL);
-	Assert(target != NULL);
-	Assert(override != NULL);
+	SDL_assert(shooter != NULL);
+	SDL_assert(turret != NULL);
+	SDL_assert(target != NULL);
+	SDL_assert(override != NULL);
 	if((shooter == NULL) || (turret == NULL) || (target == NULL) || (override == NULL)){
 		return;
 	}
 	u_beam_info = (ubyte)beam_info_index;
 	subsys_index = (char)ship_get_index_from_subsys(turret, OBJ_INDEX(shooter));
-	Assert(subsys_index >= 0);
+	SDL_assert(subsys_index >= 0);
 	if(subsys_index < 0){
 		return;
 	}
 
 	// swap the beam_info override info into little endian byte order
-	b_info.dir_a.xyz.x = INTEL_FLOAT(&override->dir_a.xyz.x);
-	b_info.dir_a.xyz.y = INTEL_FLOAT(&override->dir_a.xyz.y);
-	b_info.dir_a.xyz.z = INTEL_FLOAT(&override->dir_a.xyz.z);
+	b_info.dir_a.xyz.x = INTEL_FLOAT(override->dir_a.xyz.x);
+	b_info.dir_a.xyz.y = INTEL_FLOAT(override->dir_a.xyz.y);
+	b_info.dir_a.xyz.z = INTEL_FLOAT(override->dir_a.xyz.z);
   	 
-	b_info.dir_b.xyz.x = INTEL_FLOAT(&override->dir_b.xyz.x);
-	b_info.dir_b.xyz.y = INTEL_FLOAT(&override->dir_b.xyz.y);
-	b_info.dir_b.xyz.z = INTEL_FLOAT(&override->dir_b.xyz.z);
+	b_info.dir_b.xyz.x = INTEL_FLOAT(override->dir_b.xyz.x);
+	b_info.dir_b.xyz.y = INTEL_FLOAT(override->dir_b.xyz.y);
+	b_info.dir_b.xyz.z = INTEL_FLOAT(override->dir_b.xyz.z);
   	 
-	b_info.delta_ang = INTEL_FLOAT(&override->delta_ang);
+	b_info.delta_ang = INTEL_FLOAT(override->delta_ang);
 	b_info.shot_count = override->shot_count;
   	 
 	for (int i = 0; i < b_info.shot_count; i++) {
-		b_info.shot_aim[i] = INTEL_FLOAT(&override->shot_aim[i]);
+		b_info.shot_aim[i] = INTEL_FLOAT(override->shot_aim[i]);
 	}
 
 	// build the header
@@ -7640,7 +7640,7 @@ void process_beam_fired_packet(ubyte *data, header *hinfo)
 	beam_fire_info fire_info;
 
 	// only clients should ever get this
-	Assert(MULTIPLAYER_CLIENT);
+	SDL_assert(MULTIPLAYER_CLIENT);
 
 	// read in packet data
 	offset = HEADER_LENGTH;
@@ -7653,16 +7653,16 @@ void process_beam_fired_packet(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();
 
 	// swap the beam_info override info into native byte order
-	b_info.dir_a.xyz.x = INTEL_FLOAT( &b_info.dir_a.xyz.x );
-	b_info.dir_a.xyz.y = INTEL_FLOAT( &b_info.dir_a.xyz.y );
-	b_info.dir_a.xyz.z = INTEL_FLOAT( &b_info.dir_a.xyz.z );
-	b_info.dir_b.xyz.x = INTEL_FLOAT( &b_info.dir_b.xyz.x );
-	b_info.dir_b.xyz.y = INTEL_FLOAT( &b_info.dir_b.xyz.y );
-	b_info.dir_b.xyz.z = INTEL_FLOAT( &b_info.dir_b.xyz.z );
-	b_info.delta_ang = INTEL_FLOAT( &b_info.delta_ang );
+	b_info.dir_a.xyz.x = INTEL_FLOAT( b_info.dir_a.xyz.x );
+	b_info.dir_a.xyz.y = INTEL_FLOAT( b_info.dir_a.xyz.y );
+	b_info.dir_a.xyz.z = INTEL_FLOAT( b_info.dir_a.xyz.z );
+	b_info.dir_b.xyz.x = INTEL_FLOAT( b_info.dir_b.xyz.x );
+	b_info.dir_b.xyz.y = INTEL_FLOAT( b_info.dir_b.xyz.y );
+	b_info.dir_b.xyz.z = INTEL_FLOAT( b_info.dir_b.xyz.z );
+	b_info.delta_ang = INTEL_FLOAT( b_info.delta_ang );
 
 	for (i = 0; i < MAX_BEAM_SHOTS; i++) {
-		b_info.shot_aim[i] = INTEL_FLOAT(&b_info.shot_aim[i]);
+		b_info.shot_aim[i] = INTEL_FLOAT(b_info.shot_aim[i]);
 	}
 
 	// lookup all relevant data
@@ -7704,15 +7704,15 @@ void send_sw_query_packet(ubyte code, char *txt)
 
 	// if I'm the host, send to standalone
 	if(MULTIPLAYER_HOST){
-		Assert(!MULTIPLAYER_MASTER);
-		Assert(code == SW_STD_START);		
+		SDL_assert(!MULTIPLAYER_MASTER);
+		SDL_assert(code == SW_STD_START);		
 		multi_io_send_reliable(Net_player, data, packet_size);
 	}
 	// otherwise standalone sends back to host
 	else {
-		Assert(Game_mode & GM_STANDALONE_SERVER);
-		Assert(code != SW_STD_START);
-		Assert(Netgame.host != NULL);
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);
+		SDL_assert(code != SW_STD_START);
+		SDL_assert(Netgame.host != NULL);
 		if(Netgame.host != NULL){			
 			multi_io_send_reliable(Netgame.host, data, packet_size);
 		}
@@ -7773,11 +7773,11 @@ void send_weapon_detonate_packet(object *objp)
 	int packet_size = 0;
 
 	// sanity checks
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 	if(!MULTIPLAYER_MASTER){
 		return;
 	}
-	Assert(objp != NULL);
+	SDL_assert(objp != NULL);
 	if(objp == NULL){
 		return;
 	}
@@ -7824,10 +7824,10 @@ void send_flak_fired_packet(int ship_objnum, int subsys_index, int weapon_objnum
 
 	// local setup -- be sure we are actually passing a weapon!!!!
 	objp = &Objects[weapon_objnum];
-	Assert ( objp->type == OBJ_WEAPON );	
+	SDL_assert ( objp->type == OBJ_WEAPON );	
 	pnet_signature = Objects[ship_objnum].net_signature;
 
-	Assert( subsys_index < UCHAR_MAX );
+	SDL_assert( subsys_index < UCHAR_MAX );
 	cindex = (ubyte)subsys_index;
 
 	ssp = ship_get_indexed_subsys( &Ships[Objects[ship_objnum].instance], subsys_index, NULL );
@@ -7924,7 +7924,7 @@ void process_flak_fired_packet(ubyte *data, header *hinfo)
 	}
 }
 
-#define ADD_NORM_VEC(d) do { Assert((packet_size + 3) < MAX_PACKET_SIZE); char vnorm[3] = { (char)(d.x * 127.0f), (char)(d.y * 127.0f), (char)(d.z * 127.0f) }; memcpy(data + packet_size, vnorm, 3); packet_size += 3; } while(0);
+#define ADD_NORM_VEC(d) do { SDL_assert((packet_size + 3) < MAX_PACKET_SIZE); char vnorm[3] = { (char)(d.x * 127.0f), (char)(d.y * 127.0f), (char)(d.z * 127.0f) }; memcpy(data + packet_size, vnorm, 3); packet_size += 3; } while(0);
 #define GET_NORM_VEC(d) do { char vnorm[3]; memcpy(vnorm, data+offset, 3); d.x = (float)vnorm[0] / 127.0f; d.y = (float)vnorm[1] / 127.0f; d.z = (float)vnorm[2] / 127.0f; } while(0);
 
 // player pain packet
@@ -7935,11 +7935,11 @@ void send_player_pain_packet(net_player *pl, int weapon_info_index, float damage
 	ushort udamage;
 	int packet_size = 0;
 
-	Assert(MULTIPLAYER_MASTER);
+	SDL_assert(MULTIPLAYER_MASTER);
 	if(!MULTIPLAYER_MASTER){
 		return;
 	}
-	Assert(pl != NULL);
+	SDL_assert(pl != NULL);
 	if(pl == NULL){
 		return;
 	}
@@ -7966,8 +7966,8 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	int offset;
 	ubyte windex;
 	ushort udamage;
-	vector force;
-	vector local_hit_pos;
+	vector force = ZERO_VECTOR;
+	vector local_hit_pos = ZERO_VECTOR;
 	weapon_info *wip;
 
 	// get the data for the pain packet
@@ -7983,14 +7983,14 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	mprintf(("PAIN!\n"));
 
 	// get weapon info pointer
-	//Assert((windex >= 0) && (windex < Num_weapon_types) && (Weapon_info[windex].subtype == WP_LASER));	// always true
+	//SDL_assert((windex >= 0) && (windex < Num_weapon_types) && (Weapon_info[windex].subtype == WP_LASER));	// always true
 	if(! ((windex != 255) && (windex < Num_weapon_types) && (Weapon_info[windex].subtype == WP_LASER)) ){
 		return;
 	}
 	wip = &Weapon_info[windex];
 
 	// play the weapon hit sound
-	Assert(Player_obj != NULL);
+	SDL_assert(Player_obj != NULL);
 	if(Player_obj == NULL){
 		return;
 	}
@@ -8027,7 +8027,7 @@ void process_lightning_packet(ubyte *data, header *hinfo)
 {
 	int offset;
 	char bolt_type;
-	vector start, strike;
+	vector start = ZERO_VECTOR, strike = ZERO_VECTOR;
 
 	// read the data
 	offset = HEADER_LENGTH;
@@ -8174,7 +8174,7 @@ void send_self_destruct_packet()
 	}
 
 	// if i'm the server, I shouldn't be here
-	Assert(!(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+	SDL_assert(!(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 		return;
 	}

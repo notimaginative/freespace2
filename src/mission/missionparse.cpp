@@ -335,7 +335,6 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <setjmp.h>
 
 #include "freespace.h"
 #include "parselo.h"
@@ -385,7 +384,7 @@
 #include "neblightning.h"
 #include "fvi.h"
 
-LOCAL struct {
+static struct {
 	p_object *docker;
 	char dockee[NAME_LENGTH];
 	char docker_point[NAME_LENGTH];
@@ -695,7 +694,7 @@ void parse_mission_info(mission *pm)
 	if (optional_string("$Mission Desc:"))
 		stuff_string(pm->mission_desc, F_MULTITEXT, NULL, MISSION_DESC_LENGTH);
 	else
-		strcpy(pm->mission_desc, NOX("No description\n"));
+		SDL_strlcpy(pm->mission_desc, NOX("No description\n"), SDL_arraysize(pm->mission_desc));
 
 	pm->game_type = MISSION_TYPE_SINGLE;				// default to single player only
 	if ( optional_string("+Game Type:")) {
@@ -704,7 +703,7 @@ void parse_mission_info(mission *pm)
 		ignore_white_space();
 		stuff_string(game_string, F_NAME, NULL);
 		for ( i = 0; i < OLD_MAX_GAME_TYPES; i++ ) {
-			if ( !stricmp(game_string, Old_game_types[i]) ) {
+			if ( !SDL_strcasecmp(game_string, Old_game_types[i]) ) {
 
 				// this block of code is now old mission compatibility code.  We specify game
 				// type in a different manner than before.
@@ -794,7 +793,7 @@ void parse_mission_info(mission *pm)
 		float	temp;
 		
 		stuff_float(&temp);
-		Assert(temp >= 0.0f);
+		SDL_assert(temp >= 0.0f);
 		Entry_delay_time = fl2f(temp);
 	}
 
@@ -807,8 +806,8 @@ void parse_mission_info(mission *pm)
 	}
 
 	// possible squadron reassignment
-	strcpy(The_mission.squad_name, "");
-	strcpy(The_mission.squad_filename, "");
+	SDL_strlcpy(The_mission.squad_name, "", SDL_arraysize(The_mission.squad_name));
+	SDL_strlcpy(The_mission.squad_filename, "", SDL_arraysize(The_mission.squad_filename));
 	if(optional_string("+SquadReassignName:")){
 		stuff_string(The_mission.squad_name, F_NAME, NULL);
 		if(optional_string("+SquadReassignLogo:")){
@@ -817,8 +816,8 @@ void parse_mission_info(mission *pm)
 	}	
 	// always clear out squad reassignments if not single player
 	if(Game_mode & GM_MULTIPLAYER){
-		strcpy(The_mission.squad_name, "");
-		strcpy(The_mission.squad_filename, "");
+		SDL_strlcpy(The_mission.squad_name, "", SDL_arraysize(The_mission.squad_name));
+		SDL_strlcpy(The_mission.squad_filename, "", SDL_arraysize(The_mission.squad_filename));
 		mprintf(("Ignoring squadron reassignment"));
 	}
 	// reassign the player
@@ -843,7 +842,7 @@ void parse_mission_info(mission *pm)
 void parse_player_info(mission *pm)
 {
 	char alt[NAME_LENGTH + 2] = "";
-	Assert(pm != NULL);
+	SDL_assert(pm != NULL);
 
 // alternate type names begin here	
 	mission_parse_reset_alt();
@@ -869,7 +868,7 @@ void parse_player_info(mission *pm)
 void parse_player_info2(mission *pm)
 {
 	char str[NAME_LENGTH];
-	int nt, i, total, list[MAX_SHIP_TYPES * 2], list2[MAX_WEAPON_TYPES * 2], num_starting_wings;
+	int nt, i, total, list[MAX_SHIP_TYPES * 2], list2[MAX_WEAPON_TYPES * 2];
 	team_data *ptr;
 	char starting_wings[MAX_PLAYER_WINGS][NAME_LENGTH];
 
@@ -886,7 +885,7 @@ void parse_player_info2(mission *pm)
 		required_string("$Ship Choices:");
 		total = stuff_int_list(list, MAX_SHIP_TYPES * 2, SHIP_INFO_TYPE);
 
-		Assert(!(total & 0x01));  // make sure we have an even count
+		SDL_assert(!(total & 0x01));  // make sure we have an even count
 
 		num_ship_choices = 0;
 		total /= 2;							// there are only 1/2 the ships really on the list.
@@ -904,9 +903,9 @@ void parse_player_info2(mission *pm)
 		}
 		ptr->number_choices = num_ship_choices;
 
-		num_starting_wings = 0;
+		// --- obsolete data, parsing remains for compatibility reasons ---
 		if (optional_string("+Starting Wings:"))
-			num_starting_wings = stuff_string_list(starting_wings, MAX_PLAYER_WINGS);
+			stuff_string_list(starting_wings, MAX_PLAYER_WINGS);
 
 		ptr->default_ship = -1;
 		if (optional_string("+Default_ship:")) {
@@ -922,7 +921,7 @@ void parse_player_info2(mission *pm)
 							break;
 						}
 					}
-					Assert( i < MAX_SHIP_TYPES );
+					SDL_assert( i < MAX_SHIP_TYPES );
 				}
 			}
 		}
@@ -936,7 +935,7 @@ void parse_player_info2(mission *pm)
 		if (optional_string("+Weaponry Pool:")) {
 			total = stuff_int_list(list2, MAX_WEAPON_TYPES * 2, WEAPON_POOL_TYPE);
 
-			Assert(!(total & 0x01));  // make sure we have an even count
+			SDL_assert(!(total & 0x01));  // make sure we have an even count
 			total /= 2;
 			for (i=0; i<total; i++) {
 				// in a campaign, see if the player is allowed the weapons or not.  Remove them from the
@@ -1057,14 +1056,14 @@ void parse_cmd_brief(mission *pm)
 {
 	int stage;
 
-	Assert(!Cur_cmd_brief->num_stages);
+	SDL_assert(!Cur_cmd_brief->num_stages);
 	stage = 0;
 
 	required_string("#Command Briefing");
 	while (optional_string("$Stage Text:")) {
-		Assert(stage < CMD_BRIEF_STAGES_MAX);
+		SDL_assert(stage < CMD_BRIEF_STAGES_MAX);
 		Cur_cmd_brief->stage[stage].text = stuff_and_malloc_string(F_MULTITEXT, NULL, CMD_BRIEF_TEXT_MAX);
-		Assert(Cur_cmd_brief->stage[stage].text);
+		SDL_assert(Cur_cmd_brief->stage[stage].text);
 
 		required_string("$Ani Filename:");
 		stuff_string(Cur_cmd_brief->stage[stage].ani_filename, F_FILESPEC, NULL);
@@ -1122,12 +1121,12 @@ void parse_briefing(mission *pm)
 		required_string("$start_briefing");
 		required_string("$num_stages:");
 		stuff_int(&bp->num_stages);
-		Assert(bp->num_stages <= MAX_BRIEF_STAGES);
+		SDL_assert(bp->num_stages <= MAX_BRIEF_STAGES);
 
 		stage_num = 0;
 		while (required_string_either("$end_briefing", "$start_stage")) {
 			required_string("$start_stage");
-			Assert(stage_num < MAX_BRIEF_STAGES);
+			SDL_assert(stage_num < MAX_BRIEF_STAGES);
 			bs = &bp->stages[stage_num++];
 			required_string("$multi_text");
 			if ( Fred_running )	{
@@ -1148,11 +1147,11 @@ void parse_briefing(mission *pm)
 				stuff_int(&bs->num_lines);
 
 				if ( Fred_running )	{
-					Assert(bs->lines!=NULL);
+					SDL_assert(bs->lines!=NULL);
 				} else {
 					if ( bs->num_lines > 0 )	{
 						bs->lines = (brief_line *)malloc(sizeof(brief_line)*bs->num_lines);
-						Assert(bs->lines!=NULL);
+						SDL_assert(bs->lines!=NULL);
 					}
 				}
 
@@ -1171,11 +1170,11 @@ void parse_briefing(mission *pm)
 			stuff_int(&bs->num_icons);
 
 			if ( Fred_running )	{
-				Assert(bs->lines!=NULL);
+				SDL_assert(bs->lines!=NULL);
 			} else {
 				if ( bs->num_icons > 0 )	{
 					bs->icons = (brief_icon *)malloc(sizeof(brief_icon)*bs->num_icons);
-					Assert(bs->icons!=NULL);
+					SDL_assert(bs->icons!=NULL);
 				}
 			}
 
@@ -1189,18 +1188,18 @@ void parse_briefing(mission *pm)
 			else
 				bs->formula = Locked_sexp_true;
 
-			Assert(bs->num_icons <= MAX_STAGE_ICONS );
+			SDL_assert(bs->num_icons <= MAX_STAGE_ICONS );
 
 			while (required_string_either("$end_stage", "$start_icon")) {
 				required_string("$start_icon");
-				Assert(icon_num < MAX_STAGE_ICONS);
+				SDL_assert(icon_num < MAX_STAGE_ICONS);
 				bi = &bs->icons[icon_num++];
 
 				required_string("$type:");
 				stuff_int(&bi->type);
 
 				find_and_stuff("$team:", &team_index, F_NAME, Team_names, Num_team_names, "team name");
-				Assert((team_index >= 0) && (team_index < MAX_TEAM_NAMES));
+				SDL_assert((team_index >= 0) && (team_index < MAX_TEAM_NAMES));
 				bi->team = 1 << team_index;
 
 				find_and_stuff("$class:", &bi->ship_class, F_NAME, (const char **)Ship_class_names, Num_ship_types, "ship class");
@@ -1222,7 +1221,7 @@ void parse_briefing(mission *pm)
 					for (i=0; i<stage_num-1; i++)
 						for (j=0; j < bp->stages[i].num_icons; j++)
 						{
-							if (!stricmp(bp->stages[i].icons[j].label, bi->label))
+							if (!SDL_strcasecmp(bp->stages[i].icons[j].label, bi->label))
 								bi->id = bp->stages[i].icons[j].id;
 						}
 
@@ -1244,12 +1243,12 @@ void parse_briefing(mission *pm)
 				stuff_string(not_used_text, F_MULTITEXT, NULL, MAX_ICON_TEXT_LEN);
 				required_string("$end_icon");
 			} // end while
-			Assert(bs->num_icons == icon_num);
+			SDL_assert(bs->num_icons == icon_num);
 			icon_num = 0;
 			required_string("$end_stage");
 		}	// end while
 
-		Assert(bp->num_stages == stage_num);
+		SDL_assert(bp->num_stages == stage_num);
 		required_string("$end_briefing");
 	}
 
@@ -1320,10 +1319,10 @@ void parse_debriefing_new(mission *pm)
 
 		required_string("$Num stages:");
 		stuff_int(&db->num_stages);
-		Assert(db->num_stages <= MAX_DEBRIEF_STAGES);
+		SDL_assert(db->num_stages <= MAX_DEBRIEF_STAGES);
 
 		while (required_string_either("#", "$Formula")) {
-			Assert(stage_num < MAX_DEBRIEF_STAGES);
+			SDL_assert(stage_num < MAX_DEBRIEF_STAGES);
 			dbs = &db->stages[stage_num++];
 			required_string("$Formula:");
 			dbs->formula = get_sexp_main();
@@ -1343,7 +1342,7 @@ void parse_debriefing_new(mission *pm)
 			}
 		} // end while
 
-		Assert(db->num_stages == stage_num);
+		SDL_assert(db->num_stages == stage_num);
 	}
 
 	if ( nt != Num_teams )
@@ -1402,7 +1401,7 @@ int parse_create_object(p_object *objp)
 
 	// base level creation
 	objnum = ship_create(&objp->orient, &objp->pos, objp->ship_class);
-	Assert(objnum != -1);
+	SDL_assert(objnum != -1);
 	shipnum = Objects[objnum].instance;
 
 	// if arriving through knossos, adjust objpj->pos to plane of knossos and set flag
@@ -1415,14 +1414,14 @@ int parse_create_object(p_object *objp)
 
 	Ships[shipnum].group = objp->group;
 	Ships[shipnum].team = objp->team;
-	strcpy(Ships[shipnum].ship_name, objp->name);
+	SDL_strlcpy(Ships[shipnum].ship_name, objp->name, SDL_arraysize(Ships[0].ship_name));
 	Ships[shipnum].escort_priority = objp->escort_priority;
 	Ships[shipnum].special_exp_index = objp->special_exp_index;
 	Ships[shipnum].respawn_priority = objp->respawn_priority;
 	// if this is a multiplayer dogfight game, and its from a player wing, make it team traitor
 	if((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT) && (objp->wingnum >= 0)){
 		for (i = 0; i < MAX_STARTING_WINGS; i++ ) {
-			if ( !stricmp(Starting_wing_names[i], Wings[objp->wingnum].name) ) {
+			if ( !SDL_strcasecmp(Starting_wing_names[i], Wings[objp->wingnum].name) ) {
 				Ships[shipnum].team = TEAM_TRAITOR;
 			} 
 		}
@@ -1571,7 +1570,7 @@ int parse_create_object(p_object *objp)
 		Ships[shipnum].flags |= SF_SCANNABLE;
 
 	if ( objp->flags & P_SF_RED_ALERT_STORE_STATUS ){
-		Assert(!(Game_mode & GM_MULTIPLAYER));
+		SDL_assert(!(Game_mode & GM_MULTIPLAYER));
 		Ships[shipnum].flags |= SF_RED_ALERT_STORE_STATUS;
 	}
 
@@ -1602,7 +1601,7 @@ int parse_create_object(p_object *objp)
 			free_sexp2(objp->ai_goals);	// free up sexp nodes for reused, since they aren't needed anymore.
 	}
 
-	Assert(Ships[shipnum].modelnum != -1);
+	SDL_assert(Ships[shipnum].modelnum != -1);
 
 	// initialize subsystem statii here.  The subsystems are given a percentage damaged.  So a percent value
 	// of 20% means that the subsystem is 20% damaged (*not* 20% of max hits).  This is opposite the way
@@ -1610,7 +1609,7 @@ int parse_create_object(p_object *objp)
 	i = objp->subsys_count;
 	while (i--) {
 		sssp = &Subsys_status[objp->subsys_index + i];
-		if (!stricmp(sssp->name, NOX("Pilot"))) {
+		if (!SDL_strcasecmp(sssp->name, NOX("Pilot"))) {
 			wp = &Ships[shipnum].weapons;
 			if (sssp->primary_banks[0] != SUBSYS_STATUS_NO_CHANGE) {
 				for (j=k=0; j<MAX_PRIMARY_BANKS; j++) {
@@ -1655,7 +1654,7 @@ int parse_create_object(p_object *objp)
 
 		ptr = GET_FIRST(&Ships[shipnum].subsys_list);
 		while (ptr != END_OF_LIST(&Ships[shipnum].subsys_list)) {
-			if (!stricmp(ptr->system_info->subobj_name, sssp->name)) {
+			if (!SDL_strcasecmp(ptr->system_info->subobj_name, sssp->name)) {
 				if (Fred_running)
 					ptr->current_hits = sssp->percent;
 				else {
@@ -1811,7 +1810,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	int	i, j, count, shipnum, delay, destroy_before_mission_time;
 	char	name[NAME_LENGTH], flag_strings[MAX_PARSE_OBJECT_FLAGS][NAME_LENGTH];
 
-	Assert(pm != NULL);
+	SDL_assert(pm != NULL);
 
 	// objp = &temp_object;
 
@@ -1847,7 +1846,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 		// try and find the alternate name
 		objp->alt_type_index = (char)mission_parse_lookup_alt(name);
-		Assert(objp->alt_type_index >= 0);
+		SDL_assert(objp->alt_type_index >= 0);
 		if(objp->alt_type_index < 0){
 			mprintf(("Error looking up alternate ship type name!\n"));
 		} else {
@@ -1857,7 +1856,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 	int	team_index;
 	find_and_stuff("$Team:", &team_index, F_NAME, Team_names, Num_team_names, "team name");
-	Assert((team_index >= 0) && (team_index < MAX_TEAM_NAMES));
+	SDL_assert((team_index >= 0) && (team_index < MAX_TEAM_NAMES));
 	objp->team = 1 << team_index;
 
 	required_string("$Location:");
@@ -1872,7 +1871,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 	if ( optional_string("+AI Class:")) {
 		objp->ai_class = match_and_stuff(F_NAME, (const char **)Ai_class_names, Num_ai_classes, "AI class");
-		Assert(objp->ai_class > -1 );
+		SDL_assert(objp->ai_class > -1 );
 	} else {
 		objp->ai_class = Ship_info[objp->ship_class].ai_class;
 	}
@@ -1888,7 +1887,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 	objp->cargo1 = -1;
 	int temp;
-	find_and_stuff_or_add("$Cargo 1:", &temp, F_NAME, Cargo_names, &Num_cargo, MAX_CARGO, "cargo");
+	find_and_stuff_or_add("$Cargo 1:", &temp, F_NAME, Cargo_names, NAME_LENGTH, &Num_cargo, MAX_CARGO, "cargo");
 	objp->cargo1 = char(temp);
 	if ( optional_string("$Cargo 2:") ) {
 		char buf[NAME_LENGTH];
@@ -1898,7 +1897,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	parse_common_object_data(objp);  // get initial conditions and subsys status
 	count = 0;
 	while (required_string_either("$Arrival Location:", "$Status Description:"))	{
-		Assert(count < MAX_OBJECT_STATUS);
+		SDL_assert(count < MAX_OBJECT_STATUS);
 
 		find_and_stuff("$Status Description:", &objp->status_type[count], F_NAME, Status_desc_names, Num_status_names, "Status Description");
 		find_and_stuff("$Status:", &objp->status[count], F_NAME, Status_type_names, Num_status_names, "Status Type");
@@ -1936,7 +1935,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	objp->arrival_cue = get_sexp_main();
 	if ( !Fred_running && (objp->arrival_cue >= 0) ) {
 		// eval the arrival cue.  if the cue is true, set up the timestamp for the arrival delay
-		Assert ( objp->arrival_delay <= 0 );
+		SDL_assert ( objp->arrival_delay <= 0 );
 
 		// don't eval arrival_cues when just looking for player information.
 		if ( eval_sexp(objp->arrival_cue) ){			// evaluate to determine if sexp is always false.
@@ -1981,7 +1980,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 		count = stuff_string_list(flag_strings, MAX_PARSE_OBJECT_FLAGS);
 		for (i=0; i<count; i++) {
 			for (j=0; j<MAX_PARSE_OBJECT_FLAGS; j++) {
-				if (!stricmp(flag_strings[i], Parse_object_flags[j])) {
+				if (!SDL_strcasecmp(flag_strings[i], Parse_object_flags[j])) {
 					objp->flags |= (1 << j);
 					break;
 				}
@@ -2000,7 +1999,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 	objp->escort_priority = 0;
 	if ( optional_string("+Escort Priority:" ) ) {
-		Assert(objp->flags & P_SF_ESCORT);
+		SDL_assert(objp->flags & P_SF_ESCORT);
 		stuff_int(&objp->escort_priority);
 	}	
 
@@ -2025,7 +2024,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	objp->hotkey = -1;
 	if (optional_string("+Hotkey:")) {
 		stuff_int(&objp->hotkey);
-		Assert((objp->hotkey >= 0) && (objp->hotkey < 10));
+		SDL_assert((objp->hotkey >= 0) && (objp->hotkey < 10));
 	}
 
 	objp->docked_with[0] = 0;
@@ -2040,9 +2039,9 @@ int parse_object(mission *pm, int flag, p_object *objp)
 
 		// put this information into the Initially_docked array.  We will need to use this
 		// informatin later since not all ships will initially get created.
-		strcpy(Initially_docked[Total_initially_docked].dockee, objp->docked_with);
-		strcpy(Initially_docked[Total_initially_docked].docker_point, objp->docker_point);
-		strcpy(Initially_docked[Total_initially_docked].dockee_point, objp->dockee_point);
+		SDL_strlcpy(Initially_docked[Total_initially_docked].dockee, objp->docked_with, NAME_LENGTH);
+		SDL_strlcpy(Initially_docked[Total_initially_docked].docker_point, objp->docker_point, NAME_LENGTH);
+		SDL_strlcpy(Initially_docked[Total_initially_docked].dockee_point, objp->dockee_point, NAME_LENGTH);
 		Initially_docked[Total_initially_docked].docker = objp;
 		Total_initially_docked++;
 	}
@@ -2055,7 +2054,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	if ( optional_string("+Destroy At:") ) {
 
 		stuff_int(&destroy_before_mission_time);
-		Assert ( destroy_before_mission_time >= 0 );
+		SDL_assert ( destroy_before_mission_time >= 0 );
 		objp->arrival_cue = Locked_sexp_true;
 		objp->arrival_delay = timestamp(0);
 	}
@@ -2104,7 +2103,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	objp->respawn_count = 0;
 
 	// if this if the starting player ship, then copy if to Starting_player_pobject (used for ingame join)
-	if ( !stricmp( objp->name, Player_start_shipname) ) {
+	if ( !SDL_strcasecmp( objp->name, Player_start_shipname) ) {
 		Player_start_pobject = *objp;
 		Player_start_pobject.flags |= P_SF_PLAYER_START_VALID;
 	}
@@ -2121,8 +2120,8 @@ int parse_object(mission *pm, int flag, p_object *objp)
 	// don't create the object if it is intially docked for either FreeSpcae or Fred.  Fred will
 	// create the object later in post_process_mission
 	if ( (objp->flags & P_SF_INITIALLY_DOCKED) || (!Fred_running && (!eval_sexp(objp->arrival_cue) || !timestamp_elapsed(objp->arrival_delay) || (objp->flags & P_SF_REINFORCEMENT))) ) {
-		Assert ( destroy_before_mission_time == -1 );		// we can't add ships getting destroyed to the arrival list!!!
-		Assert ( num_ship_arrivals < MAX_SHIP_ARRIVALS );
+		SDL_assert ( destroy_before_mission_time == -1 );		// we can't add ships getting destroyed to the arrival list!!!
+		SDL_assert ( num_ship_arrivals < MAX_SHIP_ARRIVALS );
 		memcpy( &ship_arrivals[num_ship_arrivals], objp, sizeof(p_object) );
 		list_append(&ship_arrival_list, &ship_arrivals[num_ship_arrivals]);
 		num_ship_arrivals++;
@@ -2215,7 +2214,7 @@ void parse_common_object_data(p_object	*objp)
 			int index = string_lookup(cargo_name, (const char **)Cargo_names, Num_cargo, "cargo", 0);
 			if (index == -1 && (Num_cargo < MAX_CARGO)) {
 				index = Num_cargo;
-				strcpy(Cargo_names[Num_cargo++], cargo_name);
+				SDL_strlcpy(Cargo_names[Num_cargo++], cargo_name, NAME_LENGTH);
 			}
 			Subsys_status[i].subsys_cargo_name = index;
 		}
@@ -2239,7 +2238,7 @@ void parse_objects(mission *pm, int flag)
 {	
 	p_object temp;
 
-	Assert(pm != NULL);	
+	SDL_assert(pm != NULL);	
 
 	required_string("#Objects");	
 
@@ -2311,7 +2310,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 		// which should always give a number >= 0;
 		if ( wingp->arrival_delay <= 0 ) {
 			wingp->arrival_delay = timestamp( -wingp->arrival_delay * 1000 );
-			Assert ( wingp->arrival_delay >= 0 );
+			SDL_assert ( wingp->arrival_delay >= 0 );
 		}
 
 		if ( !timestamp_elapsed( wingp->arrival_delay ) )
@@ -2323,7 +2322,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 			int shipnum;
 			char *name;
 
-			Assert( wingp->arrival_anchor >= 0 );
+			SDL_assert( wingp->arrival_anchor >= 0 );
 			name = Parse_names[wingp->arrival_anchor];
 
 			// see if ship is yet to arrive.  If so, then return -1 so we can evaluate again later.
@@ -2353,7 +2352,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 				// replaced following three lines of code with mission log call because of bug with
 				// the Ships_exited list.
 				//index = ship_find_exited_ship_by_name( name );
-				//Assert( index != -1 );
+				//SDL_assert( index != -1 );
 				//if (Ships_exited[index].flags & SEF_DESTROYED ) {
 				if ( mission_log_get_time(LOG_SHIP_DESTROYED, name, NULL, NULL) ) {
 					wingp->total_destroyed += num_remaining;
@@ -2377,7 +2376,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 			// if at least one of these is valid, then reset the timestamp.  If they are both zero, we will create the
 			// wave
 			if ( (wingp->wave_delay_min > 0) || (wingp->wave_delay_max > 0) ) {
-				Assert ( wingp->wave_delay_min <= wingp->wave_delay_max );
+				SDL_assert ( wingp->wave_delay_min <= wingp->wave_delay_max );
 				time_to_arrive = wingp->wave_delay_min + (int)(frand() * (wingp->wave_delay_max - wingp->wave_delay_min));
 
 				// MWA -- 5/18/98
@@ -2442,7 +2441,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 				continue;
 			}
 
-			Assert ( !(objp->flags & P_SF_CANNOT_ARRIVE) );		// get allender
+			SDL_assert ( !(objp->flags & P_SF_CANNOT_ARRIVE) );		// get allender
 
 			int index;
 
@@ -2463,7 +2462,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 
 			wingp->total_arrived_count++;
 			if ( wingp->num_waves > 1 ){
-				sprintf(objp->name, NOX("%s %d"), wingp->name, wingp->total_arrived_count);
+				SDL_snprintf(objp->name, SDL_arraysize(objp->name), NOX("%s %d"), wingp->name, wingp->total_arrived_count);
 			}
 
 			objnum = parse_create_object(objp);
@@ -2509,12 +2508,12 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 			// flag ship with SF_FROM_PLAYER_WING if a member of player starting wings
 			if ( (Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_TEAM) ) {
 				// but for team vs. team games, then just check the alpha and zeta wings
-				if ( !(stricmp(Starting_wing_names[STARTING_WING_ALPHA], wingp->name)) || !(stricmp(Starting_wing_names[STARTING_WING_ZETA], wingp->name)) ) {
+				if ( !(SDL_strcasecmp(Starting_wing_names[STARTING_WING_ALPHA], wingp->name)) || !(SDL_strcasecmp(Starting_wing_names[STARTING_WING_ZETA], wingp->name)) ) {
 					Ships[Objects[objnum].instance].flags |= SF_FROM_PLAYER_WING;
 				}
 			} else {
 				for (int i = 0; i < MAX_STARTING_WINGS; i++ ) {
-					if ( !stricmp(Starting_wing_names[i], wingp->name) ) {
+					if ( !SDL_strcasecmp(Starting_wing_names[i], wingp->name) ) {
 						Ships[Objects[objnum].instance].flags |= SF_FROM_PLAYER_WING;
 					} 
 				}
@@ -2530,7 +2529,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 		objp = temp;
 	}
 
-	Assert ( num_to_create == 0 );		// we should always have enough ships in the list!!!
+	SDL_assert ( num_to_create == 0 );		// we should always have enough ships in the list!!!
 
 	// possibly play some event driven music here.  Send a network packet indicating the wing was
 	// created.  Only do this stuff if actually in the mission.
@@ -2571,7 +2570,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 		// test code to check to be sure that all ships in the wing are ignoring the same types
 		// of orders from the player
 		if ( Fred_running ) {
-			Assert( wingp->ship_index[0] != -1 );
+			SDL_assert( wingp->ship_index[0] != -1 );
 			int orders = Ships[wingp->ship_index[0]].orders_accepted;
 			for (i = 1; i < wingp->current_count; i++ ) {
 				if ( orders != Ships[wingp->ship_index[i]].orders_accepted ) {
@@ -2595,7 +2594,7 @@ void parse_wing(mission *pm)
 	char wing_flag_strings[MAX_WING_FLAGS][NAME_LENGTH];
 	wing *wingp;
 
-	Assert(pm != NULL);
+	SDL_assert(pm != NULL);
 	wingp = &Wings[num_wings];
 
 	required_string("$Name:");
@@ -2611,7 +2610,7 @@ void parse_wing(mission *pm)
 
 	required_string("$Waves:");
 	stuff_int(&wingp->num_waves);
-	Assert ( wingp->num_waves >= 1 );		// there must be at least 1 wave
+	SDL_assert ( wingp->num_waves >= 1 );		// there must be at least 1 wave
 
 	wingp->current_wave = 0;
 
@@ -2690,7 +2689,7 @@ void parse_wing(mission *pm)
 	wingp->hotkey = -1;
 	if (optional_string("+Hotkey:")) {
 		stuff_int(&wingp->hotkey);
-		Assert((wingp->hotkey >= 0) && (wingp->hotkey < 10));
+		SDL_assert((wingp->hotkey >= 0) && (wingp->hotkey < 10));
 	}
 
 	if (optional_string("+Flags:")) {
@@ -2698,19 +2697,19 @@ void parse_wing(mission *pm)
 
 		count = stuff_string_list( wing_flag_strings, MAX_WING_FLAGS );
 		for (i = 0; i < count; i++ ) {
-			if ( !stricmp( wing_flag_strings[i], NOX("ignore-count")) )
+			if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("ignore-count")) )
 				wingp->flags |= WF_IGNORE_COUNT;
-			else if ( !stricmp( wing_flag_strings[i], NOX("reinforcement")) )
+			else if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("reinforcement")) )
 				wingp->flags |= WF_REINFORCEMENT;
-			else if ( !stricmp( wing_flag_strings[i], NOX("no-arrival-music")) )
+			else if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("no-arrival-music")) )
 				wingp->flags |= WF_NO_ARRIVAL_MUSIC;
-			else if ( !stricmp( wing_flag_strings[i], NOX("no-arrival-message")) )
+			else if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("no-arrival-message")) )
 				wingp->flags |= WF_NO_ARRIVAL_MESSAGE;
-			else if ( !stricmp( wing_flag_strings[i], NOX("no-arrival-warp")) )
+			else if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("no-arrival-warp")) )
 				wingp->flags |= WF_NO_ARRIVAL_WARP;
-			else if ( !stricmp( wing_flag_strings[i], NOX("no-departure-warp")) )
+			else if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("no-departure-warp")) )
 				wingp->flags |= WF_NO_DEPARTURE_WARP;
-			else if ( !stricmp( wing_flag_strings[i], NOX("no-dynamic")) )
+			else if ( !SDL_strcasecmp( wing_flag_strings[i], NOX("no-dynamic")) )
 				wingp->flags |= WF_NO_DYNAMIC;
 			else
 				Warning(LOCATION, "unknown wing flag\n%s\n\nSkipping.", wing_flag_strings[i]);
@@ -2741,7 +2740,7 @@ void parse_wing(mission *pm)
 	// these wings.
 	if ( Game_mode & GM_MULTIPLAYER ) {
 		for (i = 0; i < MAX_STARTING_WINGS+1; i++ ) {
-			if ( !stricmp(Starting_wing_names[i], wingp->name) ) {
+			if ( !SDL_strcasecmp(Starting_wing_names[i], wingp->name) ) {
 				if ( wingp->num_waves > 1 ) {
 					// only end the game if we're the server - clients will eventually find out :)
 					if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
@@ -2773,11 +2772,10 @@ void parse_wing(mission *pm)
 	// into the sexpression array of each goal (max 10).  When a ship in this wing is created, each
 	// goal in the wings goal array is given to the ship.
 	if ( wing_goals != -1 ) {
-		int sexp, index;
+		int sexp;
 
 		// this will assign the goals to the wings as well as to any ships in the wing that have been
 		// already created.
-		index = 0;
 		for ( sexp = CDR(wing_goals); sexp != -1; sexp = CDR(sexp) )
 			ai_add_wing_goal_sexp(sexp, AIG_TYPE_EVENT_WING, wingnum);  // used by Fred
 
@@ -2795,7 +2793,7 @@ void parse_wing(mission *pm)
 		ship_name = ship_names[i];
 		if (Fred_running) {
 			num = wingp->ship_index[i] = ship_name_lookup(ship_name, 1);
-			Assert ( num != -1 );
+			SDL_assert ( num != -1 );
 
 			// hack code -- REMOVE
 			if ( Objects[Ships[num].objnum].flags & OF_PLAYER_SHIP )
@@ -2803,7 +2801,7 @@ void parse_wing(mission *pm)
 
 		} else {
 			// determine if this ship is a player ship, and deal with it appropriately.
-			if ( !strnicmp(ship_name, NOX("Player "), 7) ) {
+			if ( !SDL_strncasecmp(ship_name, NOX("Player "), 7) ) {
 				Error(LOCATION, "Old mission file -- please convert by loading/saving in Fred -- see Allender/Hoffoss for help.");
 			}
 
@@ -2818,7 +2816,7 @@ void parse_wing(mission *pm)
 				objp = GET_FIRST(&ship_arrival_list);
 				while( objp != END_OF_LIST(&ship_arrival_list) )	{
 					if ( !strcmp(ship_name, objp->name) ) {
-						Assert ( objp->wingnum == -1 );							// get Allender -- ship appears to be in multiple wings
+						SDL_assert ( objp->wingnum == -1 );							// get Allender -- ship appears to be in multiple wings
 						objp->wingnum = wingnum;
 						assigned++;
 					}
@@ -2840,7 +2838,7 @@ void parse_wings(mission *pm)
 {
 	required_string("#Wings");
 	while (required_string_either("#Events", "$Name:")) {
-		Assert(num_wings < MAX_WINGS);
+		SDL_assert(num_wings < MAX_WINGS);
 		parse_wing(pm);
 		num_wings++;
 	}
@@ -2919,7 +2917,7 @@ void parse_events(mission *pm)
 	required_string("#Events");
 
 	while (required_string_either( "#Goals", "$Formula:")) {
-		Assert( Num_mission_events < MAX_MISSION_EVENTS );
+		SDL_assert( Num_mission_events < MAX_MISSION_EVENTS );
 		parse_event(pm);
 		Num_mission_events++;
 	}
@@ -2933,8 +2931,8 @@ void parse_goal(mission *pm)
 
 	goalp = &Mission_goals[Num_goals++];
 
-	Assert(Num_goals < MAX_GOALS);
-	Assert(pm != NULL);
+	SDL_assert(Num_goals < MAX_GOALS);
+	SDL_assert(pm != NULL);
 
 	find_and_stuff("$Type:", &goalp->type, F_NAME, Goal_type_names, Num_goal_type_names, "goal type");
 
@@ -2989,8 +2987,8 @@ void parse_waypoint_list(mission *pm)
 	waypoint_list	*wpl;
 
 
-	Assert(Num_waypoint_lists < MAX_WAYPOINT_LISTS);
-	Assert(pm != NULL);
+	SDL_assert(Num_waypoint_lists < MAX_WAYPOINT_LISTS);
+	SDL_assert(pm != NULL);
 	wpl = &Waypoint_lists[Num_waypoint_lists];
 
 	required_string("$Name:");
@@ -3005,12 +3003,12 @@ void parse_waypoint_list(mission *pm)
 	// into one of the docking bays on the Lucifer.  Due to some change in the code the
 	// waypoints and the Lucifer's position don't match up so we have to change the
 	// waypoint position to compensate.
-	if ( !stricmp(pm->name, "Playing Judas") ) {
-		if ( !stricmp(wpl->name, "Docking Bay 1") ) {
+	if ( !SDL_strcasecmp(pm->name, "Playing Judas") ) {
+		if ( !SDL_strcasecmp(wpl->name, "Docking Bay 1") ) {
 			wpl->waypoints[0].xyz.x = -1262.550903;
 			wpl->waypoints[0].xyz.y = 27.676950;
 			wpl->waypoints[0].xyz.z = 4461.702930;
-		} else if ( !stricmp(wpl->name, "Docking Bat 2") ) { // it really is spelled "Bat" in the mission
+		} else if ( !SDL_strcasecmp(wpl->name, "Docking Bat 2") ) { // it really is spelled "Bat" in the mission
 			wpl->waypoints[0].xyz.x = -1105.347976;
 			wpl->waypoints[0].xyz.y = 27.676950;
 			wpl->waypoints[0].xyz.z = 3900.236867;
@@ -3030,10 +3028,10 @@ void parse_waypoints(mission *pm)
 
 	Num_jump_nodes = 0;
 	while (optional_string("$Jump Node:")) {
-		Assert(Num_jump_nodes < MAX_JUMP_NODES);
+		SDL_assert(Num_jump_nodes < MAX_JUMP_NODES);
 		stuff_vector(&pos);
 		z = jumpnode_create(&pos);
-		Assert(z >= 0);
+		SDL_assert(z >= 0);
 
 		if (optional_string("$Jump Node Name:")) {
 			stuff_string(Jump_nodes[Num_jump_nodes - 1].name, F_NAME, NULL);
@@ -3041,7 +3039,7 @@ void parse_waypoints(mission *pm)
 
 		// If no name exists, then use a standard name
 		if ( Jump_nodes[Num_jump_nodes - 1].name[0] == 0 ) {
-			sprintf(Jump_nodes[Num_jump_nodes - 1].name, "Jump Node %d", Num_jump_nodes);
+			SDL_snprintf(Jump_nodes[Num_jump_nodes - 1].name, NAME_LENGTH, "Jump Node %d", Num_jump_nodes);
 		}
 	}
 
@@ -3070,8 +3068,8 @@ void parse_reinforcement(mission *pm)
 	reinforcements *ptr;
 	int instance;
 
-	Assert(Num_reinforcements < MAX_REINFORCEMENTS);
-	Assert(pm != NULL);
+	SDL_assert(Num_reinforcements < MAX_REINFORCEMENTS);
+	SDL_assert(pm != NULL);
 	ptr = &Reinforcements[Num_reinforcements];
 
 	required_string("$Name:");
@@ -3104,7 +3102,7 @@ void parse_reinforcement(mission *pm)
 			p_object *p_objp;
 
 			for ( p_objp = GET_FIRST(&ship_arrival_list); p_objp != END_OF_LIST(&ship_arrival_list); p_objp = GET_NEXT(p_objp) ) {
-				if ( !stricmp(ptr->name, p_objp->name) ){
+				if ( !SDL_strcasecmp(ptr->name, p_objp->name) ){
 					break;
 				}
 			}
@@ -3141,7 +3139,7 @@ void parse_bitmap(mission *pm)
 
 	Num_suns = 0;
 
-	Assert(pm != NULL);
+	SDL_assert(pm != NULL);
 
 	while(optional_string("$Bitmap:")) {
 		stuff_string(b.filename, F_NAME, NULL);
@@ -3163,7 +3161,7 @@ void parse_bitmap(mission *pm)
 
 		if(Num_suns < MAX_STARFIELD_BITMAPS){
 			Suns[Num_suns] = b;
-			strcpy(Suns[Num_suns].filename, b.filename);
+			SDL_strlcpy(Suns[Num_suns].filename, b.filename, SDL_arraysize(b.filename));
 			Num_suns++;
 		}
 	}
@@ -3173,14 +3171,14 @@ void parse_bitmap(mission *pm)
 	int z;
 	starfield_bitmaps *ptr;
 
-	Assert(Num_starfield_bitmaps < MAX_STARFIELD_BITMAPS);
-	Assert(pm != NULL);
+	SDL_assert(Num_starfield_bitmaps < MAX_STARFIELD_BITMAPS);
+	SDL_assert(pm != NULL);
 	ptr = &Starfield_bitmaps[Num_starfield_bitmaps];
 
 	required_string("$Bitmap:");
 	stuff_string(name, F_NAME, NULL);
 	for (z=0; z<Num_starfield_bitmap_lists; z++)	{
-		if (!stricmp(name, Starfield_bitmap_list[z].name)){
+		if (!SDL_strcasecmp(name, Starfield_bitmap_list[z].name)){
 			break;
 		}
 	}
@@ -3238,7 +3236,7 @@ void parse_bitmaps(mission *pm)
 		nebula_close();
 
 		// neb2 info
-		strcpy(Neb2_texture_name, "Eraseme3");
+		SDL_strlcpy(Neb2_texture_name, "Eraseme3", SDL_arraysize(Neb2_texture_name));
 		Neb2_poof_flags = ((1<<0) | (1<<1) | (1<<2) | (1<<3) | (1<<4) | (1<<5));
 		if(optional_string("+Neb2:")){
 			stuff_string(Neb2_texture_name, F_NAME, NULL);
@@ -3258,12 +3256,12 @@ void parse_bitmaps(mission *pm)
 			// parse the proper nebula type (full or not)	
 			for (z=0; z<NUM_NEBULAS; z++){
 				if(The_mission.flags & MISSION_FLAG_FULLNEB){
-					if (!stricmp(str, Neb2_filenames[z])) {
+					if (!SDL_strcasecmp(str, Neb2_filenames[z])) {
 						Nebula_index = z;
 						break;
 					}
 				} else {
-					if (!stricmp(str, Nebula_filenames[z])) {
+					if (!SDL_strcasecmp(str, Nebula_filenames[z])) {
 						Nebula_index = z;
 						break;
 					}
@@ -3273,7 +3271,7 @@ void parse_bitmaps(mission *pm)
 			if (optional_string("+Color:")) {
 				stuff_string(str, F_NAME, NULL, MAX_FILENAME_LEN);
 				for (z=0; z<NUM_NEBULA_COLORS; z++){
-					if (!stricmp(str, Nebula_colors[z])) {
+					if (!SDL_strcasecmp(str, Nebula_colors[z])) {
 						Mission_palette = z;
 						break;
 					}
@@ -3328,7 +3326,7 @@ void parse_bitmaps(mission *pm)
 		// if we have room, store it
 		if(Num_suns < MAX_STARFIELD_BITMAPS){
 			Suns[Num_suns] = b;
-			strcpy(Suns[Num_suns].filename, b.filename);
+			SDL_strlcpy(Suns[Num_suns].filename, b.filename, SDL_arraysize(b.filename));
 			Num_suns++;
 		}
 	}
@@ -3369,7 +3367,7 @@ void parse_bitmaps(mission *pm)
 		// if we have room, store it
 		if(Num_starfield_bitmaps < MAX_STARFIELD_BITMAPS){
 			Starfield_bitmap_instance[Num_starfield_bitmaps] = b;
-			strcpy(Starfield_bitmap_instance[Num_starfield_bitmaps].filename, b.filename);
+			SDL_strlcpy(Starfield_bitmap_instance[Num_starfield_bitmaps].filename, b.filename, SDL_arraysize(b.filename));
 			Num_starfield_bitmaps++;
 		}
 	}
@@ -3389,7 +3387,7 @@ void parse_asteroid_fields(mission *pm)
 
 	int i, count, subtype;
 
-	Assert(pm != NULL);
+	SDL_assert(pm != NULL);
 	for (i=0; i<MAX_ASTEROID_FIELDS; i++)
 		Asteroid_field.num_initial_asteroids = 0;
 
@@ -3403,7 +3401,7 @@ void parse_asteroid_fields(mission *pm)
 #endif
 		float speed, density;
 
-		Assert(i < 1);
+		SDL_assert(i < 1);
 		required_string("$Density:");
 		stuff_float(&density);
 
@@ -3491,8 +3489,7 @@ void parse_variables()
 	if (! optional_string("#Sexp_variables") ) {
 		return;
 	} else {
-		int num_variables;
-		num_variables = stuff_sexp_variable_list();
+		stuff_sexp_variable_list();
 	}
 }
 
@@ -3554,8 +3551,8 @@ void post_process_mission()
 
 	// the player_start_shipname had better exist at this point!
 	Player_start_shipnum = ship_name_lookup( Player_start_shipname );
-	Assert ( Player_start_shipnum != -1 );
-	Assert ( Player_start_pobject.flags & P_SF_PLAYER_START_VALID );
+	SDL_assert ( Player_start_shipnum != -1 );
+	SDL_assert ( Player_start_pobject.flags & P_SF_PLAYER_START_VALID );
 
 	// Assign objnum, shipnum, etc. to the player structure
 	objnum = Ships[Player_start_shipnum].objnum;
@@ -3631,7 +3628,7 @@ void post_process_mission()
 			int result, bindex, op;
 
 			op = identify_operator(CTEXT(i));
-			Assert(op != -1);  // need to make sure it is an operator before we treat it like one..
+			SDL_assert(op != -1);  // need to make sure it is an operator before we treat it like one..
 			result = check_sexp_syntax( i, query_operator_return_type(op), 1, &bindex);
 
 			// entering this if statement will result in program termination!!!!!
@@ -3639,8 +3636,8 @@ void post_process_mission()
 			if ( result ) {
 				char sexp_str[8192], text[8192];
 
-				convert_sexp_to_string( i, sexp_str, SEXP_ERROR_CHECK_MODE);
-				sprintf(text, "%s.\n\nIn sexpression: %s\n(Error appears to be: %s)",
+				convert_sexp_to_string( i, sexp_str, SDL_arraysize(sexp_str), SEXP_ERROR_CHECK_MODE);
+				SDL_snprintf(text, SDL_arraysize(text), "%s.\n\nIn sexpression: %s\n(Error appears to be: %s)",
 					sexp_error_message(result), sexp_str, Sexp_nodes[bindex].text);
 
 				if (!Fred_running)
@@ -3658,10 +3655,10 @@ void post_process_mission()
 	for (i=0; i<Total_initially_docked; i++) {
 		z = ship_name_lookup(Initially_docked[i].dockee);
 		if (z >= 0) {
-			Assert(Initially_docked[i].docker->type == OBJ_SHIP);
+			SDL_assert(Initially_docked[i].docker->type == OBJ_SHIP);
 			p1 = model_find_dock_name_index(Ships[Initially_docked[i].docker->instance].modelnum,
 				Initially_docked[i].docker_point);
-			Assert(Objects[z].type == OBJ_SHIP);
+			SDL_assert(Objects[z].type == OBJ_SHIP);
 			p2 = model_find_dock_name_index(Ships[Objects[z].instance].modelnum,
 				Initially_docked[i].dockee_point);
 
@@ -3780,48 +3777,45 @@ void post_process_mission()
 
 int get_mission_info(char *filename, mission *mission_p)
 {
-	int rval;
-
 	// if mission_p is NULL, make it point to The_mission
 	if ( mission_p == NULL )
 		mission_p = &The_mission;
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		nprintf(("Error", "Error abort!  Code = %d", rval));
-		return rval;
-	
-	} else {
-		int filelength;
+	int filelength;
 
-		// open localization
-		lcl_ext_open();
+	// open localization
+	lcl_ext_open();
 
-		CFILE *ftemp = cfopen(filename, "rt");
-		if (!ftemp){
-			// close localization
-			lcl_ext_close();
+	CFILE *ftemp = cfopen(filename, "rt");
+	if (!ftemp){
+		// close localization
+		lcl_ext_close();
 
-			return -1;
-		}
+		return -1;
+	}
 
-		// 7/9/98 -- MWA -- check for 0 length file.
-		filelength = cfilelength(ftemp);
-		cfclose(ftemp);
-		if ( filelength == 0 ){
-			// close localization
-			lcl_ext_close();	
+	// 7/9/98 -- MWA -- check for 0 length file.
+	filelength = cfilelength(ftemp);
+	cfclose(ftemp);
+	if ( filelength == 0 ){
+		// close localization
+		lcl_ext_close();
 
-			return -1;
-		}
+		return -1;
+	}
 
+	try {
 		read_file_text(filename, CF_TYPE_MISSIONS);
 		memset( mission_p, 0, sizeof(mission) );
 		init_parse();
 		parse_mission_info(mission_p);
-
-		// close localization
-		lcl_ext_close();
+	} catch (parse_error_t rval) {
+		nprintf(("Error", "Error abort!  Code = %d", (int)rval));
+		return (int)rval;
 	}
+
+	// close localization
+	lcl_ext_close();
 
 	return 0;
 }
@@ -3831,53 +3825,53 @@ int get_mission_info(char *filename, mission *mission_p)
 // info such as game type, number of players etc.
 int parse_main(const char *mission_name, int flags)
 {
-	int rval, i;
+	int i;
 
 	// fill in Ship_class_names array with the names from the ship_info struct;
 	Num_parse_names = 0;
 	Mission_all_attack = 0;	//	Might get set in mission load.
-	Assert(Num_ship_types < MAX_SHIP_TYPES);
+	SDL_assert(Num_ship_types < MAX_SHIP_TYPES);
 
 	for (i = 0; i < Num_ship_types; i++)
 		Ship_class_names[i] = Ship_info[i].name;
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		nprintf(("Error", "Error abort!  Code = %i.", rval));
-		return rval;
-	
-	} else {
-		// open localization
-		lcl_ext_open();
 
-		CFILE *ftemp = cfopen(mission_name, "rt", CFILE_NORMAL, CF_TYPE_MISSIONS);
-		// fail situation.
-		if (!ftemp) {
-			if (!Fred_running)
-				Error( LOCATION, "Couldn't open mission '%s'\n", mission_name );
+	// open localization
+	lcl_ext_open();
 
-			Current_file_length = -1;
-			Current_file_checksum = 0;
+	CFILE *ftemp = cfopen(mission_name, "rt", CFILE_NORMAL, CF_TYPE_MISSIONS);
+	// fail situation.
+	if (!ftemp) {
+		if (!Fred_running)
+			Error( LOCATION, "Couldn't open mission '%s'\n", mission_name );
 
-			// close localization
-			lcl_ext_close();
+		Current_file_length = -1;
+		Current_file_checksum = 0;
 
-			return -1;
-		}
+		// close localization
+		lcl_ext_close();
 
-		Current_file_length = cfilelength(ftemp);
-		cfclose(ftemp);
+		return -1;
+	}
 
+	Current_file_length = cfilelength(ftemp);
+	cfclose(ftemp);
+
+	try {
 		read_file_text(mission_name, CF_TYPE_MISSIONS);
 		memset(&The_mission, 0, sizeof(The_mission));
 		parse_mission(&The_mission, flags);
 		display_parse_diagnostics();
-
-		// close localization
-		lcl_ext_close();
+	} catch (parse_error_t rval) {
+		nprintf(("Error", "Error abort!  Code = %i.", (int)rval));
+		return (int)rval;
 	}
 
+	// close localization
+	lcl_ext_close();
+
 	if (!Fred_running)
-		strcpy(Mission_filename, mission_name);
+		SDL_strlcpy(Mission_filename, mission_name, SDL_arraysize(Mission_filename));
 
 	return 0;
 }
@@ -3997,7 +3991,7 @@ void mission_parse_do_initial_docks()
 
 				// the ship exists, so create this object, then dock the two.
 				objnum = parse_create_object( pobjp );
-				Assert ( objnum != -1 );
+				SDL_assert ( objnum != -1 );
 
 				list_remove( &ship_arrival_list, pobjp);
 
@@ -4026,7 +4020,7 @@ void mission_parse_do_initial_docks()
 // function which returns true or false if the given mission support multiplayers
 int mission_parse_is_multi(const char *filename, char *mission_name)
 {
-	int rval, game_type;
+	int game_type;
 	int filelength;
 	CFILE *ftemp;
 
@@ -4048,9 +4042,7 @@ int mission_parse_is_multi(const char *filename, char *mission_name)
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Bogus!  Trying to get multi game type on mission %s returned as a mission from cf_get_filelist\n");
-	} else	{
+	try {
 		read_file_text(filename, CF_TYPE_MISSIONS);
 		reset_parse();
 		if ( skip_to_string("$Name:") != 1 ) {
@@ -4071,7 +4063,10 @@ int mission_parse_is_multi(const char *filename, char *mission_name)
 			return 0;
 		}
 		stuff_int(&game_type);
+	} catch (parse_error_t) {
+		Error(LOCATION, "Bogus!  Trying to get multi game type on mission %s returned as a mission from cf_get_filelist\n", filename);
 	}
+
 	if ( game_type & MISSION_TYPE_MULTI ){
 		// close localization
 		lcl_ext_close();
@@ -4096,7 +4091,7 @@ int mission_parse_get_multi_mission_info( const char *filename )
 		return -1;
 	}
 
-	Assert( The_mission.game_type & MISSION_TYPE_MULTI );		// assume multiplayer only for now?
+	SDL_assert( The_mission.game_type & MISSION_TYPE_MULTI );		// assume multiplayer only for now?
 
 	// return the number of parse_players.  later, we might want to include (optionally?) the number
 	// of other ships in the main players wing (usually wing 'alpha') for inclusion of number of
@@ -4111,7 +4106,7 @@ int mission_parse_ship_arrived( const char *shipname )
 	p_object *objp;
 
 	for ( objp = GET_FIRST(&ship_arrival_list); objp !=END_OF_LIST(&ship_arrival_list); objp = GET_NEXT(objp) )	{
-		if ( !stricmp( objp->name, shipname) )
+		if ( !SDL_strcasecmp( objp->name, shipname) )
 			return 0;			// still on the arrival list
 	}
 	return 1;
@@ -4123,7 +4118,7 @@ p_object *mission_parse_get_arrival_ship( const char *name )
 	p_object *objp;
 
 	for ( objp = GET_FIRST(&ship_arrival_list); objp !=END_OF_LIST(&ship_arrival_list); objp = GET_NEXT(objp) )	{
-		if ( !stricmp( objp->name, name) )
+		if ( !SDL_strcasecmp( objp->name, name) )
 			return objp;			// still on the arrival list
 	}
 
@@ -4154,7 +4149,7 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 	if ( location == ARRIVE_AT_LOCATION )
 		return 0;
 
-	Assert(anchor >= 0);
+	SDL_assert(anchor >= 0);
 
 	// this ship might possibly arrive at another location.  The location is based on the
 	// proximity of some ship (and some other special tokens)
@@ -4164,7 +4159,7 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 	if (anchor < SPECIAL_ARRIVAL_ANCHORS_OFFSET) {
 		shipnum = ship_name_lookup(Parse_names[anchor]);
 		if ( shipnum == -1 ) {
-			Assert ( location != ARRIVE_FROM_DOCK_BAY );		// bogus data somewhere!!!  get mwa
+			SDL_assert ( location != ARRIVE_FROM_DOCK_BAY );		// bogus data somewhere!!!  get mwa
 			nprintf (("allender", "couldn't find ship for arrival anchor -- using location ship created at"));
 			return 0;
 		}
@@ -4194,7 +4189,7 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 
 	// take the shipnum and get the position.  once we have positions, we can determine where
 	// to make this ship appear
-	Assert ( shipnum != -1 );
+	SDL_assert ( shipnum != -1 );
 	anchor_objnum = Ships[shipnum].objnum;
 	anchor_pos = Objects[anchor_objnum].pos;
 
@@ -4293,7 +4288,7 @@ void mission_parse_mark_reinforcement_available(char *name)
 
 	for (i = 0; i < Num_reinforcements; i++) {
 		rp = &Reinforcements[i];
-		if ( !stricmp(rp->name, name) ) {
+		if ( !SDL_strcasecmp(rp->name, name) ) {
 			if ( !(rp->flags & RF_IS_AVAILABLE) ) {
 				rp->flags |= RF_IS_AVAILABLE;
 
@@ -4306,7 +4301,7 @@ void mission_parse_mark_reinforcement_available(char *name)
 		}
 	}
 
-	Assert ( i < Num_reinforcements );
+	SDL_assert ( i < Num_reinforcements );
 }
 
 // mission_did_ship_arrive takes a parse object and checked the arrival cue and delay and
@@ -4333,13 +4328,13 @@ int mission_did_ship_arrive(p_object *objp)
 	if ( did_arrive ) { 		// has the arrival criteria been met?
 		int object_num;		
 
-		Assert ( !(objp->flags & P_SF_CANNOT_ARRIVE) );		// get allender
+		SDL_assert ( !(objp->flags & P_SF_CANNOT_ARRIVE) );		// get allender
 
 		// check to see if the delay field <= 0.  if so, then create a timestamp and then maybe
 		// create the object
 		if ( objp->arrival_delay <= 0 ) {
 			objp->arrival_delay = timestamp( -objp->arrival_delay * 1000 );
-			Assert( objp->arrival_delay >= 0 );
+			SDL_assert( objp->arrival_delay >= 0 );
 		}
 		
 		// if the timestamp hasn't elapsed, move onto the next ship.
@@ -4352,7 +4347,7 @@ int mission_did_ship_arrive(p_object *objp)
 			int shipnum;
 			char *name;
 
-			Assert( objp->arrival_anchor >= 0 );
+			SDL_assert( objp->arrival_anchor >= 0 );
 			name = Parse_names[objp->arrival_anchor];
 	
 			// see if ship is yet to arrive.  If so, then return -1 so we can evaluate again later.
@@ -4372,7 +4367,7 @@ int mission_did_ship_arrive(p_object *objp)
 
 		// since this ship is not in a wing, create a SHIP_ARRIVE entry
 		//mission_log_add_entry( LOG_SHIP_ARRIVE, objp->name, NULL );
-		Assert(object_num >= 0 && object_num < MAX_OBJECTS);
+		SDL_assert(object_num >= 0 && object_num < MAX_OBJECTS);
 		
 		// Play the music track for an arrival
 		if ( !(Ships[Objects[object_num].instance].flags & SF_NO_ARRIVAL_MUSIC) )
@@ -4604,12 +4599,12 @@ void mission_eval_arrivals()
 						if ( rship != -1 ) {
 							message_send_builtin_to_player( MESSAGE_GAMMA_ARRIVED, &Ships[rship], MESSAGE_PRIORITY_LOW, MESSAGE_TIME_SOON, 0, 0, -1, -1 );
 						}
-					} else if ( !stricmp( wingp->name, "delta") ) {
+					} else if ( !SDL_strcasecmp( wingp->name, "delta") ) {
 						rship = ship_get_random_ship_in_wing( i, SHIP_GET_NO_PLAYERS );
 						if ( rship != -1 ) {
 							message_send_builtin_to_player( MESSAGE_DELTA_ARRIVED, &Ships[rship], MESSAGE_PRIORITY_LOW, MESSAGE_TIME_SOON, 0, 0, -1, -1 );
 						}
-					} else if ( !stricmp(wingp->name, "epsilon") ) {
+					} else if ( !SDL_strcasecmp(wingp->name, "epsilon") ) {
 						rship = ship_get_random_ship_in_wing( i, SHIP_GET_NO_PLAYERS );
 						if ( rship != -1 ) {
 							message_send_builtin_to_player( MESSAGE_EPSILON_ARRIVED, &Ships[rship], MESSAGE_PRIORITY_LOW, MESSAGE_TIME_SOON, 0, 0, -1, -1 );
@@ -4647,7 +4642,7 @@ void mission_do_departure( object *objp )
 
 	MONITOR_INC(NumShipDepartures,1);
 
-	Assert ( objp->type == OBJ_SHIP );
+	SDL_assert ( objp->type == OBJ_SHIP );
 	shipp = &Ships[objp->instance];
 
 	// if departing to a docking bay, try to find the anchor ship to depart to.  If not found, then
@@ -4656,7 +4651,7 @@ void mission_do_departure( object *objp )
 		int anchor_shipnum;
 		char *name;
 
-		Assert( shipp->departure_anchor >= 0 );
+		SDL_assert( shipp->departure_anchor >= 0 );
 		name = Parse_names[shipp->departure_anchor];
 
 		// see if ship is yet to arrive.  If so, then return -1 so we can evaluate again later.
@@ -4696,7 +4691,7 @@ void mission_eval_departures()
 		if (objp->type == OBJ_SHIP) {
 			ship	*shipp;
 
-			Assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+			SDL_assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 
 			shipp = &Ships[objp->instance];
 			
@@ -4760,7 +4755,7 @@ void mission_eval_departures()
 //				shipp->flags |= SF_DEPARTING;
 //				shipp->final_depart_time = timestamp(3*1000);
 
-				Assert ( shipp->objnum != -1 );
+				SDL_assert ( shipp->objnum != -1 );
 				objp = &Objects[shipp->objnum];
 
 				// copy the wing's depature information to the ship
@@ -4803,7 +4798,7 @@ int allocate_subsys_status()
 {
 	int i;
 
-	Assert(Subsys_index < MAX_SUBSYS_STATUS);
+	SDL_assert(Subsys_index < MAX_SUBSYS_STATUS);
 	Subsys_status[Subsys_index].percent = 0.0f;
 	Subsys_status[Subsys_index].primary_banks[0] = SUBSYS_STATUS_NO_CHANGE;
 	for (i=1; i<MAX_PRIMARY_BANKS; i++)
@@ -4826,12 +4821,12 @@ int get_parse_name_index(const char *name)
 	int i;
 
 	for (i=0; i<Num_parse_names; i++)
-		if (!stricmp(name, Parse_names[i]))
+		if (!SDL_strcasecmp(name, Parse_names[i]))
 			return i;
 
-	Assert(i < MAX_SHIPS + MAX_WINGS);
-	Assert(strlen(name) < NAME_LENGTH);
-	strcpy(Parse_names[i], name);
+	SDL_assert(i < MAX_SHIPS + MAX_WINGS);
+	SDL_assert(strlen(name) < NAME_LENGTH);
+	SDL_strlcpy(Parse_names[i], name, NAME_LENGTH);
 	return Num_parse_names++;
 }
 
@@ -4840,7 +4835,7 @@ int get_anchor(char *name)
 	int i;
 
 	for (i=0; i<MAX_SPECIAL_ARRIVAL_ANCHORS; i++)
-		if (!stricmp(name, Special_arrival_anchor_names[i]))
+		if (!SDL_strcasecmp(name, Special_arrival_anchor_names[i]))
 			return SPECIAL_ARRIVAL_ANCHORS_OFFSET + i;
 
 	return get_parse_name_index(name);
@@ -4875,7 +4870,7 @@ void mission_add_to_arriving_support( object *requester_objp )
 	int i;
 	ship *shipp;
 
-	Assert ( Arriving_support_ship );
+	SDL_assert ( Arriving_support_ship );
 
 	if ( Num_arriving_repair_targets == MAX_AI_GOALS ) {
 		// Int3();			// get allender -- ship isn't going to get repair, but I hope they never queue up this far!!!
@@ -4886,7 +4881,7 @@ void mission_add_to_arriving_support( object *requester_objp )
 	shipp = &Ships[requester_objp->instance];
 	// check for duplicates before adding
 	for (i = 0; i < Num_arriving_repair_targets; i++ ) {
-		if ( !stricmp(Arriving_repair_targets[i], shipp->ship_name) ){
+		if ( !SDL_strcasecmp(Arriving_repair_targets[i], shipp->ship_name) ){
 			break;
 		}
 	}
@@ -4894,7 +4889,7 @@ void mission_add_to_arriving_support( object *requester_objp )
 		return;
 	}
 
-	strcpy( Arriving_repair_targets[Num_arriving_repair_targets], Ships[requester_objp->instance].ship_name );
+	SDL_strlcpy( Arriving_repair_targets[Num_arriving_repair_targets], Ships[requester_objp->instance].ship_name, NAME_LENGTH );
 	Num_arriving_repair_targets++;
 
 	if ( MULTIPLAYER_MASTER ){
@@ -4934,7 +4929,7 @@ void mission_warp_in_support_ship( object *requester_objp )
 	int i, requester_species;
 	ship *requester_shipp;
 
-	Assert ( requester_objp->type == OBJ_SHIP );
+	SDL_assert ( requester_objp->type == OBJ_SHIP );
 	requester_shipp = &Ships[requester_objp->instance];	//	MK, 10/23/97, used to be ->type, bogus, no?
 
 	// if the support ship is already arriving, add the requester to the list
@@ -4964,7 +4959,7 @@ void mission_warp_in_support_ship( object *requester_objp )
 
 	//	Choose position to warp in ship.
 	//	Temporary, but changed by MK because it used to be exactly behind the player.
-	//	This could cause an Assert if the player immediately targeted it (before moving).
+	//	This could cause an SDL_assert if the player immediately targeted it (before moving).
 	//	Tend to put in front of the player to aid him in flying towards the ship.
 
 	if (!get_warp_in_pos(&warp_in_pos, requester_objp, 1.0f, 0.1f, 1.0f))
@@ -4985,7 +4980,7 @@ void mission_warp_in_support_ship( object *requester_objp )
 	// create a name for the ship.  use "Support #".  look for collisions until one isn't found anymore
 	i = 1;
 	do {
-		sprintf(pobj->name, NOX("Support %d"), i);
+		SDL_snprintf(pobj->name, SDL_arraysize(pobj->name), NOX("Support %d"), i);
 		if ( (ship_name_lookup(pobj->name) == -1) && (ship_find_exited_ship_by_name(pobj->name) == -1) )
 			break;
 		i++;
@@ -5001,7 +4996,7 @@ void mission_warp_in_support_ship( object *requester_objp )
 
 	// 5/6/98 -- MWA  Don't need to do anything for multiplayer.  I think that we always want to use
 	// the species of the caller ship.
-	Assert( (requester_species == SPECIES_TERRAN) || (requester_species == SPECIES_VASUDAN) );
+	SDL_assert( (requester_species == SPECIES_TERRAN) || (requester_species == SPECIES_VASUDAN) );
 //	if ( (Game_mode & GM_NORMAL) && (requester_species == SPECIES_VASUDAN) )	{	// make vasundan's use the terran support ship
 //		requester_species = SPECIES_TERRAN;
 //	}
@@ -5030,11 +5025,11 @@ void mission_warp_in_support_ship( object *requester_objp )
 	// need to set ship's cargo to nothing.  scan the cargo_names array looking for the string nothing.
 	// add it if not found
 	for (i = 0; i < Num_cargo; i++ )
-		if ( !stricmp(Cargo_names[i], NOX("nothing")) )
+		if ( !SDL_strcasecmp(Cargo_names[i], NOX("nothing")) )
 			break;
 
 	if ( i == Num_cargo ) {
-		strcpy(Cargo_names[i], NOX("Nothing"));
+		SDL_strlcpy(Cargo_names[i], NOX("Nothing"), NAME_LENGTH);
 		Num_cargo++;
 	}
 	pobj->cargo1 = char(i);
@@ -5095,7 +5090,7 @@ int mission_is_repair_scheduled( object *objp )
 	if ( !Arriving_support_ship )
 		return 0;
 
-	Assert ( objp->type == OBJ_SHIP );
+	SDL_assert ( objp->type == OBJ_SHIP );
 	name = Ships[objp->instance].ship_name;
 	for (i = 0; i < Num_arriving_repair_targets; i++ ) {
 		if ( !strcmp( name, Arriving_repair_targets[i]) )
@@ -5117,7 +5112,7 @@ int mission_remove_scheduled_repair( object *objp )
 
 	// itereate through the target list looking for this ship name.  If not found, we
 	// can simply return.
-	Assert ( objp->type == OBJ_SHIP );
+	SDL_assert ( objp->type == OBJ_SHIP );
 	name = Ships[objp->instance].ship_name;
 	for (index = 0; index < Num_arriving_repair_targets; index++ ) {
 		if ( !strcmp( name, Arriving_repair_targets[index]) )
@@ -5128,7 +5123,7 @@ int mission_remove_scheduled_repair( object *objp )
 
 	// ship is found -- compress the array
 	for ( i = index; i < Num_arriving_repair_targets - 1; i++ )
-		strcpy( Arriving_repair_targets[i], Arriving_repair_targets[i+1] );
+		SDL_strlcpy( Arriving_repair_targets[i], Arriving_repair_targets[i+1], NAME_LENGTH );
 
 	Num_arriving_repair_targets--;
 
@@ -5160,7 +5155,7 @@ int mission_parse_lookup_alt(char *name)
 }
 
 static int mission_parse_lookup_alt_index_warn = 1;
-void mission_parse_lookup_alt_index(int index, char *out)
+void mission_parse_lookup_alt_index(int index, char *out, const int max_outlen)
 {
 	// sanity
 	if(out == NULL){
@@ -5175,7 +5170,7 @@ void mission_parse_lookup_alt_index(int index, char *out)
 	}
 
 	// stuff it
-	strcpy(out, Mission_alt_types[index]);
+	SDL_strlcpy(out, Mission_alt_types[index], max_outlen);
 }
 
 int mission_parse_add_alt(char *name)
@@ -5188,7 +5183,7 @@ int mission_parse_add_alt(char *name)
 	// maybe add
 	if(Mission_alt_type_count < MAX_ALT_TYPE_NAMES){
 		// stuff the name
-		strncpy(Mission_alt_types[Mission_alt_type_count++], name, NAME_LENGTH);
+		SDL_strlcpy(Mission_alt_types[Mission_alt_type_count++], name, NAME_LENGTH);
 
 		// done
 		return Mission_alt_type_count - 1;

@@ -156,9 +156,8 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 	float headx, heady, headr, tailx, taily, tailr;
 	vertex pt1, pt2;
 	float depth;
-	int head_on = 0;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	g3_rotate_vertex(&pt1,headp);
 
@@ -225,8 +224,6 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 		}
 
 		w = len_2d;
-		head_on = 1;
-
 	} else {
 		a = atan2_safe( taily-heady, tailx-headx );
 
@@ -234,7 +231,6 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 
 		h1 = headr;
 		h2 = tailr;
-		head_on = 0;
 	}
 	
 	mx = (tailx+headx)/2.0f;
@@ -260,9 +256,7 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 	vertex v[4];
 	vertex *vertlist[4] = { &v[3], &v[2], &v[1], &v[0] };
 
-	float sw;
 	if ( depth < 0.0f ) depth = 0.0f;
-	sw = 1.0f / depth;
 	
 	v[0].sx = (-w/2.0f)*ca + (-h1/2.0f)*sa + mx;
 	v[0].sy = (-w/2.0f)*sa - (-h1/2.0f)*ca + my;
@@ -296,11 +290,7 @@ float g3_draw_laser(vector *headp, float head_width, vector *tailp, float tail_w
 	v[3].v = 1.0f;
 	v[3].b = 191;
 
-	if(gr_screen.mode == GR_GLIDE){
-		gr_tmapper(4, vertlist, tmap_flags);	
-	} else {
-		gr_tmapper(4, vertlist, tmap_flags | TMAP_FLAG_CORRECT);	
-	}
+	gr_tmapper(4, vertlist, tmap_flags | TMAP_FLAG_CORRECT);
 
 	return depth;
 }
@@ -316,9 +306,8 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 	float headx, heady, headr, tailx, taily, tailr;
 	vertex pt1, pt2;
 	float depth;
-	int head_on = 0;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	g3_rotate_vertex(&pt1,headp);
 
@@ -385,8 +374,6 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 		}
 
 		w = len_2d;
-		head_on = 1;
-
 	} else {
 		a = atan2_safe( taily-heady, tailx-headx );
 
@@ -394,7 +381,6 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 
 		h1 = headr;
 		h2 = tailr;
-		head_on = 0;
 	}
 	
 	mx = (tailx+headx)/2.0f;
@@ -420,9 +406,7 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 	vertex v[4];
 	vertex *vertlist[4] = { &v[3], &v[2], &v[1], &v[0] };
 
-	float sw;
 	if ( depth < 0.0f ) depth = 0.0f;
-	sw = 1.0f / depth;
 	
 	v[0].sx = (-w/2.0f)*ca + (-h1/2.0f)*sa + mx;
 	v[0].sy = (-w/2.0f)*sa - (-h1/2.0f)*ca + my;
@@ -468,11 +452,7 @@ float g3_draw_laser_rgb(vector *headp, float head_width, vector *tailp, float ta
 	v[3].b = (ubyte)b;
 	v[3].a = 255;
 	
-	if(gr_screen.mode == GR_GLIDE){
-		gr_tmapper(4, vertlist, tmap_flags | TMAP_FLAG_RGB | TMAP_FLAG_GOURAUD);
-	} else {
-		gr_tmapper(4, vertlist, tmap_flags | TMAP_FLAG_RGB | TMAP_FLAG_GOURAUD | TMAP_FLAG_CORRECT);
-	}	
+	gr_tmapper(4, vertlist, tmap_flags | TMAP_FLAG_RGB | TMAP_FLAG_GOURAUD | TMAP_FLAG_CORRECT);
 
 	return depth;
 }

@@ -138,7 +138,7 @@ int multi_rate_add(int np_index, const char *type, int size)
 			break;
 		}
 		// existing
-		else if(!stricmp(Multi_rate[np_index][idx].type, type)){
+		else if(!SDL_strcasecmp(Multi_rate[np_index][idx].type, type)){
 			break;
 		}
 	}
@@ -152,7 +152,7 @@ int multi_rate_add(int np_index, const char *type, int size)
 	m = &Multi_rate[np_index][idx];
 
 	// type string
-	strcpy(m->type, type);
+	SDL_strlcpy(m->type, type, SDL_arraysize(m->type));
 
 	// alltime
 	m->total_bytes += size;

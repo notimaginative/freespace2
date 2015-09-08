@@ -354,7 +354,6 @@ UI_INPUTBOX Player_select_input_box;						// input box for adding new pilot name
 int Player_select_background_bitmap;						// bitmap for this screen
 // int Player_select_palette;										// palette bitmap for this screen
 int Player_select_autoaccept = 0;
-// int Player_select_palette_set = 0;
 
 // flag indicating if this is the absolute first pilot created and selected. Used to determine
 // if the main hall should display the help overlay screen
@@ -456,9 +455,6 @@ void player_select_init()
 	/*
 	Demo_title_bitmap = bm_load(Demo_title_bitmap_filename);
 	if ( Demo_title_bitmap >= 0 ) {
-#ifndef HARDWARE_ONLY
-		palette_use_bm_palette(Demo_title_bitmap);
-#endif
 		Demo_title_active = 1;
 		Demo_title_expire_timestamp = timestamp(5000);
 	} else {
@@ -525,10 +521,10 @@ void player_select_init()
 	Player_select_input_mode = 0;	
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Player_select_buttons[gr_screen.res][SCROLL_LIST_UP_BUTTON].button.set_hotkey(KEY_UP);
-	Player_select_buttons[gr_screen.res][SCROLL_LIST_DOWN_BUTTON].button.set_hotkey(KEY_DOWN);
-	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_ENTER);
-	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(KEY_C);
+	Player_select_buttons[gr_screen.res][SCROLL_LIST_UP_BUTTON].button.set_hotkey(SDLK_UP);
+	Player_select_buttons[gr_screen.res][SCROLL_LIST_DOWN_BUTTON].button.set_hotkey(SDLK_DOWN);
+	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(SDLK_RETURN);
+	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(SDLK_c);
 
 	// disable the single player button in the multiplayer beta
 #ifdef MULTIPLAYER_BETA_BUILD
@@ -542,7 +538,7 @@ void player_select_init()
 
 	// attempt to load in the background bitmap
 	Player_select_background_bitmap = bm_load(Player_select_background_bitmap_name[gr_screen.res]);				
-	Assert(Player_select_background_bitmap >= 0);	
+	SDL_assert(Player_select_background_bitmap >= 0);	
 
 	// load in the palette for the screen
 	// Player_select_palette = bm_load(PLAYER_SELECT_PALETTE);
@@ -631,14 +627,6 @@ void player_select_do()
 	}
 #endif
 
-	//if ( !Player_select_palette_set ) {
-	//	Assert(Player_select_palette >= 0);
-//#ifndef HARDWARE_ONLY
-//		palette_use_bm_palette(Player_select_palette);
-//#endif
-//		Player_select_palette_set = 1;
-//	}
-		
 	// set the input box at the "virtual" line 0 to be active so the player can enter a callsign
 	if (Player_select_input_mode){
 		Player_select_input_box.set_focus();
@@ -652,7 +640,7 @@ void player_select_do()
 	}
 	switch(k){
 	// switch between single and multiplayer modes
-	case KEY_TAB : 
+	case SDLK_TAB :
 #if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
 		break;
 #else
@@ -776,6 +764,7 @@ void player_select_close()
 	if (read_pilot_file(Pilots[Player_select_pilot], !Player_select_mode, Player) != 0) {
 		Error(LOCATION,"Couldn't load pilot file, bailing");
 		Player = NULL;
+		return;
 	} 		
 
 	if (Player_select_force_bastion) {
@@ -795,8 +784,8 @@ void player_select_set_input_mode(int n)
 		Player_select_buttons[gr_screen.res][i].button.enable(!n);
 	}
 
-	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(n ? -1 : KEY_ENTER);
-	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(n ? -1 : KEY_C);
+	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(n ? -1 : SDLK_RETURN);
+	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(n ? -1 : SDLK_c);
 
 	// enable the player select input box
 	if(Player_select_input_mode){
@@ -989,7 +978,7 @@ int player_select_create_new_pilot()
 	
 	// move all the pilots in the list up
 	while (idx--) {
-		strcpy(Pilots[idx + 1], Pilots[idx]);		
+		SDL_strlcpy(Pilots[idx + 1], Pilots[idx], MAX_FILENAME_LEN);
 	}	
 
 	// by default, set the default netgame protocol to be VMT
@@ -1015,15 +1004,13 @@ int player_select_create_new_pilot()
 void player_select_delete_pilot()
 {
 	char filename[MAX_PATH_LEN + 1];
-	int i, deleted_cur_pilot;
-
-	deleted_cur_pilot = 0;
+	int i;
 
 	// tack on the full path and the pilot file extension
 	// build up the path name length
 	// make sure we do this based upon whether we're in single or multiplayer mode
-	strcpy( filename, Pilots[Player_select_pilot] );
-	strcat( filename, NOX(".plr") );
+	SDL_strlcpy( filename, Pilots[Player_select_pilot], SDL_arraysize(filename) );
+	SDL_strlcat( filename, NOX(".plr"), SDL_arraysize(filename) );
 
 	// attempt to delete the pilot
 	if (Player_select_mode == PLAYER_SELECT_MODE_SINGLE) {
@@ -1037,7 +1024,7 @@ void player_select_delete_pilot()
 
 	// move all the players down
 	for (i=Player_select_pilot; i<Player_select_num_pilots-1; i++){
-		strcpy(Pilots[i], Pilots[i + 1]);		
+		SDL_strlcpy(Pilots[i], Pilots[i + 1], MAX_FILENAME_LEN);
 	}		
 
 	// correcly set the # of pilots and the currently selected pilot
@@ -1093,7 +1080,7 @@ int player_select_get_last_pilot_info()
 	if(last_player == NULL){
 		return 0;		
 	} else {
-		strcpy(Player_select_last_pilot,last_player);
+		SDL_strlcpy(Player_select_last_pilot, last_player, SDL_arraysize(Player_select_last_pilot));
 	}
 
 	// determine if he was a single or multi-player based upon the last character in his callsign
@@ -1120,8 +1107,8 @@ int player_select_get_last_pilot()
 		}
 
 		Player_select_pilot = -1;
-		idx = 0;
-		// pick the last player		
+
+		// pick the last player
 		for(idx=0;idx<Player_select_num_pilots;idx++){
 			if(strcmp(Player_select_last_pilot,Pilots_arr[idx])==0){
 				Player_select_pilot = idx;
@@ -1216,16 +1203,16 @@ void player_select_process_noninput(int k)
 	// check for keypresses
 	switch (k) {			
 	// quit the game entirely
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		gameseq_post_event(GS_EVENT_QUIT_GAME);
 		break;
 
-	case KEY_ENTER | KEY_CTRLED:
+	case SDLK_RETURN | KEY_CTRLED:
 		player_select_button_pressed(ACCEPT_BUTTON);
 		break;
 
 	// delete the currently highlighted pilot
-	case KEY_DELETE:
+	case SDLK_DELETE:
 		if (Player_select_pilot >= 0) {
 			int ret;
 
@@ -1274,12 +1261,12 @@ void player_select_process_input(int k)
 	// if the player is in the process of typing in a new pilot name...
 	switch (k) {
 	// cancel create pilot
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		player_select_cancel_create();		
 		break;
 
 	// accept a new pilot name
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		Player_select_input_box.get_text(buf);
 		drop_white_space(buf);
 		z = 0;
@@ -1287,7 +1274,7 @@ void player_select_process_input(int k)
 			z = 1;
 		} else {
 			for (idx=1; buf[idx]; idx++) {
-				if (!isalpha(buf[idx]) && !isdigit(buf[idx]) && !strchr(VALID_PILOT_CHARS, buf[idx])) {
+				if (!isalpha(buf[idx]) && !isdigit(buf[idx]) && !SDL_strchr(VALID_PILOT_CHARS, buf[idx])) {
 					z = 1;
 					break;
 				}
@@ -1295,7 +1282,7 @@ void player_select_process_input(int k)
 		}
 
 		for (idx=1; idx<Player_select_num_pilots; idx++) {
-			if (!stricmp(buf, Pilots[idx])) {
+			if (!SDL_strcasecmp(buf, Pilots[idx])) {
 				// verify if it is ok to overwrite the file
 				if (pilot_verify_overwrite() == 1) {
 					// delete the pilot and select the beginning of the list
@@ -1322,7 +1309,7 @@ void player_select_process_input(int k)
 		}		
 
 		// Create the new pilot, and write out his file
-		strcpy(Pilots[0], buf);
+		SDL_strlcpy(Pilots[0], buf, MAX_FILENAME_LEN);
 
 		// if this is the first guy, we should set the Player struct
 		if (Player == NULL) {
@@ -1331,7 +1318,7 @@ void player_select_process_input(int k)
 			Player->flags |= PLAYER_FLAGS_STRUCTURE_IN_USE;
 		}
 
-		strcpy(Player->callsign, buf);
+		SDL_strlcpy(Player->callsign, buf, SDL_arraysize(Player->callsign));
 		init_new_pilot(Player, !Player_select_clone_flag);
 
 		// set him as being a multiplayer pilot if we're in the correct mode
@@ -1386,19 +1373,19 @@ void player_select_display_copyright()
 	gr_set_color_fast(&Color_bright);
 
 	if (Lcl_gr) {
-		sprintf(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\xA8');
+		SDL_snprintf(Copyright_msg1, SDL_arraysize(Copyright_msg1), XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\xA8');
 	} else {
-		sprintf(Copyright_msg1, XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\x83');
+		SDL_snprintf(Copyright_msg1, SDL_arraysize(Copyright_msg1), XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\x83');
 	}
-	sprintf(Copyright_msg2, XSTR("All Rights Reserved", 385));
+	SDL_snprintf(Copyright_msg2, SDL_arraysize(Copyright_msg2), XSTR("All Rights Reserved", 385));
 #else
 	gr_set_color_fast(&Color_white);
 
-	sprintf(Copyright_msg1, NOX("FreeSpace 2"));
+	SDL_snprintf(Copyright_msg1, SDL_arraysize(Copyright_msg1), NOX("FreeSpace 2"));
 	if (Lcl_gr) {
-		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\xA8');
+		SDL_snprintf(Copyright_msg2, SDL_arraysize(Copyright_msg2), XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\xA8');
 	} else {
-		sprintf(Copyright_msg2, XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
+		SDL_snprintf(Copyright_msg2, SDL_arraysize(Copyright_msg2), XSTR("Copyright %c 1999, Volition, Inc.  All rights reserved.", 385), '\x83');
 	}
 #endif // MAKE_FS1
 
@@ -1448,14 +1435,14 @@ int player_select_pilot_file_filter(const char *filename)
 void player_select_set_bottom_text(const char *txt)
 {
 	if (txt) {
-		strncpy(Player_select_bottom_text, txt, 149);
+		SDL_strlcpy(Player_select_bottom_text, txt, SDL_arraysize(Player_select_bottom_text));
 	}
 }
 
 void player_select_set_middle_text(const char *txt)
 {
 	if (txt) {
-		strncpy(Player_select_middle_text, txt, 149);
+		SDL_strlcpy(Player_select_middle_text, txt, SDL_arraysize(Player_select_middle_text));
 	}
 }
 
@@ -1476,7 +1463,7 @@ void player_select_eval_very_first_pilot()
 		if((Player_select_num_pilots == 1) && (Player_select_initial_count == 0)){
 			// set up the data
 			Player_select_very_first_pilot = 1;
-			strcpy(Player_select_very_first_pilot_callsign,Pilots[Player_select_pilot]);
+			SDL_strlcpy(Player_select_very_first_pilot_callsign, Pilots[Player_select_pilot], SDL_arraysize(Player_select_very_first_pilot_callsign));
 		}
 	}
 }
@@ -1484,7 +1471,7 @@ void player_select_eval_very_first_pilot()
 void player_select_commit()
 {
 	// if we've gotten to this point, we should have ensured this was the case
-	Assert(Player_select_num_pilots > 0);
+	SDL_assert(Player_select_num_pilots > 0);
 	
 	gameseq_post_event(GS_EVENT_MAIN_MENU);
 	gamesnd_play_iface(SND_COMMIT_PRESSED);
@@ -1506,7 +1493,7 @@ void player_select_cancel_create()
 
 	// move all pilots down
 	for (idx=0; idx<Player_select_num_pilots; idx++) {
-		strcpy(Pilots[idx], Pilots[idx + 1]);
+		SDL_strlcpy(Pilots[idx], Pilots[idx + 1], MAX_FILENAME_LEN);
 	}
 
 	// unset the input mode
@@ -1548,16 +1535,20 @@ void player_tips_init()
 	// begin external localization stuff
 	lcl_ext_open();
 
-	read_file_text("tips.tbl");
-	reset_parse();
+	try {
+		read_file_text("tips.tbl");
+		reset_parse();
 
-	while(!optional_string("#end")){
-		required_string("+Tip:");
+		while(!optional_string("#end")){
+			required_string("+Tip:");
 
-		if(Num_player_tips >= MAX_PLAYER_TIPS){
-			break;
+			if(Num_player_tips >= MAX_PLAYER_TIPS){
+				break;
+			}
+			Player_tips[Num_player_tips++] = stuff_and_malloc_string(F_NAME, NULL, 1024);
 		}
-		Player_tips[Num_player_tips++] = stuff_and_malloc_string(F_NAME, NULL, 1024);				
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse tips.tbl!  Code = %i.\n", (int)rval);
 	}
 
 	// stop externalizing, homey
@@ -1600,7 +1591,7 @@ void player_tips_popup()
 	char all_txt[2048];	
 
 	do {
-		sprintf(all_txt, XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[tip]);
+		SDL_snprintf(all_txt, SDL_arraysize(all_txt), XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[tip]);
 		ret = popup(PF_NO_SPECIAL_BUTTONS | PF_TITLE | PF_TITLE_WHITE, 3, XSTR("&Ok", 669), XSTR("&Next", 1444), XSTR("Don't show me this again", 1443), all_txt);
 		
 		// now what?

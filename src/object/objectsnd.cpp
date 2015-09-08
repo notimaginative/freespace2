@@ -258,8 +258,7 @@
 #include "linklist.h"
 #include "ship.h"
 #include "gamesnd.h"
-#include "ds.h"
-#include "ds3d.h"
+#include "oal.h"
 #include "timer.h"
 #include "3d.h"
 #include "joy_ff.h"
@@ -342,24 +341,24 @@ DCF(objsnd, "Persistant sound stuff" )
 				Obj_snd_enabled = TRUE;
 			}
 		}
-		if ( !stricmp( Dc_arg, "list" ))	{
+		if ( !SDL_strcasecmp( Dc_arg, "list" ))	{
 			for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
-				Assert(osp != NULL);
+				SDL_assert(osp != NULL);
 				if ( osp->instance == -1 ) {
 					continue;
-					//sprintf(buf1,"OFF");
+					//strcpy(buf1,"OFF");
 				} else {
-					sprintf(buf1,"ON");
+					SDL_strlcpy(buf1, "ON", SDL_arraysize(buf1));
 				}
 
 				if ( Objects[osp->objnum].type == OBJ_SHIP ) {
-					sprintf(buf2, Ships[Objects[osp->objnum].instance].ship_name);
+					SDL_strlcpy(buf2, Ships[Objects[osp->objnum].instance].ship_name, SDL_arraysize(buf2));
 				}
 				else if ( Objects[osp->objnum].type == OBJ_DEBRIS ) {
-					sprintf(buf2, "Debris");
+					SDL_strlcpy(buf2, "Debris", SDL_arraysize(buf2));
 				}
 				else {
-					sprintf(buf2, "Unknown");
+					SDL_strlcpy(buf2, "Unknown", SDL_arraysize(buf2));
 				}
 
 				vector source_pos;
@@ -473,7 +472,7 @@ void obj_snd_stop(object *objp, int index)
 					case OBJ_DEBRIS:
 					case OBJ_ASTEROID:
 						Num_obj_sounds_playing--;
-						Assert(Num_obj_sounds_playing >= 0);					
+						SDL_assert(Num_obj_sounds_playing >= 0);					
 						break;
 
 					default:
@@ -498,7 +497,7 @@ void obj_snd_stop(object *objp, int index)
 			case OBJ_DEBRIS:
 			case OBJ_ASTEROID:
 				Num_obj_sounds_playing--;
-				Assert(Num_obj_sounds_playing >= 0);					
+				SDL_assert(Num_obj_sounds_playing >= 0);					
 				break;
 
 			default:
@@ -571,7 +570,7 @@ int obj_snd_stop_lowest_vol(float new_vol)
 	
 	lowest_vol = 1000.0f;
 	for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
-		Assert(osp->objnum != -1);
+		SDL_assert(osp->objnum != -1);
 		objp = &Objects[osp->objnum];
 
 		if ( (osp->instance != -1) && (osp->vol < lowest_vol) ) {
@@ -580,7 +579,7 @@ int obj_snd_stop_lowest_vol(float new_vol)
 		}
 	}
 
-	Assert(lowest_vol_osp != NULL);
+	SDL_assert(lowest_vol_osp != NULL);
 	objp = &Objects[lowest_vol_osp->objnum];
 
 	if ( (lowest_vol < new_vol) && (objp != NULL) ) {
@@ -639,7 +638,7 @@ void maybe_play_flyby_snd(float closest_dist, object *closest_objp)
 						goto play_no_flyby_sound;
 				}				
 
-				Assert(closest_objp->type == OBJ_SHIP);
+				SDL_assert(closest_objp->type == OBJ_SHIP);
 				if(closest_objp->type != OBJ_SHIP){
 					return;
 				}
@@ -689,7 +688,7 @@ void obj_snd_do_frame()
 	object			*objp, *closest_objp;
 	game_snd			*gs;
 	ship				*sp;
-	int				channel, go_ahead_flag;
+	int				go_ahead_flag;
 	vector			source_pos;
 	float				add_distance;
 
@@ -707,7 +706,7 @@ void obj_snd_do_frame()
 	closest_objp = NULL;
 
 	for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
-		Assert(osp != NULL);
+		SDL_assert(osp != NULL);
 		objp = &Objects[osp->objnum];
 		if ( Player_obj == objp ) {
 			continue;
@@ -787,22 +786,12 @@ void obj_snd_do_frame()
 				} // end switch
 
 				if ( go_ahead_flag ) {
-					if ( ds_using_ds3d() ) {
-						osp->instance = snd_play_3d(gs, &source_pos, &View_position, add_distance, &objp->phys_info.vel, 1, 1.0f, SND_PRIORITY_TRIPLE_INSTANCE);
-						if ( osp->instance != -1 ) {
-							Num_obj_sounds_playing++;
-						}
-					}
-					else {
-						snd_get_3d_vol_and_pan(gs, &source_pos, &osp->vol, &osp->pan, add_distance);
-						osp->instance = snd_play_looping( gs, osp->pan, 0, 0, (osp->vol*speed_vol_multiplier)/gs->default_volume, SND_PRIORITY_TRIPLE_INSTANCE );
-						if ( osp->instance != -1 ) {
-							osp->freq =	snd_get_pitch(osp->instance);
-							Num_obj_sounds_playing++;
-						}
+					osp->instance = snd_play_3d(gs, &source_pos, &View_position, add_distance, &objp->phys_info.vel, 1, 1.0f, SND_PRIORITY_TRIPLE_INSTANCE);
+					if ( osp->instance != -1 ) {
+						Num_obj_sounds_playing++;
 					}
 				}
-				Assert(Num_obj_sounds_playing <= MAX_OBJ_SOUNDS_PLAYING);
+				SDL_assert(Num_obj_sounds_playing <= MAX_OBJ_SOUNDS_PLAYING);
 
 			} // 		end if ( distance < Snds[osp->id].max )
 		} // 		if ( osp->instance == -1 )
@@ -819,7 +808,7 @@ void obj_snd_do_frame()
 					}
 				}
 
-				Assert(sound_index != -1);
+				SDL_assert(sound_index != -1);
 				obj_snd_stop(objp, sound_index);						// currently playing sound has gone past maximum
 			}
 		}
@@ -831,51 +820,28 @@ void obj_snd_do_frame()
 		if ( objp->type == OBJ_SHIP )
 			sp = &Ships[objp->instance];
 
-		if (ds_using_ds3d()) {
-			channel = ds_get_channel(osp->instance);
-			// for DirectSound3D sounds, re-establish the maximum speed based on the
-			//	speed_vol_multiplier
-			if ( sp == NULL || ( (sp != NULL) && (sp->flags & SF_ENGINES_ON) ) ) {
-				snd_set_volume( osp->instance, gs->default_volume*speed_vol_multiplier );
-			}
-			else {
-				// engine sound is disabled
-				snd_set_volume( osp->instance, 0.0f );
-			}
-
-			vector *vel=NULL;
-			vel = &objp->phys_info.vel;
-
-			// Don't play doppler effect for cruisers or captials
-			if ( sp ) {
-				if ( ship_get_SIF(sp) & (SIF_BIG_SHIP | SIF_HUGE_SHIP) ) {
-					vel=NULL;
-				}
-			}
-
-			ds3d_update_buffer(channel, i2fl(gs->min), i2fl(gs->max), &source_pos, vel);
-			snd_get_3d_vol_and_pan(gs, &source_pos, &osp->vol, &osp->pan, add_distance);
+		// for 3D sounds, re-establish the maximum speed based on the
+		//	speed_vol_multiplier
+		if ( sp == NULL || ( (sp != NULL) && (sp->flags & SF_ENGINES_ON) ) ) {
+			snd_set_volume( osp->instance, gs->default_volume*speed_vol_multiplier );
 		}
 		else {
-			if ( sp == NULL || (sp != NULL && (sp->flags & SF_ENGINES_ON) ) ) {
-				snd_get_3d_vol_and_pan(gs, &source_pos, &osp->vol, &osp->pan, add_distance);
-				snd_set_volume( osp->instance, osp->vol*speed_vol_multiplier );
-				snd_set_pan( osp->instance, osp->pan );
-				// Don't play doppler effect for cruisers or captials
-				if ( objp->type == OBJ_SHIP && Doppler_enabled == TRUE ) {
-					if ( !(ship_get_SIF(sp) & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) ) {
-						int new_freq;
-						// calc doppler effect
-						new_freq = obj_snd_get_freq(osp->freq, objp, Player_obj, &source_pos);
-						if ( abs(new_freq - osp->freq) > OBJSND_CHANGE_FREQUENCY_THRESHOLD ) {
-							snd_set_pitch( osp->instance, new_freq);
-						}
-					}
-				}
-			}
-			else
-				snd_set_volume( osp->instance, 0.0f );
+			// engine sound is disabled
+			snd_set_volume( osp->instance, 0.0f );
 		}
+
+		vector *vel=NULL;
+		vel = &objp->phys_info.vel;
+
+		// Don't play doppler effect for cruisers or captials
+		if ( sp ) {
+			if ( ship_get_SIF(sp) & (SIF_BIG_SHIP | SIF_HUGE_SHIP) ) {
+				vel=NULL;
+			}
+		}
+
+		snd_update_source(osp->instance, gs->min, gs->max, &source_pos, vel);
+		snd_get_3d_vol_and_pan(gs, &source_pos, &osp->vol, &osp->pan, add_distance);
 	}	// end for
 
 	// see if we want to play a flyby sound
@@ -965,7 +931,7 @@ void	obj_snd_delete(int objnum, int sndnum)
 	obj_snd	*osp;
 	int idx;
 
-	Assert(objnum >= 0 && objnum < MAX_OBJECTS);
+	SDL_assert(objnum >= 0 && objnum < MAX_OBJECTS);
 	objp = &Objects[objnum];
 
 	// delete all object sounds for this guy
@@ -1007,7 +973,7 @@ void obj_snd_delete_all()
 	osp = GET_FIRST(&obj_snd_list);	
 	while( (osp != NULL) && (osp !=END_OF_LIST(&obj_snd_list)) )	{
 		temp = GET_NEXT(osp);
-		Assert( osp->objnum != -1 );
+		SDL_assert( osp->objnum != -1 );
 
 		obj_snd_delete( osp->objnum );
 
@@ -1049,7 +1015,7 @@ int obj_snd_is_playing(int index)
 	if ( index == -1 )
 		return 0;
 
-	Assert( index >= 0 && index < MAX_OBJ_SNDS );
+	SDL_assert( index >= 0 && index < MAX_OBJ_SNDS );
 
 	osp = &Objsnds[index];
 	if ( osp->instance == -1 ) 
@@ -1068,7 +1034,7 @@ int obj_snd_return_instance(int index)
 	if ( index == -1 )
 		return -1;
 
-	Assert( index >= 0 && index < MAX_OBJ_SNDS );
+	SDL_assert( index >= 0 && index < MAX_OBJ_SNDS );
 
 	return Objsnds[index].instance;
 }

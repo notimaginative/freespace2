@@ -98,47 +98,52 @@ void ssm_init()
 	ssm_info bogus, *s;
 	char weapon_name[NAME_LENGTH+1] = "";
 
-	read_file_text("ssm.tbl");
-	reset_parse();
+	try {
+		read_file_text("ssm.tbl");
+		reset_parse();
 
-	// parse the table
-	Ssm_info_count = 0;
-	while(!optional_string("#end")){
-		// another ssm definition
-		if(optional_string("$SSM:")){
-			// pointer to info struct
-			if(Ssm_info_count >= MAX_SSM_TYPES){
-				s = &bogus;
-			} else {
-				s = &Ssm_info[Ssm_info_count];
-			}
+		// parse the table
+		Ssm_info_count = 0;
+		while(!optional_string("#end")){
+			// another ssm definition
+			if(optional_string("$SSM:")){
+				// pointer to info struct
+				if(Ssm_info_count >= MAX_SSM_TYPES){
+					s = &bogus;
+				} else {
+					s = &Ssm_info[Ssm_info_count];
+				}
 
-			// name
-			stuff_string(s->name, F_NAME, NULL);
+				// name
+				stuff_string(s->name, F_NAME, NULL);
 
-			// stuff data
-			required_string("+Weapon:");
-			stuff_string(weapon_name, F_NAME, NULL);
-			required_string("+Count:");
-			stuff_int(&s->count);
-			required_string("+WarpRadius:");
-			stuff_float(&s->warp_radius);
-			required_string("+WarpTime:");
-			stuff_float(&s->warp_time);
-			required_string("+Radius:");
-			stuff_float(&s->radius);
-			required_string("+Offset:");
-			stuff_float(&s->offset);
+				// stuff data
+				required_string("+Weapon:");
+				stuff_string(weapon_name, F_NAME, NULL);
+				required_string("+Count:");
+				stuff_int(&s->count);
+				required_string("+WarpRadius:");
+				stuff_float(&s->warp_radius);
+				required_string("+WarpTime:");
+				stuff_float(&s->warp_time);
+				required_string("+Radius:");
+				stuff_float(&s->radius);
+				required_string("+Offset:");
+				stuff_float(&s->offset);
 
-			// see if we have a valid weapon
-			s->weapon_info_index = -1;
-			s->weapon_info_index = weapon_name_lookup(weapon_name);
-			if(s->weapon_info_index >= 0){
-				// valid
-				Ssm_info_count++;
+				// see if we have a valid weapon
+				s->weapon_info_index = -1;
+				s->weapon_info_index = weapon_name_lookup(weapon_name);
+				if(s->weapon_info_index >= 0){
+					// valid
+					Ssm_info_count++;
+				}
 			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse ssm.tbl!  Code = %i.\n", (int)rval);
 	}
+
 #else
 	// not for FS1
 	Ssm_info_count = 0;
@@ -187,11 +192,11 @@ void ssm_create(vector *target, vector *start, int ssm_index, ssm_firing_info *o
 	}
 
 	// sanity
-	Assert(target != NULL);
+	SDL_assert(target != NULL);
 	if(target == NULL){
 		return;
 	}
-	Assert(start != NULL);
+	SDL_assert(start != NULL);
 	if(start == NULL){
 		return;
 	}
@@ -201,7 +206,7 @@ void ssm_create(vector *target, vector *start, int ssm_index, ssm_firing_info *o
 
 	// Find next available trail
 	ssm = GET_FIRST(&Ssm_free_list);
-	Assert( ssm != &Ssm_free_list );		// shouldn't have the dummy element
+	SDL_assert( ssm != &Ssm_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Ssm_free_list, ssm );

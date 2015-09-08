@@ -522,7 +522,7 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 	}
 
 	for ( i = 0; i < pi->nchoices; i++ ) {
-		if ( pi->keypress[i] == key_to_ascii(k) ) {
+		if ( pi->keypress[i] == key_get_text_input() ) {
 			Popup_default_choice=i;
 			Popup_buttons[i].press_button();
 			return i;
@@ -531,21 +531,21 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 	
 	switch(k) {
 
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		// select the current default choice
 		return Popup_default_choice;
 		break;
 
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		// only process the escape key if this flag is not set
 		if(!(flags & PF_IGNORE_ESC)){
 			return POPUP_ABORT;
 		}
 		break;
 
-	case KEY_DOWN:
-	case KEY_PAD2:
-	case KEY_TAB:
+	case SDLK_DOWN:
+	case SDLK_KP_2:
+	case SDLK_TAB:
 		popup_play_default_change_sound(pi);
 		Popup_default_choice++;
 		if ( Popup_default_choice >= pi->nchoices ) {
@@ -553,9 +553,9 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 		}
 		break;
 
-	case KEY_UP:
-	case KEY_PAD8:
-	case KEY_SHIFTED+KEY_TAB:
+	case SDLK_UP:
+	case SDLK_KP_8:
+	case KEY_SHIFTED+SDLK_TAB:
 		popup_play_default_change_sound(pi);
 		Popup_default_choice--;
 		if ( Popup_default_choice < 0 ) {
@@ -583,17 +583,18 @@ void popup_split_lines(popup_info *pi, int flags)
 	int	nlines, i, body_offset = 0;
 	int	n_chars[POPUP_MAX_LINES];
 	char	*p_str[POPUP_MAX_LINES];
+	int len;
 
 	gr_set_font(FONT1);
 	n_chars[0]=0;
 
 	nlines = split_str(pi->raw_text, 1000, n_chars, p_str, POPUP_MAX_LINES);
-	Assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
+	SDL_assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
 
 	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
 		// get first line out
-		strncpy(pi->title, p_str[0], n_chars[0]);
-		pi->title[n_chars[0]] = 0;
+		len = min(n_chars[0] + 1, POPUP_MAX_LINE_CHARS);
+		SDL_strlcpy(pi->title, p_str[0], len);
 		body_offset = 1;
 	}
 
@@ -602,14 +603,14 @@ void popup_split_lines(popup_info *pi, int flags)
 	}
 
 	nlines = split_str(pi->raw_text, Popup_text_coords[gr_screen.res][2], n_chars, p_str, POPUP_MAX_LINES);
-	Assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
+	SDL_assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
 
 	pi->nlines = nlines - body_offset;
 
 	for ( i = 0; i < pi->nlines; i++ ) {
-		Assert(n_chars[i+body_offset] < POPUP_MAX_LINE_CHARS);
-		strncpy(pi->msg_lines[i], p_str[i+body_offset], n_chars[i+body_offset]);
-		pi->msg_lines[i][n_chars[i+body_offset]] = 0;
+		SDL_assert(n_chars[i+body_offset] < POPUP_MAX_LINE_CHARS);
+		len = min(n_chars[i+body_offset] + 1, POPUP_MAX_LINE_CHARS);
+		SDL_strlcpy(pi->msg_lines[i], p_str[i+body_offset], len);
 	}
 
 	gr_set_font(FONT1);
@@ -622,11 +623,11 @@ const char *popup_get_button_filename(popup_info *pi, int i, int flags)
 	int is_tiny=0;	
 
 	// check for special button texts and if found, use specialized buttons for them.
-	if ((!stricmp(pi->button_text[i], POPUP_OK + 1) || !stricmp(pi->button_text[i], POPUP_YES + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
+	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_OK + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_YES + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
 		return Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_POSITIVE];
 	}
 
-	if ((!stricmp(pi->button_text[i], POPUP_CANCEL + 1) || !stricmp(pi->button_text[i], POPUP_NO + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
+	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_CANCEL + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_NO + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
 		return Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_NEGATIVE];
 	}
 
@@ -701,7 +702,7 @@ int popup_init(popup_info *pi, int flags)
 	}
 
 	// anytime in single player, and multiplayer, not in mission, go ahead and stop time
-	if ( (Game_mode & GM_NORMAL) || ((Game_mode && GM_MULTIPLAYER) && !(Game_mode & GM_IN_MISSION)) ){
+	if ( (Game_mode & GM_NORMAL) || ((Game_mode & GM_MULTIPLAYER) && !(Game_mode & GM_IN_MISSION)) ){
 		game_stop_time();
 	}
 
@@ -804,7 +805,7 @@ void popup_close(popup_info *pi,int screen)
 	Popup_running_state = 0;
 
 	// anytime in single player, and multiplayer, not in mission, go ahead and stop time
-	if ( (Game_mode & GM_NORMAL) || ((Game_mode && GM_MULTIPLAYER) && !(Game_mode & GM_IN_MISSION)) )
+	if ( (Game_mode & GM_NORMAL) || ((Game_mode & GM_MULTIPLAYER) && !(Game_mode & GM_IN_MISSION)) )
 		game_start_time();
 }
 
@@ -1185,7 +1186,7 @@ void popup_maybe_assign_keypress(popup_info *pi, int n, char *str)
 				char first_char_string[2];
 				first_char_string[0]=str[i];
 				first_char_string[1]=0;
-				strlwr(first_char_string);
+				SDL_strlwr(first_char_string);
 				pi->keypress[n] = first_char_string[0];
 			}
 			pi->button_text[n][j++]=str[i];	
@@ -1219,7 +1220,7 @@ int popup(int flags, int nchoices, ... )
 
 	Popup_flags = flags;
 
-	Assert( nchoices > 0 && nchoices <= POPUP_MAX_CHOICES );
+	SDL_assert( nchoices > 0 && nchoices <= POPUP_MAX_CHOICES );
 	Popup_info.nchoices = nchoices;
 
 	va_start(args, nchoices );
@@ -1234,9 +1235,8 @@ int popup(int flags, int nchoices, ... )
 	// get msg text
 	format = va_arg( args, char * );
 	Popup_info.raw_text[0] = 0;
-	vsprintf(Popup_info.raw_text, format, args);
+	SDL_vsnprintf(Popup_info.raw_text, SDL_arraysize(Popup_info.raw_text), format, args);
 	va_end(args);
-	Assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
 	
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
@@ -1288,9 +1288,8 @@ int popup_till_condition(int (*condition)(), ...)
 	// get msg text
 	format = va_arg( args, char * );
 	Popup_info.raw_text[0] = 0;
-	vsprintf(Popup_info.raw_text, format, args);
+	SDL_vsnprintf(Popup_info.raw_text, SDL_arraysize(Popup_info.raw_text), format, args);
 	va_end(args);
-	Popup_info.raw_text[POPUP_MAX_CHARS-1] = '\0';
 		
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
@@ -1323,9 +1322,9 @@ char *popup_input(int flags, const char *caption, int max_output_len)
 	// popup_maybe_assign_keypress(&Popup_info, 0, "&Cancel");	
 
 	// get msg text
-	Assert(caption != NULL);
-	strcpy(Popup_info.raw_text, caption);	
-	Assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
+	SDL_assert(caption != NULL);
+	SDL_strlcpy(Popup_info.raw_text, caption, SDL_arraysize(Popup_info.raw_text));
+	SDL_assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
 
 	// set input text length
 	if((max_output_len > POPUP_INPUT_MAX_CHARS) || (max_output_len == -1)){
@@ -1368,7 +1367,7 @@ void popup_kill_any_active()
 void popup_change_text(const char *new_text)
 {
 	// copy the raw text
-	strncpy(Popup_info.raw_text,new_text,POPUP_MAX_CHARS);
+	SDL_strlcpy(Popup_info.raw_text, new_text, SDL_arraysize(Popup_info.raw_text));
 
 	// recalculate all display information
 	popup_split_lines(&Popup_info,Popup_flags);

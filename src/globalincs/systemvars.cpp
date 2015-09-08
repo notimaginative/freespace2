@@ -240,10 +240,6 @@ int Interface_last_tick = -1;			// last timer tick on flip
 // for notifying players of unknown ship types
 int Fred_found_unknown_ship_during_parsing = 0;
 
-// If true, then we are using Direct3D hardware.  This is used for game type stuff
-// that changes when you're using hardware.
-int D3D_enabled = 0;			
-
 // Values used for noise for thruster animations
 float Noise[NOISE_NUM_FRAMES] = { 
 	0.468225f,
@@ -363,7 +359,7 @@ monitor::monitor( const char *_name )
 	}
 
 	for (i=0; i<Num_monitors; i++ )	{
-		int ret  = stricmp( Monitor[i]->name, _name );
+		int ret  = SDL_strcasecmp( Monitor[i]->name, _name );
 
 		if ( ret == 0)	{
 			Int3();		// This monitor variable already exists!!!! 
@@ -432,7 +428,7 @@ DCF(monitor,"Monitors game performace")
 			} else {
 				Monitor_inited = 1;
 
-				strcpy( Monitor_filename, Dc_arg );
+				SDL_strlcpy( Monitor_filename, Dc_arg, SDL_arraysize(Monitor_filename) );
 
 				// Reset them all
 				int i;
@@ -644,8 +640,8 @@ void detail_level_set(int level)
 		Detail.setting = -1;
 		return;
 	}
-	Assert( level >= 0 );
-	Assert( level < NUM_DEFAULT_DETAIL_LEVELS );
+	SDL_assert( level >= 0 );
+	SDL_assert( level < NUM_DEFAULT_DETAIL_LEVELS );
 
 	Detail = Detail_defaults[level];
 

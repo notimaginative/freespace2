@@ -645,7 +645,7 @@ void chatbox_set_mode(int mode_flags)
 	// set up the display/init variables based upon what mode we chode
 	switch(size){
 	case 0:		
-		strcpy(Chatbox_mask, Chatbox_small_bitmap_mask_fname[gr_screen.res]);
+		SDL_strlcpy(Chatbox_mask, Chatbox_small_bitmap_mask_fname[gr_screen.res], SDL_arraysize(Chatbox_mask));
 		Chatbox_x1 = Chatbox_small_coords[gr_screen.res][CHATBOX_X_COORD];
 		Chatbox_y1 = Chatbox_small_coords[gr_screen.res][CHATBOX_Y_COORD];		
 		Chatbox_icon_x = Chatbox_small_display_coords[gr_screen.res][CHATBOX_X_COORD] - CHATBOX_TEAM_ICON_SPACE;
@@ -661,7 +661,7 @@ void chatbox_set_mode(int mode_flags)
 		break;
 
 	case 1:		
-		strcpy(Chatbox_mask, Chatbox_big_bitmap_mask_fname[gr_screen.res]);
+		SDL_strlcpy(Chatbox_mask, Chatbox_big_bitmap_mask_fname[gr_screen.res], SDL_arraysize(Chatbox_mask));
 		Chatbox_x1 = Chatbox_big_coords[gr_screen.res][CHATBOX_X_COORD];
 		Chatbox_y1 = Chatbox_big_coords[gr_screen.res][CHATBOX_Y_COORD];		
 		Chatbox_icon_x = Chatbox_big_display_coords[gr_screen.res][CHATBOX_X_COORD] - CHATBOX_TEAM_ICON_SPACE;
@@ -748,7 +748,7 @@ int chatbox_create(int mode_flags)
 	}
 
 	// probably shouldn't be using the chatbox in single player mode
-	Assert(Game_mode & GM_MULTIPLAYER);
+	SDL_assert(Game_mode & GM_MULTIPLAYER);
 
 	// setup all data to correspond to our mode flags
 	chatbox_set_mode(mode_flags);
@@ -839,13 +839,13 @@ int chatbox_process(int key_in)
 	// look for special keypresses
 	switch(key_out){
 	// line recall up one
-	case KEY_UP:
+	case SDLK_UP:
 		chatbox_recall_up();
 		key_out = 0;
 		break;
 	
 	// line recall down one
-	case KEY_DOWN:
+	case SDLK_DOWN:
 		chatbox_recall_down();
 		key_out = 0;
 		break;
@@ -1021,6 +1021,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	int	n_chars[3];		
 	char	*p_str[3];			// for the initial line (unindented)
 	char msg_extra[CHATBOX_STRING_LEN];
+	int len;
 
 	if(!Chatbox_created){
 		return;
@@ -1029,18 +1030,18 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	// maybe stick on who sent the message	
 	if(add_id){
 		if(MULTI_STANDALONE(Net_players[pid])){
-			sprintf(msg_extra, NOX("%s %s"), NOX("<SERVER>"), msg );
+			SDL_snprintf(msg_extra, SDL_arraysize(msg_extra), NOX("%s %s"), NOX("<SERVER>"), msg );
 		} else {
-			sprintf(msg_extra, NOX("%s: %s"), Net_players[pid].player->short_callsign, msg );
+			SDL_snprintf(msg_extra, SDL_arraysize(msg_extra), NOX("%s: %s"), Net_players[pid].player->short_callsign, msg );
 		}
 	} else {
-		strcpy(msg_extra,msg);
+		SDL_strlcpy(msg_extra, msg, SDL_arraysize(msg_extra));
 	}	
-	Assert(strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
+	SDL_assert(strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
 
 	// split the text up into as many lines as necessary
 	n_lines = split_str(msg_extra, Chatbox_disp_w, n_chars, p_str, 3);
-	Assert(n_lines != -1);	
+	SDL_assert(n_lines != -1);	
 
 	// setup the first line -- be sure to clear out the line
 	memset( Brief_chat_lines[Brief_current_add_line], 0, CHATBOX_STRING_LEN );
@@ -1054,13 +1055,9 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	Brief_chat_indents[Brief_current_add_line] = 0;
 
 	// copy in the chars
-	strncpy(&Brief_chat_lines[Brief_current_add_line][1],p_str[0],CHATBOX_STRING_LEN - 1);
-	if(n_chars[0] >= CHATBOX_STRING_LEN){
-		Brief_chat_lines[Brief_current_add_line][CHATBOX_STRING_LEN - 1] = '\0';
-	} else {
-		Brief_chat_lines[Brief_current_add_line][n_chars[0] + 1] = '\0';
-	}
-	
+	len = min(n_chars[0] + 1, CHATBOX_STRING_LEN);
+	SDL_strlcpy(&Brief_chat_lines[Brief_current_add_line][1], p_str[0], len);
+
 	// increment the total line count if we haven't reached the max already
 	if(Num_brief_chat_lines<MAX_BRIEF_CHAT_LINES){
 		Num_brief_chat_lines++;
@@ -1073,7 +1070,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	if(n_lines > 1){
 		// split up the string after the first break-marker
 		n_lines = split_str(msg_extra + n_chars[0],Chatbox_disp_w - CHAT_LINE_INDENT,n_chars,p_str,3);
-		Assert(n_lines != -1);		
+		SDL_assert(n_lines != -1);		
 
 		// setup these remaining lines
 		for(idx=0;idx<n_lines;idx++){
@@ -1084,13 +1081,9 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 			Brief_chat_indents[Brief_current_add_line] = CHAT_LINE_INDENT;
 
 			// copy in the line text itself
-			strncpy(&Brief_chat_lines[Brief_current_add_line][1],p_str[idx],CHATBOX_STRING_LEN-1); 
-			if(n_chars[idx] >= CHATBOX_STRING_LEN){
-				Brief_chat_lines[Brief_current_add_line][CHATBOX_STRING_LEN - 1] = '\0';
-			} else {
-				Brief_chat_lines[Brief_current_add_line][n_chars[idx] + 1] = '\0';
-			}
-			
+			len = min(n_chars[idx] + 1, CHATBOX_STRING_LEN);
+			SDL_strlcpy(&Brief_chat_lines[Brief_current_add_line][1], p_str[idx], len);
+
 			// increment the total line count if we haven't reached the max already
 			if(Num_brief_chat_lines<MAX_BRIEF_CHAT_LINES){
 				Num_brief_chat_lines++;
@@ -1364,7 +1357,7 @@ void chatbox_recall_add(char *string)
 	}
 
 	// copy the new item into spot 0
-	strcpy(Chatbox_recall_lines[0],string);
+	SDL_strlcpy(Chatbox_recall_lines[0], string, CHATBOX_MAX_LEN);
 
 	// increment the recall count if necessary
 	if(Chatbox_recall_count < CHATBOX_MAX_RECALL_LINES){

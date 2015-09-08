@@ -175,7 +175,6 @@
 
 #include "3dinternal.h"
 #include "tmapper.h"
-#include "scaler.h"
 #include "2d.h"
 #include "floating.h"
 #include "physics.h"		// For Physics_viewer_bank for g3_draw_rotated_bitmap
@@ -232,7 +231,7 @@ int g3_draw_line(vertex *p0,vertex *p1)
 {
 	ubyte codes_or;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if (p0->codes & p1->codes)
 		return 0;
@@ -272,7 +271,7 @@ int g3_check_normal_facing(vector *v,vector *norm)
 {
 	vector tempv;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	vm_vec_sub(&tempv,&View_position,v);
 
@@ -281,11 +280,11 @@ int g3_check_normal_facing(vector *v,vector *norm)
 
 int do_facing_check(vector *norm,vertex **vertlist,vector *p)
 {
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if (norm) {		//have normal
 
-		Assert(norm->xyz.x || norm->xyz.y || norm->xyz.z);
+		SDL_assert(norm->xyz.x || norm->xyz.y || norm->xyz.z);
 
 		return g3_check_normal_facing(p,norm);
 	}
@@ -309,7 +308,7 @@ int do_facing_check(vector *norm,vertex **vertlist,vector *p)
 //returns -1 if not facing, 1 if off screen, 0 if drew
 int g3_draw_poly_if_facing(int nv,vertex **pointlist,uint tmap_flags,vector *norm,vector *pnt)
 {
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if (do_facing_check(norm,pointlist,pnt))
 		return g3_draw_poly(nv,pointlist,tmap_flags);
@@ -326,7 +325,7 @@ int g3_draw_poly(int nv,vertex **pointlist,uint tmap_flags)
 	vertex **bufptr;
 	ccodes cc;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	cc.vor = 0; cc.vand = 0xff;
 
@@ -345,7 +344,7 @@ int g3_draw_poly(int nv,vertex **pointlist,uint tmap_flags)
 		return 1;	//all points off screen
 
 	if (cc.vor)	{
-		Assert( G3_count == 1 );
+		SDL_assert( G3_count == 1 );
 
 		bufptr = clip_polygon(Vbuf0,Vbuf1,&nv,&cc,tmap_flags);
 
@@ -408,7 +407,7 @@ int g3_draw_poly_constant_sw(int nv,vertex **pointlist,uint tmap_flags, float co
 	vertex **bufptr;
 	ccodes cc;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	cc.vor = 0; cc.vand = 0xff;
 
@@ -427,7 +426,7 @@ int g3_draw_poly_constant_sw(int nv,vertex **pointlist,uint tmap_flags, float co
 		return 1;	//all points off screen
 
 	if (cc.vor)	{
-		Assert( G3_count == 1 );
+		SDL_assert( G3_count == 1 );
 
 		bufptr = clip_polygon(Vbuf0, Vbuf1, &nv, &cc, tmap_flags);
 
@@ -504,7 +503,7 @@ free_points:
 //radius, but not to the distance from the eye
 int g3_draw_sphere(vertex *pnt,float rad)
 {
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if (! (pnt->codes & CC_BEHIND)) {
 
@@ -530,7 +529,7 @@ int g3_draw_sphere_ez(vector *pnt,float rad)
 	vertex pt;
 	ubyte flags;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	flags = g3_rotate_vertex(&pt,pnt);
 
@@ -575,7 +574,7 @@ int g3_draw_bitmap(vertex *pnt,int orient, float rad,uint tmap_flags)
 		width = height = rad*2.0f;
 	}
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if ( pnt->codes & (CC_BEHIND|CC_OFF_USER) ) 
 		return 1;
@@ -652,7 +651,7 @@ int g3_get_bitmap_dims(int bitmap, vertex *pnt, float rad, int *x, int *y, int *
 		width = height = rad*2.0f;
 	}			
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if ( pnt->codes & (CC_BEHIND|CC_OFF_USER) ) {
 		return 1;
@@ -705,7 +704,7 @@ int g3_draw_rotated_bitmap(vertex *pnt,float angle, float rad,uint tmap_flags)
 	}
 	*/
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	angle+=Physics_viewer_bank;
 	if ( angle < 0.0f )
@@ -815,7 +814,7 @@ float g3_draw_poly_constant_sw_area(int nv, vertex **pointlist, uint tmap_flags,
 	ccodes cc;
 	float p_area = 0.0f;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	cc.vor = 0; cc.vand = 0xff;
 
@@ -835,7 +834,7 @@ float g3_draw_poly_constant_sw_area(int nv, vertex **pointlist, uint tmap_flags,
 	}
 
 	if (cc.vor)	{
-		Assert( G3_count == 1 );
+		SDL_assert( G3_count == 1 );
 
 		bufptr = clip_polygon(Vbuf0, Vbuf1, &nv, &cc, tmap_flags);
 
@@ -912,7 +911,7 @@ float g3_draw_rotated_bitmap_area(vertex *pnt,float angle, float rad,uint tmap_f
 	float sa, ca;
 	int i;	
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	angle+=Physics_viewer_bank;
 	if ( angle < 0.0f ){
@@ -1036,7 +1035,7 @@ void g3_draw_horizon_line()
 //		bot_color = ground_color;
 //	}
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 
 	//compute horizon_vector
@@ -1763,7 +1762,7 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	vertex v[4];
 	vertex *vertlist[4] = { &v[0], &v[1], &v[2], &v[3] };
 
-	int bw, bh;
+//	int bw, bh;
 
 	g3_start_frame(1);
 
@@ -1771,7 +1770,7 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	saved_zbuffer_mode = gr_zbuffer_get();
 	gr_zbuffer_set(GR_ZBUFF_NONE);	
 
-	bm_get_section_size(gr_screen.current_bitmap, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, &bw, &bh);
+//	bm_get_section_size(gr_screen.current_bitmap, gr_screen.current_bitmap_sx, gr_screen.current_bitmap_sy, &bw, &bh);
 
 	// stuff coords	
 	v[0].sx = (float)x;
@@ -1839,9 +1838,6 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	v[3].flags = PF_PROJECTED;
 	v[3].codes = 0;	
 	*/
-		
-	// no filtering
-	gr_filter_set(0);
 
 	// set debrief	
 	ret = g3_draw_poly_constant_sw(4, vertlist, TMAP_FLAG_TEXTURED | additional_tmap_flags, 0.1f);
@@ -1849,9 +1845,6 @@ int g3_draw_2d_poly_bitmap(int x, int y, int w, int h, uint additional_tmap_flag
 	g3_end_frame();
 	
 	gr_zbuffer_set(saved_zbuffer_mode);	
-
-	// put filtering back on
-	gr_filter_set(1);
 
 	return ret;
 }

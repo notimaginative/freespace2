@@ -212,7 +212,7 @@ void gamesnd_preload_common_sounds()
 
 	for ( i = 0; i < MAX_GAME_SOUNDS; i++ ) {
 		gs = &Snds[i];
-		if ( gs->filename[0] != 0 && stricmp(gs->filename, NOX("none.wav")) ) {
+		if ( gs->filename[0] != 0 && SDL_strcasecmp(gs->filename, NOX("none.wav")) ) {
 			if ( gs->preload ) {
 				gs->id = snd_load(gs);
 			}
@@ -233,7 +233,7 @@ void gamesnd_load_gameplay_sounds()
 
 	for ( i = 0; i < MAX_GAME_SOUNDS; i++ ) {
 		gs = &Snds[i];
-		if ( gs->filename[0] != 0 && stricmp(gs->filename, NOX("none.wav")) ) {
+		if ( gs->filename[0] != 0 && SDL_strcasecmp(gs->filename, NOX("none.wav")) ) {
 			gs->id = snd_load(gs);
 		}
 	}
@@ -270,7 +270,7 @@ void gamesnd_load_interface_sounds()
 
 	for ( i = 0; i < MAX_INTERFACE_SOUNDS; i++ ) {
 		gs = &Snds_iface[i];
-		if ( gs->filename[0] != 0 && stricmp(gs->filename, NOX("none.wav")) ) {
+		if ( gs->filename[0] != 0 && SDL_strcasecmp(gs->filename, NOX("none.wav")) ) {
 			gs->id = snd_load(gs);
 		}
 	}
@@ -308,7 +308,7 @@ void gamesnd_parse_line(game_snd *gs, const char *tag)
 	required_string(tag);
 	stuff_int(&gs->sig);
 	stuff_string(gs->filename, F_NAME, ",");
-	if ( !stricmp(gs->filename,NOX("empty")) ) {
+	if ( !SDL_strcasecmp(gs->filename,NOX("empty")) ) {
 		gs->filename[0] = 0;
 		advance_to_eoln(NULL);
 		return;
@@ -318,7 +318,7 @@ void gamesnd_parse_line(game_snd *gs, const char *tag)
 	stuff_float(&gs->default_volume);
 	stuff_int(&is_3d);
 	if ( is_3d ) {
-		gs->flags |= GAME_SND_USE_DS3D;
+		gs->flags |= GAME_SND_USE_3D;
 		stuff_int(&gs->min);
 		stuff_int(&gs->max);
 	}
@@ -331,7 +331,6 @@ void gamesnd_parse_line(game_snd *gs, const char *tag)
 //
 void gamesnd_parse_soundstbl()
 {
-	int		rval;
 	int		num_game_sounds = 0;
 	int		num_iface_sounds = 0;
 
@@ -340,49 +339,48 @@ void gamesnd_parse_soundstbl()
 
 	gamesnd_init_sounds();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse sounds.tbl!  Code = %i.\n", rval);
-	}
-	else {
+	try {
 		read_file_text("sounds.tbl");
 		reset_parse();		
-	}
 
-	// Parse the gameplay sounds section
-	required_string("#Game Sounds Start");
-	while (required_string_either("#Game Sounds End","$Name:")) {
-		Assert( num_game_sounds < MAX_GAME_SOUNDS);
-		gamesnd_parse_line( &Snds[num_game_sounds], "$Name:" );
-		num_game_sounds++;
-	}
-	required_string("#Game Sounds End");
+		// Parse the gameplay sounds section
+		required_string("#Game Sounds Start");
+		while (required_string_either("#Game Sounds End","$Name:")) {
+			SDL_assert( num_game_sounds < MAX_GAME_SOUNDS);
+			gamesnd_parse_line( &Snds[num_game_sounds], "$Name:" );
+			num_game_sounds++;
+		}
+		required_string("#Game Sounds End");
 
-	// Parse the interface sounds section
-	required_string("#Interface Sounds Start");
-	while (required_string_either("#Interface Sounds End","$Name:")) {
-		Assert( num_iface_sounds < MAX_INTERFACE_SOUNDS);
-		gamesnd_parse_line(&Snds_iface[num_iface_sounds], "$Name:");
-		num_iface_sounds++;
-	}
-	required_string("#Interface Sounds End");
+		// Parse the interface sounds section
+		required_string("#Interface Sounds Start");
+		while (required_string_either("#Interface Sounds End","$Name:")) {
+			SDL_assert( num_iface_sounds < MAX_INTERFACE_SOUNDS);
+			gamesnd_parse_line(&Snds_iface[num_iface_sounds], "$Name:");
+			num_iface_sounds++;
+		}
+		required_string("#Interface Sounds End");
 
 #ifndef MAKE_FS1
-	// parse flyby sound section	
-	required_string("#Flyby Sounds Start");
+		// parse flyby sound section
+		required_string("#Flyby Sounds Start");
 
-	// read 2 terran sounds
-	gamesnd_parse_line(&Snds_flyby[SPECIES_TERRAN][0], "$Terran:");
-	gamesnd_parse_line(&Snds_flyby[SPECIES_TERRAN][1], "$Terran:");
+		// read 2 terran sounds
+		gamesnd_parse_line(&Snds_flyby[SPECIES_TERRAN][0], "$Terran:");
+		gamesnd_parse_line(&Snds_flyby[SPECIES_TERRAN][1], "$Terran:");
 
-	// 2 vasudan sounds
-	gamesnd_parse_line(&Snds_flyby[SPECIES_VASUDAN][0], "$Vasudan:");
-	gamesnd_parse_line(&Snds_flyby[SPECIES_VASUDAN][1], "$Vasudan:");
+		// 2 vasudan sounds
+		gamesnd_parse_line(&Snds_flyby[SPECIES_VASUDAN][0], "$Vasudan:");
+		gamesnd_parse_line(&Snds_flyby[SPECIES_VASUDAN][1], "$Vasudan:");
 
-	gamesnd_parse_line(&Snds_flyby[SPECIES_SHIVAN][0], "$Shivan:");
-	gamesnd_parse_line(&Snds_flyby[SPECIES_SHIVAN][1], "$Shivan:");
-	
-	required_string("#Flyby Sounds End");
+		gamesnd_parse_line(&Snds_flyby[SPECIES_SHIVAN][0], "$Shivan:");
+		gamesnd_parse_line(&Snds_flyby[SPECIES_SHIVAN][1], "$Shivan:");
+
+		required_string("#Flyby Sounds End");
 #endif
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse sounds.tbl!  Code = %i.\n", (int)rval);
+	}
 
 	// close localization
 	lcl_ext_close();

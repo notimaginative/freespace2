@@ -558,7 +558,7 @@ void ai_maybe_add_form_goal( wing *wingp )
 	for ( j = 0; j < wingp->current_count; j++ ) {
 		ai_info *aip;
 
-		Assert( wingp->ship_index[j] != -1 );						// get Allender
+		SDL_assert( wingp->ship_index[j] != -1 );						// get Allender
 
 		aip = &Ai_info[Ships[wingp->ship_index[j]].ai_index];
 		// don't process Player_ship
@@ -715,7 +715,7 @@ void ai_remove_ship_goal( ai_info *aip, int index )
 	// only need to set the ai_mode for the particular goal to AI_GOAL_NONE
 	// reset ai mode to default behavior.  Might get changed next time through
 	// ai goal code look
-	Assert ( index >= 0 );			// must have a valid goal
+	SDL_assert ( index >= 0 );			// must have a valid goal
 
 	aip->goals[index].ai_mode = AI_GOAL_NONE;
 	aip->goals[index].signature = -1;
@@ -789,7 +789,7 @@ void ai_mission_wing_goal_complete( int wingnum, ai_goal *remove_goalp )
 	priority = remove_goalp->priority;
 	name = remove_goalp->ship_name;
 
-	Assert ( name );			// should not be NULL!!!!
+	SDL_assert ( name );			// should not be NULL!!!!
 
 	// remove the goal from all the ships currently in the wing
 	for (i = 0; i < wingp->current_count; i++ ) {
@@ -797,7 +797,7 @@ void ai_mission_wing_goal_complete( int wingnum, ai_goal *remove_goalp )
 		ai_info *aip;
 
 		num = wingp->ship_index[i];
-		Assert ( num >= 0 );
+		SDL_assert ( num >= 0 );
 		aip = &Ai_info[Ships[num].ai_index];
 		for ( j = 0; j < MAX_AI_GOALS; j++ ) {
 			aigp = &(aip->goals[j]);
@@ -806,7 +806,7 @@ void ai_mission_wing_goal_complete( int wingnum, ai_goal *remove_goalp )
 			if ( (aigp->ai_mode == AI_GOAL_NONE) || !aigp->ship_name )
 				continue;
 
-			if ( (aigp->ai_mode == mode) && (aigp->ai_submode == submode) && (aigp->priority == priority) && !stricmp(name, aigp->ship_name) ) {
+			if ( (aigp->ai_mode == mode) && (aigp->ai_submode == submode) && (aigp->priority == priority) && !SDL_strcasecmp(name, aigp->ship_name) ) {
 				ai_remove_ship_goal( aip, j );
 				ai_do_default_behavior( &Objects[Ships[aip->shipnum].objnum] );		// do the default behavior
 				break;			// we are all done
@@ -820,7 +820,7 @@ void ai_mission_wing_goal_complete( int wingnum, ai_goal *remove_goalp )
 		if ( (aigp->ai_mode == AI_GOAL_NONE) || !aigp->ship_name )
 			continue;
 
-		if ( (aigp->ai_mode == mode) && (aigp->ai_submode == submode) && (aigp->priority == priority) && !stricmp(name, aigp->ship_name) ) {
+		if ( (aigp->ai_mode == mode) && (aigp->ai_submode == submode) && (aigp->priority == priority) && !SDL_strcasecmp(name, aigp->ship_name) ) {
 			wingp->ai_goals[i].ai_mode = AI_GOAL_NONE;
 			wingp->ai_goals[i].signature = -1;
 			wingp->ai_goals[i].priority = -1;
@@ -855,17 +855,17 @@ int ai_get_subsystem_type( const char *subsystem )
 		return SUBSYSTEM_TURRET;
 	} else if ( strstr(subsystem, "navigation") ) {
 		return SUBSYSTEM_NAVIGATION;
-	} else if ( !strnicmp(subsystem, NOX("communication"), 13) ) {
+	} else if ( !SDL_strncasecmp(subsystem, NOX("communication"), 13) ) {
 		return SUBSYSTEM_COMMUNICATION;
-	} else if ( !strnicmp(subsystem, NOX("weapons"), 7) )  {
+	} else if ( !SDL_strncasecmp(subsystem, NOX("weapons"), 7) )  {
 		return SUBSYSTEM_WEAPONS;
-	} else if ( !strnicmp(subsystem, NOX("sensors"), 7) )  {
+	} else if ( !SDL_strncasecmp(subsystem, NOX("sensors"), 7) )  {
 		return SUBSYSTEM_SENSORS;
-	} else if ( !strnicmp(subsystem, NOX("solar"), 5) )  {
+	} else if ( !SDL_strncasecmp(subsystem, NOX("solar"), 5) )  {
 		return SUBSYSTEM_SOLAR;
-	} else if ( !strnicmp(subsystem, NOX("gas"), 3) )  {
+	} else if ( !SDL_strncasecmp(subsystem, NOX("gas"), 3) )  {
 		return SUBSYSTEM_GAS_COLLECT;
-	} else if ( !strnicmp(subsystem, NOX("activator"), 9) )  {
+	} else if ( !SDL_strncasecmp(subsystem, NOX("activator"), 9) )  {
 		return SUBSYSTEM_ACTIVATION;
 	} else {									// If unrecognized type, set to engine so artist can continue working...
 		if (!Fred_running) {
@@ -922,7 +922,7 @@ void ai_goal_purge_invalid_goals( ai_goal *aigp, ai_goal *goal_list )
 		// don't match, we can continue;  if the wing is valid, don't process if the wing numbers
 		// are different.
 		if ( purge_wing == -1 ) {
-			if ( stricmp(purge_goal->ship_name, name ) )
+			if ( SDL_strcasecmp(purge_goal->ship_name, name ) )
 				continue;
 		} else if ( purge_wing != wingnum )
 			continue;
@@ -976,7 +976,7 @@ void ai_goal_fixup_dockpoints(ai_info *aip, ai_goal *aigp)
 {
 	int shipnum, dockee_index, docker_index;
 
-	Assert ( aip->shipnum != -1 );
+	SDL_assert ( aip->shipnum != -1 );
 	shipnum = ship_name_lookup( aigp->ship_name );
 	docker_index = -1;
 	dockee_index = -1;
@@ -1008,7 +1008,7 @@ void ai_goal_fixup_dockpoints(ai_info *aip, ai_goal *aigp)
 
 void ai_add_goal_sub_player(int type, int mode, int submode, const char *shipname, ai_goal *aigp )
 {
-	Assert ( (type == AIG_TYPE_PLAYER_WING) || (type == AIG_TYPE_PLAYER_SHIP) );
+	SDL_assert ( (type == AIG_TYPE_PLAYER_WING) || (type == AIG_TYPE_PLAYER_SHIP) );
 
 	aigp->time = Missiontime;
 	aigp->type = type;											// from player for sure -- could be to ship or to wing
@@ -1059,7 +1059,7 @@ int ai_goal_find_empty_slot( ai_goal *goals )
 	if ( empty_index == -1 )
 		empty_index = oldest_index;
 
- 	Assert ( empty_index < MAX_AI_GOALS );
+ 	SDL_assert ( empty_index < MAX_AI_GOALS );
 
 	return empty_index;
 }
@@ -1123,7 +1123,7 @@ void ai_add_goal_sub_sexp( int sexp, int type, ai_goal *aigp )
 	int node, dummy, op;
 	char *text;
 
-	Assert ( Sexp_nodes[sexp].first != -1 );
+	SDL_assert ( Sexp_nodes[sexp].first != -1 );
 	node = Sexp_nodes[sexp].first;
 	text = CTEXT(node);
 
@@ -1400,7 +1400,7 @@ void ai_add_goal_wing_internal( wing *wingp, int goal_type, const char *name, in
 	int i;
 
 	// be sure we are not trying to issue dock or undock goals to wings
-	Assert ( (goal_type != AI_GOAL_DOCK) || (goal_type != AI_GOAL_UNDOCK) );
+	SDL_assert ( (goal_type != AI_GOAL_DOCK) || (goal_type != AI_GOAL_UNDOCK) );
 
 	for (i = 0; i < wingp->current_count; i++) {
 		int num = wingp->ship_index[i];
@@ -1419,7 +1419,7 @@ void ai_copy_mission_wing_goal( ai_goal *aigp, ai_info *aip )
 		if ( aip->goals[j].ai_mode == AI_GOAL_NONE )
 			break;
 	}
-	Assert ( j < MAX_AI_GOALS );
+	SDL_assert ( j < MAX_AI_GOALS );
 	aip->goals[j] = *aigp;
 }
 
@@ -1435,7 +1435,7 @@ void ai_copy_mission_wing_goal( ai_goal *aigp, ai_info *aip )
 int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 {
 	int status;
-	char *ai_shipname;
+	//char *ai_shipname;
 	int return_val;
 	object *objp;
 	ai_info *aip;
@@ -1460,7 +1460,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 			int i;
 
 			for (i = 0; i < Num_waypoint_lists; i++) {
-				if (!stricmp(aigp->ship_name, Waypoint_lists[i].name)) {
+				if (!SDL_strcasecmp(aigp->ship_name, Waypoint_lists[i].name)) {
 					aigp->wp_index = i;
 					break;
 				}
@@ -1474,8 +1474,8 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 	}
 
 	objp = &Objects[objnum];
-	Assert( objp->instance != -1 );
-	ai_shipname = Ships[objp->instance].ship_name;
+	SDL_assert( objp->instance != -1 );
+	//ai_shipname = Ships[objp->instance].ship_name;
 	aip = &Ai_info[Ships[objp->instance].ai_index];
 
 	return_val = AI_GOAL_SATISFIED;
@@ -1512,7 +1512,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		// if the ship is not in the mission or the subsystem name is still being stored, mark the status
 		// as 0 so we can continue.  (The subsystem name must be turned into an index into the ship's subsystems
 		// for this goal to be valid).
-		Assert ( aigp->ai_submode >= 0 );
+		SDL_assert ( aigp->ai_submode >= 0 );
 		ssp = ship_get_indexed_subsys( &Ships[shipnum], aigp->ai_submode );
 		status = mission_log_get_time( LOG_SHIP_SUBSYS_DESTROYED, aigp->ship_name, ssp->system_info->name, NULL );
 
@@ -1633,7 +1633,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		// debug code to save off the name of the dockpoints (if they exist).
 		docker_name[0] = dockee_name[0] = '\0';
 		if ( aigp->flags & AIGF_DOCKER_NAME_VALID ) {
-			strcpy(docker_name, aigp->docker.name);
+			SDL_strlcpy(docker_name, aigp->docker.name, SDL_arraysize(docker_name));
 			modelnum = Ships[objp->instance].modelnum;
 			index = model_find_dock_name_index(modelnum, aigp->docker.name);
 			aigp->docker.index = index;
@@ -1642,7 +1642,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		if ( aigp->flags & AIGF_DOCKEE_NAME_VALID ) {
 			shipnum = ship_name_lookup(aigp->ship_name);
 			if ( shipnum != -1 ) {
-				strcpy(dockee_name, aigp->dockee.name);
+				SDL_strlcpy(dockee_name, aigp->dockee.name, SDL_arraysize(dockee_name));
 				modelnum = Ships[shipnum].modelnum;
 				index = model_find_dock_name_index(modelnum, aigp->dockee.name);
 				aigp->dockee.index = index;
@@ -1658,7 +1658,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		// we must also determine if this ship which is supposed to dock with something is currently
 		// docked with something else.  If so, then return the ON_HOLD until it is not docked anymore
 		shipnum = ship_name_lookup(aigp->ship_name);
-		Assert( shipnum != -1 );
+		SDL_assert( shipnum != -1 );
 
 		// if ship is disabled, dont' know if it can dock or not
 		if ( Ships[objp->instance].flags & SF_DISABLED )
@@ -1716,7 +1716,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 
 		// for ignoring a ship, call the ai_ignore object function, then declare the goal satisfied
 		shipnum = ship_name_lookup( aigp->ship_name );
-		Assert( shipnum != -1 );		// should be true because of above status
+		SDL_assert( shipnum != -1 );		// should be true because of above status
 		ignored = &Objects[Ships[shipnum].objnum];
 		ai_ignore_object(objp, ignored, 100);
 		return AI_GOAL_SATISFIED;
@@ -1762,7 +1762,7 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 		if ( status == SHIP_STATUS_GONE )
 			return AI_GOAL_NOT_ACHIEVABLE;
 
-		Assert( aigp->ship_name );
+		SDL_assert( aigp->ship_name );
 		shipnum = ship_name_lookup( aigp->ship_name );
 
 		// if desitnation currently being repaired, then goal is stil active
@@ -1951,7 +1951,7 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 	int		wingnum, shipnum;
 	int		original_signature;
 
-/*	if (!stricmp(Ships[objp->instance].ship_name, "gtt comet")) {
+/*	if (!SDL_strcasecmp(Ships[objp->instance].ship_name, "gtt comet")) {
 		for (int i=0; i<MAX_AI_GOALS; i++) {
 			if (aip->goals[i].signature != -1) {
 				nprintf(("AI", "%6.1f: mode=%s, type=%s, ship=%s\n", f2fl(Missiontime), Mode_text[aip->goals[i].ai_mode], Goal_text[aip->goals[i].type], aip->goals[i].ship_name));
@@ -2019,7 +2019,7 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 	case AI_GOAL_CHASE:
 		if ( current_goal->ship_name ) {
 			shipnum = ship_name_lookup( current_goal->ship_name );
-			Assert (shipnum != -1 );			// shouldn't get here if this is false!!!!
+			SDL_assert (shipnum != -1 );			// shouldn't get here if this is false!!!!
 			other_obj = &Objects[Ships[shipnum].objnum];
 		} else
 			other_obj = NULL;						// we get this case when we tell ship to engage enemy!
@@ -2030,14 +2030,14 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 		break;
 
 	case AI_GOAL_CHASE_WEAPON:
-		Assert( Weapons[current_goal->wp_index].objnum != -1 );
+		SDL_assert( Weapons[current_goal->wp_index].objnum != -1 );
 		other_obj = &Objects[Weapons[current_goal->wp_index].objnum];
 		ai_attack_object( objp, other_obj, current_goal->priority, NULL );
 		break;
 
 	case AI_GOAL_GUARD:
 		shipnum = ship_name_lookup( current_goal->ship_name );
-		Assert (shipnum != -1 );			// shouldn't get here if this is false!!!!
+		SDL_assert (shipnum != -1 );			// shouldn't get here if this is false!!!!
 		other_obj = &Objects[Ships[shipnum].objnum];
 		// shipnum and other_obj are the shipnumber and object pointer of the object that you should
 		// guard.
@@ -2052,7 +2052,7 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 
 	case AI_GOAL_GUARD_WING:
 		wingnum = wing_name_lookup( current_goal->ship_name );
-		Assert (wingnum != -1 );			// shouldn't get here if this is false!!!!
+		SDL_assert (wingnum != -1 );			// shouldn't get here if this is false!!!!
 		ai_set_guard_wing(objp, wingnum);
 		aip->submode_start_time = Missiontime;
 		break;
@@ -2069,13 +2069,13 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 
 	case AI_GOAL_DOCK: {
 		shipnum = ship_name_lookup( current_goal->ship_name );
-		Assert (shipnum != -1 );			// shouldn't get here if this is false!!!!
+		SDL_assert (shipnum != -1 );			// shouldn't get here if this is false!!!!
 		other_obj = &Objects[Ships[shipnum].objnum];
 
 		// be sure that we have indices for docking points here!  If we ever had names, they should
 		// get fixed up in goal_achievable so that the points can be checked there for validity
-		Assert ( !(current_goal->flags & AIGF_DOCKER_NAME_VALID) );
-		Assert ( !(current_goal->flags & AIGF_DOCKEE_NAME_VALID) );
+		SDL_assert ( !(current_goal->flags & AIGF_DOCKER_NAME_VALID) );
+		SDL_assert ( !(current_goal->flags & AIGF_DOCKEE_NAME_VALID) );
 		ai_dock_with_object( objp, other_obj, current_goal->priority, AIDO_DOCK, current_goal->docker.index, current_goal->dockee.index );
 		aip->submode_start_time = Missiontime;
 		break;
@@ -2133,9 +2133,6 @@ void ai_process_mission_orders( int objnum, ai_info *aip )
 		break;
 
 	case AI_GOAL_WARP: {
-		int index;
-
-		index = current_goal->wp_index;
 		ai_set_mode_warp_out( objp, aip );
 		break;
 	}
@@ -2258,7 +2255,7 @@ void ai_update_goal_references(ai_goal *goals, int type, const char *old_name, c
 		}
 
 		if (flag)  // is this a valid goal to parse for this conversion?
-			if (!stricmp(goals[i].ship_name, old_name)) {
+			if (!SDL_strcasecmp(goals[i].ship_name, old_name)) {
 				if (*new_name == '<')  // target was just deleted..
 					goals[i].ai_mode = AI_GOAL_NONE;
 				else
@@ -2323,7 +2320,7 @@ int query_referenced_in_ai_goals(ai_goal *goals, int type, const char *name)
 
 		if (flag)  // is this a valid goal to parse for this conversion?
 		{
-			if (!stricmp(goals[i].ship_name, name))
+			if (!SDL_strcasecmp(goals[i].ship_name, name))
 				return 1;
 		}
 	}
@@ -2336,13 +2333,13 @@ char *ai_add_dock_name(const char *str)
 	char *ptr;
 	int i;
 
-	Assert(strlen(str) < NAME_LENGTH - 1);
+	SDL_assert(strlen(str) < NAME_LENGTH - 1);
 	for (i=0; i<Num_ai_dock_names; i++)
-		if (!stricmp(Ai_dock_names[i], str))
+		if (!SDL_strcasecmp(Ai_dock_names[i], str))
 			return Ai_dock_names[i];
 
-	Assert(Num_ai_dock_names < MAX_AI_DOCK_NAMES);
+	SDL_assert(Num_ai_dock_names < MAX_AI_DOCK_NAMES);
 	ptr = Ai_dock_names[Num_ai_dock_names++];
-	strcpy(ptr, str);
+	SDL_strlcpy(ptr, str, NAME_LENGTH);
 	return ptr;
 }

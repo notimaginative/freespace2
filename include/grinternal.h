@@ -141,12 +141,8 @@
 
 #include "font.h"
 #include "2d.h"
-#include "grzbuffer.h"
 
 extern int Gr_cursor;
-
-#define GR_SCREEN_PTR(type,x,y) ((type *)(ptr_u(gr_screen.offscreen_buffer) + ptr_u(((x)+gr_screen.offset_x)*sizeof(type)) + ptr_u(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
-#define GR_SCREEN_PTR_SIZE(bpp,x,y) ((ptr_u)(ptr_u(gr_screen.offscreen_buffer) + ptr_u(((x)+gr_screen.offset_x)*(bpp)) + ptr_u(((y)+gr_screen.offset_y)*gr_screen.rowsize)))
 
 extern ubyte Gr_original_palette[768];		// The palette 
 extern ubyte Gr_current_palette[768];
@@ -156,23 +152,7 @@ typedef struct alphacolor {
 	int	r,g,b,alpha;
 	int	type;						// See AC_TYPE_??? define
 	color	*clr;
-	/*
-	union {
-		ubyte		lookup[16][256];		// For 8-bpp rendering modes
-	} table;
-	*/
 } alphacolor;
-
-// for backwards fred aabitmap compatibility
-typedef struct alphacolor_old {
-	int	used;
-	int	r,g,b,alpha;
-	int	type;						// See AC_TYPE_??? define
-	color	*clr;	
-	union {
-		ubyte		lookup[16][256];		// For 8-bpp rendering modes
-	} table;	
-} alphacolor_old;
 
 extern alphacolor * Current_alphacolor;
 void gr_init_alphacolors();
@@ -199,16 +179,16 @@ extern color_gun Gr_ta_red, Gr_ta_green, Gr_ta_blue, Gr_ta_alpha;
 // of the above values
 extern color_gun *Gr_current_red, *Gr_current_green, *Gr_current_blue, *Gr_current_alpha;
 
+// zbuffer stuff
+extern int Gr_zbuffering;
+extern int Gr_zbuffering_mode;
+extern int Gr_global_zbuffering;
 
 // Translate the 768 byte 'src' palette into 
 // the current screen format's palette.
 // The size of the dst array is assumed to be gr_screen.bpp
 // bytes per element.
 void gr_xlat_palette( void *dst, bitmap *bmp );
-
-// CPU identification variables
-extern int Gr_cpu;			// What type of CPU.  5=Pentium, 6=Ppro/PII
-extern int Gr_mmx;			// MMX capabilities?  0=No, 1=Yes
 
 extern float Gr_gamma;
 extern int Gr_gamma_int;				// int(Gr_gamma*100)
@@ -217,8 +197,8 @@ extern int Gr_gamma_lookup[256];
 #define TCACHE_TYPE_AABITMAP				0		// HUD bitmap.  All Alpha.
 #define TCACHE_TYPE_NORMAL					1		// Normal bitmap. Alpha = 0.
 #define TCACHE_TYPE_XPARENT				2		// Bitmap with 0,255,0 = transparent.  Alpha=0 if transparent, 1 if not.
-#define TCACHE_TYPE_NONDARKENING			3		// Bitmap with 255,255,255 = non-darkening.  Alpha=1 if non-darkening, 0 if not.
-#define TCACHE_TYPE_BITMAP_SECTION		4		// section of a bitmap
+#define TCACHE_TYPE_BITMAP_SECTION		3		// section of a bitmap
+#define TCACHE_TYPE_BITMAP_INTERFACE	4		// bitmap used for UI
 
 #endif
 

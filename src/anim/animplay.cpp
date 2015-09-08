@@ -218,8 +218,6 @@ anim_instance anim_render_instance[MAX_ANIM_INSTANCES];
 int Anim_paused;	// global variable to pause the playing back of anims
 int Anim_inited = FALSE;
 
-fix t1,t2;
-
 int Anim_ignore_frametime=0;	// flag used to ignore frametime... useful when need to avoid saturated frametimes
 
 // -------------------------------------------------------------------------------------------------
@@ -347,11 +345,11 @@ void anim_play_init(anim_play_struct *aps, anim *a_info, int x, int y)
 //
 anim_instance *anim_play(anim_play_struct *aps)
 {
-	Assert( aps->anim_info != NULL );
-	Assert( aps->start_at >= 0 );
-	Assert( aps->stop_at < aps->anim_info->total_frames );
-	// Assert( aps->stop_at >= aps->start_at );
-	Assert( !(aps->looped && aps->ping_pong) );  // shouldn't have these both set at once
+	SDL_assert( aps->anim_info != NULL );
+	SDL_assert( aps->start_at >= 0 );
+	SDL_assert( aps->stop_at < aps->anim_info->total_frames );
+	// SDL_assert( aps->stop_at >= aps->start_at );
+	SDL_assert( !(aps->looped && aps->ping_pong) );  // shouldn't have these both set at once
 
 	MONITOR_INC(NumANIPlayed, 1);
 	
@@ -361,7 +359,7 @@ anim_instance *anim_play(anim_play_struct *aps)
 
 	// Find next free anim instance slot on queue
 	instance = GET_FIRST(&anim_free_list);
-	Assert( instance != &anim_free_list );  // shouldn't have the dummy element
+	SDL_assert( instance != &anim_free_list );  // shouldn't have the dummy element
 
 	// remove instance from the free list
 	list_remove( &anim_free_list, instance );
@@ -378,7 +376,7 @@ anim_instance *anim_play(anim_play_struct *aps)
 		instance->file_offset = instance->parent->file_offset;
 	}
 	instance->frame = (ubyte *) malloc(instance->parent->width * instance->parent->height * 2);
-	Assert( instance->frame != NULL );
+	SDL_assert( instance->frame != NULL );
 	instance->time_elapsed = 0.0f;
 	instance->stop_at = aps->stop_at;
 	instance->x = aps->x;
@@ -465,12 +463,12 @@ anim_instance *anim_play(anim_play_struct *aps)
 int anim_show_next_frame(anim_instance *instance, float frametime)
 {
 	int		bitmap_id, bitmap_flags=0, new_frame_num, frame_diff=0, i, n_frames=0,frame_save;
-	float		percent_through, decompress_time, render_time, time;
+	float		percent_through, time;
 	vertex	image_vertex;
 	int aabitmap = 0;
 	int bpp = 16;
 
-	Assert( instance != NULL );
+	SDL_assert( instance != NULL );
 
 	instance->time_elapsed += frametime;
 
@@ -584,9 +582,9 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 			frame_diff = 1;
 		}
 	}		
-	Assert(frame_diff >= 0);
+	SDL_assert(frame_diff >= 0);
 	//	nprintf(("Alan","FRAME DIFF: %d\n",frame_diff));
-	Assert( instance->frame_num >= 0 && instance->frame_num < instance->parent->total_frames );
+	SDL_assert( instance->frame_num >= 0 && instance->frame_num < instance->parent->total_frames );
 
 	// if the anim is paused, ignore all the above changes and still display this frame
 	if(instance->paused || Anim_paused){
@@ -609,7 +607,6 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 	if ( frame_diff > 0 ) {
 		instance->last_frame_num = instance->frame_num;		
 
-		t1 = timer_get_fixed_seconds();
 		for ( i = 0; i < frame_diff; i++ ) {
 			anim_check_for_palette_change(instance);			
 
@@ -625,10 +622,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 			ubyte *temp = NULL;
 			int temp_file_offset = 0;			
 
-			// if we're using bitmap polys
-			if(Gr_bitmap_poly){
-				BM_SELECT_TEX_FORMAT();
-			}
+			BM_SELECT_TEX_FORMAT();
 
 			if ( anim_instance_is_streamed(instance) ) {
 				if ( instance->xlate_pal ){
@@ -655,10 +649,6 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 				}
 			}			
 		}
-		t2 = timer_get_fixed_seconds();
-	}
-	else {
-		t2=t1=0;
 	}
 
 	// this only happens when the anim is being looped, we need to reset the last_frame_num
@@ -670,9 +660,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 		instance->loop_count++;
 	}
 		
-	decompress_time = f2fl(t2-t1);
 
-	t1 = timer_get_fixed_seconds();
 	if ( frame_diff == 0 && instance->last_bitmap != -1 ) {
 		bitmap_id = instance->last_bitmap;
 	}
@@ -706,18 +694,13 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 		}
 		else {
 			g3_rotate_vertex(&image_vertex,instance->world_pos);
-			Assert(instance->radius != 0.0f);
+			SDL_assert(instance->radius != 0.0f);
 			g3_draw_bitmap(&image_vertex, 0, instance->radius*1.5f, TMAP_FLAG_TEXTURED );
 		}
 
 		//bm_release(bitmap_id);
 		instance->last_bitmap = bitmap_id;
 	}
-
-	t2 = timer_get_fixed_seconds();
-	render_time = f2fl(t2-t1);
-
-//	nprintf(("Alan","DECOMPRESS: %.3fms  RENDER: %.3fms\n", decompress_time*1000, render_time*1000));
 
 	return 0;
 }
@@ -729,7 +712,7 @@ int anim_show_next_frame(anim_instance *instance, float frametime)
 //
 int anim_stop_playing(anim_instance* instance)
 {
-	Assert(instance != NULL);
+	SDL_assert(instance != NULL);
 
 	if ( anim_playing(instance) ) {
 		anim_release_render_instance(instance);
@@ -747,8 +730,8 @@ int anim_stop_playing(anim_instance* instance)
 //
 void anim_release_render_instance(anim_instance* instance)
 {
-	Assert( instance != NULL );
-	Assert(instance->frame);
+	SDL_assert( instance != NULL );
+	SDL_assert(instance->frame);
 	free(instance->frame);
 	instance->frame = NULL;
 	instance->parent->instance_count--;
@@ -858,7 +841,7 @@ void anim_read_header(anim *ptr, CFILE *fp)
 		floor_pow++;
 	}
 
-	int floor_size = (int) pow(2, floor_pow);
+	int floor_size = (int) pow(2.0, floor_pow);
 	int diff = ptr->height - floor_size;
 	float waste = 100.0f * float((floor_size - diff))/(2.0f *(float)floor_size);
 
@@ -891,34 +874,29 @@ void anim_read_header(anim *ptr, CFILE *fp)
 // of the animation can reference.  Must be free'ed later with anim_free()
 //
 // input:	name				=>		filename of animation
-//				file_mapped		=>		boolean, whether to use memory-mapped file or not.
-//											Memory-mapped files will page in the animation from disk
-//											as it is needed, but performance is not as good
 //
 //	returns:	pointer to anim that is loaded	=> sucess
 //				NULL										=>	failure
 //
-anim *anim_load(const char *real_filename, int file_mapped)
+anim *anim_load(const char *real_filename)
 {
 	anim			*ptr;
 	CFILE			*fp;
 	int			count,idx;
-	char name[_MAX_PATH];
+	char name[MAX_PATH_LEN];
 
-//	file_mapped = 0;
+	SDL_assert ( real_filename != NULL );
 
-	Assert ( real_filename != NULL );
-
-	strcpy( name, real_filename );
-	char *p = strchr( name, '.' );
+	SDL_strlcpy(name, real_filename, SDL_arraysize(name));
+	char *p = SDL_strchr( name, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	strcat( name, ".ani" );
+	SDL_strlcat(name, ".ani", SDL_arraysize(name));
 
 	ptr = first_anim;
 	while (ptr) {
-		if (!stricmp(name, ptr->name))
+		if (!SDL_strcasecmp(name, ptr->name))
 			break;
 
 		ptr = ptr->next;
@@ -930,13 +908,12 @@ anim *anim_load(const char *real_filename, int file_mapped)
 			return NULL;
 
 		ptr = (anim *) malloc(sizeof(anim));
-		Assert(ptr);
+		SDL_assert(ptr);
 
 		ptr->flags = 0;
 		ptr->next = first_anim;
 		first_anim = ptr;
-		Assert(strlen(name) < _MAX_PATH - 1);
-		strcpy(ptr->name, name);
+		SDL_strlcpy(ptr->name, name, SDL_arraysize(ptr->name));
 		ptr->instance_count = 0;
 		ptr->width = 0;
 		ptr->height = 0;
@@ -948,7 +925,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 		if(ptr->num_keys > 0){
 			ptr->keys = (key_frame*)malloc(sizeof(key_frame) * ptr->num_keys);
-			Assert(ptr->keys != NULL);
+			SDL_assert(ptr->keys != NULL);
 		} 			
 
 		// store how long the anim should take on playback (in seconds)
@@ -979,18 +956,9 @@ anim *anim_load(const char *real_filename, int file_mapped)
 
 		ptr->cfile_ptr = NULL;
 
-		if ( file_mapped ) {
-			// Try mapping the file to memory 
-			ptr->flags |= ANF_MEM_MAPPED;
-			ptr->cfile_ptr = cfopen(name, "rb", CFILE_MEMORY_MAPPED);
-		}
-
-		// couldn't memory-map file... must be in a packfile, so stream manually
-		if ( file_mapped && !ptr->cfile_ptr ) {
-			ptr->flags &= ~ANF_MEM_MAPPED;
-			ptr->flags |= ANF_STREAMED;
-			ptr->cfile_ptr = cfopen(name, "rb");
-		}
+		// NOTE: mapped files no longer supported!!
+		ptr->flags |= ANF_STREAMED;
+		ptr->cfile_ptr = cfopen(name, "rb");
 
 		ptr->cache = NULL;
 
@@ -1007,11 +975,11 @@ anim *anim_load(const char *real_filename, int file_mapped)
 				ptr->data = NULL;
 				ptr->cache_file_offset = ptr->file_offset;
 				ptr->cache = (ubyte*)malloc(ANI_STREAM_CACHE_SIZE+2);
-				Assert(ptr->cache);
+				SDL_assert(ptr->cache);
 				cfseek(ptr->cfile_ptr, offset, CF_SEEK_SET);
 				cfread(ptr->cache, ANI_STREAM_CACHE_SIZE, 1, ptr->cfile_ptr);
 			} else {
-				ptr->data = (ubyte*)cf_returndata(ptr->cfile_ptr) + offset;
+				Int3();
 			}
 		} else {
 			// Not a memory mapped file (or streamed)
@@ -1042,7 +1010,7 @@ anim *anim_load(const char *real_filename, int file_mapped)
 //
 int anim_free(anim *ptr)
 {
-	Assert ( ptr != NULL );
+	SDL_assert ( ptr != NULL );
 	anim *list, **prev_anim;
 
 	list = first_anim;
@@ -1076,7 +1044,7 @@ int anim_free(anim *ptr)
 		}
 	}
 	else {
-		Assert(ptr->data);
+		SDL_assert(ptr->data);
 		free(ptr->data);
 	}
 
@@ -1093,7 +1061,7 @@ int anim_free(anim *ptr)
 //
 int anim_playing(anim_instance *ai)
 {
-	Assert(ai != NULL);
+	SDL_assert(ai != NULL);
 	if ( ai->frame == NULL )
 		return 0;
 	else 
@@ -1140,7 +1108,7 @@ int anim_write_frames_out(const char *filename)
 	int				i,j;
 	ubyte				**row_data;
 
-	strcpy(root_name, filename);
+	SDL_strlcpy(root_name, filename, SDL_arraysize(root_name));
 	root_name[strlen(filename)-4] = 0;
 
 	source_anim = anim_load(filename);
@@ -1153,9 +1121,9 @@ int anim_write_frames_out(const char *filename)
 
 	for ( i = 0; i < source_anim->total_frames; i++ ) {
 		anim_get_next_raw_buffer(ai, 0, 0, 16);
-		strcpy(pcxname, root_name);
-		sprintf(buf,"%04d",i);
-		strcat(pcxname, buf);
+		SDL_strlcpy(pcxname, root_name, SDL_arraysize(pcxname));
+		SDL_snprintf(buf, SDL_arraysize(buf), "%04d", i);
+		SDL_strlcat(pcxname, buf, SDL_arraysize(pcxname));
 
 		for ( j = 0; j < source_anim->height; j++ ) {
 			row_data[j] = &ai->frame[j*source_anim->width];
@@ -1190,12 +1158,12 @@ void anim_display_info(const char *real_filename)
 	int				i, uncompressed, compressed, *key_frame_nums=NULL, tmp;
 	char filename[MAX_FILENAME_LEN];
 
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		*p = 0;
 	}
-	strcat( filename, ".ani" );
+	SDL_strlcat( filename, ".ani", SDL_arraysize(filename) );
 
 	fp = cfopen(filename, "rb");
 	if ( !fp ) {
@@ -1206,7 +1174,7 @@ void anim_display_info(const char *real_filename)
 	anim_read_header(&A, fp);
 	// read the keyframe frame nums and offsets
 	key_frame_nums = (int*)malloc(sizeof(int)*A.num_keys);
-	Assert(key_frame_nums != NULL);
+	SDL_assert(key_frame_nums != NULL);
 	for ( i = 0; i < A.num_keys; i++ ) {
 		key_frame_nums[i] = 0;
 		cfread(&key_frame_nums[i], 2, 1, fp);
@@ -1304,7 +1272,7 @@ void anim_ignore_next_frametime()
 
 int anim_instance_is_streamed(anim_instance *ai)
 {
-	Assert(ai);
+	SDL_assert(ai);
 	return ( ai->parent->flags & ANF_STREAMED );
 }
 
@@ -1313,9 +1281,9 @@ unsigned char anim_instance_get_byte(anim_instance *ai, int offset)
 	int absolute_offset;
 	anim *parent;
 	
-	Assert(ai);
-	Assert(ai->parent->cfile_ptr);
-	Assert(ai->parent->flags & ANF_STREAMED);
+	SDL_assert(ai);
+	SDL_assert(ai->parent->cfile_ptr);
+	SDL_assert(ai->parent->flags & ANF_STREAMED);
 
 	parent = ai->parent;
 	absolute_offset = ai->file_offset + offset;

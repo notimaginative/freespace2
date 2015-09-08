@@ -506,7 +506,7 @@ void radar_plot_object( object *objp )
 		float hypotenuse;
 		float max_radius;
 
-		hypotenuse = (float)_hypot(new_x_dist, new_y_dist);
+		hypotenuse = hypotf(new_x_dist, new_y_dist);
 		max_radius = i2fl(Radar_radius[gr_screen.res][0] - 5);
 
 		if (hypotenuse >= (max_radius) ) {
@@ -716,7 +716,7 @@ void draw_radar_blips(int rcol, int is_dim, int distort)
 
 	for ( b = GET_FIRST(blip_head); b !=END_OF_LIST(blip_head); b = GET_NEXT(b) )	{
 
-		Assert((rcol >= 0) && (rcol < MAX_RADAR_COLORS));
+		SDL_assert((rcol >= 0) && (rcol < MAX_RADAR_COLORS));
 
 		if ( is_dim ) {
 			gr_set_color_fast( &Radar_colors[RADAR_BLIP_DIM][rcol] );
@@ -786,7 +786,7 @@ void radar_draw_range()
 		break;
 
 	case RR_INFINITY:
-		sprintf(buf, NOX("%c"), Lcl_special_chars);
+		SDL_snprintf(buf, SDL_arraysize(buf), NOX("%c"), Lcl_special_chars);
 		gr_printf(Radar_dist_coords[gr_screen.res][RR_INFINITY][0], Radar_dist_coords[gr_screen.res][RR_INFINITY][1], buf);
 		break;
 

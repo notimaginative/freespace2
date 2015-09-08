@@ -59,12 +59,34 @@
 #include <stdio.h>
 #ifndef PLAT_UNIX
 #include <io.h>
+#else
+#include <sys/stat.h>
 #endif
 #include <string.h>
+
+#define SDL_MAIN_HANDLED
 
 #include "pstypes.h"
 #include "encrypt.h"
 #include "scramble.h"
+
+#undef malloc
+#undef free
+#undef strdup
+
+#ifndef PLAT_UNIX
+#define strncasecmp strnicmp
+#define strcasecmp stricmp
+#else
+int _filelength (int fd)
+{
+	struct stat buf;
+	if (fstat (fd, &buf) == -1)
+		return -1;
+
+	return buf.st_size;
+}
+#endif
 
 #define MAX_LINE_LEN	512
 
@@ -82,11 +104,7 @@ void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
 	char	seps[]   = " ,\t\n";
 	char	*token;
 
-#ifndef PLAT_UNIX
 	*text_len = _filelength(fileno(fp));
-#else
-	*text_len = filelength(fileno(fp));
-#endif
 	*text = (char*)malloc(*text_len+1);
 
 	dest = *text;
@@ -100,12 +118,12 @@ void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
 			token = strtok( token_line, seps );
 
 			if ( token ) {
-				if ( !strnicmp("#End", token, 4) ) {
+				if ( !strncasecmp("#End", token, 4) ) {
 					keep_all_lines = 1;
-				} else if ( !strnicmp("#Ship", token, 5) ) {
+				} else if ( !strncasecmp("#Ship", token, 5) ) {
 					discard_line = 0;
 					post_discard = 1;
-				} else if ( !strnicmp("$Name:", token, 6) ) {
+				} else if ( !strncasecmp("$Name:", token, 6) ) {
 					token = strtok( NULL, seps );
 					if ( token ) {
 						if ( token[0] == '@' ) {
@@ -142,11 +160,7 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 	char	seps[]   = " ,\t\n";
 	char	*token = NULL;
 
-#ifndef PLAT_UNIX
 	*text_len = _filelength(fileno(fp));
-#else
-	*text_len = filelength(fileno(fp));
-#endif
 	*text = (char*)malloc(*text_len+1);
 
 	dest = *text;
@@ -160,12 +174,12 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 			token = strtok( token_line, seps );
 
 			if ( token ) {
-				if ( !strnicmp("#Countermeasures", token, 16) ) {
+				if ( !strncasecmp("#Countermeasures", token, 16) ) {
 					keep_all_lines = 1;
-				} else if ( !strnicmp("#End", token, 4) || !strnicmp("#Beam", token, 5) || !strnicmp("#Primary", token, 8) || !strnicmp("#Secondary", token, 10) ) {
+				} else if ( !strncasecmp("#End", token, 4) || !strncasecmp("#Beam", token, 5) || !strncasecmp("#Primary", token, 8) || !strncasecmp("#Secondary", token, 10) ) {
 					discard_line = 0;
 					post_discard = 1;
-				} else if ( !strnicmp("$Name:", token, 6) ) {
+				} else if ( !strncasecmp("$Name:", token, 6) ) {
 					discard_line = 1;
 					token = strtok( NULL, seps );
 					if ( token ) {
@@ -193,11 +207,7 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 
 void scramble_read_default(char **text, int *text_len, FILE *fp)
 {
-#ifndef PLAT_UNIX
 	*text_len = _filelength(fileno(fp));
-#else
-	*text_len = filelength(fileno(fp));
-#endif
 	*text = (char*)malloc(*text_len+1);
 	fread( *text, *text_len, 1, fp );
 }
@@ -272,11 +282,7 @@ void unscramble_file(char *src_filename, char *dest_filename)
 	}
 
 	// read in the scrambled data
-#ifndef PLAT_UNIX
 	scramble_len = _filelength(fileno(fp));
-#else
-	scramble_len = filelength(fileno(fp));
-#endif
 	scramble_text = (char*)malloc(scramble_len+1);
 	fread( scramble_text, scramble_len, 1, fp );
 	fclose(fp);
@@ -310,11 +316,7 @@ void print_instructions()
 	printf("Decrypt: scramble -u <filename_in> [filename_out] \n");
 }
 
-#ifndef PLAT_UNIX
-void main(int argc, char *argv[])
-#else
 int main(int argc, char *argv[])
-#endif
 {
 	switch (argc) {
 	case 2:
@@ -323,11 +325,11 @@ int main(int argc, char *argv[])
 		break;
 	case 3:
 		encrypt_init();
-		if ( !stricmp("-u", argv[1]) ) {
+		if ( !strcasecmp("-u", argv[1]) ) {
 			unscramble_file(argv[2]);
-		} else if ( !stricmp("-st", argv[1]) ) {
+		} else if ( !strcasecmp("-st", argv[1]) ) {
 			scramble_file(argv[2], argv[2], PREPROCESS_SHIPS_TBL);
-		} else if ( !stricmp("-wt", argv[1]) ) {
+		} else if ( !strcasecmp("-wt", argv[1]) ) {
 			scramble_file(argv[2], argv[2], PREPROCESS_WEAPONS_TBL);
 		} else {
 			scramble_file(argv[1], argv[2]);
@@ -335,11 +337,11 @@ int main(int argc, char *argv[])
 		break;
 	case 4:
 		encrypt_init();
-		if ( !stricmp("-u", argv[1]) ) {
+		if ( !strcasecmp("-u", argv[1]) ) {
 			unscramble_file(argv[2], argv[3]);
-		} else if ( !stricmp("-st", argv[1]) ) {
+		} else if ( !strcasecmp("-st", argv[1]) ) {
 			scramble_file(argv[2], argv[3], PREPROCESS_SHIPS_TBL);
-		} else if ( !stricmp("-wt", argv[1]) ) {
+		} else if ( !strcasecmp("-wt", argv[1]) ) {
 			scramble_file(argv[2], argv[3], PREPROCESS_WEAPONS_TBL);
 		} else {
 			print_instructions();
@@ -347,11 +349,9 @@ int main(int argc, char *argv[])
 		break;
 	default:
 		print_instructions();
-#ifndef PLAT_UNIX
-		return;
-#else
-		return 1;
-#endif
+		break;
 	}
+
+	return 0;
 }
 

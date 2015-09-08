@@ -455,7 +455,7 @@
  * 30    3/11/97 2:49p Allender
  * 
  * 29    2/18/97 9:43a Lawrance
- * added Assert() in bm_release
+ * added SDL_assert() in bm_release
  * 
  * 28    1/22/97 4:29p John
  * maybe fixed bug with code that counts total bytes of texture ram used.
@@ -597,24 +597,6 @@ int Bm_paging = 0;
 
 static int Bm_low_mem = 0;			
 
-// 16 bit pixel formats
-int Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
-
-// get and put functions for 16 bit pixels - neat bit slinging, huh?
-#define BM_SET_R_ARGB(p, r)	{ p[1] &= ~(0x7c); p[1] |= ((r & 0x1f) << 2); }
-#define BM_SET_G_ARGB(p, g)	{ p[0] &= ~(0xe0); p[1] &= ~(0x03); p[0] |= ((g & 0x07) << 5); p[1] |= ((g & 0x18) >> 3); }
-#define BM_SET_B_ARGB(p, b)	{ p[0] &= ~(0x1f); p[0] |= b & 0x1f; }
-#define BM_SET_A_ARGB(p, a)	{ p[1] &= ~(0x80); p[1] |= ((a & 0x01) << 7); }
-
-#define BM_SET_R_D3D(p, r)		{ *p |= (ushort)(( (int)r / Gr_current_red->scale ) << Gr_current_red->shift); }
-#define BM_SET_G_D3D(p, g)		{ *p |= (ushort)(( (int)g / Gr_current_green->scale ) << Gr_current_green->shift); }
-#define BM_SET_B_D3D(p, b)		{ *p |= (ushort)(( (int)b / Gr_current_blue->scale ) << Gr_current_blue->shift); }
-#define BM_SET_A_D3D(p, a)		{ if(a == 0){ *p = (ushort)Gr_current_green->mask; } }
-
-#define BM_SET_R(p, r)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_R_ARGB(((char*)p), r); break; case BM_PIXEL_FORMAT_D3D: BM_SET_R_D3D(p, r); break; default: Int3(); } }
-#define BM_SET_G(p, g)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_G_ARGB(((char*)p), g); break; case BM_PIXEL_FORMAT_D3D: BM_SET_G_D3D(p, g); break; default: Int3(); } }
-#define BM_SET_B(p, b)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_B_ARGB(((char*)p), b); break; case BM_PIXEL_FORMAT_D3D: BM_SET_B_D3D(p, b); break;  default: Int3(); } }
-#define BM_SET_A(p, a)	{ switch(Bm_pixel_format){ case BM_PIXEL_FORMAT_ARGB: BM_SET_A_ARGB(((char*)p), a); break; case BM_PIXEL_FORMAT_D3D: BM_SET_A_D3D(p, a); break;  default: Int3(); } }
 
 // ===========================================
 // Mode: 0 = High memory
@@ -622,7 +604,7 @@ int Bm_pixel_format = BM_PIXEL_FORMAT_ARGB;
 //       2 = Debug low memory ( only use first frame of each ani )
 void bm_set_low_mem( int mode )
 {
-	Assert( (mode >= 0)  && (mode<=2 ));
+	SDL_assert( (mode >= 0)  && (mode<=2 ));
 	Bm_low_mem = mode;
 }
 
@@ -644,7 +626,7 @@ static void bm_free_data(int n)
 	bitmap_entry	*be;
 	bitmap			*bmp;
 
-	Assert( n >= 0 && n < MAX_BITMAPS );
+	SDL_assert( n >= 0 && n < MAX_BITMAPS );
 
 	be = &bm_bitmaps[n];
 	bmp = &be->bm;
@@ -661,7 +643,7 @@ static void bm_free_data(int n)
 
 	// Don't free up memory for user defined bitmaps, since
 	// BmpMan isn't the one in charge of allocating/deallocing them.
-	if ( ( be->type==BM_TYPE_USER ) )	
+	if (be->type == BM_TYPE_USER)
 		goto SkipFree;
 
 	// Free up the data now!
@@ -730,11 +712,11 @@ static void bm_free_some_ram( int n, int size )
 
 static void *bm_malloc( int n, int size )
 {
-	Assert( n >= 0 && n < MAX_BITMAPS );
+	SDL_assert( n >= 0 && n < MAX_BITMAPS );
 //	mprintf(( "Bitmap %d allocated %d bytes\n", n, size ));
 	#ifdef BMPMAN_NDEBUG
 	bm_free_some_ram( n, size );
-	Assert( bm_bitmaps[n].data_size == 0 );
+	SDL_assert( bm_bitmaps[n].data_size == 0 );
 	bm_bitmaps[n].data_size += size;
 	bm_texture_ram += size;
 	#endif
@@ -818,22 +800,30 @@ void bm_calc_sections(bitmap *be)
 {
 	int idx;
 
-	// number of x and y sections
-	be->sections.num_x = (ubyte)(be->w / MAX_BMAP_SECTION_SIZE);
-	if((be->sections.num_x * MAX_BMAP_SECTION_SIZE) < be->w){
-		be->sections.num_x++;
-	}
-	be->sections.num_y = (ubyte)(be->h / MAX_BMAP_SECTION_SIZE);
-	if((be->sections.num_y * MAX_BMAP_SECTION_SIZE) < be->h){
-		be->sections.num_y++;
-	}
+	if (gr_screen.use_sections) {
+		// number of x and y sections
+		be->sections.num_x = (ubyte)(be->w / MAX_BMAP_SECTION_SIZE);
+		if((be->sections.num_x * MAX_BMAP_SECTION_SIZE) < be->w){
+			be->sections.num_x++;
+		}
+		be->sections.num_y = (ubyte)(be->h / MAX_BMAP_SECTION_SIZE);
+		if((be->sections.num_y * MAX_BMAP_SECTION_SIZE) < be->h){
+			be->sections.num_y++;
+		}
 
-	// calculate the offsets for each section
-	for(idx=0; idx<be->sections.num_x; idx++){
-		be->sections.sx[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
-	}
-	for(idx=0; idx<be->sections.num_y; idx++){
-		be->sections.sy[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
+		// calculate the offsets for each section
+		for(idx=0; idx<be->sections.num_x; idx++){
+			be->sections.sx[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
+		}
+		for(idx=0; idx<be->sections.num_y; idx++){
+			be->sections.sy[idx] = (ushort)(MAX_BMAP_SECTION_SIZE * idx);
+		}
+	} else {
+		be->sections.num_x = 1;
+		be->sections.num_y = 1;
+
+		be->sections.sx[0] = 0;
+		be->sections.sy[0] = 0;
 	}
 }
 
@@ -852,11 +842,11 @@ int bm_create( int bpp, int w, int h, void *data, int flags )
 		return -1;
 	}
 
-	// Assert((bpp==32)||(bpp==8));
+	// SDL_assert((bpp==32)||(bpp==8));
 	if(bpp != 16){
-		Assert(flags & BMP_AABITMAP);
+		SDL_assert(flags & BMP_AABITMAP);
 	} else {
-		Assert(bpp == 16);
+		SDL_assert(bpp == 16);
 	}
 
 	if ( !bm_inited ) bm_init();
@@ -869,14 +859,14 @@ int bm_create( int bpp, int w, int h, void *data, int flags )
 	}
 
 	n = first_slot;
-	Assert( n > -1 );
+	SDL_assert( n > -1 );
 
 	// Out of bitmap slots
 	if ( n == -1 ) return -1;
 
 	memset( &bm_bitmaps[n], 0, sizeof(bitmap_entry) );
 
-	sprintf( bm_bitmaps[n].filename, "TMP%dx%d", w, h );
+	SDL_snprintf( bm_bitmaps[n].filename, MAX_FILENAME_LEN, "TMP%dx%d", w, h );
 	bm_bitmaps[n].type = BM_TYPE_USER;
 	bm_bitmaps[n].palette_checksum = 0;
 
@@ -914,8 +904,8 @@ int bm_load_sub(const char *real_filename, const char *ext, int *handle)
 	int i;
 	char filename[MAX_FILENAME_LEN] = "";
 	
-	strcpy( filename, real_filename );
-	strcat( filename, ext );	
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	SDL_strlcat( filename, ext, SDL_arraysize(filename) );
 	for (i=0; i<(int)strlen(filename); i++ ){
 		filename[i] = char(tolower(filename[i]));
 	}		
@@ -923,7 +913,7 @@ int bm_load_sub(const char *real_filename, const char *ext, int *handle)
 	// try to find given filename to see if it has been loaded before
 	if(!Bm_ignore_duplicates){
 		for (i = 0; i < MAX_BITMAPS; i++) {
-			if ( (bm_bitmaps[i].type != BM_TYPE_NONE) && !stricmp(filename, bm_bitmaps[i].filename) ) {
+			if ( (bm_bitmaps[i].type != BM_TYPE_NONE) && !SDL_strcasecmp(filename, bm_bitmaps[i].filename) ) {
 				nprintf (("BmpMan", "Found bitmap %s -- number %d\n", filename, i));
 				*handle = bm_bitmaps[i].handle;
 				return 1;
@@ -962,12 +952,12 @@ int bm_load( const char * real_filename )
 
 	// nice little trick for keeping standalone memory usage way low - always return a bogus bitmap 
 	if(Game_mode & GM_STANDALONE_SERVER){
-		strcpy(filename,"test128");
+		SDL_strlcpy(filename,"test128", SDL_arraysize(filename));
 	}
 
 	// make sure no one passed an extension
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		mprintf(( "Someone passed an extension to bm_load for file '%s'\n", real_filename ));
 		//Int3();
@@ -983,12 +973,11 @@ int bm_load( const char * real_filename )
 	// found as a file
 	case 0:
 		found = 1;
-		strcat(filename, ".pcx");
+		SDL_strlcat(filename, ".pcx", SDL_arraysize(filename));
 		break;
 
 	// found as pre-existing
 	case 1:
-		found = 1;
 		return handle;		
 	}
 
@@ -1002,7 +991,7 @@ int bm_load( const char * real_filename )
 
 		// found as a file
 		case 0:			
-			strcat(filename, ".tga");
+			SDL_strlcat(filename, ".tga", SDL_arraysize(filename));
 			tga = 1;
 			break;
 
@@ -1039,23 +1028,23 @@ int bm_load( const char * real_filename )
 	}
 
 	n = first_slot;
-	Assert( n < MAX_BITMAPS );	
+	SDL_assert( n < MAX_BITMAPS );	
 
 	if ( n == MAX_BITMAPS ) return -1;	
 
 	// ensure fields are cleared out from previous bitmap
-//	Assert(bm_bitmaps[n].bm.data == 0);
-//	Assert(bm_bitmaps[n].bm.palette == NULL);
-//	Assert(bm_bitmaps[n].ref_count == 0 );
-//	Assert(bm_bitmaps[n].user_data == NULL);
+//	SDL_assert(bm_bitmaps[n].bm.data == 0);
+//	SDL_assert(bm_bitmaps[n].bm.palette == NULL);
+//	SDL_assert(bm_bitmaps[n].ref_count == 0 );
+//	SDL_assert(bm_bitmaps[n].user_data == NULL);
 	memset( &bm_bitmaps[n], 0, sizeof(bitmap_entry) );
 	
 	// Mark the slot as filled, because cf_read might load a new bitmap
 	// into this slot.
 	bm_bitmaps[n].type = tga ? (ubyte)BM_TYPE_TGA : (ubyte)BM_TYPE_PCX;
 	bm_bitmaps[n].signature = Bm_next_signature++;
-	Assert ( strlen(filename) < MAX_FILENAME_LEN );
-	strncpy(bm_bitmaps[n].filename, filename, MAX_FILENAME_LEN-1 );
+	SDL_assert ( strlen(filename) < MAX_FILENAME_LEN );
+	SDL_strlcpy(bm_bitmaps[n].filename, filename, MAX_FILENAME_LEN );
 	bm_bitmaps[n].bm.w = short(w);
 	bm_bitmaps[n].bm.rowsize = short(w);
 	bm_bitmaps[n].bm.h = short(h);
@@ -1170,14 +1159,14 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 
 	if ( !bm_inited ) bm_init();
 
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) {
 		mprintf(( "Someone passed an extension to bm_load_animation for file '%s'\n", real_filename ));
 		//Int3();
 		*p = 0;
 	}
-	strcat( filename, ".ani" );
+	SDL_strlcat( filename, ".ani", SDL_arraysize(filename) );
 
 	if ( (fp = cfopen(filename, "rb")) == NULL ) {
 //		Error(LOCATION,"Could not open filename %s in bm_load_ani()\n", filename);
@@ -1187,7 +1176,7 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 	int reduced = 0;
 #ifndef NDEBUG
 	// for debug of ANI sizes
-	strcpy(the_anim.name, real_filename);
+	SDL_strlcpy(the_anim.name, real_filename, SDL_arraysize(the_anim.name));
 #endif
 	anim_read_header(&the_anim, fp);
 	if ( can_drop_frames )	{
@@ -1211,7 +1200,7 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 
 	// first check to see if this ani already has it's frames loaded
 	for (i = 0; i < MAX_BITMAPS; i++) {
-		if ( (bm_bitmaps[i].type == BM_TYPE_ANI) && !stricmp(filename, bm_bitmaps[i].filename) ) {
+		if ( (bm_bitmaps[i].type == BM_TYPE_ANI) && !SDL_strcasecmp(filename, bm_bitmaps[i].filename) ) {
 			break;
 		}
 	}
@@ -1219,7 +1208,7 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 	if ( i < MAX_BITMAPS ) {
 		// in low memory modes this can happen
 		if(!Bm_low_mem){
-			Assert(bm_bitmaps[i].info.ani.num_frames == *nframes);
+			SDL_assert(bm_bitmaps[i].info.ani.num_frames == *nframes);
 		}
 		return bm_bitmaps[i].handle;
 	}
@@ -1228,11 +1217,11 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 	if(n < 0){
 		return -1;
 	}
-	// Assert( n >= 0 );
+	// SDL_assert( n >= 0 );
 
 	int first_handle = bm_get_next_handle();
 
-	Assert ( strlen(filename) < MAX_FILENAME_LEN );
+	SDL_assert ( strlen(filename) < MAX_FILENAME_LEN );
 	for ( i = 0; i < *nframes; i++ ) {
 		memset( &bm_bitmaps[n+i], 0, sizeof(bitmap_entry) );
 		bm_bitmaps[n+i].info.ani.first_frame = n;
@@ -1260,9 +1249,9 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 		bm_calc_sections(&bm_bitmaps[n+i].bm);
 
 		if ( i == 0 )	{
-			sprintf( bm_bitmaps[n+i].filename, "%s", filename );
+			SDL_snprintf( bm_bitmaps[n+i].filename, MAX_FILENAME_LEN, "%s", filename );
 		} else {
-			sprintf( bm_bitmaps[n+i].filename, "%s[%d]", filename, i );
+			SDL_snprintf( bm_bitmaps[n+i].filename, MAX_FILENAME_LEN, "%s[%d]", filename, i );
 		}
 	}
 
@@ -1277,7 +1266,7 @@ void bm_get_info( int handle, int *w, int * h, ubyte * flags, int *nframes, int 
 	if ( !bm_inited ) return;
 
 	int bitmapnum = handle % MAX_BITMAPS;
-	Assert( bm_bitmaps[bitmapnum].handle == handle );		// INVALID BITMAP HANDLE!	
+	SDL_assert( bm_bitmaps[bitmapnum].handle == handle );		// INVALID BITMAP HANDLE!	
 	
 	if ( (bm_bitmaps[bitmapnum].type == BM_TYPE_NONE) || (bm_bitmaps[bitmapnum].handle != handle) ) {
 		if (w) *w = 0;
@@ -1319,7 +1308,7 @@ uint bm_get_signature( int handle )
 	if ( !bm_inited ) bm_init();
 
 	int bitmapnum = handle % MAX_BITMAPS;
-	Assert( bm_bitmaps[bitmapnum].handle == handle );		// INVALID BITMAP HANDLE
+	SDL_assert( bm_bitmaps[bitmapnum].handle == handle );		// INVALID BITMAP HANDLE
 
 	return bm_bitmaps[bitmapnum].signature;
 }
@@ -1328,17 +1317,16 @@ extern int palman_is_nondarkening(int r,int g, int b);
 static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flags )
 {	
 	int idx;	
-	int r, g, b, a;
 
-	if(Fred_running || Pofview_running || Is_standalone){
-		Assert(bmp->bpp == 8);
+	if (Is_standalone) {
+		SDL_assert(bmp->bpp == 8);
 
 		return;
 	} else {
 		if(flags & BMP_AABITMAP){
-			Assert(bmp->bpp == 8);
+			SDL_assert(bmp->bpp == 8);
 		} else {
-			Assert(bmp->bpp == 16);
+			SDL_assert(bmp->bpp == 16);
 		}
 	}
 
@@ -1348,24 +1336,7 @@ static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flag
 			
 			// if the pixel is transparent
 			if ( ((ushort*)bmp->data)[idx] == Gr_t_green.mask)	{
-				switch(Bm_pixel_format){
-				// 1555, all we need to do is zero the whole thing
-				case BM_PIXEL_FORMAT_ARGB:
-				case BM_PIXEL_FORMAT_ARGB_D3D:
-					((ushort*)bmp->data)[idx] = 0;
-					break;
-				// d3d format
-				case BM_PIXEL_FORMAT_D3D:									
-					r = g = b = a = 0;
-					r /= Gr_t_red.scale;
-					g /= Gr_t_green.scale;
-					b /= Gr_t_blue.scale;
-					a /= Gr_t_alpha.scale;
-					((ushort*)bmp->data)[idx] = (unsigned short)((a<<Gr_t_alpha.shift) | (r << Gr_t_red.shift) | (g << Gr_t_green.shift) |	(b << Gr_t_blue.shift));
-					break;
-				default:
-					Int3();
-				}
+				((ushort*)bmp->data)[idx] = 0;
 			}
 		}
 
@@ -1377,7 +1348,6 @@ static void bm_convert_format( int bitmapnum, bitmap *bmp, ubyte bpp, ubyte flag
 // Fred, since its the only thing that uses the software tmapper
 void bm_swizzle_8bit_for_fred(bitmap_entry *be, bitmap *bmp, ubyte *data, ubyte *palette)
 {		
-	int pcx_xparent_index = -1;
 	int i;
 	int r, g, b;
 	ubyte palxlat[256];
@@ -1388,7 +1358,6 @@ void bm_swizzle_8bit_for_fred(bitmap_entry *be, bitmap *bmp, ubyte *data, ubyte 
 		b = palette[i*3+2];
 		if ( g == 255 && r == 0 && b == 0 ) {
 			palxlat[i] = 255;
-			pcx_xparent_index = i;
 		} else {			
 			palxlat[i] = (ubyte)(palette_find( r, g, b ));			
 		}
@@ -1411,10 +1380,10 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 
 	// allocate bitmap data
 	if(bpp == 8){
-		// Assert(Fred_running || Pofview_running || Is_standalone);		
+		// SDL_assert(Fred_running || Pofview_running || Is_standalone);		
 			data = (ubyte *)bm_malloc(bitmapnum, bmp->w * bmp->h );
 		#ifdef BMPMAN_NDEBUG
-			Assert( be->data_size == bmp->w * bmp->h );
+			SDL_assert( be->data_size == bmp->w * bmp->h );
 		#endif
 		palette = pal;
 		bmp->data = (ptr_u)data;
@@ -1429,15 +1398,13 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		memset( data, 0, bmp->w * bmp->h * 2);
 	}	
 
-	Assert( &be->bm == bmp );
+	SDL_assert( &be->bm == bmp );
 	#ifdef BMPMAN_NDEBUG
-		Assert( be->data_size > 0 );
+		SDL_assert( be->data_size > 0 );
 	#endif
 
 	// some sanity checks on flags
-	Assert(!((flags & BMP_AABITMAP) && (flags & BMP_TEX_ANY)));						// no aabitmap textures
-	Assert(!((flags & BMP_TEX_XPARENT) && (flags & BMP_TEX_NONDARK)));			// can't be a transparent texture and a nondarkening texture 
-	Assert(!((flags & BMP_TEX_NONDARK) && (gr_screen.mode == GR_DIRECT3D)));	// D3D should never be trying to get nondarkening textures
+	SDL_assert(!((flags & BMP_AABITMAP) && (flags & BMP_TEX_ANY)));						// no aabitmap textures
 
 	if(bpp == 8){
 		int pcx_error=pcx_read_bitmap_8bpp( be->filename, data, palette );
@@ -1446,19 +1413,12 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 			//Error( LOCATION, "Couldn't open '%s'\n", filename );
 			//return -1;
 		}
-
-		// now swizzle the thing into the proper format
-		if(Fred_running || Pofview_running){
-			bm_swizzle_8bit_for_fred(be, bmp, data, palette);
-		}
 	} else {	
 		int pcx_error;
 
 		// load types
 		if(flags & BMP_AABITMAP){
 			pcx_error = pcx_read_bitmap_16bpp_aabitmap( be->filename, data );
-		} else if(flags & BMP_TEX_NONDARK){
-			pcx_error = pcx_read_bitmap_16bpp_nondark( be->filename, data );
 		} else {
 			pcx_error = pcx_read_bitmap_16bpp( be->filename, data );
 		}
@@ -1470,7 +1430,7 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	}
 
 	#ifdef BMPMAN_NDEBUG
-	Assert( be->data_size > 0 );
+	SDL_assert( be->data_size > 0 );
 	#endif		
 	
 	bmp->flags = 0;	
@@ -1489,14 +1449,12 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	first_frame = be->info.ani.first_frame;
 	nframes = bm_bitmaps[first_frame].info.ani.num_frames;
 
-	if ( (the_anim = anim_load(bm_bitmaps[first_frame].filename)) == NULL ) {
-		// Error(LOCATION, "Error opening %s in bm_lock\n", be->filename);
-	}
 
-	if ( (the_anim_instance = init_anim_instance(the_anim, bpp)) == NULL ) {
-		// Error(LOCATION, "Error opening %s in bm_lock\n", be->filename);
-		anim_free(the_anim);
-	}
+	the_anim = anim_load(bm_bitmaps[first_frame].filename);
+	SDL_assert_release(the_anim);	// should never have gotten this far
+
+	the_anim_instance = init_anim_instance(the_anim, bpp);
+	SDL_assert_release(the_anim);	// should never have gotten this far
 
 	int can_drop_frames = 0;
 
@@ -1511,7 +1469,6 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	}
 		
 	for ( i=0; i<nframes; i++ )	{
-		be = &bm_bitmaps[first_frame+i];
 		bm = &bm_bitmaps[first_frame+i].bm;
 
 		// Unload any existing data
@@ -1524,14 +1481,18 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		} else {
 			bm->bpp = bpp;
 		}
-		bm->data = (ptr_u)bm_malloc(first_frame + i, size);
 
 		frame_data = anim_get_next_raw_buffer(the_anim_instance, 0 ,flags & BMP_AABITMAP ? 1 : 0, bm->bpp);
 
-		if ( frame_data == NULL ) {
+		if (frame_data == NULL) {
+			Int3();
+			break;
 			// Error(LOCATION,"Fatal error locking .ani file: %s\n", be->filename);
-		}		
-		
+		}
+
+		bm->data = (ptr_u)bm_malloc(first_frame + i, size);
+
+
 		ubyte *dptr, *sptr;
 
 		sptr = frame_data;
@@ -1596,7 +1557,7 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 
 		// Skip a frame
 		if ( (i < nframes-1)  && can_drop_frames )	{
-			frame_data = anim_get_next_raw_buffer(the_anim_instance, 0, flags & BMP_AABITMAP ? 1 : 0, bm->bpp);
+			anim_get_next_raw_buffer(the_anim_instance, 0, flags & BMP_AABITMAP ? 1 : 0, bm->bpp);
 		}
 
 		//mprintf(( "Checksum = %d\n", be->palette_checksum ));
@@ -1624,7 +1585,7 @@ void bm_lock_user( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, uby
 	
 	case 8:			// Going from 8 bpp to something (probably only for aabitmaps)
 		/*
-		Assert(flags & BMP_AABITMAP);
+		SDL_assert(flags & BMP_AABITMAP);
 		bmp->bpp = 16;
 		bmp->data = (uint)malloc(bmp->w * bmp->h * 2);
 		bmp->flags = be->info.user.flags;
@@ -1633,13 +1594,13 @@ void bm_lock_user( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, uby
 		// go through and map the pixels
 		for(idx=0; idx<bmp->w * bmp->h; idx++){			
 			bit_16 = (ushort)((ubyte*)be->info.user.data)[idx];			
-			Assert(bit_16 <= 255);
+			SDL_assert(bit_16 <= 255);
 
 			// stuff the final result
 			memcpy((char*)bmp->data + (idx * 2), &bit_16, sizeof(ushort));
 		}
 		*/		
-		Assert(flags & BMP_AABITMAP);
+		SDL_assert(flags & BMP_AABITMAP);
 		bmp->bpp = bpp;
 		bmp->flags = be->info.user.flags;		
 		bmp->data = (ptr_u)be->info.user.data;								
@@ -1660,13 +1621,13 @@ void bm_lock_tga( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	bm_free_data( bitmapnum );	
 
 	if(Fred_running || Is_standalone){
-		Assert(bpp == 8);
+		SDL_assert(bpp == 8);
 	} else {
-		Assert(bpp == 16);
+		SDL_assert(bpp == 16);
 	}
 
 	// should never try to make an aabitmap out of a targa
-	Assert(!(flags & BMP_AABITMAP));
+	SDL_assert(!(flags & BMP_AABITMAP));
 
 	// allocate bitmap data	
 	if(bpp == 16){
@@ -1683,9 +1644,9 @@ void bm_lock_tga( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		memset( data, 0, bmp->w * bmp->h );	
 	}
 
-	Assert( &be->bm == bmp );
+	SDL_assert( &be->bm == bmp );
 	#ifdef BMPMAN_NDEBUG
-	Assert( be->data_size > 0 );
+	SDL_assert( be->data_size > 0 );
 	#endif
 	
 	int tga_error=targa_read_bitmap( be->filename, data, NULL, (bpp == 16) ? 2 : 1);
@@ -1696,7 +1657,7 @@ void bm_lock_tga( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 	}
 
 	#ifdef BMPMAN_NDEBUG
-	Assert( be->data_size > 0 );
+	SDL_assert( be->data_size > 0 );
 	#endif		
 	
 	bmp->flags = 0;	
@@ -1719,7 +1680,7 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 	if ( !bm_inited ) bm_init();
 
 	int bitmapnum = handle % MAX_BITMAPS;
-	Assert( bm_bitmaps[bitmapnum].handle == handle );		// INVALID BITMAP HANDLE
+	SDL_assert( bm_bitmaps[bitmapnum].handle == handle );		// INVALID BITMAP HANDLE
 
 //	flags &= (~BMP_RLE);
 
@@ -1730,15 +1691,10 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 	} 
 	// otherwise do it as normal
 	else {
-		if(Fred_running || Pofview_running){
-			Assert( bpp == 8 );
-			Assert( (bm_bitmaps[bitmapnum].type == BM_TYPE_PCX) || (bm_bitmaps[bitmapnum].type == BM_TYPE_ANI) || (bm_bitmaps[bitmapnum].type == BM_TYPE_TGA));
+		if (flags & BMP_AABITMAP) {
+			SDL_assert( bpp == 8 );
 		} else {
-			if(flags & BMP_AABITMAP){
-				Assert( bpp == 8 );
-			} else {
-				Assert( bpp == 16 );
-			}
+			SDL_assert( bpp == 16 );
 		}
 	}
 
@@ -1748,10 +1704,10 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 	// If you hit this assert, chances are that someone freed the
 	// wrong bitmap and now someone is trying to use that bitmap.
 	// See John.
-	Assert( be->type != BM_TYPE_NONE );		
+	SDL_assert( be->type != BM_TYPE_NONE );		
 
 	// Increment ref count for bitmap since lock was made on it.
-	Assert(be->ref_count >= 0);
+	SDL_assert(be->ref_count >= 0);
 	be->ref_count++;					// Lock it before we page in data; this prevents a callback from freeing this
 											// as it gets read in
 
@@ -1768,7 +1724,7 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 	int rle_changed = 0;
 	int fake_xparent_changed = 0;	
 	if ( (bmp->data == 0) || (bpp != bmp->bpp) || pal_changed || rle_changed || fake_xparent_changed ) {
-		Assert(be->ref_count == 1);
+		SDL_assert(be->ref_count == 1);
 
 		if ( be->type != BM_TYPE_USER ) {
 			if ( bmp->data == 0 ) {
@@ -1789,9 +1745,7 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 
 		if ( !Bm_paging )	{
 			if ( be->type != BM_TYPE_USER ) {
-				char flag_text[64];
-				strcpy( flag_text, "--" );							
-				nprintf(( "Paging", "Loading %s (%dx%dx%dx%s)\n", be->filename, bmp->w, bmp->h, bpp, flag_text ));
+				nprintf(( "Paging", "Loading %s (%dx%dx%dx--)\n", be->filename, bmp->w, bmp->h, bpp ));
 			}
 		}
 
@@ -1865,19 +1819,17 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 void bm_unlock( int handle )
 {
 	bitmap_entry	*be;
-	bitmap			*bmp;
 
 	int bitmapnum = handle % MAX_BITMAPS;
-	Assert( bm_bitmaps[bitmapnum].handle == handle );	// INVALID BITMAP HANDLE
+	SDL_assert( bm_bitmaps[bitmapnum].handle == handle );	// INVALID BITMAP HANDLE
 
-	Assert(bitmapnum >= 0 && bitmapnum < MAX_BITMAPS);
+	SDL_assert(bitmapnum >= 0 && bitmapnum < MAX_BITMAPS);
 	if ( !bm_inited ) bm_init();
 
 	be = &bm_bitmaps[bitmapnum];
-	bmp = &be->bm;
 
 	be->ref_count--;
-	Assert(be->ref_count >= 0);		// Trying to unlock data more times than lock was called!!!
+	SDL_assert(be->ref_count >= 0);		// Trying to unlock data more times than lock was called!!!
 
 }
 
@@ -1891,22 +1843,22 @@ char *bm_get_filename(int handle)
 	int n;
 
 	n = handle % MAX_BITMAPS;
-	Assert(bm_bitmaps[n].handle == handle);		// INVALID BITMAP HANDLE
+	SDL_assert(bm_bitmaps[n].handle == handle);		// INVALID BITMAP HANDLE
 	return bm_bitmaps[n].filename;
 }
 
-void bm_get_palette(int handle, ubyte *pal, char *name)
+void bm_get_palette(int handle, ubyte *pal, char *name, const int name_len)
 {
 	char *filename;
 	int w,h;
 
 	int n= handle % MAX_BITMAPS;
-	Assert( bm_bitmaps[n].handle == handle );		// INVALID BITMAP HANDLE
+	SDL_assert( bm_bitmaps[n].handle == handle );		// INVALID BITMAP HANDLE
 
 	filename = bm_bitmaps[n].filename;
 
 	if (name)	{
-		strcpy( name, filename );
+		SDL_strlcpy( name, filename, name_len );
 	}
 
 	int pcx_error=pcx_read_header( filename, &w, &h, pal );
@@ -1922,15 +1874,13 @@ void bm_get_palette(int handle, ubyte *pal, char *name)
 //
 // returns:			nothing
 
-// opengl hack
-void opengl_free_texture_with_handle(int handle);
 void bm_release(int handle)
 {
 	bitmap_entry	*be;
 
 	int n = handle % MAX_BITMAPS;
 
-	Assert(n >= 0 && n < MAX_BITMAPS);
+	SDL_assert(n >= 0 && n < MAX_BITMAPS);
 	be = &bm_bitmaps[n];
 
 	if ( bm_bitmaps[n].type == BM_TYPE_NONE ) {
@@ -1941,7 +1891,7 @@ void bm_release(int handle)
 		return;
 	}
 
-	Assert( be->handle == handle );		// INVALID BITMAP HANDLE
+	SDL_assert( be->handle == handle );		// INVALID BITMAP HANDLE
 
 	// If it is locked, cannot free it.
 	if (be->ref_count != 0) {
@@ -1949,10 +1899,10 @@ void bm_release(int handle)
 		return;
 	}
 
-// until opengl mode gets a proper texture manager, this will have to do
-#ifdef PLAT_UNIX
-	opengl_free_texture_with_handle(handle);
-#endif
+	// free texture, if we should
+	if (gr_screen.gf_release_texture) {
+		gr_release_texture(handle);
+	}
 
 	bm_free_data(n);
 
@@ -1967,7 +1917,7 @@ void bm_release(int handle)
 	// Fill in bogus structures!
 
 	// For debugging:
-	strcpy( bm_bitmaps[n].filename, "IVE_BEEN_RELEASED!" );
+	SDL_strlcpy( bm_bitmaps[n].filename, "IVE_BEEN_RELEASED!", SDL_arraysize(bm_bitmaps[0].filename) );
 	bm_bitmaps[n].signature = 0xDEADBEEF;									// a unique signature identifying the data
 	bm_bitmaps[n].palette_checksum = 0xDEADBEEF;							// checksum used to be sure bitmap is in current palette
 
@@ -2007,7 +1957,7 @@ int bm_unload( int handle )
 
 	int n = handle % MAX_BITMAPS;
 
-	Assert(n >= 0 && n < MAX_BITMAPS);
+	SDL_assert(n >= 0 && n < MAX_BITMAPS);
 	be = &bm_bitmaps[n];
 	bmp = &be->bm;
 
@@ -2015,7 +1965,7 @@ int bm_unload( int handle )
 		return 0;		// Already been released
 	}
 
-	Assert( be->handle == handle );		// INVALID BITMAP HANDLE!
+	SDL_assert( be->handle == handle );		// INVALID BITMAP HANDLE!
 
 	// If it is locked, cannot free it.
 	if (be->ref_count != 0) {
@@ -2099,29 +2049,7 @@ void bm_page_in_texture( int bitmapnum, int nframes )
 
 		bm_bitmaps[n+i].preloaded = 1;
 
-		if ( D3D_enabled )	{
-			bm_bitmaps[n+i].used_flags = BMP_TEX_OTHER;
-		} else {			
-			bm_bitmaps[n+i].used_flags = 0;
-		}
-	}
-}
-
-// Marks a texture as being used for this level
-// If num_frames is passed, assume this is an animation
-void bm_page_in_nondarkening_texture( int bitmapnum, int nframes )
-{
-	int i;
-	for (i=0; i<nframes;i++ )	{
-		int n = bitmapnum % MAX_BITMAPS;
-
-		bm_bitmaps[n+i].preloaded = 4;
-
-		if ( D3D_enabled )	{			
-			bm_bitmaps[n+i].used_flags = BMP_TEX_NONDARK;
-		} else {
-			bm_bitmaps[n+i].used_flags = 0;
-		}
+		bm_bitmaps[n+i].used_flags = BMP_TEX_OTHER;
 	}
 }
 
@@ -2136,12 +2064,8 @@ void bm_page_in_xparent_texture( int bitmapnum, int nframes)
 
 		bm_bitmaps[n+i].preloaded = 3;
 
-		if ( D3D_enabled )	{
-			// bm_bitmaps[n+i].used_flags = BMP_NO_PALETTE_MAP;
-			bm_bitmaps[n+i].used_flags = BMP_TEX_XPARENT;
-		} else {
-			bm_bitmaps[n+i].used_flags = 0;
-		}
+		// bm_bitmaps[n+i].used_flags = BMP_NO_PALETTE_MAP;
+		bm_bitmaps[n+i].used_flags = BMP_TEX_XPARENT;
 	}
 }
 
@@ -2154,12 +2078,8 @@ void bm_page_in_aabitmap( int bitmapnum, int nframes )
 		int n = bitmapnum % MAX_BITMAPS;
 
 		bm_bitmaps[n+i].preloaded = 2;
-	
-		if ( D3D_enabled )	{
-			bm_bitmaps[n+i].used_flags = BMP_AABITMAP;
-		} else {
-			bm_bitmaps[n+i].used_flags = 0;
-		}
+
+		bm_bitmaps[n+i].used_flags = BMP_AABITMAP;
 	}
 }
 
@@ -2186,13 +2106,6 @@ void bm_page_in_start()
 
 }
 
-#ifndef PLAT_UNIX
-extern void gr_d3d_preload_init();
-extern int gr_d3d_preload(int bitmap_num, int is_aabitmap );
-#endif
-extern void gr_opengl_preload_init();
-extern int gr_opengl_preload(int bitmap_num, int is_aabitmap );
-
 void bm_page_in_stop()
 {	
 	int i;	
@@ -2209,14 +2122,7 @@ void bm_page_in_stop()
 
 	int d3d_preloading = 1;
 
-#ifndef PLAT_UNIX
-	if (gr_screen.mode == GR_DIRECT3D) {
-		gr_d3d_preload_init();
-	} else
-#endif	
-	if (gr_screen.mode == GR_OPENGL) {
-		gr_opengl_preload_init();
-	}
+	gr_preload_init();
 
 	for (i = 0; i < MAX_BITMAPS; i++)	{
 		if ( bm_bitmaps[i].type != BM_TYPE_NONE )	{
@@ -2245,19 +2151,9 @@ void bm_page_in_stop()
 				bm_unlock( bm_bitmaps[i].handle );
 
 				if ( d3d_preloading )	{
-#ifndef PLAT_UNIX
-					if (gr_screen.mode == GR_DIRECT3D) {
-						if ( !gr_d3d_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
-							mprintf(( "Out of VRAM.  Done preloading.\n" ));
-							d3d_preloading = 0;
-						}
-					} else 
-#endif					
-					if (gr_screen.mode == GR_OPENGL) {
-						if ( !gr_opengl_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
-							mprintf(( "Out of VRAM.  Done preloading.\n" ));
-							d3d_preloading = 0;
-						}
+					if ( !gr_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
+						mprintf(( "Out of VRAM.  Done preloading.\n" ));
+						d3d_preloading = 0;
 					}
 				}
 				
@@ -2294,7 +2190,7 @@ int bm_get_cache_slot( int bitmap_id, int separate_ani_frames )
 {
 	int n = bitmap_id % MAX_BITMAPS;
 
-	Assert( bm_bitmaps[n].handle == bitmap_id );		// INVALID BITMAP HANDLE
+	SDL_assert( bm_bitmaps[n].handle == bitmap_id );		// INVALID BITMAP HANDLE
 
 	bitmap_entry	*be = &bm_bitmaps[n];
 
@@ -2315,38 +2211,9 @@ void bm_24_to_16(int bit_24, ushort *bit_16)
 	bm_set_components((ubyte*)bit_16, (ubyte*)&pixel[0], (ubyte*)&pixel[1], (ubyte*)&pixel[2], &alpha);	
 }
 
-extern int D3D_32bit;
-
 void (*bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a) = NULL;
 
-void bm_set_components_argb(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
-{
-	// rgba 
-	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	*((ushort*)pixel) &= ~(0x8000);
-	if (*((ushort*)pixel) == (ushort)Gr_current_green->mask) {
-		*((ushort*)pixel) = 0;
-	} else {
-		if(*av){
-			*((ushort*)pixel) |= 0x8000;
-		}
-	}
-}
-
-void bm_set_components_d3d(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
-{
-	// rgba 
-	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	if(*av == 0){ 
-		*((ushort*)pixel) = (ushort)Gr_current_green->mask;
-	}
-}
-
-void bm_set_components_argb_d3d_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2356,7 +2223,7 @@ void bm_set_components_argb_d3d_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ub
 	}			
 }
 
-void bm_set_components_argb_d3d_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((uint*)pixel) |= (uint)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((uint*)pixel) |= (uint)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2366,7 +2233,7 @@ void bm_set_components_argb_d3d_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ub
 	}
 }
 
-void bm_set_components_argb_d3d_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2379,7 +2246,7 @@ void bm_set_components_argb_d3d_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte
 	}
 }
 
-void bm_set_components_argb_d3d_32_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+void bm_set_components_argb_32_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2401,24 +2268,10 @@ void BM_SELECT_SCREEN_FORMAT()
 	Gr_current_alpha = &Gr_alpha;
 
 	// setup pointers
-	if(gr_screen.mode == GR_GLIDE){
-#ifndef PLAT_UNIX
-		bm_set_components = bm_set_components_argb;
-#endif
-	} else if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
-			bm_set_components = bm_set_components_d3d;
-		} else {
-			if(D3D_32bit){
-				bm_set_components = bm_set_components_argb_d3d_32_screen;
-			} else {
-				bm_set_components = bm_set_components_argb_d3d_16_screen;
-			}
-		}
-	} else if(gr_screen.mode == GR_SOFTWARE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb_d3d_32_screen;
+	if ( gr_is_32bit() ) {
+		bm_set_components = bm_set_components_argb_32_screen;
+	} else {
+		bm_set_components = bm_set_components_argb_16_screen;
 	}
 }
 
@@ -2430,22 +2283,10 @@ void BM_SELECT_TEX_FORMAT()
 	Gr_current_alpha = &Gr_t_alpha;
 
 	// setup pointers
-	if(gr_screen.mode == GR_GLIDE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
-			bm_set_components = bm_set_components_d3d;
-		} else {
-			if(D3D_32bit){
-				bm_set_components = bm_set_components_argb_d3d_32_tex;
-			} else {
-				bm_set_components = bm_set_components_argb_d3d_16_tex;
-			}
-		}
-	} else if(gr_screen.mode == GR_SOFTWARE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb_d3d_32_tex;
+	if ( gr_is_32bit() ) {
+		bm_set_components = bm_set_components_argb_32_tex;
+	} else {
+		bm_set_components = bm_set_components_argb_16_tex;
 	}
 }
 
@@ -2457,22 +2298,10 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 	Gr_current_alpha = &Gr_ta_alpha;
 
 	// setup pointers
-	if(gr_screen.mode == GR_GLIDE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_DIRECT3D){
-		if(Bm_pixel_format == BM_PIXEL_FORMAT_D3D){
-			bm_set_components = bm_set_components_d3d;
-		} else {
-			if(D3D_32bit){
-				bm_set_components = bm_set_components_argb_d3d_32_tex;
-			} else {
-				bm_set_components = bm_set_components_argb_d3d_16_tex;
-			}
-		}
-	} else if(gr_screen.mode == GR_SOFTWARE){
-		bm_set_components = bm_set_components_argb;
-	} else if(gr_screen.mode == GR_OPENGL){
-		bm_set_components = bm_set_components_argb_d3d_32_tex;
+	if ( gr_is_32bit() ) {
+		bm_set_components = bm_set_components_argb_32_tex;
+	} else {
+		bm_set_components = bm_set_components_argb_16_tex;
 	}
 }
 
@@ -2508,7 +2337,7 @@ void bm_set_components(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 	switch(Bm_pixel_format){
 	// glide has an alpha channel so we have to unset ir or set it each time
 	case BM_PIXEL_FORMAT_ARGB:
-		Assert(!bit_32);
+		SDL_assert(!bit_32);
 		*((ushort*)pixel) &= ~(0x8000);
 		if(*av){
 			*((ushort*)pixel) |= 0x8000;
@@ -2517,7 +2346,7 @@ void bm_set_components(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 	
 	// this d3d format has no alpha channel, so only make it "transparent", never make it "non-transparent"
 	case BM_PIXEL_FORMAT_D3D:			
-		Assert(!bit_32);
+		SDL_assert(!bit_32);
 		if(*av == 0){ 
 			*((ushort*)pixel) = (ushort)Gr_current_green->mask;
 		}
@@ -2527,7 +2356,7 @@ void bm_set_components(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 	case BM_PIXEL_FORMAT_ARGB_D3D:						
 		// if we're writing to normal texture format
 		if(Gr_current_red == &Gr_t_red){					
-			Assert(!bit_32);
+			SDL_assert(!bit_32);
 			*((ushort*)pixel) &= ~(Gr_current_alpha->mask);
 			if(*av){
 				*((ushort*)pixel) |= (ushort)(Gr_current_alpha->mask);
@@ -2556,7 +2385,7 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 	int bit_32 = 0;
 
 	// pick a byte size - 32 bits only if 32 bit mode d3d and screen format
-	if(D3D_32bit && (Gr_current_red == &Gr_red)){
+	if ( gr_is_32bit() && (Gr_current_red == &Gr_red) ) {
 		bit_32 = 1;
 	}
 
@@ -2586,43 +2415,23 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 	if(a != NULL){		
 		*a = 1;
 
-		switch(Bm_pixel_format){
-		// glide has an alpha channel so we have to unset ir or set it each time
-		case BM_PIXEL_FORMAT_ARGB:			
-			Assert(!bit_32);
-			if(!( ((ushort*)pixel)[0] & 0x8000)){
-				*a = 0;
-			} 
-			break;
+		// if we're writing to a normal texture, use nice alpha bits
+		if(Gr_current_red == &Gr_t_red){
+			SDL_assert(!bit_32);
 
-		// this d3d format has no alpha channel, so only make it "transparent", never make it "non-transparent"
-		case BM_PIXEL_FORMAT_D3D:
-			Assert(!bit_32);
-			if( *((ushort*)pixel) == Gr_current_green->mask){ 
+			if(!(*((ushort*)pixel) & Gr_current_alpha->mask)){
 				*a = 0;
 			}
-			break;
-
-		// nice 1555 texture format mode
-		case BM_PIXEL_FORMAT_ARGB_D3D:	
-			// if we're writing to a normal texture, use nice alpha bits
-			if(Gr_current_red == &Gr_t_red){				
-				Assert(!bit_32);
-
-				if(!(*((ushort*)pixel) & Gr_current_alpha->mask)){
+		}
+		// otherwise do it as normal
+		else {
+			if(bit_32){
+				if(*((int*)pixel) == Gr_current_green->mask){
 					*a = 0;
 				}
-			}
-			// otherwise do it as normal
-			else {
-				if(bit_32){
-					if(*((int*)pixel) == Gr_current_green->mask){ 
-						*a = 0;
-					}
-				} else {
-					if(*((ushort*)pixel) == Gr_current_green->mask){ 
-						*a = 0;
-					}
+			} else {
+				if(*((ushort*)pixel) == Gr_current_green->mask){
+					*a = 0;
 				}
 			}
 		}
@@ -2630,22 +2439,22 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a)
 }
 
 // get filename
-void bm_get_filename(int bitmapnum, char *filename)
+void bm_get_filename(int bitmapnum, char *filename, const int max_len)
 {
 	int n = bitmapnum % MAX_BITMAPS;
 
 	// return filename
-	strcpy(filename, bm_bitmaps[n].filename);
+	SDL_strlcpy(filename, bm_bitmaps[n].filename, max_len);
 }
 
 // given a bitmap and a section, return the size (w, h)
 void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h)
 {
-	int bw, bh;
-	bitmap_section_info *sections;
+	int bw = 0, bh = 0;
+	bitmap_section_info *sections = NULL;
 
 	// bogus input?
-	Assert((w != NULL) && (h != NULL));
+	SDL_assert((w != NULL) && (h != NULL));
 	if((w == NULL) || (h == NULL)){
 		return;
 	}
@@ -2654,7 +2463,12 @@ void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h)
 	bm_get_info(bitmapnum, &bw, &bh, NULL, NULL, NULL, &sections);
 
 	// determine the width and height of this section
-	*w = sx < (sections->num_x - 1) ? MAX_BMAP_SECTION_SIZE : bw - sections->sx[sx];
-	*h = sy < (sections->num_y - 1) ? MAX_BMAP_SECTION_SIZE : bh - sections->sy[sy];										
+	if ( gr_screen.use_sections && (sections != NULL) ) {
+		*w = sx < (sections->num_x - 1) ? MAX_BMAP_SECTION_SIZE : bw - sections->sx[sx];
+		*h = sy < (sections->num_y - 1) ? MAX_BMAP_SECTION_SIZE : bh - sections->sy[sy];
+	} else {
+		*w = bw;
+		*h = bh;
+	}
 }
 

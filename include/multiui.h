@@ -408,7 +408,7 @@ int multi_create_lookup_mission(char *fname);
 // returns an index into Multi_create_campaign_list
 int multi_create_lookup_campaign(char *fname);
 
-void multi_sg_rank_build_name(char *in,char *out);
+void multi_sg_rank_build_name(char *in,char *out, const int max_outlen);
 
 void multi_join_game_init();
 void multi_join_game_close();
@@ -470,7 +470,7 @@ void multi_debrief_server_process();				// process all details regarding moving 
 void multi_common_add_notify(const char *str);
 
 // bring up the password string popup, fill in passwd (return 1 if accept was pressed, 0 if cancel was pressed)
-int multi_passwd_popup(char *passwd);
+int multi_passwd_popup(char *passwd, const int max_plen);
 
 #endif
 

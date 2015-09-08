@@ -128,7 +128,7 @@ const char Emp_random_char[NUM_RANDOM_CHARS] =
 //
 
 // maybe reformat a string 
-void emp_maybe_reformat_text(char *text, int max_len, int gauge_id);
+void emp_maybe_reformat_text(char *text, const int max_len, int gauge_id);
 
 // randomize the chars in a string
 void emp_randomize_chars(char *str);
@@ -169,11 +169,11 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 			continue;
 		}
 
-		Assert(target->instance >= 0);
+		SDL_assert(target->instance >= 0);
 		if(target->instance < 0){
 			continue;
 		}
-		Assert(Weapons[target->instance].weapon_info_index >= 0);
+		SDL_assert(Weapons[target->instance].weapon_info_index >= 0);
 		if(Weapons[target->instance].weapon_info_index < 0){
 			continue;
 		}
@@ -206,11 +206,11 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 			continue;
 		}	
 		
-		Assert(Objects[so->objnum].instance >= 0);
+		SDL_assert(Objects[so->objnum].instance >= 0);
 		if(Objects[so->objnum].instance < 0){
 			continue;
 		}
-		Assert(Ships[Objects[so->objnum].instance].ship_info_index >= 0);
+		SDL_assert(Ships[Objects[so->objnum].instance].ship_info_index >= 0);
 		if(Ships[Objects[so->objnum].instance].ship_info_index < 0){
 			continue;
 		}
@@ -287,7 +287,7 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 
 			// if this is a multiplayer game, notify other players of the effect
 			if(Game_mode & GM_MULTIPLAYER){		
-				Assert(MULTIPLAYER_MASTER);				
+				SDL_assert(MULTIPLAYER_MASTER);				
 				send_emp_effect(target->net_signature, actual_intensity, actual_time);
 			}
 			
@@ -306,8 +306,8 @@ void emp_start_ship(object *ship_obj, float intensity, float time)
 	float start_intensity;
 
 	// make sure this is a ship
-	Assert(ship_obj->type == OBJ_SHIP);
-	Assert(ship_obj->instance >= 0);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->instance >= 0);
 	shipp = &Ships[ship_obj->instance];
 
 	// determining pre-existing EMP intensity (if any)
@@ -333,7 +333,7 @@ void emp_start_ship(object *ship_obj, float intensity, float time)
 	}
 
 	// do any initial AI effects
-	Assert(shipp->ai_index >= 0);
+	SDL_assert(shipp->ai_index >= 0);
 	aip = &Ai_info[shipp->ai_index];
 
 	// lose his current target
@@ -348,11 +348,11 @@ void emp_process_ship(ship *shipp)
 	object *objp;
 	ai_info *aip;	
 
-	Assert(shipp != NULL);
+	SDL_assert(shipp != NULL);
 	if(shipp == NULL){
 		return;
 	}
-	Assert(shipp->objnum >= 0);
+	SDL_assert(shipp->objnum >= 0);
 	if(shipp->objnum < 0){
 		return;
 	}
@@ -379,7 +379,7 @@ void emp_process_ship(ship *shipp)
 	}
 
 	// lose lock time, etc, etc.
-	Assert(shipp->ai_index >= 0);
+	SDL_assert(shipp->ai_index >= 0);
 	aip = &Ai_info[shipp->ai_index];	
 	aip->aspect_locked_time = 0.0f;				// hasn't gotten aspect lock at all
 	aip->current_target_is_locked = 0;			// isn't locked on his current target
@@ -517,7 +517,7 @@ void emp_hud_string(int x, int y, int gauge_id, const char *str)
 	char tmp[256] = "";
 
 	// copy the string
-	strcpy(tmp, str);
+	SDL_strlcpy(tmp, str, SDL_arraysize(tmp));
 
 	// if the emp effect is not active, don't even bother messing with the text
 	if(emp_active_local()){
@@ -539,7 +539,7 @@ void emp_hud_printf(int x, int y, int gauge_id, const char *format, ...)
 	
 	// format the text
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 	
 	// if the emp effect is not active, don't even bother messing with the text
@@ -555,7 +555,7 @@ void emp_hud_printf(int x, int y, int gauge_id, const char *format, ...)
 }
 
 // maybe reformat a string 
-void emp_maybe_reformat_text(char *text, int max_len, int gauge_id)
+void emp_maybe_reformat_text(char *text, const int max_len, int gauge_id)
 {
 	wacky_text *wt;
 
@@ -571,13 +571,13 @@ void emp_maybe_reformat_text(char *text, int max_len, int gauge_id)
 
 	// if the gauge is EG_NULL, empty the string
 	if(gauge_id == EG_NULL){
-		strcpy(text, "");
+		SDL_strlcpy(text, "", max_len);
 		return;
 	}
 
 	// if this gauge has not been wacked out, or if the timestamp has expired, we
 	// neeed to wack it out again
-	Assert((gauge_id >= EG_NULL) && (gauge_id < NUM_TEXT_STAMPS));
+	SDL_assert((gauge_id >= EG_NULL) && (gauge_id < NUM_TEXT_STAMPS));
 	wt = &Emp_wacky_text[gauge_id];
 	if((wt->stamp == -1) || timestamp_elapsed(wt->stamp)){
 		// reformat specific gauges differently
@@ -586,7 +586,7 @@ void emp_maybe_reformat_text(char *text, int max_len, int gauge_id)
 		case EG_WEAPON_TITLE: case EG_WEAPON_P1: case EG_WEAPON_P2: case EG_WEAPON_P3: case EG_WEAPON_S1: case EG_WEAPON_S2:			
 			int wep_index;
 			wep_index = (int)frand_range(0.0f, (float)(MAX_WEAPON_TYPES - 1));
-			strcpy(wt->str, Weapon_info[ wep_index >= MAX_WEAPON_TYPES ? 0 : wep_index ].name);			
+			SDL_strlcpy(wt->str, Weapon_info[ wep_index >= MAX_WEAPON_TYPES ? 0 : wep_index ].name, SDL_arraysize(wt->str));
 			break;		
 
 		// escort list
@@ -595,32 +595,32 @@ void emp_maybe_reformat_text(char *text, int max_len, int gauge_id)
 			int shipnum;
 			shipnum = ship_get_random_ship();
 			if(shipnum >= 0){
-				strcpy(wt->str, Ships[shipnum].ship_name);
+				SDL_strlcpy(wt->str, Ships[shipnum].ship_name, SDL_arraysize(wt->str));
 			}
 			break;
 
 		// directives title
 		case EG_OBJ_TITLE:
-			strcpy(wt->str, "");
+			SDL_strlcpy(wt->str, "", SDL_arraysize(wt->str));
 			break;
 
 		// directives themselves
 		case EG_OBJ1: case EG_OBJ2: case EG_OBJ3: case EG_OBJ4: case EG_OBJ5:
-			strcpy(wt->str, text);
+			SDL_strlcpy(wt->str, text, SDL_arraysize(wt->str));
 			emp_randomize_chars(wt->str);
 			break;
 
 		// target box info
 		case EG_TBOX_EXTRA1: case EG_TBOX_EXTRA2: case EG_TBOX_EXTRA3: case EG_TBOX_CLASS:
 		case EG_TBOX_DIST: case EG_TBOX_CARGO: case EG_TBOX_HULL: case EG_TBOX_NAME: case EG_TBOX_INTEG:
-			strcpy(wt->str, text);
+			SDL_strlcpy(wt->str, text, SDL_arraysize(wt->str));
 			emp_randomize_chars(wt->str);
 			break;
 
 		// squadmsg menu
 		case EG_SQ1: case EG_SQ2: case EG_SQ3: case EG_SQ4: case EG_SQ5: case EG_SQ6: case EG_SQ7:
 		case EG_SQ8: case EG_SQ9: case EG_SQ10:
-			strcpy(wt->str, text);
+			SDL_strlcpy(wt->str, text, SDL_arraysize(wt->str));
 			emp_randomize_chars(wt->str);
 			break;
 			
@@ -633,11 +633,11 @@ void emp_maybe_reformat_text(char *text, int max_len, int gauge_id)
 		wt->stamp = timestamp((int)frand_range(100.0f, 750.0f * (1.0f - Emp_intensity)));
 
 		// copy the text
-		strcpy(text, wt->str);
+		SDL_strlcpy(text, wt->str, max_len);
 	}
 	// otherwise, use what we calculated last time
 	else {
-		strcpy(text, wt->str);
+		SDL_strlcpy(text, wt->str, max_len);
 	}
 }
 

@@ -105,7 +105,7 @@
  * change call to snd_play_3d() to allow for arbitrary listening position
  * 
  * 10    9/16/97 2:27p Allender
- * Removed unused Assert that will cause problems in the future
+ * Removed unused SDL_assert that will cause problems in the future
  * 
  * 9     8/11/97 9:50a Allender
  * fixed afterburner snafu
@@ -210,13 +210,13 @@ void afterburners_start(object *objp)
 	ship			*shipp;
 	float			percent_left;
 
-	Assert( objp != NULL );
+	SDL_assert( objp != NULL );
 
 	if(objp->type == OBJ_OBSERVER)
 		return;
 
-	Assert( objp->type == OBJ_SHIP);
-	Assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
+	SDL_assert( objp->type == OBJ_SHIP);
+	SDL_assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
 
 	if ( (objp->flags & OF_PLAYER_SHIP) && (objp == Player_obj) ) {
 		int now;
@@ -237,7 +237,7 @@ void afterburners_start(object *objp)
 	}
 
 	shipp = &Ships[objp->instance];
-	Assert( shipp->ship_info_index >= 0 && shipp->ship_info_index < MAX_SHIP_TYPES );
+	SDL_assert( shipp->ship_info_index >= 0 && shipp->ship_info_index < MAX_SHIP_TYPES );
 	sip = &Ship_info[shipp->ship_info_index];
 	
 	if ( !(sip->flags & SIF_AFTERBURNER) )	{
@@ -293,9 +293,9 @@ void afterburners_start(object *objp)
 //
 void afterburners_update(object *objp, float fl_frametime)
 {
-	Assert( objp != NULL );
-	Assert( objp->type == OBJ_SHIP );
-	Assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
+	SDL_assert( objp != NULL );
+	SDL_assert( objp->type == OBJ_SHIP );
+	SDL_assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
 	
 	ship_info *sip;
 	ship *shipp;
@@ -303,7 +303,7 @@ void afterburners_update(object *objp, float fl_frametime)
 
 	shipp = &Ships[objp->instance];
 
-	Assert( shipp->ship_info_index >= 0 && shipp->ship_info_index < MAX_SHIP_TYPES );
+	SDL_assert( shipp->ship_info_index >= 0 && shipp->ship_info_index < MAX_SHIP_TYPES );
 	sip = &Ship_info[shipp->ship_info_index];
 
 	if ( (objp->flags & OF_PLAYER_SHIP ) && (Game_mode & GM_DEAD) ) {
@@ -371,7 +371,7 @@ void afterburners_update(object *objp, float fl_frametime)
 			Player_afterburner_vol = AFTERBURNER_DEFAULT_VOL;
 			Player_afterburner_loop_delay = 0;
 			if ( Player_afterburner_loop_id == -1 ) {
-				Player_afterburner_loop_id = snd_play_looping( &Snds[SND_ABURN_LOOP], 0.0f , -1, -1);
+				Player_afterburner_loop_id = snd_play_looping(&Snds[SND_ABURN_LOOP], 0.0f);
 				snd_set_volume(Player_afterburner_loop_id, Player_afterburner_vol);
 //				nprintf(("Alan","PLAY LOOPING SOUND\n"));
 			}
@@ -400,15 +400,15 @@ void afterburners_update(object *objp, float fl_frametime)
 //
 void afterburners_stop(object *objp, int key_released)
 {
-	Assert( objp != NULL );
-	Assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
+	SDL_assert( objp != NULL );
+	SDL_assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
 	
 	ship_info *sip;
 	ship *shipp;
 
 	shipp = &Ships[objp->instance];
 
-	Assert( shipp->ship_info_index >= 0 && shipp->ship_info_index < MAX_SHIP_TYPES );
+	SDL_assert( shipp->ship_info_index >= 0 && shipp->ship_info_index < MAX_SHIP_TYPES );
 	sip = &Ship_info[shipp->ship_info_index];
 
 	if ( (objp->flags & OF_PLAYER_SHIP) && key_released ) {
@@ -425,8 +425,8 @@ void afterburners_stop(object *objp, int key_released)
 	}
 
 	objp->phys_info.flags &= ~PF_AFTERBURNER_ON;
-	float percent_left;
-	percent_left = shipp->afterburner_fuel / sip->afterburner_fuel_capacity;
+//	float percent_left;
+//	percent_left = shipp->afterburner_fuel / sip->afterburner_fuel_capacity;
 
 	if ( objp == Player_obj ) {
 

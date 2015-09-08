@@ -115,7 +115,7 @@ void lcl_xstr_close();
 int lcl_get_language();
 
 // returns the current language character string
-void lcl_get_language_name(char *lang_name);
+void lcl_get_language_name(char *lang_name, const int max_len);
 
 // set our current language
 void lcl_set_language(int lang);
@@ -127,10 +127,10 @@ void lcl_set_language(int lang);
 // externalization of table/mission files (only parse routines ever need to deal with these functions) ----------------------- 
 
 // maybe add on an appropriate subdirectory when opening a localized file
-void lcl_add_dir(char *current_path);
+void lcl_add_dir(char *current_path, const int max_len);
 
 // maybe add localized directory to full path with file name when opening a localized file
-void lcl_add_dir_to_path_with_filename(char *current_path);
+void lcl_add_dir_to_path_with_filename(char *current_path, const int path_len);
 
 // open the externalization file for use during parsing (call before parsing a given file)
 void lcl_ext_open();
@@ -148,7 +148,7 @@ void lcl_ext_close();
 void lcl_ext_localize(char *in, char *out, int max_len, int *id = NULL);
 
 // translate the specified string based upon the current language
-char *XSTR(char *str, int index);
+const char *XSTR(char *str, int index);
 int lcl_get_xstr_offset(int index, int res);
 
 // translate umlauted chars from ascii to ansi codes
@@ -167,12 +167,12 @@ void lcl_fix_polish(char *str);
 #define LXSTR(str, i)		(XSTR(str, i))
 #endif	// defined(GERMAN_BUILD)
 
-void lcl_translate_wep_name(char *name);
-void lcl_translate_ship_name(char *name);
-void lcl_translate_brief_icon_name(char *name);
-void lcl_translate_brief_icon_name_pl(char *name);
-void lcl_translate_targetbox_name(char *name);
-void lcl_translate_targetbox_name_pl(char *name);
+void lcl_translate_wep_name(char *name, const int max_len);
+void lcl_translate_ship_name(char *name, const int max_len);
+void lcl_translate_brief_icon_name(char *name, const int max_len);
+void lcl_translate_brief_icon_name_pl(char *name, const int max_len);
+void lcl_translate_targetbox_name(char *name, const int max_len);
+void lcl_translate_targetbox_name_pl(char *name, const int max_len);
 
 #endif	// defined __FREESPACE2_LOCALIZATION_UTILITIES_HEADER_FILE
 

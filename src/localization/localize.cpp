@@ -434,7 +434,7 @@ int lcl_ext_get_text(char *xstr, char *out);
 int lcl_ext_get_id(char *xstr, int *out);
 
 // given a valid XSTR() id#, lookup the string in tstrings.tbl, filling in out if found, nonzero on success
-int lcl_ext_lookup(char *out, int id);
+int lcl_ext_lookup(char *out, const int max_out, int id);
 
 // if the char is a valid char for a signed integer value string
 int lcl_is_valid_numeric_char(char c);
@@ -445,7 +445,7 @@ int lcl_is_valid_numeric_char(char c);
 // for cases 1 and 2 : the high bit (1<<31) will be set if the parser detected the beginning of a new string id on this line
 // so be sure to mask this value out to get the low portion of the return value
 //
-int lcl_ext_lookup_sub(char *text, char *out, int id);
+int lcl_ext_lookup_sub(char *text, char *out, const int max_out, int id);
 
 // initialize the pointer array into tstrings.tbl (call from lcl_ext_open() ONLY)
 void lcl_ext_setup_pointers();
@@ -475,15 +475,15 @@ void lcl_init(int lang_init)
 
 		if(ret == NULL){
 			Int3();
-			strcpy(lang_string, DEFAULT_LANGUAGE);
+			SDL_strlcpy(lang_string, DEFAULT_LANGUAGE, SDL_arraysize(lang_string));
 		} else {
-			strcpy(lang_string, ret);
+			SDL_strlcpy(lang_string, ret, SDL_arraysize(lang_string));
 		}
 
 		// look it up
 		lang = -1;
 		for(idx=0; idx<LCL_NUM_LANGUAGES; idx++){
-			if(!stricmp(Lcl_languages[idx].lang_name, lang_string)){
+			if(!SDL_strcasecmp(Lcl_languages[idx].lang_name, lang_string)){
 				lang = idx;
 				break;
 			}
@@ -492,7 +492,7 @@ void lcl_init(int lang_init)
 			lang = 0;
 		}	
 	} else {
-		Assert((lang_init >= 0) && (lang_init < LCL_NUM_LANGUAGES));
+		SDL_assert((lang_init >= 0) && (lang_init < LCL_NUM_LANGUAGES));
 		lang = lang_init;
 	}
 
@@ -537,35 +537,32 @@ void lcl_xstr_init()
 	int i;
 	char chr, buf[4096];
 	char language_tag[512];	
-	int z, index, rval;
+	int z, index;
 	char *p_offset = NULL;
 	int offset_lo = 0, offset_hi = 0;
+	int num_offsets_on_this_line = 0;
 
 	for (i=0; i<XSTR_SIZE; i++){
 		Xstr_table[i].str = NULL;
 	}
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", rval));
-	} else {
-		// make sure localization is NOT running
-		lcl_ext_close();
+	// make sure localization is NOT running
+	lcl_ext_close();
 
+	try {
 		read_file_text("strings.tbl");
 		reset_parse();
 
 		// move down to the proper section		
 		memset(language_tag, 0, 512);
-		strcpy(language_tag, "#");
-		strcat(language_tag, Lcl_languages[Lcl_current_lang].lang_name);
+		SDL_strlcpy(language_tag, "#", SDL_arraysize(language_tag));
+		SDL_strlcat(language_tag, Lcl_languages[Lcl_current_lang].lang_name, SDL_arraysize(language_tag));
 		if(skip_to_string(language_tag) != 1){
 			Error(LOCATION, NOX("Strings.tbl is corrupt"));
 		}		
 
 		// parse all the strings in this section of the table
 		while (!check_for_string("#")) {
-			int num_offsets_on_this_line = 0;
-
 			stuff_int(&index);
 			stuff_string(buf, F_NAME, NULL, 4096);
 
@@ -582,7 +579,7 @@ void lcl_xstr_init()
 
 			// trim unneccesary end of string
 			if (i >= 0) {
-				// Assert(buf[i] == '"');
+				// SDL_assert(buf[i] == '"');
 				if (buf[i] != '"') {
 					// probably an offset on this entry
 					buf[i+1] = 0;						// drop down a null terminator (prolly unnecessary)
@@ -654,12 +651,14 @@ void lcl_xstr_init()
 			offset_hi = 0;
 			num_offsets_on_this_line = 0;
 		}
+	} catch (parse_error_t rval) {
+		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", (int)rval));
 	}
 #else
 	int i;
 
-	Assert(XSTR_SIZE == LCL_NUM_STRINGS_FS1);
-	Assert(Lcl_current_lang < LCL_NUM_LANGUAGES_FS1);
+	SDL_assert(XSTR_SIZE == LCL_NUM_STRINGS_FS1);
+	SDL_assert(Lcl_current_lang < LCL_NUM_LANGUAGES_FS1);
 	
 	for (i=0; i<XSTR_SIZE; i++) {
 		if ( !strlen(FS1_trans[Lcl_current_lang][i]) ) {
@@ -732,7 +731,7 @@ void lcl_set_language(int lang)
 }
 
 // maybe add on an appropriate subdirectory when opening a localized file
-void lcl_add_dir(char *current_path)
+void lcl_add_dir(char *current_path, const int max_len)
 {
 	char last_char;
 	int path_len;
@@ -753,18 +752,18 @@ void lcl_add_dir(char *current_path)
 
 	// if the last char is a slash, just copy in the disk extension
 	if (last_char == DIR_SEPARATOR_CHAR) {
-		strcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext);
-		strcat(current_path, DIR_SEPARATOR_STR);
+		SDL_strlcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext, max_len);
+		SDL_strlcat(current_path, DIR_SEPARATOR_STR, max_len);
 	} 
 	// otherwise add a slash, then copy in the disk extension
 	else {
-		strcat(current_path, DIR_SEPARATOR_STR);
-		strcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext);
+		SDL_strlcat(current_path, DIR_SEPARATOR_STR, max_len);
+		SDL_strlcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext, max_len);
 	}
 }
 
 // maybe add localized directory to full path with file name when opening a localized file
-void lcl_add_dir_to_path_with_filename(char *current_path)
+void lcl_add_dir_to_path_with_filename(char *current_path, const int path_len)
 {
 	char temp[MAX_PATH_LEN];
 
@@ -777,19 +776,19 @@ void lcl_add_dir_to_path_with_filename(char *current_path)
 	// mark end of current path with '\0', so strcat will work
 	char *last_slash = strrchr(current_path, DIR_SEPARATOR_CHAR);
 	if (last_slash == NULL) {
-		strcpy(temp, current_path);
+		SDL_strlcpy(temp, current_path, SDL_arraysize(temp));
 		current_path[0] = '\0';
 	} else {
-		strcpy(temp, last_slash+1);
+		SDL_strlcpy(temp, last_slash+1, SDL_arraysize(temp));
 		last_slash[1] = '\0';
 	}
 
 	// add extension
-	strcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext);
-	strcat(current_path, DIR_SEPARATOR_STR);
+	SDL_strlcat(current_path, Lcl_languages[Lcl_current_lang].lang_ext, path_len);
+	SDL_strlcat(current_path, DIR_SEPARATOR_STR, path_len);
 
 	// copy rest of filename from temp
-	strcat(current_path, temp);
+	SDL_strlcat(current_path, temp, path_len);
 }
 
 
@@ -799,7 +798,7 @@ void lcl_add_dir_to_path_with_filename(char *current_path)
 void lcl_ext_open()
 {
 	// if the file is already open, do nothing
-	Assert(Lcl_ext_file == NULL);	
+	SDL_assert(Lcl_ext_file == NULL);	
 
 	// if we're running in the default language, do nothing
 	if(Lcl_current_lang == LCL_DEFAULT_LANGUAGE){
@@ -848,8 +847,8 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	int str_id;	
 	int str_len;	
 
-	Assert(in);
-	Assert(out);
+	SDL_assert(in);
+	SDL_assert(out);
 
 	// default (non-external string) value
 	if(id != NULL){
@@ -864,7 +863,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 			error_display(0, "Token too long: [%s].  Length = %i.  Max is %i.\n", in, str_len, max_len);
 			return;
 		}		
-		strcpy(out, in);
+		SDL_strlcpy(out, in, max_len);
 		if(id != NULL){
 			*id = -2;
 		}
@@ -873,14 +872,14 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 
 	// otherwise, check to see if it's an XSTR() tag
 	memset(first_four, 0, 5);
-	strncpy(first_four, in, 4);
-	if(stricmp(first_four, "XSTR")){
+	SDL_strlcpy(first_four, in, SDL_arraysize(first_four));
+	if(SDL_strcasecmp(first_four, "XSTR")){
 		// NOT an XSTR() tag
 		if(str_len > max_len){
 			error_display(0, "Token too long: [%s].  Length = %i.  Max is %i.\n", in, str_len, max_len);
 			return;
 		}		
-		strcpy(out, in);
+		SDL_strlcpy(out, in, max_len);
 		if(id != NULL){
 			*id = -2;
 		}
@@ -890,14 +889,14 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	// at this point we _know_ its an XSTR() tag, so split off the strings and id sections		
 	if(!lcl_ext_get_text(in, text_str)){
 		Int3();
-		strcpy(out, in);
+		SDL_strlcpy(out, in, max_len);
 		if(id != NULL){
 			*id = -1;
 		}
 		return;
 	}
 	if(!lcl_ext_get_id(in, &str_id)){
-		strcpy(out, in);
+		SDL_strlcpy(out, in, max_len);
 		if(id != NULL){
 			*id = -1;
 		}
@@ -906,7 +905,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	
 	// if the localization file is not open, or we're running in the default language, return the original string
 	if((Lcl_ext_file == NULL) || (str_id < 0) || (Lcl_current_lang == LCL_DEFAULT_LANGUAGE)){
-		strcpy(out, text_str);
+		SDL_strlcpy(out, text_str, max_len);
 		if(id != NULL){
 			*id = str_id;
 		}
@@ -914,22 +913,21 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	}		
 
 	// attempt to find the string
-	if(lcl_ext_lookup(lookup_str, str_id)){
+	if(lcl_ext_lookup(lookup_str, SDL_arraysize(lookup_str), str_id)){
 		// copy to the outgoing string
-		Assert(strlen(lookup_str) <= (unsigned int)(max_len - 1));
+		SDL_assert(strlen(lookup_str) <= (unsigned int)(max_len - 1));
 
 		if (strlen(lookup_str) > (unsigned int)(max_len-1)) {
 			// be safe and truncate string to fit
-			strncpy(out, lookup_str, (size_t) (max_len-1));
-			out[max_len-1] = '\0';		// ensure null terminator, since strncpy(...) doesnt.
+			SDL_strlcpy(out, lookup_str, max_len);
 		} else {
-			strcpy(out, lookup_str);
+			SDL_strlcpy(out, lookup_str, max_len);
 		}
 
 	}
 	// otherwise use what we have - probably should Int3() or assert here
 	else {
-		strcpy(out, text_str);
+		SDL_strlcpy(out, text_str, max_len);
 	}	
 
 	// set the id #
@@ -988,17 +986,16 @@ void lcl_ext_associate(const char *filename)
 // given a valid XSTR() tag piece of text, extract the string portion, return it in out, nonzero on success
 int lcl_ext_get_text(char *xstr, char *out)
 {
-	int str_start, str_end;
+	int str_start = 0, str_end = 0;
 	int str_len;
 	char *p, *p2;
 
-	Assert(xstr != NULL);
-	Assert(out != NULL);
+	SDL_assert(xstr != NULL);
+	SDL_assert(out != NULL);
 	str_len = strlen(xstr);
 	
 	// this is some crazy wack-ass code.
 	// look for the open quote
-	str_start = str_end = 0;
 	p = strstr(xstr, "\"");
 	if(p == NULL){
 		error_display(0, "Error parsing XSTR() tag %s\n", xstr);		
@@ -1038,8 +1035,8 @@ int lcl_ext_get_id(char *xstr, int *out)
 	char *p, *pnext;
 	int str_len;
 
-	Assert(xstr != NULL);
-	Assert(out != NULL);
+	SDL_assert(xstr != NULL);
+	SDL_assert(out != NULL);
 	
 	str_len = strlen(xstr);
 
@@ -1103,17 +1100,17 @@ int lcl_ext_get_id(char *xstr, int *out)
 }
 
 // given a valid XSTR() id#, lookup the string in tstrings.tbl, filling in out if found, nonzero on success
-int lcl_ext_lookup(char *out, int id)
+int lcl_ext_lookup(char *out, const int max_out, int id)
 {
 	char text[1024];
 	int ret;
 	int pointer;
 	
-	Assert(Lcl_pointer_count >= 0);
-	Assert(Lcl_pointers[0] >= 0);
-	Assert(Lcl_pointers[Lcl_pointer_count - 1] >= 0);
-	Assert(Lcl_ext_file != NULL);
-	Assert(id >= 0);
+	SDL_assert(Lcl_pointer_count >= 0);
+	SDL_assert(Lcl_pointers[0] >= 0);
+	SDL_assert(Lcl_pointers[Lcl_pointer_count - 1] >= 0);
+	SDL_assert(Lcl_ext_file != NULL);
+	SDL_assert(id >= 0);
 
 	// seek to the closest pointer <= the id# we're looking for
 	pointer = id / LCL_GRANULARITY;
@@ -1126,7 +1123,7 @@ int lcl_ext_lookup(char *out, int id)
 	memset(Ts_text, 0, PARSE_TEXT_STRING_LEN);
 	memset(Ts_id_text, 0, PARSE_ID_STRING_LEN);
 	while((cftell(Lcl_ext_file) < Lcl_pointers[Lcl_pointer_count - 1]) && cfgets(text, 1024, Lcl_ext_file)){
-		ret = lcl_ext_lookup_sub(text, out, id);
+		ret = lcl_ext_lookup_sub(text, out, max_out, id);
 			
 		// run the line parse function		
 		switch(ret & 0x0fffffff){
@@ -1165,9 +1162,8 @@ int lcl_ext_lookup(char *out, int id)
 // 0 on fail, 1 on success, 2 if found a matching id/string pair, 3 if end of language has been found
 // for cases 1 and 2 : the high bit (1<<31) will be set if the parser detected the beginning of a new string id on this line
 //
-int lcl_ext_lookup_sub(char *text, char *out, int id)
+int lcl_ext_lookup_sub(char *text, char *out, const int max_out, int id)
 {
-	char *front;			// front of the line
 	char *p;					// current ptr
 	int len = strlen(text);
 	int count;	
@@ -1175,7 +1171,6 @@ int lcl_ext_lookup_sub(char *text, char *out, int id)
 	char *tok;
 	int found_new_string_id = 0;
 
-	front = text;
 	p = text;
 	count = 0;			
 	while(count < len){
@@ -1184,9 +1179,9 @@ int lcl_ext_lookup_sub(char *text, char *out, int id)
 		// scanning for a line of text
 		case TS_SCANNING:
 			// if the first word is #end, we're done with the file altogether
-			strcpy(text_copy, text);
+			SDL_strlcpy(text_copy, text, SDL_arraysize(text_copy));
 			tok = strtok(text_copy, " \n");
-			if((tok != NULL) && !stricmp(tok, "#end")){
+			if((tok != NULL) && !SDL_strcasecmp(tok, "#end")){
 				return 3;
 			}
 			// if its a commented line, skip it
@@ -1248,7 +1243,7 @@ int lcl_ext_lookup_sub(char *text, char *out, int id)
 
 				// if the id#'s match, copy the string and return "string found"
 				if((atoi(Ts_id_text) == id) && (out != NULL)){
-					strcpy(out, Ts_text);
+					SDL_strlcpy(out, Ts_text, max_out);
 
 					return found_new_string_id ? (1<<1) | (1<<31) : (1<<1);					
 				}
@@ -1305,11 +1300,11 @@ void lcl_ext_setup_pointers()
 
 	// seek to the currently active language
 	memset(language_string, 0, 128);
-	strcpy(language_string, "#");
-	if(!stricmp(DEFAULT_LANGUAGE, Lcl_languages[Lcl_current_lang].lang_name)){
-		strcat(language_string, "default");
+	SDL_strlcpy(language_string, "#", SDL_arraysize(language_string));
+	if(!SDL_strcasecmp(DEFAULT_LANGUAGE, Lcl_languages[Lcl_current_lang].lang_name)){
+		SDL_strlcat(language_string, "default", SDL_arraysize(language_string));
 	} else {
-		strcat(language_string, Lcl_languages[Lcl_current_lang].lang_name);
+		SDL_strlcat(language_string, Lcl_languages[Lcl_current_lang].lang_name, SDL_arraysize(language_string));
 	}
 	memset(line, 0, 1024);
 
@@ -1322,7 +1317,7 @@ void lcl_ext_setup_pointers()
 		}
 		
 		// if the language matches, we're good to start parsing strings
-		if(!stricmp(language_string, tok)){
+		if(!SDL_strcasecmp(language_string, tok)){
 			found_start = 1;			
 			break;
 		}		
@@ -1337,7 +1332,7 @@ void lcl_ext_setup_pointers()
 
 	string_count = 0;	
 	while(cfgets(line, 1024, Lcl_ext_file)){
-		ret = lcl_ext_lookup_sub(line, NULL, -1);
+		ret = lcl_ext_lookup_sub(line, NULL, 0, -1);
 
 		// do stuff
 		switch(ret & 0x0fffffff){
@@ -1378,11 +1373,11 @@ void lcl_ext_setup_pointers()
 	lcl_ext_close();
 }
 
-void lcl_get_language_name(char *lang_name)
+void lcl_get_language_name(char *lang_name, const int max_len)
 {
-	Assert(LCL_NUM_LANGUAGES == 3);
+	SDL_assert(LCL_NUM_LANGUAGES == 3);
 
-	strcpy(lang_name, Lcl_languages[Lcl_current_lang].lang_name);
+	SDL_strlcpy(lang_name, Lcl_languages[Lcl_current_lang].lang_name, max_len);
 }
 
 // converts german umlauted chars from ASCII to ANSI
@@ -1488,16 +1483,16 @@ void lcl_fix_polish(char *str)
 // For displaying weapon names in german version
 // since we cant actually just change them outright.
 //
-void lcl_translate_wep_name(char *name)
+void lcl_translate_wep_name(char *name, const int max_len)
 {
 	if (!strcmp(name, "Morning Star")) {	
-		strcpy(name, "Morgenstern");
+		SDL_strlcpy(name, "Morgenstern", max_len);
 	} else if (!strcmp(name, "MorningStar")) {
-		strcpy(name, "Morgenstern D");
+		SDL_strlcpy(name, "Morgenstern D", max_len);
 	} else if (!strcmp(name, "UD-8 Kayser")) {
-		strcpy(name, "Kayserstrahl");
+		SDL_strlcpy(name, "Kayserstrahl", max_len);
 	} else if (!strcmp(name, "UD-D Kayser")) {
-		strcpy(name, "Kayserstrahl");
+		SDL_strlcpy(name, "Kayserstrahl", max_len);
 	}
 }
 
@@ -1507,144 +1502,144 @@ void lcl_translate_wep_name(char *name)
 // For displaying ship names in german version
 // since we cant actually just change them outright.
 //
-void lcl_translate_brief_icon_name(char *name)
+void lcl_translate_brief_icon_name(char *name, const int max_len)
 {
 	char *pos;
 	char buf[128];
 
-	if (!stricmp(name, "Subspace Portal")) {	
-		strcpy(name, "Subraum Portal");
+	if (!SDL_strcasecmp(name, "Subspace Portal")) {	
+		SDL_strlcpy(name, "Subraum Portal", max_len);
 
-	} else if (!stricmp(name, "Alpha Wing")) {
-		strcpy(name, "Alpha");
+	} else if (!SDL_strcasecmp(name, "Alpha Wing")) {
+		SDL_strlcpy(name, "Alpha", max_len);
 
-	} else if (!stricmp(name, "Beta Wing")) {
-		strcpy(name, "Beta");
+	} else if (!SDL_strcasecmp(name, "Beta Wing")) {
+		SDL_strlcpy(name, "Beta", max_len);
 
-	} else if (!stricmp(name, "Zeta Wing")) {
-		strcpy(name, "Zeta");
+	} else if (!SDL_strcasecmp(name, "Zeta Wing")) {
+		SDL_strlcpy(name, "Zeta", max_len);
 
-	} else if (!stricmp(name, "Capella Node")) {
-		strcpy(name, "Capella");
+	} else if (!SDL_strcasecmp(name, "Capella Node")) {
+		SDL_strlcpy(name, "Capella", max_len);
 
-	} else if (!stricmp(name, "Hostile")) {
-		strcpy(name, "Gegner");
+	} else if (!SDL_strcasecmp(name, "Hostile")) {
+		SDL_strlcpy(name, "Gegner", max_len);
 
-	} else if (!stricmp(name, "Hostile Craft")) {
-		strcpy(name, "Gegner");
+	} else if (!SDL_strcasecmp(name, "Hostile Craft")) {
+		SDL_strlcpy(name, "Gegner", max_len);
 
-	} else if (!stricmp(name, "Rebel Wing")) {
-		strcpy(name, "Rebellen");
+	} else if (!SDL_strcasecmp(name, "Rebel Wing")) {
+		SDL_strlcpy(name, "Rebellen", max_len);
 
-	} else if (!stricmp(name, "Rebel Fleet")) {
-		strcpy(name, "Rebellenflotte");
+	} else if (!SDL_strcasecmp(name, "Rebel Fleet")) {
+		SDL_strlcpy(name, "Rebellenflotte", max_len);
 
-	} else if (!stricmp(name, "Sentry Gun")) {
-		strcpy(name, "Gesch\x81tz");
+	} else if (!SDL_strcasecmp(name, "Sentry Gun")) {
+		SDL_strlcpy(name, "Gesch\x81tz", max_len);
 
-	} else if (!stricmp(name, "Cargo")) {
-		strcpy(name, "Fracht");
+	} else if (!SDL_strcasecmp(name, "Cargo")) {
+		SDL_strlcpy(name, "Fracht", max_len);
 
-	} else if (!stricmp(name, "Knossos Device")) {
-		strcpy(name, "Knossosger\x84t");
+	} else if (!SDL_strcasecmp(name, "Knossos Device")) {
+		SDL_strlcpy(name, "Knossosger\x84t", max_len);
 	
-	} else if (!stricmp(name, "Support")) {
-		strcpy(name, "Versorger");
+	} else if (!SDL_strcasecmp(name, "Support")) {
+		SDL_strlcpy(name, "Versorger", max_len);
 
-	} else if (!stricmp(name, "Unknown")) {
-		strcpy(name, "Unbekannt");
+	} else if (!SDL_strcasecmp(name, "Unknown")) {
+		SDL_strlcpy(name, "Unbekannt", max_len);
 
-	} else if (!stricmp(name, "Instructor")) {
-		strcpy(name, "Ausbilder");
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
+		SDL_strlcpy(name, "Ausbilder", max_len);
 	
-	} else if (!stricmp(name, "Jump Node")) {
-		strcpy(name, "Sprungknoten");
+	} else if (!SDL_strcasecmp(name, "Jump Node")) {
+		SDL_strlcpy(name, "Sprungknoten", max_len);
 
-	} else if (!stricmp(name, "Escort")) {
-		strcpy(name, "Geleitschutz");
+	} else if (!SDL_strcasecmp(name, "Escort")) {
+		SDL_strlcpy(name, "Geleitschutz", max_len);
 
-	} else if (!stricmp(name, "Asteroid Field")) {
-		strcpy(name, "Asteroidenfeld");
+	} else if (!SDL_strcasecmp(name, "Asteroid Field")) {
+		SDL_strlcpy(name, "Asteroidenfeld", max_len);
 
-	} else if (!stricmp(name, "Enif Station")) {
-		strcpy(name, "Station Enif");
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
+		SDL_strlcpy(name, "Station Enif", max_len);
 
-	} else if (!stricmp(name, "Rally Point")) {
-		strcpy(name, "Sammelpunkt");
+	} else if (!SDL_strcasecmp(name, "Rally Point")) {
+		SDL_strlcpy(name, "Sammelpunkt", max_len);
 
 	} else if ((pos = strstr(name, "Transport")) != NULL) {
 		pos += 9;		// strlen of "transport"
-		strcpy(buf, "Transporter");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Transporter", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		strcpy(buf, "Sprungknoten");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Sprungknoten", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 	
-	} else if (!stricmp(name, "Orion under repair")) {
-		strcpy(name, "Orion wird repariert");
+	} else if (!SDL_strcasecmp(name, "Orion under repair")) {
+		SDL_strlcpy(name, "Orion wird repariert", max_len);
 
 	// SOTY-specific ones below!
 	
-	} else if (!stricmp(name, "Wayfarer Station")) {
-		strcpy(name, "Station Wayfarer");
-	} else if (!stricmp(name, "Enemy")) {
-		strcpy(name, "Gegner");
-	} else if (!stricmp(name, "Supply Depot")) {
-		strcpy(name, "Nachschubdepot");
-	} else if (!stricmp(name, "Fighter Escort")) {
-		strcpy(name, "Jagdschutz");
-	} else if (!stricmp(name, "Shivans")) {
-		strcpy(name, "Shivaner");
-	} else if (!stricmp(name, "NTF Base of Operations")) {
-		strcpy(name, "NTF-Operationsbasis");
-	} else if (!stricmp(name, "NTF Bombers")) {
-		strcpy(name, "NTF-Bomber");
-	} else if (!stricmp(name, "NTF Fighters")) {
-		strcpy(name, "NTF-J\x84ger");
-	} else if (!stricmp(name, "Sentry")) {
-		strcpy(name, "Sperrgesch\x81tz");
-	} else if (!stricmp(name, "Cargo Containers")) {
-		strcpy(name, "Frachtbeh\x84lter");
-	} else if (!stricmp(name, "NTF Reinforcements")) {
-		strcpy(name, "NTF-Verst\x84rkungen");
-	} else if (!stricmp(name, "NTF Base")) {
-		strcpy(name, "NTF-St\x81tzpunkt");
-	} else if (!stricmp(name, "Refugee Convoy")) {
-		strcpy(name, "Fl\x81""chtlingskonvoi");
-	} else if (!stricmp(name, "Food Convoy")) {
-		strcpy(name, "Nachschubkonvoi");
-	} else if (!stricmp(name, "Governor's Shuttle")) {
-		strcpy(name, "F\x84hre des Gouverneurs");
-	} else if (!stricmp(name, "GTVA Patrol")) {
-		strcpy(name, "GTVA-Patrouille");
-	} else if (!stricmp(name, "Escort fighters")) {
-		strcpy(name, "Geleitschutz");
-	} else if (!stricmp(name, "Nagada Outpost")) {
-		strcpy(name, "Nagada-Aussenposten");
-	} else if (!stricmp(name, "Fighters")) {
-		strcpy(name, "J\x84ger");
-	} else if (!stricmp(name, "Bombers")) {
-		strcpy(name, "Bomber");
-	} else if (!stricmp(name, "Enemy Destroyers")) {
-		strcpy(name, "Feindliche Zerst\x94rer");
-	} else if (!stricmp(name, "Ross 128 System")) {
-		strcpy(name, "System Ross 128");
-	} else if (!stricmp(name, "Knossos Station")) {
-		strcpy(name, "Knossos-Station");
-	} else if (!stricmp(name, "Transporters")) {
-		strcpy(name, "Transporter");
-	} else if (!stricmp(name, "Pirates?")) {
-		strcpy(name, "Piraten?");
-	} else if (!stricmp(name, "Escorts")) {
-		strcpy(name, "Geleitschutz");
-	} else if (!stricmp(name, "Shivan Fighters")) {
-		strcpy(name, "J\x84ger");
-	} else if (!stricmp(name, "Shivan Territory")) {
-		strcpy(name, "Shivaner");
+	} else if (!SDL_strcasecmp(name, "Wayfarer Station")) {
+		SDL_strlcpy(name, "Station Wayfarer", max_len);
+	} else if (!SDL_strcasecmp(name, "Enemy")) {
+		SDL_strlcpy(name, "Gegner", max_len);
+	} else if (!SDL_strcasecmp(name, "Supply Depot")) {
+		SDL_strlcpy(name, "Nachschubdepot", max_len);
+	} else if (!SDL_strcasecmp(name, "Fighter Escort")) {
+		SDL_strlcpy(name, "Jagdschutz", max_len);
+	} else if (!SDL_strcasecmp(name, "Shivans")) {
+		SDL_strlcpy(name, "Shivaner", max_len);
+	} else if (!SDL_strcasecmp(name, "NTF Base of Operations")) {
+		SDL_strlcpy(name, "NTF-Operationsbasis", max_len);
+	} else if (!SDL_strcasecmp(name, "NTF Bombers")) {
+		SDL_strlcpy(name, "NTF-Bomber", max_len);
+	} else if (!SDL_strcasecmp(name, "NTF Fighters")) {
+		SDL_strlcpy(name, "NTF-J\x84ger", max_len);
+	} else if (!SDL_strcasecmp(name, "Sentry")) {
+		SDL_strlcpy(name, "Sperrgesch\x81tz", max_len);
+	} else if (!SDL_strcasecmp(name, "Cargo Containers")) {
+		SDL_strlcpy(name, "Frachtbeh\x84lter", max_len);
+	} else if (!SDL_strcasecmp(name, "NTF Reinforcements")) {
+		SDL_strlcpy(name, "NTF-Verst\x84rkungen", max_len);
+	} else if (!SDL_strcasecmp(name, "NTF Base")) {
+		SDL_strlcpy(name, "NTF-St\x81tzpunkt", max_len);
+	} else if (!SDL_strcasecmp(name, "Refugee Convoy")) {
+		SDL_strlcpy(name, "Fl\x81""chtlingskonvoi", max_len);
+	} else if (!SDL_strcasecmp(name, "Food Convoy")) {
+		SDL_strlcpy(name, "Nachschubkonvoi", max_len);
+	} else if (!SDL_strcasecmp(name, "Governor's Shuttle")) {
+		SDL_strlcpy(name, "F\x84hre des Gouverneurs", max_len);
+	} else if (!SDL_strcasecmp(name, "GTVA Patrol")) {
+		SDL_strlcpy(name, "GTVA-Patrouille", max_len);
+	} else if (!SDL_strcasecmp(name, "Escort fighters")) {
+		SDL_strlcpy(name, "Geleitschutz", max_len);
+	} else if (!SDL_strcasecmp(name, "Nagada Outpost")) {
+		SDL_strlcpy(name, "Nagada-Aussenposten", max_len);
+	} else if (!SDL_strcasecmp(name, "Fighters")) {
+		SDL_strlcpy(name, "J\x84ger", max_len);
+	} else if (!SDL_strcasecmp(name, "Bombers")) {
+		SDL_strlcpy(name, "Bomber", max_len);
+	} else if (!SDL_strcasecmp(name, "Enemy Destroyers")) {
+		SDL_strlcpy(name, "Feindliche Zerst\x94rer", max_len);
+	} else if (!SDL_strcasecmp(name, "Ross 128 System")) {
+		SDL_strlcpy(name, "System Ross 128", max_len);
+	} else if (!SDL_strcasecmp(name, "Knossos Station")) {
+		SDL_strlcpy(name, "Knossos-Station", max_len);
+	} else if (!SDL_strcasecmp(name, "Transporters")) {
+		SDL_strlcpy(name, "Transporter", max_len);
+	} else if (!SDL_strcasecmp(name, "Pirates?")) {
+		SDL_strlcpy(name, "Piraten?", max_len);
+	} else if (!SDL_strcasecmp(name, "Escorts")) {
+		SDL_strlcpy(name, "Geleitschutz", max_len);
+	} else if (!SDL_strcasecmp(name, "Shivan Fighters")) {
+		SDL_strlcpy(name, "J\x84ger", max_len);
+	} else if (!SDL_strcasecmp(name, "Shivan Territory")) {
+		SDL_strlcpy(name, "Shivaner", max_len);
 	}
 }
 
@@ -1654,85 +1649,85 @@ void lcl_translate_brief_icon_name(char *name)
 // For displaying ship names in polish version
 // since we cant actually just change them outright.
 //
-void lcl_translate_brief_icon_name_pl(char *name)
+void lcl_translate_brief_icon_name_pl(char *name, const int max_len)
 {
 	char *pos;
 	char buf[128];
 
-	if (!stricmp(name, "Subspace Portal")) {	
-		strcpy(name, "Portal podprz.");
+	if (!SDL_strcasecmp(name, "Subspace Portal")) {	
+		SDL_strlcpy(name, "Portal podprz.", max_len);
 
-	} else if (!stricmp(name, "Alpha Wing")) {
-		strcpy(name, "Alfa");
+	} else if (!SDL_strcasecmp(name, "Alpha Wing")) {
+		SDL_strlcpy(name, "Alfa", max_len);
 
-	} else if (!stricmp(name, "Beta Wing")) {
-		strcpy(name, "Beta");
+	} else if (!SDL_strcasecmp(name, "Beta Wing")) {
+		SDL_strlcpy(name, "Beta", max_len);
 
-	} else if (!stricmp(name, "Zeta Wing")) {
-		strcpy(name, "Zeta");
+	} else if (!SDL_strcasecmp(name, "Zeta Wing")) {
+		SDL_strlcpy(name, "Zeta", max_len);
 
-	} else if (!stricmp(name, "Capella Node")) {
-		strcpy(name, "Capella");
+	} else if (!SDL_strcasecmp(name, "Capella Node")) {
+		SDL_strlcpy(name, "Capella", max_len);
 
-	} else if (!stricmp(name, "Hostile")) {
-		strcpy(name, "Wr\xF3g");
+	} else if (!SDL_strcasecmp(name, "Hostile")) {
+		SDL_strlcpy(name, "Wr\xF3g", max_len);
 
-	} else if (!stricmp(name, "Hostile Craft")) {
-		strcpy(name, "Wr\xF3g");
+	} else if (!SDL_strcasecmp(name, "Hostile Craft")) {
+		SDL_strlcpy(name, "Wr\xF3g", max_len);
 
-	} else if (!stricmp(name, "Rebel Wing")) {
-		strcpy(name, "Rebelianci");
+	} else if (!SDL_strcasecmp(name, "Rebel Wing")) {
+		SDL_strlcpy(name, "Rebelianci", max_len);
 
-	} else if (!stricmp(name, "Rebel Fleet")) {
-		strcpy(name, "Flota Rebelii");
+	} else if (!SDL_strcasecmp(name, "Rebel Fleet")) {
+		SDL_strlcpy(name, "Flota Rebelii", max_len);
 
-	} else if (!stricmp(name, "Sentry Gun")) {
-		strcpy(name, "Dzia\xB3o str.");
+	} else if (!SDL_strcasecmp(name, "Sentry Gun")) {
+		SDL_strlcpy(name, "Dzia\xB3o str.", max_len);
 
-	} else if (!stricmp(name, "Cargo")) {
-		strcpy(name, "\xA3\x61\x64unek");
+	} else if (!SDL_strcasecmp(name, "Cargo")) {
+		SDL_strlcpy(name, "\xA3\x61\x64unek", max_len);
 
-	} else if (!stricmp(name, "Knossos Device")) {
-		strcpy(name, "Urz. Knossos");
+	} else if (!SDL_strcasecmp(name, "Knossos Device")) {
+		SDL_strlcpy(name, "Urz. Knossos, max_len", max_len);
 	
-	} else if (!stricmp(name, "Support")) {
-		strcpy(name, "Wsparcie");
+	} else if (!SDL_strcasecmp(name, "Support")) {
+		SDL_strlcpy(name, "Wsparcie", max_len);
 
-	} else if (!stricmp(name, "Unknown")) {
-		strcpy(name, "Nieznany");
+	} else if (!SDL_strcasecmp(name, "Unknown")) {
+		SDL_strlcpy(name, "Nieznany", max_len);
 
-	} else if (!stricmp(name, "Instructor")) {
-		strcpy(name, "Instruktor");
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
+		SDL_strlcpy(name, "Instruktor", max_len);
 	
-	} else if (!stricmp(name, "Jump Node")) {
-		strcpy(name, "W\xEAze\xB3 skokowy");
+	} else if (!SDL_strcasecmp(name, "Jump Node")) {
+		SDL_strlcpy(name, "W\xEAze\xB3 skokowy", max_len);
 
-	} else if (!stricmp(name, "Escort")) {
-		strcpy(name, "Eskorta");
+	} else if (!SDL_strcasecmp(name, "Escort")) {
+		SDL_strlcpy(name, "Eskorta", max_len);
 
-	} else if (!stricmp(name, "Asteroid Field")) {
-		strcpy(name, "Pole asteroid");
+	} else if (!SDL_strcasecmp(name, "Asteroid Field")) {
+		SDL_strlcpy(name, "Pole asteroid", max_len);
 
-	} else if (!stricmp(name, "Enif Station")) {
-		strcpy(name, "Stacja Enif");
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
+		SDL_strlcpy(name, "Stacja Enif", max_len);
 
-	} else if (!stricmp(name, "Rally Point")) {
-		strcpy(name, "Pkt zborny");
+	} else if (!SDL_strcasecmp(name, "Rally Point")) {
+		SDL_strlcpy(name, "Pkt zborny", max_len);
 
 	} else if ((pos = strstr(name, "Transport")) != NULL) {
 		pos += 9;		// strlen of "transport"
-		strcpy(buf, "Transporter");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Transporter", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		strcpy(buf, "W\xEAze\xB3 skokowy");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "W\xEAze\xB3 skokowy", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 	
-	} else if (!stricmp(name, "Orion under repair")) {
-		strcpy(name, "Naprawiany Orion");
+	} else if (!SDL_strcasecmp(name, "Orion under repair")) {
+		SDL_strlcpy(name, "Naprawiany Orion", max_len);
 	}
 }
 
@@ -1742,10 +1737,10 @@ void lcl_translate_brief_icon_name_pl(char *name)
 // For displaying ship names in german version in the briefing
 // since we cant actually just change them outright.
 //
-void lcl_translate_ship_name(char *name)
+void lcl_translate_ship_name(char *name, const int max_len)
 {
 	if (!strcmp(name, "GTDR Amazon Advanced")) {	
-		strcpy(name, "GTDR Amazon VII");
+		SDL_strlcpy(name, "GTDR Amazon VII", max_len);
 	} 
 }
 
@@ -1755,49 +1750,49 @@ void lcl_translate_ship_name(char *name)
 // For displaying ship names in german version in the targetbox
 // since we cant actually just change them outright.
 //
-void lcl_translate_targetbox_name(char *name)
+void lcl_translate_targetbox_name(char *name, const int max_len)
 {
 	char *pos;
 	char buf[128];
 	
 	if ((pos = strstr(name, "Sentry")) != NULL) {
 		pos += 6;		// strlen of "sentry"
-		strcpy(buf, "Sperrgesch\x81tz");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Sperrgesch\x81tz", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Support")) != NULL) {
 		pos += 7;		// strlen of "support"
-		strcpy(buf, "Versorger");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Versorger", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Unknown")) != NULL) {
 		pos += 7;		// strlen of "unknown"
-		strcpy(buf, "Unbekannt");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Unbekannt", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Drone")) != NULL) {
 		pos += 5;		// strlen of "drone"
-		strcpy(buf, "Drohne");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Drohne", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		strcpy(buf, "Sprungknoten");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Sprungknoten", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
-	} else if (!stricmp(name, "Instructor")) {
-		strcpy(name, "Ausbilder");
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
+		SDL_strlcpy(name, "Ausbilder", max_len);
 
-	} else if (!stricmp(name, "NTF Vessel")) {
-		strcpy(name, "NTF-Schiff");
+	} else if (!SDL_strcasecmp(name, "NTF Vessel")) {
+		SDL_strlcpy(name, "NTF-Schiff", max_len);
 
-	} else if (!stricmp(name, "Enif Station")) {
-		strcpy(name, "Station Enif");
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
+		SDL_strlcpy(name, "Station Enif", max_len);
 	}
 }
 
@@ -1807,48 +1802,48 @@ void lcl_translate_targetbox_name(char *name)
 // For displaying ship names in polish version in the targetbox
 // since we cant actually just change them outright.
 //
-void lcl_translate_targetbox_name_pl(char *name)
+void lcl_translate_targetbox_name_pl(char *name, const int max_len)
 {
 	char *pos;
 	char buf[128];
 	
 	if ((pos = strstr(name, "Sentry")) != NULL) {
 		pos += 6;		// strlen of "sentry"
-		strcpy(buf, "Stra\xBFnik");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Stra\xBFnik", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Support")) != NULL) {
 		pos += 7;		// strlen of "support"
-		strcpy(buf, "Wsparcie");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Wsparcie", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Unknown")) != NULL) {
 		pos += 7;		// strlen of "unknown"
-		strcpy(buf, "Nieznany");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Nieznany", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Drone")) != NULL) {
 		pos += 5;		// strlen of "drone"
-		strcpy(buf, "Sonda");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "Sonda", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
 	} else if ((pos = strstr(name, "Jump Node")) != NULL) {
 		pos += 9;		// strlen of "jump node"
-		strcpy(buf, "W\xEAze\xB3 skokowy");
-		strcat(buf, pos);
-		strcpy(name, buf);
+		SDL_strlcpy(buf, "W\xEAze\xB3 skokowy", SDL_arraysize(buf));
+		SDL_strlcat(buf, pos, SDL_arraysize(buf));
+		SDL_strlcpy(name, buf, max_len);
 
-	} else if (!stricmp(name, "Instructor")) {
-		strcpy(name, "Instruktor");
+	} else if (!SDL_strcasecmp(name, "Instructor")) {
+		SDL_strlcpy(name, "Instruktor", max_len);
 
-	} else if (!stricmp(name, "NTF Vessel")) {
-		strcpy(name, "Okr\xEAt NTF");
+	} else if (!SDL_strcasecmp(name, "NTF Vessel")) {
+		SDL_strlcpy(name, "Okr\xEAt NTF", max_len);
 
-	} else if (!stricmp(name, "Enif Station")) {
-		strcpy(name, "Stacja Enif");
+	} else if (!SDL_strcasecmp(name, "Enif Station")) {
+		SDL_strlcpy(name, "Stacja Enif", max_len);
 	}
 }

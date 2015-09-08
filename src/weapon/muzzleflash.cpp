@@ -117,52 +117,56 @@ void mflash_game_init()
 	float offset, radius;
 	int idx;
 
-	read_file_text("mflash.tbl");
-	reset_parse();
+	try {
+		read_file_text("mflash.tbl");
+		reset_parse();
 
-	// header
-	required_string("#Muzzle flash types");
+		// header
+		required_string("#Muzzle flash types");
 
-	// read em in
-	Num_mflash_types = 0;	
-	while(optional_string("$Mflash:")){
-		if(Num_mflash_types < MAX_MUZZLE_FLASH_TYPES){
-			m = &Mflash_info[Num_mflash_types++];
-		} else {
-			m = &bogus;
-		}
-		memset(m, 0, sizeof(mflash_info));
-		for(idx=0; idx<MAX_MFLASH_BLOBS; idx++){
-			m->blob_anims[idx] = -1;
-		}
+		// read em in
+		Num_mflash_types = 0;
+		while(optional_string("$Mflash:")){
+			if(Num_mflash_types < MAX_MUZZLE_FLASH_TYPES){
+				m = &Mflash_info[Num_mflash_types++];
+			} else {
+				m = &bogus;
+			}
+			memset(m, 0, sizeof(mflash_info));
+			for(idx=0; idx<MAX_MFLASH_BLOBS; idx++){
+				m->blob_anims[idx] = -1;
+			}
 
-		required_string("+name:");
-		stuff_string(m->name, F_NAME, NULL);
+			required_string("+name:");
+			stuff_string(m->name, F_NAME, NULL);
 
-		// read in all blobs
-		m->num_blobs = 0;
-		while(optional_string("+blob_name:")){
-			stuff_string(name, F_NAME, NULL, MAX_MFLASH_NAME_LEN);
+			// read in all blobs
+			m->num_blobs = 0;
+			while(optional_string("+blob_name:")){
+				stuff_string(name, F_NAME, NULL, MAX_MFLASH_NAME_LEN);
 
-			required_string("+blob_offset:");
-			stuff_float(&offset);
+				required_string("+blob_offset:");
+				stuff_float(&offset);
 
-			required_string("+blob_radius:");
-			stuff_float(&radius);
+				required_string("+blob_radius:");
+				stuff_float(&radius);
 
-			// if we have room left
-			if(m->num_blobs < MAX_MFLASH_BLOBS){
-				strcpy(m->blob_names[m->num_blobs], name);
-				m->blob_offset[m->num_blobs] = offset;
-				m->blob_radius[m->num_blobs] = radius;				
+				// if we have room left
+				if(m->num_blobs < MAX_MFLASH_BLOBS){
+					SDL_strlcpy(m->blob_names[m->num_blobs], name, MAX_MFLASH_NAME_LEN);
+					m->blob_offset[m->num_blobs] = offset;
+					m->blob_radius[m->num_blobs] = radius;
 
-				m->num_blobs++;
+					m->num_blobs++;
+				}
 			}
 		}
-	}
 
-	// close
-	required_string("#end");
+		// close
+		required_string("#end");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'mflash.tbl'\r\nError code = %i.\r\n", (int)rval);
+	}
 #else
 	// hardcoded FS1 values
 	int idx;
@@ -177,28 +181,28 @@ void mflash_game_init()
 		m->blob_anims[idx] = -1;
 	}
 
-	strncpy(m->name, "mflash_small", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->name, "mflash_small", MAX_MFLASH_NAME_LEN);
 
 	m->num_blobs = 4;
-	Assert(m->num_blobs <= MAX_MFLASH_BLOBS);
+	SDL_assert(m->num_blobs <= MAX_MFLASH_BLOBS);
 
 	idx = 0;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 1.0f;
 	m->blob_radius[idx] = 6.0f;
 
 	idx++;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 4.5f;
 	m->blob_radius[idx] = 4.0f;
 
 	idx++;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 6.0f;
 	m->blob_radius[idx] = 3.0f;
 
 	idx++;
-	strncpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
+	SDL_strlcpy(m->blob_names[idx], "expmissilehit1", MAX_MFLASH_NAME_LEN);
 	m->blob_offset[idx] = 8.5f;
 	m->blob_radius[idx] = 3.0f;
 #endif
@@ -228,7 +232,7 @@ void mflash_level_init()
 		for(idx=0; idx<Mflash_info[i].num_blobs; idx++){
 			Mflash_info[i].blob_anims[idx] = -1;
 			Mflash_info[i].blob_anims[idx] = bm_load_animation(Mflash_info[i].blob_names[idx], &num_frames, &fps, 1);
-			Assert(Mflash_info[i].blob_anims[idx] >= 0);
+			SDL_assert(Mflash_info[i].blob_anims[idx] >= 0);
 		}
 	}
 }
@@ -266,7 +270,7 @@ void mflash_create(vector *gun_pos, vector *gun_dir, int mflash_type)
 
 	// Find next available trail
 	mflashp = GET_FIRST(&Mflash_free_list);
-	Assert( mflashp != &Mflash_free_list );		// shouldn't have the dummy element
+	SDL_assert( mflashp != &Mflash_free_list );		// shouldn't have the dummy element
 
 	// remove trailp from the free list
 	list_remove( &Mflash_free_list, mflashp );
@@ -326,7 +330,7 @@ void mflash_process_all()
 			// decrement counter
 			Num_mflash--;
 
-			Assert(Num_mflash >= 0);
+			SDL_assert(Num_mflash >= 0);
 			
 			mflashp = next_one;			
 		} else {	
@@ -347,7 +351,7 @@ int mflash_lookup(char *name)
 
 	// look it up
 	for(idx=0; idx<Num_mflash_types; idx++){
-		if(!stricmp(name, Mflash_info[idx].name)){
+		if(!SDL_strcasecmp(name, Mflash_info[idx].name)){
 			return idx;
 		}
 	}

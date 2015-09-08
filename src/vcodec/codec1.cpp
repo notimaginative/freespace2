@@ -5,14 +5,10 @@
 //
 // Written by Matthew F. Storch, Ph.D., copyright (c) 1998 Volition Inc.
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#endif
 
 #include "pstypes.h"
 
 #include <math.h>
-#include <assert.h>
 #include "codec1.h"
 
 
@@ -76,21 +72,21 @@ static void SkipEveryOther(t_Sample* bufIn, t_Sample* bufOut, int size);
 static void InterpolateEveryOther(t_Sample* bufIn, t_Sample* bufOut, int size);
 
 #if defined(CODEC_DEMO)
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level, t_Sample*& levels, int*& modes, 
                     int samples[9], int storage[9]);
 #else
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level);
 #endif
 
-static void DecodeRL(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeRL(int packetPos, t_Sample*& p, t_Sample*& q,
                      t_Sample* bufEnd, t_Sample* bufOutEnd);
-static void DecodeHF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeHF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd);
-static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeNom(int packetPos, t_Sample*& p, t_Sample*& q,
                       unsigned int mode, t_Sample* bufOutEnd);
-static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeMF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd);
 static void InitLowPassFilter(int QoS, double LPF_Coef[LPF_NUM_POINTS],
 							  char LPF_CoefTimesSample[LPF_NUM_POINTS][256]);
@@ -114,7 +110,7 @@ extern "C"
 #define lpc10init()
 #define lpc10encode(in, out, inlen) 0
 #define lpc10decode(in, out, inlen) { out = 0; }
-#define AssertLPC10Available() assert(0)
+#define AssertLPC10Available() SDL_assert(0)
 #endif // defined(USE_LPC10)
 
 //
@@ -159,7 +155,6 @@ t_Sample* TempEncoderBuf2 = NULL;
 
 void InitDecoder(int QoS, t_Sample* tempBuf) 
 { 
-	QoS = QoS; // just to shut compiler up
     TempDecoderBuf = tempBuf;
     lpc10init(); // call unconditionally because we don't know what kind of
                  // coded packets we might receive
@@ -451,27 +446,27 @@ int Encode(t_Sample* bufIn, t_Sample* bufOut, int sizeIn, int sizeOut,
 #pragma pack(1)
 #define PACKED
 #else
-#define PACKED __attribute__((packed))
+#define PACKED __attribute__((packed, aligned(2)))
 #endif
 
 // most general notion of a packet pair
 struct t_PacketPair
 {
-    unsigned long Mode1   : 3;
-    unsigned long Mode1Ex : 1;
-    unsigned long Data1   : 8;
-    unsigned long Mode0   : 3;
-    unsigned long Mode0Ex : 1;
-    unsigned long Data0   : 8;
+    unsigned int Mode1   : 3;
+    unsigned int Mode1Ex : 1;
+    unsigned int Data1   : 8;
+    unsigned int Mode0   : 3;
+    unsigned int Mode0Ex : 1;
+    unsigned int Data0   : 8;
 } PACKED;
 
 // nominal packet pair
 struct t_PacketPairNom
 {
-    unsigned long Mode1 : 3;
-    unsigned long Data1 : 9;
-    unsigned long Mode0 : 3;
-    unsigned long Data0 : 9;
+    unsigned int Mode1 : 3;
+    unsigned int Data1 : 9;
+    unsigned int Mode0 : 3;
+    unsigned int Data0 : 9;
 } PACKED;
 
 // run-length packet, case 1 
@@ -508,24 +503,24 @@ struct t_PacketHFData
 // run-length packet, case 0
 struct t_PacketRL0
 {
-    unsigned long Mode1   : 3; // mode of previous packet in pair
-    unsigned long Data1   : 9; // data of previous packet in pair
-    unsigned long Mode0   : 3; // mode of this packet (always 0)
-    unsigned long Mode0Ex : 1; // extra bit to distinguish RL & HF (always 0)
-    unsigned long Length  : 8; // length of run
+    unsigned int Mode1   : 3; // mode of previous packet in pair
+    unsigned int Data1   : 9; // data of previous packet in pair
+    unsigned int Mode0   : 3; // mode of this packet (always 0)
+    unsigned int Mode0Ex : 1; // extra bit to distinguish RL & HF (always 0)
+    unsigned int Length  : 8; // length of run
 } PACKED;
 
 // high-frequency packet, case 0
 struct t_PacketHF0
 {
-    unsigned long Mode1   : 3; // mode of previous packet in pair
-    unsigned long Data1   : 9; // data of previous packet in pair
-    unsigned long Mode0   : 3; // mode of this packet (always 0)
-    unsigned long Mode0Ex : 1; // extra bit to distinguish RL & HF (always 1)
-	unsigned long Table   : 1; // 1 ==> DataT is lookup table number
-	unsigned long Data0   : 3; // absolute sample data
-	unsigned long DataT   : 3; // absolute sample data or lookup table number
-	unsigned long Unused  : 1;
+    unsigned int Mode1   : 3; // mode of previous packet in pair
+    unsigned int Data1   : 9; // data of previous packet in pair
+    unsigned int Mode0   : 3; // mode of this packet (always 0)
+    unsigned int Mode0Ex : 1; // extra bit to distinguish RL & HF (always 1)
+	unsigned int Table   : 1; // 1 ==> DataT is lookup table number
+	unsigned int Data0   : 3; // absolute sample data
+	unsigned int DataT   : 3; // absolute sample data or lookup table number
+	unsigned int Unused  : 1;
 } PACKED;
 
 // medium-frequency packet, case 1
@@ -540,12 +535,12 @@ struct t_PacketMF1
 // medium-frequency packet, case 0
 struct t_PacketMF0
 {
-    unsigned long  Mode1 : 3; // mode of previous packet in pair
-    unsigned long  Data1 : 9; // data of previous packet in pair
-    unsigned long  Mode0 : 3; // mode of this packet (always 7)
-    unsigned long  Mult  : 1; // 0 ==> mult data by 1, 1 ==> mult data by 2
-    long           DataX : 2; // not currently used
-    long           Data0 : 6; // total rise or fall over next 4 samples
+    unsigned int  Mode1 : 3; // mode of previous packet in pair
+    unsigned int  Data1 : 9; // data of previous packet in pair
+    unsigned int  Mode0 : 3; // mode of this packet (always 7)
+    unsigned int  Mult  : 1; // 0 ==> mult data by 1, 1 ==> mult data by 2
+    int           DataX : 2; // not currently used
+    int           Data0 : 6; // total rise or fall over next 4 samples
 } PACKED;
 
 // restore state of compiler padding of structures
@@ -688,7 +683,7 @@ int DecTable[8][8] =
 static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 {
     unsigned int mode, modeEx;
-    BOOL packetPos = 1; // 1 = first packet of packet pair, 0 = second
+	int packetPos = 1; // 1 = first packet of packet pair, 0 = second
     t_Sample* bufEnd = bufIn + size - 1;
     t_Sample* bufOutEnd = bufOut + sizeOut - 1;
     t_Sample* p = bufIn;  // current position in input buffer
@@ -742,7 +737,7 @@ static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         int leftIn = bufEnd - p,
             leftOut = bufOutEnd - q;
         char str[80];
-        sprintf(str, "%d bytes left in source, %d bytes left in dest", 
+		SDL_snprintf(str, SDL_arraysize(str), "%d bytes left in source, %d bytes left in dest",
                 leftIn, leftOut);
         AfxMessageBox(str);
         
@@ -751,7 +746,7 @@ static void Decode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 }
 
 // Run-length decoder.  Very straightforward.
-static void DecodeRL(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeRL(int packetPos, t_Sample*& p, t_Sample*& q,
                      t_Sample* bufEnd, t_Sample* bufOutEnd)
 {
     int len;
@@ -787,7 +782,7 @@ static void DecodeRL(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
 // High-frequency decoder.  Each sample is the data value for that sample
 // multiplied by the current multiplier.
-static void DecodeHF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeHF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd)
 {
     static unsigned int table = 1;
@@ -855,7 +850,7 @@ static void DecodeHF(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
 // Nominal packet decoder.  Each sample is equal to the previous sample
 // +/- an offset.
-static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q,
+static void DecodeNom(int packetPos, t_Sample*& p, t_Sample*& q,
                       unsigned int mode, t_Sample* bufOutEnd)
 {
     unsigned int data;
@@ -897,10 +892,10 @@ static void DecodeNom(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
 // Medium-frequency decoder.  Uses a straight line to approximate 4 
 // consecutive samples.
-static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q, 
+static void DecodeMF(int packetPos, t_Sample*& p, t_Sample*& q,
 					 t_Sample* bufOutEnd)
 {
-    unsigned int mult, data;
+	unsigned int data; //, mult;
     t_Sample level = *(q-1);
 
 	if (q > bufOutEnd - 4)
@@ -911,7 +906,7 @@ static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q,
 
     if (packetPos)
     {
-        mult = ((t_PacketMF1*)p)->Mult; // currently unused
+		//mult = ((t_PacketMF1*)p)->Mult; // currently unused
         data = ((t_PacketMF1*)p)->Data1; 
         // Make each of the 4 points is computed in a way equivalent to that
         // used in the encoder.
@@ -926,7 +921,7 @@ static void DecodeMF(BOOL packetPos, t_Sample*& p, t_Sample*& q,
     }
     else
     {
-        mult = ((t_PacketMF0*)p)->Mult; // currently unused
+		//mult = ((t_PacketMF0*)p)->Mult; // currently unused
         data = ((t_PacketMF0*)p)->Data0;
 
         p += sizeof(t_PacketMF0);
@@ -1039,14 +1034,14 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         smin, smax,         // min and max of current set of samples
         hist[CUTOFF*2 + 1], // histogram of sample-to-sample deltas
         upMove, downMove;   // total up/down deltas
-    BOOL packetPos = 1; // 1 = first packet of packet pair, 0 = second
+	int packetPos = 1; // 1 = first packet of packet pair, 0 = second
 	int tableNum = 0;
 
 
-    assert(sizeof(t_PacketRL1) == 2);
-    assert(sizeof(t_PacketHF1) == 2);
-    assert(sizeof(t_PacketHFData) == 2);
-    assert(sizeof(t_PacketHF0) == 4);
+    SDL_assert(sizeof(t_PacketRL1) == 2);
+    SDL_assert(sizeof(t_PacketHF1) == 2);
+    SDL_assert(sizeof(t_PacketHFData) == 2);
+    SDL_assert(sizeof(t_PacketHF0) == 4);
 
     // First byte in encoded data is unencoded (literal mode) initial level.
     level = *out++ = *in++; 
@@ -1155,7 +1150,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         // is the most efficient.
         else if (upMove <= SMALL_MOVE3 && downMove <= SMALL_MOVE3)
         { // low frequency mode
-            BOOL runLengthMode = FALSE;
+			int runLengthMode = FALSE;
             if (hist[CUTOFF] == 9)
             { // possible 0-run starting; check ahead
 
@@ -1176,10 +1171,10 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                         packet.ModeEx = 0;
                         packet.Length = (unsigned short)len;
                         *(t_PacketRL1*)out = packet;
-                        out += sizeof packet;
+                        out += sizeof(packet);
                         // packetPos remains at 1
                       #if defined(CODEC_DEMO)
-                        samples[0] += len;  storage[0] += 2*sizeof packet;
+                        samples[0] += len;  storage[0] += 2*sizeof(packet);
                       #endif
                     }
                     else
@@ -1189,10 +1184,10 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                         packet.Mode0Ex = 0;
                         packet.Length = len;
                         *(t_PacketRL0*)out = packet;
-                        out += 3; // sizeof packet;
+                        out += 3; // sizeof(packet);
                         packetPos = 1;
                       #if defined(CODEC_DEMO)
-                        samples[0] += len;  storage[0] += 3; // sizeof packet;
+                        samples[0] += len;  storage[0] += 3; // sizeof(packet};
                       #endif
                     }
                     in += len;
@@ -1280,8 +1275,8 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         { // medium frequency mode
           #if defined(CODEC_DEMO)
             int temp1;
-          #endif
             int temp2;
+		  #endif
             in += 4;
             if (packetPos)
             {
@@ -1289,14 +1284,16 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 packet.Mode = e_emMF;
                 packet.Mult = 0; //!!! should implement .Mult
                 packet.Data1 = delta;
+			  #if defined(CODEC_DEMO)
                 temp2 = level;
+			  #endif
                 level += packet.Data1;
                 delta = short(in[3] - level);
                 if (delta > 31)       packet.Data0 = 31;
                 else if (delta < -32) packet.Data0 = -32;
                 else                  packet.Data0 = delta;
                 *(t_PacketMF1*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
                 in += 4;
 
               #if defined(CODEC_DEMO)
@@ -1312,7 +1309,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 assert(temp2 == level + packet.Data0);
 
                 for (i = 0; i < 8; i++) *modes++ = 7;
-                samples[7] += 8;  storage[7] += 2*sizeof packet;
+                samples[7] += 8;  storage[7] += 2*sizeof(packet);
               #endif
 
                 level += packet.Data0;
@@ -1324,7 +1321,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 packet.DataX = 0;
                 packet.Data0 = delta;
                 *(t_PacketMF0*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
 
               #if defined(CODEC_DEMO)
                 temp2 = level;
@@ -1335,7 +1332,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 assert(temp2 == level + packet.Data0);
 
                 for (i = 0; i < 4; i++) *modes++ = 7;
-                samples[7] += 4;  storage[7] += 3; // sizeof packet;
+                samples[7] += 4;  storage[7] += 3; // sizeof(packet);
               #endif
 
                 level += packet.Data0; 
@@ -1367,7 +1364,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				packet.Data0 = (unsigned short)(EncTable[table][*in]);
 				data0 = *in++;
                 *(t_PacketHF1*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
 
               #if defined(CODEC_DEMO)
 				*levels++ = t_Sample(DecTable[table][packet.Data2] + ZERO);
@@ -1376,7 +1373,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
                 *modes++ = 8; 
 				*modes++ = 8;
 				*modes++ = 8;
-				samples[8] += 3;  storage[8] += 2*sizeof packet;
+				samples[8] += 3;  storage[8] += 2*sizeof(packet);
               #endif
             }
             else
@@ -1401,12 +1398,12 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 					finalPacketData = packet.DataT = EncTable[table = tableNum][*in++];
 				}
                 *(t_PacketHF0*)out = packet;
-                out += 3; // sizeof packet;
+                out += 3; // sizeof(packet);
 
               #if defined(CODEC_DEMO)
 				*levels++ = t_Sample(DecTable[table][packet.Data0] + ZERO);
                 *modes++ = 8;
-                samples[8] += 1;  storage[8] += 3; // sizeof packet;
+                samples[8] += 1;  storage[8] += 3; // sizeof(packet);
 				if (packet.Table == 0)
 				{
 					*levels++ = t_Sample(DecTable[table][packet.DataT] + ZERO);
@@ -1483,7 +1480,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				tableNum = table;
 
                 *(t_PacketHFData*)out = packet;
-                out += sizeof packet;
+                out += sizeof(packet);
 
               #if defined(CODEC_DEMO)
 				*levels++ = t_Sample(DecTable[table][packet.Data3] + ZERO);
@@ -1491,7 +1488,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				*levels++ = t_Sample(DecTable[table][packet.Data1] + ZERO);
 				*levels++ = t_Sample(DecTable[table][packet.Data0] + ZERO);
                 *modes++ = 8; *modes++ = 8; *modes++ = 8; *modes++ = 8;
-                samples[8] += 4;  storage[8] += 2*sizeof packet;
+                samples[8] += 4;  storage[8] += 2*sizeof(packet);
 				if (packet.Table == 0)
 				{
 					*levels++ = t_Sample(DecTable[table][packet.DataT] + ZERO);
@@ -1547,6 +1544,8 @@ static int ComputeNomData(t_Sample*& in, const int deltas[], int& level)
 // esi in
 // ebp data
 
+//#define CODEC1_USE_ASM
+
 #if defined(CODEC_DEMO)
 static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level,
                           t_Sample*& levels)
@@ -1554,7 +1553,7 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level,
 static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
 #endif
 {
-#ifndef PLAT_UNIX
+#ifdef CODEC1_USE_ASM
     int data;
     __asm
     {
@@ -1611,8 +1610,26 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
     }
     return data;
 #else
-	STUB_FUNCTION;
-	return 0;
+    int data = 0;
+
+    for (int i = 0; i < 9; i++, inp++)
+    {
+        if (level+deltas[0] < *inp)
+        {
+            data = (data << 1) | 1;
+            level += deltas[1];
+        }
+        else
+        {
+            data <<= 1;
+            level += deltas[0];
+        }
+        #if defined(CODEC_DEMO)
+            *levels++ = t_Sample(level);
+        #endif
+    }
+
+    return data;
 #endif	    
 }
 
@@ -1623,12 +1640,12 @@ static int ComputeNomDataF(t_Sample*& inp, const int deltas[], int& level)
 // so the mode is passed in.
 #if defined(CODEC_DEMO)
 #define EXTRA_CODEC_DEMO_ARGS1 , levels
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level, t_Sample*& levels, int*& modes, 
                     int samples[9], int storage[9])
 #else
 #define EXTRA_CODEC_DEMO_ARGS1
-static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out, 
+static int DoEncode(int mode, int& packetPos, t_Sample*& in, t_Sample*& out,
                     int& level)
 #endif
 {
@@ -1661,14 +1678,14 @@ static int DoEncode(int mode, BOOL& packetPos, t_Sample*& in, t_Sample*& out,
         packet = *(t_PacketPairNom*)out;
         packet.Mode0 = mode;
         packet.Data0 = ComputeNomDataF(in,Deltas[mode], level EXTRA_CODEC_DEMO_ARGS1);
-        advanceOutput = 3; // sizeof packet;
+        advanceOutput = 3; // sizeof(packet);
     }
     *(t_PacketPairNom*)out = packet;
     packetPos = !packetPos;
 
   #if defined(CODEC_DEMO)
     for (int i = 0; i < 9; i++) *modes++ = mode;
-    samples[mode] += 9;  storage[mode] += 3; // sizeof packet;
+    samples[mode] += 9;  storage[mode] += 3; // sizeof(packet);
   #endif
 
     return advanceOutput;

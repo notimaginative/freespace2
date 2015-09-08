@@ -292,12 +292,12 @@
 #define CC_TYPE_CONTINUOUS	1
 
 typedef struct config_item {
-	short key_default;  // default key bound to action
+	int key_default;  // default key bound to action
 	short joy_default;  // default joystick button bound to action
 	char tab;				// what tab (catagory) it belongs in
 	const char *text;		// describes the action in the config screen
 	char type;				// manner control should be checked in
-	short key_id;  // actual key bound to action
+	int key_id;  // actual key bound to action
 	short joy_id;  // joystick button bound to action
 	int used;				// has control been used yet in mission?  If so, this is the timestamp
 } config_item;

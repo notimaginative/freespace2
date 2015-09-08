@@ -139,7 +139,7 @@
  * 
  * 78    5/16/98 9:14p Allender
  * fix scoring ckise fir training missions to actually count medals, but
- * nothing else.  Code used to Assert when wings were granted then taken
+ * nothing else.  Code used to SDL_assert when wings were granted then taken
  * away because they were actually never granted in scoring structure
  * 
  * 77    5/15/98 9:52p Dave
@@ -234,41 +234,41 @@ float Scoring_scale_factors[NUM_SKILL_LEVELS] = {
 void parse_rank_tbl()
 {
 	char buf[MULTITEXT_LENGTH];
-	int rval, idx;
-
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Error parsing 'rank.tbl'\r\nError code = %i.\r\n", rval);
-	} 
+	int idx;
 
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("rank.tbl");
-	reset_parse();
+	try {
+		read_file_text("rank.tbl");
+		reset_parse();
 
-	// parse in all the rank names
-	idx = 0;
-	skip_to_string("[RANK NAMES]");
-	ignore_white_space();
-	while ( required_string_either("#End", "$Name:") ) {
-		Assert ( idx < NUM_RANKS );
-		required_string("$Name:");
-		stuff_string( Ranks[idx].name, F_NAME, NULL );
-		required_string("$Points:");
-		stuff_int( &Ranks[idx].points );
-		required_string("$Bitmap:");
-		stuff_string( Ranks[idx].bitmap, F_NAME, NULL );
-		required_string("$Promotion Voice Base:");
-		stuff_string( Ranks[idx].promotion_voice_base, F_NAME, NULL, MAX_FILENAME_LEN - 2 );
-		required_string("$Promotion Text:");
-		stuff_string(buf, F_MULTITEXT, NULL);
-		drop_white_space(buf);
-		compact_multitext_string(buf);
-		Ranks[idx].promotion_text = strdup(buf);
-		idx++;
+		// parse in all the rank names
+		idx = 0;
+		skip_to_string("[RANK NAMES]");
+		ignore_white_space();
+		while ( required_string_either("#End", "$Name:") ) {
+			SDL_assert ( idx < NUM_RANKS );
+			required_string("$Name:");
+			stuff_string( Ranks[idx].name, F_NAME, NULL );
+			required_string("$Points:");
+			stuff_int( &Ranks[idx].points );
+			required_string("$Bitmap:");
+			stuff_string( Ranks[idx].bitmap, F_NAME, NULL );
+			required_string("$Promotion Voice Base:");
+			stuff_string( Ranks[idx].promotion_voice_base, F_NAME, NULL, MAX_FILENAME_LEN - 2 );
+			required_string("$Promotion Text:");
+			stuff_string(buf, F_MULTITEXT, NULL);
+			drop_white_space(buf);
+			compact_multitext_string(buf);
+			Ranks[idx].promotion_text = strdup(buf);
+			idx++;
+		}
+
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'rank.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
-
-	required_string("#End");
 
 	// be sure that all rank points are in order
 #ifndef NDEBUG
@@ -359,7 +359,7 @@ void scoring_eval_harbison( ship *shipp )
 {
 	FILE *fp;
 
-	if ( !stricmp(shipp->ship_name, "alpha 2") && (!stricmp(Game_current_mission_filename, "demo01") || !stricmp(Game_current_mission_filename, "sm1-01")) ) {
+	if ( !SDL_strcasecmp(shipp->ship_name, "alpha 2") && (!SDL_strcasecmp(Game_current_mission_filename, "demo01") || !SDL_strcasecmp(Game_current_mission_filename, "sm1-01")) ) {
 		int death_count;
 
 		fp = fopen("i:\\volition\\cww\\harbison.txt", "r+t");
@@ -443,7 +443,7 @@ void scoring_eval_rank( scoring_struct *sc )
 
 	// if the ranks do not match, then "grant" the new rank
 	if ( old_rank != new_rank ) {
-		Assert( new_rank >= 0 );
+		SDL_assert( new_rank >= 0 );
 		sc->m_promotion_earned = new_rank;
 		sc->rank = new_rank;
 	}
@@ -526,7 +526,7 @@ void scoring_do_accept(scoring_struct *score)
 	// add in mission time
 	score->flight_time += (unsigned int)f2fl(Missiontime);
 	score->last_backup = score->last_flown;
-	score->last_flown = time(NULL);
+	score->last_flown = (fs_time_t)time(NULL);
 	score->missions_flown++;
 }
 
@@ -569,13 +569,13 @@ void scoring_backout_accept( scoring_struct *score )
 	// if the player was given a medal, take it back
 	if ( score->m_medal_earned != -1 ) {
 		score->medals[score->m_medal_earned]--;
-		Assert( score->medals[score->m_medal_earned] >= 0 );
+		SDL_assert( score->medals[score->m_medal_earned] >= 0 );
 	}
 
 	// if the player was promoted, take it back
 	if ( score->m_promotion_earned != -1) {
 		score->rank--;
-		Assert( score->rank >= 0 );
+		SDL_assert( score->rank >= 0 );
 	}	
 
 	score->flight_time -= (unsigned int)f2fl(Missiontime);
@@ -863,9 +863,9 @@ void scoring_eval_kill(object *ship_obj)
 				si_index = ship_info_base_lookup( si_index );
 			}
 
-			// if you hit this next Assert, find allender.  If not here, don't worry about it, you may safely
+			// if you hit this next SDL_assert, find allender.  If not here, don't worry about it, you may safely
 			// continue
-			Assert( !(Ship_info[si_index].flags & SIF_SHIP_COPY) );
+			SDL_assert( !(Ship_info[si_index].flags & SIF_SHIP_COPY) );
 
 			// if he killed a guy on his own team increment his bonehead kills
 			if((Ships[Objects[plr->objnum].instance].team == dead_ship->team) && !((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT))){
@@ -918,7 +918,7 @@ void scoring_eval_kill(object *ship_obj)
 						if((Net_player != NULL) && (Net_player->flags & NETINFO_FLAG_AM_MASTER) && (net_plr != NULL) && (dead_plr != NULL) && (net_plr->player != NULL) && (dead_plr->player != NULL)){
 							char dead_text[1024] = "";
 
-							sprintf(dead_text, "%s gets the kill for %s", net_plr->player->callsign, dead_plr->player->callsign);							
+							SDL_snprintf(dead_text, SDL_arraysize(dead_text), "%s gets the kill for %s", net_plr->player->callsign, dead_plr->player->callsign);
 							send_game_chat_packet(Net_player, dead_text, MULTI_MSG_ALL, NULL, NULL, 2);
 							HUD_printf(dead_text);
 						}
@@ -1105,7 +1105,7 @@ void scoring_eval_hit(object *hit_obj, object *other_obj,int from_blast)
 							Net_players[player_num].player->stats.mp_shots_hit++; 
 						}
 
-						// Assert( Net_players[player_num].player->stats.mp_shots_hit <= Net_players[player_num].player->stats.mp_shots_fired );
+						// SDL_assert( Net_players[player_num].player->stats.mp_shots_hit <= Net_players[player_num].player->stats.mp_shots_fired );
 						break;
 					case WP_MISSILE :
 						// friendly hit, once it hits a friendly, its done
@@ -1180,7 +1180,7 @@ float scoring_get_scale_factor()
 	}
 
 	// check for bogus Skill_level values
-	Assert((Game_skill_level >= 0) && (Game_skill_level < NUM_SKILL_LEVELS));
+	SDL_assert((Game_skill_level >= 0) && (Game_skill_level < NUM_SKILL_LEVELS));
 	if((Game_skill_level < 0) || (Game_skill_level > NUM_SKILL_LEVELS-1)){
 		return Scoring_scale_factors[0];
 	}

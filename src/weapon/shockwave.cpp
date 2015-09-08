@@ -286,7 +286,7 @@ int shockwave_create(int parent_objnum, vector *pos, shockwave_create_info *sci,
 {
 	int				i, objnum, real_parent;
 	shockwave		*sw;
-	shockwave_info	*si;
+//	shockwave_info	*si;
 	matrix			orient;
 
  	for ( i = 0; i < MAX_SHOCKWAVES; i++ ) {
@@ -324,7 +324,7 @@ int shockwave_create(int parent_objnum, vector *pos, shockwave_create_info *sci,
 
 	sw->rot_angle = sci->rot_angle;
 
-	si = &Shockwave_info[sw->shockwave_info_index];
+//	si = &Shockwave_info[sw->shockwave_info_index];
 //	sw->total_time = i2fl(si->num_frames) / si->fps;	// in seconds
 	sw->total_time = sw->outer_radius / sw->speed;
 
@@ -359,8 +359,8 @@ int shockwave_create(int parent_objnum, vector *pos, shockwave_create_info *sci,
 //
 void shockwave_delete(object *objp)
 {
-	Assert(objp->type == OBJ_SHOCKWAVE);
-	Assert(objp->instance >= 0 && objp->instance < MAX_SHOCKWAVES);
+	SDL_assert(objp->type == OBJ_SHOCKWAVE);
+	SDL_assert(objp->instance >= 0 && objp->instance < MAX_SHOCKWAVES);
 
 	Shockwaves[objp->instance].flags = 0;
 	Shockwaves[objp->instance].objnum = -1;	
@@ -378,7 +378,7 @@ void shockwave_delete_all()
 	sw = GET_FIRST(&Shockwave_list);
 	while ( sw != &Shockwave_list ) {
 		next = sw->next;
-		Assert(sw->objnum != -1);
+		SDL_assert(sw->objnum != -1);
 		Objects[sw->objnum].flags |= OF_SHOULD_BE_DEAD;
 		sw = next;
 	}
@@ -425,8 +425,8 @@ void shockwave_move(object *shockwave_objp, float frametime)
 	float			blast,damage;
 	int			i;
 	
-	Assert(shockwave_objp->type == OBJ_SHOCKWAVE);
-	Assert(shockwave_objp->instance  >= 0 && shockwave_objp->instance < MAX_SHOCKWAVES);
+	SDL_assert(shockwave_objp->type == OBJ_SHOCKWAVE);
+	SDL_assert(shockwave_objp->instance  >= 0 && shockwave_objp->instance < MAX_SHOCKWAVES);
 	sw = &Shockwaves[shockwave_objp->instance];
 
 	// if the shockwave has a delay on it
@@ -482,7 +482,7 @@ void shockwave_move(object *shockwave_objp, float frametime)
 		}
 
 		// okay, we have damage applied, record the object signature so we don't repeatedly apply damage
-		Assert(sw->num_objs_hit < SW_MAX_OBJS_HIT);
+		SDL_assert(sw->num_objs_hit < SW_MAX_OBJS_HIT);
 		if ( sw->num_objs_hit >= SW_MAX_OBJS_HIT) {
 			sw->num_objs_hit--;
 		}
@@ -520,14 +520,12 @@ void shockwave_move(object *shockwave_objp, float frametime)
 void shockwave_render(object *objp)
 {
 	shockwave		*sw;
-	shockwave_info	*si;
 	vertex			p;
 
-	Assert(objp->type == OBJ_SHOCKWAVE);
-	Assert(objp->instance >= 0 && objp->instance < MAX_SHOCKWAVES);
+	SDL_assert(objp->type == OBJ_SHOCKWAVE);
+	SDL_assert(objp->instance >= 0 && objp->instance < MAX_SHOCKWAVES);
 
 	sw = &Shockwaves[objp->instance];
-	si = &Shockwave_info[sw->shockwave_info_index];
 
 	if( (sw->delay_stamp != -1) && !timestamp_elapsed(sw->delay_stamp)){
 		return;
@@ -612,7 +610,7 @@ void shockwave_move_all(float frametime)
 	sw = GET_FIRST(&Shockwave_list);
 	while ( sw != &Shockwave_list ) {
 		next = sw->next;
-		Assert(sw->objnum != -1);
+		SDL_assert(sw->objnum != -1);
 		shockwave_move(&Objects[sw->objnum], frametime);
 		sw = next;
 	}
@@ -629,7 +627,7 @@ void shockwave_render_all()
 	sw = GET_FIRST(&Shockwave_list);
 	while ( sw != &Shockwave_list ) {
 		next = sw->next;
-		Assert(sw->objnum != -1);
+		SDL_assert(sw->objnum != -1);
 		shockwave_render(&Objects[sw->objnum]);
 		sw = next;
 	}

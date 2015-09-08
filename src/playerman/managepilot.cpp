@@ -234,6 +234,7 @@
 #include "mouse.h"
 #include "cutscenes.h"
 #include "bmpman.h"
+#include "key.h"
 
 // update this when altering data that is read/written to .PLR file
 #ifndef MAKE_FS1
@@ -294,6 +295,9 @@ void write_stats_block(CFILE *file, scoring_struct *stats);
 void read_multiplayer_options(player *p,CFILE *file);
 void write_multiplayer_options(player *p,CFILE *file);
 
+static SDL_Keycode keycode_translate_from(short keycode);
+static short keycode_translate_to(SDL_Keycode keycode);
+
 // internal function to delete a player file.  Called after a pilot is obsoleted, and when a pilot is deleted
 // used in barracks and player_select
 void delete_pilot_file( const char *pilot_name, int single )
@@ -303,10 +307,10 @@ void delete_pilot_file( const char *pilot_name, int single )
 
 	// get the player file.
 
-	_splitpath(pilot_name, NULL, NULL, basename, NULL);
+	base_filename(pilot_name, basename, SDL_arraysize(basename));
 
-	strcpy( filename, basename );
-	strcat( filename, NOX(".plr") );
+	SDL_strlcpy( filename, basename, SDL_arraysize(filename) );
+	SDL_strlcat(filename, NOX(".plr"), SDL_arraysize(filename) );
 	if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE){
 		cf_delete(filename, CF_TYPE_SINGLE_PLAYERS);
 	} else {
@@ -412,8 +416,8 @@ void pilot_read_techroom_data(CFILE *file)
 	// read in ship and weapon counts
 	ship_count = cfread_int(file);
 	weapon_count = cfread_int(file);
-	Assert(ship_count <= MAX_SHIP_TYPES);
-	Assert(weapon_count <= MAX_WEAPON_TYPES);
+	SDL_assert(ship_count <= MAX_SHIP_TYPES);
+	SDL_assert(weapon_count <= MAX_WEAPON_TYPES);
 
 	// maintain compatibility w/ demo version
 	if (Player_file_version < 136) {
@@ -427,7 +431,7 @@ void pilot_read_techroom_data(CFILE *file)
 	} else {
 
 		intel_count = cfread_int(file);
-		Assert(intel_count <= MAX_INTEL_ENTRIES);
+		SDL_assert(intel_count <= MAX_INTEL_ENTRIES);
 
 		// read all ships in
 		for (idx=0; idx<ship_count; idx++) {
@@ -511,8 +515,8 @@ void pilot_read_loadout(CFILE *file)
 	// read in ship and weapon counts
 	ship_count = cfread_int(file);
 	weapon_count = cfread_int(file);
-	Assert(ship_count <= MAX_SHIP_TYPES);
-	Assert(weapon_count <= MAX_WEAPON_TYPES);
+	SDL_assert(ship_count <= MAX_SHIP_TYPES);
+	SDL_assert(weapon_count <= MAX_WEAPON_TYPES);
 
 	// read in ship pool
 	for ( i = 0; i < ship_count; i++ ) {
@@ -553,20 +557,20 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	int i, key_value;
 
 	if (!p) {
-		Assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
+		SDL_assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
 		p = &Players[Player_num];
 	}
 
 	//sprintf(filename, "%-.8s.plr",Players[Player_num].callsign);
-	Assert(strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
-	strcpy( filename, callsign );
-	strcat( filename, NOX(".plr") );
+	SDL_assert(strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
+	SDL_strlcpy( filename, callsign, SDL_arraysize(filename) );
+	SDL_strlcat( filename, NOX(".plr"), SDL_arraysize(filename) );
 
 	// if we're a standalone server in multiplayer, just fill in some bogus values since we don't have a pilot file
 	if ((Game_mode & GM_MULTIPLAYER) && (Game_mode & GM_STANDALONE_SERVER)) {
 		memset(Player, 0, sizeof(player));
-		strcpy(Player->callsign, NOX("Standalone"));
-		strcpy(Player->short_callsign, NOX("Standalone"));
+		SDL_strlcpy(Player->callsign, NOX("Standalone"), SDL_arraysize(Player->callsign));
+		SDL_strlcpy(Player->short_callsign, NOX("Standalone"), SDL_arraysize(Player->short_callsign));
 		return 0;
 	}
 	
@@ -653,7 +657,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		if (key_value == 255)
 			key_value = -1;
 
-		Control_config[i].key_id = (short) key_value;
+		Control_config[i].key_id = keycode_translate_from((short)key_value);
 
 		key_value = cfread_short(file);
 		// NOTE: next two lines are only here for transitioning from 255 to -1 as undefined key items
@@ -718,13 +722,13 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 	// restore list of most recently played missions
 	Num_recent_missions = cfread_int( file );
-	Assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
+	SDL_assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
 	for ( i = 0; i < Num_recent_missions; i++ ) {
 		char *p;
 
 		cfread_string_len( Recent_missions[i], MAX_FILENAME_LEN, file);
 		// Remove the extension
-		p = strchr(Recent_missions[i], '.');
+		p = SDL_strchr(Recent_missions[i], '.');
 		if (p)
 			*p = 0;
 	}
@@ -754,15 +758,21 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	// restore the default netgame protocol mode
 	int protocol_temp = cfread_int(file);
 	switch(protocol_temp){
-	// plain TCP
-	case NET_VMT:	
-	case NET_TCP:
-		Multi_options_g.protocol = NET_TCP;
-		break;
-	// IPX
-	case NET_IPX:		
-		Multi_options_g.protocol = NET_IPX;
-		break;			
+		// TCP & PXO
+		case NET_VMT:
+			Multi_options_g.pxo = 1;
+			Multi_options_g.protocol = NET_TCP;
+			break;
+
+		// plain TCP
+		case NET_TCP:
+			Multi_options_g.protocol = NET_TCP;
+			break;
+
+		// in case of IPX, which is deprecated
+		default:
+			Multi_options_g.protocol = NET_TCP;
+			break;
 	}	
 
 	// restore wingman status used by red alert missions
@@ -783,7 +793,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		return errno;
 
 	// restore the callsign into the Player structure
-	strcpy(p->callsign, callsign);
+	SDL_strlcpy(p->callsign, callsign, SDL_arraysize(p->callsign));
 
 	// restore the truncated callsign into Player structure
 	pilot_set_short_callsign(p, SHORT_CALLSIGN_PIXEL_W);
@@ -793,11 +803,11 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	// we'll distinguish them by putting an M and the end of the multiplayer callsign and a P at the end of a single player
 	char cat[35];
 
-	strcpy(cat, p->callsign);
+	SDL_strlcpy(cat, p->callsign, SDL_arraysize(cat));
 	if (is_multi)
-		strcat(cat, NOX("M"));
+		SDL_strlcat(cat, NOX("M"), SDL_arraysize(cat));
 	else
-		strcat(cat, NOX("S"));
+		SDL_strlcat(cat, NOX("S"), SDL_arraysize(cat));
 
 	os_config_write_string( NULL, "LastPlayer", cat );
 /*
@@ -806,7 +816,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		if (mission_campaign_load_by_name(campaign_fname)) {
 			strcpy(campaign_fname, BUILTIN_CAMPAIGN);
 			if (mission_campaign_load_by_name(campaign_fname))
-				Assert(0);
+				SDL_assert(0);
 		}
 	}
 	//Campaign.current_mission = mission_num;*/
@@ -917,7 +927,7 @@ int write_pilot_file_core(player *p)
 	}
 
 	if (!p) {
-		Assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
+		SDL_assert((Player_num >= 0) && (Player_num < MAX_PLAYERS));
 		p = &Players[Player_num];
 	}
 
@@ -925,9 +935,9 @@ int write_pilot_file_core(player *p)
 	if (i == 0)
 		return 0;	//	This means there is no player, probably meaning he was deleted and game exited from same screen.
 
-	Assert((i > 0) && (i <= MAX_FILENAME_LEN - 4));  // ensure we won't overrun the buffer
-	strcpy( filename, p->callsign);
-	strcat( filename, NOX(".plr") );
+	SDL_assert((i > 0) && (i <= MAX_FILENAME_LEN - 4));  // ensure we won't overrun the buffer
+	SDL_strlcpy( filename, p->callsign, SDL_arraysize(filename));
+	SDL_strlcat( filename, NOX(".plr"), SDL_arraysize(filename) );
 
 	// determine if this pilot is a multiplayer pilot or not
 	if (p->flags & PLAYER_FLAGS_IS_MULTI){
@@ -978,9 +988,11 @@ int write_pilot_file_core(player *p)
 	// ---------------------------------------------
 	// write the keyboard/joystick configuration
 	// ---------------------------------------------
+	short key_id = 0;
 	cfwrite_ubyte( CCFG_MAX, file );
 	for (i=0; i<CCFG_MAX; i++) {
-		cfwrite_short( Control_config[i].key_id, file );
+		key_id = keycode_translate_to(Control_config[i].key_id);
+		cfwrite_short( key_id, file );
 		cfwrite_short( Control_config[i].joy_id, file );
 	}		
 
@@ -1060,11 +1072,12 @@ int write_pilot_file_core(player *p)
    cfwrite_int(Briefing_voice_enabled, file);
 
 	// store the default netgame protocol mode for this pilot
-	if (Multi_options_g.protocol == NET_TCP) {		
-		cfwrite_int(NET_TCP, file);		
+	SDL_assert(Multi_options_g.protocol == NET_TCP);
+	if (Multi_options_g.pxo == 1) {
+		cfwrite_int(NET_VMT, file);
 	} else {
-		cfwrite_int(NET_IPX, file);
-	}	
+		cfwrite_int(NET_TCP, file);
+	}
 
 	red_alert_write_wingman_status(file);
 	pilot_write_techroom_data(file);
@@ -1298,8 +1311,8 @@ void init_new_pilot(player *p, int reset)
 	}
 
 	// unassigned squadron
-	strcpy(p->squad_name, XSTR("Unassigned", 1255));
-	strcpy(p->squad_filename, "");
+	SDL_strlcpy(p->squad_name, XSTR("Unassigned", 1255), SDL_arraysize(p->squad_name));
+	SDL_strlcpy(p->squad_filename, "", SDL_arraysize(p->squad_filename));
 
 	// set him to be a single player pilot by default (the actual creation routines will change this if necessary)
 	p->flags &= ~PLAYER_FLAGS_IS_MULTI;
@@ -1338,7 +1351,7 @@ void init_new_pilot(player *p, int reset)
 
 void pilot_set_short_callsign(player *p, int max_width)
 {
-	strcpy(p->short_callsign, p->callsign);
+	SDL_strlcpy(p->short_callsign, p->callsign, SDL_arraysize(p->short_callsign));
 	gr_set_font(FONT1);
 	gr_force_fit_string(p->short_callsign, CALLSIGN_LEN - 1, max_width);
 	gr_get_string_size( &(p->short_callsign_width), NULL, p->short_callsign );
@@ -1349,12 +1362,12 @@ void pilot_set_random_pic(player *p)
 {
 	// if there are no available pilot pics, set the image filename to null
 	if (Num_pilot_images <= 0) {
-		strcpy(p->image_filename, "");
+		SDL_strlcpy(p->image_filename, "", SDL_arraysize(p->image_filename));
 	} else {
 		// pick a random name from the list
 		int random_index = rand() % Num_pilot_images;
-		Assert((random_index >= 0) && (random_index < Num_pilot_images));
-		strcpy(p->image_filename, Pilot_images_arr[random_index]);
+		SDL_assert((random_index >= 0) && (random_index < Num_pilot_images));
+		SDL_strlcpy(p->image_filename, Pilot_images_arr[random_index], SDL_arraysize(p->image_filename));
 	}	
 }
 
@@ -1368,14 +1381,14 @@ void pilot_set_random_squad_pic(player *p)
 	} else {
 		// pick a random name from the list
 		int random_index = rand() % Num_pilot_squad_images;		
-		Assert((random_index >= 0) && (random_index < Num_pilot_squad_images));
+		SDL_assert((random_index >= 0) && (random_index < Num_pilot_squad_images));
 		player_set_squad_bitmap(p, Pilot_squad_images_arr[random_index]); 
 		// strcpy(p->squad_filename, Pilot_squad_images_arr[random_index]);
 	}	
 }
 
 // format a pilot's callsign into a "personal" form - ie, adding a 's or just an ' as appropriate
-void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign)
+void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign, const int out_size)
 {
 	// don't do anything if we've got invalid strings
 	if((in_callsign == NULL) || (out_callsign == NULL)){
@@ -1383,13 +1396,13 @@ void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign)
 	}
 
 	// copy the original string
-	strcpy(out_callsign,in_callsign);
+	SDL_strlcpy(out_callsign, in_callsign, out_size);
 
 	// tack on the appropriate postfix
 	if(in_callsign[strlen(in_callsign) - 1] == 's'){		
-		strcat(out_callsign,XSTR( "\'", 45));
+		SDL_strlcat(out_callsign,XSTR( "\'", 45), out_size);
 	} else {
-		strcat(out_callsign,XSTR( "\'s", 46));
+		SDL_strlcat(out_callsign,XSTR( "\'s", 46), out_size);
 	}
 }
 
@@ -1444,7 +1457,7 @@ void player_set_squad_bitmap(player *p, const char *fname)
 
 	// try and set the new one
 	if (fname != p->squad_filename) {
-		strncpy(p->squad_filename, fname, MAX_FILENAME_LEN);
+		SDL_strlcpy(p->squad_filename, fname, SDL_arraysize(p->squad_filename));
 	}
 
 	if(strlen(p->squad_filename) > 0){
@@ -1460,10 +1473,10 @@ void player_set_squad_bitmap(player *p, const char *fname)
 	/*
 	flen = strlen(filename);
 	elen = strlen(ext);
-	Assert(flen < MAX_PATH_LEN);
+	SDL_assert(flen < MAX_PATH_LEN);
 	strcpy(path, filename);
-	if ((flen < 4) || stricmp(path + flen - elen, ext)) {
-		Assert(flen + elen < MAX_PATH_LEN);
+	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
+		SDL_assert(flen + elen < MAX_PATH_LEN);
 		strcat(path, ext);
 	}
 	*/
@@ -1477,7 +1490,7 @@ void player_set_squad(player *p, const char *squad_name)
 		return;
 	}
 
-	strncpy(p->squad_name, squad_name, NAME_LENGTH+1);
+	SDL_strlcpy(p->squad_name, squad_name, SDL_arraysize(p->squad_name));
 }
 
 DCF(pilot,"Changes pilot stats. (Like reset campaign)" )
@@ -1506,3 +1519,153 @@ DCF(pilot,"Changes pilot stats. (Like reset campaign)" )
 	}
 }
 
+struct fs_keycode_t {
+	short fs_code;
+	SDL_Keycode sdl_code;
+};
+
+static const fs_keycode_t keycode_lookup[] = {
+	{ /* KEY_0 */           0x0B,	SDLK_0			},
+	{ /* KEY_1 */           0x02,	SDLK_1			},
+	{ /* KEY_2 */           0x03,	SDLK_2			},
+	{ /* KEY_3 */           0x04,	SDLK_3			},
+	{ /* KEY_4 */           0x05,	SDLK_4			},
+	{ /* KEY_5 */           0x06,	SDLK_5			},
+	{ /* KEY_6 */           0x07,	SDLK_6			},
+	{ /* KEY_7 */           0x08,	SDLK_7			},
+	{ /* KEY_8 */           0x09,	SDLK_8			},
+	{ /* KEY_9 */           0x0A,	SDLK_9			},
+	{ /* KEY_A */           0x1E,	SDLK_a			},
+	{ /* KEY_B */           0x30,	SDLK_b			},
+	{ /* KEY_C */           0x2E,	SDLK_c			},
+	{ /* KEY_D */           0x20,	SDLK_d			},
+	{ /* KEY_E */           0x12,	SDLK_e			},
+	{ /* KEY_F */           0x21,	SDLK_f			},
+	{ /* KEY_G */           0x22,	SDLK_g			},
+	{ /* KEY_H */           0x23,	SDLK_h			},
+	{ /* KEY_I */           0x17,	SDLK_i			},
+	{ /* KEY_J */           0x24,	SDLK_j			},
+	{ /* KEY_K */           0x25,	SDLK_k			},
+	{ /* KEY_L */           0x26,	SDLK_l			},
+	{ /* KEY_M */           0x32,	SDLK_m			},
+	{ /* KEY_N */           0x31,	SDLK_n			},
+	{ /* KEY_O */           0x18,	SDLK_o			},
+	{ /* KEY_P */           0x19,	SDLK_p			},
+	{ /* KEY_Q */           0x10,	SDLK_q			},
+	{ /* KEY_R */           0x13,	SDLK_r			},
+	{ /* KEY_S */           0x1F,	SDLK_s			},
+	{ /* KEY_T */           0x14,	SDLK_t			},
+	{ /* KEY_U */           0x16,	SDLK_u			},
+	{ /* KEY_V */           0x2F,	SDLK_v			},
+	{ /* KEY_W */           0x11,	SDLK_w			},
+	{ /* KEY_X */           0x2D,	SDLK_x			},
+	{ /* KEY_Y */           0x15,	SDLK_y			},
+	{ /* KEY_Z */           0x2C,	SDLK_z			},
+	{ /* KEY_MINUS */       0x0C,	SDLK_MINUS		},
+	{ /* KEY_EQUAL */       0x0D,	SDLK_EQUALS		},
+	{ /* KEY_DIVIDE */      0x35,	SDLK_SLASH		},
+	{ /* KEY_SLASH */       0x2B,	SDLK_BACKSLASH	},
+	{ /* KEY_SLASH_UK */    0x56,	SDLK_BACKSLASH	},
+	{ /* KEY_COMMA */       0x33,	SDLK_COMMA		},
+	{ /* KEY_PERIOD */      0x34,	SDLK_PERIOD		},
+	{ /* KEY_SEMICOL */     0x27,	SDLK_SEMICOLON	},
+	{ /* KEY_LBRACKET */    0x1A,	SDLK_LEFTBRACKET	},
+	{ /* KEY_RBRACKET */    0x1B,	SDLK_RIGHTBRACKET	},
+	{ /* KEY_RAPOSTRO */    0x28,	SDLK_QUOTE		},
+	{ /* KEY_LAPOSTRO */    0x29,	SDLK_BACKQUOTE	},
+	{ /* KEY_ESC */         0x01,	SDLK_ESCAPE		},
+	{ /* KEY_ENTER */       0x1C,	SDLK_RETURN		},
+	{ /* KEY_BACKSP */      0x0E,	SDLK_BACKSPACE	},
+	{ /* KEY_TAB */         0x0F,	SDLK_TAB		},
+	{ /* KEY_SPACEBAR */    0x39,	SDLK_SPACE		},
+	{ /* KEY_NUMLOCK */     0x61,	SDLK_NUMLOCKCLEAR	},
+	{ /* KEY_SCROLLOCK */   0x46,	SDLK_SCROLLLOCK	},
+	{ /* KEY_CAPSLOCK */    0x3A,	SDLK_CAPSLOCK	},
+	{ /* KEY_LSHIFT */      0x2A,	SDLK_LSHIFT		},
+	{ /* KEY_RSHIFT */      0x36,	SDLK_RSHIFT		},
+	{ /* KEY_LALT */        0x38,	SDLK_LALT		},
+	{ /* KEY_RALT */        0xB8,	SDLK_RALT		},
+	{ /* KEY_LCTRL */       0x1D,	SDLK_LCTRL		},
+	{ /* KEY_RCTRL */       0x9D,	SDLK_RCTRL		},
+	{ /* KEY_F1 */          0x3B,	SDLK_F1			},
+	{ /* KEY_F2 */          0x3C,	SDLK_F2			},
+	{ /* KEY_F3 */          0x3D,	SDLK_F3			},
+	{ /* KEY_F4 */          0x3E,	SDLK_F4			},
+	{ /* KEY_F5 */          0x3F,	SDLK_F5			},
+	{ /* KEY_F6 */          0x40,	SDLK_F6			},
+	{ /* KEY_F7 */          0x41,	SDLK_F7			},
+	{ /* KEY_F8 */          0x42,	SDLK_F8			},
+	{ /* KEY_F9 */          0x43,	SDLK_F9			},
+	{ /* KEY_F10 */         0x44,	SDLK_F10		},
+	{ /* KEY_F11 */         0x57,	SDLK_F11		},
+	{ /* KEY_F12 */         0x58,	SDLK_F12		},
+	{ /* KEY_PAD0 */        0x52,	SDLK_KP_0		},
+	{ /* KEY_PAD1 */        0x4F,	SDLK_KP_1		},
+	{ /* KEY_PAD2 */        0x50,	SDLK_KP_2		},
+	{ /* KEY_PAD3 */        0x51,	SDLK_KP_3		},
+	{ /* KEY_PAD4 */        0x4B,	SDLK_KP_4		},
+	{ /* KEY_PAD5 */        0x4C,	SDLK_KP_5		},
+	{ /* KEY_PAD6 */        0x4D,	SDLK_KP_6		},
+	{ /* KEY_PAD7 */        0x47,	SDLK_KP_7		},
+	{ /* KEY_PAD8 */        0x48,	SDLK_KP_8		},
+	{ /* KEY_PAD9 */        0x49,	SDLK_KP_9		},
+	{ /* KEY_PADMINUS */    0x4A,	SDLK_KP_MINUS	},
+	{ /* KEY_PADPLUS */     0x4E,	SDLK_KP_PLUS	},
+	{ /* KEY_PADPERIOD */   0x53,	SDLK_KP_PERIOD	},
+	{ /* KEY_PADDIVIDE */   0xB5,	SDLK_KP_DIVIDE	},
+	{ /* KEY_PADMULTIPLY */ 0x37,	SDLK_KP_MULTIPLY	},
+	{ /* KEY_PADENTER */    0x9C,	SDLK_KP_ENTER	},
+	{ /* KEY_INSERT */      0xD2,	SDLK_INSERT		},
+	{ /* KEY_HOME */        0xC7,	SDLK_HOME		},
+	{ /* KEY_PAGEUP */      0xC9,	SDLK_PAGEUP		},
+	{ /* KEY_DELETE */      0xd3,	SDLK_DELETE		},
+	{ /* KEY_END */         0xCF,	SDLK_END		},
+	{ /* KEY_PAGEDOWN */    0xD1,	SDLK_PAGEDOWN	},
+	{ /* KEY_UP */          0xC8,	SDLK_UP			},
+	{ /* KEY_DOWN */        0xD0,	SDLK_DOWN		},
+	{ /* KEY_LEFT */        0xCB,	SDLK_LEFT		},
+	{ /* KEY_RIGHT */       0xCD,	SDLK_RIGHT		},
+	{ /* KEY_PRINT_SCRN */  0xB7,	SDLK_PRINTSCREEN	},
+	{ /* KEY_PAUSE */       0x45,	SDLK_PAUSE		},
+	{ /* KEY_BREAK */       0xc6,	SDLK_PAUSE		}
+};
+
+static SDL_Keycode keycode_translate_from(short keycode)
+{
+	const int tbl_size = sizeof(keycode_lookup) / sizeof(fs_keycode_t);
+
+	if (keycode < 0) {
+		return -1;
+	}
+
+	int mods = keycode & 0xf900;
+	keycode &= KEY_MASK;
+
+	for (int i = 0; i < tbl_size; i++) {
+		if (keycode_lookup[i].fs_code == keycode) {
+			return (SDL_Keycode)(keycode_lookup[i].sdl_code | mods);
+		}
+	}
+
+	return -1;
+}
+
+static short keycode_translate_to(SDL_Keycode keycode)
+{
+	const int tbl_size = sizeof(keycode_lookup) / sizeof(fs_keycode_t);
+
+	if (keycode < 0) {
+		return -1;
+	}
+
+	int mods = keycode & 0xf900;
+	keycode &= KEY_MASK;
+
+	for (int i = 0; i < tbl_size; i++) {
+		if (keycode_lookup[i].sdl_code == keycode) {
+			return (short)(keycode_lookup[i].fs_code | mods);
+		}
+	}
+
+	return -1;
+}

@@ -214,8 +214,7 @@ void multi_kick_player(int player_index, int ban, int reason)
 			// wait until he either shuts his connection down or he times out)
 			// add the string to the chatbox and the hud (always safe - if it is not inited, nothing bad will happen)			
 			char str[512];
-			memset(str, 0, 512);
-			sprintf(str, XSTR("<kicking %s ...>", 1501), Net_players[player_index].player->callsign);
+			SDL_snprintf(str, SDL_arraysize(str), XSTR("<kicking %s ...>", 1501), Net_players[player_index].player->callsign);
 			multi_display_chat_msg(str, player_index, 0);							 
 		}
 		// otherwise, we should send the packet indicating that this guy should be kicked
@@ -257,7 +256,7 @@ void multi_dcf_kick()
 
 	player_num = -1;
 	for(idx=0;idx<MAX_PLAYERS;idx++){
-		if(MULTI_CONNECTED(Net_players[idx]) && (stricmp(Net_players[idx].player->callsign,Dc_arg)==0)){
+		if(MULTI_CONNECTED(Net_players[idx]) && (SDL_strcasecmp(Net_players[idx].player->callsign,Dc_arg)==0)){
 			player_num = idx;
 			break;
 		}
@@ -274,25 +273,25 @@ void multi_dcf_kick()
 }
 
 // fill in the passed string with the appropriate "kicked" string
-void multi_kick_get_text(net_player *pl, int reason, char *str)
+void multi_kick_get_text(net_player *pl, int reason, char *str, const int max_strlen)
 {
 	// safety net
 	if((pl == NULL) || (pl->player == NULL)){
-		strcpy(str, NOX(""));
+		SDL_strlcpy(str, NOX(""), max_strlen);
 	}
 
 	switch(reason){
 	case KICK_REASON_BAD_XFER:
-		sprintf(str, XSTR("<%s was kicked because of mission file xfer failure>", 1003), pl->player->callsign);
+		SDL_snprintf(str, max_strlen, XSTR("<%s was kicked because of mission file xfer failure>", 1003), pl->player->callsign);
 		break;
 	case KICK_REASON_CANT_XFER:
-		sprintf(str, XSTR("<%s was kicked for not having builtin mission %s>", 1004), pl->player->callsign, Game_current_mission_filename);
+		SDL_snprintf(str, max_strlen, XSTR("<%s was kicked for not having builtin mission %s>", 1004), pl->player->callsign, Game_current_mission_filename);
 		break;
 	case KICK_REASON_INGAME_ENDED:
-		sprintf(str, XSTR("<%s was kicked for ingame joining an ended game>",1005), pl->player->callsign);
+		SDL_snprintf(str, max_strlen, XSTR("<%s was kicked for ingame joining an ended game>",1005), pl->player->callsign);
 		break;
 	default:
-		sprintf(str, XSTR("<%s was kicked>",687), pl->player->callsign);
+		SDL_snprintf(str, max_strlen, XSTR("<%s was kicked>",687), pl->player->callsign);
 		break;
 	}		
 }
@@ -350,7 +349,7 @@ void process_player_kick_packet(ubyte *data, header *hinfo)
 	PACKET_SET_SIZE();
 
 	// only the server should ever receive a request to kick a guy
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	
 	// determine who sent the packet	
 	from_player = find_player_id(hinfo->id);

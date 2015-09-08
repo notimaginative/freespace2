@@ -439,70 +439,71 @@ int Init_flags;
 
 void parse_medal_tbl()
 {
-	int rval, num_medals, i, bi;
-
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Error parsing 'medals.tbl'\r\nError code = %i.\r\n", rval);
-	} 
+	int num_medals = 0, i, bi;
 
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("medals.tbl");
+	try {
+		read_file_text("medals.tbl");
 
-	reset_parse();
+		reset_parse();
 
-	// parse in all the rank names
-	num_medals = 0;
-	bi = 0;
-	required_string("#Medals");
-	while ( required_string_either("#End", "$Name:") ) {
-		Assert ( num_medals < NUM_MEDALS);
-		required_string("$Name:");
-		stuff_string( Medals[num_medals].name, F_NAME, NULL );
-		required_string("$Bitmap:");
-		stuff_string( Medals[num_medals].bitmap, F_NAME, NULL );
-		required_string("$Num mods:");
-		stuff_int( &Medals[num_medals].num_versions);
+		// parse in all the rank names
+		num_medals = 0;
+		bi = 0;
+		required_string("#Medals");
+		while ( required_string_either("#End", "$Name:") ) {
+			SDL_assert ( num_medals < NUM_MEDALS);
+			required_string("$Name:");
+			stuff_string( Medals[num_medals].name, F_NAME, NULL );
+			required_string("$Bitmap:");
+			stuff_string( Medals[num_medals].bitmap, F_NAME, NULL );
+			required_string("$Num mods:");
+			stuff_int( &Medals[num_medals].num_versions);
 
-		// some medals are based on kill counts.  When string +Num Kills: is present, we know that
-		// this medal is a badge and should be treated specially
-		Medals[num_medals].kills_needed = 0;
-		if ( optional_string("+Num Kills:") ) {
-			char buf[MULTITEXT_LENGTH + 1];
+			// some medals are based on kill counts.  When string +Num Kills: is present, we know that
+			// this medal is a badge and should be treated specially
+			Medals[num_medals].kills_needed = 0;
+			if ( optional_string("+Num Kills:") ) {
+				char buf[MULTITEXT_LENGTH + 1];
 
-			Assert( bi < MAX_BADGES );
-			stuff_int( &Medals[num_medals].kills_needed );
-			Badge_index[bi] = num_medals;
-#ifdef MAKE_FS1
-			required_string("$Wavefile 1:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-			required_string("$Wavefile 2:");
-			stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
-#elif FS2_DEMO
-#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
-			required_string("$Wavefile 1:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-			required_string("$Wavefile 2:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-			//stuff_string(Badge_info[bi].wave2, F_NAME, NULL, MAX_FILENAME_LEN);
-#else
-			required_string("$Wavefile Base:");
-			stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
-#endif			
+				SDL_assert( bi < MAX_BADGES );
+				stuff_int( &Medals[num_medals].kills_needed );
+				Badge_index[bi] = num_medals;
+	#ifdef MAKE_FS1
+				required_string("$Wavefile 1:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+				required_string("$Wavefile 2:");
+				stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
+	#elif FS2_DEMO
+	#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
+				required_string("$Wavefile 1:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+				required_string("$Wavefile 2:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+				//stuff_string(Badge_info[bi].wave2, F_NAME, NULL, MAX_FILENAME_LEN);
+	#else
+				required_string("$Wavefile Base:");
+				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
+	#endif
 
-			required_string("$Promotion Text:");
-			stuff_string(buf, F_MULTITEXT, NULL);
-			Badge_info[bi].promotion_text = strdup(buf);
+				required_string("$Promotion Text:");
+				stuff_string(buf, F_MULTITEXT, NULL);
+				Badge_info[bi].promotion_text = strdup(buf);
 
-			bi++;
+				bi++;
+			}
+
+			num_medals++;
 		}
 
-		num_medals++;
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'medals.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
 
-	required_string("#End");
-	Assert( num_medals == NUM_MEDALS );
+	SDL_assert( num_medals == NUM_MEDALS );
 
 	// be sure that the badges kill numbers show up in order
 	for (i = 0; i < MAX_BADGES-1; i++ ) {
@@ -519,7 +520,7 @@ void medal_main_init(player *pl, int mode)
 {
 	int idx;
 
-	Assert(pl != NULL);
+	SDL_assert(pl != NULL);
 	Medals_player = pl;
 
    Player_score = &Medals_player->stats;
@@ -600,110 +601,110 @@ void medals_translate_name(char *name, int max_len)
 {
 #ifdef MAKE_FS1
 	if (!strcmp(name, "Conspicuous Gallantry")) {
-		strncpy(name, "Tapferkeitsmedaille", max_len);
+		SDL_strlcpy(name, "Tapferkeitsmedaille", max_len);
 
 	} else if (!strcmp(name, "Vasudan Alliance")) {
-		strncpy(name, "Vasudanischen Allianz", max_len);
+		SDL_strlcpy(name, "Vasudanischen Allianz", max_len);
 
 	} else if (!strcmp(name, "Distinguished Flying Cross")) {
-		strncpy(name, "Kreuz f\x81r Fliegerleistungen", max_len);
+		SDL_strlcpy(name, "Kreuz f\x81r Fliegerleistungen", max_len);
 
 	} else if (!strcmp(name, "Commendation Medal")) {
-		strncpy(name, "Anerkennungsmedaille", max_len);
+		SDL_strlcpy(name, "Anerkennungsmedaille", max_len);
 
 	} else if (!strcmp(name, "Galatea Survivor")) {
-		strncpy(name, "Galatea-\x9A""berlebender", max_len);
+		SDL_strlcpy(name, "Galatea-\x9A""berlebender", max_len);
 
 	} else if (!strcmp(name, "Legion of Merit")) {
-		strncpy(name, "Verdienstlegion", max_len);
+		SDL_strlcpy(name, "Verdienstlegion", max_len);
 
 	} else if (!strcmp(name, "Meritorious Unit")) {
-		strncpy(name, "Verdienstmedaille", max_len);
+		SDL_strlcpy(name, "Verdienstmedaille", max_len);
 
 	} else if (!strcmp(name, "Medal of Honor")) {
-		strncpy(name, "Ehrenmedaille", max_len);
+		SDL_strlcpy(name, "Ehrenmedaille", max_len);
 
 	} else if (!strcmp(name, "Galactic Service")) {
-		strncpy(name, "Galaktischer Dienst", max_len);
+		SDL_strlcpy(name, "Galaktischer Dienst", max_len);
 
 	} else if (!strcmp(name, "Military Defense")) {
-		strncpy(name, "Verteidigungsmedaille", max_len);
+		SDL_strlcpy(name, "Verteidigungsmedaille", max_len);
 
 	} else if (!strcmp(name, "Good Conduct")) {
-		strncpy(name, "Medaille f\x81r gute F\x81hrung", max_len);
+		SDL_strlcpy(name, "Medaille f\x81r gute F\x81hrung", max_len);
 
 	} else if (!strcmp(name, "Distinguished Service Cross")) {
-		strncpy(name, "Kreuz f\x81r Einsatz", max_len);
+		SDL_strlcpy(name, "Kreuz f\x81r Einsatz", max_len);
 
 	} else if (!strcmp(name, "Ace")) {
-		strncpy(name, "Bronzener Stern", max_len);
+		SDL_strlcpy(name, "Bronzener Stern", max_len);
 
 	} else if (!strcmp(name, "Double Ace")) {
-		strncpy(name, "Silberner Stern", max_len);
+		SDL_strlcpy(name, "Silberner Stern", max_len);
 
 	} else if (!strcmp(name, "Triple Ace")) {
-		strncpy(name, "Goldener Stern", max_len);
+		SDL_strlcpy(name, "Goldener Stern", max_len);
 
 	} else if (!strcmp(name, "Wings")) {
-		strncpy(name, "Pilotenabzeichen", max_len);
+		SDL_strlcpy(name, "Pilotenabzeichen", max_len);
 
 	} else if (!strcmp(name, "Rank")) {
-		strncpy(name, "Dienstgrad", max_len);
+		SDL_strlcpy(name, "Dienstgrad", max_len);
 	}
 #else
 	if (!strcmp(name, "Epsilon Pegasi Liberation")) {
-		strncpy(name, "Epsilon Pegasi Befreiungsmedaille", max_len);
+		SDL_strlcpy(name, "Epsilon Pegasi Befreiungsmedaille", max_len);
 
 	} else if (!strcmp(name, "Imperial Order of Vasuda")) {
-		strncpy(name, "Imperialer Orden von Vasuda ", max_len);
+		SDL_strlcpy(name, "Imperialer Orden von Vasuda ", max_len);
 
 	} else if (!strcmp(name, "Distinguished Flying Cross")) {
-		strncpy(name, "Fliegerkreuz Erster Klasse", max_len);
+		SDL_strlcpy(name, "Fliegerkreuz Erster Klasse", max_len);
 
 	} else if (!strcmp(name, "SOC Service Medallion")) {
-		strncpy(name, "SEK-Dienstmedaille ", max_len);
+		SDL_strlcpy(name, "SEK-Dienstmedaille ", max_len);
 
 	} else if (!strcmp(name, "Intelligence Cross")) {
-		strncpy(name, "Geheimdienstkreuz am Bande", max_len);
+		SDL_strlcpy(name, "Geheimdienstkreuz am Bande", max_len);
 
 	} else if (!strcmp(name, "Order of Galatea")) {
-		strncpy(name, "Orden von Galatea ", max_len);
+		SDL_strlcpy(name, "Orden von Galatea ", max_len);
 
 	} else if (!strcmp(name, "Meritorious Unit Commendation")) {
-		strncpy(name, "Ehrenspange der Allianz", max_len);
+		SDL_strlcpy(name, "Ehrenspange der Allianz", max_len);
 
 	} else if (!strcmp(name, "Medal of Valor")) {
-		strncpy(name, "Tapferkeitsmedaille ", max_len);
+		SDL_strlcpy(name, "Tapferkeitsmedaille ", max_len);
 
 	} else if (!strcmp(name, "GTVA Legion of Honor")) {
-		strncpy(name, "Orden der GTVA-Ehrenlegion", max_len);
+		SDL_strlcpy(name, "Orden der GTVA-Ehrenlegion", max_len);
 
 	} else if (!strcmp(name, "Allied Defense Citation")) {
-		strncpy(name, "Alliierte Abwehrspange ", max_len);
+		SDL_strlcpy(name, "Alliierte Abwehrspange ", max_len);
 
 	} else if (!strcmp(name, "Nebula Campaign Victory Star")) {
-		strncpy(name, "Nebel-Siegesstern", max_len);
+		SDL_strlcpy(name, "Nebel-Siegesstern", max_len);
 
 	} else if (!strcmp(name, "NTF Campaign Victory Star")) {
-		strncpy(name, "NTF-Siegesstern ", max_len);
+		SDL_strlcpy(name, "NTF-Siegesstern ", max_len);
 
 	} else if (!strcmp(name, "Rank")) {
-		strncpy(name, "Dienstgrad", max_len);
+		SDL_strlcpy(name, "Dienstgrad", max_len);
 
 	} else if (!strcmp(name, "Wings")) {
-		strncpy(name, "Fliegerspange", max_len);
+		SDL_strlcpy(name, "Fliegerspange", max_len);
 
 	} else if (!strcmp(name, "Ace")) {
-		strncpy(name, "Flieger-As", max_len);
+		SDL_strlcpy(name, "Flieger-As", max_len);
 
 	} else if (!strcmp(name, "Double Ace")) {
-		strncpy(name, "Doppel-As ", max_len);
+		SDL_strlcpy(name, "Doppel-As ", max_len);
 
 	} else if (!strcmp(name, "Triple Ace")) {
-		strncpy(name, "Dreifach-As ", max_len);
+		SDL_strlcpy(name, "Dreifach-As ", max_len);
 
 	} else if (!strcmp(name, "SOC Unit Crest")) {
-		strncpy(name, "SEK-Abzeichen ", max_len);
+		SDL_strlcpy(name, "SEK-Abzeichen ", max_len);
 	}
 #endif
 }
@@ -713,58 +714,58 @@ void medals_translate_name(char *name, int max_len)
 void medals_translate_name_pl(char *name, int max_len)
 {
 	if (!strcmp(name, "Epsilon Pegasi Liberation")) {
-		strncpy(name, "Order Wyzwolenia Epsilon Pegasi", max_len);
+		SDL_strlcpy(name, "Order Wyzwolenia Epsilon Pegasi", max_len);
 
 	} else if (!strcmp(name, "Imperial Order of Vasuda")) {
-		strncpy(name, "Imperialny Order Vasudy", max_len);
+		SDL_strlcpy(name, "Imperialny Order Vasudy", max_len);
 
 	} else if (!strcmp(name, "Distinguished Flying Cross")) {
-		strncpy(name, "Krzy\xBF Wybitnego Pilota", max_len);
+		SDL_strlcpy(name, "Krzy\xBF Wybitnego Pilota", max_len);
 
 	} else if (!strcmp(name, "SOC Service Medallion")) {
-		strncpy(name, "Krzy\xBF S\xB3u\xBF\x62 Specjalnych", max_len);
+		SDL_strlcpy(name, "Krzy\xBF S\xB3u\xBF\x62 Specjalnych", max_len);
 
 	} else if (!strcmp(name, "Intelligence Cross")) {
-		strncpy(name, "Krzy\xBF Wywiadu", max_len);
+		SDL_strlcpy(name, "Krzy\xBF Wywiadu", max_len);
 
 	} else if (!strcmp(name, "Order of Galatea")) {
-		strncpy(name, "Order Galatei", max_len);
+		SDL_strlcpy(name, "Order Galatei", max_len);
 
 	} else if (!strcmp(name, "Meritorious Unit Commendation")) {
-		strncpy(name, "Medal Pochwalny", max_len);
+		SDL_strlcpy(name, "Medal Pochwalny", max_len);
 
 	} else if (!strcmp(name, "Medal of Valor")) {
-		strncpy(name, "Medal za Odwag\xEA", max_len);
+		SDL_strlcpy(name, "Medal za Odwag\xEA", max_len);
 
 	} else if (!strcmp(name, "GTVA Legion of Honor")) {
-		strncpy(name, "Legia Honorowa GTVA", max_len);
+		SDL_strlcpy(name, "Legia Honorowa GTVA", max_len);
 
 	} else if (!strcmp(name, "Allied Defense Citation")) {
-		strncpy(name, "Order za Obron\xEA Sojuszu", max_len);
+		SDL_strlcpy(name, "Order za Obron\xEA Sojuszu", max_len);
 
 	} else if (!strcmp(name, "Nebula Campaign Victory Star")) {
-		strncpy(name, "Gwiazda Wiktorii Kampanii w Mg\xB3\x61wicy", max_len);
+		SDL_strlcpy(name, "Gwiazda Wiktorii Kampanii w Mg\xB3\x61wicy", max_len);
 
 	} else if (!strcmp(name, "NTF Campaign Victory Star")) {
-		strncpy(name, "Gwiazda Wiktorii Kampanii NTF", max_len);
+		SDL_strlcpy(name, "Gwiazda Wiktorii Kampanii NTF", max_len);
 
 	} else if (!strcmp(name, "Rank")) {
-		strncpy(name, "Ranga", max_len);
+		SDL_strlcpy(name, "Ranga", max_len);
 
 	} else if (!strcmp(name, "Wings")) {
-		strncpy(name, "Skrzyd\xB3\x61", max_len);
+		SDL_strlcpy(name, "Skrzyd\xB3\x61", max_len);
 
 	} else if (!strcmp(name, "Ace")) {
-		strncpy(name, "As", max_len);	
+		SDL_strlcpy(name, "As", max_len);
 
 	} else if (!strcmp(name, "Double Ace")) {
-		strncpy(name, "Podw\xF3jny As", max_len);
+		SDL_strlcpy(name, "Podw\xF3jny As", max_len);
 
 	} else if (!strcmp(name, "Triple Ace")) {
-		strncpy(name, "Potr\xF3jny As", max_len);
+		SDL_strlcpy(name, "Potr\xF3jny As", max_len);
 		
 	} else if (!strcmp(name, "SOC Unit Crest")) {
-		strncpy(name, "Tarcza S\xB3u\xBF\x62 Specjalnych", max_len);	
+		SDL_strlcpy(name, "Tarcza S\xB3u\xBF\x62 Specjalnych", max_len);
 	}
 }
 
@@ -776,39 +777,38 @@ void blit_label(char *label, int *coords, int num)
 {
 	int x, y, sw;
 	char text[256];
+	char translated_label[256];
 
 	gr_set_color_fast(&Color_bright);
 
 	// translate medal names before displaying
 	// cant translate in table cuz the names are used in comparisons
 	if (Lcl_gr) {
-		char translated_label[256];
-		strncpy(translated_label, label, 256);
-		medals_translate_name(translated_label, 256);
+		SDL_strlcpy(translated_label, label, SDL_arraysize(translated_label));
+		medals_translate_name(translated_label, SDL_arraysize(translated_label));
 
 		// set correct string
 		if ( num > 1 ) {
-			sprintf( text, NOX("%s (%d)"), translated_label, num );
+			SDL_snprintf( text, SDL_arraysize(text), NOX("%s (%d)"), translated_label, num );
 		} else {
-			sprintf( text, "%s", translated_label );
+			SDL_snprintf( text, SDL_arraysize(text), "%s", translated_label );
 		}
 	} else if(Lcl_pl) {
-		char translated_label[256];
-		strncpy(translated_label, label, 256);
-		medals_translate_name_pl(translated_label, 256);
+		SDL_strlcpy(translated_label, label, SDL_arraysize(translated_label));
+		medals_translate_name_pl(translated_label, SDL_arraysize(translated_label));
 
 		// set correct string
 		if ( num > 1 ) {
-			sprintf( text, NOX("%s (%d)"), translated_label, num );
+			SDL_snprintf( text, SDL_arraysize(text), NOX("%s (%d)"), translated_label, num );
 		} else {
-			sprintf( text, "%s", translated_label );
+			SDL_snprintf( text, SDL_arraysize(text), "%s", translated_label );
 		}
 	} else {
 		// set correct string
 		if ( num > 1 ) {
-			sprintf( text, NOX("%s (%d)"), label, num );
+			SDL_snprintf( text, SDL_arraysize(text), NOX("%s (%d)"), label, num );
 		} else {
-			sprintf( text, "%s", label );
+			SDL_snprintf( text, SDL_arraysize(text), "%s", label );
 		}
 	}
 
@@ -845,7 +845,7 @@ int medal_main_do()
 	k = Medals_window.process();	
 
 	// process an exit command
-	if ((k == KEY_ESC) && (Medals_mode == MM_NORMAL)) {
+	if ((k == SDLK_ESCAPE) && (Medals_mode == MM_NORMAL)) {
 		gameseq_post_event(GS_EVENT_PREVIOUS_STATE);
 	}
 
@@ -858,7 +858,7 @@ int medal_main_do()
 	}
 
 	// check to see if a button was pressed
-	if( (k == (KEY_CTRLED|KEY_ENTER)) || (Medals_buttons[gr_screen.res][MEDALS_EXIT].button.pressed()) ) {	
+	if( (k == (KEY_CTRLED|SDLK_RETURN)) || (Medals_buttons[gr_screen.res][MEDALS_EXIT].button.pressed()) ) {
 		gamesnd_play_iface(SND_COMMIT_PRESSED);
 		if(Medals_mode == MM_NORMAL){
 			gameseq_post_event(GS_EVENT_PREVIOUS_STATE);
@@ -953,18 +953,6 @@ void medal_tbl_close()
 	}
 }
 
-/*
-void init_medal_palette()
-{
-	Medal_palette = bm_load("MedalsPalette.pcx");
-	if(Medal_palette > -1){
-#ifndef HARDWARE_ONLY
-		palette_use_bm_palette(Medal_palette);
-#endif
-	}
-}
-*/
-
 // function to load in the medals for this player.  It loads medals that the player has (known
 // by whether or not a non-zero number is present in the player's medal array), then loads the
 // rank bitmap
@@ -972,7 +960,7 @@ void init_medal_palette()
 void init_medal_bitmaps()
 {
 	int idx;
-	Assert(Player_score);
+	SDL_assert(Player_score);
 
 	for (idx=0; idx<NUM_MEDALS; idx++) {
 		Medal_bitmaps[idx] = -1;
@@ -983,9 +971,9 @@ void init_medal_bitmaps()
 			// possibly load a different filename that is specified by the bitmap filename
 			// for this medal.  if the player has > 1 of these types of medals, then determien
 			// which of the possible version to use based on the player's count of this medal
-			strcpy( filename, Medals[idx].bitmap );
+			SDL_strlcpy( filename, Medals[idx].bitmap, SDL_arraysize(filename) );
 
-			_splitpath( filename, NULL, NULL, base, NULL );
+			base_filename(filename, base, SDL_arraysize(base));
 
 			num_medals = Player_score->medals[idx];
 
@@ -996,26 +984,26 @@ void init_medal_bitmaps()
 			if ( num_medals > 1 ) {
 				// append the proper character onto the end of the medal filename.  Base version
 				// has no character. next version is a, then b, etc.
-				sprintf( base, "%s%c", base, (num_medals-2)+'a');
+				SDL_snprintf( base, SDL_arraysize(base), "%s%c", base, (num_medals-2)+'a');
 			}
 	
 			// hi-res support
 			if (gr_screen.res == GR_1024) {
-				sprintf( filename, "2_%s", base );
+				SDL_snprintf( filename, SDL_arraysize(filename), "2_%s", base );
 			}
 
 			// base now contains the actual medal bitmap filename needed to load
 			// we don't need to pass extension to bm_load anymore, so just use the basename
 			// as is.
          Medal_bitmaps[idx] = bm_load( filename );
-			Assert( Medal_bitmaps[idx] != -1 );
+			SDL_assert( Medal_bitmaps[idx] != -1 );
 		}
 	}
 
 	// load up rank insignia
 	if (gr_screen.res == GR_1024) {
 		char filename[NAME_LENGTH];
-		sprintf(filename, "2_%s", Ranks[Player_score->rank].bitmap);
+		SDL_snprintf(filename, SDL_arraysize(filename), "2_%s", Ranks[Player_score->rank].bitmap);
 		Rank_bm = bm_load(filename);
 	} else {
 		Rank_bm = bm_load(Ranks[Player_score->rank].bitmap);

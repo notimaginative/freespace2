@@ -318,7 +318,6 @@ int next_message = -1;
 // Creates a single particle. See the PARTICLE_?? defines for types.
 void particle_create( particle_info *pinfo )
 {
-	int particle_num;
 	particle *p;
 
 #ifndef NDEBUG
@@ -385,9 +384,6 @@ KillAnother:
 		}
 		//mprintf(( "Num_particles high water mark = %i\n", Num_particles_hwm));
 	}
-
-	// get objnum
-	particle_num = p-Particles;
 
 	// Init the particle data
 	p->pos = pinfo->pos;
@@ -462,7 +458,7 @@ void particle_move_all(float frametime)
 			// decrement counter
 			Num_particles--;
 	
-			Assert(Num_particles >= 0);
+			SDL_assert(Num_particles >= 0);
 			continue;
 		}
 
@@ -475,7 +471,7 @@ void particle_move_all(float frametime)
 				// decrement counter
 				Num_particles--;
 
-				Assert(Num_particles >= 0);
+				SDL_assert(Num_particles >= 0);
 				continue;
 			}
 		}
@@ -496,7 +492,7 @@ void particle_move_all(float frametime)
 			// decrement counter
 			Num_particles--;
 
-			Assert(Num_particles >= 0);
+			SDL_assert(Num_particles >= 0);
 		}
 	}
 }

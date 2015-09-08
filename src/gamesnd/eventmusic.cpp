@@ -410,8 +410,8 @@ void event_music_force_switch()
 		if (Current_pattern == SONG_BTTL_3 && new_pattern == SONG_BTTL_1) {
 			// AL 06-24-99: maybe switch to battle 2 if hull is less than 70%
 			if (Player_obj != NULL && Player_ship != NULL) {
-				Assert(Player_ship->ship_info_index >= 0);
-				Assert(Ship_info[Player_ship->ship_info_index].initial_hull_strength != 0);
+				SDL_assert(Player_ship->ship_info_index >= 0);
+				SDL_assert(Ship_info[Player_ship->ship_info_index].initial_hull_strength != 0);
 				float integrity = Player_obj->hull_strength / Ship_info[Player_ship->ship_info_index].initial_hull_strength;
 				if (integrity < HULL_VALUE_TO_PLAY_INTENSE_BATTLE_MUSIC) {
 					new_pattern = SONG_BTTL_2;
@@ -427,7 +427,7 @@ void event_music_force_switch()
 	if ( Patterns[new_pattern].num_measures == 0 )
 		return;	// invalid pattern
 
-	Assert(new_pattern >= 0 && new_pattern < MAX_PATTERNS);
+	SDL_assert(new_pattern >= 0 && new_pattern < MAX_PATTERNS);
 	audiostream_play(Patterns[new_pattern].handle, Master_event_music_volume, 0);	// no looping
 	audiostream_set_byte_cutoff(Patterns[new_pattern].handle, fl2i(Patterns[new_pattern].num_measures * Patterns[new_pattern].bytes_per_measure) );
 	Patterns[Current_pattern].next_pattern = Patterns[Current_pattern].default_next_pattern;
@@ -457,7 +457,7 @@ void event_music_do_frame()
 		Pattern_timer_id = 0;
 		Event_music_begun = TRUE;
 		if ( Current_pattern != -1 ) {
-			Assert(Patterns[Current_pattern].handle >= 0 );
+			SDL_assert(Patterns[Current_pattern].handle >= 0 );
 			audiostream_play(Patterns[Current_pattern].handle, Master_event_music_volume, 0);	// no looping
 			audiostream_set_byte_cutoff(Patterns[Current_pattern].handle, fl2i(Patterns[Current_pattern].num_measures * Patterns[Current_pattern].bytes_per_measure) );
 		}
@@ -589,12 +589,12 @@ void event_music_level_init(int force_soundtrack)
 */
 	}
 
-	Assert(Current_soundtrack_num >= 0 && Current_soundtrack_num < Num_soundtracks);
+	SDL_assert(Current_soundtrack_num >= 0 && Current_soundtrack_num < Num_soundtracks);
 	strack = &Soundtracks[Current_soundtrack_num];
 
 	// open the pattern files, and get ready to play them
 	for ( i = 0; i < strack->num_patterns; i++ ) {
-		if ( !stricmp(NOX("none.wav"), strack->pattern_fnames[i]) ) {
+		if ( !SDL_strcasecmp(NOX("none.wav"), strack->pattern_fnames[i]) ) {
 			Patterns[i].handle = -1;	
 			continue;
 		}
@@ -690,7 +690,7 @@ void event_music_level_close()
 	if ( Current_soundtrack_num >= 0 && Current_soundtrack_num < MAX_SOUNDTRACKS ) {
 		SOUNDTRACK_INFO *strack;
    
-		Assert( Current_soundtrack_num >= 0 && Current_soundtrack_num < MAX_SOUNDTRACKS );
+		SDL_assert( Current_soundtrack_num >= 0 && Current_soundtrack_num < MAX_SOUNDTRACKS );
 		strack = &Soundtracks[Current_soundtrack_num];
 
 		// close the pattern files
@@ -799,8 +799,8 @@ int event_music_enemy_arrival()
 	// AL 7-25-99: If hull is less than 70% then switch to battle 2 or 3, otherwise switch to 1 or 2
 	bool play_intense_battle_music = false;
 	if (Player_obj != NULL && Player_ship != NULL) {
-		Assert(Player_ship->ship_info_index >= 0);
-		Assert(Ship_info[Player_ship->ship_info_index].initial_hull_strength != 0);
+		SDL_assert(Player_ship->ship_info_index >= 0);
+		SDL_assert(Ship_info[Player_ship->ship_info_index].initial_hull_strength != 0);
 		float integrity = Player_obj->hull_strength / Ship_info[Player_ship->ship_info_index].initial_hull_strength;
 		if (integrity < HULL_VALUE_TO_PLAY_INTENSE_BATTLE_MUSIC) {
 			play_intense_battle_music = true;
@@ -895,7 +895,7 @@ int event_music_friendly_arrival()
 			Patterns[Current_pattern].force_pattern = TRUE;
 		} else {
 		*/
-			Assert(Patterns[SONG_AARV_1].handle >= 0 );
+			SDL_assert(Patterns[SONG_AARV_1].handle >= 0 );
 			audiostream_play(Patterns[SONG_AARV_1].handle, Master_event_music_volume, 0);	// no looping
 			audiostream_set_byte_cutoff(Patterns[SONG_AARV_1].handle, fl2i(Patterns[SONG_AARV_1].num_measures * Patterns[SONG_AARV_1].bytes_per_measure) );
 		//}
@@ -1049,7 +1049,7 @@ int event_music_player_respawn()
 	if ( Event_music_level_inited == FALSE )
 		return -1;
 
-//	Assert(Current_pattern == SONG_DEAD_1);
+//	SDL_assert(Current_pattern == SONG_DEAD_1);
 
 	Event_Music_battle_started = 0;
 	Patterns[Current_pattern].next_pattern = SONG_NRML_1;
@@ -1089,7 +1089,6 @@ void event_music_parse_musictbl()
 {
 	char fname[MAX_FILENAME_LEN];
 	char line_buf[128];
-	int rval;
 
 	int num_patterns = 0;
 
@@ -1097,24 +1096,21 @@ void event_music_parse_musictbl()
 	Num_soundtracks = 0;		// Global
 	event_music_reset_choices();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse music.tbl!  Code = %i.\n", rval);
+	// open localization
+	lcl_ext_open();
 
-	} else {
-		// open localization
-		lcl_ext_open();
-
+	try {
 		read_file_text("music.tbl");
 		reset_parse();		
 
 		// Loop through all the sound-tracks
 		while (required_string_either("#Menu Music Start","#SoundTrack Start")) {
-			Assert(Num_soundtracks < MAX_SOUNDTRACKS);
+			SDL_assert(Num_soundtracks < MAX_SOUNDTRACKS);
 			required_string("#SoundTrack Start");
 			required_string("$SoundTrack Name:");
 			stuff_string(Soundtracks[Num_soundtracks].name, F_NAME, NULL);
 			while (required_string_either("#SoundTrack End","$Name:")) {
-				Assert( num_patterns < MAX_PATTERNS );
+				SDL_assert( num_patterns < MAX_PATTERNS );
 				required_string("$Name:");
 				stuff_string(line_buf, F_NAME, NULL);
 
@@ -1123,11 +1119,11 @@ void event_music_parse_musictbl()
 				char *token;
 				int count = 0;
 				token = strtok( line_buf, NOX(" ,\t"));
-				strcpy(fname, token);
+				SDL_strlcpy(fname, token, SDL_arraysize(fname));
 				while ( token != NULL ) {
 					token = strtok( NULL, NOX(" ,\t") );
 					if ( token == NULL ) {
-						Assert(count == 2 );
+						SDL_assert(count == 2 );
 						break;
 					}
 
@@ -1143,7 +1139,7 @@ void event_music_parse_musictbl()
 
 				// convert from samples per measure to bytes per measure
 				Pattern_bytes_per_measure[Num_soundtracks][num_patterns] *= 2;
-				strcpy(Soundtracks[Num_soundtracks].pattern_fnames[num_patterns], fname);
+				SDL_strlcpy(Soundtracks[Num_soundtracks].pattern_fnames[num_patterns], fname, MAX_FILENAME_LEN);
 				num_patterns++;
 			}
 
@@ -1156,28 +1152,30 @@ void event_music_parse_musictbl()
 		// Parse the menu music section
 		required_string("#Menu Music Start");
 		while (required_string_either("#Menu Music End","$Name:")) {
-			Assert( Num_music_files < MAX_SPOOLED_MUSIC );
+			SDL_assert( Num_music_files < MAX_SPOOLED_MUSIC );
 
 			required_string("$Name:");
 			stuff_string(fname, F_PATHNAME, NULL);
-			Assert( strlen(fname) < (NAME_LENGTH-1) );
-			strcpy( Spooled_music[Num_music_files].name, fname );
+			SDL_assert( strlen(fname) < (NAME_LENGTH-1) );
+			SDL_strlcpy( Spooled_music[Num_music_files].name, fname, SDL_arraysize(Spooled_music[0].name) );
 
 			required_string("$Filename:");
 			stuff_string(fname, F_PATHNAME, NULL);
-			if ( stricmp(fname, NOX("none.wav"))  ) {
-				Assert( strlen(fname) < (MAX_FILENAME_LEN-1) );
-				strcpy( Spooled_music[Num_music_files].filename, fname );
+			if ( SDL_strcasecmp(fname, NOX("none.wav"))  ) {
+				SDL_assert( strlen(fname) < (MAX_FILENAME_LEN-1) );
+				SDL_strlcpy( Spooled_music[Num_music_files].filename, fname, SDL_arraysize(Spooled_music[0].filename) );
 			}
 
 			Num_music_files++;			
 		}
 
 		required_string("#Menu Music End");
-
-		// close localization
-		lcl_ext_close();
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse music.tbl!  Code = %i.\n", (int)rval);
 	}
+
+	// close localization
+	lcl_ext_close();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1234,7 +1232,7 @@ void event_music_disable()
 	if (Current_pattern == -1)
 		return;
 
-	Assert( Current_pattern >= 0 && Current_pattern < MAX_PATTERNS );
+	SDL_assert( Current_pattern >= 0 && Current_pattern < MAX_PATTERNS );
 	if (  audiostream_is_playing(Patterns[Current_pattern].handle) ) {
 			audiostream_stop(Patterns[Current_pattern].handle);	// stop current and rewind
 	}
@@ -1327,7 +1325,7 @@ void event_music_pause()
 	if (Current_pattern == -1)
 		return;
 
-	Assert( Current_pattern >= 0 && Current_pattern < MAX_PATTERNS );
+	SDL_assert( Current_pattern >= 0 && Current_pattern < MAX_PATTERNS );
 	if (  audiostream_is_playing(Patterns[Current_pattern].handle) ) {
 			audiostream_stop(Patterns[Current_pattern].handle, 0);	// stop current and don't rewind
 	}
@@ -1353,7 +1351,7 @@ void event_music_unpause()
 	if (Current_pattern == -1)
 		return;
 
-	Assert( Current_pattern >= 0 && Current_pattern < MAX_PATTERNS );
+	SDL_assert( Current_pattern >= 0 && Current_pattern < MAX_PATTERNS );
 	if ( audiostream_is_paused(Patterns[Current_pattern].handle) == TRUE ) {
 		audiostream_play(Patterns[Current_pattern].handle, Master_event_music_volume, 0);	// no looping
 		audiostream_set_byte_cutoff(Patterns[Current_pattern].handle, fl2i(Patterns[Current_pattern].num_measures * Patterns[Current_pattern].bytes_per_measure) );
@@ -1435,13 +1433,13 @@ int hostile_ships_to_arrive()
 //
 // Return information about the event music in the buffer outbuf
 // NOTE: callers to this function are advised to allocate a 256 byte buffer
-void event_music_get_info(char *outbuf)
+void event_music_get_info(char *outbuf, const int outbuf_size)
 {
 	if ( Event_music_enabled == FALSE || Event_music_level_inited == FALSE || Current_pattern == -1 ) {
-		sprintf(outbuf,XSTR( "Event music is not playing", 213));
+		SDL_strlcpy(outbuf, XSTR( "Event music is not playing", 213), outbuf_size);
 	}
 	else {	
-		sprintf(outbuf,XSTR( "soundtrack: %s [%s]", 214), Soundtracks[Current_soundtrack_num].name, Pattern_description[Current_pattern]);
+		SDL_snprintf(outbuf, outbuf_size, XSTR( "soundtrack: %s [%s]", 214), Soundtracks[Current_soundtrack_num].name, Pattern_description[Current_pattern]);
 	}
 }
 
@@ -1475,13 +1473,13 @@ int event_music_next_soundtrack(int delta)
 //
 // Return information about the event music in the buffer outbuf
 // NOTE: callers to this function are advised to allocate a NAME_LENGTH buffer
-void event_music_get_soundtrack_name(char *outbuf)
+void event_music_get_soundtrack_name(char *outbuf, const int outbuf_size)
 {
 	if ( Event_music_enabled == FALSE || Event_music_level_inited == FALSE ) {
-		strcpy(outbuf, XSTR( "Event music is not playing", 213));
+		SDL_strlcpy(outbuf, XSTR( "Event music is not playing", 213), outbuf_size);
 	}
 	else {
-		sprintf(outbuf, Soundtracks[Current_soundtrack_num].name);
+		SDL_strlcpy(outbuf, Soundtracks[Current_soundtrack_num].name, outbuf_size);
 	}
 }
 
@@ -1492,7 +1490,7 @@ void event_music_set_soundtrack(char *name)
 
 	// find the correct index for the event music
 	for ( i = 0; i < Num_soundtracks; i++ ) {
-		if ( !stricmp(name, Soundtracks[i].name) ) {
+		if ( !SDL_strcasecmp(name, Soundtracks[i].name) ) {
 			Current_soundtrack_num = i;
 			break;
 		}
@@ -1508,7 +1506,7 @@ int event_music_get_spooled_music_index(const char *name)
 {
 	// find the correct index for the event music
 	for ( int i = 0; i < Num_music_files; i++ ) {
-		if ( !stricmp(name, Spooled_music[i].name) ) {
+		if ( !SDL_strcasecmp(name, Spooled_music[i].name) ) {
 			return i;
 		}
 	}
@@ -1519,7 +1517,7 @@ int event_music_get_spooled_music_index(const char *name)
 // set a score based on name
 void event_music_set_score(int score_index, const char *name)
 {
-	Assert(score_index < NUM_SCORES);
+	SDL_assert(score_index < NUM_SCORES);
 
 	// find the correct index for the event music
 	Mission_music[score_index] = event_music_get_spooled_music_index(name);

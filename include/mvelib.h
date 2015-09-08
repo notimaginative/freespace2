@@ -91,8 +91,6 @@ int mve_audio_data(ubyte major, ubyte *data);
 void mve_audio_play();
 // video
 int mve_video_createbuf(ubyte minor, ubyte *data);
-int mve_video_init(ubyte *data);
-void mve_video_palette(ubyte *data);
 void mve_video_data(ubyte *data, int len);
 void mve_video_codemap(ubyte *data, int len);
 void mve_video_display();
@@ -102,7 +100,7 @@ void mve_end_chunk();
 int mve_timer_create(ubyte *data);
 
 // special audio functions
-void mveaudio_uncompress(short *buffer, unsigned char *data, int length);
+void mveaudio_uncompress(unsigned char *buffer, unsigned char *data, int length);
 typedef short mves;
 
 #endif /* INCLUDED_MVELIB_H */

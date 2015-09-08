@@ -516,50 +516,49 @@ extern int compute_num_homing_objects(object *target_objp);
 void parse_weapon_expl_tbl()
 {
 #ifndef MAKE_FS1
-	int	rval, idx;
+	int	idx;
 	char base_filename[256] = "";
 
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse weapon_expl.tbl!  Code = %i.\n", rval);
-	}
-	else {
+	try {
 		read_file_text(NOX("weapon_expl.tbl"));
-		reset_parse();		
-	}
+		reset_parse();
 
-	Num_weapon_expl = 0;
-	required_string("#Start");
-	while (required_string_either("#End","$Name:")) {
-		Assert( Num_weapon_expl < MAX_Weapon_expl_info);
+		Num_weapon_expl = 0;
+		required_string("#Start");
+		while (required_string_either("#End","$Name:")) {
+			SDL_assert( Num_weapon_expl < MAX_Weapon_expl_info);
 
-		// base filename
-		required_string("$Name:");
-		stuff_string(base_filename, F_NAME, NULL);
+			// base filename
+			required_string("$Name:");
+			stuff_string(base_filename, F_NAME, NULL);
 
-		// # of lod levels - make sure old fireball.tbl is compatible
-		Weapon_expl_info[Num_weapon_expl].lod_count = 1;
-		if(optional_string("$LOD:")){
-			stuff_int(&Weapon_expl_info[Num_weapon_expl].lod_count);
-		}
-
-		// stuff default filename
-		strcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename);
-
-		// stuff LOD level filenames
-		for(idx=1; idx<Weapon_expl_info[Num_weapon_expl].lod_count; idx++){
-			if(idx >= MAX_weapon_expl_lod){
-				break;
+			// # of lod levels - make sure old fireball.tbl is compatible
+			Weapon_expl_info[Num_weapon_expl].lod_count = 1;
+			if(optional_string("$LOD:")){
+				stuff_int(&Weapon_expl_info[Num_weapon_expl].lod_count);
 			}
 
-			sprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, "%s_%d", base_filename, idx);
-		}
+			// stuff default filename
+			SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, base_filename, MAX_FILENAME_LEN);
 
-		Num_weapon_expl++;
+			// stuff LOD level filenames
+			for(idx=1; idx<Weapon_expl_info[Num_weapon_expl].lod_count; idx++){
+				if(idx >= MAX_weapon_expl_lod){
+					break;
+				}
+
+				SDL_snprintf(Weapon_expl_info[Num_weapon_expl].lod[idx].filename, MAX_FILENAME_LEN, "%s_%d", base_filename, idx);
+			}
+
+			Num_weapon_expl++;
+		}
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse weapon_expl.tbl!  Code = %i.\n", (int)rval);
 	}
-	required_string("#End");
 
 	// close localization
 	lcl_ext_close();
@@ -568,7 +567,7 @@ void parse_weapon_expl_tbl()
 	Num_weapon_expl = 0;
 
 	Weapon_expl_info[Num_weapon_expl].lod_count = 1;
-	strncpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
+	SDL_strlcpy(Weapon_expl_info[Num_weapon_expl].lod[0].filename, "ExpMissileHit1", MAX_FILENAME_LEN);
 
 	Num_weapon_expl++;
 #endif
@@ -577,7 +576,7 @@ void parse_weapon_expl_tbl()
 int get_weapon_expl_info_index(char *filename)
 {
 	for (int i=0; i<MAX_Weapon_expl_info; i++) {
-		if ( stricmp(Weapon_expl_info[i].lod[0].filename, filename) == 0) {
+		if ( SDL_strcasecmp(Weapon_expl_info[i].lod[0].filename, filename) == 0) {
 			return i;
 		}
 	}
@@ -632,7 +631,7 @@ int missile_obj_list_add(int objnum)
 // called from weapon_delete()
 void missle_obj_list_remove(int index)
 {
-	Assert(index >= 0 && index < MAX_MISSILE_OBJS);
+	SDL_assert(index >= 0 && index < MAX_MISSILE_OBJS);
 	list_remove(&Missile_obj_list, &Missile_objs[index]);	
 	Missile_objs[index].flags = 0;
 }
@@ -678,7 +677,7 @@ void weapon_maybe_alert_cmeasure_success(object *objp)
 //
 missile_obj *missile_obj_return_address(int index)
 {
-	Assert(index >= 0 && index < MAX_MISSILE_OBJS);
+	SDL_assert(index >= 0 && index < MAX_MISSILE_OBJS);
 	return &Missile_objs[index];
 }
 
@@ -698,7 +697,7 @@ int weapon_info_lookup(const char *name)
 #endif
 
 	for (i=0; i<Num_weapon_types; i++)
-		if (!stricmp(name, Weapon_info[i].name))
+		if (!SDL_strcasecmp(name, Weapon_info[i].name))
 			return i;
 
 	return -1;
@@ -717,9 +716,9 @@ void parse_wi_flags(weapon_info *weaponp)
 	num_strings = stuff_string_list(weapon_strings, MAX_WEAPON_FLAGS);
 	
 	for (int i=0; i<num_strings; i++) {
-		if (!stricmp(NOX("Electronics"), weapon_strings[i]))
+		if (!SDL_strcasecmp(NOX("Electronics"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_ELECTRONICS;		
-		else if (!strnicmp(NOX("Spawn"), weapon_strings[i], 5)) {
+		else if (!SDL_strncasecmp(NOX("Spawn"), weapon_strings[i], 5)) {
 			if (weaponp->spawn_type == -1) {
 				int	skip_length, name_length;
 				char	*temp_string;
@@ -729,64 +728,64 @@ void parse_wi_flags(weapon_info *weaponp)
 				weaponp->wi_flags |= WIF_SPAWN;
 				weaponp->spawn_type = (short)Num_spawn_types;
 				skip_length = strlen(NOX("Spawn")) + strspn(&temp_string[strlen(NOX("Spawn"))], NOX(" \t"));
-				char *num_start = strchr(&temp_string[skip_length], ',');
+				char *num_start = SDL_strchr(&temp_string[skip_length], ',');
 				if (num_start == NULL) {
 					weaponp->spawn_count = DEFAULT_WEAPON_SPAWN_COUNT;
-					name_length = 999;
+					name_length = NAME_LENGTH;
 				} else {
 					weaponp->spawn_count = (short)atoi(num_start+1);
-					name_length = num_start - temp_string - skip_length;
+					name_length = min(num_start - temp_string - skip_length + 1, NAME_LENGTH);
 				}
 
-				strncpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
-				Assert(Num_spawn_types < MAX_SPAWN_WEAPONS);
+				SDL_strlcpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
+				SDL_assert(Num_spawn_types < MAX_SPAWN_WEAPONS);
 			} else
 				Warning(LOCATION, "Illegal to have two spawn types for one weapon.\n"
 										"Ignoring weapon %s", weapon_strings[i]);
-		} else if (!stricmp(NOX("Remote Detonate"), weapon_strings[i]))
+		} else if (!SDL_strcasecmp(NOX("Remote Detonate"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_REMOTE;
-		else if (!stricmp(NOX("Puncture"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Puncture"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_PUNCTURE;		
-		else if (!stricmp(NOX("Big Ship"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Big Ship"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_BIG_ONLY;
-		else if (!stricmp(NOX("Huge"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Huge"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_HUGE;
-		else if (!stricmp(NOX("Bomber+"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Bomber+"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_BOMBER_PLUS;
-		else if (!stricmp(NOX("child"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("child"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_CHILD;
-		else if (!stricmp(NOX("Bomb"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Bomb"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_BOMB;
-		else if (!stricmp(NOX("No Dumbfire"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("No Dumbfire"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_NO_DUMBFIRE;
-		else if (!stricmp(NOX("In tech database"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("In tech database"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_IN_TECH_DATABASE;
-		else if (!stricmp(NOX("Player allowed"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Player allowed"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_PLAYER_ALLOWED;		
-		else if (!stricmp(NOX("Particle Spew"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Particle Spew"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_PARTICLE_SPEW;
-		else if (!stricmp(NOX("EMP"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("EMP"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_EMP;
-		else if (!stricmp(NOX("Esuck"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Esuck"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_ENERGY_SUCK;
-		else if (!stricmp(NOX("Flak"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Flak"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_FLAK;
-		else if (!stricmp(NOX("Corkscrew"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Corkscrew"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_CORKSCREW;
-		else if (!stricmp(NOX("Shudder"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Shudder"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_SHUDDER;		
-		else if (!stricmp(NOX("lockarm"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("lockarm"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_LOCKARM;		
-		else if (!stricmp(NOX("beam"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("beam"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_BEAM;
-		else if (!stricmp(NOX("stream"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("stream"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_STREAM;
-		else if (!stricmp(NOX("supercap"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("supercap"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_SUPERCAP;
 #ifdef MAKE_FS1
-		else if (!stricmp(NOX("Swarm"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Swarm"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_SWARM;
-		else if (!stricmp(NOX("No Ship"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("No Ship"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_CHILD;
 #endif 
 		else
@@ -795,18 +794,18 @@ void parse_wi_flags(weapon_info *weaponp)
 
 	// SWARM, CORKSCREW and FLAK should be mutually exclusive
 	if(weaponp->wi_flags & WIF_FLAK){
-		Assert(!(weaponp->wi_flags & WIF_CORKSCREW) && !(weaponp->wi_flags & WIF_SWARM));
+		SDL_assert(!(weaponp->wi_flags & WIF_CORKSCREW) && !(weaponp->wi_flags & WIF_SWARM));
 	}
 	if(weaponp->wi_flags & WIF_CORKSCREW){
-		Assert(!(weaponp->wi_flags & WIF_FLAK) && !(weaponp->wi_flags & WIF_SWARM));
+		SDL_assert(!(weaponp->wi_flags & WIF_FLAK) && !(weaponp->wi_flags & WIF_SWARM));
 	}
 	if(weaponp->wi_flags & WIF_SWARM){
-		Assert(!(weaponp->wi_flags & WIF_CORKSCREW) && !(weaponp->wi_flags & WIF_FLAK));
+		SDL_assert(!(weaponp->wi_flags & WIF_CORKSCREW) && !(weaponp->wi_flags & WIF_FLAK));
 	}
 
 	// make sure flak guns are only placed on turrets
 	if(weaponp->wi_flags & WIF_FLAK){
-		Assert(weaponp->wi_flags & WIF_BIG_ONLY);
+		SDL_assert(weaponp->wi_flags & WIF_BIG_ONLY);
 	}
 }
 
@@ -844,8 +843,8 @@ int parse_weapon()
 
 	if ( wip->name[0] == '@' ) {
 		char old_name[NAME_LENGTH];
-		strcpy(old_name, wip->name);
-		strcpy(wip->name, old_name+1);
+		SDL_strlcpy(old_name, wip->name, SDL_arraysize(old_name));
+		SDL_strlcpy(wip->name, old_name+1, SDL_arraysize(wip->name));
 	}
 
 	wip->title[0] = 0;
@@ -881,7 +880,7 @@ int parse_weapon()
 	required_string("$Model file:");
 	stuff_string(wip->pofbitmap_name, F_NAME, NULL);
 	diag_printf ("Model pof file -- %s\n", wip->pofbitmap_name );
-	if ( stricmp(wip->pofbitmap_name, NOX("none")) ) {
+	if ( SDL_strcasecmp(wip->pofbitmap_name, NOX("none")) ) {
 		wip->model_num = -1;				
 		wip->render_type = WRT_POF;
 		wip->laser_bitmap = -1;
@@ -1039,7 +1038,7 @@ int parse_weapon()
 		required_string("+Type:");
 		stuff_string(temp_type, F_NAME, NULL);
 
-		if (!stricmp(temp_type, NOX("HEAT"))) {
+		if (!SDL_strcasecmp(temp_type, NOX("HEAT"))) {
 			float	view_cone_angle;
 
 			wip->wi_flags |= WIF_HOMING_HEAT | WIF_TURNS;
@@ -1052,7 +1051,7 @@ int parse_weapon()
 
 			wip->fov = (float)cos((float)(ANG_TO_RAD(view_cone_angle/2.0f)));
 
-		} else if (!stricmp(temp_type, NOX("ASPECT"))) {
+		} else if (!SDL_strcasecmp(temp_type, NOX("ASPECT"))) {
 			wip->wi_flags |= WIF_HOMING_ASPECT | WIF_TURNS;
 
 			required_string("+Turn Time:");			
@@ -1189,7 +1188,7 @@ int parse_weapon()
 	if ( optional_string("$Impact Explosion:") ) {
 		char impact_ani_file[FILESPEC_LENGTH];
 		stuff_string(impact_ani_file, F_NAME, NULL);
-		if ( stricmp(impact_ani_file,NOX("none")))	{
+		if ( SDL_strcasecmp(impact_ani_file,NOX("none")))	{
 			wip->impact_weapon_expl_index = get_weapon_expl_info_index(impact_ani_file);
 			//int num_frames, fps;
 			//wip->impact_explosion_ani = bm_load_animation( impact_ani_file, &num_frames, &fps, 1 );
@@ -1444,7 +1443,7 @@ void translate_spawn_types()
 			int	spawn_type = Weapon_info[i].spawn_type;
 
 			for (j=0; j<Num_weapon_types; j++)
-				if (!stricmp(Spawn_names[spawn_type], Weapon_info[j].name)) {
+				if (!SDL_strcasecmp(Spawn_names[spawn_type], Weapon_info[j].name)) {
 					Weapon_info[i].spawn_type = (short)j;
 					if (i == j){
 						Warning(LOCATION, "Weapon %s spawns itself.  Infinite recursion?\n", Weapon_info[i].name);
@@ -1467,7 +1466,7 @@ void parse_weaponstbl()
 	
 	required_string("#Primary Weapons");
 	while (required_string_either("#End", "$Name:")) {
-		Assert( Num_weapon_types < MAX_WEAPON_TYPES );
+		SDL_assert( Num_weapon_types < MAX_WEAPON_TYPES );
 		// AL 28-3-98: If parse_weapon() fails, try next .tbl weapon
 		if ( parse_weapon() ) {
 			continue;
@@ -1480,7 +1479,7 @@ void parse_weaponstbl()
 	required_string("#Secondary Weapons");
 	First_secondary_index = Num_weapon_types;
 	while (required_string_either("#End", "$Name:")) {
-		Assert( Num_weapon_types < MAX_WEAPON_TYPES );
+		SDL_assert( Num_weapon_types < MAX_WEAPON_TYPES );
 		// AL 28-3-98: If parse_weapon() fails, try next .tbl weapon
 		if ( parse_weapon() ) {
 			continue;
@@ -1492,7 +1491,7 @@ void parse_weaponstbl()
 
 	required_string("#Beam Weapons");
 	while (required_string_either("#End", "$Name:")) {
-		Assert( Num_weapon_types < MAX_WEAPON_TYPES );
+		SDL_assert( Num_weapon_types < MAX_WEAPON_TYPES );
 		// AL 28-3-98: If parse_weapon() fails, try next .tbl weapon
 		if ( parse_weapon() ) {
 			continue;
@@ -1504,7 +1503,7 @@ void parse_weaponstbl()
 
 	required_string("#Countermeasures");
 	while (required_string_either("#End", "$Name:")) {
-		Assert( Num_cmeasure_types < MAX_CMEASURE_TYPES );
+		SDL_assert( Num_cmeasure_types < MAX_CMEASURE_TYPES );
 		parse_cmeasure();
 		Num_cmeasure_types++;
 	}
@@ -1534,20 +1533,18 @@ void create_weapon_names()
 // This will get called once at game startup
 void weapon_init()
 {
-	int rval;
-
 	if ( !Weapons_inited ) {
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 		// parse weapon_exp.tbl
 		parse_weapon_expl_tbl();
 #endif
 		// parse weapons.tbl
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Error parsing 'weapons.tbl'\r\nError code = %i.\r\n", rval);
-		} else {			
+		try {
 			parse_weaponstbl();
 			create_weapon_names();
 			Weapons_inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Error parsing 'weapons.tbl'\r\nError code = %i.\r\n", (int)rval);
 		}
 	}
 
@@ -1583,11 +1580,11 @@ void weapon_level_init()
 
 MONITOR( NumWeaponsRend );	
 
-float weapon_glow_scale_f = 2.3f;
-float weapon_glow_scale_r = 2.3f;
-float weapon_glow_scale_l = 1.5f;
-float weapon_glow_alpha_d3d = 0.85f;
-float weapon_glow_alpha_glide = 0.99f;
+static const float weapon_glow_scale_f = 2.3f;
+static const float weapon_glow_scale_r = 2.3f;
+static const float weapon_glow_scale_l = 1.5f;
+static const float weapon_glow_alpha = 0.85f;
+
 void weapon_render(object *obj)
 {
 	int num;
@@ -1597,7 +1594,7 @@ void weapon_render(object *obj)
 
 	MONITOR_INC(NumWeaponsRend, 1);
 
-	Assert(obj->type == OBJ_WEAPON);
+	SDL_assert(obj->type == OBJ_WEAPON);
 
 	num = obj->instance;
 	wp = &Weapons[num];
@@ -1627,7 +1624,7 @@ void weapon_render(object *obj)
 
 				vector headp2;			
 				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.v.fvec, wip->laser_length * weapon_glow_scale_l);
-				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, (gr_screen.mode == GR_DIRECT3D || gr_screen.mode == GR_OPENGL) ? weapon_glow_alpha_d3d : weapon_glow_alpha_glide, -1, -1);
+				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, weapon_glow_alpha, -1, -1);
 				g3_draw_laser_rgb(&headp2, wip->laser_head_radius * weapon_glow_scale_f, &obj->pos, wip->laser_tail_radius * weapon_glow_scale_r, c.red, c.green, c.blue);
 			}						
 			break;
@@ -1686,10 +1683,10 @@ void weapon_delete(object *obj)
 
 	num = obj->instance;
 
-	Assert( Weapons[num].objnum == OBJ_INDEX(obj));
+	SDL_assert( Weapons[num].objnum == OBJ_INDEX(obj));
 	wp = &Weapons[num];
 
-	Assert(wp->weapon_info_index >= 0);
+	SDL_assert(wp->weapon_info_index >= 0);
 	wp->weapon_info_index = -1;
 	if (wp->swarm_index >= 0) {
 		swarm_delete(wp->swarm_index);
@@ -1717,7 +1714,7 @@ void weapon_delete(object *obj)
 
 	wp->objnum = -1;
 	Num_weapons--;
-	Assert(Num_weapons >= 0);
+	SDL_assert(Num_weapons >= 0);
 }
 
 // Check if missile is newly locked onto the Player, maybe play a launch warning
@@ -1729,7 +1726,7 @@ void weapon_maybe_play_warning(weapon *wp)
 			if ( Weapon_info[wp->weapon_info_index].wi_flags & WIF_HOMING_HEAT ) {
 				snd_play(&Snds[SND_HEATLOCK_WARN]);
 			} else {
-				Assert(Weapon_info[wp->weapon_info_index].wi_flags & WIF_HOMING_ASPECT);
+				SDL_assert(Weapon_info[wp->weapon_info_index].wi_flags & WIF_HOMING_ASPECT);
 				snd_play(&Snds[SND_ASPECTLOCK_WARN]);
 			}
 		}
@@ -1971,8 +1968,8 @@ void weapon_home(object *obj, int num, float frame_time)
 	weapon_info	*wip;
 	object		*hobjp;
 
-	Assert(obj->type == OBJ_WEAPON);
-	Assert(obj->instance == num);
+	SDL_assert(obj->type == OBJ_WEAPON);
+	SDL_assert(obj->instance == num);
 	wp = &Weapons[num];
 	wip = &Weapon_info[wp->weapon_info_index];
 	hobjp = Weapons[num].homing_object;
@@ -2050,7 +2047,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		break;
 	case OBJ_WEAPON:
 		// only allowed to home on bombs
-		Assert(Weapon_info[Weapons[hobjp->instance].weapon_info_index].wi_flags & WIF_BOMB);
+		SDL_assert(Weapon_info[Weapons[hobjp->instance].weapon_info_index].wi_flags & WIF_BOMB);
 		if (wip->wi_flags & WIF_HOMING_ASPECT)
 			find_homing_object_by_sig(obj, wp->target_sig);
 		else
@@ -2096,7 +2093,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		if ( wp->homing_subsys != NULL ) {
 			get_subsystem_world_pos(hobjp, Weapons[num].homing_subsys, &target_pos);
 			wp->homing_pos = target_pos;	// store the homing position in weapon data
-			Assert( !vm_is_vec_nan(&wp->homing_pos) );
+			SDL_assert( !vm_is_vec_nan(&wp->homing_pos) );
 		} else {
 			float	fov;
 			float	dist;
@@ -2178,7 +2175,7 @@ void weapon_home(object *obj, int num, float frame_time)
 				}
 
 				wp->homing_pos = target_pos;
-				Assert( !vm_is_vec_nan(&wp->homing_pos) );
+				SDL_assert( !vm_is_vec_nan(&wp->homing_pos) );
 				// nprintf(("AI", "Attack point = %7.3f %7.3f %7.3f\n", target_pos.xyz.x, target_pos.xyz.y, target_pos.xyz.z));
 			} else
 				target_pos = wp->homing_pos;
@@ -2246,7 +2243,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			if (wip->fov < 0.95f)
 				wp->lifeleft -= flFrametime * (0.95f - old_dot);
 		} else
-			Assert(0);	//	Hmm, a homing missile, but not aspect or heat?
+			SDL_assert(0);	//	Hmm, a homing missile, but not aspect or heat?
 
 
 		//	Control speed based on dot product to goal.  If close to straight ahead, move
@@ -2266,7 +2263,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			obj->phys_info.speed *= t*t;
 		}
 
-		Assert( obj->phys_info.speed > 0.0f );
+		SDL_assert( obj->phys_info.speed > 0.0f );
 
 		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.v.fvec, obj->phys_info.speed);
 
@@ -2374,13 +2371,13 @@ void weapon_process_post(object * obj, float frame_time)
 
 	MONITOR_INC( NumWeapons, 1 );	
 	
-	Assert(obj->type == OBJ_WEAPON);
+	SDL_assert(obj->type == OBJ_WEAPON);
 
 	num = obj->instance;
 
 #ifndef NDEBUG
 	int objnum = OBJ_INDEX(obj);
-	Assert( Weapons[num].objnum == objnum );
+	SDL_assert( Weapons[num].objnum == objnum );
 #endif
 
 	wp = &Weapons[num];
@@ -2464,12 +2461,12 @@ void weapon_process_post(object * obj, float frame_time)
 				float		dot;
 				vector	tvec;
 				ai_info	*parent_aip;
-				float		lead_scale = 0.0f;
+			//	float		lead_scale = 0.0f;
 
 				parent_aip = NULL;
 				if (obj->parent != Player_obj-Objects) {
 					parent_aip = &Ai_info[Ships[Objects[obj->parent].instance].ai_index];
-					lead_scale = parent_aip->lead_scale;
+				//	lead_scale = parent_aip->lead_scale;
 				}
 
 				vm_vec_normalized_dir(&tvec, &v0, &Objects[wp->target_num].pos);
@@ -2537,13 +2534,13 @@ void weapon_set_tracking_info(int weapon_objnum, int parent_objnum, int target_o
 		return;
 	}
 
-	Assert(Objects[weapon_objnum].type == OBJ_WEAPON);
+	SDL_assert(Objects[weapon_objnum].type == OBJ_WEAPON);
 
 	wp = &Weapons[Objects[weapon_objnum].instance];
 	wip = &Weapon_info[wp->weapon_info_index];
 	parent_objp = &Objects[parent_objnum];
 
-	Assert(parent_objp->type == OBJ_SHIP);
+	SDL_assert(parent_objp->type == OBJ_SHIP);
 	ai_index = Ships[parent_objp->instance].ai_index;
 
 	if ( ai_index >= 0 ) {
@@ -2613,10 +2610,10 @@ int weapon_create( vector * pos, matrix * orient, int weapon_id, int parent_objn
 	weapon		*wp;
 	weapon_info	*wip;
 
-	Assert(weapon_id >= 0 && weapon_id < Num_weapon_types);
+	SDL_assert(weapon_id >= 0 && weapon_id < Num_weapon_types);
 
 	// beam weapons should never come through here!
-	Assert(!(Weapon_info[weapon_id].wi_flags & WIF_BEAM));
+	SDL_assert(!(Weapon_info[weapon_id].wi_flags & WIF_BEAM));
 
 	num_deleted = 0;
 	if (Num_weapons >= MAX_WEAPONS-5) {
@@ -2649,8 +2646,8 @@ int weapon_create( vector * pos, matrix * orient, int weapon_id, int parent_objn
 
 	Weapons_created++;
 	objnum = obj_create( OBJ_WEAPON, parent_objnum, n, orient, pos, 2.0f, OF_RENDERS | OF_COLLIDES | OF_PHYSICS );
-	Assert(objnum >= 0);
-	Assert(First_secondary_index != -1);
+	SDL_assert(objnum >= 0);
+	SDL_assert(First_secondary_index != -1);
 	objp = &Objects[objnum];
 
 	parent_objp = NULL;
@@ -2680,8 +2677,8 @@ int weapon_create( vector * pos, matrix * orient, int weapon_id, int parent_objn
 
 	// we don't necessarily need a parent
 	if(parent_objp != NULL){
-		Assert(parent_objp->type == OBJ_SHIP);	//	Get Mike, a non-ship has fired a weapon!
-		Assert((parent_objp->instance >= 0) && (parent_objp->instance < MAX_SHIPS));
+		SDL_assert(parent_objp->type == OBJ_SHIP);	//	Get Mike, a non-ship has fired a weapon!
+		SDL_assert((parent_objp->instance >= 0) && (parent_objp->instance < MAX_SHIPS));
 		wp->team = Ships[parent_objp->instance].team;
 		wp->species = Ship_info[Ships[parent_objp->instance].ship_info_index].species;
 	} else {
@@ -2857,11 +2854,11 @@ void spawn_child_weapons(object *objp)
 	weapon	*wp;
 	weapon_info	*wip;
 
-	Assert(objp->type == OBJ_WEAPON);
-	Assert((objp->instance >= 0) && (objp->instance < MAX_WEAPONS));
+	SDL_assert(objp->type == OBJ_WEAPON);
+	SDL_assert((objp->instance >= 0) && (objp->instance < MAX_WEAPONS));
 
 	wp = &Weapons[objp->instance];
-	Assert((wp->weapon_info_index >= 0) && (wp->weapon_info_index < MAX_WEAPON_TYPES));
+	SDL_assert((wp->weapon_info_index >= 0) && (wp->weapon_info_index < MAX_WEAPON_TYPES));
 	wip = &Weapon_info[wp->weapon_info_index];
 
 	child_id = wip->spawn_type;
@@ -3098,11 +3095,11 @@ int weapon_area_calc_damage(object *objp, vector *pos, float inner_rad, float ou
 	} else {
 		float dist_to_outer_rad_squared, total_dist_squared;
 		min_dist = dist - objp->radius;
-		Assert(min_dist < outer_rad);
+		SDL_assert(min_dist < outer_rad);
 		dist_to_outer_rad_squared = (outer_rad-min_dist)*(outer_rad-min_dist);
 		total_dist_squared = (inner_rad-outer_rad)*(inner_rad-outer_rad);
 		// AL 2-24-98: drop off damage relative to square of distance
-		Assert(dist_to_outer_rad_squared <= total_dist_squared);
+		SDL_assert(dist_to_outer_rad_squared <= total_dist_squared);
 		*damage = max_damage * dist_to_outer_rad_squared/total_dist_squared;
 
 
@@ -3141,7 +3138,7 @@ void weapon_area_apply_blast(vector *force_apply_pos, object *ship_obj, vector *
 	vm_vec_sub(&vec_ship_to_impact, blast_pos, &ship_obj->pos);
 
 	pm = model_get(Ships[ship_obj->instance].modelnum);
-	Assert ( pm != NULL );
+	SDL_assert ( pm != NULL );
 
 	if (make_shockwave) {
 		physics_apply_shock (&force, blast, &ship_obj->phys_info, &ship_obj->orient, &pm->mins, &pm->maxs, pm->rad);
@@ -3165,13 +3162,12 @@ void weapon_area_apply_blast(vector *force_apply_pos, object *ship_obj, vector *
 void weapon_do_area_effect(object *wobjp, vector *pos, object *other_obj)
 {
 	weapon_info	*wip;
-	weapon *wp;
 	object		*objp;
 	float			damage, blast;
 
 	wip = &Weapon_info[Weapons[wobjp->instance].weapon_info_index];	
-	wp = &Weapons[wobjp->instance];
-	Assert(wip->inner_radius != 0);	
+
+	SDL_assert(wip->inner_radius != 0);
 
 	// only blast ships and asteroids
 	for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
@@ -3225,27 +3221,25 @@ void weapon_do_area_effect(object *wobjp, vector *pos, object *other_obj)
 //
 void weapon_hit( object * weapon_obj, object * other_obj, vector * hitpos )
 {
-	Assert(weapon_obj != NULL);
+	SDL_assert(weapon_obj != NULL);
 	if(weapon_obj == NULL){
 		return;
 	}
-	Assert((weapon_obj->type == OBJ_WEAPON) && (weapon_obj->instance >= 0) && (weapon_obj->instance < MAX_WEAPONS));
+	SDL_assert((weapon_obj->type == OBJ_WEAPON) && (weapon_obj->instance >= 0) && (weapon_obj->instance < MAX_WEAPONS));
 	if((weapon_obj->type != OBJ_WEAPON) || (weapon_obj->instance < 0) || (weapon_obj->instance >= MAX_WEAPONS)){
 		return;
 	}
 
 	int			num = weapon_obj->instance;
 	int			weapon_type = Weapons[num].weapon_info_index;
-	object		*weapon_parent_objp;
 	weapon_info	*wip;
 	// int np_index;
 
-	Assert((weapon_type >= 0) && (weapon_type < MAX_WEAPONS));
+	SDL_assert((weapon_type >= 0) && (weapon_type < MAX_WEAPONS));
 	if((weapon_type < 0) || (weapon_type >= MAX_WEAPONS)){
 		return;
 	}
 	wip = &Weapon_info[weapon_type];
-	weapon_parent_objp = &Objects[weapon_obj->parent];
 
 	// if this is the player ship, and is a laser hit, skip it. wait for player "pain" to take care of it
 	// if( ((wip->subtype != WP_LASER) || !MULTIPLAYER_CLIENT) && (Player_obj != NULL) && (other_obj == Player_obj) ){
@@ -3301,11 +3295,11 @@ void weapon_hit( object * weapon_obj, object * other_obj, vector * hitpos )
 
 void weapon_detonate(object *objp)
 {
-	Assert(objp != NULL);
+	SDL_assert(objp != NULL);
 	if(objp == NULL){
 		return;
 	}
-	Assert((objp->type == OBJ_WEAPON) && (objp->instance >= 0));
+	SDL_assert((objp->type == OBJ_WEAPON) && (objp->instance >= 0));
 	if((objp->type != OBJ_WEAPON) || (objp->instance < 0)){
 		return;
 	}	
@@ -3325,7 +3319,7 @@ int weapon_name_lookup(const char *name)
 	int	i;
 
 	for ( i=0; i < Num_weapon_types; i++) {
-		if (!stricmp(name, Weapon_info[i].name)) {
+		if (!SDL_strcasecmp(name, Weapon_info[i].name)) {
 			return i;
 		}
 	}
@@ -3380,12 +3374,7 @@ void weapons_page_in()
 						int bitmap_num = pm->original_textures[j];
 
 						if ( bitmap_num > -1 )	{
-							// if we're in Glide (and maybe later with D3D), use nondarkening textures
-							if(gr_screen.mode == GR_GLIDE){
-								bm_page_in_nondarkening_texture( bitmap_num );
-							} else {
-								bm_page_in_texture( bitmap_num );
-							}
+							bm_page_in_texture( bitmap_num );
 						}
 					}
 				}
@@ -3473,7 +3462,7 @@ void weapons_page_in()
 				bm_page_in_texture( bitmap_num );
 			}
 		}
-		Assert( cmeasurep->model_num > -1 );
+		SDL_assert( cmeasurep->model_num > -1 );
 	}
 
 }
@@ -3491,9 +3480,9 @@ void weapon_get_laser_color(color *c, object *objp)
 	}
 
 	// sanity
-	Assert(objp->type == OBJ_WEAPON);
-	Assert(objp->instance >= 0);
-	Assert(Weapons[objp->instance].weapon_info_index >= 0);
+	SDL_assert(objp->type == OBJ_WEAPON);
+	SDL_assert(objp->instance >= 0);
+	SDL_assert(Weapons[objp->instance].weapon_info_index >= 0);
 	if((objp->type != OBJ_WEAPON) || (objp->instance < 0) || (Weapons[objp->instance].weapon_info_index < 0)){
 		return;
 	}
@@ -3539,10 +3528,10 @@ void weapon_maybe_spew_particle(object *obj)
 	float ang;
 
 	// check some stuff
-	Assert(obj->type == OBJ_WEAPON);
-	Assert(obj->instance >= 0);
-	Assert(Weapons[obj->instance].weapon_info_index >= 0);
-	Assert(Weapon_info[Weapons[obj->instance].weapon_info_index].wi_flags & WIF_PARTICLE_SPEW);
+	SDL_assert(obj->type == OBJ_WEAPON);
+	SDL_assert(obj->instance >= 0);
+	SDL_assert(Weapons[obj->instance].weapon_info_index >= 0);
+	SDL_assert(Weapon_info[Weapons[obj->instance].weapon_info_index].wi_flags & WIF_PARTICLE_SPEW);
 	
 	wp = &Weapons[obj->instance];	
 
@@ -3696,15 +3685,14 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 #ifndef MAKE_FS1 // don't do special damage scaling for capships in FS1
 	// if the hit object was a ship
 	if(target->type == OBJ_SHIP){
-		ship *shipp;
 		ship_info *sip;
 
 		// get some info on the ship
-		Assert((target->instance >= 0) && (target->instance < MAX_SHIPS));
+		SDL_assert((target->instance >= 0) && (target->instance < MAX_SHIPS));
 		if((target->instance < 0) || (target->instance >= MAX_SHIPS)){
 			return total_scale;
 		}
-		shipp = &Ships[target->instance];
+
 		sip = &Ship_info[Ships[target->instance].ship_info_index];
 
 		// get hull pct of the ship currently

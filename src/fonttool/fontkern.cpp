@@ -123,6 +123,7 @@
 #include "timer.h"
 #include "bmpman.h"
 #include "osregistry.h"
+#include "cmdline.h"
 
 #include "fonttool.h"
 
@@ -133,7 +134,9 @@ const char *SampleText = "This is some sample text that is here to\n" \
 
 static void myexit(int value)
 {
-//	getch();
+#ifdef WIN32
+	getch();
+#endif
 	exit(value);
 }
 
@@ -307,7 +310,7 @@ void fonttool_remove_kerning( font *fnt )
 }
 
 
-void fonttool_edit_kerning(char *fname1, char *argv[])
+void fonttool_edit_kerning(char *fname1)
 {
 	int i, k,x;
 	int done;
@@ -322,7 +325,6 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 	int current_item = 0;
 	int num_items_displayed = 1;
 	int last_good_pair = -1;
-	const char *ptr;
 	color ac;
 	
 	printf( "Editing kerning data for %s\n", fname1 );
@@ -332,51 +334,27 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 
 	// setup the fred exe directory so CFILE can init properly
 	//char *c = GetCommandLine();
-	//Assert(c != NULL);
+	//SDL_assert(c != NULL);
 	//char *tok = strtok(c, " ");
-	//Assert(tok != NULL);	
-#ifdef PLAT_UNIX
-	char whee[1024];
-	getcwd (whee, 1024);
-	strcat(whee, "/");
-	strcat(whee, fname1);
-	cfile_init(whee);
-#else
-	cfile_init(argv[0]);
-#endif
+	//SDL_assert(tok != NULL);	
+
+	cfile_init();
 
 	os_init( "FontTool", "FontTool - Kerning Table Editor" );
-	// init the registry
-#ifndef PLAT_UNIX
-	os_init_registry_stuff(Osreg_company_name, Osreg_app_name,NULL);
-#endif
-	ptr = os_config_read_string(NULL, NOX("Videocard"), NULL);	
-	if((ptr == NULL) || !stricmp(ptr, "Aucune accélération 3D") || !stricmp(ptr, "Keine 3D-Beschleunigerkarte") || !stricmp(ptr, "No 3D acceleration")){
-#ifndef PLAT_UNIX
-		MessageBox((HWND)os_get_window(), "Warning, Freespace 2 requires Glide or Direct3D hardware accleration. You will not be able to run Freespace 2 without it", "Warning", MB_OK);		
-#endif
-		exit(1);
-	}
 
-	if (!stricmp(ptr, NOX("3DFX Glide"))) {
-		// Glide
-		gr_init(GR_640, GR_GLIDE);
-	} else if (strstr(ptr, NOX("Direct 3D -"))){
-		// Direct 3D
-		gr_init(GR_640, GR_DIRECT3D);
-	} else if (strstr(ptr, NOX("OpenGL"))){
-		// OpenGL
-		gr_init(GR_640, GR_OPENGL);
-	} else {
-		Int3();
-	}	
+	// always run this thing in a window
+	Cmdline_fullscreen = 0;
+	Cmdline_window = 1;
+
+	gr_init();
 
 	gr_set_palette("none",NULL);
-#ifndef PLAT_UNIX
-	bkg = bm_load( "code\\fonttool\\FontTool" );
-#else
-	bkg = bm_load( "fonttool" );
-#endif
+
+	char fonttool_pcx[128];
+	sprintf(fonttool_pcx, "src%sfonttool%sfonttool", DIR_SEPARATOR_STR, DIR_SEPARATOR_STR);
+
+	bkg = bm_load( fonttool_pcx );
+
 	if ( bkg < 0 )	{
 		printf("Error loading FontTool\n" );
 		myexit(1);
@@ -400,82 +378,86 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 		os_poll();
 		k = key_inkey();
 		switch(k)	{		
-		case KEY_F5:
+		case SDLK_F3:
+			gr_toggle_fullscreen();
+			break;
+
+		case SDLK_F5:
 			fonttool_read( fname1, &tmpfont );
 			fonttool_copy_kern( &tmpfont, &KernFont );
 			break;
 
-		case KEY_F6:
+		case SDLK_F6:
 			fonttool_remove_kerning( &KernFont );
 			break;
 
-		case KEY_F10:
+		case SDLK_F10:
 			fonttool_dump( fname1, &KernFont );
 			done=1;
 			break;
 
-		case KEY_COMMA:
+		case SDLK_COMMA:
 			if ( alpha > 1 )	{
 				alpha--;
 				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			}
 			break;
 
-		case KEY_PERIOD:
+		case SDLK_PERIOD:
 			if ( alpha < 17 )	{
 				alpha++;
 				gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			}
 			break;
 
-		case KEY_R:
+		case SDLK_r:
 			if ( cr == 16 ) cr = 1; else cr = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case KEY_G:
+		case SDLK_g:
 			if ( cg == 16 ) cg = 1; else cg = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case KEY_B:
+		case SDLK_b:
 			if ( cb == 16 ) cb = 1; else cb = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case KEY_PAD6:
+		case SDLK_KP_6:
 			x = fonttool_get_kerning( &KernFont, c1, c2, NULL );
 			fonttool_set_kerning( &KernFont, c1, c2, x+1 );
 			break;
 
-		case KEY_PAD4:
+		case SDLK_KP_4:
 			x = fonttool_get_kerning( &KernFont, c1, c2, NULL );
 			fonttool_set_kerning( &KernFont, c1, c2, x-1 );
 			break;
 
-		case KEY_PAD5:
+		case SDLK_KP_5:
 			fonttool_set_kerning( &KernFont, c1, c2, 0 );
 			break;
 
-		case KEY_PAD7:	
+		case SDLK_KP_7:
 			if ( c1 < KernFont.first_ascii + KernFont.num_chars-1 ) c1++;
 			break;
 
-		case KEY_PAD1:	
+		case SDLK_KP_1:
 			if ( c1 > KernFont.first_ascii ) c1--;
 			break;
 
-		case KEY_PAD9:	
+		case SDLK_KP_9:
 			if ( c2 < KernFont.first_ascii + KernFont.num_chars-1 ) c2++;
 			mprintf(( "C2 = %d\n", c2 ));
 			break;
 
-		case KEY_PAD3:	
+		case SDLK_KP_3:
 			if ( c2 > KernFont.first_ascii ) c2--;
 			mprintf(( "C2 = %d\n", c2 ));
 			break;
 
-		case KEY_PAD2:
+		case SDLK_KP_2:
 			if ( current_pair < 0 ) 
 				current_pair = last_good_pair;
 			else 
@@ -489,7 +471,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 			}
 			break;
 
-		case KEY_PAD8:
+		case SDLK_KP_8:
 			if ( current_pair < 0 ) 
 				current_pair = last_good_pair;
 			else
@@ -503,7 +485,7 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 			}
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			done=1;
 			break;
 		}
@@ -630,10 +612,12 @@ void fonttool_edit_kerning(char *fname1, char *argv[])
 
 		gr_flip();
 
+		// sleep a little bit, don't need high framerate here
+		SDL_Delay(10);
 	}
 
 	// cleanup
-	if (bkg >= -1) {
+	if (bkg > -1) {
 		bm_unload(bkg);
 	}
 

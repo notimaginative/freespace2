@@ -60,10 +60,5 @@ extern	int	Num_recent_missions;
 int mission_load();
 void mission_init();
 
-// Functions for mission load menu
-void mission_load_menu_init();
-void mission_load_menu_close();
-void mission_load_menu_do();
-
 #endif
 

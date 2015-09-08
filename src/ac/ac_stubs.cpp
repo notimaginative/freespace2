@@ -87,8 +87,9 @@ long	fixdiv(long, long) { return 0; }
 int game_cd_changed() { return 0; }
 int Font1;
 void freespace_menu_background() {}
-int Fred_running;
+int Fred_running = 0;
 int Pofview_running = 0;
+int Fonttool_running = 0;
 char *Game_CDROM_dir;
 void game_stop_looped_sounds() {}
 void game_enter_state(int, int){}
@@ -106,7 +107,7 @@ void game_do_state_common(int, int){}
 void game_start_time(){}
 void game_set_frametime(int){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 int game_poll() {return 0;}
 char *Game_current_mission_filename;
@@ -119,16 +120,16 @@ void game_level_close(){}
 void game_whack_apply(float, float){}
 void game_flash(float, float, float){}
 int game_do_cd_check(char*){return 0;}
-struct fs_builtin_mission *game_find_builtin_mission(char*){return 0;}
+struct fs_builtin_mission *game_find_builtin_mission(const char*){return 0;}
 int Game_do_state_should_skip;
 int Show_target_weapons;
 int Show_target_debug_info;
 int Game_subspace_effect;
 void game_load_palette(){}
-void game_format_time(long, char*){}
+void game_format_time(int, char*, int){}
 int game_get_default_skill_level(){return 0;}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int Sun_drew;
 int Interface_framerate;
 void game_set_view_clip(){}
@@ -142,8 +143,8 @@ void game_shudder_apply(int, float){}
 int game_hacked_data() {return 0;}
 int game_single_step;
 int last_single_step;
-int Nebedit_running;
+int Nebedit_running = 0;
 void game_tst_mark(struct object*, struct ship*){}
 int game_do_cd_mission_check(char*){return 0;}
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 int tst;

@@ -266,19 +266,24 @@ int palman_is_nondarkening(int r,int g, int b)
 void palman_load_pixels()
 {
 #ifndef MAKE_FS1
-	// open pixels.tbl
-	read_file_text("pixels.tbl");
-	reset_parse();
+	try {
+		// open pixels.tbl
+		read_file_text("pixels.tbl");
+		reset_parse();
 
-	// parse pixels	
-	while(!optional_string("#END")){
-		// nondarkening pixel
-		if(required_string("+ND")){
-			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][0]);
-			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][1]);
-			stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default++][2]);
+		// parse pixels
+		while(!optional_string("#END")){
+			// nondarkening pixel
+			if(required_string("+ND")){
+				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][0]);
+				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][1]);
+				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default++][2]);
+			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse pixels.tbl!  Code = %i.\n", (int)rval);
 	}
+
 #else
 	// hard-coded FS1 values
 	Palman_non_darkening_default[Palman_num_nondarkening_default][0] = 255;
@@ -351,8 +356,8 @@ void palette_load_table( const char * filename )
 	int w, h;
 	int pcx_error;
 
-	strcpy( palette_base_filename, filename );
-	char * p = strchr(palette_base_filename,'.');
+	SDL_strlcpy( palette_base_filename, filename, SDL_arraysize(palette_base_filename) );
+	char * p = SDL_strchr(palette_base_filename,'.');
 	if ( p )	{
 		*p = 0;
 	}
@@ -367,7 +372,7 @@ void palette_load_table( const char * filename )
 			Error( LOCATION, "Can't open palette file <%s>",palette_base_filename);
 
 		fsize	= cfilelength( fp );
-		Assert( fsize == 9472 );
+		SDL_assert( fsize == 9472 );
 		cfread( palette_org, 256*3, 1, fp );
 		cfclose(fp);
 
@@ -499,8 +504,8 @@ void palette_write_cached1( const char *name )
 	CFILE *fp;
 	char new_name[128];
 
-	strcpy( new_name, name );
-	strcat( new_name, ".clr" );
+	SDL_strlcpy( new_name, name, SDL_arraysize(new_name) );
+	SDL_strlcat( new_name, ".clr", SDL_arraysize(new_name) );
 	
 //	mprintf(( "Writing palette cache file '%s'\n", new_name ));
 
@@ -544,8 +549,8 @@ int palette_read_cached( const char *name )
 	uint id, new_checksum;
 	ubyte new_palette[768];
 
-	strcpy( new_name, name );
-	strcat( new_name, ".clr" );
+	SDL_strlcpy( new_name, name, SDL_arraysize(new_name) );
+	SDL_strlcat( new_name, ".clr", SDL_arraysize(new_name) );
 
 //	mprintf(( "Reading palette '%s'\n", name ));
 	
@@ -703,7 +708,7 @@ void palette_flush()
 {
 	// DB 2/3/99 - I think this was causing some wacky unhandled exceptions at game shutdown. Since we don't use palettes anymore.....
 	/*
-	if ( stricmp( palette_name, "none" ) )	{
+	if ( SDL_strcasecmp( palette_name, "none" ) )	{
 		palette_write_cached1( palette_name );
 	}
 	*/
@@ -723,11 +728,11 @@ void palette_update(const char *name_with_extension, int restrict_font_to_128)
 	
 //	mprintf(( "<<<<<<<<< PALETTE UPDATE (%s) >>>>>>>>>>>\n", (name_with_extension?name_with_extension:"null") ));
 
-	strcpy( name, name_with_extension );
-	char *p = strchr( name, '.' );
+	SDL_strlcpy( name, name_with_extension, SDL_arraysize(name) );
+	char *p = SDL_strchr( name, '.' );
 	if ( p ) *p = 0;
 
-	strcpy( palette_name, name );
+	SDL_strlcpy( palette_name, name, SDL_arraysize(palette_name) );
 
 	tmp_checksum = palette_compute_checksum( gr_palette );
 	if ( tmp_checksum == gr_palette_checksum ) return;
@@ -740,7 +745,7 @@ void palette_update(const char *name_with_extension, int restrict_font_to_128)
 	palette_fade_table_calculated = 0;
 
 	// For "none" palettes, don't calculate tables
-	if ( !stricmp( name, "none" ) ) {
+	if ( !SDL_strcasecmp( name, "none" ) ) {
 		bm_update();			// update the bitmap palette's
 		return;
 	}
@@ -789,19 +794,11 @@ ubyte *palette_get_fade_table()
 						ub = fl2i(i2fl(b)*f); if ( ub > 255 ) ub = 255;
 					} else {
 						int x,y;
-						int gi, gr, gg, gb;
-			
-						gi = (r+g+b)/3;
+						int gr, gg, gb;
 
-						#ifdef RGB_LIGHTING
-							gr = r;
-							gg = g;
-							gb = gi*2;
-						#else
-							gr = r*2;
-							gg = g*2;
-							gb = b*2;
-						#endif
+						gr = r*2;
+						gg = g*2;
+						gb = b*2;
 				
 						x = l-24;			// x goes from 0 to 7
 						y = 31-l;			// y goes from 7 to 0
@@ -885,7 +882,7 @@ void palette_use_bm_palette(int n)
 	ubyte tmp[768];
 	char name[128];
 
-	bm_get_palette(n, tmp, name);				// get the palette for this bitmap
+	bm_get_palette(n, tmp, name, SDL_arraysize(name));				// get the palette for this bitmap
 
 	gr_set_palette(name, tmp);				// load the new palette.
 }

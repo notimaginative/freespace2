@@ -241,7 +241,7 @@ void mark_wing(int wing)
 	int i;
 
 	unmark_all();
-	Assert(Wings[wing].special_ship >= 0 && Wings[wing].special_ship < Wings[wing].wave_count);
+	SDL_assert(Wings[wing].special_ship >= 0 && Wings[wing].special_ship < Wings[wing].wave_count);
 	set_cur_object_index(wing_objects[wing][Wings[wing].special_ship]);
 	for (i=0; i<Wings[wing].wave_count; i++)
 		mark_object(wing_objects[wing][i]);
@@ -306,7 +306,7 @@ void remove_wing(int wing_num)
 			remove_player_from_wing(ptr->instance);
 	}
 
-	Assert(!Wings[wing_num].wave_count);
+	SDL_assert(!Wings[wing_num].wave_count);
 	Ship_editor_dialog.initialize_data(1);
 	Ship_editor_dialog.bypass_errors = Wing_editor_dialog.bypass_errors = 0;
 
@@ -336,7 +336,7 @@ void remove_ship_from_wing(int ship, int min)
 				if (wing_objects[wing][i] == Ships[ship].objnum)
 					break;
 
-			Assert(i != -1);  // Error, object should be in wing.
+			SDL_assert(i != -1);  // Error, object should be in wing.
 			if (Wings[wing].special_ship == i)
 				Wings[wing].special_ship = 0;
 
@@ -440,7 +440,7 @@ int create_wing()
 				}
 			}
 
-			Assert(!Wings[wing].wave_count);
+			SDL_assert(!Wings[wing].wave_count);
 			num_wings--;
 		}
 
@@ -534,7 +534,7 @@ int create_wing()
 			else
 				i = count++;
 
-			Assert((ptr->type == OBJ_SHIP) || (ptr->type == OBJ_START));
+			SDL_assert((ptr->type == OBJ_SHIP) || (ptr->type == OBJ_START));
 			ship = ptr->instance;
 			if (Ships[ship].wingnum != -1) {
 				if (ptr->type == OBJ_SHIP)
@@ -648,8 +648,8 @@ void create_wings_from_objects(void)
 			if (get_wingnum(i) != -1) {
 				int	wingnum = get_wingnum(i);
 				
-				Assert((wingnum >= 0) && (wingnum < MAX_WINGS));
-				Assert(Wings[wingnum].wave_count < MAX_SHIPS_PER_WING);
+				SDL_assert((wingnum >= 0) && (wingnum < MAX_WINGS));
+				SDL_assert(Wings[wingnum].wave_count < MAX_SHIPS_PER_WING);
 // JEH			strcpy(Wings[wingnum].ship_names[Wings[wingnum].count++], i;
 			}
 
@@ -685,12 +685,12 @@ void create_wing(int wing_type, int leader_index, int *wingmen, int max_size, in
 
 	initialize_wings();
 
-	Assert((wing_type >= 0) && (wing_type < MAX_WING_FORMATIONS));
-	Assert(Wing_formations[wing_type].num_vectors > 0);
-	Assert(Wing_formations[wing_type].num_vectors < MAX_WING_VECTORS);
+	SDL_assert((wing_type >= 0) && (wing_type < MAX_WING_FORMATIONS));
+	SDL_assert(Wing_formations[wing_type].num_vectors > 0);
+	SDL_assert(Wing_formations[wing_type].num_vectors < MAX_WING_VECTORS);
 
-	Assert(Objects[leader_index].type != OBJ_NONE);
-	Assert(max_size < MAX_SHIPS_PER_WING);
+	SDL_assert(Objects[leader_index].type != OBJ_NONE);
+	SDL_assert(max_size < MAX_SHIPS_PER_WING);
 
 	num_placed = 0;
 	wingp = &Wing_formations[wing_type];
@@ -708,9 +708,9 @@ void create_wing(int wing_type, int leader_index, int *wingmen, int max_size, in
 				break;
 			else {
 				curobj = get_free_objnum();
-				Assert(curobj != -1);
+				SDL_assert(curobj != -1);
 				Objects[curobj].type = lobjp->type;
-				Assert(Wings[cur_wing].wave_count < MAX_SHIPS_PER_WING);
+				SDL_assert(Wings[cur_wing].wave_count < MAX_SHIPS_PER_WING);
 // JEH		Wings[cur_wing].ship_list[Wings[cur_wing].count] = curobj;
 				Wings[cur_wing].wave_count++;
 			}
@@ -746,9 +746,9 @@ void test_form_wing(int count)
 
 	j = 0;
 
-	Assert(cur_object_index != -1);
-	Assert(Objects[cur_object_index].type != OBJ_NONE);
-	Assert(get_wingnum(cur_object_index) != -1);
+	SDL_assert(cur_object_index != -1);
+	SDL_assert(Objects[cur_object_index].type != OBJ_NONE);
+	SDL_assert(get_wingnum(cur_object_index) != -1);
 	get_wingnum(cur_object_index);
 
 	wingmen[0] = -1;

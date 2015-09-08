@@ -201,14 +201,14 @@
 #include "beam.h"
 
 static int Key_sets[MAX_KEYED_TARGETS] = {
-	KEY_F5,
-	KEY_F6,
-	KEY_F7,
-	KEY_F8,
-	KEY_F9,
-	KEY_F10,
-	KEY_F11,
-	KEY_F12
+	SDLK_F5,
+	SDLK_F6,
+	SDLK_F7,
+	SDLK_F8,
+	SDLK_F9,
+	SDLK_F10,
+	SDLK_F11,
+	SDLK_F12
 };
 
 /////////////////////////////
@@ -370,12 +370,6 @@ static int Hotkey_ship_x[GR_NUM_RESOLUTIONS] = {
 	448			// GR_1024
 };
 
-#ifndef PLAT_UNIX
-// pragma pair put into place because of compiler warnings about being unable to inline
-// the constructor function of the hotkey_buttons set.
-#pragma warning(disable: 4710)
-#endif
-
 struct hotkey_buttons {
 	const char *filename;
 	int x, y;
@@ -429,10 +423,6 @@ static hotkey_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 	}
 //XSTR:ON
 };
-
-#ifndef PLAT_UNIX
-#pragma warning(default: 4710)
-#endif
 
 #ifndef MAKE_FS1
 #define HOTKEY_NUM_TEXT		6
@@ -553,7 +543,7 @@ void mission_hotkey_set_defaults()
 			continue;
 		}
 
-		Assert(A->instance >= 0 && A->instance < MAX_SHIPS);
+		SDL_assert(A->instance >= 0 && A->instance < MAX_SHIPS);
 		sp = &Ships[A->instance];		
 
 		if ( sp->hotkey == -1 )
@@ -565,7 +555,7 @@ void mission_hotkey_set_defaults()
 		if ( sp->hotkey == MAX_KEYED_TARGETS )
 			continue;
 
-		Assert(sp->objnum >= 0);
+		SDL_assert(sp->objnum >= 0);
 		hud_target_hotkey_add_remove( sp->hotkey, &Objects[sp->objnum], HOTKEY_MISSION_FILE_ADDED );
 	}
 
@@ -627,9 +617,9 @@ void mission_hotkey_maybe_save_sets()
 			continue;
 
 		for ( hitem = GET_FIRST(plist); hitem != END_OF_LIST(plist); hitem = GET_NEXT(hitem) ) {
-			Assert( Num_hotkeys_saved < MAX_HOTKEY_TARGET_ITEMS );
+			SDL_assert( Num_hotkeys_saved < MAX_HOTKEY_TARGET_ITEMS );
 			hkp->setnum = i;
-			strcpy( hkp->name, Ships[hitem->objp->instance].ship_name );
+			SDL_strlcpy( hkp->name, Ships[hitem->objp->instance].ship_name, SDL_arraysize(hkp->name) );
 			hkp++;
 			Num_hotkeys_saved++;
 		}
@@ -694,7 +684,7 @@ int get_wing_hotkeys(int n)
 {
 	int i, total = 0xffffffff;
 
-	Assert((n >= 0) && (n < num_wings));
+	SDL_assert((n >= 0) && (n < num_wings));
 	for (i=0; i<Wings[n].current_count; i++) {
 		int ship_index;
 
@@ -753,7 +743,7 @@ int hotkey_line_add_sorted(const char *text, int type, int index, int start)
 		return -1;
 
 	z = Num_lines - 1;
-	while ((z >= start) && ((Hotkey_lines[z].type == HOTKEY_LINE_SUBSHIP) || (stricmp(text, Hotkey_lines[z].label) < 0)))
+	while ((z >= start) && ((Hotkey_lines[z].type == HOTKEY_LINE_SUBSHIP) || (SDL_strcasecmp(text, Hotkey_lines[z].label) < 0)))
 		z--;
 
 	z++;
@@ -916,7 +906,7 @@ void hotkey_scroll_screen_up()
 {
 	if (Scroll_offset) {
 		Scroll_offset--;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!hotkey_line_query_visible(Selected_line) || (Hotkey_lines[Selected_line].type == HOTKEY_LINE_HEADING))
 			Selected_line--;
 
@@ -948,7 +938,7 @@ void hotkey_scroll_screen_down()
 		Scroll_offset++;
 		while (!hotkey_line_query_visible(Selected_line) || (Hotkey_lines[Selected_line].type == HOTKEY_LINE_HEADING)) {
 			Selected_line++;
-			Assert(Selected_line < Num_lines);
+			SDL_assert(Selected_line < Num_lines);
 		}
 
 		gamesnd_play_iface(SND_SCROLL);
@@ -964,7 +954,7 @@ void hotkey_scroll_line_down()
 		while (Hotkey_lines[Selected_line].type == HOTKEY_LINE_HEADING)
 			Selected_line++;
 
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!hotkey_line_query_visible(Selected_line))
 			Scroll_offset++;
 
@@ -1004,7 +994,7 @@ void reset_hotkeys()
 			continue;
 
 		for ( hitem = GET_FIRST(plist); hitem != END_OF_LIST(plist); hitem = GET_NEXT(hitem) ) {
-			Assert(hitem->objp->type == OBJ_SHIP);
+			SDL_assert(hitem->objp->type == OBJ_SHIP);
 			Hotkey_bits[hitem->objp->instance] |= (1 << i);
 		}
 	}
@@ -1169,8 +1159,8 @@ void mission_hotkey_init()
 	}
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 
 	// ensure help overlay is off
 	help_overlay_set_state(HOTKEY_OVERLAY,0);
@@ -1254,55 +1244,55 @@ void mission_hotkey_do_frame(float frametime)
 	}
 
 	switch (k) {
-		case KEY_DOWN:  // scroll list down
+		case SDLK_DOWN:  // scroll list down
 			hotkey_scroll_line_down();
 			break;
 
-		case KEY_UP:  // scroll list up
+		case SDLK_UP:  // scroll list up
 			hotkey_scroll_line_up();
 			break;
 
-		case KEY_PAGEDOWN:  // scroll list down
+		case SDLK_PAGEDOWN:  // scroll list down
 			hotkey_scroll_screen_down();
 			break;
 
-		case KEY_PAGEUP:  // scroll list up
+		case SDLK_PAGEUP:  // scroll list up
 			hotkey_scroll_screen_up();
 			break;
 
-		case KEY_CTRLED | KEY_ENTER:
+		case KEY_CTRLED | SDLK_RETURN:
 			save_hotkeys();
 			// fall through to next state -- allender changed this behavior since ESC should always cancel, no?
 
-		case KEY_ESC:			
+		case SDLK_ESCAPE:
 			mission_hotkey_exit();
 			break;
 
-		case KEY_TAB:
-		case KEY_ENTER:
-		case KEY_PADENTER:
+		case SDLK_TAB:
+		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
 			expand_wing();
 			break;
 
-		case KEY_EQUAL:
-		case KEY_PADPLUS:
+		case SDLK_EQUALS:
+		case SDLK_KP_PLUS:
 			add_hotkey(Cur_hotkey);
 			break;
 
-		case KEY_MINUS:
-		case KEY_PADMINUS:
+		case SDLK_MINUS:
+		case SDLK_KP_MINUS:
 			remove_hotkey();
 			break;
 
-		case KEY_F2:			
+		case SDLK_F2:
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);			
 			break;
 
-		case KEY_CTRLED | KEY_R:
+		case KEY_CTRLED | SDLK_r:
 			reset_hotkeys();
 			break;
 
-		case KEY_CTRLED | KEY_C:
+		case KEY_CTRLED | SDLK_c:
 			clear_hotkeys();
 			break;
 	}	// end switch
@@ -1376,7 +1366,7 @@ void mission_hotkey_do_frame(float frametime)
 	// draw the big "F10" in the little box	
 	gr_set_font(FONT2);
 	gr_set_color_fast(&Color_text_normal);
-	strcpy(buf, Scan_code_text[Key_sets[Cur_hotkey]]);
+	SDL_strlcpy(buf, Scan_code_text[Key_sets[Cur_hotkey]], SDL_arraysize(buf));
 	gr_get_string_size(&w, &h, buf);
 	gr_printf(Hotkey_function_name_coords[gr_screen.res][0] + (Hotkey_function_name_coords[gr_screen.res][2] - w) / 2, Hotkey_function_name_coords[gr_screen.res][1], buf);
 
@@ -1462,7 +1452,7 @@ void mission_hotkey_do_frame(float frametime)
 				}
 			}
 
-			Assert(strlen(buf) > 1);
+			SDL_assert(strlen(buf) > 1);
 			buf[strlen(buf) - 2] = 0;  // lose the ", " on the end
 
 			gr_force_fit_string(buf, 255, GROUP_LIST_W);
@@ -1470,7 +1460,7 @@ void mission_hotkey_do_frame(float frametime)
 		}
 	
 		// draw ship/wing name
-		strcpy(buf, Hotkey_lines[line].label);
+		SDL_strlcpy(buf, Hotkey_lines[line].label, SDL_arraysize(buf));
 		if (Hotkey_lines[line].type == HOTKEY_LINE_SUBSHIP) {
 			// indent
 			gr_force_fit_string(buf, 255, Hotkey_list_coords[gr_screen.res][0] + Hotkey_list_coords[gr_screen.res][2] - (Hotkey_ship_x[gr_screen.res]+20));

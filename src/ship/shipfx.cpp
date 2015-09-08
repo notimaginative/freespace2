@@ -256,7 +256,7 @@ int Player_engine_wash_loop = -1;
 
 void shipfx_remove_submodel_ship_sparks(ship *shipp, int submodel_num)
 {
-	Assert(submodel_num != -1);
+	SDL_assert(submodel_num != -1);
 
 	// maybe no active sparks on submodel
 	if (shipp->num_hits == 0) {
@@ -402,14 +402,14 @@ void set_ship_submodel_as_blown_off(ship *shipp, char *name)
 	// go through list of ship subsystems and find name
 	ship_subsys	*pss = NULL;
 	for (pss=GET_FIRST(&shipp->subsys_list); pss!=END_OF_LIST(&shipp->subsys_list); pss=GET_NEXT(pss)) {
-		if ( stricmp(pss->system_info->name, name) == 0) {
+		if ( SDL_strcasecmp(pss->system_info->name, name) == 0) {
 			found = TRUE;
 			break;
 		}
 	}
 
 	// set its blown off flag to TRUE
-	Assert(found);
+	SDL_assert(found);
 	if (found) {
 		pss->submodel_info_1.blown_off = 1;
 	}
@@ -434,7 +434,7 @@ void shipfx_maybe_create_live_debris_at_ship_death( object *ship_obj )
 			// get submodel that produces live debris
 			int model_get_parent_submodel_for_live_debris( int model_num, int live_debris_model_num );
 			int parent = model_get_parent_submodel_for_live_debris( shipp->modelnum, live_debris_submodel);
-			Assert(parent != -1);
+			SDL_assert(parent != -1);
 
 			// set model values only once (esp blown off)
 			ship_model_start(ship_obj);
@@ -451,7 +451,7 @@ void shipfx_maybe_create_live_debris_at_ship_death( object *ship_obj )
 					}
 				}
 
-				Assert (pss != NULL);
+				SDL_assert (pss != NULL);
 				if (pss != NULL) {
 					vector exp_center, tmp = ZERO_VECTOR;
 					model_find_world_point(&exp_center, &tmp, shipp->modelnum, parent, &ship_obj->orient, &ship_obj->pos );
@@ -657,7 +657,7 @@ float shipfx_calculate_warp_speed(object *objp)
 {
 	float length;
 
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 	if (objp->type != OBJ_SHIP) {
 		length = 2.0f * objp->radius;
 	} else {
@@ -733,7 +733,7 @@ void shipfx_warpin_start( object *objp )
 
 	// only move warp effect pos if not special warp in.
 	if (shipp->special_warp_objnum >= 0) {
-		Assert(!(Game_mode & GM_MULTIPLAYER));
+		SDL_assert(!(Game_mode & GM_MULTIPLAYER));
 		polymodel *pm;
 		pm = model_get(shipp->modelnum);
 		vm_vec_scale_add(&shipp->warp_effect_pos, &objp->pos, &objp->orient.v.fvec, -pm->mins.xyz.z);
@@ -1152,10 +1152,10 @@ void shipfx_warpout_frame( object *objp, float frametime )
 
 	// Find the closest point on line from center of wormhole
 	vector pos;
-	float dist;
+//	float dist;
 
 	fvi_ray_plane(&pos,&objp->pos,&shipp->warp_effect_fvec,&shipp->warp_effect_pos, &shipp->warp_effect_fvec, 0.0f );
-	dist = vm_vec_dist( &pos, &objp->pos );
+//	dist = vm_vec_dist( &pos, &objp->pos );
 
 //	mprintf(( "Warp pos = %.1f, rad=%.1f, center dist = %.1f\n", warp_pos, objp->radius, dist ));
 
@@ -1427,7 +1427,7 @@ void shipfx_flash_create(object *objp, ship * shipp, vector *gun_pos, vector *gu
 	int i;
 	int objnum = OBJ_INDEX(objp);
 
-	Assert(Ship_flash_inited);
+	SDL_assert(Ship_flash_inited);
 
 	polymodel *pm = model_get( shipp->modelnum );
 	int closest_light = -1;
@@ -1487,7 +1487,7 @@ void shipfx_flash_create(object *objp, ship * shipp, vector *gun_pos, vector *gu
 		}
 	}
 
-	Assert( Ship_flash[first_slot].objnum == -1 );
+	SDL_assert( Ship_flash[first_slot].objnum == -1 );
 
 	Ship_flash[first_slot].objnum = objnum;
 	Ship_flash[first_slot].obj_signature = objp->signature;
@@ -1714,13 +1714,8 @@ void shipfx_emit_spark( int n, int sn )
 				}
 			}
 
-			if ( D3D_enabled ) {
-				pe.num_low  = 25;				// Lowest number of particles to create (hardware)
-				pe.num_high = 30;				// Highest number of particles to create (hardware)
-			} else {
-				pe.num_low  = 5;				// Lowest number of particles to create (software)
-				pe.num_high = 7;				// Highest number of particles to create (software)
-			}
+			pe.num_low  = 25;				// Lowest number of particles to create (hardware)
+			pe.num_high = 30;				// Highest number of particles to create (hardware)
 			pe.normal_variance = 1.0f;	//	How close they stick to that normal 0=good, 1=360 degree
 			pe.min_vel = 2.0f;				// How fast the slowest particle can move
 			pe.max_vel = 12.0f;				// How fast the fastest particle can move
@@ -1732,13 +1727,8 @@ void shipfx_emit_spark( int n, int sn )
 
 			pe.min_rad = 0.7f;				// Min radius
 			pe.max_rad = 1.3f;				// Max radius
-			if ( D3D_enabled ) {
-				pe.num_low  = int (20 * spark_num_scale);		// Lowest number of particles to create (hardware)
-				pe.num_high = int (50 * spark_num_scale);		// Highest number of particles to create (hardware)
-			} else {
-				pe.num_low  = 2;			// Lowest number of particles to create (software)
-				pe.num_high = 8;		// Highest number of particles to create (software)
-			}
+			pe.num_low  = int (20 * spark_num_scale);		// Lowest number of particles to create (hardware)
+			pe.num_high = int (50 * spark_num_scale);		// Highest number of particles to create (hardware)
 			pe.normal_variance = 0.2f * spark_width_scale;		//	How close they stick to that normal 0=good, 1=360 degree
 			pe.min_vel = 3.0f;				// How fast the slowest particle can move
 			pe.max_vel = 12.0f;				// How fast the fastest particle can move
@@ -1956,7 +1946,7 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 
 static void half_ship_render_ship_and_debris(clip_ship* half_ship,ship *shipp)
 {
-	Assert( Split_ships_inited );
+	SDL_assert( Split_ships_inited );
 
 	polymodel *pm = model_get(shipp->modelnum);
 
@@ -2272,11 +2262,11 @@ int shipfx_large_blowup_do_frame(ship *shipp, float frametime)
 	// DAVE:  I made this not do any movement just to try to get things working...
 	// return 0;
 
-	Assert( Split_ships_inited );
-	Assert( shipp->large_ship_blowup_index > -1 );
+	SDL_assert( Split_ships_inited );
+	SDL_assert( shipp->large_ship_blowup_index > -1 );
 
 	split_ship *the_split_ship = &Split_ships[shipp->large_ship_blowup_index];
-	Assert( the_split_ship->used );		// Get John
+	SDL_assert( the_split_ship->used );		// Get John
 
 	// Do fireballs, particles, shockwave here
 	// Note parent ship is still valid, vel and pos updated in obj_move_all
@@ -2328,11 +2318,11 @@ void shipfx_large_blowup_render(ship* shipp)
 //	model_render( shipp->modelnum, &objp->orient, &objp->pos, MR_NORMAL );
 //	return;
 
-	Assert( Split_ships_inited );
-	Assert( shipp->large_ship_blowup_index > -1 );
+	SDL_assert( Split_ships_inited );
+	SDL_assert( shipp->large_ship_blowup_index > -1 );
 
 	split_ship *the_split_ship = &Split_ships[shipp->large_ship_blowup_index];
-	Assert( the_split_ship->used );		// Get John
+	SDL_assert( the_split_ship->used );		// Get John
 
 	// vector front_global_pivot, back_global_pivot;
 
@@ -2578,15 +2568,15 @@ void shipfx_do_lightning_frame( ship *shipp )
 	bolt_info binfo;
 
 	// sanity checks
-	Assert(shipp != NULL);
+	SDL_assert(shipp != NULL);
 	if(shipp == NULL){
 		return;
 	} 
-	Assert(shipp->ship_info_index >= 0);
+	SDL_assert(shipp->ship_info_index >= 0);
 	if(shipp->ship_info_index < 0){
 		return;
 	}	
-	Assert(shipp->objnum >= 0);
+	SDL_assert(shipp->objnum >= 0);
 	if(shipp->objnum < 0){
 		return;
 	}	
@@ -2702,23 +2692,23 @@ void shipfx_do_shockwave_stuff(ship *shipp, shockwave_create_info *sci)
 	vector temp, dir, shockwave_pos;
 	vector head = vmd_zero_vector;
 	vector tail = vmd_zero_vector;	
-	float len, step, cur;
+	float step, cur;
 	int idx;
 
 	// sanity checks
-	Assert(shipp != NULL);
+	SDL_assert(shipp != NULL);
 	if(shipp == NULL){
 		return;
 	} 
-	Assert(shipp->ship_info_index >= 0);
+	SDL_assert(shipp->ship_info_index >= 0);
 	if(shipp->ship_info_index < 0){
 		return;
 	}	
-	Assert(shipp->objnum >= 0);
+	SDL_assert(shipp->objnum >= 0);
 	if(shipp->objnum < 0){
 		return;
 	}
-	Assert(sci != NULL);
+	SDL_assert(sci != NULL);
 	if (sci == NULL) {
 		return;
 	}
@@ -2727,7 +2717,7 @@ void shipfx_do_shockwave_stuff(ship *shipp, shockwave_create_info *sci)
 	sip = &Ship_info[shipp->ship_info_index];
 	objp = &Objects[shipp->objnum];	
 
-	Assert(sip->shockwave_count > 0);
+	SDL_assert(sip->shockwave_count > 0);
 	if(sip->shockwave_count <= 0){
 		return;
 	}
@@ -2753,7 +2743,6 @@ void shipfx_do_shockwave_stuff(ship *shipp, shockwave_create_info *sci)
 
 	// now create as many shockwaves as needed
 	vm_vec_sub(&dir, &head, &tail);
-	len = vm_vec_mag(&dir);
 	step = 1.0f / ((float)sip->shockwave_count + 1.0f);
 	cur = step;
 	for(idx=0; idx<sip->shockwave_count; idx++){
@@ -2799,8 +2788,8 @@ void engine_wash_ship_process(ship *shipp)
 		return;
 	}
 
-	Assert(shipp != NULL);
-	Assert(shipp->objnum >= 0);
+	SDL_assert(shipp != NULL);
+	SDL_assert(shipp->objnum >= 0);
 	objp = &Objects[shipp->objnum];
 	ship_obj *so;
 	ship_objp = NULL;
@@ -2945,7 +2934,7 @@ void engine_wash_ship_process(ship *shipp)
 
 	// apply damage at rate of 1%/sec
 	if (shipp->wash_intensity > 0) {
-		Assert(max_ship_intensity_objp != NULL);
+		SDL_assert(max_ship_intensity_objp != NULL);
 
 		nprintf(("wash", "Wash intensity %.2f\n", shipp->wash_intensity));
 
@@ -2963,7 +2952,7 @@ void engine_wash_ship_process(ship *shipp)
 			if(shipp != Player_ship){
 				obj_snd_assign(shipp->objnum, SND_ENGINE_WASH, &vmd_zero_vector, 1);
 			} else {				
-				Player_engine_wash_loop = snd_play_looping( &Snds[SND_ENGINE_WASH], 0.0f , -1, -1, 1.0f);
+				Player_engine_wash_loop = snd_play_looping( &Snds[SND_ENGINE_WASH], 0.0f, 1.0f);
 			}
 		}
 	} 

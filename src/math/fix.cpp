@@ -38,27 +38,25 @@
  */
 
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#endif
-
 #include "pstypes.h"
 #include "fix.h"
 
 fix fixmul(fix a, fix b)
 {
-	longlong tmp;
-	tmp = (longlong)a * (longlong)b;
+	Sint64 tmp;
+	tmp = (Sint64)a * (Sint64)b;
 	return (fix)(tmp>>16);
 }
 
 fix fixdiv(fix a, fix b)
 {
-	return MulDiv(a,65536,b);
+	Sint64 ret = (Sint64)a << 16;
+	return (fix)(ret / b);
 }
 
 fix fixmuldiv(fix a, fix b,fix c)
 {
-	return MulDiv(a,b,c);
+	Sint64 ret = (Sint64)a * (Sint64)b;
+	return (fix)(ret / c);
 }
 

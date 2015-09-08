@@ -92,6 +92,7 @@
 #include "ui.h"
 #include "timer.h"
 #include "alphacolors.h"
+#include "font.h"
 
 
 // --------------------------------------------------------------------
@@ -134,7 +135,7 @@ int UI_SCROLLBAR::set_bmaps(const char *up_button_fname, const char *down_button
 	return 0;
 }
 
-void UI_SCROLLBAR::hide()
+void UI_SCROLLBAR::hide(int n)
 {
 	hidden = 1;
 	up_button.hide();
@@ -163,11 +164,11 @@ void UI_SCROLLBAR::create(UI_WINDOW *wnd, int _x, int _y, int _h, int _start, in
 
 	up_button.create( wnd, up, _x, _y, bw, bw, 1 );
 	up_button.set_parent(this);
-	up_button.set_hotkey_if_focus(KEY_UP);
+	up_button.set_hotkey_if_focus(SDLK_UP);
 
 	down_button.create( wnd, down, _x, _y + _h - bw, bw, bw, 1 );
 	down_button.set_parent(this);
-	down_button.set_hotkey_if_focus(KEY_DOWN);
+	down_button.set_hotkey_if_focus(SDLK_DOWN);
 
 	horz = 0;
 	start = _start;
@@ -177,7 +178,7 @@ void UI_SCROLLBAR::create(UI_WINDOW *wnd, int _x, int _y, int _h, int _start, in
 	bar_length = h;
 	bar_position =  0;
 
-	Assert( stop >= 0 );
+	SDL_assert( stop >= 0 );
 
 	if (stop != start)
 		bar_size = (window_size * h) / (stop - start + window_size + 1);
@@ -239,7 +240,7 @@ void UI_SCROLLBAR::draw()
 void UI_SCROLLBAR::process(int focus)
 {
 	int OnMe, OnSlider;
-	int oldpos, op;
+	int op;
 
 	moved = 0;
 	if (disabled_flag) {
@@ -259,7 +260,6 @@ void UI_SCROLLBAR::process(int focus)
 	}
 
 	op = position;
-	oldpos = bar_position;
 
 	if (up_button.pressed()) {
 		position--;
@@ -272,7 +272,7 @@ void UI_SCROLLBAR::process(int focus)
 		set_focus();
 	}
 /*
-	if ( (up_button.position != 0) || (focus && keyd_pressed[KEY_UP]) ) {
+	if ( (up_button.position != 0) || (focus && key_pressed(SDLK_UP)) ) {
 		if ( (timer_get_milliseconds() > last_scrolled + 50) || up_button.just_pressed() ) {
 			if ( up_button.just_pressed() ) {
 				last_scrolled = timer_get_milliseconds() + 300;
@@ -300,7 +300,7 @@ void UI_SCROLLBAR::process(int focus)
 		set_focus();
 	}
 
-/*	if ( down_button.position || (keyfocus && keyd_pressed[KEY_DOWN]) ) {
+/*	if ( down_button.position || (keyfocus && key_pressed(SDLK_DOWN)) ) {
 		if ( (timer_get_milliseconds() > last_scrolled + 50) || down_button.just_pressed() ) {
 			if ( down_button.just_pressed() )
 				last_scrolled = timer_get_milliseconds() + 300;

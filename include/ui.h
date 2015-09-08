@@ -565,7 +565,7 @@ class UI_BUTTON : public UI_GADGET
 		void reset_timestamps();
 		void skip_first_highlight_callback();
 		void repeatable(int yes);
-		void set_custom_cursor_bmap(int bmap_id) { custom_cursor_bmap = bmap_id; };
+		void set_custom_cursor_bmap(int bmap_id) { custom_cursor_bmap = bmap_id; }
 };
 
 class UI_KEYTRAP : public UI_GADGET
@@ -577,21 +577,6 @@ class UI_KEYTRAP : public UI_GADGET
 	public:
 		int pressed();
 		void create(UI_WINDOW *wnd, int hotkey, void (*user_function)(void) );
-};
-
-class UI_USERBOX : public UI_GADGET
-{
-		int b1_held_down;
-		int b1_clicked;
-		int b1_double_clicked;
-		int b1_dragging;
-		int b1_drag_x1, b1_drag_y1;
-		int b1_drag_x2, b1_drag_y2;
-		int b1_done_dragging;
-		int keypress;
-		int mouse_onme;
-		int mouse_x, mouse_y;
-		int bitmap_number;
 };
 
 class UI_INPUTBOX : public UI_GADGET
@@ -607,7 +592,7 @@ class UI_INPUTBOX : public UI_GADGET
 		int pixel_limit;    // base max characters on how wide the string is (-1 to ignore) in pixels
 		int locked;
 //		int should_reset;
-		int ignore_escape;
+//		int ignore_escape;
 		color *text_color;
 		char *valid_chars;
 		char *invalid_chars;
@@ -741,7 +726,7 @@ class UI_SCROLLBAR : public UI_GADGET
 		void create(UI_WINDOW *wnd, int _x, int _y, int _h,int _start, int _stop, int _position, int _window_size  );
 		int getpos();
 		int changed();
-		void hide();
+		void hide(int n = 1);
 		void unhide();
 		int get_hidden();
 		void link_hotspot(int up_button_num, int down_button_num);
@@ -800,7 +785,7 @@ class UI_SLIDER2 : public UI_GADGET
 		void forceUp();
 
 		// general ui commands
-		void hide();
+		void hide(int n = 1);
 		void unhide();
 		int get_hidden();
 };
@@ -939,6 +924,7 @@ protected:
 
 
 	int keypress;		// filled in each frame
+	int keypress_text;	// filled in each frame
 	void capture_mouse(UI_GADGET *gadget = NULL);
 	void release_bitmaps();		// called internally when window destroys gadgets
 	void check_focus_switch_keys();

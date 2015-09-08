@@ -232,7 +232,7 @@ void reinforcement_editor_dlg::save_data()
 	UpdateData(TRUE);
 	UpdateData(TRUE);
 	if (cur >= 0) {
-		Assert(cur < m_num_reinforcements);
+		SDL_assert(cur < m_num_reinforcements);
 		m_reinforcements[cur].uses = m_uses;
 		m_reinforcements[cur].arrival_delay = m_delay;
 
@@ -300,7 +300,7 @@ void reinforcement_editor_dlg::OnOK()
 						break;
 					}
 
-				Assert(j < MAX_WINGS);
+				SDL_assert(j < MAX_WINGS);
 			}
 		}
 	}
@@ -393,7 +393,7 @@ void reinforcement_select::OnSelchangeList()
 void reinforcement_select::OnOK()
 {
 	cur = ((CListBox *) GetDlgItem(IDC_LIST))->GetCurSel();
-	Assert(cur != -1);
+	SDL_assert(cur != -1);
 	((CListBox *) GetDlgItem(IDC_LIST)) -> GetText(cur, name);
 	CDialog::OnOK();
 }

@@ -444,10 +444,6 @@ int HC_select_all = 0;
 // Module Globals
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef PLAT_UNIX
-#pragma warning(disable:4710)
-#endif
-
 const char *Hud_config_fname[GR_NUM_RESOLUTIONS] = {
 	"HUDConfig",
 	"2_HUDConfig"
@@ -606,10 +602,6 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 	}
 };
 
-#ifndef PLAT_UNIX
-#pragma warning(default:4710)
-#endif
-
 int HC_gauge_description_coords[GR_NUM_RESOLUTIONS][3] = {
 	{	// GR_640
 #ifdef MAKE_FS1
@@ -746,9 +738,6 @@ const char *HC_gauge_descriptions(int n)
 #define HCB_ACCEPT				7
 #endif
 
-#ifndef PLAT_UNIX
-#pragma warning(disable : 4710)
-#endif
 
 ui_button_info HC_buttons[GR_NUM_RESOLUTIONS][NUM_HUD_BUTTONS] = {
 	{ // GR_640
@@ -1026,7 +1015,7 @@ void hud_config_init_ui()
 
 	for (i=0; i<NUM_HUD_GAUGES; i++) {
 		hg = &HC_gauge_regions[gr_screen.res][i];
-		if ( !stricmp(hg->filename, NOX("none")) ) {
+		if ( !SDL_strcasecmp(hg->filename, NOX("none")) ) {
 			continue;
 		}
 		hg->button.create(&HC_ui_window, "", hg->x, hg->y, 60, 30, 0, 1);
@@ -1105,7 +1094,7 @@ void hud_config_init_ui()
 
 	HC_select_all = 0;
 
-	strcpy(HC_fname, "");
+	SDL_strlcpy(HC_fname, "", SDL_arraysize(HC_fname));
 }
 
 int hud_config_show_flag_is_set(int i)
@@ -1219,7 +1208,7 @@ void hud_config_render_gauges()
 					}
 
 					if ( HC_gauge_regions[gr_screen.res][i].bitmap >= 0 ) {
-						Assert(offset < HC_gauge_regions[gr_screen.res][i].nframes);
+						SDL_assert(offset < HC_gauge_regions[gr_screen.res][i].nframes);
 						gr_set_bitmap(HC_gauge_regions[gr_screen.res][i].bitmap+offset, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 						gr_bitmap(HC_gauge_regions[gr_screen.res][i].x, HC_gauge_regions[gr_screen.res][i].y);
 					}
@@ -1257,7 +1246,7 @@ void hud_config_render_gauges()
 			}
 
 			if ( HC_gauge_regions[i].bitmap >= 0 ) {
-				Assert(offset < HC_gauge_regions[i].nframes);
+				SDL_assert(offset < HC_gauge_regions[i].nframes);
 				gr_set_bitmap(HC_gauge_regions[i].bitmap+offset);
 				gr_bitmap(HC_gauge_regions[i].x, HC_gauge_regions[i].y);
 			}
@@ -1429,13 +1418,13 @@ void hud_cycle_gauge_status()
 void hud_config_handle_keypresses(int k)
 {
 	switch(k) {
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		hud_config_cancel();
 		break;
-	case KEY_CTRLED+KEY_ENTER:
+	case KEY_CTRLED+SDLK_RETURN:
 		hud_config_commit();
 		break;
-	case KEY_TAB:
+	case SDLK_TAB:
 		gamesnd_play_iface(SND_USER_SELECT);
 		hud_cycle_gauge_status();
 		break;
@@ -1586,7 +1575,7 @@ void hud_config_button_do(int n)
 		if(strlen(name) > 0){
 			// if the filename in there already exists
 			for(idx=0; idx<HC_num_files; idx++){
-				if(!stricmp(HC_filenames[idx], name)){
+				if(!SDL_strcasecmp(HC_filenames[idx], name)){
 					exists = 1;
 				}
 			}
@@ -1608,7 +1597,7 @@ void hud_config_button_do(int n)
 
 		// save the file, maybe generating a new filename
 		if(strlen(name) <= 0){
-			sprintf(name, "hud_%d.hcf", HC_num_files + 1);
+			SDL_snprintf(name, SDL_arraysize(name), "hud_%d.hcf", HC_num_files + 1);
 			out = name;
 		} else {
 			out = cf_add_ext(name, ".hcf");
@@ -1799,8 +1788,8 @@ void hud_config_update_brightness()
 {
 #ifdef MAKE_FS1
 	HUD_color_alpha = HC_sliders[gr_screen.res][HC_BRIGHTNESS_SLIDER].slider.pos+3;
-	Assert(HUD_color_alpha >= HUD_COLOR_ALPHA_USER_MIN);
-	Assert(HUD_color_alpha <= HUD_COLOR_ALPHA_USER_MAX);
+	SDL_assert(HUD_color_alpha >= HUD_COLOR_ALPHA_USER_MIN);
+	SDL_assert(HUD_color_alpha <= HUD_COLOR_ALPHA_USER_MAX);
 #endif
 }
 
@@ -1993,7 +1982,7 @@ void hud_config_color_save(const char *name)
 		cfputs(HC_gauge_descriptions(idx), out);		
 		cfputs("\n", out);
 		cfputs("+RGBA: ", out);
-		sprintf(vals, "%d %d %d %d\n\n", HUD_config.clr[idx].red, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
+		SDL_snprintf(vals, SDL_arraysize(vals), "%d %d %d %d\n\n", HUD_config.clr[idx].red, HUD_config.clr[idx].green, HUD_config.clr[idx].blue, HUD_config.clr[idx].alpha);
 		cfputs(vals, out);
 	}
 	
@@ -2003,31 +1992,30 @@ void hud_config_color_save(const char *name)
 
 void hud_config_color_load(const char *name)
 {
-	int idx, rval;
+	int idx;
 	char str[1024] = "";
 	char *fname;
 
 	fname = cf_add_ext(name, ".hcf");
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		mprintf(("Error opening hud config file!\n"));
-		return;
-	} else {
+	try {
 		read_file_text(fname);
 		reset_parse();
+
+		// write out all gauges
+		for(idx=0; idx<NUM_HUD_GAUGES; idx++){
+			required_string("+Gauge:");
+			stuff_string(str, F_NAME, NULL, 1023);
+
+			required_string("+RGBA:");
+			stuff_byte(&HUD_config.clr[idx].red);
+			stuff_byte(&HUD_config.clr[idx].green);
+			stuff_byte(&HUD_config.clr[idx].blue);
+			stuff_byte(&HUD_config.clr[idx].alpha);
+		}
+	} catch (parse_error_t) {
+		mprintf(("Error opening hud config file!\n"));
 	}
-
-	// write out all gauges
-	for(idx=0; idx<NUM_HUD_GAUGES; idx++){		
-		required_string("+Gauge:");
-		stuff_string(str, F_NAME, NULL, 1023);
-
-		required_string("+RGBA:");
-		stuff_byte(&HUD_config.clr[idx].red);
-		stuff_byte(&HUD_config.clr[idx].green);
-		stuff_byte(&HUD_config.clr[idx].blue);
-		stuff_byte(&HUD_config.clr[idx].alpha);
-	}	
 }
 
 void hud_config_alpha_slider_up()

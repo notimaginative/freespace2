@@ -413,8 +413,8 @@ void hud_init_missile_lock()
 
 void hud_draw_diamond(int x, int y, int width, int height)
 {
-	Assert(height>0);
-	Assert(width>0);
+	SDL_assert(height>0);
+	SDL_assert(width>0);
 
 	int x1,x2,x3,x4,y1,y2,y3,y4;
 
@@ -448,7 +448,7 @@ void hud_show_lock_indicator(float frametime)
 	}
 
 	target_objnum = Player_ai->target_objnum;
-	Assert(target_objnum != -1);
+	SDL_assert(target_objnum != -1);
 	targetp = &Objects[target_objnum];
 
 	// check to see if there are any missile to fire.. we don't want to show the 
@@ -578,7 +578,7 @@ int hud_lock_target_in_range()
 			vm_vec_unrotate(&target_world_pos, &Player->locking_subsys->system_info->pnt, &targetp->orient);
 			vm_vec_add2(&target_world_pos, &targetp->pos);
 		} else {
-			Assert(Player->locking_on_center);
+			SDL_assert(Player->locking_on_center);
 			target_world_pos = targetp->pos;
 		}
 	}
@@ -625,7 +625,7 @@ int hud_lock_on_subsys_ok()
 	object			*target_objp;
 	int				in_sight=0;
 	
-	Assert(Player_ai->target_objnum >= 0);
+	SDL_assert(Player_ai->target_objnum >= 0);
 	target_objp	= &Objects[Player_ai->target_objnum];
 
 	subsys = Player_ai->targeted_subsys;
@@ -648,10 +648,10 @@ int hud_lock_on_subsys_ok()
 // Determine if locking point is in the locking cone
 void hud_lock_check_if_target_in_lock_cone(vector *lock_world_pos)
 {
-	float		dist, dot;
+	float		dot;
 	vector	vec_to_target;
 
-	dist = vm_vec_normalized_dir(&vec_to_target, lock_world_pos, &Player_obj->pos);
+	vm_vec_normalized_dir(&vec_to_target, lock_world_pos, &Player_obj->pos);
 	dot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
 
 	if ( dot > 0.85) {
@@ -712,7 +712,7 @@ void hud_update_lock_indicator(float frametime)
 		return;
 	}
 
-	Assert(Player_ai->target_objnum != -1);
+	SDL_assert(Player_ai->target_objnum != -1);
 
 	// be sure to unset this flag, then possibly set later in this function so that
 	// threat indicators work properly.
@@ -903,7 +903,7 @@ void hud_calculate_lock_position(float frametime)
 
 	static float catch_up_distance = 0.0f;
 
-	double hypotenuse, delta_x, delta_y;
+	float hypotenuse, delta_x, delta_y;
 
 	swp = &Player_ship->weapons;
 	wip = &Weapon_info[swp->secondary_bank_weapons[swp->current_secondary_bank]];
@@ -929,17 +929,17 @@ void hud_calculate_lock_position(float frametime)
 			return;
 		}
 
-		delta_x = Players[Player_num].lock_indicator_x - Player->current_target_sx;
-		delta_y = Players[Player_num].lock_indicator_y - Player->current_target_sy;
+		delta_x = i2fl(Players[Player_num].lock_indicator_x - Player->current_target_sx);
+		delta_y = i2fl(Players[Player_num].lock_indicator_y - Player->current_target_sy);
 
 		if (!delta_y && !delta_x) {
 			hypotenuse = 0.0f;
 		}
 		else {
-			hypotenuse = _hypot(delta_y, delta_x);
+			hypotenuse = hypotf(delta_y, delta_x);
 		}
 
-		Players[Player_num].lock_dist_to_target = (float)hypotenuse;
+		Players[Player_num].lock_dist_to_target = hypotenuse;
 
 		if (last_dist_to_target == 0) {
 			last_dist_to_target = Players[Player_num].lock_dist_to_target;
@@ -986,11 +986,11 @@ void hud_calculate_lock_position(float frametime)
 			pixels_moved_while_locking = lock_pixels_per_sec * frametime;
 		}
 		
-		if (delta_x != 0) {
+		if (delta_x != 0.0f) {
 			accumulated_x_pixels += pixels_moved_while_locking * delta_x/hypotenuse; 
 		}
 
-		if (delta_y != 0) {
+		if (delta_y != 0.0f) {
 			accumulated_y_pixels += pixels_moved_while_locking * delta_y/hypotenuse; 
 		}
 
@@ -1017,7 +1017,7 @@ void hud_calculate_lock_position(float frametime)
 		}
 
 		if ( Missile_track_loop == -1 ) {	
-			Missile_track_loop = snd_play_looping( &Snds[SND_MISSILE_TRACKING], 0.0f , -1, -1);
+			Missile_track_loop = snd_play_looping( &Snds[SND_MISSILE_TRACKING], 0.0f);
 		}
 
 		if (!Players[Player_num].lock_time_to_target) {
@@ -1053,14 +1053,14 @@ void hud_calculate_lock_position(float frametime)
 			accumulated_y_pixels = 0.0f;
 		}
 
-		delta_x = Players[Player_num].lock_indicator_x - Players[Player_num].lock_indicator_start_x;
-		delta_y = Players[Player_num].lock_indicator_y - Players[Player_num].lock_indicator_start_y;
+		delta_x = i2fl(Players[Player_num].lock_indicator_x - Players[Player_num].lock_indicator_start_x);
+		delta_y = i2fl(Players[Player_num].lock_indicator_y - Players[Player_num].lock_indicator_start_y);
 
 		if (!delta_y && !delta_x) {
 			hypotenuse = 0.0f;
 		}
 		else {
-			hypotenuse = _hypot(delta_y, delta_x);
+			hypotenuse = hypotf(delta_y, delta_x);
 		}
 
 		Players[Player_num].lock_time_to_target += frametime;
@@ -1070,10 +1070,10 @@ void hud_calculate_lock_position(float frametime)
 
 		pixels_moved_while_degrading = 2.0f * wip->lock_pixels_per_sec * frametime;
 
-		if (delta_x != 0)
+		if (delta_x != 0.0f)
 			accumulated_x_pixels += pixels_moved_while_degrading * delta_x/hypotenuse; 
 
-		if (delta_y != 0)
+		if (delta_y != 0.0f)
 			accumulated_y_pixels += pixels_moved_while_degrading * delta_y/hypotenuse; 
 
 		if (fl_abs(accumulated_x_pixels) > 1.0f) {
@@ -1110,10 +1110,10 @@ void hud_calculate_lock_position(float frametime)
 // origin, and connects the target and lock indicator postion (and has a magnitude of Lock_start_dist)
 void hud_calculate_lock_start_pos()
 {
-	double hypotenuse;
-	double delta_y;
-	double delta_x;
-	double target_mag, target_x, target_y;
+	float hypotenuse;
+	float delta_y;
+	float delta_x;
+	float target_mag, target_x, target_y;
 
 	delta_x = Player->current_target_sx - SCREEN_CENTER_X;
 	delta_y = Player->current_target_sy - SCREEN_CENTER_Y;
@@ -1124,7 +1124,7 @@ void hud_calculate_lock_start_pos()
 		return;
 	}
 
-	hypotenuse = _hypot(delta_y, delta_x);
+	hypotenuse = hypotf(delta_y, delta_x);
 
 	if (hypotenuse >= Lock_start_dist) {
 		Players[Player_num].lock_indicator_start_x = fl2i(SCREEN_CENTER_X);
@@ -1172,7 +1172,7 @@ void hud_lock_update_lock_pos(object *target_objp, vector *lock_world_pos)
 	if ( Player->locking_on_center ) {
 		*lock_world_pos = target_objp->pos;
 	} else {
-		Assert(Player->locking_subsys);
+		SDL_assert(Player->locking_subsys);
 		get_subsystem_world_pos(target_objp, Player->locking_subsys, lock_world_pos);
 	}
 }
@@ -1245,7 +1245,7 @@ void hud_lock_determine_lock_point(vector *lock_world_pos_out)
 	vertex	lock_point;
 	object	*target_objp;
 
-	Assert(Player_ai->target_objnum >= 0);
+	SDL_assert(Player_ai->target_objnum >= 0);
 	target_objp = &Objects[Player_ai->target_objnum];
 
 	Player->current_target_sx = -1;

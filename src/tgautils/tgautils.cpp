@@ -128,7 +128,7 @@ static int targa_copy_data(char *to, char *from, int pixels, int fromsize, int t
 		}
 		return tosize*pixels;
 	} else {
-		Assert(fromsize == tosize);
+		SDL_assert(fromsize == tosize);
 		memcpy(to, from, pixels * fromsize);
 		return tosize*pixels;
 	}
@@ -368,10 +368,10 @@ int targa_read_header(char *real_filename, int *w, int *h, int *bpp, ubyte *pale
 	CFILE *targa_file;
 	char filename[MAX_FILENAME_LEN];
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".tga" );
+	SDL_strlcat( filename, ".tga", SDL_arraysize(filename) );
 
 	targa_file = cfopen( filename , "rb" );
 	if ( !targa_file ){
@@ -422,7 +422,7 @@ int targa_read_header(char *real_filename, int *w, int *h, int *bpp, ubyte *pale
 	*bpp = header.pixel_depth;
 
 	// only support 16 bit pixels
-	Assert(*bpp == 16);
+	SDL_assert(*bpp == 16);
 	if(*bpp != 16){
 		return TARGA_ERROR_READING;
 	}
@@ -453,7 +453,7 @@ int targa_uncompress( ubyte *dst, ubyte *src, int bitmap_width, int bytes_per_pi
 		int run_count = *src_pixels++;
 
 		// Make sure writing this next run will not overflow the buffer 
-		Assert(pixel_count + (run_count & 0x7f) + 1 <= bitmap_width );
+		SDL_assert(pixel_count + (run_count & 0x7f) + 1 <= bitmap_width );
 		
 		// If the run is encoded... 
 		if ( run_count & 0x80 ) {
@@ -481,7 +481,7 @@ int targa_uncompress( ubyte *dst, ubyte *src, int bitmap_width, int bytes_per_pi
 		}
 	}
 
-	Assert( pixel_count == bitmap_width );
+	SDL_assert( pixel_count == bitmap_width );
 
 	return src_pixels - src;
 }
@@ -496,17 +496,17 @@ int targa_uncompress( ubyte *dst, ubyte *src, int bitmap_width, int bytes_per_pi
 //
 int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, int dest_size)
 {
-	Assert(real_filename);
+	SDL_assert(real_filename);
 	targa_header header;
 	CFILE *targa_file;
 	char filename[MAX_FILENAME_LEN];
 	ubyte r, g, b;
 		
 	// open the file
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".tga" );
+	SDL_strlcat( filename, ".tga", SDL_arraysize(filename) );
 
 	targa_file = cfopen( filename , "rb" );
 	if ( !targa_file ){
@@ -551,12 +551,13 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 
 	int bytes_per_pixel = (header.pixel_depth>>3);
 	// we're only allowing 2 bytes per pixel (16 bit compressed)
-	Assert(bytes_per_pixel == 2);
+	SDL_assert(bytes_per_pixel == 2);
 	if(bytes_per_pixel != 2){
 		cfclose(targa_file);
 		return TARGA_ERROR_READING;
 	}
 
+	/*
 	int xo, yo;
 	if ( header.image_descriptor & 0x10 )	{
 		xo = 1;
@@ -569,6 +570,7 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 	} else {
 		yo = 0;
 	}		
+	*/
 
 	// only accept 16 bit, compressed
 	if(header.pixel_depth!=16) {
@@ -603,9 +605,9 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 		Int3();
 
 		// Determine the size of the color map
-		Assert(header.cmap_depth==24);
-		Assert(header.cmap_length<=256);
-		Assert(palette);
+		SDL_assert(header.cmap_depth==24);
+		SDL_assert(header.cmap_length<=256);
+		SDL_assert(palette);
 
 		// Read the color map data
 		int i;
@@ -632,10 +634,10 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 	
 	int bytes_remaining = cfilelength(targa_file)-cftell(targa_file);
 
-	Assert(bytes_remaining>0);
+	SDL_assert(bytes_remaining>0);
 
 	ubyte *fileptr = (ubyte*)malloc(bytes_remaining);
-	Assert(fileptr);
+	SDL_assert(fileptr);
 	if(fileptr == NULL){
 		return TARGA_ERROR_READING;
 	}
@@ -700,16 +702,16 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 //
 int targa_write_bitmap(char *real_filename, ubyte *data, ubyte *palette, int w, int h, int bpp)
 {
-	Assert(bpp == 24);
+	SDL_assert(bpp == 24);
 	char filename[MAX_FILENAME_LEN];
 	CFILE *f;
 	int bytes_per_pixel = BYTES_PER_PIXEL(bpp);		
 		
 	// open the file
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".tga" );
+	SDL_strlcat( filename, ".tga", SDL_arraysize(filename) );
 
 	f = cfopen( filename , "wb" );
 	if ( !f ){
@@ -755,7 +757,7 @@ int targa_write_bitmap(char *real_filename, ubyte *data, ubyte *palette, int w, 
 
 	ubyte *compressed_data;
 	compressed_data = (ubyte*)malloc(w * h * bytes_per_pixel);
-	Assert(compressed_data);
+	SDL_assert(compressed_data);
 	if(compressed_data == NULL){
 		cfclose(f);
 		return -1;

@@ -483,18 +483,13 @@
 #include "grinternal.h"
 #include "systemvars.h"
 #include "cmdline.h"
-
-// 3dnow stuff
-// #include "amd3d.h"
+#include "osregistry.h"
+#include "cfile.h"
+#include "cfilesystem.h"
 
 // Includes for different rendering systems
-#include "grsoft.h"
-#include "grd3d.h"
-#ifndef PLAT_UNIX
-#include "grglide.h"
-#endif
 #include "gropengl.h"
-#include "grdirectdraw.h"
+#include "grwxgl.h"
 
 screen gr_screen;
 
@@ -508,17 +503,15 @@ ubyte Gr_original_palette[768];		// The palette
 ubyte Gr_current_palette[768];
 char Gr_current_palette_name[128] = NOX("none");
 
+int Gr_zbuffering = 0;
+int Gr_zbuffering_mode = 0;
+int Gr_global_zbuffering = 0;
+
 // cursor stuff
 int Gr_cursor = -1;
 int Web_cursor_bitmap = -1;
 
 int Gr_inited = 0;
-
-// cpu types
-int Gr_cpu = 0;	
-int Gr_amd3d = 0;
-int Gr_katmai = 0;
-int Gr_mmx = 0;
 
 uint Gr_signature = 0;
 
@@ -526,118 +519,35 @@ float Gr_gamma = 1.8f;
 int Gr_gamma_int = 180;
 int Gr_gamma_lookup[256];
 
+int Gr_textures_in = 0;
+
+
 void gr_close()
 {
 	if ( !Gr_inited )	return;
 
 	palette_flush();
 
-	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-	case GR_SOFTWARE:		
-		gr_soft_cleanup();
-		break;	
-	case GR_DIRECTDRAW:
-		Int3();
-		gr_directdraw_cleanup();
-		break;
-	case GR_DIRECT3D:		
-		gr_d3d_cleanup();
-		break;
-	case GR_GLIDE:
-		gr_glide_cleanup();
-		break;
-#endif		
-	case GR_OPENGL:
-		gr_opengl_cleanup();
-		break;
-	default:
-		Int3();		// Invalid graphics mode
+	switch (gr_screen.mode) {
+		case GR_OPENGL:
+			gr_opengl_cleanup();
+			break;
+
+		case GR_WXGL:
+			gr_wxgl_cleanup();
+			break;
+
+		default:
+			Int3();		// Invalid graphics mode
+			break;
 	}
+
+	Gr_textures_in = 0;
 
 	gr_font_close();
 
 	Gr_inited = 0;
 }
-
-//XSTR:OFF
-DCF(gr,"Changes graphics mode")
-{
-#ifndef HARDWARE_ONLY
-	int mode = gr_screen.mode;
-
-	if ( Dc_command )	{
-		dc_get_arg(ARG_STRING);
-		
-		if ( !strcmp( Dc_arg, "a"))	{
-			Int3();
-			mode = GR_SOFTWARE;
-		} else if ( !strcmp( Dc_arg, "b"))	{
-			Int3();
-			mode = GR_DIRECTDRAW;
-		} else if ( !strcmp( Dc_arg, "d"))	{
-			mode = GR_DIRECT3D;
-		} else if ( !strcmp( Dc_arg, "g"))	{
-#ifndef PLAT_UNIX
-			mode = GR_GLIDE;
-#endif
-		} else if ( !strcmp( Dc_arg, "o"))	{
-			mode = GR_OPENGL;
-		} else {
-			// print usage, not stats
-			Dc_help = 1;
-		}
-
-		/*
-		if ( mode != gr_screen.mode )	{
-			dc_printf( "Setting new video mode...\n" );
-			int errcode = gr_init( gr_screen.max_w, gr_screen.max_h, mode );
-			if (errcode)	{
-				dc_printf( "Error %d.  Graphics unchanged.\n", errcode );
-			}
-		}
-		*/
-	}
-
-	if ( Dc_help )	{
-		dc_printf( "Usage: gr mode\n" );
-		dc_printf( "The options can be:\n" );
-		dc_printf( "Macros:  A=software win32 window (obsolete)\n" );
-		dc_printf( "         B=software directdraw fullscreen (obsolete)\n" );
-		dc_printf( "         D=Direct3d\n" );
-		dc_printf( "         G=Glide\n" );
-		dc_printf( "         O=OpenGl (obsolete)\n" );
-		Dc_status = 0;	// don't print status if help is printed.  Too messy.
-	}
-
-	if ( Dc_status )	{
-		switch( gr_screen.mode )	{
-		case GR_SOFTWARE:
-			Int3();
-			dc_printf( "Win32 software windowed\n" );
-			break;
-		case GR_DIRECTDRAW:
-			Int3();
-			dc_printf( "DirectDraw software windowed\n" );
-			break;
-		case GR_DIRECT3D:
-			dc_printf( "Direct3D\n" );
-			break;
-		case GR_GLIDE:
-#ifndef PLAT_UNIX
-			dc_printf( "3Dfx Glide\n" );
-#endif
-			break;
-		case GR_OPENGL:
-			dc_printf( "OpenGl\n" );
-			break;
-		default:
-			Int3();		// Invalid graphics mode
-		}
-	}
-#endif
-}
-//XSTR:ON
 
 // set screen clear color
 DCF(clear_color, "set clear color r, g, b")
@@ -684,15 +594,6 @@ void gr_set_palette_internal( const char *name, ubyte * palette, int restrict_fo
 //	mprintf(("Setting new palette\n" ));
 
 	if ( Gr_inited )	{
-		if (gr_screen.gf_set_palette)	{
-			(*gr_screen.gf_set_palette)(Gr_current_palette, restrict_font_to_128 );
-
-			// Since the palette set code might shuffle the palette,
-			// reload it into the source palette
-			if ( palette )
-				memmove( palette, Gr_current_palette, 768 );
-		}
-
 		// Update Palette Manager tables
 		memmove( gr_palette, Gr_current_palette, 768 );
 		palette_update(name, restrict_font_to_128);
@@ -704,261 +605,142 @@ void gr_set_palette( const char *name, ubyte * palette, int restrict_font_to_128
 {
 	char *p;
 	palette_flush();
-	strcpy( Gr_current_palette_name, name );
-	p = strchr( Gr_current_palette_name, '.' );
+	SDL_strlcpy( Gr_current_palette_name, name, SDL_arraysize(Gr_current_palette_name) );
+	p = SDL_strchr( Gr_current_palette_name, '.' );
 	if ( p ) *p = 0;
 	gr_screen.signature = Gr_signature++;
 	gr_set_palette_internal( name, palette, restrict_font_to_128 );
 }
 
+void gr_set_gamma(float gamma)
+{
+	int i;
+
+	if ( !Gr_inited ) {
+		return;
+	}
+
+	CAP(gamma, 0.1f, 5.0f);
+
+	Gr_gamma = gamma;
+	Gr_gamma_int = fl2i(gamma * 100.0f);
+
+	// create the gamma lookup table
+	float gamma_1f = 1.0f / gamma;
+
+	for (i = 0; i < 256; i++) {
+		int v = fl2i(pow(i2fl(i)/255.0f, gamma_1f)*255.0f);
+		CAP(v, 0, 255);
+		Gr_gamma_lookup[i] = v;
+	}
+
+	// save new value to cfg file
+	char tmp_gamma_string[10];
+	SDL_snprintf( tmp_gamma_string, SDL_arraysize(tmp_gamma_string), "%.2f", gamma);
+	os_config_write_string("Video", "Gamma", tmp_gamma_string);
+
+	// call renderer specific functionality, if needed
+	if (gr_screen.gf_set_gamma) {
+		(*gr_screen.gf_set_gamma)(gamma);
+	}
+}
+
+static int gr_get_best_res(int *max_w, int *max_h)
+{
+	if (Fred_running || Pofview_running || Nebedit_running || Fonttool_running) {
+		(*max_w) = 640;
+		(*max_h) = 480;
+
+		return GR_640;
+	}
+
+	// defaults
+	int res = GR_640;
+	(*max_w) = 640;
+	(*max_h) = 480;
+
+	// quickly bail if we are forcing low-res mode
+	if ( os_config_read_uint("Video", "LowRes", 0) ) {
+		return res;
+	}
+
+#ifndef MAKE_FS1
+	// check to see if we have hi-res art
+	if ( cf_has_packfile("sparky_hi_fs2") ) {
+		// check desktop res to make sure we should use it
+		if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
+			SDL_DisplayMode desk_mode;
+
+			if ( !SDL_GetDesktopDisplayMode(0, &desk_mode) ) {
+				if ( (desk_mode.w >= 1024) && (desk_mode.h >= 768) ) {
+					(*max_w) = 1024;
+					(*max_h) = 768;
+					res = GR_1024;
+				}
+			}
+
+			SDL_QuitSubSystem(SDL_INIT_VIDEO);
+		}
+	}
+#endif
+
+	return res;
+}
 
 //void gr_test();
 
-#define CPUID _asm _emit 0fh _asm _emit 0a2h
-
-// -----------------------------------------------------------------------
-// Returns cpu type.
-void gr_detect_cpu(int *cpu, int *mmx, int *amd3d, int *katmai )
-{
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
-	DWORD RegEDX;
-	DWORD RegEAX;
-
-	// Set defaults
-	*cpu = 0;
-	*mmx = 0;
-	*amd3d = 0;
-	*katmai = 0;
-
-	char cpu_vender[16];
-	memset( cpu_vender, 0, sizeof(cpu_vender) );
-		
-  _asm {
-
-		// Check for prescence of 
-		push	eax
-		push	ebx
-		push	ecx
-		push	edx
-
-		pushfd			// get extended flags
-		pop	eax
-		mov	ebx, eax		// save current flags
-		xor	eax, 200000h	// toggle bit 21
-		push	eax			// push new flags on stack
-		popfd					// flags updated now in flags
-		pushfd			// get extended flags
-		pop	eax		// store extended flags in eax
-		xor	eax, ebx	// if bit 21 r/w then eax <> 0
-		je		no_cpuid		
-
-		mov	eax, 0		// setup CPUID to return vender id
-      CPUID           // code bytes = 0fh,  0a2h
-		mov	DWORD PTR cpu_vender[0], ebx
-		mov	DWORD PTR cpu_vender[4], edx
-		mov	DWORD PTR cpu_vender[8], ecx
-		
-      mov eax, 1      // setup CPUID to return features
-
-      CPUID           // code bytes = 0fh,  0a2h
-
-		mov RegEAX, eax	// family, etc returned in eax
-      mov RegEDX, edx	// features returned in edx
-		jmp	done_checking_cpuid
-
-
-no_cpuid:
-		mov RegEAX, 4<<8	// family, etc returned in eax
-      mov RegEDX, 0		// features returned in edx
-
-done_checking_cpuid:								
-		pop	edx
-		pop	ecx
-		pop	ebx
-		pop	eax
-
-	}
-	
-
-
-	//RegEAX	.  Bits 11:8 is family
-	*cpu = (RegEAX >>8) & 0xF;
-
-	if ( *cpu < 5 )	{
-		*cpu = 4;								// processor does not support CPUID
-		*mmx = 0;
-	}
-
-	//RegEAX	.  Bits 11:8 is family
-	*cpu = (RegEAX >>8) & 0xF;
-
-	// Check for MMX
-	BOOL retval = TRUE;
-   if (RegEDX & 0x800000)               // bit 23 is set for MMX technology
-   {
-
-           __try { _asm emms }          // try executing an MMX instruction "emms"
-
-           __except(EXCEPTION_EXECUTE_HANDLER) { retval = FALSE; }
-
-   } else {
-		retval = FALSE;
-	}
-	if ( retval )	{
-		*mmx = 1;			// processor supports CPUID but does not support MMX technology
-	}
-
-	// Check for Katmai
-   if (RegEDX & (1<<25) )               // bit 25 is set for Katmai technology
-   {
-		*katmai = 1;
-   }
-
-	// Check for Amd 3dnow
-	/*
-	if ( !stricmp( cpu_vender, NOX("AuthenticAMD")) )	{
-
-		_asm {
-			mov eax, 0x80000000      // setup CPUID to return extended number of functions
-
-			CPUID           // code bytes = 0fh,  0a2h
-
-			mov RegEAX, eax	// highest extended function value
-		}
-
-		if ( RegEAX > 0x80000000 )	{
-
-			_asm {
-				mov eax, 0x80000001      // setup CPUID to return extended flags
-
-				CPUID           // code bytes = 0fh,  0a2h
-
-				mov RegEAX, eax	// family, etc returned in eax
-				mov RegEDX, edx	// flags in edx
-			}
-
-			if (RegEDX & 0x80000000)               // bit 31 is set for AMD-3D technology
-			{
-				// try executing some 3Dnow instructions
-				__try { 
-
-					float x = (float)1.25;            
-					float y = (float)1.25;            
-					float z;                      
-
-					_asm {
-						movd		mm1, x
-						movd		mm2, y                  
-						PFMUL(AMD_M1, AMD_M2);               
-						movd		z, mm1
-						femms
-						emms
-					}
-
-					int should_be_156 = int(z*100);
-
-					if ( should_be_156 == 156 )	{
-						*amd3d = 1;
-					}
-
-				}          
-
-				__except(EXCEPTION_EXECUTE_HANDLER) { }
-			}
-
-		}		
-	}
-	*/
-#endif
-}
 
 // --------------------------------------------------------------------------
 
-int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
+int gr_init()
 {
-	int first_time = 0;
+	const char *ptr = NULL;
+	int mode = GR_OPENGL;
+	int res = GR_640;
 	int max_w, max_h;
 
-	gr_detect_cpu(&Gr_cpu, &Gr_mmx, &Gr_amd3d, &Gr_katmai );
-
-	mprintf(( "GR_CPU: Family %d, MMX=%s\n", Gr_cpu, (Gr_mmx?"Yes":"No") ));
-	
-//	gr_test();
 
 	if ( !Gr_inited )	
 		atexit(gr_close);
 
 	// If already inited, shutdown the previous graphics
-	if ( Gr_inited )	{
-		switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:			
-			gr_soft_cleanup();
-			break;
-		case GR_DIRECTDRAW:
-			Int3();
-			gr_directdraw_cleanup();
-			break;
-		case GR_DIRECT3D:			
-			gr_d3d_cleanup();
-			break;
-		case GR_GLIDE:
-			gr_glide_cleanup();
-			break;
-#endif			
-		case GR_OPENGL:
-			gr_opengl_cleanup();
-			break;
-		default:
-			Int3();		// Invalid graphics mode
+	if (Gr_inited) {
+		switch (gr_screen.mode) {
+			case GR_OPENGL:
+				gr_opengl_cleanup();
+				break;
+
+			case GR_WXGL:
+				gr_wxgl_cleanup();
+
+			default:
+				Int3();		// Invalid graphics mode
+				break;
 		}
-	} else {
-		first_time = 1;
 	}
 
-#if defined(HARDWARE_ONLY)
-#ifndef PLAT_UNIX
-	if(!Fred_running && !Pofview_running && !Nebedit_running && !Is_standalone){
-		if((mode != GR_GLIDE) && (mode != GR_DIRECT3D) && (mode != GR_OPENGL)){
-			mprintf(("Forcing glide startup!\n"));
-			mode = GR_GLIDE;
-		}	
-	}
-#endif
-#endif
-
-	D3D_enabled = 0;
 	Gr_inited = 1;
+
+	if (Fred_running || Pofview_running) {
+		mode = GR_WXGL;
+	} else {
+		ptr = os_config_read_string("Video", "Renderer", "OpenGL");
+
+		if ( !SDL_strcasecmp("OpenGL", ptr) ) {
+			mode = GR_OPENGL;
+		} else {
+			Int3();
+		}
+	}
 
 	max_w = -1;
 	max_h = -1;
-	if(!Fred_running && !Pofview_running){
-		// set resolution based on the res type
-		switch(res){
-		case GR_640:
-			max_w = 640;
-			max_h = 480;
-			break;
 
-		case GR_1024:
-			max_w = 1024;
-			max_h = 768;
-			break;
+	// get best available resolution
+	res = gr_get_best_res(&max_w, &max_h);
 
-		default :
-			Int3();
-		}
-	} else {		
-		max_w = fred_x;
-		max_h = fred_y;
-	}
+	mprintf(("Using %s-res graphics\n", (res == GR_1024) ? "high" : "low" ));
 
-	// Make w a multiple of 8
-	max_w = ( max_w / 8 )*8;
-	if ( max_w < 8 ) max_w = 8;
-	if ( max_h < 8 ) max_h = 8;
 
 	memset( &gr_screen, 0, sizeof(screen) );
 
@@ -967,6 +749,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	gr_screen.res = res;	
 	gr_screen.max_w = max_w;
 	gr_screen.max_h = max_h;
+	gr_screen.use_sections = 1;
 	gr_screen.aspect = 1.0f;			// Normal PC screen
 	gr_screen.offset_x = 0;
 	gr_screen.offset_y = 0;
@@ -977,52 +760,34 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
 
+	Gr_textures_in = 0;
+
 	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:
-			Assert(Fred_running || Pofview_running || Is_standalone || Nebedit_running);
-			gr_soft_init();
-			break;
-		case GR_DIRECTDRAW:
-			Int3();
-			gr_directdraw_init();
-			break;
-		case GR_DIRECT3D:
-			// we only care about possible 32 bit stuff here
-			Cmdline_force_32bit = 0;
-			if(depth == 32){
-				Cmdline_force_32bit = 1;
-			} 
-
-			gr_d3d_init();
-
-			// bad startup - stupid D3D
-			extern int D3D_inited;
-			if(!D3D_inited){
-				Gr_inited = 0;
-				return 1;
-			}
-
-			break;
-		case GR_GLIDE:
-			// if we're in high-res. force polygon interface
-			if(gr_screen.res == GR_1024){
-				Gr_bitmap_poly = 1;
-			}
-			gr_glide_init();
-			break;
-#endif			
 		case GR_OPENGL:
 			gr_opengl_init();
 			break;
+		case GR_WXGL:
+			SDL_assert( Pofview_running || Fred_running );
+			gr_wxgl_init();
+			break;
 		default:
 			Int3();		// Invalid graphics mode
+			break;
 	}
 
 	memmove( Gr_current_palette, Gr_original_palette, 768 );
 	gr_set_palette_internal(Gr_current_palette_name, Gr_current_palette,0);	
 
-	gr_set_gamma(Gr_gamma);
+	// Set the gamma
+	extern float Freespace_gamma;
+
+	ptr = os_config_read_string("Video", "Gamma", "1.8");
+
+	Freespace_gamma = (float)SDL_atof(ptr);
+	CAP(Freespace_gamma, 0.1f, 5.0f);
+
+	gr_set_gamma(Freespace_gamma);
+
 
 	if ( Gr_cursor == -1 ){
 		Gr_cursor = bm_load( "cursor" );
@@ -1032,7 +797,7 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 	if (Web_cursor_bitmap < 0)	{
 		int nframes;						// used to pass, not really needed (should be 1)
 		Web_cursor_bitmap = bm_load_animation("cursorweb", &nframes);
-		Assert(Web_cursor_bitmap >= 0);		// if bitmap didnt load, thats not good (this is protected for in release tho)
+		SDL_assert(Web_cursor_bitmap >= 0);		// if bitmap didnt load, thats not good (this is protected for in release tho)
 	}
 
 	gr_set_color(0,0,0);
@@ -1047,89 +812,63 @@ int gr_init(int res, int mode, int depth, int fred_x, int fred_y)
 
 void gr_force_windowed()
 {
-	if ( !Gr_inited )	return;
-
-	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:
-			{				
-				extern void gr_soft_force_windowed();
-				gr_soft_force_windowed();
-			}
-			break;
-		case GR_DIRECTDRAW:
-			{
-				Int3();
-				extern void gr_directdraw_force_windowed();
-				gr_directdraw_force_windowed();
-			}
-			break;
-		case GR_DIRECT3D:
-			break;
-		case GR_GLIDE:
-			{
-				extern void gr_glide_force_windowed();
-				gr_glide_force_windowed();
-			}
-			break;
-#endif			
-		case GR_OPENGL:
-			break;
-		default:
-			Int3();		// Invalid graphics mode
+	if ( !Gr_inited ) {
+		return;
 	}
 
-	if ( Os_debugger_running )
-		Sleep(1000);		
+	if (gr_screen.gf_force_windowed) {
+		(*gr_screen.gf_force_windowed)();
+	}
+
+	if (Os_debugger_running) {
+		SDL_Delay(1000);
+	}
+}
+
+void gr_force_fullscreen()
+{
+	if ( !Gr_inited ) {
+		return;
+	}
+
+	if (gr_screen.gf_force_fullscreen) {
+		(*gr_screen.gf_force_fullscreen)();
+	}
+
+	if (Os_debugger_running) {
+		SDL_Delay(1000);
+	}
+}
+
+void gr_toggle_fullscreen()
+{
+	if ( !Gr_inited ) {
+		return;
+	}
+
+	// skip if a tool is running (except fonttool)
+	if (Fred_running || Pofview_running || Nebedit_running) {
+		return;
+	}
+
+	if (gr_screen.gf_toggle_fullscreen) {
+		(*gr_screen.gf_toggle_fullscreen)();
+	}
+
+	if (Os_debugger_running) {
+		SDL_Delay(1000);
+	}
 }
 
 void gr_activate(int active)
 {
-	if ( !Gr_inited ) return;
-
-	switch( gr_screen.mode )	{
-#ifndef PLAT_UNIX
-		case GR_SOFTWARE:
-			{				
-				extern void gr_soft_activate(int active);
-				gr_soft_activate(active);
-				return;
-			}
-			break;
-		case GR_DIRECTDRAW:
-			{
-				Int3();
-				extern void gr_dd_activate(int active);
-				gr_dd_activate(active);
-				return;
-			}
-			break;
-		case GR_DIRECT3D:
-			{	
-				extern void gr_d3d_activate(int active);
-				gr_d3d_activate(active);
-				return;
-			}
-			break;
-		case GR_GLIDE:
-			{
-				extern void gr_glide_activate(int active);
-				gr_glide_activate(active);
-				return;
-			}
-			break;
-#endif			
-		case GR_OPENGL:
-			{	
-				extern void gr_opengl_activate(int active);
-				gr_opengl_activate(active);
-				return;
-			}	
-			break;
-		default:
-			Int3();		// Invalid graphics mode
+	if ( !Gr_inited ) {
+		return;
 	}
 
+	if (gr_screen.gf_activate) {
+		(*gr_screen.gf_activate)(active);
+	}
 }
 
 // -----------------------------------------------------------------------
@@ -1146,7 +885,7 @@ void gr_activate(int active)
 void gr_set_cursor_bitmap(int n, int lock)
 {
 	static int locked = 0;			
-	Assert(n >= 0);
+	SDL_assert(n >= 0);
 
 	if (!locked || (lock == GR_CURSOR_UNLOCK)) {
 		Gr_cursor = n;
@@ -1166,40 +905,26 @@ int gr_get_cursor_bitmap()
 	return Gr_cursor;
 }
 
-
-int Gr_bitmap_poly = 0;
-DCF(bmap, "")
-{
-	Gr_bitmap_poly = !Gr_bitmap_poly;
-
-	if(Gr_bitmap_poly){
-		dc_printf("Using poly bitmaps\n");
-	} else {
-		dc_printf("Using LFB bitmaps\n");
-	}
-}
-
 // new bitmap functions
 void gr_bitmap(int x, int y)
 {
 	int section_x, section_y;	
 	int x_line, y_line;
 	int w, h;
+	int idx, s_idx;
+	// float u_scale, v_scale;
+	bitmap_section_info *sections;
 
-	// d3d and glide support texture poly shiz
-	if(((gr_screen.mode == GR_DIRECT3D) || (gr_screen.mode == GR_GLIDE) || (gr_screen.mode == GR_OPENGL)) && Gr_bitmap_poly){
-		int idx, s_idx;
-		// float u_scale, v_scale;
-		bitmap_section_info *sections;			
+	// render all sections
+	bm_get_info(gr_screen.current_bitmap, &w, &h, NULL, NULL, NULL, &sections);
+	y_line = 0;
+	section_y = 0;
 
-		// render all sections
-		bm_get_info(gr_screen.current_bitmap, &w, &h, NULL, NULL, NULL, &sections);
-		y_line = 0;
-		section_y = 0;
+	if (gr_screen.use_sections) {
 		for(idx=0; idx<sections->num_y; idx++){
 			x_line = 0;
 			for(s_idx=0; s_idx<sections->num_x; s_idx++){
-				// get the section as a texture in vram					
+				// get the section as a texture in vram
 				gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode, gr_screen.current_bitblt_mode, gr_screen.current_alpha, s_idx, idx);
 
 				// determine the width and height of this section
@@ -1211,60 +936,11 @@ void gr_bitmap(int x, int y)
 			}
 			y_line += section_y;
 		}
+	} else {
+		gr_set_bitmap(gr_screen.current_bitmap, gr_screen.current_alphablend_mode,
+				gr_screen.current_bitblt_mode, gr_screen.current_alpha);
+		g3_draw_2d_poly_bitmap(x, y, w, h, TMAP_FLAG_BITMAP_INTERFACE);
 
-		// done. whee!
-		return;
-	}			
-
-	// old school bitmaps
-	switch(gr_screen.mode){
-#ifndef PLAT_UNIX
-	case GR_SOFTWARE:
-	case GR_DIRECTDRAW:
-		grx_bitmap(x, y);
-		break;
-
-	case GR_DIRECT3D:
-		gr_d3d_bitmap(x, y);
-		break;
-	
-	case GR_GLIDE:		
-		gr_glide_bitmap(x, y);		
-		break;
-#endif
-	/* don't want opengl bitmap to be called -- slow! */
-	//case GR_OPENGL:
-		//gr_opengl_bitmap(x, y);
-		//break;
-	default:
-		Int3();
-	}
-}
-
-void gr_bitmap_ex(int x, int y, int w, int h, int sx, int sy)
-{
-	switch(gr_screen.mode){
-#ifndef PLAT_UNIX
-	case GR_SOFTWARE:
-	case GR_DIRECTDRAW:
-		grx_bitmap_ex(x, y, w, h, sx, sy);
-		break;
-
-	case GR_DIRECT3D:
-		gr_d3d_bitmap_ex(x, y, w, h, sx, sy);
-		break;
-
-	case GR_GLIDE:
-		gr_glide_bitmap_ex(x, y, w, h, sx, sy);
-		break;
-#endif
-	/* slow! */
-	//case GR_OPENGL:
-	//	gr_opengl_bitmap_ex(x, y, w, h, sx, sy);
-	//	break;
-	default:
-		Int3();
-		break;
 	}
 }
 
@@ -1300,7 +976,7 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 	int saved_zbuffer_mode, idx;		
 	int started_frame = 0;
 
-	// Assert(0);
+	// SDL_assert(0);
 
 	// if we have less than 2 pts, bail
 	if(num_pts < 2){
@@ -1435,3 +1111,121 @@ void gr_pline_special(vector **pts, int num_pts, int thickness)
 	gr_set_cull(1);		
 }
 
+void gr_set_color_fast(color *dst)
+{
+	if (dst->screen_sig != gr_screen.signature) {
+		if (dst->is_alphacolor) {
+			gr_init_alphacolor(dst, dst->red, dst->green, dst->blue, dst->alpha, dst->ac_type);
+		} else {
+			gr_init_color(dst, dst->red, dst->green, dst->blue);
+		}
+	}
+
+	gr_screen.current_color = *dst;
+}
+
+void gr_get_color(int *r, int *g, int *b)
+{
+	if (r) *r = gr_screen.current_color.red;
+	if (g) *g = gr_screen.current_color.green;
+	if (b) *b = gr_screen.current_color.blue;
+}
+
+void gr_init_color(color *c, int r, int g, int b)
+{
+	c->screen_sig = gr_screen.signature;
+	c->red = (unsigned char)r;
+	c->green = (unsigned char)g;
+	c->blue = (unsigned char)b;
+	c->alpha = 255;
+	c->ac_type = AC_TYPE_NONE;
+	c->alphacolor = -1;
+	c->is_alphacolor = 0;
+	c->magic = 0xAC01;
+}
+
+void gr_init_alphacolor(color *clr, int r, int g, int b, int alpha, int type)
+{
+	CAP(r, 0, 255);
+	CAP(g, 0, 255);
+	CAP(b, 0, 255);
+	CAP(alpha, 0, 255);
+
+	gr_init_color(clr, r, g, b);
+
+	clr->alpha = (unsigned char)alpha;
+	clr->ac_type = (ubyte)type;
+	clr->alphacolor = -1;
+	clr->is_alphacolor = 1;
+}
+
+void gr_set_color(int r, int g, int b)
+{
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
+
+	gr_init_color(&gr_screen.current_color, r, g, b);
+}
+
+void gr_set_clear_color(int r, int g, int b)
+{
+	gr_init_color(&gr_screen.current_clear_color, r, g, b);
+}
+
+void gr_set_bitmap(int bitmap_num, int alphablend_mode, int bitblt_mode, float alpha, int sx, int sy)
+{
+	gr_screen.current_alpha = alpha;
+	gr_screen.current_alphablend_mode = alphablend_mode;
+	gr_screen.current_bitblt_mode = bitblt_mode;
+	gr_screen.current_bitmap = bitmap_num;
+
+	gr_screen.current_bitmap_sx = sx;
+	gr_screen.current_bitmap_sy = sy;
+}
+
+void gr_create_shader(shader *shade, float r, float g, float b, float c)
+{
+	shade->screen_sig = gr_screen.signature;
+	shade->r = r;
+	shade->g = g;
+	shade->b = b;
+	shade->c = c;
+}
+
+void gr_set_shader(shader *shade)
+{
+	if (shade) {
+		if (shade->screen_sig != gr_screen.signature) {
+			gr_create_shader(shade, shade->r, shade->g, shade->b, shade->c);
+		}
+
+		gr_screen.current_shader = *shade;
+	} else {
+		gr_create_shader(&gr_screen.current_shader, 0.0f, 0.0f, 0.0f, 0.0f);
+	}
+}
+
+int gr_zbuffer_get()
+{
+	if ( !Gr_global_zbuffering ) {
+		return GR_ZBUFF_NONE;
+	}
+
+	return Gr_zbuffering_mode;
+}
+
+int gr_zbuffer_set(int mode)
+{
+	int tmp = Gr_zbuffering_mode;
+
+	Gr_zbuffering_mode = mode;
+
+	if (Gr_zbuffering_mode == GR_ZBUFF_NONE) {
+		Gr_zbuffering = 0;
+	} else {
+		Gr_zbuffering = 1;
+	}
+
+	return tmp;
+}

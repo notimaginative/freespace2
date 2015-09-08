@@ -72,7 +72,7 @@ extern int rand_chance(float frametime, float chance = 1.0f);
 float frand_range(float min, float max);
 
 // determine if a floating point number is NaN (Not a Number)
-#define fl_is_nan(fl) _isnan(fl)
+#define fl_is_nan(fl) isnan(fl)
 
 // Handy macros to prevent type casting all over the place
 

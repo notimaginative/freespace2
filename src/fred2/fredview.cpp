@@ -797,8 +797,8 @@ void CFREDView::OnDraw(CDC* pDC)
 
 	pDC->GetClipBox(&clip);
 	gr_set_clip(clip.left, clip.top, clip.right - clip.left + 1, clip.bottom - clip.top + 1);
-	Assert(clip.left <= clip.right);
-	Assert(clip.top <= clip.bottom);
+	SDL_assert(clip.left <= clip.right);
+	SDL_assert(clip.top <= clip.bottom);
 	gr_flip_window((uint) pDC->m_hDC, clip.left, clip.top,
 		clip.right - clip.left + 1, clip.bottom - clip.top + 1);
 }
@@ -917,7 +917,7 @@ int drag_objects()
 		flag = 0;
 		objp = GET_FIRST(&obj_used_list);
 		while (objp != END_OF_LIST(&obj_used_list))	{
-			Assert(objp->type != OBJ_NONE);
+			SDL_assert(objp->type != OBJ_NONE);
 			if (objp->flags & OF_MARKED) {
 				if ((objp->type == OBJ_SHIP) || (objp->type == OBJ_START)) {
 					z = Ships[objp->instance].wingnum;
@@ -982,7 +982,7 @@ int drag_objects()
 	}
 
 	objp = &Objects[cur_object_index];
-	Assert(objp->type != OBJ_NONE);
+	SDL_assert(objp->type != OBJ_NONE);
 	obj = int_pnt = objp->pos;
 
 	//	Get 3d vector specified by mouse cursor location.
@@ -1036,7 +1036,7 @@ int drag_objects()
 	if (distance_moved) {
 		objp = GET_FIRST(&obj_used_list);
 		while (objp != END_OF_LIST(&obj_used_list))	{
-			Assert(objp->type != OBJ_NONE);
+			SDL_assert(objp->type != OBJ_NONE);
 			if (objp->flags & OF_MARKED) {
 				vm_vec_add(&objp->pos, &objp->pos, &movement_vector);
 				if (objp->type == OBJ_WAYPOINT) {
@@ -1075,7 +1075,7 @@ void drag_rotate_save_backup()
 
 	objp = GET_FIRST(&obj_used_list);
 	while (objp != END_OF_LIST(&obj_used_list))			{
-		Assert(objp->type != OBJ_NONE);
+		SDL_assert(objp->type != OBJ_NONE);
 		if (objp->flags & OF_MARKED)	{
 			rotation_backup[OBJ_INDEX(objp)].pos = objp->pos;
 			rotation_backup[OBJ_INDEX(objp)].orient = objp->orient;
@@ -1111,7 +1111,7 @@ int drag_rotate_objects()
 	}
 
 	objp = &Objects[cur_object_index];
-	Assert(objp->type != OBJ_NONE);
+	SDL_assert(objp->type != OBJ_NONE);
 	obj = int_pnt = objp->pos;
 
 	memset(&a, 0, sizeof(angles));
@@ -1146,7 +1146,7 @@ int drag_rotate_objects()
 
 	objp = GET_FIRST(&obj_used_list);
 	while (objp != END_OF_LIST(&obj_used_list))			{
-		Assert(objp->type != OBJ_NONE);
+		SDL_assert(objp->type != OBJ_NONE);
 		if ((objp->flags & OF_MARKED) && (cur_object_index != OBJ_INDEX(objp) )) {
 			if (Group_rotate) {
 				matrix rot_trans;
@@ -1205,7 +1205,7 @@ void cancel_drag()
 
 	/*
 	if (Bg_bitmap_dialog) {
-		Assert(!vm_check_matrix_for_zeros(&bitmap_matrix_backup));
+		SDL_assert(!vm_check_matrix_for_zeros(&bitmap_matrix_backup));
 		Starfield_bitmaps[Cur_bitmap].m = bitmap_matrix_backup;
 		calculate_bitmap_points(&Starfield_bitmaps[Cur_bitmap], 0.0f);
 		button_down = box_marking = 0;
@@ -1221,12 +1221,12 @@ void cancel_drag()
 
 			if (query_valid_object()) {
 				objp = &Objects[cur_object_index];
-				Assert(objp->type != OBJ_NONE);
+				SDL_assert(objp->type != OBJ_NONE);
 				vm_vec_sub(&movement_vector, &original_pos, &objp->pos);
 
 				objp = GET_FIRST(&obj_used_list);
 				while (objp != END_OF_LIST(&obj_used_list))	{
-					Assert(objp->type != OBJ_NONE);
+					SDL_assert(objp->type != OBJ_NONE);
 					if (objp->flags & OF_MARKED)
 						vm_vec_add(&objp->pos, &objp->pos, &movement_vector);
 
@@ -1239,7 +1239,7 @@ void cancel_drag()
 
 			objp = GET_FIRST(&obj_used_list);
 			while (objp != END_OF_LIST(&obj_used_list))	{
-				Assert(objp->type != OBJ_NONE);
+				SDL_assert(objp->type != OBJ_NONE);
 				if (objp->flags & OF_MARKED) {
 					int obj_index = OBJ_INDEX(objp);
 
@@ -1335,7 +1335,7 @@ void CFREDView::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 
 	if (query_valid_object() && (Marked == 1) && (Objects[cur_object_index].type == OBJ_POINT)) {
-		Assert(Briefing_dialog);
+		SDL_assert(Briefing_dialog);
 		Briefing_dialog->icon_select(Objects[cur_object_index].instance);
 
 	} else {
@@ -1449,9 +1449,9 @@ void CFREDView::OnLButtonUp(UINT nFlags, CPoint point)
 
 // Can't do player starts, since only player 1 is currently allowed to be in a wing
 
-						Assert(objp->type == OBJ_SHIP);
+						SDL_assert(objp->type == OBJ_SHIP);
 						ship = objp->instance;
-						Assert(Ships[ship].wingnum == -1);
+						SDL_assert(Ships[ship].wingnum == -1);
 						sprintf(Ships[ship].ship_name, "%s %d", Wings[Duped_wing].name,
 							Wings[Duped_wing].wave_count + 1);
 
@@ -1469,7 +1469,7 @@ void CFREDView::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 
 	if (query_valid_object() && (Marked == 1) && (Objects[cur_object_index].type == OBJ_POINT)) {
-		Assert(Briefing_dialog);
+		SDL_assert(Briefing_dialog);
 		Briefing_dialog->icon_select(Objects[cur_object_index].instance);
 
 	} else {
@@ -1495,7 +1495,7 @@ void CFREDView::OnEditorsShips()
 {
 	int adjust = 0;
 
-	Assert(Ship_editor_dialog.GetSafeHwnd());
+	SDL_assert(Ship_editor_dialog.GetSafeHwnd());
 	if (!Show_sexp_help)
 		adjust = -SEXP_HELP_BOX_SIZE;
 
@@ -1639,7 +1639,7 @@ void select_objects()
 		if (ptr->flags & OF_HIDDEN)
 			valid = 0;
 
-		Assert(ptr->type != OBJ_NONE);
+		SDL_assert(ptr->type != OBJ_NONE);
 		switch (ptr->type) {
 			case OBJ_WAYPOINT:
 				if (!Show_waypoints)
@@ -2484,7 +2484,7 @@ void view_universe(int just_marked)
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (!just_marked || (ptr->flags & OF_MARKED)) {
 			g3_rotate_vertex(&v, &ptr->pos);
-			Assert(!(v.codes & CC_BEHIND));
+			SDL_assert(!(v.codes & CC_BEHIND));
 			if (g3_project_vertex(&v) & PF_OVERFLOW)
 				Int3();
 
@@ -2610,7 +2610,7 @@ int query_single_wing_marked()
 
 //		if (Ships[Objects[obj].instance].wingnum != cur_wing)
 //			return 0;
-		Assert(Ships[Objects[obj].instance].wingnum == cur_wing);
+		SDL_assert(Ships[Objects[obj].instance].wingnum == cur_wing);
 		if (!(Objects[obj].flags & OF_MARKED))  // ensure all ships in wing.are marked
 			return 0;
 	}
@@ -2649,7 +2649,7 @@ void CFREDView::OnEditorsWing()
 {
 	int adjust = 0;
 
-	Assert(Wing_editor_dialog.GetSafeHwnd());
+	SDL_assert(Wing_editor_dialog.GetSafeHwnd());
 	if (!Show_sexp_help)
 		adjust = -SEXP_HELP_BOX_SIZE;
 
@@ -3214,7 +3214,7 @@ int CFREDView::global_error_check()
 				return -1;
 	}*/
 
-	Assert((Player_start_shipnum >= 0) && (Player_start_shipnum < MAX_SHIPS) && (Ships[Player_start_shipnum].objnum >= 0));
+	SDL_assert((Player_start_shipnum >= 0) && (Player_start_shipnum < MAX_SHIPS) && (Ships[Player_start_shipnum].objnum >= 0));
 	i = global_error_check_player_wings(multi);
 	if (i){
 		return i;
@@ -3652,7 +3652,7 @@ void CFREDView::OnEditorsWaypoint()
 {
 	int adjust = 0;
 
-	Assert(Waypoint_editor_dialog.GetSafeHwnd());
+	SDL_assert(Waypoint_editor_dialog.GetSafeHwnd());
 	if (!Show_sexp_help)
 		adjust = -SEXP_HELP_BOX_SIZE;
 
@@ -3680,8 +3680,8 @@ char *error_check_initial_orders(ai_goal *goals, int ship, int wing)
 			}
 
 	} else {
-		Assert(wing >= 0);
-		Assert(Wings[wing].wave_count > 0);
+		SDL_assert(wing >= 0);
+		SDL_assert(Wings[wing].wave_count > 0);
 		source = Wings[wing].name;
 		team = Ships[Objects[wing_objects[wing][0]].instance].team;
 		for (j=0; j<Wings[wing].wave_count; j++)
@@ -3833,7 +3833,7 @@ char *error_check_initial_orders(ai_goal *goals, int ship, int wing)
 
 		switch (goals[i].ai_mode) {
 			case AI_GOAL_DESTROY_SUBSYSTEM:
-				Assert(flag == 2 && inst >= 0);
+				SDL_assert(flag == 2 && inst >= 0);
 				if (ship_get_subsys_index(&Ships[inst], goals[i].docker.name, 1) < 0)
 					return "Unknown subsystem type";
 
@@ -3842,14 +3842,14 @@ char *error_check_initial_orders(ai_goal *goals, int ship, int wing)
 			case AI_GOAL_DOCK: {
 				int dock1 = -1, dock2 = -1, model1, model2;
 
-				Assert(flag == 2 && inst >= 0);
+				SDL_assert(flag == 2 && inst >= 0);
 				if (!ship_docking_valid(ship, inst))
 					return "Docking illegal between given ship types";
 
 				model1 = Ships[ship].modelnum;
 				num = get_docking_list(model1);
 				for (j=0; j<num; j++) {
-					Assert(Docking_bay_list[j]);
+					SDL_assert(Docking_bay_list[j]);
 					if (!stricmp(goals[i].docker.name, Docking_bay_list[j])) {
 						dock1 = j;
 						break;
@@ -3859,7 +3859,7 @@ char *error_check_initial_orders(ai_goal *goals, int ship, int wing)
 				model2 = Ships[inst].modelnum;
 				num = get_docking_list(model2);
 				for (j=0; j<num; j++) {
-					Assert(Docking_bay_list[j]);
+					SDL_assert(Docking_bay_list[j]);
 					if (!stricmp(goals[i].dockee.name, Docking_bay_list[j])) {
 						dock2 = j;
 						break;
@@ -4101,7 +4101,7 @@ void CFREDView::OnEditorCampaign()
 	if (!FREDDoc_ptr->SaveModified())
 		return;
 
-	Assert(!Campaign_wnd);
+	SDL_assert(!Campaign_wnd);
 	Campaign_wnd = new campaign_tree_wnd;
 	if (Campaign_wnd->Create(NULL, "Campaign Editor", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE,
 		CFrameWnd::rectDefault, NULL, "IDR_MENU_CAMPAIGN")) {
@@ -4548,7 +4548,7 @@ void CFREDView::OnPrevObj()
 		ptr = GET_NEXT(ptr);
 	}
 
-	Assert(n);
+	SDL_assert(n);
 	if (query_valid_object()) {
 		i--;
 		if (i < 0)
@@ -4610,7 +4610,7 @@ void CFREDView::OnMarkWing()
 		for (i=0; i<Wings[wing].wave_count; i++)
 			mark_object(wing_objects[wing][i]);
 
-		Assert(Wings[wing].special_ship >= 0 && Wings[wing].special_ship < Wings[wing].wave_count);
+		SDL_assert(Wings[wing].special_ship >= 0 && Wings[wing].special_ship < Wings[wing].wave_count);
 		set_cur_object_index(wing_objects[wing][Wings[wing].special_ship]);
 	}
 }
@@ -4712,7 +4712,7 @@ int get_prev_visible_subsys(ship *shipp, ship_subsys **prev_subsys)
 	}
 
 	// first timer
-	Assert(*prev_subsys != NULL);
+	SDL_assert(*prev_subsys != NULL);
 
 	// look before wrap
 	for (*prev_subsys = GET_PREV(*prev_subsys); *prev_subsys != END_OF_LIST(&shipp->subsys_list); *prev_subsys = GET_PREV(*prev_subsys)) {

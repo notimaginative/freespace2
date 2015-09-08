@@ -723,7 +723,7 @@ void render_one_model(object *objp)
 	int j, z;
 	object *o2;
 
-	Assert(objp->type != OBJ_NONE);
+	SDL_assert(objp->type != OBJ_NONE);
 
 	if ( objp->type == OBJ_JUMP_NODE ) {
 		return;
@@ -830,7 +830,7 @@ void render_one_model(object *objp)
 
 		} else if (objp->type == OBJ_POINT) {
 			if (objp->instance != BRIEFING_LOOKAT_POINT_ID) {
-				Assert(Briefing_dialog);
+				SDL_assert(Briefing_dialog);
 				Briefing_dialog->draw_icon(objp);
 				goto skip;
 			}
@@ -838,7 +838,7 @@ void render_one_model(object *objp)
 			r = 196;	g = 32;	b = 196;
 
 		} else
-			Assert(0);
+			SDL_assert(0);
 
 		if (Fred_outline)
 			draw_orient_sphere2(Fred_outline, objp, r, g, b);
@@ -905,7 +905,7 @@ void display_ship_info()
 
 	objp = GET_FIRST(&obj_used_list);
 	while (objp != END_OF_LIST(&obj_used_list))	{
-		Assert(objp->type != OBJ_NONE);
+		SDL_assert(objp->type != OBJ_NONE);
 		Fred_outline = 0;
 		render = 1;
 		if (OBJ_INDEX(objp) == cur_object_index)
@@ -967,7 +967,7 @@ void display_ship_info()
 					} else if (objp->type == OBJ_JUMP_NODE) {
 						strcpy(buf, "Jump Node");
 					} else
-						Assert(0);
+						SDL_assert(0);
 				}
 
 				if (Show_coordinates)
@@ -1448,7 +1448,7 @@ void game_do_frame()
 
 					objp = GET_FIRST(&obj_used_list);
 					while (objp != END_OF_LIST(&obj_used_list))			{
-						Assert(objp->type != OBJ_NONE);
+						SDL_assert(objp->type != OBJ_NONE);
 						if ((objp->flags & OF_MARKED) && (cur_object_index != OBJ_INDEX(objp)))	{
 							if (Group_rotate) {
 								matrix rot_trans;
@@ -1506,7 +1506,7 @@ void game_do_frame()
 				break;
 			
 			default:
-				Assert(0);
+				SDL_assert(0);
 		}
 
 	if (Lookat_mode && query_valid_object()) {
@@ -1529,7 +1529,7 @@ void game_do_frame()
 			break;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 	}
 
 	maybe_create_new_grid(The_grid, &eye_pos, &eye_orient);

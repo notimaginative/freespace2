@@ -204,6 +204,7 @@
 #include "bmpman.h"
 #include "timer.h"
 #include "alphacolors.h"
+#include "font.h"
 
 
 #define INPUTBOX_PASSWD_CHAR        '*'   // the password protected char
@@ -212,49 +213,6 @@
 int is_letter(char c)
 {
 	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
-}
-
-// if the passed key is keypad number, return the ascii value, otherwise -1
-int keypad_to_ascii(int c)
-{
-	switch(c){
-	case KEY_PAD0:
-		return key_to_ascii(KEY_0);
-		break;
-	case KEY_PAD1:
-		return key_to_ascii(KEY_1);
-		break;
-	case KEY_PAD2:
-		return key_to_ascii(KEY_2);
-		break;
-	case KEY_PAD3:
-		return key_to_ascii(KEY_3);
-		break;
-	case KEY_PAD4:
-		return key_to_ascii(KEY_4);
-		break;
-	case KEY_PAD5:
-		return key_to_ascii(KEY_5);
-		break;
-	case KEY_PAD6:
-		return key_to_ascii(KEY_6);
-		break;
-	case KEY_PAD7:
-		return key_to_ascii(KEY_7);
-		break;
-	case KEY_PAD8:
-		return key_to_ascii(KEY_8);
-		break;
-	case KEY_PAD9:
-		return key_to_ascii(KEY_9);
-		break;
-	case KEY_PADPERIOD:
-		return key_to_ascii(KEY_PERIOD);
-		break;
-	default :
-		return -1;
-		break;
-	}
 }
 
 // insert character c into string s at position p.
@@ -289,8 +247,8 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 {
 	int tw, th;
 
-	Assert(_text_len >= 0);
-	Assert((int) strlen(_text) <= _text_len);
+	SDL_assert(_text_len >= 0);
+	SDL_assert((int) strlen(_text) <= _text_len);
 	gr_set_font(wnd->f_id);
 	gr_get_string_size( &tw, &th, "*" );
 
@@ -321,7 +279,7 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 	init_cursor();
 
 	if ( _text_len > 0 ) {
-		strncpy( text, _text, _text_len );
+		SDL_strlcpy( text, _text, _text_len+1 );
 	}
 	text[_text_len] = 0;
 	position = strlen(_text);
@@ -516,12 +474,12 @@ int UI_INPUTBOX::validate_input(int chr)
 	}
 
 	// otherwise compare against the valid chars list
-	if((valid_chars) && strchr(valid_chars, chr)){
+	if((valid_chars) && SDL_strchr(valid_chars, chr)){
 		return chr;
 	}
 
 	// otherwise compare against the invalid chars list0
-	if((invalid_chars) && !strchr(invalid_chars,chr)){
+	if((invalid_chars) && !SDL_strchr(invalid_chars,chr)){
 		return chr;
 	}
 
@@ -558,8 +516,8 @@ void UI_INPUTBOX::process(int focus)
 			case 0:
 				break;
 
-			//case KEY_LEFT:
-			case KEY_BACKSP:
+			//case SDLK_LEFT:
+			case SDLK_BACKSPACE:
 				if (position > 0)
 					position--;
 
@@ -575,7 +533,7 @@ void UI_INPUTBOX::process(int focus)
 
 				break;
 
-			case KEY_ENTER:
+			case SDLK_RETURN:
 				pressed_down = 1;
 				locked = 0;
 				changed_flag = 1;
@@ -586,7 +544,7 @@ void UI_INPUTBOX::process(int focus)
 //				should_reset = 1;
 				break;
 
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				if (flags & UI_INPUTBOX_FLAG_ESC_CLR){
 					if (position > 0) {
 						set_text("");
@@ -615,10 +573,7 @@ void UI_INPUTBOX::process(int focus)
 					}
 
 					// get an ascii char from the input if possible
-					key_check = keypad_to_ascii(key);
-					if(key_check == -1){
-						key_check = key_to_ascii(key);
-					}
+					key_check = my_wnd->keypress_text;
 
 					ascii = validate_input(key_check);
 					if ((ascii > 0) && (ascii < 255)) {
@@ -699,8 +654,7 @@ int UI_INPUTBOX::pressed()
 
 void UI_INPUTBOX::get_text(char *out)
 {
-	strncpy(out, text, length);
-	out[length] = 0;
+	SDL_strlcpy(out, text, length+1);
 }
 
 void UI_INPUTBOX::set_text(const char *in)
@@ -709,9 +663,9 @@ void UI_INPUTBOX::set_text(const char *in)
 	
 	in_length = strlen(in);
 	if (in_length > length)
-		Assert(0);	// tried to force text into an input box that won't fit into allocated memory
+		SDL_assert(0);	// tried to force text into an input box that won't fit into allocated memory
 
-	strcpy(text, in);
+	SDL_strlcpy(text, in, length+1);
 	
 	if (flags & UI_INPUTBOX_FLAG_PASSWD) {
 		memset(passwd_text, INPUTBOX_PASSWD_CHAR, strlen(text));

@@ -217,11 +217,11 @@ void project_2d_onto_sphere( vector *pnt, float u, float v )
 // 1.00 - initial version
 
 // returns 0 if failed
-int load_nebula_sub(const char *filename)
+int load_nebula(const char *filename)
 {
 	CFILE *fp;
 	char id[16];
-	int version, major, minor;
+	int version, major;//, minor;
 
 	fp = cfopen(filename, "rb");
 
@@ -238,7 +238,7 @@ int load_nebula_sub(const char *filename)
 	cfread( &version, sizeof(int), 1, fp );
     version = INTEL_INT(version);
 	major = version / 100;
-	minor = version % 100;
+	//minor = version % 100;
 
 	if ( major != NEBULA_MAJOR_VERSION )	{
 		mprintf(( "An out of date nebula file.\n" ));
@@ -247,10 +247,10 @@ int load_nebula_sub(const char *filename)
 
 	cfread( &num_pts, sizeof(int), 1, fp );
     num_pts = INTEL_INT(num_pts);
-	Assert( num_pts < MAX_POINTS );
+	SDL_assert( num_pts < MAX_POINTS );
 	cfread( &num_tris, sizeof(int), 1, fp );
     num_tris = INTEL_INT(num_tris);
-	Assert( num_tris < MAX_TRIS );
+	SDL_assert( num_tris < MAX_TRIS );
 
 	for (int i=0; i<num_pts; i++ )	{
 		float xf, yf;
@@ -259,8 +259,8 @@ int load_nebula_sub(const char *filename)
 		cfread( &xf, sizeof(float), 1, fp );
 		cfread( &yf, sizeof(float), 1, fp );
 		cfread( &l, sizeof(int), 1, fp );
-                xf = INTEL_FLOAT(&xf);
-                yf = INTEL_FLOAT(&yf);
+                xf = INTEL_FLOAT(xf);
+                yf = INTEL_FLOAT(yf);
                 l = INTEL_INT(l);
 		project_2d_onto_sphere( &nebula_vecs[i], 1.0f - xf, yf );
 		vm_vec_scale( &nebula_vecs[i], 10.0f );
@@ -299,7 +299,7 @@ void nebula_init( const char *filename, angles * pbh )
 		nebula_close();
 	}
 
-	if ( load_nebula_sub( cf_add_ext(filename, NOX(".neb")) ) ) {
+	if ( load_nebula( cf_add_ext(filename, NOX(".neb")) ) ) {
 		Nebula_loaded = 1;
 	}
 
@@ -317,13 +317,9 @@ void nebula_init( const char *filename, angles * pbh )
 
 void nebula_render()
 {
+#ifdef MAKE_FS1
 	int i;
 	// int r, g, b;
-
-	// no nebula for you!
-#ifndef MAKE_FS1
-	return;
-#endif
 
 	if ( !Nebula_loaded ) {
 		return;
@@ -365,6 +361,7 @@ void nebula_render()
 	if((The_mission.flags & MISSION_FLAG_FULLNEB) && (Neb2_render_mode == NEB2_RENDER_NONE)){
 		gr_fog_set(GR_FOGMODE_NONE, 0, 0, 0, -1.0f, -1.0f);
 	}
+#endif
 }
 
 DCF(nebula,"Loads a different nebula")

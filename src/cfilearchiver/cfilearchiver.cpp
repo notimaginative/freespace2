@@ -58,7 +58,13 @@
 #include <sys/types.h>
 #endif
 
+#define SDL_MAIN_HANDLED
+
 #include "pstypes.h"
+
+#ifndef PLAT_UNIX
+#define strcasecmp stricmp
+#endif
 
 static int data_error;
 static int no_dir;
@@ -110,7 +116,7 @@ int write_index(char *hf, char *df)
 	return 1;
 }
 
-void pack_file( char *filespec, char *filename, int filesize, fs_time_t time_write )
+void pack_file(const char *filespec, const char *filename, int filesize, fs_time_t time_write )
 {
 	char path[1024];
 
@@ -142,17 +148,12 @@ void pack_file( char *filespec, char *filename, int filesize, fs_time_t time_wri
 
 	Total_size += filesize;
 	Num_files++;
-#ifndef PLAT_UNIX
-	printf( "Packing %s\\%s...", filespec, filename );
 
-	
-	sprintf( path, "%s\\%s", filespec, filename );
-#else
-	printf( "Packing %s/%s...", filespec, filename );
+	printf( "Packing %s%s%s...", filespec, DIR_SEPARATOR_STR, filename );
 
 
-	sprintf( path, "%s/%s", filespec, filename );
-#endif
+	sprintf( path, "%s%s%s", filespec, DIR_SEPARATOR_STR, filename );
+
 
 	FILE *fp = fopen( path, "rb" );
 	
@@ -178,22 +179,21 @@ void pack_file( char *filespec, char *filename, int filesize, fs_time_t time_wri
 }
 
 // This function adds a directory marker to the header file
-void add_directory( char * dirname)
+void add_directory(const char * dirname)
 {
 	char path[256];
 	char *pathptr = path;
 	char *tmpptr;
+
+	if ( strlen(dirname) >= sizeof(path) )
+		return;
 
 	strcpy(path, dirname);
 	fwrite(&Total_size, 1, 4, fp_out_hdr);
 	int i = 0;
 	fwrite(&i, 1, 4, fp_out_hdr);
 	// strip out any directories that this dir is a subdir of
-#ifndef PLAT_UNIX
-	while ((tmpptr = strchr(pathptr, '\\')) != NULL) {
-#else
-	while ((tmpptr = strchr(pathptr, '/')) != NULL) {
-#endif
+	while ((tmpptr = strchr(pathptr, DIR_SEPARATOR_CHAR)) != NULL) {
 		pathptr = tmpptr+1;
 	}
 	fwrite(pathptr, 1, 32, fp_out_hdr);
@@ -201,7 +201,7 @@ void add_directory( char * dirname)
 	Num_files++;
 }
 
-void pack_directory( char * filespec)
+void pack_directory(const char * filespec)
 {
 #ifndef PLAT_UNIX
 	int find_handle;
@@ -209,6 +209,11 @@ void pack_directory( char * filespec)
 #endif
 	char tmp[512];
 	char tmp1[512];
+	char *ts;
+
+	// size safety check
+	if ( strlen(filespec) >= (sizeof(tmp1) + 5) )
+		return;
 
 /*
 	char dir_name[512];
@@ -221,30 +226,22 @@ void pack_directory( char * filespec)
 		strcpy(dir_name, filespec);
 	}
 
-	if ( !stricmp(dir_name, "voice") ) {
+	if ( !strcasecmp(dir_name, "voice") ) {
 		return;
 	}
 */
 
-#ifdef PLAT_UNIX
-	char *ts;
+	strcpy( tmp1, filespec );
 
-	// strip trailing '/'
-	ts = filespec+(strlen(filespec)-1);
-	while(*ts == '/' && ts > filespec)
+	// strip trailing slash
+	ts = tmp1+(strlen(tmp1)-1);
+	if (*ts == DIR_SEPARATOR_CHAR)
 		*ts = '\0';
 
-	strcpy( tmp1, filespec );
+	add_directory(tmp1);
+	strcat( tmp1, DIR_SEPARATOR_STR );
+	strcat( tmp1, "*.*" );
 
-	add_directory(filespec);
-	strcat( tmp1, "/*.*" );
-#else
-	strcpy( tmp1, filespec );
-
-	add_directory(filespec);
-	strcat( tmp1, "\\*.*" );
-#endif
-	
 	printf( "In dir '%s'\n", tmp1 );
 
 #ifndef PLAT_UNIX
@@ -283,9 +280,9 @@ void pack_directory( char * filespec)
 	if ( dirp ) {
 		while ((dir = readdir(dirp)) != NULL) {
 
-			char fn[MAX_PATH];
-			snprintf(fn, MAX_PATH-1, "%s/%s", filespec, dir->d_name);
-			fn[MAX_PATH-1] = 0;
+			char fn[MAX_PATH_LEN];
+			snprintf(fn, MAX_PATH_LEN-1, "%s/%s", filespec, dir->d_name);
+			fn[MAX_PATH_LEN-1] = 0;
 			
 			struct stat buf;
 			if (stat(fn, &buf) == -1) {
@@ -314,49 +311,25 @@ void pack_directory( char * filespec)
 	add_directory("..");
 }
 
-int verify_directory( char *filespec )
+int verify_directory(const char *filespec )
 {
+	char tmp[512] = { 0 };
 	char *ts;
 	char *dd;
 
-	// strip trailing '/'
-	ts = filespec+(strlen(filespec)-1);
-	while(*ts == '/' && ts > filespec)
+	// strip trailing slash
+	strncpy(tmp, filespec, sizeof(tmp)-1);
+
+	ts = tmp+(strlen(tmp)-1);
+	if (*ts == DIR_SEPARATOR_CHAR)
 		*ts = '\0';
 
 	// make sure last directory is named "data", ignoring case
-	dd = filespec+(strlen(filespec)-4);
-	if ( stricmp( dd, "data" ) )
+	dd = tmp+(strlen(tmp)-4);
+	if ( strcasecmp( dd, "data" ) )
 		data_error = 1;
-	
+
 	return data_error;
-}
-
-void print_instructions()
-{
-	printf( "Creates a vp archive out of a FreeSpace data tree.\n\n" );
-	printf( "Usage:		cfilearchiver archive_name src_dir\n");
-	printf( "Example:	cfilearchiver freespace /tmp/freespace/data\n\n");
-	printf( "Directory structure options:\n" );
-	printf( "   Effects                   (.ani .pcx .neb .tga)\n" );
-	printf( "   Fonts                     (.vf)\n" );
-	printf( "   Hud                       (.ani .pcx .tga\n" );
-	printf( "   Interface                 (.pcx .ani .tga)\n" );
-	printf( "   Maps                      (.pcx .ani .tga)\n" );
-	printf( "   Missions                  (.ntl .ssv), FS1(.fsm .fsc), FS2(.fs2 .fc2)\n" );
-	printf( "   Models                    (.pof)\n" );
-	printf( "   Music                     (.wav)\n" );
-	printf( "   Sounds/8b22k              (.wav)\n" );
-	printf( "   Sounds/16b11k             (.wav)\n" );
-	printf( "   Tables                    (.tbl)\n" );
-	printf( "   Voice/Briefing            (.wav)\n" );
-	printf( "   Voice/Command briefings   (.wav)\n" );
-	printf( "   Voice/Debriefing          (.wav)\n" );
-	printf( "   Voice/Personas            (.wav)\n" );
-	printf( "   Voice/Special             (.wav)\n" );
-	printf( "   Voice/Training            (.wav)\n" );
-
-	exit(0);
 }
 
 int main(int argc, char *argv[] )
@@ -365,16 +338,16 @@ int main(int argc, char *argv[] )
 	char *p;
 
 	if ( argc < 3 )	{
-#ifndef PLAT_UNIX
-		printf( "Usage: %s archive_name src_dir\n", argv[0] );
-		printf( "Example: %s freespace c:\\freespace\\data\n", argv[0] );
-		printf( "Creates an archive named freespace out of the\nfreespace data tree\n" );
-		printf( "Press any key to exit...\n" );
-		getch();
-		return 1;
+		printf("Creates a vp archive out of a FreeSpace data tree.\n\n");
+		printf("Usage:		cfilearchiver archive_name src_dir\n");
+#ifdef PLAT_UNIX
+		printf("Example:	cfilearchiver freespace /tmp/freespace/data\n\n");
 #else
-		print_instructions();
+		printf("Example:	cfilearchiver freespace c:\\freespace\\data\n\n");
+		printf("Press any key to exit...\n");
+		getch();
 #endif
+		return 1;
 	}
 
 	strcpy( archive, argv[1] );
@@ -393,10 +366,8 @@ int main(int argc, char *argv[] )
 #ifndef PLAT_UNIX
 		printf( "Press any key to exit...\n" );
 		getch();
-		return 1;
-#else
-		exit(1);
 #endif
+		return 2;
 	}
 
 	fp_out_hdr = fopen( archive_hdr, "wb" );
@@ -405,15 +376,13 @@ int main(int argc, char *argv[] )
 #ifndef PLAT_UNIX
 		printf( "Press any key to exit...\n" );
 		getch();
-		return 1;
-#else
-		exit(2);
 #endif
+		return 3;
 	}
 
 	if ( verify_directory( argv[2] ) != 0 ) {
 		printf("Warning! Last directory must be named \"data\" (not case sensitive)\n");
-		exit(3);
+		return 4;
 	}
 
 	write_header();
@@ -422,7 +391,7 @@ int main(int argc, char *argv[] )
 
 	// in case the directory doesn't exist
 	if ( no_dir )
-		exit(4);
+		return 5;
 
 	write_header();
 
@@ -437,7 +406,7 @@ int main(int argc, char *argv[] )
 		printf("Press any key to exit...\n");
 		getch();
 #endif
-		return 1;
+		return 6;
 	}
 	
 	printf( "%d total KB.\n", Total_size/1024 );

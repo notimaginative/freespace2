@@ -171,7 +171,6 @@
 #ifndef _PARSE_H
 #define _PARSE_H
 
-#include <setjmp.h>
 #include "parselo.h"
 #include "ship.h"
 #include "ai.h"
@@ -552,7 +551,7 @@ void mission_parse_support_arrived( int objnum );
 
 // alternate name stuff
 int mission_parse_lookup_alt(char *name);
-void mission_parse_lookup_alt_index(int index, char *out);
+void mission_parse_lookup_alt_index(int index, char *out, const int max_outlen);
 int mission_parse_add_alt(char *name);
 void mission_parse_reset_alt();
 

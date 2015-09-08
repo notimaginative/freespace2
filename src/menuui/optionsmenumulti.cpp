@@ -224,7 +224,7 @@
 #include "bmpman.h"
 #include "cfile.h"
 #include "key.h"
-#include "ds.h"
+#include "oal.h"
 #include "font.h"
 #include "gamesnd.h"
 #include "freespace.h"
@@ -240,6 +240,8 @@
 #include "alphacolors.h"
 #include "timer.h"
 #include "gamesequence.h"  // needed for FS1
+#include "ptrack.h"
+
 
 // general data section ------------------------------------------------
 UI_WINDOW *Om_window = NULL;
@@ -768,7 +770,7 @@ op_sliders Om_vox_sliders[GR_NUM_RESOLUTIONS][NUM_OM_VOX_SLIDERS] = {
 #endif
 	},	
 	{ // GR_1024				
-		op_sliders("2_OVB_18",	686,	259,	-1,	-1,	18,	20,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// voice QOS
+		op_sliders("2_OVB_18",	686,	259,	-1,	-1,	18,	32,	10, NULL, -1, -1, -1, NULL, -1, -1, -1),	// voice QOS
 	}
 };
 
@@ -827,6 +829,9 @@ net_player *Om_vox_players[MAX_PLAYERS];
 
 // selected player
 net_player *Om_vox_player_select;
+
+// vox QoS setting
+static int Om_vox_qos_pos;
 
 // mute or don't mute for each player
 int Om_vox_player_flags[MAX_PLAYERS];
@@ -933,7 +938,7 @@ void options_multi_add_notify(const char *str)
 	// copy the string
 	memset(Om_notify_string,0,255);
 	if(str != NULL){		
-		strcpy(Om_notify_string,str);
+		SDL_strlcpy(Om_notify_string, str, SDL_arraysize(Om_notify_string));
 	} 		
 
 	// set the timestamp
@@ -950,6 +955,7 @@ void options_multi_notify_process()
 	int line_count;
 	int y_start;
 	int idx;
+	int len;
 	
 	// if there is no timestamp, do nothing
 	if(Om_notify_stamp == -1){
@@ -967,9 +973,9 @@ void options_multi_notify_process()
 	y_start = OM_NOTIFY_Y;
 	gr_set_color_fast(&Color_bright);
 	for(idx=0;idx<line_count;idx++){
-		memset(line, 0, 255);
-		strncpy(line, p_str[idx], n_chars[idx]);
-				
+		len = min(n_chars[idx] + 1, (int)SDL_arraysize(line));
+		SDL_strlcpy(line, p_str[idx], len);
+
 		gr_get_string_size(&w,NULL,line);
 		gr_string((600 - w)/2,y_start,line);
 
@@ -985,7 +991,7 @@ void options_multi_load_protocol_controls()
 {
 	int idx;
 	
-	Assert(Om_window != NULL);
+	SDL_assert(Om_window != NULL);
 
 	// instantiate all the buttons
 	for(idx=0; idx<OM_PRO_NUM_BUTTONS; idx++){
@@ -1011,7 +1017,7 @@ void options_multi_load_protocol_controls()
 
 	// create the tracker input boxes	
 	Om_tracker_login.create(Om_window, Om_tracker_login_coords[gr_screen.res][0], Om_tracker_login_coords[gr_screen.res][1], Om_tracker_login_coords[gr_screen.res][2], LOGIN_LEN - 1, Multi_tracker_login, UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_NO_BACK);
-	Om_tracker_passwd.create(Om_window, Om_tracker_passwd_coords[gr_screen.res][0], Om_tracker_passwd_coords[gr_screen.res][1], Om_tracker_passwd_coords[gr_screen.res][2], 1, Multi_tracker_passwd, UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_PASSWD | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_NO_BACK);
+	Om_tracker_passwd.create(Om_window, Om_tracker_passwd_coords[gr_screen.res][0], Om_tracker_passwd_coords[gr_screen.res][1], Om_tracker_passwd_coords[gr_screen.res][2], PASSWORD_LEN - 1, Multi_tracker_passwd, UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_PASSWD | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_NO_BACK);
 	Om_tracker_squad_name.create(Om_window, Om_tracker_squad_name_coords[gr_screen.res][0], Om_tracker_squad_name_coords[gr_screen.res][1], Om_tracker_squad_name_coords[gr_screen.res][2], LOGIN_LEN - 1, Multi_tracker_squad_name, UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_NO_BACK);
 
 	// create the invisible button for checking for clicks on the ip address list
@@ -1023,11 +1029,9 @@ void options_multi_load_protocol_controls()
 	Om_ip_input.hide();
 	Om_ip_input.disable();
 	
-	// disable IPX button in demo
-#ifdef FS2_DEMO
+	// disable IPX button
 	Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.disable();
 	Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.hide();
-#endif
 
 	// bogus control
 	Om_pro_bogus.base_create(Om_window, UI_KIND_ICON, 0, 0, 0, 0);
@@ -1112,7 +1116,7 @@ void options_multi_init_protocol_vars()
 	Om_local_broadcast = (Player->m_local_options.flags & MLO_FLAG_LOCAL_BROADCAST) ? 1 : 0;
 
 	// whether or not we're playing on the tracker
-	Om_tracker_flag = 0; // (Multi_options_g.protocol == NET_TCP) && Multi_options_g.pxo ? 1 : 0;	
+	Om_tracker_flag = Multi_options_g.pxo ? 1 : 0;
 
 	// load the ip address list	
 	Om_ip_disp_count = 0;
@@ -1145,7 +1149,7 @@ void options_multi_protocol_do(int key)
 
 	// see if he hit any interesting key presses
 	switch(key){
-	case KEY_ENTER:
+	case SDLK_RETURN:
 		// add a new ip string if we're in "input" mode
 		if(Om_input_mode){			
 			options_multi_protocol_add_current_ip();
@@ -1174,7 +1178,7 @@ void options_multi_protocol_do(int key)
 		}
 		break;
 
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		// if we're in input mode, cancel out
 		if(Om_input_mode){
 			// clear the text control and input mode
@@ -1189,7 +1193,7 @@ void options_multi_protocol_do(int key)
 		}
 		break;
 
-	case KEY_TAB:
+	case SDLK_TAB:
 		// tab through the tracker input controls
 		if(Om_tracker_login.has_focus()){
 			Om_tracker_passwd.set_focus();
@@ -1203,11 +1207,7 @@ void options_multi_protocol_do(int key)
 
 	// force draw the proper protocol
 #ifndef MAKE_FS1	// not in FS1 menu
-	if (Om_protocol == NET_IPX) {
-		Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.draw_forced(2);
-	} else {
-		Om_pro_buttons[gr_screen.res][OM_PRO_TCP].button.draw_forced(2);
-	}
+	Om_pro_buttons[gr_screen.res][OM_PRO_TCP].button.draw_forced(2);
 #endif
 
 	// force draw the proper tab button
@@ -1259,6 +1259,9 @@ void options_multi_protocol_accept()
 
 	// active protocol
 	Multi_options_g.protocol = Om_protocol;
+
+	// VMT status
+	Multi_options_g.pxo = Om_tracker_flag;
 
 	// copy the VMT login and password data
 	Om_tracker_login.get_text(Multi_tracker_login);
@@ -1428,7 +1431,7 @@ void options_multi_protocol_button_pressed(int n)
 			options_multi_enable_gen_controls();
 
 			// set the general screen mask	
-			Assert(Om_mask_0 >= 0);
+			SDL_assert(Om_mask_0 >= 0);
 			Om_window->set_mask_bmap(Om_mask_0, Om_background_0_mask_fname[gr_screen.res]);
 		}
 
@@ -1450,7 +1453,7 @@ void options_multi_protocol_button_pressed(int n)
 			options_multi_enable_vox_controls();
 
 			// set the voice screen mask	
-			Assert(Om_mask_1 >= 0);
+			SDL_assert(Om_mask_1 >= 0);
 			Om_window->set_mask_bmap(Om_mask_1, Om_background_1_mask_fname[gr_screen.res]);
 		}
 		// play a sound
@@ -1468,10 +1471,7 @@ void options_multi_protocol_button_pressed(int n)
 
 	// ipx mode
 	case OM_PRO_IPX:
-#ifndef FS2_DEMO
-		Om_protocol = NET_IPX;
-		gamesnd_play_iface(SND_USER_SELECT);
-#endif
+		gamesnd_play_iface(SND_GENERAL_FAIL);
 		break;
 #endif
 
@@ -1520,7 +1520,7 @@ void options_multi_protocol_load_ip_file()
 			nprintf(("Network","Invalid ip string (%s)\n",line));
 		} else {
 			if(Om_num_ips < MAX_IP_ADDRS-1){
-				strcpy(Om_ip_addrs[Om_num_ips++],line);
+				SDL_strlcpy(Om_ip_addrs[Om_num_ips++], line, IP_STRING_LEN);
 			}
 		}
 	}
@@ -1546,7 +1546,7 @@ void options_multi_protocol_save_ip_file()
 		// make _absolutely_ sure its a valid address
 		// MWA -- commented out next line because name resolution might fail when
 		// it was added.  We'll only grab games that we can actually get to.
-		//Assert(psnet_is_valid_ip_string(Multi_ip_addrs[idx]));
+		//SDL_assert(psnet_is_valid_ip_string(Multi_ip_addrs[idx]));
 
 		cfputs(Om_ip_addrs[idx],file);
 				
@@ -1635,7 +1635,7 @@ void options_multi_protocol_delete_ip()
 
 		// move down all the other items				
 		for(idx=Om_ip_selected; idx < Om_num_ips; idx++){
-			strcpy(Om_ip_addrs[idx],Om_ip_addrs[idx+1]);
+			SDL_strlcpy(Om_ip_addrs[idx], Om_ip_addrs[idx+1], IP_STRING_LEN);
 		}
 
 		// make sure to decrement the starting index
@@ -1691,7 +1691,7 @@ void options_multi_protocol_add_current_ip()
 	Ip_validated_already = 0;
 	if(popup_till_condition(options_multi_verify_ip, XSTR( "Cancel", 387), XSTR( "Verifying ip address", 388)) == 10){
 		if(Om_num_ips < MAX_IP_ADDRS){
-			strcpy(Om_ip_addrs[Om_num_ips],Ip_str);
+			SDL_strlcpy(Om_ip_addrs[Om_num_ips], Ip_str, IP_STRING_LEN);
 			Om_ip_start = Om_num_ips;
 			Om_num_ips++;
 			
@@ -1712,7 +1712,7 @@ void options_multi_load_gen_controls()
 {
 	int idx;
 	
-	Assert(Om_window != NULL);
+	SDL_assert(Om_window != NULL);
 
 	// instantiate all the buttons
 	for(idx=0; idx<OM_GEN_NUM_BUTTONS; idx++){				
@@ -1998,7 +1998,7 @@ void options_multi_load_vox_controls()
 {
 	int idx;
 	
-	Assert(Om_window != NULL);
+	SDL_assert(Om_window != NULL);
 
 	// instantiate all the buttons
 	for(idx=0; idx<OM_VOX_NUM_BUTTONS; idx++){
@@ -2030,6 +2030,10 @@ void options_multi_load_vox_controls()
 																		Om_vox_sliders[gr_screen.res][idx].left_filename, Om_vox_sliders[gr_screen.res][idx].left_mask, Om_vox_sliders[gr_screen.res][idx].left_x, Om_vox_sliders[gr_screen.res][idx].left_y,
 																		Om_vox_sliders[gr_screen.res][idx].dot_w);
 	}	
+
+	// default position from settings (slider is 0-9, hence the -1)
+	Om_vox_qos_pos = Player->m_server_options.voice_qos - 1;
+	Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos = Om_vox_qos_pos;
 
 	// create the player list select button
 	Om_vox_plist_button.create(Om_window, "", Om_vox_plist_coords[gr_screen.res][0], Om_vox_plist_coords[gr_screen.res][1], Om_vox_plist_coords[gr_screen.res][2], Om_vox_plist_coords[gr_screen.res][3], 0, 1);
@@ -2147,6 +2151,9 @@ void options_multi_vox_accept()
 		Player->m_local_options.flags |= MLO_FLAG_NO_VOICE;
 	}
 
+	// VOX QoS
+	Players->m_server_options.voice_qos = (ubyte)(Om_vox_qos_pos + 1);
+
 	// build the voice preferences stuff
 	voice_pref_flags = 0xffffffff;
 	for(idx=0;idx<Om_vox_num_players;idx++){
@@ -2165,6 +2172,12 @@ void options_multi_vox_do()
 	
 	// check for button presses
 	options_multi_vox_check_buttons();
+
+	// maybe do something with the QoS slider
+	if (Om_vox_qos_pos != Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos) {
+		Om_vox_qos_pos = Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos;
+		gamesnd_play_iface(SND_USER_SELECT);
+	}
 
 	// draw the proper accept voice button
 	if(Om_vox_accept_voice){
@@ -2221,19 +2234,24 @@ void options_multi_vox_do()
 	
 	case OM_VOX_TEST_PLAYBACK:			
 		// if we were playing a sound back, but now the sound is done
-		if((Om_vox_playback_handle != -1) && (ds_get_play_position(ds_get_channel(Om_vox_playback_handle)) >= (DWORD)Om_vox_voice_comp_size)){
-			// flush all playing sounds safely
-			rtvoice_stop_playback_all();
+		if (Om_vox_playback_handle != -1) {
+			int channel = oal_get_channel(Om_vox_playback_handle);
 
-			// null the sound handle
-			Om_vox_playback_handle = -1;
+			// channel will be -1 if sound has already stopped playing
+			if ( (channel == -1) || (oal_get_play_position(channel) >= Om_vox_voice_comp_size) ) {
+				// flush all playing sounds safely
+				rtvoice_stop_playback_all();
 
-			// set this so we know not to display any more waveforms
-			Om_vox_voice_buffer_size = -1;
-			Om_vox_voice_comp_size = -1;			
+				// null the sound handle
+				Om_vox_playback_handle = -1;
 
-			// free the status up
-			Om_vox_test_status = OM_VOX_TEST_NONE;
+				// set this so we know not to display any more waveforms
+				Om_vox_voice_buffer_size = -1;
+				Om_vox_voice_comp_size = -1;
+
+				// free the status up
+				Om_vox_test_status = OM_VOX_TEST_NONE;
+			}
 		}
 		break;
 	}
@@ -2312,7 +2330,7 @@ void options_multi_vox_button_pressed(int n)
 			// if we're not already doing a record test
 			if(Om_vox_test_status == OM_VOX_TEST_NONE){
 				// set the quality of sound
-				rtvoice_set_qos(Om_vox_sliders[gr_screen.res][OM_VOX_QOS_SLIDER].slider.pos + 1);
+				rtvoice_set_qos(Om_vox_qos_pos + 1);
 
 				// clear the comp buffer
 				memset(Om_vox_comp_buffer,128,OM_VOX_COMP_SIZE);
@@ -2386,7 +2404,7 @@ void options_multi_vox_process_waveform()
 
 	case OM_VOX_TEST_PLAYBACK:
 		// get the offset into the playing direct sound buffer
-		buf_offset = ds_get_play_position(ds_get_channel(Om_vox_playback_handle));		
+		buf_offset = oal_get_play_position(oal_get_channel(Om_vox_playback_handle));
 
 		// get the # of samples we'll average for one line
 		avg_len = (int)((float)OM_VOX_RECORD_INT * ((1024.0f * 11.0f) / 1000.0f)) / c_width;				
@@ -2446,7 +2464,7 @@ void options_multi_vox_process_player_list()
 			}
 
 			// force fit his callsign
-			strcpy(str,Om_vox_players[idx]->player->callsign);
+			SDL_strlcpy(str, Om_vox_players[idx]->player->callsign, SDL_arraysize(str));
 			gr_force_fit_string(str, CALLSIGN_LEN+1, Om_vox_plist_coords[gr_screen.res][2]);
 
 			// blit the callsign
@@ -2625,7 +2643,7 @@ void options_multi_select()
 {
 #ifndef FS1_DEMO
 	// set the windows mask bitmap
-	Assert(Om_mask_0 >= 0);
+	SDL_assert(Om_mask_0 >= 0);
 	Om_window->set_mask_bmap(Om_mask_0, Om_background_0_mask_fname[gr_screen.res]);
 
 	// set the default screen mode

@@ -47,7 +47,7 @@
  * name with invisible in it.
  * 
  * 81    4/02/98 8:16a John
- * Fixed Assert in model_collide with large ships
+ * Fixed SDL_assert in model_collide with large ships
  * 
  * 80    3/31/98 5:18p John
  * Removed demo/save/restore.  Made NDEBUG defined compile.  Removed a
@@ -504,7 +504,7 @@ static void mc_check_sphereline_face( int nv, vector ** verts, vector * plane_pn
 				mprintf(("Estimated radius error: Estimate %f, actual %f Mc->radius\n", temp_dist, Mc->radius));
 			}
 			vm_vec_sub( &temp_dir, &hit_point, &temp_sphere );
-			// Assert( vm_vec_dotprod( &temp_dir, &Mc_direction ) > 0 );
+			// SDL_assert( vm_vec_dotprod( &temp_dir, &Mc_direction ) > 0 );
 		}
 	}
 
@@ -529,7 +529,7 @@ static void mc_check_sphereline_face( int nv, vector ** verts, vector * plane_pn
 		float sphere_time;
 		if ( fvi_polyedge_sphereline(&hit_point, &Mc_p0, &Mc_direction, Mc->radius, nv, verts, &sphere_time)) {
 
-			Assert( sphere_time >= 0.0f );
+			SDL_assert( sphere_time >= 0.0f );
 			vm_vec_scale_add( &temp_sphere, &Mc_p0, &Mc_direction, sphere_time );
 			temp_dist = vm_vec_dist( &temp_sphere, &hit_point );
 			if ( (temp_dist - DIST_TOL > Mc->radius) || (temp_dist + DIST_TOL < Mc->radius) ) {
@@ -537,7 +537,7 @@ static void mc_check_sphereline_face( int nv, vector ** verts, vector * plane_pn
 				mprintf(("Estimated radius error: Estimate %f, actual %f Mc->radius\n", temp_dist, Mc->radius));
 			}
 			vm_vec_sub( &temp_dir, &hit_point, &temp_sphere );
-//			Assert( vm_vec_dotprod( &temp_dir, &Mc_direction ) > 0 );
+//			SDL_assert( vm_vec_dotprod( &temp_dir, &Mc_direction ) > 0 );
 
 			if ( (Mc->num_hits==0) || (sphere_time < Mc->hit_dist) ) {
 				// This is closer than best so far
@@ -561,7 +561,7 @@ static void mc_check_sphereline_face( int nv, vector ** verts, vector * plane_pn
 			//		Mc->hit_normal.x, Mc->hit_normal.y, Mc->hit_normal.z,
 			//		hit_point.x, hit_point.y, hit_point.z));
 			} else  {	// Not best so far
-				Assert(Mc->num_hits>0);
+				SDL_assert(Mc->num_hits>0);
 				Mc->num_hits++;
 			}
 		}
@@ -586,7 +586,7 @@ void model_collide_defpoints(ubyte * p)
 	ubyte * normcount = p+20;
 	vector *src = vp(p+offset);
 	
-	Assert( nverts < MAX_POLYGON_VECS );
+	SDL_assert( nverts < MAX_POLYGON_VECS );
 
 	for (n=0; n<nverts; n++ )	{
 
@@ -836,8 +836,8 @@ void mc_check_subobj( int mn )
 	bsp_info * sm;
 	int i;
 
-	Assert( mn >= 0 );
-	Assert( mn < Mc_pm->n_models );
+	SDL_assert( mn >= 0 );
+	SDL_assert( mn < Mc_pm->n_models );
 
 	if ( (mn < 0) || (mn>=Mc_pm->n_models) ) return;
 	
@@ -993,7 +993,7 @@ int model_collide(mc_info * mc_info)
 	}
 
 	if ( Mc->flags & MC_CHECK_SPHERELINE ) {
-		Assert( Mc->radius > 0.0f );
+		SDL_assert( Mc->radius > 0.0f );
 
 		// Do a quick check on the Bounding Sphere
 		if (fvi_segment_sphere(&Mc->hit_point_world, Mc->p0, Mc->p1, Mc->pos, model_radius+Mc->radius) )	{

@@ -387,89 +387,89 @@ static int Last_ts;	// holds last target status.
 void hud_blit_target_integrity(int disabled,int force_obj_num = -1);
 
 // cut down long subsystem names to a more manageable length
-char *hud_targetbox_truncate_subsys_name(char *outstr)
+char *hud_targetbox_truncate_subsys_name(char *outstr, const int max_len)
 {	
 	if(Lcl_gr){
 		if ( strstr(outstr, "communication") )	{
-			strcpy(outstr, "Komm");
-		} else if ( !stricmp(outstr, "weapons") ) {
-			strcpy(outstr, "Waffen");
+			SDL_strlcpy(outstr, "Komm", max_len);
+		} else if ( !SDL_strcasecmp(outstr, "weapons") ) {
+			SDL_strlcpy(outstr, "Waffen", max_len);
 		} else if ( strstr(outstr, "engine") || strstr(outstr, "Engine")) {
-			strcpy(outstr, "Antrieb");
-		} else if ( !stricmp(outstr, "sensors") ) {
-			strcpy(outstr, "Sensoren");
+			SDL_strlcpy(outstr, "Antrieb", max_len);
+		} else if ( !SDL_strcasecmp(outstr, "sensors") ) {
+			SDL_strlcpy(outstr, "Sensoren", max_len);
 		} else if ( strstr(outstr, "navigat") ) {
-			strcpy(outstr, "Nav");
+			SDL_strlcpy(outstr, "Nav", max_len);
 		} else if ( strstr(outstr, "fighterbay") || strstr(outstr, "Fighterbay") ) {
-			strcpy(outstr, "J\x84gerhangar");
+			SDL_strlcpy(outstr, "J\x84gerhangar", max_len);
 		} else if ( strstr(outstr, "missile") ) {
-			strcpy(outstr, "Raketenwerfer");
+			SDL_strlcpy(outstr, "Raketenwerfer", max_len);
 		} else if ( strstr(outstr, "laser") || strstr(outstr, "turret") ) {
-			strcpy(outstr, "Gesch\x81tzturm");
+			SDL_strlcpy(outstr, "Gesch\x81tzturm", max_len);
 		} else if ( strstr(outstr, "Command Tower") || strstr(outstr, "Bridge") ) {
-			strcpy(outstr, "Br\x81""cke");
+			SDL_strlcpy(outstr, "Br\x81""cke", max_len);
 		} else if ( strstr(outstr, "Barracks") ) {
-			strcpy(outstr, "Quartiere");
+			SDL_strlcpy(outstr, "Quartiere", max_len);
 		} else if ( strstr(outstr, "Reactor") ) {
-			strcpy(outstr, "Reaktor");
+			SDL_strlcpy(outstr, "Reaktor", max_len);
 		} else if ( strstr(outstr, "RadarDish") ) {
-			strcpy(outstr, "Radarantenne");
-		} else if (!stricmp(outstr, "Gas Collector")) {
-			strcpy(outstr, "Sammler");
+			SDL_strlcpy(outstr, "Radarantenne", max_len);
+		} else if (!SDL_strcasecmp(outstr, "Gas Collector")) {
+			SDL_strlcpy(outstr, "Sammler", max_len);
 		} 
 	} else if(Lcl_fr){	
 		if ( strstr(outstr, "communication") )	{
-			strcpy(outstr, "comm");
-		} else if ( !stricmp(outstr, "weapons") ) {
-			strcpy(outstr, "armes");
+			SDL_strlcpy(outstr, "comm", max_len);
+		} else if ( !SDL_strcasecmp(outstr, "weapons") ) {
+			SDL_strlcpy(outstr, "armes", max_len);
 		} else if ( strstr(outstr, "engine") ) {
-			strcpy(outstr, "moteur");
-		} else if ( !stricmp(outstr, "sensors") ) {
-			strcpy(outstr, "detecteurs");
+			SDL_strlcpy(outstr, "moteur", max_len);
+		} else if ( !SDL_strcasecmp(outstr, "sensors") ) {
+			SDL_strlcpy(outstr, "detecteurs", max_len);
 		} else if ( strstr(outstr, "navi") ) {
-			strcpy(outstr, "nav");
+			SDL_strlcpy(outstr, "nav", max_len);
 		} else if ( strstr(outstr, "missile") ) {
-			strcpy(outstr, "lanceur de missiles");
+			SDL_strlcpy(outstr, "lanceur de missiles", max_len);
 		} else if ( strstr(outstr, "fighter") ) {
-			strcpy(outstr, "baie de chasse");
+			SDL_strlcpy(outstr, "baie de chasse", max_len);
 		} else if ( strstr(outstr, "laser") || strstr(outstr, "turret") || strstr(outstr, "missile") ) {
-			strcpy(outstr, "tourelle");
+			SDL_strlcpy(outstr, "tourelle", max_len);
 		} 
 	} else if(Lcl_pl){	
 		if ( strstr(outstr, "communication") )	{
-			strcpy(outstr, "komunikacja");
-		} else if ( !stricmp(outstr, "weapons") ) {
-			strcpy(outstr, "uzbrojenie");
+			SDL_strlcpy(outstr, "komunikacja", max_len);
+		} else if ( !SDL_strcasecmp(outstr, "weapons") ) {
+			SDL_strlcpy(outstr, "uzbrojenie", max_len);
 		} else if ( strstr(outstr, "engine") || strstr(outstr, "Engine")) {
-			strcpy(outstr, "silnik");
-		} else if ( !stricmp(outstr, "sensors") ) {
-			strcpy(outstr, "sensory");
+			SDL_strlcpy(outstr, "silnik", max_len);
+		} else if ( !SDL_strcasecmp(outstr, "sensors") ) {
+			SDL_strlcpy(outstr, "sensory", max_len);
 		} else if ( strstr(outstr, "navigat") ) {
-			strcpy(outstr, "nawigacja");
+			SDL_strlcpy(outstr, "nawigacja", max_len);
 		} else if ( strstr(outstr, "fighterbay") || strstr(outstr, "Fighterbay") ) {
-			strcpy(outstr, "dok my\x9Cliw.");
+			SDL_strlcpy(outstr, "dok my\x9Cliw.", max_len);
 		} else if ( strstr(outstr, "missile") ) {
-			strcpy(outstr, "wie\xBF. rakiet.");
+			SDL_strlcpy(outstr, "wie\xBF. rakiet.", max_len);
 		} else if ( strstr(outstr, "laser") || strstr(outstr, "turret") ) {
-			strcpy(outstr, "wie\xBFyczka");
+			SDL_strlcpy(outstr, "wie\xBFyczka", max_len);
 		} else if ( strstr(outstr, "Command Tower") || strstr(outstr, "Bridge") ) {
-			strcpy(outstr, "mostek");
+			SDL_strlcpy(outstr, "mostek", max_len);
 		} else if ( strstr(outstr, "Barracks") ) {
-			strcpy(outstr, "koszary");
+			SDL_strlcpy(outstr, "koszary", max_len);
 		} else if ( strstr(outstr, "Reactor") ) {
-			strcpy(outstr, "reaktor");
+			SDL_strlcpy(outstr, "reaktor", max_len);
 		} else if ( strstr(outstr, "RadarDish") ) {
-			strcpy(outstr, "antena radaru");
-		} else if (!stricmp(outstr, "Gas Collector")) {
-			strcpy(outstr, "zbieracz gazu");
+			SDL_strlcpy(outstr, "antena radaru", max_len);
+		} else if (!SDL_strcasecmp(outstr, "Gas Collector")) {
+			SDL_strlcpy(outstr, "zbieracz gazu", max_len);
 		} 
 	} else {
-		if (!strnicmp(outstr, XSTR( "communication", 333), 3))	{
-			strcpy( outstr, XSTR( "comm", 334) );
-		} else if (!strnicmp(outstr, XSTR( "navigation", 335), 3))	{
-			strcpy( outstr, XSTR( "nav", 336) );
-		} else if (!stricmp(outstr, "Gas Collector")) {
-			strcpy(outstr, "Collector");
+		if (!SDL_strncasecmp(outstr, XSTR( "communication", 333), 3))	{
+			SDL_strlcpy( outstr, XSTR( "comm", 334), max_len );
+		} else if (!SDL_strncasecmp(outstr, XSTR( "navigation", 335), 3))	{
+			SDL_strlcpy( outstr, XSTR( "nav", 336), max_len );
+		} else if (!SDL_strcasecmp(outstr, "Gas Collector")) {
+			SDL_strlcpy(outstr, "Collector", max_len);
 		}
 	}
 
@@ -722,20 +722,20 @@ void hud_targetbox_show_extra_ship_info(ship *target_shipp, ai_info *target_aip)
 		// AL 12-26-97: only show orders and time to target for friendly ships
 		if ( (Player_ship->team == target_shipp->team) && !(ship_get_SIF(target_shipp) & SIF_NOT_FLYABLE) ) {
 			extra_data_shown=1;
-			if ( ship_return_orders(outstr, target_shipp) ) {
+			if ( ship_return_orders(outstr, SDL_arraysize(outstr), target_shipp) ) {
 				gr_force_fit_string(outstr, 255, 162);
 				has_orders = 1;
 			} else {
-				strcpy(outstr, XSTR( "no orders", 337));
+				SDL_strlcpy(outstr, XSTR( "no orders", 337), SDL_arraysize(outstr));
 			}
 			
 			emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_EXTRA_ORDERS][0], Targetbox_coords[gr_screen.res][TBOX_EXTRA_ORDERS][1], EG_TBOX_EXTRA1, outstr);			
 		}
 
 		if ( has_orders ) {
-			sprintf(outstr, XSTR( "time to: ", 338));
-			if ( ship_return_time_to_goal(tmpbuf, target_shipp) ) {
-				strcat(outstr, tmpbuf);
+			SDL_strlcpy(outstr, XSTR( "time to: ", 338), SDL_arraysize(outstr));
+			if ( ship_return_time_to_goal(tmpbuf, SDL_arraysize(tmpbuf), target_shipp) ) {
+				SDL_strlcat(outstr, tmpbuf, SDL_arraysize(outstr));
 				
 				emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_EXTRA_TIME][0], Targetbox_coords[gr_screen.res][TBOX_EXTRA_TIME][1], EG_TBOX_EXTRA2, outstr);				
 			}
@@ -745,7 +745,7 @@ void hud_targetbox_show_extra_ship_info(ship *target_shipp, ai_info *target_aip)
 	// Print out dock status
 	if ( target_aip->ai_flags & AIF_DOCKED ) {
 		if ( target_aip->dock_objnum >= 0 ) {
-			sprintf(outstr, XSTR( "Docked: %s", 339), Ships[Objects[target_aip->dock_objnum].instance].ship_name);
+			SDL_snprintf(outstr, SDL_arraysize(outstr), XSTR( "Docked: %s", 339), Ships[Objects[target_aip->dock_objnum].instance].ship_name);
 			gr_force_fit_string(outstr, 255, 173);
 			hud_targetbox_maybe_flash(TBOX_FLASH_DOCKED);
 			
@@ -806,7 +806,7 @@ void hud_render_target_jump_node(object *target_objp)
 	hx = fl2i(HUD_offset_x);
 	hy = fl2i(HUD_offset_y);
 
-	sprintf(outstr,XSTR( "d: %.0f", 340), dist);
+	SDL_snprintf(outstr, SDL_arraysize(outstr), XSTR( "d: %.0f", 340), dist);
 	hud_num_make_mono(outstr);
 	gr_get_string_size(&w,&h,outstr);
 	
@@ -826,13 +826,10 @@ void hud_render_target_asteroid(object *target_objp)
 	matrix		camera_orient = IDENTITY_MATRIX;
 	asteroid		*asteroidp;
 	vector		orient_vec, up_vector;
-	int			target_team;
 	float			time_to_impact, factor;	
 	int			subtype;
 
 	asteroidp = &Asteroids[target_objp->instance];
-
-	target_team = obj_team(target_objp);
 
 	subtype = asteroidp->asteroid_subtype;
 
@@ -869,26 +866,26 @@ void hud_render_target_asteroid(object *target_objp)
 	case ASTEROID_TYPE_SMALL:
 	case ASTEROID_TYPE_MEDIUM:
 	case ASTEROID_TYPE_BIG:
-		strcpy(hud_name, NOX("asteroid"));
+		SDL_strlcpy(hud_name, NOX("asteroid"), SDL_arraysize(hud_name));
 		break;
 
 #ifndef MAKE_FS1
 	case DEBRIS_TERRAN_SMALL:
 	case DEBRIS_TERRAN_MEDIUM:
 	case DEBRIS_TERRAN_LARGE:
-		strcpy(hud_name, NOX("terran debris"));
+		SDL_strlcpy(hud_name, NOX("terran debris"), SDL_arraysize(hud_name));
 		break;
 
 	case DEBRIS_VASUDAN_SMALL:
 	case DEBRIS_VASUDAN_MEDIUM:
 	case DEBRIS_VASUDAN_LARGE:
-		strcpy(hud_name, NOX("vasudan debris"));
+		SDL_strlcpy(hud_name, NOX("vasudan debris"), SDL_arraysize(hud_name));
 		break;
 
 	case DEBRIS_SHIVAN_SMALL:
 	case DEBRIS_SHIVAN_MEDIUM:
 	case DEBRIS_SHIVAN_LARGE:
-		strcpy(hud_name, NOX("shivan debris"));
+		SDL_strlcpy(hud_name, NOX("shivan debris"), SDL_arraysize(hud_name));
 		break;
 #endif
 
@@ -905,31 +902,31 @@ void hud_render_target_asteroid(object *target_objp)
 #endif
 }
 
-void get_turret_subsys_name(model_subsystem *system_info, char *outstr)
+void get_turret_subsys_name(model_subsystem *system_info, char *outstr, const int max_outlen)
 {
-	Assert(system_info->type == SUBSYSTEM_TURRET);
+	SDL_assert(system_info->type == SUBSYSTEM_TURRET);
 
 	if (system_info->turret_weapon_type >= 0) {
 		// check if beam or flak using weapon flags
 		if (Weapon_info[system_info->turret_weapon_type].wi_flags & WIF_FLAK) {
-			sprintf(outstr, "%s", XSTR("Flak turret", 1566));
+			SDL_snprintf(outstr, max_outlen, "%s", XSTR("Flak turret", 1566));
 		} else if (Weapon_info[system_info->turret_weapon_type].wi_flags & WIF_BEAM) {
-			sprintf(outstr, "%s", XSTR("Beam turret", 1567));
+			SDL_snprintf(outstr, max_outlen, "%s", XSTR("Beam turret", 1567));
 		} else {
 
 			if (Weapon_info[system_info->turret_weapon_type].subtype == WP_LASER) {
-				sprintf(outstr, "%s", XSTR("Laser turret", 1568));
+				SDL_snprintf(outstr, max_outlen, "%s", XSTR("Laser turret", 1568));
 			} else if (Weapon_info[system_info->turret_weapon_type].subtype == WP_MISSILE) {
-				sprintf(outstr, "%s", XSTR("Missile lnchr", 1569));
+				SDL_snprintf(outstr, max_outlen, "%s", XSTR("Missile lnchr", 1569));
 			} else {
 				// Illegal subtype
 				Int3();
-				sprintf(outstr, "%s", NOX("Turret"));
+				SDL_snprintf(outstr, max_outlen, "%s", NOX("Turret"));
 			}
 		}
 	} else {
 		// This should not happen
-		sprintf(outstr, "%s", NOX("Unused"));
+		SDL_snprintf(outstr, max_outlen, "%s", NOX("Unused"));
 	}
 }
 
@@ -947,12 +944,12 @@ void hud_render_target_ship_info(object *target_objp)
 	char			outstr[256];
 	float			ship_integrity, shield_strength;
 
-	Assert(target_objp->type == OBJ_SHIP);
+	SDL_assert(target_objp->type == OBJ_SHIP);
 	target_shipp = &Ships[target_objp->instance];
 	target_sip = &Ship_info[target_shipp->ship_info_index];
 	target_aip = &Ai_info[target_shipp->ai_index];
 
-	strcpy( outstr, target_shipp->ship_name );
+	SDL_strlcpy( outstr, target_shipp->ship_name, SDL_arraysize(outstr) );
 
 	if ( hud_gauge_maybe_flash(HUD_TARGET_MONITOR) == 1 ) {
 		hud_set_iff_color(target_objp, 1);
@@ -972,10 +969,10 @@ void hud_render_target_ship_info(object *target_objp)
 
 	// maybe do some translation
 	if (Lcl_gr) {
-		lcl_translate_targetbox_name(outstr);
+		lcl_translate_targetbox_name(outstr, SDL_arraysize(outstr));
 	}
 	else if(Lcl_pl) {
-		lcl_translate_targetbox_name_pl(outstr);
+		lcl_translate_targetbox_name_pl(outstr, SDL_arraysize(outstr));
 	}
 	emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_NAME][0], Targetbox_coords[gr_screen.res][TBOX_NAME][1], EG_TBOX_NAME, outstr);	
 
@@ -984,24 +981,24 @@ void hud_render_target_ship_info(object *target_objp)
 
 	// if this ship has an alternate type name
 	if(target_shipp->alt_type_index >= 0){
-		mission_parse_lookup_alt_index(target_shipp->alt_type_index, temp_name);
+		mission_parse_lookup_alt_index(target_shipp->alt_type_index, temp_name, SDL_arraysize(temp_name));
 	} else {
-		strcpy(temp_name, Ship_info[base_index].name);	
+		SDL_strlcpy(temp_name, Ship_info[base_index].name, SDL_arraysize(temp_name));
 		if ( strstr(Ship_info[base_index].name, NOX("#")) ) {			
-			strcpy(temp_name, Ship_info[base_index].name);
 			hud_end_string_at_first_hash_symbol(temp_name);			
 		}	
 	}
 
 	if (Lcl_gr) {
-		lcl_translate_targetbox_name(temp_name);
+		lcl_translate_targetbox_name(temp_name, SDL_arraysize(temp_name));
 	}
 	else if(Lcl_pl) {
-		lcl_translate_targetbox_name_pl(temp_name);
+		lcl_translate_targetbox_name_pl(temp_name, SDL_arraysize(temp_name));
 	}
 	emp_hud_printf(Targetbox_coords[gr_screen.res][TBOX_CLASS][0], Targetbox_coords[gr_screen.res][TBOX_CLASS][1], EG_TBOX_CLASS, temp_name);
 
 	ship_integrity = 1.0f;
+	shield_strength = 1.0f;
 	hud_get_target_strength(target_objp, &shield_strength, &ship_integrity);
 
 	// convert to values of 0->100
@@ -1015,7 +1012,7 @@ void hud_render_target_ship_info(object *target_objp)
 		}
 	}
 	// Print out right-justified integrity
-	sprintf(outstr,XSTR( "%d%%", 341), screen_integrity);
+	SDL_snprintf(outstr, SDL_arraysize(outstr), XSTR( "%d%%", 341), screen_integrity);
 	gr_get_string_size(&w,&h,outstr);
 
 	if ( hud_gauge_maybe_flash(HUD_TARGET_MONITOR) == 1 ) {
@@ -1052,17 +1049,17 @@ void hud_render_target_ship_info(object *target_objp)
 		// hud_set_default_color();
 		// get turret subsys name
 		if (Player_ai->targeted_subsys->system_info->type == SUBSYSTEM_TURRET) {
-			get_turret_subsys_name(Player_ai->targeted_subsys->system_info, outstr);
+			get_turret_subsys_name(Player_ai->targeted_subsys->system_info, outstr, SDL_arraysize(outstr));
 		} else {
-			sprintf(outstr, "%s", Player_ai->targeted_subsys->system_info->name);
+			SDL_snprintf(outstr, SDL_arraysize(outstr), "%s", Player_ai->targeted_subsys->system_info->name);
 		}
-		hud_targetbox_truncate_subsys_name(outstr);
+		hud_targetbox_truncate_subsys_name(outstr, SDL_arraysize(outstr));
 		gr_printf(Target_window_coords[gr_screen.res][0]+2, Target_window_coords[gr_screen.res][1]+Target_window_coords[gr_screen.res][3]-h, outstr);
 
 		// AL 23-3-98: Fighter bays are a special case.  Player cannot destroy them, so don't
 		//					show the subsystem strength
-		if ( strnicmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7) ) {
-			sprintf(outstr,XSTR( "%d%%", 341),screen_integrity);
+		if ( SDL_strncasecmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7) ) {
+			SDL_snprintf(outstr, SDL_arraysize(outstr), XSTR( "%d%%", 341),screen_integrity);
 			gr_get_string_size(&w,&h,outstr);
 			gr_printf(Target_window_coords[gr_screen.res][0]+Target_window_coords[gr_screen.res][2]-w-1, Target_window_coords[gr_screen.res][1]+Target_window_coords[gr_screen.res][3] - h, "%s", outstr);
 		}
@@ -1073,9 +1070,9 @@ void hud_render_target_ship_info(object *target_objp)
 	// print out 'disabled' on the monitor if the target is disabled
 	if ( (target_shipp->flags & SF_DISABLED) || (ship_subsys_disrupted(target_shipp, SUBSYSTEM_ENGINE)) ) {
 		if ( target_shipp->flags & SF_DISABLED ) {
-			sprintf(outstr, XSTR( "DISABLED", 342));
+			SDL_strlcpy(outstr, XSTR( "DISABLED", 342), SDL_arraysize(outstr));
 		} else {
-			sprintf(outstr, XSTR( "DISRUPTED", 343));
+			SDL_strlcpy(outstr, XSTR( "DISRUPTED", 343), SDL_arraysize(outstr));
 		}
 		gr_get_string_size(&w,&h,outstr);
 		gr_printf(Target_window_coords[gr_screen.res][0]+Target_window_coords[gr_screen.res][2]/2 - w/2 - 1, Target_window_coords[gr_screen.res][1]+Target_window_coords[gr_screen.res][3] - 2*h, "%s", outstr);
@@ -1101,7 +1098,7 @@ void hud_blit_target_integrity(int disabled,int force_obj_num)
 	}
 
 	if(force_obj_num == -1){
-		Assert(Player_ai->target_objnum >= 0 );
+		SDL_assert(Player_ai->target_objnum >= 0 );
 		objp = &Objects[Player_ai->target_objnum];
 	} else {
 		objp = &Objects[Player_ai->target_objnum];
@@ -1111,17 +1108,17 @@ void hud_blit_target_integrity(int disabled,int force_obj_num)
 
 	// print out status of ship
 	if ( (Ships[objp->instance].flags & SF_DISABLED) || (ship_subsys_disrupted(&Ships[objp->instance], SUBSYSTEM_ENGINE)) ) {
-		sprintf(buf,XSTR( "dis", 344));
+		SDL_strlcpy(buf,XSTR( "dis", 344), SDL_arraysize(buf));
 		current_ts = TS_DIS;
 	} else {
 		if ( Pl_target_integrity > 0.9 ) {
-			sprintf(buf,XSTR( "ok", 345));
+			SDL_strlcpy(buf, XSTR( "ok", 345), SDL_arraysize(buf));
 			current_ts = TS_OK;
 		} else if ( Pl_target_integrity > 0.2 ) {
-			sprintf(buf,XSTR( "dmg", 346));
+			SDL_strlcpy(buf, XSTR( "dmg", 346), SDL_arraysize(buf));
 			current_ts = TS_DMG;
 		} else {
-			sprintf(buf,XSTR( "crt", 347));
+			SDL_strlcpy(buf, XSTR( "crt", 347), SDL_arraysize(buf));
 			current_ts = TS_CRT;
 		}
 	}
@@ -1173,7 +1170,7 @@ int hud_targetbox_subsystem_in_view(object *target_objp, int *sx, int *sy)
 		}
 
 		// get screen coords, adjusting for autocenter
-		Assert(target_objp->type == OBJ_SHIP);
+		SDL_assert(target_objp->type == OBJ_SHIP);
 		if (target_objp->type == OBJ_SHIP) {
 			pm = model_get(Ships[target_objp->instance].modelnum);
 			if (pm->flags & PM_FLAG_AUTOCEN) {
@@ -1318,7 +1315,7 @@ void hud_render_target_ship(object *target_objp)
 			if ( subsys_in_view != -1 ) {
 
 				// AL 29-3-98: If subsystem is destroyed, draw gray brackets					
-				if ( (Player_ai->targeted_subsys->current_hits <= 0) && (strnicmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7)) ) {
+				if ( (Player_ai->targeted_subsys->current_hits <= 0) && (SDL_strncasecmp(NOX("fighter"), Player_ai->targeted_subsys->system_info->name, 7)) ) {
 					gr_set_color_fast(&IFF_colors[IFF_COLOR_MESSAGE][1]);
 				} else {
 					hud_set_iff_color( target_objp, 1 );
@@ -1353,13 +1350,10 @@ void hud_render_target_debris(object *target_objp)
 	matrix	camera_orient = IDENTITY_MATRIX;
 	debris	*debrisp;
 	vector	orient_vec, up_vector;
-	int		target_team, base_index;
+	int		base_index;
 	float		factor;	
 
 	debrisp = &Debris[target_objp->instance];
-
-	//target_sip = &Ship_info[debrisp->ship_info_index];
-	target_team = obj_team(target_objp);
 
 
 	if ( Detail.targetview_model )	{
@@ -1398,7 +1392,7 @@ void hud_render_target_debris(object *target_objp)
 	char *printable_ship_class = Ship_info[base_index].name;
 	if ( strstr(Ship_info[base_index].name, NOX("#")) ) {
 		char temp_name[NAME_LENGTH];
-		strcpy(temp_name, Ship_info[base_index].name);
+		SDL_strlcpy(temp_name, Ship_info[base_index].name, SDL_arraysize(temp_name));
 		hud_end_string_at_first_hash_symbol(temp_name);
 		printable_ship_class = temp_name;
 	}
@@ -1421,11 +1415,9 @@ void hud_render_target_weapon(object *target_objp)
 	weapon_info	*target_wip = NULL;
 	weapon		*wp = NULL;
 	object		*viewer_obj, *viewed_obj;
-	int			target_team, is_homing, is_player_missile, missile_view, viewed_model_num, w, h;
+	int			is_homing, is_player_missile, missile_view, viewed_model_num, w, h;
 	float			factor;
 	char			outstr[100];				// temp buffer
-
-	target_team = obj_team(target_objp);
 
 	wp = &Weapons[target_objp->instance];
 	target_wip = &Weapon_info[wp->weapon_info_index];
@@ -1487,7 +1479,7 @@ void hud_render_target_weapon(object *target_objp)
 	hud_set_gauge_color(HUD_TARGET_MONITOR);
 
 	// print out the weapon class name
-	sprintf( outstr,"%s", target_wip->name );
+	SDL_snprintf( outstr, SDL_arraysize(outstr), "%s", target_wip->name );
 	gr_get_string_size(&w,&h,outstr);
 
 	// drop name past the # sign
@@ -1503,9 +1495,9 @@ void hud_render_target_weapon(object *target_objp)
 		dist = vm_vec_dist(&target_objp->pos, &wp->homing_object->pos);
 		speed = vm_vec_mag(&target_objp->phys_info.vel);
 		if ( speed > 0 ) {
-			sprintf(outstr, NOX("impact: %.1f sec"), dist/speed);
+			SDL_snprintf(outstr, SDL_arraysize(outstr), NOX("impact: %.1f sec"), dist/speed);
 		} else {
-			sprintf(outstr, XSTR( "unknown", 349));
+			SDL_strlcpy(outstr, XSTR( "unknown", 349), SDL_arraysize(outstr));
 		}
 
 		emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_CLASS][0], Targetbox_coords[gr_screen.res][TBOX_CLASS][1], EG_TBOX_CLASS, outstr);		
@@ -1573,7 +1565,7 @@ void hud_cargo_scan_update(object *targetp, float frametime)
 
 	// display cargo inspection status
 	if ( targetp->type == OBJ_SHIP ) {
-		if ( player_inspect_cargo(frametime, outstr) ) {
+		if ( player_inspect_cargo(frametime, outstr, SDL_arraysize(outstr)) ) {
 			if ( hud_gauge_active(HUD_TARGET_MONITOR) ) {
 				if ( Player->cargo_inspect_time > 0 ) {
 					hud_targetbox_start_flash(TBOX_FLASH_CARGO);
@@ -1605,8 +1597,6 @@ void hud_show_target_data(float frametime)
 	int w,h;									// width and height of string about to print
 	object		*target_objp;
 	ship			*shipp = NULL;
-	debris		*debrisp = NULL;
-	ship_info	*sip = NULL;
 	int is_ship = 0;
 
 	hud_set_gauge_color(HUD_TARGET_MONITOR);
@@ -1616,21 +1606,16 @@ void hud_show_target_data(float frametime)
 	switch( Objects[Player_ai->target_objnum].type ) {
 		case OBJ_SHIP:
 			shipp = &Ships[target_objp->instance];
-			sip = &Ship_info[shipp->ship_info_index];
 			is_ship = 1;
 			break;
 
 		case OBJ_DEBRIS:
-			debrisp = &Debris[target_objp->instance]; 
-			sip = &Ship_info[debrisp->ship_info_index];
 			break;
 
 		case OBJ_WEAPON:
-			sip = NULL;
 			break;
 
 		case OBJ_ASTEROID:
-			sip = NULL;
 			break;
 
 		case OBJ_JUMP_NODE:
@@ -1648,7 +1633,7 @@ void hud_show_target_data(float frametime)
 	hy = fl2i(HUD_offset_y);
 
 	// print out the target distance and speed
-	sprintf(outstr,XSTR( "d: %.0f%s", 350), Player_ai->current_target_distance, modifiers[Player_ai->current_target_dist_trend]);
+	SDL_snprintf(outstr, SDL_arraysize(outstr), XSTR( "d: %.0f%s", 350), Player_ai->current_target_distance, modifiers[Player_ai->current_target_dist_trend]);
 
 	hud_num_make_mono(outstr);
 	gr_get_string_size(&w,&h,outstr);
@@ -1673,7 +1658,7 @@ void hud_show_target_data(float frametime)
 
 		aip = &Ai_info[shipp->ai_index];
 		if ( aip->ai_flags & AIF_DOCKED ) {
-			Assert( aip->dock_objnum != -1 );
+			SDL_assert( aip->dock_objnum != -1 );
 			other_objp = &Objects[aip->dock_objnum];
 			spd = other_objp->phys_info.fspeed;
 			if ( spd < 0.1 )
@@ -1681,7 +1666,7 @@ void hud_show_target_data(float frametime)
 		}
 	}
 
-	sprintf(outstr, XSTR( "s: %.0f%s", 351), spd, (spd>1)?modifiers[Player_ai->current_target_speed_trend]:"");
+	SDL_snprintf(outstr, SDL_arraysize(outstr), XSTR( "s: %.0f%s", 351), spd, (spd>1)?modifiers[Player_ai->current_target_speed_trend]:"");
 	hud_num_make_mono(outstr);
 
 	emp_hud_string(Targetbox_coords[gr_screen.res][TBOX_SPEED][0]+hx, Targetbox_coords[gr_screen.res][TBOX_SPEED][1]+hy, EG_TBOX_SPEED, outstr);	
@@ -1704,25 +1689,25 @@ void hud_show_target_data(float frametime)
 		if ( shipp->ai_index >= 0 ) {
 			ai_info	*aip = &Ai_info[shipp->ai_index];
 
-			sprintf(outstr,"AI: %s",Ai_behavior_names[aip->mode]);
+			SDL_snprintf(outstr, SDL_arraysize(outstr), "AI: %s", Ai_behavior_names[aip->mode]);
 
 			switch (aip->mode) {
 			case AIM_CHASE:
-				Assert(aip->submode <= SM_BIG_PARALLEL);	//	Must be <= largest chase submode value.
+				SDL_assert(aip->submode <= SM_BIG_PARALLEL);	//	Must be <= largest chase submode value.
 //				sprintf(outstr,"AI: %s",Submode_text[aip->submode]);
-				sprintf(outstr2," / %s",Submode_text[aip->submode]);
-				strcat(outstr,outstr2);
+				SDL_snprintf(outstr2,SDL_arraysize(outstr2)," / %s",Submode_text[aip->submode]);
+				SDL_strlcat(outstr, outstr2, SDL_arraysize(outstr));
 				break;
 			case AIM_STRAFE:
-				Assert(aip->submode <= AIS_STRAFE_POSITION);	//	Must be <= largest chase submode value.
+				SDL_assert(aip->submode <= AIS_STRAFE_POSITION);	//	Must be <= largest chase submode value.
 //				sprintf(outstr,"AI: %s",Strafe_submode_text[aip->submode-AIS_STRAFE_ATTACK]);
-				sprintf(outstr2," / %s",Strafe_submode_text[aip->submode-AIS_STRAFE_ATTACK]);
-				strcat(outstr,outstr2);
+				SDL_snprintf(outstr2,SDL_arraysize(outstr2)," / %s",Strafe_submode_text[aip->submode-AIS_STRAFE_ATTACK]);
+				SDL_strlcat(outstr, outstr2, SDL_arraysize(outstr));
 				break;
 			case AIM_WAYPOINTS:
 //				gr_printf(sx, sy, "Wpnum: %i",aip->wp_index);
-				sprintf(outstr2," / Wpnum: %i",aip->wp_index);
-				strcat(outstr,outstr2);
+				SDL_snprintf(outstr2,SDL_arraysize(outstr2)," / Wpnum: %i",aip->wp_index);
+				SDL_strlcat(outstr, outstr2, SDL_arraysize(outstr));
 				break;
 			default:
 				break;
@@ -1742,9 +1727,9 @@ void hud_show_target_data(float frametime)
 				vector	v2t;
 
 				if (aip->target_objnum == Player_obj-Objects)
-					strcpy(target_str, "Player!");
+					SDL_strlcpy(target_str, "Player!", SDL_arraysize(target_str));
 				else
-					sprintf(target_str, "%s", Ships[Objects[aip->target_objnum].instance].ship_name);
+					SDL_snprintf(target_str, SDL_arraysize(target_str), "%s", Ships[Objects[aip->target_objnum].instance].ship_name);
 
 //		gr_printf(TARGET_WINDOW_X1+TARGET_WINDOW_WIDTH+2, TARGET_WINDOW_Y1+4*h, "Target: %s", target_str);
 				gr_printf(sx, sy, "Targ: %s", target_str);
@@ -1765,20 +1750,19 @@ void hud_show_target_data(float frametime)
 				sy += dy;
 
 				if ( aip->targeted_subsys != NULL ) {
-					sprintf(outstr, "Subsys: %s", aip->targeted_subsys->system_info->name);
+					SDL_snprintf(outstr, SDL_arraysize(outstr), "Subsys: %s", aip->targeted_subsys->system_info->name);
 					gr_printf(sx, sy, outstr);
 				}
-				sy += dy;
 			}
 
 			// print out energy transfer information on the ship
 			sy = 70;
 
-			sprintf(outstr,"MAX G/E: %.0f/%.0f",shipp->weapon_energy,shipp->current_max_speed);
+			SDL_snprintf(outstr,SDL_arraysize(outstr),"MAX G/E: %.0f/%.0f",shipp->weapon_energy,shipp->current_max_speed);
 			gr_printf(sx, sy, outstr);
 			sy += dy;
 			 
-			sprintf(outstr,"G/S/E: %.2f/%.2f/%.2f",Energy_levels[shipp->weapon_recharge_index],Energy_levels[shipp->shield_recharge_index],Energy_levels[shipp->engine_recharge_index]);
+			SDL_snprintf(outstr,SDL_arraysize(outstr),"G/S/E: %.2f/%.2f/%.2f",Energy_levels[shipp->weapon_recharge_index],Energy_levels[shipp->shield_recharge_index],Energy_levels[shipp->engine_recharge_index]);
 			gr_printf(sx, sy, outstr);
 			sy += dy;
 
@@ -1845,7 +1829,6 @@ void hud_show_target_data(float frametime)
 			sy += dy;
 
 			gr_printf(sx, sy, "Mass: %.2f\n", pm->mass);
-			sy += dy;
 		}
 	}
 
@@ -1859,21 +1842,21 @@ void hud_show_target_data(float frametime)
 		sy = 100;
 		dy = gr_get_font_height();
 
-		sprintf(outstr,"Num primaries: %d", swp->num_primary_banks);
+		SDL_snprintf(outstr,SDL_arraysize(outstr),"Num primaries: %d", swp->num_primary_banks);
 		gr_printf(sx,sy,outstr);
 		sy += dy;
 		for ( i = 0; i < swp->num_primary_banks; i++ ) {
-			sprintf(outstr,"%d. %s", i+1, Weapon_info[swp->primary_bank_weapons[i]].name);
+			SDL_snprintf(outstr,SDL_arraysize(outstr),"%d. %s", i+1, Weapon_info[swp->primary_bank_weapons[i]].name);
 			gr_printf(sx,sy,outstr);
 			sy += dy;
 		}
 
 		sy += dy;
-		sprintf(outstr,"Num secondaries: %d", swp->num_secondary_banks);
+		SDL_snprintf(outstr,SDL_arraysize(outstr),"Num secondaries: %d", swp->num_secondary_banks);
 		gr_printf(sx,sy,outstr);
 		sy += dy;
 		for ( i = 0; i < swp->num_secondary_banks; i++ ) {
-			sprintf(outstr,"%d. %s", i+1, Weapon_info[swp->secondary_bank_weapons[i]].name);
+			SDL_snprintf(outstr,SDL_arraysize(outstr),"%d. %s", i+1, Weapon_info[swp->secondary_bank_weapons[i]].name);
 			gr_printf(sx,sy,outstr);
 			sy += dy;
 		}

@@ -33,12 +33,6 @@
  * $NoKeywords: $
  */
  
-#ifdef PLAT_UNIX
-#include <errno.h>
-#include <time.h>
-#include <sys/time.h>
-#endif
-
 #include "pstypes.h"
 #include "mvelib.h"
 #include "movie.h"
@@ -49,50 +43,47 @@
 #include "sound.h"
 #include "bmpman.h"
 #include "osregistry.h"
-#include "ds.h"
+#include "oal.h"
 #include "gropengl.h"
-
+#include <vector>
 
 static int mve_playing;
 
+
 // timer variables
-static int g_spdFactorNum = 0;
-static int g_spdFactorDenom = 10;
 static int micro_frame_delay = 0;
 static int timer_started = 0;
-#ifdef PLAT_UNIX
-static struct timeval timer_expire = {0, 0};
-#else
-static fix timer_expire;
-#endif
+static int timer_created = 0;
+static int timer_expire;
+static Uint64 micro_timer_start = 0;
+static Uint64 micro_timer_freq = 0;
 
 // audio variables
-#define MVE_AUDIO_BUFFERS 64  // total buffers to interact with stream
-static int mve_audio_curbuf_curpos = 0;
-static int mve_audio_bufhead = 0;
-static int mve_audio_buftail = 0;
+#define MVE_AUDIO_BUFFERS 8  // total buffers to interact with stream
+
+static std::vector<ALuint> mve_audio_bufl_free;
+static ubyte *mve_audio_buf = NULL;
+static size_t mve_audio_buf_size = 0;
+static size_t mve_audio_buf_offset = 0;
+
 static int mve_audio_playing = 0;
 static int mve_audio_canplay = 0;
 static int mve_audio_compressed = 0;
-static int audiobuf_created;
-
-#ifdef PLAT_UNIX
+static int audiobuf_created = 0;
 
 // struct for the audio stream information
-typedef struct MVE_AUDIO_T {
+struct mve_audio_t {
+	sound_channel *chan;
 	ALenum format;
 	int sample_rate;
 	int bytes_per_sec;
 	int channels;
 	int bitsize;
-	ALuint audio_data[MVE_AUDIO_BUFFERS];
-	ALuint source_id;
-	ALuint audio_buffer[MVE_AUDIO_BUFFERS];
-} mve_audio_t;
+	ALuint buffers[MVE_AUDIO_BUFFERS];
+};
 
-mve_audio_t *mas;  // mve_audio_stream
+mve_audio_t *mas = NULL;  // mve_audio_stream
 
-#endif	// PLAT_UNIX
 
 
 // video variables
@@ -100,17 +91,19 @@ int g_width, g_height;
 void *g_vBuffers = NULL;
 void *g_vBackBuf1, *g_vBackBuf2;
 ushort *pixelbuf = NULL;
-static int g_screenWidth, g_screenHeight;
-static ubyte g_palette[768];
 static ubyte *g_pCurMap=NULL;
 static int g_nMapLength=0;
-static int videobuf_created, video_inited;
-static int hp2, wp2;
-static uint mve_video_skiptimer = 0;
+static int videobuf_created;
 static int mve_scale_video = 0;
-#ifdef PLAT_UNIX
 static GLuint tex = 0;
-#endif
+
+struct g_coords_t {
+	int x, y;
+	float u, v;
+};
+
+static g_coords_t g_coords[4];
+
 
 // the decoder
 void decodeFrame16(ubyte *pFrame, ubyte *pMap, int mapRemain, ubyte *pData, int dataRemain);
@@ -129,38 +122,41 @@ void mve_end_movie()
 
 int mve_timer_create(ubyte *data)
 {
-	longlong temp;
-
 	micro_frame_delay = mve_get_int(data) * (int)mve_get_short(data+4);
 
-	if (g_spdFactorNum != 0) {
-		temp = micro_frame_delay;
-		temp *= g_spdFactorNum;
-		temp /= g_spdFactorDenom;
-		micro_frame_delay = (int)temp;
+	micro_timer_start = SDL_GetPerformanceCounter();
+	micro_timer_freq = SDL_GetPerformanceFrequency();
+
+	if (micro_timer_freq < 1000) {
+		micro_timer_freq = 1000;
 	}
+
+	timer_created = 1;
 
 	return 1;
 }
 
+static int mve_timer_get_microseconds()
+{
+
+	Uint64 us = SDL_GetPerformanceCounter() - micro_timer_start;
+
+	if (micro_timer_freq >= 1000000) {
+		us /= (micro_timer_freq / 1000000);
+	} else {
+		us *= (1000000 / micro_timer_freq);
+	}
+
+	return (int)us;
+}
+
 static void mve_timer_start(void)
 {
-#ifdef PLAT_UNIX
-	int nsec = 0;
+	if (!timer_created)
+		return;
 
-	gettimeofday(&timer_expire, NULL);
-
-	timer_expire.tv_usec += micro_frame_delay;
-
-	if (timer_expire.tv_usec > 1000000) {
-		nsec = timer_expire.tv_usec / 1000000;
-		timer_expire.tv_sec += nsec;
-		timer_expire.tv_usec -= nsec * 1000000;
-	}
-#else
-	timer_expire = timer_get_microseconds();
+	timer_expire = mve_timer_get_microseconds();
 	timer_expire += micro_frame_delay;
-#endif
 
 	timer_started = 1;
 }
@@ -170,66 +166,39 @@ static int mve_do_timer_wait(void)
 	if (!timer_started)
 		return 0;
 
-#ifdef PLAT_UNIX
-	int nsec = 0;
-	struct timespec ts, tsRem;
-	struct timeval tv;
+	int tv, ts;
 
-	gettimeofday(&tv, NULL);
-
-	if (tv.tv_sec > timer_expire.tv_sec)
-		goto end;
-
-	if ( (tv.tv_sec == timer_expire.tv_sec) && (tv.tv_usec >= timer_expire.tv_usec) )
-		goto end;
-
-	ts.tv_sec = timer_expire.tv_sec - tv.tv_sec;
-	ts.tv_nsec = 1000 * (timer_expire.tv_usec - tv.tv_usec);
-
-	if (ts.tv_nsec < 0) {
-		ts.tv_nsec += 1000000000UL;
-		--ts.tv_sec;
-	}
-
-	if ( (nanosleep(&ts, &tsRem) == -1) && (errno == EINTR) ) {
-		mprintf(("MVE: Timer error! Aborting movie playback!\n"));
-		return 1;
-	}
-
-end:
-    timer_expire.tv_usec += micro_frame_delay;
-
-    if (timer_expire.tv_usec > 1000000) {
-        nsec = timer_expire.tv_usec / 1000000;
-        timer_expire.tv_sec += nsec;
-        timer_expire.tv_usec -= nsec * 1000000;
-    }
-#else
-	fix tv, ts, ts2;
-
-	tv = timer_get_microseconds();
+	tv = mve_timer_get_microseconds();
 
 	if (tv > timer_expire)
 		goto end;
 
 	ts = timer_expire - tv;
 
-	ts2 = ts/1000;
+	SDL_Delay(ts / 1000);
 
-	Sleep(ts2);
-
+	// try and burn off excess in attempt to keep sync
+	if (ts % 1000) {
+		for (int i = 0; i < 10; i++) {
+			SDL_Delay(0);
+		}
+	}
 end:
 	timer_expire += micro_frame_delay;
-#endif
 
 	return 0;
 }
 
 static void mve_timer_stop()
 {
-	timer_expire.tv_sec = 0;
-	timer_expire.tv_usec = 0;
+	timer_expire = 0;
 	timer_started = 0;
+	timer_created = 0;
+
+	micro_frame_delay = 0;
+
+	micro_timer_start = 0;
+	micro_timer_freq = 0;
 }
 
 /*************************
@@ -243,35 +212,59 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 
 	// if game sound disabled don't try and play movie audio
-	if (!Sound_enabled) {
+	if ( !Sound_enabled ) {
 		mve_audio_canplay = 0;
+		audiobuf_created = 1;
 		return;
 	}
 
-#ifdef PLAT_UNIX
-    int flags, desired_buffer, sample_rate;
+	int flags, desired_buffer, sample_rate;
 
-    mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
+	mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
+
+	if (mas == NULL) {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
+
 	memset(mas, 0, sizeof(mve_audio_t));
 
 	mas->format = AL_INVALID;
 
-    flags = mve_get_ushort(data + 2);
-    sample_rate = mve_get_ushort(data + 4);
-    desired_buffer = mve_get_int(data + 6);
+	flags = mve_get_ushort(data + 2);
+	sample_rate = mve_get_ushort(data + 4);
+	desired_buffer = mve_get_int(data + 6);
 
-    mas->channels = (flags & 0x0001) ? 2 : 1;
+	if (desired_buffer > 0) {
+		mve_audio_buf = (ubyte*) malloc (desired_buffer);
+
+		if (mve_audio_buf == NULL) {
+			mve_audio_canplay = 0;
+			audiobuf_created = 1;
+			return;
+		}
+
+		mve_audio_buf_size = desired_buffer;
+		mve_audio_buf_offset = 0;
+	} else {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
+
+	mas->channels = (flags & 0x0001) ? 2 : 1;
 	mas->bitsize = (flags & 0x0002) ? 16 : 8;
 
 	mas->sample_rate = sample_rate;
 
-    if (minor > 0) {
-    	mve_audio_compressed = flags & 0x0004 ? 1 : 0;
-    } else {
+	if (minor > 0) {
+		mve_audio_compressed = flags & 0x0004 ? 1 : 0;
+	} else {
 		mve_audio_compressed = 0;
-    }
+	}
 
-    if (mas->bitsize == 16) {
+	if (mas->bitsize == 16) {
 		if (mas->channels == 2) {
 			mas->format = AL_FORMAT_STEREO16;
 		} else if (mas->channels == 1) {
@@ -292,44 +285,61 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 	}
 
-	OpenAL_ErrorCheck( alGenSources(1, &mas->source_id), { mve_audio_canplay = 0; return; } );
+	oal_check_for_errors("mve_audio_createbuf() begin");
 
-	mve_audio_canplay = 1;
+	for (int i = 0; i < MVE_AUDIO_BUFFERS; i++) {
+		alGenBuffers(1, &mas->buffers[i]);
 
-	OpenAL_ErrorPrint( alSourcef(mas->source_id, AL_GAIN, 1.0f) );
-	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f) );
-	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f) );
-	OpenAL_ErrorPrint( alSource3f(mas->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f) );
-	OpenAL_ErrorPrint( alSourcef(mas->source_id, AL_ROLLOFF_FACTOR, 0.0f ) );
-	OpenAL_ErrorPrint( alSourcei(mas->source_id, AL_SOURCE_RELATIVE, AL_TRUE ) );
+		if ( !mas->buffers[i] ) {
+			mve_audio_canplay = 0;
+			audiobuf_created = 1;
+			return;
+		}
+	}
 
-	memset(mas->audio_buffer, 0, MVE_AUDIO_BUFFERS * sizeof(ALuint));
+	mve_audio_bufl_free.assign(mas->buffers, mas->buffers+MVE_AUDIO_BUFFERS);
 
-    mve_audio_bufhead = 0;
-    mve_audio_buftail = 0;
+	mas->chan = oal_get_free_channel(1.0f, -1, SND_PRIORITY_MUST_PLAY);
+
+	if (mas->chan == NULL) {
+		mve_audio_canplay = 0;
+		audiobuf_created = 1;
+		return;
+	}
+
+	alSourcef(mas->chan->source_id, AL_GAIN, 1.0f);
+	alSource3f(mas->chan->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
+	alSource3f(mas->chan->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+	alSource3f(mas->chan->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+	alSourcef(mas->chan->source_id, AL_ROLLOFF_FACTOR, 0.0f);
+	alSourcei(mas->chan->source_id, AL_SOURCE_RELATIVE, AL_TRUE);
+	alSourcei(mas->chan->source_id, AL_LOOPING, AL_FALSE);
+
+	oal_check_for_errors("mve_audio_createbuf() end");
 
 	audiobuf_created = 1;
-#endif
+	mve_audio_canplay = 1;
 }
 
 // play and stream the audio
 void mve_audio_play()
 {
-#ifdef PLAT_UNIX
 	if (mve_audio_canplay) {
-		ALint status, bqueued;
+		ALint queued = 0;
+		ALint status = AL_INVALID;
 
-		OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status), return );
-	
-		OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued), return );
-	
-		mve_audio_playing = 1;
+		oal_check_for_errors("mve_audio_play() begin");
 
-		if (status != AL_PLAYING && bqueued > 0) {
-			OpenAL_ErrorPrint( alSourcePlay(mas->source_id) );
+		alGetSourcei(mas->chan->source_id, AL_BUFFERS_QUEUED, &queued);
+		alGetSourcei(mas->chan->source_id, AL_SOURCE_STATE, &status);
+
+		if ( (status != AL_PLAYING) && (queued > 0) ) {
+			alSourcePlay(mas->chan->source_id);
+			mve_audio_playing = 1;
 		}
+
+		oal_check_for_errors("mve_audio_play() end");
 	}
-#endif
 }
 
 // call this in shutdown to stop and close audio
@@ -338,107 +348,111 @@ static void mve_audio_stop()
 	if (!audiobuf_created)
 		return;
 
-#ifdef PLAT_UNIX
-	ALint p = 0;
+	oal_check_for_errors("mve_audio_stop() begin");
 
 	mve_audio_playing = 0;
+	mve_audio_canplay = 0;
+	mve_audio_compressed = 0;
 
-	OpenAL_ErrorPrint( alSourceStop(mas->source_id) );
-	OpenAL_ErrorPrint( alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &p) );
-	OpenAL_ErrorPrint( alSourceUnqueueBuffers(mas->source_id, p, mas->audio_buffer) );
-	OpenAL_ErrorPrint( alDeleteBuffers(MVE_AUDIO_BUFFERS, mas->audio_buffer) );
-	OpenAL_ErrorPrint( alDeleteSources(1, &mas->source_id) );
+	audiobuf_created = 0;
+
+	mve_audio_bufl_free.clear();
+
+	if (mas) {
+		if (mas->chan) {
+			alSourceStop(mas->chan->source_id);
+
+			// detach buffers from source so that we can delete them
+			alSourcei(mas->chan->source_id, AL_BUFFER, 0);
+		}
+
+		for (int i = 0; i < MVE_AUDIO_BUFFERS; i++) {
+			if ( alIsBuffer(mas->buffers[i]) ) {
+				alDeleteBuffers(1, &mas->buffers[i]);
+			}
+		}
+	}
 
 	if (mas != NULL) {
 		free(mas);
 		mas = NULL;
 	}
-#endif
+
+	if (mve_audio_buf != NULL) {
+		free(mve_audio_buf);
+		mve_audio_buf = NULL;
+	}
+
+	mve_audio_buf_size = 0;
+	mve_audio_buf_offset = 0;
+
+	oal_check_for_errors("mve_audio_stop() end");
 }
 
 int mve_audio_data(ubyte major, ubyte *data)
 {
-#ifdef PLAT_UNIX
-	static const int selected_chan=1;
+	static const int selected_chan = 1;
 	int chan;
 	int nsamp;
+	ALint processed = 0;
+	ALuint bid;
 
 	if (mve_audio_canplay) {
 		chan = mve_get_ushort(data + 2);
 		nsamp = mve_get_ushort(data + 4);
 
 		if (chan & selected_chan) {
-			ALint bprocessed, bqueued, status;
-			ALuint bid;
+			oal_check_for_errors("mve_audio_data() begin");
 
-			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_PROCESSED, &bprocessed), return 0 );
-
-			while (bprocessed-- > 2) {
-				OpenAL_ErrorPrint( alSourceUnqueueBuffers(mas->source_id, 1, &bid) );
-			//	fprintf(stderr,"Unqueued buffer %d(%d)\n", mve_audio_bufhead, bid);
-		
-				if (++mve_audio_bufhead == MVE_AUDIO_BUFFERS)
-					mve_audio_bufhead = 0;
-			}
-
-			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_BUFFERS_QUEUED, &bqueued), return 0 );
-		    
-			if (bqueued == 0) 
-				mprintf(("MVE: Buffer underun (First is normal)\n"));
-
-			OpenAL_ErrorCheck( alGetSourcei(mas->source_id, AL_SOURCE_STATE, &status), return 0 );
-
-			if (mve_audio_playing && status != AL_PLAYING && bqueued > 0) {
-				OpenAL_ErrorCheck( alSourcePlay(mas->source_id), return 0 );
-			}
-
-			if (bqueued < MVE_AUDIO_BUFFERS) {
-				short *buf = NULL;
-
-				/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
+			if ( (mve_audio_buf_offset+nsamp+4) <= mve_audio_buf_size ) {
 				if (major == 8) {
-				    if (mve_audio_compressed) {
+					if (mve_audio_compressed) {
+						/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
 						nsamp += 4;
 
-						buf = (short *)malloc(nsamp);
-						mveaudio_uncompress(buf, data, -1); /* XXX */
+						mveaudio_uncompress(mve_audio_buf+mve_audio_buf_offset, data, -1);
 					} else {
 						nsamp -= 8;
 						data += 8;
 
-						buf = (short *)malloc(nsamp);
-						memcpy(buf, data, nsamp);
-					}	              
+						memcpy(mve_audio_buf+mve_audio_buf_offset, data, nsamp);
+					}
 				} else {
-					buf = (short *)malloc(nsamp);
-
-					memset(buf, 0, nsamp); /* XXX */
+					// silence
+					memset(mve_audio_buf+mve_audio_buf_offset, 0, nsamp);
 				}
 
-
-				if (!mas->audio_buffer[mve_audio_buftail]) {
-					OpenAL_ErrorCheck( alGenBuffers(1,&mas->audio_buffer[mve_audio_buftail]), { free(buf); return 0; } );
-				}
-
-				OpenAL_ErrorCheck( alBufferData(mas->audio_buffer[mve_audio_buftail], mas->format, buf, nsamp, mas->sample_rate), { free(buf); return 0; } );
-	    
-				OpenAL_ErrorCheck( alSourceQueueBuffers(mas->source_id, 1, &mas->audio_buffer[mve_audio_buftail]), { free(buf); return 0;} );
-
-				//fprintf(stderr,"Queued buffer %d(%d)\n", mve_audio_buftail, mas->audio_buffer[mve_audio_buftail]);
-
-				if (++mve_audio_buftail == MVE_AUDIO_BUFFERS)
-					mve_audio_buftail = 0;
-
-				bqueued++;
-				free(buf);
+				mve_audio_buf_offset += nsamp;
 			} else {
-				mprintf(("MVE: Buffer overrun: Queue full\n"));
+				mprintf(("MVE audio_buf overrun!!\n"));
 			}
 
-			//fprintf(stderr,"Buffers queued: %d\n", bqueued);
+			alGetSourcei(mas->chan->source_id, AL_BUFFERS_PROCESSED, &processed);
+
+			while (processed) {
+				alSourceUnqueueBuffers(mas->chan->source_id, 1, &bid);
+
+				mve_audio_bufl_free.push_back(bid);
+				--processed;
+			}
+
+			if ( !mve_audio_bufl_free.empty() ) {
+				bid = mve_audio_bufl_free.back();
+
+				alBufferData(bid, mas->format, mve_audio_buf, mve_audio_buf_offset, mas->sample_rate);
+				alSourceQueueBuffers(mas->chan->source_id, 1, &bid);
+
+				mve_audio_buf_offset = 0;
+				mve_audio_bufl_free.pop_back();
+			}
+
+			if ( !mve_audio_playing ) {
+				mve_audio_play();
+			}
+
+			oal_check_for_errors("mve_audio_data() end");
 		}
 	}
-#endif
 
 	return 1;
 }
@@ -452,22 +466,23 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	if (videobuf_created)
 		return 1;
 
+	if (gr_screen.mode != GR_OPENGL) {
+		mprintf(("MVE-ERROR: Movie playback requires OpenGL renderer\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	if (gr_screen.use_sections) {
+		mprintf(("MVE-ERROR: Bitmap sections not supported\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	int tex_w, tex_h;
 	short w, h;
-	short count, truecolor;
+
 	w = mve_get_short(data);
 	h = mve_get_short(data+2);
-	
-	if (minor > 0) {
-		count = mve_get_short(data+4);
-	} else {
-		count = 1;
-	}
-	
-	if (minor > 1) {
-		truecolor = mve_get_short(data+6);
-	} else {
-		truecolor = 0;
-	}
 
 	g_width = w << 3;
 	g_height = h << 3;
@@ -476,14 +491,102 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	g_vBackBuf1 = g_vBuffers = malloc(g_width * g_height * 4);
 
 	if (g_vBackBuf1 == NULL) {
-		mprintf(("MOVIE", "ERROR: Can't allocate video buffer"));
+		mprintf(("MVE-ERROR: Can't allocate video buffer\n"));
 		videobuf_created = 1;
 		return 0;
 	}
 
 	g_vBackBuf2 = (ushort *)g_vBackBuf1 + (g_width * g_height);
-		
+
 	memset(g_vBackBuf1, 0, g_width * g_height * 4);
+
+	// DDOI - Allocate RGB565 pixel buffer
+	pixelbuf = (ushort *)malloc (g_width * g_height * 2);
+
+	if (pixelbuf == NULL) {
+		mprintf(("MVE-ERROR: Can't allocate memory for pixelbuf\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	memset(pixelbuf, 0, g_width * g_height * 2);
+
+	// set height and width to a power of 2
+	tex_w = next_pow2(g_width);
+	tex_h = next_pow2(g_height);
+
+	SDL_assert(tex_w > 0);
+	SDL_assert(tex_h > 0);
+
+	glGenTextures(1, &tex);
+
+	if (tex == 0) {
+		mprintf(("MVE-ERROR: Can't create a GL texture\n"));
+		videobuf_created = 1;
+		return 0;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, tex);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthFunc(GL_ALWAYS);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int x, y;
+
+	// centers
+	x = ((gr_screen.max_w - g_width) / 2);
+	y = ((gr_screen.max_h - g_height) / 2);
+
+	if ( os_config_read_uint("Video", "ScaleMovies", 1) ) {
+		extern int GL_viewport_w;
+
+		float scale_by = GL_viewport_w / (float)g_width;
+
+		// don't bother setting anything if we aren't going to need it
+		if (scale_by != 1.0f) {
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glScalef( scale_by, scale_by, 1.0f );
+			mve_scale_video = 1;
+
+			x = 0;
+			y = ((480 - g_height) / 2);
+		}
+	}
+
+	g_coords[0].x = x;
+	g_coords[0].y = y;
+	g_coords[0].u = 0.0f;
+	g_coords[0].v = 0.0f;
+
+	g_coords[1].x = x;
+	g_coords[1].y = y + g_height;
+	g_coords[1].u = 0.0f;
+	g_coords[1].v = i2fl(g_height) / i2fl(tex_h);
+
+	g_coords[2].x = x + g_width;
+	g_coords[2].y = y;
+	g_coords[2].u = i2fl(g_width) / i2fl(tex_w);
+	g_coords[2].v = 0.0f;
+
+	g_coords[3].x = x + g_width;
+	g_coords[3].y = y + g_height;
+	g_coords[3].u = i2fl(g_width) / i2fl(tex_w);
+	g_coords[3].v = i2fl(g_height) / i2fl(tex_h);
+
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glTexCoordPointer(2, GL_FLOAT, sizeof(g_coords_t), &g_coords[0].u);
+	glVertexPointer(2, GL_INT, sizeof(g_coords_t), &g_coords[0].x);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
 
 	videobuf_created = 1;
 
@@ -501,40 +604,21 @@ static void mve_convert_and_draw()
 
 	pDests = pixelbuf;
 
-	if (g_screenWidth > g_width) {
-		pDests += ((g_screenWidth - g_width) / 2) / 2;
-	}
-	if (g_screenHeight > g_height) {
-		pDests += ((g_screenHeight - g_height) / 2) * g_screenWidth;
-	}
-
 	for (y=0; y<g_height; y++) {
 		for (x = 0; x < g_width; x++) {
 			pDests[x] = (1<<15)|*pSrcs;
 
 			pSrcs++;
 		}
-		pDests += g_screenWidth;
+		pDests += g_width;
 	}
 }
 
 void mve_video_display()
 {
+	static uint mve_video_skiptimer = 0;
+
 	fix t1 = timer_get_fixed_seconds();
-	mve_convert_and_draw();
-
-	int x, y;
-	int h = g_screenHeight;
-	int w = g_screenWidth;
-
-#ifdef PLAT_UNIX
-	if (mve_scale_video) {
-		x = y = 0;
-	} else {
-		// centers on 1024x768, fills on 640x480
-		x = ((gr_screen.max_w - g_screenWidth) / 2);
-		y = ((gr_screen.max_h - g_screenHeight) / 2);
-	}
 
 	// micro_frame_delay is divided by 10 to match mve_video_skiptimer overflow catch
 	if ( mve_video_skiptimer > (uint)(micro_frame_delay/10) ) {
@@ -546,73 +630,13 @@ void mve_video_display()
 		mve_video_skiptimer = 0;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, tex);
-	
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
+	mve_convert_and_draw();
 
-	// 0, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,0);										glVertex2i(x,y);
-		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
-	glEnd();
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_width, g_height, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
 
-	// 0, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,i2fl(256)/i2fl(hp2));					glVertex2i(x,y+256);
-		glTexCoord2f(0,i2fl(h)/i2fl(hp2));						glVertex2i(x,y+h);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-	glEnd();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	// 256, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),0);					glVertex2i(x+256,y);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
-	glEnd();
-
-	// 256, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+256,y+256);
-		glTexCoord2f(i2fl(256)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+256,y+h);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-	glEnd();
-
-	// 512, 0
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),0);					glVertex2i(x+512,y);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),0);						glVertex2i(x+w,y);
-	glEnd();
-
-	// 512, 256
-	glBegin(GL_QUADS);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+512,y+256);
-		glTexCoord2f(i2fl(512)/i2fl(wp2),i2fl(h)/i2fl(hp2));	glVertex2i(x+512,y+h);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(h)/i2fl(hp2));		glVertex2i(x+w,y+h);
-		glTexCoord2f(i2fl(w)/i2fl(wp2),i2fl(256)/i2fl(hp2));	glVertex2i(x+w,y+256);
-	glEnd();
-#else
-	// centers on 1024x768, fills on 640x480
-	x = ((gr_screen.max_w - g_screenWidth) / 2);
-	y = ((gr_screen.max_h - g_screenHeight) / 2);
-
-	// DDOI - This is probably really fricking slow
-	int bitmap = bm_create (16, w, h, pixelbuf, 0);
-	gr_set_bitmap (bitmap);
-	gr_bitmap (x, y);
-	bm_release (bitmap);
-#endif
-
-	gr_flip ();
-#ifdef PLAT_UNIX
-	os_poll ();	/* DDOI - run event loop(s) */
-#endif
+	gr_flip();
 
 	fix t2 = timer_get_fixed_seconds();
 
@@ -622,119 +646,6 @@ void mve_video_display()
 		// by one-hundred-thousand before converting to an uint.
 		mve_video_skiptimer = (uint)(f2fl(t2-t1) * 100000);
 	}
-
-	int k = key_inkey();
-	if ( k == KEY_ESC ) {
-		mve_playing = 0;
-	}
-
-//	fprintf(stderr, "mve frame took this long: %.6f\n", f2fl(t2-t1));
-}
-
-int mve_video_init(ubyte *data)
-{
-	if (video_inited)
-		return 1;
-
-	short width, height;
-
-	width = mve_get_short(data);
-	height = mve_get_short(data+2);
-
-	// DDOI - Allocate RGB565 pixel buffer
-	pixelbuf = (ushort *)malloc (width * height * 2);
-
-	if (pixelbuf == NULL) {
-		mprintf(("MOVIE", "ERROR: Can't allocate memory for pixelbuf"));
-		video_inited = 1;
-		return 0;
-	}
-
-	memset(pixelbuf, 0, width * height * 2);
-
-	g_screenWidth = width;
-	g_screenHeight = height;
-
-#ifdef PLAT_UNIX
-	int i, tex_w, tex_h;
-
-	tex_w = g_screenWidth;
-	tex_h = g_screenHeight;
-
-	// set height and width to a power of 2
-	for (i=0; i<16; i++ )	{
-		if ( (tex_w > (1<<i)) && (tex_w <= (1<<(i+1))) )	{
-			tex_w = 1 << (i+1);
-			break;
-		}
-	}
-
-	for (i=0; i<16; i++ )	{
-		if ( (tex_h > (1<<i)) && (tex_h <= (1<<(i+1))) )	{
-			tex_h = 1 << (i+1);
-			break;
-		}
-	}
-
-	// try to keep an 8:1 size ratio
-	if (tex_w/tex_h > 8)
-		tex_h = tex_w/8;
-	if (tex_h/tex_w > 8)
-		tex_w = tex_h/8;
-
-	wp2 = tex_w;
-	hp2 = tex_h;
-
-	glGenTextures(1, &tex);
-
-	Assert(tex != 0);
-
-	if ( tex == 0 ) {
-		mprintf(("MOVIE", "ERROR: Can't create a GL texture"));
-		video_inited = 1;
-		return 0;
-	}
-
-	glBindTexture(GL_TEXTURE_2D, tex);
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthFunc(GL_ALWAYS);
-	glDepthMask(GL_FALSE);
-	glDisable(GL_DEPTH_TEST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	if ( os_config_read_uint(NULL, NOX("ScaleMovies"), 0) == 1 ) {
-		float scale_by = (float)gr_screen.max_w / (float)g_screenWidth;
-
-		// don't bother setting anything if we aren't going to need it
-		if (scale_by != 1.0f) {
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-
-			glScalef( scale_by, scale_by, 1.0f );
-			mve_scale_video = 1;
-		}
-	}
-
-	// NOTE: using NULL instead of pixelbuf crashes some drivers, but then so does pixelbuf so less of two evils...
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, wp2, hp2, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
-#endif
-
-	memset(g_palette, 0, 768);
-	
-	video_inited = 1;
-	
-	return 1;
-}
-
-void mve_video_palette(ubyte *data)
-{
-	short start, count;
-	start = mve_get_short(data);
-	count = mve_get_short(data+2);
-	memcpy(g_palette + 3*start, data+4, 3*count);
 }
 
 void mve_video_codemap(ubyte *data, int len)
@@ -745,18 +656,9 @@ void mve_video_codemap(ubyte *data, int len)
 
 void mve_video_data(ubyte *data, int len)
 {
-	short nFrameHot, nFrameCold;
-	short nXoffset, nYoffset;
-	short nXsize, nYsize;
 	ushort nFlags;
 	ubyte *temp;
 
-	nFrameHot = mve_get_short(data);
-	nFrameCold = mve_get_short(data+2);
-	nXoffset = mve_get_short(data+4);
-	nYoffset = mve_get_short(data+6);
-	nXsize = mve_get_short(data+8);
-	nYsize = mve_get_short(data+10);
 	nFlags = mve_get_ushort(data+12);
 
 	if (nFlags & 1) {
@@ -776,16 +678,13 @@ void mve_end_chunk()
 void mve_init(MVESTREAM *mve)
 {
 	// reset to default values
-	mve_audio_curbuf_curpos = 0;
-	mve_audio_bufhead = 0;
-	mve_audio_buftail = 0;
 	mve_audio_playing = 0;
 	mve_audio_canplay = 0;
 	mve_audio_compressed = 0;
+	mve_audio_buf_offset = 0;
 	audiobuf_created = 0;
 
 	videobuf_created = 0;
-	video_inited = 0;
 	mve_scale_video = 0;
 
 	mve_playing = 1;
@@ -808,6 +707,12 @@ void mve_play(MVESTREAM *mve)
 		}
 
 		timer_error = mve_do_timer_wait();
+
+		os_poll();
+
+		if (key_inkey() == SDLK_ESCAPE) {
+			mve_playing = 0;
+		}
 	}
 }
 
@@ -827,16 +732,21 @@ void mve_shutdown()
 		g_vBuffers = NULL;
 	}
 
-#ifdef PLAT_UNIX
-	if (mve_scale_video) {
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glLoadIdentity();
+	if (gr_screen.mode == GR_OPENGL) {
+		if (tex > 0) {
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDeleteTextures(1, &tex);
+			tex = 0;
+		}
+
+		if (mve_scale_video) {
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
+
+		glEnable(GL_DEPTH_TEST);
 	}
-
-	glDeleteTextures(1, &tex);
-	tex = 0;
-
-	glEnable(GL_DEPTH_TEST);
-#endif
 }

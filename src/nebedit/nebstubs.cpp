@@ -45,6 +45,10 @@
  * $NoKeywords: $
  */
 
+
+#include "pstypes.h"
+
+
 void game_enter_state(int, int){}
 void game_leave_state(int, int){}
 void game_do_state(int){}
@@ -61,7 +65,7 @@ void game_do_state_common(int, int){}
 void game_set_frametime(int){}
 void game_increase_skill_level(){}
 int Test_begin;
-long Game_time_compression;
+int Game_time_compression;
 int Framerate_delay;
 char *Game_current_mission_filename;
 int Warpout_forced;
@@ -71,16 +75,16 @@ void game_level_close(){}
 void game_flash(float, float, float){}
 void game_whack_apply(float, float){}
 int game_do_cd_check(char*){return 0;}
-struct fs_builtin_mission *game_find_builtin_mission(char*){return 0;}
+struct fs_builtin_mission *game_find_builtin_mission(const char*){return 0;}
 int Game_do_state_should_skip;
 int Show_target_weapons;
 int Show_target_debug_info;
 int Sun_drew;
 int Game_subspace_effect;
 void game_load_palette(){}
-void game_format_time(long, char*){}
+void game_format_time(int, char*, int){}
 float Freespace_gamma;
-void get_version_string(char*){}
+void get_version_string(char*, const int){}
 int game_get_default_skill_level(){return 0;}
 int game_cd_changed(){return 0;}
 void game_set_view_clip(){}
@@ -92,7 +96,7 @@ void game_shudder_apply(int, float){}
 int Debug_octant;
 int game_hacked_data(){return 0;}
 int game_do_cd_mission_check(char*){return 0;}
-int Player_multi_died_check;
+time_t Player_multi_died_check;
 void game_tst_mark(struct object*, struct ship*){}
 int tst;
 int game_single_step;

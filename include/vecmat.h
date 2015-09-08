@@ -186,7 +186,7 @@
 
 //#define _INLINE_VECMAT
 
-#define vm_is_vec_nan(v) (_isnan((v)->xyz.x) || _isnan((v)->xyz.y) || _isnan((v)->xyz.z))
+#define vm_is_vec_nan(v) (isnan((v)->xyz.x) || isnan((v)->xyz.y) || isnan((v)->xyz.z))
 
 //Macros/functions to fill in fields of structures
 

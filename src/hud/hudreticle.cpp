@@ -196,7 +196,6 @@
 
 #include "hudreticle.h"
 #include "hud.h"
-#include "pixel.h"
 #include "math.h"
 #include "player.h"
 #include "ship.h"
@@ -539,7 +538,7 @@ void hud_render_throttle_speed(float current_speed, int y_end)
 	x_pos = Hud_reticle_center[gr_screen.res][0] - x_pos;
 
 	// draw current speed at (x_pos, y_end);
-	sprintf(buf, "%d", fl2i(current_speed+0.5f));
+	SDL_snprintf(buf, SDL_arraysize(buf), "%d", fl2i(current_speed+0.5f));
 	hud_num_make_mono(buf);
 	gr_get_string_size(&w, &h, buf);
 	sx = x_pos - w - 2;
@@ -598,7 +597,7 @@ void hud_show_throttle()
 
 	desired_y_pos = Hud_throttle_bottom_y[gr_screen.res] - fl2i(Hud_throttle_h[gr_screen.res]*desired_speed/max_speed+0.5f) - 1;
 
-	Assert(max_speed != 0);
+	SDL_assert(max_speed != 0);
 	percent_max = current_speed / max_speed;
 
 	percent_aburn_max = 0.0f;
@@ -806,7 +805,7 @@ void hud_show_dumbfire_threat()
 // Draw the center of the reticle
 void hud_show_center_reticle()
 {
-	Assert(Reticle_gauges[RETICLE_CENTER].first_frame != -1 );
+	SDL_assert(Reticle_gauges[RETICLE_CENTER].first_frame != -1 );
 
 //	hud_set_default_color();
 	// hud_set_bright_color();

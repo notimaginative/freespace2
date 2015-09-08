@@ -61,9 +61,6 @@ typedef struct Cfile_block {
 	int		type;				// CFILE_BLOCK_UNUSED, CFILE_BLOCK_USED
 	int		dir_type;		// directory location
 	FILE		*fp;				// File pointer if opening an individual file
-	void		*data;			// Pointer for memory-mapped file access.  NULL if not mem-mapped.
-	HANDLE	hInFile;			// Handle from CreateFile()
-	HANDLE	hMapFile;		// Handle from CreateFileMapping()
 	int		lib_offset;
 	int		raw_position;
 	int		size;				// for packed files

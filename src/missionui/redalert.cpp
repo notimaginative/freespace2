@@ -321,8 +321,8 @@ static int Red_alert_voice;
 // open and pre-load the stream buffers for the different voice streams
 void red_alert_voice_load()
 {
-	Assert( Briefing != NULL );
-	if ( strnicmp(Briefing->stages[0].voice, NOX("none"), 4) && (strlen(Briefing->stages[0].voice) > 0) ) {
+	SDL_assert( Briefing != NULL );
+	if ( SDL_strncasecmp(Briefing->stages[0].voice, NOX("none"), 4) && (strlen(Briefing->stages[0].voice) > 0) ) {
 		Red_alert_voice = audiostream_open( Briefing->stages[0].voice, ASF_VOICE );
 	}
 }
@@ -369,11 +369,7 @@ void red_alert_button_pressed(int n)
 {
 	switch (n) {
 	case RA_CONTINUE:		
-		if(game_do_cd_mission_check(Game_current_mission_filename)){
-			gameseq_post_event(GS_EVENT_ENTER_GAME);
-		} else {
-			gameseq_post_event(GS_EVENT_MAIN_MENU);
-		}
+		gameseq_post_event(GS_EVENT_ENTER_GAME);
 		break;
 
 	case RA_REPLAY_MISSION:
@@ -385,12 +381,7 @@ void red_alert_button_pressed(int n)
 				break;
 			}
 
-			// CD CHECK
-			if(game_do_cd_mission_check(Game_current_mission_filename)){
-				gameseq_post_event(GS_EVENT_START_GAME);
-			} else {
-				gameseq_post_event(GS_EVENT_MAIN_MENU);
-			}
+			gameseq_post_event(GS_EVENT_START_GAME);
 		} else {
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		}
@@ -471,7 +462,7 @@ void red_alert_init()
 #endif
 
 	// set up red alert hotkeys
-	Buttons[gr_screen.res][RA_CONTINUE].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
+	Buttons[gr_screen.res][RA_CONTINUE].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 
 	// load in background image and flashing red alert animation
 	Background_bitmap = bm_load(Red_alert_fname[gr_screen.res]);
@@ -488,7 +479,7 @@ void red_alert_init()
 	}
 
 	if ( Briefing->num_stages > 0 ) {
-		Assert(Briefing->stages[0].new_text);
+		SDL_assert(Briefing->stages[0].new_text);
 		brief_color_text_init(Briefing->stages[0].new_text, Ra_brief_text_wnd_coords[gr_screen.res][RA_W_COORD], 0);
 	}
 
@@ -536,7 +527,7 @@ void red_alert_do_frame(float frametime)
 
 	k = Ui_window.process() & ~KEY_DEBUGGED;
 	switch (k) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 //			gameseq_post_event(GS_EVENT_ENTER_GAME);
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;
@@ -722,12 +713,12 @@ void red_alert_store_wingman_status()
 	Red_alert_num_slots_used = 0;
 
 	// store the mission filename for the red alert precursor mission
-	strcpy(Red_alert_precursor_mission, Game_current_mission_filename);;
+	SDL_strlcpy(Red_alert_precursor_mission, Game_current_mission_filename, SDL_arraysize(Red_alert_precursor_mission));
 
 	// store status for all existing ships
 	for ( so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list); so = GET_NEXT(so) ) {
 		ship_objp = &Objects[so->objnum];
-		Assert(ship_objp->type == OBJ_SHIP);
+		SDL_assert(ship_objp->type == OBJ_SHIP);
 		shipp = &Ships[ship_objp->instance];
 
 		if ( shipp->flags & SF_DYING ) {
@@ -746,7 +737,7 @@ void red_alert_store_wingman_status()
 		ras = &Red_alert_wingman_status[Red_alert_num_slots_used];
 		Red_alert_num_slots_used++;
 
-		strcpy(ras->name, shipp->ship_name);
+		SDL_strlcpy(ras->name, shipp->ship_name, SDL_arraysize(ras->name));
 		ras->hull = Objects[shipp->objnum].hull_strength;
 		ras->ship_class = shipp->ship_info_index;
 		red_alert_store_weapons(ras, &shipp->weapons);
@@ -765,7 +756,7 @@ void red_alert_store_wingman_status()
 			ras = &Red_alert_wingman_status[Red_alert_num_slots_used];
 			Red_alert_num_slots_used++;
 
-			strcpy(ras->name, Ships_exited[idx].ship_name);
+			SDL_strlcpy(ras->name, Ships_exited[idx].ship_name, SDL_arraysize(ras->name));
 			ras->hull = float(Ships_exited[idx].hull_strength);
 			ras->ship_class = RED_ALERT_EXITED_SHIP_CLASS; //shipp->ship_info_index;
 			red_alert_store_weapons(ras, NULL);
@@ -773,7 +764,7 @@ void red_alert_store_wingman_status()
 		}
 	}
 
-	Assert(Red_alert_num_slots_used > 0);
+	SDL_assert(Red_alert_num_slots_used > 0);
 }
 
 // Delete a ship in a red alert mission (since it must have died/departed in the previous mission)
@@ -814,7 +805,7 @@ void red_alert_bash_wingman_status()
 
 	for ( so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list); so = GET_NEXT(so) ) {
 		ship_objp = &Objects[so->objnum];
-		Assert(ship_objp->type == OBJ_SHIP);
+		SDL_assert(ship_objp->type == OBJ_SHIP);
 		shipp = &Ships[ship_objp->instance];
 
 		if ( !(shipp->flags & SF_FROM_PLAYER_WING) && !(shipp->flags & SF_RED_ALERT_STORE_STATUS) ) {
@@ -826,7 +817,7 @@ void red_alert_bash_wingman_status()
 		for ( i = 0; i < Red_alert_num_slots_used; i++ ) {
 			ras = &Red_alert_wingman_status[i];
 
-			if ( !stricmp(ras->name, shipp->ship_name) ) {
+			if ( !SDL_strcasecmp(ras->name, shipp->ship_name) ) {
 				found_match = 1;
 				if ( ras->ship_class == RED_ALERT_EXITED_SHIP_CLASS) {
 					// if exited ship, we can only restore hull strength
@@ -868,7 +859,7 @@ void red_alert_write_wingman_status(CFILE *fp)
 		return;
 	}
 
-	Assert(strlen(Red_alert_precursor_mission) > 0 );
+	SDL_assert(strlen(Red_alert_precursor_mission) > 0 );
 	cfwrite_string(Red_alert_precursor_mission, fp);
 
 	for ( i = 0; i < Red_alert_num_slots_used; i++ ) {

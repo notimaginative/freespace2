@@ -131,13 +131,8 @@ void loop_brief_button_pressed(int i)
 {	
 	switch(i){
 	case LOOP_BRIEF_DECLINE:		
-		// CD CHECK
-		if(game_do_cd_mission_check(Game_current_mission_filename)){
-			gameseq_post_event(GS_EVENT_START_GAME);
-			gamesnd_play_iface(SND_USER_SELECT);
-		} else {
-			gameseq_post_event(GS_EVENT_MAIN_MENU);
-		}		
+		gameseq_post_event(GS_EVENT_START_GAME);
+		gamesnd_play_iface(SND_USER_SELECT);
 		break;
 
 	case LOOP_BRIEF_ACCEPT:
@@ -145,14 +140,9 @@ void loop_brief_button_pressed(int i)
 		Campaign.loop_enabled = 1;
 		Campaign.loop_reentry = Campaign.next_mission;			// save reentry pt, so we can break out of loop
 		Campaign.next_mission = Campaign.loop_mission;		
-		
-		// CD CHECK
-		if(game_do_cd_mission_check(Game_current_mission_filename)){
-			gameseq_post_event(GS_EVENT_START_GAME);
-			gamesnd_play_iface(SND_USER_SELECT);
-		} else {
-			gameseq_post_event(GS_EVENT_MAIN_MENU);
-		}		
+
+		gameseq_post_event(GS_EVENT_START_GAME);
+		gamesnd_play_iface(SND_USER_SELECT);
 		break;
 	}
 }
@@ -165,7 +155,7 @@ void loop_brief_init()
 
 	// load the background bitmap
 	Loop_brief_bitmap = bm_load(Loop_brief_fname[gr_screen.res]);
-	Assert(Loop_brief_bitmap != -1);
+	SDL_assert(Loop_brief_bitmap != -1);
 
 	// window
 	Loop_brief_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);
@@ -234,7 +224,7 @@ void loop_brief_do()
 	k = Loop_brief_window.process();	
 
 	switch (k) {
-	case KEY_ESC:		
+	case SDLK_ESCAPE:
 		gameseq_post_event(GS_EVENT_MAIN_MENU);
 		break;
 	}	

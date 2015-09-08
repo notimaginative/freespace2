@@ -251,7 +251,7 @@ static int Current_help_page;
 // generate a line for the on-line help for a control item with specified id
 // input:	id		=>	index for control item within Control_config[]
 //				buf	=> buffer with enough space to hold ouput string
-char *gameplay_help_control_text(int id, char *buf)
+char *gameplay_help_control_text(int id, char *buf, const int buf_len)
 {
 	int			has_key=0, has_joy=0;
 	config_item	*ci;
@@ -259,24 +259,24 @@ char *gameplay_help_control_text(int id, char *buf)
 	ci = &Control_config[id];
 
 	if ( ci->key_id >= 0 ) {
-		sprintf(buf, textify_scancode(ci->key_id));
+		SDL_strlcpy(buf, textify_scancode(ci->key_id), buf_len);
 		has_key=1;
 	}
 
 	if ( ci->joy_id >= 0 ) {
 		if ( has_key ) {
-			strcat(buf, XSTR( ", ", 129));
+			SDL_strlcat(buf, XSTR( ", ", 129), buf_len);
 		}
-		strcat(buf, Joy_button_text[ci->joy_id]);
+		SDL_strlcat(buf, Joy_button_text[ci->joy_id], buf_len);
 		has_joy=1;
 	}
 
 	if ( !has_key && !has_joy ) {
-		strcpy(buf, XSTR( "no binding", 130));
+		SDL_strlcpy(buf, XSTR( "no binding", 130), buf_len);
 	}
 
-	strcat(buf, XSTR( " - ", 131));
-	strcat(buf, ci->text);
+	SDL_strlcat(buf, XSTR( " - ", 131), buf_len);
+	SDL_strlcat(buf, ci->text, buf_len);
 
 	return buf;
 }
@@ -292,20 +292,20 @@ void gameplay_help_blit_control_line(int x, int y, int id)
 	buf[0] = 0;
 
 	if ( ci->key_id >= 0 ) {
-		sprintf(buf, textify_scancode(ci->key_id));
+		SDL_strlcpy(buf, textify_scancode(ci->key_id), SDL_arraysize(buf));
 		has_key=1;
 	}
 
 	if ( ci->joy_id >= 0 ) {
 		if ( has_key ) {
-			strcat(buf, XSTR( ", ", 129));
+			SDL_strlcat(buf, XSTR( ", ", 129), SDL_arraysize(buf));
 		}
-		strcat(buf, Joy_button_text[ci->joy_id]);
+		SDL_strlcat(buf, Joy_button_text[ci->joy_id], SDL_arraysize(buf));
 		has_joy=1;
 	}
 
 	if ( !has_key && !has_joy ) {
-		strcpy(buf, XSTR( "no binding", 130));
+		SDL_strlcpy(buf, XSTR( "no binding", 130), SDL_arraysize(buf));
 	}
 
 	gr_string(x,y,buf);
@@ -329,7 +329,7 @@ void gameplay_help_set_title(const char *title)
 
 	gr_set_color_fast(&Color_bright);
 	gr_printf(0x8000,sy,title);
-	sprintf(buf, XSTR( "Page %d of %d", 132),  Current_help_page+1, Gp_last_screen+1);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "Page %d of %d", 132),  Current_help_page+1, Gp_last_screen+1);
 	gr_printf(0x8000,sy+gr_get_font_height()+2,buf);
 	gr_set_color_fast(&Color_normal);
 }
@@ -374,9 +374,9 @@ void gameplay_help_init()
 	}
 
 	// setup hotkeys so lights flash when keys are pressed
-	Buttons[gr_screen.res][CONTINUE_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Buttons[gr_screen.res][PREVIOUS_PAGE_BUTTON].button.set_hotkey(KEY_LEFT);
-	Buttons[gr_screen.res][NEXT_PAGE_BUTTON].button.set_hotkey(KEY_RIGHT);
+	Buttons[gr_screen.res][CONTINUE_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Buttons[gr_screen.res][PREVIOUS_PAGE_BUTTON].button.set_hotkey(SDLK_LEFT);
+	Buttons[gr_screen.res][NEXT_PAGE_BUTTON].button.set_hotkey(SDLK_RIGHT);
 
 	Background_bitmap = bm_load(Game_help_filename[gr_screen.res]);
 
@@ -420,18 +420,18 @@ void gameplay_help_leave()
 void gameplay_help_process_key(int k)
 {
 	switch ( k ) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			gameplay_help_leave();
 			break;
 
-		case KEY_ENTER:
-		case KEY_SPACEBAR:
-		case KEY_TAB:
+		case SDLK_RETURN:
+		case SDLK_SPACE:
+		case SDLK_TAB:
 			//gameplay_help_goto_next_screen();
 			Buttons[gr_screen.res][NEXT_PAGE_BUTTON].button.press_button();
 			break;
 
-		case KEY_SHIFTED | KEY_TAB:
+		case KEY_SHIFTED | SDLK_TAB:
 			Buttons[gr_screen.res][PREVIOUS_PAGE_BUTTON].button.press_button();
 //			gameplay_help_goto_prev_screen();
 			break;

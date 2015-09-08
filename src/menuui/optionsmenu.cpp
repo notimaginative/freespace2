@@ -803,7 +803,7 @@ void options_play_voice_clip()
 
 void options_add_notify(const char *str)
 {
-	strcpy(Options_notify_string, str);
+	SDL_strlcpy(Options_notify_string, str, SDL_arraysize(Options_notify_string));
 	Options_notify_stamp = timestamp(OPTIONS_NOTIFY_TIME);
 }
 
@@ -840,7 +840,7 @@ void options_tab_setup(int set_palette)
 	int flags[256];
 
 	if (Tab != MULTIPLAYER_TAB) {
-		Assert(Backgrounds[gr_screen.res][Tab].mask >= 0);
+		SDL_assert(Backgrounds[gr_screen.res][Tab].mask >= 0);
 		Ui_window.set_mask_bmap(Backgrounds[gr_screen.res][Tab].mask, Backgrounds[gr_screen.res][Tab].mask_filename);
 	}
 
@@ -1021,8 +1021,6 @@ void options_cancel_exit()
 
 void options_change_gamma(float delta)
 {
-	char tmp_gamma_string[32];
-
 	Freespace_gamma += delta;
 	if (Freespace_gamma < 0.1f) {
 		Freespace_gamma = 0.1f;
@@ -1037,8 +1035,6 @@ void options_change_gamma(float delta)
 	}
 
 	gr_set_gamma(Freespace_gamma);
-	sprintf(tmp_gamma_string, NOX("%.2f"), Freespace_gamma);
-	os_config_write_string(NULL, NOX("Gamma"), tmp_gamma_string);
 }
 
 void options_button_pressed(int n)
@@ -1261,7 +1257,7 @@ void options_accept()
 
 void options_load_background_and_mask(int tab)
 {
-	Assert(tab == OPTIONS_TAB || tab == DETAIL_LEVELS_TAB );
+	SDL_assert(tab == OPTIONS_TAB || tab == DETAIL_LEVELS_TAB );
 	Backgrounds[gr_screen.res][tab].bitmap = bm_load(Backgrounds[gr_screen.res][tab].filename);
 	Backgrounds[gr_screen.res][tab].mask = bm_load(Backgrounds[gr_screen.res][tab].mask_filename);
 }
@@ -1274,7 +1270,7 @@ void options_menu_init()
 	int i, j;
 	options_buttons *b;
 
-	Assert(!Options_menu_inited);
+	SDL_assert(!Options_menu_inited);
 
 	// pause all sounds, since we could get here through the game
 	beam_pause_sounds();
@@ -1320,8 +1316,8 @@ void options_menu_init()
 	Detail_bogus.base_create(&Ui_window, UI_KIND_ICON, 0, 0, 0, 0);
 	Options_bogus.base_create(&Ui_window, UI_KIND_ICON, 0, 0, 0, 0);
 
-	Buttons[gr_screen.res][GAMMA_DOWN].button.set_hotkey(KEY_COMMA);
-	Buttons[gr_screen.res][GAMMA_UP].button.set_hotkey(KEY_PERIOD);
+	Buttons[gr_screen.res][GAMMA_DOWN].button.set_hotkey(SDLK_COMMA);
+	Buttons[gr_screen.res][GAMMA_UP].button.set_hotkey(SDLK_PERIOD);
 
 	/*
 	Skill_control.first_frame = bm_load_animation("OPa_11", &Skill_control.total_frames);
@@ -1385,7 +1381,7 @@ void options_menu_close()
 {
 	int i;	
 
-	Assert(Options_menu_inited);	
+	SDL_assert(Options_menu_inited);	
 
 	for (i=0; i<NUM_TABS; i++) {
 		if (Backgrounds[gr_screen.res][i].bitmap >= 0){
@@ -1438,12 +1434,6 @@ void draw_gamma_box()
 		v = 0;
 	}
 
-	int Gamma_changed = 0;
-	if ( v != Gamma_last_set )	{
-		Gamma_changed = 1;
-	} else {
-		Gamma_changed = 0;
-	}
 	Gamma_last_set = v;
 
 	{
@@ -1451,12 +1441,7 @@ void draw_gamma_box()
 		ushort clr_half_white = 0;
 		ubyte r, g, b, a;
 
-		// if we're in bitmap poly mode
-		if(Gr_bitmap_poly){
-			BM_SELECT_TEX_FORMAT();
-		} else {
-			BM_SELECT_SCREEN_FORMAT();
-		}
+		BM_SELECT_TEX_FORMAT();
 
 		// set full white
 		r = g = b = a = 255;		
@@ -1500,11 +1485,11 @@ void options_menu_do_frame(float frametime)
 {
 	int i, k, x, y;	
 
-	Assert(Options_menu_inited);
+	SDL_assert(Options_menu_inited);
 	k = Ui_window.process() & ~KEY_DEBUGGED;
 	switch (k) {
-		case KEY_SHIFTED | KEY_TAB:
-		case KEY_LEFT:  // activate previous tab
+		case KEY_SHIFTED | SDLK_TAB:
+		case SDLK_LEFT:  // activate previous tab
 			i = Tab - 1;
 			if (i < 0)
 				i = NUM_TABS - 1;
@@ -1512,10 +1497,10 @@ void options_menu_do_frame(float frametime)
 			options_change_tab(i);
 			break;
 
-		case KEY_TAB:
-		case KEY_RIGHT:  // activate next tab
+		case SDLK_TAB:
+		case SDLK_RIGHT:  // activate next tab
 			// check to see if the multiplayer options screen wants to eat the tab kay
-			if ((k == KEY_TAB) && (Tab == MULTIPLAYER_TAB)) {
+			if ((k == SDLK_TAB) && (Tab == MULTIPLAYER_TAB)) {
 				if (options_multi_eat_tab()) {
 					break;
 				}
@@ -1528,7 +1513,7 @@ void options_menu_do_frame(float frametime)
 			options_change_tab(i);
 			break;
 
-		case KEY_C:
+		case SDLK_c:
 			if (Tab == OPTIONS_TAB) {
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_CONTROL_CONFIG);
@@ -1536,7 +1521,7 @@ void options_menu_do_frame(float frametime)
 
 			break;
 
-		case KEY_H:
+		case SDLK_h:
 			if (Tab == OPTIONS_TAB) {
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_HUD_CONFIG);
@@ -1544,20 +1529,20 @@ void options_menu_do_frame(float frametime)
 
 			break;
 
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			// if(Tab != MULTIPLAYER_TAB){
 				options_cancel_exit();
 			// }
 			break;
 
-		case KEY_CTRLED | KEY_ENTER:
+		case KEY_CTRLED | SDLK_RETURN:
 			options_accept();
 			break;
 
-		case KEY_DELETE:
+		case SDLK_DELETE:
 			break;
 
-		case KEY_ENTER:			
+		case SDLK_RETURN:
 			break;
 	}	
 
@@ -1610,7 +1595,7 @@ void options_menu_do_frame(float frametime)
 		}
 	}
 
-	if ((i == NUM_TABS) /*&& (Tab != MULTIPLAYER_TAB)*/ ){
+	if (i == NUM_TABS /*&& (Tab != MULTIPLAYER_TAB)*/ ){
 		Buttons[gr_screen.res][Tab].button.draw_forced(2);
 	}
 

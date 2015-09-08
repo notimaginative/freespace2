@@ -338,39 +338,45 @@ int multi_msg_text_process(int k)
 
 	switch(k){
 	// cancel the message
-	case KEY_ESC:	
+	case SDLK_ESCAPE:
 		multi_msg_text_flush();				
 		break;
 
 	// send the message
-	case KEY_ENTER:				
+	case SDLK_RETURN:
 		multi_msg_eval_text_msg();		
 		multi_msg_text_flush();						
 		break;
 
 	// backspace
-	case KEY_BACKSP:
+	case SDLK_BACKSPACE:
 		if(strlen(Multi_msg_text) > 0){
 			Multi_msg_text[strlen(Multi_msg_text)-1] = '\0';
 		}
 		break;
 
 	// ignore these individual keys
-	case KEY_LSHIFT + KEY_SHIFTED:
-	case KEY_RSHIFT + KEY_SHIFTED:
-	case KEY_LALT + KEY_SHIFTED:
-	case KEY_RALT + KEY_SHIFTED:
-	case KEY_LCTRL + KEY_SHIFTED:
-	case KEY_RCTRL + KEY_SHIFTED:
+	case SDLK_LSHIFT + KEY_SHIFTED:
+	case SDLK_RSHIFT + KEY_SHIFTED:
+	case SDLK_LALT + KEY_SHIFTED:
+	case SDLK_RALT + KEY_SHIFTED:
+	case SDLK_LCTRL + KEY_SHIFTED:
+	case SDLK_RCTRL + KEY_SHIFTED:
 		break;
 
 	// stick other printable characters onto the text
 	default :					
 		// if we're not already at the maximum length
 		if(strlen(Multi_msg_text) < MULTI_MSG_MAX_LEN){
-			str[0] = (char)key_to_ascii(k);
+			int key_text = key_get_text_input();
+
+			if (key_text < 0) {
+				key_text = 255;
+			}
+
+			str[0] = (char)key_text;
 			str[1] = '\0';
-			strcat(Multi_msg_text,str);		
+			SDL_strlcat(Multi_msg_text, str, SDL_arraysize(Multi_msg_text));
 		}
 		break;
 	}
@@ -379,7 +385,7 @@ int multi_msg_text_process(int k)
 }
 
 // return 0 or 1 if there is multi text to be rendered (filling in txt if necessary)
-int multi_msg_message_text(char *txt)
+int multi_msg_message_text(char *txt, const int txt_len)
 {
 	// if we're not in text message mode, return 0
 	if(!Multi_msg_text_enter){
@@ -390,29 +396,29 @@ int multi_msg_message_text(char *txt)
 	switch(Multi_msg_mode){
 	// messaging all players
 	case MULTI_MSG_ALL:
-		strcpy(txt,XSTR("ALL : ",694));
+		SDL_strlcpy(txt, XSTR("ALL : ", 694), txt_len);
 		break;
 
 	// messaging friendly players
 	case MULTI_MSG_FRIENDLY:
-		strcpy(txt,XSTR("FRIENDLY : ",695));
+		SDL_strlcpy(txt, XSTR("FRIENDLY : ", 695), txt_len);
 		break;
 
 	// messaging hostile players
 	case MULTI_MSG_HOSTILE:
-		strcpy(txt,XSTR("HOSTILE : ",696));
+		SDL_strlcpy(txt, XSTR("HOSTILE : ", 696), txt_len);
 		break;
 
 	// messaging targeted ship
 	case MULTI_MSG_TARGET:
-		strcpy(txt,XSTR("TARGET : ",697));
+		SDL_strlcpy(txt, XSTR("TARGET : ", 697), txt_len);
 		break;	
 
 	default :
 		Int3();
 	}	
-	strcat(txt,Multi_msg_text);
-	strcat(txt,"_");
+	SDL_strlcat(txt, Multi_msg_text, txt_len);
+	SDL_strlcat(txt, "_", txt_len);
 	return 1;
 }
 
@@ -504,12 +510,12 @@ int multi_msg_check_command(char *str)
 	} 
 	
 	// store the text as the actual parameter
-	strcpy(param,predicate);
+	SDL_strlcpy(param, predicate, SDL_arraysize(param));
 	drop_leading_white_space(param);
 
 	// go through all existing commands and see what we can do
 	for(idx=0;idx<MULTI_MSG_CMD_COUNT;idx++){
-		if(!stricmp(prefix,Multi_msg_commands[idx])){
+		if(!SDL_strcasecmp(prefix,Multi_msg_commands[idx])){
 			// perform the command
 			multi_msg_perform_command(idx,param);
 
@@ -520,7 +526,7 @@ int multi_msg_check_command(char *str)
 	
 	// apply the results as a general expression, if we're in message all mode
 	if(Multi_msg_mode == MULTI_MSG_ALL){
-		strcpy(Multi_msg_text,param);
+		SDL_strlcpy(Multi_msg_text, param, SDL_arraysize(Multi_msg_text));
 
 		// send the chat packet
 		send_game_chat_packet(Net_player, Multi_msg_text, MULTI_MSG_EXPR,NULL, prefix);
@@ -587,7 +593,7 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	memset(temp_string,0,100);	
 
 	// add the message header
-	sprintf(hud_string,XSTR("ORDER FROM <%s> : ",699),source->player->callsign);
+	SDL_snprintf(hud_string,SDL_arraysize(hud_string),XSTR("ORDER FROM <%s> : ",699),source->player->callsign);
 
 	// get the target obj if possible
 	target_obj = NULL;
@@ -600,8 +606,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// attack my target
 	case ATTACK_TARGET_ITEM :
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			sprintf(temp_string,XSTR("Attack %s",700),Ships[target_obj->instance].ship_name);
-			strcat(hud_string,temp_string);
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Attack %s",700),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -610,8 +616,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// disable my target
 	case DISABLE_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			sprintf(temp_string,XSTR("Disable %s",701),Ships[target_obj->instance].ship_name);
-			strcat(hud_string,temp_string);
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Disable %s",701),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -620,8 +626,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// protect my target
 	case PROTECT_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			sprintf(temp_string,XSTR("Protect %s",702),Ships[target_obj->instance].ship_name);
-			strcat(hud_string,temp_string);
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Protect %s",702),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -630,8 +636,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// ignore my target
 	case IGNORE_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			sprintf(temp_string,XSTR("Ignore %s",703),Ships[target_obj->instance].ship_name);
-			strcat(hud_string,temp_string);
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Ignore %s",703),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -640,8 +646,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// disarm my target
 	case DISARM_TARGET_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP)){
-			sprintf(temp_string,XSTR("Disarm %s",704),Ships[target_obj->instance].ship_name);
-			strcat(hud_string,temp_string);
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Disarm %s",704),Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -650,8 +656,8 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 	// disable subsystem on my target
 	case DISABLE_SUBSYSTEM_ITEM:
 		if((target_obj != NULL) && (target_obj->type == OBJ_SHIP) && (subsys_type != -1) && (subsys_type != 0)){
-			sprintf(temp_string,XSTR("Disable subsystem %s on %s",705),Multi_msg_subsys_name[subsys_type],Ships[target_obj->instance].ship_name);
-			strcat(hud_string,temp_string);
+			SDL_snprintf(temp_string,SDL_arraysize(temp_string),XSTR("Disable subsystem %s on %s",705),Multi_msg_subsys_name[subsys_type],Ships[target_obj->instance].ship_name);
+			SDL_strlcat(hud_string, temp_string, SDL_arraysize(hud_string));
 		} else {
 			should_display = 0;
 		}
@@ -659,17 +665,17 @@ void multi_msg_show_squadmsg(net_player *source,int command,ushort target_sig,in
 
 	// form on my wing
 	case FORMATION_ITEM:		
-		strcat(hud_string,XSTR("Form on my wing",706));		
+		SDL_strlcat(hud_string, XSTR("Form on my wing",706), SDL_arraysize(hud_string));
 		break;
 
 	// cover me
 	case COVER_ME_ITEM:
-		strcat(hud_string,XSTR("Cover me",707));
+		SDL_strlcat(hud_string, XSTR("Cover me",707), SDL_arraysize(hud_string));
 		break;
 
 	// engage enemy
 	case ENGAGE_ENEMY_ITEM:
-		strcat(hud_string,XSTR("Engage enemy!",708));
+		SDL_strlcat(hud_string, XSTR("Engage enemy!",708), SDL_arraysize(hud_string));
 		break;
 
 	default :
@@ -723,8 +729,8 @@ void multi_msg_send_squadmsg_packet(net_player *target,net_player *source,int co
 	char s_val;
 	int packet_size;
 
-	Assert(source != NULL);
-	Assert(target != NULL);
+	SDL_assert(source != NULL);
+	SDL_assert(target != NULL);
 	if((source == NULL) || (target == NULL)){
 		return;
 	}

@@ -394,8 +394,8 @@ extern void add_vector_data(ubyte *data, int *size, vector vec);
 // --------------------------------------------------------------------------------------------------
 
 
-LOCAL	int	Ingame_ships_deleted = 0;
-//LOCAL	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
+static	int	Ingame_ships_deleted = 0;
+//static	int	Ingame_ships_to_delete[MAX_SHIPS];	// no longer used
 
 
 // --------------------------------------------------------------------------------------------------
@@ -423,7 +423,7 @@ void multi_handle_ingame_joiners()
 {
 	int idx;
 
-	Assert( MULTIPLAYER_MASTER );
+	SDL_assert( MULTIPLAYER_MASTER );
 
 	// if my ingame joining flag isn't set, then don't do anything.
 	if ( !(Netgame.flags & NG_FLAG_INGAME_JOINING) ){
@@ -593,7 +593,7 @@ void multi_ingame_sync_init()
 	multi_oo_reset_sequencing();
 
 	// send the file signature to the host for possible mission file transfer
-	strcpy(Netgame.mission_name,Game_current_mission_filename);
+	SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, SDL_arraysize(Netgame.mission_name));
 	send_file_sig_packet(Multi_current_file_checksum,Multi_current_file_length);
 	
 	Ingame_ships_deleted = 0;
@@ -788,7 +788,7 @@ static int Multi_ingame_timer_coords[GR_NUM_RESOLUTIONS][2] = {
 //#define MULTI_INGAME_TIME_LEFT_Y			411
 
 #define MULTI_INGAME_TIME_SECONDS		(1000 * 15)
-LOCAL int Ingame_time_left;
+static int Ingame_time_left;
 
 // uses MULTI_JOIN_REFRESH_TIME as its timestamp
 UI_WINDOW Multi_ingame_window;											// the window object for the join screen
@@ -1089,15 +1089,15 @@ void multi_ingame_select_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :
+	case SDLK_ESCAPE :
 		multi_quit_game(PROMPT_CLIENT);		
 		break;
 
-	case KEY_UP:
+	case SDLK_UP:
 		multi_ingame_scroll_select_up();
 		break;
 
-	case KEY_DOWN:
+	case SDLK_DOWN:
 		multi_ingame_scroll_select_down();
 		break;
 	}	
@@ -1150,11 +1150,8 @@ void multi_ingame_select_close()
 void multi_ingame_join_display_ship(object *objp,int y_start)
 {
 	int icon_num,idx;
-	ship_info *sip;
 	int y_spacing;
 	ship_weapon *wp;
-
-	sip = &Ship_info[Ships[objp->instance].ship_info_index];
 	
 	// blit the ship name itself
 	gr_set_color_fast(&Color_normal);
@@ -1264,8 +1261,7 @@ void multi_ingame_handle_timeout()
 	int time_left = timestamp_until(Ingame_time_left) / 1000;
 	char tl_string[100];
 	gr_set_color_fast(&Color_bright);
-	memset(tl_string,0,100);
-	sprintf(tl_string,XSTR("Time remaining : %d s\n",682),time_left);	
+	SDL_snprintf(tl_string,SDL_arraysize(tl_string),XSTR("Time remaining : %d s\n",682),time_left);
 	gr_string(Multi_ingame_timer_coords[gr_screen.res][0], Multi_ingame_timer_coords[gr_screen.res][1], tl_string);
 }
 
@@ -1349,7 +1345,7 @@ void process_ingame_ships_packet( ubyte *data, header *hinfo )
 		Objects[objnum].net_signature = net_signature;
 
 		// assign any common data
-		strcpy(Ships[ship_num].ship_name, ship_name);
+		SDL_strlcpy(Ships[ship_num].ship_name, ship_name, NAME_LENGTH);
 		Ships[ship_num].flags = sflags;
 		Ships[ship_num].team = team;
 		Ships[ship_num].wingnum = (int)wing_data;				
@@ -1375,7 +1371,7 @@ void process_ingame_ships_packet( ubyte *data, header *hinfo )
 			objp = &Objects[Ships[idx].objnum];		
 			multi_ts_get_team_and_slot(Ships[idx].ship_name, &team_val, &slot_index);
 			if ( team_val != -1 ) {
-				Assert( slot_index != -1 );
+				SDL_assert( slot_index != -1 );
 
 				// change the ship type and the weapons
 				change_ship_type(objp->instance, Wss_slots_teams[team_val][slot_index].ship_class);
@@ -1492,7 +1488,7 @@ void process_ingame_wings_packet( ubyte *data, header *hinfo )
 
 		GET_DATA( what );
 		if ( what == INGAME_WING_NOT_ARRIVED ) {
-			Assert( wingp->total_arrived_count == 0 );			// this had better be true!!!
+			SDL_assert( wingp->total_arrived_count == 0 );			// this had better be true!!!
 		} else if ( what == INGAME_WING_DEPARTED ) {
 			// mark the wing as gone.  if it isn't, it soon will be.  Maybe we should send more information
 			// about these wings later (like total_arrived_count, etc), but we will see.
@@ -1508,8 +1504,8 @@ void process_ingame_wings_packet( ubyte *data, header *hinfo )
 			GET_DATA( current_count );
 			GET_DATA( current_wave );
 
-			Assert( current_wave > 0 );
-			Assert( total_arrived_count > 0 );
+			SDL_assert( current_wave > 0 );
+			SDL_assert( total_arrived_count > 0 );
 
 			// for this wing, strip it down to nothing.  Let the parse object ocde recreate the
 			// wing from the parse objects, then bash any weapons, etc for player wings.  We need
@@ -1522,9 +1518,9 @@ void process_ingame_wings_packet( ubyte *data, header *hinfo )
 				int index, objnum;
 
 				index = wingp->ship_index[i];
-				Assert( index != -1 );
+				SDL_assert( index != -1 );
 				objnum = Ships[index].objnum;
-				Assert( objnum != -1 );
+				SDL_assert( objnum != -1 );
 
 				// delete the object since we are filling the wing again anyway.
 				obj_delete( objnum );
@@ -1550,7 +1546,7 @@ void process_ingame_wings_packet( ubyte *data, header *hinfo )
 				// assign which_one to be the given signature - wing's base signature.  This let's us
 				// know which ship to create (i.e. the total_arrivel_count);
 				which_one = signature - wingp->net_signature;
-				Assert( (which_one >= 0) && (which_one < (wingp->net_signature + (wingp->wave_count*wingp->num_waves))) );
+				SDL_assert( (which_one >= 0) && (which_one < (wingp->net_signature + (wingp->wave_count*wingp->num_waves))) );
 				wingp->total_arrived_count = (ushort)which_one;
 
 				// determine which ship in the ahip arrival list this guy is.  It is a 0 based index
@@ -1578,7 +1574,7 @@ void process_ingame_wings_packet( ubyte *data, header *hinfo )
 				// not -1, then be sure we have a valid slot, then change the ship type, etc.
 				multi_ts_get_team_and_slot(shipp->ship_name, &team, &slot_index);
 				if ( team != -1 ) {
-					Assert( slot_index != -1 );
+					SDL_assert( slot_index != -1 );
 
 					// change the ship type and the weapons
 					change_ship_type(objp->instance, Wss_slots_teams[team][slot_index].ship_class);
@@ -1592,7 +1588,7 @@ void process_ingame_wings_packet( ubyte *data, header *hinfo )
 				// if this is a player ship, make sure we find out who's it is and set their objnum accordingly
 				for( j = 0; j < MAX_PLAYERS; j++){
 					if(MULTI_CONNECTED(Net_players[j]) && (Net_players[j].player->objnum == signature)) {
-						Assert( team != -1 );		// to help trap errors!!!
+						SDL_assert( team != -1 );		// to help trap errors!!!
 						nprintf(("Network", "Making %s ship for %s\n", Ships[shipnum].ship_name, Net_players[j].player->callsign));
 						multi_assign_player_ship( j, objp, Ships[shipnum].ship_info_index );
 						objp->flags |= OF_PLAYER_SHIP;
@@ -1736,7 +1732,7 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 
 		// add the # of respawns this ship has left
 		pobj = mission_parse_get_arrival_ship( Objects[rdata].net_signature );
-		Assert(pobj != NULL);
+		SDL_assert(pobj != NULL);
 		ADD_UINT(pobj->respawn_count);
 
 		// add the ships ets settings
@@ -1757,7 +1753,7 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 		val = (ubyte)shipp->weapons.num_secondary_banks;		// for sanity checking
 		ADD_DATA(val);
 		for ( i = 0; i < shipp->weapons.num_secondary_banks; i++ ) {
-			Assert( shipp->weapons.secondary_bank_ammo[i] < UCHAR_MAX );
+			SDL_assert( shipp->weapons.secondary_bank_ammo[i] < UCHAR_MAX );
 			val = (ubyte)shipp->weapons.secondary_bank_ammo[i];
 			ADD_DATA(val);
 		}
@@ -1777,7 +1773,7 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 
 	// send the packet
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
-		Assert(pl != NULL);		
+		SDL_assert(pl != NULL);		
 		multi_io_send_reliable(pl, data, packet_size);
 	} else {		
 		multi_io_send_reliable(Net_player, data, packet_size);
@@ -1818,14 +1814,14 @@ void multi_ingame_validate_players()
 			}
 
 			ship_name = multi_ts_get_shipname( Net_players[i].p_info.team, Net_players[i].p_info.ship_index );
-			Assert( ship_name != NULL );
+			SDL_assert( ship_name != NULL );
 			shipnum = ship_name_lookup( ship_name );
 			if ( shipnum == -1 ) {
 				// ship could be respawning
 				continue;
 			}
 			objnum = Ships[shipnum].objnum;
-			Assert( objnum != -1 );
+			SDL_assert( objnum != -1 );
 
 			// if this guy's objnum isn't a ship, then it should proably be a ghost!!
 			if ( Objects[objnum].type == OBJ_SHIP ) {
@@ -1834,7 +1830,7 @@ void multi_ingame_validate_players()
 					Net_players[i].player->objnum = objnum;
 				}
 			} else {
-				Assert( Objects[objnum].type == OBJ_GHOST );
+				SDL_assert( Objects[objnum].type == OBJ_GHOST );
 			}
 		}
 	}
@@ -1871,7 +1867,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		}
 		
 		// make sure this player doesn't already have an object
-		Assert(MULTI_CONNECTED(Net_players[player_num]));
+		SDL_assert(MULTI_CONNECTED(Net_players[player_num]));
 		if(Net_players[player_num].player->objnum != -1){
 			send_ingame_ship_request_packet(INGAME_SR_DENY,0,&Net_players[player_num]);
 			break;
@@ -1936,7 +1932,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 
 		// get the object itself
 		objp = multi_get_network_object(Multi_ingame_join_sig);
-		Assert(objp != NULL);
+		SDL_assert(objp != NULL);
 
 		// get its most recent position and orientation
 		//GET_DATA(objp->pos);
@@ -1959,14 +1955,14 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		// must change the ship type and weapons.  An ingame joiner know about the default class
 		// and weapons for a ship, but these could have changed.
 		multi_ts_get_team_and_slot(Player_ship->ship_name, &team, &slot_index);
-		Assert( team != -1 );
-		Assert( slot_index != -1 );
+		SDL_assert( team != -1 );
+		SDL_assert( slot_index != -1 );
 		change_ship_type(objp->instance, Wss_slots_teams[team][slot_index].ship_class);
 		wl_bash_ship_weapons(&Player_ship->weapons,&Wss_slots_teams[team][slot_index]);
 
 		// get the parse object for it and assign the respawn count
 		pobj = mission_parse_get_arrival_ship( objp->net_signature );
-		Assert(pobj != NULL);
+		SDL_assert(pobj != NULL);
 		pobj->respawn_count = respawn_count;
 
 		// get the ships ets settings
@@ -1985,7 +1981,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 
 		// secondary bank ammo data
 		GET_DATA( num_secondary_banks );
-		Assert( num_secondary_banks == Player_ship->weapons.num_secondary_banks );
+		SDL_assert( num_secondary_banks == Player_ship->weapons.num_secondary_banks );
 		for ( i = 0; i < Player_ship->weapons.num_secondary_banks; i++ ) {
 			GET_DATA(val);
 			Player_ship->weapons.secondary_bank_ammo[i] = val;

@@ -257,8 +257,8 @@ typedef struct state_stack {
 } state_stack;
 
 // DO NOT MAKE THIS NON-STATIC!!!!
-LOCAL state_stack gs[GS_STACK_SIZE];
-LOCAL int gs_current_stack = -1;						// index of top state on stack.
+static state_stack gs[GS_STACK_SIZE];
+static int gs_current_stack = -1;						// index of top state on stack.
 
 static int state_reentry = 0;  // set if we are already in state processing
 static int state_processing_event_post = 0;  // set if we are already processing an event to switch states
@@ -341,7 +341,9 @@ const char *GS_event_text[] =
 	"GS_EVENT_TOGGLE_GLIDE",							// 70
 	"GS_EVENT_RED_ALERT",								
 	"GS_EVENT_SIMULATOR_ROOM",
-	"GS_EVENT_EMD_CAMPAIGN",	
+	"GS_EVENT_EMD_CAMPAIGN",
+	"GS_EVENT_PXO",
+	"GS_EVENT_PXO_HELP"
 };
 //XSTR:ON
 
@@ -408,6 +410,8 @@ const char *GS_state_text[] =
 	"GS_STATE_CMD_BRIEF",
 	"GS_STATE_RED_ALERT",
 	"GS_STATE_END_OF_CAMPAIGN",
+	"GS_STATE_PXO",
+	"GS_STATE_PXO_HELP"								// 60
 };
 //XSTR:ON
 
@@ -437,7 +441,7 @@ void gameseq_post_event( int event )
 		nprintf(("Warning", "Received post for event %s during state transtition. Find Allender if you are unsure if this is bad.\n", GS_event_text[event] ));
 	}
 
-	Assert(gs[gs_current_stack].queue_tail < MAX_GAMESEQ_EVENTS);
+	SDL_assert(gs[gs_current_stack].queue_tail < MAX_GAMESEQ_EVENTS);
 	gs[gs_current_stack].event_queue[gs[gs_current_stack].queue_tail++] = event;
 	if ( gs[gs_current_stack].queue_tail == MAX_GAMESEQ_EVENTS )
 		gs[gs_current_stack].queue_tail = 0;
@@ -461,7 +465,7 @@ int gameseq_get_event()
 // returns one of the GS_STATE_ macros
 int gameseq_get_state(int depth)
 {	
-	Assert(depth <= gs_current_stack);
+	SDL_assert(depth <= gs_current_stack);
 			
 	return gs[gs_current_stack - depth].current_state;
 }
@@ -485,8 +489,8 @@ void gameseq_set_state(int new_state, int override)
 		mprintf(( "Throwing out event %d because of state set from %d to %d\n", event, old_state, new_state ));
 	}
 
-	Assert( state_reentry == 1 );		// Get John! (Invalid state sequencing!)
-	Assert( state_in_event_processer == 1 );		// can only call from game_process_event
+	SDL_assert( state_reentry == 1 );		// Get John! (Invalid state sequencing!)
+	SDL_assert( state_in_event_processer == 1 );		// can only call from game_process_event
 
 	state_processing_event_post++;
 	state_reentry++;
@@ -513,11 +517,11 @@ void gameseq_push_state( int new_state )
 //		mprintf(( "Throwing out event %d because of state push from %d to %d\n", event, old_state, new_state ));
 //	}
 
-	Assert( state_reentry == 1 );		// Get John! (Invalid state sequencing!)
-	Assert( state_in_event_processer == 1 );		// can only call from game_process_event
+	SDL_assert( state_reentry == 1 );		// Get John! (Invalid state sequencing!)
+	SDL_assert( state_in_event_processer == 1 );		// can only call from game_process_event
 
 	gs_current_stack++;
-	Assert(gs_current_stack < GS_STACK_SIZE);
+	SDL_assert(gs_current_stack < GS_STACK_SIZE);
 
 	state_processing_event_post++;
 	state_reentry++;
@@ -536,7 +540,7 @@ void gameseq_pop_state()
 {
 	int popped_state = 0;
 
-	Assert(state_reentry == 1);		// Get John! (Invalid state sequencing!)
+	SDL_assert(state_reentry == 1);		// Get John! (Invalid state sequencing!)
 
 	if (gs_current_stack >= 1) {
 		int old_state;
@@ -553,7 +557,6 @@ void gameseq_pop_state()
 
 		// set the popped_state to be the one we moved into
 		gs_current_stack--;
-		popped_state = gs[gs_current_stack].current_state;
 
 		// swap all remaining events from the state which just got popped to this new state
 		while(gs[gs_current_stack+1].queue_head != gs[gs_current_stack+1].queue_tail){
@@ -602,7 +605,7 @@ int gameseq_process_events()
 	int event, old_state;
 	old_state = gs[gs_current_stack].current_state;
 
-	Assert(state_reentry == 0);		// Get John! (Invalid state sequencing!)
+	SDL_assert(state_reentry == 0);		// Get John! (Invalid state sequencing!)
 
 	while ( (event = gameseq_get_event()) != -1 ) {
 		state_reentry++;

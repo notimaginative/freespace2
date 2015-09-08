@@ -860,7 +860,7 @@ int wing_editor::update_data(int redraw)
 			ai_update_goal_references(REF_TYPE_WING, old_name, str);
 			for (i=0; i<Num_reinforcements; i++)
 				if (!stricmp(old_name, Reinforcements[i].name)) {
-					Assert(strlen(str) < NAME_LENGTH);
+					SDL_assert(strlen(str) < NAME_LENGTH);
 					strcpy(Reinforcements[i].name, str);
 				}
 
@@ -1164,7 +1164,7 @@ void wing_editor::OnGoals2()
 {
 	ShipGoalsDlg dlg_goals;
 
-	Assert(cur_wing != -1);
+	SDL_assert(cur_wing != -1);
 	dlg_goals.self_wing = cur_wing;
 	dlg_goals.DoModal();
 	if (query_initial_orders_conflict(cur_wing))

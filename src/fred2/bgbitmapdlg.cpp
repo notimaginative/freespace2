@@ -428,8 +428,8 @@ void bg_bitmap_dlg::OnSelchangeNebcolor()
 
 	char palette_filename[1024];
 
-	Assert( Mission_palette >= 0 );
-	Assert( Mission_palette <= 98 );
+	SDL_assert( Mission_palette >= 0 );
+	SDL_assert( Mission_palette <= 98 );
 
 	sprintf( palette_filename, "gamepalette%d-%02d", 1, Mission_palette+1 );
 
@@ -547,7 +547,7 @@ void bg_bitmap_dlg::build_nebfile_list()
 	CComboBox *box = (CComboBox *) GetDlgItem(IDC_NEBPATTERN);
 
 	// wacky
-	Assert(box != NULL);
+	SDL_assert(box != NULL);
 	if(box == NULL){
 		return;
 	}
@@ -644,7 +644,7 @@ void bg_bitmap_dlg::OnSunChange()
 
 		// select the proper item from the dropdown
 		drop_index = ((CComboBox*)GetDlgItem(IDC_SUN1))->FindString( -1, Suns[s_index].filename );
-		Assert(drop_index != CB_ERR);
+		SDL_assert(drop_index != CB_ERR);
 		if(drop_index != CB_ERR){
 			((CComboBox*)GetDlgItem(IDC_SUN1))->SetCurSel(drop_index);
 		}
@@ -716,7 +716,7 @@ void bg_bitmap_dlg::OnSunDropdownChange()
 	}
 
 	int new_index = ((CComboBox*)GetDlgItem(IDC_SUN1))->GetCurSel();
-	Assert(new_index != CB_ERR);
+	SDL_assert(new_index != CB_ERR);
 
 	// get the new string
 	if(new_index != CB_ERR){
@@ -809,7 +809,7 @@ void bg_bitmap_dlg::OnBitmapChange()
 
 		// select the proper item from the dropdown
 		drop_index = ((CComboBox*)GetDlgItem(IDC_SBITMAP))->FindString( -1, Starfield_bitmap_instance[b_index].filename );
-		Assert(drop_index != CB_ERR);
+		SDL_assert(drop_index != CB_ERR);
 		if(drop_index != CB_ERR){
 			((CComboBox*)GetDlgItem(IDC_SBITMAP))->SetCurSel(drop_index);
 		}
@@ -881,7 +881,7 @@ void bg_bitmap_dlg::OnBitmapDropdownChange()
 	}
 
 	int new_index = ((CComboBox*)GetDlgItem(IDC_SBITMAP))->GetCurSel();
-	Assert(new_index != CB_ERR);
+	SDL_assert(new_index != CB_ERR);
 
 	// get the new string
 	if(new_index != CB_ERR){

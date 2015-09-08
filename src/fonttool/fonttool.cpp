@@ -65,7 +65,7 @@
 
 #include "fonttool.h"
 
-char Usage[] = "Usage:\n"	\
+static const char Usage[] = "Usage:\n"	\
 "\nFontTool x.pcx [y.vf]\n" \
 "\n  If you specify a PCX file, then a font will be\n" \
 "  created with the same base name.   If you also\n" \
@@ -87,6 +87,8 @@ char Usage[] = "Usage:\n"	\
 
 int Font1 = -1;
 
+int Fonttool_running = 1;
+
 void demo_set_playback_filter() {}
 float flFrametime = 0.0f;
 
@@ -96,6 +98,7 @@ void freespace_menu_background()
 	gr_clear();
 }
 
+extern "C"
 int main(int argc, char *argv[] )
 {
 	int t1, t2;
@@ -109,7 +112,7 @@ int main(int argc, char *argv[] )
 	}
 
 	if ( argc > 1 )	{
-		strlwr( argv[1] );
+		SDL_strlwr( argv[1] );
 
 		if ( strstr( argv[1], ".pcx" ) )
 			t1 = PCX;
@@ -118,7 +121,7 @@ int main(int argc, char *argv[] )
 	}
 
 	if ( argc > 2 )	{
-		strlwr( argv[2] );
+		SDL_strlwr( argv[2] );
 
 		if ( strstr( argv[2], ".pcx" ) )
 			t2 = PCX;
@@ -131,11 +134,7 @@ int main(int argc, char *argv[] )
 	else if ( (t1==PCX) && (t2==FONT) )
 		fonttool_create_font( argv[1], argv[2] );
 	else if ( (t1==FONT) && (t2==NONE) )
-#ifdef PLAT_UNIX
-		fonttool_edit_kerning( argv[1], NULL );
-#else
 		fonttool_edit_kerning( argv[1] );
-#endif
 	else if ( (t1==FONT) && (t2==FONT) )
 		fonttool_kerning_copy( argv[1], argv[2] );
 	else

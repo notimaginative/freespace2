@@ -205,7 +205,7 @@
  * make Int3's do nothing when InterplayQA is defined
  * 
  * 65    4/25/98 11:55p Lawrance
- * compile out Int3() and Assert() for release demo build
+ * compile out Int3() and SDL_assert() for release demo build
  * 
  *
  * $NoKeywords: $
@@ -235,37 +235,11 @@
 	#define GAME_CD_CHECK
 #endif
 
-// 4127 is constant conditional (assert)
-// 4100 is unreferenced formal parameters,
-// 4514 is unreferenced inline function removed, 
-// 4201 is nameless struct extension used. (used by windows header files)
-// 4410 illegal size for operand... ie... 	fxch st(1)
-// 4611 is _setjmp warning.  Since we use setjmp alot, and we don't really use constructors or destructors, this warning doesn't really apply to us.
-// 4725 is the pentium division bug warning, and I can't seem to get rid of it, even with this pragma.
-//      JS: I figured out the disabling 4725 works, but not on the first function in the module.
-//      So to disable this, I add in a stub function at the top of each module that does nothing.
-// 4710 is inline function not expanded (who cares?)
-// 4711 tells us an inline function was expanded (who cares?)
-// 4702 unreachable code.  I care, but too many to deal with
-// 4201 nonstandard extension used : nameless struct/union (happens a lot in Windows include headers)
-// 4390 emptry control statement (triggered by nprintf and mprintf's inside of one-line if's, etc)
-#ifndef PLAT_UNIX
-#pragma warning(disable: 4127 4100 4514 4201 4410 4611 4725 4710 4711 4702 4201 4390)
-#endif
 
-#include <stdio.h>	// For NULL, etc
-#include <stdlib.h>
-#include <memory.h>
+#include "SDL.h"
 
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
+#include "platform.h"
 
-#include <string.h>
-
-#ifdef PLAT_UNIX
-#include "unix.h"
-#endif
 
 // value to represent an uninitialized state in any int or uint
 #define UNINITIALIZED 0x7f8e6d9c
@@ -279,28 +253,22 @@
 #define MAX_TEAMS		3
 
 #define USE_INLINE_ASM 1		// Define this to use inline assembly
-#define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(a))
 
-#define LOCAL static			// make module local varilable static.
 
-typedef __int64 longlong;
-typedef long fix;
-typedef unsigned char ubyte;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef int fs_time_t;	// forced 32-bit version of time_t - **don't use this unless required**
+typedef Sint32 fix;
+typedef Uint8 ubyte;
+typedef Uint16 ushort;
+typedef Uint32 uint;
+typedef Sint32 fs_time_t;	// forced 32-bit version of time_t - **don't use this unless required**
 
 // ptr_? is a value matching the size of a pointer on this specific platform
 #if ( defined(__x86_64__) || defined(_WIN64) )
-typedef __int64 ptr_s;
-typedef unsigned __int64 ptr_u;
+typedef Sint64 ptr_s;
+typedef Uint64 ptr_u;
 #else
-typedef int ptr_s;
-typedef unsigned int ptr_u;
+typedef Sint32 ptr_s;
+typedef Uint32 ptr_u;
 #endif
-
-#define HARDWARE_ONLY
 
 //Stucture to store clipping codes in a word
 typedef struct ccodes {
@@ -320,15 +288,6 @@ typedef struct vector {
 typedef struct vectora {
 	float	xyz[3];
 } vectora;
-
-typedef struct vec2d {
-	float i,j;
-} vec2d;
-
-// Used for some 2d primitives, like gr_poly
-typedef struct vert2df {
-	float x, y;
-} vert2df;
 
 typedef struct angles {
 	float	p, b, h;
@@ -362,11 +321,10 @@ typedef struct vertex {
 
 #define	BMP_AABITMAP		(1<<0)				// antialiased bitmap
 #define	BMP_TEX_XPARENT		(1<<1)				// transparent texture
-#define	BMP_TEX_NONDARK		(1<<2)				// nondarkening texture
-#define	BMP_TEX_OTHER		(1<<3)				// so we can identify all "normal" textures
+#define	BMP_TEX_OTHER		(1<<2)				// so we can identify all "normal" textures
 
 // any texture type
-#define	BMP_TEX_ANY				( BMP_TEX_XPARENT | BMP_TEX_NONDARK | BMP_TEX_OTHER )
+#define	BMP_TEX_ANY				( BMP_TEX_XPARENT | BMP_TEX_OTHER )
 
 // max res == 1024x768. max texture size == 256
 #define MAX_BMAP_SECTIONS_X				4
@@ -392,9 +350,8 @@ typedef struct bitmap {
 } bitmap;
 
 //This are defined in MainWin.c
-extern void _cdecl WinAssert(const char * text, const char *filename, int line);
-extern void _cdecl Error( const char * filename, int line, const char * format, ... );
-extern void _cdecl Warning( const char * filename, int line, const char * format, ... );
+extern void __cdecl Error( const char * filename, int line, const char * format, ... );
+extern void __cdecl Warning( const char * filename, int line, const char * format, ... );
 
 #include "outwnd.h"
 
@@ -416,12 +373,10 @@ extern void _cdecl Warning( const char * filename, int line, const char * format
 // Error( LOCATION, "Error opening %s", filename );
 
 #if defined(NDEBUG)
-#define Assert(x) do {} while (0)
 #define STUB_FUNCTION
 #else
 void gr_activate(int);
-#define Assert(x) do { if (!(x)){ gr_activate(0); WinAssert(#x,__FILE__,__LINE__); gr_activate(1); } } while (0)
-#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d, thread %d\n", __FUNCTION__, LOCATION, getpid()))
+#define STUB_FUNCTION mprintf(("STUB: %s at %s, line %d\n", __FUNCTION__, LOCATION))
 #endif
 
 //#define Int3() _asm { int 3 }
@@ -457,6 +412,7 @@ void gr_activate(int);
 extern int	Fred_running;  // Is Fred running, or FreeSpace?
 extern int Pofview_running;
 extern int Nebedit_running;
+extern int Fonttool_running;
 
 
 //======================================================================================
@@ -568,65 +524,18 @@ void dc_printf( const char *format, ... );
 //======================================================================================
 //======================================================================================
 
-
-
 #include "fix.h"
 #include "floating.h"
 
 // Some constants for stuff
 #define MAX_FILENAME_LEN	32			// Length for filenames, ie "title.pcx"
-#define MAX_PATH_LEN			128		// Length for pathnames, ie "c:\bitmaps\title.pcx"
+#define MAX_PATH_LEN		256			// Length for pathnames, ie "c:\bitmaps\title.pcx"
 
 // contants and defined for byteswapping routines (useful for mac)
 
-#define SWAPSHORT(x)	(							\
-						((ubyte)x << 8) |					\
-						(((ushort)x) >> 8)			\
-						)
-						
-#define SWAPINT(x)		(							\
-						(x << 24) |					\
-						(((ulong)x) >> 24) |		\
-						((x & 0x0000ff00) << 8) |	\
-						((x & 0x00ff0000) >> 8)		\
-						)
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-inline 
-float SWAPFLOAT( float *x )
-{
-    #if ! defined( __MWERKS__ )
-		//Usage:  void __stwbrx( unsigned int, unsigned int *address, int byteOffsetFromAddress );
-		#define __stwbrx( value, base, index ) \
-			 __asm__ ( "stwbrx %0, %1, %2" :  : "r" (value), "b%" (index), "r" (base) : "memory" )
-	#endif
-
-	union
-	{
-		int		i;
-		float		f;
-	}buf;
-	
-	//load the float into the integer unit
-	//unsigned int	a = ((long*) x)[0];
-        register int a = ((int*) x )[0];
-
-	//store it to the transfer union, with byteswapping
-	__stwbrx( a, 0, &buf.i );	
-
-	//load it into the FPU and return it
-	return buf.f;
-}
-#endif
-
-#if SDL_BYTEORDER != SDL_BIG_ENDIAN
-#define INTEL_INT(x)	x
-#define INTEL_SHORT(x)	x
-#define INTEL_FLOAT(x)	(*x)
-#else
-#define INTEL_INT(x)	SWAPINT(x)
-#define INTEL_SHORT(x)	SWAPSHORT(x)
-#define INTEL_FLOAT(x)	SWAPFLOAT(x)
-#endif
+#define INTEL_INT(x)	SDL_SwapLE32(x)
+#define INTEL_SHORT(x)	SDL_SwapLE16(x)
+#define INTEL_FLOAT(x)	SDL_SwapFloatLE(x)
 
 #define TRUE	1
 #define FALSE	0

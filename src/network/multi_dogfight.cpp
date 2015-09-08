@@ -170,7 +170,7 @@ void multi_df_blit_kill_matrix();
 
 // stuff a string representing the # of kills, player X had on player Y (where X and Y are indices into Multi_df_score)
 // returns the # of kills
-int multi_df_stuff_kills(char *kills, int player_x, int player_y);
+int multi_df_stuff_kills(char *kills, const int max_klen, int player_x, int player_y);
 
 
 // ----------------------------------------------------------------------------------------------------
@@ -217,7 +217,7 @@ void multi_df_eval_kill(net_player *killer, object *dead_obj)
 	if(dead_index < 0){
 		return;
 	}
-	Assert(dead_index < MAX_PLAYERS);
+	SDL_assert(dead_index < MAX_PLAYERS);
 	if(dead_index == NET_PLAYER_INDEX(killer)){
 		return;
 	}
@@ -258,7 +258,7 @@ void multi_df_debrief_init()
 
 	// load background bitmap
 	Multi_df_background_bitmap = bm_load(Multi_df_background_fname[gr_screen.res]);
-	Assert(Multi_df_background_bitmap);
+	SDL_assert(Multi_df_background_bitmap);
 
 	// create the UI window
 	Multi_df_window.create(0, 0, gr_screen.max_w, gr_screen.max_h, 0);
@@ -297,7 +297,7 @@ void multi_df_debrief_do()
 
 	// process keypresses
 	switch(new_k){
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		multi_debrief_esc_hit();
 		break;
 	}
@@ -328,7 +328,7 @@ void multi_df_debrief_do()
 	chatbox_render();
 
 	// draw the mission title
-	strcpy(buf, The_mission.name);
+	SDL_strlcpy(buf, The_mission.name, SDL_arraysize(buf));
 	gr_force_fit_string(buf, 255, Kill_matrix_title_coords[gr_screen.res][2]);
 	gr_set_color_fast(&Color_bright_white);
 	gr_string(Kill_matrix_title_coords[gr_screen.res][0], Kill_matrix_title_coords[gr_screen.res][1], buf);
@@ -413,7 +413,7 @@ void multi_df_setup_kill_matrix()
 			}
 
 			s->stats = Net_players[idx].player->stats;
-			strcpy(s->callsign, Net_players[idx].player->callsign);			
+			SDL_strlcpy(s->callsign, Net_players[idx].player->callsign, SDL_arraysize(s->callsign));
 			s->np_index = idx;
 		}
 	}
@@ -443,12 +443,12 @@ void multi_df_blit_kill_matrix()
 	cy = top_y_start;
 	for(idx=0; idx<Multi_df_score_count; idx++){		
 		// force the string to fit nicely
-		strcpy(squashed_string, Multi_df_score[idx].callsign);
+		SDL_strlcpy(squashed_string, Multi_df_score[idx].callsign, SDL_arraysize(squashed_string));
 		gr_force_fit_string(squashed_string, CALLSIGN_LEN, (int)max_text_width);
 		gr_get_string_size(&str_len, NULL, squashed_string);
 
 		// set color and blit the string		
-		Assert(Multi_df_score[idx].np_index >= 0);
+		SDL_assert(Multi_df_score[idx].np_index >= 0);
 		if(Multi_df_score[idx].np_index >= 0){
 			gr_set_color_fast(Color_netplayer[Multi_df_score[idx].np_index]);
 		}
@@ -473,10 +473,10 @@ void multi_df_blit_kill_matrix()
 
 		// draw the name
 		cx = Multi_df_display_coords[gr_screen.res][0];
-		strcpy(squashed_string, Multi_df_score[idx].callsign);
+		SDL_strlcpy(squashed_string, Multi_df_score[idx].callsign, SDL_arraysize(squashed_string));
 		gr_force_fit_string(squashed_string, CALLSIGN_LEN, (int)max_text_width);
 		gr_get_string_size(&str_len, NULL, squashed_string);		
-		Assert(Multi_df_score[idx].np_index >= 0);
+		SDL_assert(Multi_df_score[idx].np_index >= 0);
 		if(Multi_df_score[idx].np_index >= 0){
 			gr_set_color_fast(Color_netplayer[Multi_df_score[idx].np_index]);
 		}
@@ -487,11 +487,11 @@ void multi_df_blit_kill_matrix()
 		for(s_idx=0; s_idx<Multi_df_score_count; s_idx++){
 			// stuff the string to be displayed and select the proper display color
 			if(s_idx == idx){
-				strcpy(squashed_string, "-");
+				SDL_strlcpy(squashed_string, "-", SDL_arraysize(squashed_string));
 				gr_set_color_fast(&Color_grey);
 			} else {
-				row_total += multi_df_stuff_kills(squashed_string, idx, s_idx);
-				Assert(Multi_df_score[idx].np_index >= 0);
+				row_total += multi_df_stuff_kills(squashed_string, SDL_arraysize(squashed_string), idx, s_idx);
+				SDL_assert(Multi_df_score[idx].np_index >= 0);
 				if(Multi_df_score[idx].np_index >= 0){
 					gr_set_color_fast(Color_netplayer[Multi_df_score[idx].np_index]);
 				}				
@@ -508,7 +508,7 @@ void multi_df_blit_kill_matrix()
 
 		// draw the row total
 		gr_set_color_fast(Color_netplayer[Multi_df_score[idx].np_index]);
-		sprintf(squashed_string, "(%d)", row_total);
+		SDL_snprintf(squashed_string, SDL_arraysize(squashed_string), "(%d)", row_total);
 		gr_get_string_size(&str_len, NULL, squashed_string);
 		gr_string(Multi_df_display_coords[gr_screen.res][0] + Multi_df_display_coords[gr_screen.res][2] - (MULTI_DF_TOTAL_ADJUST + str_len), cy, squashed_string);
 
@@ -541,11 +541,11 @@ void multi_df_blit_kill_matrix()
 
 // stuff a string representing the # of kills, player X had on player Y (where X and Y are indices into Multi_df_score)
 // returns the # of kills
-int multi_df_stuff_kills(char *kills, int player_x, int player_y)
+int multi_df_stuff_kills(char *kills, const int max_klen, int player_x, int player_y)
 {
 	multi_df_score *s = &Multi_df_score[player_x];
-	strcpy(kills, "");
+	SDL_strlcpy(kills, "", max_klen);
 	
-	sprintf(kills, "%d", s->stats.m_dogfight_kills[Multi_df_score[player_y].np_index]);
+	SDL_snprintf(kills, max_klen, "%d", s->stats.m_dogfight_kills[Multi_df_score[player_y].np_index]);
 	return s->stats.m_dogfight_kills[Multi_df_score[player_y].np_index];
 }

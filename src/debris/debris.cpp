@@ -375,10 +375,10 @@ void debris_render(object * obj)
 	pm = NULL;	
 	num = obj->instance;
 
-	Assert(num >= 0 && num < MAX_DEBRIS_PIECES );
+	SDL_assert(num >= 0 && num < MAX_DEBRIS_PIECES );
 	db = &Debris[num];
 
-	Assert( db->flags & DEBRIS_USED );
+	SDL_assert( db->flags & DEBRIS_USED );
 
 	// Swap in a different texture depending on the species
 	if ( (db->species > -1) && (db->species < MAX_SPECIES_NAMES) )	{
@@ -423,7 +423,7 @@ void debris_clear_expired_flag(debris *db)
 		if ( db->is_hull ) {
 			Num_hull_pieces--;
 			list_remove(Hull_debris_list, db);
-			Assert( Num_hull_pieces >= 0 );
+			SDL_assert( Num_hull_pieces >= 0 );
 		}
 	}
 }
@@ -440,11 +440,11 @@ void debris_delete( object * obj )
 	debris	*db;
 
 	num = obj->instance;
-	Assert( Debris[num].objnum == OBJ_INDEX(obj));
+	SDL_assert( Debris[num].objnum == OBJ_INDEX(obj));
 
 	db = &Debris[num];
 
-	Assert( Num_debris_pieces >= 0 );
+	SDL_assert( Num_debris_pieces >= 0 );
 	if ( db->is_hull && (db->flags & DEBRIS_EXPIRE) ) {
 		debris_clear_expired_flag(db);
 	}
@@ -504,7 +504,7 @@ void debris_process_post(object * obj, float frame_time)
 	num = obj->instance;
 
 	int objnum = OBJ_INDEX(obj);
-	Assert( Debris[num].objnum == objnum );
+	SDL_assert( Debris[num].objnum == objnum );
 	debris *db = &Debris[num];
 
 	if ( db->is_hull ) {
@@ -680,8 +680,8 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vecto
 
 	parent_objnum = OBJ_INDEX(source_obj);
 
-	Assert( (source_obj->type == OBJ_SHIP ) || (source_obj->type == OBJ_GHOST));
-	Assert( source_obj->instance >= 0 && source_obj->instance < MAX_SHIPS );	
+	SDL_assert( (source_obj->type == OBJ_SHIP ) || (source_obj->type == OBJ_GHOST));
+	SDL_assert( source_obj->instance >= 0 && source_obj->instance < MAX_SHIPS );	
 	shipp = &Ships[source_obj->instance];
 	vaporize = (shipp->flags &SF_VAPORIZE);
 
@@ -921,7 +921,7 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vecto
 
 
 	// ensure vel is valid
-	Assert( !vm_is_vec_nan(&obj->phys_info.vel) );
+	SDL_assert( !vm_is_vec_nan(&obj->phys_info.vel) );
 
 //	if ( hull_flag )	{
 //		vm_vec_zero(&obj->phys_info.vel);
@@ -997,26 +997,22 @@ void debris_hit(object *debris_obj, object *other_obj, vector *hitpos, float dam
 // NOTE: debris_hit_info pointer NULL for debris:weapon collision, otherwise debris:ship collision.
 //	Return true if hit, else return false.
 //
-#ifndef PLAT_UNIX
-#pragma warning ( push )
-#pragma warning ( disable : 4701 )
-#endif
 int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, collision_info_struct *debris_hit_info)
 {
 	mc_info	mc;
 	int		num;
 
-	Assert( pdebris->type == OBJ_DEBRIS );
+	SDL_assert( pdebris->type == OBJ_DEBRIS );
 
 	num = pdebris->instance;
-	Assert( num >= 0 );
+	SDL_assert( num >= 0 );
 
-	Assert( Debris[num].objnum == OBJ_INDEX(pdebris));	
+	SDL_assert( Debris[num].objnum == OBJ_INDEX(pdebris));	
 
 	// debris_hit_info NULL - so debris-weapon collision
 	if ( debris_hit_info == NULL ) {
 		// debris weapon collision
-		Assert( other_obj->type == OBJ_WEAPON );
+		SDL_assert( other_obj->type == OBJ_WEAPON );
 		mc.model_num = Debris[num].model_num;	// Fill in the model to check
 		mc.submodel_num = Debris[num].submodel_num;
 		model_clear_instance( mc.model_num );
@@ -1035,7 +1031,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, c
 	
 	// debris ship collision -- use debris_hit_info to calculate physics
 	object *ship_obj = other_obj;
-	Assert( ship_obj->type == OBJ_SHIP );
+	SDL_assert( ship_obj->type == OBJ_SHIP );
 
 	object *heavy = debris_hit_info->heavy;
 	object *light = debris_hit_info->light;
@@ -1247,9 +1243,6 @@ int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, c
 		return 0;
 	}
 }
-#ifndef PLAT_UNIX
-#pragma warning ( pop )
-#endif
 
 // ---------------------------------------------------------------------------------------
 // debris_get_team()
@@ -1258,8 +1251,8 @@ int debris_check_collision(object *pdebris, object *other_obj, vector *hitpos, c
 //
 int debris_get_team(object *objp)
 {
-	Assert( objp->type == OBJ_DEBRIS );
-	Assert( objp->instance >= 0 && objp->instance < MAX_DEBRIS_PIECES );
+	SDL_assert( objp->type == OBJ_DEBRIS );
+	SDL_assert( objp->instance >= 0 && objp->instance < MAX_DEBRIS_PIECES );
 	return Debris[objp->instance].team;
 }
 

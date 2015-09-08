@@ -148,7 +148,8 @@ void training_menu_init()
 
 	snazzy_menu_init();
 
-	read_menu_tbl(NOX("TRAINING MENU"), background_img_filename, background_mask_filename, region, &num_training);
+	read_menu_tbl(NOX("TRAINING MENU"), background_img_filename, SDL_arraysize(background_img_filename),
+				  background_mask_filename, SDL_arraysize(background_mask_filename), region, &num_training);
 
 	// load in the background bitmap (filenames are hard-coded temporarily)
 	trainingMenuBitmap = bm_load(background_img_filename);

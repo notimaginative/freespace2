@@ -20,26 +20,11 @@
 // set if running under MsDev - done after os_init(...) has returned
 extern int Os_debugger_running;
 
-// game-wide
-// #define THREADED
-
-#ifdef THREADED
-	#define ENTER_CRITICAL_SECTION(csc)		do { EnterCriticalSection(csc); } while(0);
-	#define LEAVE_CRITICAL_SECTION(csc)		do { LeaveCriticalSection(csc); } while(0);
-#else
-	#define ENTER_CRITICAL_SECTION(csc)		do { } while(0);
-	#define LEAVE_CRITICAL_SECTION(csc)		do { } while(0);
-#endif
-
 // --------------------------------------------------------------------------------------------------
 // OSAPI FUNCTIONS
 //
 
 // initialization/shutdown functions -----------------------------------------------
-
-#ifdef PLAT_UNIX
-extern const char *detect_home(void);
-#endif
 
 // If app_name is NULL or ommited, then TITLE is used
 // for the app name, which is where registry keys are stored.
@@ -47,6 +32,8 @@ void os_init(const char *wclass, const char *title, const char *app_name = NULL,
 
 // set the main window title
 void os_set_title( const char *title );
+// get the main window title
+const char *os_get_title();
 
 // call at program end
 void os_cleanup();
@@ -61,16 +48,14 @@ void os_toggle_fullscreen();
 int os_foreground();
 
 // Returns the handle to the main window
-uint os_get_window();
-
+SDL_Window *os_get_window();
+// Sets the handle to the main window
+void os_set_window(SDL_Window *win);
 
 // process management --------------------------------------------------------------
 
 // call to process windows messages. only does something in non THREADED mode
 void os_poll();
-
-// Sleeps for n milliseconds or until app becomes active.
-void os_sleep(int ms);
 
 // Used to stop message processing
 void os_suspend();

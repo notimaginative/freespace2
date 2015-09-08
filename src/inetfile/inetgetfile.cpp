@@ -54,26 +54,24 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
 
 #ifndef PLAT_UNIX
 #include <windows.h>
-#include <direct.h>
-#else
-#include <sys/stat.h>	// mkdir
-#include <sys/types.h>	// mkdir
-              
-#include "pstypes.h"
+#include <direct.h> 
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "pstypes.h"
+#include "cfile.h"
+#include "cfilesystem.h"
 #include "cftp.h"
 #include "chttpget.h"
 
 #include "inetgetfile.h"
+
 
 #define INET_STATE_CONNECTING		1
 #define INET_STATE_ERROR			2
@@ -92,37 +90,24 @@ void InetGetFile::AbortGet()
 	}
 }
 
-InetGetFile::InetGetFile(char *URL,char *localfile)
+InetGetFile::InetGetFile(char *URL, char *filename, int cf_type)
 {
 	m_HardError = 0;
 	http=NULL;
 	ftp=NULL;
-	if ((URL==NULL)||(localfile==NULL)) {
+	if ( (URL == NULL) || (filename == NULL) || !CF_TYPE_SPECIFIED(cf_type) ) {
 		m_HardError = INET_ERROR_BADPARMS;
 	}
 
 	// create directory if not already there.
-	char dir_name[256], *end;
+	cf_create_directory(cf_type);
 
-	// make sure localfile has \ in it or we'll be here a long time.
-	if (strstr(localfile, "\\")) {
-		strcpy(dir_name, localfile);
-		int len = strlen(localfile);
-		end = dir_name + len;
-
-		// start from end of localfile and go to first \ to get dirname
-		while ( *end != '\\' ) {
-			end--;
-		}
-		*end = '\0';
-
-		if ( _mkdir(dir_name)==0 )	{	
-			mprintf(( "CFILE: Created new directory '%s'\n", dir_name ));
-		}
-	}
+	// create full path for file
+	char localfile[MAX_PATH_LEN] = "";
+	cf_create_default_path_string(localfile, cf_type, filename);
 
 	if (strstr(URL,"http:")) {
-		m_bUseHTTP = TRUE;
+		m_bUseHTTP = true;
 
 		// using http proxy?
 		extern char Multi_options_proxy[512];
@@ -137,7 +122,7 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 			m_HardError = INET_ERROR_NO_MEMORY;
 		}
 	} else if (strstr(URL,"ftp:")) {
-		m_bUseHTTP = FALSE;
+		m_bUseHTTP = false;
 		ftp = new CFtpGet(URL,localfile);
 		if (ftp==NULL) {
 			m_HardError = INET_ERROR_NO_MEMORY;
@@ -145,7 +130,7 @@ InetGetFile::InetGetFile(char *URL,char *localfile)
 	} else {
 		m_HardError = INET_ERROR_CANT_PARSE_URL;
 	}
-	Sleep(1000);
+	SDL_Delay(1000);
 }
 
 InetGetFile::~InetGetFile()
@@ -154,7 +139,7 @@ InetGetFile::~InetGetFile()
 	if(ftp!=NULL) delete ftp;
 }
 
-BOOL InetGetFile::IsConnecting()
+bool InetGetFile::IsConnecting()
 {
 	int state;
 	if(m_bUseHTTP)
@@ -167,16 +152,16 @@ BOOL InetGetFile::IsConnecting()
 	}
 	if(state == FTP_STATE_CONNECTING)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 }
 
-BOOL InetGetFile::IsReceiving()
+bool InetGetFile::IsReceiving()
 {
 	int state;
 	if(m_bUseHTTP)
@@ -189,15 +174,15 @@ BOOL InetGetFile::IsReceiving()
 	}
 	if(state == FTP_STATE_RECEIVING)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
-BOOL InetGetFile::IsFileReceived()
+bool InetGetFile::IsFileReceived()
 {
 	int state;
 	if(m_bUseHTTP)
@@ -210,18 +195,18 @@ BOOL InetGetFile::IsFileReceived()
 	}
 	if(state == FTP_STATE_FILE_RECEIVED)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
-BOOL InetGetFile::IsFileError()
+bool InetGetFile::IsFileError()
 {
 	int state;
-	if(m_HardError) return TRUE;
+	if(m_HardError) return true;
 	if(m_bUseHTTP)
 	{
 		state = http->GetStatus();
@@ -244,11 +229,11 @@ BOOL InetGetFile::IsFileError()
 	case FTP_STATE_UNKNOWN_ERROR:
 	case FTP_STATE_RECV_FAILED:
 	case FTP_STATE_CANT_WRITE_FILE:
-		return TRUE;
+		return true;
 	case FTP_STATE_CONNECTING:
-		return FALSE;
+		return false;
 	default:
-		return FALSE;
+		return false;
 	}
 }
 
@@ -317,5 +302,3 @@ int InetGetFile::GetBytesIn()
 		return ftp->GetBytesIn();
 	}
 }
-
-#endif // !PLAT_UNIX

@@ -248,10 +248,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#include <windowsx.h>
-#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "grinternal.h"
@@ -281,15 +278,15 @@ char *gr_force_fit_string(char *str, int max_str, int max_width)
 	gr_get_string_size(&w, NULL, str);
 	if (w > max_width) {
 		if ((int) strlen(str) > max_str - 3) {
-			Assert(max_str >= 3);
+			SDL_assert(max_str >= 3);
 			str[max_str - 3] = 0;
 		}
 
-		strcpy(str + strlen(str) - 1, "...");
+		SDL_strlcpy(str + strlen(str) - 1, "...", max_str);
 		gr_get_string_size(&w, NULL, str);
 		while (w > max_width) {
-			Assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
-			strcpy(str + strlen(str) - 4, "...");
+			SDL_assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
+			SDL_strlcpy(str + strlen(str) - 4, "...", max_str);
 			gr_get_string_size(&w, NULL, str);
 		}
 	}
@@ -303,7 +300,7 @@ int get_char_width(ubyte c1,ubyte c2,int *width,int *spacing)
 {
 	int i, letter;
 
-	Assert ( Current_font != NULL );
+	SDL_assert ( Current_font != NULL );
 	letter = c1-Current_font->first_ascii;
 
 	if (letter<0 || letter>=Current_font->num_chars) {				//not in font, draw as space
@@ -376,9 +373,9 @@ void gr_print_timestamp(int x, int y, int timestamp)
 	int w, c;
 
 	// format the time information into strings
-	sprintf(h, "%.1d", (timestamp / 3600000) % 10);
-	sprintf(m, "%.2d", (timestamp / 60000) % 60);
-	sprintf(s, "%.2d", (timestamp / 1000) % 60);
+	SDL_snprintf(h, SDL_arraysize(h), "%.1d", (timestamp / 3600000) % 10);
+	SDL_snprintf(m, SDL_arraysize(m), "%.2d", (timestamp / 60000) % 60);
+	SDL_snprintf(s, SDL_arraysize(s), "%.2d", (timestamp / 1000) % 60);
 
 	gr_get_string_size(&w, NULL, "0");
 	gr_get_string_size(&c, NULL, ":");
@@ -466,313 +463,26 @@ void gr_get_string_size(int *w1, int *h1, const char *text, int len)
 MONITOR( FontChars );	
 
 
-/*
-
-void gr8_char(int x,int y,int letter)
-{
-	font_char *ch;
-	
-	ch = &Current_font->char_data[letter];
-
-	gr_aabitmap_ex( x, y, ch->byte_width, Current_font->h, Current_font->u[letter], Current_font->v[letter] );
-
-//	mprintf(( "String = %s\n", text ));
-}
-
-
-void gr8_string( int sx, int sy, char *s )
-{
-	int width, spacing, letter;
-	int x, y;
-
-	if ( !Current_font ) return;
-	if ( !s ) return;
-	
-	gr_set_bitmap(Current_font->bitmap);
-
-	x = sx;
-	y = sy;
-
-	if (sx==0x8000) {			//centered
-		x = get_centered_x(s);
-	} else {
-		x = sx;
-	}
-
-	while (*s)	{
-		while (*s== '\n' )	{
-			s++;
-			y += Current_font->h;
-			if (sx==0x8000) {			//centered
-				x = get_centered_x(s);
-			} else {
-				x = sx;
-			}
-		}
-		if (*s == 0 ) break;
-
-		letter = get_char_width(s[0],s[1],&width,&spacing);
-
-		if (letter<0) {	//not in font, draw as space
-			x += spacing;
-			s++;
-			continue;
-		}
-		gr8_char( x, y, letter );
-	
-		x += spacing;
-		s++;
-	}
-}
-*/
-
-void gr8_string(int sx, int sy, const char *s )
-{
-	int row,width, spacing, letter;
-	int x, y;
-
-	if ( !Current_font ) return;
-	if ( !s ) return;
-
-	x = sx;
-	y = sy;
-
-	if (sx==0x8000) {			//centered
-		x = get_centered_x(s);
-	} else {
-		x = sx;
-	}
-
-	spacing = 0;
-
-	gr_lock();
-
-
-	while (*s)	{
-		MONITOR_INC( FontChars, 1 );	
-
-		x += spacing;
-		while (*s== '\n' )	{
-			s++;
-			y += Current_font->h;
-			if (sx==0x8000) {			//centered
-				x = get_centered_x(s);
-			} else {
-				x = sx;
-			}
-		}
-		if (*s == 0 ) break;
-
-		letter = get_char_width(s[0],s[1],&width,&spacing);
-		s++;
-
-		//If not in font, draw as space
-		if (letter<0) continue;
-
-		int xd, yd, xc, yc;
-		int wc, hc;
-
-		// Check if this character is totally clipped
-		if ( x + width < gr_screen.clip_left ) continue;
-		if ( y + Current_font->h < gr_screen.clip_top ) continue;
-		if ( x > gr_screen.clip_right ) continue;
-		if ( y > gr_screen.clip_bottom ) continue;
-
-		xd = yd = 0;
-		if ( x < gr_screen.clip_left ) xd = gr_screen.clip_left - x;
-		if ( y < gr_screen.clip_top ) yd = gr_screen.clip_top - y;
-		xc = x+xd;
-		yc = y+yd;
-
-		wc = width - xd; hc = Current_font->h - yd;
-		if ( xc + wc > gr_screen.clip_right ) wc = gr_screen.clip_right - xc;
-		if ( yc + hc > gr_screen.clip_bottom ) hc = gr_screen.clip_bottom - yc;
-
-		if ( wc < 1 ) continue;
-		if ( hc < 1 ) continue;
-
-		ubyte *fp = Current_font->pixel_data + Current_font->char_data[letter].offset + xd + yd*width;
-		ubyte *dptr = GR_SCREEN_PTR(ubyte, xc, yc);			
-
-#ifndef HARDWARE_ONLY
-		if ( Current_alphacolor )	{
-			for (row=0; row<hc; row++)	{
-				#ifdef USE_INLINE_ASM
-					ubyte *lookup = &Current_alphacolor->table.lookup[0][0];
-						_asm mov edx, lookup
-						_asm xor eax, eax
-						_asm mov ecx, wc
-						_asm xor ebx, ebx
-						_asm mov edi, dptr
-						_asm mov esi, fp
-						_asm shr ecx, 1
-						_asm jz  OnlyOne
-						_asm pushf
-					InnerFontLoop:
-						_asm mov al, [edi]
-						_asm mov bl, [edi+1]
-						_asm add edi,2
-
-						_asm mov ah, [esi]
-						_asm mov bh, [esi+1]
-						_asm add esi,2
-
-						_asm mov al, [edx+eax]
-						_asm mov ah, [edx+ebx]
-
-						_asm mov [edi-2], ax
-
-						_asm dec ecx
-						_asm jnz InnerFontLoop
-
-						_asm popf
-						_asm jnc NotOdd
-
-					OnlyOne:
-						_asm mov al, [edi]
-						_asm mov ah, [esi]
-						_asm mov al, [edx+eax]
-						_asm mov [edi], al
-
-					NotOdd:
-					dptr += gr_screen.rowsize;
-					fp += width;
-				#else
-					int i;
-					for (i=0; i< wc; i++ )	{
-						*dptr++ = Current_alphacolor->table.lookup[*fp++][*dptr];
-					}
-					fp += width - wc;
-					dptr += gr_screen.rowsize - wc;
-				#endif
-			}
-		} else {		// No alpha color
-#endif
-			for (row=0; row<hc; row++)	{
-				int i;
-				for (i=0; i< wc; i++ )	{
-					if (*fp > 5 )
-						*dptr = gr_screen.current_color.raw8;
-					dptr++;
-					fp++;
-				}
-				fp += width - wc;
-				dptr += gr_screen.rowsize - wc;
-			}
-		// }
-	}
-	gr_unlock();
-}
-
-#ifndef PLAT_UNIX
-HFONT MyhFont = NULL;
-extern HDC hDibDC;
-#endif
-
 void gr_string_win(int x, int y, const char *s)
 {
-#ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-#else
-	char *ptr;
-	SIZE size;
-
-	if ( MyhFont==NULL )	{
-		MyhFont = CreateFont(14, 0, 0, 0,				// height,width,?,?
-				700,
-				FALSE,
-				FALSE,
-				FALSE,											// strikeout?
-				ANSI_CHARSET,									// character set
-				OUT_DEVICE_PRECIS,
-				CLIP_DEFAULT_PRECIS,
-				DEFAULT_QUALITY,
-				DEFAULT_PITCH | FF_DONTCARE,
-//				NULL );
-//				"Times New Roman" );
-//XSTR:OFF
-				"Ariel" );
-//XSTR:ON
-	}
-
-	SelectObject( hDibDC, MyhFont );
-
-	if ( gr_screen.bits_per_pixel==8 )
-		SetTextColor(hDibDC, PALETTEINDEX(gr_screen.current_color.raw8));
-	else
-		SetTextColor(hDibDC, RGB(gr_screen.current_color.red,gr_screen.current_color.green,gr_screen.current_color.blue));
-
-	SetBkMode(hDibDC,TRANSPARENT);
-
-
-	HRGN hclip;
-	hclip = CreateRectRgn( gr_screen.offset_x, 
-								  gr_screen.offset_y, 
-								  gr_screen.offset_x+gr_screen.clip_width-1, 
-								  gr_screen.offset_y+gr_screen.clip_height-1 );
-
-	SelectClipRgn(hDibDC, hclip );
-	x += gr_screen.offset_x;
-	y += gr_screen.offset_y;
-	//ptr = strchr(s,'\n);
-	while ((ptr = strchr(s, '\n'))!=NULL) {
-		TextOut(hDibDC, x, y, s, ptr - s);
-		GetTextExtentPoint32(hDibDC, s, ptr - s, &size);
-		y += size.cy;
-		s = ptr + 1;
-	}
-
-	TextOut(hDibDC, x, y, s, strlen(s));
-	SelectClipRgn(hDibDC, NULL);
-	DeleteObject(hclip);
-#endif
+	STUB_FUNCTION;
 }
 
 void gr_get_string_size_win(int *w, int *h, const char *text)
 {
-#ifdef PLAT_UNIX
-//	STUB_FUNCTION;
-#else
-	char *ptr;
-	SIZE size;
-
-	ptr = strchr(text, '\n');
-
-	if (MyhFont==NULL)	{
-		if (w) *w = 0;
-		if (h) *h = 0;
-		return;
-	}
-
-	SelectObject( hDibDC, MyhFont );
-
-	if (!ptr)	{
-		GetTextExtentPoint32( hDibDC, text, strlen(text), &size);
-		if (w) *w = size.cx;
-		if (h) *h = size.cy;
-		return;
-	}
-
-	GetTextExtentPoint32(hDibDC, text, ptr - text, &size);
-	gr_get_string_size_win(w, h, ptr+1);
-	if (w && (size.cx > *w) )
-		*w = size.cx;
-
-	if (h)
-		*h += size.cy;
-#endif
+	STUB_FUNCTION;
 }
 
 char grx_printf_text[2048];	
 
-void _cdecl gr_printf( int x, int y, const char * format, ... )
+void __cdecl gr_printf( int x, int y, const char * format, ... )
 {
 	va_list args;
 
 	if ( !Current_font ) return;
 	
 	va_start(args, format);
-	vsprintf(grx_printf_text,format,args);
+	SDL_vsnprintf(grx_printf_text, SDL_arraysize(grx_printf_text), format, args);
 	va_end(args);
 
 	gr_string(x,y,grx_printf_text);
@@ -833,7 +543,7 @@ int gr_create_font(const char * typeface)
 	n = -1;
 	for (fontnum=0; fontnum<Num_fonts; fontnum++ )	{
 		if (fnt->id != 0 )	{
-			if ( !_strnicmp( fnt->filename, typeface, MAX_FILENAME_LEN ) )	{
+			if ( !SDL_strncasecmp( fnt->filename, typeface, MAX_FILENAME_LEN ) )	{
 				return fontnum;
 			}
 		} else {
@@ -857,7 +567,7 @@ int gr_create_font(const char * typeface)
 	fp = cfopen( typeface, "rb", CFILE_NORMAL, CF_TYPE_ANY, localize );
 	if ( fp == NULL ) return -1;
 
-	strncpy( fnt->filename, typeface, MAX_FILENAME_LEN );
+	SDL_strlcpy( fnt->filename, typeface, MAX_FILENAME_LEN );
 	cfread( &fnt->id, 4, 1, fp );
 	cfread( &fnt->version, sizeof(int), 1, fp );
 	cfread( &fnt->num_chars, sizeof(int), 1, fp );
@@ -882,14 +592,14 @@ int gr_create_font(const char * typeface)
 
 	if ( fnt->kern_data_size )	{
 		fnt->kern_data = (font_kernpair *)malloc( fnt->kern_data_size );
-		Assert(fnt->kern_data!=NULL);
+		SDL_assert(fnt->kern_data!=NULL);
 		cfread( fnt->kern_data, fnt->kern_data_size, 1, fp );
 	} else {
 		fnt->kern_data = NULL;
 	}
 	if ( fnt->char_data_size )	{
 		fnt->char_data = (font_char *)malloc( fnt->char_data_size );
-		Assert( fnt->char_data != NULL );
+		SDL_assert( fnt->char_data != NULL );
 		cfread( fnt->char_data, fnt->char_data_size, 1, fp );
         for ( int i=0; i<fnt->num_chars; i++){
             fnt->char_data[i].spacing = INTEL_INT( fnt->char_data[i].spacing );
@@ -903,7 +613,7 @@ int gr_create_font(const char * typeface)
 	}
 	if ( fnt->pixel_data_size )	{
 		fnt->pixel_data = (ubyte *)malloc( fnt->pixel_data_size );
-		Assert(fnt->pixel_data!=NULL);
+		SDL_assert(fnt->pixel_data!=NULL);
 		cfread( fnt->pixel_data, fnt->pixel_data_size, 1, fp );
 	} else {
 		fnt->pixel_data = NULL;
@@ -963,7 +673,7 @@ int gr_create_font(const char * typeface)
 	return fontnum;
 }
 
-void grx_set_font(int fontnum)
+void gr_set_font(int fontnum)
 {
 	if ( fontnum < 0 ) {
 		Current_font = NULL;
@@ -992,7 +702,7 @@ int gr_init_font(const char * typeface)
 
 	Loaded_fontnum = gr_create_font(typeface);
 
-	Assert( Loaded_fontnum > -1 );
+	SDL_assert( Loaded_fontnum > -1 );
 
 	gr_set_font( Loaded_fontnum );
 

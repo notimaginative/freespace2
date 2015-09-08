@@ -135,10 +135,10 @@ int pcx_read_header(char *real_filename, int *w, int *h, ubyte *pal )
 	CFILE * PCXfile;
 	char filename[MAX_FILENAME_LEN];
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".pcx" );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile )
@@ -199,10 +199,10 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 	ubyte *pixdata;
 	char filename[MAX_FILENAME_LEN];
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".pcx" );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile )
@@ -246,7 +246,7 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;
@@ -258,7 +258,7 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -266,7 +266,7 @@ int pcx_read_bitmap_8bpp( char * real_filename, ubyte *org_data, ubyte *palette 
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -297,10 +297,10 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 	ushort bit_16;	
 	ubyte r, g, b, al;
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".pcx" );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile ){
@@ -342,7 +342,7 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;	
@@ -354,7 +354,7 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -362,7 +362,7 @@ int pcx_read_bitmap_16bpp( char * real_filename, ubyte *org_data )
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -415,11 +415,11 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 	char filename[MAX_FILENAME_LEN];
 	ubyte palette[768];		
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
 
-	strcat( filename, ".pcx" );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile ){
@@ -461,7 +461,7 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;
@@ -473,7 +473,7 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -481,7 +481,7 @@ int pcx_read_bitmap_16bpp_aabitmap( char * real_filename, ubyte *org_data )
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -519,10 +519,10 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 	ushort bit_16;	
 	ubyte r, g, b, al;
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".pcx" );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	PCXfile = cfopen( filename , "rb" );
 	if ( !PCXfile ){
@@ -562,7 +562,7 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 	buffer_size = 1024;
 	buffer_pos = 0;
 	
-//	Assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
+//	SDL_assert( buffer_size == 1024 );	// AL: removed to avoid optimized warning 'unreachable code'
 	buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
 
 	count = 0;
@@ -574,7 +574,7 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 				data = buffer[buffer_pos++];
 				if ( buffer_pos == buffer_size )	{
 					buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-					Assert( buffer_size > 0 );
+					SDL_assert( buffer_size > 0 );
 					buffer_pos = 0;
 				}
 				if ((data & 0xC0) == 0xC0)     {
@@ -582,7 +582,7 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 					data = buffer[buffer_pos++];
 					if ( buffer_pos == buffer_size )	{
 						buffer_size = cfread( buffer, 1, buffer_size, PCXfile );
-						Assert( buffer_size > 0 );
+						SDL_assert( buffer_size > 0 );
 						buffer_pos = 0;
 					}
 				} else {
@@ -697,10 +697,10 @@ int pcx_write_bitmap( char * real_filename, int w, int h, ubyte ** row_ptrs, uby
 	FILE * PCXfile;
 	char filename[MAX_FILENAME_LEN];
 		
-	strcpy( filename, real_filename );
-	char *p = strchr( filename, '.' );
+	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
+	char *p = SDL_strchr( filename, '.' );
 	if ( p ) *p = 0;
-	strcat( filename, ".pcx" );
+	SDL_strlcat( filename, ".pcx", SDL_arraysize(filename) );
 
 	memset( &header, 0, sizeof( PCXHeader ) );
 

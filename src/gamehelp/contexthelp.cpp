@@ -126,7 +126,6 @@
  * 
 */
 #include <string.h>
-#include <setjmp.h>
 
 #include "contexthelp.h"
 #include "gamesequence.h"
@@ -263,14 +262,14 @@ static int Overlay = -1;
 // query whether a help overlay is active (ie being displayed)
 int help_overlay_active(int overlay_id)
 {
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 	return Help_overlay_flags & (1<<overlay_id);
 }
 
 // stop displaying a help overlay
 void help_overlay_set_state(int overlay_id, int state)
 {
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 
 	if ( state > 0 ) {
 		Help_overlay_flags |= (1<<overlay_id);
@@ -305,7 +304,7 @@ void help_overlay_unload(int overlay_id)
 // maybe blit a bitmap of a help overlay to the screen
 void help_overlay_maybe_blit(int overlay_id)
 {
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 
 	if ( Help_overlay_flags & (1<<overlay_id) ) {
 		context_help_grey_screen();
@@ -560,117 +559,121 @@ void parse_helptbl()
 
 	// open localization
 	lcl_ext_open();
-	
-	read_file_text(HELP_OVERLAY_FILENAME);
 
-	// for each overlay...
-	for (overlay_id=0; overlay_id<MAX_HELP_OVERLAYS; overlay_id++) {
+	try {
+		read_file_text(HELP_OVERLAY_FILENAME);
 
-		reset_parse();
-		skip_to_string(help_overlay_section_names[overlay_id]);
+		// for each overlay...
+		for (overlay_id=0; overlay_id<MAX_HELP_OVERLAYS; overlay_id++) {
 
-		// clear out counters in the overlay struct
-		help_overlaylist[overlay_id].plinecount = 0;
-		help_overlaylist[overlay_id].textcount = 0;
-		help_overlaylist[overlay_id].rbracketcount = 0;
-		help_overlaylist[overlay_id].lbracketcount = 0;
-		
-		// read in all elements for this overlay
-		while (!(check_for_string("$end")))  {
+			reset_parse();
+			skip_to_string(help_overlay_section_names[overlay_id]);
 
-			if (optional_string("+pline")) {
+			// clear out counters in the overlay struct
+			help_overlaylist[overlay_id].plinecount = 0;
+			help_overlaylist[overlay_id].textcount = 0;
+			help_overlaylist[overlay_id].rbracketcount = 0;
+			help_overlaylist[overlay_id].lbracketcount = 0;
 
-				currcount = help_overlaylist[overlay_id].plinecount;
-				int a, b;		// temp vars to read in int before cast to float;
+			// read in all elements for this overlay
+			while (!(check_for_string("$end")))  {
 
-				if (currcount < HELP_MAX_ITEM) {
-					// read number of pline vertices
-					stuff_int(&help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount);		// note that it is read into GR_640
-					// help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtxcount = help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount;			// set equal to 1024 version vertex count to prevent bugs
-					Assert(help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount <= HELP_MAX_PLINE_VERTICES);
-					// get 640x480 vertex coordinates
-					for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
-						stuff_int(&a);
-						stuff_int(&b);
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.x = (float)a;
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.y = (float)b;
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.z = 0.0f;
-						help_overlaylist[overlay_id].plinelist[GR_640][currcount].pvtx[i] = &help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i];
+				if (optional_string("+pline")) {
+
+					currcount = help_overlaylist[overlay_id].plinecount;
+					int a, b;		// temp vars to read in int before cast to float;
+
+					if (currcount < HELP_MAX_ITEM) {
+						// read number of pline vertices
+						stuff_int(&help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount);		// note that it is read into GR_640
+						// help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtxcount = help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount;			// set equal to 1024 version vertex count to prevent bugs
+						SDL_assert(help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount <= HELP_MAX_PLINE_VERTICES);
+						// get 640x480 vertex coordinates
+						for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
+							stuff_int(&a);
+							stuff_int(&b);
+							help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.x = (float)a;
+							help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.y = (float)b;
+							help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i].xyz.z = 0.0f;
+							help_overlaylist[overlay_id].plinelist[GR_640][currcount].pvtx[i] = &help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[i];
+						}
+						// get 1024x768 vertex coordinates
+						for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
+							stuff_int(&a);
+							stuff_int(&b);
+							help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.x = (float)a;
+							help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.y = (float)b;
+							help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.z = 0.0f;
+							help_overlaylist[overlay_id].plinelist[GR_1024][currcount].pvtx[i] = &help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i];
+						}
 					}
-					// get 1024x768 vertex coordinates
-					for (i=0; i<help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtxcount; i++) {
-						stuff_int(&a);
-						stuff_int(&b);
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.x = (float)a;
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.y = (float)b;
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i].xyz.z = 0.0f;
-						help_overlaylist[overlay_id].plinelist[GR_1024][currcount].pvtx[i] = &help_overlaylist[overlay_id].plinelist[GR_1024][currcount].vtx[i];
+
+					//mprintf(("Found pline - start location (%f,%f), end location (%f,%f)\n", help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[0].x, help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[0].y, help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[2].x, help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[2].y));
+					help_overlaylist[overlay_id].plinecount++;
+
+				} else if (optional_string("+text")) {
+
+					currcount = help_overlaylist[overlay_id].textcount;
+
+					if (currcount < HELP_MAX_ITEM) {
+						// get 640x480 coordinates
+						stuff_int(&(help_overlaylist[overlay_id].textlist[GR_640][currcount].x_coord));
+						stuff_int(&(help_overlaylist[overlay_id].textlist[GR_640][currcount].y_coord));
+						// get 1024x768 coordinates
+						stuff_int(&(help_overlaylist[overlay_id].textlist[GR_1024][currcount].x_coord));
+						stuff_int(&(help_overlaylist[overlay_id].textlist[GR_1024][currcount].y_coord));
+
+						// get string (always use the GR_640 one)
+						stuff_string(buf, F_MESSAGE, NULL);
+						help_overlaylist[overlay_id].textlist[GR_640][currcount].string = strdup(buf);
+
+						//mprintf(("Found text %d on overlay %d - location (%d,%d) @ 640x480 :: location (%d,%d) @ 1024x768\n", currcount, overlay_id, help_overlaylist[overlay_id].textlist[GR_640][currcount].x_coord, help_overlaylist[overlay_id].textlist[GR_640][currcount].y_coord, help_overlaylist[overlay_id].textlist[GR_1024][currcount].x_coord, help_overlaylist[overlay_id].textlist[GR_1024][currcount].x_coord));
+						help_overlaylist[overlay_id].textcount++;
 					}
-				}
 
-				//mprintf(("Found pline - start location (%f,%f), end location (%f,%f)\n", help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[0].x, help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[0].y, help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[2].x, help_overlaylist[overlay_id].plinelist[GR_640][currcount].vtx[2].y));
-				help_overlaylist[overlay_id].plinecount++;
+				} else if (optional_string("+right_bracket")) {
 
-			} else if (optional_string("+text")) {
+					currcount = help_overlaylist[overlay_id].rbracketcount;
 
-				currcount = help_overlaylist[overlay_id].textcount;
+					if (currcount < HELP_MAX_ITEM) {
+						// get 640x480 coordinates
+						stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].x_coord));
+						stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].y_coord));
+						// get 1024x768 coordinates
+						stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].x_coord));
+						stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].y_coord));
 
-				if (currcount < HELP_MAX_ITEM) {
-					// get 640x480 coordinates
-					stuff_int(&(help_overlaylist[overlay_id].textlist[GR_640][currcount].x_coord));
-					stuff_int(&(help_overlaylist[overlay_id].textlist[GR_640][currcount].y_coord));
-					// get 1024x768 coordinates
-					stuff_int(&(help_overlaylist[overlay_id].textlist[GR_1024][currcount].x_coord));
-					stuff_int(&(help_overlaylist[overlay_id].textlist[GR_1024][currcount].y_coord));
+						//mprintf(("Found rbracket %d on overlay %d - location (%d,%d) @ 640x480 :: location (%d,%d) @ 1024x768\n", currcount, overlay_id, help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].x_coord, help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].y_coord, help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].x_coord, help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].y_coord));
+						help_overlaylist[overlay_id].rbracketcount++;
+					}
 
-					// get string (always use the GR_640 one)
-					stuff_string(buf, F_MESSAGE, NULL);
-					help_overlaylist[overlay_id].textlist[GR_640][currcount].string = strdup(buf);
+				} else if (optional_string("+left_bracket")) {
 
-					//mprintf(("Found text %d on overlay %d - location (%d,%d) @ 640x480 :: location (%d,%d) @ 1024x768\n", currcount, overlay_id, help_overlaylist[overlay_id].textlist[GR_640][currcount].x_coord, help_overlaylist[overlay_id].textlist[GR_640][currcount].y_coord, help_overlaylist[overlay_id].textlist[GR_1024][currcount].x_coord, help_overlaylist[overlay_id].textlist[GR_1024][currcount].x_coord));
-					help_overlaylist[overlay_id].textcount++;
-				}
+					currcount = help_overlaylist[overlay_id].lbracketcount;
 
-			} else if (optional_string("+right_bracket")) {
+					if (currcount < HELP_MAX_ITEM) {
+						// get 640x480 coordinates
+						stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].x_coord));
+						stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].y_coord));
+						// get 1024x768 coordinates
+						stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].x_coord));
+						stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].y_coord));
 
-				currcount = help_overlaylist[overlay_id].rbracketcount;
+						//mprintf(("Found lbracket %d on overlay %d - location (%d,%d) @ 640x480 :: location (%d,%d) @ 1024x768\n", currcount, overlay_id, help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].x_coord, help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].y_coord, help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].x_coord, help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].y_coord));
+						help_overlaylist[overlay_id].lbracketcount++;
+					}
 
-				if (currcount < HELP_MAX_ITEM) {
-					// get 640x480 coordinates
-					stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].x_coord));
-					stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].y_coord));
-					// get 1024x768 coordinates
-					stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].x_coord));
-					stuff_int(&(help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].y_coord));
+				} else {
+					// help.tbl is corrupt
+					SDL_assert(0);
 
-					//mprintf(("Found rbracket %d on overlay %d - location (%d,%d) @ 640x480 :: location (%d,%d) @ 1024x768\n", currcount, overlay_id, help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].x_coord, help_overlaylist[overlay_id].rbracketlist[GR_640][currcount].y_coord, help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].x_coord, help_overlaylist[overlay_id].rbracketlist[GR_1024][currcount].y_coord));
-					help_overlaylist[overlay_id].rbracketcount++;
-				}
+				}		// end if
 
-			} else if (optional_string("+left_bracket")) {
-
-				currcount = help_overlaylist[overlay_id].lbracketcount;
-
-				if (currcount < HELP_MAX_ITEM) {
-					// get 640x480 coordinates
-					stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].x_coord));
-					stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].y_coord));
-					// get 1024x768 coordinates
-					stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].x_coord));
-					stuff_int(&(help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].y_coord));
-
-					//mprintf(("Found lbracket %d on overlay %d - location (%d,%d) @ 640x480 :: location (%d,%d) @ 1024x768\n", currcount, overlay_id, help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].x_coord, help_overlaylist[overlay_id].lbracketlist[GR_640][currcount].y_coord, help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].x_coord, help_overlaylist[overlay_id].lbracketlist[GR_1024][currcount].y_coord));
-					help_overlaylist[overlay_id].lbracketcount++;
-				}
-
-			} else {
-				// help.tbl is corrupt
-				Assert(0);
-
-			}		// end if
-
-		}		// end while
-	}		// end for
+			}		// end while
+		}		// end for
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse %s!  Code = %i.\n", HELP_OVERLAY_FILENAME, (int)rval);
+	}
 
 	// close localization
 	lcl_ext_close();
@@ -699,7 +702,7 @@ void help_overlay_blit(int overlay_id)
 	int rbracketcount = help_overlaylist[overlay_id].rbracketcount;
 	int lbracketcount = help_overlaylist[overlay_id].lbracketcount;
 
-	Assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
 
 	// this draws each line of help text with white on black text (use the GR_640 index for the string)
 	for (idx = 0; idx < textcount; idx++) {

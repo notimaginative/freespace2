@@ -235,7 +235,7 @@ ushort Multi_options_proxy_port = 0;
 
 // load in the config file
 #define NEXT_TOKEN()						do { tok = strtok(NULL, "\n"); if(tok != NULL){ drop_leading_white_space(tok); drop_trailing_white_space(tok); } } while(0);
-#define SETTING(s)						( !stricmp(tok, s) )
+#define SETTING(s)						( !SDL_strcasecmp(tok, s) )
 void multi_options_read_config()
 {
 	CFILE *in;
@@ -247,18 +247,18 @@ void multi_options_read_config()
 	Multi_options_g.protocol = NET_TCP;	
 
 	// do we have a forced port via commandline or registry?
-	ushort forced_port = (ushort)os_config_read_uint(NULL, "ForcePort", 0);	
+	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
 	Multi_options_g.port = (Cmdline_network_port >= 0) ? (ushort)Cmdline_network_port : forced_port == 0 ? (ushort)DEFAULT_GAME_PORT : forced_port;
 
 	Multi_options_g.log = (Cmdline_multi_log) ? 1 : 0;
 	Multi_options_g.datarate_cap = OO_HIGH_RATE_DEFAULT;
-	strcpy(Multi_options_g.user_tracker_ip, "");	
-	strcpy(Multi_options_g.game_tracker_ip, "");	
-	strcpy(Multi_options_g.pxo_ip, "");	
-	strcpy(Multi_options_g.pxo_rank_url, "");	
-	strcpy(Multi_options_g.pxo_create_url, "");	
-	strcpy(Multi_options_g.pxo_verify_url, "");	
-	strcpy(Multi_options_g.pxo_banner_url, "");
+	SDL_strlcpy(Multi_options_g.user_tracker_ip, "", SDL_arraysize(Multi_options_g.user_tracker_ip));
+	SDL_strlcpy(Multi_options_g.game_tracker_ip, "", SDL_arraysize(Multi_options_g.game_tracker_ip));
+	SDL_strlcpy(Multi_options_g.pxo_ip, "", SDL_arraysize(Multi_options_g.pxo_ip));
+	SDL_strlcpy(Multi_options_g.pxo_rank_url, "", SDL_arraysize(Multi_options_g.pxo_rank_url));
+	SDL_strlcpy(Multi_options_g.pxo_create_url, "", SDL_arraysize(Multi_options_g.pxo_create_url));
+	SDL_strlcpy(Multi_options_g.pxo_verify_url, "", SDL_arraysize(Multi_options_g.pxo_verify_url));
+	SDL_strlcpy(Multi_options_g.pxo_banner_url, "", SDL_arraysize(Multi_options_g.pxo_banner_url));
 
 	// standalone values
 	Multi_options_g.std_max_players = -1;
@@ -307,7 +307,7 @@ void multi_options_read_config()
 				// set the standalone server's permanent name
 				NEXT_TOKEN();
 				if(tok != NULL){
-					strncpy(Multi_options_g.std_pname, tok, STD_NAME_LEN);
+					SDL_strlcpy(Multi_options_g.std_pname, tok, STD_NAME_LEN);
 				}
 			} else 
 			if(SETTING("+no_voice")){
@@ -334,15 +334,9 @@ void multi_options_read_config()
 				// set the standalone host password
 				NEXT_TOKEN();
 				if(tok != NULL){
-					strncpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
+					SDL_strlcpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
 
-					// yuck
-#ifdef PLAT_UNIX
 					STUB_FUNCTION;
-#else
-					extern HWND Multi_std_host_passwd;
-					SetWindowText(Multi_std_host_passwd, Multi_options_g.std_passwd);
-#endif
 				}
 			} else 
 			if(SETTING("+low_update")){
@@ -368,49 +362,49 @@ void multi_options_read_config()
 			// ip addr of user tracker
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.user_tracker_ip, tok);
+				SDL_strlcpy(Multi_options_g.user_tracker_ip, tok, SDL_arraysize(Multi_options_g.user_tracker_ip));
 			}
 		} else
 		if(SETTING("+game_server")){
 			// ip addr of game tracker
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.game_tracker_ip, tok);
+				SDL_strlcpy(Multi_options_g.game_tracker_ip, tok, SDL_arraysize(Multi_options_g.game_tracker_ip));
 			}
 		} else
 		if(SETTING("+chat_server")){
 			// ip addr of pxo chat server
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.pxo_ip, tok);
+				SDL_strlcpy(Multi_options_g.pxo_ip, tok, SDL_arraysize(Multi_options_g.pxo_ip));
 			}
 		} else
 		if(SETTING("+rank_url")){
 			// url of pilot rankings page
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.pxo_rank_url, tok);
+				SDL_strlcpy(Multi_options_g.pxo_rank_url, tok, SDL_arraysize(Multi_options_g.pxo_rank_url));
 			}
 		} else
 		if(SETTING("+create_url")){
 			// url of pxo account create page
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.pxo_create_url, tok);
+				SDL_strlcpy(Multi_options_g.pxo_create_url, tok, SDL_arraysize(Multi_options_g.pxo_create_url));
 			}
 		} else
 		if(SETTING("+verify_url")){
 			// url of pxo account verify page
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.pxo_verify_url, tok);
+				SDL_strlcpy(Multi_options_g.pxo_verify_url, tok, SDL_arraysize(Multi_options_g.pxo_verify_url));
 			}
 		} else
 		if(SETTING("+banner_url")){
 			// url of pxo account verify page
 			NEXT_TOKEN();
 			if(tok != NULL){
-				strcpy(Multi_options_g.pxo_banner_url, tok);
+				SDL_strlcpy(Multi_options_g.pxo_banner_url, tok, SDL_arraysize(Multi_options_g.pxo_banner_url));
 			}
 		} else
 		if(SETTING("+datarate")){
@@ -428,13 +422,13 @@ void multi_options_read_config()
 			if(tok != NULL){				
 				char *ip = strtok(tok, ":");
 				if(ip != NULL){
-					strcpy(Multi_options_proxy, ip);
+					SDL_strlcpy(Multi_options_proxy, ip, SDL_arraysize(Multi_options_proxy));
 				}
 				ip = strtok(NULL, "");
 				if(ip != NULL){
 					Multi_options_proxy_port = (ushort)atoi(ip);
 				} else {
-					strcpy(Multi_options_proxy, "");
+					SDL_strlcpy(Multi_options_proxy, "", SDL_arraysize(Multi_options_proxy));
 				}
 			}
 		}
@@ -514,7 +508,7 @@ void multi_options_local_load(multi_local_options *options, net_player *pxo_pl)
 	// stuff pxo squad info
 #ifndef MAKE_FS1
 	if(pxo_pl != NULL){
-		strcpy(pxo_pl->p_info.pxo_squad_name, Multi_tracker_squad_name);		
+		SDL_strlcpy(pxo_pl->p_info.pxo_squad_name, Multi_tracker_squad_name, LOGIN_LEN);
 	}
 #endif
 }
@@ -525,7 +519,7 @@ void multi_options_update_netgame()
 	ubyte data[MAX_PACKET_SIZE],code;
 	int packet_size = 0;
 	
-	Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 
 	// build the header and add the opcode
 	BUILD_HEADER(OPTIONS_UPDATE);
@@ -581,7 +575,7 @@ void multi_options_update_start_game(netgame_info *ng)
 	int packet_size = 0;
 
 	// should be a host on a standalone
-	Assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+	SDL_assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 
 	// build the header
 	BUILD_HEADER(OPTIONS_UPDATE);
@@ -615,7 +609,7 @@ void multi_options_update_mission(netgame_info *ng, int campaign_mode)
 	int packet_size = 0;
 
 	// should be a host on a standalone
-	Assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
+	SDL_assert((Net_player->flags & NETINFO_FLAG_GAME_HOST) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER));
 
 	// build the header
 	BUILD_HEADER(OPTIONS_UPDATE);
@@ -663,7 +657,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 	switch(code){
 	// get the start game options
 	case MULTI_OPTION_START_GAME:
-		Assert(Game_mode & GM_STANDALONE_SERVER);
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);
 
 		// get the netgame name
 		GET_STRING(Netgame.name);		
@@ -698,7 +692,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		
 		memset(&ng,0,sizeof(netgame_info));
 
-		Assert(Game_mode & GM_STANDALONE_SERVER);
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);
 
 		// coop or team vs. team mode
 		GET_INT(ng.type_flags);
@@ -731,16 +725,14 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 					Netgame.max_players = max_players;
 				}
 
-				strcpy(Netgame.campaign_name,ng.campaign_name);
+				SDL_strlcpy(Netgame.campaign_name, ng.campaign_name, SDL_arraysize(Netgame.campaign_name));
 			}
 
 			Netgame.campaign_mode = 1;
 
 			// put brackets around the campaign name
 			if(Game_mode & GM_STANDALONE_SERVER){
-				strcpy(str,"(");
-				strcat(str,Netgame.campaign_name);
-				strcat(str,")");
+				SDL_snprintf(str, SDL_arraysize(str), "(%s)", Netgame.campaign_name);
 				std_multi_set_standalone_mission_name(str);
 			}
 		}
@@ -755,8 +747,8 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 					// setting this to -1 will prevent us from being seen on the network
 					Netgame.max_players = -1;				
 				}
-				strcpy(Netgame.mission_name,ng.mission_name);
-				strcpy(Game_current_mission_filename,Netgame.mission_name);				
+				SDL_strlcpy(Netgame.mission_name, ng.mission_name, SDL_arraysize(Netgame.mission_name));
+				SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 			}			
 
 			Netgame.campaign_mode = 0;

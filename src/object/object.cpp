@@ -741,7 +741,7 @@ int obj_allocate(void)
 
 	// Find next available object
 	objp = GET_FIRST(&obj_free_list);
-	Assert ( objp != &obj_free_list );		// shouldn't have the dummy element
+	SDL_assert ( objp != &obj_free_list );		// shouldn't have the dummy element
 
 	// remove objp from the free list
 	list_remove( &obj_free_list, objp );
@@ -778,7 +778,7 @@ void obj_free(int objnum)
 
 	if (!Object_inited) obj_init();
 
-	Assert( objnum >= 0 );	// Trying to free bogus object!!!
+	SDL_assert( objnum >= 0 );	// Trying to free bogus object!!!
 
 	// get object pointer
 	objp = &Objects[objnum];
@@ -794,7 +794,7 @@ void obj_free(int objnum)
 
 	Objects[objnum].type = OBJ_NONE;
 
-	Assert(num_objects >= 0);
+	SDL_assert(num_objects >= 0);
 
 	if (objnum == Highest_object_index)
 		while (Objects[--Highest_object_index].type == OBJ_NONE);
@@ -817,7 +817,7 @@ int obj_create(ubyte type,int parent_obj,int instance, matrix * orient,
 		return -1;
 
 	obj = &Objects[objnum];
-	Assert(obj->type == OBJ_NONE);		//make sure unused 
+	SDL_assert(obj->type == OBJ_NONE);		//make sure unused 
 
 	// Zero out object structure to keep weird bugs from happening
 	// in uninitialized fields.
@@ -876,9 +876,9 @@ void obj_delete(int objnum)
 {
 	object *objp;
 
-	Assert(objnum >= 0 && objnum < MAX_OBJECTS);
+	SDL_assert(objnum >= 0 && objnum < MAX_OBJECTS);
 	objp = &Objects[objnum];
-	Assert(objp->type != OBJ_NONE);	
+	SDL_assert(objp->type != OBJ_NONE);	
 
 	// Remove all object pairs
 	obj_remove_pairs( objp );
@@ -919,7 +919,7 @@ void obj_delete(int objnum)
 	case OBJ_WAYPOINT:
 	case OBJ_POINT:
 	case OBJ_JUMP_NODE:
-		Assert(Fred_running);
+		SDL_assert(Fred_running);
 		break;  // requires no action, handled by the Fred code.
 	case OBJ_DEBRIS:
 		debris_delete( objp );
@@ -1017,7 +1017,7 @@ void move_docked_objects(object *objp)
 	if (objp->type != OBJ_SHIP)
 		return;
 
-	Assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
+	SDL_assert((objp->instance >= 0) && (objp->instance < MAX_SHIPS));
 
 	aip = &Ai_info[Ships[objp->instance].ai_index];
 
@@ -1025,7 +1025,7 @@ void move_docked_objects(object *objp)
 		ship_info	*sip;
 		sip = &Ship_info[Ships[objp->instance].ship_info_index];
 		if ((sip->flags & SIF_SUPPORT) || (sip->flags & SIF_CARGO)) {
-			Assert(!((sip->flags & SIF_SUPPORT) && (sip->flags & SIF_CARGO)));	//	Ship can't be both repair and cargo
+			SDL_assert(!((sip->flags & SIF_SUPPORT) && (sip->flags & SIF_CARGO)));	//	Ship can't be both repair and cargo
 			if (aip->dock_objnum != -1) {
 				if (aip->mode == AIM_DOCK) {
 					if (aip->submode < AIS_UNDOCK_1)
@@ -1044,7 +1044,7 @@ void move_docked_objects(object *objp)
 			}
 		} else {
 			if (aip->dock_objnum != -1) {
-				Assert( aip->dock_objnum != -1 );
+				SDL_assert( aip->dock_objnum != -1 );
 				other_aip = &Ai_info[Ships[Objects[aip->dock_objnum].instance].ai_index];
 
 				// if the other object that I am docked with is undocking, then don't do anything.
@@ -1082,7 +1082,7 @@ void obj_player_fire_stuff( object *objp, control_info ci )
 {
 	ship *shipp;
 
-	Assert( objp->flags & OF_PLAYER_SHIP);
+	SDL_assert( objp->flags & OF_PLAYER_SHIP);
 
 	// try and get the ship pointer
 	shipp = NULL;
@@ -1201,16 +1201,7 @@ void obj_move_call_physics(object *objp, float frametime)
 				goto obj_maybe_fire;
 			}
 
-			if ( (objp->type == OBJ_ASTEROID) && (Model_caching && (!D3D_enabled) ) )	{
-				// If we're doing model caching, don't rotate asteroids
-				vector tmp = objp->phys_info.rotvel;
-
-				objp->phys_info.rotvel = vmd_zero_vector;
-				physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
-				objp->phys_info.rotvel = tmp;
-			} else {
-				physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
-			}
+			physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
 
 			// This code seems to have no effect - DB 1/12/99
 			//if ( MULTIPLAYER_CLIENT && (objp != Player_obj) ){
@@ -1480,24 +1471,20 @@ void obj_move_all_post(object *objp, float frametime)
 			}
 
 			if ( cast_light )	{
-				if ( D3D_enabled )	{
-					weapon_info * wi = &Weapon_info[Weapons[objp->instance].weapon_info_index];
+				weapon_info * wi = &Weapon_info[Weapons[objp->instance].weapon_info_index];
 
-					if ( wi->render_type == WRT_LASER )	{
-						color c;
-						float r,g,b;
+				if ( wi->render_type == WRT_LASER )	{
+					color c;
+					float r,g,b;
 
-						// get the laser color
-						weapon_get_laser_color(&c, objp);
+					// get the laser color
+					weapon_get_laser_color(&c, objp);
 
-						r = i2fl(c.red)/255.0f;
-						g = i2fl(c.green)/255.0f;
-						b = i2fl(c.blue)/255.0f;
-						light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, r, g, b, objp->parent );
-						//light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 0.0f, 0.0f, 1.0f, objp->parent );
-					} else {
-						light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f, objp->parent );
-					} 
+					r = i2fl(c.red)/255.0f;
+					g = i2fl(c.green)/255.0f;
+					b = i2fl(c.blue)/255.0f;
+					light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, r, g, b, objp->parent );
+					//light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 0.0f, 0.0f, 1.0f, objp->parent );
 				} else {
 					light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f, objp->parent );
 				}
@@ -1998,27 +1985,27 @@ int obj_get_SIF(int obj)
 //					failure => -1 (for objects that don't have teams)
 int obj_team(object *objp)
 {
-	Assert( objp != NULL );
+	SDL_assert( objp != NULL );
 	int team = -1;
 
 	switch ( objp->type ) {
 		case OBJ_SHIP:
-			Assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
+			SDL_assert( objp->instance >= 0 && objp->instance < MAX_SHIPS );
 			team = Ships[objp->instance].team;
 			break;
 
 		case OBJ_DEBRIS:
 			team = debris_get_team(objp);
-			Assert(team != -1);
+			SDL_assert(team != -1);
 			break;
 
 		case OBJ_CMEASURE:
-			Assert( objp->instance >= 0 && objp->instance < MAX_CMEASURES);
+			SDL_assert( objp->instance >= 0 && objp->instance < MAX_CMEASURES);
 			team = Cmeasures[objp->instance].team;
 			break;
 
 		case OBJ_WEAPON:
-			Assert( objp->instance >= 0 && objp->instance < MAX_WEAPONS );
+			SDL_assert( objp->instance >= 0 && objp->instance < MAX_WEAPONS );
 			team = Weapons[objp->instance].team;
 			break;
 
@@ -2046,7 +2033,7 @@ int obj_team(object *objp)
 			break;
 	} // end switch
 
-	Assert(team != -1);
+	SDL_assert(team != -1);
 	return team;
 }
 
@@ -2061,7 +2048,7 @@ void obj_add_pairs(int objnum)
 {
 	object	*objp;
 
-	Assert(objnum != -1);
+	SDL_assert(objnum != -1);
 	objp = &Objects[objnum];	
 
 	// don't do anything if its already in the object pair list
@@ -2117,9 +2104,9 @@ void obj_remove_pairs( object * a )
 			// is equal to 'a' and we modify 'num_pairs' in one of these and then use the value
 			// stored in 'a' later one... will the optimizer find that?  Hmmm...
 			tmp->a->num_pairs--;
-			Assert( tmp->a->num_pairs > -1 );
+			SDL_assert( tmp->a->num_pairs > -1 );
 			tmp->b->num_pairs--;
-			Assert( tmp->b->num_pairs > -1 );
+			SDL_assert( tmp->b->num_pairs > -1 );
 			parent->next = tmp->next;
 			tmp->a = tmp->b = NULL;
 			tmp->next = pair_free_list.next;

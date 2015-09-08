@@ -88,8 +88,8 @@ int collide_debris_weapon( obj_pair * pair )
 	object *pdebris = pair->a;
 	object *weapon = pair->b;
 
-	Assert( pdebris->type == OBJ_DEBRIS );
-	Assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( pdebris->type == OBJ_DEBRIS );
+	SDL_assert( weapon->type == OBJ_WEAPON );
 
 	// first check the bounding spheres of the two objects.
 	hit = fvi_segment_sphere(&hitpos, &weapon->last_pos, &weapon->pos, &pdebris->pos, pdebris->radius);
@@ -123,8 +123,8 @@ int collide_asteroid_weapon( obj_pair * pair )
 	object	*pasteroid = pair->a;
 	object	*weapon = pair->b;
 
-	Assert( pasteroid->type == OBJ_ASTEROID);
-	Assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( pasteroid->type == OBJ_ASTEROID);
+	SDL_assert( weapon->type == OBJ_WEAPON );
 
 	// first check the bounding spheres of the two objects.
 	hit = fvi_segment_sphere(&hitpos, &weapon->last_pos, &weapon->pos, &pasteroid->pos, pasteroid->radius);

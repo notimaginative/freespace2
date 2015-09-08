@@ -352,7 +352,7 @@ training_msg_mods Training_msg_mods[MAX_TRAINING_MSG_MODS];
 
 // local module prototypes
 void training_process_msg(char *msg);
-void message_translate_tokens(char *buf, char *text);
+void message_translate_tokens(char *buf, const int max_buflen, char *text);
 
 
 #define NUM_DIRECTIVE_GAUGES			3
@@ -445,13 +445,14 @@ void training_obj_display()
 
 		c = &Color_normal;
 		if (Training_obj_lines[i + offset] & TRAINING_OBJ_LINES_KEY) {
-			message_translate_tokens(buf, Mission_events[z].objective_key_text);  // remap keys
+			message_translate_tokens(buf, SDL_arraysize(buf), Mission_events[z].objective_key_text);  // remap keys
 //			gr_set_color_fast(&Color_normal);
 			c = &Color_bright_green;
 		} else {
-			strcpy(buf, Mission_events[z].objective_text);
+			SDL_strlcpy(buf, Mission_events[z].objective_text, SDL_arraysize(buf));
 			if (Mission_events[z].count){
-				sprintf(buf + strlen(buf), NOX(" [%d]"), Mission_events[z].count);
+				int len = strlen(buf);
+				SDL_snprintf(buf + len, SDL_arraysize(buf) - len, NOX(" [%d]"), Mission_events[z].count);
 			}
 
 			// if this is a multiplayer tvt game, and this is event is not for my team, don't display it
@@ -541,7 +542,7 @@ void training_mission_init()
 {
 	int i;
 
-	Assert(!Training_num_lines);
+	SDL_assert(!Training_num_lines);
 	Training_obj_num_lines = 0;
 	Training_msg_que_count = 0;
 	Training_failure = 0;
@@ -580,8 +581,8 @@ int comp_training_lines_by_born_on_date(const void *m1, const void *m2)
 	e1 = (int*) m1;
 	e2 = (int*) m2;
 	
-	Assert(Mission_events[*e1 & 0xffff].born_on_date != 0);
-	Assert(Mission_events[*e2 & 0xffff].born_on_date != 0);
+	SDL_assert(Mission_events[*e1 & 0xffff].born_on_date != 0);
+	SDL_assert(Mission_events[*e2 & 0xffff].born_on_date != 0);
 
 	return (Mission_events[*e1 & 0xffff].born_on_date - Mission_events[*e2 & 0xffff].born_on_date);
 }
@@ -702,7 +703,7 @@ void training_check_objectives()
 	for (event_idx=0; event_idx<Num_mission_events; event_idx++) {
 		event_status = mission_get_event_status(event_idx);
 		if ( (event_status != EVENT_UNBORN) && Mission_events[event_idx].objective_text && (timestamp() > Mission_events[event_idx].born_on_date + 3000) ) {
-			if (!Training_failure || !strnicmp(Mission_events[event_idx].name, XSTR( "Training failed", 423), 15)) {
+			if (!Training_failure || !SDL_strncasecmp(Mission_events[event_idx].name, XSTR( "Training failed", 423), 15)) {
 
 				// check for the actual objective
 				for (i=0; i<Training_obj_num_lines; i++) {
@@ -787,10 +788,10 @@ void training_mission_shutdown()
 }
 
 // translates special tokens.  Handles one token only.
-char *translate_msg_token(char *str)
+char *translate_msg_token(char *str, const int max_len)
 {
-	if (!stricmp(str, NOX("wp"))) {
-		sprintf(str, "%d", Training_context_goal_waypoint + 1);
+	if (!SDL_strcasecmp(str, NOX("wp"))) {
+		SDL_snprintf(str, max_len, "%d", Training_context_goal_waypoint + 1);
 		return str;
 	}
 
@@ -798,30 +799,31 @@ char *translate_msg_token(char *str)
 }
 
 // translates all special tokens in a message, producing the new finalized message to be displayed
-void message_translate_tokens(char *buf, char *text)
+void message_translate_tokens(char *buf, const int max_buflen, char *text)
 {
-	char temp[40], *toke1, *toke2, *ptr, *orig_buf;
+	char temp[40], *toke1, *toke2, *ptr;
 	int r;
+	int len;
 
-	orig_buf = buf;
 	*buf = 0;
-	toke1 = strchr(text, '$');
-	toke2 = strchr(text, '#');
+	toke1 = SDL_strchr(text, '$');
+	toke2 = SDL_strchr(text, '#');
 	while (toke1 || toke2) {  // is either token types present?
 		if (!toke2 || (toke1 && (toke1 < toke2))) {  // found $ before #
-			strncpy(buf, text, toke1 - text + 1);  // copy text up to token
+			len = min(toke1 - text + 1, max_buflen);
+			SDL_strlcpy(buf, text, len);  // copy text up to token
 			buf += toke1 - text + 1;
 			text = toke1 + 1;  // advance pointers past processed data
 
-			toke2 = strchr(text, '$');
+			toke2 = SDL_strchr(text, '$');
 			if (!toke2)  // No second one?
 				break;
 
-			strncpy(temp, text, toke2 - text);  // isolate token into seperate buffer
-			temp[toke2 - text] = 0;  // null terminate string
+			len = min(toke2 - text + 1, max_buflen);
+			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
 			ptr = (char *)translate_key(temp);  // try and translate key
 			if (ptr) {  // was key translated properly?
-				if (!stricmp(ptr, NOX("none")) && (Training_bind_warning != Missiontime)) {
+				if (!SDL_strcasecmp(ptr, NOX("none")) && (Training_bind_warning != Missiontime)) {
 					if ( The_mission.game_type & MISSION_TYPE_TRAINING ) {
 						r = popup(PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR( "&Bind Control", 424), XSTR( "&Abort mission", 425),
 							XSTR( "Warning\nYou have no control bound to the action \"%s\".  You must do so before you can continue with your training.", 426),
@@ -837,36 +839,37 @@ void message_translate_tokens(char *buf, char *text)
 				}
 
 				buf--;  // erase the $
-				strcpy(buf, ptr);  // put translated key in place of token
+				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
 				buf += strlen(buf);
 				text = toke2 + 1;
 			}
 
 		} else {
-			strncpy(buf, text, toke2 - text + 1);  // copy text up to token
+			len = min(toke2 - text + 1, max_buflen);
+			SDL_strlcpy(buf, text, len);  // copy text up to token
 			buf += toke2 - text + 1;
 			text = toke2 + 1;  // advance pointers past processed data
 
-			toke1 = strchr(text, '#');
+			toke1 = SDL_strchr(text, '#');
 			if (toke1)  // No second one?
 				break;
 
-			strncpy(temp, text, toke1 - text);  // isolate token into seperate buffer
-			temp[toke1 - text] = 0;  // null terminate string
-			ptr = translate_msg_token(temp);  // try and translate key
+			len = min(toke1 - text + 1, max_buflen);
+			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
+			ptr = translate_msg_token(temp, SDL_arraysize(temp));  // try and translate key
 			if (ptr) {  // was key translated properly?
 				buf--;  // erase the #
-				strcpy(buf, ptr);  // put translated key in place of token
+				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
 				buf += strlen(buf);
 				text = toke1 + 1;
 			}
 		}
 
-		toke1 = strchr(text, '$');
-		toke2 = strchr(text, '#');
+		toke1 = SDL_strchr(text, '$');
+		toke2 = SDL_strchr(text, '#');
 	}
 
-	strcpy(buf, text);
+	SDL_strlcpy(buf, text, max_buflen);
 	return;
 }
 
@@ -913,7 +916,7 @@ int message_play_training_voice(int index)
 					}
 				}
 
-				if (stricmp(Message_waves[index].name, NOX("none.wav"))) {
+				if (SDL_strcasecmp(Message_waves[index].name, NOX("none.wav"))) {
 					Training_voice_handle = audiostream_open(Message_waves[index].name, ASF_VOICE);
 					if (Training_voice_handle < 0) {
 						nprintf(("Warning", "Unable to load voice file %s\n", Message_waves[index].name));
@@ -932,7 +935,7 @@ int message_play_training_voice(int index)
 		} else {
 			game_snd tmp_gs;
 			memset(&tmp_gs, 0, sizeof(game_snd));
-			strcpy(tmp_gs.filename, Message_waves[index].name);
+			SDL_strlcpy(tmp_gs.filename, Message_waves[index].name, SDL_arraysize(tmp_gs.filename));
 			Message_waves[index].num = snd_load(&tmp_gs);
 			if (Message_waves[index].num < 0) {
 				nprintf(("Warning", "Cannot load message wave: %s.  Will not play\n", Message_waves[index].name));
@@ -970,9 +973,9 @@ void message_training_setup(int m, int length)
 		return;
 	}
 
-	message_translate_tokens(Training_buf, Messages[m].message);
+	message_translate_tokens(Training_buf, SDL_arraysize(Training_buf), Messages[m].message);
 	HUD_add_to_scrollback(Training_buf, HUD_SOURCE_TRAINING);
-	strcpy(Training_text, Messages[m].message);
+	SDL_strlcpy(Training_text, Messages[m].message, SDL_arraysize(Training_text));
 
 	if (message_play_training_voice(Messages[m].wave_info.index) < 0) {
 		if (length > 0)
@@ -992,7 +995,7 @@ void message_training_setup(int m, int length)
 	training_process_msg(text);
 	HUD_add_to_scrollback(Training_buf, HUD_SOURCE_TRAINING);
 	Training_num_lines = split_str(Training_buf, TRAINING_LINE_WIDTH, Training_line_sizes, Training_lines, MAX_TRAINING_MSG_LINES);
-	Assert(Training_num_lines > 0);
+	SDL_assert(Training_num_lines > 0);
 	for (i=0; i<Training_num_lines; i++)
 		Training_lines[i][Training_line_sizes[i]] = 0;
 
@@ -1004,17 +1007,17 @@ void message_training_que(char *text, int timestamp, int length)
 {
 	int m;
 
-	Assert(Training_msg_que_count < TRAINING_MSG_QUE_MAX);
+	SDL_assert(Training_msg_que_count < TRAINING_MSG_QUE_MAX);
 	if (Training_msg_que_count < TRAINING_MSG_QUE_MAX) {
-		if (!stricmp(text, NOX("none")))
+		if (!SDL_strcasecmp(text, NOX("none")))
 			m = -1;
 
 		else {
 			for (m=0; m<Num_messages; m++)
-				if (!stricmp(text, Messages[m].name))
+				if (!SDL_strcasecmp(text, Messages[m].name))
 					break;
 
-			Assert(m < Num_messages);
+			SDL_assert(m < Num_messages);
 			if (m >= Num_messages)
 				return;
 		}
@@ -1074,10 +1077,10 @@ void message_training_display()
 		return;
 	}
 
-	message_translate_tokens(Training_buf, Training_text);
+	message_translate_tokens(Training_buf, SDL_arraysize(Training_buf), Training_text);
 	training_process_msg(Training_text);
 	Training_num_lines = split_str(Training_buf, TRAINING_LINE_WIDTH, Training_line_sizes, Training_lines, MAX_TRAINING_MSG_LINES);
-	Assert(Training_num_lines > 0);
+	SDL_assert(Training_num_lines > 0);
 	for (i=0; i<Training_num_lines; i++) {
 		Training_lines[i][Training_line_sizes[i]] = 0;
 		drop_leading_white_space(Training_lines[i]);
@@ -1154,21 +1157,21 @@ void training_process_msg(char *msg)
 	int count;
 	char *src, *dest, buf[8192];
 
-	message_translate_tokens(buf, msg);
+	message_translate_tokens(buf, SDL_arraysize(buf), msg);
 	count = 0;
 	src = buf;
 	dest = Training_buf;
 	while (*src) {
-		if (!strnicmp(src, NOX("<b>"), 3)) {
-			Assert(count < MAX_TRAINING_MSG_MODS);
+		if (!SDL_strncasecmp(src, NOX("<b>"), 3)) {
+			SDL_assert(count < MAX_TRAINING_MSG_MODS);
 			src += 3;
 			Training_msg_mods[count].pos = dest;
 			Training_msg_mods[count].mode = TMMOD_BOLD;
 			count++;
 		}
 
-		if (!strnicmp(src, NOX("</b>"), 4)) {
-			Assert(count < MAX_TRAINING_MSG_MODS);
+		if (!SDL_strncasecmp(src, NOX("</b>"), 4)) {
+			SDL_assert(count < MAX_TRAINING_MSG_MODS);
 			src += 4;
 			Training_msg_mods[count].pos = dest;
 			Training_msg_mods[count].mode = TMMOD_NORMAL;

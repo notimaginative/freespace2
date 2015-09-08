@@ -412,49 +412,54 @@ void credits_init()
 
 		// open localization and parse
 		lcl_ext_open();
-		read_file_text("credits.tbl");
-		reset_parse();
 
-		// keep reading everything in
-		strcpy(Credit_text,"");		
+		try {
+			read_file_text("credits.tbl");
+			reset_parse();
+
+			// keep reading everything in
+			SDL_strlcpy(Credit_text, "", size+200);
 #ifndef MAKE_FS1
-		while(!check_for_string_raw("#end")){
+			while(!check_for_string_raw("#end")){
 #else
-		char *ugh = Mp;
-		char ch;
-		int line_count = 0;
+			char *ugh = Mp;
+			char ch;
+			int line_count = 0;
 
-		// get the line count, probably a crappy way to do it but it's the best way i've
-		// found to step through the credits without crashing problems since there's no
-		// definite end line in FS1
-		while (*ugh && *ugh != EOF_CHAR) {
-			ch = *ugh;
+			// get the line count, probably a crappy way to do it but it's the best way i've
+			// found to step through the credits without crashing problems since there's no
+			// definite end line in FS1
+			while (*ugh && *ugh != EOF_CHAR) {
+				ch = *ugh;
 
-			if (ch == '\n'){
-				line_count++;
+				if (ch == '\n'){
+					line_count++;
+				}
+				ugh++;
 			}
-			ugh++;
-		}
 
-		while(line_count > 0){
-			line_count--;
+			while(line_count > 0){
+				line_count--;
 #endif
-			stuff_string_line(line, 511);
-			linep1 = line;
+				stuff_string_line(line, 511);
+				linep1 = line;
 
-			do {
-				linep2 = split_str_once(linep1, Credits_text_coords[gr_screen.res][2]);
-				strcat(Credit_text, linep1);
-				strcat(Credit_text, "\n");			
-				linep1 = linep2;
-			} while (linep2 != NULL);
-		}		
+				do {
+					linep2 = split_str_once(linep1, Credits_text_coords[gr_screen.res][2]);
+					SDL_strlcat(Credit_text, linep1, size+200);
+					SDL_strlcat(Credit_text, "\n", size+200);
+					linep1 = linep2;
+				} while (linep2 != NULL);
+			}
+		} catch (parse_error_t rval) {
+			mprintf(("Error parsing 'credits.tbl'\nError code = %i.\n", (int)rval));
+		}
 
 		// close localization
 		lcl_ext_close();	
 	} else {
 		Credit_text = (char *) malloc(25 + 200);
-		strcpy(Credit_text, NOX("No credits available.\n"));
+		SDL_strlcpy(Credit_text, NOX("No credits available.\n"), 25+200);
 	}	
 
 	int ch;
@@ -598,7 +603,7 @@ void credits_init()
 		Buttons[CUTSCENES_BUTTON][gr_screen.res].button.disable();
 	}
 
-	Buttons[EXIT_BUTTON][gr_screen.res].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
+	Buttons[EXIT_BUTTON][gr_screen.res].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 
 	Background_bitmap = bm_load(Credits_bitmap_fname[gr_screen.res]);
 	Credits_artwork_index = rand() % NUM_IMAGES;
@@ -673,21 +678,21 @@ void credits_do_frame(float frametime)
 
 	k = Ui_window.process();
 	switch (k) {
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		gameseq_post_event(GS_EVENT_MAIN_MENU);
 		key_flush();
 		break;
 
-	case KEY_CTRLED | KEY_UP:
-	case KEY_SHIFTED | KEY_TAB:
+	case KEY_CTRLED | SDLK_UP:
+	case KEY_SHIFTED | SDLK_TAB:
 		if ( !(Player->flags & PLAYER_FLAGS_IS_MULTI) ) {
 			credits_screen_button_pressed(CUTSCENES_BUTTON);
 			break;
 		}
 		// else, react like tab key.
 
-	case KEY_CTRLED | KEY_DOWN:
-	case KEY_TAB:
+	case KEY_CTRLED | SDLK_DOWN:
+	case SDLK_TAB:
 		credits_screen_button_pressed(TECH_DATABASE_BUTTON);
 		break;
 
@@ -724,9 +729,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			sprintf(buf, NOX("2_CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			sprintf(buf, NOX("CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("CrIm%.2d"), Credits_artwork_index);
 		}
 		Credits_bmps[Credits_artwork_index] = bm_load(buf);
 	}
@@ -735,9 +740,9 @@ void credits_do_frame(float frametime)
 		char buf[40];
 
 		if (gr_screen.res == GR_1024) {
-			sprintf(buf, NOX("2_CrIm%.2d"), Credits_artwork_index);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("2_CrIm%.2d"), Credits_artwork_index);
 		} else {
-			sprintf(buf, NOX("CrIm%.2d"), next);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("CrIm%.2d"), next);
 		}
 		Credits_bmps[next] = bm_load(buf);
 	}
@@ -746,7 +751,7 @@ void credits_do_frame(float frametime)
 	bm2 = Credits_bmps[next];
 
 	if((bm1 != -1) && (bm2 != -1)){
-		Assert(percent >= 0 && percent <= 100);
+		SDL_assert(percent >= 0 && percent <= 100);
 
 		// get width and height
 		bm_get_info(bm1, &bw1, &bh1, NULL, NULL, NULL);	
@@ -806,15 +811,7 @@ void credits_do_frame(float frametime)
 		sy = fl2i(Credit_position-0.5f);
 	}
 
-	// HACK - I don't want to change the string code, so we'll just use a special version here
-	if(gr_screen.mode == GR_GLIDE){
-#ifndef PLAT_UNIX
-		extern void gr_glide_string_hack(int sx, int sy, char *s);
-		gr_glide_string_hack(0x8000, sy, Credit_text);
-#endif
-	} else {
-		gr_string(0x8000, sy, Credit_text);
-	}
+	gr_string(0x8000, sy, Credit_text);
 
 	int temp_time;
 	temp_time = timer_get_milliseconds();
@@ -824,7 +821,7 @@ void credits_do_frame(float frametime)
 	timestamp_inc(Credits_frametime / 1000.0f);
 
 	float fl_frametime = i2fl(Credits_frametime) / 1000.f;
-	if (keyd_pressed[KEY_LSHIFT]) {
+	if (key_pressed(SDLK_LSHIFT)) {
 		Credit_position -= fl_frametime * CREDITS_SCROLL_RATE * 4.0f;
 	} else {
 		Credit_position -= fl_frametime * CREDITS_SCROLL_RATE;

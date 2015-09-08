@@ -58,7 +58,7 @@ void text_view_dlg::set(int ship_class)
 		return;
 
 	fp = cfopen("ships.tbl", "r");
-	Assert(fp);
+	SDL_assert(fp);
 
 	while (cfgets(line, 255, fp)) {
 		while (line[strlen(line) - 1] == '\n')

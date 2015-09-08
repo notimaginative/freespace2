@@ -150,7 +150,7 @@ void g3_start_frame_func(int zbuffer_flag, const char * filename, int lineno)
 //Uncomment this to figure out who called g3_start_frame without calling g3_end_frame.
 //	mprintf(( "g3_start_frame called from %s, line %d\n", filename, lineno ));
 
-	Assert( G3_count == 0 );
+	SDL_assert( G3_count == 0 );
 	G3_count++;
 
 	// Clear any user-defined clip planes
@@ -200,10 +200,10 @@ void g3_start_frame_func(int zbuffer_flag, const char * filename, int lineno)
 void g3_end_frame(void)
 {
 	G3_count--;
-	Assert( G3_count == 0 );
+	SDL_assert( G3_count == 0 );
 
 	free_point_num = 0;
-//	Assert(free_point_num==0);
+//	SDL_assert(free_point_num==0);
 }
 
 
@@ -212,7 +212,7 @@ void scale_matrix(void);
 //set view from x,y,z, viewer matrix, and zoom.  Must call one of g3_set_view_*()
 void g3_set_view_matrix(vector *view_pos,matrix *view_matrix,float zoom)
 {
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	View_zoom = zoom;
 	View_position = *view_pos;
@@ -237,7 +237,7 @@ void g3_set_view_angles(vector *view_pos,angles *view_orient,float zoom)
 {
 	matrix tmp;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	vm_angles_2_matrix(&tmp,view_orient);
 	g3_set_view_matrix(view_pos,&tmp,zoom);
@@ -274,9 +274,9 @@ ubyte g3_rotate_vertex_popped(vertex *dest,vector *src)
 {
 	vector tempv;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
-	Assert( instance_depth > 0 );
+	SDL_assert( instance_depth > 0 );
 
 	vm_vec_sub(&tempv,src,&instance_stack[0].p);
 	vm_vec_rotate( (vector *)&dest->x, &tempv, &instance_stack[0].m );
@@ -293,9 +293,9 @@ void g3_start_instance_matrix(vector *pos,matrix *orient)
 	vector tempv;
 	matrix tempm,tempm2;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
-	Assert(instance_depth<MAX_INSTANCE_DEPTH);
+	SDL_assert(instance_depth<MAX_INSTANCE_DEPTH);
 
 	instance_stack[instance_depth].m = View_matrix;
 	instance_stack[instance_depth].p = View_position;
@@ -348,7 +348,7 @@ void g3_start_instance_angles(vector *pos,angles *orient)
 {
 	matrix tm;
 
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	if (orient==NULL) {
 		g3_start_instance_matrix(pos,NULL);
@@ -365,11 +365,11 @@ void g3_start_instance_angles(vector *pos,angles *orient)
 //pops the old context
 void g3_done_instance()
 {
-	Assert( G3_count == 1 );
+	SDL_assert( G3_count == 1 );
 
 	instance_depth--;
 
-	Assert(instance_depth >= 0);
+	SDL_assert(instance_depth >= 0);
 
 	View_position = instance_stack[instance_depth].p;
 	View_matrix = instance_stack[instance_depth].m;

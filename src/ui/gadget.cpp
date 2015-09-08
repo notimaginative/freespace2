@@ -242,29 +242,26 @@ int UI_GADGET::set_bmaps(const char *ani_fname, int nframes, int start_frame)
 	
 	// load all the bitmaps
 
-	Assert(nframes < MAX_BMAPS_PER_GADGET);		
+	SDL_assert(nframes < MAX_BMAPS_PER_GADGET);		
 	m_num_frames = nframes;		
 #ifndef MAKE_FS1
 	// FS1 uses real anis instead of frame based pcxs so this code just slows down
 	// searching and therefore loading
 	for(idx=start_frame; idx<nframes; idx++){
 		// clear the string
-		strcpy(full_name, "");
+		SDL_strlcpy(full_name, "", SDL_arraysize(full_name));
 
 		// get the # of digits for this index
 		num_digits = (idx < 10) ? 1 : (idx < 100) ? 2 : (idx < 1000) ? 3 : 4;
 
 		// build the actual filename
-		strcpy(full_name, ani_fname);		
+		SDL_strlcpy(full_name, ani_fname, SDL_arraysize(full_name));
 		for(s_idx=0; s_idx<(4-num_digits); s_idx++){
-			strcat(full_name, NOX("0"));
+			SDL_strlcat(full_name, NOX("0"), SDL_arraysize(full_name));
 		}
-#ifdef PLAT_UNIX
-		sprintf(tmp, "%d", idx);
-		strcat(full_name, tmp);
-#else
-		strcat(full_name, itoa(idx, tmp, 10));		
-#endif
+
+		SDL_snprintf(tmp, SDL_arraysize(tmp), "%d", idx);
+		SDL_strlcat(full_name, tmp, SDL_arraysize(full_name));
 
 		// try and load the bitmap				
 		bmap_ids[idx] = bm_load(full_name);	

@@ -120,7 +120,7 @@ BOOL ShipSpecialDamage::OnInitDialog()
 		if (m_shock_speed < 10) m_shock_speed = 10;
 	} else {
 		int index = Ships[m_ship_num].special_exp_index;
-		Assert( (index > 0) && (index < MAX_SEXP_VARIABLES-5) );
+		SDL_assert( (index > 0) && (index < MAX_SEXP_VARIABLES-5) );
 
 		m_inner_rad = atoi(Sexp_variables[index++].text);
 		m_outer_rad = atoi(Sexp_variables[index++].text);

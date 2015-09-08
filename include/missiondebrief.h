@@ -82,7 +82,7 @@ void debrief_rebuild_player_list();
 void debrief_handle_player_drop();
 
 void debrief_disable_accept();
-void debrief_assemble_optional_mission_popup_text(char *buffer, char *mission_loop_desc);
+void debrief_assemble_optional_mission_popup_text(char *buffer, const int buf_len, char *mission_loop_desc);
 
 
 // multiplayer call to set up the client side debriefings

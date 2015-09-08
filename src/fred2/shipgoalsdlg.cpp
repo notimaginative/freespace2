@@ -674,7 +674,7 @@ void ShipGoalsDlg::initialize(ai_goal *goals, int ship)
 				m_subsys[item] = -1;
 				num = get_docking_list(Ships[ship].modelnum);
 				for (i=0; i<num; i++) {
-					Assert(Docking_bay_list[i]);
+					SDL_assert(Docking_bay_list[i]);
 					if (!stricmp(goalp[item].docker.name, Docking_bay_list[i])) {
 						m_subsys[item] = i;
 						break;
@@ -689,7 +689,7 @@ void ShipGoalsDlg::initialize(ai_goal *goals, int ship)
 				break;
 
 			default:
-				Assert(0);
+				SDL_assert(0);
 		}
 
 		if (flag & 0x1) {
@@ -698,14 +698,14 @@ void ShipGoalsDlg::initialize(ai_goal *goals, int ship)
 				if ((ptr->type == OBJ_SHIP) || (ptr->type == OBJ_START)) {
 					inst = ptr->instance;
 					if (ptr->type == OBJ_SHIP) {
-						Assert(inst >= 0 && inst < MAX_SHIPS);
+						SDL_assert(inst >= 0 && inst < MAX_SHIPS);
 						if (!stricmp(goalp[item].ship_name, Ships[inst].ship_name)) {
 							m_data[item] = inst | TYPE_SHIP;
 							break;
 						}
 
 					} else {
-						Assert(inst >= 0 && inst < MAX_SHIPS);
+						SDL_assert(inst >= 0 && inst < MAX_SHIPS);
 						if (!stricmp(goalp[item].ship_name, Ships[inst].ship_name)) {
 							m_data[item] = inst | TYPE_PLAYER;
 							break;
@@ -747,9 +747,9 @@ void ShipGoalsDlg::initialize(ai_goal *goals, int ship)
 				if (m_data[item]) {
 					num = get_docking_list(Ships[m_data[item] & DATA_MASK].modelnum);
 					for (i=0; i<num; i++) {
-						Assert(Docking_bay_list[i]);
-						Assert(goalp[item].dockee.name);
-						Assert(goalp[item].dockee.index != -1);
+						SDL_assert(Docking_bay_list[i]);
+						SDL_assert(goalp[item].dockee.name);
+						SDL_assert(goalp[item].dockee.index != -1);
 						if (!stricmp(goalp[item].dockee.name, Docking_bay_list[i])) {
 							m_dock2[item] = i;
 							break;
@@ -760,7 +760,7 @@ void ShipGoalsDlg::initialize(ai_goal *goals, int ship)
 				break;
 		}
 
-//		Assert(m_data[item]);
+//		SDL_assert(m_data[item]);
 	}
 }
 
@@ -775,7 +775,7 @@ void ShipGoalsDlg::set_item(int item, int init)
 	if (item >= MAX_AI_GOALS)
 		m_behavior_box[item] -> EnableWindow(FALSE);
 	
-	Assert(item >= 0 && item < ED_MAX_GOALS);
+	SDL_assert(item >= 0 && item < ED_MAX_GOALS);
 	m_object_box[item] -> ResetContent();
 	if (m_behavior[item] < 1) {
 		m_object_box[item] -> EnableWindow(FALSE);
@@ -851,7 +851,7 @@ void ShipGoalsDlg::set_item(int item, int init)
 					else
 						t = TYPE_PLAYER;
 
-					Assert(inst >= 0 && inst < MAX_SHIPS);
+					SDL_assert(inst >= 0 && inst < MAX_SHIPS);
 					// remove all marked ships from list
 					if (!goalp && (ptr->flags & OF_MARKED))
 						inst = -1;
@@ -904,7 +904,7 @@ void ShipGoalsDlg::set_item(int item, int init)
 		m_subsys_box[item] -> EnableWindow(TRUE);
 		m_subsys_box[item] -> ResetContent();
 		for (i=0; i<num; i++) {
-			Assert(Docking_bay_list[i]);
+			SDL_assert(Docking_bay_list[i]);
 			z = m_subsys_box[item] -> AddString(Docking_bay_list[i]);
 			m_subsys_box[item] -> SetItemDataPtr(z, Docking_bay_list[i]);
 		}
@@ -1240,7 +1240,7 @@ void ShipGoalsDlg::update_item(int item, int multi)
 			return;
 
 		default:
-			Assert(0);
+			SDL_assert(0);
 	}
 
 	if (stricmp(save, goalp[item].ship_name))
@@ -1365,7 +1365,7 @@ void ShipGoalsDlg::set_object(int item)
 			m_dock2_box[item] -> EnableWindow(TRUE);
 			m_dock2_box[item] -> ResetContent();
 			for (i=0; i<num; i++) {
-				Assert(Docking_bay_list[i]);
+				SDL_assert(Docking_bay_list[i]);
 				z = m_dock2_box[item] -> AddString(Docking_bay_list[i]);
 				str = ai_get_goal_ship_name(Docking_bay_list[i], &not_used);
 				m_dock2_box[item] -> SetItemDataPtr(z, str);

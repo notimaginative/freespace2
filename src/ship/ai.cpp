@@ -49,7 +49,7 @@ int ai_get_slot(int shipnum)
 // Only modifies in Ai_info struct.  Does not modify hook in ship.
 void ai_free_slot(int ai_index)
 {
-	Assert( (ai_index >= 0) && (ai_index < MAX_AI_INFO) );
+	SDL_assert( (ai_index >= 0) && (ai_index < MAX_AI_INFO) );
 
 	Ai_info[ai_index].shipnum = -1;
 }
@@ -69,15 +69,15 @@ void set_wingnum(int objnum, int wingnum)
 {
 	int	shipnum, ai_index;
 
-	Assert(Objects[objnum].type == OBJ_SHIP);
+	SDL_assert(Objects[objnum].type == OBJ_SHIP);
 
 	shipnum = Objects[objnum].instance;
 
-	Assert((shipnum >= 0) && (shipnum < MAX_SHIPS));
+	SDL_assert((shipnum >= 0) && (shipnum < MAX_SHIPS));
 
 	ai_index = Ships[shipnum].ai_index;
 
-	Assert( (ai_index >= 0) && (ai_index < MAX_AI_INFO) );
+	SDL_assert( (ai_index >= 0) && (ai_index < MAX_AI_INFO) );
 
 	Ai_info[ai_index].wing = wingnum;
 }
@@ -87,15 +87,15 @@ char *ai_get_goal_ship_name(const char *name, int *index)
 	int i;
 
 	for (i=0; i < Total_goal_ship_names; i++)
-		if (!stricmp(name, Goal_ship_names[i])) {
+		if (!SDL_strcasecmp(name, Goal_ship_names[i])) {
 			*index = i;
 			return Goal_ship_names[i];
 		}
 
-	Assert(Total_goal_ship_names < MAX_GOAL_SHIP_NAMES);
-	Assert(strlen(name) < NAME_LENGTH - 1);
+	SDL_assert(Total_goal_ship_names < MAX_GOAL_SHIP_NAMES);
+	SDL_assert(strlen(name) < NAME_LENGTH - 1);
 	i = Total_goal_ship_names++;
-	strcpy(Goal_ship_names[i], name);
+	SDL_strlcpy(Goal_ship_names[i], name, NAME_LENGTH);
 	*index = i;
 	return Goal_ship_names[i];
 }

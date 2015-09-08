@@ -282,7 +282,7 @@
  * Fix bug where window controls get disabled when F1 pressed twice
  * 
  * 169   5/24/98 12:55a Mike
- * Prevent Assert() when no debriefing text for a stage.
+ * Prevent SDL_assert() when no debriefing text for a stage.
  * 
  * 168   5/23/98 10:38p Lawrance
  * Avoid doing a cfile refresh when running debug
@@ -320,7 +320,7 @@
  * 
  * 158   5/16/98 9:14p Allender
  * fix scoring ckise fir training missions to actually count medals, but
- * nothing else.  Code used to Assert when wings were granted then taken
+ * nothing else.  Code used to SDL_assert when wings were granted then taken
  * away because they were actually never granted in scoring structure
  * 
  * 157   5/15/98 5:15p Dave
@@ -935,32 +935,32 @@ void debrief_award_text_clear();
 // functions
 const char *debrief_tooltip_handler(const char *str)
 {
-	if (!stricmp(str, NOX("@.Medal"))) {
+	if (!SDL_strcasecmp(str, NOX("@.Medal"))) {
 		if (Award_active){
 			return XSTR( "Medal", 435);
 		}
 
-	} else if (!stricmp(str, NOX("@.Rank"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@.Rank"))) {
 		if (Award_active){
 			return XSTR( "Rank", 436);
 		}
 
-	} else if (!stricmp(str, NOX("@.Badge"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@.Badge"))) {
 		if (Award_active){
 			return XSTR( "Badge", 437);
 		}
 
-	} else if (!stricmp(str, NOX("@Medal"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@Medal"))) {
 		if (Medal_bitmap >= 0){
 			return Medals[Player->stats.m_medal_earned].name;
 		}
 
-	} else if (!stricmp(str, NOX("@Rank"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@Rank"))) {
 		if (Rank_bitmap >= 0){
 			return Ranks[Promoted].name;
 		}
 
-	} else if (!stricmp(str, NOX("@Badge"))) {
+	} else if (!SDL_strcasecmp(str, NOX("@Badge"))) {
 		if (Badge_bitmap >= 0){
 			return Medals[Badge_index[Player->stats.m_badge_earned]].name;
 		}
@@ -1020,7 +1020,7 @@ void debrief_voice_load_all()
 		if ( strlen(Debrief_stages[i]->voice) <= 0 ) {
 			continue;
 		}
-		if ( strnicmp(Debrief_stages[i]->voice, NOX("none"), 4) ) {
+		if ( SDL_strncasecmp(Debrief_stages[i]->voice, NOX("none"), 4) ) {
 			debrief_load_voice_file(i, Debrief_stages[i]->voice);
 //			Debrief_voices[i] = audiostream_open(Debrief_stages[i]->voice, ASF_VOICE);
 		}
@@ -1254,13 +1254,13 @@ void debrief_buttons_init()
 #endif
 	
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][NEXT_STAGE].button.set_hotkey(KEY_RIGHT);
-	Buttons[gr_screen.res][PREV_STAGE].button.set_hotkey(KEY_LEFT);
-	Buttons[gr_screen.res][LAST_STAGE].button.set_hotkey(KEY_SHIFTED | KEY_RIGHT);
-	Buttons[gr_screen.res][FIRST_STAGE].button.set_hotkey(KEY_SHIFTED | KEY_LEFT);
-	Buttons[gr_screen.res][TEXT_SCROLL_UP].button.set_hotkey(KEY_UP);
-	Buttons[gr_screen.res][TEXT_SCROLL_DOWN].button.set_hotkey(KEY_DOWN);
-	Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
+	Buttons[gr_screen.res][NEXT_STAGE].button.set_hotkey(SDLK_RIGHT);
+	Buttons[gr_screen.res][PREV_STAGE].button.set_hotkey(SDLK_LEFT);
+	Buttons[gr_screen.res][LAST_STAGE].button.set_hotkey(KEY_SHIFTED | SDLK_RIGHT);
+	Buttons[gr_screen.res][FIRST_STAGE].button.set_hotkey(KEY_SHIFTED | SDLK_LEFT);
+	Buttons[gr_screen.res][TEXT_SCROLL_UP].button.set_hotkey(SDLK_UP);
+	Buttons[gr_screen.res][TEXT_SCROLL_DOWN].button.set_hotkey(SDLK_DOWN);
+	Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
 
 	// if in multiplayer, disable the button for all players except the host
 	// also disable for squad war matches
@@ -1316,19 +1316,19 @@ void debrief_choose_promotion_voice()
 	int i, j;
 
 	if(Campaign.current_mission < 0){
-		sprintf(Promotion_stage.voice, NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
+		SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
 		return;
 	}
 
 	// search thru all official campaigns for our current campaign
 	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
-			if ((Campaign.filename != NULL) && !stricmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
+			if ((Campaign.filename != NULL) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
 				// now search thru the mission filenames, 
 				for (j=0; j<Volition_campaigns[i].num_missions; j++) {
-					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !stricmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
+					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
 						// found it!  set the persona and bail
-						sprintf(Promotion_stage.voice, NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Ranks[Promoted].promotion_voice_base);
+						SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Ranks[Promoted].promotion_voice_base);
 						return;
 					}
 				}
@@ -1337,7 +1337,7 @@ void debrief_choose_promotion_voice()
 	}
 
 	// default to petrarch
-	sprintf(Promotion_stage.voice, NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
+	SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
 }
 
 // sets Promotion_stage.voice
@@ -1352,31 +1352,31 @@ void debrief_choose_badge_voice()
 	if(Campaign.current_mission < 0){
 #ifndef MAKE_FS1
 		// default to petrarch
-		sprintf(Badge_stage.voice, NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+		SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #else
 		// default to FS1 guy
-		sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+		SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #endif
 	}
 
 	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
 #ifdef MAKE_FS1
 		if ( Player->on_bastion ) {
-			sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base2);
+			SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base2);
 			return;
 		} else {
-			sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+			SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 			return;
 		}
 #else
 		// search thru all official campaigns for our current campaign
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
-			if ((Campaign.filename != NULL) && !stricmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
+			if ((Campaign.filename != NULL) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
 				// now search thru the mission filenames, 
 				for (j=0; j<Campaign.num_missions; j++) {
-					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !stricmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
+					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
 						// found it!  set the persona and bail
-						sprintf(Badge_stage.voice, NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Badge_info[Player->stats.m_badge_earned].voice_base);
+						SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%d_%s"), Debrief_promotion_voice_mapping[i][j].persona_index, Badge_info[Player->stats.m_badge_earned].voice_base);
 						return;
 					}
 				}
@@ -1387,10 +1387,10 @@ void debrief_choose_badge_voice()
 
 #ifndef MAKE_FS1
 	// default to petrarch
-	sprintf(Badge_stage.voice, NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+	SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("9_%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #else
 	// default to FS1 guy
-	sprintf(Badge_stage.voice, NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
+	SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #endif
 }
 
@@ -1421,14 +1421,14 @@ void debrief_award_init()
 			} else {
 				ver = 0;
 			}
-			sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);		
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_WINGS], ver);
 			Wings_bitmap = bm_load(buf);
 #ifndef MAKE_FS1
 		} else if (Player->stats.m_medal_earned == 17) {  // special hack for the soc crest
 			Crest_bitmap = bm_load(Debrief_award_filename[gr_screen.res][DB_AWARD_SOC]);
 #endif
 		} else {
-			sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
+			SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_MEDAL], Player->stats.m_medal_earned);
 			Medal_bitmap = bm_load(buf);
 		}
 
@@ -1440,7 +1440,7 @@ void debrief_award_init()
 	// handle promotions
 	if ( Player->stats.m_promotion_earned != -1 ) {
 		Promoted = Player->stats.m_promotion_earned;
-		sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_RANK], Promoted + 1);
+		SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_RANK], Promoted + 1);
 		Rank_bitmap = bm_load(buf);
 
 		Promotion_stage.new_text = Ranks[Promoted].promotion_text;
@@ -1458,7 +1458,7 @@ void debrief_award_init()
 	// only grant badge if earned and allowed.  (no_promotion really means no promotion and no badges)
 	if ( Player->stats.m_badge_earned != -1 ) {
 		i = Player->stats.m_badge_earned;
-		sprintf(buf, NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_BADGE], i + 1);
+		SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%.2d"), Debrief_award_filename[gr_screen.res][DB_AWARD_BADGE], i + 1);
 		Badge_bitmap = bm_load(buf);
 
 		Badge_stage.new_text = Badge_info[i].promotion_text;
@@ -1488,60 +1488,59 @@ void debrief_traitor_init()
 	if ( !inited ) {
 		debriefing		*debrief;
 		debrief_stage	*stagep;
-		int rval;
 		int stage_num;
-
-		if ((rval = setjmp(parse_abort)) != 0) {
-			Error(LOCATION, "Unable to parse traitor.tbl!  Code = %i.\n", rval);
-		}
-		else {
-			read_file_text("traitor.tbl");
-			reset_parse();		
-		}
 
 		// open localization
 		lcl_ext_open();
 
-		// simplied form of the debriefing stuff.
-		debrief = &Traitor_debriefing;
-		required_string("#Debriefing_info");
+		try {
+			read_file_text("traitor.tbl");
+			reset_parse();		
 
-		required_string("$Num stages:");
-		stuff_int(&debrief->num_stages);
-		Assert(debrief->num_stages == 1);
+			// simplied form of the debriefing stuff.
+			debrief = &Traitor_debriefing;
+			required_string("#Debriefing_info");
 
-		stage_num = 0;
-		stagep = &debrief->stages[stage_num++];
-		required_string("$Formula:");
-		stagep->formula = get_sexp_main();
-		required_string("$multi text");
-		if ( Fred_running )	{
-			stuff_string( stagep->new_text, F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
-		} else {
-			stagep->new_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
-		}
-		required_string("$Voice:");
-		char traitor_voice_file[NAME_LENGTH];
-		stuff_string(traitor_voice_file, F_FILESPEC, NULL);
+			required_string("$Num stages:");
+			stuff_int(&debrief->num_stages);
+			SDL_assert(debrief->num_stages == 1);
+
+			stage_num = 0;
+			stagep = &debrief->stages[stage_num++];
+			required_string("$Formula:");
+			stagep->formula = get_sexp_main();
+			required_string("$multi text");
+			if ( Fred_running )	{
+				stuff_string( stagep->new_text, F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
+			} else {
+				stagep->new_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_DEBRIEF_LEN);
+			}
+			required_string("$Voice:");
+			char traitor_voice_file[NAME_LENGTH];
+			stuff_string(traitor_voice_file, F_FILESPEC, NULL);
 
 // DKA 9/13/99 Only 1 traitor msg for FS2
 #ifdef MAKE_FS1
-		if ( Player->on_bastion ) {
-			strcpy(stagep->voice, NOX("3_"));
-		} else {
-			strcpy(stagep->voice, NOX("1_"));
-		}
+			if ( Player->on_bastion ) {
+				SDL_strlcpy(stagep->voice, NOX("3_"), SDL_arraysize(stagep->voice));
+			} else {
+				SDL_strlcpy(stagep->voice, NOX("1_"), SDL_arraysize(stagep->voice));
+			}
 #endif
 
-		strcat(stagep->voice, traitor_voice_file);
+			SDL_strlcat(stagep->voice, traitor_voice_file, SDL_arraysize(stagep->voice));
 
-		required_string("$Recommendation text:");
-		if ( Fred_running )	{
-			stuff_string( stagep->new_recommendation_text, F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
-		} else {
-			stagep->new_recommendation_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
+			required_string("$Recommendation text:");
+			if ( Fred_running )	{
+				stuff_string( stagep->new_recommendation_text, F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
+			} else {
+				stagep->new_recommendation_text = stuff_and_malloc_string( F_MULTITEXT, NULL, MAX_RECOMMENDATION_LEN);
+			}
+
+			inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Unable to parse traitor.tbl!  Code = %i.\n", (int)rval);
 		}
-		inited = 1;
 
 		// close localization
 		lcl_ext_close();
@@ -1584,7 +1583,7 @@ void debrief_multi_list_init()
 
 	// switch stats display to this newly selected player
 	set_player_stats(Multi_list[0].net_player_index);
-	strcpy(Debrief_current_callsign, Multi_list[0].callsign);	
+	SDL_strlcpy(Debrief_current_callsign, Multi_list[0].callsign, SDL_arraysize(Debrief_current_callsign));
 	Debrief_player = Player;
 }
 
@@ -1637,7 +1636,7 @@ void debrief_multi_list_draw()
 
 				// switch stats display to this newly selected player
 				set_player_stats(Multi_list[idx].net_player_index);
-				strcpy(Debrief_current_callsign, Multi_list[idx].callsign);	
+				SDL_strlcpy(Debrief_current_callsign, Multi_list[idx].callsign, SDL_arraysize(Debrief_current_callsign));
 				Debrief_player = Net_players[Multi_list[idx].net_player_index].player;				
 				break;
 			}
@@ -1704,9 +1703,9 @@ void debrief_multi_list_draw()
 			}
 		}
 
-		strcpy(str,Multi_list[z].callsign);
+		SDL_strlcpy(str, Multi_list[z].callsign, SDL_arraysize(str));
 		if(Net_players[Multi_list[z].net_player_index].flags & NETINFO_FLAG_OBSERVER && !(Net_players[Multi_list[z].net_player_index].flags & NETINFO_FLAG_OBS_PLAYER)){
-			strcat(str,XSTR( "(O)", 438));
+			SDL_strlcat(str, XSTR( "(O)", 438), SDL_arraysize(str));
 		}		
 
 		// bli
@@ -1720,25 +1719,25 @@ void debrief_multi_list_draw()
 void debrief_kick_selected_player()
 {
 	if(Multi_list_select >= 0){
-		Assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
+		SDL_assert(Net_player->flags & NETINFO_FLAG_GAME_HOST);
 		multi_kick_player(Multi_list[Multi_list_select].net_player_index);
 	}
 }
 
 // get optional mission popup text 
-void debrief_assemble_optional_mission_popup_text(char *buffer, char *mission_loop_desc)
+void debrief_assemble_optional_mission_popup_text(char *buffer, const int buf_len, char *mission_loop_desc)
 {
-	Assert(buffer != NULL);
+	SDL_assert(buffer != NULL);
 	// base message
 
 	if (mission_loop_desc == NULL) {
-		strcpy(buffer, XSTR("<No Mission Loop Description Available>", 1490));
+		SDL_strlcpy(buffer, XSTR("<No Mission Loop Description Available>", 1490), buf_len);
 		mprintf(("No mission loop description avail"));
 	} else {
-		strcpy(buffer, mission_loop_desc);
+		SDL_strlcpy(buffer, mission_loop_desc, buf_len);
 	}
 
-	strcat(buffer, XSTR("\n\n\nDo you want to play the optional mission?", 1491));
+	SDL_strlcat(buffer, XSTR("\n\n\nDo you want to play the optional mission?", 1491), buf_len);
 }
 
 // what to do when the accept button is hit
@@ -1795,7 +1794,7 @@ void debrief_accept(int ok_to_post_start_game_event)
 				int cur = Campaign.current_mission;
 				bool require_repeat_mission = (Campaign.current_mission == Campaign.next_mission);
 				if (Campaign.missions[cur].has_mission_loop) {
-					Assert(Campaign.loop_mission != CAMPAIGN_LOOP_MISSION_UNINITIALIZED);
+					SDL_assert(Campaign.loop_mission != CAMPAIGN_LOOP_MISSION_UNINITIALIZED);
 				}
 
 				if ( (Campaign.missions[cur].has_mission_loop && (Campaign.loop_mission != -1)) && !require_repeat_mission ) {
@@ -1840,12 +1839,7 @@ void debrief_accept(int ok_to_post_start_game_event)
 	#endif
 				} else {
 					if ( ok_to_post_start_game_event ) {
-						// CD CHECK
-						if(game_do_cd_mission_check(Game_current_mission_filename)){
-							gameseq_post_event(GS_EVENT_START_GAME);
-						} else {
-							gameseq_post_event(GS_EVENT_MAIN_MENU);
-						}
+						gameseq_post_event(GS_EVENT_START_GAME);
 					} else {
 						play_commit_sound = 0;
 					}
@@ -1936,7 +1930,7 @@ void debrief_render_stagenum()
 	if (Num_stages < 2)
 		return;
 		
-	sprintf(buf, XSTR( "%d of %d", 445), Current_stage + 1, Num_stages);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d of %d", 445), Current_stage + 1, Num_stages);
 	gr_get_string_size(&w, NULL, buf);
 	gr_set_color_fast(&Color_bright_blue);
 	gr_string(Debrief_stage_info_coords[gr_screen.res][0] - w, Debrief_stage_info_coords[gr_screen.res][1], buf);
@@ -1948,7 +1942,7 @@ void debrief_render_mission_time(int y_loc)
 {
 	char time_str[30];
 	
-	game_format_time(Missiontime, time_str);
+	game_format_time(Missiontime, time_str, SDL_arraysize(time_str));
 	gr_string(0, y_loc, XSTR( "Mission Time", 446));
 	gr_string(Debrief_text_x2[gr_screen.res], y_loc, time_str);	
 }
@@ -2212,11 +2206,11 @@ void debrief_setup_ship_kill_stats(int stage_num)
 	ushort *kill_arr;
 	debrief_stats_kill_info	*kill_info;
 
-	Assert(Current_stage < DEBRIEF_NUM_STATS_PAGES);
+	SDL_assert(Current_stage < DEBRIEF_NUM_STATS_PAGES);
 	if ( Current_stage == DEBRIEF_MISSION_STATS || Current_stage == DEBRIEF_ALLTIME_STATS )
 		return;
 
-	Assert(Debrief_player != NULL);
+	SDL_assert(Debrief_player != NULL);
 
 	// kill_ar points to an array of MAX_SHIP_TYPE ints
 	if ( Current_stage == DEBRIEF_MISSION_KILLS ) {
@@ -2239,8 +2233,8 @@ void debrief_setup_ship_kill_stats(int stage_num)
 
 		kill_info->num = kill_arr[i];
 
-		strcpy(kill_info->text, Ship_info[i].name);
-		strcat(kill_info->text, NOX(":"));
+		SDL_strlcpy(kill_info->text, Ship_info[i].name, SDL_arraysize(kill_info->text));
+		SDL_strlcat(kill_info->text, NOX(":"), SDL_arraysize(kill_info->text));
 	}
 
 	Num_text_lines += 2;
@@ -2266,7 +2260,7 @@ void debrief_check_buttons()
 		if ((z >= 0) && (z < Multi_list_size)) {
 			// switch stats display to this newly selected player
 			set_player_stats(Multi_list[z].net_player_index);
-			strcpy(Debrief_current_callsign, Multi_list[z].callsign);
+			SDL_strlcpy(Debrief_current_callsign, Multi_list[z].callsign, SDL_arraysize(Debrief_current_callsign));
 			Debrief_player = Net_players[Multi_list[z].net_player_index].player;
 			Multi_list_select = z;
 			debrief_setup_ship_kill_stats(Current_stage);
@@ -2287,9 +2281,10 @@ void debrief_text_stage_init(const char *src, int type)
 	int i, n_lines, n_chars[MAX_DEBRIEF_LINES];
 	char line[MAX_DEBRIEF_LINE_LEN];
 	char *p_str[MAX_DEBRIEF_LINES];
+	int len;
 
 	n_lines = split_str(src, Debrief_text_wnd_coords[gr_screen.res][2], n_chars, p_str, MAX_DEBRIEF_LINES);
-	Assert(n_lines >= 0);
+	SDL_assert(n_lines >= 0);
 
 	// if you hit this, you proba	
 	if(n_lines >= MAX_DEBRIEF_LINES){
@@ -2297,9 +2292,10 @@ void debrief_text_stage_init(const char *src, int type)
 	}
 
 	for ( i=0; i<n_lines; i++ ) {
-		Assert(n_chars[i] < MAX_DEBRIEF_LINE_LEN);
-		Assert(Num_text_lines < MAX_TOTAL_DEBRIEF_LINES);
-		strncpy(line, p_str[i], n_chars[i]);
+		SDL_assert(n_chars[i] < MAX_DEBRIEF_LINE_LEN);
+		SDL_assert(Num_text_lines < MAX_TOTAL_DEBRIEF_LINES);
+		len = min(n_chars[i] + 1, MAX_DEBRIEF_LINE_LEN);
+		SDL_strlcpy(line, p_str[i], len);
 		line[n_chars[i]] = 0;
 		drop_white_space(line);
 		Text_type[Num_text_lines] = type;
@@ -2366,7 +2362,7 @@ void debrief_text_init()
 //
 void debrief_init()
 {
-	Assert(!Debrief_inited);
+	SDL_assert(!Debrief_inited);
 //	Campaign.loop_enabled = 0;
 	Campaign.loop_mission = CAMPAIGN_LOOP_MISSION_UNINITIALIZED;
 
@@ -2427,7 +2423,7 @@ void debrief_init()
 //	rank_bitmaps_clear();
 //	rank_bitmaps_load();
 
-	strcpy(Debrief_current_callsign, Player->callsign);
+	SDL_strlcpy(Debrief_current_callsign, Player->callsign, SDL_arraysize(Debrief_current_callsign));
 	Debrief_player = Player;
 //	Debrief_current_net_player_index = debrief_multi_list[0].net_player_index;
 
@@ -2512,7 +2508,7 @@ void debrief_close()
 {
 	int i, idx;
 
-	Assert(Debrief_inited);
+	SDL_assert(Debrief_inited);
 
 	// if the mission wasn't accepted, clear out my stats
 	// we need to evaluate a little differently for multiplayer since the conditions for "accepting" 
@@ -2629,15 +2625,15 @@ void debrief_close()
 void debrief_do_keys(int new_k)
 {
 	switch (new_k) {
-		case KEY_TAB:
+		case SDLK_TAB:
 			debrief_next_tab();
 			break;
 
-		case KEY_SHIFTED | KEY_TAB:
+		case KEY_SHIFTED | SDLK_TAB:
 			debrief_prev_tab();
 			break;
 
-		case KEY_ESC: {
+		case SDLK_ESCAPE: {
 			int pf_flags;
 			int choice;
 
@@ -2717,7 +2713,7 @@ void debrief_award_text_clear() {
 // this is the nastiest code I have ever written.  if you are modifying this, i feel bad for you.
 void debrief_add_award_text(char *str)
 {
-	Assert(Debrief_award_text_num_lines <= AWARD_TEXT_MAX_LINES);
+	SDL_assert(Debrief_award_text_num_lines <= AWARD_TEXT_MAX_LINES);
 	if (Debrief_award_text_num_lines > AWARD_TEXT_MAX_LINES) {
 		return;
 	}
@@ -2726,7 +2722,7 @@ void debrief_add_award_text(char *str)
 	int field_width = (Medal_bitmap > 0) ? Debrief_award_text_width[gr_screen.res][DB_WITH_MEDAL] : Debrief_award_text_width[gr_screen.res][DB_WITHOUT_MEDAL];
 
 	// copy in the line
-	strcpy(Debrief_award_text[Debrief_award_text_num_lines], str);	
+	SDL_strlcpy(Debrief_award_text[Debrief_award_text_num_lines], str, AWARD_TEXT_MAX_LINE_LENGTH);
 
 	// maybe translate for displaying
 	if (Lcl_gr) {
@@ -2742,7 +2738,7 @@ void debrief_add_award_text(char *str)
 	if (Debrief_award_text_num_lines < AWARD_TEXT_MAX_LINES) {
 		line2 = split_str_once(Debrief_award_text[Debrief_award_text_num_lines-1], field_width);
 		if (line2 != NULL) {
-			sprintf(Debrief_award_text[Debrief_award_text_num_lines], " %s", line2);  // indent a space
+			SDL_snprintf(Debrief_award_text[Debrief_award_text_num_lines], AWARD_TEXT_MAX_LINE_LENGTH, " %s", line2);  // indent a space
 		}
 		Debrief_award_text_num_lines++;		// leave blank line even if it all fits into 1
 	}
@@ -2757,7 +2753,7 @@ void debrief_do_frame(float frametime)
 	int str_w, str_h;
 	char buf[256];
 
-	Assert(Debrief_inited);	
+	SDL_assert(Debrief_inited);	
 
 	// first thing is to load the files
 	if ( MULTIPLAYER_CLIENT && !Debrief_multi_stages_loaded ) {
@@ -2792,7 +2788,7 @@ void debrief_do_frame(float frametime)
 		// esc pressed?		
 		os_poll();	
 		int keypress = game_check_key();	
-		if(keypress == KEY_ESC){
+		if(keypress == SDLK_ESCAPE){
 			// popup to leave
 			multi_quit_game(PROMPT_CLIENT);
 		}
@@ -2945,7 +2941,7 @@ void debrief_do_frame(float frametime)
 
 	// draw the title of the mission
 	gr_set_color_fast(&Color_bright_white);
-	strcpy(buf, The_mission.name);
+	SDL_strlcpy(buf, The_mission.name, SDL_arraysize(buf));
 	gr_force_fit_string(buf, 255, Debrief_title_coords[gr_screen.res][2]);
 	gr_string(Debrief_title_coords[gr_screen.res][0], Debrief_title_coords[gr_screen.res][1], buf);	
 
@@ -2959,7 +2955,7 @@ void debrief_do_frame(float frametime)
 		case DEBRIEF_TAB:
 			if ( Num_debrief_stages <= 0 ) {
 				gr_set_color_fast(&Color_white);
-				Assert( Game_current_mission_filename != NULL );
+				SDL_assert( Game_current_mission_filename != NULL );
 				gr_printf(Debrief_text_wnd_coords[gr_screen.res][0], Debrief_text_wnd_coords[gr_screen.res][1], XSTR( "No Debriefing for mission: %s", 458), Game_current_mission_filename);
 
 			} else {
@@ -3012,7 +3008,7 @@ void debrief_do_frame(float frametime)
 	// dont let dude skip 3-09.  hack.	
 	if(Game_mode & GM_CAMPAIGN_MODE){
 		if((Campaign.current_mission >= 0) && (Campaign.current_mission < MAX_CAMPAIGN_MISSIONS)){
-			if ((Campaign.missions[Campaign.current_mission].name != NULL) && !stricmp(Campaign.missions[Campaign.current_mission].name, "sm3-09.fs2")) {
+			if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, "sm3-09.fs2")) {
 				Debrief_skip_popup_already_shown = 1;
 			}
 		}
@@ -3045,7 +3041,7 @@ void debrief_do_frame(float frametime)
 
 	// check to see if we should be showing a pilot info popup in multiplayer (if a guy was double clicked)
 	if ((Game_mode & GM_MULTIPLAYER) && Debrief_should_show_popup) {
-		Assert((Multi_list_select >= 0) && (Multi_list_select < Multi_list_size));
+		SDL_assert((Multi_list_select >= 0) && (Multi_list_select < Multi_list_size));
 		multi_pinfo_popup(&Net_players[Multi_list[Multi_list_select].net_player_index]);
 
 		Debrief_should_show_popup = 0;
@@ -3066,7 +3062,7 @@ void debrief_rebuild_player_list()
 		if ( MULTI_CONNECTED((*np)) && !MULTI_STANDALONE((*np))){
 			list = &Multi_list[Multi_list_size++];
 			list->net_player_index = i;
-			strcpy(list->callsign, np->player->callsign);
+			SDL_strlcpy(list->callsign, np->player->callsign, SDL_arraysize(list->callsign));
 			
 			// make sure to leave some room to blit the team indicator
 			gr_force_fit_string(list->callsign, CALLSIGN_LEN - 1, Debrief_list_coords[gr_screen.res][2] - MULTI_LIST_TEAM_OFFSET);

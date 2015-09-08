@@ -448,11 +448,6 @@ void barracks_squad_change_popup();
 // BARRACKS screen
 //
 
-#define STRCPY1(a, b) do {	\
-	Assert(strlen(b) < STAT_COLUMN1_W); \
-	strcpy(a, b); \
-} while (0)
-
 void barracks_init_stats(scoring_struct *stats)
 {
 	int i;
@@ -460,130 +455,130 @@ void barracks_init_stats(scoring_struct *stats)
 
 	Num_stat_lines = 0;
 
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "*All Time Stats", 50));
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "*All Time Stats", 50), STAT_COLUMN1_W);
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;	
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary weapon shots:", 51));
-	sprintf(Stats[Num_stat_lines], "%d", stats->p_shots_fired);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Primary weapon shots:", 51), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->p_shots_fired);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary weapon hits:", 52));
-	sprintf(Stats[Num_stat_lines], "%d", stats->p_shots_hit);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Primary weapon hits:", 52), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->p_shots_hit);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary friendly hits:", 53));
-	sprintf(Stats[Num_stat_lines], "%d", stats->p_bonehead_hits);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Primary friendly hits:", 53), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->p_bonehead_hits);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary hit %:", 54));
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Primary hit %:", 54), STAT_COLUMN1_W);
 	if (stats->p_shots_fired > 0) {
 		f = (float) stats->p_shots_hit * 100.0f / (float) stats->p_shots_fired;
 	} else {
 		f = 0.0f;
 	}
-	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Primary friendly hit %:", 56));
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Primary friendly hit %:", 56), STAT_COLUMN1_W);
 	if (stats->p_bonehead_hits > 0) {
 		f = (float) stats->p_bonehead_hits * 100.0f / (float) stats->p_shots_fired;
 	} else {
 		f = 0.0f;
 	}
-	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary weapon shots:", 57));
-	sprintf(Stats[Num_stat_lines], "%d", stats->s_shots_fired);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Secondary weapon shots:", 57), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->s_shots_fired);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary weapon hits:", 58));
-	sprintf(Stats[Num_stat_lines], "%d", stats->s_shots_hit);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Secondary weapon hits:", 58), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->s_shots_hit);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary friendly hits:", 59));
-	sprintf(Stats[Num_stat_lines], "%d", stats->s_bonehead_hits);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Secondary friendly hits:", 59), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->s_bonehead_hits);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary hit %:", 60));
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Secondary hit %:", 60), STAT_COLUMN1_W);
 	if (stats->s_shots_fired > 0) {
 		f = (float) stats->s_shots_hit * 100.0f / (float) stats->s_shots_fired;
 	} else {
 		f = 0.0f;
 	}
-	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Secondary friendly hit %:", 61));
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Secondary friendly hit %:", 61), STAT_COLUMN1_W);
 	if (stats->s_bonehead_hits > 0) {
 		f = (float) stats->s_bonehead_hits * 100.0f / (float) stats->s_shots_fired;
 	} else {
 		f = 0.0f;
 	}
-	sprintf(Stats[Num_stat_lines], XSTR( "%.1f%%", 55), f);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, XSTR( "%.1f%%", 55), f);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Total kills:", 62));
-	sprintf(Stats[Num_stat_lines], "%d", stats->kill_count_ok);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Total kills:", 62), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->kill_count_ok);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "Assists:", 63));
-	sprintf(Stats[Num_stat_lines], "%d", stats->assists);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "Assists:", 63), STAT_COLUMN1_W);
+	SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->assists);
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	STRCPY1(Stat_labels[Num_stat_lines], XSTR( "*Kills by Ship Type", 64));
+	SDL_strlcpy(Stat_labels[Num_stat_lines], XSTR( "*Kills by Ship Type", 64), STAT_COLUMN1_W);
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
-	Assert(Num_stat_lines < NUM_STAT_LINES);
+	SDL_assert(Num_stat_lines < NUM_STAT_LINES);
 	Stat_labels[Num_stat_lines][0] = 0;
 	Stats[Num_stat_lines][0] = 0;
 	Num_stat_lines++;
 
 	for (i=0; i<Num_ship_types; i++) {
 		if (stats->kills[i]) {
-			Assert(Num_stat_lines < NUM_STAT_LINES);
-			Assert(strlen(Ship_info[i].name) + 1 < STAT_COLUMN1_W);
-			sprintf(Stat_labels[Num_stat_lines], NOX("%s:"), Ship_info[i].name);
-			sprintf(Stats[Num_stat_lines], "%d", stats->kills[i]);
+			SDL_assert(Num_stat_lines < NUM_STAT_LINES);
+			SDL_assert(strlen(Ship_info[i].name) + 1 < STAT_COLUMN1_W);
+			SDL_snprintf(Stat_labels[Num_stat_lines], STAT_COLUMN1_W, NOX("%s:"), Ship_info[i].name);
+			SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->kills[i]);
 			Num_stat_lines++;
 		}
 	}
@@ -597,17 +592,17 @@ void barracks_init_stats(scoring_struct *stats)
 // sets or clears hotkeys for pilot selection.
 void barracks_set_hotkeys(bool pilot_text_enter_mode)
 {
-	Buttons[gr_screen.res][B_PILOT_SCROLL_UP_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_UP : -1);
-	Buttons[gr_screen.res][B_PILOT_SCROLL_DOWN_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_DOWN : -1);
+	Buttons[gr_screen.res][B_PILOT_SCROLL_UP_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_UP : -1);
+	Buttons[gr_screen.res][B_PILOT_SCROLL_DOWN_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DOWN : -1);
 
-	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_C : -1);
-	Buttons[gr_screen.res][B_PILOT_SET_ACTIVE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_ENTER : -1);
-	Buttons[gr_screen.res][B_PILOT_DELETE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_DELETE : -1);
+	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_c : -1);
+	Buttons[gr_screen.res][B_PILOT_SET_ACTIVE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_RETURN : -1);
+	Buttons[gr_screen.res][B_PILOT_DELETE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DELETE : -1);
 
-	Buttons[gr_screen.res][B_PIC_PREV_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_LEFT : -1);
-	Buttons[gr_screen.res][B_PIC_NEXT_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_RIGHT : -1);
+	Buttons[gr_screen.res][B_PIC_PREV_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_LEFT : -1);
+	Buttons[gr_screen.res][B_PIC_NEXT_PILOT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_RIGHT : -1);
 
-	Buttons[gr_screen.res][B_ACCEPT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_CTRLED | KEY_ENTER : -1);
+	Buttons[gr_screen.res][B_ACCEPT_BUTTON].button.set_hotkey(pilot_text_enter_mode ? KEY_CTRLED | SDLK_RETURN : -1);
 }
 
 // strip the possible .pcx extension off a filename
@@ -615,7 +610,7 @@ void barracks_strip_pcx(char *str)
 {
 	int flen = strlen(str);
 	int elen = 4;		
-	if ((flen > 4) && !stricmp(str + flen - elen, ".pcx")) {
+	if ((flen > 4) && !SDL_strcasecmp(str + flen - elen, ".pcx")) {
 		str[flen - elen] = '\0';
 	}
 }
@@ -645,17 +640,17 @@ int barracks_new_pilot_selected()
 	int i;
 	barracks_init_stats(&Cur_pilot->stats);
 	for (i=0; i<Num_pilot_images; i++) {
-		strcpy(stripped, Cur_pilot->image_filename);
+		SDL_strlcpy(stripped, Cur_pilot->image_filename, SDL_arraysize(stripped));
 		barracks_strip_pcx(stripped);
-		if (!stricmp(stripped, Pilot_image_names[i])) {
+		if (!SDL_strcasecmp(stripped, Pilot_image_names[i])) {
 			break;
 		}
 	}
 	Pic_number = i;
 	for ( i=0; i<Num_pilot_squad_images; i++) {
-		strcpy(stripped, Cur_pilot->squad_filename);
+		SDL_strlcpy(stripped, Cur_pilot->squad_filename, SDL_arraysize(stripped));
 		barracks_strip_pcx(stripped);
-		if (!stricmp(stripped, Pilot_squad_image_names[i])) {
+		if (!SDL_strcasecmp(stripped, Pilot_squad_image_names[i])) {
 			break;
 		}
 	}
@@ -708,9 +703,9 @@ void barracks_create_new_pilot()
 
 	// move other pilot names and ranks down to make room for the new one
 	int idx = Num_pilots;
-	Assert(Num_pilots >= 0);
+	SDL_assert(Num_pilots >= 0);
 	while (idx--) {
-		strcpy(Pilots[idx + 1], Pilots[idx]);
+		SDL_strlcpy(Pilots[idx + 1], Pilots[idx], MAX_FILENAME_LEN);
 		Pilot_ranks[idx + 1] = Pilot_ranks[idx];
 	}
 
@@ -752,8 +747,8 @@ int barracks_pilot_accepted()
 	// when we store the LastPlayer key, we have to mark it as being single or multiplayer, so we know where to look for him
 	// (since we could have a single and a multiplayer pilot with the same callsign)
 	// we'll distinguish them by putting an M and the end of the multiplayer callsign and a P at the end of a single player
-	strcpy(str, Cur_pilot->callsign);
-	strcat(str, is_pilot_multi(Cur_pilot) ? NOX("M") : NOX("S"));
+	SDL_strlcpy(str, Cur_pilot->callsign, SDL_arraysize(str));
+	SDL_strlcat(str, is_pilot_multi(Cur_pilot) ? NOX("M") : NOX("S"), SDL_arraysize(str));
 	os_config_write_string( NULL, "LastPlayer", str );
 	return 0;
 }
@@ -831,7 +826,7 @@ void barracks_prev_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_number >= 0) && (Pic_number < Num_pilot_images)) {
-		strcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number]);
+		SDL_strlcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number], SDL_arraysize(Cur_pilot->image_filename));
 	}
 
 	// play scroll sound
@@ -855,7 +850,7 @@ void barracks_next_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_number >= 0) && (Pic_number < Num_pilot_images)){
-		strcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number]);
+		SDL_strlcpy(Cur_pilot->image_filename, Pilot_image_names[Pic_number], SDL_arraysize(Cur_pilot->image_filename));
 	}
 
 	// play scroll sound
@@ -879,7 +874,7 @@ void barracks_prev_squad_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_squad_number >= 0) && (Pic_squad_number < Num_pilot_squad_images)) {
-		strcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number]);
+		SDL_strlcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number], SDL_arraysize(Cur_pilot->squad_filename));
 	}
 
 	// play scroll sound
@@ -903,7 +898,7 @@ void barracks_next_squad_pic()
 
 	// copy pilot pic filename into pilot struct
 	if ((Pic_squad_number >= 0) && (Pic_squad_number < Num_pilot_squad_images)){
-		strcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number]);
+		SDL_strlcpy(Cur_pilot->squad_filename, Pilot_squad_image_names[Pic_squad_number], SDL_arraysize(Cur_pilot->squad_filename));
 	}
 
 	// play scroll sound
@@ -925,13 +920,13 @@ void barracks_delete_pilot()
 		return;
 	}
 
-	if (!stricmp(Pilots[Selected_line], Cur_pilot->callsign)) {
+	if (!SDL_strcasecmp(Pilots[Selected_line], Cur_pilot->callsign)) {
 		active = 1;
 	}
 
-	strcpy(buf, Pilots[Selected_line]);
+	SDL_strlcpy(buf, Pilots[Selected_line], SDL_arraysize(buf));
 	for (int i=Selected_line; i<Num_pilots-1; i++) {
-		strcpy(Pilots[i], Pilots[i + 1]);
+		SDL_strlcpy(Pilots[i], Pilots[i + 1], MAX_FILENAME_LEN);
 		Pilot_ranks[i] = Pilot_ranks[i + 1];
 	}
 
@@ -1022,7 +1017,7 @@ void barracks_init_player_stuff(int mode)
 				break;
 			}
 		}
-		Assert(j < Num_pilots);  // Pilot not found?  How is that possible?
+		SDL_assert(j < Num_pilots);  // Pilot not found?  How is that possible?
 	}
 
 	for (int i=0; i<Num_pilots; i++) {
@@ -1129,20 +1124,20 @@ void barracks_button_pressed(int n)
 				else
 					str = XSTR( "single player", 69);
 
-				sprintf(temp, XSTR( "This will overwrite your %s pilot.  Proceed?", 70), str);
+				SDL_snprintf(temp, SDL_arraysize(temp), XSTR( "This will overwrite your %s pilot.  Proceed?", 70), str);
 				if (!verify_pilot_file(Cur_pilot->callsign, Player_sel_mode == PLAYER_SELECT_MODE_MULTI)) {
 					z = popup(0, 2, POPUP_CANCEL, POPUP_OK, temp);
 					if (z != 1)
 						break;
 				}
 
-				strcpy(old_pic, Cur_pilot->image_filename);
-				strcpy(old_squad_pic, Cur_pilot->squad_filename);
-				strcpy(old_squad, Cur_pilot->squad_name);
+				SDL_strlcpy(old_pic, Cur_pilot->image_filename, SDL_arraysize(old_pic));
+				SDL_strlcpy(old_squad_pic, Cur_pilot->squad_filename, SDL_arraysize(old_squad_pic));
+				SDL_strlcpy(old_squad, Cur_pilot->squad_name, SDL_arraysize(old_squad));
 				init_new_pilot(Cur_pilot, 0);
-				strcpy(Cur_pilot->image_filename, old_pic);
-				strcpy(Cur_pilot->squad_filename, old_squad_pic);
-				strcpy(Cur_pilot->squad_name, old_squad);
+				SDL_strlcpy(Cur_pilot->image_filename, old_pic, SDL_arraysize(Cur_pilot->image_filename));
+				SDL_strlcpy(Cur_pilot->squad_filename, old_squad_pic, SDL_arraysize(Cur_pilot->squad_filename));
+				SDL_strlcpy(Cur_pilot->squad_name, old_squad, SDL_arraysize(Cur_pilot->squad_name));
 				if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE) {
 					Cur_pilot->flags |= PLAYER_FLAGS_IS_MULTI;
 					write_pilot_file();
@@ -1226,7 +1221,7 @@ void barracks_display_pilot_callsigns(int prospective_pilot)
 		if (cur_pilot_idx >= Num_pilots)
 			break;
 
-		if (!stricmp(Cur_pilot->callsign, Pilots[cur_pilot_idx]) && (is_pilot_multi(Cur_pilot) == multi)) {
+		if (!SDL_strcasecmp(Cur_pilot->callsign, Pilots[cur_pilot_idx]) && (is_pilot_multi(Cur_pilot) == multi)) {
 			if ((cur_pilot_idx == Selected_line) || (cur_pilot_idx == prospective_pilot)) {
 				gr_set_color_fast(&Color_text_active_hi);
 			} else {
@@ -1309,26 +1304,23 @@ void barracks_accept_new_pilot_callsign()
 		z = 1;
 	} else {
 		for (i=1; buf[i]; i++) {
-			if (!isalpha(buf[i]) && !isdigit(buf[i]) && !strchr(VALID_PILOT_CHARS, buf[i])) {
-				z = 1;
+			if (!isalpha(buf[i]) && !isdigit(buf[i]) && !SDL_strchr(VALID_PILOT_CHARS, buf[i])) {
 				return;
 			}
 		}
 	}
 
 	for (i=1; i<Num_pilots; i++) {
-		if (!stricmp(buf, Pilots[i])) {
-			z = 1;
+		if (!SDL_strcasecmp(buf, Pilots[i])) {
 			if (pilot_verify_overwrite() == 1) {
-				strcpy(name, Pilots[Selected_line]);
+				SDL_strlcpy(name, Pilots[Selected_line], SDL_arraysize(name));
 				for (z=i; z<Num_pilots-1; z++) {
-					strcpy(Pilots[z], Pilots[z + 1]);
+					SDL_strlcpy(Pilots[z], Pilots[z + 1], MAX_FILENAME_LEN);
 					Pilot_ranks[z] = Pilot_ranks[z + 1];
 				}
 
 				Num_pilots--;
 				delete_pilot_file(name, Player_sel_mode == PLAYER_SELECT_MODE_SINGLE ? 1 : 0);
-				z = 0;
 			}
 			return;
 		}
@@ -1343,8 +1335,8 @@ void barracks_accept_new_pilot_callsign()
 		return;
 	}
 
-	strcpy(Pilots[0], buf);
-	strcpy(Cur_pilot->callsign, buf);
+	SDL_strlcpy(Pilots[0], buf, MAX_FILENAME_LEN);
+	SDL_strlcpy(Cur_pilot->callsign, buf, SDL_arraysize(Cur_pilot->callsign));
 	init_new_pilot(Cur_pilot, !Clone_flag);
 	
 	// again, make sure we set his flags correctly to ensure that he gets saved to the proper directory and gets
@@ -1381,7 +1373,7 @@ void barracks_draw_pilot_pic()
 
 			// print number of the current pic
 			char buf[40];			
-			sprintf(buf, XSTR( "%d of %d", 71), Pic_number + 1, Num_pilot_images);
+			SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d of %d", 71), Pic_number + 1, Num_pilot_images);
 			gr_printf(Barracks_image_number_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_image_number_coords[gr_screen.res][BARRACKS_Y_COORD], buf);				
 		}
 	} else {
@@ -1406,7 +1398,7 @@ void barracks_draw_squad_pic()
 
 			// print number of current squad pic
 			if(Player_sel_mode != PLAYER_SELECT_MODE_SINGLE){
-				sprintf(buf,XSTR( "%d of %d", 71), Pic_squad_number+1, Num_pilot_squad_images);
+				SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "%d of %d", 71), Pic_squad_number+1, Num_pilot_squad_images);
 				gr_printf(Barracks_squad_number_coords[gr_screen.res][BARRACKS_X_COORD], Barracks_squad_number_coords[gr_screen.res][BARRACKS_Y_COORD], buf);
 			}
 		}
@@ -1585,25 +1577,25 @@ void barracks_do_frame(float frametime)
 		Inputbox.set_focus();
 
 		switch (k) {
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				// cancel create pilot
 				Num_pilots--;
 				for (i=0; i<Num_pilots; i++) {
-					strcpy(Pilots[i], Pilots[i + 1]);
+					SDL_strlcpy(Pilots[i], Pilots[i + 1], MAX_FILENAME_LEN);
 					Pilot_ranks[i] = Pilot_ranks[i + 1];
 				}
 
 				barracks_set_callsign_enter_mode(false);
 				break;
 
-			case KEY_ENTER: 
+			case SDLK_RETURN:
 				barracks_accept_new_pilot_callsign();
 				break;
 		} 
 	} else {
 		// not entering pilot callsign
 		switch (k) {
-			case KEY_ENTER:
+			case SDLK_RETURN:
 				if (barracks_new_pilot_selected()) {
 					gamesnd_play_iface(SND_GENERAL_FAIL);
 				} else {
@@ -1611,7 +1603,7 @@ void barracks_do_frame(float frametime)
 				}
 				break;
 
-			case KEY_ESC:  // cancel
+			case SDLK_ESCAPE:  // cancel
 				if (!help_overlay_active(BARRACKS_OVERLAY)) {
 					if (Num_pilots && !barracks_pilot_accepted()) {
 						gameseq_post_event(GS_EVENT_MAIN_MENU);
@@ -1624,7 +1616,7 @@ void barracks_do_frame(float frametime)
 				}
 				break;
 
-			case KEY_TAB:  // switch mode (simgle/multi)
+			case SDLK_TAB:  // switch mode (simgle/multi)
 #if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
 	game_feature_not_in_demo_popup();
 #else
@@ -1638,11 +1630,11 @@ void barracks_do_frame(float frametime)
 #endif
 				break;
 
-			case KEY_F1:  // show help overlay
+			case SDLK_F1:  // show help overlay
 				gamesnd_play_iface(SND_HELP_PRESSED);
 				break;
 
-			case KEY_F2:  // goto options screen
+			case SDLK_F2:  // goto options screen
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 				break;

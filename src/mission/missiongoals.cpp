@@ -564,7 +564,7 @@ void goal_screen_scroll_down();
 
 void goal_list::add(mission_goal *m)
 {
-	Assert(count < MAX_GOALS_PER_LIST);
+	SDL_assert(count < MAX_GOALS_PER_LIST);
 	list[count++] = m;
 }
 
@@ -658,18 +658,18 @@ int goal_text::add(const char *text)
 //   y = y offset to draw relative to goal text area top
 void goal_text::display(int n, int y)
 {
-	int y1, w, h;
+	int y1, w, h, len;
 	char buf[MAX_GOAL_TEXT];
 
 	if ((n < 0) || (n >= m_num_lines) || (m_line_sizes[n] < 1))
 		return;  // out of range, don't draw anything
 
-	Assert(m_line_sizes[n] < MAX_GOAL_TEXT);
+	SDL_assert(m_line_sizes[n] < MAX_GOAL_TEXT);
 	y += Goal_screen_text_y;
 	if (*m_lines[n] == '*') {  // header line
 		gr_set_color_fast(&Color_text_heading);
-		strncpy(buf, m_lines[n] + 1, m_line_sizes[n] - 1);
-		buf[m_line_sizes[n] - 1] = 0;
+		len = min(m_line_sizes[n], (int)SDL_arraysize(buf));
+		SDL_strlcpy(buf, m_lines[n] + 1, len);
 
 		gr_get_string_size(&w, &h, buf);
 		y1 = y + h / 2 - 1;
@@ -678,8 +678,8 @@ void goal_text::display(int n, int y)
 
 	} else {
 		gr_set_color_fast(&Color_text_normal);
-		strncpy(buf, m_lines[n], m_line_sizes[n]);
-		buf[m_line_sizes[n]] = 0;
+		len = min(m_line_sizes[n] + 1, (int)SDL_arraysize(buf));
+		SDL_strlcpy(buf, m_lines[n], len);
 	}
 
 	gr_printf(Goal_screen_text_x, y, buf);
@@ -815,8 +815,8 @@ void mission_show_goals_init()
 	}
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_UP].button.set_hotkey(KEY_UP);
-	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_DOWN].button.set_hotkey(KEY_DOWN);
+	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_UP].button.set_hotkey(SDLK_UP);
+	Goal_buttons[GOAL_SCREEN_BUTTON_SCROLL_DOWN].button.set_hotkey(SDLK_DOWN);
 
 	Goals_screen_bg_bitmap = bm_load("ObjectivesBG");
 	Goal_complete_bitmap = bm_load("ObjComp");
@@ -859,15 +859,15 @@ void mission_show_goals_do_frame(float frametime)
 	
 	k = Goals_screen_ui_window.process();
 	switch (k) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			mission_goal_exit();			
 			break;
 		
-		case KEY_DOWN:
+		case SDLK_DOWN:
 			goal_screen_scroll_down();
 			break;
 
-		case KEY_UP:
+		case SDLK_UP:
 			goal_screen_scroll_up();
 			break;
 
@@ -1061,8 +1061,8 @@ void mission_goal_status_change( int goal_num, int new_status)
 {
 	int type;
 
-	Assert(goal_num < Num_goals);
-	Assert((new_status == GOAL_FAILED) || (new_status == GOAL_COMPLETE));
+	SDL_assert(goal_num < Num_goals);
+	SDL_assert((new_status == GOAL_FAILED) || (new_status == GOAL_COMPLETE));
 
 	// if in a multiplayer game, send a status change to clients
 	if ( MULTIPLAYER_MASTER ){
@@ -1289,7 +1289,7 @@ void mission_maybe_play_directive_success_sound()
 
 void mission_eval_goals()
 {
-	int i, result, goal_changed = 0;
+	int i, result;//, goal_changed = 0;
 
 	// before checking whether or not we should evaluate goals, we should run through the events and
 	// process any whose timestamp is valid and has expired.  This would catch repeating events only
@@ -1318,11 +1318,11 @@ void mission_eval_goals()
 		if (Mission_goals[i].satisfied == GOAL_INCOMPLETE) {
 			result = eval_sexp(Mission_goals[i].formula);
 			if ( Sexp_nodes[Mission_goals[i].formula].value == SEXP_KNOWN_FALSE ) {
-				goal_changed = 1;
+			//	goal_changed = 1;
 				mission_goal_status_change( i, GOAL_FAILED );
 
 			} else if (result) {
-				goal_changed = 1;
+			//	goal_changed = 1;
 				mission_goal_status_change(i, GOAL_COMPLETE );
 			} // end if result
 			
@@ -1442,7 +1442,7 @@ void mission_goal_mark_invalid( char *name )
 	int i;
 
 	for (i=0; i<Num_goals; i++) {
-		if ( !stricmp(Mission_goals[i].name, name) ) {
+		if ( !SDL_strcasecmp(Mission_goals[i].name, name) ) {
 			mission_goal_validation_change( i, 0 );
 			return;
 		}
@@ -1455,7 +1455,7 @@ void mission_goal_mark_valid( char *name )
 	int i;
 
 	for (i=0; i<Num_goals; i++) {
-		if ( !stricmp(Mission_goals[i].name, name) ) {
+		if ( !SDL_strcasecmp(Mission_goals[i].name, name) ) {
 			mission_goal_validation_change( i, 1 );
 			return;
 		}
@@ -1570,11 +1570,11 @@ DCF(change_mission_goal, "Change the mission goal")
 		else if ( Dc_arg_type & ARG_NONE )
 			Mission_goals[num].satisfied = GOAL_INCOMPLETE;
 		else if ( Dc_arg_type & ARG_STRING) {
-			if ( !stricmp(Dc_arg, "satisfied") )
+			if ( !SDL_strcasecmp(Dc_arg, "satisfied") )
 				Mission_goals[num].satisfied = GOAL_COMPLETE;
-			else if ( !stricmp( Dc_arg, "failed") )
+			else if ( !SDL_strcasecmp( Dc_arg, "failed") )
 				Mission_goals[num].satisfied = GOAL_FAILED;
-			else if ( !stricmp( Dc_arg, "unknown") )
+			else if ( !SDL_strcasecmp( Dc_arg, "unknown") )
 				Mission_goals[num].satisfied = GOAL_INCOMPLETE;
 			else
 				dc_printf("Unknown status %s.  Use 'satisfied', 'failed', or 'unknown'\n", Dc_arg);

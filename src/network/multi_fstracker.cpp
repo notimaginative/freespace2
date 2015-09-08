@@ -1,0 +1,1606 @@
+/*
+ * Copyright (C) Volition, Inc. 2005.  All rights reserved.
+ * 
+ * All source code herein is the property of Volition, Inc. You may not sell 
+ * or otherwise commercially exploit the source or things you created based on the 
+ * source.
+ *
+*/
+
+/*
+ * $Logfile: /Freespace2/code/Network/multi_fstracker.cpp $
+ * $Revision: 19 $
+ * $Date: 9/13/99 11:30a $
+ * $Author: Dave $
+ *
+ * $Log: /Freespace2/code/Network/multi_fstracker.cpp $
+ * 
+ * 19    9/13/99 11:30a Dave
+ * Added checkboxes and functionality for disabling PXO banners as well as
+ * disabling d3d zbuffer biasing.
+ * 
+ * 18    8/30/99 5:01p Dave
+ * Made d3d do less state changing in the nebula. Use new chat server for
+ * PXO.
+ * 
+ * 17    8/25/99 4:38p Dave
+ * Updated PXO stuff. Make squad war report stuff much more nicely.
+ * 
+ * 16    8/19/99 10:59a Dave
+ * Packet loss detection.
+ * 
+ * 15    6/07/99 11:30p Dave
+ * Whoops.
+ * 
+ * 14    4/30/99 12:18p Dave
+ * Several minor bug fixes.
+ * 
+ * 13    4/09/99 2:21p Dave
+ * Multiplayer beta stuff. CD checking.
+ * 
+ * 12    2/25/99 4:19p Dave
+ * Added multiplayer_beta defines. Added cd_check define. Fixed a few
+ * release build warnings. Added more data to the squad war request and
+ * response packets.
+ * 
+ * 11    2/24/99 2:25p Dave
+ * Fixed up chatbox bugs. Made squad war reporting better. Fixed a respawn
+ * bug for dogfight more.
+ * 
+ * 10    2/17/99 2:11p Dave
+ * First full run of squad war. All freespace and tracker side stuff
+ * works.
+ * 
+ * 9     2/12/99 6:16p Dave
+ * Pre-mission Squad War code is 95% done.
+ * 
+ * 8     2/11/99 3:08p Dave
+ * PXO refresh button. Very preliminary squad war support.
+ * 
+ * 7     2/08/99 5:07p Dave
+ * FS2 chat server support. FS2 specific validated missions.
+ * 
+ * 6     2/04/99 6:29p Dave
+ * First full working rev of FS2 PXO support.  Fixed Glide lighting
+ * problems.
+ * 
+ * 5     2/03/99 6:06p Dave
+ * Groundwork for FS2 PXO usertracker support.  Gametracker support next.
+ * 
+ * 4     12/03/98 5:22p Dave
+ * Ported over Freespace 1 multiplayer ships.tbl and weapons.tbl
+ * checksumming.
+ * 
+ * 3     10/19/98 11:15a Dave
+ * Changed requirements for stats storing in PXO mode.
+ * 
+ * 2     10/07/98 10:53a Dave
+ * Initial checkin.
+ * 
+ * 1     10/07/98 10:50a Dave
+ * 
+ * 46    9/18/98 2:22a Dave
+ * Fixed freespace-side PXO api to correctly handle length 10 id strings.
+ * Fixed team select screen to handle alpha/beta/gamma ships which are not
+ * marked as OF_PLAYER_SHIP
+ * 
+ * 45    9/16/98 6:54p Dave
+ * Upped  max sexpression nodes to 1800 (from 1600). Changed FRED to sort
+ * the ship list box. Added code so that tracker stats are not stored with
+ * only 1 player.
+ * 
+ * 44    9/15/98 7:24p Dave
+ * Minor UI changes. Localized bunch of new text.
+ * 
+ * 43    9/11/98 4:14p Dave
+ * Fixed file checksumming of < file_size. Put in more verbose kicking and
+ * PXO stats store reporting.
+ * 
+ * 42    9/10/98 1:17p Dave
+ * Put in code to flag missions and campaigns as being MD or not in Fred
+ * and Freespace. Put in multiplayer support for filtering out MD
+ * missions. Put in multiplayer popups for warning of non-valid missions.
+ * 
+ * 41    9/09/98 5:53p Dave
+ * Put in new tracker packets in API. Change cfile to be able to checksum
+ * portions of a file.
+ * 
+ * 40    9/04/98 3:51p Dave
+ * Put in validated mission updating and application during stats
+ * updating.
+ * 
+ * 39    9/01/98 6:48p Dave
+ * Energy suck weapon. Removed a couple of now-bogus asserts in tracker
+ * code.
+ * 
+ * 38    8/21/98 1:14p Dave
+ * Put in log system hooks in useful places.
+ * 
+ * 37    8/07/98 10:39a Allender
+ * fixed debug standalone problem where stats would continually get sent
+ * to tracker.  more debug code to help find stats problem
+ * 
+ * 36    7/24/98 11:14a Allender
+ * preparation for validated missions
+ * 
+ * 35    6/17/98 10:56a Dave
+ * Put in debug code for detecting potential tracker stats update
+ * problems.
+ * 
+ * 34    6/13/98 9:32p Mike
+ * Kill last character in file which caused "Find in Files" to report the
+ * file as "not a text file."
+ * 
+ * 33    6/13/98 6:01p Hoffoss
+ * Externalized all new (or forgot to be added) strings to all the code.
+ * 
+ * 32    5/24/98 11:33a Dave
+ * Simplified the stats store process somewhat. Put in checks to find
+ * invalid situations.
+ * 
+ * 31    5/24/98 10:36a Dave
+ * Put in more checks/verifications for tracker stats updating.
+ * 
+ * 30    5/22/98 9:35p Dave
+ * Put in channel based support for PXO. Put in "shutdown" button for
+ * standalone. UI tweaks for TvT
+ * 
+ * 29    5/21/98 9:45p Dave
+ * Lengthened tracker polling times. Put in initial support for PXO
+ * servers with channel filters. Fixed several small UI bugs.
+ * 
+ * 28    5/21/98 1:52a Dave
+ * Remove obsolete command line functions. Reduce shield explosion packets
+ * drastically. Tweak PXO screen even more. Fix file xfer system so that
+ * we can guarantee file uniqueness.
+ * 
+ * 27    5/20/98 2:24a Dave
+ * Fixed server side voice muting. Tweaked multi debrief/endgame
+ * sequencing a bit. Much friendlier for stats tossing/accepting now.
+ * 
+ * 26    5/18/98 9:15p Dave
+ * Put in network config file support.
+ * 
+ * 25    5/18/98 10:39a Dave
+ * Put in support for new tracker stats.
+ * 
+ * 24    5/14/98 12:40a Dave
+ * Still more additions to the PXO screen. Updated tracker code.
+ * 
+ * 23    5/13/98 6:54p Dave
+ * More sophistication to PXO interface. Changed respawn checking so
+ * there's no window for desynchronization between the server and the
+ * clients.
+ * 
+ * 22    5/08/98 7:08p Dave
+ * Lots of UI tweaking.
+ * 
+ * 21    5/07/98 6:26p Dave
+ * Fix strange boundary conditions which arise when players die/respawn
+ * while the game is being ended. Spiff up the chatbox doskey thing a bit.
+ * 
+ * 20    5/05/98 3:12p Chad
+ * Process _all_ server entries in a tracker game_list struct.
+ * 
+ * 19    5/05/98 2:10p Dave
+ * Verify campaign support for testing. More new tracker code.
+ * 
+ * 18    5/04/98 10:39p Dave
+ * Put in endgame sequencing.  Need to check campaign situations.
+ * Realigned ship info on team select screen.
+ * 
+ * 17    5/04/98 1:43p Dave
+ * Fixed up a standalone resetting problem. Fixed multiplayer stats
+ * collection for clients. Make sure all multiplayer ui screens have the
+ * correct palette at all times.
+ * 
+ * 16    5/02/98 5:38p Dave
+ * Put in new tracker API code. Put in ship information on mp team select
+ * screen. Make standalone server name permanent. Fixed standalone server
+ * text messages.
+ * 
+ * 15    4/30/98 12:57a Dave
+ * Put in new mode for ship/weapon selection. Rearranged how game querying
+ * is done a bit.
+ * 
+ * 14    4/29/98 12:11a Dave
+ * Put in first rev of full API support for new master tracker.
+ * 
+ * 13    4/28/98 7:50p Dave
+ * Fixing a broken makefile.
+ * 
+ * 12    4/28/98 5:10p Dave
+ * Fixed multi_quit_game() client side sequencing problem. Turn off
+ * afterburners when ending multiplayer mission. Begin integration of mt
+ * API from Kevin Bentley.
+ * 
+ * 11    4/04/98 4:22p Dave
+ * First rev of UDP reliable sockets is done. Seems to work well if not
+ * overly burdened.
+ * 
+ * 10    3/15/98 4:17p Dave
+ * Fixed oberver hud problems. Put in handy netplayer macros. Reduced size
+ * of network orientation matrices.
+ * 
+ * 9     2/10/98 8:39p Dave
+ * Fixed bugs. Made endgame sequencing more clear.
+ * 
+ * 8     2/07/98 1:51p Dave
+ * Centralized single and multiplayer stats tallying.
+ * 
+ * 7     2/05/98 7:13p Dave
+ * Added some more security to MT communications.
+ * 
+ * 6     2/04/98 6:35p Dave
+ * Changed psnet to use raw data with no headers. Started putting in
+ * support for master tracker security measures.
+ * 
+ * 5     2/03/98 8:18p Dave
+ * More MT stats transfer stuff.
+ * 
+ * 4     2/02/98 8:44p Dave
+ * Finished redoing master tracker stats transfer.
+ * 
+ * 3     1/31/98 4:32p Dave
+ * Put in new support for VMT player validation, game logging in, and game
+ * logging out. Need to finish stats transfer.
+ * 
+ * 2     1/30/98 5:53p Dave
+ * Revamped master tracker API
+ * 
+ * 1     1/30/98 5:50p Dave
+ * 
+ * $NoKeywords: $
+ */
+
+
+#ifdef PLAT_UNIX
+#include <netinet/in.h>
+#endif
+
+#include "freespace.h"
+#include "timer.h"
+#include "gamesequence.h"
+#include "popup.h"
+#include "psnet.h"
+#include "valid.h"						// tracker API
+#include "gtrack.h"						// tracker API
+#include "ptrack.h"						// tracker API
+#include "multi.h"
+#include "multi_fstracker.h"
+#include "multiutil.h"
+#include "multiui.h"
+#include "multimsgs.h"
+#include "multi_log.h"
+#include "stand_gui.h"
+#include "multi_pmsg.h"
+
+// -----------------------------------------------------------------------------------
+// FREESPACE MASTER TRACKER DEFINES/VARS
+//
+
+// if the fs tracker module has been successfully initialized
+int Multi_fs_tracker_inited = 0;
+
+// if we're currently performing some operation with the tracker
+int Multi_fs_tracker_busy = 0;
+
+// channel to associate when creating a server
+char Multi_fs_tracker_channel[255] = "";
+
+// channel to use when polling the tracker for games
+char Multi_fs_tracker_filter[255] = "";
+
+
+// -----------------------------------------------------------------------------------
+// FREESPACE MASTER TRACKER FORWARD DECLARATIONS
+//
+
+// used with popup_till_condition() for validating freespace pilots
+#define MT_VALIDATE_NOT_DONE				0								// still in the process of validation
+#define MT_VALIDATE_SUCCEED				1								// successfully validated the pilot
+#define MT_VALIDATE_FAIL					2								// failed in validating the pilot
+#define MT_VALIDATE_TIMEOUT				3								// timedout on contacting the tracker
+#define MT_VALIDATE_CANCEL					4								// if the action was cancelled
+#define MT_PILOT_VAL_TIMEOUT				5000							// timeout for validating a pilot
+int Multi_validate_mode;													// 0 == getting player id, 1 == getting player stats
+int multi_fs_validate_process();
+
+// used with popup_till_condition() for logging in freespace games
+#define MT_LOGIN_NOT_DONE					0								// still in the process of logging in
+#define MT_LOGIN_SUCCEED					1								// successfully logged the game in
+#define MT_LOGIN_TIMEOUT					2								// timedout on contacting the tracker
+
+// used with popup_till_condition() for storing player stats at the end of a freespace game
+#define MT_STATS_NOT_DONE					0								// still in the process of storing stats
+#define MT_STATS_SUCCEED					1								// successfully logged all player stats
+
+// used with popup_till_condition() for validating missions
+#define MT_MVALID_NOT_DONE					0								// still in the process of validating
+#define MT_MVALID_VALID						1								// mission is valid
+#define MT_MVALID_INVALID					2								// mission is invalid
+#define MT_MVALID_ERROR						3								// error while performing operation. assume invalid
+
+// store stats mode defined
+#define MT_STORE_STATS_VALIDATE			0
+#define MT_STORE_STATS_GET_STATS			1
+#define MT_STORE_STATS_ACCEPT				2
+#define MT_STORE_STATS_SEND_STATS		3
+
+int Multi_store_stats_mode;												// 0 == initial request for player stats, 1 == waiting for player stats, 2 == tallying stats locally, 3 == sending stats to tracker
+int Multi_store_stats_player_index;										// player we're currently working with
+int Multi_store_stats_player_flag;										// if we're finished with the current guy
+vmt_freespace2_struct Multi_store_stats_stats;						// 
+int multi_fs_store_stats_do();											// manage all master tracker stats storing
+int multi_fs_store_stats_get_next_player(int cur_player);	
+
+int Multi_tracker_player_is_valid = 0;
+int Multi_tracker_got_response = 0;
+
+// copy a freespace stats struct to a tracker-freespace stats struct
+void multi_stats_fs_to_tracker(scoring_struct *fs,vmt_freespace2_struct *vmt,player *pl,int tracker_id);
+
+// copy a tracker-freespace stats struct to a freespace stats struct
+void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs);
+
+// process an incoming active game item
+void multi_fs_tracker_process_game_item(game_list *gl);
+
+// verify that there are no duplicate tracker id's to this one
+void multi_fs_tracker_check_dup(int tracker_id,int player_index);
+
+// verify that there are no duplicate pilot callsigns
+void multi_fs_tracker_check_dup_callsign(net_player *player,int player_index);
+
+// report on the results of the stats store procedure
+void multi_fs_tracker_report_stats_results();
+
+// tracker specific data structures
+freespace2_net_game_data Multi_tracker_game_data;
+vmt_freespace2_struct Multi_tracker_fs_pilot;
+squad_war_response Multi_tracker_sw_response;
+
+// -----------------------------------------------------------------------------------
+// FREESPACE MASTER TRACKER DEFINITIONS
+//
+
+// give some processor time to the tracker API
+void multi_fs_tracker_process()
+{
+	game_list *gl;
+
+	PSNET_TOP_LAYER_PROCESS();
+
+	if(Multi_fs_tracker_inited){
+		// pilot validation system
+		ValidIdle();
+
+		// pilot tracing system
+		PollPTrackNet();
+
+		// game tracking system
+		IdleGameTracker();
+
+		// set if we've got any pending game list items
+		gl = GetGameList();
+		if(gl != NULL){
+			multi_fs_tracker_process_game_item(gl);
+			gl = NULL;			
+		}
+	}
+}
+
+// initialize the master tracker API for Freespace
+void multi_fs_tracker_init()
+{	
+	// don't do anything if we're already initialized
+	if(Multi_fs_tracker_inited){
+		return;
+	}	
+	
+	// initialize the low-level validation stuff
+	if(!InitValidateClient()){
+		ml_printf("Error initializing tracker api (validateclient)\n");
+		return;
+	}
+
+	// initialize the low-level pilot tracking stuff	
+	if(!InitPilotTrackerClient()){		
+		ml_printf("Error initializing tracker api (pilotclient)\n");
+		return;
+	}	
+
+	// intialize the low-level game tracking stuff
+	if(!InitGameTrackerClient(GT_FREESPACE2)){		
+		ml_printf("Error initializing tracker api (gameclient)\n");
+		return;
+	}	
+
+	nprintf(("Network","Successfully initialized tracker api\n"));
+
+	// we've successfully initialized the tracker stuff
+	Multi_fs_tracker_inited = 1;
+}
+
+// validate the current player with the master tracker (will create the pilot on the MT if necessary)
+int multi_fs_tracker_validate(int show_error)
+{
+	validate_id_request vir;	
+
+	if(!Multi_fs_tracker_inited){
+		popup(PF_USE_AFFIRMATIVE_ICON,1,POPUP_OK,XSTR("Warning, Parallax Online startup failed. Will not be able to play tracker games!",666));
+		return 0;
+	}
+	
+	// set this to false for now
+	Multi_tracker_player_is_valid = 0;
+	Multi_tracker_got_response = 0;
+
+	// mark the module as busy
+	Multi_fs_tracker_busy = 1;		
+
+	while(1){
+		// validate our pilot on the master tracker if possible
+		memset(&vir,0,sizeof(vir));
+		SDL_zero(Multi_tracker_id_string);
+		SDL_strlcpy(vir.login, Multi_tracker_login, SDL_arraysize(vir.login));
+		SDL_strlcpy(vir.password, Multi_tracker_passwd, SDL_arraysize(vir.password));
+		ValidateUser(&vir,Multi_tracker_id_string);
+		
+		// set validation mode
+		Multi_validate_mode = 0;
+			
+		int rval = popup_till_condition(multi_fs_validate_process,XSTR("&Cancel",667),XSTR("Attempting to validate pilot ...",668));
+		switch(rval){
+		// if we failed for one reason or another
+		case MT_VALIDATE_FAIL :
+			// if we're supposed to show error codes
+			if(show_error){
+				popup(PF_USE_AFFIRMATIVE_ICON | PF_BODY_BIG,1,XSTR("&Ok",669),XSTR("Pilot rejected by Parallax Online!",670));
+			}
+
+			Multi_validate_mode = -1;
+
+			Multi_fs_tracker_busy = 0;
+			return 0;
+			
+		case MT_VALIDATE_SUCCEED :
+			// notify the user
+			if(Multi_tracker_fs_pilot.virgin_pilot){
+				multi_common_add_notify(XSTR("Successfully created and validated new pilot!",671));
+			} else {
+				multi_common_add_notify(XSTR("Parallax Online pilot validation succeeded!",672));
+			}
+
+			// copy my statistics into my pilot file
+			multi_stats_tracker_to_fs(&Multi_tracker_fs_pilot,&Player->stats);			
+
+			Multi_validate_mode = -1;
+
+			Multi_fs_tracker_busy = 0;
+			return 1;
+			
+		case MT_VALIDATE_TIMEOUT :
+			rval = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_BODY_BIG,2,XSTR("&Abort",673),XSTR("&Retry",674),XSTR("Validation timed out",675));			
+			
+			// if the user clicked abort, then leave. otherwise try again
+			if(rval == 0){
+				Multi_validate_mode = -1;
+
+				Multi_fs_tracker_busy = 0;
+				return 0;
+			}
+			break;
+		
+		default : 
+			Multi_validate_mode = -1;
+
+			Multi_fs_tracker_busy = 0;
+		
+			// essentially, cancel
+			return -1;
+		}
+	}
+}
+
+// attempt to log the current game server in with the master tracker
+void multi_fs_tracker_login_freespace()
+{	
+	if(!Multi_fs_tracker_inited){
+		popup(PF_USE_AFFIRMATIVE_ICON,1,POPUP_OK,XSTR("Warning, Parallax Online startup failed. Will not be able to play tracker games!",666));
+		return;
+	}
+
+	// if we're already logged into a game, don't do anything
+	if ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) || (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) ) {
+		return;
+	}
+
+	// pretty much all we do is make 1 call
+	memset(&Multi_tracker_game_data, 0, sizeof(freespace2_net_game_data));
+	SDL_strlcpy(Multi_tracker_game_data.game_name, Netgame.name, SDL_arraysize(Multi_tracker_game_data.game_name));
+	Multi_tracker_game_data.difficulty = 99;
+	Multi_tracker_game_data.type = 0;
+	Multi_tracker_game_data.state = 1;
+	Multi_tracker_game_data.max_players = 12;
+	Multi_tracker_game_data.current_num_players = 0;
+	
+	// if we have a valid channel string, use it		
+	if(strlen(Multi_fs_tracker_channel)){
+		SDL_strlcpy(Multi_tracker_game_data.channel, Multi_fs_tracker_channel, SDL_arraysize(Multi_tracker_game_data.channel));
+	}	
+	
+	StartTrackerGame(&Multi_tracker_game_data);
+	Net_player->flags |= NETINFO_FLAG_MT_CONNECTED;	
+
+	// NETLOG
+	ml_string(NOX("Server connected to Game Tracker"));
+}
+
+// attempt to update all player statistics and scores on the tracker
+int multi_fs_tracker_store_stats()
+{		
+	int idx;
+
+	// NETLOG
+	ml_string(NOX("Server storing stats on User Tracker"));
+
+	// retrieve stats from tracker
+	Multi_store_stats_mode = MT_STORE_STATS_VALIDATE;
+	
+	// multi_fs_store_stats_do() will handle all details of negotiating stats transfer with the tracker
+	Multi_store_stats_player_index = -1;
+	Multi_store_stats_player_flag = 1;
+
+	// mark the module as busy
+	Multi_fs_tracker_busy = 1;
+
+	// unmark everyone's GET_FAILED flag
+	for(idx=0;idx<MAX_PLAYERS;idx++){
+		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_GET_FAILED);
+		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_SEND_FAILED);
+		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_DONE);
+	}
+
+#ifdef RELEASE_REAL
+	// if playing with an invalid ships.tbl
+	if(!Game_ships_tbl_valid){
+		send_game_chat_packet(Net_player, XSTR("<Server detected a hacked ships.tbl. Stats will not be saved>", 1044), MULTI_MSG_ALL, NULL, NULL, 1);	
+		multi_display_chat_msg(XSTR("<Server detected a hacked ships.tbl. Stats will not be saved>", 1044), 0, 0);
+		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR("You are playing with a hacked ships.tbl, your stats will not be saved", 1045) );
+		multi_fs_tracker_report_stats_results();
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+
+	// if playing with an invalid weapons.tbl
+	if(!Game_weapons_tbl_valid){
+		send_game_chat_packet(Net_player, XSTR("<Server detected a hacked weapons.tbl. Stats will not be saved>", 1046), MULTI_MSG_ALL, NULL, NULL, 1);	
+		multi_display_chat_msg(XSTR("<Server detected a hacked weapons.tbl. Stats will not be saved>", 1046), 0, 0);
+		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR("You are playing with a hacked weapons.tbl, your stats will not be saved", 1047) );
+		multi_fs_tracker_report_stats_results();
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+
+	// if there is only 1 player, don't store the stats
+	if((multi_num_players() <= 1) && (Multi_num_players_at_start <= 1)){
+		send_game_chat_packet(Net_player, XSTR("<Not enough players were present at game start or end, stats will not be saved>", 1048), MULTI_MSG_ALL, NULL, NULL, 1);		
+		multi_display_chat_msg(XSTR("<Not enough players were present at game start or end, stats will not be saved>", 1048), 0, 0);
+		multi_fs_tracker_report_stats_results();
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}	
+
+	// if any players have hacked info
+	for(idx=0; idx<MAX_PLAYERS; idx++){
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && (Net_players[idx].flags & NETINFO_FLAG_HAXOR)){
+			return 0;
+		}
+	}
+
+	// check to see if the mission is valid
+	if(multi_fs_tracker_validate_mission(Game_current_mission_filename) != MVALID_STATUS_VALID){
+		send_game_chat_packet(Net_player, XSTR("<Server detected a non PXO validated mission. Stats will not be saved>", 1049), MULTI_MSG_ALL, NULL, NULL, 1);	
+		multi_display_chat_msg(XSTR("<Server detected a non PXO validated mission. Stats will not be saved>", 1049), 0, 0);
+		popup(PF_USE_AFFIRMATIVE_ICON,1,POPUP_OK, XSTR("This is not a PXO validated mission, your stats will not be saved", 1050));
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+#endif
+
+	popup_till_condition(multi_fs_store_stats_do,XSTR("&Cancel",667), XSTR("Sending player stats requests ...",676));	
+
+	// send appropriate chat messages indicating stats store failure
+	multi_fs_tracker_report_stats_results();
+
+	// mark the module as not busy anymore
+	Multi_fs_tracker_busy = 0;
+
+	return 1;
+}
+
+// attempt to update all player statistics (standalone mode)
+int multi_fs_std_tracker_store_stats()
+{	
+	int ret_val;
+	int idx;
+
+	// don't do anything if this is a tracker game
+	if(!(MULTI_IS_TRACKER_GAME)){
+		return 0;
+	}
+
+	if(!Multi_fs_tracker_inited){
+		return 0;
+	}
+
+	// NETLOG
+	ml_string(NOX("Standalone server storing stats on User Tracker"));
+
+	// retrieve stats from tracker
+	Multi_store_stats_mode = MT_STORE_STATS_VALIDATE;
+	
+	// multi_fs_store_stats_do() will handle all details of negotiating stats transfer with the tracker
+	Multi_store_stats_player_index = -1;
+	Multi_store_stats_player_flag = 1;
+
+	// mark the module as busy
+	Multi_fs_tracker_busy = 1;
+
+	// unmark everyone's GET_FAILED flag
+	for(idx=0;idx<MAX_PLAYERS;idx++){
+		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_GET_FAILED);
+		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_SEND_FAILED);
+		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_DONE);
+	}
+
+#ifdef RELEASE_REAL
+	// if playing with an invalid ships.tbl
+	if(!Game_ships_tbl_valid){	
+		send_game_chat_packet(Net_player, XSTR("<Server detected a hacked ships.tbl. Stats will not be saved>", 1044), MULTI_MSG_ALL, NULL, NULL, 1);	
+		multi_display_chat_msg(XSTR("<Server detected a hacked ships.tbl. Stats will not be saved>", 1044), 0, 0);
+		multi_fs_tracker_report_stats_results();
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+
+	// if playing with an invalid weapons.tbl
+	if(!Game_weapons_tbl_valid){	
+		send_game_chat_packet(Net_player, XSTR("<Server detected a hacked weapons.tbl. Stats will not be saved>", 1046), MULTI_MSG_ALL, NULL, NULL, 1);	
+		multi_display_chat_msg(XSTR("<Server detected a hacked weapons.tbl. Stats will not be saved>", 1046), 0, 0);
+		multi_fs_tracker_report_stats_results();
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+
+	// if any players have hacked info
+	for(idx=0; idx<MAX_PLAYERS; idx++){
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && (Net_players[idx].flags & NETINFO_FLAG_HAXOR)){
+			return 0;
+		}
+	}
+
+	// if there is only 1 player, don't store the stats	
+	if((multi_num_players() <= 1) && (Multi_num_players_at_start <= 1)){
+		send_game_chat_packet(Net_player, XSTR("<Not enough players were present at game start or end, stats will not be saved>", 1048), MULTI_MSG_ALL, NULL, NULL, 1);
+		multi_display_chat_msg(XSTR("<Not enough players were present at game start or end, stats will not be saved>", 1048), 0, 0);
+		multi_fs_tracker_report_stats_results();
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+
+	// check to see if the mission is valid	
+	if(multi_fs_tracker_validate_mission(Game_current_mission_filename) != MVALID_STATUS_VALID){		
+		send_game_chat_packet(Net_player, XSTR("<Server detected a non PXO validated mission. Stats will not be saved>", 1049), MULTI_MSG_ALL, NULL, NULL, 1);	
+		multi_display_chat_msg(XSTR("<Server detected a non PXO validated mission. Stats will not be saved>", 1049), 0, 0);
+		Multi_fs_tracker_busy = 0;
+		return 0;
+	}
+#endif
+	
+	// multi_fs_store_stats_do() will handle all details of negotiating stats transfer with the tracker
+	do {		
+		ret_val = multi_fs_store_stats_do();
+		game_set_frametime(GS_STATE_STANDALONE_POSTGAME);
+		multi_do_frame();
+	} while(ret_val == MT_STATS_NOT_DONE);
+
+	// report on the results		
+	multi_fs_tracker_report_stats_results();
+
+	// mark the module as no longer busy
+	Multi_fs_tracker_busy = 0;
+
+	return 1;
+}
+
+// log freespace out of the tracker
+void multi_fs_tracker_logout()
+{
+	if(!Multi_fs_tracker_inited){
+		return;
+	}
+	
+	// make sure we're connected
+	if(!(Net_player->flags & NETINFO_FLAG_AM_MASTER) || !(Net_player->flags & NETINFO_FLAG_MT_CONNECTED)){
+		return;
+	}
+
+	// otherwise, log us out
+	SendGameOver();
+
+	// clear our data
+	memset(&Multi_tracker_game_data, 0, sizeof(freespace2_net_game_data));
+	Net_player->flags &= ~(NETINFO_FLAG_MT_CONNECTED);
+
+	// NETLOG
+	ml_string(NOX("Server disconnecting from Game Tracker"));
+}
+
+// send a request for a list of games
+void multi_fs_tracker_send_game_request()
+{
+	filter_game_list_struct filter;
+	int len;
+	
+	// if we're not initialized, don't do anything
+	if(!Multi_fs_tracker_inited){
+		return;
+	}	
+
+	// if we have a valid filter, use that instead		
+	len = strlen(Multi_fs_tracker_filter);
+	if((len > 0) && (len < CHANNEL_LEN-1) ){
+		memset(&filter,0,sizeof(filter_game_list_struct));		
+
+		SDL_strlcpy(filter.channel, Multi_fs_tracker_filter, SDL_arraysize(filter.channel));
+		RequestGameListWithFilter(&filter);
+	} else {	
+		// simple API call
+		RequestGameList();
+	}
+}
+
+// if the API has successfully been initialized and is running
+int multi_fs_tracker_inited()
+{
+	return Multi_fs_tracker_inited;
+}
+
+// update our settings on the tracker regarding the current netgame stuff
+void multi_fs_tracker_update_game(netgame_info *ng)
+{
+	// int idx,count;	
+
+	if(!Multi_fs_tracker_inited){
+		return;
+	}
+		
+	// copy in the relevant data
+	Multi_tracker_game_data.max_players = ng->max_players;
+	Multi_tracker_game_data.current_num_players = multi_num_players();
+	/*
+	memset(Multi_tracker_game_data.players, 0 ,MAX_FREESPACE_PLAYERS * MAX_FREESPACE_PLAYER_NAME_LEN);
+	count = 0;
+	for(idx=0;idx<MAX_PLAYERS;idx++){
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_PERM_OBSERVER(Net_players[idx])){
+			strcpy(Multi_tracker_game_data.players[count], Net_players[idx].player->callsign);
+			Multi_tracker_game_data.player_rank[count] = Net_players[idx].player->stats.rank;
+			count++;
+		}
+	}
+	*/
+	SDL_strlcpy(Multi_tracker_game_data.mission_name, ng->name, SDL_arraysize(Multi_tracker_game_data.mission_name));
+
+	// NETLOG
+	ml_string(NOX("Server updating netgame info for Game Tracker"));
+}
+
+// if we're currently busy performing some tracker operation (ie, you should wait or not)
+int multi_fs_tracker_busy()
+{
+	return Multi_fs_tracker_busy;
+}
+
+
+// -----------------------------------------------------------------------------------
+// FREESPACE MASTER TRACKER FORWARD DEFINITIONS
+//
+
+// used with popup_till_condition() for validating freespace pilots
+int multi_fs_validate_process()
+{						
+	// should never be here if this is not true
+	SDL_assert(Multi_fs_tracker_inited);
+
+	PSNET_TOP_LAYER_PROCESS();
+
+	// if we're still in player validation mode
+	if(Multi_validate_mode == 0){
+		switch(ValidateUser(NULL,NULL)){		
+		// timeout on waiting for response
+		case -2 :
+			return MT_VALIDATE_TIMEOUT;			
+
+		// user invalid
+		case -1:
+			// set tracker id to -1
+			SDL_strlcpy(Multi_tracker_id_string, "-1", SDL_arraysize(Multi_tracker_id_string));
+			Multi_tracker_id = -1;
+			return MT_VALIDATE_FAIL;			
+
+		// still waiting
+		case 0:
+			return MT_VALIDATE_NOT_DONE;
+	
+		// user valid
+		case 1:						
+			// now we need to try and receive stats			
+
+			// mark me as being valid
+			Multi_tracker_player_is_valid = 1;
+
+			// change the popup text
+			popup_change_text(XSTR("Attempting to get pilot stats ...",679));
+
+			// get my tracker id#
+			Multi_tracker_id = atoi(Multi_tracker_id_string);			
+			SDL_assert(Multi_tracker_id != -1);
+			
+			GetFSPilotData((vmt_freespace2_struct*)0xffffffff,NULL,NULL,0);
+			GetFSPilotData(&Multi_tracker_fs_pilot,Player->callsign,Multi_tracker_id_string,1);
+				
+			// set to mode 1
+			Multi_validate_mode = 1;				
+			return MT_VALIDATE_NOT_DONE;	
+			
+		default :
+			Int3();
+		}
+	} else {				
+		switch(GetFSPilotData(NULL,NULL,NULL,0)){				
+		// timedout
+		case -1:
+			return MT_VALIDATE_TIMEOUT;			
+				
+		// still waiting
+		case 0:
+			return MT_VALIDATE_NOT_DONE;
+			
+		// got data
+		case 1:
+			return MT_VALIDATE_SUCCEED;			
+
+		// failure
+		case 3:
+			return MT_VALIDATE_FAIL;
+		}			
+	}
+
+	// we're not done yet - probably should never get here
+	return MT_VALIDATE_NOT_DONE;
+}
+
+// used with popup_till_condition() for storing player stats at the end of a freespace game
+int multi_fs_store_stats_do()
+{			
+	char tracker_id_string[512];
+	char popup_text[100];
+
+	SDL_assert(Multi_fs_tracker_inited);
+
+	PSNET_TOP_LAYER_PROCESS();
+
+	switch(Multi_store_stats_mode){
+	// get stats for all players
+	case MT_STORE_STATS_VALIDATE : 
+		Multi_store_stats_mode = MT_STORE_STATS_GET_STATS;
+		break;
+
+	case MT_STORE_STATS_GET_STATS:
+		// if we need to get the next player		
+		if(Multi_store_stats_player_flag){
+			Multi_store_stats_player_index = multi_fs_store_stats_get_next_player(Multi_store_stats_player_index);
+			
+			// if it returns < 0 we're done with all players and should move onto the next stage (applying mission stats)
+			if(Multi_store_stats_player_index < 0){
+				Multi_store_stats_mode = MT_STORE_STATS_ACCEPT;
+				return MT_STATS_NOT_DONE;
+			}
+
+			// unset this flag so we process the request
+			Multi_store_stats_player_flag = 0;
+
+			// fill out the information request
+			memset(tracker_id_string,0,512);
+			SDL_assert(Net_players[Multi_store_stats_player_index].tracker_player_id > 0);
+
+			// verify that there are no duplicate tracker id's to this one
+			multi_fs_tracker_check_dup(Net_players[Multi_store_stats_player_index].tracker_player_id,Multi_store_stats_player_index);
+			multi_fs_tracker_check_dup_callsign(&Net_players[Multi_store_stats_player_index],Multi_store_stats_player_index);
+
+			SDL_snprintf(tracker_id_string, SDL_arraysize(tracker_id_string), "%d", Net_players[Multi_store_stats_player_index].tracker_player_id);
+			Net_players[Multi_store_stats_player_index].s_info.tracker_security_last = -1;
+			Net_players[Multi_store_stats_player_index].s_info.tracker_checksum = 0;
+
+			// send the request itself
+			GetFSPilotData((vmt_freespace2_struct*)0xffffffff, NULL, NULL,0);
+			memset(&Multi_store_stats_stats, 0, sizeof(vmt_freespace2_struct));				
+			if(GetFSPilotData(&Multi_store_stats_stats, Net_players[Multi_store_stats_player_index].player->callsign,tracker_id_string,1) != 0){
+				Int3();
+
+				// move onto the next player
+				Multi_store_stats_player_flag = 1;
+				return MT_STATS_NOT_DONE;
+			}
+
+			// set the popup text
+			if(!(Game_mode & GM_STANDALONE_SERVER)){
+				SDL_snprintf(popup_text, SDL_arraysize(popup_text), XSTR("Getting player stats for %s...\n", 680), Net_players[Multi_store_stats_player_index].player->callsign);
+				popup_change_text(popup_text);
+			}
+			return MT_STATS_NOT_DONE;
+		}
+
+		// process the request
+		switch(GetFSPilotData(NULL,NULL,NULL,0)){							
+		// got data
+		case 1:
+			// copy his stats, then flag him as done so we move onto the next guys
+			multi_stats_tracker_to_fs(&Multi_store_stats_stats,&Net_players[Multi_store_stats_player_index].player->stats);
+
+			// make sure we apply his mission stats now
+			scoring_do_accept(&Net_players[Multi_store_stats_player_index].player->stats);
+
+#ifndef NDEBUG
+			{
+				// debug code to check for bogus stats
+				scoring_struct *ssp = &(Net_players[Multi_store_stats_player_index].player->stats);
+				vmt_freespace2_struct *vmt = &Multi_store_stats_stats;
+				
+				if ( (ssp->missions_flown < vmt->missions_flown) || (ssp->flight_time < ssp->flight_time) || (ssp->kill_count < vmt->kill_count) ) {
+					Int3();
+				}
+			}
+#endif
+
+			// flag him as being completed
+			Multi_store_stats_player_flag = 1;
+
+			// also store this last security value so we can properly update him
+			Net_players[Multi_store_stats_player_index].s_info.tracker_security_last = Multi_store_stats_stats.security;
+			Net_players[Multi_store_stats_player_index].s_info.tracker_checksum = Multi_store_stats_stats.checksum;
+			break;
+
+		// in progress
+		case 0:
+			break;
+
+		// failure
+		case 3: case -2: case 2: case -3: case -1:
+			// this shouldn't be happening under most conditions. For debugging....
+			Int3();
+
+			// flag him as done so we move onto the next guy
+			Multi_store_stats_player_flag = 1;
+			Net_players[Multi_store_stats_player_index].s_info.tracker_security_last = -1;
+			Net_players[Multi_store_stats_player_index].s_info.tracker_checksum = 0;
+
+			// mark down that the stats get for him failed
+			Net_players[Multi_store_stats_player_index].flags |= NETINFO_FLAG_MT_GET_FAILED;
+			Net_players[Multi_store_stats_player_index].flags |= NETINFO_FLAG_MT_DONE;
+			break;										
+		}
+		break;
+
+	// update all stats for all players locally and on client machines
+	case MT_STORE_STATS_ACCEPT :
+		// tell everyone to save their stats
+		send_store_stats_packet(1);
+
+		// reset status flags and indices
+		Multi_store_stats_player_index = -1;
+		Multi_store_stats_player_flag = 1;
+
+		Multi_store_stats_mode = MT_STORE_STATS_SEND_STATS;
+		break;
+
+	// send stats to the tracker
+	case MT_STORE_STATS_SEND_STATS:
+		// if we need to get the next player		
+		if(Multi_store_stats_player_flag){
+			Multi_store_stats_player_index = multi_fs_store_stats_get_next_player(Multi_store_stats_player_index);
+			
+			// if it returns < 0 we need to move onto the next player
+			if(Multi_store_stats_player_index < 0){				
+				return MT_STATS_SUCCEED;
+			}
+		
+			Multi_store_stats_player_flag = 0;
+
+			// fill in the information
+			memset(&Multi_store_stats_stats,0,sizeof(vmt_freespace2_struct));
+				
+			SDL_assert(Net_players[Multi_store_stats_player_index].tracker_player_id > 0);
+
+			// verify that there are no duplicate tracker id's to this one
+			multi_fs_tracker_check_dup(Net_players[Multi_store_stats_player_index].tracker_player_id,Multi_store_stats_player_index);
+			multi_fs_tracker_check_dup_callsign(&Net_players[Multi_store_stats_player_index],Multi_store_stats_player_index);
+			multi_stats_fs_to_tracker(&Net_players[Multi_store_stats_player_index].player->stats,&Multi_store_stats_stats,Net_players[Multi_store_stats_player_index].player,Net_players[Multi_store_stats_player_index].tracker_player_id);
+			
+			Multi_store_stats_stats.security = Net_players[Multi_store_stats_player_index].s_info.tracker_security_last;
+
+			// SDL_assert(Net_players[Multi_store_stats_player_index].s_info.tracker_checksum != 0);
+			Multi_store_stats_stats.checksum = Net_players[Multi_store_stats_player_index].s_info.tracker_checksum;
+				
+			// send the request
+			SendFSPilotData((vmt_freespace2_struct*)0xffffffff);
+			if(SendFSPilotData(&Multi_store_stats_stats) != 0){
+				Int3();
+
+				// failed to send, try another player the next time around
+				Multi_store_stats_player_flag = 1;
+				return MT_STATS_NOT_DONE;
+			}
+			
+			// set the popup text
+			if(!(Game_mode & GM_STANDALONE_SERVER)){
+				SDL_snprintf(popup_text, SDL_arraysize(popup_text), XSTR("Updating player stats for %s...\n", 681), Net_players[Multi_store_stats_player_index].player->callsign);
+				popup_change_text(popup_text);
+			}
+
+			return MT_STATS_NOT_DONE;
+		}
+		
+		// otherwise check on his status			
+		switch(SendFSPilotData(NULL)){			
+		// error
+		case -1: case -2: case -3: case 2: case 3:
+			// flag him as done so we move onto the next guy
+			Multi_store_stats_player_flag = 1;					
+
+			Net_players[Multi_store_stats_player_index].flags |= NETINFO_FLAG_MT_SEND_FAILED;
+			Net_players[Multi_store_stats_player_index].flags |= NETINFO_FLAG_MT_DONE;
+			break;
+			
+		// got data
+		case 1:
+			// flag him as done so we move onto the next guys					
+			Multi_store_stats_player_flag = 1;
+			Net_players[Multi_store_stats_player_index].flags |= NETINFO_FLAG_MT_DONE;
+			break;			
+		}		
+		
+		break;
+	}	
+		
+	// return not done yet
+	return MT_STATS_NOT_DONE;	
+}
+
+// copy a freespace stats struct to a tracker-freespace stats struct
+void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_freespace2_struct *vmt, player *pl, int tracker_id)
+{
+	char tracker_id_string[256];
+
+	// tracker id string	
+	SDL_snprintf(tracker_id_string, SDL_arraysize(tracker_id_string),"%d", tracker_id);
+	SDL_strlcpy(vmt->tracker_id, tracker_id_string, SDL_arraysize(vmt->tracker_id));
+
+	// pilot callsign
+	SDL_strlcpy(vmt->pilot_name, pl->callsign, SDL_arraysize(vmt->pilot_name));
+
+	// score, rank and medals
+	vmt->score = fs->score;
+	vmt->rank = fs->rank;
+	SDL_assert(MAX_FS2_MEDALS == NUM_MEDALS);
+	memcpy(vmt->medals, fs->medals, sizeof(int) * MAX_FS2_MEDALS);
+	vmt->num_medals = MAX_FS2_MEDALS;
+
+	// kills and assists
+	SDL_assert(MAX_FS2_SHIP_TYPES == MAX_SHIP_TYPES);
+	memcpy(vmt->kills, fs->kills, sizeof(ushort) * MAX_FS2_SHIP_TYPES);
+	vmt->assists = fs->assists;
+	vmt->kill_count = fs->kill_count;
+	vmt->kill_count_ok = fs->kill_count_ok;
+	vmt->num_ship_types = MAX_FS2_SHIP_TYPES;
+
+	// shot statistics
+	vmt->p_shots_fired = fs->p_shots_fired;
+	vmt->s_shots_fired = fs->s_shots_fired;
+	vmt->p_shots_hit = fs->p_shots_hit;
+	vmt->s_shots_hit = fs->s_shots_hit;
+	vmt->p_bonehead_hits = fs->p_bonehead_hits;
+	vmt->s_bonehead_hits = fs->s_bonehead_hits;
+	vmt->bonehead_kills = fs->bonehead_kills;
+
+	// missions flown information
+	vmt->missions_flown = fs->missions_flown;
+	vmt->flight_time = fs->flight_time;
+	vmt->last_flown = (unsigned int)fs->last_flown;	
+}
+
+// copy a tracker-freespace stats struct to a freespace stats struct
+void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs)
+{
+	int num_medals, num_ship_types;
+
+	// score, rank and medals
+	fs->score = vmt->score;
+	fs->rank = vmt->rank;
+	num_medals = vmt->num_medals;
+	if(num_medals > NUM_MEDALS){
+		Int3();
+		num_medals = NUM_MEDALS;
+	}
+	memset(fs->medals, 0, sizeof(int) * NUM_MEDALS);
+	memcpy(fs->medals, vmt->medals, sizeof(int) * num_medals);
+
+	// kills and assists
+	num_ship_types = vmt->num_ship_types;
+	if(num_ship_types > MAX_SHIP_TYPES){
+		Int3();
+		num_ship_types = MAX_SHIP_TYPES;
+	}
+	memset(fs->kills, 0, sizeof(ushort) * MAX_SHIP_TYPES);
+	memcpy(fs->kills, vmt->kills, sizeof(ushort) * num_ship_types);
+	fs->assists = vmt->assists;
+	fs->kill_count = vmt->kill_count;
+	fs->kill_count_ok = vmt->kill_count_ok;
+
+	// shot statistics
+	fs->p_shots_fired = vmt->p_shots_fired;
+	fs->s_shots_fired = vmt->s_shots_fired;
+	fs->p_shots_hit = vmt->p_shots_hit;
+	fs->s_shots_hit = vmt->s_shots_hit;
+	fs->p_bonehead_hits = vmt->p_bonehead_hits;
+	fs->s_bonehead_hits = vmt->s_bonehead_hits;
+	fs->bonehead_kills = vmt->bonehead_kills;
+
+	// missions flown information
+	fs->missions_flown = vmt->missions_flown;
+	fs->flight_time = vmt->flight_time;
+	fs->last_flown = (fs_time_t)vmt->last_flown;
+	if(fs->last_flown < 0){
+		fs->last_flown = 0;
+	}
+}
+
+// process an incoming active game item
+void multi_fs_tracker_process_game_item(game_list *gl)
+{
+	active_game ag;	
+	int idx;
+
+	for(idx=0;idx<MAX_GAME_LISTS_PER_PACKET;idx++){
+		// skip null server addresses
+		if(gl->game_server[idx] == 0){
+			continue;
+		}
+
+		// package up the game information
+		memset(&ag,0,sizeof(active_game));
+		SDL_strlcpy(ag.name, gl->game_name[idx], SDL_arraysize(ag.name));
+		memcpy(&ag.server_addr.addr[0], &gl->game_server[idx], IP_ADDRESS_LENGTH);
+		ag.server_addr.type = NET_TCP;
+		ag.server_addr.port = DEFAULT_GAME_PORT;
+
+		// add to the active game list
+		// multi_update_active_games(&ag);
+
+		// query this server
+		send_server_query(&ag.server_addr);
+	}
+}
+
+int multi_fs_store_stats_get_next_player(int cur_player)
+{
+	int idx;
+
+	// if we're at the end of the list
+	if(cur_player == (MAX_PLAYERS - 1)){
+		return -2;
+	}
+
+	// find the next player
+	for(idx=cur_player+1;idx<MAX_PLAYERS;idx++){
+		// STANDALONE_ONLY
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_PERM_OBSERVER(Net_players[idx]) && (Net_players[idx].tracker_player_id != -1) && !(Net_players[idx].flags & NETINFO_FLAG_MT_GET_FAILED) ){
+			return idx;
+		}
+	}
+
+	// couldn't find one
+	return -2;
+}
+
+// verify that there are no duplicate tracker id's to this one
+void multi_fs_tracker_check_dup(int tracker_id,int player_index)
+{
+	int idx;
+
+	// compare against all players except the passed player_index	
+	for(idx=0;idx<MAX_PLAYERS;idx++){
+		if(idx == player_index){
+			continue;
+		}
+		
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_PERM_OBSERVER(Net_players[idx]) && (Net_players[idx].tracker_player_id != -1)){
+			SDL_assert(Net_players[idx].tracker_player_id != tracker_id);
+		}
+	}
+}
+
+// verify that there are no duplicate pilot callsigns
+void multi_fs_tracker_check_dup_callsign(net_player *player,int player_index)
+{
+	int idx;
+
+	// compare against all players except the passed player_index	
+	for(idx=0;idx<MAX_PLAYERS;idx++){
+		if(idx == player_index){
+			continue;
+		}
+		
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_PERM_OBSERVER(Net_players[idx]) && (Net_players[idx].tracker_player_id != -1)){
+			SDL_assert(strcmp(player->player->callsign,Net_players[idx].player->callsign));
+		}
+	}
+}
+
+// return an MVALID_STATUS_* constant
+int multi_fs_tracker_validate_mission_std()
+{
+	int ret_val;
+	
+	// wait for a response from the tracker
+	do {		
+		ret_val = ValidateMission(NULL);				
+	} while(ret_val == 0);
+
+	// report on the results
+	switch(ret_val){
+	// timeout
+	case -2:
+		std_destroy_gen_dialog();
+		return MVALID_STATUS_UNKNOWN;
+
+	// invalid
+	case -1:
+		std_destroy_gen_dialog();
+		return MVALID_STATUS_INVALID;
+
+	// valid, success
+	case 1:
+		std_destroy_gen_dialog();
+		return MVALID_STATUS_VALID;
+	}
+
+	Int3();
+	return 0;
+}
+
+// special return values :
+// 1 for timeout
+// 2 for invalid
+// 3 for valid
+int multi_fs_tracker_validate_mission_normal()
+{	
+	switch(ValidateMission(NULL)){
+	// timeout
+	case -2:
+		return 1;
+
+	// invalid
+	case -1 :
+		return 2;
+
+	// valid
+	case 1:
+		return 3;
+	}
+
+	// not done yet
+	return 0;
+}	
+
+// return an MVALID_STATUS_* (see multiui.h) value, or -2 if the user has "cancelled"
+int multi_fs_tracker_validate_mission(char *filename)
+{	
+	vmt_validate_mission_req_struct mission;	
+	char popup_string[512] = "";
+
+	if(!Multi_fs_tracker_inited){
+		return MVALID_STATUS_UNKNOWN;
+	}
+	
+	// get the checksum of the local file	
+	memset(&mission, 0, sizeof(mission));
+	SDL_strlcpy(mission.file_name, filename, SDL_arraysize(mission.file_name));
+	if(!cf_chksum_long(mission.file_name, (uint*)&mission.checksum)){
+		return MVALID_STATUS_UNKNOWN;
+	}	
+
+	// try and validate the mission
+	if(ValidateMission(&mission) != 0){
+		return MVALID_STATUS_UNKNOWN;
+	}
+
+	// do frames for standalone and non-standalone
+	if(Game_mode & GM_STANDALONE_SERVER){		
+		int ret_code;
+
+		// set the filename in the dialog
+		std_gen_set_text(filename, 2);
+
+		// validate the mission
+		ret_code = multi_fs_tracker_validate_mission_std();
+
+		// if the dialog is no longer active, cancel everything
+		//if(!std_gen_is_active()){
+		//	return MVALID_STATUS_UNKNOWN;
+		//}		
+
+		return ret_code;
+	} else {
+		SDL_snprintf(popup_string, SDL_arraysize(popup_string), XSTR("Validating mission %s", 1074), filename);
+
+		// run a popup
+		switch(popup_till_condition(multi_fs_tracker_validate_mission_normal, XSTR("&Cancel", 667), popup_string)){
+		// cancel 
+		case 0: 
+			// bash some API values here so that next time we try and verify, everything works
+			extern int MissionValidState;
+			MissionValidState = VALID_STATE_IDLE;
+			return -2;
+
+		// timeout
+		case 1:
+			return MVALID_STATUS_UNKNOWN;
+
+		// invalid
+		case 2:
+			return MVALID_STATUS_INVALID;
+
+		// valid
+		case 3:
+			return MVALID_STATUS_VALID;
+		}
+	}
+
+	return MVALID_STATUS_UNKNOWN;
+}
+
+// report on the results of the stats store procedure
+void multi_fs_tracker_report_stats_results()
+{
+	int idx;
+	char str[512] = "";
+
+	// tell everyone stats store is complete
+	SDL_strlcpy(str, XSTR("<PXO stats store process complete>", 1001), SDL_arraysize(str));
+	send_game_chat_packet(Net_player, str, MULTI_MSG_ALL, NULL, NULL, 1);	
+	multi_display_chat_msg(str, 0, 0);	
+	ml_string(str);
+
+	// for all players
+	for(idx=0; idx<MAX_PLAYERS; idx++){		
+		// for all players who we care about
+		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx])){
+			// if the stats get or send failed for any player, report as such
+			if(((Net_players[idx].tracker_player_id <= 0) || (Net_players[idx].flags & NETINFO_FLAG_MT_GET_FAILED) || (Net_players[idx].flags & NETINFO_FLAG_MT_SEND_FAILED) || !(Net_players[idx].flags & NETINFO_FLAG_MT_DONE)) && (Net_players[idx].player != NULL)){					
+				SDL_snprintf(str, SDL_arraysize(str), XSTR("<PXO stats store failed for player %s>", 1002), Net_players[idx].player->callsign);
+				send_game_chat_packet(Net_player, str, MULTI_MSG_ALL, NULL, NULL, 1);
+				
+				multi_display_chat_msg(str, 0, 0);
+				ml_string(str);
+			}
+		}
+	}
+}
+
+// return an MSW_STATUS_* constant
+int multi_fs_tracker_validate_sw_std()
+{
+	int ret_val;
+	
+	// wait for a response from the tracker
+	do {		
+		ret_val = ValidateSquadWar(NULL, &Multi_tracker_sw_response);
+	} while(ret_val == 0);
+
+	// report on the results
+	switch(ret_val){
+	// timeout
+	case -2:		
+		return MVALID_STATUS_UNKNOWN;
+
+	// invalid
+	case -1:		
+		return MVALID_STATUS_INVALID;
+
+	// valid, success
+	case 1:		
+		return MVALID_STATUS_VALID;
+	}
+	
+	return MVALID_STATUS_UNKNOWN;
+}
+
+// special return values :
+// 1 for timeout
+// 2 for invalid
+// 3 for valid
+int multi_fs_tracker_validate_sw_normal()
+{	
+	switch(ValidateSquadWar(NULL, &Multi_tracker_sw_response)){
+	// timeout
+	case -2:
+		return 1;
+
+	// invalid
+	case -1 :
+		return 2;
+
+	// valid
+	case 1:
+		return 3;
+	}
+
+	// not done yet
+	return 0;
+}	
+
+#define STUFF_SW_RESPONSE(_c, _len) do {\
+	SDL_strlcpy(_c, "", _len);\
+	int _idx;\
+	int _bogus = 1;\
+	for(_idx=0; _idx<MAX_SQUAD_RESPONSE_LEN; _idx++){\
+		if(Multi_tracker_sw_response.reason[_idx] == '\0'){\
+			_bogus = 0;\
+			break;\
+		}\
+	}\
+	if(!_bogus){\
+		SDL_strlcpy(_c, Multi_tracker_sw_response.reason, _len);\
+	}\
+} while(0);
+
+// return an MSW_STATUS_* value
+int multi_fs_tracker_validate_sw(squad_war_request *sw_req, char *bad_reply, const int max_reply_len)
+{
+	char popup_string[512] = "";
+
+	if(!Multi_fs_tracker_inited){
+		return MSW_STATUS_UNKNOWN;
+	}	
+
+	// zero the response
+	memset(&Multi_tracker_sw_response, 0, sizeof(Multi_tracker_sw_response));
+	
+	// try and validate the mission
+	if(ValidateSquadWar(sw_req, &Multi_tracker_sw_response) != 0){
+		SDL_strlcpy(bad_reply, "Error sending request for Squad War validation", max_reply_len);
+
+		return MSW_STATUS_UNKNOWN;
+	}
+
+	// do frames for standalone and non-standalone
+	if(Game_mode & GM_STANDALONE_SERVER){		
+		int ret_code;		
+
+		// validate the mission
+		ret_code = multi_fs_tracker_validate_sw_std();		
+
+		// copy the return code
+		STUFF_SW_RESPONSE(bad_reply, max_reply_len);
+
+		return ret_code;
+	} else {
+		SDL_strlcpy(popup_string, XSTR("Validating squad war", 1075), SDL_arraysize(popup_string));
+
+		// run a popup
+		switch(popup_till_condition(multi_fs_tracker_validate_sw_normal, XSTR("&Cancel", 645), popup_string)){
+		// cancel 
+		case -1:
+		case 0: 
+			// bash some API values here so that next time we try and verify, everything works
+			extern int SquadWarValidState;
+			SquadWarValidState = VALID_STATE_IDLE;
+
+			// copy the return code
+			STUFF_SW_RESPONSE(bad_reply, max_reply_len);
+			return -2;
+
+		// timeout
+		case 1:
+			// copy the return code			
+			SDL_strlcpy(bad_reply, "Timeout", max_reply_len);
+			return MSW_STATUS_UNKNOWN;
+
+		// invalid
+		case 2:
+			// copy the return code
+			STUFF_SW_RESPONSE(bad_reply, max_reply_len);
+			return MSW_STATUS_INVALID;
+
+		// valid
+		case 3:
+			// copy the return code
+			STUFF_SW_RESPONSE(bad_reply, max_reply_len);
+			return MSW_STATUS_VALID;
+		}
+	}
+
+	SDL_strlcpy(bad_reply, "Unknown error", max_reply_len);
+	return MSW_STATUS_UNKNOWN;
+}
+
+// popup do function
+// -3	Error -- Called with NULL, but no request is waiting
+// -2	Error -- Already sending data (hasn't timed out yet)
+// -1	Timeout trying to send pilot data
+// 0	Sending
+// 1	Data succesfully sent
+// 2	Send Cancelled (data may still have been written already, we just haven't been ACK'd yet)
+// 3	Pilot not written (for some reason)
+  
+int multi_fs_tracker_store_sw_do()
+{
+	switch(SendSWData(NULL, &Multi_tracker_sw_response)){
+	// failure
+	case -3:
+	case -2:
+	case -1:
+	case 2:
+	case 3:
+		return 1;
+
+	// success
+	case 1:
+		return 10;
+	}
+
+	// not done
+	return 0;
+}
+
+// store the results of a squad war mission on PXO, return 1 on success
+int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply, const int max_reply_len)
+{
+	char popup_string[512] = "";
+
+	// clear any old requests
+	SendSWData((squad_war_result*)0xffffffff, NULL);
+
+	// send this new request
+	SendSWData(sw_res, &Multi_tracker_sw_response);
+
+	// standalone
+	if(Game_mode & GM_STANDALONE_SERVER){
+		int ret_code;
+		do {
+			ret_code = SendSWData(NULL, &Multi_tracker_sw_response);
+		} while(ret_code == 0);
+
+		// success
+		if(ret_code == 1){
+			return 1;
+		}
+	}
+	// non-standalone
+	else {
+		SDL_strlcpy(popup_string, XSTR("Storing SquadWar results", 1078), SDL_arraysize(popup_string));
+
+		// wait for a response
+		if(popup_till_condition(multi_fs_tracker_store_sw_do, XSTR("&Cancel", 645), popup_string) == 10){
+			// success
+			return 1;
+		}
+	}
+
+	// failure
+	return 0;
+}
+

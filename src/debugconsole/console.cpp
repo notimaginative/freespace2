@@ -106,7 +106,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <setjmp.h>
 #include <string.h>
 
 #include "pstypes.h"
@@ -134,7 +133,7 @@ debug_command::debug_command(const char *_name, const char *_help, void (*_func)
 	}
 
 	for (i=0; i<Num_debug_commands; i++ )	{
-		int ret  = stricmp( Debug_command[i]->name, _name );
+		int ret  = SDL_strcasecmp( Debug_command[i]->name, _name );
 
 		if ( ret == 0)	{
 			Int3();		// This debug console command already exists!!!! 
@@ -263,7 +262,7 @@ void scanner_downshift_word()
 	int offset = 'a' - 'A';
 	char * tp;
 
-	strcpy( scanner_word_string, scanner_token_string );
+	SDL_strlcpy( scanner_word_string, scanner_token_string, SDL_arraysize(scanner_word_string) );
 	
 	tp = scanner_word_string;
 	do {
@@ -333,7 +332,6 @@ void scanner_start_command( const char * s )
 
 
 int Dc_debug_on = 0;
-jmp_buf dc_bad_arg;
 
 void dc_get_arg(uint type)
 {
@@ -370,7 +368,7 @@ void dc_get_arg(uint type)
 		if ( num_digits==len )	{
 			Dc_arg_type |= ARG_FLOAT;
 			Dc_arg_float = (float)atof(Dc_arg);
-			if ( !strchr( Dc_arg, '.' ))	{
+			if ( !SDL_strchr( Dc_arg, '.' ))	{
 				Dc_arg_type |= ARG_INT;
 				Dc_arg_int = atoi(Dc_arg);
 			}
@@ -397,22 +395,22 @@ void dc_get_arg(uint type)
 				dc_printf( "Found hex number! 0x%x\n", Dc_arg_int );
 		}
 
-		if ( !stricmp( Dc_arg, "on" ))
+		if ( !SDL_strcasecmp( Dc_arg, "on" ))
 			Dc_arg_type |= ARG_TRUE;
-		if ( !stricmp( Dc_arg, "true" ))
+		if ( !SDL_strcasecmp( Dc_arg, "true" ))
 			Dc_arg_type |= ARG_TRUE;
-		if ( !stricmp( Dc_arg, "off" ))
+		if ( !SDL_strcasecmp( Dc_arg, "off" ))
 			Dc_arg_type |= ARG_FALSE;
-		if ( !stricmp( Dc_arg, "false" ))
+		if ( !SDL_strcasecmp( Dc_arg, "false" ))
 			Dc_arg_type |= ARG_FALSE;
 
-		if ( !stricmp( Dc_arg, "+" ))
+		if ( !SDL_strcasecmp( Dc_arg, "+" ))
 			Dc_arg_type |= ARG_PLUS;
 
-		if ( !stricmp( Dc_arg, "-" ))
+		if ( !SDL_strcasecmp( Dc_arg, "-" ))
 			Dc_arg_type |= ARG_MINUS;
 
-		if ( !stricmp( Dc_arg, "," ))
+		if ( !SDL_strcasecmp( Dc_arg, "," ))
 			Dc_arg_type |= ARG_COMMA;
 	}
 
@@ -428,7 +426,8 @@ void dc_get_arg(uint type)
 			dc_printf( "Error: Not enough parameters.\n" );
 		else
 			dc_printf( "Error: '%s' invalid type\n", Dc_arg );
-		longjmp(dc_bad_arg,1);
+
+		throw (int)1;
 	}
 
 }
@@ -447,85 +446,85 @@ void debug_do_command(const char * command)
 	Dc_command_line = command;
 	scanner_start_command(command);
 
-	if (setjmp(dc_bad_arg) )	{
-		return;
-	}
-	
-	dc_get_arg( ARG_ANY );
-
-	if ( !strcmp( Dc_arg, "debug" ) )	{
-		Dc_debug_on = 1;
-		dc_printf( "Command line: '%s'\n", Dc_command_line );
-		dc_get_arg( ARG_ANY );
-	}
-
-	if ( !strcmp( Dc_arg, "?" ) )	{
-		mode = 1;
+	try {
 		dc_get_arg( ARG_ANY );
 
-		if ( Dc_arg_type&ARG_NONE )	{
-			debug_help();		
-			return;
+		if ( !strcmp( Dc_arg, "debug" ) )	{
+			Dc_debug_on = 1;
+			dc_printf( "Command line: '%s'\n", Dc_command_line );
+			dc_get_arg( ARG_ANY );
 		}
-	}
 
-	if ( !strcmp( Dc_arg, "help" ) || !strcmp( Dc_arg, "man" ) )	{
-		mode = 2;
-		dc_get_arg( ARG_ANY );
-		if ( Dc_arg_type&ARG_NONE )	{
-			debug_help();		
-			return;
-		}
-	}
+		if ( !strcmp( Dc_arg, "?" ) )	{
+			mode = 1;
+			dc_get_arg( ARG_ANY );
 
-	if ( strstr( Dc_command_line, "?" ) )	{
-		mode = 2;
-	}
-
-	if ( !(Dc_arg_type&ARG_STRING) )	{
-		dc_printf( "Invalid keyword '%s'\n", Dc_arg );
-		return;
-	}
-
-
-	if (Dc_debug_on)	{
-		dc_printf( "Searching for command '%s'\n", Dc_arg );
-	}
-
-	for (i=0; i<Num_debug_commands; i++ )	{
-		if ( !stricmp( Debug_command[i]->name, Dc_arg ))	{
-		
-			if (mode==0)	{
-				if (Dc_debug_on)	
-					dc_printf( "Calling function '%s'\n", Dc_arg );
-				Dc_command = 1;
-				Dc_help = 0;
-				Dc_status = 1;
-			} else if (mode==1) {
-				if (Dc_debug_on)	
-					dc_printf( "Checking status for '%s'\n", Dc_arg );
-				Dc_command = 0;
-				Dc_help = 0;
-				Dc_status = 1;
-			} else {
-				if (Dc_debug_on)	
-					dc_printf( "Doing help for '%s'\n", Dc_arg );
-				Dc_command = 0;
-				Dc_help = 1;
-				Dc_status = 0;
+			if ( Dc_arg_type&ARG_NONE )	{
+				debug_help();
+				return;
 			}
+		}
 
-			(*Debug_command[i]->func)();
+		if ( !strcmp( Dc_arg, "help" ) || !strcmp( Dc_arg, "man" ) )	{
+			mode = 2;
+			dc_get_arg( ARG_ANY );
+			if ( Dc_arg_type&ARG_NONE )	{
+				debug_help();
+				return;
+			}
+		}
 
-			if (mode==0)	{
-				dc_get_arg(ARG_ANY);
-				if (!(Dc_arg_type&ARG_NONE))	{
-					dc_printf( "Ignoring the unused command line tail '%s %s'\n", Dc_arg_org, Dc_command_line );
+		if ( strstr( Dc_command_line, "?" ) )	{
+			mode = 2;
+		}
+
+		if ( !(Dc_arg_type&ARG_STRING) )	{
+			dc_printf( "Invalid keyword '%s'\n", Dc_arg );
+			return;
+		}
+
+
+		if (Dc_debug_on)	{
+			dc_printf( "Searching for command '%s'\n", Dc_arg );
+		}
+
+		for (i=0; i<Num_debug_commands; i++ )	{
+			if ( !SDL_strcasecmp( Debug_command[i]->name, Dc_arg ))	{
+
+				if (mode==0)	{
+					if (Dc_debug_on)
+						dc_printf( "Calling function '%s'\n", Dc_arg );
+					Dc_command = 1;
+					Dc_help = 0;
+					Dc_status = 1;
+				} else if (mode==1) {
+					if (Dc_debug_on)
+						dc_printf( "Checking status for '%s'\n", Dc_arg );
+					Dc_command = 0;
+					Dc_help = 0;
+					Dc_status = 1;
+				} else {
+					if (Dc_debug_on)
+						dc_printf( "Doing help for '%s'\n", Dc_arg );
+					Dc_command = 0;
+					Dc_help = 1;
+					Dc_status = 0;
 				}
-			}
 
-			return;
+				(*Debug_command[i]->func)();
+
+				if (mode==0)	{
+					dc_get_arg(ARG_ANY);
+					if (!(Dc_arg_type&ARG_NONE))	{
+						dc_printf( "Ignoring the unused command line tail '%s %s'\n", Dc_arg_org, Dc_command_line );
+					}
+				}
+
+				return;
+			}
 		}
+	} catch (int) {
+		return;
 	}
 
 	dc_printf( "Unknown command '%s'\n", Dc_arg );
@@ -578,7 +577,7 @@ void debug_output( char c )
 			if ( debug_y >= DROWS )	{
 				int i;
 				for (i=1; i<DROWS; i++ )
-					strcpy( debug_text[i-1], debug_text[i] );
+					SDL_strlcpy( debug_text[i-1], debug_text[i], DCOLS );
 				debug_y = DROWS-1;
 				debug_x = 0;
 				debug_text[debug_y][debug_x] = 0;
@@ -600,7 +599,7 @@ void debug_output( char c )
 		if ( debug_y >= DROWS )	{
 			int i;
 			for (i=1; i<DROWS; i++ )
-				strcpy( debug_text[i-1], debug_text[i] );
+				SDL_strlcpy( debug_text[i-1], debug_text[i], DCOLS );
 			debug_y = DROWS-1;
 			debug_x = 0;
 			debug_text[debug_y][debug_x] = 0;
@@ -619,7 +618,7 @@ void dc_printf(const char *format, ...)
 	va_list args;
 	
 	va_start(args, format);
-	vsprintf(tmp, format, args);
+	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
 	char *p = tmp;
@@ -671,50 +670,50 @@ void debug_console( void (*_func)() )
 		int k = key_inkey();
 		switch( k )	{
 
-		case KEY_SHIFTED+KEY_ENTER:
-		case KEY_ESC:	
+		case KEY_SHIFTED+SDLK_RETURN:
+		case SDLK_ESCAPE:
 			done=1;	break;
 
-		case KEY_BACKSP:
+		case SDLK_BACKSPACE:
 			if ( command_line_pos > 0 )	{
 				command_line[--command_line_pos] = 0;
 			}
 			break;
 
-		case KEY_F3:
+		case SDLK_F3:
 			if ( last_oldcommand > -1 )	{
-				strcpy( command_line, oldcommand_line[last_oldcommand] );
+				SDL_strlcpy( command_line, oldcommand_line[last_oldcommand], SDL_arraysize(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
 			break;
 
-		case KEY_UP:
+		case SDLK_UP:
 			command_scroll--;
 			if (command_scroll<0) 
 				command_scroll = last_oldcommand;
 
 			if ( command_scroll > -1 )	{
-				strcpy( command_line, oldcommand_line[command_scroll] );
+				SDL_strlcpy( command_line, oldcommand_line[command_scroll], SDL_arraysize(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
 			break;
 
-		case KEY_DOWN:
+		case SDLK_DOWN:
 			command_scroll++;
 			if (command_scroll>last_oldcommand) 
 				command_scroll = 0;
 			if (command_scroll>last_oldcommand) 
 				command_scroll = -1;
 			if ( command_scroll > -1 )	{
-				strcpy( command_line, oldcommand_line[command_scroll] );
+				SDL_strlcpy( command_line, oldcommand_line[command_scroll], SDL_arraysize(command_line) );
 				command_line_pos = strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
 			break;
 
-		case KEY_ENTER:	{
+		case SDLK_RETURN:	{
 			debug_output( '\n' );
 			debug_draw();
 
@@ -722,20 +721,20 @@ void debug_console( void (*_func)() )
 
 			int i, found = 0;
 			for (i=0; i<=last_oldcommand; i++ )	{
-				if (!stricmp( oldcommand_line[i], command_line ))	{
+				if (!SDL_strcasecmp( oldcommand_line[i], command_line ))	{
 					found = 1;
 				}
 			}
 			if ( !found )	{
 				if ( last_oldcommand < DEBUG_HISTORY-1 )	{
 					last_oldcommand++;
-					strcpy( oldcommand_line[last_oldcommand], command_line);
+					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, SDL_arraysize(oldcommand_line[0]) );
 				} else {
 					int i;
 					for (i=0; i<last_oldcommand; i++ )	{
-						strcpy( oldcommand_line[i], oldcommand_line[i+1] );
+						SDL_strlcpy( oldcommand_line[i], oldcommand_line[i+1], SDL_arraysize(oldcommand_line[0]) );
 					}
-					strcpy( oldcommand_line[last_oldcommand], command_line);
+					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, SDL_arraysize(oldcommand_line[0]) );
 				}
 			}
 //			int i;
@@ -752,16 +751,18 @@ void debug_console( void (*_func)() )
 			} 
 			break;
 		default:	{
-				ubyte c = (ubyte)key_to_ascii(k);
-				if ( c != 255 ) {
-					command_line[command_line_pos++] = c;
+				int c = key_get_text_input();
+				if ( (c >= 0) && (c < 255) ) {
+					command_line[command_line_pos++] = (ubyte)c;
 					command_line[command_line_pos] = 0;
 				}
 			}
+			break;
+
 		}
 
-		strcpy( debug_text[debug_y], ">" );
-		strcat( debug_text[debug_y], command_line );
+		SDL_strlcpy( debug_text[debug_y], ">", DCOLS );
+		SDL_strlcat( debug_text[debug_y], command_line, DCOLS );
 		debug_draw();
 
 		if ( _func ){
@@ -790,7 +791,7 @@ void debug_help()
 			debug_draw();
 			k = key_getch();
 			s = scroll_times;
-			if ( k == KEY_B )  {
+			if ( k == SDLK_b )  {
 				i -= ((DROWS-3)*2);
 				if ( i <= 0 )
 					i = -1;

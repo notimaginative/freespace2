@@ -196,7 +196,7 @@
  * Last minute changes to techroom weapon/ship/species stuff.
  * 
  * 66    9/07/98 2:49p Dan
- * Removed spurious Assert
+ * Removed spurious SDL_assert
  * 
  * 65    7/06/98 2:42p Hoffoss
  * Fixed bug with weapons shown in tech database.
@@ -620,12 +620,12 @@ void techroom_init_desc(char *src, int w)
 	}
 
 	Text_size = split_str(src, w, Text_line_size, Text_lines, MAX_TEXT_LINES);
-	Assert(Text_size >= 0 && Text_size < MAX_TEXT_LINES);
+	SDL_assert(Text_size >= 0 && Text_size < MAX_TEXT_LINES);
 }
 
 void techroom_select_new_entry()
 {
-	Assert(Current_list != NULL);
+	SDL_assert(Current_list != NULL);
 	if (Current_list == NULL) return;
 
 	Cur_entry_index = Current_list[Cur_entry].index;
@@ -658,7 +658,7 @@ void techroom_select_new_entry()
 //	Techroom_ship_rot = PI;
 
 #ifdef MAKE_FS1
-	if (Tab == (WEAPONS_DATA_TAB || INTEL_DATA_TAB)){
+	if ( (Tab == WEAPONS_DATA_TAB) || (Tab == INTEL_DATA_TAB) ) {
 		techroom_init_desc(Current_list[Cur_entry].desc, Tech_data_desc_coords[gr_screen.res][SHIP_W_COORD]);
 	} else {
 		techroom_init_desc(Current_list[Cur_entry].desc, Tech_desc_coords[gr_screen.res][SHIP_W_COORD]);
@@ -684,13 +684,12 @@ void techroom_render_desc(int xo, int yo, int h)
 			break;
 		}
 
-		len = Text_line_size[z];
+		len = Text_line_size[z] + 1;
 		if (len > MAX_TEXT_LINE_LEN){
 			len = MAX_TEXT_LINE_LEN;
 		}
 
-		strncpy(line, Text_lines[z], len);
-		line[len] = 0;
+		SDL_strlcpy(line, Text_lines[z], len);
 		gr_string(xo, yo + y, line);
 
 		y += font_height;
@@ -770,9 +769,9 @@ void tech_common_render()
 			gr_set_color_fast(&Color_text_normal);
 		}
 
-		strcpy(buf, Current_list[z].name);
+		SDL_strlcpy(buf, Current_list[z].name, SDL_arraysize(buf));
 		if (Lcl_gr) {
-			lcl_translate_ship_name(buf);
+			lcl_translate_ship_name(buf, SDL_arraysize(buf));
 		}
 
 		gr_force_fit_string(buf, 255, Tech_list_coords[gr_screen.res][SHIP_W_COORD]);
@@ -1128,7 +1127,7 @@ void techroom_change_tab(int num)
 	int i, multi = 0, mask, font_height, max_num_entries_viewable;	
 
 	Tab = num;
-	// Assert(Current_list_size >= 0);
+	// SDL_assert(Current_list_size >= 0);
 	List_offset = 0;
 	Cur_entry = 0;
 	multi = Player->flags & PLAYER_FLAGS_IS_MULTI;
@@ -1216,47 +1215,47 @@ void techroom_change_tab(int num)
 #ifdef MAKE_FS1
 						// figure out the animation based on weapon name
 						if (!strcmp(Weapon_info[i].name, "ML-16 Laser")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_ML16.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_ML16.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Disruptor")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Disruptor.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Disruptor.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "D-Advanced")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_DAdvanced.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_DAdvanced.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Avenger")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Avenger.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Avenger.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Flail")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Flail.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Flail.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Prometheus")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Prometheus.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Prometheus.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Banshee")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Banshee.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Banshee.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "MX-50")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_MX50.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_MX50.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "D-Missile")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_DisruptorMissile.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_DisruptorMissile.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Fury")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Fury.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Fury.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Hornet")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Hornet.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Hornet.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Interceptor")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Interceptor.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Interceptor.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Phoenix V")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Phoenix.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Phoenix.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Synaptic")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Synaptic.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Synaptic.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Stiletto")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Stiletto.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Stiletto.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Tsunami")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Tsunami.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Tsunami.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Harbinger")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_Harbinger.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_Harbinger.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Leech Cannon")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_leech.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_leech.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "EM Pulse")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_empulse.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_empulse.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "S-Breaker")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_sbreaker.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_sbreaker.ani", NAME_LENGTH);
 						} else if (!strcmp(Weapon_info[i].name, "Cluster Bomb")) {
-							strncpy(Weapon_info[i].tech_anim_filename, "CB_cluster.ani", NAME_LENGTH);
+							SDL_strlcpy(Weapon_info[i].tech_anim_filename, "CB_cluster.ani", NAME_LENGTH);
 						}
 #endif
 
@@ -1451,9 +1450,9 @@ int techroom_load_ani(anim **animpp, char *name)
 	// hi-res support
 	// (i dont think there are any hi-res anims for these tho)
 	if (gr_screen.res == GR_1024) {
-		strcat(anim_filename, name);
+		SDL_strlcat(anim_filename, name, SDL_arraysize(anim_filename));
 	} else {
-		strcpy(anim_filename, name);
+		SDL_strlcpy(anim_filename, name, SDL_arraysize(anim_filename));
 	}
 
 	while(1) {
@@ -1462,12 +1461,12 @@ int techroom_load_ani(anim **animpp, char *name)
 			return 0;
 		}
 
-		*animpp = anim_load(anim_filename, 1);
+		*animpp = anim_load(anim_filename);
 		if ( *animpp ) {
 			return 1;
 		} else if (gr_screen.res == GR_1024) {
 			// try to load low-res version if hi-res failed
-			*animpp = anim_load(name, 1);
+			*animpp = anim_load(name);
 			if (*animpp) {
 				return 1;
 			}
@@ -1489,19 +1488,13 @@ int techroom_load_ani(anim **animpp, char *name)
 
 void techroom_intel_init()
 {
-	int rval;
 	static int inited = 0;
 
 	// open localization
 	lcl_ext_open();
 
 	if (!inited) {
-		if ((rval = setjmp(parse_abort)) != 0) {
-			// close localization
-			lcl_ext_close();
-
-			return;
-		} else {
+		try {
 			read_file_text("species.tbl");
 			reset_parse();
 
@@ -1509,7 +1502,7 @@ void techroom_intel_init()
 
 #ifndef MAKE_FS1
 			while (optional_string("$Entry:")) {
-				Assert(Intel_info_size < MAX_INTEL_ENTRIES);
+				SDL_assert(Intel_info_size < MAX_INTEL_ENTRIES);
 				if (Intel_info_size >= MAX_INTEL_ENTRIES) break;
 
 				required_string("$Name:");
@@ -1527,8 +1520,8 @@ void techroom_intel_init()
 #else
 			if (optional_string("$Terran Tech Description:")) {
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				strcpy(Intel_info[Intel_info_size].name, "Terran");
-				strcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[0]);
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Terran", SDL_arraysize(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[0], SDL_arraysize(Intel_info[0].anim_filename));
 				Intel_info[Intel_info_size].in_tech_db = 1;
 
 				Intel_info_size++;
@@ -1537,8 +1530,8 @@ void techroom_intel_init()
 			if (optional_string("$Vasudan Tech Description:")) {
 
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				strcpy(Intel_info[Intel_info_size].name, "Vasudan");
-				strcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[1]);
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Vasudan", SDL_arraysize(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[1], SDL_arraysize(Intel_info[0].anim_filename));
 				Intel_info[Intel_info_size].in_tech_db = 1;
 
 				Intel_info_size++;
@@ -1547,8 +1540,8 @@ void techroom_intel_init()
 			if (optional_string("$Shivan Tech Description:")) {
 
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
-				strcpy(Intel_info[Intel_info_size].name, "Shivan");
-				strcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2]);
+				SDL_strlcpy(Intel_info[Intel_info_size].name, "Shivan", SDL_arraysize(Intel_info[0].name));
+				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2], SDL_arraysize(Intel_info[0].anim_filename));
 				// FIXME: shouldn't always be in the intel database but no choice at this point
 				// there are only about 4 missions before they show up anyway so it may not be worth it
 				Intel_info[Intel_info_size].in_tech_db = 1;
@@ -1557,6 +1550,8 @@ void techroom_intel_init()
 			}
 #endif
 			inited = 1;
+		} catch (parse_error_t rval) {
+			Error(LOCATION, "Unable to parse species.tbl!  Code = %i.\n", (int)rval);
 		}
 	}
 
@@ -1589,7 +1584,7 @@ void techroom_init()
 
 	/*
 	Palette_bmp = bm_load("TechDataPalette");
-	Assert(Palette_bmp);
+	SDL_assert(Palette_bmp);
 	bm_get_palette(Palette_bmp, Palette, Palette_name);  // get the palette for this bitmap
 	gr_set_palette(Palette_name, Palette, 1);
 	*/
@@ -1670,11 +1665,11 @@ void techroom_init()
 	}
 
 	// set some hotkeys
-	Buttons[gr_screen.res][PREV_ENTRY_BUTTON].button.set_hotkey(KEY_LEFT);
-	Buttons[gr_screen.res][NEXT_ENTRY_BUTTON].button.set_hotkey(KEY_RIGHT);
+	Buttons[gr_screen.res][PREV_ENTRY_BUTTON].button.set_hotkey(SDLK_LEFT);
+	Buttons[gr_screen.res][NEXT_ENTRY_BUTTON].button.set_hotkey(SDLK_RIGHT);
 #ifndef MAKE_FS1 // set per tab
-	Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(KEY_UP);
-	Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(KEY_DOWN);
+	Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(SDLK_UP);
+	Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(SDLK_DOWN);
 #endif
 
 
@@ -1694,10 +1689,10 @@ void techroom_init()
 	ShipWin04 = bm_load(NOX("ShipWin04"));
 #endif
 
-	Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(KEY_F1);
-	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Buttons[gr_screen.res][SCROLL_LIST_UP].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_LIST_DOWN].button.set_hotkey(KEY_PAGEDOWN);
+	Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Buttons[gr_screen.res][SCROLL_LIST_UP].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_LIST_DOWN].button.set_hotkey(SDLK_PAGEDOWN);
 
 	// init help overlay states
 	help_overlay_set_state(TECH_ROOM_OVERLAY, 0);
@@ -1836,8 +1831,8 @@ void techroom_tab_setup(int set_palette)
 			Ui_window.set_mask_bmap(Tech_mask_filename[gr_screen.res]);
 
 			// setup hotkeys to scroll list
-			Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(KEY_UP);
-			Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(KEY_DOWN);
+			Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(SDLK_UP);
+			Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(SDLK_DOWN);
 
 			// hide extra buttons
 			Buttons[gr_screen.res][PREV_ENTRY_BUTTON2].button.hide();
@@ -1913,7 +1908,7 @@ void techroom_do_frame(float frametime)
 	}
 
 	switch (k) {
-		case KEY_SHIFTED | KEY_TAB:  // activate previous tab
+		case KEY_SHIFTED | SDLK_TAB:  // activate previous tab
 			i = Tab - 1;
 			if (i < 0) {
 				i = NUM_TABS - 1;
@@ -1922,7 +1917,7 @@ void techroom_do_frame(float frametime)
 			techroom_change_tab(i);
 			break;
 
-		case KEY_TAB:  // activate next tab
+		case SDLK_TAB:  // activate next tab
 			i = Tab + 1;
 			if (i >= NUM_TABS) {
 				i = 0;
@@ -1931,27 +1926,27 @@ void techroom_do_frame(float frametime)
 			techroom_change_tab(i);
 			break;
 
-		case KEY_CTRLED | KEY_DOWN:
+		case KEY_CTRLED | SDLK_DOWN:
 			if ( !(Player->flags & PLAYER_FLAGS_IS_MULTI) ) {
 				techroom_button_pressed(SIMULATOR_TAB);
 				break;
 			}
 			// fall through
 
-		case KEY_CTRLED | KEY_UP:
+		case KEY_CTRLED | SDLK_UP:
 			techroom_button_pressed(CREDITS_TAB);
 			break;
 /*
-		case KEY_UP:
+		case SDLK_UP:
 			tech_prev_entry();
 			break;
 
-		case KEY_DOWN:
+		case SDLK_DOWN:
 			tech_next_entry();
 			break;
 */
-		case KEY_CTRLED | KEY_ENTER:
-		case KEY_ESC:
+		case KEY_CTRLED | SDLK_RETURN:
+		case SDLK_ESCAPE:
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			break;
 	}	

@@ -390,12 +390,12 @@ BOOL CFREDApp::InitInstance()
 	// setup the fred exe directory so CFILE can init properly
 	/*
 	c = GetCommandLine();
-	Assert(c != NULL);
+	SDL_assert(c != NULL);
 	if(c == NULL){
 		return FALSE;
 	} 
 	tok = strtok(c, " \n");
-	Assert(tok != NULL);
+	SDL_assert(tok != NULL);
 	if(tok == NULL){
 		return FALSE;		
 	}
@@ -672,8 +672,8 @@ BOOL CFREDApp::OnIdle(LONG lCount)
 
 	// gr_surface_flip();
 
-	// if you hit the next Assert, find Hoffoss or Allender.  If neither here, then comment it out.
-	Assert( Update_window >= 0 );
+	// if you hit the next SDL_assert, find Hoffoss or Allender.  If neither here, then comment it out.
+	SDL_assert( Update_window >= 0 );
 	if (Update_window) {
 		draw_render_window(pDC);  // this actually copies the offscreen buffer to the screen
 		Update_window--;
@@ -703,7 +703,7 @@ void update_map_window()
 	render_frame();	// "do the rendering!"
 
 	CDC* pDC = pFV->GetDC();
-	Assert(pDC);
+	SDL_assert(pDC);
 
 	draw_render_window(pDC);
 	if ( Update_window > 0 )
@@ -808,7 +808,7 @@ int CFREDApp::init_window(window_data *wndd, CWnd *wnd, int adjust, int pre)
 	if (wndd->processed)
 		return -2;
 
-	Assert(wnd->GetSafeHwnd());
+	SDL_assert(wnd->GetSafeHwnd());
 	wnd->GetWindowPlacement(&p);
 	width = p.rcNormalPosition.right - p.rcNormalPosition.left;
 	height = p.rcNormalPosition.bottom - p.rcNormalPosition.top + adjust;

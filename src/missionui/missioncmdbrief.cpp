@@ -404,10 +404,10 @@ void cmd_brief_init_voice()
 {
 	int i;
 
-	Assert(Cur_cmd_brief);
+	SDL_assert(Cur_cmd_brief);
 	for (i=0; i<Cur_cmd_brief->num_stages; i++) {
 		Cur_cmd_brief->stage[i].wave = -1;
-		if (stricmp(Cur_cmd_brief->stage[i].wave_filename, NOX("none")) && Cur_cmd_brief->stage[i].wave_filename[0]) {
+		if (SDL_strcasecmp(Cur_cmd_brief->stage[i].wave_filename, NOX("none")) && Cur_cmd_brief->stage[i].wave_filename[0]) {
 			Cur_cmd_brief->stage[i].wave = audiostream_open(Cur_cmd_brief->stage[i].wave_filename, ASF_VOICE);
 			if (Cur_cmd_brief->stage[i].wave < 0) {
 				nprintf(("General", "Failed to load \"%s\"", Cur_cmd_brief->stage[i].wave_filename));
@@ -625,7 +625,7 @@ void cmd_brief_ani_wave_init(int index)
 
 	// first, search and see if anim is already used in another stage
 	for (i=0; i<index; i++) {
-		if (!stricmp(Cur_cmd_brief->stage[i].ani_filename, Cur_cmd_brief->stage[index].ani_filename)) {
+		if (!SDL_strcasecmp(Cur_cmd_brief->stage[i].ani_filename, Cur_cmd_brief->stage[index].ani_filename)) {
 			if (Cur_cmd_brief->stage[i].anim_ref >= 0)
 				Cur_cmd_brief->stage[index].anim_ref = Cur_cmd_brief->stage[i].anim_ref;
 			else
@@ -638,9 +638,9 @@ void cmd_brief_ani_wave_init(int index)
 	// this is the first instance of the given anim filename
 	Cur_cmd_brief->stage[index].anim_ref = -1;
 	name = Cur_cmd_brief->stage[index].ani_filename;
-	if (!name[0] || !stricmp(name, NOX("<default>")) || !stricmp(name, NOX("none.ani"))) {
+	if (!name[0] || !SDL_strcasecmp(name, NOX("<default>")) || !SDL_strcasecmp(name, NOX("none.ani"))) {
 		name = NOX("CB_default");
-		strcpy(Cur_cmd_brief->stage[index].ani_filename, name);
+		SDL_strlcpy(Cur_cmd_brief->stage[index].ani_filename, name, SDL_arraysize(Cur_cmd_brief->stage[0].ani_filename));
 	}
 
 	int load_attempts = 0;
@@ -650,7 +650,7 @@ void cmd_brief_ani_wave_init(int index)
 			break;
 		}
 
-		Cur_cmd_brief->stage[index].anim = anim_load(name, 1);
+		Cur_cmd_brief->stage[index].anim = anim_load(name);
 		if ( Cur_cmd_brief->stage[index].anim ) {
 			break;
 		}
@@ -666,7 +666,7 @@ void cmd_brief_ani_wave_init(int index)
 
 	// check to see if cb anim loaded, if not, try the default one
 	if ( !Cur_cmd_brief->stage[index].anim ) {
-		Cur_cmd_brief->stage[index].anim = anim_load(NOX("CB_default"), 1);
+		Cur_cmd_brief->stage[index].anim = anim_load(NOX("CB_default"));
 	}
 }
 
@@ -698,7 +698,7 @@ void cmd_brief_init(int team)
 
 	/*
 	Palette_bmp = bm_load("BarracksPalette");	//CommandBriefPalette");
-	Assert(Palette_bmp);
+	SDL_assert(Palette_bmp);
 	bm_get_palette(Palette_bmp, Palette, Palette_name);  // get the palette for this bitmap
 	gr_set_palette(Palette_name, Palette, 1);
 	*/
@@ -730,13 +730,13 @@ void cmd_brief_init(int team)
 #endif
 
 	// set up readyrooms for buttons so we draw the correct animation frame when a key is pressed
-	Cmd_brief_buttons[gr_screen.res][FIRST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | KEY_LEFT);
-	Cmd_brief_buttons[gr_screen.res][LAST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | KEY_RIGHT);
-	Cmd_brief_buttons[gr_screen.res][PREV_STAGE_BUTTON].button.set_hotkey(KEY_LEFT);
-	Cmd_brief_buttons[gr_screen.res][NEXT_STAGE_BUTTON].button.set_hotkey(KEY_RIGHT);
-	Cmd_brief_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Cmd_brief_buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(KEY_F1);
-	Cmd_brief_buttons[gr_screen.res][OPTIONS_BUTTON].button.set_hotkey(KEY_F2);
+	Cmd_brief_buttons[gr_screen.res][FIRST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | SDLK_LEFT);
+	Cmd_brief_buttons[gr_screen.res][LAST_STAGE_BUTTON].button.set_hotkey(KEY_SHIFTED | SDLK_RIGHT);
+	Cmd_brief_buttons[gr_screen.res][PREV_STAGE_BUTTON].button.set_hotkey(SDLK_LEFT);
+	Cmd_brief_buttons[gr_screen.res][NEXT_STAGE_BUTTON].button.set_hotkey(SDLK_RIGHT);
+	Cmd_brief_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Cmd_brief_buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	Cmd_brief_buttons[gr_screen.res][OPTIONS_BUTTON].button.set_hotkey(SDLK_F2);
 
 	// load in help overlay bitmap	
 	help_overlay_load(CMD_BRIEF_OVERLAY);
@@ -824,7 +824,7 @@ void cmd_brief_do_frame(float frametime)
 	}
 
 	switch (k) {
-	case KEY_ESC:
+	case SDLK_ESCAPE:
 		common_music_close();
 		gameseq_post_event(GS_EVENT_MAIN_MENU);
 		break;
@@ -872,7 +872,7 @@ void cmd_brief_do_frame(float frametime)
 	gr_set_font(FONT1);
 	gr_set_color_fast(&Color_text_heading);
 
-	sprintf(buf, XSTR( "Stage %d of %d", 464), Cur_stage + 1, Cur_cmd_brief->num_stages);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "Stage %d of %d", 464), Cur_stage + 1, Cur_cmd_brief->num_stages);
 	gr_get_string_size(&w, NULL, buf);
 	gr_string(Cmd_text_wnd_coords[gr_screen.res][CMD_X_COORD] + Cmd_text_wnd_coords[gr_screen.res][CMD_W_COORD] - w, Cmd_stage_y[gr_screen.res], buf);
 

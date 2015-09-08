@@ -572,11 +572,11 @@ void mission_brief_common_init()
 		for (i=0; i<MAX_TEAMS; i++ )	{
 			for (j=0; j<MAX_BRIEF_STAGES; j++ )	{
 				Briefings[i].stages[j].new_text = (char *)malloc(MAX_BRIEF_LEN);
-				Assert(Briefings[i].stages[j].new_text!=NULL);
+				SDL_assert(Briefings[i].stages[j].new_text!=NULL);
 				Briefings[i].stages[j].icons = (brief_icon *)malloc(sizeof(brief_icon)*MAX_STAGE_ICONS);
-				Assert(Briefings[i].stages[j].icons!=NULL);
+				SDL_assert(Briefings[i].stages[j].icons!=NULL);
 				Briefings[i].stages[j].lines = (brief_line *)malloc(sizeof(brief_line)*MAX_BRIEF_STAGE_LINES);
-				Assert(Briefings[i].stages[j].lines!=NULL);
+				SDL_assert(Briefings[i].stages[j].lines!=NULL);
 				Briefings[i].stages[j].num_icons = 0;
 				Briefings[i].stages[j].num_lines = 0;
 			}
@@ -585,9 +585,9 @@ void mission_brief_common_init()
 		for (i=0; i<MAX_TEAMS; i++ )	{
 			for (j=0; j<MAX_DEBRIEF_STAGES; j++ )	{
 				Debriefings[i].stages[j].new_text = (char *)malloc(MAX_DEBRIEF_LEN);
-				Assert(Debriefings[i].stages[j].new_text!=NULL);
+				SDL_assert(Debriefings[i].stages[j].new_text!=NULL);
 				Debriefings[i].stages[j].new_recommendation_text = (char *)malloc(MAX_RECOMMENDATION_LEN);
-				Assert(Debriefings[i].stages[j].new_recommendation_text!=NULL);
+				SDL_assert(Debriefings[i].stages[j].new_recommendation_text!=NULL);
 			}
 		}
 
@@ -833,7 +833,7 @@ int brief_icon_used_in_briefing(int icon_type)
 void brief_parse_icon_tbl()
 {
 #ifndef MAKE_FS1
-	int			num_icons, rval;
+	int			num_icons;
 	char			name[NAME_LENGTH];
 	hud_frames	*hf;
 	hud_anim		*ha;
@@ -842,59 +842,58 @@ void brief_parse_icon_tbl()
 	// open localization
 	lcl_ext_open();
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Unable to parse icons.tbl!  Code = %i.\n", rval);
-	}
-	else {
+	try {
 		read_file_text("icons.tbl");
 		reset_parse();		
-	}
 
-	num_icons = 0;
-	required_string("#Start");
+		num_icons = 0;
+		required_string("#Start");
 
 
-	int load_this_icon = 0;
+		int load_this_icon = 0;
 
-	while (required_string_either("#End","$Name:")) {
-		for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
-			Assert( num_icons < MAX_BRIEF_ICONS);
-			hf = &Icon_bitmaps[num_icons][idx];
+		while (required_string_either("#End","$Name:")) {
+			for(idx=0; idx<MAX_SPECIES_NAMES; idx++){
+				SDL_assert( num_icons < MAX_BRIEF_ICONS);
+				hf = &Icon_bitmaps[num_icons][idx];
 
-			// load in regular frames
-			required_string("$Name:");
-			stuff_string(name, F_NAME, NULL);
+				// load in regular frames
+				required_string("$Name:");
+				stuff_string(name, F_NAME, NULL);
 
-			if ( Fred_running ) {
-				load_this_icon = 1;
-			} else {
-				load_this_icon = brief_icon_used_in_briefing(num_icons);
-			}
-
-			if ( load_this_icon ) {
-				hf->first_frame = bm_load_animation(name, &hf->num_frames);
-				if ( hf->first_frame == -1 ) {
-					Int3();	// missing briefing icon
+				if ( Fred_running ) {
+					load_this_icon = 1;
+				} else {
+					load_this_icon = brief_icon_used_in_briefing(num_icons);
 				}
+
+				if ( load_this_icon ) {
+					hf->first_frame = bm_load_animation(name, &hf->num_frames);
+					if ( hf->first_frame == -1 ) {
+						Int3();	// missing briefing icon
+					}
+				}
+
+				// load in fade frames
+				required_string("$Name:");
+				stuff_string(name, F_NAME, NULL);
+				ha = &Icon_fade_anims[num_icons][idx];
+				hud_anim_init(ha, 0, 0, name);
+
+				// load in highlighting frames
+				required_string("$Name:");
+				stuff_string(name, F_NAME, NULL);
+				ha = &Icon_highlight_anims[num_icons][idx];
+				hud_anim_init(ha, 0, 0, name);
 			}
 
-			// load in fade frames
-			required_string("$Name:");
-			stuff_string(name, F_NAME, NULL);
-			ha = &Icon_fade_anims[num_icons][idx];
-			hud_anim_init(ha, 0, 0, name);
-
-			// load in highlighting frames
-			required_string("$Name:");
-			stuff_string(name, F_NAME, NULL);
-			ha = &Icon_highlight_anims[num_icons][idx];
-			hud_anim_init(ha, 0, 0, name);
+			// next icon _type_
+			num_icons++;
 		}
-
-		// next icon _type_
-		num_icons++;
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse icons.tbl!  Code = %i.\n", (int)rval);
 	}
-	required_string("#End");
 
 	// close localization
 	lcl_ext_close();
@@ -910,7 +909,7 @@ void brief_parse_icon_tbl()
 		hf = &Icon_bitmaps[idx][0];
 
 		// load in regular frames
-		strncpy(name, fs1_icon_tbl[idx][0], NAME_LENGTH);
+		SDL_strlcpy(name, fs1_icon_tbl[idx][0], NAME_LENGTH);
 
 		if ( Fred_running ) {
 			load_this_icon = 1;
@@ -926,12 +925,12 @@ void brief_parse_icon_tbl()
 		}
 
 		// load in fade frames
-		strncpy(name, fs1_icon_tbl[idx][1], NAME_LENGTH);
+		SDL_strlcpy(name, fs1_icon_tbl[idx][1], NAME_LENGTH);
 		ha = &Icon_fade_anims[idx][0];
 		hud_anim_init(ha, 0, 0, name);
 
 		// load in highlighting frames
-		strncpy(name, fs1_icon_tbl[idx][2], NAME_LENGTH);
+		SDL_strlcpy(name, fs1_icon_tbl[idx][2], NAME_LENGTH);
 		ha = &Icon_highlight_anims[idx][0];
 		hud_anim_init(ha, 0, 0, name);
 	}
@@ -961,14 +960,14 @@ void brief_preload_highlight_anim(brief_icon *bi)
 	}
 
 	ha = &Icon_highlight_anims[bi->type][species];
-	if ( !stricmp(NOX("none"), ha->name) ) {
+	if ( !SDL_strcasecmp(NOX("none"), ha->name) ) {
 		return;
 	}
 
 	// force read of data from disk, so we don't glitch on initial playback
 	if ( ha->first_frame == -1 ) {
 		hud_anim_load(ha);
-		Assert(ha->first_frame >= 0);
+		SDL_assert(ha->first_frame >= 0);
 	}
 
 	bi->highlight_anim = *ha;
@@ -991,14 +990,14 @@ void brief_preload_fade_anim(brief_icon *bi)
 	}
 
 	ha = &Icon_fade_anims[bi->type][species];
-	if ( !stricmp(NOX("none"), ha->name) ) {
+	if ( !SDL_strcasecmp(NOX("none"), ha->name) ) {
 		return;
 	}
 
 	// force read of data from disk, so we don't glitch on initial playback
 	if ( ha->first_frame == -1 ) {
 		hud_anim_load(ha);
-		Assert(ha->first_frame >= 0);
+		SDL_assert(ha->first_frame >= 0);
 	}
 
 	gr_set_bitmap(ha->first_frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
@@ -1034,7 +1033,7 @@ void brief_init_map()
 	vector *pos;
 	matrix *orient;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 
 	pos = &Briefing->stages[0].camera_pos;
 	orient = &Briefing->stages[0].camera_orient;
@@ -1183,7 +1182,7 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 	int			bx,by,bc,w,h,icon_w,icon_h,icon_bitmap=-1;
 	float			bxf, byf, dist=0.0f;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	
 	bi = &Briefing->stages[stage_num].icons[icon_num];
 
@@ -1359,14 +1358,14 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 			else {
 				if (Lcl_gr) {
 					char buf[128];
-					strcpy(buf, bi->label);
-					lcl_translate_brief_icon_name(buf);
+					SDL_strlcpy(buf, bi->label, SDL_arraysize(buf));
+					lcl_translate_brief_icon_name(buf, SDL_arraysize(buf));
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else if(Lcl_pl) {
 					char buf[128];
-					strcpy(buf, bi->label);
-					lcl_translate_brief_icon_name_pl(buf);
+					SDL_strlcpy(buf, bi->label, SDL_arraysize(buf));
+					lcl_translate_brief_icon_name_pl(buf, SDL_arraysize(buf));
 					gr_get_string_size(&w, &h, buf);
 					gr_printf(bc - fl2i(w/2.0f), by - h, buf);
 				} else {
@@ -1402,7 +1401,7 @@ void brief_render_icons(int stage_num, float frametime)
 {
 	int i, num_icons, num_lines;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	
 	num_icons = Briefing->stages[stage_num].num_icons;
 	num_lines = Briefing->stages[stage_num].num_lines;
@@ -1429,7 +1428,7 @@ void brief_start_highlight_anims(int stage_num)
 	brief_icon		*bi;
 	int				x,y,i,anim_w,anim_h;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	bs = &Briefing->stages[stage_num];
 	
 	for ( i = 0; i < bs->num_icons; i++ ) {
@@ -1459,8 +1458,6 @@ void brief_start_highlight_anims(int stage_num)
 //
 void brief_render_map(int stage_num, float frametime)
 {
-	brief_stage *bs;
-
 	gr_set_clip(bscreen.map_x1 + 1, bscreen.map_y1 + 1, bscreen.map_x2 - bscreen.map_x1 - 1, bscreen.map_y2 - bscreen.map_y1 - 2);
 	
 	// REMOVED by neilk: removed gr_clear for FS2 because interface no longer calls for black background on grid
@@ -1468,13 +1465,12 @@ void brief_render_map(int stage_num, float frametime)
 	gr_clear();
 #endif
 
-  if (stage_num >= Briefing->num_stages) {
+	SDL_assert(Briefing);
+
+	if (stage_num >= Briefing->num_stages) {
 		gr_reset_clip();
 		return;
 	}
-
-	Assert(Briefing);
-	bs = &Briefing->stages[stage_num];
 
 	g3_start_frame(0);
 	g3_set_view_matrix(&Current_cam_pos, &Current_cam_orient, 0.5f);
@@ -1542,13 +1538,13 @@ void brief_blit_stage_num(int stage_num, int stage_max)
 	char buf[64];
 	// int w;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 #ifdef MAKE_FS1
 	gr_set_color_fast(&Color_bright_blue);
 #else
 	gr_set_color_fast(&Color_text_heading);
 #endif
-	sprintf(buf, XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
+	SDL_snprintf(buf, SDL_arraysize(buf), XSTR( "Stage %d of %d", 394), stage_num + 1, stage_max);
 	if (Game_mode & GM_MULTIPLAYER) {
 		gr_printf(Brief_stage_text_coords_multi[gr_screen.res][0], Brief_stage_text_coords_multi[gr_screen.res][1], buf);
 	} else {
@@ -1737,7 +1733,7 @@ void brief_render_elements(vector *pos, grid* gridp)
 {
 	vector	gpos;	//	Location of point on grid.
 //	vector	tpos;
-	float		dxz;
+//	float		dxz;
 	plane		tplane;
 	vector	*gv;
 	
@@ -1751,7 +1747,7 @@ void brief_render_elements(vector *pos, grid* gridp)
 
 	compute_point_on_plane(&gpos, &tplane, pos);
 
-	dxz = vm_vec_dist(pos, &gpos)/8.0f;
+//	dxz = vm_vec_dist(pos, &gpos)/8.0f;
 
 	gv = &gridp->gmatrix.v.uvec;
 	if (gv->xyz.x * pos->xyz.x + gv->xyz.y * pos->xyz.y + gv->xyz.z * pos->xyz.z < -gridp->planeD)
@@ -1790,7 +1786,7 @@ void brief_reset_icons(int stage_num)
 	brief_icon		*bi;
 	int				i;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	bs = &Briefing->stages[stage_num];
 
 	for ( i = 0; i < bs->num_icons; i++ ) {
@@ -1894,7 +1890,7 @@ ubyte brief_return_color_index(char c)
 
 void brief_set_text_color(int color_index)
 {
-	Assert(color_index < MAX_BRIEF_TEXT_COLORS);
+	SDL_assert(color_index < MAX_BRIEF_TEXT_COLORS);
 	gr_set_color_fast(Brief_text_colors[color_index]);
 }
 
@@ -1958,14 +1954,15 @@ int brief_color_text_init(char *src, int w, int instance)
 	int n_chars[MAX_BRIEF_LINES];
 	char *p_str[MAX_BRIEF_LINES];
 	
-	Assert(src);
+	SDL_assert(src);
 	n_lines = split_str(src, w, n_chars, p_str, MAX_BRIEF_LINES, BRIEF_META_CHAR);
-	Assert(n_lines >= 0);
+	SDL_assert(n_lines >= 0);
 
 	Max_briefing_line_len = 1;
 	for (i=0; i<n_lines; i++) {
-		Assert(n_chars[i] < MAX_BRIEF_LINE_LEN);
-		strncpy(Brief_text[i], p_str[i], n_chars[i]);
+		SDL_assert(n_chars[i] < MAX_BRIEF_LINE_LEN);
+		len = min(n_chars[i] + 1, MAX_BRIEF_LINE_LEN);
+		SDL_strlcpy(Brief_text[i], p_str[i], len);
 		Brief_text[i][n_chars[i]] = 0;
 		drop_leading_white_space(Brief_text[i]);
 		len = brief_text_colorize(i, instance);
@@ -2017,9 +2014,9 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 	int				i,j,k,num_movers,is_gone=0;
 	vector			zero_v = ZERO_VECTOR;
 
-	Assert(new_stage != current_stage);
+	SDL_assert(new_stage != current_stage);
 	
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	newb = &Briefing->stages[new_stage];
 	cb = &Briefing->stages[current_stage];
 	num_movers = 0;
@@ -2134,7 +2131,7 @@ void brief_set_new_stage(vector *pos, matrix *orient, int time, int stage_num)
 	char msg[MAX_BRIEF_LEN];
 	int num_movers, new_time, not_objv = 1;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	new_time = time;
 
 	if (stage_num >= Briefing->num_stages) {
@@ -2163,12 +2160,12 @@ void brief_set_new_stage(vector *pos, matrix *orient, int time, int stage_num)
 
 	if (not_objv) {
 		if(Briefing->stages[stage_num].new_text == NULL){
-			strcpy(msg, "");
+			SDL_strlcpy(msg, "", SDL_arraysize(msg));
 		} else {
-			strcpy(msg, Briefing->stages[stage_num].new_text);
+			SDL_strlcpy(msg, Briefing->stages[stage_num].new_text, SDL_arraysize(msg));
 		}
 	} else {
-		strcpy(msg, XSTR( "Please review your objectives for this mission.", 395));
+		SDL_strlcpy(msg, XSTR( "Please review your objectives for this mission.", 395), SDL_arraysize(msg));
 	}
 
 	if (gr_screen.res == GR_640) {
@@ -2411,33 +2408,33 @@ grid *brief_create_grid(grid *gridp, vector *forward, vector *right, vector *cen
 	int	i, ncols2, nrows2, d = 1;
 	vector	dfvec, drvec, cur, cur2, tvec, uvec, save, save2;
 
-	Assert(square_size > 0.0);
+	SDL_assert(square_size > 0.0);
 	if (double_fine_gridlines)
 		d = 2;
 
 	if (gridp == NULL)
 		gridp = (grid *) malloc(sizeof(grid));
 
-	Assert(gridp);
+	SDL_assert(gridp);
 
 	gridp->center = *center;
 	gridp->square_size = square_size;
 
 	//	Create the plane equation.
-	Assert(!IS_VEC_NULL(forward));
-	Assert(!IS_VEC_NULL(right));
+	SDL_assert(!IS_VEC_NULL(forward));
+	SDL_assert(!IS_VEC_NULL(right));
 
 	vm_vec_copy_normalize(&dfvec, forward);
 	vm_vec_copy_normalize(&drvec, right);
 
 	vm_vec_cross(&uvec, &dfvec, &drvec);
 	
-	Assert(!IS_VEC_NULL(&uvec));
+	SDL_assert(!IS_VEC_NULL(&uvec));
 
 	gridp->gmatrix.v.uvec = uvec;
 
 	gridp->planeD = -(center->xyz.x * uvec.xyz.x + center->xyz.y * uvec.xyz.y + center->xyz.z * uvec.xyz.z);
-	Assert(!_isnan(gridp->planeD));
+	SDL_assert(!isnan(gridp->planeD));
 
 	gridp->gmatrix.v.fvec = dfvec;
 	gridp->gmatrix.v.rvec = drvec;
@@ -2456,7 +2453,7 @@ grid *brief_create_grid(grid *gridp, vector *forward, vector *right, vector *cen
 	gridp->nrows = nrows;
 	ncols2 = ncols / 2;
 	nrows2 = nrows / 2;
-	Assert(ncols < MAX_GRIDLINE_POINTS && nrows < MAX_GRIDLINE_POINTS);
+	SDL_assert(ncols < MAX_GRIDLINE_POINTS && nrows < MAX_GRIDLINE_POINTS);
 
 	// Create the points along the edges of the grid, so we can just draw lines
 	// between them to form the grid.  
@@ -2645,10 +2642,10 @@ void brief_voice_load_all()
 
 	// Brief_voice_ask_for_cd = 1;
 
-	Assert( Briefing != NULL );
+	SDL_assert( Briefing != NULL );
 	for ( i = 0; i < Briefing->num_stages; i++ ) {
 		bs = &Briefing->stages[i];
-		if ( strnicmp(bs->voice, NOX("none"), 4) ) {
+		if ( SDL_strncasecmp(bs->voice, NOX("none"), 4) ) {
 			brief_load_voice_file(i, bs->voice);
 //			Brief_voices[i] = audiostream_open( bs->voice, ASF_VOICE );
 		}
@@ -2720,7 +2717,7 @@ void brief_reset_last_new_stage()
 // get the dimensions for a briefing icon
 void brief_common_get_icon_dimensions(int *w, int *h, int type, int ship_class)
 {
-	Assert(type >= 0 && type < MAX_BRIEF_ICONS);
+	SDL_assert(type >= 0 && type < MAX_BRIEF_ICONS);
 
 	// in case anything goes wrong
 	*w=0;

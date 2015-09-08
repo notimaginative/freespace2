@@ -207,7 +207,7 @@ int sexp_goal_tree::load_sub_tree(int index)
 	// assumption: first token is an operator.  I require this because it would cause problems
 	// with child/parent relations otherwise, and it should be this way anyway, since the
 	// return type of the whole sexp is boolean, and only operators can satisfy this.
-	Assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
+	SDL_assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
 	cur = get_new_node_position();
 	load_branch(index, -1);
 	return cur;
@@ -377,7 +377,7 @@ void CMissionGoalsDlg::OnSelchangedGoalsTree(NMHDR* pNMHDR, LRESULT* pResult)
 		if (m_goals[i].formula == z)
 			break;
 
-	Assert(i < m_num_goals);
+	SDL_assert(i < m_num_goals);
 	cur_goal = i;
 	update_cur_goal();
 	*pResult = 0;
@@ -542,7 +542,7 @@ void CMissionGoalsDlg::OnOk()
 		Mission_goals[i] = m_goals[i];
 		Mission_goals[i].formula = m_goals_tree.save_tree(Mission_goals[i].formula);
 		if ( The_mission.game_type & MISSION_TYPE_MULTI_TEAMS ) {
-			Assert( Mission_goals[i].team != -1 );
+			SDL_assert( Mission_goals[i].team != -1 );
 		}
 	}
 
@@ -559,7 +559,7 @@ void CMissionGoalsDlg::OnButtonNewGoal()
 	int index;
 	HTREEITEM h;
 
-	Assert(m_num_goals < MAX_GOALS);
+	SDL_assert(m_num_goals < MAX_GOALS);
 	m_goals[m_num_goals].type = m_display_goal_types;			// this also marks the goal as valid since bit not set
 	m_sig[m_num_goals] = -1;
 	strcpy(m_goals[m_num_goals].name, "Goal name");
@@ -596,7 +596,7 @@ int CMissionGoalsDlg::handler(int code, int node)
 			}
 		}
 
-		Assert(goal < m_num_goals);
+		SDL_assert(goal < m_num_goals);
 		while (goal < m_num_goals - 1) {
 			m_goals[goal] = m_goals[goal + 1];
 			m_sig[goal] = m_sig[goal + 1];
@@ -652,7 +652,7 @@ void CMissionGoalsDlg::OnSelchangeGoalTypeDrop()
 	}
 
 	h = m_goals_tree.GetSelectedItem();
-	Assert(h);
+	SDL_assert(h);
 	while ((h2 = m_goals_tree.GetParentItem(h)) != 0){
 		h = h2;
 	}
@@ -718,7 +718,7 @@ void CMissionGoalsDlg::insert_handler(int old, int node)
 		}
 	}
 
-	Assert(i < m_num_goals);
+	SDL_assert(i < m_num_goals);
 	m_goals[i].formula = node;
 	return;
 }
@@ -756,14 +756,14 @@ void CMissionGoalsDlg::swap_handler(int node1, int node2)
 		}
 	}
 
-	Assert(index1 < m_num_goals);
+	SDL_assert(index1 < m_num_goals);
 	for (index2=0; index2<m_num_goals; index2++){
 		if (m_goals[index2].formula == node2){
 			break;
 		}
 	}
 
-	Assert(index2 < m_num_goals);
+	SDL_assert(index2 < m_num_goals);
 	m = m_goals[index1];
 //	m_goals[index1] = m_goals[index2];
 	while (index1 < index2) {

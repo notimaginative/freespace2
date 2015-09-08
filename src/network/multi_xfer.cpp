@@ -323,7 +323,7 @@ void multi_xfer_send_final(xfer_entry *xe);
 void multi_xfer_send_header(xfer_entry *xe);
 
 // convert the filename into the prefixed ex_filename
-void multi_xfer_conv_prefix(char *filename, char *ex_filename);
+void multi_xfer_conv_prefix(char *filename, char *ex_filename, const int max_len);
 
 // get a new xfer sig
 ushort multi_xfer_get_sig();
@@ -416,7 +416,7 @@ int multi_xfer_send_file(PSNET_SOCKET_RELIABLE who, char *filename, int cfile_fl
 	memset(&temp_entry,0,sizeof(xfer_entry));
 
 	// set the filename
-	strcpy(temp_entry.filename,filename);	
+	SDL_strlcpy(temp_entry.filename, filename, SDL_arraysize(temp_entry.filename));
 
 	// attempt to open the file
 	temp_entry.file = NULL;
@@ -592,7 +592,7 @@ void multi_xfer_unlock()
 void multi_xfer_force_dir(int cf_type)
 {
 	Multi_xfer_force_dir = cf_type;
-	Assert(Multi_xfer_force_dir > CF_TYPE_ANY);
+	SDL_assert(Multi_xfer_force_dir > CF_TYPE_ANY);
 }
 
 // forces the given xfer entry to the specified directory type (only valid when called from the recv_callback function)
@@ -605,7 +605,7 @@ void multi_xfer_handle_force_dir(int handle,int cf_type)
 
 	// force to go to the given directory
 	Multi_xfer_entry[handle].force_dir = cf_type;
-	Assert(Multi_xfer_entry[handle].force_dir > CF_TYPE_ANY);
+	SDL_assert(Multi_xfer_entry[handle].force_dir > CF_TYPE_ANY);
 }
 
 // or the flag on a given entry
@@ -645,7 +645,7 @@ int multi_xfer_lookup(char *filename)
 	// otherwise, perform a lookup
 	for(idx=0;idx<MAX_XFER_ENTRIES;idx++){
 		// if we found a matching filename
-		if((Multi_xfer_entry[idx].flags & MULTI_XFER_FLAG_USED) && !stricmp(filename,Multi_xfer_entry[idx].filename)){
+		if((Multi_xfer_entry[idx].flags & MULTI_XFER_FLAG_USED) && !SDL_strcasecmp(filename,Multi_xfer_entry[idx].filename)){
 			return idx;
 		}
 	}
@@ -933,25 +933,25 @@ int multi_xfer_process_packet(unsigned char *data, PSNET_SOCKET_RELIABLE who)
 	switch((int)val){
 	// process an ack for this entry
 	case MULTI_XFER_CODE_ACK :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_ack(xe);
 		break;
 	
 	// process a nak for this entry
 	case MULTI_XFER_CODE_NAK :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_nak(xe);
 		break;
 
 	// process a "final" packet
 	case MULTI_XFER_CODE_FINAL :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_final(xe);
 		break;
 
 	// process a data packet
 	case MULTI_XFER_CODE_DATA :
-		Assert(xe != NULL);
+		SDL_assert(xe != NULL);
 		multi_xfer_process_data(xe, xfer_data, data_size);
 		break;
 	
@@ -1128,16 +1128,11 @@ void multi_xfer_process_header(ubyte *data, PSNET_SOCKET_RELIABLE who, ushort si
 	xe->sig = sig;
 
 	// copy the filename and get the prefixed xfer filename
-#ifdef PLAT_UNIX
+	SDL_strlcpy(xe->filename, filename, SDL_arraysize(xe->filename));
 	// lower case all filenames to avoid case issues
-	char *tmp_filename = filename;
-	
-	strlwr(tmp_filename);
-	strcpy(xe->filename, tmp_filename);
-#else
-	strcpy(xe->filename, filename);
-#endif
-	multi_xfer_conv_prefix(xe->filename, xe->ex_filename);
+	SDL_strlwr(xe->filename);
+
+	multi_xfer_conv_prefix(xe->filename, xe->ex_filename, SDL_arraysize(xe->ex_filename));
 #ifdef MULTI_XFER_VERBOSE
 	nprintf(("Network","MULTI XFER : converted filename %s to %s\n",xe->filename, xe->ex_filename));
 #endif
@@ -1342,7 +1337,7 @@ void multi_xfer_send_header(xfer_entry *xe)
 }
 
 // convert the filename into the prefixed ex_filename
-void multi_xfer_conv_prefix(char *filename,char *ex_filename)
+void multi_xfer_conv_prefix(char *filename, char *ex_filename, const int max_len)
 {
 	char temp[MAX_FILENAME_LEN+50];
 	
@@ -1350,13 +1345,13 @@ void multi_xfer_conv_prefix(char *filename,char *ex_filename)
 	memset(temp, 0, MAX_FILENAME_LEN+50);
 
 	// copy in the prefix
-	strcpy(temp, MULTI_XFER_FNAME_PREFIX);
+	SDL_strlcpy(temp, MULTI_XFER_FNAME_PREFIX, SDL_arraysize(temp));
 
 	// stick on the original name
-	strcat(temp, filename);
+	SDL_strlcat(temp, filename, SDL_arraysize(temp));
 
 	// copy the whole thing to the outgoing filename
-	strcpy(ex_filename, temp);
+	SDL_strlcpy(ex_filename, temp, max_len);
 }
 
 // get a new xfer sig

@@ -74,7 +74,7 @@ void hud_obs_render_players_all()
 
 void hud_render_observer()
 {
-	Assert((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_OBSERVER));
+	SDL_assert((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_OBSERVER));
 
 	// render individual player text
 	hud_obs_render_players_all();

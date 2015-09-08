@@ -91,8 +91,8 @@ int collide_weapon_weapon( obj_pair * pair )
 	object *A = pair->a;
 	object *B = pair->b;
 
-	Assert( A->type == OBJ_WEAPON );
-	Assert( B->type == OBJ_WEAPON );
+	SDL_assert( A->type == OBJ_WEAPON );
+	SDL_assert( B->type == OBJ_WEAPON );
 	
 	//	Don't allow ship to shoot down its own missile.
 	if (A->parent_sig == B->parent_sig)
@@ -129,10 +129,10 @@ int collide_weapon_weapon( obj_pair * pair )
 
 	//	Rats, do collision detection.
 	if (collide_subdivide(&A->last_pos, &A->pos, A_radius, &B->last_pos, &B->pos, B_radius)) {
-		ship	*sap, *sbp;
+		//ship	*sap, *sbp;
 
-		sap = &Ships[Objects[A->parent].instance];
-		sbp = &Ships[Objects[B->parent].instance];
+		//sap = &Ships[Objects[A->parent].instance];
+		//sbp = &Ships[Objects[B->parent].instance];
 		// MWA -- commented out next line because it was too long for output window on occation.
 		// Yes -- I should fix the output window, but I don't have time to do it now.
 		//nprintf(("AI", "[%s] %s's missile %i shot down by [%s] %s's laser %i\n", lTeamNames[sbp->team], sbp->ship_name, B->instance, lTeamNames[sap->team], sap->ship_name, A->instance));

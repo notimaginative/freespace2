@@ -174,7 +174,7 @@ void hud_render_target_weapon(object *target_objp);
 void hud_update_cargo_scan_sound();
 void hud_cargo_scan_update(object *targetp, float frametime);
 
-char *hud_targetbox_truncate_subsys_name(char *outstr);
+char *hud_targetbox_truncate_subsys_name(char *outstr, const int max_len);
 
 #endif /* __FREESPACE_HUDTARGETBOX_H__ */
 

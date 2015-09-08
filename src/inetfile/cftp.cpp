@@ -67,7 +67,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX	// this isn't working yet (really only needed by PXO anyway)
 
 #ifndef PLAT_UNIX
 #include <windows.h>
@@ -80,8 +79,6 @@
 #include <netdb.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include "unix.h" // unix.h
 #endif
 
 #include <stdio.h>
@@ -91,21 +88,29 @@
 #include "pstypes.h"
 #include "cftp.h"
 
-void FTPObjThread( void * obj )
+
+int FTPObjThread( void * obj )
 {
 	((CFtpGet *)obj)->WorkerThread();
+
+	return ((CFtpGet *)obj)->GetStatus();
 }
 
 void CFtpGet::AbortGet()
 {
 	m_Aborting = true;
-	while(!m_Aborted) ; //Wait for the thread to end
-	fclose(LOCALFILE);
+	while(!m_Aborted) SDL_Delay(10); //Wait for the thread to end
+
+	if(LOCALFILE != NULL)
+	{
+		fclose(LOCALFILE);
+		LOCALFILE = NULL;
+	}
 }
 
 CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 {
-	SOCKADDR_IN listensockaddr;
+	struct sockaddr_in listensockaddr;
 	m_State = FTP_STATE_STARTUP;
 
 	m_ListenSock = INVALID_SOCKET;
@@ -120,30 +125,32 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if(NULL == LOCALFILE)
 	{
 		m_State = FTP_STATE_CANT_WRITE_FILE;
+		m_Aborted = true;
 		return;
 	}
 
 	if(Username)
 	{
-		strcpy(m_szUserName,Username);
+		SDL_strlcpy(m_szUserName, Username, SDL_arraysize(m_szUserName));
 	}
 	else
 	{
-		strcpy(m_szUserName,"anonymous");
+		SDL_strlcpy(m_szUserName, "anonymous", SDL_arraysize(m_szUserName));
 	}
 	if(Password)
 	{
-		strcpy(m_szPassword,Password);
+		SDL_strlcpy(m_szPassword, Password, SDL_arraysize(m_szPassword));
 	}
 	else
 	{
-		strcpy(m_szPassword,"pxouser@pxo.net");
+		SDL_strlcpy(m_szPassword, "pxouser@pxo.net", SDL_arraysize(m_szPassword));
 	}
 	m_ListenSock = socket(AF_INET, SOCK_STREAM, 0);
 	if(INVALID_SOCKET == m_ListenSock)
 	{
 		// vint iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_SOCKET_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	else
@@ -153,11 +160,12 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 		listensockaddr.sin_addr.s_addr = INADDR_ANY;
 							
 		// Bind the listen socket
-		if (bind(m_ListenSock, (SOCKADDR *)&listensockaddr, sizeof(SOCKADDR)))
+		if (bind(m_ListenSock, (struct sockaddr *)&listensockaddr, sizeof(struct sockaddr)))
 		{
 			//Couldn't bind the socket
 			// int iWinsockErr = WSAGetLastError();
 			m_State = FTP_STATE_SOCKET_ERROR;
+			m_Aborted = true;
 			return;
 		}
 
@@ -167,6 +175,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 			//Couldn't listen on the socket
 			// int iWinsockErr = WSAGetLastError();
 			m_State = FTP_STATE_SOCKET_ERROR;
+			m_Aborted = true;
 			return;
 		}
 	}
@@ -174,12 +183,13 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if(INVALID_SOCKET == m_ControlSock)
 	{
 		m_State = FTP_STATE_SOCKET_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	//Parse the URL
 	//Get rid of any extra ftp:// stuff
 	char *pURL = URL;
-	if(_strnicmp(URL,"ftp:",4)==0)
+	if(SDL_strncasecmp(URL,"ftp:",4)==0)
 	{
 		pURL +=4;
 		while(*pURL == '/')
@@ -188,9 +198,10 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 		}
 	}
 	//There shouldn't be any : in this string
-	if(strchr(pURL,':'))
+	if(SDL_strchr(pURL,':'))
 	{
 		m_State = FTP_STATE_URL_PARSING_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	//read the filename by searching backwards for a /
@@ -206,7 +217,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 			{
 				filestart = pURL+i+1;
 				dirstart = pURL+i+1;
-				strcpy(m_szFilename,filestart);
+				SDL_strlcpy(m_szFilename, filestart, SDL_arraysize(m_szFilename));
 			}
 			else
 			{
@@ -217,22 +228,30 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	if((dirstart==NULL) || (filestart==NULL))
 	{
 		m_State = FTP_STATE_URL_PARSING_ERROR;
+		m_Aborted = true;
 		return;
 	}
 	else
 	{
-		strncpy(m_szDir,dirstart,(filestart-dirstart));
-		m_szDir[(filestart-dirstart)] = 0;
-		strncpy(m_szHost,pURL,(dirstart-pURL));
-		m_szHost[(dirstart-pURL)-1] = 0;
+		int len = min((filestart-dirstart)+1, (int)SDL_arraysize(m_szDir));
+		SDL_strlcpy(m_szDir, dirstart, len);
+		len = min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
+		SDL_strlcpy(m_szHost, pURL, len);
 	}
 	//At this point we should have a nice host,dir and filename
-	
-	//if(NULL==CreateThread(NULL,0,ObjThread,this,0,&m_dwThreadId))
-	if(0==_beginthread(FTPObjThread,0,this))
+
+	SDL_Thread *thread = SDL_CreateThread(FTPObjThread, "FTPObjThread", this);
+
+	if(thread == NULL)
 	{
 		m_State = FTP_STATE_INTERNAL_ERROR;
+		m_Aborted = true;
 		return;
+	}
+	else
+	{
+		int ret_val;
+		SDL_WaitThread(thread, &ret_val);
 	}
 	m_State = FTP_STATE_CONNECTING;
 }
@@ -256,8 +275,10 @@ CFtpGet::~CFtpGet()
 		shutdown(m_ControlSock,2);
 		closesocket(m_ControlSock);
 	}
-
-
+	if(LOCALFILE != NULL)
+	{
+		fclose(LOCALFILE);
+	}
 }
 
 //Returns a value to specify the status (ie. connecting/connected/transferring/done)
@@ -306,7 +327,7 @@ unsigned int CFtpGet::GetFile()
 	char szCommandString[200];
 	int rcode;
 	
-	sprintf(szCommandString,"TYPE I\r\n");
+	SDL_strlcpy(szCommandString, "TYPE I\r\n", SDL_arraysize(szCommandString));
 	rcode = SendFTPCommand(szCommandString);
 	if(rcode >=400)
 	{
@@ -317,7 +338,7 @@ unsigned int CFtpGet::GetFile()
 		return 0;
 	if(m_szDir[0])
 	{
-		sprintf(szCommandString,"CWD %s\r\n",m_szDir);
+		SDL_snprintf(szCommandString, SDL_arraysize(szCommandString), "CWD %s\r\n", m_szDir);
 		rcode = SendFTPCommand(szCommandString);
 		if(rcode >=400)
 		{
@@ -334,7 +355,7 @@ unsigned int CFtpGet::GetFile()
 	}
 	if(m_Aborting)
 		return 0;
-	sprintf(szCommandString,"RETR %s\r\n",m_szFilename);
+	SDL_snprintf(szCommandString, SDL_arraysize(szCommandString), "RETR %s\r\n", m_szFilename);
 	rcode = SendFTPCommand(szCommandString);
 	if(rcode >=400)
 	{
@@ -345,18 +366,18 @@ unsigned int CFtpGet::GetFile()
 		return 0;
 	//Now we will try to determine the file size...
 	char *p,*s;
-	p = strchr(recv_buffer,'(');
+	p = SDL_strchr(recv_buffer,'(');
 	p++;
 	if(p)
 	{
-		s = strchr(p,' ');
+		s = SDL_strchr(p,' ');
 		*s = 0;
 		m_iBytesTotal = atoi(p);
 	}
 	if(m_Aborting)
 		return 0;
 
-	m_DataSock = accept(m_ListenSock, NULL,NULL);//(SOCKADDR *)&sockaddr,&iAddrLength); 
+	m_DataSock = accept(m_ListenSock, NULL,NULL);//(struct sockaddr *)&sockaddr,&iAddrLength);
 	// Close the listen socket
 	closesocket(m_ListenSock);
 	if (m_DataSock == INVALID_SOCKET)
@@ -377,19 +398,19 @@ unsigned int CFtpGet::IssuePort()
 {
 
 	char szCommandString[200];
-	SOCKADDR_IN listenaddr;					// Socket address structure
+	struct sockaddr_in listenaddr;					// Socket address structure
 #ifndef PLAT_UNIX	
    int iLength;									// Length of the address structure
 #else
    socklen_t iLength;
 #endif   
-   UINT nLocalPort;							// Local port for listening
-	UINT nReplyCode;							// FTP server reply code
+	uint nLocalPort;							// Local port for listening
+	uint nReplyCode;							// FTP server reply code
 
 
    // Get the address for the hListenSocket
 	iLength = sizeof(listenaddr);
-	if (getsockname(m_ListenSock, (LPSOCKADDR)&listenaddr,&iLength) == SOCKET_ERROR)
+	if (getsockname(m_ListenSock, (struct sockaddr*)&listenaddr, &iLength) == SOCKET_ERROR)
 	{
 		// int iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_SOCKET_ERROR;
@@ -401,7 +422,7 @@ unsigned int CFtpGet::IssuePort()
 							
 	// Now, reuse the socket address structure to 
 	// get the IP address from the control socket.
-	if (getsockname(m_ControlSock, (LPSOCKADDR)&listenaddr,&iLength) == SOCKET_ERROR)
+	if (getsockname(m_ControlSock, (struct sockaddr*)&listenaddr, &iLength) == SOCKET_ERROR)
 	{
 		// int iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_SOCKET_ERROR;
@@ -409,23 +430,13 @@ unsigned int CFtpGet::IssuePort()
 	}
 				
 	// Format the PORT command with the correct numbers.
-#ifndef PLAT_UNIX
-	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n", 
-				listenaddr.sin_addr.S_un.S_un_b.s_b1, 
-				listenaddr.sin_addr.S_un.S_un_b.s_b2,
-				listenaddr.sin_addr.S_un.S_un_b.s_b3,
-				listenaddr.sin_addr.S_un.S_un_b.s_b4,
-				nLocalPort & 0xFF,	
-				nLocalPort >> 8);
-#else
-	sprintf(szCommandString, "PORT %d,%d,%d,%d,%d,%d\r\n",
+	SDL_snprintf(szCommandString, SDL_arraysize(szCommandString), "PORT %d,%d,%d,%d,%d,%d\r\n",
 				(listenaddr.sin_addr.s_addr >> 0)  & 0xFF,
 				(listenaddr.sin_addr.s_addr >> 8)  & 0xFF,
 				(listenaddr.sin_addr.s_addr >> 16) & 0xFF,
 				(listenaddr.sin_addr.s_addr >> 24) & 0xFF,
 				nLocalPort & 0xFF,
 				nLocalPort >> 8);
-#endif
 														
 	// Tell the server which port to use for data.
 	nReplyCode = SendFTPCommand(szCommandString);
@@ -440,9 +451,9 @@ unsigned int CFtpGet::IssuePort()
 
 int CFtpGet::ConnectControlSocket()
 {
-	HOSTENT *he;
-	SERVENT *se;
-	SOCKADDR_IN hostaddr;
+	struct hostent *he;
+	struct servent *se;
+	struct sockaddr_in hostaddr;
 	he = gethostbyname(m_szHost);
 	if(he == NULL)
 	{
@@ -463,11 +474,11 @@ int CFtpGet::ConnectControlSocket()
 		hostaddr.sin_port = se->s_port;
 	}
 	hostaddr.sin_family = AF_INET;		
-	memcpy(&hostaddr.sin_addr,he->h_addr_list[0],4);
+	hostaddr.sin_addr.s_addr = ((in_addr *)(he->h_addr))->s_addr;
 	if(m_Aborting)
 		return 0;
 	//Now we will connect to the host					
-	if(connect(m_ControlSock, (SOCKADDR *)&hostaddr, sizeof(SOCKADDR)))
+	if(connect(m_ControlSock, (struct sockaddr *)&hostaddr, sizeof(struct sockaddr)))
 	{
 		// int iWinsockErr = WSAGetLastError();
 		m_State = FTP_STATE_CANT_CONNECT;
@@ -483,14 +494,14 @@ int CFtpGet::LoginHost()
 	char szLoginString[200];
 	int rcode;
 	
-	sprintf(szLoginString,"USER %s\r\n",m_szUserName);
+	SDL_snprintf(szLoginString, SDL_arraysize(szLoginString), "USER %s\r\n" ,m_szUserName);
 	rcode = SendFTPCommand(szLoginString);
 	if(rcode >=400)
 	{
 		m_State = FTP_STATE_LOGIN_ERROR;	
 		return 0;
 	}
-	sprintf(szLoginString,"PASS %s\r\n",m_szPassword);
+	SDL_snprintf(szLoginString, SDL_arraysize(szLoginString), "PASS %s\r\n" ,m_szPassword);
 	rcode = SendFTPCommand(szLoginString);
 	if(rcode >=400)
 	{
@@ -550,10 +561,10 @@ unsigned int CFtpGet::ReadFTPServerReply()
 		}
 		else
 		{	chunk[1] = 0;
-			strcat(recv_buffer,chunk);
+			SDL_strlcat(recv_buffer, chunk, SDL_arraysize(recv_buffer));
 		}
 		
-		Sleep(1);	
+		SDL_Delay(1);
 	}while(igotcrlf==0);
 					
 	if(recv_buffer[3] == '-')
@@ -585,7 +596,7 @@ unsigned int CFtpGet::ReadDataChannel()
    {
 		if(m_Aborting)
 			return 0;
-		nBytesRecv = recv(m_DataSock, (LPSTR)&sDataBuffer,sizeof(sDataBuffer), 0);
+		nBytesRecv = recv(m_DataSock, (char *)&sDataBuffer,sizeof(sDataBuffer), 0);
     					
 		m_iBytesIn += nBytesRecv;
 		if (nBytesRecv > 0 )
@@ -594,7 +605,7 @@ unsigned int CFtpGet::ReadDataChannel()
 			//Write sDataBuffer, nBytesRecv
     	}
 
-		Sleep(1);
+		SDL_Delay(1);
 	}while (nBytesRecv > 0);
 	fclose(LOCALFILE);							
 	// Close the file and check for error returns.
@@ -616,7 +627,7 @@ unsigned int CFtpGet::ReadDataChannel()
 void CFtpGet::FlushControlChannel()
 {
 	fd_set read_fds;	           
-	TIMEVAL timeout;   	
+	struct timeval timeout;
 	char flushbuff[3];
 
 	timeout.tv_sec=0;            
@@ -625,12 +636,10 @@ void CFtpGet::FlushControlChannel()
 	FD_ZERO(&read_fds);
 	FD_SET(m_ControlSock,&read_fds);    
 	
-	while(select(0,&read_fds,NULL,NULL,&timeout))
+	while(select(m_ControlSock+1,&read_fds,NULL,NULL,&timeout))
 	{
 		recv(m_ControlSock,flushbuff,1,0);
 
-		Sleep(1);
+		SDL_Delay(1);
 	}
 }
-
-#endif	// !PLAT_UNIX

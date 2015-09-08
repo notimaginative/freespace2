@@ -58,10 +58,7 @@ int mve_get_int(ubyte *data)
 // open an MVE file
 MVEFILE *mvefile_open(const char *filename)
 {
-	int cf_opened = 0;
 	int mve_valid = 1;
-	char lower_name[MAX_FILENAME_LEN];
-	char upper_name[MAX_FILENAME_LEN];
 	char buffer[20];
 	MVEFILE *file;
 
@@ -75,39 +72,23 @@ MVEFILE *mvefile_open(const char *filename)
 	file->cur_fill = 0;
 	file->next_segment = 0;
 
-	// lower case filename for checking
-	strncpy(lower_name, filename, strlen(filename)+1);
-	strlwr(lower_name);
-	// upper case filename for checking
-	strncpy(upper_name, filename, strlen(filename)+1);
-	strupr(upper_name);
-
 	// NOTE: CF_TYPE *must* be ANY to get movies off of the CDs
-	while (1) {
-		// lower case filename check - off of HD/CD-ROM
-		if ( (file->stream = cfopen(lower_name, "rb", CFILE_NORMAL, CF_TYPE_MOVIES)) ) {
-			cf_opened = 1;
-			break;
-		}
 
-		// upper case filename check - off of CD-ROM (or HD if case not changed)
-		if ( (file->stream = cfopen(upper_name, "rb", CFILE_NORMAL, CF_TYPE_ANY)) ) {
-			cf_opened = 1;
-			break;
-		}
+	// lower case filename check - off of HD/CD-ROM
+	file->stream = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_MOVIES);
 
-		// passed filename check - just because
-		if ( (file->stream = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_ANY)) ) {
-			cf_opened = 1;
-			break;
-		}
-		
-		// uh-oh, couldn't open
-		cf_opened = 0;
-		break;
+	// upper case filename check - off of CD-ROM (or HD if case not changed)
+	if ( !file->stream ) {
+		char upper_name[MAX_FILENAME_LEN];
+
+		// upper case filename for checking
+		SDL_strlcpy(upper_name, filename, SDL_arraysize(upper_name));
+		SDL_strupr(upper_name);
+
+		file->stream = cfopen(upper_name, "rb", CFILE_NORMAL, CF_TYPE_ANY);
 	}
 
-	if (!cf_opened) {
+	if ( !file->stream ) {
 		mvefile_close(file);
 		return NULL;
 	}
@@ -375,13 +356,6 @@ int mve_play_next_chunk(MVESTREAM *stream)
 					break;
 				case 0x09:
 					mve_audio_data(major, data);
-					break;
-				case 0x0a:
-					if (!mve_video_init(data))
-						return 0;
-					break;
-				case 0x0c:
-					mve_video_palette(data);
 					break;
 				case 0x0f:
 					mve_video_codemap(data, len);

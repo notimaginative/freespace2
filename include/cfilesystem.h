@@ -55,7 +55,7 @@
 #define _CFILESYSTEM_H
 
 // Builds a list of all the files
-void cf_build_secondary_filelist( const char *cdrom_path );
+void cf_build_secondary_filelist( const char *extras_path );
 void cf_free_secondary_filelist();
 
 // Internal stuff
@@ -79,5 +79,7 @@ extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
 // Output:  path      - Fully qualified pathname.
 void cf_create_default_path_string( char *path, int pathtype, const char *filename=NULL, bool localize = false);
 
+// returns true if packfile has been indexed by CFILE (case-insensitive search)
+bool cf_has_packfile(const char *fn);
 
 #endif	//_CFILESYSTEM_H

@@ -119,7 +119,7 @@ int jumpnode_create(vector *pos)
 {
 	int obj;
 
-	Assert(Num_jump_nodes < MAX_JUMP_NODES);
+	SDL_assert(Num_jump_nodes < MAX_JUMP_NODES);
 
 	Jump_nodes[Num_jump_nodes].modelnum = model_load(NOX("subspacenode.pof"), 0, NULL);
 	if ( Jump_nodes[Num_jump_nodes].modelnum < 0 ) {
@@ -128,7 +128,7 @@ int jumpnode_create(vector *pos)
 	}
 
 	obj = obj_create(OBJ_JUMP_NODE, -1, Num_jump_nodes, NULL, pos, model_get_radius(Jump_nodes[Num_jump_nodes].modelnum), OF_RENDERS);
-	sprintf(Jump_nodes[Num_jump_nodes].name, XSTR( "Jump Node %d", 632), Num_jump_nodes);
+	SDL_snprintf(Jump_nodes[Num_jump_nodes].name, NAME_LENGTH, XSTR( "Jump Node %d", 632), Num_jump_nodes);
 	if (obj >= 0) {
 		Jump_nodes[Num_jump_nodes].objnum = obj;
 		Num_jump_nodes++;

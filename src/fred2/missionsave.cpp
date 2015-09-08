@@ -439,7 +439,7 @@ int CFred_mission_save::save_mission_info()
 
 	// maybe write out Nebula intensity
 	if(The_mission.flags & MISSION_FLAG_FULLNEB){
-		Assert(Neb2_awacs > 0.0f);
+		SDL_assert(Neb2_awacs > 0.0f);
 		fout("\n+NebAwacs: %f\n", Neb2_awacs);
 
 		// storm name
@@ -627,7 +627,7 @@ int CFred_mission_save::save_briefing()
 		required_string_fred("$start_briefing");
 		parse_comments();
 
-		Assert(Briefings[nb].num_stages <= MAX_BRIEF_STAGES);
+		SDL_assert(Briefings[nb].num_stages <= MAX_BRIEF_STAGES);
 		required_string_fred("$num_stages:");
 		parse_comments();
 		fout(" %d", Briefings[nb].num_stages);
@@ -685,7 +685,7 @@ int CFred_mission_save::save_briefing()
 
 			required_string_fred("$num_icons:");
 			parse_comments();
-			Assert(bs->num_icons <= MAX_STAGE_ICONS );
+			SDL_assert(bs->num_icons <= MAX_STAGE_ICONS );
 			fout(" %d", bs->num_icons);
 
 			required_string_fred("$Flags:");
@@ -896,7 +896,7 @@ int CFred_mission_save::save_players()
 	for (i=0; i<Num_teams; i++) {
 		required_string_fred("$Starting Shipname:");
 		parse_comments();
-		Assert(Player_start_shipnum >= 0);
+		SDL_assert(Player_start_shipnum >= 0);
 		fout(" %s", Ships[Player_start_shipnum].ship_name);
 		
 		required_string_fred("$Ship Choices:");
@@ -983,7 +983,7 @@ int CFred_mission_save::save_objects()
 		parse_comments();
 		fout(" %s", Iff_names[0]);
 
-		Assert(Ships[i].ai_index >= 0);
+		SDL_assert(Ships[i].ai_index >= 0);
 		aip = &Ai_info[Ships[i].ai_index];
 
 		required_string_fred("$AI Behavior:");
@@ -1182,7 +1182,7 @@ int CFred_mission_save::save_objects()
 
 		// mwa -- new code to save off information about initially docked ships.
 		if ( Ships[i].flags & SF_INITIALLY_DOCKED ) {
-			Assert ( aip->dock_objnum != -1 );		// ge allender if you hit this
+			SDL_assert ( aip->dock_objnum != -1 );		// ge allender if you hit this
 
 			if (optional_string_fred("+Docked With:", "$Name:"))
 				parse_comments();
@@ -1583,7 +1583,7 @@ int CFred_mission_save::save_wings()
 		}
 	}
 
-	Assert(count == num_wings);
+	SDL_assert(count == num_wings);
 	return err;
 }
 
@@ -1683,7 +1683,7 @@ int CFred_mission_save::save_waypoints()
 			ptr = GET_NEXT(ptr);
 		}
 
-		Assert(ptr != END_OF_LIST(&obj_used_list));
+		SDL_assert(ptr != END_OF_LIST(&obj_used_list));
 
 		required_string_fred("$Jump Node:", "$Jump Node Name:");
 		parse_comments(2);
@@ -1903,7 +1903,7 @@ int CFred_mission_save::fout(char *format, ...)
 	va_start(args, format);
 	vsprintf(str, format, args);
 	va_end(args);
-	Assert(strlen(str) < 16384);
+	SDL_assert(strlen(str) < 16384);
 
 	cfputs(str, fp);
 	return 0;
@@ -1923,7 +1923,7 @@ int CFred_mission_save::fout_ext(char *format, ...)
 	va_start(args, format);
 	vsprintf(str, format, args);
 	va_end(args);
-	Assert(strlen(str) < 16384);
+	SDL_assert(strlen(str) < 16384);
 
 	// lookup the string in the hash table
 	str_id = fhash_string_exists(str);
@@ -2069,7 +2069,7 @@ void CFred_mission_save::save_ai_goals(ai_goals *goalp, int ship)
 						break;
 
 					default:
-						Assert(0);
+						SDL_assert(0);
 				}
 
 				if (valid)
@@ -2555,7 +2555,7 @@ int CFred_mission_save::save_campaign_file(char *pathname)
 	parse_comments(0);
 	fout(" %s", Campaign.name);
 
-	Assert((Campaign.type >= 0) && (Campaign.type < MAX_CAMPAIGN_TYPES));
+	SDL_assert((Campaign.type >= 0) && (Campaign.type < MAX_CAMPAIGN_TYPES));
 	required_string_fred("$Type:");
 	parse_comments();
 	fout(" %s", campaign_types[Campaign.type]);
@@ -2733,7 +2733,7 @@ void CFred_mission_save::save_campaign_sexp(int node, int link_num)
 
 	Sexp_string = out;
 	*out = 0;
-	Assert(node >= 0);
+	SDL_assert(node >= 0);
 
 	// if the link num is -1, then this is a end-of-campaign location
 	if ( link_num != -1 ) {

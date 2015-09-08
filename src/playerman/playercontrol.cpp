@@ -752,7 +752,7 @@ void playercontrol_read_stick(int *axis, float frame_time)
 void read_keyboard_controls( control_info * ci, float frame_time, physics_info *pi )
 {
 	float kh=0.0f, scaled, newspeed, delta, oldspeed;
-	int axis[JOY_NUM_AXES], ignore_pitch, slew_active=0;
+	int axis[JOY_NUM_AXES], slew_active=0;
 	static int afterburner_last = 0;
 	static float analog_throttle_last = 9e9f;
 	static int override_analog_throttle = 0; 
@@ -823,8 +823,8 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 
 		ci->pitch += kh;
 
-		ci->sideways = (key_down_timef(KEY_PAD3) - key_down_timef(KEY_PAD1));
-		ci->vertical = (key_down_timef(KEY_PADPLUS) - key_down_timef(KEY_PADENTER));
+		ci->sideways = (key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1));
+		ci->vertical = (key_down_timef(SDLK_KP_PLUS) - key_down_timef(SDLK_KP_ENTER));
 
 		do_thrust_keys(ci);
 	}
@@ -925,11 +925,11 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 				if ( tspeed < MATCH_SPEED_THRESHOLD ) {
 					ai_info *aip;
 
-					Assert(Objects[Player_ai->target_objnum].type == OBJ_SHIP);
+					SDL_assert(Objects[Player_ai->target_objnum].type == OBJ_SHIP);
 
 					aip = &Ai_info[Ships[Objects[Player_ai->target_objnum].instance].ai_index];
 					if ( aip->ai_flags & AIF_DOCKED ) {
-						Assert( aip->dock_objnum != -1 );
+						SDL_assert( aip->dock_objnum != -1 );
 						tspeed = Objects[aip->dock_objnum].phys_info.fspeed;
 					}
 				}
@@ -962,15 +962,12 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 			axis[0] = axis[1] = axis[2] = axis[3] = axis[4] = 0;
 		}
 
-		ignore_pitch = FALSE;
-
 		if (Axis_map_to[JOY_HEADING_AXIS] >= 0) {
 			// check the heading on the x axis
 			if ( check_control(BANK_WHEN_PRESSED) ) {
 				delta = f2fl( axis[JOY_HEADING_AXIS] );
 				if ( (delta > 0.05f) || (delta < -0.05f) ) {
 					ci->bank -= delta;
-					ignore_pitch = TRUE;
 				}
 
 			} else {
@@ -989,7 +986,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 		// axis 2 is for throttle
 		if (Axis_map_to[JOY_ABS_THROTTLE_AXIS] >= 0) {
 			scaled = (float) axis[JOY_ABS_THROTTLE_AXIS] * 1.2f / (float) F1_0 - 0.1f;  // convert to -0.1 - 1.1 range
-			oldspeed = ci->forward_cruise_percent;
+//			oldspeed = ci->forward_cruise_percent;
 
 //			scaled = (scaled + 1.0f) / 1.85f;
 			newspeed = (1.0f - scaled) * 100.0f;
@@ -1045,7 +1042,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 
 		// for debugging, check to see if the debug key is down -- if so, make fire the debug laser instead
 #ifndef NDEBUG
-		if ( keyd_pressed[KEY_DEBUG_KEY] ) {
+		if ( key_pressed(KEY_DEBUG_KEY) ) {
 			ci->fire_debug_count = ci->fire_primary_count;
 			ci->fire_primary_count = 0;
 		}
@@ -1076,7 +1073,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 		// see if the afterburner has been started (keyboard + joystick)
 		if (check_control(AFTERBURNER)) {
 			if (!afterburner_last) {
-				Assert(Player_ship);
+				SDL_assert(Player_ship);
 				if ( !(Ship_info[Player_ship->ship_info_index].flags & SIF_AFTERBURNER) ) {
 					gamesnd_play_error_beep();
 				} else {
@@ -1286,7 +1283,7 @@ void player_match_target_speed(char *no_target_text, char *match_off_text, char 
 			ai_info *aip;
 			aip = &Ai_info[Ships[Objects[Player_ai->target_objnum].instance].ai_index];
 			if ( aip->ai_flags & AIF_DOCKED ) {
-				Assert( aip->dock_objnum != -1 );
+				SDL_assert( aip->dock_objnum != -1 );
 				if ( Objects[aip->dock_objnum].phys_info.fspeed > MATCH_SPEED_THRESHOLD ) {
 					can_match=1;
 				}
@@ -1313,7 +1310,7 @@ void player_match_target_speed(char *no_target_text, char *match_off_text, char 
 // and a descent style ship.
 
 int use_descent = 0;
-LOCAL physics_info phys_save;
+static physics_info phys_save;
 
 void toggle_player_object()
 {
@@ -1502,7 +1499,7 @@ void player_init()
 // stop any looping sounds associated with the Player, called from game_stop_looped_sounds().
 void player_stop_looped_sounds()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->repair_sound_loop > -1 )	{
 		snd_stop(Player->repair_sound_loop);
 		Player->repair_sound_loop = -1;
@@ -1517,7 +1514,7 @@ void player_stop_looped_sounds()
 // repaired by a support ship
 void player_maybe_start_repair_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->repair_sound_loop == -1 ) {
 		Player->repair_sound_loop = snd_play_looping( &Snds[SND_SHIP_REPAIR] );
 	}
@@ -1526,7 +1523,7 @@ void player_maybe_start_repair_sound()
 // stop the player repair sound if it is already playing
 void player_stop_repair_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->repair_sound_loop != -1 ) {
 		snd_stop(Player->repair_sound_loop);
 		Player->repair_sound_loop  = -1;
@@ -1536,7 +1533,7 @@ void player_stop_repair_sound()
 // start the cargo scanning sound if it hasn't already been started
 void player_maybe_start_cargo_scan_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->cargo_scan_loop == -1 ) {
 		Player->cargo_scan_loop = snd_play_looping( &Snds[SND_CARGO_SCAN] );
 	}
@@ -1545,7 +1542,7 @@ void player_maybe_start_cargo_scan_sound()
 // stop the player repair sound if it is already playing
 void player_stop_cargo_scan_sound()
 {
-	Assert(Player);
+	SDL_assert(Player);
 	if ( Player->cargo_scan_loop != -1 ) {
 		snd_stop(Player->cargo_scan_loop);
 		Player->cargo_scan_loop  = -1;
@@ -1591,14 +1588,14 @@ int player_process_pending_praise()
 	return 1;
 }
 
-int player_inspect_cap_subsys_cargo(float frametime, char *outstr);
+int player_inspect_cap_subsys_cargo(float frametime, char *outstr, const int max_outstr);
 // See if the player should be inspecting cargo, and update progress.
 // input:	frametime	=>		time since last frame in seconds
 // input:	outstr		=>		(output parm) holds string that HUD should display
 //
 //	exit:		1				=>		player should display outstr on HUD
 //				0				=>		don't display cargo on HUD
-int player_inspect_cargo(float frametime, char *outstr)
+int player_inspect_cargo(float frametime, char *outstr, const int max_outstr)
 {
 	object		*cargo_objp;
 	ship			*cargo_sp;
@@ -1613,7 +1610,7 @@ int player_inspect_cargo(float frametime, char *outstr)
 	}
 
 	cargo_objp = &Objects[Player_ai->target_objnum];
-	Assert(cargo_objp->type == OBJ_SHIP);
+	SDL_assert(cargo_objp->type == OBJ_SHIP);
 	cargo_sp = &Ships[cargo_objp->instance];
 	cargo_sip = &Ship_info[cargo_sp->ship_info_index];
 
@@ -1621,7 +1618,7 @@ int player_inspect_cargo(float frametime, char *outstr)
 	// causes a FS1 mission not to finish since the subsytems and not
 	// the ship are scanned
 	if (cargo_sip->flags & SIF_HUGE_SHIP) {
-		return player_inspect_cap_subsys_cargo(frametime, outstr);
+		return player_inspect_cap_subsys_cargo(frametime, outstr, max_outstr);
 	}
 #endif
 
@@ -1652,29 +1649,29 @@ int player_inspect_cargo(float frametime, char *outstr)
 		if ( !(cargo_sp->flags & SF_SCANNABLE) ) {
 			char *cargo_name;
 			cargo_name = Cargo_names[cargo_sp->cargo1 & CARGO_INDEX_MASK];
-			Assert ( cargo_name );
+			SDL_assert ( cargo_name );
 
 			if ( cargo_sip->flags & (SIF_CARGO|SIF_TRANSPORT) ) {
 				if ( cargo_name[0] == '#' )
-					sprintf(outstr, XSTR( "passengers:\n   %s", 83), cargo_name+1 );
+					SDL_snprintf(outstr, max_outstr, XSTR( "passengers:\n   %s", 83), cargo_name+1 );
 				else
-					sprintf(outstr,XSTR( "cargo: %s", 84), cargo_name );
+					SDL_snprintf(outstr, max_outstr, XSTR( "cargo: %s", 84), cargo_name );
 			} else {
 				int pn;
 
-				Assert( Game_mode & GM_MULTIPLAYER );
+				SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 				// get a player num from the object, then get a callsign from the player structure.
 				pn = multi_find_player_by_object( cargo_objp );
-				// Assert( pn != -1 );
+				// SDL_assert( pn != -1 );
 				if(pn == -1){
-					strcpy(outstr, "");
+					SDL_strlcpy(outstr, "", max_outstr);
 				} else {
-					sprintf(outstr, "%s", Net_players[pn].player->short_callsign );
+					SDL_snprintf(outstr, max_outstr, "%s", Net_players[pn].player->short_callsign);
 				}
 			}
 		} else {
-			sprintf(outstr, XSTR( "Scanned", 85) );
+			SDL_strlcpy(outstr, XSTR( "Scanned", 85), max_outstr);
 		}
 
 		// always bash cargo_inspect_time to 0 since AI ships can reveal cargo that we
@@ -1692,9 +1689,9 @@ int player_inspect_cargo(float frametime, char *outstr)
 		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.v.fvec);
 		if ( dot < CARGO_MIN_DOT_TO_REVEAL ) {
 			if ( !(cargo_sp->flags & SF_SCANNABLE) )
-				sprintf(outstr,XSTR( "cargo: <unknown>", 86));
+				SDL_strlcpy(outstr, XSTR( "cargo: <unknown>", 86), max_outstr);
 			else
-				sprintf(outstr,XSTR( "not scanned", 87));
+				SDL_strlcpy(outstr, XSTR( "not scanned", 87), max_outstr);
 			hud_targetbox_end_flash(TBOX_FLASH_CARGO);
 			Player->cargo_inspect_time = 0;
 			return 1;
@@ -1706,9 +1703,9 @@ int player_inspect_cargo(float frametime, char *outstr)
 		}
 
 		if ( !(cargo_sp->flags & SF_SCANNABLE) )
-			sprintf(outstr,XSTR( "cargo: inspecting", 88));
+			SDL_strlcpy(outstr, XSTR( "cargo: inspecting", 88), max_outstr);
 		else
-			sprintf(outstr,XSTR( "scanning", 89));
+			SDL_strlcpy(outstr, XSTR( "scanning", 89), max_outstr);
 
 		if ( Player->cargo_inspect_time > cargo_sip->scan_time ) {
 			ship_do_cargo_revealed( cargo_sp );
@@ -1717,9 +1714,9 @@ int player_inspect_cargo(float frametime, char *outstr)
 		}
 	} else {
 		if ( !(cargo_sp->flags & SF_SCANNABLE) )
-			sprintf(outstr,XSTR( "cargo: <unknown>", 86));
+			SDL_strlcpy(outstr, XSTR( "cargo: <unknown>", 86), max_outstr);
 		else
-			sprintf(outstr,XSTR( "not scanned", 87));
+			SDL_strlcpy(outstr, XSTR( "not scanned", 87), max_outstr);
 	}
 
 	return 1;
@@ -1727,7 +1724,7 @@ int player_inspect_cargo(float frametime, char *outstr)
 
 //	exit:		1				=>		player should display outstr on HUD
 //				0				=>		don't display cargo on HUD
-int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
+int player_inspect_cap_subsys_cargo(float frametime, char *outstr, const int max_outstr)
 {
 	object		*cargo_objp;
 	ship			*cargo_sp;
@@ -1744,11 +1741,11 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 	} 
 
 	cargo_objp = &Objects[Player_ai->target_objnum];
-	Assert(cargo_objp->type == OBJ_SHIP);
+	SDL_assert(cargo_objp->type == OBJ_SHIP);
 	cargo_sp = &Ships[cargo_objp->instance];
 	cargo_sip = &Ship_info[cargo_sp->ship_info_index];
 
-	Assert(cargo_sip->flags & SIF_HUGE_SHIP);
+	SDL_assert(cargo_sip->flags & SIF_HUGE_SHIP);
 
 	if ( !(cargo_sp->flags & SF_SCANNABLE) ) {
 		return 0;
@@ -1767,9 +1764,9 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 		} else {
 			cargo_name = Cargo_names[subsys->subsys_cargo_name];
 		}
-		Assert ( cargo_name );
+		SDL_assert ( cargo_name );
 
-		sprintf(outstr,XSTR( "cargo: %s", 84), cargo_name );
+		SDL_snprintf(outstr, max_outstr, XSTR( "cargo: %s", 84), cargo_name );
 	
 		// always bash cargo_inspect_time to 0 since AI ships can reveal cargo that we
 		// are in the process of scanning
@@ -1795,7 +1792,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 		subsys_in_view = hud_targetbox_subsystem_in_view(cargo_objp, &x, &y);
 
 		if ( (dot < CARGO_MIN_DOT_TO_REVEAL) || (!subsys_in_view) ) {
-			sprintf(outstr,XSTR( "cargo: <unknown>", 86));
+			SDL_strlcpy(outstr, XSTR( "cargo: <unknown>", 86), max_outstr);
 			hud_targetbox_end_flash(TBOX_FLASH_CARGO);
 			Player->cargo_inspect_time = 0;
 			return 1;
@@ -1806,7 +1803,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 			Player->cargo_inspect_time += fl2i(frametime*1000+0.5f);
 		}
 
-		sprintf(outstr,XSTR( "cargo: inspecting", 88));
+		SDL_strlcpy(outstr, XSTR( "cargo: inspecting", 88), max_outstr);
 
 		if ( Player->cargo_inspect_time > cargo_sip->scan_time ) {
 			void ship_do_cap_subsys_cargo_revealed( ship *shipp, ship_subsys *subsys, int from_network );
@@ -1815,7 +1812,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 			Player->cargo_inspect_time = 0;
 		}
 	} else {
-		sprintf(outstr,XSTR( "cargo: <unknown>", 86));
+		SDL_strlcpy(outstr, XSTR( "cargo: <unknown>", 86), max_outstr);
 	}
 
 	return 1;
@@ -1837,7 +1834,7 @@ float	player_farthest_weapon_range()
 // input:	weapon_info_index	=>		weapon type that killed the player (can be -1 if no weapon involved)
 //				killer_species		=>		species of ship that fired weapon
 //				weapon_name			=>		output parameter... stores weapon name generated in this function	
-void player_generate_killer_weapon_name(int weapon_info_index, int killer_species, char *weapon_name)
+void player_generate_killer_weapon_name(int weapon_info_index, int killer_species, char *weapon_name, const int max_len)
 {
 	if ( weapon_info_index < 0 ) {
 		return;
@@ -1851,13 +1848,13 @@ void player_generate_killer_weapon_name(int weapon_info_index, int killer_specie
 
 	switch ( killer_species ) {
 	case SPECIES_TERRAN:
-		strcpy(weapon_name, Weapon_info[weapon_info_index].name);
+		SDL_strlcpy(weapon_name, Weapon_info[weapon_info_index].name, max_len);
 		break;
 	default:
 		if ( Weapon_info[weapon_info_index].subtype == WP_MISSILE ) {
-			strcpy(weapon_name, XSTR( "missile", 90));
+			SDL_strlcpy(weapon_name, XSTR( "missile", 90), max_len);
 		} else {
-			strcpy(weapon_name, XSTR( "laser fire", 91));
+			SDL_strlcpy(weapon_name, XSTR( "laser fire", 91), max_len);
 		}
 		break;
 	}
@@ -1865,66 +1862,66 @@ void player_generate_killer_weapon_name(int weapon_info_index, int killer_specie
 
 // function to generate the text for death of a player given the information stored in the player object.
 // a pointer to the text is returned
-char *player_generate_death_text( player *player_p, char *death_text )
+char *player_generate_death_text( player *player_p, char *death_text, const int max_dtlen )
 {
 	char weapon_name[NAME_LENGTH];
 	weapon_name[0] = 0;	
 
-	player_generate_killer_weapon_name(player_p->killer_weapon_index, player_p->killer_species, weapon_name);
+	player_generate_killer_weapon_name(player_p->killer_weapon_index, player_p->killer_species, weapon_name, SDL_arraysize(weapon_name));
 
 	switch ( player_p->killer_objtype ) {
 	case OBJ_SHOCKWAVE:
 		if ( weapon_name[0] ) {
 //			sprintf(death_text, XSTR("%s was killed by a shockwave from a %s, fired by %s",-1), player_p->callsign, weapon_name, player_p->killer_parent_name);
-			sprintf(death_text, XSTR( "%s was killed by a missile shockwave", 92), player_p->callsign);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a missile shockwave", 92), player_p->callsign);
 		} else {
-			sprintf(death_text, XSTR( "%s was killed by a shockwave from %s exploding", 93), player_p->callsign, player_p->killer_parent_name);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a shockwave from %s exploding", 93), player_p->callsign, player_p->killer_parent_name);
 		}
 		break;
 	case OBJ_WEAPON:
-		Assert(weapon_name[0]);
+		SDL_assert(weapon_name[0]);
 
 		// is this from a friendly ship?
 		int ship_index;
 		ship_index = ship_name_lookup(player_p->killer_parent_name, 1);
 		if((ship_index >= 0) && (Player_ship != NULL) && (Player_ship->team == Ships[ship_index].team)){
-			sprintf(death_text, XSTR( "%s was killed by friendly fire from %s", 1338), player_p->callsign, player_p->killer_parent_name);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by friendly fire from %s", 1338), player_p->callsign, player_p->killer_parent_name);
 		} else {
-			sprintf(death_text, XSTR( "%s was killed by %s", 94), player_p->callsign, player_p->killer_parent_name);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by %s", 94), player_p->callsign, player_p->killer_parent_name);
 		}
 		break;
 	case OBJ_SHIP:
 		if ( player_p->flags & PLAYER_FLAGS_KILLED_BY_EXPLOSION ) {
-			sprintf(death_text, XSTR( "%s was killed by a blast from %s exploding", 95), player_p->callsign, player_p->killer_parent_name);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a blast from %s exploding", 95), player_p->callsign, player_p->killer_parent_name);
 		} else if (player_p->flags & PLAYER_FLAGS_KILLED_BY_ENGINE_WASH) {
-			sprintf(death_text, XSTR( "%s was killed by engine wash from %s", 1494), player_p->callsign, player_p->killer_parent_name);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by engine wash from %s", 1494), player_p->callsign, player_p->killer_parent_name);
 		} else {
-			sprintf(death_text, XSTR( "%s was killed by a collision with %s", 96), player_p->callsign, player_p->killer_parent_name);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a collision with %s", 96), player_p->callsign, player_p->killer_parent_name);
 		}
 		break;
 	case OBJ_DEBRIS:
-		sprintf(death_text, XSTR( "%s was killed by a collision with debris", 97), player_p->callsign);
+		SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a collision with debris", 97), player_p->callsign);
 		break;
 	case OBJ_ASTEROID:
-		sprintf(death_text, XSTR( "%s was killed by a collision with an asteroid", 98), player_p->callsign);
+		SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a collision with an asteroid", 98), player_p->callsign);
 		break;
 	case OBJ_BEAM:
 		if(strlen(player_p->killer_parent_name) <= 0){			
 			Int3();
-			sprintf(death_text, XSTR( "%s was killed by a beam from an unknown source", 1081), player_p->callsign);
+			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a beam from an unknown source", 1081), player_p->callsign);
 		} else {					
 			// is this from a friendly ship?
 			int ship_index;
 			ship_index = ship_name_lookup(player_p->killer_parent_name, 1);
 			if((ship_index >= 0) && (Player_ship != NULL) && (Player_ship->team == Ships[ship_index].team)){
-				sprintf(death_text, XSTR( "%s was destroyed by friendly beam fire from %s", 1339), player_p->callsign, player_p->killer_parent_name);
+				SDL_snprintf(death_text, max_dtlen, XSTR( "%s was destroyed by friendly beam fire from %s", 1339), player_p->callsign, player_p->killer_parent_name);
 			} else {
-				sprintf(death_text, XSTR( "%s was destroyed by a beam from %s", 1082), player_p->callsign, player_p->killer_parent_name);
+				SDL_snprintf(death_text, max_dtlen, XSTR( "%s was destroyed by a beam from %s", 1082), player_p->callsign, player_p->killer_parent_name);
 			}			
 		}
 		break;
 	default:
-		sprintf(death_text, XSTR( "%s was killed", 99), player_p->callsign);
+		SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed", 99), player_p->callsign);
 		break;
 	}
 
@@ -1940,17 +1937,17 @@ void player_show_death_message()
 	if ( Player->flags & PLAYER_KILLED_SELF ) {
 		// reasons he killed himself
 		if(Player->flags & PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE){
-			sprintf(death_text, XSTR( "You have killed yourself with a shockwave from your own weapon", 1421));			
+			SDL_strlcpy(death_text, XSTR( "You have killed yourself with a shockwave from your own weapon", 1421), SDL_arraysize(death_text));
 		}
 		else if(Player->flags & PLAYER_FLAGS_KILLED_SELF_MISSILES){
-			sprintf(death_text, XSTR( "You have killed yourself with your own missiles", 1422));			
+			SDL_strlcpy(death_text, XSTR( "You have killed yourself with your own missiles", 1422), SDL_arraysize(death_text));
 		} else {
-			sprintf(death_text, XSTR( "You have killed yourself", 100));
+			SDL_strlcpy(death_text, XSTR( "You have killed yourself", 100), SDL_arraysize(death_text));
 		}
 
 		Player->flags &= ~(PLAYER_FLAGS_KILLED_SELF_MISSILES | PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE);
 	} else {
-		player_generate_death_text( Player, death_text );
+		player_generate_death_text( Player, death_text, SDL_arraysize(death_text) );
 	}
 
 	HUD_fixed_printf(30.0f, death_text);
@@ -2091,7 +2088,7 @@ void player_set_padlock_state()
 
 void player_get_padlock_orient(matrix *eye_orient)
 {
-	Assert(Viewer_mode & VM_PADLOCK_ANY);
+	SDL_assert(Viewer_mode & VM_PADLOCK_ANY);
 
 	matrix old_eye_orient;
 	old_eye_orient = *eye_orient;
@@ -2135,13 +2132,13 @@ void player_display_packlock_view()
 	if ( !(Viewer_mode & (VM_CHASE|VM_EXTERNAL|VM_SLEWED)) ) {
 		switch (padlock_view_index) {
 		case 0:
-			strcpy(str, XSTR( "top view", 101));	break;
+			SDL_strlcpy(str, XSTR( "top view", 101), SDL_arraysize(str));	break;
 		case 1:
-			strcpy(str, XSTR( "rear view", 102));	break;
+			SDL_strlcpy(str, XSTR( "rear view", 102), SDL_arraysize(str));	break;
 		case 2:
-			strcpy(str, XSTR( "left view", 103));	break;
+			SDL_strlcpy(str, XSTR( "left view", 103), SDL_arraysize(str));	break;
 		case 3:
-			strcpy(str, XSTR( "right view", 104));	break;
+			SDL_strlcpy(str, XSTR( "right view", 104), SDL_arraysize(str));	break;
 			}
 
 		HUD_fixed_printf(0.01f, str);
@@ -2174,8 +2171,8 @@ void player_get_eye(vector *eye_pos, matrix *eye_orient)
 		return;
 	}
 
-	Assert(eye_pos != NULL);
-	Assert(eye_orient != NULL);
+	SDL_assert(eye_pos != NULL);
+	SDL_assert(eye_orient != NULL);
 
 	if (Game_mode & GM_DEAD) {
 		vector	vec_to_deader, view_pos;

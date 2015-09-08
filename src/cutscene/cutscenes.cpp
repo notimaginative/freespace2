@@ -202,40 +202,39 @@ void cutscene_init()
 {
 #ifndef FS1_DEMO  // no cuscenes in FS1 demo
 	char buf[MULTITEXT_LENGTH];
-	int rval;
-
-	if ((rval = setjmp(parse_abort)) != 0) {
-		Error(LOCATION, "Error parsing 'rank.tbl'\r\nError code = %i.\r\n", rval);
-	} 
 
 	// open localization
 	lcl_ext_open();
 
-	read_file_text("cutscenes.tbl");
-	reset_parse();
+	try {
+		read_file_text("cutscenes.tbl");
+		reset_parse();
 
-	// parse in all the rank names
-	Num_cutscenes = 0;
-	skip_to_string("#Cutscenes");
-	ignore_white_space();
-	while ( required_string_either("#End", "$Filename:") ) {
-		Assert ( Num_cutscenes < MAX_CUTSCENES );
-		required_string("$Filename:");
-		stuff_string( Cutscenes[Num_cutscenes].filename, F_PATHNAME, NULL );
-		required_string("$Name:");
-		stuff_string( Cutscenes[Num_cutscenes].name, F_NAME, NULL );
-		required_string("$Description:");
-		stuff_string(buf, F_MULTITEXT, NULL);
-		drop_white_space(buf);
-		compact_multitext_string(buf);
-		Cutscenes[Num_cutscenes].description = strdup(buf);
-		required_string("$cd:");
-		stuff_int( &Cutscenes[Num_cutscenes].cd );
+		// parse in all the rank names
+		Num_cutscenes = 0;
+		skip_to_string("#Cutscenes");
+		ignore_white_space();
+		while ( required_string_either("#End", "$Filename:") ) {
+			SDL_assert ( Num_cutscenes < MAX_CUTSCENES );
+			required_string("$Filename:");
+			stuff_string( Cutscenes[Num_cutscenes].filename, F_PATHNAME, NULL );
+			required_string("$Name:");
+			stuff_string( Cutscenes[Num_cutscenes].name, F_NAME, NULL );
+			required_string("$Description:");
+			stuff_string(buf, F_MULTITEXT, NULL);
+			drop_white_space(buf);
+			compact_multitext_string(buf);
+			Cutscenes[Num_cutscenes].description = strdup(buf);
+			required_string("$cd:");
+			stuff_int( &Cutscenes[Num_cutscenes].cd );
 
-		Num_cutscenes++;
+			Num_cutscenes++;
+		}
+
+		required_string("#End");
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Error parsing 'cutscenes.tbl'\r\nError code = %i.\r\n", (int)rval);
 	}
-
-	required_string("#End");
 
 	Cutscenes_viewable = INTRO_CUTSCENE_FLAG;
 
@@ -257,32 +256,13 @@ void cutscene_tbl_close()
 	}
 }
 
-// function to return 0 based index of which CD a particular movie is on
-// returns -1 on failure.
-int cutscenes_get_cd_num( const char *filename )
-{
-#if defined(OEM_BUILD)
-	return 0;				// only 1 cd for OEM
-#else
-	int i;
-
-	for (i = 0; i < Num_cutscenes; i++ ) {
-		if ( !stricmp(Cutscenes[i].filename, filename) ) {
-			return (Cutscenes[i].cd - 1);
-		}
-	}
-
-	return -1;
-#endif // defined(OEM_BUILD)
-}
-
 // marks a cutscene as viewable
 void cutscene_mark_viewable(const char *filename)
 {
 	int i;
 
 	for (i = 0; i < Num_cutscenes; i++ ) {
-		if ( !stricmp(Cutscenes[i].filename, filename) ) {
+		if ( !SDL_strcasecmp(Cutscenes[i].filename, filename) ) {
 			Cutscenes_viewable |= (1<<i);
 			return;
 		}
@@ -411,93 +391,22 @@ static int Text_line_size[MAX_TEXT_LINES];
 static char *Text_lines[MAX_TEXT_LINES];
 
 
-int cutscenes_validate_cd(const char *mve_name, int prompt_for_cd)
-{
-	int cd_present = 0;
-	int cd_drive_num;
-	int cd_mve_is_on;
-	char volume_name[128];
-
-#ifdef RELEASE_REAL
-	int num_attempts = 0;
-#endif
-
-	while(1) {
-		int path_set_ok;
-
-		cd_mve_is_on = cutscenes_get_cd_num(mve_name);
-		if ((cd_mve_is_on != 0) && (cd_mve_is_on != 1) && (cd_mve_is_on != 2)) {
-			cd_present = 0;
-			break;
-		}
-
-#if defined(OEM_BUILD)
-		sprintf(volume_name, NOX("FS2_OEM"));
-#else
-		sprintf(volume_name, NOX("FREESPACE2_%c"), '1' + cd_mve_is_on);
-#endif
-
-
-		cd_drive_num = find_freespace_cd(volume_name);
-		path_set_ok = set_cdrom_path(cd_drive_num);
-
-		if ( path_set_ok ) {
-			cd_present = 1;
-			break;
-		}
-
-#ifdef RELEASE_REAL
-		if ( !prompt_for_cd ) {
-			cd_present = 0;
-			break;
-		}
-
-		// no CD found, so prompt user
-		char popup_msg[256];
-		int popup_rval;
-
-#if defined(DVD_MESSAGE_HACK)
-		sprintf(popup_msg, XSTR( "Movie not found\n\nInsert FreeSpace DVD to continue", 203));
-#else 
-		sprintf(popup_msg, XSTR( "Movie not found\n\nInsert FreeSpace CD #%d to continue", 203), cd_mve_is_on+1);
-#endif
-
-		popup_rval = popup(PF_BODY_BIG, 2, POPUP_CANCEL, POPUP_OK, popup_msg);
-		if ( popup_rval != 1 ) {
-			cd_present = 0;
-			break;
-		}
-
-		if ( num_attempts++ > 5 ) {
-			cd_present = 0;
-			break;
-		}
-#else
-		cd_present = 0;
-		break;
-#endif
-
-	}
-
-	return cd_present;
-}
-
 void cutscenes_screen_play()
 {
 	char name[MAX_FILENAME_LEN], *full_name;
 	int which_cutscene;
 
-	Assert( (Selected_line >= 0) && (Selected_line < Num_files) );
+	SDL_assert( (Selected_line >= 0) && (Selected_line < Num_files) );
 	which_cutscene = Cutscene_list[Selected_line];
 
-	strcpy(name, Cutscenes[which_cutscene].filename );
+	SDL_strlcpy(name, Cutscenes[which_cutscene].filename, SDL_arraysize(name));
 	full_name = cf_add_ext(name, NOX(".mve"));
 
 	int rval = movie_play(full_name);
 	if ( !rval ) {
 		char str[256];
 
-		sprintf(str, XSTR( "Unable to play movie %s.", 204), Cutscenes[which_cutscene].name );
+		SDL_snprintf(str, SDL_arraysize(str), XSTR( "Unable to play movie %s.", 204), Cutscenes[which_cutscene].name );
 		popup(0, 1, POPUP_OK, str );
 	}
 }
@@ -538,7 +447,7 @@ void cutscenes_screen_scroll_screen_up()
 
 	if (Scroll_offset) {
 		Scroll_offset--;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		h = Cutscene_list_coords[gr_screen.res][3] / gr_get_font_height();
 		while (Selected_line >= Scroll_offset + h){
 			Selected_line--;
@@ -633,16 +542,16 @@ void cutscenes_screen_init()
 	}
 #endif
 
-	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);	
+	Buttons[gr_screen.res][EXIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 
 	List_region.create(&Ui_window, "", Cutscene_list_coords[gr_screen.res][0], Cutscene_list_coords[gr_screen.res][1], Cutscene_list_coords[gr_screen.res][2], Cutscene_list_coords[gr_screen.res][3], 0, 1);
 	List_region.hide();
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
+	Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 
 	Background_bitmap = bm_load(Cutscene_bitmap_name[gr_screen.res]);
 	Scroll_offset = Selected_line = 0;
@@ -681,37 +590,37 @@ void cutscenes_screen_do_frame()
 
 	k = Ui_window.process();
 	switch (k) {
-		case KEY_DOWN:  // select next line
+		case SDLK_DOWN:  // select next line
 			cutscenes_screen_scroll_line_down();
 			break;
 
-		case KEY_UP:  // select previous line
+		case SDLK_UP:  // select previous line
 			cutscenes_screen_scroll_line_up();
 			break;
 
-		case KEY_TAB:
-		case KEY_CTRLED | KEY_DOWN:
+		case SDLK_TAB:
+		case KEY_CTRLED | SDLK_DOWN:
 			cutscenes_screen_button_pressed(CREDITS_BUTTON);
 			break;
 
-		case KEY_SHIFTED | KEY_TAB:
-		case KEY_CTRLED | KEY_UP:
+		case KEY_SHIFTED | SDLK_TAB:
+		case KEY_CTRLED | SDLK_UP:
 			cutscenes_screen_button_pressed(SIMULATOR_BUTTON);
 			break;
 
-		case KEY_ENTER:
+		case SDLK_RETURN:
 			cutscenes_screen_play();
 			break;
 
-		case KEY_ESC:  // cancel
+		case SDLK_ESCAPE:  // cancel
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 			game_flush();
 			break;
 
-		case KEY_F1:  // show help overlay
+		case SDLK_F1:  // show help overlay
 			break;
 
-		case KEY_F2:  // goto options screen
+		case SDLK_F2:  // goto options screen
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 			break;
 	}	// end switch
@@ -785,7 +694,7 @@ void cutscenes_screen_do_frame()
 		src = Cutscenes[Cutscene_list[Description_index]].description;
 		if (src) {
 			Text_size = split_str(src, Cutscene_desc_coords[gr_screen.res][2], Text_line_size, Text_lines, Cutscene_max_text_lines[gr_screen.res]);
-			Assert(Text_size >= 0 && Text_size < Cutscene_max_text_lines[gr_screen.res]);
+			SDL_assert(Text_size >= 0 && Text_size < Cutscene_max_text_lines[gr_screen.res]);
 		}
 	}
 
@@ -805,8 +714,7 @@ void cutscenes_screen_do_frame()
 			if (len > MAX_TEXT_LINE_LEN)
 				len = MAX_TEXT_LINE_LEN;
 
-			strncpy(line, Text_lines[z], len);
-			line[len] = 0;
+			SDL_strlcpy(line, Text_lines[z], len+1);
 			gr_string(Cutscene_desc_coords[gr_screen.res][0], Cutscene_desc_coords[gr_screen.res][1] + y, line);
 
 			y += font_height;

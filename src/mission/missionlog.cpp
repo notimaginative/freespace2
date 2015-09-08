@@ -320,7 +320,7 @@ void mission_log_obsolete_entries(int type, const char *pname)
 			// check to see if the type is a subsystem destroyed entry, and that it belongs to the
 			// ship passed into this routine.  If it matches, mark as obsolete.  We'll clean up
 			// the log when it starts to get full
-			if ( !stricmp( pname, entry->pname ) ) {
+			if ( !SDL_strcasecmp( pname, entry->pname ) ) {
 				if ( (entry->type == LOG_SHIP_SUBSYS_DESTROYED) || (entry->type == LOG_SHIP_DISARMED) || (entry->type == LOG_SHIP_DISABLED) )
 					entry->flags |= MLF_OBSOLETE;
 			}
@@ -408,16 +408,16 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 
 	entry->type = type;
 	if ( pname ) {
-		Assert (strlen(pname) < NAME_LENGTH);
-		strcpy(entry->pname, pname);
+		SDL_assert (strlen(pname) < NAME_LENGTH);
+		SDL_strlcpy(entry->pname, pname, SDL_arraysize(entry->pname));
 	} else
-		strcpy( entry->pname, EMPTY_LOG_NAME );
+		SDL_strlcpy( entry->pname, EMPTY_LOG_NAME, SDL_arraysize(entry->pname) );
 
 	if ( sname ) {
-		Assert (strlen(sname) < NAME_LENGTH);
-		strcpy(entry->sname, sname);
+		SDL_assert (strlen(sname) < NAME_LENGTH);
+		SDL_strlcpy(entry->sname, sname, SDL_arraysize(entry->sname));
 	} else
-		strcpy( entry->sname, EMPTY_LOG_NAME );
+		SDL_strlcpy( entry->sname, EMPTY_LOG_NAME, SDL_arraysize(entry->sname) );
 
 	entry->index = info_index;
 	entry->flags = 0;
@@ -444,7 +444,7 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 			index = ship_name_lookup( pname );
 		}
 
-		Assert ( index != -1 );
+		SDL_assert ( index != -1 );
 		if(index < 0){
 			mission_log_flag_team( entry, ML_FLAG_PRIMARY, TEAM_FRIENDLY );		
 		} else {
@@ -455,7 +455,7 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 		if ( (type == LOG_SHIP_DOCK) || (type == LOG_SHIP_UNDOCK)) {
 			if ( sname ) {
 				index = ship_name_lookup( sname );
-				Assert( index != -1 );
+				SDL_assert( index != -1 );
 				mission_log_flag_team( entry, ML_FLAG_SECONDARY, Ships[index].team );
 			}
 		} else if ( type == LOG_SHIP_DESTROYED ) {
@@ -507,15 +507,15 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 	case LOG_WING_DEPART:
 	case LOG_WING_ARRIVE:
 		index = wing_name_lookup( pname, 1 );
-		Assert( index != -1 );
-		Assert( info_index != -1 );			// this is the team value
+		SDL_assert( index != -1 );
+		SDL_assert( info_index != -1 );			// this is the team value
 
 		// get the team value for this wing.  Departed or destroyed wings will pass the team
 		// value in info_index parameter.  For arriving wings, get the team value from the
 		// first ship in the list
 		if ( type == LOG_WING_ARRIVE ) {
 			si = Wings[index].ship_index[0];
-			Assert( si != -1 );
+			SDL_assert( si != -1 );
 			mission_log_flag_team( entry, ML_FLAG_PRIMARY, Ships[si].team );
 		} else {
 			mission_log_flag_team( entry, ML_FLAG_PRIMARY, info_index );
@@ -585,8 +585,8 @@ void mission_log_add_entry_multi( int type, const char *pname, const char *sname
 	log_entry *entry;
 
 	// we'd better be in multiplayer and not the master of the game
-	Assert ( Game_mode & GM_MULTIPLAYER );
-	Assert ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
+	SDL_assert ( Game_mode & GM_MULTIPLAYER );
+	SDL_assert ( !(Net_player->flags & NETINFO_FLAG_AM_MASTER) );
 
 	// mark any entries as obsolete.  Part of the pruning is done based on the type (and name) passed
 	// for a new entry
@@ -602,12 +602,12 @@ void mission_log_add_entry_multi( int type, const char *pname, const char *sname
 
 	entry->type = type;
 	if ( pname ) {
-		Assert (strlen(pname) < NAME_LENGTH);
-		strcpy(entry->pname, pname);
+		SDL_assert (strlen(pname) < NAME_LENGTH);
+		SDL_strlcpy(entry->pname, pname, SDL_arraysize(entry->pname));
 	}
 	if ( sname ) {
-		Assert (strlen(sname) < NAME_LENGTH);
-		strcpy(entry->sname, sname);
+		SDL_assert (strlen(sname) < NAME_LENGTH);
+		SDL_strlcpy(entry->sname, sname, SDL_arraysize(entry->sname));
 	}
 	entry->index = index;
 
@@ -630,14 +630,14 @@ int mission_log_get_time_indexed( int type, const char *pname, const char *sname
 			// were passed into this function.  Count the entry as found if either name matches both in the other
 			// set.
 			if ( (type == LOG_SHIP_DOCK) || (type == LOG_SHIP_UNDOCK) ) {
-				Assert ( sname );
-				if ( (!stricmp(entry->pname, pname) && !stricmp(entry->sname, sname)) || (!stricmp(entry->pname, sname) && !stricmp(entry->sname, pname)) )
+				SDL_assert ( sname );
+				if ( (!SDL_strcasecmp(entry->pname, pname) && !SDL_strcasecmp(entry->sname, sname)) || (!SDL_strcasecmp(entry->pname, sname) && !SDL_strcasecmp(entry->sname, pname)) )
 					found = 1;
 			} else {
 				// for non dock/undock goals, then the names are important!
-				if ( stricmp(entry->pname, pname) )
+				if ( SDL_strcasecmp(entry->pname, pname) )
 					goto next_entry;
-				if ( !sname || !stricmp(sname, entry->sname) )
+				if ( !sname || !SDL_strcasecmp(sname, entry->sname) )
 					found = 1;
 			}
 
@@ -679,7 +679,7 @@ void message_log_add_seg(int n, int x, int color, const char *text, int flags = 
 		parent = &((*parent)->next);
 
 	seg = (log_text_seg *) malloc(sizeof(log_text_seg));
-	Assert(seg);
+	SDL_assert(seg);
 	seg->text = strdup(text);
 	seg->color = color;
 	seg->x = x;
@@ -818,7 +818,7 @@ void message_log_init_scrollback(int pw)
 					message_log_add_segs(XSTR( "  Kill: ", 405), LOG_COLOR_NORMAL);
 					message_log_add_segs(entry->sname, c);
 					if (entry->index >= 0) {
-						sprintf(text, NOX(" (%d%%)"), entry->index);
+						SDL_snprintf(text, SDL_arraysize(text), NOX(" (%d%%)"), entry->index);
 						message_log_add_segs(text, LOG_COLOR_BRIGHT);
 					}
 				}
@@ -838,9 +838,9 @@ void message_log_init_scrollback(int pw)
 
 			case LOG_WING_ARRIVE:
 				if (entry->index > 1){
-					sprintf(text, XSTR( "Arrived (wave %d)", 407), entry->index);
+					SDL_snprintf(text, SDL_arraysize(text), XSTR( "Arrived (wave %d)", 407), entry->index);
 				} else {
-					strcpy(text, XSTR( "Arrived", 406));
+					SDL_strlcpy(text, XSTR( "Arrived", 406), SDL_arraysize(text));
 				}
 				message_log_add_segs(text, LOG_COLOR_NORMAL);
 				break;
@@ -901,13 +901,13 @@ void message_log_init_scrollback(int pw)
 				break;
 
 			case LOG_CARGO_REVEALED:
-				Assert( entry->index != -1 );
+				SDL_assert( entry->index != -1 );
 				message_log_add_segs(XSTR( "Cargo revealed: ", 418), LOG_COLOR_NORMAL);
 				message_log_add_segs( Cargo_names[entry->index], LOG_COLOR_BRIGHT );
 				break;
 
 			case LOG_CAP_SUBSYS_CARGO_REVEALED:
-				Assert( entry->index != -1 );
+				SDL_assert( entry->index != -1 );
 				message_log_add_segs(entry->sname, LOG_COLOR_NORMAL);
 				message_log_add_segs(XSTR( " subsystem cargo revealed: ", 1488), LOG_COLOR_NORMAL);
 				message_log_add_segs( Cargo_names[entry->index], LOG_COLOR_BRIGHT );
@@ -924,11 +924,11 @@ void message_log_init_scrollback(int pw)
 					break;  // don't display this line
 				}
 
-				sprintf( text, XSTR( "%s objective ", 419), Goal_type_text(type) );
+				SDL_snprintf( text, SDL_arraysize(text), XSTR( "%s objective ", 419), Goal_type_text(type) );
 				if ( entry->type == LOG_GOAL_SATISFIED )
-					strcat(text, XSTR( "satisfied.", 420));
+					SDL_strlcat(text, XSTR( "satisfied.", 420), SDL_arraysize(text));
 				else
-					strcat(text, XSTR( "failed.", 421));
+					SDL_strlcat(text, XSTR( "failed.", 421), SDL_arraysize(text));
 
 				message_log_add_segs(text, LOG_COLOR_BRIGHT, (entry->type == LOG_GOAL_SATISFIED?LOG_FLAG_GOAL_TRUE:LOG_FLAG_GOAL_FAILED) );
 				break;
@@ -998,7 +998,7 @@ void mission_log_scrollback(int line, int list_x, int list_y, int list_w, int li
 					break;
 			}
 
-			strcpy(buf, seg->text);
+			SDL_strlcpy(buf, seg->text, SDL_arraysize(buf));
 			if (seg->x < ACTION_X)
 				gr_force_fit_string(buf, 256, ACTION_X - OBJECT_X - 8);
 			else

@@ -389,7 +389,7 @@ void light_add_directional( vector *dir, float intensity, float r, float g, floa
 	l->ignore_objnum = -1;
 	l->affected_objnum = -1;
 		
-	Assert( Num_light_levels <= 1 );
+	SDL_assert( Num_light_levels <= 1 );
 //	Relevent_lights[Num_relevent_lights[Num_light_levels-1]++][Num_light_levels-1] = l;
 
 	if(Static_light_count < MAX_STATIC_LIGHTS){		
@@ -406,7 +406,7 @@ void light_add_point( vector * pos, float rad1, float rad2, float intensity, flo
 
 	if (!Lighting_flag) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 
 	if ( Num_lights >= MAX_LIGHTS ) {
 		mprintf(( "Out of lights!\n" ));
@@ -428,7 +428,7 @@ void light_add_point( vector * pos, float rad1, float rad2, float intensity, flo
 	l->ignore_objnum = ignore_objnum;
 	l->affected_objnum = -1;
 
-	Assert( Num_light_levels <= 1 );
+	SDL_assert( Num_light_levels <= 1 );
 //	Relevent_lights[Num_relevent_lights[Num_light_levels-1]++][Num_light_levels-1] = l;
 }
 
@@ -440,7 +440,7 @@ void light_add_point_unique( vector * pos, float rad1, float rad2, float intensi
 
 	if (!Lighting_flag) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 
 	if ( Num_lights >= MAX_LIGHTS ) {
 		mprintf(( "Out of lights!\n" ));
@@ -462,7 +462,7 @@ void light_add_point_unique( vector * pos, float rad1, float rad2, float intensi
 	l->ignore_objnum = -1;
 	l->affected_objnum = affected_objnum;
 
-	Assert( Num_light_levels <= 1 );
+	SDL_assert( Num_light_levels <= 1 );
 }
 
 // for now, tube lights only affect one ship (to keep the filter stuff simple)
@@ -474,7 +474,7 @@ void light_add_tube(vector *p0, vector *p1, float r1, float r2, float intensity,
 
 	if (!Lighting_flag) return;
 
-//	if ( keyd_pressed[KEY_LSHIFT] ) return;
+//	if ( key_pressed(SDLK_LSHIFT) ) return;
 
 	if ( Num_lights >= MAX_LIGHTS ) {
 		mprintf(( "Out of lights!\n" ));
@@ -497,7 +497,7 @@ void light_add_tube(vector *p0, vector *p1, float r1, float r2, float intensity,
 	l->ignore_objnum = -1;
 	l->affected_objnum = affected_objnum;
 
-	Assert( Num_light_levels <= 1 );
+	SDL_assert( Num_light_levels <= 1 );
 }
 
 // Reset the list of lights to point to all lights.
@@ -535,7 +535,7 @@ int light_filter_push( int objnum, vector *pos, float rad )
 	n1 = Num_light_levels-1;
 	n2 = Num_light_levels;
 	Num_light_levels++;
-	Assert( Num_light_levels < MAX_LIGHT_LEVELS );
+	SDL_assert( Num_light_levels < MAX_LIGHT_LEVELS );
 
 	Num_relevent_lights[n2] = 0;
 
@@ -635,7 +635,7 @@ int light_filter_push_box( vector *min, vector *max )
 //		mprintf(( "Max level = %d\n", mll ));
 //	}
 
-	Assert( Num_light_levels < MAX_LIGHT_LEVELS );
+	SDL_assert( Num_light_levels < MAX_LIGHT_LEVELS );
 
 	Num_relevent_lights[n2] = 0;
 
@@ -674,7 +674,7 @@ void light_filter_pop()
 	if ( Lighting_off ) return;
 
 	Num_light_levels--;
-	Assert( Num_light_levels > 0 );
+	SDL_assert( Num_light_levels > 0 );
 }
 
 int l_num_points=0, l_num_lights=0;
@@ -689,7 +689,6 @@ void light_rotate_all()
 
 	int n = Num_light_levels-1;
 
-	l = Lights;
 	for (i=0; i<Num_relevent_lights[n]; i++ )	{
 		l = Relevent_lights[i][n];
 		light_rotate(l);

@@ -140,7 +140,7 @@ void mht_init()
 	main_hall_start_music();
 
 	// set the game_mode based on the type of player
-	Assert( Player != NULL );
+	SDL_assert( Player != NULL );
 	if ( Player->flags & PLAYER_FLAGS_IS_MULTI ){
 		Game_mode = GM_MULTIPLAYER;
 	} else {
@@ -157,39 +157,39 @@ void mht_do()
 
 	// process any keypresses
 	switch(k){
-	case KEY_ESC :		
+	case SDLK_ESCAPE :
 		mht_exit_game();
 		break;
 
-	case KEY_B:
+	case SDLK_b:
 		gameseq_post_event( GS_EVENT_BARRACKS_MENU );
 		break;	
 
-	case KEY_G:
+	case SDLK_g:
 		if(Player->flags & PLAYER_FLAGS_IS_MULTI){
 			break;
 		}
 
 		if (Num_recent_missions > 0)	{
-			strncpy( Game_current_mission_filename, Recent_missions[0], MAX_FILENAME_LEN );
+			SDL_strlcpy( Game_current_mission_filename, Recent_missions[0], SDL_arraysize(Game_current_mission_filename) );
 		} else {
 			mission_load_up_campaign();
-			strncpy( Game_current_mission_filename, Campaign.missions[0].name, MAX_FILENAME_LEN );
+			SDL_strlcpy( Game_current_mission_filename, Campaign.missions[0].name, SDL_arraysize(Game_current_mission_filename) );
 		}
 
 		Campaign.current_mission = -1;
 		gameseq_post_event(GS_EVENT_START_GAME_QUICK);
 		break;
 
-	case KEY_L:
+	case SDLK_l:
 		gameseq_post_event( GS_EVENT_LOAD_MISSION_MENU );
 		break;
 
-	case KEY_F2:
+	case SDLK_F2:
 		gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 		break;
 
-	case KEY_M:
+	case SDLK_m:
 		if (Player->flags & PLAYER_FLAGS_IS_MULTI){
 			main_hall_do_multi_ready();
 		}

@@ -49,7 +49,7 @@
  * code.
  * 
  * 22    9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 21    9/09/99 9:34a Jefff
@@ -198,7 +198,6 @@
 #include <fnmatch.h>
 #endif
 #include <string.h>
-#include <setjmp.h>
 #include <errno.h>
 
 #include "key.h"
@@ -251,9 +250,9 @@ int Granted_ships[MAX_SHIP_TYPES];
 int Granted_weapons[MAX_WEAPON_TYPES];
 
 // variables to control the UI stuff for loading campaigns
-LOCAL UI_WINDOW Campaign_window;
-LOCAL UI_LISTBOX Campaign_listbox;
-LOCAL UI_BUTTON Campaign_okb, Campaign_cancelb;
+static UI_WINDOW Campaign_window;
+static UI_LISTBOX Campaign_listbox;
+static UI_BUTTON Campaign_okb, Campaign_cancelb;
 
 // the campaign!!!!!
 campaign Campaign;
@@ -274,33 +273,23 @@ campaign Campaign;
 // player or multiplayer campaign.  The type field will only be valid if the name returned is non-NULL
 int mission_campaign_get_info(const char *filename, char *name, int *type, int *max_players, char **desc)
 {
-	int rval, i;
+	int i;
 	char campaign_type[NAME_LENGTH], fname[MAX_FILENAME_LEN];
 
-	Assert( name != NULL );
-	Assert( type != NULL );
+	SDL_assert( name != NULL );
+	SDL_assert( type != NULL );
 
 	// open localization
 	lcl_ext_open();
 
-	strcpy(fname, filename);
-	if ((strlen(fname) < 4) || stricmp(fname + strlen(fname) - 4, FS_CAMPAIGN_FILE_EXT)){
-		strcat(fname, FS_CAMPAIGN_FILE_EXT);
+	SDL_strlcpy(fname, filename, SDL_arraysize(fname));
+	if ((strlen(fname) < 4) || SDL_strcasecmp(fname + strlen(fname) - 4, FS_CAMPAIGN_FILE_EXT)){
+		SDL_strlcat(fname, FS_CAMPAIGN_FILE_EXT, SDL_arraysize(fname));
 	}
 
-	Assert(strlen(fname) < MAX_FILENAME_LEN);
+	SDL_assert(strlen(fname) < MAX_FILENAME_LEN);
 
-	if ((rval = setjmp(parse_abort)) != 0) {
-		if (rval == 5){
-			// close localization
-			lcl_ext_close();
-
-			return 0;
-		}
-
-		Error(LOCATION, "Error parsing '%s'\r\nError code = %i.\r\n", fname, rval);
-
-	} else {
+	try {
 		read_file_text( fname );
 		reset_parse();
 		required_string("$Name:");
@@ -321,7 +310,7 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 
 		*type = -1;
 		for (i=0; i<MAX_CAMPAIGN_TYPES; i++) {
-			if ( !stricmp(campaign_type, campaign_types[i]) ) {
+			if ( !SDL_strcasecmp(campaign_type, campaign_types[i]) ) {
 				*type = i;
 			}
 		}
@@ -346,6 +335,15 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 
 			return 1;
 		}
+	} catch (parse_error_t rval) {
+		if (rval == PARSE_ERROR_FILE_NOT_FOUND) {
+			// close localization
+			lcl_ext_close();
+
+			return 0;
+		}
+
+		Error(LOCATION, "Error parsing '%s'\r\nError code = %i.\r\n", fname, (int)rval);
 	}
 
 	Int3();		// get Allender -- incorrect type found
@@ -361,20 +359,13 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 //
 int mission_campaign_get_mission_list(const char *filename, char **list, int max)
 {
-	int rval, i, num = 0;
+	int i, num = 0;
 	char name[NAME_LENGTH];
 
 	filename = cf_add_ext(filename, FS_CAMPAIGN_FILE_EXT);
 
 	// read the mission file and get the list of mission filenames
-	if ((rval = setjmp(parse_abort)) != 0) {
-		// since we can't return count of allocated elements, free them instead
-		for (i=0; i<num; i++)
-			free(list[i]);
-
-		return -1;
-
-	} else {
+	try {
 		read_file_text(filename);
 		reset_parse();
 
@@ -383,98 +374,15 @@ int mission_campaign_get_mission_list(const char *filename, char **list, int max
 			if (num < max)
 				list[num++] = strdup(name);
 		}
+	} catch (parse_error_t) {
+		// since we can't return count of allocated elements, free them instead
+		for (i=0; i<num; i++)
+			free(list[i]);
+
+		return -1;
 	}
 
 	return num;
-}
-
-void mission_campaign_maybe_add( const char *filename, int multiplayer )
-{
-	char name[NAME_LENGTH];
-	int type,max_players;
-
-	if ( mission_campaign_get_info( filename, name, &type, &max_players) ) {
-		if ( !multiplayer && ( type == CAMPAIGN_TYPE_SINGLE) ) {
-			Campaign_names[Num_campaigns] = strdup(name);
-			Campaign_file_names[Num_campaigns] = strdup(filename);
-			Num_campaigns++;
-		}
-	}
-}
-
-// mission_campaign_build_list() builds up the list of campaigns that the user might
-// be able to pick from.  It uses the multiplayer flag to tell if we should display a list
-// of single or multiplayer campaigns.  This routine sets the Num_campaigns and Campaign_names
-// global variables
-void mission_campaign_build_list( int multiplayer )
-{
-#ifdef PLAT_UNIX
-	DIR *dirp;
-	struct dirent *dir;
-	char wild_card[256];
-	
-	Num_campaigns = 0;
-	mission_campaign_maybe_add( BUILTIN_CAMPAIGN, multiplayer);	
-	
-	strcpy(wild_card, "Data/Missions");
-	
-	dirp = opendir(wild_card);
-	if (dirp) {
-		while ((dir = readdir(dirp)) != NULL) {
-			if ( Num_campaigns >= MAX_CAMPAIGNS )
-				break;
-				
-			if (fnmatch("*"FS_CAMPAIGN_FILE_EXT, dir->d_name, 0) == 0) {
-				if (stricmp(dir->d_name, BUILTIN_CAMPAIGN) == 0)
-					continue;
-				
-				char fn[MAX_PATH];
-				snprintf(fn, MAX_PATH-1, "%s/%s", wild_card, dir->d_name);
-				fn[MAX_PATH-1] = 0;
-			
-				struct stat buf;
-				if (stat(fn, &buf) == -1) {
-					continue;
-				}
- 			
-				if (!S_ISREG(buf.st_mode)) {
-					continue;
-				}
-				
-				mission_campaign_maybe_add(dir->d_name, multiplayer);
-			}
-		}
-		closedir(dirp);
-	}	
-#else
-	int find_handle;
-	_finddata_t find;
-	char wild_card[256];
-
-	Num_campaigns = 0;
-	mission_campaign_maybe_add( BUILTIN_CAMPAIGN, multiplayer);
-
-	memset(wild_card, 0, 256);
-	strcpy(wild_card, NOX("data\\missions\\*"));
-	strcat(wild_card, FS_CAMPAIGN_FILE_EXT);
-	find_handle = _findfirst( wild_card, &find );
-	if( find_handle != -1 )	{
-		if ( !(find.attrib & _A_SUBDIR) && stricmp(find.name, BUILTIN_CAMPAIGN) ){
-			mission_campaign_maybe_add( find.name, multiplayer);
-		}
-
-		while( !_findnext( find_handle, &find ) )	{
-			if ( !(find.attrib & _A_SUBDIR) && stricmp(find.name, BUILTIN_CAMPAIGN) )	{
-				if ( Num_campaigns >= MAX_CAMPAIGNS ){
-					//MessageBox( -2,-2, 1, "Only the first 300 files will be displayed.", "Ok" );
-					break;
-				} else {
-					mission_campaign_maybe_add( find.name, multiplayer);
-				}
-			}
-		}
-	}
-#endif
 }
 
 // gets optional ship/weapon information
@@ -525,7 +433,7 @@ void mission_campaign_get_sw_info()
 // functions work properly and update them if it breaks them.
 int mission_campaign_load( const char *filename, int load_savefile )
 {
-	int len, rval, i;
+	int len, i;
 	char name[NAME_LENGTH], type[NAME_LENGTH];
 
 	filename = cf_add_ext(filename, FS_CAMPAIGN_FILE_EXT);
@@ -534,22 +442,14 @@ int mission_campaign_load( const char *filename, int load_savefile )
 	lcl_ext_open();	
 
 	// read the mission file and get the list of mission filenames
-	if ((rval = setjmp(parse_abort)) != 0) {
-		mprintf(("Error parsing '%s'\r\nError code = %i.\r\n", filename, rval));
-
-		// close localization
-		lcl_ext_close();
-
-		return CAMPAIGN_ERROR_CORRUPT;
-
-	} else {
+	try {
 		// be sure to remove all old malloced strings of Mission_names
 		// we must also free any goal stuff that was from a previous campaign
 		// this also frees sexpressions so the next call to init_sexp will be able to reclaim
 		// nodes previously used by another campaign.
 		mission_campaign_close();
 
-		strcpy( Campaign.filename, filename );
+		SDL_strlcpy( Campaign.filename, filename, SDL_arraysize(Campaign.filename) );
 
 		// only initialize the sexpression stuff when Fred isn't running.  It'll screw things up major
 		// if it does
@@ -562,22 +462,20 @@ int mission_campaign_load( const char *filename, int load_savefile )
 		memset( &Campaign, 0, sizeof(Campaign) );
 
 		// copy filename to campaign structure minus the extension
-		len = strlen(filename) - 4;
-		Assert(len < MAX_FILENAME_LEN);
-		strncpy(Campaign.filename, filename, len);
-		Campaign.filename[len] = 0;
+		len = min(strlen(filename) - 4 + 1, SDL_arraysize(Campaign.filename));
+		SDL_strlcpy(Campaign.filename, filename, len);
 
 		required_string("$Name:");
 		stuff_string( name, F_NAME, NULL );
 		
 		//Store campaign name in the global struct
-		strcpy( Campaign.name, name );
+		SDL_strlcpy( Campaign.name, name, SDL_arraysize(Campaign.name) );
 
 		required_string( "$Type:" );
 		stuff_string( type, F_NAME, NULL );
 
 		for (i = 0; i < MAX_CAMPAIGN_TYPES; i++ ) {
-			if ( !stricmp(type, campaign_types[i]) ) {
+			if ( !SDL_strcasecmp(type, campaign_types[i]) ) {
 				Campaign.type = i;
 				break;
 			}
@@ -628,7 +526,7 @@ int mission_campaign_load( const char *filename, int load_savefile )
 			if ( optional_string("+Formula:") ) {
 				cm->formula = get_sexp_main();
 				if ( !Fred_running ) {
-					Assert ( cm->formula != -1 );
+					SDL_assert ( cm->formula != -1 );
 					sexp_mark_persistent( cm->formula );
 
 				} else {
@@ -666,7 +564,7 @@ int mission_campaign_load( const char *filename, int load_savefile )
 			if ( optional_string("+Formula:") ) {
 				cm->mission_loop_formula = get_sexp_main();
 				if ( !Fred_running ) {
-					Assert ( cm->mission_loop_formula != -1 );
+					SDL_assert ( cm->mission_loop_formula != -1 );
 					sexp_mark_persistent( cm->mission_loop_formula );
 
 				} else {
@@ -706,6 +604,13 @@ int mission_campaign_load( const char *filename, int load_savefile )
 			cm->events = NULL;
 			Campaign.num_missions++;
 		}
+	} catch (parse_error_t rval) {
+		mprintf(("Error parsing '%s'\r\nError code = %i.\r\n", filename, (int)rval));
+
+		// close localization
+		lcl_ext_close();
+
+		return CAMPAIGN_ERROR_CORRUPT;
 	}
 
 	// set up the other variables for the campaign stuff.  After initializing, we must try and load
@@ -739,15 +644,15 @@ int mission_campaign_load_by_name( const char *filename )
 
 	// make sure to tack on .fsc on the end if its not there already
 	if(strlen(filename) > 0){
-		strncpy(real_filename, filename, MAX_FILENAME_LEN);
+		SDL_strlcpy(real_filename, filename, MAX_FILENAME_LEN);
 
 		if(strlen(real_filename) > 4){
-			strcpy(test,real_filename+(strlen(real_filename)-4));
+			SDL_strlcpy(test, real_filename+(strlen(real_filename)-4), SDL_arraysize(test));
 			if(strcmp(test, FS_CAMPAIGN_FILE_EXT)!=0){
-				strcat(real_filename, FS_CAMPAIGN_FILE_EXT);
+				SDL_strlcat(real_filename, FS_CAMPAIGN_FILE_EXT, SDL_arraysize(real_filename));
 			}
 		} else {
-			strcat(real_filename, FS_CAMPAIGN_FILE_EXT);
+			SDL_strlcat(real_filename, FS_CAMPAIGN_FILE_EXT, SDL_arraysize(real_filename));
 		}
 	} else {
 		Error(LOCATION,"Tried to load campaign file with illegal length/extension!");
@@ -768,7 +673,7 @@ int mission_campaign_load_by_name( const char *filename )
 int mission_campaign_load_by_name_csfe( const char *filename, const char *callsign )
 {
 	Game_mode |= GM_NORMAL;
-	strcpy(Player->callsign, callsign);
+	SDL_strlcpy(Player->callsign, callsign, SDL_arraysize(Player->callsign));
 	return mission_campaign_load_by_name( filename);
 }
 
@@ -780,18 +685,18 @@ void mission_campaign_init()
 }
 
 // Fill in the root of the campaign save filename
-void mission_campaign_savefile_generate_root(char *filename)
+void mission_campaign_savefile_generate_root(char *filename, const int max_len)
 {
-	char base[_MAX_FNAME];
+	char base[MAX_FILENAME_LEN];
 
-	Assert ( strlen(Campaign.filename) != 0 );
+	SDL_assert ( strlen(Campaign.filename) != 0 );
 
 	// build up the filename for the save file.  There could be a problem with filename length,
 	// but this problem can get fixed in several ways -- ignore the problem for now though.
-	_splitpath( Campaign.filename, NULL, NULL, base, NULL );
-	Assert ( (strlen(base) + strlen(Player->callsign) + 1) < _MAX_FNAME );
+	base_filename(Campaign.filename, base, SDL_arraysize(base));
+	SDL_assert ( (int)(strlen(base) + strlen(Player->callsign)) < max_len );
 
-	sprintf( filename, NOX("%s.%s."), Player->callsign, base );
+	SDL_snprintf( filename, max_len, NOX("%s.%s."), Player->callsign, base );
 }
 
 // mission_campaign_savefile_save saves the state of the campaign.  This function will probably always be called
@@ -800,16 +705,16 @@ void mission_campaign_savefile_generate_root(char *filename)
 
 int mission_campaign_savefile_save()
 {
-	char filename[_MAX_FNAME];
+	char filename[MAX_PATH_LEN];
 	CFILE *fp;
 	int i,j, mission_count;
 
-	memset(filename, 0, _MAX_FNAME);
-	mission_campaign_savefile_generate_root(filename);
+	memset(filename, 0, sizeof(filename));
+	mission_campaign_savefile_generate_root(filename, SDL_arraysize(filename));
 
 	// name the file differently depending on whether we're in single player or multiplayer mode
 	// single player : *.csg
-	strcat( filename, NOX("csg"));	
+	SDL_strlcat( filename, NOX("csg"), SDL_arraysize(filename) );
 
 	fp = cfopen(filename,"wb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
 
@@ -870,12 +775,12 @@ int mission_campaign_savefile_save()
 	// ugh!  due to horrible bug, the stats saved at the end of every level were not written
 	// out to disk.  Write out a seperate file to do this.  We will only read it in if we actually
 	// find the file.
-	memset(filename, 0, _MAX_FNAME);
-	mission_campaign_savefile_generate_root(filename);
+	memset(filename, 0, sizeof(filename));
+	mission_campaign_savefile_generate_root(filename, SDL_arraysize(filename));
 
 	// name the file differently depending on whether we're in single player or multiplayer mode
 	// single player : *.csg
-	strcat( filename, NOX("css"));
+	SDL_strlcat( filename, NOX("css"), SDL_arraysize(filename) );
 
 	fp = cfopen(filename,"wb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
 
@@ -917,7 +822,7 @@ int campaign_savefile_save(const char *pname)
 	else
 		Game_mode |= GM_MULTIPLAYER;
 
-	strcpy(Player->callsign, pname);
+	SDL_strlcpy(Player->callsign, pname, SDL_arraysize(Player->callsign));
 	//memcpy(&Campaign, camp, sizeof(campaign));
 	return mission_campaign_savefile_save();
 }
@@ -931,22 +836,22 @@ int campaign_savefile_save(const char *pname)
 // campaign filename
 void mission_campaign_savefile_delete( const char *cfilename, int is_multi )
 {
-	char filename[_MAX_FNAME], base[_MAX_FNAME];
+	char filename[MAX_PATH_LEN], base[MAX_FILENAME_LEN];
 
-	_splitpath( cfilename, NULL, NULL, base, NULL );
+	base_filename(cfilename, base, SDL_arraysize(base));
 
 	if ( Player->flags & PLAYER_FLAGS_IS_MULTI ) {
 		return;	// no such thing as a multiplayer campaign savefile
 	}
 
-	sprintf( filename, NOX("%s.%s.csg"), Player->callsign, base );
+	SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.csg"), Player->callsign, base );
 
 	cf_delete( filename, CF_TYPE_SINGLE_PLAYERS );
 }
 
 void campaign_delete_save( const char *cfn, const char *pname)
 {
-	strcpy(Player->callsign, pname);
+	SDL_strlcpy(Player->callsign, pname, SDL_arraysize(Player->callsign));
 	mission_campaign_savefile_delete(cfn);
 }
 
@@ -968,7 +873,7 @@ void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi
 	ext = NOX(".csg");
 	dir_type = CF_TYPE_SINGLE_PLAYERS;
 
-	sprintf(spec, NOX("%s.*%s"), pilot_name, ext);
+	SDL_snprintf(spec, SDL_arraysize(spec), NOX("%s.*%s"), pilot_name, ext);
 
 	// HACK HACK HACK HACK!!!!  cf_get_file_list is not reentrant.  Pretty dumb because it should
 	// be.  I have to save any file filters
@@ -978,8 +883,8 @@ void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi
 	Get_file_list_filter = filter_save;
 
 	for (i=0; i<num_files; i++) {
-		strcpy(filename, names[i]);
-		strcat(filename, ext);
+		SDL_strlcpy(filename, names[i], SDL_arraysize(filename));
+		SDL_strlcat(filename, ext, SDL_arraysize(filename));
 		cf_delete(filename, dir_type);
 		free(names[i]);
 	}
@@ -989,25 +894,25 @@ void mission_campaign_delete_all_savefiles( const char *pilot_name, int is_multi
 // of the information stored in the campaign file.
 void mission_campaign_savefile_load( const char *cfilename )
 {
-	char filename[_MAX_FNAME], base[_MAX_FNAME];
+	char filename[MAX_PATH_LEN], base[MAX_FILENAME_LEN];
 	int version, i, num, j, num_stats_blocks;
 	uint id, type_sig;
 	CFILE *fp;
 
-	Assert ( strlen(cfilename) != 0 );
+	SDL_assert ( strlen(cfilename) != 0 );
 
 	// probably only called from single player games anymore!!! should be anyway
-	Assert( Game_mode & GM_NORMAL );		// get allender or DaveB.  trying to save campaign in multiplayer
+	SDL_assert( Game_mode & GM_NORMAL );		// get allender or DaveB.  trying to save campaign in multiplayer
 
 	// build up the filename for the save file.  There could be a problem with filename length,
 	// but this problem can get fixed in several ways -- ignore the problem for now though.
-	_splitpath( cfilename, NULL, NULL, base, NULL );
-	Assert ( (strlen(base) + strlen(Player->callsign) + 1) < _MAX_FNAME );
+	base_filename(cfilename, base, SDL_arraysize(base));
+	SDL_assert ( (strlen(base) + strlen(Player->callsign)) < SDL_arraysize(filename) );
 
 	if(Game_mode & GM_MULTIPLAYER)
-		sprintf( filename, NOX("%s.%s.msg"), Player->callsign, base );
+		SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.msg"), Player->callsign, base );
 	else
-		sprintf( filename, NOX("%s.%s.csg"), Player->callsign, base );
+		SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.csg"), Player->callsign, base );
 
 	fp = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS );
 	if ( !fp )
@@ -1034,15 +939,15 @@ void mission_campaign_savefile_load( const char *cfilename )
 	else
 		type_sig = CAMPAIGN_SINGLE_PLAYER_SIG;
 	// the actual check
-	Assert( ((Game_mode & GM_MULTIPLAYER) && (type_sig==CAMPAIGN_MULTI_PLAYER_SIG)) || (!(Game_mode & GM_MULTIPLAYER) && (type_sig==CAMPAIGN_SINGLE_PLAYER_SIG)) );
+	SDL_assert( ((Game_mode & GM_MULTIPLAYER) && (type_sig==CAMPAIGN_MULTI_PLAYER_SIG)) || (!(Game_mode & GM_MULTIPLAYER) && (type_sig==CAMPAIGN_SINGLE_PLAYER_SIG)) );
 
 	Campaign.type = type_sig == CAMPAIGN_SINGLE_PLAYER_SIG ? CAMPAIGN_TYPE_SINGLE : CAMPAIGN_TYPE_MULTI_COOP;
 
 	// read in the filename of the campaign and compare the filenames to be sure that
 	// we are reading data that really belongs to this campaign.  I think that this check
 	// is redundant.
-	cfread_string_len( filename, _MAX_FNAME, fp );
-	/*if ( stricmp( filename, cfilename) ) {	//	Used to be !stricmp.  How did this ever work? --MK, 11/9/97
+	cfread_string_len( filename, SDL_arraysize(filename), fp );
+	/*if ( SDL_strcasecmp( filename, cfilename) ) {	//	Used to be !SDL_strcasecmp.  How did this ever work? --MK, 11/9/97
 		Warning(LOCATION, "Campaign save file appears corrupt because of mismatching filenames.");
 		cfclose(fp);
 		return;
@@ -1087,7 +992,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 		Campaign.missions[num].goals = (mgoal *)malloc( Campaign.missions[num].num_goals * sizeof(mgoal) );
 		if ( Campaign.missions[num].num_goals > 0 ) {
 			memset( Campaign.missions[num].goals, 0, sizeof(mgoal) * Campaign.missions[num].num_goals );
-			Assert( Campaign.missions[num].goals != NULL );
+			SDL_assert( Campaign.missions[num].goals != NULL );
 		}
 
 		// now read in the goal information for this mission
@@ -1106,7 +1011,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 		Campaign.missions[num].events = (mevent *)malloc( Campaign.missions[num].num_events * sizeof(mevent) );
 		if ( Campaign.missions[num].num_events > 0 ) {
 			memset( Campaign.missions[num].events, 0, sizeof(mevent) * Campaign.missions[num].num_events );
-			Assert( Campaign.missions[num].events != NULL );
+			SDL_assert( Campaign.missions[num].events != NULL );
 		}
 		
 		// now read in the event information for this mission
@@ -1125,7 +1030,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 	// now, try and read in the campaign stats saved information.  This code was added for the 1.03 patch
 	// since the stats data was never written out to disk.  We try and open the file, and if we cannot find
 	// it, then simply return
-	sprintf( filename, NOX("%s.%s.css"), Player->callsign, base );
+	SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.css"), Player->callsign, base );
 
 	fp = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS );
 	if ( !fp )
@@ -1164,7 +1069,7 @@ void campaign_savefile_load(const char *fname, const char *pname)
 	}
 	else
 		Game_mode |= GM_MULTIPLAYER;
-	strcpy(Player->callsign, pname);
+	SDL_strlcpy(Player->callsign, pname, SDL_arraysize(Player->callsign));
 	mission_campaign_savefile_load(fname);
 }
 
@@ -1178,7 +1083,7 @@ int mission_campaign_next_mission()
 		return -1;
 
 	Campaign.current_mission = Campaign.next_mission;	
-	strncpy( Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, MAX_FILENAME_LEN );
+	SDL_strlcpy( Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, MAX_FILENAME_LEN );
 
 	// check for end of loop.
 	if (Campaign.current_mission == Campaign.loop_reentry) {
@@ -1210,7 +1115,7 @@ int mission_campaign_previous_mission()
 	// reset the player stats to be the stats from this level
 	memcpy( &Player->stats, &Campaign.missions[Campaign.current_mission].stats, sizeof(Player->stats) );
 
-	strncpy( Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, MAX_FILENAME_LEN );
+	SDL_strlcpy( Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, MAX_FILENAME_LEN );
 	Num_granted_ships = 0;
 	Num_granted_weapons = 0;
 
@@ -1245,7 +1150,7 @@ int mission_campaign_eval_next_mission( int store_stats )
 	mission->num_goals = Num_goals;
 	if ( mission->num_goals > 0 ) {
 		mission->goals = (mgoal *)malloc( sizeof(mgoal) * Num_goals );
-		Assert( mission->goals != NULL );
+		SDL_assert( mission->goals != NULL );
 	}
 
 	// copy the needed info from the Mission_goal struct to our internal structure
@@ -1258,7 +1163,7 @@ int mission_campaign_eval_next_mission( int store_stats )
 			strcpy( mission->goals[i].name, name);
 		} else
 			strcpy( mission->goals[i].name, Mission_goals[i].name );
-		Assert ( Mission_goals[i].satisfied != GOAL_INCOMPLETE );		// should be true or false at this point!!!
+		SDL_assert ( Mission_goals[i].satisfied != GOAL_INCOMPLETE );		// should be true or false at this point!!!
 		mission->goals[i].status = (char)Mission_goals[i].satisfied;
 	}
 
@@ -1271,7 +1176,7 @@ int mission_campaign_eval_next_mission( int store_stats )
 	mission->num_events = Num_mission_events;
 	if ( mission->num_events > 0 ) {
 		mission->events = (mevent *)malloc( sizeof(mevent) * Num_mission_events );
-		Assert( mission->events != NULL );
+		SDL_assert( mission->events != NULL );
 	}
 
 	// copy the needed info from the Mission_goal struct to our internal structure
@@ -1382,12 +1287,10 @@ void mission_campaign_eval_next_mission()
 // Store mission's goals and events in Campaign struct
 void mission_campaign_store_goals_and_events()
 {
-	char *name;
 	int cur, i;
 	cmission *mission;
 
 	cur = Campaign.current_mission;
-	name = Campaign.missions[cur].name;
 
 	mission = &Campaign.missions[cur];
 
@@ -1402,7 +1305,7 @@ void mission_campaign_store_goals_and_events()
 	mission->num_goals = Num_goals;
 	if ( mission->num_goals > 0 ) {
 		mission->goals = (mgoal *)malloc( sizeof(mgoal) * Num_goals );
-		Assert( mission->goals != NULL );
+		SDL_assert( mission->goals != NULL );
 	}
 
 	// copy the needed info from the Mission_goal struct to our internal structure
@@ -1410,12 +1313,12 @@ void mission_campaign_store_goals_and_events()
 		if ( strlen(Mission_goals[i].name) == 0 ) {
 			char name[NAME_LENGTH];
 
-			sprintf(name, NOX("Goal #%d"), i);
+			SDL_snprintf(name, SDL_arraysize(name), NOX("Goal #%d"), i);
 			//Warning(LOCATION, "Mission goal in mission %s must have a +Name field! using %s for campaign save file\n", mission->name, name);
-			strcpy( mission->goals[i].name, name);
+			SDL_strlcpy( mission->goals[i].name, name, SDL_arraysize(mission->goals[0].name));
 		} else
-			strcpy( mission->goals[i].name, Mission_goals[i].name );
-		Assert ( Mission_goals[i].satisfied != GOAL_INCOMPLETE );		// should be true or false at this point!!!
+			SDL_strlcpy( mission->goals[i].name, Mission_goals[i].name, SDL_arraysize(mission->goals[0].name) );
+		SDL_assert ( Mission_goals[i].satisfied != GOAL_INCOMPLETE );		// should be true or false at this point!!!
 		mission->goals[i].status = (char)Mission_goals[i].satisfied;
 	}
 
@@ -1428,7 +1331,7 @@ void mission_campaign_store_goals_and_events()
 	mission->num_events = Num_mission_events;
 	if ( mission->num_events > 0 ) {
 		mission->events = (mevent *)malloc( sizeof(mevent) * Num_mission_events );
-		Assert( mission->events != NULL );
+		SDL_assert( mission->events != NULL );
 	}
 
 	// copy the needed info from the Mission_goal struct to our internal structure
@@ -1436,11 +1339,11 @@ void mission_campaign_store_goals_and_events()
  		if ( strlen(Mission_events[i].name) == 0 ) {
 			char name[NAME_LENGTH];
 
-			sprintf(name, NOX("Event #%d"), i);
+			SDL_snprintf(name, SDL_arraysize(name), NOX("Event #%d"), i);
 			nprintf(("Warning", "Mission goal in mission %s must have a +Name field! using %s for campaign save file\n", mission->name, name));
-			strcpy( mission->events[i].name, name);
+			SDL_strlcpy( mission->events[i].name, name, SDL_arraysize(mission->events[0].name));
 		} else
-			strcpy( mission->events[i].name, Mission_events[i].name );
+			SDL_strlcpy( mission->events[i].name, Mission_events[i].name, SDL_arraysize(mission->events[0].name) );
 
 		// getting status for the events is a little different.  If the formula value for the event entry
 		// is -1, then we know the value of the result field will never change.  If the formula is
@@ -1471,7 +1374,7 @@ void mission_campaign_mission_over()
 	}
 
 	mission_num = Campaign.current_mission;
-	Assert( mission_num != -1 );
+	SDL_assert( mission_num != -1 );
 	mission = &Campaign.missions[mission_num];
 
 	// determine if any ships/weapons were granted this mission
@@ -1520,7 +1423,7 @@ void mission_campaign_mission_over()
 		Sexp_nodes[mission->formula].value = SEXP_UNKNOWN;
 	}
 
-	Assert(Player);
+	SDL_assert(Player);
 	if (Campaign.missions[Campaign.next_mission].flags & CMISSION_FLAG_BASTION){
 		Player->on_bastion = 1;
 	} else {
@@ -1606,15 +1509,10 @@ void mission_campaign_shutdown()
 // note that dest should allocate at least dest[MAX_CAMPAIGN_MISSIONS][NAME_LENGTH]
 int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH], int *num)
 {
-	int	rval;
-
 	// read the mission file and get the list of mission filenames
-	if ((rval = setjmp(parse_abort)) != 0) {
-		return rval;
-
-	} else {
+	try {
 		read_file_text(filename);
-		Assert(strlen(filename) < MAX_FILENAME_LEN - 1);  // make sure no overflow
+		SDL_assert(strlen(filename) < MAX_FILENAME_LEN - 1);  // make sure no overflow
 
 		reset_parse();
 		required_string("$Name:");
@@ -1629,6 +1527,8 @@ int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH
 			stuff_string(dest[*num], F_NAME, NULL);
 			(*num)++;
 		}
+	} catch (parse_error_t rval) {
+		return (int)rval;
 	}
 
 	return 0;
@@ -1640,99 +1540,101 @@ void read_mission_goal_list(int num)
 {
 	char *filename, notes[NOTES_LENGTH], goals[MAX_GOALS][NAME_LENGTH];
 	char events[MAX_MISSION_EVENTS][NAME_LENGTH];
-	int i, z, r, event_count, count = 0;
+	int i, z, event_count, count = 0;
 
 	filename = Campaign.missions[num].name;
-	if ((r = setjmp(parse_abort))>0) {
-		Warning(LOCATION, "Error reading \"%s\" (code = %d)", filename, r);
-		return;
-	}
 
 	// open localization
 	lcl_ext_open();	
-	
-	read_file_text(filename);
-	init_parse();
 
-	// first, read the mission notes for this mission.  Used in campaign editor
-	if (skip_to_string("#Mission Info")) {
-		if (skip_to_string("$Notes:")) {
-			stuff_string(notes, F_NOTES, NULL);
-			if (Campaign.missions[num].notes){
-				free(Campaign.missions[num].notes);
-			}
-
-			Campaign.missions[num].notes = (char *) malloc(strlen(notes) + 1);
-			strcpy(Campaign.missions[num].notes, notes);
-		}
-	}
-
+	// default counts to zero
 	event_count = 0;
-	// skip to events section in the mission file.  Events come before goals, so we process them first
-	if ( skip_to_string("#Events") ) {
-		while (1) {
-			if (skip_to_string("$Formula:", "#Goals") != 1){
-				break;
-			}
-
-			z = skip_to_string("+Name:", "$Formula:");
-			if (!z){
-				break;
-			}
-
-			if (z == 1){
-				stuff_string(events[event_count], F_NAME, NULL);
-			} else {
-				sprintf(events[event_count], NOX("Event #%d"), event_count + 1);
-			}
-
-			event_count++;
-			Assert(event_count < MAX_MISSION_EVENTS);
-		}
-	}
-
 	count = 0;
-	if (skip_to_string("#Goals")) {
-		while (1) {
-			if (skip_to_string("$Type:", "#End") != 1){
-				break;
-			}
 
-			z = skip_to_string("+Name:", "$Type:");
-			if (!z){
-				break;
-			}
+	try {
+		read_file_text(filename);
+		init_parse();
 
-			if (z == 1){
-				stuff_string(goals[count], F_NAME, NULL);
-			} else {
-				sprintf(goals[count], NOX("Goal #%d"), count + 1);
-			}
+		// first, read the mission notes for this mission.  Used in campaign editor
+		if (skip_to_string("#Mission Info")) {
+			if (skip_to_string("$Notes:")) {
+				stuff_string(notes, F_NOTES, NULL);
+				if (Campaign.missions[num].notes){
+					free(Campaign.missions[num].notes);
+				}
 
-			count++;
-			Assert(count < MAX_GOALS);
+				Campaign.missions[num].notes = (char *) malloc(strlen(notes) + 1);
+				SDL_strlcpy(Campaign.missions[num].notes, notes, strlen(notes) + 1);
+			}
 		}
+
+		// skip to events section in the mission file.  Events come before goals, so we process them first
+		if ( skip_to_string("#Events") ) {
+			while (1) {
+				if (skip_to_string("$Formula:", "#Goals") != 1){
+					break;
+				}
+
+				z = skip_to_string("+Name:", "$Formula:");
+				if (!z){
+					break;
+				}
+
+				if (z == 1){
+					stuff_string(events[event_count], F_NAME, NULL);
+				} else {
+					SDL_snprintf(events[event_count], NAME_LENGTH, NOX("Event #%d"), event_count + 1);
+				}
+
+				event_count++;
+				SDL_assert(event_count < MAX_MISSION_EVENTS);
+			}
+		}
+
+		if (skip_to_string("#Goals")) {
+			while (1) {
+				if (skip_to_string("$Type:", "#End") != 1){
+					break;
+				}
+
+				z = skip_to_string("+Name:", "$Type:");
+				if (!z){
+					break;
+				}
+
+				if (z == 1){
+					stuff_string(goals[count], F_NAME, NULL);
+				} else {
+					SDL_snprintf(goals[count], NAME_LENGTH, NOX("Goal #%d"), count + 1);
+				}
+
+				count++;
+				SDL_assert(count < MAX_GOALS);
+			}
+		}
+	} catch (parse_error_t rval) {
+		Warning(LOCATION, "Error reading \"%s\" (code = %d)", filename, (int)rval);
 	}
 
 	Campaign.missions[num].num_goals = count;
 	if (count) {
 		Campaign.missions[num].goals = (mgoal *) malloc(count * sizeof(mgoal));
-		Assert(Campaign.missions[num].goals);  // make sure we got the memory
+		SDL_assert(Campaign.missions[num].goals);  // make sure we got the memory
 		memset(Campaign.missions[num].goals, 0, count * sizeof(mgoal));
 
 		for (i=0; i<count; i++){
-			strcpy(Campaign.missions[num].goals[i].name, goals[i]);
+			SDL_strlcpy(Campaign.missions[num].goals[i].name, goals[i], SDL_arraysize(Campaign.missions[num].goals[i].name));
 		}
 	}
 		// copy the events
 	Campaign.missions[num].num_events = event_count;
 	if (event_count) {
 		Campaign.missions[num].events = (mevent *)malloc(event_count * sizeof(mevent));
-		Assert ( Campaign.missions[num].events );
+		SDL_assert ( Campaign.missions[num].events );
 		memset(Campaign.missions[num].events, 0, event_count * sizeof(mevent));
 
 		for (i = 0; i < event_count; i++ ){
-			strcpy(Campaign.missions[num].events[i].name, events[i]);
+			SDL_strlcpy(Campaign.missions[num].events[i].name, events[i], SDL_arraysize(Campaign.missions[num].events[i].name));
 		}
 	}
 
@@ -1747,17 +1649,18 @@ void read_mission_goal_list(int num)
 int mission_campaign_find_mission( const char *name )
 {
 	int i;
-	char realname[_MAX_PATH];
+	char realname[MAX_FILENAME_LEN];
 
 	// look for an extension on the file.  If no extension, add default ".fsm" onto the
 	// end of the filename
-	strcpy(realname, name );
-	if ( strchr(name, '.') == NULL ){
-		sprintf(realname, NOX("%s%s"), name, FS_MISSION_FILE_EXT );
+	if ( SDL_strchr(name, '.') == NULL ){
+		SDL_snprintf(realname, SDL_arraysize(realname), NOX("%s%s"), name, FS_MISSION_FILE_EXT );
+	} else {
+		SDL_strlcpy(realname, name, SDL_arraysize(realname));
 	}
 
 	for (i = 0; i < Campaign.num_missions; i++ ) {
-		if ( !stricmp(realname, Campaign.missions[i].name) ){
+		if ( !SDL_strcasecmp(realname, Campaign.missions[i].name) ){
 			return i;
 		}
 	}
@@ -1771,13 +1674,13 @@ void mission_campaign_maybe_play_movie(int type)
 	char *filename;
 
 	// only support pre mission movies for now.
-	Assert ( type == CAMPAIGN_MOVIE_PRE_MISSION );
+	SDL_assert ( type == CAMPAIGN_MOVIE_PRE_MISSION );
 
 	if ( !(Game_mode & GM_CAMPAIGN_MODE) )
 		return;
 
 	mission = Campaign.current_mission;
-	Assert( mission != -1 );
+	SDL_assert( mission != -1 );
 
 	// get a possible filename for a movie to play.
 	filename = NULL;
@@ -1800,26 +1703,30 @@ void mission_campaign_maybe_play_movie(int type)
 }
 
 // return nonzero if the passed filename is a multiplayer campaign, 0 otherwise
-int mission_campaign_parse_is_multi(const char *filename, char *name)
+int mission_campaign_parse_is_multi(const char *filename, char *name, const int max_len)
 {	
 	int i;
 	char temp[50];
-	
-	read_file_text( filename );
-	reset_parse();
-	
-	required_string("$Name:");
-	stuff_string( temp, F_NAME, NULL );	
-	if ( name )
-		strcpy( name, temp );
 
-	required_string( "$Type:" );
-	stuff_string( temp, F_NAME, NULL );
+	try {
+		read_file_text( filename );
+		reset_parse();
 
-	for (i = 0; i < MAX_CAMPAIGN_TYPES; i++ ) {
-		if ( !stricmp(temp, campaign_types[i]) ) {
-			return i;
+		required_string("$Name:");
+		stuff_string( temp, F_NAME, NULL );
+		if ( name )
+			SDL_strlcpy( name, temp, max_len );
+
+		required_string( "$Type:" );
+		stuff_string( temp, F_NAME, NULL );
+
+		for (i = 0; i < MAX_CAMPAIGN_TYPES; i++ ) {
+			if ( !SDL_strcasecmp(temp, campaign_types[i]) ) {
+				return i;
+			}
 		}
+	} catch (parse_error_t rval) {
+		Error(LOCATION, "Unable to parse %s!  Code = %i.\n", filename, (int)rval);
 	}
 
 	Error(LOCATION, "Unknown campaign type %s", temp );
@@ -1833,11 +1740,11 @@ void mission_campaign_save_persistent( int type, int sindex )
 	// based on the type of information, save it off for possible saving into the campsign
 	// savefile when the mission is over
 	if ( type == CAMPAIGN_PERSISTENT_SHIP ) {
-		Assert( Num_granted_ships < MAX_SHIP_TYPES );
+		SDL_assert( Num_granted_ships < MAX_SHIP_TYPES );
 		Granted_ships[Num_granted_ships] = sindex;
 		Num_granted_ships++;
 	} else if ( type == CAMPAIGN_PERSISTENT_WEAPON ) {
-		Assert( Num_granted_weapons < MAX_WEAPON_TYPES );
+		SDL_assert( Num_granted_weapons < MAX_WEAPON_TYPES );
 		Granted_weapons[Num_granted_weapons] = sindex;
 		Num_granted_weapons++;
 	} else
@@ -1966,17 +1873,12 @@ void mission_campaign_jump_to_mission(const char *name)
 	// load in the campaign junk
 	mission_load_up_campaign();
 
-#ifdef MAKE_FS1
-	// tack the .fsm onto the input name
-	strncpy(dest_name, cf_add_ext(name, ".fsm"), sizeof(dest_name)-1);
-#else
 	// tack the .fs2 onto the input name
-	strncpy(dest_name, cf_add_ext(name, ".fs2"), sizeof(dest_name)-1);
-#endif
+	SDL_strlcpy(dest_name, cf_add_ext(name, FS_MISSION_FILE_EXT), SDL_arraysize(dest_name));
 
 	// search for our mission
 	for (i=0; i<Campaign.num_missions; i++) {
-		if ((Campaign.missions[i].name != NULL) && !stricmp(Campaign.missions[i].name, dest_name) ) {
+		if ((Campaign.missions[i].name != NULL) && !SDL_strcasecmp(Campaign.missions[i].name, dest_name) ) {
 			Campaign.next_mission = i;
 			Campaign.prev_mission = i-1;
 			mission_campaign_next_mission();

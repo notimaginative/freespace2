@@ -120,7 +120,7 @@ void UI_DOT_SLIDER_NEW::create(UI_WINDOW *wnd, int _x, int _y, int _num_pos, con
 
 	// if any of the left/right arrow information is specified, make sure its _all_ specified
 	if((bm_left != NULL) || (left_mask != -1) || (bm_right != NULL) || (right_mask != -1)){
-		Assert((bm_left != NULL) && (left_mask >= 0) && (bm_right != NULL) && (right_mask >= 0));
+		SDL_assert((bm_left != NULL) && (left_mask >= 0) && (bm_right != NULL) && (right_mask >= 0));
 		if((bm_left == NULL) || (left_mask < 0) || (bm_right == NULL) || (right_mask < 0)){
 			return;
 		}
@@ -181,7 +181,7 @@ void UI_DOT_SLIDER_NEW::draw()
 	}
 	
 	// draw the proper dot
-	Assert((pos >= 0) && (pos <= num_pos));	
+	SDL_assert((pos >= 0) && (pos <= num_pos));	
 	
 	// for position -1, we don't draw (no dots)	
 	if(pos >= 0){
@@ -262,7 +262,7 @@ void UI_DOT_SLIDER_NEW::process(int focus)
 /// DOT_SLIDER class down here
 void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int id, int end_buttons, int _num_pos)
 {
-	char	filename[MAX_PATH_LEN];
+	char	filename[MAX_FILENAME_LEN];
 	int	bx, by, bw, hotspot;
 
 	has_end_buttons = end_buttons;
@@ -281,7 +281,7 @@ void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int i
 
 	num_pos = _num_pos;
 
-	sprintf(filename, "%s%.2d", bm, hotspot);
+	SDL_snprintf(filename, SDL_arraysize(filename), "%s%.2d", bm, hotspot);
 	first_frame = bm_load_animation(filename, &total_frames);
 	if (first_frame < 0) {
 		Error(LOCATION, "Could not load %s.ani\n", filename);
@@ -305,7 +305,7 @@ void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int i
 
 	if ( has_end_buttons ) {
 		// Second button is the up (increase) button
-		sprintf(filename, "%s%.2d", bm, id + 2);
+		SDL_snprintf(filename, SDL_arraysize(filename), "%s%.2d", bm, id + 2);
 		up_button.create( wnd, "", _x + 216, _y, 22, 24, 1, 1 );
 		up_button.set_parent(this);
 		up_button.set_highlight_action(common_play_highlight_sound);
@@ -313,7 +313,7 @@ void UI_DOT_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, const char *bm, int i
 		up_button.link_hotspot(id + 2);
 
 		// Third button is the down (decrease) button
-		sprintf(filename, "%s%.2d", bm, id);
+		SDL_snprintf(filename, SDL_arraysize(filename), "%s%.2d", bm, id);
 		down_button.create( wnd, "", _x, _y, 22, 24, 1, 1 );
 		down_button.set_parent(this);
 		down_button.set_highlight_action(common_play_highlight_sound);
@@ -340,7 +340,7 @@ void UI_DOT_SLIDER::draw()
 		up_button.draw();
 		down_button.draw();
 	}
-	Assert((pos >= 0) && (pos <= num_pos));
+	SDL_assert((pos >= 0) && (pos <= num_pos));
 	gr_set_bitmap(first_frame + pos, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);  // draw the dot level
 	gr_bitmap(x, y);
 }
@@ -486,9 +486,9 @@ void UI_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, float _st
 	stop = _stop;
 	current = _current;
 
-	Assert( _current >= _start );
-	Assert( _current <= _stop );
-	Assert( stop >= 0 );
+	SDL_assert( _current >= _start );
+	SDL_assert( _current <= _stop );
+	SDL_assert( stop >= 0 );
 
 	n_positions = _n_positions;
 
@@ -502,7 +502,7 @@ void UI_SLIDER::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, float _st
 	pixel_range = w-marker_w;
 	marker_x = x + fl2i( ( (current - start)/(stop-start) * pixel_range ) );
 	increment = pixel_range / n_positions;
-	Assert(increment >= 1);
+	SDL_assert(increment >= 1);
 	mouse_locked = 0;
 };
 
@@ -592,9 +592,9 @@ void UI_SLIDER::process(int focus)
 		mouse_locked = 0;
 	}
 
-	if ( (left_button.position!=0) || (keyfocus && keyd_pressed[KEY_LEFT]) || ( OnMe && B1_PRESSED && ui_mouse.x < marker_x) || (mouse_locked && ui_mouse.x < marker_x ) )	{
-		if ( (timer_get_milliseconds() > last_scrolled+50) || left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_LEFT)	{
-			if ( left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_LEFT )	{
+	if ( (left_button.position!=0) || (keyfocus && key_pressed(SDLK_LEFT)) || ( OnMe && B1_PRESSED && ui_mouse.x < marker_x) || (mouse_locked && ui_mouse.x < marker_x ) )	{
+		if ( (timer_get_milliseconds() > last_scrolled+50) || left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_LEFT)	{
+			if ( left_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_LEFT )	{
 				last_scrolled = timer_get_milliseconds() + 300;
 			} else
 				last_scrolled = timer_get_milliseconds();
@@ -604,9 +604,9 @@ void UI_SLIDER::process(int focus)
 		}
 	}
 
-	if ( (right_button.position!=0) || (keyfocus && keyd_pressed[KEY_RIGHT]) || ( OnMe && B1_PRESSED && ui_mouse.x > (marker_x+marker_w)) || (mouse_locked && ui_mouse.x > marker_x+marker_w) ) {
-		if ( (timer_get_milliseconds() > last_scrolled+50) || right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_RIGHT)	{
-			if ( right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == KEY_RIGHT)	
+	if ( (right_button.position!=0) || (keyfocus && key_pressed(SDLK_RIGHT)) || ( OnMe && B1_PRESSED && ui_mouse.x > (marker_x+marker_w)) || (mouse_locked && ui_mouse.x > marker_x+marker_w) ) {
+		if ( (timer_get_milliseconds() > last_scrolled+50) || right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_RIGHT)	{
+			if ( right_button.just_pressed() || B1_JUST_PRESSED || mouse_locked || my_wnd->keypress == SDLK_RIGHT)
 				last_scrolled = timer_get_milliseconds() + 300;
 			else
 				last_scrolled = timer_get_milliseconds();

@@ -656,7 +656,7 @@ void brief_transition_reset();
 
 const char *brief_tooltip_handler(const char *str)
 {
-	if (!stricmp(str, NOX("@close"))) {
+	if (!SDL_strcasecmp(str, NOX("@close"))) {
 		if (Closeup_icon)
 			return XSTR( "Close", 428);
 	}
@@ -695,12 +695,7 @@ void brief_skip_training_pressed()
 	mission_campaign_eval_next_mission();
 	mission_campaign_mission_over();	
 
-	// CD CHECK
-	if(game_do_cd_mission_check(Game_current_mission_filename)){
-		gameseq_post_event( GS_EVENT_START_GAME );
-	} else {
-		gameseq_post_event( GS_EVENT_MAIN_MENU );
-	}
+	gameseq_post_event( GS_EVENT_START_GAME );
 }
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
@@ -735,7 +730,7 @@ void brief_do_next_pressed(int play_sound)
 		}
 	}
 
-	Assert(Current_brief_stage >= 0);
+	SDL_assert(Current_brief_stage >= 0);
 }
 
 // --------------------------------------------------------------------------------------
@@ -753,7 +748,7 @@ void brief_do_prev_pressed()
 	} else {
 		gamesnd_play_iface(SND_BRIEF_STAGE_CHG);
 	}
-	Assert(Current_brief_stage >= 0);
+	SDL_assert(Current_brief_stage >= 0);
 }
 
 
@@ -771,7 +766,7 @@ void brief_do_start_pressed()
 	} else {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 	}
-	Assert(Current_brief_stage >= 0);
+	SDL_assert(Current_brief_stage >= 0);
 }
 
 // --------------------------------------------------------------------------------------
@@ -789,7 +784,7 @@ void brief_do_end_pressed()
 	} else {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 	}
-	Assert(Current_brief_stage >= 0);
+	SDL_assert(Current_brief_stage >= 0);
 }
 
 
@@ -876,7 +871,7 @@ void brief_button_do(int i)
 			break;
 
 		case BRIEF_BUTTON_MULTI_LOCK:
-			Assert(Game_mode & GM_MULTIPLAYER);			
+			SDL_assert(Game_mode & GM_MULTIPLAYER);			
 			// the "lock" button has been pressed
 			multi_ts_lock_pressed();
 
@@ -1008,12 +1003,12 @@ void brief_buttons_init()
 	Closeup_close_button.link_hotspot(Closeup_button_hotspot);
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_LAST_STAGE].button.set_hotkey(KEY_SHIFTED|KEY_RIGHT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_NEXT_STAGE].button.set_hotkey(KEY_RIGHT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_PREV_STAGE].button.set_hotkey(KEY_LEFT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_FIRST_STAGE].button.set_hotkey(KEY_SHIFTED|KEY_LEFT);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_UP].button.set_hotkey(KEY_UP);
-	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_DOWN].button.set_hotkey(KEY_DOWN);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_LAST_STAGE].button.set_hotkey(KEY_SHIFTED|SDLK_RIGHT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_NEXT_STAGE].button.set_hotkey(SDLK_RIGHT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_PREV_STAGE].button.set_hotkey(SDLK_LEFT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_FIRST_STAGE].button.set_hotkey(KEY_SHIFTED|SDLK_LEFT);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_UP].button.set_hotkey(SDLK_UP);
+	Brief_buttons[gr_screen.res][BRIEF_BUTTON_SCROLL_DOWN].button.set_hotkey(SDLK_DOWN);
 
 	Closeup_close_button.disable();
 	Closeup_close_button.hide();
@@ -1387,10 +1382,10 @@ void brief_render_closeup_text()
 	gr_set_color_fast(&Color_white);
 
 //	n_lines = split_str(bi->text, CLOSEUP_W - 2*CLOSEUP_TEXT_OFFSET, n_chars, p_str, MAX_ICON_TEXT_LINES);
-	Assert(n_lines != -1);
+	SDL_assert(n_lines != -1);
 
 	for ( i = 0; i < n_lines; i++ ) {
-		Assert(n_chars[i] < MAX_ICON_TEXT_LINE_LEN);
+		SDL_assert(n_chars[i] < MAX_ICON_TEXT_LINE_LEN);
 		strncpy(line, p_str[i], n_chars[i]);
 		line[n_chars[i]] = 0;
 		gr_printf(0,0+i*Closeup_font_height,line);
@@ -1484,7 +1479,7 @@ void brief_render(float frametime)
 
 	if ( Num_brief_stages <= 0 ) {
 		gr_set_color_fast(&Color_white);
-		Assert( Game_current_mission_filename != NULL );
+		SDL_assert( Game_current_mission_filename != NULL );
 		gr_printf(0x8000,200,XSTR( "No Briefing exists for mission: %s", 430), Game_current_mission_filename);
 
 		#ifndef NDEBUG
@@ -1562,7 +1557,7 @@ void brief_render(float frametime)
 #endif
 	if (Game_mode & GM_MULTIPLAYER) {
 		char buf[256];
-		strncpy(buf, The_mission.name, 256);
+		SDL_strlcpy(buf, The_mission.name, SDL_arraysize(buf));
 		gr_force_fit_string(buf, 255, Title_coords_multi[gr_screen.res][2]);
 #ifdef MAKE_FS1
 		// align from the end of the string instead of the beginning
@@ -1658,38 +1653,38 @@ int brief_setup_closeup(brief_icon *bi)
 		break;
 	case ICON_ASTEROID_FIELD:
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
-		strcpy(pof_filename, Asteroid_info[ASTEROID_TYPE_BIG].pof_files[0]);
-		strcpy(Closeup_icon->closeup_label, XSTR( "asteroid", 431));
+		SDL_strlcpy(pof_filename, Asteroid_info[ASTEROID_TYPE_BIG].pof_files[0], SDL_arraysize(pof_filename));
+		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "asteroid", 431), SDL_arraysize(Closeup_icon->closeup_label));
 		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -334.0f);
 		Closeup_zoom = 0.5f;
 #endif
 		break;
 	case ICON_JUMP_NODE:
-		strcpy(pof_filename, NOX("subspacenode.pof"));
-		strcpy(Closeup_icon->closeup_label, XSTR( "jump node", 432));
+		SDL_strlcpy(pof_filename, NOX("subspacenode.pof"), SDL_arraysize(pof_filename));
+		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "jump node", 432), SDL_arraysize(Closeup_icon->closeup_label));
 		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -2700.0f);
 		Closeup_zoom = 0.5f;
 		Closeup_one_revolution_time = ONE_REV_TIME * 3;
 		break;
 	case ICON_UNKNOWN:
 	case ICON_UNKNOWN_WING:
-		strcpy(pof_filename, NOX("unknownship.pof"));
-		strcpy(Closeup_icon->closeup_label, XSTR( "unknown", 433));
+		SDL_strlcpy(pof_filename, NOX("unknownship.pof"), SDL_arraysize(pof_filename));
+		SDL_strlcpy(Closeup_icon->closeup_label, XSTR( "unknown", 433), SDL_arraysize(Closeup_icon->closeup_label));
 		(void) vm_vec_make(&Closeup_cam_pos, 0.0f, 0.0f, -22.0f);
 		Closeup_zoom = 0.5f;
 		break;
 	default:
 		brief_get_closeup_ship_modelnum(Closeup_icon);
-		Assert( Closeup_icon->ship_class != -1 );
+		SDL_assert( Closeup_icon->ship_class != -1 );
 		sip = &Ship_info[Closeup_icon->ship_class];
 
-		strcpy(Closeup_icon->closeup_label,sip->name);
+		SDL_strlcpy(Closeup_icon->closeup_label,sip->name, SDL_arraysize(Closeup_icon->closeup_label));
 
 		// cut any text off after (and including) '#' char
 		brief_truncate_label(Closeup_icon->closeup_label);
 
 		if ( sip->flags & (SIF_SMALL_SHIP|SIF_BIG_SHIP|SIF_HUGE_SHIP|SIF_SENTRYGUN) ) {
-			strcat(Closeup_icon->closeup_label, XSTR( " class", 434));
+			SDL_strlcat(Closeup_icon->closeup_label, XSTR( " class", 434), MAX_LABEL_LEN);
 		}
 		break;
 	}
@@ -1909,7 +1904,7 @@ void brief_do_frame(float frametime)
 		switch(k) {
 
 #ifndef NDEBUG			
-			case KEY_CTRLED | KEY_PAGEUP: {
+			case KEY_CTRLED | SDLK_PAGEUP: {
 				if (Closeup_icon->ship_class) {
 					Closeup_icon->ship_class--;
 
@@ -1925,7 +1920,7 @@ void brief_do_frame(float frametime)
 				break;
 			}
 
-			case KEY_CTRLED | KEY_PAGEDOWN: {
+			case KEY_CTRLED | SDLK_PAGEDOWN: {
 				if (Closeup_icon->ship_class < Num_ship_types - 1) {
 					Closeup_icon->ship_class++;
 
@@ -1941,66 +1936,66 @@ void brief_do_frame(float frametime)
 				break;
 			}
 
-			case KEY_A:
+			case SDLK_a:
 				Closeup_cam_pos.xyz.z += 1;
 				cam_change = 1;
 				break;
 
-			case KEY_A + KEY_SHIFTED:
+			case SDLK_a + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.z += 10;
 				cam_change = 1;
 				break;
 
-			case KEY_Z:
+			case SDLK_z:
 				Closeup_cam_pos.xyz.z -= 1;
 				cam_change = 1;
 				break;
 
-			case KEY_Z + KEY_SHIFTED:
+			case SDLK_z + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.z -= 10;
 				cam_change = 1;
 				break;
 			
-			case KEY_Y:
+			case SDLK_y:
 				Closeup_cam_pos.xyz.y += 1;
 				cam_change = 1;
 				break;
 
-			case KEY_Y + KEY_SHIFTED:
+			case SDLK_y + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.y += 10;
 				cam_change = 1;
 				break;
 
-			case KEY_H:
+			case SDLK_h:
 				Closeup_cam_pos.xyz.y -= 1;
 				cam_change = 1;
 				break;
 
-			case KEY_H + KEY_SHIFTED:
+			case SDLK_h + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.y -= 10;
 				cam_change = 1;
 				break;
 
-			case KEY_COMMA:
+			case SDLK_COMMA:
 				Closeup_zoom -= 0.1f;
 				if ( Closeup_zoom < 0.1 ) 
 					Closeup_zoom = 0.1f;
 				cam_change = 1;
 				break;
 
-			case KEY_COMMA+KEY_SHIFTED:
+			case SDLK_COMMA+KEY_SHIFTED:
 				Closeup_zoom -= 0.5f;
 				if ( Closeup_zoom < 0.1 ) 
 					Closeup_zoom = 0.1f;
 				cam_change = 1;
 				break;
 
-			case KEY_PERIOD:
+			case SDLK_PERIOD:
 				Closeup_zoom += 0.1f;
 				cam_change = 1;
 				break;
 
-			case KEY_PERIOD+KEY_SHIFTED:
+			case SDLK_PERIOD+KEY_SHIFTED:
 				Closeup_zoom += 0.5f;
 				cam_change = 1;
 				break;
@@ -2063,7 +2058,7 @@ void brief_do_frame(float frametime)
 				if ( abs(Current_brief_stage - Last_brief_stage) > 1 ) {
 					Quick_transition_stage = Current_brief_stage;
 					Current_brief_stage = Last_brief_stage;
-					Assert(Current_brief_stage >= 0);
+					SDL_assert(Current_brief_stage >= 0);
 					Start_fade_up_anim = 1;
 					goto Transition_done;
 				}
@@ -2074,7 +2069,7 @@ void brief_do_frame(float frametime)
 					if ( Briefing->stages[Last_brief_stage].flags & BS_FORWARD_CUT ) {
 						Quick_transition_stage = Current_brief_stage;
 						Current_brief_stage = Last_brief_stage;
-						Assert(Current_brief_stage >= 0);
+						SDL_assert(Current_brief_stage >= 0);
 						Start_fade_up_anim = 1;
 						goto Transition_done;
 					} else {
@@ -2085,7 +2080,7 @@ void brief_do_frame(float frametime)
 					if ( Briefing->stages[Last_brief_stage].flags & BS_BACKWARD_CUT ) { 
 						Quick_transition_stage = Current_brief_stage;
 						Current_brief_stage = Last_brief_stage;
-						Assert(Current_brief_stage >= 0);
+						SDL_assert(Current_brief_stage >= 0);
 						Start_fade_up_anim = 1;
 						goto Transition_done;
 					} else {
@@ -2354,7 +2349,7 @@ void brief_maybe_blit_scene_cut(float frametime)
 				Current_brief_stage = Last_brief_stage;
 			}
 
-			Assert(Current_brief_stage >= 0);			
+			SDL_assert(Current_brief_stage >= 0);			
 			goto Fade_down_anim_start;
 		}
 

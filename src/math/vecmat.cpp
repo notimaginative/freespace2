@@ -16,7 +16,7 @@
  *
  * $Log$
  * Revision 1.7  2005/10/01 21:45:56  taylor
- * fix an old Volition math bug, causes various Assert()'s and physics strangeness in some missions
+ * fix an old Volition math bug, causes various SDL_assert()'s and physics strangeness in some missions
  *
  * Revision 1.6  2004/09/20 01:31:44  theoddone33
  * GCC 3.4 fixes.
@@ -301,7 +301,7 @@ float atan2_safe(float y, float x)
 float vm_vec_projection_parallel(vector *component, vector *src, vector *unit_vec)
 {
 	float mag;
-	Assert( vm_vec_mag(unit_vec) > 0.999f  &&  vm_vec_mag(unit_vec) < 1.001f );
+	SDL_assert( vm_vec_mag(unit_vec) > 0.999f  &&  vm_vec_mag(unit_vec) < 1.001f );
 
 	mag = vm_vec_dotprod(src, unit_vec);
 	vm_vec_copy_scale(component, unit_vec, mag);
@@ -316,7 +316,7 @@ float vm_vec_projection_parallel(vector *component, vector *src, vector *unit_ve
 void vm_vec_projection_onto_plane(vector *projection, vector *src, vector *unit_normal)
 {
 	float mag;
-	Assert( vm_vec_mag(unit_normal) > 0.999f  &&  vm_vec_mag(unit_normal) < 1.001f );
+	SDL_assert( vm_vec_mag(unit_normal) > 0.999f  &&  vm_vec_mag(unit_normal) < 1.001f );
 
 	mag = vm_vec_dotprod(src, unit_normal);
 	*projection = *src;
@@ -333,7 +333,7 @@ void vm_project_point_onto_plane(vector *new_point, vector *point, vector *plane
 {
 	float D;		// plane constant in Ax+By+Cz+D = 0   or   dot(X,n) - dot(Xp,n) = 0, so D = -dot(Xp,n)
 	float dist;
-	Assert( vm_vec_mag(plane_normal) > 0.999f  &&  vm_vec_mag(plane_normal) < 1.001f );
+	SDL_assert( vm_vec_mag(plane_normal) > 0.999f  &&  vm_vec_mag(plane_normal) < 1.001f );
 
 	D = -vm_vec_dotprod(plane_point, plane_normal);
 	dist = vm_vec_dotprod(point, plane_normal) + D;
@@ -692,7 +692,7 @@ float vm_vec_copy_normalize_quick(vector *dest,vector *src)
 
 	im = vm_vec_imag(src);
 
-	Assert(im > 0.0f);
+	SDL_assert(im > 0.0f);
 
 	dest->xyz.x = src->xyz.x*im;
 	dest->xyz.y = src->xyz.y*im;
@@ -710,7 +710,7 @@ float vm_vec_normalize_quick(vector *src)
 
 	im = vm_vec_imag(src);
 
-	Assert(im > 0.0f);
+	SDL_assert(im > 0.0f);
 
 	src->xyz.x = src->xyz.x*im;
 	src->xyz.y = src->xyz.y*im;
@@ -729,7 +729,7 @@ float vm_vec_copy_normalize_quick_mag(vector *dest,vector *src)
 
 	m = vm_vec_mag_quick(src);
 
-	Assert(m > 0.0f);
+	SDL_assert(m > 0.0f);
 
 	float im = 1.0f / m;
 
@@ -749,7 +749,7 @@ float vm_vec_normalize_quick_mag(vector *v)
 
 	m = vm_vec_mag_quick(v);
 
-	Assert(m > 0.0f);
+	SDL_assert(m > 0.0f);
 
 	v->xyz.x = v->xyz.x*m;
 	v->xyz.y = v->xyz.y*m;
@@ -985,11 +985,11 @@ matrix *vm_vector_2_matrix(matrix *m,vector *fvec,vector *uvec,vector *rvec)
 	vector *xvec=&m->v.rvec,*yvec=&m->v.uvec,*zvec=&m->v.fvec;
 
 
-	Assert(fvec != NULL);
+	SDL_assert(fvec != NULL);
 
 	//	This had been commented out, but that's bogus.  Code below relies on a valid zvec.
 	if (vm_vec_copy_normalize(zvec,fvec) == 0.0) {
-		Assert(0);
+		SDL_assert(0);
 		return m;
 	}
 
@@ -1060,7 +1060,7 @@ matrix *vm_vector_2_matrix_norm(matrix *m,vector *fvec,vector *uvec,vector *rvec
 	vector *xvec=&m->v.rvec,*yvec=&m->v.uvec,*zvec=&m->v.fvec;
 
 
-	Assert(fvec != NULL);
+	SDL_assert(fvec != NULL);
 
 	*zvec = *fvec;
 
@@ -1172,7 +1172,7 @@ matrix *vm_transpose_matrix(matrix *m)
 matrix *vm_copy_transpose_matrix(matrix *dest,matrix *src)
 {
 
-	Assert(dest != src);
+	SDL_assert(dest != src);
 
 	dest->v.rvec.xyz.x = src->v.rvec.xyz.x;
 	dest->v.rvec.xyz.y = src->v.uvec.xyz.x;
@@ -1195,7 +1195,7 @@ matrix *vm_copy_transpose_matrix(matrix *dest,matrix *src)
 matrix *vm_matrix_x_matrix(matrix *dest,matrix *src0,matrix *src1)
 {
 
-	Assert(dest!=src0 && dest!=src1);
+	SDL_assert(dest!=src0 && dest!=src1);
 
 	dest->v.rvec.xyz.x = vm_vec_dot3(src0->v.rvec.xyz.x,src0->v.uvec.xyz.x,src0->v.fvec.xyz.x, &src1->v.rvec);
 	dest->v.uvec.xyz.x = vm_vec_dot3(src0->v.rvec.xyz.x,src0->v.uvec.xyz.x,src0->v.fvec.xyz.x, &src1->v.uvec);
@@ -1532,7 +1532,7 @@ float vm_vec_dot_to_point(vector *dir, vector *p1, vector *p2)
 //	Result returned in q.
 void compute_point_on_plane(vector *q, plane *planep, vector *p)
 {
-	float	k, tv;
+	float	k;
 	vector	normal;
 
 	normal.xyz.x = planep->A;
@@ -1542,8 +1542,6 @@ void compute_point_on_plane(vector *q, plane *planep, vector *p)
 	k = (planep->D + vm_vec_dot(&normal, p)) / vm_vec_dot(&normal, &normal);
 
 	vm_vec_scale_add(q, p, &normal, -k);
-
-	tv = planep->A * q->xyz.x + planep->B * q->xyz.y + planep->C * q->xyz.z + planep->D;
 }
 
 
@@ -1752,7 +1750,7 @@ void vm_matrix_to_rot_axis_and_angle(matrix *m, float *theta, vector *rot_axis)
 		(void) vm_vec_make(rot_axis, 1.0f, 0.0f, 0.0f);
 	} else if (cos_theta > -0.999999875f) { // angle is within limits between 0 and PI
 		*theta = float(acos(cos_theta));
-		Assert(!_isnan(*theta));
+		SDL_assert(!isnan(*theta));
 
 		rot_axis->xyz.x = (m->v.uvec.xyz.z - m->v.fvec.xyz.y);
 		rot_axis->xyz.y = (m->v.fvec.xyz.x - m->v.rvec.xyz.z);
@@ -1825,8 +1823,8 @@ float away(float w_in, float w_max, float theta_goal, float aa, float delta_t, f
 float approach(float w_in, float w_max, float theta_goal, float aa, float delta_t, float *w_out, int no_overshoot)
 {
 	float delta_theta;		// amount rotated during time delta_t
-	Assert(w_in >= 0);
-	Assert(theta_goal > 0);
+	SDL_assert(w_in >= 0);
+	SDL_assert(theta_goal > 0);
 	float effective_aa;
 
 	if (aa == 0) {
@@ -1846,7 +1844,7 @@ float approach(float w_in, float w_max, float theta_goal, float aa, float delta_
 		if (delta_theta > theta_goal) {	// pass goal during this frame
 			float t_goal = (-w_in + fl_sqrt(w_in*w_in +2.0f*effective_aa*theta_goal)) / effective_aa;
 			// get time to theta_goal and away
-			Assert(t_goal < delta_t);
+			SDL_assert(t_goal < delta_t);
 			w_in -= effective_aa*t_goal;
 			delta_theta = w_in*t_goal + 0.5f*effective_aa*t_goal*t_goal;
 			delta_theta -= away(-w_in, w_max, 0.0f, aa, delta_t - t_goal, w_out, no_overshoot);
@@ -1866,7 +1864,7 @@ float approach(float w_in, float w_max, float theta_goal, float aa, float delta_
 	} else if (w_in*w_in < 2.0f*0.95f*aa*theta_goal) {	// undershoot condition
 		// find peak angular velocity
 		float wp_sqr = fl_abs(aa*theta_goal + 0.5f*w_in*w_in);
-		Assert(wp_sqr >= 0);
+		SDL_assert(wp_sqr >= 0);
 
 		if (wp_sqr > w_max*w_max) {
 			float time_to_w_max = (w_max - w_in) / aa;
@@ -1902,7 +1900,7 @@ float approach(float w_in, float w_max, float theta_goal, float aa, float delta_
 				// reaches wp this frame
 				float wp = fl_sqrt(wp_sqr);
 				float time_to_wp = (wp - w_in) / aa;
-				Assert(time_to_wp > 0);
+				SDL_assert(time_to_wp > 0);
 
 				// accel
 				*w_out = wp;
@@ -1929,7 +1927,7 @@ float approach(float w_in, float w_max, float theta_goal, float aa, float delta_
 		} else {
 			// move toward goal
 			*w_out = w_in - aa*delta_t;
-			Assert(*w_out >= 0);
+			SDL_assert(*w_out >= 0);
 			delta_theta = 0.5f*(w_in + *w_out)*delta_t;
 			return delta_theta;
 		}
@@ -1954,8 +1952,8 @@ float away(float w_in, float w_max, float theta_goal, float aa, float delta_t, f
 	float t0;			// time to velocity is 0
 	float t_excess;	// time remaining in interval after velocity is 0
 
-	Assert(theta_goal >=0);
-	Assert(w_in <= 0);
+	SDL_assert(theta_goal >=0);
+	SDL_assert(w_in <= 0);
 
 	if ((-w_in < 1e-5) && (theta_goal < 1e-5)) {
 		*w_out = 0.0f;
@@ -2110,8 +2108,8 @@ void vm_matrix_interpolate(matrix *goal_orient, matrix *curr_orient, vector *w_i
 	// functions approach and away.  first find the magnitude		
 	// of the rotation and then normalize the axis
 	rot_axis = theta_end;
-	Assert(is_valid_vec(&rot_axis));
-	Assert(vm_vec_mag(&rot_axis) > 0);
+	SDL_assert(is_valid_vec(&rot_axis));
+	SDL_assert(vm_vec_mag(&rot_axis) > 0);
 
 	//	normalize rotation axis and determine total rotation angle
 	theta = vm_vec_normalize(&rot_axis);
@@ -2122,7 +2120,7 @@ void vm_matrix_interpolate(matrix *goal_orient, matrix *curr_orient, vector *w_i
 	} else {
 	// otherwise rotate to better position
 		vm_quaternion_rotate(&Mtemp1, theta, &rot_axis);
-		Assert(is_valid_matrix(&Mtemp1));
+		SDL_assert(is_valid_matrix(&Mtemp1));
 		vm_matrix_x_matrix(next_orient, curr_orient, &Mtemp1);
 		vm_orthogonalize_matrix(next_orient);
 	}
@@ -2235,7 +2233,7 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 
 	// find theta to goal
 	vm_vec_copy_scale(&theta_goal, &local_rot_axis, theta);
-	Assert ( fl_abs (theta_goal.xyz.z) < 0.001f );		// check for proper rotation
+	SDL_assert ( fl_abs (theta_goal.xyz.z) < 0.001f );		// check for proper rotation
 
 	theta_end = vmd_zero_vector;
 	float delta_theta;
@@ -2303,19 +2301,18 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 	// FIND Z ROTATON MATRIX
 	theta_end.xyz.z = 0.0f;
 	rot_axis = theta_end;
-	Assert(is_valid_vec(&rot_axis));
+	SDL_assert(is_valid_vec(&rot_axis));
 
 	//	normalize rotation axis and determine total rotation angle
 	theta = vm_vec_mag(&rot_axis);
 	if (theta < SMALL_NUM)  {
-		theta = 0.0f;
 		M_intermed = *orient;
 	} else {
 		vm_vec_scale ( &rot_axis, 1/theta );		
 		vm_quaternion_rotate ( &Mtemp1, theta, &rot_axis );
-		Assert(is_valid_matrix(&Mtemp1));
+		SDL_assert(is_valid_matrix(&Mtemp1));
 		vm_matrix_x_matrix ( &M_intermed, orient, &Mtemp1 );
-		Assert(is_valid_matrix(&M_intermed));
+		SDL_assert(is_valid_matrix(&M_intermed));
 	}
 
 
@@ -2357,7 +2354,7 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 
 		// find theta.xyz.z to goal
 		delta_bank = local_rot_axis.xyz.z * theta;
-		Assert( fl_abs (local_rot_axis.xyz.x) < 0.001f );		// check for proper rotation
+		SDL_assert( fl_abs (local_rot_axis.xyz.x) < 0.001f );		// check for proper rotation
 		bank = 0.0f;
 
 	// end calculate delta_bank
@@ -2401,7 +2398,7 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 		vtemp = *w_out;
 		vm_vec_rotate ( w_out, &vtemp, &Mtemp1 );
 		vm_matrix_x_matrix ( next_orient, &M_intermed, &Mtemp1 );
-		Assert(is_valid_matrix(next_orient));
+		SDL_assert(is_valid_matrix(next_orient));
 		vm_orthogonalize_matrix ( next_orient );
 		}
 	}
@@ -2469,7 +2466,7 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 
 	// find theta to goal
 	vm_vec_copy_scale(&theta_goal, &local_rot_axis, theta);
-	Assert(fl_abs(theta_goal.xyz.z) < 0.001f);		// check for proper rotation
+	SDL_assert(fl_abs(theta_goal.xyz.z) < 0.001f);		// check for proper rotation
 
 	theta_end = vmd_zero_vector;
 	float delta_theta;
@@ -2591,7 +2588,7 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 	} else {
 		vm_quaternion_rotate( &Mtemp1, theta, &rot_axis );
 		vm_matrix_x_matrix( next_orient, orient, &Mtemp1 );
-		Assert(is_valid_matrix(next_orient));
+		SDL_assert(is_valid_matrix(next_orient));
 		vtemp = *w_out;
 		vm_vec_rotate( w_out, &vtemp, &Mtemp1 );
 	}
@@ -2659,7 +2656,6 @@ void vm_find_bounding_sphere(vector *pnts, int num_pnts, vector *center, float *
 		dia2 = ymax;
 	}
 	if ( zspan > maxspan ) {
-		maxspan = yspan;
 		dia1 = zmin;
 		dia2 = zmax;
 	}
@@ -2671,7 +2667,7 @@ void vm_find_bounding_sphere(vector *pnts, int num_pnts, vector *center, float *
 	vm_vec_sub(&diff, &dia2, center);
 	rad_sq = vm_vec_mag_squared(&diff);
 	rad = fl_sqrt(rad_sq);
-	Assert( !_isnan(rad) );
+	SDL_assert( !isnan(rad) );
 
 	// second pass
 	for ( i = 0; i < num_pnts; i++ ) {
@@ -2749,7 +2745,7 @@ void vm_estimate_next_orientation(matrix *last_orient, matrix *current_orient, m
 //	Return true if all elements of *vec are legal, that is, not a NAN.
 int is_valid_vec(vector *vec)
 {
-	return !_isnan(vec->xyz.x) && !_isnan(vec->xyz.y) && !_isnan(vec->xyz.z);
+	return !isnan(vec->xyz.x) && !isnan(vec->xyz.y) && !isnan(vec->xyz.z);
 }
 
 //	Return true if all elements of *m are legal, that is, not a NAN.

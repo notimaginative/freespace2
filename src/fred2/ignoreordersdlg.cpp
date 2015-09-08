@@ -133,7 +133,7 @@ BOOL ignore_orders_dlg::OnInitDialog()
 	m_num_checks_active = 0;
 	for (i = 0; i < MAX_SHIP_ORDERS; i++ ) {
 		if ( default_orders & Fred_comm_orders[i].value ) {
-			Assert( m_num_checks_active < MAX_CHECKBOXES );
+			SDL_assert( m_num_checks_active < MAX_CHECKBOXES );
 			check_boxes[m_num_checks_active].button->SetWindowText( Fred_comm_orders[i].menu_text );
 			check_boxes[m_num_checks_active].id = Fred_comm_orders[i].value;
 			m_num_checks_active++;

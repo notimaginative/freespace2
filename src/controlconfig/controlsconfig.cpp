@@ -480,10 +480,10 @@ char *Mouse_button_text[NUM_MOUSE_TEXT];
 char *Mouse_axis_text[NUM_MOUSE_AXIS_TEXT];
 char *Invert_text[NUM_INVERT_TEXT];
 
-ubyte System_keys[NUM_SYSTEM_KEYS] = {
-	KEY_ESC, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_F10,
-	KEY_F11, KEY_F12, KEY_PRINT_SCRN
-};
+//ubyte System_keys[NUM_SYSTEM_KEYS] = {
+//	SDLK_ESCAPE, SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
+//	SDLK_F11, SDLK_F12, SDLK_PRINTSCREEN
+//};
 
 int Control_check_count = 0;
 
@@ -768,22 +768,27 @@ int control_config_valid_action(int n)
 
 void control_config_conflict_check()
 {
-	int i, j, a, b, c, shift = -1, alt = -1;
+	int i, j, a, b;
+
+//	int shift = -1, alt = -1;
 
 	for (i=0; i<CCFG_MAX; i++) {
 		Conflicts[i].key = Conflicts[i].joy = -1;
+		/*
 		switch (Control_config[i].key_id) {
-			case KEY_LSHIFT:
-			case KEY_RSHIFT:
+			case SDLK_LSHIFT:
+			case SDLK_RSHIFT:
 				shift = i;
 				break;
 
-			case KEY_LALT:
-			case KEY_RALT:
+			case SDLK_LALT:
+			case SDLK_RALT:
 				alt = i;
 				break;
 		}
+		*/
 	}
+
 
 	for (i=0; i<NUM_TABS; i++)
 		Conflicts_tabs[i] = 0;
@@ -793,7 +798,6 @@ void control_config_conflict_check()
 			for (j=i+1; j<CCFG_MAX; j++) {
 				if (control_config_valid_action(j)) {
 					if (Control_config[i].key_id >= 0) {
-						c = 0;
 						a = Control_config[i].key_id;
 						b = Control_config[j].key_id;
 						if (a == b) {
@@ -860,14 +864,12 @@ void control_config_conflict_check()
 // do list setup required prior to rendering and checking for the controls listing.  Called when list changes
 void control_config_list_prepare()
 {
-	int j, k, y, z;
+	int j, y, z;
 	int font_height = gr_get_font_height();
 
 	Num_cc_lines = y = z = 0;
 	while (z < CCFG_MAX) {
 		if ((Control_config[z].tab == Tab) && control_config_valid_action(z)) {
-			k = Control_config[z].key_id;
-			j = Control_config[z].joy_id;
 			Cc_lines[Num_cc_lines].label = XSTR(Control_config[z].text, CONTROL_CONFIG_XSTR + z);
 			Cc_lines[Num_cc_lines].cc_index = z;
 			Cc_lines[Num_cc_lines++].y = y;
@@ -909,16 +911,16 @@ config_item_undo *get_undo_block(int size)
 	config_item_undo *ptr;
 
 	ptr = (config_item_undo *) malloc( sizeof(config_item_undo) );
-	Assert(ptr);
+	SDL_assert(ptr);
 	ptr->next = Config_item_undo;
 	Config_item_undo = ptr;
 
 	ptr->size = size;
 	if (size) {
 		ptr->index = (int *) malloc( sizeof(int) * size );
-		Assert(ptr->index);
+		SDL_assert(ptr->index);
 		ptr->list = (config_item *) malloc( sizeof(config_item) * size );
-		Assert(ptr->list);
+		SDL_assert(ptr->list);
 
 	} else {
 		ptr->index = NULL;
@@ -1018,7 +1020,7 @@ void control_config_bind_key(int i, int key)
 	ptr = get_undo_block(1);
 	ptr->index[0] = i;
 	ptr->list[0] = Control_config[i];
-	Control_config[i].key_id = (short) key;
+	Control_config[i].key_id = key;
 }
 
 void control_config_bind_joy(int i, int joy)
@@ -1039,7 +1041,7 @@ void control_config_bind_axis(int i, int axis)
 
 int control_config_remove_binding()
 {
-	int z, j, k;
+	int z;
 	config_item_undo *ptr;
 
 	if (Selected_line < 0) {
@@ -1069,7 +1071,6 @@ int control_config_remove_binding()
 		return -1;
 	}
 
-	j = k = -1;
 	ptr = get_undo_block(1);
 	ptr->index[0] = z;
 	ptr->list[0] = Control_config[z];
@@ -1078,7 +1079,7 @@ int control_config_remove_binding()
 		Control_config[z].joy_id = (short) -1;
 
 	if ((Selected_item != 1) && (Control_config[z].key_id >= 0))  // if not just joy button selected (1)
-		Control_config[z].key_id = (short) -1;
+		Control_config[z].key_id = -1;
 
 	control_config_conflict_check();
 	control_config_list_prepare();
@@ -1160,7 +1161,7 @@ int control_config_clear_other()
 				j++;
 
 				if (Control_config[i].key_id == Control_config[z].key_id)
-					Control_config[i].key_id = (short) -1;
+					Control_config[i].key_id = -1;
 				if (Control_config[i].joy_id == Control_config[z].joy_id)
 					Control_config[i].joy_id = (short) -1;
 			}
@@ -1196,7 +1197,7 @@ int control_config_clear_all()
 		}
 	}
 
-	Assert(j == total);
+	SDL_assert(j == total);
 	for (i=0; i<CCFG_MAX; i++) {
 		Control_config[i].key_id = Control_config[i].joy_id = -1;
 	}
@@ -1207,17 +1208,15 @@ int control_config_clear_all()
 	return 0;
 }
 
-extern Joy_info joystick;
-
 int control_config_axis_default(int axis)
 {
-	Assert(axis >= 0);
+	SDL_assert(axis >= 0);
 
 	if ( axis > 1 ) {
 		if (Axis_map_to_defaults[axis] < 0)
 			return -1;
 
-		if (!joystick.axis_valid[Axis_map_to_defaults[axis]])
+		if ( !joy_axis_valid(Axis_map_to_defaults[axis]) )
 			return -1;
 	}
 
@@ -1264,7 +1263,7 @@ int control_config_do_reset()
 			j++;
 		}
 
-	Assert(j == total);
+	SDL_assert(j == total);
 	control_config_reset_defaults();
 	control_config_conflict_check();
 	control_config_list_prepare();
@@ -1293,7 +1292,7 @@ void control_config_scroll_screen_up()
 {
 	if (Scroll_offset) {
 		Scroll_offset--;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!cc_line_query_visible(Selected_line))
 			Selected_line--;
 
@@ -1324,7 +1323,7 @@ void control_config_scroll_screen_down()
 		Scroll_offset++;
 		while (!cc_line_query_visible(Selected_line)) {
 			Selected_line++;
-			Assert(Selected_line < Num_cc_lines);
+			SDL_assert(Selected_line < Num_cc_lines);
 		}
 
 		Selected_item = -1;
@@ -1338,7 +1337,7 @@ void control_config_scroll_line_down()
 {
 	if (Selected_line < Num_cc_lines - 1) {
 		Selected_line++;
-		Assert(Selected_line > Scroll_offset);
+		SDL_assert(Selected_line > Scroll_offset);
 		while (!cc_line_query_visible(Selected_line))
 			Scroll_offset++;
 
@@ -1354,7 +1353,7 @@ void control_config_toggle_modifier(int bit)
 	int k, z;
 
 	z = Cc_lines[Selected_line].cc_index;
-	Assert(!(z & JOY_AXIS));
+	SDL_assert(!(z & JOY_AXIS));
 	k = Control_config[z].key_id;
 	if (k < 0) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1371,7 +1370,7 @@ void control_config_toggle_invert()
 	int z;
 
 	z = Cc_lines[Selected_line].cc_index;
-	Assert(z & JOY_AXIS);
+	SDL_assert(z & JOY_AXIS);
 	z &= ~JOY_AXIS;
 	control_config_save_axis_undo(z);
 	Invert_axis[z] = !Invert_axis[z];
@@ -1395,7 +1394,7 @@ void control_config_do_bind()
 		}
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.enable();
-	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(KEY_ESC);
+	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(SDLK_ESCAPE);
 
 	for (i=0; i<JOY_TOTAL_BUTTONS; i++){
 		joy_down_count(i);  // clear checking status of all joystick buttons
@@ -1423,7 +1422,7 @@ void control_config_do_search()
 	}
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.enable();
-	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(KEY_ESC);
+	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.set_hotkey(SDLK_ESCAPE);
 
 	for (i=0; i<JOY_TOTAL_BUTTONS; i++){
 		joy_down_count(i);  // clear checking status of all joystick buttons
@@ -1573,7 +1572,7 @@ const char *control_config_tooltip_handler(const char *str)
 {
 	int i;
 
-	if (!stricmp(str, NOX("@conflict"))) {
+	if (!SDL_strcasecmp(str, NOX("@conflict"))) {
 		for (i=0; i<NUM_TABS; i++) {
 			if (Conflicts_tabs[i])
 				return XSTR( "Conflict!", 205);
@@ -1644,16 +1643,16 @@ void control_config_init()
 	}
 
 	// set up hotkeys for buttons so we draw the correct animation frame when a key is pressed
-	CC_Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(KEY_PAGEUP);
-	CC_Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(KEY_PAGEDOWN);
-	CC_Buttons[gr_screen.res][BIND_BUTTON].button.set_hotkey(KEY_ENTER);
-	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_DELETE);
-	CC_Buttons[gr_screen.res][UNDO_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_Z);
-	CC_Buttons[gr_screen.res][CLEAR_BUTTON].button.set_hotkey(KEY_DELETE);
-	CC_Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_ENTER);
-	CC_Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(KEY_F1);
-	CC_Buttons[gr_screen.res][RESET_BUTTON].button.set_hotkey(KEY_CTRLED | KEY_R);
-	CC_Buttons[gr_screen.res][INVERT_AXIS].button.set_hotkey(KEY_I);
+	CC_Buttons[gr_screen.res][SCROLL_UP_BUTTON].button.set_hotkey(SDLK_PAGEUP);
+	CC_Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
+	CC_Buttons[gr_screen.res][BIND_BUTTON].button.set_hotkey(SDLK_RETURN);
+	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_DELETE);
+	CC_Buttons[gr_screen.res][UNDO_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_z);
+	CC_Buttons[gr_screen.res][CLEAR_BUTTON].button.set_hotkey(SDLK_DELETE);
+	CC_Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
+	CC_Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	CC_Buttons[gr_screen.res][RESET_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_r);
+	CC_Buttons[gr_screen.res][INVERT_AXIS].button.set_hotkey(SDLK_i);
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.disable();
 	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.disable();
@@ -1749,8 +1748,8 @@ void control_config_close()
 
 void control_config_do_frame(float frametime)
 {
-	char buf[256], *jptr;
-	int i, j, k, w, x, y, z, len, line, conflict;
+	char buf[256];
+	int i, j, k, w, x, y, z, line, conflict;
 	int font_height = gr_get_font_height();
 	int select_tease_line = -1;  // line mouse is down on, but won't be selected until button released
 	static float timer = 0.0f;
@@ -1775,13 +1774,13 @@ void control_config_do_frame(float frametime)
 			Ui_window.use_hack_to_get_around_stupid_problem_flag = 1;
 			Ui_window.process(0);
 
-			if (k == KEY_ESC) {
-				strcpy(bound_string, XSTR( "Canceled", 206));
+			if (k == SDLK_ESCAPE) {
+				SDL_strlcpy(bound_string, XSTR( "Canceled", 206), SDL_arraysize(bound_string));
 				bound_timestamp = timestamp(2500);
 				control_config_do_cancel();
 
 			} else {
-				if (k == KEY_ENTER)
+				if (k == SDLK_RETURN)
 					bind = 1;
 
 				for (i=0; i<JOY_TOTAL_BUTTONS; i++)
@@ -1791,7 +1790,7 @@ void control_config_do_frame(float frametime)
 				if (bind) {
 					if (Axis_override >= 0) {
 						control_config_bind_axis(z, Axis_override);
-						strcpy(bound_string, Joy_axis_text[Axis_override]);
+						SDL_strlcpy(bound_string, Joy_axis_text[Axis_override], SDL_arraysize(bound_string));
 						gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 						bound_timestamp = timestamp(2500);
 						control_config_conflict_check();
@@ -1826,24 +1825,24 @@ void control_config_do_frame(float frametime)
 				Ui_window.set_ignore_gadgets(0);
 			}
 
-			if (k == KEY_ESC) {
-				strcpy(bound_string, XSTR( "Canceled", 206));
+			if (k == SDLK_ESCAPE) {
+				SDL_strlcpy(bound_string, XSTR( "Canceled", 206), SDL_arraysize(bound_string));
 				bound_timestamp = timestamp(2500);
 				control_config_do_cancel();
 
 			} else {
 				switch (k & KEY_MASK) {
-					case KEY_LSHIFT:
-					case KEY_RSHIFT:
-					case KEY_LALT:
-					case KEY_RALT:
+					case SDLK_LSHIFT:
+					case SDLK_RSHIFT:
+					case SDLK_LALT:
+					case SDLK_RALT:
 						Last_key = k & KEY_MASK;
 						k = 0;
 						break;
 				}
 
 				if (Cc_lines[Selected_line].cc_index == BANK_WHEN_PRESSED)  // a special hack just for Mike K.
-					if ( (Last_key >= 0) && (k <= 0) && !keyd_pressed[Last_key] )
+					if ( (Last_key >= 0) && (k <= 0) && !key_pressed(Last_key) )
 						k = Last_key;
 
 				if ((k > 0) && !Config_allowed[k & KEY_MASK]) {
@@ -1854,10 +1853,10 @@ void control_config_do_frame(float frametime)
 				k &= (KEY_MASK | KEY_SHIFTED | KEY_ALTED);
 				if (k > 0) {
 					z = Cc_lines[Selected_line].cc_index;
-					Assert(!(z & JOY_AXIS));
+					SDL_assert(!(z & JOY_AXIS));
 					control_config_bind_key(z, k);
 
-					strcpy(bound_string, textify_scancode(k));
+					SDL_strlcpy(bound_string, textify_scancode(k), SDL_arraysize(bound_string));
 					gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 					bound_timestamp = timestamp(2500);
 					control_config_conflict_check();
@@ -1868,10 +1867,10 @@ void control_config_do_frame(float frametime)
 				for (i=0; i<JOY_TOTAL_BUTTONS; i++)
 					if (joy_down_count(i)) {
 						z = Cc_lines[Selected_line].cc_index;
-						Assert(!(z & JOY_AXIS));
+						SDL_assert(!(z & JOY_AXIS));
 						control_config_bind_joy(z, i);
 
-						strcpy(bound_string, Joy_button_text[i]);
+						SDL_strlcpy(bound_string, Joy_button_text[i], SDL_arraysize(bound_string));
 						gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 						bound_timestamp = timestamp(2500);
 						control_config_conflict_check();
@@ -1891,10 +1890,10 @@ void control_config_do_frame(float frametime)
 						for (i=0; i<MOUSE_NUM_BUTTONS; i++)
 							if (mouse_down(1 << i)) {
 								z = Cc_lines[Selected_line].cc_index;
-								Assert(!(z & JOY_AXIS));
+								SDL_assert(!(z & JOY_AXIS));
 								control_config_bind_joy(z, i);
 
-								strcpy(bound_string, Joy_button_text[i]);
+								SDL_strlcpy(bound_string, Joy_button_text[i], SDL_arraysize(bound_string));
 								gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 								bound_timestamp = timestamp(2500);
 								control_config_conflict_check();
@@ -1933,7 +1932,7 @@ void control_config_do_frame(float frametime)
 			Ui_window.set_ignore_gadgets(0);
 		}
 
-		if (k == KEY_ESC) {
+		if (k == SDLK_ESCAPE) {
 			control_config_do_cancel();
 
 		} else {
@@ -1997,7 +1996,7 @@ void control_config_do_frame(float frametime)
 
 				while (!cc_line_query_visible(Selected_line)) {
 					Scroll_offset++;
-					Assert(Scroll_offset < Num_cc_lines);
+					SDL_assert(Scroll_offset < Num_cc_lines);
 				}
 			}
 		}
@@ -2011,7 +2010,7 @@ void control_config_do_frame(float frametime)
 		if (!z) {
 			z = Cc_lines[Selected_line].cc_index;
 			k = Control_config[z].key_id;
-			if ( (k == KEY_LALT) || (k == KEY_RALT) || (k == KEY_LSHIFT) || (k == KEY_RSHIFT) ) {
+			if ( (k == SDLK_LALT) || (k == SDLK_RALT) || (k == SDLK_LSHIFT) || (k == SDLK_RSHIFT) ) {
 				CC_Buttons[gr_screen.res][ALT_TOGGLE].button.enable(0);
 				CC_Buttons[gr_screen.res][SHIFT_TOGGLE].button.enable(0);
 			}
@@ -2039,15 +2038,15 @@ void control_config_do_frame(float frametime)
 		}
 
 		switch (k) {
-			case KEY_DOWN:  // select next line
+			case SDLK_DOWN:  // select next line
 				control_config_scroll_line_down();
 				break;
 
-			case KEY_UP:  // select previous line
+			case SDLK_UP:  // select previous line
 				control_config_scroll_line_up();
 				break;
 
-			case KEY_SHIFTED | KEY_TAB:  // activate previous tab
+			case KEY_SHIFTED | SDLK_TAB:  // activate previous tab
 				Tab--;
 				if (Tab < 0)
 					Tab = NUM_TABS - 1;
@@ -2057,7 +2056,7 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCREEN_MODE_PRESSED);
 				break;
 
-			case KEY_TAB:  // activate next tab
+			case SDLK_TAB:  // activate next tab
 				Tab++;
 				if (Tab >= NUM_TABS)
 					Tab = 0;
@@ -2067,7 +2066,7 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCREEN_MODE_PRESSED);
 				break;
 
-			case KEY_LEFT:
+			case SDLK_LEFT:
 				Selected_item--;
 				if (Selected_item == -2) {
 					Selected_item = 1;
@@ -2081,7 +2080,7 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCROLL);
 				break;
 
-			case KEY_RIGHT:
+			case SDLK_RIGHT:
 				Selected_item++;
 				if ((Selected_item == 1) && (Cc_lines[Selected_line].jw < 1))
 					Selected_item = -1;
@@ -2093,11 +2092,11 @@ void control_config_do_frame(float frametime)
 				gamesnd_play_iface(SND_SCROLL);
 				break;
 
-			case KEY_BACKSP:  // undo
+			case SDLK_BACKSPACE:  // undo
 				control_config_undo_last();
 				break;
 
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				control_config_cancel_exit();
 				break;
 		}	// end switch
@@ -2164,7 +2163,7 @@ void control_config_do_frame(float frametime)
 
 		// setup the conflict string
 		char conflict_str[512] = "";
-		strncpy(conflict_str, XSTR("Conflict!", 205), 511);
+		SDL_strlcpy(conflict_str, XSTR("Conflict!", 205), SDL_arraysize(conflict_str));
 		int sw, sh;
 		gr_get_string_size(&sw, &sh, conflict_str);
 
@@ -2240,7 +2239,7 @@ void control_config_do_frame(float frametime)
 		gr_get_string_size(&w, NULL, str);
 		gr_printf(x - w / 2, y - font_height, str);
 
-		strcpy(buf, XSTR(Control_config[i].text, CONTROL_CONFIG_XSTR + i));
+		SDL_strlcpy(buf, XSTR(Control_config[i].text, CONTROL_CONFIG_XSTR + i), SDL_arraysize(buf));
 		gr_force_fit_string(buf, 255, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 		gr_get_string_size(&w, NULL, buf);
 		gr_printf(x - w / 2, y, buf);
@@ -2287,7 +2286,7 @@ void control_config_do_frame(float frametime)
 
 		gr_set_color_fast(c);
 		if (Cc_lines[line].label) {
-			strcpy(buf, Cc_lines[line].label);
+			SDL_strlcpy(buf, Cc_lines[line].label, SDL_arraysize(buf));
 			gr_force_fit_string(buf, 255, Control_list_ctrl_w[gr_screen.res]);
 			gr_printf(Control_list_coords[gr_screen.res][CONTROL_X_COORD], y, buf);
 		}
@@ -2296,7 +2295,6 @@ void control_config_do_frame(float frametime)
 			k = Control_config[z].key_id;
 			j = Control_config[z].joy_id;
 			x = Control_list_key_x[gr_screen.res];
-			jptr = NULL;
 			*buf = 0;
 
 			if ((k < 0) && (j < 0)) {
@@ -2305,7 +2303,7 @@ void control_config_do_frame(float frametime)
 
 			} else {
 				if (k >= 0) {
-					strcpy(buf, textify_scancode(k));
+					SDL_strlcpy(buf, textify_scancode(k), SDL_arraysize(buf));
 					if (Conflicts[z].key >= 0) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);
@@ -2322,7 +2320,6 @@ void control_config_do_frame(float frametime)
 
 					gr_printf(x, y, buf);
 
-					len = strlen(buf);
 					Cc_lines[line].kx = x - Control_list_coords[gr_screen.res][CONTROL_X_COORD];
 					gr_get_string_size(&w, NULL, buf);
 					Cc_lines[line].kw = w;
@@ -2337,7 +2334,7 @@ void control_config_do_frame(float frametime)
 				}
 
 				if (j >= 0) {
-					strcpy(buf, Joy_button_text[j]);
+					SDL_strlcpy(buf, Joy_button_text[j], SDL_arraysize(buf));
 					if (Conflicts[z].joy >= 0) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);
@@ -2420,7 +2417,7 @@ float check_control_timef(int id)
 	float t1, t2;
 
 	// if type isn't continuous, we shouldn't be using this function, cause it won't work.
-	Assert(Control_config[id].type == CC_TYPE_CONTINUOUS);
+	SDL_assert(Control_config[id].type == CC_TYPE_CONTINUOUS);
 
 	// first, see if control actually used (makes sure modifiers match as well)
 	if (!check_control(id))
@@ -2481,16 +2478,20 @@ int check_control(int id, int key)
 			}
 
 		// check what current modifiers are pressed
+		int tmp = key_get_shift_status();
 		mask = 0;
-		if (keyd_pressed[KEY_LSHIFT] || key_down_count(KEY_LSHIFT) || keyd_pressed[KEY_RSHIFT] || key_down_count(KEY_RSHIFT))
-			mask |= KEY_SHIFTED;
 
-		if (keyd_pressed[KEY_LALT] || key_down_count(KEY_LALT) || keyd_pressed[KEY_RALT] || key_down_count(KEY_RALT))
+		if (tmp & KEY_SHIFTED) {
+			mask |= KEY_SHIFTED;
+		}
+
+		if (tmp & KEY_ALTED) {
 			mask |= KEY_ALTED;
+		}
 
 		z = Control_config[id].key_id;
 		if (z >= 0) {
-			if ( (z != KEY_LALT) && (z != KEY_RALT) && (z != KEY_LSHIFT) && (z != KEY_RSHIFT) ) {
+			if ( (z != SDLK_LALT) && (z != SDLK_RALT) && (z != SDLK_LSHIFT) && (z != SDLK_RSHIFT) ) {
 				// if current modifiers don't match action's modifiers, don't register control active.
 				if ((z & (KEY_SHIFTED | KEY_ALTED)) != mask)
 					return 0;
@@ -2498,7 +2499,7 @@ int check_control(int id, int key)
 
 			z &= KEY_MASK;
 
-			if (keyd_pressed[z] || key_down_count(z)) {
+			if (key_pressed(z) || key_down_count(z)) {
 				if ( !hud_squadmsg_read_key(z) ) {
 					control_used(id);
 					return 1;
@@ -2520,30 +2521,26 @@ int check_control(int id, int key)
 // get heading, pitch, bank, throttle abs. and throttle rel. values.
 void control_get_axes_readings(int *h, int *p, int *b, int *ta, int *tr)
 {
-	int axes_values[JOY_NUM_AXES];
-
-	joystick_read_raw_axis(JOY_NUM_AXES, axes_values);
-
 	//	joy_get_scaled_reading will return a value represents the joystick pos from -1 to +1 (fixed point)
 	*h = 0;
 	if (Axis_map_to[0] >= 0)
-		*h = joy_get_scaled_reading(axes_values[Axis_map_to[0]], Axis_map_to[0]);
+		*h = joy_get_scaled_reading(Axis_map_to[0]);
 
 	*p = 0;
 	if (Axis_map_to[1] >= 0)
-		*p = joy_get_scaled_reading(axes_values[Axis_map_to[1]], Axis_map_to[1]);
+		*p = joy_get_scaled_reading(Axis_map_to[1]);
 
 	*b = 0;
 	if (Axis_map_to[2] >= 0)
-		*b = joy_get_scaled_reading(axes_values[Axis_map_to[2]], Axis_map_to[2]);
+		*b = joy_get_scaled_reading(Axis_map_to[2]);
 
 	*ta = 0;
 	if (Axis_map_to[3] >= 0)
-		*ta = joy_get_unscaled_reading(axes_values[Axis_map_to[3]], Axis_map_to[3]);
+		*ta = joy_get_unscaled_reading(Axis_map_to[3]);
 
 	*tr = 0;
 	if (Axis_map_to[4] >= 0)
-		*tr = joy_get_scaled_reading(axes_values[Axis_map_to[4]], Axis_map_to[4]);
+		*tr = joy_get_scaled_reading(Axis_map_to[4]);
 
 	if (Invert_axis[0])
 		*h = -(*h);
@@ -2607,7 +2604,7 @@ int control_config_handle_conflict()
 			if (j < 0)
 				z = k;
 
-			Assert(z >= 0);
+			SDL_assert(z >= 0);
 			ptr = get_undo_block(1);
 			ptr->index[0] = z;
 			ptr->list[0] = Control_config[z];

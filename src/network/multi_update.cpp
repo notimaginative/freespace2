@@ -131,10 +131,8 @@
 // MULTI UPDATE DEFINES/VARS
 //
 
-#ifndef PLAT_UNIX
 // file get object
 InetGetFile *Multi_update_get = NULL;
-#endif
 
 // set this to be true so that game_shutdown() will fire up the launcher, then post a quit game event
 int Multi_update_fireup_launcher_on_exit = 0;
@@ -149,41 +147,34 @@ char Multi_update_error_string[512];
 // initialize the http xfer of the version info file, return 1 on success
 int multi_update_http_init()
 {
-#ifndef PLAT_UNIX
 	char url_file[512] = "";
 	char local_file[512] = "";
 
 	// url
-	strcpy(url_file, VERSION_URL);
+	SDL_strlcpy(url_file, VERSION_URL, SDL_arraysize(url_file));
 
 	// local file
-	strcpy(local_file, Cfile_root_dir);
-	strcat(local_file, DIR_SEPARATOR_STR);
-	strcat(local_file, VERSION_LOC_FNAME);
+	SDL_snprintf(local_file, SDL_arraysize(local_file), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, VERSION_LOC_FNAME);
 
 	// new file	
 	Multi_update_get = new InetGetFile(url_file, local_file);
 	if(Multi_update_get == NULL){
 		// error string
-		strcpy(Multi_update_error_string, XSTR("Could not get data from website", 977));
+		SDL_strlcpy(Multi_update_error_string, XSTR("Could not get data from website", 977), SDL_arraysize(Multi_update_error_string));
 
 		return 0;
 	}
 
 	return 1;
-#else
-	return 0;
-#endif
 }
 
 // do frame for the popup. returns 0 if not done yet, 1 if succeeded, 2 on error
 int multi_update_http_do()
 {
-#ifndef PLAT_UNIX
 	// sanity
 	if(Multi_update_get == NULL){
 		// error string
-		strcpy(Multi_update_error_string, XSTR("Could not get data from website", 977));
+		SDL_strlcpy(Multi_update_error_string, XSTR("Could not get data from website", 977), SDL_arraysize(Multi_update_error_string));
 
 		return 2;
 	}
@@ -194,7 +185,7 @@ int multi_update_http_do()
 		Multi_update_get = NULL;
 
 		// error string
-		strcpy(Multi_update_error_string, XSTR("Could not get data from website", 977));
+		SDL_strlcpy(Multi_update_error_string, XSTR("Could not get data from website", 977), SDL_arraysize(Multi_update_error_string));
 		
 		return 2;
 	} 	
@@ -212,9 +203,6 @@ int multi_update_http_do()
 	}
 
 	return 0;
-#else
-	return 2;
-#endif
 }
 
 // close down the http xfer
@@ -228,10 +216,8 @@ int multi_update_error_verifying()
 	char out_str[512];
 
 	memset(out_str, 0, 512);
-	strcpy(out_str, "(");
-	strcat(out_str, Multi_update_error_string);
-	strcat(out_str, ")\n\n");
-	strcat(out_str, XSTR("There was an error verifying your version of Freespace, if you continue, you will not necessarily be up to date", 978));	
+	SDL_snprintf(out_str, SDL_arraysize(out_str), "(%s)\n\n%s", Multi_update_error_string,
+				XSTR("There was an error verifying your version of Freespace, if you continue, you will not necessarily be up to date", 978));
 
 	switch(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Go back", 1524), XSTR("&Continue", 1525), out_str)){
 	// continue on in freespace like nothing happened
@@ -243,9 +229,6 @@ int multi_update_error_verifying()
 	default:
 		return MULTI_UPDATE_MAIN_MENU;
 	}
-
-	// should never happen, but if so, move back to the main menu
-	return MULTI_UPDATE_MAIN_MENU;
 }
 
 // check to see if the version of FS on this machine is not recent. run in a popup
@@ -259,7 +242,7 @@ int multi_update_gobaby()
 	int my_code = MULTI_UPDATE_MAIN_MENU;
 
 	// maybe skip
-	if(os_config_read_uint(NULL, "SkipVerify", 0)){
+	if ( os_config_read_uint("PXO", "SkipVerify", 0) ) {
 		return MULTI_UPDATE_CONTINUE;
 	}
 
@@ -274,9 +257,9 @@ int multi_update_gobaby()
 	extern char Multi_options_proxy[512];
 	extern ushort Multi_options_proxy_port;
 	if(strlen(Multi_options_proxy) > 0){
-		sprintf(msg, "%s (%s : %d)", XSTR("Verifying Freespace Version",981), Multi_options_proxy, Multi_options_proxy_port);
+		SDL_snprintf(msg, SDL_arraysize(msg), "%s (%s : %d)", XSTR("Verifying Freespace Version",981), Multi_options_proxy, Multi_options_proxy_port);
 	} else {
-		strcpy(msg, XSTR("Verifying Freespace Version",981));
+		SDL_strlcpy(msg, XSTR("Verifying Freespace Version",981), SDL_arraysize(msg));
 	}
 	ret_code = popup_till_condition(multi_update_http_do, XSTR("Cancel",948), msg);		
 

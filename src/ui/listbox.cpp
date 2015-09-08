@@ -114,6 +114,7 @@
 #include "timer.h"
 #include "key.h"
 #include "alphacolors.h"
+#include "font.h"
 
 #define KEY_BUFFER_TIMEOUT		1000		// time to clear buffer in milliseconds
 
@@ -302,7 +303,7 @@ void UI_LISTBOX::draw()
 
 void UI_LISTBOX::process(int focus)
 {
-	int OnMe, mitem, oldbarpos, kf = 0;
+	int OnMe, mitem, kf = 0;
 	int i, j;
 
 	selected_item = -1;
@@ -343,7 +344,7 @@ void UI_LISTBOX::process(int focus)
 	if (has_scrollbar) {
 		if (scrollbar.moved) {
 			first_item = scrollbar.position;
-			Assert(first_item >= 0);
+			SDL_assert(first_item >= 0);
 
 			if (current_item<first_item)
 				current_item = first_item;
@@ -369,50 +370,50 @@ void UI_LISTBOX::process(int focus)
 			kf = 0;
 
 			switch (my_wnd->keypress) {
-				case KEY_ENTER:
+				case SDLK_RETURN:
 					selected_item = current_item;
 					break;
 
-				case KEY_SPACEBAR:
+				case SDLK_SPACE:
 					toggled_item = current_item;
 					break;
 
-				case KEY_UP:
+				case SDLK_UP:
 					current_item--;
 					kf = 1;
 					break;
 
-				case KEY_DOWN:
+				case SDLK_DOWN:
 					current_item++;
 					kf = 1;
 					break;
 
-				case KEY_HOME:
+				case SDLK_HOME:
 					current_item = 0;
 					kf = 1;
 					break;
 
-				case KEY_END:
+				case SDLK_END:
 					current_item=num_items - 1;
 					kf = 1;
 					break;
 
-				case KEY_PAGEUP:
+				case SDLK_PAGEUP:
 					current_item -= num_items_displayed;
 					kf = 1;
 					break;
 
-				case KEY_PAGEDOWN:
+				case SDLK_PAGEDOWN:
 					current_item += num_items_displayed;
 					kf = 1;
 					break;
 
 				default:		// enter the key in the key buffer
-					if (my_wnd->keypress == KEY_BACKSP) {
+					if (my_wnd->keypress == SDLK_BACKSPACE) {
 						key_buffer_count = 0;
 
 					} else if (key_buffer_count < MAX_KEY_BUFFER) {
-						key_buffer[key_buffer_count++] = (char) my_wnd->keypress;
+						key_buffer[key_buffer_count++] = (char) my_wnd->keypress_text;
 						last_typed = timer_get_milliseconds();
 					}
 
@@ -424,8 +425,9 @@ void UI_LISTBOX::process(int focus)
 						
 						current_text = get_string(i);
 						for (j=0; j<key_buffer_count; j++)
-							if ( (current_text[j] != ascii_table[(int)key_buffer[j]]) && (current_text[j] != shifted_ascii_table[(int)key_buffer[j]]) )
+							if (current_text[j] != key_buffer[j]) {
 								break;
+							}
 
 						if (j == key_buffer_count) {
 							set_first_item(i - num_items_displayed / 2);
@@ -454,7 +456,6 @@ void UI_LISTBOX::process(int focus)
 
 			} else {
 				if (has_scrollbar) {
-					oldbarpos = scrollbar.position;
 					scrollbar.position = first_item;
 
 					scrollbar.bar_position = scrollbar.position - scrollbar.start;
@@ -511,7 +512,6 @@ void UI_LISTBOX::process(int focus)
 				first_item = 0;
 
 			} else if (has_scrollbar) {
-				oldbarpos = scrollbar.position;
 				scrollbar.position = first_item;
 
 				scrollbar.bar_position = scrollbar.position - scrollbar.start;

@@ -92,12 +92,13 @@
  */
 
 
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <dos.h>
+#include "wx/wxprec.h"
+
+#ifndef WX_PRECOMP
+#include "wx/wx.h"
+#endif
+
+#include "wx/filedlg.h"
 
 #include "pstypes.h"
 #include "2d.h"
@@ -116,6 +117,8 @@
 #include "physics.h"
 #include "model.h"
 #include "font.h"
+#include "cmdline.h"
+#include "cfilesystem.h"
 
 
 #define SCREEN_W	640	
@@ -131,13 +134,14 @@ float ViewerZoom = 1.0f;
 int test_model = -1;
 int Fred_running = 0;
 int Pofview_running = 0;
+int Fonttool_running = 0;
 float flFrametime = 0.0f;
 
 int Font1 = -1;
 
 color color_green;
 
-vector Global_light_world = { 0.208758f, -0.688253f, -0.694782f };
+vector Global_light_world = { { { 0.208758f, -0.688253f, -0.694782f } } };
 
 // nebula stuff
 
@@ -161,8 +165,8 @@ color nebula_color;
 
 int Mouse_x, Mouse_y;
 int Current_point;
-BOOL Selected[MAX_POINTS];
-BOOL Sel_mode = 0;   // 0 = 1 point at a time, 1 = select multiple points
+bool Selected[MAX_POINTS];
+bool Sel_mode = false;   // false = 1 point at a time, true = select multiple points
 int Current_face;
 
 int View_mode = 0;	// 0 = 2d editor, 1 = 3d viewer
@@ -175,14 +179,25 @@ int Orig_pos_x;
 int Orig_pos_y;
 int End_pos_x;
 int End_pos_y;
-BOOL Draw_sel_box = FALSE;
+bool Draw_sel_box = false;
 
 int Neb_created = 0;
 
 int Nebedit_running = 1;
 
-extern int load_nebula_sub(char*);
 extern void project_2d_onto_sphere(vector *, float, float);
+
+class NebeditApp: public wxApp
+{
+public:
+	virtual bool OnInit();
+};
+
+bool NebeditApp::OnInit()
+{
+	return false;
+}
+
 
 void create_default_neb()
 {
@@ -226,85 +241,128 @@ void create_default_neb()
 #define NEBULA_MAJOR_VERSION 1		// Can be 1-?
 #define NEBULA_MINOR_VERSION 0		// Can be 0-99
 
-void save_nebula_sub(char *filename)
+void save_nebula_sub(const char *filename)
 {
-	FILE *fp;
+	CFILE *fp;
 	float xf, yf;
 	int version;
+	int i;
 
-	fp = fopen(filename, "wb");
+	fp = cfopen(filename, "wb");
+
+	if ( !fp )	{
+		return;
+	}
 
 	// ID of NEBU
-	fwrite( "NEBU", 4, 1, fp );	
+	cfwrite( "NEBU", 4, 1, fp );
 	version = NEBULA_MAJOR_VERSION*100+NEBULA_MINOR_VERSION;
-	fwrite( &version, sizeof(int), 1, fp );
-	fwrite( &num_pts, sizeof(int), 1, fp );
-	fwrite( &num_tris, sizeof(int), 1, fp );
+	cfwrite_int(version, fp);
+	cfwrite_int(num_pts, fp);
+	cfwrite_int(num_tris, fp);
 
-	for (int i=0; i<num_pts; i++ )	{
-		xf = float(x[i])/640.0f;
-		yf = float(y[i])/480.0f;
-		fwrite( &xf, sizeof(float), 1, fp );
-		fwrite( &yf, sizeof(float), 1, fp );
-		fwrite( &l[i], sizeof(int), 1, fp );
+	for (i=0; i<num_pts; i++ )	{
+		xf = INTEL_FLOAT(float(x[i])/640.0f);
+		yf = INTEL_FLOAT(float(y[i])/480.0f);
+		cfwrite_float(xf, fp);
+		cfwrite_float(yf, fp);
+		cfwrite_int(l[i], fp);
 	}
 
 	for (i=0; i<num_tris; i++ )	{
-		fwrite( &tri[i][0], sizeof(int), 1, fp );
-		fwrite( &tri[i][1], sizeof(int), 1, fp );
-		fwrite( &tri[i][2], sizeof(int), 1, fp );
+		cfwrite_int(tri[i][0], fp);
+		cfwrite_int(tri[i][1], fp);
+		cfwrite_int(tri[i][2], fp);
 	}
 
-	fclose(fp);
+	cfclose(fp);
+}
+
+// returns 0 if failed
+int load_nebula_sub(const char *filename)
+{
+	CFILE *fp;
+	char id[16];
+	int version, major, minor;
+
+	fp = cfopen(filename, "rb");
+
+	if ( !fp )	{
+		return 0;
+	}
+
+	// ID of NEBU
+	cfread( id, 4, 1, fp );
+	if ( strncmp( id, NEBULA_FILE_ID, 4))	{
+		mprintf(( "Not a valid nebula file.\n" ));
+		return 0;
+	}
+
+	version = cfread_int(fp);
+	major = version / 100;
+	minor = version % 100;
+
+	if ( (major != NEBULA_MAJOR_VERSION) && (minor != NEBULA_MINOR_VERSION) ) {
+		mprintf(( "An out of date nebula file.\n" ));
+		return 0;
+	}
+
+	num_pts = cfread_int(fp);
+	SDL_assert( num_pts < MAX_POINTS );
+	num_tris = cfread_int(fp);
+	SDL_assert( num_tris < MAX_TRIS );
+
+	for (int i=0; i<num_pts; i++ )	{
+		x[i] = fl2i(cfread_float(fp) * 640.0f);
+		y[i] = fl2i(cfread_float(fp) * 480.0f);
+		l[i] = cfread_int(fp);
+	}
+
+	for (int i=0; i<num_tris; i++ )	{
+		tri[i][0] = cfread_int(fp);
+		tri[i][1] = cfread_int(fp);
+		tri[i][2] = cfread_int(fp);
+	}
+
+	cfclose(fp);
+
+	return 1;
 }
 
 void nebedit_close()
 {
-	save_nebula_sub( "autosaved.neb" );
+	char a_path[MAX_PATH_LEN];
+
+	cf_create_default_path_string(a_path, CF_TYPE_CACHE, "autosaved.neb");
+
+	save_nebula_sub( a_path );
 }
 
 void save_nebula()
 {
-	char filename[255] = "\0";
-	//char filter[255] = "Nebula Files\0
-	OPENFILENAME o;
-	memset(&o,0,sizeof(o));
-	o.lStructSize = sizeof(o);
-	//o.hwndOwner = GetActiveWindow();
-	o.lpstrFilter = "Nebula Files\0*.NEB\0\0";
-	o.lpstrFile = filename;
-	o.nMaxFile = 256;
-	o.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-	o.lpstrDefExt = "*.NEB";
-	if (!GetSaveFileName(&o)) return;
+	wxFileDialog saveFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
+								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
+								wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 
-	save_nebula_sub(filename);
+	if (saveFileDialog.ShowModal() == wxID_OK) {
+		save_nebula_sub(saveFileDialog.GetPath().ToAscii());
+	}
 }
 
 void load_nebula()
 {
-	char filename[255] = "\0";
-	OPENFILENAME o;
-	memset(&o,0,sizeof(o));
-	o.lStructSize = sizeof(OPENFILENAME);
-	//o.hwndOwner = GetActiveWindow();
-	o.lpstrFilter = "Nebula Files\0*.NEB\0\0";
-	o.lpstrFile = filename;
-	o.nMaxFile = 256;
-	o.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-	o.lpstrDefExt = "*.NEB";
+	int create_default = 1;
 
-	int create_default = 0;
-	if (!GetOpenFileName(&o)) {
-		create_default = 1;
-	} else {
-		if ( !load_nebula_sub(filename))	{
-			create_default = 1;
-		}
+	wxFileDialog openFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
+								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
+								wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+
+	if (openFileDialog.ShowModal() == wxID_OK) {
+		create_default = !load_nebula_sub(openFileDialog.GetPath().ToAscii());
 	}
 
-	if ( create_default )	{	
-		create_default_neb();	
+	if ( create_default )	{
+		create_default_neb();
 	}
 
 	Neb_created = 1;
@@ -313,11 +371,11 @@ void load_nebula()
 void nebula_init()
 {
 	if ( nebula_inited ) return;
-	memset(Selected, 0, sizeof(BOOL)*MAX_POINTS);
+	memset(Selected, 0, sizeof(bool)*MAX_POINTS);
 	nebula_inited++;
 
 	create_default_neb();	
-	gr_init_alphacolor( &nebula_color, 0, 255, 0, 255 );
+	gr_init_alphacolor( &nebula_color, 0, 255, 0, 255, AC_TYPE_HUD );
 
 	return;
 }
@@ -339,14 +397,13 @@ void draw_tri_2d( int i, int j, int k )
 		verts[v]->u = 0.0f;
 		verts[v]->v = 0.0f;
 		verts[v]->sw = 1.0f; 
-		verts[v]->r = verts[v]->g = verts[v]->b = (ubyte)(i2fl(l[index[v]])/31.0f);
-
+		verts[v]->b = (ubyte)(i2fl(l[index[v]]*255)/31.0f);
 	}
 
 //	gr_set_color( 0, 0, 0 );
 	gr_tmapper(3, verts, TMAP_FLAG_RAMP | TMAP_FLAG_GOURAUD | TMAP_FLAG_NEBULA );
 
-	if ( !keyd_pressed[KEY_LSHIFT] )	{
+	if ( !key_pressed(SDLK_LSHIFT) )	{
 		gr_set_color(100,100,100);
 		gr_line( x[i], y[i], x[j], y[j] );
 		gr_line( x[j], y[j], x[k], y[k] );
@@ -366,7 +423,7 @@ void nebula_draw_2d()
 		for (i=0; i<num_pts; i++ )	{
 			gr_circle( x[i], y[i], 4 );
 		}
-		if ((Sel_mode==1)) { // multiple selection
+		if (Sel_mode == 1) { // multiple selection
 			if (Draw_sel_box) {
 				gr_set_color(200,0,200);
 				gr_line(Orig_pos_x, Orig_pos_y, Orig_pos_x, End_pos_y);
@@ -421,7 +478,7 @@ void draw_tri_3d( int i, int j, int k )
 		//g3_rotate_vertex( verts[v], &tmp );
 		g3_project_vertex( verts[v] );
 
-		verts[v]->r = verts[v]->g = verts[v]->b = (ubyte)(i2fl(l[index[v]])/31.0f);
+		verts[v]->b = (ubyte)(i2fl(l[index[v]]*255)/31.0f);
 	}
 
 	//gr_zbuffering = 0;
@@ -470,9 +527,9 @@ void render_frame()
 		}
 		char blah[255];
 		gr_printf(20,30,"# Points:");
-		gr_printf(100,30, itoa(num_pts, blah, 10));
+		gr_printf(100,30, SDL_itoa(num_pts, blah, 10));
 		gr_printf(220,30,"# Polys:");
-		gr_printf(300,30, itoa(num_tris, blah, 10));		
+		gr_printf(300,30, SDL_itoa(num_tris, blah, 10));
 	} else {
 		nebula_draw_3d();
 		model_render( test_model, &ModelOrient, &ModelPos );
@@ -550,7 +607,9 @@ void delete_face(int i)
 
 void delete_vert(int i)
 {
-	for (int j=0;j<num_tris;j++) {
+	int j;
+
+	for (j=0;j<num_tris;j++) {
 		if ((tri[j][0]==i)||(tri[j][1]==i)||(tri[j][2]==i)) {
 			delete_face(j);
 			j=0;
@@ -571,7 +630,7 @@ void delete_vert(int i)
 
 int add_vert(int mx, int my)
 {
-	Assert(num_pts<300);
+	SDL_assert(num_pts<300);
 	x[num_pts] = mx;
 	y[num_pts] = my;
 	l[num_pts] = 0;
@@ -594,7 +653,7 @@ void select_by_box(int x1, int y1, int x2, int y2)
 	for (int i=0;i<num_pts;i++) {
 		if ((x[i]<=x2) && (x[i]>=x1) &&
 			 (y[i]<=y2) && (y[i]>=y1)) {
-			Selected[i] = TRUE;
+			Selected[i] = true;
 		}
 	}
 }
@@ -627,7 +686,7 @@ void controls_read_all(control_info * ci, float sim_time )
 	}
 
 	// From keyboard...
-	kh = (key_down_timef(KEY_PAD6) - key_down_timef(KEY_PAD4))/8.0f;
+	kh = (key_down_timef(SDLK_KP_6) - key_down_timef(SDLK_KP_4))/8.0f;
 	if (kh == 0.0f)
 		ci->heading = 0.0f;
 	else if (kh > 0.0f) {
@@ -638,7 +697,7 @@ void controls_read_all(control_info * ci, float sim_time )
 			ci->heading = 0.0f;
 	ci->heading += kh;
 
-	kh = (key_down_timef(KEY_PAD8) - key_down_timef(KEY_PAD2))/8.0f;
+	kh = (key_down_timef(SDLK_KP_8) - key_down_timef(SDLK_KP_2))/8.0f;
 	if (kh == 0.0f)
 		ci->pitch = 0.0f;
 	else if (kh > 0.0f) {
@@ -649,10 +708,10 @@ void controls_read_all(control_info * ci, float sim_time )
 			ci->pitch = 0.0f;
 	ci->pitch += kh;
 
-	ci->bank = (key_down_timef(KEY_PAD7) - key_down_timef(KEY_PAD9))*.75f;
-	ci->forward = key_down_timef(KEY_A) - key_down_timef(KEY_Z);
-	ci->sideways = key_down_timef(KEY_PAD3) - key_down_timef(KEY_PAD1);
-	ci->vertical = key_down_timef(KEY_PADPLUS) - key_down_timef(KEY_PADENTER);
+	ci->bank = (key_down_timef(SDLK_KP_7) - key_down_timef(SDLK_KP_9))*.75f;
+	ci->forward = key_down_timef(SDLK_a) - key_down_timef(SDLK_z);
+	ci->sideways = key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1);
+	ci->vertical = key_down_timef(SDLK_KP_PLUS) - key_down_timef(SDLK_KP_ENTER);
 }
 
 int check_keys()
@@ -661,18 +720,18 @@ int check_keys()
 
 	while( (k = key_inkey()) != 0 )	{
 //mprintf(( "Key = %x\n", k ));
-		if ( k == KEY_ESC ) {
+		if ( k == SDLK_ESCAPE ) {
 			return 1;
 		}
 
 		switch( k )	{
-		case KEY_ENTER:
-			Sel_mode = FALSE;
+		case SDLK_RETURN:
+			Sel_mode = false;
 			Vert_mode = !Vert_mode;
 			Which_vert = 0;
 			break;
 
-		case KEY_DELETE:
+		case SDLK_DELETE:
 			if (Sel_mode) break;
 			if (Vert_mode==1) delete_face(Current_face);
 			else if (Vert_mode==0) {
@@ -680,26 +739,26 @@ int check_keys()
 			}
 			break;
 
-		case KEY_MINUS:
+		case SDLK_MINUS:
 			scale_factor -= 0.05f;
 			mprintf(( "Scale = %.1f\n", scale_factor ));
 			break;
 
 
-		case KEY_EQUAL:
+		case SDLK_EQUALS:
 			scale_factor += 0.05f;
 			mprintf(( "Scale = %.1f\n", scale_factor ));
 			break;
 
-		case KEY_INSERT:
+		case SDLK_INSERT:
 			Sel_mode = !Sel_mode;
 			break;
 
-		case KEY_SPACEBAR:
+		case SDLK_SPACE:
 			View_mode = !View_mode;
 			break;
 
-		case KEY_COMMA:
+		case SDLK_COMMA:
 			if (Sel_mode) {
 				int i;
 				for (i=0;i<num_pts;i++) if (Selected[i]) {
@@ -726,7 +785,7 @@ int check_keys()
 			}
 			break;
 
-		case KEY_PERIOD:	
+		case SDLK_PERIOD:
 			if (Sel_mode) {
 				int i;
 				for (i=0;i<num_pts;i++) if (Selected[i]) {
@@ -754,14 +813,14 @@ int check_keys()
 			
 			break;		
 
-		case KEY_F5:
+		case SDLK_F5:
 			save_nebula();
 			break;
-		case KEY_F7:
+		case SDLK_F7:
 			load_nebula();
 			break;
 
-		case KEY_BACKSP:
+		case SDLK_BACKSPACE:
 			sphericalize_nebula();
 			break;
 		}
@@ -776,9 +835,10 @@ void os_close()
 
 int newtri[3];
 
-int mdflag = 0;
+bool mdflag = false;
 
-int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
+extern "C"
+int main(int argc, char *argv[])
 {
 	int i;
 	fix t1, t2;
@@ -788,39 +848,43 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	// setup the fred exe directory so CFILE can init properly
 	/*
 	char *c = GetCommandLine();
-	Assert(c != NULL);
+	SDL_assert(c != NULL);
 	char *tok = strtok(c, " ");
-	Assert(tok != NULL);	
+	SDL_assert(tok != NULL);	
 	*/
+
+	Cmdline_window = 1; // always windowed
 
 	timer_init();
 	// cfile_init(tok);
-	cfile_init(__argv[0]);
+	cfile_init();
 	os_init( "NebEdit", "NebEdit" );	//SCREEN_W, SCREEN_H );
-	palette_load_table( "gamepalette1-01.pcx" );	
-	gr_init(GR_640, GR_SOFTWARE, 8);
+	os_set_title("NebEdit");
+	gr_init();
+	palette_load_table( "gamepalette1-01.pcx" );
 	key_init();
 	mouse_init();
+	SDL_ShowCursor(1);
 	Font1 = gr_init_font( "font01.vf" );
-	gr_init_alphacolor( &color_green, 0,255,0,255 );
+	gr_init_alphacolor( &color_green, 0,255,0,255,AC_TYPE_HUD );
 
 	test_model = model_load( "fighter01.pof", 0, NULL );
 
 	physics_init( &ViewerPhysics );
 	ViewerPhysics.flags |= PF_ACCELERATES | PF_SLIDE_ENABLED;
-	
-	ViewerPhysics.max_vel.x = 2.0f*speed;		//sideways
-	ViewerPhysics.max_vel.y = 2.0f*speed;		//up/down
-	ViewerPhysics.max_vel.z = 2.0f*speed;		//forward
+
+	ViewerPhysics.max_vel.xyz.x = 2.0f*speed;		//sideways
+	ViewerPhysics.max_vel.xyz.y = 2.0f*speed;		//up/down
+	ViewerPhysics.max_vel.xyz.z = 2.0f*speed;		//forward
 	ViewerPhysics.max_rear_vel = 2.0f*speed;	//backward -- controlled seperately
 	
 	memset( &ci, 0, sizeof(control_info) );
 
 	ModelOrient = vmd_identity_matrix;
-	ModelPos.x=0.0f; ModelPos.y = 0.0f; ModelPos.z = 0.0f;
+	ModelPos.xyz.x=0.0f; ModelPos.xyz.y = 0.0f; ModelPos.xyz.z = 0.0f;
 
 	ViewerOrient = vmd_identity_matrix;
-	ViewerPos.x=0.0f; ViewerPos.y = 0.0f; ViewerPos.z = -50.0f;
+	ViewerPos.xyz.x=0.0f; ViewerPos.xyz.y = 0.0f; ViewerPos.xyz.z = -50.0f;
 
 	flFrametime = 0.033f;
 
@@ -828,18 +892,24 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 
 	nebula_init();
 
-	int some_selected = 0;
+	wxApp::SetInstance( new NebeditApp() );
+
+	wxEntryStart(argc, argv);
+
+	//bool some_selected = false;
 
 	while(1)	{
-		some_selected = FALSE;
-		if (Sel_mode==1) {
+		os_poll();
+
+		/*some_selected = false;
+		if (Sel_mode) {
 			for (i=0;i<num_pts;i++) {
 				if (Selected[i]) {
-					some_selected = TRUE;
+					some_selected = true;
 					break;
 				}
 			}
-		}
+		}*/
 
 		mouse_get_pos( &Mouse_x, &Mouse_y );
 
@@ -875,12 +945,12 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 				}
 			}
 			if (mouse_down(MOUSE_RIGHT_BUTTON)) {
-				Draw_sel_box = TRUE;
+				Draw_sel_box = true;
 				End_pos_x = Mouse_x;
 				End_pos_y = Mouse_y;
 			}
 			if (mouse_up_count(MOUSE_RIGHT_BUTTON)) {
-				Draw_sel_box = FALSE;
+				Draw_sel_box = false;
 				End_pos_x = Mouse_x;
 				End_pos_y = Mouse_y;
 				select_by_box(Orig_pos_x, Orig_pos_y, End_pos_x, End_pos_y);
@@ -888,54 +958,54 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 
 		} else {
 
-		if ( mouse_down(LOWEST_MOUSE_BUTTON) )	{
-			if ( mdflag )	{
-				if (Vert_mode==0) {
-					x[Current_point] = Mouse_x;
-					y[Current_point] = Mouse_y;
-				} else if (Vert_mode==1) {
-					x[tri[Current_face][0]] += Mouse_x - Orig_pos_x;
-					y[tri[Current_face][0]] += Mouse_y - Orig_pos_y;
-					x[tri[Current_face][1]] += Mouse_x - Orig_pos_x;
-					y[tri[Current_face][1]] += Mouse_y - Orig_pos_y;
-					x[tri[Current_face][2]] += Mouse_x - Orig_pos_x;
-					y[tri[Current_face][2]] += Mouse_y - Orig_pos_y;
-					Orig_pos_x = Mouse_x;
-					Orig_pos_y = Mouse_y;
+			if ( mouse_down(LOWEST_MOUSE_BUTTON) )	{
+				if ( mdflag )	{
+					if (Vert_mode==0) {
+						x[Current_point] = Mouse_x;
+						y[Current_point] = Mouse_y;
+					} else if (Vert_mode==1) {
+						x[tri[Current_face][0]] += Mouse_x - Orig_pos_x;
+						y[tri[Current_face][0]] += Mouse_y - Orig_pos_y;
+						x[tri[Current_face][1]] += Mouse_x - Orig_pos_x;
+						y[tri[Current_face][1]] += Mouse_y - Orig_pos_y;
+						x[tri[Current_face][2]] += Mouse_x - Orig_pos_x;
+						y[tri[Current_face][2]] += Mouse_y - Orig_pos_y;
+						Orig_pos_x = Mouse_x;
+						Orig_pos_y = Mouse_y;
+					}
+				} else {
+					if (Vert_mode == 1) {
+						Current_face = get_closest_face(Mouse_x, Mouse_y);
+						Orig_pos_x = Mouse_x;
+						Orig_pos_y = Mouse_y;
+					}
+					if (Vert_mode==0) {
+						Current_point = get_closest(Mouse_x, Mouse_y);
+						mouse_set_pos(x[Current_point], y[Current_point]);
+					}
+					mdflag = true;
 				}
-			} else {
-				if (Vert_mode == 1) {
-					Current_face = get_closest_face(Mouse_x, Mouse_y);
-					Orig_pos_x = Mouse_x;
-					Orig_pos_y = Mouse_y;
-				}
-				if (Vert_mode==0) {
-					Current_point = get_closest(Mouse_x, Mouse_y);
-					mouse_set_pos(x[Current_point], y[Current_point]);
-				}
-				mdflag = TRUE;
 			}
-		}
-		if ( mouse_up_count(LOWEST_MOUSE_BUTTON)) {
-			//Current_point = -1;
-			//Current_face = -1;
-			mdflag = FALSE;
-		}
+			if ( mouse_up_count(LOWEST_MOUSE_BUTTON)) {
+				//Current_point = -1;
+				//Current_face = -1;
+				mdflag = false;
+			}
 
-		if ( mouse_up_count(MOUSE_RIGHT_BUTTON) ) {
-			if (Vert_mode==0) {
-				Current_point = add_vert(Mouse_x, Mouse_y);
-			} else if (Vert_mode==1) {
-				if ((num_tris<MAX_TRIS-1)) { 
-					tri[num_tris][Which_vert] = get_closest(Mouse_x, Mouse_y);
-					Which_vert++;
-					if (Which_vert>2) {
-						Which_vert = 0;
-						num_tris++;
+			if ( mouse_up_count(MOUSE_RIGHT_BUTTON) ) {
+				if (Vert_mode==0) {
+					Current_point = add_vert(Mouse_x, Mouse_y);
+				} else if (Vert_mode==1) {
+					if ((num_tris<MAX_TRIS-1)) {
+						tri[num_tris][Which_vert] = get_closest(Mouse_x, Mouse_y);
+						Which_vert++;
+						if (Which_vert>2) {
+							Which_vert = 0;
+							num_tris++;
+						}
 					}
 				}
 			}
-		}
 		}
 		controls_read_all(&ci, flFrametime );
 		physics_read_flying_controls( &ViewerOrient, &ViewerPhysics, &ci, flFrametime );
@@ -949,9 +1019,13 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 		}
 
 		t1 = t2;
+
+		SDL_Delay(10);
 	}
 
 	nebedit_close();
+
+	wxEntryCleanup();
 
 	return 0;
 }

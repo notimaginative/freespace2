@@ -292,13 +292,11 @@
 #include "multi_rate.h"
 #include "osregistry.h"
 #include "hudescort.h"
+#include "multi_fstracker.h"
 
 extern int MSG_WINDOW_X_START;	// used to position multiplayer text messages
 extern int MSG_WINDOW_Y_START;
 extern int MSG_WINDOW_HEIGHT;
-
-extern int ascii_table[];
-extern int shifted_ascii_table[];
 
 // if a client doesn't receive an update for an object after this many seconds, query server
 // as to the objects status.
@@ -406,19 +404,19 @@ ushort multi_get_next_network_signature( int what_kind )
 // and is used mainly for firing weapons.  what_kind tells us permanent or non-permanent signature
 void multi_set_network_signature( ushort signature, int what_kind )
 {
-	Assert( signature != 0 );
+	SDL_assert( signature != 0 );
 
 	if ( what_kind == MULTI_SIG_SHIP ) {
-		Assert( (signature >= SHIP_SIG_MIN) && (signature <= SHIP_SIG_MAX) );
+		SDL_assert( (signature >= SHIP_SIG_MIN) && (signature <= SHIP_SIG_MAX) );
 		Next_ship_signature = signature;
 	} else if ( what_kind == MULTI_SIG_DEBRIS ) {
-		Assert( (signature >= DEBRIS_SIG_MIN) && (signature <= DEBRIS_SIG_MAX) );
+		SDL_assert( (signature >= DEBRIS_SIG_MIN) && (signature <= DEBRIS_SIG_MAX) );
 		Next_debris_signature = signature;
 	} else if ( what_kind == MULTI_SIG_ASTEROID ) {
-		Assert( (signature >= ASTEROID_SIG_MIN) && (signature <= ASTEROID_SIG_MAX) );
+		SDL_assert( (signature >= ASTEROID_SIG_MIN) && (signature <= ASTEROID_SIG_MAX) );
 		Next_asteroid_signature = signature;
 	} else if ( what_kind == MULTI_SIG_NON_PERMANENT ) {
-		Assert( (signature >= NPERM_SIG_MIN) && (signature <= NPERM_SIG_MAX) );
+		SDL_assert( (signature >= NPERM_SIG_MIN) && (signature <= NPERM_SIG_MAX) );
 		Next_non_perm_signature = signature;
 	} else
 		Int3();			// get Allender
@@ -601,7 +599,7 @@ int multi_ship_class_lookup(const char* ship_name)
 
 	player_ship_class = -1;
 	for (i = 0; i < Num_ship_types; i++) {
-		if ( !stricmp(Ship_info[i].name, ship_name) ) {
+		if ( !SDL_strcasecmp(Ship_info[i].name, ship_name) ) {
 			player_ship_class = i;
 			break;
 		}
@@ -641,18 +639,13 @@ int find_player( net_addr_t* addr )
 int find_player_no_port(net_addr_t *addr)
 {
 	int i;
-	int len;
 
 	for (i = 0; i < MAX_PLAYERS; i++ ) {
 		if ( !MULTI_CONNECTED(Net_players[i])){
 			continue;
 		}
-		if(addr->type == NET_IPX){
-			len = 6;
-		} else { 
-			len = 4;
-		}
-		if ( memcmp(&addr->addr,&Net_players[i].p_info.addr.addr,len)== 0){
+
+		if ( memcmp(&addr->addr, &Net_players[i].p_info.addr.addr, IP_ADDRESS_LENGTH) == 0 ) {
 			return i;
 		}
 	}
@@ -759,7 +752,7 @@ int multi_find_player_by_ship_name(const char *ship_name)
 
 	for(idx=0; idx<MAX_PLAYERS; idx++){
 		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_OBSERVER(Net_players[idx]) && (Net_players[idx].player != NULL) && (Net_players[idx].player->objnum >= 0) && (Net_players[idx].player->objnum < MAX_OBJECTS) && (Objects[Net_players[idx].player->objnum].type == OBJ_SHIP) && 
-			(Objects[Net_players[idx].player->objnum].instance >= 0) && (Objects[Net_players[idx].player->objnum].instance < MAX_SHIPS) && !stricmp(ship_name, Ships[Objects[Net_players[idx].player->objnum].instance].ship_name) ){
+			(Objects[Net_players[idx].player->objnum].instance >= 0) && (Objects[Net_players[idx].player->objnum].instance < MAX_SHIPS) && !SDL_strcasecmp(ship_name, Ships[Objects[Net_players[idx].player->objnum].instance].ship_name) ){
 			return idx;
 		}
 	}
@@ -855,7 +848,7 @@ void multi_assign_player_ship( int net_player, object *objp,int ship_class )
 	ship *shipp;
 	int idx;
 
-	Assert ( MULTI_CONNECTED(Net_players[net_player]) );
+	SDL_assert ( MULTI_CONNECTED(Net_players[net_player]) );
 
 	shipp = &Ships[objp->instance];
 
@@ -872,7 +865,7 @@ void multi_assign_player_ship( int net_player, object *objp,int ship_class )
 	// find the parse object for this ship.  Also, set the wingman status stuff so wingman status gauge
 	// works properly.
 	Net_players[net_player].p_info.p_objp = mission_parse_get_arrival_ship( shipp->ship_name );
-	Assert( Net_players[net_player].p_info.p_objp != NULL );		// get allender -- ship should be on list
+	SDL_assert( Net_players[net_player].p_info.p_objp != NULL );		// get allender -- ship should be on list
 	Net_players[net_player].p_info.p_objp->ship_class = ship_class;		// be sure this gets set so respawns work
 
 	// game server and this client need to initialize this information so object updating
@@ -903,7 +896,7 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 	int player_ship_class = ship_class;
 	int i,current_player_count;
 
-	Assert ( net_player_num < MAX_PLAYERS );				// probably shoudln't be able to even get into this routine if no room	
+	SDL_assert ( net_player_num < MAX_PLAYERS );				// probably shoudln't be able to even get into this routine if no room	
 	
 	// blast _any_ old data
 	memset(&Net_players[net_player_num],0,sizeof(net_player));
@@ -920,14 +913,14 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 		// find the ship that matches the string stored in default_player_ship
 
 		for (i = 0; i < Num_ship_types; i++) {
-			if ( !stricmp(Ship_info[i].name, default_player_ship) ) {
+			if ( !SDL_strcasecmp(Ship_info[i].name, default_player_ship) ) {
 				player_ship_class = i;
 				break;
 			}
 		}
 
 		if (i == Num_ship_types)
-			Assert(0);
+			SDL_assert(0);
 	}
 	
 	if ( player_ship_class >= Num_ship_types ) {
@@ -972,7 +965,7 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 	Net_players[net_player_num].s_info.reliable_buffer_size = 0;
 	
 	// various ack handles	
-	strcpy(pl->callsign, name);
+	SDL_strlcpy(pl->callsign, name, SDL_arraysize(pl->callsign));
 	pilot_set_short_callsign(pl, SHORT_CALLSIGN_PIXEL_W);   // calculate the short callsign 
 	pl->flags |= PLAYER_FLAGS_STRUCTURE_IN_USE;
 	pl->objnum = -1;
@@ -1004,7 +997,7 @@ int multi_create_player( int net_player_num, player *pl, char* name, net_addr_t*
 void multi_make_player_ai( object *pobj )
 {
 
-	Assert ( pobj != NULL );
+	SDL_assert ( pobj != NULL );
 
 	if ( pobj->type != OBJ_SHIP )
 		return;
@@ -1093,7 +1086,7 @@ void delete_player(int player_num,int kicked_reason)
 		if(Net_players[player_num].flags & NETINFO_FLAG_KICKED){
 			char str[512];
 			memset(str, 0, 512);
-			multi_kick_get_text(&Net_players[player_num], Net_players[player_num].s_info.kick_reason, str);
+			multi_kick_get_text(&Net_players[player_num], Net_players[player_num].s_info.kick_reason, str, SDL_arraysize(str));
 			multi_display_chat_msg(str, player_num, 0);							 
 		} else {
 			send_leave_game_packet(Net_players[player_num].player_id, kicked_reason);
@@ -1141,7 +1134,7 @@ void delete_player(int player_num,int kicked_reason)
 
 	// display a message that this guy has left
 	if(Net_players[player_num].player->callsign){
-		sprintf(notify_string,XSTR("<%s has left>",901),Net_players[player_num].player->callsign);
+		SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has left>",901),Net_players[player_num].player->callsign);
 		multi_display_chat_msg(notify_string,0,0);
 	}
 	
@@ -1229,16 +1222,13 @@ ushort netmisc_calc_checksum( void * vptr, int len )
 //
 //
 
-void fill_net_addr(net_addr_t* addr, ubyte* address, ubyte* net_id, ushort port)
+void fill_net_addr(net_addr_t* addr, ubyte* address, ushort port)
 {
-	Assert(addr != NULL);
-	Assert(address != NULL);
-	Assert(net_id != NULL);
+	SDL_assert(addr != NULL);
+	SDL_assert(address != NULL);
 
 	addr->type = Multi_options_g.protocol;
-	memset( addr->addr, 0x00, 6);
-	memcpy( addr->addr, address, ADDRESS_LENGTH);
-	memcpy( addr->net_id, net_id, 4);
+	memcpy( addr->addr, address, IP_ADDRESS_LENGTH);
 	addr->port = port;
 }
 
@@ -1249,33 +1239,13 @@ void fill_net_addr(net_addr_t* addr, ubyte* address, ubyte* net_id, ushort port)
 //
 //
 
-char* get_text_address( char * text, ubyte * address )
+char* get_text_address( char * text, const int max_textlen, ubyte * address )
 {
 
 	in_addr temp_addr;
 
-	switch ( Multi_options_g.protocol ) {
-		case NET_IPX:
-			strcpy( text, XSTR("[ipx address here]",903) );	// TODO: find equiv to inet_ntoa() for IPX
-			sprintf(text, "%x %x %x %x %x %x",	address[0],
-															address[1],
-															address[2],
-															address[3],
-															address[4],
-															address[5]);
-
-			break;
-
-		case NET_TCP:
-			memcpy(&temp_addr.s_addr, address, 4);
-			strcpy( text, inet_ntoa(temp_addr) );
-			break;
-
-		default:
-			Assert(0);
-			break;
-
-	} // end switch
+	memcpy(&temp_addr.s_addr, address, 4);
+	SDL_strlcpy(text, inet_ntoa(temp_addr), max_textlen);
 
 	return text;
 }
@@ -1293,10 +1263,10 @@ void multi_pack_orient_matrix(ubyte *data,matrix *m)
 	if(m->v.fvec.xyz.x < 0) data[16] |= (1<<3);	// Z
 	if(m->v.fvec.xyz.y < 0) data[16] |= (1<<4);	// W
 
-	x1 = INTEL_FLOAT(&m->v.rvec.xyz.x);
-	y1 = INTEL_FLOAT(&m->v.rvec.xyz.y);
-	x2 = INTEL_FLOAT(&m->v.uvec.xyz.x);
-	y2 = INTEL_FLOAT(&m->v.uvec.xyz.y);
+	x1 = INTEL_FLOAT(m->v.rvec.xyz.x);
+	y1 = INTEL_FLOAT(m->v.rvec.xyz.y);
+	x2 = INTEL_FLOAT(m->v.uvec.xyz.x);
+	y2 = INTEL_FLOAT(m->v.uvec.xyz.y);
 
 	memcpy(&data[0], &x1, 4);	// a
 	memcpy(&data[4], &y1, 4);	// b
@@ -1315,10 +1285,10 @@ void multi_unpack_orient_matrix(ubyte *data,matrix *m)
 	memcpy(&x2, &data[8], 4);
 	memcpy(&y2, &data[12],4);
 
-	m->v.rvec.xyz.x = INTEL_FLOAT(&x1);
-	m->v.rvec.xyz.y = INTEL_FLOAT(&y1);
-	m->v.uvec.xyz.x = INTEL_FLOAT(&x2);
-	m->v.uvec.xyz.y = INTEL_FLOAT(&y2);
+	m->v.rvec.xyz.x = INTEL_FLOAT(x1);
+	m->v.rvec.xyz.y = INTEL_FLOAT(y1);
+	m->v.uvec.xyz.x = INTEL_FLOAT(x2);
+	m->v.uvec.xyz.y = INTEL_FLOAT(y2);
 	
 	m->v.rvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.rvec.xyz.x * m->v.rvec.xyz.x) - (m->v.rvec.xyz.y * m->v.rvec.xyz.y))); // X
 	m->v.uvec.xyz.z = fl_sqrt(fl_abs(1 - (m->v.uvec.xyz.x * m->v.uvec.xyz.x) - (m->v.uvec.xyz.y * m->v.uvec.xyz.y))); // Y
@@ -1476,7 +1446,7 @@ void multi_subsys_update_all()
 {
 	/*
 	int idx;
-	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
+	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 	for(idx=0;idx<MAX_PLAYERS;idx++){
 		if((Net_players[idx].flags & NETINFO_FLAG_CONNECTED) && !psnet_same(&My_addr,&Net_players[idx].addr) && !(Net_players[idx].flags & NETINFO_FLAG_OBSERVER))
 			send_subsys_update_packet(&Net_players[idx]);
@@ -1504,7 +1474,7 @@ int multi_is_builtin_mission()
 
 	// get the full filename
 	memset(name,0,512);
-	strcpy(name,Game_current_mission_filename);
+	SDL_strlcpy(name, Game_current_mission_filename, SDL_arraysize(name));
 	cf_add_ext(name, FS_MISSION_FILE_EXT);
 
 	// if this mission is builtin	
@@ -1524,7 +1494,7 @@ void server_verify_filesig(short player_id, ushort sum_sig, int length_sig)
    int player;
 
 	player = find_player_id(player_id);
-	Assert(player >= 0);
+	SDL_assert(player >= 0);
 	if(player < 0){
 		return;
 	}
@@ -1543,7 +1513,7 @@ void server_verify_filesig(short player_id, ushort sum_sig, int length_sig)
 	int is_builtin;
    
 	player = find_player_id(player_id);
-	Assert(player >= 0);
+	SDL_assert(player >= 0);
 	if(player < 0){
 		return;
 	}
@@ -1771,8 +1741,8 @@ void multi_maybe_send_repair_info(object *dest_objp, object *source_objp, int co
 	if ( !MULTIPLAYER_MASTER )
 		return;
 	
-	Assert( dest_objp->type == OBJ_SHIP );
-	Assert( dest_objp != source_objp );
+	SDL_assert( dest_objp->type == OBJ_SHIP );
+	SDL_assert( dest_objp != source_objp );
 
 	send_repair_info_packet( dest_objp, source_objp, code );
 }
@@ -1800,7 +1770,7 @@ void multi_create_standalone_object()
 
 	// create the default player ship object and use that as my default virtual "ship", and make it "invisible"
 	pobj_num = parse_create_object(&Player_start_pobject);
-	Assert(pobj_num != -1);
+	SDL_assert(pobj_num != -1);
 	obj_set_flags(&Objects[pobj_num],OF_PLAYER_SHIP);
 	Objects[pobj_num].net_signature = STANDALONE_SHIP_SIG;
 	Player_ship = &Ships[Objects[pobj_num].instance];
@@ -1808,7 +1778,7 @@ void multi_create_standalone_object()
 	// make ship hidden from sensors so that this observer cannot target it.  Observers really have two ships
 	// one observer, and one "Player_ship".  Observer needs to ignore the Player_ship.
 	Player_ship->flags |= SF_HIDDEN_FROM_SENSORS;
-	strcpy(Player_ship->ship_name, XSTR("Standalone Ship",904));
+	SDL_strlcpy(Player_ship->ship_name, XSTR("Standalone Ship",904), SDL_arraysize(Player_ship->ship_name));
 	Player_ai = &Ai_info[Ships[Objects[pobj_num].instance].ai_index];		
 
 }
@@ -1877,9 +1847,9 @@ active_game *multi_update_active_games(active_game *ag)
 
 			// copy in the game information
 			memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
-			strcpy(gp->name,ag->name);
-			strcpy(gp->mission_name,ag->mission_name);
-			strcpy(gp->title,ag->title);			
+			SDL_strlcpy(gp->name, ag->name, SDL_arraysize(gp->name));
+			SDL_strlcpy(gp->mission_name, ag->mission_name, SDL_arraysize(gp->mission_name));
+			SDL_strlcpy(gp->title, ag->title, SDL_arraysize(gp->title));
 			gp->num_players = ag->num_players;
 			gp->flags = ag->flags;
 			
@@ -1895,11 +1865,11 @@ active_game *multi_update_active_games(active_game *ag)
 		// otherwise update the netgame info we have for this guy
 		else {				
 			memset(gp->name,0,MAX_GAMENAME_LEN+1);
-			strcpy(gp->name,ag->name);
+			SDL_strlcpy(gp->name, ag->name, SDL_arraysize(gp->name));
 			memset(gp->mission_name,0,NAME_LENGTH+1);
-			strcpy(gp->mission_name,ag->mission_name);
+			SDL_strlcpy(gp->mission_name, ag->mission_name, SDL_arraysize(gp->mission_name));
 			memset(gp->title,0,NAME_LENGTH+1);
-			strcpy(gp->title,ag->title);			
+			SDL_strlcpy(gp->title, ag->title, SDL_arraysize(gp->title));
 			gp->num_players = ag->num_players;
 			gp->flags = ag->flags;			
 		}
@@ -1909,9 +1879,9 @@ active_game *multi_update_active_games(active_game *ag)
 
 		// copy in the game information	
 		memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
-		strcpy(gp->name,ag->name);
-		strcpy(gp->mission_name,ag->mission_name);
-		strcpy(gp->title,ag->title);		
+		SDL_strlcpy(gp->name, ag->name, SDL_arraysize(gp->name));
+		SDL_strlcpy(gp->mission_name, ag->mission_name, SDL_arraysize(gp->mission_name));
+		SDL_strlcpy(gp->title, ag->title, SDL_arraysize(gp->title));
 		gp->num_players = ag->num_players;
 		gp->flags = ag->flags;
 		
@@ -1929,7 +1899,7 @@ active_game *multi_update_active_games(active_game *ag)
 	}
 	
 	// update the last time we heard from him
-	if((Multi_options_g.protocol == NET_TCP) && (Net_player->p_info.options.flags & MLO_FLAG_LOCAL_BROADCAST)){
+	if (Net_player->p_info.options.flags & MLO_FLAG_LOCAL_BROADCAST) {
 		gp->heard_from_timer = timestamp(MULTI_JOIN_SERVER_TIMEOUT_LOCAL);
 	} else {
 		gp->heard_from_timer = timestamp(MULTI_JOIN_SERVER_TIMEOUT);
@@ -2075,7 +2045,7 @@ int multi_can_message(net_player *p)
 
 		// check to see if he's a wingleader
 		sp = &Ships[Objects[p->player->objnum].instance];		
-		if(stricmp(sp->ship_name,NOX("alpha 1")) && stricmp(sp->ship_name,NOX("beta 1")) && stricmp(sp->ship_name,NOX("gamma 1")) && stricmp(sp->ship_name,NOX("zeta 1")) ){
+		if(SDL_strcasecmp(sp->ship_name,NOX("alpha 1")) && SDL_strcasecmp(sp->ship_name,NOX("beta 1")) && SDL_strcasecmp(sp->ship_name,NOX("gamma 1")) && SDL_strcasecmp(sp->ship_name,NOX("zeta 1")) ){
 			return 0;
 		}	
 		break;
@@ -2123,7 +2093,7 @@ int multi_can_end_mission(net_player *p)
 
 		// check to see if he's a wingleader
 		sp = &Ships[Objects[p->player->objnum].instance];
-		if(stricmp(sp->ship_name,NOX("alpha 1")) && stricmp(sp->ship_name,NOX("beta 1")) && stricmp(sp->ship_name,NOX("gamma 1")) && stricmp(sp->ship_name,NOX("zeta 1")) ){
+		if(SDL_strcasecmp(sp->ship_name,NOX("alpha 1")) && SDL_strcasecmp(sp->ship_name,NOX("beta 1")) && SDL_strcasecmp(sp->ship_name,NOX("gamma 1")) && SDL_strcasecmp(sp->ship_name,NOX("zeta 1")) ){
 			return 0;
 		}	
 		break;
@@ -2467,8 +2437,6 @@ void multi_handle_state_special()
 void multi_file_xfer_notify(int handle)
 {
 	char *filename;
-	int len,idx;
-	int force_dir;
 	int cf_type;
 	int is_mission = 0;	
 
@@ -2476,19 +2444,13 @@ void multi_file_xfer_notify(int handle)
 	filename = NULL;
 	filename = multi_xfer_get_filename(handle);
 
-	// get the directory the file is forced into
-	force_dir = multi_xfer_get_force_dir(handle);
-		
 	// something is messed up
 	if(filename == NULL){
 		return;
 	}
 
 	// convert the filename to all lowercase
-	len = strlen(filename);
-	for(idx=0;idx<len;idx++){
-		filename[idx] = (char)tolower(filename[idx]);
-	}		
+	SDL_strlwr(filename);
 
 	// if this is a mission file
 	is_mission = (strstr(filename, FS_MISSION_FILE_EXT) != NULL);
@@ -2514,7 +2476,7 @@ void multi_file_xfer_notify(int handle)
 	// if the incoming filename is a freespace file, set my netplayer state to be "file xfer"
 	if(is_mission){
 		// we'd better not be xferring a file right now
-		Assert(Net_player->s_info.xfer_handle == -1);
+		SDL_assert(Net_player->s_info.xfer_handle == -1);
 
 		// force into the multidata directory
 		multi_xfer_handle_force_dir(handle, cf_type);		
@@ -2566,7 +2528,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 	net_player_num = multi_find_open_netplayer_slot();
 	player_num = multi_find_open_player_slot();
 	id_num = multi_get_new_id();
-	Assert((net_player_num != -1) && (player_num != -1));			
+	SDL_assert((net_player_num != -1) && (player_num != -1));			
 
 	// if he is requesting to join as an observer
 	if(jr->flags & JOIN_FLAG_AS_OBSERVER){			
@@ -2577,9 +2539,9 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 
 		// copy his pilot image filename
 		if(strlen(jr->image_filename) > 0){
-			strcpy(Net_players[net_player_num].player->image_filename, jr->image_filename);
+			SDL_strlcpy(Net_players[net_player_num].player->image_filename, jr->image_filename, MAX_FILENAME_LEN);
 		} else {
-			strcpy(Net_players[net_player_num].player->image_filename, "");
+			SDL_strlcpy(Net_players[net_player_num].player->image_filename, "", MAX_FILENAME_LEN);
 		}
 
 		// copy his pilot squad filename
@@ -2603,9 +2565,9 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		// store pxo info
 #ifndef MAKE_FS1
 		if(strlen(jr->pxo_squad_name) > 0){
-			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name);
+			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name, LOGIN_LEN);
 		} else {
-			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, "");
+			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, "", LOGIN_LEN);
 		}		
 #endif
 
@@ -2627,9 +2589,9 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		
 		// copy his pilot image filename
 		if(strlen(jr->image_filename) > 0){
-			strcpy(Net_players[net_player_num].player->image_filename, jr->image_filename);
+			SDL_strlcpy(Net_players[net_player_num].player->image_filename, jr->image_filename, MAX_FILENAME_LEN);
 		} else {
-			strcpy(Net_players[net_player_num].player->image_filename, "");
+			SDL_strlcpy(Net_players[net_player_num].player->image_filename, "", MAX_FILENAME_LEN);
 		}
 
 		// copy his pilot squad filename		
@@ -2653,9 +2615,9 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		// store pxo info
 #ifndef MAKE_FS1
 		if(strlen(jr->pxo_squad_name) > 0){
-			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name);
+			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name, LOGIN_LEN);
 		} else {
-			strcpy(Net_players[net_player_num].p_info.pxo_squad_name, "");
+			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, "", LOGIN_LEN);
 		}		
 #endif
 
@@ -2687,7 +2649,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		else if(Net_players[net_player_num].flags & NETINFO_FLAG_INGAME_JOIN){
 			// if we're in team vs. team mode
 			if(Netgame.type_flags & NG_TYPE_TEAM){
-				Assert(ingame_join_team != -1);
+				SDL_assert(ingame_join_team != -1);
 
 				Net_players[net_player_num].p_info.team = ingame_join_team;
 			}
@@ -2746,26 +2708,26 @@ int multi_process_restricted_keys(int k)
 	switch(Multi_join_restr_mode){
 	// normal restricted join, Y or N
 	case MULTI_JOIN_RESTR_MODE_1:
-		key1 = KEY_Y;
-		key2 = KEY_N;
+		key1 = SDLK_y;
+		key2 = SDLK_n;
 		break;
 
 	// team vs team, team 0 only has ships
 	case MULTI_JOIN_RESTR_MODE_2:
-		key1 = KEY_Y;
-		key2 = KEY_N;
+		key1 = SDLK_y;
+		key2 = SDLK_n;
 		break;
 
 	// team vs team, team 1 only has ships		
 	case MULTI_JOIN_RESTR_MODE_3:
-		key1 = KEY_Y;
-		key2 = KEY_N;
+		key1 = SDLK_y;
+		key2 = SDLK_n;
 		break;
 
 	// team vs team, both teams have ships
 	case MULTI_JOIN_RESTR_MODE_4:
-		key1 = KEY_1;
-		key2 = KEY_2;
+		key1 = SDLK_1;
+		key2 = SDLK_2;
 		break;
 	
 	// illegal mode
@@ -2897,7 +2859,7 @@ void multi_server_update_player_weapons(net_player *pl,ship *shipp)
 	// engine ets
 	pl->s_info.ship_ets |= ((ushort)shipp->engine_recharge_index);
 
-	Assert( pl->s_info.ship_ets != 0 );
+	SDL_assert( pl->s_info.ship_ets != 0 );
 }
 
 // flush the multidata cache directory
@@ -3126,18 +3088,19 @@ int multi_get_connection_speed()
 {
 	int cspeed;
 	const char *connection_speed;
-	
-	connection_speed = os_config_read_string(NULL, "ConnectionSpeed", "");	
 
-	if ( !stricmp(connection_speed, NOX("Slow")) ) {
+	// 'Fast' should be a safe default in 2015
+	connection_speed = os_config_read_string("Network", "ConnectionSpeed", "Fast");
+
+	if ( !SDL_strcasecmp(connection_speed, NOX("Slow")) ) {
 		cspeed = CONNECTION_SPEED_288;
-	} else if ( !stricmp(connection_speed, NOX("56K")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("56K")) ) {
 		cspeed = CONNECTION_SPEED_56K;
-	} else if ( !stricmp(connection_speed, NOX("ISDN")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("ISDN")) ) {
 		cspeed = CONNECTION_SPEED_SISDN;
-	} else if ( !stricmp(connection_speed, NOX("Cable")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("Cable")) ) {
 		cspeed = CONNECTION_SPEED_CABLE;
-	} else if ( !stricmp(connection_speed, NOX("Fast")) ) {
+	} else if ( !SDL_strcasecmp(connection_speed, NOX("Fast")) ) {
 		cspeed = CONNECTION_SPEED_T1;
 	} else {
 		cspeed = CONNECTION_SPEED_NONE;
@@ -3149,6 +3112,12 @@ int multi_get_connection_speed()
 // return a MVALID_STATUS_* define based upon the passed string
 int multi_string_to_status(char *valid_string)
 {
+	if ( !SDL_strcmp(valid_string, "valid") ) {
+		return MVALID_STATUS_VALID;
+	} else if ( !SDL_strcmp(valid_string, "invalid") ) {
+		return MVALID_STATUS_INVALID;
+	}
+
 	return MVALID_STATUS_UNKNOWN;	
 }
 
@@ -3193,10 +3162,10 @@ void multi_update_valid_missions()
 			if(tok == NULL){
 				continue;
 			}			
-			strcpy(temp, tok);
+			SDL_strlcpy(temp, tok, SDL_arraysize(temp));
 			drop_trailing_white_space(temp);
 			drop_leading_white_space(temp);
-			strcpy(next_filename, temp);
+			SDL_strlcpy(next_filename, temp, SDL_arraysize(next_filename));
 			
 			// read in the status string
 			memset(status_string, 0, 50);
@@ -3205,10 +3174,10 @@ void multi_update_valid_missions()
 			if(tok == NULL){
 				continue;
 			}
-			strcpy(temp, tok);
+			SDL_strlcpy(temp, tok, SDL_arraysize(temp));
 			drop_trailing_white_space(temp);
 			drop_leading_white_space(temp);
-			strcpy(status_string, temp);
+			SDL_strlcpy(status_string, temp, SDL_arraysize(status_string));
 
 			// try and find the file
 			file_index = multi_create_lookup_mission(next_filename);
@@ -3224,6 +3193,21 @@ void multi_update_valid_missions()
 
 	// now poll for all unknown missions
 	was_cancelled = 0;
+
+	for (idx = 0; idx < Multi_create_mission_count; idx++) {
+		if (Multi_create_mission_list[idx].valid_status != MVALID_STATUS_UNKNOWN) {
+			continue;
+		}
+
+		int rval = multi_fs_tracker_validate_mission(Multi_create_mission_list[idx].filename);
+
+		if (rval == -2) {
+			was_cancelled = 1;
+			break;
+		}
+
+		Multi_create_mission_list[idx].valid_status = rval;
+	}
 
 	// if the operation was cancelled, don't write anything new
 	if(was_cancelled){
@@ -3324,7 +3308,8 @@ DCF(multi,"changes multiplayer settings")
 		} else if(strcmp(Dc_arg, "givecd")==0){
 			extern int Multi_has_cd;
 			Multi_has_cd = 1;
-		} else if(strcmp(Dc_arg, "oo")==0){						
+		/*
+		} else if(strcmp(Dc_arg, "oo")==0){
 			int new_flags = -1;
 
 			dc_get_arg(ARG_INT);
@@ -3333,7 +3318,8 @@ DCF(multi,"changes multiplayer settings")
 			}
 
 			dc_printf("Interesting flags\nPos : %d\nVelocity : %d\nDesired vel : %d\nOrient : %d\nRotvel : %d\nDesired rotvel %d\n",
-						 1<<0, 1<<7, 1<<8, 1<<1, 1<<9, 1<<10);						
+						 1<<0, 1<<7, 1<<8, 1<<1, 1<<9, 1<<10);
+		*/
 		} else if(strcmp(Dc_arg, "oo_sort")==0){			
 			extern int OO_sort;
 
@@ -3356,7 +3342,7 @@ void multi_spew_pxo_checksums(int max_files, char *outfile)
 {
 	char **file_names;
 	char full_name[MAX_FILENAME_LEN+1];
-	char wild_card[256];
+	char wild_card[6];
 	int count, idx;
 	uint checksum;
 	FILE *out;
@@ -3364,9 +3350,7 @@ void multi_spew_pxo_checksums(int max_files, char *outfile)
 	// allocate filename space	
 	file_names = (char**)malloc(sizeof(char*) * max_files);
 	if(file_names != NULL){
-		memset(wild_card, 0, 256);
-		strcpy(wild_card, NOX("*"));
-		strcat(wild_card, FS_MISSION_FILE_EXT);
+		SDL_snprintf(wild_card, SDL_arraysize(wild_card), "*%s", FS_MISSION_FILE_EXT);
 		count = cf_get_file_list(max_files, file_names, CF_TYPE_MISSIONS, wild_card);	
 	
 		// open the outfile
@@ -3378,7 +3362,7 @@ void multi_spew_pxo_checksums(int max_files, char *outfile)
 		// do all the checksums
 		for(idx=0; idx<count; idx++){
 			memset(full_name, 0, MAX_FILENAME_LEN+1);			
-			strcpy(full_name, cf_add_ext(file_names[idx], FS_MISSION_FILE_EXT));
+			SDL_strlcpy(full_name, cf_add_ext(file_names[idx], FS_MISSION_FILE_EXT), SDL_arraysize(full_name));
 
 			if(cf_chksum_long(full_name, &checksum)){
 				fprintf(out, "%s	:	%d\n", full_name, (int)checksum);
@@ -3416,7 +3400,7 @@ void multi_make_fake_players(int count)
 	for(idx=0;idx<count;idx++){
 		if(!MULTI_CONNECTED(Net_players[idx])){
 			Net_players[idx].player = &Players[idx];
-			sprintf(Net_players[idx].player->callsign,"Player %d",idx);
+			SDL_snprintf(Net_players[idx].player->callsign, CALLSIGN_LEN, "Player %d", idx);
 			Net_players[idx].flags |= NETINFO_FLAG_CONNECTED;
 		}
 	}

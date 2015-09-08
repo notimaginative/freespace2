@@ -189,6 +189,7 @@
 
 
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "pstypes.h"
 #include "2d.h"
@@ -210,9 +211,6 @@
 #include "alphacolors.h"
 #include "localize.h"
 
-
-extern int ascii_table[];
-extern int shifted_ascii_table[];
 
 static int Snazzy_mouse_left_was_down;
 
@@ -252,9 +250,9 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 	int choice = -1, mouse_on_choice = -1;
 	ubyte pixel_value;
 
-	Assert(data != NULL);
-	Assert(num_regions > 0);
-	Assert(regions != NULL);
+	SDL_assert(data != NULL);
+	SDL_assert(num_regions > 0);
+	SDL_assert(regions != NULL);
 	
 	gr_reset_clip();  // don't remove
 	mouse_get_pos( &x, &y );
@@ -292,28 +290,29 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 	}
 
 	switch ( k ) {
-		case KEY_ESC:
+		case SDLK_ESCAPE:
 			choice = ESC_PRESSED;
 			break;
 
 		default:
-			if ( k )
+			if ( k ) {
+				int key_text = tolower(key_get_text_input());
 				for (i=0; i<num_regions; i++) {
 					if ( !regions[i].key )
 						continue;
-					if (ascii_table[k] == regions[i].key || shifted_ascii_table[k] == regions[i].key) {
+					if ( tolower(regions[i].key) == key_text ) {
 						choice = regions[i].mask;
 						if ( regions[i].click_sound != -1 ) {
 							snd_play( &Snds_iface[regions[i].click_sound], 0.0f );
 						}
 					}
-			}	// end for
+				}	// end for
+			}
 
 			break;
 
 	} // end switch
 
-	i = -1;
 	//if (pixel_value >= 0) {	// always true
 		for (i=0; i<num_regions; i++) {
 			if (pixel_value == regions[i].mask) {
@@ -358,7 +357,7 @@ void snazzy_menu_add_region(MENU_REGION* region, const char* text, int mask, int
 {
 	region->mask = mask;
 	region->key = key;
-	strcpy(region->text, text);
+	SDL_strlcpy(region->text, text, SDL_arraysize(region->text));
 	region->click_sound = click_sound;
 }
  
@@ -369,7 +368,7 @@ void snazzy_menu_add_region(MENU_REGION* region, const char* text, int mask, int
 //
 //
 
-void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filename, MENU_REGION* regions, int* num_regions, int play_sound)
+void read_menu_tbl(const char* menu_name, char* bkg_filename, const int max_bkg_len, char* mask_filename, const int max_mask_len, MENU_REGION* regions, int* num_regions, int play_sound)
 {
 	CFILE* fp;
 	int state=0;
@@ -397,9 +396,9 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filenam
 
 
 	while (cfgets(tmp_line, 132, fp)) {
-		p1 = strchr(tmp_line,'\n'); if (p1) *p1 = '\0';
-		p1 = strchr(tmp_line,';'); if (p1) *p1 = '\0';
-		p1 = p3 = strchr( tmp_line, '[' );
+		p1 = SDL_strchr(tmp_line,'\n'); if (p1) *p1 = '\0';
+		p1 = SDL_strchr(tmp_line,';'); if (p1) *p1 = '\0';
+		p1 = p3 = SDL_strchr( tmp_line, '[' );
 
 		if (p3 && state == 1) {	
 			// close localization
@@ -411,9 +410,9 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filenam
 		
 		if ( p1 || p3)	{
 			if (!state)	{
-				p2 = strchr( tmp_line, ']' );
+				p2 = SDL_strchr( tmp_line, ']' );
 				if (p2) *p2 = 0;
-				if (!stricmp( ++p1, menu_name )) state = 1;
+				if (!SDL_strcasecmp( ++p1, menu_name )) state = 1;
 			} else {
 				cfclose(fp);
 				break;
@@ -422,9 +421,9 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filenam
 			
 		
 			// parse a region line
-			p1 = strchr( tmp_line, '\"' );
+			p1 = SDL_strchr( tmp_line, '\"' );
 			if (p1) {
-				p2 = strchr( tmp_line+1, '\"' );
+				p2 = SDL_strchr( tmp_line+1, '\"' );
 				if (!p2) {
 					nprintf(("Warning","Error parsing menu file\n"));
 
@@ -434,7 +433,7 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filenam
 					return;
 				}
 				*p2 = 0;
-				strcpy(regions[*num_regions].text,++p1);
+				SDL_strlcpy(regions[*num_regions].text, ++p1, SDL_arraysize(regions[0].text));
 				p2++;
 
 				// get the tokens mask number
@@ -463,11 +462,11 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, char* mask_filenam
 				if ( token != NULL )
 				{
 					// store the background filename
-					strcpy(bkg_filename, token);
+					SDL_strlcpy(bkg_filename, token, max_bkg_len);
 
 					// get the mask filename
 					token = strtok( NULL, seps );
-					strcpy(mask_filename, token);
+					SDL_strlcpy(mask_filename, token, max_mask_len);
 				}
 			}
 		}

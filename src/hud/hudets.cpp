@@ -283,7 +283,7 @@ void ets_init_ship(object* obj)
 		return;
 	}
 
-	Assert(obj->type == OBJ_SHIP);
+	SDL_assert(obj->type == OBJ_SHIP);
 	sp = &Ships[obj->instance];
 	
 	sp->weapon_energy = Ship_info[sp->ship_info_index].max_weapon_reserve;
@@ -515,7 +515,7 @@ void hud_show_ets()
 		if ( j == 1 && Player_obj->flags & OF_NO_SHIELDS ) {
 			continue;
 		}
-		Assert(Ets_gauge_info != NULL);
+		SDL_assert(Ets_gauge_info != NULL);
 		gr_printf(Ets_gauge_info[i].letter_coords[0], Ets_gauge_info[i].letter_coords[1], NOX("%c"), Ets_gauge_info[j].letter); 
 		i++;
 	}
@@ -550,14 +550,14 @@ void hud_show_ets()
 
 			// draw the top portion
 
-			Assert(Ets_gauge_info != NULL);
+			SDL_assert(Ets_gauge_info != NULL);
 			x = Ets_gauge_info[i].top_coords[0];
 			y = Ets_gauge_info[i].top_coords[1];
 			
 			GR_AABITMAP_EX(Ets_gauge.first_frame,x,y,w,clip_h,0,0);			
 
 			// draw the bottom portion
-			Assert(Ets_gauge_info != NULL);
+			SDL_assert(Ets_gauge_info != NULL);
 			x = Ets_gauge_info[i].bottom_coords[0];
 			y = Ets_gauge_info[i].bottom_coords[1];
 
@@ -578,7 +578,7 @@ void hud_show_ets()
 			// some portion of recharge needs to be drawn
 
 			// draw the top portion
-			Assert(Ets_gauge_info != NULL);
+			SDL_assert(Ets_gauge_info != NULL);
 			x = Ets_gauge_info[i].top_coords[0];
 			y = Ets_gauge_info[i].top_coords[1];
 
@@ -588,7 +588,7 @@ void hud_show_ets()
 			GR_AABITMAP_EX(Ets_gauge.first_frame+1, x, y_start, w, y_end-y_start, 0, clip_h);			
 
 			// draw the bottom portion
-			Assert(Ets_gauge_info != NULL);
+			SDL_assert(Ets_gauge_info != NULL);
 			x = Ets_gauge_info[i].bottom_coords[0];
 			y = Ets_gauge_info[i].bottom_coords[1];
 			

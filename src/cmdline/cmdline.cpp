@@ -217,24 +217,20 @@
 #include "osapi.h"
 #include "osregistry.h"
 #include "version.h"
+#include "cfile.h"
+#include "cfilesystem.h"
 
 // variables
 class cmdline_parm {
 public:
 	cmdline_parm *next, *prev;
 	const char *name;						// name of parameter, must start with '-' char
-#ifdef PLAT_UNIX
-	const char *name_s;					// single letter argument
-#endif
+	const char *name2;					// name - alternate
 	const char *help;						// help text for this parameter
 	char *args;						// string value for parameter arguements (NULL if no arguements)
 	int name_found;				// true if parameter on command line, otherwise false
 
-#ifndef PLAT_UNIX
-	cmdline_parm(const char *name, const char *help);
-#else
-	cmdline_parm(const char *name, const char *name_s, const char *help);
-#endif
+	cmdline_parm(const char *name, const char *name2, const char *help);
 	~cmdline_parm();
 	int found();
 	int get_int();
@@ -243,53 +239,32 @@ public:
 };
 
 // here are the command line parameters that we will be using for FreeSpace
-#ifndef PLAT_UNIX
-cmdline_parm standalone_arg("-standalone", NULL);
-cmdline_parm nosound_arg("-nosound", NULL);
-cmdline_parm nomusic_arg("-nomusic", NULL);
-cmdline_parm startgame_arg("-startgame", NULL);
-cmdline_parm gamename_arg("-gamename", NULL);
-cmdline_parm gamepassword_arg("-password", NULL);
-cmdline_parm gameclosed_arg("-closed", NULL);
-cmdline_parm gamerestricted_arg("-restricted", NULL);
-cmdline_parm allowabove_arg("-allowabove", NULL);
-cmdline_parm allowbelow_arg("-allowbelow", NULL);
-cmdline_parm port_arg("-port", NULL);
-cmdline_parm connect_arg("-connect", NULL);
-cmdline_parm multilog_arg("-multilog", NULL);
-cmdline_parm server_firing_arg("-oldfire", NULL);
-cmdline_parm client_dodamage("-clientdamage", NULL);
-cmdline_parm pof_spew("-pofspew", NULL);
-cmdline_parm d3d_32bit("-32bit", NULL);
-cmdline_parm mouse_coords("-coords", NULL);
-cmdline_parm timeout("-timeout", NULL);
-cmdline_parm d3d_window("-window", NULL);
-#else
-cmdline_parm standalone_arg("--standalone", "-d", NULL);
-cmdline_parm nosound_arg("--nosound", "-s", NULL);
-cmdline_parm nomusic_arg("--nomusic", "--nomusic", NULL);
-cmdline_parm startgame_arg("--startgame", "-S", NULL);
-cmdline_parm gamename_arg("--gamename", "-N", NULL);
-cmdline_parm gamepassword_arg("--password", "-p", NULL);
-cmdline_parm gameclosed_arg("--closed", "-c", NULL);
-cmdline_parm gamerestricted_arg("--restricted", "-r", NULL);
-cmdline_parm allowabove_arg("--allowabove", "-a", NULL);
-cmdline_parm allowbelow_arg("--allowbelow", "-b", NULL);
-cmdline_parm port_arg("--port", "-o", NULL);
-cmdline_parm connect_arg("--connect", "-C", NULL);
-cmdline_parm multilog_arg("--multilog", "-m", NULL);
-cmdline_parm server_firing_arg("--oldfire", "-F", NULL);
-cmdline_parm client_dodamage("--clientdamage", "-D", NULL);
-cmdline_parm pof_spew("--pofspew", "-P", NULL);
+cmdline_parm standalone_arg("-standalone", "-d", NULL);
+cmdline_parm nosound_arg("-nosound", "-s", NULL);
+cmdline_parm nomusic_arg("-nomusic", NULL, NULL);
+cmdline_parm startgame_arg("-startgame", "-S", NULL);
+cmdline_parm gamename_arg("-gamename", "-N", NULL);
+cmdline_parm gamepassword_arg("-password", "-p", NULL);
+cmdline_parm gameclosed_arg("-closed", "-c", NULL);
+cmdline_parm gamerestricted_arg("-restricted", "-r", NULL);
+cmdline_parm allowabove_arg("-allowabove", "-a", NULL);
+cmdline_parm allowbelow_arg("-allowbelow", "-b", NULL);
+cmdline_parm port_arg("-port", "-o", NULL);
+cmdline_parm connect_arg("-connect", "-C", NULL);
+cmdline_parm multilog_arg("-multilog", "-m", NULL);
+cmdline_parm server_firing_arg("-oldfire", "-F", NULL);
+cmdline_parm client_dodamage("-clientdamage", "-D", NULL);
+cmdline_parm pof_spew("-pofspew", "-P", NULL);
+cmdline_parm d3d_32bit("-32bit", NULL, NULL);
 cmdline_parm mouse_coords("-coords", "-M", NULL);
-cmdline_parm timeout("--timeout", "-t", NULL);
-cmdline_parm d3d_window("--window", "-w", NULL);
-cmdline_parm d3d_fullscreen("--fullscreen", "-f", NULL);
-cmdline_parm help("--help", "-h", NULL);
-cmdline_parm no_grab("--nograb", "-g", NULL);
-cmdline_parm fs_version("--version", "-v", NULL);
-cmdline_parm no_movies("--nomovies", "-n", NULL);
-#endif
+cmdline_parm timeout("-timeout", "-t", NULL);
+cmdline_parm d3d_window("-window", "-w", NULL);
+cmdline_parm d3d_fullscreen("-fullscreen", "-f", NULL);
+cmdline_parm help("-help", "-h", NULL);
+cmdline_parm no_grab("-nograb", "-g", NULL);
+cmdline_parm fs_version("-version", "-v", NULL);
+cmdline_parm no_movies("-nomovies", "-n", NULL);
+
 
 int Cmdline_multi_stream_chat_to_file = 0;
 int Cmdline_freespace_no_sound = 0;
@@ -314,31 +289,25 @@ int Cmdline_spew_pof_info = 0;
 int Cmdline_force_32bit = 0;
 int Cmdline_mouse_coords = 0;
 int Cmdline_timeout = -1;
-#ifdef PLAT_UNIX
 int Cmdline_no_grab = 0;
 int Cmdline_play_movies = 1;
 int Cmdline_fullscreen = 0;
-#endif
-
 int Cmdline_window = 0;
 
-#ifndef PLAT_UNIX
-static cmdline_parm Parm_list(NULL, NULL);
-#else
 static cmdline_parm Parm_list(NULL, NULL, NULL);
-void print_instructions();
-#endif
+
 static int Parm_list_inited = 0;
 
+
 //	Return true if this character is an extra char (white space and quotes)
-int is_extra_space(char ch)
+static int is_extra_space(char ch)
 {
 	return ((ch == ' ') || (ch == '\t') || (ch == 0x0a) || (ch == '\'') || (ch == '\"'));
 }
 
 
 // eliminates all leading and trailing extra chars from a string.  Returns pointer passed in.
-char *drop_extra_chars(char *str)
+static char *drop_extra_chars(char *str)
 {
 	int s, e;
 
@@ -365,26 +334,12 @@ char *drop_extra_chars(char *str)
 
 
 // internal function - copy the value for a parameter agruement into the cmdline_parm arg field
-#ifdef PLAT_UNIX
-void parm_stuff_args(cmdline_parm *parm, char *cmdline, bool single)
-#else
-void parm_stuff_args(cmdline_parm *parm, char *cmdline)
-#endif
+static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 {
 	char buffer[1024] = { 0 };
 	char *dest = buffer;
 
-#ifdef PLAT_UNIX
-	if (single) {
-		cmdline += strlen(parm->name_s);
-	} else {
-		cmdline += strlen(parm->name);
-	}
-#else
-	cmdline += strlen(parm->name);
-#endif
-
-	while ((*cmdline != 0) && (*cmdline != '-') && (dest-buffer > 1)) {
+	while ((*cmdline != 0) && (*cmdline != '-') && ((size_t)(dest-buffer) < SDL_arraysize(buffer))) {
 		*dest++ = *cmdline++;
 	}
 
@@ -392,7 +347,7 @@ void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 	// mwa 9/14/98 -- made it so that newer command line arguments found will overwrite
 	// the old arguments
-//	Assert(parm->args == NULL);
+//	SDL_assert(parm->args == NULL);
 	if ( parm->args != NULL ) {
 		delete [] parm->args;
 		parm->args = NULL;
@@ -400,12 +355,11 @@ void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 	int size = strlen(buffer);
 	if (size > 0) {
-		try {
-			parm->args = new char[size+1];
+		parm->args = new (std::nothrow) char[size+1];
+
+		if (parm->args != NULL) {
 			memset(parm->args, 0, size+1);
-			strcpy(parm->args, buffer);
-		} catch (std::bad_alloc) {
-			parm->args = NULL;
+			SDL_strlcpy(parm->args, buffer, size+1);
 		}
 	}
 }
@@ -413,50 +367,113 @@ void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 // internal function - parse the command line, extracting parameter arguements if they exist
 // cmdline - command line string passed to the application
-void os_parse_parms(char *cmdline)
+static void os_parse_parms(char *cmdline)
 {
 	// locate command line parameters
 	cmdline_parm *parmp;
 	char *cmdline_offset = NULL;
+	char pname[33] = { 0 };
 
 	if ( !cmdline || (strlen(cmdline) <= 1) ) {
 		return;
 	}
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
-		cmdline_offset = strstr(cmdline, parmp->name);
-
-#ifdef PLAT_UNIX
-		bool single = false;
-
-		// if a match isn't found check for single args
-		// tack a space on the single args so they don't get mixed up with double args
-		if (!cmdline_offset) {
-			char single_tmp[32] = { 0 };
-			strcpy(single_tmp, parmp->name_s);
-			strcat(single_tmp, " ");
-			cmdline_offset = strstr(cmdline, single_tmp);
-			single = true;
-		}
+		// check with space to make sure we get the correct option name
+		SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name);
+		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
-			parmp->name_found = 1;
-			parm_stuff_args(parmp, cmdline_offset, single);
+			cmdline_offset += strlen(parmp->name);
+		} else if (parmp->name2 != NULL) {
+			// check with space to make sure we get the correct option name
+			SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name2);
+			cmdline_offset = strstr(cmdline, pname);
+
+			if (cmdline_offset) {
+				cmdline_offset += strlen(parmp->name2);
+			}
 		}
-#else
+
 		if (cmdline_offset) {
 			parmp->name_found = 1;
 			parm_stuff_args(parmp, cmdline_offset);
 		}
-#endif
-
-
 	}
 }
 
+static bool os_find_parm(const cmdline_parm *parmp, const char *token)
+{
+	// allow for double '-'
+	if ( (strlen(token) > 2) && (token[1] == '-') ) {
+		token++;
+	}
+
+	if ( !strcmp(parmp->name, token) ) {
+		return true;
+	}
+
+	if ( (parmp->name2 != NULL) && !strcmp(parmp->name2, token) ) {
+		return true;
+	}
+
+	return false;
+}
+
+// help for available cmdline options
+static void print_instructions()
+{
+	printf("http://icculus.org/freespace2\n");
+	printf("Support - FAQ: http://icculus.org/lgfaq\n");
+	printf("          Web: http://bugzilla.icculus.org\n\n");
+
+#ifdef MAKE_FS1
+	printf("Usage: freespace [options]\n");
+#else
+	printf("Usage: freespace2 [options]\n");
+#endif
+	printf("\n");
+	printf("  General:\n");
+	printf("     [-h | --help]           Show this help message\n");
+	printf("     [-v | --version]        Show game version\n");
+	printf("     [-s | --nosound]        Do not access the sound card\n");
+	printf("     [-f | --fullscreen]     Run the game fullscreen\n");
+	printf("     [-w | --window]         Run the game in a window\n");
+	printf("     [-g | --nograb]         Do not automatically grab mouse\n");
+	printf("     [-n | --nomovies]       Do not play movies\n");
+	printf("     [-P | --pofspew]        Save model info to pofspew.txt\n");
+	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n");
+	printf("     [--nomusic]             Do not play music\n");
+	printf("\n");
+	printf("  Multiplayer:\n");
+	printf("     [-d | --standalone]     Run as a dedicated server\n");
+	printf("     [-S | --startgame]      Start a multiplayer game\n");
+	printf("     [-N | --gamename]       Name of the multiplayer game\n");
+	printf("     [-p | --password]       Use this password to connect\n");
+	printf("     [-c | --closed]         Closed multiplayer game\n");
+	printf("     [-r | --restricted]     Restricted multiplayer game\n");
+	printf("     [-a | --allowabove]     Only allow above certain rank\n");
+	printf("     [-b | --allowbelow]     Only allow below certain rank\n");
+	printf("     [-o | --port]           Port to use for multiplayer games\n");
+	printf("     [-C | --connect]        Connect to particular IP address\n");
+	printf("     [-m | --multilog]       Log multiplayer events\n");
+	printf("     [-F | --oldfire]        Server side firing\n");
+	printf("     [-D | --clientdamage]   Client does damage\n");
+	printf("     [-t | --timeout]        Multiplayer game timeout\n");
+	printf("\n");
+
+#ifdef MAKE_FS1
+	printf("FreeSpace v%d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#else
+	printf("Freespace 2 v%d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#endif
+	printf("icculus.org client v%d.%02d\n\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
+
+	exit(0);
+}
 
 // validate the command line parameters.  Display an error if an unrecognized parameter is located.
-void os_validate_parms(char *cmdline)
+static void os_validate_parms(char *cmdline)
 {
 	cmdline_parm *parmp;
 	char seps[] = " ,\t\n";
@@ -472,23 +489,14 @@ void os_validate_parms(char *cmdline)
 		if (token[0] == '-') {
 			parm_found = 0;
 			for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
-#ifndef PLAT_UNIX
-				if (!stricmp(parmp->name, token)) {
-#else
-				// make sure to do a case sensitive check here
-				if (!strcmp(parmp->name, token) || !strcmp(parmp->name_s, token)) {
-#endif
+				if ( os_find_parm(parmp, token) ) {
 					parm_found = 1;
 					break;
 				}
 			}
 
 			if (parm_found == 0) {
-#ifndef PLAT_UNIX
-				Error(LOCATION,"Unrecogzined command line parameter %s", token);
-#else
 				print_instructions();
-#endif
 			}
 		}
 
@@ -500,59 +508,47 @@ void os_validate_parms(char *cmdline)
 // Call once to initialize the command line system
 //
 // cmdline - command line string passed to the application
-void os_init_cmdline(char *cmdline)
+static void os_init_cmdline(const char *cmdline)
 {
-	FILE *fp;
+	FILE *fp = NULL;
+	char cmdname[1024] = { 0 };
 
 	// read the cmdline.cfg file from the data folder, and pass the command line arguments to
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
 	// the command line will take precedence
-#ifdef PLAT_UNIX
-	char cmdname[MAX_PATH] = { 0 };
 
-	snprintf(cmdname, MAX_PATH, "%s/%s/Data/cmdline.cfg", detect_home(), Osreg_user_dir);
-	fp = fopen(cmdname, "rt");
-	
-	if (!fp) {
-		// if not already found check exec directory
-#if defined(__APPLE__) && !defined(MACOSX)
-		// we may end up doing this twice but it would largely get skipped the second time anyway
-		char *c = NULL;
-		c = strstr(full_path, ".app");
-		
-		if ( c != NULL) {
-			while (c && (*c != '/'))
-				c--;
-			
-			*c = '\0';
-		}
-
-		snprintf(cmdname, MAX_PATH, "%s/Data/cmdline.cfg", full_path);
-
-		fp = fopen(cmdname, "rt");
-#else
-		fp = fopen("Data/cmdline.cfg", "rt");
-#endif // __APPLE__ && !__MACOSX__
+	if ( cfile_init_paths() ) {
+		exit(-2);
 	}
-#else
-	fp = fopen("data\\cmdline.cfg", "rt");
-#endif
+
+	mprintf(("Command line: "));
+
+	SDL_snprintf(cmdname, SDL_arraysize(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+
+	fp = fopen (cmdname, "rt");
+
+	if ( !fp ) {
+		// if not already found check exec directory
+		SDL_snprintf(cmdname, SDL_arraysize(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+
+		fp = fopen (cmdname, "rt");
+	}
 
 	// if the file exists, get a single line, and deal with it
 	if ( fp ) {
 		char buf[1024] = { 0 }, *p;
 
-		while (fgets(buf, sizeof(buf), fp) != NULL) {
+		while (fgets(buf, SDL_arraysize(buf), fp) != NULL) {
 			// replace the newline character with a NUL:
 			if ( (p = strrchr(buf, '\n')) != NULL ) {
 				*p = '\0';
 			}
 
-#ifdef PLAT_UNIX
-			// make sure that we have a trailing space for option finding to work
-			// properly with single args
-			strcat(buf, " ");
-#endif
+			// make sure that we have a trailing space for option finding to
+			// work properly with single args
+			SDL_strlcat(buf, " ", SDL_arraysize(buf));
+
+			mprintf(("%s", buf));
 
 			os_parse_parms(buf);
 			os_validate_parms(buf);
@@ -561,65 +557,34 @@ void os_init_cmdline(char *cmdline)
 		fclose(fp);
 	}
 
+	if ( cmdline && strlen(cmdline) ) {
+		mprintf(("%s", cmdline));
 
+		// for proper arg handling make sure cmdline has trailing space
+		int len = strlen(cmdline) + 2;
+		char *m_cmdline = (char*) malloc(len);
 
-	os_parse_parms(cmdline);
-	os_validate_parms(cmdline);
+		if (m_cmdline) {
+			SDL_strlcpy(m_cmdline, cmdline, len);
+			SDL_strlcat(m_cmdline, " ", len);
 
+			os_parse_parms(m_cmdline);
+			os_validate_parms(m_cmdline);
+
+			free(m_cmdline);
+		}
+	}
+
+	mprintf(("\n"));
 }
-
-#ifdef PLAT_UNIX
-// help for available cmdline options
-void print_instructions()
-{
-	printf("http://icculus.org/freespace2\n");
-	printf("Support - FAQ: http://icculus.org/lgfaq\n");
-	printf("          Web: http://bugzilla.icculus.org\n\n");
-
-	printf("Usage: freespace2 [options]\n");
-	printf("     [-h | --help]           Show this help message\n");
-	printf("     [-v | --version]        Show game version\n");
-	printf("     [-s | --nosound]        Do no access the sound card\n");
-	printf("     [-f | --fullscreen]     Run the game fullscreen\n");
-	printf("     [-w | --window]         Run the game in a window\n");
-	printf("     [-g | --nograb]         Do not automatically grab mouse\n");
-	printf("     [-n | --nomovies]       Do not play movies\n");
-	printf("     [-d | --standalone]     Run as a dedicated server\n");
-	printf("     [-S | --startgame]      Start a multiplayer game\n");
-	printf("     [-N | --gamename]       Name of the multiplayer game\n");
-	printf("     [-p | --password]       Use this password to connect\n");
-	printf("     [-c | --closed]         Closed multiplayer game\n");
-	printf("     [-r | --restricted]     Restricted multiplayer game\n");
-	printf("     [-a | --allowabove]     Only allow above certain rank\n");
-	printf("     [-b | --allowbelow]     Only allow below certain rank\n");
-	printf("     [-o | --port]           Port to use for multiplayer games\n");
-	printf("     [-C | --connect]        Connect to particular IP address\n");
-	printf("     [-m | --multilog]       Log multiplayer events\n");
-	printf("     [-F | --oldfire]        Server side firing\n");
-	printf("     [-D | --clientdamage]   Client does damage\n");
-	printf("     [-t | --timeout]        Multiplayer game timeout\n");
-	printf("     [-P | --pofspew]        Save model info to pofspew.txt\n");
-	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n\n");
-
-	printf("Freespace 2 v%d.%02d -- Linux Client v%d.%02d\n\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_UNIX_VERSION_MAJOR, FS_UNIX_VERSION_MINOR);
-
-	exit(0);
-}
-#endif
 
 // arg constructor
 // name_ - name of the parameter, must start with '-' character
 // help_ - help text for this parameter
-#ifndef PLAT_UNIX
-cmdline_parm::cmdline_parm(const char *name_, const char *help_)
-#else
-cmdline_parm::cmdline_parm(const char *name_, const char *name_s_, const char *help_)
-#endif
+cmdline_parm::cmdline_parm(const char *name_, const char *name2_, const char *help_)
 {
 	name = name_;
-#ifdef PLAT_UNIX
-	name_s = name_s_;
-#endif
+	name2 = name2_;
 	help = help_;
 	args = NULL;
 	name_found = 0;
@@ -655,7 +620,7 @@ int cmdline_parm::found()
 // returns - the interger representation for the parameter arguement
 int cmdline_parm::get_int()
 {
-	Assert(args);
+	SDL_assert(args);
 	return atoi(args);
 }
 
@@ -663,7 +628,7 @@ int cmdline_parm::get_int()
 // returns - the float representation for the parameter arguement
 float cmdline_parm::get_float()
 {
-	Assert(args);
+	SDL_assert(args);
 	return (float)atof(args);
 }
 
@@ -671,12 +636,12 @@ float cmdline_parm::get_float()
 // returns - the string value for the parameter arguement
 char *cmdline_parm::str()
 {
-	Assert(args);
+	SDL_assert(args);
 	return args;
 }
 
 // external entry point into this modules
-int parse_cmdline(char *cmdline)
+int parse_cmdline(const char *cmdline)
 {
 	os_init_cmdline(cmdline);
 
@@ -715,16 +680,8 @@ int parse_cmdline(char *cmdline)
 	if ( gamename_arg.found() ) {
 		Cmdline_game_name = gamename_arg.str();
 
-#ifdef PLAT_UNIX
-		// if there wasn't an argument then complain and exit
-		if ( !(strlen(Cmdline_game_name) > 0) ) {
-			fprintf(stderr, "ERROR: The --gamename (-N) option requires an additional argument!\n");
-			exit(0);
-		}
-#endif
-
 		// be sure that this string fits in our limits
-		if ( strlen(Cmdline_game_name) > MAX_GAMENAME_LEN ) {
+		if ( Cmdline_game_name && (strlen(Cmdline_game_name) > MAX_GAMENAME_LEN) ) {
 			Cmdline_game_name[MAX_GAMENAME_LEN-1] = '\0';
 		}
 	}
@@ -733,16 +690,8 @@ int parse_cmdline(char *cmdline)
 	if ( gamepassword_arg.found() ) {
 		Cmdline_game_password = gamepassword_arg.str();
 
-#ifdef PLAT_UNIX
-		// if there wasn't an argument then complain and exit
-		if ( !(strlen(Cmdline_game_password) > 0) ) {
-			fprintf(stderr, "ERROR: The --password (-p) option requires an additional argument!\n");
-			exit(0);
-		}
-#endif
-
 		// be sure that this string fits in our limits
-		if ( strlen(Cmdline_game_password) > MAX_PASSWD_LEN ) {
+		if ( Cmdline_game_password && (strlen(Cmdline_game_password) > MAX_PASSWD_LEN) ) {
 			Cmdline_game_password[MAX_PASSWD_LEN-1] = '\0';
 		}
 	}
@@ -758,28 +707,12 @@ int parse_cmdline(char *cmdline)
 	// get the port number for games
 	if ( port_arg.found() ) {
 		Cmdline_network_port = port_arg.get_int();
-
-#ifdef PLAT_UNIX
-		// if there wasn't an argument then complain and exit
-		if ( !Cmdline_network_port ) {
-			fprintf(stderr, "ERROR: The --port (-P) option requires an additional argument!\n");
-			exit(0);
-		}
-#endif
 	}
 
 	// the connect argument specifies to join a game at this particular address
 	if ( connect_arg.found() ) {
 		Cmdline_use_last_pilot = 1;
 		Cmdline_connect_addr = connect_arg.str();
-
-#ifdef PLAT_UNIX
-		// if there wasn't an argument then complain and exit
-		if ( !(strlen(Cmdline_connect_addr) > 0) ) {
-			fprintf(stderr, "ERROR: The --connect (-C) option requires an additional argument!\n");
-			exit(0);
-		}
-#endif
 	}
 
 	// see if the multilog flag was set
@@ -802,12 +735,10 @@ int parse_cmdline(char *cmdline)
 		Cmdline_spew_pof_info = 1;
 	}
 
-#ifndef PLAT_UNIX
 	// 32 bit
 	if(d3d_32bit.found()){
 		Cmdline_force_32bit = 1;
 	}
-#endif
 
 	// mouse coords
 	if(mouse_coords.found()){
@@ -824,7 +755,6 @@ int parse_cmdline(char *cmdline)
 		Cmdline_window = 1;
 	}
 
-#ifdef PLAT_UNIX
 	// run fullscreen
 	if(d3d_fullscreen.found()){
 		Cmdline_fullscreen = 1;
@@ -848,9 +778,14 @@ int parse_cmdline(char *cmdline)
 	// display game version
 	if(fs_version.found()){
 		printf("Freespace 2 version:  %d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-		printf("Linux client version:  %d.%02d\n", FS_UNIX_VERSION_MAJOR, FS_UNIX_VERSION_MINOR);
+		printf("icculus.org client version:  %d.%02d\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
 		exit(0);
 	}
+
+#ifndef NDEBUG
+	// default to windowed mode in debug builds
+	Cmdline_fullscreen = 0;
+	Cmdline_window = 1;
 #endif
 
 	return 1;

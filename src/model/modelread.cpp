@@ -736,10 +736,10 @@ static int model_initted = 0;
 
 #ifndef NDEBUG
 CFILE *ss_fp;			// file pointer used to dump subsystem information
-char  model_filename[_MAX_PATH];		// temp used to store filename
-char	debug_name[_MAX_PATH];
+char  model_filename[MAX_PATH_LEN];		// temp used to store filename
+char	debug_name[MAX_PATH_LEN];
 int ss_warning_shown;		// have we shown the warning dialog concerning the subsystems?
-char	Global_filename[256];
+char	Global_filename[MAX_PATH_LEN];
 int Model_ram = 0;			// How much RAM the models use total
 #endif
 
@@ -892,15 +892,12 @@ void model_init()
 		Polygon_models[i] = NULL;
 	}
 
-	// Init the model caching system
-	model_cache_init();
-
 	atexit( model_free_all );
 	model_initted = 1;
 }
 
 // routine to parse out values from a user property field of an object
-void get_user_prop_value(char *buf, char *value)
+void get_user_prop_value(char *buf, char *value, const int max_vlen)
 {
 	char *p, *p1, c;
 
@@ -912,7 +909,7 @@ void get_user_prop_value(char *buf, char *value)
 		p1++;
 	c = *p1;
 	*p1 = '\0';
-	strcpy(value, p);
+	SDL_strlcpy(value, p, max_vlen);
 	*p1 = c;
 }
 
@@ -929,7 +926,7 @@ void model_copy_subsystems( int n_subsystems, model_subsystem *d_sp, model_subsy
 		source = &s_sp[i];
 		for ( j = 0; j < n_subsystems; j++ ) {
 			dest = &d_sp[j];
-			if ( !stricmp( source->subobj_name, dest->subobj_name) ) {
+			if ( !SDL_strcasecmp( source->subobj_name, dest->subobj_name) ) {
 				dest->flags = source->flags;
 				dest->subobj_num = source->subobj_num;
 				dest->model_num = source->model_num;
@@ -939,7 +936,7 @@ void model_copy_subsystems( int n_subsystems, model_subsystem *d_sp, model_subsy
 				dest->turn_rate = source->turn_rate;
 				dest->turret_gun_sobj = source->turret_gun_sobj;
 
-				strcpy( dest->name, source->name );
+				SDL_strlcpy( dest->name, source->name, SDL_arraysize(dest->name) );
 
 				if ( dest->type == SUBSYSTEM_TURRET ) {
 					int nfp;
@@ -953,7 +950,7 @@ void model_copy_subsystems( int n_subsystems, model_subsystem *d_sp, model_subsy
 						dest->turret_firing_point[nfp] = source->turret_firing_point[nfp];
 
 					if ( dest->flags & MSS_FLAG_CREWPOINT )
-						strcpy(dest->crewspot, source->crewspot);
+						SDL_strlcpy(dest->crewspot, source->crewspot, SDL_arraysize(dest->crewspot));
 				}
 				break;
 			}
@@ -972,12 +969,12 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 	char	lcdname[256];
 
 	if ( (p = strstr(props, "$name")) != NULL)
-		get_user_prop_value(p+5, subsystemp->name);
+		get_user_prop_value(p+5, subsystemp->name, SDL_arraysize(subsystemp->name));
 	else
-		strcpy( subsystemp->name, dname );
+		SDL_strlcpy( subsystemp->name, dname, SDL_arraysize(subsystemp->name) );
 
-	strcpy(lcdname, dname);
-	strlwr(lcdname);
+	SDL_strlcpy(lcdname, dname, SDL_arraysize(lcdname));
+	SDL_strlwr(lcdname);
 
 	// check the name for it's specific type
 	if ( strstr(lcdname, "engine") ) {
@@ -989,16 +986,16 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 		subsystemp->type = SUBSYSTEM_TURRET;
 		if ( (p = strstr(props, "$fov")) != NULL )
-			get_user_prop_value(p+4, buf);			// get the value of the fov
+			get_user_prop_value(p+4, buf, SDL_arraysize(buf));			// get the value of the fov
 		else
-			strcpy(buf,"180");
+			SDL_strlcpy(buf,"180", SDL_arraysize(buf));
 		angle = ANG_TO_RAD(atoi(buf))/2.0f;
 		subsystemp->turret_fov = (float)cos(angle);
 		subsystemp->turret_num_firing_points = 0;
 
 		if ( (p = strstr(props, "$crewspot")) != NULL) {
 			subsystemp->flags |= MSS_FLAG_CREWPOINT;
-			get_user_prop_value(p+9, subsystemp->crewspot);
+			get_user_prop_value(p+9, subsystemp->crewspot, SDL_arraysize(subsystemp->crewspot));
 		}
 
 	} else if ( strstr(lcdname, "navigation") ) {
@@ -1026,7 +1023,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 		// get time for (a) complete rotation (b) step (c) activation
 		float turn_time;
-		get_user_prop_value(p+7, buf);
+		get_user_prop_value(p+7, buf, SDL_arraysize(buf));
 		turn_time = (float)atof(buf);
 
 		// CASE OF STEPPED ROTATION
@@ -1037,7 +1034,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get number of steps
 			if ( (p = strstr(props, "$steps")) != NULL) {
-				get_user_prop_value(p+6, buf);
+				get_user_prop_value(p+6, buf, SDL_arraysize(buf));
 			   subsystemp->stepped_rotation->num_steps = atoi(buf);
 			 } else {
 			    subsystemp->stepped_rotation->num_steps = 8;
@@ -1045,7 +1042,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get pause time
 			if ( (p = strstr(props, "$t_paused")) != NULL) {
-				get_user_prop_value(p+9, buf);
+				get_user_prop_value(p+9, buf, SDL_arraysize(buf));
 			   subsystemp->stepped_rotation->t_pause = (float)atof(buf);
 			 } else {
 			    subsystemp->stepped_rotation->t_pause = 2.0f;
@@ -1053,7 +1050,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get transition time - time to go between steps
 			if ( (p = strstr(props, "$t_transit")) != NULL) {
-				get_user_prop_value(p+10, buf);
+				get_user_prop_value(p+10, buf, SDL_arraysize(buf));
 			    subsystemp->stepped_rotation->t_transit = (float)atof(buf);
 			} else {
 			    subsystemp->stepped_rotation->t_transit = 2.0f;
@@ -1061,9 +1058,9 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 			// get fraction of time spent in accel
 			if ( (p = strstr(props, "$fraction_accel")) != NULL) {
-				get_user_prop_value(p+15, buf);
+				get_user_prop_value(p+15, buf, SDL_arraysize(buf));
 			    subsystemp->stepped_rotation->fraction = (float)atof(buf);
-			   Assert(subsystemp->stepped_rotation->fraction > 0 && subsystemp->stepped_rotation->fraction < 0.5);
+			   SDL_assert(subsystemp->stepped_rotation->fraction > 0 && subsystemp->stepped_rotation->fraction < 0.5);
 			} else {
 			    subsystemp->stepped_rotation->fraction = 0.3f;
 			}
@@ -1079,7 +1076,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 
 		// CASE OF AI ROTATION
 		else if ( (p = strstr(props, "$ai")) != NULL) {
-			get_user_prop_value(p+8, buf);
+			get_user_prop_value(p+8, buf, SDL_arraysize(buf));
 			subsystemp->flags |= MSS_FLAG_AI_ROTATE;
 
 			// get parameters - ie, speed / dist / other ??
@@ -1131,7 +1128,7 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 
 	for (i = 0; i < n_subsystems; i++ ) {
 		subsystemp = &slist[i];
-		if ( !stricmp(subobj_name, subsystemp->subobj_name) ) {
+		if ( !SDL_strcasecmp(subobj_name, subsystemp->subobj_name) ) {
 			subsystemp->flags = 0;
 			subsystemp->subobj_num = subobj_num;
 			subsystemp->turret_gun_sobj = -1;
@@ -1139,15 +1136,15 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 			subsystemp->pnt = *pnt;				// use the offset to get the center point of the subsystem
 			subsystemp->radius = rad;
 			set_subsystem_info( subsystemp, props, subobj_name);
-			strcpy(subsystemp->subobj_name, subobj_name);						// copy the object name
+			SDL_strlcpy(subsystemp->subobj_name, subobj_name, SDL_arraysize(subsystemp->subobj_name));						// copy the object name
 			return;
 		}
 	}
 #ifndef NDEBUG
 	if ( !ss_warning_shown) {
-		char bname[_MAX_FNAME];
+		char bname[MAX_FILENAME_LEN];
 
-		_splitpath(model_filename, NULL, NULL, bname, NULL);
+		base_filename(model_filename, bname, SDL_arraysize(bname));
 		Warning(LOCATION, "A subsystem was found in model %s that does not have a record in ships.tbl.\nA list of subsystems for this ship will be dumped to:\n\ndata\\tables\\%s.subsystems for inclusion\n into ships.tbl.", model_filename, bname);
 
 		ss_warning_shown = 1;
@@ -1157,7 +1154,7 @@ void do_new_subsystem( int n_subsystems, model_subsystem *slist, int subobj_num,
 #ifndef NDEBUG
 	if ( ss_fp )	{
 		char tmp_buffer[128];
-		sprintf(tmp_buffer, "$Subsystem:\t\t\t%s,1,0.0\n", subobj_name);
+		SDL_snprintf(tmp_buffer, SDL_arraysize(tmp_buffer), "$Subsystem:\t\t\t%s,1,0.0\n", subobj_name);
 		cfputs(tmp_buffer, ss_fp);
 	}
 #endif
@@ -1173,13 +1170,13 @@ void print_family_tree( polymodel *obj, int modelnum, const char * ident, int is
 
 	if (strlen(ident)==0 )	{
 		mprintf(( " %s", obj->submodel[modelnum].name ));
-		sprintf( temp, " " );
+		SDL_snprintf( temp, SDL_arraysize(temp), " " );
 	} else if ( islast ) 	{
-		mprintf(( "%sÀÄ%s", ident, obj->submodel[modelnum].name ));
-		sprintf( temp, "%s  ", ident );
+		mprintf(( "%sï¿½ï¿½%s", ident, obj->submodel[modelnum].name ));
+		SDL_snprintf( temp, SDL_arraysize(temp), "%s  ", ident );
 	} else {
-		mprintf(( "%sÃÄ%s", ident, obj->submodel[modelnum].name ));
-		sprintf( temp, "%s³ ", ident );
+		mprintf(( "%sï¿½ï¿½%s", ident, obj->submodel[modelnum].name ));
+		SDL_snprintf( temp, SDL_arraysize(temp), "%sï¿½ ", ident );
 	}
 
 	mprintf(( "\n" ));
@@ -1250,7 +1247,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	int i,j;
 
 #ifndef NDEBUG
-	strcpy(Global_filename, filename);
+	SDL_strlcpy(Global_filename, filename, SDL_arraysize(Global_filename));
 #endif
 
 	fp = cfopen(filename,"rb");
@@ -1264,15 +1261,15 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	// into the game quicker
 #if 0
 	{
-		char bname[_MAX_FNAME];
+		char bname[MAX_PATH_LEN];
 
-		_splitpath(filename, NULL, NULL, bname, NULL);
-		sprintf(debug_name, "%s.subsystems", bname);
+		base_filename(filename, bname, SDL_arraysize(bname));
+		SDL_snprintf(debug_name, SDL_arraysize(debug_name), "%s.subsystems", bname);
 		ss_fp = cfopen(debug_name, "wb", CFILE_NORMAL, CF_TYPE_TABLES );
 		if ( !ss_fp )	{
 			mprintf(( "Can't open debug file for writing subsystems for %s\n", filename));
 		} else {
-			strcpy(model_filename, filename);
+			SDL_strlcpy(model_filename, filename, SDL_arraysize(model_filename));
 			ss_warning_shown = 0;
 		}
 	}
@@ -1296,8 +1293,8 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	}
 
 	pm->version = version;
-	Assert( strlen(filename) < FILENAME_LEN );
-	strncpy(pm->filename, filename, FILENAME_LEN);
+	SDL_assert( strlen(filename) < FILENAME_LEN );
+	SDL_strlcpy(pm->filename, filename, FILENAME_LEN);
 
 	memset( &pm->view_positions, 0, sizeof(pm->view_positions) );
 
@@ -1333,10 +1330,10 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 #endif
 				
 				pm->submodel = (bsp_info *)malloc( sizeof(bsp_info)*pm->n_models );
-				Assert(pm->submodel != NULL );
+				SDL_assert(pm->submodel != NULL );
 				memset( pm->submodel, 0, sizeof(bsp_info)*pm->n_models );
 
-				//Assert(pm->n_models <= MAX_SUBMODELS);
+				//SDL_assert(pm->n_models <= MAX_SUBMODELS);
 
 				cfread_vector(&pm->mins,fp);
 				cfread_vector(&pm->maxs,fp);
@@ -1351,7 +1348,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				}
 
 				pm->num_debris_objects = cfread_int(fp);
-				Assert( pm->num_debris_objects <= MAX_DEBRIS_OBJECTS );
+				SDL_assert( pm->num_debris_objects <= MAX_DEBRIS_OBJECTS );
 				// mprintf(( "There are %d debris objects\n", pm->num_debris_objects ));
 				for (i=0; i<pm->num_debris_objects;i++ )	{
 					pm->debris_objects[i] = cfread_int(fp);
@@ -1390,7 +1387,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					}	
 				} else {
 #ifndef NDEBUG
-					if (stricmp("fighter04.pof", filename)) {
+					if (SDL_strcasecmp("fighter04.pof", filename)) {
 						if (Bogus_warning_flag_1903 == 0) {
 							Warning(LOCATION, "Ship %s is old.  Cannot compute mass.\nSetting to 50.0f.  Talk to John.", filename);
 							Bogus_warning_flag_1903 = 1;
@@ -1447,7 +1444,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 				n = cfread_int(fp);
 
-				Assert(n < pm->n_models );
+				SDL_assert(n < pm->n_models );
 
 #if defined( FREESPACE2_FORMAT )	
 				pm->submodel[n].rad = cfread_float(fp);		//radius
@@ -1496,24 +1493,24 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				}
 
 				if ( pm->submodel[n].name[0] == '\0' ) {
-					strcpy(pm->submodel[n].name, "unknown object name");
+					SDL_strlcpy(pm->submodel[n].name, "unknown object name", MAX_NAME_LEN);
 				}
 
 				bool rotating_submodel_has_subsystem = !(pm->submodel[n].movement_type == MOVEMENT_TYPE_ROT);
 				if ( ( p = strstr(props, "$special"))!= NULL ) {
 					char type[32];
 
-					get_user_prop_value(p+9, type);
-					if ( !stricmp(type, "subsystem") ) {	// if we have a subsystem, put it into the list!
+					get_user_prop_value(p+9, type, SDL_arraysize(type));
+					if ( !SDL_strcasecmp(type, "subsystem") ) {	// if we have a subsystem, put it into the list!
 						do_new_subsystem( n_subsystems, subsystems, n, pm->submodel[n].rad, &pm->submodel[n].offset, props, pm->submodel[n].name, pm->id );
 						rotating_submodel_has_subsystem = true;
-					} else if ( !stricmp(type, "no_rotate") ) {
+					} else if ( !SDL_strcasecmp(type, "no_rotate") ) {
 						// mark those submodels which should not rotate - ie, those with no subsystem
 						pm->submodel[n].movement_type = MOVEMENT_TYPE_NONE;
 						pm->submodel[n].movement_axis = MOVEMENT_AXIS_NONE;
 					} else {
 						// if submodel rotates (via bspgen), then there is either a subsys or special=no_rotate
-						Assert( pm->submodel[n].movement_type != MOVEMENT_TYPE_ROT );
+						SDL_assert( pm->submodel[n].movement_type != MOVEMENT_TYPE_ROT );
 					}
 				}
 
@@ -1576,14 +1573,14 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					nverts = cfread_int( fp );		// get the number of vertices in the list
 					pm->shield.nverts = nverts;
 					pm->shield.verts = (shield_vertex *)malloc(nverts * sizeof(shield_vertex) );
-					Assert( pm->shield.verts );
+					SDL_assert( pm->shield.verts );
 					for ( i = 0; i < nverts; i++ )							// read in the vertex list
 						cfread_vector( &(pm->shield.verts[i].pos), fp );
 
 					ntris = cfread_int( fp );		// get the number of triangles that compose the shield
 					pm->shield.ntris = ntris;
 					pm->shield.tris = (shield_tri *)malloc(ntris * sizeof(shield_tri) );
-					Assert( pm->shield.tris );
+					SDL_assert( pm->shield.tris );
 					for ( i = 0; i < ntris; i++ ) {
 						cfread_vector( &(pm->shield.tris[i].norm), fp );
 						for ( j = 0; j < 3; j++ ) {
@@ -1611,13 +1608,13 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			case ID_GPNT:
 				pm->n_guns = cfread_int(fp);
 				pm->gun_banks = (w_bank *)malloc(sizeof(w_bank) * pm->n_guns);
-				Assert( pm->gun_banks != NULL );
+				SDL_assert( pm->gun_banks != NULL );
 
 				for (i = 0; i < pm->n_guns; i++ ) {
 					w_bank *bank = &pm->gun_banks[i];
 
 					bank->num_slots = cfread_int(fp);
-					Assert ( bank->num_slots < MAX_SLOTS );
+					SDL_assert ( bank->num_slots < MAX_SLOTS );
 					for (j = 0; j < bank->num_slots; j++) {
 						cfread_vector( &(bank->pnt[j]), fp );
 						cfread_vector( &(bank->norm[j]), fp );
@@ -1628,13 +1625,13 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			case ID_MPNT:
 				pm->n_missiles = cfread_int(fp);
 				pm->missile_banks = (w_bank *)malloc(sizeof(w_bank) * pm->n_missiles);
-				Assert( pm->missile_banks != NULL );
+				SDL_assert( pm->missile_banks != NULL );
 
 				for (i = 0; i < pm->n_missiles; i++ ) {
 					w_bank *bank = &pm->missile_banks[i];
 
 					bank->num_slots = cfread_int(fp);
-					Assert ( bank->num_slots < MAX_SLOTS );
+					SDL_assert ( bank->num_slots < MAX_SLOTS );
 					for (j = 0; j < bank->num_slots; j++) {
 						cfread_vector( &(bank->pnt[j]), fp );
 						cfread_vector( &(bank->norm[j]), fp );
@@ -1647,7 +1644,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 				pm->n_docks = cfread_int(fp);
 				pm->docking_bays = (dock_bay *)malloc(sizeof(dock_bay) * pm->n_docks);
-				Assert( pm->docking_bays != NULL );
+				SDL_assert( pm->docking_bays != NULL );
 
 				for (i = 0; i < pm->n_docks; i++ ) {
 					char *p;
@@ -1655,9 +1652,9 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 					cfread_string_len( props, MAX_PROP_LEN, fp );
 					if ( (p = strstr(props, "$name"))!= NULL )
-						get_user_prop_value(p+5, bay->name);
+						get_user_prop_value(p+5, bay->name, SDL_arraysize(bay->name));
 					else
-						sprintf(bay->name, "<unnamed bay %c>", 'A' + i);
+						SDL_snprintf(bay->name, SDL_arraysize(bay->name), "<unnamed bay %c>", 'A' + i);
 					bay->num_spline_paths = cfread_int( fp );
 					if ( bay->num_spline_paths > 0 ) {
 						bay->splines = (int *)malloc(sizeof(int) * bay->num_spline_paths);
@@ -1668,13 +1665,13 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					}
 
 					// determine what this docking bay can be used for
-					if ( !strnicmp(bay->name, "cargo", 5) )
+					if ( !SDL_strncasecmp(bay->name, "cargo", 5) )
 						bay->type_flags = DOCK_TYPE_CARGO;
 					else
 						bay->type_flags = (DOCK_TYPE_REARM | DOCK_TYPE_GENERIC);
 
 					bay->num_slots = cfread_int(fp);
-					Assert( bay->num_slots == 2 );					// Get Allender if Asserted!
+					SDL_assert( bay->num_slots == 2 );					// Get Allender if Asserted!
 					for (j = 0; j < bay->num_slots; j++) {
 						cfread_vector( &(bay->pnt[j]), fp );
 						cfread_vector( &(bay->norm[j]), fp );
@@ -1687,7 +1684,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				char props[MAX_PROP_LEN];
 				pm->n_thrusters = cfread_int(fp);
 				pm->thrusters = (thruster_bank *)malloc(sizeof(thruster_bank) * pm->n_thrusters);
-				Assert( pm->thrusters != NULL );
+				SDL_assert( pm->thrusters != NULL );
 
 				for (i = 0; i < pm->n_thrusters; i++ ) {
 					thruster_bank *bank = &pm->thrusters[i];
@@ -1702,8 +1699,8 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 						int length = strlen(props);
 						if (length > 0) {
 							int base_length = strlen("$engine_subsystem=");
-							Assert( strstr( (const char *)&props, "$engine_subsystem=") != NULL );
-							Assert( length > base_length );
+							SDL_assert( strstr( (const char *)&props, "$engine_subsystem=") != NULL );
+							SDL_assert( length > base_length );
 							char *engine_subsys_name = props + base_length;
 							if (engine_subsys_name[0] == '$') {
 								engine_subsys_name++;
@@ -1715,7 +1712,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 							int table_error = 1;
 							bank->wash_info_index = -1;
 							for (int k=0; k<n_subsystems; k++) {
-								if ( 0 == stricmp(subsystems[k].subobj_name, engine_subsys_name) ) {
+								if ( 0 == SDL_strcasecmp(subsystems[k].subobj_name, engine_subsys_name) ) {
 									bank->wash_info_index = subsystems[k].engine_wash_index;
 									if (bank->wash_info_index >= 0) {
 										table_error = 0;
@@ -1776,7 +1773,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 								n_slots = cfread_int( fp );
 								subsystemp->turret_gun_sobj = physical_parent;
-								Assert(n_slots <= MAX_TFP);		// only MAX_TFP firing points per model_subsystem
+								SDL_assert(n_slots <= MAX_TFP);		// only MAX_TFP firing points per model_subsystem
 								for (j = 0; j < n_slots; j++ )	{
 									if ( j < MAX_TFP ) {
 										cfread_vector( &subsystemp->turret_firing_point[j], fp );
@@ -1784,7 +1781,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 										cfread_vector( &bogus, fp );
 									}
 								}
-								Assert( n_slots > 0 );
+								SDL_assert( n_slots > 0 );
 
 								subsystemp->turret_num_firing_points = (n_slots > MAX_TFP) ? MAX_TFP : n_slots;
 
@@ -1828,12 +1825,12 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					if (p != NULL) {
 						pm->split_plane[pm->num_split_plane] = pnt.xyz.z;
 						pm->num_split_plane++;
-						Assert(pm->num_split_plane <= MAX_SPLIT_PLANE);
+						SDL_assert(pm->num_split_plane <= MAX_SPLIT_PLANE);
 					} else if ( ( p = strstr(props, "$special"))!= NULL ) {
 						char type[32];
 
-						get_user_prop_value(p+9, type);
-						if ( !stricmp(type, "subsystem") )						// if we have a subsystem, put it into the list!
+						get_user_prop_value(p+9, type, SDL_arraysize(type));
+						if ( !SDL_strcasecmp(type, "subsystem") )						// if we have a subsystem, put it into the list!
 							do_new_subsystem( n_subsystems, subsystems, -1, radius, &pnt, props, &name[1], pm->id );		// skip the first '$' character of the name
 					} else if ( strstr(name, "$enginelarge") || strstr(name, "$enginehuge") ){
 						do_new_subsystem( n_subsystems, subsystems, -1, radius, &pnt, props, &name[1], pm->id );		// skip the first '$' character of the name
@@ -1853,7 +1850,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				n = cfread_int(fp);
 				pm->n_textures = n;
 				// Dont overwrite memory!!
-				Assert(n <= MAX_MODEL_TEXTURES);
+				SDL_assert(n <= MAX_MODEL_TEXTURES);
 				//mprintf(0,"  num textures = %d\n",n);
 				for (i=0; i<n; i++ )	{
 					char tmp_name[256];
@@ -1880,7 +1877,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 				pm->model_data = (ubyte *)malloc(len);
 				pm->model_data_size = len;
-				Assert(pm->model_data != NULL );
+				SDL_assert(pm->model_data != NULL );
 			
 				cfread(pm->model_data,1,len,fp);
 			
@@ -1892,7 +1889,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				#ifndef NDEBUG
 					pm->debug_info_size = len;
 					pm->debug_info = (char *)malloc(pm->debug_info_size+1);
-					Assert(pm->debug_info!=NULL);
+					SDL_assert(pm->debug_info!=NULL);
 					memset(pm->debug_info,0,len+1);
 					cfread( pm->debug_info, 1, len, fp );
 				#endif
@@ -1904,7 +1901,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			case ID_PATH:
 				pm->n_paths = cfread_int( fp );
 				pm->paths = (model_path *)malloc(sizeof(model_path)*pm->n_paths);
-				Assert( pm->paths != NULL );
+				SDL_assert( pm->paths != NULL );
 					
 				for (i=0; i<pm->n_paths; i++ )	{
 					cfread_string_len(pm->paths[i].name , MAX_NAME_LEN-1, fp);
@@ -1914,13 +1911,13 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 						// get rid of leading '$' char in name
 						if ( pm->paths[i].parent_name[0] == '$' ) {
 							char tmpbuf[MAX_NAME_LEN];
-							strcpy(tmpbuf, pm->paths[i].parent_name+1);
-							strcpy(pm->paths[i].parent_name, tmpbuf);
+							SDL_strlcpy(tmpbuf, pm->paths[i].parent_name+1, SDL_arraysize(tmpbuf));
+							SDL_strlcpy(pm->paths[i].parent_name, tmpbuf, MAX_NAME_LEN);
 						}
 						// store the sub_model index (ie index into pm->submodel) of the parent
 						pm->paths[i].parent_submodel = -1;
 						for ( j = 0; j < pm->n_models; j++ ) {
-							if ( !stricmp( pm->submodel[j].name, pm->paths[i].parent_name) ) {
+							if ( !SDL_strcasecmp( pm->submodel[j].name, pm->paths[i].parent_name) ) {
 								pm->paths[i].parent_submodel = j;
 							}
 						}
@@ -1933,7 +1930,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					pm->paths[i].goal = pm->paths[i].nverts - 1;
 					pm->paths[i].type = MP_TYPE_UNUSED;
 					pm->paths[i].value = 0;
-					Assert(pm->paths[i].verts!=NULL);
+					SDL_assert(pm->paths[i].verts!=NULL);
 					for (j=0; j<pm->paths[i].nverts; j++ )	{
 						cfread_vector(&pm->paths[i].verts[j].pos,fp );
 						pm->paths[i].verts[j].radius = cfread_float( fp );
@@ -1961,7 +1958,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 					num_eyes = cfread_int( fp );
 					pm->n_view_positions = num_eyes;
-					Assert ( num_eyes < MAX_EYES );
+					SDL_assert ( num_eyes < MAX_EYES );
 					for (i = 0; i < num_eyes; i++ ) {
 						pm->view_positions[i].parent = cfread_int( fp );
 						cfread_vector( &pm->view_positions[i].pnt, fp );
@@ -1985,11 +1982,11 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					// # of faces
 					num_faces = cfread_int(fp);
 					pm->ins[idx].num_faces = num_faces;
-					Assert(num_faces <= MAX_INS_FACES);
+					SDL_assert(num_faces <= MAX_INS_FACES);
 
 					// # of vertices
 					num_verts = cfread_int(fp);
-					Assert(num_verts <= MAX_INS_VECS);
+					SDL_assert(num_verts <= MAX_INS_VECS);
 
 					// read in all the vertices
 					for(idx2=0; idx2<num_verts; idx2++){
@@ -2041,7 +2038,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			size = cfilelength(ss_fp);
 			cfclose(ss_fp);
 			if ( size <= 0 )	{
-				_unlink(debug_name);
+				cf_delete(debug_name, CF_TYPE_TABLES);
 			}
 		}
 	}
@@ -2068,13 +2065,13 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 	int ram_before = TotalRam;
 #endif
 
-	//Assert(strlen(filename) <= 12);
+	//SDL_assert(strlen(filename) <= 12);
 
 	num = -1;
 
 	for (i=0; i< MAX_POLYGON_MODELS; i++)	{
 		if ( Polygon_models[i] )	{
-			if (!stricmp(filename, Polygon_models[i]->filename))		{
+			if (!SDL_strcasecmp(filename, Polygon_models[i]->filename))		{
 				// Model already loaded; just return.
 				return Polygon_models[i]->id;
 			}
@@ -2106,7 +2103,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 	if ( Model_signature < org_sig )	{
 		Model_signature = 0;
 	}
-	Assert( (Model_signature % MAX_POLYGON_MODELS) == 0 );
+	SDL_assert( (Model_signature % MAX_POLYGON_MODELS) == 0 );
 	pm->id = Model_signature + num;
 
 	if (!read_model_file(pm, filename, n_subsystems, subsystems))	{
@@ -2130,10 +2127,10 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 		int j;
 		char destroyed_name[128];
 
-		strcpy( destroyed_name, pm->submodel[i].name );
-		strcat( destroyed_name, "-destroyed" );
+		SDL_strlcpy( destroyed_name, pm->submodel[i].name, SDL_arraysize(destroyed_name) );
+		SDL_strlcat( destroyed_name, "-destroyed", SDL_arraysize(destroyed_name) );
 		for (j=0; j<pm->n_models; j++ )	{
-			if ( !stricmp( pm->submodel[j].name, destroyed_name ))	{
+			if ( !SDL_strcasecmp( pm->submodel[j].name, destroyed_name ))	{
 				// mprintf(( "Found destroyed model for '%s'\n", pm->submodel[i].name ));
 				pm->submodel[i].my_replacement = j;
 				pm->submodel[j].i_replace = i;
@@ -2144,8 +2141,8 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 		// This debris comes from a destroyed subsystem when ship is still alive
 		char live_debris_name[128];
 
-		strcpy( live_debris_name, "debris-" );
-		strcat( live_debris_name, pm->submodel[i].name );
+		SDL_strlcpy( live_debris_name, "debris-", SDL_arraysize(live_debris_name) );
+		SDL_strlcat( live_debris_name, pm->submodel[i].name, SDL_arraysize(live_debris_name) );
 
 
 		pm->submodel[i].num_live_debris = 0;
@@ -2153,7 +2150,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 			// check if current model name is substring of destroyed
 			if ( strstr( pm->submodel[j].name, live_debris_name ))	{
 				mprintf(( "Found live debris model for '%s'\n", pm->submodel[i].name ));
-				Assert(pm->submodel[i].num_live_debris < MAX_LIVE_DEBRIS);
+				SDL_assert(pm->submodel[i].num_live_debris < MAX_LIVE_DEBRIS);
 				pm->submodel[i].live_debris[pm->submodel[i].num_live_debris++] = j;
 				pm->submodel[j].is_live_debris = 1;
 			}
@@ -2276,7 +2273,7 @@ int model_get_parent_submodel_for_live_debris( int model_num, int live_debris_mo
 {
 	polymodel *pm = model_get(model_num);
 
-	Assert(pm->submodel[live_debris_model_num].is_live_debris == 1);
+	SDL_assert(pm->submodel[live_debris_model_num].is_live_debris == 1);
 
 	int mn;
 	bsp_info *child;
@@ -2340,13 +2337,13 @@ float submodel_get_radius( int modelnum, int submodelnum )
 
 polymodel * model_get(int model_num)
 {
-	Assert( model_num > -1 );
+	SDL_assert( model_num > -1 );
 
 	int num = model_num % MAX_POLYGON_MODELS;
 	
-	Assert( num > -1 );
-	Assert( num < MAX_POLYGON_MODELS );
-	Assert( Polygon_models[num]->id == model_num );
+	SDL_assert( num > -1 );
+	SDL_assert( num < MAX_POLYGON_MODELS );
+	SDL_assert( Polygon_models[num]->id == model_num );
 
 	return Polygon_models[num];
 }
@@ -2525,14 +2522,13 @@ int model_find_2d_bound(int model_num,matrix *orient, vector * pos,int *x1, int 
 {
 	float t,w,h;
 	vertex pnt;
-	ubyte flags;
 	polymodel * po;
 
 	po = model_get(model_num);
 	float width = po->rad;
 	float height = po->rad;
 
-	flags = g3_rotate_vertex(&pnt,pos);
+	g3_rotate_vertex(&pnt,pos);
 
 	if ( pnt.flags & CC_BEHIND ) 
 		return 2;
@@ -2565,12 +2561,11 @@ int subobj_find_2d_bound(float radius ,matrix *orient, vector * pos,int *x1, int
 {
 	float t,w,h;
 	vertex pnt;
-	ubyte flags;
 
 	float width = radius;
 	float height = radius;
 
-	flags = g3_rotate_vertex(&pnt,pos);
+	g3_rotate_vertex(&pnt,pos);
 
 	if ( pnt.flags & CC_BEHIND ) 
 		return 2;
@@ -2606,7 +2601,7 @@ void model_find_obj_dir(vector *w_vec, vector *m_vec, object *ship_obj, int sub_
 	matrix m;
 	int mn;
 
-	Assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_obj->type == OBJ_SHIP);
 
 	polymodel *pm = model_get(Ships[ship_obj->instance].modelnum);
 	vec = *m_vec;
@@ -2662,14 +2657,14 @@ void model_get_rotating_submodel_axis(vector *model_axis, vector *world_axis, in
 	polymodel *pm = model_get(modelnum);
 
 	bsp_info *sm = &pm->submodel[submodel_num];
-	Assert(sm->movement_type == MOVEMENT_TYPE_ROT);
+	SDL_assert(sm->movement_type == MOVEMENT_TYPE_ROT);
 
 	if (sm->movement_axis == MOVEMENT_AXIS_X) {
 		(void) vm_vec_make(model_axis, 1.0f, 0.0f, 0.0f);
 	} else if (sm->movement_axis == MOVEMENT_AXIS_Y) {
 		(void) vm_vec_make(model_axis, 0.0f, 1.0f, 0.0f);
 	} else {
-		Assert(sm->movement_axis == MOVEMENT_AXIS_Z);
+		SDL_assert(sm->movement_axis == MOVEMENT_AXIS_Z);
 		(void) vm_vec_make(model_axis, 0.0f, 0.0f, 1.0f);
 	}
 
@@ -2678,13 +2673,9 @@ void model_get_rotating_submodel_axis(vector *model_axis, vector *world_axis, in
 
 
 // Does stepped rotation of a submodel
-#ifndef PLAT_UNIX
-#pragma warning ( push )
-#pragma warning (disable : 4701)
-#endif
 void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 {
-	Assert(psub->flags & MSS_FLAG_STEPPED_ROTATE);
+	SDL_assert(psub->flags & MSS_FLAG_STEPPED_ROTATE);
 
 	if ( psub->subobj_num < 0 ) return;
 
@@ -2696,26 +2687,23 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 	// get active rotation time this frame
 	int end_stamp = timestamp();
 	float rotation_time = 0.001f * (end_stamp - sii->step_zero_timestamp);
-	Assert(rotation_time >= 0);
+	SDL_assert(rotation_time >= 0);
 
 	// save last angles
 	sii->prev_angs = sii->angs;
 
 	// float pointer into struct to get angle (either p,b,h)
-	float *ang_prev = NULL, *ang_next = NULL;
+	float *ang_next = NULL;
 	switch( sm->movement_axis ) {
 	case MOVEMENT_AXIS_X:
-		ang_prev = &sii->prev_angs.p;
 		ang_next = &sii->angs.p;
 		break;
 
 	case MOVEMENT_AXIS_Y:	
-		ang_prev = &sii->prev_angs.h;
 		ang_next = &sii->angs.h;
 		break;
 
 	case MOVEMENT_AXIS_Z:	
-		ang_prev = &sii->prev_angs.b;
 		ang_next = &sii->angs.b;
 		break;
 	}
@@ -2732,7 +2720,7 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 	// subtract off fractional step part, round up  (ie, 1.999999 -> 2)
 	int cur_step = int( ((rotation_time - step_offset_time) / step_time) + 0.5f);
 	// mprintf(("cur step %d\n", cur_step));
-	// Assert(step_offset_time >= 0);
+	// SDL_assert(step_offset_time >= 0);
 
 	if (cur_step >= psub->stepped_rotation->num_steps) {
 		// I don;t know why, but removing this line makes it all good.
@@ -2773,9 +2761,6 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 		sii->cur_turn_rate = 0.0f;
 	}
 }
-#ifndef PLAT_UNIX
-#pragma warning ( pop )
-#endif
 
 // Rotates the angle of a submodel.  Use this so the right unlocked axis
 // gets stuffed.
@@ -2905,7 +2890,7 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 	bsp_info * sm_parent = &pm->submodel[turret->subobj_num];
 
 	// Check for a valid turret
-	Assert( turret->turret_num_firing_points > 0 );
+	SDL_assert( turret->turret_num_firing_points > 0 );
 
 
 	if ( sm_parent == sm ) {
@@ -2916,9 +2901,9 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 	if ( !(turret->flags & MSS_FLAG_TURRET_MATRIX) )
 		model_make_turrent_matrix(model_num, turret );
 
-	Assert( turret->flags & MSS_FLAG_TURRET_MATRIX);
-//	Assert( sm->movement_axis == MOVEMENT_AXIS_X );				// Gun must be able to change pitch
-//	Assert( sm_parent->movement_axis == MOVEMENT_AXIS_Z );	// Parent must be able to change heading
+	SDL_assert( turret->flags & MSS_FLAG_TURRET_MATRIX);
+//	SDL_assert( sm->movement_axis == MOVEMENT_AXIS_X );				// Gun must be able to change pitch
+//	SDL_assert( sm_parent->movement_axis == MOVEMENT_AXIS_Z );	// Parent must be able to change heading
 
 //======================================================
 // DEBUG code to draw the normal out of this gun and a circle
@@ -3003,8 +2988,8 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 	vm_interp_angle(&turret1->h,desired_angles.h,step_size);
 	vm_interp_angle(&turret2->p,desired_angles.p,step_size);
 
-//	turret1->h -= step_size*(key_down_timef(KEY_1)-key_down_timef(KEY_2) );
-//	turret2->p += step_size*(key_down_timef(KEY_3)-key_down_timef(KEY_4) );
+//	turret1->h -= step_size*(key_down_timef(SDLK_1)-key_down_timef(SDLK_2) );
+//	turret2->p += step_size*(key_down_timef(SDLK_3)-key_down_timef(SDLK_4) );
 
 	return 1;
 
@@ -3053,7 +3038,7 @@ void model_find_world_point(vector * outpnt, vector *mpnt,int model_num,int sub_
 // pos - pos vector of ship
 void world_find_model_point(vector *out, vector *world_pt, polymodel *pm, int submodel_num, matrix *orient, vector *pos)
 {
-	Assert( (pm->submodel[submodel_num].parent == pm->detail[0]) || (pm->submodel[submodel_num].parent == -1) );
+	SDL_assert( (pm->submodel[submodel_num].parent == pm->detail[0]) || (pm->submodel[submodel_num].parent == -1) );
 
 	vector tempv1, tempv2;
 	matrix m;
@@ -3096,7 +3081,7 @@ int rotating_submodel_has_ship_subsys(int submodel, ship *shipp)
 
 void model_get_rotating_submodel_list(int *submodel_list, int *num_rotating_submodels, object *objp)
 {
-	Assert(objp->type == OBJ_SHIP);
+	SDL_assert(objp->type == OBJ_SHIP);
 
 	// Check if not currently rotating - then treat as part of superstructure.
 	int modelnum = Ships[objp->instance].modelnum;
@@ -3121,12 +3106,12 @@ void model_get_rotating_submodel_list(int *submodel_list, int *num_rotating_subm
 				ship_subsys *subsys;
 
 				for ( subsys = GET_FIRST(&pship->subsys_list); subsys !=END_OF_LIST(&pship->subsys_list); subsys = GET_NEXT(subsys) ) {
-					Assert(subsys->system_info->model_num == modelnum);
+					SDL_assert(subsys->system_info->model_num == modelnum);
 					if (i == subsys->system_info->subobj_num) {
 						// found the correct subsystem - now check delta rotation angle not too large
 						float delta_angle = get_submodel_delta_angle(&subsys->submodel_info_1);
 						if (delta_angle < MAX_SUBMODEL_COLLISION_ROT_ANGLE) {
-							Assert(*num_rotating_submodels < MAX_ROTATING_SUBMODELS-1);
+							SDL_assert(*num_rotating_submodels < MAX_ROTATING_SUBMODELS-1);
 							submodel_list[(*num_rotating_submodels)++] = i;
 						}
 						break;
@@ -3143,7 +3128,7 @@ void model_get_rotating_submodel_list(int *submodel_list, int *num_rotating_subm
 	ship *pship = &Ships[objp->instance];
 	for (int idx=0; idx<*num_rotating_submodels; idx++) {
 		int valid = rotating_submodel_has_ship_subsys(submodel_list[idx], pship);
-//		Assert( valid );
+//		SDL_assert( valid );
 		if ( !valid ) {
 
 			Warning( LOCATION, "Ship %s has rotating submodel [%s] without ship subsystem\n", pship->ship_name, pm->submodel[submodel_list[idx]].name );
@@ -3223,12 +3208,12 @@ void model_clear_instance(int model_num)
 
 	interp_clear_instance();
 
-//	if ( keyd_pressed[KEY_1] ) pm->lights[0].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_2] ) pm->lights[1].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_3] ) pm->lights[2].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_4] ) pm->lights[3].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_5] ) pm->lights[4].value = 1.0f/255.0f;
-//	if ( keyd_pressed[KEY_6] ) pm->lights[5].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_1) ) pm->lights[0].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_2) ) pm->lights[1].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_3) ) pm->lights[2].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_4) ) pm->lights[3].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_5) ) pm->lights[4].value = 1.0f/255.0f;
+//	if ( key_pressed(SDLK_6) ) pm->lights[5].value = 1.0f/255.0f;
 
 
 }
@@ -3277,8 +3262,8 @@ void model_set_instance(int model_num, int sub_model_num, submodel_instance_info
 
 	pm = model_get(model_num);
 
-	Assert( sub_model_num >= 0 );
-	Assert( sub_model_num < pm->n_models );
+	SDL_assert( sub_model_num >= 0 );
+	SDL_assert( sub_model_num < pm->n_models );
 
 	if ( sub_model_num < 0 ) return;
 	if ( sub_model_num >= pm->n_models ) return;
@@ -3318,8 +3303,8 @@ void model_init_submodel_axis_pt(submodel_instance_info *sii, int model_num, int
 	vector p1, v1, p2, v2, int1;
 
 	polymodel *pm = model_get(model_num);
-	Assert(pm->submodel[submodel_num].movement_type == MOVEMENT_TYPE_ROT);
-	Assert(sii);
+	SDL_assert(pm->submodel[submodel_num].movement_type == MOVEMENT_TYPE_ROT);
+	SDL_assert(sii);
 
 	mpoint1 = NULL;
 	mpoint2 = NULL;
@@ -3388,8 +3373,8 @@ void model_add_arc(int model_num, int sub_model_num, vector *v1, vector *v2, int
 		sub_model_num = pm->detail[0];
 	}
 
-	Assert( sub_model_num >= 0 );
-	Assert( sub_model_num < pm->n_models );
+	SDL_assert( sub_model_num >= 0 );
+	SDL_assert( sub_model_num < pm->n_models );
 
 	if ( sub_model_num < 0 ) return;
 	if ( sub_model_num >= pm->n_models ) return;
@@ -3459,15 +3444,15 @@ int model_find_dock_name_index( int modelnum, char *name )
 
 	// check the generic names and call previous function to find first dock point of
 	// the specified type
-	if ( !stricmp(name, "cargo") )
+	if ( !SDL_strcasecmp(name, "cargo") )
 		return model_find_dock_index( modelnum, DOCK_TYPE_CARGO );
-	else if (!stricmp( name, "rearm") )
+	else if (!SDL_strcasecmp( name, "rearm") )
 		return model_find_dock_index( modelnum, DOCK_TYPE_REARM );
-	else if (!stricmp( name, "generic") )
+	else if (!SDL_strcasecmp( name, "generic") )
 		return model_find_dock_index( modelnum, DOCK_TYPE_GENERIC );
 
 	for (i = 0; i < pm->n_docks; i++ ) {
-		if ( !stricmp(pm->docking_bays[i].name, name) )
+		if ( !SDL_strcasecmp(pm->docking_bays[i].name, name) )
 			return i;
 	}
 
@@ -3481,7 +3466,7 @@ char *model_get_dock_name(int modelnum, int index)
 	polymodel *pm;
 
 	pm = model_get(modelnum);
-	Assert((index >= 0) && (index < pm->n_docks));
+	SDL_assert((index >= 0) && (index < pm->n_docks));
 	return pm->docking_bays[index].name;
 }
 
@@ -3507,20 +3492,20 @@ void swap_bsp_defpoints(ubyte * p)
 	ubyte * normcount = p+20;
         vector *src = vp(p+offset);
 
-	Assert( nverts < MAX_POLYGON_VECS );
-	// Assert( nnorms < MAX_POLYGON_NORMS );
+	SDL_assert( nverts < MAX_POLYGON_VECS );
+	// SDL_assert( nnorms < MAX_POLYGON_NORMS );
 
 	for (n=0; n<nverts; n++ )	{
-            src->xyz.x = INTEL_FLOAT( &src->xyz.x );
-            src->xyz.y = INTEL_FLOAT( &src->xyz.y );
-            src->xyz.z = INTEL_FLOAT( &src->xyz.z );
+            src->xyz.x = INTEL_FLOAT( src->xyz.x );
+            src->xyz.y = INTEL_FLOAT( src->xyz.y );
+            src->xyz.z = INTEL_FLOAT( src->xyz.z );
 
             Interp_verts[n] = src;
             src++;
             for (i=0;i<normcount[n];i++){
-                src->xyz.x = INTEL_FLOAT( &src->xyz.x );
-                src->xyz.y = INTEL_FLOAT( &src->xyz.y );
-                src->xyz.z = INTEL_FLOAT( &src->xyz.z );
+                src->xyz.x = INTEL_FLOAT( src->xyz.x );
+                src->xyz.y = INTEL_FLOAT( src->xyz.y );
+                src->xyz.z = INTEL_FLOAT( src->xyz.z );
                 src++;
             }
             
@@ -3532,14 +3517,14 @@ void swap_bsp_tmappoly( polymodel * pm, ubyte * p )
 	model_tmap_vert *verts;
         vector * normal = vp(p+8);
         vector * center = vp(p+20);
-        float radius = INTEL_FLOAT( &fl(p+32) );
+        float radius = INTEL_FLOAT( fl(p+32) );
         fl(p+32) = radius;
-        normal->xyz.x = INTEL_FLOAT( &normal->xyz.x );
-        normal->xyz.y = INTEL_FLOAT( &normal->xyz.y );
-        normal->xyz.z = INTEL_FLOAT( &normal->xyz.z );
-        center->xyz.x = INTEL_FLOAT( &center->xyz.x );
-        center->xyz.y = INTEL_FLOAT( &center->xyz.y );
-        center->xyz.z = INTEL_FLOAT( &center->xyz.z );
+        normal->xyz.x = INTEL_FLOAT( normal->xyz.x );
+        normal->xyz.y = INTEL_FLOAT( normal->xyz.y );
+        normal->xyz.z = INTEL_FLOAT( normal->xyz.z );
+        center->xyz.x = INTEL_FLOAT( center->xyz.x );
+        center->xyz.y = INTEL_FLOAT( center->xyz.y );
+        center->xyz.z = INTEL_FLOAT( center->xyz.z );
 
 	nv = INTEL_INT( w(p+36));
         w(p+36) = nv;
@@ -3552,8 +3537,8 @@ void swap_bsp_tmappoly( polymodel * pm, ubyte * p )
         for (i=0;i<nv;i++){
             verts[i].vertnum = INTEL_SHORT( verts[i].vertnum );
             verts[i].normnum = INTEL_SHORT( verts[i].normnum );
-            verts[i].u = INTEL_FLOAT( &verts[i].u );
-            verts[i].v = INTEL_FLOAT( &verts[i].v );
+            verts[i].u = INTEL_FLOAT( verts[i].u );
+            verts[i].v = INTEL_FLOAT( verts[i].v );
         }
 
 	if ( pm->version < 2003 )	{
@@ -3588,15 +3573,15 @@ void swap_bsp_flatpoly( polymodel * pm, ubyte * p )
 	short *verts;
         vector * normal = vp(p+8);
         vector * center = vp(p+20);
-        float radius = INTEL_FLOAT( &fl(p+32) );
+        float radius = INTEL_FLOAT( fl(p+32) );
         fl(p+32) = radius; 
         mprintf(("flatpoly radius = %f\n", radius ));
-        normal->xyz.x = INTEL_FLOAT( &normal->xyz.x );
-        normal->xyz.y = INTEL_FLOAT( &normal->xyz.y );
-        normal->xyz.z = INTEL_FLOAT( &normal->xyz.z );
-        center->xyz.x = INTEL_FLOAT( &center->xyz.x );
-        center->xyz.y = INTEL_FLOAT( &center->xyz.y );
-        center->xyz.z = INTEL_FLOAT( &center->xyz.z );
+        normal->xyz.x = INTEL_FLOAT( normal->xyz.x );
+        normal->xyz.y = INTEL_FLOAT( normal->xyz.y );
+        normal->xyz.z = INTEL_FLOAT( normal->xyz.z );
+        center->xyz.x = INTEL_FLOAT( center->xyz.x );
+        center->xyz.y = INTEL_FLOAT( center->xyz.y );
+        center->xyz.z = INTEL_FLOAT( center->xyz.z );
 
         nv = INTEL_INT( w(p+36));		//tigital
         w(p+36) = nv;
@@ -3651,21 +3636,21 @@ void swap_bsp_sortnorms( polymodel * pm, ubyte * p )
     vector * center = vp(p+20);
     int  tmp = INTEL_INT( w(p+32) );
     w(p+32) = tmp;
-    normal->xyz.x = INTEL_FLOAT( &normal->xyz.x );
-    normal->xyz.y = INTEL_FLOAT( &normal->xyz.y );
-    normal->xyz.z = INTEL_FLOAT( &normal->xyz.z );
-    center->xyz.x = INTEL_FLOAT( &center->xyz.x );
-    center->xyz.y = INTEL_FLOAT( &center->xyz.y );
-    center->xyz.z = INTEL_FLOAT( &center->xyz.z );
+    normal->xyz.x = INTEL_FLOAT( normal->xyz.x );
+    normal->xyz.y = INTEL_FLOAT( normal->xyz.y );
+    normal->xyz.z = INTEL_FLOAT( normal->xyz.z );
+    center->xyz.x = INTEL_FLOAT( center->xyz.x );
+    center->xyz.y = INTEL_FLOAT( center->xyz.y );
+    center->xyz.z = INTEL_FLOAT( center->xyz.z );
     
     vector * bmin = vp(p+56);
     vector * bmax = vp(p+68);
-    bmin->xyz.x = INTEL_FLOAT( &bmin->xyz.x );
-    bmin->xyz.y = INTEL_FLOAT( &bmin->xyz.y );
-    bmin->xyz.z = INTEL_FLOAT( &bmin->xyz.z );
-    bmax->xyz.x = INTEL_FLOAT( &bmax->xyz.x );
-    bmax->xyz.y = INTEL_FLOAT( &bmax->xyz.y );
-    bmax->xyz.z = INTEL_FLOAT( &bmax->xyz.z );
+    bmin->xyz.x = INTEL_FLOAT( bmin->xyz.x );
+    bmin->xyz.y = INTEL_FLOAT( bmin->xyz.y );
+    bmin->xyz.z = INTEL_FLOAT( bmin->xyz.z );
+    bmax->xyz.x = INTEL_FLOAT( bmax->xyz.x );
+    bmax->xyz.y = INTEL_FLOAT( bmax->xyz.y );
+    bmax->xyz.z = INTEL_FLOAT( bmax->xyz.z );
 
     if (prelist) swap_bsp_data(pm,p+prelist);
     if (backlist) swap_bsp_data(pm,p+backlist);
@@ -3702,12 +3687,12 @@ void swap_bsp_data( polymodel * pm, void *model_ptr )
             case OP_BOUNDBOX:
                     min = vp(p+8);
                     max = vp(p+20);
-                    min->xyz.x = INTEL_FLOAT( &min->xyz.x );
-                    min->xyz.y = INTEL_FLOAT( &min->xyz.y );
-                    min->xyz.z = INTEL_FLOAT( &min->xyz.z );
-                    max->xyz.x = INTEL_FLOAT( &max->xyz.x );
-                    max->xyz.y = INTEL_FLOAT( &max->xyz.y );
-                    max->xyz.z = INTEL_FLOAT( &max->xyz.z );
+                    min->xyz.x = INTEL_FLOAT( min->xyz.x );
+                    min->xyz.y = INTEL_FLOAT( min->xyz.y );
+                    min->xyz.z = INTEL_FLOAT( min->xyz.z );
+                    max->xyz.x = INTEL_FLOAT( max->xyz.x );
+                    max->xyz.y = INTEL_FLOAT( max->xyz.y );
+                    max->xyz.z = INTEL_FLOAT( max->xyz.z );
                     break;
         default:
             mprintf(( "Bad chunk type %d, len=%d in modelread:swap_bsp_data\n", chunk_type, chunk_size ));

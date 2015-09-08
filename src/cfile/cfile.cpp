@@ -220,9 +220,11 @@
 #include <winbase.h>		/* needed for memory mapping of file functions */
 #else
 #include <unistd.h>
+#include <dirent.h>
+#include <fnmatch.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
-#endif
 
 #include "pstypes.h"
 #include "cfile.h"
@@ -233,12 +235,10 @@
 #include "cfilesystem.h"
 #include "cfilearchive.h"
 #include "osapi.h"
-#include "osregistry.h"  // for Osreg_user_dir
+#include "osregistry.h"
 
-#ifdef PLAT_UNIX
-char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
-#endif
 char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
+char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
 
 // During cfile_init, verify that Pathtypes[n].index == n for each item
 // Each path must have a valid parent that can be tracable all the way back to the root 
@@ -250,101 +250,60 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	// Root must be index 1!!	
 	{ CF_TYPE_ROOT,					"",										".mve",							CF_TYPE_ROOT	},
 	{ CF_TYPE_DATA,					"Data",									".cfg .log .txt",			CF_TYPE_ROOT	},
-#ifdef PLAT_UNIX
-	{ CF_TYPE_MAPS,					"Data/Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_TEXT,					"Data/Text",							".txt .net",				CF_TYPE_DATA	},
+	{ CF_TYPE_MAPS,					"Data" DIR_SEPARATOR_STR "Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
+	{ CF_TYPE_TEXT,					"Data" DIR_SEPARATOR_STR "Text",							".txt .net",				CF_TYPE_DATA	},
 #ifdef MAKE_FS1
-	{ CF_TYPE_MISSIONS,				"Data/Missions",						".fsm .fsc .ntl .ssv",	CF_TYPE_DATA	},
+	{ CF_TYPE_MISSIONS,				"Data" DIR_SEPARATOR_STR "Missions",						".fsm .fsc .ntl .ssv",	CF_TYPE_DATA	},
 #else
-	{ CF_TYPE_MISSIONS,				"Data/Missions",						".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
+	{ CF_TYPE_MISSIONS,				"Data" DIR_SEPARATOR_STR "Missions",						".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
 #endif
-	{ CF_TYPE_MODELS,					"Data/Models",						".pof",						CF_TYPE_DATA	},
-	{ CF_TYPE_TABLES,					"Data/Tables",						".tbl",						CF_TYPE_DATA	},
-	{ CF_TYPE_SOUNDS,					"Data/Sounds",						".wav",						CF_TYPE_DATA	},
-	{ CF_TYPE_SOUNDS_8B22K,			"Data/Sounds/8b22k",				".wav",						CF_TYPE_SOUNDS	},
-	{ CF_TYPE_SOUNDS_16B11K,		"Data/Sounds/16b11k",				".wav",						CF_TYPE_SOUNDS	},
-	{ CF_TYPE_VOICE,					"Data/Voice",							"",							CF_TYPE_DATA	},
+	{ CF_TYPE_MODELS,					"Data" DIR_SEPARATOR_STR "Models",						".pof",						CF_TYPE_DATA	},
+	{ CF_TYPE_TABLES,					"Data" DIR_SEPARATOR_STR "Tables",						".tbl",						CF_TYPE_DATA	},
+	{ CF_TYPE_SOUNDS,					"Data" DIR_SEPARATOR_STR "Sounds",						".wav",						CF_TYPE_DATA	},
+	{ CF_TYPE_SOUNDS_8B22K,			"Data" DIR_SEPARATOR_STR "Sounds" DIR_SEPARATOR_STR "8b22k",				".wav",						CF_TYPE_SOUNDS	},
+	{ CF_TYPE_SOUNDS_16B11K,		"Data" DIR_SEPARATOR_STR "Sounds" DIR_SEPARATOR_STR "16b11k",				".wav",						CF_TYPE_SOUNDS	},
+	{ CF_TYPE_VOICE,					"Data" DIR_SEPARATOR_STR "Voice",							"",							CF_TYPE_DATA	},
 #ifdef MAKE_FS1
-	{ CF_TYPE_VOICE_BRIEFINGS,		"Data/Voice/Briefings",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_BRIEFINGS,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Briefings",			".wav",						CF_TYPE_VOICE	},
 #else
-	{ CF_TYPE_VOICE_BRIEFINGS,		"Data/Voice/Briefing",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_BRIEFINGS,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Briefing",			".wav",						CF_TYPE_VOICE	},
 #endif
-	{ CF_TYPE_VOICE_CMD_BRIEF,		"Data/Voice/Command_briefings",".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_CMD_BRIEF,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Command_briefings",".wav",						CF_TYPE_VOICE	},
 #ifdef MAKE_FS1
-	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data/Voice/Debriefings",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Debriefings",			".wav",						CF_TYPE_VOICE	},
 #else
-	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data/Voice/Debriefing",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Debriefing",			".wav",						CF_TYPE_VOICE	},
 #endif
-	{ CF_TYPE_VOICE_PERSONAS,		"Data/Voice/Personas",			".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_SPECIAL,		"Data/Voice/Special",				".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_TRAINING,		"Data/Voice/Training",			".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_MUSIC,					"Data/Music",							".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_MOVIES,					"Data/Movies",						".mve .msb",				CF_TYPE_DATA	},
-	{ CF_TYPE_INTERFACE,				"Data/Interface",					".pcx .ani .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_FONT,					"Data/Fonts",							".vf",						CF_TYPE_DATA	},
-	{ CF_TYPE_EFFECTS,				"Data/Effects",						".ani .pcx .neb .tga",	CF_TYPE_DATA	},
-	{ CF_TYPE_HUD,						"Data/Hud",							".ani .pcx .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_PLAYER_MAIN,			"Data/Players",						"",							CF_TYPE_DATA	},
-	{ CF_TYPE_PLAYER_IMAGES_MAIN,	"Data/Players/Images",			".pcx",						CF_TYPE_PLAYER_MAIN	},
-	{ CF_TYPE_CACHE,					"Data/Cache",							".clr .tmp",				CF_TYPE_DATA	}, 	//clr=cached color
-	{ CF_TYPE_PLAYERS,				"Data/Players",						".hcf",						CF_TYPE_DATA	},	
-	{ CF_TYPE_SINGLE_PLAYERS,		"Data/Players/Single",			".plr .csg .css",			CF_TYPE_PLAYERS	},
- 	{ CF_TYPE_MULTI_PLAYERS,		"Data/Players/Multi",				".plr",						CF_TYPE_DATA	},
-	{ CF_TYPE_MULTI_CACHE,			"Data/MultiData",					".pcx .fs2",				CF_TYPE_DATA	},
-	{ CF_TYPE_CONFIG,					"Data/Config",						".cfg",						CF_TYPE_DATA	},
-	{ CF_TYPE_SQUAD_IMAGES_MAIN,	"Data/Players/Squads",			".pcx",						CF_TYPE_DATA	},
-	{ CF_TYPE_DEMOS,					"Data/Demos",							".fsd",						CF_TYPE_DATA	},
-	{ CF_TYPE_CBANIMS,				"Data/CBAnims",						".ani",						CF_TYPE_DATA	},
-	{ CF_TYPE_INTEL_ANIMS,			"Data/IntelAnims",					".ani",						CF_TYPE_DATA	},
-#else
-	{ CF_TYPE_MAPS,					"Data\\Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_TEXT,					"Data\\Text",							".txt .net",				CF_TYPE_DATA	},
-	{ CF_TYPE_MISSIONS,				"Data\\Missions",						".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
-	{ CF_TYPE_MODELS,					"Data\\Models",						".pof",						CF_TYPE_DATA	},
-	{ CF_TYPE_TABLES,					"Data\\Tables",						".tbl",						CF_TYPE_DATA	},
-	{ CF_TYPE_SOUNDS,					"Data\\Sounds",						".wav",						CF_TYPE_DATA	},
-	{ CF_TYPE_SOUNDS_8B22K,			"Data\\Sounds\\8b22k",				".wav",						CF_TYPE_SOUNDS	},
-	{ CF_TYPE_SOUNDS_16B11K,		"Data\\Sounds\\16b11k",				".wav",						CF_TYPE_SOUNDS	},
-	{ CF_TYPE_VOICE,					"Data\\Voice",							"",							CF_TYPE_DATA	},
-	{ CF_TYPE_VOICE_BRIEFINGS,		"Data\\Voice\\Briefing",			".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_CMD_BRIEF,		"Data\\Voice\\Command_briefings",".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data\\Voice\\Debriefing",			".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_PERSONAS,		"Data\\Voice\\Personas",			".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_SPECIAL,		"Data\\Voice\\Special",				".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_VOICE_TRAINING,		"Data\\Voice\\Training",			".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_MUSIC,					"Data\\Music",							".wav",						CF_TYPE_VOICE	},
-	{ CF_TYPE_MOVIES,					"Data\\Movies",						".mve .msb",				CF_TYPE_DATA	},
-	{ CF_TYPE_INTERFACE,				"Data\\Interface",					".pcx .ani .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_FONT,					"Data\\Fonts",							".vf",						CF_TYPE_DATA	},
-	{ CF_TYPE_EFFECTS,				"Data\\Effects",						".ani .pcx .neb .tga",	CF_TYPE_DATA	},
-	{ CF_TYPE_HUD,						"Data\\Hud",							".ani .pcx .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_PLAYER_MAIN,			"Data\\Players",						"",							CF_TYPE_DATA	},
-	{ CF_TYPE_PLAYER_IMAGES_MAIN,	"Data\\Players\\Images",			".pcx",						CF_TYPE_PLAYER_MAIN	},
-	{ CF_TYPE_CACHE,					"Data\\Cache",							".clr .tmp",				CF_TYPE_DATA	}, 	//clr=cached color
-	{ CF_TYPE_PLAYERS,				"Data\\Players",						".hcf",						CF_TYPE_DATA	},	
-	{ CF_TYPE_SINGLE_PLAYERS,		"Data\\Players\\Single",			".plr .csg .css",			CF_TYPE_PLAYERS	},
- 	{ CF_TYPE_MULTI_PLAYERS,		"Data\\Players\\Multi",				".plr",						CF_TYPE_DATA	},
-	{ CF_TYPE_MULTI_CACHE,			"Data\\MultiData",					".pcx .fs2",				CF_TYPE_DATA	},
-	{ CF_TYPE_CONFIG,					"Data\\Config",						".cfg",						CF_TYPE_DATA	},
-	{ CF_TYPE_SQUAD_IMAGES_MAIN,	"Data\\Players\\Squads",			".pcx",						CF_TYPE_DATA	},
-	{ CF_TYPE_DEMOS,					"Data\\Demos",							".fsd",						CF_TYPE_DATA	},
-	{ CF_TYPE_CBANIMS,				"Data\\CBAnims",						".ani",						CF_TYPE_DATA	},
-	{ CF_TYPE_INTEL_ANIMS,			"Data\\IntelAnims",					".ani",						CF_TYPE_DATA	},
-#endif
+	{ CF_TYPE_VOICE_PERSONAS,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Personas",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_SPECIAL,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Special",				".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_TRAINING,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Training",			".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_MUSIC,					"Data" DIR_SEPARATOR_STR "Music",							".wav",						CF_TYPE_VOICE	},
+	{ CF_TYPE_MOVIES,					"Data" DIR_SEPARATOR_STR "Movies",						".mve .msb",				CF_TYPE_DATA	},
+	{ CF_TYPE_INTERFACE,				"Data" DIR_SEPARATOR_STR "Interface",					".pcx .ani .tga",			CF_TYPE_DATA	},
+	{ CF_TYPE_FONT,					"Data" DIR_SEPARATOR_STR "Fonts",							".vf",						CF_TYPE_DATA	},
+	{ CF_TYPE_EFFECTS,				"Data" DIR_SEPARATOR_STR "Effects",						".ani .pcx .neb .tga",	CF_TYPE_DATA	},
+	{ CF_TYPE_HUD,						"Data" DIR_SEPARATOR_STR "Hud",							".ani .pcx .tga",			CF_TYPE_DATA	},
+	{ CF_TYPE_PLAYER_MAIN,			"Data" DIR_SEPARATOR_STR "Players",						"",							CF_TYPE_DATA	},
+	{ CF_TYPE_PLAYER_IMAGES_MAIN,	"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Images",			".pcx",						CF_TYPE_PLAYER_MAIN	},
+	{ CF_TYPE_CACHE,					"Data" DIR_SEPARATOR_STR "Cache",							".clr .tmp",				CF_TYPE_DATA	}, 	//clr=cached color
+	{ CF_TYPE_PLAYERS,				"Data" DIR_SEPARATOR_STR "Players",						".hcf",						CF_TYPE_DATA	},
+	{ CF_TYPE_SINGLE_PLAYERS,		"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Single",			".plr .csg .css",			CF_TYPE_PLAYERS	},
+	{ CF_TYPE_MULTI_PLAYERS,		"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Multi",				".plr",						CF_TYPE_DATA	},
+	{ CF_TYPE_MULTI_CACHE,			"Data" DIR_SEPARATOR_STR "MultiData",					".pcx .fs2",				CF_TYPE_DATA	},
+	{ CF_TYPE_CONFIG,					"Data" DIR_SEPARATOR_STR "Config",						".cfg",						CF_TYPE_DATA	},
+	{ CF_TYPE_SQUAD_IMAGES_MAIN,	"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Squads",			".pcx",						CF_TYPE_DATA	},
+	{ CF_TYPE_DEMOS,					"Data" DIR_SEPARATOR_STR "Demos",							".fsd",						CF_TYPE_DATA	},
+	{ CF_TYPE_CBANIMS,				"Data" DIR_SEPARATOR_STR "CBAnims",						".ani",						CF_TYPE_DATA	},
+	{ CF_TYPE_INTEL_ANIMS,			"Data" DIR_SEPARATOR_STR "IntelAnims",					".ani",						CF_TYPE_DATA	},
 };
 
 
 #define CFILE_STACK_MAX	8
 
 int cfile_inited = 0;
-int Cfile_stack_pos = 0;
-
-char Cfile_stack[128][CFILE_STACK_MAX];
 
 Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 CFILE Cfile_list[MAX_CFILE_BLOCKS];
-
-char *Cfile_cdrom_dir = NULL;
 
 //
 // Function prototypes for internally-called functions
@@ -352,7 +311,6 @@ char *Cfile_cdrom_dir = NULL;
 int cfget_cfile_block();
 CFILE *cf_open_fill_cfblock(FILE * fp, int type);
 CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size);
-CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type);
 void cf_chksum_long_init();
 
 void cfile_close()
@@ -374,7 +332,7 @@ int cfile_in_root_dir(char *exe_path)
 
 	// copy the path
 	memset(path_copy, 0, 2048);
-	strncpy(path_copy, exe_path, 2047);
+	SDL_strlcpy(path_copy, exe_path, SDL_arraysize(path_copy));
 
 	// count how many slashes there are in the path
 	tok = strtok(path_copy, DIR_SEPARATOR_STR);
@@ -400,7 +358,7 @@ int cfile_in_root_dir(char *exe_path)
 //	returns:  success ==> 0
 //           error   ==> non-zero
 //
-int cfile_init(const char *exe_dir, const char *cdrom_dir)
+int cfile_init()
 {
 	int i;
 
@@ -408,54 +366,29 @@ int cfile_init(const char *exe_dir, const char *cdrom_dir)
 	encrypt_init();	
 
 	if ( !cfile_inited ) {
-		char buf[128];
-
-		cfile_inited = 1;
-
-		strcpy(buf, exe_dir);
-		i = strlen(buf);
-
-#ifndef PLAT_UNIX
-		// are we in a root directory?		
-		if(cfile_in_root_dir(buf)){
-			MessageBox((HWND)NULL, "Freespace2/Fred2 cannot be run from a drive root directory!", "Error", MB_OK);
-			return 1;
-		}		
-#endif
-
-		while (i--) {
-			if (buf[i] == DIR_SEPARATOR_CHAR){
-				break;
-			}
-		}						
-
-		if (i >= 2) {					
-			buf[i] = 0;						
-			cfile_chdir(buf);
-		} else {
-#ifdef PLAT_UNIX
-			fprintf (stderr, "Error trying to determine executable root directory!");
-#else
-			MessageBox((HWND)NULL, "Error trying to determine executable root directory!", "Error", MB_OK);
-#endif
+		// initialize root and user paths (may have been done already)
+		if ( cfile_init_paths() ) {
 			return 1;
 		}
 
-		// set root directory
-		strncpy(Cfile_root_dir, buf, CFILE_ROOT_DIRECTORY_LEN-1);
+		cfile_inited = 1;
 
-#ifdef PLAT_UNIX
-		snprintf(Cfile_user_dir, MAX_PATH, "%s/%s/", detect_home(), Osreg_user_dir);
-#endif
 		for ( i = 0; i < MAX_CFILE_BLOCKS; i++ ) {
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
 
-		Cfile_cdrom_dir = (char *)cdrom_dir;
-		cf_build_secondary_filelist(Cfile_cdrom_dir);
+		const char *extras_dir = os_config_read_string(NULL, "ExtrasPath", NULL);
+
+		if ( extras_dir && (strlen(extras_dir) >= MAX_PATH_LEN) ) {
+			extras_dir = NULL;
+		}
+
+		cf_build_secondary_filelist(extras_dir);
 
 		// 32 bit CRC table init
 		cf_chksum_long_init();
+
+
 
 		atexit( cfile_close );
 	}
@@ -463,175 +396,76 @@ int cfile_init(const char *exe_dir, const char *cdrom_dir)
 	return 0;
 }
 
-// Call this if pack files got added or removed or the
-// cdrom changed.  This will refresh the list of filenames 
-// stored in packfiles and on the cdrom.
-void cfile_refresh()
-{
-	cf_build_secondary_filelist(Cfile_cdrom_dir);
-}
-
-
-// Changes to a drive if valid.. 1=A, 2=B, etc
-// If flag, then changes to it.
-// Returns 0 if not-valid, 1 if valid.
-int cfile_chdrive( int DriveNum, int flag )
-{
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
-#else
-	int n, org;
-	int Valid = 0;
-
-	org = -1;
-	if (!flag)
-		org = _getdrive();
-
-	_chdrive( DriveNum );
-	n = _getdrive();
-
-
-	if (n == DriveNum )
-		Valid = 1;
-
-	if ( (!flag) && (n != org) )
-		_chdrive( org );
-	return Valid;
-#endif
-}
-
-// push current directory on a 'stack' (so we can restore it) and change the directory
-int cfile_push_chdir(int type)
-{
-	int e;
-	char dir[128];
-	char OriginalDirectory[128];
-	char *Path;
-	char NoDir[] = "\\.";
-
-	_getcwd(OriginalDirectory, 127);
-	Assert(Cfile_stack_pos < CFILE_STACK_MAX);
-	strcpy(Cfile_stack[Cfile_stack_pos++], OriginalDirectory);
-
-	cf_create_default_path_string( dir, type, NULL );
-	_strlwr(dir);
-#ifndef PLAT_UNIX
-	char *Drive = strchr(dir, ':');
-
-	if (Drive) {
-		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
-			return 1;
-
-		Path = Drive+1;
-
-	} else 
-#endif
-	{
-		Path = dir;
-	}
-
-	if (!(*Path)) {
-		Path = NoDir;
-	}
-
-	// This chdir might get a critical error!
-	e = _chdir( Path );
-	if (e) {
-		cfile_chdrive( OriginalDirectory[0] - 'a' + 1, 1 );
-		return 2;
-	}
-
-	return 0;
-}
-
-
-int cfile_chdir(char *dir)
-{
-	int e;
-	char OriginalDirectory[128];
-	char *Path;
-	char NoDir[] = "\\.";
-
-	_getcwd(OriginalDirectory, 127);
-	_strlwr(dir);
-
-#ifndef PLAT_UNIX
-	char *Drive = strchr(dir, ':');
-	if (Drive)	{
-		if (!cfile_chdrive( *(Drive - 1) - 'a' + 1, 1))
-			return 1;
-
-		Path = Drive+1;
-
-	} else 
-#endif
-	{
-		Path = dir;
-	}
-
-	if (!(*Path)) {
-		Path = NoDir;
-	}
-
-	// This chdir might get a critical error!
-	e = _chdir( Path );
-	if (e) {
-		cfile_chdrive( OriginalDirectory[0] - 'a' + 1, 1 );
-		return 2;
-	}
-
-	return 0;
-}
-
-int cfile_pop_dir()
-{
-	Assert(Cfile_stack_pos);
-	Cfile_stack_pos--;
-	return cfile_chdir(Cfile_stack[Cfile_stack_pos]);
-}
 
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES
 int cfile_flush_dir(int dir_type)
 {
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-	return 0;
-#else
-	int find_handle;
+	char filespec[MAX_PATH_LEN];
 	int del_count;
-	_finddata_t find;
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
-	// attempt to change the directory to the passed type
-	if(cfile_push_chdir(dir_type)){
-		return 0;
-	}
+	cf_create_default_path_string(filespec, dir_type);
 
 	// proceed to delete the files
-	find_handle = _findfirst( "*", &find );
 	del_count = 0;
+
+#ifdef PLAT_UNIX
+	DIR *dirp;
+	struct dirent *dir;
+
+	dirp = opendir(filespec);
+	if (dirp) {
+		while ( (dir = readdir(dirp)) != NULL ) {
+			if ( !fnmatch("*", dir->d_name, 0) ) {
+				char fn[MAX_PATH_LEN];
+				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
+
+				struct stat buf;
+				if (stat(fn, &buf) == -1) {
+					continue;
+				}
+
+				if (!S_ISREG(buf.st_mode)) {
+					continue;
+				}
+
+				// delete the file
+				cf_delete(dir->d_name, dir_type);
+
+				// increment the deleted count
+				del_count++;
+			}
+		}
+
+		closedir(dirp);
+	}
+#else
+	int find_handle;
+	_finddata_t find;
+
+	SDL_strlcat( filespec, "*", SDL_arraysize(filespec) );
+
+	find_handle = _findfirst( filespec, &find );
+
 	if (find_handle != -1) {
-		do {			
+		do {
 			if (!(find.attrib & _A_SUBDIR) && !(find.attrib & _A_RDONLY)) {
 				// delete the file
-				cf_delete(find.name,dir_type);				
+				cf_delete(find.name, dir_type);
 
 				// increment the deleted count
 				del_count++;
 			}
 		} while (!_findnext(find_handle, &find));
+
 		_findclose( find_handle );
 	}
-
-	// pop the directory back
-	cfile_pop_dir();
+#endif
 
 	// return the # of files deleted
 	return del_count;
-#endif
 }
 
 
@@ -647,11 +481,11 @@ char *cf_add_ext(const char *filename, const char *ext)
 
 	flen = strlen(filename);
 	elen = strlen(ext);
-	Assert(flen < MAX_PATH_LEN);
-	strcpy(path, filename);
-	if ((flen < 4) || stricmp(path + flen - elen, ext)) {
-		Assert(flen + elen < MAX_PATH_LEN);
-		strcat(path, ext);
+	SDL_assert(flen < MAX_PATH_LEN);
+	SDL_strlcpy(path, filename, SDL_arraysize(path));
+	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
+		SDL_assert(flen + elen < MAX_PATH_LEN);
+		SDL_strlcat(path, ext, SDL_arraysize(path));
 	}
 
 	return path;
@@ -662,7 +496,7 @@ void cf_delete( const char *filename, int dir_type )
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
@@ -670,7 +504,7 @@ void cf_delete( const char *filename, int dir_type )
 	if (fp) {
 		// delete the file
 		fclose(fp);
-		_unlink(longname);
+		unlink(longname);
 	}
 
 }
@@ -681,7 +515,7 @@ int cf_access( const char *filename, int dir_type, int mode )
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
@@ -694,48 +528,26 @@ int cf_exist( const char *filename, int dir_type )
 {
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
 	FILE *fp = fopen(longname, "rb");
 	if (fp) {
-		return 1;
 		fclose(fp);
+		return 1;
 	}
 
 	return 0;
 }
 
-void cf_attrib(const char *filename, int set, int clear, int dir_type)
-{
-	char longname[MAX_PATH_LEN];
-
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
-
-	cf_create_default_path_string( longname, dir_type, filename );
-
-	FILE *fp = fopen(longname, "rb");
-	if (fp) {
-		fclose(fp);
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		DWORD z = GetFileAttributes(longname);
-		SetFileAttributes(longname, z | set & ~clear);
-#endif
-	}
-
-}
-
 int cf_rename(const char *old_name, const char *name, int dir_type)
 {
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	int ret_code;
-	char old_longname[_MAX_PATH];
-	char new_longname[_MAX_PATH];
+	char old_longname[MAX_PATH_LEN];
+	char new_longname[MAX_PATH_LEN];
 	
 	cf_create_default_path_string( old_longname, dir_type, old_name );
 	cf_create_default_path_string( new_longname, dir_type, name );
@@ -764,12 +576,12 @@ void cf_create_directory( int dir_type )
 	int dir_tree[CF_MAX_PATH_TYPES];
 	char longname[MAX_PATH_LEN];
 
-	Assert( CF_TYPE_SPECIFIED(dir_type) );
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
 	int current_dir = dir_type;
 
 	do {
-		Assert( num_dirs < CF_MAX_PATH_TYPES );		// Invalid Pathtypes data?
+		SDL_assert( num_dirs < CF_MAX_PATH_TYPES );		// Invalid Pathtypes data?
 
 		dir_tree[num_dirs++] = current_dir;
 		current_dir = Pathtypes[current_dir].parent_index;
@@ -782,7 +594,7 @@ void cf_create_directory( int dir_type )
 	for (i=num_dirs-1; i>=0; i-- )	{
 		cf_create_default_path_string( longname, dir_tree[i], NULL );
 
-		if ( _mkdir(longname)==0 )	{
+		if ( mkdir(longname, 0700) == 0 )	{
 			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
 		}
 	}
@@ -791,15 +603,12 @@ void cf_create_directory( int dir_type )
 }
 
 
-extern int game_cd_changed();
-
 // cfopen()
 //
 // parameters:  *filepath ==> name of file to open (may be path+name)
 //              *mode     ==> specifies how file should be opened (eg "rb" for read binary)
 //                            passing NULL to mode deletes the file if it exists and returns NULL
-//               type     ==> one of:    CFILE_NORMAL
-//                                       CFILE_MEMORY_MAPPED
+//               type     ==> CFILE_NORMAL
 //					  dir_type	=>	override extension check, value is one of CF_TYPE* #defines
 //
 //               NOTE: type parameter is an optional parameter.  The default value is CFILE_NORMAL
@@ -811,52 +620,40 @@ extern int game_cd_changed();
 
 CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, bool localize)
 {
-	char longname[_MAX_PATH];
+	char longname[MAX_PATH_LEN];
 
 //	nprintf(("CFILE", "CFILE -- trying to open %s\n", file_path ));
 // #if !defined(MULTIPLAYER_BETA_BUILD) && !defined(FS2_DEMO)
 
-// we no longer need to do this, and on machines with crappy-ass drivers it can slow things down horribly.
-#if 0	
-	if ( game_cd_changed() ) {
-		cfile_refresh();
-	}
-#endif
-
 	//================================================
 	// Check that all the parameters make sense
-	Assert(file_path && strlen(file_path));
-	Assert( mode != NULL );
-	
-	// Can only open read-only binary files in memory mapped mode.
-	if ( (type & CFILE_MEMORY_MAPPED) && strcmp(mode,"rb") ) {
-		Int3();				
-		return NULL;
-	}
+	SDL_assert(file_path && strlen(file_path));
+	SDL_assert( mode != NULL );
 
 	//===========================================================
 	// If in write mode, just try to open the file straight off
 	// the harddisk.  No fancy packfile stuff here!
 	
-	if ( strchr(mode,'w') )	{
-		// For write-only files, require a full path or a path type
+	if ( SDL_strchr(mode,'w') )	{
 #ifdef PLAT_UNIX
-		if ( strpbrk(file_path, "/") ) {
+		const char *toks = "/";
 #else
-		if ( strpbrk(file_path,"/\\:")  ) {  
+		const char *toks = "/\\:";
 #endif
+
+		// For write-only files, require a full path or a path type
+		if ( strpbrk(file_path, toks) ) {
 			// Full path given?
-			strcpy(longname, file_path );
+			SDL_strlcpy(longname, file_path, SDL_arraysize(longname));
 		} else {
 			// Path type given?
-			Assert( dir_type != CF_TYPE_ANY );
+			SDL_assert( dir_type != CF_TYPE_ANY );
 
 			// Create the directory if necessary
 			cf_create_directory( dir_type );
 
 			cf_create_default_path_string( longname, dir_type, file_path );
 		}
-		Assert( !(type & CFILE_MEMORY_MAPPED) );
 
 		// JOHN: TODO, you should create the path if it doesn't exist.
 				
@@ -873,45 +670,22 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	int offset, size;
 	char copy_file_path[MAX_PATH_LEN];  // FIX change in memory from cf_find_file_location
-	strcpy(copy_file_path, file_path);
+	SDL_strlcpy(copy_file_path, file_path, SDL_arraysize(copy_file_path));
 
 
 	if ( cf_find_file_location( copy_file_path, dir_type, longname, &size, &offset, localize ) )	{
-
 		// Fount it, now create a cfile out of it
-		
-		if ( type & CFILE_MEMORY_MAPPED ) {
-		
-			// Can't open memory mapped files out of pack files
-			if ( offset == 0 )	{
-#ifdef PLAT_UNIX
-				STUB_FUNCTION;
-#else
-				HANDLE hFile;
+		FILE *fp = fopen( longname, "rb" );
 
-				hFile = CreateFile(longname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-				if (hFile != INVALID_HANDLE_VALUE)	{
-					return cf_open_mapped_fill_cfblock(hFile, dir_type);
-				}
-#endif
-			} 
-
-		} else {
-
-			FILE *fp = fopen( longname, "rb" );
-
-			if ( fp )	{
-				if ( offset )	{
-					// Found it in a pack file
-					return cf_open_packed_cfblock(fp, dir_type, offset, size );
-				} else {
-					// Found it in a normal file
-					return cf_open_fill_cfblock(fp, dir_type);
-				} 
+		if ( fp )	{
+			if ( offset )	{
+				// Found it in a pack file
+				return cf_open_packed_cfblock(fp, dir_type, offset, size );
+			} else {
+				// Found it in a normal file
+				return cf_open_fill_cfblock(fp, dir_type);
 			}
 		}
-
 	}
 
 	return NULL;
@@ -953,7 +727,6 @@ int cfget_cfile_block()
 	for ( i = 0; i < MAX_CFILE_BLOCKS; i++ ) {
 		cb = &Cfile_block_list[i];
 		if ( cb->type == CFILE_BLOCK_UNUSED ) {
-			cb->data = NULL;
 			cb->fp = NULL;
 			cb->type = CFILE_BLOCK_USED;
 			return i;
@@ -962,7 +735,7 @@ int cfget_cfile_block()
 
 	// If we've reached this point, a free Cfile_block could not be found
 	nprintf(("Warning","A free Cfile_block could not be found.\n"));
-	Assert(0);	// out of free cfile blocks
+	SDL_assert(0);	// out of free cfile blocks
 	return -1;			
 }
 
@@ -976,28 +749,15 @@ int cfclose( CFILE * cfile )
 {
 	int result;
 
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	result = 0;
-	if ( cb->data ) {
-		// close memory mapped file
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		result = UnmapViewOfFile((void*)cb->data);
-		Assert(result);
-		result = CloseHandle(cb->hInFile);		
-		Assert(result);	// Ensure file handle is closed properly
-		result = CloseHandle(cb->hMapFile);		
-		Assert(result);	// Ensure file handle is closed properly
-#endif
-		result = 0;
 
-	} else if ( cb->fp != NULL )	{
-		Assert(cb->fp != NULL);
+	if (cb->fp != NULL) {
+		SDL_assert(cb->fp != NULL);
 		result = fclose(cb->fp);
 	} else {
 		// VP  do nothing
@@ -1030,7 +790,6 @@ CFILE *cf_open_fill_cfblock(FILE *fp, int type)
 		cfp = &Cfile_list[cfile_block_index];;
 		cfp->id = cfile_block_index;
 		cfp->version = 0;
-		cfbp->data = NULL;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
 		
@@ -1063,7 +822,6 @@ CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
 		cfp = &Cfile_list[cfile_block_index];
 		cfp->id = cfile_block_index;
 		cfp->version = 0;
-		cfbp->data = NULL;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
 
@@ -1075,85 +833,23 @@ CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
 }
 
 
-
-// cf_open_mapped_fill_cfblock() will fill up a Cfile_block element in the Cfile_block_list[] array
-// for the case of a file being opened by cf_open_mapped();
-//
-// returns:   ptr CFILE structure.  
-//
-CFILE *cf_open_mapped_fill_cfblock(HANDLE hFile, int type)
-{
-	int cfile_block_index;
-
-	cfile_block_index = cfget_cfile_block();
-	if ( cfile_block_index == -1 ) {
-		return NULL;
-	}
-	else {
-		CFILE *cfp;
-		Cfile_block *cfbp;
-		cfbp = &Cfile_block_list[cfile_block_index];
-
-		cfp = &Cfile_list[cfile_block_index];
-		cfp->id = cfile_block_index;
-		cfbp->fp = NULL;
-		cfbp->hInFile = hFile;
-		cfbp->dir_type = type;
-
-		cf_init_lowlevel_read_code(cfp,0 , 0 );
-
-#ifdef PLAT_UNIX
-		STUB_FUNCTION;
-#else
-		cfbp->hMapFile = CreateFileMapping(cfbp->hInFile, NULL, PAGE_READONLY, 0, 0, NULL);
-		if (cfbp->hMapFile == NULL) { 
-			nprintf(("Error", "Could not create file-mapping object.\n")); 
-			return NULL;
-		} 
-	
-		cfbp->data = (ubyte*)MapViewOfFile(cfbp->hMapFile, FILE_MAP_READ, 0, 0, 0);
-		Assert( cfbp->data != NULL );		
-#endif
-		return cfp;
-	}
-}
-
 int cf_get_dir_type(CFILE *cfile)
 {
 	return Cfile_block_list[cfile->id].dir_type;
 }
-
-// cf_returndata() returns the data pointer for a memory-mapped file that is associated
-// with the CFILE structure passed as a parameter
-//
-// 
-
-void *cf_returndata(CFILE *cfile)
-{
-	Assert(cfile != NULL);
-	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
-	cb = &Cfile_block_list[cfile->id];	
-	Assert(cb->data != NULL);
-	return cb->data;
-}
-
 
 
 // version number of opened file.  Will be 0 unless you put something else here after you
 // open a file.  Once set, you can use minimum version numbers with the read functions.
 void cf_set_version( CFILE * cfile, int version )
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 
 	cfile->version = version;
 }
 
 // routines to read basic data types from CFILE's.  Put here to
 // simplify mac/pc reading from cfiles.
-#ifdef __APPLE__
-#include <stddef.h>
-#endif
 
 float cfread_float(CFILE *file, int ver, float deflt)
 {
@@ -1165,7 +861,7 @@ float cfread_float(CFILE *file, int ver, float deflt)
 	if (cfread( &f, sizeof(f), 1, file) != 1)
 		return deflt;
 
-    f = INTEL_FLOAT(&f);
+    f = INTEL_FLOAT(f);
 	return f;
 }
 
@@ -1300,7 +996,7 @@ void cfread_string_len(char *buf,int n, CFILE *file)
 {
 	int len;
 	len = cfread_int(file);
-	Assert( len < n );
+	SDL_assert( len < n );
 	if (len)
 		cfread(buf, len, 1, file);
 
@@ -1311,7 +1007,7 @@ void cfread_string_len(char *buf,int n, CFILE *file)
 
 int cfwrite_float(float f, CFILE *file)
 {
-    f = INTEL_FLOAT(&f);
+    f = INTEL_FLOAT(f);
 	return cfwrite(&f, sizeof(f), 1, file);
 }
 
@@ -1400,15 +1096,12 @@ int cfwrite_string_len(const char *buf, CFILE *file)
 // Get the filelength
 int cfilelength( CFILE * cfile )
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	// TODO: return length of memory mapped file
-	Assert( !cb->data );
-
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 
 	// cb->size gets set at cfopen
 	return cb->size;
@@ -1421,22 +1114,19 @@ int cfilelength( CFILE * cfile )
 //
 int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(buf != NULL);
-	Assert(elsize > 0);
-	Assert(nelem > 0);
+	SDL_assert(cfile != NULL);
+	SDL_assert(buf != NULL);
+	SDL_assert(elsize > 0);
+	SDL_assert(nelem > 0);
 
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	int size = elsize * nelem;
 
-	// cfwrite() not supported for memory-mapped files
-	Assert( !cb->data );
-
-	Assert(cb->fp != NULL);
-	Assert(cb->lib_offset == 0 );
+	SDL_assert(cb->fp != NULL);
+	SDL_assert(cb->lib_offset == 0 );
 	int bytes_written = fwrite( buf, 1, size, cb->fp );
 
 	if (bytes_written > 0) {
@@ -1445,7 +1135,7 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
 		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
-		Assert(tmp_offset == cb->raw_position);
+		SDL_assert(tmp_offset == cb->raw_position);
 	#endif
 
 	return bytes_written / elsize;
@@ -1459,18 +1149,14 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 //
 int cfputc(int c, CFILE *cfile)
 {
-	int result;
+	int result = 0;
 
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	result = 0;
-	// cfputc() not supported for memory-mapped files
-	Assert( !cb->data );
-
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 	result = fputc(c, cb->fp);
 
 	return result;	
@@ -1484,7 +1170,7 @@ int cfputc(int c, CFILE *cfile)
 //
 int cfgetc(CFILE *cfile)
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	
 	char tmp;
 
@@ -1509,9 +1195,9 @@ int cfgetc(CFILE *cfile)
 //
 char *cfgets(char *buf, int n, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(buf != NULL);
-	Assert(n > 0 );
+	SDL_assert(cfile != NULL);
+	SDL_assert(buf != NULL);
+	SDL_assert(n > 0 );
 
 	char * t = buf;
 	int i, c;
@@ -1546,19 +1232,17 @@ char *cfgets(char *buf, int n, CFILE *cfile)
 //
 int cfputs(const char *str, CFILE *cfile)
 {
-	Assert(cfile != NULL);
-	Assert(str != NULL);
+	SDL_assert(cfile != NULL);
+	SDL_assert(str != NULL);
 
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int result;
+	int result = 0;
 
-	result = 0;
 	// cfputs() not supported for memory-mapped files
-	Assert( !cb->data );
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 	result = fputs(str, cb->fp);
 
 	return result;	
@@ -1570,7 +1254,7 @@ int cfputs(const char *str, CFILE *cfile)
 // CRC code for mission validation.  given to us by Kevin Bentley on 7/20/98.   Some sort of
 // checksumming code that he wrote a while ago.  
 #define CRC32_POLYNOMIAL					0xEDB88320L
-unsigned long CRCTable[256];
+uint CRCTable[256];
 
 #define CF_CHKSUM_SAMPLE_SIZE				512
 
@@ -1578,9 +1262,9 @@ unsigned long CRCTable[256];
 ushort cf_add_chksum_short(ushort seed, const char *buffer, int size)
 {
 	const ubyte * ptr = (const ubyte *)buffer;
-	unsigned int sum1,sum2;
+	uint sum1,sum2;
 
-	sum1 = sum2 = (int)(seed);
+	sum1 = sum2 = (uint)(seed);
 
 	while(size--)	{
 		sum1 += *ptr++;
@@ -1589,16 +1273,16 @@ ushort cf_add_chksum_short(ushort seed, const char *buffer, int size)
 	}
 	sum2 %= 255;
 	
-	return (unsigned short)((sum1<<8)+ sum2);
+	return (ushort)((sum1<<8)+ sum2);
 }
 
 // update cur_chksum with the chksum of the new_data of size new_data_size
-unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int size)
+uint cf_add_chksum_long(uint seed, const char *buffer, int size)
 {
-	unsigned long crc;
+	uint crc;
 	unsigned const char *p;
-	unsigned long temp1;
-	unsigned long temp2;
+	uint temp1;
+	uint temp2;
 
 	p = (unsigned const char*)buffer;
 	crc = seed;	
@@ -1615,7 +1299,7 @@ unsigned long cf_add_chksum_long(unsigned long seed, const char *buffer, int siz
 void cf_chksum_long_init()
 {
 	int i,j;
-	unsigned long crc;	
+	uint crc;
 
 	for( i=0;i<=255;i++) {
 		crc=i;
@@ -1642,10 +1326,10 @@ int cf_chksum_do(CFILE *cfile, ushort *chk_short, uint *chk_long, int max_size)
 	// determine whether we're doing a short or long checksum
 	is_long = 0;
 	if(chk_short){
-		Assert(!chk_long);		
+		SDL_assert(!chk_long);		
 		*chk_short = 0;
 	} else {
-		Assert(chk_long);
+		SDL_assert(chk_long);
 		is_long = 1;
 		*chk_long = 0;
 	}
@@ -1792,21 +1476,110 @@ int cf_chksum_long(CFILE *file, uint *chksum, int max_size)
 //			1 - failure
 int cflush(CFILE *cfile)
 {
-	Assert(cfile != NULL);
+	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
-	Assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
+	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	// not supported for memory mapped files
-	Assert( !cb->data );
-
-	Assert(cb->fp != NULL);
+	SDL_assert(cb->fp != NULL);
 	return fflush(cb->fp);
 }
 
+// fill in Cfile_root_dir[] and Cfile_user_dir[]
+// this can be called at any time, even before cfile_init()
+//  returns: non-zero on error
+int cfile_init_paths()
+{
+	if ( strlen(Cfile_root_dir) && strlen(Cfile_user_dir) ) {
+		return 0;
+	}
 
+	char *t_path = SDL_GetBasePath();
 
+	// make sure we have something
+	if (t_path == NULL) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine executable directory!", NULL);
+		return 1;
+	}
 
+	// size check
+	if ( strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Executable path is too long!", NULL);
+		return 1;
+	}
 
+	// set root directory
+	SDL_strlcpy(Cfile_root_dir, t_path, SDL_arraysize(Cfile_root_dir));
+	// free SDL copy
+	SDL_free(t_path);
+	t_path = NULL;
 
+	// are we in a root directory?
+	if ( cfile_in_root_dir(Cfile_root_dir) ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
+		return 1;
+	}
 
+	// now for the user/pref directory, the writable location
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+
+	// make sure we have something
+	if (u_path == NULL) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine preferences directory!", NULL);
+		return 1;
+	}
+
+	// size check
+	if ( strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Preferences path is too long!", NULL);
+		return 1;
+	}
+
+	// set user/pref directory
+	SDL_strlcpy(Cfile_user_dir, u_path, SDL_arraysize(Cfile_user_dir));
+	// free SDL copy
+	SDL_free(u_path);
+	u_path = NULL;
+
+	// see if CF_TYPE_DATA exists for user and if not populate user path
+	// with full directory tree
+	char pathname[MAX_PATH_LEN];
+	struct stat info;
+
+	SDL_strlcpy(pathname, Cfile_user_dir, MAX_PATH_LEN);
+	SDL_strlcat(pathname, Pathtypes[CF_TYPE_DATA].path, MAX_PATH_LEN);
+
+	if ( stat(pathname, &info) != 0 ) {
+		cf_create_directory(CF_TYPE_MAPS);
+		cf_create_directory(CF_TYPE_TEXT);
+		cf_create_directory(CF_TYPE_MISSIONS);
+		cf_create_directory(CF_TYPE_MODELS);
+		cf_create_directory(CF_TYPE_TABLES);
+		cf_create_directory(CF_TYPE_SOUNDS_8B22K);
+		cf_create_directory(CF_TYPE_SOUNDS_16B11K);
+		cf_create_directory(CF_TYPE_VOICE_BRIEFINGS);
+		cf_create_directory(CF_TYPE_VOICE_CMD_BRIEF);
+		cf_create_directory(CF_TYPE_VOICE_DEBRIEFINGS);
+		cf_create_directory(CF_TYPE_VOICE_PERSONAS);
+		cf_create_directory(CF_TYPE_VOICE_SPECIAL);
+		cf_create_directory(CF_TYPE_VOICE_TRAINING);
+		cf_create_directory(CF_TYPE_MUSIC);
+		cf_create_directory(CF_TYPE_MOVIES);
+		cf_create_directory(CF_TYPE_INTERFACE);
+		cf_create_directory(CF_TYPE_FONT);
+		cf_create_directory(CF_TYPE_EFFECTS);
+		cf_create_directory(CF_TYPE_HUD);
+		cf_create_directory(CF_TYPE_PLAYER_IMAGES_MAIN);
+		cf_create_directory(CF_TYPE_CACHE);
+		cf_create_directory(CF_TYPE_SINGLE_PLAYERS);
+		cf_create_directory(CF_TYPE_MULTI_PLAYERS);
+		cf_create_directory(CF_TYPE_MULTI_CACHE);
+		cf_create_directory(CF_TYPE_CONFIG);
+		cf_create_directory(CF_TYPE_SQUAD_IMAGES_MAIN);
+		cf_create_directory(CF_TYPE_DEMOS);
+		cf_create_directory(CF_TYPE_CBANIMS);
+		cf_create_directory(CF_TYPE_INTEL_ANIMS);
+	}
+
+	return 0;
+}

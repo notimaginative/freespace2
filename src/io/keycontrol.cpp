@@ -32,7 +32,7 @@
  *
  * 
  * 47    9/09/99 11:40p Dave
- * Handle an Assert() in beam code. Added supernova sounds. Play the right
+ * Handle an SDL_assert() in beam code. Added supernova sounds. Play the right
  * 2 end movies properly, based upon what the player did in the mission.
  * 
  * 46    9/07/99 11:26p Andsager
@@ -267,7 +267,7 @@
  * 
  * 368   4/27/98 9:03a Dave
  * Fixed a multiplayer sequencing bug where paused players who were in the
- * options screen got an Assert when unpausing. Removed an optimiized
+ * options screen got an SDL_assert when unpausing. Removed an optimiized
  * build warning in keycontrol. 
  * 
  * 367   4/26/98 4:29p Lawrance
@@ -697,7 +697,7 @@ void debug_cycle_targeted_ship(int delta)
 		return;
 
 	si_index = Ships[objp->instance].ship_info_index;
-	Assert(si_index != -1 );
+	SDL_assert(si_index != -1 );
 	species = Ship_info[si_index].species;
 
 	int sanity = 0;
@@ -713,8 +713,8 @@ void debug_cycle_targeted_ship(int delta)
 		sip = &Ship_info[si_index];
 	
 		// if it has test in the name, jump over it
-		strcpy(name, sip->name);
-		_strlwr(name);
+		SDL_strlcpy(name, sip->name, SDL_arraysize(name));
+		SDL_strlwr(name);
 		if ( strstr(name,NOX("test")) != NULL )
 			continue;
 
@@ -746,7 +746,7 @@ void debug_change_song(int delta)
 {
 	char buf[256];
 	if ( event_music_next_soundtrack(delta) != -1 ) {
-		event_music_get_soundtrack_name(buf);
+		event_music_get_soundtrack_name(buf, sizeof(buf));
 		HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Soundtrack changed to: %s", 2), buf);
 
 	} else {
@@ -772,11 +772,11 @@ void process_debug_keys(int k)
 		// return;
 
 	switch (k) {
-		case KEY_DEBUGGED + KEY_H:
+		case KEY_DEBUGGED + SDLK_h:
 			hud_target_toggle_hidden_from_sensors();
 			break;
 
-		case KEY_DEBUGGED + KEY_F: 
+		case KEY_DEBUGGED + SDLK_f:
 			/*
 			int i;
 			for (i=0; i<NUM_HUD_GAUGES; i++) {
@@ -791,12 +791,12 @@ void process_debug_keys(int k)
 			}
 			break;
 		
-		case KEY_DEBUGGED + KEY_ALTED + KEY_F:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_f:
 			Framerate_delay += 10;
 			HUD_printf(XSTR( "Framerate delay increased to %i milliseconds per frame.", 4), Framerate_delay);
 			break;
 
-		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + KEY_F:
+		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + SDLK_f:
 			Framerate_delay -= 10;
 			if (Framerate_delay < 0)
 				Framerate_delay = 0;
@@ -804,8 +804,8 @@ void process_debug_keys(int k)
 			HUD_printf(XSTR( "Framerate delay decreased to %i milliseconds per frame.", 5), Framerate_delay);
 			break;
 
-		case KEY_DEBUGGED + KEY_C:
-		case KEY_DEBUGGED1 + KEY_C:
+		case KEY_DEBUGGED + SDLK_c:
+		case KEY_DEBUGGED1 + SDLK_c:
 			// hud_enemymsg_toggle();
 			if(Player_obj->flags & OF_COLLIDES){
 				obj_set_flags(Player_obj, Player_obj->flags & ~(OF_COLLIDES));
@@ -816,30 +816,30 @@ void process_debug_keys(int k)
 			}
 			break;
 
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_C:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_C:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_c:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_c:
 			Countermeasures_enabled = !Countermeasures_enabled;
 			HUD_printf(XSTR( "Countermeasure firing: %s", 6), Countermeasures_enabled ? XSTR( "ENABLED", 7) : XSTR( "DISABLED", 8));
 			break;
 
-		case KEY_DEBUGGED + KEY_E:
+		case KEY_DEBUGGED + SDLK_e:
 			gameseq_post_event(GS_EVENT_EVENT_DEBUG);
 			break;
 
-		case KEY_DEBUGGED + KEY_COMMA:
+		case KEY_DEBUGGED + SDLK_COMMA:
 			if ( Game_time_compression > (F1_0/4) ){		// can't compress below 0.25
 				Game_time_compression /= 2;
 			}
 			break;
-		case KEY_DEBUGGED + KEY_PERIOD:
+		case KEY_DEBUGGED + SDLK_PERIOD:
 			if ( Game_time_compression < (F1_0*8) ){
 				Game_time_compression *= 2;
 			}
 			break;
 
 		//	Kill! the currently targeted ship.
-		case KEY_DEBUGGED + KEY_K:
-		case KEY_DEBUGGED1 + KEY_K:
+		case KEY_DEBUGGED + SDLK_k:
+		case KEY_DEBUGGED1 + SDLK_k:
 			if (Player_ai->target_objnum != -1) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 
@@ -857,7 +857,7 @@ void process_debug_keys(int k)
 			break;
 		
 		// play the next mission message
-		case KEY_DEBUGGED + KEY_V:		
+		case KEY_DEBUGGED + SDLK_v:
 			extern int Message_debug_index;
 			extern int Num_messages_playing;
 			// stop any other messages
@@ -880,7 +880,7 @@ void process_debug_keys(int k)
 			break;
 
 		// play the previous mission message
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_V:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_v:
 			extern int Message_debug_index;
 			extern int Num_messages_playing;
 			// stop any other messages
@@ -903,15 +903,15 @@ void process_debug_keys(int k)
 			break;
 
 		// reset to the beginning of mission messages
-		case KEY_DEBUGGED + KEY_ALTED + KEY_V:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_v:
 			extern int Message_debug_index;
 			Message_debug_index = Num_builtin_messages - 1;
 			HUD_printf("Resetting to first mission message");
 			break;
 
 		//	Kill! the currently targeted ship.
-		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + KEY_K:
-		case KEY_DEBUGGED1 + KEY_ALTED + KEY_SHIFTED + KEY_K:
+		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + SDLK_k:
+		case KEY_DEBUGGED1 + KEY_ALTED + KEY_SHIFTED + SDLK_k:
 			if (Player_ai->target_objnum != -1) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 
@@ -922,8 +922,8 @@ void process_debug_keys(int k)
 			break;
 
 			//	Kill the currently targeted subsystem.
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_K:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_K:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_k:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_k:
 			if ((Player_ai->target_objnum != -1) && (Player_ai->targeted_subsys != NULL)) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 				if ( objp->type == OBJ_SHIP ) {
@@ -947,8 +947,8 @@ void process_debug_keys(int k)
 			}
 			break;
 
-		case KEY_DEBUGGED + KEY_ALTED + KEY_K:
-		case KEY_DEBUGGED1 + KEY_ALTED + KEY_K:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_k:
+		case KEY_DEBUGGED1 + KEY_ALTED + SDLK_k:
 			{
 				float	shield, integrity;
 				vector	pos, randvec;
@@ -963,14 +963,14 @@ void process_debug_keys(int k)
 			
 		//	Whack down the player's shield and hull by a little more than 50%
 		//	Select next object to be viewed by AI.
-		case KEY_DEBUGGED + KEY_I:
-		case KEY_DEBUGGED1 + KEY_I:
+		case KEY_DEBUGGED + SDLK_i:
+		case KEY_DEBUGGED1 + SDLK_i:
 			Player_obj->flags ^= OF_INVULNERABLE;
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "You are %s", 10), Player_obj->flags & OF_INVULNERABLE ? XSTR( "now INVULNERABLE!", 11) : XSTR( "no longer invulnerable...", 12));
 			break;
 
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_I:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_I:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_i:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_i:
 			if (Player_ai->target_objnum != -1) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 
@@ -979,25 +979,25 @@ void process_debug_keys(int k)
 			}
 			break;
 /*
-		case KEY_DEBUGGED + KEY_ALTED + KEY_I:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_i:
 			if (Player_ai->target_objnum != -1)
 				set_global_ignore_object(Player_ai->target_objnum);
 			break;
 */
 
-		case KEY_DEBUGGED + KEY_N:
+		case KEY_DEBUGGED + SDLK_n:
 			AI_watch_object++;
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Spewing debug info about object #%d", 14), AI_watch_object);
 			break;
 
-		case KEY_DEBUGGED + KEY_O:
+		case KEY_DEBUGGED + SDLK_o:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + KEY_O:
+		case KEY_DEBUGGED1 + SDLK_o:
 #endif
 			toggle_player_object();
 			break;				
 
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_O:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_o:
 			extern int Debug_octant;
 			if(Debug_octant == 7){
 				Debug_octant = -1;
@@ -1007,14 +1007,14 @@ void process_debug_keys(int k)
 			nprintf(("General", "Debug_octant == %d\n", Debug_octant));
 			break;
 
-		case KEY_DEBUGGED + KEY_P:
+		case KEY_DEBUGGED + SDLK_p:
 			supernova_start(20);
 			break;
 
-		case KEY_DEBUGGED + KEY_W:
-		case KEY_DEBUGGED1 + KEY_W:
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_W:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_W:
+		case KEY_DEBUGGED + SDLK_w:
+		case KEY_DEBUGGED1 + SDLK_w:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_w:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_w:
 			// temp code for testing purposes, toggles weapon energy cheat
 			Weapon_energy_cheat = !Weapon_energy_cheat;
 			if (Weapon_energy_cheat) {
@@ -1037,29 +1037,29 @@ void process_debug_keys(int k)
 
 			break;
 
-		case KEY_DEBUGGED + KEY_G:
+		case KEY_DEBUGGED + SDLK_g:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + KEY_G:
+		case KEY_DEBUGGED1 + SDLK_g:
 #endif
 			mission_goal_mark_all_true( PRIMARY_GOAL );
 			break;
 
-		case KEY_DEBUGGED + KEY_G + KEY_SHIFTED:
+		case KEY_DEBUGGED + SDLK_g + KEY_SHIFTED:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + KEY_G + KEY_SHIFTED:
+		case KEY_DEBUGGED1 + SDLK_g + KEY_SHIFTED:
 #endif
 			mission_goal_mark_all_true( SECONDARY_GOAL );
 			break;
 
-		case KEY_DEBUGGED + KEY_G + KEY_ALTED:
+		case KEY_DEBUGGED + SDLK_g + KEY_ALTED:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + KEY_G + KEY_ALTED:
+		case KEY_DEBUGGED1 + SDLK_g + KEY_ALTED:
 #endif
 			mission_goal_mark_all_true( BONUS_GOAL );
 			break;
 
-		case KEY_DEBUGGED + KEY_9: {
-		case KEY_DEBUGGED1 + KEY_9:
+		case KEY_DEBUGGED + SDLK_9: {
+		case KEY_DEBUGGED1 + SDLK_9:
 			ship* shipp;
 
 			shipp = &Ships[Player_obj->instance];
@@ -1072,8 +1072,8 @@ void process_debug_keys(int k)
 		}
 
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_9: {
-		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_9:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_9: {
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_9:
 			ship* shipp;
 
 			shipp = &Ships[Player_obj->instance];
@@ -1087,8 +1087,8 @@ void process_debug_keys(int k)
 #endif
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
-		case KEY_DEBUGGED + KEY_U: {
-		case KEY_DEBUGGED1 + KEY_U:
+		case KEY_DEBUGGED + SDLK_u: {
+		case KEY_DEBUGGED1 + SDLK_u:
 			// launch asteroid
 			extern asteroid_field Asteroid_field;
 			object *asteroid_create(asteroid_field *asfieldp, int asteroid_type, int subtype);
@@ -1103,8 +1103,8 @@ void process_debug_keys(int k)
 		}
 #endif
 
-		case KEY_DEBUGGED + KEY_0: {
-		case KEY_DEBUGGED1 + KEY_0:
+		case KEY_DEBUGGED + SDLK_0: {
+		case KEY_DEBUGGED1 + SDLK_0:
 			ship* shipp;
 
 			shipp = &Ships[Player_obj->instance];
@@ -1116,8 +1116,8 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_0: {
-		case KEY_DEBUGGED1 + KEY_SHIFTED + KEY_0:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_0: {
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_0:
 			ship* shipp;
 
 			shipp = &Ships[Player_obj->instance];
@@ -1129,7 +1129,7 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + KEY_J: {
+		case KEY_DEBUGGED + SDLK_j: {
 			int new_pattern = event_music_return_current_pattern();
 
 			new_pattern++;
@@ -1140,7 +1140,7 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + KEY_M: {
+		case KEY_DEBUGGED + SDLK_m: {
 			if ( Event_music_enabled ) {
 				event_music_disable();
 				HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Event music disabled", 20));
@@ -1153,8 +1153,8 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + KEY_R: {
-		// case KEY_DEBUGGED1 + KEY_R:
+		case KEY_DEBUGGED + SDLK_r: {
+		// case KEY_DEBUGGED1 + SDLK_r:
 			if (Player_ai->target_objnum != -1)
 				ai_issue_rearm_request(&Objects[Player_ai->target_objnum]);
 			else
@@ -1163,18 +1163,18 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_UP:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_UP:
 			Game_detail_level++;
 			HUD_printf( XSTR( "Detail level set to %+d\n", 22), Game_detail_level );
 			break;
 
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_DOWN:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_DOWN:
 			Game_detail_level--;
 			HUD_printf( XSTR( "Detail level set to %+d\n", 22), Game_detail_level );
 			break;
 
 #ifndef NDEBUG
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_T:	{
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_t:	{
 			extern int Test_begin;
 
 			if ( Test_begin == 1 )
@@ -1186,7 +1186,7 @@ void process_debug_keys(int k)
 			break;
 		}
 #endif
-		case KEY_DEBUGGED + KEY_D:
+		case KEY_DEBUGGED + SDLK_d:
 			extern int OO_update_index;			
 
 			if(MULTIPLAYER_MASTER){
@@ -1206,27 +1206,27 @@ void process_debug_keys(int k)
 			break;
 
 		// change player ship to next flyable type
-		case KEY_DEBUGGED + KEY_RIGHT:
+		case KEY_DEBUGGED + SDLK_RIGHT:
 			debug_cycle_player_ship(1);
 			break;
 
 		// change player ship to previous flyable ship
-		case KEY_DEBUGGED + KEY_LEFT:
+		case KEY_DEBUGGED + SDLK_LEFT:
 			debug_cycle_player_ship(-1);
 			break;
 		
 		// cycle target to ship
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_RIGHT:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_RIGHT:
 			debug_cycle_targeted_ship(1);
 			break;
 
 		// cycle target to previous ship
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_LEFT:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_LEFT:
 			debug_cycle_targeted_ship(-1);
 			break;
 
 		// change species of the targeted ship
-		case KEY_DEBUGGED + KEY_S: {
+		case KEY_DEBUGGED + SDLK_s: {
 			if ( Player_ai->target_objnum < 0 )
 				break;
 
@@ -1246,81 +1246,81 @@ void process_debug_keys(int k)
 			break;
 		}
 			
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_S:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_s:
 			game_increase_skill_level();
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Skill level set to %s.", 25), Skill_level_names(Game_skill_level));
 			break;
 
 		// kill all missiles
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_1:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_1:
 			beam_test(1);
 			break;				
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_2:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_2:
 			beam_test(2);
 			break;		
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_3:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_3:
 			beam_test(3);
 			break;				
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_4:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_4:
 			beam_test(4);
 			break;		
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_5:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_5:
 			beam_test(5);
 			break;				
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_6:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_6:
 			beam_test(6);
 			break;		
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_7:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_7:
 			beam_test(7);
 			break;				
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_8:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_8:
 			beam_test(8);
 			break;		
 #ifndef MAKE_FS1
-		case KEY_DEBUGGED + KEY_SHIFTED + KEY_9:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_9:
 			beam_test(9);
 			break;				
 #endif
 
-		case KEY_DEBUGGED + KEY_CTRLED + KEY_1:
+		case KEY_DEBUGGED + KEY_CTRLED + SDLK_1:
 			beam_test_new(1);
 			break;				
-		case KEY_DEBUGGED + KEY_CTRLED + KEY_2:
+		case KEY_DEBUGGED + KEY_CTRLED + SDLK_2:
 			beam_test_new(2);
 			break;		
-		case KEY_DEBUGGED + KEY_CTRLED + KEY_3:
+		case KEY_DEBUGGED + KEY_CTRLED + SDLK_3:
 			beam_test_new(3);
 			break;
 					
-		case KEY_DEBUGGED + KEY_T: {
+		case KEY_DEBUGGED + SDLK_t: {
 			char buf[256];
-			event_music_get_info(buf);
+			event_music_get_info(buf, sizeof(buf));
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, buf);
 			break;
 		}
 
-		case KEY_DEBUGGED + KEY_UP:
+		case KEY_DEBUGGED + SDLK_UP:
 			debug_change_song(1);
 			break;
 
-		case KEY_DEBUGGED + KEY_DOWN:
+		case KEY_DEBUGGED + SDLK_DOWN:
 			debug_change_song(-1);
 			break;
 
-		case KEY_PADMINUS: {
+		case SDLK_KP_MINUS: {
 			int init_flag = 0;
 
-			if ( keyd_pressed[KEY_1] )	{
+			if ( key_pressed(SDLK_1) )	{
 				init_flag = 1;
 				HUD_color_red -= 4;
 			} 
 
-			if ( keyd_pressed[KEY_2] )	{
+			if ( key_pressed(SDLK_2) )	{
 				init_flag = 1;
 				HUD_color_green -= 4;
 			} 
 
-			if ( keyd_pressed[KEY_3] )	{
+			if ( key_pressed(SDLK_3) )	{
 				init_flag = 1;
 				HUD_color_blue -= 4;
 			} 
@@ -1331,7 +1331,7 @@ void process_debug_keys(int k)
 			break;
 		}
 		
-		case KEY_DEBUGGED + KEY_Y:
+		case KEY_DEBUGGED + SDLK_y:
 			/*
 			// blast a debug lightning bolt in front of the player
 			vector start, strike;
@@ -1345,20 +1345,20 @@ void process_debug_keys(int k)
 			tst = 2;
 			break;
 
-		case KEY_PADPLUS: {
+		case SDLK_KP_PLUS: {
 			int init_flag = 0;
 
-			if ( keyd_pressed[KEY_1] )	{
+			if ( key_pressed(SDLK_1) )	{
 				init_flag = 1;
 				HUD_color_red += 4;
 			} 
 
-			if ( keyd_pressed[KEY_2] )	{
+			if ( key_pressed(SDLK_2) )	{
 				init_flag = 1;
 				HUD_color_green += 4;
 			} 
 
-			if ( keyd_pressed[KEY_3] )	{
+			if ( key_pressed(SDLK_3) )	{
 				init_flag = 1;
 				HUD_color_blue += 4;
 			} 
@@ -1386,14 +1386,14 @@ void ppsk_hotkeys(int k)
 #endif
 
 	switch (k) {
-		case KEY_F5:
-		case KEY_F6:
-		case KEY_F7:
-		case KEY_F8:
-		case KEY_F9:
-		case KEY_F10:
-		case KEY_F11:
-		case KEY_F12:
+		case SDLK_F5:
+		case SDLK_F6:
+		case SDLK_F7:
+		case SDLK_F8:
+		case SDLK_F9:
+		case SDLK_F10:
+		case SDLK_F11:
+		case SDLK_F12:
 			hotkey_set = mission_hotkey_get_set_num(k);
 			if ( !(Players[Player_num].flags & PLAYER_FLAGS_MSG_MODE) )
 				hud_target_hotkey_select( hotkey_set );
@@ -1402,14 +1402,14 @@ void ppsk_hotkeys(int k)
 
 			break;
 
-		case KEY_F5 + KEY_SHIFTED:
-		case KEY_F6 + KEY_SHIFTED:
-		case KEY_F7 + KEY_SHIFTED:
-		case KEY_F8 + KEY_SHIFTED:
-		case KEY_F9 + KEY_SHIFTED:
-		case KEY_F10 + KEY_SHIFTED:
-		case KEY_F11 + KEY_SHIFTED:
-		case KEY_F12 + KEY_SHIFTED:
+		case SDLK_F5 + KEY_SHIFTED:
+		case SDLK_F6 + KEY_SHIFTED:
+		case SDLK_F7 + KEY_SHIFTED:
+		case SDLK_F8 + KEY_SHIFTED:
+		case SDLK_F9 + KEY_SHIFTED:
+		case SDLK_F10 + KEY_SHIFTED:
+		case SDLK_F11 + KEY_SHIFTED:
+		case SDLK_F12 + KEY_SHIFTED:
 			hotkey_set = mission_hotkey_get_set_num(k&(~KEY_SHIFTED));
 			mprintf(("Adding to set %d\n", hotkey_set+1));
 			if ( Player_ai->target_objnum == -1)
@@ -1421,25 +1421,25 @@ void ppsk_hotkeys(int k)
 
 			break;
 
-		case KEY_F5 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F6 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F7 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F8 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F9 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F10 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F11 + KEY_SHIFTED + KEY_ALTED:
-		case KEY_F12 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F5 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F6 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F7 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F8 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F9 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F10 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F11 + KEY_SHIFTED + KEY_ALTED:
+		case SDLK_F12 + KEY_SHIFTED + KEY_ALTED:
 			hotkey_set = mission_hotkey_get_set_num(k & ~(KEY_SHIFTED+KEY_ALTED));
 			hud_target_hotkey_clear( hotkey_set );
 			break;
 
-		case KEY_SHIFTED + KEY_MINUS:
+		case KEY_SHIFTED + SDLK_MINUS:
 			if ( HUD_color_alpha > HUD_COLOR_ALPHA_USER_MIN )	{
 				HUD_color_alpha--;
 				HUD_init_colors();
 			}
 			break;
-/*		case KEY_SHIFTED + KEY_U:
+/*		case KEY_SHIFTED + SDLK_u:
 			{
 			object *debris_create(object *source_obj, int model_num, int submodel_num, vector *pos, vector *exp_center, int hull_flag, float exp_force);
 
@@ -1453,7 +1453,7 @@ void ppsk_hotkeys(int k)
 			break;
 */
 
-		case KEY_SHIFTED + KEY_EQUAL:
+		case KEY_SHIFTED + SDLK_EQUALS:
 			if ( HUD_color_alpha < HUD_COLOR_ALPHA_USER_MAX ) {
 				HUD_color_alpha++;
 				HUD_init_colors();
@@ -1490,7 +1490,7 @@ void process_player_ship_keys(int k)
 	// moved this line to beginning of function since hotkeys now encompass
 	// F5 - F12.  We can return after using F11 as a hotkey.
 	ppsk_hotkeys(masked_k);
-	if (keyd_pressed[KEY_DEBUG_KEY]){
+	if (key_pressed(KEY_DEBUG_KEY)){
 		return;
 	}
 
@@ -1635,7 +1635,11 @@ void game_process_cheats(int k)
 		return;
 	}
 
-	k = key_to_ascii(k);
+	k = key_get_text_input();
+
+	if ( (k < 0) || (k > 255) ) {
+		return;
+	}
 
 	for (i = 0; i < CHEAT_BUFFER_LEN; i++){
 		CheatBuffer[i]=CheatBuffer[i+1];
@@ -1722,8 +1726,8 @@ void game_process_cheats(int k)
 						// don't check the new_obj itself!!
 						if(moveup->objnum != objnum){
 							hit_check = &Objects[moveup->objnum];
-							Assert(hit_check->type == OBJ_SHIP);
-							Assert(hit_check->instance >= 0);
+							SDL_assert(hit_check->type == OBJ_SHIP);
+							SDL_assert(hit_check->instance >= 0);
 							if((hit_check->type != OBJ_SHIP) || (hit_check->instance < 0)){
 								continue;
 							}
@@ -1831,7 +1835,7 @@ void game_process_keys()
 				// No key
 				break;
 			
-			case KEY_ESC:
+			case SDLK_ESCAPE:
 				if ( Player->control_mode != PCM_NORMAL )	{
 					if ( Player->control_mode == PCM_WARPOUT_STAGE1 )	{
 						gameseq_post_event( GS_EVENT_PLAYER_WARPOUT_STOP );
@@ -1857,22 +1861,22 @@ void game_process_keys()
 				}
 				break;
 
-			case KEY_Y:								
+			case SDLK_y:
 				break;
 
-			case KEY_N:
+			case SDLK_n:
 				break;			
 
-			case KEY_ALTED + KEY_SHIFTED+KEY_J:
+			case KEY_ALTED + KEY_SHIFTED+SDLK_j:
 				// treat the current joystick position as the center position
 				joy_set_cen();
 				break;
 
-			case KEY_DEBUGGED | KEY_PAUSE:
+			case KEY_DEBUGGED | SDLK_PAUSE:
 				gameseq_post_event( GS_EVENT_DEBUG_PAUSE_GAME );
 				break;
 
-			case KEY_PAUSE:
+			case SDLK_PAUSE:
 				game_process_pause_key();
 				break;
 		} // end switch
@@ -1888,7 +1892,7 @@ int button_function_critical(int n, net_player *p = NULL)
 	net_player *npl;
 	int at_self;    // flag indicating the object is local (for hud messages, etc)
 
-	Assert(n >= 0);
+	SDL_assert(n >= 0);
    
 	// multiplayer clients should leave critical button bits alone and pass them to the server instead
 	if ((Game_mode & GM_MULTIPLAYER) && !(Net_player->flags & NETINFO_FLAG_AM_MASTER)) {
@@ -1938,7 +1942,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 				// multiplayer server should maintain bank/link status here
 				if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-					Assert(npl != NULL);
+					SDL_assert(npl != NULL);
 					multi_server_update_player_weapons(npl,shipp);										
 				}					
 			}			
@@ -1975,7 +1979,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}					
 			break;
@@ -1988,7 +1992,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}					
 			break;
@@ -2001,7 +2005,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}								
 			break;
@@ -2014,7 +2018,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}								
 			break;
@@ -2027,7 +2031,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}								
 			break;
@@ -2040,7 +2044,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}							
 			break;
@@ -2053,7 +2057,7 @@ int button_function_critical(int n, net_player *p = NULL)
 
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}										
 			break;
@@ -2068,7 +2072,7 @@ int button_function_critical(int n, net_player *p = NULL)
 			snd_play( &Snds[SND_ENERGY_TRANS] );
 			// multiplayer server should maintain bank/link status here
 			if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-				Assert(npl != NULL);
+				SDL_assert(npl != NULL);
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}										
 			break;
@@ -2265,7 +2269,7 @@ int button_function_demo_valid(int n)
 // execute function corresponding to action n (BUTTON_ #define from KeyControl.h)
 int button_function(int n)
 {
-	Assert(n >= 0);
+	SDL_assert(n >= 0);
 
 	if ( !button_allowed(n) ) {
 		return 0;
@@ -2290,7 +2294,7 @@ int button_function(int n)
 				shipp->weapons.next_primary_fire_stamp[shipp->weapons.current_primary_bank] = timestamp(250);	//	1/4 second delay until can fire				
 				// multiplayer server should maintain bank/link status here
 				// if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-//					Assert(npl != NULL);
+//					SDL_assert(npl != NULL);
 //					multi_server_update_player_weapons(npl,shipp);										
 //				}					
 			}			
@@ -2310,7 +2314,7 @@ int button_function(int n)
 
 				// multiplayer server should maintain bank/link status here
 				// if((Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
-					// Assert(npl != NULL);
+					// SDL_assert(npl != NULL);
 					// multi_server_update_player_weapons(npl,shipp);										
 				// }					
 			}			

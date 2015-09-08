@@ -57,7 +57,7 @@ int campaign_sexp_tree::load_sub_tree(int index)
 	// assumption: first token is an operator.  I require this because it would cause problems
 	// with child/parent relations otherwise, and it should be this way anyway, since the
 	// return type of the whole sexp is boolean, and only operators can satisfy this.
-	Assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
+	SDL_assert(Sexp_nodes[index].subtype == SEXP_ATOM_OPERATOR);
 	cur = get_new_node_position();
 	load_branch(index, -1);
 	return cur;
@@ -474,7 +474,7 @@ void campaign_editor::OnSelchangedSexpTree(NMHDR* pNMHDR, LRESULT* pResult)
 	// get handle of selected item
 	NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*)pNMHDR;
 	h = pNMTreeView->itemNew.hItem;
-	Assert(h);
+	SDL_assert(h);
 
 	// update help on sexp
 	m_tree.update_help(h);
@@ -585,14 +585,14 @@ void campaign_editor::swap_handler(int node1, int node2)
 		}
 	}
 
-	Assert(index1 < Total_links);
+	SDL_assert(index1 < Total_links);
 	for (index2=0; index2<Total_links; index2++){
 		if ((Links[index2].from == Cur_campaign_mission) && (Links[index2].node == node2)){
 			break;
 		}
 	}
 
-	Assert(index2 < Total_links);
+	SDL_assert(index2 < Total_links);
 	temp = Links[index1];
 //	Links[index1] = Links[index2];
 	while (index1 < index2) {
@@ -621,7 +621,7 @@ void campaign_editor::insert_handler(int old, int node)
 		}
 	}
 
-	Assert(i < Total_links);
+	SDL_assert(i < Total_links);
 	Links[i].node = node;
 	return;
 }

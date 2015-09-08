@@ -186,7 +186,7 @@ void waypoint_path_dlg::initialize_data(int full_update)
 		return;
 
 	if (query_valid_object() && Objects[cur_object_index].type == OBJ_WAYPOINT)
-		Assert(cur_waypoint_list == (Objects[cur_object_index].instance / 65536));
+		SDL_assert(cur_waypoint_list == (Objects[cur_object_index].instance / 65536));
 
 	if (cur_waypoint_list >= 0) {
 		m_name = _T(Waypoint_lists[cur_waypoint_list].name);
@@ -218,7 +218,7 @@ int waypoint_path_dlg::update_data(int redraw)
 	UpdateData(TRUE);
 
 	if (query_valid_object() && Objects[cur_object_index].type == OBJ_WAYPOINT)
-		Assert(cur_waypoint_list == (Objects[cur_object_index].instance / 65536));
+		SDL_assert(cur_waypoint_list == (Objects[cur_object_index].instance / 65536));
 
 	if (cur_waypoint_list >= 0) {
 		if (!strnicmp(m_name, "player ", 7)) {

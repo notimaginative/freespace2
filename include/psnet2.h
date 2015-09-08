@@ -77,13 +77,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <winsock.h>
 #endif
 
 #include "pstypes.h"
 
-#if defined(__APPLE__) && !defined(_SOCKLEN_T)
-typedef int socklen_t;
-#endif
 
 // -------------------------------------------------------------------------------------------------------
 // PSNET 2 DEFINES/VARS
@@ -91,7 +91,7 @@ typedef int socklen_t;
 
 #define NET_NONE		0		// if no protocol is active or none are selected
 #define NET_TCP		1
-#define NET_IPX		2
+#define NET_IPX		2			// ** no longer supported !!!! **
 #define NET_VMT		3
 
 #define MAX_PACKET_SIZE		512
@@ -104,9 +104,9 @@ typedef int socklen_t;
 
 typedef struct net_addr {
 	uint	type;			// See NET_ defines above
-	ubyte	net_id[4];	// used for IPX only
-	ubyte addr[6];		// address (first 4 used when IP, all 6 used when IPX)
-	short port;			
+	ubyte addr[4];		// address
+	short port;
+	short _pad;			// alignment padding
 } net_addr_t;
 
 // define these in such a manner that a call to psnet_send_reliable is exactly the same and the new code in unobtrusive
@@ -143,10 +143,8 @@ extern int Psnet_my_addr_valid;
 
 extern int Network_status;
 extern int Tcp_failure_code;
-extern int Ipx_failure_code;
 
 extern int Tcp_active;
-extern int Ipx_active;
 
 extern int Socket_type;										// protocol type in use (see NET_* defines above)
 
@@ -180,11 +178,11 @@ struct timeval;
 #endif
 
 // wrappers around select() and recvfrom() for lagging/losing data, and for sorting through different packet types
-int RECVFROM(uint s, char * buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type);
-int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set*exceptfds, const timeval* timeout, int psnet_type);
+int RECVFROM(SOCKET s, char * buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type);
+int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set*exceptfds, struct timeval* timeout, int psnet_type);
 
 // wrappers around sendto to sorting through different packet types
-int SENDTO(uint s, char * buf, int len, int flags, sockaddr * to, int tolen, int psnet_type);
+int SENDTO(SOCKET s, char * buf, int len, int flags, sockaddr * to, int tolen, int psnet_type);
 
 // call this once per frame to read everything off of our socket
 void PSNET_TOP_LAYER_PROCESS();
@@ -207,10 +205,10 @@ int psnet_use_protocol(int type);
 int psnet_get_network_status();
 
 // convert a net_addr to a string
-char *psnet_addr_to_string( char * text, net_addr_t * address );
+char *psnet_addr_to_string(char * text, const int max_textlen, net_addr_t * address );
 
 // convert a string to a net addr
-void psnet_string_to_addr( net_addr_t * address, char * text );
+void psnet_string_to_addr(net_addr_t * address, char * text , const int max_textlen);
 
 // compare 2 addresses
 int psnet_same( net_addr_t * a1, net_addr_t * a2 );

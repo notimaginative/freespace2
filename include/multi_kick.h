@@ -81,7 +81,7 @@ int multi_kick_is_banned(net_addr_t *addr);
 void multi_dcf_kick();
 
 // fill in the passed string with the appropriate "kicked" string
-void multi_kick_get_text(net_player *pl, int reason, char *str);
+void multi_kick_get_text(net_player *pl, int reason, char *str, const int max_strlen);
 
 #endif
 

@@ -43,17 +43,10 @@
 #ifndef _GROPENGL_H
 #define _GROPENGL_H
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "SDL_opengl.h"
 
 void gr_opengl_init();
 void gr_opengl_cleanup();
-
-void gr_opengl_bitmap(int x, int y);
-void gr_opengl_bitmap_ex(int x, int y, int w, int h, int sx, int sy);
 
 #endif
 

@@ -358,17 +358,17 @@ int HUD_wingman_status_coords[GR_NUM_RESOLUTIONS][HUD_WINGMAN_MAX_WINGS][HUD_WIN
 int hud_wingman_status_wing_index(const char *wing_name)
 {
 //XSTR:OFF
-	if ( !stricmp("alpha", wing_name) ) {
+	if ( !SDL_strcasecmp("alpha", wing_name) ) {
 		return 0;
-	} else if ( !stricmp("beta", wing_name) ) {
+	} else if ( !SDL_strcasecmp("beta", wing_name) ) {
 		return 1;
-	} else if ( !stricmp("gamma", wing_name) ) {
+	} else if ( !SDL_strcasecmp("gamma", wing_name) ) {
 		return 2;
-	} else if ( !stricmp("delta", wing_name) ) {
+	} else if ( !SDL_strcasecmp("delta", wing_name) ) {
 		return 3;
-	} else if ( !stricmp("epsilon", wing_name) ) {
+	} else if ( !SDL_strcasecmp("epsilon", wing_name) ) {
 		return 4;
-	} else if ( (Game_mode & GM_MULTIPLAYER) && IS_MISSION_MULTI_TEAMS && !stricmp("zeta", wing_name) ) {
+	} else if ( (Game_mode & GM_MULTIPLAYER) && IS_MISSION_MULTI_TEAMS && !SDL_strcasecmp("zeta", wing_name) ) {
 		return 5;
 	} else {
 		return -1;
@@ -379,8 +379,8 @@ int hud_wingman_status_wing_index(const char *wing_name)
 // flag a player wing ship as destroyed
 void hud_set_wingman_status_dead(int wing_index, int wing_pos)
 {
-	Assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
-	Assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
+	SDL_assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
+	SDL_assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
 
 	HUD_wingman_status[wing_index].status[wing_pos] = HUD_WINGMAN_STATUS_DEAD;
 }
@@ -388,8 +388,8 @@ void hud_set_wingman_status_dead(int wing_index, int wing_pos)
 // flags a given player wing ship as departed
 void hud_set_wingman_status_departed(int wing_index, int wing_pos)
 {
-	Assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
-	Assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
+	SDL_assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
+	SDL_assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
 
 	HUD_wingman_status[wing_index].status[wing_pos] = HUD_WINGMAN_STATUS_NOT_HERE;
 }
@@ -399,8 +399,8 @@ void hud_set_wingman_status_none( int wing_index, int wing_pos)
 {
 	int i;
 
-	Assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
-	Assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
+	SDL_assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
+	SDL_assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
 
 	HUD_wingman_status[wing_index].status[wing_pos] = HUD_WINGMAN_STATUS_NONE;
 
@@ -418,8 +418,8 @@ void hud_set_wingman_status_none( int wing_index, int wing_pos)
 // flags a given player wing ship as "alive" (for multiplayer respawns )
 void hud_set_wingman_status_alive( int wing_index, int wing_pos)
 {
-	Assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
-	Assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
+	SDL_assert(wing_index >= 0 && wing_index < HUD_WINGMAN_MAX_WINGS);
+	SDL_assert(wing_pos >= 0 && wing_index < HUD_WINGMAN_MAX_SHIPS_PER_WINGS);
 
 	HUD_wingman_status[wing_index].status[wing_pos] = HUD_WINGMAN_STATUS_ALIVE;
 }
@@ -589,8 +589,7 @@ void hud_wingman_status_blit_middle_frame(int num_wings_to_draw)
 		Int3();
 		return;
 	}	
-	sx = -1;
-	sy = -1;
+
 	for(idx=num_wings_to_draw; idx>=3; idx--){
 		sx = HUD_wingman_middle_coords[gr_screen.res][idx - 1][0];	
 		sy = HUD_wingman_middle_coords[gr_screen.res][idx - 1][1];		

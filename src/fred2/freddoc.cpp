@@ -621,7 +621,7 @@ int CFREDDoc::load_mission(char *pathname)
 	objp = GET_FIRST(&obj_used_list);
 	while (objp != END_OF_LIST(&obj_used_list)) {
 		if (objp->flags & OF_PLAYER_SHIP) {
-			Assert(objp->type == OBJ_SHIP);
+			SDL_assert(objp->type == OBJ_SHIP);
 			objp->type = OBJ_START;
 //			Player_starts++;
 		}
@@ -647,7 +647,7 @@ int CFREDDoc::load_mission(char *pathname)
 					ai_update_goal_references(REF_TYPE_SHIP, old_name, name);
 					for (k=0; k<Num_reinforcements; k++)
 						if (!stricmp(old_name, Reinforcements[k].name)) {
-							Assert(strlen(name) < NAME_LENGTH);
+							SDL_assert(strlen(name) < NAME_LENGTH);
 							strcpy(Reinforcements[k].name, name);
 						}
 
@@ -666,8 +666,8 @@ int CFREDDoc::load_mission(char *pathname)
 		}
 	}
 
-	Assert(Mission_palette >= 0);
-	Assert(Mission_palette <= 98);
+	SDL_assert(Mission_palette >= 0);
+	SDL_assert(Mission_palette <= 98);
 
 	if (The_mission.flags & MISSION_FLAG_SUBSPACE) {
 		strcpy(name, NOX("gamepalette-subspace"));
@@ -981,7 +981,7 @@ void cfile_serialize(XFILE *fp, int flag)
 	int	i;
 	int	highest_object_index = 0, highest_ship_index = 0, highest_ai_index = 0;
 
-	Assert((flag == 0) || (flag == 1));
+	SDL_assert((flag == 0) || (flag == 1));
 
 //	fp = cfopen(filename, flag ? "wb" : "rb");
 //	if (!fp)

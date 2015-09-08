@@ -561,9 +561,9 @@ void common_buttons_init(UI_WINDOW *ui_window)
 
 	common_reset_buttons();
 
-	Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED+KEY_ENTER);
-	Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].button.set_hotkey(KEY_F1);
-	Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].button.set_hotkey(KEY_F2);
+	Common_buttons[Current_screen-1][gr_screen.res][COMMON_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED+SDLK_RETURN);
+	Common_buttons[Current_screen-1][gr_screen.res][COMMON_HELP_BUTTON].button.set_hotkey(SDLK_F1);
+	Common_buttons[Current_screen-1][gr_screen.res][COMMON_OPTIONS_BUTTON].button.set_hotkey(SDLK_F2);
 
 	// for scramble or training missions, disable the ship/weapon selection regions
 	if ( brief_only_allow_briefing() ) {
@@ -641,11 +641,11 @@ void common_set_interface_palette(const char *filename)
 	if (!filename)
 		filename = NOX("palette01");
 
-	Assert(strlen(filename) <= MAX_FILENAME_LEN);
-	if ( (InterfacePaletteBitmap != -1) && !stricmp(filename, buf) )
+	SDL_assert(strlen(filename) <= MAX_FILENAME_LEN);
+	if ( (InterfacePaletteBitmap != -1) && !SDL_strcasecmp(filename, buf) )
 		return;  // already set to this palette
 
-	strcpy(buf, filename);
+	SDL_strlcpy(buf, filename, SDL_arraysize(buf));
 
 	// unload the interface bitmap from memory
 	if (InterfacePaletteBitmap != -1) {
@@ -659,10 +659,6 @@ void common_set_interface_palette(const char *filename)
 	if (InterfacePaletteBitmap < 0) {
 		Error(LOCATION, "Could not load in \"%s\"!", filename);
 	}
-#endif
-
-#ifndef HARDWARE_ONLY
-	palette_use_bm_palette(InterfacePaletteBitmap);
 #endif
 }
 
@@ -728,12 +724,12 @@ void common_select_init()
 
 		// Load in the background transition anim
 		if ( Game_mode & GM_MULTIPLAYER )
-			Background_anim = anim_load("BriefTransMulti", 1);	// 1 as last parm means file is mem-mapped
+			Background_anim = anim_load("BriefTransMulti");
 		else  {
-			Background_anim = anim_load("BriefTrans", 1);	// 1 as last parm means file is mem-mapped
+			Background_anim = anim_load("BriefTrans");
 		}
 
-		Assert( Background_anim != NULL );
+		SDL_assert( Background_anim != NULL );
 		anim_play_init(&aps, Background_anim, 0, 0);
 		aps.framerate_independent = 1;
 		aps.skip_frames = 0;
@@ -777,7 +773,7 @@ void common_select_init()
 
 	// restore loadout from Player_loadout if this is the same mission as the one previously played
 	if ( !(Game_mode & GM_MULTIPLAYER) ) {
-		if ( !stricmp(Player_loadout.filename, Game_current_mission_filename) ) {
+		if ( !SDL_strcasecmp(Player_loadout.filename, Game_current_mission_filename) ) {
 			wss_restore_loadout();
 			ss_synch_interface();
 			wl_synch_interface();
@@ -1006,7 +1002,7 @@ void common_check_keys(int k)
 {
 	switch (k) {
 
-		case KEY_ESC: {
+		case SDLK_ESCAPE: {
 
 			if ( Current_screen == ON_BRIEFING_SELECT ) {
 				if ( brief_get_closeup_icon() != NULL ) {
@@ -1035,17 +1031,17 @@ void common_check_keys(int k)
 			break;
 		}
 
-		case KEY_CTRLED + KEY_ENTER:
+		case KEY_CTRLED + SDLK_RETURN:
 			Commit_pressed = 1;
 			break;
 
-		case KEY_B:
+		case SDLK_b:
 			if ( Current_screen != ON_BRIEFING_SELECT && !Background_playing ) {
 				Next_screen = ON_BRIEFING_SELECT;
 			}
 			break;
 
-		case KEY_W:
+		case SDLK_w:
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
 				break;
@@ -1065,7 +1061,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_S:
+		case SDLK_s:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1082,7 +1078,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_SHIFTED+KEY_TAB:
+		case KEY_SHIFTED+SDLK_TAB:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1118,7 +1114,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_TAB:
+		case SDLK_TAB:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1154,7 +1150,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case KEY_P:
+		case SDLK_p:
 			if ( Anim_paused )
 				Anim_paused = 0;
 			else
@@ -1314,7 +1310,7 @@ void wss_restore_loadout()
 	wss_unit	*slot;
 
 	// only restore if mission hasn't changed
-	if ( stricmp(Player_loadout.last_modified, The_mission.modified) ) {
+	if ( SDL_strcasecmp(Player_loadout.last_modified, The_mission.modified) ) {
 		return;
 	}
 
@@ -1348,7 +1344,7 @@ void wss_direct_restore_loadout()
 	wss_unit			*slot;
 
 	// only restore if mission hasn't changed
-	if ( stricmp(Player_loadout.last_modified, The_mission.modified) ) {
+	if ( SDL_strcasecmp(Player_loadout.last_modified, The_mission.modified) ) {
 		return;
 	}
 
@@ -1472,13 +1468,13 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	short ishort;
 
 	// this is intended for multi only since it byteswaps
-	Assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 	// write the ship pool 
 	for ( i = 0; i < MAX_SHIP_TYPES; i++ ) {
 		if ( Ss_pool[i] > 0 ) {	
 			block[offset++] = (ubyte)i;
-			Assert( Ss_pool[i] < UCHAR_MAX );
+			SDL_assert( Ss_pool[i] < UCHAR_MAX );
 			
 			// take care of sign issues
 			if(Ss_pool[i] == -1){
@@ -1506,7 +1502,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	block[offset++] = 0xff; // signals start of unit data
 
 	for ( i=0; i<MAX_WSS_SLOTS; i++ ) {
-		Assert( Wss_slots[i].ship_class < UCHAR_MAX );
+		SDL_assert( Wss_slots[i].ship_class < UCHAR_MAX );
 		if(Wss_slots[i].ship_class == -1){
 			block[offset++] = 0xff;
 		} else {
@@ -1514,14 +1510,14 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 		}
 		for ( j = 0; j < MAX_WL_WEAPONS; j++ ) {
 			// take care of sign issues
-			Assert( Wss_slots[i].wep[j] < UCHAR_MAX );			
+			SDL_assert( Wss_slots[i].wep[j] < UCHAR_MAX );			
 			if(Wss_slots[i].wep[j] == -1){
 				block[offset++] = 0xff;
 			} else {
 				block[offset++] = (ubyte)(Wss_slots[i].wep[j]);
 			}
 
-			Assert( Wss_slots[i].wep_count[j] < SHRT_MAX );
+			SDL_assert( Wss_slots[i].wep_count[j] < SHRT_MAX );
 			ishort = INTEL_SHORT( (short)Wss_slots[i].wep_count[j] );
 
 			memcpy(&(block[offset]), &(ishort), sizeof(short) );
@@ -1549,7 +1545,7 @@ int store_wss_data(ubyte *block, int max_size, int sound,int player_index)
 	memcpy(block+offset,&player_id,sizeof(player_id));
 	offset += sizeof(player_id);
 
-	Assert( offset < max_size );
+	SDL_assert( offset < max_size );
 	return offset;
 }
 
@@ -1561,7 +1557,7 @@ int restore_wss_data(ubyte *block)
 	short player_id;	
 
 	// this is intended for multi only since it byteswaps
-	Assert( Game_mode & GM_MULTIPLAYER );
+	SDL_assert( Game_mode & GM_MULTIPLAYER );
 
 	// restore ship pool
 	sanity=0;

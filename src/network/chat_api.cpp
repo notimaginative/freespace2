@@ -636,7 +636,6 @@ char * ParseIRCMessage(char *Line, int iMode)
 
 	static char szResponse[MAXLOCALSTRING] = "";
 
-	int iNickLen;
 	int iPrefixLen = 0;	// JAS: Get rid of optimized warning
 
 	if(strlen(Line)>=MAXLOCALSTRING)
@@ -667,7 +666,6 @@ char * ParseIRCMessage(char *Line, int iMode)
 			SDL_strlcpy(szNick, szPrefix, SDL_arraysize(szNick));
 		}
 		//strcpy(NewMsg.Nickname,szNick);
-		iNickLen=strlen(szNick);
 		iPrefixLen=strlen(szPrefix);
 	}
 	else if(iMode==MSG_LOCAL)
@@ -676,7 +674,6 @@ char * ParseIRCMessage(char *Line, int iMode)
 		SDL_strlcpy(szNick, Nick_name, SDL_arraysize(szNick));
 		SDL_strlcpy(szPrefix, Nick_name, SDL_arraysize(szPrefix));
 		//strcpy(NewMsg.Nickname,szNick);
-		iNickLen=-2;
 		iPrefixLen=-2;
 	}
 	//Next is the command

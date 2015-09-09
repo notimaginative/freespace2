@@ -651,8 +651,8 @@ void gr_opengl1_restore_screen(int)
 
 	const int tex_coord[] = { 0, 1, 0, 0, 1, 1, 1, 0 };	// y-flipped
 	const int ver_coord[] = { GL_viewport_x, GL_viewport_y, GL_viewport_x,
-			(GL_viewport_h * scale_h), (GL_viewport_w * scale_w), GL_viewport_y,
-			(GL_viewport_w * scale_w), (GL_viewport_h * scale_h)
+			int(GL_viewport_h * scale_h), int(GL_viewport_w * scale_w), GL_viewport_y,
+			int(GL_viewport_w * scale_w), int(GL_viewport_h * scale_h)
 	};
 
 	glColor4ub(255, 255, 255, 255);

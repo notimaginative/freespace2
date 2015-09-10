@@ -512,11 +512,7 @@ void PSNET_TOP_LAYER_PROCESS()
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 0;
 
-#ifndef PLAT_UNIX
-		if ( select( -1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
-#else
 		if ( select( Unreliable_socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {		
-#endif		
 			ml_printf("Error %d doing a socket select on read\n", WSAGetLastError());
 			break;
 		}

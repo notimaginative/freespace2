@@ -263,12 +263,13 @@ void multi_lag_close()
 
 // select for multi_lag
 int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except_fds, timeval *timeout)
-{		
-#ifdef PLAT_UNIX
-	STUB_FUNCTION;
-#else
+{
 	char t_buf[1024];
+#ifndef PLAT_UNIX
 	int t_from_len;
+#else
+	socklen_t t_from_len;
+#endif
 	struct sockaddr_in ip_addr;
 	int ret_val;
 	lag_buf *moveup, *item;
@@ -281,11 +282,11 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	memset(&ip_addr, 0, sizeof(struct sockaddr_in));
 
 	// if there's data on the socket, read it
-	if(select(nfds, readfds, writefds, except_fds, timeout)){		
+	if(select(nfds+1, readfds, writefds, except_fds, timeout)){
 		// read the data and stuff it
 		if(Tcp_active){						
 			t_from_len = sizeof(struct sockaddr_in);
-			ret_val = recvfrom(readfds->fd_array[0], t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
+			ret_val = recvfrom(nfds, t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
 		} else {
 			Int3();
 		}
@@ -304,30 +305,29 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 				memcpy(item->data, t_buf, ret_val);			
 				item->data_len = ret_val;
 				item->ip_addr = ip_addr;
-				item->socket = readfds->fd_array[0];
+				item->socket = nfds;
 				item->stamp = timestamp(multi_lag_get_random_lag());
 			}		
 		}
 	}
 
 	// always unset the readfds
-	readfds->fd_count = 0;
+	FD_CLR(nfds, readfds);
 
 	// now determine if we have any pending packets - find the first one
 	// NOTE : this _could_ be the packet we just read. In fact, with a 0 lag, this will always be the case
 	moveup=GET_FIRST(&Lag_used_list);
 	while ( moveup!=END_OF_LIST(&Lag_used_list) )	{		
 		// if the timestamp has elapsed and we have a matching socket
-		if((readfds->fd_array[0] == (SOCKET)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
+		if((nfds == (SOCKET)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
 			// set this so we think select returned yes
-			readfds->fd_count = 1;
+			FD_SET(nfds, readfds);
 			return 1;
 		}
 
 		moveup = GET_NEXT(moveup);
 	}
 
-#endif
 	// no data
 	return 0;
 }

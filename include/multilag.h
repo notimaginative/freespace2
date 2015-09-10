@@ -104,13 +104,11 @@ void multi_lag_init();
 // shutdown multiplayer lag
 void multi_lag_close();
 
-#if 0
 // select for multi_lag
 int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except_fds, const timeval *timeout);
 
 // recvfrom for multilag
 int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
-#endif
 
 #endif
 

@@ -445,13 +445,13 @@ op_sliders Options_sliders[GR_NUM_RESOLUTIONS][NUM_OPTIONS_SLIDERS] = {
 #ifdef MAKE_FS1
 // slider, right arrow, left arrow
 // s(name), s(x), s(y), s(?), s(?), s(h), s(?), s(?), ra(name), ra(h), ra(x), ra(y), la(name), la(h), la(x), la(y)
-		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	20,	11,
+		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	18,	11,
 					"OPa_10",	10,	245,	159,
 					"OPa_08",	8,	29,		159),	// sound fx volume slider
-		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	20,	11,
+		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	18,	11,
 					"OPa_18",	18,	245,	194,
 					"OPa_16",	16,	29,		194),	// music volume slider
-		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	20,	11,
+		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	18,	11,
 					"OPa_21",	21,	245,	228,
 					"OPa_19",	19,	29,		228),	// voice volume slider
 		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity    
@@ -536,6 +536,12 @@ static int Voice_volume_int;
 static int Voice_vol_handle = -1;
 int Options_notify_stamp = -1;
 char Options_notify_string[200];
+
+#ifndef MAKE_FS1
+static const float VOL_SLIDER_MAX = 9.0f;
+#else
+static const float VOL_SLIDER_MAX = 10.0f;
+#endif
 
 // called whenever accept is hit
 // do any processing, etc in here.
@@ -1200,7 +1206,7 @@ void options_sliders_update()
 	// sound slider
 	if (Options_sliders[gr_screen.res][OPT_SOUND_VOLUME_SLIDER].slider.pos != Sound_volume_int) {
 		Sound_volume_int = Options_sliders[gr_screen.res][OPT_SOUND_VOLUME_SLIDER].slider.pos;
-		Master_sound_volume = ((float) (Sound_volume_int) / 9.0f);
+		Master_sound_volume = ((float) (Sound_volume_int) / VOL_SLIDER_MAX);
 		set_sound_volume();
 		gamesnd_play_iface(SND_USER_SELECT);
 	}
@@ -1208,7 +1214,7 @@ void options_sliders_update()
 	// music slider
 	if (Options_sliders[gr_screen.res][OPT_MUSIC_VOLUME_SLIDER].slider.pos != Music_volume_int) {
 		Music_volume_int = Options_sliders[gr_screen.res][OPT_MUSIC_VOLUME_SLIDER].slider.pos;
-		Master_event_music_volume = ((float) (Music_volume_int) / 9.0f);
+		Master_event_music_volume = ((float) (Music_volume_int) / VOL_SLIDER_MAX);
 		if (Master_event_music_volume > 0.0f) {
 			event_music_enable();
 		}
@@ -1220,7 +1226,7 @@ void options_sliders_update()
 	// voice slider
 	if (Options_sliders[gr_screen.res][OPT_VOICE_VOLUME_SLIDER].slider.pos != Voice_volume_int) {
 		Voice_volume_int = Options_sliders[gr_screen.res][OPT_VOICE_VOLUME_SLIDER].slider.pos;
-		Master_voice_volume = ((float) (Voice_volume_int) / 9.0f);
+		Master_voice_volume = ((float) (Voice_volume_int) / VOL_SLIDER_MAX);
 		set_voice_volume();
 		options_play_voice_clip();
 	}
@@ -1372,9 +1378,9 @@ void options_menu_init()
 	
 	// setup slider values 
 	// note slider scale is 0-9, while Master_ values calc with 1-10 scale (hence the -1)
-	Sound_volume_int = Options_sliders[gr_screen.res][OPT_SOUND_VOLUME_SLIDER].slider.pos = (int) (Master_sound_volume * 9.0f + 0.5f);
-	Music_volume_int = Options_sliders[gr_screen.res][OPT_MUSIC_VOLUME_SLIDER].slider.pos = (int) (Master_event_music_volume * 9.0f + 0.5f);	
-	Voice_volume_int = Options_sliders[gr_screen.res][OPT_VOICE_VOLUME_SLIDER].slider.pos = (int) (Master_voice_volume * 9.0f + 0.5f);
+	Sound_volume_int = Options_sliders[gr_screen.res][OPT_SOUND_VOLUME_SLIDER].slider.pos = (int) (Master_sound_volume * VOL_SLIDER_MAX + 0.5f);
+	Music_volume_int = Options_sliders[gr_screen.res][OPT_MUSIC_VOLUME_SLIDER].slider.pos = (int) (Master_event_music_volume * VOL_SLIDER_MAX + 0.5f);
+	Voice_volume_int = Options_sliders[gr_screen.res][OPT_VOICE_VOLUME_SLIDER].slider.pos = (int) (Master_voice_volume * VOL_SLIDER_MAX + 0.5f);
 	Options_sliders[gr_screen.res][OPT_JOY_SENS_SLIDER].slider.pos = Joy_sensitivity;	
 	Options_sliders[gr_screen.res][OPT_JOY_DEADZONE_SLIDER].slider.pos = Dead_zone_size / 5;	
 	Options_sliders[gr_screen.res][OPT_MOUSE_SENS_SLIDER].slider.pos = Mouse_sensitivity;

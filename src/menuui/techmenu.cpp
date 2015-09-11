@@ -904,6 +904,13 @@ void tech_prev_entry()
 {
 	Cur_entry--;
 	if (Cur_entry < 0) {
+#ifdef MAKE_FS1
+		Cur_entry++;
+
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+
+		return;
+#else
 		Cur_entry = Current_list_size - 1;
 
 		// scroll to end of list
@@ -912,7 +919,7 @@ void tech_prev_entry()
 			// this happens when there are not enough items to scroll
 			List_offset = 0;
 		}
-#ifndef MAKE_FS1
+
 		Tech_slider.force_currentItem(Tech_slider.get_numberItems());
 #endif
 	} else {
@@ -934,11 +941,19 @@ void tech_next_entry()
 {
 	Cur_entry++;
 	if (Cur_entry >= Current_list_size) {
+#ifdef MAKE_FS1
+		// stop at last entry, play fail sound
+		Cur_entry--;
+
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+
+		return;
+#else
 		Cur_entry = 0;
 
 		// scroll to beginning of list
 		List_offset = 0;
-#ifndef MAKE_FS1
+
 		Tech_slider.force_currentItem(Cur_entry);
 #endif
 	} else {
@@ -985,14 +1000,13 @@ void tech_scroll_info_down()
 
 void tech_scroll_list_up()
 {
-	//int last;
-
 	if (List_offset > 0) {
 		List_offset--;
-		//last = List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1;
 
 #ifdef MAKE_FS1
-		if ( (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1) < Cur_entry ) {
+		int last = List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1;
+
+		if (last < Cur_entry) {
 			Cur_entry--;
 			techroom_select_new_entry();
 		}
@@ -1009,7 +1023,7 @@ void tech_scroll_list_down()
 		List_offset++;
 
 #ifdef MAKE_FS1
-		if ( (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height()) > Cur_entry ) {
+		if (List_offset > Cur_entry) {
 			Cur_entry++;
 			techroom_select_new_entry();
 		}
@@ -1670,10 +1684,8 @@ void techroom_init()
 	// set some hotkeys
 	Buttons[gr_screen.res][PREV_ENTRY_BUTTON].button.set_hotkey(SDLK_LEFT);
 	Buttons[gr_screen.res][NEXT_ENTRY_BUTTON].button.set_hotkey(SDLK_RIGHT);
-#ifndef MAKE_FS1 // set per tab
 	Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(SDLK_UP);
 	Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(SDLK_DOWN);
-#endif
 
 
 	for (i=0; i<LIST_BUTTONS_MAX; i++) {
@@ -1935,13 +1947,34 @@ void techroom_do_frame(float frametime)
 			techroom_button_pressed(CREDITS_TAB);
 			break;
 /*
+ * Not used any longer, using ui_button hotkeys instead. This is just here for
+ * future reference.
+ *
+#ifdef MAKE_FS1
 		case SDLK_UP:
-			tech_prev_entry();
+			tech_scroll_info_up();
 			break;
 
 		case SDLK_DOWN:
+			tech_scroll_info_down();
+			break;
+
+		case SDLK_RIGHT:
 			tech_next_entry();
 			break;
+
+		case SDLK_LEFT:
+			tech_prev_entry();
+			break;
+
+		case SDLK_PAGEUP:
+			tech_scroll_list_up();
+			break;
+
+		case SDLK_PAGEDOWN:
+			tech_scroll_list_down();
+			break;
+#endif
 */
 		case KEY_CTRLED | SDLK_RETURN:
 		case SDLK_ESCAPE:

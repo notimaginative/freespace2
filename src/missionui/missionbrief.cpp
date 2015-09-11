@@ -1358,7 +1358,11 @@ void brief_init()
 // brief_render_closeup_text()
 //
 //
+#ifndef MAKE_FS1
+#define CLOSEUP_TEXT_OFFSET	2
+#else
 #define CLOSEUP_TEXT_OFFSET	10
+#endif
 void brief_render_closeup_text()
 {
 /*
@@ -1455,7 +1459,7 @@ void brief_render_closeup(int ship_class, float frametime)
 
 	gr_set_color_fast(&Color_bright_white);
 
-	gr_printf(0x8000,2,Closeup_icon->closeup_label);
+	gr_printf(0x8000, CLOSEUP_TEXT_OFFSET, Closeup_icon->closeup_label);
 //	brief_render_closeup_text();
 
 	Closeup_close_button.enable();

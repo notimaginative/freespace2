@@ -240,10 +240,10 @@
 #ifndef MAKE_FS1
 #define CURRENT_PLAYER_FILE_VERSION				140
 #else
-// 141: add more FS1 detail settings
-// 142: HUD config settings (brightness)
-#define CURRENT_PLAYER_FILE_VERSION				142
-#define PREVIOUS_PLAYER_FILE_VERSION			140
+//  99: original retail release (version 1.00)
+// 100: retail mission pack update (version 1.04)
+#define CURRENT_PLAYER_FILE_VERSION				100
+#define PREVIOUS_PLAYER_FILE_VERSION			99
 #endif
 #define FS2_DEMO_PLAYER_FILE_VERSION				135
 #ifndef MAKE_FS1
@@ -268,6 +268,13 @@
 // version 140 : ships table reordered. clear out old pilot files
 // search for PLAYER INIT for new pilot initialization stuff. I _think_ its in the right spot for now
 #define PLR_FILE_ID	0x46505346	// FPSF, unique signiture to identify a .PLR file (FreeSpace Player File)  // FPSF appears as FSPF in file.
+
+#ifdef MAKE_FS1
+#define PLR_MAX_SHIP_TYPES_OLD			75
+#define PLR_MAX_WEAPON_TYPES_OLD		44
+
+extern void hud_config_set_color(int color);
+#endif
 
 // Current content of a .PLR file
 //
@@ -387,7 +394,9 @@ void pilot_write_techroom_data(CFILE *file)
 	// write the ship and weapon count
 	cfwrite_int(Num_ship_types, file);
 	cfwrite_int(Num_weapon_types, file);
+#ifndef MAKE_FS1
 	cfwrite_int(Intel_info_size, file);
+#endif
 
 	// write all ship flags out
 	for (idx=0; idx<Num_ship_types; idx++) {
@@ -401,12 +410,130 @@ void pilot_write_techroom_data(CFILE *file)
 		cfwrite_ubyte(out, file);
 	}	
 
+#ifndef MAKE_FS1
 	// write all intel entry flags out
 	for (idx=0; idx<Intel_info_size; idx++) {
 		cfwrite_ubyte((ubyte)Intel_info[idx].in_tech_db, file);
 	}
+#else
+	// whether shivans are visible or not
+	int shivans = Intel_info[2].in_tech_db ? 1 : 0;
+	cfwrite_int(shivans, file);
+#endif
 }
 
+
+#ifdef MAKE_FS1
+void pilot_read_techroom_data(CFILE *file)
+{
+	int idx;
+	int ship_count, weapon_count, shivans;
+	ubyte in;
+
+	if (Player_file_version < 100) {
+		int vflags = 0;
+
+		// first set of ships visible
+		vflags = cfread_int(file);
+
+		for (idx = 0; idx < 32; idx++) {
+			if ( (vflags & (1<<idx)) && (idx < Num_ship_types) ) {
+				Ship_info[idx].flags |= SIF_IN_TECH_DATABASE | SIF_IN_TECH_DATABASE_M;
+			} else if (idx < Num_ship_types) {
+				Ship_info[idx].flags &= ~SIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// second set of ships visible
+		vflags = cfread_int(file);
+
+		for (idx = 0; idx < 32; idx++) {
+			if ( (vflags & (1<<idx)) && ((idx+32) < Num_ship_types) ) {
+				Ship_info[idx+32].flags |= SIF_IN_TECH_DATABASE | SIF_IN_TECH_DATABASE_M;
+			} else if ((idx+32) < Num_ship_types) {
+				Ship_info[idx+32].flags &= ~SIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// last set of ships visible
+		vflags = cfread_int(file);
+
+		for (idx = 0; idx < 32; idx++) {
+			if ( (vflags & (1<<idx)) && ((idx+64) < Num_ship_types) ) {
+				Ship_info[idx+64].flags |= SIF_IN_TECH_DATABASE | SIF_IN_TECH_DATABASE_M;
+			} else if ((idx+64) < Num_ship_types) {
+				Ship_info[idx+64].flags &= ~SIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// first set of weapons visible
+		vflags = cfread_int(file);
+
+		for (idx = 0; idx < 32; idx++) {
+			if ( (vflags & (1<<idx)) && (idx < Num_weapon_types) ) {
+				Weapon_info[idx].wi_flags |= WIF_IN_TECH_DATABASE;
+			} else if (idx < Num_ship_types) {
+				Weapon_info[idx].wi_flags &= ~WIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// last set of weapons visible
+		vflags = cfread_int(file);
+
+		for (idx = 0; idx < 32; idx++) {
+			if ( (vflags & (1<<idx)) && ((idx+32) < Num_weapon_types) ) {
+				Weapon_info[idx+32].wi_flags |= WIF_IN_TECH_DATABASE;
+			} else if ((idx+32) < Num_ship_types) {
+				Weapon_info[idx+32].wi_flags &= ~WIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// shivans visible?
+		shivans = cfread_int(file);
+
+		if (shivans) {
+			Intel_info[2].in_tech_db = 1;
+		} else {
+			Intel_info[2].in_tech_db = 0;
+		}
+	} else {
+		// read in ship and weapon counts
+		ship_count = cfread_int(file);
+		weapon_count = cfread_int(file);
+		SDL_assert(ship_count <= MAX_SHIP_TYPES);
+		SDL_assert(weapon_count <= MAX_WEAPON_TYPES);
+
+		// read all ships in
+		for (idx=0; idx<ship_count; idx++) {
+			in = cfread_ubyte(file);
+			if (in) {
+				Ship_info[idx].flags |= SIF_IN_TECH_DATABASE | SIF_IN_TECH_DATABASE_M;
+			} else {
+				Ship_info[idx].flags &= ~SIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// read all weapons in
+		for (idx=0; idx<weapon_count; idx++) {
+			in = cfread_ubyte(file);
+			if (in) {
+				Weapon_info[idx].wi_flags |= WIF_IN_TECH_DATABASE;
+			} else {
+				Weapon_info[idx].wi_flags &= ~WIF_IN_TECH_DATABASE;
+			}
+		}
+
+		// shivans visible?
+		shivans = cfread_int(file);
+
+		if (shivans) {
+			Intel_info[2].in_tech_db = 1;
+		} else {
+			Intel_info[2].in_tech_db = 0;
+		}
+	}
+}
+#else
 void pilot_read_techroom_data(CFILE *file)
 {
 	int idx;
@@ -464,6 +591,7 @@ void pilot_read_techroom_data(CFILE *file)
 		}
 	}
 }
+#endif
 
 // write out the player ship selection
 void pilot_write_loadout(CFILE *file)
@@ -513,8 +641,19 @@ void pilot_read_loadout(CFILE *file)
 	cfread_string_len(Player_loadout.last_modified, DATE_TIME_LENGTH, file);	
 
 	// read in ship and weapon counts
+#ifndef MAKE_FS1
 	ship_count = cfread_int(file);
 	weapon_count = cfread_int(file);
+#else
+	if (Player_file_version < 100) {
+		ship_count = PLR_MAX_SHIP_TYPES_OLD;
+		weapon_count = PLR_MAX_WEAPON_TYPES_OLD;
+	} else {
+		ship_count = cfread_int(file);
+		weapon_count = cfread_int(file);
+	}
+#endif
+
 	SDL_assert(ship_count <= MAX_SHIP_TYPES);
 	SDL_assert(weapon_count <= MAX_WEAPON_TYPES);
 
@@ -553,7 +692,6 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	char filename[MAX_FILENAME_LEN], ship_name[NAME_LENGTH];
 	CFILE	*file;
 	uint id;
-	int idx;
 	int i, key_value;
 
 	if (!p) {
@@ -617,17 +755,21 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	// get player location
 	p->on_bastion = cfread_ubyte(file);
 
+#ifndef MAKE_FS1
 	// tips?
 	p->tips = cfread_int(file);
+#endif
 
 	// write out the image file name
 	cfread_string_len(p->image_filename, MAX_FILENAME_LEN - 1, file);
 
 	// write out the image file name
 	p->insignia_texture = -1;
+#ifndef MAKE_FS1
 	cfread_string_len(p->squad_name, NAME_LENGTH, file);
 	cfread_string_len(p->squad_filename, MAX_FILENAME_LEN - 1, file);
 	player_set_squad_bitmap(p, p->squad_filename);
+#endif
 
 	// deal with campaign stuff.  The way we store the information in the file is to first store the
 	// name of the current campaign that the player is playing.  Next we store the info regarding the campaigns
@@ -676,31 +818,32 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	HUD_config.num_msg_window_lines = cfread_ubyte(file);			
 	HUD_config.rp_flags = cfread_int(file);
 	HUD_config.rp_dist =	cfread_int(file);
+
 #ifdef MAKE_FS1
-	if(Player_file_version >= 142){
-		HUD_config.main_color = cfread_int(file);
-		HUD_color_alpha = cfread_int(file);
-	}
+	HUD_config.main_color = cfread_int(file);
+	HUD_color_alpha = cfread_int(file);
+
 	if ( HUD_color_alpha < HUD_COLOR_ALPHA_USER_MIN ) {
 		HUD_color_alpha = HUD_COLOR_ALPHA_DEFAULT;
 	}
-	hud_config_record_color(HUD_config.main_color);
-#endif
 
+	hud_config_set_color(HUD_config.main_color);
+#else
 	// added 2 gauges with version 137
 	if(Player_file_version < 137){
-		for(idx=0; idx<NUM_HUD_GAUGES-2; idx++){
-			cfread(&HUD_config.clr[idx], sizeof(color), 1, file);
+		for(i=0; i<NUM_HUD_GAUGES-2; i++){
+			cfread(&HUD_config.clr[i], sizeof(color), 1, file);
 		}
 
 		// set the 2 new gauges to be radar color
 		memcpy(&HUD_config.clr[NUM_HUD_GAUGES-2], &HUD_config.clr[HUD_RADAR], sizeof(color));
 		memcpy(&HUD_config.clr[NUM_HUD_GAUGES-1], &HUD_config.clr[HUD_RADAR], sizeof(color));
 	} else {
-		for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-			cfread(&HUD_config.clr[idx], sizeof(color), 1, file);
+		for(i=0; i<NUM_HUD_GAUGES; i++){
+			cfread(&HUD_config.clr[i], sizeof(color), 1, file);
 		}
 	}
+#endif
 
 	// read in the cutscenes which have been viewed
 	Cutscenes_viewable = cfread_int(file);
@@ -835,6 +978,7 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 	stats->rank = cfread_int(file);
 	stats->assists = cfread_int(file);
 
+#ifndef MAKE_FS1
 	if (Player_file_version < 139) {
 		// support for FS2_DEMO pilots that still have FS1 medal info in the .plr files
 		for (i=0; i < NUM_MEDALS_FS1; i++) {
@@ -846,6 +990,11 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 			stats->medals[i] = cfread_int(file);
 		}
 	}
+#else
+	for (i = 0; i < NUM_MEDALS; i++) {
+		stats->medals[i] = cfread_int(file);
+	}
+#endif
 
 	total = cfread_int(file);
 	if (total > MAX_SHIP_TYPES){
@@ -853,7 +1002,11 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 	}
 
 	for (i=0; i<total && i<MAX_SHIP_TYPES; i++){
+#ifndef MAKE_FS1
 		stats->kills[i] = cfread_ushort(file);
+#else
+		stats->kills[i] = cfread_int(file);
+#endif
 	}
 
 	stats->kill_count = cfread_int(file);
@@ -872,43 +1025,37 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 // grab the various detail settings
 void read_detail_settings(CFILE *file, int pfile_version)
 {
-	// mass read the Detail struct
+	detail_level_set(NUM_DEFAULT_DETAIL_LEVELS-1);
+
+
+	Detail.setting = cfread_int(file);
+
+	Detail.nebula_detail = cfread_int(file);
+	Detail.detail_distance = cfread_int(file);
 #ifdef MAKE_FS1
-	// add in extra detail settings
-	if(pfile_version < 141){
-		cfread( &Detail, sizeof(detail_levels) - sizeof(Detail.engine_glows), 1, file );
-	} else {
-		cfread( &Detail, sizeof(detail_levels), 1, file );
-	}
+	Detail.weapon_detail = cfread_int(file);
+#endif
+	Detail.hardware_textures = cfread_int(file);
+	Detail.num_small_debris = cfread_int(file);
+	Detail.num_particles = cfread_int(file);
+	Detail.num_stars = cfread_int(file);
+	Detail.shield_effects = cfread_int(file);
+	Detail.lighting = cfread_int(file);
+#ifdef MAKE_FS1
+	Detail.unknown_slider = cfread_int(file);
+#endif
+
+	// Booleans
+	Detail.targetview_model = cfread_int(file);
+	Detail.planets_suns = cfread_int(file);
+#ifdef MAKE_FS1
+	Detail.unknown_boolean1 = cfread_int(file);
+	Detail.unknown_boolean2 = cfread_int(file);
+	Detail.engine_glows = cfread_int(file);
+	Detail.alpha_effects = cfread_int(file);
 #else
-	cfread( &Detail, sizeof(detail_levels), 1, file );
+	Detail.weapon_extras = cfread_int(file);
 #endif
-
-	// swap, swap, swap
-	Detail.setting = INTEL_INT(Detail.setting);
-
-	// hack for old pilot files with big-endian data
-	if ( (Detail.setting >= -1) && (Detail.setting <= 5) ) {
-		// new way - it's little-endian...
-		Detail.nebula_detail = INTEL_INT(Detail.nebula_detail);
-		Detail.detail_distance = INTEL_INT(Detail.detail_distance);
-		Detail.hardware_textures = INTEL_INT(Detail.hardware_textures);
-		Detail.num_small_debris = INTEL_INT(Detail.num_small_debris);
-		Detail.num_particles = INTEL_INT(Detail.num_particles);
-		Detail.num_stars = INTEL_INT(Detail.num_stars);
-		Detail.shield_effects = INTEL_INT(Detail.shield_effects);
-		Detail.lighting = INTEL_INT(Detail.lighting);
-		Detail.targetview_model = INTEL_INT(Detail.targetview_model);
-		Detail.planets_suns = INTEL_INT(Detail.planets_suns);
-		Detail.weapon_extras = INTEL_INT(Detail.weapon_extras);
-#ifdef MAKE_FS1
-		if (pfile_version >= 141)
-			Detail.engine_glows = INTEL_INT(Detail.engine_glows);
-#endif
-	} else {
-		// it's the old way... un-swap and the new way will be used on save
-		Detail.setting = INTEL_INT(Detail.setting);
-	}
 }
 
 // Will write the pilot file in the most current format
@@ -917,7 +1064,7 @@ void read_detail_settings(CFILE *file, int pfile_version)
 int write_pilot_file_core(player *p)
 {
 	char filename[MAX_FILENAME_LEN + 1];
-   int i, si_index, idx;
+   int i, si_index;
 	ubyte is_multi;
 	CFILE *file;
 
@@ -965,14 +1112,18 @@ int write_pilot_file_core(player *p)
 	cfwrite_int(p->stats.rank, file);
 	cfwrite_ubyte((ubyte) p->on_bastion, file);
 
+#ifndef MAKE_FS1
 	cfwrite_int(p->tips, file);
+#endif
 
 	// write out the image file name
 	cfwrite_string_len(p->image_filename, file);
 
+#ifndef MAKE_FS1
 	// write out the image file name
 	cfwrite_string_len(p->squad_name, file);
 	cfwrite_string_len(p->squad_filename, file);
+#endif
 
 	// write out the name of the player's active campaign.
 	cfwrite_string_len(p->current_campaign, file);	
@@ -1019,13 +1170,15 @@ int write_pilot_file_core(player *p)
 	cfwrite_ubyte( (ubyte) HUD_config.num_msg_window_lines, file );
 	cfwrite_int( HUD_config.rp_flags, file );
 	cfwrite_int( HUD_config.rp_dist, file );
+
 #ifdef MAKE_FS1
 	cfwrite_int( HUD_config.main_color, file );
 	cfwrite_int( HUD_color_alpha, file );
-#endif
-	for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-		cfwrite(&HUD_config.clr[idx], sizeof(color), 1, file);
+#else
+	for(i=0; i<NUM_HUD_GAUGES; i++){
+		cfwrite(&HUD_config.clr[i], sizeof(color), 1, file);
 	}
+#endif
 
 	// restore the HUD we backed up
 	if( (Game_mode & GM_IN_MISSION) && stored_observer ){		
@@ -1146,7 +1299,11 @@ void write_stats_block(CFILE *file,scoring_struct *stats)
 
 	cfwrite_int(total, file);
 	for (i=0; i<total; i++){
+#ifndef MAKE_FS1
 		cfwrite_ushort(stats->kills[i], file);
+#else
+		cfwrite_int(stats->kills[i], file);
+#endif
 	}
 
 	cfwrite_int(stats->kill_count,file);
@@ -1164,31 +1321,33 @@ void write_stats_block(CFILE *file,scoring_struct *stats)
 // write the various detail settings
 void write_detail_settings(CFILE *file)
 {
-	// we still need sane values in the Detail struct so create
-	// a temporary one to value swap and write to file
-	detail_levels Detail_tmp;
-	memset(&Detail_tmp, 0, sizeof(detail_levels));
-	memcpy(&Detail_tmp, &Detail, sizeof(detail_levels));
+	cfwrite_int(Detail.setting, file);
 
-	// swap, swap, swap - on big-endian this will convert back to little-endian
-	Detail_tmp.setting = INTEL_INT(Detail_tmp.setting);
-	Detail_tmp.nebula_detail = INTEL_INT(Detail_tmp.nebula_detail);
-	Detail_tmp.detail_distance = INTEL_INT(Detail_tmp.detail_distance);
-	Detail_tmp.hardware_textures = INTEL_INT(Detail_tmp.hardware_textures);
-	Detail_tmp.num_small_debris = INTEL_INT(Detail_tmp.num_small_debris);
-	Detail_tmp.num_particles = INTEL_INT(Detail_tmp.num_particles);
-	Detail_tmp.num_stars = INTEL_INT(Detail_tmp.num_stars);
-	Detail_tmp.shield_effects = INTEL_INT(Detail_tmp.shield_effects);
-	Detail_tmp.lighting = INTEL_INT(Detail_tmp.lighting);
-	Detail_tmp.targetview_model = INTEL_INT(Detail_tmp.targetview_model);
-	Detail_tmp.planets_suns = INTEL_INT(Detail_tmp.planets_suns);
-	Detail_tmp.weapon_extras = INTEL_INT(Detail_tmp.weapon_extras);
-
+	cfwrite_int(Detail.nebula_detail, file);
+	cfwrite_int(Detail.detail_distance, file);
 #ifdef MAKE_FS1
-	Detail.engine_glows = INTEL_INT(Detail.engine_glows);
-#endif // MAKE_FS1
+	cfwrite_int(Detail.weapon_detail, file);
+#endif
+	cfwrite_int(Detail.hardware_textures, file);
+	cfwrite_int(Detail.num_small_debris, file);
+	cfwrite_int(Detail.num_particles, file);
+	cfwrite_int(Detail.num_stars, file);
+	cfwrite_int(Detail.shield_effects, file);
+	cfwrite_int(Detail.lighting, file);
+#ifdef MAKE_FS1
+	cfwrite_int(Detail.unknown_slider, file);
+#endif
 
-	cfwrite( &Detail_tmp, sizeof(detail_levels), 1, file );
+	cfwrite_int(Detail.targetview_model, file);
+	cfwrite_int(Detail.planets_suns, file);
+#ifdef MAKE_FS1
+	cfwrite_int(Detail.unknown_boolean1, file);
+	cfwrite_int(Detail.unknown_boolean2, file);
+	cfwrite_int(Detail.engine_glows, file);
+	cfwrite_int(Detail.alpha_effects, file);
+#else
+	cfwrite_int(Detail.weapon_extras, file);
+#endif
 }
 
 // write multiplayer information
@@ -1275,11 +1434,15 @@ void init_new_pilot(player *p, int reset)
 	if (reset) {
 		hud_set_default_hud_config(p);		// use a default hud config
 
+#ifndef MAKE_FS1
 		// in the demo, load up the hardcoded hcf file
 #ifdef FS2_DEMO
 		hud_config_color_load("hud_1.hcf");
 #else
 		hud_config_color_load("hud_3.hcf");
+#endif
+#else
+		hud_config_set_color(HUD_COLOR_GREEN);
 #endif
 
 		control_config_reset_defaults();		// get a default keyboard config
@@ -1333,7 +1496,11 @@ void init_new_pilot(player *p, int reset)
 	p->stats.score = 0;
 	p->stats.rank = RANK_ENSIGN;	
 
+#ifndef MAKE_FS1
 	p->tips = 1;
+#else
+	p->tips = 0;
+#endif
 
 	Multi_options_g.protocol = NET_TCP;	
 

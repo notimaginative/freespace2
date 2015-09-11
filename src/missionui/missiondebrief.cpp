@@ -2203,7 +2203,11 @@ void debrief_button_pressed(int num)
 void debrief_setup_ship_kill_stats(int stage_num)
 {
 	int i;
+#ifndef MAKE_FS1
 	ushort *kill_arr;
+#else
+	int *kill_arr;
+#endif
 	debrief_stats_kill_info	*kill_info;
 
 	SDL_assert(Current_stage < DEBRIEF_NUM_STATS_PAGES);

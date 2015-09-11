@@ -6289,8 +6289,10 @@ void ship_model_start(object *objp)
 		case SUBSYSTEM_SENSORS:
 		case SUBSYSTEM_WEAPONS:
 		case SUBSYSTEM_SOLAR:
+#ifndef MAKE_FS1
 		case SUBSYSTEM_GAS_COLLECT:
 		case SUBSYSTEM_ACTIVATION:
+#endif
 			break;
 		case SUBSYSTEM_TURRET:
 			SDL_assert( !(psub->flags & MSS_FLAG_ROTATES) ); // Turrets can't rotate!!! See John!
@@ -6349,8 +6351,10 @@ int ship_find_num_crewpoints(object *objp)
 		case SUBSYSTEM_COMMUNICATION:
 		case SUBSYSTEM_UNKNOWN:
 		case SUBSYSTEM_ENGINE:
+#ifndef MAKE_FS1
 		case SUBSYSTEM_GAS_COLLECT:
 		case SUBSYSTEM_ACTIVATION:
+#endif
 			break;
 		default:
 			Error(LOCATION, "Illegal subsystem type.\n");
@@ -6383,8 +6387,10 @@ int ship_find_num_turrets(object *objp)
 		case SUBSYSTEM_COMMUNICATION:
 		case SUBSYSTEM_UNKNOWN:
 		case SUBSYSTEM_ENGINE:
+#ifndef MAKE_FS1
 		case SUBSYSTEM_GAS_COLLECT:
 		case SUBSYSTEM_ACTIVATION:
+#endif
 			break;
 		default:
 			Error(LOCATION, "Illegal subsystem type.\n");

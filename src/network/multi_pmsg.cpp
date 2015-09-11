@@ -568,7 +568,9 @@ const char *Multi_msg_subsys_name[SUBSYSTEM_MAX] = {
 	"None",
 	"Engine",
 	"Turret",
+#ifndef MAKE_FS1
 	"Bridge",
+#endif
 	"Radar",
 	"Navigation",
 	"Communication",

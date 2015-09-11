@@ -1618,7 +1618,11 @@ void weapon_render(object *obj)
 			}			
 
 			// maybe draw laser glow bitmap
+#ifndef MAKE_FS1
 			if(wip->laser_glow_bitmap >= 0){
+#else
+			if ( (Detail.weapon_detail >= 1) && (wip->laser_glow_bitmap >= 0) ) {
+#endif
 				// get the laser color
 				weapon_get_laser_color(&c, obj);
 

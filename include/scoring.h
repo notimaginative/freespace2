@@ -261,7 +261,11 @@ typedef struct scoring_struct {
 	int rank;								// all time rank
 	int medals[NUM_MEDALS];				// all time medal counts
 
+#ifdef MAKE_FS1
+	int kills[MAX_SHIP_TYPES];			// only valid kills (i.e. not on friendlies).
+#else
 	ushort kills[MAX_SHIP_TYPES];		// only valid kills (i.e. not on friendlies).
+#endif
 	int assists;							// alltime assists
 	int kill_count;						// total alltime kills
 	int kill_count_ok;					// total valid alltime kills (no friendlies)
@@ -286,8 +290,13 @@ typedef struct scoring_struct {
 	int m_promotion_earned;				// was a promotion earned.  Calculated after mission is over
 
 	int m_score;
+#ifdef MAKE_FS1
+	int m_kills[MAX_SHIP_TYPES];     // this will represent all kills in the mission (bonehead or not)
+	int m_okKills[MAX_SHIP_TYPES];   // this will be only the "valid" kills the player made
+#else
 	ushort m_kills[MAX_SHIP_TYPES];     // this will represent all kills in the mission (bonehead or not)
 	ushort m_okKills[MAX_SHIP_TYPES];   // this will be only the "valid" kills the player made
+#endif
 	int m_kill_count;						// total kills for this mission
 	int m_kill_count_ok;             // total (non-friendly) kills for this mission
 	int m_assists;							// player assits for the mission
@@ -300,8 +309,10 @@ typedef struct scoring_struct {
 	int m_bonehead_kills;				// # of friendly kills for the mission
 	int m_player_deaths;					// player deaths for the mission (really only useful for multiplayer)
 
+#ifndef MAKE_FS1
 	// kills by player for multiplayer dogfight
 	ushort m_dogfight_kills[MAX_PLAYERS];
+#endif
 } scoring_struct;
 
 extern rank_stuff Ranks[NUM_RANKS];

@@ -538,12 +538,12 @@ config_item Control_config[CCFG_MAX + 1] = {
 
 	{             KEY_SHIFTED | SDLK_PERIOD,		-1, COMPUTER_TAB,	"Increase time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{             KEY_SHIFTED | SDLK_COMMA,			-1, COMPUTER_TAB,	"Decrease time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
-
+#ifndef MAKE_FS1
 	{									 SDLK_l,				-1, COMPUTER_TAB, "Toggle high HUD contrast", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	{				  KEY_SHIFTED | SDLK_n,				-1, COMPUTER_TAB, "(Multiplayer) Toggle network info", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{				  KEY_SHIFTED | SDLK_END,			-1, COMPUTER_TAB, "(Multiplayer) Self destruct", CC_TYPE_TRIGGER, -1, -1, 0 },
-
+#endif
 	{                           -1,					-1, -1,				"", CC_TYPE_TRIGGER, -1, -1, 0 }
 };
 /*

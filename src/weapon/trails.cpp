@@ -155,7 +155,11 @@ int trail_create(trail_info info)
 		return -1;
 	}
 
+#ifndef MAKE_FS1
 	if ( !Detail.weapon_extras )	{
+#else
+	if ( !Detail.weapon_detail ) {
+#endif
 		// No trails at slot 0
 		return -1;
 	}
@@ -450,7 +454,11 @@ void trail_render_all()
 {
 	trail *trailp;
 
+#ifndef MAKE_FS1
 	if ( !Detail.weapon_extras )	{
+#else
+	if ( !Detail.weapon_detail ) {
+#endif
 		// No trails at slot 0
 		return;
 	}

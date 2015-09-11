@@ -286,9 +286,15 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	{ CF_TYPE_PLAYER_MAIN,			"Data" DIR_SEPARATOR_STR "Players",						"",							CF_TYPE_DATA	},
 	{ CF_TYPE_PLAYER_IMAGES_MAIN,	"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Images",			".pcx",						CF_TYPE_PLAYER_MAIN	},
 	{ CF_TYPE_CACHE,					"Data" DIR_SEPARATOR_STR "Cache",							".clr .tmp",				CF_TYPE_DATA	}, 	//clr=cached color
+#ifdef MAKE_FS1
+	{ CF_TYPE_PLAYERS,				"Players",						".hcf",						CF_TYPE_ROOT	},
+	{ CF_TYPE_SINGLE_PLAYERS,		"Players" DIR_SEPARATOR_STR "Single",			".plr .csg .css",			CF_TYPE_PLAYERS	},
+	{ CF_TYPE_MULTI_PLAYERS,		"Players" DIR_SEPARATOR_STR "Multi",				".plr",						CF_TYPE_PLAYERS	},
+#else
 	{ CF_TYPE_PLAYERS,				"Data" DIR_SEPARATOR_STR "Players",						".hcf",						CF_TYPE_DATA	},
 	{ CF_TYPE_SINGLE_PLAYERS,		"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Single",			".plr .csg .css",			CF_TYPE_PLAYERS	},
 	{ CF_TYPE_MULTI_PLAYERS,		"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Multi",				".plr",						CF_TYPE_DATA	},
+#endif
 	{ CF_TYPE_MULTI_CACHE,			"Data" DIR_SEPARATOR_STR "MultiData",					".pcx .fs2",				CF_TYPE_DATA	},
 	{ CF_TYPE_CONFIG,					"Data" DIR_SEPARATOR_STR "Config",						".cfg",						CF_TYPE_DATA	},
 	{ CF_TYPE_SQUAD_IMAGES_MAIN,	"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Squads",			".pcx",						CF_TYPE_DATA	},

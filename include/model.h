@@ -317,11 +317,17 @@ struct object;
 #define SUBSYSTEM_WEAPONS			6
 #define SUBSYSTEM_SENSORS			7
 #define SUBSYSTEM_SOLAR				8
+#ifdef MAKE_FS1
+#define SUBSYSTEM_UNKNOWN			9
+
+#define SUBSYSTEM_MAX				10				//	maximum value for subsystem_xxx, for error checking
+#else
 #define SUBSYSTEM_GAS_COLLECT		9
 #define SUBSYSTEM_ACTIVATION		10
 #define SUBSYSTEM_UNKNOWN			11
 
 #define SUBSYSTEM_MAX				12				//	maximum value for subsystem_xxx, for error checking
+#endif
 
 #define MAX_TFP						4				// maximum number of turret firing points
 

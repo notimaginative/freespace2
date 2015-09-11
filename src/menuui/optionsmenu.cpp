@@ -296,12 +296,15 @@
 #define PLANETS_OFF						14
 #define HUD_TARGETVIEW_RENDER_ON		15
 #define HUD_TARGETVIEW_RENDER_OFF	16
+
+#ifndef MAKE_FS1
 #define WEAPON_EXTRAS_ON				17
 #define WEAPON_EXTRAS_OFF				18
-
-#ifdef MAKE_FS1
-#define ENGINE_GLOWS_ON					24
-#define ENGINE_GLOWS_OFF				25
+#else
+#define ENGINE_GLOWS_ON					17
+#define ENGINE_GLOWS_OFF					18
+#define ALPHA_EFFECTS_ON				24	// ** intentionally out of order **
+#define ALPHA_EFFECTS_OFF				25	// ** intentionally out of order **
 #endif
 
 #define LOW_DETAIL_N						19
@@ -1104,6 +1107,7 @@ void options_button_pressed(int n)
 			gamesnd_play_iface(SND_USER_SELECT);
 			break;
 
+#ifndef MAKE_FS1
 		case WEAPON_EXTRAS_ON:
 			Detail.weapon_extras = 1;
 			gamesnd_play_iface(SND_USER_SELECT);
@@ -1112,9 +1116,8 @@ void options_button_pressed(int n)
 		case WEAPON_EXTRAS_OFF:
 			Detail.weapon_extras = 0;
 			gamesnd_play_iface(SND_USER_SELECT);
-			break;		
-
-#ifdef MAKE_FS1
+			break;
+#else
 		case ENGINE_GLOWS_ON:
 			Detail.engine_glows = 1;
 			gamesnd_play_iface(SND_USER_SELECT);
@@ -1122,6 +1125,16 @@ void options_button_pressed(int n)
 		
 		case ENGINE_GLOWS_OFF:
 			Detail.engine_glows = 0;
+			gamesnd_play_iface(SND_USER_SELECT);
+			break;
+
+		case ALPHA_EFFECTS_ON:
+			Detail.alpha_effects = 1;
+			gamesnd_play_iface(SND_USER_SELECT);
+			break;
+
+		case ALPHA_EFFECTS_OFF:
+			Detail.alpha_effects = 0;
 			gamesnd_play_iface(SND_USER_SELECT);
 			break;
 #endif
@@ -1813,6 +1826,7 @@ void options_detail_do_frame()
 		options_force_button_frame(PLANETS_ON, 0);
 	}
 
+#ifndef MAKE_FS1
 	if ( Detail.weapon_extras) {
 		options_force_button_frame(WEAPON_EXTRAS_ON, 2);
 		options_force_button_frame(WEAPON_EXTRAS_OFF, 0);
@@ -1820,14 +1834,21 @@ void options_detail_do_frame()
 		options_force_button_frame(WEAPON_EXTRAS_OFF, 2);
 		options_force_button_frame(WEAPON_EXTRAS_ON, 0);
 	}	
-
-#ifdef MAKE_FS1
-	if ( Detail.engine_glows) {
+#else
+	if ( Detail.engine_glows ) {
 		options_force_button_frame(ENGINE_GLOWS_ON, 2);
 		options_force_button_frame(ENGINE_GLOWS_OFF, 0);
 	} else {
 		options_force_button_frame(ENGINE_GLOWS_OFF, 2);
 		options_force_button_frame(ENGINE_GLOWS_ON, 0);
+	}
+
+	if ( Detail.alpha_effects ) {
+		options_force_button_frame(ALPHA_EFFECTS_ON, 2);
+		options_force_button_frame(ALPHA_EFFECTS_OFF, 0);
+	} else {
+		options_force_button_frame(ALPHA_EFFECTS_OFF, 2);
+		options_force_button_frame(ALPHA_EFFECTS_ON, 0);
 	}
 #endif
 

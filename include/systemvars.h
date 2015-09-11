@@ -315,19 +315,29 @@ typedef struct detail_levels {
 	// "Analogs"
 	int		nebula_detail;				// 0=lowest detail, MAX_DETAIL_LEVEL=highest detail
 	int		detail_distance;			// 0=lowest MAX_DETAIL_LEVEL=highest	
+#ifdef MAKE_FS1
+	int		weapon_detail;				// 0=min, MAX_DETAIL_LEVEL=max
+#endif
 	int		hardware_textures;		// 0=max culling, MAX_DETAIL_LEVEL=no culling
 	int		num_small_debris;			// 0=min number, MAX_DETAIL_LEVEL=max number
 	int		num_particles;				// 0=min number, MAX_DETAIL_LEVEL=max number
 	int		num_stars;					// 0=min number, MAX_DETAIL_LEVEL=max number
 	int		shield_effects;			// 0=min, MAX_DETAIL_LEVEL=max
 	int		lighting;					// 0=min, MAX_DETAIL_LEVEL=max	
+#ifdef MAKE_FS1
+	int		unknown_slider;				// unknown, not in interface
+#endif
 
 	// Booleans
 	int		targetview_model;			// 0=off, 1=on	
-	int		planets_suns;				// 0=off, 1=on			
-	int		weapon_extras;				// extra weapon details. trails, glows
+	int		planets_suns;				// 0=off, 1=on
 #ifdef MAKE_FS1
+	int		unknown_boolean1;			// unknown, not in interface
+	int		unknown_boolean2;			// unknown, not in interface
 	int		engine_glows;				// 0=off, 1=on
+	int		alpha_effects;				// 0=off, 1=on
+#else
+	int		weapon_extras;				// extra weapon details. trails, glows
 #endif
 } detail_levels;
 

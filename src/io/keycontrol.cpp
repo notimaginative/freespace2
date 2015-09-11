@@ -506,11 +506,12 @@ int Normal_key_set[] = {
 
 	TIME_SPEED_UP,
 	TIME_SLOW_DOWN,
-
+#ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 };
 
 int Dead_key_set[] = {
@@ -630,11 +631,13 @@ int Non_critical_key_set[] = {
 	MULTI_MESSAGE_FRIENDLY,
 	MULTI_MESSAGE_HOSTILE,
 	MULTI_MESSAGE_TARGET,
-	MULTI_OBSERVER_ZOOM_TO,			
+	MULTI_OBSERVER_ZOOM_TO,
+#ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 };
 
 
@@ -2780,7 +2783,7 @@ int button_function(int n)
 		case MULTI_OBSERVER_ZOOM_TO:
 			multi_obs_zoom_to_target();
 			break;		
-
+#ifndef MAKE_FS1
 		// toggle between high and low HUD contrast
 		case TOGGLE_HUD_CONTRAST:
 			gamesnd_play_iface(SND_USER_SELECT);
@@ -2817,7 +2820,7 @@ int button_function(int n)
 				send_self_destruct_packet();
 			}
 			break;
-
+#endif
 		// following are not handled here, but we need to bypass the Int3()
 		case LAUNCH_COUNTERMEASURE:
 		case VIEW_SLEW:

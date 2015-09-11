@@ -1028,10 +1028,12 @@ void options_multi_load_protocol_controls()
 	Om_ip_input.create(Om_window, Ip_input_coords[gr_screen.res][0], Ip_input_coords[gr_screen.res][1], Ip_input_coords[gr_screen.res][2], IP_STRING_LEN, IP_EMPTY_STRING, UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_KEYTHRU);
 	Om_ip_input.hide();
 	Om_ip_input.disable();
-	
+
+#ifndef MAKE_FS1
 	// disable IPX button
 	Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.disable();
 	Om_pro_buttons[gr_screen.res][OM_PRO_IPX].button.hide();
+#endif
 
 	// bogus control
 	Om_pro_bogus.base_create(Om_window, UI_KIND_ICON, 0, 0, 0, 0);

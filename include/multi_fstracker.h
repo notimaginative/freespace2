@@ -98,7 +98,7 @@
 #define MSW_STATUS_VALID						0
 #define MSW_STATUS_INVALID						1
 
-struct vmt_freespace2_struct;
+//struct vmt_freespace2_struct;
 struct scoring_struct;
 struct squad_war_request;
 struct squad_war_result;
@@ -147,10 +147,10 @@ void multi_fs_tracker_update_game(netgame_info *ng);
 int multi_fs_tracker_busy();
 
 // copy a freespace stats struct to a tracker-freespace stats struct
-void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_freespace2_struct *vmt, player *pl, int tracker_id);
+void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_stats_struct *vmt, player *pl, int tracker_id);
 
 // copy a tracker-freespace stats struct to a freespace stats struct
-void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt, scoring_struct *fs);
+void multi_stats_tracker_to_fs(vmt_stats_struct *vmt, scoring_struct *fs);
 
 // return an MVALID_STATUS_* value, or -2 if the user has "cancelled"
 int multi_fs_tracker_validate_mission(char *filename);

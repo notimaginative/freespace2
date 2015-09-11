@@ -13,7 +13,9 @@
 #include "scoring.h"					// for medals count
 
 //Pilot tracker client header
-#ifdef FS2_DEMO
+#if defined(MAKE_FS1)
+	#define REGPORT						3493
+#elif defined(FS2_DEMO)
 	#define REGPORT						7802
 #else
 	#define REGPORT						8811
@@ -201,6 +203,8 @@ typedef struct vmt_freespace_struct {
 	char tracker_id[TRACKER_ID_LEN];
 	char pilot_name[PILOT_NAME_LEN];
 
+	char pad_a[2];			// 2-bytes padding
+
 	int score;
 	int rank;
 	int medals[MAX_FS_MEDALS];
@@ -221,6 +225,9 @@ typedef struct vmt_freespace_struct {
 
 	int			 security;			 	
 	unsigned char virgin_pilot;	//This pilot was just created if TRUE
+
+	char		 pad_b[3];			// 3-bytes padding
+
 	unsigned int checksum;			//This value needs to be equal to whatever the checksum is once the packet is decoded
 		
 	unsigned int missions_flown;			// # of missions flown to completion
@@ -228,6 +235,8 @@ typedef struct vmt_freespace_struct {
 	unsigned int last_flown;				// data/time of last mission flown
 } vmt_freespace_struct;
 #define FREESPACE_BLOCK_SIZE (sizeof(vmt_freespace_struct))
+
+#define vmt_stats_struct vmt_freespace_struct
 
 #else
 
@@ -310,19 +319,16 @@ typedef struct vmt_freespace_struct {
 #endif
 #define FREESPACE2_BLOCK_SIZE (sizeof(vmt_freespace2_struct))
 
+#define vmt_stats_struct vmt_freespace2_struct
+
 #endif // MAKE_FS1
 
 //Function prototypes
 int InitPilotTrackerClient();
 void AckServer(unsigned int sig);
 
-#ifdef MAKE_FS1
-int SendFSPilotData(vmt_freespace2_struct *fs_pilot);
-int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int update_security);
-#else
-int SendFSPilotData(vmt_freespace2_struct *fs_pilot);
-int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int update_security);
-#endif
+int SendFSPilotData(vmt_stats_struct *fs_pilot);
+int GetFSPilotData(vmt_stats_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int update_security);
 int SendSWData(squad_war_result *sw_res, squad_war_response *sw_resp);
 void PollPTrackNet();
 

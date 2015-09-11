@@ -1124,7 +1124,10 @@ void techroom_start_anim()
 
 void techroom_change_tab(int num)
 {
-	int i, multi = 0, mask, font_height, max_num_entries_viewable;	
+	int i, multi = 0, mask;
+#ifndef MAKE_FS1
+	int font_height, max_num_entries_viewable;
+#endif
 
 	Tab = num;
 	// SDL_assert(Current_list_size >= 0);
@@ -1172,9 +1175,9 @@ void techroom_change_tab(int num)
 			Current_list = Ship_list;
 			Current_list_size = Ship_list_size;
 
+#ifndef MAKE_FS1
 			font_height = gr_get_font_height();
 			max_num_entries_viewable = Tech_list_coords[gr_screen.res][SHIP_H_COORD] / font_height;
-#ifndef MAKE_FS1
 			Tech_slider.set_numberItems(Current_list_size > max_num_entries_viewable ? Current_list_size-max_num_entries_viewable : 0);
 #endif
 
@@ -1278,9 +1281,9 @@ void techroom_change_tab(int num)
 			Current_list = Weapon_list;
 			Current_list_size = Weapon_list_size;
 
+#ifndef MAKE_FS1
 			font_height = gr_get_font_height();
 			max_num_entries_viewable = Tech_list_coords[gr_screen.res][SHIP_H_COORD] / font_height;
-#ifndef MAKE_FS1
 			Tech_slider.set_numberItems(Current_list_size > max_num_entries_viewable ? Current_list_size-max_num_entries_viewable : 0);
 #endif
 
@@ -1328,9 +1331,9 @@ void techroom_change_tab(int num)
 			Current_list = Intel_list;
 			Current_list_size = Intel_list_size;
 
+#ifndef MAKE_FS1
 			font_height = gr_get_font_height();
 			max_num_entries_viewable = Tech_list_coords[gr_screen.res][SHIP_H_COORD] / font_height;
-#ifndef MAKE_FS1
 			Tech_slider.set_numberItems(Current_list_size > max_num_entries_viewable ? Current_list_size-max_num_entries_viewable : 0);
 #endif
 
@@ -1811,11 +1814,6 @@ void techroom_tab_setup(int set_palette)
 {
 	// char *pal;
 	int i;
-	int flags[256];
-
-	for (i=0; i<256; i++){
-		flags[i] = 0;
-	}
 
 	// activate, deactivate any necessary controls
 	for (i=0; i<NUM_BUTTONS; i++) {

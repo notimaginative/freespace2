@@ -48,7 +48,11 @@
 
 // check structs for size compatibility
 SDL_COMPILE_TIME_ASSERT(game_packet_header, sizeof(game_packet_header) == 529);
+#ifndef MAKE_FS1
 SDL_COMPILE_TIME_ASSERT(freespace2_net_game_data, sizeof(freespace2_net_game_data) == 120);
+#else
+SDL_COMPILE_TIME_ASSERT(freespace_net_game_data, sizeof(freespace_net_game_data) == 696);
+#endif
 SDL_COMPILE_TIME_ASSERT(game_list, sizeof(game_list) == 384);
 SDL_COMPILE_TIME_ASSERT(filter_game_list_struct, sizeof(filter_game_list_struct) == 40);
 
@@ -117,7 +121,7 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 		}
 
 		case GNT_GAMEUPDATE: {
-			freespace2_net_game_data *game_data = (freespace2_net_game_data *)&gph->data;
+			pxo_net_game_data *game_data = (pxo_net_game_data *)&gph->data;
 
 			PXO_ADD_DATA(game_data->game_name);
 			PXO_ADD_INT(game_data->difficulty);
@@ -126,8 +130,24 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 			PXO_ADD_INT(game_data->max_players);
 			PXO_ADD_INT(game_data->current_num_players);
 			PXO_ADD_DATA(game_data->mission_name);
+
+#ifdef MAKE_FS1
+			int i;
+
+			for (i = 0; i < MAX_FREESPACE_PLAYERS; i++) {
+				PXO_ADD_DATA(game_data->players[i]);
+			}
+
+			for (i = 0; i < MAX_FREESPACE_PLAYERS; i++) {
+				PXO_ADD_INT(game_data->player_rank[i]);
+			}
+#endif
+
 			PXO_ADD_DATA(game_data->channel);
+
+#ifndef MAKE_FS1
 			PXO_ADD_DATA(game_data->pad);		// for sizing, so gph->len will match
+#endif
 
 			break;
 		}

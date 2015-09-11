@@ -363,6 +363,7 @@ void Launcher::OnUpdate( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 {
+#ifndef MAKE_FS1
 	wxDialog *help = new wxDialog(this, wxID_ANY, wxT("Launcher Help"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxSYSTEM_MENU);
 
 	wxBoxSizer* bSizer;
@@ -390,6 +391,7 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 	help->ShowModal();
 
 	help->Destroy();
+#endif
 }
 
 void Launcher::OnUninstall( wxCommandEvent& WXUNUSED(event) )

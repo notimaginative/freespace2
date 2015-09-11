@@ -12,7 +12,11 @@
 
 //Game Tracker client code header
 
+#ifdef MAKE_FS1
+#define GAMEPORT	3440
+#else
 #define GAMEPORT	7802
+#endif
 
 #define MAX_NET_RETRIES 30
 #define NET_ACK_TIMEOUT 2500
@@ -78,6 +82,8 @@ typedef struct {
 	char	channel[CHANNEL_LEN];
 } freespace_net_game_data;
 
+#define pxo_net_game_data freespace_net_game_data
+
 #else
 
 typedef struct {
@@ -91,6 +97,8 @@ typedef struct {
 	char	channel[CHANNEL_LEN];
 	char	pad[3];		// 3-byte padding for size/alignment
 } freespace2_net_game_data;
+
+#define pxo_net_game_data freespace2_net_game_data
 
 #endif
 

@@ -3652,13 +3652,17 @@ DCF(pspew_scale, "How far away particles are from the weapon path")
 // return a scale factor for damage which should be applied for 2 collisions
 float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 {
-	weapon *wp;	
+#ifdef MAKE_FS1
+	// don't do special damage scaling for capships in FS1
+	return 1.0f;
+
+#else
+
+	weapon *wp;
 	int from_player = 0;
 	float total_scale = 1.0f;
-#ifndef MAKE_FS1
 	float hull_pct;
 	int is_big_damage_ship = 0;
-#endif
 
 	// sanity
 	if((wip == NULL) || (wep == NULL) || (target == NULL)){
@@ -3682,7 +3686,6 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 		total_scale *= 0.1f;
 	}
 
-#ifndef MAKE_FS1 // don't do special damage scaling for capships in FS1
 	// if the hit object was a ship
 	if(target->type == OBJ_SHIP){
 		ship_info *sip;
@@ -3736,9 +3739,9 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 			}
 		}
 	}
-#endif
 	
 	return total_scale;
+#endif
 }
 
 int weapon_get_expl_handle(int weapon_expl_index, vector *pos, float size)

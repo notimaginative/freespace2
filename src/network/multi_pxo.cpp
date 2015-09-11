@@ -1146,7 +1146,7 @@ UI_XSTR Multi_pxo_pinfo_text[GR_NUM_RESOLUTIONS][MULTI_PXO_PINFO_NUM_TEXT] = {
 int Multi_pxo_pinfo_bitmap = -1;
 UI_WINDOW Multi_pxo_pinfo_window;
 
-vmt_freespace2_struct Multi_pxo_pinfo;
+vmt_stats_struct Multi_pxo_pinfo;
 player Multi_pxo_pinfo_player;
 
 int Multi_pxo_retrieve_mode = -1;
@@ -4622,12 +4622,12 @@ int multi_pxo_pinfo_cond()
 		popup_change_text(XSTR("Getting player stats",968));
 
 		// fill in the data
-		memset(&Multi_pxo_pinfo, 0, sizeof(vmt_freespace2_struct));
+		memset(&Multi_pxo_pinfo, 0, sizeof(Multi_pxo_pinfo));
 		SDL_strlcpy(Multi_pxo_pinfo.pilot_name, Multi_pxo_retrieve_name, SDL_arraysize(Multi_pxo_pinfo.pilot_name));
 		SDL_strlcpy(Multi_pxo_pinfo.tracker_id, Multi_pxo_retrieve_id, SDL_arraysize(Multi_pxo_pinfo.tracker_id));
 
 		// make the initial call to the API
-		GetFSPilotData((vmt_freespace2_struct*)0xffffffff,NULL,NULL,0);
+		GetFSPilotData((vmt_stats_struct*)0xffffffff,NULL,NULL,0);
 		if(GetFSPilotData(&Multi_pxo_pinfo,Multi_pxo_retrieve_name,Multi_pxo_retrieve_id,0) != 0){
 			return 2;
 		}
@@ -4704,7 +4704,7 @@ void multi_pxo_pinfo_show()
 // build the stats labels values
 void multi_pxo_pinfo_build_vals()
 {
-	vmt_freespace2_struct *fs = &Multi_pxo_pinfo;	
+	vmt_stats_struct *fs = &Multi_pxo_pinfo;
 
 	SDL_zero(Multi_pxo_pinfo_vals);
 

@@ -25,7 +25,11 @@
 
 // check structs for size compatibility
 SDL_COMPILE_TIME_ASSERT(udp_packet_header, sizeof(udp_packet_header) == 497);
+#ifndef MAKE_FS1
 SDL_COMPILE_TIME_ASSERT(vmt_freespace2_struct, sizeof(vmt_freespace2_struct) == 440);
+#else
+SDL_COMPILE_TIME_ASSERT(vmt_freespace_struct, sizeof(vmt_freespace_struct) == 468);
+#endif
 SDL_COMPILE_TIME_ASSERT(validate_id_request, sizeof(validate_id_request) == 60);
 SDL_COMPILE_TIME_ASSERT(squad_war_request, sizeof(squad_war_request) == 104);
 SDL_COMPILE_TIME_ASSERT(squad_war_response, sizeof(squad_war_response) == 256);
@@ -82,7 +86,7 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 			break;
 
 		case UNT_PILOT_DATA_WRITE_NEW: {
-			vmt_freespace2_struct *fs2 = (vmt_freespace2_struct *)&uph->data;
+			vmt_stats_struct *fs2 = (vmt_stats_struct *)&uph->data;
 
 			PXO_ADD_DATA(fs2->tracker_id);
 			PXO_ADD_DATA(fs2->pilot_name);
@@ -91,6 +95,17 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 
 			PXO_ADD_INT(fs2->score);
 			PXO_ADD_INT(fs2->rank);
+
+#ifdef MAKE_FS1
+			for (i = 0; i < MAX_FS_MEDALS; i++) {
+				PXO_ADD_INT(fs2->medals[i]);
+			}
+
+			for (i = 0; i < MAX_FS_SHIP_TYPES; i++) {
+				PXO_ADD_INT(fs2->kills[i]);
+			}
+#endif
+
 			PXO_ADD_INT(fs2->assists);
 			PXO_ADD_INT(fs2->kill_count);
 			PXO_ADD_INT(fs2->kill_count_ok);
@@ -115,6 +130,7 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 			PXO_ADD_UINT(fs2->flight_time);
 			PXO_ADD_UINT(fs2->last_flown);
 
+#ifndef MAKE_FS1
 			PXO_ADD_USHORT(fs2->num_medals);
 			PXO_ADD_USHORT(fs2->num_ship_types);
 
@@ -122,9 +138,10 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 				PXO_ADD_INT(fs2->medals[i]);
 			}
 
-			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
+			for (i = 0; i < MAX_FS2_SHIP_TYPES; i++) {
 				PXO_ADD_USHORT(fs2->kills[i]);
 			}
+#endif
 
 			break;
 		}
@@ -211,7 +228,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			break;
 
 		case UNT_PILOT_DATA_RESPONSE: {
-			vmt_freespace2_struct *fs2 = (vmt_freespace2_struct *)&uph->data;
+			vmt_stats_struct *fs2 = (vmt_stats_struct *)&uph->data;
 
 			PXO_GET_DATA(fs2->tracker_id);
 			PXO_GET_DATA(fs2->pilot_name);
@@ -220,6 +237,17 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 
 			PXO_GET_INT(fs2->score);
 			PXO_GET_INT(fs2->rank);
+
+#ifdef MAKE_FS1
+			for (i = 0; i < MAX_FS_MEDALS; i++) {
+				PXO_GET_INT(fs2->medals[i]);
+			}
+
+			for (i =0; i < MAX_FS_SHIP_TYPES; i++) {
+				PXO_GET_INT(fs2->kills[i]);
+			}
+#endif
+
 			PXO_GET_INT(fs2->assists);
 			PXO_GET_INT(fs2->kill_count);
 			PXO_GET_INT(fs2->kill_count_ok);
@@ -244,6 +272,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			PXO_GET_UINT(fs2->flight_time);
 			PXO_GET_UINT(fs2->last_flown);
 
+#ifndef MAKE_FS1
 			PXO_GET_USHORT(fs2->num_medals);
 			PXO_GET_USHORT(fs2->num_ship_types);
 
@@ -254,6 +283,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
 				PXO_GET_USHORT(fs2->kills[i]);
 			}
+#endif
 
 			break;
 		}
@@ -354,11 +384,7 @@ int InitPilotTrackerClient()
 // Call with NULL to poll 
 // Call with -1 to cancel send
 // Call with valid pointer to a vmt_descent3_struct to initiate send
-#ifdef MAKE_FS1
-int SendFSPilotData(vmt_freespace_struct *fs_pilot)
-#else
-int SendFSPilotData(vmt_freespace2_struct *fs_pilot)
-#endif
+int SendFSPilotData(vmt_stats_struct *fs_pilot)
 {
 	//First check the network
 	PollPTrackNet();
@@ -395,7 +421,7 @@ int SendFSPilotData(vmt_freespace2_struct *fs_pilot)
 		}
 
 	}
-	else if(fs_pilot == (vmt_freespace2_struct*)0xffffffff)
+	else if(fs_pilot == (vmt_stats_struct*)0xffffffff)
 	{
 		if(FSWriteState == STATE_IDLE)
 		{
@@ -421,14 +447,12 @@ int SendFSPilotData(vmt_freespace2_struct *fs_pilot)
 
 		fs_pilot_write.type = UNT_PILOT_DATA_WRITE_NEW;
 #ifdef MAKE_FS1
-		fs_pilot_write.len = PACKED_HEADER_ONLY_SIZE+sizeof(vmt_freespace_struct);
 		fs_pilot_write.code = CMD_GAME_FREESPACE;
-		memcpy(&fs_pilot_write.data,fs_pilot,sizeof(vmt_freespace_struct));
 #else
-		fs_pilot_write.len = PACKED_HEADER_ONLY_SIZE+sizeof(vmt_freespace2_struct);
 		fs_pilot_write.code = CMD_GAME_FREESPACE2;
-		memcpy(&fs_pilot_write.data,fs_pilot,sizeof(vmt_freespace2_struct));
 #endif
+		fs_pilot_write.len = PACKED_HEADER_ONLY_SIZE+sizeof(vmt_stats_struct);
+		memcpy(&fs_pilot_write.data,fs_pilot,sizeof(vmt_stats_struct));
 
 		return 0;	
 	}
@@ -531,11 +555,7 @@ int SendSWData(squad_war_result *sw_res, squad_war_response *sw_resp)
 // Call with NULL to poll 
 // Call with -1 to cancel wait
 // Call with valid pointer to a vmt_descent3_struct to get a response
-#ifdef MAKE_FS1
-int GetFSPilotData(vmt_freespace_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int get_security)
-#else
-int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int get_security)
-#endif
+int GetFSPilotData(vmt_stats_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int get_security)
 {
 	//First check the network
 	PollPTrackNet();
@@ -573,7 +593,7 @@ int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, cons
 		}
 
 	}
-	else if(fs_pilot == (vmt_freespace2_struct*)0xffffffff)
+	else if(fs_pilot == (vmt_stats_struct*)0xffffffff)
 	{
 		if(FSReadState == STATE_IDLE)
 		{

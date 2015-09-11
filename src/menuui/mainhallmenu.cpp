@@ -674,11 +674,14 @@ void main_hall_maybe_blit_tooltips();
 // shader for behind tooltips
 shader Main_hall_tooltip_shader;
 
+#ifndef MAKE_FS1
 // num pixels shader is above/below tooltip text
 static int Main_hall_tooltip_padding[GR_NUM_RESOLUTIONS] = {
 	4,		// GR_640
 	7,		// GR_1024
 };
+#endif
+
 static int Main_hall_f1_text_frame = 0;
 static int F1_text_done = 0;
 
@@ -1865,12 +1868,21 @@ void main_hall_blit_version()
 	// format the version string
 	get_version_string(version_string, SDL_arraysize(version_string));
 
+#ifdef MAKE_FS1
+	// tack on "EAX", since we have that :)
+	SDL_strlcat(version_string, " EAX", sizeof(version_string));
+#endif
+
 	// get the length of the string
 	gr_get_string_size(&w,NULL,version_string);
 
 	// print the string out in the lower right corner
 	gr_set_color_fast(&Color_white);
+#ifdef MAKE_FS1
+	gr_string(gr_screen.max_w - (w + 10), gr_screen.max_h - 12, version_string);
+#else
 	gr_string(gr_screen.max_w - 55, gr_screen.max_h - 12, version_string);
+#endif
 }
 
 // blit any necessary tooltips
@@ -1907,8 +1919,7 @@ void main_hall_maybe_blit_tooltips()
 #ifndef MAKE_FS1
 		gr_set_shader(&Main_hall_tooltip_shader);
 		gr_shade(0, shader_y, gr_screen.clip_width, (gr_screen.clip_height - shader_y));
-#endif
-#ifdef MAKE_FS1
+
 		gr_set_color_fast(&Color_white);
 #else
 		gr_set_color_fast(&Color_bright_white);
@@ -1920,6 +1931,7 @@ void main_hall_maybe_blit_tooltips()
 
 void main_hall_process_help_stuff()
 {
+#ifndef MAKE_FS1
 	int w, h;
 	char str[255];
 	
@@ -1948,14 +1960,9 @@ void main_hall_process_help_stuff()
 	}
 
 	// set the color and print out text and shader
-#ifndef MAKE_FS1
 	gr_set_color_fast(&Color_bright_white);
 	gr_shade(0, 0, gr_screen.max_w, (2*Main_hall_tooltip_padding[gr_screen.res]) + h - y_anim_offset);
 	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res] - y_anim_offset, str);
-#else
-	gr_set_color_fast(&Color_white);
-	// no shading, no roll off screen
-	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res], str);
 #endif
 }
 
@@ -2125,6 +2132,22 @@ void main_hall_read_table()
 			count++;
 		}
 	}
+
+	// are we funny?
+	if(Vasudan_funny){
+		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
+		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
+		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
+		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
+
+		// set head anim. hehe
+		SDL_strlcpy(Main_hall_defines[GR_640][1].door_anim_name[OPTIONS_REGION], "vhallheads", MAX_FILENAME_LEN);
+		SDL_strlcpy(Main_hall_defines[GR_1024][1].door_anim_name[OPTIONS_REGION], "2_vhallheads", MAX_FILENAME_LEN);
+
+		// set the background
+		SDL_strlcpy(Main_hall_defines[GR_640][1].bitmap, "vhallhead", MAX_FILENAME_LEN);
+		SDL_strlcpy(Main_hall_defines[GR_1024][1].bitmap, "2_vhallhead", MAX_FILENAME_LEN);
+	}
 #else
 	// hard coded values for FS1
 	int idx;
@@ -2132,7 +2155,7 @@ void main_hall_read_table()
 	// Terran main hall
 	SDL_strlcpy(Main_hall_defines[0][0].bitmap, "MainHall1", MAX_FILENAME_LEN);
 	SDL_strlcpy(Main_hall_defines[0][0].mask, "MainHall1-m", MAX_FILENAME_LEN);
-	SDL_strlcpy(Main_hall_defines[0][0].music, "main_amb", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].music, "Choco Mousse", MAX_FILENAME_LEN);
 	
 	Main_hall_defines[0][0].num_random_intercom_sounds = 3;
 	Main_hall_defines[0][0].intercom_delay[0][0] = 8000;
@@ -2152,8 +2175,8 @@ void main_hall_read_table()
 	SDL_strlcpy(Main_hall_defines[0][0].misc_anim_name[0], "main1-m1", MAX_FILENAME_LEN);
 	SDL_strlcpy(Main_hall_defines[0][0].misc_anim_name[1], "main1-m2", MAX_FILENAME_LEN);
 	Main_hall_defines[0][0].misc_anim_delay[0][0] = -1;
-	Main_hall_defines[0][0].misc_anim_delay[0][1] = 15000;
-	Main_hall_defines[0][0].misc_anim_delay[0][2] = 20000;
+	Main_hall_defines[0][0].misc_anim_delay[0][1] = 0;//15000;
+	Main_hall_defines[0][0].misc_anim_delay[0][2] = 0;//20000;
 	Main_hall_defines[0][0].misc_anim_delay[1][0] = -1;
 	Main_hall_defines[0][0].misc_anim_delay[1][1] = 9000;
 	Main_hall_defines[0][0].misc_anim_delay[1][2] = 30000;
@@ -2165,25 +2188,21 @@ void main_hall_read_table()
 	Main_hall_defines[0][0].misc_anim_modes[1] = 2;
 	Main_hall_defines[0][0].misc_anim_sound_pan[0] = -0.5f;
 	Main_hall_defines[0][0].misc_anim_sound_pan[1] = -0.25f;
-	Main_hall_defines[0][0].misc_anim_special_sounds[0][0] = 2;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][0] = 4;
 	Main_hall_defines[0][0].misc_anim_special_sounds[0][1] = 34;
 	Main_hall_defines[0][0].misc_anim_special_sounds[0][2] = 35;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][0] = 3;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][1] = 31;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][2] = 32;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][3] = 33;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][3] = 34;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][4] = 35;
+	Main_hall_defines[0][0].misc_anim_special_sounds[1][0] = 0;
 	Main_hall_defines[0][0].misc_anim_special_trigger[0][0] = 4;
-	Main_hall_defines[0][0].misc_anim_special_trigger[0][1] = 1;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][1] = 2;
 	Main_hall_defines[0][0].misc_anim_special_trigger[0][2] = 20;
-	Main_hall_defines[0][0].misc_anim_special_trigger[0][3] = 42;
-	Main_hall_defines[0][0].misc_anim_special_trigger[0][4] = 96;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][0] = 3;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][1] = 25;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][2] = 200;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][3] = 274;
-	Main_hall_defines[0][0].misc_anim_sound_handles[0][0] = 2;
-	Main_hall_defines[0][0].misc_anim_sound_handles[1][0] = 3;
-	Main_hall_defines[0][0].misc_anim_sound_flag[0][0] = 1;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][3] = 43;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][4] = 97;
+	Main_hall_defines[0][0].misc_anim_special_trigger[1][0] = 0;
+	Main_hall_defines[0][0].misc_anim_sound_handles[0][0] = 4;
+	Main_hall_defines[0][0].misc_anim_sound_handles[1][0] = 0;
+	Main_hall_defines[0][0].misc_anim_sound_flag[0][0] = 0;
 	Main_hall_defines[0][0].misc_anim_sound_flag[1][0] = 2;
 	
 	Main_hall_defines[0][0].num_door_animations = 6;
@@ -2246,7 +2265,7 @@ void main_hall_read_table()
 	// Vasudan main hall
 	SDL_strlcpy(Main_hall_defines[0][1].bitmap, "MainHall2", MAX_FILENAME_LEN);
 	SDL_strlcpy(Main_hall_defines[0][1].mask, "MainHall2-m", MAX_FILENAME_LEN);
-	SDL_strlcpy(Main_hall_defines[0][1].music, "main_amb", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].music, "Choco Mousse", MAX_FILENAME_LEN);
 	
 	Main_hall_defines[0][1].num_random_intercom_sounds = 3;
 	Main_hall_defines[0][1].intercom_delay[0][0] = 8000;
@@ -2378,29 +2397,12 @@ void main_hall_read_table()
 	Main_hall_defines[0][1].door_sound_pan[4] = -0.63f;
 	Main_hall_defines[0][1].door_sound_pan[5] = 0.35f;
 	
-	Main_hall_defines[0][1].region_yval = 425;
+	Main_hall_defines[0][1].region_yval = 415;
 	
 	for (idx = 0; idx < NUM_REGIONS; idx++) {
 		Main_hall_defines[0][1].region_descript[idx] = NULL;
 	}
-
 #endif
-
-	// are we funny?
-	if(Vasudan_funny){
-		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
-		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
-		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
-		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
-
-		// set head anim. hehe
-		SDL_strlcpy(Main_hall_defines[GR_640][1].door_anim_name[OPTIONS_REGION], "vhallheads", MAX_FILENAME_LEN);
-		SDL_strlcpy(Main_hall_defines[GR_1024][1].door_anim_name[OPTIONS_REGION], "2_vhallheads", MAX_FILENAME_LEN);
-
-		// set the background
-		SDL_strlcpy(Main_hall_defines[GR_640][1].bitmap, "vhallhead", MAX_FILENAME_LEN);
-		SDL_strlcpy(Main_hall_defines[GR_1024][1].bitmap, "2_vhallhead", MAX_FILENAME_LEN);
-	}
 }
 
 // make the vasudan main hall funny

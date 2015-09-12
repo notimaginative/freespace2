@@ -1559,9 +1559,8 @@ void techroom_intel_init()
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
 				SDL_strlcpy(Intel_info[Intel_info_size].name, "Shivan", SDL_arraysize(Intel_info[0].name));
 				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2], SDL_arraysize(Intel_info[0].anim_filename));
-				// FIXME: shouldn't always be in the intel database but no choice at this point
-				// there are only about 4 missions before they show up anyway so it may not be worth it
-				Intel_info[Intel_info_size].in_tech_db = 1;
+				// Shivans are only visible after mission sm1-05a in campaign
+				Intel_info[Intel_info_size].in_tech_db = 0;
 
 				Intel_info_size++;
 			}

@@ -393,6 +393,10 @@
 #include "localize.h"
 #include "multi_endgame.h"
 #include "osapi.h"
+#ifdef MAKE_FS1
+#include "techmenu.h"
+#endif
+
 
 #define MAX_TOTAL_DEBRIEF_LINES	200
 
@@ -1822,6 +1826,18 @@ void debrief_accept(int ok_to_post_start_game_event)
 			}
 			// continue as normal
 			else {
+#ifdef MAKE_FS1
+				// if single player campagin, maybe mark shivans as visible in
+				// tech room at completion of mission 5
+				if ( !(Game_mode & GM_MULTIPLAYER) && (Intel_info[2].in_tech_db == 0) ) {
+					char *m_name = Campaign.missions[Campaign.current_mission].name;
+
+					if ( m_name && !SDL_strcasecmp(m_name, "sm1-05a.fsm") ) {
+						Intel_info[2].in_tech_db = 1;
+					}
+				}
+#endif
+
 				// end the mission
 				mission_campaign_mission_over();
 

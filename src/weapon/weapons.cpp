@@ -783,9 +783,10 @@ void parse_wi_flags(weapon_info *weaponp)
 		else if (!SDL_strcasecmp(NOX("supercap"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_SUPERCAP;
 #ifdef MAKE_FS1
-		else if (!SDL_strcasecmp(NOX("Swarm"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Swarm"), weapon_strings[i])) {
 			weaponp->wi_flags |= WIF_SWARM;
-		else if (!SDL_strcasecmp(NOX("No Ship"), weapon_strings[i]))
+			weaponp->swarm_count = SWARM_DEFAULT_NUM_MISSILES_FIRED;
+		} else if (!SDL_strcasecmp(NOX("No Ship"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_CHILD;
 #endif 
 		else

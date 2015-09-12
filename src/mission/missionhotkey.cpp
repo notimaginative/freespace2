@@ -1366,7 +1366,7 @@ void mission_hotkey_do_frame(float frametime)
 	// draw the big "F10" in the little box	
 	gr_set_font(FONT2);
 	gr_set_color_fast(&Color_text_normal);
-	SDL_strlcpy(buf, Scan_code_text[Key_sets[Cur_hotkey]], SDL_arraysize(buf));
+	SDL_strlcpy(buf, Scan_code_text[SDL_GetScancodeFromKey(Key_sets[Cur_hotkey])], SDL_arraysize(buf));
 	gr_get_string_size(&w, &h, buf);
 	gr_printf(Hotkey_function_name_coords[gr_screen.res][0] + (Hotkey_function_name_coords[gr_screen.res][2] - w) / 2, Hotkey_function_name_coords[gr_screen.res][1], buf);
 
@@ -1440,7 +1440,7 @@ void mission_hotkey_do_frame(float frametime)
 		if (hotkeys) {
 			for (i=0; i<MAX_KEYED_TARGETS; i++) {
 				if (hotkeys & (1 << i)) {
-					gr_printf(Hotkey_list_coords[gr_screen.res][0] + Hotkey_function_field_width[gr_screen.res]*i, y, Scan_code_text[Key_sets[i]]);
+					gr_printf(Hotkey_list_coords[gr_screen.res][0] + Hotkey_function_field_width[gr_screen.res]*i, y, Scan_code_text[SDL_GetScancodeFromKey(Key_sets[i])]);
 				}
 			}
 /*

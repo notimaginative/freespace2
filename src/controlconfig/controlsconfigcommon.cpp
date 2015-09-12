@@ -1017,8 +1017,8 @@ int translate_key_to_index(const char *key)
 	// look up index for default key
 	if (*key) {
 		for (i=0; i<max_scan_codes; i++)
-			if (!SDL_strcasecmp(key, Scan_code_text_english[i])) {
-				index = i;
+			if (!SDL_strcasecmp(key, Scan_code_text[i])) {
+				index = SDL_GetKeyFromScancode((SDL_Scancode)i);
 				break;
 			}
 

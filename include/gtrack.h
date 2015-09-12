@@ -80,6 +80,7 @@ typedef struct {
 	char	players[MAX_FREESPACE_PLAYERS][MAX_FREESPACE_PLAYER_NAME_LEN];
 	int	player_rank[MAX_FREESPACE_PLAYERS];
 	char	channel[CHANNEL_LEN];
+	char	pad[3];		// 3-byte padding for size/alignment
 } freespace_net_game_data;
 
 #define pxo_net_game_data freespace_net_game_data

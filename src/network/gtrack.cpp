@@ -144,10 +144,7 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 #endif
 
 			PXO_ADD_DATA(game_data->channel);
-
-#ifndef MAKE_FS1
 			PXO_ADD_DATA(game_data->pad);		// for sizing, so gph->len will match
-#endif
 
 			break;
 		}

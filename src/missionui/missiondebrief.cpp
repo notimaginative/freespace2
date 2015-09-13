@@ -812,7 +812,7 @@ void debrief_text_init();
 void debrief_accept(int ok_to_post_start_game_event = 1);
 void debrief_kick_selected_player();
 
-
+#ifndef MAKE_FS1
 // promotion voice selection stuff
 #define NUM_VOLITION_CAMPAIGNS	1
 typedef struct {
@@ -875,6 +875,7 @@ voice_map Debrief_promotion_voice_mapping[NUM_VOLITION_CAMPAIGNS][MAX_CAMPAIGN_M
 		{ "loop2-2.fs2",			4 }
 	}
 };
+#endif
 
 #define DB_AWARD_WINGS		0
 #define DB_AWARD_MEDAL		1
@@ -1317,15 +1318,26 @@ void debrief_ui_init()
 // this is an ugly, nasty way of doing this, but it saves us changing the missions at this point
 void debrief_choose_promotion_voice()
 {
-	int i, j;
-
 	if(Campaign.current_mission < 0){
+#ifndef MAKE_FS1
 		SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
+#else
+		SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("1_%s"), Ranks[Promoted].promotion_voice_base);
+#endif
 		return;
 	}
 
 	// search thru all official campaigns for our current campaign
 	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
+#ifdef MAKE_FS1
+		if (Player->on_bastion) {
+			SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("3_%s"), Ranks[Promoted].promotion_voice_base);
+		} else {
+			SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("1_%s"), Ranks[Promoted].promotion_voice_base);
+		}
+#else
+		int i, j;
+
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
 			if ((Campaign.filename != NULL) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
 				// now search thru the mission filenames, 
@@ -1338,10 +1350,16 @@ void debrief_choose_promotion_voice()
 				}
 			}
 		}
+#endif
 	}
 
+#ifndef MAKE_FS1
 	// default to petrarch
 	SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("9_%s"), Ranks[Promoted].promotion_voice_base);
+#else
+	// default to FS1 guy
+	SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("1_%s"), Ranks[Promoted].promotion_voice_base);
+#endif
 }
 
 // sets Promotion_stage.voice
@@ -1349,10 +1367,6 @@ void debrief_choose_promotion_voice()
 // this is an ugly, nasty, hateful way of doing this, but it saves us changing the missions at this point
 void debrief_choose_badge_voice()
 {
-#ifndef MAKE_FS1
-	int i, j;
-#endif
-
 	if(Campaign.current_mission < 0){
 #ifndef MAKE_FS1
 		// default to petrarch
@@ -1361,6 +1375,7 @@ void debrief_choose_badge_voice()
 		// default to FS1 guy
 		SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base);
 #endif
+		return;
 	}
 
 	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
@@ -1373,6 +1388,8 @@ void debrief_choose_badge_voice()
 			return;
 		}
 #else
+		int i, j;
+
 		// search thru all official campaigns for our current campaign
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
 			if ((Campaign.filename != NULL) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	

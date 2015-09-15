@@ -47,10 +47,11 @@
 
 
 // check structs for size compatibility
-SDL_COMPILE_TIME_ASSERT(game_packet_header, sizeof(game_packet_header) == 529);
 #ifndef MAKE_FS1
+SDL_COMPILE_TIME_ASSERT(game_packet_header, sizeof(game_packet_header) == 529);
 SDL_COMPILE_TIME_ASSERT(freespace2_net_game_data, sizeof(freespace2_net_game_data) == 120);
 #else
+SDL_COMPILE_TIME_ASSERT(game_packet_header, sizeof(game_packet_header) == 729);
 SDL_COMPILE_TIME_ASSERT(freespace_net_game_data, sizeof(freespace_net_game_data) == 696);
 #endif
 SDL_COMPILE_TIME_ASSERT(game_list, sizeof(game_list) == 384);
@@ -100,6 +101,15 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 
 	PXO_ADD_UINT(gph->len);
 	PXO_ADD_DATA(gph->game_type);
+
+#ifdef MAKE_FS1
+	// FS1 needs an extra 3 bytes padding
+	char h_pad[3];
+	SDL_zero(h_pad);
+
+	PXO_ADD_DATA(h_pad);
+#endif
+
 	PXO_ADD_DATA(gph->junk); // not used, basically just padding for compatibility
 	PXO_ADD_INT(gph->type);
 	PXO_ADD_UINT(gph->sig);
@@ -201,6 +211,14 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 
 	PXO_GET_UINT(gph->len);
 	PXO_GET_DATA(gph->game_type);
+
+#ifdef MAKE_FS1
+	// FS1 has 3 bytes of padding here
+	char h_pad[3];
+
+	PXO_GET_DATA(h_pad);
+#endif
+
 	PXO_GET_DATA(gph->junk); // not used, basically just padding for compatibility
 	PXO_GET_INT(gph->type);
 	PXO_GET_UINT(gph->sig);

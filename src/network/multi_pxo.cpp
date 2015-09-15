@@ -497,8 +497,13 @@ int Multi_pxo_palette = -1;
 
 // pxo animation
 #define MULTI_PXO_ANIM_FNAME				"pxologo"
+#ifndef MAKE_FS1
 #define MULTI_PXO_ANIM_X					0
 #define MULTI_PXO_ANIM_Y					4
+#else
+#define MULTI_PXO_ANIM_X					5
+#define MULTI_PXO_ANIM_Y					10
+#endif
 anim *Multi_pxo_anim = NULL;
 anim_instance *Multi_pxo_anim_instance = NULL;
 

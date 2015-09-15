@@ -680,10 +680,10 @@ static int Main_hall_tooltip_padding[GR_NUM_RESOLUTIONS] = {
 	4,		// GR_640
 	7,		// GR_1024
 };
-#endif
 
 static int Main_hall_f1_text_frame = 0;
 static int F1_text_done = 0;
+#endif
 
 // read in main hall table
 void main_hall_read_table();
@@ -918,6 +918,7 @@ void main_hall_init(int main_hall_num)
 	help_overlay_set_state(Main_hall_overlay_id,0);		
 
 	// check to see if the "very first pilot" flag is set, and load the overlay if so
+#ifndef MAKE_FS1
 	if (!F1_text_done) {
 		if (Main_hall_f1_text_frame == 0) {
 			Main_hall_help_stamp = timestamp(MAIN_HALL_HELP_TIME);
@@ -925,9 +926,8 @@ void main_hall_init(int main_hall_num)
 			F1_text_done = 1;
 		}
 	}
-
-/*
-	if(Player_select_very_first_pilot) {				
+#else
+	if(Player_select_very_first_pilot) {
 		Main_hall_help_stamp = timestamp(MAIN_HALL_HELP_TIME);
 		
 		// don't display the "press f1" message more than once
@@ -935,7 +935,8 @@ void main_hall_init(int main_hall_num)
 	} else {
 		Main_hall_help_stamp = -1;
 	}
-*/
+#endif
+
 	Main_hall_region_linger_stamp = -1;
 
 	SDL_strlcpy(Main_hall_campaign_cheat, "", SDL_arraysize(Main_hall_campaign_cheat));
@@ -1254,7 +1255,7 @@ void main_hall_do(float frametime)
 	fishtank_process();
 
 	// process any help "hit f1" timestamps and display any messages if necessary
-	if (!F1_text_done) {
+	if (Main_hall_help_stamp != -1) {
 		main_hall_process_help_stuff();
 	}
 
@@ -1865,6 +1866,13 @@ void main_hall_blit_version()
 	char version_string[100];
 	int w;
 
+#ifdef MAKE_FS1
+	// don't show if help text or screen active
+	if ( (Main_hall_help_stamp != -1) || help_overlay_active(Main_hall_overlay_id) ) {
+		return;
+	}
+#endif
+
 	// format the version string
 	get_version_string(version_string, SDL_arraysize(version_string));
 
@@ -1896,6 +1904,13 @@ void main_hall_maybe_blit_tooltips()
 		return;
 	}
 
+#ifdef MAKE_FS1
+	// if help text visible then don't show anything
+	if (Main_hall_help_stamp != -1) {
+		return;
+	}
+#endif
+
 	// get the index of the proper text to be using
 	if(Main_hall_mouse_region == READY_ROOM_REGION) {
 		// if this is a multiplayer pilot, the ready room region becomes the multiplayer region
@@ -1922,7 +1937,7 @@ void main_hall_maybe_blit_tooltips()
 
 		gr_set_color_fast(&Color_white);
 #else
-		gr_set_color_fast(&Color_bright_white);
+		gr_set_color_fast(&Color_white);
 #endif
 		gr_string((gr_screen.max_w - w)/2, Main_hall->region_yval, Main_hall->region_descript[text_index]);
 	}
@@ -1931,7 +1946,6 @@ void main_hall_maybe_blit_tooltips()
 
 void main_hall_process_help_stuff()
 {
-#ifndef MAKE_FS1
 	int w, h;
 	char str[255];
 	
@@ -1940,6 +1954,7 @@ void main_hall_process_help_stuff()
 		return;
 	}
 
+#ifndef MAKE_FS1
 	// if the timestamp has popped, advance frame
 	if(timestamp_elapsed(Main_hall_help_stamp)) {
 		Main_hall_f1_text_frame++;
@@ -1963,6 +1978,20 @@ void main_hall_process_help_stuff()
 	gr_set_color_fast(&Color_bright_white);
 	gr_shade(0, 0, gr_screen.max_w, (2*Main_hall_tooltip_padding[gr_screen.res]) + h - y_anim_offset);
 	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res] - y_anim_offset, str);
+#else
+	// if the timestamp has popped, stop showing help message
+	if ( timestamp_elapsed(Main_hall_help_stamp) ) {
+		Main_hall_help_stamp = -1;
+		return;
+	}
+
+	// otherwise print out the message
+	SDL_strlcpy(str, XSTR( "Press F1 for help", 371), SDL_arraysize(str));
+	gr_get_string_size(&w, &h, str);
+
+	// set the color and print out text and shader
+	gr_set_color_fast(&Color_white);
+	gr_string((gr_screen.max_w - w)/2, 419, str);
 #endif
 }
 

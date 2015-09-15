@@ -686,6 +686,8 @@ void parse_helptbl()
 void help_overlay_blit(int overlay_id) 
 {
 #ifdef MAKE_FS1
+	SDL_assert(overlay_id >= 0 && overlay_id < MAX_HELP_OVERLAYS);
+
 	Overlay = bm_load(Help_overlays[overlay_id]);
 	if (Overlay < 0){
 		Int3();

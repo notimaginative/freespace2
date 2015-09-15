@@ -342,6 +342,7 @@
 //
 
 // button definitions
+#ifndef MAKE_FS1
 #define MULTI_PXO_NUM_BUTTONS				15
 #define MULTI_PXO_PLIST_UP					0
 #define MULTI_PXO_PLIST_DOWN				1
@@ -358,10 +359,28 @@
 #define MULTI_PXO_EXIT						12
 #define MULTI_PXO_HELP						13
 #define MULTI_PXO_GAMES						14
+#else
+#define MULTI_PXO_NUM_BUTTONS				14
+#define MULTI_PXO_PLIST_UP					0
+#define MULTI_PXO_PLIST_DOWN				1
+#define MULTI_PXO_CHAN_UP					2
+#define MULTI_PXO_CHAN_DOWN					3
+#define MULTI_PXO_JOIN						4
+#define MULTI_PXO_JOIN_PRIV					5
+#define MULTI_PXO_TEXT_UP					6
+#define MULTI_PXO_TEXT_DOWN					7
+#define MULTI_PXO_EXIT						8
+#define MULTI_PXO_RANKINGS					9
+#define MULTI_PXO_PINFO						10
+#define MULTI_PXO_FIND						11
+#define MULTI_PXO_HELP						12
+#define MULTI_PXO_GAMES						13
+#endif
 
 
 ui_button_info Multi_pxo_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_NUM_BUTTONS] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		ui_button_info( "PXB_00",		1,		104,	-1,	-1,	0 ),					// scroll player list up
 		ui_button_info( "PXB_01",		1,		334,	-1,	-1,	1 ),					// scroll player list down
 		ui_button_info( "PXB_02",		18,	385,	-1,	-1,	2 ),					// rankings webpage
@@ -377,6 +396,22 @@ ui_button_info Multi_pxo_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_NUM_BUTTONS] = {
 		ui_button_info( "PXB_12",		482,	435,	-1,	-1,	12 ),					// exit
 		ui_button_info( "PXB_13",		533,	432,	-1,	-1,	13 ),					// help		
 		ui_button_info( "PXB_14",		573,	432,	-1,	-1,	14 ),					// games list
+#else
+		ui_button_info( "PXB_00",		0,		139,	-1,	-1,	0 ),					// scroll player list up
+		ui_button_info( "PXB_01",		0,		179,	-1,	-1,	1 ),					// scroll player list down
+		ui_button_info( "PXB_02",		242,	105,	-1,	-1,	2 ),					// scroll channels up
+		ui_button_info( "PXB_03",		242,	145,	-1,	-1,	3 ),					// scroll channels down
+		ui_button_info( "PXB_04",		508,	121,	-1,	-1,	4 ),					// join channel
+		ui_button_info( "PXB_05",		508,	157,	-1,	-1,	5 ),					// join private channel
+		ui_button_info( "PXB_06",		611,	221,	-1,	-1,	6 ),					// scroll text up
+		ui_button_info( "PXB_07",		611,	261,	-1,	-1,	7 ),					// scroll text down
+		ui_button_info( "PXB_08",		0,		408,	-1,	-1,	8 ),					// exit
+		ui_button_info( "PXB_09",		62,		372,	-1,	-1,	9 ),					// rankings webpage
+		ui_button_info( "PXB_10",		122,	372,	-1,	-1,	10 ),					// pilot info
+		ui_button_info( "PXB_11",		171,	372,	-1,	-1,	11 ),					// find player
+		ui_button_info( "PXB_12",		505,	408,	-1,	-1,	12 ),					// help
+		ui_button_info( "PXB_13",		561,	388,	-1,	-1,	13 ),					// games list
+#endif
 	},
 	{ // GR_1024
 		ui_button_info( "2_PXB_00",		2,		166,	-1,	-1,	0 ),					// scroll player list up
@@ -393,10 +428,13 @@ ui_button_info Multi_pxo_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_NUM_BUTTONS] = {
 		ui_button_info( "2_PXB_11",		984,	568,	-1,	-1,	11 ),					// scroll text down
 		ui_button_info( "2_PXB_12",		771,	696,	-1,	-1,	12 ),					// exit
 		ui_button_info( "2_PXB_13",		853,	691,	-1,	-1,	13 ),					// help		
+#ifndef MAKE_FS1
 		ui_button_info( "2_PXB_14",		917,	691,	-1,	-1,	14 ),					// games list
+#endif
 	},
 };
 
+#ifndef MAKE_FS1
 // define MULTI_PXO_NUM_TEXT			18
 #define MULTI_PXO_NUM_TEXT			16
 UI_XSTR Multi_pxo_text[GR_NUM_RESOLUTIONS][MULTI_PXO_NUM_TEXT] = {
@@ -441,6 +479,7 @@ UI_XSTR Multi_pxo_text[GR_NUM_RESOLUTIONS][MULTI_PXO_NUM_TEXT] = {
 		{"Games",							1319,	926,	109,	UI_XSTR_COLOR_GREEN, -1, NULL}
 	}
 };
+#endif
 
 char Multi_pxo_bitmap_fname[GR_NUM_RESOLUTIONS][MAX_FILENAME_LEN] = {
 	"PXOChat",
@@ -546,7 +585,11 @@ int multi_pxo_is_nick_command(char *msg);
 // status bar stuff -----------------------------------------------
 int Multi_pxo_status_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		95, 467, 354, 12
+#else
+		127, 467, 354, 12
+#endif
 	},
 	{ // GR_1024
 		152, 750, 570, 12
@@ -591,7 +634,11 @@ int Multi_pxo_use_last_channel = 0;
 
 int Multi_pxo_chan_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		369, 101, 241, 60
+#else
+		275, 118, 224, 60
+#endif
 	},
 	{ // GR_1024
 		593, 124, 386, 100
@@ -693,7 +740,11 @@ typedef struct player_list {
 // channel list region
 int Multi_pxo_player_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		27, 121, 141, 261
+#else
+		31, 116, 185, 255
+#endif
 	},
 	{ // GR_1024
 		43, 194, 154, 417
@@ -706,6 +757,7 @@ int Multi_pxo_max_player_display[GR_NUM_RESOLUTIONS] = {
 };
 UI_BUTTON Multi_pxo_player_button;
 
+#ifndef MAKE_FS1
 // UI_SLIDER2 Multi_pxo_player_slider;
 
 // slider coords
@@ -721,6 +773,7 @@ const char *Multi_pxo_player_slider_name[GR_NUM_RESOLUTIONS] = {
 	"slider",				// GR_640
 	"2_slider"			// GR_1024
 };
+#endif
 
 // head of the list of players in this channel
 player_list *Multi_pxo_players = NULL;
@@ -777,13 +830,21 @@ DCF(players, "")
 #define MAX_CHAT_LINE_LEN				256
 
 int Multi_pxo_chat_title_y[GR_NUM_RESOLUTIONS] = {
+#ifndef MAKE_FS1
 	181,	// GR_640
+#else
+	202,
+#endif
 	253	// GR_1024
 };
 
 int Multi_pxo_chat_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		196, 197, 412, 185
+#else
+		255, 215, 346, 142
+#endif
 	},
 	{ // GR_1024
 		314, 271, 665, 330
@@ -792,7 +853,11 @@ int Multi_pxo_chat_coords[GR_NUM_RESOLUTIONS][4] = {
 
 int Multi_pxo_input_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		196, 386, 407, 24
+#else
+		262, 382, 290, 10
+#endif
 	},
 	{ // GR_1024
 		314, 617, 660, 38
@@ -800,7 +865,11 @@ int Multi_pxo_input_coords[GR_NUM_RESOLUTIONS][4] = {
 };
 
 int Multi_pxo_max_chat_display[GR_NUM_RESOLUTIONS] = {
+#ifndef MAKE_FS1
 	17,	// GR_640
+#else
+	14,
+#endif
 	32		// GR_1024
 };
 
@@ -837,6 +906,7 @@ int Multi_pxo_chat_start_index = -1;
 // input box for text
 UI_INPUTBOX Multi_pxo_chat_input;
 
+#ifndef MAKE_FS1
 // slider for chat
 UI_SLIDER2 Multi_pxo_chat_slider;
 
@@ -853,6 +923,7 @@ const char *Multi_pxo_chat_slider_name[GR_NUM_RESOLUTIONS] = {
 	"slider",
 	"2_slider"
 };
+#endif
 
 // how many chat lines we have
 int Multi_pxo_chat_count = 0;
@@ -954,7 +1025,11 @@ const char *Multi_pxo_com_mask_fname[GR_NUM_RESOLUTIONS] = {
 // popup coords
 int Multi_pxo_com_coords[GR_NUM_RESOLUTIONS][2] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		38, 129
+#else
+		39, 128
+#endif
 	},
 	{ // GR_1024
 		61, 207
@@ -964,7 +1039,11 @@ int Multi_pxo_com_coords[GR_NUM_RESOLUTIONS][2] = {
 // input box coords
 int Multi_pxo_com_input_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		53, 233, 448, 25
+#else
+		60, 231, 448, 10
+#endif
 	},
 	{ // GR_1024
 		85, 372, 716, 40
@@ -977,8 +1056,13 @@ int Multi_pxo_com_input_coords[GR_NUM_RESOLUTIONS][4] = {
 
 ui_button_info Multi_pxo_com_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_COM_NUM_BUTTONS] = {
 	{	// GR_640
+#ifndef MAKE_FS1
 		ui_button_info("PXP_00",		573,	192,	-1,	-1,	0),
 		ui_button_info("PXP_01",		573,	226,	-1,	-1,	1)
+#else
+		ui_button_info("PXP_00",		494,	182,	-1,	-1,	0),
+		ui_button_info("PXP_01",		525,	221,	-1,	-1,	1)
+#endif
 	},
 	{	// GR_1024
 		ui_button_info("2_PXP_00",		917,	308,	-1,	-1,	0),
@@ -986,6 +1070,7 @@ ui_button_info Multi_pxo_com_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_COM_NUM_BUTTO
 	}
 };
 
+#ifndef MAKE_FS1
 #define MULTI_PXO_COM_NUM_TEXT			2
 UI_XSTR Multi_pxo_com_text[GR_NUM_RESOLUTIONS][MULTI_PXO_COM_NUM_TEXT] = {
 	{ // GR_640
@@ -997,6 +1082,7 @@ UI_XSTR Multi_pxo_com_text[GR_NUM_RESOLUTIONS][MULTI_PXO_COM_NUM_TEXT] = {
 		{ "&Ok",					669,	877,	372,	UI_XSTR_COLOR_GREEN,	-1,	&Multi_pxo_com_buttons[1][MULTI_PXO_COM_OK].button }
 	}
 };
+#endif
 
 int Multi_pxo_com_bitmap = -1;
 UI_WINDOW Multi_pxo_com_window;
@@ -1121,8 +1207,13 @@ const char *Multi_pxo_pinfo_mask_fname[GR_NUM_RESOLUTIONS] = {
 
 ui_button_info Multi_pxo_pinfo_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_PINFO_NUM_BUTTONS] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		ui_button_info("PI2_00",	328,	446,	319,	433,	0),
 		ui_button_info("PI2_01",	376,	446,	382,	433,	1),
+#else
+		ui_button_info("PI2_00",	286,	359,	-1,	-1,	0),
+		ui_button_info("PI2_01",	341,	359,	-1,	-1,	1)
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_PI2_00",	525,	714,	510,	695,	0),
@@ -1130,6 +1221,7 @@ ui_button_info Multi_pxo_pinfo_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_PINFO_NUM_B
 	}
 };
 
+#ifndef MAKE_FS1
 // text
 #define MULTI_PXO_PINFO_NUM_TEXT			2
 UI_XSTR Multi_pxo_pinfo_text[GR_NUM_RESOLUTIONS][MULTI_PXO_PINFO_NUM_TEXT] = {
@@ -1142,6 +1234,7 @@ UI_XSTR Multi_pxo_pinfo_text[GR_NUM_RESOLUTIONS][MULTI_PXO_PINFO_NUM_TEXT] = {
 		{ "Ok",			345,		611,	695,	UI_XSTR_COLOR_PINK,	-1, &Multi_pxo_pinfo_buttons[1][MULTI_PXO_PINFO_OK].button },
 	}
 };
+#endif
 
 int Multi_pxo_pinfo_bitmap = -1;
 UI_WINDOW Multi_pxo_pinfo_window;
@@ -1159,7 +1252,11 @@ char Multi_pxo_retrieve_id[128];
 
 int Multi_pxo_pinfo_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		37, 142, 377, 289
+#else
+		30, 94, 340, 256
+#endif
 	},
 	{ // GR_640
 		54, 227, 602, 462
@@ -1260,9 +1357,15 @@ const char *Multi_pxo_help_mask_fname[GR_NUM_RESOLUTIONS] = {
 
 ui_button_info Multi_pxo_help_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_HELP_NUM_BUTTONS] = {
 	{ // GR_640
+#ifndef MAKE_FS1
 		ui_button_info("PXH_00",	15,	389,	-1,	-1,	0),
 		ui_button_info("PXH_01",	60,	389,	-1,	-1,	1),
 		ui_button_info("PXH_02",	574,	431,	571,	413,	2),
+#else
+		ui_button_info("PXH_00",	71,		373,	-1,	-1,	0),
+		ui_button_info("PXH_01",	121,	373,	-1,	-1,	1),
+		ui_button_info("PXH_02",	554,	411,	-1,	-1,	2)
+#endif
 	},
 	{ // GR_1024
 		ui_button_info("2_PXH_00",	24,	622,	-1,	-1,	0),
@@ -1271,6 +1374,7 @@ ui_button_info Multi_pxo_help_buttons[GR_NUM_RESOLUTIONS][MULTI_PXO_HELP_NUM_BUT
 	}
 };
 
+#ifndef MAKE_FS1
 #define MULTI_PXO_HELP_NUM_TEXT				1
 UI_XSTR Multi_pxo_help_text[GR_NUM_RESOLUTIONS][MULTI_PXO_HELP_NUM_TEXT] = {
 	{	// GR_640
@@ -1280,6 +1384,7 @@ UI_XSTR Multi_pxo_help_text[GR_NUM_RESOLUTIONS][MULTI_PXO_HELP_NUM_TEXT] = {
 		{"Continue",		1069,		928,	663,	UI_XSTR_COLOR_PINK, -1,	&Multi_pxo_help_buttons[1][MULTI_PXO_HELP_CONTINUE].button },
 	},
 };
+#endif
 
 // help text
 #define MULTI_PXO_HELP_FILE			"pxohelp.txt"
@@ -1438,10 +1543,12 @@ void multi_pxo_init(int use_last_channel)
 		Multi_pxo_buttons[gr_screen.res][idx].button.link_hotspot(Multi_pxo_buttons[gr_screen.res][idx].hotspot);
 	}		
 
+#ifndef MAKE_FS1
 	// add all xstrs
 	for(idx=0; idx<MULTI_PXO_NUM_TEXT; idx++){
 		Multi_pxo_window.add_XSTR(&Multi_pxo_text[gr_screen.res][idx]);
 	}
+#endif
 
 	if(use_last_channel && strlen(Multi_pxo_channel_last)){
 		Multi_pxo_use_last_channel = 1;
@@ -1482,8 +1589,10 @@ void multi_pxo_init(int use_last_channel)
 	// create the player list slider
 	// Multi_pxo_player_slider.create(&Multi_pxo_window, Multi_pxo_player_slider_coords[gr_screen.res][0], Multi_pxo_player_slider_coords[gr_screen.res][1], Multi_pxo_player_slider_coords[gr_screen.res][2], Multi_pxo_player_slider_coords[gr_screen.res][3], 0, Multi_pxo_player_slider_name[gr_screen.res], multi_pxo_scroll_players_up, multi_pxo_scroll_players_down, NULL);
 
+#ifndef MAKE_FS1
 	// create the chat slider
 	Multi_pxo_chat_slider.create(&Multi_pxo_window, Multi_pxo_chat_slider_coords[gr_screen.res][0], Multi_pxo_chat_slider_coords[gr_screen.res][1], Multi_pxo_chat_slider_coords[gr_screen.res][2], Multi_pxo_chat_slider_coords[gr_screen.res][3], 0, Multi_pxo_chat_slider_name[gr_screen.res], multi_pxo_scroll_chat_up, multi_pxo_scroll_chat_down, NULL);
+#endif
 
 	// set our connection status so that we do the right stuff next frame
 	Multi_pxo_must_validate = 1;
@@ -2156,11 +2265,12 @@ void multi_pxo_button_pressed(int n)
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 		}
 		break;
-
+#ifndef MAKE_FS1
 	case MULTI_PXO_MOTD:
 		// maybe fire up the pxo motd dialog
 		multi_pxo_motd_dialog();
 		break;
+#endif
 	}
 }
 
@@ -3404,7 +3514,9 @@ void multi_pxo_chat_free()
 	Multi_pxo_chat_start = NULL;
 	Multi_pxo_chat_start_index = -1;
 	Multi_pxo_chat_count = 0;
-	Multi_pxo_chat_slider.set_numberItems(0);	
+#ifndef MAKE_FS1
+	Multi_pxo_chat_slider.set_numberItems(0);
+#endif
 }
 
 // clear all lines of chat text in the chat area
@@ -3466,8 +3578,10 @@ void multi_pxo_chat_add_line(char *txt, int mode)
 		Multi_pxo_chat_count++;
 	}
 
+#ifndef MAKE_FS1
 	// set the count
 	Multi_pxo_chat_slider.set_numberItems(Multi_pxo_chat_count > Multi_pxo_max_chat_display[gr_screen.res] ? Multi_pxo_chat_count - Multi_pxo_max_chat_display[gr_screen.res] : 0, 0);		// the 0 means don't reset
+#endif
 
 	// force the position, in case we arent at the bottom of the list
 
@@ -3524,14 +3638,22 @@ void multi_pxo_chat_process_incoming(const char *txt,int mode)
 		}
 		// if this is a MOTD
 		else if(multi_pxo_is_motd_text(txt)){
-			// mode = CHAT_MODE_MOTD;
+#ifdef MAKE_FS1
+			// strip off prefix
+			SDL_strlcpy(msg_total, txt + strlen(PXO_CHAT_MOTD_PREFIX), SDL_arraysize(msg_total));
+
+			mode = CHAT_MODE_MOTD;
+#else
 			// stuff the motd
 			multi_pxo_motd_add_text(txt);
 			return;
+#endif
 		} 
 		// if this is the end of motd text
 		else if(multi_pxo_is_end_of_motd_text(txt)){
+#ifndef MAKE_FS1
 			multi_pxo_set_end_of_motd();
+#endif
 			return;
 		}
 	}
@@ -3679,9 +3801,11 @@ void multi_pxo_goto_bottom()
 	// if we have less than the displayable amount of lines, do nothing
 	if(Multi_pxo_chat_count <= Multi_pxo_max_chat_display[gr_screen.res]){
 		Multi_pxo_chat_start = Multi_pxo_chat;						
-		
+
+#ifndef MAKE_FS1
 		// nothing to do for the slider
 		Multi_pxo_chat_slider.set_numberItems(0);
+#endif
 		return;
 	}
 
@@ -3922,9 +4046,10 @@ void multi_pxo_chat_adjust_start()
 		Multi_pxo_chat_start_index++;
 		moveup = moveup->next;
 	}
-
+#ifndef MAKE_FS1
 	// set the slider index
 	Multi_pxo_chat_slider.force_currentItem(Multi_pxo_chat_start_index);
+#endif
 }
 
 // motd stuff ---------------------------------------------------------
@@ -4041,6 +4166,7 @@ void multi_pxo_motd_dialog()
 // call to maybe blink the motd button
 void multi_pxo_motd_maybe_blit()
 {
+#ifndef MAKE_FS1
 	// if we got the end of the motd, and he hasn't read it yet
 	if(Pxo_motd_end && !Pxo_motd_read && (Pxo_motd_blink_stamp != -1)){
 		// if the timestamp elapsed, flip the blink flag
@@ -4053,7 +4179,8 @@ void multi_pxo_motd_maybe_blit()
 		if(Pxo_motd_blink_on){
 			Multi_pxo_buttons[gr_screen.res][MULTI_PXO_MOTD].button.draw_forced(2);
 		}
-	}	
+	}
+#endif
 }
 
 
@@ -4085,10 +4212,12 @@ void multi_pxo_com_init(int input_len)
 		Multi_pxo_com_buttons[gr_screen.res][idx].button.link_hotspot(Multi_pxo_com_buttons[gr_screen.res][idx].hotspot);
 	}			
 
+#ifndef MAKE_FS1
 	// add xstrs
 	for(idx=0; idx<MULTI_PXO_COM_NUM_TEXT; idx++){
 		Multi_pxo_com_window.add_XSTR(&Multi_pxo_com_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// create the input box
 	Multi_pxo_com_input.create(&Multi_pxo_com_window, Multi_pxo_com_input_coords[gr_screen.res][0], Multi_pxo_com_input_coords[gr_screen.res][1], Multi_pxo_com_input_coords[gr_screen.res][2], input_len, "", UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_EAT_USED);	
@@ -4817,10 +4946,12 @@ void multi_pxo_pinfo_init()
 		Multi_pxo_pinfo_buttons[gr_screen.res][idx].button.link_hotspot(Multi_pxo_pinfo_buttons[gr_screen.res][idx].hotspot);
 	}				
 
+#ifndef MAKE_FS1
 	// add xstrs
 	for(idx=0; idx<MULTI_PXO_PINFO_NUM_TEXT; idx++){
 		Multi_pxo_pinfo_window.add_XSTR(&Multi_pxo_pinfo_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// set up the stats labels
 	Multi_pxo_pinfo_stats_labels[0] = strdup(XSTR("Name", 1532));
@@ -4884,7 +5015,11 @@ int multi_pxo_pinfo_do()
 	// blit our own stuff
 	gr_reset_clip();	
 	gr_set_bitmap(Multi_pxo_pinfo_bitmap);
+#ifndef MAKE_FS1
 	gr_bitmap(0, 0);
+#else
+	gr_bitmap(7, 67);
+#endif
 	Multi_pxo_pinfo_window.draw();	
 
 	// blit the stats themselves
@@ -5037,11 +5172,13 @@ void multi_pxo_help_init()
 		// set the hotspot
 		Multi_pxo_help_buttons[gr_screen.res][idx].button.link_hotspot(Multi_pxo_help_buttons[gr_screen.res][idx].hotspot);
 	}	
-	
+
+#ifndef MAKE_FS1
 	// add xstrs
 	for(idx=0; idx<MULTI_PXO_HELP_NUM_TEXT; idx++){
 		Multi_pxo_help_window.add_XSTR(&Multi_pxo_help_text[gr_screen.res][idx]);
 	}
+#endif
 
 	// if we haven't already loaded in the text, do so
 	// if(!Multi_pxo_help_loaded){

@@ -99,6 +99,7 @@ static int SerializeValidatePacket(const udp_packet_header *uph, ubyte *data)
 			break;
 		}
 
+		case UNT_VALID_FS_MSN_REQ:
 		case UNT_VALID_FS2_MSN_REQ: {
 			vmt_validate_mission_req_struct *mis_req = (vmt_validate_mission_req_struct *)&uph->data;
 
@@ -439,8 +440,10 @@ void ValidIdle()
 					break;
 				// old - this is a Freespace 1 packet type
 				case UNT_VALID_FS_MSN_RSP:
+#ifndef MAKE_FS1
 					Int3();
 					break;
+#endif
 
 				// fs2 mission validation response
 				case UNT_VALID_FS2_MSN_RSP:
@@ -585,7 +588,11 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 				FD_SET(VALIDSOCKET, &read_fds);
 			}
 			//only send the header, the checksum and the string length plus the null
+#ifndef MAKE_FS1
 			PacketHeader.type = UNT_VALID_FS2_MSN_REQ;
+#else
+			PacketHeader.type = UNT_VALID_FS_MSN_REQ;
+#endif
 			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(int)+1+strlen(valid_msn->file_name));
 			memcpy(PacketHeader.data,valid_msn,PacketHeader.len-PACKED_HEADER_ONLY_SIZE);
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);

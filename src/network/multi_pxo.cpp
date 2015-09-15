@@ -5390,6 +5390,7 @@ void multi_pxo_help_button_pressed(int n)
 // init
 void multi_pxo_ban_init()
 {
+#ifndef MAKE_FS1
 	// zero the active banner bitmap
 	Multi_pxo_banner.ban_bitmap = -1;	
 
@@ -5409,6 +5410,7 @@ void multi_pxo_ban_init()
 		Multi_pxo_ban_mode = PXO_BAN_MODE_IDLE;
 		Multi_pxo_ban_get = NULL;
 	}
+#endif
 
 	// zero the active banner bitmap
 	SDL_zero(Multi_pxo_banner);
@@ -5420,6 +5422,11 @@ void multi_pxo_ban_process()
 {
 	char url_string[512] = "";
 	char local_file[MAX_PATH_LEN] = "";
+
+#ifdef MAKE_FS1
+	// no banners here
+	return;
+#endif
 
 	// process stuff
 	switch(Multi_pxo_ban_mode){

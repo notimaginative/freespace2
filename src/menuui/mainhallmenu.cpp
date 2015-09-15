@@ -1935,7 +1935,7 @@ void main_hall_maybe_blit_tooltips()
 		gr_set_shader(&Main_hall_tooltip_shader);
 		gr_shade(0, shader_y, gr_screen.clip_width, (gr_screen.clip_height - shader_y));
 
-		gr_set_color_fast(&Color_white);
+		gr_set_color_fast(&Color_bright_white);
 #else
 		gr_set_color_fast(&Color_white);
 #endif

@@ -411,7 +411,11 @@ void multi_fs_tracker_init()
 	}	
 
 	// intialize the low-level game tracking stuff
-	if(!InitGameTrackerClient(GT_FREESPACE2)){		
+#ifndef MAKE_FS1
+	if(!InitGameTrackerClient(GT_FREESPACE2)){
+#else
+	if(!InitGameTrackerClient(GT_FREESPACE)){
+#endif
 		ml_printf("Error initializing tracker api (gameclient)\n");
 		return;
 	}	

@@ -3758,6 +3758,7 @@ UI_XSTR Multi_create_text[GR_NUM_RESOLUTIONS][MULTI_CREATE_NUM_BUTTONS] = {
 	},
 };
 
+#ifndef MAKE_FS1
 // squad war checkbox
 UI_CHECKBOX	Multi_create_sw_checkbox;
 const char *Multi_create_sw_checkbox_fname[GR_NUM_RESOLUTIONS] = {
@@ -3780,6 +3781,7 @@ int Multi_create_sw_checkbox_text[GR_NUM_RESOLUTIONS][2] = {
 		18, 155
 	},
 };
+#endif
 
 // game information text areas
 int Mc_list_coords[GR_NUM_RESOLUTIONS][4] = {
@@ -4149,6 +4151,7 @@ void multi_create_game_init()
 		Multi_create_window.add_XSTR(&Multi_create_text[gr_screen.res][idx]);
 	}
 
+#ifndef MAKE_FS1
 	// if this is a PXO game, enable the squadwar checkbox	
 	Multi_create_sw_checkbox.create(&Multi_create_window, "", Multi_create_sw_checkbox_coords[gr_screen.res][0], Multi_create_sw_checkbox_coords[gr_screen.res][1], 0);
 	Multi_create_sw_checkbox.set_bmaps(Multi_create_sw_checkbox_fname[gr_screen.res], 6, 0);
@@ -4156,6 +4159,7 @@ void multi_create_game_init()
 		Multi_create_sw_checkbox.hide();
 		Multi_create_sw_checkbox.disable();
 	}
+#endif
 	
 #ifdef FS2_DEMO
 	// disable squad war button in demo
@@ -4393,7 +4397,9 @@ void multi_create_game_do()
 		} else {
 			gr_set_color_fast(&Color_normal);
 		}
+#ifndef MAKE_FS1
 		gr_string(Multi_create_sw_checkbox_text[gr_screen.res][0], Multi_create_sw_checkbox_text[gr_screen.res][1], "SquadWar");
+#endif
 	}
 
 	// flip the buffer
@@ -4443,10 +4449,12 @@ void multi_create_check_buttons()
 		}
 	}
 
+#ifndef MAKE_FS1
 	// if the squad war checkbox was clicked
 	if(Multi_create_sw_checkbox.changed()){
 		multi_create_sw_clicked();
 	}
+#endif
 }
 
 void multi_create_button_pressed(int n)
@@ -4605,7 +4613,9 @@ void multi_create_button_pressed(int n)
 	// switch to campaign mode and load in a list
 	case MC_CAMPAIGN_FILTER:		
 		// switch off squad war
+#ifndef MAKE_FS1
 		Multi_create_sw_checkbox.set_state(0);
+#endif
 		Netgame.type_flags = NG_TYPE_COOP;
 
 		if(Multi_create_list_mode != MULTI_CREATE_SHOW_CAMPAIGNS){
@@ -5227,12 +5237,16 @@ void multi_create_list_select_item(int n)
 		abs_index = multi_create_select_to_index(n);
 		if(abs_index != -1){
 			if(Multi_create_file_list[abs_index].flags & MISSION_TYPE_MULTI_TEAMS){
+#ifndef MAKE_FS1
 				// if we're in squad war mode, leave it as squad war
 				if(old_type & NG_TYPE_SW){
 					ng->type_flags = NG_TYPE_SW;
 				} else {
 					ng->type_flags = NG_TYPE_TVT;
 				}
+#else
+				ng->type_flags = NG_TYPE_TVT;
+#endif
 			} else if(Multi_create_file_list[abs_index].flags & MISSION_TYPE_MULTI_COOP){
 				ng->type_flags = NG_TYPE_COOP;
 			} else if(Multi_create_file_list[abs_index].flags & MISSION_TYPE_MULTI_DOGFIGHT){
@@ -5240,10 +5254,12 @@ void multi_create_list_select_item(int n)
 			}
 		}
 
+#ifndef MAKE_FS1
 		// if we're no longer in a TvT game, just uncheck the squadwar checkbox
 		if(!(ng->type_flags & NG_TYPE_TEAM)){
 			Multi_create_sw_checkbox.set_state(0);
 		}
+#endif
 
 		// if we switched from something else to team vs. team mode, do some special processing
 		if((ng->type_flags & NG_TYPE_TEAM) && (ng->type_flags != old_type) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
@@ -5702,6 +5718,7 @@ int multi_create_ok_to_commit()
 	if(found_hack){
 		// if we're on PXO
 		if(MULTI_IS_TRACKER_GAME){
+#ifndef MAKE_FS1
 			// don't allow squad war matches to continue
 			if(Netgame.type_flags & NG_TYPE_SW){
 #ifdef RELEASE_REAL
@@ -5718,6 +5735,12 @@ int multi_create_ok_to_commit()
 					return 0;
 				}
 			}
+#else
+			// warn the players that stats will not saved
+			if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
+				return 0;
+			}
+#endif
 		}
 		// non-pxo, just give a notice
 		else {
@@ -5791,10 +5814,12 @@ int multi_create_ok_to_commit()
 				}
 			}
 		}
+#ifndef MAKE_FS1
 		// squad war
 		else {
 			return multi_sw_ok_to_commit();
 		}
+#endif
 	}	
 		
 	return 1;
@@ -5873,6 +5898,7 @@ void multi_create_refresh_pxo()
 
 void multi_create_sw_clicked()
 {
+#ifndef MAKE_FS1
 	netgame_info ng_temp;
 	netgame_info *ng;
 
@@ -5925,6 +5951,7 @@ void multi_create_sw_clicked()
 		// standalone will take care of polling the usertracker
 		multi_options_update_mission(ng, Multi_create_list_mode == MULTI_CREATE_SHOW_CAMPAIGNS ? 1 : 0);
 	}
+#endif
 }
 
 
@@ -7138,6 +7165,7 @@ int Mjw_mission_name_coords[GR_NUM_RESOLUTIONS][2] = {
 	}
 };
 
+#ifndef MAKE_FS1
 // squad war checkbox
 UI_CHECKBOX	Multi_jw_sw_checkbox;
 const char *Multi_jw_sw_checkbox_fname[GR_NUM_RESOLUTIONS] = {
@@ -7160,6 +7188,7 @@ int Multi_jw_sw_checkbox_text[GR_NUM_RESOLUTIONS][2] = {
 		18, 470
 	},
 };
+#endif
 
 
 // player list control thingie defs
@@ -7228,6 +7257,7 @@ void multi_game_client_setup_init()
 		Multi_jw_buttons[gr_screen.res][idx].button.link_hotspot(Multi_jw_buttons[gr_screen.res][idx].hotspot);
 	}		
 
+#ifndef MAKE_FS1
 	// if this is a PXO game, enable the squadwar checkbox	
 	Multi_jw_sw_checkbox.create(&Multi_jw_window, "", Multi_jw_sw_checkbox_coords[gr_screen.res][0], Multi_jw_sw_checkbox_coords[gr_screen.res][1], 0);
 	Multi_jw_sw_checkbox.set_bmaps(Multi_jw_sw_checkbox_fname[gr_screen.res], 6, 0);
@@ -7235,6 +7265,7 @@ void multi_game_client_setup_init()
 	if(!MULTI_IS_TRACKER_GAME){
 		Multi_jw_sw_checkbox.hide();		
 	}
+#endif
 
 #ifndef MAKE_FS1
 	// create all xstrs
@@ -7300,6 +7331,7 @@ void multi_game_client_setup_do_frame()
 		Multi_jw_buttons[gr_screen.res][MJW_TEAM1].button.unhide();		
 	}
 
+#ifndef MAKE_FS1
 	if(MULTI_IS_TRACKER_GAME){
 		// maybe check the squadwar button
 		if(Netgame.type_flags & NG_TYPE_SW){
@@ -7311,7 +7343,8 @@ void multi_game_client_setup_do_frame()
 		}
 				
 		gr_string(Multi_jw_sw_checkbox_text[gr_screen.res][0], Multi_jw_sw_checkbox_text[gr_screen.res][1], "SquadWar");
-	}	
+	}
+#endif
 
 	// draw the UI window
 	Multi_jw_window.draw();	
@@ -9308,11 +9341,15 @@ void multi_debrief_accept_hit()
 		if(Net_player->flags & NETINFO_FLAG_GAME_HOST){
 			// if we're on a tracker game, he gets no choice for storing stats
 			if(MULTI_IS_TRACKER_GAME){
+#ifndef MAKE_FS1
 				int stats_saved = multi_fs_tracker_store_stats();
 
 				if (Netgame.type_flags & NG_TYPE_SW) {
 					multi_sw_report(stats_saved);
 				}
+#else
+				multi_fs_tracker_store_stats();
+#endif
 
 				multi_maybe_set_mission_loop();
 			} else {
@@ -9363,11 +9400,15 @@ void multi_debrief_esc_hit()
 		// if the stats have already been accepted
 		if((Multi_debrief_stats_accept_code != -1) || (MULTI_IS_TRACKER_GAME)){
 			if (Multi_debrief_stats_accept_code == 1) {
+#ifndef MAKE_FS1
 				int stats_saved = multi_fs_tracker_store_stats();
 
 				if (Netgame.type_flags & NG_TYPE_SW) {
 					multi_sw_report(stats_saved);
 				}
+#else
+				multi_fs_tracker_store_stats();
+#endif
 			}
 
 			multi_quit_game(PROMPT_HOST);

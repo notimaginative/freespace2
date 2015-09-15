@@ -233,15 +233,15 @@ ushort Multi_options_proxy_port = 0;
 // MULTI OPTIONS FUNCTIONS
 //
 
+#ifdef MAKE_FS1
+void multi_options_read_config_fs1();
+#endif
+
 // load in the config file
 #define NEXT_TOKEN()						do { tok = strtok(NULL, "\n"); if(tok != NULL){ drop_leading_white_space(tok); drop_trailing_white_space(tok); } } while(0);
 #define SETTING(s)						( !SDL_strcasecmp(tok, s) )
 void multi_options_read_config()
 {
-	CFILE *in;
-	char str[512];
-	char *tok = NULL;
-
 	// set default value for the global multi options
 	memset(&Multi_options_g, 0, sizeof(multi_global_options));
 	Multi_options_g.protocol = NET_TCP;	
@@ -267,7 +267,12 @@ void multi_options_read_config()
 	memset(Multi_options_g.std_passwd, 0, STD_PASSWD_LEN);
 	memset(Multi_options_g.std_pname, 0, STD_NAME_LEN);
 	Multi_options_g.std_framecap = 30;
-	
+
+#ifndef MAKE_FS1
+	CFILE *in;
+	char str[512];
+	char *tok = NULL;
+
 	// read in the config file
 	in = cfopen(MULTI_CFG_FILE, "rt", CFILE_NORMAL, CF_TYPE_DATA);
 	
@@ -437,7 +442,165 @@ void multi_options_read_config()
 	// close the config file
 	cfclose(in);
 	in = NULL;
+#else
+	multi_options_read_config_fs1();
+#endif
 }
+
+#ifdef MAKE_FS1
+void multi_options_read_config_fs1()
+{
+	CFILE *in;
+	char str[512];
+	char *tok = NULL;
+
+	SDL_zero(str);
+
+	// read in the pxo config file
+	in = cfopen("pxo.cfg", "rt", CFILE_NORMAL, CF_TYPE_DATA);
+
+	if (in != NULL) {
+		// first line should be user tracker
+		if ( cfgets(str, 512, in) ) {
+			drop_leading_white_space(str);
+			drop_trailing_white_space(str);
+
+			SDL_strlcpy(Multi_options_g.user_tracker_ip, str, SDL_arraysize(Multi_options_g.user_tracker_ip));
+		}
+
+		// next line should be game tracker
+		if ( cfgets(str, 512, in) ) {
+			drop_leading_white_space(str);
+			drop_trailing_white_space(str);
+
+			SDL_strlcpy(Multi_options_g.game_tracker_ip, str, SDL_arraysize(Multi_options_g.game_tracker_ip));
+		}
+
+		// next, irc/chat server
+		if ( cfgets(str, 512, in) ) {
+			drop_leading_white_space(str);
+			drop_trailing_white_space(str);
+
+			SDL_strlcpy(Multi_options_g.pxo_ip, str, SDL_arraysize(Multi_options_g.pxo_ip));
+		}
+
+		// web link: rankings
+		if ( cfgets(str, 512, in) ) {
+			drop_leading_white_space(str);
+			drop_trailing_white_space(str);
+
+			SDL_strlcpy(Multi_options_g.pxo_rank_url, str, SDL_arraysize(Multi_options_g.pxo_rank_url));
+		}
+
+		// web link: register/create account
+		if ( cfgets(str, 512, in) ) {
+			drop_leading_white_space(str);
+			drop_trailing_white_space(str);
+
+			SDL_strlcpy(Multi_options_g.pxo_create_url, str, SDL_arraysize(Multi_options_g.pxo_create_url));
+		}
+
+		// web link: verify account/user
+		if ( cfgets(str, 512, in) ) {
+			drop_leading_white_space(str);
+			drop_trailing_white_space(str);
+
+			SDL_strlcpy(Multi_options_g.pxo_verify_url, str, SDL_arraysize(Multi_options_g.pxo_verify_url));
+		}
+
+		cfclose(in);
+		in = NULL;
+	}
+
+	// maybe read standalone config
+	if (Is_standalone) {
+		// read in the config file
+		in = cfopen("std.cfg", "rt", CFILE_NORMAL, CF_TYPE_DATA);
+
+		if (in != NULL) {
+			while(!cfeof(in)){
+				// read in the game info
+				memset(str,0,512);
+				cfgets(str,512,in);
+
+				// parse the first line
+				tok = strtok(str," \t");
+
+				// check the token
+				if(tok != NULL){
+					drop_leading_white_space(tok);
+					drop_trailing_white_space(tok);
+				} else {
+					continue;
+				}
+
+				if(SETTING("+pxo")){
+					// setup PXO mode
+					NEXT_TOKEN();
+					if(tok != NULL){
+						// whee!
+					}
+				} else
+				if(SETTING("+name")){
+					// set the standalone server's permanent name
+					NEXT_TOKEN();
+					if(tok != NULL){
+						SDL_strlcpy(Multi_options_g.std_pname, tok, STD_NAME_LEN);
+					}
+				} else
+				if(SETTING("+no_voice")){
+					// standalone won't allow voice transmission
+					Multi_options_g.std_voice = 0;
+				} else
+				if(SETTING("+max_players")){
+					// set the max # of players on the standalone
+					NEXT_TOKEN();
+					if(tok != NULL){
+						if(!((atoi(tok) < 1) || (atoi(tok) > MAX_PLAYERS))){
+							Multi_options_g.std_max_players = atoi(tok);
+						}
+					}
+				} else
+				if(SETTING("+ban")){
+					// ban a player
+					NEXT_TOKEN();
+					if(tok != NULL){
+						std_add_ban(tok);
+					}
+				} else
+				if(SETTING("+passwd")){
+					// set the standalone host password
+					NEXT_TOKEN();
+					if(tok != NULL){
+						SDL_strlcpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
+
+						STUB_FUNCTION;
+					}
+				} else
+				if(SETTING("+low_update")){
+					// set standalone to low updates
+					Multi_options_g.std_datarate = OBJ_UPDATE_LOW;
+				} else
+				if(SETTING("+med_update")){
+					// set standalone to medium updates
+					Multi_options_g.std_datarate = OBJ_UPDATE_MEDIUM;
+				} else
+				if(SETTING("+high_update")){
+					// set standalone to high updates
+					Multi_options_g.std_datarate = OBJ_UPDATE_HIGH;
+				} else
+				if(SETTING("+lan_update")){
+					// set standalone to high updates
+					Multi_options_g.std_datarate = OBJ_UPDATE_LAN;
+				}
+			}
+		}
+
+		cfclose(in);
+		in = NULL;
+	}
+}
+#endif
 
 // set netgame defaults 
 // NOTE : should be used when creating a newpilot

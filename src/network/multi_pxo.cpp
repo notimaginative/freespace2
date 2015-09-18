@@ -2428,8 +2428,10 @@ void multi_pxo_api_process()
 	Chat_command *cmd;	
 	pxo_channel *lookup;
 
+#ifndef MAKE_FS1
 	// give some time to psnet
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	// give some time to the game tracker API
 	IdleGameTracker();

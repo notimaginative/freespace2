@@ -3539,8 +3539,10 @@ void process_pong_packet(ubyte *data, header *hinfo)
 		   std_update_player_ping(p);	
 		}
 
+#ifdef PSNET2
 		// mark his socket as still alive (extra precaution)
 		psnet_mark_received(Net_players[lookup].reliable_socket);
+#endif
 	}
 	// otherwise, do any special processing
 	else {

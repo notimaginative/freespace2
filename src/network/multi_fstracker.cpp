@@ -369,7 +369,9 @@ void multi_fs_tracker_process()
 {
 	game_list *gl;
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	if(Multi_fs_tracker_inited){
 		// pilot validation system
@@ -818,7 +820,9 @@ int multi_fs_validate_process()
 	// should never be here if this is not true
 	SDL_assert(Multi_fs_tracker_inited);
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	// if we're still in player validation mode
 	if(Multi_validate_mode == 0){
@@ -894,7 +898,9 @@ int multi_fs_store_stats_do()
 
 	SDL_assert(Multi_fs_tracker_inited);
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	switch(Multi_store_stats_mode){
 	// get stats for all players

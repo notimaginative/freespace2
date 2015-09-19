@@ -1918,6 +1918,10 @@ int psnet_rel_get_status(PSNET_SOCKET psocket)
 
 	socket = (SOCKET)psocket;
 
+	if (socket == (SOCKET)INVALID_SOCKET) {
+		return RNF_UNUSED;
+	}
+
 	if ( getsockopt(socket, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size) ) {
 		return RNF_BROKEN;
 	}

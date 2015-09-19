@@ -1260,7 +1260,7 @@ int Multi_pxo_pinfo_coords[GR_NUM_RESOLUTIONS][4] = {
 #ifndef MAKE_FS1
 		37, 142, 377, 289
 #else
-		30, 94, 340, 256
+		30, 104, 340, 246
 #endif
 	},
 	{ // GR_640

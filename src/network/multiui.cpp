@@ -7880,7 +7880,11 @@ UI_XSTR Multi_sync_text[GR_NUM_RESOLUTIONS][MULTI_SYNC_NUM_TEXT] = {
 // player name
 int Ms_status_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		40, 156, 560, 200
+#else
 		38, 150, 581, 220
+#endif
 	},
 	{ // GR_1024
 		38, 228, 958, 367
@@ -7890,7 +7894,11 @@ int Ms_status_coords[GR_NUM_RESOLUTIONS][4] = {
 // player status coords
 int Ms_status2_coords[GR_NUM_RESOLUTIONS][4] = {
 	{ // GR_640
+#ifdef MAKE_FS1
+		246, 156, 354, 200
+#else
 		228, 150, 391, 220
+#endif
 	},
 	{ // GR_1024
 		370, 228, 626, 367

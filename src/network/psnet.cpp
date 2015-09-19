@@ -417,7 +417,7 @@ void psnet_ras_status()
 	Ras_connected = 0;
 
 	// first, call a LoadLibrary to load the RAS api
-	ras_handle = LoadLibrary( NOX("rasapi32.dll") );
+	ras_handle = LoadLibrary( (LPCWSTR)"rasapi32.dll" );
 	if ( ras_handle == NULL ) {
 		return;
 	}
@@ -486,7 +486,7 @@ void psnet_ras_status()
 			return;
 		}
 
-		printf(("Network", "\tIP Address: %s\n", projection.szIpAddress));
+		nprintf(("Network", "\tIP Address: %s\n", projection.szIpAddress));
 	}
 
 	Ras_connected = 1;
@@ -1922,7 +1922,7 @@ int psnet_rel_get_status(PSNET_SOCKET psocket)
 		return RNF_UNUSED;
 	}
 
-	if ( getsockopt(socket, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size) ) {
+	if ( getsockopt(socket, SOL_SOCKET, SO_ERROR, (char*)&error_code, &error_code_size) ) {
 		return RNF_BROKEN;
 	}
 

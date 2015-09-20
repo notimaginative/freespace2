@@ -3206,7 +3206,7 @@ void multi_update_valid_missions()
 			break;
 		}
 
-		Multi_create_mission_list[idx].valid_status = rval;
+		Multi_create_mission_list[idx].valid_status = (char)rval;
 	}
 
 	// if the operation was cancelled, don't write anything new

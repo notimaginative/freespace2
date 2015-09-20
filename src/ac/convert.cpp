@@ -271,15 +271,18 @@ int AVI_stream_open(char* filename)
 
 	FILE *pfile = NULL;
 	int id = 0;
-	unsigned int tag = 0, size = 0, next_chunk;
+	unsigned int tag = 0, size = 0;
 	unsigned int s_tag, tmp;
 	AVIMAINHEADER avi_header;
 	AVISTREAMHEADER stream_header;
 	BITMAPINFO bitmap_header;
-	unsigned int file_size = 0;
-	unsigned int movi_offset = 0;
+	long file_size = 0, movi_offset = 0, next_chunk;
 
 	SDL_assert( !(AVI_stream.flags & AVI_STREAM_F_USED) );
+
+	SDL_zero(avi_header);
+	SDL_zero(stream_header);
+	SDL_zero(bitmap_header);
 
 	pfile = fopen(filename, "rb");
 
@@ -319,7 +322,7 @@ int AVI_stream_open(char* filename)
 	}
 
 	// used for main 'LIST' chunks
-	unsigned int offset_tmp = 0;
+	long offset_tmp = 0;
 
 	// parse WAVE tags
 	while ( ftell(pfile) < file_size ) {
@@ -589,11 +592,11 @@ int AVI_stream_open(char* filename)
 	}
 
 	// fix up frame_index (assumes frame_index[0] is first frame in stream)
-	unsigned int base_offset = 0;
+	long base_offset = 0;
 
-	if (AVI_stream.frame_index[0].offset > movi_offset) {
+	if (AVI_stream.frame_index[0].offset > (unsigned int)movi_offset) {
 		base_offset = 0;
-	} else if (AVI_stream.frame_index[0].offset == movi_offset) {
+	} else if (AVI_stream.frame_index[0].offset == (unsigned int)movi_offset) {
 		base_offset = 4;
 	} else if (AVI_stream.frame_index[0].offset == 0) {
 		base_offset = movi_offset + 4;

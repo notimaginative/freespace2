@@ -182,7 +182,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 	// make sure we received a complete base packet
 	if (data_size < (int)PACKED_HEADER_ONLY_SIZE) {
 		uph->len = 0;
-		uph->type = -1;
+		uph->type = 0xff;
 
 		return;
 	}
@@ -198,7 +198,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 	// (not exactly sure what -1 is for, but that's how it is later)
 	if ((int)uph->len-1 > data_size) {
 		uph->len = 0;
-		uph->type = -1;
+		uph->type = 0xff;
 
 		return;
 	}

@@ -268,7 +268,7 @@ void pack_directory(const char * filespec)
 
 				}
 			} else {
-				pack_file( filespec, find.name, find.size, find.time_write );
+				pack_file( filespec, find.name, find.size, (fs_time_t)find.time_write );
 			}
 		}
 	}

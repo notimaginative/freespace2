@@ -155,7 +155,7 @@ int neb_w = 0, neb_h = 0;
 int nebula_inited = 0;
 int num_pts = 0;
 
-int x[MAX_POINTS], y[MAX_POINTS], l[MAX_POINTS];
+static int x[MAX_POINTS], y[MAX_POINTS], l[MAX_POINTS];
 float scale_factor = 1.0f;
 
 int num_tris = 0;

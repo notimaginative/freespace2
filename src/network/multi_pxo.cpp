@@ -481,7 +481,6 @@ int Multi_pxo_must_verify_version = 1;			// only do it once per instance of free
 int Multi_pxo_mode = MULTI_PXO_MODE_NORMAL;
 
 // our nick for this session
-int x = NAME_LENGTH;
 char Multi_pxo_nick[NAME_LENGTH+1];
 
 // check for button presses

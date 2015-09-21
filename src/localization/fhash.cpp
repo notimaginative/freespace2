@@ -76,7 +76,7 @@ void fhash_insert(char *str, int id, int n);
 // initialize the hash table
 void fhash_init()
 {
-	memset(Hash_table_fred, 0, sizeof(fhash_node) * HASH_TABLE_SIZE);
+	memset(Hash_table_fred, 0, sizeof(Hash_table_fred));
 }
 
 // set the hash table to be active for parsing

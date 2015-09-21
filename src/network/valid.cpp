@@ -369,20 +369,24 @@ void ValidIdle()
 		addrsize = sizeof(struct sockaddr_in);
 
 		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(udp_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_VALIDATION);
-		DeserializeValidatePacket(packet_data, bytesin, &inpacket);
-		if(bytesin==-1){
+
+		if (bytesin > 0) {
+			DeserializeValidatePacket(packet_data, bytesin, &inpacket);
+
+			// decrease packet size by 1
+			inpacket.len--;
+#ifndef NDEBUG
+		} else {
 			int wserr=WSAGetLastError();
-			printf("recvfrom() failure. WSAGetLastError() returned %d\n",wserr);
-			
+			mprintf(("recvfrom() failure. WSAGetLastError() returned %d\n",wserr));
+#endif
 		}
+
 		FD_ZERO(&read_fds);
 		FD_SET(Unreliable_socket, &read_fds);    
-		
-		// decrease packet size by 1
-		inpacket.len--;
 
 		//Check to make sure the packets ok
-		if(bytesin==inpacket.len){
+		if ( (bytesin > 0) && (bytesin == inpacket.len) ) {
 			switch(inpacket.type)
 			{
 				case UNT_LOGIN_NO_AUTH:

@@ -620,7 +620,6 @@ int ship_ship_check_collision(collision_info_struct *ship_ship_hit_info, vector 
 {
 	object *heavy_obj	= ship_ship_hit_info->heavy;
 	object *light_obj = ship_ship_hit_info->light;
-	int	player_involved;	// flag to indicate that A or B is the Player_obj
 	int	num; //, player_check=0;
 
 	SDL_assert( heavy_obj->type == OBJ_SHIP );
@@ -631,6 +630,9 @@ int ship_ship_check_collision(collision_info_struct *ship_ship_hit_info, vector 
 
 	SDL_assert( Ships[num].objnum == OBJ_INDEX(heavy_obj));
 
+#ifndef NDEBUG
+	int	player_involved;	// flag to indicate that A or B is the Player_obj
+
 	// AL 12-4-97: we use the player_involved flag to ensure collisions are always
 	//             done with the player, regardless of team.
 	if ( heavy_obj == Player_obj || light_obj == Player_obj ) {
@@ -638,6 +640,7 @@ int ship_ship_check_collision(collision_info_struct *ship_ship_hit_info, vector 
 	} else {
 		player_involved = 0;
 	}
+#endif
 
 	// Make ships that are warping in not get collision detection done
 //	if ( Ships[num].flags & SF_ARRIVING ) return 0;

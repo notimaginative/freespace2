@@ -404,7 +404,7 @@ void IdleGameTracker()
 
 	if(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_GAME_TRACKER))
 	{
-		unsigned int bytesin;
+		int bytesin;
 		int addrsize;
 		struct sockaddr_in fromaddr;
 
@@ -412,19 +412,21 @@ void IdleGameTracker()
 		addrsize = sizeof(struct sockaddr_in);
 
 		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(game_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_GAME_TRACKER);
-		DeserializeGamePacket(packet_data, bytesin, &inpacket);
-		if((int)bytesin==-1)
-		{
+
+		if (bytesin > 0) {
+			DeserializeGamePacket(packet_data, bytesin, &inpacket);
+
+			// subtract one from the header
+			inpacket.len--;
+#ifndef NDEBUG
+		} else {
 			int wserr=WSAGetLastError();
 			mprintf(("RECVFROM() failure. WSAGetLastError() returned %d\n",wserr));
-			
+#endif
 		}
 
-		// subtract one from the header
-		inpacket.len--;
-
 		//Check to make sure the packets ok
-		if(bytesin==inpacket.len)
+		if ( (bytesin > 0) && (bytesin == (int)inpacket.len) )
 		{
 			switch(inpacket.type)
 			{

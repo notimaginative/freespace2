@@ -271,7 +271,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	socklen_t t_from_len;
 #endif
 	struct sockaddr_in ip_addr;
-	int ret_val;
+	int ret_val = SOCKET_ERROR;
 	lag_buf *moveup, *item;
 
 	SDL_assert(readfds != NULL);
@@ -289,6 +289,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 			ret_val = recvfrom(nfds, t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
 		} else {
 			Int3();
+			return SOCKET_ERROR;
 		}
 			
 		// wacky socket error

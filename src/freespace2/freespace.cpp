@@ -1944,8 +1944,13 @@ void game_loading_callback_close()
 
 	// Make sure bar shows all the way over.
 	game_loading_callback(COUNT_ESTIMATE);
-	
+
+#ifndef NDEBUG
 	int real_count = game_busy_callback( NULL );
+#else
+	game_busy_callback( NULL );
+#endif
+
  	Mouse_hidden = 0;
 
 	Game_loading_callback_inited = 0;
@@ -1954,9 +1959,6 @@ void game_loading_callback_close()
 	mprintf(( "=================== ENDING LOAD ================\n" ));
 	mprintf(( "Real count = %d,  Estimated count = %d\n", real_count, COUNT_ESTIMATE ));
 	mprintf(( "================================================\n" ));
-#else
-	// to remove warnings in release build
-	real_count = 0;
 #endif
 
 	free_anim_instance(Game_loading_ani_instance);
@@ -2291,15 +2293,21 @@ void game_init()
 	// Initialize the timer before the os
 	timer_init();
 
+#ifndef NDEBUG
 	int s1, e1;
 	// int s2, e2;
 
 	//Initialize the libraries
 	s1 = timer_get_milliseconds();
+#endif
+
 	if ( cfile_init() ) {			// initialize before calling any cfopen stuff!!!
 		exit(1);
-	}		
+	}
+
+#ifndef NDEBUG
 	e1 = timer_get_milliseconds();
+#endif
 
 	// time a bunch of cfopens	
 	/*
@@ -4407,7 +4415,9 @@ void game_set_frametime(int state)
 
 //	Frametime = F1_0 / 30;
 
+#ifndef NDEBUG
 	fix	debug_frametime = Frametime;	//	Just used to display frametime.
+#endif
 
 	//	If player hasn't entered mission yet, make frame take 1/4 second.
 	if ((Pre_player_entry) && (state == GS_STATE_GAME_PLAY))
@@ -4460,9 +4470,6 @@ void game_set_frametime(int state)
 	if (Frametime > MAX_FRAMETIME)	{
 #ifndef NDEBUG
 		mprintf(("Frame %2i too long!!: frametime = %.3f (%.3f)\n", Framecount, f2fl(Frametime), f2fl(debug_frametime)));
-#else 
-		// to remove warnings in release build
-		debug_frametime = fl2f(flFrametime);
 #endif
 		Frametime = MAX_FRAMETIME;
 	}
@@ -6700,13 +6707,10 @@ int game_main(const char *szCmdLine)
 	outwnd_init(1);
 #endif
 
-	int cpu_cores = SDL_GetCPUCount();
-	int le = (SDL_BYTEORDER == SDL_LIL_ENDIAN);
-
 	mprintf(("Platform: %s\n", SDL_GetPlatform()));
-	mprintf(("CPU: %d %s\n", cpu_cores, (cpu_cores == 1) ? "core" : "cores"));
+	mprintf(("CPU: %d %s\n", SDL_GetCPUCount(), (SDL_GetCPUCount() == 1) ? "core" : "cores"));
 	mprintf(("Memory: %dMB\n", Freespace_total_ram));
-	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, le ? "little" : "big"));
+	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big"));
 
 	parse_cmdline(szCmdLine);	
 

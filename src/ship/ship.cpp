@@ -6933,6 +6933,8 @@ object *ship_find_repair_ship( object *requester_obj )
 	SDL_assert(requester_obj->type == OBJ_SHIP);
 	SDL_assert((requester_obj->instance >= 0) && (requester_obj->instance < MAX_OBJECTS));
 
+	SDL_zero(support_ships);
+
 	// if support ships are not allowed, then no support ship can repair!
 	if ( !is_support_allowed(requester_obj) )
 		return NULL;

@@ -157,6 +157,7 @@ int collide_weapon_weapon( obj_pair * pair )
 			}
 		}
 
+#ifndef NDEBUG
 		float dist = 0.0f;
 		if (Weapons[A->instance].lifeleft == 0.01f) {
 			dist = vm_vec_dist_quick(&A->pos, &wpA->homing_pos);
@@ -166,6 +167,8 @@ int collide_weapon_weapon( obj_pair * pair )
 			dist = vm_vec_dist_quick(&A->pos, &wpB->homing_pos);
 			nprintf(("AI", "Frame %i: Weapon %s shot down. Dist: %.1f, inner: %.0f, outer: %.0f\n", Framecount, wipB->name, dist, wipB->inner_radius, wipB->outer_radius));
 		}
+#endif
+
 		return 1;
 	}
 

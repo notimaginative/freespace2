@@ -726,10 +726,14 @@ int obj_allocate(void)
 	if (!Object_inited) obj_init();
 
 	if ( num_objects >= MAX_OBJECTS-10 ) {
+#ifndef NDEBUG
 		int	num_freed;
 
 		num_freed = free_object_slots(MAX_OBJECTS-10);
 		nprintf(("warning", " *** Freed %i objects\n", num_freed));
+#else
+		free_object_slots(MAX_OBJECTS-10);
+#endif
 	}
 
 	if (num_objects >= MAX_OBJECTS) {

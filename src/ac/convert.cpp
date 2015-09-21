@@ -256,6 +256,8 @@ void AVI_stream_init()
 	AVI_stream.frame_index = NULL;
 }
 
+#define FREAD(a, b, c, d) do { if ( fread(a, b, c, d) != b ) { read_error = true; break; } } while (0);
+
 // AVI_stream_open() will open the AVI file and prepare it for reading, but will not 
 // store any of the frame data. 
 //
@@ -297,7 +299,12 @@ int AVI_stream_open(char* filename)
 	fseek(pfile, 0, SEEK_SET);
 
 	// check for valid file type
-	fread(&id, 1, 4, pfile);
+	if ( fread(&id, 1, 4, pfile) != 4 ) {
+		printf("AVI => File read ERROR '%s'\n", filename);
+		fclose(pfile);
+		return -1;
+	}
+
 	id = INTEL_INT(id);
 
 	// 'RIFF'
@@ -308,10 +315,19 @@ int AVI_stream_open(char* filename)
 	}
 
 	// skip RIFF size
-	fread(&id, 1, 4, pfile);
+	if ( fread(&id, 1, 4, pfile) != 4 ) {
+		printf("AVI => File read ERROR '%s'\n", filename);
+		fclose(pfile);
+		return -1;
+	}
 
 	// check for valid RIFF type
-	fread(&id, 1, 4, pfile);
+	if ( fread(&id, 1, 4, pfile) != 4 ) {
+		printf("AVI => File read ERROR '%s'\n", filename);
+		fclose(pfile);
+		return -1;
+	}
+
 	id = INTEL_INT(id);
 
 	// 'AVI '
@@ -324,10 +340,13 @@ int AVI_stream_open(char* filename)
 	// used for main 'LIST' chunks
 	long offset_tmp = 0;
 
+	// in case of error
+	bool read_error	= false;
+
 	// parse WAVE tags
 	while ( ftell(pfile) < file_size ) {
-		fread(&tag, 1, 4, pfile);
-		fread(&size, 1, 4, pfile);
+		FREAD(&tag, 1, 4, pfile);
+		FREAD(&size, 1, 4, pfile);
 
 		tag = INTEL_INT(tag);
 		size = INTEL_INT(size);
@@ -338,25 +357,25 @@ int AVI_stream_open(char* filename)
 			// 'LIST'
 			case 0x5453494c: {
 				// sub tag
-				fread(&s_tag, 1, 4, pfile);
+				FREAD(&s_tag, 1, 4, pfile);
 				s_tag = INTEL_INT(s_tag);
 
 				switch (s_tag) {
 					// 'hdrl'
 					case 0x6c726468: {
-						fread(&avi_header.fcc, 1, sizeof(int), pfile);
-						fread(&avi_header.cb, 1, sizeof(int), pfile);
-						fread(&avi_header.dwMicroSecPerFrame, 1, sizeof(int), pfile);
-						fread(&avi_header.dwMaxBytesPerSec, 1, sizeof(int), pfile);
-						fread(&avi_header.dwPaddingGranularity, 1, sizeof(int), pfile);
-						fread(&avi_header.dwFlags, 1, sizeof(int), pfile);
-						fread(&avi_header.dwTotalFrames, 1, sizeof(int), pfile);
-						fread(&avi_header.dwInitialFrames, 1, sizeof(int), pfile);
-						fread(&avi_header.dwStreams, 1, sizeof(int), pfile);
-						fread(&avi_header.dwSuggestedBufferSize, 1, sizeof(int), pfile);
-						fread(&avi_header.dwWidth, 1, sizeof(int), pfile);
-						fread(&avi_header.dwHeight, 1, sizeof(int), pfile);
-						fread(&avi_header.dwReserved, 1, sizeof(avi_header.dwReserved), pfile);
+						FREAD(&avi_header.fcc, 1, sizeof(int), pfile);
+						FREAD(&avi_header.cb, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwMicroSecPerFrame, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwMaxBytesPerSec, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwPaddingGranularity, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwFlags, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwTotalFrames, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwInitialFrames, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwStreams, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwSuggestedBufferSize, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwWidth, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwHeight, 1, sizeof(int), pfile);
+						FREAD(&avi_header.dwReserved, 1, sizeof(avi_header.dwReserved), pfile);
 
 						avi_header.fcc = INTEL_INT(avi_header.fcc);
 						avi_header.cb = INTEL_INT(avi_header.cb);
@@ -397,25 +416,25 @@ int AVI_stream_open(char* filename)
 
 					// 'strl' - subchunk of 'hdrl'
 					case 0x6c727473: {
-						fread(&stream_header.fcc, 1, sizeof(int), pfile);
-						fread(&stream_header.cb, 1, sizeof(int), pfile);
-						fread(&stream_header.fccType, 1, sizeof(int), pfile);
-						fread(&stream_header.fccHandler, 1, sizeof(int), pfile);
-						fread(&stream_header.dwFlags, 1, sizeof(int), pfile);
-						fread(&stream_header.wPriority, 1, sizeof(short), pfile);
-						fread(&stream_header.wLanguage, 1, sizeof(short), pfile);
-						fread(&stream_header.dwInitialFrames, 1, sizeof(int), pfile);
-						fread(&stream_header.dwScale, 1, sizeof(int), pfile);
-						fread(&stream_header.dwRate, 1, sizeof(int), pfile);
-						fread(&stream_header.dwStart, 1, sizeof(int), pfile);
-						fread(&stream_header.dwLength, 1, sizeof(int), pfile);
-						fread(&stream_header.dwSuggestedBufferSize, 1, sizeof(int), pfile);
-						fread(&stream_header.dwQuality, 1, sizeof(int), pfile);
-						fread(&stream_header.dwSampleSize, 1, sizeof(int), pfile);
-						fread(&stream_header.rcFrame.left, 1, sizeof(short), pfile);
-						fread(&stream_header.rcFrame.top, 1, sizeof(short), pfile);
-						fread(&stream_header.rcFrame.right, 1, sizeof(short), pfile);
-						fread(&stream_header.rcFrame.bottom, 1, sizeof(short), pfile);
+						FREAD(&stream_header.fcc, 1, sizeof(int), pfile);
+						FREAD(&stream_header.cb, 1, sizeof(int), pfile);
+						FREAD(&stream_header.fccType, 1, sizeof(int), pfile);
+						FREAD(&stream_header.fccHandler, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwFlags, 1, sizeof(int), pfile);
+						FREAD(&stream_header.wPriority, 1, sizeof(short), pfile);
+						FREAD(&stream_header.wLanguage, 1, sizeof(short), pfile);
+						FREAD(&stream_header.dwInitialFrames, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwScale, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwRate, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwStart, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwLength, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwSuggestedBufferSize, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwQuality, 1, sizeof(int), pfile);
+						FREAD(&stream_header.dwSampleSize, 1, sizeof(int), pfile);
+						FREAD(&stream_header.rcFrame.left, 1, sizeof(short), pfile);
+						FREAD(&stream_header.rcFrame.top, 1, sizeof(short), pfile);
+						FREAD(&stream_header.rcFrame.right, 1, sizeof(short), pfile);
+						FREAD(&stream_header.rcFrame.bottom, 1, sizeof(short), pfile);
 
 						stream_header.fcc = INTEL_INT(stream_header.fcc);
 						stream_header.cb = INTEL_INT(stream_header.cb);
@@ -465,24 +484,24 @@ int AVI_stream_open(char* filename)
 						// next stream sub-chunk -------------------------------
 
 						// check for 'strf'
-						fread(&tmp, 1, 4, pfile);
+						FREAD(&tmp, 1, 4, pfile);
 						tmp = INTEL_INT(tmp);
 						SDL_assert(tmp == 0x66727473);
 
 						// size of 'strf'
-						fread(&tmp, 1, 4, pfile);
+						FREAD(&tmp, 1, 4, pfile);
 
-						fread(&bitmap_header.bmiHeader.biSize, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biWidth, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biHeight, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biPlanes, 1, sizeof(short), pfile);
-						fread(&bitmap_header.bmiHeader.biBitCount, 1, sizeof(short), pfile);
-						fread(&bitmap_header.bmiHeader.biCompression, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biSizeImage, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biXPelsPerMeter, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biYPelsPerMeter, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biClrUsed, 1, sizeof(int), pfile);
-						fread(&bitmap_header.bmiHeader.biClrImportant, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biSize, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biWidth, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biHeight, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biPlanes, 1, sizeof(short), pfile);
+						FREAD(&bitmap_header.bmiHeader.biBitCount, 1, sizeof(short), pfile);
+						FREAD(&bitmap_header.bmiHeader.biCompression, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biSizeImage, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biXPelsPerMeter, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biYPelsPerMeter, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biClrUsed, 1, sizeof(int), pfile);
+						FREAD(&bitmap_header.bmiHeader.biClrImportant, 1, sizeof(int), pfile);
 
 						bitmap_header.bmiHeader.biSize = INTEL_INT(bitmap_header.bmiHeader.biSize);
 						bitmap_header.bmiHeader.biWidth = INTEL_INT(bitmap_header.bmiHeader.biWidth);
@@ -505,10 +524,10 @@ int AVI_stream_open(char* filename)
 
 						// palette
 						for (int i = 0; i < 256; i++) {
-							fread(&bitmap_header.bmiColors[i].b, 1, 1, pfile);
-							fread(&bitmap_header.bmiColors[i].g, 1, 1, pfile);
-							fread(&bitmap_header.bmiColors[i].r, 1, 1, pfile);
-							fread(&bitmap_header.bmiColors[i].p, 1, 1, pfile);
+							FREAD(&bitmap_header.bmiColors[i].b, 1, 1, pfile);
+							FREAD(&bitmap_header.bmiColors[i].g, 1, 1, pfile);
+							FREAD(&bitmap_header.bmiColors[i].r, 1, 1, pfile);
+							FREAD(&bitmap_header.bmiColors[i].p, 1, 1, pfile);
 						}
 
 						// reset next_chunk back to main 'LIST'
@@ -547,10 +566,10 @@ int AVI_stream_open(char* filename)
 				unsigned int c_id, c_flags, c_offset, c_size, i = 0;
 
 				while ( ftell(pfile) < next_chunk ) {
-					fread(&c_id, 1, sizeof(int), pfile);
-					fread(&c_flags, 1, sizeof(int), pfile);
-					fread(&c_offset, 1, sizeof(int), pfile);
-					fread(&c_size, 1, sizeof(int), pfile);
+					FREAD(&c_id, 1, sizeof(int), pfile);
+					FREAD(&c_flags, 1, sizeof(int), pfile);
+					FREAD(&c_offset, 1, sizeof(int), pfile);
+					FREAD(&c_size, 1, sizeof(int), pfile);
 
 					c_id = INTEL_INT(c_id);
 					c_flags = INTEL_INT(c_flags);
@@ -581,7 +600,18 @@ int AVI_stream_open(char* filename)
 				break;
 		}
 
+		if (read_error) {
+			break;
+		}
+
 		fseek(pfile, next_chunk, SEEK_SET);
+	}
+
+	if (read_error) {
+		printf("AVI => File read ERROR '%s'\n", filename);
+		fclose(pfile);
+
+		return -1;
 	}
 
 	// make sure we have a frame index
@@ -690,9 +720,15 @@ int AVI_stream_get_frame(ubyte* buffer, int frame_number)
 	memset(compressed_frame, 0, AVI_stream.min_compressed_buffer_size);
 
 	fseek(AVI_stream.pfile, AVI_stream.frame_index[frame_number-1].offset, SEEK_SET);
-	fread(compressed_frame, 1, AVI_stream.frame_index[frame_number-1].size, AVI_stream.pfile);
 
-	AVI_decompress_RLE8(compressed_frame, buffer, AVI_stream.w, AVI_stream.h);
+	size_t rsize = AVI_stream.frame_index[frame_number-1].size;
+
+	if ( fread(compressed_frame, 1, rsize, AVI_stream.pfile) == rsize ) {
+		AVI_decompress_RLE8(compressed_frame, buffer, AVI_stream.w, AVI_stream.h);
+	} else {
+		printf("AVI : ERROR => short read in get_frame()!\n");
+	}
+
 
 	free( compressed_frame );
 

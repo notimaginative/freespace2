@@ -104,15 +104,31 @@ void write_header()
 int write_index(char *hf, char *df)
 {
 	FILE *h = fopen(hf, "rb");
-	if (!h) return 0;
+
+	if ( !h ) {
+		return 0;
+	}
+
 	FILE *d = fopen(df, "a+b");
-	if (!d) return 0;
+
+	if ( !d ) {
+		fclose(h);
+		return 0;
+	}
+
 	for (unsigned int i=0;i<Num_files;i++) {
-		fread(tmp_data, 32+4+4+4, 1, h);
+		if ( !fread(tmp_data, 32+4+4+4, 1, h) ) {
+			fclose(h);
+			fclose(d);
+			return 0;
+		}
+
 		fwrite(tmp_data, 32+4+4+4, 1, d);
 	}
+
 	fclose(h);
 	fclose(d);
+
 	return 1;
 }
 

@@ -105,6 +105,7 @@ float frand_range(float min, float max);
 //       (int)floor(x)      use fl_round_2048(x-0.5f)
 // for values in the range -2048 to 2048
 
+/*
 extern const float *p_fl_magic;
 
 inline int fl_round_2048( float x )
@@ -114,7 +115,6 @@ inline int fl_round_2048( float x )
 	return *((int *)&tmp_quad);
 }
 
-/*
 inline float fl_sqrt( float x)
 {
 	float retval;

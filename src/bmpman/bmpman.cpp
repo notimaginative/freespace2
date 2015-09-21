@@ -1953,13 +1953,11 @@ void bm_release(int handle)
 int bm_unload( int handle )
 {
 	bitmap_entry	*be;
-	bitmap			*bmp;
 
 	int n = handle % MAX_BITMAPS;
 
 	SDL_assert(n >= 0 && n < MAX_BITMAPS);
 	be = &bm_bitmaps[n];
-	bmp = &be->bm;
 
 	if ( be->type == BM_TYPE_NONE ) {
 		return 0;		// Already been released
@@ -1973,7 +1971,7 @@ int bm_unload( int handle )
 		return 0;
 	}
 
-	nprintf(("BmpMan", "unloading %s.  %dx%dx%d\n", be->filename, bmp->w, bmp->h, bmp->bpp));
+	nprintf(("BmpMan", "unloading %s.  %dx%dx%d\n", be->filename, be->bm.w, be->bm.h, be->bm.bpp));
 	bm_free_data(n);		// clears flags, bbp, data, etc
 
 	return 1;

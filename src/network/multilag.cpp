@@ -352,7 +352,11 @@ int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *f
 	}
 
 	// if this happens, it means that the multi_lag_select() returned an improper value
-	SDL_assert(item);
+	if (item == NULL) {
+		Int3();
+		return 0;
+	}
+
 	// stuff the data
 	SDL_assert(item->data_len <= len);
 	memcpy(buf, item->data, item->data_len);

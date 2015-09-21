@@ -83,7 +83,7 @@ void jumpnode_render(object *jumpnode_objp, vector *pos, vector *view_pos)
 		model_render(node->modelnum, &node_orient, pos, MR_NO_LIGHTING | MR_LOCK_DETAIL | MR_NO_POLYS | MR_SHOW_OUTLINE );
 	} else {
 		if ( view_pos ) {
-			int alpha_index = HUD_color_alpha;
+			int alpha_index;// = HUD_color_alpha;
 
 			// generate alpha index based on distance to jump node
 			float dist;

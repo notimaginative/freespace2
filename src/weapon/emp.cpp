@@ -271,8 +271,6 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 			scale_factor = 1.0f;
 			if(dist_mag >= inner_radius){
 				scale_factor = 1.0f - (dist_mag / outer_radius);
-				actual_intensity = emp_intensity * scale_factor;
-				actual_time = emp_time * scale_factor;		
 			} 
 		
 			// calculate actual EMP effect values

@@ -2600,7 +2600,6 @@ void multi_pxo_make_channels(char *chan_str)
 		}
 
 		// get the # of users
-		num_users = 0;		
 		num_users = (ubyte)atoi(user_tok);		
 
 		// if the # of users is > 0, or its not an autojoin, place it on the display list

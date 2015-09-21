@@ -493,7 +493,7 @@ int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *p
 	}
 
 	// Note:  when estimated hit time is less than 200 ms, look at every frame
-	int hit_time;	// estimated time of hit in ms
+	int hit_time = 0;	// estimated time of hit in ms
 
 	// modify ship_weapon_check_collision to do damage if hit_time is negative (ie, hit occurs in this frame)
 	if ( ship_weapon_check_collision( ship, weapon, limit_time, &hit_time ) ) {

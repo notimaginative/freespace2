@@ -1823,6 +1823,11 @@ active_game *multi_update_active_games(active_game *ag)
 	active_game *gp = NULL;
 	active_game *stop = NULL;		
 
+	if (ag == NULL) {
+		Int3();
+		return NULL;
+	}
+
 	// see if we have a game from this address already -- if not, create one.  In either case, get a pointer
 	// to an active_game structure
 	if ( Active_game_head != NULL ) {	// no games on list at all
@@ -1844,6 +1849,10 @@ active_game *multi_update_active_games(active_game *ag)
 		if (!on_list){
 			gp = multi_new_active_game();
 			// gp->ping_time = -1.0f;			
+
+			if (gp == NULL) {
+				return NULL;
+			}
 
 			// copy in the game information
 			memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));
@@ -1876,6 +1885,10 @@ active_game *multi_update_active_games(active_game *ag)
 	} else {
 		gp = multi_new_active_game();
 		// gp->ping_time = -1.0f;		
+
+		if (gp == NULL) {
+			return NULL;
+		}
 
 		// copy in the game information	
 		memcpy(&gp->server_addr,&ag->server_addr,sizeof(net_addr_t));

@@ -352,7 +352,6 @@ void ChttpGet::WorkerThread()
 		}
 		if(irsp==200)
 		{
-			int idataready=0;
 			do
 			{
 				p = GetHTTPLine();
@@ -365,7 +364,6 @@ void ChttpGet::WorkerThread()
 				}
 				if(*p=='\0')
 				{
-					idataready = 1;
 					break;
 				}
 				if(SDL_strncasecmp(p,"Content-Length:",strlen("Content-Length:"))==0)
@@ -388,7 +386,7 @@ void ChttpGet::WorkerThread()
 				}
 
 				SDL_Delay(1);
-			}while(!idataready);
+			}while(true);
 		ReadDataChannel();
 		return;
 		}
@@ -465,7 +463,7 @@ int ChttpGet::ConnectSocket()
 		if(ip==INADDR_NONE)
 		{
 			http_Asyncgethostbyname(&ip,NW_AGHBN_LOOKUP,m_ProxyIP);
-			rcode = 0;
+
 			do
 			{	
 				if(m_Aborting)

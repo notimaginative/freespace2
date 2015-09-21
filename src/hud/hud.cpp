@@ -1139,9 +1139,7 @@ void hud_update_frame()
 	}
 
 	// Switch to battle track when a targeted ship is hostile and within BATTLE_START_MIN_TARGET_DIST
-	if (targetp->type == OBJ_SHIP && Event_Music_battle_started == 0 ) {
-		SDL_assert( target_shipp != NULL );
-
+	if ( target_shipp && targetp->type == OBJ_SHIP && Event_Music_battle_started == 0 ) {
 		if (opposing_team_mask(Player_ship->team)) {
 			float	dist_to_target;
 

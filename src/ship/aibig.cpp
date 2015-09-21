@@ -1519,7 +1519,7 @@ void ai_big_strafe_attack()
 	ai_info	*aip;
 	vector	target_pos;
 	vector	rand_vec;
-	float		target_dist, target_dot, accel, t;
+	float		target_dist = 0.0f, target_dot = 0.0f, accel, t;
 
 	aip = &Ai_info[Ships[Pl_objp->instance].ai_index];
 

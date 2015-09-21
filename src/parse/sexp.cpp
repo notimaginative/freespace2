@@ -3859,7 +3859,7 @@ int sexp_percent_ships_depart_destroy(int n, int what)
 	}
 
 	// now, look at the percentage
-	if ( ((count * 100) / total) >= percent )
+	if ( (total > 0) && (((count * 100) / total) >= percent) )
 		return SEXP_KNOWN_TRUE;
 	else
 		return 0;
@@ -4650,8 +4650,12 @@ void sexp_send_random_message( int n )
 		n = CDR(n);
 		num_messages++;
 	}
-	SDL_assert ( num_messages >= 1 );
-	
+
+	if (num_messages == 0) {
+		Int3();
+		return;
+	}
+
 	// get a random message, and pass the parameters to send_one_message
 	message_num = myrand() % num_messages;
 	n = temp;

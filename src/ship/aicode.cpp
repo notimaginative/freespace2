@@ -12501,7 +12501,6 @@ int ai_acquire_emerge_path(object *pl_objp, int parent_objnum, vector *pos, vect
 		return -1;
 
 	// try to find a bay path that is not taken
-	path_index = -1;
 	sb_path_index = Ai_last_arrive_path++;
 
 	if ( sb_path_index >= sb->num_paths ) {

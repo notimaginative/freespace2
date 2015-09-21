@@ -1839,7 +1839,6 @@ int beam_get_model(object *objp)
 		return -1;
 	}
 
-	subtype = 0;
 	switch(objp->type){
 	case OBJ_SHIP:		
 		return Ships[objp->instance].modelnum;

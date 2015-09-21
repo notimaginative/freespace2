@@ -2720,13 +2720,12 @@ void ship_subsystem_delete(ship *shipp)
 void ship_delete( object * obj )
 {
 	ship	*shipp;
-	int	num, objnum;
+	int	num;
 
 	num = obj->instance;
 	SDL_assert( num >= 0);
 
-	objnum = OBJ_INDEX(obj);
-	SDL_assert( Ships[num].objnum == objnum );
+	SDL_assert( Ships[num].objnum == OBJ_INDEX(obj) );
 
 	shipp = &Ships[num];
 
@@ -2941,7 +2940,6 @@ void ship_departed( int num )
 			mission_log_add_entry(LOG_SHIP_DEPART, sp->ship_name, Jump_nodes[i].name, sp->wingnum);
 			break;
 		}
-		dist = 1.0f;
 	}
 
 	if ( i == Num_jump_nodes ){
@@ -8139,7 +8137,7 @@ char *ship_return_time_to_goal(char *outbuf, const int max_outbuf, ship *sp)
 	objp = &Objects[sp->objnum];
 	aip = &Ai_info[sp->ai_index];
 
-	min_speed = objp->phys_info.speed;
+	//min_speed = objp->phys_info.speed;
 
 	if ( aip->mode == AIM_WAYPOINTS ) {
 		waypoint_list	*wpl;
@@ -8331,8 +8329,6 @@ void ship_maybe_warn_player(ship *enemy_sp, float dist)
 	}
 
 	fdot = vm_vec_dot(&Player_obj->orient.v.fvec, &vec_to_target);
-
-	msg_type = -1;
 
 	// check if attacking ship is on six.  return if not far enough behind player.
 	if ( fdot > -0.7 )
@@ -9353,6 +9349,8 @@ void ship_update_artillery_lock()
 		// get ai info
 		if(shipp->ai_index >= 0){
 			aip = &Ai_info[shipp->ai_index];
+		} else {
+			continue;
 		}
 
 		// if the ship has no targeting laser firing

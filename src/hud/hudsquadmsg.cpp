@@ -1674,7 +1674,7 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 	int ai_mode, ai_submode;					// ai mode and submode needed for ship commands
 	char *target_shipname;						// ship number of possible targets
 	int message_sent, message;
-	int target_team, wing_team;				// team for the wing and the player's target
+	int target_team = -1, wing_team;			// team for the wing and the player's target
 	ship *ordering_shipp;
 
 	// quick short circuit here because of actually showing comm menu even though you cannot message.

@@ -1622,7 +1622,7 @@ void weapon_render(object *obj)
 				// get the laser color
 				weapon_get_laser_color(&c, obj);
 
-				vector headp2;			
+				vector headp2 = ZERO_VECTOR;
 				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.v.fvec, wip->laser_length * weapon_glow_scale_l);
 				gr_set_bitmap(wip->laser_glow_bitmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, weapon_glow_alpha, -1, -1);
 				g3_draw_laser_rgb(&headp2, wip->laser_head_radius * weapon_glow_scale_f, &obj->pos, wip->laser_tail_radius * weapon_glow_scale_r, c.red, c.green, c.blue);

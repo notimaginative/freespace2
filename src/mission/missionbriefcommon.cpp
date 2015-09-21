@@ -2548,12 +2548,13 @@ void brief_render_grid(grid *gridp)
 	for (i=0; i<=nrows; i++)
 		brief_rpd_line(&gridp->gpoints3[i], &gridp->gpoints4[i]);
 
+/*
 	ncols = gridp->ncols / 2;
 	nrows = gridp->nrows / 2;
 
 	// now draw the larger, brighter gridlines that is x10 the scale of smaller one.
 //	SET_MEDIUM;
-/*
+
 	for (i=0; i<=ncols; i++)
 		brief_rpd_line(&gridp->gpoints5[i], &gridp->gpoints6[i]);
 

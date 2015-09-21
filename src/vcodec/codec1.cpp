@@ -979,7 +979,7 @@ static void InitEncoder1(int QoS)
 		while (in >= 0)
 			EncTable[table][in--] = vn,  EncTable[table][ip++] = vp;
 	}
-	table = 0;
+
 #if 0
 	for (table = 0; table < 8; table++)
         for (i = 0; i < 256; i++)

@@ -428,13 +428,11 @@ void fireball_play_warphole_open_sound(int ship_class, fireball *fb)
 // play warp out sound for warp effect
 void fireball_play_warphole_close_sound(fireball *fb)
 {
-	int	sound_index;	
+	int	sound_index = SND_WARP_OUT;
 
 	object *fireball_objp;
 
 	fireball_objp = &Objects[fb->objnum];
-
-	sound_index = SND_WARP_OUT;
 
 	if ( fb->flags & FBF_WARP_CAPTIAL_SIZE ) {
 		sound_index = SND_CAPITAL_WARP_OUT;
@@ -657,12 +655,10 @@ void fireball_render(object * obj)
 void fireball_delete( object * obj )
 {
 	int	num;
-	fireball	*fb;
 
 	num = obj->instance;
-	fb = &Fireballs[num];
 
-	SDL_assert( fb->objnum == OBJ_INDEX(obj));
+	SDL_assert( Fireballs[num].objnum == OBJ_INDEX(obj));
 
 	Fireballs[num].objnum = -1;
 	Num_fireballs--;
@@ -741,12 +737,12 @@ void fireball_set_framenum(int num)
 int fireball_is_perishable(object * obj)
 {
 	//	return 1;
-	int			num, objnum;
+	int			num;
 	fireball		*fb;
 
 	num = obj->instance;
-	objnum = OBJ_INDEX(obj);
-	SDL_assert( Fireballs[num].objnum == objnum );
+
+	SDL_assert( Fireballs[num].objnum == OBJ_INDEX(obj) );
 
 	fb = &Fireballs[num];
 
@@ -807,12 +803,12 @@ void fireball_process_pre( object *objp, float frame_time)
 
 int fireball_is_warp(object * obj)
 {
-	int			num, objnum;
+	int			num;
 	fireball		*fb;
 
 	num = obj->instance;
-	objnum = OBJ_INDEX(obj);
-	SDL_assert( Fireballs[num].objnum == objnum );
+
+	SDL_assert( Fireballs[num].objnum == OBJ_INDEX(obj) );
 
 	fb = &Fireballs[num];
 
@@ -849,14 +845,14 @@ MONITOR( NumFireballs );
 
 void fireball_process_post(object * obj, float frame_time)
 {
-	int			num, objnum;
+	int			num;
 	fireball		*fb;
 
 	MONITOR_INC( NumFireballs, 1 );	
 
 	num = obj->instance;
-	objnum = OBJ_INDEX(obj);
-	SDL_assert( Fireballs[num].objnum == objnum );
+
+	SDL_assert( Fireballs[num].objnum == OBJ_INDEX(obj) );
 
 	fb = &Fireballs[num];
 
@@ -873,12 +869,12 @@ void fireball_process_post(object * obj, float frame_time)
 // Returns life left of a fireball in seconds
 float fireball_lifeleft( object *obj )
 {
-	int			num, objnum;
+	int			num;
 	fireball		*fb;
 
 	num = obj->instance;
-	objnum = OBJ_INDEX(obj);
-	SDL_assert( Fireballs[num].objnum == objnum );
+
+	SDL_assert( Fireballs[num].objnum == OBJ_INDEX(obj) );
 
 	fb = &Fireballs[num];
 
@@ -888,12 +884,12 @@ float fireball_lifeleft( object *obj )
 // Returns life left of a fireball in percent
 float fireball_lifeleft_percent( object *obj )
 {
-	int			num, objnum;
+	int			num;
 	fireball		*fb;
 
 	num = obj->instance;
-	objnum = OBJ_INDEX(obj);
-	SDL_assert( Fireballs[num].objnum == objnum );
+
+	SDL_assert( Fireballs[num].objnum == OBJ_INDEX(obj) );
 
 	fb = &Fireballs[num];
 

@@ -5986,7 +5986,6 @@ int ai_fire_secondary_weapon(object *objp, int priority1, int priority2)
 
 	//nprintf(("AI", "Frame %i: Current bank = %i, ammo remaining = %i\n", Framecount, current_bank, swp->secondary_bank_ammo[current_bank]));
 	if (current_bank == -1) {
-		swp->next_secondary_fire_stamp[current_bank] = timestamp(500);
 		return rval;
 	}
 

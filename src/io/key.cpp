@@ -584,7 +584,7 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 //				Int3();
 //			}
 #else
-		if ( keyd_pressed(KEY_DEBUG_KEY) ) {
+		if ( key_pressed(KEY_DEBUG_KEY) ) {
 			mprintf(("Cheats_enabled = %i, Key_normal_game = %i\n", Cheats_enabled, Key_normal_game));
 			if (Cheats_enabled && Key_normal_game) {
 				keycode |= KEY_DEBUGGED1;

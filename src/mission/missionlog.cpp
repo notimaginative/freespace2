@@ -352,6 +352,7 @@ void mission_log_obsolete_entries(int type, const char *pname)
 			if ( last_entry > LOG_CULL_DOORDIE_MARK ) {
 				nprintf(("missionlog", "removing the first %d entries in the mission log!!!!\n", LOG_LAST_DITCH_CULL_NUM));
 				for (i = 0; i < LOG_LAST_DITCH_CULL_NUM; i++ ){
+					entry = &log_entries[i];
 					entry->flags |= MLF_OBSOLETE;
 				}
 

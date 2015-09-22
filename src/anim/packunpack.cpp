@@ -528,10 +528,9 @@ int pack_key_frame(ubyte *frame, ubyte *save, long size, long max, int compress_
 			break;
 
 		case PACKING_METHOD_STD_RLE_KEY: {
-			ubyte *dest_start;
+			ubyte *dest_start = save;
 			int i;
 
-			dest_start = save;
 			count = 1;
 
 			last = *frame++;
@@ -687,9 +686,8 @@ int pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, long size, long max, in
 
 		case PACKING_METHOD_STD_RLE: {		// high bit count regular RLE frame
 
-			ubyte *dest_start;
+			ubyte *dest_start = save;
 
-			dest_start = save;
 			count = 1;
 
 			if (*frame++ != *frame2++)

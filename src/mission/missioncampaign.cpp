@@ -605,6 +605,7 @@ int mission_campaign_load( const char *filename, int load_savefile )
 			Campaign.num_missions++;
 		}
 	} catch (parse_error_t rval) {
+		(void)rval;	// suppress unused warning in release build
 		mprintf(("Error parsing '%s'\r\nError code = %i.\r\n", filename, (int)rval));
 
 		// close localization

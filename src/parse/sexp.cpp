@@ -1969,7 +1969,7 @@ int get_sexp(char *token)
 			}
 
 			token[len] = 0;
-			len = 0;
+
 			op = identify_operator(token);
 			if (op != -1) {
 				node = alloc_sexp(token, SEXP_ATOM, SEXP_ATOM_OPERATOR, -1, -1);
@@ -3859,7 +3859,7 @@ int sexp_percent_ships_depart_destroy(int n, int what)
 	}
 
 	// now, look at the percentage
-	if ( ((count * 100) / total) >= percent )
+	if ( (total > 0) && (((count * 100) / total) >= percent) )
 		return SEXP_KNOWN_TRUE;
 	else
 		return 0;
@@ -4162,10 +4162,9 @@ int sexp_cap_subsys_cargo_known_delay(int n)
 	while ( n != -1 ) {
 		fix time_known;
 		int is_known;
-		int logged;
+		int logged = 0;
 
 		is_known = 0;
-		logged = 0;
 		count++;
 
 		// see if we have already checked this entry
@@ -4650,8 +4649,12 @@ void sexp_send_random_message( int n )
 		n = CDR(n);
 		num_messages++;
 	}
-	SDL_assert ( num_messages >= 1 );
-	
+
+	if (num_messages == 0) {
+		Int3();
+		return;
+	}
+
 	// get a random message, and pass the parameters to send_one_message
 	message_num = myrand() % num_messages;
 	n = temp;
@@ -7191,14 +7194,14 @@ void sexp_set_training_context_speed(int node)
 // high-level sexpression evaluator
 int eval_sexp(int cur_node)
 {
-	int node, type, sexp_val = UNINITIALIZED;
+	int node, sexp_val = UNINITIALIZED;
 	if (cur_node == -1)  // empty list, i.e. sexp: ( )
 		return FALSE;
 
 	SDL_assert(cur_node >= 0);			// we have special sexp nodes <= -1!!!  MWA
 									// which should be intercepted before we get here.  HOFFOSS
-	type = SEXP_NODE_TYPE(cur_node);
-	SDL_assert( (type == SEXP_LIST) || (type == SEXP_ATOM) );
+
+	SDL_assert( (SEXP_NODE_TYPE(cur_node) == SEXP_LIST) || (SEXP_NODE_TYPE(cur_node) == SEXP_ATOM) );
 
 	// trap known true and known false sexpressions.  We don't trap on SEXP_NAN sexpressions since
 	// they may yet evaluate to true or false.

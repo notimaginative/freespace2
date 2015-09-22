@@ -1674,7 +1674,7 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 	int ai_mode, ai_submode;					// ai mode and submode needed for ship commands
 	char *target_shipname;						// ship number of possible targets
 	int message_sent, message;
-	int target_team, wing_team;				// team for the wing and the player's target
+	int target_team = -1, wing_team = -1;			// team for the wing and the player's target
 	ship *ordering_shipp;
 
 	// quick short circuit here because of actually showing comm menu even though you cannot message.
@@ -1712,11 +1712,12 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 	if ( hud_squadmsg_is_target_order_valid(command, 1, ainfo) ) {
 
 		target_shipname = NULL;
-		target_team = -1;
 		if ( ainfo->target_objnum != -1) {
 			if ( Objects[ainfo->target_objnum].type == OBJ_SHIP ) {
 				target_shipname = Ships[Objects[ainfo->target_objnum].instance].ship_name;		// I think this is right
+#ifndef NDEBUG
 				target_team = Ships[Objects[ainfo->target_objnum].instance].team;
+#endif
 			}
 		}
 
@@ -1725,7 +1726,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 
 		// get the team for the wing
 		SDL_assert ( Wings[wingnum].ship_index[0] != -1 );
+#ifndef NDEBUG
 		wing_team = Ships[Wings[wingnum].ship_index[0]].team;
+#endif
 
 		switch ( command ) {									// value of k matches the #defines for ship messages
 		case ATTACK_TARGET_ITEM:

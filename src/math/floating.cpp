@@ -76,6 +76,7 @@
 #include "floating.h"
 #include "timer.h"
 
+/*
 #define LOOKUP_BITS	6
 #define EXP_POS		23
 #define EXP_BIAS		127
@@ -98,7 +99,7 @@ union _flint {
 	float				f;
 } fi, fo;
 
-/*
+
 static unsigned char iSqrt[TABLE_SIZE];
 static int iSqrt_inited = 0;
 

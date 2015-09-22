@@ -2819,7 +2819,7 @@ void debrief_do_frame(float frametime)
 		if ( help_overlay_active(DEBRIEFING_OVERLAY) ) {
 			help_overlay_set_state(DEBRIEFING_OVERLAY, 0);
 			Debrief_ui_window.set_ignore_gadgets(0);
-			k = 0;
+			//k = 0;
 			new_k = 0;
 		}
 	}

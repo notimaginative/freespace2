@@ -2035,8 +2035,6 @@ void message_maybe_distort()
 	for ( i = 0; i < Num_messages_playing; i++ ) {
 		SDL_assert(Playing_messages[i].wave >= 0 );
 
-		was_muted = 0;
-
 		// added check to see if EMP effect was active
 		// 8/24/98 - DB
 		if ( (hud_communications_state(Player_ship) != COMM_OK) || emp_active_local() ) {

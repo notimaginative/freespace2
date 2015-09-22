@@ -230,7 +230,7 @@ void awacs_update_all_levels()
 float awacs_get_level(object *target, ship *viewer, int use_awacs)
 {		
 	vector dist_vec, subsys_pos;
-	float closest = 0.0f;
+//	float closest = 0.0f;
 	float test;
 	int closest_index = -1;
 	int idx;
@@ -287,11 +287,11 @@ float awacs_get_level(object *target, ship *viewer, int use_awacs)
 				if (test > Awacs[idx].subsys->awacs_radius) {
 					continue;
 				}
-				if ((closest_index == -1) || (test < closest)) {
-					closest = test;
+			//	if ((closest_index == -1) || (test < closest)) {
+			//		closest = test;
 					closest_index = idx;
 					break;
-				}
+			//	}
 			}
 		}
 	}

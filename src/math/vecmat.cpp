@@ -2355,7 +2355,6 @@ void vm_fvec_matrix_interpolate(matrix *goal_orient, matrix *orient, vector *w_i
 		// find theta.xyz.z to goal
 		delta_bank = local_rot_axis.xyz.z * theta;
 		SDL_assert( fl_abs (local_rot_axis.xyz.x) < 0.001f );		// check for proper rotation
-		bank = 0.0f;
 
 	// end calculate delta_bank
 	// find rotation about z

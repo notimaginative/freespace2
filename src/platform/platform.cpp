@@ -46,6 +46,7 @@ int Watch_malloc = 0;
 
 DCF_BOOL(watch_malloc, Watch_malloc)
 
+#ifndef NDEBUG
 static const char *clean_filename(const char *name)
 {
 	const char *p = name+strlen(name)-1;
@@ -56,6 +57,7 @@ static const char *clean_filename(const char *name)
 
 	return p;
 }
+#endif
 
 #ifndef NDEBUG
 void vm_free(void* ptr, const char *file, int line)
@@ -96,8 +98,6 @@ void *vm_malloc(int size)
 
 		Error(LOCATION, "Out of memory.  Try closing down other applications, increasing your\n"
 				"virtual memory size, or installing more physical RAM.\n");
-
-		return NULL;
 	}
 
 #ifndef NDEBUG

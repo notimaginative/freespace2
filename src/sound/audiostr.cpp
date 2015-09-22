@@ -641,9 +641,6 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 
 	// read data from disk
 	if (m_data_bytes_left <= 0) {
-		num_bytes_read = 0;
-		uncompressed_bytes_written = 0;
-
 		return -1;
 	}
 
@@ -659,9 +656,6 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 		actual_read = cfread(dest_buf, 1, num_bytes_read, cfp);
 
 		if ( (actual_read <= 0) || (m_abort_next_read) ) {
-			num_bytes_read = 0;
-			uncompressed_bytes_written = 0;
-
 			return -1;
 		}
 
@@ -725,7 +719,6 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 	}
     
 READ_ERROR:
-	num_bytes_read = 0;
 	uncompressed_bytes_written = 0;
 
 READ_DONE:

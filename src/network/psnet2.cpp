@@ -1265,25 +1265,25 @@ void psnet_rel_work()
 		//Check UDP
 		FD_ZERO(&read_fds);
 		FD_SET(Unreliable_socket, &read_fds);
+
 		udp_has_data = SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_RELIABLE);
-		bytesin = 0;
-		addrlen = sizeof(struct sockaddr);
-		if(udp_has_data){
-			struct sockaddr_in *tcp_addr = (struct sockaddr_in *)&rcv_addr;
-			memset(&d3_rcv_addr,0,sizeof(net_addr_t));
-			memset(&rcv_addr,0,sizeof(struct sockaddr));
-			bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
-			rcv_buff.seq = INTEL_SHORT( rcv_buff.seq );
-			rcv_buff.data_len = INTEL_SHORT( rcv_buff.data_len );
-			rcv_buff.send_time = INTEL_FLOAT( rcv_buff.send_time );
-			memcpy(d3_rcv_addr.addr, &tcp_addr->sin_addr.s_addr, 4);
-			d3_rcv_addr.port = tcp_addr->sin_port;
-			d3_rcv_addr.type = NET_TCP;
-			link_type = NET_TCP;
-		} else {
-			//Neither socket had data waiting
+
+		if (udp_has_data <= 0) {
 			break;
-		}		
+		}
+
+		addrlen = sizeof(struct sockaddr);
+		struct sockaddr_in *tcp_addr = (struct sockaddr_in *)&rcv_addr;
+		memset(&d3_rcv_addr,0,sizeof(net_addr_t));
+		memset(&rcv_addr,0,sizeof(struct sockaddr));
+		bytesin = RECVFROM(Unreliable_socket, (char *)&rcv_buff,sizeof(reliable_header), 0, (struct sockaddr *)&rcv_addr,&addrlen, PSNET_TYPE_RELIABLE);
+		rcv_buff.seq = INTEL_SHORT( rcv_buff.seq );
+		rcv_buff.data_len = INTEL_SHORT( rcv_buff.data_len );
+		rcv_buff.send_time = INTEL_FLOAT( rcv_buff.send_time );
+		memcpy(d3_rcv_addr.addr, &tcp_addr->sin_addr.s_addr, 4);
+		d3_rcv_addr.port = tcp_addr->sin_port;
+		d3_rcv_addr.type = NET_TCP;
+		link_type = NET_TCP;
 
 		if(bytesin==-1){
 			ml_printf("recvfrom returned an error! -- %d\n",WSAGetLastError());
@@ -1657,7 +1657,6 @@ void psnet_rel_connect_to_server(PSNET_SOCKET *socket, net_addr_t *server_addr)
 	}
 
 	memset(&ack_header,0,sizeof(reliable_header));
-	bytesin = 0;
 	SOCKET typeless_sock = 0;
 	net_addr_t d3_rcv_addr;
 	memset(&d3_rcv_addr,0,sizeof(net_addr_t));
@@ -1927,7 +1926,6 @@ void psnet_buffer_packet(network_packet_buffer_list *l, ubyte *data, int length,
 int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *length, net_addr_t *from)
 {	
 	int idx;
-	int found_buf = 0;
 
 	// if there are no buffers, do nothing
 	if((l->psnet_lowest_id == -1) || (l->psnet_lowest_id > l->psnet_highest_id)){
@@ -1938,13 +1936,15 @@ int psnet_buffer_get_next(network_packet_buffer_list *l, ubyte *data, int *lengt
 	for(idx=0;idx<MAX_PACKET_BUFFERS;idx++){
 		// if we found the buffer
 		if(l->psnet_buffers[idx].sequence_number == l->psnet_lowest_id){
-			found_buf = 1;
 			break;
 		}
 	}
 
 	// at this point, we should _always_ have found the buffer
-	SDL_assert(found_buf);	
+	if (idx == MAX_PACKET_BUFFERS) {
+		Int3();
+		return 0;
+	}
 	
 	// copy out the buffer data
 	memcpy(data, l->psnet_buffers[idx].data, l->psnet_buffers[idx].len);

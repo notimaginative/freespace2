@@ -1778,10 +1778,10 @@ void multi_ts_blit_ship_info()
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->manufacturer_str);
 	}
+	/*
 	y_start += 10;
 
 	// blit the _short_ text description
-	/*
 	SDL_assert(Multi_ts_ship_info_line_count < 3);
 	gr_set_color_fast(&Color_normal);
 	for(idx=0;idx<Multi_ts_ship_info_line_count;idx++){
@@ -2405,6 +2405,7 @@ void multi_ts_apply(int from_type,int from_index,int to_type,int to_index,int sh
 	case TS_MOVE_PLAYER :
 		nprintf(("Network","Apply move player %d %d\n",from_index,to_index));
 		update = multi_ts_move_player(from_index,to_index,&sound,player_index);
+		break;
 	default :
 		update = 0;
 		break;

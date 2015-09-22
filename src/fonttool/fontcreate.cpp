@@ -424,6 +424,17 @@ void fonttool_dump( char *filename, font *fnt )
 	fclose(fp);
 }
 
+#define FREAD(a, b, c, d) do { \
+	if ( !fread(a, b, c, d) ) { \
+		printf("Error reading file '%s'!\n", tmp_name); \
+		if (fnt->kern_data) free(fnt->kern_data); \
+		if (fnt->char_data) free(fnt->char_data); \
+		if (fnt->pixel_data) free(fnt->pixel_data); \
+		fclose(fp); \
+		myexit(1); \
+	} \
+} while (0);
+
 void fonttool_read( char *filename, font *fnt )
 {
 	FILE *fp;
@@ -440,16 +451,16 @@ void fonttool_read( char *filename, font *fnt )
 		myexit(1);
 	}
 
-	fread( &fnt->id, 4, 1, fp );
-	fread( &fnt->version, sizeof(int), 1, fp );
-	fread( &fnt->num_chars, sizeof(int), 1, fp );
-	fread( &fnt->first_ascii, sizeof(int), 1, fp );
-	fread( &fnt->w, sizeof(int), 1, fp );
-	fread( &fnt->h, sizeof(int), 1, fp );
-	fread( &fnt->num_kern_pairs, sizeof(int), 1, fp );
-	fread( &fnt->kern_data_size, sizeof(int), 1, fp );
-	fread( &fnt->char_data_size, sizeof(int), 1, fp );
-	fread( &fnt->pixel_data_size, sizeof(int), 1, fp );
+	FREAD( &fnt->id, 4, 1, fp );
+	FREAD( &fnt->version, sizeof(int), 1, fp );
+	FREAD( &fnt->num_chars, sizeof(int), 1, fp );
+	FREAD( &fnt->first_ascii, sizeof(int), 1, fp );
+	FREAD( &fnt->w, sizeof(int), 1, fp );
+	FREAD( &fnt->h, sizeof(int), 1, fp );
+	FREAD( &fnt->num_kern_pairs, sizeof(int), 1, fp );
+	FREAD( &fnt->kern_data_size, sizeof(int), 1, fp );
+	FREAD( &fnt->char_data_size, sizeof(int), 1, fp );
+	FREAD( &fnt->pixel_data_size, sizeof(int), 1, fp );
 
     fnt->version = INTEL_INT( fnt->version );
     fnt->num_chars = INTEL_INT( fnt->num_chars );
@@ -467,7 +478,7 @@ void fonttool_read( char *filename, font *fnt )
 			mprintf(( "Out of memory reading %d bytes of font data from %s\n", tmp_name ));
 			myexit(1);
 		}
-		fread( fnt->kern_data, fnt->kern_data_size, 1, fp );
+		FREAD( fnt->kern_data, fnt->kern_data_size, 1, fp );
 	} else {
 		fnt->kern_data = NULL;
 	}
@@ -477,7 +488,7 @@ void fonttool_read( char *filename, font *fnt )
 			mprintf(( "Out of memory reading %d bytes of font data from %s\n", tmp_name ));
 			myexit(1);
 		}
-		fread( fnt->char_data, fnt->char_data_size, 1, fp );
+		FREAD( fnt->char_data, fnt->char_data_size, 1, fp );
 	} else {
 		fnt->char_data = NULL;
 	}
@@ -487,7 +498,7 @@ void fonttool_read( char *filename, font *fnt )
 			mprintf(( "Out of memory reading %d bytes of font data from %s\n", tmp_name ));
 			myexit(1);
 		}
-		fread( fnt->pixel_data, fnt->pixel_data_size, 1, fp );
+		FREAD( fnt->pixel_data, fnt->pixel_data_size, 1, fp );
 	} else {
 		fnt->pixel_data = NULL;
 	}

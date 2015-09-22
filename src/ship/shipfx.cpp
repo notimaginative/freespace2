@@ -1624,10 +1624,13 @@ void shipfx_emit_spark( int n, int sn )
 	if (hull_percent < 0.001) {
 		hull_percent = 0.001f;
 	}
+
+	/*
 	float fraction = 0.1f * obj->radius / hull_percent;
 	if (fraction > 1.0f) {
 		fraction = 1.0f;
 	}
+	*/
 
 	int spark_num;
 	if ( sn == -1 ) {

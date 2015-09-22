@@ -1095,7 +1095,7 @@ void message_training_display()
 	gr_shade(Training_msg_window_coords[gr_screen.res][0], Training_msg_window_coords[gr_screen.res][1], TRAINING_MSG_WINDOW_WIDTH, Training_num_lines * height + height);
 
 	gr_set_color_fast(&Color_bright_blue);
-	mode = count = 0;
+	count = 0;
 	Training_msg_visible = 1;
 	for (i=0; i<Training_num_lines; i++) {  // loop through all lines of message
 		str = Training_lines[i];

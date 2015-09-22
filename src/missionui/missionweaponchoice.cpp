@@ -3215,8 +3215,8 @@ void wl_draw_ship_weapons(int index)
 		}
 
 		if ( (wep[i] != -1) && (wep_count[i] > 0) ) {
-			int x_offset = wl_fury_missile_offset_hack(wep[i], wep_count[i]);
-			x_offset =0;
+			int x_offset = 0;
+			//x_offset = wl_fury_missile_offset_hack(wep[i], wep_count[i]);
 			wl_render_icon( wep[i], Wl_bank_coords[gr_screen.res][i][0]+x_offset, Wl_bank_coords[gr_screen.res][i][1], wep_count[i], Wl_bank_count_draw_flags[i], -1, i, wep[i]);
 		}
 	}

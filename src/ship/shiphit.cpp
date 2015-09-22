@@ -972,7 +972,7 @@ float do_subobj_hit_stuff(object *ship_obj, object *other_obj, vector *hitpos, f
 			}
 
 			if (damage_left <= 0)	{ // no more damage to distribute, so stop checking
-				damage_left = 0.0f;
+			//	damage_left = 0.0f;
 				break;
 			}
 		}

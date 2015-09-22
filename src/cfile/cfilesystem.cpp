@@ -652,6 +652,7 @@ typedef struct VP_FILE {
 
 void cf_search_root_pack(int root_index)
 {
+	size_t rc = 0;
 	int i;
 
 	cf_root *root = cf_get_root(root_index);
@@ -669,7 +670,12 @@ void cf_search_root_pack(int root_index)
 	VP_FILE_HEADER VP_header;
 
 	SDL_assert( sizeof(VP_header) == 16 );
-	fread(&VP_header, 1, sizeof(VP_header), fp);
+	rc = fread(&VP_header, 1, sizeof(VP_header), fp);
+
+	if (rc != sizeof(VP_header)) {
+		fclose(fp);
+		return;
+	}
 
     VP_header.version = INTEL_INT( VP_header.version);
     VP_header.index_offset = INTEL_INT( VP_header.index_offset);
@@ -686,7 +692,11 @@ void cf_search_root_pack(int root_index)
 	for (i=0; i<VP_header.num_files; i++ )	{
 		VP_FILE find;
 
-		fread( &find, sizeof(VP_FILE), 1, fp );
+		rc = fread( &find, 1, sizeof(VP_FILE), fp );
+
+		if (rc != sizeof(VP_FILE)) {
+			break;
+		}
 
         find.offset = INTEL_INT( find.offset );
         find.size = INTEL_INT( find.size );

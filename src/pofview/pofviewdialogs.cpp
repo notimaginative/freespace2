@@ -288,6 +288,7 @@ void SubobjectsDialog::OnSelChanged(wxTreeEvent &event)
 			m_staticTextDetail1->SetLabelText(m_pm->submodel[sm->details[0]].name);
 	}
 
+#ifndef NDEBUG
 	if (sm->i_replace > -1) {
 		m_staticTextPOFInfo->SetLabelText( wxString::Format("%s\n[I replace %s]",
 															m_pm->debug_info,
@@ -299,6 +300,9 @@ void SubobjectsDialog::OnSelChanged(wxTreeEvent &event)
 	} else {
 		m_staticTextPOFInfo->SetLabelText(m_pm->debug_info);
 	}
+#else
+	m_staticTextPOFInfo->SetLabelText("");
+#endif
 }
 
 void SubobjectsDialog::AddModel(int sm, wxTreeItemId parent)

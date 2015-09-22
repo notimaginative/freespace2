@@ -1453,10 +1453,10 @@ void ship_select_blit_ship_info()
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->manufacturer_str);
 	}
+	/*
 	y_start += 10;
 
 	// blit the _short_ text description
-	/*
 	SDL_assert(Multi_ts_ship_info_line_count < 3);
 	gr_set_color_fast(&Color_normal);
 	for(idx=0;idx<SHIP_SELECT_ship_info_line_count;idx++){
@@ -2369,7 +2369,7 @@ int create_wings()
 	wing					*wp;
 	p_object				*p_objp;
 
-	int shipnum, objnum, slot_index;
+	int shipnum, slot_index;
 	int cleanup_ship_index[MAX_WING_SLOTS];
 	int i,j,k;
 	int found_pobj;
@@ -2403,9 +2403,6 @@ int create_wings()
 							popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR( "Player ship has no weapons", 461));
 							return -1;
 						}
-
-						objnum = OBJ_INDEX(Player_obj);
-						shipnum = Objects[objnum].instance;
 					} else {
 						if ( wb->is_late) {
 							found_pobj = 0;
@@ -2731,12 +2728,11 @@ void ss_reset_selected_ship()
 // exit: number of distinct ship classes available to choose from
 int ss_fixup_team_data(team_data *tdata)
 {
-	int i, j, k, ship_in_parse_player, list_size;
+	int i, j, k, ship_in_parse_player = 0, list_size;
 	p_object		*p_objp;
 	team_data	*p_team_data;
 
 	p_team_data = tdata;
-	ship_in_parse_player = 0;
 	list_size = p_team_data->number_choices;
 
 	for ( i = 0; i < MAX_PLAYER_WINGS; i++ ) {

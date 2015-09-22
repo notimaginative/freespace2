@@ -1009,6 +1009,8 @@ void barracks_init_player_stuff(int mode)
 
 	int ranks[MAX_PILOTS];
 
+	SDL_zero(ranks);
+
 	for (int i=0; i<Num_pilots; i++) {
 		int j;
 		for (j=0; j<Num_pilots; j++) {

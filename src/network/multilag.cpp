@@ -271,7 +271,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	socklen_t t_from_len;
 #endif
 	struct sockaddr_in ip_addr;
-	int ret_val;
+	int ret_val = SOCKET_ERROR;
 	lag_buf *moveup, *item;
 
 	SDL_assert(readfds != NULL);
@@ -289,6 +289,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 			ret_val = recvfrom(nfds, t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
 		} else {
 			Int3();
+			return SOCKET_ERROR;
 		}
 			
 		// wacky socket error
@@ -312,14 +313,14 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 	}
 
 	// always unset the readfds
-	FD_CLR(nfds, readfds);
+	FD_CLR((SOCKET)nfds, readfds);
 
 	// now determine if we have any pending packets - find the first one
 	// NOTE : this _could_ be the packet we just read. In fact, with a 0 lag, this will always be the case
 	moveup=GET_FIRST(&Lag_used_list);
 	while ( moveup!=END_OF_LIST(&Lag_used_list) )	{		
 		// if the timestamp has elapsed and we have a matching socket
-		if((nfds == (SOCKET)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
+		if((nfds == (int)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
 			// set this so we think select returned yes
 			FD_SET(nfds, readfds);
 			return 1;
@@ -351,7 +352,11 @@ int multi_lag_recvfrom(uint s, char *buf, int len, int flags, struct sockaddr *f
 	}
 
 	// if this happens, it means that the multi_lag_select() returned an improper value
-	SDL_assert(item);
+	if (item == NULL) {
+		Int3();
+		return 0;
+	}
+
 	// stuff the data
 	SDL_assert(item->data_len <= len);
 	memcpy(buf, item->data, item->data_len);

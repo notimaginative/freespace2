@@ -816,7 +816,7 @@ void multi_pinfo_build_stats()
 	if(sc->last_flown == 0){
 		SDL_strlcpy(Multi_pinfo_stats_vals[MPI_LAST_FLOWN], XSTR("No missions flown", 693), MAX_LABEL_TEXT);
 	} else {
-		time_t last_flown_tmp;
+		time_t last_flown_tmp = 0;
 		tm *tmr = gmtime(&last_flown_tmp);
 		sc->last_flown = (fs_time_t)last_flown_tmp;
 		if(tmr != NULL){

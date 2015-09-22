@@ -786,8 +786,6 @@ void scoring_eval_kill(object *ship_obj)
 	scoring_eval_harbison( dead_ship );
 #endif
 
-	net_player_num = -1;
-
 	// clear out invalid damager ships
 	for(idx=0; idx<MAX_DAMAGE_SLOTS; idx++){
 		if((dead_ship->damage_ship_id[idx] >= 0) && (ship_get_by_signature(dead_ship->damage_ship_id[idx]) < 0)){

@@ -452,6 +452,7 @@ void credits_init()
 				} while (linep2 != NULL);
 			}
 		} catch (parse_error_t rval) {
+			(void)rval;	// suppress unused warning in release build
 			mprintf(("Error parsing 'credits.tbl'\nError code = %i.\n", (int)rval));
 		}
 

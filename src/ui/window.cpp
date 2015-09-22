@@ -269,14 +269,14 @@ void UI_WINDOW::create( int _x, int _y, int _w, int _h, int _flags )
 
 	f_id = gr_init_font("font01.vf");
 
-	if (_x < 0)
-		_x = 0;
-	if (_x + _w - 1 >= gr_screen.max_w)
-		_x = gr_screen.max_w - _w;
-	if (_y < 0)
-		_y = 0;
-	if (_y + _h - 1 >= gr_screen.max_h)
-		_y = gr_screen.max_h - _h;
+	if (x < 0)
+		x = 0;
+	if (x + w - 1 >= gr_screen.max_w)
+		x = gr_screen.max_w - w;
+	if (y < 0)
+		y = 0;
+	if (y + h - 1 >= gr_screen.max_h)
+		y = gr_screen.max_h - h;
 
 	game_flush();
 }

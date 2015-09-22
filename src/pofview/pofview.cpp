@@ -311,7 +311,9 @@ void PofViewFrame::PofviewInit()
 		return;
 	}
 
+#ifndef NDEBUG
 	outwnd_init();
+#endif
 
 	timer_init();
 

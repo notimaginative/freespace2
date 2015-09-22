@@ -1337,7 +1337,7 @@ void interp_render_lightning( polymodel *pm, bsp_info * sm )
 void model_interp_subcall(polymodel * pm, int mn, int detail_level)
 {
 	int i;
-	int zbuf_mode = gr_zbuffer_get();
+	int zbuf_mode, zbuf_mode_save;
 
 	if ( (mn < 0) || (mn>=pm->n_models) )
 		return;
@@ -1375,6 +1375,8 @@ void model_interp_subcall(polymodel * pm, int mn, int detail_level)
 		interp_render_lightning( pm, &pm->submodel[mn]);
 	}
 
+	zbuf_mode_save = gr_zbuffer_get();
+
 	i = pm->submodel[mn].first_child;
 	while( i>-1 )	{
 		if (!pm->submodel[i].is_thruster )	{
@@ -1391,7 +1393,7 @@ void model_interp_subcall(polymodel * pm, int mn, int detail_level)
 		i = pm->submodel[i].next_sibling;
 	}
 
-
+	gr_zbuffer_set(zbuf_mode_save);
 
 	g3_done_instance();
 }
@@ -1507,7 +1509,6 @@ int model_interp_sub(void *model_ptr, polymodel * pm, bsp_info *sm, int do_box_c
 			if ( !(Interp_flags & MR_NO_LIGHTING ) )	{
 				if ( pushed )	{
 					light_filter_pop();
-					pushed = 0;
 
 				}
 				light_filter_push_box( vp(p+8), vp(p+20) );
@@ -1530,7 +1531,6 @@ DoneWithThis:
 	if ( !(Interp_flags & MR_NO_LIGHTING ) )	{
 		if ( pushed )	{
 			light_filter_pop();
-			pushed = 0;
 		}
 	}
 
@@ -2345,7 +2345,9 @@ static int submodel_get_points_internal(int model_num, int submodel_num, int max
 void submodel_get_two_random_points(int model_num, int submodel_num, vector *v1, vector *v2, vector *n1, vector *n2 )
 {
 	int nv = submodel_get_points_internal(model_num, submodel_num, MAX_POLYGON_VECS, Interp_verts, Interp_norms );
-	
+
+	SDL_assert(nv > 0);
+
 	int vn1 = (myrand()>>5) % nv;
 	int vn2 = (myrand()>>5) % nv;
 

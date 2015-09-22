@@ -425,7 +425,7 @@ void pilot_read_techroom_data(CFILE *file)
 		// left this all hosed in the demo .plr files
 		// this will all get initialized as if this fella was a new pilot
 		for (idx=0; idx<ship_count+weapon_count; idx++) {
-			in = cfread_ubyte(file);
+			cfread_ubyte(file);
 		}
 
 	} else {
@@ -838,7 +838,7 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 	if (Player_file_version < 139) {
 		// support for FS2_DEMO pilots that still have FS1 medal info in the .plr files
 		for (i=0; i < NUM_MEDALS_FS1; i++) {
-			total = cfread_int(file);			// dummy read
+			cfread_int(file);			// dummy read
 		}
 	} else {
 		// read the usual way

@@ -352,6 +352,7 @@ void mission_log_obsolete_entries(int type, const char *pname)
 			if ( last_entry > LOG_CULL_DOORDIE_MARK ) {
 				nprintf(("missionlog", "removing the first %d entries in the mission log!!!!\n", LOG_LAST_DITCH_CULL_NUM));
 				for (i = 0; i < LOG_LAST_DITCH_CULL_NUM; i++ ){
+					entry = &log_entries[i];
 					entry->flags |= MLF_OBSOLETE;
 				}
 
@@ -385,7 +386,6 @@ void mission_log_flag_team( log_entry *entry, int which_entry, int team )
 // that this event is for.  Don't add entries with this function for multiplayer
 void mission_log_add_entry(int type, const char *pname, const char *sname, int info_index)
 {
-	int last_entry_save;
 	log_entry *entry;	
 
 	// multiplayer clients don't use this function to add log entries -- they will get
@@ -394,7 +394,9 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 		return;
 	}
 
-	last_entry_save = last_entry;
+#ifndef NDEBUG
+	int last_entry_save = last_entry;
+#endif
 
 	// mark any entries as obsolete.  Part of the pruning is done based on the type (and name) passed
 	// for a new entry

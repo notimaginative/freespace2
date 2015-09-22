@@ -435,7 +435,7 @@ void multi_df_blit_kill_matrix()
 	int top_y_start = Multi_df_display_coords[gr_screen.res][1];	
 
 	// start x for the side bar
-	int side_x_start = Multi_df_display_coords[gr_screen.res][0];
+	//int side_x_start = Multi_df_display_coords[gr_screen.res][0];
 	int side_y_start = Multi_df_display_coords[gr_screen.res][1] + 10;
 
 	// draw the top bar
@@ -459,7 +459,7 @@ void multi_df_blit_kill_matrix()
 	}
 
 	// draw the rest of the scoreboard	
-	cx = side_x_start;
+	//cx = side_x_start;
 	cy = side_y_start;
 	int row_total;
 	for(idx=0; idx<Multi_df_score_count; idx++){		

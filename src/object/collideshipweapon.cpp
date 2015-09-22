@@ -371,8 +371,9 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 				// check if we're colliding against "invisible" ship
 				if (!(Ship_info[shipp->ship_info_index].flags & SIF_DONT_COLLIDE_INVIS)) {
 					wp->lifeleft = 0.001f;
-					if (ship_obj == Player_obj)
+					if (ship_obj == Player_obj) {
 						nprintf(("Jim", "Frame %i: Weapon %i set to detonate, dist = %7.3f.\n", Framecount, weapon_obj-Objects, dist));
+					}
 					valid_hit_occured = 1;
 				}
 			}
@@ -493,7 +494,7 @@ int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *p
 	}
 
 	// Note:  when estimated hit time is less than 200 ms, look at every frame
-	int hit_time;	// estimated time of hit in ms
+	int hit_time = 0;	// estimated time of hit in ms
 
 	// modify ship_weapon_check_collision to do damage if hit_time is negative (ie, hit occurs in this frame)
 	if ( ship_weapon_check_collision( ship, weapon, limit_time, &hit_time ) ) {

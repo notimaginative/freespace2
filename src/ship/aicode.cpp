@@ -1231,16 +1231,14 @@ float get_skill_stealth_dot_scaler()
 
 int ai_is_stealth_visible(object *viewer_objp, object *stealth_objp)
 {
-	ship *shipp;
 	vector vec_to_stealth;
 	float dot_to_stealth, dist_to_stealth, max_stealth_dist;
 
 	SDL_assert(stealth_objp->type == OBJ_SHIP);
-	shipp = &Ships[stealth_objp->instance];
 	SDL_assert(viewer_objp->type == OBJ_SHIP);
 
 	// check if stealth ship
-	SDL_assert(Ship_info[shipp->ship_info_index].flags & SIF_STEALTH);
+	SDL_assert(Ship_info[Ships[stealth_objp->instance].ship_info_index].flags & SIF_STEALTH);
 
 	// check if in neb and below awac level for visible
 	if ( !ship_is_visible_by_team(stealth_objp->instance, Ships[viewer_objp->instance].team) ) {
@@ -3428,7 +3426,6 @@ void create_model_path(object *pl_objp, object *mobjp, int path_num, int subsys_
 
 	ship_info	*osip = &Ship_info[Ships[mobjp->instance].ship_info_index];
 	polymodel	*pm = model_get(osip->modelnum);
-	int			num_points;
 	model_path	*mp;
 	pnode			*ppfp_start = Ppfp;
 	matrix		m;
@@ -3446,9 +3443,8 @@ void create_model_path(object *pl_objp, object *mobjp, int path_num, int subsys_
 	SDL_assert(path_num < pm->n_paths);
 	
 	mp = &pm->paths[path_num];
-	num_points = mp->nverts;
 
-	SDL_assert(Ppfp-Path_points + num_points + 4 < MAX_PATH_POINTS);
+	SDL_assert(Ppfp-Path_points + mp->nverts + 4 < MAX_PATH_POINTS);
 
 	vm_copy_transpose_matrix(&m, &mobjp->orient);
 	vm_vec_rotate(&gp0, &mp->verts[0].pos, &m);
@@ -3511,7 +3507,6 @@ void create_model_exit_path(object *pl_objp, object *mobjp, int path_num, int co
 
 	ship_info	*osip = &Ship_info[Ships[mobjp->instance].ship_info_index];
 	polymodel	*pm = model_get(osip->modelnum);
-	int			num_points;
 	model_path	*mp;
 	pnode			*ppfp_start = Ppfp;
 
@@ -3519,9 +3514,8 @@ void create_model_exit_path(object *pl_objp, object *mobjp, int path_num, int co
 	SDL_assert(path_num < pm->n_paths);
 	
 	mp = &pm->paths[path_num];
-	num_points = mp->nverts;
 
-	SDL_assert(Ppfp-Path_points + num_points + 4 < MAX_PATH_POINTS);
+	SDL_assert(Ppfp-Path_points + mp->nverts + 4 < MAX_PATH_POINTS);
 
 	copy_xlate_model_path_points(mobjp, mp, -1, count, path_num, NULL);
 
@@ -3581,11 +3575,10 @@ void ai_find_path(object *pl_objp, int objnum, int path_num, int exit_flag, int 
 		object	*objp = &Objects[objnum];
 
 		if (objp->type == OBJ_SHIP) {
-			polymodel *pm;
-
-			ship	*shipp = &Ships[objp->instance];
-			pm = model_get( shipp->modelnum );
+#ifndef NDEBUG
+			polymodel *pm = model_get( Ships[objp->instance].modelnum );
 			SDL_assert(pm->n_paths > path_num);
+#endif
 			aip->goal_objnum = objp-Objects;
 			aip->goal_signature = objp->signature;
 			if (exit_flag)
@@ -3762,7 +3755,6 @@ void ai_do_objects_undocked_stuff( object *docker, object *dockee )
 void ai_dock_with_object(object *docker, object *dockee, int priority, int dock_type, int docker_index, int dockee_index)
 {
 	ai_info		*aip;
-	polymodel	*pm;
 	ai_info		*dockee_aip;
 
 	SDL_assert(docker != NULL);
@@ -3827,8 +3819,10 @@ void ai_dock_with_object(object *docker, object *dockee, int priority, int dock_
 	// of paths that the point can be reached by.  Pick the first path in the path list for now.
 	// We only want to do this stuff if we are docking!!!  Be sure to set the path index
 	if ((dock_type == AIDO_DOCK) || (dock_type == AIDO_DOCK_NOW)) {
-		pm = model_get( Ships[dockee->instance].modelnum );
+#ifndef NDEBUG
+		polymodel *pm = model_get( Ships[dockee->instance].modelnum );
 		SDL_assert( pm->docking_bays[dockee_index].num_spline_paths > 0 );
+#endif
 
 		// only set the dock path index if we are docking.  undocking will assume that dock_path_index
 		// already set from some other docking command
@@ -4383,8 +4377,7 @@ void set_accel_for_docking(object *objp, ai_info *aip, float dot, float dot_to_n
 //	Returns distance to goal point.
 float ai_path()
 {
-	polymodel	*pm;
-	int		num_paths, num_points;
+	int		num_points;
 	float		dot, dist_to_goal, dist_to_next, dot_to_next;
 	ship		*shipp = &Ships[Pl_objp->instance];
 	ship_info	*sip = &Ship_info[shipp->ship_info_index];
@@ -4393,7 +4386,6 @@ float ai_path()
 	float		mag;//, prev_dot_to_goal;
 	vector	temp_vec, *slop_vec;
 	object	*gobjp;
-	ship		*gshipp;
 	vector	*cvp, *nvp, next_vec, gcvp, gnvp;		//	current and next vertices in global coordinates.
 
 	aip = &Ai_info[Ships[Pl_objp->instance].ai_index];
@@ -4402,11 +4394,11 @@ float ai_path()
 	SDL_assert(Objects[aip->goal_objnum].type == OBJ_SHIP);
 
 	gobjp = &Objects[aip->goal_objnum];
-	gshipp = &Ships[gobjp->instance];
 
-	pm = model_get( gshipp->modelnum );
-	num_paths = pm->n_paths;
-	SDL_assert(num_paths > 0);
+#ifndef NDEBUG
+	polymodel *pm = model_get( Ships[gobjp->instance].modelnum );
+	SDL_assert(pm->n_paths > 0);
+#endif
 
 	if (aip->path_start == -1) {
 		int path_num;
@@ -5539,8 +5531,9 @@ void set_primary_weapon_linkage(object *objp)
 	shipp->flags &= ~SF_PRIMARY_LINKED;
 
 	if (Num_weapons > (int) (MAX_WEAPONS * 0.75f)) {
-		if (shipp->flags & SF_PRIMARY_LINKED)
+		if (shipp->flags & SF_PRIMARY_LINKED) {
 			nprintf(("AI", "Frame %i, ship %s: Unlinking primaries.\n", Framecount, shipp->ship_name));
+		}
 		shipp->flags &= ~SF_PRIMARY_LINKED;
 		return;		//	If low on slots, don't link.
 	}
@@ -5986,7 +5979,6 @@ int ai_fire_secondary_weapon(object *objp, int priority1, int priority2)
 
 	//nprintf(("AI", "Frame %i: Current bank = %i, ammo remaining = %i\n", Framecount, current_bank, swp->secondary_bank_ammo[current_bank]));
 	if (current_bank == -1) {
-		swp->next_secondary_fire_stamp[current_bank] = timestamp(500);
 		return rval;
 	}
 
@@ -7651,9 +7643,11 @@ void ai_chase_big_get_separations(object *attack_objp, object *target_objp, vect
 void ai_chase_big_parallel_set_goal(vector *goal_pos, object *attack_objp, object *target_objp, float *accel)
 {
 	int opposing;
-	float temp, r_target, r_attacker;
 	float separation, optimal_separation;
 	vector  horz_vec_to_target;
+
+	/*
+	float temp, r_target, r_attacker;
 	polymodel *pm;
 
 	// get parameters of ships (as cylinders - radius and height)
@@ -7668,6 +7662,7 @@ void ai_chase_big_parallel_set_goal(vector *goal_pos, object *attack_objp, objec
 	temp = max(pm->maxs.xyz.x, pm->maxs.xyz.y);
 	r_target = max(-pm->mins.xyz.x, -pm->mins.xyz.y);
 	r_target = max(temp, r_target);
+	*/
 
 	// are we opposing (only when other ship is not moving)
 	opposing = ( vm_vec_dotprod(&attack_objp->orient.v.fvec, &target_objp->orient.v.fvec) < 0 );
@@ -12502,7 +12497,6 @@ int ai_acquire_emerge_path(object *pl_objp, int parent_objnum, vector *pos, vect
 		return -1;
 
 	// try to find a bay path that is not taken
-	path_index = -1;
 	sb_path_index = Ai_last_arrive_path++;
 
 	if ( sb_path_index >= sb->num_paths ) {
@@ -13319,9 +13313,9 @@ int aas_1(object *objp, ai_info *aip, vector *safe_pos)
 		//	time in the future, this time based on max lifetime and life left.
 		if (wip->wi_flags & WIF_HOMING_ASPECT) {
 			expected_pos = weaponp->homing_pos;
-			if (weaponp->homing_object && weaponp->homing_object->type == OBJ_SHIP) {
-				target_ship_obj = weaponp->homing_object;
-			}
+		//	if (weaponp->homing_object && weaponp->homing_object->type == OBJ_SHIP) {
+		//		target_ship_obj = weaponp->homing_object;
+		//	}
 			pos_set = 1;
 			if (IS_VEC_NULL(&weaponp->homing_pos)) {
 				pos_set = 0;

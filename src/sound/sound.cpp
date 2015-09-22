@@ -826,8 +826,6 @@ int snd_play_3d(game_snd *gs, vector *source_pos, vector *listen_pos, float radi
 	if ( !(snd->flags & SND_F_USED) )
 		return -1;
 
-	handle = -1;
-
 	min_range = fl2i( (gs->min + radius) * range_factor);
 	max_range = fl2i( (gs->max + radius) * range_factor + 0.5f);
 

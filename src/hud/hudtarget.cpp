@@ -881,7 +881,7 @@ object *hud_reticle_pick_target()
 			rl = next;
 		}
 	}
-	
+
 	for ( cur_rl = GET_FIRST(&Reticle_cur_list); cur_rl != END_OF_LIST(&Reticle_cur_list); cur_rl = GET_NEXT(cur_rl) ) {
 		in_save_list = 0;
 		for ( save_rl = GET_FIRST(&Reticle_save_list); save_rl != END_OF_LIST(&Reticle_save_list); save_rl = GET_NEXT(save_rl) ) {
@@ -3442,7 +3442,7 @@ void hud_show_brackets(object *targetp, vertex *projected_v)
 		case OBJ_WEAPON:
 			SDL_assert(Weapon_info[Weapons[targetp->instance].weapon_info_index].subtype == WP_MISSILE);
 			modelnum = Weapon_info[Weapons[targetp->instance].weapon_info_index].model_num;
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
 			break;
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
@@ -3451,14 +3451,14 @@ void hud_show_brackets(object *targetp, vertex *projected_v)
 			int subtype = 0;
 			subtype = Asteroids[targetp->instance].asteroid_subtype;
 			modelnum = Asteroid_info[Asteroids[targetp->instance].type].model_num[subtype];
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
 			}
 			break;
 #endif
 
 		case OBJ_JUMP_NODE:
 			modelnum = Jump_nodes[targetp->instance].modelnum;
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
 			break;
 
 		default:

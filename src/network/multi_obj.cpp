@@ -1294,7 +1294,6 @@ void multi_oo_process_all(net_player *pl)
 			multi_io_send(pl, data, packet_size);
 			pl->s_info.rate_bytes += packet_size + UDP_HEADER_SIZE;
 
-			packet_size = 0;
 			BUILD_HEADER(OBJECT_UPDATE);			
 		}
 
@@ -1353,7 +1352,6 @@ void multi_oo_process_update(ubyte *data, header *hinfo)
 	net_player *pl = NULL;	
 
 	// if this is processed on the server, its a client object update packet
-	player_index = -1;
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 		// determine what player this came from 
 		player_index = find_player_id(hinfo->id);

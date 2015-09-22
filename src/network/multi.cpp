@@ -1991,9 +1991,9 @@ void multi_display_netinfo()
 		// display PL
 		if(Net_player != NULL){
 			if(Net_player->cl_last_pl < 0){
-				gr_printf(sx, sy, "PL : %d %d pl\n", Net_player->cl_bytes_recvd, 0); sy += 10;
+				gr_printf(sx, sy, "PL : %d %d pl\n", Net_player->cl_bytes_recvd, 0);// sy += 10;
 			} else {
-				gr_printf(sx, sy, "PL : %d %d pl\n", Net_player->cl_bytes_recvd, Net_player->cl_last_pl); sy += 10;
+				gr_printf(sx, sy, "PL : %d %d pl\n", Net_player->cl_bytes_recvd, Net_player->cl_last_pl);// sy += 10;
 			}
 		}
 	}

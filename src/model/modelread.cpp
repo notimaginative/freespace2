@@ -2098,9 +2098,8 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 	pm->n_paths = 0;
 	pm->paths = NULL;
 
-	int org_sig = Model_signature;
 	Model_signature+=MAX_POLYGON_MODELS;
-	if ( Model_signature < org_sig )	{
+	if ( Model_signature < MAX_POLYGON_MODELS )	{
 		Model_signature = 0;
 	}
 	SDL_assert( (Model_signature % MAX_POLYGON_MODELS) == 0 );
@@ -2707,7 +2706,12 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 		ang_next = &sii->angs.b;
 		break;
 	}
-	
+
+	if (ang_next == NULL) {
+		Int3();
+		return;
+	}
+
 	// angular displacement of one step
 	float step_size = (PI2 / psub->stepped_rotation->num_steps);
 
@@ -3006,6 +3010,8 @@ void model_find_world_point(vector * outpnt, vector *mpnt,int model_num,int sub_
 	matrix m;
 	int mn;
 	polymodel *pm = model_get(model_num);
+
+	SDL_assert(mpnt != NULL);
 
 	pnt = *mpnt;
 	mn = sub_model_num;

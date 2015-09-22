@@ -726,10 +726,11 @@ int obj_allocate(void)
 	if (!Object_inited) obj_init();
 
 	if ( num_objects >= MAX_OBJECTS-10 ) {
-		int	num_freed;
+		int	num_freed = free_object_slots(MAX_OBJECTS-10);
 
-		num_freed = free_object_slots(MAX_OBJECTS-10);
-		nprintf(("warning", " *** Freed %i objects\n", num_freed));
+		if (num_freed) {
+			nprintf(("warning", " *** Freed %i objects\n", num_freed));
+		}
 	}
 
 	if (num_objects >= MAX_OBJECTS) {
@@ -1806,7 +1807,6 @@ void obj_client_pre_interpolate()
 	// run everything except ships through physics (and ourselves of course)	
 	obj_merge_created_list();						// must merge any objects created by the host!
 
-	objp = GET_FIRST(&obj_used_list);
 	for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) )	{
 		if((objp != Player_obj) && (objp->type == OBJ_SHIP)){
 			continue;

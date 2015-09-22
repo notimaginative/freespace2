@@ -209,7 +209,12 @@ void scramble_read_default(char **text, int *text_len, FILE *fp)
 {
 	*text_len = _filelength(fileno(fp));
 	*text = (char*)malloc(*text_len+1);
-	fread( *text, *text_len, 1, fp );
+
+	if ( !fread(*text, *text_len, 1, fp) ) {
+		free(*text);
+		*text = NULL;
+		*text_len = 0;
+	}
 }
 
 // scramble a file
@@ -242,6 +247,10 @@ void scramble_file(char *src_filename, char *dest_filename, int preprocess)
 	}
 
 	fclose(fp);
+
+	if (text == NULL) {
+		return;
+	}
 
 	// open up file for writing scrambled text
 	if ( dest_filename ) {
@@ -284,7 +293,13 @@ void unscramble_file(char *src_filename, char *dest_filename)
 	// read in the scrambled data
 	scramble_len = _filelength(fileno(fp));
 	scramble_text = (char*)malloc(scramble_len+1);
-	fread( scramble_text, scramble_len, 1, fp );
+
+	if ( !fread(scramble_text, scramble_len, 1, fp) ) {
+		fclose(fp);
+		free(scramble_text);
+		return;
+	}
+
 	fclose(fp);
 
 	// open up file for writing unscrambled text

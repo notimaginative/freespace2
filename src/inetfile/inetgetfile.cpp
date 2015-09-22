@@ -97,6 +97,7 @@ InetGetFile::InetGetFile(char *URL, char *filename, int cf_type)
 	ftp=NULL;
 	if ( (URL == NULL) || (filename == NULL) || !CF_TYPE_SPECIFIED(cf_type) ) {
 		m_HardError = INET_ERROR_BADPARMS;
+		return;
 	}
 
 	// create directory if not already there.

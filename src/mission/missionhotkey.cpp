@@ -864,7 +864,7 @@ int hotkey_build_team_listing(int team, int y)
 		}
 	}
 
-	z = HOTKEY_LINE_HEADING;
+	//z = HOTKEY_LINE_HEADING;
 	for (i=start; i<Num_lines; i++) {
 		if (Hotkey_lines[i].type == HOTKEY_LINE_SUBSHIP)
 			y += font_height;
@@ -885,7 +885,7 @@ void hotkey_build_listing()
 	Num_lines = y = 0;
 
 	y = hotkey_build_team_listing(TEAM_FRIENDLY, y);
-	y = hotkey_build_team_listing(TEAM_HOSTILE, y);
+	hotkey_build_team_listing(TEAM_HOSTILE, y);
 }
 
 int hotkey_line_query_visible(int n)

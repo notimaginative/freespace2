@@ -147,9 +147,10 @@ void LauncherSetup::saveTab_Video()
 
 	if ( m_Video_MSAA->IsChecked() ) {
 		int sel = m_Video_MSAASamples->GetSelection();
-		wxASSERT( sel != wxNOT_FOUND );
 
-		msaa = 2 << sel;
+		if ( (sel >= 0) && (sel < 4) ) {
+			msaa = 2 << sel;
+		}
 	}
 
 	os_config_write_uint("Video", "AntiAlias", msaa);

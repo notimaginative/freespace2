@@ -852,7 +852,11 @@ void asteroid_create_all()
 		} else {
 			SDL_assert(num_debris_types > 0);
 
-			int rand_choice = rand() % max_weighted_range;
+			int rand_choice = 1;
+
+			if (max_weighted_range > 0) {
+				rand_choice = rand() % max_weighted_range;
+			}
 
 			for (idx=0; idx<3; idx++) {
 				// for ship debris, choose type according to odds table

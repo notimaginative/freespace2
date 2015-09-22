@@ -82,7 +82,9 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	SDL_strlcpy(buffer, "", SDL_arraysize(buffer));
 	while ( !feof(f) ) {
 		// Read the line into a temporary buffer
-		fgets(buffer, MAX_LINE_LENGTH, f);
+		if ( fgets(buffer, MAX_LINE_LENGTH, f) == NULL ) {
+			break;
+		}
 
 		// take the \n off the end of it
 		if (strlen(buffer)>0 && buffer[strlen(buffer) - 1] == '\n')

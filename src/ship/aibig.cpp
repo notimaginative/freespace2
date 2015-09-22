@@ -1519,7 +1519,7 @@ void ai_big_strafe_attack()
 	ai_info	*aip;
 	vector	target_pos;
 	vector	rand_vec;
-	float		target_dist, target_dot, accel, t;
+	float		target_dist = 0.0f, target_dot = 0.0f, accel, t;
 
 	aip = &Ai_info[Ships[Pl_objp->instance].ai_index];
 
@@ -1584,6 +1584,7 @@ void ai_big_strafe_attack()
 
 	// Slow down if we've not been hit for a while
 	fix last_hit = Missiontime - aip->last_hit_time;
+	/*
 	if ( target_dist > 1200 || last_hit < F1_0*6) {
 		accel = 1.0f;
 	} else {
@@ -1601,6 +1602,7 @@ void ai_big_strafe_attack()
 			accel = 1.0f;
 		}
 	}
+	*/
 
 	accel = 1.0f;
 	accelerate_ship(aip, accel);

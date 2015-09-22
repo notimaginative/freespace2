@@ -673,8 +673,9 @@ void parse_mission_info(mission *pm)
 	
 	required_string("$Version:");
 	stuff_float(&pm->version);
-	if (pm->version != MISSION_VERSION)
+	if (pm->version != MISSION_VERSION) {
 		mprintf(("Older mission, should update it (%.2f<-->%.2f)", pm->version, MISSION_VERSION));
+	}
 
 	required_string("$Name:");
 	stuff_string(pm->name, F_NAME, NULL);

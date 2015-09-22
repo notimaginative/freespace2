@@ -4952,8 +4952,9 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 	GET_USHORT( net_signature );		// signature of the object that we are dealing with.
 	GET_DATA( code );					// code of what we are doing.
 	objp = multi_get_network_object( net_signature );
-	if ( !objp )
+	if ( !objp ) {
 		nprintf(("Network", "Couldn't find object for ai update\n"));
+	}
 
 	switch( code ) {
 	case AI_UPDATE_DOCK:
@@ -4961,8 +4962,9 @@ void process_ai_info_update_packet( ubyte *data, header *hinfo)
 		GET_DATA( dock_index );
 		GET_DATA( dockee_index );
 		other_objp = multi_get_network_object( other_net_signature );
-		if ( !other_objp )
+		if ( !other_objp ) {
 			nprintf(("Network", "Couldn't find other object for ai update on dock\n"));
+		}
 		
 		// if we don't have an object to work with, break out of loop
 		if ( !objp || !other_objp || (objp->type != OBJ_SHIP) || (other_objp->type != OBJ_SHIP)){

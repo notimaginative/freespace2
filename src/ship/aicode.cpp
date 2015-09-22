@@ -5531,8 +5531,9 @@ void set_primary_weapon_linkage(object *objp)
 	shipp->flags &= ~SF_PRIMARY_LINKED;
 
 	if (Num_weapons > (int) (MAX_WEAPONS * 0.75f)) {
-		if (shipp->flags & SF_PRIMARY_LINKED)
+		if (shipp->flags & SF_PRIMARY_LINKED) {
 			nprintf(("AI", "Frame %i, ship %s: Unlinking primaries.\n", Framecount, shipp->ship_name));
+		}
 		shipp->flags &= ~SF_PRIMARY_LINKED;
 		return;		//	If low on slots, don't link.
 	}

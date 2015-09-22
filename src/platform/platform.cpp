@@ -98,8 +98,6 @@ void *vm_malloc(int size)
 
 		Error(LOCATION, "Out of memory.  Try closing down other applications, increasing your\n"
 				"virtual memory size, or installing more physical RAM.\n");
-
-		return NULL;
 	}
 
 #ifndef NDEBUG

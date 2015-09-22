@@ -409,6 +409,8 @@ void IdleGameTracker()
 		struct sockaddr_in fromaddr;
 
 		game_packet_header inpacket;
+
+		SDL_zero(inpacket);
 		addrsize = sizeof(struct sockaddr_in);
 
 		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(game_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_GAME_TRACKER);

@@ -652,6 +652,7 @@ void lcl_xstr_init()
 			num_offsets_on_this_line = 0;
 		}
 	} catch (parse_error_t rval) {
+		(void)rval;	// suppress unused warning in release build
 		mprintf(("Error parsing 'strings.tbl'\nError code = %i.\n", (int)rval));
 	}
 #else

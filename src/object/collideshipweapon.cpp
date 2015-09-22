@@ -371,8 +371,9 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 				// check if we're colliding against "invisible" ship
 				if (!(Ship_info[shipp->ship_info_index].flags & SIF_DONT_COLLIDE_INVIS)) {
 					wp->lifeleft = 0.001f;
-					if (ship_obj == Player_obj)
+					if (ship_obj == Player_obj) {
 						nprintf(("Jim", "Frame %i: Weapon %i set to detonate, dist = %7.3f.\n", Framecount, weapon_obj-Objects, dist));
+					}
 					valid_hit_occured = 1;
 				}
 			}

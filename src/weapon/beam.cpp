@@ -3082,7 +3082,9 @@ void beam_test(int whee)
 {
 	int s1, s2;
 	object *orion, *fenris;
-	ship_subsys *orion_turret, *fenris_turret, *fenris_radar, *orion_radar, *lookup;
+	ship_subsys *lookup;
+	ship_subsys *orion_turret = NULL, *orion_radar = NULL;
+	ship_subsys *fenris_turret = NULL, *fenris_radar = NULL;
 	beam_fire_info f;
 
 	nprintf(("General", "Running beam test\n"));
@@ -3097,36 +3099,36 @@ void beam_test(int whee)
 
 	// get beam weapons
 	lookup = GET_FIRST(&Ships[s1].subsys_list);
-	orion_turret = NULL;
-	orion_radar = NULL;
 	while(lookup != END_OF_LIST(&Ships[s1].subsys_list)){
 		// turret		
 		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !SDL_strcasecmp(lookup->system_info->subobj_name, "turret07")){
 			orion_turret = lookup;			
 		}
 
+#ifndef NDEBUG
 		// radar
 		if(lookup->system_info->type == SUBSYSTEM_RADAR){
 			orion_radar = lookup;
 		}
+#endif
 
 		lookup = GET_NEXT(lookup);
 	}
 	SDL_assert(orion_turret != NULL);
 	SDL_assert(orion_radar != NULL);
 	lookup = GET_FIRST(&Ships[s2].subsys_list);
-	fenris_turret = NULL;
-	fenris_radar = NULL;
 	while(lookup != END_OF_LIST(&Ships[s2].subsys_list)){
 		// turret
 		if((lookup->system_info->type == SUBSYSTEM_TURRET) && !SDL_strcasecmp(lookup->system_info->subobj_name, "turret07")){
 			fenris_turret = lookup;			
 		}
 
+#ifndef NDEBUG
 		// radar
 		if(lookup->system_info->type == SUBSYSTEM_RADAR){
 			fenris_radar = lookup;
 		}
+#endif
 
 		lookup = GET_NEXT(lookup);
 	}

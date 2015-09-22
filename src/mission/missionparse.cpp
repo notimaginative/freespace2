@@ -4472,7 +4472,6 @@ void mission_eval_arrivals()
 //		return;
 
 	// check the ship_arrival_list
-	objnum = -1;
 	objp = GET_FIRST(&ship_arrival_list);
 	while( objp !=END_OF_LIST(&ship_arrival_list) )	{
 		p_object *temp = GET_NEXT(objp);

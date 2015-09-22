@@ -571,7 +571,6 @@ int obj_snd_stop_lowest_vol(float new_vol)
 	lowest_vol = 1000.0f;
 	for ( osp = GET_FIRST(&obj_snd_list); osp !=END_OF_LIST(&obj_snd_list); osp = GET_NEXT(osp) ) {
 		SDL_assert(osp->objnum != -1);
-		objp = &Objects[osp->objnum];
 
 		if ( (osp->instance != -1) && (osp->vol < lowest_vol) ) {
 			lowest_vol = osp->vol;
@@ -579,7 +578,11 @@ int obj_snd_stop_lowest_vol(float new_vol)
 		}
 	}
 
-	SDL_assert(lowest_vol_osp != NULL);
+	if (lowest_vol_osp == NULL) {
+		Int3();
+		return FALSE;
+	}
+
 	objp = &Objects[lowest_vol_osp->objnum];
 
 	if ( (lowest_vol < new_vol) && (objp != NULL) ) {

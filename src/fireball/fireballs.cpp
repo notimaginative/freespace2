@@ -771,7 +771,7 @@ int fireball_free_one()
 	int		i;
 
 	int		oldest_objnum = -1, oldest_slotnum = -1;
-	float		lifeleft, oldest_lifeleft = 0.0f;
+//	float		lifeleft, oldest_lifeleft = 0.0f;
 
 	for ( i = 0; i < MAX_FIREBALLS; i++ ) {
 		fb = &Fireballs[i];
@@ -779,12 +779,12 @@ int fireball_free_one()
 		// only remove the ones that aren't warp effects
 		if ( (fb->objnum>-1) && fireball_is_perishable(&Objects[fb->objnum]) )	{
 
-			lifeleft = fb->total_time - fb->time_elapsed;
-			if ( (oldest_objnum < 0) || (lifeleft < oldest_lifeleft) )	{
+		//	lifeleft = fb->total_time - fb->time_elapsed;
+		//	if ( (oldest_objnum < 0) || (lifeleft < oldest_lifeleft) )	{
 				oldest_slotnum = i;
-				oldest_lifeleft = lifeleft;
+		//		oldest_lifeleft = lifeleft;
 				oldest_objnum = fb->objnum;
-			}
+		//	}
 			break;
 		}
 	}

@@ -371,7 +371,6 @@ void multi_data_send_my_junk()
 
 			// release the bitmap
 			bm_release(bmap);
-			bmap = -1;
 
 			// if the dimensions are invalid, kill the filename
 			if((w != PLAYER_PILOT_PIC_W) || (h != PLAYER_PILOT_PIC_H)){
@@ -418,7 +417,6 @@ void multi_data_send_my_junk()
 
 			// release the bitmap
 			bm_release(bmap);
-			bmap = -1;
 
 			// if the dimensions are invalid, kill the filename
 			if((w != PLAYER_SQUAD_PIC_W) || (h != PLAYER_SQUAD_PIC_H)){

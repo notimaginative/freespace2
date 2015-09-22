@@ -1947,6 +1947,10 @@ void game_loading_callback_close()
 
 #ifndef NDEBUG
 	int real_count = game_busy_callback( NULL );
+
+	mprintf(( "=================== ENDING LOAD ================\n" ));
+	mprintf(( "Real count = %d,  Estimated count = %d\n", real_count, COUNT_ESTIMATE ));
+	mprintf(( "================================================\n" ));
 #else
 	game_busy_callback( NULL );
 #endif
@@ -1954,12 +1958,6 @@ void game_loading_callback_close()
  	Mouse_hidden = 0;
 
 	Game_loading_callback_inited = 0;
-	
-#ifndef NDEBUG
-	mprintf(( "=================== ENDING LOAD ================\n" ));
-	mprintf(( "Real count = %d,  Estimated count = %d\n", real_count, COUNT_ESTIMATE ));
-	mprintf(( "================================================\n" ));
-#endif
 
 	free_anim_instance(Game_loading_ani_instance);
 	Game_loading_ani_instance = NULL;

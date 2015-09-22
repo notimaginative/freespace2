@@ -1233,7 +1233,7 @@ void process_join_packet(ubyte* data, header* hinfo)
 		Netgame.flags |= NG_FLAG_INGAME_JOINING;
 
 		// determine what mode we're in
-		host_restr_mode = -1;
+//		host_restr_mode = -1;
 		memset(join_string,0,255);
 //		if(Netgame.type == NG_TYPE_TEAM){
 //			multi_player_ships_available(&team0_avail,&team1_avail);
@@ -1487,7 +1487,7 @@ void send_accept_player_data( net_player *npp, int is_ingame )
 // send an accept packet to a client in response to a request to join the game
 void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 {
-	int packet_size, i;
+	int packet_size = 0, i;
 	ubyte data[MAX_PACKET_SIZE],val;
 	char notify_string[256];
 
@@ -1498,7 +1498,6 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 	Net_players[new_player_num].last_heard_time = timer_get_fixed_seconds();
 
 	// build the packet header
-	packet_size = 0;
 	BUILD_HEADER(ACCEPT);	
 	
 	// add the accept code
@@ -2136,11 +2135,10 @@ void process_game_active_packet(ubyte* data, header* hinfo)
 // is used to change the current mission, current state, etc.
 void send_netgame_update_packet(net_player *pl)
 {
-	int packet_size;
+	int packet_size = 0;
 	int idx;
 	ubyte data[MAX_PACKET_SIZE];
 
-	packet_size = 0;
 	BUILD_HEADER(GAME_UPDATE);
 	
 	// with new mission description field, this becomes way to large
@@ -2802,7 +2800,7 @@ void process_ship_create_packet( ubyte *data, header *hinfo )
 	if ( !is_support ) {
 		objp = mission_parse_get_arrival_ship( signature );
 		if ( objp != NULL ) {
-			objnum = parse_create_object(objp);
+			parse_create_object(objp);
 		} else {
 			nprintf(("Network", "Ship with sig %d not found on ship arrival list -- not creating!!\n", signature));
 		}
@@ -3818,8 +3816,8 @@ void process_game_info_packet( ubyte *data, header *hinfo )
 void send_ingame_nak(int state, net_player *p)
 {
 	ubyte data[MAX_PACKET_SIZE];
-	int packet_size;
-	packet_size = 0;
+	int packet_size = 0;
+
 	BUILD_HEADER(INGAME_NAK);
 
 	ADD_INT(state);
@@ -3831,7 +3829,6 @@ void send_ingame_nak(int state, net_player *p)
 void process_ingame_nak(ubyte *data, header *hinfo)
 {
 	int offset,state,pid;	
-	net_player *pl;
 
 	offset = HEADER_LENGTH;
 	GET_INT(state);	
@@ -3841,11 +3838,10 @@ void process_ingame_nak(ubyte *data, header *hinfo)
 	if(pid < 0){
 		return;
 	}
-	pl = &Net_players[pid];
 	
 	switch(state){
 	case ACK_FILE_ACCEPTED :
-		SDL_assert(pl->flags & NETINFO_FLAG_INGAME_JOIN);
+		SDL_assert(Net_players[pid].flags & NETINFO_FLAG_INGAME_JOIN);
 		nprintf(("Network","Mission file rejected by server, aborting...\n"));
 		multi_quit_game(PROMPT_NONE, MULTI_END_NOTIFY_FILE_REJECTED);		
 		break;
@@ -3856,9 +3852,8 @@ void process_ingame_nak(ubyte *data, header *hinfo)
 void send_endgame_packet(net_player *pl)
 {
 	ubyte data[MAX_PACKET_SIZE];
-	int packet_size;
+	int packet_size = 0;
 	
-	packet_size = 0;
 	BUILD_HEADER(MISSION_END);	
 
 	// sending to a specific player?
@@ -3939,7 +3934,7 @@ void process_endgame_packet(ubyte *data, header *hinfo)
 void send_observer_update_packet()
 {
 	ubyte data[MAX_PACKET_SIZE];
-	int packet_size;
+	int packet_size = 0;
 	int ret;
 	ushort target_sig;
 	
@@ -3952,8 +3947,6 @@ void send_observer_update_packet()
 	if((Player_obj == NULL) || (Player_obj->type != OBJ_OBSERVER) || (Net_player == NULL) || !(Net_player->flags & NETINFO_FLAG_OBSERVER)){
 		return;
 	}
-
-	packet_size = 0;
 	
 	BUILD_HEADER(OBSERVER_UPDATE);
 
@@ -4018,10 +4011,10 @@ void process_observer_update_packet(ubyte *data, header *hinfo)
 void send_netplayer_slot_packet()
 {
 	ubyte data[MAX_PACKET_SIZE];
-	int packet_size,idx;
+	int packet_size = 0, idx;
 	ubyte stop;
 
-	packet_size = 0;
+
 	stop = 0xff;
    BUILD_HEADER(NETPLAYER_SLOTS_P);
    for(idx=0;idx<MAX_PLAYERS;idx++){
@@ -4701,9 +4694,7 @@ void send_jump_into_mission_packet(net_player *pl)
 void process_jump_into_mission_packet(ubyte *data, header *hinfo)
 {
 	int offset = HEADER_LENGTH;
-	int state;	
-	
-	state = 0;	
+	int state = 0;
 
 	// if I am ingame joining, there should be extra data.  For now, this data is the netgame state.
 	// the game could be paused, so ingame joiner needs to deal with it.

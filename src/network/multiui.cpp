@@ -7269,7 +7269,7 @@ void multi_game_client_setup_do_frame()
 	int player_index;
 	int k = chatbox_process();
 	char mission_text[255];
-	k = Multi_jw_window.process(k,0);	
+	/*k =*/ Multi_jw_window.process(k,0);
 
 	Multi_jw_should_show_popup = 0;
 

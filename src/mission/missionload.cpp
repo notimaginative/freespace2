@@ -292,9 +292,9 @@ int mission_load()
 		return -1;
 
 	if (Select_default_ship) {
-		int ret;
-		ret = create_default_player_ship();
-		SDL_assert(!ret);
+		if ( create_default_player_ship() ) {
+			Int3();
+		}
 	}
 
 	ml_update_recent_missions(Game_current_mission_filename);  // update recently played missions list

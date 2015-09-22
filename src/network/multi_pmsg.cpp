@@ -774,7 +774,7 @@ int multi_msg_eval_wing_squadmsg(int wingnum,int command,ai_info *aif, int playe
 	} else {
 		net_sig = Objects[aif->target_objnum].net_signature;
 	}
-	subsys_type = -1;
+
 	if((aif->targeted_subsys == NULL) || (aif->targeted_subsys->system_info == NULL)){
 		subsys_type = -1;
 	} else {
@@ -829,7 +829,7 @@ int multi_msg_eval_ship_squadmsg(int shipnum,int command,ai_info *aif, int playe
 	} else {
 		net_sig = Objects[aif->target_objnum].net_signature;
 	}
-	subsys_type = -1;
+
 	if((aif->targeted_subsys == NULL) || (aif->targeted_subsys->system_info == NULL)){
 		subsys_type = -1;
 	} else {

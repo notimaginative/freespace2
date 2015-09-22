@@ -423,7 +423,6 @@ int multi_quit_game(int prompt, int notify_code, int err_code, int wsa_error)
 				Multi_quit_game = 0;
 				return 0;
 			}
-			quit_already = 1;
 		}
 
 		// if i'm the server of the game, tell all clients that i'm leaving, then wait

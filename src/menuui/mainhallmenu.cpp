@@ -702,6 +702,39 @@ void main_hall_process_help_stuff();
 int Recording = 0;
 
 
+#ifdef MAKE_FS1
+int main_hall_multi_stats_check()
+{
+	int rval = 1;
+
+	if (Player->save_flags & PLAYER_FLAGS_USING_LOCAL_STATS) {
+		if (Multi_options_g.pxo == 1) {
+			int rc = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing non-PXO games with this pilot. If you play PXO missions, your locally-stored statistics will be lost in favor of the PXO-only stats", -1));
+
+			if (rc == 1) {
+				Player->save_flags &= ~PLAYER_FLAGS_USING_LOCAL_STATS;
+				Player->save_flags |= PLAYER_FLAGS_USING_PXO_STATS;
+			} else {
+				rval = 0;
+			}
+		}
+	} else if (Player->save_flags & PLAYER_FLAGS_USING_PXO_STATS) {
+		if (Multi_options_g.pxo == 0) {
+			int rc = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing PXO games with this pilot. If you play non-PXO missions, the statistics the pilot accumulates will not be sent to the PXO servers. Only missions played on PXO will do this", -1));
+
+			if (rc == 1) {
+				Player->save_flags &= ~PLAYER_FLAGS_USING_PXO_STATS;
+				Player->save_flags |= PLAYER_FLAGS_USING_LOCAL_STATS;
+			} else {
+				rval = 0;
+			}
+		}
+	}
+
+	return rval;
+}
+#endif
+
 // called when multiplayer clicks on the ready room door.  May pop up dialog depending on network
 // connection status and errors
 void main_hall_do_multi_ready()
@@ -755,6 +788,12 @@ void main_hall_do_multi_ready()
 	Multi_options_g.protocol = NET_TCP;	
 	gameseq_post_event( GS_EVENT_PXO );
 #else
+#ifdef MAKE_FS1
+	if ( !main_hall_multi_stats_check() ) {
+		return;
+	}
+#endif
+
 	if (Multi_options_g.pxo == 1) {
 		SDL_assert(Multi_options_g.protocol == NET_TCP);
 		gameseq_post_event( GS_EVENT_PXO );

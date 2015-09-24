@@ -990,8 +990,6 @@ void psnet_rel_close_socket( PSNET_SOCKET *p_sockp )
 
 		rval = recv( *sockp, tmp_buf, MAX_TMPBUF_SIZE, 0 );
 		if ( rval == SOCKET_ERROR ) {
-			int error;
-
 			error = WSAGetLastError();
 			if ( NETCALL_WOULDBLOCK(error) )
 				break;
@@ -1000,8 +998,10 @@ void psnet_rel_close_socket( PSNET_SOCKET *p_sockp )
 
 	rval = closesocket( *sockp );
 	if ( rval == SOCKET_ERROR ) {
+#ifndef NDEBUG
 		error = WSAGetLastError();
 		nprintf(("Network", "Error %d on closing socket\n", error ));
+#endif
 	}
 
 	*sockp = INVALID_SOCKET;
@@ -1384,8 +1384,10 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 		}
 
 		if ( read_len == SOCKET_ERROR ) {
+#ifndef NDEBUG
 			int x = WSAGetLastError();
 			nprintf(("Network", "Read error on socket.  Winsock error %d \n", x));
+#endif
 			break;
 		}		
 

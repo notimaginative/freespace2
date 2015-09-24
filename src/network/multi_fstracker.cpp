@@ -330,7 +330,7 @@ int multi_fs_validate_process();
 int Multi_store_stats_mode;												// 0 == initial request for player stats, 1 == waiting for player stats, 2 == tallying stats locally, 3 == sending stats to tracker
 int Multi_store_stats_player_index;										// player we're currently working with
 int Multi_store_stats_player_flag;										// if we're finished with the current guy
-vmt_freespace2_struct Multi_store_stats_stats;						// 
+vmt_stats_struct Multi_store_stats_stats;						//
 int multi_fs_store_stats_do();											// manage all master tracker stats storing
 int multi_fs_store_stats_get_next_player(int cur_player);	
 
@@ -338,10 +338,10 @@ int Multi_tracker_player_is_valid = 0;
 int Multi_tracker_got_response = 0;
 
 // copy a freespace stats struct to a tracker-freespace stats struct
-void multi_stats_fs_to_tracker(scoring_struct *fs,vmt_freespace2_struct *vmt,player *pl,int tracker_id);
+void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_stats_struct *vmt, player *pl, int tracker_id);
 
 // copy a tracker-freespace stats struct to a freespace stats struct
-void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs);
+void multi_stats_tracker_to_fs(vmt_stats_struct *vmt, scoring_struct *fs);
 
 // process an incoming active game item
 void multi_fs_tracker_process_game_item(game_list *gl);
@@ -356,8 +356,8 @@ void multi_fs_tracker_check_dup_callsign(net_player *player,int player_index);
 void multi_fs_tracker_report_stats_results();
 
 // tracker specific data structures
-freespace2_net_game_data Multi_tracker_game_data;
-vmt_freespace2_struct Multi_tracker_fs_pilot;
+pxo_net_game_data Multi_tracker_game_data;
+vmt_stats_struct Multi_tracker_fs_pilot;
 squad_war_response Multi_tracker_sw_response;
 
 // -----------------------------------------------------------------------------------
@@ -369,7 +369,9 @@ void multi_fs_tracker_process()
 {
 	game_list *gl;
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	if(Multi_fs_tracker_inited){
 		// pilot validation system
@@ -411,7 +413,11 @@ void multi_fs_tracker_init()
 	}	
 
 	// intialize the low-level game tracking stuff
-	if(!InitGameTrackerClient(GT_FREESPACE2)){		
+#ifndef MAKE_FS1
+	if(!InitGameTrackerClient(GT_FREESPACE2)){
+#else
+	if(!InitGameTrackerClient(GT_FREESPACE)){
+#endif
 		ml_printf("Error initializing tracker api (gameclient)\n");
 		return;
 	}	
@@ -517,7 +523,7 @@ void multi_fs_tracker_login_freespace()
 	}
 
 	// pretty much all we do is make 1 call
-	memset(&Multi_tracker_game_data, 0, sizeof(freespace2_net_game_data));
+	memset(&Multi_tracker_game_data, 0, sizeof(Multi_tracker_game_data));
 	SDL_strlcpy(Multi_tracker_game_data.game_name, Netgame.name, SDL_arraysize(Multi_tracker_game_data.game_name));
 	Multi_tracker_game_data.difficulty = 99;
 	Multi_tracker_game_data.type = 0;
@@ -731,7 +737,7 @@ void multi_fs_tracker_logout()
 	SendGameOver();
 
 	// clear our data
-	memset(&Multi_tracker_game_data, 0, sizeof(freespace2_net_game_data));
+	memset(&Multi_tracker_game_data, 0, sizeof(Multi_tracker_game_data));
 	Net_player->flags &= ~(NETINFO_FLAG_MT_CONNECTED);
 
 	// NETLOG
@@ -771,8 +777,6 @@ int multi_fs_tracker_inited()
 // update our settings on the tracker regarding the current netgame stuff
 void multi_fs_tracker_update_game(netgame_info *ng)
 {
-	// int idx,count;	
-
 	if(!Multi_fs_tracker_inited){
 		return;
 	}
@@ -780,9 +784,10 @@ void multi_fs_tracker_update_game(netgame_info *ng)
 	// copy in the relevant data
 	Multi_tracker_game_data.max_players = ng->max_players;
 	Multi_tracker_game_data.current_num_players = multi_num_players();
-	/*
+
+#ifdef MAKE_FS1
 	memset(Multi_tracker_game_data.players, 0 ,MAX_FREESPACE_PLAYERS * MAX_FREESPACE_PLAYER_NAME_LEN);
-	count = 0;
+	int count = 0, idx;
 	for(idx=0;idx<MAX_PLAYERS;idx++){
 		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_PERM_OBSERVER(Net_players[idx])){
 			strcpy(Multi_tracker_game_data.players[count], Net_players[idx].player->callsign);
@@ -790,7 +795,8 @@ void multi_fs_tracker_update_game(netgame_info *ng)
 			count++;
 		}
 	}
-	*/
+#endif
+
 	SDL_strlcpy(Multi_tracker_game_data.mission_name, ng->name, SDL_arraysize(Multi_tracker_game_data.mission_name));
 
 	// NETLOG
@@ -814,7 +820,9 @@ int multi_fs_validate_process()
 	// should never be here if this is not true
 	SDL_assert(Multi_fs_tracker_inited);
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	// if we're still in player validation mode
 	if(Multi_validate_mode == 0){
@@ -847,8 +855,8 @@ int multi_fs_validate_process()
 			// get my tracker id#
 			Multi_tracker_id = atoi(Multi_tracker_id_string);			
 			SDL_assert(Multi_tracker_id != -1);
-			
-			GetFSPilotData((vmt_freespace2_struct*)0xffffffff,NULL,NULL,0);
+
+			GetFSPilotData((vmt_stats_struct*)0xffffffff,NULL,NULL,0);
 			GetFSPilotData(&Multi_tracker_fs_pilot,Player->callsign,Multi_tracker_id_string,1);
 				
 			// set to mode 1
@@ -890,7 +898,9 @@ int multi_fs_store_stats_do()
 
 	SDL_assert(Multi_fs_tracker_inited);
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	switch(Multi_store_stats_mode){
 	// get stats for all players
@@ -925,8 +935,8 @@ int multi_fs_store_stats_do()
 			Net_players[Multi_store_stats_player_index].s_info.tracker_checksum = 0;
 
 			// send the request itself
-			GetFSPilotData((vmt_freespace2_struct*)0xffffffff, NULL, NULL,0);
-			memset(&Multi_store_stats_stats, 0, sizeof(vmt_freespace2_struct));				
+			GetFSPilotData((vmt_stats_struct*)0xffffffff, NULL, NULL,0);
+			memset(&Multi_store_stats_stats, 0, sizeof(Multi_store_stats_stats));
 			if(GetFSPilotData(&Multi_store_stats_stats, Net_players[Multi_store_stats_player_index].player->callsign,tracker_id_string,1) != 0){
 				Int3();
 
@@ -957,7 +967,7 @@ int multi_fs_store_stats_do()
 			{
 				// debug code to check for bogus stats
 				scoring_struct *ssp = &(Net_players[Multi_store_stats_player_index].player->stats);
-				vmt_freespace2_struct *vmt = &Multi_store_stats_stats;
+				vmt_stats_struct *vmt = &Multi_store_stats_stats;
 				
 				if ( (ssp->missions_flown < vmt->missions_flown) || (ssp->flight_time < ssp->flight_time) || (ssp->kill_count < vmt->kill_count) ) {
 					Int3();
@@ -1020,7 +1030,7 @@ int multi_fs_store_stats_do()
 			Multi_store_stats_player_flag = 0;
 
 			// fill in the information
-			memset(&Multi_store_stats_stats,0,sizeof(vmt_freespace2_struct));
+			memset(&Multi_store_stats_stats,0,sizeof(Multi_store_stats_stats));
 				
 			SDL_assert(Net_players[Multi_store_stats_player_index].tracker_player_id > 0);
 
@@ -1035,7 +1045,7 @@ int multi_fs_store_stats_do()
 			Multi_store_stats_stats.checksum = Net_players[Multi_store_stats_player_index].s_info.tracker_checksum;
 				
 			// send the request
-			SendFSPilotData((vmt_freespace2_struct*)0xffffffff);
+			SendFSPilotData((vmt_stats_struct*)0xffffffff);
 			if(SendFSPilotData(&Multi_store_stats_stats) != 0){
 				Int3();
 
@@ -1080,7 +1090,7 @@ int multi_fs_store_stats_do()
 }
 
 // copy a freespace stats struct to a tracker-freespace stats struct
-void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_freespace2_struct *vmt, player *pl, int tracker_id)
+void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_stats_struct *vmt, player *pl, int tracker_id)
 {
 	char tracker_id_string[256];
 
@@ -1094,17 +1104,26 @@ void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_freespace2_struct *vmt, p
 	// score, rank and medals
 	vmt->score = fs->score;
 	vmt->rank = fs->rank;
+#ifndef MAKE_FS1
 	SDL_assert(MAX_FS2_MEDALS == NUM_MEDALS);
 	memcpy(vmt->medals, fs->medals, sizeof(int) * MAX_FS2_MEDALS);
 	vmt->num_medals = MAX_FS2_MEDALS;
+#else
+	memcpy(vmt->medals, fs->medals, sizeof(int) * MAX_FS_MEDALS);
+#endif
 
 	// kills and assists
+#ifndef MAKE_FS1
 	SDL_assert(MAX_FS2_SHIP_TYPES == MAX_SHIP_TYPES);
 	memcpy(vmt->kills, fs->kills, sizeof(ushort) * MAX_FS2_SHIP_TYPES);
+	vmt->num_ship_types = MAX_FS2_SHIP_TYPES;
+#else
+	memcpy(vmt->kills, fs->kills, sizeof(int) * MAX_FS_SHIP_TYPES);
+#endif
 	vmt->assists = fs->assists;
 	vmt->kill_count = fs->kill_count;
 	vmt->kill_count_ok = fs->kill_count_ok;
-	vmt->num_ship_types = MAX_FS2_SHIP_TYPES;
+
 
 	// shot statistics
 	vmt->p_shots_fired = fs->p_shots_fired;
@@ -1122,13 +1141,16 @@ void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_freespace2_struct *vmt, p
 }
 
 // copy a tracker-freespace stats struct to a freespace stats struct
-void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs)
+void multi_stats_tracker_to_fs(vmt_stats_struct *vmt,scoring_struct *fs)
 {
+#ifndef MAKE_FS1
 	int num_medals, num_ship_types;
+#endif
 
 	// score, rank and medals
 	fs->score = vmt->score;
 	fs->rank = vmt->rank;
+#ifndef MAKE_FS1
 	num_medals = vmt->num_medals;
 	if(num_medals > NUM_MEDALS){
 		Int3();
@@ -1136,8 +1158,13 @@ void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs)
 	}
 	memset(fs->medals, 0, sizeof(int) * NUM_MEDALS);
 	memcpy(fs->medals, vmt->medals, sizeof(int) * num_medals);
+#else
+	SDL_zero(fs->medals);
+	memcpy(fs->medals, vmt->medals, sizeof(int) * NUM_MEDALS);
+#endif
 
 	// kills and assists
+#ifndef MAKE_FS1
 	num_ship_types = vmt->num_ship_types;
 	if(num_ship_types > MAX_SHIP_TYPES){
 		Int3();
@@ -1145,6 +1172,10 @@ void multi_stats_tracker_to_fs(vmt_freespace2_struct *vmt,scoring_struct *fs)
 	}
 	memset(fs->kills, 0, sizeof(ushort) * MAX_SHIP_TYPES);
 	memcpy(fs->kills, vmt->kills, sizeof(ushort) * num_ship_types);
+#else
+	SDL_zero(fs->kills);
+	memcpy(fs->kills, vmt->kills, sizeof(int) * MAX_SHIP_TYPES);
+#endif
 	fs->assists = vmt->assists;
 	fs->kill_count = vmt->kill_count;
 	fs->kill_count_ok = vmt->kill_count_ok;

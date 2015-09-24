@@ -863,10 +863,12 @@ int ai_get_subsystem_type( const char *subsystem )
 		return SUBSYSTEM_SENSORS;
 	} else if ( !SDL_strncasecmp(subsystem, NOX("solar"), 5) )  {
 		return SUBSYSTEM_SOLAR;
+#ifndef MAKE_FS1
 	} else if ( !SDL_strncasecmp(subsystem, NOX("gas"), 3) )  {
 		return SUBSYSTEM_GAS_COLLECT;
 	} else if ( !SDL_strncasecmp(subsystem, NOX("activator"), 9) )  {
 		return SUBSYSTEM_ACTIVATION;
+#endif
 	} else {									// If unrecognized type, set to engine so artist can continue working...
 		if (!Fred_running) {
 //			Int3();							// illegal subsystem type -- find allender

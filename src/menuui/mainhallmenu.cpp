@@ -674,13 +674,16 @@ void main_hall_maybe_blit_tooltips();
 // shader for behind tooltips
 shader Main_hall_tooltip_shader;
 
+#ifndef MAKE_FS1
 // num pixels shader is above/below tooltip text
 static int Main_hall_tooltip_padding[GR_NUM_RESOLUTIONS] = {
 	4,		// GR_640
 	7,		// GR_1024
 };
+
 static int Main_hall_f1_text_frame = 0;
 static int F1_text_done = 0;
+#endif
 
 // read in main hall table
 void main_hall_read_table();
@@ -698,6 +701,39 @@ void main_hall_process_help_stuff();
 // are we currently recording voice?
 int Recording = 0;
 
+
+#ifdef MAKE_FS1
+int main_hall_multi_stats_check()
+{
+	int rval = 1;
+
+	if (Player->save_flags & PLAYER_FLAGS_USING_LOCAL_STATS) {
+		if (Multi_options_g.pxo == 1) {
+			int rc = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing non-PXO games with this pilot. If you play PXO missions, your locally-stored statistics will be lost in favor of the PXO-only stats", -1));
+
+			if (rc == 1) {
+				Player->save_flags &= ~PLAYER_FLAGS_USING_LOCAL_STATS;
+				Player->save_flags |= PLAYER_FLAGS_USING_PXO_STATS;
+			} else {
+				rval = 0;
+			}
+		}
+	} else if (Player->save_flags & PLAYER_FLAGS_USING_PXO_STATS) {
+		if (Multi_options_g.pxo == 0) {
+			int rc = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing PXO games with this pilot. If you play non-PXO missions, the statistics the pilot accumulates will not be sent to the PXO servers. Only missions played on PXO will do this", -1));
+
+			if (rc == 1) {
+				Player->save_flags &= ~PLAYER_FLAGS_USING_PXO_STATS;
+				Player->save_flags |= PLAYER_FLAGS_USING_LOCAL_STATS;
+			} else {
+				rval = 0;
+			}
+		}
+	}
+
+	return rval;
+}
+#endif
 
 // called when multiplayer clicks on the ready room door.  May pop up dialog depending on network
 // connection status and errors
@@ -752,6 +788,12 @@ void main_hall_do_multi_ready()
 	Multi_options_g.protocol = NET_TCP;	
 	gameseq_post_event( GS_EVENT_PXO );
 #else
+#ifdef MAKE_FS1
+	if ( !main_hall_multi_stats_check() ) {
+		return;
+	}
+#endif
+
 	if (Multi_options_g.pxo == 1) {
 		SDL_assert(Multi_options_g.protocol == NET_TCP);
 		gameseq_post_event( GS_EVENT_PXO );
@@ -915,6 +957,7 @@ void main_hall_init(int main_hall_num)
 	help_overlay_set_state(Main_hall_overlay_id,0);		
 
 	// check to see if the "very first pilot" flag is set, and load the overlay if so
+#ifndef MAKE_FS1
 	if (!F1_text_done) {
 		if (Main_hall_f1_text_frame == 0) {
 			Main_hall_help_stamp = timestamp(MAIN_HALL_HELP_TIME);
@@ -922,9 +965,8 @@ void main_hall_init(int main_hall_num)
 			F1_text_done = 1;
 		}
 	}
-
-/*
-	if(Player_select_very_first_pilot) {				
+#else
+	if(Player_select_very_first_pilot) {
 		Main_hall_help_stamp = timestamp(MAIN_HALL_HELP_TIME);
 		
 		// don't display the "press f1" message more than once
@@ -932,7 +974,8 @@ void main_hall_init(int main_hall_num)
 	} else {
 		Main_hall_help_stamp = -1;
 	}
-*/
+#endif
+
 	Main_hall_region_linger_stamp = -1;
 
 	SDL_strlcpy(Main_hall_campaign_cheat, "", SDL_arraysize(Main_hall_campaign_cheat));
@@ -1251,7 +1294,7 @@ void main_hall_do(float frametime)
 	fishtank_process();
 
 	// process any help "hit f1" timestamps and display any messages if necessary
-	if (!F1_text_done) {
+	if (Main_hall_help_stamp != -1) {
 		main_hall_process_help_stuff();
 	}
 
@@ -1862,15 +1905,31 @@ void main_hall_blit_version()
 	char version_string[100];
 	int w;
 
+#ifdef MAKE_FS1
+	// don't show if help text or screen active
+	if ( (Main_hall_help_stamp != -1) || help_overlay_active(Main_hall_overlay_id) ) {
+		return;
+	}
+#endif
+
 	// format the version string
 	get_version_string(version_string, SDL_arraysize(version_string));
+
+#ifdef MAKE_FS1
+	// tack on "EAX", since we have that :)
+	SDL_strlcat(version_string, " EAX", sizeof(version_string));
+#endif
 
 	// get the length of the string
 	gr_get_string_size(&w,NULL,version_string);
 
 	// print the string out in the lower right corner
 	gr_set_color_fast(&Color_white);
+#ifdef MAKE_FS1
+	gr_string(gr_screen.max_w - (w + 10), gr_screen.max_h - 12, version_string);
+#else
 	gr_string(gr_screen.max_w - 55, gr_screen.max_h - 12, version_string);
+#endif
 }
 
 // blit any necessary tooltips
@@ -1883,6 +1942,13 @@ void main_hall_maybe_blit_tooltips()
 	if(Main_hall_mouse_region < 0) {
 		return;
 	}
+
+#ifdef MAKE_FS1
+	// if help text visible then don't show anything
+	if (Main_hall_help_stamp != -1) {
+		return;
+	}
+#endif
 
 	// get the index of the proper text to be using
 	if(Main_hall_mouse_region == READY_ROOM_REGION) {
@@ -1907,11 +1973,10 @@ void main_hall_maybe_blit_tooltips()
 #ifndef MAKE_FS1
 		gr_set_shader(&Main_hall_tooltip_shader);
 		gr_shade(0, shader_y, gr_screen.clip_width, (gr_screen.clip_height - shader_y));
-#endif
-#ifdef MAKE_FS1
-		gr_set_color_fast(&Color_white);
-#else
+
 		gr_set_color_fast(&Color_bright_white);
+#else
+		gr_set_color_fast(&Color_white);
 #endif
 		gr_string((gr_screen.max_w - w)/2, Main_hall->region_yval, Main_hall->region_descript[text_index]);
 	}
@@ -1928,6 +1993,7 @@ void main_hall_process_help_stuff()
 		return;
 	}
 
+#ifndef MAKE_FS1
 	// if the timestamp has popped, advance frame
 	if(timestamp_elapsed(Main_hall_help_stamp)) {
 		Main_hall_f1_text_frame++;
@@ -1948,14 +2014,23 @@ void main_hall_process_help_stuff()
 	}
 
 	// set the color and print out text and shader
-#ifndef MAKE_FS1
 	gr_set_color_fast(&Color_bright_white);
 	gr_shade(0, 0, gr_screen.max_w, (2*Main_hall_tooltip_padding[gr_screen.res]) + h - y_anim_offset);
 	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res] - y_anim_offset, str);
 #else
+	// if the timestamp has popped, stop showing help message
+	if ( timestamp_elapsed(Main_hall_help_stamp) ) {
+		Main_hall_help_stamp = -1;
+		return;
+	}
+
+	// otherwise print out the message
+	SDL_strlcpy(str, XSTR( "Press F1 for help", 371), SDL_arraysize(str));
+	gr_get_string_size(&w, &h, str);
+
+	// set the color and print out text and shader
 	gr_set_color_fast(&Color_white);
-	// no shading, no roll off screen
-	gr_string((gr_screen.max_w - w)/2, Main_hall_tooltip_padding[gr_screen.res], str);
+	gr_string((gr_screen.max_w - w)/2, 419, str);
 #endif
 }
 
@@ -2125,6 +2200,22 @@ void main_hall_read_table()
 			count++;
 		}
 	}
+
+	// are we funny?
+	if(Vasudan_funny){
+		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
+		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
+		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
+		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
+
+		// set head anim. hehe
+		SDL_strlcpy(Main_hall_defines[GR_640][1].door_anim_name[OPTIONS_REGION], "vhallheads", MAX_FILENAME_LEN);
+		SDL_strlcpy(Main_hall_defines[GR_1024][1].door_anim_name[OPTIONS_REGION], "2_vhallheads", MAX_FILENAME_LEN);
+
+		// set the background
+		SDL_strlcpy(Main_hall_defines[GR_640][1].bitmap, "vhallhead", MAX_FILENAME_LEN);
+		SDL_strlcpy(Main_hall_defines[GR_1024][1].bitmap, "2_vhallhead", MAX_FILENAME_LEN);
+	}
 #else
 	// hard coded values for FS1
 	int idx;
@@ -2132,7 +2223,7 @@ void main_hall_read_table()
 	// Terran main hall
 	SDL_strlcpy(Main_hall_defines[0][0].bitmap, "MainHall1", MAX_FILENAME_LEN);
 	SDL_strlcpy(Main_hall_defines[0][0].mask, "MainHall1-m", MAX_FILENAME_LEN);
-	SDL_strlcpy(Main_hall_defines[0][0].music, "main_amb", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][0].music, "Choco Mousse", MAX_FILENAME_LEN);
 	
 	Main_hall_defines[0][0].num_random_intercom_sounds = 3;
 	Main_hall_defines[0][0].intercom_delay[0][0] = 8000;
@@ -2152,8 +2243,8 @@ void main_hall_read_table()
 	SDL_strlcpy(Main_hall_defines[0][0].misc_anim_name[0], "main1-m1", MAX_FILENAME_LEN);
 	SDL_strlcpy(Main_hall_defines[0][0].misc_anim_name[1], "main1-m2", MAX_FILENAME_LEN);
 	Main_hall_defines[0][0].misc_anim_delay[0][0] = -1;
-	Main_hall_defines[0][0].misc_anim_delay[0][1] = 15000;
-	Main_hall_defines[0][0].misc_anim_delay[0][2] = 20000;
+	Main_hall_defines[0][0].misc_anim_delay[0][1] = 0;//15000;
+	Main_hall_defines[0][0].misc_anim_delay[0][2] = 0;//20000;
 	Main_hall_defines[0][0].misc_anim_delay[1][0] = -1;
 	Main_hall_defines[0][0].misc_anim_delay[1][1] = 9000;
 	Main_hall_defines[0][0].misc_anim_delay[1][2] = 30000;
@@ -2165,25 +2256,21 @@ void main_hall_read_table()
 	Main_hall_defines[0][0].misc_anim_modes[1] = 2;
 	Main_hall_defines[0][0].misc_anim_sound_pan[0] = -0.5f;
 	Main_hall_defines[0][0].misc_anim_sound_pan[1] = -0.25f;
-	Main_hall_defines[0][0].misc_anim_special_sounds[0][0] = 2;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][0] = 4;
 	Main_hall_defines[0][0].misc_anim_special_sounds[0][1] = 34;
 	Main_hall_defines[0][0].misc_anim_special_sounds[0][2] = 35;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][0] = 3;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][1] = 31;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][2] = 32;
-	Main_hall_defines[0][0].misc_anim_special_sounds[1][3] = 33;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][3] = 34;
+	Main_hall_defines[0][0].misc_anim_special_sounds[0][4] = 35;
+	Main_hall_defines[0][0].misc_anim_special_sounds[1][0] = 0;
 	Main_hall_defines[0][0].misc_anim_special_trigger[0][0] = 4;
-	Main_hall_defines[0][0].misc_anim_special_trigger[0][1] = 1;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][1] = 2;
 	Main_hall_defines[0][0].misc_anim_special_trigger[0][2] = 20;
-	Main_hall_defines[0][0].misc_anim_special_trigger[0][3] = 42;
-	Main_hall_defines[0][0].misc_anim_special_trigger[0][4] = 96;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][0] = 3;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][1] = 25;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][2] = 200;
-	Main_hall_defines[0][0].misc_anim_special_trigger[1][3] = 274;
-	Main_hall_defines[0][0].misc_anim_sound_handles[0][0] = 2;
-	Main_hall_defines[0][0].misc_anim_sound_handles[1][0] = 3;
-	Main_hall_defines[0][0].misc_anim_sound_flag[0][0] = 1;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][3] = 43;
+	Main_hall_defines[0][0].misc_anim_special_trigger[0][4] = 97;
+	Main_hall_defines[0][0].misc_anim_special_trigger[1][0] = 0;
+	Main_hall_defines[0][0].misc_anim_sound_handles[0][0] = 4;
+	Main_hall_defines[0][0].misc_anim_sound_handles[1][0] = 0;
+	Main_hall_defines[0][0].misc_anim_sound_flag[0][0] = 0;
 	Main_hall_defines[0][0].misc_anim_sound_flag[1][0] = 2;
 	
 	Main_hall_defines[0][0].num_door_animations = 6;
@@ -2246,7 +2333,7 @@ void main_hall_read_table()
 	// Vasudan main hall
 	SDL_strlcpy(Main_hall_defines[0][1].bitmap, "MainHall2", MAX_FILENAME_LEN);
 	SDL_strlcpy(Main_hall_defines[0][1].mask, "MainHall2-m", MAX_FILENAME_LEN);
-	SDL_strlcpy(Main_hall_defines[0][1].music, "main_amb", MAX_FILENAME_LEN);
+	SDL_strlcpy(Main_hall_defines[0][1].music, "Choco Mousse", MAX_FILENAME_LEN);
 	
 	Main_hall_defines[0][1].num_random_intercom_sounds = 3;
 	Main_hall_defines[0][1].intercom_delay[0][0] = 8000;
@@ -2378,29 +2465,12 @@ void main_hall_read_table()
 	Main_hall_defines[0][1].door_sound_pan[4] = -0.63f;
 	Main_hall_defines[0][1].door_sound_pan[5] = 0.35f;
 	
-	Main_hall_defines[0][1].region_yval = 425;
+	Main_hall_defines[0][1].region_yval = 415;
 	
 	for (idx = 0; idx < NUM_REGIONS; idx++) {
 		Main_hall_defines[0][1].region_descript[idx] = NULL;
 	}
-
 #endif
-
-	// are we funny?
-	if(Vasudan_funny){
-		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
-		Main_hall_defines[GR_640][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
-		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][0] = SND_VASUDAN_BUP;
-		Main_hall_defines[GR_1024][1].door_sounds[OPTIONS_REGION][1] = SND_VASUDAN_BUP;
-
-		// set head anim. hehe
-		SDL_strlcpy(Main_hall_defines[GR_640][1].door_anim_name[OPTIONS_REGION], "vhallheads", MAX_FILENAME_LEN);
-		SDL_strlcpy(Main_hall_defines[GR_1024][1].door_anim_name[OPTIONS_REGION], "2_vhallheads", MAX_FILENAME_LEN);
-
-		// set the background
-		SDL_strlcpy(Main_hall_defines[GR_640][1].bitmap, "vhallhead", MAX_FILENAME_LEN);
-		SDL_strlcpy(Main_hall_defines[GR_1024][1].bitmap, "2_vhallhead", MAX_FILENAME_LEN);
-	}
 }
 
 // make the vasudan main hall funny

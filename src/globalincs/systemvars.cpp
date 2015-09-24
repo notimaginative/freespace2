@@ -544,6 +544,96 @@ void monitor_update()
 
 // Detail level stuff
 detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
+#ifdef MAKE_FS1
+	{				// Low
+		0,			// setting
+					// ===== Analogs (0-MAX_DETAIL_LEVEL) ====
+		0,			// nebula_detail;				// 0=lowest detail, MAX_DETAIL_LEVEL=highest detail
+		0,			// detail_distance;			// 0=lowest MAX_DETAIL_LEVEL=highest
+		0,			//	hardware_textures;			// 0=max culling, MAX_DETAIL_LEVEL=no culling
+		0,			//  weapon_detail;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		0,			//	num_small_debris;			// 0=min number, MAX_DETAIL_LEVEL=max number
+		0,			//	num_particles;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		0,			//	num_stars;					// 0=min number, MAX_DETAIL_LEVEL=max number
+		0,			//	shield_effects;			// 0=min, MAX_DETAIL_LEVEL=max
+		1,			// lighting;					// 0=min, MAX_DETAIL_LEVEL=max
+		0,			// unknown_slider;
+
+					// ====  Booleans ====
+		0,			//	targetview_model;			// 0=off, 1=on
+		0,			//	planets_suns;				// 0=off, 1=on
+		0,			//  unknown_boolean1;
+		0,			//  unknown_boolean2;
+		0,			//  engine_glow;				// 0=off, 1=on
+		0,			//  alpha_effects;				// 0=off, 1=on
+	},
+	{				// Medium
+		1,			// setting
+					// ===== Analogs (0-MAX_DETAIL_LEVEL) ====
+		1,			// nebula_detail;				// 0=lowest detail, MAX_DETAIL_LEVEL=highest detail
+		1,			// detail_distance;			// 0=lowest MAX_DETAIL_LEVEL=highest
+		1,			//	hardware_textures;			// 0=max culling, MAX_DETAIL_LEVEL=no culling
+		2,			//  weapon_detail;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		2,			//	num_small_debris;			// 0=min number, MAX_DETAIL_LEVEL=max number
+		2,			//	num_particles;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		2,			//	num_stars;					// 0=min number, MAX_DETAIL_LEVEL=max number
+		1,			//	shield_effects;			// 0=min, MAX_DETAIL_LEVEL=max
+		2,			// lighting;					// 0=min, MAX_DETAIL_LEVEL=max
+		1,			// unknown_slider;
+
+					// ====  Booleans ====
+		1,			//	targetview_model;			// 0=off, 1=on
+		1,			//	planets_suns;				// 0=off, 1=on
+		1,			//  unknown_boolean1;
+		1,			//  unknown_boolean2;
+		1,			//  engine_glow;				// 0=off, 1=on
+		0,			//  alpha_effects;				// 0=off, 1=on
+	},
+	{				// High
+		2,			// setting
+					// ===== Analogs (0-MAX_DETAIL_LEVEL) ====
+		2,			// nebula_detail;				// 0=lowest detail, MAX_DETAIL_LEVEL=highest detail
+		3,			// detail_distance;			// 0=lowest MAX_DETAIL_LEVEL=highest
+		2,			//	hardware_textures;			// 0=max culling, MAX_DETAIL_LEVEL=no culling
+		4,			//  weapon_detail;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		4,			//	num_small_debris;			// 0=min number, MAX_DETAIL_LEVEL=max number
+		3,			//	num_particles;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		4,			//	num_stars;					// 0=min number, MAX_DETAIL_LEVEL=max number
+		2,			//	shield_effects;			// 0=min, MAX_DETAIL_LEVEL=max
+		4,			// lighting;					// 0=min, MAX_DETAIL_LEVEL=max
+		2,			// unknown_slider;
+
+					// ====  Booleans ====
+		1,			//	targetview_model;			// 0=off, 1=on
+		1,			//	planets_suns;				// 0=off, 1=on
+		1,			//  unknown_boolean1;
+		1,			//  unknown_boolean2;
+		1,			//  engine_glow;				// 0=off, 1=on
+		1,			//  alpha_effects;				// 0=off, 1=on
+	},
+	{				// Highest
+		3,			// setting
+					// ===== Analogs (0-MAX_DETAIL_LEVEL) ====
+		3,			// nebula_detail;				// 0=lowest detail, MAX_DETAIL_LEVEL=highest detail
+		4,			// detail_distance;			// 0=lowest MAX_DETAIL_LEVEL=highest
+		3,			//	hardware_textures;			// 0=max culling, MAX_DETAIL_LEVEL=no culling
+		4,			//  weapon_detail;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		4,			//	num_small_debris;			// 0=min number, MAX_DETAIL_LEVEL=max number
+		3,			//	num_particles;				// 0=min number, MAX_DETAIL_LEVEL=max number
+		4,			//	num_stars;					// 0=min number, MAX_DETAIL_LEVEL=max number
+		4,			//	shield_effects;			// 0=min, MAX_DETAIL_LEVEL=max
+		4,			// lighting;					// 0=min, MAX_DETAIL_LEVEL=max
+		4,			// unknown_slider;
+
+					// ====  Booleans ====
+		1,			//	targetview_model;			// 0=off, 1=on
+		1,			//	planets_suns;				// 0=off, 1=on
+		1,			//  unknown_boolean1;
+		1,			//  unknown_boolean2;
+		1,			//  engine_glow;				// 0=off, 1=on
+		1,			//  alpha_effects;				// 0=off, 1=on
+	},
+#else
 	{				// Low
 		0,			// setting
 					// ===== Analogs (0-MAX_DETAIL_LEVEL) ====
@@ -560,9 +650,6 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		0,			//	targetview_model;			// 0=off, 1=on		
 		0,			//	planets_suns;				// 0=off, 1=on		
 		0,			// weapon_extras
-#ifdef MAKE_FS1
-		0,			// engine_glows;
-#endif
 	},
 	{				// Medium
 		1,			// setting
@@ -580,9 +667,6 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		1,			//	targetview_model;			// 0=off, 1=on		
 		1,			//	planets_suns;				// 0=off, 1=on
 		1,			// weapon extras				
-#ifdef MAKE_FS1
-		1,			// engine_glows;
-#endif
 	},
 	{				// High level
 		2,			// setting
@@ -600,9 +684,6 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		1,			//	targetview_model;			// 0=off, 1=on		
 		1,			//	planets_suns;				// 0=off, 1=on
 		1,			// weapon_extras
-#ifdef MAKE_FS1
-		1,			// engine_glows;
-#endif
 	},
 	{				// Highest level
 		3,			// setting
@@ -620,10 +701,8 @@ detail_levels Detail_defaults[NUM_DEFAULT_DETAIL_LEVELS] = {
 		1,			//	targetview_model;			// 0=off, 1=on		
 		1,			//	planets_suns;				// 0=off, 1=on
 		1,			// weapon_extras
-#ifdef MAKE_FS1
-		1,			// engine_glows;
-#endif
 	},
+#endif
 };
 
 
@@ -659,6 +738,17 @@ int current_detail_level()
 	for (i=0; i<NUM_DEFAULT_DETAIL_LEVELS; i++ )	{
 		if ( Detail.setting == -1 ) {
 			// in the case of a custom detail level, return it's closest match
+#ifdef MAKE_FS1
+			if ( (Detail.nebula_detail >= Detail_defaults[i].nebula_detail) &&
+				 (Detail.detail_distance >= Detail_defaults[i].detail_distance) &&
+				 (Detail.weapon_detail >= Detail_defaults[i].weapon_detail) &&
+				 (Detail.hardware_textures >= Detail_defaults[i].hardware_textures) &&
+				 (Detail.shield_effects >= Detail_defaults[i].shield_effects) &&
+				 (Detail.lighting >= Detail_defaults[i].lighting) &&
+				 (Detail.planets_suns == Detail_defaults[i].planets_suns) &&
+				 (Detail.engine_glows == Detail_defaults[i].engine_glows) &&
+				 (Detail.alpha_effects == Detail_defaults[i].alpha_effects) )
+#else
 			if ( (Detail.nebula_detail >= Detail_defaults[i].nebula_detail) &&
 				 (Detail.detail_distance >= Detail_defaults[i].detail_distance) &&
 				 (Detail.hardware_textures >= Detail_defaults[i].hardware_textures) &&
@@ -666,6 +756,7 @@ int current_detail_level()
 				 (Detail.lighting >= Detail_defaults[i].lighting) &&
 				 (Detail.planets_suns == Detail_defaults[i].planets_suns) &&
 				 (Detail.weapon_extras == Detail_defaults[i].weapon_extras) )
+#endif
 			{
 				match = i; // we will keep whatever the highest value is
 			}

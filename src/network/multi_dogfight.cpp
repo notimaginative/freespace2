@@ -221,9 +221,10 @@ void multi_df_eval_kill(net_player *killer, object *dead_obj)
 	if(dead_index == NET_PLAYER_INDEX(killer)){
 		return;
 	}
-
+#ifndef MAKE_FS1
 	// update his kills
 	killer->player->stats.m_dogfight_kills[dead_index]++;
+#endif
 }
 
 // debrief
@@ -396,7 +397,7 @@ void multi_df_button_pressed(int button)
 // setup kill matrix data
 void multi_df_setup_kill_matrix()
 {
-	int idx, s_idx;
+	int idx;
 	multi_df_score *s;
 
 	Multi_df_score_count = 0;
@@ -406,12 +407,12 @@ void multi_df_setup_kill_matrix()
 		if(MULTI_CONNECTED(Net_players[idx]) && !MULTI_STANDALONE(Net_players[idx]) && !MULTI_PERM_OBSERVER(Net_players[idx]) && (Net_players[idx].player != NULL)){
 			// stuff data for this guy
 			s = &Multi_df_score[Multi_df_score_count++];
-
+#ifndef MAKE_FS1
 			ml_printf("Dogfight debrief stats for %s", Net_players[idx].player->callsign);
-			for(s_idx=0; s_idx<MAX_PLAYERS; s_idx++){
+			for(int s_idx=0; s_idx<MAX_PLAYERS; s_idx++){
 				ml_printf("%d", Net_players[idx].player->stats.m_dogfight_kills[s_idx]);
 			}
-
+#endif
 			s->stats = Net_players[idx].player->stats;
 			SDL_strlcpy(s->callsign, Net_players[idx].player->callsign, SDL_arraysize(s->callsign));
 			s->np_index = idx;
@@ -543,9 +544,17 @@ void multi_df_blit_kill_matrix()
 // returns the # of kills
 int multi_df_stuff_kills(char *kills, const int max_klen, int player_x, int player_y)
 {
-	multi_df_score *s = &Multi_df_score[player_x];
 	SDL_strlcpy(kills, "", max_klen);
-	
+
+#ifndef MAKE_FS1
+	multi_df_score *s = &Multi_df_score[player_x];
+
 	SDL_snprintf(kills, max_klen, "%d", s->stats.m_dogfight_kills[Multi_df_score[player_y].np_index]);
+
 	return s->stats.m_dogfight_kills[Multi_df_score[player_y].np_index];
+#else
+	SDL_snprintf(kills, max_klen, "%d", 0);
+
+	return 0;
+#endif
 }

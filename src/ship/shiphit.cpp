@@ -634,8 +634,12 @@ void do_subobj_destroyed_stuff( ship *ship_p, ship_subsys *subsys, vector* hitpo
 	SDL_assert( i < 65535 );
 	log_index = ((ship_p->ship_info_index << 16) & 0xffff0000) | (i & 0xffff);
 
+#ifndef MAKE_FS1
 	// Don't log or display info about the activation subsytem
 	int display = (psub->type != SUBSYSTEM_ACTIVATION);
+#else
+	int display = 1;
+#endif
 	if (display) {
 		mission_log_add_entry(LOG_SHIP_SUBSYS_DESTROYED, ship_p->ship_name, psub->subobj_name, log_index );
 		if ( ship_obj == Player_obj ) {

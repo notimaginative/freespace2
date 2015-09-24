@@ -1008,10 +1008,12 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 		subsystemp->type = SUBSYSTEM_SENSORS;
 	} else if ( strstr(lcdname, "solar") ) {
 		subsystemp->type = SUBSYSTEM_SOLAR;
+#ifndef MAKE_FS1
 	} else if ( strstr(lcdname, "gas") ) {
 		subsystemp->type = SUBSYSTEM_GAS_COLLECT;
 	} else if ( strstr(lcdname, "activator") ) {
 		subsystemp->type = SUBSYSTEM_ACTIVATION;
+#endif
 	}  else { // If unrecognized type, set to unknown so artist can continue working...
 		subsystemp->type = SUBSYSTEM_UNKNOWN;
 		mprintf(("Warning: Ignoring unrecognized subsystem %s, believed to be in ship %s\n", dname, Global_filename));

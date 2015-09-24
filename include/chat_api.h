@@ -11,7 +11,11 @@
 #define PXO_CHAT_API_HEADER_FILE
 
 // chat server port
+#ifndef MAKE_FS1
 #define PXO_CHAT_PORT		7117
+#else
+#define PXO_CHAT_PORT		7000
+#endif
 
 // motd prefix
 #define PXO_CHAT_MOTD_PREFIX				"!MOTD$#!"

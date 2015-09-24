@@ -506,11 +506,12 @@ int Normal_key_set[] = {
 
 	TIME_SPEED_UP,
 	TIME_SLOW_DOWN,
-
+#ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 };
 
 int Dead_key_set[] = {
@@ -630,11 +631,13 @@ int Non_critical_key_set[] = {
 	MULTI_MESSAGE_FRIENDLY,
 	MULTI_MESSAGE_HOSTILE,
 	MULTI_MESSAGE_TARGET,
-	MULTI_OBSERVER_ZOOM_TO,			
+	MULTI_OBSERVER_ZOOM_TO,
+#ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 };
 
 
@@ -1007,9 +1010,11 @@ void process_debug_keys(int k)
 			nprintf(("General", "Debug_octant == %d\n", Debug_octant));
 			break;
 
+#ifndef MAKE_FS1
 		case KEY_DEBUGGED + SDLK_p:
 			supernova_start(20);
 			break;
+#endif
 
 		case KEY_DEBUGGED + SDLK_w:
 		case KEY_DEBUGGED1 + SDLK_w:
@@ -1251,6 +1256,7 @@ void process_debug_keys(int k)
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Skill level set to %s.", 25), Skill_level_names(Game_skill_level));
 			break;
 
+#ifndef MAKE_FS1
 		// kill all missiles
 		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_1:
 			beam_test(1);
@@ -1276,11 +1282,9 @@ void process_debug_keys(int k)
 		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_8:
 			beam_test(8);
 			break;		
-#ifndef MAKE_FS1
 		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_9:
 			beam_test(9);
 			break;				
-#endif
 
 		case KEY_DEBUGGED + KEY_CTRLED + SDLK_1:
 			beam_test_new(1);
@@ -1291,6 +1295,7 @@ void process_debug_keys(int k)
 		case KEY_DEBUGGED + KEY_CTRLED + SDLK_3:
 			beam_test_new(3);
 			break;
+#endif
 					
 		case KEY_DEBUGGED + SDLK_t: {
 			char buf[256];
@@ -1307,6 +1312,7 @@ void process_debug_keys(int k)
 			debug_change_song(-1);
 			break;
 
+#ifndef MAKE_FS1
 		case SDLK_KP_MINUS: {
 			int init_flag = 0;
 
@@ -1330,6 +1336,7 @@ void process_debug_keys(int k)
 
 			break;
 		}
+#endif
 		
 		case KEY_DEBUGGED + SDLK_y:
 			/*
@@ -1345,6 +1352,7 @@ void process_debug_keys(int k)
 			tst = 2;
 			break;
 
+#ifndef MAKE_FS1
 		case SDLK_KP_PLUS: {
 			int init_flag = 0;
 
@@ -1368,6 +1376,7 @@ void process_debug_keys(int k)
 
 			break;
 		}
+#endif
 	}	// end switch
 
 }
@@ -2780,7 +2789,7 @@ int button_function(int n)
 		case MULTI_OBSERVER_ZOOM_TO:
 			multi_obs_zoom_to_target();
 			break;		
-
+#ifndef MAKE_FS1
 		// toggle between high and low HUD contrast
 		case TOGGLE_HUD_CONTRAST:
 			gamesnd_play_iface(SND_USER_SELECT);
@@ -2817,7 +2826,7 @@ int button_function(int n)
 				send_self_destruct_packet();
 			}
 			break;
-
+#endif
 		// following are not handled here, but we need to bypass the Int3()
 		case LAUNCH_COUNTERMEASURE:
 		case VIEW_SLEW:

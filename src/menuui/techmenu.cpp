@@ -904,6 +904,13 @@ void tech_prev_entry()
 {
 	Cur_entry--;
 	if (Cur_entry < 0) {
+#ifdef MAKE_FS1
+		Cur_entry++;
+
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+
+		return;
+#else
 		Cur_entry = Current_list_size - 1;
 
 		// scroll to end of list
@@ -912,7 +919,7 @@ void tech_prev_entry()
 			// this happens when there are not enough items to scroll
 			List_offset = 0;
 		}
-#ifndef MAKE_FS1
+
 		Tech_slider.force_currentItem(Tech_slider.get_numberItems());
 #endif
 	} else {
@@ -934,11 +941,19 @@ void tech_next_entry()
 {
 	Cur_entry++;
 	if (Cur_entry >= Current_list_size) {
+#ifdef MAKE_FS1
+		// stop at last entry, play fail sound
+		Cur_entry--;
+
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+
+		return;
+#else
 		Cur_entry = 0;
 
 		// scroll to beginning of list
 		List_offset = 0;
-#ifndef MAKE_FS1
+
 		Tech_slider.force_currentItem(Cur_entry);
 #endif
 	} else {
@@ -985,14 +1000,13 @@ void tech_scroll_info_down()
 
 void tech_scroll_list_up()
 {
-	//int last;
-
 	if (List_offset > 0) {
 		List_offset--;
-		//last = List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1;
 
 #ifdef MAKE_FS1
-		if ( (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1) < Cur_entry ) {
+		int last = List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height() - 1;
+
+		if (last < Cur_entry) {
 			Cur_entry--;
 			techroom_select_new_entry();
 		}
@@ -1009,7 +1023,7 @@ void tech_scroll_list_down()
 		List_offset++;
 
 #ifdef MAKE_FS1
-		if ( (List_offset + Tech_list_coords[gr_screen.res][SHIP_H_COORD] / gr_get_font_height()) > Cur_entry ) {
+		if (List_offset > Cur_entry) {
 			Cur_entry++;
 			techroom_select_new_entry();
 		}
@@ -1124,7 +1138,10 @@ void techroom_start_anim()
 
 void techroom_change_tab(int num)
 {
-	int i, multi = 0, mask, font_height, max_num_entries_viewable;	
+	int i, multi = 0, mask;
+#ifndef MAKE_FS1
+	int font_height, max_num_entries_viewable;
+#endif
 
 	Tab = num;
 	// SDL_assert(Current_list_size >= 0);
@@ -1172,9 +1189,9 @@ void techroom_change_tab(int num)
 			Current_list = Ship_list;
 			Current_list_size = Ship_list_size;
 
+#ifndef MAKE_FS1
 			font_height = gr_get_font_height();
 			max_num_entries_viewable = Tech_list_coords[gr_screen.res][SHIP_H_COORD] / font_height;
-#ifndef MAKE_FS1
 			Tech_slider.set_numberItems(Current_list_size > max_num_entries_viewable ? Current_list_size-max_num_entries_viewable : 0);
 #endif
 
@@ -1278,9 +1295,9 @@ void techroom_change_tab(int num)
 			Current_list = Weapon_list;
 			Current_list_size = Weapon_list_size;
 
+#ifndef MAKE_FS1
 			font_height = gr_get_font_height();
 			max_num_entries_viewable = Tech_list_coords[gr_screen.res][SHIP_H_COORD] / font_height;
-#ifndef MAKE_FS1
 			Tech_slider.set_numberItems(Current_list_size > max_num_entries_viewable ? Current_list_size-max_num_entries_viewable : 0);
 #endif
 
@@ -1328,9 +1345,9 @@ void techroom_change_tab(int num)
 			Current_list = Intel_list;
 			Current_list_size = Intel_list_size;
 
+#ifndef MAKE_FS1
 			font_height = gr_get_font_height();
 			max_num_entries_viewable = Tech_list_coords[gr_screen.res][SHIP_H_COORD] / font_height;
-#ifndef MAKE_FS1
 			Tech_slider.set_numberItems(Current_list_size > max_num_entries_viewable ? Current_list_size-max_num_entries_viewable : 0);
 #endif
 
@@ -1542,9 +1559,8 @@ void techroom_intel_init()
 				stuff_string(Intel_info[Intel_info_size].desc, F_MULTITEXT, NULL, TECH_INTEL_DESC_LEN);
 				SDL_strlcpy(Intel_info[Intel_info_size].name, "Shivan", SDL_arraysize(Intel_info[0].name));
 				SDL_strlcpy(Intel_info[Intel_info_size].anim_filename, Intel_anim_filenames[2], SDL_arraysize(Intel_info[0].anim_filename));
-				// FIXME: shouldn't always be in the intel database but no choice at this point
-				// there are only about 4 missions before they show up anyway so it may not be worth it
-				Intel_info[Intel_info_size].in_tech_db = 1;
+				// Shivans are only visible after mission sm1-05a in campaign
+				Intel_info[Intel_info_size].in_tech_db = 0;
 
 				Intel_info_size++;
 			}
@@ -1667,10 +1683,8 @@ void techroom_init()
 	// set some hotkeys
 	Buttons[gr_screen.res][PREV_ENTRY_BUTTON].button.set_hotkey(SDLK_LEFT);
 	Buttons[gr_screen.res][NEXT_ENTRY_BUTTON].button.set_hotkey(SDLK_RIGHT);
-#ifndef MAKE_FS1 // set per tab
 	Buttons[gr_screen.res][SCROLL_INFO_UP].button.set_hotkey(SDLK_UP);
 	Buttons[gr_screen.res][SCROLL_INFO_DOWN].button.set_hotkey(SDLK_DOWN);
-#endif
 
 
 	for (i=0; i<LIST_BUTTONS_MAX; i++) {
@@ -1811,11 +1825,6 @@ void techroom_tab_setup(int set_palette)
 {
 	// char *pal;
 	int i;
-	int flags[256];
-
-	for (i=0; i<256; i++){
-		flags[i] = 0;
-	}
 
 	// activate, deactivate any necessary controls
 	for (i=0; i<NUM_BUTTONS; i++) {
@@ -1937,13 +1946,34 @@ void techroom_do_frame(float frametime)
 			techroom_button_pressed(CREDITS_TAB);
 			break;
 /*
+ * Not used any longer, using ui_button hotkeys instead. This is just here for
+ * future reference.
+ *
+#ifdef MAKE_FS1
 		case SDLK_UP:
-			tech_prev_entry();
+			tech_scroll_info_up();
 			break;
 
 		case SDLK_DOWN:
+			tech_scroll_info_down();
+			break;
+
+		case SDLK_RIGHT:
 			tech_next_entry();
 			break;
+
+		case SDLK_LEFT:
+			tech_prev_entry();
+			break;
+
+		case SDLK_PAGEUP:
+			tech_scroll_list_up();
+			break;
+
+		case SDLK_PAGEDOWN:
+			tech_scroll_list_down();
+			break;
+#endif
 */
 		case KEY_CTRLED | SDLK_RETURN:
 		case SDLK_ESCAPE:

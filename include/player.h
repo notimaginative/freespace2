@@ -193,10 +193,19 @@
 #define PLAYER_FLAGS_KILLED_BY_EXPLOSION	(1<<12)		// player was killed by an instantaneous area-effect explosion
 #define PLAYER_FLAGS_HAS_PLAYED_PXO			(1<<13)		// this pilot has at least played PXO once in the past.
 #define PLAYER_FLAGS_DIST_TO_BE_KILLED		(1<<14)		// the pilot has been warned about distance and will be killed after message finishes playing
+#ifndef MAKE_FS1
 #define PLAYER_FLAGS_KILLED_BY_ENGINE_WASH	(1<<15)	// player was killed by engine wash
 #define PLAYER_FLAGS_KILLED_SELF_UNKNOWN			(1<<16)		// player died by his own hand
 #define PLAYER_FLAGS_KILLED_SELF_MISSILES			(1<<17)		// player died by his own missile
 #define PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE		(1<<18)		// player died by his own shockwave
+#else
+#define PLAYER_FLAGS_USING_LOCAL_STATS		(1<<15)		// not playing PXO games
+#define PLAYER_FLAGS_USING_PXO_STATS		(1<<16)		// playing PXO games
+#define PLAYER_FLAGS_KILLED_BY_ENGINE_WASH	(1<<17)	// player was killed by engine wash
+#define PLAYER_FLAGS_KILLED_SELF_UNKNOWN			(1<<18)		// player died by his own hand
+#define PLAYER_FLAGS_KILLED_SELF_MISSILES			(1<<19)		// player died by his own missile
+#define PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE		(1<<20)		// player died by his own shockwave
+#endif
 
 #define PLAYER_KILLED_SELF						( PLAYER_FLAGS_KILLED_SELF_MISSILES | PLAYER_FLAGS_KILLED_SELF_SHOCKWAVE )
 

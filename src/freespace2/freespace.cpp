@@ -1982,13 +1982,13 @@ void game_maybe_update_sound_environment()
 //
 void game_assign_sound_environment()
 {
-	/*
+#ifdef MAKE_FS1
 	if (The_mission.flags & MISSION_FLAG_SUBSPACE) {
 		Game_sound_env.id = SND_ENV_DRUGGED;
 		Game_sound_env.volume = 0.800f;
 		Game_sound_env.damping = 1.188f;
 		Game_sound_env.decay = 6.392f;
-#ifndef FS2_DEMO
+#ifndef FS1_DEMO
 	} else if (Num_asteroids > 30) {
 		Game_sound_env.id = SND_ENV_AUDITORIUM;
 		Game_sound_env.volume = 0.603f;
@@ -1998,9 +1998,10 @@ void game_assign_sound_environment()
 	} else {
 		Game_sound_env = Game_default_sound_env;
 	}
-	*/
-
+#else
 	Game_sound_env = Game_default_sound_env;
+#endif
+
 	Game_sound_env_update_timestamp = timestamp(1);
 }
 

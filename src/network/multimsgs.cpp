@@ -3539,8 +3539,10 @@ void process_pong_packet(ubyte *data, header *hinfo)
 		   std_update_player_ping(p);	
 		}
 
+#ifdef PSNET2
 		// mark his socket as still alive (extra precaution)
 		psnet_mark_received(Net_players[lookup].reliable_socket);
+#endif
 	}
 	// otherwise, do any special processing
 	else {
@@ -6370,7 +6372,11 @@ void send_player_stats_block_packet(net_player *pl, int stats_code, net_player *
 
 	case STATS_DOGFIGHT_KILLS:
 		for(idx=0; idx<MAX_PLAYERS; idx++){
+#ifndef MAKE_FS1
 			u_tmp = sc->m_dogfight_kills[idx];
+#else
+			u_tmp = 0;
+#endif
 			ADD_USHORT(u_tmp);
 		}
 		ADD_INT(sc->m_kill_count);
@@ -6499,10 +6505,12 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 		}
 		for(idx=0; idx<MAX_PLAYERS; idx++){
 			GET_USHORT(u_tmp);
+#ifndef MAKE_FS1
 			sc->m_dogfight_kills[idx] = u_tmp;
 			if(player_num >= 0){				
 				ml_printf("%d", Net_players[player_num].player->stats.m_dogfight_kills[idx]);
 			}
+#endif
 		}
 		GET_INT(sc->m_kill_count);
 		GET_INT(sc->m_kill_count_ok);

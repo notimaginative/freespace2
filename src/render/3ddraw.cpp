@@ -688,8 +688,9 @@ int g3_draw_rotated_bitmap(vertex *pnt,float angle, float rad,uint tmap_flags)
 	float sa, ca;
 	int i;
 
-	/*
-	if ( !Detail.alpha_effects )	{
+#ifdef MAKE_FS1
+	// Only seems to do anything in software mode in the retail version
+	if ( !Detail.alpha_effects ) {
 		int ang;
 		if ( angle < PI/2 )	{
 			ang = 0;
@@ -702,7 +703,7 @@ int g3_draw_rotated_bitmap(vertex *pnt,float angle, float rad,uint tmap_flags)
 		}
 		return g3_draw_bitmap( pnt, ang, rad, tmap_flags );
 	}
-	*/
+#endif
 
 	SDL_assert( G3_count == 1 );
 

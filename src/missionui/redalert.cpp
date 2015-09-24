@@ -196,7 +196,11 @@ static int Red_alert_voice_started;
 #define RED_ALERT_MISSION			1
 
 #define MAX_RED_ALERT_SLOTS				32
+#ifdef MAKE_FS1
+#define MAX_RED_ALERT_SUBSYSTEMS		33
+#else
 #define MAX_RED_ALERT_SUBSYSTEMS		64
+#endif
 #define RED_ALERT_EXITED_SHIP_CLASS		-1
 
 typedef struct red_alert_ship_status

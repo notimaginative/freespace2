@@ -289,7 +289,11 @@
 #define _WEAPON_H
 
 // define moved to before includes so that we can have it available when ship.h is included below
+#ifdef MAKE_FS1
+#define MAX_WEAPON_TYPES				48
+#else
 #define MAX_WEAPON_TYPES				200
+#endif
 
 // define to compile corkscrew missiles in
 

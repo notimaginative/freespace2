@@ -24,8 +24,12 @@
 
 
 // check structs for size compatibility
-SDL_COMPILE_TIME_ASSERT(udp_packet_header, sizeof(udp_packet_header) == 497);
+//SDL_COMPILE_TIME_ASSERT(udp_packet_header, sizeof(udp_packet_header) == 497);
+#ifndef MAKE_FS1
 SDL_COMPILE_TIME_ASSERT(vmt_freespace2_struct, sizeof(vmt_freespace2_struct) == 440);
+#else
+SDL_COMPILE_TIME_ASSERT(vmt_freespace_struct, sizeof(vmt_freespace_struct) == 468);
+#endif
 SDL_COMPILE_TIME_ASSERT(validate_id_request, sizeof(validate_id_request) == 60);
 SDL_COMPILE_TIME_ASSERT(squad_war_request, sizeof(squad_war_request) == 104);
 SDL_COMPILE_TIME_ASSERT(squad_war_response, sizeof(squad_war_response) == 256);
@@ -35,7 +39,12 @@ SDL_COMPILE_TIME_ASSERT(pilot_request, sizeof(pilot_request) == 32);
 
 //Variables
 
-// SOCKET	pilotsock;
+#ifdef MAKE_FS1
+SOCKET	pilotsock;
+#define PILOTSOCK pilotsock
+#else
+#define PILOTSOCK Unreliable_socket
+#endif
 
 struct sockaddr_in	ptrackaddr;
 
@@ -68,11 +77,21 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 {
 	int packet_size = 0;
 	int i;
+#ifdef MAKE_FS1
+	char h_pad = 0;
+#endif
 
 	PXO_ADD_DATA(uph->type);
+#ifdef MAKE_FS1
+	PXO_ADD_DATA(h_pad);
+#endif
 	PXO_ADD_USHORT(uph->len);
 	PXO_ADD_UINT(uph->code);
 	PXO_ADD_USHORT(uph->xcode);
+#ifdef MAKE_FS1
+	PXO_ADD_DATA(h_pad);
+	PXO_ADD_DATA(h_pad);
+#endif
 	PXO_ADD_UINT(uph->sig);
 	PXO_ADD_UINT(uph->security);
 
@@ -82,7 +101,7 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 			break;
 
 		case UNT_PILOT_DATA_WRITE_NEW: {
-			vmt_freespace2_struct *fs2 = (vmt_freespace2_struct *)&uph->data;
+			vmt_stats_struct *fs2 = (vmt_stats_struct *)&uph->data;
 
 			PXO_ADD_DATA(fs2->tracker_id);
 			PXO_ADD_DATA(fs2->pilot_name);
@@ -91,6 +110,17 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 
 			PXO_ADD_INT(fs2->score);
 			PXO_ADD_INT(fs2->rank);
+
+#ifdef MAKE_FS1
+			for (i = 0; i < MAX_FS_MEDALS; i++) {
+				PXO_ADD_INT(fs2->medals[i]);
+			}
+
+			for (i = 0; i < MAX_FS_SHIP_TYPES; i++) {
+				PXO_ADD_INT(fs2->kills[i]);
+			}
+#endif
+
 			PXO_ADD_INT(fs2->assists);
 			PXO_ADD_INT(fs2->kill_count);
 			PXO_ADD_INT(fs2->kill_count_ok);
@@ -115,6 +145,7 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 			PXO_ADD_UINT(fs2->flight_time);
 			PXO_ADD_UINT(fs2->last_flown);
 
+#ifndef MAKE_FS1
 			PXO_ADD_USHORT(fs2->num_medals);
 			PXO_ADD_USHORT(fs2->num_ship_types);
 
@@ -122,9 +153,10 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 				PXO_ADD_INT(fs2->medals[i]);
 			}
 
-			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
+			for (i = 0; i < MAX_FS2_SHIP_TYPES; i++) {
 				PXO_ADD_USHORT(fs2->kills[i]);
 			}
+#endif
 
 			break;
 		}
@@ -176,6 +208,9 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 {
 	int offset = 0;
 	int i;
+#ifdef MAKE_FS1
+	char h_pad;
+#endif
 
 	memset(uph, 0, sizeof(udp_packet_header));
 
@@ -188,15 +223,26 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 	}
 
 	PXO_GET_DATA(uph->type);
+#ifdef MAKE_FS1
+	PXO_GET_DATA(h_pad);
+#endif
 	PXO_GET_USHORT(uph->len);
 	PXO_GET_UINT(uph->code);
 	PXO_GET_USHORT(uph->xcode);
+#ifdef MAKE_FS1
+	PXO_GET_DATA(h_pad);
+	PXO_GET_DATA(h_pad);
+#endif
 	PXO_GET_UINT(uph->sig);
 	PXO_GET_UINT(uph->security);
 
 	// sanity check data size to make sure we reveived all of the expected packet
-	// (not exactly sure what -1 is for, but that's how it is later)
+#ifndef MAKE_FS1
+	// (the -1 is because psnet2 pops off one byte)
 	if ((int)uph->len-1 > data_size) {
+#else
+	if ((int)uph->len > data_size) {
+#endif
 		uph->len = 0;
 		uph->type = 0xff;
 
@@ -211,7 +257,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			break;
 
 		case UNT_PILOT_DATA_RESPONSE: {
-			vmt_freespace2_struct *fs2 = (vmt_freespace2_struct *)&uph->data;
+			vmt_stats_struct *fs2 = (vmt_stats_struct *)&uph->data;
 
 			PXO_GET_DATA(fs2->tracker_id);
 			PXO_GET_DATA(fs2->pilot_name);
@@ -220,6 +266,17 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 
 			PXO_GET_INT(fs2->score);
 			PXO_GET_INT(fs2->rank);
+
+#ifdef MAKE_FS1
+			for (i = 0; i < MAX_FS_MEDALS; i++) {
+				PXO_GET_INT(fs2->medals[i]);
+			}
+
+			for (i =0; i < MAX_FS_SHIP_TYPES; i++) {
+				PXO_GET_INT(fs2->kills[i]);
+			}
+#endif
+
 			PXO_GET_INT(fs2->assists);
 			PXO_GET_INT(fs2->kill_count);
 			PXO_GET_INT(fs2->kill_count_ok);
@@ -244,6 +301,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			PXO_GET_UINT(fs2->flight_time);
 			PXO_GET_UINT(fs2->last_flown);
 
+#ifndef MAKE_FS1
 			PXO_GET_USHORT(fs2->num_medals);
 			PXO_GET_USHORT(fs2->num_ship_types);
 
@@ -254,6 +312,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
 				PXO_GET_USHORT(fs2->kills[i]);
 			}
+#endif
 
 			break;
 		}
@@ -288,29 +347,29 @@ int InitPilotTrackerClient()
 
 	fs_pr = (pilot_request *)&fs_pilot_req.data;
 
-	/*
+#ifdef MAKE_FS1
 	pilotsock = socket(AF_INET,SOCK_DGRAM,0);
 	
-	if ( pilotsock == INVALID_SOCKET )
+	if ( pilotsock == (SOCKET)INVALID_SOCKET )
 	{
-		printf("Unable to open a socket.\n");
+		mprintf(("Unable to open a socket.\n"));
 		return 0;
 	}
-	*/
+#endif
 	
 	memset( &sockaddr, 0, sizeof(struct sockaddr_in) );
 	sockaddr.sin_family = AF_INET; 
 	sockaddr.sin_addr.s_addr = INADDR_ANY; 
 	sockaddr.sin_port = 0;//htons(REGPORT);
 	
-	/*
+#ifdef MAKE_FS1
 	if (SOCKET_ERROR==bind(pilotsock, (struct sockaddr*)&sockaddr, sizeof (sockaddr)))
 	{	
-		printf("Unable to bind a socket.\n");
-		printf("WSAGetLastError() returned %d.\n",WSAGetLastError());
+		mprintf(("Unable to bind a socket.\n"));
+		mprintf(("WSAGetLastError() returned %d.\n",WSAGetLastError()));
 		return 0;
 	}
-	*/
+#endif
 	
 	// iaddr = inet_addr ( Multi_user_tracker_ip_address ); 
 
@@ -354,11 +413,7 @@ int InitPilotTrackerClient()
 // Call with NULL to poll 
 // Call with -1 to cancel send
 // Call with valid pointer to a vmt_descent3_struct to initiate send
-#ifdef MAKE_FS1
-int SendFSPilotData(vmt_freespace_struct *fs_pilot)
-#else
-int SendFSPilotData(vmt_freespace2_struct *fs_pilot)
-#endif
+int SendFSPilotData(vmt_stats_struct *fs_pilot)
 {
 	//First check the network
 	PollPTrackNet();
@@ -395,7 +450,7 @@ int SendFSPilotData(vmt_freespace2_struct *fs_pilot)
 		}
 
 	}
-	else if(fs_pilot == (vmt_freespace2_struct*)0xffffffff)
+	else if(fs_pilot == (vmt_stats_struct*)0xffffffff)
 	{
 		if(FSWriteState == STATE_IDLE)
 		{
@@ -421,14 +476,12 @@ int SendFSPilotData(vmt_freespace2_struct *fs_pilot)
 
 		fs_pilot_write.type = UNT_PILOT_DATA_WRITE_NEW;
 #ifdef MAKE_FS1
-		fs_pilot_write.len = PACKED_HEADER_ONLY_SIZE+sizeof(vmt_freespace_struct);
 		fs_pilot_write.code = CMD_GAME_FREESPACE;
-		memcpy(&fs_pilot_write.data,fs_pilot,sizeof(vmt_freespace_struct));
 #else
-		fs_pilot_write.len = PACKED_HEADER_ONLY_SIZE+sizeof(vmt_freespace2_struct);
 		fs_pilot_write.code = CMD_GAME_FREESPACE2;
-		memcpy(&fs_pilot_write.data,fs_pilot,sizeof(vmt_freespace2_struct));
 #endif
+		fs_pilot_write.len = PACKED_HEADER_ONLY_SIZE+sizeof(vmt_stats_struct);
+		memcpy(&fs_pilot_write.data,fs_pilot,sizeof(vmt_stats_struct));
 
 		return 0;	
 	}
@@ -531,11 +584,7 @@ int SendSWData(squad_war_result *sw_res, squad_war_response *sw_resp)
 // Call with NULL to poll 
 // Call with -1 to cancel wait
 // Call with valid pointer to a vmt_descent3_struct to get a response
-#ifdef MAKE_FS1
-int GetFSPilotData(vmt_freespace_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int get_security)
-#else
-int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int get_security)
-#endif
+int GetFSPilotData(vmt_stats_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int get_security)
 {
 	//First check the network
 	PollPTrackNet();
@@ -573,7 +622,7 @@ int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, cons
 		}
 
 	}
-	else if(fs_pilot == (vmt_freespace2_struct*)0xffffffff)
+	else if(fs_pilot == (vmt_stats_struct*)0xffffffff)
 	{
 		if(FSReadState == STATE_IDLE)
 		{
@@ -633,7 +682,7 @@ void AckServer(unsigned int sig)
 
 	packet_length = SerializePilotPacket(&ack_pack, packet_data);
 	SDL_assert(packet_length == PACKED_HEADER_ONLY_SIZE);
-	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
+	PXO_SENDTO(PILOTSOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
 }
 
 void IdlePTrack()
@@ -641,7 +690,9 @@ void IdlePTrack()
 	ubyte packet_data[sizeof(udp_packet_header)];
 	int packet_length = 0;
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 
 	// reading pilot data
 	if(FSReadState == STATE_READING_PILOT){
@@ -650,7 +701,7 @@ void IdlePTrack()
 		} else if((timer_get_milliseconds()-FSLastSent)>=PILOT_REQ_RESEND_TIME){
 			//Send 'da packet
 			packet_length = SerializePilotPacket(&fs_pilot_req, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
+			PXO_SENDTO(PILOTSOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
 			FSLastSent = timer_get_milliseconds();
 		}
 	}
@@ -663,7 +714,7 @@ void IdlePTrack()
 		} else if((timer_get_milliseconds()-FSLastSentWrite)>=PILOT_REQ_RESEND_TIME){
 			// Send 'da packet
 			packet_length = SerializePilotPacket(&fs_pilot_write, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
+			PXO_SENDTO(PILOTSOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
 			FSLastSentWrite = timer_get_milliseconds();
 		}
 	}
@@ -675,7 +726,7 @@ void IdlePTrack()
 		} else if((timer_get_milliseconds()-SWLastSentWrite) >= PILOT_REQ_RESEND_TIME){
 			// Send 'da packet
 			packet_length = SerializePilotPacket(&sw_res_write, packet_data);
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
+			PXO_SENDTO(PILOTSOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&ptrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_USER_TRACKER);
 			SWLastSentWrite = timer_get_milliseconds();
 		}
 	}
@@ -693,9 +744,9 @@ void PollPTrackNet()
 	timeout.tv_usec=0;
 	
 	FD_ZERO(&read_fds);
-	FD_SET(Unreliable_socket, &read_fds);    
+	FD_SET(PILOTSOCK, &read_fds);
 
-	if(SELECT(Unreliable_socket+1, &read_fds,NULL,NULL,&timeout, PSNET_TYPE_USER_TRACKER)){
+	if(PXO_SELECT(PILOTSOCK+1, &read_fds,NULL,NULL,&timeout, PSNET_TYPE_USER_TRACKER)){
 		int bytesin;
 		int addrsize;
 		struct sockaddr_in fromaddr;
@@ -705,13 +756,15 @@ void PollPTrackNet()
 		SDL_zero(inpacket);
 		addrsize = sizeof(struct sockaddr_in);
 
-		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(udp_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_USER_TRACKER);
+		bytesin = PXO_RECVFROM(PILOTSOCK, (char *)&packet_data, sizeof(udp_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_USER_TRACKER);
 
 		if (bytesin > 0) {
 			DeserializePilotPacket(packet_data, bytesin, &inpacket);
 
+#ifndef MAKE_FS1
 			// decrease packet size by 1
 			inpacket.len--;
+#endif
 #ifndef NDEBUG
 		} else {
 			int wserr=WSAGetLastError();

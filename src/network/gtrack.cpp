@@ -47,15 +47,25 @@
 
 
 // check structs for size compatibility
+#ifndef MAKE_FS1
 SDL_COMPILE_TIME_ASSERT(game_packet_header, sizeof(game_packet_header) == 529);
 SDL_COMPILE_TIME_ASSERT(freespace2_net_game_data, sizeof(freespace2_net_game_data) == 120);
+#else
+SDL_COMPILE_TIME_ASSERT(game_packet_header, sizeof(game_packet_header) == 729);
+SDL_COMPILE_TIME_ASSERT(freespace_net_game_data, sizeof(freespace_net_game_data) == 696);
+#endif
 SDL_COMPILE_TIME_ASSERT(game_list, sizeof(game_list) == 384);
 SDL_COMPILE_TIME_ASSERT(filter_game_list_struct, sizeof(filter_game_list_struct) == 40);
 
 
 
 //Variables
-// SOCKET gamesock;
+#ifdef MAKE_FS1
+SOCKET gamesock;
+#define GAMESOCK gamesock
+#else
+#define GAMESOCK Unreliable_socket
+#endif
 struct sockaddr_in	gtrackaddr;
 
 game_list GameBuffer[MAX_GAME_BUFFERS];
@@ -91,6 +101,15 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 
 	PXO_ADD_UINT(gph->len);
 	PXO_ADD_DATA(gph->game_type);
+
+#ifdef MAKE_FS1
+	// FS1 needs an extra 3 bytes padding
+	char h_pad[3];
+	SDL_zero(h_pad);
+
+	PXO_ADD_DATA(h_pad);
+#endif
+
 	PXO_ADD_DATA(gph->junk); // not used, basically just padding for compatibility
 	PXO_ADD_INT(gph->type);
 	PXO_ADD_UINT(gph->sig);
@@ -117,7 +136,7 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 		}
 
 		case GNT_GAMEUPDATE: {
-			freespace2_net_game_data *game_data = (freespace2_net_game_data *)&gph->data;
+			pxo_net_game_data *game_data = (pxo_net_game_data *)&gph->data;
 
 			PXO_ADD_DATA(game_data->game_name);
 			PXO_ADD_INT(game_data->difficulty);
@@ -126,6 +145,19 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 			PXO_ADD_INT(game_data->max_players);
 			PXO_ADD_INT(game_data->current_num_players);
 			PXO_ADD_DATA(game_data->mission_name);
+
+#ifdef MAKE_FS1
+			int i;
+
+			for (i = 0; i < MAX_FREESPACE_PLAYERS; i++) {
+				PXO_ADD_DATA(game_data->players[i]);
+			}
+
+			for (i = 0; i < MAX_FREESPACE_PLAYERS; i++) {
+				PXO_ADD_INT(game_data->player_rank[i]);
+			}
+#endif
+
 			PXO_ADD_DATA(game_data->channel);
 			PXO_ADD_DATA(game_data->pad);		// for sizing, so gph->len will match
 
@@ -179,13 +211,25 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 
 	PXO_GET_UINT(gph->len);
 	PXO_GET_DATA(gph->game_type);
+
+#ifdef MAKE_FS1
+	// FS1 has 3 bytes of padding here
+	char h_pad[3];
+
+	PXO_GET_DATA(h_pad);
+#endif
+
 	PXO_GET_DATA(gph->junk); // not used, basically just padding for compatibility
 	PXO_GET_INT(gph->type);
 	PXO_GET_UINT(gph->sig);
 
 	// sanity check data size to make sure we reveived all of the expected packet
-	// (not exactly sure what -1 is for, but that's how it is later)
+#ifndef MAKE_FS1
+	// (the -1 is because psnet2 pops off one byte)
 	if ((int)gph->len-1 > data_size) {
+#else
+	if ((int)gph->len > data_size) {
+#endif
 		gph->len = 0;
 		gph->type = -1;
 
@@ -293,29 +337,29 @@ int InitGameTrackerClient(int gametype)
 	GameOverPacket.len = GAME_HEADER_ONLY_SIZE;
 	GameOverPacket.type = GNT_GAMEOVER;
 
-	// gamesock = socket(AF_INET,SOCK_DGRAM,0);
+#ifdef MAKE_FS1
+	gamesock = socket(AF_INET,SOCK_DGRAM,0);
 	
-	/*
-	if ( gamesock == INVALID_SOCKET )
+	if ( gamesock == (SOCKET)INVALID_SOCKET )
 	{
-		printf("Unable to open a socket.\n");
+		mprintf(("Unable to open a socket.\n"));
 		return 0;
 	}
-	*/
+#endif
 	
 	memset( &sockaddr, 0, sizeof(struct sockaddr_in) );
 	sockaddr.sin_family = AF_INET; 
 	sockaddr.sin_addr.s_addr = INADDR_ANY; 
 	sockaddr.sin_port = 0;//htons(GAMEPORT);
 	
-	/*
+#ifdef MAKE_FS1
 	if (SOCKET_ERROR==bind(gamesock, (struct sockaddr*)&sockaddr, sizeof (sockaddr)))
 	{	
-		printf("Unable to bind a socket.\n");
-		printf("WSAGetLastError() returned %d.\n",WSAGetLastError());
+		mprintf(("Unable to bind a socket.\n"));
+		mprintf(("WSAGetLastError() returned %d.\n",WSAGetLastError()));
 		return 0;
 	}
-	*/
+#endif
 		
 	iaddr = inet_addr ( Multi_options_g.game_tracker_ip ); 
 	if ( iaddr == INADDR_NONE ) {
@@ -358,7 +402,9 @@ void IdleGameTracker()
 	ubyte packet_data[sizeof(game_packet_header)];
 	int packet_length = 0;
 
+#ifndef MAKE_FS1
 	PSNET_TOP_LAYER_PROCESS();
+#endif
 	
 	timeout.tv_sec=0;            
 	timeout.tv_usec=0;
@@ -366,7 +412,7 @@ void IdleGameTracker()
 	{
 		//Time to update the tracker again
 		packet_length = SerializeGamePacket(&TrackerGameData, packet_data);
-		SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+		PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 		TrackerAckdUs = 0;
 		LastTrackerUpdate = timer_get_seconds();
 	}
@@ -374,7 +420,7 @@ void IdleGameTracker()
 	{
 		//We still haven't been acked by the last packet and it's time to resend.
 		packet_length = SerializeGamePacket(&TrackerGameData, packet_data);
-		SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+		PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 		TrackerAckdUs = 0;
 		LastTrackerUpdate = timer_get_seconds();
 		LastSentToTracker = timer_get_milliseconds();
@@ -386,7 +432,7 @@ void IdleGameTracker()
 			//resend
 			packet_length = SerializeGamePacket(&GameOverPacket, packet_data);
 			LastGameOverPacket = timer_get_milliseconds();
-			SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+			PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 		} 
 		/*
 		else if((timer_get_milliseconds()-FirstGameOverPacket)>NET_ACK_TIMEOUT) {
@@ -400,9 +446,9 @@ void IdleGameTracker()
 	//Check for incoming
 		
 	FD_ZERO(&read_fds);
-	FD_SET(Unreliable_socket, &read_fds);    
+	FD_SET(GAMESOCK, &read_fds);
 
-	if(SELECT(Unreliable_socket+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_GAME_TRACKER))
+	if(PXO_SELECT(GAMESOCK+1,&read_fds,NULL,NULL,&timeout, PSNET_TYPE_GAME_TRACKER))
 	{
 		int bytesin;
 		int addrsize;
@@ -413,13 +459,15 @@ void IdleGameTracker()
 		SDL_zero(inpacket);
 		addrsize = sizeof(struct sockaddr_in);
 
-		bytesin = RECVFROM(Unreliable_socket, (char *)&packet_data, sizeof(game_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_GAME_TRACKER);
+		bytesin = PXO_RECVFROM(GAMESOCK, (char *)&packet_data, sizeof(game_packet_header), 0, (struct sockaddr *)&fromaddr, &addrsize, PSNET_TYPE_GAME_TRACKER);
 
 		if (bytesin > 0) {
 			DeserializeGamePacket(packet_data, bytesin, &inpacket);
 
+#ifndef MAKE_FS1
 			// subtract one from the header
 			inpacket.len--;
+#endif
 #ifndef NDEBUG
 		} else {
 			int wserr=WSAGetLastError();
@@ -532,7 +580,7 @@ void RequestGameList()
 	GameListReq.len = GAME_HEADER_ONLY_SIZE;
 
 	packet_length = SerializeGamePacket(&GameListReq, packet_data);
-	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+	PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 }
 
 void RequestGameListWithFilter(void *filter)
@@ -544,7 +592,7 @@ void RequestGameListWithFilter(void *filter)
 	GameListReq.len = GAME_HEADER_ONLY_SIZE+sizeof(filter_game_list_struct);
 
 	packet_length = SerializeGamePacket(&GameListReq, packet_data);
-	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+	PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 }
 
 
@@ -581,7 +629,7 @@ int SendGameOver()
 		TrackerGameIsRunning = 0;
 
 		packet_length = SerializeGamePacket(&GameOverPacket, packet_data);
-		SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+		PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 
 		return 0;
 	}
@@ -597,7 +645,7 @@ void AckPacket(int sig)
 	TrackAckPacket.sig = sig;
 
 	packet_length = SerializeGamePacket(&TrackAckPacket, packet_data);
-	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+	PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 }
 
 void StartTrackerGame(void *buffer)
@@ -646,5 +694,5 @@ void RequestGameCountWithFilter(void *filter)
 	memcpy(&GameCountReq.data, ((filter_game_list_struct*)filter)->channel, CHANNEL_LEN);
 
 	packet_length = SerializeGamePacket(&GameCountReq, packet_data);
-	SENDTO(Unreliable_socket, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+	PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 }

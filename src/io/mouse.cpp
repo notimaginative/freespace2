@@ -169,7 +169,7 @@ static int Mouse_dy_inc = 0;
 int Mouse_sensitivity = 4;
 int Use_mouse_to_fly = 0;
 int Mouse_hidden = 0;
-int Keep_mouse_centered = 0;;
+int Keep_mouse_centered = 0;
 
 void mouse_force_pos(int x, int y);
 

@@ -441,6 +441,7 @@ typedef struct config_item {
 #define TIME_SPEED_UP									102
 #define TIME_SLOW_DOWN									103
 
+#ifndef MAKE_FS1
 #define TOGGLE_HUD_CONTRAST							104
 
 #define MULTI_TOGGLE_NETINFO							105
@@ -449,6 +450,10 @@ typedef struct config_item {
 
 // this should be the total number of control action defines above (or last define + 1)
 #define CCFG_MAX 107
+#else
+// this should be the total number of control action defines above (or last define + 1)
+#define CCFG_MAX 104
+#endif
 
 extern int Failed_key_index;
 extern int Invert_heading;

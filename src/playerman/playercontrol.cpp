@@ -1360,6 +1360,12 @@ void player_set_pilot_defaults(player *p)
 	p->flags |= PLAYER_FLAGS_AUTO_TARGETING;
 	p->save_flags |= PLAYER_FLAGS_AUTO_TARGETING;
 
+#ifdef MAKE_FS1
+	// not using PXO by default
+	p->flags |= PLAYER_FLAGS_USING_LOCAL_STATS;
+	p->save_flags |= PLAYER_FLAGS_USING_LOCAL_STATS;
+#endif
+
 	p->auto_advance = 1;
 }
 

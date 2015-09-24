@@ -12,13 +12,21 @@
 
 //Game Tracker client code header
 
+#ifdef MAKE_FS1
+#define GAMEPORT	3440
+#else
 #define GAMEPORT	7802
+#endif
 
 #define MAX_NET_RETRIES 30
 #define NET_ACK_TIMEOUT 2500
 #define NET_GAME_TIMEOUT 300			//time in seconds
 
+#ifndef MAKE_FS1
 #define MAX_GAME_DATA_SIZE	500
+#else
+#define MAX_GAME_DATA_SIZE	700
+#endif
 
 #define MAX_GENERIC_GAME_NAME_LEN	32
 
@@ -47,7 +55,12 @@
 #define	GT_FREESPACE2			4
 #define	GT_UNUSED				0
 
+#ifndef MAKE_FS1
 #define GAME_HEADER_ONLY_SIZE		(sizeof(game_packet_header)-MAX_GAME_DATA_SIZE)
+#else
+// header struct not packed in FS1, add 3 bytes padding
+#define GAME_HEADER_ONLY_SIZE		(sizeof(game_packet_header)-MAX_GAME_DATA_SIZE+3)
+#endif
 
 #pragma pack(push, 1)
 	typedef struct {
@@ -76,7 +89,10 @@ typedef struct {
 	char	players[MAX_FREESPACE_PLAYERS][MAX_FREESPACE_PLAYER_NAME_LEN];
 	int	player_rank[MAX_FREESPACE_PLAYERS];
 	char	channel[CHANNEL_LEN];
+	char	pad[3];		// 3-byte padding for size/alignment
 } freespace_net_game_data;
+
+#define pxo_net_game_data freespace_net_game_data
 
 #else
 
@@ -91,6 +107,8 @@ typedef struct {
 	char	channel[CHANNEL_LEN];
 	char	pad[3];		// 3-byte padding for size/alignment
 } freespace2_net_game_data;
+
+#define pxo_net_game_data freespace2_net_game_data
 
 #endif
 

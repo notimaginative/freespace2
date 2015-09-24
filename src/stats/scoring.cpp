@@ -347,10 +347,11 @@ void init_scoring_element(scoring_struct *s)
 	s->flight_time = 0;
 	s->last_flown = 0;
 	s->last_backup = 0;
-
+#ifndef MAKE_FS1
 	for(i=0; i<MAX_PLAYERS; i++){
 		s->m_dogfight_kills[i] = 0;
 	}
+#endif
 }
 
 #ifndef NDEBUG
@@ -403,10 +404,11 @@ void scoring_level_init( scoring_struct *scp )
 	scp->m_kill_count_ok = 0;
 	
 	scp->m_player_deaths =0;
-
+#ifndef MAKE_FS1
 	for(i=0; i<MAX_PLAYERS; i++){
 		scp->m_dogfight_kills[i] = 0;
 	}
+#endif
 }
 
 void scoring_eval_rank( scoring_struct *sc )

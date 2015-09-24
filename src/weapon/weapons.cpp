@@ -783,9 +783,10 @@ void parse_wi_flags(weapon_info *weaponp)
 		else if (!SDL_strcasecmp(NOX("supercap"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_SUPERCAP;
 #ifdef MAKE_FS1
-		else if (!SDL_strcasecmp(NOX("Swarm"), weapon_strings[i]))
+		else if (!SDL_strcasecmp(NOX("Swarm"), weapon_strings[i])) {
 			weaponp->wi_flags |= WIF_SWARM;
-		else if (!SDL_strcasecmp(NOX("No Ship"), weapon_strings[i]))
+			weaponp->swarm_count = SWARM_DEFAULT_NUM_MISSILES_FIRED;
+		} else if (!SDL_strcasecmp(NOX("No Ship"), weapon_strings[i]))
 			weaponp->wi_flags |= WIF_CHILD;
 #endif 
 		else
@@ -1618,7 +1619,11 @@ void weapon_render(object *obj)
 			}			
 
 			// maybe draw laser glow bitmap
+#ifndef MAKE_FS1
 			if(wip->laser_glow_bitmap >= 0){
+#else
+			if ( (Detail.weapon_detail >= 1) && (wip->laser_glow_bitmap >= 0) ) {
+#endif
 				// get the laser color
 				weapon_get_laser_color(&c, obj);
 
@@ -3652,13 +3657,17 @@ DCF(pspew_scale, "How far away particles are from the weapon path")
 // return a scale factor for damage which should be applied for 2 collisions
 float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 {
-	weapon *wp;	
+#ifdef MAKE_FS1
+	// don't do special damage scaling for capships in FS1
+	return 1.0f;
+
+#else
+
+	weapon *wp;
 	int from_player = 0;
 	float total_scale = 1.0f;
-#ifndef MAKE_FS1
 	float hull_pct;
 	int is_big_damage_ship = 0;
-#endif
 
 	// sanity
 	if((wip == NULL) || (wep == NULL) || (target == NULL)){
@@ -3682,7 +3691,6 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 		total_scale *= 0.1f;
 	}
 
-#ifndef MAKE_FS1 // don't do special damage scaling for capships in FS1
 	// if the hit object was a ship
 	if(target->type == OBJ_SHIP){
 		ship_info *sip;
@@ -3736,9 +3744,9 @@ float weapon_get_damage_scale(weapon_info *wip, object *wep, object *target)
 			}
 		}
 	}
-#endif
 	
 	return total_scale;
+#endif
 }
 
 int weapon_get_expl_handle(int weapon_expl_index, vector *pos, float size)

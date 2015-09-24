@@ -13,7 +13,9 @@
 #include "scoring.h"					// for medals count
 
 //Pilot tracker client header
-#ifdef FS2_DEMO
+#if defined(MAKE_FS1)
+	#define REGPORT						3493
+#elif defined(FS2_DEMO)
 	#define REGPORT						7802
 #else
 	#define REGPORT						8811
@@ -86,7 +88,12 @@
 #define REG_ACK_NEW_ID				8								// New id created, just used for return code, not net packets.
 
 #define MAX_UDP_DATA_LENGH			480
+#ifndef MAKE_FS1
 #define PACKED_HEADER_ONLY_SIZE	(sizeof(udp_packet_header)-MAX_UDP_DATA_LENGH)
+#else
+// FS1 doesn't pack header so add 3 bytes to size for padding
+#define PACKED_HEADER_ONLY_SIZE	(sizeof(udp_packet_header)-MAX_UDP_DATA_LENGH+3)
+#endif
 //sizeof(update_id_request)	//The largest packet
 
 #define LOGIN_LEN						33
@@ -201,6 +208,8 @@ typedef struct vmt_freespace_struct {
 	char tracker_id[TRACKER_ID_LEN];
 	char pilot_name[PILOT_NAME_LEN];
 
+	char pad_a[2];			// 2-bytes padding
+
 	int score;
 	int rank;
 	int medals[MAX_FS_MEDALS];
@@ -221,6 +230,9 @@ typedef struct vmt_freespace_struct {
 
 	int			 security;			 	
 	unsigned char virgin_pilot;	//This pilot was just created if TRUE
+
+	char		 pad_b[3];			// 3-bytes padding
+
 	unsigned int checksum;			//This value needs to be equal to whatever the checksum is once the packet is decoded
 		
 	unsigned int missions_flown;			// # of missions flown to completion
@@ -228,6 +240,8 @@ typedef struct vmt_freespace_struct {
 	unsigned int last_flown;				// data/time of last mission flown
 } vmt_freespace_struct;
 #define FREESPACE_BLOCK_SIZE (sizeof(vmt_freespace_struct))
+
+#define vmt_stats_struct vmt_freespace_struct
 
 #else
 
@@ -310,19 +324,16 @@ typedef struct vmt_freespace_struct {
 #endif
 #define FREESPACE2_BLOCK_SIZE (sizeof(vmt_freespace2_struct))
 
+#define vmt_stats_struct vmt_freespace2_struct
+
 #endif // MAKE_FS1
 
 //Function prototypes
 int InitPilotTrackerClient();
 void AckServer(unsigned int sig);
 
-#ifdef MAKE_FS1
-int SendFSPilotData(vmt_freespace2_struct *fs_pilot);
-int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int update_security);
-#else
-int SendFSPilotData(vmt_freespace2_struct *fs_pilot);
-int GetFSPilotData(vmt_freespace2_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int update_security);
-#endif
+int SendFSPilotData(vmt_stats_struct *fs_pilot);
+int GetFSPilotData(vmt_stats_struct *fs_pilot, const char *pilot_name, const char *tracker_id, int update_security);
 int SendSWData(squad_war_result *sw_res, squad_war_response *sw_resp);
 void PollPTrackNet();
 
@@ -351,6 +362,21 @@ void PollPTrackNet();
 #define PXO_GET_USHORT(d) do { ushort swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(0)
 #define PXO_GET_INT(d) do { int swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(0)
 #define PXO_GET_UINT(d) do { uint swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(0)
+
+
+#ifndef MAKE_FS1
+#define PXO_SELECT(a, b, c, d, e, f) SELECT(a, b, c, d, e, f)
+#define PXO_RECVFROM(a, b, c, d, e, f, g) RECVFROM(a, b, c, d, e, f, g)
+#define PXO_SENDTO(a, b, c, d, e, f, g) SENDTO(a, b, c, d, e, f, g)
+#else
+#define PXO_SELECT(a, b, c, d, e, f) select(a, b, c, d, e)
+#ifdef PLAT_UNIX
+#define PXO_RECVFROM(a, b, c, d, e, f, g) recvfrom(a, b, c, d, e, (socklen_t*)f)
+#else
+#define PXO_RECVFROM(a, b, c, d, e, f, g) recvfrom(a, b, c, d, e, f)
+#endif
+#define PXO_SENDTO(a, b, c, d, e, f, g) sendto(a , b, c, d, e, f)
+#endif
 
 #endif
 

@@ -11208,8 +11208,10 @@ void process_subobjects(int objnum)
 		// next set of subsystems may rotation
 		case SUBSYSTEM_RADAR:
 		case SUBSYSTEM_SOLAR:
+#ifndef MAKE_FS1
 		case SUBSYSTEM_GAS_COLLECT:
 		case SUBSYSTEM_ACTIVATION:
+#endif
 			break;
 		default:
 			Error(LOCATION, "Illegal subsystem type.\n");

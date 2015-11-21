@@ -646,14 +646,13 @@ void gr_opengl1_restore_screen(int)
 		return;
 	}
 
-	const float scale_w = 1.0f / GL_viewport_scale_w;
-	const float scale_h = 1.0f / GL_viewport_scale_h;
+	int x = 0;
+	int y = 0;
+	int w = fl2i(GL_viewport_w / GL_viewport_scale_w + 0.5f);
+	int h = fl2i(GL_viewport_h / GL_viewport_scale_h + 0.5f);
 
 	const int tex_coord[] = { 0, 1, 0, 0, 1, 1, 1, 0 };	// y-flipped
-	const int ver_coord[] = { GL_viewport_x, GL_viewport_y, GL_viewport_x,
-			int(GL_viewport_h * scale_h), int(GL_viewport_w * scale_w), GL_viewport_y,
-			int(GL_viewport_w * scale_w), int(GL_viewport_h * scale_h)
-	};
+	const int ver_coord[] = { x, y, x, h, w, y, w, h };
 
 	glColor4ub(255, 255, 255, 255);
 

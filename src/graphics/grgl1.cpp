@@ -228,6 +228,7 @@ void opengl1_init()
 	opengl1_tcache_init();
 
 	gr_opengl1_clear();
+	gr_opengl1_set_cull(1);
 
 	GL_one_inited = 1;
 }

@@ -682,29 +682,45 @@ void get_join_request(ubyte *data, int *size, join_request jr)
 	*size = offset;
 }
 
-void add_net_addr(ubyte *data, int *size, net_addr addr)
+struct net_addr_compat {
+	uint type;
+	ubyte net_id[4];
+	ubyte addr[6];
+	short port;
+};
+
+SDL_COMPILE_TIME_ASSERT(net_addr_compat, sizeof(net_addr_compat) == 16);
+
+void add_net_addr(ubyte *data, int &size, const net_addr *addr)
 {
-	int packet_size = *size;
-	net_addr addr_tmp = addr;
+	int packet_size = size;
+	net_addr_compat addr_c;
 
-	addr_tmp.type = INTEL_INT(addr.type);
-	addr_tmp.port = INTEL_SHORT(addr.port);
+	SDL_zero(addr_c);
 
-	ADD_DATA(addr_tmp);
+	addr_c.type = INTEL_INT(addr->type);
+	addr_c.port = INTEL_SHORT(addr->port);
+	memcpy(&addr_c.addr, &addr->addr, IP_ADDRESS_LENGTH);
 
-	*size = packet_size;
+	ADD_DATA(addr_c);
+
+	size = packet_size;
 }
 
-void get_net_addr(ubyte *data, int *size, net_addr addr)
+void get_net_addr(const ubyte *data, int &size, net_addr &addr)
 {
-	int offset = *size;
+	int offset = size;
+	net_addr_compat addr_c;
 
-	GET_DATA(addr);
+	SDL_zero(addr);
 
-	addr.type = INTEL_INT(addr.type);
-	addr.port = INTEL_SHORT(addr.port);
+	GET_DATA(addr_c);
 
-	*size = offset;
+	addr.type = INTEL_INT(addr_c.type);
+	addr.port = INTEL_SHORT(addr_c.port);
+	memcpy(&addr.addr, &addr_c.addr, IP_ADDRESS_LENGTH);
+
+	size = offset;
 }
 
 void add_vector_data(ubyte *data, int *size, vector vec)
@@ -1294,7 +1310,7 @@ void send_new_player_packet(int new_player_num,net_player *target)
 	ADD_INT(new_player_num);
 //	ADD_DATA(Net_players[new_player_num].p_info.addr);
 
-	add_net_addr(data, &packet_size, Net_players[new_player_num].p_info.addr);
+	add_net_addr(data, packet_size, &Net_players[new_player_num].p_info.addr);
 
 	ADD_SHORT(Net_players[new_player_num].player_id);
 	ADD_INT(Net_players[new_player_num].flags);
@@ -1333,7 +1349,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 	// get the new players information
 	GET_INT(new_player_num);
 	memset(&new_addr, 0, sizeof(net_addr));
-	get_net_addr(data, &offset, new_addr);
+	get_net_addr(data, offset, new_addr);
 
 	GET_SHORT(new_id);
 	GET_INT(new_flags);
@@ -1443,7 +1459,7 @@ void send_accept_player_data( net_player *npp, int is_ingame )
 
 		// add the player's address
 	//	ADD_DATA(Net_players[i].p_info.addr);
-		add_net_addr(data, &packet_size, Net_players[i].p_info.addr);
+		add_net_addr(data, packet_size, &Net_players[i].p_info.addr);
 
 		// add his id#
 		ADD_SHORT(Net_players[i].player_id);
@@ -1609,7 +1625,7 @@ void process_accept_player_data( ubyte *data, header *hinfo )
 
 		// add the player's address
 		memset(&addr, 0, sizeof(net_addr));
-		get_net_addr(data, &offset, addr);
+		get_net_addr(data, offset, addr);
 
 		// get the player's id#
 		GET_SHORT(player_id);

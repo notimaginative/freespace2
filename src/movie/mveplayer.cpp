@@ -95,6 +95,9 @@ static ubyte *g_pCurMap=NULL;
 static int g_nMapLength=0;
 static int videobuf_created;
 static int mve_scale_video = 0;
+static int mve_viewport_w = 0;
+static float mve_viewport_scale = 1.0f;
+static int mve_needs_clear = 0;
 static GLuint tex = 0;
 
 struct g_coords_t {
@@ -544,20 +547,13 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	if ( os_config_read_uint("Video", "ScaleMovies", 1) ) {
 		extern int GL_viewport_w;
 
-		float scale_by = GL_viewport_w / (float)g_width;
+		mve_scale_video = 1;
 
-		// don't bother setting anything if we aren't going to need it
-		if (scale_by != 1.0f) {
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
+		mve_viewport_scale = GL_viewport_w / (float)g_width;
+		mve_viewport_w = GL_viewport_w;
 
-			glScalef( scale_by, scale_by, 1.0f );
-			mve_scale_video = 1;
-
-			x = 0;
-			y = ((480 - g_height) / 2);
-		}
+		x = 0;
+		y = ((480 - g_height) / 2);
 	}
 
 	g_coords[0].x = x;
@@ -634,9 +630,24 @@ void mve_video_display()
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_width, g_height, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
 
+	if (mve_scale_video) {
+		glPushMatrix();
+		glLoadIdentity();
+		glScalef(mve_viewport_scale, mve_viewport_scale, 1.0f);
+	}
+
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+	if (mve_scale_video) {
+		glPopMatrix();
+	}
+
 	gr_flip();
+
+	if (mve_needs_clear) {
+		gr_clear();
+		mve_needs_clear = 0;
+	}
 
 	fix t2 = timer_get_fixed_seconds();
 
@@ -686,6 +697,8 @@ void mve_init(MVESTREAM *mve)
 
 	videobuf_created = 0;
 	mve_scale_video = 0;
+	mve_viewport_w = 0;
+	mve_viewport_scale = 1.0f;
 
 	mve_playing = 1;
 }
@@ -712,6 +725,18 @@ void mve_play(MVESTREAM *mve)
 
 		if (key_inkey() == SDLK_ESCAPE) {
 			mve_playing = 0;
+		}
+
+		// check if viewport size changed and adjust scaling accordingly
+		extern int GL_viewport_w;
+
+		if (mve_viewport_w != GL_viewport_w) {
+			mve_viewport_w = GL_viewport_w;
+			mve_needs_clear = 1;
+
+			if (mve_scale_video) {
+				mve_viewport_scale = GL_viewport_w / (float)g_width;
+			}
 		}
 	}
 }

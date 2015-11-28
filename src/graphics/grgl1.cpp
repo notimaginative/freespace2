@@ -755,4 +755,7 @@ void gr_opengl1_set_viewport(int width, int height)
 		free(Gr_opengl_mouse_saved_data);
 		Gr_opengl_mouse_saved_data = NULL;
 	}
+
+	// clear screen once to fix issues with edges on non-4:3
+	gr_opengl1_clear();
 }

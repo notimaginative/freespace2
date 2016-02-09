@@ -157,7 +157,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet2.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/ptrack.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_server.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/valid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisship.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisweapon.cpp

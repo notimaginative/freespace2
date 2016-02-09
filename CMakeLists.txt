@@ -14,6 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(SDL2 "2.0.1" REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
+find_package(LibWebSockets REQUIRED)
 
 find_package(wxWidgets COMPONENTS core base gl)
 include(${wxWidgets_USE_FILE})
@@ -79,6 +80,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
+  ${LIBWEBSOCKETS_INCLUDE_DIR}
   ${wxWidgets_INCLUDE_DIRS}
 )
 
@@ -132,6 +134,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 

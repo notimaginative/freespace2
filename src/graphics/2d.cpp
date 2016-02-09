@@ -490,6 +490,8 @@
 // Includes for different rendering systems
 #include "gropengl.h"
 #include "grwxgl.h"
+#include "grstub.h"
+
 
 screen gr_screen;
 
@@ -535,6 +537,9 @@ void gr_close()
 
 		case GR_WXGL:
 			gr_wxgl_cleanup();
+			break;
+
+		case GR_STUB:
 			break;
 
 		default:
@@ -654,6 +659,13 @@ static int gr_get_best_res(int *max_w, int *max_h)
 		return GR_640;
 	}
 
+	if (Is_standalone) {
+		(*max_w) = 640;
+		(*max_h) = 480;
+
+		return GR_640;
+	}
+
 	// defaults
 	int res = GR_640;
 	(*max_w) = 640;
@@ -713,6 +725,9 @@ int gr_init()
 			case GR_WXGL:
 				gr_wxgl_cleanup();
 
+			case GR_STUB:
+				break;
+
 			default:
 				Int3();		// Invalid graphics mode
 				break;
@@ -723,6 +738,8 @@ int gr_init()
 
 	if (Fred_running || Pofview_running) {
 		mode = GR_WXGL;
+	} else if (Is_standalone) {
+		mode = GR_STUB;
 	} else {
 		ptr = os_config_read_string("Video", "Renderer", "OpenGL");
 
@@ -769,6 +786,10 @@ int gr_init()
 		case GR_WXGL:
 			SDL_assert( Pofview_running || Fred_running );
 			gr_wxgl_init();
+			break;
+		case GR_STUB:
+			SDL_assert(Is_standalone);
+			gr_stub_init();
 			break;
 		default:
 			Int3();		// Invalid graphics mode

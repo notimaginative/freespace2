@@ -63,6 +63,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/grgl1.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropengl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropenglinternal.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/grstub.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grwxgl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gtrack.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helpeddoc.h

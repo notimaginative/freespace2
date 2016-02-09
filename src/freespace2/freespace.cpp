@@ -2370,12 +2370,8 @@ void game_init()
 // SOUND INIT END
 /////////////////////////////
 
-	if ( !Is_standalone ) {
-		gr_init();
-	} else {
-		STUB_FUNCTION;
-		Int3();
-	}
+
+	gr_init();
 
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)

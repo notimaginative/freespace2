@@ -117,13 +117,6 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 	return 0;
 }
 
-std::string conn_test[] = {
-	"Appolo 13,127.0.0.1,13 ms;Gemini,10.1.1.1,;HelloKitty,192.168.0.3,> 1 sec;"
-};
-std::string ping_test[] = {
-	"127.0.0.1,37 ms;10.1.1.1,999 ms;"
-};
-
 static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
 	#define MAX_BUF_SIZE	1050
@@ -349,8 +342,6 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 							}
 						}
 					}
-				} else if (mtype == 'T') {
-
 				}
 			}
 

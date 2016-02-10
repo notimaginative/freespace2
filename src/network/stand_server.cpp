@@ -262,7 +262,7 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 			}
 
 			if ( (Standalone_update_flags & STD_UFLAG_S_MESSAGE) && !Standalone_message.empty() ) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "P:info %s", Standalone_message.c_str());
+				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "G:mesg %s", Standalone_message.c_str());
 
 				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
 

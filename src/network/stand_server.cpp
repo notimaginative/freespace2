@@ -528,6 +528,15 @@ static struct lws_protocols stand_protocols[] = {
 	}
 };
 
+static void std_lws_logger(int level, const char *line)
+{
+	if (level & (LLL_WARN|LLL_ERR)) {
+		mprintf(("STD: %s\n", line));
+	} else if (level & LLL_NOTICE) {
+		nprintf(("lws", "STD: %s\n", line));
+	}
+}
+
 
 
 
@@ -560,6 +569,8 @@ void std_init_standalone()
 	info.ka_time = 0;
 	info.ka_probes = 0;
 	info.ka_interval = 0;
+
+	lws_set_log_level(LLL_ERR|LLL_WARN|LLL_NOTICE, std_lws_logger);
 
 	stand_context = lws_create_context(&info);
 

@@ -5,344 +5,648 @@
 <title>FreeSpace Standalone</title>
 
 <script>
-var player_list;
-
 var standalone_socket = new WebSocket("ws://" + document.URL.substr(7).split('/')[0], "standalone");
 
 try {
-    standalone_socket.onmessage = function got_packet(msg) {
-        console.log(" <== " + msg.data);
-        if (msg.data[0] == 'D') {
-            document.getElementById("debug").textContent = msg.data.substr(2);
-        } else if (msg.data[0] == 'T') {
-            document.title = msg.data.substr(2);
-        } else if (msg.data[0] == 'S') {
-            do_server_tab(msg.data.substr(2));
-        } else if (msg.data[0] == 'M') {
-            do_multi_tab(msg.data.substr(2));
-        } else if (msg.data[0] == 'P') {
-            do_player_tab(msg.data.substr(2));
-        } else if (msg.data[0] == 'G') {
-            do_gs_tab(msg.data.substr(2));
-        }
+  standalone_socket.onmessage = function got_packet(msg) {
+    if (msg.data == "reset") {
+      reset_ui();
+    } else if (msg.data == "popup ") {
+      popup(msg.data.substr(7));
+    } else if (msg.data[0] == 'D') {
+      document.getElementById("debug").textContent = msg.data.substr(2);
+    } else if (msg.data[0] == 'T') {
+      document.title = msg.data.substr(2);
+    } else if (msg.data[0] == 'S') {
+      do_server_tab(msg.data.substr(2));
+    } else if (msg.data[0] == 'M') {
+      do_multi_tab(msg.data.substr(2));
+    } else if (msg.data[0] == 'P') {
+      do_player_tab(msg.data.substr(2));
+    } else if (msg.data[0] == 'G') {
+      do_gs_tab(msg.data.substr(2));
     }
+  };
 } catch (exception) {
-    alert('<p>Error ' + exception);
+  alert('<p>Error ' + exception);
 }
 
 function shutdown() {
-    standalone_socket.send("shutdown");
-    console.log(" ==> shutdown");
+  standalone_socket.send("shutdown");
+  standalone_socket.close();
+  reset_ui();
+  popup("Shutdown;Shutdown complete");
 }
 
-function do_general_msgs(msg) {
+function popup(msg) {
+  var modal = document.getElementById("popup");
+  var content = [ document.getElementById("modal-title"), document.getElementById("field1"), document.getElementById("field2") ];
+  var x;
 
+  if (msg.length) {
+    var fields = msg.split(';');
+
+    for (x = 0; x < fields.length; x++) {
+      if (fields[x].length) {
+        content[x].textContent = fields[x];
+      }
+    }
+
+    modal.style.display = "block";
+  } else {
+    modal.style.display = "none";
+  }
+}
+
+function reset_ui() {
+  var table;
+  var len;
+  var j;
+
+  /* hide popup */
+  document.getElementById("popup").style.display = "none";
+
+  /* server tab */
+  document.getElementById("n_conn").textContent = "0";
+  table = document.getElementById("connections");
+  len = table.rows.length;
+
+  for (j = 1; j < len; j++) {
+    table.rows[j].id = '';
+    table.rows[j].onclick = '';
+    table.rows[j].cells[0].innerHTML = '&nbsp;';
+    table.rows[j].cells[1].innerHTML = "";
+  }
+
+  /* multi-player tab */
+  document.getElementById("fps_rel").textContent = "0.0";
+  document.getElementById("mission_name").textContent = "";
+  document.getElementById("mission_time").textContent = "";
+
+  document.getElementById("max_players").textContent = "";
+  document.getElementById("max_observers").textContent = "";
+  document.getElementById("security").textContent = "";
+  document.getElementById("respawns").textContent = "";
+
+  table = document.getElementById("mgoals");
+  len = table.rows.length;
+
+  for (j = 1; j < len; j++) {
+    var cell = table.rows[j].cells[0];
+
+    if (cell.childNodes.length > 1) {
+      cell.removeChild(cell.childNodes[1]);
+    }
+  }
+
+  /* player info tab */
+  document.getElementById("players").selectedIndex = -1;
+  document.getElementById("ship_type").textContent = "";
+  document.getElementById("player_ping").textContent = "";
+
+  table = document.getElementById("stats");
+  len = table.rows.length;
+
+  for (j = 1; j < len; j++) {
+    table.rows[j].cells[1].innerHTML = "";
+    table.rows[j].cells[2].innerHTML = "";
+  }
+
+  /* gs tab */
+  document.getElementById("gs_players").selectedIndex = -1;
+  document.getElementById("smsg_box").value = "";
 }
 
 function do_server_tab(msg) {
-    if (msg.substring(0, 5) == "name ") {
-        document.getElementById("server_name").value = msg.substr(5);
-    } else if (msg.substring(0, 5) == "pass ") {
-        document.getElementById("host_pass").value = msg.substr(5);
-    } else if (msg.substring(0, 5) == "ping ") {
-        var conn_table = document.getElementById("connections");
-        var ping_list = msg.substr(5).split(';');
-        var j = 0;
+  var table;
+  var row;
+  var j;
+  var len;
 
-        while (j < ping_list.length - 1 && j < 12) {
-            var ping = ping_list[j].split(',')
-            var row = conn_table.rows.namedItem(ping[0]);
+  if (msg.substring(0, 5) == "name ") {
+    document.getElementById("server_name").value = msg.substr(5);
+  } else if (msg.substring(0, 5) == "pass ") {
+    document.getElementById("host_pass").value = msg.substr(5);
+  } else if (msg.substring(0, 5) == "ping ") {
+    table = document.getElementById("connections");
+    var ping_list = msg.substr(5).split(';', 12);
+    len = ping_list.length;
 
-            if (Boolean(row)) {
-                row.cells[1].innerHTML = ping[1];
-            }
+    for (j = 0; j < len; j++) {
+      var ping = ping_list[j].split(',');
+      row = table.rows.namedItem(ping[0]);
 
-            j++;
-        }
-    } else if (msg.substring(0, 5) == "conn ") {
-        var conn_table = document.getElementById("connections");
-        var players = document.getElementById("players");
-        var gs_players = document.getElementById("gs_players");
-        var connections = msg.substr(5).split(';');
-        var j = 0;
-
-        while (j < connections.length - 1 && j < 12) {
-            var conn = connections[j].split(',');
-
-            var option = document.createElement("option");
-            option.text = conn[0];
-            gs_players.add(option);
-
-            option = document.createElement("option");
-            option.text = conn[0];
-            players.add(option);
-
-            conn_table.rows[j+1].id = conn[1];
-            conn_table.rows[j+1].cells[0].innerHTML = conn[1];
-
-            if (Boolean(conn[2])) {
-                conn_table.rows[j+1].cells[1].innerHTML = conn[2];
-            }
-
-            j++;
-        }
-
-        document.getElementById("n_conn").textContent = j;
+      if (Boolean(row)) {
+          row.cells[1].innerHTML = ping[1];
+      }
     }
-/*
-        var ip = msg.substr(5).split(';');
-        var j = 0;
-        var addr;
+  } else if (msg.substring(0, 5) == "conn ") {
+    table = document.getElementById("connections");
+    var players = document.getElementById("players");
+    var cur_player;
+    var gs_players = document.getElementById("gs_players");
+    var connections = msg.substr(5).split(';', 12);
+    len = connections.length - 1;
 
-        while (j < ip.length - 1 && j < 12) {
-            addr = apair[j].split(',');
+    if (players.selectedIndex != -1) {
+      cur_player = players.value;
+    }
+
+    while (players.options.length) {
+      players.remove(0);
+      gs_players.remove(0);
+    }
+
+    for (j = 0; j < len; j++) {
+      var conn = connections[j].split(',');
+      row = table.rows[j+1];
+
+      var option = document.createElement("option");
+      option.text = conn[0];
+      gs_players.add(option);
+
+      option = document.createElement("option");
+      option.text = conn[0];
+      players.add(option);
+
+      row.id = conn[1];
+      row.cells[0].innerHTML = conn[1];
+
+      if (Boolean(conn[2])) {
+        row.cells[1].innerHTML = conn[2];
+      }
+
+      row.onclick = function() { kick_conn(conn[0], conn[1]); };
+    }
+
+    gs_players.selectedIndex = -1;
+    players.value = cur_player;
+    document.getElementById("n_conn").textContent = j;
+
+    len = table.rows.length;
+
+    for (j = j+1; j < len; j++) {
+      row = table.rows[j];
+
+      row.id = '';
+      row.onclick = '';
+      row.cells[0].innerHTML = "&nbsp;"
+      row.cells[1].innetHTML = "";
+    }
+  }
+}
+
+function do_multi_tab(msg) {
+  if (msg.substring(0, 4) == "fps ") {
+    document.getElementById("fps_rel").textContent = msg.substr(4);
+  } else if (msg.substring(0, 5) == "name ") {
+    document.getElementById("mission_name").textContent = msg.substr(5);
+  } else if (msg.substring(0, 5) == "time ") {
+    document.getElementById("mission_time").textContent = msg.substr(5);
+  } else if (msg.substring(0, 5) == "info ") {
+    var nginfo = msg.substr(5).split(',');
+    document.getElementById("max_players").textContent = nginfo[0];
+    document.getElementById("max_observers").textContent = nginfo[1];
+    document.getElementById("security").textContent = nginfo[2];
+    document.getElementById("respawns").textContent = nginfo[3];
+  } else if (msg.substring(0, 5) == "goal ") {
+    var objectives = msg.substr(5).split(';');
+    var gtable = document.getElementById("mgoals");
+    var j;
+    var j_len;
+    var x;
+    var x_len;
+
+    j_len = objectives.length;
+
+    for (j = 0; j < j_len; j++) {
+      var goals = objectives[j].split(',');
+      var cell = gtable.rows[j+1].cells[0];
+
+      if (cell.childNodes.length > 1) {
+        cell.removeChild(cell.childNodes[1]);
+      }
+
+      var list = document.createElement("ul");
  
-            table.rows[j+1].cells[0].innerHTML = addr[0];
-            table.rows[j+1].cells[1].innerHTML = addr[1];
+      x_len = goals.length;
 
-            j++;
+      for (x = 0; x < x_len; x++) {
+        var item = document.createElement("li");
+        item.innerHTML = goals[x].substr(2);
+
+        var status = goals[x].substring(0, 2);
+        if (status == "c ") {
+          item.style.color = "green";
+        } else if (status == "f ") {
+          item.style.color = "red";
+        } else {
+          item.style.color = "#555";
         }
 
-        document.getElementById("n_conn").textContent = j;
+        list.appendChild(item);
+      }
 
-        while (j < table.rows.length - 1) {
-            table.rows[j+1].cells[0].innerHTML = "&nbsp;";
-            table.rows[j+1].cells[1].innerHTML = "";
- 
-            j++;
-        }
-*/
+      cell.appendChild(list);
+    }
+  }
 }
 
 function do_player_tab(msg) {
-    if (msg.substring(0, 5) == "info ") {
-        var pinfo = msg.substr(5).split(';');
+  if (msg.substring(0, 5) == "info ") {
+    var pinfo = msg.substr(5).split(';');
 
-        document.getElementById("ship_type").textContent = pinfo[0];
-        document.getElementById("player_ping").textContent = pinfo[1];
+    document.getElementById("ship_type").textContent = pinfo[0];
+    document.getElementById("player_ping").textContent = pinfo[1];
 
-        var all_stats = pinfo[2].split(',');
-        var mission_stats = pinfo[3].split(',');
-        var table = document.getElementById("stats");
-        var j = 0;
+    var all_stats = pinfo[2].split(',');
+    var mission_stats = pinfo[3].split(',');
+    var table = document.getElementById("stats");
+    var j;
+    var len = table.rows.length;
 
-        while (j < table.length - 1) {
-            var row = table.rows[j+1];
+    for (j = 1; j < len; j++) {
+      var row = table.rows[j];
 
-            row.cells[1] = all_stats[j];
-            row.cells[2] = mission_stats[j];
-
-            j++;
-        }
+      row.cells[1].innerHTML = all_stats[j-1];
+      row.cells[2].innerHTML = mission_stats[j-1];
     }
+  }
 }
 
 function do_gs_tab(msg) {
-    if (msg.substring(0, 5) == "mesg ") {
-        var smsg_box = document.getElementById("smsg_box");
-
-        smsg_box.value += msg.substr(5);
-    }
-}
-
-function testing() {
-    standalone_socket.send("T:");
-    console.log(" ==> test!");
+  if (msg.substring(0, 5) == "mesg ") {
+    document.getElementById("smsg_box").value += msg.substr(5);
+  }
 }
 
 function change_server_name() {
-    standalone_socket.send("S:name " + document.getElementById("server_name").value);
-    console.log(" ==> S:name " + document.getElementById("server_name").value);
+  standalone_socket.send("S:name " + document.getElementById("server_name").value);
 }
 
 function change_host_pass() {
-    standalone_socket.send("S:pass " + document.getElementById("host_pass").value);
-    console.log(" ==> S:pass " + document.getElementById("host_pass").value);
+  standalone_socket.send("S:pass " + document.getElementById("host_pass").value);
+}
+
+function kick_conn(name, addr) {
+  var kick = confirm("Kick player? \n\n" + name + "@" + addr);
+
+  if (kick) {
+    standalone_socket.send("S:kick " + addr);
+  }
 }
 
 function send_server_message() {
-    var smsg = document.getElementById("server_message");
-    standalone_socket.send("G:smsg " + smsg.value);
-    console.log(" ==> G:smsg " + smsg.value);
-    smsg.value = "";
+  var smsg = document.getElementById("server_message");
+  standalone_socket.send("G:smsg " + smsg.value);
+  smsg.value = "";
 }
 
 function refresh_missions() {
-    standalone_socket.send("G:mrefresh");
+  standalone_socket.send("G:mrefresh");
 }
 
 function switch_tab(tab) {
-    var server_tab = document.getElementById("server_tab");
-    var multi_tab = document.getElementById("multi_tab");
-    var pilot_tab = document.getElementById("pilot_tab");
-    var godstuff_tab = document.getElementById("godstuff_tab");
+  var tabbox = document.getElementById("tab-box");
+  var topnav = document.getElementById("topnav");
+  var x;
 
-    if (tab == 0) {
-        multi_tab.style.display = 'none';
-        pilot_tab.style.display = 'none';
-        godstuff_tab.style.display = 'none';
-
-        server_tab.style.display = 'inline';
-    } else if (tab == 1) {
-        server_tab.style.display = 'none';
-        pilot_tab.style.display = 'none';
-        godstuff_tab.style.display = 'none';
-
-        multi_tab.style.display = 'inline';
-    } else if (tab == 2) {
-        server_tab.style.display = 'none';
-        multi_tab.style.display = 'none';
-        godstuff_tab.style.display = 'none';
-
-        pilot_tab.style.display = 'inline';
-    } else if (tab == 3) {
-        server_tab.style.display = 'none';
-        multi_tab.style.display = 'none';
-        pilot_tab.style.display = 'none';
-
-        godstuff_tab.style.display = 'inline';
+  for (x = 0; x < 4; x++) {
+    if (tab == x) {
+      topnav.children[x].children[0].className = "active";
+      tabbox.children[x].className = "tab-visible";
+    } else {
+      topnav.children[x].children[0].className = '';
+      tabbox.children[x].className = "tab-hidden";
     }
+  }
 }
 
 function smsg_submit(e) {
-    e = e || window.event;
+  e = e || window.event;
 
-    if (e.keyCode == 13) {
-        document.getElementById("smsg_submit").click();
-        return false;
-    }
+  if (e.keyCode == 13) {
+    document.getElementById("smsg_submit").click();
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
 function get_player_info() {
-    var n = document.getElementById("players").selectedIndex;
+  var n = document.getElementById("players").selectedIndex;
 
-    if (n != -1) {
-        standalone_socket.send("P:info " + document.getElementById("players").options[n].text);
-    }
+  if (n != -1) {
+    standalone_socket.send("P:info " + document.getElementById("players").options[n].text);
+  }
+}
+
+function set_fps() {
+  var fps = document.getElementById("multi_fps").value;
+  document.getElementById("fps_cap").textContent = fps;
+
+  standalone_socket.send("M:fps " + fps);
 }
 </script>
 
 <style type="text/css">
 body {
-    font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif
 }
+
 .container {
-    display: inline-block;
+  width: 565px;
+  margin: 0 auto
 }
+
 .tab-box {
-    background-color: #ddd;
-    padding: 10px 25px;
+  background-color: #ddd;
+  padding: 10px 25px
 }
+
+.tab-hidden {
+  display: none
+}
+
+.tab-visible {
+  display: inline-block;
+  width: 100%
+}
+
 .button {
-    border: none;
-    border-radius: 2px;
-    background-color: #e7e7e7;
-    color: #000000;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #444;
+  color: #eee;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  cursor: pointer
 }
+
+.button:hover {
+  background-color: #111;
+  color: #fff
+}
+
 ul.topnav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #3a3a3a;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #3a3a3a
 }
+
 ul.topnav li {
-    float: left;
+  float: left
 }
-ul.topnav li a {
-    display: inline-block;
-    color: #f2f2f2;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    transition: 0.3s;
-    font-size: 17px;
-    cursor: pointer;
+
+ul.topnav a {
+  display: inline-block;
+  color: #e2e2e2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  transition: .3s;
+  font-size: 17px;
+  cursor: pointer;
+  outline: 0
 }
-ul.topnav li a:hover,a:active {
-    background-color: #111;
+
+a:hover,
+ul.topnav a.active {
+  background-color: #111;
+  color: #fff
 }
+
 ul.topnav li.shutdown {
-    float: right;
-    padding-left: 40px;
+  float: right;
+  padding-left: 40px
 }
+
 ul.topnav li.shutdown a {
-    background-color: darkred;
+  background-color: #8b0000
 }
+
 ul.topnav li.shutdown a:hover {
-    background-color: red;
-    color: #fff;
+  background-color: red;
+  color: #fff
 }
+
 .debug_state {
-    font-size: smaller;
-    color: #696969;
-    float: right;
-    padding: 2px 4px;
+  font-size: smaller;
+  color: #696969;
+  float: right;
+  padding: 2px 4px
 }
-.tab-box input#server_name,input#host_pass {
-    width: 20em;
-    border: none;
-    padding: 5px 10px;
+
+#server_name,
+#host_pass {
+  width: 20em;
+  border: none;
+  padding: 5px 10px
 }
-.tab-box table#connections,table#stats {
-    border: 1px solid #444;
-    border-spacing: 0px;
-    border-collapse: collapse;
-    width: 100%;
-    min-height: 13em;
+
+#connections,
+#stats {
+  border: 1px solid #444;
+  border-spacing: 0;
+  border-collapse: collapse;
+  width: 100%;
+  min-height: 13em
 }
-.tab-box table#connections th,table#stats th {
-    background-color: #444;
-    color: #fff;
-    padding: 5px 10px;
-    text-align: left;
-    font-size: small;
+
+#connections th,
+#stats th {
+  background-color: #444;
+  color: #fff;
+  padding: 5px 10px;
+  text-align: left;
+  font-size: small
 }
-.tab-box table#connections td,table#stats td {
-    padding: 5px 15px;
-    text-align: left;
-    font-family: Courier New, Courier, monospace;
-    font-size: small;
+
+#connections td,
+#stats td {
+  padding: 5px 15px;
+  text-align: left;
+  font-family: Courier New, Courier, monospace;
+  font-size: small
 }
-.tab-box table#connections tr:nth-child(odd),table#stats tr:nth-child(odd) {
-    background-color: #d5d5d5;
+
+#connections tr:nth-child(odd),
+#stats tr:nth-child(odd) {
+  background-color: #d5d5d5
 }
+
+#connections tr:hover,
+#connections tr:hover:nth-child(odd) {
+  background-color: #eaeaea
+}
+
 table.name_pass td {
-    padding: 5px 0px;
+  padding: 5px 0
 }
+
 table.name_pass label {
-    padding-right: 10px;
+  padding-right: 10px
 }
-input#server_message {
-    margin-top: 10px;
-    padding: 5px 10px;
-    border: none;
-    width: 100%;
-    box-sizing: border-box;
+
+#server_message {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box
 }
-.players,.players option {
-    min-width: 20em;
-    padding: 2px 8px;
-    margin-left: 10px;
+
+.players,
+.players option {
+  min-width: 20em;
+  padding: 2px 8px;
+  margin-left: 10px
 }
-#godstuff_tab textarea#smsg_box {
-    width: 100%;
-    box-sizing: border-box;
-    resize: none;
-    background-color: #fff;
-    border: 1px solid #bbb;
-    border-radius: 2px;
+
+#smsg_box {
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  background-color: #fff;
+  border: 1px solid #bbb;
+  border-radius: 2px
 }
-.pinfo {
-    font-family: Courier New, Courier, monospace;
-    font-size: small;
+
+table.minfo,
+table.pinfo {
+  margin-top: 30px;
+  margin-bottom: 30px;
+  border: none;
+  border-collapse: collapse
+}
+
+table.minfo td,
+table.pinfo td {
+  padding: 5px 0
+}
+
+table.minfo span,
+table.pinfo span {
+  font-family: Courier New, Courier, monospace;
+  font-size: small;
+  padding: 5px 10px;
+  min-width: 12em;
+  margin-left: 10px
+}
+
+.player_sel {
+  margin-top: 10px
+}
+
+.fps_block {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 20px
+}
+
+#multi_fps {
+  width: 100%;
+  margin: 10px 0;
+  box-sizing: border-box
+}
+
+.fps_cap {
+  display: block;
+  float: left
+}
+
+.fps_rel {
+  display: block;
+  float: right
+}
+
+.fps_cap span,
+.fps_rel span {
+  font-family: Courier New, Courier, monospace;
+  padding: 5px 0 5px 10px
+}
+
+.mgoals,
+.nginfo {
+  border: none;
+  border-collapse: collapse;
+  display: inline-block
+}
+
+.nginfo {
+  float: right
+}
+
+.mgoals {
+  float: left;
+  min-width: 15em;
+  min-height: 17em;
+  background-color: #fff;
+  margin-bottom: 15px
+}
+
+.mgoals th,
+.nginfo th {
+  padding: 5px;
+  text-align: left
+}
+
+.nginfo th {
+  border-bottom: 1px solid #444
+}
+
+.mgoals th {
+  background-color: #ddd;
+  width: 15em
+}
+
+.mgoals td,
+.nginfo td {
+  padding: 5px 10px;
+  font-size: small
+}
+
+.mgoals ul {
+  padding: 0 1.5em;
+  margin: 0
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: #000;
+  background-color: rgba(0, 0, 0, .4)
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 10em auto;
+  border: 2px solid #111;
+  width: 25em
+}
+
+.modal-title {
+  background-color: #444;
+  color: #fff;
+  padding: 10px;
+  font-weight: 700
+}
+
+.modal-body {
+  padding: 20px;
+  margin-top: 2em;
+  height: 4em
 }
 </style>
 </head>
@@ -350,97 +654,131 @@ input#server_message {
 <body>
 
 <div class="container">
+  <ul class="topnav" id="topnav">
+    <li><a onclick="switch_tab(0);" href="javascript:void(0);" class="active">Server</a></li>
+    <li><a onclick="switch_tab(1);" href="javascript:void(0);">Multi-Player</a></li>
+    <li><a onclick="switch_tab(2);" href="javascript:void(0);">Player Info</a></li>
+    <li><a onclick="switch_tab(3);" href="javascript:void(0);">God Stuff</a></li>
+    <li class="shutdown"><a onclick="shutdown();" href="javascript:void(0);">Shutdown</a></li>
+  </ul>
 
-<ul class="topnav">
-<li><a onclick="switch_tab(0);" href="javascript:void(0);">Server</a></li>
-<li><a onclick="switch_tab(1);" href="javascript:void(0);">Multi-Player</a></li>
-<li><a onclick="switch_tab(2);" href="javascript:void(0);">Player Info</a></li>
-<li><a onclick="switch_tab(3);" href="javascript:void(0);">God Stuff</a></li>
-<li class="shutdown"><a onclick="shutdown();" href="javascript:void(0);">Shutdown</a></li>
-<!--
-<input type="button" value="Shutdown" onclick="shutdown();"></li>
--->
-</ul>
+  <div class="tab-box" id="tab-box">
+    <div id="server_tab" class="tab-visible">
+      <table class="name_pass">
+        <tr><td><label for="server_name">Server Name </label></td><td><input id="server_name" type="text" value="" maxlength="31" onchange="change_server_name();"></td></tr>
+        <tr><td><label for="host_pass">Host Password </label></td><td><input id="host_pass" type="text" value="" maxlength="15" onchange="change_host_pass();"></td></tr>
+      </table>
+      <hr>
+      <p>Connections : <span id="n_conn">0</span></p>
+      <p>
+        <table id="connections">
+          <tr><th style="min-width:20em;">IP Address</th><th style="min-width:5em;">Ping</th></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+        </table>
+      </p>
+    </div>
 
-<div class="tab-box">
+    <div id="multi_tab" class="tab-hidden">
+      <div class="fps_block">
+        <input type="range" id="multi_fps" min="15" max="60" value="30" step="1" oninput="set_fps();">
+        <div class="fps_cap">
+          Frame Cap: <span id="fps_cap">30</span>
+        </div>
+        <div class="fps_rel">
+          Realiazed FPS: <span id="fps_rel">0.0</span>
+        </div>
+      </div>
+      <hr>
+      <table class="minfo">
+        <tr><td>Mission Name: </td><td><span id="mission_name"></span></td></tr>
+        <tr><td>Mission Time: </td><td><span id="mission_time"></span></td></tr>
+      </table>
+      <table class="mgoals" id="mgoals">
+        <tr><th>Mission Goals</th></tr>
+        <tr><td>Primary Objectives</td></tr>
+        <tr><td>Secondary Objectives</td></tr>
+        <tr><td>Bonus Objectives</td></tr>
+      </table>
+      <table class="nginfo">
+        <tr><th colspan="2">Netgame Information</th></tr>
+        <tr><td>Max Players</td><td><span id="max_players"></span></td></tr>
+        <tr><td>Max Observers</td><td><span id="max_observers"></span></td></tr>
+        <tr><td>Security</td><td><span id="security"></span></td></tr>
+        <tr><td>Respawns</td><td><span id="respawns"></span></td></tr>
+      </table>
+    </div>
 
-<div id="server_tab" style="display:inline;">
-<table class="name_pass">
-<tr><td><label for="server_name">Server Name </label></td><td><input id="server_name" type="text" value="" maxlength="32" onchange="change_server_name();"></td></tr>
-<tr><td><label for="host_pass">Host Password </label></td><td><input id="host_pass" type="text" value="" maxlength="16" onchange="change_host_pass();"></td></tr>
-</table>
-<hr>
-<p>Connections : <span id="n_conn">0</span></p>
-<p>
-  <table id="connections">
-    <tr><th style="min-width:20em;">IP Address</th><th style="min-width:5em;">Ping</th></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td></tr>
-  </table>
-</p>
+    <div id="pilot_tab" class="tab-hidden">
+      <div class="player_sel">
+        <label for="players">Player</label>
+        <select id="players" class="players" onchange="get_player_info();">
+        </select>
+      </div>
+      <table class="pinfo">
+        <tr><td>Ship Type: </td><td><span id="ship_type"></span></td></tr>
+        <tr><td>Avg Ping: </td><td><span id="player_ping"></span></td></tr>
+      </table>
+      <p>
+        <table id="stats">
+          <tr><th>Stats</th><th>All Time</th><th>Mission</th></tr>
+          <tr><td>Primary Shots</td><td></td><td></td></tr>
+          <tr><td>Primary Hits</td><td></td><td></td></tr>
+          <tr><td>Primary BH Hits</td><td></td><td></td></tr>
+          <tr><td>Primary Hit %</td><td></td><td></td></tr>
+          <tr><td>Primary BH Hit %</td><td></td><td></td></tr>
+          <tr><td>Secondary Shots</td><td></td><td></td></tr>
+          <tr><td>Secondary Hits</td><td></td><td></td></tr>
+          <tr><td>Secondary BH Hits</td><td></td><td></td></tr>
+          <tr><td>Secondary Hit %</td><td></td><td></td></tr>
+          <tr><td>Secondary BH Hit %</td><td></td><td></td></tr>
+          <tr><td>Assists</td><td></td><td></td></tr>
+        </table>
+      </p>
+    </div>
+
+    <div id="godstuff_tab" class="tab-hidden">
+      <div class="player_sel">
+        <label for="gs_players">Player</label>
+        <select id="gs_players" class="players">
+        </select>
+      </div>
+      <div style="margin-top: 30px;">
+          <p>
+          <label for="server_message">Server Message</label>
+          <br>
+          <input id="server_message" type="text" value="" onkeypress="return smsg_submit(event);">
+          <input id="smsg_submit" type="button" onclick="send_server_message();" style="display:none;">
+        </p>
+        <textarea readonly rows="20" id="smsg_box" autocomplete="off"></textarea>
+      </div>
+      <p>
+        <input class="button" type="button" value="Refresh Missions" onclick="refresh_missions();">
+      </p>
+    </div>
+  </div>
+
+  <div id="debug" class="debug_state"></div>
 </div>
 
-<div id="multi_tab" style="display:none;">
-Multi-Player Tab
+<div id="popup" class="modal">
+  <div class="modal-content">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body">
+      <span id="field1"></span>&nbsp;<span id="field2"></span>
+    </div>
+  </div>
 </div>
 
-<div id="pilot_tab" style="display:none;">
-<label for="players">Player</label>
-<select id="players" class="players" onchange="get_player_info();">
-</select>
-<p>Ship Type <span id="ship_type" class="pinfo"></span></p>
-<p>Avg Ping <span id="player_ping" class="pinfo"></span></p>
-<p>
-    <table id="stats">
-        <tr><th>Stats</th><th>All Time</th><th>Mission</th></tr>
-        <tr><td>Primary Shots</td><td></td><td></td></tr>
-        <tr><td>Primary Hits</td><td></td><td></td></tr>
-        <tr><td>Primary BH Hits</td><td></td><td></td></tr>
-        <tr><td>Primary Hit %</td><td></td><td></td></tr>
-        <tr><td>Primary BH Hit %</td><td></td><td></td></tr>
-        <tr><td>Secondary Shots</td><td></td><td></td></tr>
-        <tr><td>Secondary Hits</td><td></td><td></td></tr>
-        <tr><td>Secondary BH Hits</td><td></td><td></td></tr>
-        <tr><td>Secondary Hit %</td><td></td><td></td></tr>
-        <tr><td>Secondary BH Hit %</td><td></td><td></td></tr>
-        <tr><td>Assists</td><td></td><td></td></tr>
-    </table>
-</p>
-</div>
-
-<div id="godstuff_tab" style="display:none;">
-<label for="gs_players">Player</label>
-<select id="gs_players" class="players">
-</select>
-<p>
-<input class="button" type="button" value="Refresh Missions" onclick="refresh_missions();">
-</p>
-<p>
-<label for="server_message">Server Message</label>
-<br>
-<input id="server_message" type="text" value="" onkeypress="return smsg_submit(event);">
-<input id="smsg_submit" type="button" onclick="send_server_message();" style="display:none;">
-</p>
-<p>
-<textarea readonly rows="20" id="smsg_box"></textarea>
-</p>
-</div>
-
-</div>
-
-<div id="debug" class="debug_state"></div>
-
-</div>
-<input type="button" value="Test" onclick="testing();">
 </body>
 </html>

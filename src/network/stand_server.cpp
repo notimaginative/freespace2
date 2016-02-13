@@ -15,7 +15,7 @@
 #include "timer.h"
 #include "version.h"
 #include "multi.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multi_pmsg.h"
 #include "multi_endgame.h"
 #include "multimsgs.h"

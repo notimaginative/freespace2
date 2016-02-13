@@ -213,7 +213,7 @@
 #include "math.h"
 #include "mouse.h"
 #include "stats.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multi_xfer.h"
 #include "multiui.h"
 #include "key.h"

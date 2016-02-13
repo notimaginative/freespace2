@@ -182,7 +182,7 @@
 #include "multi_xfer.h"
 #include "multi_campaign.h"
 #include "multi_endgame.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "missiongoals.h"
 
 // ------------------------------------------------------------------------------------

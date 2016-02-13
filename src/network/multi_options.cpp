@@ -206,7 +206,7 @@
 #include "multi.h"
 #include "multimsgs.h"
 #include "freespace.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multiutil.h"
 #include "multi_voice.h"
 #include "multi_options.h"

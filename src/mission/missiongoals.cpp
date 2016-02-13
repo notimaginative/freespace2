@@ -356,7 +356,7 @@
 #include "eventmusic.h"
 #include "multi.h"
 #include "multimsgs.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "ui.h"
 #include "bmpman.h"
 #include "sound.h"

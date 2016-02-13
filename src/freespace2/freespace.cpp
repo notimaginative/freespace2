@@ -644,7 +644,7 @@
 #include "stats.h"
 #include "cmdline.h"
 #include "timer.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "pcxutils.h"
 #include "hudtargetbox.h"
 #include "multi_xfer.h"

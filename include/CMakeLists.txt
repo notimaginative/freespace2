@@ -208,7 +208,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/snazzyui.h
   ${CMAKE_CURRENT_SOURCE_DIR}/sound.h
   ${CMAKE_CURRENT_SOURCE_DIR}/spline.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/stand_gui.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/stand_server.h
   ${CMAKE_CURRENT_SOURCE_DIR}/starfield.h
   ${CMAKE_CURRENT_SOURCE_DIR}/staticrand.h
   ${CMAKE_CURRENT_SOURCE_DIR}/stats.h

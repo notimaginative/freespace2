@@ -272,7 +272,7 @@
 #include "multiui.h"
 #include "multimsgs.h"
 #include "multi_log.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multi_pmsg.h"
 
 // -----------------------------------------------------------------------------------

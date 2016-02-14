@@ -170,6 +170,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_RESET;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			// general messages
@@ -184,6 +188,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_TITLE;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_DEBUG_STATE) {
@@ -197,6 +205,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_DEBUG_STATE;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_POPUP) {
@@ -214,6 +226,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_POPUP;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			// server tab
@@ -228,6 +244,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_SERVER_NAME;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_HOST_PASS) {
@@ -241,6 +261,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_HOST_PASS;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_CONN) {
@@ -284,6 +308,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_CONN;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if ( (Standalone_update_flags & STD_UFLAG_SET_PING) && !Standalone_ping_str.empty() ) {
@@ -300,6 +328,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 				Standalone_ping_str.clear();
 				Standalone_update_flags &= ~ STD_UFLAG_SET_PING;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			// multi-player tab
@@ -314,6 +346,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_MISSION_NAME;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_MISSION_TIME) {
@@ -327,6 +363,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_MISSION_TIME;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_NETGAME_INFO) {
@@ -340,6 +380,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_NETGAME_INFO;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if (Standalone_update_flags & STD_UFLAG_FPS) {
@@ -353,6 +397,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 				}
 
 				Standalone_update_flags &= ~STD_UFLAG_FPS;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			if ( (Standalone_update_flags & STD_UFLAG_MISSION_GOALS) && !Standalone_mission_goals.empty() ) {
@@ -367,6 +415,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 				Standalone_mission_goals.clear();
 				Standalone_update_flags &= ~STD_UFLAG_MISSION_GOALS;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			// player tab
@@ -382,6 +434,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 				Standalone_player_info.clear();
 				Standalone_update_flags &= ~STD_UFLAG_PLAYER_INFO;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			// god stuff tab
@@ -397,6 +453,10 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 				Standalone_message.clear();
 				Standalone_update_flags &= ~STD_UFLAG_S_MESSAGE;
+
+				lws_callback_on_writable(wsi);
+
+				break;
 			}
 
 			break;

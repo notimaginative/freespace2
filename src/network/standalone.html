@@ -11,8 +11,8 @@ try {
   standalone_socket.onmessage = function got_packet(msg) {
     if (msg.data == "reset") {
       reset_ui();
-    } else if (msg.data == "popup ") {
-      popup(msg.data.substr(7));
+    } else if (msg.data.substring(0, 6) == "popup ") {
+      popup(msg.data.substr(6));
     } else if (msg.data[0] == 'D') {
       document.getElementById("debug").textContent = msg.data.substr(2);
     } else if (msg.data[0] == 'T') {
@@ -35,7 +35,7 @@ function shutdown() {
   standalone_socket.send("shutdown");
   standalone_socket.close();
   reset_ui();
-  popup("Shutdown;Shutdown complete");
+  popup("Shutdown;Shutdown complete;");
 }
 
 function popup(msg) {
@@ -47,9 +47,7 @@ function popup(msg) {
     var fields = msg.split(';');
 
     for (x = 0; x < fields.length; x++) {
-      if (fields[x].length) {
-        content[x].textContent = fields[x];
-      }
+      content[x].textContent = fields[x];
     }
 
     modal.style.display = "block";

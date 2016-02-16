@@ -1294,17 +1294,14 @@ int multi_fs_tracker_validate_mission_std()
 	switch(ret_val){
 	// timeout
 	case -2:
-		std_destroy_gen_dialog();
 		return MVALID_STATUS_UNKNOWN;
 
 	// invalid
 	case -1:
-		std_destroy_gen_dialog();
 		return MVALID_STATUS_INVALID;
 
 	// valid, success
 	case 1:
-		std_destroy_gen_dialog();
 		return MVALID_STATUS_VALID;
 	}
 

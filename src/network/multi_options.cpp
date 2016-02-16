@@ -211,6 +211,8 @@
 #include "multi_voice.h"
 #include "multi_options.h"
 #include "multi_team.h"
+#include "multi_fstracker.h"
+
 
 // ----------------------------------------------------------------------------------
 // MULTI OPTIONS DEFINES/VARS
@@ -303,9 +305,10 @@ void multi_options_read_config()
 		if(Is_standalone){
 			if(SETTING("+pxo")){			
 				// setup PXO mode
+				Multi_options_g.pxo = 1;
 				NEXT_TOKEN();
 				if(tok != NULL){
-					// whee!
+					SDL_strlcpy(Multi_fs_tracker_channel, tok, SDL_arraysize(Multi_fs_tracker_channel));
 				}
 			} else 
 			if(SETTING("+name")){

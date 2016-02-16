@@ -1739,6 +1739,9 @@ void standalone_main_init()
 	game_flush();
 	ship_init();
 
+	// login to game tracker
+	std_tracker_login();
+
 	std_debug_set_standalone_state_string("Main Do");
 	std_set_standalone_fps((float)0);
 	std_multi_set_standalone_missiontime((float)0);

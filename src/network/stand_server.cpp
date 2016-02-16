@@ -24,6 +24,7 @@
 #include "missiongoals.h"
 #include "cmdline.h"
 #include "multi_kick.h"
+#include "multi_fstracker.h"
 
 #include <libwebsockets.h>
 #include <string>
@@ -1131,6 +1132,31 @@ void std_gen_set_text(const char *str, int field_num)
 	}
 
 	Standalone_update_flags |= STD_UFLAG_POPUP;
+
+	// force ws write since do_frame() may not happen until popup is done
+	lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);
+	lws_service(stand_context, 0);
+}
+
+void std_tracker_notify_login_fail()
+{
+
+}
+
+void std_tracker_login()
+{
+	if ( !Multi_options_g.pxo ) {
+		return;
+	}
+
+	multi_fs_tracker_init();
+
+	if ( !multi_fs_tracker_inited() ) {
+		std_tracker_notify_login_fail();
+		return;
+	}
+
+	multi_fs_tracker_login_freespace();
 }
 
 void std_connect_set_host_connect_status()

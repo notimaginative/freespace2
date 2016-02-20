@@ -660,7 +660,14 @@ void UI_INPUTBOX::get_text(char *out)
 void UI_INPUTBOX::set_text(const char *in)
 {
 	int in_length;
-	
+
+	if (in == NULL) {
+		SDL_strlcpy(text, "", length+1);
+		position = 0;
+
+		return;
+	}
+
 	in_length = strlen(in);
 	if (in_length > length)
 		SDL_assert(0);	// tried to force text into an input box that won't fit into allocated memory

@@ -720,10 +720,8 @@ void chatbox_autosplit_line()
   		send_game_chat_packet(Net_player, msg, MULTI_MSG_ALL,NULL);
 		chatbox_add_line(msg, MY_NET_PLAYER_NUM);
 
-		if ( remainder ) {
-			// display any remainder of text on the next line
-			Chat_inputbox.set_text(remainder);
-		}
+		// display any remainder of text on the next line
+		Chat_inputbox.set_text(remainder);
 	} else if((Chat_inputbox.pressed() && (strlen(msg) > 0)) || (strlen(msg) >= CHATBOX_MAX_LEN)) { 
 		// tack on the null terminator in the boundary case
 		int x = strlen(msg);
@@ -733,7 +731,10 @@ void chatbox_autosplit_line()
 		// if I'm the server, then broadcast the packet		
 		chatbox_recall_add(msg);
   		send_game_chat_packet(Net_player, msg, MULTI_MSG_ALL,NULL);
-		chatbox_add_line(msg, MY_NET_PLAYER_NUM);	
+		chatbox_add_line(msg, MY_NET_PLAYER_NUM);
+
+		// display any remainder of text on the next line
+		Chat_inputbox.set_text(remainder);
 	}	
 }
 

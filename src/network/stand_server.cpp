@@ -25,6 +25,7 @@
 #include "cmdline.h"
 #include "multi_kick.h"
 #include "multi_fstracker.h"
+#include "osregistry.h"
 
 #include <libwebsockets.h>
 #include <string>
@@ -619,6 +620,22 @@ void std_init_standalone()
 	}
 
 	SDL_zero(info);
+
+	// basic security measure for admin interface
+	//   "1" bind to loopback iface only *default*
+	//   "0" bind to any/all
+	//   any other value should be ip or iface name to bind
+	//   (invalid values will trigger error)
+
+	const char *stand_iface = os_config_read_string("Network", "RestrictStandAdmin", "1");
+
+	if ( !SDL_strcmp(stand_iface, "1") ) {
+		info.iface = "127.0.0.1";
+	} else if ( !SDL_strcmp(stand_iface, "0") ) {
+		info.iface = NULL;
+	} else {
+		info.iface = stand_iface;
+	}
 
 	info.port = Multi_options_g.port;
 

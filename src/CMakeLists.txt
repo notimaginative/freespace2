@@ -306,6 +306,15 @@ set(launcher_SOURCE
 )
 
 #
+# standalone server GUI
+#
+
+set(standalone_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
+  PARENT_SCOPE
+)
+
+#
 # ##############################################################################
 
 # ##############################################################################

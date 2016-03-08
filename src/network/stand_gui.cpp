@@ -7,440 +7,1161 @@
  *
 */
 
-/*
- * $Logfile: /Freespace2/code/Network/stand_gui.cpp $
- * $Revision: 16 $
- * $Date: 8/16/99 4:06p $
- * $Author: Dave $
- *
- * $Log: /Freespace2/code/Network/stand_gui.cpp $
- *
- * 16    8/16/99 4:06p Dave
- * Big honking checkin.
- *
- * 15    8/11/99 5:54p Dave
- * Fixed collision problem. Fixed standalone ghost problem.
- *
- * 14    8/04/99 5:45p Dave
- * Upped default standalone server framerate to 60.
- *
- * 13    5/22/99 5:35p Dave
- * Debrief and chatbox screens. Fixed small hi-res HUD bug.
- *
- * 12    5/19/99 4:07p Dave
- * Moved versioning code into a nice isolated common place. Fixed up
- * updating code on the pxo screen. Fixed several stub problems.
- *
- * 11    4/25/99 7:43p Dave
- * Misc small bug fixes. Made sun draw properly.
- *
- * 10    2/24/99 2:25p Dave
- * Fixed up chatbox bugs. Made squad war reporting better. Fixed a respawn
- * bug for dogfight more.
- *
- * 9     2/18/99 11:46a Neilk
- * hires interface coord support
- *
- * 8     2/12/99 6:16p Dave
- * Pre-mission Squad War code is 95% done.
- *
- * 7     11/19/98 4:19p Dave
- * Put IPX sockets back in psnet. Consolidated all multiplayer config
- * files into one.
- *
- * 6     11/17/98 11:12a Dave
- * Removed player identification by address. Now assign explicit id #'s.
- *
- * 5     11/05/98 5:55p Dave
- * Big pass at reducing #includes
- *
- * 4     10/09/98 2:57p Dave
- * Starting splitting up OS stuff.
- *
- * 3     10/08/98 4:29p Dave
- * Removed reference to osdefs.h
- *
- * 2     10/07/98 10:53a Dave
- * Initial checkin.
- *
- * 1     10/07/98 10:50a Dave
- *
- * 63    9/17/98 11:56a Allender
- * allow use of return key in edit box
- *
- * 62    9/04/98 3:52p Dave
- * Put in validated mission updating and application during stats
- * updating.
- *
- * 61    7/24/98 9:27a Dave
- * Tidied up endgame sequencing by removing several old flags and
- * standardizing _all_ endgame stuff with a single function call.
- *
- * 60    7/10/98 5:04p Dave
- * Fix connection speed bug on standalone server.
- *
- * 59    6/18/98 4:46p Allender
- * removed test code that I previously forgot to remove
- *
- * 58    6/18/98 3:52p Allender
- * make close button actually close down property sheet
- *
- * 57    6/13/98 6:02p Hoffoss
- * Externalized all new (or forgot to be added) strings to all the code.
- *
- * 56    6/13/98 3:19p Hoffoss
- * NOX()ed out a bunch of strings that shouldn't be translated.
- *
- * 55    6/10/98 2:56p Dave
- * Substantial changes to reduce bandwidth and latency problems.
- *
- * 54    5/24/98 3:45a Dave
- * Minor object update fixes. Justify channel information on PXO. Add a
- * bunch of configuration stuff for the standalone.
- *
- * 53    5/22/98 9:35p Dave
- * Put in channel based support for PXO. Put in "shutdown" button for
- * standalone. UI tweaks for TvT
- *
- * 52    5/21/98 9:45p Dave
- * Lengthened tracker polling times. Put in initial support for PXO
- * servers with channel filters. Fixed several small UI bugs.
- *
- * 51    5/18/98 9:15p Dave
- * Put in network config file support.
- *
- * 50    5/15/98 5:16p Dave
- * Fix a standalone resetting bug.Tweaked PXO interface. Display captaincy
- * status for team vs. team. Put in asserts to check for invalid team vs.
- * team situations.
- *
- * 49    5/15/98 3:36p John
- * Fixed bug with new graphics window code and standalone server.  Made
- * hwndApp not be a global anymore.
- *
- * 48    5/10/98 7:06p Dave
- * Fix endgame sequencing ESC key. Changed how host options warning popups
- * are done. Fixed pause/message scrollback/options screen problems in mp.
- * Make sure observer HUD doesn't try to lock weapons.
- *
- * 47    5/09/98 7:16p Dave
- * Put in CD checking. Put in standalone host password. Made pilot into
- * popup scrollable.
- *
- * 46    5/08/98 7:09p Dave
- * Lots of UI tweaking.
- *
- * 45    5/08/98 5:05p Dave
- * Go to the join game screen when quitting multiplayer. Fixed mission
- * text chat bugs. Put mission type symbols on the create game list.
- * Started updating standalone gui controls.
- *
- * 44    5/04/98 1:44p Dave
- * Fixed up a standalone resetting problem. Fixed multiplayer stats
- * collection for clients. Make sure all multiplayer ui screens have the
- * correct palette at all times.
- *
- * 43    5/02/98 5:38p Dave
- * Put in new tracker API code. Put in ship information on mp team select
- * screen. Make standalone server name permanent. Fixed standalone server
- * text messages.
- *
- * 42    5/02/98 1:45a Dave
- * Make standalone goal tree not flicker.
- *
- * 41    5/01/98 10:57a Jim
- * from Dave:  fixed mission goal problems
- *
- * 40    4/29/98 12:11a Dave
- * Put in first rev of full API support for new master tracker.
- *
- * 39    4/28/98 5:11p Dave
- * Fixed multi_quit_game() client side sequencing problem. Turn off
- * afterburners when ending multiplayer mission. Begin integration of mt
- * API from Kevin Bentley.
- *
- * 38    4/25/98 2:02p Dave
- * Put in multiplayer context help screens. Reworked ingame join ship
- * select screen. Fixed places where network timestamps get hosed.
- *
- * 37    4/06/98 6:37p Dave
- * Put in max_observers netgame server option. Make sure host is always
- * defaulted to alpha 1 or zeta 1. Changed create game so that MAX_PLAYERS
- * can always join but need to be kicked before commit can happen. Put in
- * support for server ending a game and notifying clients of a special
- * condition.
- *
- * 36    3/31/98 5:18p John
- * Removed demo/save/restore.  Made NDEBUG defined compile.  Removed a
- * bunch of debug stuff out of player file.  Made model code be able to
- * unload models and malloc out only however many models are needed.
- *
- *
- * 35    3/24/98 5:00p Dave
- * Fixed several ui bugs. Put in pre and post voice stream playback sound
- * fx. Put in error specific popups for clients getting dropped from games
- * through actions other than their own.
- *
- * 34    3/19/98 5:05p Dave
- * Put in support for targeted multiplayer text and voice messaging (all,
- * friendly, hostile, individual).
- *
- * 33    3/17/98 5:29p Dave
- * Minor bug fixes in player select menu. Solidified mp joining process.
- * Made furball mode support ingame joiners and dropped players correctly.
- *
- * 32    3/15/98 4:17p Dave
- * Fixed oberver hud problems. Put in handy netplayer macros. Reduced size
- * of network orientation matrices.
- *
- * 31    3/03/98 5:12p Dave
- * 50% done with team vs. team interface issues. Added statskeeping to
- * secondary weapon blasts. Numerous multiplayer ui bug fixes.
- *
- * 30    2/12/98 4:41p Dave
- * Seperated multiplayer kick functionality into its own module. Ui
- * tweaking
- *
- * 29    2/05/98 10:24a Hoffoss
- * Changed "goal" text to "objective", which is the correct term nowadays.
- *
- * 28    1/31/98 4:32p Dave
- * Put in new support for VMT player validation, game logging in, and game
- * logging out. Need to finish stats transfer.
- *
- * 27    1/28/98 6:24p Dave
- * Made standalone use ~8 megs less memory. Fixed multiplayer submenu
- * sequencing problem.
- *
- * 26    1/24/98 3:39p Dave
- * Fixed numerous multiplayer bugs (last frame quit problem, weapon bank
- * changing, deny packets). Add several controls to standalone server.
- *
- * 25    1/20/98 2:23p Dave
- * Removed optimized build warnings. 99% done with ingame join fixes.
- *
- * 24    1/17/98 2:46a Dave
- * Reworked multiplayer join/accept process. Ingame join still needs to be
- * integrated.
- *
- * 23    1/16/98 2:34p Dave
- * Made pause screen work properly (multiplayer). Changed how chat packets
- * work.
- *
- * 22    1/13/98 5:37p Dave
- * Reworked a lot of standalone interface code. Put in single and
- * multiplayer popups for death sequence. Solidified multiplayer kick
- * code.
- *
- * 21    1/11/98 10:03p Allender
- * removed <winsock.h> from headers which included it.  Made psnet_socket
- * type which is defined just as SOCKET type is.
- *
- * 20    1/05/98 5:07p Dave
- * Fixed a chat packet bug. Fixed a few state save/restore bugs. Updated a
- * few things for multiplayer server transfer.
- *
- * 19    12/10/97 4:46p Dave
- * Added in more detailed support for multiplayer packet lag/loss. Fixed
- * some multiplayer stuff. Added some controls to the standalone.
- *
- * 18    12/03/97 11:50p Dave
- * Fixed a bunch of multiplayer bugs (standalone and non)
- *
- * 17    12/03/97 11:59a Dave
- * Dependant merge checkin
- *
- * 16    12/02/97 10:05p Dave
- * Began some large-scale multiplayer debugging work (mostly standalone)
- *
- * 15    11/15/97 2:37p Dave
- * More multiplayer campaign support.
- *
- * 14    10/29/97 5:18p Dave
- * More debugging of server transfer. Put in debrief/brief
- * transition for multiplayer (w/standalone)
- *
- * 13    10/25/97 7:23p Dave
- * Moved back to single set stats storing. Put in better respawning
- * locations system.
- *
- * 12    10/24/97 6:19p Dave
- * More standalone testing/fixing. Added reliable endgame sequencing.
- * Added reliable ingame joining. Added reliable stats transfer (endgame).
- * Added support for dropping players in debriefing. Removed a lot of old
- * unused code.
- *
- * 11    10/21/97 5:21p Dave
- * Fixed pregame mission load/file verify debacle. Added single vs.
- * multiplayer stats system.
- *
- * 10    10/14/97 5:38p Dave
- * Player respawns 99.9% done. Only need to check cases for server/host
- * getting killed.
- *
- * 9     10/03/97 4:57p Dave
- * Added functions for new text controls. Added some more reset controls.
- * Put in checks for all-players-gone.
- *
- * 8     9/17/97 9:09a Dave
- * Observer mode works, put in standalone controls. Fixed up some stuff for
- * ingame join broken by recent code checkins.
- *
- * 7     8/29/97 5:03p Dave
- * Added a ton of new gui controls/features.
- *
- * 6     8/26/97 5:03p Dave
- * Added bunch of informational controls. Standardized some functions for
- * external use. Put in godview mode (conditionaled out though).
- *
- * 5     8/23/97 11:31a Dave
- * Put in new gui calls. Added a bunch of display controls.
- *
- * 4     8/20/97 4:19p Dave
- * Moved some functions around. Added the standalone state text box.
- *
- * 3     8/18/97 11:46a Dave
- * Moved definition of STANDALONE_FRAME_CAP tp multi.h
- *
- * 2     8/11/97 4:52p Dave
- * Spliced out standalone GUI stuff from OsApi and WinMain.cpp to its own
- * module.
- *
- * 1     8/11/97 4:21p Dave
- *
- * $NoKeywords: $
- */
 
-
-#include "pstypes.h"
 #include "stand_gui.h"
+#include "osregistry.h"
+
+#include "wx/statline.h"
+#include "wx/filename.h"
+#include "wx/stdpaths.h"
+#include "wx/utils.h"
+#include "wx/msgdlg.h"
+#include "wx/process.h"
 
 
-void std_add_ban(const char *name)
+// taken from psnet.h and psnet2.h
+#ifdef MAKE_FS1
+	#define DEFAULT_GAME_PORT 4000
+#elif defined(FS2_DEMO)
+	#define DEFAULT_GAME_PORT 7802
+#else
+	#define DEFAULT_GAME_PORT 7808
+#endif
+
+
+
+IMPLEMENT_APP(StandaloneApp)
+
+bool StandaloneApp::OnInit()
 {
-	STUB_FUNCTION;
+	if ( !wxApp::OnInit() ) {
+		return false;
+	}
+
+	std_client = new Standalone(NULL);
+
+	try {
+		if ( !std_client->startFreeSpace() ) {
+			throw "Unable to start FreeSpace";
+		}
+
+		wxMilliSleep(500);
+
+		if ( !std_client->wsInitialize() ) {
+			throw "Unable to initialize WebSocket";
+		}
+	} catch (const char *err) {
+		wxMessageBox(err, "Error!");
+
+		return false;
+	}
+
+	std_client->Show(true);
+	SetTopWindow(std_client);
+
+	return true;
 }
 
-void std_add_chat_text(const char *text, int player_index, int add_id)
+void StandaloneApp::OnEventLoopEnter(wxEventLoopBase *loop)
 {
-	STUB_FUNCTION;
+	if ( loop->IsMain() ) {
+/*		try {
+			if ( !std_client->startFreeSpace() ) {
+				throw "Unable to start FreeSpace";
+			}
+
+			wxMilliSleep(500);
+
+			if ( !std_client->wsInitialize() ) {
+				throw "Unable to initialize WebSocket";
+			}
+		} catch (const char *err) {
+			wxMessageBox(err, "Error!");
+
+		//	return false;
+		}*/
+	}
 }
 
-void std_add_player(net_player *p)
+StandaloneTimer::StandaloneTimer(Standalone *stand)
 {
-	STUB_FUNCTION;
+	m_stand = stand;
 }
 
-int std_connect_set_connect_count()
+StandaloneTimer::~StandaloneTimer()
 {
-	STUB_FUNCTION;
-	
+}
+
+void StandaloneTimer::Notify()
+{
+	m_stand->wsDoFrame();
+}
+
+wxBEGIN_EVENT_TABLE(Standalone, wxDialog)
+	EVT_CLOSE(Standalone::OnClose)
+	EVT_BUTTON(ID_B_SHUTDOWN, Standalone::OnShutdown)
+wxEND_EVENT_TABLE()
+
+Standalone::Standalone( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+	fspid = 0;
+	fsport = DEFAULT_GAME_PORT;
+	stand_context = NULL;
+	wsi_standalone = NULL;
+	m_rate_limit = 0;
+
+	m_timer = new StandaloneTimer(this);
+	m_timer->Start(1000/30);
+
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer( wxVERTICAL );
+
+	wxNotebook* nbook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+
+	createTab_Server(nbook);
+	createTab_Multi(nbook);
+	createTab_Player(nbook);
+	createTab_GodStuff(nbook);
+	createTab_Debug(nbook);
+
+	bSizer1->Add( nbook, 1, wxEXPAND | wxALL, 5 );
+
+	wxButton* bshutdown = new wxButton( this, ID_B_SHUTDOWN, wxT("Shutdown"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer1->Add( bshutdown, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	this->SetSizer( bSizer1 );
+	bSizer1->Fit(this);
+	bSizer1->SetSizeHints(this);
+
+	this->Centre( wxBOTH );
+}
+
+Standalone::~Standalone()
+{
+	delete m_timer;
+}
+
+void Standalone::OnClose( wxCloseEvent& WXUNUSED(event) )
+{
+	Shutdown();
+}
+
+void Standalone::OnShutdown( wxCommandEvent& WXUNUSED(event) )
+{
+	Shutdown();
+}
+
+void Standalone::Shutdown()
+{
+	if (stand_context) {
+		std::string msg("shutdown");
+		wsSend(msg);
+
+		lws_service(stand_context, 50);
+
+		lws_context_destroy(stand_context);
+	}
+
+	if ( wxProcess::Exists(fspid) ) {
+		// wait a little bit, and if process still exists then kill it
+		wxSleep(1);
+
+		if ( wxProcess::Exists(fspid) ) {
+			wxProcess::Kill(fspid, wxSIGTERM);
+		}
+	}
+
+	Destroy();
+}
+
+void Standalone::createTab_Server(wxNotebook* parent)
+{
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer *panelSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxFlexGridSizer* fgSizer5 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer5->AddGrowableCol(1, 1);
+
+	wxStaticText* m_staticText6 = new wxStaticText( panel, wxID_ANY, wxT("Server Name"), wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer5->Add( m_staticText6, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_S_ServerName = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_S_ServerName->SetMaxLength( 31 );
+	fgSizer5->Add( m_S_ServerName, 0, wxALL|wxEXPAND, 5 );
+
+	wxStaticText* m_staticText7 = new wxStaticText( panel, wxID_ANY, wxT("Host Password"), wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer5->Add( m_staticText7, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_S_HostPass = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_S_HostPass->SetMaxLength( 16 );
+	fgSizer5->Add( m_S_HostPass, 0, wxALL|wxEXPAND, 5 );
+
+	bSizer->Add( fgSizer5, 0, wxEXPAND, 0 );
+
+	wxStaticLine* m_staticline1 = new wxStaticLine( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer->Add( m_staticline1, 0, wxEXPAND | wxALL, 5 );
+
+	wxFlexGridSizer* fgSizer7 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer7->SetFlexibleDirection( wxBOTH );
+	fgSizer7->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	wxStaticText* m_staticText9 = new wxStaticText( panel, wxID_ANY, wxT("# Connections :"), wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer7->Add( m_staticText9, 0, wxALL, 5 );
+
+	m_S_NumConn = new wxStaticText( panel, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, 0|wxSUNKEN_BORDER );
+	fgSizer7->Add( m_S_NumConn, 0, wxALL, 5 );
+
+	bSizer->Add( fgSizer7, 0, wxEXPAND, 5 );
+
+	wxStaticText* m_staticText8 = new wxStaticText( panel, wxID_ANY, wxT("Address and Ping"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer->Add( m_staticText8, 0, wxALL, 5 );
+
+	wxFlexGridSizer* fgSizer3 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer3->SetFlexibleDirection( wxBOTH );
+	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_S_Connections = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 300,300 ), wxTE_MULTILINE|wxTE_READONLY );
+	fgSizer3->Add( m_S_Connections, 0, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* bbSizer = new wxBoxSizer( wxVERTICAL );
+
+	m_S_btnKick = new wxButton( panel, ID_B_KICK, wxT("Kick"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	bbSizer->Add( m_S_btnKick, 1, wxALL, 5 );
+
+	m_S_btnMRefresh = new wxButton( panel, ID_B_MREFRESH, wxT(" Refresh\nMissions"), wxDefaultPosition, wxDefaultSize, 0 );
+	bbSizer->Add( m_S_btnMRefresh, 2, wxALL, 5 );
+
+	m_S_btnResetAll = new wxButton( panel, ID_B_RESET_ALL, wxT("Reset All"), wxDefaultPosition, wxDefaultSize, 0 );
+	bbSizer->Add( m_S_btnResetAll, 3, wxALL, 5 );
+
+	fgSizer3->Add( bbSizer, 1, wxEXPAND, 5 );
+
+	bSizer->Add( fgSizer3, 0, wxEXPAND, 5 );
+
+	panelSizer->Add( bSizer, 1, wxALL|wxEXPAND, 5 );
+
+	panel->SetSizer( panelSizer );
+	panelSizer->Fit( panel );
+	panelSizer->SetSizeHints( panel );
+
+	parent->AddPage( panel, wxT("Server"), true );
+}
+
+void Standalone::createTab_Multi(wxNotebook* parent)
+{
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer* panelSizer = new wxBoxSizer(wxVERTICAL);
+
+	wxBoxSizer* bSizer = new wxBoxSizer(wxVERTICAL);
+
+	m_M_sliderFPS = new wxSlider( panel, ID_FPS_SLIDER, 30, 15, 60, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	bSizer->Add( m_M_sliderFPS, 0, wxALL|wxEXPAND, 5 );
+
+	wxFlexGridSizer* fgSizer8;
+	fgSizer8 = new wxFlexGridSizer( 0, 5, 0, 0 );
+	fgSizer8->AddGrowableCol(2, 1);
+
+	wxStaticText* m_staticText71 = new wxStaticText( panel, wxID_ANY, wxT("Frame Cap : "), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText71->Wrap( -1 );
+	fgSizer8->Add( m_staticText71, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxPanel* fpsPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+	wxBoxSizer* fpsSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(60, -1), 0 );
+	m_M_FPS->Wrap( -1 );
+	fpsSizer->Add( m_M_FPS, 0, wxALL, 2 );
+	fpsPanel->SetSizer(fpsSizer);
+	fpsSizer->Fit(fpsPanel);
+	fgSizer8->Add(fpsPanel, 0, wxALL, 3);
+
+
+	fgSizer8->Add( 0, 0, 1, wxEXPAND );
+
+	wxStaticText* m_staticText81 = new wxStaticText( panel, wxID_ANY, wxT("Realized FPS : "), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText81->Wrap( -1 );
+	fgSizer8->Add( m_staticText81, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxPanel*fpscapPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+	wxBoxSizer* fpscapSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_M_FPSRel = new wxStaticText( fpscapPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(60, -1), 0 );
+	m_M_FPSRel->Wrap( -1 );
+	fpscapSizer->Add( m_M_FPSRel, 0, wxALL, 2 );
+	fpscapPanel->SetSizer(fpscapSizer);
+	fpscapSizer->Fit(fpscapPanel);
+	fgSizer8->Add(fpscapPanel, 0, wxALL, 3);
+
+
+	bSizer->Add( fgSizer8, 0, wxEXPAND, 5 );
+
+	wxStaticLine* m_staticline2 = new wxStaticLine( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer->Add( m_staticline2, 0, wxEXPAND | wxALL, 5 );
+
+
+	bSizer->Add( 0, 0, 0, wxALL, 20 );
+
+
+	wxFlexGridSizer* fgSizer9;
+	fgSizer9 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer9->SetFlexibleDirection( wxBOTH );
+	fgSizer9->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	wxStaticText* m_staticText91 = new wxStaticText( panel, wxID_ANY, wxT("Mission Name : "), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText91->Wrap( -1 );
+	fgSizer9->Add( m_staticText91, 0, wxALL, 5 );
+
+	wxPanel* mnPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+	wxBoxSizer* mnSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_M_MissionName = new wxStaticText( mnPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, -1), 0 );
+	m_M_MissionName->Wrap( -1 );
+	mnSizer->Add( m_M_MissionName, 0, wxALL, 2 );
+	mnPanel->SetSizer(mnSizer);
+	mnSizer->Fit(mnPanel);
+	fgSizer9->Add(mnPanel, 0, wxALL, 3);
+
+	wxStaticText* m_staticText101 = new wxStaticText( panel, wxID_ANY, wxT("Mission Time : "), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText101->Wrap( -1 );
+	fgSizer9->Add( m_staticText101, 0, wxALL, 5 );
+
+	wxPanel* mtPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+	wxBoxSizer* mtSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_M_MissionTime = new wxStaticText( mtPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, -1), 0 );
+	m_M_MissionTime->Wrap( -1 );
+	mtSizer->Add( m_M_MissionTime, 0, wxALL, 2 );
+	mtPanel->SetSizer(mtSizer);
+	mtSizer->Fit(mtPanel);
+	fgSizer9->Add(mtPanel, 0, wxALL, 3);
+
+
+	bSizer->Add( fgSizer9, 0, wxEXPAND, 5 );
+
+
+	bSizer->Add( 0, 0, 0, wxALL, 20 );
+
+	wxBoxSizer* bSizer3 = new wxBoxSizer(wxHORIZONTAL);
+
+	wxBoxSizer* bSizer4 = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticText* m_staticText11 = new wxStaticText( panel, wxID_ANY, wxT("Mission Goals"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText11->Wrap( -1 );
+	bSizer4->Add( m_staticText11, 0, wxALL, 5 );
+
+	m_M_Goals = new wxTreeCtrl( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxTR_HIDE_ROOT );
+	bSizer4->Add( m_M_Goals, 1, wxALL|wxEXPAND, 5 );
+
+	bSizer3->Add(bSizer4, 1, wxEXPAND);
+
+	wxBoxSizer* bSizer5 = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticText* m_staticText12 = new wxStaticText( panel, wxID_ANY, wxT("Netgame Information"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText12->Wrap( -1 );
+	bSizer5->Add( m_staticText12, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+	wxFlexGridSizer* fgSizer11;
+	fgSizer11 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer11->AddGrowableRow(0, 1);
+	fgSizer11->AddGrowableRow(1, 1);
+	fgSizer11->AddGrowableRow(2, 1);
+	fgSizer11->AddGrowableRow(3, 1);
+
+	wxStaticText* m_staticText13 = new wxStaticText( panel, wxID_ANY, wxT("Max Players"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText13->Wrap( -1 );
+	fgSizer11->Add( m_staticText13, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_M_ngMaxPlayers = new wxStaticText( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_M_ngMaxPlayers->Wrap( -1 );
+	fgSizer11->Add( m_M_ngMaxPlayers, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxStaticText* m_staticText15 = new wxStaticText( panel, wxID_ANY, wxT("Max Observers"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText15->Wrap( -1 );
+	fgSizer11->Add( m_staticText15, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_M_ngMaxObservers = new wxStaticText( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_M_ngMaxObservers->Wrap( -1 );
+	fgSizer11->Add( m_M_ngMaxObservers, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxStaticText* m_staticText17 = new wxStaticText( panel, wxID_ANY, wxT("Security"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText17->Wrap( -1 );
+	fgSizer11->Add( m_staticText17, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_M_ngSecurity = new wxStaticText( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_M_ngSecurity->Wrap( -1 );
+	fgSizer11->Add( m_M_ngSecurity, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxStaticText* m_staticText19 = new wxStaticText( panel, wxID_ANY, wxT("Respawns"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText19->Wrap( -1 );
+	fgSizer11->Add( m_staticText19, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_M_ngRespawns = new wxStaticText( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_M_ngRespawns->Wrap( -1 );
+	fgSizer11->Add( m_M_ngRespawns, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	bSizer5->Add( fgSizer11, 1, wxEXPAND );
+
+	bSizer3->Add(bSizer5, 1, wxEXPAND);
+
+	bSizer->Add( bSizer3, 1, wxEXPAND, 5 );
+
+	panelSizer->Add(bSizer, 1, wxALL|wxEXPAND, 5);
+
+	panel->SetSizer( panelSizer );
+	panelSizer->Fit( panel );
+	panelSizer->SetSizeHints( panel );
+
+	parent->AddPage( panel, wxT("Multi-Player") );
+}
+
+void Standalone::createTab_Player(wxNotebook* parent)
+{
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer* panelSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer21;
+	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
+
+	wxStaticText* m_staticText211 = new wxStaticText( panel, wxID_ANY, wxT("Player"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText211->Wrap( -1 );
+	bSizer21->Add( m_staticText211, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	wxArrayString m_choice11Choices;
+	m_P_Players = new wxChoice( panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), m_choice11Choices, 0 );
+	m_P_Players->SetSelection( 0 );
+	bSizer21->Add( m_P_Players, 0, wxALL, 5 );
+
+	bSizer->Add( bSizer21, 0, wxEXPAND );
+
+
+	wxStaticLine* m_staticline4 = new wxStaticLine( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer->Add( m_staticline4, 0, wxEXPAND | wxALL, 5 );
+
+	wxFlexGridSizer* fgSizer14;
+	fgSizer14 = new wxFlexGridSizer( 0, 2, 0, 0 );
+
+	wxStaticText* m_staticText26 = new wxStaticText( panel, wxID_ANY, wxT("Ship Type"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText26->Wrap( -1 );
+	fgSizer14->Add( m_staticText26, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxPanel* stPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+	wxBoxSizer* stSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_P_ShipType = new wxStaticText( stPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(150, -1), 0 );
+	m_P_ShipType->Wrap( -1 );
+	stSizer->Add(m_P_ShipType, 0, wxALL, 2);
+	stPanel->SetSizer(stSizer);
+	stSizer->Fit(stPanel);
+	fgSizer14->Add( stPanel, 0, wxALL, 5 );
+
+	wxStaticText* m_staticText28 = new wxStaticText( panel, wxID_ANY, wxT("Avg Ping"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText28->Wrap( -1 );
+	fgSizer14->Add( m_staticText28, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxPanel* apPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+	wxBoxSizer* apSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_P_AvgPing = new wxStaticText( apPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(150, -1), 0 );
+	m_P_AvgPing->Wrap( -1 );
+	apSizer->Add(m_P_AvgPing, 0, wxALL, 2);
+	apPanel->SetSizer(apSizer);
+	apSizer->Fit(apPanel);
+	fgSizer14->Add( apPanel, 0, wxALL, 5 );
+
+	bSizer->Add( fgSizer14, 0, wxEXPAND );
+
+	bSizer->Add( 0, 0, 0, wxALL, 10);
+
+	wxBoxSizer* bSizer6;
+	bSizer6 = new wxBoxSizer( wxHORIZONTAL );
+
+	//
+	// All-Time Stats
+	//
+
+	wxBoxSizer* atsboxSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxStaticText* atsText = new wxStaticText( panel, wxID_ANY, wxT("All Time Stats") );
+	atsboxSizer->Add( atsText, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+	wxFlexGridSizer* atsgSizer = new wxFlexGridSizer( 0, 2, 0, 0 );
+	atsgSizer->AddGrowableCol(1, 1);
+
+	// primary shots
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary Shots"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsPriShots = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsPriShots->Wrap( -1 );
+		p1sizer->Add( m_P_atsPriShots, 1, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsPriHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsPriHits->Wrap( -1 );
+		p1sizer->Add( m_P_atsPriHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary BH hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary BH Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsPriBHHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsPriBHHits->Wrap( -1 );
+		p1sizer->Add( m_P_atsPriBHHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsPriHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsPriHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_atsPriHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary BH hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary BH Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsPriBHHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsPriBHHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_atsPriBHHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary shots
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary Shots"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsSecShots = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsSecShots->Wrap( -1 );
+		p1sizer->Add( m_P_atsSecShots, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsSecHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsSecHits->Wrap( -1 );
+		p1sizer->Add( m_P_atsSecHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary BH hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary BH Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsSecBHHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsSecBHHits->Wrap( -1 );
+		p1sizer->Add( m_P_atsSecBHHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsSecHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsSecHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_atsSecHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary BH hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary BH Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsSecBHHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsSecBHHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_atsSecBHHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// assists
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Assists"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		atsgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_atsAssists = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_atsAssists->Wrap( -1 );
+		p1sizer->Add( m_P_atsAssists, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		atsgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	atsboxSizer->Add( atsgSizer, 1, wxEXPAND );
+
+	bSizer6->Add( atsboxSizer, 1, wxEXPAND, 5 );
+
+	wxStaticLine* m_staticline3 = new wxStaticLine( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL );
+	bSizer6->Add( m_staticline3, 0, wxEXPAND | wxALL, 5 );
+
+	//
+	// Mission Stats
+	//
+
+	wxBoxSizer* msboxSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxStaticText* msText = new wxStaticText( panel, wxID_ANY, wxT("Mission Stats") );
+	msboxSizer->Add( msText, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+	wxFlexGridSizer* msgSizer = new wxFlexGridSizer( 0, 2, 0, 0 );
+	msgSizer->AddGrowableCol(1, 1);
+
+	// primary shots
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary Shots"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msPriShots = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msPriShots->Wrap( -1 );
+		p1sizer->Add( m_P_msPriShots, 1, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msPriHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msPriHits->Wrap( -1 );
+		p1sizer->Add( m_P_msPriHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary BH hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary BH Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msPriBHHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msPriBHHits->Wrap( -1 );
+		p1sizer->Add( m_P_msPriBHHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msPriHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msPriHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_msPriHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// primary BH hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Primary BH Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msPriBHHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msPriBHHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_msPriBHHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary shots
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary Shots"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msSecShots = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msSecShots->Wrap( -1 );
+		p1sizer->Add( m_P_msSecShots, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msSecHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msSecHits->Wrap( -1 );
+		p1sizer->Add( m_P_msSecHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary BH hits
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary BH Hits"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msSecBHHits = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msSecBHHits->Wrap( -1 );
+		p1sizer->Add( m_P_msSecBHHits, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msSecHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msSecHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_msSecHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// secondary BH hit %
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Secondary BH Hit %"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msSecBHHitPer = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msSecBHHitPer->Wrap( -1 );
+		p1sizer->Add( m_P_msSecBHHitPer, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	// assists
+	{
+		wxStaticText* itxt = new wxStaticText( panel, wxID_ANY, wxT("Assists"), wxDefaultPosition, wxDefaultSize, 0 );
+		itxt->Wrap( -1 );
+		msgSizer->Add( itxt, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+		wxPanel* p1 = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
+		wxBoxSizer* p1sizer = new wxBoxSizer( wxHORIZONTAL );
+		m_P_msAssists = new wxStaticText( p1, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+		m_P_msAssists->Wrap( -1 );
+		p1sizer->Add( m_P_msAssists, 0, wxALL|wxEXPAND, 1);
+		p1->SetSizer( p1sizer );
+		p1sizer->Fit( p1 );
+		msgSizer->Add( p1, 0, wxALL|wxEXPAND, 1 );
+	}
+
+	msboxSizer->Add( msgSizer, 1, wxEXPAND );
+
+	bSizer6->Add( msboxSizer, 1, wxEXPAND );
+
+	bSizer->Add( bSizer6, 1, wxEXPAND );
+
+	panelSizer->Add( bSizer, 1, wxALL|wxEXPAND, 5 );
+
+	panel->SetSizer( panelSizer );
+	panelSizer->Fit( panel );
+	panelSizer->SetSizeHints(panel);
+
+	parent->AddPage( panel, wxT("Player Info") );
+}
+
+void Standalone::createTab_GodStuff(wxNotebook* parent)
+{
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer* panelSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer2 = new wxBoxSizer( wxHORIZONTAL );
+
+	wxStaticText* m_staticText21 = new wxStaticText( panel, wxID_ANY, wxT("Player"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer2->Add( m_staticText21, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+
+	wxArrayString m_choice1Choices;
+	m_GS_Players = new wxChoice( panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), m_choice1Choices, 0 );
+	m_GS_Players->SetSelection( 0 );
+	bSizer2->Add( m_GS_Players, 0, wxALL|wxEXPAND, 5 );
+
+	bSizer->Add( bSizer2, 0, wxEXPAND, 5 );
+
+	bSizer->Add( 0, 0, 0, wxALL, 10 );
+
+	wxStaticText* m_staticText22 = new wxStaticText( panel, wxID_ANY, wxT("Server Message"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer->Add( m_staticText22, 0, wxALL, 5 );
+
+	wxTextCtrl* m_textCtrl9 = new wxTextCtrl( panel, ID_T_MSG, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer->Add( m_textCtrl9, 0, wxALL|wxEXPAND, 5 );
+
+	bSizer->Add( 0, 0, 0, wxALL, 5 );
+
+	m_GS_Messages = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+	bSizer->Add( m_GS_Messages, 1, wxALL|wxEXPAND, 5 );
+
+	panelSizer->Add( bSizer, 1, wxALL|wxEXPAND, 5 );
+
+	panel->SetSizer( panelSizer );
+	panelSizer->Fit( panel );
+	panelSizer->SetSizeHints( panel );
+
+	parent->AddPage( panel, wxT("God Stuff") );
+}
+
+void Standalone::createTab_Debug(wxNotebook* parent)
+{
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* hbSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	wxStaticText* m_staticText1 = new wxStaticText( panel, wxID_ANY, wxT("Standalone State :"), wxDefaultPosition, wxDefaultSize, 0 );
+	hbSizer->Add( m_staticText1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	wxPanel* p1 = new wxPanel( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER );
+
+	wxBoxSizer* p1Sizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_D_State = new wxStaticText( p1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	p1Sizer->Add( m_D_State, 1, wxALL|wxEXPAND, 2);
+
+	p1->SetSizer( p1Sizer );
+	p1Sizer->Fit( p1 );
+
+	hbSizer->Add( p1, 1, wxALL|wxEXPAND, 5 );
+
+	bSizer->Add( hbSizer, 0, wxALL|wxEXPAND, 5 );
+
+	panel->SetSizer( bSizer );
+	panel->Layout();
+
+	bSizer->Fit( panel );
+
+	parent->AddPage( panel, wxT("Debug") );
+}
+
+bool Standalone::startFreeSpace()
+{
+	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
+
+#ifdef MAKE_FS1
+	epath.Append( wxT("freespace") );
+#else
+	epath.Append( wxT("freespace2") );
+#endif
+
+#ifdef FS2_DEMO
+	epath.Append( wxT("_demo") );
+#endif
+
+#ifdef _WIN32
+	epath.Append( wxT(".exe") );
+#endif
+
+	epath.Append( wxT(" -standalone") );
+/*
+	for (int i = 1; i < wxApp().argc; i++) {
+		wxString arg( wxApp().argv[i] );
+
+		// check if -port argument and set var
+		if ( arg.IsSameAs( wxT("-port"), false) && (wxApp().argc > i+1) ) {
+			fsport = wxAtoi(wxApp().argv[i+1]);
+		}
+
+		epath.Append( wxT(" ") );
+		epath.Append(arg);
+	}
+*/
+	fspid = wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);
+
+	return (fspid > 0);
+}
+
+static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+{
+	#define MAX_BUF_SIZE	1050
+	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + MAX_BUF_SIZE + LWS_SEND_BUFFER_POST_PADDING];
+	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
+	int rval;
+	int size;
+
+	switch (reason) {
+		case LWS_CALLBACK_CLIENT_ESTABLISHED:
+			lwsl_notice("CLIENT_ESTABLISHED\n");
+			lws_callback_on_writable(wsi);
+			break;
+
+		case LWS_CALLBACK_CLOSED:
+			lwsl_notice("CLOSED\n");
+			wxGetApp().Client().wsDisconnect();
+			break;
+
+		case LWS_CALLBACK_CLIENT_RECEIVE:
+			lwsl_notice("CLIENT_RECEIVE => in: %s, len: %lu\n", in ? (char*)in : "nul", len);
+			wxGetApp().Client().wsMessage( (const char *)in, len );
+			break;
+
+		case LWS_CALLBACK_CLIENT_WRITEABLE: {
+			lwsl_notice("CLIENT_WRITEABLE\n");
+			if ( !wxGetApp().Client().wsGetSendBuffer().empty() ) {
+				std::string msg = wxGetApp().Client().wsGetSendBuffer().front();
+
+				size = wxStrlcpy((char *)p, msg.c_str(), MAX_BUF_SIZE);
+
+				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
+
+				if (rval < size) {
+					lwsl_err("ERROR sending buffer!\n");
+					return -1;
+				}
+
+				wxGetApp().Client().wsGetSendBuffer().pop_front();
+
+				lws_callback_on_writable(wsi);
+			}
+
+			break;
+		}
+
+		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
+			lwsl_notice("CONNECTION_ERROR\n");
+			wxGetApp().Client().wsDisconnect();
+			break;
+
+		default:
+			break;
+	}
+
 	return 0;
 }
 
-void std_connect_set_gamename(const char *name)
+static struct lws_protocols protocols[] = {
+	{
+		"standalone",
+		callback_standalone_client,
+		0,
+		0
+	},
+	{ NULL, NULL, 0, 0 }
+};
+
+bool Standalone::wsInitialize()
 {
-	STUB_FUNCTION;
+	struct lws_context_creation_info info;
+
+	memset(&info, 0, sizeof(info));
+	memset(&ccinfo, 0, sizeof(ccinfo));
+
+	info.port = CONTEXT_PORT_NO_LISTEN;
+	info.protocols = protocols;
+	info.gid = -1;
+	info.uid = -1;
+
+	stand_context = lws_create_context(&info);
+
+	if (stand_context == NULL) {
+		return false;
+	}
+
+	ccinfo.context = stand_context;
+	ccinfo.address = "127.0.0.1";
+	ccinfo.port = fsport;
+	ccinfo.path = "/";
+	ccinfo.host = ccinfo.address;
+	ccinfo.origin = ccinfo.address;
+	ccinfo.ietf_version_or_minus_one = -1;
+	ccinfo.protocol = protocols[0].name;
+
+	// async call, actual connection to occur later
+	wsi_standalone = lws_client_connect_via_info(&ccinfo);
+
+	lws_service(stand_context, 0);
+
+	return true;
 }
 
-void std_connect_set_host_connect_status()
+void Standalone::wsDoFrame()
 {
-	STUB_FUNCTION;
+	if ( !stand_context ) {
+		return;
+	}
+
+	// if connection is lost attempt reconnect every 2 seconds
+	if ( !wsi_standalone && !(++m_rate_limit % 60) ) {
+		wsi_standalone = lws_client_connect_via_info(&ccinfo);
+		m_rate_limit = 0;
+	}
+
+	lws_service(stand_context, 0);
 }
 
-void std_create_gen_dialog(const char *title)
+void Standalone::wsDisconnect()
 {
-	STUB_FUNCTION;
+	lwsl_notice("disconnect!\n");
+	wsi_standalone = NULL;
 }
 
-void std_debug_set_standalone_state_string(const char *str)
+void Standalone::wsMessage(const char *msg, size_t len)
 {
-	STUB_FUNCTION;
+	if (msg == NULL || len < 5) {
+		return;
+	}
+
+	char mtype = msg[0];
+
+	if (mtype == 'T') {
+		SetTitle(msg+2);
+	} else if (mtype == 'D') {
+		m_D_State->SetLabel(msg+2);
+	}
+	// server tab
+	else if (mtype == 'S') {
+		wxString cmd(msg+2, 4);
+
+		if (cmd == "name") {
+			m_S_ServerName->SetValue(msg+7);
+		} else if (cmd == "pass") {
+			m_S_HostPass->SetValue(msg+7);
+		} else if (cmd == "conn") {
+
+		} else if (cmd == "ping") {
+
+		}
+	}
+	// multi-player tab
+	else if (mtype == 'M') {
+		wxString cmd(msg+2, 4);
+
+		if (cmd == "name") {
+			m_M_MissionName->SetLabel(msg+7);
+		} else if (cmd == "time") {
+			m_M_MissionTime->SetLabel(msg+7);
+		} else if (cmd == "info") {
+			wxArrayString ng_info = wxSplit(msg+7, ',');
+
+			m_M_ngMaxPlayers->SetLabel( ng_info.Item(0) );
+			m_M_ngMaxObservers->SetLabel( ng_info.Item(1) );
+			m_M_ngSecurity->SetLabel( ng_info.Item(2) );
+			m_M_ngRespawns->SetLabel( ng_info.Item(3) );
+		} else if (cmd == "fps ") {
+			m_M_FPSRel->SetLabel(msg+6);
+		} else if (cmd == "goal") {
+
+		}
+	}
+	// player tab
+	else if (mtype == 'P') {
+		wxString cmd(msg+2, 4);
+
+		if (cmd == "info") {
+
+		}
+	}
+	// god stuff tab
+	else if (mtype == 'G') {
+		wxString cmd(msg+2, 4);
+
+		if (cmd == "mesg") {
+			m_GS_Messages->AppendText(msg+7);
+		}
+	}
 }
 
-void std_destroy_gen_dialog()
+void Standalone::wsSend(std::string &msg)
 {
-	STUB_FUNCTION;
-}
+	send_buf.push_back(msg);
 
-void std_do_gui_frame()
-{
-	STUB_FUNCTION;
-}
-
-void std_gen_set_text(const char *str, int field_num)
-{
-	STUB_FUNCTION;
-}
-
-void std_init_standalone()
-{
-	STUB_FUNCTION;
-}
-
-int std_is_host_passwd()
-{
-	return 0;
-}
-
-void std_multi_add_goals()
-{
-	STUB_FUNCTION;
-}
-
-void std_multi_set_standalone_mission_name(const char *mission_name)
-{
-	STUB_FUNCTION;
-}
-
-void std_multi_set_standalone_missiontime(float mission_time)
-{
-	STUB_FUNCTION;
-}
-
-void std_multi_setup_goal_tree()
-{
-	STUB_FUNCTION;
-}
-
-void std_multi_update_goals()
-{
-	STUB_FUNCTION;
-}
-
-void std_multi_update_netgame_info_controls()
-{
-	STUB_FUNCTION;
-}
-
-int std_player_is_banned(const char *name)
-{
-	return 0;
-}
-
-int std_remove_player(net_player *p)
-{
-	STUB_FUNCTION;
-	
-	return 0;
-}
-
-void std_reset_standalone_gui()
-{
-	STUB_FUNCTION;
-}
-
-void std_reset_timestamps()
-{
-	STUB_FUNCTION;
-}
-
-void std_set_standalone_fps(float fps)
-{
-	STUB_FUNCTION;
-}
-
-void std_update_player_ping(net_player *p)
-{
-	STUB_FUNCTION;
+	if (wsi_standalone) {
+		lws_callback_on_writable(wsi_standalone);
+	}
 }

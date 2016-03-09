@@ -1271,6 +1271,7 @@ void Standalone::wsMessage(const char *msg, size_t len)
 			m_popup->SetLabel1( popmsg.Item(1) );
 			m_popup->SetLabel2( popmsg.Item(2) );
 
+			m_popup->CenterOnParent();
 			m_popup->Show(true);
 		}
 

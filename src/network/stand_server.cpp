@@ -593,9 +593,9 @@ static struct lws_protocols stand_protocols[] = {
 static void std_lws_logger(int level, const char *line)
 {
 	if (level & (LLL_WARN|LLL_ERR)) {
-		mprintf(("STD: %s\n", line));
+		mprintf(("STD: %s", line));
 	} else if (level & LLL_NOTICE) {
-		nprintf(("lws", "STD: %s\n", line));
+		nprintf(("lws", "STD: %s", line));
 	}
 }
 

@@ -474,6 +474,13 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 					return -1;
 				}
 
+				if ( !SDL_strcmp(msg, "reset") ) {
+					multi_quit_game(PROMPT_NONE);
+					std_reset_standalone_gui();
+
+					break;
+				}
+
 				// server tab
 				if (mtype == 'S') {
 					if (len >= 7) {

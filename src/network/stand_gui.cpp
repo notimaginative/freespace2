@@ -244,7 +244,9 @@ void Standalone::OnMissionRefresh( wxCommandEvent& WXUNUSED(event) )
 
 void Standalone::OnResetAll( wxCommandEvent& WXUNUSED(event) )
 {
-//	ResetAll();
+	std::string msg("reset");
+
+	wsSend(msg);
 }
 
 void Standalone::OnFPSSel( wxCommandEvent& WXUNUSED(event) )

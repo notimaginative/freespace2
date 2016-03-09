@@ -470,7 +470,7 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 	bSizer5->Add( m_staticText12, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 	wxFlexGridSizer* fgSizer11;
-	fgSizer11 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer11 = new wxFlexGridSizer( 0, 2, 0, 15 );
 	fgSizer11->AddGrowableRow(0, 1);
 	fgSizer11->AddGrowableRow(1, 1);
 	fgSizer11->AddGrowableRow(2, 1);

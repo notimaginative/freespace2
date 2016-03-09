@@ -1083,6 +1083,7 @@ void Standalone::ResetAll()
 	m_S_Connections->Clear();
 
 	m_M_sliderFPS->SetValue(30);
+	m_M_FPS->SetLabel("30");
 	m_M_FPSRel->SetLabel( wxT("0.0") );
 	m_M_MissionName->SetLabel("");
 	m_M_MissionTime->SetLabel("");
@@ -1095,6 +1096,34 @@ void Standalone::ResetAll()
 	m_P_Players->Clear();
 	m_P_ShipType->SetLabel("");
 	m_P_AvgPing->SetLabel("");
+	m_P_atsPriShots->SetLabel("");
+	m_P_atsPriHits->SetLabel("");
+	m_P_atsPriBHHits->SetLabel("");
+	m_P_atsPriHitPer->SetLabel("");
+	m_P_atsPriBHHitPer->SetLabel("");
+	m_P_atsSecShots->SetLabel("");
+	m_P_atsSecHits->SetLabel("");
+	m_P_atsSecBHHits->SetLabel("");
+	m_P_atsSecHitPer->SetLabel("");
+	m_P_atsSecBHHitPer->SetLabel("");
+	m_P_atsAssists->SetLabel("");
+	m_P_msPriShots->SetLabel("");
+	m_P_msPriHits->SetLabel("");
+	m_P_msPriBHHits->SetLabel("");
+	m_P_msPriHitPer->SetLabel("");
+	m_P_msPriBHHitPer->SetLabel("");
+	m_P_msSecShots->SetLabel("");
+	m_P_msSecHits->SetLabel("");
+	m_P_msSecBHHits->SetLabel("");
+	m_P_msSecHitPer->SetLabel("");
+	m_P_msSecBHHitPer->SetLabel("");
+	m_P_msAssists->SetLabel("");
+
+	m_GS_Players->Clear();
+	m_GS_msg->Clear();
+	m_GS_Messages->Clear();
+
+	m_D_State->SetLabel("");
 }
 
 static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)

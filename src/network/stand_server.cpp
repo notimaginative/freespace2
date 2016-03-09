@@ -1113,13 +1113,13 @@ void std_reset_standalone_gui()
 	Standalone_pinfo_active_player.clear();
 	Standalone_mission_name = "";
 	Standalone_mission_time = "";
-	Standalone_netgame_info.clear();
 	Standalone_popup_title.clear();
 	Standalone_popup_field1 = "";
 	Standalone_popup_field2 = "";
 
 	std_set_standalone_fps(0.0f);
 	std_multi_set_standalone_missiontime(0.0f);
+	std_multi_update_netgame_info_controls();
 
 	Standalone_update_flags |= STD_UFLAG_ALL;
 }

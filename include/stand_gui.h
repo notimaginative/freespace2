@@ -40,6 +40,30 @@ class StandaloneTimer : public wxTimer
 		void Notify();
 };
 
+class StandPopup : public wxFrame
+{
+	private:
+
+	protected:
+		wxStaticText* m_Label1;
+		wxStaticText* m_Label2;
+
+	public:
+		StandPopup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Popup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxFRAME_FLOAT_ON_PARENT|wxFRAME_TOOL_WINDOW );
+
+		~StandPopup();
+
+		void SetLabel1(const char *val)
+		{
+			m_Label1->SetLabel(val);
+		}
+
+		void SetLabel2(const char *val)
+		{
+			m_Label2->SetLabel(val);
+		}
+};
+
 class Standalone : public wxDialog
 {
 	private:
@@ -70,6 +94,8 @@ class Standalone : public wxDialog
 			ID_B_SHUTDOWN,
 			ID_T_MSG
 		};
+
+		StandPopup *m_popup;
 
 		wxTextCtrl* m_S_ServerName;
 		wxTextCtrl* m_S_HostPass;
@@ -117,20 +143,28 @@ class Standalone : public wxDialog
 		wxStaticText* m_P_msAssists;
 
 		wxChoice* m_GS_Players;
+		wxTextCtrl* m_GS_msg;
 		wxTextCtrl* m_GS_Messages;
 
 		wxStaticText* m_D_State;
 
+		void ResetAll();
 		void Shutdown();
+
 		void OnClose( wxCloseEvent& event );
 		void OnShutdown( wxCommandEvent& event );
+		void OnKick( wxCommandEvent& event );
+		void OnMissionRefresh( wxCommandEvent& event );
+		void OnResetAll( wxCommandEvent& event );
+		void OnFPSSel( wxCommandEvent& event );
+		void OnServerMsg( wxCommandEvent& event );
 
 	public:
 
 		Standalone( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Freespace Standalone"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxCAPTION|wxCLOSE_BOX|wxDIALOG_NO_PARENT );
 		~Standalone();
 
-		bool startFreeSpace();
+		bool startFreeSpace(int argc, wxCmdLineArgsArray& argv);
 
 		bool wsInitialize();
 		void wsDoFrame();
@@ -151,7 +185,6 @@ class StandaloneApp: public wxApp
 
 	public:
 		virtual bool OnInit();
-		virtual void OnEventLoopEnter(wxEventLoopBase *loop);
 
 		StandaloneApp() : std_client(nullptr)
 		{

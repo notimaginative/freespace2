@@ -41,7 +41,7 @@ bool StandaloneApp::OnInit()
 	std_client = new Standalone(NULL);
 
 	try {
-		if ( !std_client->startFreeSpace() ) {
+		if ( !std_client->startFreeSpace(argc, argv) ) {
 			throw "Unable to start FreeSpace";
 		}
 
@@ -62,27 +62,6 @@ bool StandaloneApp::OnInit()
 	return true;
 }
 
-void StandaloneApp::OnEventLoopEnter(wxEventLoopBase *loop)
-{
-	if ( loop->IsMain() ) {
-/*		try {
-			if ( !std_client->startFreeSpace() ) {
-				throw "Unable to start FreeSpace";
-			}
-
-			wxMilliSleep(500);
-
-			if ( !std_client->wsInitialize() ) {
-				throw "Unable to initialize WebSocket";
-			}
-		} catch (const char *err) {
-			wxMessageBox(err, "Error!");
-
-		//	return false;
-		}*/
-	}
-}
-
 StandaloneTimer::StandaloneTimer(Standalone *stand)
 {
 	m_stand = stand;
@@ -97,9 +76,49 @@ void StandaloneTimer::Notify()
 	m_stand->wsDoFrame();
 }
 
+StandPopup::StandPopup( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxSize( 300,150 ), wxDefaultSize );
+
+	wxBoxSizer* bSizer2;
+	bSizer2 = new wxBoxSizer( wxVERTICAL );
+
+	wxFlexGridSizer* fgSizer3;
+	fgSizer3 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer3->SetFlexibleDirection( wxBOTH );
+	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_Label1 = new wxStaticText( this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Label1->Wrap( -1 );
+	fgSizer3->Add( m_Label1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_Label2 = new wxStaticText( this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Label2->Wrap( -1 );
+	fgSizer3->Add( m_Label2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+
+	bSizer2->Add( fgSizer3, 1, wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 10 );
+
+
+	this->SetSizer( bSizer2 );
+	this->Layout();
+	bSizer2->Fit( this );
+
+	this->Centre( wxBOTH );
+}
+
+StandPopup::~StandPopup()
+{
+}
+
 wxBEGIN_EVENT_TABLE(Standalone, wxDialog)
 	EVT_CLOSE(Standalone::OnClose)
 	EVT_BUTTON(ID_B_SHUTDOWN, Standalone::OnShutdown)
+	EVT_BUTTON(ID_B_KICK, Standalone::OnKick)
+	EVT_BUTTON(ID_B_MREFRESH, Standalone::OnMissionRefresh)
+	EVT_BUTTON(ID_B_RESET_ALL, Standalone::OnResetAll)
+	EVT_SLIDER(ID_FPS_SLIDER, Standalone::OnFPSSel)
+	EVT_TEXT_ENTER(ID_T_MSG, Standalone::OnServerMsg)
 wxEND_EVENT_TABLE()
 
 Standalone::Standalone( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
@@ -114,6 +133,9 @@ Standalone::Standalone( wxWindow* parent, wxWindowID id, const wxString& title, 
 
 	m_timer = new StandaloneTimer(this);
 	m_timer->Start(1000/30);
+
+	m_popup = new StandPopup(this);
+	m_popup->Show(false);
 
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer( wxVERTICAL );
@@ -175,6 +197,69 @@ void Standalone::Shutdown()
 	}
 
 	Destroy();
+}
+
+void Standalone::OnKick( wxCommandEvent& WXUNUSED(event) )
+{
+	std::string msg("S:kick ");
+
+	wxString id = m_S_Connections->GetStringSelection();
+
+	if ( id.IsEmpty() ) {
+		return;
+	}
+
+	wxArrayString ipaddr = wxSplit(id, ',');
+
+	msg.append( ipaddr.Item(0).c_str() );
+
+	wsSend(msg);
+}
+
+void Standalone::OnMissionRefresh( wxCommandEvent& WXUNUSED(event) )
+{
+	std::string msg("G:mrefresh");
+
+	wsSend(msg);
+}
+
+void Standalone::OnResetAll( wxCommandEvent& WXUNUSED(event) )
+{
+//	ResetAll();
+}
+
+void Standalone::OnFPSSel( wxCommandEvent& WXUNUSED(event) )
+{
+	wxString fps = wxString::Format("%d", m_M_sliderFPS->GetValue());
+
+	m_M_FPS->SetLabel(fps);
+
+	std::string msg("M:fps ");
+	msg.append(fps);
+
+	wsSend(msg);
+}
+
+void Standalone::OnServerMsg( wxCommandEvent& WXUNUSED(event) )
+{
+	if ( m_GS_msg->GetValue().IsEmpty() ) {
+		return;
+	}
+
+	std::string msg("G:smsg ");
+
+	msg.append( m_GS_msg->GetValue().c_str() );
+
+	// strip off return char which GetValue() has
+	size_t pos = msg.find_last_not_of("\r\n");
+
+	if (pos != std::string::npos) {
+		msg.erase(pos+1);
+	}
+
+	wsSend(msg);
+
+	m_GS_msg->Clear();
 }
 
 void Standalone::createTab_Server(wxNotebook* parent)
@@ -274,7 +359,7 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 
 	wxPanel* fpsPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
 	wxBoxSizer* fpsSizer = new wxBoxSizer(wxHORIZONTAL);
-	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(60, -1), 0 );
+	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, "30", wxDefaultPosition, wxSize(60, -1), 0 );
 	m_M_FPS->Wrap( -1 );
 	fpsSizer->Add( m_M_FPS, 0, wxALL, 2 );
 	fpsPanel->SetSizer(fpsSizer);
@@ -880,8 +965,9 @@ void Standalone::createTab_GodStuff(wxNotebook* parent)
 	wxStaticText* m_staticText22 = new wxStaticText( panel, wxID_ANY, wxT("Server Message"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer->Add( m_staticText22, 0, wxALL, 5 );
 
-	wxTextCtrl* m_textCtrl9 = new wxTextCtrl( panel, ID_T_MSG, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer->Add( m_textCtrl9, 0, wxALL|wxEXPAND, 5 );
+	m_GS_msg = new wxTextCtrl( panel, ID_T_MSG, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
+	m_GS_msg->SetMaxLength(150);
+	bSizer->Add( m_GS_msg, 0, wxALL|wxEXPAND, 5 );
 
 	bSizer->Add( 0, 0, 0, wxALL, 5 );
 
@@ -930,7 +1016,7 @@ void Standalone::createTab_Debug(wxNotebook* parent)
 	parent->AddPage( panel, wxT("Debug") );
 }
 
-bool Standalone::startFreeSpace()
+bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 {
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 
@@ -949,22 +1035,46 @@ bool Standalone::startFreeSpace()
 #endif
 
 	epath.Append( wxT(" -standalone") );
-/*
-	for (int i = 1; i < wxApp().argc; i++) {
-		wxString arg( wxApp().argv[i] );
+
+	for (int i = 1; i < argc; i++) {
+		wxString arg( argv[i] );
 
 		// check if -port argument and set var
-		if ( arg.IsSameAs( wxT("-port"), false) && (wxApp().argc > i+1) ) {
-			fsport = wxAtoi(wxApp().argv[i+1]);
+		if ( arg.IsSameAs( wxT("-port"), false) && (argc > i+1) ) {
+			fsport = wxAtoi(argv[i+1]);
 		}
 
 		epath.Append( wxT(" ") );
 		epath.Append(arg);
 	}
-*/
+
 	fspid = wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);
 
 	return (fspid > 0);
+}
+
+void Standalone::ResetAll()
+{
+	m_popup->Show(false);
+
+	m_S_ServerName->Clear();
+	m_S_HostPass->Clear();
+	m_S_NumConn->SetLabel( wxT("0") );
+	m_S_Connections->Clear();
+
+	m_M_sliderFPS->SetValue(30);
+	m_M_FPSRel->SetLabel( wxT("0.0") );
+	m_M_MissionName->SetLabel("");
+	m_M_MissionTime->SetLabel("");
+	m_M_ngMaxPlayers->SetLabel("");
+	m_M_ngMaxObservers->SetLabel("");
+	m_M_ngSecurity->SetLabel("");
+	m_M_ngRespawns->SetLabel("");
+	m_M_Goals->DeleteAllItems();
+
+	m_P_Players->Clear();
+	m_P_ShipType->SetLabel("");
+	m_P_AvgPing->SetLabel("");
 }
 
 static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
@@ -992,10 +1102,10 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 			break;
 
 		case LWS_CALLBACK_CLIENT_WRITEABLE: {
-			lwsl_notice("CLIENT_WRITEABLE\n");
 			if ( !wxGetApp().Client().wsGetSendBuffer().empty() ) {
 				std::string msg = wxGetApp().Client().wsGetSendBuffer().front();
 
+				lwsl_notice("CLIENT_WRITEABLE => msg: %s\n", msg.c_str());
 				size = wxStrlcpy((char *)p, msg.c_str(), MAX_BUF_SIZE);
 
 				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
@@ -1008,7 +1118,8 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 				wxGetApp().Client().wsGetSendBuffer().pop_front();
 
 				lws_callback_on_writable(wsi);
-			}
+			} else lwsl_notice("CLIENT_WRITEABLE <empty>\n");
+
 
 			break;
 		}
@@ -1094,6 +1205,27 @@ void Standalone::wsDisconnect()
 void Standalone::wsMessage(const char *msg, size_t len)
 {
 	if (msg == NULL || len < 5) {
+		return;
+	}
+
+	if ( !wxStrcmp(msg, "reset") ) {
+		ResetAll();
+		return;
+	}
+
+	if ( !wxStrncmp(msg, "popup ", 6) ) {
+		if (len == 6) {
+			m_popup->Show(false);
+		} else {
+			wxArrayString popmsg = wxSplit(msg+6, ';');
+
+			m_popup->SetTitle( popmsg.Item(0) );
+			m_popup->SetLabel1( popmsg.Item(1) );
+			m_popup->SetLabel2( popmsg.Item(2) );
+
+			m_popup->Show(true);
+		}
+
 		return;
 	}
 

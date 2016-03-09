@@ -92,6 +92,8 @@ class Standalone : public wxDialog
 			ID_B_RESET_ALL,
 			ID_FPS_SLIDER,
 			ID_B_SHUTDOWN,
+			ID_T_SERVER_NAME,
+			ID_T_HOST_PASS,
 			ID_T_MSG
 		};
 
@@ -153,6 +155,8 @@ class Standalone : public wxDialog
 
 		void OnClose( wxCloseEvent& event );
 		void OnShutdown( wxCommandEvent& event );
+		void OnServerNameChange( wxCommandEvent& event );
+		void OnHostPassChange( wxCommandEvent& event );
 		void OnKick( wxCommandEvent& event );
 		void OnMissionRefresh( wxCommandEvent& event );
 		void OnResetAll( wxCommandEvent& event );

@@ -119,6 +119,8 @@ wxBEGIN_EVENT_TABLE(Standalone, wxDialog)
 	EVT_BUTTON(ID_B_RESET_ALL, Standalone::OnResetAll)
 	EVT_SLIDER(ID_FPS_SLIDER, Standalone::OnFPSSel)
 	EVT_TEXT_ENTER(ID_T_MSG, Standalone::OnServerMsg)
+	EVT_TEXT_ENTER(ID_T_SERVER_NAME, Standalone::OnServerNameChange)
+	EVT_TEXT_ENTER(ID_T_HOST_PASS, Standalone::OnHostPassChange)
 wxEND_EVENT_TABLE()
 
 Standalone::Standalone( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
@@ -199,6 +201,24 @@ void Standalone::Shutdown()
 	Destroy();
 }
 
+void Standalone::OnServerNameChange(wxCommandEvent& WXUNUSED(event) )
+{
+	std::string msg("S:name ");
+
+	msg.append( m_S_ServerName->GetValue().c_str() );
+
+	wsSend(msg);
+}
+
+void Standalone::OnHostPassChange(wxCommandEvent& WXUNUSED(event) )
+{
+	std::string msg("S:pass ");
+
+	msg.append( m_S_HostPass->GetValue().c_str() );
+
+	wsSend(msg);
+}
+
 void Standalone::OnKick( wxCommandEvent& WXUNUSED(event) )
 {
 	std::string msg("S:kick ");
@@ -276,14 +296,14 @@ void Standalone::createTab_Server(wxNotebook* parent)
 	wxStaticText* m_staticText6 = new wxStaticText( panel, wxID_ANY, wxT("Server Name"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer5->Add( m_staticText6, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 
-	m_S_ServerName = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_S_ServerName = new wxTextCtrl( panel, ID_T_SERVER_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
 	m_S_ServerName->SetMaxLength( 31 );
 	fgSizer5->Add( m_S_ServerName, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticText* m_staticText7 = new wxStaticText( panel, wxID_ANY, wxT("Host Password"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer5->Add( m_staticText7, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 
-	m_S_HostPass = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_S_HostPass = new wxTextCtrl( panel, ID_T_HOST_PASS, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
 	m_S_HostPass->SetMaxLength( 16 );
 	fgSizer5->Add( m_S_HostPass, 0, wxALL|wxEXPAND, 5 );
 

@@ -94,7 +94,8 @@ class Standalone : public wxDialog
 			ID_B_SHUTDOWN,
 			ID_T_SERVER_NAME,
 			ID_T_HOST_PASS,
-			ID_T_MSG
+			ID_T_MSG,
+			ID_C_P_PLAYERS
 		};
 
 		StandPopup *m_popup;
@@ -162,6 +163,7 @@ class Standalone : public wxDialog
 		void OnResetAll( wxCommandEvent& event );
 		void OnFPSSel( wxCommandEvent& event );
 		void OnServerMsg( wxCommandEvent& event );
+		void OnPinfoPlayer( wxCommandEvent& event );
 
 	public:
 

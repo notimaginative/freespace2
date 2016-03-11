@@ -120,6 +120,7 @@ wxBEGIN_EVENT_TABLE(Standalone, wxDialog)
 	EVT_TEXT_ENTER(ID_T_MSG, Standalone::OnServerMsg)
 	EVT_TEXT_ENTER(ID_T_SERVER_NAME, Standalone::OnServerNameChange)
 	EVT_TEXT_ENTER(ID_T_HOST_PASS, Standalone::OnHostPassChange)
+	EVT_CHOICE(ID_C_P_PLAYERS, Standalone::OnPinfoPlayer)
 wxEND_EVENT_TABLE()
 
 Standalone::Standalone( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
@@ -281,6 +282,21 @@ void Standalone::OnServerMsg( wxCommandEvent& WXUNUSED(event) )
 	wsSend(msg);
 
 	m_GS_msg->Clear();
+}
+
+void Standalone::OnPinfoPlayer(wxCommandEvent& WXUNUSED(event) )
+{
+	int idx	= m_P_Players->GetCurrentSelection();
+
+	if (idx == wxNOT_FOUND) {
+		return;
+	}
+
+	std::string msg("P:info ");
+
+	msg.append( m_P_Players->GetString(idx).c_str() );
+
+	wsSend(msg);
 }
 
 void Standalone::createTab_Server(wxNotebook* parent)
@@ -539,8 +555,8 @@ void Standalone::createTab_Player(wxNotebook* parent)
 	bSizer21->Add( m_staticText211, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	wxArrayString m_choice11Choices;
-	m_P_Players = new wxChoice( panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), m_choice11Choices, 0 );
-	m_P_Players->SetSelection( 0 );
+	m_P_Players = new wxChoice( panel, ID_C_P_PLAYERS, wxDefaultPosition, wxSize(200, -1), m_choice11Choices, 0 );
+	m_P_Players->SetSelection( wxNOT_FOUND );
 	bSizer21->Add( m_P_Players, 0, wxALL, 5 );
 
 	bSizer->Add( bSizer21, 0, wxEXPAND );
@@ -976,7 +992,7 @@ void Standalone::createTab_GodStuff(wxNotebook* parent)
 
 	wxArrayString m_choice1Choices;
 	m_GS_Players = new wxChoice( panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), m_choice1Choices, 0 );
-	m_GS_Players->SetSelection( 0 );
+	m_GS_Players->SetSelection( wxNOT_FOUND );
 	bSizer2->Add( m_GS_Players, 0, wxALL|wxEXPAND, 5 );
 
 	bSizer->Add( bSizer2, 0, wxEXPAND, 5 );
@@ -1374,7 +1390,39 @@ void Standalone::wsMessage(const char *msg, size_t len)
 		wxString cmd(msg+2, 4);
 
 		if (cmd == "info") {
+			wxArrayString pinfo = wxSplit(msg+7, ';');
+			wxArrayString stats;
 
+			m_P_ShipType->SetLabel( pinfo.Item(0) );
+			m_P_AvgPing->SetLabel( pinfo.Item(1) );
+
+			stats = wxSplit(pinfo.Item(2), ',');
+
+			m_P_atsPriShots->SetLabel( stats.Item(0) );
+			m_P_atsPriHits->SetLabel( stats.Item(1) );
+			m_P_atsPriBHHits->SetLabel( stats.Item(2) );
+			m_P_atsPriHitPer->SetLabel( stats.Item(3) );
+			m_P_atsPriBHHitPer->SetLabel( stats.Item(4) );
+			m_P_atsSecShots->SetLabel( stats.Item(5) );
+			m_P_atsSecHits->SetLabel( stats.Item(6) );
+			m_P_atsSecBHHits->SetLabel( stats.Item(7) );
+			m_P_atsSecHitPer->SetLabel( stats.Item(8) );
+			m_P_atsSecBHHitPer->SetLabel( stats.Item(9) );
+			m_P_atsAssists->SetLabel( stats.Item(10) );
+
+			stats = wxSplit(pinfo.Item(3), ',');
+
+			m_P_msPriShots->SetLabel( stats.Item(0) );
+			m_P_msPriHits->SetLabel( stats.Item(1) );
+			m_P_msPriBHHits->SetLabel( stats.Item(2) );
+			m_P_msPriHitPer->SetLabel( stats.Item(3) );
+			m_P_msPriBHHitPer->SetLabel( stats.Item(4) );
+			m_P_msSecShots->SetLabel( stats.Item(5) );
+			m_P_msSecHits->SetLabel( stats.Item(6) );
+			m_P_msSecBHHits->SetLabel( stats.Item(7) );
+			m_P_msSecHitPer->SetLabel( stats.Item(8) );
+			m_P_msSecBHHitPer->SetLabel( stats.Item(9) );
+			m_P_msAssists->SetLabel( stats.Item(10) );
 		}
 	}
 	// god stuff tab

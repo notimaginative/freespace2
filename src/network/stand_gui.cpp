@@ -1296,9 +1296,56 @@ void Standalone::wsMessage(const char *msg, size_t len)
 		} else if (cmd == "pass") {
 			m_S_HostPass->SetValue(msg+7);
 		} else if (cmd == "conn") {
+			wxArrayString conns = wxSplit(msg+7, ';');
 
+			size_t n_conn = conns.size();
+
+			// always ends up with empty entry at end
+			if (n_conn > 0) {
+				conns.pop_back();
+				--n_conn;
+			}
+
+			m_S_NumConn->SetLabel( wxString::Format("%u", (unsigned int)n_conn) );
+
+			m_S_Connections->Clear();
+
+			for (size_t idx = 0; idx < n_conn; idx++) {
+				wxArrayString m_conn = wxSplit(conns.Item(idx), ',');
+
+				m_P_Players->Append( m_conn.Item(0) );
+				m_GS_Players->Append( m_conn.Item(0) );
+
+				if ( m_conn.Item(2).IsEmpty() ) {
+					m_S_Connections->AppendText( m_conn.Item(1) );
+				} else {
+					wxString con( m_conn.Item(1) );
+					con.Append(",");
+					con.Append( m_conn.Item(2) );
+
+					m_S_Connections->AppendText( con );
+				}
+			}
 		} else if (cmd == "ping") {
+			wxArrayString iplist = wxSplit(msg+7, ';');
 
+			// always ends up with empty entry at end
+			iplist.pop_back();
+
+			size_t n_addr = iplist.size();
+
+			for (size_t idx = 0; idx < n_addr; idx++) {
+				wxArrayString ip_ping = wxSplit(iplist.Item(idx), ',');
+
+				wxString new_ping(ip_ping.Item(0));
+				new_ping.Append(", ");
+				new_ping.Append(ip_ping.Item(1));
+
+				long from_pos = m_S_Connections->GetValue().find( ip_ping.Item(0) );
+				long to_pos = m_S_Connections->GetValue().find_first_of("\n", from_pos);
+
+				m_S_Connections->Replace(from_pos, to_pos, new_ping);
+			}
 		}
 	}
 	// multi-player tab

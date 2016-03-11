@@ -474,7 +474,24 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 	m_staticText11->Wrap( -1 );
 	bSizer4->Add( m_staticText11, 0, wxALL, 5 );
 
-	m_M_Goals = new wxTreeCtrl( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxTR_HIDE_ROOT );
+	m_M_Goals = new wxTreeCtrl( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_HIDE_ROOT|wxTR_NO_BUTTONS );
+
+	wxImageList *goal_imgs = new wxImageList(16, 16);
+
+	goal_imgs->Add( wxBitmap(goal_ord_xpm), wxColour(0xff, 0x0, 0xff) );
+	goal_imgs->Add( wxBitmap(goal_none_xpm), wxColour(0xff, 0xff, 0xff) );
+	goal_imgs->Add( wxBitmap(goal_inc_xpm), wxColour(0xff, 0xff, 0xff) );
+	goal_imgs->Add( wxBitmap(goal_com_xpm), wxColour(0xff, 0xff, 0xff) );
+	goal_imgs->Add( wxBitmap(goal_fail_xpm), wxColour(0xff, 0xff, 0xff) );
+
+	m_M_Goals->AssignImageList(goal_imgs);
+
+	wxTreeItemId root = m_M_Goals->AddRoot( wxT("Goals") );
+
+	m_M_GoalItems[0] = m_M_Goals->AppendItem(root, wxT("Primary Objectives"), 0);
+	m_M_GoalItems[1] = m_M_Goals->AppendItem(root, wxT("Secondary Objectives"), 0);
+	m_M_GoalItems[2] = m_M_Goals->AppendItem(root, wxT("Bonus Objectives"), 0);
+
 	bSizer4->Add( m_M_Goals, 1, wxALL|wxEXPAND, 5 );
 
 	bSizer3->Add(bSizer4, 1, wxEXPAND);
@@ -1108,7 +1125,10 @@ void Standalone::ResetAll()
 	m_M_ngMaxObservers->SetLabel("");
 	m_M_ngSecurity->SetLabel("");
 	m_M_ngRespawns->SetLabel("");
-	m_M_Goals->DeleteAllItems();
+
+	for (int idx = 0; idx < 3; idx++) {
+		m_M_Goals->DeleteChildren( m_M_GoalItems[idx] );
+	}
 
 	m_P_Players->Clear();
 	m_P_ShipType->SetLabel("");
@@ -1382,7 +1402,47 @@ void Standalone::wsMessage(const char *msg, size_t len)
 		} else if (cmd == "fps ") {
 			m_M_FPSRel->SetLabel(msg+6);
 		} else if (cmd == "goal") {
+			wxArrayString objectives = wxSplit(msg+7, ';');
 
+			size_t n_objectives = objectives.size();
+			wxASSERT(n_objectives == 3);
+
+			for (size_t idx = 0; idx < n_objectives; idx++) {
+				wxArrayString goals = wxSplit( objectives.Item(idx), ',' );
+
+				size_t n_goals = goals.size();
+
+				for (size_t j = 0; j < n_goals; j++) {
+					char status = goals.Item(j).GetChar(0);
+					wxString goal = goals.Item(j).substr(2);
+					int img = 1;
+
+					switch (status) {
+						case 'i': {
+							if (goal == "none") {
+								img = 1;
+							} else {
+								img = 2;
+							}
+
+							break;
+						}
+
+						case 'c':
+							img = 3;
+							break;
+
+						case 'f':
+							img = 4;
+							break;
+
+						default:
+							break;
+					}
+
+					m_M_Goals->AppendItem(m_M_GoalItems[idx], goal, img);
+				}
+			}
 		}
 	}
 	// player tab

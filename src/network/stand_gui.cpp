@@ -1412,6 +1412,8 @@ void Standalone::wsMessage(const char *msg, size_t len)
 
 				size_t n_goals = goals.size();
 
+				m_M_Goals->DeleteChildren(m_M_GoalItems[idx]);
+
 				for (size_t j = 0; j < n_goals; j++) {
 					char status = goals.Item(j).GetChar(0);
 					wxString goal = goals.Item(j).substr(2);
@@ -1443,6 +1445,8 @@ void Standalone::wsMessage(const char *msg, size_t len)
 					m_M_Goals->AppendItem(m_M_GoalItems[idx], goal, img);
 				}
 			}
+
+			m_M_Goals->ExpandAll();
 		}
 	}
 	// player tab

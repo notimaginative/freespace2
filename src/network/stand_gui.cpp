@@ -93,7 +93,7 @@ StandPopup::StandPopup( wxWindow* parent, wxWindowID id, const wxString& title, 
 
 	m_Label2 = new wxStaticText( this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Label2->Wrap( -1 );
-	fgSizer3->Add( m_Label2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer3->Add( m_Label2, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 
 	bSizer2->Add( fgSizer3, 1, wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 10 );

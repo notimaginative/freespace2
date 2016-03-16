@@ -471,7 +471,9 @@ static void std_update_connections()
 
 	SDL_assert(conn_str.length() < 1024);
 
-	std_add_ws_message("S:conn ", conn_str.c_str());
+	if ( !conn_str.empty() ) {
+		std_add_ws_message("S:conn ", conn_str.c_str());
+	}
 }
 
 void std_do_gui_frame()

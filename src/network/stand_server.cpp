@@ -30,22 +30,29 @@
 #include <libwebsockets.h>
 #include <string>
 #include <vector>
+#include <list>
 
 
+struct std_state {
+	std::string title;
+	std::string debug_txt;
+	std::string popup_title;
+	std::string popup_field1;
+	std::string popup_field2;
 
-static std::string Standalone_debug_state = "";
-static std::string Standalone_ping_str;
-static std::string Standalone_player_info;
-static std::string Standalone_message;
+	std::string mission_name;
+	std::string mission_time;
+	std::string mission_goals;
+	std::string netgame_info;
+	char rfps[10];
+};
+
+static std_state Standalone_state;
+
+static std::list<std::string> Standalone_send_buf;
+
 static std::string Standalone_pinfo_active_player;
-static std::string Standalone_mission_name = "";
-static std::string Standalone_mission_time = "";
-static std::string Standalone_netgame_info;
-static std::string Standalone_mission_goals = "";
-static std::string Standalone_popup_title;
-static std::string Standalone_popup_field1 = "";
-static std::string Standalone_popup_field2 = "";
-static float Standalone_fps = 0.0f;
+
 
 #define STANDALONE_MAX_BAN		50
 static std::vector<std::string> Standalone_ban_list;
@@ -60,39 +67,10 @@ static int Standalone_ng_stamp = -1;
 static int Standalone_ping_stamp = -1;
 static int Standalone_fps_stamp = -1;
 
-static int Standalone_update_flags = 0;
-
-#define STD_UFLAG_DEBUG_STATE		(1<<0)
-#define STD_UFLAG_TITLE				(1<<1)
-#define STD_UFLAG_CONN				(1<<2)
-#define STD_UFLAG_RESET				(1<<3)
-
-#define STD_UFLAG_SERVER_NAME		(1<<4)
-#define STD_UFLAG_HOST_PASS			(1<<5)
-#define STD_UFLAG_SET_PING			(1<<6)
-
-#define STD_UFLAG_FPS				(1<<7)
-#define STD_UFLAG_MISSION_NAME		(1<<8)
-#define STD_UFLAG_MISSION_TIME		(1<<9)
-#define STD_UFLAG_NETGAME_INFO		(1<<10)
-#define STD_UFLAG_MISSION_GOALS		(1<<11)
-
-#define STD_UFLAG_PLAYER_INFO		(1<<12)
-
-#define STD_UFLAG_S_MESSAGE			(1<<13)
-
-#define STD_UFLAG_POPUP				(1<<14)		// DO NOT INCLUDE IN STD_UFLAG_ALL!!
-
-#define STD_UFLAG_GENERAL			(STD_UFLAG_DEBUG_STATE|STD_UFLAG_TITLE|STD_UFLAG_RESET)
-#define STD_UFLAG_TAB_SERVER		(STD_UFLAG_SERVER_NAME|STD_UFLAG_HOST_PASS|STD_UFLAG_CONN|STD_UFLAG_SET_PING)
-#define STD_UFLAG_TAB_MULTI			(STD_UFLAG_FPS|STD_UFLAG_MISSION_NAME|STD_UFLAG_MISSION_TIME|STD_UFLAG_NETGAME_INFO|STD_UFLAG_MISSION_GOALS)
-#define STD_UFLAG_TAB_PLAYER		(STD_UFLAG_PLAYER_INFO)
-#define STD_UFLAG_TAB_GS			(STD_UFLAG_S_MESSAGE)
-
-#define STD_UFLAG_ALL				(STD_UFLAG_GENERAL|STD_UFLAG_TAB_SERVER|STD_UFLAG_TAB_MULTI|STD_UFLAG_TAB_PLAYER|STD_UFLAG_TAB_GS)
-
-
 static lws_context *stand_context = NULL;
+
+static int startup_reset_stamp;
+static struct lws *active_wsi = NULL;
 
 
 static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
@@ -146,7 +124,7 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 
 static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
-	#define MAX_BUF_SIZE	1050
+	#define MAX_BUF_SIZE	1024
 	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + MAX_BUF_SIZE + LWS_SEND_BUFFER_POST_PADDING];
 	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
 	int rval;
@@ -154,311 +132,49 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 	switch (reason) {
 		case LWS_CALLBACK_ESTABLISHED: {
-			std_reset_standalone_gui();
+			if ( timestamp_elapsed(startup_reset_stamp) ) {
+				std_reset_standalone_gui();
+			}
+
+			active_wsi = wsi;
+
+			break;
+		}
+
+		case LWS_CALLBACK_CLOSED: {
+			active_wsi = NULL;
+
+			break;
+		}
+
+		case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION: {
+			if (active_wsi) {
+				return -1;
+			}
 
 			break;
 		}
 
 		case LWS_CALLBACK_SERVER_WRITEABLE: {
-			// RESET: *must* come first
-			if (Standalone_update_flags & STD_UFLAG_RESET) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "reset");
+			while ( !Standalone_send_buf.empty() ) {
+				size = SDL_strlcpy((char *)p, Standalone_send_buf.front().c_str(), MAX_BUF_SIZE);
 
 				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
 
 				if (rval < size) {
-					lwsl_err("ERROR sending reset command!\n");
+					lwsl_err("ERROR sending buffer!\n");
+					lws_close_reason(wsi, LWS_CLOSE_STATUS_UNEXPECTED_CONDITION, (unsigned char *)"write error", 11);
+
 					return -1;
 				}
 
-				Standalone_update_flags &= ~STD_UFLAG_RESET;
+				Standalone_send_buf.pop_front();
 
-				lws_callback_on_writable(wsi);
+				if ( lws_send_pipe_choked(wsi) ) {
+					lws_callback_on_writable(wsi);
 
-				break;
-			}
-
-			// general messages
-			if (Standalone_update_flags & STD_UFLAG_TITLE) {
-				size = SDL_snprintf((char *)p, 64, "T:%s %d.%02d.%02d", XSTR("FreeSpace Standalone", 935), FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending title string!\n");
-					return -1;
+					break;
 				}
-
-				Standalone_update_flags &= ~STD_UFLAG_TITLE;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_DEBUG_STATE) {
-				size = SDL_snprintf((char *)p, 32, "D:%s", Standalone_debug_state.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending debug state!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_DEBUG_STATE;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_POPUP) {
-				if ( !Standalone_popup_title.empty() ) {
-					size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "popup %s;%s;%s", Standalone_popup_title.c_str(), Standalone_popup_field1.c_str(), Standalone_popup_field2.c_str());
-				} else {
-					size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "popup ");
-				}
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending popup!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_POPUP;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			// server tab
-			if (Standalone_update_flags & STD_UFLAG_SERVER_NAME) {
-				size = SDL_snprintf((char *)p, MAX_GAMENAME_LEN, "S:name %s", Netgame.name);
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending server name!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_SERVER_NAME;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_HOST_PASS) {
-				size = SDL_snprintf((char *)p, STD_PASSWD_LEN, "S:pass %s", Multi_options_g.std_passwd);
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending host password!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_HOST_PASS;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_CONN) {
-				std::string conn_str;
-				char ip_address[60];
-
-				conn_str.reserve(1024);
-
-				for (int i = 0; i < MAX_PLAYERS; i++) {
-					net_player *np = &Net_players[i];
-
-					if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
-						conn_str.append(np->player->callsign);
-						conn_str.append(",");
-
-						psnet_addr_to_string(ip_address, SDL_arraysize(ip_address), &np->p_info.addr);
-						conn_str.append(ip_address);
-						conn_str.append(",");
-
-						if (np->s_info.ping.ping_avg > -1) {
-							if (np->s_info.ping.ping_avg >= 1000) {
-								SDL_snprintf(ip_address, SDL_arraysize(ip_address), "%s", XSTR("> 1 sec", 914));
-							} else {
-								SDL_snprintf(ip_address, SDL_arraysize(ip_address), "%d%s", np->s_info.ping.ping_avg, XSTR(" ms", 915));
-							}
-						}
-
-						conn_str.append(";");
-					}
-				}
-
-				SDL_assert(conn_str.length() < 1024);
-
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "S:conn %s", conn_str.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending connetions!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_CONN;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if ( (Standalone_update_flags & STD_UFLAG_SET_PING) && !Standalone_ping_str.empty() ) {
-				SDL_assert(Standalone_ping_str.length() < 1024);
-
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "S:ping %s", Standalone_ping_str.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending conn ping!\n");
-					return -1;
-				}
-
-				Standalone_ping_str.clear();
-				Standalone_update_flags &= ~ STD_UFLAG_SET_PING;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			// multi-player tab
-			if (Standalone_update_flags & STD_UFLAG_MISSION_NAME) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "M:name %s", Standalone_mission_name.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending mission name!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_MISSION_NAME;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_MISSION_TIME) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "M:time %s", Standalone_mission_time.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending mission time!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_MISSION_TIME;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_NETGAME_INFO) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "M:info %s", Standalone_netgame_info.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending netgame info!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_NETGAME_INFO;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if (Standalone_update_flags & STD_UFLAG_FPS) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "M:fps %.1f", Standalone_fps);
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending fps!\n");
-					return -1;
-				}
-
-				Standalone_update_flags &= ~STD_UFLAG_FPS;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			if ( (Standalone_update_flags & STD_UFLAG_MISSION_GOALS) && !Standalone_mission_goals.empty() ) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "M:goal %s", Standalone_mission_goals.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending mission goals!\n");
-					return -1;
-				}
-
-				Standalone_mission_goals.clear();
-				Standalone_update_flags &= ~STD_UFLAG_MISSION_GOALS;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			// player tab
-			if ( (Standalone_update_flags & STD_UFLAG_PLAYER_INFO) && !Standalone_player_info.empty() ) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "P:info %s", Standalone_player_info.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending player info!\n");
-					return -1;
-				}
-
-				Standalone_player_info.clear();
-				Standalone_update_flags &= ~STD_UFLAG_PLAYER_INFO;
-
-				lws_callback_on_writable(wsi);
-
-				break;
-			}
-
-			// god stuff tab
-			if ( (Standalone_update_flags & STD_UFLAG_S_MESSAGE) && !Standalone_message.empty() ) {
-				size = SDL_snprintf((char *)p, MAX_BUF_SIZE, "G:mesg %s", Standalone_message.c_str());
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
-
-				if (rval < size) {
-					lwsl_err("ERROR sending chat message!\n");
-					return -1;
-				}
-
-				Standalone_message.clear();
-				Standalone_update_flags &= ~STD_UFLAG_S_MESSAGE;
-
-				lws_callback_on_writable(wsi);
-
-				break;
 			}
 
 			break;
@@ -471,6 +187,8 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 				if ( !SDL_strcmp(msg, "shutdown") ) {
 					gameseq_post_event(GS_EVENT_QUIT_GAME);
+					lws_close_reason(wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
+
 					return -1;
 				}
 
@@ -608,6 +326,23 @@ static void std_lws_logger(int level, const char *line)
 
 
 
+static void std_add_ws_message(const char *id, const char *val)
+{
+	std::string msg;
+
+	// if no client, and startup stamp elapsed, then don't add more messages
+	if ( (active_wsi == NULL) && timestamp_elapsed(startup_reset_stamp) ) {
+		return;
+	}
+
+	msg.assign(id);
+
+	if (val) {
+		msg.append(val);
+	}
+
+	Standalone_send_buf.push_back(msg);
+}
 
 void std_deinit_standalone()
 {
@@ -651,10 +386,6 @@ void std_init_standalone()
 	info.gid = -1;
 	info.uid = -1;
 
-	info.ka_time = 0;
-	info.ka_probes = 0;
-	info.ka_interval = 0;
-
 	lws_set_log_level(LLL_ERR|LLL_WARN|LLL_NOTICE, std_lws_logger);
 
 	stand_context = lws_create_context(&info);
@@ -669,9 +400,78 @@ void std_init_standalone()
 	Cmdline_freespace_no_sound = 1;
 	Cmdline_freespace_no_music = 1;
 
+	char title[64];
+	SDL_snprintf(title, SDL_arraysize(title), "%s %d.%02d.%02d", XSTR("FreeSpace Standalone", 935), FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
+	Standalone_state.title = title;
+
+	// connections > 5 sec after startup should get gui reset
+	startup_reset_stamp = timestamp(5000);
+
 	std_reset_standalone_gui();
 
 	std_multi_update_netgame_info_controls();
+}
+
+static void std_update_ping_all()
+{
+	std::string ping_upd;
+	char ping_str[10];
+
+	for (int i = 0, idx = 0; i < MAX_PLAYERS; i++) {
+		net_player *np = &Net_players[i];
+
+		if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
+			if (np->s_info.ping.ping_avg > -1) {
+				if (np->s_info.ping.ping_avg >= 1000) {
+					SDL_snprintf(ping_str, SDL_arraysize(ping_str), "%s", XSTR("> 1 sec", 914));
+				} else {
+					SDL_snprintf(ping_str, SDL_arraysize(ping_str), "%d%s", np->s_info.ping.ping_avg, XSTR(" ms", 915));
+				}
+			} else {
+				SDL_zero(ping_str);
+			}
+
+			// append separator if not first
+			if (idx++) {
+				ping_upd.append(",");
+			}
+
+			ping_upd.append(ping_str);
+		}
+	}
+
+	if ( !ping_upd.empty() ) {
+		std_add_ws_message("S:ping ", ping_upd.c_str());
+	}
+}
+
+static void std_update_connections()
+{
+	std::string conn_str;
+	char ip_address[60];
+
+	conn_str.reserve(1024);
+
+	for (int i = 0, idx = 0; i < MAX_PLAYERS; i++) {
+		net_player *np = &Net_players[i];
+
+		if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
+			// append seperator if not first
+			if (idx++) {
+				conn_str.append(";");
+			}
+
+			conn_str.append(np->player->callsign);
+			conn_str.append(",");
+
+			psnet_addr_to_string(ip_address, SDL_arraysize(ip_address), &np->p_info.addr);
+			conn_str.append(ip_address);
+		}
+	}
+
+	SDL_assert(conn_str.length() < 1024);
+
+	std_add_ws_message("S:conn ", conn_str.c_str());
 }
 
 void std_do_gui_frame()
@@ -701,12 +501,13 @@ void std_do_gui_frame()
 	}
 
 	// update connection ping times
-	if ( ((Standalone_ping_stamp == -1) || timestamp_elapsed(Standalone_ping_stamp)) && !Standalone_ping_str.empty() ) {
+	if ( ((Standalone_ping_stamp == -1) || timestamp_elapsed(Standalone_ping_stamp)) ) {
 		Standalone_ping_stamp = timestamp(STD_PING_UPDATE_TIME);
-		Standalone_update_flags |= STD_UFLAG_SET_PING;
+
+		std_update_ping_all();
 	}
 
-	if (Standalone_update_flags) {
+	if ( !Standalone_send_buf.empty() ) {
 		lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);
 	}
 
@@ -715,9 +516,9 @@ void std_do_gui_frame()
 
 void std_debug_set_standalone_state_string(const char *str)
 {
-	Standalone_debug_state = str;
+	Standalone_state.debug_txt = str;
 
-	Standalone_update_flags |= STD_UFLAG_DEBUG_STATE;
+	std_add_ws_message("D:", str);
 }
 
 void std_connect_set_gamename(const char *name)
@@ -733,7 +534,7 @@ void std_connect_set_gamename(const char *name)
 		SDL_strlcpy(Netgame.name, name, SDL_arraysize(Netgame.name));
 	}
 
-	Standalone_update_flags |= STD_UFLAG_SERVER_NAME;
+	std_add_ws_message("S:name ", Netgame.name);
 }
 
 int std_connect_set_connect_count()
@@ -751,7 +552,7 @@ int std_connect_set_connect_count()
 
 void std_add_player(net_player *p)
 {
-	Standalone_update_flags |= STD_UFLAG_CONN;
+	std_update_connections();
 
 	// check to see if this guy is the host
 	std_connect_set_host_connect_status();
@@ -761,7 +562,7 @@ int std_remove_player(net_player *p)
 {
 	int count;
 
-	Standalone_update_flags |= STD_UFLAG_CONN;
+	std_update_connections();
 
 	// update the host connect count
 	std_connect_set_host_connect_status();
@@ -779,36 +580,18 @@ int std_remove_player(net_player *p)
 
 void std_update_player_ping(net_player *p)
 {
-	char ip_address[60];
-
-	if (p->s_info.ping.ping_avg > -1) {
-		psnet_addr_to_string(ip_address, SDL_arraysize(ip_address), &p->p_info.addr);
-
-		// only add it if address isn't already queued up
-		if (Standalone_ping_str.find(ip_address) == std::string::npos) {
-			Standalone_ping_str.append(ip_address);
-
-			if (p->s_info.ping.ping_avg > 1000) {
-				SDL_snprintf(ip_address, SDL_arraysize(ip_address), ",%s;", XSTR("> 1 sec", 914));
-			} else {
-				SDL_snprintf(ip_address, SDL_arraysize(ip_address), ",%d%s;", p->s_info.ping.ping_avg, XSTR(" ms", 915));
-			}
-
-			Standalone_ping_str.append(ip_address);
-		}
-	}
 }
 
 void std_pinfo_display_player_info(net_player *p)
 {
 	char sml_ping[30];
+	std::string pinfo;
 
-	Standalone_player_info.clear();
-	Standalone_player_info.reserve(256);
+	pinfo.reserve(256);
 
 	// ship type
-	Standalone_player_info.append(Ship_info[p->p_info.ship_class].name);
-	Standalone_player_info.append(";");
+	pinfo.append(Ship_info[p->p_info.ship_class].name);
+	pinfo.append(";");
 
 	// avg ping time
 	if (p->s_info.ping.ping_avg > 1000) {
@@ -817,86 +600,87 @@ void std_pinfo_display_player_info(net_player *p)
 		SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d%s", p->s_info.ping.ping_avg, XSTR(" ms", 915));
 	}
 
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(";");
+	pinfo.append(sml_ping);
+	pinfo.append(";");
 
 	scoring_struct *ptr = &p->player->stats;
 
 	// all-time stats
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_fired);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_hit);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_bonehead_hits);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_fired ? (int)(100.0f * ((float)ptr->p_shots_hit / (float)ptr->p_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_fired ? (int)(100.0f * ((float)ptr->p_bonehead_hits / (float)ptr->p_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_fired);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_hit);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_bonehead_hits);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_fired ? (int)(100.0f * ((float)ptr->s_shots_hit / (float)ptr->s_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_fired ? (int)(100.0f * ((float)ptr->s_bonehead_hits / (float)ptr->s_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->assists);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(";");	// <- end of block
+	pinfo.append(sml_ping);
+	pinfo.append(";");	// <- end of block
 
 	// mission stats
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_fired);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_hit);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_bonehead_hits);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_fired ? (int)(100.0f * ((float)ptr->mp_shots_hit / (float)ptr->mp_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_fired ? (int)(100.0f * ((float)ptr->mp_bonehead_hits / (float)ptr->mp_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_fired);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_hit);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_bonehead_hits);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_fired ? (int)(100.0f * ((float)ptr->ms_shots_hit / (float)ptr->ms_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_fired ? (int)(100.0f * ((float)ptr->ms_bonehead_hits / (float)ptr->ms_shots_fired)) : 0);
-	Standalone_player_info.append(sml_ping);
-	Standalone_player_info.append(",");
+	pinfo.append(sml_ping);
+	pinfo.append(",");
 	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->m_assists);
-	Standalone_player_info.append(sml_ping);
+	pinfo.append(sml_ping);
 
-	Standalone_update_flags |= STD_UFLAG_PLAYER_INFO;
+	std_add_ws_message("P:info ", pinfo.c_str());
 }
 
 void std_add_chat_text(const char *text, int player_index, int add_id)
 {
 	char id[32];
+	std::string msg;
 
 	if ( (player_index < 0) || (player_index >= MAX_PLAYERS) ) {
 		return;
@@ -910,13 +694,13 @@ void std_add_chat_text(const char *text, int player_index, int add_id)
 			SDL_snprintf(id, SDL_arraysize(id), "%s: ", Net_players[player_index].player->callsign);
 		}
 
-		Standalone_message.append(id);
+		msg.append(id);
 	}
 
-	Standalone_message.append(text);
-	Standalone_message.append("\n");
+	msg.append(text);
+	msg.append("\n");
 
-	Standalone_update_flags |= STD_UFLAG_S_MESSAGE;
+	std_add_ws_message("G:mesg ", msg.c_str());
 }
 
 void std_reset_timestamps()
@@ -969,8 +753,9 @@ int std_is_host_passwd()
 
 void std_multi_set_standalone_mission_name(const char *mission_name)
 {
-	Standalone_mission_name = mission_name;
-	Standalone_update_flags |= STD_UFLAG_MISSION_NAME;
+	Standalone_state.mission_name = mission_name;
+
+	std_add_ws_message("M:name ", mission_name);
 }
 
 void std_multi_set_standalone_missiontime(float mission_time)
@@ -983,8 +768,9 @@ void std_multi_set_standalone_missiontime(float mission_time)
 	game_format_time(m_time, timestr, SDL_arraysize(timestr));
 	SDL_snprintf(txt, SDL_arraysize(txt), "%s  :  %.1f", timestr, mission_time);
 
-	Standalone_mission_time = txt;
-	Standalone_update_flags |= STD_UFLAG_MISSION_TIME;
+	Standalone_state.mission_time = txt;
+
+	std_add_ws_message("M:time ", txt);
 }
 
 void std_multi_update_netgame_info_controls()
@@ -993,8 +779,9 @@ void std_multi_update_netgame_info_controls()
 
 	SDL_snprintf(nginfo, SDL_arraysize(nginfo), "%d,%d,%d,%d", Netgame.max_players, Netgame.options.max_observers, Netgame.security, Netgame.respawn);
 
-	Standalone_netgame_info = nginfo;
-	Standalone_update_flags |= STD_UFLAG_NETGAME_INFO;
+	Standalone_state.netgame_info = nginfo;
+
+	std_add_ws_message("M:info ", nginfo);
 }
 
 void std_set_standalone_fps(float fps)
@@ -1002,8 +789,9 @@ void std_set_standalone_fps(float fps)
 	if ( (Standalone_fps_stamp == -1) || timestamp_elapsed(Standalone_fps_stamp) ) {
 		Standalone_fps_stamp = timestamp(STD_FPS_UPDATE_TIME);
 
-		Standalone_fps = fps;
-		Standalone_update_flags |= STD_UFLAG_FPS;
+		SDL_snprintf(Standalone_state.rfps, SDL_arraysize(Standalone_state.rfps), "%.1f", fps);
+
+		std_add_ws_message("M:rfps ", Standalone_state.rfps);
 	}
 }
 
@@ -1014,7 +802,7 @@ void std_multi_setup_goal_tree()
 	std::string bonus;
 	std::string status;
 
-	Standalone_mission_goals.clear();
+	Standalone_state.mission_goals.clear();
 
 	for (int i = 0; i < Num_goals; i++) {
 		switch (Mission_goals[i].satisfied) {
@@ -1066,28 +854,28 @@ void std_multi_setup_goal_tree()
 	}
 
 	if ( primary.empty() ) {
-		Standalone_mission_goals.append("i none");
+		Standalone_state.mission_goals.append("i none");
 	} else {
-		Standalone_mission_goals.append(primary.substr(0, primary.size()-1));
+		Standalone_state.mission_goals.append(primary.substr(0, primary.size()-1));
 	}
 
-	Standalone_mission_goals.append(";");
+	Standalone_state.mission_goals.append(";");
 
 	if ( secondary.empty() ) {
-		Standalone_mission_goals.append("i none");
+		Standalone_state.mission_goals.append("i none");
 	} else {
-		Standalone_mission_goals.append(secondary.substr(0, secondary.size()-1));
+		Standalone_state.mission_goals.append(secondary.substr(0, secondary.size()-1));
 	}
 
-	Standalone_mission_goals.append(";");
+	Standalone_state.mission_goals.append(";");
 
 	if ( bonus.empty() ) {
-		Standalone_mission_goals.append("i none");
+		Standalone_state.mission_goals.append("i none");
 	} else {
-		Standalone_mission_goals.append(bonus.substr(0, bonus.size()-1));
+		Standalone_state.mission_goals.append(bonus.substr(0, bonus.size()-1));
 	}
 
-	Standalone_update_flags |= STD_UFLAG_MISSION_GOALS;
+	std_add_ws_message("M:goal ", Standalone_state.mission_goals.c_str());
 }
 
 void std_multi_add_goals()
@@ -1102,60 +890,66 @@ void std_multi_update_goals()
 
 void std_reset_standalone_gui()
 {
-	Standalone_stats_stamp = -1;
-	Standalone_ng_stamp = -1;
-	Standalone_ping_stamp = -1;
-	Standalone_fps_stamp = -1;
+	Standalone_send_buf.clear();
 
-	Standalone_ping_str.clear();
-	Standalone_player_info.clear();
-	Standalone_message.clear();
-	Standalone_pinfo_active_player.clear();
-	Standalone_mission_name = "";
-	Standalone_mission_time = "";
-	Standalone_popup_title.clear();
-	Standalone_popup_field1 = "";
-	Standalone_popup_field2 = "";
+	std_add_ws_message("reset", NULL);
 
+	std_add_ws_message("T: ", Standalone_state.title.c_str());
+
+	std_add_ws_message("S:name ", Netgame.name);
+	std_add_ws_message("S:pass ", Multi_options_g.std_passwd);
+
+	std_update_connections();
 	std_set_standalone_fps(0.0f);
 	std_multi_set_standalone_missiontime(0.0f);
 	std_multi_update_netgame_info_controls();
+	std_reset_timestamps();
 
-	Standalone_update_flags |= STD_UFLAG_ALL;
+	Standalone_pinfo_active_player.clear();
 }
+
 
 void std_create_gen_dialog(const char *title)
 {
-	Standalone_popup_title = title;
+	Standalone_state.popup_title = title;
+
+	Standalone_state.popup_field1 = "";
+	Standalone_state.popup_field2 = "";
 }
 
 void std_destroy_gen_dialog()
 {
-	Standalone_popup_title.clear();
-
-	Standalone_update_flags |= STD_UFLAG_POPUP;
+	std_add_ws_message("popup ", NULL);
 }
 
 void std_gen_set_text(const char *str, int field_num)
 {
+	std::string popup_str;
+
 	switch (field_num) {
 		case 0:
-			Standalone_popup_title = str;
+			Standalone_state.popup_title = str;
 			break;
 
 		case 1:
-			Standalone_popup_field1 = str;
+			Standalone_state.popup_field1 = str;
 			break;
 
 		case 2:
-			Standalone_popup_field2 = str;
+			Standalone_state.popup_field2 = str;
 			break;
 
 		default:
 			break;
 	}
 
-	Standalone_update_flags |= STD_UFLAG_POPUP;
+	popup_str.append(Standalone_state.popup_title);
+	popup_str.append(";");
+	popup_str.append(Standalone_state.popup_field1);
+	popup_str.append(";");
+	popup_str.append(Standalone_state.popup_field2);
+
+	std_add_ws_message("popup ", popup_str.c_str());
 
 	// force ws write since do_frame() may not happen until popup is done
 	lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);

@@ -1188,7 +1188,7 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 			break;
 
 		case LWS_CALLBACK_CLIENT_WRITEABLE: {
-			if ( !wxGetApp().Client().wsGetSendBuffer().empty() ) {
+			while ( !wxGetApp().Client().wsGetSendBuffer().empty() ) {
 				std::string msg = wxGetApp().Client().wsGetSendBuffer().front();
 
 				lwsl_notice("CLIENT_WRITEABLE => msg: %s\n", msg.c_str());
@@ -1203,9 +1203,12 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 
 				wxGetApp().Client().wsGetSendBuffer().pop_front();
 
-				lws_callback_on_writable(wsi);
-			} else lwsl_notice("CLIENT_WRITEABLE <empty>\n");
+				if ( lws_send_pipe_choked(wsi) ) {
+					lws_callback_on_writable(wsi);
 
+					break;
+				}
+			}
 
 			break;
 		}
@@ -1336,12 +1339,6 @@ void Standalone::wsMessage(const char *msg, size_t len)
 
 			size_t n_conn = conns.size();
 
-			// always ends up with empty entry at end
-			if (n_conn > 0) {
-				conns.pop_back();
-				--n_conn;
-			}
-
 			m_S_NumConn->SetLabel( wxString::Format("%u", (unsigned int)n_conn) );
 
 			m_S_Connections->Clear();
@@ -1352,35 +1349,29 @@ void Standalone::wsMessage(const char *msg, size_t len)
 				m_P_Players->Append( m_conn.Item(0) );
 				m_GS_Players->Append( m_conn.Item(0) );
 
-				if ( m_conn.Item(2).IsEmpty() ) {
-					m_S_Connections->AppendText( m_conn.Item(1) );
-				} else {
-					wxString con( m_conn.Item(1) );
-					con.Append(",");
-					con.Append( m_conn.Item(2) );
-
-					m_S_Connections->AppendText( con );
-				}
+				m_S_Connections->AppendText( m_conn.Item(1) + wxT(", ") );
 			}
 		} else if (cmd == "ping") {
-			wxArrayString iplist = wxSplit(msg+7, ';');
+			wxArrayString ping_list = wxSplit(msg+7, ',');
 
-			// always ends up with empty entry at end
-			iplist.pop_back();
+			size_t n_pings = ping_list.size();
 
-			size_t n_addr = iplist.size();
+			size_t offset_pos = 0;
 
-			for (size_t idx = 0; idx < n_addr; idx++) {
-				wxArrayString ip_ping = wxSplit(iplist.Item(idx), ',');
+			for (size_t idx = 0; idx < n_pings; idx++) {
+				size_t from_pos = m_S_Connections->GetValue().find(", ", offset_pos);
 
-				wxString new_ping(ip_ping.Item(0));
-				new_ping.Append(", ");
-				new_ping.Append(ip_ping.Item(1));
+				if (from_pos == wxString::npos) {
+					break;
+				} else {
+					from_pos += 2;
+				}
 
-				long from_pos = m_S_Connections->GetValue().find( ip_ping.Item(0) );
-				long to_pos = m_S_Connections->GetValue().find_first_of("\n", from_pos);
+				size_t to_pos = m_S_Connections->GetValue().find_first_of("\n", from_pos);
 
-				m_S_Connections->Replace(from_pos, to_pos, new_ping);
+				m_S_Connections->Replace(from_pos, to_pos, ping_list.Item(idx));
+
+				offset_pos = to_pos;
 			}
 		}
 	}
@@ -1399,8 +1390,8 @@ void Standalone::wsMessage(const char *msg, size_t len)
 			m_M_ngMaxObservers->SetLabel( ng_info.Item(1) );
 			m_M_ngSecurity->SetLabel( ng_info.Item(2) );
 			m_M_ngRespawns->SetLabel( ng_info.Item(3) );
-		} else if (cmd == "fps ") {
-			m_M_FPSRel->SetLabel(msg+6);
+		} else if (cmd == "rfps") {
+			m_M_FPSRel->SetLabel(msg+7);
 		} else if (cmd == "goal") {
 			wxArrayString objectives = wxSplit(msg+7, ';');
 

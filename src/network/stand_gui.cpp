@@ -1349,7 +1349,7 @@ void Standalone::wsMessage(const char *msg, size_t len)
 				m_P_Players->Append( m_conn.Item(0) );
 				m_GS_Players->Append( m_conn.Item(0) );
 
-				m_S_Connections->AppendText( m_conn.Item(1) + wxT(", ") );
+				m_S_Connections->AppendText( m_conn.Item(1) + wxT(", \n") );
 			}
 		} else if (cmd == "ping") {
 			wxArrayString ping_list = wxSplit(msg+7, ',');

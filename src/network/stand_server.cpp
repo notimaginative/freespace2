@@ -126,11 +126,11 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 	switch (reason) {
 		case LWS_CALLBACK_ESTABLISHED: {
+			active_wsi = wsi;
+
 			if ( timestamp_elapsed(startup_reset_stamp) ) {
 				std_reset_standalone_gui();
 			}
-
-			active_wsi = wsi;
 
 			break;
 		}
@@ -885,7 +885,8 @@ void std_reset_standalone_gui()
 
 	std_add_ws_message("reset", NULL);
 
-	std_add_ws_message("T: ", Standalone_state.title.c_str());
+	std_add_ws_message("T:", Standalone_state.title.c_str());
+	std_add_ws_message("D:", Standalone_state.debug_txt.c_str());
 
 	std_add_ws_message("S:name ", Netgame.name);
 	std_add_ws_message("S:pass ", Multi_options_g.std_passwd);

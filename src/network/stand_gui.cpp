@@ -1360,6 +1360,21 @@ void Standalone::wsDoFrame()
 
 	// if connection is lost attempt reconnect every 2 seconds
 	if ( !wsi_standalone && !(++m_rate_limit % 60) ) {
+		// restart game process if it terminated
+		if ( !wxProcess::Exists(fspid) ) {
+			wxCmdLineArgsArray empty;
+
+			try {
+				startFreeSpace(0, empty);
+			} catch (const char *err) {
+				wxMessageBox(err, "Error!", wxOK|wxICON_ERROR|wxCENTRE|wxSTAY_ON_TOP);
+
+				Shutdown();
+			}
+
+			wxMilliSleep(500);
+		}
+
 		wsi_standalone = lws_client_connect_via_info(&ccinfo);
 		m_rate_limit = 0;
 	}

@@ -16,7 +16,7 @@ find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(LibWebSockets REQUIRED)
 
-find_package(wxWidgets COMPONENTS core base gl)
+find_package(wxWidgets COMPONENTS core base gl net)
 include(${wxWidgets_USE_FILE})
 
 

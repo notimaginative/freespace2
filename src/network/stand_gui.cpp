@@ -18,6 +18,7 @@
 #include "wx/msgdlg.h"
 #include "wx/process.h"
 #include "wx/textfile.h"
+#include "wx/socket.h"
 
 #include "SDL.h"
 
@@ -72,7 +73,7 @@ bool StandaloneApp::OnInit()
 			throw "Unable to initialize WebSocket";
 		}
 	} catch (const char *err) {
-		wxMessageBox(err, "Error!");
+		wxMessageBox(err, "Error!", wxOK|wxICON_ERROR|wxCENTRE|wxSTAY_ON_TOP);
 
 		return false;
 	}
@@ -1165,6 +1166,24 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 		}
 	}
 
+	// test if socket is in use (in case exising instance is running on same port)
+	wxDatagramSocket *sock;
+	wxIPV4address addr;
+
+	addr.AnyAddress();
+	addr.Service( (unsigned short)fsport );
+
+	sock = new wxDatagramSocket(addr);
+
+	bool isok = sock->IsOk();
+
+	sock->Destroy();
+
+	if ( !isok ) {
+		throw "Unable to start FreeSpace\n\nAn instance is already running";
+	}
+
+	// start game executable
 	fspid = wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);
 
 	return (fspid > 0);

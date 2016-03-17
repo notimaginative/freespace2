@@ -1363,6 +1363,9 @@ void Standalone::wsMessage(const char *msg, size_t len)
 			size_t n_pings = ping_list.size();
 
 			size_t offset_pos = 0;
+			long col = 0, row = 0;
+
+			m_S_Connections->PositionToXY(m_S_Connections->GetInsertionPoint(), &col, &row);
 
 			for (size_t idx = 0; idx < n_pings; idx++) {
 				size_t from_pos = m_S_Connections->GetValue().find(", ", offset_pos);
@@ -1379,6 +1382,9 @@ void Standalone::wsMessage(const char *msg, size_t len)
 
 				offset_pos = to_pos;
 			}
+
+			// move intersion point to start of original line (avoids accidental kick)
+			m_S_Connections->SetInsertionPoint( m_S_Connections->XYToPosition(0, row) );
 		}
 	}
 	// multi-player tab

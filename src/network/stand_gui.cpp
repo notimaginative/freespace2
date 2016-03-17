@@ -17,6 +17,9 @@
 #include "wx/utils.h"
 #include "wx/msgdlg.h"
 #include "wx/process.h"
+#include "wx/textfile.h"
+
+#include "SDL.h"
 
 
 // taken from psnet.h and psnet2.h
@@ -28,6 +31,24 @@
 	#define DEFAULT_GAME_PORT 7808
 #endif
 
+// taken from osregistry.cpp
+const char *Osreg_company_name = "Volition";
+#if defined(FS1_DEMO)
+const char *Osreg_title = "FreeSpace Demo";
+#define PROFILE_NAME "FreeSpaceDemo.ini"
+#elif defined(FS2_DEMO)
+const char *Osreg_title = "FreeSpace 2 Demo";
+#define PROFILE_NAME "FreeSpace2Demo.ini"
+#elif defined(OEM_BUILD)
+const char *Osreg_title = "FreeSpace 2 OEM";
+#define PROFILE_NAME "FreeSpace2OEM.ini"
+#elif defined(MAKE_FS1)
+const char *Osreg_title = "FreeSpace";
+#define PROFILE_NAME "FreeSpace.ini"
+#else
+const char *Osreg_title = "FreeSpace 2";
+#define PROFILE_NAME "FreeSpace2.ini"
+#endif
 
 
 IMPLEMENT_APP(StandaloneApp)
@@ -1079,6 +1100,7 @@ void Standalone::createTab_Debug(wxNotebook* parent)
 bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 {
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
+	bool cmd_port = false;
 
 #ifdef MAKE_FS1
 	epath.Append( wxT("freespace") );
@@ -1102,10 +1124,45 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 		// check if -port argument and set var
 		if ( arg.IsSameAs( wxT("-port"), false) && (argc > i+1) ) {
 			fsport = wxAtoi(argv[i+1]);
+			cmd_port = true;
 		}
 
 		epath.Append( wxT(" ") );
 		epath.Append(arg);
+	}
+
+	// if port isn't specified on cmdline, check ini file for "ForcePort" value
+	if ( !cmd_port ) {
+		char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+
+		if (u_path) {
+			wxFileName ini_name(u_path, PROFILE_NAME);
+			wxTextFile fs_ini( ini_name.GetFullPath() );
+
+			if ( fs_ini.Open() ) {
+				wxString line;
+
+				for (line = fs_ini.GetLastLine(); fs_ini.GetCurrentLine() > 0; line = fs_ini.GetPrevLine()) {
+					wxArrayString chk = wxSplit(line, '=');
+
+					if (chk.GetCount() == 2) {
+						if (chk.Item(0) == "ForcePort") {
+							int port = wxAtoi( chk.Item(1) );
+
+							if (port > 0) {
+								fsport = port;
+							}
+
+							break;
+						}
+					}
+				}
+
+				fs_ini.Close();
+			}
+
+			SDL_free(u_path);
+		}
 	}
 
 	fspid = wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);

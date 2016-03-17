@@ -187,6 +187,7 @@ add_executable(${STANDALONE_BINARY}
 
 target_link_libraries(
   ${STANDALONE_BINARY}
+  ${SDL2_LIBRARY}
   ${wxWidgets_LIBRARIES}
   ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}

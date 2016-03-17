@@ -223,13 +223,19 @@ void Standalone::OnKick( wxCommandEvent& WXUNUSED(event) )
 {
 	std::string msg("S:kick ");
 
-	wxString id = m_S_Connections->GetStringSelection();
+	long col, row;
 
-	if ( id.IsEmpty() ) {
+	if ( !m_S_Connections->PositionToXY(m_S_Connections->GetInsertionPoint(), &col, &row) ) {
 		return;
 	}
 
-	wxArrayString ipaddr = wxSplit(id, ',');
+	wxString line = m_S_Connections->GetLineText(row);
+
+	if ( line.IsEmpty() ) {
+		return;
+	}
+
+	wxArrayString ipaddr = wxSplit(line, ',');
 
 	msg.append( ipaddr.Item(0).c_str() );
 

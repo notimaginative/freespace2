@@ -40,18 +40,12 @@ struct std_state {
 	std::string popup_field1;
 	std::string popup_field2;
 
-	std::string mission_name;
-	std::string mission_time;
-	std::string mission_goals;
-	std::string netgame_info;
-	char rfps[10];
+	std::string active_player;
 };
 
 static std_state Standalone_state;
 
 static std::list<std::string> Standalone_send_buf;
-
-static std::string Standalone_pinfo_active_player;
 
 
 #define STANDALONE_MAX_BAN		50
@@ -245,7 +239,7 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 								if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
 									if ( !SDL_strcmp(msg+7, np->player->callsign) ) {
-										Standalone_pinfo_active_player = msg+7;
+										Standalone_state.active_player = msg+7;
 										std_pinfo_display_player_info(np);
 
 										break;
@@ -254,7 +248,7 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 							}
 
 							if (i == MAX_PLAYERS) {
-								Standalone_pinfo_active_player.clear();
+								Standalone_state.active_player.clear();
 							}
 						}
 					}
@@ -479,14 +473,14 @@ static void std_update_connections()
 void std_do_gui_frame()
 {
 	// maybe update selected player stats
-	if ( ((Standalone_stats_stamp == -1) || timestamp_elapsed(Standalone_stats_stamp)) && !Standalone_pinfo_active_player.empty() ) {
+	if ( ((Standalone_stats_stamp == -1) || timestamp_elapsed(Standalone_stats_stamp)) && !Standalone_state.active_player.empty() ) {
 		Standalone_stats_stamp = timestamp(STD_STATS_UPDATE_TIME);
 
 		for (int i = 0; i < MAX_PLAYERS; i++) {
 			net_player *np = &Net_players[i];
 
 			if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
-				if ( !SDL_strcmp(Standalone_pinfo_active_player.c_str(), np->player->callsign) ) {
+				if ( !SDL_strcmp(Standalone_state.active_player.c_str(), np->player->callsign) ) {
 					std_pinfo_display_player_info(np);
 
 					break;
@@ -755,8 +749,6 @@ int std_is_host_passwd()
 
 void std_multi_set_standalone_mission_name(const char *mission_name)
 {
-	Standalone_state.mission_name = mission_name;
-
 	std_add_ws_message("M:name ", mission_name);
 }
 
@@ -770,8 +762,6 @@ void std_multi_set_standalone_missiontime(float mission_time)
 	game_format_time(m_time, timestr, SDL_arraysize(timestr));
 	SDL_snprintf(txt, SDL_arraysize(txt), "%s  :  %.1f", timestr, mission_time);
 
-	Standalone_state.mission_time = txt;
-
 	std_add_ws_message("M:time ", txt);
 }
 
@@ -781,8 +771,6 @@ void std_multi_update_netgame_info_controls()
 
 	SDL_snprintf(nginfo, SDL_arraysize(nginfo), "%d,%d,%d,%d", Netgame.max_players, Netgame.options.max_observers, Netgame.security, Netgame.respawn);
 
-	Standalone_state.netgame_info = nginfo;
-
 	std_add_ws_message("M:info ", nginfo);
 }
 
@@ -791,20 +779,21 @@ void std_set_standalone_fps(float fps)
 	if ( (Standalone_fps_stamp == -1) || timestamp_elapsed(Standalone_fps_stamp) ) {
 		Standalone_fps_stamp = timestamp(STD_FPS_UPDATE_TIME);
 
-		SDL_snprintf(Standalone_state.rfps, SDL_arraysize(Standalone_state.rfps), "%.1f", fps);
+		char rfps[10];
 
-		std_add_ws_message("M:rfps ", Standalone_state.rfps);
+		SDL_snprintf(rfps, SDL_arraysize(rfps), "%.1f", fps);
+
+		std_add_ws_message("M:rfps ", rfps);
 	}
 }
 
 void std_multi_setup_goal_tree()
 {
+	std::string mission_goals;
 	std::string primary;
 	std::string secondary;
 	std::string bonus;
 	std::string status;
-
-	Standalone_state.mission_goals.clear();
 
 	for (int i = 0; i < Num_goals; i++) {
 		switch (Mission_goals[i].satisfied) {
@@ -856,28 +845,28 @@ void std_multi_setup_goal_tree()
 	}
 
 	if ( primary.empty() ) {
-		Standalone_state.mission_goals.append("i none");
+		mission_goals.append("i none");
 	} else {
-		Standalone_state.mission_goals.append(primary.substr(0, primary.size()-1));
+		mission_goals.append(primary.substr(0, primary.size()-1));
 	}
 
-	Standalone_state.mission_goals.append(";");
+	mission_goals.append(";");
 
 	if ( secondary.empty() ) {
-		Standalone_state.mission_goals.append("i none");
+		mission_goals.append("i none");
 	} else {
-		Standalone_state.mission_goals.append(secondary.substr(0, secondary.size()-1));
+		mission_goals.append(secondary.substr(0, secondary.size()-1));
 	}
 
-	Standalone_state.mission_goals.append(";");
+	mission_goals.append(";");
 
 	if ( bonus.empty() ) {
-		Standalone_state.mission_goals.append("i none");
+		mission_goals.append("i none");
 	} else {
-		Standalone_state.mission_goals.append(bonus.substr(0, bonus.size()-1));
+		mission_goals.append(bonus.substr(0, bonus.size()-1));
 	}
 
-	std_add_ws_message("M:goal ", Standalone_state.mission_goals.c_str());
+	std_add_ws_message("M:goal ", mission_goals.c_str());
 }
 
 void std_multi_add_goals()
@@ -905,9 +894,13 @@ void std_reset_standalone_gui()
 	std_set_standalone_fps(0.0f);
 	std_multi_set_standalone_missiontime(0.0f);
 	std_multi_update_netgame_info_controls();
-	std_reset_timestamps();
 
-	Standalone_pinfo_active_player.clear();
+	Standalone_fps_stamp = -1;
+	Standalone_ng_stamp = -1;
+	Standalone_ping_stamp = -1;
+	Standalone_stats_stamp = -1;
+
+	Standalone_state.active_player.clear();
 }
 
 

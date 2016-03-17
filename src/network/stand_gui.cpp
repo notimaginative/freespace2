@@ -1255,17 +1255,14 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 
 	switch (reason) {
 		case LWS_CALLBACK_CLIENT_ESTABLISHED:
-			lwsl_notice("CLIENT_ESTABLISHED\n");
 			lws_callback_on_writable(wsi);
 			break;
 
 		case LWS_CALLBACK_CLOSED:
-			lwsl_notice("CLOSED\n");
 			wxGetApp().Client().wsDisconnect();
 			break;
 
 		case LWS_CALLBACK_CLIENT_RECEIVE:
-			lwsl_notice("CLIENT_RECEIVE => in: %s, len: %lu\n", in ? (char*)in : "nul", len);
 			wxGetApp().Client().wsMessage( (const char *)in, len );
 			break;
 
@@ -1273,7 +1270,6 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 			while ( !wxGetApp().Client().wsGetSendBuffer().empty() ) {
 				std::string msg = wxGetApp().Client().wsGetSendBuffer().front();
 
-				lwsl_notice("CLIENT_WRITEABLE => msg: %s\n", msg.c_str());
 				size = wxStrlcpy((char *)p, msg.c_str(), MAX_BUF_SIZE);
 
 				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
@@ -1296,7 +1292,6 @@ static int callback_standalone_client(struct lws *wsi, enum lws_callback_reasons
 		}
 
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-			lwsl_notice("CONNECTION_ERROR\n");
 			wxGetApp().Client().wsDisconnect();
 			break;
 
@@ -1384,7 +1379,6 @@ void Standalone::wsDoFrame()
 
 void Standalone::wsDisconnect()
 {
-	lwsl_notice("disconnect!\n");
 	wsi_standalone = NULL;
 }
 

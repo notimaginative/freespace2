@@ -550,6 +550,9 @@ void std_add_player(net_player *p)
 {
 	std_update_connections();
 
+	// clear active player, client should reset if needed
+	Standalone_state.active_player.clear();
+
 	// check to see if this guy is the host
 	std_connect_set_host_connect_status();
 }
@@ -559,6 +562,9 @@ int std_remove_player(net_player *p)
 	int count;
 
 	std_update_connections();
+
+	// clear active player, client should reset if needed
+	Standalone_state.active_player.clear();
 
 	// update the host connect count
 	std_connect_set_host_connect_status();

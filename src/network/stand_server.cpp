@@ -26,6 +26,7 @@
 #include "multi_kick.h"
 #include "multi_fstracker.h"
 #include "osregistry.h"
+#include "standalone_html.h"
 
 #include <libwebsockets.h>
 #include <string>
@@ -69,7 +70,14 @@ static struct lws *active_wsi = NULL;
 
 static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
+	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + standalone_html_len + LWS_SEND_BUFFER_POST_PADDING];
+	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
+	unsigned char *start = p;
+	unsigned char *end = p + standalone_html_len;
 	bool try_reuse = false;
+	int rval;
+	int size;
+	static unsigned int sent = 0;
 
 	switch (reason) {
 		case LWS_CALLBACK_HTTP: {
@@ -80,11 +88,50 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 				break;
 			}
 
-			int	ret = lws_serve_http_file(wsi, "./standalone.html", "text/html", NULL, 0);
+#ifndef NDEBUG
+			FILE *html = fopen("./standalone.html", "rb");
 
-			if ( (ret < 0) || ((ret > 0) && lws_http_transaction_completed(wsi)) ) {
-				// error or can't reuse connection, close the socket
-				return -1;
+			if (html) {
+				fclose(html);
+
+				rval = lws_serve_http_file(wsi, "./standalone.html", "text/html", NULL, 0);
+
+				if ( (rval < 0) || ((rval > 0) && lws_http_transaction_completed(wsi)) ) {
+					// error or can't reuse connection, close the socket
+					return -1;
+				}
+			} else
+#endif
+			{
+				if ( lws_add_http_header_status(wsi, 200, &p, end) ) {
+					return 1;
+				}
+
+				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_SERVER, (unsigned char *)"libwebsockets", 13, &p, end) ) {
+					return 1;
+				}
+
+				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_TYPE, (unsigned char *)"text/html", 9, &p, end) ) {
+					return 1;
+				}
+
+				if ( lws_add_http_header_content_length(wsi, standalone_html_len, &p, end) ) {
+					return 1;
+				}
+
+				if ( lws_finalize_http_header(wsi, &p, end) ) {
+					return 1;
+				}
+
+				rval = lws_write(wsi, start, p - start, LWS_WRITE_HTTP_HEADERS);
+
+				if (rval != (p - start)) {
+					return -1;
+				}
+
+				sent = 0;
+
+				lws_callback_on_writable(wsi);
 			}
 
 			break;
@@ -98,6 +145,43 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 		}
 
 		case LWS_CALLBACK_HTTP_FILE_COMPLETION: {
+			try_reuse = true;
+
+			break;
+		}
+
+		case LWS_CALLBACK_HTTP_WRITEABLE: {
+			while ( !lws_send_pipe_choked(wsi) && (sent < standalone_html_len) ) {
+				size = standalone_html_len - sent;
+
+				int pwa = lws_get_peer_write_allowance(wsi);
+
+				if (pwa == 0) {
+					lws_callback_on_writable(wsi);
+
+					break;
+				}
+
+				if ( (pwa != -1) && (pwa < size) ) {
+					size = pwa;
+				}
+
+				memcpy(p, standalone_html + sent, size);
+
+				rval = lws_write(wsi, p, size, LWS_WRITE_HTTP);
+
+				if (rval < 0) {
+					return -1;
+				}
+
+				if (rval) {
+					// while still active, extent timeout
+					lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);
+				}
+
+				sent += rval;
+			}
+
 			try_reuse = true;
 
 			break;

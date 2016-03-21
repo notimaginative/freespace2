@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" http-equiv="Content-Language" content="en"/>
+<title>FreeSpace Standalone</title>
+
+<script>
+var std = new WebSocket("ws://" + document.URL.substr(7).split('/')[0], "standalone");
+
+try {
+	std.onclose = function(event) {
+		if (event.code == 1006) {
+			popup("Connection Error;Connection rejected by server;")
+		} else {
+			document.getElementById("dbg").textContent = "socket closed: " + event.code;
+		}
+	};
+
+	std.onmessage = function(msg) {
+		if (msg.data == "reset") {
+			reset_ui();
+		} else if (msg.data.substring(0, 6) == "popup ") {
+			popup(msg.data.substr(6));
+		} else if (msg.data[0] == 'D') {
+			document.getElementById("dbg").textContent = msg.data.substr(2);
+		} else if (msg.data[0] == 'T') {
+			document.title = msg.data.substr(2);
+		} else if (msg.data[0] == 'S') {
+			do_server_tab(msg.data.substr(2));
+		} else if (msg.data[0] == 'M') {
+			do_multi_tab(msg.data.substr(2));
+		} else if (msg.data[0] == 'P') {
+			do_player_tab(msg.data.substr(2));
+		} else if (msg.data[0] == 'G') {
+			do_gs_tab(msg.data.substr(2));
+		}
+	};
+} catch (exception) {
+	alert('<p>Error ' + exception);
+}
+
+function shutdown() {
+	std.send("shutdown");
+	std.close();
+	reset_ui();
+	popup("Shutdown;Shutdown complete;");
+}
+
+function popup(msg) {
+	var modal = document.getElementById("pop");
+	var content = [ document.getElementById("pop-t"), document.getElementById("pop-1"), document.getElementById("pop-2") ];
+	var x;
+
+	if (msg.length) {
+		var fields = msg.split(';');
+
+		for (x = 0; x < fields.length; x++) {
+			content[x].textContent = fields[x];
+		}
+
+		modal.style.display = "block";
+	} else {
+		modal.style.display = "none";
+	}
+}
+
+function reset_ui() {
+	var table;
+	var len;
+	var j;
+
+	/* hide popup */
+	document.getElementById("pop").style.display = "none";
+
+	/* server tab */
+	document.getElementById("s_ncon").textContent = "0";
+	table = document.getElementById("s_conn");
+	len = table.rows.length;
+
+	for (j = 1; j < len; j++) {
+		table.rows[j].onclick = '';
+		table.rows[j].cells[0].innerHTML = '&nbsp;';
+		table.rows[j].cells[1].innerHTML = "";
+	}
+
+	/* multi-player tab */
+	document.getElementById("fps_rel").textContent = "0.0";
+	document.getElementById("m_name").textContent = "";
+	document.getElementById("m_time").textContent = "";
+
+	document.getElementById("m_ng_p").textContent = "";
+	document.getElementById("m_ng_o").textContent = "";
+	document.getElementById("m_ng_s").textContent = "";
+	document.getElementById("m_ng_r").textContent = "";
+
+	table = document.getElementById("m_g");
+	len = table.rows.length;
+
+	for (j = 1; j < len; j++) {
+		var cell = table.rows[j].cells[0];
+
+		if (cell.childNodes.length > 1) {
+			cell.removeChild(cell.childNodes[1]);
+		}
+	}
+
+	/* player info tab */
+	document.getElementById("p_p").selectedIndex = -1;
+	document.getElementById("p_s_t").textContent = "";
+	document.getElementById("p_ping").textContent = "";
+
+	table = document.getElementById("p_s");
+	len = table.rows.length;
+
+	for (j = 1; j < len; j++) {
+		table.rows[j].cells[1].innerHTML = "";
+		table.rows[j].cells[2].innerHTML = "";
+	}
+
+	/* gs tab */
+	document.getElementById("g_p").selectedIndex = -1;
+	document.getElementById("g_b").value = "";
+}
+
+function do_server_tab(msg) {
+	var table;
+	var row;
+	var j;
+	var len;
+
+	if (msg.substring(0, 5) == "name ") {
+		document.getElementById("s_name").value = msg.substr(5);
+	} else if (msg.substring(0, 5) == "pass ") {
+		document.getElementById("s_pass").value = msg.substr(5);
+	} else if (msg.substring(0, 5) == "ping ") {
+		table = document.getElementById("s_conn");
+		var ping_list = msg.substr(5).split(',', 12);
+		len = ping_list.length;
+
+		for (j = 0; j < len; j++) {
+			table.rows[j+1].cells[1].innerHTML = ping_list[j];
+		}
+	} else if (msg.substring(0, 5) == "conn ") {
+		table = document.getElementById("s_conn");
+		var players = document.getElementById("p_p");
+		var cur_player;
+		var new_index = -1;
+		var gs_players = document.getElementById("g_p");
+		var connections = msg.substr(5).split(';', 12);
+
+		/* save currently selected player to restore later */
+		if (players.selectedIndex != -1) {
+			cur_player = players.value;
+		}
+
+		while (players.options.length) {
+			players.remove(0);
+			gs_players.remove(0);
+		}
+
+		/* new connections */
+		len = connections.length;
+
+		document.getElementById("s_ncon").textContent = len;
+
+		for (j = 0; j < len; j++) {
+			var conn = connections[j].split(',');
+			row = table.rows[j+1];
+
+			var option = document.createElement("option");
+			option.text = conn[0];
+			gs_players.add(option);
+
+			option = document.createElement("option");
+			option.text = conn[0];
+			players.add(option);
+
+			/* maybe reselect player */
+			if ( Boolean(cur_player) && conn[0] == cur_player ) {
+				new_index = j;
+			}
+
+			row.cells[0].innerHTML = conn[1];
+
+			row.onclick = function() { kick_conn(conn[0], conn[1]); };
+		}
+
+		len = table.rows.length;
+
+		for (j = j+1; j < len; j++) {
+			row = table.rows[j];
+
+			row.onclick = '';
+			row.cells[0].innerHTML = "&nbsp;"
+			row.cells[1].innerHTML = "";
+		}
+	
+		gs_players.selectedIndex = -1;
+		players.selectedIndex = new_index;
+
+		if (new_index != -1) {
+			players.value = cur_player;
+		}
+
+		/* re-request player info, or reset values */
+		get_pinfo();
+	}
+}
+
+function do_multi_tab(msg) {
+	if (msg.substring(0, 5) == "rfps ") {
+		document.getElementById("fps_rel").textContent = msg.substr(4);
+	} else if (msg.substring(0, 5) == "name ") {
+		document.getElementById("m_name").textContent = msg.substr(5);
+	} else if (msg.substring(0, 5) == "time ") {
+		document.getElementById("m_time").textContent = msg.substr(5);
+	} else if (msg.substring(0, 5) == "info ") {
+		var nginfo = msg.substr(5).split(',');
+		document.getElementById("m_ng_p").textContent = nginfo[0];
+		document.getElementById("m_ng_o").textContent = nginfo[1];
+		document.getElementById("m_ng_s").textContent = nginfo[2];
+		document.getElementById("m_ng_r").textContent = nginfo[3];
+	} else if (msg.substring(0, 5) == "goal ") {
+		var objectives = msg.substr(5).split(';');
+		var gtable = document.getElementById("m_g");
+		var j;
+		var j_len;
+		var x;
+		var x_len;
+
+		j_len = objectives.length;
+
+		for (j = 0; j < j_len; j++) {
+			var goals = objectives[j].split(',');
+			var cell = gtable.rows[j+1].cells[0];
+
+			if (cell.childNodes.length > 1) {
+				cell.removeChild(cell.childNodes[1]);
+			}
+
+			var list = document.createElement("ul");
+ 
+			x_len = goals.length;
+
+			for (x = 0; x < x_len; x++) {
+				var item = document.createElement("li");
+				item.innerHTML = goals[x].substr(2);
+
+				var status = goals[x].substring(0, 2);
+				if (status == "c ") {
+					item.style.color = "green";
+				} else if (status == "f ") {
+					item.style.color = "red";
+				} else {
+					item.style.color = "#555";
+				}
+
+				list.appendChild(item);
+			}
+
+			cell.appendChild(list);
+		}
+	}
+}
+
+function do_player_tab(msg) {
+	if (msg.substring(0, 5) == "info ") {
+		var pinfo = msg.substr(5).split(';');
+
+		document.getElementById("p_s_t").textContent = pinfo[0];
+		document.getElementById("p_ping").textContent = pinfo[1];
+
+		var all_stats = pinfo[2].split(',');
+		var mission_stats = pinfo[3].split(',');
+		var table = document.getElementById("p_s");
+		var j;
+		var len = table.rows.length;
+
+		for (j = 0; j < len; j++) {
+			var row = table.rows[j+1];
+
+			row.cells[1].innerHTML = all_stats[j];
+			row.cells[2].innerHTML = mission_stats[j];
+		}
+	}
+}
+
+function do_gs_tab(msg) {
+	if (msg.substring(0, 5) == "mesg ") {
+		document.getElementById("g_b").value += msg.substr(5);
+	}
+}
+
+function change_s_name() {
+	std.send("S:name " + document.getElementById("s_name").value);
+}
+
+function change_s_pass() {
+	std.send("S:pass " + document.getElementById("s_pass").value);
+}
+
+function kick_conn(name, addr) {
+	var kick = confirm("Kick player? \n\n" + name + "@" + addr);
+
+	if (kick) {
+		std.send("S:kick " + addr);
+	}
+}
+
+function send_smsg() {
+	var smsg = document.getElementById("g_m");
+	std.send("G:smsg " + smsg.value);
+	smsg.value = "";
+}
+
+function mrefresh() {
+	std.send("G:mrefresh");
+}
+
+function switch_tab(tab) {
+	var tabbox = document.getElementById("tab-box");
+	var nav = document.getElementById("nav");
+	var x;
+
+	for (x = 0; x < 4; x++) {
+		if (tab == x) {
+			nav.children[x].children[0].className = "active";
+			tabbox.children[x].className = "tab-visible";
+		} else {
+			nav.children[x].children[0].className = '';
+			tabbox.children[x].className = "tab-hidden";
+		}
+	}
+}
+
+function smsg_submit(e) {
+	e = e || window.event;
+
+	if (e.keyCode == 13) {
+		document.getElementById("g_s").click();
+		return false;
+	}
+
+	return true;
+}
+
+function get_pinfo() {
+	var players = document.getElementById("p_p");
+
+	if (players.selectedIndex != -1) {
+		std.send("P:info " + players.value);
+	} else {
+		document.getElementById("p_s_t").textContent = "";
+		document.getElementById("p_ping").textContent = "";
+
+		var table = document.getElementById("p_s");
+		var len = table.rows.length;
+
+		for (var j = 1; j < len; j++) {
+			table.rows[j].cells[1].innerHTML = "";
+			table.rows[j].cells[2].innerHTML = "";
+		}
+	}
+}
+
+function set_fps() {
+	var fps = document.getElementById("m_fps").value;
+	document.getElementById("fps_connap").textContent = fps;
+
+	std.send("M:fps " + fps);
+}
+</script>
+
+<style type="text/css">
+body {
+	font-family: Arial, Helvetica, sans-serif
+}
+
+.container {
+	width: 35em;
+	margin: 0 auto
+}
+
+.tab-box {
+	background-color: #ddd;
+	padding: 10px 25px
+}
+
+.tab-hidden {
+	display: none
+}
+
+.tab-visible {
+	display: inline-block;
+	width: 100%
+}
+
+.button {
+	border: none;
+	border-radius: 4px;
+	background-color: #444;
+	color: #eee;
+	padding: 5px 10px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 14px;
+	cursor: pointer
+}
+
+.button:hover {
+	background-color: #111;
+	color: #fff
+}
+
+#nav {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #3a3a3a
+}
+
+#nav li {
+	float: left
+}
+
+#nav a {
+	display: inline-block;
+	color: #e2e2e2;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	transition: .3s;
+	font-size: 17px;
+	cursor: pointer;
+	outline: 0
+}
+
+a:hover,
+#nav a.active {
+	background-color: #111;
+	color: #fff
+}
+
+#nav li.shutdown {
+	float: right;
+	padding-left: 30px
+}
+
+#nav li.shutdown a {
+	background-color: #8b0000
+}
+
+#nav li.shutdown a:hover {
+	background-color: red;
+	color: #fff
+}
+
+#dbg {
+	font-size: smaller;
+	color: #696969;
+	float: right;
+	padding: 2px 4px
+}
+
+#s_name,
+#s_pass {
+	width: 20em;
+	border: none;
+	padding: 5px 10px
+}
+
+#s_conn,
+#p_s {
+	border: 1px solid #444;
+	border-spacing: 0;
+	border-collapse: collapse;
+	width: 100%;
+	min-height: 13em
+}
+
+#s_conn th,
+#p_s th {
+	background-color: #444;
+	color: #fff;
+	padding: 5px 10px;
+	text-align: left;
+	font-size: small
+}
+
+#s_conn td,
+#p_s td {
+	padding: 5px 15px;
+	text-align: left;
+	font-family: Courier New, Courier, monospace;
+	font-size: small
+}
+
+#s_conn tr:nth-child(odd),
+#p_s tr:nth-child(odd) {
+	background-color: #d5d5d5
+}
+
+#s_conn tr:hover,
+#s_conn tr:hover:nth-child(odd) {
+	background-color: #eaeaea
+}
+
+table.s_n_p td {
+	padding: 5px 0
+}
+
+table.s_n_p label {
+	padding-right: 10px
+}
+
+#g_m {
+	margin-top: 10px;
+	padding: 5px 10px;
+	border: none;
+	width: 100%;
+	box-sizing: border-box
+}
+
+div.players {
+	margin-top: 10px;
+	margin-bottom: 30px
+}
+
+.players select,
+.players option {
+	min-width: 20em;
+	padding: 2px 8px;
+	margin-left: 10px
+}
+
+#g_b {
+	width: 100%;
+	box-sizing: border-box;
+	resize: none;
+	background-color: #fff;
+	border: 1px solid #bbb;
+	border-radius: 2px
+}
+
+.inf {
+	margin-bottom: 30px;
+	border: none;
+	border-collapse: collapse
+}
+
+.inf td {
+	padding: 5px 0
+}
+
+.inf span {
+	font-family: Courier New, Courier, monospace;
+	font-size: small;
+	padding: 5px 10px;
+	min-width: 12em;
+	margin-left: 10px
+}
+
+.m_f {
+	display: inline-block;
+	width: 100%;
+	margin-bottom: 20px
+}
+
+.m_f span {
+	font-family: Courier New, Courier, monospace;
+	padding: 5px 0 5px 10px
+}
+
+#m_fps {
+	width: 100%;
+	margin: 10px 0;
+	box-sizing: border-box
+}
+
+.m_fc {
+	display: block;
+	float: left
+}
+
+.m_fr {
+	display: block;
+	float: right
+}
+
+#m_g,
+.m_i {
+	border: none;
+	border-collapse: collapse;
+	display: inline-block
+}
+
+.m_i {
+	float: right
+}
+
+#m_g {
+	float: left;
+	min-width: 15em;
+	min-height: 17em;
+	background-color: #fff;
+	margin-bottom: 15px
+}
+
+#m_g th,
+.m_i th {
+	padding: 5px;
+	text-align: left
+}
+
+.m_i th {
+	border-bottom: 1px solid #444
+}
+
+#m_g th {
+	background-color: #ddd;
+	width: 15em
+}
+
+#m_g td,
+.m_i td {
+	padding: 5px 10px;
+	font-size: small
+}
+
+#m_g ul {
+	padding: 0 1.5em;
+	margin: 0
+}
+
+#pop {
+	display: none;
+	position: fixed;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: #000;
+	background-color: rgba(0, 0, 0, .4)
+}
+
+.pop-c {
+	background-color: #fefefe;
+	margin: 10em auto;
+	border: 2px solid #111;
+	width: 25em
+}
+
+#pop-t {
+	background-color: #444;
+	color: #fff;
+	padding: 10px;
+	font-weight: 700
+}
+
+.pop-b {
+	padding: 20px;
+	margin-top: 2em;
+	height: 4em
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+	<ul id="nav">
+		<li><a onclick="switch_tab(0);" href="javascript:void(0);" class="active">Server</a></li>
+		<li><a onclick="switch_tab(1);" href="javascript:void(0);">Multi-Player</a></li>
+		<li><a onclick="switch_tab(2);" href="javascript:void(0);">Player Info</a></li>
+		<li><a onclick="switch_tab(3);" href="javascript:void(0);">God Stuff</a></li>
+		<li class="shutdown"><a onclick="shutdown();" href="javascript:void(0);">Shutdown</a></li>
+	</ul>
+
+	<div class="tab-box" id="tab-box">
+		<!-- server tab -->
+		<div class="tab-visible">
+			<table class="s_n_p">
+				<tr><td><label for="s_name">Server Name </label></td><td><input id="s_name" type="text" value="" maxlength="31" onchange="change_s_name();"></td></tr>
+				<tr><td><label for="s_pass">Host Password </label></td><td><input id="s_pass" type="text" value="" maxlength="15" onchange="change_s_pass();"></td></tr>
+			</table>
+			<hr>
+			<p>Connections : <span id="s_ncon">0</span></p>
+			<p>
+				<table id="s_conn">
+					<tr><th style="min-width:20em;">IP Address</th><th style="min-width:6em;">Ping</th></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+					<tr><td>&nbsp;</td><td></td></tr>
+				</table>
+			</p>
+		</div>
+
+		<!-- multi-player tab -->
+		<div class="tab-hidden">
+			<div class="m_f">
+				<input type="range" id="m_fps" min="15" max="60" value="30" step="1" oninput="set_fps();">
+				<div class="m_fc">
+					Frame Cap: <span id="fps_connap">30</span>
+				</div>
+				<div class="m_fr">
+					Realiazed FPS: <span id="fps_rel">0.0</span>
+				</div>
+			</div>
+			<hr>
+			<table class="inf">
+				<tr><td>Mission Name: </td><td><span id="m_name"></span></td></tr>
+				<tr><td>Mission Time: </td><td><span id="m_time"></span></td></tr>
+			</table>
+			<table id="m_g">
+				<tr><th>Mission Goals</th></tr>
+				<tr><td>Primary Objectives</td></tr>
+				<tr><td>Secondary Objectives</td></tr>
+				<tr><td>Bonus Objectives</td></tr>
+			</table>
+			<table class="m_i">
+				<tr><th colspan="2">Netgame Information</th></tr>
+				<tr><td>Max Players</td><td><span id="m_ng_p"></span></td></tr>
+				<tr><td>Max Observers</td><td><span id="m_ng_o"></span></td></tr>
+				<tr><td>Security</td><td><span id="m_ng_s"></span></td></tr>
+				<tr><td>Respawns</td><td><span id="m_ng_r"></span></td></tr>
+			</table>
+		</div>
+
+		<!-- player tab -->
+		<div class="tab-hidden">
+			<div class="players">
+				<label for="p_p">Player</label>
+				<select id="p_p" onchange="get_pinfo();">
+				</select>
+			</div>
+			<table class="inf">
+				<tr><td>Ship Type: </td><td><span id="p_s_t"></span></td></tr>
+				<tr><td>Avg Ping: </td><td><span id="p_ping"></span></td></tr>
+			</table>
+			<p>
+				<table id="p_s">
+					<tr><th>Stats</th><th>All Time</th><th>Mission</th></tr>
+					<tr><td>Primary Shots</td><td></td><td></td></tr>
+					<tr><td>Primary Hits</td><td></td><td></td></tr>
+					<tr><td>Primary BH Hits</td><td></td><td></td></tr>
+					<tr><td>Primary Hit %</td><td></td><td></td></tr>
+					<tr><td>Primary BH Hit %</td><td></td><td></td></tr>
+					<tr><td>Secondary Shots</td><td></td><td></td></tr>
+					<tr><td>Secondary Hits</td><td></td><td></td></tr>
+					<tr><td>Secondary BH Hits</td><td></td><td></td></tr>
+					<tr><td>Secondary Hit %</td><td></td><td></td></tr>
+					<tr><td>Secondary BH Hit %</td><td></td><td></td></tr>
+					<tr><td>Assists</td><td></td><td></td></tr>
+				</table>
+			</p>
+		</div>
+
+		<!-- gs tab -->
+		<div class="tab-hidden">
+			<div class="players">
+				<label for="g_p">Player</label>
+				<select id="g_p">
+				</select>
+			</div>
+			<div>
+				<p>
+					<label for="g_m">Server Message</label>
+					<br>
+					<input id="g_m" type="text" value="" onkeypress="return smsg_submit(event);">
+					<input id="g_s" type="button" onclick="send_smsg();" style="display:none;">
+				</p>
+				<textarea readonly rows="20" id="g_b" autocomplete="off"></textarea>
+			</div>
+			<p>
+				<input class="button" type="button" value="Refresh Missions" onclick="mrefresh();">
+			</p>
+		</div>
+	</div>
+
+	<div id="dbg"></div>
+</div>
+
+<div id="pop">
+	<div class="pop-c">
+		<div id="pop-t"></div>
+		<div class="pop-b">
+			<span id="pop-1"></span>&nbsp;<span id="pop-2"></span>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>

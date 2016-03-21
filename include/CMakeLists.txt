@@ -63,6 +63,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/grgl1.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropengl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropenglinternal.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/grstub.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grwxgl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gtrack.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helpeddoc.h
@@ -207,7 +208,8 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/snazzyui.h
   ${CMAKE_CURRENT_SOURCE_DIR}/sound.h
   ${CMAKE_CURRENT_SOURCE_DIR}/spline.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/stand_gui.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/stand_server.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/standalone_html.h
   ${CMAKE_CURRENT_SOURCE_DIR}/starfield.h
   ${CMAKE_CURRENT_SOURCE_DIR}/staticrand.h
   ${CMAKE_CURRENT_SOURCE_DIR}/stats.h
@@ -256,6 +258,15 @@ set(freespace_HEADERS
 set(launcher_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher.h
   ${CMAKE_CURRENT_SOURCE_DIR}/launchersetup.h
+  PARENT_SCOPE
+)
+
+#
+# standalone server GUI
+#
+
+set(standalone_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/stand_gui.h
   PARENT_SCOPE
 )
 

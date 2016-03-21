@@ -393,7 +393,7 @@
 #include "cmeasure.h"
 #include "model.h"				// for some limits
 #include "afterburner.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multi_xfer.h"
 #include "gamesnd.h"
 #include "sexp.h"

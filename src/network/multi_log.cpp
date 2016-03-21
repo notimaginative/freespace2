@@ -69,6 +69,8 @@
 #include "multi_options.h"
 #include "cmdline.h"
 #include "cfile.h"
+#include "systemvars.h"
+
 
 // ----------------------------------------------------------------------------------------------------
 // MULTI LOGFILE DEFINES/VARS
@@ -79,6 +81,7 @@
 
 // name of the multiplayer logfile
 #define MULTI_LOGFILE_NAME						"multi.log"
+#define MULTI_STD_LOGFILE_NAME					"multi.%d.log"
 
 // echo all ml_printf's to the debug window
 #define MULTI_LOGFILE_ECHO_TO_DEBUG
@@ -141,8 +144,16 @@ void multi_log_write_update()
 // initialize the multi logfile
 void multi_log_init()
 {
+	char lname[32];
+
+	if (Is_standalone) {
+		SDL_snprintf(lname, SDL_arraysize(lname), MULTI_STD_LOGFILE_NAME, Multi_options_g.port);
+	} else {
+		SDL_strlcpy(lname, MULTI_LOGFILE_NAME, SDL_arraysize(lname));
+	}
+
 	// attempt to open the file
-	Multi_log_out = cfopen(MULTI_LOGFILE_NAME, "wt", CFILE_NORMAL, CF_TYPE_DATA);
+	Multi_log_out = cfopen(lname, "wt", CFILE_NORMAL, CF_TYPE_DATA);
 
 	// if we successfully opened the file, write the header
 	if(Multi_log_out != NULL){

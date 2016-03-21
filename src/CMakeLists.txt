@@ -40,6 +40,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl1render.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl1texture.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gropengl.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grstub.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grwxgl.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hud.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hudartillery.cpp
@@ -156,7 +157,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/psnet2.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/ptrack.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_server.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/network/valid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisship.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/object/collidedebrisweapon.cpp
@@ -301,6 +302,15 @@ set(launcher_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_click_wav.h
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_hover_wav.h
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/volition_img.xpm
+  PARENT_SCOPE
+)
+
+#
+# standalone server GUI
+#
+
+set(standalone_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/network/stand_gui.cpp
   PARENT_SCOPE
 )
 

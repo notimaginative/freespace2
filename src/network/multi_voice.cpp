@@ -235,7 +235,7 @@
 #include "rtvoice.h"
 #include "psnet.h"
 #include "optionsmenumulti.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multi.h"
 #include "multi_fstracker.h"
 

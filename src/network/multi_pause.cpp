@@ -126,7 +126,7 @@
 #include "key.h"
 #include "popup.h"
 #include "gamesequence.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "gamesnd.h"
 #include "multiutil.h"
 #include "multiui.h"

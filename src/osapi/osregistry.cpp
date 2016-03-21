@@ -480,6 +480,7 @@ void os_init_registry_stuff()
 	os_config_write_string("Network", "NetworkConnection", "LAN");
 	os_config_write_string("Network", "ConnectionSpeed", "Fast");
 	os_config_write_uint("Network", "ForcePort", 0);
+	os_config_write_string("Network", "RestrictStandAdmin", "1");
 
 	// 'PXO' section
 	os_config_write_string("PXO", "Login", "");

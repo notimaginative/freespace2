@@ -644,7 +644,7 @@
 #include "stats.h"
 #include "cmdline.h"
 #include "timer.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "pcxutils.h"
 #include "hudtargetbox.h"
 #include "multi_xfer.h"
@@ -2323,12 +2323,8 @@ void game_init()
 	e2 = timer_get_milliseconds();	
 	*/
 
-	if (Is_standalone) {
-		std_init_standalone();
-	} else {		
-		os_init( Osreg_class_name, Osreg_app_name );
-		os_set_title(Osreg_title);
-	}
+	os_init( Osreg_class_name, Osreg_app_name );
+	os_set_title(Osreg_title);
 
 	// initialize localization module. Make sure this is down AFTER initialzing OS.
 //	int t1 = timer_get_milliseconds();
@@ -2370,12 +2366,8 @@ void game_init()
 // SOUND INIT END
 /////////////////////////////
 
-	if ( !Is_standalone ) {
-		gr_init();
-	} else {
-		STUB_FUNCTION;
-		Int3();
-	}
+
+	gr_init();
 
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
@@ -2461,6 +2453,9 @@ void game_init()
 //	Game_music_paused = 0;
 	Game_paused = 0;
 
+	if (Is_standalone) {
+		std_init_standalone();
+	}
 
 	nprintf(("General", "Ships.tbl is : %s\n", Game_ships_tbl_valid ? "VALID" : "INVALID!!!!"));
 	nprintf(("General", "Weapons.tbl is : %s\n", Game_weapons_tbl_valid ? "VALID" : "INVALID!!!!"));

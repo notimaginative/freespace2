@@ -213,7 +213,7 @@
 #include "math.h"
 #include "mouse.h"
 #include "stats.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "multi_xfer.h"
 #include "multiui.h"
 #include "key.h"
@@ -1655,8 +1655,6 @@ void standalone_main_init()
 	Netgame.game_state = NETGAME_STATE_FORMING;		// game is currently starting up
 	Netgame.security = 0;
 	Netgame.server_addr = Psnet_my_addr;
-
-	memset(&The_mission,0,sizeof(The_mission));
 		
 	// reinitialize all systems	
 	multi_level_init();	
@@ -1739,6 +1737,9 @@ void standalone_main_init()
 	game_flush();
 	ship_init();
 
+	// login to game tracker
+	std_tracker_login();
+
 	std_debug_set_standalone_state_string("Main Do");
 	std_set_standalone_fps((float)0);
 	std_multi_set_standalone_missiontime((float)0);
@@ -1746,6 +1747,8 @@ void standalone_main_init()
 	// load my missions and campaigns
 	multi_create_list_load_missions();
 	multi_create_list_load_campaigns();
+
+	SDL_zero(The_mission);
 
 	// if this is a tracker game, validate missions
 	if(MULTI_IS_TRACKER_GAME){

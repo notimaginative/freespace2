@@ -495,7 +495,7 @@
 #include "missionshipchoice.h"
 #include "multi_xfer.h"
 #include "cmdline.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "linklist.h"
 #include "multiteamselect.h"
 #include "missioncampaign.h"

@@ -14,8 +14,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(SDL2 "2.0.1" REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
+find_package(LibWebSockets REQUIRED)
 
-find_package(wxWidgets COMPONENTS core base gl)
+find_package(wxWidgets COMPONENTS core base gl net)
 include(${wxWidgets_USE_FILE})
 
 
@@ -79,6 +80,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
+  ${LIBWEBSOCKETS_INCLUDE_DIR}
   ${wxWidgets_INCLUDE_DIRS}
 )
 
@@ -132,6 +134,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 
@@ -166,6 +169,35 @@ if(NOT WIN32)
 endif()
 
 #
+# standalone server GUI
+#
+
+if(FS1)
+  set(STANDALONE_BINARY fsstandalone)
+else()
+  set(STANDALONE_BINARY fs2standalone)
+endif()
+
+add_executable(${STANDALONE_BINARY}
+  WIN32
+  ${standalone_SOURCE}
+  ${standalone_HEADERS}
+)
+
+target_link_libraries(
+  ${STANDALONE_BINARY}
+  ${SDL2_LIBRARY}
+  ${wxWidgets_LIBRARIES}
+  ${LIBWEBSOCKETS_LIBRARIES}
+  ${PLATFORM_LIBRARIES}
+)
+
+# wxWidgets appears to need c++11 for one or more headers
+if(NOT WIN32)
+  set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+endif()
+
+#
 # ##############################################################################
 
 # ##############################################################################
@@ -189,6 +221,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 
@@ -227,6 +260,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
+  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 
@@ -253,6 +287,7 @@ target_link_libraries(
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${wxWidgets_LIBRARIES}
+  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 
@@ -295,6 +330,7 @@ target_link_libraries(
   ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
+  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 

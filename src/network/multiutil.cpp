@@ -256,7 +256,7 @@
 #include "missionscreencommon.h"
 #include "missionweaponchoice.h"
 #include "multi_xfer.h"
-#include "stand_gui.h"
+#include "stand_server.h"
 #include "shipfx.h"
 #include "object.h"
 #include "managepilot.h"

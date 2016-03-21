@@ -1133,7 +1133,7 @@ void delete_player(int player_num,int kicked_reason)
 	multi_rate_reset(player_num);
 
 	// display a message that this guy has left
-	if(Net_players[player_num].player->callsign){
+	if(Net_players[player_num].player->callsign[0]){
 		SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has left>",901),Net_players[player_num].player->callsign);
 		multi_display_chat_msg(notify_string,0,0);
 	}

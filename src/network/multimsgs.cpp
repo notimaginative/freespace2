@@ -1408,7 +1408,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 		multi_ping_reset(&Net_players[new_player_num].s_info.ping);		
 
 		// add a chat message
-		if(Net_players[new_player_num].player->callsign != NULL){
+		if(Net_players[new_player_num].player->callsign[0]){
 			SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has joined>",717),Net_players[new_player_num].player->callsign);
 			multi_display_chat_msg(notify_string,0,0);
 		}
@@ -1581,7 +1581,7 @@ void send_accept_packet(int new_player_num, int code, int ingame_join_team)
 	}
 
 	// add a chat message
-	if(Net_players[new_player_num].player->callsign != NULL){
+	if(Net_players[new_player_num].player->callsign[0]){
 		SDL_snprintf(notify_string,SDL_arraysize(notify_string),XSTR("<%s has joined>",717), Net_players[new_player_num].player->callsign);
 		multi_display_chat_msg(notify_string, 0, 0);
 	}	

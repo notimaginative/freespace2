@@ -1328,7 +1328,7 @@ void debrief_choose_promotion_voice()
 	}
 
 	// search thru all official campaigns for our current campaign
-	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
+	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename[0])) {
 #ifdef MAKE_FS1
 		if (Player->on_bastion) {
 			SDL_snprintf(Promotion_stage.voice, SDL_arraysize(Promotion_stage.voice), NOX("3_%s"), Ranks[Promoted].promotion_voice_base);
@@ -1339,7 +1339,7 @@ void debrief_choose_promotion_voice()
 		int i, j;
 
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
-			if ((Campaign.filename != NULL) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
+			if ((Campaign.filename[0]) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {
 				// now search thru the mission filenames, 
 				for (j=0; j<Volition_campaigns[i].num_missions; j++) {
 					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {
@@ -1378,7 +1378,7 @@ void debrief_choose_badge_voice()
 		return;
 	}
 
-	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename)) {
+	if ((Campaign.missions[Campaign.current_mission].name) && (Campaign.filename[0])) {
 #ifdef MAKE_FS1
 		if ( Player->on_bastion ) {
 			SDL_snprintf(Badge_stage.voice, SDL_arraysize(Badge_stage.voice), NOX("%s"), Badge_info[Player->stats.m_badge_earned].voice_base2);
@@ -1392,7 +1392,7 @@ void debrief_choose_badge_voice()
 
 		// search thru all official campaigns for our current campaign
 		for (i=0; i<NUM_VOLITION_CAMPAIGNS; i++) {
-			if ((Campaign.filename != NULL) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {	
+			if ((Campaign.filename[0]) && !SDL_strcasecmp(Campaign.filename, Volition_campaigns[i].campaign_name)) {
 				// now search thru the mission filenames, 
 				for (j=0; j<Campaign.num_missions; j++) {
 					if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, Debrief_promotion_voice_mapping[i][j].mission_file)) {

@@ -539,7 +539,7 @@ int snd_load(game_snd *gs)
 		return -1;
 	}
 
-	if ( gs->filename == NULL || gs->filename[0] == 0 )
+	if ( gs == NULL || gs->filename[0] == 0 )
 		return -1;
 
 	for (n=0; n<MAX_SOUNDS; n++ )	{

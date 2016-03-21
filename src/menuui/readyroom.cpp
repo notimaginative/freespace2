@@ -1397,7 +1397,7 @@ void sim_room_do_frame(float frametime)
 		gr_force_fit_string(buf, 255, list_w1);
 		gr_printf(list_x1, Mission_list_coords[gr_screen.res][1], buf);
 
-		if (Campaign.filename) {			
+		if (Campaign.filename[0]) {
 			SDL_snprintf(buf, SDL_arraysize(buf), NOX("%s%s"), Campaign.filename, FS_CAMPAIGN_FILE_EXT);
 			gr_force_fit_string(buf, 255, list_w2);
 			gr_printf(list_x2, Mission_list_coords[gr_screen.res][1], buf);		

@@ -179,7 +179,6 @@ else()
 endif()
 
 add_executable(${STANDALONE_BINARY}
-  EXCLUDE_FROM_ALL
   WIN32
   ${standalone_SOURCE}
   ${standalone_HEADERS}

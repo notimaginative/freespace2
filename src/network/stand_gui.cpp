@@ -375,7 +375,7 @@ void Standalone::createTab_Server(wxNotebook* parent)
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
-	m_S_Connections = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 300,300 ), wxTE_MULTILINE|wxTE_READONLY );
+	m_S_Connections = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 300,300 ), wxTE_MULTILINE|wxTE_READONLY|wxTE_NO_VSCROLL );
 	fgSizer3->Add( m_S_Connections, 0, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* bbSizer = new wxBoxSizer( wxVERTICAL );

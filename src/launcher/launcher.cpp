@@ -380,7 +380,7 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 	bSizer->Add( m_help_txt, 0, wxALL|wxEXPAND, 5 );
 
 	wxButton *m_b_Ok = new wxButton( help, wxID_OK, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer->Add( m_b_Ok, 0, wxALIGN_BOTTOM|wxALIGN_RIGHT|wxALL, 5 );
+	bSizer->Add( m_b_Ok, 0, wxALIGN_RIGHT|wxALL, 5 );
 
 	help->SetSizer( bSizer );
 	help->Layout();

@@ -363,7 +363,7 @@ void Standalone::createTab_Server(wxNotebook* parent)
 	wxStaticText* m_staticText9 = new wxStaticText( panel, wxID_ANY, wxT("# Connections :"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer7->Add( m_staticText9, 0, wxALL, 5 );
 
-	m_S_NumConn = new wxStaticText( panel, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, 0|wxSUNKEN_BORDER );
+	m_S_NumConn = new wxStaticText( panel, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer7->Add( m_S_NumConn, 0, wxALL, 5 );
 
 	bSizer->Add( fgSizer7, 0, wxEXPAND, 5 );

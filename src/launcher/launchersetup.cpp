@@ -515,7 +515,9 @@ void LauncherSetup::initTab_Network(wxNotebook* parent)
 	m_Network_Port = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer_port->Add( m_Network_Port, 0, wxALL|wxEXPAND, 5 );
 
+	m_port_validate = 0;
 	wxIntegerValidator<unsigned short> vald( &m_port_validate );
+	vald.SetStyle(wxNUM_VAL_ZERO_AS_BLANK);
 
 	m_Network_Port->SetValidator(vald);
 

@@ -56,8 +56,7 @@
 
 
 #ifndef PLAT_UNIX
-#include <windows.h>
-#include <direct.h> 
+#include <winsock2.h>
 #endif
 
 #include <stdio.h>

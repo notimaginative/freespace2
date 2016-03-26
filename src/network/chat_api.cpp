@@ -22,7 +22,7 @@
 
 #define WSAGetLastError()  (errno)
 #else
-#include <winsock.h>
+#include <winsock2.h>
 typedef int socklen_t;
 #endif
 

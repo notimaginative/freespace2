@@ -227,7 +227,7 @@
  */
 
 #ifndef PLAT_UNIX
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

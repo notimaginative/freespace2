@@ -10,6 +10,9 @@
 #ifndef STAND_GUI_H
 #define STAND_GUI_H
 
+// must come first to prevent wxWidgets from including winsock.h on Windows
+#include <libwebsockets.h>
+
 #include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
@@ -20,7 +23,6 @@
 #include "wx/treectrl.h"
 #include "wx/evtloop.h"
 
-#include <libwebsockets.h>
 #include <list>
 #include <vector>
 

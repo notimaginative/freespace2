@@ -469,11 +469,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#include <windowsx.h>
-#endif
-
 #include "osapi.h"
 #include "2d.h"
 #include "3d.h"

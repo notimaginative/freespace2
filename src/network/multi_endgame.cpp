@@ -202,7 +202,6 @@
  * $NoKeywords: $
  */
 
-// #include <windows.h>
 #include "multi.h"
 #include "popup.h"
 #include "object.h"

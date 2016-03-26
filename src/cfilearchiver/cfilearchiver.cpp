@@ -48,7 +48,6 @@
 #include <stdio.h>
 #include <string.h>
 #ifndef PLAT_UNIX
-#include <direct.h>
 #include <io.h>
 #include <conio.h>
 #else

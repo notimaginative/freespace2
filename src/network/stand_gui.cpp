@@ -7,7 +7,6 @@
  *
 */
 
-
 #include "stand_gui.h"
 #include "osregistry.h"
 

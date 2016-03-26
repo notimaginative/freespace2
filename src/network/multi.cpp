@@ -190,7 +190,7 @@
  */
 
 #ifndef PLAT_UNIX
-#include <winsock.h>
+#include <winsock2.h>
 #endif
 
 #include "pstypes.h"

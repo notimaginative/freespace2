@@ -198,9 +198,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#endif
 #include "cmdline.h"
 #include "osregistry.h"
 #include "multi.h"

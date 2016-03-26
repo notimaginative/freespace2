@@ -69,8 +69,7 @@
 
 
 #ifndef PLAT_UNIX
-#include <windows.h>
-#include <process.h>
+#include <winsock2.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

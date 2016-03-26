@@ -192,10 +192,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <io.h>
-#include <winsock.h>
-#endif
 #include "freespace.h"
 #include "gamesequence.h"
 #include "key.h"

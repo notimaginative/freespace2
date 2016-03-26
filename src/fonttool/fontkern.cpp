@@ -103,15 +103,12 @@
  */
 
 #ifndef PLAT_UNIX
-#include <windows.h>
+#include <io.h>
+#include <conio.h>
 #endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#ifndef PLAT_UNIX
-#include <io.h>
-#include <conio.h>
-#endif
 
 #include "pstypes.h"
 #include "osapi.h"

@@ -63,8 +63,7 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
 else()
   set(PLATFORM_LIBRARIES
-	wsock32.lib
-	winmm.lib
+	ws2_32.lib
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)

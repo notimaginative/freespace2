@@ -19,6 +19,8 @@ find_package(LibWebSockets REQUIRED)
 find_package(wxWidgets COMPONENTS core base gl net)
 include(${wxWidgets_USE_FILE})
 
+include(CreateSourceGroups)
+
 
 # ##############################################################################
 
@@ -104,6 +106,8 @@ add_library(code
   ${platform_HEADERS}
 )
 
+CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
+
 #
 # the game itself
 #
@@ -127,6 +131,8 @@ add_executable(${FS_BINARY}
   ${freespace_SOURCE}
   ${freespace_HEADERS}
 )
+
+CreateSourceGroups(${freespace_SOURCE})
 
 target_link_libraries(
   ${FS_BINARY}
@@ -153,6 +159,8 @@ add_executable(${LAUNCHER_BINARY}
   ${launcher_SOURCE}
   ${launcher_HEADERS}
 )
+
+CreateSourceGroups(${launcher_SOURCE})
 
 target_link_libraries(
   ${LAUNCHER_BINARY}
@@ -183,6 +191,8 @@ add_executable(${STANDALONE_BINARY}
   ${standalone_SOURCE}
   ${standalone_HEADERS}
 )
+
+CreateSourceGroups(${standalone_SOURCE})
 
 target_link_libraries(
   ${STANDALONE_BINARY}
@@ -215,6 +225,8 @@ add_executable(ac
   ${ac_HEADERS}
 )
 
+CreateSourceGroups(${ac_SOURCE})
+
 target_link_libraries(
   ac
   code
@@ -234,6 +246,8 @@ add_executable(cfilearchiver
   ${cfilearchiver_SOURCE}
 )
 
+CreateSourceGroups(${cfilearchiver_SOURCE})
+
 #
 # CRYPTSTRING: string encryption (for embedded cheat codes)
 #
@@ -242,6 +256,8 @@ add_executable(cryptstring
   EXCLUDE_FROM_ALL
   ${cryptstring_SOURCE}
 )
+
+CreateSourceGroups(${cryptstring_SOURCE})
 
 #
 # NEBEDIT: FS1 style nebula editor/creator
@@ -252,6 +268,8 @@ add_executable(nebedit
   WIN32
   ${nebedit_SOURCE}
 )
+
+CreateSourceGroups(${nebedit_SOURCE})
 
 target_link_libraries(
   nebedit
@@ -280,6 +298,8 @@ add_executable(pofview
   ${pofview_HEADERS}
 )
 
+CreateSourceGroups(${pofview_SOURCE})
+
 target_link_libraries(
   pofview
   code
@@ -306,6 +326,8 @@ add_executable(scramble
   ${scramble_HEADERS}
 )
 
+CreateSourceGroups(${scramble_SOURCE})
+
 #
 # FONTTOOL: create font files / edit kerning data
 #
@@ -316,6 +338,8 @@ add_executable(fonttool
   ${fonttool_SOURCE}
   ${fonttool_HEADERS}
 )
+
+CreateSourceGroups(${fonttool_SOURCE})
 
 # background setup, to allow running from build location without installing
 add_custom_command(TARGET fonttool

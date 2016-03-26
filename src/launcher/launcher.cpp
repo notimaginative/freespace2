@@ -370,7 +370,7 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 	bSizer = new wxBoxSizer( wxVERTICAL );
 
 	// stupid
-	wxSize txtsize = help->GetTextExtent( wxT("  This opens a Help document containing information about the LauncherWW") );
+	wxSize txtsize = help->GetTextExtent( wxT("  This opens a Help document containing information about the LauncherWWWW") );
 	txtsize.SetHeight(420);
 
 	wxTextCtrl *m_help_txt = new wxTextCtrl( help, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );

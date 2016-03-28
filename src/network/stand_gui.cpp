@@ -1102,14 +1102,14 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 	bool cmd_port = false;
 
-#ifdef MAKE_FS1
-	epath.Append( wxT("freespace") );
-#else
-	epath.Append( wxT("freespace2") );
+	epath.Append( wxT("fs") );
+
+#ifndef MAKE_FS1
+	epath.Append( wxT("2") );
 #endif
 
-#ifdef FS2_DEMO
-	epath.Append( wxT("_demo") );
+#if defined(FS1_DEMO) || defined(FS2_DEMO)
+	epath.Append( wxT("demo") );
 #endif
 
 #ifdef _WIN32

@@ -325,14 +325,14 @@ void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
 {
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 
+	epath.Append( wxT("fs") );
+
 #ifndef MAKE_FS1
-	epath.Append( wxT("freespace2") );
-#else
-	epath.Append( wxT("freespace") );
+	epath.Append( wxT("2") );
 #endif
 
-#ifdef FS2_DEMO
-	epath.Append( wxT("_demo") );
+#if defined(FS1_DEMO) || defined(FS2_DEMO)
+	epath.Append( wxT("demo") );
 #endif
 
 #ifdef _WIN32

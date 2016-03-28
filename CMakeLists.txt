@@ -73,6 +73,16 @@ else()
   add_definitions(/wd4996) # deprecated functions: fopen, fileno, ...
 endif()
 
+set(BIN_SUFFIX "")
+
+if(NOT FS1)
+	set(BIN_SUFFIX "2")
+endif()
+
+if(DEMO)
+	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
+endif()
+
 
 # ##############################################################################
 
@@ -111,19 +121,7 @@ CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
 # the game itself
 #
 
-if(FS1)
-  if(DEMO)
-    set(FS_BINARY freespace_demo)
-  else()
-    set(FS_BINARY freespace)
-  endif()
-else()
-  if(DEMO)
-    set(FS_BINARY freespace2_demo)
-  else()
-	set(FS_BINARY freespace2)
-  endif()
-endif()
+set(FS_BINARY "fs${BIN_SUFFIX}")
 
 add_executable(${FS_BINARY}
   WIN32
@@ -143,15 +141,17 @@ target_link_libraries(
   ${PLATFORM_LIBRARIES}
 )
 
+if(FS1)
+  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace")
+else()
+  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace2")
+endif()
+
 #
 # launcher
 #
 
-if(FS1)
-  set(LAUNCHER_BINARY fslaunch)
-else()
-  set(LAUNCHER_BINARY fs2launch)
-endif()
+set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
 
 add_executable(${LAUNCHER_BINARY}
   WIN32
@@ -169,6 +169,8 @@ target_link_libraries(
   ${wxWidgets_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
+
+set_target_properties(${LAUNCHER_BINARY} PROPERTIES PROJECT_LABEL "Launcher")
 
 # wxWidgets appears to need c++11 for one or more headers
 if(NOT WIN32)
@@ -200,6 +202,8 @@ target_link_libraries(
   ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
+
+set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
 
 # wxWidgets appears to need c++11 for one or more headers
 if(NOT WIN32)

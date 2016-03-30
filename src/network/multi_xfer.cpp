@@ -194,8 +194,7 @@
  */
 
 #ifndef PLAT_UNIX
-#include <winsock.h>
-#include <io.h>
+#include <winsock2.h>
 #endif
 #include "multi_xfer.h"
 #include "cfile.h"

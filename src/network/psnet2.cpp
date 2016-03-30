@@ -145,10 +145,7 @@
  */
 
 #ifndef PLAT_UNIX
-#include <windows.h>
-#include <windowsx.h>
-#include <winsock.h>
-#include <process.h>
+#include <winsock2.h>
 #include <ras.h>
 #include <raserror.h>
 #else

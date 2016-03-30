@@ -325,14 +325,14 @@ void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
 {
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 
+	epath.Append( wxT("fs") );
+
 #ifndef MAKE_FS1
-	epath.Append( wxT("freespace2") );
-#else
-	epath.Append( wxT("freespace") );
+	epath.Append( wxT("2") );
 #endif
 
-#ifdef FS2_DEMO
-	epath.Append( wxT("_demo") );
+#if defined(FS1_DEMO) || defined(FS2_DEMO)
+	epath.Append( wxT("demo") );
 #endif
 
 #ifdef _WIN32
@@ -370,7 +370,7 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 	bSizer = new wxBoxSizer( wxVERTICAL );
 
 	// stupid
-	wxSize txtsize = help->GetTextExtent( wxT("  This opens a Help document containing information about the LauncherWW") );
+	wxSize txtsize = help->GetTextExtent( wxT("  This opens a Help document containing information about the LauncherWWWW") );
 	txtsize.SetHeight(420);
 
 	wxTextCtrl *m_help_txt = new wxTextCtrl( help, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
@@ -380,7 +380,7 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 	bSizer->Add( m_help_txt, 0, wxALL|wxEXPAND, 5 );
 
 	wxButton *m_b_Ok = new wxButton( help, wxID_OK, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer->Add( m_b_Ok, 0, wxALIGN_BOTTOM|wxALIGN_RIGHT|wxALL, 5 );
+	bSizer->Add( m_b_Ok, 0, wxALIGN_RIGHT|wxALL, 5 );
 
 	help->SetSizer( bSizer );
 	help->Layout();

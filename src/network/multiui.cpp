@@ -467,8 +467,7 @@
  */
 
 #ifndef PLAT_UNIX
-#include <io.h>
-#include <winsock.h>	// for inet_addr()
+#include <winsock2.h>	// for inet_addr()
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

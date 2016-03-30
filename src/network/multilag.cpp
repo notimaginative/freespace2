@@ -101,7 +101,7 @@
  */
 
 #ifndef PLAT_UNIX
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <sys/time.h>
 #include <sys/types.h>

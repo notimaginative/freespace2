@@ -117,9 +117,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#endif
 #include "chatbox.h"
 #include "ui.h"
 #include "freespace.h"

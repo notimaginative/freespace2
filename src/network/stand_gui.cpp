@@ -7,7 +7,6 @@
  *
 */
 
-
 #include "stand_gui.h"
 #include "osregistry.h"
 
@@ -100,7 +99,7 @@ void StandaloneTimer::Notify()
 
 StandPopup::StandPopup( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( 350,100 ), wxDefaultSize );
+	this->SetSizeHints( wxSize( 300,100 ), wxDefaultSize );
 
 	wxBoxSizer* bSizer2;
 	bSizer2 = new wxBoxSizer( wxVERTICAL );
@@ -118,7 +117,7 @@ StandPopup::StandPopup( wxWindow* parent, wxWindowID id, const wxString& title, 
 	fgSizer3->Add( m_Label2, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 
-	bSizer2->Add( fgSizer3, 1, wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 10 );
+	bSizer2->Add( fgSizer3, 1, wxALL|wxEXPAND, 10 );
 
 
 	this->SetSizer( bSizer2 );
@@ -202,6 +201,8 @@ void Standalone::OnShutdown( wxCommandEvent& WXUNUSED(event) )
 
 void Standalone::Shutdown()
 {
+	m_timer->Stop();
+
 	if (stand_context) {
 		std::string msg("shutdown");
 		wsSend(msg);
@@ -364,7 +365,7 @@ void Standalone::createTab_Server(wxNotebook* parent)
 	wxStaticText* m_staticText9 = new wxStaticText( panel, wxID_ANY, wxT("# Connections :"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer7->Add( m_staticText9, 0, wxALL, 5 );
 
-	m_S_NumConn = new wxStaticText( panel, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, 0|wxSUNKEN_BORDER );
+	m_S_NumConn = new wxStaticText( panel, wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer7->Add( m_S_NumConn, 0, wxALL, 5 );
 
 	bSizer->Add( fgSizer7, 0, wxEXPAND, 5 );
@@ -376,7 +377,7 @@ void Standalone::createTab_Server(wxNotebook* parent)
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
-	m_S_Connections = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 300,300 ), wxTE_MULTILINE|wxTE_READONLY );
+	m_S_Connections = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 300,300 ), wxTE_MULTILINE|wxTE_READONLY|wxTE_NO_VSCROLL );
 	fgSizer3->Add( m_S_Connections, 0, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* bbSizer = new wxBoxSizer( wxVERTICAL );
@@ -1103,14 +1104,14 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 	bool cmd_port = false;
 
-#ifdef MAKE_FS1
-	epath.Append( wxT("freespace") );
-#else
-	epath.Append( wxT("freespace2") );
+	epath.Append( wxT("fs") );
+
+#ifndef MAKE_FS1
+	epath.Append( wxT("2") );
 #endif
 
-#ifdef FS2_DEMO
-	epath.Append( wxT("_demo") );
+#if defined(FS1_DEMO) || defined(FS2_DEMO)
+	epath.Append( wxT("demo") );
 #endif
 
 #ifdef _WIN32
@@ -1403,6 +1404,7 @@ void Standalone::wsMessage(const char *msg, size_t len)
 			m_popup->SetLabel1( popmsg.Item(1) );
 			m_popup->SetLabel2( popmsg.Item(2) );
 
+			m_popup->Layout(); // layout required to deal with label size changes
 			m_popup->CenterOnParent();
 			m_popup->Show(true);
 		}

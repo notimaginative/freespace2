@@ -10,6 +10,9 @@
 #ifndef STAND_GUI_H
 #define STAND_GUI_H
 
+// must come first to prevent wxWidgets from including winsock.h on Windows
+#include <libwebsockets.h>
+
 #include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
@@ -20,7 +23,6 @@
 #include "wx/treectrl.h"
 #include "wx/evtloop.h"
 
-#include <libwebsockets.h>
 #include <list>
 #include <vector>
 
@@ -49,7 +51,7 @@ class StandPopup : public wxFrame
 		wxStaticText* m_Label2;
 
 	public:
-		StandPopup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Popup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxFRAME_FLOAT_ON_PARENT|wxFRAME_TOOL_WINDOW );
+		StandPopup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Popup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxFRAME_FLOAT_ON_PARENT|wxCAPTION|wxFRAME_NO_TASKBAR );
 
 		~StandPopup();
 

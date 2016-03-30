@@ -125,9 +125,6 @@
 #include <errno.h>
 #ifndef PLAT_UNIX
 #include <io.h>
-#include <direct.h>
-#include <windows.h>
-#include <winbase.h>		/* needed for memory mapping of file functions */
 #else
 #include <sys/types.h>
 #include <dirent.h>

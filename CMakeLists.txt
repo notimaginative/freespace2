@@ -19,6 +19,8 @@ find_package(LibWebSockets REQUIRED)
 find_package(wxWidgets COMPONENTS core base gl net)
 include(${wxWidgets_USE_FILE})
 
+include(CreateSourceGroups)
+
 
 # ##############################################################################
 
@@ -61,8 +63,7 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
 else()
   set(PLATFORM_LIBRARIES
-	wsock32.lib
-	winmm.lib
+	ws2_32.lib
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)
@@ -70,6 +71,16 @@ else()
   add_definitions(/wd4100) # unreferenced parameter
   add_definitions(/wd4127) # conditional expression is constant: do { } while (0)
   add_definitions(/wd4996) # deprecated functions: fopen, fileno, ...
+endif()
+
+set(BIN_SUFFIX "")
+
+if(NOT FS1)
+	set(BIN_SUFFIX "2")
+endif()
+
+if(DEMO)
+	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
 
@@ -104,29 +115,21 @@ add_library(code
   ${platform_HEADERS}
 )
 
+CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
+
 #
 # the game itself
 #
 
-if(FS1)
-  if(DEMO)
-    set(FS_BINARY freespace_demo)
-  else()
-    set(FS_BINARY freespace)
-  endif()
-else()
-  if(DEMO)
-    set(FS_BINARY freespace2_demo)
-  else()
-	set(FS_BINARY freespace2)
-  endif()
-endif()
+set(FS_BINARY "fs${BIN_SUFFIX}")
 
 add_executable(${FS_BINARY}
   WIN32
   ${freespace_SOURCE}
   ${freespace_HEADERS}
 )
+
+CreateSourceGroups(${freespace_SOURCE})
 
 target_link_libraries(
   ${FS_BINARY}
@@ -138,21 +141,25 @@ target_link_libraries(
   ${PLATFORM_LIBRARIES}
 )
 
+if(FS1)
+  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace")
+else()
+  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace2")
+endif()
+
 #
 # launcher
 #
 
-if(FS1)
-  set(LAUNCHER_BINARY fslaunch)
-else()
-  set(LAUNCHER_BINARY fs2launch)
-endif()
+set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
 
 add_executable(${LAUNCHER_BINARY}
   WIN32
   ${launcher_SOURCE}
   ${launcher_HEADERS}
 )
+
+CreateSourceGroups(${launcher_SOURCE})
 
 target_link_libraries(
   ${LAUNCHER_BINARY}
@@ -162,6 +169,8 @@ target_link_libraries(
   ${wxWidgets_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
+
+set_target_properties(${LAUNCHER_BINARY} PROPERTIES PROJECT_LABEL "Launcher")
 
 # wxWidgets appears to need c++11 for one or more headers
 if(NOT WIN32)
@@ -184,6 +193,8 @@ add_executable(${STANDALONE_BINARY}
   ${standalone_HEADERS}
 )
 
+CreateSourceGroups(${standalone_SOURCE})
+
 target_link_libraries(
   ${STANDALONE_BINARY}
   ${SDL2_LIBRARY}
@@ -191,6 +202,8 @@ target_link_libraries(
   ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
+
+set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
 
 # wxWidgets appears to need c++11 for one or more headers
 if(NOT WIN32)
@@ -215,6 +228,8 @@ add_executable(ac
   ${ac_HEADERS}
 )
 
+CreateSourceGroups(${ac_SOURCE})
+
 target_link_libraries(
   ac
   code
@@ -234,6 +249,8 @@ add_executable(cfilearchiver
   ${cfilearchiver_SOURCE}
 )
 
+CreateSourceGroups(${cfilearchiver_SOURCE})
+
 #
 # CRYPTSTRING: string encryption (for embedded cheat codes)
 #
@@ -242,6 +259,8 @@ add_executable(cryptstring
   EXCLUDE_FROM_ALL
   ${cryptstring_SOURCE}
 )
+
+CreateSourceGroups(${cryptstring_SOURCE})
 
 #
 # NEBEDIT: FS1 style nebula editor/creator
@@ -252,6 +271,8 @@ add_executable(nebedit
   WIN32
   ${nebedit_SOURCE}
 )
+
+CreateSourceGroups(${nebedit_SOURCE})
 
 target_link_libraries(
   nebedit
@@ -280,6 +301,8 @@ add_executable(pofview
   ${pofview_HEADERS}
 )
 
+CreateSourceGroups(${pofview_SOURCE})
+
 target_link_libraries(
   pofview
   code
@@ -306,6 +329,8 @@ add_executable(scramble
   ${scramble_HEADERS}
 )
 
+CreateSourceGroups(${scramble_SOURCE})
+
 #
 # FONTTOOL: create font files / edit kerning data
 #
@@ -316,6 +341,8 @@ add_executable(fonttool
   ${fonttool_SOURCE}
   ${fonttool_HEADERS}
 )
+
+CreateSourceGroups(${fonttool_SOURCE})
 
 # background setup, to allow running from build location without installing
 add_custom_command(TARGET fonttool

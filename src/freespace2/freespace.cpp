@@ -556,14 +556,6 @@
  * 
  */
 
-#ifndef PLAT_UNIX
-#include <windows.h>
-#include <process.h>
-#include <direct.h>
-#include <io.h>
-#else
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

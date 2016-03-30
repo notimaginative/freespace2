@@ -201,6 +201,8 @@ void Standalone::OnShutdown( wxCommandEvent& WXUNUSED(event) )
 
 void Standalone::Shutdown()
 {
+	m_timer->Stop();
+
 	if (stand_context) {
 		std::string msg("shutdown");
 		wsSend(msg);

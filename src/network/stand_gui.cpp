@@ -99,7 +99,7 @@ void StandaloneTimer::Notify()
 
 StandPopup::StandPopup( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( 350,100 ), wxDefaultSize );
+	this->SetSizeHints( wxSize( 300,100 ), wxDefaultSize );
 
 	wxBoxSizer* bSizer2;
 	bSizer2 = new wxBoxSizer( wxVERTICAL );

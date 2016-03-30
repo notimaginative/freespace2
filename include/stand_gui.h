@@ -51,7 +51,7 @@ class StandPopup : public wxFrame
 		wxStaticText* m_Label2;
 
 	public:
-		StandPopup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Popup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxFRAME_FLOAT_ON_PARENT|wxFRAME_TOOL_WINDOW );
+		StandPopup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Popup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxFRAME_FLOAT_ON_PARENT|wxCAPTION|wxFRAME_NO_TASKBAR );
 
 		~StandPopup();
 

@@ -196,9 +196,9 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	int i;
 	float u_scale = 1.0f, v_scale = 1.0f;
 
-	gr_texture_source texture_source = (gr_texture_source)-1;
-	gr_alpha_blend alpha_blend = (gr_alpha_blend)-1;
-	gr_zbuffer_type zbuffer_type = (gr_zbuffer_type)-1;
+	gr_texture_source texture_source = TEXTURE_SOURCE_NONE;
+	gr_alpha_blend alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
+	gr_zbuffer_type zbuffer_type = ZBUFFER_TYPE_NONE;
 
 	if (Gr_zbuffering) {
 		if ( is_scaler || (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER) ) {
@@ -206,40 +206,28 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		} else {
 			zbuffer_type = ZBUFFER_TYPE_FULL;
 		}
-	} else {
-		zbuffer_type = ZBUFFER_TYPE_NONE;
 	}
-
-	int alpha;
 
 	int tmap_type = TCACHE_TYPE_NORMAL;
 
-	int r, g, b;
+	ubyte r = 255, g = 255, b = 255, a = 255;
 
-	if ( flags & TMAP_FLAG_TEXTURED )       {
-		r = g = b = 255;
-	} else {
+	if ( !(flags & TMAP_FLAG_TEXTURED) ) {
 		r = gr_screen.current_color.red;
 		g = gr_screen.current_color.green;
 		b = gr_screen.current_color.blue;
 	}
 
 	if (gr_screen.current_alphablend_mode == GR_ALPHABLEND_FILTER) {
-		tmap_type = TCACHE_TYPE_NORMAL;
 		alpha_blend = ALPHA_BLEND_ALPHA_ADDITIVE;
 
 		// Blend with screen pixel using src*alpha+dst
 
-		alpha = 255;
-
-		if (gr_screen.current_alpha <= 1.0f)   {
-			r = fl2i((r * gr_screen.current_alpha) + 0.5f);
-			g = fl2i((g * gr_screen.current_alpha) + 0.5f);
-			b = fl2i((b * gr_screen.current_alpha) + 0.5f);
+		if (gr_screen.current_alpha < 1.0f) {
+			r = ubyte((r * gr_screen.current_alpha) + 0.5f);
+			g = ubyte((g * gr_screen.current_alpha) + 0.5f);
+			b = ubyte((b * gr_screen.current_alpha) + 0.5f);
 		}
-	} else {
-		alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
-		alpha = 255;
 	}
 
 	if (flags & TMAP_FLAG_BITMAP_SECTION) {
@@ -249,8 +237,6 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		SDL_assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
 		tmap_type = TCACHE_TYPE_BITMAP_INTERFACE;
 	}
-
-	texture_source = TEXTURE_SOURCE_NONE;
 
 	if (flags & TMAP_FLAG_TEXTURED) {
 		if ( !opengl1_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale,
@@ -276,13 +262,15 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 
 	opengl1_set_state( texture_source, alpha_blend, zbuffer_type );
 
+	float ox = gr_screen.offset_x * 16.0f;
+	float oy = gr_screen.offset_y * 16.0f;
+
 	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
 
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
 		int r, g, b;
 		int ra, ga, ba;
 		float sx, sy;
-		int x, y;
 
 		ra = ga = ba = 0;
 
@@ -291,14 +279,8 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		{
 			vertex * va = verts[i];
 
-			x = fl2i(va->sx*16.0f);
-			y = fl2i(va->sy*16.0f);
-
-			x += gr_screen.offset_x*16;
-			y += gr_screen.offset_y*16;
-
-			sx = i2fl(x) / 16.0f;
-			sy = i2fl(y) / 16.0f;
+			sx = (va->sx * 16.0f + ox) / 16.0f;
+			sy = (va->sy * 16.0f + oy) / 16.0f;
 
 			neb2_get_pixel((int)sx, (int)sy, &r, &g, &b);
 
@@ -322,12 +304,10 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 
 	int rb_offset = 0;
 
-	int x, y;
-	float sx, sy, sz, rhw;
-	int a;
+	float sx, sy, sz = 0.99f, rhw = 1.0f;
 
 	for (i = nv-1; i >= 0; i--) {
-		vertex * va = verts[i];
+		vertex *va = verts[i];
 
 		if ( Gr_zbuffering || (flags & TMAP_FLAG_NEBULA) ) {
 			sz = 1.0f - 1.0f / (1.0f + va->z / (32768.0f / 256.0f));
@@ -335,20 +315,14 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			if ( sz > 0.98f ) {
 				sz = 0.98f;
 			}
-		} else {
-			sz = 0.99f;
 		}
 
 		if (flags & TMAP_FLAG_CORRECT) {
 			rhw = 1.0f / va->sw;
-		} else {
-			rhw = 1.0f;
 		}
 
 		if (flags & TMAP_FLAG_ALPHA) {
 			a = verts[i]->a;
-		} else {
-			a = alpha;
 		}
 
 		if (flags & TMAP_FLAG_NEBULA ) {
@@ -357,22 +331,18 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			g = gr_palette[pal*3+1];
 			b = gr_palette[pal*3+2];
 		} else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
-			r = Gr_gamma_lookup[verts[i]->b];
-			g = Gr_gamma_lookup[verts[i]->b];
-			b = Gr_gamma_lookup[verts[i]->b];
+			r = g = b = Gr_gamma_lookup[verts[i]->b];
 		} else if ( (flags & TMAP_FLAG_RGB)  && (flags & TMAP_FLAG_GOURAUD) )   {
 			// Make 0.75 be 256.0f
 			r = Gr_gamma_lookup[verts[i]->r];
 			g = Gr_gamma_lookup[verts[i]->g];
 			b = Gr_gamma_lookup[verts[i]->b];
-		} else {
-			// use constant RGB values...
 		}
 
-		render_buffer[rb_offset].r = (ubyte)r;
-		render_buffer[rb_offset].g = (ubyte)g;
-		render_buffer[rb_offset].b = (ubyte)b;
-		render_buffer[rb_offset].a = (ubyte)a;
+		render_buffer[rb_offset].r = r;
+		render_buffer[rb_offset].g = g;
+		render_buffer[rb_offset].b = b;
+		render_buffer[rb_offset].a = a;
 
 		if ( (flags & TMAP_FLAG_PIXEL_FOG) && (OGL_fog_mode == 1) ) {
 			float f_val;
@@ -384,16 +354,10 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			render_buffer[rb_offset].sb = (ubyte)(((fb * f_val) * 255.0f) + 0.5f);
 		}
 
-		x = fl2i(va->sx*16.0f);
-		y = fl2i(va->sy*16.0f);
+		sx = (va->sx * 16.0f + ox) / 16.0f;
+		sy = (va->sy * 16.0f + oy) / 16.0f;
 
-		x += gr_screen.offset_x*16;
-		y += gr_screen.offset_y*16;
-
-		sx = i2fl(x) / 16.0f;
-		sy = i2fl(y) / 16.0f;
-
-		if ( flags & TMAP_FLAG_TEXTURED )       {
+		if (flags & TMAP_FLAG_TEXTURED) {
 			render_buffer[rb_offset].u = va->u * u_scale;
 			render_buffer[rb_offset].v = va->v * v_scale;
 		}

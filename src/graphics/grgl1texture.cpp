@@ -451,9 +451,9 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 			size = tex_w*tex_h*2;
 
 			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
+				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
 			if (texmem != NULL)
@@ -492,9 +492,9 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 			size = tex_w*tex_h*2;
 
 			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
+				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, (resize) ? texmem : bmp_data);
+				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
 			if (texmem != NULL)

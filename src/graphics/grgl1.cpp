@@ -414,7 +414,7 @@ void gr_opengl1_print_screen(const char *filename)
 
 	memset(buf, 0, GL_viewport_w * GL_viewport_h * 3);
 
-	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_BGR, GL_UNSIGNED_BYTE, buf);
+	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_RGB, GL_UNSIGNED_BYTE, buf);
 
 	cfwrite(buf, GL_viewport_w * GL_viewport_h * 3, 1, f);
 
@@ -540,7 +540,7 @@ void gr_opengl1_get_region(int front, int w, int h, ubyte *data)
 		pxtype = GL_UNSIGNED_BYTE;
 	}
 
-	glReadPixels(x, y, w, h, GL_BGRA, pxtype, data);
+	glReadPixels(x, y, w, h, GL_RGBA, pxtype, data);
 
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
@@ -590,7 +590,7 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 	glReadBuffer(GL_BACK);
 
 	glReadPixels(x1, y1, Gr_opengl_mouse_saved_w, Gr_opengl_mouse_saved_h,
-			GL_BGR, GL_UNSIGNED_BYTE, Gr_opengl_mouse_saved_data);
+			GL_RGB, GL_UNSIGNED_BYTE, Gr_opengl_mouse_saved_data);
 
 	Gr_opengl_mouse_saved = 1;
 }
@@ -629,7 +629,7 @@ int gr_opengl1_save_screen()
 		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_BGR, GL_UNSIGNED_BYTE,
+				Gr_opengl_mouse_saved_h, GL_RGB, GL_UNSIGNED_BYTE,
 				Gr_opengl_mouse_saved_data);
 	}
 

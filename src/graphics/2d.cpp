@@ -1147,6 +1147,14 @@ void gr_get_color(int *r, int *g, int *b)
 	if (b) *b = gr_screen.current_color.blue;
 }
 
+void gr_get_colorf(float *r, float *g, float *b, float *a)
+{
+	if (r) *r = gr_screen.current_color.red / 255.0f;
+	if (g) *g = gr_screen.current_color.green / 255.0f;
+	if (b) *b = gr_screen.current_color.blue / 255.0f;
+	if (a) *a = gr_screen.current_color.alpha / 255.0f;
+}
+
 void gr_init_color(color *c, int r, int g, int b)
 {
 	c->screen_sig = gr_screen.signature;

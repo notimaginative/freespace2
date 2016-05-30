@@ -6,18 +6,20 @@
  * the source.
  */
 
+#include "SDL_opengl.h"
+
 #include "pstypes.h"
 #include "2d.h"
 #include "gropengl.h"
-#include "grgl1.h"
 #include "gropenglinternal.h"
+#include "grgl1.h"
 #include "bmpman.h"
 #include "grinternal.h"
 #include "systemvars.h"
 #include "osregistry.h"
 
 
-int vram_full = 0;
+static int vram_full = 0;
 
 typedef struct tcache_slot_opengl {
 	GLuint	texture_handle;

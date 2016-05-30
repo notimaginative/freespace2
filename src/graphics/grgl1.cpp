@@ -6,24 +6,25 @@
  * the source.
  */
 
+#include "SDL_opengl.h"
+
 #include "gropengl.h"
-#include "grgl1.h"
 #include "gropenglinternal.h"
+#include "grgl1.h"
 #include "2d.h"
 #include "mouse.h"
 #include "pstypes.h"
 #include "cfile.h"
 #include "bmpman.h"
 #include "grinternal.h"
+#include "osapi.h"
+#include "osregistry.h"
 
 
 int OGL_fog_mode = 0;
 
 int GL_one_inited = 0;
 
-
-volatile int GL_activate = 0;
-volatile int GL_deactivate = 0;
 
 static GLuint Gr_saved_screen_tex = 0;
 
@@ -101,8 +102,8 @@ void opengl1_cleanup()
 		return;
 	}
 
-	gr_opengl1_reset_clip();
-	gr_opengl1_clear();
+	gr_opengl_reset_clip();
+	gr_opengl_clear();
 	gr_opengl1_flip();
 
 	gr_opengl1_free_screen(0);
@@ -121,9 +122,9 @@ static void opengl1_init_func_pointers()
 {
 	gr_screen.gf_flip = gr_opengl1_flip;
 	gr_screen.gf_set_clip = gr_opengl1_set_clip;
-	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
+	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 
-	gr_screen.gf_clear = gr_opengl1_clear;
+	gr_screen.gf_clear = gr_opengl_clear;
 
 	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
 	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
@@ -141,7 +142,7 @@ static void opengl1_init_func_pointers()
 
 	gr_screen.gf_gradient = gr_opengl1_gradient;
 
-	gr_screen.gf_print_screen = gr_opengl1_print_screen;
+	gr_screen.gf_print_screen = gr_opengl_print_screen;
 
 	gr_screen.gf_fade_in = gr_opengl1_fade_in;
 	gr_screen.gf_fade_out = gr_opengl1_fade_out;
@@ -159,21 +160,21 @@ static void opengl1_init_func_pointers()
 
 	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
 
-	gr_screen.gf_lock = gr_opengl1_lock;
-	gr_screen.gf_unlock = gr_opengl1_unlock;
+	gr_screen.gf_lock = gr_opengl_lock;
+	gr_screen.gf_unlock = gr_opengl_unlock;
 
 	gr_screen.gf_fog_set = gr_opengl1_fog_set;
 
 	gr_screen.gf_get_region = gr_opengl1_get_region;
 
-	gr_screen.gf_set_cull = gr_opengl1_set_cull;
+	gr_screen.gf_set_cull = gr_opengl_set_cull;
 
 	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
 
 	gr_screen.gf_preload_init = gr_opengl1_preload_init;
 	gr_screen.gf_preload = gr_opengl1_preload;
 
-	gr_screen.gf_zbias = gr_opengl1_zbias;
+	gr_screen.gf_zbias = gr_opengl_zbias;
 
 	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
 	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
@@ -181,16 +182,35 @@ static void opengl1_init_func_pointers()
 
 	gr_screen.gf_set_viewport = gr_opengl1_set_viewport;
 
-	gr_screen.gf_activate = gr_opengl1_activate;
+	gr_screen.gf_activate = gr_opengl_activate;
 
 	gr_screen.gf_release_texture = gr_opengl1_release_texture;
 }
 
-void opengl1_init()
+int opengl1_init()
 {
 	if (GL_one_inited) {
-		return;
+		return 1;
 	}
+
+	GL_context = SDL_GL_CreateContext(GL_window);
+
+	if ( !GL_context ) {
+		return 0;
+	}
+
+	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
+	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
+	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
+
+	// set up generic variables
+	opengl_set_variables();
+
+	opengl1_init_func_pointers();
+	opengl1_tcache_init();
+
+	// initial viewport setup
+	gr_opengl1_set_viewport(gr_screen.max_w, gr_screen.max_h);
 
 	/*
 	  1 = use secondary color ext
@@ -224,39 +244,12 @@ void opengl1_init()
 
 	glFlush();
 
-	opengl1_init_func_pointers();
-	opengl1_tcache_init();
-
-	gr_opengl1_clear();
-	gr_opengl1_set_cull(1);
+	gr_opengl_clear();
+	gr_opengl_set_cull(1);
 
 	GL_one_inited = 1;
-}
 
-void gr_opengl1_activate(int active)
-{
-	if (active) {
-		GL_activate++;
-
-		// don't grab key/mouse if cmdline says so or if we're fullscreen
-	//	if(!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN)) {
-	//		SDL_WM_GrabInput(SDL_GRAB_ON);
-	//	}
-	} else {
-		GL_deactivate++;
-
-		// let go of mouse/keyboard
-	//	SDL_WM_GrabInput(SDL_GRAB_OFF);
-	}
-}
-
-void gr_opengl1_clear()
-{
-	glClearColor(gr_screen.current_clear_color.red / 255.0f,
-		gr_screen.current_clear_color.green / 255.0f,
-		gr_screen.current_clear_color.blue / 255.0f, 1.0f);
-
-	glClear( GL_COLOR_BUFFER_BIT );
+	return 1;
 }
 
 void gr_opengl1_flip()
@@ -274,7 +267,6 @@ void gr_opengl1_flip()
 	if ( mouse_is_visible() )       {
 		int mx, my;
 
-	 	gr_reset_clip();
 	 	mouse_get_pos( &mx, &my );
 
 	 	gr_opengl1_save_mouse_area(mx,my,32,32);
@@ -322,28 +314,13 @@ void gr_opengl1_flip()
 	}
 }
 
-void gr_opengl1_set_clip(int x,int y,int w,int h)
+void gr_opengl1_set_clip(int x, int y, int w, int h)
 {
 	// check for sanity of parameters
-	if (x < 0)
-		x = 0;
-	if (y < 0)
-		y = 0;
-
-	if (x >= gr_screen.max_w)
-		x = gr_screen.max_w - 1;
-	if (y >= gr_screen.max_h)
-		y = gr_screen.max_h - 1;
-
-	if (x + w > gr_screen.max_w)
-		w = gr_screen.max_w - x;
-	if (y + h > gr_screen.max_h)
-		h = gr_screen.max_h - y;
-
-	if (w > gr_screen.max_w)
-		w = gr_screen.max_w;
-	if (h > gr_screen.max_h)
-		h = gr_screen.max_h;
+	CAP(x, 0, gr_screen.max_w - 1);
+	CAP(y, 0, gr_screen.max_h - 1);
+	CAP(w, 0, gr_screen.max_w - x);
+	CAP(h, 0, gr_screen.max_h - y);
 
 	gr_screen.offset_x = x;
 	gr_screen.offset_y = y;
@@ -361,66 +338,6 @@ void gr_opengl1_set_clip(int x,int y,int w,int h)
 
 	glEnable(GL_SCISSOR_TEST);
 	glScissor(x, GL_viewport_h-y-h, w, h);
-}
-
-void gr_opengl1_reset_clip()
-{
-	gr_screen.offset_x = 0;
-	gr_screen.offset_y = 0;
-	gr_screen.clip_left = 0;
-	gr_screen.clip_top = 0;
-	gr_screen.clip_right = gr_screen.max_w - 1;
-	gr_screen.clip_bottom = gr_screen.max_h - 1;
-	gr_screen.clip_width = gr_screen.max_w;
-	gr_screen.clip_height = gr_screen.max_h;
-
-	glDisable(GL_SCISSOR_TEST);
-}
-
-void gr_opengl1_print_screen(const char *filename)
-{
-	char tmp[MAX_FILENAME_LEN];
-	ubyte *buf = NULL;
-
-	SDL_strlcpy( tmp, filename, SDL_arraysize(tmp) );
-	SDL_strlcat( tmp, NOX(".tga"), SDL_arraysize(tmp) );
-
-	buf = (ubyte*)malloc(GL_viewport_w * GL_viewport_h * 3);
-
-	if (buf == NULL) {
-		return;
-	}
-
-	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
-
-	if (f == NULL) {
-		free(buf);
-		return;
-	}
-
-	// Write the TGA header
-	cfwrite_ubyte( 0, f );	//	IDLength;
-	cfwrite_ubyte( 0, f );	//	ColorMapType;
-	cfwrite_ubyte( 2, f );	//	ImageType;		// 2 = 24bpp, uncompressed, 10=24bpp rle compressed
-	cfwrite_ushort( 0, f );	// CMapStart;
-	cfwrite_ushort( 0, f );	//	CMapLength;
-	cfwrite_ubyte( 0, f );	// CMapDepth;
-	cfwrite_ushort( 0, f );	//	XOffset;
-	cfwrite_ushort( 0, f );	//	YOffset;
-	cfwrite_ushort( (ushort)GL_viewport_w, f );	//	Width;
-	cfwrite_ushort( (ushort)GL_viewport_h, f );	//	Height;
-	cfwrite_ubyte( 24, f );	//PixelDepth;
-	cfwrite_ubyte( 0, f );	//ImageDesc;
-
-	memset(buf, 0, GL_viewport_w * GL_viewport_h * 3);
-
-	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_RGB, GL_UNSIGNED_BYTE, buf);
-
-	cfwrite(buf, GL_viewport_w * GL_viewport_h * 3, 1, f);
-
-	cfclose(f);
-
-	free(buf);
 }
 
 void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
@@ -480,16 +397,6 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 			glFogf(GL_FOG_START, fog_near);
 			glFogf(GL_FOG_END, fog_far);
 		}
-	}
-}
-
-void gr_opengl1_set_cull(int cull)
-{
-	if (cull) {
-		glEnable (GL_CULL_FACE);
-		glFrontFace (GL_CCW);
-	} else {
-		glDisable (GL_CULL_FACE);
 	}
 }
 
@@ -698,25 +605,6 @@ void gr_opengl1_dump_frame()
 	STUB_FUNCTION;
 }
 
-uint gr_opengl1_lock()
-{
-	return 1;
-}
-
-void gr_opengl1_unlock()
-{
-}
-
-void gr_opengl1_zbias(int bias)
-{
-	if (bias) {
-		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0.0f, GLfloat(-bias));
-	} else {
-		glDisable(GL_POLYGON_OFFSET_FILL);
-	}
-}
-
 void gr_opengl1_set_viewport(int width, int height)
 {
 	int w, h, x, y;
@@ -757,5 +645,5 @@ void gr_opengl1_set_viewport(int width, int height)
 	}
 
 	// clear screen once to fix issues with edges on non-4:3
-	gr_opengl1_clear();
+	gr_opengl_clear();
 }

@@ -6,12 +6,14 @@
  * the source.
  */
 
+#include "SDL_opengl.h"
+
 #include "pstypes.h"
 #include "2d.h"
 #include "grwxgl.h"
 #include "gropengl.h"
-#include "grgl1.h"
 #include "gropenglinternal.h"
+#include "grgl1.h"
 #include "grinternal.h"
 #include "mouse.h"
 
@@ -27,9 +29,9 @@ static void wxgl_init_func_pointers()
 {
 	gr_screen.gf_flip = gr_wxgl_flip;
 	gr_screen.gf_set_clip = gr_opengl1_set_clip;
-	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
+	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 
-	gr_screen.gf_clear = gr_opengl1_clear;
+	gr_screen.gf_clear = gr_opengl_clear;
 
 	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
 	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
@@ -47,7 +49,7 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_gradient = gr_opengl1_gradient;
 
-	gr_screen.gf_print_screen = gr_opengl1_print_screen;
+	gr_screen.gf_print_screen = gr_opengl_print_screen;
 
 	gr_screen.gf_fade_in = gr_opengl1_fade_in;
 	gr_screen.gf_fade_out = gr_opengl1_fade_out;
@@ -65,21 +67,21 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
 
-	gr_screen.gf_lock = gr_opengl1_lock;
-	gr_screen.gf_unlock = gr_opengl1_unlock;
+	gr_screen.gf_lock = gr_opengl_lock;
+	gr_screen.gf_unlock = gr_opengl_unlock;
 
 	gr_screen.gf_fog_set = gr_opengl1_fog_set;
 
 	gr_screen.gf_get_region = gr_opengl1_get_region;
 
-	gr_screen.gf_set_cull = gr_opengl1_set_cull;
+	gr_screen.gf_set_cull = gr_opengl_set_cull;
 
 	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
 
 	gr_screen.gf_preload_init = gr_opengl1_preload_init;
 	gr_screen.gf_preload = gr_opengl1_preload;
 
-	gr_screen.gf_zbias = gr_opengl1_zbias;
+	gr_screen.gf_zbias = gr_opengl_zbias;
 
 	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
 	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
@@ -87,7 +89,7 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_set_viewport = gr_wxgl_set_viewport;
 
-	gr_screen.gf_activate = gr_opengl1_activate;
+	gr_screen.gf_activate = gr_opengl_activate;
 
 	gr_screen.gf_release_texture = gr_opengl1_release_texture;
 }
@@ -118,7 +120,7 @@ static void wxgl_init()
 	wxgl_init_func_pointers();
 	opengl1_tcache_init();
 
-	gr_opengl1_clear();
+	gr_opengl_clear();
 
 	GL_one_inited = 1;
 

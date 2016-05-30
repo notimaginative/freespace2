@@ -33,6 +33,8 @@
  * $NoKeywords: $
  */
  
+#include "SDL_opengl.h"
+
 #include "pstypes.h"
 #include "mvelib.h"
 #include "movie.h"

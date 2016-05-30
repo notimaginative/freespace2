@@ -288,6 +288,11 @@ void gr_opengl2_set_clip(int x, int y, int w, int h)
 void gr_opengl2_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
 {
 	gr_screen.current_fog_mode = fog_mode;
+
+	if (fog_mode == GR_FOGMODE_NONE) {
+		return;
+	}
+
 	gr_screen.fog_near = fog_near;
 	gr_screen.fog_far = fog_far;
 
@@ -322,7 +327,18 @@ void gr_opengl2_fade_out(int instantaneous)
 
 void gr_opengl2_get_region(int front, int w, int h, ubyte *data)
 {
+	opengl2_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
+	int x = GL_viewport_x;
+	int y = (GL_viewport_y+GL_viewport_h)-h-1;
+
+	GLenum pxtype = GL_UNSIGNED_SHORT_5_5_5_1;
+
+	if (gr_screen.bytes_per_pixel == 4) {
+		pxtype = GL_UNSIGNED_BYTE;
+	}
+
+	glReadPixels(x, y, w, h, GL_RGBA, pxtype, data);
 }
 
 int gr_opengl2_save_screen()
@@ -380,29 +396,6 @@ void gr_opengl2_set_viewport(int width, int height)
 	GL_viewport_scale_h = h / i2fl(gr_screen.max_h);
 
 	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
-
-	int left = 0, right = GL_viewport_w;
-	int top = 0, bottom = GL_viewport_h;
-	int far = 1.0f, near = 0.0f;
-
-	float a = 2.0f / (right - left);
-	float b = 2.0f / (top - bottom);
-	float c = -2.0f / (far - near);
-
-	float tx = - (right + left)/(right - left);
-	float ty = - (top + bottom)/(top - bottom);
-	float tz = - (far + near)/(far - near);
-
-	float ortho[16] = {
-		a, 0, 0, 0,
-		0, b, 0, 0,
-		0, 0, c, 0,
-		tx, ty, tz, 1
-	};
-
-	extern GLuint basicTexture;
-	GLint loc = glGetUniformLocation(basicTexture, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	// clear screen once to fix issues with edges on non-4:3
 	gr_opengl_clear();

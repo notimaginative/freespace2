@@ -103,7 +103,7 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 
 	float ox = gr_screen.offset_x * 16.0f;
 	float oy = gr_screen.offset_y * 16.0f;
-/*
+
 	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
 
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
@@ -113,8 +113,7 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 
 		ra = ga = ba = 0;
 
-		for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
-		{
+		for (i = nv-1; i >= 0; i--) {
 			vertex * va = verts[i];
 
 			sx = (va->sx * 16.0f + ox) / 16.0f;
@@ -131,13 +130,13 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 		ga /= nv;
 		ba /= nv;
 
-		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
+		gr_opengl2_fog_set(GR_FOGMODE_FOG, ra, ga, ba, gr_screen.fog_near, gr_screen.fog_far);
 
 		fr = ra / 255.0f;
 		fg = ga / 255.0f;
 		fb = ba / 255.0f;
 	}
-*/
+
 	opengl_alloc_render_buffer(nv);
 
 	int rb_offset = 0;
@@ -151,6 +150,7 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 	bool bRamp = ((flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD));
 	bool bRGB = ((flags & TMAP_FLAG_RGB) && (flags & TMAP_FLAG_GOURAUD));
 	bool bTextured = (flags & TMAP_FLAG_TEXTURED);
+	bool bFog = (flags & TMAP_FLAG_PIXEL_FOG);
 
 	for (i = nv-1; i >= 0; i--) {
 		vertex *va = verts[i];
@@ -189,17 +189,18 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 		render_buffer[rb_offset].g = g;
 		render_buffer[rb_offset].b = b;
 		render_buffer[rb_offset].a = a;
-/*
-		if ( (flags & TMAP_FLAG_PIXEL_FOG) && (OGL_fog_mode == 1) ) {
+
+		if (bFog) {
 			float f_val;
 
-			opengl1_stuff_fog_value(va->z, &f_val);
+			opengl_stuff_fog_value(va->z, &f_val);
 
-			render_buffer[rb_offset].sr = (ubyte)(((fr * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sg = (ubyte)(((fg * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sb = (ubyte)(((fb * f_val) * 255.0f) + 0.5f);
+			render_buffer[rb_offset].sr = gr_screen.current_fog_color.red;
+			render_buffer[rb_offset].sg = gr_screen.current_fog_color.green;
+			render_buffer[rb_offset].sb = gr_screen.current_fog_color.blue;
+			render_buffer[rb_offset].sa = (ubyte)(f_val * 255.0f);
 		}
-*/
+
 		sx = (va->sx * 16.0f + ox) / 16.0f;
 		sy = (va->sy * 16.0f + oy) / 16.0f;
 
@@ -216,27 +217,38 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 		++rb_offset;
 	}
 
-	if (flags & TMAP_FLAG_TEXTURED) {
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
-		glEnableVertexAttribArray(3);
-	}
-/*
-	if ( (gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1) ) {
-		glEnableClientState(GL_SECONDARY_COLOR_ARRAY);
-		vglSecondaryColorPointer(3, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].sr);
-	}
-*/
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
-	glEnableVertexAttribArray(2);
+	sdr_prog_t program = PROG_LINES;
 
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(1);
+	if (flags & TMAP_FLAG_TEXTURED) {
+		program = PROG_TMAPPER;
+	}
+
+	opengl2_shader_use(program);
+
+	if (flags & TMAP_FLAG_TEXTURED) {
+		glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+		glEnableVertexAttribArray(SDRI_TEXCOORD);
+	}
+
+	if (flags & TMAP_FLAG_PIXEL_FOG) {
+		glVertexAttribPointer(SDRI_SEC_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].sr);
+		glEnableVertexAttribArray(SDRI_SEC_COLOR);
+	} else {
+		glVertexAttrib4f(SDRI_SEC_COLOR, 1.0f, 1.0f, 1.0f, 0.0f);
+	}
+
+	glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
+	glEnableVertexAttribArray(SDRI_COLOR);
+
+	glVertexAttribPointer(SDRI_POSITION, 4, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	glEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
 
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
-	glDisableVertexAttribArray(3);
+	glDisableVertexAttribArray(SDRI_COLOR);
+	glDisableVertexAttribArray(SDRI_SEC_COLOR);
+	glDisableVertexAttribArray(SDRI_POSITION);
+	glDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
 void opengl2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
@@ -350,9 +362,6 @@ void opengl2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 	x2 = i2fl(x+w+gr_screen.offset_x);
 	y2 = i2fl(y+h+gr_screen.offset_y);
 
-	float r, g, b, a;
-	gr_get_colorf(&r, &g, &b, &a);
-	glVertexAttrib4f(1, r, g, b, a);
 
 	opengl_alloc_render_buffer(4);
 
@@ -376,16 +385,22 @@ void opengl2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 	render_buffer[3].u = u1;
 	render_buffer[3].v = v1;
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(0);
+	opengl2_shader_use(PROG_AABITMAP);
 
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
-	glEnableVertexAttribArray(2);
+	float r, g, b, a;
+	gr_get_colorf(&r, &g, &b, &a);
+	glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
+
+	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	glEnableVertexAttribArray(SDRI_POSITION);
+
+	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+	glEnableVertexAttribArray(SDRI_TEXCOORD);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(SDRI_POSITION);
+	glDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
 void gr_opengl2_rect(int x, int y, int w, int h)
@@ -566,15 +581,17 @@ void gr_opengl2_string(int sx, int sy, const char *s)
 	const int alocsize = 320;	// 80 characters max per render call
 	opengl_alloc_render_buffer(alocsize);
 
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(1);
+	opengl2_shader_use(PROG_AABITMAP);
+
+	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	glEnableVertexAttribArray(SDRI_POSITION);
 
 	float r, g, b, a;
 	gr_get_colorf(&r, &g, &b, &a);
-	glVertexAttrib4f(2, r, g, b, a);
+	glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
 
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
-	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+	glEnableVertexAttribArray(SDRI_TEXCOORD);
 
 
 	y = sy;
@@ -681,13 +698,73 @@ void gr_opengl2_string(int sx, int sy, const char *s)
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, rb_offset);
 	}
 
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(3);
+	glDisableVertexAttribArray(SDRI_POSITION);
+	glDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
 void gr_opengl2_line(int x1, int y1, int x2, int y2)
 {
+	opengl2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
 
+	INT_CLIPLINE(x1, y1, x2, y2, gr_screen.clip_left, gr_screen.clip_top,
+		gr_screen.clip_right, gr_screen.clip_bottom, return, void(), void());
+
+	float sx1, sy1;
+	float sx2, sy2;
+
+	sx1 = i2fl(x1 + gr_screen.offset_x) + 0.5f;
+	sy1 = i2fl(y1 + gr_screen.offset_y) + 0.5f;
+	sx2 = i2fl(x2 + gr_screen.offset_x) + 0.5f;
+	sy2 = i2fl(y2 + gr_screen.offset_y) + 0.5f;
+
+	opengl_alloc_render_buffer(2);
+
+	opengl2_shader_use(PROG_LINES);
+
+	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	glEnableVertexAttribArray(SDRI_POSITION);
+
+	float r, g, b, a;
+	gr_get_colorf(&r, &g, &b, &a);
+	glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
+
+	if ( (x1 == x2) && (y1 == y2) ) {
+		render_buffer[0].x = sx1;
+		render_buffer[0].y = sy1;
+		render_buffer[0].z = -0.99f;
+
+		glDrawArrays(GL_POINTS, 0, 1);
+
+		glDisableVertexAttribArray(SDRI_POSITION);
+
+		return;
+	}
+
+	if (x1 == x2) {
+		if (sy1 < sy2) {
+			sy2 += 0.5f;
+		} else {
+			sy1 += 0.5f;
+		}
+	} else if (y1 == y2) {
+		if (sx1 < sx2) {
+			sx2 += 0.5f;
+		} else {
+			sx1 += 0.5f;
+		}
+	}
+
+	render_buffer[0].x = sx2;
+	render_buffer[0].y = sy2;
+	render_buffer[0].z = -0.99f;
+
+	render_buffer[1].x = sx1;
+	render_buffer[1].y = sy1;
+	render_buffer[1].z = -0.99f;
+
+	glDrawArrays(GL_LINES, 0, 2);
+
+	glDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_opengl2_aaline(vertex *v1, vertex *v2)
@@ -697,7 +774,73 @@ void gr_opengl2_aaline(vertex *v1, vertex *v2)
 
 void gr_opengl2_gradient(int x1, int y1, int x2, int y2)
 {
+	int swapped = 0;
 
+	if ( !gr_screen.current_color.is_alphacolor ) {
+		gr_opengl2_line(x1, y1, x2, y2);
+		return;
+	}
+
+	INT_CLIPLINE(x1, y1, x2, y2, gr_screen.clip_left, gr_screen.clip_top,
+			gr_screen.clip_right, gr_screen.clip_bottom, return, void(), swapped=1);
+
+	opengl2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+	ubyte aa = swapped ? 0 : gr_screen.current_color.alpha;
+	ubyte ba = swapped ? gr_screen.current_color.alpha : 0;
+
+	float sx1, sy1;
+	float sx2, sy2;
+
+	sx1 = i2fl(x1 + gr_screen.offset_x) + 0.5f;
+	sy1 = i2fl(y1 + gr_screen.offset_y) + 0.5f;
+	sx2 = i2fl(x2 + gr_screen.offset_x) + 0.5f;
+	sy2 = i2fl(y2 + gr_screen.offset_y) + 0.5f;
+
+	if (x1 == x2) {
+		if (sy1 < sy2) {
+			sy2 += 0.5f;
+		} else {
+			sy1 += 0.5f;
+		}
+	} else if (y1 == y2) {
+		if (sx1 < sx2) {
+			sx2 += 0.5f;
+		} else {
+			sx1 += 0.5f;
+		}
+	}
+
+	opengl_alloc_render_buffer(2);
+
+	render_buffer[0].r = gr_screen.current_color.red;
+	render_buffer[0].g = gr_screen.current_color.green;
+	render_buffer[0].b = gr_screen.current_color.blue;
+	render_buffer[0].a = ba;
+	render_buffer[0].x = sx2;
+	render_buffer[0].y = sy2;
+	render_buffer[0].z = -0.99f;
+
+	render_buffer[1].r = gr_screen.current_color.red;
+	render_buffer[1].g = gr_screen.current_color.green;
+	render_buffer[1].b = gr_screen.current_color.blue;
+	render_buffer[1].a = aa;
+	render_buffer[1].x = sx1;
+	render_buffer[1].y = sy1;
+	render_buffer[1].z = -0.99f;
+
+	opengl2_shader_use(PROG_LINES);
+
+	glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
+	glEnableVertexAttribArray(SDRI_COLOR);
+
+	glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	glEnableVertexAttribArray(SDRI_POSITION);
+
+	glDrawArrays(GL_LINES, 0, 2);
+
+	glDisableVertexAttribArray(SDRI_COLOR);
+	glDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_opengl2_circle(int xc, int yc, int d)
@@ -754,7 +897,48 @@ void gr_opengl2_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2,
 
 void gr_opengl2_flash(int r, int g, int b)
 {
+	CAP(r, 0, 255);
+	CAP(g, 0, 255);
+	CAP(b, 0, 255);
 
+	if ( r || g || b ) {
+		opengl2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_ADDITIVE, ZBUFFER_TYPE_NONE);
+
+		float x1, x2, y1, y2;
+		x1 = i2fl(gr_screen.clip_left+gr_screen.offset_x);
+		y1 = i2fl(gr_screen.clip_top+gr_screen.offset_y);
+		x2 = i2fl(gr_screen.clip_right+gr_screen.offset_x);
+		y2 = i2fl(gr_screen.clip_bottom+gr_screen.offset_y);
+
+		opengl_alloc_render_buffer(4);
+
+		render_buffer[0].x = x1;
+		render_buffer[0].y = y1;
+		render_buffer[0].z = -0.99f;
+
+		render_buffer[1].x = x1;
+		render_buffer[1].y = y2;
+		render_buffer[1].z = -0.99f;
+
+		render_buffer[2].x = x2;
+		render_buffer[2].y = y1;
+		render_buffer[2].z = -0.99f;
+
+		render_buffer[3].x = x2;
+		render_buffer[3].y = y2;
+		render_buffer[3].z = -0.99f;
+
+		glUseProgram(PROG_LINES);
+
+		glVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+
+		glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+		glEnableVertexAttribArray(SDRI_POSITION);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glDisableVertexAttribArray(SDRI_POSITION);
+	}
 }
 
 void gr_opengl2_tmapper(int nverts, vertex **verts, uint flags)

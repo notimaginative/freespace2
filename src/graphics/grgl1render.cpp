@@ -174,25 +174,6 @@ static void opengl1_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-static void opengl1_stuff_fog_value(float z, float *f_val)
-{
-	float f_float;
-
-	if ( !f_val ) {
-		return;
-	}
-
-	f_float = 1.0f - ((gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near));
-
-	if (f_float < 0.0f) {
-		f_float = 0.0f;
-	} else if (f_float > 1.0f) {
-		f_float = 1.0f;
-	}
-
-	*f_val = f_float;
-}
-
 static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int is_scaler )
 {
 	int i;
@@ -349,7 +330,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		if ( (flags & TMAP_FLAG_PIXEL_FOG) && (OGL_fog_mode == 1) ) {
 			float f_val;
 
-			opengl1_stuff_fog_value(va->z, &f_val);
+			opengl_stuff_fog_value(va->z, &f_val);
 
 			render_buffer[rb_offset].sr = (ubyte)(((fr * f_val) * 255.0f) + 0.5f);
 			render_buffer[rb_offset].sg = (ubyte)(((fg * f_val) * 255.0f) + 0.5f);

@@ -100,6 +100,25 @@ void opengl_init_viewport()
 	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
 }
 
+void opengl_stuff_fog_value(float z, float *f_val)
+{
+	float f_float;
+
+	if ( !f_val ) {
+		return;
+	}
+
+	f_float = 1.0f - ((gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near));
+
+	if (f_float < 0.0f) {
+		f_float = 0.0f;
+	} else if (f_float > 1.0f) {
+		f_float = 1.0f;
+	}
+
+	*f_val = f_float;
+}
+
 void gr_opengl_force_windowed()
 {
 	SDL_SetWindowFullscreen(GL_window, 0);
@@ -364,9 +383,9 @@ void gr_opengl_init()
 
 			// screen values
 			Gr_red.bits = 8;
-			Gr_red.shift = 16;
+			Gr_red.shift = 0;
 			Gr_red.scale = 1;
-			Gr_red.mask = 0xff0000;
+			Gr_red.mask = 0xff;
 
 			Gr_green.bits = 8;
 			Gr_green.shift = 8;
@@ -374,9 +393,9 @@ void gr_opengl_init()
 			Gr_green.mask = 0xff00;
 
 			Gr_blue.bits = 8;
-			Gr_blue.shift = 0;
+			Gr_blue.shift = 16;
 			Gr_blue.scale = 1;
-			Gr_blue.mask = 0xff;
+			Gr_blue.mask = 0xff0000;
 
 			Gr_alpha.bits = 8;
 			Gr_alpha.shift = 24;

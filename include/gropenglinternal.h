@@ -56,6 +56,8 @@ extern int GL_max_texture_height;
 void opengl_set_variables();
 void opengl_init_viewport();
 
+void opengl_stuff_fog_value(float z, float *f_val);
+
 void opengl_alloc_render_buffer(unsigned int nelems);
 void opengl_free_render_buffer();
 

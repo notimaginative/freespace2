@@ -23,8 +23,25 @@ void opengl2_tcache_flush();
 int opengl2_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full);
 void opengl2_set_texture_state(gr_texture_source ts);
 
+// shader program types
+typedef enum {
+	PROG_INVALID = -1,
+	PROG_TMAPPER = 0,
+	PROG_AABITMAP = 1,
+	PROG_LINES = 2
+} sdr_prog_t;
+
+// shader variable indexes
+enum {
+	SDRI_POSITION = 1,
+	SDRI_COLOR = 2,
+	SDRI_SEC_COLOR = 3,
+	SDRI_TEXCOORD = 4
+};
+
 int opengl2_shader_init();
 void opengl2_shader_cleanup();
+void opengl2_shader_use(sdr_prog_t prog);
 
 void opengl2_error_check(const char *name, int lno);
 

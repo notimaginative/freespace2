@@ -441,7 +441,7 @@ void gr_opengl1_get_region(int front, int w, int h, ubyte *data)
 	int x = GL_viewport_x;
 	int y = (GL_viewport_y+GL_viewport_h)-h-1;
 
-	GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+	GLenum pxtype = GL_UNSIGNED_SHORT_5_5_5_1;
 
 	if (gr_screen.bytes_per_pixel == 4) {
 		pxtype = GL_UNSIGNED_BYTE;

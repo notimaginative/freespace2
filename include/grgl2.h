@@ -26,9 +26,11 @@ void opengl2_set_texture_state(gr_texture_source ts);
 // shader program types
 typedef enum {
 	PROG_INVALID = -1,
-	PROG_TMAPPER = 0,
-	PROG_AABITMAP = 1,
-	PROG_LINES = 2
+	PROG_AABITMAP = 0,
+	PROG_TEX = 1,
+	PROG_TEX_FOG = 2,
+	PROG_COLOR = 3,
+	PROG_COLOR_FOG = 4
 } sdr_prog_t;
 
 // shader variable indexes

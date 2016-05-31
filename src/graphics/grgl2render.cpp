@@ -104,8 +104,6 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 	float ox = gr_screen.offset_x * 16.0f;
 	float oy = gr_screen.offset_y * 16.0f;
 
-	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
-
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
 		int r, g, b;
 		int ra, ga, ba;
@@ -131,10 +129,6 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 		ba /= nv;
 
 		gr_opengl2_fog_set(GR_FOGMODE_FOG, ra, ga, ba, gr_screen.fog_near, gr_screen.fog_far);
-
-		fr = ra / 255.0f;
-		fg = ga / 255.0f;
-		fb = ba / 255.0f;
 	}
 
 	opengl_alloc_render_buffer(nv);
@@ -217,10 +211,15 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 		++rb_offset;
 	}
 
-	sdr_prog_t program = PROG_LINES;
+	sdr_prog_t program = PROG_COLOR;
 
 	if (flags & TMAP_FLAG_TEXTURED) {
-		program = PROG_TMAPPER;
+		program = PROG_TEX;
+	}
+
+	if (flags & TMAP_FLAG_PIXEL_FOG) {
+		// fog versions of color/tex shaders should one higher than non-fog version
+		program = (sdr_prog_t)((int)program + 1);
 	}
 
 	opengl2_shader_use(program);
@@ -233,8 +232,6 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
 		glVertexAttribPointer(SDRI_SEC_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].sr);
 		glEnableVertexAttribArray(SDRI_SEC_COLOR);
-	} else {
-		glVertexAttrib4f(SDRI_SEC_COLOR, 1.0f, 1.0f, 1.0f, 0.0f);
 	}
 
 	glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
@@ -719,7 +716,7 @@ void gr_opengl2_line(int x1, int y1, int x2, int y2)
 
 	opengl_alloc_render_buffer(2);
 
-	opengl2_shader_use(PROG_LINES);
+	opengl2_shader_use(PROG_COLOR);
 
 	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
 	glEnableVertexAttribArray(SDRI_POSITION);
@@ -829,7 +826,7 @@ void gr_opengl2_gradient(int x1, int y1, int x2, int y2)
 	render_buffer[1].y = sy1;
 	render_buffer[1].z = -0.99f;
 
-	opengl2_shader_use(PROG_LINES);
+	opengl2_shader_use(PROG_COLOR);
 
 	glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
 	glEnableVertexAttribArray(SDRI_COLOR);
@@ -928,7 +925,7 @@ void gr_opengl2_flash(int r, int g, int b)
 		render_buffer[3].y = y2;
 		render_buffer[3].z = -0.99f;
 
-		glUseProgram(PROG_LINES);
+		opengl2_shader_use(PROG_COLOR);
 
 		glVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
 

@@ -14,11 +14,27 @@
 #include "grgl2.h"
 
 
-static GLuint tmapper_prog = 0;
+static GLuint tex_prog = 0;
+static GLuint fog_tex_prog = 0;
 static GLuint aabitmap_prog = 0;
-static GLuint lines_prog = 0;
+static GLuint color_prog = 0;
+static GLuint fog_color_prog = 0;
 
-static const char v_generic_tex_src[] =
+static const char v_tex_src[] =
+	"uniform mat4 vOrtho;\n"
+	"attribute vec4 vPosition;\n"
+	"attribute vec4 vColor;\n"
+	"attribute vec2 vTexCoord;\n"
+	"varying vec4 colorVar;\n"
+	"varying vec2 texCoordVar;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = vOrtho * vPosition;\n"
+	"	colorVar = vColor;\n"
+	"	texCoordVar = vTexCoord;\n"
+	"}\n";
+
+static const char v_fog_tex_src[] =
 	"uniform mat4 vOrtho;\n"
 	"attribute vec4 vPosition;\n"
 	"attribute vec4 vColor;\n"
@@ -35,7 +51,7 @@ static const char v_generic_tex_src[] =
 	"	texCoordVar = vTexCoord;\n"
 	"}\n";
 
-static const char v_lines_src[] =
+static const char v_color_src[] =
 	"uniform mat4 vOrtho;\n"
 	"attribute vec4 vPosition;\n"
 	"attribute vec4 vColor;\n"
@@ -46,7 +62,31 @@ static const char v_lines_src[] =
 	"	colorVar = vColor;\n"
 	"}\n";
 
-static const char f_tmapper_src[] =
+static const char v_fog_color_src[] =
+	"uniform mat4 vOrtho;\n"
+	"attribute vec4 vPosition;\n"
+	"attribute vec4 vColor;\n"
+	"attribute vec4 vSecColor;\n"
+	"varying vec4 colorVar;\n"
+	"varying vec4 secColorVar;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = vOrtho * vPosition;\n"
+	"	colorVar = vColor;\n"
+	"	secColorVar = vSecColor;\n"
+	"}\n";
+
+static const char f_tex_src[] =
+	"precision mediump float;\n"
+	"uniform sampler2D texture;\n"
+	"varying vec4 colorVar;\n"
+	"varying vec2 texCoordVar;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = colorVar * texture2D(texture, texCoordVar);\n"
+	"}\n";
+
+static const char f_fog_tex_src[] =
 	"precision mediump float;\n"
 	"uniform sampler2D texture;\n"
 	"varying vec4 colorVar;\n"
@@ -68,7 +108,7 @@ static const char f_aabitmap_src[] =
 	"	gl_FragColor = colorVar * texture2D(texture, texCoordVar).aaaa;\n"
 	"}\n";
 
-static const char f_lines_src[] =
+static const char f_color_src[] =
 	"precision mediump float;\n"
 	"varying vec4 colorVar;\n"
 	"void main()\n"
@@ -76,6 +116,14 @@ static const char f_lines_src[] =
 	"	gl_FragColor = colorVar;\n"
 	"}\n";
 
+static const char f_fog_color_src[] =
+	"precision mediump float;\n"
+	"varying vec4 colorVar;\n"
+	"varying vec4 secColorVar;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = vec4(mix(secColorVar.rgb, colorVar.rgb, 1.0 - secColorVar.a), colorVar.a);\n"
+	"}\n";
 
 
 static GLuint opengl2_create_shader(const char *src, GLenum type)
@@ -171,16 +219,24 @@ void opengl2_shader_use(sdr_prog_t prog)
 	}
 
 	switch (prog) {
-		case PROG_TMAPPER:
-			glUseProgram(tmapper_prog);
+		case PROG_TEX:
+			glUseProgram(tex_prog);
 			break;
 
 		case PROG_AABITMAP:
 			glUseProgram(aabitmap_prog);
 			break;
 
-		case PROG_LINES:
-			glUseProgram(lines_prog);
+		case PROG_COLOR:
+			glUseProgram(color_prog);
+			break;
+
+		case PROG_TEX_FOG:
+			glUseProgram(fog_tex_prog);
+			break;
+
+		case PROG_COLOR_FOG:
+			glUseProgram(fog_color_prog);
 			break;
 
 		default:
@@ -193,18 +249,26 @@ void opengl2_shader_use(sdr_prog_t prog)
 
 int opengl2_shader_init()
 {
-	GLuint v_generic_tex = opengl2_create_shader(v_generic_tex_src, GL_VERTEX_SHADER);
-	GLuint v_lines = opengl2_create_shader(v_lines_src, GL_VERTEX_SHADER);
+	GLuint v_tex = opengl2_create_shader(v_tex_src, GL_VERTEX_SHADER);
+	GLuint v_fog_tex = opengl2_create_shader(v_fog_tex_src, GL_VERTEX_SHADER);
+	GLuint v_color = opengl2_create_shader(v_color_src, GL_VERTEX_SHADER);
+	GLuint v_fog_color = opengl2_create_shader(v_fog_color_src, GL_VERTEX_SHADER);
 
-	GLuint f_tmapper = opengl2_create_shader(f_tmapper_src, GL_FRAGMENT_SHADER);
 	GLuint f_aabitmap = opengl2_create_shader(f_aabitmap_src, GL_FRAGMENT_SHADER);
-	GLuint f_lines = opengl2_create_shader(f_lines_src, GL_FRAGMENT_SHADER);
+	GLuint f_tex = opengl2_create_shader(f_tex_src, GL_FRAGMENT_SHADER);
+	GLuint f_fog_tex = opengl2_create_shader(f_fog_tex_src, GL_FRAGMENT_SHADER);
+	GLuint f_color = opengl2_create_shader(f_color_src, GL_FRAGMENT_SHADER);
+	GLuint f_fog_color = opengl2_create_shader(f_fog_color_src, GL_FRAGMENT_SHADER);
 
-	tmapper_prog = opengl2_create_program(v_generic_tex, f_tmapper);
-	aabitmap_prog = opengl2_create_program(v_generic_tex, f_aabitmap);
-	lines_prog = opengl2_create_program(v_lines, f_lines);
+	aabitmap_prog = opengl2_create_program(v_tex, f_aabitmap);
+	tex_prog = opengl2_create_program(v_tex, f_tex);
+	fog_tex_prog = opengl2_create_program(v_fog_tex, f_fog_tex);
+	color_prog = opengl2_create_program(v_color, f_color);
+	fog_color_prog = opengl2_create_program(v_fog_color, f_fog_color);
 
 
+	// set up orthographic projection var
+	// (this should never have to change while game is running)
 	GLfloat ortho[16];
 
 	SDL_zero(ortho);
@@ -219,26 +283,40 @@ int opengl2_shader_init()
 
 	GLint loc;
 
-	opengl2_shader_use(PROG_LINES);
-	loc = glGetUniformLocation(lines_prog, "vOrtho");
+	opengl2_shader_use(PROG_COLOR_FOG);
+	loc = glGetUniformLocation(fog_color_prog, "vOrtho");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+
+	opengl2_shader_use(PROG_COLOR);
+	loc = glGetUniformLocation(color_prog, "vOrtho");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+
+	opengl2_shader_use(PROG_TEX_FOG);
+	loc = glGetUniformLocation(fog_tex_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	opengl2_shader_use(PROG_AABITMAP);
 	loc = glGetUniformLocation(aabitmap_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
-	opengl2_shader_use(PROG_TMAPPER);
-	loc = glGetUniformLocation(tmapper_prog, "vOrtho");
+	opengl2_shader_use(PROG_TEX);
+	loc = glGetUniformLocation(tex_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+
 
 	return 1;
 }
 
 void opengl2_shader_cleanup()
 {
-	if (tmapper_prog) {
-		glDeleteProgram(tmapper_prog);
-		tmapper_prog = 0;
+	if (tex_prog) {
+		glDeleteProgram(tex_prog);
+		tex_prog = 0;
+	}
+
+	if (fog_tex_prog) {
+		glDeleteProgram(fog_tex_prog);
+		fog_tex_prog = 0;
 	}
 
 	if (aabitmap_prog) {
@@ -246,8 +324,13 @@ void opengl2_shader_cleanup()
 		aabitmap_prog = 0;
 	}
 
-	if (lines_prog) {
-		glDeleteProgram(lines_prog);
-		lines_prog = 0;
+	if (color_prog) {
+		glDeleteProgram(color_prog);
+		color_prog = 0;
+	}
+
+	if (fog_color_prog) {
+		glDeleteProgram(fog_color_prog);
+		fog_color_prog = 0;
 	}
 }

@@ -193,6 +193,10 @@ int opengl1_init()
 		return 1;
 	}
 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+
 	GL_context = SDL_GL_CreateContext(GL_window);
 
 	if ( !GL_context ) {

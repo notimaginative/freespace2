@@ -19,6 +19,8 @@ static GLuint fog_tex_prog = 0;
 static GLuint aabitmap_prog = 0;
 static GLuint color_prog = 0;
 static GLuint fog_color_prog = 0;
+static GLuint window_prog = 0;
+
 
 static const char v_tex_src[] =
 	"uniform mat4 vOrtho;\n"
@@ -76,6 +78,17 @@ static const char v_fog_color_src[] =
 	"	secColorVar = vSecColor;\n"
 	"}\n";
 
+static const char v_window_src[] =
+	"uniform mat4 vOrtho;\n"
+	"attribute vec4 vPosition;\n"
+	"attribute vec2 vTexCoord;\n"
+	"varying vec2 texCoordVar;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = vOrtho * vPosition;\n"
+	"	texCoordVar = vTexCoord;\n"
+	"}\n";
+
 static const char f_tex_src[] =
 	"precision mediump float;\n"
 	"uniform sampler2D texture;\n"
@@ -123,6 +136,15 @@ static const char f_fog_color_src[] =
 	"void main()\n"
 	"{\n"
 	"	gl_FragColor = vec4(mix(secColorVar.rgb, colorVar.rgb, 1.0 - secColorVar.a), colorVar.a);\n"
+	"}\n";
+
+static const char f_window_src[] =
+	"precision mediump float;\n"
+	"uniform sampler2D texture;\n"
+	"varying vec2 texCoordVar;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = texture2D(texture, texCoordVar);\n"
 	"}\n";
 
 
@@ -231,6 +253,10 @@ void opengl2_shader_use(sdr_prog_t prog)
 			glUseProgram(color_prog);
 			break;
 
+		case PROG_WINDOW:
+			glUseProgram(window_prog);
+			break;
+
 		case PROG_TEX_FOG:
 			glUseProgram(fog_tex_prog);
 			break;
@@ -247,24 +273,47 @@ void opengl2_shader_use(sdr_prog_t prog)
 	current = prog;
 }
 
+// update window ortho coords
+void opengl2_shader_update()
+{
+	GLfloat ortho[16];
+
+	SDL_zero(ortho);
+
+	ortho[0] = 2.0f / GL_viewport_w;
+	ortho[5] = 2.0f / -GL_viewport_h;
+	ortho[10] = -2.0f / 1.0f;
+	ortho[12] = -1.0f;
+	ortho[13] = 1.0f;
+	ortho[14] = -1.0f;
+	ortho[15] = 1.0f;
+
+	opengl2_shader_use(PROG_WINDOW);
+	GLint loc = glGetUniformLocation(window_prog, "vOrtho");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+}
+
 int opengl2_shader_init()
 {
 	GLuint v_tex = opengl2_create_shader(v_tex_src, GL_VERTEX_SHADER);
 	GLuint v_fog_tex = opengl2_create_shader(v_fog_tex_src, GL_VERTEX_SHADER);
 	GLuint v_color = opengl2_create_shader(v_color_src, GL_VERTEX_SHADER);
 	GLuint v_fog_color = opengl2_create_shader(v_fog_color_src, GL_VERTEX_SHADER);
+	GLuint v_window = opengl2_create_shader(v_window_src, GL_VERTEX_SHADER);
 
 	GLuint f_aabitmap = opengl2_create_shader(f_aabitmap_src, GL_FRAGMENT_SHADER);
 	GLuint f_tex = opengl2_create_shader(f_tex_src, GL_FRAGMENT_SHADER);
 	GLuint f_fog_tex = opengl2_create_shader(f_fog_tex_src, GL_FRAGMENT_SHADER);
 	GLuint f_color = opengl2_create_shader(f_color_src, GL_FRAGMENT_SHADER);
 	GLuint f_fog_color = opengl2_create_shader(f_fog_color_src, GL_FRAGMENT_SHADER);
+	GLuint f_window = opengl2_create_shader(f_window_src, GL_FRAGMENT_SHADER);
 
 	aabitmap_prog = opengl2_create_program(v_tex, f_aabitmap);
 	tex_prog = opengl2_create_program(v_tex, f_tex);
 	fog_tex_prog = opengl2_create_program(v_fog_tex, f_fog_tex);
 	color_prog = opengl2_create_program(v_color, f_color);
 	fog_color_prog = opengl2_create_program(v_fog_color, f_fog_color);
+	window_prog = opengl2_create_program(v_window, f_window);
 
 
 	// set up orthographic projection var
@@ -303,6 +352,7 @@ int opengl2_shader_init()
 	loc = glGetUniformLocation(tex_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
+	opengl2_shader_update();
 
 	return 1;
 }
@@ -332,5 +382,10 @@ void opengl2_shader_cleanup()
 	if (fog_color_prog) {
 		glDeleteProgram(fog_color_prog);
 		fog_color_prog = 0;
+	}
+
+	if (window_prog) {
+		glDeleteProgram(window_prog);
+		window_prog = 0;
 	}
 }

@@ -30,7 +30,8 @@ typedef enum {
 	PROG_TEX = 1,
 	PROG_TEX_FOG = 2,
 	PROG_COLOR = 3,
-	PROG_COLOR_FOG = 4
+	PROG_COLOR_FOG = 4,
+	PROG_WINDOW = 5
 } sdr_prog_t;
 
 // shader variable indexes
@@ -44,6 +45,7 @@ enum {
 int opengl2_shader_init();
 void opengl2_shader_cleanup();
 void opengl2_shader_use(sdr_prog_t prog);
+void opengl2_shader_update();
 
 void opengl2_error_check(const char *name, int lno);
 

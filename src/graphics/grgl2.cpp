@@ -25,6 +25,12 @@ int GL_two_inited = 0;
 
 bool Use_mipmaps = false;
 
+static GLuint FB_texture = 0;
+static GLuint FB_id = 0;
+static GLuint FB_rb_id = 0;
+
+static GLuint GL_saved_screen_tex = 0;
+
 
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
@@ -81,18 +87,6 @@ void opengl2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type 
 
 		GL_current_zbuffer_type = zt;
 	}
-}
-
-void opengl2_cleanup()
-{
-	if ( !GL_two_inited ) {
-		return;
-	}
-
-	opengl2_tcache_cleanup();
-	opengl2_shader_cleanup();
-
-	GL_two_inited = 0;
 }
 
 static void opengl2_init_func_pointers()
@@ -164,11 +158,104 @@ static void opengl2_init_func_pointers()
 	gr_screen.gf_release_texture = gr_opengl2_release_texture;
 }
 
+static int opengl2_create_framebuffer()
+{
+	// create texture
+	glGenTextures(1, &FB_texture);
+	glBindTexture(GL_TEXTURE_2D, FB_texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gr_screen.max_w, gr_screen.max_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// create renderbuffer
+	glGenRenderbuffers(1, &FB_rb_id);
+	glBindRenderbuffer(GL_RENDERBUFFER, FB_rb_id);
+
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
+
+	// create framebuffer
+	glGenFramebuffers(1, &FB_id);
+	glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+
+	// attach texture and renderbuffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FB_texture, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, FB_rb_id);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		if (FB_texture) {
+			glDeleteTextures(1, &FB_texture);
+			FB_texture = 0;
+		}
+
+		if (FB_rb_id) {
+			glDeleteRenderbuffers(1, &FB_rb_id);
+			FB_rb_id = 0;
+		}
+
+		if (FB_id) {
+			glDeleteFramebuffers(1, &FB_id);
+			FB_id = 0;
+		}
+
+		return 0;
+	}
+
+	return 1;
+}
+
+void opengl2_cleanup()
+{
+	if ( !GL_two_inited ) {
+		return;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (FB_texture) {
+		glDeleteTextures(1, &FB_texture);
+		FB_texture = 0;
+	}
+
+	if (FB_rb_id) {
+		glDeleteRenderbuffers(1, &FB_rb_id);
+		FB_rb_id = 0;
+	}
+
+	if (FB_id) {
+		glDeleteFramebuffers(1, &FB_id);
+		FB_id = 0;
+	}
+
+	opengl2_tcache_cleanup();
+	opengl2_shader_cleanup();
+
+	if (GL_context) {
+		SDL_GL_DeleteContext(GL_context);
+		GL_context = NULL;
+	}
+
+	GL_two_inited = 0;
+}
+
 int opengl2_init()
 {
 	if (GL_two_inited) {
 		return 1;
 	}
+
+	GL_two_inited = 1;
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -177,6 +264,7 @@ int opengl2_init()
 	GL_context = SDL_GL_CreateContext(GL_window);
 
 	if ( !GL_context ) {
+		opengl2_cleanup();
 		return 0;
 	}
 
@@ -184,19 +272,29 @@ int opengl2_init()
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
 	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
 
+	// initial viewport setup
+	gr_opengl2_set_viewport(gr_screen.max_w, gr_screen.max_h);
+
 	// set up generic variables
 	opengl_set_variables();
 
 	opengl2_init_func_pointers();
 	opengl2_tcache_init();
-	opengl2_shader_init();
 
-	// initial viewport setup
-	gr_opengl2_set_viewport(gr_screen.max_w, gr_screen.max_h);
+	if ( !opengl2_shader_init() ) {
+		opengl2_cleanup();
+		return 0;
+	}
+
+	if ( !opengl2_create_framebuffer() ) {
+		opengl2_cleanup();
+		return 0;
+	}
 
 	glEnable(GL_DITHER);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
 
 	glDepthRangef(0.0f, 1.0f);
 
@@ -214,8 +312,6 @@ int opengl2_init()
 	gr_opengl_clear();
 	gr_opengl_set_cull(1);
 
-	GL_two_inited = 1;
-
 	return 1;
 }
 
@@ -225,7 +321,45 @@ void gr_opengl2_flip()
 		return;
 	}
 
+#ifndef NDEBUG
+	static bool show_cursor = false;
+#endif
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	gr_opengl_reset_clip();
+
+	// set viewport to window size
+	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	{
+		float x = 0.0f;
+		float y = 0.0f;
+		float w = i2fl(GL_viewport_w);
+		float h = i2fl(GL_viewport_h);
+
+		const float tex_coord[] = { 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f };
+		const float ver_coord[] = { x, y, x, h, w, y, w, h };
+
+		opengl2_shader_use(PROG_WINDOW);
+
+		glEnableVertexAttribArray(SDRI_POSITION);
+		glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+
+		glEnableVertexAttribArray(SDRI_TEXCOORD);
+		glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+
+		glBindTexture(GL_TEXTURE_2D, FB_texture);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glDisableVertexAttribArray(SDRI_TEXCOORD);
+		glDisableVertexAttribArray(SDRI_POSITION);
+	}
 
 	mouse_eval_deltas();
 
@@ -234,17 +368,41 @@ void gr_opengl2_flip()
 
 		mouse_get_pos(&mx, &my);
 
-		if (Gr_cursor == -1) {
-#ifndef NDEBUG
-			gr_set_color(255, 255, 255);
-			gr_opengl2_line(mx, my, mx+7, my+7);
-			gr_opengl2_line(mx, my, mx+5, my);
-			gr_opengl2_line(mx, my, mx, my+5);
-#endif
-		} else {
-			gr_set_bitmap(Gr_cursor);
-			gr_bitmap(mx, my);
+		float u_scale, v_scale;
+
+		if ( opengl2_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE, &u_scale, &v_scale, 0) ) {
+			opengl2_set_state(TEXTURE_SOURCE_DECAL, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+			int bw, bh;
+			bm_get_info(Gr_cursor, &bw, &bh);
+
+			float x = i2fl(mx) * GL_viewport_scale_w;
+			float y = i2fl(my) * GL_viewport_scale_h;
+			float w = x + (bw * GL_viewport_scale_w);
+			float h = y + (bh * GL_viewport_scale_h);
+
+			const float tex_coord[] = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f };
+			const float ver_coord[] = { x, y, x, h, w, y, w, h };
+
+			opengl2_shader_use(PROG_WINDOW);
+
+			glEnableVertexAttribArray(SDRI_POSITION);
+			glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+
+			glEnableVertexAttribArray(SDRI_TEXCOORD);
+			glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+			glDisableVertexAttribArray(SDRI_TEXCOORD);
+			glDisableVertexAttribArray(SDRI_POSITION);
 		}
+#ifndef NDEBUG
+		else if ( !show_cursor ) {
+			SDL_ShowCursor(1);
+			show_cursor = true;
+		}
+#endif
 	}
 
 #ifndef NDEBUG
@@ -262,6 +420,11 @@ void gr_opengl2_flip()
 	SDL_GL_SwapWindow(GL_window);
 
 	opengl2_tcache_frame();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+
+	// set viewport to game screen size
+	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 }
 
 void gr_opengl2_set_clip(int x, int y, int w, int h)
@@ -282,7 +445,7 @@ void gr_opengl2_set_clip(int x, int y, int w, int h)
 	gr_screen.clip_height = h;
 
 	glEnable(GL_SCISSOR_TEST);
-	glScissor(x, GL_viewport_h-y-h, w, h);
+	glScissor(x, gr_screen.max_h-y-h, w, h);
 }
 
 void gr_opengl2_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
@@ -329,31 +492,89 @@ void gr_opengl2_get_region(int front, int w, int h, ubyte *data)
 {
 	opengl2_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
-	int x = GL_viewport_x;
-	int y = (GL_viewport_y+GL_viewport_h)-h-1;
-
 	GLenum pxtype = GL_UNSIGNED_SHORT_5_5_5_1;
 
 	if (gr_screen.bytes_per_pixel == 4) {
 		pxtype = GL_UNSIGNED_BYTE;
 	}
 
-	glReadPixels(x, y, w, h, GL_RGBA, pxtype, data);
+	glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, pxtype, data);
 }
 
 int gr_opengl2_save_screen()
 {
-	return -1;
+	gr_opengl_reset_clip();
+
+	if (GL_saved_screen_tex) {
+		mprintf(( "Screen already saved!\n" ));
+		return -1;
+	}
+
+	glGenTextures(1, &GL_saved_screen_tex);
+
+	if ( !GL_saved_screen_tex ) {
+		mprintf(( "Couldn't create texture for saved screen!\n" ));
+		return -1;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
+			gr_screen.max_w, gr_screen.max_h, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return 0;
 }
 
 void gr_opengl2_restore_screen(int)
 {
+	gr_opengl_reset_clip();
 
+	if ( !GL_saved_screen_tex ) {
+		gr_opengl_clear();
+		return;
+	}
+
+	float x = 0.0f;
+	float y = 0.0f;
+	float w = i2fl(gr_screen.max_w);
+	float h = i2fl(gr_screen.max_h);
+
+	const float tex_coord[] = { 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f };	// y-flipped
+	const float ver_coord[] = { x, y, x, h, w, y, w, h };
+
+	opengl2_shader_use(PROG_TEX);
+
+	glVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+
+	glEnableVertexAttribArray(SDRI_POSITION);
+	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+
+	glEnableVertexAttribArray(SDRI_TEXCOORD);
+	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+
+	glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glDisableVertexAttribArray(SDRI_TEXCOORD);
+	glDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_opengl2_free_screen(int)
 {
-
+	if (GL_saved_screen_tex) {
+		glDeleteTextures(1, &GL_saved_screen_tex);
+		GL_saved_screen_tex = 0;
+	}
 }
 
 void gr_opengl2_dump_frame_start(int first_frame, int frames_between_dumps)
@@ -395,8 +616,5 @@ void gr_opengl2_set_viewport(int width, int height)
 	GL_viewport_scale_w = w / i2fl(gr_screen.max_w);
 	GL_viewport_scale_h = h / i2fl(gr_screen.max_h);
 
-	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
-
-	// clear screen once to fix issues with edges on non-4:3
-	gr_opengl_clear();
+	opengl2_shader_update();
 }

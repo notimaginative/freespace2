@@ -264,9 +264,6 @@ void gr_opengl_cleanup()
 
 	os_set_window(NULL);
 
-	SDL_GL_DeleteContext(GL_context);
-	GL_context = NULL;
-
 	SDL_DestroyWindow(GL_window);
 	GL_window = NULL;
 

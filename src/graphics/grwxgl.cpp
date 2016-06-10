@@ -65,6 +65,10 @@ static void wxgl_init_func_pointers()
 	gr_screen.gf_dump_frame_stop = gr_opengl1_dump_frame_stop;
 	gr_screen.gf_dump_frame = gr_opengl1_dump_frame;
 
+	gr_screen.gf_stream_start = gr_opengl1_stream_start;
+	gr_screen.gf_stream_frame = gr_opengl1_stream_frame;
+	gr_screen.gf_stream_stop = gr_opengl1_stream_stop;
+
 	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
 
 	gr_screen.gf_lock = gr_opengl_lock;

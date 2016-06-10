@@ -30,6 +30,7 @@ static GLuint FB_id = 0;
 static GLuint FB_rb_id = 0;
 
 static GLuint GL_saved_screen_tex = 0;
+static GLuint GL_stream_tex = 0;
 
 
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
@@ -128,6 +129,10 @@ static void opengl2_init_func_pointers()
 	gr_screen.gf_dump_frame_start = gr_opengl2_dump_frame_start;
 	gr_screen.gf_dump_frame_stop = gr_opengl2_dump_frame_stop;
 	gr_screen.gf_dump_frame = gr_opengl2_dump_frame;
+
+	gr_screen.gf_stream_start = gr_opengl2_stream_start;
+	gr_screen.gf_stream_frame = gr_opengl2_stream_frame;
+	gr_screen.gf_stream_stop = gr_opengl2_stream_stop;
 
 	gr_screen.gf_set_gamma = gr_opengl2_set_gamma;
 
@@ -590,6 +595,122 @@ void gr_opengl2_dump_frame_stop()
 void gr_opengl2_dump_frame()
 {
 
+}
+
+static int GL_stream_w = 0;
+static int GL_stream_h = 0;
+
+static rb_t GL_stream[4];
+
+void gr_opengl2_stream_start(int x, int y, int w, int h)
+{
+	if (GL_stream_tex) {
+		return;
+	}
+
+	glGenTextures(1, &GL_stream_tex);
+
+	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	uint scale = os_config_read_uint("Video", "ScaleMovies", 1);
+
+	int sx, sy;
+	int sw, sh;
+
+	if (x < 0) {
+		sx = scale ? 0 : ((gr_screen.max_w - w) / 2);
+	} else {
+		sx = x;
+	}
+
+	float h_factor = scale ? (gr_screen.max_w / i2fl(w)) : 1.0f;
+
+	if (y < 0) {
+		sy = (gr_screen.max_h - fl2i(h * h_factor)) / 2;
+	} else {
+		sy = y;
+	}
+
+	GL_stream_w = w;
+	GL_stream_h = h;
+
+	if (scale) {
+		sw = gr_screen.max_w - (sx * 2);
+		sh = gr_screen.max_h - (sy * 2);
+	} else {
+		sw = w;
+		sh = h;
+	}
+
+	GL_stream[0].x = i2fl(sx);
+	GL_stream[0].y = i2fl(sy);
+	GL_stream[0].u = 0.0f;
+	GL_stream[0].v = 0.0f;
+
+	GL_stream[1].x = i2fl(sx);
+	GL_stream[1].y = i2fl(sy + sh);
+	GL_stream[1].u = 0.0f;
+	GL_stream[1].v = 1.0f;
+
+	GL_stream[2].x = i2fl(sx + sw);
+	GL_stream[2].y = i2fl(sy);
+	GL_stream[2].u = 1.0f;
+	GL_stream[2].v = 0.0f;
+
+	GL_stream[3].x = i2fl(sx + sw);
+	GL_stream[3].y = i2fl(sy + sh);
+	GL_stream[3].u = 1.0f;
+	GL_stream[3].v = 1.0f;
+
+	glDisable(GL_DEPTH_TEST);
+}
+
+void gr_opengl2_stream_frame(ubyte *frame)
+{
+	if ( !GL_stream_tex ) {
+		return;
+	}
+
+	opengl2_shader_use(PROG_TEX);
+
+	glVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+
+	glEnableVertexAttribArray(SDRI_POSITION);
+	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].x);
+
+	glEnableVertexAttribArray(SDRI_TEXCOORD);
+	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].u);
+
+	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
+
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_stream_w, GL_stream_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, frame);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glDisableVertexAttribArray(SDRI_TEXCOORD);
+	glDisableVertexAttribArray(SDRI_POSITION);
+}
+
+void gr_opengl2_stream_stop()
+{
+	if (GL_stream_tex) {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDeleteTextures(1, &GL_stream_tex);
+		GL_stream_tex = 0;
+
+		glEnable(GL_DEPTH_TEST);
+	}
 }
 
 void gr_opengl2_set_viewport(int width, int height)

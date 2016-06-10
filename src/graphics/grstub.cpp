@@ -82,6 +82,10 @@ static int stub_preload(int, int)
 	return 1;
 }
 
+static void stub_stream_frame(ubyte *)
+{
+}
+
 
 void gr_stub_init()
 {
@@ -122,6 +126,10 @@ void gr_stub_init()
 	gr_screen.gf_dump_frame_start = stub_void_int2;
 	gr_screen.gf_dump_frame_stop = stub_void_void;
 	gr_screen.gf_dump_frame = stub_void_void;
+
+	gr_screen.gf_stream_start = stub_void_int4;
+	gr_screen.gf_stream_frame = stub_stream_frame;
+	gr_screen.gf_stream_stop = stub_void_void;
 
 	gr_screen.gf_set_gamma = stub_set_gamma;
 

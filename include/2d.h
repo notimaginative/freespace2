@@ -485,6 +485,15 @@ typedef struct screen {
 	// Dump the current frame to file
 	void (*gf_dump_frame_stop)();
 
+	// Begin video stream
+	void (*gf_stream_start)(int x, int y, int w, int h);
+
+	// Process frame of video stream
+	void (*gf_stream_frame)(ubyte *frame);
+
+	// Stop video stream
+	void (*gf_stream_stop)();
+
 	// Sets the gamma
 	void (*gf_set_gamma)(float gamma);
 
@@ -670,6 +679,10 @@ int gr_zbuffer_set(int mode);
 #define gr_dump_frame_start	GR_CALL(gr_screen.gf_dump_frame_start)
 #define gr_dump_frame_stop		GR_CALL(gr_screen.gf_dump_frame_stop)
 #define gr_dump_frame			GR_CALL(gr_screen.gf_dump_frame)
+
+#define gr_stream_start		GR_CALL(gr_screen.gf_stream_start)
+#define gr_stream_frame		GR_CALL(gr_screen.gf_stream_frame)
+#define gr_stream_stop		GR_CALL(gr_screen.gf_stream_stop)
 
 void gr_set_gamma(float gamma);
 

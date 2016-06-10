@@ -60,6 +60,9 @@ void gr_opengl1_free_screen(int id);
 void gr_opengl1_dump_frame_start(int first_frame, int frames_between_dumps);
 void gr_opengl1_dump_frame_stop();
 void gr_opengl1_dump_frame();
+void gr_opengl1_stream_start(int x, int y, int w, int h);
+void gr_opengl1_stream_frame(ubyte *frame);
+void gr_opengl1_stream_stop();
 void gr_opengl1_set_viewport(int width, int height);
 void gr_opengl1_release_texture(int handle);
 

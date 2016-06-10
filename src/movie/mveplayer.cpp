@@ -32,8 +32,6 @@
  *
  * $NoKeywords: $
  */
- 
-#include "SDL_opengl.h"
 
 #include "pstypes.h"
 #include "mvelib.h"
@@ -46,7 +44,6 @@
 #include "bmpman.h"
 #include "osregistry.h"
 #include "oal.h"
-#include "gropengl.h"
 #include <vector>
 
 static int mve_playing;
@@ -96,18 +93,6 @@ ushort *pixelbuf = NULL;
 static ubyte *g_pCurMap=NULL;
 static int g_nMapLength=0;
 static int videobuf_created;
-static int mve_scale_video = 0;
-static int mve_viewport_w = 0;
-static float mve_viewport_scale = 1.0f;
-static int mve_needs_clear = 0;
-static GLuint tex = 0;
-
-struct g_coords_t {
-	int x, y;
-	float u, v;
-};
-
-static g_coords_t g_coords[4];
 
 
 // the decoder
@@ -471,19 +456,6 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	if (videobuf_created)
 		return 1;
 
-	if (gr_screen.mode != GR_OPENGL) {
-		mprintf(("MVE-ERROR: Movie playback requires OpenGL renderer\n"));
-		videobuf_created = 1;
-		return 0;
-	}
-
-	if (gr_screen.use_sections) {
-		mprintf(("MVE-ERROR: Bitmap sections not supported\n"));
-		videobuf_created = 1;
-		return 0;
-	}
-
-	int tex_w, tex_h;
 	short w, h;
 
 	w = mve_get_short(data);
@@ -516,75 +488,7 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 
 	memset(pixelbuf, 0, g_width * g_height * 2);
 
-	// set height and width to a power of 2
-	tex_w = next_pow2(g_width);
-	tex_h = next_pow2(g_height);
-
-	SDL_assert(tex_w > 0);
-	SDL_assert(tex_h > 0);
-
-	glGenTextures(1, &tex);
-
-	if (tex == 0) {
-		mprintf(("MVE-ERROR: Can't create a GL texture\n"));
-		videobuf_created = 1;
-		return 0;
-	}
-
-	glBindTexture(GL_TEXTURE_2D, tex);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthFunc(GL_ALWAYS);
-	glDepthMask(GL_FALSE);
-	glDisable(GL_DEPTH_TEST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int x, y;
-
-	// centers
-	x = ((gr_screen.max_w - g_width) / 2);
-	y = ((gr_screen.max_h - g_height) / 2);
-
-	if ( os_config_read_uint("Video", "ScaleMovies", 1) ) {
-		extern int GL_viewport_w;
-
-		mve_scale_video = 1;
-
-		mve_viewport_scale = GL_viewport_w / (float)g_width;
-		mve_viewport_w = GL_viewport_w;
-
-		x = 0;
-		y = ((480 - g_height) / 2);
-	}
-
-	g_coords[0].x = x;
-	g_coords[0].y = y;
-	g_coords[0].u = 0.0f;
-	g_coords[0].v = 0.0f;
-
-	g_coords[1].x = x;
-	g_coords[1].y = y + g_height;
-	g_coords[1].u = 0.0f;
-	g_coords[1].v = i2fl(g_height) / i2fl(tex_h);
-
-	g_coords[2].x = x + g_width;
-	g_coords[2].y = y;
-	g_coords[2].u = i2fl(g_width) / i2fl(tex_w);
-	g_coords[2].v = 0.0f;
-
-	g_coords[3].x = x + g_width;
-	g_coords[3].y = y + g_height;
-	g_coords[3].u = i2fl(g_width) / i2fl(tex_w);
-	g_coords[3].v = i2fl(g_height) / i2fl(tex_h);
-
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
-
-	glTexCoordPointer(2, GL_FLOAT, sizeof(g_coords_t), &g_coords[0].u);
-	glVertexPointer(2, GL_INT, sizeof(g_coords_t), &g_coords[0].x);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5_A1, tex_w, tex_h, 0, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, NULL);
+	gr_stream_start(-1, -1, g_width, g_height);
 
 	videobuf_created = 1;
 
@@ -596,7 +500,9 @@ static void mve_convert_and_draw()
 	ushort *pDests;
 	ushort *pSrcs;
 	ushort *pixels = (ushort *)g_vBackBuf1;
+	ushort px;
 	int x, y;
+	ubyte r, g, b, a;
 
 	pSrcs = pixels;
 
@@ -604,7 +510,15 @@ static void mve_convert_and_draw()
 
 	for (y=0; y<g_height; y++) {
 		for (x = 0; x < g_width; x++) {
-			pDests[x] = (1<<15)|*pSrcs;
+			// convert from abgr to rgba
+			px = (1<<15)|*pSrcs;
+
+			r = (px & 0x7C00) >> 10;
+			g = (px & 0x3E0) >> 5;
+			b = (px & 0x1F) >> 0;
+			a = (px & 0x8000) >> 15;
+
+			pDests[x] = (r << 11) | (g << 6) | (b << 1) | (a << 0);
 
 			pSrcs++;
 		}
@@ -630,26 +544,9 @@ void mve_video_display()
 
 	mve_convert_and_draw();
 
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_width, g_height, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, pixelbuf);
-
-	if (mve_scale_video) {
-		glPushMatrix();
-		glLoadIdentity();
-		glScalef(mve_viewport_scale, mve_viewport_scale, 1.0f);
-	}
-
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	if (mve_scale_video) {
-		glPopMatrix();
-	}
+	gr_stream_frame( (ubyte*)pixelbuf );
 
 	gr_flip();
-
-	if (mve_needs_clear) {
-		gr_clear();
-		mve_needs_clear = 0;
-	}
 
 	fix t2 = timer_get_fixed_seconds();
 
@@ -698,9 +595,6 @@ void mve_init(MVESTREAM *mve)
 	audiobuf_created = 0;
 
 	videobuf_created = 0;
-	mve_scale_video = 0;
-	mve_viewport_w = 0;
-	mve_viewport_scale = 1.0f;
 
 	mve_playing = 1;
 }
@@ -728,18 +622,6 @@ void mve_play(MVESTREAM *mve)
 		if (key_inkey() == SDLK_ESCAPE) {
 			mve_playing = 0;
 		}
-
-		// check if viewport size changed and adjust scaling accordingly
-		extern int GL_viewport_w;
-
-		if (mve_viewport_w != GL_viewport_w) {
-			mve_viewport_w = GL_viewport_w;
-			mve_needs_clear = 1;
-
-			if (mve_scale_video) {
-				mve_viewport_scale = GL_viewport_w / (float)g_width;
-			}
-		}
 	}
 }
 
@@ -759,21 +641,5 @@ void mve_shutdown()
 		g_vBuffers = NULL;
 	}
 
-	if (gr_screen.mode == GR_OPENGL) {
-		if (tex > 0) {
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			glDisableClientState(GL_VERTEX_ARRAY);
-
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glDeleteTextures(1, &tex);
-			tex = 0;
-		}
-
-		if (mve_scale_video) {
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-		}
-
-		glEnable(GL_DEPTH_TEST);
-	}
+	gr_stream_stop();
 }

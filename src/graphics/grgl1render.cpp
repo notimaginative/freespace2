@@ -21,8 +21,6 @@
 #include "palman.h"
 
 
-extern int OGL_fog_mode;
-
 #define NEBULA_COLORS 20
 
 
@@ -248,8 +246,6 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	float ox = gr_screen.offset_x * 16.0f;
 	float oy = gr_screen.offset_y * 16.0f;
 
-	float fr = 1.0f, fg = 1.0f, fb = 1.0f;
-
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
 		int r, g, b;
 		int ra, ga, ba;
@@ -257,9 +253,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 
 		ra = ga = ba = 0;
 
-		/* argh */
-		for (i=nv-1;i>=0;i--)	// DDOI - change polygon winding
-		{
+		for (i = nv-1; i >= 0; i--) {
 			vertex * va = verts[i];
 
 			sx = (va->sx * 16.0f + ox) / 16.0f;
@@ -276,11 +270,7 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		ga /= nv;
 		ba /= nv;
 
-		gr_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
-
-		fr = ra / 255.0f;
-		fg = ga / 255.0f;
-		fb = ba / 255.0f;
+		gr_opengl1_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
 	}
 
 	opengl_alloc_render_buffer(nv);
@@ -289,10 +279,18 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 
 	float sx, sy, sz = 0.99f, rhw = 1.0f;
 
+	bool bZval = (Gr_zbuffering || (flags & TMAP_FLAG_NEBULA));
+	bool bCorrect = (flags & TMAP_FLAG_CORRECT);
+	bool bAlpha = (flags & TMAP_FLAG_ALPHA);
+	bool bNebula = (flags & TMAP_FLAG_NEBULA);
+	bool bRamp = ((flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD));
+	bool bRGB = ((flags & TMAP_FLAG_RGB) && (flags & TMAP_FLAG_GOURAUD));
+	bool bTextured = (flags & TMAP_FLAG_TEXTURED);
+
 	for (i = nv-1; i >= 0; i--) {
 		vertex *va = verts[i];
 
-		if ( Gr_zbuffering || (flags & TMAP_FLAG_NEBULA) ) {
+		if (bZval) {
 			sz = 1.0f - 1.0f / (1.0f + va->z / (32768.0f / 256.0f));
 
 			if ( sz > 0.98f ) {
@@ -300,26 +298,26 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 			}
 		}
 
-		if (flags & TMAP_FLAG_CORRECT) {
+		if (bCorrect) {
 			rhw = 1.0f / va->sw;
 		}
 
-		if (flags & TMAP_FLAG_ALPHA) {
-			a = verts[i]->a;
+		if (bAlpha) {
+			a = va->a;
 		}
 
-		if (flags & TMAP_FLAG_NEBULA ) {
-			int pal = (verts[i]->b*(NEBULA_COLORS-1))/255;
+		if (bRGB) {
+			// Make 0.75 be 256.0f
+			r = Gr_gamma_lookup[va->r];
+			g = Gr_gamma_lookup[va->g];
+			b = Gr_gamma_lookup[va->b];
+		} else if (bNebula) {
+			int pal = (va->b*(NEBULA_COLORS-1))/255;
 			r = gr_palette[pal*3+0];
 			g = gr_palette[pal*3+1];
 			b = gr_palette[pal*3+2];
-		} else if ( (flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD) )   {
-			r = g = b = Gr_gamma_lookup[verts[i]->b];
-		} else if ( (flags & TMAP_FLAG_RGB)  && (flags & TMAP_FLAG_GOURAUD) )   {
-			// Make 0.75 be 256.0f
-			r = Gr_gamma_lookup[verts[i]->r];
-			g = Gr_gamma_lookup[verts[i]->g];
-			b = Gr_gamma_lookup[verts[i]->b];
+		} else if (bRamp) {
+			r = g = b = Gr_gamma_lookup[va->b];
 		}
 
 		render_buffer[rb_offset].r = r;
@@ -327,20 +325,10 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 		render_buffer[rb_offset].b = b;
 		render_buffer[rb_offset].a = a;
 
-		if ( (flags & TMAP_FLAG_PIXEL_FOG) && (OGL_fog_mode == 1) ) {
-			float f_val;
-
-			opengl_stuff_fog_value(va->z, &f_val);
-
-			render_buffer[rb_offset].sr = (ubyte)(((fr * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sg = (ubyte)(((fg * f_val) * 255.0f) + 0.5f);
-			render_buffer[rb_offset].sb = (ubyte)(((fb * f_val) * 255.0f) + 0.5f);
-		}
-
 		sx = (va->sx * 16.0f + ox) / 16.0f;
 		sy = (va->sy * 16.0f + oy) / 16.0f;
 
-		if (flags & TMAP_FLAG_TEXTURED) {
+		if (bTextured) {
 			render_buffer[rb_offset].u = va->u * u_scale;
 			render_buffer[rb_offset].v = va->v * v_scale;
 		}
@@ -356,11 +344,6 @@ static void opengl1_tmapper_internal( int nv, vertex ** verts, uint flags, int i
 	if (flags & TMAP_FLAG_TEXTURED) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
-	}
-
-	if ( (gr_screen.current_fog_mode != GR_FOGMODE_NONE) && (OGL_fog_mode == 1) ) {
-		glEnableClientState(GL_SECONDARY_COLOR_ARRAY);
-		vglSecondaryColorPointer(3, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].sr);
 	}
 
 	glEnableClientState(GL_COLOR_ARRAY);

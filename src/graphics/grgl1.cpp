@@ -21,8 +21,6 @@
 #include "osregistry.h"
 
 
-int OGL_fog_mode = 0;
-
 int GL_one_inited = 0;
 
 
@@ -229,21 +227,6 @@ int opengl1_init()
 	// initial viewport setup
 	gr_opengl1_set_viewport(gr_screen.max_w, gr_screen.max_h);
 
-	/*
-	  1 = use secondary color ext
-	  2 = use opengl linear fog
-	 */
-	OGL_fog_mode = 2;
-
-	// only available with OpenGL 1.2+, must get ptr for Windows
-	vglSecondaryColorPointer = (PFNGLSECONDARYCOLORPOINTERPROC)SDL_GL_GetProcAddress("glSecondaryColorPointer");
-
-	if (vglSecondaryColorPointer) {
-		OGL_fog_mode = 1;
-	}
-
-	mprintf(("  Fog mode : %s\n", (OGL_fog_mode == 1) ? "secondary color" : "linear"));
-
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DITHER);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -364,10 +347,6 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 	if (fog_mode == GR_FOGMODE_NONE) {
 		if (gr_screen.current_fog_mode != fog_mode) {
 			glDisable(GL_FOG);
-
-			if (OGL_fog_mode == 1) {
-				glDisable(GL_COLOR_SUM);
-			}
 		}
 
 		gr_screen.current_fog_mode = fog_mode;
@@ -377,12 +356,7 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 
 	if (gr_screen.current_fog_mode != fog_mode) {
 		glEnable(GL_FOG);
-
-		if (OGL_fog_mode == 1) {
-			glEnable(GL_COLOR_SUM);
-		} else if (OGL_fog_mode == 2) {
-			glFogi(GL_FOG_MODE, GL_LINEAR);
-		}
+		glFogi(GL_FOG_MODE, GL_LINEAR);
 
 		gr_screen.current_fog_mode = fog_mode;
 	}
@@ -390,9 +364,9 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 	if ( (gr_screen.current_fog_color.red != r) ||
 			(gr_screen.current_fog_color.green != g) ||
 			(gr_screen.current_fog_color.blue != b) ) {
-		GLfloat fc[4];
-
 		gr_init_color( &gr_screen.current_fog_color, r, g, b );
+
+		GLfloat fc[4];
 
 		fc[0] = r / 255.0f;
 		fc[1] = g / 255.0f;
@@ -408,10 +382,8 @@ void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float
 		gr_screen.fog_near = fog_near;
 		gr_screen.fog_far = fog_far;
 
-		if (OGL_fog_mode == 2) {
-			glFogf(GL_FOG_START, fog_near);
-			glFogf(GL_FOG_END, fog_far);
-		}
+		glFogf(GL_FOG_START, fog_near);
+		glFogf(GL_FOG_END, fog_far);
 	}
 }
 

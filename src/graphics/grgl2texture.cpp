@@ -223,16 +223,15 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 
 	switch (bitmap_type) {
 		case TCACHE_TYPE_AABITMAP: {
+			SDL_assert(tex_w == bmp->w);
+			SDL_assert(tex_h == bmp->h);
+
 			texmem = (ubyte *) malloc(tex_w * tex_h);
 			texmemp = texmem;
 
 			for (i = 0; i < tex_h; i++) {
 				for (j = 0; j < tex_w; j++) {
-					if ( (i < bmp->h) && (j < bmp->w) ) {
-						*texmemp++ = GL_xlat[bmp_data[i*bmp->w+j]];
-					} else {
-						*texmemp++ = 0;
-					}
+					*texmemp++ = GL_xlat[bmp_data[i*bmp->w+j]];
 				}
 			}
 

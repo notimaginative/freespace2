@@ -325,10 +325,12 @@ void os_poll()
 
 			case SDL_KEYDOWN: {
 				if (e.key.keysym.mod & KMOD_GUI) {
-					if (e.key.keysym.sym == SDLK_f ) {
-						gr_toggle_fullscreen();
-				//	} else if (e.key.keysym.sym == SDLK_z) {
-				//		SDL_MinimizeWindow(GL_window);
+					if ( !e.key.repeat ) {
+						if (e.key.keysym.sym == SDLK_f) {
+							gr_toggle_fullscreen();
+					//	} else if (e.key.keysym.sym == SDLK_z) {
+					//		SDL_MinimizeWindow(GL_window);
+						}
 					}
 				} else {
 					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);

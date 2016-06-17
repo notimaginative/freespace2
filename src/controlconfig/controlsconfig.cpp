@@ -2510,9 +2510,16 @@ int check_control(int id, int key)
 		return 0;
 	}
 
-	if ((Control_config[id].key_id == key) || joy_down_count(Control_config[id].joy_id) || mouse_down_count(1 << Control_config[id].joy_id)) {
+	if ( (Control_config[id].key_id == key) || joy_down_count(Control_config[id].joy_id) ) {
 		control_used(id);
 		return 1;
+	}
+
+	if ( (Control_config[id].joy_id >= 0) && (Control_config[id].joy_id < MOUSE_NUM_BUTTONS) ) {
+		if ( mouse_down_count(1 << Control_config[id].joy_id) ) {
+			control_used(id);
+			return 1;
+		}
 	}
 
 	return 0;

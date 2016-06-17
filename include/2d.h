@@ -382,6 +382,7 @@ typedef struct screen {
 	int	bytes_per_pixel;	// How many bytes per pixel (1,2,3,4)
 	int	offset_x, offset_y;		// The offsets into the screen
 	int	clip_width, clip_height;
+	int fullscreen;
 
 	float fog_near, fog_far;
 
@@ -518,10 +519,6 @@ typedef struct screen {
 	int (*gf_preload)(int bitmap_num, int is_aabitmap);
 
 	void (*gf_zbias)(int bias);
-
-	void (*gf_force_windowed)();
-	void (*gf_force_fullscreen)();
-	void (*gf_toggle_fullscreen)();
 
 	void (*gf_set_viewport)(int width, int height);
 

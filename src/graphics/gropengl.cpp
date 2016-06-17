@@ -119,27 +119,6 @@ void opengl_stuff_fog_value(float z, float *f_val)
 	*f_val = f_float;
 }
 
-void gr_opengl_force_windowed()
-{
-	SDL_SetWindowFullscreen(GL_window, 0);
-}
-
-void gr_opengl_force_fullscreen()
-{
-	SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-}
-
-void gr_opengl_toggle_fullscreen()
-{
-	Uint32 flags = SDL_GetWindowFlags(GL_window);
-
-	if ( (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP ) {
-		gr_opengl_force_windowed();
-	} else {
-		gr_opengl_force_fullscreen();
-	}
-}
-
 void gr_opengl_clear()
 {
 	glClearColor(gr_screen.current_clear_color.red / 255.0f,
@@ -339,7 +318,7 @@ void gr_opengl_init()
 	// maybe go fullscreen - should be done *after* main GL init
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
 	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
-		SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		gr_force_fullscreen();
 		// poll for window events
 		os_poll();
 	}

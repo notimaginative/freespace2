@@ -149,10 +149,6 @@ void gr_stub_init()
 
 	gr_screen.gf_zbias = stub_void_int;
 
-	gr_screen.gf_force_windowed = stub_void_void;
-	gr_screen.gf_force_fullscreen = stub_void_void;
-	gr_screen.gf_toggle_fullscreen = stub_void_void;
-
 	gr_screen.gf_set_viewport = stub_void_int2;
 
 	gr_screen.gf_activate = stub_void_int;

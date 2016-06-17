@@ -323,7 +323,7 @@ static void opengl1_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_
 	*h_out = tex_h;
 }
 
-// data == start of bitmap data
+// bmp == bitmap structure with w, h, and data
 // sx == x offset into bitmap
 // sy == y offset into bitmap
 // src_w == absolute width of section on source bitmap
@@ -332,34 +332,35 @@ static void opengl1_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_
 // bmap_h == height of source bitmap
 // tex_w == width of final texture
 // tex_h == height of final texture
-static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushort *data, int sx, int sy, int src_w, int src_h, int bmap_w, int bmap_h, int tex_w, int tex_h, tcache_slot_opengl *t, int reload, int resize, int fail_on_full)
+static int opengl1_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *bmp, tcache_slot_opengl *t, int sx, int sy, int src_w, int src_h, int tex_w, int tex_h, bool reload, bool resize, int fail_on_full)
 {
-	int ret_val = 1;
-	int size = 0;
-	int i, j;
-	ubyte *bmp_data = ((ubyte*)data);
-	ubyte *texmem = NULL, *texmemp;
-
 	// bogus
-	if((t == NULL) || (bmp_data == NULL)){
+	if ( (bmp == NULL) || (t == NULL) ) {
 		return 0;
 	}
 
-	if ( t->used_this_frame == GL_frame_count )       {
-		mprintf(( "ARGHH!!! Texture already used this frame!  Cannot free it!\n" ));
+	if (t->used_this_frame == GL_frame_count) {
+		mprintf(("ARGHH!!! Texture already used this frame! Cannot free it!\n"));
 		return 0;
 	}
-	if ( !reload )  {
-		// gah
-		if(!opengl1_free_texture(t)){
+
+	if ( !reload ) {
+		if ( !opengl1_free_texture(t) ) {
+			return 0;
+		}
+
+		glGenTextures(1, &t->texture_handle);
+
+		if ( !t->texture_handle ) {
+			nprintf(("Error", "!!DEBUG!! t->texture_handle == 0"));
 			return 0;
 		}
 	}
 
 	switch (bitmap_type) {
 		case TCACHE_TYPE_AABITMAP:
-			t->u_scale = (float)bmap_w / (float)tex_w;
-			t->v_scale = (float)bmap_h / (float)tex_h;
+			t->u_scale = (float)bmp->w / (float)tex_w;
+			t->v_scale = (float)bmp->h / (float)tex_h;
 			break;
 
 		case TCACHE_TYPE_BITMAP_INTERFACE:
@@ -374,54 +375,44 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 			break;
 	}
 
-	if (!reload) {
-		glGenTextures (1, &t->texture_handle);
-	}
+	t->texture_mode = TEXTURE_SOURCE_NO_FILTERING;
 
-	if (t->texture_handle == 0) {
-		nprintf(("Error", "!!DEBUG!! t->texture_handle == 0"));
-		return 0;
-	}
+	glBindTexture(GL_TEXTURE_2D, t->texture_handle);
 
-	GL_bound_texture = t;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	GL_bound_texture->texture_mode = (gr_texture_source) -1;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glBindTexture (GL_TEXTURE_2D, t->texture_handle);
-
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	/* this should be set next anyway */
-//	if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
-//		gr_opengl_set_texture_state(GL_current_texture_source);
-//	}
+	ubyte *bmp_data = (ubyte*)bmp->data;
+	ubyte *texmem = NULL, *texmemp;
+	int i, j;
+	int size = 0;
 
 	switch (bitmap_type) {
-		case TCACHE_TYPE_AABITMAP:
-		{
-			texmem = (ubyte *) malloc (tex_w*tex_h);
+		case TCACHE_TYPE_AABITMAP: {
+			texmem = (ubyte *) malloc(tex_w * tex_h);
 			texmemp = texmem;
 
-			for (i=0;i<tex_h;i++)
-			{
-				for (j=0;j<tex_w;j++)
-				{
-					if (i < bmap_h && j < bmap_w) {
-						*texmemp++ = GL_xlat[bmp_data[i*bmap_w+j]];
+			for (i = 0; i < tex_h; i++) {
+				for (j = 0;j < tex_w; j++) {
+					if ( (i < bmp->h) && (j < bmp->w) ) {
+						*texmemp++ = GL_xlat[bmp_data[i*bmp->w+j]];
 					} else {
 						*texmemp++ = 0;
 					}
 				}
 			}
 
-			size = tex_w*tex_h;
+			size = tex_w * tex_h;
 
-			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+			if (reload) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
 			} else {
-				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
 			}
 
 			free (texmem);
@@ -430,18 +421,17 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 		}
 
 		case TCACHE_TYPE_BITMAP_INTERFACE:
-		case TCACHE_TYPE_BITMAP_SECTION:
-		{
+		case TCACHE_TYPE_BITMAP_SECTION: {
 			// if we aren't resizing in any way then we can just use bmp_data directly
-			if ( resize ) {
-				texmem = (ubyte *) malloc (tex_w*tex_h*2);
+			if (resize) {
+				texmem = (ubyte *) malloc(tex_w * tex_h * 2);
 				texmemp = texmem;
 
-				for (i=0;i<tex_h;i++) {
-					for (j=0;j<tex_w;j++) {
-						if (i < src_h && j < src_w) {
-							*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+0];
-							*texmemp++ = bmp_data[((i+sy)*bmap_w+(j+sx))*2+1];
+				for (i = 0;i < tex_h; i++) {
+					for (j = 0; j < tex_w; j++) {
+						if ( (i < src_h) && (j < src_w) ) {
+							*texmemp++ = bmp_data[((i+sy)*bmp->w+(j+sx))*2+0];
+							*texmemp++ = bmp_data[((i+sy)*bmp->w+(j+sx))*2+1];
 						} else {
 							*texmemp++ = 0;
 							*texmemp++ = 0;
@@ -450,63 +440,65 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 				}
 			}
 
-			size = tex_w*tex_h*2;
+			size = tex_w * tex_h * 2;
 
-			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+			if (reload) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
-			if (texmem != NULL)
+			if (texmem) {
 				free(texmem);
+			}
 
 			break;
 		}
 
-		default:
-		{
+		default: {
 			// if we aren't resizing then we can just use bmp_data directly
-			if ( resize ) {
-				texmem = (ubyte *) malloc (tex_w*tex_h*2);
+			if (resize) {
+				texmem = (ubyte *) malloc (tex_w * tex_h * 2);
 				texmemp = texmem;
 
-				SDL_assert( texmem != NULL );
+				SDL_assert(texmem);
 
-				fix u, utmp, v, du, dv;
+				fix u = 0, utmp, v = 0, du, dv;
 
-				u = v = 0;
+				du = ((bmp->w - 1) * F1_0) / tex_w;
+				dv = ((bmp->h - 1) * F1_0) / tex_h;
 
-				du = ( (bmap_w-1)*F1_0 ) / tex_w;
-				dv = ( (bmap_h-1)*F1_0 ) / tex_h;
-
-				for (j=0;j<tex_h;j++) {
+				for (j = 0; j < tex_h; j++) {
 					utmp = u;
-					for (i=0;i<tex_w;i++) {
-						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+0];
-						*texmemp++ = bmp_data[(f2i(v)*bmap_w+f2i(utmp))*2+1];
+
+					for (i = 0; i < tex_w; i++) {
+						*texmemp++ = bmp_data[(f2i(v)*bmp->w+f2i(utmp))*2+0];
+						*texmemp++ = bmp_data[(f2i(v)*bmp->w+f2i(utmp))*2+1];
+
 						utmp += du;
 					}
+
 					v += dv;
 				}
 			}
 
-			size = tex_w*tex_h*2;
+			size = tex_w * tex_h * 2;
 
-			if (!reload) {
-				glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+			if (reload) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
-			if (texmem != NULL)
+			if (texmem) {
 				free(texmem);
+			}
 
 			break;
 		}
 	}
 
-	t->bitmap_id = texture_handle;
+	t->bitmap_id = bitmap_handle;
 	t->time_created = GL_frame_count;
 	t->used_this_frame = 0;
 	t->size = size;
@@ -517,21 +509,18 @@ static int opengl1_create_texture_sub(int bitmap_type, int texture_handle, ushor
 		Gr_textures_in += t->size;
 	}
 
-	return ret_val;
+	return 1;
 }
 
 static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_opengl *tslot, int fail_on_full)
 {
-	ubyte flags;
-	bitmap *bmp;
+	ubyte flags = 0;
 	int final_w, final_h;
 	ubyte bpp = 16;
-	int reload = 0;
-	int resize = 0;
-	int cull_size = 0;
+	bool resize = false;
+	bool cull_size = false;
 
 	// setup texture/bitmap flags
-	flags = 0;
 	switch(bitmap_type){
 		case TCACHE_TYPE_AABITMAP:
 			flags |= BMP_AABITMAP;
@@ -539,7 +528,7 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 			break;
 		case TCACHE_TYPE_NORMAL:
 			flags |= BMP_TEX_OTHER;
-			cull_size = 1;
+			cull_size = true;
 			break;
 		case TCACHE_TYPE_BITMAP_INTERFACE:
 		case TCACHE_TYPE_XPARENT:
@@ -551,7 +540,7 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	}
 
 	// lock the bitmap into the proper format
-	bmp = bm_lock(bitmap_handle, bpp, flags);
+	bitmap *bmp = bm_lock(bitmap_handle, bpp, flags);
 	if ( bmp == NULL ) {
 		mprintf(("Couldn't lock bitmap %d.\n", bitmap_handle ));
 		return 0;
@@ -560,17 +549,16 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	int max_w = bmp->w;
 	int max_h = bmp->h;
 
-	if (cull_size) {
+	if ( cull_size && (Detail.hardware_textures < 4) ) {
 		// if we are going to cull the size then we need to force a resize
-		if (Detail.hardware_textures < 4) {
-			resize = 1;
+		resize = true;
 
-			// Detail.debris_culling goes from 0 to 4.
-			max_w /= (16 >> Detail.hardware_textures);
-			max_h /= (16 >> Detail.hardware_textures);
-		}
+		// Detail.hardware_textures goes form 0 to 4
+		int val = 16 >> Detail.hardware_textures;
+
+		max_w /= val;
+		max_h /= val;
 	}
-
 
 	// get final texture size as it will be allocated as a DD surface
 	opengl1_tcache_get_adjusted_texture_size(max_w, max_h, &final_w, &final_h);
@@ -582,25 +570,20 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 
 	// if we don't have to resize the image (to get power of 2, etc.) then skip that extra work
 	if ( (max_w != final_w) || (max_h != final_h) ) {
-		resize = 1;
+		resize = true;
 	}
 
-	// if this tcache slot has no bitmap
-	if ( tslot->bitmap_id < 0) {
-		reload = 0;
-	}
-	// different bitmap altogether - determine if the new one can use the old one's slot
-	else if (tslot->bitmap_id != bitmap_handle)     {
-		if((final_w == tslot->w) && (final_h == tslot->h)){
-			reload = 1;
-			//ml_printf("Reloading texture %d\n", bitmap_handle);
-		} else {
-			reload = 0;
+	bool reload = false;
+
+	// see if we can reuse this slot for a new bitmap
+	if ( tslot->texture_handle && (tslot->bitmap_id != bitmap_handle) ) {
+		if ( (final_w == tslot->w) && (final_h == tslot->h) ) {
+			reload = true;
 		}
 	}
 
 	// call the helper
-	int ret_val = opengl1_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, 0, 0, bmp->w, bmp->h, bmp->w, bmp->h, final_w, final_h, tslot, reload, resize, fail_on_full);
+	int ret_val = opengl1_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, 0, 0, bmp->w, bmp->h, final_w, final_h, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -610,12 +593,9 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 
 static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, tcache_slot_opengl *tslot, int sx, int sy, int fail_on_full)
 {
-	ubyte flags;
-	bitmap *bmp;
 	int final_w, final_h;
 	int section_x, section_y;
-	int reload = 0;
-	int resize = 1;
+	bool resize = true;
 
 	SDL_assert( gr_screen.use_sections );
 
@@ -624,10 +604,9 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 	if(bitmap_type != TCACHE_TYPE_BITMAP_SECTION){
 		bitmap_type = TCACHE_TYPE_BITMAP_SECTION;
 	}
-	flags = BMP_TEX_XPARENT;
 
 	// lock the bitmap in the proper format
-	bmp = bm_lock(bitmap_handle, 16, flags);
+	bitmap *bmp = bm_lock(bitmap_handle, 16, BMP_TEX_XPARENT);
 	if ( bmp == NULL ) {
 		mprintf(("Couldn't lock bitmap %d.\n", bitmap_handle ));
 		return 0;
@@ -645,24 +624,20 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 
 	// if we don't have to resize the image (to get power of 2, etc.) then skip that extra work
 	if ( (bmp->sections.num_x == 1) && (bmp->sections.num_y == 1) && (section_x == final_w) && (section_y == final_h) ) {
-		resize = 0;
+		resize = false;
 	}
 
-	// if this tcache slot has no bitmap
-	if ( tslot->bitmap_id < 0) {
-		reload = 0;
-	}
-	// different bitmap altogether - determine if the new one can use the old one's slot
-	else if (tslot->bitmap_id != bitmap_handle)     {
-		if((final_w == tslot->w) && (final_h == tslot->h)){
-			reload = 1;
-		} else {
-			reload = 0;
+	bool reload = false;
+
+	// see if we can reuse this slot for a new bitmap
+	if ( tslot->texture_handle && (tslot->bitmap_id != bitmap_handle) ) {
+		if ( (final_w == tslot->w) && (final_h == tslot->h) ) {
+			reload = true;
 		}
 	}
 
 	// call the helper
-	int ret_val = opengl1_create_texture_sub(bitmap_type, bitmap_handle, (ushort*)bmp->data, bmp->sections.sx[sx], bmp->sections.sy[sy], section_x, section_y, bmp->w, bmp->h, final_w, final_h, tslot, reload, resize, fail_on_full);
+	int ret_val = opengl1_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, bmp->sections.sx[sx], bmp->sections.sy[sy], section_x, section_y, final_w, final_h, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -774,11 +749,6 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 
 		glBindTexture (GL_TEXTURE_2D, t->texture_handle );
 
-		/* this should be set next anyway */
-//		if (GL_current_texture_source != TEXTURE_SOURCE_NONE) {
-//			gr_opengl_set_texture_state(GL_current_texture_source);
-//		}
-
 		GL_last_bitmap_id = t->bitmap_id;
 		GL_last_bitmap_type = bitmap_type;
 		GL_last_section_x = sx;
@@ -805,19 +775,11 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 
 void gr_opengl1_preload_init()
 {
-//	if (gr_screen.mode != GR_OPENGL) {
-//		return;
-//	}
-
 	opengl1_tcache_flush();
 }
 
 int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
 {
-//	if ( gr_screen.mode != GR_OPENGL) {
-//		return 0;
-//	}
-
 	if ( !GL_should_preload )      {
 		return 0;
 	}

@@ -11,13 +11,9 @@
 #include "gropengl.h"
 #include "gropenglinternal.h"
 #include "grgl1.h"
-#include "2d.h"
 #include "mouse.h"
-#include "pstypes.h"
-#include "cfile.h"
 #include "bmpman.h"
 #include "grinternal.h"
-#include "osapi.h"
 #include "osregistry.h"
 
 
@@ -33,9 +29,6 @@ static int Gr_opengl_mouse_saved_y = 0;
 static int Gr_opengl_mouse_saved_w = 0;
 static int Gr_opengl_mouse_saved_h = 0;
 static ubyte *Gr_opengl_mouse_saved_data = NULL;
-
-
-PFNGLSECONDARYCOLORPOINTERPROC vglSecondaryColorPointer = NULL;
 
 
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
@@ -252,59 +245,85 @@ void gr_opengl1_flip()
 		return;
 	}
 
-	gr_reset_clip();
+	gr_opengl_reset_clip();
 
 	mouse_eval_deltas();
 
 	Gr_opengl_mouse_saved = 0;
 
-	if ( mouse_is_visible() )       {
+	if ( mouse_is_visible() ) {
 		int mx, my;
 
 	 	mouse_get_pos( &mx, &my );
 
-	 	gr_opengl1_save_mouse_area(mx,my,32,32);
+		gr_opengl1_save_mouse_area(mx, my, 32, 32);
 
-	 	if (Gr_cursor == -1) {
+		float u_scale, v_scale;
+
+		if ( opengl1_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE, &u_scale, &v_scale) ) {
+			opengl1_set_state(TEXTURE_SOURCE_DECAL, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+			int bw, bh;
+			bm_get_info(Gr_cursor, &bw, &bh);
+
+			int x = mx;
+			int y = my;
+			int w = mx + bw;
+			int h = my + bh;
+
+			const float tex_coord[] = { 0.0f, 0.0f, 0.0f, 1.0f * v_scale,
+										1.0f * u_scale, 0.0f, 1.0f * u_scale,
+										1.0f * v_scale };
+			const int ver_coord[] = { x, y, x, h, w, y, w, h };
+
+			glColor4ub(255, 255, 255, 255);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
+
+			glTexCoordPointer(2, GL_FLOAT, 0, &tex_coord);
+			glVertexPointer(2, GL_INT, 0, &ver_coord);
+
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+		}
 #ifndef NDEBUG
-	 		gr_set_color(255,255,255);
-	 		gr_line(mx, my, mx+7, my + 7);
-	 		gr_line(mx, my, mx+5, my );
-	 		gr_line(mx, my, mx, my+5);
+		else {
+			gr_set_color(255,255,255);
+			gr_opengl1_line(mx, my, mx+7, my + 7);
+			gr_opengl1_line(mx, my, mx+5, my );
+			gr_opengl1_line(mx, my, mx, my+5);
+		}
 #endif
-	 	} else {
-	 		gr_set_bitmap(Gr_cursor);
-			gr_bitmap(mx, my);
-	 	}
 	 }
 
 #ifndef NDEBUG
-	GLenum error = GL_NO_ERROR;
+	GLenum error = glGetError();
 
-	do {
-		error = glGetError();
-
-		if (error != GL_NO_ERROR) {
-			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d\n", error));
-		}
-	} while (error != GL_NO_ERROR);
+	if (error != GL_NO_ERROR) {
+		mprintf(("!!DEBUG!! OpenGL Error: %d\n", error));
+	}
 #endif
 
 	SDL_GL_SwapWindow(GL_window);
 
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	opengl1_tcache_frame();
 
 	int cnt = GL_activate;
-	if ( cnt )      {
-		GL_activate-=cnt;
+
+	if (cnt) {
+		GL_activate -= cnt;
 		opengl1_tcache_flush();
-		// gr_opengl_clip_cursor(1); /* mouse grab, see opengl_activate */
 	}
 
 	cnt = GL_deactivate;
-	if ( cnt )      {
-		GL_deactivate-=cnt;
-		// gr_opengl_clip_cursor(0);  /* mouse grab, see opengl_activate */
+
+	if (cnt) {
+		GL_deactivate -= cnt;
 	}
 }
 
@@ -487,7 +506,7 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 
 int gr_opengl1_save_screen()
 {
-	gr_reset_clip();
+	gr_opengl_reset_clip();
 
 	if (Gr_saved_screen_tex) {
 		mprintf(( "Screen already saved!\n" ));
@@ -530,10 +549,10 @@ int gr_opengl1_save_screen()
 
 void gr_opengl1_restore_screen(int)
 {
-	gr_reset_clip();
+	gr_opengl_reset_clip();
 
 	if ( !Gr_saved_screen_tex ) {
-		gr_clear();
+		gr_opengl_clear();
 		return;
 	}
 
@@ -626,7 +645,6 @@ void gr_opengl1_stream_start(int x, int y, int w, int h)
 
 	if (scale) {
 		GL_stream_scale = true;
-
 		GL_stream_scale_by = GL_viewport_w / i2fl(w);
 	} else {
 		GL_stream_scale = false;
@@ -756,6 +774,8 @@ void gr_opengl1_set_viewport(int width, int height)
 		Gr_opengl_mouse_saved_data = NULL;
 	}
 
-	// clear screen once to fix issues with edges on non-4:3
-	gr_opengl_clear();
+	// adjust scale factor for gr_stream (movies)
+	if (GL_stream_tex && GL_stream_scale) {
+		GL_stream_scale_by = GL_viewport_w / i2fl(GL_stream_w);
+	}
 }

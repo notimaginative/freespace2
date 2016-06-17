@@ -378,14 +378,14 @@ static void os_parse_parms(char *cmdline)
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		// check with space to make sure we get the correct option name
-		SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name);
+		SDL_snprintf(pname, SDL_arraysize(pname), "%s ", parmp->name);
 		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
 			cmdline_offset += strlen(parmp->name);
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
-			SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name2);
+			SDL_snprintf(pname, SDL_arraysize(pname), "%s ", parmp->name2);
 			cmdline_offset = strstr(cmdline, pname);
 
 			if (cmdline_offset) {

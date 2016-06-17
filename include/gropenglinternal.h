@@ -39,8 +39,6 @@ extern volatile int GL_deactivate;
 extern SDL_Window *GL_window;
 extern SDL_GLContext GL_context;
 
-extern int GL_version;
-
 extern int GL_viewport_x;
 extern int GL_viewport_y;
 extern int GL_viewport_w;

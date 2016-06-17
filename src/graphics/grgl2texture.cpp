@@ -23,8 +23,6 @@ static bool vram_full = false;
 
 struct tcache_slot_opengl2 {
 	GLuint texture_handle;
-	float u_scale;
-	float v_scale;
 	int bitmap_id;
 	int size;
 	int used_this_frame;
@@ -60,7 +58,7 @@ void opengl2_set_texture_state(gr_texture_source ts)
 		GL_bound_texture = NULL;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		opengl2_tcache_set(-1, -1, NULL, NULL, 0);
+		opengl2_tcache_set(-1, -1);
 	} else if (GL_bound_texture && GL_bound_texture->texture_mode != ts) {
 		switch (ts) {
 			case TEXTURE_SOURCE_DECAL:
@@ -203,9 +201,6 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 		}
 	}
 
-	t->u_scale = 1.0f;
-	t->v_scale = 1.0f;
-
 	t->texture_mode = TEXTURE_SOURCE_NO_FILTERING;
 
 	glBindTexture(GL_TEXTURE_2D, t->texture_handle);
@@ -343,7 +338,7 @@ static int opengl2_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 
 		case TCACHE_TYPE_NORMAL: {
 			flags |= BMP_TEX_OTHER;
-			cull_size = 1;
+			cull_size = true;
 
 			break;
 		}
@@ -404,7 +399,7 @@ static int opengl2_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	return ret_val;
 }
 
-int opengl2_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full)
+int opengl2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 {
 	if (bitmap_id < 0) {
 		GL_last_bitmap_id = -1;
@@ -427,9 +422,6 @@ int opengl2_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 	if ( (GL_last_bitmap_id == bitmap_id) && (GL_last_bitmap_type == bitmap_type) && (t->bitmap_id == bitmap_id) ) {
 		t->used_this_frame = GL_frame_count;
 
-		*u_scale = t->u_scale;
-		*v_scale = t->v_scale;
-
 		return 1;
 	}
 
@@ -441,9 +433,6 @@ int opengl2_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 
 	if (ret_val && t->texture_handle && !vram_full) {
 		glBindTexture(GL_TEXTURE_2D, t->texture_handle);
-
-		*u_scale = t->u_scale;
-		*v_scale = t->v_scale;
 
 		GL_bound_texture = t;
 
@@ -477,9 +466,8 @@ int gr_opengl2_preload(int bitmap_num, int is_aabitmap)
 	}
 
 	int bitmap_type = (is_aabitmap) ? TCACHE_TYPE_AABITMAP : TCACHE_TYPE_NORMAL;
-	float u_scale, v_scale;
 
-	int retval = opengl2_tcache_set(bitmap_num, bitmap_type, &u_scale, &v_scale, 1);
+	int retval = opengl2_tcache_set(bitmap_num, bitmap_type, 1);
 
 	if ( !retval ) {
 		mprintf(("Texture upload failed bit bitmap %d!\n", bitmap_num));

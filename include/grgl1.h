@@ -12,9 +12,6 @@
 #include "pstypes.h"
 
 
-
-extern PFNGLSECONDARYCOLORPOINTERPROC vglSecondaryColorPointer;
-
 int opengl1_init();
 void opengl1_cleanup();
 

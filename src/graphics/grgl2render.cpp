@@ -23,17 +23,10 @@
 
 #define NEBULA_COLORS	20
 
-int cntZval = 0;
-int cntCorrect = 0;
-int cntAlpha = 0;
-int cntNebula = 0;
-int cntRamp = 0;
-int cntRGB = 0;
 
 static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_scaler)
 {
 	int i;
-	float u_scale = 1.0f, v_scale = 1.0f;
 
 	gr_texture_source texture_source = TEXTURE_SOURCE_NONE;
 	gr_alpha_blend alpha_blend = ALPHA_BLEND_ALPHA_BLEND_ALPHA;
@@ -78,9 +71,7 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 	}
 
 	if (flags & TMAP_FLAG_TEXTURED) {
-		if ( !opengl2_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale,
-				&v_scale, 0) )
-		{
+		if ( !opengl2_tcache_set(gr_screen.current_bitmap, tmap_type) ) {
 			mprintf(( "Not rendering a texture because it didn't fit in VRAM!\n" ));
 			return;
 		}
@@ -199,8 +190,8 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 		sy = (va->sy * 16.0f + oy) / 16.0f;
 
 		if (bTextured) {
-			render_buffer[rb_offset].u = va->u * u_scale;
-			render_buffer[rb_offset].v = va->v * v_scale;
+			render_buffer[rb_offset].u = va->u;
+			render_buffer[rb_offset].v = va->v;
 		}
 
 		render_buffer[rb_offset].x = sx * rhw;
@@ -250,70 +241,36 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 
 void opengl2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 {
-	int saved_zbuf;
-	vertex v[4];
-	vertex *verts[4] = {&v[0], &v[1], &v[2], &v[3]};
+	int saved_zbuf = gr_zbuffer_get();
 
-	saved_zbuf = gr_zbuffer_get();
-
-	// start the frame, no zbuffering, no culling
-	g3_start_frame(1);
+	// no zbuffering, no culling
 	gr_zbuffer_set(GR_ZBUFF_NONE);
 	gr_opengl_set_cull(0);
 
-	// stuff coords
-	v[0].sx = i2fl(x);
-	v[0].sy = i2fl(y);
-	v[0].sw = 0.0f;
-	v[0].u = 0.0f;
-	v[0].v = 0.0f;
-	v[0].flags = PF_PROJECTED;
-	v[0].codes = 0;
-	v[0].r = (ubyte)r;
-	v[0].g = (ubyte)g;
-	v[0].b = (ubyte)b;
-	v[0].a = (ubyte)a;
+	opengl_alloc_render_buffer(4);
 
-	v[1].sx = i2fl(x + w);
-	v[1].sy = i2fl(y);
-	v[1].sw = 0.0f;
-	v[1].u = 0.0f;
-	v[1].v = 0.0f;
-	v[1].flags = PF_PROJECTED;
-	v[1].codes = 0;
-	v[1].r = (ubyte)r;
-	v[1].g = (ubyte)g;
-	v[1].b = (ubyte)b;
-	v[1].a = (ubyte)a;
+	render_buffer[0].x = i2fl(x);
+	render_buffer[0].y = i2fl(y);
 
-	v[2].sx = i2fl(x + w);
-	v[2].sy = i2fl(y + h);
-	v[2].sw = 0.0f;
-	v[2].u = 0.0f;
-	v[2].v = 0.0f;
-	v[2].flags = PF_PROJECTED;
-	v[2].codes = 0;
-	v[2].r = (ubyte)r;
-	v[2].g = (ubyte)g;
-	v[2].b = (ubyte)b;
-	v[2].a = (ubyte)a;
+	render_buffer[1].x = i2fl(x);
+	render_buffer[1].y = i2fl(y + h);
 
-	v[3].sx = i2fl(x);
-	v[3].sy = i2fl(y + h);
-	v[3].sw = 0.0f;
-	v[3].u = 0.0f;
-	v[3].v = 0.0f;
-	v[3].flags = PF_PROJECTED;
-	v[3].codes = 0;
-	v[3].r = (ubyte)r;
-	v[3].g = (ubyte)g;
-	v[3].b = (ubyte)b;
-	v[3].a = (ubyte)a;
+	render_buffer[2].x = i2fl(x + w);
+	render_buffer[2].y = i2fl(y);
 
-	// draw the polys
-	g3_draw_poly_constant_sw(4, verts, TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB | TMAP_FLAG_ALPHA, 0.1f);
+	render_buffer[3].x = i2fl(x + w);
+	render_buffer[3].y = i2fl(y + h);
 
-	g3_end_frame();
+	opengl2_shader_use(PROG_COLOR);
+
+	glVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+
+	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	glEnableVertexAttribArray(SDRI_POSITION);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDisableVertexAttribArray(SDRI_POSITION);
 
 	// restore zbuffer and culling
 	gr_zbuffer_set(saved_zbuf);
@@ -330,11 +287,7 @@ void opengl2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 		return;
 	}
 
-	float u_scale, v_scale;
-
-	if ( !opengl2_tcache_set(gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP,
-			&u_scale, &v_scale, 0) )
-	{
+	if ( !opengl2_tcache_set(gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP) ) {
 		// Couldn't set texture
 		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
 		return;
@@ -348,11 +301,11 @@ void opengl2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 
 	bm_get_info( gr_screen.current_bitmap, &bw, &bh );
 
-	u0 = u_scale*i2fl(sx)/i2fl(bw);
-	v0 = v_scale*i2fl(sy)/i2fl(bh);
+	u0 = i2fl(sx)/i2fl(bw);
+	v0 = i2fl(sy)/i2fl(bh);
 
-	u1 = u_scale*i2fl(sx+w)/i2fl(bw);
-	v1 = v_scale*i2fl(sy+h)/i2fl(bh);
+	u1 = i2fl(sx+w)/i2fl(bw);
+	v1 = i2fl(sy+h)/i2fl(bh);
 
 	x1 = i2fl(x+gr_screen.offset_x);
 	y1 = i2fl(y+gr_screen.offset_y);
@@ -428,81 +381,13 @@ void gr_opengl2_shade(int x, int y, int w, int h)
 
 void gr_opengl2_aabitmap_ex(int x, int y, int w, int h, int sx, int sy)
 {
-	int reclip;
-	#ifndef NDEBUG
-	int count = 0;
-	#endif
+	if ( (x > gr_screen.clip_right ) || ((x+w-1) < gr_screen.clip_left) )
+		return;
 
-	int dx1=x, dx2=x+w-1;
-	int dy1=y, dy2=y+h-1;
+	if ( (y > gr_screen.clip_bottom ) || ((y+h-1) < gr_screen.clip_top) )
+		return;
 
-	int bw, bh;
-	bm_get_info( gr_screen.current_bitmap, &bw, &bh, NULL );
-
-	do {
-		reclip = 0;
-		#ifndef NDEBUG
-			if ( count > 1 ) Int3();
-			count++;
-		#endif
-
-		if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
-		if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
-		if ( dx1 < gr_screen.clip_left ) { sx += gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
-		if ( dy1 < gr_screen.clip_top ) { sy += gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
-		if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
-		if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
-
-		if ( sx < 0 ) {
-			dx1 -= sx;
-			sx = 0;
-			reclip = 1;
-		}
-
-		if ( sy < 0 ) {
-			dy1 -= sy;
-			sy = 0;
-			reclip = 1;
-		}
-
-		w = dx2-dx1+1;
-		h = dy2-dy1+1;
-
-		if ( sx + w > bw ) {
-			w = bw - sx;
-			dx2 = dx1 + w - 1;
-		}
-
-		if ( sy + h > bh ) {
-			h = bh - sy;
-			dy2 = dy1 + h - 1;
-		}
-
-		if ( w < 1 ) return;		// clipped away!
-		if ( h < 1 ) return;		// clipped away!
-
-	} while (reclip);
-
-	// Make sure clipping algorithm works
-	#ifndef NDEBUG
-		SDL_assert( w > 0 );
-		SDL_assert( h > 0 );
-		SDL_assert( w == (dx2-dx1+1) );
-		SDL_assert( h == (dy2-dy1+1) );
-		SDL_assert( sx >= 0 );
-		SDL_assert( sy >= 0 );
-		SDL_assert( sx+w <= bw );
-		SDL_assert( sy+h <= bh );
-		SDL_assert( dx2 >= dx1 );
-		SDL_assert( dy2 >= dy1 );
-		SDL_assert( (dx1 >= gr_screen.clip_left ) && (dx1 <= gr_screen.clip_right) );
-		SDL_assert( (dx2 >= gr_screen.clip_left ) && (dx2 <= gr_screen.clip_right) );
-		SDL_assert( (dy1 >= gr_screen.clip_top ) && (dy1 <= gr_screen.clip_bottom) );
-		SDL_assert( (dy2 >= gr_screen.clip_top ) && (dy2 <= gr_screen.clip_bottom) );
-	#endif
-
-	// We now have dx1,dy1 and dx2,dy2 and sx, sy all set validly within clip regions.
-	opengl2_aabitmap_ex_internal(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
+	opengl2_aabitmap_ex_internal(x, y, w, h, sx, sy);
 }
 
 void gr_opengl2_aabitmap(int x, int y)
@@ -510,46 +395,15 @@ void gr_opengl2_aabitmap(int x, int y)
 	int w, h;
 
 	bm_get_info( gr_screen.current_bitmap, &w, &h, NULL );
-	int dx1=x, dx2=x+w-1;
-	int dy1=y, dy2=y+h-1;
-	int sx=0, sy=0;
 
-	if ((dx1 > gr_screen.clip_right ) || (dx2 < gr_screen.clip_left)) return;
-	if ((dy1 > gr_screen.clip_bottom ) || (dy2 < gr_screen.clip_top)) return;
-	if ( dx1 < gr_screen.clip_left ) { sx = gr_screen.clip_left-dx1; dx1 = gr_screen.clip_left; }
-	if ( dy1 < gr_screen.clip_top ) { sy = gr_screen.clip_top-dy1; dy1 = gr_screen.clip_top; }
-	if ( dx2 > gr_screen.clip_right )	{ dx2 = gr_screen.clip_right; }
-	if ( dy2 > gr_screen.clip_bottom )	{ dy2 = gr_screen.clip_bottom; }
-
-	if ( sx < 0 ) return;
-	if ( sy < 0 ) return;
-	if ( sx >= w ) return;
-	if ( sy >= h ) return;
-
-	// Draw bitmap bm[sx,sy] into (dx1,dy1)-(dx2,dy2)
-	gr_opengl2_aabitmap_ex(dx1,dy1,dx2-dx1+1,dy2-dy1+1,sx,sy);
+	gr_opengl2_aabitmap_ex(x, y, w, h, 0, 0);
 }
-
-void opengl2_error_check(const char *name, int lno)
-{
-	GLenum error = GL_NO_ERROR;
-
-	do {
-		error = glGetError();
-
-		if (error != GL_NO_ERROR) {
-			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d at %s:%d\n", error, name, lno));
-		}
-	} while (error != GL_NO_ERROR);
-}
-
 
 void gr_opengl2_string(int sx, int sy, const char *s)
 {
 	int width, spacing, letter;
 	int x, y;
 	int rb_offset;
-	float u_scale, v_scale;
 	float u0, u1, v0, v1;
 	float x1, x2, y1, y2;
 	int bw, bh;
@@ -561,7 +415,7 @@ void gr_opengl2_string(int sx, int sy, const char *s)
 
 	gr_set_bitmap(Current_font->bitmap_id, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 
-	if ( !opengl2_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP, &u_scale, &v_scale, 0 ) )	{
+	if ( !opengl2_tcache_set( gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP ) ) {
 		// Couldn't set texture
 		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
 		return;
@@ -654,11 +508,11 @@ void gr_opengl2_string(int sx, int sy, const char *s)
 		x2 = x1 + i2fl(wc);
 		y2 = y1 + i2fl(hc);
 
-		u0 = u_scale * (u * fbw);
-		v0 = v_scale * (v * fbh);
+		u0 = u * fbw;
+		v0 = v * fbh;
 
-		u1 = u_scale * ((u+i2fl(wc)) * fbw);
-		v1 = v_scale * ((v+i2fl(hc)) * fbh);
+		u1 = (u+i2fl(wc)) * fbw;
+		v1 = (v+i2fl(hc)) * fbh;
 
 		// maybe go ahead and draw
 		if (rb_offset == alocsize) {

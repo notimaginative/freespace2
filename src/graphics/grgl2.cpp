@@ -14,10 +14,8 @@
 #include "2d.h"
 #include "mouse.h"
 #include "pstypes.h"
-#include "cfile.h"
 #include "bmpman.h"
 #include "grinternal.h"
-#include "osapi.h"
 #include "osregistry.h"
 
 
@@ -193,8 +191,6 @@ static int opengl2_create_framebuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		if (FB_texture) {
 			glDeleteTextures(1, &FB_texture);
 			FB_texture = 0;
@@ -322,10 +318,6 @@ void gr_opengl2_flip()
 		return;
 	}
 
-#ifndef NDEBUG
-	static bool show_cursor = false;
-#endif
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	gr_opengl_reset_clip();
@@ -369,9 +361,7 @@ void gr_opengl2_flip()
 
 		mouse_get_pos(&mx, &my);
 
-		float u_scale, v_scale;
-
-		if ( opengl2_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE, &u_scale, &v_scale, 0) ) {
+		if ( opengl2_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE) ) {
 			opengl2_set_state(TEXTURE_SOURCE_DECAL, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
 
 			int bw, bh;
@@ -399,23 +389,21 @@ void gr_opengl2_flip()
 			glDisableVertexAttribArray(SDRI_POSITION);
 		}
 #ifndef NDEBUG
-		else if ( !show_cursor ) {
-			SDL_ShowCursor(1);
-			show_cursor = true;
+		else {
+			gr_set_color(255,255,255);
+			gr_opengl2_line(mx, my, mx+7, my + 7);
+			gr_opengl2_line(mx, my, mx+5, my );
+			gr_opengl2_line(mx, my, mx, my+5);
 		}
 #endif
 	}
 
 #ifndef NDEBUG
-	GLenum error = GL_NO_ERROR;
+	GLenum error = glGetError();
 
-	do {
-		error = glGetError();
-
-		if (error != GL_NO_ERROR) {
-			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d\n", error));
-		}
-	} while (error != GL_NO_ERROR);
+	if (error != GL_NO_ERROR) {
+		mprintf(("!!DEBUG!! OpenGL Error: %d\n", error));
+	}
 #endif
 
 	SDL_GL_SwapWindow(GL_window);

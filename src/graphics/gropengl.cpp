@@ -14,8 +14,6 @@
 #include "gropenglinternal.h"
 #include "grgl1.h"
 #include "grgl2.h"
-#include "2d.h"
-#include "bmpman.h"
 #include "grinternal.h"
 #include "cmdline.h"
 #include "mouse.h"
@@ -24,7 +22,6 @@
 
 
 bool OGL_inited = false;
-int GL_version = 0;
 
 SDL_Window *GL_window = NULL;
 SDL_GLContext GL_context;

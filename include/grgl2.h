@@ -20,7 +20,7 @@ void opengl2_tcache_init();
 void opengl2_tcache_cleanup();
 void opengl2_tcache_frame();
 void opengl2_tcache_flush();
-int opengl2_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full);
+int opengl2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full = 0);
 void opengl2_set_texture_state(gr_texture_source ts);
 
 // shader program types
@@ -46,8 +46,6 @@ int opengl2_shader_init();
 void opengl2_shader_cleanup();
 void opengl2_shader_use(sdr_prog_t prog);
 void opengl2_shader_update();
-
-void opengl2_error_check(const char *name, int lno);
 
 // gr_* pointer functions
 void gr_opengl2_flip();

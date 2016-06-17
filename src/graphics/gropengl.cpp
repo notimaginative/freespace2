@@ -221,16 +221,8 @@ void gr_opengl_activate(int active)
 {
 	if (active) {
 		GL_activate++;
-
-		// don't grab key/mouse if cmdline says so or if we're fullscreen
-	//	if(!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN)) {
-	//		SDL_WM_GrabInput(SDL_GRAB_ON);
-	//	}
 	} else {
 		GL_deactivate++;
-
-		// let go of mouse/keyboard
-	//	SDL_WM_GrabInput(SDL_GRAB_OFF);
 	}
 }
 

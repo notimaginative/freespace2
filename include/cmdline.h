@@ -187,7 +187,6 @@ extern int Cmdline_spew_pof_info;
 extern int Cmdline_force_32bit;
 extern int Cmdline_mouse_coords;
 extern int Cmdline_timeout;
-extern int Cmdline_no_grab;
 extern int Cmdline_play_movies;
 extern int Cmdline_fullscreen;
 extern int Cmdline_window;

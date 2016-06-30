@@ -118,7 +118,8 @@ static const char f_aabitmap_src[] =
 	"varying vec2 texCoordVar;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = colorVar * texture2D(texture, texCoordVar).a;\n"
+	"	float alpha1 = texture2D(texture, texCoordVar).a;\n"
+	"	gl_FragColor = vec4(colorVar.rgb, mix(0.0, colorVar.a, alpha1));\n"
 	"}\n";
 
 static const char f_color_src[] =

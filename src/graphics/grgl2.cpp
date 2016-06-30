@@ -50,7 +50,7 @@ void opengl2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type 
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				break;
 			case ALPHA_BLEND_ALPHA_BLEND_ALPHA:	// Alpha*SrcPixel + (1-Alpha)*DestPixel
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:	// Alpha*SrcPixel + (1-SrcPixel)*DestPixel
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);

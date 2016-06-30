@@ -209,6 +209,10 @@ void opengl1_tcache_flush()
 {
 	int i;
 
+	if (Textures == NULL) {
+		return;
+	}
+
 	for( i=0; i<MAX_BITMAPS; i++ )  {
 		opengl1_free_texture ( &Textures[i] );
 	}

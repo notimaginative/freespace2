@@ -141,6 +141,10 @@ static int opengl2_free_texture(tcache_slot_opengl2 *t)
 
 void opengl2_tcache_flush()
 {
+	if (Textures == NULL) {
+		return;
+	}
+
 	for (int i = 0; i < MAX_BITMAPS; i++) {
 		opengl2_free_texture(&Textures[i]);
 	}

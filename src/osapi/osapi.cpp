@@ -330,6 +330,8 @@ void os_poll()
 							gr_toggle_fullscreen();
 					//	} else if (e.key.keysym.sym == SDLK_z) {
 					//		SDL_MinimizeWindow(GL_window);
+						} else if (e.key.keysym.sym == SDLK_p) {
+							key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
 						}
 					}
 				} else {

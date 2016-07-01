@@ -52,6 +52,7 @@ void gr_opengl2_flip();
 void gr_opengl2_set_clip(int x, int y, int w, int h);
 void gr_opengl2_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far);
 void gr_opengl2_zbuffer_clear(int mode);
+void gr_opengl2_print_screen(const char *filename);
 void gr_opengl2_fade_in(int instantaneous);
 void gr_opengl2_fade_out(int instantaneous);
 void gr_opengl2_get_region(int front, int w, int h, ubyte *data);

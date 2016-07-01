@@ -75,7 +75,6 @@ void gr_opengl_force_windowed();
 void gr_opengl_toggle_fullscreen();
 void gr_opengl_clear();
 void gr_opengl_reset_clip();
-void gr_opengl_print_screen(const char *filename);
 uint gr_opengl_lock();
 void gr_opengl_unlock();
 void gr_opengl_zbias(int bias);

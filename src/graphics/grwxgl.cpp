@@ -49,7 +49,7 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_gradient = gr_opengl1_gradient;
 
-	gr_screen.gf_print_screen = gr_opengl_print_screen;
+	gr_screen.gf_print_screen = gr_opengl1_print_screen;
 
 	gr_screen.gf_fade_in = gr_opengl1_fade_in;
 	gr_screen.gf_fade_out = gr_opengl1_fade_out;

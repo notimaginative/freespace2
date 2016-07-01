@@ -18,7 +18,6 @@
 #include "cmdline.h"
 #include "mouse.h"
 #include "osapi.h"
-#include "cfile.h"
 
 
 bool OGL_inited = false;
@@ -137,52 +136,6 @@ void gr_opengl_reset_clip()
 	gr_screen.clip_height = gr_screen.max_h;
 
 	glDisable(GL_SCISSOR_TEST);
-}
-
-void gr_opengl_print_screen(const char *filename)
-{
-	char tmp[MAX_FILENAME_LEN];
-	ubyte *buf = NULL;
-
-	SDL_strlcpy( tmp, filename, SDL_arraysize(tmp) );
-	SDL_strlcat( tmp, NOX(".tga"), SDL_arraysize(tmp) );
-
-	buf = (ubyte*)malloc(GL_viewport_w * GL_viewport_h * 3);
-
-	if (buf == NULL) {
-		return;
-	}
-
-	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
-
-	if (f == NULL) {
-		free(buf);
-		return;
-	}
-
-	// Write the TGA header
-	cfwrite_ubyte( 0, f );	//	IDLength;
-	cfwrite_ubyte( 0, f );	//	ColorMapType;
-	cfwrite_ubyte( 2, f );	//	ImageType;		// 2 = 24bpp, uncompressed, 10=24bpp rle compressed
-	cfwrite_ushort( 0, f );	// CMapStart;
-	cfwrite_ushort( 0, f );	//	CMapLength;
-	cfwrite_ubyte( 0, f );	// CMapDepth;
-	cfwrite_ushort( 0, f );	//	XOffset;
-	cfwrite_ushort( 0, f );	//	YOffset;
-	cfwrite_ushort( (ushort)GL_viewport_w, f );	//	Width;
-	cfwrite_ushort( (ushort)GL_viewport_h, f );	//	Height;
-	cfwrite_ubyte( 24, f );	//PixelDepth;
-	cfwrite_ubyte( 0, f );	//ImageDesc;
-
-	memset(buf, 0, GL_viewport_w * GL_viewport_h * 3);
-
-	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_RGB, GL_UNSIGNED_BYTE, buf);
-
-	cfwrite(buf, GL_viewport_w * GL_viewport_h * 3, 1, f);
-
-	cfclose(f);
-
-	free(buf);
 }
 
 uint gr_opengl_lock()

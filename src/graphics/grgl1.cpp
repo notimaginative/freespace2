@@ -15,6 +15,7 @@
 #include "bmpman.h"
 #include "grinternal.h"
 #include "osregistry.h"
+#include "cfile.h"
 
 
 int GL_one_inited = 0;
@@ -139,7 +140,7 @@ static void opengl1_init_func_pointers()
 
 	gr_screen.gf_gradient = gr_opengl1_gradient;
 
-	gr_screen.gf_print_screen = gr_opengl_print_screen;
+	gr_screen.gf_print_screen = gr_opengl1_print_screen;
 
 	gr_screen.gf_fade_in = gr_opengl1_fade_in;
 	gr_screen.gf_fade_out = gr_opengl1_fade_out;
@@ -416,6 +417,54 @@ void gr_opengl1_zbuffer_clear(int mode)
 		Gr_zbuffering_mode = GR_ZBUFF_NONE;
 		Gr_global_zbuffering = 0;
 	}
+}
+
+void gr_opengl1_print_screen(const char *filename)
+{
+	char tmp[MAX_FILENAME_LEN];
+	ubyte *buf = NULL;
+
+	SDL_strlcpy( tmp, filename, SDL_arraysize(tmp) );
+	SDL_strlcat( tmp, NOX(".tga"), SDL_arraysize(tmp) );
+
+	buf = (ubyte*)malloc(GL_viewport_w * GL_viewport_h * 3);
+
+	if (buf == NULL) {
+		return;
+	}
+
+	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
+
+	if (f == NULL) {
+		free(buf);
+		return;
+	}
+
+	// Write the TGA header
+	cfwrite_ubyte( 0, f );	//	IDLength;
+	cfwrite_ubyte( 0, f );	//	ColorMapType;
+	cfwrite_ubyte( 2, f );	//	ImageType;		// 2 = 24bpp, uncompressed, 10=24bpp rle compressed
+	cfwrite_ushort( 0, f );	// CMapStart;
+	cfwrite_ushort( 0, f );	//	CMapLength;
+	cfwrite_ubyte( 0, f );	// CMapDepth;
+	cfwrite_ushort( 0, f );	//	XOffset;
+	cfwrite_ushort( 0, f );	//	YOffset;
+	cfwrite_ushort( (ushort)GL_viewport_w, f );	//	Width;
+	cfwrite_ushort( (ushort)GL_viewport_h, f );	//	Height;
+	cfwrite_ubyte( 24, f );	//PixelDepth;
+	cfwrite_ubyte( 0, f );	//ImageDesc;
+
+	memset(buf, 0, GL_viewport_w * GL_viewport_h * 3);
+
+	glReadBuffer(GL_FRONT);
+
+	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_BGR, GL_UNSIGNED_BYTE, buf);
+
+	cfwrite(buf, GL_viewport_w * GL_viewport_h * 3, 1, f);
+
+	cfclose(f);
+
+	free(buf);
 }
 
 void gr_opengl1_fade_in(int instantaneous)

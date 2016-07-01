@@ -476,7 +476,7 @@ void gr_opengl2_print_screen(const char *filename)
 	SDL_strlcpy( tmp, filename, SDL_arraysize(tmp) );
 	SDL_strlcat( tmp, NOX(".tga"), SDL_arraysize(tmp) );
 
-	int b_size = gr_screen.max_w * gr_screen.max_w;
+	int b_size = gr_screen.max_w * gr_screen.max_h;
 
 	buf = (ubyte*)malloc(b_size * 4);
 

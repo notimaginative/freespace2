@@ -539,17 +539,11 @@ void gr_opengl2_fade_out(int instantaneous)
 
 }
 
-void gr_opengl2_get_region(int front, int w, int h, ubyte *data)
+void gr_opengl2_get_region(int, int w, int h, ubyte *data)
 {
 	opengl2_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
-	GLenum pxtype = GL_UNSIGNED_SHORT_5_5_5_1;
-
-	if (gr_screen.bytes_per_pixel == 4) {
-		pxtype = GL_UNSIGNED_BYTE;
-	}
-
-	glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, pxtype, data);
+	glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 int gr_opengl2_save_screen()

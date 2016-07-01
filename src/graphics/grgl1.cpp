@@ -479,18 +479,7 @@ void gr_opengl1_fade_out(int instantaneous)
 
 void gr_opengl1_get_region(int front, int w, int h, ubyte *data)
 {
-	if (front) {
-		glReadBuffer(GL_FRONT);
-	} else {
-		glReadBuffer(GL_BACK);
-	}
-
 	opengl1_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, GL_viewport_w);
-
-	int x = GL_viewport_x;
-	int y = (GL_viewport_y+GL_viewport_h)-h-1;
 
 	GLenum pxtype = GL_UNSIGNED_SHORT_5_5_5_1;
 
@@ -498,9 +487,9 @@ void gr_opengl1_get_region(int front, int w, int h, ubyte *data)
 		pxtype = GL_UNSIGNED_BYTE;
 	}
 
-	glReadPixels(x, y, w, h, GL_RGBA, pxtype, data);
+	glReadBuffer( (front) ? GL_FRONT : GL_BACK );
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	glReadPixels(GL_viewport_x, (GL_viewport_y+GL_viewport_h)-h-1, w, h, GL_RGBA, pxtype, data);
 }
 
 void gr_opengl1_save_mouse_area(int x, int y, int w, int h)

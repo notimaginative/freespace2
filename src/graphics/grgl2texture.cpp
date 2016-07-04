@@ -49,8 +49,6 @@ static ubyte GL_xlat[256] = { 0 };
 extern int Gr_textures_in;
 extern int bm_get_cache_slot( int bitmap_id, int separate_ani_frames );
 
-extern bool Use_mipmaps;
-
 
 void opengl2_set_texture_state(gr_texture_source ts)
 {
@@ -209,8 +207,7 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 
 	glBindTexture(GL_TEXTURE_2D, t->texture_handle);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	GLint wrap_mode = GL_CLAMP_TO_EDGE;
 
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -261,6 +258,8 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 		}
 
 		default: {
+			wrap_mode = GL_REPEAT;
+
 			if (resize) {
 				texmem = (ubyte *) malloc(tex_w * tex_h * 2);
 				texmemp = texmem;
@@ -296,20 +295,19 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 				free(texmem);
 			}
 
-			if (Use_mipmaps) {
-				glGenerateMipmap(GL_TEXTURE_2D);
+			glGenerateMipmap(GL_TEXTURE_2D);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-				t->is_mipmaped = 1;
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			t->is_mipmaped = 1;
 
-				size = fl2i(tex_w * tex_h * 2.0f * 1.3333333f);
-			} else {
-				size = tex_w * tex_h * 2;
-			}
+			size = fl2i(tex_w * tex_h * 2.0f * 1.3333333f);
 
 			break;
 		}
 	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
 
 	t->bitmap_id = bitmap_handle;
 	t->time_created = GL_frame_count;
@@ -378,6 +376,15 @@ static int opengl2_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 
 		max_w /= val;
 		max_h /= val;
+	}
+
+	if ( (bitmap_type == TCACHE_TYPE_NORMAL) || (bitmap_type == TCACHE_TYPE_XPARENT) ) {
+		if ( !is_pow2(max_w) || !is_pow2(max_h) ) {
+			resize = true;
+
+			max_w = next_pow2(max_w);
+			max_h = next_pow2(max_h);
+		}
 	}
 
 	if ( (max_w < 1) || (max_h < 1) ) {

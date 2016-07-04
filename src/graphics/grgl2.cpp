@@ -22,8 +22,6 @@
 
 int GL_two_inited = 0;
 
-bool Use_mipmaps = false;
-
 static GLuint FB_texture = 0;
 static GLuint FB_id = 0;
 static GLuint FB_rb_id = 0;
@@ -302,12 +300,6 @@ int opengl2_init()
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	if ( SDL_GL_ExtensionSupported("GL_OES_texture_npot") ) {
-		Use_mipmaps	= true;
-	}
-
-	mprintf(("  Mipmaps  : %s\n", Use_mipmaps ? "Enabled" : "Disabled"));
 
 	glFlush();
 

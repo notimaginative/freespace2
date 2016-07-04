@@ -734,5 +734,10 @@ inline int next_pow2(int p)
 	return p+1;
 }
 
+inline int is_pow2(int p)
+{
+	return (p && !(p & (p-1)));
+}
+
 #endif
 

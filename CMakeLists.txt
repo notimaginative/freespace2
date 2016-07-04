@@ -343,7 +343,6 @@ CreateSourceGroups(${scramble_SOURCE})
 
 add_executable(fonttool
   EXCLUDE_FROM_ALL
-  WIN32
   ${fonttool_SOURCE}
   ${fonttool_HEADERS}
 )

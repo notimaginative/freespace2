@@ -1410,7 +1410,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					pm->num_xc = cfread_int(fp);
 					if (pm->num_xc > 0) {
 						pm->xc = (cross_section*) malloc(pm->num_xc*sizeof(cross_section));
-						for (int i=0; i<pm->num_xc; i++) {
+						for (i=0; i<pm->num_xc; i++) {
 							pm->xc[i].z = cfread_float(fp);
 							pm->xc[i].radius = cfread_float(fp);
 						}
@@ -1682,7 +1682,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 				break;
 			}
 
-			case ID_FUEL:
+			case ID_FUEL: {
 				char props[MAX_PROP_LEN];
 				pm->n_thrusters = cfread_int(fp);
 				pm->thrusters = (thruster_bank *)malloc(sizeof(thruster_bank) * pm->n_thrusters);
@@ -1750,12 +1750,13 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 				}
 				break;
+			}
 
 			case ID_TGUN:
 			case ID_TMIS: {
 				int n_banks, n_slots, parent;
 				model_subsystem *subsystemp;
-				int i, j, snum=-1;
+				int snum=-1;
 				vector bogus;
 	
 				n_banks = cfread_int(fp);				// number of turret points
@@ -1844,7 +1845,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 			}
 			
 			case ID_TXTR: {		//Texture filename list
-				int i,n;
+				int n;
 //				char name_buf[128];
 
 				//mprintf(0,"Got chunk TXTR, len=%d\n",len);
@@ -1953,7 +1954,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 			case ID_EYE:					// an eye position(s)
 				{
-					int num_eyes, i;
+					int num_eyes;
 
 					// all eyes points are stored simply as vectors and their normals.
 					// 0th element is used as usual player view position.

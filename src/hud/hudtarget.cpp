@@ -1459,7 +1459,7 @@ ship_obj *get_ship_obj_ptr_from_index(int index);
 // NOTE: this function is only allows targeting bombs
 void hud_target_missile(object *source_obj, int next_flag)
 {
-	missile_obj	*end, *start, *mo;
+	missile_obj	*end, *begin, *mo;
 	object		*A, *target_objp;
 	ai_info		*aip;
 	weapon		*wp;
@@ -1480,9 +1480,9 @@ void hud_target_missile(object *source_obj, int next_flag)
 		}
 	}
 
-	start = advance_missile_obj(end, next_flag);
+	begin = advance_missile_obj(end, next_flag);
 
-	for ( mo = start; mo != end; mo = advance_missile_obj(mo, next_flag) ) {
+	for ( mo = begin; mo != end; mo = advance_missile_obj(mo, next_flag) ) {
 		if ( mo == &Missile_obj_list ){
 			continue;
 		}
@@ -3938,7 +3938,6 @@ void hud_show_lead_indicator(vector *target_world_pos)
 	bank_to_fire = hud_get_best_primary_bank(&prange);
 	if ( bank_to_fire < 0 )
 		return;
-	wip = &Weapon_info[swp->primary_bank_weapons[bank_to_fire]];
 			
 	if (po->n_guns && bank_to_fire != -1 ) {
 		rel_pos = &po->gun_banks[bank_to_fire].pnt[0];
@@ -3963,7 +3962,6 @@ void hud_show_lead_indicator(vector *target_world_pos)
 	srange = ship_get_secondary_weapon_range(Player_ship);
 
 	if ( swp->current_secondary_bank >= 0 ) {
-		weapon_info	*wip;
 		int bank = swp->current_secondary_bank;
 		wip = &Weapon_info[swp->secondary_bank_weapons[bank]];
 		if ( wip->wi_flags & WIF_HOMING_ASPECT ) {
@@ -3979,6 +3977,8 @@ void hud_show_lead_indicator(vector *target_world_pos)
 	}
 
 	indicator_frame = Lead_indicator_gauge.first_frame + frame_offset;
+
+	wip = &Weapon_info[swp->primary_bank_weapons[bank_to_fire]];
 
 	SDL_assert(wip->max_speed != 0);
 	time_to_target = dist_to_target / wip->max_speed;

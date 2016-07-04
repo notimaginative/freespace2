@@ -953,11 +953,11 @@ const char *wl_tooltip_handler(const char *str)
 		return NULL;
 
 	if (!SDL_strcasecmp(str, "@weapon_desc")) {
-		char *str;
+		char *desc;
 		int x, y, w, h;
 
-		str = Weapon_info[Selected_wl_class].desc;
-		gr_get_string_size(&w, &h, str);
+		desc = Weapon_info[Selected_wl_class].desc;
+		gr_get_string_size(&w, &h, desc);
 		x = Wl_weapon_desc_coords[gr_screen.res][0] - w / 2;
 		y = Wl_weapon_desc_coords[gr_screen.res][1] - h / 2;
 
@@ -965,7 +965,7 @@ const char *wl_tooltip_handler(const char *str)
 		gr_rect(x - 5, y - 5, w + 10, h + 10);
 
 		gr_set_color_fast(&Color_bright_white);
-		gr_string(x, y, str);
+		gr_string(x, y, desc);
 		return NULL;
 	}
 

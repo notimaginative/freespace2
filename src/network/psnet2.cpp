@@ -2089,7 +2089,6 @@ unsigned int psnet_ras_status()
 
 	for (i = 0; i < num_connections; i++ ) {
 		RASCONNSTATUS status;
-		unsigned long size;
 
 		ml_printf("Connection %d:", i);
 		ml_printf("Entry Name: %s", rasbuffer[i].szEntryName);

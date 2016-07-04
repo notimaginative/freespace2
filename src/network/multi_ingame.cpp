@@ -1286,8 +1286,6 @@ void process_ingame_ships_packet( ubyte *data, header *hinfo )
 
 	// go through the ship obj list and delete everything. YEAH
 	if(!Ingame_ships_deleted){
-		int idx;
-
 		// no player object
 		Player_obj = NULL;
 		Player_ship = NULL;
@@ -1781,7 +1779,7 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 
 	// if this is a confirm to a player -- send data to the other players in the game telling them
 	if ( (code == INGAME_SR_CONFIRM) && (Net_player->flags & NETINFO_FLAG_AM_MASTER) ) {
-		int i, player_num;
+		int player_num;
 
 		player_num = NET_PLAYER_NUM(pl);
 		code = INGAME_PLAYER_CHOICE;
@@ -1846,6 +1844,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 	uint respawn_count;
 	ubyte val, num_secondary_banks;
 	p_object *pobj;
+	int player_num;
 
 	// get the code
 	GET_INT(code);
@@ -1853,7 +1852,6 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 	switch(code){
 	// a request for a ship from an ingame joiner
 	case INGAME_SR_REQUEST:			
-		int player_num;		
 		ushort sig_request;
 
 		// lookup the player and make sure he doesn't already have an objnum (along with possible error conditions)
@@ -2029,9 +2027,7 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		break;
 
 	case INGAME_PLAYER_CHOICE: {
-		int player_num;
 		ushort net_signature;
-		object *objp;
 
 		// get the player number of this guy, and the net signature of the ship he has chosen
 		GET_INT(player_num);

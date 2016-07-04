@@ -544,7 +544,6 @@ void multi_endgame_cleanup()
 
 	// close all open SPX/TCP reliable sockets
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
-		int idx;
 		// do it for all players, since we're leaving anyway.
 		for(idx=0;idx<MAX_PLAYERS;idx++){
 			// 6/25/98 -- MWA delete all players from the game

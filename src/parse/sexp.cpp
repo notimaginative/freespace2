@@ -1313,7 +1313,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 			case OPF_AWACS_SUBSYSTEM:
 			case OPF_SUBSYSTEM: {
 				char *shipname;
-				int shipnum,ship_class, i;
+				int shipnum,ship_class;
 				int ship_index;				
 
 				if (type2 != SEXP_ATOM_STRING){
@@ -1444,7 +1444,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 				}
 
 				if (Fred_running) {
-					int ship_num, ship2, i, w = 0, z;
+					int ship_num, ship2, w = 0;
 
 					ship_num = ship_name_lookup(CTEXT(Sexp_nodes[op_index].rest));
 					if (ship_num < 0) {
@@ -1678,7 +1678,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				if (Fred_running) {
-					int ship_num, model, i, z;
+					int ship_num, model;
 
 					z = find_parent_operator(op_index);
 					ship_num = ship_name_lookup(CTEXT(Sexp_nodes[z].rest));
@@ -1706,7 +1706,7 @@ int check_sexp_syntax(int index, int return_type, int recursive, int *bad_index,
 					return SEXP_CHECK_TYPE_MISMATCH;
 
 				if (Fred_running) {
-					int ship_num, model, i, z;
+					int ship_num, model;
 
 					ship_num = ship_name_lookup(CTEXT(Sexp_nodes[op_index].rest));
 					if (ship_num < 0) {

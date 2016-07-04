@@ -745,8 +745,7 @@ ubyte light_apply( vector *pos, vector * norm, float static_light_level )
 
 	if (Detail.lighting==0) {
 		// No static light
-		ubyte l = ubyte(fl2i(static_light_level*255.0f));
-		return l;
+		return ubyte(fl2i(static_light_level*255.0f));
 	}
 
 	if ( Lighting_off ) return 191;
@@ -811,9 +810,9 @@ ubyte light_apply( vector *pos, vector * norm, float static_light_level )
 				lval += l->intensity*dot;
 			} else if ( dist < l->rad2_squared )	{
 				// dist from 0 to 
-				float n = dist - l->rad1_squared;
+				float x = dist - l->rad1_squared;
 				float d = l->rad2_squared - l->rad1_squared;
-				float ltmp = (1.0f - n / d )*dot*l->intensity;
+				float ltmp = (1.0f - x / d )*dot*l->intensity;
 				lval += ltmp;
 			}
 			if ( lval > 1.0f ) {
@@ -834,10 +833,10 @@ void light_apply_rgb( ubyte *param_r, ubyte *param_g, ubyte *param_b, vector *po
 
 	if (Detail.lighting==0) {
 		// No static light
-		ubyte l = ubyte(fl2i(static_light_level*255.0f));
-		*param_r = l;
-		*param_g = l;
-		*param_b = l;
+		ubyte s = ubyte(fl2i(static_light_level*255.0f));
+		*param_r = s;
+		*param_g = s;
+		*param_b = s;
 		return;
 	}
 
@@ -956,9 +955,9 @@ void light_apply_rgb( ubyte *param_r, ubyte *param_g, ubyte *param_b, vector *po
 			} else if ( dist < l->rad2_squared )	{
 				float ratio;
 				// dist from 0 to 
-				float n = dist - l->rad1_squared;
+				float x = dist - l->rad1_squared;
 				float d = l->rad2_squared - l->rad1_squared;
-				ratio = (1.0f - n / d)*dot*l->intensity;
+				ratio = (1.0f - x / d)*dot*l->intensity;
 				ratio *= 0.25f;
 				rval += l->r*ratio;
 				gval += l->g*ratio;

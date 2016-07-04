@@ -7533,7 +7533,6 @@ void multi_jw_plist_process()
 	// if the player has clicked somewhere in the player list area
 	if(Multi_jw_plist_select_button.pressed()){
 		short player_id;
-		int player_index;
 	
 		player_id = multi_jw_get_mouse_id();
 		player_index = find_player_id(player_id);

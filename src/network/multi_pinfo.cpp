@@ -575,7 +575,7 @@ void multi_pinfo_popup_close()
 void multi_pinfo_blit_pilot_image()
 {
 	char place_text[100];	
-	int w;
+	int w, h;
 
 	// if we don't have a bitmap handle, blit a placeholder
 	if(Mp_pilot.bitmap == -1){
@@ -607,7 +607,6 @@ void multi_pinfo_blit_pilot_image()
 		gr_set_bitmap(Mp_pilot.bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 
 		// get width and heigh
-		int w, h;
 		bm_get_info(Mp_pilot.bitmap, &w, &h, NULL, NULL, NULL, NULL);
 
 		gr_bitmap(Multi_pinfo_pilot_coords[gr_screen.res][0] + ((Multi_pinfo_pilot_coords[gr_screen.res][2] - w)/2), 
@@ -621,7 +620,7 @@ void multi_pinfo_blit_squadron_logo()
 {
 #ifndef MAKE_FS1  // no squads in FS1
 	char place_text[100];	
-	int w;
+	int w, h;
 	player *p = Multi_pinfo_popup_player->player;
 
 	// if we don't have a bitmap handle, blit a placeholder
@@ -655,7 +654,6 @@ void multi_pinfo_blit_squadron_logo()
 		// gr_bitmap(MPI_SQUAD_X, MPI_SQUAD_Y);
 
 		// get width and heigh
-		int w, h;
 		bm_get_info(Mp_squad.bitmap, &w, &h, NULL, NULL, NULL, NULL);
 
 		gr_bitmap(Multi_pinfo_squad_coords[gr_screen.res][0] + ((Multi_pinfo_squad_coords[gr_screen.res][2] - w)/2), 

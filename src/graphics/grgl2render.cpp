@@ -96,7 +96,7 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 	float oy = gr_screen.offset_y * 16.0f;
 
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
-		int r, g, b;
+		int fr, fg, fb;
 		int ra, ga, ba;
 		float sx, sy;
 
@@ -108,11 +108,11 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 			sx = (va->sx * 16.0f + ox) / 16.0f;
 			sy = (va->sy * 16.0f + oy) / 16.0f;
 
-			neb2_get_pixel((int)sx, (int)sy, &r, &g, &b);
+			neb2_get_pixel((int)sx, (int)sy, &fr, &fg, &fb);
 
-			ra += r;
-			ga += g;
-			ba += b;
+			ra += fr;
+			ga += fg;
+			ba += fb;
 		}
 
 		ra /= nv;
@@ -129,13 +129,13 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 	float sx, sy, sz = 0.99f, rhw = 1.0f;
 
 	bool bZval = (Gr_zbuffering || (flags & TMAP_FLAG_NEBULA));
-	bool bCorrect = (flags & TMAP_FLAG_CORRECT);
-	bool bAlpha = (flags & TMAP_FLAG_ALPHA);
-	bool bNebula = (flags & TMAP_FLAG_NEBULA);
+	bool bCorrect = ((flags & TMAP_FLAG_CORRECT) == TMAP_FLAG_CORRECT);
+	bool bAlpha = ((flags & TMAP_FLAG_ALPHA) == TMAP_FLAG_ALPHA);
+	bool bNebula = ((flags & TMAP_FLAG_NEBULA) == TMAP_FLAG_NEBULA);
 	bool bRamp = ((flags & TMAP_FLAG_RAMP) && (flags & TMAP_FLAG_GOURAUD));
 	bool bRGB = ((flags & TMAP_FLAG_RGB) && (flags & TMAP_FLAG_GOURAUD));
-	bool bTextured = (flags & TMAP_FLAG_TEXTURED);
-	bool bFog = (flags & TMAP_FLAG_PIXEL_FOG);
+	bool bTextured = ((flags & TMAP_FLAG_TEXTURED) == TMAP_FLAG_TEXTURED);
+	bool bFog = ((flags & TMAP_FLAG_PIXEL_FOG) == TMAP_FLAG_PIXEL_FOG);
 
 	for (i = nv-1; i >= 0; i--) {
 		vertex *va = verts[i];
@@ -158,16 +158,16 @@ static void opengl2_tmapper_internal(int nv, vertex **verts, uint flags, int is_
 
 		if (bRGB) {
 			// Make 0.75 be 256.0f
-			r = Gr_gamma_lookup[va->r];
-			g = Gr_gamma_lookup[va->g];
-			b = Gr_gamma_lookup[va->b];
+			r = (ubyte)Gr_gamma_lookup[va->r];
+			g = (ubyte)Gr_gamma_lookup[va->g];
+			b = (ubyte)Gr_gamma_lookup[va->b];
 		} else if (bNebula) {
 			int pal = (va->b*(NEBULA_COLORS-1))/255;
 			r = gr_palette[pal*3+0];
 			g = gr_palette[pal*3+1];
 			b = gr_palette[pal*3+2];
 		} else if (bRamp) {
-			r = g = b = Gr_gamma_lookup[va->b];
+			r = g = b = (ubyte)Gr_gamma_lookup[va->b];
 		}
 
 		render_buffer[rb_offset].r = r;

@@ -44,6 +44,7 @@ if(NOT WIN32)
 
   add_definitions(-DPLAT_UNIX)
   add_definitions(-Wall)
+  add_definitions(-Wshadow)
 # add_definitions(-Wno-format-y2k)
 # add_definitions(-Wno-deprecated)
   add_definitions(-fsigned-char)

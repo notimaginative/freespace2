@@ -874,17 +874,17 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vecto
 		int ship_info_flag = Ship_info[Ships[source_obj->instance].ship_info_index].flags;
 		if (ship_info_flag & (SIF_SMALL_SHIP | SIF_NOT_FLYABLE | SIF_HARMLESS)) {
 			if (vm_vec_mag_squared(&obj->phys_info.vel) > MAX_SPEED_SMALL_DEBRIS*MAX_SPEED_SMALL_DEBRIS) {
-				float scale = MAX_SPEED_SMALL_DEBRIS / vm_vec_mag(&obj->phys_info.vel);
+				scale = MAX_SPEED_SMALL_DEBRIS / vm_vec_mag(&obj->phys_info.vel);
 				vm_vec_scale(&obj->phys_info.vel, scale);
 			}
 		} else if (ship_info_flag & SIF_BIG_SHIP) {
 			if (vm_vec_mag_squared(&obj->phys_info.vel) > MAX_SPEED_BIG_DEBRIS*MAX_SPEED_BIG_DEBRIS) {
-				float scale = MAX_SPEED_BIG_DEBRIS / vm_vec_mag(&obj->phys_info.vel);
+				scale = MAX_SPEED_BIG_DEBRIS / vm_vec_mag(&obj->phys_info.vel);
 				vm_vec_scale(&obj->phys_info.vel, scale);
 			}
 		} else if (ship_info_flag & SIF_HUGE_SHIP) {
 			if (vm_vec_mag_squared(&obj->phys_info.vel) > MAX_SPEED_CAPITAL_DEBRIS*MAX_SPEED_CAPITAL_DEBRIS) {
-				float scale = MAX_SPEED_CAPITAL_DEBRIS / vm_vec_mag(&obj->phys_info.vel);
+				scale = MAX_SPEED_CAPITAL_DEBRIS / vm_vec_mag(&obj->phys_info.vel);
 				vm_vec_scale(&obj->phys_info.vel, scale);
 			}
 		} else {

@@ -1674,7 +1674,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 	int ai_mode, ai_submode;					// ai mode and submode needed for ship commands
 	char *target_shipname;						// ship number of possible targets
 	int message_sent, message;
+#ifndef NDEBUG
 	int target_team = -1, wing_team = -1;			// team for the wing and the player's target
+#endif
 	ship *ordering_shipp;
 
 	// quick short circuit here because of actually showing comm menu even though you cannot message.
@@ -1734,7 +1736,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 		case ATTACK_TARGET_ITEM:
 			if ( Objects[ainfo->target_objnum].type == OBJ_SHIP ) {
 				SDL_assert( target_shipname );
+#ifndef NDEBUG
 				SDL_assert( wing_team != target_team );
+#endif
 				if ( (Ships[Objects[ainfo->target_objnum].instance].wingnum != -1) && (Ships[Objects[ainfo->target_objnum].instance].wingnum == wingnum) ) {
 					message = MESSAGE_NOSIR;
 					ai_mode = AI_GOAL_NONE;
@@ -1754,7 +1758,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 
 		case DISABLE_TARGET_ITEM:
 			SDL_assert( target_shipname );
+#ifndef NDEBUG
 			SDL_assert( wing_team != target_team );
+#endif
 
 			ai_mode = AI_GOAL_DISABLE_SHIP;
 			ai_submode = -SUBSYSTEM_ENGINE;
@@ -1763,7 +1769,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 
 		case DISARM_TARGET_ITEM:
 			SDL_assert( target_shipname );
+#ifndef NDEBUG
 			SDL_assert( wing_team != target_team );
+#endif
 
 			ai_mode = AI_GOAL_DISARM_SHIP;
 			ai_submode = -SUBSYSTEM_TURRET;
@@ -1772,7 +1780,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 
 		case DISABLE_SUBSYSTEM_ITEM:
 			SDL_assert( target_shipname );
+#ifndef NDEBUG
 			SDL_assert( wing_team != target_team );
+#endif
 			SDL_assert( ainfo->targeted_subsys != NULL );
 			SDL_assert( ainfo->targeted_subsys->current_hits > 0.0f);
 
@@ -1784,7 +1794,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 
 		case PROTECT_TARGET_ITEM:
 			SDL_assert( target_shipname );
+#ifndef NDEBUG
 			SDL_assert( wing_team == target_team );
+#endif
 
 			ai_mode = AI_GOAL_GUARD;
 			ai_submode = AIS_GUARD_PATROL;
@@ -1793,7 +1805,9 @@ int hud_squadmsg_send_wing_command( int wingnum, int command, int send_message, 
 
 		case IGNORE_TARGET_ITEM:
 			SDL_assert( target_shipname );
+#ifndef NDEBUG
 			SDL_assert( wing_team != target_team );
+#endif
 
 			ai_mode = AI_GOAL_IGNORE;
 			ai_submode = 0;	//	actually, a don't care.

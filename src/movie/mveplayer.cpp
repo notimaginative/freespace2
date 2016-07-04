@@ -513,10 +513,10 @@ static void mve_convert_and_draw()
 			// convert from abgr to rgba
 			px = (1<<15)|*pSrcs;
 
-			r = (px & 0x7C00) >> 10;
-			g = (px & 0x3E0) >> 5;
-			b = (px & 0x1F) >> 0;
-			a = (px & 0x8000) >> 15;
+			r = ubyte((px & 0x7C00) >> 10);
+			g = ubyte((px & 0x3E0) >> 5);
+			b = ubyte((px & 0x1F) >> 0);
+			a = ubyte((px & 0x8000) >> 15);
 
 			pDests[x] = (r << 11) | (g << 6) | (b << 1) | (a << 0);
 

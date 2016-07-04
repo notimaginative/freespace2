@@ -3083,9 +3083,12 @@ void beam_test(int whee)
 	int s1, s2;
 	object *orion, *fenris;
 	ship_subsys *lookup;
-	ship_subsys *orion_turret = NULL, *orion_radar = NULL;
-	ship_subsys *fenris_turret = NULL, *fenris_radar = NULL;
+	ship_subsys *orion_turret = NULL;
+	ship_subsys *fenris_turret = NULL;
 	beam_fire_info f;
+#ifndef NDEBUG
+	ship_subsys *orion_radar = NULL, *fenris_radar = NULL;
+#endif
 
 	nprintf(("General", "Running beam test\n"));
 
@@ -3115,7 +3118,7 @@ void beam_test(int whee)
 		lookup = GET_NEXT(lookup);
 	}
 	SDL_assert(orion_turret != NULL);
-	SDL_assert(orion_radar != NULL);
+	
 	lookup = GET_FIRST(&Ships[s2].subsys_list);
 	while(lookup != END_OF_LIST(&Ships[s2].subsys_list)){
 		// turret
@@ -3133,7 +3136,11 @@ void beam_test(int whee)
 		lookup = GET_NEXT(lookup);
 	}
 	SDL_assert(fenris_turret != NULL);	
+
+#ifndef NDEBUG
+	SDL_assert(orion_radar != NULL);
 	SDL_assert(fenris_radar != NULL);
+#endif
 
 	memset(&f, 0, sizeof(beam_fire_info));
 	f.accuracy = beam_accuracy;

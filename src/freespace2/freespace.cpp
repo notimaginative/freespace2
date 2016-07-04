@@ -3048,7 +3048,7 @@ void player_repair_frame(float frametime)
 #ifndef NDEBUG
 #define NUM_FRAMES_TEST		300
 #define NUM_MIXED_SOUNDS	16
-void do_timing_test(float flFrametime)
+void do_timing_test(float frametime)
 {
 	static int framecount = 0;
 	static int test_running = 0;
@@ -3059,7 +3059,7 @@ void do_timing_test(float flFrametime)
 
 	if ( test_running ) {
 		framecount++;
-		test_time += flFrametime;
+		test_time += frametime;
 		if ( framecount >= NUM_FRAMES_TEST ) {
 			test_running = 0;
 			nprintf(("General", "%d frames took %.3f seconds\n", NUM_FRAMES_TEST, test_time));
@@ -6563,7 +6563,7 @@ void game_spew_pof_info_sub(int model_num, polymodel *pm, int sm, CFILE *out, in
 	*out_destroyed_total += sub_total_destroyed;
 }
 
-#define BAIL()			do { int idx; for(idx=0; idx<num_files; idx++){ if(pof_list[idx] != NULL){free(pof_list[idx]); pof_list[idx] = NULL;}} return;} while(0);
+#define BAIL()			do { int x; for(x=0; x<num_files; x++){ if(pof_list[x] != NULL){free(pof_list[x]); pof_list[x] = NULL;}} return;} while(0);
 void game_spew_pof_info()
 {
 	char *pof_list[1000];

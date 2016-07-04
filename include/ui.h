@@ -945,7 +945,7 @@ public:
 	void draw_XSTR_forced(UI_GADGET *owner, int frame);
 	int get_current_hotspot();
 	void destroy();
-	ushort *get_mask_data(int *w, int *h) { *w = mask_w; *h = mask_h; return mask_data; }
+	ushort *get_mask_data(int *width, int *height) { *width = mask_w; *height = mask_h; return mask_data; }
 	void render_tooltip(const char *str);
 	void set_ignore_gadgets(int state);
 	void add_XSTR(const char *string, int xstr_id, int x, int y, UI_GADGET *assoc, int color_type, int font_id = -1);

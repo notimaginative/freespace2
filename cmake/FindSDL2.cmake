@@ -40,13 +40,15 @@
 
 find_path(SDL2_INCLUDE_DIR SDL.h
   HINTS
+    "${SDL2DIR}"
 	ENV SDL2DIR
-  PATH_SUFFIXES include/SDL2 include
+	PATH_SUFFIXES include/SDL2 include
 )
 
 find_library(SDL2_LIBRARY_TEMP
   NAMES SDL2
   HINTS
+    "${SDL2DIR}"
 	ENV SDL2DIR
   PATH_SUFFIXES lib
 )
@@ -60,6 +62,7 @@ if(NOT SDL2_BUILDING_LIBRARY)
 	find_library(SDL2MAIN_LIBRARY
 	  NAMES SDL2main
 	  HINTS
+	    "${SDL2DIR}"
 		ENV SDL2DIR
 	  PATH_SUFFIXES lib
 	  PATHS

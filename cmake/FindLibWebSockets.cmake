@@ -8,11 +8,17 @@
 # This currently works probably only for Linux
 
 FIND_PATH ( LIBWEBSOCKETS_INCLUDE_DIR libwebsockets.h
+    HINTS
+	  "${LWSDIR}"
+	PATH_SUFFIXES include
     /usr/local/include
     /usr/include
 )
 
-FIND_LIBRARY ( LIBWEBSOCKETS_LIBRARIES websockets
+FIND_LIBRARY ( LIBWEBSOCKETS_LIBRARIES websockets_static
+    HINTS
+	  "${LWSDIR}"
+	PATH_SUFFIXES lib
     /usr/local/lib
     /usr/lib
 )

@@ -10,15 +10,6 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-
-find_package(SDL2 "2.0.1" REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(OpenAL REQUIRED)
-find_package(LibWebSockets REQUIRED)
-
-find_package(wxWidgets COMPONENTS core base gl net)
-include(${wxWidgets_USE_FILE})
-
 include(CreateSourceGroups)
 
 
@@ -62,8 +53,16 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O2")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
 else()
+  set(SDL2DIR "${CMAKE_SOURCE_DIR}/../Support/SDL2" CACHE PATH "Path to SDL2")
+  set(OPENALDIR "${CMAKE_SOURCE_DIR}/../Support/OpenAL" CACHE PATH "Path to OpenAL")
+  set(LWSDIR "${CMAKE_SOURCE_DIR}/../Support/libwebsockets" CACHE PATH "Path to libwebsockets")
+  set(WXWIDGETSDIR "${CMAKE_SOURCE_DIR}/../Support/wxWidgets" CACHE PATH "Path to wxWidgets")
+  set(ANGLEDIR "${CMAKE_SOURCE_DIR}/../Support/ANGLE" CACHE PATH "Path to ANGLE")
+
   set(PLATFORM_LIBRARIES
 	ws2_32.lib
+	${ANGLEDIR}/lib/libEGL.lib
+	${ANGLEDIR}/lib/libGLESv2.lib
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)
@@ -83,6 +82,13 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
+find_package(SDL2 "2.0.1" REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
+find_package(LibWebSockets REQUIRED)
+
+find_package(wxWidgets COMPONENTS core base gl net)
+include(${wxWidgets_USE_FILE})
 
 # ##############################################################################
 

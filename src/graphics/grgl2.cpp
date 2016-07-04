@@ -179,6 +179,8 @@ static int opengl2_create_framebuffer()
 
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
 
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
 	// create framebuffer
 	glGenFramebuffers(1, &FB_id);
 	glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
@@ -280,11 +282,13 @@ int opengl2_init()
 	opengl2_tcache_init();
 
 	if ( !opengl2_shader_init() ) {
+		mprintf(("  Fallback : shader init failure!\n"));
 		opengl2_cleanup();
 		return 0;
 	}
 
 	if ( !opengl2_create_framebuffer() ) {
+		mprintf(("  Fallback : fbo init failure!\n"));
 		opengl2_cleanup();
 		return 0;
 	}

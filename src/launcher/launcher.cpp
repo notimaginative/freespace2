@@ -339,7 +339,7 @@ void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
 	epath.Append( wxT(".exe") );
 #endif
 
-	wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);
+	wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER);
 
 	this->Close();
 }

@@ -6,13 +6,14 @@
  * the source.
  */
 
+#include "SDL_opengl.h"
+
 #include "pstypes.h"
 #include "osregistry.h"
 #include "gropengl.h"
-#include "grgl1.h"
 #include "gropenglinternal.h"
-#include "2d.h"
-#include "bmpman.h"
+#include "grgl1.h"
+#include "grgl2.h"
 #include "grinternal.h"
 #include "cmdline.h"
 #include "mouse.h"
@@ -20,12 +21,12 @@
 
 
 bool OGL_inited = false;
-int GL_version = 0;
 
 SDL_Window *GL_window = NULL;
 SDL_GLContext GL_context;
 
-static int FSAA = 0;
+volatile int GL_activate = 0;
+volatile int GL_deactivate = 0;
 
 int GL_viewport_x = 0;
 int GL_viewport_y = 0;
@@ -93,45 +94,96 @@ void opengl_init_viewport()
 	GL_viewport_scale_h = 1.0f;
 
 	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, GL_viewport_w, GL_viewport_h, 0, 0.0, 1.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 }
 
-void gr_opengl_force_windowed()
+void opengl_stuff_fog_value(float z, float *f_val)
 {
-	SDL_SetWindowFullscreen(GL_window, 0);
+	float f_float;
+
+	if ( !f_val ) {
+		return;
+	}
+
+	f_float = 1.0f - ((gr_screen.fog_far - z) / (gr_screen.fog_far - gr_screen.fog_near));
+
+	if (f_float < 0.0f) {
+		f_float = 0.0f;
+	} else if (f_float > 1.0f) {
+		f_float = 1.0f;
+	}
+
+	*f_val = f_float;
 }
 
-void gr_opengl_force_fullscreen()
+void gr_opengl_clear()
 {
-	SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	glClearColor(gr_screen.current_clear_color.red / 255.0f,
+		gr_screen.current_clear_color.green / 255.0f,
+		gr_screen.current_clear_color.blue / 255.0f, 1.0f);
+
+	glClear( GL_COLOR_BUFFER_BIT );
 }
 
-void gr_opengl_toggle_fullscreen()
+void gr_opengl_reset_clip()
 {
-	Uint32 flags = SDL_GetWindowFlags(GL_window);
+	gr_screen.offset_x = 0;
+	gr_screen.offset_y = 0;
+	gr_screen.clip_left = 0;
+	gr_screen.clip_top = 0;
+	gr_screen.clip_right = gr_screen.max_w - 1;
+	gr_screen.clip_bottom = gr_screen.max_h - 1;
+	gr_screen.clip_width = gr_screen.max_w;
+	gr_screen.clip_height = gr_screen.max_h;
 
-	if ( (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP ) {
-		gr_opengl_force_windowed();
+	glDisable(GL_SCISSOR_TEST);
+}
+
+uint gr_opengl_lock()
+{
+	return 1;
+}
+
+void gr_opengl_unlock()
+{
+}
+
+void gr_opengl_zbias(int bias)
+{
+	if (bias) {
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(0.0f, GLfloat(-bias));
 	} else {
-		gr_opengl_force_fullscreen();
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+}
+
+void gr_opengl_set_cull(int cull)
+{
+	if (cull) {
+		glEnable (GL_CULL_FACE);
+		glFrontFace (GL_CCW);
+	} else {
+		glDisable (GL_CULL_FACE);
+	}
+}
+
+void gr_opengl_activate(int active)
+{
+	if (active) {
+		GL_activate++;
+	} else {
+		GL_deactivate++;
 	}
 }
 
 void gr_opengl_cleanup()
 {
 	opengl1_cleanup();
+	opengl2_cleanup();
 
 	opengl_free_render_buffer();
 
 	os_set_window(NULL);
-
-	SDL_GL_DeleteContext(GL_context);
-	GL_context = NULL;
 
 	SDL_DestroyWindow(GL_window);
 	GL_window = NULL;
@@ -153,22 +205,6 @@ void gr_opengl_init()
 		Error(LOCATION, "Couldn't init SDL: %s", SDL_GetError());
 	}
 
-	int a = 1, r = 5, g = 5, b = 5, bpp = 16, db = 1;
-
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, g);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, b);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, a);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, db);
-
-	FSAA = os_config_read_uint("Video", "AntiAlias", 0);
-
-	if (FSAA) {
-	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
-	}
-
 	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
 						SDL_WINDOWPOS_CENTERED,
 						gr_screen.max_w, gr_screen.max_h, SDL_WINDOW_OPENGL);
@@ -179,44 +215,44 @@ void gr_opengl_init()
 
 	os_set_window(GL_window);
 
-	GL_context = SDL_GL_CreateContext(GL_window);
+	int a = 1, r = 5, g = 5, b = 5, bpp = 16;
+	int FSAA = os_config_read_uint("Video", "AntiAlias", 0);
 
-	const char *gl_version = (const char*)glGetString(GL_VERSION);
-	int v_major = 0, v_minor = 0;
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, g);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, b);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, a);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
 
-	sscanf(gl_version, "%d.%d", &v_major, &v_minor);
-
-	GL_version = (v_major * 10) + v_minor;
-
-	// version check, require 1.2+ for sake of simplicity
-	if (GL_version < 12) {
-		Error(LOCATION, "Minimum OpenGL version is 1.2!");
+	if (FSAA) {
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
-	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
-	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
-	mprintf(("  Version  : %s\n", gl_version));
+	int rc = 1;
 
-	// initial viewport setup
-	opengl_init_viewport();
+	// try GL 2 first, then fall back to GL 1
+	if ( !opengl2_init() ) {
+		rc = opengl1_init();
+	}
 
-	// set up generic variables before further init() calls
-	opengl_set_variables();
+	if ( !rc ) {
+		Error(LOCATION, "Unable to initialize OpenGL renderer!\n");
+	}
 
-	// main GL init
-	opengl1_init();
-
-	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
+	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d, AA %d\n",
+			 a, r, g, b, bpp, FSAA));
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
 	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
 	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &db);
 	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
 
-	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, DB %d, AA %d\n", a, r, g, b, bpp, db, FSAA));
+	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, AA %d\n",
+			 a, r, g, b, bpp, FSAA));
+	mprintf(("\n"));
 
 	SDL_DisableScreenSaver();
 	SDL_ShowCursor(0);
@@ -224,13 +260,10 @@ void gr_opengl_init()
 	// maybe go fullscreen - should be done *after* main GL init
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
 	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
-		SDL_SetWindowFullscreen(GL_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		gr_force_fullscreen();
 		// poll for window events
 		os_poll();
 	}
-
-	mprintf(("\n"));
-
 
 	switch (bpp) {
 		case 15:
@@ -240,24 +273,24 @@ void gr_opengl_init()
 
 			// screen values
 			Gr_red.bits = 5;
-			Gr_red.shift = 10;
+			Gr_red.shift = 11;
 			Gr_red.scale = 8;
-			Gr_red.mask = 0x7C00;
+			Gr_red.mask = 0x7C01;
 
 			Gr_green.bits = 5;
-			Gr_green.shift = 5;
+			Gr_green.shift = 6;
 			Gr_green.scale = 8;
-			Gr_green.mask = 0x3E0;
+			Gr_green.mask = 0x3E1;
 
 			Gr_blue.bits = 5;
-			Gr_blue.shift = 0;
+			Gr_blue.shift = 1;
 			Gr_blue.scale = 8;
-			Gr_blue.mask = 0x1F;
+			Gr_blue.mask = 0x20;
 
 			Gr_alpha.bits = 1;
-			Gr_alpha.shift = 15;
+			Gr_alpha.shift = 0;
 			Gr_alpha.scale = 255;
-			Gr_alpha.mask = 0x8000;
+			Gr_alpha.mask = 0x1;
 
 			break;
 
@@ -268,9 +301,9 @@ void gr_opengl_init()
 
 			// screen values
 			Gr_red.bits = 8;
-			Gr_red.shift = 16;
+			Gr_red.shift = 0;
 			Gr_red.scale = 1;
-			Gr_red.mask = 0xff0000;
+			Gr_red.mask = 0xff;
 
 			Gr_green.bits = 8;
 			Gr_green.shift = 8;
@@ -278,9 +311,9 @@ void gr_opengl_init()
 			Gr_green.mask = 0xff00;
 
 			Gr_blue.bits = 8;
-			Gr_blue.shift = 0;
+			Gr_blue.shift = 16;
 			Gr_blue.scale = 1;
-			Gr_blue.mask = 0xff;
+			Gr_blue.mask = 0xff0000;
 
 			Gr_alpha.bits = 8;
 			Gr_alpha.shift = 24;
@@ -295,22 +328,22 @@ void gr_opengl_init()
 	}
 
 	// DDOI - set these so no one else does!
-	// texture values, always 1555 - 16-bit
-	Gr_t_red.mask = 0x7C00;
-	Gr_t_red.shift = 10;
+	// texture values, always 5551 - 16-bit
+	Gr_t_red.mask = 0x7C01;
+	Gr_t_red.shift = 11;
 	Gr_t_red.scale = 8;
 
-	Gr_t_green.mask = 0x3E0;
-	Gr_t_green.shift = 5;
+	Gr_t_green.mask = 0x3E1;
+	Gr_t_green.shift = 6;
 	Gr_t_green.scale = 8;
 
-	Gr_t_blue.mask = 0x1F;
-	Gr_t_blue.shift = 0;
+	Gr_t_blue.mask = 0x20;
+	Gr_t_blue.shift = 1;
 	Gr_t_blue.scale = 8;
 
-	Gr_t_alpha.mask = 0x8000;
+	Gr_t_alpha.mask = 0x1;
+	Gr_t_alpha.shift = 0;
 	Gr_t_alpha.scale = 255;
-	Gr_t_alpha.shift = 15;
 
 	// alpha-texture values
 	Gr_ta_red.mask = 0x0f00;

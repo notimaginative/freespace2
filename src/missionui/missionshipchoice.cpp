@@ -756,14 +756,14 @@ const char *ss_tooltip_handler(const char *str)
 		return Ship_info[Selected_ss_class].manufacturer_str;
 
 	} else if (!SDL_strcasecmp(str, NOX("@ship_desc"))) {
-		char *str;
+		char *desc;
 		int x, y, w, h;
 
-		str = Ship_info[Selected_ss_class].desc;
-		if (!str)
+		desc = Ship_info[Selected_ss_class].desc;
+		if (!desc)
 			return NULL;
 
-		gr_get_string_size(&w, &h, str);
+		gr_get_string_size(&w, &h, desc);
 		x = SHIP_DESC_X - w / 2;
 		y = SHIP_DESC_Y - h / 2;
 
@@ -771,7 +771,7 @@ const char *ss_tooltip_handler(const char *str)
 		gr_rect(x - 5, y - 5, w + 10, h + 10);
 
 		gr_set_color_fast(&Color_bright_white);
-		gr_string(x, y, str);
+		gr_string(x, y, desc);
 		return NULL;
 	}
 

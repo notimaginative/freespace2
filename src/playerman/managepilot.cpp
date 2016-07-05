@@ -867,13 +867,13 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	Num_recent_missions = cfread_int( file );
 	SDL_assert(Num_recent_missions <= MAX_RECENT_MISSIONS);
 	for ( i = 0; i < Num_recent_missions; i++ ) {
-		char *p;
+		char *c;
 
 		cfread_string_len( Recent_missions[i], MAX_FILENAME_LEN, file);
 		// Remove the extension
-		p = SDL_strchr(Recent_missions[i], '.');
-		if (p)
-			*p = 0;
+		c = SDL_strchr(Recent_missions[i], '.');
+		if (c)
+			*c = 0;
 	}
 	
 	// use this block of stats from now on
@@ -969,7 +969,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	return 0;
 }
 
-void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stats)
+void read_stats_block(CFILE *file, int file_version, scoring_struct *stats)
 {
 	int i, total;
    
@@ -979,7 +979,7 @@ void read_stats_block(CFILE *file, int Player_file_version, scoring_struct *stat
 	stats->assists = cfread_int(file);
 
 #ifndef MAKE_FS1
-	if (Player_file_version < 139) {
+	if (file_version < 139) {
 		// support for FS2_DEMO pilots that still have FS1 medal info in the .plr files
 		for (i=0; i < NUM_MEDALS_FS1; i++) {
 			cfread_int(file);			// dummy read

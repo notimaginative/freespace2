@@ -490,10 +490,10 @@ void UI_WINDOW::draw_tooltip()
 
 void UI_WINDOW::render_tooltip(const char *str)
 {
-	int w, h;
+	int width, height;
 
-	gr_get_string_size(&w, &h, str);
-	SDL_assert(w < gr_screen.max_w - 4 && h < gr_screen.max_h - 4);
+	gr_get_string_size(&width, &height, str);
+	SDL_assert(width < gr_screen.max_w - 4 && height < gr_screen.max_h - 4);
 
 	if (ttx < 2)
 		ttx = 2;
@@ -501,14 +501,14 @@ void UI_WINDOW::render_tooltip(const char *str)
 	if (tty < 2)
 		tty = 2;
 
-	if (ttx + w + 2 > gr_screen.max_w)
-		ttx = gr_screen.max_w - w;
+	if (ttx + width + 2 > gr_screen.max_w)
+		ttx = gr_screen.max_w - width;
 
-	if (tty + h + 2 > gr_screen.max_h)
-		tty = gr_screen.max_h - h;
+	if (tty + height + 2 > gr_screen.max_h)
+		tty = gr_screen.max_h - height;
 
 	gr_set_color_fast(&Color_black);
-	gr_rect(ttx - 1, tty - 1, w + 2, h + 1);
+	gr_rect(ttx - 1, tty - 1, width + 2, height + 1);
 
 	gr_set_color_fast(&Color_bright_white);
 	gr_string(ttx, tty, str);
@@ -596,7 +596,7 @@ void UI_WINDOW::add_XSTR(const char *string, int _xstr_id, int _x, int _y, UI_GA
 {
 	int idx;
 	int found = -1;
-	UI_XSTR *x;
+	UI_XSTR *xp;
 
 	// try and find a free xstr
 	for(idx=0; idx<MAX_UI_XSTRS; idx++){
@@ -617,24 +617,24 @@ void UI_WINDOW::add_XSTR(const char *string, int _xstr_id, int _x, int _y, UI_GA
 	if(xstrs[idx] == NULL){
 		return;
 	}
-	x = xstrs[idx];	
+	xp = xstrs[idx];	
 
 	// fill in the data
-	x->xstr = strdup(string);		
-	if(x->xstr == NULL){
-		free(x);
+	xp->xstr = strdup(string);		
+	if(xp->xstr == NULL){
+		free(xp);
 		xstrs[idx] = NULL;
 		return;
 	}
-	x->xstr_id = _xstr_id;
-	x->x = _x;
-	x->y = _y;
-	x->assoc = _assoc;
-	x->font_id = _font_id;	
-	x->clr = _color_type;
-	SDL_assert((x->clr >= 0) && (x->clr < UI_NUM_XSTR_COLORS));
-	if((x->clr < 0) || (x->clr >= UI_NUM_XSTR_COLORS)){
-		x->clr = 0;
+	xp->xstr_id = _xstr_id;
+	xp->x = _x;
+	xp->y = _y;
+	xp->assoc = _assoc;
+	xp->font_id = _font_id;	
+	xp->clr = _color_type;
+	SDL_assert((xp->clr >= 0) && (xp->clr < UI_NUM_XSTR_COLORS));
+	if((xp->clr < 0) || (xp->clr >= UI_NUM_XSTR_COLORS)){
+		xp->clr = 0;
 	}	
 }
 
@@ -642,7 +642,7 @@ void UI_WINDOW::add_XSTR(UI_XSTR *xstr)
 {
 	int idx;
 	int found = -1;
-	UI_XSTR *x;
+	UI_XSTR *xp;
 
 	// try and find a free xstr
 	for(idx=0; idx<MAX_UI_XSTRS; idx++){
@@ -663,74 +663,74 @@ void UI_WINDOW::add_XSTR(UI_XSTR *xstr)
 	if(xstrs[idx] == NULL){
 		return;
 	}
-	x = xstrs[idx];	
+	xp = xstrs[idx];	
 
 	// fill in the data
-	x->xstr = strdup(xstr->xstr);
-	if(x->xstr == NULL){
-		free(x);
+	xp->xstr = strdup(xstr->xstr);
+	if(xp->xstr == NULL){
+		free(xp);
 		xstrs[idx] = NULL;
 		return;
 	}
-	x->xstr_id = xstr->xstr_id;
-	x->x = xstr->x;
-	x->y = xstr->y;
-	x->assoc = xstr->assoc;
-	x->font_id = xstr->font_id;	
-	x->clr = xstr->clr;
-	SDL_assert((x->clr >= 0) && (x->clr < UI_NUM_XSTR_COLORS));
-	if((x->clr < 0) || (x->clr >= UI_NUM_XSTR_COLORS)){
-		x->clr = 0;
+	xp->xstr_id = xstr->xstr_id;
+	xp->x = xstr->x;
+	xp->y = xstr->y;
+	xp->assoc = xstr->assoc;
+	xp->font_id = xstr->font_id;	
+	xp->clr = xstr->clr;
+	SDL_assert((xp->clr >= 0) && (xp->clr < UI_NUM_XSTR_COLORS));
+	if((xp->clr < 0) || (xp->clr >= UI_NUM_XSTR_COLORS)){
+		xp->clr = 0;
 	}	
 }
 
-void UI_WINDOW::draw_one_xstr(UI_XSTR *x, int frame)
+void UI_WINDOW::draw_one_xstr(UI_XSTR *xp, int frame)
 {
 	font *f_backup = NULL;		
 	char str[255] = "";
 
 	// sanity
-	if((x == NULL) || (x->xstr == NULL)){
+	if((xp == NULL) || (xp->xstr == NULL)){
 		return;
 	}
 
 	// if it has an associated gadet that is hidden, do nothing
-	if((x->assoc != NULL) && (x->assoc->hidden)){
+	if((xp->assoc != NULL) && (xp->assoc->hidden)){
 		return;
 	}
 	
 	// maybe set the font
-	if(x->font_id >= 0){
+	if(xp->font_id >= 0){
 		// backup the current font
 		SDL_assert(Current_font != NULL);
 		f_backup = Current_font;
 
 		// set the new font
-		gr_set_font(x->font_id);
+		gr_set_font(xp->font_id);
 	}
 
 	// set the color
-	if(x->assoc == NULL){			
+	if(xp->assoc == NULL){			
 		gr_set_color_fast(&Color_normal);
 	} else {
 		// just buttons for now
-		switch(x->assoc->kind){
+		switch(xp->assoc->kind){
 		case UI_KIND_BUTTON:					
 			// override case
 			if((frame != -1) && (frame < 3)){
-				gr_set_color_fast(Xstr_colors[x->clr][frame]);
+				gr_set_color_fast(Xstr_colors[xp->clr][frame]);
 			}
 			// normal checking
 			else {
 				// if the button is pressed
-				if(((UI_BUTTON*)x->assoc)->button_down()){
-					gr_set_color_fast(Xstr_colors[x->clr][2]);
+				if(((UI_BUTTON*)xp->assoc)->button_down()){
+					gr_set_color_fast(Xstr_colors[xp->clr][2]);
 				} 
 				// if the mouse is just over it
-				else if(x->assoc->is_mouse_on()){
-					gr_set_color_fast(Xstr_colors[x->clr][1]);
+				else if(xp->assoc->is_mouse_on()){
+					gr_set_color_fast(Xstr_colors[xp->clr][1]);
 				} else {
-					gr_set_color_fast(Xstr_colors[x->clr][0]);
+					gr_set_color_fast(Xstr_colors[xp->clr][0]);
 				}
 				break;
 			}
@@ -739,28 +739,28 @@ void UI_WINDOW::draw_one_xstr(UI_XSTR *x, int frame)
 		// all other controls just draw the normal frame
 		default :
 			if((frame != -1) && (frame < 3)){
-				gr_set_color_fast(Xstr_colors[x->clr][frame]);
+				gr_set_color_fast(Xstr_colors[xp->clr][frame]);
 			} else {
-				gr_set_color_fast(Xstr_colors[x->clr][0]);
+				gr_set_color_fast(Xstr_colors[xp->clr][0]);
 			}
 			break;
 		}		
 
 		// if the gadget disabled, just draw the normal nonhighlighted frame
-		if(x->assoc->disabled()){
-			gr_set_color_fast(Xstr_colors[x->clr][0]);
+		if(xp->assoc->disabled()){
+			gr_set_color_fast(Xstr_colors[xp->clr][0]);
 		}
 	}
 
 	// print this puppy out	
-	int xoffset = lcl_get_xstr_offset(x->xstr_id, gr_screen.res);
-	SDL_strlcpy(str, XSTR(x->xstr, x->xstr_id), SDL_arraysize(str));
+	int xoffset = lcl_get_xstr_offset(xp->xstr_id, gr_screen.res);
+	SDL_strlcpy(str, XSTR(xp->xstr, xp->xstr_id), SDL_arraysize(str));
 	if(str[0] == '&'){
 		if(strlen(str) > 1){			
-			gr_string((x->x) + xoffset, x->y, str + 1);
+			gr_string((xp->x) + xoffset, xp->y, str + 1);
 		}
 	} else {
-		gr_string((x->x) + xoffset, x->y, str);
+		gr_string((xp->x) + xoffset, xp->y, str);
 	}
 
 	// maybe restore the old font

@@ -596,12 +596,12 @@ void particle_render_all()
 					int framenum = p->optional_data;
 
 					if ( p->nframes > 1 )	{
-						int n = fl2i(pct_complete * p->nframes + 0.5);
+						int f = fl2i(pct_complete * p->nframes + 0.5);
 
-						if ( n < 0 ) n = 0;
-						else if ( n > p->nframes-1 ) n = p->nframes-1;
+						if ( f < 0 ) f = 0;
+						else if ( f > p->nframes-1 ) f = p->nframes-1;
 
-						framenum += n;
+						framenum += f;
 					}
 
 					// set the bitmap

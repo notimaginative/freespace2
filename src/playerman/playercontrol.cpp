@@ -1870,6 +1870,7 @@ void player_generate_killer_weapon_name(int weapon_info_index, int killer_specie
 // a pointer to the text is returned
 char *player_generate_death_text( player *player_p, char *death_text, const int max_dtlen )
 {
+	int ship_index;
 	char weapon_name[NAME_LENGTH];
 	weapon_name[0] = 0;	
 
@@ -1888,7 +1889,6 @@ char *player_generate_death_text( player *player_p, char *death_text, const int 
 		SDL_assert(weapon_name[0]);
 
 		// is this from a friendly ship?
-		int ship_index;
 		ship_index = ship_name_lookup(player_p->killer_parent_name, 1);
 		if((ship_index >= 0) && (Player_ship != NULL) && (Player_ship->team == Ships[ship_index].team)){
 			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by friendly fire from %s", 1338), player_p->callsign, player_p->killer_parent_name);
@@ -1917,7 +1917,6 @@ char *player_generate_death_text( player *player_p, char *death_text, const int 
 			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a beam from an unknown source", 1081), player_p->callsign);
 		} else {					
 			// is this from a friendly ship?
-			int ship_index;
 			ship_index = ship_name_lookup(player_p->killer_parent_name, 1);
 			if((ship_index >= 0) && (Player_ship != NULL) && (Player_ship->team == Ships[ship_index].team)){
 				SDL_snprintf(death_text, max_dtlen, XSTR( "%s was destroyed by friendly beam fire from %s", 1339), player_p->callsign, player_p->killer_parent_name);

@@ -2519,7 +2519,6 @@ void multi_pxo_api_process()
 			SDL_strlcpy(Multi_pxo_channel_current.name, cmd->data, SDL_arraysize(Multi_pxo_channel_current.name));
 
 			// if we don't already have this guy on the list, add him
-			pxo_channel *lookup;
 			lookup = multi_pxo_find_channel(Multi_pxo_channel_current.name,Multi_pxo_channels);
 			if(lookup == NULL){
 				// create a new channel with the given name and place it on the channel list, return a pointer or NULL on fail
@@ -2759,7 +2758,6 @@ void multi_pxo_make_channels(char *chan_str)
 
 	// if we don't already have this guy on the list, add him
 	if(ON_CHANNEL()){
-		pxo_channel *lookup;
 		lookup = multi_pxo_find_channel(Multi_pxo_channel_current.name,Multi_pxo_channels);
 		if(lookup == NULL){
 			// create a new channel with the given name and place it on the channel list, return a pointer or NULL on fail

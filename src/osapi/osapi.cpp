@@ -325,10 +325,14 @@ void os_poll()
 
 			case SDL_KEYDOWN: {
 				if (e.key.keysym.mod & KMOD_GUI) {
-					if (e.key.keysym.sym == SDLK_f ) {
-						gr_toggle_fullscreen();
-				//	} else if (e.key.keysym.sym == SDLK_z) {
-				//		SDL_MinimizeWindow(GL_window);
+					if ( !e.key.repeat ) {
+						if (e.key.keysym.sym == SDLK_f) {
+							gr_toggle_fullscreen();
+					//	} else if (e.key.keysym.sym == SDLK_z) {
+					//		SDL_MinimizeWindow(GL_window);
+						} else if (e.key.keysym.sym == SDLK_p) {
+							key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
+						}
 					}
 				} else {
 					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
@@ -431,14 +435,21 @@ void os_poll()
 				switch (e.window.event) {
 					case SDL_WINDOWEVENT_RESIZED:
 						gr_set_viewport(e.window.data1, e.window.data2);
+						// ungrab mouse, it will be grabbed again if needed
+						mouse_grab(0);
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_LOST:
+						mouse_grab(0);
 						joy_unacquire_ff();
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
 						joy_reacquire_ff();
+						break;
+
+					case SDL_WINDOWEVENT_MINIMIZED:
+						mouse_grab(0);
 						break;
 
 					case SDL_WINDOWEVENT_CLOSE:
@@ -461,5 +472,13 @@ void os_poll()
 
 void debug_int3()
 {
+	SDL_bool mode = SDL_GetRelativeMouseMode();
+	SDL_SetRelativeMouseMode(SDL_FALSE);
+	SDL_bool grab = SDL_GetWindowGrab(Os_window);
+	SDL_SetWindowGrab(Os_window, SDL_FALSE);
+
 	SDL_TriggerBreakpoint();
+
+	SDL_SetRelativeMouseMode(mode);
+	SDL_SetWindowGrab(Os_window, grab);
 }

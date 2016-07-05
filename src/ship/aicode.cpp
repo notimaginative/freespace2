@@ -957,7 +957,7 @@ void garbage_collect_path_points()
 
 			if ((aip->path_length > 0) && (aip->path_start > -1)) {
 
-				for (int i=aip->path_start; i<aip->path_start + aip->path_length; i++) {
+				for (i=aip->path_start; i<aip->path_start + aip->path_length; i++) {
 					SDL_assert(pp_xlate[i] == 0);	//	If this is not 0, then two paths use this point!
 					pp_xlate[i] = 1;
 				}
@@ -8419,9 +8419,10 @@ void ai_chase()
 					if (!(En_objp->flags & OF_PROTECTED)) {
 						ai_choose_secondary_weapon(Pl_objp, aip, En_objp);
 						int current_bank = tswp->current_secondary_bank;
-						weapon_info	*swip = &Weapon_info[tswp->secondary_bank_weapons[tswp->current_secondary_bank]];
 
 						if (current_bank > -1) {
+							weapon_info	*swip = &Weapon_info[tswp->secondary_bank_weapons[current_bank]];
+
 							if (aip->ai_flags & AIF_UNLOAD_SECONDARIES) {
 								if (timestamp_until(swp->next_secondary_fire_stamp[current_bank]) > swip->fire_wait*1000.0f) {
 									swp->next_secondary_fire_stamp[current_bank] = timestamp((int) (swip->fire_wait*1000.0f));
@@ -8429,58 +8430,55 @@ void ai_chase()
 							}
 
 							if (timestamp_elapsed(swp->next_secondary_fire_stamp[current_bank])) {
-								if (tswp->current_secondary_bank >= 0) {
-									weapon_info	*swip = &Weapon_info[tswp->secondary_bank_weapons[tswp->current_secondary_bank]];
-									float firing_range;
+								float firing_range;
 									
-									if (swip->wi_flags & WIF_BOMB)
-										firing_range = swip->max_speed * swip->lifetime * 0.75f;
-									else
-										firing_range = swip->max_speed * swip->lifetime * (Game_skill_level + 1 + aip->ai_class/2)/NUM_SKILL_LEVELS;
+								if (swip->wi_flags & WIF_BOMB)
+									firing_range = swip->max_speed * swip->lifetime * 0.75f;
+								else
+									firing_range = swip->max_speed * swip->lifetime * (Game_skill_level + 1 + aip->ai_class/2)/NUM_SKILL_LEVELS;
 
-									// reduce firing range in nebula
-									extern int Nebula_sec_range;
-									if ((The_mission.flags & MISSION_FLAG_FULLNEB) && Nebula_sec_range) {
-										firing_range *= 0.8f;
-									}
+								// reduce firing range in nebula
+								extern int Nebula_sec_range;
+								if ((The_mission.flags & MISSION_FLAG_FULLNEB) && Nebula_sec_range) {
+									firing_range *= 0.8f;
+								}
 
-									//	If firing a spawn weapon, distance doesn't matter.
-									int	spawn_fire = 0;
+								//	If firing a spawn weapon, distance doesn't matter.
+								int	spawn_fire = 0;
 
-									if (swip->wi_flags & WIF_SPAWN) {
-										int	count;
+								if (swip->wi_flags & WIF_SPAWN) {
+									int	count;
 
-										count = num_nearby_fighters(get_enemy_team_mask(OBJ_INDEX(Pl_objp)), &Pl_objp->pos, 1000.0f);
+									count = num_nearby_fighters(get_enemy_team_mask(OBJ_INDEX(Pl_objp)), &Pl_objp->pos, 1000.0f);
 
-										if (count > 3)
+									if (count > 3)
+										spawn_fire = 1;
+									else if (count >= 1) {
+										float hull_percent = Pl_objp->hull_strength/sip->initial_hull_strength;
+
+										if (hull_percent < 0.01f)
+											hull_percent = 0.01f;
+
+										if (frand() < 0.25f/(30.0f*hull_percent) * count)	//	With timestamp below, this means could fire in 30 seconds if one enemy.
 											spawn_fire = 1;
-										else if (count >= 1) {
-											float hull_percent = Pl_objp->hull_strength/sip->initial_hull_strength;
-
-											if (hull_percent < 0.01f)
-												hull_percent = 0.01f;
-
-											if (frand() < 0.25f/(30.0f*hull_percent) * count)	//	With timestamp below, this means could fire in 30 seconds if one enemy.
-												spawn_fire = 1;
-										}
 									}
+								}
 
-									if (spawn_fire || (dist_to_enemy < firing_range)) {
-										if (ai_fire_secondary_weapon(Pl_objp)) {
-											//	Only if weapon was fired do we specify time until next fire.  If not fired, done in ai_fire_secondary...
-											float t;
+								if (spawn_fire || (dist_to_enemy < firing_range)) {
+									if (ai_fire_secondary_weapon(Pl_objp)) {
+										//	Only if weapon was fired do we specify time until next fire.  If not fired, done in ai_fire_secondary...
+										float t;
 											
-											if (aip->ai_flags & AIF_UNLOAD_SECONDARIES) {
-												t = swip->fire_wait;
-											} else {
-												t = set_secondary_fire_delay(aip, temp_shipp, swip);
-											}
-											//nprintf(("AI", "Next secondary to be fired in %7.3f seconds.\n", t));
-											swp->next_secondary_fire_stamp[current_bank] = timestamp((int) (t*1000.0f));
+										if (aip->ai_flags & AIF_UNLOAD_SECONDARIES) {
+											t = swip->fire_wait;
+										} else {
+											t = set_secondary_fire_delay(aip, temp_shipp, swip);
 										}
-									} else {
-										swp->next_secondary_fire_stamp[current_bank] = timestamp(250);
+										//nprintf(("AI", "Next secondary to be fired in %7.3f seconds.\n", t));
+										swp->next_secondary_fire_stamp[current_bank] = timestamp((int) (t*1000.0f));
 									}
+								} else {
+									swp->next_secondary_fire_stamp[current_bank] = timestamp(250);
 								}
 							}
 						}
@@ -10174,7 +10172,6 @@ void ai_dock()
 		float dist = dock_orient_and_approach(Pl_objp, &Objects[aip->goal_objnum], DOA_DOCK);
 		SDL_assert(dist != UNINITIALIZED_VALUE);
 
-		object	*goal_objp = &Objects[aip->goal_objnum];
 		SDL_assert(goal_objp->type == OBJ_SHIP);
 		ship			*goal_shipp = &Ships[goal_objp->instance];		
 		ai_info		*goal_aip = &Ai_info[goal_shipp->ai_index];
@@ -12018,9 +12015,6 @@ void ai_maybe_launch_cmeasure(object *objp, ai_info *aip)
 	
 			aip->nearest_locked_distance = dist;
 			//	Verify that this object is really homing on us.
-			object	*weapon_objp;
-
-			weapon_objp = &Objects[aip->nearest_locked_object];
 
 			float	fire_chance;
 
@@ -13083,9 +13077,6 @@ void ai_maybe_warp_out(object *objp)
 		return;
 
 	if (!(shipp->flags & SF_DEPARTING)) {
-		ship_info	*sip;
-
-		sip = &Ship_info[shipp->ship_info_index];
 		if (sip->flags & (SIF_FIGHTER | SIF_BOMBER)) {
 			if (aip->warp_out_timestamp == 0) {
 				//if (ship_get_subsystem_strength(shipp, SUBSYSTEM_WEAPONS) == 0.0f) {

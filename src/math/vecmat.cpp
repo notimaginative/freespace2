@@ -584,14 +584,14 @@ float vm_vec_mag_quick(vector *v)
 		c = v->xyz.z;
 
 	if (a < b) {
-		float t=a; a=b; b=t;
+		t=a; a=b; b=t;
 	}
 
 	if (b < c) {
-		float t=b; b=c; c=t;
+		t=b; b=c; c=t;
 
 		if (a < b) {
-			float t=a; a=b; b=t;
+			t=a; a=b; b=t;
 		}
 	}
 

@@ -6,25 +6,22 @@
  * the source.
  */
 
+#include "SDL_opengl.h"
+
 #include "gropengl.h"
-#include "grgl1.h"
 #include "gropenglinternal.h"
-#include "2d.h"
+#include "grgl1.h"
 #include "mouse.h"
-#include "pstypes.h"
-#include "cfile.h"
 #include "bmpman.h"
 #include "grinternal.h"
+#include "osregistry.h"
+#include "cfile.h"
 
-
-int OGL_fog_mode = 0;
 
 int GL_one_inited = 0;
 
 
-volatile int GL_activate = 0;
-volatile int GL_deactivate = 0;
-
+static GLuint GL_stream_tex = 0;
 static GLuint Gr_saved_screen_tex = 0;
 
 static int Gr_opengl_mouse_saved = 0;
@@ -33,9 +30,6 @@ static int Gr_opengl_mouse_saved_y = 0;
 static int Gr_opengl_mouse_saved_w = 0;
 static int Gr_opengl_mouse_saved_h = 0;
 static ubyte *Gr_opengl_mouse_saved_data = NULL;
-
-
-PFNGLSECONDARYCOLORPOINTERPROC vglSecondaryColorPointer = NULL;
 
 
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
@@ -101,8 +95,8 @@ void opengl1_cleanup()
 		return;
 	}
 
-	gr_opengl1_reset_clip();
-	gr_opengl1_clear();
+	gr_opengl_reset_clip();
+	gr_opengl_clear();
 	gr_opengl1_flip();
 
 	gr_opengl1_free_screen(0);
@@ -114,6 +108,11 @@ void opengl1_cleanup()
 
 	opengl1_tcache_cleanup();
 
+	if (GL_context) {
+		SDL_GL_DeleteContext(GL_context);
+		GL_context = NULL;
+	}
+
 	GL_one_inited = 0;
 }
 
@@ -121,9 +120,9 @@ static void opengl1_init_func_pointers()
 {
 	gr_screen.gf_flip = gr_opengl1_flip;
 	gr_screen.gf_set_clip = gr_opengl1_set_clip;
-	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
+	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 
-	gr_screen.gf_clear = gr_opengl1_clear;
+	gr_screen.gf_clear = gr_opengl_clear;
 
 	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
 	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
@@ -157,55 +156,66 @@ static void opengl1_init_func_pointers()
 	gr_screen.gf_dump_frame_stop = gr_opengl1_dump_frame_stop;
 	gr_screen.gf_dump_frame = gr_opengl1_dump_frame;
 
+	gr_screen.gf_stream_start = gr_opengl1_stream_start;
+	gr_screen.gf_stream_frame = gr_opengl1_stream_frame;
+	gr_screen.gf_stream_stop = gr_opengl1_stream_stop;
+
 	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
 
-	gr_screen.gf_lock = gr_opengl1_lock;
-	gr_screen.gf_unlock = gr_opengl1_unlock;
+	gr_screen.gf_lock = gr_opengl_lock;
+	gr_screen.gf_unlock = gr_opengl_unlock;
 
 	gr_screen.gf_fog_set = gr_opengl1_fog_set;
 
 	gr_screen.gf_get_region = gr_opengl1_get_region;
 
-	gr_screen.gf_set_cull = gr_opengl1_set_cull;
+	gr_screen.gf_set_cull = gr_opengl_set_cull;
 
 	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
 
 	gr_screen.gf_preload_init = gr_opengl1_preload_init;
 	gr_screen.gf_preload = gr_opengl1_preload;
 
-	gr_screen.gf_zbias = gr_opengl1_zbias;
-
-	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
-	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
-	gr_screen.gf_toggle_fullscreen = gr_opengl_toggle_fullscreen;
+	gr_screen.gf_zbias = gr_opengl_zbias;
 
 	gr_screen.gf_set_viewport = gr_opengl1_set_viewport;
 
-	gr_screen.gf_activate = gr_opengl1_activate;
+	gr_screen.gf_activate = gr_opengl_activate;
 
 	gr_screen.gf_release_texture = gr_opengl1_release_texture;
 }
 
-void opengl1_init()
+int opengl1_init()
 {
 	if (GL_one_inited) {
-		return;
+		return 1;
 	}
 
-	/*
-	  1 = use secondary color ext
-	  2 = use opengl linear fog
-	 */
-	OGL_fog_mode = 2;
+	GL_one_inited = 1;
 
-	// only available with OpenGL 1.2+, must get ptr for Windows
-	vglSecondaryColorPointer = (PFNGLSECONDARYCOLORPOINTERPROC)SDL_GL_GetProcAddress("glSecondaryColorPointer");
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
-	if (vglSecondaryColorPointer) {
-		OGL_fog_mode = 1;
+	GL_context = SDL_GL_CreateContext(GL_window);
+
+	if ( !GL_context ) {
+		opengl1_cleanup();
+		return 0;
 	}
 
-	mprintf(("  Fog mode : %s\n", (OGL_fog_mode == 1) ? "secondary color" : "linear"));
+	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
+	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
+	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
+
+	// set up generic variables
+	opengl_set_variables();
+
+	opengl1_init_func_pointers();
+	opengl1_tcache_init();
+
+	// initial viewport setup
+	gr_opengl1_set_viewport(gr_screen.max_w, gr_screen.max_h);
 
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DITHER);
@@ -224,39 +234,10 @@ void opengl1_init()
 
 	glFlush();
 
-	opengl1_init_func_pointers();
-	opengl1_tcache_init();
+	gr_opengl_clear();
+	gr_opengl_set_cull(1);
 
-	gr_opengl1_clear();
-	gr_opengl1_set_cull(1);
-
-	GL_one_inited = 1;
-}
-
-void gr_opengl1_activate(int active)
-{
-	if (active) {
-		GL_activate++;
-
-		// don't grab key/mouse if cmdline says so or if we're fullscreen
-	//	if(!Cmdline_no_grab && !(SDL_GetVideoSurface()->flags & SDL_FULLSCREEN)) {
-	//		SDL_WM_GrabInput(SDL_GRAB_ON);
-	//	}
-	} else {
-		GL_deactivate++;
-
-		// let go of mouse/keyboard
-	//	SDL_WM_GrabInput(SDL_GRAB_OFF);
-	}
-}
-
-void gr_opengl1_clear()
-{
-	glClearColor(gr_screen.current_clear_color.red / 255.0f,
-		gr_screen.current_clear_color.green / 255.0f,
-		gr_screen.current_clear_color.blue / 255.0f, 1.0f);
-
-	glClear( GL_COLOR_BUFFER_BIT );
+	return 1;
 }
 
 void gr_opengl1_flip()
@@ -265,85 +246,95 @@ void gr_opengl1_flip()
 		return;
 	}
 
-	gr_reset_clip();
+	gr_opengl_reset_clip();
 
 	mouse_eval_deltas();
 
 	Gr_opengl_mouse_saved = 0;
 
-	if ( mouse_is_visible() )       {
+	if ( mouse_is_visible() ) {
 		int mx, my;
 
-	 	gr_reset_clip();
 	 	mouse_get_pos( &mx, &my );
 
-	 	gr_opengl1_save_mouse_area(mx,my,32,32);
+		gr_opengl1_save_mouse_area(mx, my, 32, 32);
 
-	 	if (Gr_cursor == -1) {
+		float u_scale, v_scale;
+
+		if ( opengl1_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE, &u_scale, &v_scale) ) {
+			opengl1_set_state(TEXTURE_SOURCE_DECAL, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+			int bw, bh;
+			bm_get_info(Gr_cursor, &bw, &bh);
+
+			int x = mx;
+			int y = my;
+			int w = mx + bw;
+			int h = my + bh;
+
+			const float tex_coord[] = { 0.0f, 0.0f, 0.0f, 1.0f * v_scale,
+										1.0f * u_scale, 0.0f, 1.0f * u_scale,
+										1.0f * v_scale };
+			const int ver_coord[] = { x, y, x, h, w, y, w, h };
+
+			glColor4ub(255, 255, 255, 255);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
+
+			glTexCoordPointer(2, GL_FLOAT, 0, &tex_coord);
+			glVertexPointer(2, GL_INT, 0, &ver_coord);
+
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+		}
 #ifndef NDEBUG
-	 		gr_set_color(255,255,255);
-	 		gr_line(mx, my, mx+7, my + 7);
-	 		gr_line(mx, my, mx+5, my );
-	 		gr_line(mx, my, mx, my+5);
+		else {
+			gr_set_color(255,255,255);
+			gr_opengl1_line(mx, my, mx+7, my + 7);
+			gr_opengl1_line(mx, my, mx+5, my );
+			gr_opengl1_line(mx, my, mx, my+5);
+		}
 #endif
-	 	} else {
-	 		gr_set_bitmap(Gr_cursor);
-			gr_bitmap(mx, my);
-	 	}
 	 }
 
 #ifndef NDEBUG
-	GLenum error = GL_NO_ERROR;
+	GLenum error = glGetError();
 
-	do {
-		error = glGetError();
-
-		if (error != GL_NO_ERROR) {
-			nprintf(("Warning", "!!DEBUG!! OpenGL Error: %d\n", error));
-		}
-	} while (error != GL_NO_ERROR);
+	if (error != GL_NO_ERROR) {
+		mprintf(("!!DEBUG!! OpenGL Error: %d\n", error));
+	}
 #endif
 
 	SDL_GL_SwapWindow(GL_window);
 
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	opengl1_tcache_frame();
 
 	int cnt = GL_activate;
-	if ( cnt )      {
-		GL_activate-=cnt;
+
+	if (cnt) {
+		GL_activate -= cnt;
 		opengl1_tcache_flush();
-		// gr_opengl_clip_cursor(1); /* mouse grab, see opengl_activate */
 	}
 
 	cnt = GL_deactivate;
-	if ( cnt )      {
-		GL_deactivate-=cnt;
-		// gr_opengl_clip_cursor(0);  /* mouse grab, see opengl_activate */
+
+	if (cnt) {
+		GL_deactivate -= cnt;
 	}
 }
 
-void gr_opengl1_set_clip(int x,int y,int w,int h)
+void gr_opengl1_set_clip(int x, int y, int w, int h)
 {
 	// check for sanity of parameters
-	if (x < 0)
-		x = 0;
-	if (y < 0)
-		y = 0;
-
-	if (x >= gr_screen.max_w)
-		x = gr_screen.max_w - 1;
-	if (y >= gr_screen.max_h)
-		y = gr_screen.max_h - 1;
-
-	if (x + w > gr_screen.max_w)
-		w = gr_screen.max_w - x;
-	if (y + h > gr_screen.max_h)
-		h = gr_screen.max_h - y;
-
-	if (w > gr_screen.max_w)
-		w = gr_screen.max_w;
-	if (h > gr_screen.max_h)
-		h = gr_screen.max_h;
+	CAP(x, 0, gr_screen.max_w - 1);
+	CAP(y, 0, gr_screen.max_h - 1);
+	CAP(w, 0, gr_screen.max_w - x);
+	CAP(h, 0, gr_screen.max_h - y);
 
 	gr_screen.offset_x = x;
 	gr_screen.offset_y = y;
@@ -363,18 +354,69 @@ void gr_opengl1_set_clip(int x,int y,int w,int h)
 	glScissor(x, GL_viewport_h-y-h, w, h);
 }
 
-void gr_opengl1_reset_clip()
+void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
 {
-	gr_screen.offset_x = 0;
-	gr_screen.offset_y = 0;
-	gr_screen.clip_left = 0;
-	gr_screen.clip_top = 0;
-	gr_screen.clip_right = gr_screen.max_w - 1;
-	gr_screen.clip_bottom = gr_screen.max_h - 1;
-	gr_screen.clip_width = gr_screen.max_w;
-	gr_screen.clip_height = gr_screen.max_h;
+	SDL_assert((r >= 0) && (r < 256));
+	SDL_assert((g >= 0) && (g < 256));
+	SDL_assert((b >= 0) && (b < 256));
 
-	glDisable(GL_SCISSOR_TEST);
+	if (fog_mode == GR_FOGMODE_NONE) {
+		if (gr_screen.current_fog_mode != fog_mode) {
+			glDisable(GL_FOG);
+		}
+
+		gr_screen.current_fog_mode = fog_mode;
+
+		return;
+	}
+
+	if (gr_screen.current_fog_mode != fog_mode) {
+		glEnable(GL_FOG);
+		glFogi(GL_FOG_MODE, GL_LINEAR);
+
+		gr_screen.current_fog_mode = fog_mode;
+	}
+
+	if ( (gr_screen.current_fog_color.red != r) ||
+			(gr_screen.current_fog_color.green != g) ||
+			(gr_screen.current_fog_color.blue != b) ) {
+		gr_init_color( &gr_screen.current_fog_color, r, g, b );
+
+		GLfloat fc[4];
+
+		fc[0] = r / 255.0f;
+		fc[1] = g / 255.0f;
+		fc[2] = b / 255.0f;
+		fc[3] = 1.0f;
+
+		glFogfv(GL_FOG_COLOR, fc);
+	}
+
+	if( (fog_near >= 0.0f) && (fog_far >= 0.0f) &&
+			((fog_near != gr_screen.fog_near) ||
+			(fog_far != gr_screen.fog_far)) ) {
+		gr_screen.fog_near = fog_near;
+		gr_screen.fog_far = fog_far;
+
+		glFogf(GL_FOG_START, fog_near);
+		glFogf(GL_FOG_END, fog_far);
+	}
+}
+
+void gr_opengl1_zbuffer_clear(int mode)
+{
+	if (mode) {
+		Gr_zbuffering = 1;
+		Gr_zbuffering_mode = GR_ZBUFF_FULL;
+		Gr_global_zbuffering = 1;
+
+		opengl1_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
+		glClear ( GL_DEPTH_BUFFER_BIT );
+	} else {
+		Gr_zbuffering = 0;
+		Gr_zbuffering_mode = GR_ZBUFF_NONE;
+		Gr_global_zbuffering = 0;
+	}
 }
 
 void gr_opengl1_print_screen(const char *filename)
@@ -414,6 +456,8 @@ void gr_opengl1_print_screen(const char *filename)
 
 	memset(buf, 0, GL_viewport_w * GL_viewport_h * 3);
 
+	glReadBuffer(GL_FRONT);
+
 	glReadPixels(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h, GL_BGR, GL_UNSIGNED_BYTE, buf);
 
 	cfwrite(buf, GL_viewport_w * GL_viewport_h * 3, 1, f);
@@ -421,92 +465,6 @@ void gr_opengl1_print_screen(const char *filename)
 	cfclose(f);
 
 	free(buf);
-}
-
-void gr_opengl1_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
-{
-	SDL_assert((r >= 0) && (r < 256));
-	SDL_assert((g >= 0) && (g < 256));
-	SDL_assert((b >= 0) && (b < 256));
-
-	if (fog_mode == GR_FOGMODE_NONE) {
-		if (gr_screen.current_fog_mode != fog_mode) {
-			glDisable(GL_FOG);
-
-			if (OGL_fog_mode == 1) {
-				glDisable(GL_COLOR_SUM);
-			}
-		}
-
-		gr_screen.current_fog_mode = fog_mode;
-
-		return;
-	}
-
-	if (gr_screen.current_fog_mode != fog_mode) {
-		glEnable(GL_FOG);
-
-		if (OGL_fog_mode == 1) {
-			glEnable(GL_COLOR_SUM);
-		} else if (OGL_fog_mode == 2) {
-			glFogi(GL_FOG_MODE, GL_LINEAR);
-		}
-
-		gr_screen.current_fog_mode = fog_mode;
-	}
-
-	if ( (gr_screen.current_fog_color.red != r) ||
-			(gr_screen.current_fog_color.green != g) ||
-			(gr_screen.current_fog_color.blue != b) ) {
-		GLfloat fc[4];
-
-		gr_init_color( &gr_screen.current_fog_color, r, g, b );
-
-		fc[0] = r / 255.0f;
-		fc[1] = g / 255.0f;
-		fc[2] = b / 255.0f;
-		fc[3] = 1.0f;
-
-		glFogfv(GL_FOG_COLOR, fc);
-	}
-
-	if( (fog_near >= 0.0f) && (fog_far >= 0.0f) &&
-			((fog_near != gr_screen.fog_near) ||
-			(fog_far != gr_screen.fog_far)) ) {
-		gr_screen.fog_near = fog_near;
-		gr_screen.fog_far = fog_far;
-
-		if (OGL_fog_mode == 2) {
-			glFogf(GL_FOG_START, fog_near);
-			glFogf(GL_FOG_END, fog_far);
-		}
-	}
-}
-
-void gr_opengl1_set_cull(int cull)
-{
-	if (cull) {
-		glEnable (GL_CULL_FACE);
-		glFrontFace (GL_CCW);
-	} else {
-		glDisable (GL_CULL_FACE);
-	}
-}
-
-void gr_opengl1_zbuffer_clear(int mode)
-{
-	if (mode) {
-		Gr_zbuffering = 1;
-		Gr_zbuffering_mode = GR_ZBUFF_FULL;
-		Gr_global_zbuffering = 1;
-
-		opengl1_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL );
-		glClear ( GL_DEPTH_BUFFER_BIT );
-	} else {
-		Gr_zbuffering = 0;
-		Gr_zbuffering_mode = GR_ZBUFF_NONE;
-		Gr_global_zbuffering = 0;
-	}
 }
 
 void gr_opengl1_fade_in(int instantaneous)
@@ -521,28 +479,17 @@ void gr_opengl1_fade_out(int instantaneous)
 
 void gr_opengl1_get_region(int front, int w, int h, ubyte *data)
 {
-	if (front) {
-		glReadBuffer(GL_FRONT);
-	} else {
-		glReadBuffer(GL_BACK);
-	}
-
 	opengl1_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, GL_viewport_w);
-
-	int x = GL_viewport_x;
-	int y = (GL_viewport_y+GL_viewport_h)-h-1;
-
-	GLenum pxtype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+	GLenum pxtype = GL_UNSIGNED_SHORT_5_5_5_1;
 
 	if (gr_screen.bytes_per_pixel == 4) {
 		pxtype = GL_UNSIGNED_BYTE;
 	}
 
-	glReadPixels(x, y, w, h, GL_BGRA, pxtype, data);
+	glReadBuffer( (front) ? GL_FRONT : GL_BACK );
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	glReadPixels(GL_viewport_x, (GL_viewport_y+GL_viewport_h)-h-1, w, h, GL_RGBA, pxtype, data);
 }
 
 void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
@@ -590,14 +537,14 @@ void gr_opengl1_save_mouse_area(int x, int y, int w, int h)
 	glReadBuffer(GL_BACK);
 
 	glReadPixels(x1, y1, Gr_opengl_mouse_saved_w, Gr_opengl_mouse_saved_h,
-			GL_BGR, GL_UNSIGNED_BYTE, Gr_opengl_mouse_saved_data);
+			GL_RGB, GL_UNSIGNED_BYTE, Gr_opengl_mouse_saved_data);
 
 	Gr_opengl_mouse_saved = 1;
 }
 
 int gr_opengl1_save_screen()
 {
-	gr_reset_clip();
+	gr_opengl_reset_clip();
 
 	if (Gr_saved_screen_tex) {
 		mprintf(( "Screen already saved!\n" ));
@@ -629,7 +576,7 @@ int gr_opengl1_save_screen()
 		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
 
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_BGR, GL_UNSIGNED_BYTE,
+				Gr_opengl_mouse_saved_h, GL_RGB, GL_UNSIGNED_BYTE,
 				Gr_opengl_mouse_saved_data);
 	}
 
@@ -640,10 +587,10 @@ int gr_opengl1_save_screen()
 
 void gr_opengl1_restore_screen(int)
 {
-	gr_reset_clip();
+	gr_opengl_reset_clip();
 
 	if ( !Gr_saved_screen_tex ) {
-		gr_clear();
+		gr_opengl_clear();
 		return;
 	}
 
@@ -698,22 +645,131 @@ void gr_opengl1_dump_frame()
 	STUB_FUNCTION;
 }
 
-uint gr_opengl1_lock()
-{
-	return 1;
-}
+static int GL_stream_w = 0;
+static int GL_stream_h = 0;
+static bool GL_stream_scale = false;
+static float GL_stream_scale_by = 1.0f;
 
-void gr_opengl1_unlock()
-{
-}
+static rb_t GL_stream[4];
 
-void gr_opengl1_zbias(int bias)
+void gr_opengl1_stream_start(int x, int y, int w, int h)
 {
-	if (bias) {
-		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0.0f, GLfloat(-bias));
+	if (GL_stream_tex) {
+		return;
+	}
+
+	if (gr_screen.use_sections) {
+		mprintf(("GR_STREAM: Bitmap sections not supported\n"));
+		return;
+	}
+
+	int tex_w = next_pow2(w);
+	int tex_h = next_pow2(h);
+
+	glGenTextures(1, &GL_stream_tex);
+
+	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	uint scale = os_config_read_uint("Video", "ScaleMovies", 1);
+
+	if (scale) {
+		GL_stream_scale = true;
+		GL_stream_scale_by = GL_viewport_w / i2fl(w);
 	} else {
-		glDisable(GL_POLYGON_OFFSET_FILL);
+		GL_stream_scale = false;
+	}
+
+	int sx, sy;
+
+	if (x < 0) {
+		sx = scale ? 0 : ((gr_screen.max_w - w) / 2);
+	} else {
+		sx = x;
+	}
+
+	if (y < 0) {
+		sy = scale ? ((480 - h) / 2) : ((gr_screen.max_h - h) / 2);
+	} else {
+		sy = y;
+	}
+
+	GL_stream_w = w;
+	GL_stream_h = h;
+
+	GL_stream[0].x = i2fl(sx);
+	GL_stream[0].y = i2fl(sy);
+	GL_stream[0].u = 0.0f;
+	GL_stream[0].v = 0.0f;
+
+	GL_stream[1].x = i2fl(sx);
+	GL_stream[1].y = i2fl(sy + h);
+	GL_stream[1].u = 0.0f;
+	GL_stream[1].v = i2fl(h) / i2fl(tex_h);
+
+	GL_stream[2].x = i2fl(sx + w);
+	GL_stream[2].y = i2fl(sy);
+	GL_stream[2].u = i2fl(w) / i2fl(tex_w);
+	GL_stream[2].v = 0.0f;
+
+	GL_stream[3].x = i2fl(sx + w);
+	GL_stream[3].y = i2fl(sy + h);
+	GL_stream[3].u = i2fl(w) / i2fl(tex_w);
+	GL_stream[3].v = i2fl(h) / i2fl(tex_h);
+
+	glDisable(GL_DEPTH_TEST);
+}
+
+void gr_opengl1_stream_frame(ubyte *frame)
+{
+	if ( !GL_stream_tex ) {
+		return;
+	}
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &GL_stream[0].x);
+
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &GL_stream[0].u);
+
+	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
+
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_stream_w, GL_stream_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, frame);
+
+	if (GL_stream_scale) {
+		glPushMatrix();
+		glLoadIdentity();
+		glScalef(GL_stream_scale_by, GL_stream_scale_by, 1.0f);
+	}
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	if (GL_stream_scale) {
+		glPopMatrix();
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void gr_opengl1_stream_stop()
+{
+	if (GL_stream_tex) {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDeleteTextures(1, &GL_stream_tex);
+		GL_stream_tex = 0;
+
+		glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -756,6 +812,8 @@ void gr_opengl1_set_viewport(int width, int height)
 		Gr_opengl_mouse_saved_data = NULL;
 	}
 
-	// clear screen once to fix issues with edges on non-4:3
-	gr_opengl1_clear();
+	// adjust scale factor for gr_stream (movies)
+	if (GL_stream_tex && GL_stream_scale) {
+		GL_stream_scale_by = GL_viewport_w / i2fl(GL_stream_w);
+	}
 }

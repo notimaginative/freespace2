@@ -424,10 +424,38 @@ void mouse_force_pos(int x, int y)
 {
 	if (os_foreground()) {  // only mess with windows's mouse if we are in control of it
 		SDL_WarpMouseInWindow(os_get_window(), x, y);
+		Mouse_x = x;
+		Mouse_y = y;
 	}
 }
 
 static bool Mouse_grabbed = false;
+
+void mouse_grab(int grab)
+{
+	if (grab) {
+		// never grab when fullscreen
+		if (gr_screen.fullscreen) {
+			return;
+		}
+
+		if ( !Mouse_grabbed ) {
+			SDL_SetWindowGrab(os_get_window(), SDL_TRUE);
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+
+			Mouse_grabbed = true;
+		}
+	} else if (Mouse_grabbed) {
+		SDL_SetWindowGrab(os_get_window(), SDL_FALSE);
+
+		if ( !gr_screen.fullscreen ) {
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+		}
+
+		Mouse_grabbed = false;
+	}
+}
+
 void mouse_eval_deltas()
 {
 	Mouse_dx = Mouse_dx_inc;
@@ -437,17 +465,9 @@ void mouse_eval_deltas()
 
 	// make sure mouse is bound to window if we're flying with it
 	if (Keep_mouse_centered && Mouse_hidden) {
-		if ( !Mouse_grabbed ) {
-			SDL_SetRelativeMouseMode(SDL_TRUE);
-			SDL_SetWindowGrab(os_get_window(), SDL_TRUE);
-			Mouse_grabbed = true;
-		}
+		mouse_grab(1);
 	} else {
-		if (Mouse_grabbed) {
-			SDL_SetRelativeMouseMode(SDL_FALSE);
-			SDL_SetWindowGrab(os_get_window(), SDL_FALSE);
-			Mouse_grabbed = false;
-		}
+		mouse_grab(0);
 	}
 }
 
@@ -496,8 +516,16 @@ void mouse_set_pos(int xpos, int ypos)
 
 void mouse_update_pos(int x, int y, int dx, int dy)
 {
-	Mouse_x = x;
-	Mouse_y = y;
+	if (gr_screen.fullscreen) {
+		Mouse_x += dx;
+		Mouse_y += dy;
+
+		CAP(Mouse_x, 0, gr_screen.max_w-1);
+		CAP(Mouse_y, 0, gr_screen.max_h-1);
+	} else {
+		Mouse_x = x;
+		Mouse_y = y;
+	}
 
 	Mouse_dx_inc += dx;
 	Mouse_dy_inc += dy;

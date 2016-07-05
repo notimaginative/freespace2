@@ -127,6 +127,10 @@ void oal_capture_init()
 
 	CaptureDevice = ptr;
 
+	// this gets around hang-on-close bug on Windows
+	alcCaptureStart(tdevice);
+	alcCaptureStop(tdevice);
+
 	alcCaptureCloseDevice(tdevice);
 }
 

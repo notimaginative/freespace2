@@ -2299,7 +2299,7 @@ void process_netgame_update_packet( ubyte *data, header *hinfo )
 void send_netgame_descript_packet(net_addr *addr, int code)
 {
 	ubyte data[MAX_PACKET_SIZE],val;
-	int len;
+	int length;
 	int packet_size = 0;
 
 	// build the header
@@ -2310,12 +2310,12 @@ void send_netgame_descript_packet(net_addr *addr, int code)
 
 	if(code == 1){
 		// add as much of the description as we dare
-		len = strlen(The_mission.mission_desc);
-		if(len > MAX_PACKET_SIZE - 10){
-			len = MAX_PACKET_SIZE - 10;
-			ADD_INT(len);
-			memcpy(data+packet_size,The_mission.mission_desc,len);
-			packet_size += len;
+		length = strlen(The_mission.mission_desc);
+		if(length > MAX_PACKET_SIZE - 10){
+			length = MAX_PACKET_SIZE - 10;
+			ADD_INT(length);
+			memcpy(data+packet_size,The_mission.mission_desc,length);
+			packet_size += length;
 		} else {
 			ADD_STRING(The_mission.mission_desc);
 		}
@@ -6987,7 +6987,7 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 
 	// if we have hull information, then read it in.
 	if ( have_hull_info ) {
-		float val;
+		float fval;
 		ship_info *sip;
 		ship *shipp;
 		ubyte hull_percent, shield_percent[MAX_SHIELD_SECTIONS], n_subsystems, subsystem_percent[MAX_MODEL_SUBSYSTEMS], threats;
@@ -7031,12 +7031,12 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 			objp = Player_obj;
 			sip = &Ship_info[shipp->ship_info_index];
 
-			val = hull_percent * sip->initial_hull_strength / 100.0f;
-			objp->hull_strength = val;
+			fval = hull_percent * sip->initial_hull_strength / 100.0f;
+			objp->hull_strength = fval;
 
 			for ( i = 0; i < MAX_SHIELD_SECTIONS; i++ ) {
-				val = (shield_percent[i] * sip->shields / 100.0f) / MAX_SHIELD_SECTIONS;
-				objp->shields[i] = val;
+				fval = (shield_percent[i] * sip->shields / 100.0f) / MAX_SHIELD_SECTIONS;
+				objp->shields[i] = fval;
 			}
 
 			// for sanity, be sure that the number of susbystems that I read in matches the player.  If not,
@@ -7047,13 +7047,13 @@ void process_client_update_packet(ubyte *data, header *hinfo)
 				for ( subsysp = GET_FIRST(&shipp->subsys_list); subsysp != END_OF_LIST(&shipp->subsys_list); subsysp = GET_NEXT(subsysp) ) {
 					int subsys_type;
 
-					val = subsystem_percent[n_subsystems] * subsysp->system_info->max_hits / 100.0f;
-					subsysp->current_hits = val;
+					fval = subsystem_percent[n_subsystems] * subsysp->system_info->max_hits / 100.0f;
+					subsysp->current_hits = fval;
 
 					// add the value just generated (it was zero'ed above) into the array of generic system types
 					subsys_type = subsysp->system_info->type;					// this is the generic type of subsystem
 					SDL_assert ( subsys_type < SUBSYSTEM_MAX );
-					shipp->subsys_info[subsys_type].current_hits += val;
+					shipp->subsys_info[subsys_type].current_hits += fval;
 					n_subsystems++;
 				}
 			}

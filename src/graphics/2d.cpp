@@ -832,8 +832,12 @@ void gr_force_windowed()
 		return;
 	}
 
-	if (gr_screen.gf_force_windowed) {
-		(*gr_screen.gf_force_windowed)();
+
+	int rc = SDL_SetWindowFullscreen(os_get_window(), 0);
+
+	if ( !rc ) {
+		gr_screen.fullscreen = 0;
+		SDL_SetRelativeMouseMode(SDL_FALSE);
 	}
 
 	if (Os_debugger_running) {
@@ -847,8 +851,11 @@ void gr_force_fullscreen()
 		return;
 	}
 
-	if (gr_screen.gf_force_fullscreen) {
-		(*gr_screen.gf_force_fullscreen)();
+	int rc = SDL_SetWindowFullscreen(os_get_window(), SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+	if ( !rc ) {
+		gr_screen.fullscreen = 1;
+		SDL_SetRelativeMouseMode(SDL_TRUE);
 	}
 
 	if (Os_debugger_running) {
@@ -867,8 +874,12 @@ void gr_toggle_fullscreen()
 		return;
 	}
 
-	if (gr_screen.gf_toggle_fullscreen) {
-		(*gr_screen.gf_toggle_fullscreen)();
+	Uint32 flags = SDL_GetWindowFlags( os_get_window() );
+
+	if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+		gr_force_windowed();
+	} else {
+		gr_force_fullscreen();
 	}
 
 	if (Os_debugger_running) {
@@ -1145,6 +1156,14 @@ void gr_get_color(int *r, int *g, int *b)
 	if (r) *r = gr_screen.current_color.red;
 	if (g) *g = gr_screen.current_color.green;
 	if (b) *b = gr_screen.current_color.blue;
+}
+
+void gr_get_colorf(float *r, float *g, float *b, float *a)
+{
+	if (r) *r = gr_screen.current_color.red / 255.0f;
+	if (g) *g = gr_screen.current_color.green / 255.0f;
+	if (b) *b = gr_screen.current_color.blue / 255.0f;
+	if (a) *a = gr_screen.current_color.alpha / 255.0f;
 }
 
 void gr_init_color(color *c, int r, int g, int b)

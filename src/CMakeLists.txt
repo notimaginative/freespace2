@@ -39,6 +39,10 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl1.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl1render.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl1texture.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl2.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl2render.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl2shader.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grgl2texture.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gropengl.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grstub.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grwxgl.cpp

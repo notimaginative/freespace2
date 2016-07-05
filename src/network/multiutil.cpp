@@ -1303,7 +1303,7 @@ void multi_unpack_orient_matrix(ubyte *data,matrix *m)
 	m->v.fvec.xyz.y *= (data[16] & (1<<4)) ? -1.0f : 1.0f;
 }
 	                      
-void multi_do_client_warp(float flFrametime)
+void multi_do_client_warp(float frametime)
 {
    ship_obj *moveup;
 	
@@ -1311,7 +1311,7 @@ void multi_do_client_warp(float flFrametime)
 	while(moveup!=END_OF_LIST(&Ship_obj_list)){
 		// do all _necessary_ ship warp in (arrival) processing
 		if ( Ships[Objects[moveup->objnum].instance].flags & SF_ARRIVING )	
-			shipfx_warpin_frame( &Objects[moveup->objnum], flFrametime );
+			shipfx_warpin_frame( &Objects[moveup->objnum], frametime );
 		moveup = GET_NEXT(moveup);
 	}	
 }	
@@ -3869,7 +3869,6 @@ int multi_pack_unpack_vel( int write, ubyte *data, matrix *orient, vector *pos, 
 		return bitbuffer_write_flush(&buf);
 	} else {
 		// unpack velocity
-		float r, u, f;
 		a = bitbuffer_get_signed(&buf,10);
 		b = bitbuffer_get_signed(&buf,10);
 		c = bitbuffer_get_signed(&buf,10);

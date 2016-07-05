@@ -528,7 +528,9 @@ int pack_key_frame(ubyte *frame, ubyte *save, long size, long max, int compress_
 			break;
 
 		case PACKING_METHOD_STD_RLE_KEY: {
+#ifndef NDEBUG
 			ubyte *dest_start = save;
+#endif
 			int i;
 
 			count = 1;
@@ -595,8 +597,9 @@ int pack_key_frame(ubyte *frame, ubyte *save, long size, long max, int compress_
 //					printf("Just packed %d %d times, at end since pixel change\n",last,count);
 				}
 			}
-
+#ifndef NDEBUG
 			SDL_assert(packed_size == (save-dest_start) );
+#endif
 			return packed_size;
 			break;
 			}
@@ -685,8 +688,9 @@ int pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, long size, long max, in
 			break;
 
 		case PACKING_METHOD_STD_RLE: {		// high bit count regular RLE frame
-
+#ifndef NDEBUG
 			ubyte *dest_start = save;
+#endif
 
 			count = 1;
 
@@ -755,8 +759,9 @@ int pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, long size, long max, in
 					packed_size += 2;
 				}
 			}
-
+#ifndef NDEBUG
 			SDL_assert(packed_size == (save-dest_start) );
+#endif
 			return packed_size;
 			break;
 			}

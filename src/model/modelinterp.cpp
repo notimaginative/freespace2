@@ -720,7 +720,7 @@ void model_interp_flatpoly(ubyte * p,polymodel * pm)
 	}
 
 	if (Interp_flags & (MR_SHOW_OUTLINE|MR_SHOW_OUTLINE_PRESET))	{
-		int i, j;
+		int j;
 
 		if ( Interp_flags & MR_SHOW_OUTLINE )	{
 			gr_set_color_fast( &Interp_outline_color );

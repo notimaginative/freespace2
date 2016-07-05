@@ -43,8 +43,6 @@
 #ifndef _GROPENGL_H
 #define _GROPENGL_H
 
-#include "SDL_opengl.h"
-
 void gr_opengl_init();
 void gr_opengl_cleanup();
 

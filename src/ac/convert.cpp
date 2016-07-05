@@ -904,7 +904,7 @@ int save_anim_header()
 // should be key frames.
 int allocate_key_frames(int total_frames)
 {
-	int count = 0, frame = 1, rate = key_frame_rate, last_frame;
+	int count = 0, frame = 1, rate = key_frame_rate, last;
 
 	if (!rate)
 		rate = total_frames;
@@ -921,16 +921,16 @@ int allocate_key_frames(int total_frames)
 		Anim.keys = (key_frame *) malloc(count * sizeof(key_frame));
 
 	count = 0;
-	frame = last_frame = 1;
+	frame = last = 1;
 	while (frame <= total_frames) {
-		if ((force_key_frame > last_frame) && (force_key_frame < frame))
+		if ((force_key_frame > last) && (force_key_frame < frame))
 			Anim.keys[count++].frame_num = force_key_frame;
 
 		Anim.keys[count++].frame_num = frame;
 		frame += rate;
 	}
 
-	if (force_key_frame > last_frame)
+	if (force_key_frame > last)
 		Anim.keys[count++].frame_num = force_key_frame;
 
 	Anim.num_keys = count;
@@ -1111,7 +1111,7 @@ int convert_avi_to_anim(char* filename)
 
 int convert_frames_to_anim(char *filename)
 {
-	int first_frame, frame, pos, width, height, xparent_pal_index, r = -1;
+	int first, frame, pos, width, height, xparent_pal_index, r = -1;
 	char ani_filename[255], name[255], temp[8];	
 	int rc;
 	FILE *fp;
@@ -1121,7 +1121,7 @@ int convert_frames_to_anim(char *filename)
 	strcpy(ani_filename, filename);
 	strcpy(ani_filename + strlen(ani_filename) - 8, ".ani");
 	pos = strlen(name) - 8;
-	frame = first_frame = atoi(&name[pos]);
+	frame = first = atoi(&name[pos]);
 	force_key_frame -= frame;
 
 	memset(&Anim, 0, sizeof(anim));
@@ -1168,11 +1168,11 @@ int convert_frames_to_anim(char *filename)
 		Xparent_color.b = 0;
 	}
 
-	if (anim_save_init(ani_filename, width, height, frame - first_frame))
+	if (anim_save_init(ani_filename, width, height, frame - first))
 		goto done;
 
-	while (first_frame < frame) {
-		sprintf(temp, "%04d", first_frame);
+	while (first < frame) {
+		sprintf(temp, "%04d", first);
 		strncpy(&name[pos], temp, 4);
 		rc = pcx_read_bitmap_8bpp(name, cur_frame, Anim.palette);
 		if (rc != PCX_ERROR_NONE)
@@ -1181,7 +1181,7 @@ int convert_frames_to_anim(char *filename)
 		if (anim_save_frame())
 			goto done;
 
-		first_frame++;
+		first++;
 	}
 
 	if (save_anim_header())

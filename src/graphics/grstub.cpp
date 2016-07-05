@@ -82,6 +82,10 @@ static int stub_preload(int, int)
 	return 1;
 }
 
+static void stub_stream_frame(ubyte *)
+{
+}
+
 
 void gr_stub_init()
 {
@@ -123,6 +127,10 @@ void gr_stub_init()
 	gr_screen.gf_dump_frame_stop = stub_void_void;
 	gr_screen.gf_dump_frame = stub_void_void;
 
+	gr_screen.gf_stream_start = stub_void_int4;
+	gr_screen.gf_stream_frame = stub_stream_frame;
+	gr_screen.gf_stream_stop = stub_void_void;
+
 	gr_screen.gf_set_gamma = stub_set_gamma;
 
 	gr_screen.gf_lock = stub_lock;
@@ -140,10 +148,6 @@ void gr_stub_init()
 	gr_screen.gf_preload = stub_preload;
 
 	gr_screen.gf_zbias = stub_void_int;
-
-	gr_screen.gf_force_windowed = stub_void_void;
-	gr_screen.gf_force_fullscreen = stub_void_void;
-	gr_screen.gf_toggle_fullscreen = stub_void_void;
 
 	gr_screen.gf_set_viewport = stub_void_int2;
 

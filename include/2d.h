@@ -382,6 +382,7 @@ typedef struct screen {
 	int	bytes_per_pixel;	// How many bytes per pixel (1,2,3,4)
 	int	offset_x, offset_y;		// The offsets into the screen
 	int	clip_width, clip_height;
+	int fullscreen;
 
 	float fog_near, fog_far;
 
@@ -485,6 +486,15 @@ typedef struct screen {
 	// Dump the current frame to file
 	void (*gf_dump_frame_stop)();
 
+	// Begin video stream
+	void (*gf_stream_start)(int x, int y, int w, int h);
+
+	// Process frame of video stream
+	void (*gf_stream_frame)(ubyte *frame);
+
+	// Stop video stream
+	void (*gf_stream_stop)();
+
 	// Sets the gamma
 	void (*gf_set_gamma)(float gamma);
 
@@ -509,10 +519,6 @@ typedef struct screen {
 	int (*gf_preload)(int bitmap_num, int is_aabitmap);
 
 	void (*gf_zbias)(int bias);
-
-	void (*gf_force_windowed)();
-	void (*gf_force_fullscreen)();
-	void (*gf_toggle_fullscreen)();
 
 	void (*gf_set_viewport)(int width, int height);
 
@@ -598,6 +604,7 @@ extern void gr_activate(int active);
 
 void gr_set_color_fast(color *dst);
 void gr_get_color(int *r, int *g, int *b);
+void gr_get_colorf(float *r, float *g, float *b, float *a);
 void gr_init_color(color *c, int r, int g, int b);
 void gr_init_alphacolor(color *clr, int r, int g, int b, int alpha, int type);
 void gr_set_color(int r, int g, int b);
@@ -670,6 +677,10 @@ int gr_zbuffer_set(int mode);
 #define gr_dump_frame_stop		GR_CALL(gr_screen.gf_dump_frame_stop)
 #define gr_dump_frame			GR_CALL(gr_screen.gf_dump_frame)
 
+#define gr_stream_start		GR_CALL(gr_screen.gf_stream_start)
+#define gr_stream_frame		GR_CALL(gr_screen.gf_stream_frame)
+#define gr_stream_stop		GR_CALL(gr_screen.gf_stream_stop)
+
 void gr_set_gamma(float gamma);
 
 #define gr_lock				GR_CALL(gr_screen.gf_lock)
@@ -721,6 +732,11 @@ inline int next_pow2(int p)
 	p |= p >> 16;
 
 	return p+1;
+}
+
+inline int is_pow2(int p)
+{
+	return (p && !(p & (p-1)));
 }
 
 #endif

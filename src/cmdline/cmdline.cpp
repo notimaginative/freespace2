@@ -261,7 +261,6 @@ cmdline_parm timeout("-timeout", "-t", NULL);
 cmdline_parm d3d_window("-window", "-w", NULL);
 cmdline_parm d3d_fullscreen("-fullscreen", "-f", NULL);
 cmdline_parm help("-help", "-h", NULL);
-cmdline_parm no_grab("-nograb", "-g", NULL);
 cmdline_parm fs_version("-version", "-v", NULL);
 cmdline_parm no_movies("-nomovies", "-n", NULL);
 
@@ -289,7 +288,6 @@ int Cmdline_spew_pof_info = 0;
 int Cmdline_force_32bit = 0;
 int Cmdline_mouse_coords = 0;
 int Cmdline_timeout = -1;
-int Cmdline_no_grab = 0;
 int Cmdline_play_movies = 1;
 int Cmdline_fullscreen = 0;
 int Cmdline_window = 0;
@@ -380,14 +378,14 @@ static void os_parse_parms(char *cmdline)
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		// check with space to make sure we get the correct option name
-		SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name);
+		SDL_snprintf(pname, SDL_arraysize(pname), "%s ", parmp->name);
 		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
 			cmdline_offset += strlen(parmp->name);
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
-			SDL_snprintf(pname, SDL_arraysize(pname)-1, "%s ", parmp->name2);
+			SDL_snprintf(pname, SDL_arraysize(pname), "%s ", parmp->name2);
 			cmdline_offset = strstr(cmdline, pname);
 
 			if (cmdline_offset) {
@@ -439,7 +437,6 @@ static void print_instructions()
 	printf("     [-s | --nosound]        Do not access the sound card\n");
 	printf("     [-f | --fullscreen]     Run the game fullscreen\n");
 	printf("     [-w | --window]         Run the game in a window\n");
-	printf("     [-g | --nograb]         Do not automatically grab mouse\n");
 	printf("     [-n | --nomovies]       Do not play movies\n");
 	printf("     [-P | --pofspew]        Save model info to pofspew.txt\n");
 	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n");
@@ -763,11 +760,6 @@ int parse_cmdline(const char *cmdline)
 	// help!!
 	if(help.found()){
 		print_instructions();
-	}
-
-	// no key/mouse grab
-	if(no_grab.found()){
-		Cmdline_no_grab = 1;
 	}
 
 	// play movies?

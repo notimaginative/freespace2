@@ -303,9 +303,9 @@ void fonttool_create_new( font *fnt )
 }
 	
 
-void fonttool_add_char( font *fnt, int x1, int y1, int real_w, int h, ubyte *data, int rowsize )
+void fonttool_add_char( font *fnt, int x1, int y1, int real_w, int h, ubyte *cdata, int rowsize )
 {
-	int x, y, n, offset;
+	int x, y, n, coffset;
 	int w;
 	
 	n = fnt->num_chars;
@@ -343,14 +343,14 @@ void fonttool_add_char( font *fnt, int x1, int y1, int real_w, int h, ubyte *dat
 		free(fnt->pixel_data);
 		fnt->pixel_data = NULL;
 	}
-	offset = fnt->pixel_data_size;
+	coffset = fnt->pixel_data_size;
 	fnt->pixel_data_size += w*h;
 	fnt->pixel_data = new_pixel_data;
-	new_pixel_data = fnt->pixel_data + offset;
+	new_pixel_data = fnt->pixel_data + coffset;
 
 	new_char->byte_width = w;
 	new_char->spacing = real_w;
-	new_char->offset = offset;
+	new_char->offset = coffset;
 	new_char->kerning_entry = -1;
 	new_char->user_data = 0;
 
@@ -360,7 +360,7 @@ void fonttool_add_char( font *fnt, int x1, int y1, int real_w, int h, ubyte *dat
 			if ( x >= real_w)
 				c = 0;
 			else
-				c = data[x+y*rowsize];
+				c = cdata[x+y*rowsize];
 			if ( c > 15 ) {
 				num_bad_pixels++;
 				c = 15;
@@ -526,9 +526,9 @@ void fonttool_read( char *filename, font *fnt )
 	int i,x,y;
 	x = y = 0;
 	for (i=0; i<fnt->num_chars; i++ )	{
-		ubyte * fp;
+		ubyte * pd;
 		int x1, y1;
-		fp = &fnt->pixel_data[fnt->char_data[i].offset];
+		pd = &fnt->pixel_data[fnt->char_data[i].offset];
 		if ( x + fnt->char_data[i].byte_width >= fnt->bm_w )	{
 			x = 0;
 			y += fnt->h;
@@ -541,7 +541,7 @@ void fonttool_read( char *filename, font *fnt )
 
 		for( y1=0; y1<fnt->h; y1++ )	{
 			for (x1=0; x1<fnt->char_data[i].byte_width; x1++ )	{
-				uint c = *fp++;
+				uint c = *pd++;
 				if ( c > 14 ) c = 14;
 				fnt->bm_data[(x+x1)+(y+y1)*fnt->bm_w] = (unsigned char)(c);	
 			}

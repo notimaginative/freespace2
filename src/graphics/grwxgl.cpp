@@ -6,12 +6,14 @@
  * the source.
  */
 
+#include "SDL_opengl.h"
+
 #include "pstypes.h"
 #include "2d.h"
 #include "grwxgl.h"
 #include "gropengl.h"
-#include "grgl1.h"
 #include "gropenglinternal.h"
+#include "grgl1.h"
 #include "grinternal.h"
 #include "mouse.h"
 
@@ -27,9 +29,9 @@ static void wxgl_init_func_pointers()
 {
 	gr_screen.gf_flip = gr_wxgl_flip;
 	gr_screen.gf_set_clip = gr_opengl1_set_clip;
-	gr_screen.gf_reset_clip = gr_opengl1_reset_clip;
+	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 
-	gr_screen.gf_clear = gr_opengl1_clear;
+	gr_screen.gf_clear = gr_opengl_clear;
 
 	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
 	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
@@ -63,31 +65,31 @@ static void wxgl_init_func_pointers()
 	gr_screen.gf_dump_frame_stop = gr_opengl1_dump_frame_stop;
 	gr_screen.gf_dump_frame = gr_opengl1_dump_frame;
 
+	gr_screen.gf_stream_start = gr_opengl1_stream_start;
+	gr_screen.gf_stream_frame = gr_opengl1_stream_frame;
+	gr_screen.gf_stream_stop = gr_opengl1_stream_stop;
+
 	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
 
-	gr_screen.gf_lock = gr_opengl1_lock;
-	gr_screen.gf_unlock = gr_opengl1_unlock;
+	gr_screen.gf_lock = gr_opengl_lock;
+	gr_screen.gf_unlock = gr_opengl_unlock;
 
 	gr_screen.gf_fog_set = gr_opengl1_fog_set;
 
 	gr_screen.gf_get_region = gr_opengl1_get_region;
 
-	gr_screen.gf_set_cull = gr_opengl1_set_cull;
+	gr_screen.gf_set_cull = gr_opengl_set_cull;
 
 	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
 
 	gr_screen.gf_preload_init = gr_opengl1_preload_init;
 	gr_screen.gf_preload = gr_opengl1_preload;
 
-	gr_screen.gf_zbias = gr_opengl1_zbias;
-
-	gr_screen.gf_force_windowed = gr_opengl_force_windowed;
-	gr_screen.gf_force_fullscreen = gr_opengl_force_fullscreen;
-	gr_screen.gf_toggle_fullscreen = gr_opengl_toggle_fullscreen;
+	gr_screen.gf_zbias = gr_opengl_zbias;
 
 	gr_screen.gf_set_viewport = gr_wxgl_set_viewport;
 
-	gr_screen.gf_activate = gr_opengl1_activate;
+	gr_screen.gf_activate = gr_opengl_activate;
 
 	gr_screen.gf_release_texture = gr_opengl1_release_texture;
 }
@@ -118,7 +120,8 @@ static void wxgl_init()
 	wxgl_init_func_pointers();
 	opengl1_tcache_init();
 
-	gr_opengl1_clear();
+	gr_opengl_clear();
+	gr_opengl_set_cull(1);
 
 	GL_one_inited = 1;
 
@@ -126,6 +129,13 @@ static void wxgl_init()
 
 void gr_wxgl_flip()
 {
+#ifndef NDEBUG
+	GLenum error = glGetError();
+
+	if (error != GL_NO_ERROR) {
+		mprintf(("!!DEBUG!! OpenGL Error: %d\n", error));
+	}
+#endif
 }
 
 void gr_wxgl_set_viewport(int width, int height)
@@ -153,7 +163,12 @@ void gr_wxgl_set_viewport(int width, int height)
 
 void gr_wxgl_cleanup()
 {
-	gr_opengl_cleanup();
+	opengl1_tcache_cleanup();
+
+	opengl_free_render_buffer();
+
+	OGL_inited = false;
+	GL_one_inited = 0;
 }
 
 void gr_wxgl_init()
@@ -172,7 +187,7 @@ void gr_wxgl_init()
 
 	sscanf(gl_version, "%d.%d", &v_major, &v_minor);
 
-	GL_version = (v_major * 10) + v_minor;
+	int GL_version = (v_major * 10) + v_minor;
 
 	// version check, require 1.2+ for sake of simplicity
 	if (GL_version < 12) {
@@ -200,42 +215,42 @@ void gr_wxgl_init()
 
 	// screen values
 	Gr_red.bits = 5;
-	Gr_red.shift = 10;
+	Gr_red.shift = 11;
 	Gr_red.scale = 8;
-	Gr_red.mask = 0x7C00;
+	Gr_red.mask = 0x7C01;
 
 	Gr_green.bits = 5;
-	Gr_green.shift = 5;
+	Gr_green.shift = 6;
 	Gr_green.scale = 8;
-	Gr_green.mask = 0x3E0;
+	Gr_green.mask = 0x3E1;
 
 	Gr_blue.bits = 5;
-	Gr_blue.shift = 0;
+	Gr_blue.shift = 1;
 	Gr_blue.scale = 8;
-	Gr_blue.mask = 0x1F;
+	Gr_blue.mask = 0x20;
 
 	Gr_alpha.bits = 1;
-	Gr_alpha.shift = 15;
+	Gr_alpha.shift = 0;
 	Gr_alpha.scale = 255;
-	Gr_alpha.mask = 0x8000;
+	Gr_alpha.mask = 0x1;
 
 	// DDOI - set these so no one else does!
 	// texture values, always 1555 - 16-bit
-	Gr_t_red.mask = 0x7C00;
-	Gr_t_red.shift = 10;
+	Gr_t_red.mask = 0x7C01;
+	Gr_t_red.shift = 11;
 	Gr_t_red.scale = 8;
 
-	Gr_t_green.mask = 0x3E0;
-	Gr_t_green.shift = 5;
+	Gr_t_green.mask = 0x3E1;
+	Gr_t_green.shift = 6;
 	Gr_t_green.scale = 8;
 
-	Gr_t_blue.mask = 0x1F;
-	Gr_t_blue.shift = 0;
+	Gr_t_blue.mask = 0x20;
+	Gr_t_blue.shift = 1;
 	Gr_t_blue.scale = 8;
 
-	Gr_t_alpha.mask = 0x8000;
+	Gr_t_alpha.mask = 0x1;
+	Gr_t_alpha.shift = 0;
 	Gr_t_alpha.scale = 255;
-	Gr_t_alpha.shift = 15;
 
 	// alpha-texture values
 	Gr_ta_red.mask = 0x0f00;

@@ -529,7 +529,8 @@ void fonttool_edit_kerning(char *fname1)
 			gr_string( 20, 360+th+20, SampleText );
 		}
 
-		int x = 5, y = 200;
+		x = 5;
+		int y = 200;
 		int widest = 0;
 
 		 //= ( 330 - 200 ) / KernFont.h;

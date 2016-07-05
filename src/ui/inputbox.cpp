@@ -606,16 +606,16 @@ void UI_INPUTBOX::process(int focus)
 
 							// check to see if we should limit by pixel width
 							if (pixel_limit > -1) {
-								int w;
+								int width;
 
 								if (flags & UI_INPUTBOX_FLAG_PASSWD) {
-									gr_get_string_size(&w, NULL, passwd_text);									
+									gr_get_string_size(&width, NULL, passwd_text);
 
 								} else {
-									gr_get_string_size(&w, NULL, text);								
+									gr_get_string_size(&width, NULL, text);
 								}
 
-								if (w > pixel_limit) {
+								if (width > pixel_limit) {
 									position--;
 									locked = 1;
 									text[position] = 0;

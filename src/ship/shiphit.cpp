@@ -554,7 +554,7 @@ void do_subobj_destroyed_stuff( ship *ship_p, ship_subsys *subsys, vector* hitpo
 
 		vector temp_vec, center_to_subsys, rand_vec;
 		vm_vec_sub(&center_to_subsys, &g_subobj_pos, &objp->pos);
-		for (int i=0; i<num_fireballs; i++) {
+		for (i=0; i<num_fireballs; i++) {
 			if (i==0) {
 				// make first fireball at hitpos
 				if (hitpos) {
@@ -911,7 +911,6 @@ float do_subobj_hit_stuff(object *ship_obj, object *other_obj, vector *hitpos, f
 	int	i, j;
 	for (j=0; j<count; j++) {
 		float	dist, range;
-		ship_subsys	*subsys;
 
 		int	min_index = -1;
 		float	min_dist = 9999999.9f;

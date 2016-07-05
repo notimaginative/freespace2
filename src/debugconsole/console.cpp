@@ -730,7 +730,6 @@ void debug_console( void (*_func)() )
 					last_oldcommand++;
 					SDL_strlcpy( oldcommand_line[last_oldcommand], command_line, SDL_arraysize(oldcommand_line[0]) );
 				} else {
-					int i;
 					for (i=0; i<last_oldcommand; i++ )	{
 						SDL_strlcpy( oldcommand_line[i], oldcommand_line[i+1], SDL_arraysize(oldcommand_line[0]) );
 					}

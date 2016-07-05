@@ -15,7 +15,7 @@ FIND_PATH ( LIBWEBSOCKETS_INCLUDE_DIR libwebsockets.h
     /usr/include
 )
 
-FIND_LIBRARY ( LIBWEBSOCKETS_LIBRARIES websockets_static
+FIND_LIBRARY ( LIBWEBSOCKETS_LIBRARIES websockets_static websockets
     HINTS
 	  "${LWSDIR}"
 	PATH_SUFFIXES lib

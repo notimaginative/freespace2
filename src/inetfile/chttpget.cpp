@@ -270,8 +270,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	}
 	else
 	{
-		int ret_val = 0;
-		SDL_WaitThread(thread, &ret_val);
+		SDL_DetachThread(thread);
 	}
 }
 

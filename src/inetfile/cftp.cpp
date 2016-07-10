@@ -249,8 +249,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	}
 	else
 	{
-		int ret_val;
-		SDL_WaitThread(thread, &ret_val);
+		SDL_DetachThread(thread);
 	}
 	m_State = FTP_STATE_CONNECTING;
 }

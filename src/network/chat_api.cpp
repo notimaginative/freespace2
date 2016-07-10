@@ -151,6 +151,7 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 		if (SOCKET_ERROR==bind(Chatsock, (struct sockaddr *)&Chataddr, sizeof (struct sockaddr)))
 		{
 			//AfxMessageBox("Unable to bind socket!");
+			closesocket(Chatsock);
 			return -1;
 		}
 		ioctlsocket(Chatsock,FIONBIO,&argp);
@@ -224,6 +225,19 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			//Writable -- that means it's connected
 			if(select(Chatsock+1,NULL,&write_fds,NULL,&timeout))
 			{
+				int error_code = 0;
+				SOCKLEN_T error_code_size = sizeof(error_code);
+
+				// check to make sure socket is *really* connected
+				int rc = getsockopt(Chatsock, SOL_SOCKET, SO_ERROR, (char *)&error_code, &error_code_size);
+
+				if(rc < 0 || error_code != 0)
+				{
+					shutdown(Chatsock, 2);
+					closesocket(Chatsock);
+					return -1;
+				}
+
 				Socket_connected = 1;
 				SDL_snprintf(signon_str, SDL_arraysize(signon_str), NOX("/USER %s %s %s :%s"), NOX("user"), NOX("user"), NOX("user"), Chat_tracker_id);
 				SendChatString(signon_str,1);
@@ -237,6 +251,8 @@ int ConnectToChatServer(char *serveraddr,char *nickname,char *trackerid)
 			//error -- that means it's not going to connect
 			if(select(Chatsock+1,NULL,NULL,&error_fds,&timeout))
 			{
+				shutdown(Chatsock, 2);
+				closesocket(Chatsock);
 				return -1;
 			}
 			return 0;

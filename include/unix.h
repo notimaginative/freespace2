@@ -19,6 +19,7 @@ extern int filelength (int fd);
 #define SOCKET int
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
+#define SOCKLEN_T socklen_t
 
 extern int WSAGetLastError ();
 

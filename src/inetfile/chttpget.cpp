@@ -499,13 +499,25 @@ int ChttpGet::ConnectSocket()
 	int cerr = WSAGetLastError();
 	if(serr)
 	{
+		// fail after 20 seconds
+		Uint32 failtime = SDL_GetTicks() + (20 * 1000);
 		while((cerr==WSAEALREADY)||(cerr==WSAEINVAL)||NETCALL_WOULDBLOCK(cerr))
 		{
 			FD_ZERO(&wfds);
 			FD_SET( m_DataSock, &wfds );
 			if(select(m_DataSock+1,NULL,&wfds,NULL,&timeout))
 			{
-				serr = 0;
+				int error_code = 0;
+				SOCKLEN_T error_code_size = sizeof(error_code);
+
+				// check to make sure socket is *really* connected
+				int rc = getsockopt(m_DataSock, SOL_SOCKET, SO_ERROR, (char *)&error_code, &error_code_size);
+
+				if(!rc && !error_code)
+				{
+					serr = 0;
+				}
+
 				break;
 			}
 			if(m_Aborting)
@@ -519,6 +531,8 @@ int ChttpGet::ConnectSocket()
 				serr = 0;
 				break;
 			}
+			if(SDL_GetTicks()>failtime)
+				break;
 
 			SDL_Delay(1);
 		};

@@ -13,6 +13,8 @@
 #define access _access
 #define stat _stat
 
+#define SOCKLEN_T int
+
 #define NETCALL_WOULDBLOCK(err)	(err == WSAEWOULDBLOCK)
 
 typedef unsigned long in_addr_t;

@@ -2028,8 +2028,12 @@ void multi_pxo_handle_kick()
 // handle being disconnected
 void multi_pxo_handle_disconnect()
 {
-	popup(PF_USE_AFFIRMATIVE_ICON,1,POPUP_OK,XSTR("You have been disconnected from the server",942));
-	gameseq_post_event(GS_EVENT_MAIN_MENU);
+	if ( popup_active() ) {
+		popup_change_text(XSTR("You have been disconnected from the server",942));
+	} else {
+		popup(PF_USE_AFFIRMATIVE_ICON,1,POPUP_OK,XSTR("You have been disconnected from the server",942));
+		gameseq_post_event(GS_EVENT_MAIN_MENU);
+	}
 }
 
 // return string2, which is the first substring of string 1 without a space

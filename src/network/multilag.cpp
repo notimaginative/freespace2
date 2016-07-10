@@ -318,7 +318,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 		// if the timestamp has elapsed and we have a matching socket
 		if((nfds == (int)moveup->socket) && ((moveup->stamp <= 0) || timestamp_elapsed(moveup->stamp))){
 			// set this so we think select returned yes
-			FD_SET(nfds, readfds);
+			FD_SET((SOCKET)nfds, readfds);
 			return 1;
 		}
 

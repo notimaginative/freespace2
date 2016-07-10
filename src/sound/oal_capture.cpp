@@ -75,6 +75,10 @@ int oal_capture_create_buffer(int freq, int bits_per_sample, int nchannels, int 
 		return -1;
 	}
 
+	// this gets around hang-on-close bug on Windows
+	alcCaptureStart(al_capture_device);
+	alcCaptureStop(al_capture_device);
+
 	if ( alcGetError(al_capture_device) != ALC_NO_ERROR ) {
 		alcCaptureCloseDevice(al_capture_device);
 

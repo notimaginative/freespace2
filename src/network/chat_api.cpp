@@ -23,7 +23,6 @@
 #define WSAGetLastError()  (errno)
 #else
 #include <winsock2.h>
-typedef int socklen_t;
 #endif
 
 #include "pstypes.h"

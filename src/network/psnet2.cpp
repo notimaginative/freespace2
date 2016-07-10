@@ -484,11 +484,7 @@ void PSNET_TOP_LAYER_PROCESS()
 	fd_set	rfds;
 	timeval	timeout;
 	int read_len;
-#ifndef PLAT_UNIX	
-	int from_len;
-#else
-	socklen_t from_len;
-#endif
+	SOCKLEN_T from_len;
 	net_addr_t	from_addr;	
 	network_naked_packet packet_read;		
 
@@ -685,11 +681,7 @@ void psnet_close()
 // set the protocol to use
 int psnet_use_protocol( int protocol )
 {
-#ifndef PLAT_UNIX
-	int len;
-#else
-	socklen_t len;
-#endif
+	SOCKLEN_T len;
 	struct sockaddr_in		ip_addr;
 
 	// zero out my address
@@ -2229,11 +2221,7 @@ void psnet_ras_status()
 void psnet_socket_options( SOCKET sock )
 {
 	int broadcast;//, ret;
-#ifndef PLAT_UNIX
-	int cursize, cursizesize, bufsize; 
-#else
-	socklen_t cursize, cursizesize, bufsize; 
-#endif
+	SOCKLEN_T cursize, cursizesize, bufsize;
 
 	// Set the mode of the socket to allow broadcasting
 	broadcast = 1;

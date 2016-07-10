@@ -265,11 +265,7 @@ void multi_lag_close()
 int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except_fds, timeval *timeout)
 {
 	char t_buf[1024];
-#ifndef PLAT_UNIX
-	int t_from_len;
-#else
-	socklen_t t_from_len;
-#endif
+	SOCKLEN_T t_from_len;
 	struct sockaddr_in ip_addr;
 	int ret_val = SOCKET_ERROR;
 	lag_buf *moveup, *item;

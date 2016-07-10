@@ -561,11 +561,7 @@ uint sock_get_ip()
 int psnet_get_ip( SOCKET s )
 {
 	int rval;
-#ifndef PLAT_UNIX
-	int len;
-#else
-	socklen_t len;
-#endif
+	SOCKLEN_T len;
 	struct sockaddr_in local_addr;
 
 	if ( Psnet_my_addr_valid ){
@@ -703,11 +699,7 @@ void psnet_socket_options( SOCKET sock )
 {
 	int broadcast;
 	int ret, cursize, bufsize, trysize;
-#ifndef PLAT_UNIX
-	int cursizesize;
-#else
-	socklen_t cursizesize;
-#endif
+	SOCKLEN_T cursizesize;
 
 	// Set the mode of the socket to allow broadcasting.  We need to be able to broadcast
 	// when a game is searched for in IPX mode.
@@ -1299,11 +1291,7 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 	fd_set	rfds;
 	timeval	timeout;
 	int		read_len;
-#ifndef PLAT_UNIX
-	int from_len;
-#else
-	socklen_t from_len;
-#endif
+	SOCKLEN_T from_len;
 	net_addr_t	from_addr;
 	network_checksum_packet packet_read;	
 	network_checksum_packet packet_data;
@@ -1849,11 +1837,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 	timeval	timeout;
 	SOCKET	sock;				// when trying to accept, this is new socket
 	struct sockaddr_in ip_addr;				// UDP/TCP socket structure
-#ifndef PLAT_UNIX
-	int from_len;
-#else
-	socklen_t from_len;
-#endif
+	SOCKLEN_T from_len;
 	int error;
 	unsigned long arg;
 
@@ -1908,11 +1892,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 int psnet_rel_get_status(PSNET_SOCKET psocket)
 {
 	int error_code;
-#ifndef PLAT_UNIX
-	int error_code_size = sizeof(error_code);
-#else
-	socklen_t error_code_size = sizeof(error_code);
-#endif
+	SOCKLEN_T error_code_size = sizeof(error_code);
 	SOCKET socket;
 
 	socket = (SOCKET)psocket;

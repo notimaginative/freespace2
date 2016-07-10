@@ -398,11 +398,7 @@ unsigned int CFtpGet::IssuePort()
 
 	char szCommandString[200];
 	struct sockaddr_in listenaddr;					// Socket address structure
-#ifndef PLAT_UNIX	
-   int iLength;									// Length of the address structure
-#else
-   socklen_t iLength;
-#endif   
+	SOCKLEN_T iLength;									// Length of the address structure
 	uint nLocalPort;							// Local port for listening
 	uint nReplyCode;							// FTP server reply code
 

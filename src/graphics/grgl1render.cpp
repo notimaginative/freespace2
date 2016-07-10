@@ -32,6 +32,8 @@ static void opengl1_rect_internal(int x, int y, int w, int h, int r, int g, int 
 	gr_zbuffer_set(GR_ZBUFF_NONE);
 	gr_opengl_set_cull(0);
 
+	opengl1_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
 	opengl_alloc_render_buffer(4);
 
 	render_buffer[0].x = i2fl(x);
@@ -45,6 +47,10 @@ static void opengl1_rect_internal(int x, int y, int w, int h, int r, int g, int 
 
 	render_buffer[3].x = i2fl(x + w);
 	render_buffer[3].y = i2fl(y + h);
+
+	r = Gr_gamma_lookup[r];
+	g = Gr_gamma_lookup[g];
+	b = Gr_gamma_lookup[b];
 
 	glColor4ub((ubyte)r, (ubyte)g, (ubyte)b, (ubyte)a);
 

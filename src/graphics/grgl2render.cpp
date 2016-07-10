@@ -247,6 +247,8 @@ void opengl2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int 
 	gr_zbuffer_set(GR_ZBUFF_NONE);
 	gr_opengl_set_cull(0);
 
+	opengl2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
 	opengl_alloc_render_buffer(4);
 
 	render_buffer[0].x = i2fl(x);
@@ -262,6 +264,10 @@ void opengl2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int 
 	render_buffer[3].y = i2fl(y + h);
 
 	opengl2_shader_use(PROG_COLOR);
+
+	r = Gr_gamma_lookup[r];
+	g = Gr_gamma_lookup[g];
+	b = Gr_gamma_lookup[b];
 
 	glVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 

@@ -53,7 +53,7 @@ static int mve_playing;
 static int micro_frame_delay = 0;
 static int timer_started = 0;
 static int timer_created = 0;
-static int timer_expire;
+static unsigned int timer_expire;
 static Uint64 micro_timer_start = 0;
 static Uint64 micro_timer_freq = 0;
 
@@ -117,27 +117,19 @@ int mve_timer_create(ubyte *data)
 	micro_timer_start = SDL_GetPerformanceCounter();
 	micro_timer_freq = SDL_GetPerformanceFrequency();
 
-	if (micro_timer_freq < 1000) {
-		micro_timer_freq = 1000;
-	}
-
 	timer_created = 1;
 
 	return 1;
 }
 
-static int mve_timer_get_microseconds()
+static unsigned int mve_timer_get_microseconds()
 {
-
 	Uint64 us = SDL_GetPerformanceCounter() - micro_timer_start;
 
-	if (micro_timer_freq >= 1000000) {
-		us /= (micro_timer_freq / 1000000);
-	} else {
-		us *= (1000000 / micro_timer_freq);
-	}
+	us *= 1000000;
+	us /= micro_timer_freq;
 
-	return (int)us;
+	return (unsigned int)us;
 }
 
 static void mve_timer_start(void)
@@ -156,7 +148,7 @@ static int mve_do_timer_wait(void)
 	if (!timer_started)
 		return 0;
 
-	int tv, ts;
+	unsigned int tv, ts;
 
 	tv = mve_timer_get_microseconds();
 
@@ -167,12 +159,6 @@ static int mve_do_timer_wait(void)
 
 	SDL_Delay(ts / 1000);
 
-	// try and burn off excess in attempt to keep sync
-	if (ts % 1000) {
-		for (int i = 0; i < 10; i++) {
-			SDL_Delay(0);
-		}
-	}
 end:
 	timer_expire += micro_frame_delay;
 

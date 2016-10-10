@@ -1961,7 +1961,7 @@ int brief_color_text_init(char *src, int w, int instance)
 	Max_briefing_line_len = 1;
 	for (i=0; i<n_lines; i++) {
 		SDL_assert(n_chars[i] < MAX_BRIEF_LINE_LEN);
-		len = min(n_chars[i] + 1, MAX_BRIEF_LINE_LEN);
+		len = SDL_min(n_chars[i] + 1, MAX_BRIEF_LINE_LEN);
 		SDL_strlcpy(Brief_text[i], p_str[i], len);
 		Brief_text[i][n_chars[i]] = 0;
 		drop_leading_white_space(Brief_text[i]);
@@ -2801,7 +2801,7 @@ int brief_time_to_advance(int stage_num, float frametime)
 	}
 
 	if ( !voice_active && (Brief_textdraw_finished > 0) ) {
-		if ( Brief_stage_time > max(5000, Num_brief_text_lines[0] * 3500) ) {
+		if ( Brief_stage_time > SDL_max(5000, Num_brief_text_lines[0] * 3500) ) {
 			advance = 1;
 		}
 	}

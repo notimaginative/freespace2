@@ -753,7 +753,7 @@ void shipfx_warpin_start( object *objp )
 		// maybe special warpin
 		if (shipp->special_warp_objnum >= 0) {
 			// cap radius to size of knossos
-			effect_radius = min(effect_radius, 0.8f*Objects[shipp->special_warp_objnum].radius);
+			effect_radius = SDL_min(effect_radius, 0.8f*Objects[shipp->special_warp_objnum].radius);
 			warp_objnum = fireball_create(&shipp->warp_effect_pos, FIREBALL_KNOSSOS_EFFECT, shipp->special_warp_objnum, effect_radius, 0, NULL, effect_time, shipp->ship_info_index);
 		} else {
 			warp_objnum = fireball_create(&shipp->warp_effect_pos, FIREBALL_WARP_EFFECT, OBJ_INDEX(objp), effect_radius, 0, NULL, effect_time, shipp->ship_info_index);
@@ -1082,7 +1082,7 @@ void shipfx_warpout_start( object *objp )
 	// maybe special warpout
 	if (shipp->special_warp_objnum >= 0) {
 		// cap radius to size of knossos
-		effect_radius = min(effect_radius, 0.8f*Objects[shipp->special_warp_objnum].radius);
+		effect_radius = SDL_min(effect_radius, 0.8f*Objects[shipp->special_warp_objnum].radius);
 		warp_objnum = fireball_create(&shipp->warp_effect_pos, FIREBALL_KNOSSOS_EFFECT, shipp->special_warp_objnum, effect_radius, 1, NULL, effect_time, shipp->ship_info_index);
 	} else {
 		warp_objnum = fireball_create(&shipp->warp_effect_pos, FIREBALL_WARP_EFFECT, OBJ_INDEX(objp), effect_radius, 1, NULL, effect_time, shipp->ship_info_index);
@@ -1903,7 +1903,7 @@ static void split_ship_init( ship* shipp, split_ship* split_ship )
 	// s_r_f effects speed of "wipe" and rotvel
 	float speed_reduction_factor = (1.0f + 0.001f*parent_ship_obj->radius);
 	float explosion_time = (3.0f + expl_length_scale + (frand()-0.5f)) * speed_reduction_factor;
-	float long_length = max(front_length, back_length);
+	float long_length = SDL_max(front_length, back_length);
 	float expl_vel = long_length / explosion_time;
 	split_ship->front_ship.explosion_vel = expl_vel;
 	split_ship->back_ship.explosion_vel  = -expl_vel;
@@ -2113,7 +2113,7 @@ float get_model_cross_section_at_z(float z, polymodel* pm)
 	} else {
 		int floor_index = (int)floor(index);
 		int ceil_index  = (int)ceil(index);
-		return max(pm->xc[ceil_index].radius, pm->xc[floor_index].radius);
+		return SDL_max(pm->xc[ceil_index].radius, pm->xc[floor_index].radius);
 	}
 }
 
@@ -2199,7 +2199,7 @@ static void maybe_fireball_wipe(clip_ship* half_ship, int* sound_handle)
 			}
 
 			rad *= 1.5f;
-			rad = min(rad, half_ship->parent_obj->radius);
+			rad = SDL_min(rad, half_ship->parent_obj->radius);
 
 			// mprintf(("xc %.1f model %.1f\n", rad, half_ship->parent_obj->radius*0.25));
 			int fireball_type = FIREBALL_EXPLOSION_LARGE1 + rand()%FIREBALL_NUM_LARGE_EXPLOSIONS;
@@ -2300,7 +2300,7 @@ int shipfx_large_blowup_do_frame(ship *shipp, float frametime)
 	the_split_ship->front_ship.cur_clip_plane_pt += the_split_ship->front_ship.explosion_vel*frametime;
 	the_split_ship->back_ship.cur_clip_plane_pt  += the_split_ship->back_ship.explosion_vel *frametime;
 
-	float length_left = max( the_split_ship->front_ship.length_left, the_split_ship->back_ship.length_left );
+	float length_left = SDL_max( the_split_ship->front_ship.length_left, the_split_ship->back_ship.length_left );
 
 	//	mprintf(( "Blowup frame, dist = %.1f \n", length_left ));
 
@@ -2887,7 +2887,7 @@ void engine_wash_ship_process(ship *shipp)
 				if (dot_to_ship > 0) {
 
 					// get max wash distance
-					max_wash_dist = max(ewp->length, bank->radius[j]*ewp->radius_mult);
+					max_wash_dist = SDL_max(ewp->length, bank->radius[j]*ewp->radius_mult);
 
 					// check if within dist range
 					dist_sqr = vm_vec_mag_squared(&thruster_to_ship);

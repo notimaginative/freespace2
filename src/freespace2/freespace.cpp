@@ -3409,7 +3409,7 @@ void game_render_frame_setup(vector *eye_pos, matrix *eye_orient)
 				vm_vec_scale_add2(&Player_obj->pos, &Dead_player_last_vel, flFrametime);
 				view_pos = Player_obj->pos;
 				vm_vec_scale(&Dead_player_last_vel, 0.99f);
-				vm_vec_scale_add2(&Dead_camera_pos, &Original_vec_to_deader, min(25.0f, vm_vec_mag_quick(&Dead_player_last_vel)) * flFrametime);
+				vm_vec_scale_add2(&Dead_camera_pos, &Original_vec_to_deader, SDL_min(25.0f, vm_vec_mag_quick(&Dead_player_last_vel)) * flFrametime);
 			}
 
 			*eye_pos = Dead_camera_pos;
@@ -3825,7 +3825,7 @@ void game_simulation_frame()
 	// single player, set Player hits_this_frame to 0
 	if ( !(Game_mode & GM_MULTIPLAYER) && Player ) {
 		Player->damage_this_burst -= (flFrametime * MAX_BURST_DAMAGE  / (0.001f * BURST_DURATION));
-		Player->damage_this_burst = max(Player->damage_this_burst, 0.0f);
+		Player->damage_this_burst = SDL_max(Player->damage_this_burst, 0.0f);
 	}
 
 	// supernova

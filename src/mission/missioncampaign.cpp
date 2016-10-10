@@ -467,7 +467,7 @@ int mission_campaign_load( const char *filename, int load_savefile )
 		memset( &Campaign, 0, sizeof(Campaign) );
 
 		// copy filename to campaign structure minus the extension
-		len = min(strlen(filename) - 4 + 1, SDL_arraysize(Campaign.filename));
+		len = SDL_min(strlen(filename) - 4 + 1, SDL_arraysize(Campaign.filename));
 		SDL_strlcpy(Campaign.filename, filename, len);
 
 		required_string("$Name:");

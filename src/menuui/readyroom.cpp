@@ -2030,7 +2030,7 @@ void campaign_room_do_frame(float frametime)
 			break;
 
 		SDL_assert(Info_text_line_size[i] < MAX_INFO_LINE_LEN);
-		int len = min(Info_text_line_size[i] + 1, MAX_INFO_LINE_LEN);
+		int len = SDL_min(Info_text_line_size[i] + 1, MAX_INFO_LINE_LEN);
 		SDL_strlcpy(line_text, Info_text_ptrs[i], len);
 		drop_white_space(line_text);
 		gr_string(Cr_info_coords[gr_screen.res][0], Cr_info_coords[gr_screen.res][1] + y, line_text);

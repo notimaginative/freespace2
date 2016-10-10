@@ -2022,7 +2022,7 @@ void hud_config_alpha_slider_up()
 {	
 #ifndef MAKE_FS1
 	int pos = HCS_CONV(HC_color_sliders[HCS_ALPHA].get_currentItem());
-	int max = max(max( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
+	int max = SDL_max(SDL_max( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
 
 	// if this would put the brightest element past its limit, skip
 	if(max >= 255){
@@ -2048,7 +2048,7 @@ void hud_config_alpha_slider_down()
 {	
 #ifndef MAKE_FS1
 	int pos = HCS_CONV(HC_color_sliders[HCS_ALPHA].get_currentItem());
-	int min = min(min( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
+	int min = SDL_min(SDL_min( HCS_CONV(HC_color_sliders[HCS_RED].get_currentItem()), HCS_CONV(HC_color_sliders[HCS_GREEN].get_currentItem()) ), HCS_CONV(HC_color_sliders[HCS_BLUE].get_currentItem()) );
 
 	// if this would put the brightest element past its limit, skip
 	if(min <= 0){

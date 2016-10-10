@@ -988,7 +988,7 @@ void hud_squadmsg_display_menu( const char *title )
 			hud_set_gauge_color(HUD_MESSAGE_BOX, HUD_C_BRIGHT);
 		} else {
 			/*
-			dim_index = min(5, HUD_color_alpha - 2);
+			dim_index = SDL_min(5, HUD_color_alpha - 2);
 			if ( dim_index < 0 ) {
 				dim_index = 0;
 			}

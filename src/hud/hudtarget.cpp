@@ -3799,7 +3799,7 @@ int hud_get_best_primary_bank(float *range)
 	if ( Player_ship->flags & SF_PRIMARY_LINKED ) {
 		num_to_test = swp->num_primary_banks;
 	} else {
-		num_to_test = min(1, swp->num_primary_banks);
+		num_to_test = SDL_min(1, swp->num_primary_banks);
 	}
 
 	for ( i = 0; i < num_to_test; i++ ) {

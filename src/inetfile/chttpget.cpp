@@ -257,7 +257,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	else
 	{
 		SDL_strlcpy(m_szDir, dirstart, SDL_arraysize(m_szDir));//,(filestart-dirstart));
-		int len = min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
+		int len = SDL_min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
 	}
 

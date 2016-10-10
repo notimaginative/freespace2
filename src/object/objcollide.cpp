@@ -701,7 +701,7 @@ int collide_subdivide(vector *p0, vector *p1, float prad, vector *q0, vector *q1
 			return 1;
 		else if (vm_vec_dist(p0, q0) < prad + qrad)
 			return 1;
-		else if (max(a_dist, b_dist) < prad + qrad + 1.0f)
+		else if (SDL_max(a_dist, b_dist) < prad + qrad + 1.0f)
 			return 0;
 		else {
 			int	r1, r2 = 0;

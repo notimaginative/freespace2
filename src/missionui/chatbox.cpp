@@ -1056,7 +1056,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	Brief_chat_indents[Brief_current_add_line] = 0;
 
 	// copy in the chars
-	len = min(n_chars[0] + 1, CHATBOX_STRING_LEN);
+	len = SDL_min(n_chars[0] + 1, CHATBOX_STRING_LEN);
 	SDL_strlcpy(&Brief_chat_lines[Brief_current_add_line][1], p_str[0], len);
 
 	// increment the total line count if we haven't reached the max already
@@ -1082,7 +1082,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 			Brief_chat_indents[Brief_current_add_line] = CHAT_LINE_INDENT;
 
 			// copy in the line text itself
-			len = min(n_chars[idx] + 1, CHATBOX_STRING_LEN);
+			len = SDL_min(n_chars[idx] + 1, CHATBOX_STRING_LEN);
 			SDL_strlcpy(&Brief_chat_lines[Brief_current_add_line][1], p_str[idx], len);
 
 			// increment the total line count if we haven't reached the max already

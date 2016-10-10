@@ -474,7 +474,7 @@ void hud_shield_show(object *objp)
 			continue;
 		}
 
-		range = max(HUD_COLOR_ALPHA_MAX, HUD_color_alpha + 4);
+		range = SDL_max(HUD_COLOR_ALPHA_MAX, HUD_color_alpha + 4);
 		hud_color_index = fl2i( (objp->shields[Quadrant_xlate[i]] / max_shield) * range + 0.5);
 		SDL_assert(hud_color_index >= 0 && hud_color_index <= range);
 

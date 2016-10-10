@@ -2244,7 +2244,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 	ry = fl_abs( pm->submodel[pm->detail[0]].max.xyz.y - pm->submodel[pm->detail[0]].min.xyz.y );
 	rz = fl_abs( pm->submodel[pm->detail[0]].max.xyz.z - pm->submodel[pm->detail[0]].min.xyz.z );
 
-	pm->core_radius = min( rx, min(ry, rz) ) / 2.0f;
+	pm->core_radius = SDL_min( rx, SDL_min(ry, rz) ) / 2.0f;
 
 	for (i=0; i<pm->n_view_positions; i++ )	{
 		if ( pm->view_positions[i].parent == pm->detail[0] )	{

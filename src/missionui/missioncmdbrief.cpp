@@ -440,7 +440,7 @@ int cmd_brief_check_stage_done()
 
 	// if we get here, there is no voice, so we simulate the time it would take instead
 	if (!Voice_ended_time)
-		Voice_ended_time = Voice_started_time + max(5000, Num_brief_text_lines[0] * 3500);
+		Voice_ended_time = Voice_started_time + SDL_max(5000, Num_brief_text_lines[0] * 3500);
 
 	return 0;
 }

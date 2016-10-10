@@ -2104,7 +2104,7 @@ void message_maybe_distort_text(char *text)
 	while (voice_duration > 0) {
 		run = fl2i(Distort_patterns[Distort_num][Distort_next] * len);
 		if (Distort_next & 1) {
-			for ( i = curr_offset; i < min(len, curr_offset+run); i++ ) {
+			for ( i = curr_offset; i < SDL_min(len, curr_offset+run); i++ ) {
 				if ( text[i] != ' ' ) 
 					text[i] = '-';
 			}

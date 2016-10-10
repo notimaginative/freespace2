@@ -975,7 +975,7 @@ int fireball_get_lod(vector *pos, fireball_info *fd, float size)
 	}
 
 	// return the best lod
-	return min(ret_lod, fd->lod_count - 1);
+	return SDL_min(ret_lod, fd->lod_count - 1);
 }
 
 //	Create a fireball, return object index.
@@ -1033,7 +1033,7 @@ int fireball_create( vector * pos, int fireball_type, int parent_obj, float size
 	// change lod if low res is desired
 	if (low_res) {
 		fb_lod++;
-		fb_lod = min(fb_lod, fd->lod_count - 1);
+		fb_lod = SDL_min(fb_lod, fd->lod_count - 1);
 	}
 
 	// if this is a warpout fireball, never go higher than LOD 1

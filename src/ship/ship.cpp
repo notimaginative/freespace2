@@ -4039,7 +4039,7 @@ void lethality_decay(ai_info *aip)
 {
 	float decay_rate = Decay_rate;
 	aip->lethality -= 100.0f * decay_rate * flFrametime;
-	aip->lethality = max(-10.0f, aip->lethality);
+	aip->lethality = SDL_max(-10.0f, aip->lethality);
 
 //	if (aip->lethality < min_lethality) {
 //		min_lethality = aip->lethality;
@@ -5122,7 +5122,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 	if ( shipp->flags & SF_PRIMARY_LINKED ) {
 		num_primary_banks = swp->num_primary_banks;
 	} else {
-		num_primary_banks = min(1, swp->num_primary_banks);
+		num_primary_banks = SDL_min(1, swp->num_primary_banks);
 	}
 
 	SDL_assert(num_primary_banks > 0);
@@ -5651,7 +5651,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 		//	firing weapon despite fire causing detonation of existing weapon.
 		if (swp->current_secondary_bank >= 0) {
 			if (timestamp_elapsed(swp->next_secondary_fire_stamp[bank])){
-				swp->next_secondary_fire_stamp[bank] = timestamp(max((int) flFrametime*3000, 250));
+				swp->next_secondary_fire_stamp[bank] = timestamp(SDL_max((int) flFrametime*3000, 250));
 			}
 		}
 		return 0;
@@ -5884,7 +5884,7 @@ done_secondary:
 	if ( (obj->flags & OF_PLAYER_SHIP) && (swp->secondary_bank_ammo[bank] <= 0) ) {
 		int fire_wait = (int)(Weapon_info[weapon].fire_wait * 1000.0f);
 		if ( ship_select_next_valid_secondary_bank(swp) ) {
-			swp->next_secondary_fire_stamp[swp->current_secondary_bank] = max(timestamp(250),timestamp(fire_wait));	//	1/4 second delay until can fire
+			swp->next_secondary_fire_stamp[swp->current_secondary_bank] = SDL_max(timestamp(250),timestamp(fire_wait));	//	1/4 second delay until can fire
 			if ( obj == Player_obj ) {
 				snd_play( &Snds[SND_SECONDARY_CYCLE] );
 			}
@@ -8265,7 +8265,7 @@ void ship_check_cargo_all()
 					// use square of distance, faster than getting real distance (which will use sqrt)
 					dist_squared = vm_vec_dist_squared(&cargo_objp->pos, &Objects[ship_sp->objnum].pos);
 					limit_squared = (cargo_objp->radius+CARGO_RADIUS_DELTA)*(cargo_objp->radius+CARGO_RADIUS_DELTA);
-					if ( dist_squared <= max(limit_squared, CARGO_REVEAL_MIN_DIST*CARGO_REVEAL_MIN_DIST) ) {
+					if ( dist_squared <= SDL_max(limit_squared, CARGO_REVEAL_MIN_DIST*CARGO_REVEAL_MIN_DIST) ) {
 						ship_do_cargo_revealed( cargo_sp );
 						break;	// break out of for loop, move on to next hostile cargo
 					}
@@ -9478,10 +9478,10 @@ float ship_get_max_speed(ship *shipp)
 	max_speed = Ship_info[ship_info_index].max_overclocked_speed;
 
 	// normal max speed
-	max_speed = max(max_speed, Ship_info[ship_info_index].max_vel.xyz.z);
+	max_speed = SDL_max(max_speed, Ship_info[ship_info_index].max_vel.xyz.z);
 
 	// afterburn
-	max_speed = max(max_speed, Ship_info[ship_info_index].afterburner_max_vel.xyz.z);
+	max_speed = SDL_max(max_speed, Ship_info[ship_info_index].afterburner_max_vel.xyz.z);
 
 	return max_speed;
 }

@@ -650,7 +650,7 @@ int AVI_stream_open(char* filename)
 	strcpy(AVI_stream.filename, filename);
 	AVI_stream.pfile = pfile;
 
-	AVI_stream.min_compressed_buffer_size = max(avi_header.dwSuggestedBufferSize, stream_header.dwSuggestedBufferSize);
+	AVI_stream.min_compressed_buffer_size = SDL_max(avi_header.dwSuggestedBufferSize, stream_header.dwSuggestedBufferSize);
 	SDL_assert(AVI_stream.min_compressed_buffer_size > 0);
 
 	AVI_stream.w = bitmap_header.bmiHeader.biWidth;

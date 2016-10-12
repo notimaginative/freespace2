@@ -263,6 +263,7 @@ cmdline_parm d3d_fullscreen("-fullscreen", "-f", NULL);
 cmdline_parm help("-help", "-h", NULL);
 cmdline_parm fs_version("-version", "-v", NULL);
 cmdline_parm no_movies("-nomovies", "-n", NULL);
+cmdline_parm std_daemon("-daemon", NULL, NULL);
 
 
 int Cmdline_multi_stream_chat_to_file = 0;
@@ -641,6 +642,10 @@ char *cmdline_parm::str()
 int parse_cmdline(const char *cmdline)
 {
 	os_init_cmdline(cmdline);
+
+	if ( std_daemon.found() ) {
+		// ignored (handled in main() already)
+	}
 
 	// is this a standalone server??
 	if (standalone_arg.found()) {

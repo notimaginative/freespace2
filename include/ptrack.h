@@ -254,6 +254,8 @@ typedef struct vmt_freespace_struct {
 		char				tracker_id[TRACKER_ID_LEN];
 		char				pilot_name[PILOT_NAME_LEN];
 
+		char pad_a[2];					// 2-bytes padding (size/alignment)
+
 		int				score;
 		int				rank;
 		int				medals[MAX_FS2_MEDALS];
@@ -274,6 +276,9 @@ typedef struct vmt_freespace_struct {
 
 		int				security;			 	
 		unsigned char	virgin_pilot;	//This pilot was just created if TRUE
+
+		char pad_b[3];					// 3-bytes padding (size/alignment)
+
 		unsigned int	checksum;			//This value needs to be equal to whatever the checksum is once the packet is decoded
 			
 		unsigned int	missions_flown;			// # of missions flown to completion

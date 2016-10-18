@@ -1526,7 +1526,7 @@ int cfile_init_paths()
 	}
 
 	// now for the user/pref directory, the writable location
-	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
 
 	// make sure we have something
 	if (u_path == NULL) {

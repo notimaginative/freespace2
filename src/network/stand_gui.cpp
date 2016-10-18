@@ -34,19 +34,19 @@
 // taken from osregistry.cpp
 const char *Osreg_company_name = "Volition";
 #if defined(FS1_DEMO)
-const char *Osreg_title = "FreeSpace Demo";
+const char *Osreg_app_name = "FreeSpaceDemo";
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
-const char *Osreg_title = "FreeSpace 2 Demo";
+const char *Osreg_app_name = "FreeSpace2Demo";
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
-const char *Osreg_title = "FreeSpace 2 OEM";
+const char *Osreg_app_name = "FreeSpace2OEM";
 #define PROFILE_NAME "FreeSpace2OEM.ini"
 #elif defined(MAKE_FS1)
-const char *Osreg_title = "FreeSpace";
+const char *Osreg_app_name = "FreeSpace";
 #define PROFILE_NAME "FreeSpace.ini"
 #else
-const char *Osreg_title = "FreeSpace 2";
+const char *Osreg_app_name = "FreeSpace2";
 #define PROFILE_NAME "FreeSpace2.ini"
 #endif
 
@@ -1135,7 +1135,7 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 
 	// if port isn't specified on cmdline, check ini file for "ForcePort" value
 	if ( !cmd_port ) {
-		char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+		char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
 
 		if (u_path) {
 			wxFileName ini_name(u_path, PROFILE_NAME);

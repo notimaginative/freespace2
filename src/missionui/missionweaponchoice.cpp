@@ -2040,7 +2040,7 @@ void wl_remove_weps_from_pool(int *wep, int *wep_count, int ship_class)
 						new_wep_count = wl_calc_missile_fit(wi_index, Ship_info[ship_class].secondary_bank_ammo_capacity[secondary_bank_index]);
 					}
 
-					wep_count[i] = min(new_wep_count, Wl_pool[wi_index]);
+					wep_count[i] = SDL_min(new_wep_count, Wl_pool[wi_index]);
 					SDL_assert(wep_count[i] >= 0);
 					Wl_pool[wi_index] -= wep_count[i];
 					if ( wep_count[i] <= 0 ) {
@@ -3676,7 +3676,7 @@ int wl_swap_slot_slot(int from_bank, int to_bank, int ship_slot, int *sound)
 			}
 
 			// see how much source can give
-			source_can_give = min(dest_can_fit, slot->wep_count[from_bank]);
+			source_can_give = SDL_min(dest_can_fit, slot->wep_count[from_bank]);
 
 			if ( source_can_give > 0 ) {			
 				slot->wep_count[to_bank] += source_can_give;		// add to dest

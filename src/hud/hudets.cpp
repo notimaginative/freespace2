@@ -809,7 +809,7 @@ void decrease_recharge_rate(object* obj, SYSTEM_TYPE ship_system)
 	} // end switch
 
 	// check how much there is to lose
-	count = min(2, *lose_index);
+	count = SDL_min(2, *lose_index);
 	if ( count <= 0 ) {
 		if ( obj == Player_obj ) {
 			snd_play( &Snds[SND_ENERGY_TRANS_FAIL], 0.0f );

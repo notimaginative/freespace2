@@ -952,7 +952,7 @@ void ai_big_chase_attack(ai_info *aip, ship_info *sip, vector *enemy_pos, float 
 				accelerate_ship(aip, 1.0f);
 			else {
 				// AL 12-31-97: Move at least as quickly as your target is moving...
-				accelerate_ship(aip, max(1.0f - dot_to_enemy, Objects[aip->target_objnum].phys_info.fspeed/sip->max_speed));
+				accelerate_ship(aip, SDL_max(1.0f - dot_to_enemy, Objects[aip->target_objnum].phys_info.fspeed/sip->max_speed));
 			}
 
 		} else {
@@ -1007,12 +1007,12 @@ void ai_big_maybe_fire_weapons(float dist_to_enemy, float dot_to_enemy, vector *
 	aip = &Ai_info[Ships[Pl_objp->instance].ai_index];
 	swp = &Ships[Pl_objp->instance].weapons;
 
-	if (dot_to_enemy > 0.95f - 0.5f * En_objp->radius/max(1.0f, En_objp->radius + dist_to_enemy)) {
+	if (dot_to_enemy > 0.95f - 0.5f * En_objp->radius/SDL_max(1.0f, En_objp->radius + dist_to_enemy)) {
 		aip->time_enemy_in_range += flFrametime;
 		
 		//	Chance of hitting ship is based on dot product of firing ship's forward vector with vector to ship
 		//	and also the size of the target relative to distance to target.
-		if (dot_to_enemy > max(0.5f, 0.90f + aip->ai_accuracy/10.0f - En_objp->radius/max(1.0f,dist_to_enemy))) {
+		if (dot_to_enemy > SDL_max(0.5f, 0.90f + aip->ai_accuracy/10.0f - En_objp->radius/SDL_max(1.0f,dist_to_enemy))) {
 
 			ship *temp_shipp;
 			temp_shipp = &Ships[Pl_objp->instance];
@@ -1259,7 +1259,7 @@ void ai_big_chase()
 		
 		// since we're not in strafe and we may get a bad normal, cap dist_normal_to_enemy as min(0.3*dist_to_enemy, self)
 		// this will allow us to get closer on a bad normal
-		dist_normal_to_enemy = max(0.3f*dist_to_enemy, dist_normal_to_enemy);
+		dist_normal_to_enemy = SDL_max(0.3f*dist_to_enemy, dist_normal_to_enemy);
 
 		if (dist_to_enemy < ATTACK_COLLIDE_BASE_DIST) {
 			// within 50m or 1sec
@@ -1280,7 +1280,7 @@ void ai_big_chase()
 				}
 			}
 
-			float speed_dist = max(0.0f, (Pl_objp->phys_info.speed-50) * 2);
+			float speed_dist = SDL_max(0.0f, (Pl_objp->phys_info.speed-50) * 2);
 			if ((dist_normal_to_enemy < ATTACK_COLLIDE_AVOID_DIST + speed_dist) || (time_to_enemy < ATTACK_COLLIDE_AVOID_TIME) ) {
 				// get away, simulate crsh recovery (don't use avoid)
 //				accelerate_ship(aip, -1.0f);
@@ -1474,11 +1474,11 @@ int ai_big_strafe_maybe_retreat(float dist, vector *target_pos)
 		dist_normal_to_target = 0.2f * vm_vec_mag_quick(&vec_to_target);
 	}
 
-	dist_normal_to_target = max(0.2f*dist_to_target, dist_normal_to_target);
+	dist_normal_to_target = SDL_max(0.2f*dist_to_target, dist_normal_to_target);
 	time_to_target = dist_normal_to_target / Pl_objp->phys_info.speed;
 
 	// add distance penalty for going too fast
-	float speed_to_dist_penalty = max(0.0f, (Pl_objp->phys_info.speed-50));
+	float speed_to_dist_penalty = SDL_max(0.0f, (Pl_objp->phys_info.speed-50));
 
 	//if ((dot_to_enemy > 1.0f - 0.1f * En_objp->radius/(dist_to_enemy + 1.0f)) && (Pl_objp->phys_info.speed > dist_to_enemy/5.0f))
 

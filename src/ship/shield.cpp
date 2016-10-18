@@ -1164,14 +1164,14 @@ int ship_is_shield_up( object *obj, int quadrant )
 {
 	if ( (quadrant>=0) && (quadrant<=3))	{
 		// Just check one quadrant
-		if (obj->shields[quadrant] > max(2.0f, 0.1f * Ship_info[Ships[obj->instance].ship_info_index].shields/4.0f))	{
+		if (obj->shields[quadrant] > SDL_max(2.0f, 0.1f * Ship_info[Ships[obj->instance].ship_info_index].shields/4.0f))	{
 			return 1;
 		}
 	} else {
 		// Check all quadrants
 		float strength = get_shield_strength(obj);
 
-		if ( strength > max(2.0f*4.0f, 0.1f * Ship_info[Ships[obj->instance].ship_info_index].shields ))	{
+		if ( strength > SDL_max(2.0f*4.0f, 0.1f * Ship_info[Ships[obj->instance].ship_info_index].shields ))	{
 			return 1;
 		}
 	}

@@ -3900,9 +3900,9 @@ int multi_pack_unpack_desired_vel( int write, ubyte *data, matrix *orient, vecto
 	float r,u,f;
 	int fields = 0;
 
-	max_vel.xyz.x = max( sip->max_vel.xyz.x, sip->afterburner_max_vel.xyz.x );
-	max_vel.xyz.y = max( sip->max_vel.xyz.y, sip->afterburner_max_vel.xyz.y );
-	max_vel.xyz.z = max( sip->max_vel.xyz.z, sip->afterburner_max_vel.xyz.z );	
+	max_vel.xyz.x = SDL_max( sip->max_vel.xyz.x, sip->afterburner_max_vel.xyz.x );
+	max_vel.xyz.y = SDL_max( sip->max_vel.xyz.y, sip->afterburner_max_vel.xyz.y );
+	max_vel.xyz.z = SDL_max( sip->max_vel.xyz.z, sip->afterburner_max_vel.xyz.z );	
 
 	if ( write )	{
 		// Find desired vel in local coordinates

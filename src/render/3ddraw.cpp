@@ -674,7 +674,7 @@ int g3_get_bitmap_dims(int bitmap, vertex *pnt, float rad, int *x, int *y, int *
 	*x = (int)(pnt->sx - *w/2.0f);
 	*y = (int)(pnt->sy - *h/2.0f);	
 
-	*size = max(bw, bh);
+	*size = SDL_max(bw, bh);
 
 	return 0;
 }

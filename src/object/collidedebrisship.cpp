@@ -248,7 +248,7 @@ int collide_debris_ship( obj_pair * pair )
 			// supercaps cap damage at 10-20% max hull ship damage
 			if (Ship_info[Ships[pship->instance].ship_info_index].flags & SIF_SUPERCAP) {
 				float cap_percent_damage = frand_range(0.1f, 0.2f);
-				ship_damage = min(ship_damage, cap_percent_damage * Ship_info[Ships[pship->instance].ship_info_index].initial_hull_strength);
+				ship_damage = SDL_min(ship_damage, cap_percent_damage * Ship_info[Ships[pship->instance].ship_info_index].initial_hull_strength);
 			}
 
 			// apply damage to debris
@@ -291,12 +291,12 @@ int collide_debris_ship( obj_pair * pair )
 		shipp = &Ships[pship->instance];
 
 		if (ship_is_beginning_warpout_speedup(pship)) {
-			ship_max_speed = max(ship_get_max_speed(shipp), ship_get_warp_speed(pship));
+			ship_max_speed = SDL_max(ship_get_max_speed(shipp), ship_get_warp_speed(pship));
 		} else {
 			ship_max_speed = ship_get_max_speed(shipp);
 		}
-		ship_max_speed = max(ship_max_speed, 10.0f);
-		ship_max_speed = max(ship_max_speed, pship->phys_info.vel.xyz.z);
+		ship_max_speed = SDL_max(ship_max_speed, 10.0f);
+		ship_max_speed = SDL_max(ship_max_speed, pship->phys_info.vel.xyz.z);
 
 		debris_speed = pdebris->phys_info.speed;
 
@@ -439,15 +439,15 @@ int collide_asteroid_ship( obj_pair * pair )
 		ship *shipp = &Ships[pship->instance];
 
 		asteroid_max_speed = vm_vec_mag(&pasteroid->phys_info.vel);		// Asteroid... vel gets reset, not max vel.z
-		asteroid_max_speed = max(asteroid_max_speed, 10.0f);
+		asteroid_max_speed = SDL_max(asteroid_max_speed, 10.0f);
 
 		if (ship_is_beginning_warpout_speedup(pship)) {
-			ship_max_speed = max(ship_get_max_speed(shipp), ship_get_warp_speed(pship));
+			ship_max_speed = SDL_max(ship_get_max_speed(shipp), ship_get_warp_speed(pship));
 		} else {
 			ship_max_speed = ship_get_max_speed(shipp);
 		}
-		ship_max_speed = max(ship_max_speed, 10.0f);
-		ship_max_speed = max(ship_max_speed, pship->phys_info.vel.xyz.z);
+		ship_max_speed = SDL_max(ship_max_speed, 10.0f);
+		ship_max_speed = SDL_max(ship_max_speed, pship->phys_info.vel.xyz.z);
 
 
 		time = 1000.0f * (dist - pship->radius - pasteroid->radius - 10.0f) / (asteroid_max_speed + ship_max_speed);		// 10.0f is a safety factor

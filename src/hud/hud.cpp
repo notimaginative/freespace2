@@ -1894,7 +1894,7 @@ void hud_show_damage_popup()
 			
 			if ( Pl_hud_is_bright ) {
 				int alpha_color;
-				alpha_color = min(HUD_COLOR_ALPHA_MAX,HUD_color_alpha+HUD_BRIGHT_DELTA);
+				alpha_color = SDL_min(HUD_COLOR_ALPHA_MAX,HUD_color_alpha+HUD_BRIGHT_DELTA);
 				// gr_set_color_fast(&HUD_color_defaults[alpha_color]);
 
 				hud_set_gauge_color(HUD_DAMAGE_GAUGE, alpha_color);
@@ -2321,20 +2321,20 @@ int hud_support_get_dock_time( int objnum )
 
 		//	For mid-range, use current speed.
 		if (d > 60.0f) {
-			d1 = min(d, 100.0f);
+			d1 = SDL_min(d, 100.0f);
 
 			time += (d1 - 60.0f)/rel_speed;
 		}
 
 		//	For nearby, ship will have to slow down a bit for docking maneuver.
 		if (d > 30.0f) {
-			d1 = min(d, 60.0f);
+			d1 = SDL_min(d, 60.0f);
 
 			time += (d1 - 30.0f)/5.0f;
 		}
 
 		//	For very nearby, ship moves quite slowly.
-		d1 = min(d, 30.0f);
+		d1 = SDL_min(d, 30.0f);
 		time += d1/7.5f;
 
 		return fl2i(time);
@@ -2519,7 +2519,7 @@ void hud_set_default_color()
 void hud_set_bright_color()
 {
 	int alpha_color;
-	alpha_color = min(HUD_COLOR_ALPHA_MAX,HUD_color_alpha+HUD_BRIGHT_DELTA);
+	alpha_color = SDL_min(HUD_COLOR_ALPHA_MAX,HUD_color_alpha+HUD_BRIGHT_DELTA);
 	gr_set_color_fast(&HUD_color_defaults[alpha_color]);
 }
 

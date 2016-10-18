@@ -213,7 +213,7 @@ void base_filename(const char *path, char *filename, const int max_fname)
 	}
 
 	// NOTE: 'size' must include NULL terminator
-	int size = min((int)(ext - sep + 1), max_fname);
+	int size = SDL_min((int)(ext - sep + 1), max_fname);
 
 	if (size <= 0) {
 		filename[0] = '\0';

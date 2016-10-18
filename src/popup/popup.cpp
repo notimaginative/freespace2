@@ -593,7 +593,7 @@ void popup_split_lines(popup_info *pi, int flags)
 
 	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
 		// get first line out
-		len = min(n_chars[0] + 1, POPUP_MAX_LINE_CHARS);
+		len = SDL_min(n_chars[0] + 1, POPUP_MAX_LINE_CHARS);
 		SDL_strlcpy(pi->title, p_str[0], len);
 		body_offset = 1;
 	}
@@ -609,7 +609,7 @@ void popup_split_lines(popup_info *pi, int flags)
 
 	for ( i = 0; i < pi->nlines; i++ ) {
 		SDL_assert(n_chars[i+body_offset] < POPUP_MAX_LINE_CHARS);
-		len = min(n_chars[i+body_offset] + 1, POPUP_MAX_LINE_CHARS);
+		len = SDL_min(n_chars[i+body_offset] + 1, POPUP_MAX_LINE_CHARS);
 		SDL_strlcpy(pi->msg_lines[i], p_str[i+body_offset], len);
 	}
 

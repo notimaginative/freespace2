@@ -2331,7 +2331,7 @@ void debrief_text_stage_init(const char *src, int type)
 	for ( i=0; i<n_lines; i++ ) {
 		SDL_assert(n_chars[i] < MAX_DEBRIEF_LINE_LEN);
 		SDL_assert(Num_text_lines < MAX_TOTAL_DEBRIEF_LINES);
-		len = min(n_chars[i] + 1, MAX_DEBRIEF_LINE_LEN);
+		len = SDL_min(n_chars[i] + 1, MAX_DEBRIEF_LINE_LEN);
 		SDL_strlcpy(line, p_str[i], len);
 		line[n_chars[i]] = 0;
 		drop_white_space(line);

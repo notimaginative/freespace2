@@ -1197,7 +1197,7 @@ void read_player_controls(object *objp, float frametime)
 		if ( !(Ships[Player_obj->instance].flags & SF_DYING) ) {
 			vector wash_rot;
 			if ((Ships[objp->instance].wash_intensity > 0) && !((Player->control_mode == PCM_WARPOUT_STAGE1) || (Player->control_mode == PCM_WARPOUT_STAGE2) || (Player->control_mode == PCM_WARPOUT_STAGE3)) ) {
-				float intensity = 0.3f * min(Ships[objp->instance].wash_intensity, 1.0f);
+				float intensity = 0.3f * SDL_min(Ships[objp->instance].wash_intensity, 1.0f);
 				vm_vec_copy_scale(&wash_rot, &Ships[objp->instance].wash_rot_axis, intensity);
 				physics_read_flying_controls( &objp->orient, &objp->phys_info, &(Player->ci), flFrametime, &wash_rot);
 			} else {
@@ -1688,7 +1688,7 @@ int player_inspect_cargo(float frametime, char *outstr, const int max_outstr)
 	}
 
 	// see if player is within inspection range
-	if ( Player_ai->current_target_distance < max(CARGO_REVEAL_MIN_DIST, (cargo_objp->radius+CARGO_RADIUS_DELTA)) ) {
+	if ( Player_ai->current_target_distance < SDL_max(CARGO_REVEAL_MIN_DIST, (cargo_objp->radius+CARGO_RADIUS_DELTA)) ) {
 
 		// check if player is facing cargo, do not proceed with inspection if not
 		vm_vec_normalized_dir(&vec_to_cargo, &cargo_objp->pos, &Player_obj->pos);
@@ -1789,7 +1789,7 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr, const int max
 	get_subsystem_world_pos(cargo_objp, Player_ai->targeted_subsys, &subsys_pos);
 	subsys_rad = subsys->system_info->radius;
 
-	if ( Player_ai->current_target_distance < max(CAP_CARGO_REVEAL_MIN_DIST, (subsys_rad + CAPITAL_CARGO_RADIUS_DELTA)) ) {
+	if ( Player_ai->current_target_distance < SDL_max(CAP_CARGO_REVEAL_MIN_DIST, (subsys_rad + CAPITAL_CARGO_RADIUS_DELTA)) ) {
 
 		// check if player is facing cargo, do not proceed with inspection if not
 		vm_vec_normalized_dir(&vec_to_cargo, &subsys_pos, &Player_obj->pos);
@@ -1833,7 +1833,7 @@ float	player_farthest_weapon_range()
 	hud_get_best_primary_bank(&prange);
 	srange=ship_get_secondary_weapon_range(Player_ship);
 
-	return max(prange,srange);
+	return SDL_max(prange,srange);
 }
 
 // Determine text name for the weapon that killed the player.

@@ -973,7 +973,7 @@ void options_multi_notify_process()
 	y_start = OM_NOTIFY_Y;
 	gr_set_color_fast(&Color_bright);
 	for(idx=0;idx<line_count;idx++){
-		len = min(n_chars[idx] + 1, (int)SDL_arraysize(line));
+		len = SDL_min(n_chars[idx] + 1, (int)SDL_arraysize(line));
 		SDL_strlcpy(line, p_str[idx], len);
 
 		gr_get_string_size(&w,NULL,line);

@@ -1700,7 +1700,7 @@ void ship_generic_kill_stuff( object *objp, float percent_killed )
 		saturate_fabs(&sp->deathroll_rotvel.xyz.y, 0.75f*DEATHROLL_ROTVEL_CAP);
 		sp->deathroll_rotvel.xyz.z += (frand() - 0.5f) * 6.0f * rotvel_mag;
 		// make z component  2x larger than larger of x,y
-		float largest_mag = max(fl_abs(sp->deathroll_rotvel.xyz.x), fl_abs(sp->deathroll_rotvel.xyz.y));
+		float largest_mag = SDL_max(fl_abs(sp->deathroll_rotvel.xyz.x), fl_abs(sp->deathroll_rotvel.xyz.y));
 		if (fl_abs(sp->deathroll_rotvel.xyz.z) < 2.0f*largest_mag) {
 			sp->deathroll_rotvel.xyz.z *= (2.0f * largest_mag / fl_abs(sp->deathroll_rotvel.xyz.z));
 		}
@@ -2194,7 +2194,7 @@ static void ship_do_damage(object *ship_obj, object *other_obj, vector *hitpos, 
 					damage = ship_obj->hull_strength - min_hull_strength;
 
 					// make sure damage is positive
-					damage = max(0, damage);
+					damage = SDL_max(0, damage);
 				}
 			}
 

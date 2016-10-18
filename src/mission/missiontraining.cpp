@@ -810,7 +810,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 	toke2 = SDL_strchr(text, '#');
 	while (toke1 || toke2) {  // is either token types present?
 		if (!toke2 || (toke1 && (toke1 < toke2))) {  // found $ before #
-			len = min(toke1 - text + 1, max_buflen);
+			len = SDL_min(toke1 - text + 1, max_buflen);
 			SDL_strlcpy(buf, text, len);  // copy text up to token
 			buf += toke1 - text + 1;
 			text = toke1 + 1;  // advance pointers past processed data
@@ -819,7 +819,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 			if (!toke2)  // No second one?
 				break;
 
-			len = min(toke2 - text + 1, max_buflen);
+			len = SDL_min(toke2 - text + 1, max_buflen);
 			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
 			ptr = (char *)translate_key(temp);  // try and translate key
 			if (ptr) {  // was key translated properly?
@@ -845,7 +845,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 			}
 
 		} else {
-			len = min(toke2 - text + 1, max_buflen);
+			len = SDL_min(toke2 - text + 1, max_buflen);
 			SDL_strlcpy(buf, text, len);  // copy text up to token
 			buf += toke2 - text + 1;
 			text = toke2 + 1;  // advance pointers past processed data
@@ -854,7 +854,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 			if (toke1)  // No second one?
 				break;
 
-			len = min(toke1 - text + 1, max_buflen);
+			len = SDL_min(toke1 - text + 1, max_buflen);
 			SDL_strlcpy(temp, text, len);  // isolate token into seperate buffer
 			ptr = translate_msg_token(temp, SDL_arraysize(temp));  // try and translate key
 			if (ptr) {  // was key translated properly?

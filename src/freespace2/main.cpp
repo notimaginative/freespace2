@@ -11,10 +11,55 @@
 #ifdef PLAT_UNIX
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
 #endif
 
 
 extern int game_main(const char *szCmdLine);
+
+
+#ifdef PLAT_UNIX
+static void daemonize()
+{
+	pid_t pid = fork();
+
+	if (pid == -1) {
+		exit(EXIT_FAILURE);
+	} else if (pid != 0) {
+		_exit(0);
+	}
+
+	if (setsid() == -1) {
+		exit(EXIT_FAILURE);
+	}
+
+	signal(SIGHUP, SIG_IGN);
+
+	pid = fork();
+
+	if (pid == -1) {
+		exit(EXIT_FAILURE);
+	} else if (pid != 0) {
+		_exit(0);
+	}
+
+	if (chdir("/") == -1) {
+		exit(EXIT_FAILURE);
+	}
+
+	umask(0);
+
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+
+	open("/dev/null", O_RDONLY);
+	open("/dev/null", O_WRONLY);
+	open("/dev/null", O_RDWR);
+}
+#endif
 
 
 extern "C"
@@ -26,6 +71,30 @@ int main(int argc, char *argv[])
 	int retr = 0;
 
 #ifdef PLAT_UNIX
+	// if we are standalone headless, daemonize
+	bool daemon = false;
+	bool standalone = false;
+
+	for (i = 1; i < argc; i++) {
+		if ( !daemon && !SDL_strcmp(argv[i], "-daemon") ) {
+			daemon = true;
+		}
+
+		if ( !standalone ) {
+			if ( !SDL_strstr(argv[i], "-standalone") ) {
+				standalone = true;
+			}
+
+			if ( !SDL_strcmp(argv[i], "-b") ) {
+				standalone = true;
+			}
+		}
+	}
+
+	if (standalone && daemon) {
+		daemonize();
+	}
+
 	// make sure we create files with user access only
 	umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 #endif

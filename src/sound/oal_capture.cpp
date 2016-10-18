@@ -230,7 +230,7 @@ int oal_capture_get_raw_data(ubyte *outbuf, uint max_size)
 		return 0;
 	}
 
-	ALCsizei max_buf_size = min(num_samples, ALsizei(max_size / Capture.block_align));
+	ALCsizei max_buf_size = SDL_min(num_samples, ALsizei(max_size / Capture.block_align));
 
 	alcCaptureSamples(al_capture_device, outbuf, max_buf_size);
 

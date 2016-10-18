@@ -1163,7 +1163,7 @@ void read_file_text(const char *filename, int mode)
 	int file_len = cfilelength(mf);
 
 	// read first 10 bytes to determine if file is encrypted
-	cfread(Mission_text_raw, min(file_len, 10), 1, mf);
+	cfread(Mission_text_raw, SDL_min(file_len, 10), 1, mf);
 	file_is_encrypted = is_encrpyted(Mission_text_raw);
 	cfseek(mf, 0, CF_SEEK_SET);
 

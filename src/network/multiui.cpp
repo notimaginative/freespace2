@@ -662,7 +662,7 @@ void multi_common_split_text()
 
 	for ( i = 0; i < n_lines; i++ ) {
 		SDL_assert(n_chars[i] < MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
-		int len	= min(n_chars[i] + 1, MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
+		int len	= SDL_min(n_chars[i] + 1, MULTI_COMMON_TEXT_MAX_LINE_LENGTH);
 		SDL_strlcpy(Multi_common_text[i], p_str[i], len);
 		Multi_common_text[i][n_chars[i]] = 0;
 		drop_leading_white_space(Multi_common_text[i]);		

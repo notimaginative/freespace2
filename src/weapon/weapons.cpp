@@ -734,7 +734,7 @@ void parse_wi_flags(weapon_info *weaponp)
 					name_length = NAME_LENGTH;
 				} else {
 					weaponp->spawn_count = (short)atoi(num_start+1);
-					name_length = min(num_start - temp_string - skip_length + 1, NAME_LENGTH);
+					name_length = SDL_min(num_start - temp_string - skip_length + 1, NAME_LENGTH);
 				}
 
 				SDL_strlcpy(Spawn_names[Num_spawn_types++], &(weapon_strings[i][skip_length]), name_length);
@@ -2000,7 +2000,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		if (wip->wi_flags & WIF_BOMB) {
 			if (wip->lifetime - wp->lifeleft < 0.5f) {
 				float	time_scale = wip->lifetime - wp->lifeleft;
-				vm_vec_scale_add2(&obj->phys_info.desired_vel, &obj->orient.uvec, (time_scale - 0.5f) * max(10.0f, obj->phys_info.speed/2.0f));
+				vm_vec_scale_add2(&obj->phys_info.desired_vel, &obj->orient.uvec, (time_scale - 0.5f) * SDL_max(10.0f, obj->phys_info.speed/2.0f));
 			}
 		}
 */
@@ -2226,7 +2226,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		//	Only lead target if more than one second away.  Otherwise can miss target.  I think this
 		//	is what's causing Harbingers to miss the super destroyer. -- MK, 4/15/98
 		if ((wip->wi_flags & WIF_HOMING_ASPECT) && (old_dot > 0.1f) && (time_to_target > 0.1f))
-			vm_vec_scale_add2(&target_pos, &hobjp->phys_info.vel, min(time_to_target, 2.0f));
+			vm_vec_scale_add2(&target_pos, &hobjp->phys_info.vel, SDL_min(time_to_target, 2.0f));
 
 		//nprintf(("AI", "Dot = %7.3f, dist = %7.3f, time_to = %6.3f, deg/sec = %7.3f\n", old_dot, dist_to_target, time_to_target, angles/flFrametime));
 
@@ -2254,7 +2254,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		//	Control speed based on dot product to goal.  If close to straight ahead, move
 		//	at max speed, else move slower based on how far from ahead.
 		if (old_dot < 0.90f) {
-			obj->phys_info.speed = max(0.2f, old_dot* (float) fabs(old_dot));
+			obj->phys_info.speed = SDL_max(0.2f, old_dot* (float) fabs(old_dot));
 			if (obj->phys_info.speed < wip->max_speed*0.75f)
 				obj->phys_info.speed = wip->max_speed*0.75f;
 		} else
@@ -3828,7 +3828,7 @@ int weapon_get_expl_handle(int weapon_expl_index, vector *pos, float size)
 		g3_end_frame();
 	}
 
-	best_lod = min(best_lod, wei->lod_count - 1);
+	best_lod = SDL_min(best_lod, wei->lod_count - 1);
 	return wei->lod[best_lod].bitmap_id;
 }
 

@@ -401,9 +401,6 @@ void gr_activate(int);
 	#endif	// NDEBUG && DEMO
 #endif	// INTERPLAYQA
 
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-
 #define PI					3.141592654f
 #define PI2					(3.141592654f*2.0f)	// PI*2
 #define ANG_TO_RAD(x)	((x)*PI/180)

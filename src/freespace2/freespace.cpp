@@ -7675,7 +7675,7 @@ static int Demo_upsell_screen_number = 0;
 static int Demo_upsell_show_next_bitmap_time;
 
 //XSTR:OFF
-static char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] = 
+static const char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] =
 {
 #ifdef FS1_DEMO
 	{	"DemoUpsell1",

@@ -1107,7 +1107,9 @@ void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_stats_struct *vmt, player
 #ifndef MAKE_FS1
 	SDL_assert(MAX_FS2_MEDALS == NUM_MEDALS);
 	memcpy(vmt->medals, fs->medals, sizeof(int) * MAX_FS2_MEDALS);
+#ifndef FS2_DEMO
 	vmt->num_medals = MAX_FS2_MEDALS;
+#endif
 #else
 	memcpy(vmt->medals, fs->medals, sizeof(int) * MAX_FS_MEDALS);
 #endif
@@ -1116,7 +1118,9 @@ void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_stats_struct *vmt, player
 #ifndef MAKE_FS1
 	SDL_assert(MAX_FS2_SHIP_TYPES == MAX_SHIP_TYPES);
 	memcpy(vmt->kills, fs->kills, sizeof(ushort) * MAX_FS2_SHIP_TYPES);
+#ifndef FS2_DEMO
 	vmt->num_ship_types = MAX_FS2_SHIP_TYPES;
+#endif
 #else
 	memcpy(vmt->kills, fs->kills, sizeof(int) * MAX_FS_SHIP_TYPES);
 #endif
@@ -1143,14 +1147,14 @@ void multi_stats_fs_to_tracker(scoring_struct *fs, vmt_stats_struct *vmt, player
 // copy a tracker-freespace stats struct to a freespace stats struct
 void multi_stats_tracker_to_fs(vmt_stats_struct *vmt,scoring_struct *fs)
 {
-#ifndef MAKE_FS1
+#if !defined(MAKE_FS1) && !defined(FS2_DEMO)
 	int num_medals, num_ship_types;
 #endif
 
 	// score, rank and medals
 	fs->score = vmt->score;
 	fs->rank = vmt->rank;
-#ifndef MAKE_FS1
+#if !defined(MAKE_FS1) && !defined(FS2_DEMO)
 	num_medals = vmt->num_medals;
 	if(num_medals > NUM_MEDALS){
 		Int3();
@@ -1164,7 +1168,7 @@ void multi_stats_tracker_to_fs(vmt_stats_struct *vmt,scoring_struct *fs)
 #endif
 
 	// kills and assists
-#ifndef MAKE_FS1
+#if !defined(MAKE_FS1) && !defined(FS2_DEMO)
 	num_ship_types = vmt->num_ship_types;
 	if(num_ship_types > MAX_SHIP_TYPES){
 		Int3();

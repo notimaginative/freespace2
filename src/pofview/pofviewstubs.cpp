@@ -28,6 +28,13 @@ void demo_set_playback_filter()
 {
 }
 
+void demo_reset_trailer_timer()
+{
+}
+
+void game_feature_not_in_demo_popup()
+{
+}
 
 void os_close()
 {

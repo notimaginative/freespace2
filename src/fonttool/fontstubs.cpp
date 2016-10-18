@@ -111,3 +111,5 @@ time_t Player_multi_died_check;
 int tst;
 int game_single_step;
 int last_single_step;
+void demo_reset_trailer_timer(){}
+void game_feature_not_in_demo_popup(){}

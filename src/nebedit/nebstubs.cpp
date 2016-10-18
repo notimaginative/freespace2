@@ -101,3 +101,5 @@ void game_tst_mark(struct object*, struct ship*){}
 int tst;
 int game_single_step;
 int last_single_step;
+void demo_reset_trailer_timer(){}
+void game_feature_not_in_demo_popup(){}

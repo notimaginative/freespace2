@@ -476,7 +476,7 @@ void parse_medal_tbl()
 				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
 				required_string("$Wavefile 2:");
 				stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
-	#elif FS2_DEMO
+	#elif defined(FS2_DEMO)
 	#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
 				required_string("$Wavefile 1:");
 				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);

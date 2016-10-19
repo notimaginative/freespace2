@@ -361,7 +361,11 @@ void Launcher::OnSetup( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnReadme( wxCommandEvent& WXUNUSED(event) )
 {
-	wxLaunchDefaultApplication("README.txt");
+	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
+
+	epath.Append( wxT("readme.txt") );
+
+	wxLaunchDefaultApplication(epath);
 }
 
 void Launcher::OnUpdate( wxCommandEvent& WXUNUSED(event) )

@@ -45,7 +45,11 @@
 #include "res/fs2_btn_volition.xpm"
 #include "res/fs2_btn_volition-hover.xpm"
 #include "res/fs2_btn_volition-click.xpm"
+#ifdef FS2_DEMO
+#include "res/fs2demo_help_txt.h"
+#else
 #include "res/fs2_help_txt.h"
+#endif
 #include "res/fs2_snd_hover_wav.h"
 #include "res/fs2_snd_click_wav.h"
 #else
@@ -387,7 +391,11 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 
 	wxTextCtrl *m_help_txt = new wxTextCtrl( help, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
 	m_help_txt->SetMinSize(txtsize);
+#ifdef FS2_DEMO
+	m_help_txt->AppendText(fs2demo_help_txt);
+#else
 	m_help_txt->AppendText(fs2_help_txt);
+#endif
 	m_help_txt->SetInsertionPoint(0);
 	bSizer->Add( m_help_txt, 0, wxALL|wxEXPAND, 5 );
 

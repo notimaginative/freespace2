@@ -204,7 +204,11 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 #ifndef MAKE_FS1
 	this->SetClientSize(375, 440);
+#ifdef FS2_DEMO
+	this->SetTitle( wxT("FreeSpace 2 Demo Launcher") );
+#else
 	this->SetTitle( wxT("FreeSpace 2 Launcher") );
+#endif
 
 	init_sound();
 
@@ -252,7 +256,11 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_btn_Quit->SetBitmapPressed( wxBitmap(fs2_btn_quit_click_xpm) );
 #else
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+#ifdef FS1_DEMO
+	this->SetTitle( wxT("FreeSpace Demo Launcher") );
+#else
 	this->SetTitle( wxT("FreeSpace Launcher") );
+#endif
 
 	wxBoxSizer* bSizer3;
 	bSizer3 = new wxBoxSizer( wxVERTICAL );

@@ -1236,13 +1236,9 @@ static const char *Game_loading_ani_fname[GR_NUM_RESOLUTIONS] = {
 	"2_Loading.ani"		// GR_1024
 };
 
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
+#if defined(FS2_DEMO)
 static const char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
-#ifdef FS1_DEMO
-	"DemoTitle1",
-#else
 	"PreLoad",
-#endif  // FS1_DEMO
 	"2_PreLoad"
 };
 #elif defined(OEM_BUILD)
@@ -2362,7 +2358,7 @@ void game_init()
 	gr_init();
 
 
-#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
 	// add title screen
 	if(!Is_standalone){
 		display_title_screen();
@@ -8100,7 +8096,7 @@ int game_hacked_data()
 
 void display_title_screen()
 {
-#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
 	///int title_bitmap;
 
 	// load bitmap
@@ -8118,8 +8114,11 @@ void display_title_screen()
 	// flip
 	gr_flip();
 
+	// give it some time on screen
+	SDL_Delay(2000);
+
 	bm_unload(title_bitmap);
-#endif  // FS2_DEMO || OEM_BUILD || FS1_DEMO
+#endif  // FS2_DEMO || OEM_BUILD
 }
 
 // return true if the game is running with "low memory", which is less than 48MB

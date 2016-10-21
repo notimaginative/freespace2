@@ -444,12 +444,16 @@ typedef struct config_item {
 #ifndef MAKE_FS1
 #define TOGGLE_HUD_CONTRAST							104
 
+#ifndef FS2_DEMO
 #define MULTI_TOGGLE_NETINFO							105
 
 #define MULTI_SELF_DESTRUCT							106
 
 // this should be the total number of control action defines above (or last define + 1)
 #define CCFG_MAX 107
+#else
+#define CCFG_MAX 105
+#endif
 #else
 // this should be the total number of control action defines above (or last define + 1)
 #define CCFG_MAX 104

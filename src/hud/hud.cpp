@@ -2168,18 +2168,34 @@ void hud_maybe_show_netlag_icon()
 		// draw the net lag icon flashing
 		hud_targetbox_start_flash(TBOX_FLASH_NETLAG);
 		if(hud_targetbox_maybe_flash(TBOX_FLASH_NETLAG)){
+#ifdef FS2_DEMO
+			hud_set_gauge_color(HUD_RADAR, HUD_C_BRIGHT);
+#else
 			hud_set_gauge_color(HUD_LAG_GAUGE, HUD_C_BRIGHT);
+#endif
 		} else {
+#ifdef FS2_DEMO
+			hud_set_gauge_color(HUD_RADAR);
+#else
 			hud_set_gauge_color(HUD_LAG_GAUGE);
+#endif
 		}
 		gr_set_bitmap(Netlag_icon.first_frame, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		break;
 	case 1:
 		// draw the disconnected icon flashing fast
 		if(hud_targetbox_maybe_flash(TBOX_FLASH_NETLAG,1)){
+#ifdef FS2_DEMO
+			hud_set_gauge_color(HUD_RADAR, HUD_C_BRIGHT);
+#else
 			hud_set_gauge_color(HUD_LAG_GAUGE, HUD_C_BRIGHT);
+#endif
 		} else {
+#ifdef FS2_DEMO
+			hud_set_gauge_color(HUD_RADAR);
+#else
 			hud_set_gauge_color(HUD_LAG_GAUGE);
+#endif
 		}
 		gr_set_bitmap(Netlag_icon.first_frame+1, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
 		break;
@@ -2416,7 +2432,11 @@ void hud_support_view_blit()
 	}
 
 	// set hud color
+#ifdef FS2_DEMO
+	hud_set_gauge_color(HUD_RADAR);
+#else
 	hud_set_gauge_color(HUD_SUPPORT_GAUGE);
+#endif
 
 	GR_AABITMAP(Support_view_gauge.first_frame, Support_view_coords[gr_screen.res][0], Support_view_coords[gr_screen.res][1]);	
 

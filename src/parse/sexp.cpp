@@ -626,8 +626,10 @@ const char *HUD_gauge_text[NUM_HUD_GAUGES] =
 	"ATTACKING TARGET COUNT",
 	"TEXT FLASH",
 	"MESSAGE BOX",
+#ifndef FS2_DEMO
 	"SUPPORT GUAGE",
 	"LAG GUAGE"
+#endif
 };
 
 

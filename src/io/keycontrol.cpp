@@ -509,8 +509,10 @@ int Normal_key_set[] = {
 #ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
+#ifndef FS2_DEMO
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 #endif
 };
 
@@ -635,8 +637,10 @@ int Non_critical_key_set[] = {
 #ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
+#ifndef FS2_DEMO
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 #endif
 };
 
@@ -2796,6 +2800,7 @@ int button_function(int n)
 			hud_toggle_contrast();
 			break;
 
+#ifndef FS2_DEMO
 		// toggle network info
 		case MULTI_TOGGLE_NETINFO:
 			extern int Multi_display_netinfo;
@@ -2826,6 +2831,7 @@ int button_function(int n)
 				send_self_destruct_packet();
 			}
 			break;
+#endif
 #endif
 		// following are not handled here, but we need to bypass the Int3()
 		case LAUNCH_COUNTERMEASURE:

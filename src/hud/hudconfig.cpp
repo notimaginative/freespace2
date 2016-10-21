@@ -387,9 +387,13 @@ int HUD_config_default_flags2 =
 {
 	(1<<(HUD_OFFSCREEN_RANGE-32)) |
 	(1<<(HUD_KILLS_GAUGE-32)) |
+#ifdef FS2_DEMO
+	(1<<(HUD_ATTACKING_TARGET_COUNT-32))
+#else
 	(1<<(HUD_ATTACKING_TARGET_COUNT-32)) | 
 	(1<<(HUD_SUPPORT_GAUGE-32)) | 
 	(1<<(HUD_LAG_GAUGE-32))
+#endif
 };
 
 // bits to tell whether a given gauge should be treated as pop-up or not
@@ -552,8 +556,10 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 		HC_gauge_region("none",		1,		1,		-1,	0,	0,	-1, 0,	0),			// attacking target count
 		HC_gauge_region("HCB_38",	342,	138,	38,	0,	0,	-1, 0,	0),			// text flash gauge
 		HC_gauge_region("HCB_52",	465,	8,		52,	0,	0,	-1, 0,	0),			// comm menu
+#ifndef FS2_DEMO
 		HC_gauge_region("HCB_46",	324,	264,	46,	0,	0,	-1, 0,	0),			// support view gauge
 		HC_gauge_region("HCB_47",	418,	262,	47,	0,	0,	-1, 0,	0),			// netlag icon gauge
+#endif
 #endif
 	//XSTR:ON
 	},
@@ -596,8 +602,10 @@ struct HC_gauge_region	HC_gauge_regions[GR_NUM_RESOLUTIONS][NUM_HUD_GAUGES] =
 		HC_gauge_region("none",			1,		1,		-1,	0,	0,	-1, 0,	0),			// attacking target count
 		HC_gauge_region("2_HCB_38",	548,	222,	38,	0,	0,	-1, 0,	0),			// text flash gauge
 		HC_gauge_region("2_HCB_52",	744,	14,	52,	0,	0,	-1, 0,	0),			// comm menu
+#ifndef FS2_DEMO
 		HC_gauge_region("2_HCB_46",	520,	422,	46,	0,	0,	-1, 0,	0),			// support view gauge
 		HC_gauge_region("2_HCB_47",	670,	419,	47,	0,	0,	-1, 0,	0),			// netlag icon gauge
+#endif
 	//XSTR:ON
 	}
 };

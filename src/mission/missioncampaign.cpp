@@ -258,13 +258,16 @@ static UI_BUTTON Campaign_okb, Campaign_cancelb;
 campaign Campaign;
 
 // variables with deal with the campaign save file
-#ifndef MAKE_FS1
+#if defined(FS2_DEMO)
+#define CAMPAIGN_FILE_VERSION					10
+#define CAMPAIGN_FILE_COMPATIBLE_VERSION		CAMPAIGN_FILE_VERSION
+#elif defined(MAKE_FS1)
+#define CAMPAIGN_FILE_VERSION					7
+#define CAMPAIGN_FILE_COMPATIBLE_VERSION		CAMPAIGN_INITIAL_RELEASE_FILE_VERSION
+#else
 #define CAMPAIGN_FILE_VERSION							12
 //#define CAMPAIGN_FILE_COMPATIBLE_VERSION		CAMPAIGN_INITIAL_RELEASE_FILE_VERSION
 #define CAMPAIGN_FILE_COMPATIBLE_VERSION			CAMPAIGN_FILE_VERSION
-#else
-#define CAMPAIGN_FILE_VERSION					7
-#define CAMPAIGN_FILE_COMPATIBLE_VERSION		CAMPAIGN_INITIAL_RELEASE_FILE_VERSION
 #endif
 #define CAMPAIGN_FILE_ID								0xbeefcafe
 
@@ -738,10 +741,11 @@ int mission_campaign_savefile_save()
 	cfwrite_string_len( Campaign.filename, fp );
 	cfwrite_int( Campaign.prev_mission, fp );
 	cfwrite_int( Campaign.next_mission, fp );
-#ifndef MAKE_FS1
-	cfwrite_int( Campaign.loop_reentry, fp );
-	cfwrite_int( Campaign.loop_enabled, fp );
-#endif
+
+	if (CAMPAIGN_FILE_VERSION >= 12) {
+		cfwrite_int( Campaign.loop_reentry, fp );
+		cfwrite_int( Campaign.loop_enabled, fp );
+	}
 
 	// write out the information for ships/weapons which this player is allowed to use
 	cfwrite_int(Num_ship_types, fp);
@@ -964,10 +968,11 @@ void mission_campaign_savefile_load( const char *cfilename )
 
 	Campaign.prev_mission = cfread_int( fp );
 	Campaign.next_mission = cfread_int( fp );
-#ifndef MAKE_FS1
-	Campaign.loop_reentry = cfread_int( fp );
-	Campaign.loop_enabled = cfread_int( fp );
-#endif
+
+	if (version >= 12) {
+		Campaign.loop_reentry = cfread_int( fp );
+		Campaign.loop_enabled = cfread_int( fp );
+	}
 
 	//  load information about ships/weapons allowed	
 	int ship_count, weapon_count;

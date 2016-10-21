@@ -613,7 +613,6 @@ void demo_title_blit()
 		Mouse_hidden = 0;
 	}
 }
-
 #endif
 
 void player_select_do()

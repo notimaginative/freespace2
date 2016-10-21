@@ -237,19 +237,25 @@
 #include "key.h"
 
 // update this when altering data that is read/written to .PLR file
-#ifndef MAKE_FS1
-#define CURRENT_PLAYER_FILE_VERSION				140
+#if defined(FS2_DEMO)
+	#define CURRENT_PLAYER_FILE_VERSION				136		// 1.10
+	#define PREVIOUS_PLAYER_FILE_VERSION			135		// 1.00
+
+	#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	PREVIOUS_PLAYER_FILE_VERSION
+#elif defined(FS1_DEMO)
+	#define CURRENT_PLAYER_FILE_VERSION				94		// 1.20
+	#define PREVIOUS_PLAYER_FILE_VERSION			86		// 1.00
+
+	#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	PREVIOUS_PLAYER_FILE_VERSION
+#elif defined(MAKE_FS1)
+	#define CURRENT_PLAYER_FILE_VERSION				100		// 1.04
+	#define PREVIOUS_PLAYER_FILE_VERSION			99		// 1.00
+
+	#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	PREVIOUS_PLAYER_FILE_VERSION
 #else
-//  99: original retail release (version 1.00)
-// 100: retail mission pack update (version 1.04)
-#define CURRENT_PLAYER_FILE_VERSION				100
-#define PREVIOUS_PLAYER_FILE_VERSION			99
-#endif
-#define FS2_DEMO_PLAYER_FILE_VERSION				135
-#ifndef MAKE_FS1
-#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	CURRENT_PLAYER_FILE_VERSION			// demo plr files should work in final
-#else
-#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	PREVIOUS_PLAYER_FILE_VERSION
+	#define CURRENT_PLAYER_FILE_VERSION				140		// 1.00
+
+	#define LOWEST_COMPATIBLE_PLAYER_FILE_VERSION	CURRENT_PLAYER_FILE_VERSION			// demo plr files should work in final
 #endif
 
 // keep track of pilot file changes here 
@@ -828,6 +834,10 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	}
 
 	hud_config_set_color(HUD_config.main_color);
+#elif defined(FS2_DEMO)
+	for(i=0; i<NUM_HUD_GAUGES; i++){
+		cfread(&HUD_config.clr[i], sizeof(color), 1, file);
+	}
 #else
 	// added 2 gauges with version 137
 	if(Player_file_version < 137){

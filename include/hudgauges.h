@@ -82,7 +82,11 @@
 #define __HUD_COMMON_H__
 
 // HUD gauge types
+#ifdef FS2_DEMO
+#define NUM_HUD_GAUGES							37
+#else
 #define NUM_HUD_GAUGES							39
+#endif
 
 #define HUD_LEAD_INDICATOR						0
 #define HUD_ORIENTATION_TEE					1
@@ -121,8 +125,10 @@
 #define HUD_ATTACKING_TARGET_COUNT			34
 #define HUD_TEXT_FLASH							35					// (formerly split up among emp, collision, etc)
 #define HUD_MESSAGE_BOX							36
+#ifndef FS2_DEMO
 #define HUD_SUPPORT_GAUGE						37
 #define HUD_LAG_GAUGE							38
+#endif
 
 extern const char *HUD_gauge_text[NUM_HUD_GAUGES];					// defined in sexp.cpp!!!!
 

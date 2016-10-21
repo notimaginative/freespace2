@@ -909,14 +909,16 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 		// plain TCP
 		case NET_TCP:
+			Multi_options_g.pxo = 0;
 			Multi_options_g.protocol = NET_TCP;
 			break;
 
 		// in case of IPX, which is deprecated
 		default:
+			Multi_options_g.pxo = 0;
 			Multi_options_g.protocol = NET_TCP;
 			break;
-	}	
+	}
 
 	// restore wingman status used by red alert missions
 	red_alert_read_wingman_status(file, Player_file_version);

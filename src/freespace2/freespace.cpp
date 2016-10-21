@@ -8115,7 +8115,7 @@ void display_title_screen()
 	gr_flip();
 
 	// give it some time on screen
-	SDL_Delay(2000);
+	SDL_Delay(1000);
 
 	bm_unload(title_bitmap);
 #endif  // FS2_DEMO || OEM_BUILD

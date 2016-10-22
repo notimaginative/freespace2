@@ -756,7 +756,12 @@ void hud_show_lock_threat()
 		frame_offset = 0;
 	}
 
+#ifdef FS2_DEMO
+	// demo .hcf has gauge color wrong, so just match center reticle instead
+	hud_set_gauge_color(HUD_CENTER_RETICLE);
+#else
 	hud_set_gauge_color(HUD_THREAT_GAUGE);
+#endif
 
 	GR_AABITMAP(Reticle_gauges[RETICLE_LOCK_WARN].first_frame+frame_offset, Reticle_frame_coords[gr_screen.res][RETICLE_LOCK_WARN][0], Reticle_frame_coords[gr_screen.res][RETICLE_LOCK_WARN][1]);
 
@@ -797,7 +802,12 @@ void hud_show_dumbfire_threat()
 		frame_offset = 0;
 	}
 
+#ifdef FS2_DEMO
+	// demo .hcf has gauge color wrong, so just match center reticle instead
+	hud_set_gauge_color(HUD_CENTER_RETICLE);
+#else
 	hud_set_gauge_color(HUD_THREAT_GAUGE);
+#endif
 
 	GR_AABITMAP(Reticle_gauges[RETICLE_LASER_WARN].first_frame + frame_offset, Reticle_frame_coords[gr_screen.res][RETICLE_LASER_WARN][0], Reticle_frame_coords[gr_screen.res][RETICLE_LASER_WARN][1]);	
 }

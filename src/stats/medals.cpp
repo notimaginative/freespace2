@@ -229,9 +229,7 @@ int Badge_index[MAX_BADGES];
 	#define RANK_MEDAL_REGION		12			// region number of the rank medal
 #endif
 
-#ifdef FS2_DEMO
-#warning Find real FS2_DEMO spot for medals
-#endif
+
 // coords for indiv medal bitmaps
 int Medal_coords[GR_NUM_RESOLUTIONS][NUM_MEDALS][2] = {
 	{				// GR_640
@@ -477,7 +475,8 @@ void parse_medal_tbl()
 				required_string("$Wavefile 2:");
 				stuff_string(Badge_info[bi].voice_base2, F_NAME, NULL, MAX_FILENAME_LEN);
 	#elif defined(FS2_DEMO)
-	#warning FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
+				// FS2_DEMO HACK: Wavefile 1/2: wave1? wave2?
+				// left-over from FS1 and not really needed in FS2 demo
 				required_string("$Wavefile 1:");
 				stuff_string(Badge_info[bi].voice_base, F_NAME, NULL, MAX_FILENAME_LEN);
 				required_string("$Wavefile 2:");

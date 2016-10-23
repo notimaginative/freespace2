@@ -1171,7 +1171,12 @@ void AudioStream::Play(float volume, int looping)
 		// get source id if we don't have one
 		if ( !m_source_id ) {
 			sound_channel *chan = oal_get_free_channel(1.0f, -1, SND_PRIORITY_MUST_PLAY);
-			m_source_id = chan->source_id;
+
+			if (chan) {
+				m_source_id = chan->source_id;
+			} else {
+				return;
+			}
 		}
 
 		// Cue for playback if necessary

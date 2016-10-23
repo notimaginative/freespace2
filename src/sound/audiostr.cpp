@@ -354,6 +354,8 @@ void WaveFile::Init()
 	m_nBytesPlayed = 0;
 	m_total_uncompressed_bytes_read = 0;
 	m_max_uncompressed_bytes_to_read = AS_HIGHEST_MAX;
+	SDL_zero(m_wfmt);
+	SDL_zero(m_wfxDest);
 
 	m_hStream_open = 0;
 	m_abort_next_read = false;
@@ -363,6 +365,10 @@ void WaveFile::Close()
 {
 	// Free memory
 	if (m_pwfmt_original) {
+		if (m_pwfmt_original->extra_data) {
+			free(m_pwfmt_original->extra_data);
+		}
+
 		free(m_pwfmt_original);
 		m_pwfmt_original = NULL;
 	}
@@ -394,6 +400,8 @@ bool WaveFile::Open(const char *pszFilename)
 	if (m_pwfmt_original == NULL) {
 		goto OPEN_ERROR;
 	}
+
+	SDL_zerop(m_pwfmt_original);
 
 	cfp = cfopen(pszFilename, "rb");
 
@@ -534,6 +542,10 @@ OPEN_ERROR:
 	fRtn = false;
 
 	if (m_pwfmt_original) {
+		if (m_pwfmt_original->extra_data) {
+			free(m_pwfmt_original->extra_data);
+		}
+
 		free(m_pwfmt_original);
 		m_pwfmt_original = NULL;
 	}

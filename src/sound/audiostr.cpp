@@ -866,6 +866,8 @@ bool AudioStream::Create(const char *pszFilename)
 		// No need for buffer to be larger than wave data though
 		m_cbBufSize = (m_nBufLength/1000) * (m_pwavefile->m_wfmt.bits_per_sample/8) * m_pwavefile->m_wfmt.num_channels * m_pwavefile->m_wfmt.sample_rate;
 		m_cbBufSize /= MAX_STREAM_BUFFERS;
+		// align buffer to format
+		m_cbBufSize += m_cbBufSize % ((m_pwavefile->m_wfmt.bits_per_sample/8) * m_pwavefile->m_wfmt.num_channels);
 		// if the requested buffer size is too big then cap it
 		m_cbBufSize = (m_cbBufSize > BIGBUF_SIZE) ? BIGBUF_SIZE : m_cbBufSize;
 

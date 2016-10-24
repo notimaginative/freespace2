@@ -1072,7 +1072,7 @@ void options_button_pressed(int n)
 			break;				
 
 		case HUD_CONFIG_BUTTON:
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
+#if defined(FS2_DEMO)
 			game_feature_not_in_demo_popup();
 #else
 			// can't go to the hud config screen when a multiplayer observer

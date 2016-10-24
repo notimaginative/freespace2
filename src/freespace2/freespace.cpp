@@ -7418,13 +7418,18 @@ void game_format_time(fix m_time, char *time_str, const int time_str_len)
 void get_version_string(char *str, const int str_len)
 {
 //XSTR:OFF
+#ifdef FS1_DEMO
+	SDL_snprintf(str, str_len, "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	return;
+#endif
+
 	if ( FS_VERSION_BUILD == 0 ) {
 		SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 	} else {
 		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
 	}
 
-#if defined (FS2_DEMO) || defined(FS1_DEMO)
+#if defined (FS2_DEMO)
 	SDL_strlcat(str, " D", str_len);
 #elif defined (OEM_BUILD)
 	SDL_strlcat(str, " (OEM)", str_len);

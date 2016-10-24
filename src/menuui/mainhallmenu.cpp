@@ -1915,7 +1915,7 @@ void main_hall_blit_version()
 	// format the version string
 	get_version_string(version_string, SDL_arraysize(version_string));
 
-#ifdef MAKE_FS1
+#if defined(MAKE_FS1) && !defined(FS1_DEMO)
 	// tack on "EAX", since we have that :)
 	SDL_strlcat(version_string, " EAX", sizeof(version_string));
 #endif

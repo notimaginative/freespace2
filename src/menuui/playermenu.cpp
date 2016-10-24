@@ -222,7 +222,7 @@
 
 // --------------------------------------------------------------------------------------------------------
 // Demo title screen
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
+#if defined(FS1_DEMO)
 static int Demo_title_active = 0;
 static int Demo_title_bitmap = -1;
 static int Demo_title_expire_timestamp = 0;
@@ -451,8 +451,7 @@ void player_select_init()
 
 	Player_select_force_bastion = 0;
 
-#ifdef FS2_DEMO
-	/*
+#ifdef FS1_DEMO
 	Demo_title_bitmap = bm_load(Demo_title_bitmap_filename);
 	if ( Demo_title_bitmap >= 0 ) {
 		Demo_title_active = 1;
@@ -460,8 +459,6 @@ void player_select_init()
 	} else {
 		Demo_title_active = 0;
 	}
-	*/
-	Demo_title_active = 0;
 #endif
 
 	// create the UI window
@@ -577,7 +574,7 @@ void player_select_init()
 	}	
 }
 
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
+#ifdef FS1_DEMO
 // Display the demo title screen
 void demo_title_blit()
 {
@@ -619,9 +616,9 @@ void player_select_do()
 {
 	int k;
 
-#ifdef FS2_DEMO
+#ifdef FS1_DEMO
 	if ( Demo_title_active ) {
-		// demo_title_blit();
+		demo_title_blit();
 		return;
 	}
 #endif
@@ -963,7 +960,7 @@ int player_select_create_new_pilot()
 
 	int play_scroll_sound = 1;
 
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
+#ifdef FS1_DEMO
 	if ( Demo_title_active ) {
 		play_scroll_sound = 0;
 	}

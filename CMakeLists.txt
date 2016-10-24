@@ -188,33 +188,36 @@ endif()
 # standalone server GUI
 #
 
-if(FS1)
-  set(STANDALONE_BINARY fsstandalone)
-else()
-  set(STANDALONE_BINARY fs2standalone)
-endif()
+# Not for FS1 Demo
+if(NOT FS1 OR NOT DEMO)
+	if(FS1)
+	  set(STANDALONE_BINARY fsstandalone)
+	else()
+	  set(STANDALONE_BINARY fs2standalone)
+	endif()
 
-add_executable(${STANDALONE_BINARY}
-  WIN32
-  ${standalone_SOURCE}
-  ${standalone_HEADERS}
-)
+	add_executable(${STANDALONE_BINARY}
+	  WIN32
+	  ${standalone_SOURCE}
+	  ${standalone_HEADERS}
+	)
 
-CreateSourceGroups(${standalone_SOURCE})
+	CreateSourceGroups(${standalone_SOURCE})
 
-target_link_libraries(
-  ${STANDALONE_BINARY}
-  ${SDL2_LIBRARY}
-  ${wxWidgets_LIBRARIES}
-  ${LIBWEBSOCKETS_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+	target_link_libraries(
+	  ${STANDALONE_BINARY}
+	  ${SDL2_LIBRARY}
+	  ${wxWidgets_LIBRARIES}
+	  ${LIBWEBSOCKETS_LIBRARIES}
+	  ${PLATFORM_LIBRARIES}
+	)
 
-set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
+	set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
 
-# wxWidgets appears to need c++11 for one or more headers
-if(NOT WIN32)
-  set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+	# wxWidgets appears to need c++11 for one or more headers
+	if(NOT WIN32)
+	  set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+	endif()
 endif()
 
 #

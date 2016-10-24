@@ -2674,10 +2674,10 @@ int options_multi_background_bitmap()
 	case OM_MODE_VOX:
 		return Om_background_1;
 	}
+#endif
 
 	// unknown mode of some kind
 	return -1;
-#endif
 }
 
 // called when the multiplayer tab has been switched from

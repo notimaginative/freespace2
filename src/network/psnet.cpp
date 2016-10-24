@@ -534,8 +534,6 @@ uint sock_get_ip()
 	char LclHost[MAXHOSTNAME];
 	struct hostent *Hostent;
 	struct sockaddr_in LclAddr;
-	struct sockaddr_in RmtAddr;
-	SOCKET hSock;
 	int nRet;
 
 	// Init local address to zero
@@ -551,9 +549,6 @@ uint sock_get_ip()
 	}
 			
 	return LclAddr.sin_addr.s_addr;
-
-	RmtAddr = RmtAddr;
-	hSock = hSock;
 }
 
 // psnet_get_ip() attempts to get the local IP address of this machine
@@ -2795,7 +2790,7 @@ ushort psnet_reliable_get_unique_id(ushort id_num,net_addr_t *from)
 
 	// lookup through the Psnet_reliable_addr[] list and try and find the index
 	for(idx=0;idx<MAX_PLAYERS;idx++){
-		if((idx == 1) /*(Psnet_reliable_addr_flags & (1<<idx)) && (psnet_same(from,&Psnet_reliable_addr[idx]))*/){
+		if(idx == 1 /*(Psnet_reliable_addr_flags & (1<<idx)) && (psnet_same(from,&Psnet_reliable_addr[idx]))*/){
 			// fill in the lower 4 bits
 			cast = (ushort)idx;
 			id_num |= (cast & 0xf);

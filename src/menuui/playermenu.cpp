@@ -1376,7 +1376,7 @@ void player_select_display_copyright()
 	} else {
 		SDL_snprintf(Copyright_msg1, SDL_arraysize(Copyright_msg1), XSTR("Descent: FreeSpace - The Great War, Copyright %c 1998, Volition, Inc.", 384), '\x83');
 	}
-	SDL_snprintf(Copyright_msg2, SDL_arraysize(Copyright_msg2), XSTR("All Rights Reserved", 385));
+	SDL_strlcpy(Copyright_msg2,  XSTR("All Rights Reserved", 385), SDL_arraysize(Copyright_msg2));
 #else
 	gr_set_color_fast(&Color_white);
 

@@ -649,10 +649,12 @@ int parse_cmdline(const char *cmdline)
 		// ignored (handled in main() already)
 	}
 
+#ifndef FS1_DEMO
 	// is this a standalone server??
 	if (standalone_arg.found()) {
 		Is_standalone = 1;
 	}
+#endif
 
 	// run with no sound
 	if ( nosound_arg.found() ) {
@@ -664,6 +666,7 @@ int parse_cmdline(const char *cmdline)
 		Cmdline_freespace_no_music = 1;
 	}
 
+#ifndef FS1_DEMO
 	// should we start a network game
 	if ( startgame_arg.found() ) {
 		Cmdline_use_last_pilot = 1;
@@ -733,6 +736,7 @@ int parse_cmdline(const char *cmdline)
 	if(client_dodamage.found()){
 		Cmdline_client_dodamage = 1;
 	}	
+#endif
 
 	// spew pof info
 	if(pof_spew.found()){
@@ -749,10 +753,12 @@ int parse_cmdline(const char *cmdline)
 		Cmdline_mouse_coords = 1;
 	}
 
+#ifndef FS1_DEMO
 	// net timeout
 	if(timeout.found()){
 		Cmdline_timeout = timeout.get_int();
 	}
+#endif
 
 	// d3d windowed
 	if(d3d_window.found()){

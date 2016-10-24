@@ -426,10 +426,14 @@ static void print_instructions()
 	printf("Support - FAQ: http://icculus.org/lgfaq\n");
 	printf("          Web: http://bugzilla.icculus.org\n\n");
 
-#ifdef MAKE_FS1
-	printf("Usage: freespace [options]\n");
+#if defined(FS1_DEMO)
+	printf("Usage: fsdemo [options]\n");
+#elif defined(FS2_DEMO)
+	printf("Usage: fs2demo [options]\n");
+#elif defined(MAKE_FS1)
+	printf("Usage: fs [options]\n");
 #else
-	printf("Usage: freespace2 [options]\n");
+	printf("Usage: fs2 [options]\n");
 #endif
 	printf("\n");
 	printf("  General:\n");
@@ -443,6 +447,7 @@ static void print_instructions()
 	printf("     [-M | --coords]         Show coordinates of the mouse cursor\n");
 	printf("     [--nomusic]             Do not play music\n");
 	printf("\n");
+#ifndef FS1_DEMO
 	printf("  Multiplayer:\n");
 	printf("     [-d | --standalone]     Run as a dedicated server\n");
 	printf("     [-S | --startgame]      Start a multiplayer game\n");
@@ -459,12 +464,9 @@ static void print_instructions()
 	printf("     [-D | --clientdamage]   Client does damage\n");
 	printf("     [-t | --timeout]        Multiplayer game timeout\n");
 	printf("\n");
-
-#ifdef MAKE_FS1
-	printf("FreeSpace v%d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-#else
-	printf("Freespace 2 v%d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 #endif
+
+	printf("%s v%d.%02d\n", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
 	printf("icculus.org client v%d.%02d\n\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
 
 	exit(0);
@@ -774,7 +776,7 @@ int parse_cmdline(const char *cmdline)
 
 	// display game version
 	if(fs_version.found()){
-		printf("Freespace 2 version:  %d.%02d\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+		printf("%s version:  %d.%02d\n", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
 		printf("icculus.org client version:  %d.%02d\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
 		exit(0);
 	}

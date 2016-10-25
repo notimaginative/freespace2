@@ -1857,13 +1857,14 @@ int beam_get_model(object *objp)
 		return Debris[objp->instance].model_num;		
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
-	case OBJ_ASTEROID:
+	case OBJ_ASTEROID: {
 		int subtype = Asteroids[objp->instance].asteroid_subtype;
 		SDL_assert(Asteroids[objp->instance].type >= 0);
 		if(Asteroids[objp->instance].type < 0){
 			return -1;
 		}
 		return Asteroid_info[Asteroids[objp->instance].type].model_num[subtype];
+	}
 #endif
 
 	default:

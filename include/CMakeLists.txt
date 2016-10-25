@@ -24,6 +24,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/barracks.h
   ${CMAKE_CURRENT_SOURCE_DIR}/beam.h
   ${CMAKE_CURRENT_SOURCE_DIR}/bmpman.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/cc_fsdemo.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cfilearchive.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cfile.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cfilesystem.h

@@ -387,7 +387,7 @@ int HUD_config_default_flags2 =
 {
 	(1<<(HUD_OFFSCREEN_RANGE-32)) |
 	(1<<(HUD_KILLS_GAUGE-32)) |
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO) || defined(MAKE_FS1)
 	(1<<(HUD_ATTACKING_TARGET_COUNT-32))
 #else
 	(1<<(HUD_ATTACKING_TARGET_COUNT-32)) | 

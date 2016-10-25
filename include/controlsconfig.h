@@ -307,6 +307,9 @@ typedef struct config_item {
 // This is the value of the id field in config_item
 // --------------------------------------------------
 
+#ifdef FS1_DEMO
+#include "cc_fsdemo.h"
+#else
 // targeting a ship
 
 #define TARGET_NEXT										0
@@ -451,12 +454,13 @@ typedef struct config_item {
 
 // this should be the total number of control action defines above (or last define + 1)
 #define CCFG_MAX 107
-#else
+#else	// !FS2_DEMO
 #define CCFG_MAX 105
 #endif
-#else
+#else	// !MAKE_FS1
 // this should be the total number of control action defines above (or last define + 1)
 #define CCFG_MAX 104
+#endif
 #endif
 
 extern int Failed_key_index;

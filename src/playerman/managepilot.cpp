@@ -394,7 +394,44 @@ int verify_pilot_file(const char *filename, int single, int *rank)
 
 void pilot_write_techroom_data(CFILE *file)
 {
-	int idx;		
+	int idx;
+
+#ifdef FS1_DEMO
+	int flags;
+
+	// ships
+	flags = 0;
+
+	for (idx = 0; idx < Num_ship_types; idx++) {
+		if (Ship_info[idx].flags & SIF_IN_TECH_DATABASE) {
+			flags |= 1<<idx;
+		}
+	}
+
+	cfwrite_int(flags, file);
+
+	// weapons - first set
+	flags = 0;
+
+	for (idx = 0; (idx < 32) && (idx < Num_weapon_types); idx++) {
+		if (Weapon_info[idx].wi_flags & WIF_IN_TECH_DATABASE) {
+			flags |= 1<<idx;
+		}
+	}
+
+	cfwrite_int(flags, file);
+
+	// weapons - second set
+	flags = 0;
+
+	for (idx = 32; idx < Num_weapon_types; idx++) {
+		if (Weapon_info[idx].wi_flags & WIF_IN_TECH_DATABASE) {
+			flags |= 1<<(idx-32);
+		}
+	}
+
+	cfwrite_int(flags, file);
+#else
 	ubyte out;
 
 	// write the ship and weapon count
@@ -414,7 +451,8 @@ void pilot_write_techroom_data(CFILE *file)
 	for (idx=0; idx<Num_weapon_types; idx++) {
 		out = (Weapon_info[idx].wi_flags & WIF_IN_TECH_DATABASE) ? (ubyte)1 : (ubyte)0;
 		cfwrite_ubyte(out, file);
-	}	
+	}
+#endif
 
 #ifndef MAKE_FS1
 	// write all intel entry flags out
@@ -427,7 +465,6 @@ void pilot_write_techroom_data(CFILE *file)
 	cfwrite_int(shivans, file);
 #endif
 }
-
 
 #ifdef MAKE_FS1
 void pilot_read_techroom_data(CFILE *file)
@@ -450,6 +487,7 @@ void pilot_read_techroom_data(CFILE *file)
 			}
 		}
 
+#ifndef FS1_DEMO
 		// second set of ships visible
 		vflags = cfread_int(file);
 
@@ -471,6 +509,7 @@ void pilot_read_techroom_data(CFILE *file)
 				Ship_info[idx+64].flags &= ~SIF_IN_TECH_DATABASE;
 			}
 		}
+#endif
 
 		// first set of weapons visible
 		vflags = cfread_int(file);
@@ -608,6 +647,17 @@ void pilot_write_loadout(CFILE *file)
 	cfwrite_string_len(Player_loadout.filename, file);
 	cfwrite_string_len(Player_loadout.last_modified, file);
 
+#ifdef FS1_DEMO
+	// write ship pool
+	for ( i = 0; i < MAX_SHIP_TYPES; i++ ) {
+		cfwrite_int(Player_loadout.ship_pool[i], file);
+	}
+
+	// write weapons pool
+	for ( i = 0; i < MAX_WEAPON_TYPES; i++ ) {
+		cfwrite_int(Player_loadout.weapon_pool[i], file);
+	}
+#else
 	// write ship and weapon counts
 	cfwrite_int(Num_ship_types, file);
 	cfwrite_int(Num_weapon_types, file);
@@ -621,6 +671,7 @@ void pilot_write_loadout(CFILE *file)
 	for ( i = 0; i < Num_weapon_types; i++ ) {
 		cfwrite_int(Player_loadout.weapon_pool[i], file);
 	}
+#endif
 
 	// write ship loadouts
 	for ( i = 0; i < MAX_WSS_SLOTS; i++ ) {
@@ -647,10 +698,10 @@ void pilot_read_loadout(CFILE *file)
 	cfread_string_len(Player_loadout.last_modified, DATE_TIME_LENGTH, file);	
 
 	// read in ship and weapon counts
-#ifndef MAKE_FS1
-	ship_count = cfread_int(file);
-	weapon_count = cfread_int(file);
-#else
+#if defined(FS1_DEMO)
+	ship_count = MAX_SHIP_TYPES;
+	weapon_count = MAX_WEAPON_TYPES;
+#elif defined(MAKE_FS1)
 	if (Player_file_version < 100) {
 		ship_count = PLR_MAX_SHIP_TYPES_OLD;
 		weapon_count = PLR_MAX_WEAPON_TYPES_OLD;
@@ -658,6 +709,9 @@ void pilot_read_loadout(CFILE *file)
 		ship_count = cfread_int(file);
 		weapon_count = cfread_int(file);
 	}
+#else
+	ship_count = cfread_int(file);
+	weapon_count = cfread_int(file);
 #endif
 
 	SDL_assert(ship_count <= MAX_SHIP_TYPES);
@@ -755,8 +809,10 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		p->flags &= ~PLAYER_FLAGS_IS_MULTI;	// this takes care of unsetting any leftover bits from a (possibly) previously selected pilot
 	}
 
+#ifndef FS1_DEMO
 	// read in rank.
 	cfread_int(file);  
+#endif
 
 	// get player location
 	p->on_bastion = cfread_ubyte(file);
@@ -855,8 +911,10 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	}
 #endif
 
+#ifndef FS1_DEMO
 	// read in the cutscenes which have been viewed
 	Cutscenes_viewable = cfread_int(file);
+#endif
 
 	Master_sound_volume = cfread_float(file);
 	Master_event_music_volume = cfread_float(file);
@@ -932,6 +990,13 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 	// restore wingman status used by red alert missions
 	red_alert_read_wingman_status(file, Player_file_version);
+
+#ifdef FS1_DEMO
+	// HACK - FIXME!!!
+	char blank[57];
+	SDL_zero(blank);
+	cfread(blank, SDL_arraysize(blank), 1, file);
+#endif
 
 	// read techroom data
 	pilot_read_techroom_data(file);
@@ -1121,7 +1186,9 @@ int write_pilot_file_core(player *p)
 	cfwrite_uint(CURRENT_PLAYER_FILE_VERSION, file);
 
 	cfwrite_ubyte(is_multi, file);
+#ifndef FS1_DEMO
 	cfwrite_int(p->stats.rank, file);
+#endif
 	cfwrite_ubyte((ubyte) p->on_bastion, file);
 
 #ifndef MAKE_FS1
@@ -1197,8 +1264,10 @@ int write_pilot_file_core(player *p)
 		memcpy(&HUD_config,&hc_temp,sizeof(HUD_CONFIG_TYPE));
 	}
 
+#ifndef FS1_DEMO
 	// write the cutscenes which have been viewed
 	cfwrite_int(Cutscenes_viewable, file);
+#endif
 
 	// store the digital sound fx volume, and music volume
 	cfwrite_float(Master_sound_volume, file);
@@ -1245,6 +1314,12 @@ int write_pilot_file_core(player *p)
 	}
 
 	red_alert_write_wingman_status(file);
+#ifdef FS1_DEMO
+	// HACK - FIXME!!!
+	char blank[57];
+	SDL_zero(blank);
+	cfwrite(blank, SDL_arraysize(blank), 1, file);
+#endif
 	pilot_write_techroom_data(file);
 
 	// store auto-advance pref

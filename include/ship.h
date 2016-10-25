@@ -885,6 +885,8 @@ extern engine_wash_info Engine_wash_info[MAX_ENGINE_WASH_TYPES];
 // ****************************************************************
 #if defined(FS2_DEMO)
 #define MAX_SHIP_TYPES		120
+#elif defined(FS1_DEMO)
+#define MAX_SHIP_TYPES		15
 #elif defined(MAKE_FS1)
 #define MAX_SHIP_TYPES		75
 #else

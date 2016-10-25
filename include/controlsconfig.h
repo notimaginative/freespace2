@@ -308,6 +308,7 @@ typedef struct config_item {
 // --------------------------------------------------
 
 #ifdef FS1_DEMO
+// control order is different in FS1 demo so separate it out for the sake of clarity
 #include "cc_fsdemo.h"
 #else
 // targeting a ship
@@ -451,17 +452,18 @@ typedef struct config_item {
 #define MULTI_TOGGLE_NETINFO							105
 
 #define MULTI_SELF_DESTRUCT							106
+#endif	// FS2_DEMO
+#endif	// MAKE_FS1
 
 // this should be the total number of control action defines above (or last define + 1)
-#define CCFG_MAX 107
-#else	// !FS2_DEMO
-#define CCFG_MAX 105
-#endif
-#else	// !MAKE_FS1
-// this should be the total number of control action defines above (or last define + 1)
+#if defined(MAKE_FS1)
 #define CCFG_MAX 104
+#elif defined(FS2_DEMO)
+#define CCFG_MAX 105
+#else
+#define CCFG_MAX 107
 #endif
-#endif
+#endif	// !FS1_DEMO
 
 extern int Failed_key_index;
 extern int Invert_heading;

@@ -949,9 +949,21 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
    Game_skill_level = cfread_int(file);
 
-	for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
-		Axis_map_to[i] = cfread_int(file);
-		Invert_axis[i] = cfread_int(file);
+	// original axes (4) not bindable, just inverted or not
+	if (Player_file_version < 94) {
+		// heading, pitch, bank, throttle
+		for (i = 0; i < 4; i++) {
+			Invert_axis[i] = cfread_int(file);
+		}
+
+		// throttle and roll axes can be disabled (not supported here)
+		cfread_int(file);
+		cfread_int(file);
+	} else {
+		for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
+			Axis_map_to[i] = cfread_int(file);
+			Invert_axis[i] = cfread_int(file);
+		}
 	}
 
 	// restore some player flags
@@ -1004,10 +1016,12 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	// restore auto-advance pref
 	Player->auto_advance = cfread_int(file);
 
-	Use_mouse_to_fly = cfread_int(file);
-	Mouse_sensitivity = cfread_int(file);
-	Joy_sensitivity = cfread_int(file);
-	Dead_zone_size = cfread_int(file);
+	if (Player_file_version >= 94) {
+		Use_mouse_to_fly = cfread_int(file);
+		Mouse_sensitivity = cfread_int(file);
+		Joy_sensitivity = cfread_int(file);
+		Dead_zone_size = cfread_int(file);
+	}
 
 	if (cfclose(file))
 		return errno;

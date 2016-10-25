@@ -244,7 +244,9 @@ void multi_options_read_config()
 	// set default value for the global multi options
 	memset(&Multi_options_g, 0, sizeof(multi_global_options));
 	Multi_options_g.protocol = NET_TCP;
+#ifndef FS1_DEMO
 	Multi_options_g.pxo = 1;
+#endif
 
 	// do we have a forced port via commandline or registry?
 	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
@@ -454,6 +456,11 @@ void multi_options_read_config_fs1()
 	CFILE *in;
 	char str[512];
 	char *tok = NULL;
+
+#ifdef FS1_DEMO
+	// FS1 demo is single-player only, so don't bother with this
+	return;
+#endif
 
 	SDL_zero(str);
 

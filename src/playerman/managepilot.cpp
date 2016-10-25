@@ -478,7 +478,7 @@ void pilot_read_techroom_data(CFILE *file)
 		for (idx = 0; idx < 32; idx++) {
 			if ( (vflags & (1<<idx)) && (idx < Num_weapon_types) ) {
 				Weapon_info[idx].wi_flags |= WIF_IN_TECH_DATABASE;
-			} else if (idx < Num_ship_types) {
+			} else if (idx < Num_weapon_types) {
 				Weapon_info[idx].wi_flags &= ~WIF_IN_TECH_DATABASE;
 			}
 		}
@@ -489,7 +489,7 @@ void pilot_read_techroom_data(CFILE *file)
 		for (idx = 0; idx < 32; idx++) {
 			if ( (vflags & (1<<idx)) && ((idx+32) < Num_weapon_types) ) {
 				Weapon_info[idx+32].wi_flags |= WIF_IN_TECH_DATABASE;
-			} else if ((idx+32) < Num_ship_types) {
+			} else if ((idx+32) < Num_weapon_types) {
 				Weapon_info[idx+32].wi_flags &= ~WIF_IN_TECH_DATABASE;
 			}
 		}

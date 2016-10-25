@@ -627,7 +627,11 @@ void multi_options_set_netgame_defaults(multi_server_options *options)
 	options->mission_time_limit = fl2f(-1.0f);
 
 	// set the default max kills for a mission
+#ifdef MAKE_FS1
+	options->kill_limit = 99999;
+#else
 	options->kill_limit = 9999;
+#endif
 
 	// set the default # of respawns
 	options->respawn = 2;

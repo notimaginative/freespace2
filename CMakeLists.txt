@@ -83,7 +83,7 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
-find_package(SDL2 "2.0.2" REQUIRED)
+find_package(SDL2 "2.0.5" REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(LibWebSockets REQUIRED)

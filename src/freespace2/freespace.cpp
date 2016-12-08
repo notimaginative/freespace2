@@ -7663,12 +7663,14 @@ void oem_upsell_show_screens()
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
 
-#ifdef FS2_DEMO
-#define NUM_DEMO_UPSELL_SCREENS				2
-#elif FS1_DEMO
+#ifdef FS1_DEMO
 #define NUM_DEMO_UPSELL_SCREENS				4
+#define DEMO_UPSELL_SCREEN_DELAY			15000
+#else
+#define NUM_DEMO_UPSELL_SCREENS				2
+#define DEMO_UPSELL_SCREEN_DELAY			3000
 #endif
-#define DEMO_UPSELL_SCREEN_DELAY				3000
+
 
 static int Demo_upsell_bitmaps_loaded = 0;
 static int Demo_upsell_bitmaps[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS];
@@ -7737,7 +7739,7 @@ void demo_upsell_unload_bitmaps()
 
 void demo_upsell_show_screens()
 {
-	int current_time, k;
+	int k;
 	int done = 0;
 
 	if ( !Demo_upsell_bitmaps_loaded ) {
@@ -7756,19 +7758,17 @@ void demo_upsell_show_screens()
 
 		demo_reset_trailer_timer();
 
-		current_time = timer_get_milliseconds();
-
 // #ifndef THREADED
 		os_poll();
 // #endif
 		k = key_inkey();
 
-		// don't time out, wait for keypress
-		/*
-		if ( current_time > Demo_upsell_show_next_bitmap_time ) {
+#ifdef FS1_DEMO
+		if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
 			demo_upsell_next_screen();
 			k = 0;
-		}*/
+		}
+#endif
 
 		if ( k > 0 ) {
 			demo_upsell_next_screen();

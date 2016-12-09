@@ -882,7 +882,7 @@ object *hud_reticle_pick_target()
 		}
 	}
 
-	for ( cur_rl = GET_FIRST(&Reticle_cur_list); cur_rl != END_OF_LIST(&Reticle_cur_list); cur_rl = GET_NEXT(cur_rl) ) {
+	for ( cur_rl = GET_FIRST(&Reticle_cur_list); cur_rl && (cur_rl != END_OF_LIST(&Reticle_cur_list)); cur_rl = GET_NEXT(cur_rl) ) {
 		in_save_list = 0;
 		for ( save_rl = GET_FIRST(&Reticle_save_list); save_rl != END_OF_LIST(&Reticle_save_list); save_rl = GET_NEXT(save_rl) ) {
 			if ( cur_rl->objp == save_rl->objp ) {

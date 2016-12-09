@@ -851,7 +851,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 			text = toke2 + 1;  // advance pointers past processed data
 
 			toke1 = SDL_strchr(text, '#');
-			if (toke1)  // No second one?
+			if (!toke1)  // No second one?
 				break;
 
 			len = SDL_min(toke1 - text + 1, max_buflen);

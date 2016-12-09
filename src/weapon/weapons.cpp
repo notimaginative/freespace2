@@ -1591,7 +1591,7 @@ void weapon_render(object *obj)
 	int num;
 	weapon_info *wip;
 	weapon *wp;
-	color c;
+	color c = { 0 };
 
 	MONITOR_INC(NumWeaponsRend, 1);
 

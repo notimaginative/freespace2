@@ -651,6 +651,7 @@ void palman_create_blend_table(float factor, ubyte *table)
 				Df = 1.0f - si;
 			}
 		} else {
+			/*
 			if ( si > 1.0f )	{
 				Sf = 1.0f;
 				Df = 0.0f;
@@ -658,6 +659,7 @@ void palman_create_blend_table(float factor, ubyte *table)
 				Sf = si;
 				Df = 1.0f;
 			}
+			*/
 			Sf = factor;
 			Df = 1.0f;
 		}

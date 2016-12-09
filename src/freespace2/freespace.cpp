@@ -7922,15 +7922,15 @@ int detect_lang()
 	#define NUM_SHIPS_TBL_CHECKSUMS		1
 #endif
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO)
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	1696074201,						// FS2 demo
 };
-#elif FS1_DEMO
+#elif defined(FS1_DEMO)
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	1603375034,						// FS1 DEMO
 };
-#elif MAKE_FS1
+#elif defined(MAKE_FS1)
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	-129679197,						// FS1 Full 1.06 (US)
 	7762567,						// FS1 SilentThreat
@@ -8010,15 +8010,15 @@ DCF(shipspew, "display the checksum for the current ships.tbl")
 	#define NUM_WEAPONS_TBL_CHECKSUMS		1
 #endif
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO)
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-266420030,				// demo 1
 };
-#elif FS1_DEMO
+#elif defined(FS1_DEMO)
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-1246928725,			// FS1 DEMO
 };
-#elif MAKE_FS1
+#elif defined(MAKE_FS1)
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-834598107,				// FS1 1.06 Full (US)
 	-1652231417,			// FS1 SilentThreat

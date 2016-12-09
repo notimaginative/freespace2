@@ -365,6 +365,10 @@ void multi_options_read_config()
 			} 
 		}
 
+		if (tok == NULL) {
+			continue;
+		}
+
 		// common to all modes
 		if(SETTING("+user_server")){
 			// ip addr of user tracker
@@ -423,7 +427,7 @@ void multi_options_read_config()
 					Multi_options_g.datarate_cap = atoi(tok);
 				}
 			}			
-		}
+		} else
 		if(SETTING("+http_proxy")){
 			// get the proxy server
 			NEXT_TOKEN();

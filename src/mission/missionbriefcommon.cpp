@@ -951,10 +951,6 @@ void brief_preload_highlight_anim(brief_icon *bi)
 	hud_anim *ha;
 	int species = ship_get_species_by_type(bi->ship_class);
 
-#ifdef MAKE_FS1
-	species = 0;
-#endif
-
 	if(species < 0){
 		return;
 	}
@@ -980,10 +976,6 @@ void brief_preload_fade_anim(brief_icon *bi)
 {
 	hud_anim *ha;
 	int species = ship_get_species_by_type(bi->ship_class);
-
-#ifdef MAKE_FS1
-	species = 0;
-#endif
 
 	if(species < 0){
 		return;
@@ -1233,10 +1225,6 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 		brief_set_icon_color(bi->team);
 
 		int species = ship_get_species_by_type(bi->ship_class);
-
-#ifdef MAKE_FS1
-		species = 0;
-#endif
 
 		if(species < 0){
 			return;
@@ -2067,10 +2055,6 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 
 			int species = ship_get_species_by_type(cb->icons[i].ship_class);
 
-#ifdef MAKE_FS1
-			species = 0;
-#endif
-
 			if(species < 0) {
 				return 0;
 			}
@@ -2093,10 +2077,6 @@ int brief_set_move_list(int new_stage, int current_stage, float time)
 		}
 		if ( is_new ) {
 			int species = ship_get_species_by_type(newb->icons[i].ship_class);
-
-#ifdef MAKE_FS1
-			species = 0;
-#endif
 
 			if(species < 0) {
 				return 0;
@@ -2725,10 +2705,6 @@ void brief_common_get_icon_dimensions(int *w, int *h, int type, int ship_class)
 	*h=0;
 
 	int species = ship_get_species_by_type(ship_class);
-
-#ifdef MAKE_FS1
-	species = 0;
-#endif
 
 	if(species < 0){
 		return;

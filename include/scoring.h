@@ -194,10 +194,10 @@ struct player;
 
 // ARGH. IMPORTANT : do not change NUM_MEDALS without talking to DaveB first. It will affect the size of the scoring struct and hence, will break
 // a lot of PXO related stuff. SEE ALSO : MAX_SHIP_TYPES
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO)
 	#define NUM_MEDALS			16
 	#define NUM_MEDALS_FS1		16
-#elif MAKE_FS1
+#elif defined(MAKE_FS1)
 	#define NUM_MEDALS			16
 	#define NUM_MEDALS_FS1		16
 #else

@@ -896,7 +896,7 @@ int oal_load_buffer(int *sid, int *final_size, WAVE_chunk *header, sound_info *s
 			// this ADPCM decoder decodes to 16-bit only so keep that in mind
 			nprintf(( "Sound", "SOUND ==> converting sound from ADPCM to PCM\n" ));
 
-			int rc = ACM_convert_ADPCM_to_PCM(header, si->data, si->size, &convert_buffer, 0, &convert_len, &src_bytes_used, 16);
+			int rc = ACM_convert_ADPCM_to_PCM(header, si->data, si->size, &convert_buffer, &convert_len, &src_bytes_used, 16);
 
 			// ACM conversion failed?
 			if ( (rc == -1) || (src_bytes_used != si->size) ) {

@@ -53,7 +53,7 @@
 #include "pstypes.h"
 #include "oal.h"
 
-int	ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int max_dest_bytes, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps=16);
+int	ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps=16);
 
 int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, int dest_bps=16);
 int ACM_stream_close(void *stream);

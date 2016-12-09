@@ -3106,7 +3106,7 @@ void ai_attack_object(object *attacker, object *attacked, int priority, ship_sub
 	if (!(Ship_info[Ships[attacker->instance].ship_info_index].flags & SIF_SMALL_SHIP)) {
 //		nprintf(("AI","Note: AI ship %s refusing to set AI mode to AIM_CHASE\n", Ships[attacker->instance].ship_name));
 //		return;
-		nprintf(("AI", "AI ship %s is large ship ordered to attack %s\n", Ships[attacker->instance].ship_name, Ships[attacked->instance].ship_name));
+		nprintf(("AI", "AI ship %s is large ship ordered to attack %s\n", Ships[attacker->instance].ship_name, (attacked) ? Ships[attacked->instance].ship_name : "<none>"));
 	}
 
 	//	This is how "engage enemy" gets processed

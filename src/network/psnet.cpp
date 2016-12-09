@@ -2542,7 +2542,6 @@ int psnet_reliable_send(ubyte *data,int packet_size,net_addr_t *addr)
 	}
 
 	// try and find a guy to send to 
-	to_index = -1;
 	to_index = psnet_reliable_addr_index(addr);
 	if(to_index == -1){
 		nprintf(("Network","PSNET RELIABLE : could not find player for outgoing packet!\n"));
@@ -2550,7 +2549,6 @@ int psnet_reliable_send(ubyte *data,int packet_size,net_addr_t *addr)
 	}
 
 	// attempt to get a free buffer
-	free_buffer = -1;
 	free_buffer = psnet_reliable_get_free_outgoing();
 	if(free_buffer == -1){
 		Int3();						// should never happen - we should always overwrite the oldest buffer
@@ -2671,7 +2669,6 @@ int psnet_reliable_should_process(net_addr_t *addr,ubyte *data,int packet_size)
 	packet_index = psnet_reliable_find_in_id(id_num);
 	if(packet_index == -1){
 		// get a free index
-		free_index = -1;
 		free_index = psnet_reliable_get_free_incoming();
 		if(free_index == -1){
 			Int3();

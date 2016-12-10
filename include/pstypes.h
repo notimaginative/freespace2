@@ -317,6 +317,11 @@ typedef struct vertex {
 	ubyte		codes;				// what sides of view pyramid this point is on/off.  0 = Inside view pyramid.
 	ubyte		flags;				// Projection flags.  Indicates whether it is projected or not or if projection overflowed.
 	ubyte		pad[2];				// pad structure to be 4 byte aligned.
+
+	vertex() : x(0.0f), y(0.0f), z(0.0f), sx(0.0f), sy(0.0f), sw(0.0f), u(0.0f),
+		v(0.0f), r(0), g(0), b(0), a(0), codes(0), flags(0)
+	{
+	}
 } vertex;
 
 #define	BMP_AABITMAP		(1<<0)				// antialiased bitmap

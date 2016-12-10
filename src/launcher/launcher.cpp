@@ -45,7 +45,11 @@
 #include "res/fs2_btn_volition.xpm"
 #include "res/fs2_btn_volition-hover.xpm"
 #include "res/fs2_btn_volition-click.xpm"
+#ifdef FS2_DEMO
+#include "res/fs2demo_help_txt.h"
+#else
 #include "res/fs2_help_txt.h"
+#endif
 #include "res/fs2_snd_hover_wav.h"
 #include "res/fs2_snd_click_wav.h"
 #else
@@ -204,7 +208,11 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 #ifndef MAKE_FS1
 	this->SetClientSize(375, 440);
+#ifdef FS2_DEMO
+	this->SetTitle( wxT("FreeSpace 2 Demo Launcher") );
+#else
 	this->SetTitle( wxT("FreeSpace 2 Launcher") );
+#endif
 
 	init_sound();
 
@@ -252,7 +260,11 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_btn_Quit->SetBitmapPressed( wxBitmap(fs2_btn_quit_click_xpm) );
 #else
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+#ifdef FS1_DEMO
+	this->SetTitle( wxT("FreeSpace Demo Launcher") );
+#else
 	this->SetTitle( wxT("FreeSpace Launcher") );
+#endif
 
 	wxBoxSizer* bSizer3;
 	bSizer3 = new wxBoxSizer( wxVERTICAL );
@@ -353,7 +365,11 @@ void Launcher::OnSetup( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnReadme( wxCommandEvent& WXUNUSED(event) )
 {
-	wxLaunchDefaultApplication("README.txt");
+	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
+
+	epath.Append( wxT("readme.txt") );
+
+	wxLaunchDefaultApplication(epath);
 }
 
 void Launcher::OnUpdate( wxCommandEvent& WXUNUSED(event) )
@@ -375,7 +391,11 @@ void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
 
 	wxTextCtrl *m_help_txt = new wxTextCtrl( help, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
 	m_help_txt->SetMinSize(txtsize);
+#ifdef FS2_DEMO
+	m_help_txt->AppendText(fs2demo_help_txt);
+#else
 	m_help_txt->AppendText(fs2_help_txt);
+#endif
 	m_help_txt->SetInsertionPoint(0);
 	bSizer->Add( m_help_txt, 0, wxALL|wxEXPAND, 5 );
 

@@ -3494,6 +3494,7 @@ void multi_sg_rank_build_name(char *in, char *out, const int max_outlen)
 	// just copy the string
 	if(first == NULL){
 		SDL_strlcpy(out, in, max_outlen);
+		return;
 	}
 	
 	// if the first part of the string is lieutenant, then abbreivate it and tack on the rest of the string	
@@ -8251,7 +8252,7 @@ void multi_sync_blit_screen_all()
 			state = Net_players[idx].state;
 
 			// if we're ingame joining, show all other players except myself as "playing"
-			if((Net_player != NULL) && (&Net_players[idx] != Net_player) && ((Multi_sync_mode == MULTI_SYNC_INGAME) || (Net_player->flags & NETINFO_FLAG_INGAME_JOIN)) ){
+			if((&Net_players[idx] != Net_player) && ((Multi_sync_mode == MULTI_SYNC_INGAME) || (Net_player->flags & NETINFO_FLAG_INGAME_JOIN)) ){
 				state = NETPLAYER_STATE_IN_MISSION;
 			}
 

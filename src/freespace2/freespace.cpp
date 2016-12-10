@@ -1236,13 +1236,9 @@ static const char *Game_loading_ani_fname[GR_NUM_RESOLUTIONS] = {
 	"2_Loading.ani"		// GR_1024
 };
 
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
+#if defined(FS2_DEMO)
 static const char *Game_demo_title_screen_fname[GR_NUM_RESOLUTIONS] = {
-#ifdef FS1_DEMO
-	"DemoTitle1",
-#else
 	"PreLoad",
-#endif  // FS1_DEMO
 	"2_PreLoad"
 };
 #elif defined(OEM_BUILD)
@@ -2362,7 +2358,7 @@ void game_init()
 	gr_init();
 
 
-#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
 	// add title screen
 	if(!Is_standalone){
 		display_title_screen();
@@ -7422,13 +7418,18 @@ void game_format_time(fix m_time, char *time_str, const int time_str_len)
 void get_version_string(char *str, const int str_len)
 {
 //XSTR:OFF
+#ifdef FS1_DEMO
+	SDL_snprintf(str, str_len, "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	return;
+#endif
+
 	if ( FS_VERSION_BUILD == 0 ) {
 		SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 	} else {
 		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
 	}
 
-#if defined (FS2_DEMO) || defined(FS1_DEMO)
+#if defined (FS2_DEMO)
 	SDL_strlcat(str, " D", str_len);
 #elif defined (OEM_BUILD)
 	SDL_strlcat(str, " (OEM)", str_len);
@@ -7662,12 +7663,14 @@ void oem_upsell_show_screens()
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
 
-#ifdef FS2_DEMO
-#define NUM_DEMO_UPSELL_SCREENS				2
-#elif FS1_DEMO
+#ifdef FS1_DEMO
 #define NUM_DEMO_UPSELL_SCREENS				4
+#define DEMO_UPSELL_SCREEN_DELAY			15000
+#else
+#define NUM_DEMO_UPSELL_SCREENS				2
+#define DEMO_UPSELL_SCREEN_DELAY			3000
 #endif
-#define DEMO_UPSELL_SCREEN_DELAY				3000
+
 
 static int Demo_upsell_bitmaps_loaded = 0;
 static int Demo_upsell_bitmaps[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS];
@@ -7675,7 +7678,7 @@ static int Demo_upsell_screen_number = 0;
 static int Demo_upsell_show_next_bitmap_time;
 
 //XSTR:OFF
-static char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] = 
+static const char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] =
 {
 #ifdef FS1_DEMO
 	{	"DemoUpsell1",
@@ -7736,7 +7739,7 @@ void demo_upsell_unload_bitmaps()
 
 void demo_upsell_show_screens()
 {
-	int current_time, k;
+	int k;
 	int done = 0;
 
 	if ( !Demo_upsell_bitmaps_loaded ) {
@@ -7755,19 +7758,17 @@ void demo_upsell_show_screens()
 
 		demo_reset_trailer_timer();
 
-		current_time = timer_get_milliseconds();
-
 // #ifndef THREADED
 		os_poll();
 // #endif
 		k = key_inkey();
 
-		// don't time out, wait for keypress
-		/*
-		if ( current_time > Demo_upsell_show_next_bitmap_time ) {
+#ifdef FS1_DEMO
+		if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
 			demo_upsell_next_screen();
 			k = 0;
-		}*/
+		}
+#endif
 
 		if ( k > 0 ) {
 			demo_upsell_next_screen();
@@ -7921,15 +7922,15 @@ int detect_lang()
 	#define NUM_SHIPS_TBL_CHECKSUMS		1
 #endif
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO)
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	1696074201,						// FS2 demo
 };
-#elif FS1_DEMO
+#elif defined(FS1_DEMO)
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	1603375034,						// FS1 DEMO
 };
-#elif MAKE_FS1
+#elif defined(MAKE_FS1)
 int Game_ships_tbl_checksums[NUM_SHIPS_TBL_CHECKSUMS] = {
 	-129679197,						// FS1 Full 1.06 (US)
 	7762567,						// FS1 SilentThreat
@@ -8009,15 +8010,15 @@ DCF(shipspew, "display the checksum for the current ships.tbl")
 	#define NUM_WEAPONS_TBL_CHECKSUMS		1
 #endif
 
-#ifdef FS2_DEMO
+#if defined(FS2_DEMO)
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-266420030,				// demo 1
 };
-#elif FS1_DEMO
+#elif defined(FS1_DEMO)
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-1246928725,			// FS1 DEMO
 };
-#elif MAKE_FS1
+#elif defined(MAKE_FS1)
 int Game_weapons_tbl_checksums[NUM_WEAPONS_TBL_CHECKSUMS] = {
 	-834598107,				// FS1 1.06 Full (US)
 	-1652231417,			// FS1 SilentThreat
@@ -8100,7 +8101,7 @@ int game_hacked_data()
 
 void display_title_screen()
 {
-#if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
 	///int title_bitmap;
 
 	// load bitmap
@@ -8118,8 +8119,11 @@ void display_title_screen()
 	// flip
 	gr_flip();
 
+	// give it some time on screen
+	SDL_Delay(1000);
+
 	bm_unload(title_bitmap);
-#endif  // FS2_DEMO || OEM_BUILD || FS1_DEMO
+#endif  // FS2_DEMO || OEM_BUILD
 }
 
 // return true if the game is running with "low memory", which is less than 48MB

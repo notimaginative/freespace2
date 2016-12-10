@@ -377,6 +377,7 @@ anim_instance *anim_play(anim_play_struct *aps)
 	}
 	instance->frame = (ubyte *) malloc(instance->parent->width * instance->parent->height * 2);
 	SDL_assert( instance->frame != NULL );
+	memset(instance->frame, 0, instance->parent->width * instance->parent->height * 2);
 	instance->time_elapsed = 0.0f;
 	instance->stop_at = aps->stop_at;
 	instance->x = aps->x;

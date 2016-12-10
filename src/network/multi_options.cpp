@@ -243,7 +243,10 @@ void multi_options_read_config()
 {
 	// set default value for the global multi options
 	memset(&Multi_options_g, 0, sizeof(multi_global_options));
-	Multi_options_g.protocol = NET_TCP;	
+	Multi_options_g.protocol = NET_TCP;
+#ifndef FS1_DEMO
+	Multi_options_g.pxo = 1;
+#endif
 
 	// do we have a forced port via commandline or registry?
 	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
@@ -362,6 +365,10 @@ void multi_options_read_config()
 			} 
 		}
 
+		if (tok == NULL) {
+			continue;
+		}
+
 		// common to all modes
 		if(SETTING("+user_server")){
 			// ip addr of user tracker
@@ -420,7 +427,7 @@ void multi_options_read_config()
 					Multi_options_g.datarate_cap = atoi(tok);
 				}
 			}			
-		}
+		} else
 		if(SETTING("+http_proxy")){
 			// get the proxy server
 			NEXT_TOKEN();
@@ -453,6 +460,11 @@ void multi_options_read_config_fs1()
 	CFILE *in;
 	char str[512];
 	char *tok = NULL;
+
+#ifdef FS1_DEMO
+	// FS1 demo is single-player only, so don't bother with this
+	return;
+#endif
 
 	SDL_zero(str);
 
@@ -619,7 +631,11 @@ void multi_options_set_netgame_defaults(multi_server_options *options)
 	options->mission_time_limit = fl2f(-1.0f);
 
 	// set the default max kills for a mission
+#ifdef MAKE_FS1
+	options->kill_limit = 99999;
+#else
 	options->kill_limit = 9999;
+#endif
 
 	// set the default # of respawns
 	options->respawn = 2;

@@ -812,16 +812,16 @@ void physics_predict_vel(physics_info *pi, float delta_time, vector *predicted_v
 {
 	if (pi->flags & PF_CONST_VEL) {
 		predicted_vel = &pi->vel;
-	} else {
-		apply_physics( pi->side_slip_time_const, pi->desired_vel.xyz.x, pi->vel.xyz.x, delta_time, 
-									 &predicted_vel->xyz.x, NULL );
-
-		apply_physics( pi->side_slip_time_const, pi->desired_vel.xyz.y, pi->vel.xyz.y, delta_time, 
-									 &predicted_vel->xyz.y, NULL );
-
-		apply_physics( pi->side_slip_time_const, pi->desired_vel.xyz.z, pi->vel.xyz.z, delta_time, 
-									 &predicted_vel->xyz.z, NULL );
 	}
+
+	apply_physics( pi->side_slip_time_const, pi->desired_vel.xyz.x, pi->vel.xyz.x, delta_time,
+								 &predicted_vel->xyz.x, NULL );
+
+	apply_physics( pi->side_slip_time_const, pi->desired_vel.xyz.y, pi->vel.xyz.y, delta_time,
+								 &predicted_vel->xyz.y, NULL );
+
+	apply_physics( pi->side_slip_time_const, pi->desired_vel.xyz.z, pi->vel.xyz.z, delta_time,
+								 &predicted_vel->xyz.z, NULL );
 }
 
 // function to predict position and velocity of an object

@@ -9515,6 +9515,10 @@ int ship_is_beginning_warpout_speedup(object *objp)
 // given a ship info type, return a species
 int ship_get_species_by_type(int ship_info_index)
 {
+#ifdef MAKE_FS1
+	return 0;
+#endif
+
 	// sanity
 	if((ship_info_index < 0) || (ship_info_index >= Num_ship_types)){
 		return -1;

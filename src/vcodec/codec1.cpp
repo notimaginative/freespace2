@@ -1361,8 +1361,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
 				packet.Data2 = (unsigned short)(EncTable[table][*in++]);
 				packet.Data1 = (unsigned short)(EncTable[table][*in++]);
 				finalPacketData = 
-				packet.Data0 = (unsigned short)(EncTable[table][*in]);
-				data0 = *in++;
+				packet.Data0 = (unsigned short)(EncTable[table][*in++]);
                 *(t_PacketHF1*)out = packet;
                 out += sizeof(packet);
 

@@ -1053,7 +1053,7 @@ void delete_player(int player_num,int kicked_reason)
 		Net_players[player_num].flags &= ~(NETINFO_FLAG_GAME_HOST);
 	
 		// am I the server
-		if((Net_player != NULL) && (Net_player->flags & NETINFO_FLAG_AM_MASTER)){
+		if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 			// are we a standalone server and in a mission?
 			if((Game_mode & GM_STANDALONE_SERVER) && MULTI_IN_MISSION){			
 				// choose a new host			
@@ -2280,8 +2280,10 @@ void multi_warpout_all_players()
 		return;
 	}
 
+	SDL_assert(Player_obj != NULL);
+
 	// stop my afterburners
-	if((Player_obj != NULL) && (Player_obj->type == OBJ_SHIP) && !(Game_mode & GM_STANDALONE_SERVER)){
+	if((Player_obj->type == OBJ_SHIP) && !(Game_mode & GM_STANDALONE_SERVER)){
 		afterburners_stop( Player_obj, 1 );
 	}
 

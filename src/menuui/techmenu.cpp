@@ -1507,6 +1507,14 @@ void techroom_intel_init()
 {
 	static int inited = 0;
 
+#ifdef FS1_DEMO
+	// fs1 demo doesn't have techroom, nor a species.tbl
+	SDL_zero(Intel_info);
+	Intel_info_size = 0;
+
+	return;
+#endif
+
 	// open localization
 	lcl_ext_open();
 

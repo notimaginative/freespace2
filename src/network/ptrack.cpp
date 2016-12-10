@@ -26,7 +26,11 @@
 // check structs for size compatibility
 //SDL_COMPILE_TIME_ASSERT(udp_packet_header, sizeof(udp_packet_header) == 497);
 #ifndef MAKE_FS1
+#ifdef FS2_DEMO
+SDL_COMPILE_TIME_ASSERT(vmt_freespace2_struct, sizeof(vmt_freespace2_struct) == 408);
+#else
 SDL_COMPILE_TIME_ASSERT(vmt_freespace2_struct, sizeof(vmt_freespace2_struct) == 440);
+#endif
 #else
 SDL_COMPILE_TIME_ASSERT(vmt_freespace_struct, sizeof(vmt_freespace_struct) == 468);
 #endif
@@ -119,6 +123,14 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 			for (i = 0; i < MAX_FS_SHIP_TYPES; i++) {
 				PXO_ADD_INT(fs2->kills[i]);
 			}
+#elif defined(FS2_DEMO)
+			for (i = 0; i < MAX_FS2_MEDALS; i++) {
+				PXO_ADD_INT(fs2->medals[i]);
+			}
+
+			for (i = 0; i < MAX_FS2_SHIP_TYPES; i++) {
+				PXO_ADD_USHORT(fs2->kills[i]);
+			}
 #endif
 
 			PXO_ADD_INT(fs2->assists);
@@ -145,7 +157,7 @@ static int SerializePilotPacket(const udp_packet_header *uph, ubyte *data)
 			PXO_ADD_UINT(fs2->flight_time);
 			PXO_ADD_UINT(fs2->last_flown);
 
-#ifndef MAKE_FS1
+#if !defined(MAKE_FS1) && !defined(FS2_DEMO)
 			PXO_ADD_USHORT(fs2->num_medals);
 			PXO_ADD_USHORT(fs2->num_ship_types);
 
@@ -275,6 +287,14 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			for (i =0; i < MAX_FS_SHIP_TYPES; i++) {
 				PXO_GET_INT(fs2->kills[i]);
 			}
+#elif defined(FS2_DEMO)
+			for (i = 0; i < MAX_FS2_MEDALS; i++) {
+				PXO_GET_INT(fs2->medals[i]);
+			}
+
+			for (i =0; i < MAX_FS2_SHIP_TYPES; i++) {
+				PXO_GET_USHORT(fs2->kills[i]);
+			}
 #endif
 
 			PXO_GET_INT(fs2->assists);
@@ -301,7 +321,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 			PXO_GET_UINT(fs2->flight_time);
 			PXO_GET_UINT(fs2->last_flown);
 
-#ifndef MAKE_FS1
+#if !defined(MAKE_FS1) && !defined(FS2_DEMO)
 			PXO_GET_USHORT(fs2->num_medals);
 			PXO_GET_USHORT(fs2->num_ship_types);
 

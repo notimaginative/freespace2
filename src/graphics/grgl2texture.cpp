@@ -96,7 +96,7 @@ void opengl2_tcache_init()
 
 	SDL_assert(gr_screen.use_sections == 0);
 
-	SDL_zerop(Textures);
+	memset(Textures, 0, MAX_BITMAPS * sizeof(tcache_slot_opengl2));
 
 	for (int i = 0; i < MAX_BITMAPS; i++) {
 		Textures[i].bitmap_id = -1;

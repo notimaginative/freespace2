@@ -534,8 +534,6 @@ uint sock_get_ip()
 	char LclHost[MAXHOSTNAME];
 	struct hostent *Hostent;
 	struct sockaddr_in LclAddr;
-	struct sockaddr_in RmtAddr;
-	SOCKET hSock;
 	int nRet;
 
 	// Init local address to zero
@@ -551,9 +549,6 @@ uint sock_get_ip()
 	}
 			
 	return LclAddr.sin_addr.s_addr;
-
-	RmtAddr = RmtAddr;
-	hSock = hSock;
 }
 
 // psnet_get_ip() attempts to get the local IP address of this machine
@@ -2547,7 +2542,6 @@ int psnet_reliable_send(ubyte *data,int packet_size,net_addr_t *addr)
 	}
 
 	// try and find a guy to send to 
-	to_index = -1;
 	to_index = psnet_reliable_addr_index(addr);
 	if(to_index == -1){
 		nprintf(("Network","PSNET RELIABLE : could not find player for outgoing packet!\n"));
@@ -2555,7 +2549,6 @@ int psnet_reliable_send(ubyte *data,int packet_size,net_addr_t *addr)
 	}
 
 	// attempt to get a free buffer
-	free_buffer = -1;
 	free_buffer = psnet_reliable_get_free_outgoing();
 	if(free_buffer == -1){
 		Int3();						// should never happen - we should always overwrite the oldest buffer
@@ -2676,7 +2669,6 @@ int psnet_reliable_should_process(net_addr_t *addr,ubyte *data,int packet_size)
 	packet_index = psnet_reliable_find_in_id(id_num);
 	if(packet_index == -1){
 		// get a free index
-		free_index = -1;
 		free_index = psnet_reliable_get_free_incoming();
 		if(free_index == -1){
 			Int3();
@@ -2795,7 +2787,7 @@ ushort psnet_reliable_get_unique_id(ushort id_num,net_addr_t *from)
 
 	// lookup through the Psnet_reliable_addr[] list and try and find the index
 	for(idx=0;idx<MAX_PLAYERS;idx++){
-		if((idx == 1) /*(Psnet_reliable_addr_flags & (1<<idx)) && (psnet_same(from,&Psnet_reliable_addr[idx]))*/){
+		if(idx == 1 /*(Psnet_reliable_addr_flags & (1<<idx)) && (psnet_same(from,&Psnet_reliable_addr[idx]))*/){
 			// fill in the lower 4 bits
 			cast = (ushort)idx;
 			id_num |= (cast & 0xf);

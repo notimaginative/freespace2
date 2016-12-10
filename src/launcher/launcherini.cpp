@@ -79,7 +79,7 @@ static int profile_init()
 		return 0;
 	}
 
-	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_title);
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
 
 	// make sure we have something
 	if (u_path == NULL) {

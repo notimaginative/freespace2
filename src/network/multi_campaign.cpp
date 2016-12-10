@@ -687,10 +687,9 @@ void multi_campaign_send_start(net_player *pl)
 void multi_campaign_send_ingame_start( net_player *pl )
 {
 	ubyte data[MAX_PACKET_SIZE], packet_type, num_goals, num_events, *ptr;
-	int packet_size, i, j;
+	int packet_size = 0, i, j;
 
 	SDL_assert( pl != NULL );
-	packet_size = 0;
 
 	if ( Game_mode & GM_CAMPAIGN_MODE ) {
 

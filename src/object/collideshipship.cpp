@@ -1182,24 +1182,26 @@ void calculate_ship_ship_collision_physics(collision_info_struct *ship_ship_hit_
 		bool set_model = false;
 
 		polymodel *pm = model_get(Ships[heavy->instance].modelnum);
+		bsp_info *sm = &pm->submodel[ship_ship_hit_info->submodel_num];
 
 		// be sure model is set
-		if (pm->submodel[ship_ship_hit_info->submodel_num].sii == NULL) {
+		if (sm->sii == NULL) {
 			set_model = true;
 			ship_model_start(heavy);
+			SDL_assert(sm->sii != NULL);
 		}
 
 		// set point on axis of rotating submodel if not already set.
-		if (!pm->submodel[ship_ship_hit_info->submodel_num].sii->axis_set) {
-			model_init_submodel_axis_pt(pm->submodel[ship_ship_hit_info->submodel_num].sii,  Ships[heavy->instance].modelnum, ship_ship_hit_info->submodel_num);
+		if (!sm->sii->axis_set) {
+			model_init_submodel_axis_pt(sm->sii,  Ships[heavy->instance].modelnum, ship_ship_hit_info->submodel_num);
 		}
 
 		vector omega, axis, r_rot;
-		if (pm->submodel[ship_ship_hit_info->submodel_num].movement_axis == MOVEMENT_AXIS_X) {
+		if (sm->movement_axis == MOVEMENT_AXIS_X) {
 			axis = vmd_x_vector;
-		} else if (pm->submodel[ship_ship_hit_info->submodel_num].movement_axis == MOVEMENT_AXIS_Y) {
+		} else if (sm->movement_axis == MOVEMENT_AXIS_Y) {
 			axis = vmd_y_vector;
-		} else if (pm->submodel[ship_ship_hit_info->submodel_num].movement_axis == MOVEMENT_AXIS_Z) {
+		} else if (sm->movement_axis == MOVEMENT_AXIS_Z) {
 			axis = vmd_z_vector;
 		} else {
 			// must be one of these axes or submodel_rot_hit is incorrectly set
@@ -1208,11 +1210,11 @@ void calculate_ship_ship_collision_physics(collision_info_struct *ship_ship_hit_
 
 		// get world rotational velocity of rotating submodel
 		model_find_obj_dir(&omega, &axis, heavy, ship_ship_hit_info->submodel_num);
-		vm_vec_scale(&omega, pm->submodel[ship_ship_hit_info->submodel_num].sii->cur_turn_rate);
+		vm_vec_scale(&omega, sm->sii->cur_turn_rate);
 
 		// world coords for r_rot
 		vector temp;
-		vm_vec_unrotate(&temp, &pm->submodel[ship_ship_hit_info->submodel_num].sii->pt_on_axis, &heavy->orient);
+		vm_vec_unrotate(&temp, &sm->sii->pt_on_axis, &heavy->orient);
 		vm_vec_sub(&r_rot, &ship_ship_hit_info->hit_pos, &temp);
 //		vm_vec_rotate(&temp, &r_rot, &heavy->orient);	// to ship coords
 

@@ -420,7 +420,9 @@ int Normal_key_set[] = {
 	TARGET_PREV_CLOSEST_FRIENDLY,
 	TARGET_TARGETS_TARGET,
 	TARGET_SHIP_IN_RETICLE,
+#ifndef FS1_DEMO
 	TARGET_LAST_TRANMISSION_SENDER,
+#endif
 	TARGET_CLOSEST_SHIP_ATTACKING_TARGET,
 	TARGET_CLOSEST_SHIP_ATTACKING_SELF,
 	STOP_TARGETING_SHIP,
@@ -470,7 +472,9 @@ int Normal_key_set[] = {
 	DECREASE_SHIELD,
 	DECREASE_WEAPON,
 	DECREASE_ENGINE,
+#ifndef FS1_DEMO
 	ETS_EQUALIZE,
+#endif
 	SHIELD_EQUALIZE,
 	SHIELD_XFER_TOP,
 	SHIELD_XFER_BOTTOM,
@@ -509,8 +513,10 @@ int Normal_key_set[] = {
 #ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
+#ifndef FS2_DEMO
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 #endif
 };
 
@@ -564,7 +570,9 @@ int Critical_key_set[] = {
 	DECREASE_SHIELD,			
 	INCREASE_ENGINE,			
 	DECREASE_ENGINE,			
+#ifndef FS1_DEMO
 	ETS_EQUALIZE,
+#endif
 	SHIELD_EQUALIZE,			
 	SHIELD_XFER_TOP,			
 	SHIELD_XFER_BOTTOM,			
@@ -587,7 +595,9 @@ int Non_critical_key_set[] = {
 	TARGET_NEXT_CLOSEST_FRIENDLY,			
 	TARGET_PREV_CLOSEST_FRIENDLY,			
 	TARGET_SHIP_IN_RETICLE,			
+#ifndef FS1_DEMO
 	TARGET_LAST_TRANMISSION_SENDER,
+#endif
 	TARGET_CLOSEST_REPAIR_SHIP,			
 	TARGET_CLOSEST_SHIP_ATTACKING_TARGET,			
 	STOP_TARGETING_SHIP,			
@@ -635,8 +645,10 @@ int Non_critical_key_set[] = {
 #ifndef MAKE_FS1
 	TOGGLE_HUD_CONTRAST,
 
+#ifndef FS2_DEMO
 	MULTI_TOGGLE_NETINFO,
 	MULTI_SELF_DESTRUCT
+#endif
 #endif
 };
 
@@ -2071,6 +2083,7 @@ int button_function_critical(int n, net_player *p = NULL)
 			}										
 			break;
 
+#ifndef FS1_DEMO
 		// equalize recharge rates
 		case ETS_EQUALIZE:
 			if (at_self) {
@@ -2085,6 +2098,7 @@ int button_function_critical(int n, net_player *p = NULL)
 				multi_server_update_player_weapons(npl,&Ships[objp->instance]);										
 			}										
 			break;
+#endif
 
 		// equalize shield energy to all quadrants
 		case SHIELD_EQUALIZE:
@@ -2450,12 +2464,14 @@ int button_function(int n)
 			}
 			break;
 
+#ifndef FS1_DEMO
 		case TARGET_LAST_TRANMISSION_SENDER:
 			control_used(TARGET_LAST_TRANMISSION_SENDER);
 			if ( hud_sensors_ok(Player_ship)) {
 				hud_target_last_transmit();
 			}
 			break;
+#endif
 
 		// target the closest repair ship
 		case TARGET_CLOSEST_REPAIR_SHIP:
@@ -2725,10 +2741,12 @@ int button_function(int n)
 			return button_function_critical(DECREASE_ENGINE);
 			break;
 
+#ifndef FS1_DEMO
 		case ETS_EQUALIZE:
 			hud_gauge_popup_start(HUD_ETS_GAUGE);
 			return button_function_critical(ETS_EQUALIZE);
 			break;
+#endif
 
 		// equalize shield energy to all quadrants
 		case SHIELD_EQUALIZE:
@@ -2796,6 +2814,7 @@ int button_function(int n)
 			hud_toggle_contrast();
 			break;
 
+#ifndef FS2_DEMO
 		// toggle network info
 		case MULTI_TOGGLE_NETINFO:
 			extern int Multi_display_netinfo;
@@ -2826,6 +2845,7 @@ int button_function(int n)
 				send_self_destruct_packet();
 			}
 			break;
+#endif
 #endif
 		// following are not handled here, but we need to bypass the Int3()
 		case LAUNCH_COUNTERMEASURE:

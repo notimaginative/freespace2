@@ -641,8 +641,10 @@ void gameplay_help_draw_text()
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,TARGET_CLOSEST_SHIP_ATTACKING_TARGET);
 
+#ifndef FS1_DEMO
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,TARGET_LAST_TRANMISSION_SENDER);
+#endif
 
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,TARGET_TARGETS_TARGET);
@@ -804,8 +806,10 @@ void gameplay_help_draw_text()
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,DECREASE_ENGINE);
 
+#ifndef FS1_DEMO
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,ETS_EQUALIZE);
+#endif
 /*
 			y_offset += separation;
 			gameplay_help_blit_control_line(x_offset, y_offset,XFER_LASER);

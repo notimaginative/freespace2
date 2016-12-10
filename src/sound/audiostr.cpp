@@ -354,6 +354,8 @@ void WaveFile::Init()
 	m_nBytesPlayed = 0;
 	m_total_uncompressed_bytes_read = 0;
 	m_max_uncompressed_bytes_to_read = AS_HIGHEST_MAX;
+	SDL_zero(m_wfmt);
+	SDL_zero(m_wfxDest);
 
 	m_hStream_open = 0;
 	m_abort_next_read = false;
@@ -363,6 +365,10 @@ void WaveFile::Close()
 {
 	// Free memory
 	if (m_pwfmt_original) {
+		if (m_pwfmt_original->extra_data) {
+			free(m_pwfmt_original->extra_data);
+		}
+
 		free(m_pwfmt_original);
 		m_pwfmt_original = NULL;
 	}
@@ -394,6 +400,8 @@ bool WaveFile::Open(const char *pszFilename)
 	if (m_pwfmt_original == NULL) {
 		goto OPEN_ERROR;
 	}
+
+	SDL_zerop(m_pwfmt_original);
 
 	cfp = cfopen(pszFilename, "rb");
 
@@ -534,6 +542,10 @@ OPEN_ERROR:
 	fRtn = false;
 
 	if (m_pwfmt_original) {
+		if (m_pwfmt_original->extra_data) {
+			free(m_pwfmt_original->extra_data);
+		}
+
 		free(m_pwfmt_original);
 		m_pwfmt_original = NULL;
 	}
@@ -854,6 +866,8 @@ bool AudioStream::Create(const char *pszFilename)
 		// No need for buffer to be larger than wave data though
 		m_cbBufSize = (m_nBufLength/1000) * (m_pwavefile->m_wfmt.bits_per_sample/8) * m_pwavefile->m_wfmt.num_channels * m_pwavefile->m_wfmt.sample_rate;
 		m_cbBufSize /= MAX_STREAM_BUFFERS;
+		// align buffer to format
+		m_cbBufSize += m_cbBufSize % ((m_pwavefile->m_wfmt.bits_per_sample/8) * m_pwavefile->m_wfmt.num_channels);
 		// if the requested buffer size is too big then cap it
 		m_cbBufSize = (m_cbBufSize > BIGBUF_SIZE) ? BIGBUF_SIZE : m_cbBufSize;
 
@@ -1159,7 +1173,12 @@ void AudioStream::Play(float volume, int looping)
 		// get source id if we don't have one
 		if ( !m_source_id ) {
 			sound_channel *chan = oal_get_free_channel(1.0f, -1, SND_PRIORITY_MUST_PLAY);
-			m_source_id = chan->source_id;
+
+			if (chan) {
+				m_source_id = chan->source_id;
+			} else {
+				return;
+			}
 		}
 
 		// Cue for playback if necessary

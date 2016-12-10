@@ -809,12 +809,14 @@ int gr_init()
 		Gr_cursor = bm_load( "cursor" );
 	}
 
+#ifndef FS1_DEMO
 	// load the web pointer cursor bitmap
 	if (Web_cursor_bitmap < 0)	{
 		int nframes;						// used to pass, not really needed (should be 1)
 		Web_cursor_bitmap = bm_load_animation("cursorweb", &nframes);
 		SDL_assert(Web_cursor_bitmap >= 0);		// if bitmap didnt load, thats not good (this is protected for in release tho)
 	}
+#endif
 
 	gr_set_color(0,0,0);
 

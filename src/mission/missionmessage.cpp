@@ -1955,7 +1955,7 @@ void message_send_builtin_to_player( int type, ship *shipp, int priority, int ti
 			if ( !(Game_mode & GM_MULTIPLAYER) || ((multi_target == -1) || (multi_target == MY_NET_PLAYER_NUM)) ){
 
 				// if this filter matches mine
-				if( (multi_team_filter < 0) || !(Netgame.type_flags & NG_TYPE_TEAM) || ((Net_player != NULL) && (Net_player->p_info.team == multi_team_filter)) ){
+				if( (multi_team_filter < 0) || !(Netgame.type_flags & NG_TYPE_TEAM) || (Net_player->p_info.team == multi_team_filter) ){
 					message_queue_message( i, priority, timing, who_from, source, group, delay, type );
 
 					// post a builtin message

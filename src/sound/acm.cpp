@@ -298,7 +298,7 @@ static void adpcm_memory_free(adpcm_fmt_t *fmt)
 // 1. Storage for the decompressed audio will be allocated in this function if *dest in NULL.
 //    The caller is responsible for freeing this memory later.
 //
-int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int max_dest_bytes, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps)
+int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int *dest_len, unsigned int *src_bytes_used, unsigned short dest_bps)
 {
 	SDL_assert( pwfxSrc != NULL );
 	SDL_assert( pwfxSrc->code == WAVE_FORMAT_ADPCM );
@@ -393,10 +393,6 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	fmt->bytes_processed = 0;
 
 	fmt->sample_frame_size = dest_bps/8*pwfxSrc->num_channels;
-
-	if ( !max_dest_bytes ) {
-		max_dest_bytes = new_size;
-	}
 
 	// convert to PCM
 	rc = read_sample_fmt_adpcm(*dest, rw, fmt);

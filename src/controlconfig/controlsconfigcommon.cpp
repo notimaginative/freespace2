@@ -419,7 +419,9 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{             KEY_SHIFTED | SDLK_f,				-1, TARGET_TAB,	"Target Previous Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_y,				4,  TARGET_TAB,	"Target Ship in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_g,				-1, TARGET_TAB,	"Target Target's Nearest Attacker", CC_TYPE_TRIGGER, -1, -1, 0 },
+#ifndef FS1_DEMO
 	{ KEY_ALTED	|					 SDLK_y,				-1, TARGET_TAB,	"Target Last Ship to Send Transmission", CC_TYPE_TRIGGER, -1, -1, 0 },
+#endif
 	{ KEY_ALTED |               SDLK_t,				-1, TARGET_TAB,	"Turn Off Auto-Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// targeting a ship's subsystem
@@ -484,10 +486,12 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{                           SDLK_KP_PLUS,		-1, COMPUTER_TAB,	"Increase View Distance", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{                           SDLK_KP_MINUS,		-1, COMPUTER_TAB,	"Decrease View Distance", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{                           SDLK_KP_5,			-1, COMPUTER_TAB,	"Center View", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+#ifndef FS1_DEMO
 	{									 -1,					33, COMPUTER_TAB, "View Up", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					32, COMPUTER_TAB, "View Rear", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					34, COMPUTER_TAB, "View Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					35, COMPUTER_TAB, "View Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+#endif
 
 	{                           SDLK_QUOTE,		-1, COMPUTER_TAB,	"Cycle Radar Range", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_c,				-1, COMPUTER_TAB, "Communications Menu", CC_TYPE_TRIGGER, -1, -1, 0 },
@@ -502,7 +506,9 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{                           SDLK_END,			-1, COMPUTER_TAB,	"Decrease Shield Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_PAGEUP,		-1, COMPUTER_TAB,	"Increase Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_PAGEDOWN,		-1, COMPUTER_TAB,	"Decrease Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
+#ifndef FS1_DEMO
 	{ KEY_ALTED |               SDLK_d,				-1, COMPUTER_TAB, "Equalize Energy Settings", CC_TYPE_TRIGGER, -1, -1, 0 },
+#endif
 
 	{                           SDLK_q,				7,  COMPUTER_TAB,	"Equalize Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_UP,				-1, COMPUTER_TAB,	"Augment Forward Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
@@ -536,13 +542,23 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{									 SDLK_4,				-1, COMPUTER_TAB, "(Multiplayer) Message Target", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{ KEY_ALTED	|					 SDLK_x,				-1, COMPUTER_TAB, "(Multiplayer) Observer zoom to target", CC_TYPE_TRIGGER, -1, -1, 0 },
 
+
 	{             KEY_SHIFTED | SDLK_PERIOD,		-1, COMPUTER_TAB,	"Increase time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{             KEY_SHIFTED | SDLK_COMMA,			-1, COMPUTER_TAB,	"Decrease time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
+
+#ifdef FS1_DEMO
+	{									 -1,					33, COMPUTER_TAB, "View Up", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{									 -1,					32, COMPUTER_TAB, "View Rear", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{									 -1,					34, COMPUTER_TAB, "View Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{									 -1,					35, COMPUTER_TAB, "View Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+#endif
 #ifndef MAKE_FS1
 	{									 SDLK_l,				-1, COMPUTER_TAB, "Toggle high HUD contrast", CC_TYPE_TRIGGER, -1, -1, 0 },
 
+#ifndef FS2_DEMO
 	{				  KEY_SHIFTED | SDLK_n,				-1, COMPUTER_TAB, "(Multiplayer) Toggle network info", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{				  KEY_SHIFTED | SDLK_END,			-1, COMPUTER_TAB, "(Multiplayer) Self destruct", CC_TYPE_TRIGGER, -1, -1, 0 },
+#endif
 #endif
 	{                           -1,					-1, -1,				"", CC_TYPE_TRIGGER, -1, -1, 0 }
 };

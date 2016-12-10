@@ -83,7 +83,7 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
-find_package(SDL2 "2.0.2" REQUIRED)
+find_package(SDL2 "2.0.5" REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(LibWebSockets REQUIRED)
@@ -188,33 +188,36 @@ endif()
 # standalone server GUI
 #
 
-if(FS1)
-  set(STANDALONE_BINARY fsstandalone)
-else()
-  set(STANDALONE_BINARY fs2standalone)
-endif()
+# Not for FS1 Demo
+if(NOT FS1 OR NOT DEMO)
+	if(FS1)
+	  set(STANDALONE_BINARY fsstandalone)
+	else()
+	  set(STANDALONE_BINARY fs2standalone)
+	endif()
 
-add_executable(${STANDALONE_BINARY}
-  WIN32
-  ${standalone_SOURCE}
-  ${standalone_HEADERS}
-)
+	add_executable(${STANDALONE_BINARY}
+	  WIN32
+	  ${standalone_SOURCE}
+	  ${standalone_HEADERS}
+	)
 
-CreateSourceGroups(${standalone_SOURCE})
+	CreateSourceGroups(${standalone_SOURCE})
 
-target_link_libraries(
-  ${STANDALONE_BINARY}
-  ${SDL2_LIBRARY}
-  ${wxWidgets_LIBRARIES}
-  ${LIBWEBSOCKETS_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+	target_link_libraries(
+	  ${STANDALONE_BINARY}
+	  ${SDL2_LIBRARY}
+	  ${wxWidgets_LIBRARIES}
+	  ${LIBWEBSOCKETS_LIBRARIES}
+	  ${PLATFORM_LIBRARIES}
+	)
 
-set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
+	set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
 
-# wxWidgets appears to need c++11 for one or more headers
-if(NOT WIN32)
-  set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+	# wxWidgets appears to need c++11 for one or more headers
+	if(NOT WIN32)
+	  set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+	endif()
 endif()
 
 #
@@ -225,163 +228,168 @@ endif()
 # toolset: targets for creating/modifying game assets
 #
 
-#
-# AC: anim converter
-#
+# don't build toolset unless it's a full build
+if(NOT DEMO)
 
-add_executable(ac
-  EXCLUDE_FROM_ALL
-  ${ac_SOURCE}
-  ${ac_HEADERS}
-)
+	#
+	# AC: anim converter
+	#
 
-CreateSourceGroups(${ac_SOURCE})
+	add_executable(ac
+	  EXCLUDE_FROM_ALL
+	  ${ac_SOURCE}
+	  ${ac_HEADERS}
+	)
 
-target_link_libraries(
-  ac
-  code
-  ${SDL2_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  ${OPENAL_LIBRARY}
-  ${LIBWEBSOCKETS_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+	CreateSourceGroups(${ac_SOURCE})
 
-#
-# CFILEARCHIVER: to create VP file archives
-#
+	target_link_libraries(
+	  ac
+	  code
+	  ${SDL2_LIBRARY}
+	  ${OPENGL_LIBRARIES}
+	  ${OPENAL_LIBRARY}
+	  ${LIBWEBSOCKETS_LIBRARIES}
+	  ${PLATFORM_LIBRARIES}
+	)
 
-add_executable(cfilearchiver
-  EXCLUDE_FROM_ALL
-  ${cfilearchiver_SOURCE}
-)
+	#
+	# CFILEARCHIVER: to create VP file archives
+	#
 
-CreateSourceGroups(${cfilearchiver_SOURCE})
+	add_executable(cfilearchiver
+	  EXCLUDE_FROM_ALL
+	  ${cfilearchiver_SOURCE}
+	)
 
-#
-# CRYPTSTRING: string encryption (for embedded cheat codes)
-#
+	CreateSourceGroups(${cfilearchiver_SOURCE})
 
-add_executable(cryptstring
-  EXCLUDE_FROM_ALL
-  ${cryptstring_SOURCE}
-)
+	#
+	# CRYPTSTRING: string encryption (for embedded cheat codes)
+	#
 
-CreateSourceGroups(${cryptstring_SOURCE})
+	add_executable(cryptstring
+	  EXCLUDE_FROM_ALL
+	  ${cryptstring_SOURCE}
+	)
 
-#
-# NEBEDIT: FS1 style nebula editor/creator
-#
+	CreateSourceGroups(${cryptstring_SOURCE})
 
-add_executable(nebedit
-  EXCLUDE_FROM_ALL
-  WIN32
-  ${nebedit_SOURCE}
-)
+	#
+	# NEBEDIT: FS1 style nebula editor/creator
+	#
 
-CreateSourceGroups(${nebedit_SOURCE})
+	add_executable(nebedit
+	  EXCLUDE_FROM_ALL
+	  WIN32
+	  ${nebedit_SOURCE}
+	)
 
-target_link_libraries(
-  nebedit
-  code
-  ${SDL2_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  ${OPENAL_LIBRARY}
-  ${wxWidgets_LIBRARIES}
-  ${LIBWEBSOCKETS_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+	CreateSourceGroups(${nebedit_SOURCE})
 
-# wxWidgets appears to need c++11 for one or more headers
-if(NOT WIN32)
-  set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
-endif()
+	target_link_libraries(
+	  nebedit
+	  code
+	  ${SDL2_LIBRARY}
+	  ${OPENGL_LIBRARIES}
+	  ${OPENAL_LIBRARY}
+	  ${wxWidgets_LIBRARIES}
+	  ${LIBWEBSOCKETS_LIBRARIES}
+	  ${PLATFORM_LIBRARIES}
+	)
 
-#
-# POFVIEW: model viewer
-#
+	# wxWidgets appears to need c++11 for one or more headers
+	if(NOT WIN32)
+	  set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
+	endif()
 
-add_executable(pofview
-  EXCLUDE_FROM_ALL
-  WIN32
-  ${pofview_SOURCE}
-  ${pofview_HEADERS}
-)
+	#
+	# POFVIEW: model viewer
+	#
 
-CreateSourceGroups(${pofview_SOURCE})
+	add_executable(pofview
+	  EXCLUDE_FROM_ALL
+	  WIN32
+	  ${pofview_SOURCE}
+	  ${pofview_HEADERS}
+	)
 
-target_link_libraries(
-  pofview
-  code
-  ${SDL2_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  ${OPENAL_LIBRARY}
-  ${wxWidgets_LIBRARIES}
-  ${LIBWEBSOCKETS_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+	CreateSourceGroups(${pofview_SOURCE})
 
-# wxWidgets appears to need c++11 for one or more headers
-if(NOT WIN32)
-  set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
-endif()
+	target_link_libraries(
+	  pofview
+	  code
+	  ${SDL2_LIBRARY}
+	  ${OPENGL_LIBRARIES}
+	  ${OPENAL_LIBRARY}
+	  ${wxWidgets_LIBRARIES}
+	  ${LIBWEBSOCKETS_LIBRARIES}
+	  ${PLATFORM_LIBRARIES}
+	)
 
-#
-# SCRAMBLE: file-based encryption for TBLs
-#
+	# wxWidgets appears to need c++11 for one or more headers
+	if(NOT WIN32)
+	  set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
+	endif()
 
-add_executable(scramble
-  EXCLUDE_FROM_ALL
-  ${scramble_SOURCE}
-  ${scramble_HEADERS}
-)
+	#
+	# SCRAMBLE: file-based encryption for TBLs
+	#
 
-CreateSourceGroups(${scramble_SOURCE})
+	add_executable(scramble
+	  EXCLUDE_FROM_ALL
+	  ${scramble_SOURCE}
+	  ${scramble_HEADERS}
+	)
 
-#
-# FONTTOOL: create font files / edit kerning data
-#
+	CreateSourceGroups(${scramble_SOURCE})
 
-add_executable(fonttool
-  EXCLUDE_FROM_ALL
-  ${fonttool_SOURCE}
-  ${fonttool_HEADERS}
-)
+	#
+	# FONTTOOL: create font files / edit kerning data
+	#
 
-CreateSourceGroups(${fonttool_SOURCE})
+	add_executable(fonttool
+	  EXCLUDE_FROM_ALL
+	  ${fonttool_SOURCE}
+	  ${fonttool_HEADERS}
+	)
 
-# background setup, to allow running from build location without installing
-add_custom_command(TARGET fonttool
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
-  COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/src/fonttool/fonttool.pcx" "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
-)
+	CreateSourceGroups(${fonttool_SOURCE})
 
-target_link_libraries(
-  fonttool
-  code
-  ${SDL2_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  ${OPENAL_LIBRARY}
-  ${LIBWEBSOCKETS_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+	# background setup, to allow running from build location without installing
+	add_custom_command(TARGET fonttool
+	  POST_BUILD
+	  COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
+	  COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/src/fonttool/fonttool.pcx" "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
+	)
 
-#
-# custom target to build all tools in one pass
-#
+	target_link_libraries(
+	  fonttool
+	  code
+	  ${SDL2_LIBRARY}
+	  ${OPENGL_LIBRARIES}
+	  ${OPENAL_LIBRARY}
+	  ${LIBWEBSOCKETS_LIBRARIES}
+	  ${PLATFORM_LIBRARIES}
+	)
 
-add_custom_target(tools)
+	#
+	# custom target to build all tools in one pass
+	#
 
-add_dependencies(tools
-  ac
-  cfilearchiver
-  cryptstring
-  nebedit
-  pofview
-  scramble
-  fonttool
-)
+	add_custom_target(tools)
+
+	add_dependencies(tools
+	  ac
+	  cfilearchiver
+	  cryptstring
+	  nebedit
+	  pofview
+	  scramble
+	  fonttool
+	)
+
+endif(NOT DEMO)
 
 #
 # ##############################################################################

@@ -278,6 +278,7 @@ void multi_kick_get_text(net_player *pl, int reason, char *str, const int max_st
 	// safety net
 	if((pl == NULL) || (pl->player == NULL)){
 		SDL_strlcpy(str, NOX(""), max_strlen);
+		return;
 	}
 
 	switch(reason){

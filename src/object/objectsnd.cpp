@@ -518,10 +518,8 @@ void obj_snd_stop_all()
 {
 	object* A;
 
-	for ( A = GET_FIRST(&obj_used_list); A !=END_OF_LIST(&obj_used_list); A = GET_NEXT(A) ) {
-		if ( A ) {
-			obj_snd_stop(A, -1);
-		}
+	for ( A = GET_FIRST(&obj_used_list); A && A !=END_OF_LIST(&obj_used_list); A = GET_NEXT(A) ) {
+		obj_snd_stop(A, -1);
 	}
 }
 

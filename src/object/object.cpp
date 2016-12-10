@@ -508,7 +508,7 @@ const char *Object_type_names[MAX_OBJECT_TYPES] = {
 int free_object_slots(int num_used)
 {
 	int	i, olind, deleted_weapons;
-	int	obj_list[MAX_OBJECTS];
+	int	obj_list[MAX_OBJECTS] = { 0 };
 	int	num_already_free, num_to_free, original_num_to_free;
 	object *objp;
 

@@ -60,6 +60,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/gameplayhelp.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gamesequence.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gamesnd.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/gitinfo.h.in
   ${CMAKE_CURRENT_SOURCE_DIR}/grinternal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grgl1.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grgl2.h

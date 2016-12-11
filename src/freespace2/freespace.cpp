@@ -7420,6 +7420,9 @@ void get_version_string(char *str, const int str_len)
 //XSTR:OFF
 #ifdef FS1_DEMO
 	SDL_snprintf(str, str_len, "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#if !defined(NDEBUG) && defined(GIT_COMMIT_HASH)
+	SDL_strlcat(str, "~" GIT_COMMIT_HASH, str_len);
+#endif
 	return;
 #endif
 
@@ -7428,6 +7431,10 @@ void get_version_string(char *str, const int str_len)
 	} else {
 		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
 	}
+
+#if !defined(NDEBUG) && defined(GIT_COMMIT_HASH)
+	SDL_strlcat(str, "~" GIT_COMMIT_HASH, str_len);
+#endif
 
 #if defined (FS2_DEMO)
 	SDL_strlcat(str, " D", str_len);

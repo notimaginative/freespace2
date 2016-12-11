@@ -96,6 +96,7 @@ include(${wxWidgets_USE_FILE})
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
+  ${CMAKE_BINARY_DIR}/include
   ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
   ${LIBWEBSOCKETS_INCLUDE_DIR}
@@ -111,6 +112,19 @@ add_subdirectory(include)
 #
 
 #
+# custom target for source tree version info
+#
+
+add_custom_target(buildver
+  COMMAND ${CMAKE_COMMAND}
+    -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+    -DBINARY_DIR=${CMAKE_BINARY_DIR}
+    -P ${CMAKE_SOURCE_DIR}/cmake/GitInfo.cmake
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  SOURCES ${CMAKE_SOURCE_DIR}/cmake/GitInfo.cmake
+)
+
+#
 # main code/game library
 #
 
@@ -123,6 +137,10 @@ add_library(code
 )
 
 CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
+
+add_dependencies(code
+  buildver
+)
 
 #
 # the game itself

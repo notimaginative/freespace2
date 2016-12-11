@@ -1,0 +1,9 @@
+#ifndef GITINFO_H
+#define GITINFO_H
+
+#cmakedefine GIT_BRANCH		"@GIT_BRANCH@"
+#cmakedefine GIT_COMMIT_HASH		"@GIT_COMMIT_HASH@"
+#cmakedefine GIT_COMMIT_DATE		"@GIT_COMMIT_DATE@"
+#cmakedefine GIT_TAG		"@GIT_TAG@"
+
+#endif // GITINFO_H

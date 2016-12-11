@@ -1928,7 +1928,8 @@ void main_hall_blit_version()
 #ifdef MAKE_FS1
 	gr_string(gr_screen.max_w - (w + 10), gr_screen.max_h - 12, version_string);
 #else
-	gr_string(gr_screen.max_w - 55, gr_screen.max_h - 12, version_string);
+	// original offset: 55 pixels, default string length: 34 pixels
+	gr_string(gr_screen.max_w - (w + 21), gr_screen.max_h - 12, version_string);
 #endif
 }
 

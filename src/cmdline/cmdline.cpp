@@ -466,8 +466,11 @@ static void print_instructions()
 	printf("\n");
 #endif
 
-	printf("%s v%d.%02d\n", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
-	printf("icculus.org client v%d.%02d\n\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
+	printf("%s v%d.%02d", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#if defined(GIT_COMMIT_DATE) && defined(GIT_COMMIT_HASH)
+	printf(" ~ %s:%s", GIT_COMMIT_DATE, GIT_COMMIT_HASH);
+#endif
+	printf("\n");
 
 	exit(0);
 }
@@ -782,8 +785,11 @@ int parse_cmdline(const char *cmdline)
 
 	// display game version
 	if(fs_version.found()){
-		printf("%s version:  %d.%02d\n", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
-		printf("icculus.org client version:  %d.%02d\n", IO_VERSION_MAJOR, IO_VERSION_MINOR);
+		printf("%s version:  %d.%02d", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#if defined(GIT_COMMIT_DATE) && defined(GIT_COMMIT_HASH)
+		printf(" ~ %s:%s", GIT_COMMIT_DATE, GIT_COMMIT_HASH);
+#endif
+		printf("\n");
 		exit(0);
 	}
 

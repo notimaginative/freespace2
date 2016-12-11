@@ -144,8 +144,8 @@
 	#define FS_VERSION_BUILD 00					// Build version 
 #endif
 
-#define IO_VERSION_MAJOR 00
-#define IO_VERSION_MINOR 95
+// build version info
+#include "gitinfo.h"
 
 #define VERSION_LOC_FNAME			"version.nfo"
 #define MOTD_LOC_FNAME				"motd.txt"

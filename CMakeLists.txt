@@ -239,6 +239,28 @@ if(NOT FS1 OR NOT DEMO)
 endif()
 
 #
+# extra rule to make sure we cleanup all exe variants
+#
+
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+  # FS1 demo
+  fsdemo${CMAKE_EXECUTABLE_SUFFIX}
+  freespacedemo${CMAKE_EXECUTABLE_SUFFIX}
+  # FS1
+  fs${CMAKE_EXECUTABLE_SUFFIX}
+  freespace${CMAKE_EXECUTABLE_SUFFIX}
+  # FS2 demo
+  fs2demo${CMAKE_EXECUTABLE_SUFFIX}
+  freespace2demo${CMAKE_EXECUTABLE_SUFFIX}
+  # FS2
+  fs2${CMAKE_EXECUTABLE_SUFFIX}
+  freespace2${CMAKE_EXECUTABLE_SUFFIX}
+  # standalone GUI
+  fsstandalone${CMAKE_EXECUTABLE_SUFFIX}
+  fs2standalone${CMAKE_EXECUTABLE_SUFFIX}
+)
+
+#
 # ##############################################################################
 
 # ##############################################################################

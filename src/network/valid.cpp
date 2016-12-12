@@ -504,6 +504,22 @@ void ValidIdle()
 			ValidLastSent = timer_get_milliseconds();
 		}
 	}
+
+	if(MissionValidState == VALID_STATE_WAITING)
+	{
+		if((timer_get_milliseconds()-MissionValidFirstSent)>=PILOT_REQ_TIMEOUT)
+		{
+			MissionValidState = VALID_STATE_TIMEOUT;
+		}
+	}
+
+	if(SquadWarValidState == VALID_STATE_WAITING)
+	{
+		if((timer_get_milliseconds()-SquadWarFirstSent)>=PILOT_REQ_TIMEOUT)
+		{
+			SquadWarValidState = VALID_STATE_TIMEOUT;
+		}
+	}
 }
 
 

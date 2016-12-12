@@ -1298,7 +1298,8 @@ int multi_fs_tracker_validate_mission_std()
 	switch(ret_val){
 	// timeout
 	case -2:
-		return MVALID_STATUS_UNKNOWN;
+		// consider timeout to be fatal and cancel validation
+		return -2;	//MVALID_STATUS_UNKNOWN;
 
 	// invalid
 	case -1:

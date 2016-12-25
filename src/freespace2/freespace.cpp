@@ -6694,6 +6694,14 @@ int game_main(const char *szCmdLine)
 	mprintf(("Memory: %dMB\n", Freespace_total_ram));
 	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big"));
 
+#ifdef GIT_INFO
+	mprintf(("Build ID: %s~%s:%s", GIT_COMMIT_DATE, GIT_BRANCH, GIT_COMMIT_HASH));
+#ifdef GIT_TAG
+	mprintf((" (%s)", GIT_TAG));
+#endif
+	mprintf(("\n"));
+#endif
+
 	parse_cmdline(szCmdLine);	
 
 	mprintf(("--------------------------------------------------------------------------------\n"));

@@ -389,7 +389,7 @@ static int Player_select_bottom_text_y[GR_NUM_RESOLUTIONS] = {
 
 static int Player_select_middle_text_y[GR_NUM_RESOLUTIONS] = {
 #ifdef MAKE_FS1
-	280,
+	170,
 #else
 	253,	// GR_640
 #endif
@@ -1153,7 +1153,11 @@ void player_select_init_player_stuff(int mode)
 	// select the first pilot if any exist, otherwise set to -1
 	if (Player_select_num_pilots == 0) {		
 		Player_select_pilot = -1;		
+#ifdef MAKE_FS1
+		player_select_set_middle_text(XSTR("Please Enter a Callsign", 381));
+#else
 		player_select_set_middle_text(XSTR( "Type Callsign and Press Enter", 381));
+#endif
 		player_select_set_controls(1);		// gray out the controls
 		player_select_create_new_pilot();
 	} else {
@@ -1418,7 +1422,11 @@ void player_select_display_all_text()
 		gr_get_string_size(&w, &h, Player_select_middle_text);
 	
 		w = (gr_screen.max_w - w) / 2;
+#ifdef MAKE_FS1
+		gr_set_color_fast(&Color_bright);
+#else
 		gr_set_color_fast(&Color_bright_white);
+#endif
 		gr_printf(w, Player_select_middle_text_y[gr_screen.res], Player_select_middle_text);
 	}
 }

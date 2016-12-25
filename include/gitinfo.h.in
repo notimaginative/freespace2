@@ -6,4 +6,8 @@
 #cmakedefine GIT_COMMIT_DATE		"@GIT_COMMIT_DATE@"
 #cmakedefine GIT_TAG		"@GIT_TAG@"
 
+#if defined(GIT_BRANCH) && defined(GIT_COMMIT_HASH) && defined(GIT_COMMIT_DATE)
+#define GIT_INFO
+#endif
+
 #endif // GITINFO_H

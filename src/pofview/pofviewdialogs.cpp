@@ -8,7 +8,7 @@
 
 #include "pofview.h"
 
-#include "res/pofview_ico.xpm"
+#include "res/pofview_ico.h"
 
 
 AboutBox::AboutBox( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style )
@@ -19,7 +19,7 @@ AboutBox::AboutBox( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxBoxSizer* bSizer3;
 	bSizer3 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_bitmap2 = new wxStaticBitmap( this, wxID_ANY, wxBitmap( pofview_ico_xpm ), wxDefaultPosition, wxDefaultSize, 0 );
+	m_bitmap2 = new wxStaticBitmap( this, wxID_ANY, wxBITMAP_PNG_FROM_DATA(pofview_ico), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer3->Add( m_bitmap2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 15 );
 
 	wxBoxSizer* bSizer4;

@@ -56,6 +56,7 @@
 #include "res/freespace_img.xpm"
 #include "res/volition_img.xpm"
 #endif
+#include "res/launcher_ico.h"
 
 
 
@@ -74,6 +75,8 @@ bool LauncherApp::OnInit()
 	// make sure we create files with user access only
 	umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 #endif
+
+	wxImage::AddHandler(new wxPNGHandler());
 
 	Launcher *frame = new Launcher(NULL);
 
@@ -205,6 +208,10 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 
 	use_sound = false;
+
+	wxIcon icon;
+	icon.CopyFromBitmap( wxBITMAP_PNG_FROM_DATA(launcher_ico) );
+	this->SetIcon( icon );
 
 #ifndef MAKE_FS1
 	this->SetClientSize(375, 440);

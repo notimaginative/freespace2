@@ -2357,6 +2357,7 @@ void game_init()
 
 	gr_init();
 
+	os_set_icon();
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD)
 	// add title screen

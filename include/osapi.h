@@ -35,6 +35,8 @@ void os_set_title( const char *title );
 // get the main window title
 const char *os_get_title();
 
+void os_set_icon();
+
 // call at program end
 void os_cleanup();
 

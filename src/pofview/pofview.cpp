@@ -23,7 +23,7 @@
 #include "key.h"
 #include "mouse.h"
 
-#include "res/pofview_ico.xpm"
+#include "res/pofview_ico.h"
 #include "res/tool_about.xpm"
 #include "res/tool_damaged.xpm"
 #include "res/tool_debris.xpm"
@@ -53,6 +53,7 @@ IMPLEMENT_APP(PofViewApp)
 
 bool PofViewApp::OnInit()
 {
+	wxImage::AddHandler(new wxPNGHandler());
 	PofViewFrame *frame = new PofViewFrame(NULL);
 	frame->Show(true);
 	SetTopWindow(frame);
@@ -83,7 +84,9 @@ PofViewFrame::PofViewFrame( wxWindow* parent, wxWindowID id, const wxString& tit
 
 	this->SetSizeHints( wxSize( 640,480 ), wxDefaultSize );
 
-	this->SetIcon(wxICON(pofview_ico));
+	wxIcon icon;
+	icon.CopyFromBitmap( wxBITMAP_PNG_FROM_DATA(pofview_ico) );
+	this->SetIcon( icon );
 
 	MakeMenuBar();
 	MakeToolBar();

@@ -1,0 +1,5 @@
+#ifdef MAKE_FS1
+IDI_ICON1 ICON DISCARDABLE "fs.ico"
+#else
+IDI_ICON1 ICON DISCARDABLE "fs2.ico"
+#endif

@@ -1,0 +1,5 @@
+#ifdef MAKE_FS1
+launcher_ico ICON DISCARDABLE "fslaunch.ico"
+#else
+launcher_ico ICON DISCARDABLE "fs2launch.ico"
+#endif

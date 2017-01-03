@@ -262,6 +262,9 @@ set(freespace_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/freespace.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/levelpaging.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/res/freespace.rc
+  ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/res/fs2.ico
+  ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/res/fs.ico
   PARENT_SCOPE
 )
 
@@ -304,8 +307,12 @@ set(launcher_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_btn_volition.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2demo_help_txt.h
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_help_txt.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2launch.ico
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_click_wav.h
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fs2_snd_hover_wav.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/fslaunch.ico
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/launcher_ico.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/launcher.rc
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/res/volition_img.xpm
   PARENT_SCOPE
 )
@@ -375,7 +382,9 @@ set(pofview_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/pofview/pofviewdialogs.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/pofview/pofviewcanvas.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/pofview/pofviewstubs.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/pofview_ico.xpm
+  ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/pofview.ico
+  ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/pofview_ico.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/pofview.rc
   ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/tool_about.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/tool_damaged.xpm
   ${CMAKE_CURRENT_SOURCE_DIR}/pofview/res/tool_debris.xpm

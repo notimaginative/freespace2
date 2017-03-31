@@ -209,6 +209,7 @@
 #include "multi_options.h"
 #include "multi_team.h"
 #include "multi_fstracker.h"
+#include "multi_pxo.h"
 
 
 // ----------------------------------------------------------------------------------
@@ -254,13 +255,13 @@ void multi_options_read_config()
 
 	Multi_options_g.log = (Cmdline_multi_log) ? 1 : 0;
 	Multi_options_g.datarate_cap = OO_HIGH_RATE_DEFAULT;
-	SDL_strlcpy(Multi_options_g.user_tracker_ip, "", SDL_arraysize(Multi_options_g.user_tracker_ip));
-	SDL_strlcpy(Multi_options_g.game_tracker_ip, "", SDL_arraysize(Multi_options_g.game_tracker_ip));
-	SDL_strlcpy(Multi_options_g.pxo_ip, "", SDL_arraysize(Multi_options_g.pxo_ip));
-	SDL_strlcpy(Multi_options_g.pxo_rank_url, "", SDL_arraysize(Multi_options_g.pxo_rank_url));
-	SDL_strlcpy(Multi_options_g.pxo_create_url, "", SDL_arraysize(Multi_options_g.pxo_create_url));
-	SDL_strlcpy(Multi_options_g.pxo_verify_url, "", SDL_arraysize(Multi_options_g.pxo_verify_url));
-	SDL_strlcpy(Multi_options_g.pxo_banner_url, "", SDL_arraysize(Multi_options_g.pxo_banner_url));
+	SDL_strlcpy(Multi_options_g.user_tracker_ip, MULTI_PXO_USER_TRACKER_IP, SDL_arraysize(Multi_options_g.user_tracker_ip));
+	SDL_strlcpy(Multi_options_g.game_tracker_ip, MULTI_PXO_GAME_TRACKER_IP, SDL_arraysize(Multi_options_g.game_tracker_ip));
+	SDL_strlcpy(Multi_options_g.pxo_ip, MULTI_PXO_CHAT_IP, SDL_arraysize(Multi_options_g.pxo_ip));
+	SDL_strlcpy(Multi_options_g.pxo_rank_url, MULTI_PXO_RANKINGS_URL, SDL_arraysize(Multi_options_g.pxo_rank_url));
+	SDL_strlcpy(Multi_options_g.pxo_create_url, MULTI_PXO_CREATE_URL, SDL_arraysize(Multi_options_g.pxo_create_url));
+	SDL_strlcpy(Multi_options_g.pxo_verify_url, MULTI_PXO_VERIFY_URL, SDL_arraysize(Multi_options_g.pxo_verify_url));
+	SDL_strlcpy(Multi_options_g.pxo_banner_url, MULTI_PXO_BANNER_URL, SDL_arraysize(Multi_options_g.pxo_banner_url));
 
 	// standalone values
 	Multi_options_g.std_max_players = -1;

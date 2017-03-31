@@ -2472,9 +2472,7 @@ MONITOR(BmpUsed);
 MONITOR(BmpNew);
 
 void game_get_framerate()
-{	
-	char text[128] = "";
-
+{
 	if ( frame_int == -1 )	{
 		int i;
 		for (i=0; i<FRAME_FILTER; i++ )	{
@@ -2493,15 +2491,12 @@ void game_get_framerate()
 			Framerate = FRAME_FILTER / frametotal;
 		else
 			Framerate = Framecount / frametotal;
-		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: %.1f"), Framerate );
-	} else {
-		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: ?") );
 	}
 	Framecount++;
 
 	if (Show_framerate)	{
 		gr_set_color_fast(&HUD_color_debug);
-		gr_string( 570, 2, text );
+		gr_printf(570, 2, NOX("FPS: %.1f"), Framerate);
 	}
 }
 

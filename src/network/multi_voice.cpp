@@ -321,7 +321,7 @@ int Multi_voice_stamps[MULTI_VOICE_MAX_STREAMS];
 
 // the token index of a voice stream is set to one of these values, or the index of the player who has the token
 #define MULTI_VOICE_TOKEN_INDEX_FREE				-1					// the token (and the stream are free)
-#define MULTI_VOICE_TOKEN_INDEX_RELEASED			0xDEADBEAD		// the token has been released but the stream is still active
+#define MULTI_VOICE_TOKEN_INDEX_RELEASED			(int)0xDEADBEAD		// the token has been released but the stream is still active
 
 typedef struct voice_stream {		
 	int token_status;															// status of the token (player index if a player has it) or one of the above defines
@@ -1035,7 +1035,7 @@ void multi_voice_take_token(int stream_index)
 	SDL_assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);	
 
 	// if the index is -1, the token has probably been released to us "officially" already
-	if((Multi_voice_stream[stream_index].token_status == (int)MULTI_VOICE_TOKEN_INDEX_FREE) || (Multi_voice_stream[stream_index].token_status == (int)MULTI_VOICE_TOKEN_INDEX_RELEASED)){
+	if((Multi_voice_stream[stream_index].token_status == MULTI_VOICE_TOKEN_INDEX_FREE) || (Multi_voice_stream[stream_index].token_status == MULTI_VOICE_TOKEN_INDEX_RELEASED)){
 		Multi_voice_stream[stream_index].token_stamp = -1;
 		return;
 	}

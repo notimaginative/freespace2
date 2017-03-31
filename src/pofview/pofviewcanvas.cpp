@@ -413,7 +413,10 @@ void PofViewCanvas::MoveViewer(float frame_time)
 	}
 
 	polymodel *pm = model_get(model_num);
-	wxASSERT( pm );
+
+	if (pm == NULL) {
+		return;
+	}
 
 	control_info *ci = &m_Viewer_ci;
 	float kh = 0.0f;

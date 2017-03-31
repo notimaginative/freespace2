@@ -281,7 +281,7 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 			break;
 	}
 
-	//SDL_assert(offset == data_size);
+	SDL_assert(offset == data_size);
 }
 
 

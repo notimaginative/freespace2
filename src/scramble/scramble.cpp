@@ -105,6 +105,10 @@ void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
 	char	*token;
 
 	*text_len = _filelength(fileno(fp));
+
+	if (*text_len <= 0)
+		return;
+
 	*text = (char*)malloc(*text_len+1);
 
 	dest = *text;
@@ -191,7 +195,7 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 			}
 		}
 
-		if ( (token[0] != ';') && (!discard_line || keep_all_lines) ) {
+		if ( token && (token[0] != ';') && (!discard_line || keep_all_lines) ) {
 			memcpy(dest, line, line_len);
 			dest += line_len;
 		}
@@ -208,6 +212,10 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 void scramble_read_default(char **text, int *text_len, FILE *fp)
 {
 	*text_len = _filelength(fileno(fp));
+
+	if (*text_len <= 0)
+		return;
+
 	*text = (char*)malloc(*text_len+1);
 
 	if ( !fread(*text, *text_len, 1, fp) ) {
@@ -260,6 +268,7 @@ void scramble_file(char *src_filename, char *dest_filename, int preprocess)
 	}
 
 	if ( !fp ) {
+		free(text);
 		return;
 	}
 
@@ -292,6 +301,12 @@ void unscramble_file(char *src_filename, char *dest_filename)
 
 	// read in the scrambled data
 	scramble_len = _filelength(fileno(fp));
+
+	if (scramble_len <= 0) {
+		fclose(fp);
+		return;
+	}
+
 	scramble_text = (char*)malloc(scramble_len+1);
 
 	if ( !fread(scramble_text, scramble_len, 1, fp) ) {

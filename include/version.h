@@ -151,14 +151,17 @@
 #define MOTD_LOC_FNAME				"motd.txt"
 
 #ifdef MULTIPLAYER_BETA_BUILD
-	#define MOTD_URL						"http://www.pxo.net/files/fs2beta/motd.txt"
-	#define VERSION_URL					"http://www.pxo.net/files/fs2beta/version.nfo"
+	#define MOTD_URL					"http://pxo.nottheeye.com/files/fs2beta/motd.txt"
+	#define VERSION_URL					"http://pxo.nottheeye.com/files/fs2beta/version.nfo"
 #elif defined(FS2_DEMO)
-	#define MOTD_URL						"http://www.pxo.net/files/fs2demo/motd.txt"
-	#define VERSION_URL					"http://www.pxo.net/files/fs2demo/version.nfo"
+	#define MOTD_URL					"http://pxo.nottheeye.com/files/fs2demo/motd.txt"
+	#define VERSION_URL					"http://pxo.nottheeye.com/files/fs2demo/version.nfo"
+#elif defined(MAKE_FS1)
+	#define MOTD_URL					"http://pxo.nottheeye.com/files/fs/motd.txt"
+	#define VERSION_URL					"http://pxo.nottheeye.com/files/fs/version.nfo"
 #else
-	#define MOTD_URL						"http://www.pxo.net/files/fs2/motd.txt"
-	#define VERSION_URL					"http://www.pxo.net/files/fs2/version.nfo"
+	#define MOTD_URL					"http://pxo.nottheeye.com/files/fs2/motd.txt"
+	#define VERSION_URL					"http://pxo.nottheeye.com/files/fs2/version.nfo"
 #endif
 
 #define VERSION_FILE_COMMENT_CHAR ';'

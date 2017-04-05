@@ -18,6 +18,7 @@
 #include "wx/process.h"
 #include "wx/textfile.h"
 #include "wx/socket.h"
+#include "wx/cmdline.h"
 
 #include "SDL.h"
 
@@ -80,6 +81,16 @@ bool StandaloneApp::OnInit()
 	std_client->Show(true);
 	SetTopWindow(std_client);
 
+	return true;
+}
+
+void StandaloneApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+	parser.SetCmdLine( wxT("") );
+}
+
+bool StandaloneApp::OnCmdLineParsed(wxCmdLineParser& WXUNUSED(parser))
+{
 	return true;
 }
 

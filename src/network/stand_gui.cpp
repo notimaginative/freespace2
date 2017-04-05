@@ -1135,7 +1135,7 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 		wxString arg( argv[i] );
 
 		// check if -port argument and set var
-		if ( arg.IsSameAs( wxT("-port"), false) && (argc > i+1) ) {
+		if ( (argc > i+1) && (arg.Contains( wxT("-port") ) || arg.IsSameAs( wxT("-o") )) ) {
 			fsport = wxAtoi(argv[i+1]);
 			cmd_port = true;
 		}

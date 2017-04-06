@@ -1385,15 +1385,13 @@ void Standalone::wsDoFrame()
 	if ( !wsi_standalone && !(++m_rate_limit % 60) ) {
 		// restart game process if it terminated
 		if ( !wxProcess::Exists(fspid) ) {
-			wxCmdLineArgsArray empty;
-
 			try {
-				startFreeSpace(0, empty);
+				startFreeSpace(wxGetApp().argc, wxGetApp().argv);
 			} catch (const char *err) {
 				wxMessageBox(err, "Error!", wxOK|wxICON_ERROR|wxCENTRE|wxSTAY_ON_TOP);
 
 				Shutdown();
-			}
+			} catch (const bool) { }
 
 			wxMilliSleep(500);
 		}

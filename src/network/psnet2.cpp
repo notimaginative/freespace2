@@ -832,7 +832,7 @@ void psnet_string_to_addr( net_addr_t * address, char * text, const int max_text
 // compare 2 addresses
 int psnet_same( net_addr_t * a1, net_addr_t * a2 )
 {
-	return !memcmp(a1->addr, a2->addr, 4);
+	return ((a1->port == a2->port) && !memcmp(a1->addr, a2->addr, 4));
 }
 
 // send data unreliably

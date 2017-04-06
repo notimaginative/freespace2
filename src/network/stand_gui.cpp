@@ -76,6 +76,10 @@ bool StandaloneApp::OnInit()
 		wxMessageBox(err, "Error!", wxOK|wxICON_ERROR|wxCENTRE|wxSTAY_ON_TOP);
 
 		return false;
+	} catch (const bool retval) {
+		std_client->Close();
+
+		return retval;
 	}
 
 	std_client->Show(true);
@@ -1114,6 +1118,7 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 {
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 	bool cmd_port = false;
+	bool shutdown_cmd = false;
 
 	epath.Append( wxT("fs") );
 
@@ -1138,6 +1143,12 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 		if ( (argc > i+1) && (arg.Contains( wxT("-port") ) || arg.IsSameAs( wxT("-o") )) ) {
 			fsport = wxAtoi(argv[i+1]);
 			cmd_port = true;
+		}
+
+		// if we have help or version options, exit after game exec
+		if ( arg.Contains( wxT("-help") ) || arg.Contains( wxT("-version") )
+			|| arg.IsSameAs( wxT("-h") ) || arg.IsSameAs( wxT("-v") ) ) {
+			shutdown_cmd = true;
 		}
 
 		epath.Append( wxT(" ") );
@@ -1197,6 +1208,11 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 
 	// start game executable
 	fspid = wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);
+
+	// throw shutdown if we should exit (such as help or version cmdline options)
+	if (shutdown_cmd) {
+		throw shutdown_cmd;
+	}
 
 	return (fspid > 0);
 }

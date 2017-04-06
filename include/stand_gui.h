@@ -194,6 +194,8 @@ class StandaloneApp: public wxApp
 
 	public:
 		virtual bool OnInit();
+		virtual void OnInitCmdLine(wxCmdLineParser& parser);
+		virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
 
 		StandaloneApp() : std_client(nullptr)
 		{

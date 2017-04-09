@@ -269,7 +269,7 @@ void multi_options_read_config()
 	Multi_options_g.std_voice = 1;
 	memset(Multi_options_g.std_passwd, 0, STD_PASSWD_LEN);
 	memset(Multi_options_g.std_pname, 0, STD_NAME_LEN);
-	Multi_options_g.std_framecap = 30;
+	Multi_options_g.std_framecap = 60;
 
 #ifndef MAKE_FS1
 	CFILE *in;

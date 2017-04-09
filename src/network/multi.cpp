@@ -1768,9 +1768,6 @@ void standalone_main_init()
 
 void standalone_main_do()
 {
-   SDL_Delay(10);  // since nothing will really be going on here, we can afford to give some time
-               // back to the operating system.
-
 	// kind of a do-nothing spin state.
 	// The standalone will eventually move into the GS_STATE_MULTI_MISSION_SYNC state when a host connects and
 	// attempts to start a game

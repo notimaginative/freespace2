@@ -307,6 +307,7 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 					if (len >= 6) {
 						if ( !SDL_strncmp(msg+2, "fps ", 4) ) {
 							int fps = SDL_atoi(msg+6);
+							CAP(fps, 10, 120);
 
 							Multi_options_g.std_framecap = fps;
 						}

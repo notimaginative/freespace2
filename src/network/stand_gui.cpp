@@ -427,7 +427,7 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 
 	wxBoxSizer* bSizer = new wxBoxSizer(wxVERTICAL);
 
-	m_M_sliderFPS = new wxSlider( panel, ID_FPS_SLIDER, 30, 15, 60, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_M_sliderFPS = new wxSlider( panel, ID_FPS_SLIDER, 60, 10, 120, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	bSizer->Add( m_M_sliderFPS, 0, wxALL|wxEXPAND, 5 );
 
 	wxFlexGridSizer* fgSizer8;
@@ -440,7 +440,7 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 
 	wxPanel* fpsPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
 	wxBoxSizer* fpsSizer = new wxBoxSizer(wxHORIZONTAL);
-	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, "30", wxDefaultPosition, wxSize(60, -1), 0 );
+	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, "60", wxDefaultPosition, wxSize(60, -1), 0 );
 	m_M_FPS->Wrap( -1 );
 	fpsSizer->Add( m_M_FPS, 0, wxALL, 2 );
 	fpsPanel->SetSizer(fpsSizer);
@@ -1226,8 +1226,8 @@ void Standalone::ResetAll()
 	m_S_NumConn->SetLabel( wxT("0") );
 	m_S_Connections->Clear();
 
-	m_M_sliderFPS->SetValue(30);
-	m_M_FPS->SetLabel("30");
+	m_M_sliderFPS->SetValue(60);
+	m_M_FPS->SetLabel("60");
 	m_M_FPSRel->SetLabel( wxT("0.0") );
 	m_M_MissionName->SetLabel("");
 	m_M_MissionTime->SetLabel("");

@@ -566,7 +566,12 @@ void multi_endgame_cleanup()
 		Player->flags |= PLAYER_FLAGS_IS_MULTI;		
 
 		// if we're in Parallax Online mode, log back in there	
-		gameseq_post_event(GS_EVENT_MULTI_JOIN_GAME);		
+		if (Multi_options_g.pxo == 1) {
+			SDL_assert(Multi_options_g.protocol == NET_TCP);
+			gameseq_post_event(GS_EVENT_PXO);
+		} else {
+			gameseq_post_event(GS_EVENT_MULTI_JOIN_GAME);
+		}
 
 		// if we have an error code, bring up the discon popup						
 		if(((Multi_endgame_notify_code != -1) || (Multi_endgame_error_code != -1)) && !(Game_mode & GM_STANDALONE_SERVER)){

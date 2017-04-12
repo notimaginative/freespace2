@@ -1343,8 +1343,6 @@ void multi_join_game_init()
 	if ( !Multi_options_g.pxo ) {
 		// if this is a TCP (non tracker) game, we'll load up our default address list right now		
 		multi_join_load_tcp_addrs();		
-	} else {
-		multi_fs_tracker_send_game_request();
 	}
 
 	// initialize any and all timestamps	

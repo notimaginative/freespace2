@@ -435,6 +435,7 @@
 #include "multi_rate.h"
 #include "neblightning.h"
 #include "hudescort.h"
+#include "multi_fstracker.h"
 
 // #define _MULTI_SUPER_WACKY_COMPRESSION
 
@@ -2377,15 +2378,20 @@ void broadcast_game_query()
 	ubyte data[MAX_PACKET_SIZE];	
 
 	BUILD_HEADER(GAME_QUERY);	
-	
-	// go through the server list and query each of those as well
-	s_moveup = Game_server_head;
-	if(s_moveup != NULL){
-		do {				
-			send_server_query(&s_moveup->server_addr);			
-			s_moveup = s_moveup->next;					
-		} while(s_moveup != Game_server_head);		
-	}	
+
+	if (Multi_options_g.pxo) {
+		// check with MT
+		multi_fs_tracker_send_game_request();
+	} else {
+		// go through the server list and query each of those as well
+		s_moveup = Game_server_head;
+		if(s_moveup != NULL){
+			do {
+				send_server_query(&s_moveup->server_addr);
+				s_moveup = s_moveup->next;
+			} while(s_moveup != Game_server_head);
+		}
+	}
 
 	fill_net_addr(&addr, Psnet_my_addr.addr, DEFAULT_GAME_PORT);
 

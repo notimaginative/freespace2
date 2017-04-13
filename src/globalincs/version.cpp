@@ -44,6 +44,7 @@
 #include "version.h"
 #include "osregistry.h"
 #include "pstypes.h"
+#include "cfile.h"
 
 // ----------------------------------------------------------------------------------------------------------------
 // VERSION DEFINES/VARS
@@ -70,7 +71,7 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	int latest_major, latest_minor, latest_build;
 
 	// open file and try backup, if needed
-	FILE *f = fopen(filename, "rt");
+	CFILE *f = cfopen(filename, "rt", CFILE_NORMAL, CF_TYPE_DATA);
 	if (f == NULL) {
 		return -1;		
 	}
@@ -80,9 +81,9 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 
 	SDL_strlcpy(verbuffer, "", SDL_arraysize(verbuffer));
 	SDL_strlcpy(buffer, "", SDL_arraysize(buffer));
-	while ( !feof(f) ) {
+	while ( !cfeof(f) ) {
 		// Read the line into a temporary buffer
-		if ( fgets(buffer, MAX_LINE_LENGTH, f) == NULL ) {
+		if ( cfgets(buffer, MAX_LINE_LENGTH, f) == NULL ) {
 			break;
 		}
 
@@ -99,7 +100,7 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 		// Line is a good one, so save it...
 		SDL_strlcpy(verbuffer, buffer, SDL_arraysize(verbuffer));
 	}
-	fclose(f);
+	cfclose(f);
 
 	// Make sure a version line was found
 	if (strlen(verbuffer) == 0) {

@@ -126,6 +126,7 @@
 #include "version.h"
 #include "inetgetfile.h"
 #include "cfile.h"
+#include "cfilesystem.h"
 
 // -------------------------------------------------------------------------------------------------------------------
 // MULTI UPDATE DEFINES/VARS
@@ -148,13 +149,13 @@ char Multi_update_error_string[512];
 int multi_update_http_init()
 {
 	char url_file[512] = "";
-	char local_file[512] = "";
+	char local_file[MAX_PATH_LEN] = "";
 
 	// url
 	SDL_strlcpy(url_file, VERSION_URL, SDL_arraysize(url_file));
 
 	// local file
-	SDL_snprintf(local_file, SDL_arraysize(local_file), "%s%s%s", Cfile_root_dir, DIR_SEPARATOR_STR, VERSION_LOC_FNAME);
+	cf_create_default_path_string(local_file, CF_TYPE_DATA, VERSION_LOC_FNAME);
 
 	// new file	
 	Multi_update_get = new InetGetFile(url_file, local_file);

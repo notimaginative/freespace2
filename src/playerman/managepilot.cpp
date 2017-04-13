@@ -1604,6 +1604,9 @@ void init_new_pilot(player *p, int reset)
 #endif
 
 	Multi_options_g.protocol = NET_TCP;	
+#ifndef FS1_DEMO
+	Multi_options_g.pxo = 1;
+#endif
 
 	// initialize default multiplayer options
 	multi_options_set_netgame_defaults(&p->m_server_options);

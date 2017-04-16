@@ -579,10 +579,6 @@ void multi_endgame_cleanup()
 		}		
 	}	
 
-	if (MULTI_IS_TRACKER_GAME) {
-		multi_fs_tracker_logout();
-	}
-
 	/*
 	extern CFILE *obj_stream;
 	if(obj_stream != NULL){

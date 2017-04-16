@@ -1779,7 +1779,11 @@ void standalone_main_do()
 
 void standalone_main_close()
 {
-   std_debug_set_standalone_state_string("Main Close");	
+	std_debug_set_standalone_state_string("Main Close");
+
+	// disconnect game from tracker
+	multi_fs_tracker_logout();
+
 }
 
 void multi_standalone_reset_all()

@@ -421,7 +421,7 @@ struct CFILE;
 #define MULTI_PERM_OBSERVER(np)	((np.flags & NETINFO_FLAG_OBSERVER) && !(np.flags & NETINFO_FLAG_OBS_PLAYER))
 
 // are we playing on a master tracker registered server
-#define MULTI_IS_TRACKER_GAME    ( (Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) )
+#define MULTI_IS_TRACKER_GAME    ( (Game_mode & GM_MULTIPLAYER) && (Multi_options_g.pxo) )
 // ----------------------------------------------------------------------------------------
 
 

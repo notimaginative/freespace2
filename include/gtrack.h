@@ -48,7 +48,6 @@
 #define	GNT_GAMELIST_DATA		6
 #define	GNT_GAME_COUNT_REQ	7
 #define	GNT_GAME_COUNT_DATA	8
-#define GNT_PEER_PING			9
 
 #define	GT_FREESPACE			1
 #define	GT_DESCENT3				2

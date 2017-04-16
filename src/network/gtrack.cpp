@@ -277,19 +277,6 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 			break;
 		}
 
-		case GNT_PEER_PING: {
-			int ip_address = 0;
-			ushort port = 0;
-
-			PXO_GET_INT(ip_address);
-			PXO_GET_USHORT(port);
-
-			memcpy(gph->data, &ip_address, sizeof(int));
-			memcpy(gph->data+sizeof(int), &port, sizeof(ushort));
-
-			break;
-		}
-
 		default:
 			break;
 	}
@@ -536,20 +523,6 @@ void IdleGameTracker()
 
 				// send it to the PXO screen				
 				multi_pxo_channel_count_update(channel,num_servers);
-				break;
-
-			case GNT_PEER_PING:
-				// send ping packet to specified client in attempt to open up a
-				// way through stateful firewalls, allowing client to talk later
-				net_addr clientaddr;
-
-				clientaddr.type = Multi_options_g.protocol;
-				memcpy(clientaddr.addr, inpacket.data, IP_ADDRESS_LENGTH);
-				memcpy(&clientaddr.port, inpacket.data+IP_ADDRESS_LENGTH, sizeof(short));
-				clientaddr.port = ntohs(clientaddr.port);
-
-				extern void send_ping(net_addr *addr);
-				send_ping(&clientaddr);
 				break;
 			}
 			AckPacket(inpacket.sig);			

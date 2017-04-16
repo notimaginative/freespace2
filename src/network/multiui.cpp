@@ -9346,15 +9346,22 @@ void multi_debrief_accept_hit()
 		if(Net_player->flags & NETINFO_FLAG_GAME_HOST){
 			// if we're on a tracker game, he gets no choice for storing stats
 			if(MULTI_IS_TRACKER_GAME){
+				if ( (Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
+					if ( (multi_debrief_stats_accept_code() == 1) ) {
 #ifndef MAKE_FS1
-				int stats_saved = multi_fs_tracker_store_stats();
+						int stats_saved = multi_fs_std_tracker_store_stats();
 
-				if (Netgame.type_flags & NG_TYPE_SW) {
-					multi_sw_report(stats_saved);
-				}
+						if (Netgame.type_flags & NG_TYPE_SW) {
+							multi_sw_report(stats_saved);
+						}
 #else
-				multi_fs_tracker_store_stats();
+						multi_fs_std_tracker_store_stats();
 #endif
+					}
+
+					Netgame.flags |= NG_FLAG_STORED_MT_STATS;
+					send_netgame_update_packet();
+				}
 
 				multi_maybe_set_mission_loop();
 			} else {
@@ -9404,16 +9411,21 @@ void multi_debrief_esc_hit()
 	if(Net_player->flags & NETINFO_FLAG_GAME_HOST){		
 		// if the stats have already been accepted
 		if((Multi_debrief_stats_accept_code != -1) || (MULTI_IS_TRACKER_GAME)){
-			if (Multi_debrief_stats_accept_code == 1) {
+			if ( (Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
+				if ( (multi_debrief_stats_accept_code() == 1) && MULTI_IS_TRACKER_GAME ) {
 #ifndef MAKE_FS1
-				int stats_saved = multi_fs_tracker_store_stats();
+					int stats_saved = multi_fs_std_tracker_store_stats();
 
-				if (Netgame.type_flags & NG_TYPE_SW) {
-					multi_sw_report(stats_saved);
-				}
+					if (Netgame.type_flags & NG_TYPE_SW) {
+						multi_sw_report(stats_saved);
+					}
 #else
-				multi_fs_tracker_store_stats();
+					multi_fs_std_tracker_store_stats();
 #endif
+				}
+
+				Netgame.flags |= NG_FLAG_STORED_MT_STATS;
+				send_netgame_update_packet();
 			}
 
 			multi_quit_game(PROMPT_HOST);

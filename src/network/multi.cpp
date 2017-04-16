@@ -243,6 +243,7 @@
 #include "alphacolors.h"
 #include "osregistry.h"
 #include "multi_fstracker.h"
+#include "multi_sw.h"
 
 
 // ----------------------------------------------------------------------------------------
@@ -1914,6 +1915,23 @@ void multi_standalone_postgame_do()
 
 void multi_standalone_postgame_close()
 {
+	// maybe store stats on tracker
+	if ( !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
+		if ( (multi_debrief_stats_accept_code() == 1) ) {
+#ifndef MAKE_FS1
+			int stats_saved = multi_fs_std_tracker_store_stats();
+
+			if (Netgame.type_flags & NG_TYPE_SW) {
+				multi_sw_report(stats_saved);
+			}
+#else
+			multi_fs_std_tracker_store_stats();
+#endif
+		}
+
+		Netgame.flags |= NG_FLAG_STORED_MT_STATS;
+		send_netgame_update_packet();
+	}
 }
 
 void multi_reset_timestamps()

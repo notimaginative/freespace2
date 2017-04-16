@@ -342,8 +342,6 @@ void multi_options_read_config()
 				NEXT_TOKEN();
 				if(tok != NULL){
 					SDL_strlcpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
-
-					STUB_FUNCTION;
 				}
 			} else 
 			if(SETTING("+low_update")){

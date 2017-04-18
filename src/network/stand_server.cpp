@@ -115,6 +115,10 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 					return 1;
 				}
 
+				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_ENCODING, (unsigned char *)"gzip", 4, &p, end) ) {
+					return 1;
+				}
+
 				if ( lws_add_http_header_content_length(wsi, standalone_html_len, &p, end) ) {
 					return 1;
 				}

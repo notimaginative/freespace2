@@ -402,13 +402,13 @@ void multi_fs_tracker_init()
 	
 	// initialize the low-level validation stuff
 	if(!InitValidateClient()){
-		ml_printf("Error initializing tracker api (validateclient)\n");
+		ml_printf("Error initializing tracker api (validateclient)");
 		return;
 	}
 
 	// initialize the low-level pilot tracking stuff	
 	if(!InitPilotTrackerClient()){		
-		ml_printf("Error initializing tracker api (pilotclient)\n");
+		ml_printf("Error initializing tracker api (pilotclient)");
 		return;
 	}	
 
@@ -418,7 +418,7 @@ void multi_fs_tracker_init()
 #else
 	if(!InitGameTrackerClient(GT_FREESPACE)){
 #endif
-		ml_printf("Error initializing tracker api (gameclient)\n");
+		ml_printf("Error initializing tracker api (gameclient)");
 		return;
 	}	
 

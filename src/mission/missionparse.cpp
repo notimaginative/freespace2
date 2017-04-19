@@ -2154,7 +2154,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 					debris *db;
 
 					db = &Debris[i];
-					if ( !db->flags & DEBRIS_USED )				// not used, move onto the next one.
+					if ( !(db->flags & DEBRIS_USED) )				// not used, move onto the next one.
 						continue;
 					if ( db->source_objnum != real_objnum )	// not from this ship, move to next one
 						continue;

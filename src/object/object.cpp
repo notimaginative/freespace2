@@ -932,7 +932,7 @@ void obj_delete(int objnum)
 		cmeasure_delete( objp );
 		break;
 	case OBJ_GHOST:
-		if((!Game_mode & GM_MULTIPLAYER)){
+		if(!(Game_mode & GM_MULTIPLAYER)){
 			mprintf(("Warning: Tried to delete a ghost!"));
 			objp->flags &= ~OF_SHOULD_BE_DEAD;
 			return;

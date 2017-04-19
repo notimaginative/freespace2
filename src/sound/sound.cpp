@@ -478,7 +478,7 @@ void snd_spew_debug_info()
 
 	// count up game, interface and message sounds
 	for(int idx=0; idx<MAX_SOUNDS; idx++){
-		if(!Sounds[idx].flags & SND_F_USED){
+		if(!(Sounds[idx].flags & SND_F_USED)){
 			continue;
 		}
 

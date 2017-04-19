@@ -80,7 +80,7 @@ void UI_SLIDER2::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _h, int _num
 
 	captureCallback = _captureCallback;	
 
-	SDL_assert(_bitmapSliderControl > 0);
+	SDL_assert(_bitmapSliderControl);
 
 	last_scrolled = 0;
 

@@ -6,6 +6,8 @@
  * the source.
  */
 
+#ifndef __EMSCRIPTEN__
+
 #include "SDL_opengl.h"
 
 #include "pstypes.h"
@@ -282,3 +284,5 @@ void gr_wxgl_init()
 	gr_flip();
 	gr_clear();
 }
+
+#endif

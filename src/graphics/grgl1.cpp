@@ -6,6 +6,8 @@
  * the source.
  */
 
+#ifndef __EMSCRIPTEN__
+
 #include "SDL_opengl.h"
 
 #include "gropengl.h"
@@ -817,3 +819,5 @@ void gr_opengl1_set_viewport(int width, int height)
 		GL_stream_scale_by = GL_viewport_w / i2fl(GL_stream_w);
 	}
 }
+
+#endif

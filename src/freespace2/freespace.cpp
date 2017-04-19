@@ -6657,9 +6657,11 @@ int game_main(const char *szCmdLine)
 	// Find out how much RAM is on this machine
 	Freespace_total_ram = SDL_GetSystemRAM();
 
+#ifndef __EMSCRIPTEN__
 	if ( game_do_ram_check(Freespace_total_ram) == -1 ) {
 		return 0;
 	}
+#endif
 
 	if (!vm_init(24*1024*1024)) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
@@ -6699,7 +6701,7 @@ int game_main(const char *szCmdLine)
 	mprintf(("\n"));
 #endif
 
-	parse_cmdline(szCmdLine);	
+	parse_cmdline(szCmdLine);
 
 	mprintf(("--------------------------------------------------------------------------------\n"));
 

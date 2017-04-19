@@ -38,6 +38,14 @@ else()
   endif()
 endif()
 
+if(EMSCRIPTEN)
+  add_definitions(-s USE_SDL=2)
+  add_definitions(-s FULL_ES2=1)
+  add_definitions(-s DISABLE_EXCEPTION_CATCHING=0)
+
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif()
+
 if(NOT WIN32)
   set(PLATFORM_LIBRARIES "")
 
@@ -88,10 +96,13 @@ endif()
 find_package(SDL2 "2.0.5" REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(LibWebSockets REQUIRED)
 
-find_package(wxWidgets COMPONENTS core base gl net)
-include(${wxWidgets_USE_FILE})
+if(NOT EMSCRIPTEN)
+  find_package(LibWebSockets REQUIRED)
+
+  find_package(wxWidgets COMPONENTS core base gl net)
+  include(${wxWidgets_USE_FILE})
+endif()
 
 # ##############################################################################
 
@@ -168,12 +179,17 @@ target_link_libraries(
   ${PLATFORM_LIBRARIES}
 )
 
+if (EMSCRIPTEN)
+  set_target_properties(${FS_BINARY} PROPERTIES LINK_FLAGS "-s USE_SDL=2 -s FULL_ES2=1 -s TOTAL_MEMORY=268435456 -s DISABLE_EXCEPTION_CATCHING=0 --preload-file game@/")
+endif()
+
 if(FS1)
   set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace")
 else()
   set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace2")
 endif()
 
+if(NOT EMSCRIPTEN)
 #
 # launcher
 #
@@ -436,8 +452,9 @@ endif(NOT DEMO)
 #
 # ##############################################################################
 
+endif(NOT EMSCRIPTEN)
 #
 # optionally include any dev/user preferred build commands and/or options
 #
 
-include(custom.cmake OPTIONAL)
+#include(custom.cmake OPTIONAL)

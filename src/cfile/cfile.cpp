@@ -1519,6 +1519,7 @@ int cfile_init_paths()
 	SDL_free(t_path);
 	t_path = NULL;
 
+#ifndef __EMSCRIPTEN__
 	// are we in a root directory?
 	if ( cfile_in_root_dir(Cfile_root_dir) ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
@@ -1545,6 +1546,10 @@ int cfile_init_paths()
 	// free SDL copy
 	SDL_free(u_path);
 	u_path = NULL;
+#else
+	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "/persist/");
+	mkdir("/.prefs", 0777);
+#endif
 
 	// see if CF_TYPE_DATA exists for user and if not populate user path
 	// with full directory tree

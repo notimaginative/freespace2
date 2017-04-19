@@ -178,7 +178,9 @@ void gr_opengl_activate(int active)
 
 void gr_opengl_cleanup()
 {
+#ifndef __EMSCRIPTEN__
 	opengl1_cleanup();
+#endif
 	opengl2_cleanup();
 
 	opengl_free_render_buffer();
@@ -229,12 +231,16 @@ void gr_opengl_init()
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
+#ifndef __EMSCRIPTEN__
 	int rc = 1;
 
 	// try GL 2 first, then fall back to GL 1
 	if ( !opengl2_init() ) {
 		rc = opengl1_init();
 	}
+#else
+	int rc = opengl2_init();
+#endif
 
 	if ( !rc ) {
 		Error(LOCATION, "Unable to initialize OpenGL renderer!\n");

@@ -11,6 +11,8 @@
 #include "sound.h"
 #include "oal_efx.h"
 
+#ifndef __EMSCRIPTEN__
+
 #include "alext.h"
 #include "efx-presets.h"
 
@@ -220,9 +222,11 @@ static void oal_efx_set_environment(uint id)
 
 	EFX_active_environment = n_id;
 }
+#endif
 
 int oal_efx_init()
 {
+#ifndef __EMSCRIPTEN__
 	if (OAL_efx_inited) {
 		return 0;
 	}
@@ -306,15 +310,23 @@ int oal_efx_init()
 	oal_efx_set_env_properties();
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 int oal_efx_is_inited()
 {
+#ifndef __EMSCRIPTEN__
 	return OAL_efx_inited;
+#else
+	return 0;
+#endif
 }
 
 void oal_efx_close()
 {
+#ifndef __EMSCRIPTEN__
  	if ( !OAL_efx_inited ) {
  		return;
  	}
@@ -330,10 +342,12 @@ void oal_efx_close()
 	EFX_enabled = 0;
 
 	OAL_efx_inited = 0;
+#endif
 }
 
 void oal_efx_attach(ALuint source_id)
 {
+#ifndef __EMSCRIPTEN__
 	if ( !OAL_efx_inited ) {
 		return;
 	}
@@ -350,6 +364,7 @@ void oal_efx_attach(ALuint source_id)
 	alSourceiv(source_id, AL_AUXILIARY_SEND_FILTER, plist);
 
 	oal_check_for_errors("oal_efx_attach() end");
+#endif
 }
 
 // Get up the parameters for the current environment
@@ -361,6 +376,7 @@ void oal_efx_attach(ALuint source_id)
 //
 int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 {
+#ifndef __EMSCRIPTEN__
 	if (er == NULL) {
 		return -1;
 	}
@@ -386,6 +402,9 @@ int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 	}
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 // Set up all the parameters for an environment
@@ -399,6 +418,7 @@ int oal_efx_get_all(EAX_REVERBPROPERTIES *er, int id)
 //
 int oal_efx_set_all(uint id, float vol, float damping, float decay)
 {
+#ifndef __EMSCRIPTEN__
 	if ( !OAL_efx_inited ) {
 		return -1;
 	}
@@ -435,4 +455,7 @@ int oal_efx_set_all(uint id, float vol, float damping, float decay)
 	}
 
 	return 0;
+#else
+	return -1;
+#endif
 }

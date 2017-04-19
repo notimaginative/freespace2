@@ -9,13 +9,16 @@
 
 
 #include "pstypes.h"
+#include "multi.h"
+#include "stand_server.h"
+
+#ifndef __EMSCRIPTEN__
+
 #include "osregistry.h"
 #include "multi_options.h"
 #include "gamesequence.h"
 #include "timer.h"
 #include "version.h"
-#include "multi.h"
-#include "stand_server.h"
 #include "multi_pmsg.h"
 #include "multi_endgame.h"
 #include "multimsgs.h"
@@ -1081,3 +1084,36 @@ void std_tracker_login()
 void std_connect_set_host_connect_status()
 {
 }
+
+#else
+
+void std_init_standalone(){}
+void std_do_gui_frame(){}
+void std_debug_set_standalone_state_string(const char *){}
+void std_connect_set_gamename(const char *){}
+int std_connect_set_connect_count(){return 0;}
+void std_add_player(net_player *){}
+int std_remove_player(net_player *){return 0;}
+void std_update_player_ping(net_player *){}
+void std_pinfo_display_player_info(net_player *){}
+void std_add_chat_text(const char *, int , int ){}
+void std_reset_timestamps(){}
+void std_add_ban(const char *){}
+int std_player_is_banned(const char *){return 0;}
+int std_is_host_passwd(){return 0;}
+void std_multi_set_standalone_mission_name(const char *){}
+void std_multi_set_standalone_missiontime(float mission_time){}
+void std_multi_update_netgame_info_controls(){}
+void std_set_standalone_fps(float ){}
+void std_multi_setup_goal_tree(){}
+void std_multi_add_goals(){}
+void std_multi_update_goals(){}
+void std_reset_standalone_gui(){}
+void std_create_gen_dialog(const char *){}
+void std_destroy_gen_dialog(){}
+void std_gen_set_text(const char *, int ){}
+void std_tracker_notify_login_fail(){}
+void std_tracker_login(){}
+void std_connect_set_host_connect_status(){}
+
+#endif

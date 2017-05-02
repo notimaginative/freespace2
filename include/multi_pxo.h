@@ -75,18 +75,23 @@
 // default url for PXO rankings
 //#define MULTI_PXO_RANKINGS_URL				"http://www.volition-inc.com"
 //#define MULTI_PXO_RANKINGS_URL				"http://www.pxo.net/rankings/fs2full.cfm"
-#define MULTI_PXO_RANKINGS_URL					"http://pxo.nottheeye.com/rankings"
-
+#if defined(FS2_DEMO)
+#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/fs2demo"
+#elif defined(MAKE_FS1)
+#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/fs"
+#else
+#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/fs2"
+#endif
 
 // default url for PXO account creation
 //#define MULTI_PXO_CREATE_URL				"http://www.parallaxonline.com/register.html"
 //#define MULTI_PXO_CREATE_URL					"http://www.pxo.net/newaccount.cfm"
-#define MULTI_PXO_CREATE_URL					"http://pxo.nottheeye.com/create"
+#define MULTI_PXO_CREATE_URL					"https://pxo.nottheeye.com/register"
 
 // default url for PXO account verification
 //#define MULTI_PXO_VERIFY_URL				"http://www.parallaxonline.com/verify.html"
 //#define MULTI_PXO_VERIFY_URL					"http://www.pxo.net/verify.cfm"
-#define MULTI_PXO_VERIFY_URL					"http://pxo.nottheeye.com/verify"
+#define MULTI_PXO_VERIFY_URL					"https://pxo.nottheeye.com/account"
 
 // default url for PXO banners
 //#define MULTI_PXO_BANNER_URL					"http://www.pxo.net/files/banners"

@@ -33,6 +33,7 @@ LauncherSetup::LauncherSetup( wxWindow* parent, wxWindowID id, const wxString& t
 	initTab_Joystick(nbook);
 	initTab_Speed(nbook);
 	initTab_Network(nbook);
+	initTab_PXO(nbook);
 
 	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
 	bSizer->Add( nbook, 0, wxALL|wxEXPAND, 5 );
@@ -500,7 +501,6 @@ void LauncherSetup::initTab_Network(wxNotebook* parent)
 
 	m_Network_Speed->SetSelection(val);
 
-
 	wxStaticBoxSizer* sbSizer = new wxStaticBoxSizer( new wxStaticBox( panel, wxID_ANY, wxT("Misc") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer_port = new wxFlexGridSizer( 0, 2, 0, 0 );
@@ -573,6 +573,110 @@ void LauncherSetup::saveTab_Network()
 	os_config_write_uint("Network", "ForcePort", (unsigned int)port);
 }
 
+void LauncherSetup::initTab_PXO(wxNotebook *parent)
+{
+	const char *conf_ptr = NULL;
+	unsigned int val = 0;
+
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+	// PXO
+	wxStaticBoxSizer* sbSizer1 = new wxStaticBoxSizer( new wxStaticBox( panel, wxID_ANY, wxT("PXO Account") ), wxVERTICAL );
+
+	wxBoxSizer*bSizer3 = new wxBoxSizer( wxVERTICAL );
+
+	wxFlexGridSizer* fgSizer2 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer2->SetFlexibleDirection( wxBOTH );
+	fgSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	// login
+	wxStaticText* m_staticText3 = new wxStaticText( panel, wxID_ANY, wxT("Login"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText3->Wrap( -1 );
+	fgSizer2->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_PXO_Login = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_PXO_Login->SetMaxLength( 31 );
+
+	fgSizer2->Add( m_PXO_Login, 0, wxALL|wxEXPAND, 5 );
+
+	conf_ptr = os_config_read_string("PXO", "Login", NULL);
+
+	if (conf_ptr) {
+		m_PXO_Login->SetValue(conf_ptr);
+	}
+
+	// password
+	wxStaticText* m_staticText4 = new wxStaticText( panel, wxID_ANY, wxT("Password"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText4->Wrap( -1 );
+	fgSizer2->Add( m_staticText4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_PXO_Password = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_PXO_Password->SetMaxLength( 16 );
+
+	fgSizer2->Add( m_PXO_Password, 0, wxALL|wxEXPAND, 5 );
+	bSizer3->Add( fgSizer2, 1, wxEXPAND, 5 );
+
+	conf_ptr = os_config_read_string("PXO", "Password", NULL);
+
+	if (conf_ptr) {
+		m_PXO_Password->SetValue(conf_ptr);
+	}
+
+	// radios
+	wxBoxSizer* bSizer4 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_SkipVerify = new wxCheckBox( panel, wxID_ANY, wxT("Skip version check"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( m_SkipVerify, 0, wxALL, 5 );
+
+	val = os_config_read_uint("PXO", "SkipVerify", 0);
+
+	m_SkipVerify->SetValue( val ? true : false );
+
+	m_PXOBanners = new wxCheckBox( panel, wxID_ANY, wxT("PXO Banners"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( m_PXOBanners, 0, wxALL, 5 );
+
+	val = os_config_read_uint("PXO", "PXOBanners", 1);
+
+	m_PXOBanners->SetValue( val ? true : false );
+
+	bSizer3->Add( bSizer4, 0, wxALL|wxEXPAND, 5 );
+	sbSizer1->Add( bSizer3, 0, wxALL|wxEXPAND, 5 );
+
+
+	bSizer->Add( sbSizer1, 0, wxALL|wxEXPAND, 5 );
+
+	panel->SetSizer( bSizer );
+	panel->Layout();
+
+	bSizer->Fit( panel );
+
+	parent->AddPage( panel, wxT("PXO"), false );
+}
+
+void LauncherSetup::saveTab_PXO()
+{
+	wxString value;
+	unsigned int val = 0;
+
+	value = m_PXO_Login->GetValue();
+
+	os_config_write_string("PXO", "Login", value.c_str());
+
+	value = m_PXO_Password->GetValue();
+
+	os_config_write_string("PXO", "Password", value.c_str());
+
+	val = m_SkipVerify->GetValue() ? 1 : 0;
+
+	os_config_write_uint("PXO", "SkipVerify", val);
+
+	val = m_PXOBanners->GetValue() ? 1 : 0;
+
+	os_config_write_uint("PXO", "PXOBanners", val);
+}
+
 void LauncherSetup::save_settings()
 {
 	const char *ptr = NULL;
@@ -617,6 +721,9 @@ void LauncherSetup::save_settings()
 
 	// 'Network' section
 	saveTab_Network();
+
+	// 'PXO' section
+	saveTab_PXO();
 }
 
 void LauncherSetup::onOk(wxCommandEvent& WXUNUSED(event))

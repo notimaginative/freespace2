@@ -819,7 +819,7 @@ void parse_mission_info(mission *pm)
 	if(Game_mode & GM_MULTIPLAYER){
 		SDL_strlcpy(The_mission.squad_name, "", SDL_arraysize(The_mission.squad_name));
 		SDL_strlcpy(The_mission.squad_filename, "", SDL_arraysize(The_mission.squad_filename));
-		mprintf(("Ignoring squadron reassignment"));
+		//mprintf(("Ignoring squadron reassignment\n"));
 	}
 	// reassign the player
 	else {		

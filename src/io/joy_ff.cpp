@@ -265,7 +265,7 @@ static void joy_ff_create_effects()
 		pAfterburn1.eff.periodic.direction.dir[0] = 0;
 		pAfterburn1.eff.periodic.length = SDL_HAPTIC_INFINITY;
 		pAfterburn1.eff.periodic.period = 20;
-		pAfterburn1.eff.periodic.magnitude = 0x6665;
+		pAfterburn1.eff.periodic.magnitude = 0x3332;
 
 		pAfterburn1.id = SDL_HapticNewEffect(haptic, &pAfterburn1.eff);
 
@@ -283,7 +283,7 @@ static void joy_ff_create_effects()
 		pAfterburn2.eff.periodic.direction.dir[0] = 9000;
 		pAfterburn2.eff.periodic.length = 125;
 		pAfterburn2.eff.periodic.period = 100;
-		pAfterburn2.eff.periodic.magnitude = 0x3332;
+		pAfterburn2.eff.periodic.magnitude = 0x1999;
 
 		pAfterburn2.id = SDL_HapticNewEffect(haptic, &pAfterburn2.eff);
 
@@ -749,7 +749,7 @@ void joy_ff_afterburn_on()
 
 	pAfterburn1.eff.periodic.length = SDL_HAPTIC_INFINITY;
 	pAfterburn1.eff.periodic.period = 20;
-	pAfterburn1.eff.periodic.magnitude = 0x3fff;
+	pAfterburn1.eff.periodic.magnitude = 0x3332;
 	pAfterburn1.eff.periodic.attack_length = 0;
 
 	if ( SDL_HapticUpdateEffect(haptic, pAfterburn1.id, &pAfterburn1.eff) < 0 ) {
@@ -760,7 +760,7 @@ void joy_ff_afterburn_on()
 
 	pAfterburn2.eff.periodic.length = SDL_HAPTIC_INFINITY;
 	pAfterburn2.eff.periodic.period = 100;
-	pAfterburn2.eff.periodic.magnitude = 0x3fff;
+	pAfterburn2.eff.periodic.magnitude = 0x1999;
 	pAfterburn2.eff.periodic.attack_length = 0;
 
 	if ( SDL_HapticUpdateEffect(haptic, pAfterburn2.id, &pAfterburn2.eff) < 0 ) {

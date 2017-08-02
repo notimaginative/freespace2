@@ -857,6 +857,8 @@ void joy_ff_explode()
 		}
 
 		joy_ff_start_effect(&pShootEffect, "ShootEffect (Explode)");
+	} else if (Joy_rumble) {
+		SDL_HapticRumblePlay(haptic, 0.75f, 500);
 	}
 
 	Joy_ff_afterburning = 0;

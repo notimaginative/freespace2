@@ -359,6 +359,36 @@ void joy_ff_mission_init(vector v)
 	joy_ff_handling_scaler = (int) ((vm_vec_mag(&v) + 1.3f) * 5.0f);
 
 	Joy_ff_afterburning = 0;
+
+	joy_ff_adjust_handling(0);
+
+	if ( !joy_ff_effect_playing(&pSpring) ) {
+		joy_ff_start_effect(&pSpring, "Spring");
+	}
+
+	// reset afterburn effects to default values
+
+	pAfterburn1.eff.periodic.length = SDL_HAPTIC_INFINITY;
+	pAfterburn1.eff.periodic.period = 20;
+	pAfterburn1.eff.periodic.magnitude = 0x3332;
+	pAfterburn1.eff.periodic.attack_length = 0;
+
+	joy_ff_update_effect(&pAfterburn1, "pAfterburn1");
+
+	pAfterburn2.eff.periodic.length = SDL_HAPTIC_INFINITY;
+	pAfterburn2.eff.periodic.period = 100;
+	pAfterburn2.eff.periodic.magnitude = 0x1999;
+	pAfterburn2.eff.periodic.attack_length = 0;
+
+	joy_ff_update_effect(&pAfterburn2, "pAfterburn2");
+
+	// reset primary shoot effect to default values
+
+	pShootEffect.eff.periodic.direction.dir[0] = 0;
+	pShootEffect.eff.periodic.length = 160;
+	pShootEffect.eff.periodic.fade_length = 120;
+
+	joy_ff_update_effect(&pShootEffect, "pShootEffect");
 }
 
 void joy_reacquire_ff()

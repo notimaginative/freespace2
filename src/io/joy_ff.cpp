@@ -644,6 +644,14 @@ void joy_ff_adjust_handling(int speed)
 		return;
 	}
 
+	static int last_speed = -1000;
+
+	if (speed == last_speed) {
+		return;
+	}
+
+	last_speed = speed;
+
 	v = speed * joy_ff_handling_scaler * 2 / 3;
 //	v += joy_ff_handling_scaler * joy_ff_handling_scaler * 6 / 7 + 250;
 	v += joy_ff_handling_scaler * 45 - 500;

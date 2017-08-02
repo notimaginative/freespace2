@@ -248,7 +248,6 @@ static void joy_ff_create_effects()
 			mprintf(("    Spring effect failed to load:\n      %s\n", SDL_GetError()));
 		} else {
 			pSpring.loaded = 1;
-			joy_ff_start_effect(&pSpring, "Spring");
 		}
 	}
 

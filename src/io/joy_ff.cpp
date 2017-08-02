@@ -21,6 +21,7 @@ static SDL_Haptic *haptic = NULL;
 static int joy_ff_handling_scaler = 0;
 static int Joy_ff_directional_hit_effect_enabled = 1;
 static int Joy_rumble = 0;
+static int Joy_ff_afterburning = 0;
 
 typedef struct {
 	SDL_HapticEffect eff;
@@ -409,6 +410,8 @@ void joy_ff_mission_init(vector v)
 	v.xyz.z = 0.0f;
 
 	joy_ff_handling_scaler = (int) ((vm_vec_mag(&v) + 1.3f) * 5.0f);
+
+	Joy_ff_afterburning = 0;
 }
 
 void joy_reacquire_ff()
@@ -732,8 +735,6 @@ void joy_ff_play_reload_effect()
 
 	joy_ff_start_effect(&pDock, "Dock (Reload)");
 }
-
-static int Joy_ff_afterburning = 0;
 
 void joy_ff_afterburn_on()
 {

@@ -541,8 +541,6 @@ void joy_ff_play_dir_effect(float x, float y)
 	joy_ff_start_effect(&pHitEffect2, "HitEffect2");
 }
 
-static int primary_ff_level = 10000;
-
 void joy_ff_play_primary_shoot(int gain)
 {
 	if ( !Joy_ff_enabled ) {
@@ -566,6 +564,8 @@ void joy_ff_play_primary_shoot(int gain)
 	if (pShootEffect.loaded) {
 		SDL_HapticStopEffect(haptic, pShootEffect.id);
 
+		static int primary_ff_level = 10000;
+
 		if (gain != primary_ff_level) {
 			pShootEffect.eff.periodic.direction.dir[0] = 0;
 			pShootEffect.eff.periodic.length = 160;
@@ -584,8 +584,6 @@ void joy_ff_play_primary_shoot(int gain)
 		SDL_HapticRumblePlay(haptic, (gain / 10000.0f) * 0.5f, 100);
 	}
 }
-
-static int secondary_ff_level = 10000;
 
 void joy_ff_play_secondary_shoot(int gain)
 {
@@ -611,6 +609,8 @@ void joy_ff_play_secondary_shoot(int gain)
 
 	if (pSecShootEffect.loaded) {
 		SDL_HapticStopEffect(haptic, pSecShootEffect.id);
+
+		static int secondary_ff_level = 10000;
 
 		if (gain != secondary_ff_level) {
 			pSecShootEffect.eff.constant.level = (Sint16)(32767.0f * (gain / 10000.0f));

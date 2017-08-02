@@ -702,7 +702,7 @@ void joy_ff_docked()
 
 	SDL_HapticStopEffect(haptic, pDock.id);
 
-	pDock.eff.periodic.magnitude = 0x7fff;
+	pDock.eff.periodic.magnitude = 0x3332;
 
 	if ( SDL_HapticUpdateEffect(haptic, pDock.id, &pDock.eff) < 0 ) {
 		mprintf(("HapticERROR:  Unable to update pDock:\n  %s\n", SDL_GetError()));
@@ -727,7 +727,7 @@ void joy_ff_play_reload_effect()
 
 	SDL_HapticStopEffect(haptic, pDock.id);
 
-	pDock.eff.periodic.magnitude = 0x3fff;
+	pDock.eff.periodic.magnitude = 0x1999;
 
 	if ( SDL_HapticUpdateEffect(haptic, pDock.id, &pDock.eff) < 0 ) {
 		mprintf(("HapticERROR:  Unable to update pDock:\n  %s\n", SDL_GetError()));

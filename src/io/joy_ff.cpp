@@ -779,14 +779,14 @@ void joy_ff_fly_by(int mag)
 	SDL_HapticStopEffect(haptic, pAfterburn1.id);
 
 	pAfterburn1.eff.periodic.length = (6000 * mag + 400000) / 1000;
-	pAfterburn1.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
+	pAfterburn1.eff.periodic.magnitude = (Sint16)(26212.0f * (gain / 10000.0f));
 
 	joy_ff_update_effect(&pAfterburn1, "pAfterburn1 (flyby)");
 
 	SDL_HapticStopEffect(haptic, pAfterburn2.id);
 
 	pAfterburn2.eff.periodic.length = (6000 * mag + 400000) / 1000;
-	pAfterburn2.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
+	pAfterburn2.eff.periodic.magnitude = (Sint16)(13106.0f * (gain / 10000.0f));
 
 	joy_ff_update_effect(&pAfterburn2, "pAfterburn2 (flyby)");
 

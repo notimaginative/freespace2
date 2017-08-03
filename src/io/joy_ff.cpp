@@ -13,6 +13,7 @@
 #include "osregistry.h"
 #include "joy_ff.h"
 #include "osapi.h"
+#include "timer.h"
 
 
 static int Joy_ff_enabled = 0;
@@ -540,7 +541,13 @@ void joy_ff_play_primary_shoot(int gain)
 
 		joy_ff_start_effect(&pShootEffect, "ShootEffect");
 	} else if (Joy_rumble) {
-		SDL_HapticRumblePlay(haptic, gain / 10000.0f, 100);
+		static int rumble_timeout = 1;
+
+		if ( timestamp_elapsed(rumble_timeout) ) {
+			SDL_HapticRumblePlay(haptic, gain / 10000.0f, 100);
+
+			rumble_timeout = timestamp(100);
+		}
 	}
 }
 
@@ -575,7 +582,15 @@ void joy_ff_play_secondary_shoot(int gain)
 
 		joy_ff_start_effect(&pSecShootEffect, "SecShootEffect");
 	} else if (Joy_rumble) {
-		SDL_HapticRumblePlay(haptic, gain / 10000.0f, (150000 + gain * 25) / 1000);
+		static int rumble_timeout = 1;
+
+		if ( timestamp_elapsed(rumble_timeout) ) {
+			int duration = (150000 + gain * 25) / 1000;
+
+			SDL_HapticRumblePlay(haptic, gain / 10000.0f, duration);
+
+			rumble_timeout = timestamp(duration);
+		}
 	}
 }
 
@@ -750,7 +765,13 @@ void joy_ff_explode()
 
 		joy_ff_start_effect(&pShootEffect, "ShootEffect (Explode)");
 	} else if (Joy_rumble) {
-		SDL_HapticRumblePlay(haptic, 1.0f, 500);
+		static int rumble_timeout = 1;
+
+		if ( timestamp_elapsed(rumble_timeout) ) {
+			SDL_HapticRumblePlay(haptic, 1.0f, 500);
+
+			rumble_timeout = timestamp(500);
+		}
 	}
 
 	Joy_ff_afterburning = 0;

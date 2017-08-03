@@ -372,14 +372,14 @@ void joy_ff_mission_init(vector v)
 	pAfterburn1.eff.periodic.magnitude = 0x3332;
 	pAfterburn1.eff.periodic.attack_length = 0;
 
-	joy_ff_update_effect(&pAfterburn1, "pAfterburn1");
+	joy_ff_update_effect(&pAfterburn1, "pAfterburn1 (init)");
 
 	pAfterburn2.eff.periodic.length = SDL_HAPTIC_INFINITY;
 	pAfterburn2.eff.periodic.period = 100;
 	pAfterburn2.eff.periodic.magnitude = 0x1999;
 	pAfterburn2.eff.periodic.attack_length = 0;
 
-	joy_ff_update_effect(&pAfterburn2, "pAfterburn2");
+	joy_ff_update_effect(&pAfterburn2, "pAfterburn2 (init)");
 
 	// reset primary shoot effect to default values
 
@@ -387,7 +387,7 @@ void joy_ff_mission_init(vector v)
 	pShootEffect.eff.periodic.length = 160;
 	pShootEffect.eff.periodic.fade_length = 120;
 
-	joy_ff_update_effect(&pShootEffect, "pShootEffect");
+	joy_ff_update_effect(&pShootEffect, "pShootEffect (init)");
 }
 
 void joy_reacquire_ff()
@@ -523,11 +523,7 @@ void joy_ff_play_primary_shoot(int gain)
 		return;
 	}
 
-	if (gain < 1) {
-		gain = 1;
-	} else if (gain > 10000) {
-		gain = 10000;
-	}
+	CAP(gain, 1, 10000);
 
 	if (pShootEffect.loaded) {
 		SDL_HapticStopEffect(haptic, pShootEffect.id);
@@ -560,11 +556,7 @@ void joy_ff_play_secondary_shoot(int gain)
 
 	gain = gain * 100 + 2500;
 
-	if (gain < 1) {
-		gain = 1;
-	} else if (gain > 10000) {
-		gain = 10000;
-	}
+	CAP(gain, 1, 10000);
 
 	if (pSecShootEffect.loaded) {
 		SDL_HapticStopEffect(haptic, pSecShootEffect.id);
@@ -612,11 +604,7 @@ void joy_ff_adjust_handling(int speed)
 //	v += joy_ff_handling_scaler * joy_ff_handling_scaler * 6 / 7 + 250;
 	v += joy_ff_handling_scaler * 45 - 500;
 
-	if (v < 0) {
-		v = 0;
-	} else if (v > 10000) {
-		v = 10000;
-	}
+	CAP(v, 0, 10000);
 
 	coeff = (short)(32767.0f * (v / 10000.0f));
 
@@ -672,7 +660,7 @@ void joy_ff_play_reload_effect()
 
 	pDock.eff.periodic.magnitude = 0x1999;
 
-	joy_ff_update_effect(&pDock, "pDock");
+	joy_ff_update_effect(&pDock, "pDock (reload)");
 
 	joy_ff_start_effect(&pDock, "Dock (Reload)");
 }
@@ -758,7 +746,7 @@ void joy_ff_explode()
 		pShootEffect.eff.periodic.magnitude = 0x7FFF;
 		pShootEffect.eff.periodic.fade_length = 500;
 
-		joy_ff_update_effect(&pShootEffect, "pShootEffect");
+		joy_ff_update_effect(&pShootEffect, "pShootEffect (explode)");
 
 		joy_ff_start_effect(&pShootEffect, "ShootEffect (Explode)");
 	} else if (Joy_rumble) {
@@ -786,25 +774,21 @@ void joy_ff_fly_by(int mag)
 
 	gain = mag * 120 + 4000;
 
-	if (gain < 1) {
-		gain = 1;
-	} else if (gain > 10000) {
-		gain = 10000;
-	}
+	CAP(gain, 1, 10000);
 
 	SDL_HapticStopEffect(haptic, pAfterburn1.id);
 
 	pAfterburn1.eff.periodic.length = (6000 * mag + 400000) / 1000;
 	pAfterburn1.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
 
-	joy_ff_update_effect(&pAfterburn1, "pAfterburn1");
+	joy_ff_update_effect(&pAfterburn1, "pAfterburn1 (flyby)");
 
 	SDL_HapticStopEffect(haptic, pAfterburn2.id);
 
 	pAfterburn2.eff.periodic.length = (6000 * mag + 400000) / 1000;
 	pAfterburn2.eff.periodic.magnitude = (Sint16)(32767.0f * (gain / 10000.0f));
 
-	joy_ff_update_effect(&pAfterburn2, "pAfterburn2");
+	joy_ff_update_effect(&pAfterburn2, "pAfterburn2 (flyby)");
 
 	joy_ff_start_effect(&pAfterburn1, "Afterburn1 (Fly by)");
 	joy_ff_start_effect(&pAfterburn2, "Afterburn2 (Fly by)");
@@ -824,7 +808,7 @@ void joy_ff_deathroll()
 		pAfterburn1.eff.periodic.magnitude = 0x7FFF;
 		pAfterburn1.eff.periodic.attack_length = 200;
 
-		joy_ff_update_effect(&pAfterburn1, "pAfterburn1");
+		joy_ff_update_effect(&pAfterburn1, "pAfterburn1 (deathroll)");
 
 		SDL_HapticStopEffect(haptic, pAfterburn2.id);
 
@@ -833,7 +817,7 @@ void joy_ff_deathroll()
 		pAfterburn2.eff.periodic.magnitude = 0x7FFF;
 		pAfterburn2.eff.periodic.attack_length = 200;
 
-		joy_ff_update_effect(&pAfterburn2, "pAfterburn2");
+		joy_ff_update_effect(&pAfterburn2, "pAfterburn2 (deathroll)");
 
 		joy_ff_start_effect(&pAfterburn1, "Afterburn1 (Death Roll)");
 		joy_ff_start_effect(&pAfterburn2, "Afterburn2 (Death Roll)");

@@ -95,6 +95,8 @@ void joy_ff_shutdown()
 		return;
 	}
 
+	SDL_HapticStopAll(haptic);
+
 	Joy_rumble = 0;
 
 	SDL_HapticClose(haptic);

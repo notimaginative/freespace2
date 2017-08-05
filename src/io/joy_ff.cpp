@@ -140,48 +140,26 @@ static void joy_ff_create_effects()
 	}
 
 
-	if (supported & SDL_HAPTIC_CONSTANT) {
-		// pHitEffect1
-		memset(&pHitEffect1, 0, sizeof(haptic_effect_t));
+	if (supported & SDL_HAPTIC_SPRING) {
+		// pSpring
+		memset(&pSpring, 0, sizeof(haptic_effect_t));
 
-		pHitEffect1.eff.type = SDL_HAPTIC_CONSTANT;
-		pHitEffect1.eff.constant.direction.type = SDL_HAPTIC_POLAR;
-		pHitEffect1.eff.constant.direction.dir[0] = 0;
-		pHitEffect1.eff.constant.length = 300;
-		pHitEffect1.eff.constant.level = 0x7FFF;
-		pHitEffect1.eff.constant.attack_length = 0;
-		pHitEffect1.eff.constant.attack_level = 0x7FFF;
-		pHitEffect1.eff.constant.fade_length = 120;
-		pHitEffect1.eff.constant.fade_level = 1;
+		pSpring.eff.type = SDL_HAPTIC_SPRING;
+		pSpring.eff.condition.length = SDL_HAPTIC_INFINITY;
 
-		pHitEffect1.id = SDL_HapticNewEffect(haptic, &pHitEffect1.eff);
-
-		if (pHitEffect1.id < 0) {
-			mprintf(("    Hit effect 1 failed to load:\n      %s\n", SDL_GetError()));
-		} else {
-			pHitEffect1.loaded = 1;
+		for (int i = 0; i < SDL_HapticNumAxes(haptic); i++) {
+			pSpring.eff.condition.right_sat[i] = 0x7FFF;
+			pSpring.eff.condition.left_sat[i] = 0x7FFF;
+			pSpring.eff.condition.right_coeff[i] = 0x147;
+			pSpring.eff.condition.left_coeff[i] = 0x147;
 		}
-	}
 
-	if (supported & SDL_HAPTIC_SINE) {
-		// pHitEffect2
-		memset(&pHitEffect2, 0, sizeof(haptic_effect_t));
+		pSpring.id = SDL_HapticNewEffect(haptic, &pSpring.eff);
 
-		pHitEffect2.eff.type = SDL_HAPTIC_SINE;
-		pHitEffect2.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
-		pHitEffect2.eff.periodic.direction.dir[0] = 9000;
-		pHitEffect2.eff.periodic.length = 300;
-		pHitEffect2.eff.periodic.period = 100;
-		pHitEffect2.eff.periodic.magnitude = 0x7FFF;
-		pHitEffect2.eff.periodic.attack_length = 100;
-		pHitEffect2.eff.periodic.fade_length = 100;
-
-		pHitEffect2.id = SDL_HapticNewEffect(haptic, &pHitEffect2.eff);
-
-		if (pHitEffect2.id < 0) {
-			mprintf(("    Hit effect 2 failed to load:\n      %s\n", SDL_GetError()));
+		if (pSpring.id < 0) {
+			mprintf(("    Spring effect failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pHitEffect2.loaded = 1;
+			pSpring.loaded = 1;
 		}
 	}
 
@@ -229,29 +207,6 @@ static void joy_ff_create_effects()
 		}
 	}
 
-	if (supported & SDL_HAPTIC_SPRING) {
-		// pSpring
-		memset(&pSpring, 0, sizeof(haptic_effect_t));
-
-		pSpring.eff.type = SDL_HAPTIC_SPRING;
-		pSpring.eff.condition.length = SDL_HAPTIC_INFINITY;
-
-		for (int i = 0; i < SDL_HapticNumAxes(haptic); i++) {
-			pSpring.eff.condition.right_sat[i] = 0x7FFF;
-			pSpring.eff.condition.left_sat[i] = 0x7FFF;
-			pSpring.eff.condition.right_coeff[i] = 0x147;
-			pSpring.eff.condition.left_coeff[i] = 0x147;
-		}
-
-		pSpring.id = SDL_HapticNewEffect(haptic, &pSpring.eff);
-
-		if (pSpring.id < 0) {
-			mprintf(("    Spring effect failed to load:\n      %s\n", SDL_GetError()));
-		} else {
-			pSpring.loaded = 1;
-		}
-	}
-
 	if (supported & SDL_HAPTIC_SINE) {
 		// pAfterburn1
 		memset(&pAfterburn1, 0, sizeof(haptic_effect_t));
@@ -290,6 +245,50 @@ static void joy_ff_create_effects()
 		}
 	}
 
+	if (supported & SDL_HAPTIC_CONSTANT) {
+		// pHitEffect1
+		memset(&pHitEffect1, 0, sizeof(haptic_effect_t));
+
+		pHitEffect1.eff.type = SDL_HAPTIC_CONSTANT;
+		pHitEffect1.eff.constant.direction.type = SDL_HAPTIC_POLAR;
+		pHitEffect1.eff.constant.direction.dir[0] = 0;
+		pHitEffect1.eff.constant.length = 300;
+		pHitEffect1.eff.constant.level = 0x7FFF;
+		pHitEffect1.eff.constant.attack_length = 0;
+		pHitEffect1.eff.constant.attack_level = 0x7FFF;
+		pHitEffect1.eff.constant.fade_length = 120;
+		pHitEffect1.eff.constant.fade_level = 1;
+
+		pHitEffect1.id = SDL_HapticNewEffect(haptic, &pHitEffect1.eff);
+
+		if (pHitEffect1.id < 0) {
+			mprintf(("    Hit effect 1 failed to load:\n      %s\n", SDL_GetError()));
+		} else {
+			pHitEffect1.loaded = 1;
+		}
+	}
+
+	if (supported & SDL_HAPTIC_SINE) {
+		// pHitEffect2
+		memset(&pHitEffect2, 0, sizeof(haptic_effect_t));
+
+		pHitEffect2.eff.type = SDL_HAPTIC_SINE;
+		pHitEffect2.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
+		pHitEffect2.eff.periodic.direction.dir[0] = 9000;
+		pHitEffect2.eff.periodic.length = 300;
+		pHitEffect2.eff.periodic.period = 100;
+		pHitEffect2.eff.periodic.magnitude = 0x7FFF;
+		pHitEffect2.eff.periodic.attack_length = 100;
+		pHitEffect2.eff.periodic.fade_length = 100;
+
+		pHitEffect2.id = SDL_HapticNewEffect(haptic, &pHitEffect2.eff);
+
+		if (pHitEffect2.id < 0) {
+			mprintf(("    Hit effect 2 failed to load:\n      %s\n", SDL_GetError()));
+		} else {
+			pHitEffect2.loaded = 1;
+		}
+	}
 
 //	if (supported & SDL_HAPTIC_SQUARE) {
 	if (supported & SDL_HAPTIC_TRIANGLE) {

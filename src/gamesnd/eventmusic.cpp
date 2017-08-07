@@ -222,7 +222,7 @@ const char* Pattern_names[MAX_PATTERNS] =
 	"EARV_2",	// Enemy Arrival 2
 	"VICT_1",	// Victory Song 1
 	"VICT_2",	// Victory Song 2
-	"FAIL_1"		// Goal Failed 1
+	"FAIL_1",		// Goal Failed 1
 	"DEAD_1"		// Death Song 1
 //XSTR:ON
 };
@@ -244,7 +244,7 @@ const char* Pattern_description[MAX_PATTERNS] =
 	"enemey arrival 2",
 	"victory 1",
 	"victory 2",
-	"goal failed 1"
+	"goal failed 1",
 	"death "
 //XSTR:ON
 };

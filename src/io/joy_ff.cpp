@@ -359,13 +359,10 @@ void joy_ff_mission_init(vector v)
 
 	joy_ff_handling_scaler = (int) ((vm_vec_mag(&v) + 1.3f) * 5.0f);
 
-	Joy_ff_afterburning = 0;
-
 	joy_ff_adjust_handling(0);
+	joy_ff_start_effect(&pSpring, "Spring");
 
-	if ( !joy_ff_effect_playing(&pSpring) ) {
-		joy_ff_start_effect(&pSpring, "Spring");
-	}
+	Joy_ff_afterburning = 0;
 
 	// reset afterburn effects to default values
 

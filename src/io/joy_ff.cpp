@@ -40,7 +40,7 @@ static haptic_effect_t pSpring;
 static haptic_effect_t pDock;
 
 static void joy_ff_create_effects();
-static int joy_ff_effect_playing(haptic_effect_t *eff);
+//static int joy_ff_effect_playing(haptic_effect_t *eff);
 static void joy_ff_start_effect(haptic_effect_t *eff, const char *name);
 
 extern SDL_Joystick *sdljoy;
@@ -444,6 +444,7 @@ void joy_ff_play_vector_effect(vector *v, float scaler)
 
 void joy_ff_play_dir_effect(float x, float y)
 {
+	static int hit_timeout = 1;
 	int idegs, imag;
 	float degs;
 
@@ -456,10 +457,12 @@ void joy_ff_play_dir_effect(float x, float y)
 		return;
 	}
 
-	if (joy_ff_effect_playing(&pHitEffect1) || joy_ff_effect_playing(&pHitEffect2)) {
+	if ( !timestamp_elapsed(hit_timeout) ) {
 		nprintf(("Joystick", "FF: HitEffect already playing.  Skipping\n"));
 		return;
 	}
+
+	hit_timeout = timestamp(pHitEffect1.eff.condition.length);
 
 	if (Joy_ff_directional_hit_effect_enabled) {
 		if (x > 8000.0f) {
@@ -630,7 +633,7 @@ void joy_ff_adjust_handling(int speed)
 
 	joy_ff_update_effect(&pSpring, "pSpring");
 }
-
+/*
 static int joy_ff_effect_playing(haptic_effect_t *eff)
 {
 	if ( !eff->loaded ) {
@@ -639,7 +642,7 @@ static int joy_ff_effect_playing(haptic_effect_t *eff)
 		return (SDL_HapticGetEffectStatus(haptic, eff->id) > 0);
 	}
 }
-
+*/
 void joy_ff_docked()
 {
 	if ( !joy_ff_can_play() ) {

@@ -382,12 +382,11 @@ int joy_init()
 		return 0;
 	}
 
-	mprintf(("  Name    : %s\n", SDL_JoystickName(sdljoy)));
-	mprintf(("  Axes    : %d\n", SDL_JoystickNumAxes(sdljoy)));
-	mprintf(("  Buttons : %d\n", SDL_JoystickNumButtons(sdljoy)));
-	mprintf(("  Hats    : %d\n", SDL_JoystickNumHats(sdljoy)));
-	mprintf(("  Balls   : %d\n", SDL_JoystickNumBalls(sdljoy)));
-	mprintf(("  Haptic  : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+	mprintf(("  Name         : %s\n", SDL_JoystickName(sdljoy)));
+	mprintf(("  Axes         : %d\n", SDL_JoystickNumAxes(sdljoy)));
+	mprintf(("  Buttons      : %d\n", SDL_JoystickNumButtons(sdljoy)));
+	mprintf(("  Hats         : %d\n", SDL_JoystickNumHats(sdljoy)));
+	mprintf(("  Haptic       : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
 
 	joy_ff_init();
 

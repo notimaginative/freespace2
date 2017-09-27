@@ -74,8 +74,8 @@ int joy_ff_init()
 		Joy_rumble = 1;
 	}
 
-	mprintf(("  Rumble  : %s\n", Joy_rumble ? "Yes" : "No"));
-	mprintf(("  Axes    : %d\n", SDL_HapticNumAxes(haptic)));
+	mprintf(("  Rumble       : %s\n", Joy_rumble ? "Yes" : "No"));
+	mprintf(("  Haptic Axes  : %d\n", SDL_HapticNumAxes(haptic)));
 	mprintf(("  Max effects     : %d\n", SDL_HapticNumEffects(haptic)));
 	mprintf(("  Running effects : %d\n", SDL_HapticNumEffectsPlaying(haptic)));
 

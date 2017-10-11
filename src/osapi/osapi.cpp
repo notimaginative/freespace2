@@ -395,15 +395,16 @@ void os_poll()
 */
 			case SDL_JOYDEVICEADDED: {
 				if ( !Is_standalone ) {
-					joy_init();
+					joy_reinit(e.jdevice.which);
 				}
 
 				break;
 			}
 
 			case SDL_JOYDEVICEREMOVED: {
-				if (e.jdevice.which == joystick_get_id()) {
-					joy_close();
+				// if the active joystick is removed then maybe reinit
+				if ( !Is_standalone && (e.jdevice.which == joystick_get_id()) ) {
+					joy_reinit();
 				}
 
 				break;

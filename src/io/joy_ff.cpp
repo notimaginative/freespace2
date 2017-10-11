@@ -147,9 +147,10 @@ static void joy_ff_create_effects()
 		memset(&pSpring, 0, sizeof(haptic_effect_t));
 
 		pSpring.eff.type = SDL_HAPTIC_SPRING;
+		pSpring.eff.condition.type = SDL_HAPTIC_SPRING;
 		pSpring.eff.condition.length = SDL_HAPTIC_INFINITY;
 
-		for (int i = 0; i < SDL_HapticNumAxes(haptic); i++) {
+		for (int i = 0; i < 3; i++) {
 			pSpring.eff.condition.right_sat[i] = 0x7FFF;
 			pSpring.eff.condition.left_sat[i] = 0x7FFF;
 			pSpring.eff.condition.right_coeff[i] = 0x147;
@@ -170,6 +171,7 @@ static void joy_ff_create_effects()
 		memset(&pShootEffect, 0, sizeof(haptic_effect_t));
 
 		pShootEffect.eff.type = SDL_HAPTIC_SAWTOOTHDOWN;
+		pShootEffect.eff.periodic.type = SDL_HAPTIC_SAWTOOTHDOWN;
 		pShootEffect.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
 		pShootEffect.eff.periodic.direction.dir[0] = 0;
 		pShootEffect.eff.periodic.length = 160;
@@ -191,6 +193,7 @@ static void joy_ff_create_effects()
 		memset(&pSecShootEffect, 0, sizeof(haptic_effect_t));
 
 		pSecShootEffect.eff.type = SDL_HAPTIC_CONSTANT;
+		pSecShootEffect.eff.constant.type = SDL_HAPTIC_CONSTANT;
 		pSecShootEffect.eff.constant.direction.type = SDL_HAPTIC_POLAR;
 		pSecShootEffect.eff.constant.direction.dir[0] = 0;
 		pSecShootEffect.eff.constant.length = 200;
@@ -214,6 +217,7 @@ static void joy_ff_create_effects()
 		memset(&pAfterburn1, 0, sizeof(haptic_effect_t));
 
 		pAfterburn1.eff.type = SDL_HAPTIC_SINE;
+		pAfterburn1.eff.periodic.type = SDL_HAPTIC_SINE;
 		pAfterburn1.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
 		pAfterburn1.eff.periodic.direction.dir[0] = 0;
 		pAfterburn1.eff.periodic.length = SDL_HAPTIC_INFINITY;
@@ -232,6 +236,7 @@ static void joy_ff_create_effects()
 		memset(&pAfterburn2, 0, sizeof(haptic_effect_t));
 
 		pAfterburn2.eff.type = SDL_HAPTIC_SINE;
+		pAfterburn2.eff.periodic.type = SDL_HAPTIC_SINE;
 		pAfterburn2.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
 		pAfterburn2.eff.periodic.direction.dir[0] = 9000;
 		pAfterburn2.eff.periodic.length = 125;
@@ -252,6 +257,7 @@ static void joy_ff_create_effects()
 		memset(&pHitEffect1, 0, sizeof(haptic_effect_t));
 
 		pHitEffect1.eff.type = SDL_HAPTIC_CONSTANT;
+		pHitEffect1.eff.constant.type = SDL_HAPTIC_CONSTANT;
 		pHitEffect1.eff.constant.direction.type = SDL_HAPTIC_POLAR;
 		pHitEffect1.eff.constant.direction.dir[0] = 0;
 		pHitEffect1.eff.constant.length = 300;
@@ -275,6 +281,7 @@ static void joy_ff_create_effects()
 		memset(&pHitEffect2, 0, sizeof(haptic_effect_t));
 
 		pHitEffect2.eff.type = SDL_HAPTIC_SINE;
+		pHitEffect2.eff.periodic.type = SDL_HAPTIC_SINE;
 		pHitEffect2.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
 		pHitEffect2.eff.periodic.direction.dir[0] = 9000;
 		pHitEffect2.eff.periodic.length = 300;
@@ -298,7 +305,9 @@ static void joy_ff_create_effects()
 		memset(&pDock, 0, sizeof(haptic_effect_t));
 
 	//	pDock.eff.type = SDL_HAPTIC_SQUARE;
+	//	pDock.eff.periodic.type = SDL_HAPTIC_SQUARE;
 		pDock.eff.type = SDL_HAPTIC_TRIANGLE;
+		pDock.eff.periodic.type = SDL_HAPTIC_TRIANGLE;
 		pDock.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
 		pDock.eff.periodic.direction.dir[0] = 9000;
 		pDock.eff.periodic.length = 125;
@@ -445,8 +454,9 @@ void joy_ff_play_vector_effect(vector *v, float scaler)
 void joy_ff_play_dir_effect(float x, float y)
 {
 	static int hit_timeout = 1;
-	int idegs, imag;
-	float degs;
+	int idegs;
+	float degs, mag;
+	Sint16 imag;
 
 	if ( !joy_ff_can_play() ) {
 		return;
@@ -477,13 +487,14 @@ void joy_ff_play_dir_effect(float x, float y)
 			y = -8000.0f;
 		}
 
-		imag = (int) fl_sqrt(x * x + y * y);
-		if (imag > 10000) {
-			imag = 10000;
-		}
+		mag = fl_sqrt(x * x + y * y) / 10000.0f;
+		CAP(mag, 0.0f, 1.0f);
+
+		imag = (Sint16)(32767.0f * mag);
 
 		degs = (float)atan2(x, y);
 		idegs = (int) (degs * 18000.0f / PI) + 90;
+
 		while (idegs < 0) {
 			idegs += 36000;
 		}
@@ -494,7 +505,7 @@ void joy_ff_play_dir_effect(float x, float y)
 
 		if (pHitEffect1.loaded) {
 			pHitEffect1.eff.constant.direction.dir[0] = idegs;
-			pHitEffect1.eff.constant.level = (Sint16)(32767.0f * (imag / 10000.0f));
+			pHitEffect1.eff.constant.level = imag;
 
 			joy_ff_update_effect(&pHitEffect1, "pHitEffect1");
 		}
@@ -505,7 +516,7 @@ void joy_ff_play_dir_effect(float x, float y)
 
 		if (pHitEffect2.loaded) {
 			pHitEffect2.eff.periodic.direction.dir[0] = idegs;
-			pHitEffect2.eff.periodic.magnitude = (Sint16)(32767.0f * (imag / 10000.0f));
+			pHitEffect2.eff.periodic.magnitude = imag;
 
 			joy_ff_update_effect(&pHitEffect2, "pHitEffect2");
 		}

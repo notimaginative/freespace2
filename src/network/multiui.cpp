@@ -2379,7 +2379,7 @@ void multi_join_send_join_request(int as_observer)
 			return;
 		}
 
-		nprintf(("Password : %s\n",Multi_join_request.passwd));
+		mprintf(("Password : %s\n",Multi_join_request.passwd));
 	}	
 		
 	// fill out the join request struct	

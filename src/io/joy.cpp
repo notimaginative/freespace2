@@ -382,12 +382,11 @@ int joy_init()
 		return 0;
 	}
 
-	mprintf(("  Name    : %s\n", SDL_JoystickName(sdljoy)));
-	mprintf(("  Axes    : %d\n", SDL_JoystickNumAxes(sdljoy)));
-	mprintf(("  Buttons : %d\n", SDL_JoystickNumButtons(sdljoy)));
-	mprintf(("  Hats    : %d\n", SDL_JoystickNumHats(sdljoy)));
-	mprintf(("  Balls   : %d\n", SDL_JoystickNumBalls(sdljoy)));
-	mprintf(("  Haptic  : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+	mprintf(("  Name         : %s\n", SDL_JoystickName(sdljoy)));
+	mprintf(("  Axes         : %d\n", SDL_JoystickNumAxes(sdljoy)));
+	mprintf(("  Buttons      : %d\n", SDL_JoystickNumButtons(sdljoy)));
+	mprintf(("  Hats         : %d\n", SDL_JoystickNumHats(sdljoy)));
+	mprintf(("  Haptic       : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
 
 	joy_ff_init();
 
@@ -411,6 +410,90 @@ int joy_init()
 	}
 
 	return num_sticks;
+}
+
+void joy_reinit(int with_index)
+{
+	int i, num_sticks;
+	const char *ptr = NULL;
+	int Cur_joystick;
+
+	if ( !Joy_inited ) {
+		joy_init();
+		return;
+	}
+
+	// close out what we have already opened...
+	joy_ff_shutdown();
+
+	joy_id = -1;
+
+	if (SDL_JoystickGetAttached(sdljoy)) {
+		SDL_JoystickClose(sdljoy);
+	}
+
+	sdljoy = NULL;
+
+	// attempt to get a new joystick to use...
+	mprintf(("Re-Initializing Joystick...\n"));
+
+	num_sticks = SDL_NumJoysticks();
+
+	if (num_sticks < 1) {
+		mprintf(("  No joysticks found\n\n"));
+		return;
+	}
+
+	if ( (with_index >= 0) && (with_index < num_sticks) ) {
+		Cur_joystick = with_index;
+	} else {
+		Cur_joystick = 0;
+
+		ptr = os_config_read_string("Controls", "CurrentJoystick", NULL);
+
+		if ( ptr && SDL_strlen(ptr) ) {
+			for (i = 0; i < num_sticks; i++) {
+				const char *jname = SDL_JoystickNameForIndex(i);
+
+				if ( jname && !SDL_strcasecmp(ptr, jname) ) {
+					Cur_joystick = i;
+					break;
+				}
+			}
+		}
+	}
+
+	sdljoy = SDL_JoystickOpen(Cur_joystick);
+
+	if (sdljoy == NULL) {
+		mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_JoystickNameForIndex(Cur_joystick)));
+		return;
+	}
+
+	mprintf(("  Name         : %s\n", SDL_JoystickName(sdljoy)));
+	mprintf(("  Axes         : %d\n", SDL_JoystickNumAxes(sdljoy)));
+	mprintf(("  Buttons      : %d\n", SDL_JoystickNumButtons(sdljoy)));
+	mprintf(("  Hats         : %d\n", SDL_JoystickNumHats(sdljoy)));
+	mprintf(("  Haptic       : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+
+	joy_ff_init();
+
+	mprintf(("\n"));
+
+	joy_id = SDL_JoystickInstanceID(sdljoy);
+
+	joystick.num_axes = SDL_JoystickNumAxes(sdljoy);
+
+	joy_flush();
+
+	// Fake a calibration
+	joy_set_cen();
+
+	for (i = 0; i < JOY_NUM_AXES; i++) {
+		joystick.axis_min[i] = 0;
+		joystick.axis_max[i] = 65536;
+		joystick.axis_current[i] = joystick.axis_center[i];
+	}
 }
 
 void joy_set_cen()

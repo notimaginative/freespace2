@@ -433,7 +433,7 @@ void Launcher::OnVolition( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnPXO( wxCommandEvent& WXUNUSED(event) )
 {
-	wxLaunchDefaultBrowser( wxT("http://www.pxo.net") );
+	wxLaunchDefaultBrowser( wxT("https://pxo.nottheeye.com") );
 }
 
 void Launcher::OnQuit( wxCommandEvent& WXUNUSED(event) )

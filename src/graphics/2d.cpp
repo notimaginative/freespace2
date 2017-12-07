@@ -529,11 +529,11 @@ void gr_close()
 		case GR_OPENGL:
 			gr_opengl_cleanup();
 			break;
-#ifndef __EMSCRIPTEN__
+
 		case GR_WXGL:
 			gr_wxgl_cleanup();
 			break;
-#endif
+
 		case GR_STUB:
 			break;
 
@@ -716,10 +716,10 @@ int gr_init()
 			case GR_OPENGL:
 				gr_opengl_cleanup();
 				break;
-#ifndef __EMSCRIPTEN__
+
 			case GR_WXGL:
 				gr_wxgl_cleanup();
-#endif
+
 			case GR_STUB:
 				break;
 
@@ -778,12 +778,12 @@ int gr_init()
 		case GR_OPENGL:
 			gr_opengl_init();
 			break;
-#ifndef __EMSCRIPTEN__
+
 		case GR_WXGL:
 			SDL_assert( Pofview_running || Fred_running );
 			gr_wxgl_init();
 			break;
-#endif
+
 		case GR_STUB:
 			SDL_assert(Is_standalone);
 			gr_stub_init();

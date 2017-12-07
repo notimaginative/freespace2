@@ -178,7 +178,7 @@ void gr_opengl_activate(int active)
 
 void gr_opengl_cleanup()
 {
-#ifndef __EMSCRIPTEN__
+#ifdef LEGACY_GL
 	opengl1_cleanup();
 #endif
 	opengl2_cleanup();
@@ -231,15 +231,13 @@ void gr_opengl_init()
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
-#ifndef __EMSCRIPTEN__
-	int rc = 1;
+	// try GL 2 first, then fall back to legacy GL (if enabled)
+	int rc = opengl2_init();
 
-	// try GL 2 first, then fall back to GL 1
-	if ( !opengl2_init() ) {
+#ifdef LEGACY_GL
+	if ( !rc ) {
 		rc = opengl1_init();
 	}
-#else
-	int rc = opengl2_init();
 #endif
 
 	if ( !rc ) {

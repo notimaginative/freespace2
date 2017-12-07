@@ -46,6 +46,10 @@ if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
+if(NOT EMSCRIPTEN)
+  add_definitions(-DLEGACY_GL)
+endif()
+
 if(NOT WIN32)
   set(PLATFORM_LIBRARIES "")
 

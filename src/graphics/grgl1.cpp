@@ -6,7 +6,7 @@
  * the source.
  */
 
-#ifndef __EMSCRIPTEN__
+#ifdef LEGACY_GL
 
 #include "SDL_opengl.h"
 

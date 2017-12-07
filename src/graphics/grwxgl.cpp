@@ -6,7 +6,7 @@
  * the source.
  */
 
-#ifndef __EMSCRIPTEN__
+#ifdef LEGACY_GL
 
 #include "SDL_opengl.h"
 
@@ -283,6 +283,24 @@ void gr_wxgl_init()
 	gr_clear();
 	gr_flip();
 	gr_clear();
+}
+
+#else
+
+void gr_wxgl_init()
+{
+}
+
+void gr_wxgl_cleanup()
+{
+}
+
+void gr_wxgl_flip()
+{
+}
+
+void gr_wxgl_set_viewport(int width, int height)
+{
 }
 
 #endif

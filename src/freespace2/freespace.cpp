@@ -6650,10 +6650,30 @@ DCF(pofspew, "")
 	game_spew_pof_info();
 }
 
+static bool game_loop()
+{
+	os_poll();
+
+	if (gameseq_process_events() == GS_STATE_QUIT_GAME) {
+		return false;
+	}
+
+	return true;
+}
+
+#ifdef __EMSCRIPTEN__
+static void game_loop_caller()
+{
+	if ( !game_loop() ) {
+		emscripten_log(EM_LOG_CONSOLE, "got quit game!");
+		game_shutdown();
+		//emscripten_cancel_main_loop();
+	}
+}
+#endif
+
 int game_main(const char *szCmdLine)
 {
-	int state;
-
 	// Find out how much RAM is on this machine
 	Freespace_total_ram = SDL_GetSystemRAM();
 
@@ -6755,23 +6775,11 @@ int game_main(const char *szCmdLine)
 		gameseq_post_event(GS_EVENT_GAME_INIT);		// start the game rolling -- check for default pilot, or go to the pilot select screen
 	}
 
-	while (1) {
-		// only important for non THREADED mode
-		os_poll();
-
-		state = gameseq_process_events();
-		if ( state == GS_STATE_QUIT_GAME ){
-			break;
-		}
-	} 
-
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
-	if(!Is_standalone){
-		demo_upsell_show_screens();
-	}
-#elif defined(OEM_BUILD)
-	// show upsell screens on exit
-	oem_upsell_show_screens();
+#ifdef __EMSCRIPTEN__
+	emscripten_set_main_loop(game_loop_caller, 0, 1);
+	emscripten_log(EM_LOG_CONSOLE, "after main");
+#else
+	while ( game_loop() ) { /* nothing */ }
 #endif
 
 	game_shutdown();

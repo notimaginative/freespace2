@@ -1205,7 +1205,12 @@ void AudioStream::Play(float volume, int looping)
 		alSource3f(m_source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
 		alSource3f(m_source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
 		alSourcef(m_source_id, AL_ROLLOFF_FACTOR, 0.0f);
+#ifdef __EMSCRIPTEN__
+		// Grrrrr....
+		alSourcei(m_source_id, AL_SOURCE_RELATIVE, AL_FALSE);
+#else
 		alSourcei(m_source_id, AL_SOURCE_RELATIVE, AL_TRUE);
+#endif
 		alSourcei(m_source_id, AL_LOOPING, AL_FALSE);
 
 		alSourcePlay(m_source_id);

@@ -1123,7 +1123,12 @@ int oal_play(int sid, int snd_id, int priority, float volume, float pan, int fla
 	alSourcef(chan->source_id, AL_PITCH, 1.0f);
 	alSourcef(chan->source_id, AL_GAIN, volume);
 	alSourcei(chan->source_id, AL_BUFFER, Buffers[sid].buf_id);
+#ifdef __EMSCRIPTEN__
+	// Grrrrr...
+	alSourcei(chan->source_id, AL_SOURCE_RELATIVE, AL_FALSE);
+#else
 	alSourcei(chan->source_id, AL_SOURCE_RELATIVE, AL_TRUE);
+#endif
 	alSourcei(chan->source_id, AL_LOOPING, (flags & SND_FLAG_LOOPING) ? AL_TRUE : AL_FALSE);
 
 	// maybe attach source to reverb effect

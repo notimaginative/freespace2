@@ -473,4 +473,4 @@ endif(NOT EMSCRIPTEN)
 # optionally include any dev/user preferred build commands and/or options
 #
 
-#include(custom.cmake OPTIONAL)
+include(custom.cmake OPTIONAL)

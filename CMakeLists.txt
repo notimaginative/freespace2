@@ -263,15 +263,27 @@ endif()
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   # FS1 demo
   fsdemo${CMAKE_EXECUTABLE_SUFFIX}
+  fsdemo${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fsdemo.js
+  fsdemo.data
   freespacedemo${CMAKE_EXECUTABLE_SUFFIX}
   # FS1
   fs${CMAKE_EXECUTABLE_SUFFIX}
+  fs${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fs.js
+  fs.data
   freespace${CMAKE_EXECUTABLE_SUFFIX}
   # FS2 demo
   fs2demo${CMAKE_EXECUTABLE_SUFFIX}
+  fs2demo${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fs2demo.js
+  fs2demo.data
   freespace2demo${CMAKE_EXECUTABLE_SUFFIX}
   # FS2
   fs2${CMAKE_EXECUTABLE_SUFFIX}
+  fs2${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fs2.js
+  fs2.data
   freespace2${CMAKE_EXECUTABLE_SUFFIX}
   # standalone GUI
   fsstandalone${CMAKE_EXECUTABLE_SUFFIX}

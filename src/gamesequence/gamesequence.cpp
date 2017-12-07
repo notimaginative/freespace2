@@ -332,7 +332,8 @@ const char *GS_event_text[] =
 	"GS_EVENT_LOOP_BRIEF",
 	"GS_EVENT_CAMPAIGN_CHEAT",
 	"GS_EVENT_PXO",
-	"GS_EVENT_PXO_HELP"
+	"GS_EVENT_PXO_HELP",
+	"GS_EVENT_DEMO_UPSELL"
 };
 //XSTR:ON
 
@@ -390,7 +391,8 @@ const char *GS_state_text[] =
 	"GS_STATE_END_DEMO",
 	"GS_STATE_LOOP_BRIEF",
 	"GS_STATE_PXO",
-	"GS_STATE_PXO_HELP"					// 50
+	"GS_STATE_PXO_HELP",					// 50
+	"GS_STATE_DEMO_UPSELL"
 };
 //XSTR:ON
 

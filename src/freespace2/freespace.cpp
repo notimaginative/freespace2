@@ -560,6 +560,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "pstypes.h"
 #include "systemvars.h"
 #include "key.h"
@@ -1217,7 +1221,9 @@ void game_shutdown(void);
 void game_show_event_debug(float frametime);
 void game_event_debug_init();
 void game_frame();
-void demo_upsell_show_screens();
+void demo_upsell_init();
+void demo_upsell_do();
+void demo_upsell_close();
 void game_start_subspace_ambient_sound();
 void game_stop_subspace_ambient_sound();
 void verify_ships_tbl();
@@ -4888,16 +4894,8 @@ void camera_move()
 
 void end_demo_campaign_do()
 {
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
-	// show upsell screens
-	demo_upsell_show_screens();
-#elif defined(OEM_BUILD)
-	// show oem upsell screens
-	oem_upsell_show_screens();
-#endif
-
-	// drop into main hall
-	gameseq_post_event( GS_EVENT_MAIN_MENU );
+	// go to upsell screens, which should drop back to the main hall
+	gameseq_post_event(GS_EVENT_DEMO_UPSELL);
 }
 
 // All code to process events.   This is the only place
@@ -5015,7 +5013,16 @@ void game_process_event( int current_state, int event )
 		case GS_EVENT_QUIT_GAME:
 			main_hall_stop_music();
 			main_hall_stop_ambient();
+
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+			if (current_state == GS_STATE_DEMO_UPSELL) {
+				gameseq_set_state(GS_STATE_QUIT_GAME);
+			} else {
+				gameseq_set_state(GS_STATE_DEMO_UPSELL);
+			}
+#else
 			gameseq_set_state(GS_STATE_QUIT_GAME);
+#endif
 
 			Player_multi_died_check = -1;
 			break;
@@ -5332,6 +5339,10 @@ void game_process_event( int current_state, int event )
 
 		case GS_EVENT_LOOP_BRIEF:
 			gameseq_set_state(GS_STATE_LOOP_BRIEF);
+			break;
+
+		case GS_EVENT_DEMO_UPSELL:
+			gameseq_set_state(GS_STATE_DEMO_UPSELL);
 			break;
 
 		default:
@@ -5703,6 +5714,10 @@ void game_leave_state( int old_state, int new_state )
 
 		case GS_STATE_PXO_HELP:
 			multi_pxo_help_close();
+			break;
+
+		case GS_STATE_DEMO_UPSELL:
+			demo_upsell_close();
 			break;
 	}
 }
@@ -6161,6 +6176,10 @@ void mouse_force_pos(int x, int y);
 			multi_pxo_help_init();
 			break;
 
+		case GS_STATE_DEMO_UPSELL:
+			demo_upsell_init();
+			break;
+
 	} // end switch
 }
 
@@ -6459,6 +6478,11 @@ void game_do_state(int state)
 		case GS_STATE_PXO_HELP:
 			game_set_frametime(GS_STATE_PXO_HELP);
 			multi_pxo_help_do();
+			break;
+
+		case GS_STATE_DEMO_UPSELL:
+			game_set_frametime(GS_STATE_DEMO_UPSELL);
+			demo_upsell_do();
 			break;
 
    } // end switch(gs_current_state)
@@ -7759,11 +7783,8 @@ void demo_upsell_unload_bitmaps()
 	Demo_upsell_bitmaps_loaded = 0;
 }
 
-void demo_upsell_show_screens()
+void demo_upsell_init()
 {
-	int k;
-	int done = 0;
-
 	if ( !Demo_upsell_bitmaps_loaded ) {
 		demo_upsell_load_bitmaps();
 		Demo_upsell_bitmaps_loaded = 1;
@@ -7772,56 +7793,63 @@ void demo_upsell_show_screens()
 	// may use upsell screens more than once
 	Demo_upsell_show_next_bitmap_time = timer_get_milliseconds() + DEMO_UPSELL_SCREEN_DELAY;
 	Demo_upsell_screen_number = 0;
-	
+
 	key_flush();
 	Mouse_hidden = 1;
+}
 
-	while(!done) {
-
-		demo_reset_trailer_timer();
-
-// #ifndef THREADED
-		os_poll();
-// #endif
-		k = key_inkey();
-
-#ifdef FS1_DEMO
-		if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
-			demo_upsell_next_screen();
-			k = 0;
-		}
-#endif
-
-		if ( k > 0 ) {
-			demo_upsell_next_screen();
-		}
-
-		if ( Demo_upsell_screen_number >= NUM_DEMO_UPSELL_SCREENS ) {
-			Demo_upsell_screen_number--;
-			done = 1;
-		} else {
-			if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] < 0 ) {
-				done = 1;
-			}
-		}
-
-		if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] >= 0 ) {		
-			gr_set_bitmap(Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number]);
-			gr_bitmap(0,0);
-		}
-
-		if ( done ) {
-			if (gameseq_get_state() != GS_STATE_END_DEMO) {
-				gr_fade_out(0);
-				SDL_Delay(300);
-			}
-		}
-
-		gr_flip();
-	}
-
+void demo_upsell_close()
+{
 	// unload bitmap
 	demo_upsell_unload_bitmaps();
+}
+
+void demo_upsell_do()
+{
+	int done = 0;
+
+	demo_reset_trailer_timer();
+
+	os_poll();
+
+	int k = key_inkey();
+
+#ifdef FS1_DEMO
+	if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
+		demo_upsell_next_screen();
+		k = 0;
+	}
+#endif
+
+	if ( k > 0 ) {
+		demo_upsell_next_screen();
+	}
+
+	if ( Demo_upsell_screen_number >= NUM_DEMO_UPSELL_SCREENS ) {
+		Demo_upsell_screen_number--;
+		done = 1;
+	} else {
+		if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] < 0 ) {
+			done = 1;
+		}
+	}
+
+	if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] >= 0 ) {
+		gr_set_bitmap(Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number]);
+		gr_bitmap(0,0);
+	}
+
+	if ( done ) {
+		if (gameseq_get_state() != GS_STATE_END_DEMO) {
+			gr_fade_out(0);
+			SDL_Delay(300);
+			gameseq_post_event(GS_EVENT_QUIT_GAME);
+		} else {
+			gameseq_post_event(GS_EVENT_MAIN_MENU);
+		}
+	}
+
+	gr_flip();
 }
 
 #endif // DEMO

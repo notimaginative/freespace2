@@ -403,6 +403,7 @@
 #define GS_EVENT_CAMPAIGN_CHEAT					62		// skip to a mission in a campaign
 #define GS_EVENT_PXO							63
 #define GS_EVENT_PXO_HELP						64
+#define GS_EVENT_DEMO_UPSELL					65
 
 // IMPORTANT:  When you add a new event, update the initialization for GS_event_text[]
 //             which is done in GameSequence.cpp
@@ -464,6 +465,7 @@ extern const char *GS_event_text[];		// text description for the GS_EVENT_* #def
 #define GS_STATE_LOOP_BRIEF						48
 #define GS_STATE_PXO							49
 #define GS_STATE_PXO_HELP						50
+#define GS_STATE_DEMO_UPSELL					51
 
 
 // IMPORTANT:  When you add a new state, update the initialization for GS_state_text[]

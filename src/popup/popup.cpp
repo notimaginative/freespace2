@@ -1054,6 +1054,11 @@ int popup_do(popup_info *pi, int flags)
 		return -1;
 	}
 
+#ifdef __EMSCRIPTEN__
+	STUB_FUNCTION;
+	return POPUP_ABORT;
+#endif
+
 	while(!done) {
 		int k;
 
@@ -1116,6 +1121,11 @@ int popup_do_with_condition(popup_info *pi, int flags, int(*condition)())
 	screen_id = gr_save_screen();
 	if ( popup_init(pi, flags) == -1 )
 		return -1;
+
+#ifdef __EMSCRIPTEN__
+	STUB_FUNCTION;
+	return POPUP_ABORT;
+#endif
 
 	while(!done) {
 		int k;

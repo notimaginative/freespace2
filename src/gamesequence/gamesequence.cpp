@@ -596,7 +596,7 @@ int gameseq_process_events()
 		state_reentry--;
 		// break when state changes so that code will get called at
 		// least one frame for each state.
-		if (old_state != gs[gs_current_stack].current_state)
+		if ( !old_state || (old_state != gs[gs_current_stack].current_state) )
 			break;	
 	}
 

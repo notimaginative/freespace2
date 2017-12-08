@@ -6192,6 +6192,12 @@ void game_do_state_common(int state,int no_networking)
 
 	multi_log_process();	
 
+	// bail if state is invalid
+	if (state == 0) {
+		Game_do_state_should_skip = 1;
+		return;
+	}
+
 	if (no_networking) {
 		return;
 	}

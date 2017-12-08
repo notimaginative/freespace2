@@ -6699,13 +6699,15 @@ static void game_loop_caller()
 int game_main(const char *szCmdLine)
 {
 	// Find out how much RAM is on this machine
+#ifdef __EMSCRIPTEN__
+	Freespace_total_ram = EM_ASM_INT(return TOTAL_MEMORY) / (1024 * 1024);
+#else
 	Freespace_total_ram = SDL_GetSystemRAM();
+#endif
 
-#ifndef __EMSCRIPTEN__
 	if ( game_do_ram_check(Freespace_total_ram) == -1 ) {
 		return 0;
 	}
-#endif
 
 	if (!vm_init(24*1024*1024)) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);

@@ -224,6 +224,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "pstypes.h"
 #include "cfile.h"
 #include "encrypt.h"
@@ -1547,8 +1551,24 @@ int cfile_init_paths()
 	SDL_free(u_path);
 	u_path = NULL;
 #else
-	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "/persist/");
-	mkdir("/.prefs", 0777);
+	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "/%s/%s/", Osreg_company_name, Osreg_app_name);
+
+	EM_ASM({
+		const base_path = UTF8ToString($0);
+		FS.mkdir(base_path);
+		FS.mount(IDBFS, {}, base_path);
+
+		Module.syncdone = 0;
+
+		FS.syncfs(true, function(err) {
+			if (err && err.code !== 'EEXIST') {
+				console.log('FS.syncfs() load error: ' + err);
+				assert(err);
+			}
+
+			Module.syncdone = 1;
+		});
+	}, Osreg_company_name);
 #endif
 
 	// see if CF_TYPE_DATA exists for user and if not populate user path

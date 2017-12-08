@@ -5295,6 +5295,14 @@ void game_process_event( int current_state, int event )
 			break;
 
 		case GS_EVENT_GAME_INIT:
+#ifdef __EMSCRIPTEN__
+			// keep looping through until the persistent storage has sync'd
+			if (emscripten_run_script_int("Module.syncdone") == 0) {
+				// this event got popped, so add it back into the queue
+				gameseq_post_event(GS_EVENT_GAME_INIT);
+				break;
+			}
+#endif
 #if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 			gameseq_set_state(GS_STATE_INITIAL_PLAYER_SELECT);
 #else			
@@ -6884,6 +6892,15 @@ void game_shutdown(void)
 	event_music_close();
 	psnet_close();
 	os_cleanup();
+
+#ifdef __EMSCRIPTEN__
+	// sync files to persistent storage
+	EM_ASM(
+		FS.syncfs(function(err) {
+			assert(!err);
+		});
+	);
+#endif
 
 	// HACKITY HACK HACK
 	// if this flag is set, we should be firing up the launcher when exiting freespace

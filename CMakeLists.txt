@@ -38,10 +38,18 @@ else()
   endif()
 endif()
 
+# build everything by default
+set(GAME_ONLY)
+
+if(DEMO)
+  set(GAME_ONLY 1)
+endif()
+
 if(EMSCRIPTEN)
+  set(GAME_ONLY 1)
   add_definitions(-s USE_SDL=2)
   add_definitions(-s FULL_ES2=1)
-  add_definitions(-s DISABLE_EXCEPTION_CATCHING=0)
+  #add_definitions(-s EXPORTED_FUNCTIONS="[_main]")
 
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
@@ -181,7 +189,7 @@ target_link_libraries(
 )
 
 if (EMSCRIPTEN)
-  set_target_properties(${FS_BINARY} PROPERTIES LINK_FLAGS "-s USE_SDL=2 -s FULL_ES2=1 -s TOTAL_MEMORY=268435456 -s DISABLE_EXCEPTION_CATCHING=0 --preload-file game@/")
+  set_target_properties(${FS_BINARY} PROPERTIES LINK_FLAGS "-s USE_SDL=2 -s FULL_ES2=1 -s TOTAL_MEMORY=184549376 --preload-file game@/")
 endif()
 
 if(FS1)
@@ -190,72 +198,75 @@ else()
   set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace2")
 endif()
 
-if(NOT EMSCRIPTEN)
 #
 # launcher
 #
 
-set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
+if(NOT GAME_ONLY)
+  set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
 
-add_executable(${LAUNCHER_BINARY}
+  add_executable(${LAUNCHER_BINARY}
   WIN32
-  ${launcher_SOURCE}
-  ${launcher_HEADERS}
-)
+    ${launcher_SOURCE}
+    ${launcher_HEADERS}
+  )
 
-CreateSourceGroups(${launcher_SOURCE})
+  CreateSourceGroups(${launcher_SOURCE})
 
-target_link_libraries(
-  ${LAUNCHER_BINARY}
-  ${SDL2_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  ${OPENAL_LIBRARY}
-  ${wxWidgets_LIBRARIES}
-  ${PLATFORM_LIBRARIES}
-)
+  target_link_libraries(
+    ${LAUNCHER_BINARY}
+    ${SDL2_LIBRARY}
+    ${OPENGL_LIBRARIES}
+    ${OPENAL_LIBRARY}
+    ${wxWidgets_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
+  )
 
-set_target_properties(${LAUNCHER_BINARY} PROPERTIES PROJECT_LABEL "Launcher")
+  set_target_properties(${LAUNCHER_BINARY} PROPERTIES PROJECT_LABEL "Launcher")
 
-# wxWidgets appears to need c++11 for one or more headers
-if(NOT WIN32)
+  # wxWidgets appears to need c++11 for one or more headers
+  if(NOT WIN32)
   set_target_properties(${LAUNCHER_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
-endif()
+  endif()
+endif(NOT GAME_ONLY)
 
 #
 # standalone server GUI
 #
 
-# Not for FS1 Demo
-if(NOT FS1 OR NOT DEMO)
-	if(FS1)
-	  set(STANDALONE_BINARY fsstandalone)
-	else()
-	  set(STANDALONE_BINARY fs2standalone)
-	endif()
+if(NOT GAME_ONLY)
+  # Not for FS1 Demo
+  if(NOT FS1 OR NOT DEMO)
+  if(FS1)
+    set(STANDALONE_BINARY fsstandalone)
+    else()
+    set(STANDALONE_BINARY fs2standalone)
+    endif()
 
-	add_executable(${STANDALONE_BINARY}
-	  WIN32
-	  ${standalone_SOURCE}
-	  ${standalone_HEADERS}
-	)
+  add_executable(${STANDALONE_BINARY}
+    WIN32
+    ${standalone_SOURCE}
+    ${standalone_HEADERS}
+  )
 
-	CreateSourceGroups(${standalone_SOURCE})
+    CreateSourceGroups(${standalone_SOURCE})
 
-	target_link_libraries(
-	  ${STANDALONE_BINARY}
-	  ${SDL2_LIBRARY}
-	  ${wxWidgets_LIBRARIES}
-	  ${LIBWEBSOCKETS_LIBRARIES}
-	  ${PLATFORM_LIBRARIES}
-	)
+  target_link_libraries(
+    ${STANDALONE_BINARY}
+    ${SDL2_LIBRARY}
+    ${wxWidgets_LIBRARIES}
+    ${LIBWEBSOCKETS_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
+  )
 
-	set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
+    set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
 
-	# wxWidgets appears to need c++11 for one or more headers
-	if(NOT WIN32)
-	  set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
-	endif()
-endif()
+  # wxWidgets appears to need c++11 for one or more headers
+  if(NOT WIN32)
+    set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+    endif()
+  endif()
+endif(NOT GAME_ONLY)
 
 #
 # extra rule to make sure we cleanup all exe variants
@@ -300,172 +311,171 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
 #
 
 # don't build toolset unless it's a full build
-if(NOT DEMO)
+if(NOT GAME_ONLY)
 
-	#
-	# AC: anim converter
-	#
+  #
+  # AC: anim converter
+  #
 
-	add_executable(ac
-	  EXCLUDE_FROM_ALL
-	  ${ac_SOURCE}
-	  ${ac_HEADERS}
-	)
+  add_executable(ac
+    EXCLUDE_FROM_ALL
+    ${ac_SOURCE}
+    ${ac_HEADERS}
+  )
 
-	CreateSourceGroups(${ac_SOURCE})
+  CreateSourceGroups(${ac_SOURCE})
 
-	target_link_libraries(
-	  ac
-	  code
-	  ${SDL2_LIBRARY}
-	  ${OPENGL_LIBRARIES}
-	  ${OPENAL_LIBRARY}
-	  ${LIBWEBSOCKETS_LIBRARIES}
-	  ${PLATFORM_LIBRARIES}
-	)
+  target_link_libraries(
+    ac
+    code
+    ${SDL2_LIBRARY}
+    ${OPENGL_LIBRARIES}
+    ${OPENAL_LIBRARY}
+    ${LIBWEBSOCKETS_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
+  )
 
-	#
-	# CFILEARCHIVER: to create VP file archives
-	#
+  #
+  # CFILEARCHIVER: to create VP file archives
+  #
 
-	add_executable(cfilearchiver
-	  EXCLUDE_FROM_ALL
-	  ${cfilearchiver_SOURCE}
-	)
+  add_executable(cfilearchiver
+    EXCLUDE_FROM_ALL
+    ${cfilearchiver_SOURCE}
+  )
 
-	CreateSourceGroups(${cfilearchiver_SOURCE})
+  CreateSourceGroups(${cfilearchiver_SOURCE})
 
-	#
-	# CRYPTSTRING: string encryption (for embedded cheat codes)
-	#
+  #
+  # CRYPTSTRING: string encryption (for embedded cheat codes)
+  #
 
-	add_executable(cryptstring
-	  EXCLUDE_FROM_ALL
-	  ${cryptstring_SOURCE}
-	)
+  add_executable(cryptstring
+    EXCLUDE_FROM_ALL
+    ${cryptstring_SOURCE}
+  )
 
-	CreateSourceGroups(${cryptstring_SOURCE})
+  CreateSourceGroups(${cryptstring_SOURCE})
 
-	#
-	# NEBEDIT: FS1 style nebula editor/creator
-	#
+  #
+  # NEBEDIT: FS1 style nebula editor/creator
+  #
 
-	add_executable(nebedit
-	  EXCLUDE_FROM_ALL
-	  WIN32
-	  ${nebedit_SOURCE}
-	)
+  add_executable(nebedit
+    EXCLUDE_FROM_ALL
+    WIN32
+    ${nebedit_SOURCE}
+  )
 
-	CreateSourceGroups(${nebedit_SOURCE})
+  CreateSourceGroups(${nebedit_SOURCE})
 
-	target_link_libraries(
-	  nebedit
-	  code
-	  ${SDL2_LIBRARY}
-	  ${OPENGL_LIBRARIES}
-	  ${OPENAL_LIBRARY}
-	  ${wxWidgets_LIBRARIES}
-	  ${LIBWEBSOCKETS_LIBRARIES}
-	  ${PLATFORM_LIBRARIES}
-	)
+  target_link_libraries(
+    nebedit
+    code
+    ${SDL2_LIBRARY}
+    ${OPENGL_LIBRARIES}
+    ${OPENAL_LIBRARY}
+    ${wxWidgets_LIBRARIES}
+    ${LIBWEBSOCKETS_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
+  )
 
-	# wxWidgets appears to need c++11 for one or more headers
-	if(NOT WIN32)
-	  set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
-	endif()
+  # wxWidgets appears to need c++11 for one or more headers
+  if(NOT WIN32)
+    set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
+  endif()
 
-	#
-	# POFVIEW: model viewer
-	#
+  #
+  # POFVIEW: model viewer
+  #
 
-	add_executable(pofview
-	  EXCLUDE_FROM_ALL
-	  WIN32
-	  ${pofview_SOURCE}
-	  ${pofview_HEADERS}
-	)
+  add_executable(pofview
+    EXCLUDE_FROM_ALL
+    WIN32
+    ${pofview_SOURCE}
+    ${pofview_HEADERS}
+  )
 
-	CreateSourceGroups(${pofview_SOURCE})
+  CreateSourceGroups(${pofview_SOURCE})
 
-	target_link_libraries(
-	  pofview
-	  code
-	  ${SDL2_LIBRARY}
-	  ${OPENGL_LIBRARIES}
-	  ${OPENAL_LIBRARY}
-	  ${wxWidgets_LIBRARIES}
-	  ${LIBWEBSOCKETS_LIBRARIES}
-	  ${PLATFORM_LIBRARIES}
-	)
+  target_link_libraries(
+    pofview
+    code
+    ${SDL2_LIBRARY}
+    ${OPENGL_LIBRARIES}
+    ${OPENAL_LIBRARY}
+    ${wxWidgets_LIBRARIES}
+    ${LIBWEBSOCKETS_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
+  )
 
-	# wxWidgets appears to need c++11 for one or more headers
-	if(NOT WIN32)
-	  set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
-	endif()
+  # wxWidgets appears to need c++11 for one or more headers
+  if(NOT WIN32)
+    set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
+  endif()
 
-	#
-	# SCRAMBLE: file-based encryption for TBLs
-	#
+  #
+  # SCRAMBLE: file-based encryption for TBLs
+  #
 
-	add_executable(scramble
-	  EXCLUDE_FROM_ALL
-	  ${scramble_SOURCE}
-	  ${scramble_HEADERS}
-	)
+  add_executable(scramble
+    EXCLUDE_FROM_ALL
+    ${scramble_SOURCE}
+    ${scramble_HEADERS}
+  )
 
-	CreateSourceGroups(${scramble_SOURCE})
+  CreateSourceGroups(${scramble_SOURCE})
 
-	#
-	# FONTTOOL: create font files / edit kerning data
-	#
+  #
+  # FONTTOOL: create font files / edit kerning data
+  #
 
-	add_executable(fonttool
-	  EXCLUDE_FROM_ALL
-	  ${fonttool_SOURCE}
-	  ${fonttool_HEADERS}
-	)
+  add_executable(fonttool
+    EXCLUDE_FROM_ALL
+    ${fonttool_SOURCE}
+    ${fonttool_HEADERS}
+  )
 
-	CreateSourceGroups(${fonttool_SOURCE})
+  CreateSourceGroups(${fonttool_SOURCE})
 
-	# background setup, to allow running from build location without installing
-	add_custom_command(TARGET fonttool
-	  POST_BUILD
-	  COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
-	  COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/src/fonttool/fonttool.pcx" "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
-	)
+  # background setup, to allow running from build location without installing
+  add_custom_command(TARGET fonttool
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
+    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/src/fonttool/fonttool.pcx" "${CMAKE_CURRENT_BINARY_DIR}/src/fonttool"
+  )
 
-	target_link_libraries(
-	  fonttool
-	  code
-	  ${SDL2_LIBRARY}
-	  ${OPENGL_LIBRARIES}
-	  ${OPENAL_LIBRARY}
-	  ${LIBWEBSOCKETS_LIBRARIES}
-	  ${PLATFORM_LIBRARIES}
-	)
+  target_link_libraries(
+    fonttool
+    code
+    ${SDL2_LIBRARY}
+    ${OPENGL_LIBRARIES}
+    ${OPENAL_LIBRARY}
+    ${LIBWEBSOCKETS_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
+  )
 
-	#
-	# custom target to build all tools in one pass
-	#
+  #
+  # custom target to build all tools in one pass
+  #
 
-	add_custom_target(tools)
+  add_custom_target(tools)
 
-	add_dependencies(tools
-	  ac
-	  cfilearchiver
-	  cryptstring
-	  nebedit
-	  pofview
-	  scramble
-	  fonttool
-	)
+  add_dependencies(tools
+    ac
+    cfilearchiver
+    cryptstring
+    nebedit
+    pofview
+    scramble
+    fonttool
+  )
 
-endif(NOT DEMO)
+endif(NOT GAME_ONLY)
 
 #
 # ##############################################################################
 
-endif(NOT EMSCRIPTEN)
 #
 # optionally include any dev/user preferred build commands and/or options
 #

@@ -1456,39 +1456,48 @@ void mission_campaign_close()
 {
 	int i;
 
-	if (Campaign.desc)
+	if (Campaign.desc) {
 		free(Campaign.desc);
+		Campaign.desc = NULL;
+	}
 
 	// be sure to remove all old malloced strings of Mission_names
 	// we must also free any goal stuff that was from a previous campaign
 	for ( i=0; i<Campaign.num_missions; i++ ) {
 		if ( Campaign.missions[i].name ){
  			free(Campaign.missions[i].name);
+			Campaign.missions[i].name = NULL;
 		}
 
 		if (Campaign.missions[i].notes){
  			free(Campaign.missions[i].notes);
+			Campaign.missions[i].notes = NULL;
 		}
 
 		if ( Campaign.missions[i].num_goals > 0 ){
  			free ( Campaign.missions[i].goals );
+			Campaign.missions[i].goals = NULL;
 		}
 
 		if ( Campaign.missions[i].num_events > 0 ){
  			free ( Campaign.missions[i].events );
+			Campaign.missions[i].events = NULL;
 		}
 
 		// the next three are strdup'd return values from parselo.cpp
 		if (Campaign.missions[i].mission_loop_desc) {
 			free(Campaign.missions[i].mission_loop_desc);
+			Campaign.missions[i].mission_loop_desc = NULL;
 		}
 
 		if (Campaign.missions[i].mission_loop_brief_anim) {
 			free(Campaign.missions[i].mission_loop_brief_anim);
+			Campaign.missions[i].mission_loop_brief_anim = NULL;
 		}
 
 		if (Campaign.missions[i].mission_loop_brief_sound) {
 			free(Campaign.missions[i].mission_loop_brief_sound);
+			Campaign.missions[i].mission_loop_brief_sound = NULL;
 		}
 
 		if ( !Fred_running ){

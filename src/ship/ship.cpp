@@ -7023,6 +7023,7 @@ void ship_close()
 	for ( i = 0; i < Num_ship_types; i++ ) {
 		if ( Ship_info[i].subsystems != NULL ) {
 			free(Ship_info[i].subsystems);
+			Ship_info[i].subsystems = NULL;
 		}
 	}
 

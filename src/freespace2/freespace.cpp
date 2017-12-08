@@ -6706,18 +6706,18 @@ int game_main(const char *szCmdLine)
 #endif
 
 	if ( game_do_ram_check(Freespace_total_ram) == -1 ) {
-		return 0;
+		return 1;
 	}
 
 	if (!vm_init(24*1024*1024)) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
-		return 0;
+		return 1;
 	}
 
 	char *tmp_mem = (char *) malloc(16 * 1024 * 1024);
 	if (!tmp_mem) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
-		return 0;
+		return 1;
 	}
 
 	free(tmp_mem);
@@ -6767,7 +6767,7 @@ int game_main(const char *szCmdLine)
 	if(Cmdline_spew_pof_info){
 		game_spew_pof_info();
 		game_shutdown();
-		return 1;
+		return 0;
 	}
 
 	// non-demo, non-standalone, play the intro movie
@@ -6803,13 +6803,12 @@ int game_main(const char *szCmdLine)
 
 #ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(game_loop_caller, 0, 1);
-	emscripten_log(EM_LOG_CONSOLE, "after main");
 #else
 	while ( game_loop() ) { /* nothing */ }
 #endif
 
 	game_shutdown();
-	return 1;
+	return 0;
 }
 
 // launcher the fslauncher program on exit

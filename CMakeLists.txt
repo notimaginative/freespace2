@@ -30,11 +30,11 @@ if(FS1)
   add_definitions(-DMAKE_FS1)
 
   if(DEMO)
-	add_definitions(-DDEMO -DFS1_DEMO)
+    add_definitions(-DDEMO -DFS1_DEMO)
   endif()
 else()
   if(DEMO)
-	add_definitions(-DFS2_DEMO)
+    add_definitions(-DFS2_DEMO)
   endif()
 endif()
 
@@ -49,7 +49,6 @@ if(EMSCRIPTEN)
   set(GAME_ONLY 1)
   add_definitions(-s USE_SDL=2)
   add_definitions(-s FULL_ES2=1)
-  #add_definitions(-s EXPORTED_FUNCTIONS="[_main]")
 
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
@@ -80,9 +79,9 @@ else()
   set(ANGLEDIR "${CMAKE_SOURCE_DIR}/../Support/ANGLE" CACHE PATH "Path to ANGLE")
 
   set(PLATFORM_LIBRARIES
-	ws2_32.lib
-	${ANGLEDIR}/lib/libEGL.lib
-	${ANGLEDIR}/lib/libGLESv2.lib
+    ws2_32.lib
+    ${ANGLEDIR}/lib/libEGL.lib
+    ${ANGLEDIR}/lib/libGLESv2.lib
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)
@@ -189,7 +188,10 @@ target_link_libraries(
 )
 
 if (EMSCRIPTEN)
-  set_target_properties(${FS_BINARY} PROPERTIES LINK_FLAGS "-s USE_SDL=2 -s FULL_ES2=1 -s TOTAL_MEMORY=184549376 --preload-file game@/")
+  set_target_properties(${FS_BINARY}
+    PROPERTIES LINK_FLAGS
+    "-s USE_SDL=2 -s FULL_ES2=1 -s WASM=1 -s TOTAL_MEMORY=184549376 --shell-file ${CMAKE_SOURCE_DIR}/dist/fs_shell.html --preload-file game@/"
+  )
 endif()
 
 if(FS1)
@@ -237,35 +239,35 @@ endif(NOT GAME_ONLY)
 if(NOT GAME_ONLY)
   # Not for FS1 Demo
   if(NOT FS1 OR NOT DEMO)
-  if(FS1)
-    set(STANDALONE_BINARY fsstandalone)
+    if(FS1)
+      set(STANDALONE_BINARY fsstandalone)
     else()
-    set(STANDALONE_BINARY fs2standalone)
+      set(STANDALONE_BINARY fs2standalone)
     endif()
 
-  add_executable(${STANDALONE_BINARY}
-    WIN32
-    ${standalone_SOURCE}
-    ${standalone_HEADERS}
-  )
+    add_executable(${STANDALONE_BINARY}
+      WIN32
+      ${standalone_SOURCE}
+      ${standalone_HEADERS}
+    )
 
     CreateSourceGroups(${standalone_SOURCE})
 
-  target_link_libraries(
-    ${STANDALONE_BINARY}
-    ${SDL2_LIBRARY}
-    ${wxWidgets_LIBRARIES}
-    ${LIBWEBSOCKETS_LIBRARIES}
-    ${PLATFORM_LIBRARIES}
-  )
+    target_link_libraries(
+      ${STANDALONE_BINARY}
+      ${SDL2_LIBRARY}
+      ${wxWidgets_LIBRARIES}
+      ${LIBWEBSOCKETS_LIBRARIES}
+      ${PLATFORM_LIBRARIES}
+    )
 
     set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
 
-  # wxWidgets appears to need c++11 for one or more headers
-  if(NOT WIN32)
-    set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+    # wxWidgets appears to need c++11 for one or more headers
+    if(NOT WIN32)
+      set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
     endif()
-  endif()
+  endif(NOT FS1 OR NOT DEMO)
 endif(NOT GAME_ONLY)
 
 #
@@ -275,25 +277,25 @@ endif(NOT GAME_ONLY)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   # FS1 demo
   fsdemo${CMAKE_EXECUTABLE_SUFFIX}
-  fsdemo${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fsdemo.wasm
   fsdemo.js
   fsdemo.data
   freespacedemo${CMAKE_EXECUTABLE_SUFFIX}
   # FS1
   fs${CMAKE_EXECUTABLE_SUFFIX}
-  fs${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fs.wasm
   fs.js
   fs.data
   freespace${CMAKE_EXECUTABLE_SUFFIX}
   # FS2 demo
   fs2demo${CMAKE_EXECUTABLE_SUFFIX}
-  fs2demo${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fs2demo.wasm
   fs2demo.js
   fs2demo.data
   freespace2demo${CMAKE_EXECUTABLE_SUFFIX}
   # FS2
   fs2${CMAKE_EXECUTABLE_SUFFIX}
-  fs2${CMAKE_EXECUTABLE_SUFFIX}.mem
+  fs2.wasm
   fs2.js
   fs2.data
   freespace2${CMAKE_EXECUTABLE_SUFFIX}

@@ -1761,6 +1761,21 @@ void debrief_assemble_optional_mission_popup_text(char *buffer, const int buf_le
 	SDL_strlcat(buffer, XSTR("\n\n\nDo you want to play the optional mission?", 1491), buf_len);
 }
 
+static void debrief_accept_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 0) {
+		// do nothing, will return to debrief
+	} else if (choice == 1) {
+		// return to main hall, tossing stats
+		gameseq_post_event(GS_EVENT_END_GAME);
+	} else if (choice == 2) {
+		// replay mission (cycle back to briefing)
+		gameseq_post_event(GS_EVENT_START_BRIEFING);
+	}
+}
+
 // what to do when the accept button is hit
 void debrief_accept(int ok_to_post_start_game_event)
 {
@@ -1768,7 +1783,6 @@ void debrief_accept(int ok_to_post_start_game_event)
 
 	if ( (/*Cheats_enabled ||*/ Turned_traitor || Must_replay_mission) && (Game_mode & GM_CAMPAIGN_MODE) ) {
 		const char *str;
-		int z;
 
 		if (Game_mode & GM_MULTIPLAYER) {
 			return;
@@ -1782,12 +1796,7 @@ void debrief_accept(int ok_to_post_start_game_event)
 			str = XSTR( "You have failed this mission and cannot accept.  What do you you wish to do instead?", 441);
 		}
 
-		z = popup(0, 3, XSTR( "Return to &Debriefing", 442), XSTR( "Go to &Flight Deck", 443), XSTR( "&Replay Mission", 444), str);
-		if (z == 2){
-			gameseq_post_event(GS_EVENT_START_BRIEFING);  // cycle back to briefing
-		} else if ( z == 1 ) {
-			gameseq_post_event(GS_EVENT_END_GAME);  // return to main hall, tossing stats
-		}
+		popup_callback(debrief_accept_callback, 0, 3, XSTR( "Return to &Debriefing", 442), XSTR( "Go to &Flight Deck", 443), XSTR( "&Replay Mission", 444), str);
 
 		return;
 	}
@@ -2089,16 +2098,25 @@ void debrief_stats_render()
 	gr_reset_clip();
 }
 
+static void debrief_replay_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		// replay mission
+		gameseq_post_event(GS_EVENT_START_BRIEFING);		// take us to the briefing
+		gamesnd_play_iface(SND_COMMIT_PRESSED);
+	}
+}
+
 // do action for when the replay button is pressed
 void debrief_replay_pressed()
 {	
 	if (!Turned_traitor && !Must_replay_mission && (Game_mode & GM_CAMPAIGN_MODE)) {
-		int choice;
-		choice = popup(0, 2, POPUP_CANCEL, XSTR( "&Replay", 451), XSTR( "If you choose to replay this mission, you will be required to complete it again before proceeding to future missions.\n\nIn addition, any statistics gathered during this mission will be discarded if you choose to replay.", 452));
+		popup_callback(debrief_replay_callback, 0, 2, POPUP_CANCEL, XSTR( "&Replay", 451), XSTR( "If you choose to replay this mission, you will be required to complete it again before proceeding to future missions.\n\nIn addition, any statistics gathered during this mission will be discarded if you choose to replay.", 452));
 
-		if (choice != 1){
-			return;
-		}
+		// the callback will handle replay
+		return;
 	}
 
 	gameseq_post_event(GS_EVENT_START_BRIEFING);		// take us to the briefing
@@ -2658,6 +2676,30 @@ void debrief_close()
 	Debrief_inited = 0;
 }
 
+static void mission_replay_esc_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		// accept and continue
+		debrief_accept(0);
+		gameseq_post_event(GS_EVENT_MAIN_MENU);
+	} else {
+		// return to main hall
+		gameseq_post_event(GS_EVENT_END_GAME);
+	}
+}
+
+static void mission_must_replay_callback(int choice)
+{
+	popup_done();
+
+	if (choice > 0) {
+		// return to main hall
+		gameseq_post_event(GS_EVENT_END_GAME);
+	}
+}
+
 // handle keypresses in debriefing
 void debrief_do_keys(int new_k)
 {
@@ -2671,9 +2713,6 @@ void debrief_do_keys(int new_k)
 			break;
 
 		case SDLK_ESCAPE: {
-			int pf_flags;
-			int choice;
-
 			// multiplayer accept popup is a little bit different
 			if (Game_mode & GM_MULTIPLAYER) {		
 				multi_debrief_esc_hit();
@@ -2681,25 +2720,13 @@ void debrief_do_keys(int new_k)
 			// display the normal debrief popup
 			} else {
 				if (!Turned_traitor && !Must_replay_mission && (Game_mode & GM_CAMPAIGN_MODE)) {
-					pf_flags = PF_BODY_BIG; // | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON;
-					choice = popup(pf_flags, 3, POPUP_CANCEL, XSTR( "&Yes", 454), XSTR( "&No, retry later", 455), XSTR( "Accept this mission outcome?", 456));
-					if (choice == 1) {  // accept and continue on
-						debrief_accept(0);
-						gameseq_post_event(GS_EVENT_MAIN_MENU);
-					}
-
-					if (choice < 1)
-						break;
+					int pf_flags = PF_BODY_BIG; // | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON;
+					popup_callback(mission_replay_esc_callback, pf_flags, 3, POPUP_CANCEL, XSTR( "&Yes", 454), XSTR( "&No, retry later", 455), XSTR( "Accept this mission outcome?", 456));
 
 				} else if (Must_replay_mission && (Game_mode & GM_CAMPAIGN_MODE)) {
 					// need to popup saying that mission was a failure and must be replayed
-					choice = popup(0, 2, POPUP_NO, POPUP_YES, XSTR( "Because this mission was a failure, you must replay this mission when you continue your campaign.\n\nReturn to the Flight Deck?", 457));
-					if (choice <= 0)
-						break;
+					popup_callback(mission_must_replay_callback, 0, 2, POPUP_NO, POPUP_YES, XSTR( "Because this mission was a failure, you must replay this mission when you continue your campaign.\n\nReturn to the Flight Deck?", 457));
 				}
-
-				// Return to Main Hall
-				gameseq_post_event(GS_EVENT_END_GAME);
 			}
 		}
 
@@ -2781,6 +2808,23 @@ void debrief_add_award_text(char *str)
 	}
 }
 #endif  // !MAKE_FS1: No text for FS1, it's all bitmaps
+
+static void skip_mission_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 0) {
+		// stay on this mission, so proceed to normal death popup
+		// in other words, do nothing.
+	} else if (choice == 1) {
+		// skip this mission
+		mission_campaign_skip_to_next();
+		gameseq_post_event(GS_EVENT_START_GAME);
+	} else if (choice == 2) {
+		// don't show this popup again
+		Player->show_skip_popup = 0;
+	}
+}
 
 //	called once per frame to drive all the input reading and rendering
 void debrief_do_frame(float frametime)
@@ -3053,25 +3097,11 @@ void debrief_do_frame(float frametime)
 
 	// maybe show skip mission popup
 	if ((!Debrief_skip_popup_already_shown) && (Player->show_skip_popup) && (Game_mode & GM_NORMAL) && (Game_mode & GM_CAMPAIGN_MODE) && (Player->failures_this_session >= PLAYER_MISSION_FAILURE_LIMIT) && !(Game_mode & GM_MULTIPLAYER)) {
-		int popup_choice = popup(0, 3, XSTR("Do Not Skip This Mission", 1473),
-												 XSTR("Advance To The Next Mission", 1474),
-												 XSTR("Don't Show Me This Again", 1475),
-												 XSTR("You have failed this mission five times.  If you like, you may advance to the next mission.", 1472) );
-		switch (popup_choice) {
-		case 0:
-			// stay on this mission, so proceed to normal debrief
-			// in other words, do nothing.
-			break;
-		case 1:
-			// skip this mission
-			mission_campaign_skip_to_next();
-			gameseq_post_event(GS_EVENT_START_GAME);
-			break;
-		case 2:
-			// dont show this again
-			Player->show_skip_popup = 0;
-			break;
-		}
+		popup_callback(skip_mission_callback, 0, 3,
+				XSTR("Do Not Skip This Mission", 1473),
+				XSTR("Advance To The Next Mission", 1474),
+				XSTR("Don't Show Me This Again", 1475),
+				XSTR("You have failed this mission five times.  If you like, you may advance to the next mission.", 1472) );
 
 		Debrief_skip_popup_already_shown = 1;
 	}

@@ -118,9 +118,10 @@ void multi_sw_level_init()
 // determine if everything is ok to move forward for a squad war match
 int multi_sw_ok_to_commit()
 {
-	char *ret;
+	const char *ret;
 	char match_code[MATCH_CODE_LEN] = "";	
 	char bad_response[MAX_SQUAD_RESPONSE_LEN+1] = "";
+
 
 	// make sure we have enough players per team
 	if(!multi_sw_verify_squad_counts()){
@@ -128,7 +129,7 @@ int multi_sw_ok_to_commit()
 	}		
 
 	// prompt the host for the match code
-	ret = popup_input(0, XSTR("Please enter the match code", 1076), 32);
+	ret = popup_input_sync(0, XSTR("Please enter the match code", 1076), 32);
 	if(ret == NULL){
 		return 0;
 	}

@@ -1046,10 +1046,17 @@ void options_change_gamma(float delta)
 	gr_set_gamma(Freespace_gamma);
 }
 
+static void options_abort_game_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		gameseq_post_event(GS_EVENT_QUIT_GAME);
+	}
+}
+
 void options_button_pressed(int n)
 {
-	int choice;	
-
 	switch (n) {		
 		case OPTIONS_TAB:
 		case MULTIPLAYER_TAB:
@@ -1061,9 +1068,7 @@ void options_button_pressed(int n)
 
 		case ABORT_GAME_BUTTON:
 			gamesnd_play_iface(SND_USER_SELECT);
-			choice = popup( PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Game?", 374));
-			if ( choice == 1 )
-				gameseq_post_event(GS_EVENT_QUIT_GAME);
+			popup_callback(options_abort_game_callback, PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Game?", 374));
 			break;
 
 		case CONTROL_CONFIG_BUTTON:

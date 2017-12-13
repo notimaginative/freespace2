@@ -6690,6 +6690,11 @@ DCF(pofspew, "")
 
 static bool game_loop()
 {
+	if ( popup_active() ) {
+		popup_do_frame();
+		return true;
+	}
+
 	os_poll();
 
 	if (gameseq_process_events() == GS_STATE_QUIT_GAME) {

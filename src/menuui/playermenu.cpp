@@ -793,10 +793,20 @@ void player_select_set_input_mode(int n)
 	}
 }
 
+static void delete_pilot_callback(int choice)
+{
+	popup_done();
+
+	if (choice != 1) {
+		return;
+	}
+
+	// delete the pilot
+	player_select_delete_pilot();
+}
+
 void player_select_button_pressed(int n)
 {
-	int ret;
-
 	switch (n) {
 	case SCROLL_LIST_UP_BUTTON:
 		player_select_set_bottom_text("");
@@ -897,12 +907,7 @@ void player_select_button_pressed(int n)
 
 		if (Player_select_pilot >= 0) {
 			// display a popup requesting confirmation
-			ret = popup(PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_NO, POPUP_YES, XSTR( "Warning!\n\nAre you sure you wish to delete this pilot?", 382));
-
-			// delete the pilot
-			if(ret == 1){
-				player_select_delete_pilot();
-			} 
+			popup_callback(delete_pilot_callback, PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_NO, POPUP_YES, XSTR( "Warning!\n\nAre you sure you wish to delete this pilot?", 382));
 		}
 		break;
 
@@ -1214,15 +1219,8 @@ void player_select_process_noninput(int k)
 	// delete the currently highlighted pilot
 	case SDLK_DELETE:
 		if (Player_select_pilot >= 0) {
-			int ret;
-
 			// display a popup requesting confirmation
-			ret = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON,2,POPUP_NO,POPUP_YES,XSTR( "Are you sure you want to delete this pilot?", 383));										
-
-			// delete the pilot
-			if(ret == 1){
-				player_select_delete_pilot();
-			} 
+			popup_callback(delete_pilot_callback, PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON,2,POPUP_NO,POPUP_YES,XSTR( "Are you sure you want to delete this pilot?", 383));
 		}
 		break;	
 	}
@@ -1574,11 +1572,36 @@ void player_tips_close()
 #endif
 }
 
+#ifndef MAKE_FS1
+static int Tip_index = 0;
+
+static void player_tips_popup_callback(int choice)
+{
+	if (choice == 1) {
+		++Tip_index;
+
+		if (Tip_index >= Num_player_tips) {
+			Tip_index = 0;
+		}
+
+		char all_txt[2048];
+		SDL_snprintf(all_txt, SDL_arraysize(all_txt), XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[Tip_index]);
+
+		popup_change_text(all_txt);
+	} else {
+		popup_done();
+
+		if (choice == 2) {
+			Player->tips = 0;
+			write_pilot_file(Player);
+		}
+	}
+}
+#endif
+
 void player_tips_popup()
 {
-#ifndef MAKE_FS1
-	int tip, ret;	
-	
+#ifndef MAKE_FS1	
 	// player has disabled tips
 	if((Player != NULL) && !Player->tips){
 		return;
@@ -1590,32 +1613,11 @@ void player_tips_popup()
 	Player_tips_shown = 1;
 
 	// randomly pick one
-	tip = (int)frand_range(0.0f, (float)Num_player_tips - 1.0f);
+	Tip_index = (int)frand_range(0.0f, (float)Num_player_tips - 1.0f);
 
 	char all_txt[2048];	
 
-	do {
-		SDL_snprintf(all_txt, SDL_arraysize(all_txt), XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[tip]);
-		ret = popup(PF_NO_SPECIAL_BUTTONS | PF_TITLE | PF_TITLE_WHITE, 3, XSTR("&Ok", 669), XSTR("&Next", 1444), XSTR("Don't show me this again", 1443), all_txt);
-		
-		// now what?
-		switch(ret){
-		// next
-		case 1:
-			if(tip >= Num_player_tips - 1){
-				tip = 0;
-			} else {
-				tip++;
-			}
-			break;
-
-		// don't show me this again
-		case 2:
-			ret = 0;
-			Player->tips = 0;
-			write_pilot_file(Player);
-			break;
-		}
-	} while(ret > 0);
+	SDL_snprintf(all_txt, SDL_arraysize(all_txt), XSTR("NEW USER TIP\n\n%s", 1565), Player_tips[Tip_index]);
+	popup_callback(player_tips_popup_callback, PF_NO_SPECIAL_BUTTONS | PF_TITLE | PF_TITLE_WHITE, 3, XSTR("&Ok", 669), XSTR("&Next", 1444), XSTR("Don't show me this again", 1443), all_txt);
 #endif
 }

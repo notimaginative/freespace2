@@ -1800,6 +1800,32 @@ void multi_pxo_close()
 	multi_pxo_ban_close();
 }
 
+static void login_failed_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 0) {
+		nprintf(("Network","PXO CANCEL\n"));
+
+		// flip his "pxo" bit temporarily and push him to the join game screen
+		Multi_options_g.pxo = 0;
+		gameseq_post_event(GS_EVENT_MULTI_JOIN_GAME);
+	} else if (choice == 1) {
+		nprintf(("Network","PXO CREATE\n"));
+
+		// fire up the given URL
+		multi_pxo_url(Multi_options_g.pxo_create_url);
+	} else if (choice == 2) {
+		nprintf(("Network","PXO VERIFY\n"));
+
+		// fire up the given URL
+		multi_pxo_url(Multi_options_g.pxo_verify_url);
+	}
+
+	// go back to the main hall
+	gameseq_post_event(GS_EVENT_MAIN_MENU);
+}
+
 // run normally (no popups)
 void multi_pxo_do_normal()
 {		
@@ -1877,32 +1903,13 @@ void multi_pxo_do_normal()
 		if(validate_code != 1){
 			// show an error popup if it failed (not cancelled by the user)
 			if (validate_code == 0) {
-				switch (popup(PF_USE_AFFIRMATIVE_ICON | PF_WEB_CURSOR_1 | PF_WEB_CURSOR_2, 3, POPUP_CANCEL,XSTR("&Create Acct",936), XSTR("&Verify Acct",937), XSTR("PXO Login not accepted.  You may visit the Parallax Online website to create or verify your login.  Or you may click Cancel to play without using the Parallax Online service.  (You may switch back to Parallax Online from the Options Menu under the Multi tab.)",938))) {
-					case 0:
-						nprintf(("Network","PXO CANCEL\n"));
+				popup_callback(login_failed_callback, PF_USE_AFFIRMATIVE_ICON | PF_WEB_CURSOR_1 | PF_WEB_CURSOR_2, 3,
+						POPUP_CANCEL,
+						XSTR("&Create Acct",936),
+						XSTR("&Verify Acct",937),
+						XSTR("PXO Login not accepted.  You may visit the Parallax Online website to create or verify your login.  Or you may click Cancel to play without using the Parallax Online service.  (You may switch back to Parallax Online from the Options Menu under the Multi tab.)",938));
 
-						// flip his "pxo" bit temporarily and push him to the join game screen
-						Multi_options_g.pxo = 0;
-						// Net_game_tcp_mode = NET_TCP;
-						gameseq_post_event(GS_EVENT_MULTI_JOIN_GAME);
-						break;
-
-					case 1:
-						nprintf(("Network","PXO CREATE\n"));
-						// fire up the given URL
-						multi_pxo_url(Multi_options_g.pxo_create_url);
-						break;
-
-					case 2:
-						nprintf(("Network","PXO VERIFY\n"));
-						// fire up the given URL
-						multi_pxo_url(Multi_options_g.pxo_verify_url);
-						break;
-				}
 			}
-
-			// go back to the main hall
-			gameseq_post_event(GS_EVENT_MAIN_MENU);
 
 			Multi_pxo_must_connect = 0;
 			Multi_pxo_must_validate = 0;

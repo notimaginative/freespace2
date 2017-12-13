@@ -2448,6 +2448,12 @@ void multi_handle_state_special()
 	}
 }
 
+static void xfer_notify_callback(int)
+{
+	popup_done();
+	multi_quit_game(PROMPT_NONE);
+}
+
 // called by the file xfer subsytem when we start receiving a file
 void multi_file_xfer_notify(int handle)
 {
@@ -2483,8 +2489,7 @@ void multi_file_xfer_notify(int handle)
 		multi_xfer_xor_flags(handle, MULTI_XFER_FLAG_REJECT);
 
 		Net_player->flags &= ~(NETINFO_FLAG_DO_NETWORKING);
-		popup(PF_USE_AFFIRMATIVE_ICON, 1, XSTR("&Ok", 713), XSTR("An outdated copy of this file exists, but it cannot be overwritten by the server because it is set to be read-only. Change the permissions on this file next time.", 714));		
-		multi_quit_game(PROMPT_NONE);		
+		popup_callback(xfer_notify_callback, PF_USE_AFFIRMATIVE_ICON, 1, XSTR("&Ok", 713), XSTR("An outdated copy of this file exists, but it cannot be overwritten by the server because it is set to be read-only. Change the permissions on this file next time.", 714));
 		return;
 	}	
 

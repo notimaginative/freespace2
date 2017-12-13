@@ -664,19 +664,12 @@ const char *brief_tooltip_handler(const char *str)
 	return NULL;
 }
 
-// brief_skip_training_pressed()
-//
-// called when the skip training button on the briefing screen is hit.  When this happens,
-// do a popup, then move to the next mission in the campaign.
-void brief_skip_training_pressed()
+static void skip_training_callback(int choice)
 {
-	int val;
+	popup_done();
 
-	val = popup(PF_USE_NEGATIVE_ICON | PF_USE_AFFIRMATIVE_ICON,2,POPUP_NO,POPUP_YES,XSTR( "Skip Training\n\n\n\nAre you sure you want to skip this training mission?", 429));
-
-	// val is 0 when we hit no (first on the list)
-	// AL: also, -1 is returned when ESC is hit
-	if ( val <= 0 ){
+	if (choice <= 0) {
+		// do nothing, user hit 'No' or aborted the popup window
 		return;
 	}
 
@@ -693,9 +686,18 @@ void brief_skip_training_pressed()
 	mission_campaign_store_goals_and_events();
 
 	mission_campaign_eval_next_mission();
-	mission_campaign_mission_over();	
+	mission_campaign_mission_over();
 
 	gameseq_post_event( GS_EVENT_START_GAME );
+}
+
+// brief_skip_training_pressed()
+//
+// called when the skip training button on the briefing screen is hit.  When this happens,
+// do a popup, then move to the next mission in the campaign.
+void brief_skip_training_pressed()
+{
+	popup_callback(skip_training_callback, PF_USE_NEGATIVE_ICON | PF_USE_AFFIRMATIVE_ICON,2,POPUP_NO,POPUP_YES,XSTR( "Skip Training\n\n\n\nAre you sure you want to skip this training mission?", 429));
 }
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
@@ -810,20 +812,24 @@ void brief_scroll_down_text()
 	}
 }
 
-
-// handles the exit loop option
-void brief_exit_loop_pressed()
+static void exit_loop_callback(int choice)
 {
-	int val = popup(PF_USE_NEGATIVE_ICON | PF_USE_AFFIRMATIVE_ICON, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Loop\n\n\n\nAre you sure you want to leave the mission loop?", 1489));
+	popup_done();
 
 	// bail if esc hit or no clicked
-	if (val <= 0) {
+	if (choice <= 0) {
 		return;
 	}
 
 	// handle the details
 	// this also posts the start game event
 	mission_campaign_exit_loop();
+}
+
+// handles the exit loop option
+void brief_exit_loop_pressed()
+{
+	popup_callback(exit_loop_callback, PF_USE_NEGATIVE_ICON | PF_USE_AFFIRMATIVE_ICON, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Loop\n\n\n\nAre you sure you want to leave the mission loop?", 1489));
 }
 
 

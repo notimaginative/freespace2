@@ -213,6 +213,10 @@ if(NOT GAME_ONLY)
     ${launcher_HEADERS}
   )
 
+  add_dependencies(${LAUNCHER_BINARY}
+    buildver
+  )
+
   CreateSourceGroups(${launcher_SOURCE})
 
   target_link_libraries(

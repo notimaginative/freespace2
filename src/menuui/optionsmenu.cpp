@@ -445,16 +445,16 @@ op_sliders Options_sliders[GR_NUM_RESOLUTIONS][NUM_OPTIONS_SLIDERS] = {
 #ifdef MAKE_FS1
 // slider, right arrow, left arrow
 // s(name), s(x), s(y), s(?), s(?), s(h), s(?), s(?), ra(name), ra(h), ra(x), ra(y), la(name), la(h), la(x), la(y)
-		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	18,	11,
+		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	20,	11,
 					"OPa_10",	10,	245,	159,
 					"OPa_08",	8,	29,		159),	// sound fx volume slider
-		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	18,	11,
+		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	20,	11,
 					"OPa_18",	18,	245,	194,
 					"OPa_16",	16,	29,		194),	// music volume slider
-		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	18,	11,
+		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	20,	11,
 					"OPa_21",	21,	245,	228,
 					"OPa_19",	19,	29,		228),	// voice volume slider
-		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity    
+		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity
 		op_sliders("OPa_60",	358,	194,	-1,	-1,	60,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick sensitivity
 		op_sliders("OPa_61",	358,	226,	-1,	-1,	61,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick deadzone
 		op_sliders("OPa_11",	28,		285,	-1,	-1,	-1,	42,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1)		// skill

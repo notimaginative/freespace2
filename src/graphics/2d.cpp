@@ -481,6 +481,7 @@
 #include "osregistry.h"
 #include "cfile.h"
 #include "cfilesystem.h"
+#include "mouse.h"
 
 // Includes for different rendering systems
 #include "gropengl.h"
@@ -771,6 +772,10 @@ int gr_init()
 	gr_screen.clip_bottom = gr_screen.max_h - 1;
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
+	gr_screen.viewport_offset_x = 0;
+	gr_screen.viewport_offset_y = 0;
+	gr_screen.viewport_scale_factor_x = 1.0f;
+	gr_screen.viewport_scale_factor_y = 1.0f;
 
 	Gr_textures_in = 0;
 
@@ -841,7 +846,7 @@ void gr_force_windowed()
 
 	if ( !rc ) {
 		gr_screen.fullscreen = 0;
-		SDL_SetRelativeMouseMode(SDL_FALSE);
+		mouse_grab(0);	// will be grabbed if needed
 	}
 
 	if (Os_debugger_running) {
@@ -859,7 +864,7 @@ void gr_force_fullscreen()
 
 	if ( !rc ) {
 		gr_screen.fullscreen = 1;
-		SDL_SetRelativeMouseMode(SDL_TRUE);
+		mouse_grab(0);	// will be grabbed if needed
 	}
 
 	if (Os_debugger_running) {

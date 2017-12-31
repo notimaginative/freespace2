@@ -383,6 +383,10 @@ typedef struct screen {
 	int	offset_x, offset_y;		// The offsets into the screen
 	int	clip_width, clip_height;
 	int fullscreen;
+	int viewport_offset_x;
+	int viewport_offset_y;
+	float viewport_scale_factor_x;
+	float viewport_scale_factor_y;
 
 	float fog_near, fog_far;
 

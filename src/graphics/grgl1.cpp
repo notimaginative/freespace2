@@ -799,6 +799,12 @@ void gr_opengl1_set_viewport(int width, int height)
 	GL_viewport_scale_w = w / i2fl(gr_screen.max_w);
 	GL_viewport_scale_h = h / i2fl(gr_screen.max_h);
 
+	gr_screen.viewport_offset_x = x;
+	gr_screen.viewport_offset_y = y;
+
+	gr_screen.viewport_scale_factor_x = 1.0f / GL_viewport_scale_w;
+	gr_screen.viewport_scale_factor_y = 1.0f / GL_viewport_scale_h;
+
 	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
 
 	glMatrixMode(GL_PROJECTION);

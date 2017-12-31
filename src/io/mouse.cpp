@@ -422,11 +422,18 @@ void mouse_get_delta(int *dx, int *dy, int *dz)
 // Forces the actual windows cursor to be at (x,y).  This may be independent of our tracked (x,y) mouse pos.
 void mouse_force_pos(int x, int y)
 {
-	if (os_foreground()) {  // only mess with windows's mouse if we are in control of it
-		SDL_WarpMouseInWindow(os_get_window(), x, y);
-		Mouse_x = x;
-		Mouse_y = y;
+	// only mess with windows's mouse if we are in control of it
+	if ( !os_foreground() ) {
+		return;
 	}
+
+	int x1 = fl2i(x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;
+	int y1 = fl2i(y / gr_screen.viewport_scale_factor_y) + gr_screen.viewport_offset_y;
+
+	SDL_WarpMouseInWindow(os_get_window(), x1, y1);
+
+	Mouse_x = x;
+	Mouse_y = y;
 }
 
 static bool Mouse_grabbed = false;
@@ -434,11 +441,6 @@ static bool Mouse_grabbed = false;
 void mouse_grab(int grab)
 {
 	if (grab) {
-		// never grab when fullscreen
-		if (gr_screen.fullscreen) {
-			return;
-		}
-
 		if ( !Mouse_grabbed ) {
 			SDL_SetWindowGrab(os_get_window(), SDL_TRUE);
 			SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -447,10 +449,7 @@ void mouse_grab(int grab)
 		}
 	} else if (Mouse_grabbed) {
 		SDL_SetWindowGrab(os_get_window(), SDL_FALSE);
-
-		if ( !gr_screen.fullscreen ) {
-			SDL_SetRelativeMouseMode(SDL_FALSE);
-		}
+		SDL_SetRelativeMouseMode(SDL_FALSE);
 
 		Mouse_grabbed = false;
 	}
@@ -516,16 +515,14 @@ void mouse_set_pos(int xpos, int ypos)
 
 void mouse_update_pos(int x, int y, int dx, int dy)
 {
-	if (gr_screen.fullscreen) {
-		Mouse_x += dx;
-		Mouse_y += dy;
+	int x1 = fl2i((x - gr_screen.viewport_offset_x) * gr_screen.viewport_scale_factor_x);
+	int y1 = fl2i((y - gr_screen.viewport_offset_y) * gr_screen.viewport_scale_factor_y);
 
-		CAP(Mouse_x, 0, gr_screen.max_w-1);
-		CAP(Mouse_y, 0, gr_screen.max_h-1);
-	} else {
-		Mouse_x = x;
-		Mouse_y = y;
-	}
+	CAP(x1, 0, gr_screen.max_w-1);
+	CAP(y1, 0, gr_screen.max_h-1);
+
+	Mouse_x = x1;
+	Mouse_y = y1;
 
 	Mouse_dx_inc += dx;
 	Mouse_dy_inc += dy;

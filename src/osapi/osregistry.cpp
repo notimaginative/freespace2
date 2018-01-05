@@ -460,7 +460,7 @@ void os_init_registry_stuff()
 	os_config_write_uint("Video", "AntiAlias", 0);
 	os_config_write_uint("Video", "Fullscreen", 1);
 	os_config_write_string("Video", "Gamma", "1.8");
-	os_config_write_uint("Video", "ShowFPS", 0);
+//	os_config_write_uint("Video", "ShowFPS", 0);
 //	os_config_write_uint("Video", "LowRes", 0);
 //	os_config_write_uint("Video", "PreloadTextures", 1);
 //	os_config_write_uint("Video", "ScaleMovies", 1);

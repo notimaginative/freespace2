@@ -1547,10 +1547,10 @@ int cfile_init_paths()
 	SDL_free(u_path);
 	u_path = NULL;
 #else
-	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "/%s/%s/", Osreg_company_name, Osreg_app_name);
+	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "/%s/", Osreg_app_name);
 
 	EM_ASM({
-		const base_path = UTF8ToString($0);
+		const base_path = '/' + UTF8ToString($0);
 		FS.mkdir(base_path);
 		FS.mount(IDBFS, {}, base_path);
 
@@ -1564,7 +1564,7 @@ int cfile_init_paths()
 
 			Module.syncdone = 1;
 		});
-	}, Osreg_company_name);
+	}, Osreg_app_name);
 #endif
 
 	// see if CF_TYPE_DATA exists for user and if not populate user path

@@ -10,6 +10,9 @@
 
 #ifdef PLAT_UNIX
 #include "unix.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #else
 #include "win.h"
 #endif

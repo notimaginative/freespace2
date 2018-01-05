@@ -560,10 +560,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 #include "pstypes.h"
 #include "systemvars.h"
 #include "key.h"

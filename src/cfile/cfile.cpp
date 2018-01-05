@@ -224,10 +224,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 #include "pstypes.h"
 #include "cfile.h"
 #include "encrypt.h"

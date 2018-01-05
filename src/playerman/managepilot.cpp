@@ -1005,8 +1005,9 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 #ifdef FS1_DEMO
 	// HACK - FIXME!!!
+	// FS1 Demo has a chunk of data, 57 bytes zero'd, which doesn't appear to
+	// change. No idea what it's for, so this is just for compatabilty sake.
 	char blank[57];
-	SDL_zero(blank);
 	cfread(blank, SDL_arraysize(blank), 1, file);
 #endif
 
@@ -1328,12 +1329,16 @@ int write_pilot_file_core(player *p)
 	}
 
 	red_alert_write_wingman_status(file);
+
 #ifdef FS1_DEMO
 	// HACK - FIXME!!!
+	// FS1 Demo has a chunk of data, 57 bytes zero'd, which doesn't appear to
+	// change. No idea what it's for, so this is just for compatabilty sake.
 	char blank[57];
 	SDL_zero(blank);
 	cfwrite(blank, SDL_arraysize(blank), 1, file);
 #endif
+
 	pilot_write_techroom_data(file);
 
 	// store auto-advance pref

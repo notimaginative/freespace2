@@ -52,7 +52,7 @@ if(DEMO)
 endif()
 
 if(EMSCRIPTEN)
-  set(GAME_ONLY 1)
+  set(GAME_ONLY 1)  # don't build launcher or toolset
   add_definitions(-s USE_SDL=2)
   add_definitions(-s FULL_ES2=1)
 
@@ -238,7 +238,7 @@ if(NOT GAME_ONLY)
 
   # wxWidgets appears to need c++11 for one or more headers
   if(NOT WIN32)
-  set_target_properties(${LAUNCHER_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
+    set_target_properties(${LAUNCHER_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
   endif()
 endif(NOT GAME_ONLY)
 
@@ -287,27 +287,23 @@ endif(NOT GAME_ONLY)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   # FS1 demo
   fsdemo${CMAKE_EXECUTABLE_SUFFIX}
+  fsdemo.wast
   fsdemo.wasm
   fsdemo.js
   fsdemo.data
   freespacedemo${CMAKE_EXECUTABLE_SUFFIX}
   # FS1
   fs${CMAKE_EXECUTABLE_SUFFIX}
-  fs.wasm
-  fs.js
-  fs.data
   freespace${CMAKE_EXECUTABLE_SUFFIX}
   # FS2 demo
   fs2demo${CMAKE_EXECUTABLE_SUFFIX}
+  fs2demo.wast
   fs2demo.wasm
   fs2demo.js
   fs2demo.data
   freespace2demo${CMAKE_EXECUTABLE_SUFFIX}
   # FS2
   fs2${CMAKE_EXECUTABLE_SUFFIX}
-  fs2.wasm
-  fs2.js
-  fs2.data
   freespace2${CMAKE_EXECUTABLE_SUFFIX}
   # standalone GUI
   fsstandalone${CMAKE_EXECUTABLE_SUFFIX}

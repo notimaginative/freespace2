@@ -207,9 +207,15 @@ void gr_opengl_init()
 		Error(LOCATION, "Couldn't init SDL: %s", SDL_GetError());
 	}
 
+	Uint32 window_flags = SDL_WINDOW_OPENGL;
+
+#ifdef __EMSCRIPTEN__
+	window_flags |= SDL_WINDOW_RESIZABLE;
+#endif
+
 	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
 						SDL_WINDOWPOS_CENTERED,
-						gr_screen.max_w, gr_screen.max_h, SDL_WINDOW_OPENGL);
+						gr_screen.max_w, gr_screen.max_h, window_flags);
 
 	if ( !GL_window ) {
 		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());

@@ -16,7 +16,13 @@ include(CreateSourceGroups)
 # ##############################################################################
 
 option(FS1 "Build original FreeSpace" OFF)
-option(DEMO "Create demo build" OFF)
+
+if(EMSCRIPTEN)
+  # only build for demo with emscripten
+  set(DEMO 1)
+else()
+  option(DEMO "Create demo build" OFF)
+endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to 'RelWithDebInfo' as none was specified.")

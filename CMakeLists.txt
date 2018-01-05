@@ -1,8 +1,8 @@
 
 project(freespace2)
 
-cmake_minimum_required(VERSION 2.8)
-cmake_policy(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.6)
+cmake_policy(VERSION 2.8.6)
 
 if(POLICY CMP0043)
   cmake_policy(SET CMP0043 OLD)

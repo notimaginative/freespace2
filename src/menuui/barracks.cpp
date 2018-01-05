@@ -1037,6 +1037,7 @@ void barracks_init_player_stuff(int mode)
 
 }
 
+#if !(defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__))
 static void barracks_convert_pilot_callback(int choice)
 {
 	char old_pic[256] = "";
@@ -1068,6 +1069,7 @@ static void barracks_convert_pilot_callback(int choice)
 
 	gamesnd_play_iface(SND_USER_SELECT);
 }
+#endif
 
 void barracks_button_pressed(int n)
 {
@@ -1148,7 +1150,7 @@ void barracks_button_pressed(int n)
 			break;
 
 		case B_PILOT_CONVERT_BUTTON: {
-#if defined(DEMO) || defined(OEM_BUILD)
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__)
 			game_feature_not_in_demo_popup();
 #else
 			const char *str;
@@ -1207,7 +1209,7 @@ void barracks_button_pressed(int n)
 			break;
 
 		case B_PILOT_MULTI_MODE_BUTTON:
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			game_feature_not_in_demo_popup();
 #else
 			if (Player_sel_mode != PLAYER_SELECT_MODE_MULTI) {
@@ -1631,7 +1633,7 @@ void barracks_do_frame(float frametime)
 				break;
 
 			case SDLK_TAB:  // switch mode (simgle/multi)
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 	game_feature_not_in_demo_popup();
 #else
 				if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE) {

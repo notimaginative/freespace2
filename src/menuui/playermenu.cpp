@@ -933,7 +933,7 @@ void player_select_button_pressed(int n)
 		player_select_set_bottom_text("");
 
 		Player_select_autoaccept = 0;
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 		game_feature_not_in_demo_popup();
 #else
 		// switch to multiplayer mode

@@ -1208,7 +1208,7 @@ void main_hall_do(float frametime)
 
 		// clicked on the multiplayer region
 		case MULTIPLAYER_REGION:
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			game_feature_not_in_demo_popup();
 #else
 			if (Player->flags & PLAYER_FLAGS_IS_MULTI){

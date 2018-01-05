@@ -892,7 +892,7 @@ void options_tab_setup(int set_palette)
 	// do other special processing
 	switch (Tab) {
 		case MULTIPLAYER_TAB:
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			options_multi_select();
 #ifdef MAKE_FS1		
 			// need to hide the hud config and control config buttons
@@ -913,7 +913,7 @@ void options_tab_close()
 {
 	switch (Tab) {
 		case MULTIPLAYER_TAB:
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			options_multi_unselect();		
 #endif
 			break;
@@ -928,7 +928,7 @@ void options_change_tab(int n)
 {
 	int idx;
 
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 	if (n == MULTIPLAYER_TAB) {
 		game_feature_not_in_demo_popup();
 		return;
@@ -939,7 +939,7 @@ void options_change_tab(int n)
 		case MULTIPLAYER_TAB:
 			if ( !Options_multi_inited ) {
 				// init multiplayer
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 				options_multi_init(&Ui_window);
 				options_multi_unselect();
 #endif
@@ -1261,7 +1261,7 @@ void options_accept()
 {
 	// apply the selected multiplayer options
 	if ( Options_multi_inited ) {
-		#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+		#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 		options_multi_accept();
 		#endif
 	}
@@ -1421,7 +1421,7 @@ void options_menu_close()
 		Voice_vol_handle = -1;
 	}
 
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 	options_multi_close();
 #endif
 
@@ -1596,7 +1596,7 @@ void options_menu_do_frame(float frametime)
 	// do specific processing for the multiplayer tab
 	switch (Tab) {
 		case MULTIPLAYER_TAB:
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			options_multi_do(k);
 #endif
 			break;

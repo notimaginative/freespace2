@@ -193,12 +193,63 @@ target_link_libraries(
   ${PLATFORM_LIBRARIES}
 )
 
-if (EMSCRIPTEN)
-  set_target_properties(${FS_BINARY}
-    PROPERTIES LINK_FLAGS
-    "-s USE_SDL=2 -s FULL_ES2=1 -s WASM=1 -s TOTAL_MEMORY=184549376 --shell-file ${CMAKE_SOURCE_DIR}/dist/fs_shell.html --preload-file game@/"
+if(EMSCRIPTEN)
+  set(em_SYNC_WHITELIST
+    # for loading screen
+    main
+    game_main
+    game_init
+    #game_loop_caller
+    #gameseq_process_events
+    #game_process_event
+    #gameseq_set_state
+    #game_enter_state
+    #game_start_mission
+    #freespace_mission_load_stuff
+    #game_busy_callback
+    #game_loading_callback
+    #game_loading_callback_close
+    #level_page_in
+    #bm_page_in_stop
+    #gamesnd_preload_common_sounds
+    #game_busy
+    # fs2 title screen
+    display_title_screen
   )
-endif()
+
+  list(GET em_SYNC_WHITELIST -1 LastOne)
+
+  set(EMTERPRETIFY_WHITELIST "'[")
+
+  foreach(func ${em_SYNC_WHITELIST})
+    if (${func} STREQUAL ${LastOne})
+      set(EMTERPRETIFY_WHITELIST "${EMTERPRETIFY_WHITELIST}\"_${func}\"]'")
+    else()
+      set(EMTERPRETIFY_WHITELIST "${EMTERPRETIFY_WHITELIST}\"_${func}\",")
+    endif()
+  endforeach()
+
+  set(em_LINK_FLAGS
+    "-s USE_SDL=2"
+    "-s FULL_ES2=1"
+	#"-s WASM=1"
+    "-s TOTAL_MEMORY=184549376"
+    "--shell-file ${CMAKE_SOURCE_DIR}/dist/fs_shell.html"
+    "--preload-file game@/"
+    "-s SAFE_HEAP=1"
+    "-s DEMANGLE_SUPPORT=1"
+    "-s ASSERTIONS=1"
+    "--profiling-funcs"
+    "-s EMTERPRETIFY=1"
+    "-s EMTERPRETIFY_ASYNC=1"
+	#"-s EMTERPRETIFY_FILE=\"${FS_BINARY}.binary\""
+    "-s EMTERPRETIFY_WHITELIST=${EMTERPRETIFY_WHITELIST}"
+  )
+
+  foreach(Flag ${em_LINK_FLAGS})
+    set_property(TARGET ${FS_BINARY} APPEND_STRING PROPERTY LINK_FLAGS " ${Flag}")
+  endforeach()
+endif(EMSCRIPTEN)
 
 if(FS1)
   set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace")

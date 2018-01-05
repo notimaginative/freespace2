@@ -5735,7 +5735,7 @@ int multi_create_ok_to_commit()
 			}
 #else
 			// warn the players that stats will not saved
-			if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
+			if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
 				return 0;
 			}
 #endif

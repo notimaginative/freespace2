@@ -1217,7 +1217,7 @@ void game_shutdown(void);
 void game_show_event_debug(float frametime);
 void game_event_debug_init();
 void game_frame();
-void demo_upsell_init();
+void demo_upsell_init(int end_of_demo);
 void demo_upsell_do();
 void demo_upsell_close();
 void game_start_subspace_ambient_sound();
@@ -5759,7 +5759,9 @@ void game_leave_state( int old_state, int new_state )
 			break;
 
 		case GS_STATE_DEMO_UPSELL:
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			demo_upsell_close();
+#endif
 			break;
 	}
 }
@@ -6218,7 +6220,9 @@ void game_enter_state( int old_state, int new_state )
 			break;
 
 		case GS_STATE_DEMO_UPSELL:
-			demo_upsell_init();
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+			demo_upsell_init(old_state == GS_STATE_END_DEMO);
+#endif
 			break;
 
 	} // end switch
@@ -6528,8 +6532,10 @@ void game_do_state(int state)
 			break;
 
 		case GS_STATE_DEMO_UPSELL:
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
 			game_set_frametime(GS_STATE_DEMO_UPSELL);
 			demo_upsell_do();
+#endif
 			break;
 
    } // end switch(gs_current_state)
@@ -7784,6 +7790,8 @@ static int Demo_upsell_bitmaps_loaded = 0;
 static int Demo_upsell_bitmaps[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS];
 static int Demo_upsell_screen_number = 0;
 static int Demo_upsell_show_next_bitmap_time;
+static int Demo_upsell_quit_on_done = 0;
+static int Demo_upsell_end_timer = 0;
 
 //XSTR:OFF
 static const char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] =
@@ -7845,12 +7853,15 @@ void demo_upsell_unload_bitmaps()
 	Demo_upsell_bitmaps_loaded = 0;
 }
 
-void demo_upsell_init()
+void demo_upsell_init(int end_of_demo)
 {
 	if ( !Demo_upsell_bitmaps_loaded ) {
 		demo_upsell_load_bitmaps();
 		Demo_upsell_bitmaps_loaded = 1;
 	}
+
+	Demo_upsell_end_timer = 0;
+	Demo_upsell_quit_on_done = !end_of_demo;
 
 	// may use upsell screens more than once
 	Demo_upsell_show_next_bitmap_time = timer_get_milliseconds() + DEMO_UPSELL_SCREEN_DELAY;
@@ -7874,25 +7885,27 @@ void demo_upsell_do()
 
 	os_poll();
 
-	int k = key_inkey();
+	if ( !Demo_upsell_end_timer ) {
+		int k = key_inkey();
 
 #ifdef FS1_DEMO
-	if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
-		demo_upsell_next_screen();
-		k = 0;
-	}
+		if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
+			demo_upsell_next_screen();
+			k = 0;
+		}
 #endif
 
-	if ( k > 0 ) {
-		demo_upsell_next_screen();
-	}
+		if ( k > 0 ) {
+			demo_upsell_next_screen();
+		}
 
-	if ( Demo_upsell_screen_number >= NUM_DEMO_UPSELL_SCREENS ) {
-		Demo_upsell_screen_number--;
-		done = 1;
-	} else {
-		if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] < 0 ) {
+		if ( Demo_upsell_screen_number >= NUM_DEMO_UPSELL_SCREENS ) {
+			Demo_upsell_screen_number--;
 			done = 1;
+		} else {
+			if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] < 0 ) {
+				done = 1;
+			}
 		}
 	}
 
@@ -7901,11 +7914,12 @@ void demo_upsell_do()
 		gr_bitmap(0,0);
 	}
 
-	if ( done ) {
-		if (gameseq_get_state() != GS_STATE_END_DEMO) {
+	if ( Demo_upsell_end_timer && (timer_get_milliseconds() > Demo_upsell_end_timer) ) {
+		gameseq_post_event(GS_EVENT_QUIT_GAME);
+	} else if (done) {
+		if (Demo_upsell_quit_on_done) {
 			gr_fade_out(0);
-			SDL_Delay(300);
-			gameseq_post_event(GS_EVENT_QUIT_GAME);
+			Demo_upsell_end_timer = timer_get_milliseconds() + 300;
 		} else {
 			gameseq_post_event(GS_EVENT_MAIN_MENU);
 		}

@@ -339,6 +339,8 @@ endif(NOT GAME_ONLY)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   # FS1 demo
   fsdemo${CMAKE_EXECUTABLE_SUFFIX}
+  fsdemo.html.mem
+  fsdemo.binary
   fsdemo.wast
   fsdemo.wasm
   fsdemo.js
@@ -349,6 +351,8 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   freespace${CMAKE_EXECUTABLE_SUFFIX}
   # FS2 demo
   fs2demo${CMAKE_EXECUTABLE_SUFFIX}
+  fs2demo.html.mem
+  fs2demo.binary
   fs2demo.wast
   fs2demo.wasm
   fs2demo.js

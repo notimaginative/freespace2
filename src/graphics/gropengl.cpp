@@ -272,7 +272,10 @@ void gr_opengl_init()
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
 	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
 		gr_force_fullscreen();
-		// poll for window events
+	}
+
+	// if fullscreen or using resizable window then poll for window events
+	if ( gr_screen.fullscreen || (window_flags & SDL_WINDOW_RESIZABLE) ) {
 		os_poll();
 	}
 

@@ -1916,7 +1916,7 @@ void game_loading_callback(int count)
 	gr_flip();
 
 #ifdef __EMSCRIPTEN__
-	emscripten_sleep(10);
+	//emscripten_sleep(10);
 #endif
 }
 
@@ -8246,7 +8246,7 @@ void display_title_screen()
 
 	// give it some time on screen
 #ifdef __EMSCRIPTEN__
-	emscripten_sleep(1000);
+	//emscripten_sleep(1000);
 #else
 	SDL_Delay(1000);
 #endif

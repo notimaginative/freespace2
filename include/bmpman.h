@@ -294,7 +294,7 @@ void bm_get_frame_usage(int *ntotal, int *nnew);
 //============================================================================
 
 void bm_page_in_start();
-void bm_page_in_stop();
+extern "C" void bm_page_in_stop();
 
 // Paging code in a library should call these functions
 // in its page in function.

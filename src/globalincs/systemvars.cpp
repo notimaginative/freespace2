@@ -290,6 +290,7 @@ static int cb_delta_step = -1;
 // by calling game_busy_callback(NULL).   Game_busy_callback
 // returns the current count, so you can tell how many times
 // game_busy got called.
+extern "C"
 int game_busy_callback( void (*callback)(int count), int delta_step )
 {
 	if ( !callback ) {
@@ -319,6 +320,7 @@ int game_busy_callback( void (*callback)(int count), int delta_step )
 }
 
 // Call whenever loading to display cursor
+extern "C"
 void game_busy()
 {
 	if ( cf_in_callback != 0 ) return;	// don't call callback if we're already in it.

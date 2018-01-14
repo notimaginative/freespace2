@@ -17,7 +17,7 @@
 #endif
 
 
-extern int game_main(const char *szCmdLine);
+extern "C" int game_main(const char *szCmdLine);
 
 
 #ifdef PLAT_UNIX

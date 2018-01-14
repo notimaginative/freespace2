@@ -328,7 +328,7 @@ void gamesnd_load_gameplay_sounds();
 void gamesnd_unload_gameplay_sounds();
 void gamesnd_load_interface_sounds();
 void gamesnd_unload_interface_sounds();
-void gamesnd_preload_common_sounds();
+extern "C" void gamesnd_preload_common_sounds();
 void gamesnd_play_iface(int n);
 
 void gamesnd_play_error_beep();

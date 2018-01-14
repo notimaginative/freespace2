@@ -456,6 +456,7 @@ int gameseq_get_depth()
 	return gs_current_stack;
 }
 
+extern "C"
 void gameseq_set_state(int new_state, int override)
 {
 	int event, old_state;
@@ -580,7 +581,7 @@ int gameseq_get_pushed_state()
 // Returns the current state.
 		// pull events game sequence events off of the queue.  Process one at a time
 		// based on the current state and the new event.
-
+extern "C"
 int gameseq_process_events()	
 {
 	int event, old_state;

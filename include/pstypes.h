@@ -562,10 +562,10 @@ int myrand();
 // If delta_step is above 0, then it will also make sure it 
 // calls the callback each time count steps 'delta_step' even
 // if 1/10th of a second hasn't elapsed.
-extern int game_busy_callback( void (*callback)(int count), int delta_step = -1 );
+extern "C" int game_busy_callback( void (*callback)(int count), int delta_step = -1 );
 
 // Call whenever loading to display cursor
-extern void game_busy();
+extern "C" void game_busy();
 
 
 //=========================================================

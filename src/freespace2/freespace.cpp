@@ -1224,7 +1224,9 @@ void game_start_subspace_ambient_sound();
 void game_stop_subspace_ambient_sound();
 void verify_ships_tbl();
 void verify_weapons_tbl();
-void display_title_screen();
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
+extern "C" void display_title_screen();
+#endif
 
 // loading background filenames
 static const char *Game_loading_bground_fname[GR_NUM_RESOLUTIONS] = {
@@ -1849,6 +1851,7 @@ int Game_loading_background = -1;
 anim * Game_loading_ani = NULL;
 anim_instance	*Game_loading_ani_instance;
 int Game_loading_frame=-1;
+int Game_loading_ani_bitmap = -1;
 
 static int Game_loading_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
@@ -1868,6 +1871,7 @@ static int Game_loading_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 // This gets called 10x per second and count is the number of times 
 // game_busy() has been called since the current callback function
 // was set.
+extern "C"
 void game_loading_callback(int count)
 {	
 	game_do_networking();
@@ -1888,21 +1892,32 @@ void game_loading_callback(int count)
 		cbitmap = anim_get_next_frame(Game_loading_ani_instance);
 	}
 
-
-	if ( cbitmap > -1 )	{
-		if ( Game_loading_background > -1 )	{
-			gr_set_bitmap( Game_loading_background, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-			gr_bitmap(0,0);
+	if (cbitmap > -1) {
+		if (Game_loading_ani_bitmap > -1) {
+			bm_release(Game_loading_ani_bitmap);
 		}
 
 		//mprintf(( "Showing frame %d/%d [ Bitmap=%d ]\n", Game_loading_frame ,  Game_loading_ani->total_frames, cbitmap ));
-		gr_set_bitmap( cbitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-		gr_bitmap(Game_loading_ani_coords[gr_screen.res][0],Game_loading_ani_coords[gr_screen.res][1]);
-
-		bm_release(cbitmap);
-	
-		gr_flip();
+		Game_loading_ani_bitmap = cbitmap;
 	}
+
+	if (Game_loading_background > -1) {
+		gr_set_bitmap(Game_loading_background, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
+		gr_bitmap(0, 0);
+	} else {
+		gr_clear();
+	}
+
+	if (Game_loading_ani_bitmap > -1) {
+		gr_set_bitmap(Game_loading_ani_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
+		gr_bitmap(Game_loading_ani_coords[gr_screen.res][0], Game_loading_ani_coords[gr_screen.res][1]);
+	}
+
+	gr_flip();
+
+#ifdef __EMSCRIPTEN__
+	emscripten_sleep(10);
+#endif
 }
 
 void game_loading_callback_init()
@@ -1920,6 +1935,7 @@ void game_loading_callback_init()
 	Game_loading_ani_instance = init_anim_instance(Game_loading_ani, 16);
 	SDL_assert( Game_loading_ani_instance != NULL );
 	Game_loading_frame = -1;
+	Game_loading_ani_bitmap = -1;
 
 	Game_loading_callback_inited = 1;
 	Mouse_hidden = 1;
@@ -1928,6 +1944,7 @@ void game_loading_callback_init()
 
 }
 
+extern "C"
 void game_loading_callback_close()
 {
 	SDL_assert( Game_loading_callback_inited==1 );
@@ -1954,9 +1971,18 @@ void game_loading_callback_close()
 	anim_free(Game_loading_ani);
 	Game_loading_ani = NULL;
 
-	bm_release( Game_loading_background );
+	if (Game_loading_ani_bitmap > -1) {
+		bm_release(Game_loading_ani_bitmap);
+		Game_loading_ani_bitmap = -1;
+	}
+
+	if (Game_loading_background > -1) {
+		bm_release(Game_loading_background);
+		Game_loading_background = -1;
+	}
+
 	common_free_interface_palette();		// restore game palette
-	Game_loading_background = -1;
+
 
 	gr_set_font( FONT1 );
 }
@@ -1998,6 +2024,7 @@ void game_assign_sound_environment()
 // function which gets called before actually entering the mission.  It is broken down into a funciton
 // since it will get called in one place from a single player game and from another place for
 // a multiplayer game
+extern "C"
 void freespace_mission_load_stuff()
 {
 	// called if we're not on a freespace dedicated (non rendering, no pilot) server
@@ -2048,6 +2075,7 @@ time_t load_post_level_init;
 time_t load_mission_stuff;
 
 // tells the server to load the mission and initialize structures
+extern "C"
 int game_start_mission()
 {	
 	mprintf(( "=================== STARTING LEVEL LOAD ==================\n" ));
@@ -2259,6 +2287,9 @@ DCF(gamma,"Sets Gamma factor")
 	}
 }
 
+extern void bm_init();
+
+extern "C"
 void game_init()
 {
 	Game_current_mission_filename[0] = 0;
@@ -2273,7 +2304,6 @@ void game_init()
 	load_filter_info();
 	#endif
 
-	extern void bm_init();
 	bm_init();
 
 	// encrypt stuff
@@ -4896,6 +4926,7 @@ void end_demo_campaign_do()
 
 // All code to process events.   This is the only place
 // that you should change the state of the game.
+extern "C"
 void game_process_event( int current_state, int event )
 {
 	mprintf(("Got event %s in state %s\n", GS_event_text[event], GS_state_text[current_state]));
@@ -5732,7 +5763,7 @@ void game_leave_state( int old_state, int new_state )
 // from.    You should never try to change the state
 // in here... if you think you need to, you probably really
 // need to post an event, not change the state.
-
+extern "C"
 void game_enter_state( int old_state, int new_state )
 {
 	switch (new_state) {
@@ -5926,7 +5957,6 @@ void game_enter_state( int old_state, int new_state )
 
 #ifndef NDEBUG
 			// required to truely make mouse deltas zeroed in debug mouse code
-void mouse_force_pos(int x, int y);
 			if (!Is_standalone) {
 				mouse_force_pos(gr_screen.max_w / 2, gr_screen.max_h / 2);
 			}
@@ -6701,16 +6731,16 @@ static bool game_loop()
 }
 
 #ifdef __EMSCRIPTEN__
-static void game_loop_caller()
+extern "C"
+void game_loop_caller()
 {
 	if ( !game_loop() ) {
-		emscripten_log(EM_LOG_CONSOLE, "got quit game!");
 		game_shutdown();
-		//emscripten_cancel_main_loop();
 	}
 }
 #endif
 
+extern "C"
 int game_main(const char *szCmdLine)
 {
 	// Find out how much RAM is on this machine
@@ -8174,11 +8204,10 @@ int game_hacked_data()
 	return 0;
 }
 
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
+extern "C"
 void display_title_screen()
 {
-#if defined(FS2_DEMO) || defined(OEM_BUILD)
-	///int title_bitmap;
-
 	// load bitmap
 	int title_bitmap = bm_load(Game_demo_title_screen_fname[gr_screen.res]);
 	if (title_bitmap == -1) {
@@ -8195,11 +8224,15 @@ void display_title_screen()
 	gr_flip();
 
 	// give it some time on screen
+#ifdef __EMSCRIPTEN__
+	emscripten_sleep(1000);
+#else
 	SDL_Delay(1000);
+#endif
 
 	bm_unload(title_bitmap);
-#endif  // FS2_DEMO || OEM_BUILD
 }
+#endif  // FS2_DEMO || OEM_BUILD
 
 // return true if the game is running with "low memory", which is less than 48MB
 bool game_using_low_mem()

@@ -2504,7 +2504,9 @@ MONITOR(BmpUsed);
 MONITOR(BmpNew);
 
 void game_get_framerate()
-{
+{	
+	char text[128] = "";
+
 	if ( frame_int == -1 )	{
 		int i;
 		for (i=0; i<FRAME_FILTER; i++ )	{
@@ -2523,12 +2525,15 @@ void game_get_framerate()
 			Framerate = FRAME_FILTER / frametotal;
 		else
 			Framerate = Framecount / frametotal;
+		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: %.1f"), Framerate );
+	} else {
+		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: ?") );
 	}
 	Framecount++;
 
 	if (Show_framerate)	{
 		gr_set_color_fast(&HUD_color_debug);
-		gr_printf(570, 2, NOX("FPS: %.1f"), Framerate);
+		gr_string( 570, 2, text );
 	}
 }
 
@@ -4413,10 +4418,8 @@ void game_start_time()
 
 void game_set_frametime(int state)
 {
-	fix thistime;
+	fix thistime = timer_get_fixed_seconds();
 	int frame_cap = 60;
-
-	thistime = timer_get_fixed_seconds();
 
 	if ( Last_time == 0 )	
 		Frametime = F1_0 / 30;
@@ -4463,6 +4466,9 @@ void game_set_frametime(int state)
 
 	SDL_assert( frame_cap > 0 );
 
+#ifndef __EMSCRIPTEN__
+	float frame_cap_diff;
+
 	// Cap the framerate so it doesn't get too high.
 	{
 		fix cap;
@@ -4476,6 +4482,7 @@ void game_set_frametime(int state)
 			thistime = timer_get_fixed_seconds();
 		}
 	}
+#endif
 
 	// If framerate is too low, cap it.
 	if (Frametime > MAX_FRAMETIME)	{
@@ -5574,7 +5581,7 @@ void game_leave_state( int old_state, int new_state )
 
 		case GS_STATE_GAME_PAUSED:
 			game_start_time();
-			if (end_mission) {
+			if ( end_mission ) {
 				pause_close(0);
 			}
 			break;

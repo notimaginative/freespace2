@@ -522,6 +522,7 @@ int Multi_pxo_must_verify_version = 1;			// only do it once per instance of free
 #define MULTI_PXO_MODE_NORMAL			0			// normal mode
 #define MULTI_PXO_MODE_PRIVATE		1			// private channel popup
 #define MULTI_PXO_MODE_FIND			2			// find player popup
+#define MULTI_PXO_MODE_PINFO		3			// pilot info popup
 int Multi_pxo_mode = MULTI_PXO_MODE_NORMAL;
 
 // our nick for this session
@@ -1310,16 +1311,13 @@ int multi_pxo_pinfo_cond();
 int multi_pxo_pinfo_get(char *name);
 
 // fire up the stats view popup
-void multi_pxo_pinfo_show();
+int multi_pxo_pinfo_popup();
 
 // build the stats labels values
 void multi_pxo_pinfo_build_vals();
 
 // initialize the popup
 void multi_pxo_pinfo_init();
-
-// do frame
-int multi_pxo_pinfo_do();
 
 // close
 void multi_pxo_pinfo_close();
@@ -1744,6 +1742,20 @@ void multi_pxo_do()
 				multi_pxo_join_channel(&join);
 			}
 			break;
+		}
+		break;
+	// pilot info mode
+	case MULTI_PXO_MODE_PINFO:
+		switch (multi_pxo_pinfo_popup()) {
+			// still running
+			case 0:
+				break;
+
+			// used closed popup
+			case 1:
+				// return to normal mode
+				Multi_pxo_mode = MULTI_PXO_MODE_NORMAL;
+				break;
 		}
 		break;
 	// normal mode
@@ -2255,7 +2267,7 @@ void multi_pxo_button_pressed(int n)
 			// if we successfully got info for this guy
 			if(multi_pxo_pinfo_get(Multi_pxo_player_select->name)){				
 				// show the stats
-				multi_pxo_pinfo_show();				
+				multi_pxo_pinfo_popup();
 			}
 			// if we didn't get stats for this guy.
 			else {
@@ -4831,21 +4843,6 @@ int multi_pxo_pinfo_get(char *name)
 	return 0;
 }
 
-// fire up the stats view popup
-void multi_pxo_pinfo_show()
-{
-	// initialize the popup
-	multi_pxo_pinfo_init();
-	
-	// run the popup
-	do {
-		game_set_frametime(GS_STATE_PXO);
-	} while(!multi_pxo_pinfo_do());
-
-	// close down the popup
-	multi_pxo_pinfo_close();
-}
-
 // build the stats labels values
 void multi_pxo_pinfo_build_vals()
 {
@@ -4939,7 +4936,12 @@ void multi_pxo_pinfo_build_vals()
 void multi_pxo_pinfo_init()
 {
 	int idx;
-	
+
+	SDL_assert(Multi_pxo_mode != MULTI_PXO_MODE_PINFO);
+
+	// mark us as running
+	Multi_pxo_mode = MULTI_PXO_MODE_PINFO;
+
 	// create the interface window
 	Multi_pxo_pinfo_window.create(0,0,gr_screen.max_w,gr_screen.max_h,0);
 	Multi_pxo_pinfo_window.set_mask_bmap(Multi_pxo_pinfo_mask_fname[gr_screen.res]);	
@@ -4994,9 +4996,20 @@ void multi_pxo_pinfo_init()
 }
 
 // do frame
-int multi_pxo_pinfo_do()
+int multi_pxo_pinfo_popup()
 {
-	int k = Multi_pxo_pinfo_window.process();
+	int k;
+
+	// if we're not already running, initialize stuff
+	if (Multi_pxo_mode != MULTI_PXO_MODE_PINFO) {
+		// initialize
+		multi_pxo_pinfo_init();
+
+		// return "still running"
+		return 0;
+	}
+
+	k = Multi_pxo_pinfo_window.process();
 
 	// process common stuff
 	multi_pxo_process_common();
@@ -5006,18 +5019,20 @@ int multi_pxo_pinfo_do()
 
 	// check to see if he pressed escp
 	if(k == SDLK_ESCAPE){
+		multi_pxo_pinfo_close();
 		return 1;
 	}
 
 	// if he pressed the ok button
 	if(Multi_pxo_pinfo_buttons[gr_screen.res][MULTI_PXO_PINFO_OK].button.pressed()){
+		multi_pxo_pinfo_close();
 		return 1;
 	}
 
 	// if he pressed the medals buttons, run the medals screen
 	if(Multi_pxo_pinfo_buttons[gr_screen.res][MULTI_PXO_PINFO_MEDALS].button.pressed()){
 #ifdef FS2_DEMO
-	game_feature_not_in_demo_popup();
+		game_feature_not_in_demo_popup();
 #else
 		multi_pxo_run_medals();
 #endif
@@ -5065,6 +5080,9 @@ void multi_pxo_pinfo_close()
 	for (i=0; i<MULTI_PXO_PINFO_NUM_LABELS; i++) {
 		free(Multi_pxo_pinfo_stats_labels[i]);
 	}
+
+	// mark us as not running any more
+	Multi_pxo_mode = MULTI_PXO_MODE_NORMAL;
 }
 
 // blit all the stats on this screen

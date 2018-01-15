@@ -1067,7 +1067,7 @@ void popup_force_draw_buttons(popup_info *pi)
 
 static void popup_do(popup_info *pi)
 {
-	int test;
+	int test = -1;
 
 	os_poll();
 
@@ -1095,7 +1095,7 @@ static void popup_do(popup_info *pi)
 	}
 
 	// test the condition function or process for the window
-	if (pi->condition && (test = (*(pi->condition))() > 0)) {
+	if (pi->condition && ((test = (*(pi->condition))()) > 0)) {
 		pi->choice = test;
 
 		if (pi->callback) {

@@ -6,6 +6,8 @@
  * the source.
  */
 
+#include <exception>
+
 #include "pstypes.h"
 
 #ifdef PLAT_UNIX
@@ -121,6 +123,8 @@ int main(int argc, char *argv[])
 
 	try {
 		retr = game_main(argptr);
+	} catch(const std::exception &e) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", e.what(), NULL);
 	} catch(...) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Exception caught in main()!", NULL);
 	}

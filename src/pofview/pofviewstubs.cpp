@@ -63,10 +63,10 @@ void freespace_menu_background()
 	gr_clear();
 }
 
-void game_enter_state(int, int){}
+extern "C" void game_enter_state(int, int){}
 void game_leave_state(int, int){}
 void game_do_state(int){}
-void game_process_event(int, int){}
+extern "C" void game_process_event(int, int){}
 void game_stop_looped_sounds(){}
 void game_flush(){}
 int Game_skill_level;
@@ -81,7 +81,7 @@ int Framerate_delay;
 char *Game_current_mission_filename;
 int Warpout_forced;
 float Warpout_time;
-int game_start_mission(){return 0;}
+extern "C" int game_start_mission(){return 0;}
 void game_level_close(){}
 void game_whack_apply(float, float){}
 void game_flash(float, float, float){}

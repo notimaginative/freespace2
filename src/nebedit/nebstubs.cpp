@@ -49,10 +49,10 @@
 #include "pstypes.h"
 
 
-void game_enter_state(int, int){}
+extern "C" void game_enter_state(int, int){}
 void game_leave_state(int, int){}
 void game_do_state(int){}
-void game_process_event(int, int){}
+extern "C" void game_process_event(int, int){}
 char *Game_CDROM_dir;
 void game_stop_looped_sounds(){}
 int set_cdrom_path(int){return 0;}
@@ -70,7 +70,7 @@ int Framerate_delay;
 char *Game_current_mission_filename;
 int Warpout_forced;
 float Warpout_time;
-int game_start_mission(void){return 0;}
+extern "C" int game_start_mission(void){return 0;}
 void game_level_close(){}
 void game_flash(float, float, float){}
 void game_whack_apply(float, float){}

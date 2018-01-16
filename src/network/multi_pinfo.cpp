@@ -748,7 +748,7 @@ void multi_pinfo_popup_button_pressed(int n)
 // display the medals screen for this player
 void multi_pinfo_do_medals()
 {
-#ifdef FS2DEMO
+#ifdef FS2_DEMO
 	game_feature_not_in_demo_popup();
 #else
 	int ret_code;

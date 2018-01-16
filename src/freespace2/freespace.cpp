@@ -6749,6 +6749,7 @@ void game_loop_caller()
 {
 	if ( !game_loop() ) {
 		game_shutdown();
+		emscripten_cancel_main_loop();
 	}
 }
 #endif

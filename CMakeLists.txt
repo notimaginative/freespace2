@@ -410,6 +410,21 @@ if(NOT GAME_ONLY)
   CreateSourceGroups(${cfilearchiver_SOURCE})
 
   #
+  # CFILEUTIL: work with VP file archives
+  #
+
+  add_executable(cfileutil
+    EXCLUDE_FROM_ALL
+    ${cfileutil_SOURCE}
+  )
+
+  CreateSourceGroups(${cfileutil_SOURCE})
+
+  if(NOT WIN32)
+    set_target_properties(cfileutil PROPERTIES COMPILE_FLAGS -std=c++11)
+  endif()
+
+  #
   # CRYPTSTRING: string encryption (for embedded cheat codes)
   #
 
@@ -527,6 +542,7 @@ if(NOT GAME_ONLY)
   add_dependencies(tools
     ac
     cfilearchiver
+    cfileutil
     cryptstring
     nebedit
     pofview

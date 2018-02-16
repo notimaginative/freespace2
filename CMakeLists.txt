@@ -230,16 +230,17 @@ if(EMSCRIPTEN)
   endforeach()
 
   set(LINK_FLAGS
+    "-O3"
     "-s USE_SDL=2"
     "-s FULL_ES2=1"
-  # "-s WASM=1"
+    "-s WASM=1"
     "-s TOTAL_MEMORY=184549376"
     "--shell-file ${CMAKE_SOURCE_DIR}/dist/${FS_BINARY}_shell.html"
     "--preload-file game@/"
-    "-s SAFE_HEAP=1"
-    "-s DEMANGLE_SUPPORT=1"
-    "-s ASSERTIONS=2"
-    "--profiling-funcs"
+  # "-s SAFE_HEAP=1"
+  # "-s DEMANGLE_SUPPORT=1"
+  # "-s ASSERTIONS=2"
+  # "--profiling-funcs"
   # "-s EMTERPRETIFY=1"
   # "-s EMTERPRETIFY_ASYNC=1"
   # "-s 'EMTERPRETIFY_FILE=\"${FS_BINARY}.binary\"'"

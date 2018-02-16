@@ -234,7 +234,7 @@ if(EMSCRIPTEN)
     "-s FULL_ES2=1"
   # "-s WASM=1"
     "-s TOTAL_MEMORY=184549376"
-    "--shell-file ${CMAKE_SOURCE_DIR}/dist/fs_shell.html"
+    "--shell-file ${CMAKE_SOURCE_DIR}/dist/${FS_BINARY}_shell.html"
     "--preload-file game@/"
     "-s SAFE_HEAP=1"
     "-s DEMANGLE_SUPPORT=1"

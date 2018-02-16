@@ -4,15 +4,51 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FreeSpace</title>
+    <title>FreeSpace 2 Demo</title>
     <style>
+      html {
+        box-sizing: border-box;
+      }
+      * {
+        box-sizing: inherit;
+      }
       html, body {
         height: 100%;
         margin: 0;
         padding: 0;
         background-color: #222;
       }
-      canvas {
+      #progress {
+        background: url(demotitle.jpg);
+        background-repeat: no-repeat;
+        background-size: cover;
+        z-index: 10;
+      }
+      #progress_container {
+        width: 70%;
+        margin: 0 auto;
+        position: relative;
+        top: 50%;
+      }
+      #progress_bar_back {
+        width: 100%;
+        background-color: #457573;
+        margin: 0 auto;
+        padding: 3px;
+      }
+      #progress_bar {
+        padding-left: 20px;
+        line-height: 30px;
+        height: 30px;
+        width: 0%;
+        background-color: #182928;
+      }
+      #progress_text, #progress_bar {
+        font-family: 'Noto Sans', sans-serif;
+        color: #fff;
+
+      }
+      canvas, #progress {
         width: 100vw;
         height: 75vw;
         background-color: #000;
@@ -28,8 +64,18 @@
     </style>
   </head>
   <body>
+    <div id="progress">
+      <div id="progress_container">
+        <div id="progress_bar_back"><div id="progress_bar"></div></div>
+        <div id="progress_text"></div>
+      </div>
+    </div>
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
     <script type='text/javascript'>
+      var progress = document.getElementById('progress');
+      var progress_bar = document.getElementById('progress_bar');
+      var progress_text = document.getElementById('progress_text');
+
       var Module = {
         preRun: [],
         postRun: [],
@@ -63,6 +109,16 @@
           return canvas;
         })(),
         setStatus: function(text) {
+          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+          if (text === Module.setStatus.text) return;
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          if (m) {
+            text = m[1];
+            var perc = parseInt(m[2]) / parseInt(m[4]) * 100;
+            progress_bar.style.width = perc + '%';
+            progress_bar.innerHTML = perc.toFixed(1) + '%';
+          }
+          progress_text.innerHTML = text;
         },
         totalDependencies: 0,
         monitorRunDependencies: function(left) {

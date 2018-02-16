@@ -6861,6 +6861,11 @@ int game_main(const char *szCmdLine)
 	}
 
 #ifdef __EMSCRIPTEN__
+	EM_ASM({
+		var progress = document.getElementById('progress');
+		progress.hidden = true;
+	});
+
 	emscripten_set_main_loop(game_loop_caller, 0, 1);
 #else
 	while ( game_loop() ) { /* nothing */ }

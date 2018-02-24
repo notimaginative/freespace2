@@ -1384,6 +1384,16 @@ void write_pilot_file(player *the_player)
 		popup_callback(error_writing_callback, PF_TITLE_RED | PF_TITLE_BIG, 3, XSTR( "&Retry", 41), XSTR( "&Ignore", 42), XSTR( "&Quit Game", 43),
 			XSTR( "Warning\nFailed to save pilot file.  You may be out of disk space.  If so, you should press Alt-Tab, free up some disk space, then come back and choose retry.\n", 44) );
 	}
+#ifdef __EMSCRIPTEN__
+	else {
+		// sync files to persistent storage
+		EM_ASM(
+			FS.syncfs(function(err) {
+				assert(!err);
+			});
+		);
+	}
+#endif
 }
 
 void write_stats_block(CFILE *file,scoring_struct *stats)

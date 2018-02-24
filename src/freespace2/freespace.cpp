@@ -6943,15 +6943,6 @@ void game_shutdown(void)
 	psnet_close();
 	os_cleanup();
 
-#ifdef __EMSCRIPTEN__
-	// sync files to persistent storage
-	EM_ASM(
-		FS.syncfs(function(err) {
-			assert(!err);
-		});
-	);
-#endif
-
 	// HACKITY HACK HACK
 	// if this flag is set, we should be firing up the launcher when exiting freespace
 	extern int Multi_update_fireup_launcher_on_exit;

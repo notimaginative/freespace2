@@ -235,8 +235,8 @@ if(EMSCRIPTEN)
     "-s FULL_ES2=1"
     "-s WASM=1"
     "-s TOTAL_MEMORY=184549376"
-    "--shell-file ${CMAKE_SOURCE_DIR}/dist/${FS_BINARY}_shell.html"
-    "--preload-file game@/"
+    "--shell-file ${CMAKE_BINARY_DIR}/dist/demo_shell.html"
+    "--pre-js ${FS_BINARY}_preload.js"
   # "-s SAFE_HEAP=1"
   # "-s DEMANGLE_SUPPORT=1"
   # "-s ASSERTIONS=2"
@@ -250,6 +250,24 @@ if(EMSCRIPTEN)
   foreach(Flag ${LINK_FLAGS})
     set_property(TARGET ${FS_BINARY} APPEND_STRING PROPERTY LINK_FLAGS " ${Flag}")
   endforeach()
+
+  if(FS1)
+    set(TEXT_COLOR "#4C442D")
+    set(BG_COLOR "#3E4559")
+    set(OUTLINE_COLOR "#353B4C")
+    set(BG_COLOR2 "#798199")
+    set(GAME_TITLE "FreeSpace Demo")
+  else()
+    set(TEXT_COLOR "#FFF")
+    set(BG_COLOR "#457573")
+    set(OUTLINE_COLOR "#4D8280")
+    set(BG_COLOR2 "#182928")
+    set(GAME_TITLE "FreeSpace 2 Demo")
+  endif()
+
+  configure_file(${CMAKE_SOURCE_DIR}/dist/demo_shell.html.in ${CMAKE_BINARY_DIR}/dist/demo_shell.html @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/dist/demo-play.css.in ${CMAKE_BINARY_DIR}/dist/demo-play.css @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/dist/demo-play.js.in ${CMAKE_BINARY_DIR}/dist/demo-play.js @ONLY)
 endif(EMSCRIPTEN)
 
 if(FS1)

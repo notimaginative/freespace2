@@ -1499,6 +1499,7 @@ int cfile_init_paths()
 		return 0;
 	}
 
+#ifndef __EMSCRIPTEN__
 	char *t_path = SDL_GetBasePath();
 
 	// make sure we have something
@@ -1519,7 +1520,6 @@ int cfile_init_paths()
 	SDL_free(t_path);
 	t_path = NULL;
 
-#ifndef __EMSCRIPTEN__
 	// are we in a root directory?
 	if ( cfile_in_root_dir(Cfile_root_dir) ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
@@ -1547,24 +1547,37 @@ int cfile_init_paths()
 	SDL_free(u_path);
 	u_path = NULL;
 #else
-	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "/%s/", Osreg_app_name);
+	const char *root_path = "/Game";
+	const char *user_path = "/User";
+
+	SDL_snprintf(Cfile_root_dir, SDL_arraysize(Cfile_root_dir), "%s/", root_path);
+	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "%s/", user_path);
 
 	EM_ASM({
-		const base_path = '/' + UTF8ToString($0);
-		FS.mkdir(base_path);
-		FS.mount(IDBFS, {}, base_path);
+		const user_path = UTF8ToString($1);
 
-		Module.syncdone = 0;
+		FS.mkdir(user_path);
+		FS.mount(IDBFS, { name: UTF8ToString($0) }, user_path);
+
+		Module.sync_in_progress = 1;
+
+		if (Module['setStatus']) {
+			Module['setStatus']('Syncing user data...');
+		}
 
 		FS.syncfs(true, function(err) {
 			if (err && err.code !== 'EEXIST') {
 				console.log('FS.syncfs() load error: ' + err);
 				assert(err);
-			}
+			} else {
+				Module.sync_in_progress = 0;
 
-			Module.syncdone = 1;
+				// remove initial loading/progress screen
+				var progress = document.getElementById('progress');
+				progress.hidden = true;
+			}
 		});
-	}, Osreg_app_name);
+	}, Osreg_app_name, user_path);
 #endif
 
 	// see if CF_TYPE_DATA exists for user and if not populate user path

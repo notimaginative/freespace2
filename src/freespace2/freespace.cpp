@@ -5329,14 +5329,6 @@ void game_process_event( int current_state, int event )
 			break;
 
 		case GS_EVENT_GAME_INIT:
-#ifdef __EMSCRIPTEN__
-			// keep looping through until the persistent storage has sync'd
-			if (emscripten_run_script_int("Module.syncdone") == 0) {
-				// this event got popped, so add it back into the queue
-				gameseq_post_event(GS_EVENT_GAME_INIT);
-				break;
-			}
-#endif
 #if defined(FS2_DEMO) || defined(OEM_BUILD) || defined(FS1_DEMO)
 			gameseq_set_state(GS_STATE_INITIAL_PLAYER_SELECT);
 #else			
@@ -6747,6 +6739,11 @@ static bool game_loop()
 extern "C"
 void game_loop_caller()
 {
+	// keep looping through until the persistent storage has sync'd
+	if (emscripten_run_script_int("Module.sync_in_progress") == 1) {
+		return;
+	}
+
 	if ( !game_loop() ) {
 		game_shutdown();
 		emscripten_cancel_main_loop();
@@ -6861,11 +6858,6 @@ int game_main(const char *szCmdLine)
 	}
 
 #ifdef __EMSCRIPTEN__
-	EM_ASM({
-		var progress = document.getElementById('progress');
-		progress.hidden = true;
-	});
-
 	emscripten_set_main_loop(game_loop_caller, 0, 1);
 #else
 	while ( game_loop() ) { /* nothing */ }

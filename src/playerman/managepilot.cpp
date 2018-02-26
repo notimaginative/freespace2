@@ -1387,11 +1387,7 @@ void write_pilot_file(player *the_player)
 #ifdef __EMSCRIPTEN__
 	else {
 		// sync files to persistent storage
-		EM_ASM(
-			FS.syncfs(function(err) {
-				assert(!err);
-			});
-		);
+		EM_ASM( FS.syncfs(function(err) {}); );
 	}
 #endif
 }

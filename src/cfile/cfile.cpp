@@ -1568,7 +1568,6 @@ int cfile_init_paths()
 		FS.syncfs(true, function(err) {
 			if (err && err.code !== 'EEXIST') {
 				console.log('FS.syncfs() load error: ' + err);
-				assert(err);
 			} else {
 				Module.sync_in_progress = 0;
 

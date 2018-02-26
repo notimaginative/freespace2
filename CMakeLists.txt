@@ -234,18 +234,23 @@ if(EMSCRIPTEN)
     "-s USE_SDL=2"
     "-s FULL_ES2=1"
     "-s WASM=1"
-    "-s TOTAL_MEMORY=184549376"
     "--shell-file ${CMAKE_BINARY_DIR}/dist/demo_shell.html"
     "--pre-js ${FS_BINARY}_preload.js"
-  # "-s SAFE_HEAP=1"
-  # "-s DEMANGLE_SUPPORT=1"
-  # "-s ASSERTIONS=2"
-  # "--profiling-funcs"
+    "--emit-symbol-map"
   # "-s EMTERPRETIFY=1"
   # "-s EMTERPRETIFY_ASYNC=1"
   # "-s 'EMTERPRETIFY_FILE=\"${FS_BINARY}.binary\"'"
   # "-s 'EMTERPRETIFY_WHITELIST=${EMTERPRETIFY_WHITELIST}'"
   )
+
+  # memory is calculated as such: 1024 * 1024 * (48 + (data size + 4))
+  # 48 to run the game itself, plus in-memory filesystem+data
+  # FS1 demo data size is 38MB, FS2 demo is 94MB
+  if(FS1)
+    set(LINK_FLAGS "${LINK_FLAGS} -s TOTAL_MEMORY=94371840")
+  else()
+    set(LINK_FLAGS "${LINK_FLAGS} -s TOTAL_MEMORY=153092096")
+  endif()
 
   foreach(Flag ${LINK_FLAGS})
     set_property(TARGET ${FS_BINARY} APPEND_STRING PROPERTY LINK_FLAGS " ${Flag}")

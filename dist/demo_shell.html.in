@@ -9,7 +9,7 @@
     <title>@GAME_TITLE@</title>
   </head>
   <body>
-    <div id="progress">
+    <div id="loading">
       <div id="progress_container">
         <div id="progress_bar_back"><div id="progress_bar"></div></div>
         <div id="progress_text"></div>

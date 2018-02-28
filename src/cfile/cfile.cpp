@@ -1571,9 +1571,9 @@ int cfile_init_paths()
 			} else {
 				Module.sync_in_progress = 0;
 
-				// remove initial loading/progress screen
-				var progress = document.getElementById('progress');
-				progress.hidden = true;
+				// remove initial loading screen
+				var loading = document.getElementById('loading');
+				loading.hidden = true;
 			}
 		});
 	}, user_path, Osreg_app_name);

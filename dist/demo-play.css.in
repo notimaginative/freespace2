@@ -10,7 +10,7 @@ html, body {
   padding: 0;
   background-color: #222;
 }
-#progress {
+#loading {
   background: #798199 url(demotitle.jpg);
   background-repeat: no-repeat;
   background-size: cover;
@@ -43,7 +43,7 @@ html, body {
 #progress_text, #progress_bar {
   font-family: 'Noto Sans', Tahoma, sans-serif;
 }
-canvas, #progress {
+canvas, #loading {
   width: 100vw;
   height: 75vw;
   background-color: #000;

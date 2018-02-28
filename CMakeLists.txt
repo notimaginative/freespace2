@@ -368,6 +368,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   fsdemo.wasm
   fsdemo.js
   fsdemo.data
+  fsdemo_preload.js
   freespacedemo${CMAKE_EXECUTABLE_SUFFIX}
   # FS1
   fs${CMAKE_EXECUTABLE_SUFFIX}
@@ -380,6 +381,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
   fs2demo.wasm
   fs2demo.js
   fs2demo.data
+  fs2demo_preload.js
   freespace2demo${CMAKE_EXECUTABLE_SUFFIX}
   # FS2
   fs2${CMAKE_EXECUTABLE_SUFFIX}

@@ -6941,6 +6941,15 @@ void game_shutdown(void)
 	if(Multi_update_fireup_launcher_on_exit){
 		game_launch_launcher_on_exit();
 	}
+
+#ifdef __EMSCRIPTEN__
+	// sync files to persistent storage
+	EM_ASM({
+		if (Module['onShutdown']) {
+			Module['onShutdown']();
+		}
+	});
+#endif
 }
 
 // game_stop_looped_sounds()

@@ -17,6 +17,11 @@
 
 void base_filename(const char *path, char *filename, const int max_fname);
 
+void platform_init();
+void platform_close();
+
 int platform_open_url(const char *url);
+
+unsigned int platform_get_kmod();
 
 #endif // PLATFORM_H

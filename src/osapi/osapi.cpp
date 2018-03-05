@@ -191,6 +191,8 @@ void os_deinit();
 // for the app name, which is where registry keys are stored.
 void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)
 {
+	platform_init();
+
 	os_set_title( (app_name != NULL) ? app_name : title );
 
 	// do some first-run stuff if needed
@@ -319,6 +321,8 @@ void os_check_debugger()
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()
 {
+	platform_close();
+
 	SDL_DestroyMutex(Os_lock);
 
 	SDL_Quit();
@@ -355,7 +359,7 @@ void os_poll()
 			}
 
 			case SDL_KEYDOWN: {
-				if (e.key.keysym.mod & KMOD_GUI) {
+				if ( (e.key.keysym.mod & KMOD_GUI) || (platform_get_kmod() & KMOD_GUI) ) {
 					if ( !e.key.repeat ) {
 						if (e.key.keysym.sym == SDLK_f) {
 							gr_toggle_fullscreen();
@@ -373,7 +377,7 @@ void os_poll()
 			}
 
 			case SDL_KEYUP: {
-				if (e.key.keysym.mod & KMOD_GUI) {
+				if ( (e.key.keysym.mod & KMOD_GUI) || (platform_get_kmod() & KMOD_GUI) ) {
 					// blank, just don't want to process up keys we skipped
 					// the down for
 				} else {
@@ -382,17 +386,7 @@ void os_poll()
 
 				break;
 			}
-/*
-			case SDL_ACTIVEEVENT:
-				if (e.active.state & SDL_APPACTIVE) {
-					fAppActive = e.active.gain;
-					gr_activate(fAppActive);
-				}
-				if (e.active.state & SDL_APPINPUTFOCUS) {
-					gr_activate(e.active.gain);
-				}
-				break;
-*/
+
 			case SDL_JOYDEVICEADDED: {
 				if ( !Is_standalone ) {
 					joy_reinit(e.jdevice.which);
@@ -474,15 +468,31 @@ void os_poll()
 					case SDL_WINDOWEVENT_FOCUS_LOST:
 						mouse_grab(0);
 						joy_unacquire_ff();
+						fAppActive = 0;
+					//	gr_activate(fAppActive);
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
 						joy_reacquire_ff();
+						fAppActive = 1;
+					//	gr_activate(fAppActive);
 						break;
 
 					case SDL_WINDOWEVENT_MINIMIZED:
 						mouse_grab(0);
+						joy_unacquire_ff();
+						fAppActive = 0;
+					//	gr_activate(fAppActive);
 						break;
+
+					case SDL_WINDOWEVENT_MAXIMIZED:
+					case SDL_WINDOWEVENT_RESTORED: {
+						mouse_grab(0);
+						joy_reacquire_ff();
+						fAppActive = 1;
+					//	gr_activate(fAppActive);
+						break;
+					}
 
 					case SDL_WINDOWEVENT_CLOSE:
 					//	gameseq_post_event(GS_EVENT_QUIT_GAME);

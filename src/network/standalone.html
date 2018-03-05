@@ -5,7 +5,7 @@
 <title>FreeSpace Standalone</title>
 
 <script>
-var std = new WebSocket("ws://" + document.URL.substr(7).split('/')[0], "standalone");
+var std = new WebSocket((location.protocol === "https:" ? "wss" : "ws") + "://" + location.host, "standalone");
 
 try {
 	std.onclose = function(event) {

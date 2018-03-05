@@ -1845,7 +1845,7 @@ void control_config_do_frame(float frametime)
 					if ( (Last_key >= 0) && (k <= 0) && !key_pressed(Last_key) )
 						k = Last_key;
 
-				if ((k > 0) && !Config_allowed[k & KEY_MASK]) {
+				if ((k > 0) && !Config_allowed[SDL_GetScancodeFromKey(k & KEY_MASK)]) {
 					popup(0, 1, POPUP_OK, XSTR( "That is a non-bindable key.  Please try again.", 207));
 					k = 0;
 				}
@@ -1936,7 +1936,7 @@ void control_config_do_frame(float frametime)
 			control_config_do_cancel();
 
 		} else {
-			if ((k > 0) && !Config_allowed[k & KEY_MASK])
+			if ((k > 0) && !Config_allowed[SDL_GetScancodeFromKey(k & KEY_MASK)])
 				k = 0;
 
 			k &= (KEY_MASK | KEY_SHIFTED | KEY_ALTED);

@@ -1039,6 +1039,10 @@ void psnet_rel_close_socket( PSNET_SOCKET_RELIABLE *sockp )
 {
 	reliable_header diss_conn_header;
 
+	if (*sockp == INVALID_SOCKET) {
+		return;
+	}
+
 	// if the socket is out of range
 	if(*sockp>=MAXRELIABLESOCKETS)
 	{

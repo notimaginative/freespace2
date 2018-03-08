@@ -501,7 +501,7 @@ void os_poll()
 					}
 
 					case SDL_WINDOWEVENT_CLOSE:
-					//	gameseq_post_event(GS_EVENT_QUIT_GAME);
+						gameseq_post_event(GS_EVENT_QUIT_GAME);
 						break;
 				}
 

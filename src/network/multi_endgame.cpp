@@ -565,6 +565,11 @@ void multi_endgame_cleanup()
 	} else {		
 		Player->flags |= PLAYER_FLAGS_IS_MULTI;		
 
+		// log game out of tracker
+		if (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) {
+			multi_fs_tracker_logout();
+		}
+
 		// if we're in Parallax Online mode, log back in there	
 		if (Multi_options_g.pxo == 1) {
 			SDL_assert(Multi_options_g.protocol == NET_TCP);

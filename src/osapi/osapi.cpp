@@ -363,8 +363,8 @@ void os_poll()
 					if ( !e.key.repeat ) {
 						if (e.key.keysym.sym == SDLK_f) {
 							gr_toggle_fullscreen();
-					//	} else if (e.key.keysym.sym == SDLK_z) {
-					//		SDL_MinimizeWindow(GL_window);
+						} else if (e.key.keysym.sym == SDLK_z) {
+							SDL_MinimizeWindow(Os_window);
 						} else if (e.key.keysym.sym == SDLK_p) {
 							key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
 						}
@@ -466,31 +466,37 @@ void os_poll()
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_LOST:
+						fAppActive = 0;
+						// io stuff
 						mouse_grab(0);
 						joy_unacquire_ff();
-						fAppActive = 0;
-					//	gr_activate(fAppActive);
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
-						joy_reacquire_ff();
 						fAppActive = 1;
-					//	gr_activate(fAppActive);
+						// io stuff
+						joy_reacquire_ff();
 						break;
 
 					case SDL_WINDOWEVENT_MINIMIZED:
+						fAppActive = 0;
+						// io stuff
 						mouse_grab(0);
 						joy_unacquire_ff();
-						fAppActive = 0;
-					//	gr_activate(fAppActive);
+						// make sure game pauses
+						game_process_pause_key();
+						// graphics
+						gr_activate(fAppActive);
 						break;
 
 					case SDL_WINDOWEVENT_MAXIMIZED:
 					case SDL_WINDOWEVENT_RESTORED: {
+						fAppActive = 1;
+						// io stuff
 						mouse_grab(0);
 						joy_reacquire_ff();
-						fAppActive = 1;
-					//	gr_activate(fAppActive);
+						// graphics
+						gr_activate(fAppActive);
 						break;
 					}
 

@@ -9346,18 +9346,16 @@ void multi_debrief_accept_hit()
 		if(Net_player->flags & NETINFO_FLAG_GAME_HOST){
 			// if we're on a tracker game, he gets no choice for storing stats
 			if (MULTI_IS_TRACKER_GAME) {
-				// if not standalone, send stats
+				// if not on standalone, send stats
 				if (Net_player->flags & NETINFO_FLAG_AM_MASTER) {
 					if ( !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
 						int stats_saved = multi_fs_tracker_store_stats();
 
 						if (stats_saved) {
-							multi_debrief_stats_accept();
-
 							Netgame.flags |= NG_FLAG_STORED_MT_STATS;
 							send_netgame_update_packet();
 						} else {
-							multi_debrief_stats_toss();
+							send_store_stats_packet(0);
 						}
 
 #ifndef MAKE_FS1
@@ -9422,12 +9420,10 @@ void multi_debrief_esc_hit()
 					int stats_saved = multi_fs_tracker_store_stats();
 
 					if (stats_saved) {
-						multi_debrief_stats_accept();
-
 						Netgame.flags |= NG_FLAG_STORED_MT_STATS;
 						send_netgame_update_packet();
 					} else {
-						multi_debrief_stats_toss();
+						send_store_stats_packet(0);
 					}
 
 #ifndef MAKE_FS1

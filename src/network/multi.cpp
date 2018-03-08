@@ -1921,12 +1921,10 @@ void multi_standalone_postgame_close()
 			int stats_saved = multi_fs_std_tracker_store_stats();
 
 			if (stats_saved) {
-				multi_debrief_stats_accept();
-
 				Netgame.flags |= NG_FLAG_STORED_MT_STATS;
 				send_netgame_update_packet();
 			} else {
-				multi_debrief_stats_toss();
+				send_store_stats_packet(0);
 			}
 
 #ifndef MAKE_FS1

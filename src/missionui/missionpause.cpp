@@ -58,6 +58,7 @@
 #include "font.h"
 #include "alphacolors.h"
 #include "beam.h"
+#include "mainhallmenu.h"
 
 // ----------------------------------------------------------------------------------------------------------------
 // PAUSE DEFINES/VARS
@@ -147,6 +148,7 @@ void pause_init(int multi)
 
 		// pause all game music
 		audiostream_pause_all();
+		main_hall_stop_ambient();
 
 		//JAS: REMOVED CALL TO SET INTERFACE PALETTE TO GET RID OF SCREEN CLEAR WHEN PAUSING
 		//common_set_interface_palette();  // set the interface palette

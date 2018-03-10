@@ -75,19 +75,4 @@ int platform_open_url(const char *url)
 	return -1;
 }
 
-unsigned int platform_get_kmod()
-{
-	return 0;
-}
-
-void platform_init()
-{
-	// nothing
-}
-
-void platform_close()
-{
-	// nothing
-}
-
 #endif

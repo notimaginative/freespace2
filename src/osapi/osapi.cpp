@@ -359,17 +359,26 @@ void os_poll()
 			}
 
 			case SDL_KEYDOWN: {
-				if ( (e.key.keysym.mod & KMOD_GUI) || (platform_get_kmod() & KMOD_GUI) ) {
+				// flip between fullscreen and window: ALT+ENTER
+				if ( (e.key.keysym.sym == SDLK_RETURN) && ( e.key.keysym.mod & KMOD_ALT) ) {
 					if ( !e.key.repeat ) {
-						if (e.key.keysym.sym == SDLK_f) {
-							gr_toggle_fullscreen();
-						} else if (e.key.keysym.sym == SDLK_z) {
-							SDL_MinimizeWindow(Os_window);
-						} else if (e.key.keysym.sym == SDLK_p) {
-							key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
-						}
+						gr_toggle_fullscreen();
 					}
-				} else {
+				}
+				// minimize window: CTRL+ALT+z
+				else if ( (e.key.keysym.sym == SDLK_z) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
+					if ( !e.key.repeat ) {
+						SDL_MinimizeWindow(Os_window);
+					}
+				}
+				// print screen / screenshot: CTRL+ALT+p
+				else if ( (e.key.keysym.sym == SDLK_p) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
+					if ( !e.key.repeat ) {
+						key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
+					}
+				}
+				// everything else is processed normally
+				else {
 					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
 				}
 
@@ -377,12 +386,7 @@ void os_poll()
 			}
 
 			case SDL_KEYUP: {
-				if ( (e.key.keysym.mod & KMOD_GUI) || (platform_get_kmod() & KMOD_GUI) ) {
-					// blank, just don't want to process up keys we skipped
-					// the down for
-				} else {
-					key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
-				}
+				key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
 
 				break;
 			}

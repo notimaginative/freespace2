@@ -2382,6 +2382,7 @@ void broadcast_game_query()
 	if (Multi_options_g.pxo) {
 		// check with MT
 		multi_fs_tracker_send_game_request();
+		return;
 	} else {
 		// go through the server list and query each of those as well
 		s_moveup = Game_server_head;

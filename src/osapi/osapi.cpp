@@ -191,8 +191,6 @@ void os_deinit();
 // for the app name, which is where registry keys are stored.
 void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)
 {
-	platform_init();
-
 	os_set_title( (app_name != NULL) ? app_name : title );
 
 	// do some first-run stuff if needed
@@ -321,8 +319,6 @@ void os_check_debugger()
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()
 {
-	platform_close();
-
 	SDL_DestroyMutex(Os_lock);
 
 	SDL_Quit();

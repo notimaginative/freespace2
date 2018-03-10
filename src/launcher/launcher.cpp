@@ -11,6 +11,7 @@
 
 #include "wx/filename.h"
 #include "wx/stdpaths.h"
+#include "wx/access.h"
 
 #include "pstypes.h"
 #include "osregistry.h"

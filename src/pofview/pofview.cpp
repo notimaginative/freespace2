@@ -12,6 +12,7 @@
 #include "pofview.h"
 
 #include "wx/filename.h"
+#include "wx/access.h"
 
 #include "pstypes.h"
 #include "2d.h"

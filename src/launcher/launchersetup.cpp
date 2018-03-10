@@ -13,6 +13,7 @@
 #include "osregistry.h"
 
 #include "wx/valnum.h"
+#include "wx/access.h"
 
 
 wxBEGIN_EVENT_TABLE(LauncherSetup, wxDialog)

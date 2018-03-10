@@ -19,6 +19,7 @@
 #include "wx/textfile.h"
 #include "wx/socket.h"
 #include "wx/cmdline.h"
+#include "wx/access.h"
 
 #include "SDL.h"
 

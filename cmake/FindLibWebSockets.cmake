@@ -15,10 +15,16 @@ FIND_PATH ( LIBWEBSOCKETS_INCLUDE_DIR libwebsockets.h
     /usr/include
 )
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(WS_ARCH_DIR lib/Win64)
+else()
+  set(WS_ARCH_DIR lib/Win32)
+endif()
+
 FIND_LIBRARY ( LIBWEBSOCKETS_LIBRARIES websockets_static websockets
     HINTS
 	  "${LWSDIR}"
-	PATH_SUFFIXES lib
+	PATH_SUFFIXES lib "${WS_ARCH_DIR}"
     /usr/local/lib
     /usr/lib
 )

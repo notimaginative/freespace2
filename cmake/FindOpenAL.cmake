@@ -81,9 +81,9 @@ find_path(OPENAL_INCLUDE_DIR al.h
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(_OpenAL_ARCH_DIR libs/Win64)
+  set(_OpenAL_ARCH_DIR libs/Win64 lib/Win64)
 else()
-  set(_OpenAL_ARCH_DIR libs/Win32)
+  set(_OpenAL_ARCH_DIR libs/Win32 lib/Win32)
 endif()
 
 find_library(OPENAL_LIBRARY

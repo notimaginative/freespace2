@@ -5528,9 +5528,9 @@ void game_leave_state( int old_state, int new_state )
 
 		case GS_STATE_GAME_PAUSED:
 			game_start_time();
-			if ( end_mission ) {
+		//	if (end_mission) {
 				pause_close(0);
-			}
+		//	}
 			break;
 
 		case GS_STATE_DEBUG_PAUSED:

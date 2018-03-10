@@ -436,6 +436,7 @@
 #include "neblightning.h"
 #include "hudescort.h"
 #include "multi_fstracker.h"
+#include "multi_sw.h"
 
 // #define _MULTI_SUPER_WACKY_COMPRESSION
 
@@ -7723,6 +7724,7 @@ void send_sw_query_packet(ubyte code, char *txt)
 	BUILD_HEADER(SW_STD_QUERY);
 	ADD_DATA(code);
 	if((code == SW_STD_START) || (code == SW_STD_BAD)){		
+		SDL_assert(txt != NULL);
 		ADD_STRING(txt);
 	}
 
@@ -7744,7 +7746,39 @@ void send_sw_query_packet(ubyte code, char *txt)
 }
 
 void process_sw_query_packet(ubyte *data, header *hinfo)
-{	
+{
+	int offset = HEADER_LENGTH;
+	ubyte code;
+	char txt[MAX_SQUAD_RESPONSE_LEN+1];
+
+	GET_DATA(code);
+
+	if ( (code == SW_STD_START) || (code == SW_STD_BAD) ) {
+		GET_STRING(txt);
+	}
+
+	PACKET_SET_SIZE();
+
+	// to host from standalone
+	if (MULTIPLAYER_HOST) {
+		SDL_assert( !MULTIPLAYER_MASTER );
+
+		if (code == SW_STD_OK) {
+			Multi_sw_std_query = 1;
+		} else {
+			SDL_assert(code == SW_STD_BAD);
+
+			SDL_strlcpy(Multi_sw_bad_reply, txt, SDL_arraysize(Multi_sw_bad_reply));
+			Multi_sw_std_query = 0;
+		}
+	}
+	// to standalone from host
+	else {
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);
+		SDL_assert(code == SW_STD_START);
+
+		multi_sw_std_query(txt);
+	}
 }
 
 void send_event_update_packet(int event)

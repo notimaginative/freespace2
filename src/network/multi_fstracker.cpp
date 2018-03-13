@@ -525,12 +525,20 @@ void multi_fs_tracker_login_freespace()
 	// pretty much all we do is make 1 call
 	memset(&Multi_tracker_game_data, 0, sizeof(Multi_tracker_game_data));
 	SDL_strlcpy(Multi_tracker_game_data.game_name, Netgame.name, SDL_arraysize(Multi_tracker_game_data.game_name));
-	Multi_tracker_game_data.difficulty = 99;
 	Multi_tracker_game_data.type = 0;
-	Multi_tracker_game_data.state = 1;
+	Multi_tracker_game_data.state = Netgame.game_state;
 	Multi_tracker_game_data.max_players = 12;
 	Multi_tracker_game_data.current_num_players = 0;
-	
+
+	// tricky bit to determine netgame mode / restrictions
+	if (Netgame.mode == NG_MODE_RANK_BELOW) {
+		Multi_tracker_game_data.difficulty = -(100 + Netgame.rank_base);
+	} else if (Netgame.mode == NG_MODE_RANK_ABOVE) {
+		Multi_tracker_game_data.difficulty = (100 + Netgame.rank_base);
+	} else {
+		Multi_tracker_game_data.difficulty = Netgame.mode;
+	}
+
 	// if we have a valid channel string, use it		
 	if(strlen(Multi_fs_tracker_channel)){
 		SDL_strlcpy(Multi_tracker_game_data.channel, Multi_fs_tracker_channel, SDL_arraysize(Multi_tracker_game_data.channel));
@@ -780,10 +788,28 @@ void multi_fs_tracker_update_game(netgame_info *ng)
 	if(!Multi_fs_tracker_inited){
 		return;
 	}
-		
+
+	if ( !(Net_player->flags & NETINFO_FLAG_MT_CONNECTED) ) {
+		return;
+	}
+
+	SDL_assert(ng != NULL);
+
 	// copy in the relevant data
+	SDL_strlcpy(Multi_tracker_game_data.game_name, ng->name, SDL_arraysize(Multi_tracker_game_data.game_name));
+
+	Multi_tracker_game_data.state = ng->game_state;
 	Multi_tracker_game_data.max_players = ng->max_players;
 	Multi_tracker_game_data.current_num_players = multi_num_players();
+
+	// tricky bit to determine netgame mode / restrictions
+	if (Netgame.mode == NG_MODE_RANK_BELOW) {
+		Multi_tracker_game_data.difficulty = -(100 + Netgame.rank_base);
+	} else if (Netgame.mode == NG_MODE_RANK_ABOVE) {
+		Multi_tracker_game_data.difficulty = (100 + Netgame.rank_base);
+	} else {
+		Multi_tracker_game_data.difficulty = Netgame.mode;
+	}
 
 #ifdef MAKE_FS1
 	memset(Multi_tracker_game_data.players, 0 ,MAX_FREESPACE_PLAYERS * MAX_FREESPACE_PLAYER_NAME_LEN);
@@ -797,10 +823,12 @@ void multi_fs_tracker_update_game(netgame_info *ng)
 	}
 #endif
 
-	SDL_strlcpy(Multi_tracker_game_data.mission_name, ng->name, SDL_arraysize(Multi_tracker_game_data.mission_name));
+	SDL_strlcpy(Multi_tracker_game_data.mission_name, ng->mission_name, SDL_arraysize(Multi_tracker_game_data.mission_name));
 
 	// NETLOG
 	ml_string(NOX("Server updating netgame info for Game Tracker"));
+
+	UpdateGameData(&Multi_tracker_game_data);
 }
 
 // if we're currently busy performing some tracker operation (ie, you should wait or not)

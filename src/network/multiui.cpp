@@ -5815,7 +5815,9 @@ int multi_create_ok_to_commit()
 #ifndef MAKE_FS1
 		// squad war
 		else {
-			return multi_sw_ok_to_commit();
+			if ( !multi_sw_ok_to_commit() ) {
+				return 0;
+			}
 		}
 #endif
 	}	

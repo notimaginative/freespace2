@@ -364,7 +364,7 @@ void os_poll()
 				// minimize window: CTRL+ALT+z
 				else if ( (e.key.keysym.sym == SDLK_z) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
 					if ( !e.key.repeat ) {
-						SDL_MinimizeWindow(Os_window);
+					//	SDL_MinimizeWindow(Os_window);
 					}
 				}
 				// print screen / screenshot: CTRL+ALT+p
@@ -484,9 +484,9 @@ void os_poll()
 						mouse_grab(0);
 						joy_unacquire_ff();
 						// make sure game pauses
-						game_process_pause_key();
+					//	game_process_pause_key();
 						// graphics
-						gr_activate(fAppActive);
+					//	gr_activate(fAppActive);
 						break;
 
 					case SDL_WINDOWEVENT_MAXIMIZED:
@@ -496,12 +496,12 @@ void os_poll()
 						mouse_grab(0);
 						joy_reacquire_ff();
 						// graphics
-						gr_activate(fAppActive);
+					//	gr_activate(fAppActive);
 						break;
 					}
 
 					case SDL_WINDOWEVENT_CLOSE:
-						gameseq_post_event(GS_EVENT_QUIT_GAME);
+					//	gameseq_post_event(GS_EVENT_QUIT_GAME);
 						break;
 				}
 

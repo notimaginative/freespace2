@@ -24,29 +24,13 @@ int platform_open_url(const char *url)
 	if ( !SDL_strncasecmp(url, "http://", 7) || !SDL_strncasecmp(url, "https://", 8) ) {
 		SDL_strlcpy(s_url, url, SDL_arraysize(s_url));
 	} else {
-		SDL_strlcpy(s_url, "http://", SDL_arraysize(s_url));
-		SDL_strlcat(s_url, url, SDL_arraysize(s_url));
+		SDL_snprintf(s_url, SDL_arraysize(s_url), "http://%s", url);
 	}
 
-	int rval = (int) ShellExecute(NULL, (LPCTSTR)"open", (LPCTSTR)s_url, NULL, NULL, SW_SHOW);
+	int rval = (int) ShellExecuteA(NULL, "open", s_url, NULL, NULL, SW_SHOWNORMAL);
 
-	if (rval < 32) {
-		switch (rval) {
-			case 0:
-			case ERROR_BAD_FORMAT:
-			case SE_ERR_ACCESSDENIED:
-			case SE_ERR_ASSOCINCOMPLETE:
-			case SE_ERR_DDEBUSY:
-			case SE_ERR_DDEFAIL:
-			case SE_ERR_DDETIMEOUT:
-			case SE_ERR_DLLNOTFOUND:
-			case SE_ERR_OOM:
-			case SE_ERR_SHARE:
-			case SE_ERR_NOASSOC:
-			case ERROR_FILE_NOT_FOUND:
-			case ERROR_PATH_NOT_FOUND:
-				return -1;
-		}
+	if (rval <= 32) {
+		return -1;
 	}
 
 	return 0;

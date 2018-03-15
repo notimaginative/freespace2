@@ -76,11 +76,11 @@
 //#define MULTI_PXO_RANKINGS_URL				"http://www.volition-inc.com"
 //#define MULTI_PXO_RANKINGS_URL				"http://www.pxo.net/rankings/fs2full.cfm"
 #if defined(FS2_DEMO)
-#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/fs2demo"
+#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/freespace2demo"
 #elif defined(MAKE_FS1)
-#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/fs"
+#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/freespace"
 #else
-#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/fs2"
+#define MULTI_PXO_RANKINGS_URL					"https://pxo.nottheeye.com/rankings/freespace2"
 #endif
 
 // default url for PXO account creation

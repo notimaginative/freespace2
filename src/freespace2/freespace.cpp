@@ -730,6 +730,8 @@ void game_update_missiontime();	// called from game_do_frame() and navmap_do_fra
 void game_reset_time();
 void game_show_framerate();			// draws framerate in lower right corner
 
+void Do_model_timings_test();
+
 int Game_no_clear = 0;
 
 int Pofview_running = 0;
@@ -834,6 +836,8 @@ int Game_level_seed;
 extern void ssm_init();
 extern void ssm_level_init();
 extern void ssm_process();
+
+extern button_info Multi_ship_status_bi;
 
 // static variable to contain the time this version was built
 // commented out for now until
@@ -2123,7 +2127,6 @@ int game_start_mission()
 
 	#ifndef NDEBUG
 	{
-		void Do_model_timings_test();
 		Do_model_timings_test();	
 	}
 	#endif
@@ -5016,7 +5019,6 @@ void game_process_event( int current_state, int event )
 			Player_multi_died_check = -1;
 
 			// clear multiplayer button info			
-			extern button_info Multi_ship_status_bi;
 			memset(&Multi_ship_status_bi, 0, sizeof(button_info));
 
 			Start_time = f2fl(timer_get_approx_seconds());
@@ -6017,7 +6019,6 @@ void game_enter_state( int old_state, int new_state )
 			joy_ff_mission_init(Ship_info[Player_ship->ship_info_index].rotation_time);
 
 			// clear multiplayer button info			i
-			extern button_info Multi_ship_status_bi;
 			memset(&Multi_ship_status_bi, 0, sizeof(button_info));
 			break;
 

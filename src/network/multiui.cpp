@@ -1343,8 +1343,6 @@ void multi_join_game_init()
 	if ( !Multi_options_g.pxo ) {
 		// if this is a TCP (non tracker) game, we'll load up our default address list right now		
 		multi_join_load_tcp_addrs();		
-	} else {
-		multi_fs_tracker_send_game_request();
 	}
 
 	// initialize any and all timestamps	
@@ -5817,7 +5815,9 @@ int multi_create_ok_to_commit()
 #ifndef MAKE_FS1
 		// squad war
 		else {
-			return multi_sw_ok_to_commit();
+			if ( !multi_sw_ok_to_commit() ) {
+				return 0;
+			}
 		}
 #endif
 	}	
@@ -9347,16 +9347,26 @@ void multi_debrief_accept_hit()
 		// query the host and see if he wants to accept stats
 		if(Net_player->flags & NETINFO_FLAG_GAME_HOST){
 			// if we're on a tracker game, he gets no choice for storing stats
-			if(MULTI_IS_TRACKER_GAME){
-#ifndef MAKE_FS1
-				int stats_saved = multi_fs_tracker_store_stats();
+			if (MULTI_IS_TRACKER_GAME) {
+				// if not on standalone, send stats
+				if (Net_player->flags & NETINFO_FLAG_AM_MASTER) {
+					if ( !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
+						int stats_saved = multi_fs_tracker_store_stats();
 
-				if (Netgame.type_flags & NG_TYPE_SW) {
-					multi_sw_report(stats_saved);
-				}
-#else
-				multi_fs_tracker_store_stats();
+						if (stats_saved) {
+							Netgame.flags |= NG_FLAG_STORED_MT_STATS;
+							send_netgame_update_packet();
+						} else {
+							send_store_stats_packet(0);
+						}
+
+#ifndef MAKE_FS1
+						if (Netgame.type_flags & NG_TYPE_SW) {
+							multi_sw_report(stats_saved);
+						}
 #endif
+					}
+				}
 
 				multi_maybe_set_mission_loop();
 			} else {
@@ -9406,16 +9416,24 @@ void multi_debrief_esc_hit()
 	if(Net_player->flags & NETINFO_FLAG_GAME_HOST){		
 		// if the stats have already been accepted
 		if((Multi_debrief_stats_accept_code != -1) || (MULTI_IS_TRACKER_GAME)){
-			if (Multi_debrief_stats_accept_code == 1) {
-#ifndef MAKE_FS1
-				int stats_saved = multi_fs_tracker_store_stats();
+			// if not on standalone, maybe send stats
+			if ( (Net_player->flags & NETINFO_FLAG_AM_MASTER) && MULTI_IS_TRACKER_GAME ) {
+				if ( !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
+					int stats_saved = multi_fs_tracker_store_stats();
 
-				if (Netgame.type_flags & NG_TYPE_SW) {
-					multi_sw_report(stats_saved);
-				}
-#else
-				multi_fs_tracker_store_stats();
+					if (stats_saved) {
+						Netgame.flags |= NG_FLAG_STORED_MT_STATS;
+						send_netgame_update_packet();
+					} else {
+						send_store_stats_packet(0);
+					}
+
+#ifndef MAKE_FS1
+					if (Netgame.type_flags & NG_TYPE_SW) {
+						multi_sw_report(stats_saved);
+					}
 #endif
+				}
 			}
 
 			multi_quit_game(PROMPT_HOST);

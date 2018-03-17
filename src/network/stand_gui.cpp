@@ -18,6 +18,8 @@
 #include "wx/process.h"
 #include "wx/textfile.h"
 #include "wx/socket.h"
+#include "wx/cmdline.h"
+#include "wx/access.h"
 
 #include "SDL.h"
 
@@ -75,11 +77,25 @@ bool StandaloneApp::OnInit()
 		wxMessageBox(err, "Error!", wxOK|wxICON_ERROR|wxCENTRE|wxSTAY_ON_TOP);
 
 		return false;
+	} catch (const bool retval) {
+		std_client->Close();
+
+		return retval;
 	}
 
 	std_client->Show(true);
 	SetTopWindow(std_client);
 
+	return true;
+}
+
+void StandaloneApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+	parser.SetCmdLine( wxT("") );
+}
+
+bool StandaloneApp::OnCmdLineParsed(wxCmdLineParser& WXUNUSED(parser))
+{
 	return true;
 }
 
@@ -412,7 +428,7 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 
 	wxBoxSizer* bSizer = new wxBoxSizer(wxVERTICAL);
 
-	m_M_sliderFPS = new wxSlider( panel, ID_FPS_SLIDER, 30, 15, 60, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_M_sliderFPS = new wxSlider( panel, ID_FPS_SLIDER, 60, 10, 120, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	bSizer->Add( m_M_sliderFPS, 0, wxALL|wxEXPAND, 5 );
 
 	wxFlexGridSizer* fgSizer8;
@@ -425,7 +441,7 @@ void Standalone::createTab_Multi(wxNotebook* parent)
 
 	wxPanel* fpsPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER);
 	wxBoxSizer* fpsSizer = new wxBoxSizer(wxHORIZONTAL);
-	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, "30", wxDefaultPosition, wxSize(60, -1), 0 );
+	m_M_FPS = new wxStaticText( fpsPanel, wxID_ANY, "60", wxDefaultPosition, wxSize(60, -1), 0 );
 	m_M_FPS->Wrap( -1 );
 	fpsSizer->Add( m_M_FPS, 0, wxALL, 2 );
 	fpsPanel->SetSizer(fpsSizer);
@@ -1103,6 +1119,7 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 {
 	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
 	bool cmd_port = false;
+	bool shutdown_cmd = false;
 
 	epath.Append( wxT("fs") );
 
@@ -1124,9 +1141,15 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 		wxString arg( argv[i] );
 
 		// check if -port argument and set var
-		if ( arg.IsSameAs( wxT("-port"), false) && (argc > i+1) ) {
+		if ( (argc > i+1) && (arg.Contains( wxT("-port") ) || arg.IsSameAs( wxT("-o") )) ) {
 			fsport = wxAtoi(argv[i+1]);
 			cmd_port = true;
+		}
+
+		// if we have help or version options, exit after game exec
+		if ( arg.Contains( wxT("-help") ) || arg.Contains( wxT("-version") )
+			|| arg.IsSameAs( wxT("-h") ) || arg.IsSameAs( wxT("-v") ) ) {
+			shutdown_cmd = true;
 		}
 
 		epath.Append( wxT(" ") );
@@ -1187,6 +1210,11 @@ bool Standalone::startFreeSpace(int argc, wxCmdLineArgsArray &argv)
 	// start game executable
 	fspid = wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER | wxEXEC_HIDE_CONSOLE);
 
+	// throw shutdown if we should exit (such as help or version cmdline options)
+	if (shutdown_cmd) {
+		throw shutdown_cmd;
+	}
+
 	return (fspid > 0);
 }
 
@@ -1199,8 +1227,8 @@ void Standalone::ResetAll()
 	m_S_NumConn->SetLabel( wxT("0") );
 	m_S_Connections->Clear();
 
-	m_M_sliderFPS->SetValue(30);
-	m_M_FPS->SetLabel("30");
+	m_M_sliderFPS->SetValue(60);
+	m_M_FPS->SetLabel("60");
 	m_M_FPSRel->SetLabel( wxT("0.0") );
 	m_M_MissionName->SetLabel("");
 	m_M_MissionTime->SetLabel("");
@@ -1358,15 +1386,13 @@ void Standalone::wsDoFrame()
 	if ( !wsi_standalone && !(++m_rate_limit % 60) ) {
 		// restart game process if it terminated
 		if ( !wxProcess::Exists(fspid) ) {
-			wxCmdLineArgsArray empty;
-
 			try {
-				startFreeSpace(0, empty);
+				startFreeSpace(wxGetApp().argc, wxGetApp().argv);
 			} catch (const char *err) {
 				wxMessageBox(err, "Error!", wxOK|wxICON_ERROR|wxCENTRE|wxSTAY_ON_TOP);
 
 				Shutdown();
-			}
+			} catch (const bool) { }
 
 			wxMilliSleep(500);
 		}

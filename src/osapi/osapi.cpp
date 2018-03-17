@@ -355,17 +355,26 @@ void os_poll()
 			}
 
 			case SDL_KEYDOWN: {
-				if (e.key.keysym.mod & KMOD_GUI) {
+				// flip between fullscreen and window: ALT+ENTER
+				if ( (e.key.keysym.sym == SDLK_RETURN) && ( e.key.keysym.mod & KMOD_ALT) ) {
 					if ( !e.key.repeat ) {
-						if (e.key.keysym.sym == SDLK_f) {
-							gr_toggle_fullscreen();
-					//	} else if (e.key.keysym.sym == SDLK_z) {
-					//		SDL_MinimizeWindow(GL_window);
-						} else if (e.key.keysym.sym == SDLK_p) {
-							key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
-						}
+						gr_toggle_fullscreen();
 					}
-				} else {
+				}
+				// minimize window: CTRL+ALT+z
+				else if ( (e.key.keysym.sym == SDLK_z) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
+					if ( !e.key.repeat ) {
+					//	SDL_MinimizeWindow(Os_window);
+					}
+				}
+				// print screen / screenshot: CTRL+ALT+p
+				else if ( (e.key.keysym.sym == SDLK_p) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
+					if ( !e.key.repeat ) {
+						key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
+					}
+				}
+				// everything else is processed normally
+				else {
 					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
 				}
 
@@ -373,26 +382,11 @@ void os_poll()
 			}
 
 			case SDL_KEYUP: {
-				if (e.key.keysym.mod & KMOD_GUI) {
-					// blank, just don't want to process up keys we skipped
-					// the down for
-				} else {
-					key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
-				}
+				key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
 
 				break;
 			}
-/*
-			case SDL_ACTIVEEVENT:
-				if (e.active.state & SDL_APPACTIVE) {
-					fAppActive = e.active.gain;
-					gr_activate(fAppActive);
-				}
-				if (e.active.state & SDL_APPINPUTFOCUS) {
-					gr_activate(e.active.gain);
-				}
-				break;
-*/
+
 			case SDL_JOYDEVICEADDED: {
 				if ( !Is_standalone ) {
 					joy_reinit(e.jdevice.which);
@@ -472,17 +466,39 @@ void os_poll()
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_LOST:
+						fAppActive = 0;
+						// io stuff
 						mouse_grab(0);
 						joy_unacquire_ff();
 						break;
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
+						fAppActive = 1;
+						// io stuff
 						joy_reacquire_ff();
 						break;
 
 					case SDL_WINDOWEVENT_MINIMIZED:
+						fAppActive = 0;
+						// io stuff
 						mouse_grab(0);
+						joy_unacquire_ff();
+						// make sure game pauses
+					//	game_process_pause_key();
+						// graphics
+					//	gr_activate(fAppActive);
 						break;
+
+					case SDL_WINDOWEVENT_MAXIMIZED:
+					case SDL_WINDOWEVENT_RESTORED: {
+						fAppActive = 1;
+						// io stuff
+						mouse_grab(0);
+						joy_reacquire_ff();
+						// graphics
+					//	gr_activate(fAppActive);
+						break;
+					}
 
 					case SDL_WINDOWEVENT_CLOSE:
 					//	gameseq_post_event(GS_EVENT_QUIT_GAME);

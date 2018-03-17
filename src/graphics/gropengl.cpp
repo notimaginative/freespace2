@@ -254,6 +254,7 @@ void gr_opengl_init()
 			 a, r, g, b, bpp, FSAA));
 	mprintf(("\n"));
 
+	SDL_StopTextInput();
 	SDL_DisableScreenSaver();
 	SDL_ShowCursor(0);
 

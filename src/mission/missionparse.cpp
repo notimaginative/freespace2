@@ -819,7 +819,7 @@ void parse_mission_info(mission *pm)
 	if(Game_mode & GM_MULTIPLAYER){
 		SDL_strlcpy(The_mission.squad_name, "", SDL_arraysize(The_mission.squad_name));
 		SDL_strlcpy(The_mission.squad_filename, "", SDL_arraysize(The_mission.squad_filename));
-		mprintf(("Ignoring squadron reassignment"));
+		//mprintf(("Ignoring squadron reassignment\n"));
 	}
 	// reassign the player
 	else {		
@@ -2154,7 +2154,7 @@ int parse_object(mission *pm, int flag, p_object *objp)
 					debris *db;
 
 					db = &Debris[i];
-					if ( !db->flags & DEBRIS_USED )				// not used, move onto the next one.
+					if ( !(db->flags & DEBRIS_USED) )				// not used, move onto the next one.
 						continue;
 					if ( db->source_objnum != real_objnum )	// not from this ship, move to next one
 						continue;

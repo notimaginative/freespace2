@@ -157,7 +157,7 @@ void AckPacket(int sig);
 //Definitions
 #define MAX_GAME_BUFFERS	20					//Thats a lot considering 20 games per game_list struct
 
-#define TRACKER_UPDATE_INTERVAL			300		//300 seconds
+#define TRACKER_UPDATE_INTERVAL			240		//300 seconds
 #define TRACKER_RESEND_TIME				2000		//2000ms
 
 

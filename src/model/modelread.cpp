@@ -2688,6 +2688,12 @@ void submodel_stepped_rotate(model_subsystem *psub, submodel_instance_info *sii)
 
 	// get active rotation time this frame
 	int end_stamp = timestamp();
+
+	if (end_stamp < sii->step_zero_timestamp) {
+		mprintf(("rotate timestamp wrapped => start: %d, now: %d\n", sii->step_zero_timestamp, end_stamp));
+		sii->step_zero_timestamp = end_stamp;
+	}
+
 	float rotation_time = 0.001f * (end_stamp - sii->step_zero_timestamp);
 	SDL_assert(rotation_time >= 0);
 

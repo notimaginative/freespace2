@@ -380,7 +380,7 @@ int asteroid_obj_list_add(int objnum)
 	index = cur_asteroid - Asteroids;
 
 	SDL_assert(index >= 0 && index < MAX_ASTEROID_OBJS);
-	SDL_assert(!Asteroid_objs[index].flags & ASTEROID_OBJ_USED);
+	SDL_assert(!(Asteroid_objs[index].flags & ASTEROID_OBJ_USED));
 
 	Asteroid_objs[index].flags = 0;
 	Asteroid_objs[index].objnum = objnum;

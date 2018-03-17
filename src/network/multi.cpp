@@ -243,6 +243,7 @@
 #include "alphacolors.h"
 #include "osregistry.h"
 #include "multi_fstracker.h"
+#include "multi_sw.h"
 
 
 // ----------------------------------------------------------------------------------------
@@ -1768,9 +1769,6 @@ void standalone_main_init()
 
 void standalone_main_do()
 {
-   SDL_Delay(10);  // since nothing will really be going on here, we can afford to give some time
-               // back to the operating system.
-
 	// kind of a do-nothing spin state.
 	// The standalone will eventually move into the GS_STATE_MULTI_MISSION_SYNC state when a host connects and
 	// attempts to start a game
@@ -1782,7 +1780,11 @@ void standalone_main_do()
 
 void standalone_main_close()
 {
-   std_debug_set_standalone_state_string("Main Close");	
+	std_debug_set_standalone_state_string("Main Close");
+
+	// disconnect game from tracker
+	multi_fs_tracker_logout();
+
 }
 
 void multi_standalone_reset_all()
@@ -1887,7 +1889,7 @@ void multi_standalone_postgame_init()
 	// always set my state to be "DEBRIEF_ACCEPT"
 	Net_player->state = NETPLAYER_STATE_DEBRIEF_ACCEPT;	
 
-	// mark stats as not being store yet
+	// mark stats as not being stored yet
 	Netgame.flags &= ~(NG_FLAG_STORED_MT_STATS);
 
 	Multi_debrief_server_framecount = 0;
@@ -1913,6 +1915,25 @@ void multi_standalone_postgame_do()
 
 void multi_standalone_postgame_close()
 {
+	// maybe store stats on tracker
+	if ( MULTI_IS_TRACKER_GAME && !(Netgame.flags & NG_FLAG_STORED_MT_STATS) ) {
+		if (multi_debrief_stats_accept_code() != 0) {
+			int stats_saved = multi_fs_std_tracker_store_stats();
+
+			if (stats_saved) {
+				Netgame.flags |= NG_FLAG_STORED_MT_STATS;
+				send_netgame_update_packet();
+			} else {
+				send_store_stats_packet(0);
+			}
+
+#ifndef MAKE_FS1
+			if (Netgame.type_flags & NG_TYPE_SW) {
+				multi_sw_report(stats_saved);
+			}
+#endif
+		}
+	}
 }
 
 void multi_reset_timestamps()

@@ -209,6 +209,7 @@
 #include "multi_options.h"
 #include "multi_team.h"
 #include "multi_fstracker.h"
+#include "multi_pxo.h"
 
 
 // ----------------------------------------------------------------------------------
@@ -244,9 +245,7 @@ void multi_options_read_config()
 	// set default value for the global multi options
 	memset(&Multi_options_g, 0, sizeof(multi_global_options));
 	Multi_options_g.protocol = NET_TCP;
-#ifndef FS1_DEMO
-	Multi_options_g.pxo = 1;
-#endif
+	Multi_options_g.pxo = 0;
 
 	// do we have a forced port via commandline or registry?
 	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
@@ -254,13 +253,13 @@ void multi_options_read_config()
 
 	Multi_options_g.log = (Cmdline_multi_log) ? 1 : 0;
 	Multi_options_g.datarate_cap = OO_HIGH_RATE_DEFAULT;
-	SDL_strlcpy(Multi_options_g.user_tracker_ip, "", SDL_arraysize(Multi_options_g.user_tracker_ip));
-	SDL_strlcpy(Multi_options_g.game_tracker_ip, "", SDL_arraysize(Multi_options_g.game_tracker_ip));
-	SDL_strlcpy(Multi_options_g.pxo_ip, "", SDL_arraysize(Multi_options_g.pxo_ip));
-	SDL_strlcpy(Multi_options_g.pxo_rank_url, "", SDL_arraysize(Multi_options_g.pxo_rank_url));
-	SDL_strlcpy(Multi_options_g.pxo_create_url, "", SDL_arraysize(Multi_options_g.pxo_create_url));
-	SDL_strlcpy(Multi_options_g.pxo_verify_url, "", SDL_arraysize(Multi_options_g.pxo_verify_url));
-	SDL_strlcpy(Multi_options_g.pxo_banner_url, "", SDL_arraysize(Multi_options_g.pxo_banner_url));
+	SDL_strlcpy(Multi_options_g.user_tracker_ip, MULTI_PXO_USER_TRACKER_IP, SDL_arraysize(Multi_options_g.user_tracker_ip));
+	SDL_strlcpy(Multi_options_g.game_tracker_ip, MULTI_PXO_GAME_TRACKER_IP, SDL_arraysize(Multi_options_g.game_tracker_ip));
+	SDL_strlcpy(Multi_options_g.pxo_ip, MULTI_PXO_CHAT_IP, SDL_arraysize(Multi_options_g.pxo_ip));
+	SDL_strlcpy(Multi_options_g.pxo_rank_url, MULTI_PXO_RANKINGS_URL, SDL_arraysize(Multi_options_g.pxo_rank_url));
+	SDL_strlcpy(Multi_options_g.pxo_create_url, MULTI_PXO_CREATE_URL, SDL_arraysize(Multi_options_g.pxo_create_url));
+	SDL_strlcpy(Multi_options_g.pxo_verify_url, MULTI_PXO_VERIFY_URL, SDL_arraysize(Multi_options_g.pxo_verify_url));
+	SDL_strlcpy(Multi_options_g.pxo_banner_url, MULTI_PXO_BANNER_URL, SDL_arraysize(Multi_options_g.pxo_banner_url));
 
 	// standalone values
 	Multi_options_g.std_max_players = -1;
@@ -268,7 +267,7 @@ void multi_options_read_config()
 	Multi_options_g.std_voice = 1;
 	memset(Multi_options_g.std_passwd, 0, STD_PASSWD_LEN);
 	memset(Multi_options_g.std_pname, 0, STD_NAME_LEN);
-	Multi_options_g.std_framecap = 30;
+	Multi_options_g.std_framecap = 60;
 
 #ifndef MAKE_FS1
 	CFILE *in;
@@ -343,8 +342,6 @@ void multi_options_read_config()
 				NEXT_TOKEN();
 				if(tok != NULL){
 					SDL_strlcpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
-
-					STUB_FUNCTION;
 				}
 			} else 
 			if(SETTING("+low_update")){
@@ -717,6 +714,11 @@ void multi_options_update_netgame()
 	// send the packet
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){
 		multi_io_send_to_all_reliable(data, packet_size);
+
+		// update tracker as well
+		if (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) {
+			multi_fs_tracker_update_game(&Netgame);
+		}
 	} else {
 		multi_io_send_reliable(Net_player, data, packet_size);
 	}

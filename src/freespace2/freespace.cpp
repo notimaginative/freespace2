@@ -2472,9 +2472,7 @@ MONITOR(BmpUsed);
 MONITOR(BmpNew);
 
 void game_get_framerate()
-{	
-	char text[128] = "";
-
+{
 	if ( frame_int == -1 )	{
 		int i;
 		for (i=0; i<FRAME_FILTER; i++ )	{
@@ -2493,15 +2491,12 @@ void game_get_framerate()
 			Framerate = FRAME_FILTER / frametotal;
 		else
 			Framerate = Framecount / frametotal;
-		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: %.1f"), Framerate );
-	} else {
-		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: ?") );
 	}
 	Framecount++;
 
 	if (Show_framerate)	{
 		gr_set_color_fast(&HUD_color_debug);
-		gr_string( 570, 2, text );
+		gr_printf(570, 2, NOX("FPS: %.1f"), Framerate);
 	}
 }
 
@@ -4387,7 +4382,7 @@ void game_start_time()
 void game_set_frametime(int state)
 {
 	fix thistime;
-	float frame_cap_diff;
+	int frame_cap = 60;
 
 	thistime = timer_get_fixed_seconds();
 
@@ -4422,13 +4417,25 @@ void game_set_frametime(int state)
 	}
 #endif
 
-	SDL_assert( Framerate_cap > 0 );
+	if (Game_mode & GM_STANDALONE_SERVER) {
+		// if we are just sitting idle then set fps to 10, otherwise jump up to
+		// full speed
+		if (state == GS_STATE_STANDALONE_MAIN) {
+			frame_cap = 10;
+		} else {
+			frame_cap = Multi_options_g.std_framecap;
+		}
+	} else {
+		frame_cap = Framerate_cap;
+	}
+
+	SDL_assert( frame_cap > 0 );
 
 	// Cap the framerate so it doesn't get too high.
 	{
 		fix cap;
 
-		cap = F1_0/Framerate_cap;
+		cap = F1_0/frame_cap;
 		if (Frametime < cap) {
 			thistime = cap - Frametime;
 			//mprintf(("Sleeping for %6.3f seconds.\n", f2fl(thistime)));
@@ -4437,17 +4444,6 @@ void game_set_frametime(int state)
 			thistime = timer_get_fixed_seconds();
 		}
 	}
-
-	if((Game_mode & GM_STANDALONE_SERVER) && 
-		(f2fl(Frametime) < (1.0f/(float)Multi_options_g.std_framecap))){
-
-		frame_cap_diff = (1.0f/(float)Multi_options_g.std_framecap) - f2fl(Frametime);
-		SDL_Delay( fl2i(frame_cap_diff * 1000.0f) );
-		
-		thistime += fl2f((frame_cap_diff));		
-
-		Frametime = thistime - Last_time;
-   }
 
 	// If framerate is too low, cap it.
 	if (Frametime > MAX_FRAMETIME)	{
@@ -5532,7 +5528,7 @@ void game_leave_state( int old_state, int new_state )
 
 		case GS_STATE_GAME_PAUSED:
 			game_start_time();
-			if ( end_mission ) {
+			if (end_mission) {
 				pause_close(0);
 			}
 			break;

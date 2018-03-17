@@ -401,8 +401,8 @@
 #define GS_EVENT_END_DEMO							60		// end of demo campaign
 #define GS_EVENT_LOOP_BRIEF						61		// campaign loop brief
 #define GS_EVENT_CAMPAIGN_CHEAT					62		// skip to a mission in a campaign
-#define GS_EVENT_PXO							74
-#define GS_EVENT_PXO_HELP						75
+#define GS_EVENT_PXO							63
+#define GS_EVENT_PXO_HELP						64
 
 // IMPORTANT:  When you add a new event, update the initialization for GS_event_text[]
 //             which is done in GameSequence.cpp
@@ -414,56 +414,56 @@ extern const char *GS_event_text[];		// text description for the GS_EVENT_* #def
 //
 // IMPORTANT:  When you add a new state, update the initialization for GS_state_text[]
 //             which is done in GameSequence.cpp
-#define GS_STATE_MAIN_MENU							1
-#define GS_STATE_GAME_PLAY							2
-#define GS_STATE_GAME_PAUSED						3
-#define GS_STATE_QUIT_GAME							4
-#define GS_STATE_OPTIONS_MENU						5
-#define GS_STATE_BARRACKS_MENU					7
-#define GS_STATE_TECH_MENU							8
-#define GS_STATE_TRAINING_MENU					9
-#define GS_STATE_LOAD_MISSION_MENU				10
-#define GS_STATE_BRIEFING							11
-#define GS_STATE_SHIP_SELECT						12
-#define GS_STATE_DEBUG_PAUSED						13
-#define GS_STATE_HUD_CONFIG						14
-#define GS_STATE_MULTI_JOIN_GAME					15
-#define GS_STATE_CONTROL_CONFIG					16
-#define GS_STATE_WEAPON_SELECT					17
-#define GS_STATE_MISSION_LOG_SCROLLBACK		18
-#define GS_STATE_DEATH_DIED						19		//	Player just died
-#define GS_STATE_DEATH_BLEW_UP					20		//	Saw ship explode.
-#define GS_STATE_SIMULATOR_ROOM					21
-#define GS_STATE_CREDITS							22
-#define GS_STATE_SHOW_GOALS						23
-#define GS_STATE_HOTKEY_SCREEN					24
-#define GS_STATE_VIEW_MEDALS						25		// Go to the View Medals screen
-#define GS_STATE_MULTI_HOST_SETUP				26		// state where host sets up multiplayer game
-#define GS_STATE_MULTI_CLIENT_SETUP				27		// client setup for multiplayer game
-#define GS_STATE_DEBRIEF							28
-#define GS_STATE_VIEW_CUTSCENES		         29
-#define GS_STATE_MULTI_STD_WAIT					30
-#define GS_STATE_STANDALONE_MAIN				   31
-#define GS_STATE_MULTI_PAUSED				      32
-#define GS_STATE_TEAM_SELECT						33
-#define GS_STATE_TRAINING_PAUSED					34		 // game is paused while training msg is being read.
-#define GS_STATE_INGAME_PRE_JOIN				   35		 // go to ship selection screen for ingame join
-#define GS_STATE_EVENT_DEBUG						36		 // an event debug trace scroll list display screen
-#define GS_STATE_STANDALONE_POSTGAME			37		 // debriefing, etc.
-#define GS_STATE_INITIAL_PLAYER_SELECT			38
-#define GS_STATE_MULTI_MISSION_SYNC				39
-#define GS_STATE_MULTI_START_GAME				40
-#define GS_STATE_MULTI_HOST_OPTIONS				41
-#define GS_STATE_MULTI_DOGFIGHT_DEBRIEF		42
-#define GS_STATE_CAMPAIGN_ROOM					43
-#define GS_STATE_CMD_BRIEF							44		// command briefing screen
-#define GS_STATE_RED_ALERT							45		// red alert screen
-#define GS_STATE_END_OF_CAMPAIGN					46		// end of main campaign -- only applicable in single player
-#define GS_STATE_GAMEPLAY_HELP					47
-#define GS_STATE_END_DEMO							48		// end of demo campaign (upsell then main menu)
-#define GS_STATE_LOOP_BRIEF						49
-#define GS_STATE_PXO							59
-#define GS_STATE_PXO_HELP						60
+#define GS_STATE_MAIN_MENU						1
+#define GS_STATE_GAME_PLAY						2
+#define GS_STATE_GAME_PAUSED					3
+#define GS_STATE_QUIT_GAME						4
+#define GS_STATE_OPTIONS_MENU					5
+#define GS_STATE_BARRACKS_MENU					6
+#define GS_STATE_TECH_MENU						7
+#define GS_STATE_TRAINING_MENU					8
+#define GS_STATE_LOAD_MISSION_MENU				9
+#define GS_STATE_BRIEFING						10
+#define GS_STATE_SHIP_SELECT					11
+#define GS_STATE_DEBUG_PAUSED					12
+#define GS_STATE_HUD_CONFIG						13
+#define GS_STATE_MULTI_JOIN_GAME				14
+#define GS_STATE_CONTROL_CONFIG					15
+#define GS_STATE_WEAPON_SELECT					16
+#define GS_STATE_MISSION_LOG_SCROLLBACK			17
+#define GS_STATE_DEATH_DIED						18		//	Player just died
+#define GS_STATE_DEATH_BLEW_UP					19		//	Saw ship explode.
+#define GS_STATE_SIMULATOR_ROOM					20
+#define GS_STATE_CREDITS						21
+#define GS_STATE_SHOW_GOALS						22
+#define GS_STATE_HOTKEY_SCREEN					23
+#define GS_STATE_VIEW_MEDALS					24		// Go to the View Medals screen
+#define GS_STATE_MULTI_HOST_SETUP				25		// state where host sets up multiplayer game
+#define GS_STATE_MULTI_CLIENT_SETUP				26		// client setup for multiplayer game
+#define GS_STATE_DEBRIEF						27
+#define GS_STATE_VIEW_CUTSCENES					28
+#define GS_STATE_MULTI_STD_WAIT					29
+#define GS_STATE_STANDALONE_MAIN				30
+#define GS_STATE_MULTI_PAUSED					31
+#define GS_STATE_TEAM_SELECT					32
+#define GS_STATE_TRAINING_PAUSED				33		 // game is paused while training msg is being read.
+#define GS_STATE_INGAME_PRE_JOIN				34		 // go to ship selection screen for ingame join
+#define GS_STATE_EVENT_DEBUG					35		 // an event debug trace scroll list display screen
+#define GS_STATE_STANDALONE_POSTGAME			36		 // debriefing, etc.
+#define GS_STATE_INITIAL_PLAYER_SELECT			37
+#define GS_STATE_MULTI_MISSION_SYNC				38
+#define GS_STATE_MULTI_START_GAME				39
+#define GS_STATE_MULTI_HOST_OPTIONS				40
+#define GS_STATE_MULTI_DOGFIGHT_DEBRIEF			41
+#define GS_STATE_CAMPAIGN_ROOM					42
+#define GS_STATE_CMD_BRIEF						43		// command briefing screen
+#define GS_STATE_RED_ALERT						44		// red alert screen
+#define GS_STATE_END_OF_CAMPAIGN				45		// end of main campaign -- only applicable in single player
+#define GS_STATE_GAMEPLAY_HELP					46
+#define GS_STATE_END_DEMO						47		// end of demo campaign (upsell then main menu)
+#define GS_STATE_LOOP_BRIEF						48
+#define GS_STATE_PXO							49
+#define GS_STATE_PXO_HELP						50
 
 
 // IMPORTANT:  When you add a new state, update the initialization for GS_state_text[]

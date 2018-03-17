@@ -3153,6 +3153,11 @@ void ai_attack_wing(object *attacker, int wingnum, int priority)
 	SDL_assert(attacker != NULL);
 	SDL_assert(attacker->instance != -1);
 	SDL_assert(Ships[attacker->instance].ai_index != -1);
+	SDL_assert(wingnum != -1);
+
+	if ( (wingnum < 0) || (wingnum > MAX_WINGS) ) {
+		return;
+	}
 
 	aip = &Ai_info[Ships[attacker->instance].ai_index];
 

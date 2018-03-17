@@ -88,6 +88,16 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 				break;
 			}
 
+			// no favicon so return 404
+			if ( in && !SDL_strcmp((const char *)in, "/favicon.ico") ) {
+				lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, NULL);
+				try_reuse = true;
+
+				break;
+			}
+
+			// any other request will get our basic html ...
+
 #ifndef NDEBUG
 			FILE *html = fopen("./standalone.html", "rb");
 
@@ -112,6 +122,10 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 				}
 
 				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_TYPE, (unsigned char *)"text/html", 9, &p, end) ) {
+					return 1;
+				}
+
+				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_ENCODING, (unsigned char *)"gzip", 4, &p, end) ) {
 					return 1;
 				}
 
@@ -307,6 +321,7 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 					if (len >= 6) {
 						if ( !SDL_strncmp(msg+2, "fps ", 4) ) {
 							int fps = SDL_atoi(msg+6);
+							CAP(fps, 10, 120);
 
 							Multi_options_g.std_framecap = fps;
 						}

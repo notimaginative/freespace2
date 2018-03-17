@@ -11,6 +11,7 @@
 
 #include "wx/filename.h"
 #include "wx/stdpaths.h"
+#include "wx/access.h"
 
 #include "pstypes.h"
 #include "osregistry.h"
@@ -433,7 +434,7 @@ void Launcher::OnVolition( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnPXO( wxCommandEvent& WXUNUSED(event) )
 {
-	wxLaunchDefaultBrowser( wxT("http://www.pxo.net") );
+	wxLaunchDefaultBrowser( wxT("https://pxo.nottheeye.com") );
 }
 
 void Launcher::OnQuit( wxCommandEvent& WXUNUSED(event) )

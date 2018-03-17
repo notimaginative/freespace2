@@ -435,6 +435,8 @@
 #include "multi_rate.h"
 #include "neblightning.h"
 #include "hudescort.h"
+#include "multi_fstracker.h"
+#include "multi_sw.h"
 
 // #define _MULTI_SUPER_WACKY_COMPRESSION
 
@@ -2377,15 +2379,21 @@ void broadcast_game_query()
 	ubyte data[MAX_PACKET_SIZE];	
 
 	BUILD_HEADER(GAME_QUERY);	
-	
-	// go through the server list and query each of those as well
-	s_moveup = Game_server_head;
-	if(s_moveup != NULL){
-		do {				
-			send_server_query(&s_moveup->server_addr);			
-			s_moveup = s_moveup->next;					
-		} while(s_moveup != Game_server_head);		
-	}	
+
+	if (Multi_options_g.pxo) {
+		// check with MT
+		multi_fs_tracker_send_game_request();
+		return;
+	} else {
+		// go through the server list and query each of those as well
+		s_moveup = Game_server_head;
+		if(s_moveup != NULL){
+			do {
+				send_server_query(&s_moveup->server_addr);
+				s_moveup = s_moveup->next;
+			} while(s_moveup != Game_server_head);
+		}
+	}
 
 	fill_net_addr(&addr, Psnet_my_addr.addr, DEFAULT_GAME_PORT);
 
@@ -6437,7 +6445,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 	player_num = find_player_id(player_id);
 	if (player_num == -1) {
 		nprintf(("Network", "Couldn't find player for stats update!\n"));
-		ml_string("Couldn't find player for stats update!\n");
+		ml_string("Couldn't find player for stats update!");
 
 		sc = &bogus;
 		Int3();
@@ -6449,7 +6457,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 	GET_DATA(val);	
 	switch(val){
 	case STATS_ALLTIME:
-		ml_string("Received STATS_ALLTIME\n");
+		ml_string("Received STATS_ALLTIME");
 
 		// kills - alltime
 		for (idx=0; idx<MAX_SHIP_TYPES; idx++) {
@@ -6483,7 +6491,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 		break;
 
 	case STATS_MISSION:
-		ml_string("Received STATS_MISSION\n");
+		ml_string("Received STATS_MISSION");
 
 		// kills - mission OK			
 		for (idx=0; idx<MAX_SHIP_TYPES; idx++) {
@@ -6507,7 +6515,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 		break;
 
 	case STATS_MISSION_KILLS:		
-		ml_string("Received STATS_MISSION_KILLS\n");
+		ml_string("Received STATS_MISSION_KILLS");
 
 		GET_INT(sc->m_kill_count);
 		GET_INT(sc->m_kill_count_ok);
@@ -6515,7 +6523,7 @@ void process_player_stats_block_packet(ubyte *data, header *hinfo)
 		break;		
 
 	case STATS_DOGFIGHT_KILLS:
-		ml_string("Received STATS_DOGFIGHT_KILLS\n");
+		ml_string("Received STATS_DOGFIGHT_KILLS");
 		if(player_num >= 0){
 			ml_printf("Dogfight stats for %s", Net_players[player_num].player->callsign);
 		}
@@ -7716,6 +7724,7 @@ void send_sw_query_packet(ubyte code, char *txt)
 	BUILD_HEADER(SW_STD_QUERY);
 	ADD_DATA(code);
 	if((code == SW_STD_START) || (code == SW_STD_BAD)){		
+		SDL_assert(txt != NULL);
 		ADD_STRING(txt);
 	}
 
@@ -7737,7 +7746,39 @@ void send_sw_query_packet(ubyte code, char *txt)
 }
 
 void process_sw_query_packet(ubyte *data, header *hinfo)
-{	
+{
+	int offset = HEADER_LENGTH;
+	ubyte code;
+	char txt[MAX_SQUAD_RESPONSE_LEN+1];
+
+	GET_DATA(code);
+
+	if ( (code == SW_STD_START) || (code == SW_STD_BAD) ) {
+		GET_STRING(txt);
+	}
+
+	PACKET_SET_SIZE();
+
+	// to host from standalone
+	if (MULTIPLAYER_HOST) {
+		SDL_assert( !MULTIPLAYER_MASTER );
+
+		if (code == SW_STD_OK) {
+			Multi_sw_std_query = 1;
+		} else {
+			SDL_assert(code == SW_STD_BAD);
+
+			SDL_strlcpy(Multi_sw_bad_reply, txt, SDL_arraysize(Multi_sw_bad_reply));
+			Multi_sw_std_query = 0;
+		}
+	}
+	// to standalone from host
+	else {
+		SDL_assert(Game_mode & GM_STANDALONE_SERVER);
+		SDL_assert(code == SW_STD_START);
+
+		multi_sw_std_query(txt);
+	}
 }
 
 void send_event_update_packet(int event)

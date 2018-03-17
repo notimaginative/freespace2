@@ -76,12 +76,12 @@ int main(int argc, char *argv[])
 	bool standalone = false;
 
 	for (i = 1; i < argc; i++) {
-		if ( !daemon && !SDL_strcmp(argv[i], "-daemon") ) {
+		if ( !daemon && SDL_strstr(argv[i], "-daemon") ) {
 			daemon = true;
 		}
 
 		if ( !standalone ) {
-			if ( !SDL_strstr(argv[i], "-standalone") ) {
+			if ( SDL_strstr(argv[i], "-standalone") ) {
 				standalone = true;
 			}
 

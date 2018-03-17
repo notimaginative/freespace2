@@ -565,18 +565,24 @@ void multi_endgame_cleanup()
 	} else {		
 		Player->flags |= PLAYER_FLAGS_IS_MULTI;		
 
+		// log game out of tracker
+		if (Net_player->flags & NETINFO_FLAG_MT_CONNECTED) {
+			multi_fs_tracker_logout();
+		}
+
 		// if we're in Parallax Online mode, log back in there	
-		gameseq_post_event(GS_EVENT_MULTI_JOIN_GAME);		
+		if (Multi_options_g.pxo == 1) {
+			SDL_assert(Multi_options_g.protocol == NET_TCP);
+			gameseq_post_event(GS_EVENT_PXO);
+		} else {
+			gameseq_post_event(GS_EVENT_MULTI_JOIN_GAME);
+		}
 
 		// if we have an error code, bring up the discon popup						
 		if(((Multi_endgame_notify_code != -1) || (Multi_endgame_error_code != -1)) && !(Game_mode & GM_STANDALONE_SERVER)){
 			multi_endgame_popup(Multi_endgame_notify_code,Multi_endgame_error_code,Multi_endgame_wsa_error);			
 		}		
 	}	
-
-	if (MULTI_IS_TRACKER_GAME) {
-		multi_fs_tracker_logout();
-	}
 
 	/*
 	extern CFILE *obj_stream;

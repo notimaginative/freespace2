@@ -236,6 +236,11 @@ int key_get_text_input()
 	return ch;
 }
 
+void key_clear_text_input()
+{
+	key_text_input.clear();
+}
+
 bool key_pressed(int keycode)
 {
 	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);

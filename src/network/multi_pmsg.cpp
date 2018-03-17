@@ -227,6 +227,9 @@ void multi_msg_key_down(int mode)
 		return;
 	}
 
+	// clear all keys from text buffer
+	key_clear_text_input();
+
 	// otherwise set the message mode and set the timestamp
 	Multi_msg_mode = mode;
 	Multi_msg_repeat_flag = 1;
@@ -371,7 +374,7 @@ int multi_msg_text_process(int k)
 			int key_text = key_get_text_input();
 
 			if (key_text < 0) {
-				key_text = 255;
+				break;
 			}
 
 			str[0] = (char)key_text;

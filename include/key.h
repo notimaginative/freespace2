@@ -113,6 +113,7 @@ int key_inkey();
 
 int key_get_text_input();
 void key_set_text_input(int ch);
+void key_clear_text_input();
 
 // global flag that will enable/disable the backspace key from stopping execution
 //extern int Backspace_debug;

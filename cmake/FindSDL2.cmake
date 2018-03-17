@@ -53,6 +53,7 @@ else()
     set(VC_LIB_PATH_SUFFIX lib/x64)
   else()
     set(VC_LIB_PATH_SUFFIX lib/x86)
+  endif()
 
   find_library(SDL2_LIBRARY_TEMP
     NAMES SDL2
@@ -60,6 +61,7 @@ else()
       "${SDL2DIR}"
 	  ENV SDL2DIR
     PATH_SUFFIXES lib "${VC_LIB_PATH_SUFFIX}"
+  )
 endif()
 
 if(NOT SDL2_BUILDING_LIBRARY)

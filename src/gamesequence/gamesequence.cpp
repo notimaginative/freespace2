@@ -391,7 +391,7 @@ const char *GS_state_text[] =
 	"GS_STATE_END_DEMO",
 	"GS_STATE_LOOP_BRIEF",
 	"GS_STATE_PXO",
-	"GS_STATE_PXO_HELP",					// 50
+	"GS_STATE_PXO_HELP",				// 50
 	"GS_STATE_DEMO_UPSELL"
 };
 //XSTR:ON

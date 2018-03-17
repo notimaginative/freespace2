@@ -4467,8 +4467,6 @@ void game_set_frametime(int state)
 	SDL_assert( frame_cap > 0 );
 
 #ifndef __EMSCRIPTEN__
-	float frame_cap_diff;
-
 	// Cap the framerate so it doesn't get too high.
 	{
 		fix cap;
@@ -6781,7 +6779,6 @@ int game_main(const char *szCmdLine)
 
 	#ifndef NDEBUG				
 	{
-		extern void windebug_memwatch_init();
 		windebug_memwatch_init();
 	}
 	#endif

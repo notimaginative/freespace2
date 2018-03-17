@@ -38,26 +38,31 @@
 # See the License for more information.
 #=============================================================================
 
-find_path(SDL2_INCLUDE_DIR SDL.h
-  HINTS
-    "${SDL2DIR}"
-	ENV SDL2DIR
-	PATH_SUFFIXES include/SDL2 include
-)
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(VC_LIB_PATH_SUFFIX lib/x64)
+if(EMSCRIPTEN)
+  set(SDL2_LIBRARY "nul" CACHE STRING "emscripten override" FORCE)
+  set(SDL2_INCLUDE_DIR "${CMAKE_SYSTEM_INCLUDE_PATH}/SDL2" CACHE STRING "emscripten override" FORCE)
 else()
-  set(VC_LIB_PATH_SUFFIX lib/x86)
-endif()
+  find_path(SDL2_INCLUDE_DIR SDL.h
+    HINTS
+      "${SDL2DIR}"
+        ENV SDL2DIR
+        PATH_SUFFIXES include/SDL2 include
+  )
 
-find_library(SDL2_LIBRARY_TEMP
-  NAMES SDL2
-  HINTS
-    "${SDL2DIR}"
-	ENV SDL2DIR
-  PATH_SUFFIXES lib "${VC_LIB_PATH_SUFFIX}"
-)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(VC_LIB_PATH_SUFFIX lib/x64)
+  else()
+    set(VC_LIB_PATH_SUFFIX lib/x86)
+  endif()
+
+  find_library(SDL2_LIBRARY_TEMP
+    NAMES SDL2
+    HINTS
+      "${SDL2DIR}"
+	  ENV SDL2DIR
+    PATH_SUFFIXES lib "${VC_LIB_PATH_SUFFIX}"
+  )
+endif()
 
 if(NOT SDL2_BUILDING_LIBRARY)
   if(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")

@@ -1499,6 +1499,7 @@ int cfile_init_paths()
 		return 0;
 	}
 
+#ifndef __EMSCRIPTEN__
 	char *t_path = SDL_GetBasePath();
 
 	// make sure we have something
@@ -1545,6 +1546,38 @@ int cfile_init_paths()
 	// free SDL copy
 	SDL_free(u_path);
 	u_path = NULL;
+#else
+	const char *root_path = "/Game";
+	const char *user_path = "/User";
+
+	SDL_snprintf(Cfile_root_dir, SDL_arraysize(Cfile_root_dir), "%s/", root_path);
+	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "%s/", user_path);
+
+	EM_ASM({
+		const user_path = UTF8ToString($0);
+
+		FS.mkdir(user_path);
+		FS.mount(IDBFS, { name: UTF8ToString($1) }, user_path);
+
+		Module.sync_in_progress = 1;
+
+		if (Module['setStatus']) {
+			Module['setStatus']('Syncing user data...');
+		}
+
+		FS.syncfs(true, function(err) {
+			if (err && err.code !== 'EEXIST') {
+				console.log('FS.syncfs() load error: ' + err);
+			} else {
+				Module.sync_in_progress = 0;
+
+				// remove initial loading screen
+				var loading = document.getElementById('loading');
+				loading.hidden = true;
+			}
+		});
+	}, user_path, Osreg_app_name);
+#endif
 
 	// see if CF_TYPE_DATA exists for user and if not populate user path
 	// with full directory tree

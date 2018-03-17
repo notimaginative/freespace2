@@ -1217,12 +1217,16 @@ void game_shutdown(void);
 void game_show_event_debug(float frametime);
 void game_event_debug_init();
 void game_frame();
-void demo_upsell_show_screens();
+void demo_upsell_init(int end_of_demo);
+void demo_upsell_do();
+void demo_upsell_close();
 void game_start_subspace_ambient_sound();
 void game_stop_subspace_ambient_sound();
 void verify_ships_tbl();
 void verify_weapons_tbl();
-void display_title_screen();
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
+extern "C" void display_title_screen();
+#endif
 
 // loading background filenames
 static const char *Game_loading_bground_fname[GR_NUM_RESOLUTIONS] = {
@@ -1847,6 +1851,7 @@ int Game_loading_background = -1;
 anim * Game_loading_ani = NULL;
 anim_instance	*Game_loading_ani_instance;
 int Game_loading_frame=-1;
+int Game_loading_ani_bitmap = -1;
 
 static int Game_loading_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 	{
@@ -1866,6 +1871,7 @@ static int Game_loading_ani_coords[GR_NUM_RESOLUTIONS][2] = {
 // This gets called 10x per second and count is the number of times 
 // game_busy() has been called since the current callback function
 // was set.
+extern "C"
 void game_loading_callback(int count)
 {	
 	game_do_networking();
@@ -1886,21 +1892,32 @@ void game_loading_callback(int count)
 		cbitmap = anim_get_next_frame(Game_loading_ani_instance);
 	}
 
-
-	if ( cbitmap > -1 )	{
-		if ( Game_loading_background > -1 )	{
-			gr_set_bitmap( Game_loading_background, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-			gr_bitmap(0,0);
+	if (cbitmap > -1) {
+		if (Game_loading_ani_bitmap > -1) {
+			bm_release(Game_loading_ani_bitmap);
 		}
 
 		//mprintf(( "Showing frame %d/%d [ Bitmap=%d ]\n", Game_loading_frame ,  Game_loading_ani->total_frames, cbitmap ));
-		gr_set_bitmap( cbitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
-		gr_bitmap(Game_loading_ani_coords[gr_screen.res][0],Game_loading_ani_coords[gr_screen.res][1]);
-
-		bm_release(cbitmap);
-	
-		gr_flip();
+		Game_loading_ani_bitmap = cbitmap;
 	}
+
+	if (Game_loading_background > -1) {
+		gr_set_bitmap(Game_loading_background, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
+		gr_bitmap(0, 0);
+	} else {
+		gr_clear();
+	}
+
+	if (Game_loading_ani_bitmap > -1) {
+		gr_set_bitmap(Game_loading_ani_bitmap, GR_ALPHABLEND_NONE, GR_BITBLT_MODE_NORMAL, 1.0f, -1, -1);
+		gr_bitmap(Game_loading_ani_coords[gr_screen.res][0], Game_loading_ani_coords[gr_screen.res][1]);
+	}
+
+	gr_flip();
+
+#ifdef __EMSCRIPTEN__
+	//emscripten_sleep(10);
+#endif
 }
 
 void game_loading_callback_init()
@@ -1918,6 +1935,7 @@ void game_loading_callback_init()
 	Game_loading_ani_instance = init_anim_instance(Game_loading_ani, 16);
 	SDL_assert( Game_loading_ani_instance != NULL );
 	Game_loading_frame = -1;
+	Game_loading_ani_bitmap = -1;
 
 	Game_loading_callback_inited = 1;
 	Mouse_hidden = 1;
@@ -1926,6 +1944,7 @@ void game_loading_callback_init()
 
 }
 
+extern "C"
 void game_loading_callback_close()
 {
 	SDL_assert( Game_loading_callback_inited==1 );
@@ -1952,9 +1971,18 @@ void game_loading_callback_close()
 	anim_free(Game_loading_ani);
 	Game_loading_ani = NULL;
 
-	bm_release( Game_loading_background );
+	if (Game_loading_ani_bitmap > -1) {
+		bm_release(Game_loading_ani_bitmap);
+		Game_loading_ani_bitmap = -1;
+	}
+
+	if (Game_loading_background > -1) {
+		bm_release(Game_loading_background);
+		Game_loading_background = -1;
+	}
+
 	common_free_interface_palette();		// restore game palette
-	Game_loading_background = -1;
+
 
 	gr_set_font( FONT1 );
 }
@@ -1996,6 +2024,7 @@ void game_assign_sound_environment()
 // function which gets called before actually entering the mission.  It is broken down into a funciton
 // since it will get called in one place from a single player game and from another place for
 // a multiplayer game
+extern "C"
 void freespace_mission_load_stuff()
 {
 	// called if we're not on a freespace dedicated (non rendering, no pilot) server
@@ -2046,6 +2075,7 @@ time_t load_post_level_init;
 time_t load_mission_stuff;
 
 // tells the server to load the mission and initialize structures
+extern "C"
 int game_start_mission()
 {	
 	mprintf(( "=================== STARTING LEVEL LOAD ==================\n" ));
@@ -2257,6 +2287,9 @@ DCF(gamma,"Sets Gamma factor")
 	}
 }
 
+extern void bm_init();
+
+extern "C"
 void game_init()
 {
 	Game_current_mission_filename[0] = 0;
@@ -2271,7 +2304,6 @@ void game_init()
 	load_filter_info();
 	#endif
 
-	extern void bm_init();
 	bm_init();
 
 	// encrypt stuff
@@ -2472,7 +2504,9 @@ MONITOR(BmpUsed);
 MONITOR(BmpNew);
 
 void game_get_framerate()
-{
+{	
+	char text[128] = "";
+
 	if ( frame_int == -1 )	{
 		int i;
 		for (i=0; i<FRAME_FILTER; i++ )	{
@@ -2491,12 +2525,15 @@ void game_get_framerate()
 			Framerate = FRAME_FILTER / frametotal;
 		else
 			Framerate = Framecount / frametotal;
+		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: %.1f"), Framerate );
+	} else {
+		SDL_snprintf( text, SDL_arraysize(text), NOX("FPS: ?") );
 	}
 	Framecount++;
 
 	if (Show_framerate)	{
 		gr_set_color_fast(&HUD_color_debug);
-		gr_printf(570, 2, NOX("FPS: %.1f"), Framerate);
+		gr_string( 570, 2, text );
 	}
 }
 
@@ -4381,10 +4418,8 @@ void game_start_time()
 
 void game_set_frametime(int state)
 {
-	fix thistime;
+	fix thistime = timer_get_fixed_seconds();
 	int frame_cap = 60;
-
-	thistime = timer_get_fixed_seconds();
 
 	if ( Last_time == 0 )	
 		Frametime = F1_0 / 30;
@@ -4431,6 +4466,7 @@ void game_set_frametime(int state)
 
 	SDL_assert( frame_cap > 0 );
 
+#ifndef __EMSCRIPTEN__
 	// Cap the framerate so it doesn't get too high.
 	{
 		fix cap;
@@ -4444,6 +4480,7 @@ void game_set_frametime(int state)
 			thistime = timer_get_fixed_seconds();
 		}
 	}
+#endif
 
 	// If framerate is too low, cap it.
 	if (Frametime > MAX_FRAMETIME)	{
@@ -4888,20 +4925,13 @@ void camera_move()
 
 void end_demo_campaign_do()
 {
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
-	// show upsell screens
-	demo_upsell_show_screens();
-#elif defined(OEM_BUILD)
-	// show oem upsell screens
-	oem_upsell_show_screens();
-#endif
-
-	// drop into main hall
-	gameseq_post_event( GS_EVENT_MAIN_MENU );
+	// go to upsell screens, which should drop back to the main hall
+	gameseq_post_event(GS_EVENT_DEMO_UPSELL);
 }
 
 // All code to process events.   This is the only place
 // that you should change the state of the game.
+extern "C"
 void game_process_event( int current_state, int event )
 {
 	mprintf(("Got event %s in state %s\n", GS_event_text[event], GS_state_text[current_state]));
@@ -5015,7 +5045,16 @@ void game_process_event( int current_state, int event )
 		case GS_EVENT_QUIT_GAME:
 			main_hall_stop_music();
 			main_hall_stop_ambient();
+
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+			if (current_state == GS_STATE_DEMO_UPSELL) {
+				gameseq_set_state(GS_STATE_QUIT_GAME);
+			} else {
+				gameseq_set_state(GS_STATE_DEMO_UPSELL);
+			}
+#else
 			gameseq_set_state(GS_STATE_QUIT_GAME);
+#endif
 
 			Player_multi_died_check = -1;
 			break;
@@ -5334,6 +5373,10 @@ void game_process_event( int current_state, int event )
 			gameseq_set_state(GS_STATE_LOOP_BRIEF);
 			break;
 
+		case GS_EVENT_DEMO_UPSELL:
+			gameseq_set_state(GS_STATE_DEMO_UPSELL);
+			break;
+
 		default:
 			Int3();
 			break;
@@ -5528,7 +5571,7 @@ void game_leave_state( int old_state, int new_state )
 
 		case GS_STATE_GAME_PAUSED:
 			game_start_time();
-			if (end_mission) {
+			if ( end_mission ) {
 				pause_close(0);
 			}
 			break;
@@ -5704,6 +5747,12 @@ void game_leave_state( int old_state, int new_state )
 		case GS_STATE_PXO_HELP:
 			multi_pxo_help_close();
 			break;
+
+		case GS_STATE_DEMO_UPSELL:
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+			demo_upsell_close();
+#endif
+			break;
 	}
 }
 
@@ -5713,7 +5762,7 @@ void game_leave_state( int old_state, int new_state )
 // from.    You should never try to change the state
 // in here... if you think you need to, you probably really
 // need to post an event, not change the state.
-
+extern "C"
 void game_enter_state( int old_state, int new_state )
 {
 	switch (new_state) {
@@ -5907,7 +5956,6 @@ void game_enter_state( int old_state, int new_state )
 
 #ifndef NDEBUG
 			// required to truely make mouse deltas zeroed in debug mouse code
-void mouse_force_pos(int x, int y);
 			if (!Is_standalone) {
 				mouse_force_pos(gr_screen.max_w / 2, gr_screen.max_h / 2);
 			}
@@ -6161,6 +6209,12 @@ void mouse_force_pos(int x, int y);
 			multi_pxo_help_init();
 			break;
 
+		case GS_STATE_DEMO_UPSELL:
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+			demo_upsell_init(old_state == GS_STATE_END_DEMO);
+#endif
+			break;
+
 	} // end switch
 }
 
@@ -6172,6 +6226,12 @@ void game_do_state_common(int state,int no_networking)
 	event_music_do_frame();						// music needs to play across many states
 
 	multi_log_process();	
+
+	// bail if state is invalid
+	if (state == 0) {
+		Game_do_state_should_skip = 1;
+		return;
+	}
 
 	if (no_networking) {
 		return;
@@ -6461,6 +6521,13 @@ void game_do_state(int state)
 			multi_pxo_help_do();
 			break;
 
+		case GS_STATE_DEMO_UPSELL:
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+			game_set_frametime(GS_STATE_DEMO_UPSELL);
+			demo_upsell_do();
+#endif
+			break;
+
    } // end switch(gs_current_state)
 }
 
@@ -6650,26 +6717,61 @@ DCF(pofspew, "")
 	game_spew_pof_info();
 }
 
+static bool game_loop()
+{
+	if ( popup_active() ) {
+		popup_do_frame();
+		return true;
+	}
+
+	os_poll();
+
+	if (gameseq_process_events() == GS_STATE_QUIT_GAME) {
+		return false;
+	}
+
+	return true;
+}
+
+#ifdef __EMSCRIPTEN__
+extern "C"
+void game_loop_caller()
+{
+	// keep looping through until the persistent storage has sync'd
+	if (emscripten_run_script_int("Module.sync_in_progress") == 1) {
+		return;
+	}
+
+	if ( !game_loop() ) {
+		emscripten_cancel_main_loop();
+		game_shutdown();
+	}
+}
+#endif
+
+extern "C"
 int game_main(const char *szCmdLine)
 {
-	int state;
-
 	// Find out how much RAM is on this machine
+#ifdef __EMSCRIPTEN__
+	Freespace_total_ram = EM_ASM_INT(return TOTAL_MEMORY) / (1024 * 1024);
+#else
 	Freespace_total_ram = SDL_GetSystemRAM();
+#endif
 
 	if ( game_do_ram_check(Freespace_total_ram) == -1 ) {
-		return 0;
+		return 1;
 	}
 
 	if (!vm_init(24*1024*1024)) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
-		return 0;
+		return 1;
 	}
 
 	char *tmp_mem = (char *) malloc(16 * 1024 * 1024);
 	if (!tmp_mem) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, XSTR( "Not Enough Memory", 199), XSTR( "Not enough memory to run Freespace.\r\nTry closing down some other applications.\r\n", 198), NULL);
-		return 0;
+		return 1;
 	}
 
 	free(tmp_mem);
@@ -6677,7 +6779,6 @@ int game_main(const char *szCmdLine)
 
 	#ifndef NDEBUG				
 	{
-		extern void windebug_memwatch_init();
 		windebug_memwatch_init();
 	}
 	#endif
@@ -6699,7 +6800,7 @@ int game_main(const char *szCmdLine)
 	mprintf(("\n"));
 #endif
 
-	parse_cmdline(szCmdLine);	
+	parse_cmdline(szCmdLine);
 
 	mprintf(("--------------------------------------------------------------------------------\n"));
 
@@ -6719,7 +6820,7 @@ int game_main(const char *szCmdLine)
 	if(Cmdline_spew_pof_info){
 		game_spew_pof_info();
 		game_shutdown();
-		return 1;
+		return 0;
 	}
 
 	// non-demo, non-standalone, play the intro movie
@@ -6753,27 +6854,14 @@ int game_main(const char *szCmdLine)
 		gameseq_post_event(GS_EVENT_GAME_INIT);		// start the game rolling -- check for default pilot, or go to the pilot select screen
 	}
 
-	while (1) {
-		// only important for non THREADED mode
-		os_poll();
-
-		state = gameseq_process_events();
-		if ( state == GS_STATE_QUIT_GAME ){
-			break;
-		}
-	} 
-
-#if defined(FS2_DEMO) || defined(FS1_DEMO)
-	if(!Is_standalone){
-		demo_upsell_show_screens();
-	}
-#elif defined(OEM_BUILD)
-	// show upsell screens on exit
-	oem_upsell_show_screens();
+#ifdef __EMSCRIPTEN__
+	emscripten_set_main_loop(game_loop_caller, 0, 1);
+#else
+	while ( game_loop() ) { /* nothing */ }
 #endif
 
 	game_shutdown();
-	return 1;
+	return 0;
 }
 
 // launcher the fslauncher program on exit
@@ -6850,6 +6938,15 @@ void game_shutdown(void)
 	if(Multi_update_fireup_launcher_on_exit){
 		game_launch_launcher_on_exit();
 	}
+
+#ifdef __EMSCRIPTEN__
+	// sync files to persistent storage
+	EM_ASM({
+		if (Module['onShutdown']) {
+			Module['onShutdown']();
+		}
+	});
+#endif
 }
 
 // game_stop_looped_sounds()
@@ -7688,6 +7785,8 @@ static int Demo_upsell_bitmaps_loaded = 0;
 static int Demo_upsell_bitmaps[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS];
 static int Demo_upsell_screen_number = 0;
 static int Demo_upsell_show_next_bitmap_time;
+static int Demo_upsell_quit_on_done = 0;
+static int Demo_upsell_end_timer = 0;
 
 //XSTR:OFF
 static const char *Demo_upsell_bitmap_filenames[GR_NUM_RESOLUTIONS][NUM_DEMO_UPSELL_SCREENS] =
@@ -7749,31 +7848,40 @@ void demo_upsell_unload_bitmaps()
 	Demo_upsell_bitmaps_loaded = 0;
 }
 
-void demo_upsell_show_screens()
+void demo_upsell_init(int end_of_demo)
 {
-	int k;
-	int done = 0;
-
 	if ( !Demo_upsell_bitmaps_loaded ) {
 		demo_upsell_load_bitmaps();
 		Demo_upsell_bitmaps_loaded = 1;
 	}
 
+	Demo_upsell_end_timer = 0;
+	Demo_upsell_quit_on_done = !end_of_demo;
+
 	// may use upsell screens more than once
 	Demo_upsell_show_next_bitmap_time = timer_get_milliseconds() + DEMO_UPSELL_SCREEN_DELAY;
 	Demo_upsell_screen_number = 0;
-	
+
 	key_flush();
 	Mouse_hidden = 1;
+}
 
-	while(!done) {
+void demo_upsell_close()
+{
+	// unload bitmap
+	demo_upsell_unload_bitmaps();
+}
 
-		demo_reset_trailer_timer();
+void demo_upsell_do()
+{
+	int done = 0;
 
-// #ifndef THREADED
-		os_poll();
-// #endif
-		k = key_inkey();
+	demo_reset_trailer_timer();
+
+	os_poll();
+
+	if ( !Demo_upsell_end_timer ) {
+		int k = key_inkey();
 
 #ifdef FS1_DEMO
 		if ( timer_get_milliseconds() > Demo_upsell_show_next_bitmap_time ) {
@@ -7794,24 +7902,25 @@ void demo_upsell_show_screens()
 				done = 1;
 			}
 		}
-
-		if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] >= 0 ) {		
-			gr_set_bitmap(Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number]);
-			gr_bitmap(0,0);
-		}
-
-		if ( done ) {
-			if (gameseq_get_state() != GS_STATE_END_DEMO) {
-				gr_fade_out(0);
-				SDL_Delay(300);
-			}
-		}
-
-		gr_flip();
 	}
 
-	// unload bitmap
-	demo_upsell_unload_bitmaps();
+	if ( Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number] >= 0 ) {
+		gr_set_bitmap(Demo_upsell_bitmaps[gr_screen.res][Demo_upsell_screen_number]);
+		gr_bitmap(0,0);
+	}
+
+	if ( Demo_upsell_end_timer && (timer_get_milliseconds() > Demo_upsell_end_timer) ) {
+		gameseq_post_event(GS_EVENT_QUIT_GAME);
+	} else if (done) {
+		if (Demo_upsell_quit_on_done) {
+			gr_fade_out(0);
+			Demo_upsell_end_timer = timer_get_milliseconds() + 300;
+		} else {
+			gameseq_post_event(GS_EVENT_MAIN_MENU);
+		}
+	}
+
+	gr_flip();
 }
 
 #endif // DEMO
@@ -8111,11 +8220,10 @@ int game_hacked_data()
 	return 0;
 }
 
+#if defined(FS2_DEMO) || defined(OEM_BUILD)
+extern "C"
 void display_title_screen()
 {
-#if defined(FS2_DEMO) || defined(OEM_BUILD)
-	///int title_bitmap;
-
 	// load bitmap
 	int title_bitmap = bm_load(Game_demo_title_screen_fname[gr_screen.res]);
 	if (title_bitmap == -1) {
@@ -8132,11 +8240,15 @@ void display_title_screen()
 	gr_flip();
 
 	// give it some time on screen
+#ifdef __EMSCRIPTEN__
+	//emscripten_sleep(1000);
+#else
 	SDL_Delay(1000);
+#endif
 
 	bm_unload(title_bitmap);
-#endif  // FS2_DEMO || OEM_BUILD
 }
+#endif  // FS2_DEMO || OEM_BUILD
 
 // return true if the game is running with "low memory", which is less than 48MB
 bool game_using_low_mem()

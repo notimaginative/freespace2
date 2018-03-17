@@ -878,6 +878,7 @@ void sim_room_scroll_line_down()
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 }
 
+/*
 // returns: 0 = success, !0 = aborted or failed
 int ready_room_reset_campaign()
 {
@@ -893,6 +894,7 @@ int ready_room_reset_campaign()
 
 	return rval;
 }
+*/
 
 // Decide if we should offer choice to resume this savegame
 int sim_room_can_resume_savegame(char *savegame_filename)
@@ -978,37 +980,45 @@ int sim_room_maybe_resume_savegame()
 	*/
 }
 
-int readyroom_continue_campaign()
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+static void continue_campaign_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		mission_campaign_savefile_delete(Campaign.filename);
+		mission_campaign_load(Campaign.filename);
+		mission_campaign_next_mission();
+
+		// set the bit for campaign mode
+		Game_mode |= GM_CAMPAIGN_MODE;
+		gameseq_post_event( GS_EVENT_START_GAME );
+	}
+}
+#endif
+
+void readyroom_continue_campaign()
 {
 	if (mission_campaign_next_mission()) {  // is campaign and next mission valid?
-
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
-		int reset_campaign = 0;
-		reset_campaign = popup(PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Demo Campaign Is Over.  Would you like to play the campaign again?", 111) );
-		if ( reset_campaign == 1 ) {
-			mission_campaign_savefile_delete(Campaign.filename);
-			mission_campaign_load(Campaign.filename);
-			mission_campaign_next_mission();
-		} else {
-			return -1;
-		}
+		popup_callback(continue_campaign_callback, PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Demo Campaign Is Over.  Would you like to play the campaign again?", 111) );
 #else
 		gamesnd_play_iface(SND_GENERAL_FAIL);
+
 #ifdef MAKE_FS1
 		// make it the bottom button so that the graphic looks right
 		popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR( "The campaign is over.  To replay the campaign, either create a new pilot or restart the campaign in the campaign room.", 112) );
 #else
 		popup(0, 1, POPUP_OK, XSTR( "The campaign is over.  To replay the campaign, either create a new pilot or restart the campaign in the campaign room.", 112) );
 #endif
-		return -1;
 #endif
+
+		return;
 	}
 
 	// set the bit for campaign mode
 	Game_mode |= GM_CAMPAIGN_MODE;
 	gameseq_post_event( GS_EVENT_START_GAME );	
-
-	return 0;
 }
 
 void sim_room_commit()
@@ -1673,8 +1683,7 @@ int campaign_room_reset_campaign(int n)
 	char *filename;
 	int z;
 
-	// z = popup(PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_CANCEL, POPUP_OK, XSTR( "Warning\nThis will cause all progress in your\ncurrent campaign to be lost", 110), Campaign_names[n]);
-	z = popup(PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_CANCEL, POPUP_OK, XSTR( "Warning\nThis will cause all progress in your\ncurrent campaign to be lost", 110));
+	z = popup_sync(PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_CANCEL, POPUP_OK, XSTR( "Warning\nThis will cause all progress in your\ncurrent campaign to be lost", 110));
 	if (z == 1) {
 		int len = strlen(Campaign_file_names[n]) + 5;
 		filename = (char *) malloc(len);

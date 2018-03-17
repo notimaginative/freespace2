@@ -219,8 +219,16 @@ void UI_DOT_SLIDER_NEW::process(int focus)
 	button.process(focus);
 	if (button.button_down() || button.pressed() || mouse_captured()) {
 		capture_mouse();  // while we are changing level, ignore all other buttons
-		
-		pos = (ui_mouse.x - x) / dot_width;		
+
+		pos = (ui_mouse.x - x) / dot_width;
+
+#ifdef MAKE_FS1
+		// hack to deal with some sliders that have ten
+		// positions but eleven frames
+		if (has_end_buttons && (num_pos == 11)) {
+			++pos;
+		}
+#endif
 
 		if (pos < 0){
 			pos = 0;

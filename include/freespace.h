@@ -228,7 +228,7 @@ typedef struct fs_builtin_mission {
 // mission management -------------------------------------------------
 
 // loads in the currently selected mission
-int game_start_mission();		
+extern "C" int game_start_mission();
 
 // shutdown a mission
 void game_level_close();

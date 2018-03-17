@@ -6,6 +6,8 @@
  * the source.
  */
 
+#include <exception>
+
 #include "pstypes.h"
 
 #ifdef PLAT_UNIX
@@ -17,10 +19,10 @@
 #endif
 
 
-extern int game_main(const char *szCmdLine);
+extern "C" int game_main(const char *szCmdLine);
 
 
-#ifdef PLAT_UNIX
+#if defined(PLAT_UNIX) && !defined(__EMSCRIPTEN__)
 static void daemonize()
 {
 	pid_t pid = fork();
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
 	int len = 0;
 	int retr = 0;
 
-#ifdef PLAT_UNIX
+#if defined(PLAT_UNIX) && !defined(__EMSCRIPTEN__)
 	// if we are standalone headless, daemonize
 	bool daemon = false;
 	bool standalone = false;
@@ -121,6 +123,8 @@ int main(int argc, char *argv[])
 
 	try {
 		retr = game_main(argptr);
+	} catch(const std::exception &e) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", e.what(), NULL);
 	} catch(...) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Exception caught in main()!", NULL);
 	}

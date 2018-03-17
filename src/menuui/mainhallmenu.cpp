@@ -709,7 +709,7 @@ int main_hall_multi_stats_check()
 
 	if (Player->save_flags & PLAYER_FLAGS_USING_LOCAL_STATS) {
 		if (Multi_options_g.pxo == 1) {
-			int rc = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing non-PXO games with this pilot. If you play PXO missions, your locally-stored statistics will be lost in favor of the PXO-only stats", -1));
+			int rc = popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing non-PXO games with this pilot. If you play PXO missions, your locally-stored statistics will be lost in favor of the PXO-only stats", -1));
 
 			if (rc == 1) {
 				Player->save_flags &= ~PLAYER_FLAGS_USING_LOCAL_STATS;
@@ -720,7 +720,7 @@ int main_hall_multi_stats_check()
 		}
 	} else if (Player->save_flags & PLAYER_FLAGS_USING_PXO_STATS) {
 		if (Multi_options_g.pxo == 0) {
-			int rc = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing PXO games with this pilot. If you play non-PXO missions, the statistics the pilot accumulates will not be sent to the PXO servers. Only missions played on PXO will do this", -1));
+			int rc = popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR("&Back", 995), XSTR("&Continue",780), XSTR("Warning\n\nYou have been playing PXO games with this pilot. If you play non-PXO missions, the statistics the pilot accumulates will not be sent to the PXO servers. Only missions played on PXO will do this", -1));
 
 			if (rc == 1) {
 				Player->save_flags &= ~PLAYER_FLAGS_USING_PXO_STATS;
@@ -829,16 +829,21 @@ void main_hall_blit_table_status()
 	gr_line(Mh_weapon_table_status[gr_screen.res][0], Mh_weapon_table_status[gr_screen.res][1], Mh_weapon_table_status[gr_screen.res][0], Mh_ship_table_status[gr_screen.res][1]);
 }
 
+static void campaign_cheat_callback(int choice)
+{
+	popup_done();
+
+	// yay
+	if (choice == 0) {
+		const char *name = popup_get_input_text();
+		mission_campaign_jump_to_mission(name);
+	}
+}
+
 // bash the player to a specific mission in a campaign
 void main_hall_campaign_cheat()
 {
-	char *ret = popup_input(0, XSTR("Enter mission name.\n\n* This will destroy all legitimate progress in this campaign. *", -1));
-
-	// yay
-	if(ret != NULL) {
-		// strcpy(Main_hall_campaign_cheat, ret);		
-		mission_campaign_jump_to_mission(ret);
-	}
+	popup_input(campaign_cheat_callback, 0, XSTR("Enter mission name.\n\n* This will destroy all legitimate progress in this campaign. *", -1));
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -1031,26 +1036,47 @@ void main_hall_init(int main_hall_num)
 	}
 }
 
-void main_hall_exit_game()
-{
 #if defined(NDEBUG) || defined(INTERPLAYQA)
-	int choice;
+static void main_hall_exit_game_callback(int choice)
+{
+	popup_done();
 
-	// stop music first
-	main_hall_stop_music();
-	main_hall_stop_ambient();
-	choice = popup( PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Game?", 365));
-	if ( choice == 1 ) {
+	if (choice == 1) {
 		gameseq_post_event(GS_EVENT_QUIT_GAME);
 	} else {
 		main_hall_start_music();
 		main_hall_start_ambient();
 	}
+}
+#endif
+
+void main_hall_exit_game()
+{
+#if defined(NDEBUG) || defined(INTERPLAYQA)
+	// stop music first
+	main_hall_stop_music();
+	main_hall_stop_ambient();
+
+	popup_callback(main_hall_exit_game_callback, PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Game?", 365));
 #else
 	gameseq_post_event(GS_EVENT_QUIT_GAME);
 #endif
 }
 
+#if defined(FS2_DEMO) || defined(FS1_DEMO)
+static void main_hall_reset_campaign_callback(int choice)
+{
+	popup_done();
+
+	if (choice != 1) {
+		return;
+	}
+
+	mission_campaign_savefile_delete(Campaign.filename);
+	mission_campaign_load(Campaign.filename);
+	mission_campaign_next_mission();
+}
+#endif
 
 // do a frame for the main hall
 void main_hall_do(float frametime)
@@ -1164,16 +1190,9 @@ void main_hall_do(float frametime)
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
 			gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
-			{
-			//game_feature_not_in_demo_popup();
-			int reset_campaign = popup(PF_USE_AFFIRMATIVE_ICON|PF_BODY_BIG, 2, "Exit", "Restart Campaign", "Campaign Room only available in full version. However, you may restart the campaign.");
-			if (reset_campaign == 1) {
-				mission_campaign_savefile_delete(Campaign.filename);
-				mission_campaign_load(Campaign.filename);
-				mission_campaign_next_mission();
-			}
-			}
 
+			//game_feature_not_in_demo_popup();
+			popup_callback(main_hall_reset_campaign_callback, PF_USE_AFFIRMATIVE_ICON|PF_BODY_BIG, 2, "Exit", "Restart Campaign", "Campaign Room only available in full version. However, you may restart the campaign.");
 #else
 			if(Player->flags & PLAYER_FLAGS_IS_MULTI){
 				gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
@@ -1189,7 +1208,7 @@ void main_hall_do(float frametime)
 
 		// clicked on the multiplayer region
 		case MULTIPLAYER_REGION:
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			game_feature_not_in_demo_popup();
 #else
 			if (Player->flags & PLAYER_FLAGS_IS_MULTI){
@@ -2287,24 +2306,24 @@ void main_hall_read_table()
 	Main_hall_defines[0][0].door_anim_coords[0][3] = 298;
 	Main_hall_defines[0][0].door_anim_coords[1][0] = 309;
 	Main_hall_defines[0][0].door_anim_coords[1][1] = 34;
-	Main_hall_defines[0][0].door_anim_coords[1][2] = 110;
-	Main_hall_defines[0][0].door_anim_coords[1][3] = 61;
+	Main_hall_defines[0][0].door_anim_coords[1][2] = 337;
+	Main_hall_defines[0][0].door_anim_coords[1][3] = 66;
 	Main_hall_defines[0][0].door_anim_coords[2][0] = 312;
 	Main_hall_defines[0][0].door_anim_coords[2][1] = 264;
-	Main_hall_defines[0][0].door_anim_coords[2][2] = 385;
-	Main_hall_defines[0][0].door_anim_coords[2][3] = 330;
+	Main_hall_defines[0][0].door_anim_coords[2][2] = 380;
+	Main_hall_defines[0][0].door_anim_coords[2][3] = 298;
 	Main_hall_defines[0][0].door_anim_coords[3][0] = 457;
 	Main_hall_defines[0][0].door_anim_coords[3][1] = 34;
-	Main_hall_defines[0][0].door_anim_coords[3][2] = 404;
-	Main_hall_defines[0][0].door_anim_coords[3][3] = 367;
+	Main_hall_defines[0][0].door_anim_coords[3][2] = 560;
+	Main_hall_defines[0][0].door_anim_coords[3][3] = 105;
 	Main_hall_defines[0][0].door_anim_coords[4][0] = 530;
 	Main_hall_defines[0][0].door_anim_coords[4][1] = 206;
-	Main_hall_defines[0][0].door_anim_coords[4][2] = 174;
-	Main_hall_defines[0][0].door_anim_coords[4][3] = 412;
+	Main_hall_defines[0][0].door_anim_coords[4][2] = 575;
+	Main_hall_defines[0][0].door_anim_coords[4][3] = 290;
 	Main_hall_defines[0][0].door_anim_coords[5][0] = 305;
 	Main_hall_defines[0][0].door_anim_coords[5][1] = 133;
-	Main_hall_defines[0][0].door_anim_coords[5][2] = 385;
-	Main_hall_defines[0][0].door_anim_coords[5][3] = 330;
+	Main_hall_defines[0][0].door_anim_coords[5][2] = 356;
+	Main_hall_defines[0][0].door_anim_coords[5][3] = 172;
 	Main_hall_defines[0][0].door_sounds[0][0] = 23;
 	Main_hall_defines[0][0].door_sounds[0][1] = 24;
 	Main_hall_defines[0][0].door_sounds[1][0] = 23;
@@ -2429,24 +2448,24 @@ void main_hall_read_table()
 	Main_hall_defines[0][1].door_anim_coords[0][3] = 295;
 	Main_hall_defines[0][1].door_anim_coords[1][0] = 296;
 	Main_hall_defines[0][1].door_anim_coords[1][1] = 278;
-	Main_hall_defines[0][1].door_anim_coords[1][2] = 331;
-	Main_hall_defines[0][1].door_anim_coords[1][3] = 209;
+	Main_hall_defines[0][1].door_anim_coords[1][2] = 357;
+	Main_hall_defines[0][1].door_anim_coords[1][3] = 311;
 	Main_hall_defines[0][1].door_anim_coords[2][0] = 423;
 	Main_hall_defines[0][1].door_anim_coords[2][1] = 138;
-	Main_hall_defines[0][1].door_anim_coords[2][2] = 531;
-	Main_hall_defines[0][1].door_anim_coords[2][3] = 240;
+	Main_hall_defines[0][1].door_anim_coords[2][2] = 527;
+	Main_hall_defines[0][1].door_anim_coords[2][3] = 203;
 	Main_hall_defines[0][1].door_anim_coords[3][0] = 363;
 	Main_hall_defines[0][1].door_anim_coords[3][1] = 187;
-	Main_hall_defines[0][1].door_anim_coords[3][2] = 395;
-	Main_hall_defines[0][1].door_anim_coords[3][3] = 218;
+	Main_hall_defines[0][1].door_anim_coords[3][2] = 384;
+	Main_hall_defines[0][1].door_anim_coords[3][3] = 210;
 	Main_hall_defines[0][1].door_anim_coords[4][0] = 47;
 	Main_hall_defines[0][1].door_anim_coords[4][1] = 307;
-	Main_hall_defines[0][1].door_anim_coords[4][2] = 101;
+	Main_hall_defines[0][1].door_anim_coords[4][2] = 108;
 	Main_hall_defines[0][1].door_anim_coords[4][3] = 342;
 	Main_hall_defines[0][1].door_anim_coords[5][0] = 325;
 	Main_hall_defines[0][1].door_anim_coords[5][1] = 311;
-	Main_hall_defines[0][1].door_anim_coords[5][2] = 362;
-	Main_hall_defines[0][1].door_anim_coords[5][3] = 371;
+	Main_hall_defines[0][1].door_anim_coords[5][2] = 423;
+	Main_hall_defines[0][1].door_anim_coords[5][3] = 362;
 	Main_hall_defines[0][1].door_sounds[0][0] = 23;
 	Main_hall_defines[0][1].door_sounds[0][1] = 24;
 	Main_hall_defines[0][1].door_sounds[1][0] = 23;

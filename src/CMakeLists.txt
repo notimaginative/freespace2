@@ -355,6 +355,15 @@ set(cfilearchiver_SOURCE
 )
 
 #
+# CFILEUTIL: work with VP file archives
+#
+
+set(cfileutil_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/cfileutil/cfileutil.cpp
+  PARENT_SCOPE
+)
+
+#
 # CRYPTSTRING: string encryption (for embedded cheat codes)
 #
 

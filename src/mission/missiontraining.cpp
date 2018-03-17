@@ -798,11 +798,23 @@ char *translate_msg_token(char *str, const int max_len)
 	return NULL;
 }
 
+static void translate_tokens_callback(int choice)
+{
+	popup_done();
+
+	if (choice) {
+		// abort the mission
+		gameseq_post_event(GS_EVENT_END_GAME);
+	} else {
+		// goto control config screen to bind the control
+		gameseq_post_event(GS_EVENT_CONTROL_CONFIG);
+	}
+}
+
 // translates all special tokens in a message, producing the new finalized message to be displayed
 void message_translate_tokens(char *buf, const int max_buflen, char *text)
 {
 	char temp[40], *toke1, *toke2, *ptr;
-	int r;
 	int len;
 
 	*buf = 0;
@@ -825,16 +837,9 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 			if (ptr) {  // was key translated properly?
 				if (!SDL_strcasecmp(ptr, NOX("none")) && (Training_bind_warning != Missiontime)) {
 					if ( The_mission.game_type & MISSION_TYPE_TRAINING ) {
-						r = popup(PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR( "&Bind Control", 424), XSTR( "&Abort mission", 425),
+						popup_callback(translate_tokens_callback, PF_TITLE_BIG | PF_TITLE_RED, 2, XSTR( "&Bind Control", 424), XSTR( "&Abort mission", 425),
 							XSTR( "Warning\nYou have no control bound to the action \"%s\".  You must do so before you can continue with your training.", 426),
 							XSTR(Control_config[Failed_key_index].text, CONTROL_CONFIG_XSTR + Failed_key_index));
-
-						if (r) {  // do they want to abort the mission?
-							gameseq_post_event(GS_EVENT_END_GAME);
-							return;
-						}
-
-						gameseq_post_event(GS_EVENT_CONTROL_CONFIG);  // goto control config screen to bind the control
 					}
 				}
 

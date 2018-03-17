@@ -104,6 +104,11 @@ find_library(OPENAL_LIBRARY
 
 unset(_OpenAL_ARCH_DIR)
 
+if(EMSCRIPTEN)
+	set(OPENAL_LIBRARY "nul" CACHE STRING "emscripten override" FORCE)
+	set(OPENAL_INCLUDE_DIR "${CMAKE_SYSTEM_INCLUDE_PATH}/AL" CACHE STRING "emscripten override" FORCE)
+endif()
+
 # handle the QUIETLY and REQUIRED arguments and set OPENAL_FOUND to TRUE if
 # all listed variables are TRUE
 include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)

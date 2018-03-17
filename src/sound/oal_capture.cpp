@@ -13,6 +13,7 @@
 #include "oal.h"
 #include "osregistry.h"
 
+#ifndef __EMSCRIPTEN__
 
 static int OAL_capture_recording = 0;
 
@@ -31,13 +32,16 @@ static capture_buffer Capture;
 static ALCdevice *al_capture_device = NULL;
 static std::string CaptureDevice;
 
+#endif
 
 void oal_capture_release_buffer()
 {
+#ifndef __EMSCRIPTEN__
 	if (al_capture_device != NULL) {
 		alcCaptureCloseDevice(al_capture_device);
 		al_capture_device = NULL;
 	}
+#endif
 }
 
 // create a capture buffer with the specified format
@@ -45,6 +49,7 @@ void oal_capture_release_buffer()
 //			!0	->		error creating the buffer
 int oal_capture_create_buffer(int freq, int bits_per_sample, int nchannels, int nseconds)
 {
+#ifndef __EMSCRIPTEN__
 	ALenum al_format = AL_FORMAT_MONO8;
 	ALsizei buf_size = freq * nseconds;
 
@@ -92,10 +97,14 @@ int oal_capture_create_buffer(int freq, int bits_per_sample, int nchannels, int 
 	Capture.block_align = (nchannels * bits_per_sample) / 8;
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 void oal_capture_init()
 {
+#ifndef __EMSCRIPTEN__
 	const char *ptr = NULL;
 	ALCdevice *tdevice = NULL;
 
@@ -136,16 +145,22 @@ void oal_capture_init()
 	alcCaptureStop(tdevice);
 
 	alcCaptureCloseDevice(tdevice);
+#endif
 }
 
 int oal_capture_supported()
 {
+#ifndef __EMSCRIPTEN__
 	return oal_is_initted();
+#else
+	return 0;
+#endif
 }
 
 // start recording into the buffer
 int oal_capture_start_record()
 {
+#ifndef __EMSCRIPTEN__
 	if ( !oal_is_initted() ) {
 		return -1;
 	}
@@ -161,11 +176,15 @@ int oal_capture_start_record()
 //	nprintf(("Alan","RTVOICE => start record\n"));
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 // stop recording into the buffer
 int oal_capture_stop_record()
 {
+#ifndef __EMSCRIPTEN__
 	if ( !oal_is_initted() ) {
 		return -1;
 	}
@@ -181,21 +200,27 @@ int oal_capture_stop_record()
 //	nprintf(("Alan","RTVOICE => stop record\n"));
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 void oal_capture_close()
 {
+#ifndef __EMSCRIPTEN__
 	oal_capture_stop_record();
 
 	if (al_capture_device != NULL) {
 		alcCaptureCloseDevice(al_capture_device);
 		al_capture_device = NULL;
 	}
+#endif
 }
 
 // return the max buffer size
 int oal_capture_max_buffersize()
 {
+#ifndef __EMSCRIPTEN__
 	if ( !oal_is_initted() ) {
 		return 0;
 	}
@@ -209,11 +234,15 @@ int oal_capture_max_buffersize()
 	}
 
 	return (num_samples * Capture.block_align);
+#else
+	return 0;
+#endif
 }
 
 // retrieve the recorded voice data
 int oal_capture_get_raw_data(ubyte *outbuf, uint max_size)
 {
+#ifndef __EMSCRIPTEN__
 	if ( !oal_is_initted() ) {
 		return 0;
 	}
@@ -239,4 +268,7 @@ int oal_capture_get_raw_data(ubyte *outbuf, uint max_size)
 	}
 
 	return (int)max_buf_size * Capture.block_align;
+#else
+	return 0;
+#endif
 }

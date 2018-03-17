@@ -2500,10 +2500,10 @@ int multi_join_warn_update_low(int code)
 {
 	switch(code){
 	case CW_CODE_OK:
-		return popup(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),LOW_WARN_TEXT);
+		return popup_sync(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),LOW_WARN_TEXT);
 
 	case CW_CODE_INFO:
-		return popup(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),LOW_INFO_TEXT);
+		return popup_sync(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),LOW_INFO_TEXT);
 	}
 
 	return CW_CODE_CANCEL;
@@ -2513,10 +2513,10 @@ int multi_join_warn_update_medium(int code)
 {
 	switch(code){
 	case CW_CODE_OK:
-		return popup(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),MED_WARN_TEXT);
+		return popup_sync(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),MED_WARN_TEXT);
 
 	case CW_CODE_INFO:
-		return popup(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),MED_INFO_TEXT);
+		return popup_sync(0,3,XSTR("&Cancel",779),XSTR("&Continue",780),XSTR("&More info",781),MED_INFO_TEXT);
 	}
 
 	return CW_CODE_CANCEL;
@@ -5670,7 +5670,7 @@ int multi_create_ok_to_commit()
 		notify_of_hacked_ships_tbl = 0;
 	}
 	if(notify_of_hacked_ships_tbl){
-		if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("You or the server you are playing on has a hacked ships.tbl. Your stats will not be updated on PXO", 1051)) <= 0){
+		if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("You or the server you are playing on has a hacked ships.tbl. Your stats will not be updated on PXO", 1051)) <= 0){
 			return 0;
 		}
 	}
@@ -5690,7 +5690,7 @@ int multi_create_ok_to_commit()
 		notify_of_hacked_weapons_tbl = 0;
 	}
 	if(notify_of_hacked_weapons_tbl){
-		if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("You or the server you are playing on has a hacked weapons.tbl. Your stats will not be updated on PXO", 1052)) <= 0){
+		if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("You or the server you are playing on has a hacked weapons.tbl. Your stats will not be updated on PXO", 1052)) <= 0){
 			return 0;
 		}
 	}
@@ -5729,20 +5729,20 @@ int multi_create_ok_to_commit()
 			// otherwise, warn the players that stats will not saved
 			else {
 				// if this is squad war, don't allow it to continue			
-				if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
+				if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
 					return 0;
 				}
 			}
 #else
 			// warn the players that stats will not saved
-			if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
+			if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
 				return 0;
 			}
 #endif
 		}
 		// non-pxo, just give a notice
 		else {
-			if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files", 1274)) <= 0){
+			if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files", 1274)) <= 0){
 				return 0;
 			}
 		}
@@ -5797,7 +5797,7 @@ int multi_create_ok_to_commit()
 	if(MULTI_IS_TRACKER_GAME){
 #ifdef PXO_CHECK_VALID_MISSIONS		
 		if((Multi_create_file_list == Multi_create_mission_list) && (Multi_create_file_list[abs_index].valid_status != MVALID_STATUS_VALID)){
-			if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("You have selected a mission which is either invalid or unknown to PXO. Your stats will not be saved if you continue",996)) <= 0){
+			if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("You have selected a mission which is either invalid or unknown to PXO. Your stats will not be saved if you continue",996)) <= 0){
 				return 0;
 			}
 		}		
@@ -5807,7 +5807,7 @@ int multi_create_ok_to_commit()
 		if(!(Netgame.type_flags & NG_TYPE_SW)){
 			// if he is playing by himself, tell him stats will not be accepted
 			if(multi_num_players() == 1){
-				if(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("Warning\n\nIf you start a PXO mission by yourself, your stats will not be updated", 997)) <= 0){
+				if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("Warning\n\nIf you start a PXO mission by yourself, your stats will not be updated", 997)) <= 0){
 					return 0;
 				}
 			}
@@ -9298,6 +9298,16 @@ void multi_debrief_close()
 	}
 }
 
+static void set_mission_loop_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		Campaign.loop_enabled = 1;
+		Campaign.next_mission = Campaign.loop_mission;
+	}
+}
+
 // handle optional mission loop
 void multi_maybe_set_mission_loop()
 {
@@ -9313,11 +9323,7 @@ void multi_maybe_set_mission_loop()
 		char buffer[512];
 		debrief_assemble_optional_mission_popup_text(buffer, SDL_arraysize(buffer), Campaign.missions[cur].mission_loop_desc);
 
-		int choice = popup(0 , 2, POPUP_NO, POPUP_YES, buffer);
-		if (choice == 1) {
-			Campaign.loop_enabled = 1;
-			Campaign.next_mission = Campaign.loop_mission;
-		}
+		popup_callback(set_mission_loop_callback, 0 , 2, POPUP_NO, POPUP_YES, buffer);
 	}
 }
 
@@ -9370,7 +9376,7 @@ void multi_debrief_accept_hit()
 
 				multi_maybe_set_mission_loop();
 			} else {
-				int res = popup(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Continue Netgame)\nDo you wish to accept these stats?",846));
+				int res = popup_sync(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Continue Netgame)\nDo you wish to accept these stats?",846));
 		
 				// evaluate the result
 				switch(res){
@@ -9401,11 +9407,31 @@ void multi_debrief_accept_hit()
 	}
 }
 
+static void debrief_esc_hit_host_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		multi_debrief_stats_accept();
+		multi_quit_game(PROMPT_NONE);
+	} else if (choice == 2) {
+		multi_debrief_stats_toss();
+		multi_quit_game(PROMPT_NONE);
+	}
+}
+
+static void debrief_esc_hit_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		multi_quit_game(PROMPT_NONE);
+	}
+}
+
 // handle all cases for when the escape key is hit in a multiplayer debriefing
 void multi_debrief_esc_hit()
 {
-	int res;
-
 	// if the server has left
 	if(Multi_debrief_server_left){
 		multi_quit_game(PROMPT_ALL);
@@ -9438,37 +9464,12 @@ void multi_debrief_esc_hit()
 
 			multi_quit_game(PROMPT_HOST);
 		} else {
-			res = popup(PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Exit Netgame)\nDo you wish to accept these stats?",847));
-		
-			// evaluate the result
-			switch(res){			
-			// undo the accept
-			case -1:
-			case 0:				
-				break;
-
-			// set the accept code to be "not accepting"
-			case 2 :
-				multi_debrief_stats_toss();
-				multi_quit_game(PROMPT_NONE);
-				break;
-				
-			// accept the stats and continue
-			case 1 :
-				multi_debrief_stats_accept();
-				multi_quit_game(PROMPT_NONE);
-				break;						
-			}		
+			popup_callback(debrief_esc_hit_host_callback, PF_TITLE | PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_IGNORE_ESC,3,XSTR("&Cancel",779),XSTR("&Accept",844),XSTR("&Toss",845),XSTR("(Exit Netgame)\nDo you wish to accept these stats?",847));
 		}
 	} else {		
 		// if the stats haven't been accepted yet, or this is a tracker game
 		if((Multi_debrief_stats_accept_code == -1) && !(MULTI_IS_TRACKER_GAME)){
-			res = popup(PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON,2,XSTR("&Cancel",779),XSTR("&Leave",848),XSTR("Are you sure you want to leave the netgame before stats are stored?",849));
-
-			// evaluate the result
-			if(res == 1){
-				multi_quit_game(PROMPT_NONE);
-			}
+			popup_callback(debrief_esc_hit_callback, PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON,2,XSTR("&Cancel",779),XSTR("&Leave",848),XSTR("Are you sure you want to leave the netgame before stats are stored?",849));
 		}
 		// otherwise go through the normal endgame channels
 		else {

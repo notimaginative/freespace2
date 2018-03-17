@@ -147,20 +147,26 @@
 #define PF_WEB_CURSOR_1				(1<<27)		// button 1 will get web cursor
 #define PF_WEB_CURSOR_2				(1<<28)		// button 2 will get web cursor
 
-// input:	flags			=>		formatting specificatons (PF_... shown above)
+// input:		callback		=>		function to call on user action (popup done, etc.)
+//				flags			=>		formatting specificatons (PF_... shown above)
 //				nchoices		=>		number of choices popup has
 //				text_1		=>		text for first button
 //				...			=>		
 //				text_n		=>		text for last button
 //				msg text		=>		text msg for popup (can be of form "%s",pl->text)
 //
-// exit: choice selected (0..nchoices-1)
-//			will return -1 if there was an error or popup was aborted
-//
 // typical usage:
+//	popup(NULL, 0, 2, POPUP_YES, POPUP_NO, "Hey %s, do you want to quit", pl->callsign);
 //
-//	rval = popup(0, 2, POPUP_YES, POPUP_NO, "Hey %s, do you want to quit", pl->callsign);
-int popup(int flags, int nchoices, ... );
+// this is an asynchronous call
+void popup_callback(void(*callback)(int), int flags, int nchoices, ... );
+
+// same, but without a callback
+// use for info/warnings popups
+void popup(int flags, int nchoices, ...);
+
+// synchronous popup
+int popup_sync(int flags, int nchoices, ...);
 
 // popup with cancel button and conditional funcrion.
 // input:   condition   =>   function to call every frame, if condition() returns FALSE, the popup
@@ -186,9 +192,12 @@ int popup(int flags, int nchoices, ... );
 int popup_till_condition( int(*condition)() , ...);
 
 // popup to return the value from an input box
-char *popup_input(int flags, const char *caption, int max_output_len = -1);
+void popup_input(void (*callback)(int), int flags, const char *caption, int max_output_len = -1);
+const char *popup_input_sync(int flags, const char *caption, int max_output_len = -1);
 
 int popup_active();
+
+const char *popup_get_input_text();
 
 int popup_running_state();
 
@@ -197,6 +206,9 @@ void popup_kill_any_active();
 
 // change the text inside of the popup 
 void popup_change_text(const char *new_text);
+
+void popup_do_frame();
+void popup_done();
 
 #endif
 

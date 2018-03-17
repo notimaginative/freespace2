@@ -92,13 +92,13 @@ int Pofview_running = 0;
 int Fonttool_running = 0;
 char *Game_CDROM_dir;
 void game_stop_looped_sounds() {}
-void game_enter_state(int, int){}
+extern "C" void game_enter_state(int, int){}
 void game_leave_state(int, int){}
 void game_do_state(int){}
 int set_cdrom_path(int){return 0;}
 int find_freespace_cd(char*){return 0;}
 void game_flush(){}
-void game_process_event(int, int);
+extern "C" void game_process_event(int, int);
 int Game_skill_level;
 float flFrametime;
 int game_check_key(){return 0;}
@@ -115,7 +115,7 @@ void game_process_event(int, int){}
 void game_increase_skill_level(){}
 int Warpout_forced;
 float Warpout_time;
-int game_start_mission(){return 0;}
+extern "C" int game_start_mission(){return 0;}
 void game_level_close(){}
 void game_whack_apply(float, float){}
 void game_flash(float, float, float){}

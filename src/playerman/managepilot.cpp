@@ -1005,8 +1005,9 @@ int read_pilot_file(const char *callsign, int single, player *p)
 
 #ifdef FS1_DEMO
 	// HACK - FIXME!!!
+	// FS1 Demo has a chunk of data, 57 bytes zero'd, which doesn't appear to
+	// change. No idea what it's for, so this is just for compatabilty sake.
 	char blank[57];
-	SDL_zero(blank);
 	cfread(blank, SDL_arraysize(blank), 1, file);
 #endif
 
@@ -1328,12 +1329,16 @@ int write_pilot_file_core(player *p)
 	}
 
 	red_alert_write_wingman_status(file);
+
 #ifdef FS1_DEMO
 	// HACK - FIXME!!!
+	// FS1 Demo has a chunk of data, 57 bytes zero'd, which doesn't appear to
+	// change. No idea what it's for, so this is just for compatabilty sake.
 	char blank[57];
 	SDL_zero(blank);
 	cfwrite(blank, SDL_arraysize(blank), 1, file);
 #endif
+
 	pilot_write_techroom_data(file);
 
 	// store auto-advance pref
@@ -1350,35 +1355,41 @@ int write_pilot_file_core(player *p)
 	return errno;
 }
 
-int write_pilot_file(player *the_player)
+static player *callback_player = NULL;
+static void error_writing_callback(int choice)
 {
-	int pilot_write_rval;
-	do {
-		// write_pilot_file_core returns 0 if ok, non-zero for error
-		pilot_write_rval = write_pilot_file_core(the_player);
+	popup_done();
 
-		// check with user if write not successful
-		if (pilot_write_rval) {
-			int popup_rval = popup(PF_TITLE_RED | PF_TITLE_BIG, 3, XSTR( "&Retry", 41), XSTR( "&Ignore", 42), XSTR( "&Quit Game", 43),
-				XSTR( "Warning\nFailed to save pilot file.  You may be out of disk space.  If so, you should press Alt-Tab, free up some disk space, then come back and choose retry.\n", 44) );
+	if (choice == 0) {
+		// retry
+		write_pilot_file(callback_player);
+	} else if (choice == 1) {
+		// ignore
+	} else {
+		// quit game
+		exit(1);
+	}
+}
 
-			// quit game popup return value (2)
-			if (popup_rval == 2) {
-				exit(1);
-			}
+void write_pilot_file(player *the_player)
+{
+	// save for later, in case of a retry
+	callback_player = the_player;
 
-			// _ignore_ popup return value (1) - don't save the file
-			if (popup_rval) {
-				return pilot_write_rval;
-			}
+	// write_pilot_file_core returns 0 if ok, non-zero for error
+	int rval = write_pilot_file_core(the_player);
 
-			// retry popup return value (0) - try again 
-		}
-
-	} while (pilot_write_rval);
-
-	// write successful
-	return 0;
+	// check with user if write not successful
+	if (rval) {
+		popup_callback(error_writing_callback, PF_TITLE_RED | PF_TITLE_BIG, 3, XSTR( "&Retry", 41), XSTR( "&Ignore", 42), XSTR( "&Quit Game", 43),
+			XSTR( "Warning\nFailed to save pilot file.  You may be out of disk space.  If so, you should press Alt-Tab, free up some disk space, then come back and choose retry.\n", 44) );
+	}
+#ifdef __EMSCRIPTEN__
+	else {
+		// sync files to persistent storage
+		EM_ASM( FS.syncfs(function(err) {}); );
+	}
+#endif
 }
 
 void write_stats_block(CFILE *file,scoring_struct *stats)
@@ -1681,7 +1692,7 @@ void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign,
 // 1 == ok to overwrite, 0 == not ok
 int pilot_verify_overwrite()
 {
-	return popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG, 2, XSTR( "&No", 47), XSTR( "&Yes", 48), XSTR( "Warning\nA duplicate pilot exists\nOverwrite?", 49));
+	return popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_TITLE_RED | PF_TITLE_BIG, 2, XSTR( "&No", 47), XSTR( "&Yes", 48), XSTR( "Warning\nA duplicate pilot exists\nOverwrite?", 49));
 }
 
 extern int Skip_packfile_search;  // located in CFileList.cpp

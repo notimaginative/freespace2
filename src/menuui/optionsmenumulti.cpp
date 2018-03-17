@@ -1295,13 +1295,20 @@ void options_multi_protocol_check_buttons()
 	}
 }
 
+#ifdef MAKE_FS1
+static void abort_game_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		gameseq_post_event(GS_EVENT_QUIT_GAME);
+	}
+}
+#endif
+
 // if a button was pressed
 void options_multi_protocol_button_pressed(int n)
 {
-#ifdef MAKE_FS1
-	int choice;
-#endif
-
 	switch(n){
 	// add an ip address
 	case OM_PRO_ADD_IP:
@@ -1480,9 +1487,7 @@ void options_multi_protocol_button_pressed(int n)
 #ifdef MAKE_FS1
 	case ABORT_GAME_BUTTON:
 		gamesnd_play_iface(SND_USER_SELECT);
-		choice = popup( PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR("Exit Game?", 374));
-		if ( choice == 1 )
-			gameseq_post_event(GS_EVENT_QUIT_GAME);
+		popup_callback(abort_game_callback, PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR("Exit Game?", 374));
 		break;
 #endif
 	}

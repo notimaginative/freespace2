@@ -661,7 +661,9 @@ void psnet_close()
 #endif
 
 	if ( TCP_socket != (int)INVALID_SOCKET ) {
+#ifndef __EMSCRIPTEN__
 		shutdown( TCP_socket, 1 );
+#endif
 		closesocket( TCP_socket );
 	}
 

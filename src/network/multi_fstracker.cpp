@@ -487,7 +487,7 @@ int multi_fs_tracker_validate(int show_error)
 			return 1;
 			
 		case MT_VALIDATE_TIMEOUT :
-			rval = popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_BODY_BIG,2,XSTR("&Abort",673),XSTR("&Retry",674),XSTR("Validation timed out",675));			
+			rval = popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON | PF_BODY_BIG,2,XSTR("&Abort",673),XSTR("&Retry",674),XSTR("Validation timed out",675));
 			
 			// if the user clicked abort, then leave. otherwise try again
 			if(rval == 0){

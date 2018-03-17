@@ -403,6 +403,7 @@
 #define GS_EVENT_CAMPAIGN_CHEAT					62		// skip to a mission in a campaign
 #define GS_EVENT_PXO							63
 #define GS_EVENT_PXO_HELP						64
+#define GS_EVENT_DEMO_UPSELL					65
 
 // IMPORTANT:  When you add a new event, update the initialization for GS_event_text[]
 //             which is done in GameSequence.cpp
@@ -464,6 +465,7 @@ extern const char *GS_event_text[];		// text description for the GS_EVENT_* #def
 #define GS_STATE_LOOP_BRIEF						48
 #define GS_STATE_PXO							49
 #define GS_STATE_PXO_HELP						50
+#define GS_STATE_DEMO_UPSELL					51
 
 
 // IMPORTANT:  When you add a new state, update the initialization for GS_state_text[]
@@ -475,12 +477,12 @@ extern const char *GS_state_text[];		// text description for the GS_STATE_* #def
 // function prototypes
 //
 void gameseq_init();
-int gameseq_process_events( void );		// returns current game state
+extern "C" int gameseq_process_events( void );		// returns current game state
 int gameseq_get_state( int depth = 0 );
 void gameseq_post_event( int event );
 int gameseq_get_event( void );
 
-void gameseq_set_state(int new_state, int override = 0);
+extern "C" void gameseq_set_state(int new_state, int override = 0);
 void gameseq_push_state( int new_state );
 void gameseq_pop_state( void );
 int gameseq_get_pushed_state();
@@ -489,9 +491,9 @@ void gameseq_pop_and_discard_state(void);
 
 
 // Called by the sequencing code when things happen.
-void game_process_event(int current_state, int event);
+extern "C" void game_process_event(int current_state, int event);
 void game_leave_state(int old_state,int new_state);
-void game_enter_state(int old_state,int new_state);
+extern "C" void game_enter_state(int old_state,int new_state);
 void game_do_state(int current_state);
 
 #endif /* __GAMESEQUENCE_H__ */

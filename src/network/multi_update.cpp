@@ -220,7 +220,7 @@ int multi_update_error_verifying()
 	SDL_snprintf(out_str, SDL_arraysize(out_str), "(%s)\n\n%s", Multi_update_error_string,
 				XSTR("There was an error verifying your version of Freespace, if you continue, you will not necessarily be up to date", 978));
 
-	switch(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Go back", 1524), XSTR("&Continue", 1525), out_str)){
+	switch(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Go back", 1524), XSTR("&Continue", 1525), out_str)){
 	// continue on in freespace like nothing happened
 	case 1:
 	case -1:
@@ -277,7 +277,7 @@ int multi_update_gobaby()
 
 		// earlier version - need to update
 		case 0:			
-			switch(popup(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, "&Update Later", "&Yes", XSTR("A new version of Freespace is available. You must update to the new version to play on PXO\n\nAuto update now?", 980))){
+			switch(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, "&Update Later", "&Yes", XSTR("A new version of Freespace is available. You must update to the new version to play on PXO\n\nAuto update now?", 980))){
 			// update later (go back to main hall for now
 			case 0 :
 			case -1:

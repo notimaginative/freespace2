@@ -332,7 +332,8 @@ const char *GS_event_text[] =
 	"GS_EVENT_LOOP_BRIEF",
 	"GS_EVENT_CAMPAIGN_CHEAT",
 	"GS_EVENT_PXO",
-	"GS_EVENT_PXO_HELP"
+	"GS_EVENT_PXO_HELP",
+	"GS_EVENT_DEMO_UPSELL"
 };
 //XSTR:ON
 
@@ -390,7 +391,8 @@ const char *GS_state_text[] =
 	"GS_STATE_END_DEMO",
 	"GS_STATE_LOOP_BRIEF",
 	"GS_STATE_PXO",
-	"GS_STATE_PXO_HELP"					// 50
+	"GS_STATE_PXO_HELP",				// 50
+	"GS_STATE_DEMO_UPSELL"
 };
 //XSTR:ON
 
@@ -454,6 +456,7 @@ int gameseq_get_depth()
 	return gs_current_stack;
 }
 
+extern "C"
 void gameseq_set_state(int new_state, int override)
 {
 	int event, old_state;
@@ -578,7 +581,7 @@ int gameseq_get_pushed_state()
 // Returns the current state.
 		// pull events game sequence events off of the queue.  Process one at a time
 		// based on the current state and the new event.
-
+extern "C"
 int gameseq_process_events()	
 {
 	int event, old_state;
@@ -594,7 +597,7 @@ int gameseq_process_events()
 		state_reentry--;
 		// break when state changes so that code will get called at
 		// least one frame for each state.
-		if (old_state != gs[gs_current_stack].current_state)
+		if ( !old_state || (old_state != gs[gs_current_stack].current_state) )
 			break;	
 	}
 

@@ -445,16 +445,16 @@ op_sliders Options_sliders[GR_NUM_RESOLUTIONS][NUM_OPTIONS_SLIDERS] = {
 #ifdef MAKE_FS1
 // slider, right arrow, left arrow
 // s(name), s(x), s(y), s(?), s(?), s(h), s(?), s(?), ra(name), ra(h), ra(x), ra(y), la(name), la(h), la(x), la(y)
-		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	18,	11,
+		op_sliders("OPa_09",	53,	160,	-1,	-1,	9,	20,	11,
 					"OPa_10",	10,	245,	159,
 					"OPa_08",	8,	29,		159),	// sound fx volume slider
-		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	18,	11,
+		op_sliders("OPa_17",	53,	195,	-1,	-1,	17,	20,	11,
 					"OPa_18",	18,	245,	194,
 					"OPa_16",	16,	29,		194),	// music volume slider
-		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	18,	11,
+		op_sliders("OPa_20",	53,	229,	-1,	-1,	20,	20,	11,
 					"OPa_21",	21,	245,	228,
 					"OPa_19",	19,	29,		228),	// voice volume slider
-		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity    
+		op_sliders("OPa_64",	358,	301,	-1,	-1,	64,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// mouse sensitivity
 		op_sliders("OPa_60",	358,	194,	-1,	-1,	60,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick sensitivity
 		op_sliders("OPa_61",	358,	226,	-1,	-1,	61,	20,	10,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1),	// joystick deadzone
 		op_sliders("OPa_11",	28,		285,	-1,	-1,	-1,	42,	5,	NULL,	-1,	-1,	-1,	NULL,	-1,	-1,	-1)		// skill
@@ -892,7 +892,7 @@ void options_tab_setup(int set_palette)
 	// do other special processing
 	switch (Tab) {
 		case MULTIPLAYER_TAB:
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			options_multi_select();
 #ifdef MAKE_FS1		
 			// need to hide the hud config and control config buttons
@@ -913,7 +913,7 @@ void options_tab_close()
 {
 	switch (Tab) {
 		case MULTIPLAYER_TAB:
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			options_multi_unselect();		
 #endif
 			break;
@@ -928,7 +928,7 @@ void options_change_tab(int n)
 {
 	int idx;
 
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 	if (n == MULTIPLAYER_TAB) {
 		game_feature_not_in_demo_popup();
 		return;
@@ -939,7 +939,7 @@ void options_change_tab(int n)
 		case MULTIPLAYER_TAB:
 			if ( !Options_multi_inited ) {
 				// init multiplayer
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 				options_multi_init(&Ui_window);
 				options_multi_unselect();
 #endif
@@ -1046,10 +1046,17 @@ void options_change_gamma(float delta)
 	gr_set_gamma(Freespace_gamma);
 }
 
+static void options_abort_game_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 1) {
+		gameseq_post_event(GS_EVENT_QUIT_GAME);
+	}
+}
+
 void options_button_pressed(int n)
 {
-	int choice;	
-
 	switch (n) {		
 		case OPTIONS_TAB:
 		case MULTIPLAYER_TAB:
@@ -1061,9 +1068,7 @@ void options_button_pressed(int n)
 
 		case ABORT_GAME_BUTTON:
 			gamesnd_play_iface(SND_USER_SELECT);
-			choice = popup( PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Game?", 374));
-			if ( choice == 1 )
-				gameseq_post_event(GS_EVENT_QUIT_GAME);
+			popup_callback(options_abort_game_callback, PF_NO_NETWORKING | PF_BODY_BIG, 2, POPUP_NO, POPUP_YES, XSTR( "Exit Game?", 374));
 			break;
 
 		case CONTROL_CONFIG_BUTTON:
@@ -1256,7 +1261,7 @@ void options_accept()
 {
 	// apply the selected multiplayer options
 	if ( Options_multi_inited ) {
-		#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+		#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 		options_multi_accept();
 		#endif
 	}
@@ -1416,7 +1421,7 @@ void options_menu_close()
 		Voice_vol_handle = -1;
 	}
 
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 	options_multi_close();
 #endif
 
@@ -1591,7 +1596,7 @@ void options_menu_do_frame(float frametime)
 	// do specific processing for the multiplayer tab
 	switch (Tab) {
 		case MULTIPLAYER_TAB:
-#if !defined(DEMO) && !defined(OEM_BUILD) // not for FS2_DEMO
+#if !defined(DEMO) && !defined(OEM_BUILD) && !defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			options_multi_do(k);
 #endif
 			break;

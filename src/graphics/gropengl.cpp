@@ -178,7 +178,9 @@ void gr_opengl_activate(int active)
 
 void gr_opengl_cleanup()
 {
+#ifdef LEGACY_GL
 	opengl1_cleanup();
+#endif
 	opengl2_cleanup();
 
 	opengl_free_render_buffer();
@@ -205,9 +207,15 @@ void gr_opengl_init()
 		Error(LOCATION, "Couldn't init SDL: %s", SDL_GetError());
 	}
 
+	Uint32 window_flags = SDL_WINDOW_OPENGL;
+
+#ifdef __EMSCRIPTEN__
+	window_flags |= SDL_WINDOW_RESIZABLE;
+#endif
+
 	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
 						SDL_WINDOWPOS_CENTERED,
-						gr_screen.max_w, gr_screen.max_h, SDL_WINDOW_OPENGL);
+						gr_screen.max_w, gr_screen.max_h, window_flags);
 
 	if ( !GL_window ) {
 		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
@@ -229,12 +237,14 @@ void gr_opengl_init()
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
-	int rc = 1;
+	// try GL 2 first, then fall back to legacy GL (if enabled)
+	int rc = opengl2_init();
 
-	// try GL 2 first, then fall back to GL 1
-	if ( !opengl2_init() ) {
+#ifdef LEGACY_GL
+	if ( !rc ) {
 		rc = opengl1_init();
 	}
+#endif
 
 	if ( !rc ) {
 		Error(LOCATION, "Unable to initialize OpenGL renderer!\n");
@@ -262,7 +272,10 @@ void gr_opengl_init()
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
 	if ( !Cmdline_window && (fullscreen || Cmdline_fullscreen) ) {
 		gr_force_fullscreen();
-		// poll for window events
+	}
+
+	// if fullscreen or using resizable window then poll for window events
+	if ( gr_screen.fullscreen || (window_flags & SDL_WINDOW_RESIZABLE) ) {
 		os_poll();
 	}
 

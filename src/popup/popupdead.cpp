@@ -573,6 +573,24 @@ int popupdead_skip_do_frame()
 }
 
 
+static void skip_mission_callback(int choice)
+{
+	popup_done();
+
+	if (choice == 0) {
+		// stay on this mission, so proceed to normal death popup
+		// in other words, do nothing.
+	} else if (choice == 1) {
+		// skip this mission
+		Popupdead_active = 0;
+		mission_campaign_skip_to_next();
+		gameseq_post_event(GS_EVENT_START_GAME);
+	} else if (choice == 2) {
+		// don't show this popup again
+		Player->show_skip_popup = 0;
+	}
+}
+
 // Called once per frame to run the dead popup
 int popupdead_do_frame(float frametime)
 {
@@ -603,26 +621,10 @@ int popupdead_do_frame(float frametime)
 
 	// maybe show skip mission popup
 	if ((!Popupdead_skip_already_shown) && (Player->show_skip_popup) && (Game_mode & GM_NORMAL) && (Game_mode & GM_CAMPAIGN_MODE) && (Player->failures_this_session >= PLAYER_MISSION_FAILURE_LIMIT)) {
-		int popup_choice = popup(0, 3, XSTR("Do Not Skip This Mission", 1473),
-												 XSTR("Advance To The Next Mission", 1474),
-												 XSTR("Don't Show Me This Again", 1475),
-												 XSTR("You have failed this mission five times.  If you like, you may advance to the next mission.", 1472) );
-		switch (popup_choice) {
-		case 0:
-			// stay on this mission, so proceed to normal death popup
-			// in other words, do nothing.
-			break;
-		case 1:
-			// skip this mission
-			Popupdead_active = 0;
-			mission_campaign_skip_to_next();
-			gameseq_post_event(GS_EVENT_START_GAME);
-			return -1;
-		case 2:
-			// dont show this again
-			Player->show_skip_popup = 0;
-			break;
-		}
+		popup_callback(skip_mission_callback, 0, 3, XSTR("Do Not Skip This Mission", 1473),
+					XSTR("Advance To The Next Mission", 1474),
+					XSTR("Don't Show Me This Again", 1475),
+					XSTR("You have failed this mission five times.  If you like, you may advance to the next mission.", 1472) );
 
 		Popupdead_skip_already_shown = 1;
 	}

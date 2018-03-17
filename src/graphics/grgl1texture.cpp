@@ -6,6 +6,8 @@
  * the source.
  */
 
+#ifdef LEGACY_GL
+
 #include "SDL_opengl.h"
 
 #include "pstypes.h"
@@ -829,3 +831,5 @@ void gr_opengl1_release_texture(int handle)
 		}
 	}
 }
+
+#endif

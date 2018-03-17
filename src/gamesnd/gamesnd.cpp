@@ -205,6 +205,7 @@ void gamesnd_play_iface(int n)
 // The method currently used is to load all those sounds that have the hardware flag
 // set.  This works well since we don't want to try and load hardware sounds in on the
 // fly (too slow).
+extern "C"
 void gamesnd_preload_common_sounds()
 {
 	int		i;

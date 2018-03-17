@@ -80,6 +80,7 @@ extern void message_pagein_mission_messages();
 
 // Pages in all the texutures for the currently
 // loaded mission.  Call game_busy() occasionally...
+extern "C"
 void level_page_in()
 {
 

@@ -146,7 +146,7 @@ int is_pilot_multi(player *p);	// pass a pointer to a player struct
 
 int verify_pilot_file(const char *filename, int single = 1, int *rank = NULL);
 int read_pilot_file(const char* callsign, int single = 1, player *p = NULL);
-int write_pilot_file(player *p = NULL);
+void write_pilot_file(player *p = NULL);
 
 // function to get default pilot callsign for game
 void choose_pilot();

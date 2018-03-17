@@ -905,18 +905,14 @@ void barracks_next_squad_pic()
 	gamesnd_play_iface(SND_SCROLL);
 }
 
-void barracks_delete_pilot()
+static void barracks_delete_pilot_callback(int choice)
 {
 	char buf[MAX_FILENAME_LEN];
 	int active = 0;
 
-	if (!Num_pilots) {
-		gamesnd_play_iface(SND_GENERAL_FAIL);
-		return;
-	}
+	popup_done();
 
-	int popup_rval = popup(PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_NO, POPUP_YES, XSTR( "Warning!\n\nAre you sure you wish to delete this pilot?", 65));
-	if (popup_rval != 1) {
+	if (choice != 1) {
 		return;
 	}
 
@@ -947,6 +943,16 @@ void barracks_delete_pilot()
 	gamesnd_play_iface(SND_USER_SELECT);
 }
 
+void barracks_delete_pilot()
+{
+	if (!Num_pilots) {
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+		return;
+	}
+
+	popup_callback(barracks_delete_pilot_callback, PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_NO, POPUP_YES, XSTR( "Warning!\n\nAre you sure you wish to delete this pilot?", 65));
+}
+
 // Filter out pilots of wrong type (which shouldn't be in the directory we are checking, but just to be safe..)
 int barracks_pilot_filter(const char *filename)
 {
@@ -967,7 +973,7 @@ int barracks_pilot_filter(const char *filename)
 void barracks_squad_change_popup()
 {
 	// show a popup
-	popup( PF_USE_AFFIRMATIVE_ICON | PF_NO_NETWORKING, 1, POPUP_OK, XSTR("You cannot change your squadron in Single Player mode.", 1445));
+	popup(PF_USE_AFFIRMATIVE_ICON | PF_NO_NETWORKING, 1, POPUP_OK, XSTR("You cannot change your squadron in Single Player mode.", 1445));
 }
 
 
@@ -1030,6 +1036,40 @@ void barracks_init_player_stuff(int mode)
 	barracks_new_pilot_selected();
 
 }
+
+#if !(defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__))
+static void barracks_convert_pilot_callback(int choice)
+{
+	char old_pic[256] = "";
+	char old_squad_pic[256] = "";
+	char old_squad[256] = "";
+
+	popup_done();
+
+	if (choice != 1) {
+		return;
+	}
+
+	SDL_strlcpy(old_pic, Cur_pilot->image_filename, SDL_arraysize(old_pic));
+	SDL_strlcpy(old_squad_pic, Cur_pilot->squad_filename, SDL_arraysize(old_squad_pic));
+	SDL_strlcpy(old_squad, Cur_pilot->squad_name, SDL_arraysize(old_squad));
+	init_new_pilot(Cur_pilot, 0);
+	SDL_strlcpy(Cur_pilot->image_filename, old_pic, SDL_arraysize(Cur_pilot->image_filename));
+	SDL_strlcpy(Cur_pilot->squad_filename, old_squad_pic, SDL_arraysize(Cur_pilot->squad_filename));
+	SDL_strlcpy(Cur_pilot->squad_name, old_squad, SDL_arraysize(Cur_pilot->squad_name));
+	if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE) {
+		Cur_pilot->flags |= PLAYER_FLAGS_IS_MULTI;
+		write_pilot_file();
+		barracks_init_player_stuff(PLAYER_SELECT_MODE_MULTI);
+
+	} else {
+		write_pilot_file();
+		barracks_init_player_stuff(PLAYER_SELECT_MODE_SINGLE);
+	}
+
+	gamesnd_play_iface(SND_USER_SELECT);
+}
+#endif
 
 void barracks_button_pressed(int n)
 {
@@ -1110,15 +1150,11 @@ void barracks_button_pressed(int n)
 			break;
 
 		case B_PILOT_CONVERT_BUTTON: {
-#if defined(DEMO) || defined(OEM_BUILD)
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__)
 			game_feature_not_in_demo_popup();
 #else
 			const char *str;
 			char temp[256];
-			char old_pic[256] = "";
-			char old_squad_pic[256] = "";
-			char old_squad[256] = "";
-			int z;
 
 			if (!barracks_new_pilot_selected()) {
 				if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE)
@@ -1128,30 +1164,8 @@ void barracks_button_pressed(int n)
 
 				SDL_snprintf(temp, SDL_arraysize(temp), XSTR( "This will overwrite your %s pilot.  Proceed?", 70), str);
 				if (!verify_pilot_file(Cur_pilot->callsign, Player_sel_mode == PLAYER_SELECT_MODE_MULTI)) {
-					z = popup(0, 2, POPUP_CANCEL, POPUP_OK, temp);
-					if (z != 1)
-						break;
+					popup_callback(barracks_convert_pilot_callback, 0, 2, POPUP_CANCEL, POPUP_OK, temp);
 				}
-
-				SDL_strlcpy(old_pic, Cur_pilot->image_filename, SDL_arraysize(old_pic));
-				SDL_strlcpy(old_squad_pic, Cur_pilot->squad_filename, SDL_arraysize(old_squad_pic));
-				SDL_strlcpy(old_squad, Cur_pilot->squad_name, SDL_arraysize(old_squad));
-				init_new_pilot(Cur_pilot, 0);
-				SDL_strlcpy(Cur_pilot->image_filename, old_pic, SDL_arraysize(Cur_pilot->image_filename));
-				SDL_strlcpy(Cur_pilot->squad_filename, old_squad_pic, SDL_arraysize(Cur_pilot->squad_filename));
-				SDL_strlcpy(Cur_pilot->squad_name, old_squad, SDL_arraysize(Cur_pilot->squad_name));
-				if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE) {
-					Cur_pilot->flags |= PLAYER_FLAGS_IS_MULTI;
-					write_pilot_file();
-					barracks_init_player_stuff(PLAYER_SELECT_MODE_MULTI);
-
-				} else {
-					write_pilot_file();
-					barracks_init_player_stuff(PLAYER_SELECT_MODE_SINGLE);
-				}
-
-				gamesnd_play_iface(SND_USER_SELECT);
-
 			} else {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
 			}
@@ -1195,7 +1209,7 @@ void barracks_button_pressed(int n)
 			break;
 
 		case B_PILOT_MULTI_MODE_BUTTON:
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 			game_feature_not_in_demo_popup();
 #else
 			if (Player_sel_mode != PLAYER_SELECT_MODE_MULTI) {
@@ -1619,7 +1633,7 @@ void barracks_do_frame(float frametime)
 				break;
 
 			case SDLK_TAB:  // switch mode (simgle/multi)
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) || defined(__EMSCRIPTEN__) // not for FS2_DEMO
 	game_feature_not_in_demo_popup();
 #else
 				if (Player_sel_mode == PLAYER_SELECT_MODE_SINGLE) {

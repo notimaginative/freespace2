@@ -258,6 +258,11 @@ typedef struct popup_info
 	char	input_text[POPUP_INPUT_MAX_CHARS];						// input box text (if this is an inputbox popup)
 	int	max_input_text_len;
 	int	web_cursor_flag[POPUP_MAX_CHOICES];						// flag for using web cursor over button
+	void (*callback)(int);										// callback to call on user choice (optional)
+	int flags;													// popup flags (PF_*)
+	int choice;													// choice user made
+	int screen_id;												// background screen id
+	int (*condition)();											// test condition (optional)
 } popup_info;
 
 ////////////////////////////////////////////////////////////////
@@ -311,7 +316,6 @@ static int Popup_is_active=0;
 static int Popup_should_die=0;			// popup should quit during the next iteration of its loop
 
 static popup_info Popup_info;
-static int Popup_flags;
 
 static int Title_coords[GR_NUM_RESOLUTIONS][5] =
 {
@@ -513,7 +517,7 @@ void popup_play_default_change_sound(popup_info *pi)
 // exit: 0 .. nchoices-1	=> choice selected through keypress
 //			POPUP_ABORT			=>	abort the popup
 //			POPUP_NOCHANGE		=> nothing happenned
-int popup_process_keys(popup_info *pi, int k, int flags)
+int popup_process_keys(popup_info *pi, int k)
 {
 	int i, masked_k;
 
@@ -538,7 +542,7 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 
 	case SDLK_ESCAPE:
 		// only process the escape key if this flag is not set
-		if(!(flags & PF_IGNORE_ESC)){
+		if(!(pi->flags & PF_IGNORE_ESC)){
 			return POPUP_ABORT;
 		}
 		break;
@@ -578,7 +582,7 @@ int popup_process_keys(popup_info *pi, int k, int flags)
 }
 
 // Split off the title and break up the body lines
-void popup_split_lines(popup_info *pi, int flags)
+void popup_split_lines(popup_info *pi)
 {
 	int	nlines, i, body_offset = 0;
 	int	n_chars[POPUP_MAX_LINES];
@@ -591,14 +595,14 @@ void popup_split_lines(popup_info *pi, int flags)
 	nlines = split_str(pi->raw_text, 1000, n_chars, p_str, POPUP_MAX_LINES);
 	SDL_assert(nlines >= 0 && nlines <= POPUP_MAX_LINES );
 
-	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
+	if ( pi->flags & (PF_TITLE | PF_TITLE_BIG) ) {
 		// get first line out
 		len = SDL_min(n_chars[0] + 1, POPUP_MAX_LINE_CHARS);
 		SDL_strlcpy(pi->title, p_str[0], len);
 		body_offset = 1;
 	}
 
-	if ( flags & PF_BODY_BIG ) {
+	if ( pi->flags & PF_BODY_BIG ) {
 		gr_set_font(FONT2);
 	}
 
@@ -617,17 +621,17 @@ void popup_split_lines(popup_info *pi, int flags)
 }
 
 // figure out what filename to use for the button icon
-const char *popup_get_button_filename(popup_info *pi, int i, int flags)
+const char *popup_get_button_filename(popup_info *pi, int i)
 {
 	const char *fname = NULL;
 	int is_tiny=0;	
 
 	// check for special button texts and if found, use specialized buttons for them.
-	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_OK + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_YES + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
+	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_OK + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_YES + 1)) && !(pi->flags & PF_NO_SPECIAL_BUTTONS)){
 		return Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_POSITIVE];
 	}
 
-	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_CANCEL + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_NO + 1)) && !(flags & PF_NO_SPECIAL_BUTTONS)){
+	if ((!SDL_strcasecmp(pi->button_text[i], POPUP_CANCEL + 1) || !SDL_strcasecmp(pi->button_text[i], POPUP_NO + 1)) && !(pi->flags & PF_NO_SPECIAL_BUTTONS)){
 		return Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_NEGATIVE];
 	}
 
@@ -636,9 +640,9 @@ const char *popup_get_button_filename(popup_info *pi, int i, int flags)
 		fname = "";
 		break;
 	case 1:
-		if ( (flags & PF_USE_AFFIRMATIVE_ICON) && !(flags & PF_NO_SPECIAL_BUTTONS) ) {
+		if ( (pi->flags & PF_USE_AFFIRMATIVE_ICON) && !(pi->flags & PF_NO_SPECIAL_BUTTONS) ) {
 			fname = Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_POSITIVE];
-		} else if ( flags & PF_USE_NEGATIVE_ICON && !(flags & PF_NO_SPECIAL_BUTTONS) ) {
+		} else if ( pi->flags & PF_USE_NEGATIVE_ICON && !(pi->flags & PF_NO_SPECIAL_BUTTONS) ) {
 			fname = Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_NEGATIVE];
 		} else {
 			fname = Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_GENERIC_FIRST];
@@ -646,12 +650,12 @@ const char *popup_get_button_filename(popup_info *pi, int i, int flags)
 		break;
 
 	case 2:
-		if ( flags & PF_USE_NEGATIVE_ICON && i==0 ) {
+		if ( pi->flags & PF_USE_NEGATIVE_ICON && i==0 ) {
 			fname = Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_NEGATIVE];
 			break;
 		} 
 
-		if ( flags & PF_USE_AFFIRMATIVE_ICON && i==1 ) {
+		if ( pi->flags & PF_USE_AFFIRMATIVE_ICON && i==1 ) {
 			fname = Popup_button_filenames[gr_screen.res][is_tiny][BUTTON_POSITIVE];
 			break;
 		} 
@@ -688,12 +692,15 @@ void popup_slider_bogus()
 }
 
 // init the Popup window
-int popup_init(popup_info *pi, int flags)
+int popup_init(popup_info *pi)
 {
 	int					i;
 	UI_BUTTON			*b;
 	popup_background	*pbg;
 	const char			*fname;
+
+	pi->screen_id = -1;
+	pi->choice = POPUP_NOCHANGE;
 
 	if(pi->nchoices == 0){
 		pbg = &Popup_background[gr_screen.res][0];
@@ -714,13 +721,13 @@ int popup_init(popup_info *pi, int flags)
 	for (i=0; i<pi->nchoices; i++) {
 		b = &Popup_buttons[i];
 		// accommodate single-choice positive icon being positioned differently
-		if ( (pi->nchoices == 1) && (flags&PF_USE_AFFIRMATIVE_ICON) ) {
+		if ( (pi->nchoices == 1) && (pi->flags&PF_USE_AFFIRMATIVE_ICON) ) {
 			b->create(&Popup_window, "", Button_coords[gr_screen.res][i+1][0], Button_coords[gr_screen.res][i+1][1], 30, 25, 0, 1);
 		} else {
 			b->create(&Popup_window, "", Button_coords[gr_screen.res][i][0], Button_coords[gr_screen.res][i][1], 30, 25, 0, 1);
 		}
 
-		fname = popup_get_button_filename(pi, i, flags);
+		fname = popup_get_button_filename(pi, i);
 		b->set_bmaps(fname, 3, 0);
 		b->set_highlight_action(common_play_highlight_sound);
 		if ( pi->keypress[i] >= 0 ) {
@@ -735,7 +742,7 @@ int popup_init(popup_info *pi, int flags)
 		b = &Popup_button_regions[i];	
 
 		// accommodate single-choice positive icon being positioned differently
-		if ( (pi->nchoices == 1) && (flags&PF_USE_AFFIRMATIVE_ICON) ) {
+		if ( (pi->nchoices == 1) && (pi->flags&PF_USE_AFFIRMATIVE_ICON) ) {
 			b->create(&Popup_window, "", lx, Button_regions[gr_screen.res][i+1][1], Button_regions[gr_screen.res][i+1][2]-lx, Button_regions[gr_screen.res][i+1][3]-Button_regions[gr_screen.res][i+1][1], 0, 1);
 		} else {
 			b->create(&Popup_window, "", lx, Button_regions[gr_screen.res][i][1], Button_regions[gr_screen.res][i][2]-lx, Button_regions[gr_screen.res][i][3]-Button_regions[gr_screen.res][i][1], 0, 1);
@@ -746,16 +753,16 @@ int popup_init(popup_info *pi, int flags)
 
 	// webcursor setup
 	if (Web_cursor_bitmap >= 0) {
-		if (flags & PF_WEB_CURSOR_1) {
+		if (pi->flags & PF_WEB_CURSOR_1) {
 			Popup_buttons[1].set_custom_cursor_bmap(Web_cursor_bitmap);
 		}
-		if (flags & PF_WEB_CURSOR_2) {
+		if (pi->flags & PF_WEB_CURSOR_2) {
 			Popup_buttons[2].set_custom_cursor_bmap(Web_cursor_bitmap);
 		}
 	}
 
 	// if this is an input popup, create and center the popup
-	if(flags & PF_INPUT){
+	if(pi->flags & PF_INPUT){
 		Popup_input.create(&Popup_window, Popup_text_coords[gr_screen.res][0], pbg->coords[1] + Popup_input_y_offset[gr_screen.res], Popup_text_coords[gr_screen.res][2], pi->max_input_text_len, "", UI_INPUTBOX_FLAG_INVIS | UI_INPUTBOX_FLAG_ESC_CLR | UI_INPUTBOX_FLAG_ESC_FOC | UI_INPUTBOX_FLAG_KEYTHRU | UI_INPUTBOX_FLAG_TEXT_CEN);
 		Popup_input.set_focus();
 	}	
@@ -763,13 +770,13 @@ int popup_init(popup_info *pi, int flags)
 	Popup_default_choice=0;
 	Popup_should_die = 0;
 
-	if (flags & PF_RUN_STATE) {
+	if (pi->flags & PF_RUN_STATE) {
 		Popup_running_state = 1;
 	} else {
 		Popup_running_state = 0;
 	}
 
-	popup_split_lines(pi, flags);
+	popup_split_lines(pi);
 
 #ifndef MAKE_FS1
 	// create the popup slider (which we may not need to use
@@ -781,7 +788,7 @@ int popup_init(popup_info *pi, int flags)
 }
 
 // called when a popup goes away
-void popup_close(popup_info *pi,int screen)
+void popup_close(popup_info *pi)
 {
 	int i;
 	
@@ -794,9 +801,14 @@ void popup_close(popup_info *pi,int screen)
 		}
 	}
 
-	if(screen >= 0){
-		gr_free_screen(screen);	
+	if(pi->screen_id >= 0){
+		gr_free_screen(pi->screen_id);
+		pi->screen_id = -1;
 	}
+
+	pi->callback = NULL;
+	pi->condition = NULL;
+
 	Popup_window.destroy();
 	anim_ignore_next_frametime();					// to avoid skips in animation since next frametime is saturated
 	game_flush();
@@ -807,6 +819,17 @@ void popup_close(popup_info *pi,int screen)
 	// anytime in single player, and multiplayer, not in mission, go ahead and stop time
 	if ( (Game_mode & GM_NORMAL) || ((Game_mode & GM_MULTIPLAYER) && !(Game_mode & GM_IN_MISSION)) )
 		game_start_time();
+}
+
+void popup_done()
+{
+	if ( !Popup_is_active ) {
+		return;
+	}
+
+	popup_info *pi = &Popup_info;
+
+	popup_close(pi);
 }
 
 // set the popup text color
@@ -892,13 +915,13 @@ int popup_calc_starting_index(popup_info *pi)
 
 // Figure out the y-coord to start drawing the popup text.  The text
 // is centered vertically within the popup.
-int popup_calc_starting_y(popup_info *pi, int flags)
+int popup_calc_starting_y(popup_info *pi)
 {
 	int sy, total_h=0;
 	int num_lines = pi->nlines > Popup_max_display[gr_screen.res] ? Popup_max_display[gr_screen.res] : pi->nlines;
 
-	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
-		if ( flags & PF_TITLE_BIG ) {
+	if ( pi->flags & (PF_TITLE | PF_TITLE_BIG) ) {
+		if ( pi->flags & PF_TITLE_BIG ) {
 			gr_set_font(FONT2);
 		} else {
 			gr_set_font(FONT1);
@@ -906,7 +929,7 @@ int popup_calc_starting_y(popup_info *pi, int flags)
 		total_h += gr_get_font_height();
 	}
 
-	if ( flags & PF_BODY_BIG ) {
+	if ( pi->flags & PF_BODY_BIG ) {
 		gr_set_font(FONT2);
 	} else {
 		gr_set_font(FONT1);
@@ -916,7 +939,7 @@ int popup_calc_starting_y(popup_info *pi, int flags)
 	sy = fl2i((Popup_text_coords[gr_screen.res][1] + Popup_text_coords[gr_screen.res][3]/2.0f) - total_h/2.0f + 0.5f);
 
 	// if this is an input style box, add in some y
-	if(flags & PF_INPUT){
+	if(pi->flags & PF_INPUT){
 		sy += Popup_input_text_y_offset[gr_screen.res];
 	}
 
@@ -924,7 +947,7 @@ int popup_calc_starting_y(popup_info *pi, int flags)
 }
 
 // Draw the message text nicely formatted in the popup
-void popup_draw_msg_text(popup_info *pi, int flags)
+void popup_draw_msg_text(popup_info *pi)
 {
 	int sx, sy, i, w, h;
 	int line_index;
@@ -934,22 +957,22 @@ void popup_draw_msg_text(popup_info *pi, int flags)
 	line_index = popup_calc_starting_index(pi);
 
 	// figure out the starting y:
-	sy = popup_calc_starting_y(pi, flags);
+	sy = popup_calc_starting_y(pi);
 
 	// draw title if required
-	if ( flags & (PF_TITLE | PF_TITLE_BIG) ) {
-		popup_draw_title(sy, pi->title, flags);
+	if ( pi->flags & (PF_TITLE | PF_TITLE_BIG) ) {
+		popup_draw_title(sy, pi->title, pi->flags);
 		sy += gr_get_font_height();
 	}
 
 	// draw body 
-	if ( flags & PF_BODY_BIG ) {
+	if ( pi->flags & PF_BODY_BIG ) {
 		gr_set_font(FONT2);
 	} else {
 		gr_set_font(FONT1);
 	}
 
-	popup_set_text_color(flags);
+	popup_set_text_color(pi->flags);
 	line_count = 0;
 	for ( i = line_index; i < pi->nlines; i++, line_count++ ) {
 		// if we've already displayed the max # of lines
@@ -973,7 +996,7 @@ void popup_draw_msg_text(popup_info *pi, int flags)
 }
 
 // Draw the button text nicely formatted in the popup
-void popup_draw_button_text(popup_info *pi, int flags)
+void popup_draw_button_text(popup_info *pi)
 {
 	int w, h, i, sx, sy;
 
@@ -982,7 +1005,7 @@ void popup_draw_button_text(popup_info *pi, int flags)
 	for ( i=0; i < pi->nchoices; i++ ) {
 		gr_get_string_size(&w, &h, pi->button_text[i]);
 
-		if ( (pi->nchoices == 1) && (flags&PF_USE_AFFIRMATIVE_ICON) ) {
+		if ( (pi->nchoices == 1) && (pi->flags & PF_USE_AFFIRMATIVE_ICON) ) {
 			sx = Button_regions[gr_screen.res][i+1][0]-w;
 			sy = Button_regions[gr_screen.res][i+1][1]+4;
 		} else {
@@ -1042,121 +1065,113 @@ void popup_force_draw_buttons(popup_info *pi)
 	}
 }
 
-// exit: -1						=>	error
-//			0..nchoices-1		=> choice
-int popup_do(popup_info *pi, int flags)
+static void popup_do(popup_info *pi)
 {
-	int screen_id, choice = -1, done = 0;
+	int test = -1;
 
-	screen_id = gr_save_screen();
+	os_poll();
 
-	if ( popup_init(pi, flags) == -1 ){
-		return -1;
-	}
+	// if we were killed by a call to popup_kill_any_active(), kill the popup
+	if (Popup_should_die) {
+		pi->choice = -1;
 
-	while(!done) {
-		int k;
-
-		os_poll();
-
-		// if we were killed by a call to popup_kill_any_active(), kill the popup
-		if(Popup_should_die){
-			choice = -1;
-			break;
-		}
-
-		// if we're flagged as should be running the state underneath, then do so
-		if(flags & PF_RUN_STATE){
-			game_do_state(gameseq_get_state());
-		}
-		// otherwise just run the common functions (for networking,etc)
-		else {
-			game_set_frametime(-1);
-			game_do_state_common(gameseq_get_state(),flags & PF_NO_NETWORKING);	// do stuff common to all states 
-		}
-
-		k = Popup_window.process();						// poll for input, handle mouse
-		choice = popup_process_keys(pi, k, flags);
-		if ( choice != POPUP_NOCHANGE ) {
-			done=1;
-		}
-
-		if ( !done ) {
-			choice = popup_check_buttons(pi);
-			if ( choice != POPUP_NOCHANGE ) {
-				done=1;
-			}
-		}
-
-		// don't draw anything 
-		if(!(flags & PF_RUN_STATE)){
-			gr_restore_screen(screen_id);
-		}
-
-		// if this is an input popup, store the input text
-		if(flags & PF_INPUT){
-			Popup_input.get_text(pi->input_text);
-		}
-
-		Popup_window.draw();
-		popup_force_draw_buttons(pi);
-		popup_draw_msg_text(pi, flags);
-		popup_draw_button_text(pi, flags);
-		gr_flip();
-	}
-
-	popup_close(pi,screen_id);
-	return choice;
-}
-
-int popup_do_with_condition(popup_info *pi, int flags, int(*condition)())
-{
-	int screen_id, choice = -1, done = 0;
-	int test;
-	screen_id = gr_save_screen();
-	if ( popup_init(pi, flags) == -1 )
-		return -1;
-
-	while(!done) {
-		int k;
-
-		os_poll();
-		
-		game_set_frametime(-1);
-		game_do_state_common(gameseq_get_state());	// do stuff common to all states 
-		gr_restore_screen(screen_id);
-
-		// draw one frame first
-		Popup_window.draw();
-		popup_force_draw_buttons(pi);
-		popup_draw_msg_text(pi, flags);
-		popup_draw_button_text(pi, flags);
-		gr_flip();
-
-		// test the condition function or process for the window
-		if ((test = condition()) > 0) {
-			done = 1;
-			choice = test;
+		if (pi->callback) {
+			(*(pi->callback))(-1);
 		} else {
-			k = Popup_window.process();						// poll for input, handle mouse
-			choice = popup_process_keys(pi, k, flags);
-			if ( choice != POPUP_NOCHANGE ) {
-				done=1;
-			}
+			popup_close(pi);
+		}
 
-			if ( !done ) {
-				choice = popup_check_buttons(pi);
-				if ( choice != POPUP_NOCHANGE ) {
-					done=1;
-				}
-			}
-		}		
+		return;
 	}
 
-	popup_close(pi,screen_id);
-	return choice;
+	// if we're flagged as should be running the state underneath, then do so
+	if (pi->flags & PF_RUN_STATE) {
+		game_do_state(gameseq_get_state());
+	}
+	// otherwise just run the common functions (for networking,etc)
+	else {
+		game_set_frametime(-1);
+		game_do_state_common(gameseq_get_state(), pi->flags & PF_NO_NETWORKING);	// do stuff common to all states
+	}
+
+	// test the condition function or process for the window
+	if (pi->condition && ((test = (*(pi->condition))()) > 0)) {
+		pi->choice = test;
+
+		if (pi->callback) {
+			(*(pi->callback))(pi->choice);
+		} else {
+			popup_close(pi);
+		}
+
+		return;
+	} else {
+		int k = Popup_window.process();						// poll for input, handle mouse
+
+		pi->choice = popup_process_keys(pi, k);
+
+		if (pi->choice != POPUP_NOCHANGE) {
+			if (pi->callback) {
+				(*(pi->callback))(pi->choice);
+			} else {
+				popup_close(pi);
+			}
+
+			return;
+		}
+
+		pi->choice = popup_check_buttons(pi);
+
+		if (pi->choice != POPUP_NOCHANGE) {
+			if (pi->callback) {
+				(*(pi->callback))(pi->choice);
+			} else {
+				popup_close(pi);
+			}
+
+			return;
+		}
+	}
+
+	// don't draw anything
+	if ( !(pi->flags & PF_RUN_STATE) ) {
+		gr_restore_screen(pi->screen_id);
+	}
+
+	// if this is an input popup, store the input text
+	if (pi->flags & PF_INPUT) {
+		Popup_input.get_text(pi->input_text);
+	}
+
+	Popup_window.draw();
+	popup_force_draw_buttons(pi);
+	popup_draw_msg_text(pi);
+	popup_draw_button_text(pi);
+
+	gr_flip();
 }
 
+void popup_do_frame()
+{
+	if ( !Popup_is_active ) {
+		return;
+	}
+
+	popup_info *pi = &Popup_info;
+
+	popup_do(pi);
+}
+
+static int popup_do_sync()
+{
+	popup_info *pi = &Popup_info;
+
+	SDL_assert(Popup_is_active);
+
+	popup_do(pi);
+
+	return pi->choice;
+}
 
 // maybe assign a keyboard shortcut to this button
 // input:	pi		=>	popup information so far
@@ -1194,62 +1209,120 @@ void popup_maybe_assign_keypress(popup_info *pi, int n, char *str)
 	}
 }
 
-// input:	flags			=>		flags			=>		formatting specificatons (PF_...)
+static void popup_internal(void (*callback)(int), int (*condition)(), int flags, int nchoices, va_list args)
+{
+	int			i;
+	char			*format, *s;
+	popup_info *pi = &Popup_info;
+
+	pi->flags = flags;
+	pi->callback = callback;
+	pi->condition = condition;
+
+	SDL_assert( nchoices > 0 && nchoices <= POPUP_MAX_CHOICES );
+	pi->nchoices = nchoices;
+
+	// get button text
+	for (i=0; i<nchoices; i++ )	{
+		s = va_arg( args, char * );
+		pi->button_text[i] = NULL;
+		popup_maybe_assign_keypress(pi, i, s);
+	}
+
+	// get msg text
+	format = va_arg( args, char * );
+	pi->raw_text[0] = 0;
+	SDL_vsnprintf(pi->raw_text, SDL_arraysize(pi->raw_text), format, args);
+
+	if ( popup_init(pi) == -1 ) {
+		if (callback) {
+			(*callback)(-1);
+		}
+
+		pi->choice = POPUP_ABORT;
+		popup_close(pi);
+		return;
+	}
+
+	pi->screen_id = gr_save_screen();
+
+	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
+
+	Mouse_hidden = 0;
+	Popup_is_active = 1;
+}
+
+// input:		callback		=>		function to call on user action (popup done, etc.)
+//				flags			=>		formatting specificatons (PF_... shown above)
 //				nchoices		=>		number of choices popup has
 //				text_1		=>		text for first button
-//				...			=>		
+//				...			=>
 //				text_n		=>		text for last button
 //				msg text		=>		text msg for popup (can be of form "%s",pl->text)
 //
-// exit: choice selected (0..nchoices-1)
-//			will return -1 if there was an error or popup was aborted
-//
 // typical usage:
-//
-//	rval = popup(0, 2, POPUP_OK, POPUP_CANCEL, "Sorry %s, try again", pl->callsign);
-int popup(int flags, int nchoices, ... )
+//	popup(NULL, 0, 2, POPUP_YES, POPUP_NO, "Hey %s, do you want to quit", pl->callsign);
+void popup_callback(void (*callback)(int), int flags, int nchoices, ... )
 {
- 	int			i, choice;
-	char			*format, *s;
-	va_list		args;	
+	va_list args;
+
+	if ( Popup_is_active ) {
+		Int3();		// should never happen
+		return;
+	}
+
+	va_start(args, nchoices);
+
+	popup_internal(callback, NULL, flags, nchoices, args);
+
+	va_end(args);
+}
+
+void popup(int flags, int nchoices, ...)
+{
+	va_list args;
+
+	if ( Popup_is_active ) {
+		Int3();		// should never happen
+		return;
+	}
+
+	va_start(args, nchoices);
+
+	popup_internal(NULL, NULL, flags, nchoices, args);
+
+	va_end(args);
+}
+
+int popup_sync(int flags, int nchoices, ...)
+{
+	popup_info *pi = &Popup_info;
+	va_list args;
 
 	if ( Popup_is_active ) {
 		Int3();		// should never happen
 		return -1;
 	}
 
-	Popup_flags = flags;
+	va_start(args, nchoices);
 
-	SDL_assert( nchoices > 0 && nchoices <= POPUP_MAX_CHOICES );
-	Popup_info.nchoices = nchoices;
+	popup_internal(NULL, NULL, flags, nchoices, args);
 
-	va_start(args, nchoices );
+	va_end(args);
 
-	// get button text
-	for (i=0; i<nchoices; i++ )	{
-		s = va_arg( args, char * );
-		Popup_info.button_text[i] = NULL;
-		popup_maybe_assign_keypress(&Popup_info, i, s);
+	int rval = pi->choice;	// if init failed, this will be ABORT
+
+	while (rval == POPUP_NOCHANGE) {
+		rval = popup_do_sync();
 	}
 
-	// get msg text
-	format = va_arg( args, char * );
-	Popup_info.raw_text[0] = 0;
-	SDL_vsnprintf(Popup_info.raw_text, SDL_arraysize(Popup_info.raw_text), format, args);
-	va_end(args);
-	
-	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
+	popup_done();
 
-	Mouse_hidden = 0;
-	Popup_is_active = 1;
-
-	choice = popup_do( &Popup_info, flags );
-	switch(choice) {
-	case POPUP_ABORT:
+	if (rval == POPUP_ABORT) {
 		return -1;
-	default:
-		return choice;
-	} // end switch
+	}
+
+	return rval;
 }
 
 // determine if a popup is being drawn
@@ -1264,90 +1337,119 @@ int popup_active()
 // the condition() did if the condition() occurred, and FALSE if the cancel button was pressed.
 int popup_till_condition(int (*condition)(), ...) 
 {
- 	int			choice;
-	char			*format, *s;
-	va_list		args;
-	int flags = 0;		
+	popup_info *pi = &Popup_info;
+	va_list args;
 
 	if ( Popup_is_active ) {
 		Int3();		// should never happen
 		return -1;
 	}
-	//int nchoices = 1;
-	Popup_info.nchoices = 1;
 
-	Popup_flags = 0;
+	va_start(args, condition);
 
-	va_start(args, condition );
+	popup_internal(NULL, condition, 0, 1, args);
 
-	// get button text
-	s = va_arg( args, char * );
-	Popup_info.button_text[0] = NULL;
-	popup_maybe_assign_keypress(&Popup_info, 0, s);
+	va_end(args);
+
+	int rval = pi->choice;	// if init failed, this will be ABORT
+
+	while (rval == POPUP_NOCHANGE) {
+		rval = popup_do_sync();
+	}
+
+	popup_done();
+
+	if (rval == POPUP_ABORT) {
+		return 0;
+	}
+
+	return rval;
+}
+
+// popup to return the value from an input box
+void popup_input(void (*callback)(int), int flags, const char *caption, int max_output_len)
+{
+	popup_info *pi = &Popup_info;
+
+	if ( Popup_is_active ) {
+		Int3();		// should never happen
+		return;
+	}
+
+	// make it an inputbox type popup
+	pi->flags = flags | PF_INPUT;
+
+	pi->callback = NULL;
+	pi->condition = NULL;
+
+	// add a cancel button
+	pi->nchoices = 0;
+	// popup_maybe_assign_keypress(&Popup_info, 0, "&Cancel");	
 
 	// get msg text
-	format = va_arg( args, char * );
-	Popup_info.raw_text[0] = 0;
-	SDL_vsnprintf(Popup_info.raw_text, SDL_arraysize(Popup_info.raw_text), format, args);
-	va_end(args);
-		
+	SDL_assert(caption != NULL);
+	SDL_strlcpy(pi->raw_text, caption, SDL_arraysize(pi->raw_text));
+	SDL_assert(strlen(pi->raw_text) < POPUP_MAX_CHARS );
+
+	// set input text length
+	if((max_output_len > POPUP_INPUT_MAX_CHARS) || (max_output_len == -1)){
+		pi->max_input_text_len = POPUP_INPUT_MAX_CHARS - 1;
+	} else {
+		pi->max_input_text_len = max_output_len;
+	}
+
+	if ( popup_init(pi) == -1 ) {
+		if (callback) {
+			(*callback)(-1);
+		}
+
+		pi->choice = POPUP_ABORT;
+		popup_close(pi);
+		return;
+	}
+
+	pi->screen_id = gr_save_screen();
+
+	// zero the popup input text
+	SDL_zero(pi->input_text);
+
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
 	Mouse_hidden = 0;
 	Popup_is_active = 1;
-
-	choice = popup_do_with_condition( &Popup_info, flags, condition );
-	switch(choice) {
-	case POPUP_ABORT:
-		return 0;
-	default:
-		return choice;
-	} // end switch
 }
 
-// popup to return the value from an input box
-char *popup_input(int flags, const char *caption, int max_output_len)
+const char *popup_input_sync(int flags, const char *caption, int max_output_len)
 {
+	popup_info *pi = &Popup_info;
+
 	if ( Popup_is_active ) {
 		Int3();		// should never happen
 		return NULL;
 	}
 
-	// make it an inputbox type popup
-	Popup_flags = flags;
-	Popup_flags |= PF_INPUT;
+	popup_input(NULL, flags, caption, max_output_len);
 
-	// add a cancel button
-	Popup_info.nchoices = 0;
-	// popup_maybe_assign_keypress(&Popup_info, 0, "&Cancel");	
+	int rval = pi->choice;	// if init failed, this will be ABORT
 
-	// get msg text
-	SDL_assert(caption != NULL);
-	SDL_strlcpy(Popup_info.raw_text, caption, SDL_arraysize(Popup_info.raw_text));
-	SDL_assert(strlen(Popup_info.raw_text) < POPUP_MAX_CHARS );
-
-	// set input text length
-	if((max_output_len > POPUP_INPUT_MAX_CHARS) || (max_output_len == -1)){
-		Popup_info.max_input_text_len = POPUP_INPUT_MAX_CHARS - 1;
-	} else {
-		Popup_info.max_input_text_len = max_output_len;
+	while (rval == POPUP_NOCHANGE) {
+		rval = popup_do_sync();
 	}
 
-	// zero the popup input text
-	memset(Popup_info.input_text, 0, POPUP_INPUT_MAX_CHARS);
-	
-	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
+	popup_done();
 
-	Mouse_hidden = 0;
-	Popup_is_active = 1;
-
-	// if the user cancelled
-	if(popup_do(&Popup_info, Popup_flags) == POPUP_ABORT){
+	if (rval == POPUP_ABORT) {
 		return NULL;
 	}
-	
-	// otherwise return the
-	return Popup_info.input_text;	
+
+	return pi->input_text;
+}
+
+const char *popup_get_input_text()
+{
+	popup_info *pi = &Popup_info;
+
+	return pi->input_text;
 }
 
 int popup_running_state()
@@ -1370,6 +1472,6 @@ void popup_change_text(const char *new_text)
 	SDL_strlcpy(Popup_info.raw_text, new_text, SDL_arraysize(Popup_info.raw_text));
 
 	// recalculate all display information
-	popup_split_lines(&Popup_info,Popup_flags);
+	popup_split_lines(&Popup_info);
 }
 

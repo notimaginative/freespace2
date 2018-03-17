@@ -799,5 +799,12 @@ int parse_cmdline(const char *cmdline)
 	Cmdline_window = 1;
 #endif
 
+#ifdef __EMSCRIPTEN__
+	// default to windowed mode and no movies
+	Cmdline_play_movies = 0;
+	Cmdline_fullscreen = 0;
+	Cmdline_window = 1;
+#endif
+
 	return 1;
 }

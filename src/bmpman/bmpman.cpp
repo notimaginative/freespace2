@@ -2118,6 +2118,7 @@ void bm_page_in_start()
 
 }
 
+extern "C"
 void bm_page_in_stop()
 {	
 	int i;	

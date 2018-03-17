@@ -1537,27 +1537,13 @@ void process_player_ship_keys(int k)
 	}
 }
 
-// Handler for when player hits 'ESC' during the game
-void game_do_end_mission_popup()
+static void game_do_end_mission_popup_callback(int choice)
 {
-	int	pf_flags, choice;
 //	char	savegame_filename[_MAX_FNAME];
 
-	// do the multiplayer version of this
-	if(Game_mode & GM_MULTIPLAYER){
-		multi_quit_game(PROMPT_ALL);
-	} else {
+	popup_done();
 
-		// single player version....
-		// do housekeeping things.
-		game_stop_time();
-		game_stop_looped_sounds();
-		snd_stop_all();
-
-		pf_flags = PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON;
-		choice = popup(pf_flags, 3, POPUP_NO, XSTR( "&Yes, Quit", 28), XSTR( "Yes, &Restart", 29), XSTR( "Do you really want to end the mission?", 30));
-
-		switch (choice) {
+	switch (choice) {
 		case 1:
 			// save the game before quitting if in campaign mode
 			// MWA -- 3/26/98 -- no more save/restore!!!!
@@ -1580,10 +1566,30 @@ void game_do_end_mission_popup()
 
 		default:
 			break;  // do nothing
-		}
+	}
 
-		game_start_time();
-		game_flush();
+	game_start_time();
+	game_flush();
+}
+
+// Handler for when player hits 'ESC' during the game
+void game_do_end_mission_popup()
+{
+	int	pf_flags;
+
+	// do the multiplayer version of this
+	if(Game_mode & GM_MULTIPLAYER){
+		multi_quit_game(PROMPT_ALL);
+	} else {
+
+		// single player version....
+		// do housekeeping things.
+		game_stop_time();
+		game_stop_looped_sounds();
+		snd_stop_all();
+
+		pf_flags = PF_BODY_BIG | PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON;
+		popup_callback(game_do_end_mission_popup_callback, pf_flags, 3, POPUP_NO, XSTR( "&Yes, Quit", 28), XSTR( "Yes, &Restart", 29), XSTR( "Do you really want to end the mission?", 30));
 	}
 }
 

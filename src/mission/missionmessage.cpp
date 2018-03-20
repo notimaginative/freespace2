@@ -1952,7 +1952,7 @@ void message_send_builtin_to_player( int type, ship *shipp, int priority, int ti
 			// deal with the fact that this message might not get played on my machine if I am a server
 
 			// not multiplayer or this message is for me, then queue it
-			if ( !(Game_mode & GM_MULTIPLAYER) || ((multi_target == -1) || (multi_target == MY_NET_PLAYER_NUM)) ){
+			if ( !(Game_mode & GM_MULTIPLAYER) || (MULTIPLAYER_MASTER && ((multi_target == -1) || (multi_target == MY_NET_PLAYER_NUM))) ) {
 
 				// if this filter matches mine
 				if( (multi_team_filter < 0) || !(Netgame.type_flags & NG_TYPE_TEAM) || (Net_player->p_info.team == multi_team_filter) ){

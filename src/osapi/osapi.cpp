@@ -404,7 +404,19 @@ void os_poll()
 				break;
 			}
 
+			case SDL_CONTROLLERAXISMOTION: {
+				if (e.caxis.which == joystick_get_id()) {
+					joystick_update_axis(e.caxis.axis, e.caxis.value);
+				}
+
+				break;
+			}
+
 			case SDL_JOYAXISMOTION: {
+				if ( joystick_is_controller() ) {
+					break;
+				}
+
 				if (e.jaxis.which == joystick_get_id()) {
 					joystick_update_axis(e.jaxis.axis, e.jaxis.value);
 				}
@@ -412,8 +424,44 @@ void os_poll()
 				break;
 			}
 
+			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_CONTROLLERBUTTONUP: {
+				if (e.cbutton.which == joystick_get_id()) {
+					// convert DPAD to HAT
+					switch (e.cbutton.button) {
+						case SDL_CONTROLLER_BUTTON_DPAD_UP:
+							button = JOY_HATFORWARD;
+							break;
+
+						case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+							button = JOY_HATBACK;
+							break;
+
+						case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+							button = JOY_HATLEFT;
+							break;
+
+						case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+							button = JOY_HATRIGHT;
+							break;
+
+						default:
+							button = e.cbutton.button;
+					}
+
+					state = (e.cbutton.state == SDL_PRESSED) ? 1 : 0;
+					joy_mark_button(button, state);
+				}
+
+				break;
+			}
+
 			case SDL_JOYBUTTONDOWN:
 			case SDL_JOYBUTTONUP: {
+				if ( joystick_is_controller() ) {
+					break;
+				}
+
 				if (e.jbutton.which == joystick_get_id()) {
 					state = (e.jbutton.state == SDL_PRESSED) ? 1 : 0;
 					joy_mark_button((int)e.jbutton.button, state);
@@ -423,6 +471,10 @@ void os_poll()
 			}
 
 			case SDL_JOYHATMOTION: {
+				if ( joystick_is_controller() ) {
+					break;
+				}
+
 				if (e.jhat.which == joystick_get_id()) {
 					// can only handle one hat
 					if (e.jhat.hat == 0) {

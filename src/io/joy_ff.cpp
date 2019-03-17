@@ -21,7 +21,7 @@ static int Joy_ff_enabled = 0;
 static int Joy_ff_acquired = 0;
 static SDL_Haptic *haptic = NULL;
 static int joy_ff_handling_scaler = 0;
-static int Joy_ff_directional_hit_effect_enabled = 1;
+static uint Joy_ff_directional_hit_effect_enabled = 1;
 static int Joy_rumble = 0;
 static int Joy_ff_afterburning = 0;
 
@@ -47,7 +47,7 @@ static void joy_ff_start_effect(haptic_effect_t *eff, const char *name);
 
 int joy_ff_init()
 {
-	int ff_enabled = 0;
+	uint ff_enabled = 0;
 	SDL_Joystick *sdljoy = nullptr;
 
 	ff_enabled = os_config_read_uint("Controls", "EnableJoystickFF", 0);

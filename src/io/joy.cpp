@@ -555,7 +555,7 @@ int joystick_read_raw_axis(int num_axes, int *axis)
 		if (i < joystick.num_axes) {
 			axis[i] = joystick.axis_current[i];
 		} else {
-			axis[i] = 0;;
+			axis[i] = 0;
 		}
 	}
 
@@ -570,6 +570,6 @@ bool joy_axis_valid(int axis)
 void joystick_update_axis(int axis, int value)
 {
 	if (axis < JOY_NUM_AXES) {
-		joystick.axis_current[axis] = value;;
+		joystick.axis_current[axis] = value;
 	}
 }

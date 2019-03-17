@@ -366,8 +366,6 @@ static int joy_init_internal(int with_index)
 	int Cur_joystick;
 	SDL_Joystick *sdljoy = nullptr;
 	const char *joy_name = nullptr;
-	SDL_JoystickGUID guid;
-	char guid_str[40];
 
 	SDL_zero(joystick);
 
@@ -431,18 +429,12 @@ static int joy_init_internal(int with_index)
 
 	JoystickID = SDL_JoystickInstanceID(sdljoy);
 
-	guid = SDL_JoystickGetGUID(sdljoy);
-
-	SDL_zero(guid_str);
-	SDL_JoystickGetGUIDString(guid, guid_str, SDL_arraysize(guid_str));
-
-	mprintf(("  Name         : %s\n", joy_name ? joy_name : "<unknown>"));
-	mprintf(("  GUID         : %s\n", guid_str));
-	mprintf(("  Controller   : %s\n", SDL_IsGameController(Cur_joystick) ? "Yes" : "No"));
-	mprintf(("  Axes         : %d\n", SDL_JoystickNumAxes(sdljoy)));
-	mprintf(("  Buttons      : %d\n", SDL_JoystickNumButtons(sdljoy)));
-	mprintf(("  Hats         : %d\n", SDL_JoystickNumHats(sdljoy)));
-	mprintf(("  Haptic       : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+	mprintf(("  Name    : %s\n", joy_name ? joy_name : "<unknown>"));
+	mprintf(("  Gamepad : %s\n", SDL_IsGameController(Cur_joystick) ? "Yes" : "No"));
+	mprintf(("  Axes    : %d\n", SDL_JoystickNumAxes(sdljoy)));
+	mprintf(("  Buttons : %d\n", SDL_JoystickNumButtons(sdljoy)));
+	mprintf(("  Hats    : %d\n", SDL_JoystickNumHats(sdljoy)));
+	mprintf(("  Haptic  : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
 
 	joy_ff_init();
 

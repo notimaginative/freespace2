@@ -388,7 +388,7 @@ void os_poll()
 			}
 
 			case SDL_JOYDEVICEADDED: {
-				if ( !Is_standalone ) {
+				if ( !Is_standalone && (e.jdevice.which != joystick_get_id()) ) {
 					joy_reinit(e.jdevice.which);
 				}
 

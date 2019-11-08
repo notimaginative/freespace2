@@ -599,18 +599,36 @@ void vp::list()
 	//char time_str[30];
 	time_t write_time;
 	std::vector<vp_fileindex>::iterator it;
+	std::string rel_path;
+	std::smatch match;
+	size_t matching_count = 0;
 
 	for (it = m_index.begin(); it != m_index.end(); ++it) {
 		write_time = it->write_time;
+		rel_path = it->file_path;
+
+		rel_path.push_back('/');
+		rel_path.append(it->file_name);
+
+		if ( m_filtering && !std::regex_search(rel_path, match, m_regex) ) {
+			continue;
+		}
+
+		++matching_count;
 
 		std::cout << std::setw(10) << it->file_size << " "
 				  << std::put_time(std::gmtime(&write_time), "%F %H:%M:%S")
-				  << "  " << it->file_path << "/" << it->file_name << std::endl;
+				  << "  " << rel_path << std::endl;
 	}
 
 	std::cout << "---------- ---------- --------  ------------------------\n";
-	std::cout << std::setw(10) << m_header.index_offset-VP_HEADER_SIZE
-			  << "                      " << m_index.size() << " file(s)\n";
+	std::cout << std::setw(10) << m_header.index_offset-VP_HEADER_SIZE;
+
+	if (m_filtering) {
+		std::cout << "                      " << matching_count << " of " << m_index.size() << " file(s)\n";
+	} else {
+		std::cout << "                      " << m_index.size() << " file(s)\n";
+	}
 
 	std::cout << std::endl;
 }
@@ -768,7 +786,7 @@ void help()
 	std::cout << std::endl;
 	std::cout << "Usage: cfileutil c <vp_filename> <source_dir>\n";
 	std::cout << "       cfileutil x [-L] [-o <dir>] [-f <regex>] <vp_filename>\n";
-	std::cout << "       cfileutil l <vp_filename>\n";
+	std::cout << "       cfileutil l [-f <regex>] <vp_filename>\n";
 	std::cout << std::endl;
 	std::cout << " Commands:\n";
 	std::cout << "  c           Create VP archive from <source_dir>\n";
@@ -779,6 +797,9 @@ void help()
 	std::cout << "  -L          Force all directory and file names to be lower case\n";
 	std::cout << "  -o <dir>    Extract into <dir> rather than current directory\n";
 	std::cout << "  -f <regex>  Only extract files matching regex\n";
+	std::cout << std::endl;
+	std::cout << " List options:\n";
+	std::cout << "  -f <regex>  Only list files matching regex\n";
 	std::cout << std::endl;
 
 	exit(EXIT_SUCCESS);
@@ -812,8 +833,18 @@ void parse_args(int argc, char *argv[])
 				help();
 			}
 
-			VP.setFilename(argv[idx]);
-			VP.setAction(vp::LIST);
+			for ( ; idx < argc; idx++) {
+				if ( !std::strcmp(argv[idx], "-f") ) {
+					idx++;
+
+					MAYBE_HELP(1);
+
+					VP.setRegex(argv[idx]);
+				} else {
+					VP.setFilename(argv[idx]);
+					VP.setAction(vp::LIST);
+				}
+			}
 		} else if ( !std::strcmp(argv[idx], "x") ) {
 			idx++;
 

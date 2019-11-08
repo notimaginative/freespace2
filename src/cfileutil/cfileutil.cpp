@@ -197,7 +197,7 @@ bool vp::CreatePath(const std::string &path)
 	std::string sub_path;
 	std::string::size_type pos;
 
-	pos = path.find('/');
+	pos = path.find('/', 1);
 
 	while (pos != std::string::npos) {
 		sub_path = path.substr(0, pos);

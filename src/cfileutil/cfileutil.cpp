@@ -766,14 +766,14 @@ void help()
 {
 	std::cout << "VP file archiver/extractor - version 1.0\n";
 	std::cout << std::endl;
-	std::cout << "Usage: cfileutil -a <vp_filename> <source_dir>\n";
-	std::cout << "       cfileutil -l <vp_filename>\n";
-	std::cout << "       cfileutil -x [-L] [-o <dir>] [-f <regex>] <vp_filename>\n";
+	std::cout << "Usage: cfileutil c <vp_filename> <source_dir>\n";
+	std::cout << "       cfileutil x [-L] [-o <dir>] [-f <regex>] <vp_filename>\n";
+	std::cout << "       cfileutil l <vp_filename>\n";
 	std::cout << std::endl;
 	std::cout << " Commands:\n";
-	std::cout << "  -c          Create VP archive from <source_dir>\n";
-	std::cout << "  -x          Extract all files into current directory\n";
-	std::cout << "  -l          List all files in VP archive\n";
+	std::cout << "  c           Create VP archive from <source_dir>\n";
+	std::cout << "  x           Extract all files into current directory\n";
+	std::cout << "  l           List all files in VP archive\n";
 	std::cout << std::endl;
 	std::cout << " Extraction options:\n";
 	std::cout << "  -L          Force all directory and file names to be lower case\n";
@@ -791,7 +791,7 @@ void parse_args(int argc, char *argv[])
 	for (int idx = 1; idx < argc; idx++) {
 		if ( !std::strcmp(argv[idx], "-h") || !std::strcmp(argv[idx], "--help") ) {
 			help();
-		} else if ( !std::strcmp(argv[idx], "-c") ) {
+		} else if ( !std::strcmp(argv[idx], "c") ) {
 			idx++;
 
 			MAYBE_HELP(2);
@@ -803,7 +803,7 @@ void parse_args(int argc, char *argv[])
 			VP.setFilename(argv[idx++]);
 			VP.setSourceDirectory(argv[idx]);
 			VP.setAction(vp::CREATE);
-		} else if ( !std::strcmp(argv[idx], "-l") ) {
+		} else if ( !std::strcmp(argv[idx], "l") ) {
 			idx++;
 
 			MAYBE_HELP(1);
@@ -814,7 +814,7 @@ void parse_args(int argc, char *argv[])
 
 			VP.setFilename(argv[idx]);
 			VP.setAction(vp::LIST);
-		} else if ( !std::strcmp(argv[idx], "-x") ) {
+		} else if ( !std::strcmp(argv[idx], "x") ) {
 			idx++;
 
 			MAYBE_HELP(1);

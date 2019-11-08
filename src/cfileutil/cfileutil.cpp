@@ -84,7 +84,7 @@ class vp {
 
 		FILE *archive;
 
-		void Seek(size_t offset, int where);
+		void Seek(int32_t offset, int where);
 		int32_t ReadInt();
 		char *ReadString(char *buf, const size_t length);
 		void WriteInt(const int32_t val);
@@ -94,7 +94,7 @@ class vp {
 
 		void pack_directory(const std::string *pack_dir = nullptr);
 		void add_directory(const std::string &a_dir);
-		void add_file(const std::string &a_file, const size_t fsize, const time_t ftime);
+		void add_file(const std::string &a_file, const long fsize, const time_t ftime);
 
 		vp_header m_header;
 		std::vector<vp_fileindex> m_index;
@@ -115,7 +115,7 @@ class vp {
 		action_t m_action;
 };
 
-void vp::Seek(size_t offset, int where)
+void vp::Seek(int32_t offset, int where)
 {
 	int rval = fseek(archive, offset, where);
 
@@ -216,14 +216,14 @@ bool vp::CreatePath(const std::string &path)
 
 void vp::read_header()
 {
-	if (archive == NULL) {
+	if (archive == nullptr) {
 		if ( m_filename.empty() ) {
 			throw std::runtime_error("empty filename passed to vp::read_header()");
 		}
 
 		archive = fopen(m_filename.c_str(), "rb");
 
-		if (archive == NULL) {
+		if (archive == nullptr) {
 			int err = errno;
 			std::ostringstream errmsg;
 
@@ -250,14 +250,14 @@ void vp::read_header()
 
 void vp::write_header()
 {
-	if (archive == NULL) {
+	if (archive == nullptr) {
 		if ( m_filename.empty() ) {
 			throw std::runtime_error("empty filename passed to vp::write_header()");
 		}
 
 		archive = fopen(m_filename.c_str(), "wb");
 
-		if (archive == NULL) {
+		if (archive == nullptr) {
 			int err = errno;
 			std::ostringstream errmsg;
 
@@ -285,7 +285,7 @@ void vp::read_index()
 	memset(filename_tmp, 0, sizeof(filename_tmp));
 
 	// pre-allocate max size
-	m_index.reserve(m_header.num_files);
+	m_index.reserve(static_cast<size_t>(m_header.num_files));
 
 	for (int i = 0; i < m_header.num_files; i++) {
 		vpinfo.offset = ReadInt();
@@ -356,7 +356,7 @@ void vp::pack_directory(const std::string *pack_dir)
 
 	dirp = opendir(source_path.c_str());
 
-	if (dirp == NULL) {
+	if (dirp == nullptr) {
 		int err = errno;
 		std::ostringstream errmsg;
 
@@ -368,7 +368,7 @@ void vp::pack_directory(const std::string *pack_dir)
 
 	add_directory(source_path);
 
-	while ( (dir = readdir(dirp)) != NULL ) {
+	while ( (dir = readdir(dirp)) != nullptr ) {
 		std::string name = dir->d_name;
 
 		if ( !name.compare(".") || !name.compare("..") ) {
@@ -376,7 +376,7 @@ void vp::pack_directory(const std::string *pack_dir)
 		}
 
 		if (name.length() >= CF_MAX_FILENAME_LENGTH) {
-			size_t half_len = std::min(name.length() / 2, (size_t)12);
+			size_t half_len = std::min(name.length() / 2, static_cast<size_t>(12));
 			std::string first_half = name.substr(0, half_len);
 			std::string last_half = name.substr(name.length() - half_len);
 
@@ -428,7 +428,7 @@ void vp::add_directory(const std::string &a_dir)
 {
 	vp_fileindex vpinfo;
 
-	vpinfo.offset = (int32_t)ftell(archive);
+	vpinfo.offset = static_cast<int32_t>(ftell(archive));
 	vpinfo.file_size = 0;
 	vpinfo.write_time = 0;
 	vpinfo.file_name = a_dir;
@@ -443,14 +443,14 @@ void vp::add_directory(const std::string &a_dir)
 	m_index.push_back(vpinfo);
 }
 
-void vp::add_file(const std::string &a_file, const size_t fsize, const time_t ftime)
+void vp::add_file(const std::string &a_file, const long fsize, const time_t ftime)
 {
 	vp_fileindex vpinfo;
 
 	// add file info to index...
-	vpinfo.offset = (int32_t)ftell(archive);
-	vpinfo.file_size = (int32_t)fsize;
-	vpinfo.write_time = (int32_t)ftime;
+	vpinfo.offset = static_cast<int32_t>(ftell(archive));
+	vpinfo.file_size = static_cast<int32_t>(fsize);
+	vpinfo.write_time = static_cast<int32_t>(ftime);
 	vpinfo.file_name = a_file;
 
 	// strip extra path from file name
@@ -465,7 +465,7 @@ void vp::add_file(const std::string &a_file, const size_t fsize, const time_t ft
 	// add the file data to archive...
 	FILE *infile = fopen(a_file.c_str(), "rb");
 
-	if (infile == NULL) {
+	if (infile == nullptr) {
 		int err = errno;
 		std::ostringstream errmsg;
 
@@ -496,7 +496,7 @@ void vp::add_file(const std::string &a_file, const size_t fsize, const time_t ft
 
 vp::vp()
 {
-	archive = NULL;
+	archive = nullptr;
 	m_lower_case = false;
 	m_filtering = false;
 	m_action = INVALID;
@@ -507,9 +507,9 @@ vp::vp()
 
 vp::~vp()
 {
-	if (archive != NULL) {
+	if (archive != nullptr) {
 		fclose(archive);
-		archive = NULL;
+		archive = nullptr;
 	}
 }
 
@@ -648,8 +648,8 @@ void vp::create()
 	// update header with proper values
 	Seek(0, SEEK_END);
 
-	m_header.index_offset = (int32_t)ftell(archive);
-	m_header.num_files = (int32_t)m_index.size();
+	m_header.index_offset = static_cast<int32_t>(ftell(archive));
+	m_header.num_files = static_cast<int32_t>(m_index.size());
 
 	write_header();
 
@@ -696,7 +696,8 @@ void vp::extract()
 	std::vector<vp_fileindex>::iterator it;
 	std::string path, rel_path;
 	FILE *outfile;
-	size_t bytes_remaining, rval;
+	int32_t bytes_remaining;
+	size_t rval;
 	char data_block[BLOCK_SIZE];
 	size_t ex_count = 0;
 	std::smatch match;
@@ -728,7 +729,7 @@ void vp::extract()
 
 		outfile = fopen(path.c_str(), "wb");
 
-		if (outfile == NULL) {
+		if (outfile == nullptr) {
 			std::cout << "ERROR: cannot create file!\n";
 			continue;
 		}
@@ -738,7 +739,7 @@ void vp::extract()
 		bytes_remaining = it->file_size;
 
 		while (bytes_remaining > 0) {
-			rval = fread(data_block, 1, std::min(BLOCK_SIZE, bytes_remaining), archive);
+			rval = fread(data_block, 1, std::min(BLOCK_SIZE, static_cast<size_t>(bytes_remaining)), archive);
 
 			if (rval > 0) {
 				fwrite(data_block, 1, rval, outfile);
@@ -758,7 +759,7 @@ void vp::extract()
 	std::cout << std::endl;
 }
 
-vp VP;
+static vp VP;
 
 
 void help()

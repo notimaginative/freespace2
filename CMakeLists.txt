@@ -429,17 +429,6 @@ if(NOT GAME_ONLY)
   )
 
   #
-  # CFILEARCHIVER: to create VP file archives
-  #
-
-  add_executable(cfilearchiver
-    EXCLUDE_FROM_ALL
-    ${cfilearchiver_SOURCE}
-  )
-
-  CreateSourceGroups(${cfilearchiver_SOURCE})
-
-  #
   # CFILEUTIL: work with VP file archives
   #
 
@@ -571,7 +560,6 @@ if(NOT GAME_ONLY)
 
   add_dependencies(tools
     ac
-    cfilearchiver
     cfileutil
     cryptstring
     nebedit

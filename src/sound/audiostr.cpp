@@ -952,8 +952,15 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 		for (int ib = 0; ib < MAX_STREAM_BUFFERS; ib++) {
 			num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize, service);
 
+			// if looping then maybe reset wavefile and keep going
+			if ( (num_bytes_read < 0) && m_bLooping) {
+				m_pwavefile->Cue();
+				num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize);
+			}
+
 			if (num_bytes_read < 0) {
 				m_bReadingDone = 1;
+				break;
 			} else if (num_bytes_read > 0) {
 				alBufferData(m_buffer_ids[ib], m_pwavefile->GetOALFormat(), uncompressed_wave_data, num_bytes_read, m_pwavefile->m_wfmt.sample_rate);
 				alSourceQueueBuffers(m_source_id, 1, &m_buffer_ids[ib]);
@@ -970,6 +977,12 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 			alSourceUnqueueBuffers(m_source_id, 1, &buffer_id);
 
 			num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize, service);
+
+			// if looping then maybe reset wavefile and keep going
+			if ( (num_bytes_read < 0) && m_bLooping) {
+				m_pwavefile->Cue();
+				num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize);
+			}
 
 			if (num_bytes_read < 0) {
 				m_bReadingDone = 1;
@@ -1181,15 +1194,15 @@ void AudioStream::Play(float volume, int looping)
 			}
 		}
 
-		// Cue for playback if necessary
-		if (!m_fCued) {
-			Cue ();
-		}
-
 		if (looping == 1) {
 			m_bLooping = true;
 		} else {
 			m_bLooping = false;
+		}
+
+		// Cue for playback if necessary
+		if (!m_fCued) {
+			Cue ();
 		}
 
 		m_nTimeStarted = timer_get_milliseconds();

@@ -23,6 +23,17 @@ int Joy_sensitivity = 9;
 static int Joy_last_x_reading = 0;
 static int Joy_last_y_reading = 0;
 
+typedef struct Joy_info {
+	int num_axes;
+	int is_controller;
+	int	axis_min[JOY_NUM_AXES];
+	int	axis_center[JOY_NUM_AXES];
+	int	axis_max[JOY_NUM_AXES];
+	int axis_current[JOY_NUM_AXES];
+} Joy_info;
+
+static Joy_info joystick;
+
 typedef struct joy_button_info {
 	int     actual_state;           // Set if the button is physically down
 	int     state;                          // Set when the button goes from up to down, cleared on down to up.  Different than actual_state after a flush.
@@ -32,17 +43,20 @@ typedef struct joy_button_info {
 	uint    last_down_check;        // timestamp in milliseconds of last
 } joy_button_info;
 
-static Joy_info joystick;
-
-SDL_Joystick *sdljoy;
-static SDL_JoystickID joy_id = -1;
-
 joy_button_info joy_buttons[JOY_TOTAL_BUTTONS];
+
+static SDL_JoystickID JoystickID = -1;
+
 
 
 int joystick_get_id()
 {
-	return joy_id;
+	return JoystickID;
+}
+
+bool joystick_is_controller()
+{
+	return (joystick.is_controller == 1);
 }
 
 void joy_close()
@@ -53,13 +67,22 @@ void joy_close()
 	joy_ff_shutdown();
 
 	Joy_inited = 0;
-	joy_id = -1;
 
-	if (SDL_JoystickGetAttached(sdljoy)) {
-		SDL_JoystickClose(sdljoy);
+	if ( joystick_is_controller() ) {
+		SDL_GameController *sdlcon = SDL_GameControllerFromInstanceID(JoystickID);
+
+		if ( SDL_GameControllerGetAttached(sdlcon) ) {
+			SDL_GameControllerClose(sdlcon);
+		}
+	} else {
+		SDL_Joystick *sdljoy = SDL_JoystickFromInstanceID(JoystickID);
+
+		if ( SDL_JoystickGetAttached(sdljoy) ) {
+			SDL_JoystickClose(sdljoy);
+		}
 	}
 
-	sdljoy = NULL;
+	JoystickID = -1;
 
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
@@ -336,112 +359,21 @@ int joy_get_pos(int *x, int *y, int *z, int *rx)
 	return 1;
 }
 
-int joy_init()
+static int joy_init_internal(int with_index)
 {
 	int i, num_sticks;
-	const char *ptr = NULL;
+	const char *ptr = nullptr;
 	int Cur_joystick;
+	SDL_Joystick *sdljoy = nullptr;
+	const char *joy_name = nullptr;
 
-	if (Joy_inited) {
-		return 0;
-	}
-
-	mprintf(("Initializing Joystick...\n"));
-
-	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
-		mprintf(("  Could not initialize joystick subsystem\n\n"));
-		return 0;
-	}
+	SDL_zero(joystick);
 
 	num_sticks = SDL_NumJoysticks();
 
 	if (num_sticks < 1) {
 		mprintf(("  No joysticks found\n\n"));
 		return 0;
-	}
-
-	Cur_joystick = 0;
-
-	ptr = os_config_read_string("Controls", "CurrentJoystick", NULL);
-
-	if ( ptr && SDL_strlen(ptr) ) {
-		for (i = 0; i < num_sticks; i++) {
-			const char *jname = SDL_JoystickNameForIndex(i);
-
-			if ( jname && !SDL_strcasecmp(ptr, jname) ) {
-				Cur_joystick = i;
-				break;
-			}
-		}
-	}
-
-	sdljoy = SDL_JoystickOpen(Cur_joystick);
-
-	if (sdljoy == NULL) {
-		mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_JoystickNameForIndex(Cur_joystick)));
-		return 0;
-	}
-
-	mprintf(("  Name         : %s\n", SDL_JoystickName(sdljoy)));
-	mprintf(("  Axes         : %d\n", SDL_JoystickNumAxes(sdljoy)));
-	mprintf(("  Buttons      : %d\n", SDL_JoystickNumButtons(sdljoy)));
-	mprintf(("  Hats         : %d\n", SDL_JoystickNumHats(sdljoy)));
-	mprintf(("  Haptic       : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
-
-	joy_ff_init();
-
-	mprintf(("\n"));
-
-	Joy_inited = 1;
-
-	joy_id = SDL_JoystickInstanceID(sdljoy);
-
-	joystick.num_axes = SDL_JoystickNumAxes(sdljoy);
-
-	joy_flush();
-
-	// Fake a calibration
-	joy_set_cen();
-
-	for (i = 0; i < JOY_NUM_AXES; i++) {
-		joystick.axis_min[i] = 0;
-		joystick.axis_max[i] = 65536;
-		joystick.axis_current[i] = joystick.axis_center[i];
-	}
-
-	return num_sticks;
-}
-
-void joy_reinit(int with_index)
-{
-	int i, num_sticks;
-	const char *ptr = NULL;
-	int Cur_joystick;
-
-	if ( !Joy_inited ) {
-		joy_init();
-		return;
-	}
-
-	// close out what we have already opened...
-	joy_ff_shutdown();
-
-	joy_id = -1;
-
-	if (SDL_JoystickGetAttached(sdljoy)) {
-		SDL_JoystickClose(sdljoy);
-	}
-
-	sdljoy = NULL;
-
-	// attempt to get a new joystick to use...
-	mprintf(("Re-Initializing Joystick...\n"));
-
-	num_sticks = SDL_NumJoysticks();
-
-	if (num_sticks < 1) {
-		mprintf(("  No joysticks found\n\n"));
-		return;
 	}
 
 	if ( (with_index >= 0) && (with_index < num_sticks) ) {
@@ -449,11 +381,17 @@ void joy_reinit(int with_index)
 	} else {
 		Cur_joystick = 0;
 
-		ptr = os_config_read_string("Controls", "CurrentJoystick", NULL);
+		ptr = os_config_read_string("Controls", "CurrentJoystick", nullptr);
 
 		if ( ptr && SDL_strlen(ptr) ) {
 			for (i = 0; i < num_sticks; i++) {
-				const char *jname = SDL_JoystickNameForIndex(i);
+				const char *jname = nullptr;
+
+				if ( SDL_IsGameController(i) ) {
+					jname = SDL_GameControllerNameForIndex(i);
+				} else {
+					jname = SDL_JoystickNameForIndex(i);
+				}
 
 				if ( jname && !SDL_strcasecmp(ptr, jname) ) {
 					Cur_joystick = i;
@@ -463,52 +401,146 @@ void joy_reinit(int with_index)
 		}
 	}
 
-	sdljoy = SDL_JoystickOpen(Cur_joystick);
+	if ( SDL_IsGameController(Cur_joystick) ) {
+		joystick.is_controller = 1;
 
-	if (sdljoy == NULL) {
-		mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_JoystickNameForIndex(Cur_joystick)));
-		return;
+		SDL_GameController *sdlcon = SDL_GameControllerOpen(Cur_joystick);
+
+		if (sdlcon == nullptr) {
+			mprintf(("  Unable to init game controller %d (%s)\n\n", Cur_joystick, SDL_GameControllerNameForIndex(Cur_joystick)));
+			return 0;
+		}
+
+		joy_name = SDL_GameControllerName(sdlcon);
+
+		sdljoy = SDL_GameControllerGetJoystick(sdlcon);
+	} else {
+		joystick.is_controller = 0;
+
+		sdljoy = SDL_JoystickOpen(Cur_joystick);
+
+		if (sdljoy == nullptr) {
+			mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_JoystickNameForIndex(Cur_joystick)));
+			return 0;
+		}
+
+		joy_name = SDL_JoystickName(sdljoy);
 	}
 
-	mprintf(("  Name         : %s\n", SDL_JoystickName(sdljoy)));
-	mprintf(("  Axes         : %d\n", SDL_JoystickNumAxes(sdljoy)));
-	mprintf(("  Buttons      : %d\n", SDL_JoystickNumButtons(sdljoy)));
-	mprintf(("  Hats         : %d\n", SDL_JoystickNumHats(sdljoy)));
-	mprintf(("  Haptic       : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+	JoystickID = SDL_JoystickInstanceID(sdljoy);
+
+	mprintf(("  Name    : %s\n", joy_name ? joy_name : "<unknown>"));
+	mprintf(("  Gamepad : %s\n", SDL_IsGameController(Cur_joystick) ? "Yes" : "No"));
+	mprintf(("  Axes    : %d\n", SDL_JoystickNumAxes(sdljoy)));
+	mprintf(("  Buttons : %d\n", SDL_JoystickNumButtons(sdljoy)));
+	mprintf(("  Hats    : %d\n", SDL_JoystickNumHats(sdljoy)));
+	mprintf(("  Haptic  : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
 
 	joy_ff_init();
 
 	mprintf(("\n"));
 
-	joy_id = SDL_JoystickInstanceID(sdljoy);
-
 	joystick.num_axes = SDL_JoystickNumAxes(sdljoy);
 
 	joy_flush();
 
-	// Fake a calibration
-	joy_set_cen();
-
 	for (i = 0; i < JOY_NUM_AXES; i++) {
-		joystick.axis_min[i] = 0;
-		joystick.axis_max[i] = 65536;
-		joystick.axis_current[i] = joystick.axis_center[i];
+		joystick.axis_min[i] = SDL_JOYSTICK_AXIS_MIN;
+		joystick.axis_max[i] = SDL_JOYSTICK_AXIS_MAX;
 	}
+
+	if (joystick.is_controller == 1) {
+		// the last two axes should be triggers, so set values manually
+		for (i = JOY_NUM_AXES-2; i < JOY_NUM_AXES; i++) {
+			joystick.axis_min[i] = 0;
+			joystick.axis_max[i] = SDL_JOYSTICK_AXIS_MAX;
+		}
+	}
+
+	return num_sticks;
+}
+
+int joy_init()
+{
+	if (Joy_inited) {
+		return 0;
+	}
+
+	mprintf(("Initializing Joystick...\n"));
+
+	if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0) {
+		mprintf(("  Could not initialize joystick subsystem\n\n"));
+		return 0;
+	}
+
+	int num_sticks = joy_init_internal(-1);
+
+	if (num_sticks > 0) {
+		Joy_inited = 1;
+	}
+
+	return num_sticks;
+}
+
+void joy_reinit(int with_index)
+{
+	if ( !Joy_inited ) {
+		joy_init();
+		return;
+	}
+
+	// close out what we have already opened...
+	joy_ff_shutdown();
+
+	if (joystick.is_controller == 1) {
+		SDL_GameController *sdlcon = SDL_GameControllerFromInstanceID(JoystickID);
+
+		if ( SDL_GameControllerGetAttached(sdlcon) ) {
+			SDL_GameControllerClose(sdlcon);
+		}
+	} else {
+		SDL_Joystick *sdljoy = SDL_JoystickFromInstanceID(JoystickID);
+
+		if ( SDL_JoystickGetAttached(sdljoy) ) {
+			SDL_JoystickClose(sdljoy);
+		}
+	}
+
+	JoystickID = -1;
+
+	// attempt to get a new joystick to use...
+	mprintf(("Re-Initializing Joystick...\n"));
+
+	joy_init_internal(with_index);
 }
 
 void joy_set_cen()
 {
+	SDL_GameController *sdlcon = nullptr;
+	SDL_Joystick *sdljoy = nullptr;
+
 	if ( !Joy_inited ) {
 		return;
 	}
 
+	if ( joystick_is_controller() ) {
+		sdlcon = SDL_GameControllerFromInstanceID(JoystickID);
+	} else {
+		sdljoy = SDL_JoystickFromInstanceID(JoystickID);
+	}
+
 	for (int i = 0; i < JOY_NUM_AXES; i++) {
 		if (i < joystick.num_axes) {
-			joystick.axis_center[i] = SDL_JoystickGetAxis(sdljoy, i) + 32768;
+			if ( joystick_is_controller() ) {
+				joystick.axis_center[i] = SDL_GameControllerGetAxis(sdlcon, (SDL_GameControllerAxis)i);
+			} else {
+				joystick.axis_center[i] = SDL_JoystickGetAxis(sdljoy, i);
+			}
 		} else {
-			joystick.axis_center[i] = 32768;
+			joystick.axis_center[i] = 0;
 		}
 	}
+
 }
 
 int joystick_read_raw_axis(int num_axes, int *axis)
@@ -523,7 +555,7 @@ int joystick_read_raw_axis(int num_axes, int *axis)
 		if (i < joystick.num_axes) {
 			axis[i] = joystick.axis_current[i];
 		} else {
-			axis[i] = 32768;
+			axis[i] = 0;
 		}
 	}
 
@@ -538,6 +570,6 @@ bool joy_axis_valid(int axis)
 void joystick_update_axis(int axis, int value)
 {
 	if (axis < JOY_NUM_AXES) {
-		joystick.axis_current[axis] = value + 32768;
+		joystick.axis_current[axis] = value;
 	}
 }

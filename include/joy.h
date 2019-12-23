@@ -92,14 +92,6 @@
 
 #define JOY_AXIS_UNDEFINED		-10000
 
-typedef struct Joy_info {
-	int num_axes;
-	int	axis_min[JOY_NUM_AXES];
-	int	axis_center[JOY_NUM_AXES];
-	int	axis_max[JOY_NUM_AXES];
-	int axis_current[JOY_NUM_AXES];
-} Joy_info;
-
 extern int Joy_sensitivity;
 extern int Dead_zone_size;  // percentage of range that is dead zone
 
@@ -125,6 +117,7 @@ int joy_get_unscaled_reading(int axn);
 bool joy_axis_valid(int axis);
 void joy_mark_button(int btn, int state);
 int joystick_get_id();
+bool joystick_is_controller();
 void joystick_update_axis(int axis, int value);
 
 #endif	/* __JOY_H__ */

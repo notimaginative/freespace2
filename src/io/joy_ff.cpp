@@ -14,13 +14,14 @@
 #include "joy_ff.h"
 #include "osapi.h"
 #include "timer.h"
+#include "joy.h"
 
 
 static int Joy_ff_enabled = 0;
 static int Joy_ff_acquired = 0;
 static SDL_Haptic *haptic = NULL;
 static int joy_ff_handling_scaler = 0;
-static int Joy_ff_directional_hit_effect_enabled = 1;
+static uint Joy_ff_directional_hit_effect_enabled = 1;
 static int Joy_rumble = 0;
 static int Joy_ff_afterburning = 0;
 
@@ -43,14 +44,20 @@ static void joy_ff_create_effects();
 //static int joy_ff_effect_playing(haptic_effect_t *eff);
 static void joy_ff_start_effect(haptic_effect_t *eff, const char *name);
 
-extern SDL_Joystick *sdljoy;
-
 
 int joy_ff_init()
 {
-	int ff_enabled = 0;
+	uint ff_enabled = 0;
+	SDL_Joystick *sdljoy = nullptr;
 
 	ff_enabled = os_config_read_uint("Controls", "EnableJoystickFF", 0);
+
+	if ( joystick_is_controller() ) {
+		SDL_GameController *sdlcon = SDL_GameControllerFromInstanceID(joystick_get_id());
+		sdljoy = SDL_GameControllerGetJoystick(sdlcon);
+	} else {
+		sdljoy = SDL_JoystickFromInstanceID(joystick_get_id());
+	}
 
 	if ( !ff_enabled || !SDL_JoystickIsHaptic(sdljoy) ) {
 		return 0;

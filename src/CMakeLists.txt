@@ -346,15 +346,6 @@ set(ac_SOURCE
 )
 
 #
-# CFILEARCHIVER: to create VP file archives
-#
-
-set(cfilearchiver_SOURCE
-  ${CMAKE_CURRENT_SOURCE_DIR}/cfilearchiver/cfilearchiver.cpp
-  PARENT_SCOPE
-)
-
-#
 # CFILEUTIL: work with VP file archives
 #
 

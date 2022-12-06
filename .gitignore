@@ -1,1 +1,6 @@
 custom.cmake
+
+._*
+.DS_Store
+.vscode
+*.diff

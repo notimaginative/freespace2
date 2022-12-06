@@ -99,7 +99,7 @@ static ubyte *Wavedata_service_buffer = NULL;	// buffer used for servicing audio
 
 SDL_mutex *Global_service_lock;
 
-typedef bool (*TIMERCALLBACK)(ptr_u);
+typedef bool (*TIMERCALLBACK)(uintptr_t);
 
 #define COMPRESSED_BUFFER_SIZE	88300
 static ubyte *Compressed_buffer = NULL;				// Used to load in compressed data during a cueing interval
@@ -120,13 +120,13 @@ public:
     void constructor();
     void destructor();
 
-    bool Create(uint nPeriod, ptr_u dwUser, TIMERCALLBACK pfnCallback);
+    bool Create(uint nPeriod, uintptr_t dwUser, TIMERCALLBACK pfnCallback);
 
 protected:
 	static Uint32 TimeProc(Uint32 interval, void *dwUser);
 
 	TIMERCALLBACK m_pfnCallback;
-    ptr_u m_dwUser;
+    uintptr_t m_dwUser;
     uint m_nPeriod;
     SDL_TimerID m_nIDTimer;
 };
@@ -248,7 +248,7 @@ protected:
 	bool WriteWaveData(uint cbSize, uint* num_bytes_written,int service=1);
 	uint GetMaxWriteSize();
 	bool ServiceBuffer();
-	static bool TimerCallback(ptr_u dwUser);
+	static bool TimerCallback(uintptr_t dwUser);
 
 	ALuint m_source_id;   // name of openAL source
 	ALuint m_buffer_ids[MAX_STREAM_BUFFERS]; //names of buffers
@@ -297,7 +297,7 @@ void Timer::destructor()
 	}
 }
 
-bool Timer::Create(uint nPeriod, ptr_u dwUser, TIMERCALLBACK pfnCallback)
+bool Timer::Create(uint nPeriod, uintptr_t dwUser, TIMERCALLBACK pfnCallback)
 {
 	SDL_assert( pfnCallback != NULL );
 	SDL_assert( nPeriod > 10 );
@@ -1211,7 +1211,7 @@ void AudioStream::Play(float volume, int looping)
 		// Kick off timer to service buffer
 		m_timer.constructor();
 
-		m_timer.Create(m_nBufService, (ptr_u)this, TimerCallback);
+		m_timer.Create(m_nBufService, (uintptr_t)this, TimerCallback);
 
 		alSourcef(m_source_id, AL_GAIN, m_lVolume);
 		alSource3f(m_source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
@@ -1232,7 +1232,7 @@ void AudioStream::Play(float volume, int looping)
 }
 
 // Timer callback for Timer object created by ::Play method.
-bool AudioStream::TimerCallback(ptr_u dwUser)
+bool AudioStream::TimerCallback(uintptr_t dwUser)
 {
     // dwUser contains ptr to AudioStream object
     AudioStream * pas = (AudioStream *) dwUser;

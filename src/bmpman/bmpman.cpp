@@ -1386,14 +1386,14 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 			SDL_assert( be->data_size == bmp->w * bmp->h );
 		#endif
 		palette = pal;
-		bmp->data = (ptr_u)data;
+		bmp->data = (uintptr_t)data;
 		bmp->bpp = 8;
 		bmp->palette = gr_palette;
 		memset( data, 0, bmp->w * bmp->h);
 	} else {
 		data = (ubyte*)bm_malloc(bitmapnum, bmp->w * bmp->h * 2);	
 		bmp->bpp = 16;
-		bmp->data = (ptr_u)data;
+		bmp->data = (uintptr_t)data;
 		bmp->palette = NULL;
 		memset( data, 0, bmp->w * bmp->h * 2);
 	}	
@@ -1490,7 +1490,7 @@ void bm_lock_ani( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 			// Error(LOCATION,"Fatal error locking .ani file: %s\n", be->filename);
 		}
 
-		bm->data = (ptr_u)bm_malloc(first_frame + i, size);
+		bm->data = (uintptr_t)bm_malloc(first_frame + i, size);
 
 
 		ubyte *dptr, *sptr;
@@ -1580,7 +1580,7 @@ void bm_lock_user( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, uby
 	case 16:			// user 16 bit bitmap
 		bmp->bpp = bpp;
 		bmp->flags = be->info.user.flags;		
-		bmp->data = (ptr_u)be->info.user.data;								
+		bmp->data = (uintptr_t)be->info.user.data;
 		break;	
 	
 	case 8:			// Going from 8 bpp to something (probably only for aabitmaps)
@@ -1603,7 +1603,7 @@ void bm_lock_user( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, uby
 		SDL_assert(flags & BMP_AABITMAP);
 		bmp->bpp = bpp;
 		bmp->flags = be->info.user.flags;		
-		bmp->data = (ptr_u)be->info.user.data;								
+		bmp->data = (uintptr_t)be->info.user.data;
 		break;
 		
 	// default:
@@ -1636,7 +1636,7 @@ void bm_lock_tga( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		data = (ubyte*)bm_malloc(bitmapnum, bmp->w * bmp->h);	
 	}
 	bmp->bpp = bpp;
-	bmp->data = (ptr_u)data;
+	bmp->data = (uintptr_t)data;
 	bmp->palette = NULL;
 	if(bpp == 16){
 		memset( data, 0, bmp->w * bmp->h * 2);	

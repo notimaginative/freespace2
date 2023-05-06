@@ -997,7 +997,7 @@ int multi_fs_store_stats_do()
 				scoring_struct *ssp = &(Net_players[Multi_store_stats_player_index].player->stats);
 				vmt_stats_struct *vmt = &Multi_store_stats_stats;
 				
-				if ( (ssp->missions_flown < vmt->missions_flown) || (ssp->flight_time < ssp->flight_time) || (ssp->kill_count < vmt->kill_count) ) {
+				if ( (ssp->missions_flown < vmt->missions_flown) || (ssp->flight_time < vmt->flight_time) || (ssp->kill_count < vmt->kill_count) ) {
 					Int3();
 				}
 			}

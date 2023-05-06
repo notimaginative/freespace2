@@ -167,7 +167,7 @@ void pack_file(const char *filespec, const char *filename, int filesize, fs_time
 	printf( "Packing %s%s%s...", filespec, DIR_SEPARATOR_STR, filename );
 
 
-	sprintf( path, "%s%s%s", filespec, DIR_SEPARATOR_STR, filename );
+	snprintf( path, sizeof(path), "%s%s%s", filespec, DIR_SEPARATOR_STR, filename );
 
 
 	FILE *fp = fopen( path, "rb" );

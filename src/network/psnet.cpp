@@ -1621,7 +1621,6 @@ ubyte rsend_buffer[MAX_RSEND_BUFFER];
 
 int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 {
-	ubyte *send_data;
 	int num_sent, total_sent, error, retries;
 	SOCKET socket;
 	unsigned short s_length;
@@ -1648,7 +1647,6 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 
 	retries = 0;
 	total_sent = 0;
-	send_data = data;
 	do {
 		num_sent = send( socket, (char *)rsend_buffer, length+sizeof(s_length), 0 );
 		if ( num_sent == SOCKET_ERROR ) {
@@ -1665,7 +1663,6 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 			retries++;											// keep a try count
 		} else {
 			length -= num_sent;
-			send_data += num_sent;
 			total_sent += num_sent;
 		}
 	} while ( length > 0 );

@@ -6929,7 +6929,7 @@ object *ship_find_repair_ship( object *requester_obj )
 {
 	object *objp;
 	ship *requester_ship;
-	int	num_support_ships, num_available_support_ships;
+	int	num_support_ships;
 	float	min_dist = 99999.0f;
 	object	*nearest_support_ship = NULL;
 	int		support_ships[MAX_SUPPORT_SHIPS_PER_TEAM];
@@ -6944,7 +6944,6 @@ object *ship_find_repair_ship( object *requester_obj )
 		return NULL;
 
 	num_support_ships = 0;
-	num_available_support_ships = 0;
 
 	requester_ship = &Ships[requester_obj->instance];
 	for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
@@ -6972,7 +6971,6 @@ object *ship_find_repair_ship( object *requester_obj )
 			support_ships[num_support_ships] = objp-Objects;
 
 			if (!(Ai_info[shipp->ai_index].ai_flags & AIF_REPAIRING)) {
-				num_available_support_ships++;
 				if (dist < min_dist) {
 					min_dist = dist;
 					nearest_support_ship = objp;

@@ -348,7 +348,7 @@ void fonttool_edit_kerning(char *fname1)
 	gr_set_palette("none",NULL);
 
 	char fonttool_pcx[128];
-	sprintf(fonttool_pcx, "src%sfonttool%sfonttool", DIR_SEPARATOR_STR, DIR_SEPARATOR_STR);
+	snprintf(fonttool_pcx, sizeof(fonttool_pcx), "src%sfonttool%sfonttool", DIR_SEPARATOR_STR, DIR_SEPARATOR_STR);
 
 	bkg = bm_load( fonttool_pcx );
 
@@ -507,18 +507,18 @@ void fonttool_edit_kerning(char *fname1)
 		gr_bitmap(0,0);
 		gr_set_color_fast(&ac);
 
-		sprintf( kerntext, "%c (%d)", c1, c1 );
+		snprintf( kerntext, sizeof(kerntext), "%c (%d)", c1, c1 );
 		gr_string( 240, 210, kerntext );
-		sprintf( kerntext, "%c (%d)", c2, c2 );
+		snprintf( kerntext, sizeof(kerntext), "%c (%d)", c2, c2 );
 		gr_string( 340, 210, kerntext );
 
-		sprintf( kerntext, "Ham%c%crger", c1, c2 );
+		snprintf( kerntext, sizeof(kerntext), "Ham%c%crger", c1, c2 );
 		gr_string( 0x8000, 240, kerntext );
 
-		sprintf( kerntext, "HAM%c%cRGER", c1, c2 );
+		snprintf( kerntext, sizeof(kerntext), "HAM%c%cRGER", c1, c2 );
 		gr_string( 0x8000, 270, kerntext );
 
-		sprintf( kerntext, "Offset: %d pixels", fonttool_get_kerning( &KernFont, c1, c2, NULL ) );
+		snprintf( kerntext, sizeof(kerntext), "Offset: %d pixels", fonttool_get_kerning( &KernFont, c1, c2, NULL ) );
 		gr_string( 0x8000, 300, kerntext );
 
 		{
@@ -561,7 +561,7 @@ void fonttool_edit_kerning(char *fname1)
 		for (i=first_item; i<stop; i++ )	{
 			int tw, th;
 
-			sprintf( kerntext, "%c%c", KernFont.kern_data[i].c1 + KernFont.first_ascii, KernFont.kern_data[i].c2 + KernFont.first_ascii );
+			snprintf( kerntext, sizeof(kerntext), "%c%c", KernFont.kern_data[i].c1 + KernFont.first_ascii, KernFont.kern_data[i].c2 + KernFont.first_ascii );
 			if ( i==current_pair )	{
 				gr_set_color( 255, 0, 0 );
 				//hud_tri( i2fl(x),i2fl(y), i2fl(x+6), i2fl(y+5), i2fl(x), i2fl(y+8) );

@@ -1132,7 +1132,7 @@ int convert_frames_to_anim(char *filename)
 		do {
 			fclose(fp);
 			frame++;
-			sprintf(temp, "%04d", frame);
+			snprintf(temp, sizeof(temp), "%04d", frame);
 			strncpy(&name[pos], temp, 4);	
 
 			// next file
@@ -1172,7 +1172,7 @@ int convert_frames_to_anim(char *filename)
 		goto done;
 
 	while (first < frame) {
-		sprintf(temp, "%04d", first);
+		snprintf(temp, sizeof(temp), "%04d", first);
 		strncpy(&name[pos], temp, 4);
 		rc = pcx_read_bitmap_8bpp(name, cur_frame, Anim.palette);
 		if (rc != PCX_ERROR_NONE)

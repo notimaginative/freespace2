@@ -891,7 +891,9 @@ void neb2_regen()
 	}
 }
 
-float max_area = 100000000.0f;
+// #define NEB_DEBUG
+#ifdef NEB_DEBUG
+static float max_area = 100000000.0f;
 DCF(max_area, "")
 {
 	dc_get_arg(ARG_FLOAT);
@@ -899,20 +901,23 @@ DCF(max_area, "")
 }
 
 float g3_draw_rotated_bitmap_area(vertex *pnt, float angle, float rad, uint tmap_flags, float area);
-int neb_mode = 1;
-int frames_total = 0;
-int frame_count = 0;
-float frame_avg;
+static int neb_mode = 1;
+static int frames_total = 0;
+static int frame_count = 0;
+static float frame_avg;
+#endif
+
 void neb2_render_player()
 {	
 	vertex p, ptemp;
 	int idx1, idx2, idx3;
 	float alpha;
-	int frame_rendered;	
 	vector eye_pos;
 	matrix eye_orient;
 
-#ifndef NDEBUG
+#ifdef NEB_DEBUG
+	int frame_rendered;	
+
 	float this_area;
 	float frame_area = max_area;
 	float total_area = 0.0f;
@@ -1002,8 +1007,11 @@ void neb2_render_player()
 	if(Neb2_render_mode == NEB2_RENDER_NONE){
 		return;
 	}	
-	
+
+#ifdef NEB_DEBUG
 	frame_rendered = 0;
+#endif
+
 	// render the nebula
 	for(idx1=0; idx1<Neb2_slices; idx1++){
 		for(idx2=0; idx2<Neb2_slices; idx2++){
@@ -1054,7 +1062,7 @@ void neb2_render_player()
 				// set the bitmap and render				
 				gr_set_bitmap(Neb2_cubes[idx1][idx2][idx3].bmap, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, alpha + Neb2_cubes[idx1][idx2][idx3].flash, -1, -1);
 
-#ifndef NDEBUG
+#ifdef NEB_DEBUG
 				this_area = g3_draw_rotated_bitmap_area(&p, fl_radian(Neb2_cubes[idx1][idx2][idx3].rot), Nd->prad, TMAP_FLAG_TEXTURED, max_area);				
 				total_area += this_area;
 				frame_area -= this_area;
@@ -1066,12 +1074,15 @@ void neb2_render_player()
 		}
 	}	
 
+#ifdef NEB_DEBUG
 	frames_total += frame_rendered;
 	frame_count++;
 	frame_avg = (float)frames_total / (float)frame_count;	
 
 	// gr_set_color_fast(&Color_bright_red);
 	// gr_printf(30, 100, "Area %.3f", total_area);
+#endif
+
 #ifdef NEB2_THUMBNAIL
 	extern int tbmap;
 	if(tbmap != -1){

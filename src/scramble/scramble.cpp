@@ -288,7 +288,7 @@ void scramble_file(char *src_filename, char *dest_filename, int preprocess)
 //
 // input:	src_filename	=>	filename of scrambled text
 //				dest_filename	=>	optional, this is the filename unscrambled text data will get stored to
-void unscramble_file(char *src_filename, char *dest_filename)
+void unscramble_file(const char *src_filename, const char *dest_filename = nullptr)
 {
 	FILE	*fp;
 	int	scramble_len, text_len;

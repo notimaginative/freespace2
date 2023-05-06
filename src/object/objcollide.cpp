@@ -607,8 +607,12 @@ void obj_check_all_collisions()
 	if ( !(Game_detail_flags & DETAIL_FLAG_COLLISION) )	return;
 
 	obj_pair *parent, *tmp;	
+
+	// #define PAIR_STATS
+	#ifdef PAIR_STATS
 	// debug info
 	float avg_time_to_next_check = 0.0f;
+	#endif
 							
 	parent = &pair_used_list;
 	tmp = parent->next;
@@ -648,19 +652,21 @@ void obj_check_all_collisions()
 		if (!removed)	{
 			parent = tmp;
 			tmp = tmp->next;
+
+			#ifdef PAIR_STATS
 			// debug info
 			if (tmp) {
 				int add_time = timestamp_until( tmp->next_check_time );
 				if (add_time > 0)
 					avg_time_to_next_check += (float) add_time;
 			}
+			#endif
 		}
 	}
 
 	MONITOR_INC(NumPairs,Num_pairs);
 	MONITOR_INC(NumPairsChecked,Num_pairs_checked);
 
-	// #define PAIR_STATS
 	#ifdef PAIR_STATS
 	avg_time_to_next_check = avg_time_to_next_check / Num_pairs;
 	extern int Num_hull_pieces;

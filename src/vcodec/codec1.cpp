@@ -1803,7 +1803,7 @@ static void UnAutoGain1(t_Sample* bufIn, t_Sample* bufOut, int size,
     }
 }
 
-static void InitLowPassFilter(int QoS, double LPF_Coef[], 
+static void InitLowPassFilter(int QoS, double LPF_Coef[LPF_NUM_POINTS], 
 							  char LPF_CoefTimesSample[LPF_NUM_POINTS][256])
 {
 	// QoS==10 ==> cutoff frequency is 5500Hz (filter is a noop)

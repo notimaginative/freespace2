@@ -59,6 +59,9 @@ if(NOT EMSCRIPTEN)
   add_definitions(-DLEGACY_GL)
 endif()
 
+# use SDL's builtin GLES functions
+add_definitions(-DSDL_USE_BUILTIN_OPENGL_DEFINITIONS)
+
 if(NOT WIN32)
   set(PLATFORM_LIBRARIES "")
 

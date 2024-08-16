@@ -33,6 +33,7 @@ int vm_init(int min_heap_size)
 }
 
 #if defined(__MACOSX__)
+#include <malloc/malloc.h>
 #define MALLOC_SIZE(x)		malloc_size(x)
 #elif defined(__GNUC__)
 #define MALLOC_SIZE(x)		malloc_usable_size(x)

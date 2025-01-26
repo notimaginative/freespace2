@@ -229,7 +229,7 @@ void scramble_read_default(char **text, int *text_len, FILE *fp)
 //
 // input:	src_filename	=>	filename of text to scramble
 //				dest_filename	=>	optional, this is the filename scrambled data will get stored to
-void scramble_file(char *src_filename, char *dest_filename, int preprocess)
+void scramble_file(const char *src_filename, const char *dest_filename, int preprocess)
 {
 	FILE	*fp;
 	int	text_len, scramble_len;
@@ -288,7 +288,7 @@ void scramble_file(char *src_filename, char *dest_filename, int preprocess)
 //
 // input:	src_filename	=>	filename of scrambled text
 //				dest_filename	=>	optional, this is the filename unscrambled text data will get stored to
-void unscramble_file(const char *src_filename, const char *dest_filename = nullptr)
+void unscramble_file(const char *src_filename, const char *dest_filename)
 {
 	FILE	*fp;
 	int	scramble_len, text_len;

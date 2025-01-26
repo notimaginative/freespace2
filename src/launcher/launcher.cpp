@@ -448,6 +448,9 @@ void Launcher::JumpToSetup()
 		return;
 	}
 
+	// set initial defaults properly
+	os_init_registry_stuff();
+
 	// FS1 doesn't do a setup jump so just go with what the user sets up
 	// and/or what the game binary will set
 

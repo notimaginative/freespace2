@@ -347,10 +347,15 @@ void fonttool_edit_kerning(char *fname1)
 
 	gr_set_palette("none",NULL);
 
-	char fonttool_pcx[128];
-	snprintf(fonttool_pcx, sizeof(fonttool_pcx), "src%sfonttool%sfonttool", DIR_SEPARATOR_STR, DIR_SEPARATOR_STR);
+	bkg = bm_load("fonttool");
 
-	bkg = bm_load( fonttool_pcx );
+	// fallback, for if it's run in build tree
+	if (bkg < 0) {
+		char fonttool_pcx[128];
+		snprintf(fonttool_pcx, sizeof(fonttool_pcx), "src%sfonttool%sfonttool", DIR_SEPARATOR_STR, DIR_SEPARATOR_STR);
+
+		bkg = bm_load( fonttool_pcx );
+	}
 
 	if ( bkg < 0 )	{
 		printf("Error loading FontTool\n" );

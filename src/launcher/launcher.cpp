@@ -457,7 +457,7 @@ void Launcher::JumpToSetup()
 #ifndef MAKE_FS1
 	wxString title( wxT("Welcome to FreeSpace 2!") );
 
-	wxString message( wxT("Since this is your first time running FreeSapce2, ")
+	wxString message( wxT("Since this is your first time running FreeSpace2, ")
 					  wxT("you will now be automatically taken to the Setup ")
 					  wxT("window.") );
 

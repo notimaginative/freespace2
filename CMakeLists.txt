@@ -8,8 +8,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(CreateSourceGroups)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ##############################################################################
+
+# build everything by default
+set(GAME_ONLY)
 
 option(FS1 "Build original FreeSpace" OFF)
 
@@ -29,22 +33,20 @@ endif()
 
 
 if(FS1)
+  set(VERSION "1.06")
   add_definitions(-DMAKE_FS1)
 
   if(DEMO)
+    set(VERSION "1.20")
     add_definitions(-DDEMO -DFS1_DEMO)
   endif()
 else()
+  set(VERSION "1.20")
+
   if(DEMO)
+    set(VERSION "1.10")
     add_definitions(-DFS2_DEMO)
   endif()
-endif()
-
-# build everything by default
-set(GAME_ONLY)
-
-if(DEMO)
-  set(GAME_ONLY 1)
 endif()
 
 if(EMSCRIPTEN)
@@ -61,6 +63,11 @@ endif()
 
 # use SDL's builtin GLES functions
 add_definitions(-DSDL_USE_BUILTIN_OPENGL_DEFINITIONS)
+
+if(APPLE)
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
+  # set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
 
 if(NOT WIN32)
   set(PLATFORM_LIBRARIES "")
@@ -292,7 +299,7 @@ if(NOT GAME_ONLY)
   set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
 
   add_executable(${LAUNCHER_BINARY}
-  WIN32
+    WIN32
     ${launcher_SOURCE}
     ${launcher_HEADERS}
   )
@@ -573,7 +580,10 @@ endif(NOT GAME_ONLY)
 # ##############################################################################
 
 #
-# optionally include any dev/user preferred build commands and/or options
+# any installer/packager configurations come last and should be specified as
+# separate files included here as necessary
 #
 
-include(custom.cmake OPTIONAL)
+if(APPLE)
+  include(CreateMacOSBundle)
+endif()

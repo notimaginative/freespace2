@@ -37,12 +37,12 @@
 #include "res/fs2_btn_setup.xpm"
 #include "res/fs2_btn_setup-hover.xpm"
 #include "res/fs2_btn_setup-click.xpm"
-#include "res/fs2_btn_uninstall.xpm"
-#include "res/fs2_btn_uninstall-hover.xpm"
-#include "res/fs2_btn_uninstall-click.xpm"
-#include "res/fs2_btn_update.xpm"
-#include "res/fs2_btn_update-hover.xpm"
-#include "res/fs2_btn_update-click.xpm"
+// #include "res/fs2_btn_uninstall.xpm"
+// #include "res/fs2_btn_uninstall-hover.xpm"
+// #include "res/fs2_btn_uninstall-click.xpm"
+// #include "res/fs2_btn_update.xpm"
+// #include "res/fs2_btn_update-hover.xpm"
+// #include "res/fs2_btn_update-click.xpm"
 #include "res/fs2_btn_volition.xpm"
 #include "res/fs2_btn_volition-hover.xpm"
 #include "res/fs2_btn_volition-click.xpm"
@@ -194,9 +194,9 @@ wxBEGIN_EVENT_TABLE(Launcher, wxDialog)
 	EVT_BUTTON(ID_B_PLAY, Launcher::OnPlay)
 	EVT_BUTTON(ID_B_SETUP, Launcher::OnSetup)
 	EVT_BUTTON(ID_B_README, Launcher::OnReadme)
-	EVT_BUTTON(ID_B_UPDATE, Launcher::OnUpdate)
+	// EVT_BUTTON(ID_B_UPDATE, Launcher::OnUpdate)
 	EVT_BUTTON(ID_B_HELP, Launcher::OnHelp)
-	EVT_BUTTON(ID_B_UNINSTALL, Launcher::OnUninstall)
+	// EVT_BUTTON(ID_B_UNINSTALL, Launcher::OnUninstall)
 	EVT_BUTTON(ID_B_VOLITION, Launcher::OnVolition)
 	EVT_BUTTON(ID_B_PXO, Launcher::OnPXO)
 	EVT_BUTTON(ID_B_QUIT, Launcher::OnQuit)
@@ -243,17 +243,17 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_btn_Readme->SetBitmapHover( wxBitmap(fs2_btn_readme_hover_xpm) );
 	m_btn_Readme->SetBitmapPressed( wxBitmap(fs2_btn_readme_click_xpm) );
 
-	m_btn_Update = new wxLauncherButton( m_panel, ID_B_UPDATE, wxBitmap(fs2_btn_update_xpm), wxPoint(199, 175), wxSize(131, 58) );
-	m_btn_Update->SetBitmapHover( wxBitmap(fs2_btn_update_hover_xpm) );
-	m_btn_Update->SetBitmapPressed( wxBitmap(fs2_btn_update_click_xpm) );
+	// m_btn_Update = new wxLauncherButton( m_panel, ID_B_UPDATE, wxBitmap(fs2_btn_update_xpm), wxPoint(199, 175), wxSize(131, 58) );
+	// m_btn_Update->SetBitmapHover( wxBitmap(fs2_btn_update_hover_xpm) );
+	// m_btn_Update->SetBitmapPressed( wxBitmap(fs2_btn_update_click_xpm) );
 
 	m_btn_Help = new wxLauncherButton( m_panel, ID_B_HELP, wxBitmap(fs2_btn_help_xpm), wxPoint(45, 247), wxSize(131, 58) );
 	m_btn_Help->SetBitmapHover( wxBitmap(fs2_btn_help_hover_xpm) );
 	m_btn_Help->SetBitmapPressed( wxBitmap(fs2_btn_help_click_xpm) );
 
-	m_btn_Uninstall = new wxLauncherButton( m_panel, ID_B_UNINSTALL, wxBitmap(fs2_btn_uninstall_xpm), wxPoint(199, 247), wxSize(131, 58) );
-	m_btn_Uninstall->SetBitmapHover( wxBitmap(fs2_btn_uninstall_hover_xpm) );
-	m_btn_Uninstall->SetBitmapPressed( wxBitmap(fs2_btn_uninstall_click_xpm) );
+	// m_btn_Uninstall = new wxLauncherButton( m_panel, ID_B_UNINSTALL, wxBitmap(fs2_btn_uninstall_xpm), wxPoint(199, 247), wxSize(131, 58) );
+	// m_btn_Uninstall->SetBitmapHover( wxBitmap(fs2_btn_uninstall_hover_xpm) );
+	// m_btn_Uninstall->SetBitmapPressed( wxBitmap(fs2_btn_uninstall_click_xpm) );
 
 	m_btn_Volition = new wxLauncherButton( m_panel, ID_B_VOLITION, wxBitmap(fs2_btn_volition_xpm), wxPoint(15, 304), wxSize(90, 108) );
 	m_btn_Volition->SetBitmapHover( wxBitmap(fs2_btn_volition_hover_xpm) );
@@ -301,21 +301,21 @@ Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_btn_Readme = new wxButton( this, ID_B_README, wxT("View README"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer5->Add( m_btn_Readme, 0, wxALL|wxEXPAND, 5 );
 
-	m_btn_Update = new wxButton( this, ID_B_UPDATE, wxT("Update FreeSpace"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer5->Add( m_btn_Update, 0, wxALL|wxEXPAND, 5 );
+	// m_btn_Update = new wxButton( this, ID_B_UPDATE, wxT("Update FreeSpace"), wxDefaultPosition, wxDefaultSize, 0 );
+	// bSizer5->Add( m_btn_Update, 0, wxALL|wxEXPAND, 5 );
 
 	m_btn_Volition = new wxButton( this, ID_B_VOLITION, wxT("FreeSpace Webpage"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer5->Add( m_btn_Volition, 0, wxALL|wxEXPAND, 5 );
 
-	m_btn_Uninstall = new wxButton( this, ID_B_UNINSTALL, wxT("Uninstall"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer5->Add( m_btn_Uninstall, 0, wxALL|wxEXPAND, 5 );
+	// m_btn_Uninstall = new wxButton( this, ID_B_UNINSTALL, wxT("Uninstall"), wxDefaultPosition, wxDefaultSize, 0 );
+	// bSizer5->Add( m_btn_Uninstall, 0, wxALL|wxEXPAND, 5 );
 
 	m_btn_Quit = new wxButton( this, ID_B_QUIT, wxT("Quit"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer5->Add( m_btn_Quit, 0, wxALL|wxEXPAND, 5 );
 
 	fgSizer3->Add( bSizer5, 1, wxALIGN_CENTER|wxALL, 10 );
 
-	bSizer3->Add( fgSizer3, 1, wxALIGN_BOTTOM|wxALIGN_RIGHT|wxEXPAND, 5 );
+	bSizer3->Add( fgSizer3, 1, /*wxALIGN_BOTTOM|wxALIGN_RIGHT|*/wxEXPAND, 5 );
 
 	this->SetSizer( bSizer3 );
 	this->Layout();

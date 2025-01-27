@@ -376,7 +376,13 @@ void Launcher::OnSetup( wxCommandEvent& WXUNUSED(event) )
 
 void Launcher::OnReadme( wxCommandEvent& WXUNUSED(event) )
 {
-	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
+	wxString epath;
+
+	if (wxStandardPaths::Get().GetExecutablePath().Contains(wxT(".app/Contents"))) {
+		epath = wxStandardPaths::Get().GetResourcesDir().append("/");
+	} else {
+		epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
+	}
 
 	epath.Append( wxT("readme.txt") );
 

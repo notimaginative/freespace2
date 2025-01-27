@@ -551,7 +551,9 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Target Previous Closest Friendly Ship",
 		"Target Ship in Reticle",
 		"Target Target's Nearest Attacker",
+#ifndef FS1_DEMO
 		"Target Last Ship to Send Transmission",
+#endif
 		"Stop Targeting Ship",
 		"Target Subsystem in Reticle",
 		"Target Next Subsystem",
@@ -601,10 +603,12 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Increase View Distance",
 		"Decrease View Distance",
 		"Center View",
+#ifndef FS1_DEMO
 		"View Up",
 		"View Rear",
 		"View Left",
 		"View Right",
+#endif
 		"Cycle Radar Range",
 		"Communications Menu",
 		"Show Objectives",
@@ -617,7 +621,9 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Decrease Shield Energy",
 		"Increase Engine Energy",
 		"Decrease Engine Energy",
+#ifndef FS1_DEMO
 		"Equalize Energy Settings",
+#endif
 		"Equalize Shield",
 		"Augment Forward Shield",
 		"Augment Rear Shield",
@@ -646,6 +652,12 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"(Multiplayer) Observer zoom to target",
 		"Increase time compression",
 		"Decrease time compression",
+#ifdef FS1_DEMO
+		"View Up",
+		"View Rear",
+		"View Left",
+		"View Right",
+#endif
 		"Toggle high HUD contrast",
 		"(Multiplayer) Toggle network info",
 		"(Multiplayer) Self destruct",
@@ -655,6 +667,10 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"",
 		"",
 		"",
+#ifdef FS1_DEMO	// add space for 2 missing controls from demo
+		"",
+		"",
+#endif
 		"Alpha channel textures",
 		"Missing Features",
 		"16-bpp RGB textures",
@@ -2125,7 +2141,9 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Vorheriges verbündetes Schiff",
 		"Schiff im Fadenkreuz",
 		"Nächster Angreifer des aktuellen Zielobjekts",
+#ifndef FS1_DEMO
 		"Schiff desjenigen, der zuletzt gefunkt hat",
+#endif
 		"Automatische Zielerfassung deaktivieren",
 		"Subsystem im Fadenkreuz",
 		"Nächstes Subsystem",
@@ -2175,10 +2193,12 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Sichtweite erhöhen",
 		"Sichtweite reduzieren",
 		"Sicht zentrieren",
+#ifndef FS1_DEMO
 		"Blick nach oben",
 		"Blick nach unten",
 		"Blick nach links",
 		"Blick nach rechts",
+#endif
 		"Radarreichweite einstellen",
 		"Kommunikationsmenü aufrufen",
 		"Einsatzziele anzeigen",
@@ -2191,7 +2211,9 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Weniger Energie auf Schilde umleiten",
 		"Mehr Energie auf Triebwerke umleiten",
 		"Weniger Energie auf Triebwerke umleiten",
+#ifndef FS1_DEMO
 		"Gleichmässige Energieverteilung",
+#endif
 		"Schildausgleich",
 		"Frontschild verstärken",
 		"Heckschild verstärken",
@@ -2220,6 +2242,12 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"(Mehrspieler) Beobachter: Objekt vergrössern",
 		"Zeitraffer erhöhen (1x=>2x=>4x)",
 		"Zeitraffer reduzieren (1x<=2x<=4x)",
+#ifdef FS1_DEMO
+		"Blick nach oben",
+		"Blick nach unten",
+		"Blick nach links",
+		"Blick nach rechts",
+#endif
 		"Helleres HUD ein/aus",
 		"(Mehrspieler) Netzwerk-Verzögerung ein-/ausblenden",
 		"(Mehrspieler) Selbstzerstörung",
@@ -2229,6 +2257,10 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"",
 		"",
 		"",
+#ifdef FS1_DEMO	// add space for 2 missing controls from demo
+		"",
+		"",
+#endif
 		"Alphakanal-Texturen",
 		"Fehlende Optionen",
 		"16-bpp RGB-Texturen",
@@ -3699,7 +3731,9 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Cibler allié le plus proche précédent",
 		"Cibler le vaisseau dans le collimateur",
 		"Cibler assaillant de la cible le plus proche",
+#ifndef FS1_DEMO
 		"Cibler l'auteur de la dernière transmission",
+#endif
 		"Désactiver ciblage sur vaisseau",
 		"Cibler le sous-système dans le collimateur",
 		"Cibler le sous-système suivant",
@@ -3749,10 +3783,12 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Zoom avant",
 		"Zoom arrière",
 		"Centrer la vue",
+#ifndef FS1_DEMO
 		"Regarder vers le haut ",
 		"Regarder derrière",
 		"Regarder à gauche",
 		"Regarder à droite",
+#endif
 		"Portée du radar",
 		"Affichage des messages aux ailiers",
 		"Show Objectives",
@@ -3765,7 +3801,9 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"Décroître l'énergie des boucliers",
 		"Accroître l'énergie des réacteurs",
 		"Décroître l'énergie des réacteurs",
+#ifndef FS1_DEMO
 		"Equilibrer les sytèmes d'énergie",
+#endif
 		"Equilibrer les boucliers",
 		"Accroître l'énergie des boucliers avant",
 		"Accroître l'énergie des boucliers arrière",
@@ -3794,15 +3832,25 @@ const char *FS1_trans[LCL_NUM_LANGUAGES_FS1][LCL_NUM_STRINGS_FS1] =
 		"(Multijoueur) Zoomer sur la cible pour observer",
 		"Accroître temps de compression",
 		"Décroître temps de compression",
+#ifdef FS1_DEMO
+		"Regarder vers le haut ",
+		"Regarder derrière",
+		"Regarder à gauche",
+		"Regarder à droite",
+#endif
+		"Basculer le contraste HUD élevé",
+		"(Multijoueur) Basculer les informations réseau",
+		"(Multijoueur) Autodétruire",
 		"",
 		"",
 		"",
 		"",
 		"",
 		"",
+#ifdef FS1_DEMO	// add space for 2 missing controls from demo
 		"",
 		"",
-		"",
+#endif
 		"Textures canal Alpha",
 		"Caractéristiques Manquantes ",
 		"Textures 16-bpp RGB",

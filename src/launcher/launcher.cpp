@@ -359,6 +359,9 @@ void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
 	epath.Append( wxT(".exe") );
 #endif
 
+	// escape spaces in path
+	epath.Replace(wxT(" "), wxT("\\ "));
+
 	wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER);
 
 	this->Close();

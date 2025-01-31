@@ -253,8 +253,6 @@ int opengl2_init()
 		return 1;
 	}
 
-	GL_two_inited = 1;
-
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -262,9 +260,12 @@ int opengl2_init()
 	GL_context = SDL_GL_CreateContext(GL_window);
 
 	if ( !GL_context ) {
+		mprintf(("  Fallback : ES2 context creation failed!\n"));
 		opengl2_cleanup();
 		return 0;
 	}
+
+	GL_two_inited = 1;
 
 	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));

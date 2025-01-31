@@ -193,8 +193,6 @@ int opengl1_init()
 		return 1;
 	}
 
-	GL_one_inited = 1;
-
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
@@ -205,6 +203,8 @@ int opengl1_init()
 		opengl1_cleanup();
 		return 0;
 	}
+
+	GL_one_inited = 1;
 
 	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));

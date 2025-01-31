@@ -600,7 +600,7 @@ void fonttool_create_font(char *pcx_filename, char *font_filename)
 	
 	bmp.w = (short)w;
 	bmp.h = (short)h;
-	bmp.data = (ptr_u)malloc( w*h + 768 );
+	bmp.data = (uintptr_t)malloc( w*h + 768 );
 	bmp.palette = (ubyte *)(bmp.data +w*h );
 	if ( !bmp.data )	{
 		printf( "Error mallocing PCX data, '%s'\n", pcx_filename );

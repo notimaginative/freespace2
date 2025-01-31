@@ -527,8 +527,8 @@ void particle_render_all()
 
 	MONITOR_INC( NumParticlesRend, Num_particles );	
 
-	int n = 0;
-	int nclipped = 0;
+	// int n = 0;
+	// int nclipped = 0;
 
 	p = Particles;
 
@@ -539,7 +539,7 @@ void particle_render_all()
 			continue;
 		}
 
-		n++;
+		// n++;
 
 		// pct complete for the particle
 		pct_complete = p->age / p->max_life;
@@ -566,7 +566,7 @@ void particle_render_all()
 
 			flags = g3_rotate_vertex(&pos, &temp);
 			if(flags){				
-				nclipped++;
+				// nclipped++;
 				continue;
 			}
 			
@@ -578,7 +578,7 @@ void particle_render_all()
 		if(rotate){
 			flags = g3_rotate_vertex( &pos, &p->pos );
 			if ( flags )	{
-				nclipped++;
+				// nclipped++;
 				continue;
 			}
 		}

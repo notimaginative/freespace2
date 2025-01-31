@@ -1,19 +1,19 @@
 
+cmake_minimum_required(VERSION 3.13)
+cmake_policy(VERSION 3.13)
+
 project(freespace2)
-
-cmake_minimum_required(VERSION 2.8.6)
-cmake_policy(VERSION 2.8.6)
-
-if(POLICY CMP0043)
-  cmake_policy(SET CMP0043 OLD)
-endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(CreateSourceGroups)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ##############################################################################
+
+# build everything by default
+set(GAME_ONLY)
 
 option(FS1 "Build original FreeSpace" OFF)
 
@@ -33,22 +33,20 @@ endif()
 
 
 if(FS1)
+  set(VERSION "1.06")
   add_definitions(-DMAKE_FS1)
 
   if(DEMO)
+    set(VERSION "1.20")
     add_definitions(-DDEMO -DFS1_DEMO)
   endif()
 else()
+  set(VERSION "1.20")
+
   if(DEMO)
+    set(VERSION "1.10")
     add_definitions(-DFS2_DEMO)
   endif()
-endif()
-
-# build everything by default
-set(GAME_ONLY)
-
-if(DEMO)
-  set(GAME_ONLY 1)
 endif()
 
 if(EMSCRIPTEN)
@@ -63,6 +61,14 @@ if(NOT EMSCRIPTEN)
   add_definitions(-DLEGACY_GL)
 endif()
 
+# use SDL's builtin GLES functions
+add_definitions(-DSDL_USE_BUILTIN_OPENGL_DEFINITIONS)
+
+if(APPLE)
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
+  # set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
+
 if(NOT WIN32)
   set(PLATFORM_LIBRARIES "")
 
@@ -72,9 +78,9 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
 
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g -O3 -DRELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DRELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g -Os -DRELEASE_REAL")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -DRELEASE_REAL")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og")
 else()
   set(SDL2DIR "${CMAKE_SOURCE_DIR}/../Support/SDL2" CACHE PATH "Path to SDL2")
   set(OPENALDIR "${CMAKE_SOURCE_DIR}/../Support/OpenAL" CACHE PATH "Path to OpenAL")
@@ -293,7 +299,7 @@ if(NOT GAME_ONLY)
   set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
 
   add_executable(${LAUNCHER_BINARY}
-  WIN32
+    WIN32
     ${launcher_SOURCE}
     ${launcher_HEADERS}
   )
@@ -404,7 +410,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
 #
 
 # don't build toolset unless it's a full build
-if(NOT GAME_ONLY)
+if(NOT GAME_ONLY AND NOT DEMO)
 
   #
   # AC: anim converter
@@ -568,13 +574,16 @@ if(NOT GAME_ONLY)
     fonttool
   )
 
-endif(NOT GAME_ONLY)
+endif(NOT GAME_ONLY AND NOT DEMO)
 
 #
 # ##############################################################################
 
 #
-# optionally include any dev/user preferred build commands and/or options
+# any installer/packager configurations come last and should be specified as
+# separate files included here as necessary
 #
 
-include(custom.cmake OPTIONAL)
+if(APPLE)
+  include(CreateMacOSBundle)
+endif()

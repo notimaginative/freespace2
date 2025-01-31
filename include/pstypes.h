@@ -261,15 +261,6 @@ typedef Uint16 ushort;
 typedef Uint32 uint;
 typedef Sint32 fs_time_t;	// forced 32-bit version of time_t - **don't use this unless required**
 
-// ptr_? is a value matching the size of a pointer on this specific platform
-#if ( defined(__x86_64__) || defined(_WIN64) )
-typedef Sint64 ptr_s;
-typedef Uint64 ptr_u;
-#else
-typedef Sint32 ptr_s;
-typedef Uint32 ptr_u;
-#endif
-
 //Stucture to store clipping codes in a word
 typedef struct ccodes {
 	ubyte vor,vand;	//or is low byte, and is high byte
@@ -347,7 +338,7 @@ typedef struct bitmap {
 	short	rowsize;	// What you need to add to go to next row
 	ubyte	bpp;		// How many bits per pixel it is. (7,8,15,16,24,32)
 	ubyte	flags;	// See the BMP_???? defines for values
-	ptr_u	data;		// Pointer to data, or maybe offset into VRAM.
+	uintptr_t	data;	// Pointer to data, or maybe offset into VRAM.
 	ubyte *palette;	// If bpp==8, this is pointer to palette.   If the BMP_NO_PALETTE_MAP flag
 							// is not set, this palette just points to the screen palette. (gr_palette)
 

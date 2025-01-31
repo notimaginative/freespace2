@@ -8040,14 +8040,14 @@ int eval_sexp(int cur_node)
 int get_sexp_main()
 {
 	int	start_node, op;
-	char	token[TOKEN_LENGTH];
-	char  *savep, ch;
+	char	token[TOKEN_LENGTH], ch;
+	// char  *savep;
 
 	ignore_white_space();
 
-	savep = Mp;
-	if (!strncmp(Mp, "( )", 3))
-		savep++;
+	// savep = Mp;
+	// if (!strncmp(Mp, "( )", 3))
+	// 	savep++;
 
 	SDL_assert(*Mp == '(');
 	Mp++;

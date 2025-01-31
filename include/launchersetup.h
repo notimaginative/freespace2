@@ -76,7 +76,7 @@ class LauncherSetup : public wxDialog
 
 	public:
 
-		LauncherSetup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Setup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
+		LauncherSetup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Setup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
 		~LauncherSetup();
 
 };

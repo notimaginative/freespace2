@@ -2011,12 +2011,12 @@ static void half_ship_render_ship_and_debris(clip_ship* half_ship,ship *shipp)
 				half_ship->draw_debris[i] = DEBRIS_FREE;		// mark debris to not render with model
 				vector center_to_debris, debris_vel, radial_vel;
 				// check if last debris piece, ie, debris_count == 0
-				int debris_count = 0;
-				for (int j=0; j<pm->num_debris_objects; j++ ) {
-					if (half_ship->draw_debris[j] == DEBRIS_DRAW) {
-						debris_count++;
-					}
-				} 
+				// int debris_count = 0;
+				// for (int j=0; j<pm->num_debris_objects; j++ ) {
+				// 	if (half_ship->draw_debris[j] == DEBRIS_DRAW) {
+				// 		debris_count++;
+				// 	}
+				// } 
 				// do debris create here, but not for live debris
 				// debris vel (1) split ship vel (2) split ship rotvel (3) random
 				if ( !is_live_debris ) {

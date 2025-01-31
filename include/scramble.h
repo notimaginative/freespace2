@@ -46,8 +46,8 @@
 #define PREPROCESS_SHIPS_TBL			0
 #define PREPROCESS_WEAPONS_TBL		1
 
-void scramble_file(char *src_filename, char *dest_filename = NULL, int preprocess = -1);
-void unscramble_file(char *src_filename, char *dest_filename = NULL);
+void scramble_file(const char *src_filename, const char *dest_filename = nullptr, int preprocess = -1);
+void unscramble_file(const char *src_filename, const char *dest_filename = nullptr);
 
 #endif
 

@@ -215,14 +215,14 @@ void start_convert_with(char* filename)
 			key_frame_rate--;
 		rc = convert_avi_to_anim(filename);
 		if (rc) {
-			sprintf(buffer,"Could not convert %s to ani format\n", filename);
+			snprintf(buffer, sizeof(buffer), "Could not convert %s to ani format\n", filename);
 			ac_error(buffer);
 		}
 	}
 	else if (!SDL_strcasecmp(extension, "pcx")) {
 		rc = convert_frames_to_anim(filename);
 		if (rc) {
-			sprintf(buffer,"Could not convert %s to ani format\n", filename);
+			snprintf(buffer, sizeof(buffer), "Could not convert %s to ani format\n", filename);
 			ac_error(buffer);
 		}
 	}

@@ -2,11 +2,14 @@
 #define PLATFORM_H
 
 
-#include <stdio.h>	// For NULL, etc
-#include <stdlib.h>
+#include <cstdio>	// For NULL, etc
+#include <cstdlib>
 #include <memory.h>
+#include <cstring>
+
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
-#include <string.h>
+#endif
 
 #ifdef PLAT_UNIX
 #include "unix.h"

@@ -213,16 +213,6 @@ void gr_opengl_init()
 	window_flags |= SDL_WINDOW_RESIZABLE;
 #endif
 
-	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
-						SDL_WINDOWPOS_CENTERED,
-						gr_screen.max_w, gr_screen.max_h, window_flags);
-
-	if ( !GL_window ) {
-		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
-	}
-
-	os_set_window(GL_window);
-
 	int a = 1, r = 5, g = 5, b = 5, bpp = 16;
 	int FSAA = os_config_read_uint("Video", "AntiAlias", 0);
 
@@ -236,6 +226,16 @@ void gr_opengl_init()
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
+
+	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
+						SDL_WINDOWPOS_CENTERED,
+						gr_screen.max_w, gr_screen.max_h, window_flags);
+
+	if ( !GL_window ) {
+		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
+	}
+
+	os_set_window(GL_window);
 
 	// try GL 2 first, then fall back to legacy GL (if enabled)
 	int rc = opengl2_init();

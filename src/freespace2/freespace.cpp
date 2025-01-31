@@ -2804,7 +2804,7 @@ DCF(view, "Sets the percent of the 3d view to render.")
 {
 	if ( Dc_command ) {
 		dc_get_arg(ARG_INT);
-		if ( (Dc_arg_int >= 5 ) || (Dc_arg_int <= 100) ) {
+		if ( (Dc_arg_int >= 5 ) && (Dc_arg_int <= 100) ) {
 			View_percent = Dc_arg_int;
 		} else {
 			dc_printf( "Illegal value for view. (Must be from 5-100) \n\n");
@@ -3151,7 +3151,7 @@ DCF(framerate_cap, "Sets the framerate cap")
 {
 	if ( Dc_command ) {
 		dc_get_arg(ARG_INT);
-		if ( (Dc_arg_int >= 1 ) || (Dc_arg_int <= 120) ) {
+		if ( (Dc_arg_int >= 1 ) && (Dc_arg_int <= 120) ) {
 			Framerate_cap = Dc_arg_int;
 		} else {
 			dc_printf( "Illegal value for framerate cap. (Must be from 1-120) \n\n");

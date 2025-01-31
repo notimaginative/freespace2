@@ -410,7 +410,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
 #
 
 # don't build toolset unless it's a full build
-if(NOT GAME_ONLY)
+if(NOT GAME_ONLY AND NOT DEMO)
 
   #
   # AC: anim converter
@@ -574,7 +574,7 @@ if(NOT GAME_ONLY)
     fonttool
   )
 
-endif(NOT GAME_ONLY)
+endif(NOT GAME_ONLY AND NOT DEMO)
 
 #
 # ##############################################################################

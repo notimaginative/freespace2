@@ -787,11 +787,11 @@ void process_debug_keys(int k)
 		// return;
 
 	switch (k) {
-		case KEY_DEBUGGED + SDLK_h:
+		case KEY_DEBUGGED + SDLK_H:
 			hud_target_toggle_hidden_from_sensors();
 			break;
 
-		case KEY_DEBUGGED + SDLK_f:
+		case KEY_DEBUGGED + SDLK_F:
 			/*
 			int i;
 			for (i=0; i<NUM_HUD_GAUGES; i++) {
@@ -806,12 +806,12 @@ void process_debug_keys(int k)
 			}
 			break;
 		
-		case KEY_DEBUGGED + KEY_ALTED + SDLK_f:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_F:
 			Framerate_delay += 10;
 			HUD_printf(XSTR( "Framerate delay increased to %i milliseconds per frame.", 4), Framerate_delay);
 			break;
 
-		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + SDLK_f:
+		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + SDLK_F:
 			Framerate_delay -= 10;
 			if (Framerate_delay < 0)
 				Framerate_delay = 0;
@@ -819,8 +819,8 @@ void process_debug_keys(int k)
 			HUD_printf(XSTR( "Framerate delay decreased to %i milliseconds per frame.", 5), Framerate_delay);
 			break;
 
-		case KEY_DEBUGGED + SDLK_c:
-		case KEY_DEBUGGED1 + SDLK_c:
+		case KEY_DEBUGGED + SDLK_C:
+		case KEY_DEBUGGED1 + SDLK_C:
 			// hud_enemymsg_toggle();
 			if(Player_obj->flags & OF_COLLIDES){
 				obj_set_flags(Player_obj, Player_obj->flags & ~(OF_COLLIDES));
@@ -831,13 +831,13 @@ void process_debug_keys(int k)
 			}
 			break;
 
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_c:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_c:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_C:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_C:
 			Countermeasures_enabled = !Countermeasures_enabled;
 			HUD_printf(XSTR( "Countermeasure firing: %s", 6), Countermeasures_enabled ? XSTR( "ENABLED", 7) : XSTR( "DISABLED", 8));
 			break;
 
-		case KEY_DEBUGGED + SDLK_e:
+		case KEY_DEBUGGED + SDLK_E:
 			gameseq_post_event(GS_EVENT_EVENT_DEBUG);
 			break;
 
@@ -853,8 +853,8 @@ void process_debug_keys(int k)
 			break;
 
 		//	Kill! the currently targeted ship.
-		case KEY_DEBUGGED + SDLK_k:
-		case KEY_DEBUGGED1 + SDLK_k:
+		case KEY_DEBUGGED + SDLK_K:
+		case KEY_DEBUGGED1 + SDLK_K:
 			if (Player_ai->target_objnum != -1) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 
@@ -872,7 +872,7 @@ void process_debug_keys(int k)
 			break;
 		
 		// play the next mission message
-		case KEY_DEBUGGED + SDLK_v:
+		case KEY_DEBUGGED + SDLK_V:
 			extern int Message_debug_index;
 			extern int Num_messages_playing;
 			// stop any other messages
@@ -895,7 +895,7 @@ void process_debug_keys(int k)
 			break;
 
 		// play the previous mission message
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_v:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_V:
 			extern int Message_debug_index;
 			extern int Num_messages_playing;
 			// stop any other messages
@@ -918,15 +918,15 @@ void process_debug_keys(int k)
 			break;
 
 		// reset to the beginning of mission messages
-		case KEY_DEBUGGED + KEY_ALTED + SDLK_v:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_V:
 			extern int Message_debug_index;
 			Message_debug_index = Num_builtin_messages - 1;
 			HUD_printf("Resetting to first mission message");
 			break;
 
 		//	Kill! the currently targeted ship.
-		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + SDLK_k:
-		case KEY_DEBUGGED1 + KEY_ALTED + KEY_SHIFTED + SDLK_k:
+		case KEY_DEBUGGED + KEY_ALTED + KEY_SHIFTED + SDLK_K:
+		case KEY_DEBUGGED1 + KEY_ALTED + KEY_SHIFTED + SDLK_K:
 			if (Player_ai->target_objnum != -1) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 
@@ -937,8 +937,8 @@ void process_debug_keys(int k)
 			break;
 
 			//	Kill the currently targeted subsystem.
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_k:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_k:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_K:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_K:
 			if ((Player_ai->target_objnum != -1) && (Player_ai->targeted_subsys != NULL)) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 				if ( objp->type == OBJ_SHIP ) {
@@ -962,8 +962,8 @@ void process_debug_keys(int k)
 			}
 			break;
 
-		case KEY_DEBUGGED + KEY_ALTED + SDLK_k:
-		case KEY_DEBUGGED1 + KEY_ALTED + SDLK_k:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_K:
+		case KEY_DEBUGGED1 + KEY_ALTED + SDLK_K:
 			{
 				float	shield, integrity;
 				vector	pos, randvec;
@@ -978,14 +978,14 @@ void process_debug_keys(int k)
 			
 		//	Whack down the player's shield and hull by a little more than 50%
 		//	Select next object to be viewed by AI.
-		case KEY_DEBUGGED + SDLK_i:
-		case KEY_DEBUGGED1 + SDLK_i:
+		case KEY_DEBUGGED + SDLK_I:
+		case KEY_DEBUGGED1 + SDLK_I:
 			Player_obj->flags ^= OF_INVULNERABLE;
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "You are %s", 10), Player_obj->flags & OF_INVULNERABLE ? XSTR( "now INVULNERABLE!", 11) : XSTR( "no longer invulnerable...", 12));
 			break;
 
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_i:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_i:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_I:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_I:
 			if (Player_ai->target_objnum != -1) {
 				object	*objp = &Objects[Player_ai->target_objnum];
 
@@ -994,25 +994,25 @@ void process_debug_keys(int k)
 			}
 			break;
 /*
-		case KEY_DEBUGGED + KEY_ALTED + SDLK_i:
+		case KEY_DEBUGGED + KEY_ALTED + SDLK_I:
 			if (Player_ai->target_objnum != -1)
 				set_global_ignore_object(Player_ai->target_objnum);
 			break;
 */
 
-		case KEY_DEBUGGED + SDLK_n:
+		case KEY_DEBUGGED + SDLK_N:
 			AI_watch_object++;
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Spewing debug info about object #%d", 14), AI_watch_object);
 			break;
 
-		case KEY_DEBUGGED + SDLK_o:
+		case KEY_DEBUGGED + SDLK_O:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + SDLK_o:
+		case KEY_DEBUGGED1 + SDLK_O:
 #endif
 			toggle_player_object();
 			break;				
 
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_o:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_O:
 			extern int Debug_octant;
 			if(Debug_octant == 7){
 				Debug_octant = -1;
@@ -1023,15 +1023,15 @@ void process_debug_keys(int k)
 			break;
 
 #ifndef MAKE_FS1
-		case KEY_DEBUGGED + SDLK_p:
+		case KEY_DEBUGGED + SDLK_P:
 			supernova_start(20);
 			break;
 #endif
 
-		case KEY_DEBUGGED + SDLK_w:
-		case KEY_DEBUGGED1 + SDLK_w:
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_w:
-		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_w:
+		case KEY_DEBUGGED + SDLK_W:
+		case KEY_DEBUGGED1 + SDLK_W:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_W:
+		case KEY_DEBUGGED1 + KEY_SHIFTED + SDLK_W:
 			// temp code for testing purposes, toggles weapon energy cheat
 			Weapon_energy_cheat = !Weapon_energy_cheat;
 			if (Weapon_energy_cheat) {
@@ -1054,23 +1054,23 @@ void process_debug_keys(int k)
 
 			break;
 
-		case KEY_DEBUGGED + SDLK_g:
+		case KEY_DEBUGGED + SDLK_G:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + SDLK_g:
+		case KEY_DEBUGGED1 + SDLK_G:
 #endif
 			mission_goal_mark_all_true( PRIMARY_GOAL );
 			break;
 
-		case KEY_DEBUGGED + SDLK_g + KEY_SHIFTED:
+		case KEY_DEBUGGED + SDLK_G + KEY_SHIFTED:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + SDLK_g + KEY_SHIFTED:
+		case KEY_DEBUGGED1 + SDLK_G + KEY_SHIFTED:
 #endif
 			mission_goal_mark_all_true( SECONDARY_GOAL );
 			break;
 
-		case KEY_DEBUGGED + SDLK_g + KEY_ALTED:
+		case KEY_DEBUGGED + SDLK_G + KEY_ALTED:
 #ifdef MAKE_FS1
-		case KEY_DEBUGGED1 + SDLK_g + KEY_ALTED:
+		case KEY_DEBUGGED1 + SDLK_G + KEY_ALTED:
 #endif
 			mission_goal_mark_all_true( BONUS_GOAL );
 			break;
@@ -1104,8 +1104,8 @@ void process_debug_keys(int k)
 #endif
 
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
-		case KEY_DEBUGGED + SDLK_u: {
-		case KEY_DEBUGGED1 + SDLK_u:
+		case KEY_DEBUGGED + SDLK_U: {
+		case KEY_DEBUGGED1 + SDLK_U:
 			// launch asteroid
 			extern asteroid_field Asteroid_field;
 			object *asteroid_create(asteroid_field *asfieldp, int asteroid_type, int subtype);
@@ -1146,7 +1146,7 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + SDLK_j: {
+		case KEY_DEBUGGED + SDLK_J: {
 			int new_pattern = event_music_return_current_pattern();
 
 			new_pattern++;
@@ -1157,7 +1157,7 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + SDLK_m: {
+		case KEY_DEBUGGED + SDLK_M: {
 			if ( Event_music_enabled ) {
 				event_music_disable();
 				HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Event music disabled", 20));
@@ -1170,8 +1170,8 @@ void process_debug_keys(int k)
 			break;
 		}
 
-		case KEY_DEBUGGED + SDLK_r: {
-		// case KEY_DEBUGGED1 + SDLK_r:
+		case KEY_DEBUGGED + SDLK_R: {
+		// case KEY_DEBUGGED1 + SDLK_R:
 			if (Player_ai->target_objnum != -1)
 				ai_issue_rearm_request(&Objects[Player_ai->target_objnum]);
 			else
@@ -1191,7 +1191,7 @@ void process_debug_keys(int k)
 			break;
 
 #ifndef NDEBUG
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_t:	{
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_T:	{
 			extern int Test_begin;
 
 			if ( Test_begin == 1 )
@@ -1203,7 +1203,7 @@ void process_debug_keys(int k)
 			break;
 		}
 #endif
-		case KEY_DEBUGGED + SDLK_d:
+		case KEY_DEBUGGED + SDLK_D:
 			extern int OO_update_index;			
 
 			if(MULTIPLAYER_MASTER){
@@ -1243,7 +1243,7 @@ void process_debug_keys(int k)
 			break;
 
 		// change species of the targeted ship
-		case KEY_DEBUGGED + SDLK_s: {
+		case KEY_DEBUGGED + SDLK_S: {
 			if ( Player_ai->target_objnum < 0 )
 				break;
 
@@ -1263,7 +1263,7 @@ void process_debug_keys(int k)
 			break;
 		}
 			
-		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_s:
+		case KEY_DEBUGGED + KEY_SHIFTED + SDLK_S:
 			game_increase_skill_level();
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Skill level set to %s.", 25), Skill_level_names(Game_skill_level));
 			break;
@@ -1309,7 +1309,7 @@ void process_debug_keys(int k)
 			break;
 #endif
 					
-		case KEY_DEBUGGED + SDLK_t: {
+		case KEY_DEBUGGED + SDLK_T: {
 			char buf[256];
 			event_music_get_info(buf, sizeof(buf));
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, buf);
@@ -1350,7 +1350,7 @@ void process_debug_keys(int k)
 		}
 #endif
 		
-		case KEY_DEBUGGED + SDLK_y:
+		case KEY_DEBUGGED + SDLK_Y:
 			/*
 			// blast a debug lightning bolt in front of the player
 			vector start, strike;
@@ -1460,7 +1460,7 @@ void ppsk_hotkeys(int k)
 				HUD_init_colors();
 			}
 			break;
-/*		case KEY_SHIFTED + SDLK_u:
+/*		case KEY_SHIFTED + SDLK_U:
 			{
 			object *debris_create(object *source_obj, int model_num, int submodel_num, vector *pos, vector *exp_center, int hull_flag, float exp_force);
 
@@ -1888,13 +1888,13 @@ void game_process_keys()
 				}
 				break;
 
-			case SDLK_y:
+			case SDLK_Y:
 				break;
 
-			case SDLK_n:
+			case SDLK_N:
 				break;			
 
-			case KEY_ALTED + KEY_SHIFTED+SDLK_j:
+			case KEY_ALTED + KEY_SHIFTED+SDLK_J:
 				// treat the current joystick position as the center position
 				joy_set_cen();
 				break;

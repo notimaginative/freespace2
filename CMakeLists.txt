@@ -65,7 +65,7 @@ endif()
 add_definitions(-DSDL_USE_BUILTIN_OPENGL_DEFINITIONS)
 
 if(APPLE)
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
   # set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
 endif()
 
@@ -116,7 +116,7 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
-find_package(SDL2 "2.0.5" REQUIRED)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 
@@ -133,7 +133,6 @@ endif()
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${CMAKE_BINARY_DIR}/include
-  ${SDL2_INCLUDE_DIR}
   ${OPENAL_INCLUDE_DIR}
   ${LIBWEBSOCKETS_INCLUDE_DIR}
   ${wxWidgets_INCLUDE_DIRS}
@@ -172,6 +171,8 @@ add_library(code
   ${platform_HEADERS}
 )
 
+target_link_libraries(code SDL3::SDL3)
+
 CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
 
 add_dependencies(code
@@ -195,7 +196,7 @@ CreateSourceGroups(${freespace_SOURCE})
 target_link_libraries(
   ${FS_BINARY}
   code
-  ${SDL2_LIBRARY}
+  SDL3::SDL3
   ${OPENGL_LIBRARIES}
   ${OPENAL_LIBRARY}
   ${LIBWEBSOCKETS_LIBRARIES}
@@ -312,7 +313,7 @@ if(NOT GAME_ONLY)
 
   target_link_libraries(
     ${LAUNCHER_BINARY}
-    ${SDL2_LIBRARY}
+    SDL3::SDL3
     ${OPENGL_LIBRARIES}
     ${OPENAL_LIBRARY}
     ${wxWidgets_LIBRARIES}
@@ -350,7 +351,7 @@ if(NOT GAME_ONLY)
 
     target_link_libraries(
       ${STANDALONE_BINARY}
-      ${SDL2_LIBRARY}
+      SDL3::SDL3
       ${wxWidgets_LIBRARIES}
       ${LIBWEBSOCKETS_LIBRARIES}
       ${PLATFORM_LIBRARIES}
@@ -427,7 +428,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     ac
     code
-    ${SDL2_LIBRARY}
+    SDL3::SDL3
     ${OPENGL_LIBRARIES}
     ${OPENAL_LIBRARY}
     ${LIBWEBSOCKETS_LIBRARIES}
@@ -475,7 +476,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     nebedit
     code
-    ${SDL2_LIBRARY}
+    SDL3::SDL3
     ${OPENGL_LIBRARIES}
     ${OPENAL_LIBRARY}
     ${wxWidgets_LIBRARIES}
@@ -504,7 +505,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     pofview
     code
-    ${SDL2_LIBRARY}
+    SDL3::SDL3
     ${OPENGL_LIBRARIES}
     ${OPENAL_LIBRARY}
     ${wxWidgets_LIBRARIES}
@@ -551,7 +552,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     fonttool
     code
-    ${SDL2_LIBRARY}
+    SDL3::SDL3
     ${OPENGL_LIBRARIES}
     ${OPENAL_LIBRARY}
     ${LIBWEBSOCKETS_LIBRARIES}

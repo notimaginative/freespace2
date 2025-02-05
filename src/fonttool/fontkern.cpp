@@ -412,17 +412,17 @@ void fonttool_edit_kerning(char *fname1)
 			}
 			break;
 
-		case SDLK_r:
+		case SDLK_R:
 			if ( cr == 16 ) cr = 1; else cr = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case SDLK_g:
+		case SDLK_G:
 			if ( cg == 16 ) cg = 1; else cg = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;
 
-		case SDLK_b:
+		case SDLK_B:
 			if ( cb == 16 ) cb = 1; else cb = 16;
 			gr_init_alphacolor(&ac,cr*16,cg*16,cb*16,alpha*16,AC_TYPE_HUD);
 			break;

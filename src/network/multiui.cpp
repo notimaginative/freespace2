@@ -1513,7 +1513,7 @@ void multi_join_game_do_frame()
 #endif
 		break;
 
-	case SDLK_t:
+	case SDLK_T:
 		multi_pinfo_popup(Net_player);
 		break;
 
@@ -1526,13 +1526,13 @@ void multi_join_game_do_frame()
 		break;
 
 	// send out a ping-all
-	case SDLK_p :
+	case SDLK_P :
 		multi_join_ping_all();		
 		Multi_join_ping_stamp = timestamp(MULTI_JOIN_PING_TIME);
 		break;	
 
 	// shortcut to start a game	
-	case SDLK_s :
+	case SDLK_S :
 		multi_join_create_game();		
 		break;
 

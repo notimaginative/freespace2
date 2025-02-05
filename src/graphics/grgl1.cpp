@@ -8,7 +8,7 @@
 
 #ifdef LEGACY_GL
 
-#include "SDL_opengl.h"
+#include <SDL3/SDL_opengl.h>
 
 #include "gropengl.h"
 #include "gropenglinternal.h"
@@ -111,7 +111,7 @@ void opengl1_cleanup()
 	opengl1_tcache_cleanup();
 
 	if (GL_context) {
-		SDL_GL_DeleteContext(GL_context);
+		SDL_GL_DestroyContext(GL_context);
 		GL_context = NULL;
 	}
 

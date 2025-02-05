@@ -21,7 +21,7 @@
 #include "wx/cmdline.h"
 #include "wx/access.h"
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 
 // taken from psnet.h and psnet2.h

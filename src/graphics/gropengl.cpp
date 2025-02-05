@@ -6,7 +6,7 @@
  * the source.
  */
 
-#include "SDL_opengl.h"
+#include <SDL3/SDL_opengl.h>
 
 #include "pstypes.h"
 #include "osregistry.h"
@@ -203,7 +203,7 @@ void gr_opengl_init()
 
 	OGL_inited = true;
 
-	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
 		Error(LOCATION, "Couldn't init SDL: %s", SDL_GetError());
 	}
 
@@ -227,9 +227,10 @@ void gr_opengl_init()
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
 	}
 
-	GL_window = SDL_CreateWindow(os_get_title(), SDL_WINDOWPOS_CENTERED,
-						SDL_WINDOWPOS_CENTERED,
-						gr_screen.max_w, gr_screen.max_h, window_flags);
+	GL_window = SDL_CreateWindow(os_get_title(),
+                                 gr_screen.max_w,
+                                 gr_screen.max_h,
+                                 window_flags);
 
 	if ( !GL_window ) {
 		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
@@ -264,9 +265,9 @@ void gr_opengl_init()
 			 a, r, g, b, bpp, FSAA));
 	mprintf(("\n"));
 
-	SDL_StopTextInput();
+    SDL_StopTextInput(os_get_window());
 	SDL_DisableScreenSaver();
-	SDL_ShowCursor(0);
+	SDL_HideCursor();
 
 	// maybe go fullscreen - should be done *after* main GL init
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);

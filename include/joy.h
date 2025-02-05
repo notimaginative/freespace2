@@ -97,7 +97,7 @@ extern int Dead_zone_size;  // percentage of range that is dead zone
 
 int	joy_init();
 void joy_close();
-void joy_reinit(int with_index = -1);
+void joy_reinit(SDL_JoystickID with_id = 0);
 void	joy_flush();
 int	joy_get_pos(int * x, int * y, int *z, int *r);
 int	joy_down_count(int btn, int reset_count = 1);
@@ -116,8 +116,8 @@ int joy_get_scaled_reading(int axn);
 int joy_get_unscaled_reading(int axn);
 bool joy_axis_valid(int axis);
 void joy_mark_button(int btn, int state);
-int joystick_get_id();
-bool joystick_is_controller();
+SDL_JoystickID joystick_get_id();
+bool joystick_is_gamepad();
 void joystick_update_axis(int axis, int value);
 
 #endif	/* __JOY_H__ */

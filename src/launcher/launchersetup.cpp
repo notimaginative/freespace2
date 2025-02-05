@@ -6,7 +6,7 @@
  * the source.
  */
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "launcher.h"
 #include "launchersetup.h"
@@ -313,7 +313,7 @@ void LauncherSetup::initTab_Joystick(wxNotebook *parent)
 	const char *conf_ptr = NULL;
 	bool joystick_enabled = false;
 
-	if ( !SDL_InitSubSystem(SDL_INIT_JOYSTICK) ) {
+	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK)) {
 		joystick_enabled = true;
 	}
 
@@ -331,25 +331,33 @@ void LauncherSetup::initTab_Joystick(wxNotebook *parent)
 	m_Joystick_Device->Append( wxT("<Default>") );
 	m_Joystick_Device->SetSelection( 0 );
 
-	conf_ptr = os_config_read_string("Controls", "CurrentJoystick", NULL);
+	conf_ptr = os_config_read_string("Controls", "CurrentJoystick", nullptr);
 
 	if (joystick_enabled) {
-		int num_sticks = SDL_NumJoysticks();
+		int num_sticks = 0;
 
-		for (int i = 0; i < num_sticks; i++) {
-			const char *jname = SDL_JoystickNameForIndex(i);
+		SDL_JoystickID *joysticks = SDL_GetJoysticks(&num_sticks);
 
-			if (jname) {
-				m_Joystick_Device->Append(jname);
+		if (joysticks) {
+			for (int i = 0; i < num_sticks; i++) {
+				SDL_JoystickID joystick_id = joysticks[i];
 
-				if ( conf_ptr && !SDL_strcasecmp(conf_ptr, jname) ) {
-					unsigned int sel = m_Joystick_Device->GetCount() - 1;
+				const char *jname = SDL_GetJoystickNameForID(joystick_id);
 
-					m_Joystick_Device->SetSelection(sel);
+				if (jname) {
+					m_Joystick_Device->Append(jname);
 
-					conf_ptr = NULL;
+					if ( conf_ptr && !SDL_strcasecmp(conf_ptr, jname) ) {
+						unsigned int sel = m_Joystick_Device->GetCount() - 1;
+
+						m_Joystick_Device->SetSelection(sel);
+
+						conf_ptr = NULL;
+					}
 				}
 			}
+
+			SDL_free(joysticks);
 		}
 
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);

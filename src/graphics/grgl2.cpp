@@ -6,7 +6,7 @@
  * the source.
  */
 
-#include "SDL_opengles2.h"
+#include <SDL3/SDL_opengles2.h>
 
 #include "gropengl.h"
 #include "gropenglinternal.h"
@@ -240,7 +240,7 @@ void opengl2_cleanup()
 	opengl2_shader_cleanup();
 
 	if (GL_context) {
-		SDL_GL_DeleteContext(GL_context);
+		SDL_GL_DestroyContext(GL_context);
 		GL_context = NULL;
 	}
 

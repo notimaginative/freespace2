@@ -790,7 +790,7 @@ void debug_help()
 			debug_draw();
 			k = key_getch();
 			s = scroll_times;
-			if ( k == SDLK_b )  {
+			if ( k == SDLK_B )  {
 				i -= ((DROWS-3)*2);
 				if ( i <= 0 )
 					i = -1;

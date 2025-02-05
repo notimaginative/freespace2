@@ -595,7 +595,7 @@ void barracks_set_hotkeys(bool pilot_text_enter_mode)
 	Buttons[gr_screen.res][B_PILOT_SCROLL_UP_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_UP : -1);
 	Buttons[gr_screen.res][B_PILOT_SCROLL_DOWN_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DOWN : -1);
 
-	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_c : -1);
+	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_C : -1);
 	Buttons[gr_screen.res][B_PILOT_SET_ACTIVE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_RETURN : -1);
 	Buttons[gr_screen.res][B_PILOT_DELETE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DELETE : -1);
 

@@ -1941,42 +1941,42 @@ void brief_do_frame(float frametime)
 				break;
 			}
 
-			case SDLK_a:
+			case SDLK_A:
 				Closeup_cam_pos.xyz.z += 1;
 				cam_change = 1;
 				break;
 
-			case SDLK_a + KEY_SHIFTED:
+			case SDLK_A + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.z += 10;
 				cam_change = 1;
 				break;
 
-			case SDLK_z:
+			case SDLK_Z:
 				Closeup_cam_pos.xyz.z -= 1;
 				cam_change = 1;
 				break;
 
-			case SDLK_z + KEY_SHIFTED:
+			case SDLK_Z + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.z -= 10;
 				cam_change = 1;
 				break;
 			
-			case SDLK_y:
+			case SDLK_Y:
 				Closeup_cam_pos.xyz.y += 1;
 				cam_change = 1;
 				break;
 
-			case SDLK_y + KEY_SHIFTED:
+			case SDLK_Y + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.y += 10;
 				cam_change = 1;
 				break;
 
-			case SDLK_h:
+			case SDLK_H:
 				Closeup_cam_pos.xyz.y -= 1;
 				cam_change = 1;
 				break;
 
-			case SDLK_h + KEY_SHIFTED:
+			case SDLK_H + KEY_SHIFTED:
 				Closeup_cam_pos.xyz.y -= 10;
 				cam_change = 1;
 				break;

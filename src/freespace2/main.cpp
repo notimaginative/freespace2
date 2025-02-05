@@ -8,6 +8,7 @@
 
 #include <exception>
 
+#include <SDL3/SDL_main.h>
 #include "pstypes.h"
 
 #ifdef PLAT_UNIX

@@ -279,12 +279,12 @@ void pause_debug_init()
 	Pause_single_step.create( &Pause_win, NOX("Single Step <S>"), 200, 290, game_single_step );
 	Pause_continue.create( &Pause_win, NOX("Leave Pause"), 200, 350, 200, 40 );
 
-	Pause_single_step.set_hotkey( SDLK_s );
-	Pause_physics.set_hotkey( SDLK_p );
-	Pause_ai.set_hotkey( SDLK_a );
-	Pause_ai_render.set_hotkey( SDLK_r );
-	Pause_firing.set_hotkey( SDLK_f );
-	Pause_external_view_mode_check.set_hotkey( SDLK_e );
+	Pause_single_step.set_hotkey( SDLK_S );
+	Pause_physics.set_hotkey( SDLK_P );
+	Pause_ai.set_hotkey( SDLK_A );
+	Pause_ai_render.set_hotkey( SDLK_R );
+	Pause_firing.set_hotkey( SDLK_F );
+	Pause_external_view_mode_check.set_hotkey( SDLK_E );
 	Pause_continue.set_hotkey( SDLK_ESCAPE );
 
 	Pause_continue.set_focus();

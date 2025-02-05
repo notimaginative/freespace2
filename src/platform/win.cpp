@@ -12,7 +12,7 @@
 #include <windows.h>
 #include <shellapi.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "osapi.h"
 
 

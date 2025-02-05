@@ -521,7 +521,7 @@ void player_select_init()
 	Player_select_buttons[gr_screen.res][SCROLL_LIST_UP_BUTTON].button.set_hotkey(SDLK_UP);
 	Player_select_buttons[gr_screen.res][SCROLL_LIST_DOWN_BUTTON].button.set_hotkey(SDLK_DOWN);
 	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(SDLK_RETURN);
-	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(SDLK_c);
+	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(SDLK_C);
 
 	// disable the single player button in the multiplayer beta
 #ifdef MULTIPLAYER_BETA_BUILD
@@ -781,7 +781,7 @@ void player_select_set_input_mode(int n)
 	}
 
 	Player_select_buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(n ? -1 : SDLK_RETURN);
-	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(n ? -1 : SDLK_c);
+	Player_select_buttons[gr_screen.res][CREATE_PILOT_BUTTON].button.set_hotkey(n ? -1 : SDLK_C);
 
 	// enable the player select input box
 	if(Player_select_input_mode){

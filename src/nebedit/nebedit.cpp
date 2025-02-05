@@ -709,7 +709,7 @@ void controls_read_all(control_info * ci, float sim_time )
 	ci->pitch += kh;
 
 	ci->bank = (key_down_timef(SDLK_KP_7) - key_down_timef(SDLK_KP_9))*.75f;
-	ci->forward = key_down_timef(SDLK_a) - key_down_timef(SDLK_z);
+	ci->forward = key_down_timef(SDLK_A) - key_down_timef(SDLK_Z);
 	ci->sideways = key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1);
 	ci->vertical = key_down_timef(SDLK_KP_PLUS) - key_down_timef(SDLK_KP_ENTER);
 }
@@ -864,7 +864,7 @@ int main(int argc, char *argv[])
 	palette_load_table( "gamepalette1-01.pcx" );
 	key_init();
 	mouse_init();
-	SDL_ShowCursor(1);
+	SDL_ShowCursor();
 	Font1 = gr_init_font( "font01.vf" );
 	gr_init_alphacolor( &color_green, 0,255,0,255,AC_TYPE_HUD );
 

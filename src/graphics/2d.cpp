@@ -676,11 +676,11 @@ static int gr_get_best_res(int *max_w, int *max_h)
 	// check to see if we have hi-res art
 	if ( cf_has_packfile("sparky_hi_fs2") ) {
 		// check desktop res to make sure we should use it
-		if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
-			SDL_DisplayMode desk_mode;
+		if (SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+			auto desk_mode = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
 
-			if ( !SDL_GetDesktopDisplayMode(0, &desk_mode) ) {
-				if ( (desk_mode.w >= 1024) && (desk_mode.h >= 768) ) {
+			if (desk_mode) {
+				if ( (desk_mode->w >= 1024) && (desk_mode->h >= 768) ) {
 					(*max_w) = 1024;
 					(*max_h) = 768;
 					res = GR_1024;
@@ -841,10 +841,7 @@ void gr_force_windowed()
 		return;
 	}
 
-
-	int rc = SDL_SetWindowFullscreen(os_get_window(), 0);
-
-	if ( !rc ) {
+	if (SDL_SetWindowFullscreen(os_get_window(), false)) {
 		gr_screen.fullscreen = 0;
 		mouse_grab(0);	// will be grabbed if needed
 	}
@@ -860,9 +857,7 @@ void gr_force_fullscreen()
 		return;
 	}
 
-	int rc = SDL_SetWindowFullscreen(os_get_window(), SDL_WINDOW_FULLSCREEN_DESKTOP);
-
-	if ( !rc ) {
+	if (SDL_SetWindowFullscreen(os_get_window(), true)) {
 		gr_screen.fullscreen = 1;
 		mouse_grab(0);	// will be grabbed if needed
 	}
@@ -883,9 +878,9 @@ void gr_toggle_fullscreen()
 		return;
 	}
 
-	Uint32 flags = SDL_GetWindowFlags( os_get_window() );
+	SDL_WindowFlags flags = SDL_GetWindowFlags( os_get_window() );
 
-	if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+	if (flags & SDL_WINDOW_FULLSCREEN) {
 		gr_force_windowed();
 	} else {
 		gr_force_fullscreen();

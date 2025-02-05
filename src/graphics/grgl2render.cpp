@@ -6,7 +6,7 @@
  * the source.
  */
 
-#include "SDL_opengles2.h"
+#include <SDL3/SDL_opengles2.h>
 
 #include "pstypes.h"
 #include "2d.h"

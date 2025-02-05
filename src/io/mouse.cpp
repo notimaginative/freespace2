@@ -442,14 +442,14 @@ void mouse_grab(int grab)
 {
 	if (grab) {
 		if ( !Mouse_grabbed ) {
-			SDL_SetWindowGrab(os_get_window(), SDL_TRUE);
-			SDL_SetRelativeMouseMode(SDL_TRUE);
+            SDL_SetWindowMouseGrab(os_get_window(), true);
+            SDL_SetWindowRelativeMouseMode(os_get_window(), true);
 
 			Mouse_grabbed = true;
 		}
 	} else if (Mouse_grabbed) {
-		SDL_SetWindowGrab(os_get_window(), SDL_FALSE);
-		SDL_SetRelativeMouseMode(SDL_FALSE);
+        SDL_SetWindowMouseGrab(os_get_window(), false);
+        SDL_SetWindowRelativeMouseMode(os_get_window(), false);
 
 		Mouse_grabbed = false;
 	}

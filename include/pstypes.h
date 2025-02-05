@@ -236,7 +236,7 @@
 #endif
 
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "platform.h"
 
@@ -526,8 +526,8 @@ void dc_printf( const char *format, ... );
 
 // contants and defined for byteswapping routines (useful for mac)
 
-#define INTEL_INT(x)	SDL_SwapLE32(x)
-#define INTEL_SHORT(x)	SDL_SwapLE16(x)
+#define INTEL_INT(x)	SDL_Swap32LE(x)
+#define INTEL_SHORT(x)	SDL_Swap16LE(x)
 #define INTEL_FLOAT(x)	SDL_SwapFloatLE(x)
 
 #define TRUE	1

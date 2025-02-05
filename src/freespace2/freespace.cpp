@@ -3788,7 +3788,7 @@ void game_maybe_dump_frame()
 		return;
 	}
 
-	if( Debug_dump_trigger && !key_pressed(SDLK_q) ){
+	if( Debug_dump_trigger && !key_pressed(SDLK_Q) ){
 		return;
 	}
 
@@ -4797,7 +4797,7 @@ int game_poll()
 
 			break;
 
-		case KEY_DEBUGGED + SDLK_p:
+		case KEY_DEBUGGED + SDLK_P:
 			break;			
 
 		case SDLK_PRINTSCREEN:
@@ -6554,11 +6554,11 @@ int game_do_ram_check(int ram_in_mbytes)
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), ram_in_mbytes, ram_in_mbytes);
 			SDL_snprintf( tmp, SDL_arraysize(tmp), "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
 
-			mboxbuttons[0].buttonid = 0;
+			mboxbuttons[0].buttonID = 0;
 			mboxbuttons[0].text = XSTR("Ok", 503);
 			mboxbuttons[0].flags = 0;
 
-			mboxbuttons[1].buttonid = 1;
+			mboxbuttons[1].buttonID = 1;
 			mboxbuttons[1].text = XSTR("Cancel", 504);
 			mboxbuttons[0].flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
 
@@ -6789,7 +6789,7 @@ int game_main(const char *szCmdLine)
 #endif
 
 	mprintf(("Platform: %s\n", SDL_GetPlatform()));
-	mprintf(("CPU: %d %s\n", SDL_GetCPUCount(), (SDL_GetCPUCount() == 1) ? "core" : "cores"));
+	mprintf(("CPU: %d %s\n", SDL_GetNumLogicalCPUCores(), (SDL_GetNumLogicalCPUCores() == 1) ? "core" : "cores"));
 	mprintf(("Memory: %dMB\n", Freespace_total_ram));
 	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big"));
 

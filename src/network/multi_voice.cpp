@@ -345,7 +345,7 @@ typedef struct voice_stream {
 voice_stream Multi_voice_stream[MULTI_VOICE_MAX_STREAMS];		// voice streams themselves
 
 // player-side data
-#define MULTI_VOICE_KEY									SDLK_BACKQUOTE	// key used for realtime voice
+#define MULTI_VOICE_KEY									SDLK_GRAVE	// key used for realtime voice
 int Multi_voice_keydown = 0;												// is the record key currently being pressed
 int Multi_voice_recording = 0;											// flag indicating if we're currently recording or not
 int Multi_voice_token = 0;													// if we currently have a token or not

@@ -138,7 +138,7 @@ extern int Key_normal_game;
 #define KEY_DEBUGGED1	0x0800		//	Cheat bit in release version of game.
 #define KEY_MASK		(SDLK_SCANCODE_MASK|0x01FF)
 
-#define KEY_DEBUG_KEY	SDLK_BACKQUOTE		//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
+#define KEY_DEBUG_KEY	SDLK_GRAVE		//	KEY_LAPOSTRO (shifted = tilde, near upper-left of keyboard)
 
 #endif
 

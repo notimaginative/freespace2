@@ -32,7 +32,7 @@ int vm_init(int min_heap_size)
 	return 1;
 }
 
-#if defined(__MACOSX__)
+#if defined(SDL_PLATFORM_MACOS)
 #include <malloc/malloc.h>
 #define MALLOC_SIZE(x)		malloc_size(x)
 #elif defined(__GNUC__)

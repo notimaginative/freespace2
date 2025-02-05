@@ -2728,20 +2728,20 @@ int multi_process_restricted_keys(int k)
 	switch(Multi_join_restr_mode){
 	// normal restricted join, Y or N
 	case MULTI_JOIN_RESTR_MODE_1:
-		key1 = SDLK_y;
-		key2 = SDLK_n;
+		key1 = SDLK_Y;
+		key2 = SDLK_N;
 		break;
 
 	// team vs team, team 0 only has ships
 	case MULTI_JOIN_RESTR_MODE_2:
-		key1 = SDLK_y;
-		key2 = SDLK_n;
+		key1 = SDLK_Y;
+		key2 = SDLK_N;
 		break;
 
 	// team vs team, team 1 only has ships		
 	case MULTI_JOIN_RESTR_MODE_3:
-		key1 = SDLK_y;
-		key2 = SDLK_n;
+		key1 = SDLK_Y;
+		key2 = SDLK_N;
 		break;
 
 	// team vs team, both teams have ships

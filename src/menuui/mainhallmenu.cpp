@@ -1122,7 +1122,7 @@ void main_hall_do(float frametime)
 	case SDLK_3:
 		main_hall_campaign_cheat();	
 		break;	
-	case KEY_DEBUGGED + SDLK_d:
+	case KEY_DEBUGGED + SDLK_D:
 		demo_start_playback("test.fsd");
 		break;
 	}

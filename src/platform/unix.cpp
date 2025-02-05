@@ -15,7 +15,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 
 int filelength (int fd)

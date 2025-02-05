@@ -19,16 +19,18 @@
 
 static int Joy_ff_enabled = 0;
 static int Joy_ff_acquired = 0;
-static SDL_Haptic *haptic = NULL;
+static SDL_Haptic *haptic = nullptr;
+static SDL_Gamepad *gamepad = nullptr;
 static int joy_ff_handling_scaler = 0;
 static uint Joy_ff_directional_hit_effect_enabled = 1;
-static int Joy_rumble = 0;
 static int Joy_ff_afterburning = 0;
 
-typedef struct {
+typedef struct haptic_effect_t {
 	SDL_HapticEffect eff;
 	int id;
-	int loaded;
+	bool loaded;
+
+	haptic_effect_t() : id(-1), loaded(false) {}
 } haptic_effect_t;
 
 static haptic_effect_t pHitEffect1;
@@ -41,52 +43,56 @@ static haptic_effect_t pSpring;
 static haptic_effect_t pDock;
 
 static void joy_ff_create_effects();
-//static int joy_ff_effect_playing(haptic_effect_t *eff);
+//static bool joy_ff_effect_playing(haptic_effect_t *eff);
 static void joy_ff_start_effect(haptic_effect_t *eff, const char *name);
 
 
 int joy_ff_init()
 {
-	uint ff_enabled = 0;
-	SDL_Joystick *sdljoy = nullptr;
-
-	ff_enabled = os_config_read_uint("Controls", "EnableJoystickFF", 0);
-
-	if ( joystick_is_controller() ) {
-		SDL_GameController *sdlcon = SDL_GameControllerFromInstanceID(joystick_get_id());
-		sdljoy = SDL_GameControllerGetJoystick(sdlcon);
-	} else {
-		sdljoy = SDL_JoystickFromInstanceID(joystick_get_id());
-	}
-
-	if ( !ff_enabled || !SDL_JoystickIsHaptic(sdljoy) ) {
+	if ( !os_config_read_uint("Controls", "EnableJoystickFF", 0) ) {
 		return 0;
 	}
 
-	if (SDL_InitSubSystem(SDL_INIT_HAPTIC) < 0) {
-		mprintf(("  ERROR: Unable to initialize haptic subsystem\n"));
-		return -1;
+	if (joystick_is_gamepad()) {
+		gamepad = SDL_GetGamepadFromID(joystick_get_id());
+
+		if ( !gamepad ) {
+			mprintf(("  ERROR: Unable to get gamepad\n"));
+			return -1;
+		}
+
+		auto props = SDL_GetGamepadProperties(gamepad);
+
+		if ( !SDL_GetBooleanProperty(props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false) ) {
+			gamepad = nullptr;
+			return 0;
+		}
+	} else {
+		SDL_Joystick *sdljoy = SDL_GetJoystickFromID(joystick_get_id());
+
+		if ( !SDL_IsJoystickHaptic(sdljoy) ) {
+			return 0;
+		}
+
+		if ( !SDL_InitSubSystem(SDL_INIT_HAPTIC) ) {
+			mprintf(("  ERROR: Unable to initialize haptic subsystem\n"));
+			return -1;
+		}
+
+		haptic = SDL_OpenHapticFromJoystick(sdljoy);
+
+		if (haptic == nullptr) {
+			mprintf(("  ERROR: Unable to open haptic joystick\n"));
+			SDL_QuitSubSystem(SDL_INIT_HAPTIC);
+			return -1;
+		}
+
+		mprintf(("  Haptic Axes  : %d\n", SDL_GetNumHapticAxes(haptic)));
+		mprintf(("  Max effects     : %d\n", SDL_GetMaxHapticEffects(haptic)));
+		mprintf(("  Running effects : %d\n", SDL_GetMaxHapticEffectsPlaying(haptic)));
+		
+		joy_ff_create_effects();
 	}
-
-	haptic = SDL_HapticOpenFromJoystick(sdljoy);
-
-	if (haptic == NULL) {
-		mprintf(("  ERROR: Unable to open haptic joystick\n"));
-		SDL_QuitSubSystem(SDL_INIT_HAPTIC);
-		return -1;
-	}
-
-	if ( SDL_HapticRumbleSupported(haptic) ) {
-		SDL_HapticRumbleInit(haptic);
-		Joy_rumble = 1;
-	}
-
-	mprintf(("  Rumble       : %s\n", Joy_rumble ? "Yes" : "No"));
-	mprintf(("  Haptic Axes  : %d\n", SDL_HapticNumAxes(haptic)));
-	mprintf(("  Max effects     : %d\n", SDL_HapticNumEffects(haptic)));
-	mprintf(("  Running effects : %d\n", SDL_HapticNumEffectsPlaying(haptic)));
-
-	joy_ff_create_effects();
 
 	Joy_ff_enabled = 1;
 	Joy_ff_acquired = 1;
@@ -102,14 +108,16 @@ void joy_ff_shutdown()
 		return;
 	}
 
-	SDL_HapticStopAll(haptic);
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0, 0, 0);
+		gamepad = nullptr;
+	} else {
+		SDL_StopHapticEffects(haptic);
+		SDL_CloseHaptic(haptic);
+		haptic = nullptr;
 
-	Joy_rumble = 0;
-
-	SDL_HapticClose(haptic);
-	haptic = NULL;
-
-	SDL_QuitSubSystem(SDL_INIT_HAPTIC);
+		SDL_QuitSubSystem(SDL_INIT_HAPTIC);
+	}
 
 	Joy_ff_acquired = 0;
 	Joy_ff_enabled = 0;
@@ -120,9 +128,13 @@ static void joy_ff_create_effects()
 	// clear all SDL errors
 	SDL_ClearError();
 
+	if (joystick_is_gamepad()) {
+		return;
+	}
+
 	unsigned int supported = 0;
 
-	supported = SDL_HapticQuery(haptic);
+	supported = SDL_GetHapticFeatures(haptic);
 
 	if ( !(supported & SDL_HAPTIC_CONSTANT) ) {
 		mprintf(("  Constant Force  : not supported\n"));
@@ -139,13 +151,9 @@ static void joy_ff_create_effects()
 	if ( !(supported & SDL_HAPTIC_SPRING) ) {
 		mprintf(("  Spring          : not supported\n"));
 	}
-/*
+
 	if ( !(supported & SDL_HAPTIC_SQUARE) ) {
 		mprintf(("  Square          : not supported\n"));
-	}
-*/
-	if ( !(supported & SDL_HAPTIC_TRIANGLE) ) {
-		mprintf(("  Triangle        : not supported\n"));
 	}
 
 
@@ -164,12 +172,12 @@ static void joy_ff_create_effects()
 			pSpring.eff.condition.left_coeff[i] = 0x147;
 		}
 
-		pSpring.id = SDL_HapticNewEffect(haptic, &pSpring.eff);
+		pSpring.id = SDL_CreateHapticEffect(haptic, &pSpring.eff);
 
 		if (pSpring.id < 0) {
 			mprintf(("    Spring effect failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pSpring.loaded = 1;
+			pSpring.loaded = true;
 		}
 	}
 
@@ -186,12 +194,12 @@ static void joy_ff_create_effects()
 		pShootEffect.eff.periodic.magnitude = 0x7FFF;
 		pShootEffect.eff.periodic.fade_length = 120;
 
-		pShootEffect.id = SDL_HapticNewEffect(haptic, &pShootEffect.eff);
+		pShootEffect.id = SDL_CreateHapticEffect(haptic, &pShootEffect.eff);
 
 		if (pShootEffect.id < 0) {
 			mprintf(("    Fire primary effect failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pShootEffect.loaded = 1;
+			pShootEffect.loaded = true;
 		}
 	}
 
@@ -210,12 +218,12 @@ static void joy_ff_create_effects()
 		pSecShootEffect.eff.constant.fade_length = 100;
 		pSecShootEffect.eff.constant.fade_level = 1;
 
-		pSecShootEffect.id = SDL_HapticNewEffect(haptic, &pSecShootEffect.eff);
+		pSecShootEffect.id = SDL_CreateHapticEffect(haptic, &pSecShootEffect.eff);
 
 		if (pSecShootEffect.id < 0) {
 			mprintf(("    Fire secondary effect failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pSecShootEffect.loaded = 1;
+			pSecShootEffect.loaded = true;
 		}
 	}
 
@@ -231,12 +239,12 @@ static void joy_ff_create_effects()
 		pAfterburn1.eff.periodic.period = 20;
 		pAfterburn1.eff.periodic.magnitude = 0x3332;
 
-		pAfterburn1.id = SDL_HapticNewEffect(haptic, &pAfterburn1.eff);
+		pAfterburn1.id = SDL_CreateHapticEffect(haptic, &pAfterburn1.eff);
 
 		if (pAfterburn1.id < 0) {
 			mprintf(("    Afterburn effect 1 failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pAfterburn1.loaded = 1;
+			pAfterburn1.loaded = true;
 		}
 
 		// pAfterburn2
@@ -250,12 +258,12 @@ static void joy_ff_create_effects()
 		pAfterburn2.eff.periodic.period = 100;
 		pAfterburn2.eff.periodic.magnitude = 0x1999;
 
-		pAfterburn2.id = SDL_HapticNewEffect(haptic, &pAfterburn2.eff);
+		pAfterburn2.id = SDL_CreateHapticEffect(haptic, &pAfterburn2.eff);
 
 		if (pAfterburn2.id < 0) {
 			mprintf(("    Afterburn effect 2 failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pAfterburn2.loaded = 1;
+			pAfterburn2.loaded = true;
 		}
 	}
 
@@ -274,12 +282,12 @@ static void joy_ff_create_effects()
 		pHitEffect1.eff.constant.fade_length = 120;
 		pHitEffect1.eff.constant.fade_level = 1;
 
-		pHitEffect1.id = SDL_HapticNewEffect(haptic, &pHitEffect1.eff);
+		pHitEffect1.id = SDL_CreateHapticEffect(haptic, &pHitEffect1.eff);
 
 		if (pHitEffect1.id < 0) {
 			mprintf(("    Hit effect 1 failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pHitEffect1.loaded = 1;
+			pHitEffect1.loaded = true;
 		}
 	}
 
@@ -297,36 +305,33 @@ static void joy_ff_create_effects()
 		pHitEffect2.eff.periodic.attack_length = 100;
 		pHitEffect2.eff.periodic.fade_length = 100;
 
-		pHitEffect2.id = SDL_HapticNewEffect(haptic, &pHitEffect2.eff);
+		pHitEffect2.id = SDL_CreateHapticEffect(haptic, &pHitEffect2.eff);
 
 		if (pHitEffect2.id < 0) {
 			mprintf(("    Hit effect 2 failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pHitEffect2.loaded = 1;
+			pHitEffect2.loaded = true;
 		}
 	}
 
-//	if (supported & SDL_HAPTIC_SQUARE) {
-	if (supported & SDL_HAPTIC_TRIANGLE) {
+	if (supported & SDL_HAPTIC_SQUARE) {
 		// pDock
 		memset(&pDock, 0, sizeof(haptic_effect_t));
 
-	//	pDock.eff.type = SDL_HAPTIC_SQUARE;
-	//	pDock.eff.periodic.type = SDL_HAPTIC_SQUARE;
-		pDock.eff.type = SDL_HAPTIC_TRIANGLE;
-		pDock.eff.periodic.type = SDL_HAPTIC_TRIANGLE;
+		pDock.eff.type = SDL_HAPTIC_SQUARE;
+		pDock.eff.periodic.type = SDL_HAPTIC_SQUARE;
 		pDock.eff.periodic.direction.type = SDL_HAPTIC_POLAR;
 		pDock.eff.periodic.direction.dir[0] = 9000;
 		pDock.eff.periodic.length = 125;
 		pDock.eff.periodic.period = 100;
 		pDock.eff.periodic.magnitude = 0x3332;
 
-		pDock.id = SDL_HapticNewEffect(haptic, &pDock.eff);
+		pDock.id = SDL_CreateHapticEffect(haptic, &pDock.eff);
 
 		if (pDock.id < 0) {
 			mprintf(("    Dock effect failed to load:\n      %s\n", SDL_GetError()));
 		} else {
-			pDock.loaded = 1;
+			pDock.loaded = true;
 		}
 	}
 }
@@ -342,7 +347,7 @@ static void joy_ff_update_effect(haptic_effect_t *eff, const char *name)
 		return;
 	}
 
-	if ( SDL_HapticUpdateEffect(haptic, eff->id, &eff->eff) < 0 ) {
+	if ( !SDL_UpdateHapticEffect(haptic, eff->id, &eff->eff) ) {
 		mprintf(("HapticERROR:  Unable to update %s:\n  %s\n", name, SDL_GetError()));
 	}
 }
@@ -355,7 +360,7 @@ static void joy_ff_start_effect(haptic_effect_t *eff, const char *name)
 
 //	nprintf(("Joystick", "FF: Starting effect %s\n", name));
 
-	if ( SDL_HapticRunEffect(haptic, eff->id, 1) ) {
+	if ( SDL_RunHapticEffect(haptic, eff->id, 1) ) {
 		mprintf(("HapticERROR:  Unable to run %s:\n  %s\n", name, SDL_GetError()));
 	}
 }
@@ -366,7 +371,11 @@ void joy_ff_stop_effects()
 		return;
 	}
 
-	SDL_HapticStopAll(haptic);
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0, 0, 0);
+	} else {
+		SDL_StopHapticEffects(haptic);
+	}
 }
 
 void joy_ff_mission_init(vector v)
@@ -415,6 +424,10 @@ void joy_reacquire_ff()
 		return;
 	}
 
+	if (joystick_is_gamepad()) {
+		return;
+	}
+
 	joy_ff_start_effect(&pSpring, "Spring");
 
 	Joy_ff_acquired = 1;
@@ -427,6 +440,10 @@ void joy_unacquire_ff()
 	}
 
 	if ( !Joy_ff_acquired ) {
+		return;
+	}
+
+	if (joystick_is_gamepad()) {
 		return;
 	}
 
@@ -466,6 +483,11 @@ void joy_ff_play_dir_effect(float x, float y)
 	Sint16 imag;
 
 	if ( !joy_ff_can_play() ) {
+		return;
+	}
+
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0x2fff, 0x4fff, 300);
 		return;
 	}
 
@@ -539,14 +561,21 @@ void joy_ff_play_primary_shoot(int gain)
 		return;
 	}
 
-	if ( !pShootEffect.loaded && !Joy_rumble ) {
+	CAP(gain, 1, 10000);
+
+	if (joystick_is_gamepad()) {
+		int freq = 0xffff * (gain / 10000.0f);
+		SDL_RumbleGamepad(gamepad, freq/3, freq, 100);
+
 		return;
 	}
 
-	CAP(gain, 1, 10000);
+	if ( !pShootEffect.loaded ) {
+		return;
+	}
 
 	if (pShootEffect.loaded) {
-		SDL_HapticStopEffect(haptic, pShootEffect.id);
+		SDL_StopHapticEffect(haptic, pShootEffect.id);
 
 		static int primary_ff_level = 10000;
 
@@ -559,14 +588,6 @@ void joy_ff_play_primary_shoot(int gain)
 		}
 
 		joy_ff_start_effect(&pShootEffect, "ShootEffect");
-	} else if (Joy_rumble) {
-		static int rumble_timeout = 1;
-
-		if ( timestamp_elapsed(rumble_timeout) ) {
-			SDL_HapticRumblePlay(haptic, gain / 10000.0f, 100);
-
-			rumble_timeout = timestamp(100);
-		}
 	}
 }
 
@@ -576,16 +597,24 @@ void joy_ff_play_secondary_shoot(int gain)
 		return;
 	}
 
-	if ( !pSecShootEffect.loaded && !Joy_rumble ) {
-		return;
-	}
-
 	gain = gain * 100 + 2500;
 
 	CAP(gain, 1, 10000);
 
+	if (joystick_is_gamepad()) {
+		int freq = 0xffff * (gain / 10000.0f);
+		int duration = (150000 + gain * 25) / 1000;
+		SDL_RumbleGamepad(gamepad, freq, freq/2, duration);
+
+		return;
+	}
+
+	if ( !pSecShootEffect.loaded ) {
+		return;
+	}
+
 	if (pSecShootEffect.loaded) {
-		SDL_HapticStopEffect(haptic, pSecShootEffect.id);
+		SDL_StopHapticEffect(haptic, pSecShootEffect.id);
 
 		static int secondary_ff_level = 10000;
 
@@ -600,16 +629,6 @@ void joy_ff_play_secondary_shoot(int gain)
 		}
 
 		joy_ff_start_effect(&pSecShootEffect, "SecShootEffect");
-	} else if (Joy_rumble) {
-		static int rumble_timeout = 1;
-
-		if ( timestamp_elapsed(rumble_timeout) ) {
-			int duration = (150000 + gain * 25) / 1000;
-
-			SDL_HapticRumblePlay(haptic, gain / 10000.0f, duration);
-
-			rumble_timeout = timestamp(duration);
-		}
 	}
 }
 
@@ -618,7 +637,7 @@ void joy_ff_adjust_handling(int speed)
 	int v;
 	short coeff = 0;
 
-	if ( !joy_ff_can_play() ) {
+	if ( !joy_ff_can_play() || joystick_is_gamepad() ) {
 		return;
 	}
 
@@ -642,7 +661,7 @@ void joy_ff_adjust_handling(int speed)
 
 	coeff = (short)(32767.0f * (v / 10000.0f));
 
-	for (int i = 0; i < SDL_HapticNumAxes(haptic); i++) {
+	for (int i = 0; i < SDL_GetNumHapticAxes(haptic); i++) {
 		pSpring.eff.condition.right_coeff[i] = coeff;
 		pSpring.eff.condition.left_coeff[i] = coeff;
 	}
@@ -652,12 +671,12 @@ void joy_ff_adjust_handling(int speed)
 	joy_ff_update_effect(&pSpring, "pSpring");
 }
 /*
-static int joy_ff_effect_playing(haptic_effect_t *eff)
+static bool joy_ff_effect_playing(haptic_effect_t *eff)
 {
 	if ( !eff->loaded ) {
-		return 0;
+		return false;
 	} else {
-		return (SDL_HapticGetEffectStatus(haptic, eff->id) > 0);
+		return SDL_HapticGetEffectStatus(haptic, eff->id);
 	}
 }
 */
@@ -667,11 +686,16 @@ void joy_ff_docked()
 		return;
 	}
 
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0xffff, 0, 150);
+		return;
+	}
+
 	if ( !pDock.loaded ) {
 		return;
 	}
 
-	SDL_HapticStopEffect(haptic, pDock.id);
+	SDL_StopHapticEffect(haptic, pDock.id);
 
 	pDock.eff.periodic.magnitude = 0x3332;
 
@@ -686,11 +710,16 @@ void joy_ff_play_reload_effect()
 		return;
 	}
 
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0x1000, 0x7fff, 50);
+		return;
+	}
+
 	if ( !pDock.loaded ) {
 		return;
 	}
 
-	SDL_HapticStopEffect(haptic, pDock.id);
+	SDL_StopHapticEffect(haptic, pDock.id);
 
 	pDock.eff.periodic.magnitude = 0x1999;
 
@@ -709,18 +738,23 @@ void joy_ff_afterburn_on()
 		return;
 	}
 
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0x7fff, 0, 1500);
+		return;
+	}
+
 	if ( !(pAfterburn1.loaded && pAfterburn2.loaded) ) {
 		return;
 	}
 
-	SDL_HapticStopEffect(haptic, pAfterburn1.id);
+	SDL_StopHapticEffect(haptic, pAfterburn1.id);
 
 	pAfterburn1.eff.periodic.length = SDL_HAPTIC_INFINITY;
 	pAfterburn1.eff.periodic.magnitude = 0x3332;
 
 	joy_ff_update_effect(&pAfterburn1, "pAfterburn1");
 
-	SDL_HapticStopEffect(haptic, pAfterburn2.id);
+	SDL_StopHapticEffect(haptic, pAfterburn2.id);
 
 	pAfterburn2.eff.periodic.length = SDL_HAPTIC_INFINITY;
 	pAfterburn2.eff.periodic.magnitude = 0x1999;
@@ -745,15 +779,20 @@ void joy_ff_afterburn_off()
 		return;
 	}
 
+	Joy_ff_afterburning = 0;
+
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0, 0, 0);
+		return;
+	}
+
 	if (pAfterburn1.loaded) {
-		SDL_HapticStopEffect(haptic, pAfterburn1.id);
+		SDL_StopHapticEffect(haptic, pAfterburn1.id);
 	}
 
 	if (pAfterburn2.loaded) {
-		SDL_HapticStopEffect(haptic, pAfterburn2.id);
+		SDL_StopHapticEffect(haptic, pAfterburn2.id);
 	}
-
-	Joy_ff_afterburning = 0;
 
 //	nprintf(("Joystick", "FF: Afterburn stopped\n"));
 }
@@ -764,16 +803,21 @@ void joy_ff_explode()
 		return;
 	}
 
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0xffff, 0xffff, 500);
+		return;
+	}
+
 	if (pAfterburn1.loaded) {
-		SDL_HapticStopEffect(haptic, pAfterburn1.id);
+		SDL_StopHapticEffect(haptic, pAfterburn1.id);
 	}
 
 	if (pAfterburn2.loaded) {
-		SDL_HapticStopEffect(haptic, pAfterburn2.id);
+		SDL_StopHapticEffect(haptic, pAfterburn2.id);
 	}
 
 	if (pShootEffect.loaded) {
-		SDL_HapticStopEffect(haptic, pShootEffect.id);
+		SDL_StopHapticEffect(haptic, pShootEffect.id);
 
 		pShootEffect.eff.periodic.direction.dir[0] = 9000;
 		pShootEffect.eff.periodic.length = 500;
@@ -783,14 +827,6 @@ void joy_ff_explode()
 		joy_ff_update_effect(&pShootEffect, "pShootEffect (explode)");
 
 		joy_ff_start_effect(&pShootEffect, "ShootEffect (Explode)");
-	} else if (Joy_rumble) {
-		static int rumble_timeout = 1;
-
-		if ( timestamp_elapsed(rumble_timeout) ) {
-			SDL_HapticRumblePlay(haptic, 1.0f, 500);
-
-			rumble_timeout = timestamp(500);
-		}
 	}
 
 	Joy_ff_afterburning = 0;
@@ -808,22 +844,28 @@ void joy_ff_fly_by(int mag)
 		return;
 	}
 
-	if ( !(pAfterburn1.loaded && pAfterburn2.loaded) ) {
-		return;
-	}
-
 	gain = mag * 120 + 4000;
 
 	CAP(gain, 1, 10000);
 
-	SDL_HapticStopEffect(haptic, pAfterburn1.id);
+	if (joystick_is_gamepad()) {
+		int duration = (6000 * mag + 400000) / 1000;
+		SDL_RumbleGamepad(gamepad, 0x4000, 0x7fff, duration);
+		return;
+	}
+
+	if ( !(pAfterburn1.loaded && pAfterburn2.loaded) ) {
+		return;
+	}
+
+	SDL_StopHapticEffect(haptic, pAfterburn1.id);
 
 	pAfterburn1.eff.periodic.length = (6000 * mag + 400000) / 1000;
 	pAfterburn1.eff.periodic.magnitude = (Sint16)(26212.0f * (gain / 10000.0f));
 
 	joy_ff_update_effect(&pAfterburn1, "pAfterburn1 (flyby)");
 
-	SDL_HapticStopEffect(haptic, pAfterburn2.id);
+	SDL_StopHapticEffect(haptic, pAfterburn2.id);
 
 	pAfterburn2.eff.periodic.length = (6000 * mag + 400000) / 1000;
 	pAfterburn2.eff.periodic.magnitude = (Sint16)(13106.0f * (gain / 10000.0f));
@@ -840,8 +882,13 @@ void joy_ff_deathroll()
 		return;
 	}
 
+	if (joystick_is_gamepad()) {
+		SDL_RumbleGamepad(gamepad, 0x1fff, 0x7fff, 10000);
+		return;
+	}
+
 	if (pAfterburn1.loaded && pAfterburn2.loaded) {
-		SDL_HapticStopEffect(haptic, pAfterburn1.id);
+		SDL_StopHapticEffect(haptic, pAfterburn1.id);
 
 		pAfterburn1.eff.periodic.length = SDL_HAPTIC_INFINITY;
 		pAfterburn1.eff.periodic.period = 200;
@@ -850,7 +897,7 @@ void joy_ff_deathroll()
 
 		joy_ff_update_effect(&pAfterburn1, "pAfterburn1 (deathroll)");
 
-		SDL_HapticStopEffect(haptic, pAfterburn2.id);
+		SDL_StopHapticEffect(haptic, pAfterburn2.id);
 
 		pAfterburn2.eff.periodic.length = SDL_HAPTIC_INFINITY;
 		pAfterburn2.eff.periodic.period = 200;

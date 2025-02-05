@@ -1500,7 +1500,7 @@ int cfile_init_paths()
 	}
 
 #ifndef __EMSCRIPTEN__
-	char *t_path = SDL_GetBasePath();
+	const char *t_path = SDL_GetBasePath();
 
 	// make sure we have something
 	if (t_path == NULL) {
@@ -1516,9 +1516,6 @@ int cfile_init_paths()
 
 	// set root directory
 	SDL_strlcpy(Cfile_root_dir, t_path, SDL_arraysize(Cfile_root_dir));
-	// free SDL copy
-	SDL_free(t_path);
-	t_path = NULL;
 
 	// are we in a root directory?
 	if ( cfile_in_root_dir(Cfile_root_dir) ) {

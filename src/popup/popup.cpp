@@ -1267,7 +1267,6 @@ void popup_callback(void (*callback)(int), int flags, int nchoices, ... )
 	va_list args;
 
 	if ( Popup_is_active ) {
-		Int3();		// should never happen
 		return;
 	}
 
@@ -1283,7 +1282,6 @@ void popup(int flags, int nchoices, ...)
 	va_list args;
 
 	if ( Popup_is_active ) {
-		Int3();		// should never happen
 		return;
 	}
 
@@ -1372,7 +1370,6 @@ void popup_input(void (*callback)(int), int flags, const char *caption, int max_
 	popup_info *pi = &Popup_info;
 
 	if ( Popup_is_active ) {
-		Int3();		// should never happen
 		return;
 	}
 

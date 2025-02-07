@@ -564,8 +564,8 @@ void joy_ff_play_primary_shoot(int gain)
 	CAP(gain, 1, 10000);
 
 	if (joystick_is_gamepad()) {
-		int freq = 0xffff * (gain / 10000.0f);
-		SDL_RumbleGamepad(gamepad, freq/3, freq, 100);
+		int freq = 0x7fff * (gain / 10000.0f);
+		SDL_RumbleGamepad(gamepad, freq, freq/2, 100);
 
 		return;
 	}
@@ -711,7 +711,7 @@ void joy_ff_play_reload_effect()
 	}
 
 	if (joystick_is_gamepad()) {
-		SDL_RumbleGamepad(gamepad, 0x1000, 0x7fff, 50);
+		SDL_RumbleGamepad(gamepad, 0x1fff, 0x7fff, 50);
 		return;
 	}
 
@@ -804,7 +804,7 @@ void joy_ff_explode()
 	}
 
 	if (joystick_is_gamepad()) {
-		SDL_RumbleGamepad(gamepad, 0xffff, 0xffff, 500);
+		SDL_RumbleGamepad(gamepad, 0xffff, 0x7fff, 500);
 		return;
 	}
 
@@ -850,7 +850,7 @@ void joy_ff_fly_by(int mag)
 
 	if (joystick_is_gamepad()) {
 		int duration = (6000 * mag + 400000) / 1000;
-		SDL_RumbleGamepad(gamepad, 0x4000, 0x7fff, duration);
+		SDL_RumbleGamepad(gamepad, 0x3fff, 0x7fff, duration);
 		return;
 	}
 
@@ -883,7 +883,7 @@ void joy_ff_deathroll()
 	}
 
 	if (joystick_is_gamepad()) {
-		SDL_RumbleGamepad(gamepad, 0x1fff, 0x7fff, 10000);
+		SDL_RumbleGamepad(gamepad, 0x4fff, 0x1fff, 4000);
 		return;
 	}
 

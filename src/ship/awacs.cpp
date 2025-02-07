@@ -419,7 +419,7 @@ void team_visibility_update()
 			continue;
 		}
 
-		int ship_num = shipp - Ships;
+		int ship_num = SHIP_INDEX(shipp);
 		SDL_assert((ship_num >= 0) && (ship_num < MAX_SHIPS));
 
 		switch (shipp->team) {

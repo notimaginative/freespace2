@@ -2408,7 +2408,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 
 	num_create_save = num_to_create;
 
-	wingnum = wingp - Wings;					// get the wing number
+	wingnum = WING_INDEX(wingp);					// get the wing number
 
 	// if there are no ships to create, then all ships must be player start ships -- do nothing in this case.
 	if ( num_to_create == 0 ){

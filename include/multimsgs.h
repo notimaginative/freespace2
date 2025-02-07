@@ -250,26 +250,27 @@ struct ship_subsys;
 // there are two flavors of sending orientation matrices, 16 bit and 32 bit. Just #define ORIENT_16 to use
 // 16 bits, otherwise 32 bits is the default
 
-#define BUILD_HEADER(t) do { data[0]=t; packet_size = HEADER_LENGTH; } while(0)
-#define ADD_DATA(d) do { SDL_assert((packet_size + sizeof(d)) < MAX_PACKET_SIZE); memcpy(data+packet_size, &d, sizeof(d) ); packet_size += sizeof(d); } while (0)
-#define ADD_SHORT(d) do { SDL_assert((packet_size + sizeof(d)) < MAX_PACKET_SIZE); short swap = INTEL_SHORT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
-#define ADD_USHORT(d) do { SDL_assert((packet_size + sizeof(d)) < MAX_PACKET_SIZE); ushort swap = INTEL_SHORT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
-#define ADD_INT(d) do { SDL_assert((packet_size + sizeof(d)) < MAX_PACKET_SIZE); int swap = INTEL_INT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
-#define ADD_UINT(d) do { SDL_assert((packet_size + sizeof(d)) < MAX_PACKET_SIZE); uint swap = INTEL_INT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
-#define ADD_FLOAT(d) do { SDL_assert((packet_size + sizeof(d)) < MAX_PACKET_SIZE); float swap = INTEL_FLOAT(d); memcpy(data+packet_size, &swap, sizeof(d) ); packet_size += sizeof(d); } while (0)
-#define ADD_STRING(s) do { SDL_assert((packet_size + strlen(s) + 4) < MAX_PACKET_SIZE);int len = strlen(s); int len_tmp = INTEL_INT(len); ADD_DATA(len_tmp); memcpy(data+packet_size, s, len ); packet_size += len; } while(0)
+#define BUILD_HEADER(t) do { data[0]=t; packet_size = HEADER_LENGTH; } while(false)
+#define ADD_DATA(d) do { SDL_assert((static_cast<size_t>(packet_size) + sizeof(d)) < MAX_PACKET_SIZE); memcpy(data+packet_size, &d, sizeof(d)); packet_size += sizeof(d); } while (false)
+#define ADD_SHORT(d) do { static_assert(sizeof(d) == sizeof(int16_t), "Size of short is not right!"); SDL_assert((static_cast<size_t>(packet_size) + sizeof(d)) < MAX_PACKET_SIZE); int16_t swap = INTEL_SHORT(d); memcpy(data+packet_size, &swap, sizeof(int16_t)); packet_size += sizeof(int16_t); } while (false)
+#define ADD_USHORT(d) do { static_assert(sizeof(d) == sizeof(uint16_t), "Size of unsigned short is not right!"); SDL_assert((static_cast<size_t>(packet_size) + sizeof(d)) < MAX_PACKET_SIZE); uint16_t swap = INTEL_SHORT(d); memcpy(data+packet_size, &swap, sizeof(uint16_t)); packet_size += sizeof(uint16_t); } while (false)
+#define ADD_INT(d) do { static_assert(sizeof(d) == sizeof(int32_t), "Size of int is not right!"); SDL_assert((static_cast<size_t>(packet_size) + sizeof(d)) < MAX_PACKET_SIZE); int32_t swap = INTEL_INT(d); memcpy(data+packet_size, &swap, sizeof(int32_t)); packet_size += sizeof(int32_t); } while (false)
+#define ADD_UINT(d) do { static_assert(sizeof(d) == sizeof(uint32_t), "Size of unsigned int is not right!"); SDL_assert((static_cast<size_t>(packet_size) + sizeof(d)) < MAX_PACKET_SIZE); uint32_t swap = INTEL_INT(d); memcpy(data+packet_size, &swap, sizeof(uint32_t) ); packet_size += sizeof(uint32_t); } while (false)
+#define ADD_FLOAT(d) do { SDL_assert((static_cast<size_t>(packet_size) + sizeof(d)) < MAX_PACKET_SIZE); float swap = INTEL_FLOAT(d); memcpy(data+packet_size, &swap, sizeof(float) ); packet_size += sizeof(float); } while (false)
+#define ADD_STRING(s) do { SDL_assert((static_cast<size_t>(packet_size) + strlen(s) + sizeof(int32_t)) < MAX_PACKET_SIZE); int32_t len = static_cast<int32_t>(strlen(s)); ADD_INT(len); memcpy(data+packet_size, s, static_cast<size_t>(len)); packet_size += len; } while (false)
 #define ADD_ORIENT(d) { SDL_assert((packet_size + 17) < MAX_PACKET_SIZE); ubyte dt[17]; multi_pack_orient_matrix(dt,&d); memcpy(data+packet_size,dt,17); packet_size += 17; }
 
-#define GET_DATA(d) do { memcpy(&d, data+offset, sizeof(d) ); offset += sizeof(d); } while(0)
-#define GET_SHORT(d) do { short swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(0)
-#define GET_USHORT(d) do { ushort swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(0)
-#define GET_INT(d) do { int swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(0)
-#define GET_UINT(d) do { uint swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(0)
-#define GET_FLOAT(d) do { float swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_FLOAT(swap); offset += sizeof(d); } while(0)
-#define GET_STRING(s) do { int len;  memcpy(&len, data+offset, sizeof(len)); len = INTEL_INT(len); offset += sizeof(len); memcpy(s, data+offset, len); offset += len; s[len] = '\0'; } while(0)
+#define GET_DATA(d) do { memcpy(&d, data+offset, sizeof(d) ); offset += sizeof(d); } while(false)
+#define GET_SHORT(d) do { int16_t swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(false)
+#define GET_USHORT(d) do { uint16_t swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_SHORT(swap); offset += sizeof(d); } while(false)
+#define GET_INT(d) do { int32_t swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(false)
+#define GET_UINT(d) do { uint32_t swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(false)
+#define GET_FLOAT(d) do { float swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_FLOAT(swap); offset += sizeof(d); } while(false)
+#define GET_STRING(s) do { static_assert(std::is_array<decltype(s)>::value, "GET_STRING_32() must point to an array!"); int32_t len; GET_INT(len); const auto s_len = SDL_min(static_cast<size_t>(len), sizeof(s)-1); memcpy(s, data+offset, s_len); offset += len; s[s_len] = '\0'; } while (false)
 #define GET_ORIENT(d) { ubyte dt[17]; memcpy(dt,data+offset,17); offset+=17; multi_unpack_orient_matrix(dt,&d); }
 
-#define PACKET_SET_SIZE() do { hinfo->bytes_processed = offset; } while(0)
+
+#define PACKET_SET_SIZE() do { hinfo->bytes_processed = offset; } while(false)
 
 // defines for weapon status changes.
 #define MULTI_PRIMARY_CHANGED		1

@@ -179,7 +179,7 @@ void update_danger_weapon(object *ship_obj, object *weapon_obj)
 	aip = &Ai_info[Ships[ship_obj->instance].ai_index];
 
 	if (aip->danger_weapon_objnum == -1) {
-		aip->danger_weapon_objnum = weapon_obj-Objects;
+		aip->danger_weapon_objnum = OBJ_INDEX(weapon_obj);
 		aip->danger_weapon_signature = weapon_obj->signature;
 	} else if (aip->danger_weapon_signature == Objects[aip->danger_weapon_objnum].signature) {
 		float	danger_old_time, danger_new_time;
@@ -188,7 +188,7 @@ void update_danger_weapon(object *ship_obj, object *weapon_obj)
 		danger_new_time = ai_endangered_time(ship_obj, weapon_obj);
 
 		if (danger_new_time < danger_old_time) {
-			aip->danger_weapon_objnum = weapon_obj-Objects;
+			aip->danger_weapon_objnum = OBJ_INDEX(weapon_obj);
 			aip->danger_weapon_signature = weapon_obj->signature;
 		}
 	}
@@ -329,7 +329,7 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 */
 				valid_hit_occured = 1;
 				// shield effect
-				add_shield_point(ship_obj-Objects, mc.shield_hit_tri, &mc.hit_point);
+				add_shield_point(OBJ_INDEX(ship_obj), mc.shield_hit_tri, &mc.hit_point);
 				do_model_check = 0;	// since we hit the shield, no need to check the model
 
 			} else {

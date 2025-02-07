@@ -2077,7 +2077,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			aip = &Ai_info[Ships[hobjp->instance].ai_index];
 
 			if ((aip->nearest_locked_object == -1) || (dist < aip->nearest_locked_distance)) {
-				aip->nearest_locked_object = obj-Objects;
+				aip->nearest_locked_object = OBJ_INDEX(obj);
 				aip->nearest_locked_distance = dist;
 			}
 		}

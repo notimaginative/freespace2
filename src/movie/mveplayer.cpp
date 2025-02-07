@@ -38,6 +38,7 @@
 #include "movie.h"
 #include "2d.h"
 #include "key.h"
+#include "gamepad.h"
 #include "osapi.h"
 #include "timer.h"
 #include "sound.h"
@@ -605,7 +606,7 @@ void mve_play(MVESTREAM *mve)
 
 		os_poll();
 
-		if (key_inkey() == SDLK_ESCAPE) {
+		if (key_inkey() == SDLK_ESCAPE || gamepad_action_or_cancel()) {
 			mve_playing = 0;
 		}
 	}

@@ -14,6 +14,7 @@
 #include "osregistry.h"
 #include "joy_ff.h"
 #include "osapi.h"
+#include "gamepad.h"
 
 
 static int Joy_inited = 0;
@@ -369,6 +370,8 @@ static int joy_init_internal(SDL_JoystickID with_id)
 
 	SDL_zero(joystick);
 
+	gamepad_setup(0);
+
 	if (with_id) {
 		Cur_joystick = with_id;
 	} else {
@@ -417,6 +420,8 @@ static int joy_init_internal(SDL_JoystickID with_id)
 			mprintf(("  Unable to init gamepad %d (%s)\n\n", Cur_joystick, SDL_GetGamepadNameForID(Cur_joystick)));
 			return 0;
 		}
+
+		gamepad_setup(Cur_joystick);
 
 		joy_name = SDL_GetGamepadName(sdlcon);
 

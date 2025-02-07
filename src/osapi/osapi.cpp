@@ -154,6 +154,7 @@
 #include "freespace.h"
 #include "osregistry.h"
 #include "cmdline.h"
+#include "gamepad.h"
 
 // ----------------------------------------------------------------------------------------------------
 // OSAPI DEFINES/VARS
@@ -560,6 +561,9 @@ void os_poll()
 				break;
 		}
 	}
+
+	// if we're using a gamepad then update the cursor position
+	gamepad_update_mouse_pos();
 }
 
 void debug_int3()

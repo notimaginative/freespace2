@@ -144,6 +144,7 @@
 #include "mouse.h"
 #include "2d.h"
 #include "osapi.h"
+#include "gamepad.h"
 
 
 static int mouse_inited = 0;
@@ -385,6 +386,10 @@ int mouse_down(int btn)
 	else
 		tmp = 0;
 
+	if (mouse_is_visible() && (btn == MOUSE_LEFT_BUTTON) && gamepad_action()) {
+		tmp = 1;
+	}
+
 	return tmp;
 }
 
@@ -523,6 +528,19 @@ void mouse_update_pos(int x, int y, int dx, int dy)
 
 	Mouse_x = x1;
 	Mouse_y = y1;
+
+	Mouse_dx_inc += dx;
+	Mouse_dy_inc += dy;
+}
+
+// update mouse with position which is already scaled for max_w/max_h
+void mouse_update_pos_scaled(int x, int y, int dx, int dy)
+{
+	CAP(x, 0, gr_screen.max_w-1);
+	CAP(y, 0, gr_screen.max_h-1);
+
+	Mouse_x = x;
+	Mouse_y = y;
 
 	Mouse_dx_inc += dx;
 	Mouse_dy_inc += dy;

@@ -141,6 +141,7 @@
 #include "font.h"
 #include "localize.h"
 #include "cmdline.h"
+#include "gamepad.h"
 
 // global xstr colors
 color *Xstr_colors[UI_NUM_XSTR_COLORS][3] = {
@@ -536,6 +537,10 @@ int UI_WINDOW::process(int key_in,int process_mouse)
 	do_dump_check();
 	if (mouse_captured_gadget && B1_RELEASED){
 		mouse_captured_gadget = NULL;
+	}
+
+	if ( !last_keypress && gamepad_cancel() ) {
+		last_keypress = SDLK_ESCAPE;
 	}
 
 	keypress_text = key_get_text_input();

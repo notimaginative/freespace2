@@ -64,6 +64,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/inetfile/cftp.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/inetfile/chttpget.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/inetfile/inetgetfile.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/io/gamepad.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/joy.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/joy_ff.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/key.cpp

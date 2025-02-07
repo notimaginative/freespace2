@@ -130,6 +130,8 @@ void mouse_eval_deltas();
 void mouse_get_delta(int *dx = NULL, int *dy = NULL, int *dz = NULL);
 void mouse_force_pos(int x, int y);
 void mouse_update_pos(int x, int y, int dx, int dy);
+// update mouse with position which is already scaled for max_w/max_h
+void mouse_update_pos_scaled(int x, int y, int dx, int dy);
 
 #endif
 

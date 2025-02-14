@@ -187,16 +187,6 @@
  */
 
 #include <stdio.h>
-#ifndef PLAT_UNIX
-#include <direct.h>
-#include <io.h>
-#else
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <fnmatch.h>
-#endif
 #include <string.h>
 #include <errno.h>
 

@@ -213,13 +213,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#ifndef PLAT_UNIX
-#include <io.h>
-#include <direct.h>
-#else
+#ifdef PLAT_UNIX
 #include <unistd.h>
-#include <dirent.h>
-#include <fnmatch.h>
 #endif
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -408,6 +403,7 @@ int cfile_flush_dir(int dir_type)
 {
 	char filespec[MAX_PATH_LEN];
 	int del_count;
+	SDL_PathInfo pinfo;
 
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
@@ -416,58 +412,31 @@ int cfile_flush_dir(int dir_type)
 	// proceed to delete the files
 	del_count = 0;
 
-#ifdef PLAT_UNIX
-	DIR *dirp;
-	struct dirent *dir;
+	auto results = SDL_GlobDirectory(filespec, "*", 0, nullptr);
 
-	dirp = opendir(filespec);
-	if (dirp) {
-		while ( (dir = readdir(dirp)) != NULL ) {
-			if ( !fnmatch("*", dir->d_name, 0) ) {
-				char fn[MAX_PATH_LEN];
-				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
+	if (results) {
+		for (int i = 0; results[i]; ++i) {
+			char fn[MAX_PATH_LEN];
 
-				struct stat buf;
-				if (stat(fn, &buf) == -1) {
-					continue;
-				}
+			SDL_snprintf(fn, SDL_arraysize(fn), "%s%s\n", filespec, results[i]);
 
-				if (!S_ISREG(buf.st_mode)) {
-					continue;
-				}
-
-				// delete the file
-				cf_delete(dir->d_name, dir_type);
-
-				// increment the deleted count
-				del_count++;
+			if ( !SDL_GetPathInfo(fn, &pinfo) ) {
+				continue;
 			}
+
+			if (pinfo.type != SDL_PATHTYPE_FILE) {
+				continue;
+			}
+
+			// delete the file
+			cf_delete(results[i], dir_type);
+
+			// increment the deleted count
+			++del_count;
 		}
 
-		closedir(dirp);
+		SDL_free(results);
 	}
-#else
-	int find_handle;
-	_finddata_t find;
-
-	SDL_strlcat( filespec, "*", SDL_arraysize(filespec) );
-
-	find_handle = _findfirst( filespec, &find );
-
-	if (find_handle != -1) {
-		do {
-			if (!(find.attrib & _A_SUBDIR) && !(find.attrib & _A_RDONLY)) {
-				// delete the file
-				cf_delete(find.name, dir_type);
-
-				// increment the deleted count
-				del_count++;
-			}
-		} while (!_findnext(find_handle, &find));
-
-		_findclose( find_handle );
-	}
-#endif
 
 	// return the # of files deleted
 	return del_count;

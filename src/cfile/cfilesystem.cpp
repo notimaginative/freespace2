@@ -123,20 +123,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#ifndef PLAT_UNIX
-#include <io.h>
-#else
-#include <sys/types.h>
-#include <dirent.h>
-#include <fnmatch.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 #include "pstypes.h"
-//#include "outwnd.h"
-//#include "vecmat.h"
-//#include "timer.h"
 #include "cfile.h"
 #include "cfilesystem.h"
 #include "localize.h"
@@ -256,10 +244,10 @@ int cf_get_packfile_count(cf_root *root)
 {
 	char filespec[MAX_PATH_LEN];
 	int i;
-	int packfile_count;
+	int packfile_count = 0;
+	int count;
 
 	// count up how many packfiles we're gonna have
-	packfile_count = 0;
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 		SDL_strlcpy( filespec, root->path, SDL_arraysize(filespec) );
 
@@ -268,39 +256,14 @@ int cf_get_packfile_count(cf_root *root)
 			SDL_strlcat( filespec, DIR_SEPARATOR_STR, SDL_arraysize(filespec) );
 		}
 
-#ifdef PLAT_UNIX
-		DIR *dirp;
-		struct dirent *dir;
+		auto results = SDL_GlobDirectory(filespec, "*.vp", SDL_GLOB_CASEINSENSITIVE, &count);
 
-		dirp = opendir (filespec);
-		if ( dirp ) {
-			while ((dir = readdir (dirp)) != NULL)
-			{
-				if (!fnmatch ("*.vp", dir->d_name, 0))
-					packfile_count++;
-			}
-			closedir(dirp);
+		if (results) {
+			SDL_free(results);
 		}
-#else
-		SDL_strlcat( filespec, "*.vp", SDL_arraysize(filespec) );
 
-		int find_handle;
-		_finddata_t find;
-		
-		find_handle = _findfirst( filespec, &find );
-
- 		if (find_handle != -1) {
-			do {
-				if (!(find.attrib & _A_SUBDIR)) {
-					packfile_count++;
-				}
-
-			} while (!_findnext(find_handle, &find));
-
-			_findclose( find_handle );
-		}	
-#endif
-	}	
+		packfile_count += count;
+	}
 
 	return packfile_count;
 }
@@ -352,84 +315,36 @@ void cf_build_pack_list( cf_root *root )
 			SDL_strlcat( filespec, DIR_SEPARATOR_STR, SDL_arraysize(filespec) );
 		}
 
-#ifdef PLAT_UNIX
-		DIR *dirp;
-		struct dirent *dir;
+		SDL_PathInfo pinfo;
 
-		dirp = opendir (filespec);
-		if ( dirp ) {
-			while ((dir = readdir (dirp)) != NULL)
-			{
-				if (!fnmatch ("*.vp", dir->d_name, 0))
-				{
-					SDL_assert(root_index < temp_root_count);
+		auto results = SDL_GlobDirectory(filespec, "*.vp", SDL_GLOB_CASEINSENSITIVE, nullptr);
 
-					char fn[MAX_PATH_LEN];
-					SDL_snprintf(fn, SDL_arraysize(fn), "%s/%s", filespec, dir->d_name);
-							
-					struct stat buf;
-					if (stat(fn, &buf) == -1) {
-						continue;
-					}
-					
-					if (!S_ISREG(buf.st_mode)) {
-						continue;
-					}
-					
-					// get a temp pointer
-					rptr_sort = &temp_roots_sort[root_index++];
-
-					// fill in all the proper info
-					SDL_strlcpy(rptr_sort->path, root->path, SDL_arraysize(rptr_sort->path));
-
-					if(strlen(Pathtypes[i].path)){
-						SDL_strlcat(rptr_sort->path, Pathtypes[i].path, SDL_arraysize(rptr_sort->path));
-						SDL_strlcat(rptr_sort->path, "/", SDL_arraysize(rptr_sort->path));
-					}
-
-					SDL_strlcat(rptr_sort->path, dir->d_name, SDL_arraysize(rptr_sort->path));
-					rptr_sort->roottype = CF_ROOTTYPE_PACK;
-					rptr_sort->cf_type = i;
-				}
-			}
-			closedir(dirp);
+		if ( !results ) {
+			continue;
 		}
-#else
-		SDL_strlcat( filespec, "*.vp", SDL_arraysize(filespec) );
 
-		int find_handle;
-		_finddata_t find;
-		
-		find_handle = _findfirst( filespec, &find );
+		for (int ridx = 0; results[ridx]; ridx++) {
+			char rpath[MAX_PATH_LEN];
 
- 		if (find_handle != -1) {
-			do {
-				// add the new item
-				if (!(find.attrib & _A_SUBDIR)) {					
-					SDL_assert(root_index < temp_root_count);
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", filespec, results[ridx]);
 
-					// get a temp pointer
-					rptr_sort = &temp_roots_sort[root_index++];
+			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
+				continue;
+			}
 
-					// fill in all the proper info
-					SDL_strlcpy(rptr_sort->path, root->path, SDL_arraysize(rptr_sort->path));
+			if (pinfo.type != SDL_PATHTYPE_FILE) {
+				continue;
+			}
 
-					if(strlen(Pathtypes[i].path)){
-						SDL_strlcat(rptr_sort->path, Pathtypes[i].path, SDL_arraysize(rptr_sort->path) );
-						SDL_strlcat(rptr_sort->path, "\\", SDL_arraysize(rptr_sort->path));
-					}
+			rptr_sort = &temp_roots_sort[root_index++];
 
-					SDL_strlcat(rptr_sort->path, find.name, SDL_arraysize(rptr_sort->path) );
-					rptr_sort->roottype = CF_ROOTTYPE_PACK;
-					rptr_sort->cf_type = i;
-				}
+			SDL_strlcpy(rptr_sort->path, rpath, SDL_arraysize(rptr_sort->path));
+			rptr_sort->roottype = CF_ROOTTYPE_PACK;
+			rptr_sort->cf_type = i;
+		}
 
-			} while (!_findnext(find_handle, &find));
-
-			_findclose( find_handle );
-		}	
-#endif
-	}	
+		SDL_free(results);
+	}
 
 	// these should always be the same
 	SDL_assert(root_index == temp_root_count);
@@ -539,96 +454,48 @@ void cf_search_root_path(int root_index)
 			SDL_strlcat( search_path, DIR_SEPARATOR_STR, SDL_arraysize(search_path) );
 		}
 
-#ifdef PLAT_UNIX
-		DIR *dirp;
-		struct dirent *dir;
+		SDL_PathInfo pinfo;
 
-		// only get pilots from the primary root as there could be nasty
-		// permission issues otherwise
-		if ( (root_index > 0) && ((Pathtypes[i].index == CF_TYPE_SINGLE_PLAYERS)
-					|| (Pathtypes[i].index == CF_TYPE_MULTI_PLAYERS)) ) {
-			break;
+		auto results = SDL_GlobDirectory(search_path, "*.*", 0, nullptr);
+
+		if ( !results ) {
+			continue;
 		}
 
-		dirp = opendir (search_path);
-		if ( dirp ) {
-			while ((dir = readdir (dirp)) != NULL)
-			{
-				if (!fnmatch ("*.*", dir->d_name, 0))
-				{
-					char fn[MAX_PATH_LEN];
-					SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", search_path, dir->d_name);
-							
-					struct stat buf;
-					if (stat(fn, &buf) == -1) {
-						continue;
-					}
-					
-					if (!S_ISREG(buf.st_mode)) {
-						continue;
-					}
-					
-					char *ext = SDL_strchr( dir->d_name, '.' );
-					if ( ext )	{
-						if ( is_ext_in_list( Pathtypes[i].extensions, ext ) )	{
-							// Found a file!!!!
-							cf_file *file = cf_create_file();
+		for (int ridx = 0; results[ridx]; ridx++) {
+			char rpath[MAX_PATH_LEN];
 
-							SDL_strlcpy( file->name_ext, dir->d_name, SDL_arraysize(file->name_ext) );
-							file->root_index = root_index;
-							file->pathtype_index = i;
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", search_path, results[ridx]);
 
-
-							file->write_time = buf.st_mtime;
-							file->size = buf.st_size;
-
-							file->pack_offset = 0;			// Mark as a non-packed file
-
-							//mprintf(( "Found file '%s'\n", file->name_ext ));
-						}
-					}
-				}
+			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
+				continue;
 			}
-			closedir(dirp);
+
+			if (pinfo.type != SDL_PATHTYPE_FILE) {
+				continue;
+			}
+
+			char *ext = SDL_strrchr(results[ridx], '.' );
+
+			if (ext && is_ext_in_list(Pathtypes[i].extensions, ext)) {
+				// Found a file!!!!
+				cf_file *file = cf_create_file();
+
+				SDL_strlcpy( file->name_ext, results[ridx], SDL_arraysize(file->name_ext) );
+				file->root_index = root_index;
+				file->pathtype_index = i;
+
+				file->write_time = static_cast<time_t>(pinfo.modify_time);
+				file->size = static_cast<int>(pinfo.size);
+
+				file->pack_offset = 0;			// Mark as a non-packed file
+
+				// mprintf(( "Found file '%s'\n", file->name_ext ));
+				printf("Found file '%s'\n", file->name_ext);
+			}
 		}
-#else
-		SDL_strlcat( search_path, "*.*", SDL_arraysize(search_path) );
 
-		int find_handle;
-		_finddata_t find;
-		
-		find_handle = _findfirst( search_path, &find );
-
- 		if (find_handle != -1) {
-			do {
-				if (!(find.attrib & _A_SUBDIR)) {
-
-					char *ext = SDL_strchr( find.name, '.' );
-					if ( ext )	{
-						if ( is_ext_in_list( Pathtypes[i].extensions, ext ) )	{
-							// Found a file!!!!
-							cf_file *file = cf_create_file();
-
-							SDL_strlcpy( file->name_ext, find.name, SDL_arraysize(file->name_ext) );
-							file->root_index = root_index;
-							file->pathtype_index = i;
-							file->write_time = find.time_write;
-							file->size = find.size;
-							file->pack_offset = 0;			// Mark as a non-packed file
-
-							//mprintf(( "Found file '%s'\n", file->name_ext ));
-
-						}
-					}
-
-				}
-
-			} while (!_findnext(find_handle, &find));
-
-			_findclose( find_handle );
-		}
-#endif
-
+		SDL_free(results);
 	}
 }
 
@@ -1010,7 +877,8 @@ int cf_file_already_in_list( int num_files, char **list, char *filename )
 int cf_get_file_list( int max, char **list, int pathtype, const char *filter, int sort, file_list_info *info )
 {
 	char *ptr;
-	int i, l, num_files = 0, own_flag = 0;
+	int i, num_files = 0, own_flag = 0;
+	size_t l;
 
 	if (max < 1) {
 		Get_file_list_filter = NULL;
@@ -1026,86 +894,49 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 
 	char filespec[MAX_PATH_LEN];
 
-#ifdef PLAT_UNIX
-	cf_create_default_path_string( filespec, pathtype, NULL );
+	// Search the default directories
+	cf_create_default_path_string(filespec, pathtype, nullptr);
 
-	DIR *dirp;
-	struct dirent *dir;
+	SDL_PathInfo pinfo;
 
-	dirp = opendir (filespec);
-	if ( dirp ) {
-		while ((dir = readdir (dirp)) != NULL)
-		{
-			if (num_files >= max)
-				break;
+	auto results = SDL_GlobDirectory(filespec, filter, SDL_GLOB_CASEINSENSITIVE, nullptr);
 
-			if (fnmatch(filter, dir->d_name, 0) != 0)
-				continue;
-
-			char fn[MAX_PATH_LEN];
-			SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
-
-			struct stat buf;
-			if (stat(fn, &buf) == -1) {
+	if (results) {
+		for (int ridx = 0; results[ridx]; ridx++) {
+			char rpath[MAX_PATH_LEN];
+			
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", filespec, results[ridx]);
+			
+			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
 				continue;
 			}
-
-			if (!S_ISREG(buf.st_mode)) {
+			
+			if (pinfo.type != SDL_PATHTYPE_FILE) {
 				continue;
 			}
-
-			if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
-				ptr = strrchr(dir->d_name, '.');
-				if (ptr)
-					l = ptr - dir->d_name;
-				else
-					l = strlen(dir->d_name);
-
-				list[num_files] = (char *)malloc(l + 1);
-				SDL_strlcpy(list[num_files], dir->d_name, l+1);
-				if (info)
-					info[num_files].write_time = buf.st_mtime;
-
-				num_files++;
+			
+			if ( !Get_file_list_filter || (*Get_file_list_filter)(results[ridx]) ) {
+				ptr = SDL_strrchr(results[ridx], '.');
+				
+				if (ptr) {
+					l = ptr - results[ridx];
+				} else {
+					l = SDL_strlen(results[ridx]);
+				}
+				
+				list[num_files] = reinterpret_cast<char *>(malloc(l + 1));
+				SDL_strlcpy(list[num_files], results[ridx], l+1);
+				
+				if (info) {
+					info[num_files].write_time = static_cast<time_t>(pinfo.modify_time);
+				}
+				
+				++num_files;
 			}
 		}
-
-		closedir(dirp);
+		
+		SDL_free(results);
 	}
-#else
-	cf_create_default_path_string( filespec, pathtype, filter );
-
-	int find_handle;
-	_finddata_t find;
-
-	find_handle = _findfirst( filespec, &find );
-	if (find_handle != -1) {
-		do {
-			if (num_files >= max)
-				break;
-
-			if (!(find.attrib & _A_SUBDIR)) {
-				if ( !Get_file_list_filter || (*Get_file_list_filter)(find.name) ) {
-					ptr = strrchr(find.name, '.');
-					if (ptr)
-						l = ptr - find.name;
-					else
-						l = strlen(find.name);
-
-					list[num_files] = (char *)malloc(l + 1);
-					SDL_strlcpy(list[num_files], find.name, l+1);
-					if (info)
-						info[num_files].write_time = find.time_write;
-
-					num_files++;
-				}
-			}
-
-		} while (!_findnext(find_handle, &find));
-
-		_findclose( find_handle );
-	}
-#endif
 
 	// Search all the packfiles and CD.
 	if ( !Skip_packfile_search )	{
@@ -1213,87 +1044,48 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 	char filespec[MAX_PATH_LEN];
 
 	// Search the default directories
-#ifdef PLAT_UNIX
-	cf_create_default_path_string( filespec, pathtype, NULL );
-	
-	DIR *dirp;
-	struct dirent *dir;
+	cf_create_default_path_string(filespec, pathtype, nullptr);
 
-	dirp = opendir (filespec);
-	if ( dirp ) {
-		while ((dir = readdir (dirp)) != NULL)
-		{
-			if (num_files >= max)
+	SDL_PathInfo pinfo;
+
+	auto results = SDL_GlobDirectory(filespec, filter, SDL_GLOB_CASEINSENSITIVE, nullptr);
+
+	if (results) {
+		for (int ridx = 0; results[ridx]; ridx++) {
+			char rpath[MAX_PATH_LEN];
+
+			if (num_files >= max) {
 				break;
-
-			if (fnmatch(filter, dir->d_name, 0) != 0)
-				continue;
-
-			char fn[MAX_PATH_LEN];
-			SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
-
-			struct stat buf;
-			if (stat(fn, &buf) == -1) {
-				continue;
 			}
 
-			if (!S_ISREG(buf.st_mode)) {
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", filespec, results[ridx]);
+			
+			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
 				continue;
 			}
+			
+			if (pinfo.type != SDL_PATHTYPE_FILE) {
+				continue;
+			}
+			
+			if ( !Get_file_list_filter || (*Get_file_list_filter)(results[ridx]) ) {
+				SDL_strlcpy(arr[num_files], results[ridx], MAX_FILENAME_LEN);
 
-			if ( !Get_file_list_filter || (*Get_file_list_filter)(dir->d_name) ) {
-
-				SDL_strlcpy(arr[num_files], dir->d_name, MAX_FILENAME_LEN);
-				char *ptr = strrchr(arr[num_files], '.');
-				if ( ptr ) {
+				char *ptr = SDL_strrchr(arr[num_files], '.');
+				if (ptr) {
 					*ptr = 0;
 				}
 
-				if (info)	{
-					info[num_files].write_time = buf.st_mtime;
+				if (info) {
+					info[num_files].write_time = static_cast<time_t>(pinfo.modify_time);
 				}
 
-				num_files++;
+				++num_files;
 			}
 		}
-		closedir(dirp);
-	}
-#else
-	cf_create_default_path_string( filespec, pathtype, filter );
-	
-	int find_handle;
-	_finddata_t find;
-	
-	find_handle = _findfirst( filespec, &find );
-	if (find_handle != -1) {
-		do {
-			if (num_files >= max)
-				break;
-
-			if (!(find.attrib & _A_SUBDIR)) {
-
-				if ( !Get_file_list_filter || (*Get_file_list_filter)(find.name) ) {
-
-					SDL_strlcpy(arr[num_files], find.name, MAX_FILENAME_LEN);
-					char *ptr = strrchr(arr[num_files], '.');
-					if ( ptr ) {
-						*ptr = 0;
-					}
-
-					if (info)	{
-						info[num_files].write_time = find.time_write;
-					}
-
-					num_files++;
-				}
-			}
-
-		} while (!_findnext(find_handle, &find));
-
-		_findclose( find_handle );
-	}
-#endif
 		
+		SDL_free(results);
+	}
 
 	// Search all the packfiles and CD.
 	if ( !Skip_packfile_search )	{

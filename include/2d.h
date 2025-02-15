@@ -538,16 +538,17 @@ typedef struct screen {
 //--------------------------------------
 // Call this at application startup
 
-#define GR_OPENGL				(100)		// OpenGL (generic)
-#define GR_WXGL					(101)		// OpenGL for use with wxWidgets toolkit
-#define GR_STUB					(102)		// Stubbed out for standalone server
+#define GR_OPENGL				(100)		// OpenGL 1.2 ("safe mode")
+#define GR_GLES2				(101)		// OpenGL ES 2
+#define GR_WXGL					(103)		// OpenGL for use with wxWidgets toolkit
+#define GR_STUB					(104)		// Stubbed out for standalone server
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
 #define GR_NUM_RESOLUTIONS			2
 #define GR_640							0		// 640 x 480
 #define GR_1024						1		// 1024 x 768
 
-extern int gr_init();
+extern int gr_init(bool safe_mode = false);
 
 // Call this when your app ends.
 extern void gr_close();

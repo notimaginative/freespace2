@@ -6,7 +6,7 @@
  * the source.
  */
 
-#ifdef LEGACY_GL
+#ifndef __EMSCRIPTEN__
 
 #include <SDL3/SDL_opengl.h>
 
@@ -15,13 +15,11 @@
 #include "grwxgl.h"
 #include "gropengl.h"
 #include "gropenglinternal.h"
-#include "grgl1.h"
 #include "grinternal.h"
 #include "mouse.h"
 
 
 extern bool OGL_inited;
-extern int GL_one_inited;
 
 extern void opengl_set_variables();
 extern void opengl_init_viewport();
@@ -30,62 +28,62 @@ extern void opengl_init_viewport();
 static void wxgl_init_func_pointers()
 {
 	gr_screen.gf_flip = gr_wxgl_flip;
-	gr_screen.gf_set_clip = gr_opengl1_set_clip;
+	gr_screen.gf_set_clip = gr_opengl_set_clip;
 	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 
 	gr_screen.gf_clear = gr_opengl_clear;
 
-	gr_screen.gf_aabitmap = gr_opengl1_aabitmap;
-	gr_screen.gf_aabitmap_ex = gr_opengl1_aabitmap_ex;
+	gr_screen.gf_aabitmap = gr_opengl_aabitmap;
+	gr_screen.gf_aabitmap_ex = gr_opengl_aabitmap_ex;
 
-	gr_screen.gf_rect = gr_opengl1_rect;
-	gr_screen.gf_shade = gr_opengl1_shade;
-	gr_screen.gf_string = gr_opengl1_string;
-	gr_screen.gf_circle = gr_opengl1_circle;
+	gr_screen.gf_rect = gr_opengl_rect;
+	gr_screen.gf_shade = gr_opengl_shade;
+	gr_screen.gf_string = gr_opengl_string;
+	gr_screen.gf_circle = gr_opengl_circle;
 
-	gr_screen.gf_line = gr_opengl1_line;
-	gr_screen.gf_aaline = gr_opengl1_aaline;
-	gr_screen.gf_pixel = gr_opengl1_pixel;
-	gr_screen.gf_scaler = gr_opengl1_scaler;
-	gr_screen.gf_tmapper = gr_opengl1_tmapper;
+	gr_screen.gf_line = gr_opengl_line;
+	gr_screen.gf_aaline = gr_opengl_aaline;
+	gr_screen.gf_pixel = gr_opengl_pixel;
+	gr_screen.gf_scaler = gr_opengl_scaler;
+	gr_screen.gf_tmapper = gr_opengl_tmapper;
 
-	gr_screen.gf_gradient = gr_opengl1_gradient;
+	gr_screen.gf_gradient = gr_opengl_gradient;
 
-	gr_screen.gf_print_screen = gr_opengl1_print_screen;
+	gr_screen.gf_print_screen = gr_opengl_print_screen;
 
-	gr_screen.gf_fade_in = gr_opengl1_fade_in;
-	gr_screen.gf_fade_out = gr_opengl1_fade_out;
-	gr_screen.gf_flash = gr_opengl1_flash;
+	gr_screen.gf_fade_in = gr_opengl_fade_in;
+	gr_screen.gf_fade_out = gr_opengl_fade_out;
+	gr_screen.gf_flash = gr_opengl_flash;
 
-	gr_screen.gf_zbuffer_clear = gr_opengl1_zbuffer_clear;
+	gr_screen.gf_zbuffer_clear = gr_opengl_zbuffer_clear;
 
-	gr_screen.gf_save_screen = gr_opengl1_save_screen;
-	gr_screen.gf_restore_screen = gr_opengl1_restore_screen;
-	gr_screen.gf_free_screen = gr_opengl1_free_screen;
+	gr_screen.gf_save_screen = gr_opengl_save_screen;
+	gr_screen.gf_restore_screen = gr_opengl_restore_screen;
+	gr_screen.gf_free_screen = gr_opengl_free_screen;
 
-	gr_screen.gf_dump_frame_start = gr_opengl1_dump_frame_start;
-	gr_screen.gf_dump_frame_stop = gr_opengl1_dump_frame_stop;
-	gr_screen.gf_dump_frame = gr_opengl1_dump_frame;
+	gr_screen.gf_dump_frame_start = gr_opengl_dump_frame_start;
+	gr_screen.gf_dump_frame_stop = gr_opengl_dump_frame_stop;
+	gr_screen.gf_dump_frame = gr_opengl_dump_frame;
 
-	gr_screen.gf_stream_start = gr_opengl1_stream_start;
-	gr_screen.gf_stream_frame = gr_opengl1_stream_frame;
-	gr_screen.gf_stream_stop = gr_opengl1_stream_stop;
+	gr_screen.gf_stream_start = gr_opengl_stream_start;
+	gr_screen.gf_stream_frame = gr_opengl_stream_frame;
+	gr_screen.gf_stream_stop = gr_opengl_stream_stop;
 
-	gr_screen.gf_set_gamma = gr_opengl1_set_gamma;
+	gr_screen.gf_set_gamma = gr_opengl_set_gamma;
 
 	gr_screen.gf_lock = gr_opengl_lock;
 	gr_screen.gf_unlock = gr_opengl_unlock;
 
-	gr_screen.gf_fog_set = gr_opengl1_fog_set;
+	gr_screen.gf_fog_set = gr_opengl_fog_set;
 
-	gr_screen.gf_get_region = gr_opengl1_get_region;
+	gr_screen.gf_get_region = gr_opengl_get_region;
 
 	gr_screen.gf_set_cull = gr_opengl_set_cull;
 
-	gr_screen.gf_cross_fade = gr_opengl1_cross_fade;
+	gr_screen.gf_cross_fade = gr_opengl_cross_fade;
 
-	gr_screen.gf_preload_init = gr_opengl1_preload_init;
-	gr_screen.gf_preload = gr_opengl1_preload;
+	gr_screen.gf_preload_init = gr_opengl_preload_init;
+	gr_screen.gf_preload = gr_opengl_preload;
 
 	gr_screen.gf_zbias = gr_opengl_zbias;
 
@@ -93,15 +91,11 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_activate = gr_opengl_activate;
 
-	gr_screen.gf_release_texture = gr_opengl1_release_texture;
+	gr_screen.gf_release_texture = gr_opengl_release_texture;
 }
 
 static void wxgl_init()
 {
-	if (GL_one_inited) {
-		return;
-	}
-
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DITHER);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -120,13 +114,10 @@ static void wxgl_init()
 	glFlush();
 
 	wxgl_init_func_pointers();
-	opengl1_tcache_init();
+	opengl_tcache_init();
 
 	gr_opengl_clear();
 	gr_opengl_set_cull(1);
-
-	GL_one_inited = 1;
-
 }
 
 void gr_wxgl_flip()
@@ -165,12 +156,11 @@ void gr_wxgl_set_viewport(int width, int height)
 
 void gr_wxgl_cleanup()
 {
-	opengl1_tcache_cleanup();
+	opengl_tcache_cleanup();
 
 	opengl_free_render_buffer();
 
 	OGL_inited = false;
-	GL_one_inited = 0;
 }
 
 void gr_wxgl_init()
@@ -303,4 +293,4 @@ void gr_wxgl_set_viewport(int width, int height)
 {
 }
 
-#endif
+#endif	// !__EMSCRIPTEN__

@@ -9,9 +9,9 @@
 #include <SDL3/SDL_opengles2.h>
 
 #include "pstypes.h"
-#include "gropengl.h"
-#include "gropenglinternal.h"
-#include "grgl2.h"
+#include "grinternal.h"
+#include "grgles2.h"
+#include "grgles2internal.h"
 
 
 static GLuint tex_prog = 0;
@@ -149,7 +149,7 @@ static const char f_window_src[] =
 	"}\n";
 
 
-static GLuint opengl2_create_shader(const char *src, GLenum type)
+static GLuint gles2_create_shader(const char *src, GLenum type)
 {
 	GLuint shader;
 	GLint compiled;
@@ -188,7 +188,7 @@ static GLuint opengl2_create_shader(const char *src, GLenum type)
 	return shader;
 }
 
-static GLuint opengl2_create_program(GLuint vert, GLuint frag)
+static GLuint gles2_create_program(GLuint vert, GLuint frag)
 {
 	GLuint program;
 	GLint linked;
@@ -233,7 +233,7 @@ static GLuint opengl2_create_program(GLuint vert, GLuint frag)
 	return program;
 }
 
-void opengl2_shader_use(sdr_prog_t prog)
+void gles2_shader_use(sdr_prog_t prog)
 {
 	static sdr_prog_t current = PROG_INVALID;
 
@@ -275,46 +275,46 @@ void opengl2_shader_use(sdr_prog_t prog)
 }
 
 // update window ortho coords
-void opengl2_shader_update()
+void gles2_shader_update()
 {
 	GLfloat ortho[16];
 
 	SDL_zero(ortho);
 
-	ortho[0] = 2.0f / GL_viewport_w;
-	ortho[5] = 2.0f / -GL_viewport_h;
+	ortho[0] = 2.0f / GLES2_viewport_w;
+	ortho[5] = 2.0f / -GLES2_viewport_h;
 	ortho[10] = -2.0f / 1.0f;
 	ortho[12] = -1.0f;
 	ortho[13] = 1.0f;
 	ortho[14] = -1.0f;
 	ortho[15] = 1.0f;
 
-	opengl2_shader_use(PROG_WINDOW);
+	gles2_shader_use(PROG_WINDOW);
 	GLint loc = glGetUniformLocation(window_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 }
 
-int opengl2_shader_init()
+int gles2_shader_init()
 {
-	GLuint v_tex = opengl2_create_shader(v_tex_src, GL_VERTEX_SHADER);
-	GLuint v_fog_tex = opengl2_create_shader(v_fog_tex_src, GL_VERTEX_SHADER);
-	GLuint v_color = opengl2_create_shader(v_color_src, GL_VERTEX_SHADER);
-	GLuint v_fog_color = opengl2_create_shader(v_fog_color_src, GL_VERTEX_SHADER);
-	GLuint v_window = opengl2_create_shader(v_window_src, GL_VERTEX_SHADER);
+	GLuint v_tex = gles2_create_shader(v_tex_src, GL_VERTEX_SHADER);
+	GLuint v_fog_tex = gles2_create_shader(v_fog_tex_src, GL_VERTEX_SHADER);
+	GLuint v_color = gles2_create_shader(v_color_src, GL_VERTEX_SHADER);
+	GLuint v_fog_color = gles2_create_shader(v_fog_color_src, GL_VERTEX_SHADER);
+	GLuint v_window = gles2_create_shader(v_window_src, GL_VERTEX_SHADER);
 
-	GLuint f_aabitmap = opengl2_create_shader(f_aabitmap_src, GL_FRAGMENT_SHADER);
-	GLuint f_tex = opengl2_create_shader(f_tex_src, GL_FRAGMENT_SHADER);
-	GLuint f_fog_tex = opengl2_create_shader(f_fog_tex_src, GL_FRAGMENT_SHADER);
-	GLuint f_color = opengl2_create_shader(f_color_src, GL_FRAGMENT_SHADER);
-	GLuint f_fog_color = opengl2_create_shader(f_fog_color_src, GL_FRAGMENT_SHADER);
-	GLuint f_window = opengl2_create_shader(f_window_src, GL_FRAGMENT_SHADER);
+	GLuint f_aabitmap = gles2_create_shader(f_aabitmap_src, GL_FRAGMENT_SHADER);
+	GLuint f_tex = gles2_create_shader(f_tex_src, GL_FRAGMENT_SHADER);
+	GLuint f_fog_tex = gles2_create_shader(f_fog_tex_src, GL_FRAGMENT_SHADER);
+	GLuint f_color = gles2_create_shader(f_color_src, GL_FRAGMENT_SHADER);
+	GLuint f_fog_color = gles2_create_shader(f_fog_color_src, GL_FRAGMENT_SHADER);
+	GLuint f_window = gles2_create_shader(f_window_src, GL_FRAGMENT_SHADER);
 
-	aabitmap_prog = opengl2_create_program(v_tex, f_aabitmap);
-	tex_prog = opengl2_create_program(v_tex, f_tex);
-	fog_tex_prog = opengl2_create_program(v_fog_tex, f_fog_tex);
-	color_prog = opengl2_create_program(v_color, f_color);
-	fog_color_prog = opengl2_create_program(v_fog_color, f_fog_color);
-	window_prog = opengl2_create_program(v_window, f_window);
+	aabitmap_prog = gles2_create_program(v_tex, f_aabitmap);
+	tex_prog = gles2_create_program(v_tex, f_tex);
+	fog_tex_prog = gles2_create_program(v_fog_tex, f_fog_tex);
+	color_prog = gles2_create_program(v_color, f_color);
+	fog_color_prog = gles2_create_program(v_fog_color, f_fog_color);
+	window_prog = gles2_create_program(v_window, f_window);
 
 
 	// set up orthographic projection var
@@ -333,32 +333,32 @@ int opengl2_shader_init()
 
 	GLint loc;
 
-	opengl2_shader_use(PROG_COLOR_FOG);
+	gles2_shader_use(PROG_COLOR_FOG);
 	loc = glGetUniformLocation(fog_color_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
-	opengl2_shader_use(PROG_COLOR);
+	gles2_shader_use(PROG_COLOR);
 	loc = glGetUniformLocation(color_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
-	opengl2_shader_use(PROG_TEX_FOG);
+	gles2_shader_use(PROG_TEX_FOG);
 	loc = glGetUniformLocation(fog_tex_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
-	opengl2_shader_use(PROG_AABITMAP);
+	gles2_shader_use(PROG_AABITMAP);
 	loc = glGetUniformLocation(aabitmap_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
-	opengl2_shader_use(PROG_TEX);
+	gles2_shader_use(PROG_TEX);
 	loc = glGetUniformLocation(tex_prog, "vOrtho");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
-	opengl2_shader_update();
+	gles2_shader_update();
 
 	return 1;
 }
 
-void opengl2_shader_cleanup()
+void gles2_shader_cleanup()
 {
 	if (tex_prog) {
 		glDeleteProgram(tex_prog);

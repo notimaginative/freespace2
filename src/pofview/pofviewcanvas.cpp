@@ -133,7 +133,7 @@ PofViewCanvas::~PofViewCanvas()
 
 
 extern float Ambient_light;
-extern void opengl1_tcache_frame();
+extern void opengl_tcache_frame();
 
 static vector Global_light_world = { { { -0.208758f, -0.688253f, 0.694782f } } };
 
@@ -278,7 +278,7 @@ void PofViewCanvas::Render()
 
 	this->SwapBuffers();
 
-	opengl1_tcache_frame();
+	opengl_tcache_frame();
 
 	Ambient_light = saved_Ambient_light;
 }

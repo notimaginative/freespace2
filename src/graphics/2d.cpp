@@ -485,6 +485,7 @@
 
 // Includes for different rendering systems
 #include "gropengl.h"
+#include "grgles2.h"
 #include "grwxgl.h"
 #include "grstub.h"
 
@@ -527,6 +528,10 @@ void gr_close()
 	palette_flush();
 
 	switch (gr_screen.mode) {
+		case GR_GLES2:
+			gr_gles2_cleanup();
+			break;
+
 		case GR_OPENGL:
 			gr_opengl_cleanup();
 			break;
@@ -700,20 +705,23 @@ static int gr_get_best_res(int *max_w, int *max_h)
 
 // --------------------------------------------------------------------------
 
-int gr_init()
+int gr_init(bool safe_mode)
 {
 	const char *ptr = NULL;
-	int mode = GR_OPENGL;
+	int mode = GR_GLES2;
 	int res = GR_640;
 	int max_w, max_h;
-
-
-	if ( !Gr_inited )	
+	
+	if ( !Gr_inited )
 		atexit(gr_close);
 
 	// If already inited, shutdown the previous graphics
 	if (Gr_inited) {
 		switch (gr_screen.mode) {
+			case GR_GLES2:
+				gr_gles2_cleanup();
+				break;
+
 			case GR_OPENGL:
 				gr_opengl_cleanup();
 				break;
@@ -732,18 +740,18 @@ int gr_init()
 
 	Gr_inited = 1;
 
+	if (safe_mode) {
+		mode = GR_OPENGL;
+	}
+
+#ifdef __EMSCRIPTEN__
+	mode = GR_GLES2;
+#endif
+
 	if (Fred_running || Pofview_running) {
 		mode = GR_WXGL;
 	} else if (Is_standalone) {
 		mode = GR_STUB;
-	} else {
-		ptr = os_config_read_string("Video", "Renderer", "OpenGL");
-
-		if ( !SDL_strcasecmp("OpenGL", ptr) ) {
-			mode = GR_OPENGL;
-		} else {
-			Int3();
-		}
 	}
 
 	max_w = -1;
@@ -780,6 +788,10 @@ int gr_init()
 	Gr_textures_in = 0;
 
 	switch( gr_screen.mode )	{
+		case GR_GLES2:
+			gr_gles2_init();
+			break;
+
 		case GR_OPENGL:
 			gr_opengl_init();
 			break;

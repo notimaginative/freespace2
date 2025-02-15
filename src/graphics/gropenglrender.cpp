@@ -14,7 +14,6 @@
 #include "2d.h"
 #include "gropengl.h"
 #include "gropenglinternal.h"
-#include "grgl1.h"
 #include "bmpman.h"
 #include "grinternal.h"
 #include "3d.h"

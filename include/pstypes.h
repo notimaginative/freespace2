@@ -644,7 +644,7 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-	void *vm_malloc( int size, const char *filename=NULL, int line=-1 );
+	void *vm_malloc( size_t size, const char *filename=NULL, int line=-1 );
 
 	// 
 	char *vm_strdup( const char *ptr, const char *filename, int line );
@@ -670,7 +670,7 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-	void *vm_malloc( int size );
+	void *vm_malloc( size_t size );
 
 	// 
 	char *vm_strdup( const char *ptr );

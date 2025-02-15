@@ -36,6 +36,7 @@ int vm_init(int min_heap_size)
 #include <malloc/malloc.h>
 #define MALLOC_SIZE(x)		malloc_size(x)
 #elif defined(__GNUC__)
+#include <malloc.h>
 #define MALLOC_SIZE(x)		malloc_usable_size(x)
 #elif defined(__WIN32__)
 #define MALLOC_SIZE(x)		_msize(x)
@@ -87,9 +88,9 @@ void vm_free(void* ptr)
 }
 
 #ifndef NDEBUG
-void *vm_malloc(int size, const char *file, int line)
+void *vm_malloc(size_t size, const char *file, int line)
 #else
-void *vm_malloc(int size)
+void *vm_malloc(size_t size)
 #endif
 {
 	void *ptr = malloc(size);

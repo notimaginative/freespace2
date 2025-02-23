@@ -294,7 +294,7 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 				free(texmem);
 			}
 
-			glGenerateMipmap(GL_TEXTURE_2D);
+			pglGenerateMipmap(GL_TEXTURE_2D);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 			t->is_mipmaped = 1;

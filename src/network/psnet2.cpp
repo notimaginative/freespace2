@@ -2045,7 +2045,7 @@ unsigned int psnet_ras_status()
 	Ras_connected = 0;
 
 	// first, call a LoadLibrary to load the RAS api
-	ras_handle = LoadLibrary( (LPCWSTR)"rasapi32.dll" );
+	ras_handle = LoadLibraryA("rasapi32.dll");
 	if ( ras_handle == NULL ) {
 		return INADDR_ANY;
 	}

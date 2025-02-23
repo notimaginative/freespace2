@@ -123,6 +123,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#ifndef PLAT_UNIX
+#include <io.h>
+#endif
 
 #include "pstypes.h"
 #include "cfile.h"

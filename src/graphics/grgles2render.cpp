@@ -234,27 +234,27 @@ static void gles2_tmapper_internal(int nv, vertex **verts, uint flags, int is_sc
 	gles2_shader_use(program);
 
 	if (flags & TMAP_FLAG_TEXTURED) {
-		glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
-		glEnableVertexAttribArray(SDRI_TEXCOORD);
+		pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+		pglEnableVertexAttribArray(SDRI_TEXCOORD);
 	}
 
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
-		glVertexAttribPointer(SDRI_SEC_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].sr);
-		glEnableVertexAttribArray(SDRI_SEC_COLOR);
+		pglVertexAttribPointer(SDRI_SEC_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].sr);
+		pglEnableVertexAttribArray(SDRI_SEC_COLOR);
 	}
 
-	glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
-	glEnableVertexAttribArray(SDRI_COLOR);
+	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
+	pglEnableVertexAttribArray(SDRI_COLOR);
 
-	glVertexAttribPointer(SDRI_POSITION, 4, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 4, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
 
-	glDisableVertexAttribArray(SDRI_COLOR);
-	glDisableVertexAttribArray(SDRI_SEC_COLOR);
-	glDisableVertexAttribArray(SDRI_POSITION);
-	glDisableVertexAttribArray(SDRI_TEXCOORD);
+	pglDisableVertexAttribArray(SDRI_COLOR);
+	pglDisableVertexAttribArray(SDRI_SEC_COLOR);
+	pglDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
 void gles2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
@@ -287,14 +287,14 @@ void gles2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 	g = Gr_gamma_lookup[g];
 	b = Gr_gamma_lookup[b];
 
-	glVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+	pglVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 
-	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_POSITION);
 
 	// restore zbuffer and culling
 	gr_zbuffer_set(saved_zbuf);
@@ -363,18 +363,18 @@ void gles2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 
 	float r, g, b, a;
 	gr_get_colorf(&r, &g, &b, &a);
-	glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
+	pglVertexAttrib4f(SDRI_COLOR, r, g, b, a);
 
-	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
 
-	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
-	glEnableVertexAttribArray(SDRI_TEXCOORD);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+	pglEnableVertexAttribArray(SDRI_TEXCOORD);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glDisableVertexAttribArray(SDRI_POSITION);
-	glDisableVertexAttribArray(SDRI_TEXCOORD);
+	pglDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
 void gr_gles2_rect(int x, int y, int w, int h)
@@ -458,15 +458,15 @@ void gr_gles2_string(int sx, int sy, const char *s)
 
 	gles2_shader_use(PROG_AABITMAP);
 
-	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	float r, g, b, a;
 	gr_get_colorf(&r, &g, &b, &a);
-	glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
+	pglVertexAttrib4f(SDRI_COLOR, r, g, b, a);
 
-	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
-	glEnableVertexAttribArray(SDRI_TEXCOORD);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+	pglEnableVertexAttribArray(SDRI_TEXCOORD);
 
 
 	y = sy;
@@ -573,8 +573,8 @@ void gr_gles2_string(int sx, int sy, const char *s)
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, rb_offset);
 	}
 
-	glDisableVertexAttribArray(SDRI_POSITION);
-	glDisableVertexAttribArray(SDRI_TEXCOORD);
+	pglDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
 void gr_gles2_line(int x1, int y1, int x2, int y2)
@@ -596,12 +596,12 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 
 	gles2_shader_use(PROG_COLOR);
 
-	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	float r, g, b, a;
 	gr_get_colorf(&r, &g, &b, &a);
-	glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
+	pglVertexAttrib4f(SDRI_COLOR, r, g, b, a);
 
 	if ( (x1 == x2) && (y1 == y2) ) {
 		render_buffer[0].x = sx1;
@@ -610,7 +610,7 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 
 		glDrawArrays(GL_POINTS, 0, 1);
 
-		glDisableVertexAttribArray(SDRI_POSITION);
+		pglDisableVertexAttribArray(SDRI_POSITION);
 
 		return;
 	}
@@ -639,7 +639,7 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 
 	glDrawArrays(GL_LINES, 0, 2);
 
-	glDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_gles2_aaline(vertex *v1, vertex *v2)
@@ -706,16 +706,16 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 
 	gles2_shader_use(PROG_COLOR);
 
-	glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
-	glEnableVertexAttribArray(SDRI_COLOR);
+	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
+	pglEnableVertexAttribArray(SDRI_COLOR);
 
-	glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-	glEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_LINES, 0, 2);
 
-	glDisableVertexAttribArray(SDRI_COLOR);
-	glDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_COLOR);
+	pglDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_gles2_circle(int xc, int yc, int d)
@@ -805,14 +805,14 @@ void gr_gles2_flash(int r, int g, int b)
 
 		gles2_shader_use(PROG_COLOR);
 
-		glVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+		pglVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
 
-		glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
-		glEnableVertexAttribArray(SDRI_POSITION);
+		pglVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+		pglEnableVertexAttribArray(SDRI_POSITION);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-		glDisableVertexAttribArray(SDRI_POSITION);
+		pglDisableVertexAttribArray(SDRI_POSITION);
 	}
 }
 

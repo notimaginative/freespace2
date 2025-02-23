@@ -213,7 +213,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef PLAT_UNIX
+#ifndef PLAT_UNIX
+#include <direct.h>
+#include <io.h>
+#else
 #include <unistd.h>
 #endif
 #include <sys/stat.h>

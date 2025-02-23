@@ -129,4 +129,39 @@ void gr_gles2_activate(int active);
 uint gr_gles2_lock();
 void gr_gles2_unlock();
 
+// GLES2 function prototypes
+extern PFNGLBINDBUFFERPROC pglBindFramebuffer;
+extern PFNGLBINDRENDERBUFFERPROC pglBindRenderbuffer;
+extern PFNGLBLENDFUNCSEPARATEPROC pglBlendFuncSeparate;
+extern PFNGLCHECKFRAMEBUFFERSTATUSPROC pglCheckFramebufferStatus;
+extern PFNGLDELETEFRAMEBUFFERSPROC pglDeleteFramebuffers;
+extern PFNGLDELETERENDERBUFFERSPROC pglDeleteRenderbuffers;
+extern PFNGLDEPTHRANGEFPROC pglDepthRangef;
+extern PFNGLDISABLEVERTEXATTRIBARRAYPROC pglDisableVertexAttribArray;
+extern PFNGLENABLEVERTEXATTRIBARRAYPROC pglEnableVertexAttribArray;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC pglFramebufferRenderbuffer;
+extern PFNGLFRAMEBUFFERTEXTURE2DPROC pglFramebufferTexture2D;
+extern PFNGLGENFRAMEBUFFERSPROC pglGenFramebuffers;
+extern PFNGLGENRENDERBUFFERSPROC pglGenRenderbuffers;
+extern PFNGLRENDERBUFFERSTORAGEPROC pglRenderbufferStorage;
+extern PFNGLVERTEXATTRIB4FPROC pglVertexAttrib4f;
+extern PFNGLVERTEXATTRIBPOINTERPROC pglVertexAttribPointer;
+extern PFNGLGENERATEMIPMAPPROC pglGenerateMipmap;
+extern PFNGLATTACHSHADERPROC pglAttachShader;
+extern PFNGLBINDATTRIBLOCATIONPROC pglBindAttribLocation;
+extern PFNGLCOMPILESHADERPROC pglCompileShader;
+extern PFNGLCREATEPROGRAMPROC pglCreateProgram;
+extern PFNGLCREATESHADERPROC pglCreateShader;
+extern PFNGLDELETEPROGRAMPROC pglDeleteProgram;
+extern PFNGLDELETESHADERPROC pglDeleteShader;
+extern PFNGLGETPROGRAMIVPROC pglGetProgramiv;
+extern PFNGLGETPROGRAMINFOLOGPROC pglGetProgramInfoLog;
+extern PFNGLGETSHADERIVPROC pglGetShaderiv;
+extern PFNGLGETSHADERINFOLOGPROC pglGetShaderInfoLog;
+extern PFNGLGETUNIFORMLOCATIONPROC pglGetUniformLocation;
+extern PFNGLLINKPROGRAMPROC pglLinkProgram;
+extern PFNGLSHADERSOURCEPROC pglShaderSource;
+extern PFNGLUNIFORMMATRIX4FVPROC pglUniformMatrix4fv;
+extern PFNGLUSEPROGRAMPROC pglUseProgram;
+
 #endif	// GRGLES2INTERNAL_H

@@ -50,6 +50,41 @@ int GLES2_max_texture_height = 0;
 static rb_t *render_buffer = nullptr;
 static size_t render_buffer_size = 0;
 
+// GLES2 function prototypes
+PFNGLBINDBUFFERPROC pglBindFramebuffer = nullptr;
+PFNGLBINDRENDERBUFFERPROC pglBindRenderbuffer = nullptr;
+PFNGLBLENDFUNCSEPARATEPROC pglBlendFuncSeparate = nullptr;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC pglCheckFramebufferStatus = nullptr;
+PFNGLDELETEFRAMEBUFFERSPROC pglDeleteFramebuffers = nullptr;
+PFNGLDELETERENDERBUFFERSPROC pglDeleteRenderbuffers = nullptr;
+PFNGLDEPTHRANGEFPROC pglDepthRangef = nullptr;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC pglDisableVertexAttribArray = nullptr;
+PFNGLENABLEVERTEXATTRIBARRAYPROC pglEnableVertexAttribArray = nullptr;
+PFNGLFRAMEBUFFERRENDERBUFFERPROC pglFramebufferRenderbuffer = nullptr;
+PFNGLFRAMEBUFFERTEXTURE2DPROC pglFramebufferTexture2D = nullptr;
+PFNGLGENFRAMEBUFFERSPROC pglGenFramebuffers = nullptr;
+PFNGLGENRENDERBUFFERSPROC pglGenRenderbuffers = nullptr;
+PFNGLRENDERBUFFERSTORAGEPROC pglRenderbufferStorage = nullptr;
+PFNGLVERTEXATTRIB4FPROC pglVertexAttrib4f = nullptr;
+PFNGLVERTEXATTRIBPOINTERPROC pglVertexAttribPointer = nullptr;
+PFNGLGENERATEMIPMAPPROC pglGenerateMipmap = nullptr;
+PFNGLATTACHSHADERPROC pglAttachShader = nullptr;
+PFNGLBINDATTRIBLOCATIONPROC pglBindAttribLocation = nullptr;
+PFNGLCOMPILESHADERPROC pglCompileShader = nullptr;
+PFNGLCREATEPROGRAMPROC pglCreateProgram = nullptr;
+PFNGLCREATESHADERPROC pglCreateShader = nullptr;
+PFNGLDELETEPROGRAMPROC pglDeleteProgram = nullptr;
+PFNGLDELETESHADERPROC pglDeleteShader = nullptr;
+PFNGLGETPROGRAMIVPROC pglGetProgramiv = nullptr;
+PFNGLGETPROGRAMINFOLOGPROC pglGetProgramInfoLog = nullptr;
+PFNGLGETSHADERIVPROC pglGetShaderiv = nullptr;
+PFNGLGETSHADERINFOLOGPROC pglGetShaderInfoLog = nullptr;
+PFNGLGETUNIFORMLOCATIONPROC pglGetUniformLocation = nullptr;
+PFNGLLINKPROGRAMPROC pglLinkProgram = nullptr;
+PFNGLSHADERSOURCEPROC pglShaderSource = nullptr;
+PFNGLUNIFORMMATRIX4FVPROC pglUniformMatrix4fv = nullptr;
+PFNGLUSEPROGRAMPROC pglUseProgram = nullptr;
+
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
 
@@ -69,7 +104,7 @@ void gles2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				break;
 			case ALPHA_BLEND_ALPHA_BLEND_ALPHA:	// Alpha*SrcPixel + (1-Alpha)*DestPixel
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				pglBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:	// Alpha*SrcPixel + (1-SrcPixel)*DestPixel
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
@@ -166,24 +201,24 @@ static int gles2_create_framebuffer()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// create renderbuffer
-	glGenRenderbuffers(1, &FB_rb_id);
-	glBindRenderbuffer(GL_RENDERBUFFER, FB_rb_id);
+	pglGenRenderbuffers(1, &FB_rb_id);
+	pglBindRenderbuffer(GL_RENDERBUFFER, FB_rb_id);
 
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
+	pglRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	pglBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// create framebuffer
-	glGenFramebuffers(1, &FB_id);
-	glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+	pglGenFramebuffers(1, &FB_id);
+	pglBindFramebuffer(GL_FRAMEBUFFER, FB_id);
 
 	// attach texture and renderbuffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FB_texture, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, FB_rb_id);
+	pglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FB_texture, 0);
+	pglFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, FB_rb_id);
 
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	GLenum status = pglCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	pglBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		if (FB_texture) {
@@ -192,12 +227,12 @@ static int gles2_create_framebuffer()
 		}
 
 		if (FB_rb_id) {
-			glDeleteRenderbuffers(1, &FB_rb_id);
+			pglDeleteRenderbuffers(1, &FB_rb_id);
 			FB_rb_id = 0;
 		}
 
 		if (FB_id) {
-			glDeleteFramebuffers(1, &FB_id);
+			pglDeleteFramebuffers(1, &FB_id);
 			FB_id = 0;
 		}
 
@@ -276,6 +311,54 @@ static void gles2_init_func_pointers()
 	gr_screen.gf_release_texture = gr_gles2_release_texture;
 }
 
+static bool gles2_init_prototypes()
+{
+	#define GET_PROC(type, func)	\
+		do {	\
+			p##func = reinterpret_cast<type>(SDL_GL_GetProcAddress(#func));	\
+			if ( !(p##func) ) {	\
+				mprintf(("  Couldn't load GLES2 function %s: %s", #func, SDL_GetError()));	\
+				return false;	\
+			}	\
+		} while(false);
+	
+	GET_PROC(PFNGLBINDBUFFERPROC, glBindFramebuffer)
+	GET_PROC(PFNGLBINDRENDERBUFFERPROC, glBindRenderbuffer)
+	GET_PROC(PFNGLBLENDFUNCSEPARATEPROC, glBlendFuncSeparate)
+	GET_PROC(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus)
+	GET_PROC(PFNGLDELETEFRAMEBUFFERSPROC, glDeleteFramebuffers)
+	GET_PROC(PFNGLDELETERENDERBUFFERSPROC, glDeleteRenderbuffers)
+	GET_PROC(PFNGLDEPTHRANGEFPROC, glDepthRangef)
+	GET_PROC(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glDisableVertexAttribArray)
+	GET_PROC(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)
+	GET_PROC(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glFramebufferRenderbuffer)
+	GET_PROC(PFNGLFRAMEBUFFERTEXTURE2DPROC, glFramebufferTexture2D)
+	GET_PROC(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers)
+	GET_PROC(PFNGLGENRENDERBUFFERSPROC, glGenRenderbuffers)
+	GET_PROC(PFNGLRENDERBUFFERSTORAGEPROC, glRenderbufferStorage)
+	GET_PROC(PFNGLVERTEXATTRIB4FPROC, glVertexAttrib4f)
+	GET_PROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer)
+	GET_PROC(PFNGLGENERATEMIPMAPPROC, glGenerateMipmap)
+	GET_PROC(PFNGLATTACHSHADERPROC, glAttachShader)
+	GET_PROC(PFNGLBINDATTRIBLOCATIONPROC, glBindAttribLocation)
+	GET_PROC(PFNGLCOMPILESHADERPROC, glCompileShader)
+	GET_PROC(PFNGLCREATEPROGRAMPROC, glCreateProgram)
+	GET_PROC(PFNGLCREATESHADERPROC, glCreateShader)
+	GET_PROC(PFNGLDELETEPROGRAMPROC, glDeleteProgram)
+	GET_PROC(PFNGLDELETESHADERPROC, glDeleteShader)
+	GET_PROC(PFNGLGETPROGRAMIVPROC, glGetProgramiv)
+	GET_PROC(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)
+	GET_PROC(PFNGLGETSHADERIVPROC, glGetShaderiv)
+	GET_PROC(PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog)
+	GET_PROC(PFNGLGETUNIFORMLOCATIONPROC, glGetUniformLocation)
+	GET_PROC(PFNGLLINKPROGRAMPROC, glLinkProgram)
+	GET_PROC(PFNGLSHADERSOURCEPROC, glShaderSource)
+	GET_PROC(PFNGLUNIFORMMATRIX4FVPROC, glUniformMatrix4fv)
+	GET_PROC(PFNGLUSEPROGRAMPROC, glUseProgram)
+
+	return true;
+}
+
 void gr_gles2_reset_clip()
 {
 	gr_screen.offset_x = 0;
@@ -344,8 +427,8 @@ void gr_gles2_cleanup()
 		return;
 	}
 
-	if (GLES2_window) {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (GLES2_window && pglBindFramebuffer) {
+		pglBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	if (FB_texture) {
@@ -354,12 +437,12 @@ void gr_gles2_cleanup()
 	}
 
 	if (FB_rb_id) {
-		glDeleteRenderbuffers(1, &FB_rb_id);
+		pglDeleteRenderbuffers(1, &FB_rb_id);
 		FB_rb_id = 0;
 	}
 
 	if (FB_id) {
-		glDeleteFramebuffers(1, &FB_id);
+		pglDeleteFramebuffers(1, &FB_id);
 		FB_id = 0;
 	}
 
@@ -444,6 +527,13 @@ void gr_gles2_init()
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
 	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
 
+	// first thing after context is ready, init gles2 function prototypes
+	if ( !gles2_init_prototypes() ) {
+		mprintf(("  Restarting graphics in safe mode...\n"));
+		gr_init(true);	// will call _cleanup() for us
+		return;
+	}
+
 	// initial viewport setup
 	gr_gles2_set_viewport(gr_screen.max_w, gr_screen.max_h);
 
@@ -466,7 +556,7 @@ void gr_gles2_init()
 	glEnable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
 
-	glDepthRangef(0.0f, 1.0f);
+	pglDepthRangef(0.0f, 1.0f);
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -624,7 +714,7 @@ void gr_gles2_flip()
 		return;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	pglBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	gr_gles2_reset_clip();
 
@@ -644,11 +734,11 @@ void gr_gles2_flip()
 
 		gles2_shader_use(PROG_WINDOW);
 
-		glEnableVertexAttribArray(SDRI_POSITION);
-		glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+		pglEnableVertexAttribArray(SDRI_POSITION);
+		pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
 
-		glEnableVertexAttribArray(SDRI_TEXCOORD);
-		glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+		pglEnableVertexAttribArray(SDRI_TEXCOORD);
+		pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
 
 		glBindTexture(GL_TEXTURE_2D, FB_texture);
 
@@ -656,8 +746,8 @@ void gr_gles2_flip()
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		glDisableVertexAttribArray(SDRI_TEXCOORD);
-		glDisableVertexAttribArray(SDRI_POSITION);
+		pglDisableVertexAttribArray(SDRI_TEXCOORD);
+		pglDisableVertexAttribArray(SDRI_POSITION);
 	}
 
 	mouse_eval_deltas();
@@ -683,16 +773,16 @@ void gr_gles2_flip()
 
 			gles2_shader_use(PROG_WINDOW);
 
-			glEnableVertexAttribArray(SDRI_POSITION);
-			glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+			pglEnableVertexAttribArray(SDRI_POSITION);
+			pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
 
-			glEnableVertexAttribArray(SDRI_TEXCOORD);
-			glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+			pglEnableVertexAttribArray(SDRI_TEXCOORD);
+			pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
 
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-			glDisableVertexAttribArray(SDRI_TEXCOORD);
-			glDisableVertexAttribArray(SDRI_POSITION);
+			pglDisableVertexAttribArray(SDRI_TEXCOORD);
+			pglDisableVertexAttribArray(SDRI_POSITION);
 		}
 #ifndef NDEBUG
 		else {
@@ -716,7 +806,7 @@ void gr_gles2_flip()
 
 	gles2_tcache_frame();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+	pglBindFramebuffer(GL_FRAMEBUFFER, FB_id);
 
 	// set viewport to game screen size
 	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
@@ -901,13 +991,13 @@ void gr_gles2_restore_screen(int)
 
 	gles2_shader_use(PROG_TEX);
 
-	glVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+	pglVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
 
-	glEnableVertexAttribArray(SDRI_POSITION);
-	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+	pglEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
 
-	glEnableVertexAttribArray(SDRI_TEXCOORD);
-	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+	pglEnableVertexAttribArray(SDRI_TEXCOORD);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
 
 	glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
 
@@ -915,8 +1005,8 @@ void gr_gles2_restore_screen(int)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glDisableVertexAttribArray(SDRI_TEXCOORD);
-	glDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_TEXCOORD);
+	pglDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_gles2_free_screen(int)
@@ -1027,13 +1117,13 @@ void gr_gles2_stream_frame(ubyte *frame)
 
 	gles2_shader_use(PROG_TEX);
 
-	glVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+	pglVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
 
-	glEnableVertexAttribArray(SDRI_POSITION);
-	glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].x);
 
-	glEnableVertexAttribArray(SDRI_TEXCOORD);
-	glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].u);
+	pglEnableVertexAttribArray(SDRI_TEXCOORD);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].u);
 
 	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
 
@@ -1043,8 +1133,8 @@ void gr_gles2_stream_frame(ubyte *frame)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glDisableVertexAttribArray(SDRI_TEXCOORD);
-	glDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_TEXCOORD);
+	pglDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_gles2_stream_stop()

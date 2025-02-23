@@ -154,33 +154,33 @@ static GLuint gles2_create_shader(const char *src, GLenum type)
 	GLuint shader;
 	GLint compiled;
 
-	shader = glCreateShader(type);
+	shader = pglCreateShader(type);
 
 	if ( !shader ) {
 		return 0;
 	}
 
-	glShaderSource(shader, 1, &src, NULL);
+	pglShaderSource(shader, 1, &src, NULL);
 
-	glCompileShader(shader);
+	pglCompileShader(shader);
 
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	pglGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 
 	if ( !compiled ) {
 		GLint len = 0;
 
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+		pglGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
 
 		if (len > 1) {
 			char *log = (char *) malloc(sizeof(char) * len);
 
-			glGetShaderInfoLog(shader, len, NULL, log);
+			pglGetShaderInfoLog(shader, len, NULL, log);
 			nprintf(("OpenGL", "Error compiling shader:\n%s\n", log));
 
 			free(log);
 		}
 
-		glDeleteShader(shader);
+		pglDeleteShader(shader);
 
 		return 0;
 	}
@@ -193,39 +193,39 @@ static GLuint gles2_create_program(GLuint vert, GLuint frag)
 	GLuint program;
 	GLint linked;
 
-	program = glCreateProgram();
+	program = pglCreateProgram();
 
 	if ( !program ) {
 		return 0;
 	}
 
-	glAttachShader(program, vert);
-	glAttachShader(program, frag);
+	pglAttachShader(program, vert);
+	pglAttachShader(program, frag);
 
-	glBindAttribLocation(program, SDRI_POSITION, "vPosition");
-	glBindAttribLocation(program, SDRI_COLOR, "vColor");
-	glBindAttribLocation(program, SDRI_SEC_COLOR, "vSecColor");
-	glBindAttribLocation(program, SDRI_TEXCOORD, "vTexCoord");
+	pglBindAttribLocation(program, SDRI_POSITION, "vPosition");
+	pglBindAttribLocation(program, SDRI_COLOR, "vColor");
+	pglBindAttribLocation(program, SDRI_SEC_COLOR, "vSecColor");
+	pglBindAttribLocation(program, SDRI_TEXCOORD, "vTexCoord");
 
-	glLinkProgram(program);
+	pglLinkProgram(program);
 
-	glGetProgramiv(program, GL_LINK_STATUS, &linked);
+	pglGetProgramiv(program, GL_LINK_STATUS, &linked);
 
 	if ( !linked ) {
 		GLint len = 0;
 
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+		pglGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
 
 		if (len > 1) {
 			char *log = (char *) malloc(sizeof(char) * len);
 
-			glGetProgramInfoLog(program, len, NULL, log);
+			pglGetProgramInfoLog(program, len, NULL, log);
 			nprintf(("OpenGL", "Error linking program:\n%s\n", log));
 
 			free(log);
 		}
 
-		glDeleteProgram(program);
+		pglDeleteProgram(program);
 
 		return 0;
 	}
@@ -243,27 +243,27 @@ void gles2_shader_use(sdr_prog_t prog)
 
 	switch (prog) {
 		case PROG_TEX:
-			glUseProgram(tex_prog);
+			pglUseProgram(tex_prog);
 			break;
 
 		case PROG_AABITMAP:
-			glUseProgram(aabitmap_prog);
+			pglUseProgram(aabitmap_prog);
 			break;
 
 		case PROG_COLOR:
-			glUseProgram(color_prog);
+			pglUseProgram(color_prog);
 			break;
 
 		case PROG_WINDOW:
-			glUseProgram(window_prog);
+			pglUseProgram(window_prog);
 			break;
 
 		case PROG_TEX_FOG:
-			glUseProgram(fog_tex_prog);
+			pglUseProgram(fog_tex_prog);
 			break;
 
 		case PROG_COLOR_FOG:
-			glUseProgram(fog_color_prog);
+			pglUseProgram(fog_color_prog);
 			break;
 
 		default:
@@ -290,8 +290,8 @@ void gles2_shader_update()
 	ortho[15] = 1.0f;
 
 	gles2_shader_use(PROG_WINDOW);
-	GLint loc = glGetUniformLocation(window_prog, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	GLint loc = pglGetUniformLocation(window_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 }
 
 int gles2_shader_init()
@@ -334,24 +334,24 @@ int gles2_shader_init()
 	GLint loc;
 
 	gles2_shader_use(PROG_COLOR_FOG);
-	loc = glGetUniformLocation(fog_color_prog, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = pglGetUniformLocation(fog_color_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_COLOR);
-	loc = glGetUniformLocation(color_prog, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = pglGetUniformLocation(color_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_TEX_FOG);
-	loc = glGetUniformLocation(fog_tex_prog, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = pglGetUniformLocation(fog_tex_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_AABITMAP);
-	loc = glGetUniformLocation(aabitmap_prog, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = pglGetUniformLocation(aabitmap_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_TEX);
-	loc = glGetUniformLocation(tex_prog, "vOrtho");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = pglGetUniformLocation(tex_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_update();
 
@@ -361,32 +361,32 @@ int gles2_shader_init()
 void gles2_shader_cleanup()
 {
 	if (tex_prog) {
-		glDeleteProgram(tex_prog);
+		pglDeleteProgram(tex_prog);
 		tex_prog = 0;
 	}
 
 	if (fog_tex_prog) {
-		glDeleteProgram(fog_tex_prog);
+		pglDeleteProgram(fog_tex_prog);
 		fog_tex_prog = 0;
 	}
 
 	if (aabitmap_prog) {
-		glDeleteProgram(aabitmap_prog);
+		pglDeleteProgram(aabitmap_prog);
 		aabitmap_prog = 0;
 	}
 
 	if (color_prog) {
-		glDeleteProgram(color_prog);
+		pglDeleteProgram(color_prog);
 		color_prog = 0;
 	}
 
 	if (fog_color_prog) {
-		glDeleteProgram(fog_color_prog);
+		pglDeleteProgram(fog_color_prog);
 		fog_color_prog = 0;
 	}
 
 	if (window_prog) {
-		glDeleteProgram(window_prog);
+		pglDeleteProgram(window_prog);
 		window_prog = 0;
 	}
 }

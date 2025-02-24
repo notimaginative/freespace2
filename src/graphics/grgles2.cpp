@@ -171,7 +171,7 @@ static void gles2_free_render_buffer()
 	}
 }
 
-static void gles2_set_variables()
+static bool gles2_set_variables()
 {
 	GLES2_min_texture_height = 16;
 	GLES2_min_texture_width = 16;
@@ -179,10 +179,10 @@ static void gles2_set_variables()
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GLES2_max_texture_width);
 	GLES2_max_texture_height = GLES2_max_texture_width;
 
-	// no texture is larger than 1024, so maybe don't use sections
-	if (GLES2_max_texture_width >= 1024) {
-		gr_screen.use_sections = 0;
-	}
+	gr_screen.use_sections = 0;
+
+	// we don't support sections here, so if that's a problem then fail
+	return (GLES2_max_texture_width >= 1024);
 }
 
 static int gles2_create_framebuffer()
@@ -520,7 +520,10 @@ void gr_gles2_init()
 	GLES2_context = SDL_GL_CreateContext(GLES2_window);
 
 	if ( !GLES2_context ) {
-		Error(LOCATION, "GLES2 context creation failed: %s\n", SDL_GetError());
+		mprintf(("  GLES2 context creation failed! \n    %s\n", SDL_GetError()));
+		mprintf(("  Restarting graphics in safe mode...\n"));
+		gr_init(true);	// will call _cleanup() for us
+		return;
 	}
 
 	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
@@ -534,11 +537,15 @@ void gr_gles2_init()
 		return;
 	}
 
+	if ( !gles2_set_variables() ) {
+		mprintf(("  Hardware/Software requirements not met!\n"));
+		mprintf(("  Restarting graphics in safe mode...\n"));
+		gr_init(true);	// will call _cleanup() for us
+		return;
+	}
+
 	// initial viewport setup
 	gr_gles2_set_viewport(gr_screen.max_w, gr_screen.max_h);
-
-	// set up generic variables
-	gles2_set_variables();
 
 	gles2_init_func_pointers();
 	gles2_tcache_init();

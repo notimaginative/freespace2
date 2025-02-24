@@ -232,6 +232,8 @@
 #ifndef MULTI_MSGS_H
 #define MULTI_MSGS_H
 
+#include <type_traits>
+
 #include "pstypes.h"
 #include "psnet.h"
 
@@ -266,7 +268,7 @@ struct ship_subsys;
 #define GET_INT(d) do { int32_t swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(false)
 #define GET_UINT(d) do { uint32_t swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_INT(swap); offset += sizeof(d); } while(false)
 #define GET_FLOAT(d) do { float swap; memcpy(&swap, data+offset, sizeof(d) ); d = INTEL_FLOAT(swap); offset += sizeof(d); } while(false)
-#define GET_STRING(s) do { static_assert(std::is_array<decltype(s)>::value, "GET_STRING_32() must point to an array!"); int32_t len; GET_INT(len); const auto s_len = SDL_min(static_cast<size_t>(len), sizeof(s)-1); memcpy(s, data+offset, s_len); offset += len; s[s_len] = '\0'; } while (false)
+#define GET_STRING(s) do { static_assert(std::is_array<decltype(s)>::value, "GET_STRING() must point to an array!"); int32_t len; GET_INT(len); const auto s_len = SDL_min(static_cast<size_t>(len), sizeof(s)-1); memcpy(s, data+offset, s_len); offset += len; s[s_len] = '\0'; } while (false)
 #define GET_ORIENT(d) { ubyte dt[17]; memcpy(dt,data+offset,17); offset+=17; multi_unpack_orient_matrix(dt,&d); }
 
 

@@ -344,6 +344,7 @@
 #include "alphacolors.h"
 #include "demo.h"
 #include "fishtank.h"
+#include "version.h"
 
 // #include "movie.h"
 
@@ -1932,7 +1933,7 @@ void main_hall_blit_version()
 #endif
 
 	// format the version string
-	get_version_string(version_string, SDL_arraysize(version_string));
+	version_get_string_full(version_string, SDL_arraysize(version_string));
 
 #if defined(MAKE_FS1) && !defined(FS1_DEMO)
 	// tack on "EAX", since we have that :)

@@ -158,3 +158,52 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	return 1;
 }
 
+/// Return short version string with major.minor number
+const char *version_get_string(char *str, size_t str_len)
+{
+	static char version_string[20] = { 0 };
+
+	if ( !version_string[0] ) {
+		SDL_snprintf(version_string, SDL_arraysize(version_string), "%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	}
+
+	if (str && str_len) {
+		SDL_strlcpy(str, version_string, str_len);
+	}
+
+	return version_string;
+}
+
+/// Return full version string formatted for in-game UI display, depending on build
+const char *version_get_string_full(char *str, size_t str_len)
+{
+	static char version_string[100] = { 0 };
+
+	if ( !version_string[0] ) {
+#ifdef FS1_DEMO
+		SDL_snprintf(version_string, SDL_arraysize(version_string), "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#else
+		if ( FS_VERSION_BUILD == 0 ) {
+			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+		} else {
+			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
+		}
+#endif
+		
+#if !defined(NDEBUG) && defined(GIT_INFO)
+		SDL_strlcat(version_string, "~" GIT_COMMIT_HASH, SDL_arraysize(version_string));
+#endif
+		
+#if defined (FS2_DEMO)
+		SDL_strlcat(version_string, " D", SDL_arraysize(version_string));
+#elif defined (OEM_BUILD)
+		SDL_strlcat(version_string, " (OEM)", SDL_arraysize(version_string));
+#endif
+	}
+
+	if (str && str_len) {
+		SDL_strlcpy(str, version_string, str_len);
+	}
+
+	return version_string;
+}

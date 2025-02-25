@@ -7517,69 +7517,6 @@ void game_format_time(fix m_time, char *time_str, const int time_str_len)
 	}
 }
 
-//	Stuff version string in *str.
-void get_version_string(char *str, const int str_len)
-{
-//XSTR:OFF
-#ifdef FS1_DEMO
-	SDL_snprintf(str, str_len, "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-#if !defined(NDEBUG) && defined(GIT_INFO)
-	SDL_strlcat(str, "~" GIT_COMMIT_HASH, str_len);
-#endif
-	return;
-#endif
-
-	if ( FS_VERSION_BUILD == 0 ) {
-		SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-	} else {
-		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
-	}
-
-#if !defined(NDEBUG) && defined(GIT_INFO)
-	SDL_strlcat(str, "~" GIT_COMMIT_HASH, str_len);
-#endif
-
-#if defined (FS2_DEMO)
-	SDL_strlcat(str, " D", str_len);
-#elif defined (OEM_BUILD)
-	SDL_strlcat(str, " (OEM)", str_len);
-#endif
-//XSTR:ON
-	/*
-	HMODULE hMod;
-	DWORD bogus_handle;
-	char myname[_MAX_PATH];
-	int namelen, major, minor, build, waste;
-	unsigned int buf_size;
-	DWORD version_size;
-	char *infop;
-	VOID *bufp;
-	BOOL result;
-
-	// Find my EXE file name
-	hMod = GetModuleHandle(NULL);
-	namelen = GetModuleFileName( hMod, myname, _MAX_PATH );
-
-	version_size = GetFileVersionInfoSize(myname, &bogus_handle );
-	infop = (char *)malloc(version_size);
-	result = GetFileVersionInfo( myname, 0, version_size, (LPVOID)infop );
-
-	// get the product version
-	result = VerQueryValue((LPVOID)infop, TEXT("\\StringFileInfo\\040904b0\\ProductVersion"), &bufp, &buf_size );
-	sscanf( (char *)bufp, "%d, %d, %d, %d", &major, &minor, &build, &waste );
-#ifdef DEMO
-	sprintf(str,"Dv%d.%02d",major, minor);
-#else
-	sprintf(str,"v%d.%02d",major, minor);
-#endif
-	*/
-}
-
-void get_version_string_short(char *str, const int str_len)
-{
-	SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-}
-
 // ----------------------------------------------------------------
 //
 // OEM UPSELL SCREENS BEGIN

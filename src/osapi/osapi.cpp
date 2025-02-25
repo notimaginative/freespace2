@@ -155,6 +155,8 @@
 #include "osregistry.h"
 #include "cmdline.h"
 #include "gamepad.h"
+#include "version.h"
+
 
 // ----------------------------------------------------------------------------------------------------
 // OSAPI DEFINES/VARS
@@ -182,12 +184,19 @@ void os_deinit();
 
 // initialization/shutdown functions -----------------------------------------------
 
-
-// If app_name is NULL or ommited, then TITLE is used
-// for the app name, which is where registry keys are stored.
-void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)
+void os_init(const char *title, const char *appid)
 {
-	os_set_title( (app_name != NULL) ? app_name : title );
+	if ( !title ) {
+		title = Osreg_title;
+	}
+
+	SDL_SetAppMetadata(title, version_get_string_full(), appid);
+
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
+							   "Copyright (C) Volition, Inc. 1999.  All rights reserved.");
+
+	os_set_title(title);
 
 	// do some first-run stuff if needed
 	if ( os_config_read_uint(NULL, "StraightToSetup", 1) == 1 ) {

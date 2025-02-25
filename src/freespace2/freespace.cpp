@@ -2346,8 +2346,7 @@ void game_init()
 	e2 = timer_get_milliseconds();	
 	*/
 
-	os_init( Osreg_class_name, Osreg_app_name );
-	os_set_title(Osreg_title);
+	os_init(Osreg_title, Osreg_app_id);
 
 	// initialize localization module. Make sure this is down AFTER initialzing OS.
 //	int t1 = timer_get_milliseconds();

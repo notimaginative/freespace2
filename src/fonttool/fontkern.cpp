@@ -337,7 +337,7 @@ void fonttool_edit_kerning(char *fname1)
 
 	cfile_init();
 
-	os_init( "FontTool", "FontTool - Kerning Table Editor" );
+	os_init("FontTool - Kerning Table Editor", "org.icculus.freespace2.fonttool");
 
 	// always run this thing in a window
 	Cmdline_fullscreen = 0;

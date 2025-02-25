@@ -17,7 +17,7 @@
 
 // exectuable defines
 extern const char *Osreg_company_name;
-extern const char *Osreg_class_name;
+extern const char *Osreg_app_id;
 extern const char *Osreg_app_name;
 extern const char *Osreg_title;
 

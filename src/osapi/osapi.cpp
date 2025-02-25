@@ -168,14 +168,9 @@ static char			windowTitle[128];
 static SDL_Mutex *Os_lock;
 static SDL_Window *Os_window = NULL;
 
-int Os_debugger_running = 0;
-
 // ----------------------------------------------------------------------------------------------------
 // OSAPI FORWARD DECLARATIONS
 //
-
-// Fills in the Os_debugger_running with non-zero if debugger detected.
-void os_check_debugger();
 
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit();
@@ -206,9 +201,6 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 	Os_inited = 1;
 
 	Os_lock = SDL_CreateMutex();
-
-	// check to see if we're running under msdev
-	os_check_debugger();
 
 	atexit(os_deinit);
 }
@@ -298,11 +290,6 @@ void os_resume()
 // ----------------------------------------------------------------------------------------------------
 // OSAPI FORWARD DECLARATIONS
 //
-
-// Fills in the Os_debugger_running with non-zero if debugger detected.
-void os_check_debugger()
-{
-}
 
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()

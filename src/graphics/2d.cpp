@@ -861,10 +861,6 @@ void gr_force_windowed()
 		gr_screen.fullscreen = 0;
 		mouse_grab(0);	// will be grabbed if needed
 	}
-
-	if (Os_debugger_running) {
-		SDL_Delay(1000);
-	}
 }
 
 void gr_force_fullscreen()
@@ -876,10 +872,6 @@ void gr_force_fullscreen()
 	if (SDL_SetWindowFullscreen(os_get_window(), true)) {
 		gr_screen.fullscreen = 1;
 		mouse_grab(0);	// will be grabbed if needed
-	}
-
-	if (Os_debugger_running) {
-		SDL_Delay(1000);
 	}
 }
 
@@ -900,10 +892,6 @@ void gr_toggle_fullscreen()
 		gr_force_windowed();
 	} else {
 		gr_force_fullscreen();
-	}
-
-	if (Os_debugger_running) {
-		SDL_Delay(1000);
 	}
 }
 

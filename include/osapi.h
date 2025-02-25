@@ -17,8 +17,6 @@
 // OSAPI DEFINES/VARS
 //
 
-// set if running under MsDev - done after os_init(...) has returned
-extern int Os_debugger_running;
 
 // --------------------------------------------------------------------------------------------------
 // OSAPI FUNCTIONS

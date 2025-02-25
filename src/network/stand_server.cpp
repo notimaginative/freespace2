@@ -1085,7 +1085,7 @@ void std_connect_set_host_connect_status()
 {
 }
 
-#else
+#else	// __EMSCRIPTEN__
 
 void std_init_standalone(){}
 void std_do_gui_frame(){}
@@ -1116,4 +1116,4 @@ void std_tracker_notify_login_fail(){}
 void std_tracker_login(){}
 void std_connect_set_host_connect_status(){}
 
-#endif
+#endif	// !__EMSCRIPTEN__

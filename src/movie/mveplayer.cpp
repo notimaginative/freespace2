@@ -63,8 +63,8 @@ static Uint64 micro_timer_freq = 0;
 
 static std::vector<ALuint> mve_audio_bufl_free;
 static ubyte *mve_audio_buf = NULL;
-static size_t mve_audio_buf_size = 0;
-static size_t mve_audio_buf_offset = 0;
+static int mve_audio_buf_size = 0;
+static int mve_audio_buf_offset = 0;
 
 static int mve_audio_playing = 0;
 static int mve_audio_canplay = 0;

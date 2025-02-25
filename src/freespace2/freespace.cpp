@@ -6789,7 +6789,7 @@ int game_main(const char *szCmdLine)
 
 	mprintf(("Platform: %s\n", SDL_GetPlatform()));
 	mprintf(("CPU: %d %s\n", SDL_GetNumLogicalCPUCores(), (SDL_GetNumLogicalCPUCores() == 1) ? "core" : "cores"));
-	mprintf(("Memory: %dMB\n", Freespace_total_ram));
+	mprintf(("Memory: %d MB\n", Freespace_total_ram));
 	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big"));
 
 #ifdef GIT_INFO
@@ -6802,7 +6802,7 @@ int game_main(const char *szCmdLine)
 
 	parse_cmdline(szCmdLine);
 
-	mprintf(("--------------------------------------------------------------------------------\n"));
+	mprintf(("--------------------------------------------------------------------------\n"));
 
 #ifdef STANDALONE_ONLY_BUILD
 	Is_standalone = 1;

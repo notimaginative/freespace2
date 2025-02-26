@@ -710,7 +710,7 @@ int alloc_sexp(const char *text, int type, int subtype, int first, int rest)
 		return -1;
 	}
 
-	SDL_assert(strlen(text) < TOKEN_LENGTH);
+	SDL_assert(SDL_strlen(text) < TOKEN_LENGTH);
 	SDL_strlcpy(Sexp_nodes[i].text, text, TOKEN_LENGTH);
 	SDL_assert(type >= 0);
 	Sexp_nodes[i].type = type;
@@ -1872,7 +1872,7 @@ int get_string(char *str)
 {
 	int	len;
 
-	len = strcspn(Mp + 1, "\"");
+	len = static_cast<int>(strcspn(Mp + 1, "\""));
 	SDL_strlcpy(str, Mp + 1, len+1);
 
 	Mp += len + 2;
@@ -1885,7 +1885,7 @@ int get_string(char *str)
 // otherwise - stuff index into Sexp_variables array.
 void get_sexp_text_for_variable(char *text, char *token)
 {
-	int end_index;
+	size_t end_index;
 	int sexp_var_index;
 	
 	// get variable name (up to '['
@@ -1928,7 +1928,7 @@ int get_sexp(char *token)
 
 		} else if (*Mp == '\"')	{
 			// Sexp string
-			len = strcspn(Mp + 1, "\"");
+			len = static_cast<int>(strcspn(Mp + 1, "\""));
 			
 			SDL_assert(Mp[len + 1] == '\"');    // hit EOF first (unterminated string)
 			SDL_assert_release(len < TOKEN_LENGTH);  // token is too long.
@@ -2132,10 +2132,11 @@ void build_sexp_text_string(char *buffer, const int max_bufsize, int node, int m
 int build_sexp_string(int cur_node, int level, int mode)
 {
 	char	pstr[128];
-	int len, offset, node;
+	int node;
+	size_t len, offset;
 
 	Sexp_build_flag = 0;
-	offset = strlen(Sexp_string);
+	offset = SDL_strlen(Sexp_string);
 	SDL_strlcat(Sexp_string, "( ", Sexp_string_len);
 	node = cur_node;
 	while (node != -1) {
@@ -2153,7 +2154,7 @@ int build_sexp_string(int cur_node, int level, int mode)
 	}
 
 	SDL_strlcat(Sexp_string, ") ", Sexp_string_len);
-	len = strlen(Sexp_string) - offset;
+	len = SDL_strlen(Sexp_string) - offset;
 	if (len > 40) {
 		Sexp_string[offset] = 0;
 		build_extended_sexp_string(cur_node, level, mode);
@@ -8958,7 +8959,7 @@ void update_sexp_references(char *old_name, char *new_name)
 	// update_block_names
 	update_block_names(old_name, new_name);
 
-	SDL_assert(strlen(new_name) < TOKEN_LENGTH);
+	SDL_assert(SDL_strlen(new_name) < TOKEN_LENGTH);
 	for (i=0; i<MAX_SEXP_NODES; i++){
 		if ((SEXP_NODE_TYPE(i) == SEXP_ATOM) && (Sexp_nodes[i].subtype == SEXP_ATOM_STRING)){
 			if (!SDL_strcasecmp(CTEXT(i), old_name)){
@@ -8974,7 +8975,7 @@ void update_sexp_references(char *old_name, char *new_name, int format)
 {
 	int i;
 
-	SDL_assert(strlen(new_name) < TOKEN_LENGTH);
+	SDL_assert(SDL_strlen(new_name) < TOKEN_LENGTH);
 	for (i=0; i<MAX_SEXP_NODES; i++){
 		if (is_sexp_top_level(i)){
 			update_sexp_references(old_name, new_name, format, i);
@@ -9108,10 +9109,11 @@ int query_referenced_in_sexp(int mode, char *name, int *node)
 int verify_vector(char *text)
 {
 	char *str;
-	int i, z, len = 0;
+	int i, z;
+	size_t len = 0;
 
 	for (i=0; i<Num_waypoint_lists; i++) {
-		len = strlen(str = Waypoint_lists[i].name);
+		len = SDL_strlen(str = Waypoint_lists[i].name);
 		if (!SDL_strncasecmp(str, text, len)){
 			if (!text[len] || text[len] == ':'){
 				break;
@@ -9139,7 +9141,7 @@ int verify_vector(char *text)
 		return 0;  // a valid waypoint
 	}
 
-	len = strlen(text);
+	len = SDL_strlen(text);
 	if (text[0] != '(' || text[len - 1] != ')'){
 		return -1;
 	}

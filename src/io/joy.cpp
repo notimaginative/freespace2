@@ -83,7 +83,7 @@ void joy_close()
 		}
 	}
 
-	JoystickID = -1;
+	JoystickID = 0;
 
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
@@ -362,7 +362,7 @@ int joy_get_pos(int *x, int *y, int *z, int *rx)
 
 static int joy_init_internal(SDL_JoystickID with_id)
 {
-	int i, num_sticks;
+	int i, num_sticks = 1;
 	const char *ptr = nullptr;
 	SDL_JoystickID Cur_joystick = 0;
 	SDL_Joystick *sdljoy = nullptr;

@@ -63,12 +63,13 @@ typedef struct Profile
 static char *read_line_from_file(CFILE *fp)
 {
 	char *buf, *buf_start;
-	int buflen, len, eol;
+	size_t buflen, len;
+	bool eol;
 	
 	buflen = 80;
 	buf = (char *)SDL_malloc(buflen);
 	buf_start = buf;
-	eol = 0;
+	eol = false;
 	
 	do {
 		if (buf == NULL) {
@@ -89,7 +90,7 @@ static char *read_line_from_file(CFILE *fp)
 		
 		if (buf_start[len-1] == '\n') {
 			buf_start[len-1] = 0;
-			eol = 1;
+			eol = true;
 		} else {
 			buflen += 80;
 			
@@ -106,7 +107,6 @@ static char *read_line_from_file(CFILE *fp)
 static char *trim_string(char *str)
 {
 	char *ptr;
-	int len;
 	
 	if (str == NULL)
 		return NULL;
@@ -120,7 +120,7 @@ static char *trim_string(char *str)
 		*ptr = 0;
 	
 	ptr = str;
-	len = SDL_strlen(str);
+	auto len = SDL_strlen(str);
 	if (len > 0) {
 		ptr += len-1;
 	}

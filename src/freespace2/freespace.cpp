@@ -7324,7 +7324,7 @@ void Time_model( int modelnum )
 
 	polymodel *pm = model_get( modelnum );
 
-	int l = strlen(pm->filename);
+	auto l = SDL_strlen(pm->filename);
 	while( (l>0) )	{
 		if ( (l == '/') || (l=='\\') || (l==':'))	{
 			l++;

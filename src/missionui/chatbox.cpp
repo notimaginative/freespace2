@@ -722,9 +722,9 @@ void chatbox_autosplit_line()
 
 		// display any remainder of text on the next line
 		Chat_inputbox.set_text(remainder);
-	} else if((Chat_inputbox.pressed() && (strlen(msg) > 0)) || (strlen(msg) >= CHATBOX_MAX_LEN)) { 
+	} else if((Chat_inputbox.pressed() && (SDL_strlen(msg) > 0)) || (SDL_strlen(msg) >= CHATBOX_MAX_LEN)) { 
 		// tack on the null terminator in the boundary case
-		int x = strlen(msg);
+		auto x = SDL_strlen(msg);
 		if(x >= CHATBOX_MAX_LEN){
 			msg[CHATBOX_MAX_LEN-1] = '\0';
 		}		
@@ -1038,7 +1038,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	} else {
 		SDL_strlcpy(msg_extra, msg, SDL_arraysize(msg_extra));
 	}	
-	SDL_assert(strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
+	SDL_assert(SDL_strlen(msg_extra) < (CHATBOX_STRING_LEN - 2));	
 
 	// split the text up into as many lines as necessary
 	n_lines = split_str(msg_extra, Chatbox_disp_w, n_chars, p_str, 3);
@@ -1096,7 +1096,7 @@ void chatbox_add_line(const char *msg, int pid, int add_id)
 	}
 			
 	// COMMAND LINE OPTION
-	if(Cmdline_multi_stream_chat_to_file && Multi_chat_stream!=NULL && strlen(msg)>0){ // stream to the file if we're supposed to
+	if(Cmdline_multi_stream_chat_to_file && Multi_chat_stream!=NULL && SDL_strlen(msg)>0){ // stream to the file if we're supposed to
 		cfwrite_string(msg,Multi_chat_stream);
 		cfwrite_char('\n',Multi_chat_stream);
 	}	

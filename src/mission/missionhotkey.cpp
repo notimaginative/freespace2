@@ -1452,8 +1452,8 @@ void mission_hotkey_do_frame(float frametime)
 				}
 			}
 
-			SDL_assert(strlen(buf) > 1);
-			buf[strlen(buf) - 2] = 0;  // lose the ", " on the end
+			SDL_assert(SDL_strlen(buf) > 1);
+			buf[SDL_strlen(buf) - 2] = 0;  // lose the ", " on the end
 
 			gr_force_fit_string(buf, 255, GROUP_LIST_W);
 			gr_printf(GROUP_LIST_X, y, buf);*/

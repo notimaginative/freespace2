@@ -573,7 +573,7 @@ int gr_init_font( const char * typeface );
 extern void __cdecl gr_printf( int x, int y, const char * format, ... );
 
 // Returns the size of the string in pixels in w and h
-extern void gr_get_string_size( int *w, int *h, const char * text, int len = 9999 );
+extern void gr_get_string_size( int *w, int *h, const char * text, size_t len = 9999 );
 
 // Returns the height of the current font
 extern int gr_get_font_height();

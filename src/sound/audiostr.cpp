@@ -841,7 +841,7 @@ bool AudioStream::Create(const char *pszFilename)
 	}
 
 	// make 100% sure we got a good filename
-	if ( !strlen(pszFilename) ) {
+	if ( !SDL_strlen(pszFilename) ) {
 		return false;
 	}
 

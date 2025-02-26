@@ -761,7 +761,7 @@ void UI_WINDOW::draw_one_xstr(UI_XSTR *xp, int frame)
 	int xoffset = lcl_get_xstr_offset(xp->xstr_id, gr_screen.res);
 	SDL_strlcpy(str, XSTR(xp->xstr, xp->xstr_id), SDL_arraysize(str));
 	if(str[0] == '&'){
-		if(strlen(str) > 1){			
+		if(SDL_strlen(str) > 1){			
 			gr_string((xp->x) + xoffset, xp->y, str + 1);
 		}
 	} else {

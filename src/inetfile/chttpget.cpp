@@ -232,7 +232,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	//when you found it, you have the host and dir
 	char *filestart = NULL;
 	char *dirstart = NULL;
-	for(int i = strlen(pURL);i>=0;i--)
+	for(int i = static_cast<int>(SDL_strlen(pURL));i>=0;i--)
 	{
 		if(pURL[i]== '/')
 		{
@@ -257,7 +257,7 @@ void ChttpGet::GetFile(char *URL,char *localfile)
 	else
 	{
 		SDL_strlcpy(m_szDir, dirstart, SDL_arraysize(m_szDir));//,(filestart-dirstart));
-		int len = SDL_min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
+		auto len = SDL_min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
 	}
 
@@ -324,7 +324,7 @@ void ChttpGet::WorkerThread()
 		return;
 	}
 	SDL_snprintf(szCommand,SDL_arraysize(szCommand),"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
-	send(m_DataSock,szCommand,strlen(szCommand),0);
+	send(m_DataSock,szCommand,SDL_strlen(szCommand),0);
 	p = GetHTTPLine();
 	if(SDL_strncasecmp("HTTP/",p,5)==0)
 	{
@@ -364,7 +364,7 @@ void ChttpGet::WorkerThread()
 				{
 					break;
 				}
-				if(SDL_strncasecmp(p,"Content-Length:",strlen("Content-Length:"))==0)
+				if(SDL_strncasecmp(p,"Content-Length:",SDL_strlen("Content-Length:"))==0)
 				{
 					char *s = SDL_strchr(p,' ')+1;
 					p = s;
@@ -499,7 +499,7 @@ int ChttpGet::ConnectSocket()
 	if(serr)
 	{
 		// fail after 20 seconds
-		Uint32 failtime = SDL_GetTicks() + (20 * 1000);
+		auto failtime = SDL_GetTicks() + (20 * 1000);
 		while((cerr==WSAEALREADY)||(cerr==WSAEINVAL)||NETCALL_WOULDBLOCK(cerr))
 		{
 			FD_ZERO(&wfds);
@@ -547,7 +547,7 @@ int ChttpGet::ConnectSocket()
 
 char *ChttpGet::GetHTTPLine()
 {
-	int iBytesRead;
+	ssize_t iBytesRead;
 	char chunk[2];
 	unsigned int igotcrlf = 0;
 	memset(recv_buffer,0,1000);
@@ -618,7 +618,7 @@ char *ChttpGet::GetHTTPLine()
 unsigned int ChttpGet::ReadDataChannel()
 {
 	char sDataBuffer[4096];		// Data-storage buffer for the data channel
-	int nBytesRecv = 0;						// Bytes received from the data channel
+	ssize_t nBytesRecv = 0;						// Bytes received from the data channel
 
 	fd_set	wfds;
 

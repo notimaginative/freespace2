@@ -1363,7 +1363,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Class",739));
 	y_start += 10;
-	if(strlen(sip->name)){
+	if(SDL_strlen(sip->name)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->name);
 	}
@@ -1373,7 +1373,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Type",740));
 	y_start += 10;
-	if((sip->type_str != NULL) && strlen(sip->type_str)){
+	if((sip->type_str != NULL) && SDL_strlen(sip->type_str)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->type_str);
 	}
@@ -1383,7 +1383,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Length",741));
 	y_start += 10;
-	if((sip->ship_length != NULL) && strlen(sip->ship_length)){
+	if((sip->ship_length != NULL) && SDL_strlen(sip->ship_length)){
 		if (Lcl_gr) {
 			// in german, drop the s from Meters and make sure M is caps
 			char *sp = strstr(sip->ship_length, "Meters");
@@ -1409,7 +1409,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Maneuverability",744));
 	y_start += 10;
-	if((sip->maneuverability_str != NULL) && strlen(sip->maneuverability_str)){
+	if((sip->maneuverability_str != NULL) && SDL_strlen(sip->maneuverability_str)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->maneuverability_str);
 	}
@@ -1419,7 +1419,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Armor",745));
 	y_start += 10;
-	if((sip->armor_str != NULL) && strlen(sip->armor_str)){
+	if((sip->armor_str != NULL) && SDL_strlen(sip->armor_str)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->armor_str);
 	}
@@ -1429,7 +1429,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Gun Mounts",746));
 	y_start += 10;
-	if((sip->gun_mounts != NULL) && strlen(sip->gun_mounts)){
+	if((sip->gun_mounts != NULL) && SDL_strlen(sip->gun_mounts)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->gun_mounts);
 	}
@@ -1439,7 +1439,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Missile Banks",747));
 	y_start += 10;
-	if((sip->missile_banks != NULL) && strlen(sip->missile_banks)){
+	if((sip->missile_banks != NULL) && SDL_strlen(sip->missile_banks)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->missile_banks);
 	}
@@ -1449,7 +1449,7 @@ void ship_select_blit_ship_info()
 	gr_set_color_fast(header);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Manufacturer",748));
 	y_start += 10;
-	if((sip->manufacturer_str != NULL) && strlen(sip->manufacturer_str)){
+	if((sip->manufacturer_str != NULL) && SDL_strlen(sip->manufacturer_str)){
 		gr_set_color_fast(text);
 		gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD]+4, y_start,sip->manufacturer_str);
 	}
@@ -1894,7 +1894,7 @@ anim* ss_load_individual_animation(int ship_class)
 	// 1024x768 SUPPORT
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
-		SDL_assert(strlen(Ship_info[ship_class].anim_filename) <= 30);
+		SDL_assert(SDL_strlen(Ship_info[ship_class].anim_filename) <= 30);
 		SDL_strlcpy(animation_filename, "2_", SDL_arraysize(animation_filename));
 		SDL_strlcat(animation_filename, Ship_info[ship_class].anim_filename, SDL_arraysize(animation_filename));
 		// now check if file exists
@@ -1917,7 +1917,7 @@ anim* ss_load_individual_animation(int ship_class)
 			strcpy(animation_filename, Ship_info[ship_class].anim_filename);
 			mprintf(("Ship ANI: Can not find %s, using lowres version instead.\n", animation_filename)); 
 		} else {
-			animation_filename[strlen(animation_filename) - 4] = '\0';
+			animation_filename[SDL_strlen(animation_filename) - 4] = '\0';
 			mprintf(("SHIP ANI: Found hires version of %s\n",animation_filename));
 		}
 		*/
@@ -2971,7 +2971,7 @@ void ss_init_wing_info(int wing_num,int starting_wing_num)
 		for ( p_objp = GET_FIRST(&ship_arrival_list); p_objp != END_OF_LIST(&ship_arrival_list); p_objp = GET_NEXT(p_objp) ) {
 			if ( p_objp->wingnum == WING_INDEX(wp) ) {
 				slot = &ss_wing->ss_slots[ss_wing->num_slots++];
-				slot->sa_index = p_objp-ship_arrivals;
+				slot->sa_index = static_cast<int>(p_objp-ship_arrivals);
 				slot->original_ship_class = p_objp->ship_class;
 			}
 			ss_wing->is_late = 1;

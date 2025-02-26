@@ -282,7 +282,7 @@ int multi_lag_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *except
 		// read the data and stuff it
 		if(Tcp_active){						
 			t_from_len = sizeof(struct sockaddr_in);
-			ret_val = recvfrom(nfds, t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len);
+			ret_val = static_cast<int>(recvfrom(nfds, t_buf, 1024, 0, (struct sockaddr*)&ip_addr, &t_from_len));
 		} else {
 			Int3();
 			return SOCKET_ERROR;

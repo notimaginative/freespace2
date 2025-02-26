@@ -473,7 +473,7 @@ int SENDTO(SOCKET s, char * buf, int len, int flags, sockaddr *to, int tolen, in
 	// is the socket writeable?
 	
 	// send it
-	return sendto(s, outbuf, len + 1, flags, (struct sockaddr*)to, tolen);
+	return static_cast<int>(sendto(s, outbuf, len + 1, flags, (struct sockaddr*)to, tolen));
 }
 
 // call this once per frame to read everything off of our socket
@@ -517,7 +517,7 @@ void PSNET_TOP_LAYER_PROCESS()
 
 		// get data off the socket and process
 		from_len = sizeof(struct sockaddr_in);
-		read_len = recvfrom( Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0,  (struct sockaddr*)&ip_addr, &from_len);
+		read_len = static_cast<int>(recvfrom(Unreliable_socket, (char*)packet_read.data, MAX_TOP_LAYER_PACKET_SIZE, 0, (struct sockaddr*)&ip_addr, &from_len));
 
 		// set the from_addr for storage into the packet buffer structure
 		from_addr.type = Socket_type;
@@ -799,7 +799,7 @@ void psnet_string_to_addr( net_addr_t * address, char * text, const int max_text
 	}
 
 	// copy the text string to local storage to look for ports
-	SDL_assert( strlen(text) < 255 );
+	SDL_assert( SDL_strlen(text) < 255 );
 	SDL_strlcpy(str, text, SDL_arraysize(str));
 	c = strrchr(str, ':');
 	port = NULL;
@@ -968,7 +968,7 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 	char str[255], *c;
 
 	// our addresses may have ports, so make local copy and remove port number
-	SDL_assert( strlen(ip_string) < 255 );
+	SDL_assert( SDL_strlen(ip_string) < 255 );
 	SDL_strlcpy(str, ip_string, SDL_arraysize(str));
 	c = strrchr(str, ':');
 	if ( c ){

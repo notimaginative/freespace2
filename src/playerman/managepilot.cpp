@@ -308,7 +308,7 @@ void write_stats_block(CFILE *file, scoring_struct *stats);
 void read_multiplayer_options(player *p,CFILE *file);
 void write_multiplayer_options(player *p,CFILE *file);
 
-static SDL_Keycode keycode_translate_from(short keycode);
+static int keycode_translate_from(short keycode);
 static short keycode_translate_to(SDL_Keycode keycode);
 
 // internal function to delete a player file.  Called after a pilot is obsoleted, and when a pilot is deleted
@@ -760,7 +760,7 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	}
 
 	//sprintf(filename, "%-.8s.plr",Players[Player_num].callsign);
-	SDL_assert(strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
+	SDL_assert(SDL_strlen(callsign) < MAX_FILENAME_LEN - 4);  // ensure we won't overrun the buffer
 	SDL_strlcpy( filename, callsign, SDL_arraysize(filename) );
 	SDL_strlcat( filename, NOX(".plr"), SDL_arraysize(filename) );
 
@@ -1170,7 +1170,7 @@ int write_pilot_file_core(player *p)
 		p = &Players[Player_num];
 	}
 
-	i = strlen(p->callsign);
+	i = static_cast<int>(SDL_strlen(p->callsign));
 	if (i == 0)
 		return 0;	//	This means there is no player, probably meaning he was deleted and game exited from same screen.
 
@@ -1592,7 +1592,7 @@ void init_new_pilot(player *p, int reset)
 	// set him to be a single player pilot by default (the actual creation routines will change this if necessary)
 	p->flags &= ~PLAYER_FLAGS_IS_MULTI;
 
-	// effectively sets the length return by strlen() to 0	
+	// effectively sets the length return by SDL_strlen() to 0	
 	Campaign.filename[0] = 0;
 	p->on_bastion = 0;
 
@@ -1681,7 +1681,7 @@ void pilot_format_callsign_personal(const char *in_callsign, char *out_callsign,
 	SDL_strlcpy(out_callsign, in_callsign, out_size);
 
 	// tack on the appropriate postfix
-	if(in_callsign[strlen(in_callsign) - 1] == 's'){		
+	if(in_callsign[SDL_strlen(in_callsign) - 1] == 's'){		
 		SDL_strlcat(out_callsign,XSTR( "\'", 45), out_size);
 	} else {
 		SDL_strlcat(out_callsign,XSTR( "\'s", 46), out_size);
@@ -1742,7 +1742,7 @@ void player_set_squad_bitmap(player *p, const char *fname)
 		SDL_strlcpy(p->squad_filename, fname, SDL_arraysize(p->squad_filename));
 	}
 
-	if(strlen(p->squad_filename) > 0){
+	if(SDL_strlen(p->squad_filename) > 0){
 		p->insignia_texture = bm_load_duplicate(fname);
 		
 		// lock is as a transparent texture
@@ -1753,8 +1753,8 @@ void player_set_squad_bitmap(player *p, const char *fname)
 	}
 
 	/*
-	flen = strlen(filename);
-	elen = strlen(ext);
+	flen = SDL_strlen(filename);
+	elen = SDL_strlen(ext);
 	SDL_assert(flen < MAX_PATH_LEN);
 	strcpy(path, filename);
 	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
@@ -1780,7 +1780,7 @@ DCF(pilot,"Changes pilot stats. (Like reset campaign)" )
 	if (Dc_command) {
 		dc_get_arg(ARG_STRING);
 		if (!strcmp(Dc_arg, NOX("reset"))) {
-			if (strlen(Campaign.filename)) {
+			if (SDL_strlen(Campaign.filename)) {
 				mission_campaign_savefile_delete(Campaign.filename);
 				mission_campaign_load(Campaign.filename);
 			}
@@ -1912,7 +1912,7 @@ static const fs_keycode_t keycode_lookup[] = {
 	{ /* KEY_BREAK */       0xc6,	SDLK_PAUSE		}
 };
 
-static SDL_Keycode keycode_translate_from(short keycode)
+static int keycode_translate_from(short keycode)
 {
 	const int tbl_size = sizeof(keycode_lookup) / sizeof(fs_keycode_t);
 
@@ -1925,7 +1925,7 @@ static SDL_Keycode keycode_translate_from(short keycode)
 
 	for (int i = 0; i < tbl_size; i++) {
 		if (keycode_lookup[i].fs_code == keycode) {
-			return (SDL_Keycode)(keycode_lookup[i].sdl_code | mods);
+			return (int)(keycode_lookup[i].sdl_code | mods);
 		}
 	}
 

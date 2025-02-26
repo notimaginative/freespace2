@@ -195,11 +195,11 @@ int fhash_string_exists(char *str)
 int fhash_get_hash_index(char *str)
 {
 	int accum = 0;
-	int idx, str_len;
+	size_t idx, str_len;
 	int ret;
 
 	// add up the string
-	str_len = strlen(str);
+	str_len = SDL_strlen(str);
 	for(idx=0; idx<str_len; idx++){
 		accum += str[idx];
 	}

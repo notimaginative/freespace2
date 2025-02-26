@@ -216,7 +216,7 @@ void UI_BUTTON::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w
 	text = NULL;
 
 	if (_text) {
-		if ( strlen(_text) > 0 ) {
+		if ( SDL_strlen(_text) > 0 ) {
 			text = strdup(_text);
 		}
 	}

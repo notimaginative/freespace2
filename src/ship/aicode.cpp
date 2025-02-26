@@ -3409,7 +3409,7 @@ void copy_xlate_model_path_points(object *objp, model_path *mp, int dir, int cou
 		}
 
 		if (pp_index != -1)
-			pp_index = pnp-Path_points + offset;
+			pp_index = static_cast<int>(pnp-Path_points) + offset;
 
 		add_path_point(&v1, path_num, i, pp_index);
 		offset++;
@@ -3444,7 +3444,7 @@ void create_model_path(object *pl_objp, object *mobjp, int path_num, int subsys_
 		ppfp_start = Ppfp;
 	}
 
-	aip->path_start = Ppfp - Path_points;
+	aip->path_start = static_cast<int>(Ppfp - Path_points);
 	SDL_assert(path_num < pm->n_paths);
 	
 	mp = &pm->paths[path_num];
@@ -3489,7 +3489,7 @@ void create_model_path(object *pl_objp, object *mobjp, int path_num, int subsys_
 	aip->path_dir = PD_FORWARD;
 	aip->path_objnum = OBJ_INDEX(mobjp);
 	aip->mp_index = path_num;
-	aip->path_length = Ppfp - ppfp_start;
+	aip->path_length = static_cast<int>(Ppfp - ppfp_start);
 	aip->path_next_check_time = timestamp(1);
 
 	aip->path_goal_obj_hash = create_object_hash(&Objects[aip->path_objnum]);
@@ -3515,7 +3515,7 @@ void create_model_exit_path(object *pl_objp, object *mobjp, int path_num, int co
 	model_path	*mp;
 	pnode			*ppfp_start = Ppfp;
 
-	aip->path_start = Ppfp - Path_points;
+	aip->path_start = static_cast<int>(Ppfp - Path_points);
 	SDL_assert(path_num < pm->n_paths);
 	
 	mp = &pm->paths[path_num];
@@ -3528,7 +3528,7 @@ void create_model_exit_path(object *pl_objp, object *mobjp, int path_num, int co
 	aip->path_dir = PD_FORWARD;
 	aip->path_objnum = OBJ_INDEX(mobjp);
 	aip->mp_index = path_num;
-	aip->path_length = Ppfp - ppfp_start;
+	aip->path_length = static_cast<int>(Ppfp - ppfp_start);
 	aip->path_next_check_time = timestamp(1);
 
 	aip->ai_flags |= AIF_USE_EXIT_PATH;		// mark as exit path, referenced in maybe
@@ -5080,7 +5080,7 @@ void maybe_afterburner_after_ship_hit(object *objp, ai_info *aip, object *en_obj
 //	Is an instructor if name begins INSTRUCTOR_SHIP_NAME else not.
 int is_instructor(object *objp)
 {
-	return !SDL_strncasecmp(Ships[objp->instance].ship_name, INSTRUCTOR_SHIP_NAME, strlen(INSTRUCTOR_SHIP_NAME));
+	return !SDL_strncasecmp(Ships[objp->instance].ship_name, INSTRUCTOR_SHIP_NAME, SDL_strlen(INSTRUCTOR_SHIP_NAME));
 }
 
 //	Evade the weapon aip->danger_weapon_objnum
@@ -12827,7 +12827,7 @@ void ai_execute_behavior(ai_info *aip)
 			ship	*shipp = &Ships[aip->shipnum];
 			ship_info	*sip = &Ship_info[shipp->ship_info_index];
 
-			if (SDL_strncasecmp(shipp->ship_name, INSTRUCTOR_SHIP_NAME, strlen(INSTRUCTOR_SHIP_NAME))) {
+			if (SDL_strncasecmp(shipp->ship_name, INSTRUCTOR_SHIP_NAME, SDL_strlen(INSTRUCTOR_SHIP_NAME))) {
 				if (sip->flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) {
 					aip->mode = AIM_NONE;
 				} else {

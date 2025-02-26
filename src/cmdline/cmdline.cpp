@@ -308,13 +308,13 @@ static int is_extra_space(char ch)
 // eliminates all leading and trailing extra chars from a string.  Returns pointer passed in.
 static char *drop_extra_chars(char *str)
 {
-	int s, e;
+	size_t s, e;
 
 	s = 0;
 	while (str[s] && is_extra_space(str[s]))
 		s++;
 
-	e = strlen(str) - 1;
+	e = SDL_strlen(str) - 1;
 	while (e > s) {
 		if (!is_extra_space(str[e])){
 			break;
@@ -352,7 +352,7 @@ static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 		parm->args = NULL;
 	}
 
-	int size = strlen(buffer);
+	auto size = SDL_strlen(buffer);
 	if (size > 0) {
 		parm->args = new (std::nothrow) char[size+1];
 
@@ -373,7 +373,7 @@ static void os_parse_parms(char *cmdline)
 	char *cmdline_offset = NULL;
 	char pname[33] = { 0 };
 
-	if ( !cmdline || (strlen(cmdline) <= 1) ) {
+	if ( !cmdline || (SDL_strlen(cmdline) <= 1) ) {
 		return;
 	}
 
@@ -383,14 +383,14 @@ static void os_parse_parms(char *cmdline)
 		cmdline_offset = strstr(cmdline, pname);
 
 		if (cmdline_offset) {
-			cmdline_offset += strlen(parmp->name);
+			cmdline_offset += SDL_strlen(parmp->name);
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
 			SDL_snprintf(pname, SDL_arraysize(pname), "%s ", parmp->name2);
 			cmdline_offset = strstr(cmdline, pname);
 
 			if (cmdline_offset) {
-				cmdline_offset += strlen(parmp->name2);
+				cmdline_offset += SDL_strlen(parmp->name2);
 			}
 		}
 
@@ -404,7 +404,7 @@ static void os_parse_parms(char *cmdline)
 static bool os_find_parm(const cmdline_parm *parmp, const char *token)
 {
 	// allow for double '-'
-	if ( (strlen(token) > 2) && (token[1] == '-') ) {
+	if ( (SDL_strlen(token) > 2) && (token[1] == '-') ) {
 		token++;
 	}
 
@@ -483,7 +483,7 @@ static void os_validate_parms(char *cmdline)
 	char *token;
 	int parm_found;
 
-	if ( !cmdline || (strlen(cmdline) <= 1) ) {
+	if ( !cmdline || (SDL_strlen(cmdline) <= 1) ) {
 		return;
 	}
 
@@ -560,11 +560,11 @@ static void os_init_cmdline(const char *cmdline)
 		fclose(fp);
 	}
 
-	if ( cmdline && strlen(cmdline) ) {
+	if ( cmdline && SDL_strlen(cmdline) ) {
 		mprintf(("%s", cmdline));
 
 		// for proper arg handling make sure cmdline has trailing space
-		int len = strlen(cmdline) + 2;
+		auto len = SDL_strlen(cmdline) + 2;
 		char *m_cmdline = (char*) malloc(len);
 
 		if (m_cmdline) {
@@ -691,7 +691,7 @@ int parse_cmdline(const char *cmdline)
 		Cmdline_game_name = gamename_arg.str();
 
 		// be sure that this string fits in our limits
-		if ( Cmdline_game_name && (strlen(Cmdline_game_name) > MAX_GAMENAME_LEN) ) {
+		if ( Cmdline_game_name && (SDL_strlen(Cmdline_game_name) > MAX_GAMENAME_LEN) ) {
 			Cmdline_game_name[MAX_GAMENAME_LEN-1] = '\0';
 		}
 	}
@@ -701,7 +701,7 @@ int parse_cmdline(const char *cmdline)
 		Cmdline_game_password = gamepassword_arg.str();
 
 		// be sure that this string fits in our limits
-		if ( Cmdline_game_password && (strlen(Cmdline_game_password) > MAX_PASSWD_LEN) ) {
+		if ( Cmdline_game_password && (SDL_strlen(Cmdline_game_password) > MAX_PASSWD_LEN) ) {
 			Cmdline_game_password[MAX_PASSWD_LEN-1] = '\0';
 		}
 	}

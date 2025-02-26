@@ -641,7 +641,7 @@ void common_set_interface_palette(const char *filename)
 	if (!filename)
 		filename = NOX("palette01");
 
-	SDL_assert(strlen(filename) <= MAX_FILENAME_LEN);
+	SDL_assert(SDL_strlen(filename) <= MAX_FILENAME_LEN);
 	if ( (InterfacePaletteBitmap != -1) && !SDL_strcasecmp(filename, buf) )
 		return;  // already set to this palette
 

@@ -171,7 +171,7 @@ static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void
 			while ( !lws_send_pipe_choked(wsi) && (sent < standalone_html_len) ) {
 				size = standalone_html_len - sent;
 
-				int pwa = lws_get_peer_write_allowance(wsi);
+				int pwa = static_cast<int>(lws_get_peer_write_allowance(wsi));
 
 				if (pwa == 0) {
 					lws_callback_on_writable(wsi);
@@ -252,7 +252,7 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 
 		case LWS_CALLBACK_SERVER_WRITEABLE: {
 			while ( !Standalone_send_buf.empty() ) {
-				size = SDL_strlcpy((char *)p, Standalone_send_buf.front().c_str(), MAX_BUF_SIZE);
+				size = static_cast<int>(SDL_strlcpy((char *)p, Standalone_send_buf.front().c_str(), MAX_BUF_SIZE));
 
 				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
 
@@ -479,8 +479,8 @@ void std_init_standalone()
 
 	info.protocols = stand_protocols;
 
-	info.gid = -1;
-	info.uid = -1;
+	info.gid = static_cast<gid_t>(-1);
+	info.uid = static_cast<uid_t>(-1);
 
 	lws_set_log_level(LLL_ERR|LLL_WARN|LLL_NOTICE, std_lws_logger);
 

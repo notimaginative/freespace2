@@ -19,4 +19,9 @@
 
 typedef unsigned long in_addr_t;
 
+#if defined(_MSC_VER)
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #endif // WIN_H

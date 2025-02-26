@@ -1184,7 +1184,7 @@ void popup_maybe_assign_keypress(popup_info *pi, int n, char *str)
 	pi->keypress[n]=-1;
 	pi->shortcut_index[n]=-1;
 
-	len=strlen(str)+1;
+	len=static_cast<int>(SDL_strlen(str)+1);
 
 	pi->button_text[n] = (char*)malloc(len);
 	memset(pi->button_text[n], 0, len);
@@ -1386,7 +1386,7 @@ void popup_input(void (*callback)(int), int flags, const char *caption, int max_
 	// get msg text
 	SDL_assert(caption != NULL);
 	SDL_strlcpy(pi->raw_text, caption, SDL_arraysize(pi->raw_text));
-	SDL_assert(strlen(pi->raw_text) < POPUP_MAX_CHARS );
+	SDL_assert(SDL_strlen(pi->raw_text) < POPUP_MAX_CHARS );
 
 	// set input text length
 	if((max_output_len > POPUP_INPUT_MAX_CHARS) || (max_output_len == -1)){

@@ -823,7 +823,7 @@ void parse_mission_info(mission *pm)
 	}
 	// reassign the player
 	else {		
-		if(!Fred_running && (Player != NULL) && (strlen(The_mission.squad_name) > 0) && (Game_mode & GM_CAMPAIGN_MODE)){
+		if(!Fred_running && (Player != NULL) && (SDL_strlen(The_mission.squad_name) > 0) && (Game_mode & GM_CAMPAIGN_MODE)){
 			mprintf(("Reassigning player to squadron %s\n", The_mission.squad_name));
 			player_set_squad(Player, The_mission.squad_name);
 			player_set_squad_bitmap(Player, The_mission.squad_filename);
@@ -4822,7 +4822,7 @@ int get_parse_name_index(const char *name)
 			return i;
 
 	SDL_assert(i < MAX_SHIPS + MAX_WINGS);
-	SDL_assert(strlen(name) < NAME_LENGTH);
+	SDL_assert(SDL_strlen(name) < NAME_LENGTH);
 	SDL_strlcpy(Parse_names[i], name, NAME_LENGTH);
 	return Num_parse_names++;
 }

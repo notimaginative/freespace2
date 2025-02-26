@@ -269,10 +269,10 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 			PXO_GET_INT(n_users);
 
 			SDL_strlcpy(channel, (char *)(data+offset), SDL_arraysize(channel));
-			offset += (strlen(channel) + 1);
+			offset += (SDL_strlen(channel) + 1);
 
 			memcpy(gph->data, &n_users, sizeof(int));
-			memcpy(gph->data+sizeof(int), channel, strlen(channel)+1);
+			memcpy(gph->data+sizeof(int), channel, SDL_strlen(channel)+1);
 
 			break;
 		}

@@ -646,8 +646,8 @@ int pcx_encode_line(ubyte *inBuff, int inLen, FILE * fp)
 	ubyte this_ptr, last;
 
 	int srcIndex, i;
-	register int total;
-	register ubyte runCount; 	// max single runlength is 63
+	int total;
+	ubyte runCount; 	// max single runlength is 63
 	total = 0;
 	last = *(inBuff);
 	runCount = 1;
@@ -690,7 +690,6 @@ int pcx_encode_line(ubyte *inBuff, int inLen, FILE * fp)
 
 int pcx_write_bitmap( char * real_filename, int w, int h, ubyte ** row_ptrs, ubyte * palette )
 {
-	int retval;
 	int i;
 	ubyte data;
 	PCXHeader header;
@@ -742,7 +741,7 @@ int pcx_write_bitmap( char * real_filename, int w, int h, ubyte ** row_ptrs, uby
 //	for (i=0; i<768; i++ )
 //		palette[i] <<= 2;
 
-	retval = fwrite( palette, 768, 1, PCXfile );
+	auto retval = fwrite( palette, 768, 1, PCXfile );
 
 //	for (i=0; i<768; i++ )
 //		palette[i] >>= 2;
@@ -778,7 +777,7 @@ char *pcx_errormsg(int error_number)
 
 		if (!p) return NULL;
 
-		p += strlen(p)+1;
+		p += SDL_strlen(p)+1;
 
 	}
 

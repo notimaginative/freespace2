@@ -257,7 +257,7 @@ int multi_update_gobaby()
 	// run the popup
 	extern char Multi_options_proxy[512];
 	extern ushort Multi_options_proxy_port;
-	if(strlen(Multi_options_proxy) > 0){
+	if(SDL_strlen(Multi_options_proxy) > 0){
 		SDL_snprintf(msg, SDL_arraysize(msg), "%s (%s : %d)", XSTR("Verifying Freespace Version",981), Multi_options_proxy, Multi_options_proxy_port);
 	} else {
 		SDL_strlcpy(msg, XSTR("Verifying Freespace Version",981), SDL_arraysize(msg));

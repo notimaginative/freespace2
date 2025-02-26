@@ -254,7 +254,7 @@ int cf_get_packfile_count(cf_root *root)
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 		SDL_strlcpy( filespec, root->path, SDL_arraysize(filespec) );
 
-		if(strlen(Pathtypes[i].path)){
+		if(SDL_strlen(Pathtypes[i].path)){
 			SDL_strlcat( filespec, Pathtypes[i].path, SDL_arraysize(filespec) );
 			SDL_strlcat( filespec, DIR_SEPARATOR_STR, SDL_arraysize(filespec) );
 		}
@@ -313,7 +313,7 @@ void cf_build_pack_list( cf_root *root )
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 		SDL_strlcpy( filespec, root->path, SDL_arraysize(filespec) );
 
-		if(strlen(Pathtypes[i].path)){
+		if(SDL_strlen(Pathtypes[i].path)){
 			SDL_strlcat( filespec, Pathtypes[i].path, SDL_arraysize(filespec) );
 			SDL_strlcat( filespec, DIR_SEPARATOR_STR, SDL_arraysize(filespec) );
 		}
@@ -384,7 +384,7 @@ void cf_build_root_list(const char *extras_dir)
 	SDL_strlcpy( root->path, Cfile_user_dir, SDL_arraysize(root->path) );
 
 	// do we already have a slash? as in the case of a root directory install
-	if(strlen(root->path) && (root->path[strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
+	if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
 		SDL_strlcat(root->path, DIR_SEPARATOR_STR, SDL_arraysize(root->path));		// put trailing backslash on for easier path construction
 	}
 	root->roottype = CF_ROOTTYPE_PATH;
@@ -399,7 +399,7 @@ void cf_build_root_list(const char *extras_dir)
 	SDL_strlcpy( root->path, Cfile_root_dir, SDL_arraysize(root->path) );
 
 	// do we already have a slash? as in the case of a root directory install
-	if(strlen(root->path) && (root->path[strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
+	if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
 		SDL_strlcat(root->path, DIR_SEPARATOR_STR, SDL_arraysize(root->path));		// put trailing backslash on for easier path construction
 	}
 	root->roottype = CF_ROOTTYPE_PATH;
@@ -411,7 +411,7 @@ void cf_build_root_list(const char *extras_dir)
 
 	//======================================================
 	// Check the real CD if one...
-	if ( extras_dir && strlen(extras_dir) )	{
+	if ( extras_dir && SDL_strlen(extras_dir) )	{
 		root = cf_create_root();
 		SDL_strlcpy( root->path, extras_dir, SDL_arraysize(root->path) );
 		root->roottype = CF_ROOTTYPE_PATH;
@@ -452,7 +452,7 @@ void cf_search_root_path(int root_index)
 
 		SDL_strlcpy( search_path, root->path, SDL_arraysize(search_path) );
 
-		if(strlen(Pathtypes[i].path)){
+		if(SDL_strlen(Pathtypes[i].path)){
 			SDL_strlcat( search_path, Pathtypes[i].path, SDL_arraysize(search_path) );
 			SDL_strlcat( search_path, DIR_SEPARATOR_STR, SDL_arraysize(search_path) );
 		}
@@ -571,14 +571,14 @@ void cf_search_root_pack(int root_index)
 
 		if ( find.size == 0 )	{
 			if ( !SDL_strcasecmp( find.filename, ".." ))	{
-				int l = strlen(search_path);
+				auto l = SDL_strlen(search_path);
 				char *p = &search_path[l-1];
 				while( (p > search_path) && (*p != DIR_SEPARATOR_CHAR) )	{
 					p--;
 				}
 				*p = 0;
 			} else {
-				if ( strlen(search_path)	)	{
+				if ( SDL_strlen(search_path)	)	{
 					SDL_strlcat( search_path,	DIR_SEPARATOR_STR, SDL_arraysize(search_path) );
 				}
 				SDL_strlcat( search_path, find.filename, SDL_arraysize(search_path) );
@@ -712,7 +712,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 {
 	int i;
 
-	SDL_assert(filespec && strlen(filespec));
+	SDL_assert(filespec && SDL_strlen(filespec));
 
 	// see if we have something other than just a filename
 	// our current rules say that any file that specifies a direct
@@ -816,7 +816,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 					SDL_strlcpy( pack_filename, r->path, MAX_PATH_LEN );
 					if ( f->pack_offset < 1 )	{
 
-						if(strlen(Pathtypes[f->pathtype_index].path)){
+						if(SDL_strlen(Pathtypes[f->pathtype_index].path)){
 							SDL_strlcat( pack_filename, Pathtypes[f->pathtype_index].path, MAX_PATH_LEN );
 							SDL_strlcat( pack_filename, DIR_SEPARATOR_STR, MAX_PATH_LEN );
 						}
@@ -970,7 +970,7 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 					if (ptr)
 						l = ptr - f->name_ext;
 					else
-						l = strlen(f->name_ext);
+						l = SDL_strlen(f->name_ext);
 
 					list[num_files] = (char *)malloc(l + 1);
 					SDL_strlcpy(list[num_files], f->name_ext, l+1);

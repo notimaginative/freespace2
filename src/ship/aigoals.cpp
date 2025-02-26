@@ -2335,7 +2335,7 @@ char *ai_add_dock_name(const char *str)
 	char *ptr;
 	int i;
 
-	SDL_assert(strlen(str) < NAME_LENGTH - 1);
+	SDL_assert(SDL_strlen(str) < NAME_LENGTH - 1);
 	for (i=0; i<Num_ai_dock_names; i++)
 		if (!SDL_strcasecmp(Ai_dock_names[i], str))
 			return Ai_dock_names[i];

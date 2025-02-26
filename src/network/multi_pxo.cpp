@@ -1553,7 +1553,7 @@ void multi_pxo_init(int use_last_channel)
 	}
 #endif
 
-	if(use_last_channel && strlen(Multi_pxo_channel_last)){
+	if(use_last_channel && SDL_strlen(Multi_pxo_channel_last)){
 		Multi_pxo_use_last_channel = 1;
 	} else {
 		SDL_zero(Multi_pxo_channel_last);
@@ -1730,7 +1730,7 @@ void multi_pxo_do()
 			Multi_pxo_mode = MULTI_PXO_MODE_NORMAL;
 
 			// if there is a valid channel name try and join it
-			if(strlen(Multi_pxo_find_channel) && !SWITCHING_CHANNELS()){
+			if(SDL_strlen(Multi_pxo_find_channel) && !SWITCHING_CHANNELS()){
 				pxo_channel join;
 
 				// setup the info
@@ -1776,7 +1776,7 @@ void multi_pxo_close()
 	SDL_zero(Multi_fs_tracker_channel);
 	SDL_zero(Multi_fs_tracker_filter);
 
-	if( ON_CHANNEL() && strlen(Multi_pxo_channel_current.name) ){
+	if( ON_CHANNEL() && SDL_strlen(Multi_pxo_channel_current.name) ){
 		// channel name
 		SDL_strlcpy(Multi_fs_tracker_channel, Multi_pxo_channel_current.name, SDL_arraysize(Multi_fs_tracker_channel));
 		
@@ -2361,7 +2361,7 @@ int multi_pxo_autojoin_do()
 		Multi_pxo_must_autojoin = 0;
 
 		// if we're supposed to be using a (valid) "last" channel, do so
-		if(Multi_pxo_use_last_channel && strlen(Multi_pxo_channel_last)){
+		if(Multi_pxo_use_last_channel && SDL_strlen(Multi_pxo_channel_last)){
 			// setup the data
 			memset(&last_channel, 0, sizeof(pxo_channel));
 			last_channel.num_users = 0;
@@ -2415,7 +2415,7 @@ int multi_pxo_connect()
 		int rval;
 
 		// if we're going to use the "last" channel
-		if(Multi_pxo_use_last_channel && strlen(Multi_pxo_channel_last)){			
+		if(Multi_pxo_use_last_channel && SDL_strlen(Multi_pxo_channel_last)){			
 			SDL_strlcpy(join_str, XSTR("Joining last channel (",982), SDL_arraysize(join_str));
 			SDL_strlcat(join_str, Multi_pxo_channel_last + 1, SDL_arraysize(join_str));
 			SDL_strlcat(join_str, ")", SDL_arraysize(join_str));
@@ -2613,12 +2613,12 @@ void multi_pxo_autojoin()
 int multi_pxo_is_autojoin(char *name)
 {
 	// check to see if the name is long enough
-	if(strlen(name) < strlen(MULTI_PXO_AUTOJOIN_PREFIX)){
+	if(SDL_strlen(name) < SDL_strlen(MULTI_PXO_AUTOJOIN_PREFIX)){
 		return 0;
 	}
 
 	// check to see if the first n chars match
-	return !SDL_strncasecmp(name,MULTI_PXO_AUTOJOIN_PREFIX,strlen(MULTI_PXO_AUTOJOIN_PREFIX));
+	return !SDL_strncasecmp(name,MULTI_PXO_AUTOJOIN_PREFIX,SDL_strlen(MULTI_PXO_AUTOJOIN_PREFIX));
 }
 
 // called from the game tracker API - server count update for a channel
@@ -2654,7 +2654,7 @@ void multi_pxo_blit_status_text()
 	int w;
 
 	// center and draw the text
-	if(strlen(Multi_pxo_status_text)) {
+	if(SDL_strlen(Multi_pxo_status_text)) {
 		gr_set_color_fast(&Color_bright);
 		gr_get_string_size(&w, NULL, Multi_pxo_status_text);
 		gr_string(Multi_pxo_status_coords[gr_screen.res][0] + ((Multi_pxo_status_coords[gr_screen.res][2] - w)/2), Multi_pxo_status_coords[gr_screen.res][1], Multi_pxo_status_text);
@@ -2921,7 +2921,7 @@ void multi_pxo_channel_refresh_servers()
 		return;
 	}
 	do {
-		if(strlen(lookup->name)){
+		if(SDL_strlen(lookup->name)){
 			// copy in the info
 			memset(&filter,0,sizeof(filter_game_list_struct));
 			SDL_strlcpy(filter.channel, lookup->name, SDL_arraysize(filter.channel));
@@ -2942,7 +2942,7 @@ void multi_pxo_channel_refresh_servers()
 void multi_pxo_channel_refresh_current()
 {
 	// send a request for a server count on this channel
-	if(strlen(Multi_pxo_channel_current.name)){
+	if(SDL_strlen(Multi_pxo_channel_current.name)){
 		// fill in the data
 		filter_game_list_struct filter;
 		memset(&filter,0,sizeof(filter_game_list_struct));
@@ -3090,7 +3090,7 @@ void multi_pxo_join_channel(pxo_channel *chan)
 		multi_pxo_clear_players();
 
 		// display a line of text indicating that we're switching channels
-		if(strlen(Multi_pxo_channel_switch.name) > 1){
+		if(SDL_strlen(Multi_pxo_channel_switch.name) > 1){
 			SDL_snprintf(switch_msg, SDL_arraysize(switch_msg), "[Switching to channel %s]", Multi_pxo_channel_switch.name + 1);
 		} else {
 			SDL_snprintf(switch_msg, SDL_arraysize(switch_msg), "[Switching to channel %s]", Multi_pxo_channel_switch.name);
@@ -3668,7 +3668,7 @@ void multi_pxo_chat_process_incoming(const char *txt,int mode)
 		else if(multi_pxo_is_motd_text(txt)){
 #ifdef MAKE_FS1
 			// strip off prefix
-			SDL_strlcpy(msg_total, txt + strlen(PXO_CHAT_MOTD_PREFIX), SDL_arraysize(msg_total));
+			SDL_strlcpy(msg_total, txt + SDL_strlen(PXO_CHAT_MOTD_PREFIX), SDL_arraysize(msg_total));
 
 			mode = CHAT_MODE_MOTD;
 #else
@@ -3737,7 +3737,7 @@ void multi_pxo_chat_blit()
 
 	// blit the title line
 	if(ON_CHANNEL()){
-		if(strlen(Multi_pxo_channel_current.name) > 1){
+		if(SDL_strlen(Multi_pxo_channel_current.name) > 1){
 			SDL_snprintf(title, SDL_arraysize(title), XSTR("%s on %s", 955), Multi_pxo_nick, Multi_pxo_channel_current.name+1);  // [[ <who> on <channel> ]]
 		} else {
 			SDL_snprintf(title, SDL_arraysize(title), XSTR("%s on %s", 955), Multi_pxo_nick, Multi_pxo_channel_current.name);	  // [[ <who> on <channel> ]]
@@ -3945,9 +3945,9 @@ void multi_pxo_chat_process()
 		} else {
 			Multi_pxo_chat_input.set_text("");
 		}
-	} else if((Multi_pxo_chat_input.pressed() && (strlen(msg) > 0)) || (strlen(msg) >= MAX_CHAT_LINE_LEN)) { 
+	} else if((Multi_pxo_chat_input.pressed() && (SDL_strlen(msg) > 0)) || (SDL_strlen(msg) >= MAX_CHAT_LINE_LEN)) { 
 		// tack on the null terminator in the boundary case
-		int x = strlen(msg);
+		auto x = SDL_strlen(msg);
 		if(x >= MAX_CHAT_LINE_LEN){
 			msg[MAX_CHAT_LINE_LEN-1] = '\0';
 		}		
@@ -3984,18 +3984,18 @@ void multi_pxo_chat_process()
 const char *multi_pxo_chat_is_private(const char *txt)
 {
 	// quick check
-	if( strlen(txt) > strlen( PMSG_FROM ) ){	
+	if( SDL_strlen(txt) > SDL_strlen( PMSG_FROM ) ){	
 		// otherwise do a comparison
-		if(!SDL_strncasecmp( txt, PMSG_FROM, strlen(PMSG_FROM) )){
-			return &txt[strlen( PMSG_FROM )];
+		if(!SDL_strncasecmp( txt, PMSG_FROM, SDL_strlen(PMSG_FROM) )){
+			return &txt[SDL_strlen( PMSG_FROM )];
 		} 
 	}
 
 	// quick check
-	if(strlen(txt) > strlen( PMSG_TO )){	
+	if(SDL_strlen(txt) > SDL_strlen( PMSG_TO )){	
 		// otherwise do a comparison
-		if(!SDL_strncasecmp(txt,PMSG_TO,strlen(PMSG_TO))){
-			return &txt[strlen(PMSG_TO)];
+		if(!SDL_strncasecmp(txt,PMSG_TO,SDL_strlen(PMSG_TO))){
+			return &txt[SDL_strlen(PMSG_TO)];
 		} 
 	}
 	
@@ -4007,7 +4007,7 @@ const char *multi_pxo_chat_is_private(const char *txt)
 int multi_pxo_is_server_text(const char *txt)
 {		
 	// if the message is prefaced by a ***
-	if((strlen(txt) >= strlen(MULTI_PXO_SERVER_PREFIX)) && !strncmp(txt, MULTI_PXO_SERVER_PREFIX, strlen(MULTI_PXO_SERVER_PREFIX))){
+	if((SDL_strlen(txt) >= SDL_strlen(MULTI_PXO_SERVER_PREFIX)) && !strncmp(txt, MULTI_PXO_SERVER_PREFIX, SDL_strlen(MULTI_PXO_SERVER_PREFIX))){
 		return 1;
 	}
 
@@ -4018,7 +4018,7 @@ int multi_pxo_is_server_text(const char *txt)
 int multi_pxo_is_motd_text(const char *txt)
 {
 	// if we're not on a channel, and this is not a channel switching message assume its coming from a server
-	if((strlen(txt) >= strlen(PXO_CHAT_MOTD_PREFIX)) && !strncmp(txt, PXO_CHAT_MOTD_PREFIX, strlen(PXO_CHAT_MOTD_PREFIX))){
+	if((SDL_strlen(txt) >= SDL_strlen(PXO_CHAT_MOTD_PREFIX)) && !strncmp(txt, PXO_CHAT_MOTD_PREFIX, SDL_strlen(PXO_CHAT_MOTD_PREFIX))){
 		return 1;
 	}	
 	
@@ -4029,7 +4029,7 @@ int multi_pxo_is_motd_text(const char *txt)
 int multi_pxo_is_end_of_motd_text(const char *txt)
 {
 	// if we're not on a channel, and this is not a channel switching message assume its coming from a server
-	if((strlen(txt) >= strlen(PXO_CHAT_END_OF_MOTD_PREFIX)) && !strncmp(txt, PXO_CHAT_END_OF_MOTD_PREFIX, strlen(PXO_CHAT_END_OF_MOTD_PREFIX))){
+	if((SDL_strlen(txt) >= SDL_strlen(PXO_CHAT_END_OF_MOTD_PREFIX)) && !strncmp(txt, PXO_CHAT_END_OF_MOTD_PREFIX, SDL_strlen(PXO_CHAT_END_OF_MOTD_PREFIX))){
 		return 1;
 	}	
 	
@@ -4048,7 +4048,7 @@ int multi_pxo_chat_is_left_message(const char *txt)
 
 	// check to see if the last portion is the correct wording
 	SDL_zero(last_portion);
-	if((strlen(txt) > strlen(MULTI_PXO_HAS_LEFT)) && !strcmp(&txt[strlen(txt) - strlen(MULTI_PXO_HAS_LEFT)], MULTI_PXO_HAS_LEFT)){
+	if((SDL_strlen(txt) > SDL_strlen(MULTI_PXO_HAS_LEFT)) && !strcmp(&txt[SDL_strlen(txt) - SDL_strlen(MULTI_PXO_HAS_LEFT)], MULTI_PXO_HAS_LEFT)){
 		return 1;
 	}
 
@@ -4098,9 +4098,6 @@ void multi_pxo_motd_init()
 // set the motd text
 void multi_pxo_motd_add_text(const char *text)
 {
-	int cur_len = strlen(Pxo_motd);
-	int new_len;
-
 	// sanity
 	if(text == NULL){
 		return;
@@ -4113,14 +4110,15 @@ void multi_pxo_motd_add_text(const char *text)
 	}
 	
 	// if its a 0 line motd
-	if(strlen(text) <= strlen(PXO_CHAT_MOTD_PREFIX)){
+	if(SDL_strlen(text) <= SDL_strlen(PXO_CHAT_MOTD_PREFIX)){
 		return;
 	}
 
 	// add text to the motd
-	new_len = strlen(text + strlen(PXO_CHAT_MOTD_PREFIX)) - 1;
+	auto cur_len = SDL_strlen(Pxo_motd);
+	auto new_len = SDL_strlen(text + SDL_strlen(PXO_CHAT_MOTD_PREFIX)) - 1;
 	if((cur_len + new_len + 1) < MAX_PXO_MOTD_LEN){
-		SDL_strlcat(Pxo_motd, text + strlen(PXO_CHAT_MOTD_PREFIX) + 1, SDL_arraysize(Pxo_motd));
+		SDL_strlcat(Pxo_motd, text + SDL_strlen(PXO_CHAT_MOTD_PREFIX) + 1, SDL_arraysize(Pxo_motd));
 		SDL_strlcat(Pxo_motd, "\n", SDL_arraysize(Pxo_motd));
 		mprintf(("MOTD ADD : %s\n", Pxo_motd));
 	}
@@ -4141,7 +4139,7 @@ void multi_pxo_set_end_of_motd()
 	uint new_chksum;
 
 	// checksum the current motd		
-	new_chksum = cf_add_chksum_long(0, Pxo_motd, strlen(Pxo_motd));		
+	new_chksum = cf_add_chksum_long(0, Pxo_motd, static_cast<int>(SDL_strlen(Pxo_motd)));
 
 	// checksum the old motd if its lying around
 	CFILE *in = cfopen("oldmotd.txt", "rb");
@@ -4157,7 +4155,7 @@ void multi_pxo_set_end_of_motd()
 	}	
 	
 	// write out the motd for next time
-	if(strlen(Pxo_motd)){
+	if(SDL_strlen(Pxo_motd)){
 		CFILE *out = cfopen("oldmotd.txt", "wb", CFILE_NORMAL, CF_TYPE_DATA);
 		if(out != NULL){
 			// write all the text
@@ -4268,15 +4266,15 @@ void multi_pxo_com_close()
 void multi_pxo_com_blit_text()
 {
 	// blit top, middle and bottom text if possible
-	if(strlen(Multi_pxo_com_top_text) > 0){
+	if(SDL_strlen(Multi_pxo_com_top_text) > 0){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_pxo_com_top_text_coords[gr_screen.res][0], Multi_pxo_com_top_text_coords[gr_screen.res][1], Multi_pxo_com_top_text);
 	}
-	if(strlen(Multi_pxo_com_middle_text) > 0){
+	if(SDL_strlen(Multi_pxo_com_middle_text) > 0){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_pxo_com_top_text_coords[gr_screen.res][0], Multi_pxo_com_middle_text_y[gr_screen.res], Multi_pxo_com_middle_text);
 	}
-	if(strlen(Multi_pxo_com_bottom_text) > 0){
+	if(SDL_strlen(Multi_pxo_com_bottom_text) > 0){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_pxo_com_top_text_coords[gr_screen.res][0], Multi_pxo_com_bottom_text_y[gr_screen.res], Multi_pxo_com_bottom_text);
 	}
@@ -4285,7 +4283,7 @@ void multi_pxo_com_blit_text()
 // set the top text, shortening as necessary
 void multi_pxo_com_set_top_text(const char *txt)
 {	
-	if((txt != NULL) && strlen(txt)){
+	if((txt != NULL) && SDL_strlen(txt)){
 		SDL_strlcpy(Multi_pxo_com_top_text, txt, SDL_arraysize(Multi_pxo_com_top_text));
 		gr_force_fit_string(Multi_pxo_com_top_text, 254, Multi_pxo_com_input_coords[gr_screen.res][2]);
 	}	
@@ -4294,7 +4292,7 @@ void multi_pxo_com_set_top_text(const char *txt)
 // set the middle text, shortening as necessary
 void multi_pxo_com_set_middle_text(const char *txt)
 {
-	if((txt != NULL) && strlen(txt)){
+	if((txt != NULL) && SDL_strlen(txt)){
 		SDL_strlcpy(Multi_pxo_com_middle_text, txt, SDL_arraysize(Multi_pxo_com_middle_text));
 		gr_force_fit_string(Multi_pxo_com_middle_text, 254, Multi_pxo_com_input_coords[gr_screen.res][2]);
 	}	
@@ -4303,7 +4301,7 @@ void multi_pxo_com_set_middle_text(const char *txt)
 // set the bottom text, shortening as necessary
 void multi_pxo_com_set_bottom_text(const char *txt)
 {
-	if((txt != NULL) && strlen(txt)){
+	if((txt != NULL) && SDL_strlen(txt)){
 		SDL_strlcpy(Multi_pxo_com_bottom_text, txt, SDL_arraysize(Multi_pxo_com_bottom_text));
 		gr_force_fit_string(Multi_pxo_com_bottom_text, 254, Multi_pxo_com_input_coords[gr_screen.res][2]);
 	}	
@@ -4433,7 +4431,7 @@ void multi_pxo_priv_button_pressed(int n)
 		multi_pxo_strip_space(priv_chan_name, priv_chan_name, SDL_arraysize(priv_chan_name));
 
 		// if its a 0 length string, interpret as a cancel
-		if(strlen(priv_chan_name) <= 0){
+		if(SDL_strlen(priv_chan_name) <= 0){
 			Multi_pxo_priv_return_code = 0;
 			return;
 		}
@@ -4454,7 +4452,7 @@ void multi_pxo_priv_process_input()
 		multi_pxo_strip_space(priv_chan_name, priv_chan_name, SDL_arraysize(priv_chan_name));
 		
 		// if its a 0 length string, interpret as a cancel
-		if(strlen(priv_chan_name) <= 0){
+		if(SDL_strlen(priv_chan_name) <= 0){
 			Multi_pxo_priv_return_code = 0;
 			return;
 		}
@@ -4574,7 +4572,7 @@ int multi_pxo_find_popup()
 		multi_pxo_find_close();
 
 		// if we have a channel, join it now if possible
-		if(strlen(Multi_pxo_find_channel) > 0){
+		if(SDL_strlen(Multi_pxo_find_channel) > 0){
 			pxo_channel *lookup;
 			lookup = multi_pxo_find_channel(Multi_pxo_find_channel,Multi_pxo_channels);
 			
@@ -4632,7 +4630,7 @@ void multi_pxo_find_process_input()
 			multi_pxo_strip_space(name_lookup, name_lookup, SDL_arraysize(name_lookup));
 
 			// never search with a zero length string
-			if(strlen(name_lookup) > 0){
+			if(SDL_strlen(name_lookup) > 0){
 				char search_text[512];
 
 				// put us in search mode
@@ -4690,8 +4688,8 @@ void multi_pxo_find_search_process()
 					// mark down the channel name so we know where to find him
 					SDL_strlcpy(Multi_pxo_find_channel, channel, SDL_arraysize(Multi_pxo_find_channel));
 					// strip out trailing whitespace
-					if(Multi_pxo_find_channel[strlen(Multi_pxo_find_channel) - 1] == ' '){
-						Multi_pxo_find_channel[strlen(Multi_pxo_find_channel) - 1] = '\0';
+					if(Multi_pxo_find_channel[SDL_strlen(Multi_pxo_find_channel) - 1] == ' '){
+						Multi_pxo_find_channel[SDL_strlen(Multi_pxo_find_channel) - 1] = '\0';
 					}				
 				}
 				// if this is a private channel
@@ -5508,7 +5506,7 @@ void multi_pxo_ban_process()
 		multi_pxo_ban_parse_banner_file(0);
 
 		// if we have no active file, we're done
-		if((strlen(Multi_pxo_banner.ban_file) <= 0) || (strlen(Multi_pxo_banner.ban_file_url) <= 0)){
+		if((SDL_strlen(Multi_pxo_banner.ban_file) <= 0) || (SDL_strlen(Multi_pxo_banner.ban_file_url) <= 0)){
 			Multi_pxo_ban_mode = PXO_BAN_MODE_IDLE;
 			break;
 		}
@@ -5559,8 +5557,8 @@ void multi_pxo_ban_process()
 	// done downloading - maybe load an image
 	case PXO_BAN_MODE_IMAGES_DONE:
 		// make sure we have a valid filename
-		// SDL_assert(strlen(Multi_pxo_banner.ban_file) > 0);
-		if(strlen(Multi_pxo_banner.ban_file) > 0){
+		// SDL_assert(SDL_strlen(Multi_pxo_banner.ban_file) > 0);
+		if(SDL_strlen(Multi_pxo_banner.ban_file) > 0){
 			Multi_pxo_banner.ban_bitmap = bm_load(Multi_pxo_banner.ban_file);
 		}
 
@@ -5762,7 +5760,7 @@ void multi_pxo_ban_draw()
 void multi_pxo_ban_clicked()
 {
 	// if we have a valid bitmap and URL, launch the URL
-	if((Multi_pxo_banner.ban_bitmap >= 0) && (strlen(Multi_pxo_banner.ban_url) > 0)){
+	if((Multi_pxo_banner.ban_bitmap >= 0) && (SDL_strlen(Multi_pxo_banner.ban_url) > 0)){
 		multi_pxo_url(Multi_pxo_banner.ban_url);
 	}
 }

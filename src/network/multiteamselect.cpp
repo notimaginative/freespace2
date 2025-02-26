@@ -1703,7 +1703,7 @@ void multi_ts_blit_ship_info()
 	// blit the ship class (name)
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Class",739));
-	if(strlen(sip->name)){
+	if(SDL_strlen(sip->name)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->name);
 	}
@@ -1712,7 +1712,7 @@ void multi_ts_blit_ship_info()
 	// blit the ship type
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Type",740));
-	if((sip->type_str != NULL) && strlen(sip->type_str)){
+	if((sip->type_str != NULL) && SDL_strlen(sip->type_str)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->type_str);
 	}
@@ -1721,7 +1721,7 @@ void multi_ts_blit_ship_info()
 	// blit the ship length
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Length",741));
-	if((sip->ship_length != NULL) && strlen(sip->ship_length)){
+	if((sip->ship_length != NULL) && SDL_strlen(sip->ship_length)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->ship_length);
 	}
@@ -1738,7 +1738,7 @@ void multi_ts_blit_ship_info()
 	// blit the maneuverability
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Maneuverability",744));
-	if((sip->maneuverability_str != NULL) && strlen(sip->maneuverability_str)){
+	if((sip->maneuverability_str != NULL) && SDL_strlen(sip->maneuverability_str)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->maneuverability_str);
 	}
@@ -1747,7 +1747,7 @@ void multi_ts_blit_ship_info()
 	// blit the armor
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Armor",745));
-	if((sip->armor_str != NULL) && strlen(sip->armor_str)){
+	if((sip->armor_str != NULL) && SDL_strlen(sip->armor_str)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->armor_str);
 	}
@@ -1756,7 +1756,7 @@ void multi_ts_blit_ship_info()
 	// blit the gun mounts 
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Gun Mounts",746));
-	if((sip->gun_mounts != NULL) && strlen(sip->gun_mounts)){
+	if((sip->gun_mounts != NULL) && SDL_strlen(sip->gun_mounts)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->gun_mounts);
 	}
@@ -1765,7 +1765,7 @@ void multi_ts_blit_ship_info()
 	// blit the missile banke
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Missile Banks",747));
-	if((sip->missile_banks != NULL) && strlen(sip->missile_banks)){
+	if((sip->missile_banks != NULL) && SDL_strlen(sip->missile_banks)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->missile_banks);
 	}
@@ -1774,7 +1774,7 @@ void multi_ts_blit_ship_info()
 	// blit the manufacturer
 	gr_set_color_fast(&Color_normal);
 	gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD], y_start,XSTR("Manufacturer",748));
-	if((sip->manufacturer_str != NULL) && strlen(sip->manufacturer_str)){
+	if((sip->manufacturer_str != NULL) && SDL_strlen(sip->manufacturer_str)){
 		gr_set_color_fast(&Color_bright);
 		gr_string(Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_X_COORD] + 150, y_start,sip->manufacturer_str);
 	}
@@ -2788,7 +2788,7 @@ void multi_ts_select_ship()
 	// split the text info up	
 	/*
 	SDL_assert(Multi_ts_select_ship_class >= 0);
-	SDL_assert((Ship_info[Multi_ts_select_ship_class].desc != NULL) && strlen(Ship_info[Multi_ts_select_ship_class].desc));
+	SDL_assert((Ship_info[Multi_ts_select_ship_class].desc != NULL) && SDL_strlen(Ship_info[Multi_ts_select_ship_class].desc));
 
 	// strip out newlines
 	memset(ship_desc,0,1000);
@@ -2805,7 +2805,7 @@ void multi_ts_select_ship()
 		}
 	}
 	
-	if(strlen(Multi_ts_ship_info_text) > 0){
+	if(SDL_strlen(Multi_ts_ship_info_text) > 0){
 		// split the string into multiple lines
 		n_lines = split_str(Multi_ts_ship_info_text, Multi_ts_ship_info_coords[gr_screen.res][MULTI_TS_W_COORD], n_chars, p_str, MULTI_TS_SHIP_INFO_MAX_LINES, 0);	
 

@@ -285,7 +285,7 @@ int targa_compress(char *out, char *in, int outsize, int pixsize, int bytecount)
 		++flagbyte;
 		flagbyte += targa_copy_data(flagbyte, copyloc, pixcount, pixsize, outsize);
 	}
-	return(flagbyte-out);
+	return static_cast<int>(flagbyte-out);
 }
 
 // Reads a pixel of the specified bytes_per_pixel into memory and
@@ -483,7 +483,7 @@ int targa_uncompress( ubyte *dst, ubyte *src, int bitmap_width, int bytes_per_pi
 
 	SDL_assert( pixel_count == bitmap_width );
 
-	return src_pixels - src;
+	return static_cast<int>(src_pixels - src);
 }
 
 

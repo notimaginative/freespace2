@@ -1022,7 +1022,7 @@ void debrief_voice_load_all()
 	// Debrief_voice_ask_for_cd = 1;
 
 	for ( i=0; i<Num_debrief_stages; i++ ) {
-		if ( strlen(Debrief_stages[i]->voice) <= 0 ) {
+		if ( SDL_strlen(Debrief_stages[i]->voice) == 0 ) {
 			continue;
 		}
 		if ( SDL_strncasecmp(Debrief_stages[i]->voice, NOX("none"), 4) ) {

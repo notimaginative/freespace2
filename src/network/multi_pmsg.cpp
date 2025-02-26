@@ -292,7 +292,7 @@ void multi_msg_eval_text_msg()
 	int player_index;
 	
 	// if its a 0 length string, don't do anything
-	if(strlen(Multi_msg_text) <= 0){
+	if(SDL_strlen(Multi_msg_text) == 0){
 		return;
 	}
 
@@ -353,8 +353,8 @@ int multi_msg_text_process(int k)
 
 	// backspace
 	case SDLK_BACKSPACE:
-		if(strlen(Multi_msg_text) > 0){
-			Multi_msg_text[strlen(Multi_msg_text)-1] = '\0';
+		if(SDL_strlen(Multi_msg_text) > 0){
+			Multi_msg_text[SDL_strlen(Multi_msg_text)-1] = '\0';
 		}
 		break;
 
@@ -370,7 +370,7 @@ int multi_msg_text_process(int k)
 	// stick other printable characters onto the text
 	default :					
 		// if we're not already at the maximum length
-		if(strlen(Multi_msg_text) < MULTI_MSG_MAX_LEN){
+		if(SDL_strlen(Multi_msg_text) < MULTI_MSG_MAX_LEN){
 			int key_text = key_get_text_input();
 
 			if (key_text < 0) {
@@ -445,19 +445,19 @@ int multi_msg_matches_expr(net_player *player, const char *expr)
 	int len,idx;
 
 	// some error checking
-	if((player == NULL) || (expr == NULL) || (strlen(expr) <= 0)){
+	if((player == NULL) || (expr == NULL) || !SDL_strlen(expr)){
 		return 0;
 	}
 
 	// get the completely lowercase callsign
 	memset(callsign,0,CALLSIGN_LEN+1);
-	len = strlen(player->player->callsign);
+	len = static_cast<int>(SDL_strlen(player->player->callsign));
 	for(idx=0;idx<len;idx++){
 		callsign[idx] = (char)tolower(player->player->callsign[idx]);
 	}
 
 	// see if this guy's callsign matches the expr
-	len = strlen(expr);
+	len = static_cast<int>(SDL_strlen(expr));
 	for(idx=0;idx<len;idx++){
 		// look for non-matching characters
 		if(callsign[idx] != expr[idx]){

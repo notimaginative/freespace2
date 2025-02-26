@@ -1974,7 +1974,7 @@ void ship_set(int ship_index, int objnum, int ship_type)
 
 	// Create n!
 	// sprintf(shipp->ship_name, "%s %d", Ship_info[ship_type].name, ship_index); // moved to ship_create()
-	SDL_assert(strlen(shipp->ship_name) < NAME_LENGTH - 1);
+	SDL_assert(SDL_strlen(shipp->ship_name) < NAME_LENGTH - 1);
 	shipp->ship_info_index = ship_type;
 	shipp->objnum = objnum;
 	shipp->group = 0;
@@ -4566,7 +4566,7 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 	shipp->modelnum = sip->modelnum;
 
 	// maybe load an optional hud target model
-	if(strlen(sip->pof_file_hud)){
+	if(SDL_strlen(sip->pof_file_hud)){
 		// check to see if a "real" ship uses this model. if so, load it up for him so that subsystems are setup properly
 		int idx;
 		for(idx=0; idx<Num_ship_types; idx++){

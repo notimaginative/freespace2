@@ -1517,7 +1517,7 @@ void brief_render(float frametime)
 		// can be scrolled down
 		int more_txt_x = Brief_text_coords[gr_screen.res][0] + (Brief_max_line_width[gr_screen.res]/2) - 10;
 		int more_txt_y = Brief_text_coords[gr_screen.res][1] + Brief_text_coords[gr_screen.res][3] - 2;				// located below brief text, centered
-		gr_get_string_size(&w, &h, XSTR("more", 1469), strlen(XSTR("more", 1469)));
+		gr_get_string_size(&w, &h, XSTR("more", 1469), SDL_strlen(XSTR("more", 1469)));
 		gr_set_color_fast(&Color_black);
 		gr_rect(more_txt_x-2, more_txt_y, w+3, h);
 		gr_set_color_fast(&Color_red);

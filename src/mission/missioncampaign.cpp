@@ -281,11 +281,11 @@ int mission_campaign_get_info(const char *filename, char *name, int *type, int *
 	lcl_ext_open();
 
 	SDL_strlcpy(fname, filename, SDL_arraysize(fname));
-	if ((strlen(fname) < 4) || SDL_strcasecmp(fname + strlen(fname) - 4, FS_CAMPAIGN_FILE_EXT)){
+	if ((SDL_strlen(fname) < 4) || SDL_strcasecmp(fname + SDL_strlen(fname) - 4, FS_CAMPAIGN_FILE_EXT)){
 		SDL_strlcat(fname, FS_CAMPAIGN_FILE_EXT, SDL_arraysize(fname));
 	}
 
-	SDL_assert(strlen(fname) < MAX_FILENAME_LEN);
+	SDL_assert(SDL_strlen(fname) < MAX_FILENAME_LEN);
 
 	try {
 		read_file_text( fname );
@@ -431,7 +431,7 @@ void mission_campaign_get_sw_info()
 // functions work properly and update them if it breaks them.
 int mission_campaign_load( const char *filename, int load_savefile )
 {
-	int len, i;
+	int i;
 	char name[NAME_LENGTH], type[NAME_LENGTH];
 
 	filename = cf_add_ext(filename, FS_CAMPAIGN_FILE_EXT);
@@ -460,7 +460,7 @@ int mission_campaign_load( const char *filename, int load_savefile )
 		memset( &Campaign, 0, sizeof(Campaign) );
 
 		// copy filename to campaign structure minus the extension
-		len = SDL_min(strlen(filename) - 4 + 1, SDL_arraysize(Campaign.filename));
+		auto len = SDL_min(SDL_strlen(filename) - 4 + 1, SDL_arraysize(Campaign.filename));
 		SDL_strlcpy(Campaign.filename, filename, len);
 
 		required_string("$Name:");
@@ -642,11 +642,11 @@ int mission_campaign_load_by_name( const char *filename )
 	int type,max_players;
 
 	// make sure to tack on .fsc on the end if its not there already
-	if(strlen(filename) > 0){
+	if(SDL_strlen(filename) > 0){
 		SDL_strlcpy(real_filename, filename, MAX_FILENAME_LEN);
 
-		if(strlen(real_filename) > 4){
-			SDL_strlcpy(test, real_filename+(strlen(real_filename)-4), SDL_arraysize(test));
+		if(SDL_strlen(real_filename) > 4){
+			SDL_strlcpy(test, real_filename+(SDL_strlen(real_filename)-4), SDL_arraysize(test));
 			if(strcmp(test, FS_CAMPAIGN_FILE_EXT)!=0){
 				SDL_strlcat(real_filename, FS_CAMPAIGN_FILE_EXT, SDL_arraysize(real_filename));
 			}
@@ -688,12 +688,12 @@ void mission_campaign_savefile_generate_root(char *filename, const int max_len)
 {
 	char base[MAX_FILENAME_LEN];
 
-	SDL_assert ( strlen(Campaign.filename) != 0 );
+	SDL_assert ( SDL_strlen(Campaign.filename) != 0 );
 
 	// build up the filename for the save file.  There could be a problem with filename length,
 	// but this problem can get fixed in several ways -- ignore the problem for now though.
 	base_filename(Campaign.filename, base, SDL_arraysize(base));
-	SDL_assert ( (int)(strlen(base) + strlen(Player->callsign)) < max_len );
+	SDL_assert ( (int)(SDL_strlen(base) + SDL_strlen(Player->callsign)) < max_len );
 
 	SDL_snprintf( filename, max_len, NOX("%s.%s."), Player->callsign, base );
 }
@@ -902,7 +902,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 	uint id, type_sig;
 	CFILE *fp;
 
-	SDL_assert ( strlen(cfilename) != 0 );
+	SDL_assert ( SDL_strlen(cfilename) != 0 );
 
 	// probably only called from single player games anymore!!! should be anyway
 	SDL_assert( Game_mode & GM_NORMAL );		// get allender or DaveB.  trying to save campaign in multiplayer
@@ -910,7 +910,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 	// build up the filename for the save file.  There could be a problem with filename length,
 	// but this problem can get fixed in several ways -- ignore the problem for now though.
 	base_filename(cfilename, base, SDL_arraysize(base));
-	SDL_assert ( (strlen(base) + strlen(Player->callsign)) < SDL_arraysize(filename) );
+	SDL_assert ( (SDL_strlen(base) + SDL_strlen(Player->callsign)) < SDL_arraysize(filename) );
 
 	if(Game_mode & GM_MULTIPLAYER)
 		SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.msg"), Player->callsign, base );
@@ -1087,7 +1087,7 @@ void campaign_savefile_load(const char *fname, const char *pname)
 // set successfully
 int mission_campaign_next_mission()
 {
-	if ( (Campaign.next_mission == -1) || (strlen(Campaign.name) == 0) ) // will be set to -1 when there is no next mission
+	if ( (Campaign.next_mission == -1) || (SDL_strlen(Campaign.name) == 0) ) // will be set to -1 when there is no next mission
 		return -1;
 
 	Campaign.current_mission = Campaign.next_mission;	
@@ -1163,7 +1163,7 @@ int mission_campaign_eval_next_mission( int store_stats )
 
 	// copy the needed info from the Mission_goal struct to our internal structure
 	for (i = 0; i < Num_goals; i++ ) {
-		if ( strlen(Mission_goals[i].name) == 0 ) {
+		if ( SDL_strlen(Mission_goals[i].name) == 0 ) {
 			char name[NAME_LENGTH];
 
 			sprintf(name, NOX("Goal #%d"), i);
@@ -1189,7 +1189,7 @@ int mission_campaign_eval_next_mission( int store_stats )
 
 	// copy the needed info from the Mission_goal struct to our internal structure
 	for (i = 0; i < Num_mission_events; i++ ) {
-		if ( strlen(Mission_events[i].name) == 0 ) {
+		if ( SDL_strlen(Mission_events[i].name) == 0 ) {
 			char name[NAME_LENGTH];
 
 			sprintf(name, NOX("Event #%d"), i);
@@ -1318,7 +1318,7 @@ void mission_campaign_store_goals_and_events()
 
 	// copy the needed info from the Mission_goal struct to our internal structure
 	for (i = 0; i < Num_goals; i++ ) {
-		if ( strlen(Mission_goals[i].name) == 0 ) {
+		if ( SDL_strlen(Mission_goals[i].name) == 0 ) {
 			char name[NAME_LENGTH];
 
 			SDL_snprintf(name, SDL_arraysize(name), NOX("Goal #%d"), i);
@@ -1344,7 +1344,7 @@ void mission_campaign_store_goals_and_events()
 
 	// copy the needed info from the Mission_goal struct to our internal structure
 	for (i = 0; i < Num_mission_events; i++ ) {
- 		if ( strlen(Mission_events[i].name) == 0 ) {
+ 		if ( SDL_strlen(Mission_events[i].name) == 0 ) {
 			char name[NAME_LENGTH];
 
 			SDL_snprintf(name, SDL_arraysize(name), NOX("Event #%d"), i);
@@ -1529,7 +1529,7 @@ int mission_campaign_get_filenames(const char *filename, char dest[][NAME_LENGTH
 	// read the mission file and get the list of mission filenames
 	try {
 		read_file_text(filename);
-		SDL_assert(strlen(filename) < MAX_FILENAME_LEN - 1);  // make sure no overflow
+		SDL_assert(SDL_strlen(filename) < MAX_FILENAME_LEN - 1);  // make sure no overflow
 
 		reset_parse();
 		required_string("$Name:");
@@ -1580,8 +1580,8 @@ void read_mission_goal_list(int num)
 					free(Campaign.missions[num].notes);
 				}
 
-				Campaign.missions[num].notes = (char *) malloc(strlen(notes) + 1);
-				SDL_strlcpy(Campaign.missions[num].notes, notes, strlen(notes) + 1);
+				Campaign.missions[num].notes = (char *) malloc(SDL_strlen(notes) + 1);
+				SDL_strlcpy(Campaign.missions[num].notes, notes, SDL_strlen(notes) + 1);
 			}
 		}
 
@@ -1703,7 +1703,7 @@ void mission_campaign_maybe_play_movie(int type)
 	filename = NULL;
 	switch( type ) {
 	case CAMPAIGN_MOVIE_PRE_MISSION:
-		if ( strlen(Campaign.missions[mission].briefing_cutscene) )
+		if ( SDL_strlen(Campaign.missions[mission].briefing_cutscene) )
 			filename = Campaign.missions[mission].briefing_cutscene;
 		break;
 
@@ -1771,7 +1771,7 @@ void mission_campaign_save_persistent( int type, int sindex )
 // returns 0: loaded, !0: error
 int mission_load_up_campaign()
 {
-	if (strlen(Player->current_campaign))
+	if (SDL_strlen(Player->current_campaign))
 		return mission_campaign_load(Player->current_campaign);
 	else
 		return mission_campaign_load(BUILTIN_CAMPAIGN);

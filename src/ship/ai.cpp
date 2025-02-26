@@ -93,7 +93,7 @@ char *ai_get_goal_ship_name(const char *name, int *index)
 		}
 
 	SDL_assert(Total_goal_ship_names < MAX_GOAL_SHIP_NAMES);
-	SDL_assert(strlen(name) < NAME_LENGTH - 1);
+	SDL_assert(SDL_strlen(name) < NAME_LENGTH - 1);
 	i = Total_goal_ship_names++;
 	SDL_strlcpy(Goal_ship_names[i], name, NAME_LENGTH);
 	*index = i;

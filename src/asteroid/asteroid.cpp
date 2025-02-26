@@ -377,7 +377,7 @@ int asteroid_obj_list_add(int objnum)
 	int index;
 
 	asteroid *cur_asteroid = &Asteroids[Objects[objnum].instance];
-	index = cur_asteroid - Asteroids;
+	index = static_cast<int>(cur_asteroid - Asteroids);
 
 	SDL_assert(index >= 0 && index < MAX_ASTEROID_OBJS);
 	SDL_assert(!(Asteroid_objs[index].flags & ASTEROID_OBJ_USED));

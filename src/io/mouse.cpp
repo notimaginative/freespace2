@@ -432,8 +432,8 @@ void mouse_force_pos(int x, int y)
 		return;
 	}
 
-	int x1 = fl2i(x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;
-	int y1 = fl2i(y / gr_screen.viewport_scale_factor_y) + gr_screen.viewport_offset_y;
+	float x1 = (x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;
+	float y1 = (y / gr_screen.viewport_scale_factor_y) + gr_screen.viewport_offset_y;
 
 	SDL_WarpMouseInWindow(os_get_window(), x1, y1);
 
@@ -518,7 +518,7 @@ void mouse_set_pos(int xpos, int ypos)
 	}
 }
 
-void mouse_update_pos(int x, int y, int dx, int dy)
+void mouse_update_pos(float x, float y, float dx, float dy)
 {
 	int x1 = fl2i((x - gr_screen.viewport_offset_x) * gr_screen.viewport_scale_factor_x);
 	int y1 = fl2i((y - gr_screen.viewport_offset_y) * gr_screen.viewport_scale_factor_y);
@@ -529,8 +529,8 @@ void mouse_update_pos(int x, int y, int dx, int dy)
 	Mouse_x = x1;
 	Mouse_y = y1;
 
-	Mouse_dx_inc += dx;
-	Mouse_dy_inc += dy;
+	Mouse_dx_inc += fl2i(dx);
+	Mouse_dy_inc += fl2i(dy);
 }
 
 // update mouse with position which is already scaled for max_w/max_h

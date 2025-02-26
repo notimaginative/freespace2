@@ -88,11 +88,11 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 		}
 
 		// take the \n off the end of it
-		if (strlen(buffer)>0 && buffer[strlen(buffer) - 1] == '\n')
-			buffer[strlen(buffer) - 1] = 0;
+		if (SDL_strlen(buffer)>0 && buffer[SDL_strlen(buffer) - 1] == '\n')
+			buffer[SDL_strlen(buffer) - 1] = 0;
 
 		// If the line is empty, go get another one
-		if (strlen(buffer) == 0) continue;
+		if (SDL_strlen(buffer) == 0) continue;
 
 		// If the line is a comment, go get another one
 		if (buffer[0] == VERSION_FILE_COMMENT_CHAR) continue;
@@ -103,7 +103,7 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	cfclose(f);
 
 	// Make sure a version line was found
-	if (strlen(verbuffer) == 0) {
+	if (SDL_strlen(verbuffer) == 0) {
 		// MessageBox(XSTR("Couldn't parse Version file!", 1205), XSTR("Error!", 1185), MB_OK|MB_ICONERROR);
 		return -1;
 	}

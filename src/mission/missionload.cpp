@@ -245,7 +245,7 @@ void ml_update_recent_missions(char *filename)
 		p++;
 	}
 
-	SDL_assert(strlen(p) < MAX_FILENAME_LEN);
+	SDL_assert(SDL_strlen(p) < MAX_FILENAME_LEN);
 	SDL_strlcpy( Recent_missions[0], p, SDL_arraysize(Recent_missions[0]) );
 
 	j = 1;

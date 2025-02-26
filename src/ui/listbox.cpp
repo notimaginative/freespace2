@@ -606,7 +606,7 @@ int UI_LISTBOX::add_string(char *str)
 		return 0;
 
 	else {
-		if ( (num_items == max_items - 1) || (strlen(str) > DEFAULT_LISTBOX_ITEM_LENGTH) )
+		if ( (num_items == max_items - 1) || (SDL_strlen(str) > DEFAULT_LISTBOX_ITEM_LENGTH) )
 			return 0;                     // we've reached our limit
 
 		else {

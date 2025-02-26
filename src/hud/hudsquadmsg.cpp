@@ -2187,7 +2187,7 @@ void hud_squadmsg_call_reinforcement(int reinforcement_num, int player_num)
 	// determine how many messages there are to play, since the array is packet.  Then, if >= 1 message
 	// to play, play one
 	for (i = 0; i < MAX_REINFORCEMENT_MESSAGES; i++ )
-		if ( !strlen(rp->yes_messages[i]) )
+		if ( !SDL_strlen(rp->yes_messages[i]) )
 			break;
 
 	//if ( i > 0 )

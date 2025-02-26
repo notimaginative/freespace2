@@ -395,7 +395,7 @@ int hash_filename(const char *filename) {
 	const char *ptr = filename;
 	
 	// Dont hash .fsm extension, convert all to upper case
-	for (int i=0; i < ((signed int)(strlen(filename)) - 4); i++) {
+	for (int i=0; i < ((signed int)(SDL_strlen(filename)) - 4); i++) {
 		hash_val = (hash_val << 4) + toupper(*ptr++);
 	}
 
@@ -608,7 +608,7 @@ int build_standalone_mission_list_do_frame()
 	Standalone_mission_flags[Num_standalone_missions_with_info] = 0;
 
 	if (Num_standalone_missions > 0) {  // sanity check
-		if (strlen(Mission_filenames[Num_standalone_missions_with_info]) < MAX_FILENAME_LEN - 4) { // sanity check?
+		if (SDL_strlen(Mission_filenames[Num_standalone_missions_with_info]) < MAX_FILENAME_LEN - 4) { // sanity check?
 			SDL_strlcpy(filename, Mission_filenames[Num_standalone_missions_with_info], SDL_arraysize(filename));
 
 			// update popup		
@@ -1685,7 +1685,7 @@ int campaign_room_reset_campaign(int n)
 
 	z = popup_sync(PF_TITLE_BIG | PF_TITLE_RED, 2, POPUP_CANCEL, POPUP_OK, XSTR( "Warning\nThis will cause all progress in your\ncurrent campaign to be lost", 110));
 	if (z == 1) {
-		int len = strlen(Campaign_file_names[n]) + 5;
+		auto len = SDL_strlen(Campaign_file_names[n]) + 5;
 		filename = (char *) malloc(len);
 		SDL_strlcpy(filename, Campaign_file_names[n], len);
 		SDL_strlcat(filename, FS_CAMPAIGN_FILE_EXT, len);
@@ -1846,7 +1846,7 @@ void campaign_room_init()
 	for (i=0; i<Num_campaigns; i++) {
 		for (j=0; j<Num_campaigns; j++) {
 			if (Campaign_file_names_temp[j]) {
-				if (!strncmp(Campaign_file_names[i], Campaign_file_names_temp[j], strlen(Campaign_file_names_temp[j]) - 4)) {
+				if (!strncmp(Campaign_file_names[i], Campaign_file_names_temp[j], SDL_strlen(Campaign_file_names_temp[j]) - 4)) {
 					Campaign_descs[i] = Campaign_descs_temp[j];
 					free(Campaign_file_names_temp[j]);
 					Campaign_file_names_temp[j] = NULL;

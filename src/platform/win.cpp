@@ -8,32 +8,14 @@
 
 #ifndef PLAT_UNIX
 
+/*
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shellapi.h>
 
 #include <SDL3/SDL.h>
 #include "osapi.h"
+*/
 
-
-int platform_open_url(const char *url)
-{
-	char s_url[256];
-
-	// make sure it's a valid www address
-	if ( !SDL_strncasecmp(url, "http://", 7) || !SDL_strncasecmp(url, "https://", 8) ) {
-		SDL_strlcpy(s_url, url, SDL_arraysize(s_url));
-	} else {
-		SDL_snprintf(s_url, SDL_arraysize(s_url), "http://%s", url);
-	}
-
-	int rval = (int) ShellExecuteA(NULL, "open", s_url, NULL, NULL, SW_SHOWNORMAL);
-
-	if (rval <= 32) {
-		return -1;
-	}
-
-	return 0;
-}
 
 #endif

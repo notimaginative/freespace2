@@ -112,7 +112,7 @@ InetGetFile::InetGetFile(char *URL, char *filename, int cf_type)
 		// using http proxy?
 		extern char Multi_options_proxy[512];
 		extern ushort Multi_options_proxy_port;
-		if(strlen(Multi_options_proxy) > 0){
+		if(SDL_strlen(Multi_options_proxy) > 0){
 			http = new ChttpGet(URL, localfile, Multi_options_proxy, Multi_options_proxy_port);
 		} else {
 			http = new ChttpGet(URL, localfile);

@@ -36,15 +36,16 @@
  * $NoKeywords: $
  */
 
-#include <string.h>
+#include <SDL3/SDL_stdinc.h>
 #include "crypt.h"
+
 
 char *jcrypt (char *plainstring)
 {
-	int i,t,len;
+	size_t i,t,len;
 	static char cryptstring[CRYPT_STRING_LENGTH + 1];
 
-	len=strlen (plainstring);
+	len = SDL_strlen(plainstring);
 	if (len > CRYPT_STRING_LENGTH)
 		len = CRYPT_STRING_LENGTH;
    

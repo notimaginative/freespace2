@@ -1580,7 +1580,7 @@ void hud_config_button_do(int n)
 		// get the text in the input control
 		exists = 0;
 		HC_fname_input.get_text(name);
-		if(strlen(name) > 0){
+		if(SDL_strlen(name) > 0){
 			// if the filename in there already exists
 			for(idx=0; idx<HC_num_files; idx++){
 				if(!SDL_strcasecmp(HC_filenames[idx], name)){
@@ -1604,7 +1604,7 @@ void hud_config_button_do(int n)
 		}
 
 		// save the file, maybe generating a new filename
-		if(strlen(name) <= 0){
+		if(SDL_strlen(name) == 0){
 			SDL_snprintf(name, SDL_arraysize(name), "hud_%d.hcf", HC_num_files + 1);
 			out = name;
 		} else {

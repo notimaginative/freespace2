@@ -1078,15 +1078,15 @@ int player_select_get_last_pilot_info()
 
 	last_player = os_config_read_string( NULL, "LastPlayer", NULL);
 	
-	if(last_player == NULL){
-		return 0;		
+	if ( (last_player == nullptr) || !SDL_strlen(last_player) ) {
+		return 0;
 	} else {
 		SDL_strlcpy(Player_select_last_pilot, last_player, SDL_arraysize(Player_select_last_pilot));
 	}
 
 	// determine if he was a single or multi-player based upon the last character in his callsign
-	Player_select_last_is_multi = Player_select_last_pilot[strlen(Player_select_last_pilot)-1] == 'M' ? 1 : 0;
-	Player_select_last_pilot[strlen(Player_select_last_pilot)-1]='\0';
+	Player_select_last_is_multi = Player_select_last_pilot[SDL_strlen(Player_select_last_pilot)-1] == 'M' ? 1 : 0;
+	Player_select_last_pilot[SDL_strlen(Player_select_last_pilot)-1]='\0';
 
 	return 1;	
 }
@@ -1403,7 +1403,7 @@ void player_select_display_all_text()
 	int w, h;
 
 	// only draw if we actually have a valid string
-	if (strlen(Player_select_bottom_text)) {
+	if (SDL_strlen(Player_select_bottom_text)) {
 		gr_get_string_size(&w, &h, Player_select_bottom_text);
 	
 		w = (gr_screen.max_w - w) / 2;
@@ -1416,7 +1416,7 @@ void player_select_display_all_text()
 	}
 
 	// only draw if we actually have a valid string
-	if (strlen(Player_select_middle_text)) {
+	if (SDL_strlen(Player_select_middle_text)) {
 		gr_get_string_size(&w, &h, Player_select_middle_text);
 	
 		w = (gr_screen.max_w - w) / 2;

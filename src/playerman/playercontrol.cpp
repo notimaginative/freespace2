@@ -1912,7 +1912,7 @@ char *player_generate_death_text( player *player_p, char *death_text, const int 
 		SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a collision with an asteroid", 98), player_p->callsign);
 		break;
 	case OBJ_BEAM:
-		if(strlen(player_p->killer_parent_name) <= 0){			
+		if(SDL_strlen(player_p->killer_parent_name) <= 0){			
 			Int3();
 			SDL_snprintf(death_text, max_dtlen, XSTR( "%s was killed by a beam from an unknown source", 1081), player_p->callsign);
 		} else {					

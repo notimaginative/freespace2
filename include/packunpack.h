@@ -233,8 +233,8 @@ typedef struct anim_instance {
 
 extern int packer_code;
 
-int	pack_key_frame(ubyte *frame, ubyte *save, long size, long max, int compress_type);
-int	pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, long size, long max, int compress_type);
+int	pack_key_frame(ubyte *frame, ubyte *save, int size, int max, int compress_type);
+int	pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, int size, int max, int compress_type);
 
 ubyte	*unpack_frame(anim_instance *ai, ubyte *ptr, ubyte *frame, int size, ubyte *pal_translate, int aabitmap, int bpp);
 int unpack_frame_from_file(anim_instance *ai, ubyte *frame, int size, ubyte *pal_translate, int aabitmap, int bpp);

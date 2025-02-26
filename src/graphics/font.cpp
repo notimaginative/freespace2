@@ -277,16 +277,16 @@ char *gr_force_fit_string(char *str, int max_str, int max_width)
 
 	gr_get_string_size(&w, NULL, str);
 	if (w > max_width) {
-		if ((int) strlen(str) > max_str - 3) {
+		if ((int) SDL_strlen(str) > max_str - 3) {
 			SDL_assert(max_str >= 3);
 			str[max_str - 3] = 0;
 		}
 
-		SDL_strlcpy(str + strlen(str) - 1, "...", max_str);
+		SDL_strlcpy(str + SDL_strlen(str) - 1, "...", max_str);
 		gr_get_string_size(&w, NULL, str);
 		while (w > max_width) {
-			SDL_assert(strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
-			SDL_strlcpy(str + strlen(str) - 4, "...", max_str);
+			SDL_assert(SDL_strlen(str) >= 4);  // if this is hit, a bad max_width was passed in and the calling function needs fixing.
+			SDL_strlcpy(str + SDL_strlen(str) - 4, "...", max_str);
 			gr_get_string_size(&w, NULL, str);
 		}
 	}
@@ -404,7 +404,7 @@ int gr_get_font_height()
 	}
 }
 
-void gr_get_string_size(int *w1, int *h1, const char *text, int len)
+void gr_get_string_size(int *w1, int *h1, const char *text, size_t len)
 {
 	int longest_width;
 	int width,spacing;

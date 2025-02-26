@@ -720,14 +720,14 @@ void parse_wi_flags(weapon_info *weaponp)
 			weaponp->wi_flags |= WIF_ELECTRONICS;		
 		else if (!SDL_strncasecmp(NOX("Spawn"), weapon_strings[i], 5)) {
 			if (weaponp->spawn_type == -1) {
-				int	skip_length, name_length;
+				size_t	skip_length, name_length;
 				char	*temp_string;
 
 				temp_string = weapon_strings[i];
 
 				weaponp->wi_flags |= WIF_SPAWN;
 				weaponp->spawn_type = (short)Num_spawn_types;
-				skip_length = strlen(NOX("Spawn")) + strspn(&temp_string[strlen(NOX("Spawn"))], NOX(" \t"));
+				skip_length = SDL_strlen(NOX("Spawn")) + strspn(&temp_string[SDL_strlen(NOX("Spawn"))], NOX(" \t"));
 				char *num_start = SDL_strchr(&temp_string[skip_length], ',');
 				if (num_start == NULL) {
 					weaponp->spawn_count = DEFAULT_WEAPON_SPAWN_COUNT;

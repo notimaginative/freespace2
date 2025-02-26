@@ -128,6 +128,8 @@ trail Trails[MAX_TRAILS];
 trail Trail_free_list;
 trail Trail_used_list;
 
+#define TRAIL_INDEX(objp)	static_cast<int>(objp-Trails)
+
 // Reset everything between levels
 void trail_level_init()
 {
@@ -185,7 +187,7 @@ int trail_create(trail_info info)
 	Num_trails++;
 
 	// get objnum
-	trail_num = trailp-Trails;
+	trail_num = TRAIL_INDEX(trailp);
 
 	// Init the trail data
 	trailp->info = info;
@@ -249,7 +251,7 @@ void trail_render( trail * trailp )
 	int n = trailp->tail;
 
 	// if this trail is on the player ship, and he's in any padlock view except rear view, don't draw	
-	if((Player_ship != NULL) && trail_is_on_ship(trailp - Trails, Player_ship) && (Viewer_mode & (VM_PADLOCK_UP | VM_PADLOCK_LEFT | VM_PADLOCK_RIGHT)) ){
+	if((Player_ship != NULL) && trail_is_on_ship(TRAIL_INDEX(trailp), Player_ship) && (Viewer_mode & (VM_PADLOCK_UP | VM_PADLOCK_LEFT | VM_PADLOCK_RIGHT)) ){
 		return;
 	}
 

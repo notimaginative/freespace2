@@ -24,55 +24,12 @@ int filelength (int fd)
 	if (fstat (fd, &buf) == -1)
 		return -1;
 		
-	return buf.st_size;
+	return static_cast<int>(buf.st_size);
 }
 
 int WSAGetLastError()
 {
 	return errno;
-}
-
-int platform_open_url(const char *url)
-{
-#ifdef __APPLE__
-	const char *open_cmd = "open";
-#else
-	const char *open_cmd = "xdg-open";
-#endif
-	char s_url[256];
-	int statval = 0;
-
-	// make sure it's a valid www address
-	if ( !SDL_strncasecmp(url, "http://", 7) || !SDL_strncasecmp(url, "https://", 8) ) {
-		SDL_strlcpy(s_url, url, SDL_arraysize(s_url));
-	} else {
-		SDL_strlcpy(s_url, "http://", SDL_arraysize(s_url));
-		SDL_strlcat(s_url, url, SDL_arraysize(s_url));
-	}
-
-	pid_t mpid = fork();
-
-	if (mpid < 0) {
-		// nothing, will return error
-	} else if (mpid == 0) {
-		int rv = 0;
-
-		rv = execlp(open_cmd, open_cmd, s_url, (char *)0);
-
-		exit(rv);
-	} else {
-		waitpid(mpid, &statval, 0);
-
-		if ( WIFEXITED(statval) ) {
-			if (WEXITSTATUS(statval) == 0) {
-				return 0;
-			} else {
-				return -1;
-			}
-		}
-	}
-
-	return -1;
 }
 
 #endif

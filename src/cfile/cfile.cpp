@@ -382,7 +382,7 @@ int cfile_init()
 
 		const char *extras_dir = os_config_read_string(NULL, "ExtrasPath", NULL);
 
-		if ( extras_dir && (strlen(extras_dir) >= MAX_PATH_LEN) ) {
+		if ( extras_dir && (SDL_strlen(extras_dir) >= MAX_PATH_LEN) ) {
 			extras_dir = NULL;
 		}
 
@@ -453,11 +453,11 @@ int cfile_flush_dir(int dir_type)
 //    Returns: new filename or filepath with extension.
 char *cf_add_ext(const char *filename, const char *ext)
 {
-	int flen, elen;
+	size_t flen, elen;
 	static char path[MAX_PATH_LEN];
 
-	flen = strlen(filename);
-	elen = strlen(ext);
+	flen = SDL_strlen(filename);
+	elen = SDL_strlen(ext);
 	SDL_assert(flen < MAX_PATH_LEN);
 	SDL_strlcpy(path, filename, SDL_arraysize(path));
 	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
@@ -604,7 +604,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	//================================================
 	// Check that all the parameters make sense
-	SDL_assert(file_path && strlen(file_path));
+	SDL_assert(file_path && SDL_strlen(file_path));
 	SDL_assert( mode != NULL );
 
 	//===========================================================
@@ -1049,7 +1049,7 @@ int cfwrite_string(const char *buf, CFILE *file)
 	if ( (!buf) || (buf && !buf[0]) ) {
 		return cfwrite_char(0, file);
 	} 
-	int len = strlen(buf);
+	size_t len = SDL_strlen(buf);
 	if(!cfwrite(buf, len, 1, file)){
 		return 0;
 	}
@@ -1058,7 +1058,7 @@ int cfwrite_string(const char *buf, CFILE *file)
 
 int cfwrite_string_len(const char *buf, CFILE *file)
 {
-	int len = strlen(buf);
+	int len = static_cast<int>(SDL_strlen(buf));
 
 	if(!cfwrite_int(len, file)){
 		return 0;
@@ -1089,7 +1089,7 @@ int cfilelength( CFILE * cfile )
 // returns:   number of full elements actually written
 //            
 //
-int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
+int cfwrite(const void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 {
 	SDL_assert(cfile != NULL);
 	SDL_assert(buf != NULL);
@@ -1100,11 +1100,11 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int size = elsize * nelem;
+	auto size = elsize * nelem;
 
 	SDL_assert(cb->fp != NULL);
 	SDL_assert(cb->lib_offset == 0 );
-	int bytes_written = fwrite( buf, 1, size, cb->fp );
+	auto bytes_written = fwrite(buf, 1, size, cb->fp);
 
 	if (bytes_written > 0) {
 		cb->raw_position += bytes_written;
@@ -1115,7 +1115,7 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 		SDL_assert(tmp_offset == cb->raw_position);
 	#endif
 
-	return bytes_written / elsize;
+	return static_cast<int>(bytes_written / elsize);
 }
 
 
@@ -1467,7 +1467,7 @@ int cflush(CFILE *cfile)
 //  returns: non-zero on error
 int cfile_init_paths()
 {
-	if ( strlen(Cfile_root_dir) && strlen(Cfile_user_dir) ) {
+	if ( SDL_strlen(Cfile_root_dir) && SDL_strlen(Cfile_user_dir) ) {
 		return 0;
 	}
 
@@ -1481,7 +1481,7 @@ int cfile_init_paths()
 	}
 
 	// size check
-	if ( strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+	if ( SDL_strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Executable path is too long!", NULL);
 		return 1;
 	}
@@ -1505,7 +1505,7 @@ int cfile_init_paths()
 	}
 
 	// size check
-	if ( strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+	if ( SDL_strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Preferences path is too long!", NULL);
 		return 1;
 	}

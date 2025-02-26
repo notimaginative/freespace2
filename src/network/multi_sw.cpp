@@ -152,7 +152,7 @@ int multi_sw_ok_to_commit()
 		} 
 		// do - didn't check out properly
 		else {
-			if(strlen(bad_response) > 0){
+			if(SDL_strlen(bad_response) > 0){
 				popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, "Error validating Squad War match\n\n(%s)", bad_response);
 			} else {
 				popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, "Error validating Squad War match\n\n(%s)", "Unknown");
@@ -169,7 +169,7 @@ int multi_sw_ok_to_commit()
 			// success
 			return 1;
 		} else {
-			if(strlen(Multi_sw_bad_reply) > 0){
+			if(SDL_strlen(Multi_sw_bad_reply) > 0){
 				popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, "Error validating Squad War match\n\n(%s)", Multi_sw_bad_reply);
 			} else {
 				popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, "Error validating Squad War match\n\n(%s)", "Unknown");
@@ -217,7 +217,7 @@ void multi_sw_report(int stats_saved)
 			SEND_AND_DISPLAY(XSTR("<SquadWar results stored on PXO>", 1079));
 		} else {
 			SEND_AND_DISPLAY(XSTR("<SquadWar results rejected by PXO>", 1080));
-			if(strlen(bad_response) > 0){
+			if(SDL_strlen(bad_response) > 0){
 				SEND_AND_DISPLAY(bad_response);
 			}
 		}	

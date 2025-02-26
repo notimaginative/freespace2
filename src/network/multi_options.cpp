@@ -922,7 +922,7 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 			GET_STRING(ng.mission_name);
 
 			if(strcmp(Netgame.mission_name,ng.mission_name)){
-				if(strlen(ng.mission_name)){
+				if(SDL_strlen(ng.mission_name)){
 					Netgame.max_players = mission_parse_get_multi_mission_info( ng.mission_name );
 				} else {
 					// setting this to -1 will prevent us from being seen on the network

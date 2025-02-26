@@ -199,7 +199,6 @@ void load_filter_info(void)
 	FILE *fp;
 	char pathname[512];
 	char inbuf[FILTER_NAME_LENGTH+4];
-	int z;
 
 	outwnd_filter_loaded = 1;
 	outwnd_filter_count = 0;
@@ -246,11 +245,11 @@ void load_filter_info(void)
 			outwnd_filter[outwnd_filter_count]->state = 0;
 		else continue;  // skip everything else
 
-		z = strlen(inbuf) - 1;
+		auto z = SDL_strlen(inbuf) - 1;
 		if (inbuf[z] == '\n')
 			inbuf[z] = 0;
 
-		SDL_assert(strlen(inbuf+1) < FILTER_NAME_LENGTH);
+		SDL_assert(SDL_strlen(inbuf+1) < FILTER_NAME_LENGTH);
 		SDL_strlcpy(outwnd_filter[outwnd_filter_count]->name, inbuf + 1, FILTER_NAME_LENGTH);
 
 		if ( !SDL_strcasecmp( outwnd_filter[outwnd_filter_count]->name, "error" ) )	{
@@ -365,7 +364,7 @@ void outwnd_print(const char *id, const char *tmp)
 			i--;  // overwrite the last element (oldest used filter in the list)
 		}
 
-		SDL_assert(strlen(id) < FILTER_NAME_LENGTH);
+		SDL_assert(SDL_strlen(id) < FILTER_NAME_LENGTH);
 		outwnd_filter[i] = &real_outwnd_filter[i];  // note: this assumes the list doesn't have gaps (from deleting an element for example)
 		SDL_strlcpy(outwnd_filter[i]->name, id, FILTER_NAME_LENGTH);
 		outwnd_filter[i]->state = 1;

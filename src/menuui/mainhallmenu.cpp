@@ -1158,7 +1158,7 @@ void main_hall_do(float frametime)
 				gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
 				main_hall_do_multi_ready();
 			} else {				
-				if(strlen(Main_hall_campaign_cheat)){
+				if(SDL_strlen(Main_hall_campaign_cheat)){
 					gameseq_post_event(GS_EVENT_CAMPAIGN_CHEAT);
 				} else {
 					gameseq_post_event(GS_EVENT_NEW_CAMPAIGN);				

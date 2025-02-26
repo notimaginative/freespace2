@@ -1387,7 +1387,7 @@ void process_new_player_packet(ubyte* data, header* hinfo)
 		}
 
 		// copy in the filename
-		if(strlen(new_player_image) > 0){
+		if(SDL_strlen(new_player_image) > 0){
 			SDL_strlcpy(Net_players[new_player_num].player->image_filename, new_player_image, MAX_FILENAME_LEN);
 		} else {
 			SDL_strlcpy(Net_players[new_player_num].player->image_filename, "", MAX_FILENAME_LEN);
@@ -2312,7 +2312,7 @@ void send_netgame_descript_packet(net_addr *addr, int code)
 
 	if(code == 1){
 		// add as much of the description as we dare
-		length = strlen(The_mission.mission_desc);
+		length = static_cast<int>(SDL_strlen(The_mission.mission_desc));
 		if(length > MAX_PACKET_SIZE - 10){
 			length = MAX_PACKET_SIZE - 10;
 			ADD_INT(length);

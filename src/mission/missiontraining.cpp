@@ -451,7 +451,7 @@ void training_obj_display()
 		} else {
 			SDL_strlcpy(buf, Mission_events[z].objective_text, SDL_arraysize(buf));
 			if (Mission_events[z].count){
-				int len = strlen(buf);
+				auto len = SDL_strlen(buf);
 				SDL_snprintf(buf + len, SDL_arraysize(buf) - len, NOX(" [%d]"), Mission_events[z].count);
 			}
 
@@ -815,7 +815,7 @@ static void translate_tokens_callback(int choice)
 void message_translate_tokens(char *buf, const int max_buflen, char *text)
 {
 	char temp[40], *toke1, *toke2, *ptr;
-	int len;
+	size_t len;
 
 	*buf = 0;
 	toke1 = SDL_strchr(text, '$');
@@ -845,7 +845,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 
 				buf--;  // erase the $
 				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
-				buf += strlen(buf);
+				buf += SDL_strlen(buf);
 				text = toke2 + 1;
 			}
 
@@ -865,7 +865,7 @@ void message_translate_tokens(char *buf, const int max_buflen, char *text)
 			if (ptr) {  // was key translated properly?
 				buf--;  // erase the #
 				SDL_strlcpy(buf, ptr, max_buflen);  // put translated key in place of token
-				buf += strlen(buf);
+				buf += SDL_strlen(buf);
 				text = toke1 + 1;
 			}
 		}
@@ -986,7 +986,7 @@ void message_training_setup(int m, int length)
 		if (length > 0)
 			Training_msg_timestamp = timestamp(length * 1000);
 		else
-			Training_msg_timestamp = timestamp(TRAINING_TIMING_BASE + strlen(Messages[m].message) * TRAINING_TIMING);  // no voice file playing
+			Training_msg_timestamp = timestamp(TRAINING_TIMING_BASE + static_cast<int>(SDL_strlen(Messages[m].message)) * TRAINING_TIMING);  // no voice file playing
 
 	} else
 		Training_msg_timestamp = 0;
@@ -1078,7 +1078,7 @@ void message_training_display()
 		return;
 	}
 
-	if (timestamp_elapsed(Training_msg_timestamp) || !strlen(Training_text)){
+	if (timestamp_elapsed(Training_msg_timestamp) || !SDL_strlen(Training_text)){
 		return;
 	}
 

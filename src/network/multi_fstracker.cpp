@@ -540,7 +540,7 @@ void multi_fs_tracker_login_freespace()
 	}
 
 	// if we have a valid channel string, use it		
-	if(strlen(Multi_fs_tracker_channel)){
+	if(SDL_strlen(Multi_fs_tracker_channel)){
 		SDL_strlcpy(Multi_tracker_game_data.channel, Multi_fs_tracker_channel, SDL_arraysize(Multi_tracker_game_data.channel));
 	}	
 	
@@ -756,7 +756,6 @@ void multi_fs_tracker_logout()
 void multi_fs_tracker_send_game_request()
 {
 	filter_game_list_struct filter;
-	int len;
 	
 	// if we're not initialized, don't do anything
 	if(!Multi_fs_tracker_inited){
@@ -764,7 +763,7 @@ void multi_fs_tracker_send_game_request()
 	}	
 
 	// if we have a valid filter, use that instead		
-	len = strlen(Multi_fs_tracker_filter);
+	auto len = SDL_strlen(Multi_fs_tracker_filter);
 	if((len > 0) && (len < CHANNEL_LEN-1) ){
 		memset(&filter,0,sizeof(filter_game_list_struct));		
 

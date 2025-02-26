@@ -2035,8 +2035,8 @@ int hud_anim_render(hud_anim *ha, float frametime, int draw_alpha, int loop, int
 // convert a number string to use mono-spaced 1 character
 void hud_num_make_mono(char *num_str)
 {
-	int len, i, sc;
-	len = strlen(num_str);
+	size_t len, i, sc;
+	len = SDL_strlen(num_str);
 
 	sc = Lcl_special_chars;
 	for ( i = 0; i < len; i++ ) {
@@ -2978,7 +2978,10 @@ int hud_wing_slot_from_name(const char *name)
 	int	rval;
 	char	num[2];
 
-	num[0]=name[strlen(name)-1];
+	SDL_assert(name != nullptr);
+	SDL_assert(SDL_strlen(name) > 0);
+
+	num[0]=name[SDL_strlen(name)-1];
 	num[1]=0;
 
 	rval = num[0] - '1';

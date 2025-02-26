@@ -357,7 +357,7 @@ void multi_data_send_my_junk()
 	// pilot pic --------------------------------------------------------------
 
 	// verify that my pilot pic is valid
-	if(strlen(Net_player->player->image_filename)){
+	if(SDL_strlen(Net_player->player->image_filename)){
 		bmap = bm_load(Net_player->player->image_filename);
 		if(bmap == -1){			
 			ok_to_send = 0;
@@ -388,7 +388,7 @@ void multi_data_send_my_junk()
 		}
 
 		// host should put his own pic file in the list now
-		if((Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Game_mode & GM_STANDALONE_SERVER) && (strlen(Net_player->player->image_filename) > 0)){
+		if((Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Game_mode & GM_STANDALONE_SERVER) && (SDL_strlen(Net_player->player->image_filename) > 0)){
 			multi_data_add_new(Net_player->player->image_filename, MY_NET_PLAYER_NUM);
 		}
 		// otherwise clients should just queue up a send
@@ -403,7 +403,7 @@ void multi_data_send_my_junk()
 
 	// verify that my pilot pic is valid
 	ok_to_send = 1;
-	if(strlen(Net_player->player->squad_filename)){
+	if(SDL_strlen(Net_player->player->squad_filename)){
 		bmap = bm_load(Net_player->player->squad_filename);
 		if(bmap == -1){			
 			ok_to_send = 0;
@@ -434,7 +434,7 @@ void multi_data_send_my_junk()
 		}
 
 		// host should put his own pic file in the list now
-		if((Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Game_mode & GM_STANDALONE_SERVER) && (strlen(Net_player->player->squad_filename) > 0)){
+		if((Net_player->flags & NETINFO_FLAG_AM_MASTER) && !(Game_mode & GM_STANDALONE_SERVER) && (SDL_strlen(Net_player->player->squad_filename) > 0)){
 			multi_data_add_new(Net_player->player->squad_filename, MY_NET_PLAYER_NUM);
 		}
 		// otherwise clients should just queue up a send
@@ -463,7 +463,7 @@ int multi_data_is_data(char *filename)
 	}
 
 	// convert to lowercase
-	len = strlen(filename);
+	len = static_cast<int>(SDL_strlen(filename));
 	for(idx=0;idx<len;idx++){
 		filename[idx] = (char)tolower(filename[idx]);
 	}
@@ -529,7 +529,7 @@ void multi_data_maybe_reload()
 
 	// go through all connected and try to reload their images if necessary
 	for(idx=0; idx<MAX_PLAYERS; idx++){
-		if(MULTI_CONNECTED(Net_players[idx]) && strlen(Net_players[idx].player->squad_filename) && (Net_players[idx].player->insignia_texture == -1)){
+		if(MULTI_CONNECTED(Net_players[idx]) && SDL_strlen(Net_players[idx].player->squad_filename) && (Net_players[idx].player->insignia_texture == -1)){
 			Net_players[idx].player->insignia_texture = bm_load_duplicate(Net_players[idx].player->squad_filename);
 
 			// if the bitmap loaded properly, lock it as a transparent texture

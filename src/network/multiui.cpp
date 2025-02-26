@@ -617,7 +617,7 @@ void multi_common_set_text(const char *str, int auto_scroll)
 {
 	// make sure it fits
 	// store the entire string as well
-	if(strlen(str) > MULTI_COMMON_MAX_TEXT){
+	if(SDL_strlen(str) > MULTI_COMMON_MAX_TEXT){
 		return ;
 	} else {
 		SDL_strlcpy(Multi_common_all_text, str, SDL_arraysize(Multi_common_all_text));
@@ -636,7 +636,7 @@ void multi_common_add_text(const char *str, int auto_scroll)
 {
 	// make sure it fits
 	// store the entire string as well
-	if((strlen(str) + strlen(Multi_common_all_text)) > MULTI_COMMON_MAX_TEXT){
+	if((SDL_strlen(str) + SDL_strlen(Multi_common_all_text)) > MULTI_COMMON_MAX_TEXT){
 		return ;
 	} else {
 		SDL_strlcat(Multi_common_all_text, str, SDL_arraysize(Multi_common_all_text));
@@ -1804,7 +1804,7 @@ void multi_join_display_games()
 			// tack on the actual server name			
 			SDL_strlcat(str, " ", SDL_arraysize(str));
 			SDL_strlcat(str, moveup->name, SDL_arraysize(str));
-			if(strlen(moveup->mission_name) > 0){
+			if(SDL_strlen(moveup->mission_name) > 0){
 				SDL_strlcat(str, " / ", SDL_arraysize(str));
 				SDL_strlcat(str, moveup->mission_name, SDL_arraysize(str));
 			} 
@@ -1952,8 +1952,8 @@ void multi_join_load_tcp_addrs()
 		cfgets(line,MAX_IP_STRING,file);
 
 		// strip off any newline character
-		if(line[strlen(line) - 1] == '\n'){
-			line[strlen(line) - 1] = '\0';
+		if(line[SDL_strlen(line) - 1] == '\n'){
+			line[SDL_strlen(line) - 1] = '\0';
 		}
 		
 		// empty lines don't get processed
@@ -2382,11 +2382,11 @@ void multi_join_send_join_request(int as_observer)
 		
 	// fill out the join request struct	
 	SDL_strlcpy(Multi_join_request.callsign, Player->callsign, SDL_arraysize(Multi_join_request.callsign));
-	if(strlen(Player->image_filename) > 0){
+	if(SDL_strlen(Player->image_filename) > 0){
 		SDL_strlcpy(Multi_join_request.image_filename, Player->image_filename, SDL_arraysize(Multi_join_request.image_filename));
 	}	
 #ifndef MAKE_FS1
-	if(strlen(Player->squad_filename) > 0){
+	if(SDL_strlen(Player->squad_filename) > 0){
 		SDL_strlcpy(Multi_join_request.squad_filename, Player->squad_filename, SDL_arraysize(Multi_join_request.squad_filename));
 	}
 #endif
@@ -3287,7 +3287,7 @@ void multi_sg_init_gamenet()
 	memset(buf,0,128);
 	pilot_format_callsign_personal(Player->callsign, out_name, SDL_arraysize(out_name));
 	SDL_snprintf(buf, SDL_arraysize(buf), XSTR("%s game",782), out_name);  // [[ %s will be a pilot's name ]]
-	if ( strlen(buf) > MAX_GAMENAME_LEN ){
+	if ( SDL_strlen(buf) > MAX_GAMENAME_LEN ){
 		SDL_strlcpy(buf, XSTR("Temporary name",783), SDL_arraysize(buf));
 	}
 	SDL_strlcpy(Multi_sg_netgame->name, buf, SDL_arraysize(Multi_sg_netgame->name));
@@ -7366,10 +7366,10 @@ void multi_game_client_setup_do_frame()
 
 	// blit the mission filename if possible
 	if(Netgame.campaign_mode){
-		if(strlen(Netgame.campaign_name) > 0){			
+		if(SDL_strlen(Netgame.campaign_name) > 0){			
 			SDL_strlcpy(mission_text, Netgame.campaign_name, SDL_arraysize(mission_text));
 			
-			if(strlen(Netgame.title) > 0){
+			if(SDL_strlen(Netgame.title) > 0){
 				SDL_strlcat(mission_text, ", ", SDL_arraysize(mission_text));
 				SDL_strlcat(mission_text, Netgame.title, SDL_arraysize(mission_text));
 			}
@@ -7378,10 +7378,10 @@ void multi_game_client_setup_do_frame()
 			gr_string(Mjw_mission_name_coords[gr_screen.res][MJW_X_COORD],Mjw_mission_name_coords[gr_screen.res][MJW_Y_COORD],mission_text);
 		}								
 	} else {
-		if(strlen(Netgame.mission_name) > 0){			
+		if(SDL_strlen(Netgame.mission_name) > 0){			
 			SDL_strlcpy(mission_text, Netgame.mission_name, SDL_arraysize(mission_text));
 
-			if(strlen(Netgame.title) > 0){
+			if(SDL_strlen(Netgame.title) > 0){
 				SDL_strlcat(mission_text, ", ", SDL_arraysize(mission_text));
 				SDL_strlcat(mission_text, Netgame.title, SDL_arraysize(mission_text));
 			}			

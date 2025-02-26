@@ -855,10 +855,10 @@ int main(int argc, char *argv[])
 
 	Cmdline_window = 1; // always windowed
 
+	os_init("NebEdit", "org.icculus.freespace2.nebedit");
 	timer_init();
 	// cfile_init(tok);
 	cfile_init();
-	os_init("NebEdit", "org.icculus.freespace2.nebedit");
 	gr_init();
 	palette_load_table( "gamepalette1-01.pcx" );
 	key_init();

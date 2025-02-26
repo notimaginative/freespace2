@@ -327,6 +327,8 @@ void fonttool_edit_kerning(char *fname1)
 	printf( "Editing kerning data for %s\n", fname1 );
 	fonttool_read( fname1, &KernFont );
 
+	os_init("FontTool - Kerning Table Editor", "org.icculus.freespace2.fonttool");
+
 	timer_init();
 
 	// setup the fred exe directory so CFILE can init properly
@@ -336,8 +338,6 @@ void fonttool_edit_kerning(char *fname1)
 	//SDL_assert(tok != NULL);	
 
 	cfile_init();
-
-	os_init("FontTool - Kerning Table Editor", "org.icculus.freespace2.fonttool");
 
 	// always run this thing in a window
 	Cmdline_fullscreen = 0;

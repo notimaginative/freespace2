@@ -2295,6 +2295,9 @@ extern void bm_init();
 extern "C"
 void game_init()
 {
+	// initialize os as early as possible
+	os_init(Osreg_title, Osreg_app_id);
+
 	Game_current_mission_filename[0] = 0;
 
 	// seed the random number generator
@@ -2312,7 +2315,7 @@ void game_init()
 	// encrypt stuff
 	encrypt_init();
 
-	// Initialize the timer before the os
+	// Initialize the timer
 	timer_init();
 
 #ifndef NDEBUG
@@ -2345,8 +2348,6 @@ void game_init()
 	}
 	e2 = timer_get_milliseconds();	
 	*/
-
-	os_init(Osreg_title, Osreg_app_id);
 
 	// initialize localization module. Make sure this is down AFTER initialzing OS.
 //	int t1 = timer_get_milliseconds();

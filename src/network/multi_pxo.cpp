@@ -5422,7 +5422,7 @@ void multi_pxo_ban_init()
 	Multi_pxo_banner.ban_bitmap = -1;	
 
 	// are we doing banners at all?
-	if(os_config_read_uint(NULL, "PXOBanners", 1)){
+	if(os_config_read_uint("PXO", "PXOBanners", 1)){
 		// if we're already in idle mode, we're done downloading for this instance of freespace. pick a random image we already have
 		if(Multi_pxo_ban_mode == PXO_BAN_MODE_IDLE){
 			Multi_pxo_ban_mode = PXO_BAN_MODE_CHOOSE_RANDOM;		

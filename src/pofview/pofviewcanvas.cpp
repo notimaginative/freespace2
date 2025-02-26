@@ -144,6 +144,8 @@ void PofViewCanvas::Render()
 
 	int model_num = parent->GetModelnum();
 
+	this->SetCurrent(*(parent->GetGLContext()));
+
 	if (model_num < 0) {
 		return;
 	}
@@ -158,7 +160,9 @@ void PofViewCanvas::Render()
 
 	int w, h;
 
-	GetClientSize(&w, &h);
+	this->GetClientSize(&w, &h);
+	w *= this->GetContentScaleFactor();
+	h *= this->GetContentScaleFactor();
 
 	gr_reset_clip();
 	gr_set_clip(0, 0, w, h);
@@ -522,6 +526,8 @@ void PofViewCanvas::OnSize(wxSizeEvent& WXUNUSED(event))
 	int x = 640, y = 480;
 
 	this->GetClientSize(&x, &y);
+	x *= this->GetContentScaleFactor();
+	y *= this->GetContentScaleFactor();
 
 	gr_set_viewport(x, y);
 }

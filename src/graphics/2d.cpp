@@ -841,7 +841,9 @@ int gr_init(bool safe_mode)
 			SDL_SetCursor(Gr_cursor);
 		}
 
-		bm_release(id);
+		if (id >= 0) {
+			bm_release(id);
+		}
 	}
 
 #ifndef FS1_DEMO

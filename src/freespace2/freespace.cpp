@@ -559,6 +559,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 
 #include "pstypes.h"
 #include "systemvars.h"
@@ -1942,8 +1943,8 @@ void game_loading_callback_init()
 	Game_loading_ani_bitmap = -1;
 
 	Game_loading_callback_inited = 1;
-	Mouse_hidden = 1;
-	game_busy_callback( game_loading_callback, (COUNT_ESTIMATE/Game_loading_ani->total_frames)+1 );	
+	mouse_hide_cursor();
+	game_busy_callback( game_loading_callback, (COUNT_ESTIMATE/Game_loading_ani->total_frames)+1 );
 
 
 }
@@ -1966,7 +1967,7 @@ void game_loading_callback_close()
 	game_busy_callback( NULL );
 #endif
 
- 	Mouse_hidden = 0;
+	mouse_show_cursor();
 
 	Game_loading_callback_inited = 0;
 
@@ -4674,7 +4675,7 @@ int game_poll()
 #endif
 
 	// Move the mouse cursor with the joystick.
-	if (os_foreground() && (!Mouse_hidden) && (Use_joy_mouse) )	{
+	if (Use_joy_mouse && os_foreground() && mouse_is_visible())	{
 		// Move the mouse cursor with the joystick
 		int mx, my, dx, dy;
 		int jx, jy, jz, jr;
@@ -6984,8 +6985,10 @@ typedef struct animating_obj
 	int	first_frame;
 	int	num_frames;
 	int	current_frame;
+	int previous_frame;
 	float time;
 	float elapsed_time;
+	std::vector<SDL_Cursor *> cursors;
 } animating_obj;
 
 static animating_obj Animating_mouse;
@@ -7001,6 +7004,7 @@ void init_animating_pointer()
 	Animating_mouse.first_frame	= -1;
 	Animating_mouse.num_frames		= 0;
 	Animating_mouse.current_frame	= -1;
+	Animating_mouse.previous_frame 	= -1;
 	Animating_mouse.time				= 0.0f;
 	Animating_mouse.elapsed_time	= 0.0f;
 }
@@ -7025,6 +7029,16 @@ void load_animating_pointer(const char *filename, int dx, int dy)
 		Error(LOCATION, "Could not load animation %s for the mouse pointer\n", filename);
 	am->current_frame = 0;
 	am->time = am->num_frames / i2fl(fps);
+
+	for (int i = 0; i < am->num_frames; ++i) {
+		am->cursors.push_back( mouse_create_cursor(am->first_frame+i) );
+
+		if (am->first_frame+i >= 0) {
+			bm_release(am->first_frame + i);
+		}
+	}
+
+	am->first_frame = -1;	// reset to avoid double release of bitmap
 }
 
 // ----------------------------------------------------------------------------
@@ -7034,37 +7048,45 @@ void load_animating_pointer(const char *filename, int dx, int dy)
 //
 void unload_animating_pointer()
 {
-	int				i;
 	animating_obj	*am;
 
 	am = &Animating_mouse;
-	for ( i = 0; i < am->num_frames; i++ ) {
-		SDL_assert( (am->first_frame+i) >= 0 );
-		bm_release(am->first_frame + i);
+
+	for (auto &cursor : am->cursors) {
+		if (cursor) {
+			SDL_DestroyCursor(cursor);
+		}
 	}
+
+	am->cursors.clear();
+	am->cursors.shrink_to_fit();
 
 	am->first_frame	= -1;
 	am->num_frames		= 0;
 	am->current_frame = -1;
+	am->previous_frame = -1;
+
 }
 
 // draw the correct frame of the game mouse... called from game_maybe_draw_mouse()
 void game_render_mouse(float frametime)
 {
-	int				mx, my;
 	animating_obj	*am;
 
 	// if animating cursor exists, play the next frame
 	am = &Animating_mouse;
-	if ( am->first_frame != -1 ) {
-		mouse_get_pos(&mx, &my);
+	if ( !am->cursors.empty() ) {
 		am->elapsed_time += frametime;
 		am->current_frame = fl2i( ( am->elapsed_time / am->time ) * (am->num_frames-1) );
 		if ( am->current_frame >= am->num_frames ) {
 			am->current_frame = 0;
 			am->elapsed_time = 0.0f;
 		}
-		gr_set_cursor_bitmap(am->first_frame + am->current_frame);
+
+		if (am->current_frame != am->previous_frame) {
+			mouse_set_cursor(am->cursors[am->current_frame]);
+			am->previous_frame = am->current_frame;
+		}
 	}
 }
 
@@ -7091,18 +7113,18 @@ void game_maybe_draw_mouse(float frametime)
 		case GS_STATE_DEATH_DIED:
 		case GS_STATE_DEATH_BLEW_UP:
 			if ( popup_active() || popupdead_is_active() ) {
-				Mouse_hidden = 0;
+				mouse_show_cursor();
 			} else {
-				Mouse_hidden = 1;	
+				mouse_hide_cursor();
 			}
 			break;
 
 		default:
-			Mouse_hidden = 0;
+			mouse_show_cursor();
 			break;
 	}	// end switch
 
-	if ( !Mouse_hidden ) 
+	if (mouse_is_visible())
 		game_render_mouse(frametime);
 
 }
@@ -7557,7 +7579,7 @@ void oem_upsell_next_screen()
 	if ( Oem_upsell_screen_number == (NUM_OEM_UPSELL_SCREENS-1) ) {
 		// extra long delay, mouse shown on last upsell
 		Oem_upsell_show_next_bitmap_time = timer_get_milliseconds() + OEM_UPSELL_SCREEN_DELAY*2;
-		Mouse_hidden = 0;
+		mouse_show_cursor();
 
 	} else {
 		Oem_upsell_show_next_bitmap_time = timer_get_milliseconds() + OEM_UPSELL_SCREEN_DELAY;
@@ -7612,7 +7634,7 @@ void oem_upsell_show_screens()
 	Oem_upsell_screen_number = 0;
 	
 	key_flush();
-	Mouse_hidden = 1;
+	mouse_hide_cursor();
 
 	// set up cursors
 	int nframes;						// used to pass, not really needed (should be 1)
@@ -7801,7 +7823,7 @@ void demo_upsell_init(int end_of_demo)
 	Demo_upsell_screen_number = 0;
 
 	key_flush();
-	Mouse_hidden = 1;
+	mouse_hide_cursor();
 }
 
 void demo_upsell_close()

@@ -103,7 +103,6 @@ void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, 
 void gr_opengl_flash(int r, int g, int b);
 void gr_opengl_tmapper( int nverts, vertex **verts, uint flags );
 void gr_opengl_scaler(vertex *va, vertex *vb );
-void gr_opengl_save_mouse_area(int x, int y, int w, int h);
 void gr_opengl_set_gamma(float gamma);
 void gr_opengl_preload_init();
 int gr_opengl_preload(int bitmap_num, int is_aabitmap);
@@ -115,7 +114,6 @@ void gr_opengl_print_screen(const char *filename);
 void gr_opengl_fade_in(int instantaneous);
 void gr_opengl_fade_out(int instantaneous);
 void gr_opengl_get_region(int front, int w, int h, ubyte *data);
-void gr_opengl_save_mouse_area(int x, int y, int w, int h);
 int gr_opengl_save_screen();
 void gr_opengl_restore_screen(int id);
 void gr_opengl_free_screen(int id);

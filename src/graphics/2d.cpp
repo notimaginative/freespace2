@@ -507,7 +507,7 @@ int Gr_zbuffering_mode = 0;
 int Gr_global_zbuffering = 0;
 
 // cursor stuff
-int Gr_cursor = -1;
+static SDL_Cursor *Gr_cursor = nullptr;
 int Web_cursor_bitmap = -1;
 
 int Gr_inited = 0;
@@ -549,6 +549,11 @@ void gr_close()
 	}
 
 	Gr_textures_in = 0;
+
+	if (Gr_cursor) {
+		SDL_DestroyCursor(Gr_cursor);
+		Gr_cursor = nullptr;
+	}
 
 	gr_font_close();
 
@@ -827,9 +832,16 @@ int gr_init(bool safe_mode)
 
 	gr_set_gamma(Freespace_gamma);
 
+	if ( !Gr_cursor ) {
+		int id = bm_load("cursor");
 
-	if ( Gr_cursor == -1 ){
-		Gr_cursor = bm_load( "cursor" );
+		Gr_cursor = mouse_create_cursor(id);
+
+		if (Gr_cursor) {
+			SDL_SetCursor(Gr_cursor);
+		}
+
+		bm_release(id);
 	}
 
 #ifndef FS1_DEMO
@@ -904,40 +916,6 @@ void gr_activate(int active)
 	if (gr_screen.gf_activate) {
 		(*gr_screen.gf_activate)(active);
 	}
-}
-
-// -----------------------------------------------------------------------
-// gr_set_cursor_bitmap()
-//
-// Set the bitmap for the mouse pointer.  This is called by the animating mouse
-// pointer code.
-//
-// The lock parameter just locks basically disables the next call of this function that doesnt
-// have an unlock feature.  If adding in more cursor-changing situations, be aware of
-// unexpected results. You have been warned.
-//
-// TODO: investigate memory leak of original Gr_cursor bitmap when this is called
-void gr_set_cursor_bitmap(int n, int lock)
-{
-	static int locked = 0;			
-	SDL_assert(n >= 0);
-
-	if (!locked || (lock == GR_CURSOR_UNLOCK)) {
-		Gr_cursor = n;
-	} else {
-		locked = 0;
-	}
-
-	if (lock == GR_CURSOR_LOCK) {
-		locked = 1;
-	}
-}
-
-// retrieves the current bitmap
-// used in UI_GADGET to save/restore current cursor state
-int gr_get_cursor_bitmap()
-{
-	return Gr_cursor;
 }
 
 // new bitmap functions

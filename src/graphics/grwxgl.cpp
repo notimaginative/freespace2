@@ -268,7 +268,6 @@ void gr_wxgl_init()
 	Gr_current_alpha = &Gr_alpha;
 
 
-	Mouse_hidden++;
 	gr_reset_clip();
 	gr_clear();
 	gr_flip();

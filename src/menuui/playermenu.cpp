@@ -580,7 +580,7 @@ void demo_title_blit()
 {
 	int k;
 
-	Mouse_hidden = 1;
+	mouse_hide_cursor();
 
 	if ( timestamp_elapsed(Demo_title_expire_timestamp) ) {
 		Demo_title_active = 0;
@@ -607,7 +607,7 @@ void demo_title_blit()
 
 	if ( !Demo_title_active ) {
 		gr_fade_out(0);
-		Mouse_hidden = 0;
+		mouse_show_cursor();
 	}
 }
 #endif

@@ -692,9 +692,7 @@ void cmd_brief_init(int team)
 
 	gr_reset_clip();
 	gr_clear();
-	Mouse_hidden++;
 	gr_flip();
-	Mouse_hidden--;
 
 	/*
 	Palette_bmp = bm_load("BarracksPalette");	//CommandBriefPalette");

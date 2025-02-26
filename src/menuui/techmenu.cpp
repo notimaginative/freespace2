@@ -1590,9 +1590,7 @@ void techroom_init()
 
 	gr_reset_clip();
 	gr_clear();
-	Mouse_hidden++;
 	gr_flip();
-	Mouse_hidden--;
 
 	Ships_loaded = 0;
 	Weapons_loaded = 0;

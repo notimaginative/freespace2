@@ -589,7 +589,6 @@ void gr_gles2_init()
 
 	SDL_StopTextInput(os_get_window());
 	SDL_DisableScreenSaver();
-	SDL_HideCursor();
 
 	// maybe go fullscreen - should be done *after* main GL init
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
@@ -706,13 +705,10 @@ void gr_gles2_init()
 	Gr_current_alpha = &Gr_alpha;
 
 
-	Mouse_hidden++;
 	gr_reset_clip();
 	gr_clear();
 	gr_flip();
 	gr_clear();
-	Mouse_hidden--;
-
 }
 
 void gr_gles2_flip()
@@ -758,48 +754,6 @@ void gr_gles2_flip()
 	}
 
 	mouse_eval_deltas();
-
-	if ( mouse_is_visible() ) {
-		int mx, my;
-
-		mouse_get_pos(&mx, &my);
-
-		if ( gles2_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE) ) {
-			gles2_set_state(TEXTURE_SOURCE_DECAL, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
-
-			int bw, bh;
-			bm_get_info(Gr_cursor, &bw, &bh);
-
-			float x = i2fl(mx) * GLES2_viewport_scale_w;
-			float y = i2fl(my) * GLES2_viewport_scale_h;
-			float w = x + (bw * GLES2_viewport_scale_w);
-			float h = y + (bh * GLES2_viewport_scale_h);
-
-			const float tex_coord[] = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f };
-			const float ver_coord[] = { x, y, x, h, w, y, w, h };
-
-			gles2_shader_use(PROG_WINDOW);
-
-			pglEnableVertexAttribArray(SDRI_POSITION);
-			pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
-
-			pglEnableVertexAttribArray(SDRI_TEXCOORD);
-			pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
-
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-			pglDisableVertexAttribArray(SDRI_TEXCOORD);
-			pglDisableVertexAttribArray(SDRI_POSITION);
-		}
-#ifndef NDEBUG
-		else {
-			gr_set_color(255,255,255);
-			gr_gles2_line(mx, my, mx+7, my + 7);
-			gr_gles2_line(mx, my, mx+5, my );
-			gr_gles2_line(mx, my, mx, my+5);
-		}
-#endif
-	}
 
 #ifndef NDEBUG
 	GLenum error = glGetError();

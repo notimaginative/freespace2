@@ -585,11 +585,6 @@ extern void gr_set_palette(const char *name, ubyte *palette, int restrict_to_128
 void gr_get_string_size_win(int *w, int *h, const char *text);
 void gr_string_win(int x, int y, const char *s );
 
-// set the mouse pointer to a specific bitmap, used for animating cursors
-#define GR_CURSOR_LOCK		1
-#define GR_CURSOR_UNLOCK	2
-void gr_set_cursor_bitmap(int n, int lock = 0);
-int gr_get_cursor_bitmap();
 extern int Web_cursor_bitmap;
 
 // Called by OS when application gets/looses focus

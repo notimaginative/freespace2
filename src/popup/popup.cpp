@@ -1248,7 +1248,7 @@ static void popup_internal(void (*callback)(int), int (*condition)(), int flags,
 
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
-	Mouse_hidden = 0;
+	mouse_show_cursor();
 	Popup_is_active = 1;
 }
 
@@ -1412,7 +1412,7 @@ void popup_input(void (*callback)(int), int flags, const char *caption, int max_
 
 	gamesnd_play_iface(SND_POPUP_APPEAR); 	// play sound when popup appears
 
-	Mouse_hidden = 0;
+	mouse_show_cursor();
 	Popup_is_active = 1;
 }
 

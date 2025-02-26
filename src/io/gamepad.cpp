@@ -78,8 +78,8 @@ void gamepad_update_mouse_pos()
 
 	mouse_get_real_pos(&x, &y);
 
-	x += dx;
-	y += dy;
-
+	// update deltas (x/y should be the same as current)
 	mouse_update_pos_scaled(x, y, dx, dy);
+	// now change position
+	mouse_set_pos(x+dx, y+dy);
 }

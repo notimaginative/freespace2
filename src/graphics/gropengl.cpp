@@ -47,14 +47,6 @@ static size_t render_buffer_size = 0;
 static GLuint GL_stream_tex = 0;
 static GLuint Gr_saved_screen_tex = 0;
 
-static int Gr_opengl_mouse_saved = 0;
-static int Gr_opengl_mouse_saved_x = 0;
-static int Gr_opengl_mouse_saved_y = 0;
-static int Gr_opengl_mouse_saved_w = 0;
-static int Gr_opengl_mouse_saved_h = 0;
-static ubyte *Gr_opengl_mouse_saved_data = NULL;
-
-
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
 
@@ -266,56 +258,6 @@ void gr_opengl_flip()
 
 	mouse_eval_deltas();
 
-	Gr_opengl_mouse_saved = 0;
-
-	if ( mouse_is_visible() ) {
-		int mx, my;
-
-		mouse_get_pos( &mx, &my );
-
-		gr_opengl_save_mouse_area(mx, my, 32, 32);
-
-		float u_scale, v_scale;
-
-		if ( opengl_tcache_set(Gr_cursor, TCACHE_TYPE_BITMAP_INTERFACE, &u_scale, &v_scale) ) {
-			opengl_set_state(TEXTURE_SOURCE_DECAL, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
-
-			int bw, bh;
-			bm_get_info(Gr_cursor, &bw, &bh);
-
-			int x = mx;
-			int y = my;
-			int w = mx + bw;
-			int h = my + bh;
-
-			const float tex_coord[] = { 0.0f, 0.0f, 0.0f, 1.0f * v_scale,
-										1.0f * u_scale, 0.0f, 1.0f * u_scale,
-										1.0f * v_scale };
-			const int ver_coord[] = { x, y, x, h, w, y, w, h };
-
-			glColor4ub(255, 255, 255, 255);
-
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glEnableClientState(GL_VERTEX_ARRAY);
-
-			glTexCoordPointer(2, GL_FLOAT, 0, &tex_coord);
-			glVertexPointer(2, GL_INT, 0, &ver_coord);
-
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			glDisableClientState(GL_VERTEX_ARRAY);
-		}
-#ifndef NDEBUG
-		else {
-			gr_set_color(255,255,255);
-			gr_opengl_line(mx, my, mx+7, my + 7);
-			gr_opengl_line(mx, my, mx+5, my );
-			gr_opengl_line(mx, my, mx, my+5);
-		}
-#endif
-	 }
-
 #ifndef NDEBUG
 	GLenum error = glGetError();
 
@@ -508,56 +450,6 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 	glReadPixels(GL_viewport_x, (GL_viewport_y+GL_viewport_h)-h-1, w, h, GL_RGBA, pxtype, data);
 }
 
-void gr_opengl_save_mouse_area(int x, int y, int w, int h)
-{
-	int x1, y1, x2, y2;
-
-	if (Gr_saved_screen_tex) {
-		// already saved, don't need it again
-		return;
-	}
-
-	w = fl2i((w * GL_viewport_scale_w) + 0.5f);
-	h = fl2i((h * GL_viewport_scale_h) + 0.5f);
-
-	x1 = x;
-	y1 = y;
-	x2 = x+w-1;
-	y2 = y+h-1;
-
-	CAP(x1, 0, GL_viewport_w);
-	CAP(x2, 0, GL_viewport_w);
-	CAP(y1, 0, GL_viewport_h);
-	CAP(y2, 0, GL_viewport_h);
-
-	Gr_opengl_mouse_saved_x = x1;
-	Gr_opengl_mouse_saved_y = y1;
-	Gr_opengl_mouse_saved_w = x2 - x1 + 1;
-	Gr_opengl_mouse_saved_h = y2 - y1 + 1;
-
-	if ( (Gr_opengl_mouse_saved_w < 1) || (Gr_opengl_mouse_saved_h < 1) ) {
-		return;
-	}
-
-	if (Gr_opengl_mouse_saved_data == NULL) {
-		Gr_opengl_mouse_saved_data = (ubyte*)malloc(w * h * 3);
-
-		if ( !Gr_opengl_mouse_saved_data ) {
-			return;
-		}
-	}
-
-	x1 = GL_viewport_x+Gr_opengl_mouse_saved_x;
-	y1 = (GL_viewport_y+GL_viewport_h)-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
-
-	glReadBuffer(GL_BACK);
-
-	glReadPixels(x1, y1, Gr_opengl_mouse_saved_w, Gr_opengl_mouse_saved_h,
-			GL_RGB, GL_UNSIGNED_BYTE, Gr_opengl_mouse_saved_data);
-
-	Gr_opengl_mouse_saved = 1;
-}
-
 int gr_opengl_save_screen()
 {
 	gr_opengl_reset_clip();
@@ -586,15 +478,6 @@ int gr_opengl_save_screen()
 
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GL_viewport_x, GL_viewport_y,
 			GL_viewport_w, GL_viewport_h, 0);
-
-	if (Gr_opengl_mouse_saved) {
-		int x = Gr_opengl_mouse_saved_x;
-		int y = GL_viewport_h-Gr_opengl_mouse_saved_y-Gr_opengl_mouse_saved_h;
-
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, Gr_opengl_mouse_saved_w,
-				Gr_opengl_mouse_saved_h, GL_RGB, GL_UNSIGNED_BYTE,
-				Gr_opengl_mouse_saved_data);
-	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -828,12 +711,6 @@ void gr_opengl_set_viewport(int width, int height)
 	glLoadIdentity();
 	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
 
-	// free mouse cursor storage, since the size might have changed
-	if (Gr_opengl_mouse_saved_data) {
-		free(Gr_opengl_mouse_saved_data);
-		Gr_opengl_mouse_saved_data = NULL;
-	}
-
 	// adjust scale factor for gr_stream (movies)
 	if (GL_stream_tex && GL_stream_scale) {
 		GL_stream_scale_by = GL_viewport_w / i2fl(GL_stream_w);
@@ -916,11 +793,6 @@ void gr_opengl_cleanup()
 	gr_opengl_flip();
 
 	gr_opengl_free_screen(0);
-
-	if (Gr_opengl_mouse_saved_data) {
-		free(Gr_opengl_mouse_saved_data);
-		Gr_opengl_mouse_saved_data = NULL;
-	}
 
 	opengl_tcache_cleanup();
 
@@ -1044,7 +916,6 @@ void gr_opengl_init()
 
     SDL_StopTextInput(os_get_window());
 	SDL_DisableScreenSaver();
-	SDL_HideCursor();
 
 	// maybe go fullscreen - should be done *after* main GL init
 	int fullscreen = os_config_read_uint("Video", "Fullscreen", 1);
@@ -1161,11 +1032,9 @@ void gr_opengl_init()
 	Gr_current_alpha = &Gr_alpha;
 
 
-	Mouse_hidden++;
 	gr_reset_clip();
 	gr_clear();
 	gr_flip();
 	gr_clear();
-	Mouse_hidden--;
 #endif	// !__EMSCRIPTEN__
 }

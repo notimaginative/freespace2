@@ -86,7 +86,6 @@
 
 extern int Mouse_sensitivity;
 extern int Use_mouse_to_fly;
-extern int Mouse_hidden;
 extern int Keep_mouse_centered;
 
 // call once to init the mouse
@@ -123,7 +122,15 @@ extern void mouse_flush();
 
 int mouse_down(int btn);			// returns 1 if mouse button btn is down, 0 otherwise
 float mouse_down_time(int btn);	// returns the fraction of time btn has been down since last call
-int mouse_is_visible();				// returns 1 if mouse is visible, 0 otherwise
+
+// set the mouse pointer to a specific bitmap, used for animating cursors
+#define MOUSE_CURSOR_LOCK		1
+#define MOUSE_CURSOR_UNLOCK		2
+SDL_Cursor *mouse_create_cursor(int bmap_id);
+bool mouse_set_cursor(SDL_Cursor *cursor, int lock = 0);
+void mouse_show_cursor();				// shows the mouse cursor
+void mouse_hide_cursor();				// hides the mosue cursor
+bool mouse_is_visible();				// returns true if mouse is visible, false otherwise
 
 void mouse_grab(int grab);
 void mouse_eval_deltas();

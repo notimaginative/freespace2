@@ -205,6 +205,7 @@
 #include "timer.h"
 #include "alphacolors.h"
 #include "font.h"
+#include "gamesnd.h"
 
 
 #define INPUTBOX_PASSWD_CHAR        '*'   // the password protected char
@@ -564,10 +565,25 @@ void UI_INPUTBOX::process(int focus)
 
 			default:
 				if (!locked) {
+					// allow pasting from system clipboard
+					bool guiKeyd = (SDL_GetModState() & SDL_KMOD_GUI) > 0;
+
+					if ( (key == (KEY_CTRLED | SDLK_V)) || (key == SDLK_V && guiKeyd) ) {
+						if (SDL_HasClipboardText()) {
+							char *cliptext = SDL_GetClipboardText();
+
+							if (cliptext) {
+								append_text(cliptext);
+								SDL_free(cliptext);
+							}
+						}
+						// fall through and let key be dealt with below
+					}
+
 					// MWA -- determine if alt or ctrl held down on this key and don't process if it is.  We
 					// need to be able to pass these keys back to the top level.  (And anyway -- ctrl-a shouldn't
 					// print out an A in the input window
-					if ( key & (KEY_ALTED | KEY_CTRLED) ) {
+					if ( (key & (KEY_ALTED | KEY_CTRLED)) || guiKeyd ) {
 						clear_lastkey = 0;
 						break;
 					}
@@ -682,4 +698,40 @@ void UI_INPUTBOX::set_text(const char *in)
 	position = in_length;  // fixes the zero-length-I-don't-think-so bug
 }
 
+void UI_INPUTBOX::append_text(const char *in)
+{
+	if (in == nullptr) {
+		return;
+	}
+	
+	// check the incoming string to make sure it's valid for the control
+	for (const char *p = in; *p; ++p) {
+		if ( !validate_input(*p) ) {
+			// invalid character, bail!
+			gamesnd_play_iface(SND_GENERAL_FAIL);
+			return;
+		}
+	}
 
+	// current size
+	size_t textlen = SDL_strlen(text);
+
+	if (textlen == static_cast<size_t>(length)) {
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+		return;
+	}
+
+	SDL_strlcat(text, in, length+1);
+
+	// new size
+	textlen = SDL_strlen(text);
+
+	if (flags & UI_INPUTBOX_FLAG_PASSWD) {
+		memset(passwd_text, INPUTBOX_PASSWD_CHAR, textlen);
+		passwd_text[textlen] = 0;
+	}
+
+	position = static_cast<int>(textlen);
+
+	changed_flag = 1;
+}

@@ -700,6 +700,7 @@
 // #include "names.h"
 #include "shiphit.h"
 #include "missionloopbrief.h"
+#include "gamepad.h"
 
 #ifdef NDEBUG
 #ifdef FRED
@@ -4587,6 +4588,14 @@ int game_check_key()
 	// convert keypad enter to normal enter
 	if ((k & KEY_MASK) == SDLK_KP_ENTER)
 		k = (k & ~KEY_MASK) | SDLK_RETURN;
+
+	if (k == 0) {
+		if (gamepad_cancel()) {
+			k = SDLK_ESCAPE;
+		} else {
+			k = gamepad_get_dpad_key();
+		}
+	}
 
 	return k;
 }

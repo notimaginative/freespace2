@@ -9,9 +9,11 @@
 #include "pstypes.h"
 #include "joy.h"
 #include "mouse.h"
+#include "gamepad.h"
 
 
 static SDL_Gamepad *Gamepad = nullptr;
+static bool Swap_action_cancel = false;
 
 
 void gamepad_setup(SDL_JoystickID id)
@@ -21,16 +23,29 @@ void gamepad_setup(SDL_JoystickID id)
 		return;
 	}
 
+	// TODO: figure out how to set this properly (ini?, flag?, detect somehow?)
+	// Swap_action_cancel = true;
+
 	Gamepad = SDL_GetGamepadFromID(id);
 }
 
-bool gamepad_action()
+bool gamepad_action(bool reset)
 {
 	if ( !Gamepad ) {
 		return false;
 	}
 
-	return (joy_down(0) == 1);
+	bool down = joy_down(Swap_action_cancel ? 1 : 0) == 1;
+
+	// Because of how this ties in with the mouse, we need to be able to keep
+	// the button down for multiple frames. So don't reset when called from
+	// mouse_down().
+	if (down && reset) {
+		// mark button as down so we aren't just spamming it for a bunch of frames
+		joy_mark_button(Swap_action_cancel ? 1 : 0, 0);
+	}
+
+	return down;
 }
 
 bool gamepad_cancel()
@@ -39,7 +54,14 @@ bool gamepad_cancel()
 		return false;
 	}
 
-	return (joy_down(1) == 1);
+	bool down = joy_down(Swap_action_cancel ? 0 : 1) == 1;
+
+	if (down) {
+		// mark button as down so we aren't just spamming it for a bunch of frames
+		joy_mark_button(Swap_action_cancel ? 0 : 1, 0);
+	}
+
+	return down;
 }
 
 bool gamepad_action_or_cancel()
@@ -49,6 +71,28 @@ bool gamepad_action_or_cancel()
 	}
 
 	return (gamepad_action() || gamepad_cancel());
+}
+
+int gamepad_get_dpad_key()
+{
+	int k = 0;
+
+	if (joy_down(JOY_HATBACK)) {
+		// mark button as down so we aren't just spamming it for a bunch of frames
+		joy_mark_button(JOY_HATBACK, 0);
+		k = SDLK_DOWN;
+	} else if (joy_down(JOY_HATFORWARD)) {
+		joy_mark_button(JOY_HATFORWARD, 0);
+		k = SDLK_UP;
+	} else if (joy_down(JOY_HATLEFT)) {
+		joy_mark_button(JOY_HATLEFT, 0);
+		k = SDLK_LEFT;
+	} else if (joy_down(JOY_HATRIGHT)) {
+		joy_mark_button(JOY_HATRIGHT, 0);
+		k = SDLK_RIGHT;
+	}
+
+	return k;
 }
 
 void gamepad_update_mouse_pos()

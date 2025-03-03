@@ -210,7 +210,6 @@
 #include "freespace.h"
 #include "alphacolors.h"
 #include "localize.h"
-#include "gamepad.h"
 
 
 static int Snazzy_mouse_left_was_down;
@@ -313,10 +312,6 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 			break;
 
 	} // end switch
-
-	if ((choice == -1) && gamepad_cancel()) {
-		choice = ESC_PRESSED;
-	}
 
 	//if (pixel_value >= 0) {	// always true
 		for (i=0; i<num_regions; i++) {

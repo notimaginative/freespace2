@@ -10,9 +10,10 @@
 #define __GAMEPAD_H__
 
 void gamepad_setup(SDL_JoystickID id);
-bool gamepad_action();
+bool gamepad_action(bool reset = true);
 bool gamepad_cancel();
 bool gamepad_action_or_cancel();
+int gamepad_get_dpad_key();
 void gamepad_update_mouse_pos();
 
 #endif	//__GAMEPAD_H__

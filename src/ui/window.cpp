@@ -539,10 +539,6 @@ int UI_WINDOW::process(int key_in,int process_mouse)
 		mouse_captured_gadget = NULL;
 	}
 
-	if ( !last_keypress && gamepad_cancel() ) {
-		last_keypress = SDLK_ESCAPE;
-	}
-
 	keypress_text = key_get_text_input();
 
 	// The following code was commented out by NeilK on 4/15/99 to fix a problem we were having with

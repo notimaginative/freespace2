@@ -4819,13 +4819,19 @@ void ai_waypoints()
 		accelerate_ship(aip, max_allowed_speed / shipp->current_max_speed);
 	}
 
-	if (vm_vec_dist_quick(&Pl_objp->last_pos, &Pl_objp->pos) > 0.1f) {
+	float dist_traveled = vm_vec_dist_quick(&Pl_objp->last_pos, &Pl_objp->pos);
+
+	// Added MIN_DIST_TO_WAYPOINT_GOAL check in order to address long standing
+	// FS1 sm1-06a waypoint bug where the Galatea won't jump out. Copied from
+	// similar code in ai_path() - taylor
+
+	if ( (dist_to_goal < MIN_DIST_TO_WAYPOINT_GOAL) || (dist_traveled > 0.1f) ) {
 		vector	nearest_point;
 		float		r;
 
 		r = find_nearest_point_on_line(&nearest_point, &Pl_objp->last_pos, &Pl_objp->pos, wp_cur);
 
-		if ( (vm_vec_dist_quick(&Pl_objp->pos, wp_cur) < (MIN_DIST_TO_WAYPOINT_GOAL + fl_sqrt(Pl_objp->radius) + vm_vec_dist_quick(&Pl_objp->pos, &Pl_objp->last_pos))) ||
+		if ( (dist_to_goal < (MIN_DIST_TO_WAYPOINT_GOAL + fl_sqrt(Pl_objp->radius) + dist_traveled)) ||
 			(((r >= 0.0f) && (r <= 1.0f)) && (vm_vec_dist_quick(&nearest_point, wp_cur) < (MIN_DIST_TO_WAYPOINT_GOAL + fl_sqrt(Pl_objp->radius))))) {
 			wp_index++;
 			if (wp_index >= wpl->count) {
@@ -7739,7 +7745,8 @@ void ai_cruiser_chase_set_goal_pos(vector *goal_pos, object *pl_objp, object *en
 
 int maybe_hack_cruiser_chase_abort()
 {
-	ship			*shipp = &Ships[Pl_objp->instance];	
+#ifndef MAKE_FS1
+	ship			*shipp = &Ships[Pl_objp->instance];
 	ship			*eshipp = &Ships[En_objp->instance];
 	ai_info		*aip = &Ai_info[shipp->ai_index];
 
@@ -7756,6 +7763,7 @@ int maybe_hack_cruiser_chase_abort()
 			//}
 		}
 	}
+#endif
 
 	return 0;
 }

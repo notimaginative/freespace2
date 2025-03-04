@@ -3086,14 +3086,16 @@ void debrief_do_frame(float frametime)
 
 	gr_flip();
 
-	// dont let dude skip 3-09.  hack.	
+#ifndef MAKE_FS1
+	// dont let dude skip 3-09.  hack.
 	if(Game_mode & GM_CAMPAIGN_MODE){
 		if((Campaign.current_mission >= 0) && (Campaign.current_mission < MAX_CAMPAIGN_MISSIONS)){
 			if ((Campaign.missions[Campaign.current_mission].name != NULL) && !SDL_strcasecmp(Campaign.missions[Campaign.current_mission].name, "sm3-09.fs2")) {
 				Debrief_skip_popup_already_shown = 1;
 			}
 		}
-	}	
+	}
+#endif
 
 	// maybe show skip mission popup
 	if ((!Debrief_skip_popup_already_shown) && (Player->show_skip_popup) && (Game_mode & GM_NORMAL) && (Game_mode & GM_CAMPAIGN_MODE) && (Player->failures_this_session >= PLAYER_MISSION_FAILURE_LIMIT) && !(Game_mode & GM_MULTIPLAYER)) {

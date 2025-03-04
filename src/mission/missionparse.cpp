@@ -2998,12 +2998,11 @@ void parse_waypoint_list(mission *pm)
 	wpl->count = stuff_vector_list(wpl->waypoints, MAX_WAYPOINTS_PER_LIST);
 
 #ifdef MAKE_FS1
-	// AAAAHH!  I don't like to hard code a mission fix but I have no clue what to do
-	// to fix this properly.  In the FS1 mission "Playing Judas" you have to try and fly
-	// into one of the docking bays on the Lucifer.  Due to some change in the code the
-	// waypoints and the Lucifer's position don't match up so we have to change the
-	// waypoint position to compensate.
-	if ( !SDL_strcasecmp(pm->name, "Playing Judas") ) {
+	// In the FS1 mission "Playing Judas" (sm2-08a) you have to try and fly into
+	// one of the docking bays on the Lucifer.  Due to some change in the code
+	// the waypoints and the Lucifer's position don't match up so we have to
+	// change the waypoint position to compensate.
+	if ( !SDL_strcasecmp(Mission_filename, "sm2-08a") ) {
 		if ( !SDL_strcasecmp(wpl->name, "Docking Bay 1") ) {
 			wpl->waypoints[0].xyz.x = -1262.550903;
 			wpl->waypoints[0].xyz.y = 27.676950;

@@ -306,6 +306,7 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	SDL_assert( src != NULL );
 	SDL_assert( src_len > 0 );
 	SDL_assert( dest_len != NULL );
+	SDL_assert( dest_bps == 16 );
 
 	uint rc;
 	uint new_size = 0;
@@ -318,8 +319,7 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	// estimate size of uncompressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
-	new_size = ( src_len * dest_bps ) / pwfxSrc->bits_per_sample;
-	new_size *= 2;//buffer must be large enough for all data
+	new_size = (src_len / pwfxSrc->bits_per_sample) * dest_bps;
 
 	// DO NOT free() here, *estimated size*
 	if ( *dest == NULL ) {
@@ -329,7 +329,6 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 			goto Fail;
 		}
 
-//		memset(*dest, 0x80, new_size);	// silence (for 8 bits/sample)
 		memset(*dest, 0x00, new_size);	// silence (for 16 bits/sample)
 	}
 
@@ -392,10 +391,12 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	fmt->bytes_remaining = src_len;
 	fmt->bytes_processed = 0;
 
-	fmt->sample_frame_size = dest_bps/8*pwfxSrc->num_channels;
+	fmt->sample_frame_size = pwfxSrc->num_channels * (dest_bps / 8);
 
 	// convert to PCM
 	rc = read_sample_fmt_adpcm(*dest, rw, fmt);
+
+	SDL_assert(rc <= new_size);
 
 	if (rc == 0) {
 		goto Fail;
@@ -429,6 +430,7 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 	SDL_assert( pwfxSrc->code == WAVE_FORMAT_ADPCM );
 	SDL_assert( pwfxSrc->extra_data != NULL );
 	SDL_assert( stream != NULL );
+	SDL_assert( dest_bps == 16 );
 
 	SDL_IOStream *hdr = SDL_IOFromMem(pwfxSrc->extra_data, pwfxSrc->extra_size);
 	acm_stream_t *str = NULL;
@@ -487,7 +489,7 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 		goto Fail;
 	}
 
-	fmt->sample_frame_size = dest_bps/8*pwfxSrc->num_channels;
+	fmt->sample_frame_size = pwfxSrc->num_channels * (dest_bps / 8);
 	
 	str = (acm_stream_t *)malloc(sizeof(acm_stream_t));
 
@@ -538,7 +540,15 @@ int ACM_query_source_size(void *stream, int dest_len)
 	// estimate size of compressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
-	return (dest_len * str->src_bps) / str->dest_bps;
+	int size = (dest_len * str->src_bps) / str->dest_bps;
+	int extra = size % str->fmt->adpcm.wav.block_align;
+
+	// align it to the block size to reduce lost chunks
+	if (size > str->fmt->adpcm.wav.block_align) {
+		size -= extra;
+	}
+
+	return size;
 }
 
 /*
@@ -553,7 +563,7 @@ int ACM_query_dest_size(void *stream, int src_len)
 	// estimate size of uncompressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
-	return ( src_len * str->dest_bps ) / str->src_bps;
+	return ( src_len / str->src_bps ) * str->dest_bps;
 }
 
 /*

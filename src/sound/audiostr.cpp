@@ -687,9 +687,9 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 				goto READ_ERROR;
 			}
 
-			if (convert_len == 0) {
-				Int3();
-			}
+//			if (convert_len == 0) {
+//				Int3();
+//			}
 		}
 
 		SDL_assert( src_bytes_used <= num_bytes_read );

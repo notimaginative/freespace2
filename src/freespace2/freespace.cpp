@@ -4590,11 +4590,7 @@ int game_check_key()
 		k = (k & ~KEY_MASK) | SDLK_RETURN;
 
 	if (k == 0) {
-		if (gamepad_cancel()) {
-			k = SDLK_ESCAPE;
-		} else {
-			k = gamepad_get_dpad_key();
-		}
+		k = gamepad_get_key();
 	}
 
 	return k;

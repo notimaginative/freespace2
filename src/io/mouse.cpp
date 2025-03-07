@@ -464,10 +464,6 @@ int mouse_down(int btn)
 	else
 		tmp = 0;
 
-	if (mouse_is_visible() && (btn == MOUSE_LEFT_BUTTON) && gamepad_action(false)) {
-		tmp = 1;
-	}
-
 	return tmp;
 }
 

@@ -110,7 +110,7 @@ void ui_mouse_process()
 		ui_mouse.b2_status = BUTTON_RELEASED;
 
 	// now check if we missed something between checks, just in case
-	if (mouse_down_count(MOUSE_LEFT_BUTTON) || gamepad_action())
+	if (mouse_down_count(MOUSE_LEFT_BUTTON))
 		ui_mouse.b1_status = BUTTON_PRESSED;
 
 	if (mouse_up_count(MOUSE_LEFT_BUTTON))

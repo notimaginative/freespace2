@@ -10,6 +10,8 @@
 #include "joy.h"
 #include "mouse.h"
 #include "gamepad.h"
+#include "key.h"
+#include "timer.h"
 
 
 static SDL_Gamepad *Gamepad = nullptr;
@@ -18,7 +20,7 @@ static bool Swap_action_cancel = false;
 
 void gamepad_setup(SDL_JoystickID id)
 {
-	if ( !id ) {
+	if ( !id || !SDL_IsGamepad(id) ) {
 		Gamepad = nullptr;
 		return;
 	}
@@ -29,23 +31,15 @@ void gamepad_setup(SDL_JoystickID id)
 	Gamepad = SDL_GetGamepadFromID(id);
 }
 
-bool gamepad_action(bool reset)
+bool gamepad_action()
 {
 	if ( !Gamepad ) {
 		return false;
 	}
 
-	bool down = joy_down(Swap_action_cancel ? 1 : 0) == 1;
+	int button = int(Swap_action_cancel ? SDL_GAMEPAD_BUTTON_EAST : SDL_GAMEPAD_BUTTON_SOUTH);
 
-	// Because of how this ties in with the mouse, we need to be able to keep
-	// the button down for multiple frames. So don't reset when called from
-	// mouse_down().
-	if (down && reset) {
-		// mark button as down so we aren't just spamming it for a bunch of frames
-		joy_mark_button(Swap_action_cancel ? 1 : 0, 0);
-	}
-
-	return down;
+	return joy_down(button) == 1;
 }
 
 bool gamepad_cancel()
@@ -54,14 +48,9 @@ bool gamepad_cancel()
 		return false;
 	}
 
-	bool down = joy_down(Swap_action_cancel ? 0 : 1) == 1;
+	int button = int(Swap_action_cancel ? SDL_GAMEPAD_BUTTON_SOUTH : SDL_GAMEPAD_BUTTON_EAST);
 
-	if (down) {
-		// mark button as down so we aren't just spamming it for a bunch of frames
-		joy_mark_button(Swap_action_cancel ? 0 : 1, 0);
-	}
-
-	return down;
+	return joy_down(button) == 1;
 }
 
 bool gamepad_action_or_cancel()
@@ -73,24 +62,45 @@ bool gamepad_action_or_cancel()
 	return (gamepad_action() || gamepad_cancel());
 }
 
-int gamepad_get_dpad_key()
+#define IS_AXIS_DOWN(x)	(((x >= 0) && (x < JOY_NUM_AXES) && (axes[int(x)] > 5000)) ? true : false)
+
+int gamepad_get_key()
 {
+	static int key_check_time = 1;
+	int axes[JOY_NUM_AXES] = { 0 };
 	int k = 0;
 
-	if (joy_down(JOY_HATBACK)) {
-		// mark button as down so we aren't just spamming it for a bunch of frames
-		joy_mark_button(JOY_HATBACK, 0);
+	if ( !Gamepad || !mouse_is_visible() ) {
+		return 0;
+	}
+
+	if ( !timestamp_elapsed(key_check_time) ) {
+		return 0;
+	}
+
+	joystick_read_raw_axis(JOY_NUM_AXES, axes);
+
+	if (gamepad_cancel()) {
+		k = SDLK_ESCAPE;
+	} else if (joy_down(JOY_HATBACK)) {
 		k = SDLK_DOWN;
 	} else if (joy_down(JOY_HATFORWARD)) {
-		joy_mark_button(JOY_HATFORWARD, 0);
 		k = SDLK_UP;
 	} else if (joy_down(JOY_HATLEFT)) {
-		joy_mark_button(JOY_HATLEFT, 0);
 		k = SDLK_LEFT;
 	} else if (joy_down(JOY_HATRIGHT)) {
-		joy_mark_button(JOY_HATRIGHT, 0);
 		k = SDLK_RIGHT;
+	} else if (joy_down(int(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))) {
+		k = KEY_SHIFTED | SDLK_TAB;
+	} else if (joy_down(int(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER))) {
+		k = SDLK_TAB;
+	} else if (IS_AXIS_DOWN(SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) {
+		k = SDLK_PAGEDOWN;
+	} else if (IS_AXIS_DOWN(SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) {
+		k = SDLK_PAGEUP;
 	}
+
+	key_check_time = timestamp(150);
 
 	return k;
 }
@@ -106,8 +116,8 @@ void gamepad_update_mouse_pos()
 	}
 
 	// we poll directly here in order to get smooth movement
-	int dx = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTX) / 10000;
-	int dy = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTY) / 10000;
+	int dx = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTX) / 8000;
+	int dy = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTY) / 8000;
 
 	if ( !dx && !dy ) {
 		return;
@@ -116,6 +126,9 @@ void gamepad_update_mouse_pos()
 	// negative numbers move a little faster so we need to even things out for positives
 	if (dx > 0) dx += 1;
 	if (dy > 0) dy += 1;
+
+	CAP(dx, -4, 4);
+	CAP(dy, -4, 4);
 
 	int x = 0;
 	int y = 0;
@@ -126,4 +139,32 @@ void gamepad_update_mouse_pos()
 	mouse_update_pos_scaled(x, y, dx, dy);
 	// now change position
 	mouse_set_pos(x+dx, y+dy);
+}
+
+void gamepad_mark_mouse_button(int button, bool down)
+{
+	if ( !Gamepad ) {
+		return;
+	}
+
+	if ( !mouse_is_visible() ) {
+		return;
+	}
+
+	const int left_button = Swap_action_cancel ? SDL_GAMEPAD_BUTTON_EAST : SDL_GAMEPAD_BUTTON_SOUTH;
+	uint m_button = 0;
+
+	if (button == left_button) {
+		// "A" or "B" (if swapped)
+		m_button = SDL_BUTTON_LEFT;
+	} else if (button == SDL_GAMEPAD_BUTTON_WEST) {
+		// "X"
+		m_button = SDL_BUTTON_RIGHT;
+	}
+
+	if ( !m_button ) {
+		return;
+	}
+
+	mouse_mark_button(m_button, down);
 }

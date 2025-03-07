@@ -434,6 +434,8 @@ void os_poll()
 					}
 
 					joy_mark_button(button, e.gbutton.down);
+					// maybe update button events for gamepad-mouse too
+					gamepad_mark_mouse_button(e.gbutton.button, e.gbutton.down);
 				}
 
 				break;

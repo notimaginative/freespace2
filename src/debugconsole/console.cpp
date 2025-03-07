@@ -660,8 +660,10 @@ void debug_console( void (*_func)() )
 	if ( !debug_inited ) debug_init();
 
 
+	SDL_StartTextInput(os_get_window());
+
 	debug_draw();
-	
+
 	while (!done)	{
 		// poll the os
 		os_poll();
@@ -767,6 +769,8 @@ void debug_console( void (*_func)() )
 			_func();
 		}
 	}
+
+	SDL_StopTextInput(os_get_window());
 
 	while( key_inkey() ){
 		os_poll();

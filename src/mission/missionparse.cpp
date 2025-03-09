@@ -3002,7 +3002,7 @@ void parse_waypoint_list(mission *pm)
 	// one of the docking bays on the Lucifer.  Due to some change in the code
 	// the waypoints and the Lucifer's position don't match up so we have to
 	// change the waypoint position to compensate.
-	if ( !SDL_strcasecmp(Mission_filename, "sm2-08a") ) {
+	if ( !SDL_strcasecmp(Mission_filename, "sm2-08a.fsm") ) {
 		if ( !SDL_strcasecmp(wpl->name, "Docking Bay 1") ) {
 			wpl->waypoints[0].xyz.x = -1262.550903;
 			wpl->waypoints[0].xyz.y = 27.676950;
@@ -3856,6 +3856,9 @@ int parse_main(const char *mission_name, int flags)
 	Current_file_length = cfilelength(ftemp);
 	cfclose(ftemp);
 
+	if (!Fred_running)
+		SDL_strlcpy(Mission_filename, mission_name, SDL_arraysize(Mission_filename));
+
 	try {
 		read_file_text(mission_name, CF_TYPE_MISSIONS);
 		memset(&The_mission, 0, sizeof(The_mission));
@@ -3863,14 +3866,12 @@ int parse_main(const char *mission_name, int flags)
 		display_parse_diagnostics();
 	} catch (parse_error_t rval) {
 		nprintf(("Error", "Error abort!  Code = %i.", (int)rval));
+		SDL_zero(Mission_filename);
 		return (int)rval;
 	}
 
 	// close localization
 	lcl_ext_close();
-
-	if (!Fred_running)
-		SDL_strlcpy(Mission_filename, mission_name, SDL_arraysize(Mission_filename));
 
 	return 0;
 }

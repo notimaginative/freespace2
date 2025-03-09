@@ -66,7 +66,7 @@ bool gamepad_action_or_cancel()
 
 int gamepad_get_key()
 {
-	static int key_check_time = 1;
+	static Uint64 key_check_time = 0;
 	int axes[JOY_NUM_AXES] = { 0 };
 	int k = 0;
 
@@ -74,7 +74,7 @@ int gamepad_get_key()
 		return 0;
 	}
 
-	if ( !timestamp_elapsed(key_check_time) ) {
+	if (SDL_GetTicks() < key_check_time) {
 		return 0;
 	}
 
@@ -100,7 +100,7 @@ int gamepad_get_key()
 		k = SDLK_PAGEUP;
 	}
 
-	key_check_time = timestamp(150);
+	key_check_time = SDL_GetTicks() + 150;
 
 	return k;
 }

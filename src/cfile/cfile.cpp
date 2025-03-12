@@ -348,7 +348,7 @@ int cfile_in_root_dir(char *exe_path)
 	} while(tok != NULL);
 		
 	// root directory if we have <= 1 slash
-	if(token_count <= 2){
+	if(token_count <= 1){
 		return 1;
 	}
 
@@ -1491,7 +1491,11 @@ int cfile_init_paths()
 
 	// are we in a root directory?
 	if ( cfile_in_root_dir(Cfile_root_dir) ) {
+#ifndef MAKE_FS1
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
+#else
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace/Fred cannot be run from a drive root directory!", NULL);
+#endif
 		return 1;
 	}
 

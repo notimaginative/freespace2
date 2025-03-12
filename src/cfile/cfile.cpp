@@ -1555,12 +1555,11 @@ int cfile_init_paths()
 	// see if CF_TYPE_DATA exists for user and if not populate user path
 	// with full directory tree
 	char pathname[MAX_PATH_LEN];
-	struct stat info;
 
 	SDL_strlcpy(pathname, Cfile_user_dir, MAX_PATH_LEN);
 	SDL_strlcat(pathname, Pathtypes[CF_TYPE_DATA].path, MAX_PATH_LEN);
 
-	if ( stat(pathname, &info) != 0 ) {
+	if ( !SDL_GetPathInfo(pathname, nullptr) ) {
 		cf_create_directory(CF_TYPE_MAPS);
 		cf_create_directory(CF_TYPE_TEXT);
 		cf_create_directory(CF_TYPE_MISSIONS);

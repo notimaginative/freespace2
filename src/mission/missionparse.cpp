@@ -3004,13 +3004,13 @@ void parse_waypoint_list(mission *pm)
 	// change the waypoint position to compensate.
 	if ( !SDL_strcasecmp(Mission_filename, "sm2-08a.fsm") ) {
 		if ( !SDL_strcasecmp(wpl->name, "Docking Bay 1") ) {
-			wpl->waypoints[0].xyz.x = -1262.550903;
-			wpl->waypoints[0].xyz.y = 27.676950;
-			wpl->waypoints[0].xyz.z = 4461.702930;
+			wpl->waypoints[0].xyz.x = -1262.550903f;
+			wpl->waypoints[0].xyz.y = 27.676950f;
+			wpl->waypoints[0].xyz.z = 4461.702930f;
 		} else if ( !SDL_strcasecmp(wpl->name, "Docking Bat 2") ) { // it really is spelled "Bat" in the mission
-			wpl->waypoints[0].xyz.x = -1105.347976;
-			wpl->waypoints[0].xyz.y = 27.676950;
-			wpl->waypoints[0].xyz.z = 3900.236867;
+			wpl->waypoints[0].xyz.x = -1105.347976f;
+			wpl->waypoints[0].xyz.y = 27.676950f;
+			wpl->waypoints[0].xyz.z = 3900.236867f;
 		}
 	}
 #endif

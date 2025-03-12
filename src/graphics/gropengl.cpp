@@ -50,6 +50,7 @@ static GLuint Gr_saved_screen_tex = 0;
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
 
+static void opengl_set_viewport();
 
 void opengl_alloc_render_buffer(unsigned int nelems)
 {
@@ -546,10 +547,40 @@ void gr_opengl_dump_frame()
 
 static int GL_stream_w = 0;
 static int GL_stream_h = 0;
-static bool GL_stream_scale = false;
-static float GL_stream_scale_by = 1.0f;
 
 static rb_t GL_stream[4];
+
+static void opengl_stream_set_viewport()
+{
+	int window_w, window_h;
+
+	SDL_GetWindowSizeInPixels(os_get_window(), &window_w, &window_h);
+
+	float ratio = GL_stream_w / i2fl(GL_stream_h);
+
+	int w = window_w;
+	int h = fl2i((window_w / ratio) + 0.5f);
+
+	if (h > window_h) {
+		h = window_h;
+		w = fl2i((window_h * ratio) + 0.5f);
+	}
+
+	float scale_by = w / i2fl(GL_stream_w);
+	
+	glViewport((window_w - w) / 2,
+			   (window_h - h) / -2,
+			   window_w,
+			   window_h
+	);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, window_w, window_h, 0, 0.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glScalef(scale_by, scale_by, 1.0f);
+}
 
 void gr_opengl_stream_start(int x, int y, int w, int h)
 {
@@ -578,31 +609,22 @@ void gr_opengl_stream_start(int x, int y, int w, int h)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	uint scale = os_config_read_uint("Video", "ScaleMovies", 1);
-
-	if (scale) {
-		GL_stream_scale = true;
-		GL_stream_scale_by = GL_viewport_w / i2fl(w);
-	} else {
-		GL_stream_scale = false;
-	}
-
-	int sx, sy;
-
-	if (x < 0) {
-		sx = scale ? 0 : ((gr_screen.max_w - w) / 2);
-	} else {
-		sx = x;
-	}
-
-	if (y < 0) {
-		sy = scale ? ((480 - h) / 2) : ((gr_screen.max_h - h) / 2);
-	} else {
-		sy = y;
-	}
+//	bool scale = os_config_read_uint("Video", "ScaleMovies", 1) == 1;
 
 	GL_stream_w = w;
 	GL_stream_h = h;
+
+	opengl_stream_set_viewport();
+
+	int sx = 0, sy = 0;
+
+	if (x > 0) {
+		sx = x;
+	}
+
+	if (y > 0) {
+		sy = y;
+	}
 
 	GL_stream[0].x = i2fl(sx);
 	GL_stream[0].y = i2fl(sy);
@@ -625,6 +647,8 @@ void gr_opengl_stream_start(int x, int y, int w, int h)
 	GL_stream[3].v = i2fl(h) / i2fl(tex_h);
 
 	glDisable(GL_DEPTH_TEST);
+
+	gr_set_clear_color(0, 0, 0);
 }
 
 void gr_opengl_stream_frame(ubyte *frame)
@@ -632,6 +656,8 @@ void gr_opengl_stream_frame(ubyte *frame)
 	if ( !GL_stream_tex ) {
 		return;
 	}
+
+	gr_opengl_clear();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &GL_stream[0].x);
@@ -643,17 +669,7 @@ void gr_opengl_stream_frame(ubyte *frame)
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_stream_w, GL_stream_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, frame);
 
-	if (GL_stream_scale) {
-		glPushMatrix();
-		glLoadIdentity();
-		glScalef(GL_stream_scale_by, GL_stream_scale_by, 1.0f);
-	}
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	if (GL_stream_scale) {
-		glPopMatrix();
-	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -670,6 +686,9 @@ void gr_opengl_stream_stop()
 
 		glEnable(GL_DEPTH_TEST);
 	}
+
+	// switch back to standard viewport
+	opengl_set_viewport();
 }
 
 void gr_opengl_set_viewport(int width, int height)
@@ -702,6 +721,16 @@ void gr_opengl_set_viewport(int width, int height)
 	gr_screen.viewport_scale_factor_x = 1.0f / GL_viewport_scale_w;
 	gr_screen.viewport_scale_factor_y = 1.0f / GL_viewport_scale_h;
 
+	// if playing movie then just adjust viewport for that
+	if (GL_stream_tex) {
+		opengl_stream_set_viewport();
+	} else {
+		opengl_set_viewport();
+	}
+}
+
+static void opengl_set_viewport()
+{
 	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
 
 	glMatrixMode(GL_PROJECTION);
@@ -710,13 +739,7 @@ void gr_opengl_set_viewport(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
-
-	// adjust scale factor for gr_stream (movies)
-	if (GL_stream_tex && GL_stream_scale) {
-		GL_stream_scale_by = GL_viewport_w / i2fl(GL_stream_w);
-	}
 }
-
 
 void gr_opengl_clear()
 {

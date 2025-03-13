@@ -889,9 +889,16 @@ void techroom_ships_render(float frametime)
 	light_rotate_all();
 	// lighting for techroom
 
+	int mr_flags = MR_LOCK_DETAIL | MR_AUTOCENTER;
+
+#ifdef MAKE_FS1
+	// no lighting in FS1 techroom
+	mr_flags |= MR_NO_LIGHTING;
+#endif
+
 	model_clear_instance(Techroom_ship_modelnum);
 	model_set_detail_level(0);
-	model_render(Techroom_ship_modelnum, &Techroom_ship_orient, &vmd_zero_vector, MR_LOCK_DETAIL | MR_AUTOCENTER);
+	model_render(Techroom_ship_modelnum, &Techroom_ship_orient, &vmd_zero_vector, mr_flags);
 
 	g3_end_frame();
 #endif

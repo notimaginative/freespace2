@@ -262,6 +262,7 @@ void supernova_process()
 // is there a supernova active
 int supernova_active()
 {
+#ifndef MAKE_FS1
 	// if the supernova has "finished". fade to white and dead popup
 	if(Supernova_finished == 1){
 		Supernova_status = SUPERNOVA_HIT;
@@ -291,6 +292,9 @@ int supernova_active()
 
 	// first stage
 	return 1;
+#else
+	return 0;
+#endif
 }
 
 // time left before the supernova hits

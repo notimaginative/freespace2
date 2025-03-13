@@ -649,6 +649,7 @@ void gr_opengl_stream_start(int x, int y, int w, int h)
 	glDisable(GL_DEPTH_TEST);
 
 	gr_set_clear_color(0, 0, 0);
+	glColor4ub(255, 255, 255, 255);
 }
 
 void gr_opengl_stream_frame(ubyte *frame)

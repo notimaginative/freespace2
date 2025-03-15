@@ -106,7 +106,7 @@ void grid_read_camera_controls( control_info * ci, float frametime )
 	ci->pitch += kh;
 
 	ci->bank = (key_down_timef(SDLK_KP_7) - key_down_timef(SDLK_KP_9));
-	ci->forward = (key_down_timef(SDLK_a) - key_down_timef(SDLK_z));
+	ci->forward = (key_down_timef(SDLK_A) - key_down_timef(SDLK_Z));
 	ci->sideways = (key_down_timef(SDLK_KP_3) - key_down_timef(SDLK_KP_1));
 	ci->vertical = (key_down_timef(SDLK_KP_MINUS) - key_down_timef(SDLK_KP_PLUS));
 }

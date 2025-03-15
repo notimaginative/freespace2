@@ -6,15 +6,14 @@
  * the source.
  */
 
-#ifdef LEGACY_GL
+#ifndef __EMSCRIPTEN__
 
-#include "SDL_opengl.h"
+#include <SDL3/SDL_opengl.h>
 
 #include "pstypes.h"
 #include "2d.h"
 #include "gropengl.h"
 #include "gropenglinternal.h"
-#include "grgl1.h"
 #include "bmpman.h"
 #include "grinternal.h"
 #include "systemvars.h"
@@ -61,13 +60,13 @@ static ubyte GL_xlat[256] = { 0 };
 extern int bm_get_cache_slot( int bitmap_id, int separate_ani_frames );
 
 
-void opengl1_set_texture_state(gr_texture_source ts)
+void opengl_set_texture_state(gr_texture_source ts)
 {
 	if (ts == TEXTURE_SOURCE_NONE) {
 		GL_bound_texture = NULL;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		opengl1_tcache_set(-1, -1, NULL, NULL, 0, -1, -1, 0 );
+		opengl_tcache_set(-1, -1, NULL, NULL, 0, -1, -1, 0 );
 	} else if (GL_bound_texture &&
 		GL_bound_texture->texture_mode != ts) {
 		switch (ts) {
@@ -90,7 +89,7 @@ void opengl1_set_texture_state(gr_texture_source ts)
 }
 
 
-void opengl1_tcache_init()
+void opengl_tcache_init()
 {
 	int i, idx, s_idx;
 
@@ -155,7 +154,7 @@ void opengl1_tcache_init()
 	memset(GL_xlat, 0, sizeof(GL_xlat));
 }
 
-static int opengl1_free_texture ( tcache_slot_opengl *t )
+static int opengl_free_texture ( tcache_slot_opengl *t )
 {
 	int idx, s_idx;
 
@@ -192,7 +191,7 @@ static int opengl1_free_texture ( tcache_slot_opengl *t )
 			for(idx=0; idx<MAX_BMAP_SECTIONS_X; idx++){
 				for(s_idx=0; s_idx<MAX_BMAP_SECTIONS_Y; s_idx++){
 					if(t->data_sections[idx][s_idx] != NULL){
-						opengl1_free_texture(t->data_sections[idx][s_idx]);
+						opengl_free_texture(t->data_sections[idx][s_idx]);
 					}
 				}
 			}
@@ -207,7 +206,7 @@ static int opengl1_free_texture ( tcache_slot_opengl *t )
 	return 1;
 }
 
-void opengl1_tcache_flush()
+void opengl_tcache_flush()
 {
 	int i;
 
@@ -216,7 +215,7 @@ void opengl1_tcache_flush()
 	}
 
 	for( i=0; i<MAX_BITMAPS; i++ )  {
-		opengl1_free_texture ( &Textures[i] );
+		opengl_free_texture ( &Textures[i] );
 	}
 	if (Gr_textures_in != 0) {
 		mprintf(( "WARNING: VRAM is at %d instead of zero after flushing!\n", Gr_textures_in ));
@@ -228,9 +227,9 @@ void opengl1_tcache_flush()
 	GL_last_section_y = -1;
 }
 
-void opengl1_tcache_cleanup()
+void opengl_tcache_cleanup()
 {
-	opengl1_tcache_flush ();
+	opengl_tcache_flush ();
 
 	if ( Textures ) {
 		free(Textures);
@@ -243,7 +242,7 @@ void opengl1_tcache_cleanup()
 	}
 }
 
-void opengl1_tcache_frame()
+void opengl_tcache_frame()
 {
 	GL_last_bitmap_id = -1;
 
@@ -272,12 +271,12 @@ void opengl1_tcache_frame()
 	*/
 
 	if ( vram_full )        {
-		opengl1_tcache_flush();
+		opengl_tcache_flush();
 		vram_full = 0;
 	}
 }
 
-static void opengl1_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int *h_out)
+static void opengl_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_out, int *h_out)
 {
 	int tex_w, tex_h;
 	int i;
@@ -338,7 +337,7 @@ static void opengl1_tcache_get_adjusted_texture_size(int w_in, int h_in, int *w_
 // bmap_h == height of source bitmap
 // tex_w == width of final texture
 // tex_h == height of final texture
-static int opengl1_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *bmp, tcache_slot_opengl *t, int sx, int sy, int src_w, int src_h, int tex_w, int tex_h, bool reload, bool resize, int fail_on_full)
+static int opengl_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *bmp, tcache_slot_opengl *t, int sx, int sy, int src_w, int src_h, int tex_w, int tex_h, bool reload, bool resize, int fail_on_full)
 {
 	// bogus
 	if ( (bmp == NULL) || (t == NULL) ) {
@@ -351,7 +350,7 @@ static int opengl1_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 	}
 
 	if ( !reload ) {
-		if ( !opengl1_free_texture(t) ) {
+		if ( !opengl_free_texture(t) ) {
 			return 0;
 		}
 
@@ -518,7 +517,7 @@ static int opengl1_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 	return 1;
 }
 
-static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_opengl *tslot, int fail_on_full)
+static int opengl_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_opengl *tslot, int fail_on_full)
 {
 	ubyte flags = 0;
 	int final_w, final_h;
@@ -567,7 +566,7 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	}
 
 	// get final texture size as it will be allocated as a DD surface
-	opengl1_tcache_get_adjusted_texture_size(max_w, max_h, &final_w, &final_h);
+	opengl_tcache_get_adjusted_texture_size(max_w, max_h, &final_w, &final_h);
 
 	if ( (final_w < 1) || (final_h < 1) ) {
 		mprintf(("Bitmap is too small at %dx%d.\n", final_w, final_h));
@@ -589,7 +588,7 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	}
 
 	// call the helper
-	int ret_val = opengl1_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, 0, 0, bmp->w, bmp->h, final_w, final_h, reload, resize, fail_on_full);
+	int ret_val = opengl_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, 0, 0, bmp->w, bmp->h, final_w, final_h, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -597,7 +596,7 @@ static int opengl1_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	return ret_val;
 }
 
-static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, tcache_slot_opengl *tslot, int sx, int sy, int fail_on_full)
+static int opengl_create_texture_sectioned(int bitmap_handle, int bitmap_type, tcache_slot_opengl *tslot, int sx, int sy, int fail_on_full)
 {
 	int final_w, final_h;
 	int section_x, section_y;
@@ -621,7 +620,7 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 	bm_get_section_size(bitmap_handle, sx, sy, &section_x, &section_y);
 
 	// get final texture size as it will be allocated as an opengl texture
-	opengl1_tcache_get_adjusted_texture_size(section_x, section_y, &final_w, &final_h);
+	opengl_tcache_get_adjusted_texture_size(section_x, section_y, &final_w, &final_h);
 
 	if ( (final_w < 1) || (final_h < 1) ) {
 		mprintf(("Bitmap is too small at %dx%d.\n", final_w, final_h));
@@ -643,7 +642,7 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 	}
 
 	// call the helper
-	int ret_val = opengl1_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, bmp->sections.sx[sx], bmp->sections.sy[sy], section_x, section_y, final_w, final_h, reload, resize, fail_on_full);
+	int ret_val = opengl_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, bmp->sections.sx[sx], bmp->sections.sy[sy], section_x, section_y, final_w, final_h, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -651,7 +650,7 @@ static int opengl1_create_texture_sectioned(int bitmap_handle, int bitmap_type, 
 	return ret_val;
 }
 
-int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full, int sx, int sy, int force)
+int opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_scale, int fail_on_full, int sx, int sy, int force)
 {
 	bitmap *bmp = NULL;
 
@@ -666,7 +665,7 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 
 	if ( GL_last_detail != Detail.hardware_textures )      {
 		GL_last_detail = Detail.hardware_textures;
-		opengl1_tcache_flush();
+		opengl_tcache_flush();
 	}
 
 	if (vram_full) {
@@ -716,7 +715,7 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 			for(idx=0; idx<bmp->sections.num_x; idx++){
 				for(s_idx=0; s_idx<bmp->sections.num_y; s_idx++){
 					// hmm. i'd rather we didn't have to do it this way...
-					if(!opengl1_create_texture_sectioned(bitmap_id, bitmap_type, t->data_sections[idx][s_idx], idx, s_idx, fail_on_full)){
+					if(!opengl_create_texture_sectioned(bitmap_id, bitmap_type, t->data_sections[idx][s_idx], idx, s_idx, fail_on_full)){
 						ret_val = 0;
 					}
 
@@ -734,7 +733,7 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 
 		// argh. we failed to upload. free anything we can
 		if(!ret_val){
-			opengl1_free_texture(t);
+			opengl_free_texture(t);
 		}
 		// swap in the texture we want
 		else {
@@ -743,7 +742,7 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 	}
 	// all other "normal" textures
 	else if((bitmap_id < 0) || (bitmap_id != t->bitmap_id)){
-		ret_val = opengl1_create_texture( bitmap_id, bitmap_type, t, fail_on_full );
+		ret_val = opengl_create_texture( bitmap_id, bitmap_type, t, fail_on_full );
 	}
 
 	// everything went ok
@@ -779,12 +778,12 @@ int opengl1_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_
 	return 1;
 }
 
-void gr_opengl1_preload_init()
+void gr_opengl_preload_init()
 {
-	opengl1_tcache_flush();
+	opengl_tcache_flush();
 }
 
-int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
+int gr_opengl_preload(int bitmap_num, int is_aabitmap)
 {
 	if ( !GL_should_preload )      {
 		return 0;
@@ -798,7 +797,7 @@ int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
 		bitmap_type = TCACHE_TYPE_AABITMAP;
 	}
 
-	retval = opengl1_tcache_set(bitmap_num, bitmap_type, &u_scale, &v_scale, 1, -1, -1, 0 );
+	retval = opengl_tcache_set(bitmap_num, bitmap_type, &u_scale, &v_scale, 1, -1, -1, 0 );
 
 	if ( !retval )  {
 		mprintf(("Texture upload failed!\n" ));
@@ -807,7 +806,7 @@ int gr_opengl1_preload(int bitmap_num, int is_aabitmap)
 	return retval;
 }
 
-void gr_opengl1_set_gamma(float)
+void gr_opengl_set_gamma(float)
 {
 	int i;
 
@@ -819,17 +818,17 @@ void gr_opengl1_set_gamma(float)
 	GL_xlat[15] = GL_xlat[1];
 
 	// Flush any existing textures
-	opengl1_tcache_flush();
+	opengl_tcache_flush();
 }
 
-void gr_opengl1_release_texture(int handle)
+void gr_opengl_release_texture(int handle)
 {
 	for(int i=0; i<MAX_BITMAPS; i++ )  {
 		if (Textures[i].bitmap_id == handle) {
 			Textures[i].used_this_frame = 0; // this bmp doesn't even exist any longer...
-			opengl1_free_texture( &Textures[i] );
+			opengl_free_texture( &Textures[i] );
 		}
 	}
 }
 
-#endif
+#endif	// !__EMSCRIPTEN__

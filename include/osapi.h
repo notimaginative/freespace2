@@ -17,8 +17,6 @@
 // OSAPI DEFINES/VARS
 //
 
-// set if running under MsDev - done after os_init(...) has returned
-extern int Os_debugger_running;
 
 // --------------------------------------------------------------------------------------------------
 // OSAPI FUNCTIONS
@@ -26,9 +24,9 @@ extern int Os_debugger_running;
 
 // initialization/shutdown functions -----------------------------------------------
 
-// If app_name is NULL or ommited, then TITLE is used
-// for the app name, which is where registry keys are stored.
-void os_init(const char *wclass, const char *title, const char *app_name = NULL, const char *version_string = NULL);
+
+/// Initialize basic app functions and settings, and optionally set window title and app id if not default
+void os_init(const char *title = nullptr, const char *appid = nullptr);
 
 // set the main window title
 void os_set_title( const char *title );

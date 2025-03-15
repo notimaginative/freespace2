@@ -582,7 +582,7 @@ void multi_pinfo_blit_pilot_image()
 		gr_set_color_fast(&Color_normal);		
 
 		// if there is no image
-		if(strlen(Mp_pilot.filename) <= 0){
+		if(SDL_strlen(Mp_pilot.filename) == 0){
 			SDL_strlcpy(place_text, XSTR("No/Invalid Image", 1053), SDL_arraysize(place_text));
 		} 
 		// if the image is xferring
@@ -628,7 +628,7 @@ void multi_pinfo_blit_squadron_logo()
 		gr_set_color_fast(&Color_normal);		
 
 		// if there is no image
-		if(strlen(p->squad_filename) <= 0){
+		if(SDL_strlen(p->squad_filename) == 0){
 			SDL_strlcpy(place_text, XSTR("No/Invalid Image", 1053), SDL_arraysize(place_text));
 		} 
 		// if the image is xferring
@@ -867,7 +867,7 @@ void multi_pinfo_maybe_reload_pic(np_bitmap *b)
 	}			
 
 	// if the bitmap filename is bogus
-	if(strlen(b->filename) <= 0){
+	if(SDL_strlen(b->filename) == 0){
 		return;
 	}	
 
@@ -933,11 +933,11 @@ void multi_pinfo_reset_player(net_player *np)
 	}	
 	
 	// try and load pilot pic/squad logo
-	if(strlen(np->player->image_filename) > 0){
+	if(SDL_strlen(np->player->image_filename) > 0){
 		SDL_strlcpy(Mp_pilot.filename, np->player->image_filename, SDL_arraysize(Mp_pilot.filename));
 		Mp_pilot.bitmap = bm_load_duplicate(Mp_pilot.filename);
 	}
-	if(strlen(np->player->squad_filename) > 0){
+	if(SDL_strlen(np->player->squad_filename) > 0){
 		SDL_strlcpy(Mp_squad.filename, np->player->squad_filename, SDL_arraysize(Mp_squad.filename));
 		Mp_squad.bitmap = bm_load_duplicate(Mp_squad.filename);
 	}

@@ -709,7 +709,7 @@ void help_overlay_blit(int overlay_id)
 	// this draws each line of help text with white on black text (use the GR_640 index for the string)
 	for (idx = 0; idx < textcount; idx++) {
 		gr_set_color_fast(&Color_black);
-		gr_get_string_size(&width, &height, help_overlaylist[overlay_id].textlist[GR_640][idx].string, strlen(help_overlaylist[overlay_id].textlist[GR_640][idx].string));
+		gr_get_string_size(&width, &height, help_overlaylist[overlay_id].textlist[GR_640][idx].string, SDL_strlen(help_overlaylist[overlay_id].textlist[GR_640][idx].string));
 		gr_rect(help_overlaylist[overlay_id].textlist[gr_screen.res][idx].x_coord-2*HELP_PADDING, help_overlaylist[overlay_id].textlist[gr_screen.res][idx].y_coord-3*HELP_PADDING, width+4*HELP_PADDING, height+4*HELP_PADDING);
 		gr_set_color_fast(&Color_bright_white);
 		gr_printf(help_overlaylist[overlay_id].textlist[gr_screen.res][idx].x_coord, help_overlaylist[overlay_id].textlist[gr_screen.res][idx].y_coord, help_overlaylist[overlay_id].textlist[GR_640][idx].string);

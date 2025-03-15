@@ -1446,7 +1446,7 @@ void wl_load_anim(int weapon_class)
 	// 1024x768 SUPPORT
 	// If we are in 1024x768, we first want to append "2_" in front of the filename
 	if (gr_screen.res == GR_1024) {
-		SDL_assert(strlen(Weapon_info[weapon_class].anim_filename) <= 30);
+		SDL_assert(SDL_strlen(Weapon_info[weapon_class].anim_filename) <= 30);
 		SDL_strlcpy(animation_filename, "2_", SDL_arraysize(animation_filename));
 		SDL_strlcat(animation_filename, Weapon_info[weapon_class].anim_filename, SDL_arraysize(animation_filename));
 
@@ -1467,7 +1467,7 @@ void wl_load_anim(int weapon_class)
 			mprintf(("Weapon ANI: Can not find %s, using lowres version instead.\n",animation_filename)); 
 			strcpy(animation_filename, Weapon_info[weapon_class].anim_filename);
 		} else {
-			animation_filename[strlen(animation_filename) - 4] = '\0';
+			animation_filename[SDL_strlen(animation_filename) - 4] = '\0';
 			mprintf(("Weapon ANI: Found hires version of %s\n",animation_filename));
 		}
 		*/
@@ -2511,7 +2511,7 @@ void wl_render_weapon_desc(float frametime)
 		
 		// draw weapon title (above weapon anim)
 		for (i=0; i<2; i++) {
-			curr_len = strlen(Weapon_desc_lines[i]);
+			curr_len = static_cast<int>(SDL_strlen(Weapon_desc_lines[i]));
 
 			if (bright_char_index < curr_len) {
 				// save bright char and plunk in some nulls to shorten string
@@ -2539,7 +2539,7 @@ void wl_render_weapon_desc(float frametime)
 
 		// draw weapon desc (below weapon anim)
 		for (i=2; i<WEAPON_DESC_MAX_LINES; i++) {
-			curr_len = strlen(Weapon_desc_lines[i]);
+			curr_len = static_cast<int>(SDL_strlen(Weapon_desc_lines[i]));
 
 			if (bright_char_index < curr_len) {
 				// save bright char and plunk in some nulls to shorten string
@@ -2595,7 +2595,7 @@ void wl_weapon_desc_start_wipe()
 #ifndef MAKE_FS1
 	int currchar_src = 0, currline_dest = 2, currchar_dest = 0, i;
 	int w, h;
-	int title_len = strlen(Weapon_info[Selected_wl_class].title);
+	int title_len = static_cast<int>(SDL_strlen(Weapon_info[Selected_wl_class].title));
 
 	// init wipe vars
 	Weapon_desc_wipe_time_elapsed = 0.0f;
@@ -3103,7 +3103,7 @@ void wl_render_icon_count(int num, int x, int y)
 	SDL_assert(number_to_draw >= 0);
 
 	SDL_snprintf(buf, SDL_arraysize(buf), "%d", number_to_draw);
-	gr_get_string_size(&num_w, &num_h, buf, strlen(buf));
+	gr_get_string_size(&num_w, &num_h, buf, SDL_strlen(buf));
 
 	// render
 	gr_set_color_fast(&Color_white);

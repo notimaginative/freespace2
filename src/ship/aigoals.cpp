@@ -1838,19 +1838,16 @@ int ai_goal_priority_compare(const void *a, const void *b)
 		return -1;
 	else if ( ga->priority < gb->priority )
 		return 1;
-	else {
-		if ( ga->time > gb->time )
-			return -1;
-#ifdef PLAT_UNIX
-		else if ( ga->time > gb->time )
-			return 1;
-		else
-			return 0;
-#else
-		else // if ( ga->time < gb->time )			// this way prevents element swapping if times happen to be equal (which they should not)
-			return 1;
-#endif
-	}
+
+	// now check time
+
+	if ( ga->time > gb->time )
+		return -1;
+	else if ( ga->time < gb->time )
+		return 1;
+
+	// the two are equal
+	return 0;
 }
 
 //	Prioritize goal list.
@@ -2335,7 +2332,7 @@ char *ai_add_dock_name(const char *str)
 	char *ptr;
 	int i;
 
-	SDL_assert(strlen(str) < NAME_LENGTH - 1);
+	SDL_assert(SDL_strlen(str) < NAME_LENGTH - 1);
 	for (i=0; i<Num_ai_dock_names; i++)
 		if (!SDL_strcasecmp(Ai_dock_names[i], str))
 			return Ai_dock_names[i];

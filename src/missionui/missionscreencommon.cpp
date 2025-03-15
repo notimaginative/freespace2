@@ -641,7 +641,7 @@ void common_set_interface_palette(const char *filename)
 	if (!filename)
 		filename = NOX("palette01");
 
-	SDL_assert(strlen(filename) <= MAX_FILENAME_LEN);
+	SDL_assert(SDL_strlen(filename) <= MAX_FILENAME_LEN);
 	if ( (InterfacePaletteBitmap != -1) && !SDL_strcasecmp(filename, buf) )
 		return;  // already set to this palette
 
@@ -1035,13 +1035,13 @@ void common_check_keys(int k)
 			Commit_pressed = 1;
 			break;
 
-		case SDLK_b:
+		case SDLK_B:
 			if ( Current_screen != ON_BRIEFING_SELECT && !Background_playing ) {
 				Next_screen = ON_BRIEFING_SELECT;
 			}
 			break;
 
-		case SDLK_w:
+		case SDLK_W:
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
 				break;
@@ -1061,7 +1061,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case SDLK_s:
+		case SDLK_S:
 
 			if ( brief_only_allow_briefing() ) {
 				gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -1150,7 +1150,7 @@ void common_check_keys(int k)
 
 			break;
 
-		case SDLK_p:
+		case SDLK_P:
 			if ( Anim_paused )
 				Anim_paused = 0;
 			else

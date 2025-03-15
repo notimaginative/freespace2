@@ -1288,11 +1288,11 @@ void mission_hotkey_do_frame(float frametime)
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);			
 			break;
 
-		case KEY_CTRLED | SDLK_r:
+		case KEY_CTRLED | SDLK_R:
 			reset_hotkeys();
 			break;
 
-		case KEY_CTRLED | SDLK_c:
+		case KEY_CTRLED | SDLK_C:
 			clear_hotkeys();
 			break;
 	}	// end switch
@@ -1366,7 +1366,7 @@ void mission_hotkey_do_frame(float frametime)
 	// draw the big "F10" in the little box	
 	gr_set_font(FONT2);
 	gr_set_color_fast(&Color_text_normal);
-	SDL_strlcpy(buf, Scan_code_text[SDL_GetScancodeFromKey(Key_sets[Cur_hotkey])], SDL_arraysize(buf));
+	SDL_strlcpy(buf, Scan_code_text[SDL_GetScancodeFromKey(Key_sets[Cur_hotkey], nullptr)], SDL_arraysize(buf));
 	gr_get_string_size(&w, &h, buf);
 	gr_printf(Hotkey_function_name_coords[gr_screen.res][0] + (Hotkey_function_name_coords[gr_screen.res][2] - w) / 2, Hotkey_function_name_coords[gr_screen.res][1], buf);
 
@@ -1440,7 +1440,7 @@ void mission_hotkey_do_frame(float frametime)
 		if (hotkeys) {
 			for (i=0; i<MAX_KEYED_TARGETS; i++) {
 				if (hotkeys & (1 << i)) {
-					gr_printf(Hotkey_list_coords[gr_screen.res][0] + Hotkey_function_field_width[gr_screen.res]*i, y, Scan_code_text[SDL_GetScancodeFromKey(Key_sets[i])]);
+					gr_printf(Hotkey_list_coords[gr_screen.res][0] + Hotkey_function_field_width[gr_screen.res]*i, y, Scan_code_text[SDL_GetScancodeFromKey(Key_sets[i], nullptr)]);
 				}
 			}
 /*
@@ -1452,8 +1452,8 @@ void mission_hotkey_do_frame(float frametime)
 				}
 			}
 
-			SDL_assert(strlen(buf) > 1);
-			buf[strlen(buf) - 2] = 0;  // lose the ", " on the end
+			SDL_assert(SDL_strlen(buf) > 1);
+			buf[SDL_strlen(buf) - 2] = 0;  // lose the ", " on the end
 
 			gr_force_fit_string(buf, 255, GROUP_LIST_W);
 			gr_printf(GROUP_LIST_X, y, buf);*/

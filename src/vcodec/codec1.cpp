@@ -1502,7 +1502,7 @@ static int Encode1(t_Sample* bufIn, t_Sample* bufOut, int size, int sizeOut)
         }
     }
 
-    return out - bufOut; 
+    return static_cast<int>(out - bufOut); 
 }
 
 /*
@@ -1711,7 +1711,7 @@ static void Smooth1(t_Sample* bufIn, t_Sample* bufOut, int size)
 // can operate in place
 static double AutoGain1(t_Sample* bufIn, t_Sample* bufOut, int size)
 {
-    register int i, s;
+	int i, s;
 	int hist[17], sum, silenceSize = 0;
 	const int TARGET_MAX = 32, BUCKET_SIZE = 3;
 	double x;
@@ -1781,7 +1781,7 @@ static double AutoGain1(t_Sample* bufIn, t_Sample* bufOut, int size)
 static void UnAutoGain1(t_Sample* bufIn, t_Sample* bufOut, int size, 
 						double gain)
 {
-    register int i;
+	int i;
 	if (gain == 0.0)
 	{
 		if (bufIn != bufOut)
@@ -1825,7 +1825,7 @@ static void InitLowPassFilter(int QoS, double LPF_Coef[LPF_NUM_POINTS],
 static void LowPassFilter(t_Sample* bufIn, t_Sample* bufOut, int size,
 						  char LPF_CoefTimesSample[LPF_NUM_POINTS][256])
 {
-    register int j;
+	int j;
 
   #if !defined(USE_LOWPASS_FILTER)
 	if (bufIn != bufOut)
@@ -1836,7 +1836,7 @@ static void LowPassFilter(t_Sample* bufIn, t_Sample* bufOut, int size,
 
     for (j = LPF_NUM_POINTS-1; j < size; j++)
     {
-        register int i, sum = 0;
+		int i, sum = 0;
         for (i = 0; i < LPF_NUM_POINTS; i++)
 		{
 			int temp1 = bufIn[ i + (j-(LPF_NUM_POINTS-1)) ]; //    0 -> 255

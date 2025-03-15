@@ -344,6 +344,7 @@
 #include "alphacolors.h"
 #include "demo.h"
 #include "fishtank.h"
+#include "version.h"
 
 // #include "movie.h"
 
@@ -1122,7 +1123,7 @@ void main_hall_do(float frametime)
 	case SDLK_3:
 		main_hall_campaign_cheat();	
 		break;	
-	case KEY_DEBUGGED + SDLK_d:
+	case KEY_DEBUGGED + SDLK_D:
 		demo_start_playback("test.fsd");
 		break;
 	}
@@ -1157,7 +1158,7 @@ void main_hall_do(float frametime)
 				gamesnd_play_iface(SND_IFACE_MOUSE_CLICK);
 				main_hall_do_multi_ready();
 			} else {				
-				if(strlen(Main_hall_campaign_cheat)){
+				if(SDL_strlen(Main_hall_campaign_cheat)){
 					gameseq_post_event(GS_EVENT_CAMPAIGN_CHEAT);
 				} else {
 					gameseq_post_event(GS_EVENT_NEW_CAMPAIGN);				
@@ -1932,7 +1933,7 @@ void main_hall_blit_version()
 #endif
 
 	// format the version string
-	get_version_string(version_string, SDL_arraysize(version_string));
+	version_get_string_full(version_string, SDL_arraysize(version_string));
 
 #if defined(MAKE_FS1) && !defined(FS1_DEMO)
 	// tack on "EAX", since we have that :)

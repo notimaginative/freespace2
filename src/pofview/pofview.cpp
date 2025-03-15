@@ -329,6 +329,8 @@ void PofViewFrame::PofviewInit()
 	mouse_init();
 
 	m_canvas->GetClientSize(&w, &h);
+	w *= m_canvas->GetContentScaleFactor();
+	h *= m_canvas->GetContentScaleFactor();
 
 	gr_init();
 	gr_set_viewport(w, h);

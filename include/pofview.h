@@ -267,6 +267,7 @@ class PofViewFrame : public wxFrame
 		const wxString GetFileName() { return m_file_name; }
 		int GetModelnum() { return m_model_num; }
 		int GetDetailLevel() { return m_current_detail_level; }
+		wxGLContext* GetGLContext() { return m_glContext; }
 
 		bool ShowOutline() { return m_menuView->IsChecked(ID_M_VIEW_OUTLINE); }
 		bool ShowShields() { return m_menuView->IsChecked(ID_M_VIEW_SHIELDS); }

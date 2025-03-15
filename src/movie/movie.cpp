@@ -62,7 +62,7 @@ int movie_play(const char *filename)
 	audiostream_pause_all();
 
 	// clear the screen and hide the mouse cursor
-	Mouse_hidden++;
+	mouse_hide_cursor();
 	gr_set_clear_color(0, 0, 0);
 	gr_reset_clip();
 	gr_clear();
@@ -78,7 +78,7 @@ int movie_play(const char *filename)
 	mve_shutdown();
 	mve_close(movie);
 
-	Mouse_hidden--;
+	mouse_show_cursor();
 
 	audiostream_unpause_all();
 

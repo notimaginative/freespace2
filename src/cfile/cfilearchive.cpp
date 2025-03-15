@@ -111,7 +111,7 @@ void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
 		}
 
 		#if defined(CHECK_POSITION) && !defined(NDEBUG)
-			int raw_position = ftell(cb->fp) - cb->lib_offset;
+			auto raw_position = ftell(cb->fp) - cb->lib_offset;
 			SDL_assert(raw_position == cb->raw_position);
 		#endif
 	}
@@ -138,7 +138,7 @@ int cfeof(CFILE *cfile)
 	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-	int raw_position = ftell(cb->fp) - cb->lib_offset;
+	auto raw_position = ftell(cb->fp) - cb->lib_offset;
 	SDL_assert(raw_position == cb->raw_position);
 	#endif
 		
@@ -166,7 +166,7 @@ int cftell( CFILE * cfile )
 	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-	int raw_position = ftell(cb->fp) - cb->lib_offset;
+	auto raw_position = ftell(cb->fp) - cb->lib_offset;
 	SDL_assert(raw_position == cb->raw_position);
 	#endif
 
@@ -212,7 +212,7 @@ int cfseek( CFILE *cfile, int offset, int where )
 	cb->raw_position = goal_position - cb->lib_offset;
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
+		auto tmp_offset = ftell(cb->fp) - cb->lib_offset;
 		SDL_assert(tmp_offset==cb->raw_position);
 	#endif
 
@@ -225,7 +225,7 @@ int cfseek( CFILE *cfile, int offset, int where )
 // returns:   returns the number of full elements read
 //            
 //
-int cfread(void *buf, int elsize, int nelem, CFILE *cfile)
+int cfread(void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 {
 	SDL_assert(cfile != NULL);
 	SDL_assert(buf != NULL);
@@ -236,7 +236,7 @@ int cfread(void *buf, int elsize, int nelem, CFILE *cfile)
 
 	SDL_assert(cb->fp != NULL);
 
-	int size = elsize*nelem;
+	auto size = elsize*nelem;
 
 	SDL_assert(nelem > 0);
 	SDL_assert(elsize > 0);
@@ -250,17 +250,17 @@ int cfread(void *buf, int elsize, int nelem, CFILE *cfile)
 		//mprintf(( "CFILE: EOF encountered in file\n" ));
 	}
 
-	int bytes_read = fread( buf, 1, size, cb->fp );
+	auto bytes_read = fread(buf, 1, size, cb->fp);
 	if ( bytes_read > 0 )	{
 		cb->raw_position += bytes_read;
 	}		
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
+		auto tmp_offset = ftell(cb->fp) - cb->lib_offset;
 		SDL_assert(tmp_offset==cb->raw_position);
 	#endif
 
-	return bytes_read / elsize;
+	return static_cast<int>(bytes_read / elsize);
 
 }
 

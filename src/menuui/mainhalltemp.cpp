@@ -161,11 +161,11 @@ void mht_do()
 		mht_exit_game();
 		break;
 
-	case SDLK_b:
+	case SDLK_B:
 		gameseq_post_event( GS_EVENT_BARRACKS_MENU );
 		break;	
 
-	case SDLK_g:
+	case SDLK_G:
 		if(Player->flags & PLAYER_FLAGS_IS_MULTI){
 			break;
 		}
@@ -181,7 +181,7 @@ void mht_do()
 		gameseq_post_event(GS_EVENT_START_GAME_QUICK);
 		break;
 
-	case SDLK_l:
+	case SDLK_L:
 		gameseq_post_event( GS_EVENT_LOAD_MISSION_MENU );
 		break;
 
@@ -189,7 +189,7 @@ void mht_do()
 		gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 		break;
 
-	case SDLK_m:
+	case SDLK_M:
 		if (Player->flags & PLAYER_FLAGS_IS_MULTI){
 			main_hall_do_multi_ready();
 		}

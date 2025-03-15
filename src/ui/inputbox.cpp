@@ -205,6 +205,7 @@
 #include "timer.h"
 #include "alphacolors.h"
 #include "font.h"
+#include "gamesnd.h"
 
 
 #define INPUTBOX_PASSWD_CHAR        '*'   // the password protected char
@@ -218,9 +219,9 @@ int is_letter(char c)
 // insert character c into string s at position p.
 void strcins(char *s, int p, char c)
 {
-	int n;
-	for (n=strlen(s)-p; n>=0; n-- )
-		*(s+p+n+1) = *(s+p+n);   // Move everything over	
+	size_t n;
+	for (n=SDL_strlen(s)-p; n>=0; n-- )
+		*(s+p+n+1) = *(s+p+n);   // Move everything over
 	*(s+p) = c;         // then insert the character
 }
 
@@ -248,7 +249,7 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 	int tw, th;
 
 	SDL_assert(_text_len >= 0);
-	SDL_assert((int) strlen(_text) <= _text_len);
+	SDL_assert((int) SDL_strlen(_text) <= _text_len);
 	gr_set_font(wnd->f_id);
 	gr_get_string_size( &tw, &th, "*" );
 
@@ -269,8 +270,8 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 	// and copy it
 	if (_flags & UI_INPUTBOX_FLAG_PASSWD) {
 		passwd_text = (char *) malloc(_text_len + 1);
-		memset(passwd_text, INPUTBOX_PASSWD_CHAR, strlen(_text));
-		passwd_text[strlen(_text)] = 0;
+		memset(passwd_text, INPUTBOX_PASSWD_CHAR, SDL_strlen(_text));
+		passwd_text[SDL_strlen(_text)] = 0;
 
 	} else {
 		passwd_text = NULL;
@@ -282,7 +283,7 @@ void UI_INPUTBOX::create(UI_WINDOW *wnd, int _x, int _y, int _w, int _text_len, 
 		SDL_strlcpy( text, _text, _text_len+1 );
 	}
 	text[_text_len] = 0;
-	position = strlen(_text);
+	position = static_cast<int>(SDL_strlen(_text));
 	oldposition = position;
 	length = _text_len;
 	pressed_down = 0;
@@ -564,10 +565,25 @@ void UI_INPUTBOX::process(int focus)
 
 			default:
 				if (!locked) {
+					// allow pasting from system clipboard
+					bool guiKeyd = (SDL_GetModState() & SDL_KMOD_GUI) > 0;
+
+					if ( (key == (KEY_CTRLED | SDLK_V)) || (key == SDLK_V && guiKeyd) ) {
+						if (SDL_HasClipboardText()) {
+							char *cliptext = SDL_GetClipboardText();
+
+							if (cliptext) {
+								append_text(cliptext);
+								SDL_free(cliptext);
+							}
+						}
+						// fall through and let key be dealt with below
+					}
+
 					// MWA -- determine if alt or ctrl held down on this key and don't process if it is.  We
 					// need to be able to pass these keys back to the top level.  (And anyway -- ctrl-a shouldn't
 					// print out an A in the input window
-					if ( key & (KEY_ALTED | KEY_CTRLED) ) {
+					if ( (key & (KEY_ALTED | KEY_CTRLED)) || guiKeyd ) {
 						clear_lastkey = 0;
 						break;
 					}
@@ -668,18 +684,54 @@ void UI_INPUTBOX::set_text(const char *in)
 		return;
 	}
 
-	in_length = strlen(in);
+	in_length = static_cast<int>(SDL_strlen(in));
 	if (in_length > length)
 		SDL_assert(0);	// tried to force text into an input box that won't fit into allocated memory
 
 	SDL_strlcpy(text, in, length+1);
 	
 	if (flags & UI_INPUTBOX_FLAG_PASSWD) {
-		memset(passwd_text, INPUTBOX_PASSWD_CHAR, strlen(text));
-		passwd_text[strlen(text)] = 0;
+		memset(passwd_text, INPUTBOX_PASSWD_CHAR, SDL_strlen(text));
+		passwd_text[SDL_strlen(text)] = 0;
 	}
 
 	position = in_length;  // fixes the zero-length-I-don't-think-so bug
 }
 
+void UI_INPUTBOX::append_text(const char *in)
+{
+	if (in == nullptr) {
+		return;
+	}
+	
+	// check the incoming string to make sure it's valid for the control
+	for (const char *p = in; *p; ++p) {
+		if ( !validate_input(*p) ) {
+			// invalid character, bail!
+			gamesnd_play_iface(SND_GENERAL_FAIL);
+			return;
+		}
+	}
 
+	// current size
+	size_t textlen = SDL_strlen(text);
+
+	if (textlen == static_cast<size_t>(length)) {
+		gamesnd_play_iface(SND_GENERAL_FAIL);
+		return;
+	}
+
+	SDL_strlcat(text, in, length+1);
+
+	// new size
+	textlen = SDL_strlen(text);
+
+	if (flags & UI_INPUTBOX_FLAG_PASSWD) {
+		memset(passwd_text, INPUTBOX_PASSWD_CHAR, textlen);
+		passwd_text[textlen] = 0;
+	}
+
+	position = static_cast<int>(textlen);
+
+	changed_flag = 1;
+}

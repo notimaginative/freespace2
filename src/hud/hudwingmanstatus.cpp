@@ -648,9 +648,12 @@ void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wing
 		case HUD_WINGMAN_STATUS_ALIVE:
 			bitmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame;
 			if ( HUD_wingman_status[wing_index].hull[i] > 0.5f ) {
-				// gr_set_color_fast(&IFF_colors[IFF_COLOR_FRIENDLY][is_bright]);
+#ifdef MAKE_FS1
+				 gr_set_color_fast(&IFF_colors[IFF_COLOR_FRIENDLY][is_bright]);
+#else
 				// use gauge color
 				hud_set_gauge_color(HUD_WINGMEN_STATUS, is_bright ? HUD_C_BRIGHT : HUD_C_NORMAL);
+#endif
 			} else {
 				gr_set_color_fast(&IFF_colors[IFF_COLOR_HOSTILE][is_bright]);
 			}

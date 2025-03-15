@@ -464,10 +464,10 @@ int anim_get_frame(anim_instance *inst, int frame_num, int xlate_pal)
 // size = number of bytes to pack
 // max = maximum number of packed bytes (size of buffer)
 // returns: actual number of bytes data packed to or -1 if error
-int pack_key_frame(ubyte *frame, ubyte *save, long size, long max, int compress_type)
+int pack_key_frame(ubyte *frame, ubyte *save, int size, int max, int compress_type)
 {
 	int last = -32768, count = 0;
-	long packed_size = 1;
+	int packed_size = 1;
 
 	switch ( compress_type ) {
 		case PACKING_METHOD_RLE_KEY:
@@ -619,10 +619,10 @@ int pack_key_frame(ubyte *frame, ubyte *save, long size, long max, int compress_
 // size = number of bytes to pack
 // max = maximum number of packed bytes (size of buffer)
 // returns: actual number of bytes data packed to or -1 if error
-int pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, long size, long max, int compress_type)
+int pack_frame(ubyte *frame, ubyte *frame2, ubyte *save, int size, int max, int compress_type)
 {
 	int pixel, last = -32768, count = 0, i;
-	long packed_size = 1;
+	int packed_size = 1;
 
 	switch ( compress_type ) {
 		case PACKING_METHOD_RLE:					// Hoffoss RLE regular frame

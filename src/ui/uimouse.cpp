@@ -71,6 +71,7 @@
 #include "uidefs.h"
 #include "ui.h"
 #include "timer.h"
+#include "gamepad.h"
 
 UI_MOUSE ui_mouse;
 

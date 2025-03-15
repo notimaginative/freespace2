@@ -815,6 +815,15 @@ void stars_draw_sun( int show_sun )
 		sun_dir = sun_pos;
 		vm_vec_normalize(&sun_dir);
 
+#ifdef MAKE_FS1
+		// Don't draw sun in asteroid missions. Just need the light source
+		if (Asteroid_field.num_initial_asteroids > 0) {
+			// add the light source corresponding to the sun, half intensity
+			light_add_directional(&sun_dir, bm->i/2, bm->r/2, bm->g/2, bm->b/2);
+			continue;
+		}
+#endif
+
 		// add the light source corresponding to the sun
 		light_add_directional(&sun_dir, bm->i, bm->r, bm->g, bm->b);
 

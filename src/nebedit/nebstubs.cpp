@@ -84,7 +84,6 @@ int Game_subspace_effect;
 void game_load_palette(){}
 void game_format_time(int, char*, int){}
 float Freespace_gamma;
-void get_version_string(char*, const int){}
 int game_get_default_skill_level(){return 0;}
 int game_cd_changed(){return 0;}
 void game_set_view_clip(){}

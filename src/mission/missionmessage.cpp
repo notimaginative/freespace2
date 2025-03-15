@@ -623,7 +623,7 @@ int add_avi( const char *avi_name )
 	int i;
 
 	SDL_assert ( Num_message_avis < MAX_MESSAGE_AVIS );
-	SDL_assert (strlen(avi_name) < MAX_FILENAME_LEN );
+	SDL_assert (SDL_strlen(avi_name) < MAX_FILENAME_LEN );
 
 	// check to see if there is an existing avi being used here
 	for ( i = 0; i < Num_message_avis; i++ ) {
@@ -643,7 +643,7 @@ int add_wave( const char *wave_name )
 	int i;
 
 	SDL_assert ( Num_message_waves < MAX_MESSAGE_WAVES );
-	SDL_assert (strlen(wave_name) < MAX_FILENAME_LEN );
+	SDL_assert (SDL_strlen(wave_name) < MAX_FILENAME_LEN );
 
 	// check to see if there is an existing wave being used here
 	for ( i = 0; i < Num_message_waves; i++ ) {
@@ -1232,7 +1232,7 @@ void message_play_anim( message_q *q )
 	// support ships use a wingman head.
 	// terran command uses it's own set of heads.
 	int subhead_selected = FALSE;
-	if ( (q->message_num < Num_builtin_messages) || !(SDL_strncasecmp(HEAD_PREFIX_STRING, ani_name, strlen(HEAD_PREFIX_STRING)-1)) ) {
+	if ( (q->message_num < Num_builtin_messages) || !(SDL_strncasecmp(HEAD_PREFIX_STRING, ani_name, SDL_strlen(HEAD_PREFIX_STRING)-1)) ) {
 		persona_index = m->persona_index;
 		
 		// if this ani should be converted to a terran command, set the persona to the command persona
@@ -2076,7 +2076,7 @@ void message_maybe_distort_text(char *text)
 		return;
 	}
 
-	len = strlen(text);
+	len = static_cast<int>(SDL_strlen(text));
 	if ( Message_wave_duration == 0 ) {
 		next_distort = 5+myrand()%5;
 		for ( i = 0; i < len; i++ ) {

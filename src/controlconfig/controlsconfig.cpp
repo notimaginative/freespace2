@@ -1647,12 +1647,12 @@ void control_config_init()
 	CC_Buttons[gr_screen.res][SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 	CC_Buttons[gr_screen.res][BIND_BUTTON].button.set_hotkey(SDLK_RETURN);
 	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_DELETE);
-	CC_Buttons[gr_screen.res][UNDO_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_z);
+	CC_Buttons[gr_screen.res][UNDO_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_Z);
 	CC_Buttons[gr_screen.res][CLEAR_BUTTON].button.set_hotkey(SDLK_DELETE);
 	CC_Buttons[gr_screen.res][ACCEPT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
 	CC_Buttons[gr_screen.res][HELP_BUTTON].button.set_hotkey(SDLK_F1);
-	CC_Buttons[gr_screen.res][RESET_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_r);
-	CC_Buttons[gr_screen.res][INVERT_AXIS].button.set_hotkey(SDLK_i);
+	CC_Buttons[gr_screen.res][RESET_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_R);
+	CC_Buttons[gr_screen.res][INVERT_AXIS].button.set_hotkey(SDLK_I);
 
 	CC_Buttons[gr_screen.res][CANCEL_BUTTON].button.disable();
 	CC_Buttons[gr_screen.res][CLEAR_OTHER_BUTTON].button.disable();
@@ -1845,7 +1845,7 @@ void control_config_do_frame(float frametime)
 					if ( (Last_key >= 0) && (k <= 0) && !key_pressed(Last_key) )
 						k = Last_key;
 
-				if ((k > 0) && !Config_allowed[SDL_GetScancodeFromKey(k & KEY_MASK)]) {
+				if ((k > 0) && !Config_allowed[SDL_GetScancodeFromKey(k & KEY_MASK, nullptr)]) {
 					popup(0, 1, POPUP_OK, XSTR( "That is a non-bindable key.  Please try again.", 207));
 					k = 0;
 				}
@@ -1936,7 +1936,7 @@ void control_config_do_frame(float frametime)
 			control_config_do_cancel();
 
 		} else {
-			if ((k > 0) && !Config_allowed[SDL_GetScancodeFromKey(k & KEY_MASK)])
+			if ((k > 0) && !Config_allowed[SDL_GetScancodeFromKey(k & KEY_MASK, nullptr)])
 				k = 0;
 
 			k &= (KEY_MASK | KEY_SHIFTED | KEY_ALTED);

@@ -105,8 +105,8 @@ static int SerializeValidatePacket(const udp_packet_header *uph, ubyte *data)
 
 			PXO_ADD_UINT(mis_req->checksum);
 
-			memcpy(data+packet_size, mis_req->file_name, strlen(mis_req->file_name));
-			packet_size += strlen(mis_req->file_name);
+			memcpy(data+packet_size, mis_req->file_name, SDL_strlen(mis_req->file_name));
+			packet_size += SDL_strlen(mis_req->file_name);
 
 			data[packet_size] = '\0';
 			packet_size++;
@@ -609,7 +609,7 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 #else
 			PacketHeader.type = UNT_VALID_FS_MSN_REQ;
 #endif
-			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(int)+1+strlen(valid_msn->file_name));
+			PacketHeader.len = (short)(PACKED_HEADER_ONLY_SIZE + sizeof(int)+1+SDL_strlen(valid_msn->file_name));
 			memcpy(PacketHeader.data,valid_msn,PacketHeader.len-PACKED_HEADER_ONLY_SIZE);
 			packet_length = SerializeValidatePacket(&PacketHeader, packet_data);
 			PXO_SENDTO(VALIDSOCKET, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&rtrackaddr, sizeof(struct sockaddr), PSNET_TYPE_VALIDATION);

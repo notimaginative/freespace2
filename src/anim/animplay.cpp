@@ -1110,7 +1110,7 @@ int anim_write_frames_out(const char *filename)
 	ubyte				**row_data;
 
 	SDL_strlcpy(root_name, filename, SDL_arraysize(root_name));
-	root_name[strlen(filename)-4] = 0;
+	root_name[SDL_strlen(filename)-4] = 0;
 
 	source_anim = anim_load(filename);
 	if ( source_anim == NULL ) 

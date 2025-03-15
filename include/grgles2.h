@@ -6,16 +6,11 @@
  * the source.
  */
 
-#ifndef PLAT_UNIX
+#ifndef GRGLES2_H
+#define GRGLES2_H
 
-/*
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <shellapi.h>
-
-#include <SDL3/SDL.h>
-#include "osapi.h"
-*/
+void gr_gles2_init();
+void gr_gles2_cleanup();
 
 
-#endif
+#endif // GRGL2_H

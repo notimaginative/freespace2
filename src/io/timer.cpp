@@ -113,23 +113,19 @@ void timer_close()
 void timer_init()
 {
 	if ( !Timer_inited )	{
-		SDL_InitSubSystem(SDL_INIT_TIMER);
-
-		SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "1");
+		SDL_InitSubSystem(SDL_INIT_EVENTS);
 
 		Timer_inited = 1;
-
-		atexit(timer_close);
 	}
 }
 
 
 fix timer_get_fixed_seconds()
 {
-	Sint64 a = SDL_GetTicks();
-	
+	Uint64 a = SDL_GetTicks();
+
 	a *= 65536;
-	return (fix)(a / 1000);
+	return (fix)(a / SDL_MS_PER_SECOND);
 }
 
 fix timer_get_fixed_secondsX()
@@ -144,17 +140,17 @@ fix timer_get_approx_seconds()
 
 int timer_get_seconds()
 {
-	return SDL_GetTicks() / 1000;
+	return static_cast<int>(SDL_GetTicks() / SDL_MS_PER_SECOND);
 }
 
 int timer_get_milliseconds()
 {
-	return SDL_GetTicks();
+	return static_cast<int>(SDL_GetTicks());
 }
 
 int timer_get_microseconds()
 {
-	return SDL_GetTicks() * 1000;
+	return static_cast<int>(SDL_GetTicksNS() / SDL_NS_PER_US);
 }
 
 // 0 means invalid,

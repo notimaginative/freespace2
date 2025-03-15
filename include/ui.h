@@ -334,6 +334,8 @@
 #ifndef _UI_H
 #define _UI_H
 
+#include <SDL3/SDL.h>
+
 #include "2d.h"
 
 #define UI_KIND_BUTTON				1
@@ -541,9 +543,9 @@ class UI_BUTTON : public UI_GADGET
 		virtual void process(int focus = 0);
 		virtual void destroy();
 
-		int custom_cursor_bmap;					// bmap handle of special cursor used on mouseovers
-		int previous_cursor_bmap;				// store old cursor
-		void maybe_show_custom_cursor();		// call this in process() 
+		SDL_Cursor *custom_cursor;				// handle of special cursor used on mouseovers
+		SDL_Cursor *previous_cursor;			// store old cursor
+		void maybe_show_custom_cursor();		// call this in process()
 		void restore_previous_cursor();		// called in frame_reset()
 
 	public:
@@ -565,7 +567,7 @@ class UI_BUTTON : public UI_GADGET
 		void reset_timestamps();
 		void skip_first_highlight_callback();
 		void repeatable(int yes);
-		void set_custom_cursor_bmap(int bmap_id) { custom_cursor_bmap = bmap_id; }
+		void set_custom_cursor_bmap(int bmap_id);
 };
 
 class UI_KEYTRAP : public UI_GADGET
@@ -621,6 +623,7 @@ class UI_INPUTBOX : public UI_GADGET
 		int pressed();
 		void get_text(char *out);
 		void set_text(const char *in);
+		void append_text(const char *in);
 };
 
 // Icon flags

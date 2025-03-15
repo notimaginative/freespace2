@@ -8,6 +8,7 @@
 
 #include <exception>
 
+#include <SDL3/SDL_main.h>
 #include "pstypes.h"
 
 #ifdef PLAT_UNIX
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
 {
 	char *argptr = NULL;
 	int i;
-	int len = 0;
+	size_t len = 0;
 	int retr = 0;
 
 #if defined(PLAT_UNIX) && !defined(__EMSCRIPTEN__)

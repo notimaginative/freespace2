@@ -414,7 +414,7 @@ void psnet_ras_status()
 	Ras_connected = 0;
 
 	// first, call a LoadLibrary to load the RAS api
-	ras_handle = LoadLibrary( (LPCWSTR)"rasapi32.dll" );
+	ras_handle = LoadLibraryA( (LPCSTR)"rasapi32.dll" );
 	if ( ras_handle == NULL ) {
 		return;
 	}
@@ -972,7 +972,7 @@ void psnet_rel_close_socket( PSNET_SOCKET *p_sockp )
 	while ( rval && (rval != SOCKET_ERROR) ) {
 		char tmp_buf[MAX_TMPBUF_SIZE];
 
-		rval = recv( *sockp, tmp_buf, MAX_TMPBUF_SIZE, 0 );
+		rval = static_cast<int>(recv(*sockp, tmp_buf, MAX_TMPBUF_SIZE, 0));
 		if ( rval == SOCKET_ERROR ) {
 			error = WSAGetLastError();
 			if ( NETCALL_WOULDBLOCK(error) )
@@ -1239,7 +1239,7 @@ void psnet_string_to_addr( net_addr_t * address, char * text, const int max_text
 	}
 
 	// copy the text string to local storage to look for ports
-	SDL_assert( strlen(text) < 255 );
+	SDL_assert( SDL_strlen(text) < 255 );
 	SDL_strlcpy(str, text, SDL_arraysize(str));
 	c = strrchr(str, ':');
 	port = NULL;
@@ -1333,9 +1333,9 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 		case NET_TCP:
 			from_len = sizeof(struct sockaddr_in);
 			if(flags & PSNET_FLAG_RAW){
-				read_len = recvfrom( socket, (char*)packet_read.data, MAX_PACKET_SIZE, 0,  (struct sockaddr*)&ip_addr, &from_len );
+				read_len = static_cast<int>(recvfrom(socket, (char*)packet_read.data, MAX_PACKET_SIZE, 0, (struct sockaddr*)&ip_addr, &from_len));
 			} else {
-				read_len = recvfrom( socket, (char *)&packet_read, sizeof(packet_data), 0,  (struct sockaddr*)&ip_addr, &from_len );
+				read_len = static_cast<int>(recvfrom(socket, (char *)&packet_read, sizeof(packet_data), 0, (struct sockaddr*)&ip_addr, &from_len));
 			}
 			break;
 		
@@ -1582,7 +1582,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int flags, int reliab
 			memcpy(&sockaddr.sin_addr.s_addr, iaddr, 4);
 			sockaddr.sin_port = htons(port); 
 
-			ret = sendto( send_sock, (char *)send_data, send_len, 0, (struct sockaddr*)&sockaddr, sizeof(sockaddr) );
+			ret = static_cast<int>(sendto(send_sock, (char *)send_data, send_len, 0, (struct sockaddr*)&sockaddr, sizeof(sockaddr)));
 			break;
 
 		default:
@@ -1648,7 +1648,7 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 	retries = 0;
 	total_sent = 0;
 	do {
-		num_sent = send( socket, (char *)rsend_buffer, length+sizeof(s_length), 0 );
+		num_sent = static_cast<int>(send(socket, (char *)rsend_buffer, length+sizeof(s_length), 0));
 		if ( num_sent == SOCKET_ERROR ) {
 			error = WSAGetLastError();
 			if ( !NETCALL_WOULDBLOCK(error) || (retries > MAX_SEND_RETRIES) )	{		// means that we would block on send -- not really an error
@@ -1709,7 +1709,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 	total_read = 0;
 	read_len = 2;
 	do {
-		from_len = recv(socket, (char *)(&rread_buffer[total_read]), read_len - total_read, 0);
+		from_len = static_cast<int>(recv(socket, (char *)(&rread_buffer[total_read]), read_len - total_read, 0));
 
 		// from_len will be 0 when back end gracefully closes connection.  We will assume that since
 		// the close is graceful, we will info from him telling us he's left.  So we'll ignore
@@ -1740,7 +1740,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 		return 0;
 
 	do {
-		from_len = recv(socket, (char *)(buffer + total_read), read_len - total_read, 0);
+		from_len = static_cast<int>(recv(socket, (char *)(buffer + total_read), read_len - total_read, 0));
 
 		// from_len will be 0 when back end gracefully closes connection.  We will assume that since
 		// the close is graceful, we will info from him telling us he's left.  So we'll ignore
@@ -2154,7 +2154,7 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 	char str[255], *c;
 
 	// our addresses may have ports, so make local copy and remove port number
-	SDL_assert( strlen(ip_string) < 255 );
+	SDL_assert( SDL_strlen(ip_string) < 255 );
 	SDL_strlcpy(str, ip_string, SDL_arraysize(str));
 	c = strrchr(str, ':');
 	if ( c ){
@@ -3038,7 +3038,7 @@ int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set*exceptfds, struct
 // wrappers around sendto to sorting through different packet types
 int SENDTO(SOCKET s, char * buf, int len, int flags, sockaddr * to, int tolen, int psnet_type)
 {
-	return sendto(s, buf, len, flags, (struct sockaddr *)to, tolen);
+	return static_cast<int>(sendto(s, buf, len, flags, (struct sockaddr *)to, tolen));
 }
 
 // call this once per frame to read everything off of our socket

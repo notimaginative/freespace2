@@ -823,7 +823,7 @@ void parse_mission_info(mission *pm)
 	}
 	// reassign the player
 	else {		
-		if(!Fred_running && (Player != NULL) && (strlen(The_mission.squad_name) > 0) && (Game_mode & GM_CAMPAIGN_MODE)){
+		if(!Fred_running && (Player != NULL) && (SDL_strlen(The_mission.squad_name) > 0) && (Game_mode & GM_CAMPAIGN_MODE)){
 			mprintf(("Reassigning player to squadron %s\n", The_mission.squad_name));
 			player_set_squad(Player, The_mission.squad_name);
 			player_set_squad_bitmap(Player, The_mission.squad_filename);
@@ -2408,7 +2408,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 
 	num_create_save = num_to_create;
 
-	wingnum = wingp - Wings;					// get the wing number
+	wingnum = WING_INDEX(wingp);					// get the wing number
 
 	// if there are no ships to create, then all ships must be player start ships -- do nothing in this case.
 	if ( num_to_create == 0 ){
@@ -2998,20 +2998,19 @@ void parse_waypoint_list(mission *pm)
 	wpl->count = stuff_vector_list(wpl->waypoints, MAX_WAYPOINTS_PER_LIST);
 
 #ifdef MAKE_FS1
-	// AAAAHH!  I don't like to hard code a mission fix but I have no clue what to do
-	// to fix this properly.  In the FS1 mission "Playing Judas" you have to try and fly
-	// into one of the docking bays on the Lucifer.  Due to some change in the code the
-	// waypoints and the Lucifer's position don't match up so we have to change the
-	// waypoint position to compensate.
-	if ( !SDL_strcasecmp(pm->name, "Playing Judas") ) {
+	// In the FS1 mission "Playing Judas" (sm2-08a) you have to try and fly into
+	// one of the docking bays on the Lucifer.  Due to some change in the code
+	// the waypoints and the Lucifer's position don't match up so we have to
+	// change the waypoint position to compensate.
+	if ( !SDL_strcasecmp(Mission_filename, "sm2-08a.fsm") ) {
 		if ( !SDL_strcasecmp(wpl->name, "Docking Bay 1") ) {
-			wpl->waypoints[0].xyz.x = -1262.550903;
-			wpl->waypoints[0].xyz.y = 27.676950;
-			wpl->waypoints[0].xyz.z = 4461.702930;
+			wpl->waypoints[0].xyz.x = -1262.550903f;
+			wpl->waypoints[0].xyz.y = 27.676950f;
+			wpl->waypoints[0].xyz.z = 4461.702930f;
 		} else if ( !SDL_strcasecmp(wpl->name, "Docking Bat 2") ) { // it really is spelled "Bat" in the mission
-			wpl->waypoints[0].xyz.x = -1105.347976;
-			wpl->waypoints[0].xyz.y = 27.676950;
-			wpl->waypoints[0].xyz.z = 3900.236867;
+			wpl->waypoints[0].xyz.x = -1105.347976f;
+			wpl->waypoints[0].xyz.y = 27.676950f;
+			wpl->waypoints[0].xyz.z = 3900.236867f;
 		}
 	}
 #endif
@@ -3857,6 +3856,9 @@ int parse_main(const char *mission_name, int flags)
 	Current_file_length = cfilelength(ftemp);
 	cfclose(ftemp);
 
+	if (!Fred_running)
+		SDL_strlcpy(Mission_filename, mission_name, SDL_arraysize(Mission_filename));
+
 	try {
 		read_file_text(mission_name, CF_TYPE_MISSIONS);
 		memset(&The_mission, 0, sizeof(The_mission));
@@ -3864,14 +3866,12 @@ int parse_main(const char *mission_name, int flags)
 		display_parse_diagnostics();
 	} catch (parse_error_t rval) {
 		nprintf(("Error", "Error abort!  Code = %i.", (int)rval));
+		SDL_zero(Mission_filename);
 		return (int)rval;
 	}
 
 	// close localization
 	lcl_ext_close();
-
-	if (!Fred_running)
-		SDL_strlcpy(Mission_filename, mission_name, SDL_arraysize(Mission_filename));
 
 	return 0;
 }
@@ -4822,7 +4822,7 @@ int get_parse_name_index(const char *name)
 			return i;
 
 	SDL_assert(i < MAX_SHIPS + MAX_WINGS);
-	SDL_assert(strlen(name) < NAME_LENGTH);
+	SDL_assert(SDL_strlen(name) < NAME_LENGTH);
 	SDL_strlcpy(Parse_names[i], name, NAME_LENGTH);
 	return Num_parse_names++;
 }

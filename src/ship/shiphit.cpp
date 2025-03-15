@@ -830,10 +830,13 @@ float do_subobj_hit_stuff(object *ship_obj, object *other_obj, vector *hitpos, f
 
 	//	Shockwave damage is applied like weapon damage.  It gets consumed.
 	if (other_obj->type == OBJ_SHOCKWAVE) {
+#ifndef MAKE_FS1
 		//	MK, 9/2/99.  Shockwaves do zero subsystem damage on small ships.
 		if ( Ship_info[ship_p->ship_info_index].flags & (SIF_SMALL_SHIP))
 			return damage;
-		else {
+		else
+#endif
+		{
 
 			damage_left = Shockwaves[other_obj->instance].damage/4.0f;
 		}

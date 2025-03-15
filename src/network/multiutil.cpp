@@ -2485,7 +2485,7 @@ void multi_file_xfer_notify(int handle)
 
 	// QUICK FIX
 	// check to see if the file is read-only			
-	if((strlen(filename) > 0) && !cf_access(filename, cf_type, 00) && (cf_access(filename, cf_type, 02) == -1)){	
+	if((SDL_strlen(filename) > 0) && !cf_access(filename, cf_type, 00) && (cf_access(filename, cf_type, 02) == -1)){	
 		multi_xfer_xor_flags(handle, MULTI_XFER_FLAG_REJECT);
 
 		Net_player->flags &= ~(NETINFO_FLAG_DO_NETWORKING);
@@ -2558,7 +2558,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		}
 
 		// copy his pilot image filename
-		if(strlen(jr->image_filename) > 0){
+		if(SDL_strlen(jr->image_filename) > 0){
 			SDL_strlcpy(Net_players[net_player_num].player->image_filename, jr->image_filename, MAX_FILENAME_LEN);
 		} else {
 			SDL_strlcpy(Net_players[net_player_num].player->image_filename, "", MAX_FILENAME_LEN);
@@ -2584,7 +2584,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 
 		// store pxo info
 #ifndef MAKE_FS1
-		if(strlen(jr->pxo_squad_name) > 0){
+		if(SDL_strlen(jr->pxo_squad_name) > 0){
 			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name, LOGIN_LEN);
 		} else {
 			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, "", LOGIN_LEN);
@@ -2608,7 +2608,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 		}
 		
 		// copy his pilot image filename
-		if(strlen(jr->image_filename) > 0){
+		if(SDL_strlen(jr->image_filename) > 0){
 			SDL_strlcpy(Net_players[net_player_num].player->image_filename, jr->image_filename, MAX_FILENAME_LEN);
 		} else {
 			SDL_strlcpy(Net_players[net_player_num].player->image_filename, "", MAX_FILENAME_LEN);
@@ -2634,7 +2634,7 @@ void multi_process_valid_join_request(join_request *jr, net_addr_t *who_from, in
 
 		// store pxo info
 #ifndef MAKE_FS1
-		if(strlen(jr->pxo_squad_name) > 0){
+		if(SDL_strlen(jr->pxo_squad_name) > 0){
 			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, jr->pxo_squad_name, LOGIN_LEN);
 		} else {
 			SDL_strlcpy(Net_players[net_player_num].p_info.pxo_squad_name, "", LOGIN_LEN);
@@ -2728,20 +2728,20 @@ int multi_process_restricted_keys(int k)
 	switch(Multi_join_restr_mode){
 	// normal restricted join, Y or N
 	case MULTI_JOIN_RESTR_MODE_1:
-		key1 = SDLK_y;
-		key2 = SDLK_n;
+		key1 = SDLK_Y;
+		key2 = SDLK_N;
 		break;
 
 	// team vs team, team 0 only has ships
 	case MULTI_JOIN_RESTR_MODE_2:
-		key1 = SDLK_y;
-		key2 = SDLK_n;
+		key1 = SDLK_Y;
+		key2 = SDLK_N;
 		break;
 
 	// team vs team, team 1 only has ships		
 	case MULTI_JOIN_RESTR_MODE_3:
-		key1 = SDLK_y;
-		key2 = SDLK_n;
+		key1 = SDLK_Y;
+		key2 = SDLK_N;
 		break;
 
 	// team vs team, both teams have ships
@@ -3456,19 +3456,19 @@ int bitbuffer_write_flush( bitbuffer *bitbuf )
 	if ( bitbuf->mask != 0x80 )	{
    	*bitbuf->data++ = (ubyte)bitbuf->rack;
 	}
-	return bitbuf->data-bitbuf->org_data;
+	return static_cast<int>(bitbuf->data-bitbuf->org_data);
 }
 
 int bitbuffer_read_flush( bitbuffer *bitbuf )
 {
-	return bitbuf->data-bitbuf->org_data;
+	return static_cast<int>(bitbuf->data-bitbuf->org_data);
 }
 
 void bitbuffer_put( bitbuffer *bitbuf, uint data, int bit_count ) 
 {
 	uint mask;
 
-	mask = 1L << ( bit_count - 1 );
+	mask = 1U << ( bit_count - 1 );
 	while ( mask != 0) {
 		if ( mask & data )	{
 			bitbuf->rack |= bitbuf->mask;
@@ -3488,7 +3488,7 @@ uint bitbuffer_get_unsigned( bitbuffer *bitbuf, int bit_count )
 	uint mask;
 	uint return_value;
 
-	mask = 1L << ( bit_count - 1 );
+	mask = 1U << ( bit_count - 1 );
 	return_value = 0;
 
 	while ( mask != 0)	{
@@ -3513,7 +3513,7 @@ int bitbuffer_get_signed( bitbuffer *bitbuf, int bit_count )
 	uint mask;
 	uint return_value;
 
-	mask = 1L << ( bit_count - 1 );
+	mask = 1U << ( bit_count - 1 );
 	return_value = 0;
 
 	while ( mask != 0)	{

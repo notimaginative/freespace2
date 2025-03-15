@@ -376,7 +376,7 @@ void PollPTrackNet();
 #else
 #define PXO_SELECT(a, b, c, d, e, f) select(a, b, c, d, e)
 #ifdef PLAT_UNIX
-#define PXO_RECVFROM(a, b, c, d, e, f, g) recvfrom(a, b, c, d, e, (socklen_t*)f)
+#define PXO_RECVFROM(a, b, c, d, e, f, g) static_cast<int>(recvfrom(a, b, c, d, e, (socklen_t*)f))
 #else
 #define PXO_RECVFROM(a, b, c, d, e, f, g) recvfrom(a, b, c, d, e, f)
 #endif

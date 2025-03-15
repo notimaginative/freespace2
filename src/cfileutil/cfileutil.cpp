@@ -8,7 +8,7 @@
 
 #define SDL_MAIN_HANDLED
 
-#include "SDL_endian.h"
+#include <SDL3/SDL_endian.h>
 
 #include <cstdio>
 #include <cstring>
@@ -138,7 +138,7 @@ int32_t vp::ReadInt()
 		throw std::runtime_error("short read in ReadInt()");
 	}
 
-	return SDL_SwapLE32(result);
+	return SDL_Swap32LE(result);
 }
 
 char *vp::ReadString(char *buf, const size_t length)
@@ -154,7 +154,7 @@ char *vp::ReadString(char *buf, const size_t length)
 
 void vp::WriteInt(const int32_t val)
 {
-	int32_t value = SDL_SwapLE32(val);
+	int32_t value = SDL_Swap32LE(val);
 
 	size_t rval = fwrite(&value, 1, sizeof(int32_t), archive);
 

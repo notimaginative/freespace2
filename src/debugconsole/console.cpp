@@ -187,7 +187,7 @@ char debug_text[DROWS][DCOLS];
 
 
 static char command_line[1024];
-static int command_line_pos = 0;
+static size_t command_line_pos = 0;
 #define DEBUG_HISTORY 16
 static char oldcommand_line[DEBUG_HISTORY][1024];
 int last_oldcommand=-1;
@@ -357,9 +357,9 @@ void dc_get_arg(uint type)
 	}
 
 	if ( Dc_arg_type & ARG_STRING )	{
-		int i, num_digits, len;
+		size_t i, num_digits, len;
 
-		len = strlen(Dc_arg);
+		len = SDL_strlen(Dc_arg);
 		num_digits = 0;
 
 		for (i=0; i<len; i++)
@@ -375,11 +375,10 @@ void dc_get_arg(uint type)
 		} else {
 			if ( (Dc_arg[0] == '0') && (Dc_arg[1] == 'x') )	{
 				char *p;
-				int n;
-				n = strtol(Dc_arg,&p,0);
+				auto n = SDL_strtol(Dc_arg, &p, 0);
 				if ( *p == 0 )	{
 					Dc_arg_type |= ARG_INT|ARG_HEX;
-					Dc_arg_int = n;
+					Dc_arg_int = static_cast<int>(n);
 				}
 			} 
 		}
@@ -440,7 +439,7 @@ void debug_do_command(const char * command)
 	int i;
 	int mode = 0;
 
-	if ( strlen(command) < 1 ) return;
+	if ( SDL_strlen(command) < 1 ) return;
 	
 	Dc_debug_on = 0;
 	Dc_command_line = command;
@@ -661,8 +660,10 @@ void debug_console( void (*_func)() )
 	if ( !debug_inited ) debug_init();
 
 
+	SDL_StartTextInput(os_get_window());
+
 	debug_draw();
-	
+
 	while (!done)	{
 		// poll the os
 		os_poll();
@@ -683,7 +684,7 @@ void debug_console( void (*_func)() )
 		case SDLK_F3:
 			if ( last_oldcommand > -1 )	{
 				SDL_strlcpy( command_line, oldcommand_line[last_oldcommand], SDL_arraysize(command_line) );
-				command_line_pos = strlen(command_line);
+				command_line_pos = SDL_strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
 			break;
@@ -695,7 +696,7 @@ void debug_console( void (*_func)() )
 
 			if ( command_scroll > -1 )	{
 				SDL_strlcpy( command_line, oldcommand_line[command_scroll], SDL_arraysize(command_line) );
-				command_line_pos = strlen(command_line);
+				command_line_pos = SDL_strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
 			break;
@@ -708,7 +709,7 @@ void debug_console( void (*_func)() )
 				command_scroll = -1;
 			if ( command_scroll > -1 )	{
 				SDL_strlcpy( command_line, oldcommand_line[command_scroll], SDL_arraysize(command_line) );
-				command_line_pos = strlen(command_line);
+				command_line_pos = SDL_strlen(command_line);
 				command_line[command_line_pos] = 0;
 			}
 			break;
@@ -769,6 +770,8 @@ void debug_console( void (*_func)() )
 		}
 	}
 
+	SDL_StopTextInput(os_get_window());
+
 	while( key_inkey() ){
 		os_poll();
 	}
@@ -790,7 +793,7 @@ void debug_help()
 			debug_draw();
 			k = key_getch();
 			s = scroll_times;
-			if ( k == SDLK_b )  {
+			if ( k == SDLK_B )  {
 				i -= ((DROWS-3)*2);
 				if ( i <= 0 )
 					i = -1;

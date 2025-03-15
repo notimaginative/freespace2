@@ -1,19 +1,29 @@
 
-cmake_minimum_required(VERSION 3.13)
-cmake_policy(VERSION 3.13)
+cmake_minimum_required(VERSION 3.28)
+cmake_policy(VERSION 3.28)
 
-project(freespace2)
+set(FS_LANGS C CXX)
+
+if(APPLE)
+  set(FS_LANGS ${FS_LANGS} OBJC OBJCXX)
+endif()
+
+project(freespace2 LANGUAGES ${FS_LANGS})
+
+# we need c++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(CreateSourceGroups)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 
 # ##############################################################################
 
 # build everything by default
-set(GAME_ONLY)
+set(GAME_ONLY 0)
 
 option(FS1 "Build original FreeSpace" OFF)
 
@@ -65,8 +75,8 @@ endif()
 add_definitions(-DSDL_USE_BUILTIN_OPENGL_DEFINITIONS)
 
 if(APPLE)
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
-  # set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
+  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
 endif()
 
 if(NOT WIN32)
@@ -82,16 +92,8 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -DRELEASE_REAL")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og")
 else()
-  set(SDL2DIR "${CMAKE_SOURCE_DIR}/../Support/SDL2" CACHE PATH "Path to SDL2")
-  set(OPENALDIR "${CMAKE_SOURCE_DIR}/../Support/OpenAL" CACHE PATH "Path to OpenAL")
-  set(LWSDIR "${CMAKE_SOURCE_DIR}/../Support/libwebsockets" CACHE PATH "Path to libwebsockets")
-  set(WXWIDGETSDIR "${CMAKE_SOURCE_DIR}/../Support/wxWidgets" CACHE PATH "Path to wxWidgets")
-  set(ANGLEDIR "${CMAKE_SOURCE_DIR}/../Support/ANGLE" CACHE PATH "Path to ANGLE")
-
   set(PLATFORM_LIBRARIES
     ws2_32.lib
-    ${ANGLEDIR}/lib/libEGL.lib
-    ${ANGLEDIR}/lib/libGLESv2.lib
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)
@@ -116,16 +118,91 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
-find_package(SDL2 "2.0.5" REQUIRED)
+
+# ##############################################################################
+#
+# External dependencies
+#
+
+include(FetchContent)
+
+#
+# OpenGL
+#
+
 find_package(OpenGL REQUIRED)
-find_package(OpenAL REQUIRED)
+
+#
+# SDL3
+#
+
+FetchContent_Declare(
+  SDL3
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL
+  GIT_TAG main
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+#  FIND_PACKAGE_ARGS
+)
+
+FetchContent_MakeAvailable(SDL3)
+
+#
+# OpenAL (openal-soft)
+#
+
+set(ALSOFT_UTILS OFF CACHE BOOL "")
+set(ALSOFT_EXAMPLES OFF CACHE BOOL "")
+
+FetchContent_Declare(
+  OpenAL
+  GIT_REPOSITORY https://github.com/kcat/openal-soft
+  GIT_TAG master
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+#  FIND_PACKAGE_ARGS
+)
+
+FetchContent_MakeAvailable(OpenAL)
 
 if(NOT EMSCRIPTEN)
-  find_package(LibWebSockets REQUIRED)
+  #
+  # libwebsockets
+  #
 
-  find_package(wxWidgets COMPONENTS core base gl net)
-  include(${wxWidgets_USE_FILE})
+  set(LWS_WITH_SSL OFF CACHE BOOL "")
+  set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "")
+
+  FetchContent_Declare(
+    libwebsockets
+    GIT_REPOSITORY https://github.com/warmcat/libwebsockets
+    GIT_TAG main
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+#    FIND_PACKAGE_ARGS
+  )
+
+  FetchContent_MakeAvailable(LibWebSockets)
+
+  #
+  # wxWidgets
+  #
+
+  set(wxWidgets_USE_DEBUG 0 CACHE BOOL "")
+  set(wxUSE_LIBSDL OFF CACHE BOOL "")
+
+  FetchContent_Declare(
+    wxWidgets
+    GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets
+    GIT_TAG v3.2.6
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+#    FIND_PACKAGE_ARGS COMPONENTS core base gl net
+  )
+
+  FetchContent_MakeAvailable(wxWidgets)
 endif()
+
 
 # ##############################################################################
 
@@ -133,12 +210,7 @@ endif()
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${CMAKE_BINARY_DIR}/include
-  ${SDL2_INCLUDE_DIR}
-  ${OPENAL_INCLUDE_DIR}
-  ${LIBWEBSOCKETS_INCLUDE_DIR}
-  ${wxWidgets_INCLUDE_DIRS}
 )
-
 
 add_subdirectory(src)
 add_subdirectory(include)
@@ -172,6 +244,13 @@ add_library(code
   ${platform_HEADERS}
 )
 
+target_link_libraries(
+  code
+  SDL3::SDL3
+  OpenAL::OpenAL
+  ${LIBWEBSOCKETS_LIBRARIES}
+)
+
 CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
 
 add_dependencies(code
@@ -195,9 +274,9 @@ CreateSourceGroups(${freespace_SOURCE})
 target_link_libraries(
   ${FS_BINARY}
   code
-  ${SDL2_LIBRARY}
   ${OPENGL_LIBRARIES}
-  ${OPENAL_LIBRARY}
+  OpenAL::OpenAL
+  SDL3::SDL3
   ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
@@ -312,19 +391,15 @@ if(NOT GAME_ONLY)
 
   target_link_libraries(
     ${LAUNCHER_BINARY}
-    ${SDL2_LIBRARY}
     ${OPENGL_LIBRARIES}
-    ${OPENAL_LIBRARY}
-    ${wxWidgets_LIBRARIES}
+    SDL3::SDL3
+    OpenAL::OpenAL
+    wx::core
+    wx::base
     ${PLATFORM_LIBRARIES}
   )
 
   set_target_properties(${LAUNCHER_BINARY} PROPERTIES PROJECT_LABEL "Launcher")
-
-  # wxWidgets appears to need c++11 for one or more headers
-  if(NOT WIN32)
-    set_target_properties(${LAUNCHER_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
-  endif()
 endif(NOT GAME_ONLY)
 
 #
@@ -350,18 +425,15 @@ if(NOT GAME_ONLY)
 
     target_link_libraries(
       ${STANDALONE_BINARY}
-      ${SDL2_LIBRARY}
-      ${wxWidgets_LIBRARIES}
+      SDL3::SDL3
+      wx::core
+      wx::base
+      wx::net
       ${LIBWEBSOCKETS_LIBRARIES}
       ${PLATFORM_LIBRARIES}
     )
 
     set_target_properties(${STANDALONE_BINARY} PROPERTIES PROJECT_LABEL "Standalone")
-
-    # wxWidgets appears to need c++11 for one or more headers
-    if(NOT WIN32)
-      set_target_properties(${STANDALONE_BINARY} PROPERTIES COMPILE_FLAGS -std=c++11)
-    endif()
   endif(NOT FS1 OR NOT DEMO)
 endif(NOT GAME_ONLY)
 
@@ -427,9 +499,9 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     ac
     code
-    ${SDL2_LIBRARY}
     ${OPENGL_LIBRARIES}
-    ${OPENAL_LIBRARY}
+    SDL3::SDL3
+    OpenAL::OpenAL
     ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
@@ -445,9 +517,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${cfileutil_SOURCE})
 
-  if(NOT WIN32)
-    set_target_properties(cfileutil PROPERTIES COMPILE_FLAGS -std=c++11)
-  endif()
+  target_link_libraries(
+    cfileutil
+    SDL3::Headers
+  )
 
   #
   # CRYPTSTRING: string encryption (for embedded cheat codes)
@@ -475,18 +548,15 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     nebedit
     code
-    ${SDL2_LIBRARY}
     ${OPENGL_LIBRARIES}
-    ${OPENAL_LIBRARY}
-    ${wxWidgets_LIBRARIES}
+    SDL3::SDL3
+    OpenAL::OpenAL
+    wx::core
+    wx::base
+    wx::gl
     ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
-
-  # wxWidgets appears to need c++11 for one or more headers
-  if(NOT WIN32)
-    set_target_properties(nebedit PROPERTIES COMPILE_FLAGS -std=c++11)
-  endif()
 
   #
   # POFVIEW: model viewer
@@ -504,18 +574,15 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     pofview
     code
-    ${SDL2_LIBRARY}
     ${OPENGL_LIBRARIES}
-    ${OPENAL_LIBRARY}
-    ${wxWidgets_LIBRARIES}
+    SDL3::SDL3
+    OpenAL::OpenAL
+    wx::core
+    wx::base
+    wx::gl
     ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
-
-  # wxWidgets appears to need c++11 for one or more headers
-  if(NOT WIN32)
-    set_target_properties(pofview PROPERTIES COMPILE_FLAGS -std=c++11)
-  endif()
 
   #
   # SCRAMBLE: file-based encryption for TBLs
@@ -525,6 +592,11 @@ if(NOT GAME_ONLY AND NOT DEMO)
     EXCLUDE_FROM_ALL
     ${scramble_SOURCE}
     ${scramble_HEADERS}
+  )
+
+  target_link_libraries(
+    scramble
+    SDL3::Headers
   )
 
   CreateSourceGroups(${scramble_SOURCE})
@@ -551,9 +623,9 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     fonttool
     code
-    ${SDL2_LIBRARY}
     ${OPENGL_LIBRARIES}
-    ${OPENAL_LIBRARY}
+    SDL3::SDL3
+    OpenAL::OpenAL
     ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
@@ -568,10 +640,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
     ac
     cfileutil
     cryptstring
+    fonttool
     nebedit
     pofview
     scramble
-    fonttool
   )
 
 endif(NOT GAME_ONLY AND NOT DEMO)

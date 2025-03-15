@@ -576,7 +576,7 @@ void barracks_init_stats(scoring_struct *stats)
 	for (i=0; i<Num_ship_types; i++) {
 		if (stats->kills[i]) {
 			SDL_assert(Num_stat_lines < NUM_STAT_LINES);
-			SDL_assert(strlen(Ship_info[i].name) + 1 < STAT_COLUMN1_W);
+			SDL_assert(SDL_strlen(Ship_info[i].name) + 1 < STAT_COLUMN1_W);
 			SDL_snprintf(Stat_labels[Num_stat_lines], STAT_COLUMN1_W, NOX("%s:"), Ship_info[i].name);
 			SDL_snprintf(Stats[Num_stat_lines], STAT_COLUMN2_W, "%d", stats->kills[i]);
 			Num_stat_lines++;
@@ -595,7 +595,7 @@ void barracks_set_hotkeys(bool pilot_text_enter_mode)
 	Buttons[gr_screen.res][B_PILOT_SCROLL_UP_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_UP : -1);
 	Buttons[gr_screen.res][B_PILOT_SCROLL_DOWN_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DOWN : -1);
 
-	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_c : -1);
+	Buttons[gr_screen.res][B_PILOT_CREATE_BOTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_C : -1);
 	Buttons[gr_screen.res][B_PILOT_SET_ACTIVE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_RETURN : -1);
 	Buttons[gr_screen.res][B_PILOT_DELETE_BUTTON].button.set_hotkey(pilot_text_enter_mode ? SDLK_DELETE : -1);
 
@@ -608,8 +608,8 @@ void barracks_set_hotkeys(bool pilot_text_enter_mode)
 // strip the possible .pcx extension off a filename
 void barracks_strip_pcx(char *str)
 {
-	int flen = strlen(str);
-	int elen = 4;		
+	auto flen = SDL_strlen(str);
+	int elen = 4;
 	if ((flen > 4) && !SDL_strcasecmp(str + flen - elen, ".pcx")) {
 		str[flen - elen] = '\0';
 	}
@@ -621,7 +621,7 @@ int barracks_new_pilot_selected()
 	char stripped[MAX_FILENAME_LEN+1] = "";
 
 	// save the previous pilot first, so changes to it are kept
-	if (strlen(Cur_pilot->callsign)) {
+	if (SDL_strlen(Cur_pilot->callsign)) {
 		write_pilot_file();
 	}
 
@@ -697,7 +697,7 @@ void barracks_create_new_pilot()
 	gamesnd_play_iface(SND_SCROLL);
 	
 	// only write pilot file if there is an active pilot
-	if (strlen(Player->callsign)) {
+	if (SDL_strlen(Player->callsign)) {
 		write_pilot_file();
 	}
 

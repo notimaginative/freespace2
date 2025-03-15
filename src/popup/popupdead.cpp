@@ -610,6 +610,7 @@ int popupdead_do_frame(float frametime)
 		return -1;
 	}
 
+#ifndef MAKE_FS1
 	// dont let dude skip 3-09.  hack.
 	if(Game_mode & GM_CAMPAIGN_MODE){
 		if((Campaign.current_mission >= 0) && (Campaign.current_mission < MAX_CAMPAIGN_MISSIONS)){
@@ -618,6 +619,7 @@ int popupdead_do_frame(float frametime)
 			}
 		}
 	}
+#endif
 
 	// maybe show skip mission popup
 	if ((!Popupdead_skip_already_shown) && (Player->show_skip_popup) && (Game_mode & GM_NORMAL) && (Game_mode & GM_CAMPAIGN_MODE) && (Player->failures_this_session >= PLAYER_MISSION_FAILURE_LIMIT)) {

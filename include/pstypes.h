@@ -236,7 +236,7 @@
 #endif
 
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "platform.h"
 
@@ -526,8 +526,8 @@ void dc_printf( const char *format, ... );
 
 // contants and defined for byteswapping routines (useful for mac)
 
-#define INTEL_INT(x)	SDL_SwapLE32(x)
-#define INTEL_SHORT(x)	SDL_SwapLE16(x)
+#define INTEL_INT(x)	SDL_Swap32LE(x)
+#define INTEL_SHORT(x)	SDL_Swap16LE(x)
 #define INTEL_FLOAT(x)	SDL_SwapFloatLE(x)
 
 #define TRUE	1
@@ -644,7 +644,7 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-	void *vm_malloc( int size, const char *filename=NULL, int line=-1 );
+	void *vm_malloc( size_t size, const char *filename=NULL, int line=-1 );
 
 	// 
 	char *vm_strdup( const char *ptr, const char *filename, int line );
@@ -670,7 +670,7 @@ template <class T> void CAP( T& v, T mn, T mx )
 	int vm_init(int min_heap_size);
 
 	// Allocates some RAM.
-	void *vm_malloc( int size );
+	void *vm_malloc( size_t size );
 
 	// 
 	char *vm_strdup( const char *ptr );

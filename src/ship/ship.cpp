@@ -1974,7 +1974,7 @@ void ship_set(int ship_index, int objnum, int ship_type)
 
 	// Create n!
 	// sprintf(shipp->ship_name, "%s %d", Ship_info[ship_type].name, ship_index); // moved to ship_create()
-	SDL_assert(strlen(shipp->ship_name) < NAME_LENGTH - 1);
+	SDL_assert(SDL_strlen(shipp->ship_name) < NAME_LENGTH - 1);
 	shipp->ship_info_index = ship_type;
 	shipp->objnum = objnum;
 	shipp->group = 0;
@@ -4566,7 +4566,7 @@ int ship_create(matrix *orient, vector *pos, int ship_type)
 	shipp->modelnum = sip->modelnum;
 
 	// maybe load an optional hud target model
-	if(strlen(sip->pof_file_hud)){
+	if(SDL_strlen(sip->pof_file_hud)){
 		// check to see if a "real" ship uses this model. if so, load it up for him so that subsystems are setup properly
 		int idx;
 		for(idx=0; idx<Num_ship_types; idx++){
@@ -6968,7 +6968,7 @@ object *ship_find_repair_ship( object *requester_obj )
 				continue;
 
 			dist = vm_vec_dist_quick(&objp->pos, &requester_obj->pos);
-			support_ships[num_support_ships] = objp-Objects;
+			support_ships[num_support_ships] = OBJ_INDEX(objp);
 
 			if (!(Ai_info[shipp->ai_index].ai_flags & AIF_REPAIRING)) {
 				if (dist < min_dist) {
@@ -8459,13 +8459,13 @@ void awacs_maybe_ask_for_help(ship *sp, int multi_team_filter)
 	int message = -1;
 	objp = &Objects[sp->objnum];
 
-	if ( objp->hull_strength < ( (AWACS_HELP_HULL_LOW + 0.01f *(static_rand(objp-Objects) & 5)) * Ship_info[sp->ship_info_index].initial_hull_strength) ) {
+	if ( objp->hull_strength < ( (AWACS_HELP_HULL_LOW + 0.01f *(static_rand(OBJ_INDEX(objp)) & 5)) * Ship_info[sp->ship_info_index].initial_hull_strength) ) {
 		// awacs ship below 25 + (0-4) %
 		if (!(sp->awacs_warning_flag & AWACS_WARN_25)) {
 			message = MESSAGE_AWACS_25;
 			sp->awacs_warning_flag |=  AWACS_WARN_25;
 		}
-	} else if ( objp->hull_strength < ( (AWACS_HELP_HULL_HI + 0.01f*(static_rand(objp-Objects) & 5)) * Ship_info[sp->ship_info_index].initial_hull_strength) ) {
+	} else if ( objp->hull_strength < ( (AWACS_HELP_HULL_HI + 0.01f*(static_rand(OBJ_INDEX(objp)) & 5)) * Ship_info[sp->ship_info_index].initial_hull_strength) ) {
 		// awacs ship below 75 + (0-4) %
 		if (!(sp->awacs_warning_flag & AWACS_WARN_75)) {
 			message = MESSAGE_AWACS_75;

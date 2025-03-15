@@ -1170,7 +1170,7 @@ void print_family_tree( polymodel *obj, int modelnum, const char * ident, int is
 	if ( modelnum < 0 ) return;
 	if (obj==NULL) return;
 
-	if (strlen(ident)==0 )	{
+	if (SDL_strlen(ident)==0 )	{
 		mprintf(( " %s", obj->submodel[modelnum].name ));
 		SDL_snprintf( temp, SDL_arraysize(temp), " " );
 	} else if ( islast ) 	{
@@ -1295,7 +1295,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 	}
 
 	pm->version = version;
-	SDL_assert( strlen(filename) < FILENAME_LEN );
+	SDL_assert( SDL_strlen(filename) < FILENAME_LEN );
 	SDL_strlcpy(pm->filename, filename, FILENAME_LEN);
 
 	memset( &pm->view_positions, 0, sizeof(pm->view_positions) );
@@ -1698,9 +1698,9 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 					} else {
 						cfread_string_len( props, MAX_PROP_LEN, fp );
 						// look for $engine_subsystem=xxx
-						int length = strlen(props);
+						auto length = SDL_strlen(props);
 						if (length > 0) {
-							int base_length = strlen("$engine_subsystem=");
+							auto base_length = SDL_strlen("$engine_subsystem=");
 							SDL_assert( strstr( (const char *)&props, "$engine_subsystem=") != NULL );
 							SDL_assert( length > base_length );
 							char *engine_subsys_name = props + base_length;
@@ -2068,7 +2068,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 	int ram_before = TotalRam;
 #endif
 
-	//SDL_assert(strlen(filename) <= 12);
+	//SDL_assert(SDL_strlen(filename) <= 12);
 
 	num = -1;
 
@@ -2175,7 +2175,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 		}
 
 		sm1->num_details = 0;
-		l1 = strlen(sm1->name);
+		l1 = static_cast<int>(SDL_strlen(sm1->name));
 
 		for (j=0; j<pm->num_debris_objects;j++ )	{
 			if ( i == pm->debris_objects[j] )	{
@@ -2200,7 +2200,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 			}
 
 			// if sm2 is a detail of sm1 and sm1 is a high detail, then add it to sm1's list
-			if ((int)strlen(sm2->name)!=l1) continue;
+			if ((int)SDL_strlen(sm2->name)!=l1) continue;
 	
 			int ndiff = 0;
 			int first_diff = 0;

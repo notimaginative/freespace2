@@ -84,31 +84,31 @@ typedef struct acm_stream_t {
 
 
 // utility functions
-static int read_ushort(SDL_RWops *rw, ushort *i)
+static int read_ushort(SDL_IOStream *rw, ushort *i)
 {
-	int rc = SDL_RWread(rw, i, sizeof(ushort), 1);
-	IF_ERR(rc != 1, 0);
+	size_t rc = SDL_ReadIO(rw, i, sizeof(ushort));
+	IF_ERR(rc != sizeof(ushort), 0);
 	*i = INTEL_SHORT(*i);
 	return 1;
 }
 
-static int read_short(SDL_RWops *rw, short *i)
+static int read_short(SDL_IOStream *rw, short *i)
 {
-	int rc = SDL_RWread(rw, i, sizeof(short), 1);
-	IF_ERR(rc != 1, 0);
+	size_t rc = SDL_ReadIO(rw, i, sizeof(short));
+	IF_ERR(rc != sizeof(short), 0);
 	*i = INTEL_SHORT(*i);
 	return 1;
 }
 
-static int read_ubyte(SDL_RWops *rw, ubyte *i)
+static int read_ubyte(SDL_IOStream *rw, ubyte *i)
 {
-	int rc = SDL_RWread(rw, i, sizeof(ubyte), 1);
-	IF_ERR(rc != 1, 0);
+	size_t rc = SDL_ReadIO(rw, i, sizeof(ubyte));
+	IF_ERR(rc != sizeof(ubyte), 0);
 	return 1;
 }
 
 // decoding functions
-static int read_adpcm_block_headers(SDL_RWops *rw, adpcm_fmt_t *fmt)
+static int read_adpcm_block_headers(SDL_IOStream *rw, adpcm_fmt_t *fmt)
 {
 	int i;
 	int max = fmt->adpcm.wav.num_channels;
@@ -173,7 +173,7 @@ static void do_adpcm_nibble(ubyte nib, ADPCMBLOCKHEADER *header, int lPredSamp)
 	header->iSamp1 = (short)lNewSamp;
 }
 
-static int decode_adpcm_sample_frame(SDL_RWops *rw, adpcm_fmt_t *fmt)
+static int decode_adpcm_sample_frame(SDL_IOStream *rw, adpcm_fmt_t *fmt)
 {
 	int i;
 	int max = fmt->adpcm.wav.num_channels;
@@ -219,7 +219,7 @@ static void put_adpcm_sample_frame2(ubyte *_buf, adpcm_fmt_t *fmt)
 		*buf++ = fmt->header[i].iSamp2;
 }
 
-static uint read_sample_fmt_adpcm(ubyte *data, SDL_RWops *rw, adpcm_fmt_t *fmt)
+static uint read_sample_fmt_adpcm(ubyte *data, SDL_IOStream *rw, adpcm_fmt_t *fmt)
 {
 	uint bw = 0;
 
@@ -306,20 +306,20 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	SDL_assert( src != NULL );
 	SDL_assert( src_len > 0 );
 	SDL_assert( dest_len != NULL );
+	SDL_assert( dest_bps == 16 );
 
 	uint rc;
 	uint new_size = 0;
 
-	SDL_RWops *hdr = SDL_RWFromMem(pwfxSrc->extra_data, pwfxSrc->extra_size);
-	SDL_RWops *rw = SDL_RWFromMem(src, src_len);
+	SDL_IOStream *hdr = SDL_IOFromMem(pwfxSrc->extra_data, pwfxSrc->extra_size);
+	SDL_IOStream *rw = SDL_IOFromMem(src, src_len);
 
 	adpcm_fmt_t *fmt = NULL;
 
 	// estimate size of uncompressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
-	new_size = ( src_len * dest_bps ) / pwfxSrc->bits_per_sample;
-	new_size *= 2;//buffer must be large enough for all data
+	new_size = (src_len / pwfxSrc->bits_per_sample) * dest_bps;
 
 	// DO NOT free() here, *estimated size*
 	if ( *dest == NULL ) {
@@ -329,7 +329,6 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 			goto Fail;
 		}
 
-//		memset(*dest, 0x80, new_size);	// silence (for 8 bits/sample)
 		memset(*dest, 0x00, new_size);	// silence (for 16 bits/sample)
 	}
 
@@ -392,10 +391,12 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 	fmt->bytes_remaining = src_len;
 	fmt->bytes_processed = 0;
 
-	fmt->sample_frame_size = dest_bps/8*pwfxSrc->num_channels;
+	fmt->sample_frame_size = pwfxSrc->num_channels * (dest_bps / 8);
 
 	// convert to PCM
 	rc = read_sample_fmt_adpcm(*dest, rw, fmt);
+
+	SDL_assert(rc <= new_size);
 
 	if (rc == 0) {
 		goto Fail;
@@ -407,8 +408,8 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 
 	// cleanup
 	adpcm_memory_free(fmt);
-	SDL_RWclose(hdr);
-	SDL_RWclose(rw);
+	SDL_CloseIO(hdr);
+	SDL_CloseIO(rw);
 
 	return 0;
 
@@ -417,8 +418,8 @@ Fail:
 		adpcm_memory_free(fmt);
 	}
 
-	SDL_RWclose(hdr);
-	SDL_RWclose(rw);
+	SDL_CloseIO(hdr);
+	SDL_CloseIO(rw);
 
 	return -1;
 }
@@ -429,8 +430,9 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 	SDL_assert( pwfxSrc->code == WAVE_FORMAT_ADPCM );
 	SDL_assert( pwfxSrc->extra_data != NULL );
 	SDL_assert( stream != NULL );
+	SDL_assert( dest_bps == 16 );
 
-	SDL_RWops *hdr = SDL_RWFromMem(pwfxSrc->extra_data, pwfxSrc->extra_size);
+	SDL_IOStream *hdr = SDL_IOFromMem(pwfxSrc->extra_data, pwfxSrc->extra_size);
 	acm_stream_t *str = NULL;
 
 	adpcm_fmt_t *fmt = (adpcm_fmt_t *)malloc(sizeof(adpcm_fmt_t));
@@ -487,7 +489,7 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 		goto Fail;
 	}
 
-	fmt->sample_frame_size = dest_bps/8*pwfxSrc->num_channels;
+	fmt->sample_frame_size = pwfxSrc->num_channels * (dest_bps / 8);
 	
 	str = (acm_stream_t *)malloc(sizeof(acm_stream_t));
 
@@ -500,7 +502,7 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 	str->src_bps = pwfxSrc->bits_per_sample;
 	*stream = str;
 
-	SDL_RWclose(hdr);
+	SDL_CloseIO(hdr);
 
 	return 0;
 
@@ -509,7 +511,7 @@ Fail:
 		adpcm_memory_free(fmt);
 	}
 
-	SDL_RWclose(hdr);
+	SDL_CloseIO(hdr);
 
 	return -1;
 }
@@ -538,7 +540,15 @@ int ACM_query_source_size(void *stream, int dest_len)
 	// estimate size of compressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
-	return (dest_len * str->src_bps) / str->dest_bps;
+	int size = (dest_len * str->src_bps) / str->dest_bps;
+	int extra = size % str->fmt->adpcm.wav.block_align;
+
+	// align it to the block size to reduce lost chunks
+	if (size > str->fmt->adpcm.wav.block_align) {
+		size -= extra;
+	}
+
+	return size;
 }
 
 /*
@@ -553,7 +563,7 @@ int ACM_query_dest_size(void *stream, int src_len)
 	// estimate size of uncompressed data
 	// uncompressed data has: channels=pfwxScr->nChannels, bitPerSample=destbits
 	// compressed data has:   channels=pfwxScr->nChannels, bitPerSample=pwfxSrc->wBitsPerSample
-	return ( src_len * str->dest_bps ) / str->src_bps;
+	return ( src_len / str->src_bps ) * str->dest_bps;
 }
 
 /*
@@ -569,7 +579,7 @@ int ACM_convert(void *stream, ubyte *src, int src_len, ubyte *dest, int max_dest
 	acm_stream_t *str = (acm_stream_t *)stream;
 	uint rc;
 
-	SDL_RWops *rw = SDL_RWFromMem(src, src_len);
+	SDL_IOStream *rw = SDL_IOFromMem(src, src_len);
 
 	// buffer to estimated size since we have to process the whole thing at once
 	str->fmt->buffer_size = max_dest_bytes;
@@ -583,7 +593,7 @@ int ACM_convert(void *stream, ubyte *src, int src_len, ubyte *dest, int max_dest
 	*dest_len = rc;
 	*src_bytes_used = str->fmt->bytes_processed;
 
-	SDL_RWclose(rw);
+	SDL_CloseIO(rw);
 
 	return 0;
 }

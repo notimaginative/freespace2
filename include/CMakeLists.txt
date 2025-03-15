@@ -58,13 +58,14 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/floating.h
   ${CMAKE_CURRENT_SOURCE_DIR}/font.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fvi.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/gamepad.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gameplayhelp.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gamesequence.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gamesnd.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gitinfo.h.in
   ${CMAKE_CURRENT_SOURCE_DIR}/grinternal.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/grgl1.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/grgl2.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/grgles2.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/grgles2internal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropengl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropenglinternal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grstub.h

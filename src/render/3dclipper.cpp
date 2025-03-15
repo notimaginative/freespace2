@@ -297,7 +297,7 @@ int clip_plane(int plane_flag,vertex **src,vertex **dest,int *nv,ccodes *cc,uint
 		}
 	}
 
-	return (dest-save_dest);
+	return static_cast<int>(dest-save_dest);
 }
 
 

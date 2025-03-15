@@ -534,7 +534,7 @@ int lcl_get_language()
 void lcl_xstr_init()
 {
 #ifndef MAKE_FS1
-	int i;
+	size_t i;
 	char chr, buf[4096];
 	char language_tag[512];	
 	int z, index;
@@ -570,7 +570,7 @@ void lcl_xstr_init()
 			    lcl_fix_polish(buf);
 			}
 
-			i = strlen(buf);
+			i = SDL_strlen(buf);
 			while (i--) {
 				if (!isspace(buf[i])) {
 					break;
@@ -662,7 +662,7 @@ void lcl_xstr_init()
 	SDL_assert(Lcl_current_lang < LCL_NUM_LANGUAGES_FS1);
 	
 	for (i=0; i<XSTR_SIZE; i++) {
-		if ( !strlen(FS1_trans[Lcl_current_lang][i]) ) {
+		if ( !SDL_strlen(FS1_trans[Lcl_current_lang][i]) ) {
 			Xstr_table[i].str = NULL;
 		} else {
 			Xstr_table[i].str = (char *)FS1_trans[Lcl_current_lang][i];
@@ -735,16 +735,16 @@ void lcl_set_language(int lang)
 void lcl_add_dir(char *current_path, const int max_len)
 {
 	char last_char;
-	int path_len;
+	size_t path_len;
 
 	// if the disk extension is 0 length, don't add enything
-	if (strlen(Lcl_languages[Lcl_current_lang].lang_ext) <= 0) {
+	if (SDL_strlen(Lcl_languages[Lcl_current_lang].lang_ext) <= 0) {
 		return;
 	}
 
 	// get the length of the string so far
-	path_len = strlen(current_path);
-	if (path_len <= 0) {
+	path_len = SDL_strlen(current_path);
+	if (path_len == 0) {
 		return;
 	}
 	
@@ -769,7 +769,7 @@ void lcl_add_dir_to_path_with_filename(char *current_path, const int path_len)
 	char temp[MAX_PATH_LEN];
 
 	// if the disk extension is 0 length, don't add enything
-	if (strlen(Lcl_languages[Lcl_current_lang].lang_ext) <= 0) {
+	if (SDL_strlen(Lcl_languages[Lcl_current_lang].lang_ext) <= 0) {
 		return;
 	}
 
@@ -846,7 +846,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	char text_str[2048]="";
 	char lookup_str[2048]="";
 	int str_id;	
-	int str_len;	
+	size_t str_len;
 
 	SDL_assert(in);
 	SDL_assert(out);
@@ -856,7 +856,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 		*id = -2;
 	}	
 
-	str_len = strlen(in);
+	str_len = SDL_strlen(in);
 
 	// if the string is < 9 chars, it can't be an XSTR("",) tag, so just copy it
 	if(str_len < 9){
@@ -916,9 +916,9 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	// attempt to find the string
 	if(lcl_ext_lookup(lookup_str, SDL_arraysize(lookup_str), str_id)){
 		// copy to the outgoing string
-		SDL_assert(strlen(lookup_str) <= (unsigned int)(max_len - 1));
+		SDL_assert(SDL_strlen(lookup_str) <= (unsigned int)(max_len - 1));
 
-		if (strlen(lookup_str) > (unsigned int)(max_len-1)) {
+		if (SDL_strlen(lookup_str) > (unsigned int)(max_len-1)) {
 			// be safe and truncate string to fit
 			SDL_strlcpy(out, lookup_str, max_len);
 		} else {
@@ -987,13 +987,13 @@ void lcl_ext_associate(const char *filename)
 // given a valid XSTR() tag piece of text, extract the string portion, return it in out, nonzero on success
 int lcl_ext_get_text(char *xstr, char *out)
 {
-	int str_start = 0, str_end = 0;
-	int str_len;
+	size_t str_start = 0, str_end = 0;
+	size_t str_len;
 	char *p, *p2;
 
 	SDL_assert(xstr != NULL);
 	SDL_assert(out != NULL);
-	str_len = strlen(xstr);
+	str_len = SDL_strlen(xstr);
 	
 	// this is some crazy wack-ass code.
 	// look for the open quote
@@ -1034,12 +1034,12 @@ int lcl_ext_get_text(char *xstr, char *out)
 int lcl_ext_get_id(char *xstr, int *out)
 {
 	char *p, *pnext;
-	int str_len;
+	size_t str_len;
 
 	SDL_assert(xstr != NULL);
 	SDL_assert(out != NULL);
 	
-	str_len = strlen(xstr);
+	str_len = SDL_strlen(xstr);
 
 	// find the first quote
 	p = strstr(xstr, "\"");
@@ -1166,8 +1166,8 @@ int lcl_ext_lookup(char *out, const int max_out, int id)
 int lcl_ext_lookup_sub(char *text, char *out, const int max_out, int id)
 {
 	char *p;					// current ptr
-	int len = strlen(text);
-	int count;	
+	auto len = SDL_strlen(text);
+	int count;
 	char text_copy[1024];	
 	char *tok;
 	int found_new_string_id = 0;
@@ -1345,7 +1345,7 @@ void lcl_ext_setup_pointers()
 		// end of language found
 		case 3 :
 			// mark one final pointer
-			Lcl_pointers[Lcl_pointer_count++] = cftell(Lcl_ext_file) - strlen(line) - 1;
+			Lcl_pointers[Lcl_pointer_count++] = cftell(Lcl_ext_file) - static_cast<int>(SDL_strlen(line)) - 1;
 			lcl_ext_close();
 			return;
 		}
@@ -1354,7 +1354,7 @@ void lcl_ext_setup_pointers()
 		if(ret & (1<<31)){		
 			if((string_count % LCL_GRANULARITY) == 0){
 				// mark the pointer down
-				Lcl_pointers[Lcl_pointer_count++] = cftell(Lcl_ext_file) - strlen(line) - 1;
+				Lcl_pointers[Lcl_pointer_count++] = cftell(Lcl_ext_file) - static_cast<int>(SDL_strlen(line)) - 1;
 
 				// if we're out of pointer slots
 				if(Lcl_pointer_count >= LCL_MAX_POINTERS){

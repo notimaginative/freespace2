@@ -214,12 +214,10 @@
 #include <stdio.h>
 #include <errno.h>
 #ifndef PLAT_UNIX
-#include <io.h>
 #include <direct.h>
+#include <io.h>
 #else
 #include <unistd.h>
-#include <dirent.h>
-#include <fnmatch.h>
 #endif
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -350,7 +348,7 @@ int cfile_in_root_dir(char *exe_path)
 	} while(tok != NULL);
 		
 	// root directory if we have <= 1 slash
-	if(token_count <= 2){
+	if(token_count <= 1){
 		return 1;
 	}
 
@@ -384,7 +382,7 @@ int cfile_init()
 
 		const char *extras_dir = os_config_read_string(NULL, "ExtrasPath", NULL);
 
-		if ( extras_dir && (strlen(extras_dir) >= MAX_PATH_LEN) ) {
+		if ( extras_dir && (SDL_strlen(extras_dir) >= MAX_PATH_LEN) ) {
 			extras_dir = NULL;
 		}
 
@@ -408,6 +406,7 @@ int cfile_flush_dir(int dir_type)
 {
 	char filespec[MAX_PATH_LEN];
 	int del_count;
+	SDL_PathInfo pinfo;
 
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
@@ -416,58 +415,31 @@ int cfile_flush_dir(int dir_type)
 	// proceed to delete the files
 	del_count = 0;
 
-#ifdef PLAT_UNIX
-	DIR *dirp;
-	struct dirent *dir;
+	auto results = SDL_GlobDirectory(filespec, "*", 0, nullptr);
 
-	dirp = opendir(filespec);
-	if (dirp) {
-		while ( (dir = readdir(dirp)) != NULL ) {
-			if ( !fnmatch("*", dir->d_name, 0) ) {
-				char fn[MAX_PATH_LEN];
-				SDL_snprintf(fn, MAX_PATH_LEN, "%s/%s", filespec, dir->d_name);
+	if (results) {
+		for (int i = 0; results[i]; ++i) {
+			char fn[MAX_PATH_LEN];
 
-				struct stat buf;
-				if (stat(fn, &buf) == -1) {
-					continue;
-				}
+			SDL_snprintf(fn, SDL_arraysize(fn), "%s%s\n", filespec, results[i]);
 
-				if (!S_ISREG(buf.st_mode)) {
-					continue;
-				}
-
-				// delete the file
-				cf_delete(dir->d_name, dir_type);
-
-				// increment the deleted count
-				del_count++;
+			if ( !SDL_GetPathInfo(fn, &pinfo) ) {
+				continue;
 			}
+
+			if (pinfo.type != SDL_PATHTYPE_FILE) {
+				continue;
+			}
+
+			// delete the file
+			cf_delete(results[i], dir_type);
+
+			// increment the deleted count
+			++del_count;
 		}
 
-		closedir(dirp);
+		SDL_free(results);
 	}
-#else
-	int find_handle;
-	_finddata_t find;
-
-	SDL_strlcat( filespec, "*", SDL_arraysize(filespec) );
-
-	find_handle = _findfirst( filespec, &find );
-
-	if (find_handle != -1) {
-		do {
-			if (!(find.attrib & _A_SUBDIR) && !(find.attrib & _A_RDONLY)) {
-				// delete the file
-				cf_delete(find.name, dir_type);
-
-				// increment the deleted count
-				del_count++;
-			}
-		} while (!_findnext(find_handle, &find));
-
-		_findclose( find_handle );
-	}
-#endif
 
 	// return the # of files deleted
 	return del_count;
@@ -481,11 +453,11 @@ int cfile_flush_dir(int dir_type)
 //    Returns: new filename or filepath with extension.
 char *cf_add_ext(const char *filename, const char *ext)
 {
-	int flen, elen;
+	size_t flen, elen;
 	static char path[MAX_PATH_LEN];
 
-	flen = strlen(filename);
-	elen = strlen(ext);
+	flen = SDL_strlen(filename);
+	elen = SDL_strlen(ext);
 	SDL_assert(flen < MAX_PATH_LEN);
 	SDL_strlcpy(path, filename, SDL_arraysize(path));
 	if ((flen < 4) || SDL_strcasecmp(path + flen - elen, ext)) {
@@ -632,7 +604,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 	//================================================
 	// Check that all the parameters make sense
-	SDL_assert(file_path && strlen(file_path));
+	SDL_assert(file_path && SDL_strlen(file_path));
 	SDL_assert( mode != NULL );
 
 	//===========================================================
@@ -1077,7 +1049,7 @@ int cfwrite_string(const char *buf, CFILE *file)
 	if ( (!buf) || (buf && !buf[0]) ) {
 		return cfwrite_char(0, file);
 	} 
-	int len = strlen(buf);
+	size_t len = SDL_strlen(buf);
 	if(!cfwrite(buf, len, 1, file)){
 		return 0;
 	}
@@ -1086,7 +1058,7 @@ int cfwrite_string(const char *buf, CFILE *file)
 
 int cfwrite_string_len(const char *buf, CFILE *file)
 {
-	int len = strlen(buf);
+	int len = static_cast<int>(SDL_strlen(buf));
 
 	if(!cfwrite_int(len, file)){
 		return 0;
@@ -1117,7 +1089,7 @@ int cfilelength( CFILE * cfile )
 // returns:   number of full elements actually written
 //            
 //
-int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
+int cfwrite(const void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 {
 	SDL_assert(cfile != NULL);
 	SDL_assert(buf != NULL);
@@ -1128,11 +1100,11 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int size = elsize * nelem;
+	auto size = elsize * nelem;
 
 	SDL_assert(cb->fp != NULL);
 	SDL_assert(cb->lib_offset == 0 );
-	int bytes_written = fwrite( buf, 1, size, cb->fp );
+	auto bytes_written = fwrite(buf, 1, size, cb->fp);
 
 	if (bytes_written > 0) {
 		cb->raw_position += bytes_written;
@@ -1143,7 +1115,7 @@ int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile)
 		SDL_assert(tmp_offset == cb->raw_position);
 	#endif
 
-	return bytes_written / elsize;
+	return static_cast<int>(bytes_written / elsize);
 }
 
 
@@ -1495,12 +1467,12 @@ int cflush(CFILE *cfile)
 //  returns: non-zero on error
 int cfile_init_paths()
 {
-	if ( strlen(Cfile_root_dir) && strlen(Cfile_user_dir) ) {
+	if ( SDL_strlen(Cfile_root_dir) && SDL_strlen(Cfile_user_dir) ) {
 		return 0;
 	}
 
 #ifndef __EMSCRIPTEN__
-	char *t_path = SDL_GetBasePath();
+	const char *t_path = SDL_GetBasePath();
 
 	// make sure we have something
 	if (t_path == NULL) {
@@ -1509,20 +1481,21 @@ int cfile_init_paths()
 	}
 
 	// size check
-	if ( strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+	if ( SDL_strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Executable path is too long!", NULL);
 		return 1;
 	}
 
 	// set root directory
 	SDL_strlcpy(Cfile_root_dir, t_path, SDL_arraysize(Cfile_root_dir));
-	// free SDL copy
-	SDL_free(t_path);
-	t_path = NULL;
 
 	// are we in a root directory?
 	if ( cfile_in_root_dir(Cfile_root_dir) ) {
+#ifndef MAKE_FS1
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
+#else
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace/Fred cannot be run from a drive root directory!", NULL);
+#endif
 		return 1;
 	}
 
@@ -1536,7 +1509,7 @@ int cfile_init_paths()
 	}
 
 	// size check
-	if ( strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
+	if ( SDL_strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Preferences path is too long!", NULL);
 		return 1;
 	}
@@ -1582,12 +1555,11 @@ int cfile_init_paths()
 	// see if CF_TYPE_DATA exists for user and if not populate user path
 	// with full directory tree
 	char pathname[MAX_PATH_LEN];
-	struct stat info;
 
 	SDL_strlcpy(pathname, Cfile_user_dir, MAX_PATH_LEN);
 	SDL_strlcat(pathname, Pathtypes[CF_TYPE_DATA].path, MAX_PATH_LEN);
 
-	if ( stat(pathname, &info) != 0 ) {
+	if ( !SDL_GetPathInfo(pathname, nullptr) ) {
 		cf_create_directory(CF_TYPE_MAPS);
 		cf_create_directory(CF_TYPE_TEXT);
 		cf_create_directory(CF_TYPE_MISSIONS);

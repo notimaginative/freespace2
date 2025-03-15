@@ -208,7 +208,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	//when you found it, you have the host and dir
 	char *filestart = NULL;
 	char *dirstart = NULL;
-	for(int i = strlen(pURL);i>=0;i--)
+	for(int i = static_cast<int>(SDL_strlen(pURL));i>=0;i--)
 	{
 		if(pURL[i]== '/')
 		{
@@ -232,7 +232,7 @@ CFtpGet::CFtpGet(char *URL,char *localfile,char *Username,char *Password)
 	}
 	else
 	{
-		int len = SDL_min((filestart-dirstart)+1, (int)SDL_arraysize(m_szDir));
+		size_t len = SDL_min((filestart-dirstart)+1, (int)SDL_arraysize(m_szDir));
 		SDL_strlcpy(m_szDir, dirstart, len);
 		len = SDL_min((dirstart-pURL), (int)SDL_arraysize(m_szHost));
 		SDL_strlcpy(m_szHost, pURL, len);
@@ -513,7 +513,7 @@ unsigned int CFtpGet::SendFTPCommand(char *command)
 
 	FlushControlChannel();
 	// Send the FTP command
-	if (SOCKET_ERROR ==(send(m_ControlSock,command,strlen(command), 0)))
+	if (SOCKET_ERROR ==(send(m_ControlSock,command,SDL_strlen(command), 0)))
 		{
 			// int iWinsockErr = WSAGetLastError();
 		  // Return 999 to indicate an error has occurred
@@ -529,7 +529,7 @@ unsigned int CFtpGet::SendFTPCommand(char *command)
 unsigned int CFtpGet::ReadFTPServerReply()
 {
 	unsigned int rcode;
-	int iBytesRead;
+	ssize_t iBytesRead;
 	char chunk[2];
 	char szcode[5];
 	unsigned int igotcrlf = 0;
@@ -582,8 +582,8 @@ unsigned int CFtpGet::ReadFTPServerReply()
 unsigned int CFtpGet::ReadDataChannel()
 {
 	char sDataBuffer[4096];		// Data-storage buffer for the data channel
-	int nBytesRecv;						// Bytes received from the data channel
-	m_State = FTP_STATE_RECEIVING;			
+	ssize_t nBytesRecv;						// Bytes received from the data channel
+	m_State = FTP_STATE_RECEIVING;
    if(m_Aborting)
 		return 0;
 	do	

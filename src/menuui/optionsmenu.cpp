@@ -1537,7 +1537,7 @@ void options_menu_do_frame(float frametime)
 			options_change_tab(i);
 			break;
 
-		case SDLK_c:
+		case SDLK_C:
 			if (Tab == OPTIONS_TAB) {
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_CONTROL_CONFIG);
@@ -1545,7 +1545,7 @@ void options_menu_do_frame(float frametime)
 
 			break;
 
-		case SDLK_h:
+		case SDLK_H:
 			if (Tab == OPTIONS_TAB) {
 				gamesnd_play_iface(SND_SWITCH_SCREENS);
 				gameseq_post_event(GS_EVENT_HUD_CONFIG);

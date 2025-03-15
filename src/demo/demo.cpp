@@ -138,7 +138,7 @@ int Demo_error = DEMO_ERROR_NONE;
 #define DEMO_FLOAT(vl)					do { DEMO_DATA(vl, sizeof(float)); } while(0)
 #define DEMO_VECTOR(vl)					do { DEMO_DATA(vl, sizeof(vector)); } while(0)
 #define DEMO_MATRIX(vl)					do { DEMO_DATA(vl, sizeof(matrix)); } while(0)
-#define DEMO_STRING(vl)					do { /*int stlen; if(Game_mode & GM_DEMO_RECORD){ stlen = strlen(vl); if(stlen <= 0){ break; }	DEMO_DATA(stlen, sizeof(ushort)); DEMO_DATA(*vl, strlen(vl)); } else { ushort len = 0; DEMO_USHORT(len); DEMO_DATA(*vl, len); vl[len] = '\0'; }*/ } while(0)
+#define DEMO_STRING(vl)					do { /*int stlen; if(Game_mode & GM_DEMO_RECORD){ stlen = SDL_strlen(vl); if(stlen <= 0){ break; }	DEMO_DATA(stlen, sizeof(ushort)); DEMO_DATA(*vl, SDL_strlen(vl)); } else { ushort len = 0; DEMO_USHORT(len); DEMO_DATA(*vl, len); vl[len] = '\0'; }*/ } while(0)
 		
 // demo events types
 #define DE_DUMP							1			// standard object dump
@@ -581,7 +581,7 @@ void demo_POST_primary_fired(object *objp, int banks, int linked)
 void demo_POST_unique_message(const char *id, const char *who_from, int m_source, int priority)
 {
 	// sanity
-	if((id == NULL) || (who_from == NULL) || (strlen(id) <= 0) || (strlen(who_from) <= 0)){
+	if((id == NULL) || (who_from == NULL) || (SDL_strlen(id) <= 0) || (SDL_strlen(who_from) <= 0)){
 		return;
 	}
 

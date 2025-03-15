@@ -213,7 +213,7 @@
 
 #define MULTI_XFER_VERBOSE										// keep this defined for verbose debug output
 
-#define MULTI_XFER_INVALID_HANDLE(handle) ( (handle < 0) || (handle > (MAX_XFER_ENTRIES-1)) || !(Multi_xfer_entry[handle].flags & MULTI_XFER_FLAG_USED) || (strlen(Multi_xfer_entry[handle].filename) <= 0) )
+#define MULTI_XFER_INVALID_HANDLE(handle) ( (handle < 0) || (handle > (MAX_XFER_ENTRIES-1)) || !(Multi_xfer_entry[handle].flags & MULTI_XFER_FLAG_USED) || (SDL_strlen(Multi_xfer_entry[handle].filename) <= 0) )
 
 // packet codes
 #define MULTI_XFER_CODE_ACK					0				// simple response to the last request
@@ -264,6 +264,8 @@ typedef struct xfer_entry {
 	ushort sig;														// identifying sig - sender specifies this
 } xfer_entry;
 xfer_entry Multi_xfer_entry[MAX_XFER_ENTRIES];			// the file xfer entries themselves
+
+#define XFER_ENTRY_INDEX(elem)	static_cast<int>(elem - Multi_xfer_entry)
 
 // callback function pointer for when we start receiving a file
 void (*Multi_xfer_recv_notify)(int handle);
@@ -520,7 +522,7 @@ void multi_xfer_abort(int handle)
 		xe->file = NULL;
 
 		// delete it if there isn't some problem with the filename
-		if((xe->flags & MULTI_XFER_FLAG_RECV) && (strlen(xe->filename) > 0)){
+		if((xe->flags & MULTI_XFER_FLAG_RECV) && (SDL_strlen(xe->filename) > 0)){
 			cf_delete(xe->ex_filename, xe->force_dir);
 		}
 	}
@@ -551,7 +553,7 @@ void multi_xfer_release_handle(int handle)
 		xe->file = NULL;
 
 		// delete it if the file was not successfully received
-		if(!(xe->flags & MULTI_XFER_FLAG_SUCCESS) && (xe->flags & MULTI_XFER_FLAG_RECV) && (strlen(xe->filename) > 0)){
+		if(!(xe->flags & MULTI_XFER_FLAG_SUCCESS) && (xe->flags & MULTI_XFER_FLAG_RECV) && (SDL_strlen(xe->filename) > 0)){
 			cf_delete(xe->ex_filename,xe->force_dir);
 		}
 	}
@@ -637,7 +639,7 @@ int multi_xfer_lookup(char *filename)
 	int idx;
 
 	// if we have an invalid filename, do nothing
-	if((filename == NULL) || (strlen(filename) <= 0)){
+	if((filename == NULL) || (SDL_strlen(filename) <= 0)){
 		return 0;
 	}
 
@@ -808,7 +810,7 @@ void multi_xfer_fail_entry(xfer_entry *xe)
 	}
 
 	// delete the file
-	if((xe->flags & MULTI_XFER_FLAG_RECV) && (strlen(xe->filename) > 0)){
+	if((xe->flags & MULTI_XFER_FLAG_RECV) && (SDL_strlen(xe->filename) > 0)){
 		cf_delete(xe->ex_filename,xe->force_dir);
 	}
 		
@@ -817,7 +819,7 @@ void multi_xfer_fail_entry(xfer_entry *xe)
 
 	// if we should be auto-destroying this entry, do so
 	if(xe->flags & MULTI_XFER_FLAG_AUTODESTROY){
-		multi_xfer_release_handle(xe - Multi_xfer_entry);
+		multi_xfer_release_handle(XFER_ENTRY_INDEX(xe));
 	}
 
 	// blast the memory clean
@@ -979,7 +981,7 @@ void multi_xfer_process_ack(xfer_entry *xe)
 
 			// if we should be auto-destroying this entry, do so
 			if(xe->flags & MULTI_XFER_FLAG_AUTODESTROY){
-				multi_xfer_release_handle(xe - Multi_xfer_entry);
+				multi_xfer_release_handle(XFER_ENTRY_INDEX(xe));
 			}
 		} 
 		// otherwise if we're waiting for an ack, we should send the next chunk of data or a "final" packet if we're done
@@ -1022,7 +1024,7 @@ void multi_xfer_process_final(xfer_entry *xe)
 #endif
 
 		// abort the xfer
-		multi_xfer_abort(xe - Multi_xfer_entry);
+		multi_xfer_abort(XFER_ENTRY_INDEX(xe));
 		return;
 	}
 	// checksums check out, so rename the file and be done with it
@@ -1053,7 +1055,7 @@ void multi_xfer_process_final(xfer_entry *xe)
 
 		// if we should be auto-destroying this entry, do so
 		if(xe->flags & MULTI_XFER_FLAG_AUTODESTROY){
-			multi_xfer_release_handle(xe - Multi_xfer_entry);
+			multi_xfer_release_handle(XFER_ENTRY_INDEX(xe));
 		}
 	}
 }
@@ -1207,7 +1209,7 @@ void multi_xfer_send_next(xfer_entry *xe)
 	BUILD_HEADER(XFER_PACKET);	
 
 	// length of the added string
-	flen = strlen(xe->filename) + 4;
+	flen = static_cast<int>(SDL_strlen(xe->filename) + 4);
 
 	// determine how much data we are going to send with this packet and add it in
 	if((xe->file_size - xe->file_ptr) >= (MULTI_XFER_MAX_DATA_SIZE - flen)){

@@ -326,7 +326,7 @@ static int Red_alert_voice;
 void red_alert_voice_load()
 {
 	SDL_assert( Briefing != NULL );
-	if ( SDL_strncasecmp(Briefing->stages[0].voice, NOX("none"), 4) && (strlen(Briefing->stages[0].voice) > 0) ) {
+	if ( SDL_strncasecmp(Briefing->stages[0].voice, NOX("none"), 4) && (SDL_strlen(Briefing->stages[0].voice) > 0) ) {
 		Red_alert_voice = audiostream_open( Briefing->stages[0].voice, ASF_VOICE );
 	}
 }
@@ -781,7 +781,7 @@ void red_alert_delete_ship(ship *shipp)
 	ship_add_exited_ship( shipp, SEF_PLAYER_DELETED );
 	obj_delete(shipp->objnum);
 	if ( shipp->wingnum >= 0 ) {
-		ship_wing_cleanup( shipp-Ships, &Wings[shipp->wingnum] );
+		ship_wing_cleanup( SHIP_INDEX(shipp), &Wings[shipp->wingnum] );
 	}
 }
 
@@ -863,7 +863,7 @@ void red_alert_write_wingman_status(CFILE *fp)
 		return;
 	}
 
-	SDL_assert(strlen(Red_alert_precursor_mission) > 0 );
+	SDL_assert(SDL_strlen(Red_alert_precursor_mission) > 0 );
 	cfwrite_string(Red_alert_precursor_mission, fp);
 
 	for ( i = 0; i < Red_alert_num_slots_used; i++ ) {

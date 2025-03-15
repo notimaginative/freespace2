@@ -377,7 +377,7 @@ int asteroid_obj_list_add(int objnum)
 	int index;
 
 	asteroid *cur_asteroid = &Asteroids[Objects[objnum].instance];
-	index = cur_asteroid - Asteroids;
+	index = static_cast<int>(cur_asteroid - Asteroids);
 
 	SDL_assert(index >= 0 && index < MAX_ASTEROID_OBJS);
 	SDL_assert(!(Asteroid_objs[index].flags & ASTEROID_OBJ_USED));
@@ -742,8 +742,8 @@ int get_debris_from_same_group(int index) {
 // the weight is then used to determine the frequencty of different sizes of ship debris
 int get_debris_weight(int ship_debris_index)
 {
-	switch (ship_debris_index) {
 #ifndef MAKE_FS1
+	switch (ship_debris_index) {
 	case DEBRIS_TERRAN_SMALL:
 	case DEBRIS_VASUDAN_SMALL:
 	case DEBRIS_SHIVAN_SMALL:
@@ -761,13 +761,15 @@ int get_debris_weight(int ship_debris_index)
 	case DEBRIS_SHIVAN_LARGE:
 		return LARGE_DEBRIS_WEIGHT;
 		break;
-#endif
 
 	default:
 		Int3();
 		return 1;
 		break;
 	}
+#else
+	return 1;
+#endif
 }
 
 // Create all the asteroids for the mission, called from 

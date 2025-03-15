@@ -270,7 +270,7 @@ int cf_compress(char *out, char *in, int bytecount )
 		memmove(flagbyte, copyloc, pixcount );
 		flagbyte += pixcount;
 	}
-	return(flagbyte-out);
+	return static_cast<int>(flagbyte-out);
 }
 
 
@@ -308,7 +308,7 @@ int cf_decompress(char *out, char *in )
 		}
 	}
 
-	return out - param_out;
+	return static_cast<int>(out - param_out);
 			
 }
 
@@ -356,7 +356,7 @@ int cfread_compressed(void *buf, int elsize, int nelem, CFILE *cfile)
 		}
 	}
 
-	return (out - (char *)buf)/elsize;
+	return static_cast<int>((out - (char *)buf)/elsize);
 }
 
 int cfwrite_compressed(void *param_buf, int param_elsize, int param_nelem, CFILE *cfile)

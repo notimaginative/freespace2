@@ -127,14 +127,14 @@ int multi_rate_add(int np_index, const char *type, int size)
 	if((np_index < 0) || (np_index >= MAX_RATE_PLAYERS)){
 		return 0;
 	}
-	if((type == NULL) || (strlen(type) <= 0)){
+	if((type == NULL) || (SDL_strlen(type) <= 0)){
 		return 0;
 	}
 
 	// see if the type already exists
 	for(idx=0; idx<MAX_RATE_TYPES; idx++){
 		// empty slot
-		if(strlen(Multi_rate[np_index][idx].type) <= 0){
+		if(SDL_strlen(Multi_rate[np_index][idx].type) <= 0){
 			break;
 		}
 		// existing
@@ -186,7 +186,7 @@ void multi_rate_process()
 			m = &Multi_rate[idx][s_idx];
 
 			// invalid entries
-			if(strlen(m->type) <= 0){
+			if(SDL_strlen(m->type) <= 0){
 				continue;
 			}
 
@@ -254,7 +254,7 @@ void multi_rate_display(int np_index, int x, int y)
 		m = &Multi_rate[np_index][idx];
 
 		// if we have a 0 length string, we're done
-		if(strlen(m->type) <= 0){
+		if(SDL_strlen(m->type) <= 0){
 			break;
 		}
 

@@ -133,7 +133,7 @@ PofViewCanvas::~PofViewCanvas()
 
 
 extern float Ambient_light;
-extern void opengl1_tcache_frame();
+extern void opengl_tcache_frame();
 
 static vector Global_light_world = { { { -0.208758f, -0.688253f, 0.694782f } } };
 
@@ -143,6 +143,8 @@ void PofViewCanvas::Render()
 	PofViewFrame *parent = (PofViewFrame *)GetParent();
 
 	int model_num = parent->GetModelnum();
+
+	this->SetCurrent(*(parent->GetGLContext()));
 
 	if (model_num < 0) {
 		return;
@@ -158,7 +160,9 @@ void PofViewCanvas::Render()
 
 	int w, h;
 
-	GetClientSize(&w, &h);
+	this->GetClientSize(&w, &h);
+	w *= this->GetContentScaleFactor();
+	h *= this->GetContentScaleFactor();
 
 	gr_reset_clip();
 	gr_set_clip(0, 0, w, h);
@@ -278,7 +282,7 @@ void PofViewCanvas::Render()
 
 	this->SwapBuffers();
 
-	opengl1_tcache_frame();
+	opengl_tcache_frame();
 
 	Ambient_light = saved_Ambient_light;
 }
@@ -522,6 +526,8 @@ void PofViewCanvas::OnSize(wxSizeEvent& WXUNUSED(event))
 	int x = 640, y = 480;
 
 	this->GetClientSize(&x, &y);
+	x *= this->GetContentScaleFactor();
+	y *= this->GetContentScaleFactor();
 
 	gr_set_viewport(x, y);
 }

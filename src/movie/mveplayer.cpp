@@ -38,6 +38,7 @@
 #include "movie.h"
 #include "2d.h"
 #include "key.h"
+#include "gamepad.h"
 #include "osapi.h"
 #include "timer.h"
 #include "sound.h"
@@ -62,8 +63,8 @@ static Uint64 micro_timer_freq = 0;
 
 static std::vector<ALuint> mve_audio_bufl_free;
 static ubyte *mve_audio_buf = NULL;
-static size_t mve_audio_buf_size = 0;
-static size_t mve_audio_buf_offset = 0;
+static int mve_audio_buf_size = 0;
+static int mve_audio_buf_offset = 0;
 
 static int mve_audio_playing = 0;
 static int mve_audio_canplay = 0;
@@ -605,7 +606,7 @@ void mve_play(MVESTREAM *mve)
 
 		os_poll();
 
-		if (key_inkey() == SDLK_ESCAPE) {
+		if (key_inkey() == SDLK_ESCAPE || gamepad_action_or_cancel()) {
 			mve_playing = 0;
 		}
 	}

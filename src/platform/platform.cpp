@@ -32,10 +32,11 @@ int vm_init(int min_heap_size)
 	return 1;
 }
 
-#if defined(__MACOSX__)
+#if defined(SDL_PLATFORM_MACOS)
 #include <malloc/malloc.h>
 #define MALLOC_SIZE(x)		malloc_size(x)
 #elif defined(__GNUC__)
+#include <malloc.h>
 #define MALLOC_SIZE(x)		malloc_usable_size(x)
 #elif defined(__WIN32__)
 #define MALLOC_SIZE(x)		_msize(x)
@@ -50,7 +51,7 @@ DCF_BOOL(watch_malloc, Watch_malloc)
 #ifndef NDEBUG
 static const char *clean_filename(const char *name)
 {
-	const char *p = name+strlen(name)-1;
+	const char *p = name+SDL_strlen(name)-1;
 	// Move p to point to first letter of EXE filename
 	while( (*p!='\\') && (*p!='/') && (*p!=':') )
 		p--;
@@ -80,16 +81,16 @@ void vm_free(void* ptr)
 		mprintf(( "Free %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
 	}
 
-	TotalRam -= actual_size;
+	TotalRam -= static_cast<int>(actual_size);
 #endif
 
 	free(ptr);
 }
 
 #ifndef NDEBUG
-void *vm_malloc(int size, const char *file, int line)
+void *vm_malloc(size_t size, const char *file, int line)
 #else
-void *vm_malloc(int size)
+void *vm_malloc(size_t size)
 #endif
 {
 	void *ptr = malloc(size);
@@ -108,7 +109,7 @@ void *vm_malloc(int size)
 		mprintf(( "Malloc %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
 	}
 
-	TotalRam += actual_size;
+	TotalRam += static_cast<int>(actual_size);
 #endif
 
 	return ptr;
@@ -136,7 +137,7 @@ char *vm_strdup(char const* str)
 		mprintf(( "Strdup %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
 	}
 
-	TotalRam += actual_size;
+	TotalRam += static_cast<int>(actual_size);
 #endif
 
 	return ptr;
@@ -221,4 +222,21 @@ void base_filename(const char *path, char *filename, const int max_fname)
 	} else {
 		SDL_strlcpy(filename, sep, size);
 	}
+}
+
+int platform_open_url(const char *url)
+{
+	char s_url[256];
+	
+	// make sure it's a valid www address
+	if ( !SDL_strncasecmp(url, "http://", 7) || !SDL_strncasecmp(url, "https://", 8) ) {
+		SDL_strlcpy(s_url, url, SDL_arraysize(s_url));
+	} else {
+		SDL_strlcpy(s_url, "http://", SDL_arraysize(s_url));
+		SDL_strlcat(s_url, url, SDL_arraysize(s_url));
+	}
+
+	bool result = SDL_OpenURL(s_url);
+
+	return (result ? 0 : -1);
 }

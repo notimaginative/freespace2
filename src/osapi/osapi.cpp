@@ -154,6 +154,9 @@
 #include "freespace.h"
 #include "osregistry.h"
 #include "cmdline.h"
+#include "gamepad.h"
+#include "version.h"
+
 
 // ----------------------------------------------------------------------------------------------------
 // OSAPI DEFINES/VARS
@@ -164,17 +167,12 @@ static int			fAppActive = 1;
 static int			Os_inited = 0;
 static char			windowTitle[128];
 
-static SDL_mutex *Os_lock;
+static SDL_Mutex *Os_lock;
 static SDL_Window *Os_window = NULL;
-
-int Os_debugger_running = 0;
 
 // ----------------------------------------------------------------------------------------------------
 // OSAPI FORWARD DECLARATIONS
 //
-
-// Fills in the Os_debugger_running with non-zero if debugger detected.
-void os_check_debugger();
 
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit();
@@ -186,12 +184,19 @@ void os_deinit();
 
 // initialization/shutdown functions -----------------------------------------------
 
-
-// If app_name is NULL or ommited, then TITLE is used
-// for the app name, which is where registry keys are stored.
-void os_init(const char *wclass, const char *title, const char *app_name, const char *version_string)
+void os_init(const char *title, const char *appid)
 {
-	os_set_title( (app_name != NULL) ? app_name : title );
+	if ( !title ) {
+		title = Osreg_title;
+	}
+
+	SDL_SetAppMetadata(title, version_get_string_full(), appid);
+
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
+							   "Copyright (C) Volition, Inc. 1999.  All rights reserved.");
+
+	os_set_title(title);
 
 	// do some first-run stuff if needed
 	if ( os_config_read_uint(NULL, "StraightToSetup", 1) == 1 ) {
@@ -205,9 +210,6 @@ void os_init(const char *wclass, const char *title, const char *app_name, const 
 	Os_inited = 1;
 
 	Os_lock = SDL_CreateMutex();
-
-	// check to see if we're running under msdev
-	os_check_debugger();
 
 	atexit(os_deinit);
 }
@@ -245,32 +247,19 @@ void os_set_icon()
 {
 	#include "app_icon.h"
 
-	Uint32 rmask, gmask, bmask, amask;
-
 	if ( !Os_window ) {
 		return;
 	}
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	int shift = (app_icon.bytes_per_pixel == 3) ? 8 : 0;
-	rmask = 0xff000000 >> shift;
-	gmask = 0x00ff0000 >> shift;
-	bmask = 0x0000ff00 >> shift;
-	amask = 0x000000ff >> shift;
-#else
-	rmask = 0x000000ff;
-	gmask = 0x0000ff00;
-	bmask = 0x00ff0000;
-	amask = (app_icon.bytes_per_pixel == 3) ? 0 : 0xff000000;
-#endif
-
-	SDL_Surface *icon = SDL_CreateRGBSurfaceFrom((void*)app_icon.pixel_data, app_icon.width,
-		app_icon.height, app_icon.bytes_per_pixel*8, app_icon.bytes_per_pixel*app_icon.width,
-		rmask, gmask, bmask, amask);
+	SDL_Surface *icon = SDL_CreateSurfaceFrom(app_icon.width,
+											  app_icon.height,
+											  SDL_PIXELFORMAT_RGBA32,
+											  (void*)app_icon.pixel_data,
+											  app_icon.bytes_per_pixel*app_icon.width);
 
 	SDL_SetWindowIcon(Os_window, icon);
 
-	SDL_FreeSurface(icon);
+	SDL_DestroySurface(icon);
 }
 
 // window management -----------------------------------------------------------------
@@ -311,11 +300,6 @@ void os_resume()
 // OSAPI FORWARD DECLARATIONS
 //
 
-// Fills in the Os_debugger_running with non-zero if debugger detected.
-void os_check_debugger()
-{
-}
-
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()
 {
@@ -331,16 +315,16 @@ void os_poll()
 
 	while (SDL_PollEvent (&e)) {
 		switch (e.type) {
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP: {
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_BUTTON_UP: {
 				if (e.motion.windowID > 0) {
-					mouse_mark_button(e.button.button, e.button.state);
+					mouse_mark_button(e.button.button, e.button.down);
 				}
 
 				break;
 			}
 
-			case SDL_MOUSEMOTION: {
+			case SDL_EVENT_MOUSE_MOTION: {
 				if (e.motion.windowID > 0) {
 					mouse_update_pos(e.motion.x, e.motion.y, e.motion.xrel, e.motion.yrel);
 				}
@@ -348,46 +332,46 @@ void os_poll()
 				break;
 			}
 
-			case SDL_TEXTINPUT: {
+			case SDL_EVENT_TEXT_INPUT: {
 				key_set_text_input((int)e.text.text[0]);
 
 				break;
 			}
 
-			case SDL_KEYDOWN: {
+			case SDL_EVENT_KEY_DOWN: {
 				// flip between fullscreen and window: ALT+ENTER
-				if ( (e.key.keysym.sym == SDLK_RETURN) && ( e.key.keysym.mod & KMOD_ALT) ) {
+				if ( (e.key.key == SDLK_RETURN) && ( e.key.mod & SDL_KMOD_ALT) ) {
 					if ( !e.key.repeat ) {
 						gr_toggle_fullscreen();
 					}
 				}
 				// minimize window: CTRL+ALT+z
-				else if ( (e.key.keysym.sym == SDLK_z) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
+				else if ( (e.key.key == SDLK_Z) && (e.key.mod & (SDL_KMOD_CTRL | SDL_KMOD_ALT)) ) {
 					if ( !e.key.repeat ) {
 					//	SDL_MinimizeWindow(Os_window);
 					}
 				}
 				// print screen / screenshot: CTRL+ALT+p
-				else if ( (e.key.keysym.sym == SDLK_p) && (e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) ) {
+				else if ( (e.key.key == SDLK_P) && (e.key.mod & (SDL_KMOD_CTRL | SDL_KMOD_ALT)) ) {
 					if ( !e.key.repeat ) {
 						key_mark(SDL_SCANCODE_PRINTSCREEN, 1, 0, 0);
 					}
 				}
 				// everything else is processed normally
 				else {
-					key_mark(e.key.keysym.scancode, 1, e.key.keysym.mod, 0);
+					key_mark(e.key.scancode, 1, e.key.mod, 0);
 				}
 
 				break;
 			}
 
-			case SDL_KEYUP: {
-				key_mark(e.key.keysym.scancode, 0, e.key.keysym.mod, 0);
+			case SDL_EVENT_KEY_UP: {
+				key_mark(e.key.scancode, 0, e.key.mod, 0);
 
 				break;
 			}
 
-			case SDL_JOYDEVICEADDED: {
+			case SDL_EVENT_JOYSTICK_ADDED: {
 				if ( !Is_standalone && (e.jdevice.which != joystick_get_id()) ) {
 					joy_reinit(e.jdevice.which);
 				}
@@ -395,7 +379,7 @@ void os_poll()
 				break;
 			}
 
-			case SDL_JOYDEVICEREMOVED: {
+			case SDL_EVENT_JOYSTICK_REMOVED: {
 				// if the active joystick is removed then maybe reinit
 				if ( !Is_standalone && (e.jdevice.which == joystick_get_id()) ) {
 					joy_reinit();
@@ -404,16 +388,16 @@ void os_poll()
 				break;
 			}
 
-			case SDL_CONTROLLERAXISMOTION: {
-				if (e.caxis.which == joystick_get_id()) {
-					joystick_update_axis(e.caxis.axis, e.caxis.value);
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
+				if (e.gaxis.which == joystick_get_id()) {
+					joystick_update_axis(e.gaxis.axis, e.gaxis.value);
 				}
 
 				break;
 			}
 
-			case SDL_JOYAXISMOTION: {
-				if ( joystick_is_controller() ) {
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
+				if ( joystick_is_gamepad() ) {
 					break;
 				}
 
@@ -424,54 +408,54 @@ void os_poll()
 				break;
 			}
 
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP: {
-				if (e.cbutton.which == joystick_get_id()) {
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP: {
+				if (e.gbutton.which == joystick_get_id()) {
 					// convert DPAD to HAT
-					switch (e.cbutton.button) {
-						case SDL_CONTROLLER_BUTTON_DPAD_UP:
+					switch (e.gbutton.button) {
+						case SDL_GAMEPAD_BUTTON_DPAD_UP:
 							button = JOY_HATFORWARD;
 							break;
 
-						case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+						case SDL_GAMEPAD_BUTTON_DPAD_DOWN:
 							button = JOY_HATBACK;
 							break;
 
-						case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+						case SDL_GAMEPAD_BUTTON_DPAD_LEFT:
 							button = JOY_HATLEFT;
 							break;
 
-						case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+						case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
 							button = JOY_HATRIGHT;
 							break;
 
 						default:
-							button = e.cbutton.button;
+							button = e.gbutton.button;
 					}
 
-					state = (e.cbutton.state == SDL_PRESSED) ? 1 : 0;
-					joy_mark_button(button, state);
+					joy_mark_button(button, e.gbutton.down);
+					// maybe update button events for gamepad-mouse too
+					gamepad_mark_mouse_button(e.gbutton.button, e.gbutton.down);
 				}
 
 				break;
 			}
 
-			case SDL_JOYBUTTONDOWN:
-			case SDL_JOYBUTTONUP: {
-				if ( joystick_is_controller() ) {
+			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+			case SDL_EVENT_JOYSTICK_BUTTON_UP: {
+				if ( joystick_is_gamepad() ) {
 					break;
 				}
 
 				if (e.jbutton.which == joystick_get_id()) {
-					state = (e.jbutton.state == SDL_PRESSED) ? 1 : 0;
-					joy_mark_button((int)e.jbutton.button, state);
+					joy_mark_button((int)e.jbutton.button, e.jbutton.down);
 				}
 
 				break;
 			}
 
-			case SDL_JOYHATMOTION: {
-				if ( joystick_is_controller() ) {
+			case SDL_EVENT_JOYSTICK_HAT_MOTION: {
+				if ( joystick_is_gamepad() ) {
 					break;
 				}
 
@@ -509,58 +493,52 @@ void os_poll()
 				break;
 			}
 
-			case SDL_WINDOWEVENT: {
-				switch (e.window.event) {
-					case SDL_WINDOWEVENT_RESIZED:
-						gr_set_viewport(e.window.data1, e.window.data2);
-						// ungrab mouse, it will be grabbed again if needed
-						mouse_grab(0);
-						break;
+			case SDL_EVENT_WINDOW_RESIZED:
+				gr_set_viewport(e.window.data1, e.window.data2);
+				// ungrab mouse, it will be grabbed again if needed
+				mouse_grab(0);
+				break;
 
-					case SDL_WINDOWEVENT_FOCUS_LOST:
-						fAppActive = 0;
-						// io stuff
-						mouse_grab(0);
-						joy_unacquire_ff();
-						break;
+			case SDL_EVENT_WINDOW_FOCUS_LOST:
+				fAppActive = 0;
+				// io stuff
+				mouse_grab(0);
+				joy_unacquire_ff();
+				break;
 
-					case SDL_WINDOWEVENT_FOCUS_GAINED:
-						fAppActive = 1;
-						// io stuff
-						joy_reacquire_ff();
-						break;
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:
+				fAppActive = 1;
+				// io stuff
+				joy_reacquire_ff();
+				break;
 
-					case SDL_WINDOWEVENT_MINIMIZED:
-						fAppActive = 0;
-						// io stuff
-						mouse_grab(0);
-						joy_unacquire_ff();
-						// make sure game pauses
-					//	game_process_pause_key();
-						// graphics
-					//	gr_activate(fAppActive);
-						break;
+			case SDL_EVENT_WINDOW_MINIMIZED:
+				fAppActive = 0;
+				// io stuff
+				mouse_grab(0);
+				joy_unacquire_ff();
+				// make sure game pauses
+			//	game_process_pause_key();
+				// graphics
+			//	gr_activate(fAppActive);
+				break;
 
-					case SDL_WINDOWEVENT_MAXIMIZED:
-					case SDL_WINDOWEVENT_RESTORED: {
-						fAppActive = 1;
-						// io stuff
-						mouse_grab(0);
-						joy_reacquire_ff();
-						// graphics
-					//	gr_activate(fAppActive);
-						break;
-					}
-
-					case SDL_WINDOWEVENT_CLOSE:
-					//	gameseq_post_event(GS_EVENT_QUIT_GAME);
-						break;
-				}
-
+			case SDL_EVENT_WINDOW_MAXIMIZED:
+			case SDL_EVENT_WINDOW_RESTORED: {
+				fAppActive = 1;
+				// io stuff
+				mouse_grab(0);
+				joy_reacquire_ff();
+				// graphics
+			//	gr_activate(fAppActive);
 				break;
 			}
 
-			case SDL_QUIT:
+			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+			//	gameseq_post_event(GS_EVENT_QUIT_GAME);
+				break;
+
+			case SDL_EVENT_QUIT:
 				gameseq_post_event(GS_EVENT_QUIT_GAME);
 				break;
 
@@ -568,17 +546,20 @@ void os_poll()
 				break;
 		}
 	}
+
+	// if we're using a gamepad then update the cursor position
+	gamepad_update_mouse_pos();
 }
 
 void debug_int3()
 {
-	SDL_bool mode = SDL_GetRelativeMouseMode();
-	SDL_SetRelativeMouseMode(SDL_FALSE);
-	SDL_bool grab = SDL_GetWindowGrab(Os_window);
-	SDL_SetWindowGrab(Os_window, SDL_FALSE);
+	bool mode = SDL_GetWindowRelativeMouseMode(Os_window);
+	SDL_SetWindowRelativeMouseMode(Os_window, false);
+	bool grab = SDL_GetWindowMouseGrab(Os_window);
+	SDL_SetWindowMouseGrab(Os_window, false);
 
 	SDL_TriggerBreakpoint();
 
-	SDL_SetRelativeMouseMode(mode);
-	SDL_SetWindowGrab(Os_window, grab);
+	SDL_SetWindowRelativeMouseMode(Os_window, mode);
+	SDL_SetWindowMouseGrab(Os_window, grab);
 }

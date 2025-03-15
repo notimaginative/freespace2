@@ -14,6 +14,7 @@
 #include "osregistry.h"
 #include "joy_ff.h"
 #include "osapi.h"
+#include "gamepad.h"
 
 
 static int Joy_inited = 0;
@@ -25,11 +26,11 @@ static int Joy_last_y_reading = 0;
 
 typedef struct Joy_info {
 	int num_axes;
-	int is_controller;
 	int	axis_min[JOY_NUM_AXES];
 	int	axis_center[JOY_NUM_AXES];
 	int	axis_max[JOY_NUM_AXES];
 	int axis_current[JOY_NUM_AXES];
+	bool is_gamepad;
 } Joy_info;
 
 static Joy_info joystick;
@@ -45,18 +46,18 @@ typedef struct joy_button_info {
 
 joy_button_info joy_buttons[JOY_TOTAL_BUTTONS];
 
-static SDL_JoystickID JoystickID = -1;
+static SDL_JoystickID JoystickID = 0;
 
 
 
-int joystick_get_id()
+SDL_JoystickID joystick_get_id()
 {
 	return JoystickID;
 }
 
-bool joystick_is_controller()
+bool joystick_is_gamepad()
 {
-	return (joystick.is_controller == 1);
+	return joystick.is_gamepad;
 }
 
 void joy_close()
@@ -68,21 +69,21 @@ void joy_close()
 
 	Joy_inited = 0;
 
-	if ( joystick_is_controller() ) {
-		SDL_GameController *sdlcon = SDL_GameControllerFromInstanceID(JoystickID);
+	if ( joystick_is_gamepad() ) {
+        SDL_Gamepad *sdlcon = SDL_GetGamepadFromID(JoystickID);
 
-		if ( SDL_GameControllerGetAttached(sdlcon) ) {
-			SDL_GameControllerClose(sdlcon);
+        if ( SDL_GamepadConnected(sdlcon) ) {
+            SDL_CloseGamepad(sdlcon);
 		}
 	} else {
-		SDL_Joystick *sdljoy = SDL_JoystickFromInstanceID(JoystickID);
+		SDL_Joystick *sdljoy = SDL_GetJoystickFromID(JoystickID);
 
-		if ( SDL_JoystickGetAttached(sdljoy) ) {
-			SDL_JoystickClose(sdljoy);
+        if ( SDL_JoystickConnected(sdljoy) ) {
+			SDL_CloseJoystick(sdljoy);
 		}
 	}
 
-	JoystickID = -1;
+	JoystickID = 0;
 
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
@@ -359,27 +360,34 @@ int joy_get_pos(int *x, int *y, int *z, int *rx)
 	return 1;
 }
 
-static int joy_init_internal(int with_index)
+static int joy_init_internal(SDL_JoystickID with_id)
 {
-	int i, num_sticks;
+	int i, num_sticks = 1;
 	const char *ptr = nullptr;
-	int Cur_joystick;
+	SDL_JoystickID Cur_joystick = 0;
 	SDL_Joystick *sdljoy = nullptr;
 	const char *joy_name = nullptr;
 
 	SDL_zero(joystick);
 
-	num_sticks = SDL_NumJoysticks();
+	gamepad_setup(0);
 
-	if (num_sticks < 1) {
-		mprintf(("  No joysticks found\n\n"));
-		return 0;
-	}
-
-	if ( (with_index >= 0) && (with_index < num_sticks) ) {
-		Cur_joystick = with_index;
+	if (with_id) {
+		Cur_joystick = with_id;
 	} else {
-		Cur_joystick = 0;
+		SDL_JoystickID *joysticks = SDL_GetJoysticks(&num_sticks);
+
+		if ( !joysticks || !num_sticks ) {
+			if (joysticks) {
+				SDL_free(joysticks);
+			}
+
+			mprintf(("  No joysticks found\n\n"));
+			return 0;
+		}
+
+		// set to first joystick found by default
+		Cur_joystick = joysticks[0];
 
 		ptr = os_config_read_string("Controls", "CurrentJoystick", nullptr);
 
@@ -387,10 +395,10 @@ static int joy_init_internal(int with_index)
 			for (i = 0; i < num_sticks; i++) {
 				const char *jname = nullptr;
 
-				if ( SDL_IsGameController(i) ) {
-					jname = SDL_GameControllerNameForIndex(i);
+				if ( SDL_IsGamepad(i) ) {
+					jname = SDL_GetGamepadNameForID(i);
 				} else {
-					jname = SDL_JoystickNameForIndex(i);
+                    jname = SDL_GetJoystickNameForID(i);
 				}
 
 				if ( jname && !SDL_strcasecmp(ptr, jname) ) {
@@ -399,48 +407,50 @@ static int joy_init_internal(int with_index)
 				}
 			}
 		}
+
+		SDL_free(joysticks);
 	}
 
-	if ( SDL_IsGameController(Cur_joystick) ) {
-		joystick.is_controller = 1;
+	joystick.is_gamepad = SDL_IsGamepad(Cur_joystick);
 
-		SDL_GameController *sdlcon = SDL_GameControllerOpen(Cur_joystick);
+	if (joystick_is_gamepad()) {
+		SDL_Gamepad *sdlcon = SDL_OpenGamepad(Cur_joystick);
 
 		if (sdlcon == nullptr) {
-			mprintf(("  Unable to init game controller %d (%s)\n\n", Cur_joystick, SDL_GameControllerNameForIndex(Cur_joystick)));
+			mprintf(("  Unable to init gamepad %d (%s)\n\n", Cur_joystick, SDL_GetGamepadNameForID(Cur_joystick)));
 			return 0;
 		}
 
-		joy_name = SDL_GameControllerName(sdlcon);
+		gamepad_setup(Cur_joystick);
 
-		sdljoy = SDL_GameControllerGetJoystick(sdlcon);
+		joy_name = SDL_GetGamepadName(sdlcon);
+
+		sdljoy = SDL_GetGamepadJoystick(sdlcon);
 	} else {
-		joystick.is_controller = 0;
-
-		sdljoy = SDL_JoystickOpen(Cur_joystick);
+		sdljoy = SDL_OpenJoystick(Cur_joystick);
 
 		if (sdljoy == nullptr) {
-			mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_JoystickNameForIndex(Cur_joystick)));
+			mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_GetJoystickNameForID(Cur_joystick)));
 			return 0;
 		}
 
-		joy_name = SDL_JoystickName(sdljoy);
+		joy_name = SDL_GetJoystickName(sdljoy);
 	}
 
-	JoystickID = SDL_JoystickInstanceID(sdljoy);
+	JoystickID = Cur_joystick;
 
 	mprintf(("  Name    : %s\n", joy_name ? joy_name : "<unknown>"));
-	mprintf(("  Gamepad : %s\n", SDL_IsGameController(Cur_joystick) ? "Yes" : "No"));
-	mprintf(("  Axes    : %d\n", SDL_JoystickNumAxes(sdljoy)));
-	mprintf(("  Buttons : %d\n", SDL_JoystickNumButtons(sdljoy)));
-	mprintf(("  Hats    : %d\n", SDL_JoystickNumHats(sdljoy)));
-	mprintf(("  Haptic  : %s\n", SDL_JoystickIsHaptic(sdljoy) ? "Yes" : "No"));
+	mprintf(("  Gamepad : %s\n", joystick_is_gamepad() ? "Yes" : "No"));
+	mprintf(("  Axes    : %d\n", SDL_GetNumJoystickAxes(sdljoy)));
+	mprintf(("  Buttons : %d\n", SDL_GetNumJoystickButtons(sdljoy)));
+	mprintf(("  Hats    : %d\n", SDL_GetNumJoystickHats(sdljoy)));
+	mprintf(("  Haptic  : %s\n", SDL_IsJoystickHaptic(sdljoy) ? "Yes" : "No"));
 
 	joy_ff_init();
 
 	mprintf(("\n"));
 
-	joystick.num_axes = SDL_JoystickNumAxes(sdljoy);
+	joystick.num_axes = SDL_GetNumJoystickAxes(sdljoy);
 
 	joy_flush();
 
@@ -449,7 +459,7 @@ static int joy_init_internal(int with_index)
 		joystick.axis_max[i] = SDL_JOYSTICK_AXIS_MAX;
 	}
 
-	if (joystick.is_controller == 1) {
+	if (joystick_is_gamepad()) {
 		// the last two axes should be triggers, so set values manually
 		for (i = JOY_NUM_AXES-2; i < JOY_NUM_AXES; i++) {
 			joystick.axis_min[i] = 0;
@@ -468,12 +478,12 @@ int joy_init()
 
 	mprintf(("Initializing Joystick...\n"));
 
-	if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0) {
+	if ( !SDL_InitSubSystem(SDL_INIT_GAMEPAD) ) {
 		mprintf(("  Could not initialize joystick subsystem\n\n"));
 		return 0;
 	}
 
-	int num_sticks = joy_init_internal(-1);
+	int num_sticks = joy_init_internal(0);
 
 	if (num_sticks > 0) {
 		Joy_inited = 1;
@@ -482,7 +492,7 @@ int joy_init()
 	return num_sticks;
 }
 
-void joy_reinit(int with_index)
+void joy_reinit(SDL_JoystickID with_id)
 {
 	if ( !Joy_inited ) {
 		joy_init();
@@ -492,49 +502,49 @@ void joy_reinit(int with_index)
 	// close out what we have already opened...
 	joy_ff_shutdown();
 
-	if (joystick.is_controller == 1) {
-		SDL_GameController *sdlcon = SDL_GameControllerFromInstanceID(JoystickID);
+	if (joystick_is_gamepad()) {
+		SDL_Gamepad *sdlcon = SDL_GetGamepadFromID(JoystickID);
 
-		if ( SDL_GameControllerGetAttached(sdlcon) ) {
-			SDL_GameControllerClose(sdlcon);
+		if ( SDL_GamepadConnected(sdlcon) ) {
+			SDL_CloseGamepad(sdlcon);
 		}
 	} else {
-		SDL_Joystick *sdljoy = SDL_JoystickFromInstanceID(JoystickID);
+		SDL_Joystick *sdljoy = SDL_GetJoystickFromID(JoystickID);
 
-		if ( SDL_JoystickGetAttached(sdljoy) ) {
-			SDL_JoystickClose(sdljoy);
+		if ( SDL_JoystickConnected(sdljoy) ) {
+			SDL_CloseJoystick(sdljoy);
 		}
 	}
 
-	JoystickID = -1;
+	JoystickID = 0;
 
 	// attempt to get a new joystick to use...
 	mprintf(("Re-Initializing Joystick...\n"));
 
-	joy_init_internal(with_index);
+	joy_init_internal(with_id);
 }
 
 void joy_set_cen()
 {
-	SDL_GameController *sdlcon = nullptr;
+	SDL_Gamepad *sdlcon = nullptr;
 	SDL_Joystick *sdljoy = nullptr;
 
 	if ( !Joy_inited ) {
 		return;
 	}
 
-	if ( joystick_is_controller() ) {
-		sdlcon = SDL_GameControllerFromInstanceID(JoystickID);
+	if ( joystick_is_gamepad() ) {
+		sdlcon = SDL_GetGamepadFromID(JoystickID);
 	} else {
-		sdljoy = SDL_JoystickFromInstanceID(JoystickID);
+		sdljoy = SDL_GetJoystickFromID(JoystickID);
 	}
 
 	for (int i = 0; i < JOY_NUM_AXES; i++) {
 		if (i < joystick.num_axes) {
-			if ( joystick_is_controller() ) {
-				joystick.axis_center[i] = SDL_GameControllerGetAxis(sdlcon, (SDL_GameControllerAxis)i);
+			if ( joystick_is_gamepad() ) {
+				joystick.axis_center[i] = SDL_GetGamepadAxis(sdlcon, (SDL_GamepadAxis)i);
 			} else {
-				joystick.axis_center[i] = SDL_JoystickGetAxis(sdljoy, i);
+				joystick.axis_center[i] = SDL_GetJoystickAxis(sdljoy, i);
 			}
 		} else {
 			joystick.axis_center[i] = 0;

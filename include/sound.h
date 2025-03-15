@@ -240,7 +240,7 @@ typedef struct game_snd
 
 typedef struct sound_env
 {
-	unsigned long id;
+	unsigned int id;
 	float volume;
 	float damping;
 	float decay;

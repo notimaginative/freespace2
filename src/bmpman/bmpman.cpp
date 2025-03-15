@@ -906,7 +906,7 @@ int bm_load_sub(const char *real_filename, const char *ext, int *handle)
 	
 	SDL_strlcpy( filename, real_filename, SDL_arraysize(filename) );
 	SDL_strlcat( filename, ext, SDL_arraysize(filename) );
-	for (i=0; i<(int)strlen(filename); i++ ){
+	for (i=0; i<(int)SDL_strlen(filename); i++ ){
 		filename[i] = char(tolower(filename[i]));
 	}		
 
@@ -1043,7 +1043,7 @@ int bm_load( const char * real_filename )
 	// into this slot.
 	bm_bitmaps[n].type = tga ? (ubyte)BM_TYPE_TGA : (ubyte)BM_TYPE_PCX;
 	bm_bitmaps[n].signature = Bm_next_signature++;
-	SDL_assert ( strlen(filename) < MAX_FILENAME_LEN );
+	SDL_assert ( SDL_strlen(filename) < MAX_FILENAME_LEN );
 	SDL_strlcpy(bm_bitmaps[n].filename, filename, MAX_FILENAME_LEN );
 	bm_bitmaps[n].bm.w = short(w);
 	bm_bitmaps[n].bm.rowsize = short(w);
@@ -1221,7 +1221,7 @@ int bm_load_animation( const char *real_filename, int *nframes, int *fps, int ca
 
 	int first_handle = bm_get_next_handle();
 
-	SDL_assert ( strlen(filename) < MAX_FILENAME_LEN );
+	SDL_assert ( SDL_strlen(filename) < MAX_FILENAME_LEN );
 	for ( i = 0; i < *nframes; i++ ) {
 		memset( &bm_bitmaps[n+i], 0, sizeof(bitmap_entry) );
 		bm_bitmaps[n+i].info.ani.first_frame = n;

@@ -182,17 +182,17 @@ uint				keyd_last_pressed;
 uint				keyd_last_released;
 int				keyd_time_when_last_pressed;
 
-static bool		keyd_pressed[SDL_NUM_SCANCODES];
+static bool		keyd_pressed[SDL_SCANCODE_COUNT];
 
 typedef struct keyboard	{
 	ushort			keybuffer[KEY_BUFFER_SIZE];
 	uint				time_pressed[KEY_BUFFER_SIZE];
-	uint				TimeKeyWentDown[SDL_NUM_SCANCODES];
-	uint				TimeKeyHeldDown[SDL_NUM_SCANCODES];
-	uint				TimeKeyDownChecked[SDL_NUM_SCANCODES];
-	uint				NumDowns[SDL_NUM_SCANCODES];
-	uint				NumUps[SDL_NUM_SCANCODES];
-	int				down_check[SDL_NUM_SCANCODES];  // nonzero if has been pressed yet this mission
+	uint				TimeKeyWentDown[SDL_SCANCODE_COUNT];
+	uint				TimeKeyHeldDown[SDL_SCANCODE_COUNT];
+	uint				TimeKeyDownChecked[SDL_SCANCODE_COUNT];
+	uint				NumDowns[SDL_SCANCODE_COUNT];
+	uint				NumUps[SDL_SCANCODE_COUNT];
+	int				down_check[SDL_SCANCODE_COUNT];  // nonzero if has been pressed yet this mission
 	uint				keyhead, keytail;
 } keyboard;
 
@@ -243,15 +243,14 @@ void key_clear_text_input()
 
 bool key_pressed(int keycode)
 {
-	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
+	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK, nullptr);
 
 	return keyd_pressed[scancode];
 }
 
 int key_numlock_is_on()
 {
-	const Uint8 *state;
-	state = SDL_GetKeyboardState(NULL);
+	auto state = SDL_GetKeyboardState(nullptr);
 	if ( state[SDL_SCANCODE_NUMLOCKCLEAR] ) {
 		return 1;
 	}
@@ -280,7 +279,7 @@ bool key_is_ascii(int keycode)
 
 	// this is definitely never come back to bite me in the ass
 	if ( ((keycode >= SDLK_SPACE) && (keycode <= SDLK_AT))
-			|| ((keycode >= SDLK_LEFTBRACKET) && (keycode <= SDLK_z)) )
+			|| ((keycode >= SDLK_LEFTBRACKET) && (keycode <= SDLK_Z)) )
 	{
 		return true;
 	}
@@ -310,7 +309,7 @@ void key_flush()
 	CurTime = timer_get_milliseconds();
 
 
-	for (i=0; i<SDL_NUM_SCANCODES; i++ )	{
+	for (i=0; i<SDL_SCANCODE_COUNT; i++ )	{
 		keyd_pressed[i] = false;
 		key_data.TimeKeyDownChecked[i] = CurTime;
 		key_data.TimeKeyWentDown[i] = CurTime;
@@ -366,7 +365,7 @@ int key_inkey()
 
 	// need to strip key mod state for keycode lookup
 	mod = (scancode & 0xf900);
-	keycode = SDL_GetKeyFromScancode((SDL_Scancode)(scancode & KEY_MASK));
+	keycode = SDL_GetKeyFromScancode((SDL_Scancode)(scancode & KEY_MASK), SDL_KMOD_NONE, false);
 
 	return (keycode | mod);
 }
@@ -397,13 +396,13 @@ uint key_get_shift_status()
 
 	SDL_Keymod kmod = SDL_GetModState();
 
-	if (kmod & KMOD_SHIFT)
+	if (kmod & SDL_KMOD_SHIFT)
 		shift_status |= KEY_SHIFTED;
 
-	if (kmod & KMOD_ALT)
+	if (kmod & SDL_KMOD_ALT)
 		shift_status |= KEY_ALTED;
 
-	if (kmod & KMOD_CTRL)
+	if (kmod & SDL_KMOD_CTRL)
 		shift_status |= KEY_CTRLED;
 
 #ifndef NDEBUG
@@ -433,7 +432,7 @@ float key_down_timef(int keycode)
 	if ( !key_inited )
 		return 0.0f;
 
-	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
+	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK, nullptr);
 
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0.0f;
@@ -471,7 +470,7 @@ int key_down_count(int keycode)
 	if ( !key_inited )
 		return 0;
 
-	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
+	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK, nullptr);
 
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0;
@@ -492,7 +491,7 @@ int key_up_count(int keycode)
 	if ( !key_inited )
 		return 0;
 
-	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
+	scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK, nullptr);
 
 	if (scancode == SDL_SCANCODE_UNKNOWN)
 		return 0;
@@ -505,7 +504,7 @@ int key_up_count(int keycode)
 
 int key_check(int keycode)
 {
-	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK);
+	SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode & KEY_MASK, nullptr);
 
 	return key_data.down_check[scancode];
 }
@@ -520,7 +519,7 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 
 	if ( !key_inited ) return;
 
-	SDL_assert( scancode < SDL_NUM_SCANCODES );
+	SDL_assert( scancode < SDL_SCANCODE_COUNT );
 
 	// ignore GUI key, we use it for specials commands
 	if ( (scancode == SDL_SCANCODE_LGUI) || (scancode == SDL_SCANCODE_RGUI) ) {
@@ -566,13 +565,13 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 
 		keycode = (unsigned short)scancode;
 
-		if (kmod & KMOD_SHIFT)
+		if (kmod & SDL_KMOD_SHIFT)
 			keycode |= KEY_SHIFTED;
 
-		if (kmod & KMOD_ALT)
+		if (kmod & SDL_KMOD_ALT)
 			keycode |= KEY_ALTED;
 
-		if (kmod & KMOD_CTRL)
+		if (kmod & SDL_KMOD_CTRL)
 			keycode |= KEY_CTRLED;
 
 #ifndef NDEBUG
@@ -658,7 +657,7 @@ void key_level_init()
 {
 	int i;
 
-	for (i=0; i<SDL_NUM_SCANCODES; i++)
+	for (i=0; i<SDL_SCANCODE_COUNT; i++)
 		key_data.down_check[i] = 0;
 }
 

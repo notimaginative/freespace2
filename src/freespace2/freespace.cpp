@@ -559,6 +559,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 
 #include "pstypes.h"
 #include "systemvars.h"
@@ -699,6 +700,7 @@
 // #include "names.h"
 #include "shiphit.h"
 #include "missionloopbrief.h"
+#include "gamepad.h"
 
 #ifdef NDEBUG
 #ifdef FRED
@@ -1942,8 +1944,8 @@ void game_loading_callback_init()
 	Game_loading_ani_bitmap = -1;
 
 	Game_loading_callback_inited = 1;
-	Mouse_hidden = 1;
-	game_busy_callback( game_loading_callback, (COUNT_ESTIMATE/Game_loading_ani->total_frames)+1 );	
+	mouse_hide_cursor();
+	game_busy_callback( game_loading_callback, (COUNT_ESTIMATE/Game_loading_ani->total_frames)+1 );
 
 
 }
@@ -1966,7 +1968,7 @@ void game_loading_callback_close()
 	game_busy_callback( NULL );
 #endif
 
- 	Mouse_hidden = 0;
+	mouse_show_cursor();
 
 	Game_loading_callback_inited = 0;
 
@@ -2295,6 +2297,9 @@ extern void bm_init();
 extern "C"
 void game_init()
 {
+	// initialize os as early as possible
+	os_init(Osreg_title, Osreg_app_id);
+
 	Game_current_mission_filename[0] = 0;
 
 	// seed the random number generator
@@ -2312,7 +2317,7 @@ void game_init()
 	// encrypt stuff
 	encrypt_init();
 
-	// Initialize the timer before the os
+	// Initialize the timer
 	timer_init();
 
 #ifndef NDEBUG
@@ -2345,9 +2350,6 @@ void game_init()
 	}
 	e2 = timer_get_milliseconds();	
 	*/
-
-	os_init( Osreg_class_name, Osreg_app_name );
-	os_set_title(Osreg_title);
 
 	// initialize localization module. Make sure this is down AFTER initialzing OS.
 //	int t1 = timer_get_milliseconds();
@@ -3788,7 +3790,7 @@ void game_maybe_dump_frame()
 		return;
 	}
 
-	if( Debug_dump_trigger && !key_pressed(SDLK_q) ){
+	if( Debug_dump_trigger && !key_pressed(SDLK_Q) ){
 		return;
 	}
 
@@ -4587,6 +4589,10 @@ int game_check_key()
 	if ((k & KEY_MASK) == SDLK_KP_ENTER)
 		k = (k & ~KEY_MASK) | SDLK_RETURN;
 
+	if (k == 0) {
+		k = gamepad_get_key();
+	}
+
 	return k;
 }
 
@@ -4674,7 +4680,7 @@ int game_poll()
 #endif
 
 	// Move the mouse cursor with the joystick.
-	if (os_foreground() && (!Mouse_hidden) && (Use_joy_mouse) )	{
+	if (Use_joy_mouse && os_foreground() && mouse_is_visible())	{
 		// Move the mouse cursor with the joystick
 		int mx, my, dx, dy;
 		int jx, jy, jz, jr;
@@ -4797,7 +4803,7 @@ int game_poll()
 
 			break;
 
-		case KEY_DEBUGGED + SDLK_p:
+		case KEY_DEBUGGED + SDLK_P:
 			break;			
 
 		case SDLK_PRINTSCREEN:
@@ -6554,11 +6560,11 @@ int game_do_ram_check(int ram_in_mbytes)
 		//	sprintf( tmp, XSTR( "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.  If you think you have more than %dMB of physical memory, ensure that you aren't running SmartDrive (SMARTDRV.EXE).  Any memory allocated to SmartDrive is not usable by applications\n\nPress 'OK' to continue running with less than the minimum required memory\n", 193), ram_in_mbytes, ram_in_mbytes);
 			SDL_snprintf( tmp, SDL_arraysize(tmp), "FreeSpace has detected that you only have %dMB of free memory.\n\nFreeSpace requires at least 32MB of memory to run.\n\nPress 'OK' to continue running with less than the minimum required memory.\n", ram_in_mbytes);
 
-			mboxbuttons[0].buttonid = 0;
+			mboxbuttons[0].buttonID = 0;
 			mboxbuttons[0].text = XSTR("Ok", 503);
 			mboxbuttons[0].flags = 0;
 
-			mboxbuttons[1].buttonid = 1;
+			mboxbuttons[1].buttonID = 1;
 			mboxbuttons[1].text = XSTR("Cancel", 504);
 			mboxbuttons[0].flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT;
 
@@ -6789,8 +6795,8 @@ int game_main(const char *szCmdLine)
 #endif
 
 	mprintf(("Platform: %s\n", SDL_GetPlatform()));
-	mprintf(("CPU: %d %s\n", SDL_GetCPUCount(), (SDL_GetCPUCount() == 1) ? "core" : "cores"));
-	mprintf(("Memory: %dMB\n", Freespace_total_ram));
+	mprintf(("CPU: %d %s\n", SDL_GetNumLogicalCPUCores(), (SDL_GetNumLogicalCPUCores() == 1) ? "core" : "cores"));
+	mprintf(("Memory: %d MB\n", Freespace_total_ram));
 	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big"));
 
 #ifdef GIT_INFO
@@ -6803,7 +6809,7 @@ int game_main(const char *szCmdLine)
 
 	parse_cmdline(szCmdLine);
 
-	mprintf(("--------------------------------------------------------------------------------\n"));
+	mprintf(("--------------------------------------------------------------------------\n"));
 
 #ifdef STANDALONE_ONLY_BUILD
 	Is_standalone = 1;
@@ -6984,8 +6990,10 @@ typedef struct animating_obj
 	int	first_frame;
 	int	num_frames;
 	int	current_frame;
+	int previous_frame;
 	float time;
 	float elapsed_time;
+	std::vector<SDL_Cursor *> cursors;
 } animating_obj;
 
 static animating_obj Animating_mouse;
@@ -7001,6 +7009,7 @@ void init_animating_pointer()
 	Animating_mouse.first_frame	= -1;
 	Animating_mouse.num_frames		= 0;
 	Animating_mouse.current_frame	= -1;
+	Animating_mouse.previous_frame 	= -1;
 	Animating_mouse.time				= 0.0f;
 	Animating_mouse.elapsed_time	= 0.0f;
 }
@@ -7025,6 +7034,16 @@ void load_animating_pointer(const char *filename, int dx, int dy)
 		Error(LOCATION, "Could not load animation %s for the mouse pointer\n", filename);
 	am->current_frame = 0;
 	am->time = am->num_frames / i2fl(fps);
+
+	for (int i = 0; i < am->num_frames; ++i) {
+		am->cursors.push_back( mouse_create_cursor(am->first_frame+i) );
+
+		if (am->first_frame+i >= 0) {
+			bm_release(am->first_frame + i);
+		}
+	}
+
+	am->first_frame = -1;	// reset to avoid double release of bitmap
 }
 
 // ----------------------------------------------------------------------------
@@ -7034,37 +7053,45 @@ void load_animating_pointer(const char *filename, int dx, int dy)
 //
 void unload_animating_pointer()
 {
-	int				i;
 	animating_obj	*am;
 
 	am = &Animating_mouse;
-	for ( i = 0; i < am->num_frames; i++ ) {
-		SDL_assert( (am->first_frame+i) >= 0 );
-		bm_release(am->first_frame + i);
+
+	for (auto &cursor : am->cursors) {
+		if (cursor) {
+			SDL_DestroyCursor(cursor);
+		}
 	}
+
+	am->cursors.clear();
+	am->cursors.shrink_to_fit();
 
 	am->first_frame	= -1;
 	am->num_frames		= 0;
 	am->current_frame = -1;
+	am->previous_frame = -1;
+
 }
 
 // draw the correct frame of the game mouse... called from game_maybe_draw_mouse()
 void game_render_mouse(float frametime)
 {
-	int				mx, my;
 	animating_obj	*am;
 
 	// if animating cursor exists, play the next frame
 	am = &Animating_mouse;
-	if ( am->first_frame != -1 ) {
-		mouse_get_pos(&mx, &my);
+	if ( !am->cursors.empty() ) {
 		am->elapsed_time += frametime;
 		am->current_frame = fl2i( ( am->elapsed_time / am->time ) * (am->num_frames-1) );
 		if ( am->current_frame >= am->num_frames ) {
 			am->current_frame = 0;
 			am->elapsed_time = 0.0f;
 		}
-		gr_set_cursor_bitmap(am->first_frame + am->current_frame);
+
+		if (am->current_frame != am->previous_frame) {
+			mouse_set_cursor(am->cursors[am->current_frame]);
+			am->previous_frame = am->current_frame;
+		}
 	}
 }
 
@@ -7091,18 +7118,18 @@ void game_maybe_draw_mouse(float frametime)
 		case GS_STATE_DEATH_DIED:
 		case GS_STATE_DEATH_BLEW_UP:
 			if ( popup_active() || popupdead_is_active() ) {
-				Mouse_hidden = 0;
+				mouse_show_cursor();
 			} else {
-				Mouse_hidden = 1;	
+				mouse_hide_cursor();
 			}
 			break;
 
 		default:
-			Mouse_hidden = 0;
+			mouse_show_cursor();
 			break;
 	}	// end switch
 
-	if ( !Mouse_hidden ) 
+	if (mouse_is_visible())
 		game_render_mouse(frametime);
 
 }
@@ -7325,7 +7352,7 @@ void Time_model( int modelnum )
 
 	polymodel *pm = model_get( modelnum );
 
-	int l = strlen(pm->filename);
+	auto l = SDL_strlen(pm->filename);
 	while( (l>0) )	{
 		if ( (l == '/') || (l=='\\') || (l==':'))	{
 			l++;
@@ -7517,69 +7544,6 @@ void game_format_time(fix m_time, char *time_str, const int time_str_len)
 	}
 }
 
-//	Stuff version string in *str.
-void get_version_string(char *str, const int str_len)
-{
-//XSTR:OFF
-#ifdef FS1_DEMO
-	SDL_snprintf(str, str_len, "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-#if !defined(NDEBUG) && defined(GIT_INFO)
-	SDL_strlcat(str, "~" GIT_COMMIT_HASH, str_len);
-#endif
-	return;
-#endif
-
-	if ( FS_VERSION_BUILD == 0 ) {
-		SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-	} else {
-		SDL_snprintf(str, str_len, "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
-	}
-
-#if !defined(NDEBUG) && defined(GIT_INFO)
-	SDL_strlcat(str, "~" GIT_COMMIT_HASH, str_len);
-#endif
-
-#if defined (FS2_DEMO)
-	SDL_strlcat(str, " D", str_len);
-#elif defined (OEM_BUILD)
-	SDL_strlcat(str, " (OEM)", str_len);
-#endif
-//XSTR:ON
-	/*
-	HMODULE hMod;
-	DWORD bogus_handle;
-	char myname[_MAX_PATH];
-	int namelen, major, minor, build, waste;
-	unsigned int buf_size;
-	DWORD version_size;
-	char *infop;
-	VOID *bufp;
-	BOOL result;
-
-	// Find my EXE file name
-	hMod = GetModuleHandle(NULL);
-	namelen = GetModuleFileName( hMod, myname, _MAX_PATH );
-
-	version_size = GetFileVersionInfoSize(myname, &bogus_handle );
-	infop = (char *)malloc(version_size);
-	result = GetFileVersionInfo( myname, 0, version_size, (LPVOID)infop );
-
-	// get the product version
-	result = VerQueryValue((LPVOID)infop, TEXT("\\StringFileInfo\\040904b0\\ProductVersion"), &bufp, &buf_size );
-	sscanf( (char *)bufp, "%d, %d, %d, %d", &major, &minor, &build, &waste );
-#ifdef DEMO
-	sprintf(str,"Dv%d.%02d",major, minor);
-#else
-	sprintf(str,"v%d.%02d",major, minor);
-#endif
-	*/
-}
-
-void get_version_string_short(char *str, const int str_len)
-{
-	SDL_snprintf(str, str_len, "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
-}
-
 // ----------------------------------------------------------------
 //
 // OEM UPSELL SCREENS BEGIN
@@ -7620,7 +7584,7 @@ void oem_upsell_next_screen()
 	if ( Oem_upsell_screen_number == (NUM_OEM_UPSELL_SCREENS-1) ) {
 		// extra long delay, mouse shown on last upsell
 		Oem_upsell_show_next_bitmap_time = timer_get_milliseconds() + OEM_UPSELL_SCREEN_DELAY*2;
-		Mouse_hidden = 0;
+		mouse_show_cursor();
 
 	} else {
 		Oem_upsell_show_next_bitmap_time = timer_get_milliseconds() + OEM_UPSELL_SCREEN_DELAY;
@@ -7675,7 +7639,7 @@ void oem_upsell_show_screens()
 	Oem_upsell_screen_number = 0;
 	
 	key_flush();
-	Mouse_hidden = 1;
+	mouse_hide_cursor();
 
 	// set up cursors
 	int nframes;						// used to pass, not really needed (should be 1)
@@ -7864,7 +7828,7 @@ void demo_upsell_init(int end_of_demo)
 	Demo_upsell_screen_number = 0;
 
 	key_flush();
-	Mouse_hidden = 1;
+	mouse_hide_cursor();
 }
 
 void demo_upsell_close()

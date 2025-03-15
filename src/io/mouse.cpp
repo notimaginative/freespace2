@@ -144,6 +144,8 @@
 #include "mouse.h"
 #include "2d.h"
 #include "osapi.h"
+#include "gamepad.h"
+#include "bmpman.h"
 
 
 static int mouse_inited = 0;
@@ -168,15 +170,112 @@ static int Mouse_dy_inc = 0;
 
 int Mouse_sensitivity = 4;
 int Use_mouse_to_fly = 0;
-int Mouse_hidden = 0;
 int Keep_mouse_centered = 0;
 
 void mouse_force_pos(int x, int y);
 
 
-int mouse_is_visible()
+
+// -----------------------------------------------------------------------
+// mouse_create_cursor()
+//
+// Creates an SDL_Cursor object from a loaded bitmap. Returns nullptr on any failure
+// or the cursor object on success (which must be released with SDL_DestroyCursor!).
+SDL_Cursor *mouse_create_cursor(int bmap_id)
 {
-	return !Mouse_hidden;
+	if (bmap_id < 0) {
+		return nullptr;
+	}
+
+	SDL_Surface *surface = nullptr;
+	auto bmp = bm_lock(bmap_id, 16, BMP_TEX_XPARENT);
+
+	if ( !bmp ) {
+		return nullptr;
+	}
+
+	auto w_2 = bmp->w * 2;
+	auto h_2 = bmp->h * 2;
+
+	auto surfaceOrig = SDL_CreateSurfaceFrom(bmp->w, bmp->h,
+											 SDL_PIXELFORMAT_RGBA5551,
+											 reinterpret_cast<void *>(bmp->data),
+											 bmp->rowsize * 2);
+
+	// convert to 32-bit
+	if (surfaceOrig) {
+		surface = SDL_ConvertSurface(surfaceOrig, SDL_PIXELFORMAT_ARGB8888);
+		SDL_DestroySurface(surfaceOrig);
+		surfaceOrig = nullptr;
+	}
+
+	bm_unlock(bmap_id);
+	bmp = nullptr;
+
+	if ( !surface ) {
+		return nullptr;
+	}
+
+	// create alternate x2 version for hi-dpi
+	auto surfaceScaled = SDL_ScaleSurface(surface, w_2, h_2, SDL_SCALEMODE_LINEAR);
+
+	if (surfaceScaled) {
+		SDL_AddSurfaceAlternateImage(surface, surfaceScaled);
+		SDL_DestroySurface(surfaceScaled);
+		surfaceScaled = nullptr;
+	}
+
+	auto cursor = SDL_CreateColorCursor(surface, 0, 0);
+
+	SDL_DestroySurface(surface);
+
+	return cursor;
+}
+
+// -----------------------------------------------------------------------
+// mouse_set_cursor()
+//
+// Set the current mouse pointer.  This is called by the animating mouse
+// pointer code.
+//
+// The lock parameter basically disables the next call of this function that doesnt
+// have an unlock feature.  If adding in more cursor-changing situations, be aware of
+// unexpected results. You have been warned.
+bool mouse_set_cursor(SDL_Cursor *cursor, int lock)
+{
+	static bool locked = false;
+	bool rval = false;
+
+	if ( !locked || (lock == MOUSE_CURSOR_UNLOCK) ) {
+		if (cursor) {
+			SDL_SetCursor(cursor);
+		}
+
+		rval = true;
+	} else {
+		locked = false;
+	}
+
+	if (lock == MOUSE_CURSOR_LOCK) {
+		locked = true;
+	}
+
+	return rval;
+}
+
+void mouse_hide_cursor()
+{
+	SDL_HideCursor();
+}
+
+void mouse_show_cursor()
+{
+	SDL_ShowCursor();
+}
+
+bool mouse_is_visible()
+{
+	return SDL_CursorVisible();
 }
 
 void mouse_close()
@@ -427,10 +526,12 @@ void mouse_force_pos(int x, int y)
 		return;
 	}
 
-	int x1 = fl2i(x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;
-	int y1 = fl2i(y / gr_screen.viewport_scale_factor_y) + gr_screen.viewport_offset_y;
+	float x1 = (x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;
+	float y1 = (y / gr_screen.viewport_scale_factor_y) + gr_screen.viewport_offset_y;
 
+	SDL_HideCursor();		// prevents cursor getting stuck as non-game one
 	SDL_WarpMouseInWindow(os_get_window(), x1, y1);
+	SDL_ShowCursor();
 
 	Mouse_x = x;
 	Mouse_y = y;
@@ -442,14 +543,14 @@ void mouse_grab(int grab)
 {
 	if (grab) {
 		if ( !Mouse_grabbed ) {
-			SDL_SetWindowGrab(os_get_window(), SDL_TRUE);
-			SDL_SetRelativeMouseMode(SDL_TRUE);
+            SDL_SetWindowMouseGrab(os_get_window(), true);
+            SDL_SetWindowRelativeMouseMode(os_get_window(), true);
 
 			Mouse_grabbed = true;
 		}
 	} else if (Mouse_grabbed) {
-		SDL_SetWindowGrab(os_get_window(), SDL_FALSE);
-		SDL_SetRelativeMouseMode(SDL_FALSE);
+        SDL_SetWindowMouseGrab(os_get_window(), false);
+        SDL_SetWindowRelativeMouseMode(os_get_window(), false);
 
 		Mouse_grabbed = false;
 	}
@@ -463,7 +564,7 @@ void mouse_eval_deltas()
 	Mouse_dx_inc = Mouse_dy_inc = 0;
 
 	// make sure mouse is bound to window if we're flying with it
-	if (Keep_mouse_centered && Mouse_hidden) {
+	if (Keep_mouse_centered && !mouse_is_visible()) {
 		mouse_grab(1);
 	} else {
 		mouse_grab(0);
@@ -509,11 +610,15 @@ void mouse_get_real_pos(int *mx, int *my)
 void mouse_set_pos(int xpos, int ypos)
 {
 	if ((xpos != Mouse_x) || (ypos != Mouse_y)){
+		// cap pos so we can't jump cursor out of window (when joy/gamepad controlled)
+		CAP(xpos, 0, gr_screen.max_w-1);
+		CAP(ypos, 0, gr_screen.max_h-1);
+
 		mouse_force_pos(xpos, ypos);
 	}
 }
 
-void mouse_update_pos(int x, int y, int dx, int dy)
+void mouse_update_pos(float x, float y, float dx, float dy)
 {
 	int x1 = fl2i((x - gr_screen.viewport_offset_x) * gr_screen.viewport_scale_factor_x);
 	int y1 = fl2i((y - gr_screen.viewport_offset_y) * gr_screen.viewport_scale_factor_y);
@@ -523,6 +628,19 @@ void mouse_update_pos(int x, int y, int dx, int dy)
 
 	Mouse_x = x1;
 	Mouse_y = y1;
+
+	Mouse_dx_inc += fl2i(dx);
+	Mouse_dy_inc += fl2i(dy);
+}
+
+// update mouse with position which is already scaled for max_w/max_h
+void mouse_update_pos_scaled(int x, int y, int dx, int dy)
+{
+	CAP(x, 0, gr_screen.max_w-1);
+	CAP(y, 0, gr_screen.max_h-1);
+
+	Mouse_x = x;
+	Mouse_y = y;
 
 	Mouse_dx_inc += dx;
 	Mouse_dy_inc += dy;

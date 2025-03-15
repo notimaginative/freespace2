@@ -216,7 +216,7 @@ void UI_BUTTON::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w
 	text = NULL;
 
 	if (_text) {
-		if ( strlen(_text) > 0 ) {
+		if ( SDL_strlen(_text) > 0 ) {
 			text = strdup(_text);
 		}
 	}
@@ -243,8 +243,8 @@ void UI_BUTTON::create(UI_WINDOW *wnd, const char *_text, int _x, int _y, int _w
 		m_flags |= BF_IGNORE_FOCUS;
 	}
 
-	custom_cursor_bmap = -1;
-	previous_cursor_bmap = -1;
+	custom_cursor = nullptr;
+	previous_cursor = nullptr;
 };
 
 void UI_BUTTON::destroy()
@@ -252,6 +252,12 @@ void UI_BUTTON::destroy()
 	if (text) {
 		free(text);
 		text = NULL;
+	}
+
+	if (custom_cursor) {
+		SDL_DestroyCursor(custom_cursor);
+		custom_cursor = nullptr;
+		previous_cursor = nullptr;
 	}
 
 	UI_GADGET::destroy();  // call base as well
@@ -616,24 +622,34 @@ void UI_BUTTON::repeatable(int yes)
 	}
 }
 
+void UI_BUTTON::set_custom_cursor_bmap(int bmap_id)
+{
+	if (bmap_id < 0) {
+		return;
+	}
+
+	if (custom_cursor) {
+		SDL_DestroyCursor(custom_cursor);
+	}
+
+	custom_cursor = mouse_create_cursor(bmap_id);
+}
+
 void UI_BUTTON::maybe_show_custom_cursor()
 {
 	if (disabled_flag)
 		return;
 
 	// set the mouseover cursor 
-	if (is_mouse_on()) {
-		if ((custom_cursor_bmap >= 0) && (previous_cursor_bmap < 0)) {
-			previous_cursor_bmap = gr_get_cursor_bitmap();
-			gr_set_cursor_bitmap(custom_cursor_bmap, GR_CURSOR_LOCK);			// set and lock
-		}
+	if (custom_cursor && is_mouse_on()) {
+		previous_cursor = SDL_GetCursor();
+		mouse_set_cursor(custom_cursor, MOUSE_CURSOR_LOCK);
 	}
 }
 
 void UI_BUTTON::restore_previous_cursor()
 {
-	if (previous_cursor_bmap >= 0) {
-		gr_set_cursor_bitmap(previous_cursor_bmap, GR_CURSOR_UNLOCK);		// restore and unlock
-		previous_cursor_bmap = -1;
+	if (previous_cursor) {
+		mouse_set_cursor(previous_cursor, MOUSE_CURSOR_UNLOCK);
 	}
 }

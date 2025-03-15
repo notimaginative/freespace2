@@ -410,13 +410,13 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 
 	entry->type = type;
 	if ( pname ) {
-		SDL_assert (strlen(pname) < NAME_LENGTH);
+		SDL_assert (SDL_strlen(pname) < NAME_LENGTH);
 		SDL_strlcpy(entry->pname, pname, SDL_arraysize(entry->pname));
 	} else
 		SDL_strlcpy( entry->pname, EMPTY_LOG_NAME, SDL_arraysize(entry->pname) );
 
 	if ( sname ) {
-		SDL_assert (strlen(sname) < NAME_LENGTH);
+		SDL_assert (SDL_strlen(sname) < NAME_LENGTH);
 		SDL_strlcpy(entry->sname, sname, SDL_arraysize(entry->sname));
 	} else
 		SDL_strlcpy( entry->sname, EMPTY_LOG_NAME, SDL_arraysize(entry->sname) );
@@ -604,11 +604,11 @@ void mission_log_add_entry_multi( int type, const char *pname, const char *sname
 
 	entry->type = type;
 	if ( pname ) {
-		SDL_assert (strlen(pname) < NAME_LENGTH);
+		SDL_assert (SDL_strlen(pname) < NAME_LENGTH);
 		SDL_strlcpy(entry->pname, pname, SDL_arraysize(entry->pname));
 	}
 	if ( sname ) {
-		SDL_assert (strlen(sname) < NAME_LENGTH);
+		SDL_assert (SDL_strlen(sname) < NAME_LENGTH);
 		SDL_strlcpy(entry->sname, sname, SDL_arraysize(entry->sname));
 	}
 	entry->index = index;
@@ -816,7 +816,7 @@ void message_log_init_scrollback(int pw)
 		switch (entry->type) {
 			case LOG_SHIP_DESTROYED:
 				message_log_add_segs(XSTR( "Destroyed", 404), LOG_COLOR_NORMAL);
-				if (strlen(entry->sname)) {
+				if (SDL_strlen(entry->sname)) {
 					message_log_add_segs(XSTR( "  Kill: ", 405), LOG_COLOR_NORMAL);
 					message_log_add_segs(entry->sname, c);
 					if (entry->index >= 0) {

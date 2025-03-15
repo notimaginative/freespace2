@@ -6,13 +6,12 @@
  * the source.
  */
 
-#include "SDL_opengles2.h"
+#include <SDL3/SDL_opengles2.h>
 
 #include "pstypes.h"
 #include "2d.h"
-#include "gropengl.h"
-#include "gropenglinternal.h"
-#include "grgl2.h"
+#include "grgles2.h"
+#include "grgles2internal.h"
 #include "bmpman.h"
 #include "grinternal.h"
 #include "systemvars.h"
@@ -50,13 +49,13 @@ extern int Gr_textures_in;
 extern int bm_get_cache_slot( int bitmap_id, int separate_ani_frames );
 
 
-void opengl2_set_texture_state(gr_texture_source ts)
+void gles2_set_texture_state(gr_texture_source ts)
 {
 	if (ts == TEXTURE_SOURCE_NONE) {
 		GL_bound_texture = NULL;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		opengl2_tcache_set(-1, -1);
+		gles2_tcache_set(-1, -1);
 	} else if (GL_bound_texture && GL_bound_texture->texture_mode != ts) {
 		switch (ts) {
 			case TEXTURE_SOURCE_DECAL:
@@ -84,7 +83,7 @@ void opengl2_set_texture_state(gr_texture_source ts)
 	}
 }
 
-void opengl2_tcache_init()
+void gles2_tcache_init()
 {
 	GL_should_preload = os_config_read_uint("Video", "PreloadTextures", 1);
 
@@ -109,7 +108,7 @@ void opengl2_tcache_init()
 	SDL_zero(GL_xlat);
 }
 
-static int opengl2_free_texture(tcache_slot_opengl2 *t)
+static int gles2_free_texture(tcache_slot_opengl2 *t)
 {
 	if (t->bitmap_id < 0) {
 		return 1;
@@ -137,14 +136,14 @@ static int opengl2_free_texture(tcache_slot_opengl2 *t)
 	return 1;
 }
 
-void opengl2_tcache_flush()
+void gles2_tcache_flush()
 {
 	if (Textures == NULL) {
 		return;
 	}
 
 	for (int i = 0; i < MAX_BITMAPS; i++) {
-		opengl2_free_texture(&Textures[i]);
+		gles2_free_texture(&Textures[i]);
 	}
 
 	if (Gr_textures_in != 0) {
@@ -157,9 +156,9 @@ void opengl2_tcache_flush()
 	vram_full = false;
 }
 
-void opengl2_tcache_cleanup()
+void gles2_tcache_cleanup()
 {
-	opengl2_tcache_flush();
+	gles2_tcache_flush();
 
 	if (Textures) {
 		free(Textures);
@@ -167,18 +166,18 @@ void opengl2_tcache_cleanup()
 	}
 }
 
-void opengl2_tcache_frame()
+void gles2_tcache_frame()
 {
 	GL_last_bitmap_id = -1;
 	GL_frame_count++;
 
 	if (vram_full) {
-		opengl2_tcache_flush();
+		gles2_tcache_flush();
 		vram_full = false;
 	}
 }
 
-static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *bmp, tcache_slot_opengl2 *t, int tex_w, int tex_h, bool reload, bool resize, int fail_on_full)
+static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *bmp, tcache_slot_opengl2 *t, int tex_w, int tex_h, bool reload, bool resize, int fail_on_full)
 {
 	// bogus
 	if ( (bmp == NULL) || (t == NULL) ) {
@@ -191,7 +190,7 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 	}
 
 	if ( !reload ) {
-		if ( !opengl2_free_texture(t) ) {
+		if ( !gles2_free_texture(t) ) {
 			return 0;
 		}
 
@@ -295,7 +294,7 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 				free(texmem);
 			}
 
-			glGenerateMipmap(GL_TEXTURE_2D);
+			pglGenerateMipmap(GL_TEXTURE_2D);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 			t->is_mipmaped = 1;
@@ -323,7 +322,7 @@ static int opengl2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap
 	return 1;
 }
 
-static int opengl2_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_opengl2 *tslot, int fail_on_full)
+static int gles2_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_opengl2 *tslot, int fail_on_full)
 {
 	ubyte flags = 0;
 	bool cull_size = false;
@@ -402,7 +401,7 @@ static int opengl2_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	}
 
 	// call the helper
-	int ret_val = opengl2_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, max_w, max_h, reload, resize, fail_on_full);
+	int ret_val = gles2_create_texture_sub(bitmap_handle, bitmap_type, bmp, tslot, max_w, max_h, reload, resize, fail_on_full);
 
 	// unlock the bitmap
 	bm_unlock(bitmap_handle);
@@ -410,7 +409,7 @@ static int opengl2_create_texture(int bitmap_handle, int bitmap_type, tcache_slo
 	return ret_val;
 }
 
-int opengl2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
+int gles2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 {
 	if (bitmap_id < 0) {
 		GL_last_bitmap_id = -1;
@@ -419,7 +418,7 @@ int opengl2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 	}
 
 	if (GL_last_detail != Detail.hardware_textures) {
-		opengl2_tcache_flush();
+		gles2_tcache_flush();
 		GL_last_detail = Detail.hardware_textures;
 	}
 
@@ -439,7 +438,7 @@ int opengl2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 	int ret_val = 1;
 
 	if (bitmap_id != t->bitmap_id) {
-		ret_val = opengl2_create_texture(bitmap_id, bitmap_type, t, fail_on_full);
+		ret_val = gles2_create_texture(bitmap_id, bitmap_type, t, fail_on_full);
 	}
 
 	if (ret_val && t->texture_handle && !vram_full) {
@@ -465,12 +464,12 @@ int opengl2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 	return 1;
 }
 
-void gr_opengl2_preload_init()
+void gr_gles2_preload_init()
 {
-	opengl2_tcache_flush();
+	gles2_tcache_flush();
 }
 
-int gr_opengl2_preload(int bitmap_num, int is_aabitmap)
+int gr_gles2_preload(int bitmap_num, int is_aabitmap)
 {
 	if ( !GL_should_preload ) {
 		return 0;
@@ -478,7 +477,7 @@ int gr_opengl2_preload(int bitmap_num, int is_aabitmap)
 
 	int bitmap_type = (is_aabitmap) ? TCACHE_TYPE_AABITMAP : TCACHE_TYPE_NORMAL;
 
-	int retval = opengl2_tcache_set(bitmap_num, bitmap_type, 1);
+	int retval = gles2_tcache_set(bitmap_num, bitmap_type, 1);
 
 	if ( !retval ) {
 		mprintf(("Texture upload failed bit bitmap %d!\n", bitmap_num));
@@ -487,7 +486,7 @@ int gr_opengl2_preload(int bitmap_num, int is_aabitmap)
 	return retval;
 }
 
-void gr_opengl2_set_gamma(float)
+void gr_gles2_set_gamma(float)
 {
 	// set the alpha gamma settings (for fonts)
 	for (int i = 0; i < 16; i++) {
@@ -497,17 +496,17 @@ void gr_opengl2_set_gamma(float)
 	GL_xlat[15] = GL_xlat[1];
 
 	// Flush any existing textures
-	opengl2_tcache_flush();
+	gles2_tcache_flush();
 }
 
-void gr_opengl2_release_texture(int handle)
+void gr_gles2_release_texture(int handle)
 {
 	for (int i = 0; i < MAX_BITMAPS; i++) {
-		tcache_slot_opengl2 *t = &Textures[i];
+		auto t = &Textures[i];
 
 		if (t->bitmap_id == handle) {
 			t->used_this_frame = 0;
-			opengl2_free_texture(t);
+			gles2_free_texture(t);
 
 			break;
 		}

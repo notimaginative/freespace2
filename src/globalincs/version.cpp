@@ -88,11 +88,11 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 		}
 
 		// take the \n off the end of it
-		if (strlen(buffer)>0 && buffer[strlen(buffer) - 1] == '\n')
-			buffer[strlen(buffer) - 1] = 0;
+		if (SDL_strlen(buffer)>0 && buffer[SDL_strlen(buffer) - 1] == '\n')
+			buffer[SDL_strlen(buffer) - 1] = 0;
 
 		// If the line is empty, go get another one
-		if (strlen(buffer) == 0) continue;
+		if (SDL_strlen(buffer) == 0) continue;
 
 		// If the line is a comment, go get another one
 		if (buffer[0] == VERSION_FILE_COMMENT_CHAR) continue;
@@ -103,7 +103,7 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	cfclose(f);
 
 	// Make sure a version line was found
-	if (strlen(verbuffer) == 0) {
+	if (SDL_strlen(verbuffer) == 0) {
 		// MessageBox(XSTR("Couldn't parse Version file!", 1205), XSTR("Error!", 1185), MB_OK|MB_ICONERROR);
 		return -1;
 	}
@@ -158,3 +158,52 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	return 1;
 }
 
+/// Return short version string with major.minor number
+const char *version_get_string(char *str, size_t str_len)
+{
+	static char version_string[20] = { 0 };
+
+	if ( !version_string[0] ) {
+		SDL_snprintf(version_string, SDL_arraysize(version_string), "%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+	}
+
+	if (str && str_len) {
+		SDL_strlcpy(str, version_string, str_len);
+	}
+
+	return version_string;
+}
+
+/// Return full version string formatted for in-game UI display, depending on build
+const char *version_get_string_full(char *str, size_t str_len)
+{
+	static char version_string[100] = { 0 };
+
+	if ( !version_string[0] ) {
+#ifdef FS1_DEMO
+		SDL_snprintf(version_string, SDL_arraysize(version_string), "Dv%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+#else
+		if ( FS_VERSION_BUILD == 0 ) {
+			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
+		} else {
+			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
+		}
+#endif
+		
+#if !defined(NDEBUG) && defined(GIT_INFO)
+		SDL_strlcat(version_string, "~" GIT_COMMIT_HASH, SDL_arraysize(version_string));
+#endif
+		
+#if defined (FS2_DEMO)
+		SDL_strlcat(version_string, " D", SDL_arraysize(version_string));
+#elif defined (OEM_BUILD)
+		SDL_strlcat(version_string, " (OEM)", SDL_arraysize(version_string));
+#endif
+	}
+
+	if (str && str_len) {
+		SDL_strlcpy(str, version_string, str_len);
+	}
+
+	return version_string;
+}

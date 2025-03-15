@@ -839,7 +839,7 @@ void HUD_fixed_printf(float duration, const char * format, ...)
 {
 	va_list	args;
 	char		tmp[HUD_MSG_LENGTH_MAX];
-	int		msg_length;
+	size_t		msg_length;
 
 	// make sure we only print these messages if we're in the correct state
 	if((Game_mode & GM_MULTIPLAYER) && (Netgame.game_state != NETGAME_STATE_IN_MISSION)){
@@ -851,7 +851,7 @@ void HUD_fixed_printf(float duration, const char * format, ...)
 	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
 	va_end(args);
 
-	msg_length = strlen(tmp);
+	msg_length = SDL_strlen(tmp);
 
 	if ( !msg_length ) {
 		nprintf(("Warning", "HUD_fixed_printf ==> attempt to print a 0 length string in msg window\n"));
@@ -901,7 +901,7 @@ void HUD_printf_line(const char *text, int source, int time = 0, int x = 0)
 		return;
 	}
 
-	if ( strlen(text) > MAX_HUD_LINE_LEN - 1 ){
+	if ( SDL_strlen(text) > MAX_HUD_LINE_LEN - 1 ){
 		nprintf(("Warning", "HUD_printf_line() ==> Following string truncated to %d chars: %s\n", MAX_HUD_LINE_LEN, text));
 	}
 
@@ -957,12 +957,12 @@ void HUD_ship_sent_printf(int sh, const char *format, ...)
 {
 	va_list args;
 	char tmp[HUD_MSG_LENGTH_MAX];
-	int len;
+	size_t len;
 
 	SDL_assert(HUD_MSG_LENGTH_MAX > NAME_LENGTH+2);
 
 	SDL_snprintf(tmp, NAME_LENGTH + 2, NOX("%s: "), Ships[sh].ship_name);
-	len = strlen(tmp);
+	len = SDL_strlen(tmp);
 
 	va_start(args, format);
 	SDL_vsnprintf(tmp + len, HUD_MSG_LENGTH_MAX - len, format, args);
@@ -1003,7 +1003,7 @@ void hud_sourced_print(int source, char *msg)
 	int sw, t, x, offset = 0;
 	//int fudge = (gr_screen.res == GR_640) ? 15 : 50;		// prevents string from running off screen
 
-	if ( !strlen(msg) ) {
+	if ( !SDL_strlen(msg) ) {
 		nprintf(("Warning", "HUD ==> attempt to print a 0 length string in msg window\n"));
 		return;
 	}
@@ -1057,7 +1057,7 @@ int hud_query_scrollback_size()
 // add text directly to the hud scrollback log, without displaying on the hud
 void HUD_add_to_scrollback(const char *text, int source)
 {
-	if (!strlen(text)) {
+	if (!SDL_strlen(text)) {
 		nprintf(("Warning", "HUD ==> attempt to print a 0 length string in msg window\n"));
 		return;
 	}
@@ -1073,7 +1073,7 @@ void hud_add_line_to_scrollback(const char *text, int source, int t, int x, int 
 	line_node *new_line;
 
 	SDL_assert(HUD_msg_inited);
-	if (!text || !strlen(text))
+	if (!text || !SDL_strlen(text))
 		return;
 
 	if ( EMPTY(&Msg_scrollback_free_list) ) {
@@ -1091,18 +1091,19 @@ void hud_add_line_to_scrollback(const char *text, int source, int t, int x, int 
 	new_line->underline_width = underline_width;
 	new_line->time = t;
 	new_line->source = source;
-	new_line->text = (char *) malloc( strlen(text) + 1 );
-	SDL_strlcpy(new_line->text, text, strlen(text) + 1);
+	new_line->text = (char *) malloc( SDL_strlen(text) + 1 );
+	SDL_strlcpy(new_line->text, text, SDL_strlen(text) + 1);
 	list_append(&Msg_scrollback_used_list, new_line);
 }
 
 void hud_add_msg_to_scrollback(const char *text, int source, int t)
 {
 	char buf[HUD_MSG_LENGTH_MAX], *ptr, *str;
-	int msg_len, w, max_width, x, offset = 0;
+	int w, max_width, x, offset = 0;
+	size_t msg_len;
 
 	max_width = Hud_mission_log_list2_coords[gr_screen.res][2];
-	msg_len = strlen(text);
+	msg_len = SDL_strlen(text);
 	if (msg_len == 0)
 		return;
 

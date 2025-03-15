@@ -703,7 +703,7 @@ void techroom_render_desc(int xo, int yo, int h)
 		int more_txt_x = Tech_desc_coords[gr_screen.res][0] + (Tech_desc_coords[gr_screen.res][2]/2) - 10;	// FIXME should move these to constants since they dont move
 		int more_txt_y = Tech_desc_coords[gr_screen.res][1] + Tech_desc_coords[gr_screen.res][3];				// located below brief text, centered
 		int width, height;
-		gr_get_string_size(&width, &height, XSTR("more", 1469), strlen(XSTR("more", 1469)));
+		gr_get_string_size(&width, &height, XSTR("more", 1469), SDL_strlen(XSTR("more", 1469)));
 		gr_set_color_fast(&Color_black);
 		gr_rect(more_txt_x-2, more_txt_y, width+3, height);
 		gr_set_color_fast(&Color_red);
@@ -889,9 +889,16 @@ void techroom_ships_render(float frametime)
 	light_rotate_all();
 	// lighting for techroom
 
+	int mr_flags = MR_LOCK_DETAIL | MR_AUTOCENTER;
+
+#ifdef MAKE_FS1
+	// no lighting in FS1 techroom
+	mr_flags |= MR_NO_LIGHTING;
+#endif
+
 	model_clear_instance(Techroom_ship_modelnum);
 	model_set_detail_level(0);
-	model_render(Techroom_ship_modelnum, &Techroom_ship_orient, &vmd_zero_vector, MR_LOCK_DETAIL | MR_AUTOCENTER);
+	model_render(Techroom_ship_modelnum, &Techroom_ship_orient, &vmd_zero_vector, mr_flags);
 
 	g3_end_frame();
 #endif
@@ -1590,9 +1597,7 @@ void techroom_init()
 
 	gr_reset_clip();
 	gr_clear();
-	Mouse_hidden++;
 	gr_flip();
-	Mouse_hidden--;
 
 	Ships_loaded = 0;
 	Weapons_loaded = 0;

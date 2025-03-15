@@ -385,6 +385,8 @@ beam Beam_free_list;					// free beams
 beam Beam_used_list;					// used beams
 int Beam_count = 0;					// how many beams are in use
 
+#define BEAM_INDEX(objp)	static_cast<int>(objp-Beams)
+
 // octant indices. These are "good" pairs of octants to use for beam target
 #define BEAM_NUM_GOOD_OCTANTS			8
 int Beam_good_slash_octants[BEAM_NUM_GOOD_OCTANTS][4] = {		
@@ -716,7 +718,7 @@ int beam_fire(beam_fire_info *fire_info)
 	}	
 
 	// create the associated object
-	objnum = obj_create(OBJ_BEAM, -1, new_item - Beams, &vmd_identity_matrix, &vmd_zero_vector, 1.0f, OF_COLLIDES);
+	objnum = obj_create(OBJ_BEAM, -1, BEAM_INDEX(new_item), &vmd_identity_matrix, &vmd_zero_vector, 1.0f, OF_COLLIDES);
 	if(objnum < 0){
 		Int3();
 		beam_delete(new_item);
@@ -828,7 +830,7 @@ int beam_fire_targeting(beam_fire_info *fire_info)
 	// type c is a very special weapon type - binfo has no meaning
 
 	// create the associated object
-	objnum = obj_create(OBJ_BEAM, -1, new_item - Beams, &vmd_identity_matrix, &vmd_zero_vector, 1.0f, OF_COLLIDES);
+	objnum = obj_create(OBJ_BEAM, -1, BEAM_INDEX(new_item), &vmd_identity_matrix, &vmd_zero_vector, 1.0f, OF_COLLIDES);
 	if(objnum < 0){
 		Int3();
 		beam_delete(new_item);

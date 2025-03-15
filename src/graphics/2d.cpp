@@ -485,6 +485,7 @@
 
 // Includes for different rendering systems
 #include "gropengl.h"
+#include "grgles2.h"
 #include "grwxgl.h"
 #include "grstub.h"
 
@@ -506,7 +507,7 @@ int Gr_zbuffering_mode = 0;
 int Gr_global_zbuffering = 0;
 
 // cursor stuff
-int Gr_cursor = -1;
+static SDL_Cursor *Gr_cursor = nullptr;
 int Web_cursor_bitmap = -1;
 
 int Gr_inited = 0;
@@ -527,6 +528,10 @@ void gr_close()
 	palette_flush();
 
 	switch (gr_screen.mode) {
+		case GR_GLES2:
+			gr_gles2_cleanup();
+			break;
+
 		case GR_OPENGL:
 			gr_opengl_cleanup();
 			break;
@@ -544,6 +549,11 @@ void gr_close()
 	}
 
 	Gr_textures_in = 0;
+
+	if (Gr_cursor) {
+		SDL_DestroyCursor(Gr_cursor);
+		Gr_cursor = nullptr;
+	}
 
 	gr_font_close();
 
@@ -676,11 +686,11 @@ static int gr_get_best_res(int *max_w, int *max_h)
 	// check to see if we have hi-res art
 	if ( cf_has_packfile("sparky_hi_fs2") ) {
 		// check desktop res to make sure we should use it
-		if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
-			SDL_DisplayMode desk_mode;
+		if (SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+			auto desk_mode = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
 
-			if ( !SDL_GetDesktopDisplayMode(0, &desk_mode) ) {
-				if ( (desk_mode.w >= 1024) && (desk_mode.h >= 768) ) {
+			if (desk_mode) {
+				if ( (desk_mode->w >= 1024) && (desk_mode->h >= 768) ) {
 					(*max_w) = 1024;
 					(*max_h) = 768;
 					res = GR_1024;
@@ -700,20 +710,23 @@ static int gr_get_best_res(int *max_w, int *max_h)
 
 // --------------------------------------------------------------------------
 
-int gr_init()
+int gr_init(bool safe_mode)
 {
 	const char *ptr = NULL;
-	int mode = GR_OPENGL;
+	int mode = GR_GLES2;
 	int res = GR_640;
 	int max_w, max_h;
-
-
-	if ( !Gr_inited )	
+	
+	if ( !Gr_inited )
 		atexit(gr_close);
 
 	// If already inited, shutdown the previous graphics
 	if (Gr_inited) {
 		switch (gr_screen.mode) {
+			case GR_GLES2:
+				gr_gles2_cleanup();
+				break;
+
 			case GR_OPENGL:
 				gr_opengl_cleanup();
 				break;
@@ -732,18 +745,22 @@ int gr_init()
 
 	Gr_inited = 1;
 
+	if (safe_mode) {
+		mode = GR_OPENGL;
+	}
+
+#ifdef __EMSCRIPTEN__
+	mode = GR_GLES2;
+#elif defined(SDL_PLATFORM_WINDOWS)
+	// FIXME: force regular GL to get around bug #11482
+	// https://github.com/libsdl-org/SDL/issues/11482
+	mode = GR_OPENGL;
+#endif
+
 	if (Fred_running || Pofview_running) {
 		mode = GR_WXGL;
 	} else if (Is_standalone) {
 		mode = GR_STUB;
-	} else {
-		ptr = os_config_read_string("Video", "Renderer", "OpenGL");
-
-		if ( !SDL_strcasecmp("OpenGL", ptr) ) {
-			mode = GR_OPENGL;
-		} else {
-			Int3();
-		}
 	}
 
 	max_w = -1;
@@ -780,6 +797,10 @@ int gr_init()
 	Gr_textures_in = 0;
 
 	switch( gr_screen.mode )	{
+		case GR_GLES2:
+			gr_gles2_init();
+			break;
+
 		case GR_OPENGL:
 			gr_opengl_init();
 			break;
@@ -811,9 +832,18 @@ int gr_init()
 
 	gr_set_gamma(Freespace_gamma);
 
+	if ( !Gr_cursor ) {
+		int id = bm_load("cursor");
 
-	if ( Gr_cursor == -1 ){
-		Gr_cursor = bm_load( "cursor" );
+		Gr_cursor = mouse_create_cursor(id);
+
+		if (Gr_cursor) {
+			SDL_SetCursor(Gr_cursor);
+		}
+
+		if (id >= 0) {
+			bm_release(id);
+		}
 	}
 
 #ifndef FS1_DEMO
@@ -841,16 +871,9 @@ void gr_force_windowed()
 		return;
 	}
 
-
-	int rc = SDL_SetWindowFullscreen(os_get_window(), 0);
-
-	if ( !rc ) {
+	if (SDL_SetWindowFullscreen(os_get_window(), false)) {
 		gr_screen.fullscreen = 0;
 		mouse_grab(0);	// will be grabbed if needed
-	}
-
-	if (Os_debugger_running) {
-		SDL_Delay(1000);
 	}
 }
 
@@ -860,15 +883,9 @@ void gr_force_fullscreen()
 		return;
 	}
 
-	int rc = SDL_SetWindowFullscreen(os_get_window(), SDL_WINDOW_FULLSCREEN_DESKTOP);
-
-	if ( !rc ) {
+	if (SDL_SetWindowFullscreen(os_get_window(), true)) {
 		gr_screen.fullscreen = 1;
 		mouse_grab(0);	// will be grabbed if needed
-	}
-
-	if (Os_debugger_running) {
-		SDL_Delay(1000);
 	}
 }
 
@@ -883,16 +900,12 @@ void gr_toggle_fullscreen()
 		return;
 	}
 
-	Uint32 flags = SDL_GetWindowFlags( os_get_window() );
+	SDL_WindowFlags flags = SDL_GetWindowFlags( os_get_window() );
 
-	if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+	if (flags & SDL_WINDOW_FULLSCREEN) {
 		gr_force_windowed();
 	} else {
 		gr_force_fullscreen();
-	}
-
-	if (Os_debugger_running) {
-		SDL_Delay(1000);
 	}
 }
 
@@ -905,40 +918,6 @@ void gr_activate(int active)
 	if (gr_screen.gf_activate) {
 		(*gr_screen.gf_activate)(active);
 	}
-}
-
-// -----------------------------------------------------------------------
-// gr_set_cursor_bitmap()
-//
-// Set the bitmap for the mouse pointer.  This is called by the animating mouse
-// pointer code.
-//
-// The lock parameter just locks basically disables the next call of this function that doesnt
-// have an unlock feature.  If adding in more cursor-changing situations, be aware of
-// unexpected results. You have been warned.
-//
-// TODO: investigate memory leak of original Gr_cursor bitmap when this is called
-void gr_set_cursor_bitmap(int n, int lock)
-{
-	static int locked = 0;			
-	SDL_assert(n >= 0);
-
-	if (!locked || (lock == GR_CURSOR_UNLOCK)) {
-		Gr_cursor = n;
-	} else {
-		locked = 0;
-	}
-
-	if (lock == GR_CURSOR_LOCK) {
-		locked = 1;
-	}
-}
-
-// retrieves the current bitmap
-// used in UI_GADGET to save/restore current cursor state
-int gr_get_cursor_bitmap()
-{
-	return Gr_cursor;
 }
 
 // new bitmap functions

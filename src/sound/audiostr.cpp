@@ -97,7 +97,7 @@
 static ubyte *Wavedata_load_buffer = NULL;		// buffer used for cueing audiostreams
 static ubyte *Wavedata_service_buffer = NULL;	// buffer used for servicing audiostreams
 
-SDL_mutex *Global_service_lock;
+SDL_Mutex *Global_service_lock;
 
 typedef bool (*TIMERCALLBACK)(uintptr_t);
 
@@ -123,7 +123,7 @@ public:
     bool Create(uint nPeriod, uintptr_t dwUser, TIMERCALLBACK pfnCallback);
 
 protected:
-	static Uint32 TimeProc(Uint32 interval, void *dwUser);
+	static Uint32 TimeProc(void *dwUser, SDL_TimerID timerID, Uint32 interval);
 
 	TIMERCALLBACK m_pfnCallback;
     uintptr_t m_dwUser;
@@ -319,7 +319,7 @@ bool Timer::Create(uint nPeriod, uintptr_t dwUser, TIMERCALLBACK pfnCallback)
 // Calls procedure specified when Timer object was created. The 
 // dwUser parameter contains "this" pointer for associated Timer object.
 // 
-Uint32 Timer::TimeProc(Uint32 interval, void *dwUser)
+Uint32 Timer::TimeProc(void *dwUser, SDL_TimerID timerID, Uint32 interval)
 {
     // dwUser contains ptr to Timer object
 	Timer *ptimer = (Timer *)dwUser;
@@ -687,9 +687,9 @@ int WaveFile::Read(ubyte *pbDest, uint cbSize, int service)
 				goto READ_ERROR;
 			}
 
-			if (convert_len == 0) {
-				Int3();
-			}
+//			if (convert_len == 0) {
+//				Int3();
+//			}
 		}
 
 		SDL_assert( src_bytes_used <= num_bytes_read );
@@ -841,7 +841,7 @@ bool AudioStream::Create(const char *pszFilename)
 	}
 
 	// make 100% sure we got a good filename
-	if ( !strlen(pszFilename) ) {
+	if ( !SDL_strlen(pszFilename) ) {
 		return false;
 	}
 

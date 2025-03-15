@@ -1514,9 +1514,13 @@ void options_multi_protocol_load_ip_file()
 		line[0] = '\0';
 		cfgets(line,IP_STRING_LEN,file);
 
+		if ( !SDL_strlen(line) ) {
+			continue;
+		}
+
 		// strip off any newline character
-		if(line[strlen(line) - 1] == '\n'){
-			line[strlen(line) - 1] = '\0';
+		if(line[SDL_strlen(line) - 1] == '\n'){
+			line[SDL_strlen(line) - 1] = '\0';
 		}
 
 		// 0 length lines don't get processed
@@ -1558,7 +1562,7 @@ void options_multi_protocol_save_ip_file()
 		cfputs(Om_ip_addrs[idx],file);
 				
 	   // make sure to tack on a newline if necessary
-		if(Om_ip_addrs[idx][strlen(&Om_ip_addrs[idx][0]) - 1] != '\n'){
+		if(Om_ip_addrs[idx][SDL_strlen(&Om_ip_addrs[idx][0]) - 1] != '\n'){
 			cfputs(NOX("\n"),file);
 		}
 	}

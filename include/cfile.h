@@ -466,10 +466,10 @@ int cfclose(CFILE *cfile);
 int cfilelength(CFILE *fp);
 
 // Reads data
-int cfread(void *buf, int elsize, int nelem, CFILE *fp);
+int cfread(void *buf, size_t elsize, size_t nelem, CFILE *fp);
 
 // cfwrite() writes to the file
-int cfwrite(const void *buf, int elsize, int nelem, CFILE *cfile);
+int cfwrite(const void *buf, size_t elsize, size_t nelem, CFILE *cfile);
 
 // Reads/writes RLE compressed data.
 int cfread_compressed(void *buf, int elsize, int nelem, CFILE *cfile);

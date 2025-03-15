@@ -250,7 +250,7 @@
  * mouse button down but not up again yet.
  * 
  * 89    11/24/97 10:20p Lawrance
- * Add key 'SDLK_n' to target next ship on monitoring view
+ * Add key 'SDLK_N' to target next ship on monitoring view
  * 
  * 88    11/24/97 6:15p Lawrance
  * fix button scroll problem
@@ -410,29 +410,29 @@ int Invert_axis_defaults[JOY_NUM_AXES] = { 0, 0, 0, 0, 0, 0 };
 //XSTR:OFF
 config_item Control_config[CCFG_MAX + 1] = {
 	// targeting a ship
-	{                           SDLK_t,				-1, TARGET_TAB,	"Target Next Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_t,				-1, TARGET_TAB,	"Target Previous Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_h,				2,  TARGET_TAB,	"Target Next Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{	           KEY_SHIFTED | SDLK_h,				-1, TARGET_TAB,	"Target Previous Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               SDLK_h,				-1, TARGET_TAB,	"Toggle Auto Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_f,				-1, TARGET_TAB,	"Target Next Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_f,				-1, TARGET_TAB,	"Target Previous Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_y,				4,  TARGET_TAB,	"Target Ship in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_g,				-1, TARGET_TAB,	"Target Target's Nearest Attacker", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_T,				-1, TARGET_TAB,	"Target Next Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_T,				-1, TARGET_TAB,	"Target Previous Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_H,				2,  TARGET_TAB,	"Target Next Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{	           KEY_SHIFTED | SDLK_H,				-1, TARGET_TAB,	"Target Previous Closest Hostile Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_H,				-1, TARGET_TAB,	"Toggle Auto Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_F,				-1, TARGET_TAB,	"Target Next Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_F,				-1, TARGET_TAB,	"Target Previous Closest Friendly Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_Y,				4,  TARGET_TAB,	"Target Ship in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_G,				-1, TARGET_TAB,	"Target Target's Nearest Attacker", CC_TYPE_TRIGGER, -1, -1, 0 },
 #ifndef FS1_DEMO
-	{ KEY_ALTED	|					 SDLK_y,				-1, TARGET_TAB,	"Target Last Ship to Send Transmission", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED	|					 SDLK_Y,				-1, TARGET_TAB,	"Target Last Ship to Send Transmission", CC_TYPE_TRIGGER, -1, -1, 0 },
 #endif
-	{ KEY_ALTED |               SDLK_t,				-1, TARGET_TAB,	"Turn Off Auto-Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_T,				-1, TARGET_TAB,	"Turn Off Auto-Targeting", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// targeting a ship's subsystem
-	{                           SDLK_v,				-1, TARGET_TAB,	"Target Subsystem in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_s,				-1, TARGET_TAB,	"Target Next Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_s,				-1, TARGET_TAB,	"Target Previous Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               SDLK_s,				-1, TARGET_TAB,	"Turn Off Auto-Targeting of Subsystems", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_V,				-1, TARGET_TAB,	"Target Subsystem in Reticle", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_S,				-1, TARGET_TAB,	"Target Next Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_S,				-1, TARGET_TAB,	"Target Previous Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_S,				-1, TARGET_TAB,	"Turn Off Auto-Targeting of Subsystems", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// matching speed
-	{                           SDLK_m,				-1, COMPUTER_TAB,	"Match Target Speed", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               SDLK_m,				-1, COMPUTER_TAB,	"Toggle Auto Speed Matching", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_M,				-1, COMPUTER_TAB,	"Match Target Speed", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_M,				-1, COMPUTER_TAB,	"Toggle Auto Speed Matching", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// weapons
 	{                           SDLK_LCTRL,			0,	 WEAPON_TAB,	"Fire Primary Weapon", CC_TYPE_CONTINUOUS, -1, -1, 0 },
@@ -441,11 +441,11 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{                           SDLK_COMMA,			-1, WEAPON_TAB,	"Cycle Backward Primary Weapon", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_SLASH,		-1, WEAPON_TAB,	"Cycle Secondary Weapon Bank", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{             KEY_SHIFTED | SDLK_SLASH,		-1, WEAPON_TAB,	"Cycle Secondary Weapon Firing Rate", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_x,				3,	 WEAPON_TAB,	"Launch Countermeasure", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_X,				3,	 WEAPON_TAB,	"Launch Countermeasure", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// controls
-	{                           SDLK_a,				-1, SHIP_TAB,		"Forward Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{                           SDLK_z,				-1, SHIP_TAB,		"Reverse Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_A,				-1, SHIP_TAB,		"Forward Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
+	{                           SDLK_Z,				-1, SHIP_TAB,		"Reverse Thrust", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{                           SDLK_KP_7,			-1, SHIP_TAB,		"Bank Left", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{                           SDLK_KP_9,			-1, SHIP_TAB,		"Bank Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{                           SDLK_KP_8,			-1, SHIP_TAB,		"Pitch Forward", CC_TYPE_CONTINUOUS, -1, -1, 0 },
@@ -462,20 +462,20 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{                           SDLK_MINUS,			-1, SHIP_TAB,		"Decrease Throttle 5 Percent", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// squadmate messaging
-	{             KEY_SHIFTED | SDLK_a,				-1, COMPUTER_TAB,	"Attack My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_z,				-1, COMPUTER_TAB,	"Disarm My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_d,				-1, COMPUTER_TAB,	"Disable My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_v,				-1, COMPUTER_TAB,	"Attack my Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_x,				-1, COMPUTER_TAB,	"Capture My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_e,				-1, COMPUTER_TAB,	"Engage Enemy", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_w,				-1, COMPUTER_TAB,	"Form on my Wing", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_i,				-1, COMPUTER_TAB,	"Ignore my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_p,				-1, COMPUTER_TAB,	"Protect my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_c,				-1, COMPUTER_TAB,	"Cover me", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_j,				-1, COMPUTER_TAB,	"Return to base", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{				  KEY_SHIFTED | SDLK_r,				-1, COMPUTER_TAB, "Rearm me", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_A,				-1, COMPUTER_TAB,	"Attack My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_Z,				-1, COMPUTER_TAB,	"Disarm My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_D,				-1, COMPUTER_TAB,	"Disable My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_V,				-1, COMPUTER_TAB,	"Attack my Subsystem", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_X,				-1, COMPUTER_TAB,	"Capture My Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_E,				-1, COMPUTER_TAB,	"Engage Enemy", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_W,				-1, COMPUTER_TAB,	"Form on my Wing", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_I,				-1, COMPUTER_TAB,	"Ignore my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_P,				-1, COMPUTER_TAB,	"Protect my Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_C,				-1, COMPUTER_TAB,	"Cover me", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_J,				-1, COMPUTER_TAB,	"Return to base", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{				  KEY_SHIFTED | SDLK_R,				-1, COMPUTER_TAB, "Rearm me", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{									 SDLK_r,				6,  TARGET_TAB,	"Target Closest Attacking Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_R,				6,  TARGET_TAB,	"Target Closest Attacking Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// Views
 	{                           SDLK_KP_MULTIPLY,	-1, COMPUTER_TAB,	"Chase View", CC_TYPE_TRIGGER, -1, -1, 0 },
@@ -493,11 +493,11 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{									 -1,					35, COMPUTER_TAB, "View Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 #endif
 
-	{                           SDLK_QUOTE,		-1, COMPUTER_TAB,	"Cycle Radar Range", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_c,				-1, COMPUTER_TAB, "Communications Menu", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_APOSTROPHE,		-1, COMPUTER_TAB,	"Cycle Radar Range", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_C,				-1, COMPUTER_TAB, "Communications Menu", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           -1,					-1, -1,				"Show Objectives", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |               SDLK_j,				-1, COMPUTER_TAB,	"Enter Subspace (End Mission)", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_j,				-1, TARGET_TAB,	"Target Target's Target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_J,				-1, COMPUTER_TAB,	"Enter Subspace (End Mission)", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_J,				-1, TARGET_TAB,	"Target Target's Target", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_TAB,			5,  SHIP_TAB,		"Afterburner", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	
 	{                           SDLK_INSERT,		-1, COMPUTER_TAB,	"Increase Weapon Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
@@ -507,10 +507,10 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{                           SDLK_PAGEUP,		-1, COMPUTER_TAB,	"Increase Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_PAGEDOWN,		-1, COMPUTER_TAB,	"Decrease Engine Energy", CC_TYPE_TRIGGER, -1, -1, 0 },
 #ifndef FS1_DEMO
-	{ KEY_ALTED |               SDLK_d,				-1, COMPUTER_TAB, "Equalize Energy Settings", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |               SDLK_D,				-1, COMPUTER_TAB, "Equalize Energy Settings", CC_TYPE_TRIGGER, -1, -1, 0 },
 #endif
 
-	{                           SDLK_q,				7,  COMPUTER_TAB,	"Equalize Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_Q,				7,  COMPUTER_TAB,	"Equalize Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_UP,				-1, COMPUTER_TAB,	"Augment Forward Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_DOWN,			-1, COMPUTER_TAB,	"Augment Rear Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{                           SDLK_LEFT,			-1, COMPUTER_TAB,	"Augment Left Shield", CC_TYPE_TRIGGER, -1, -1, 0 },
@@ -521,26 +521,26 @@ config_item Control_config[CCFG_MAX + 1] = {
 
 	{                           -1,					-1, SHIP_TAB,		"Bank When Pressed", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 -1,					-1, -1,				"Show NavMap", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED |	             SDLK_e,				-1, COMPUTER_TAB,	"Add or Remove Escort", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED | KEY_SHIFTED | SDLK_e,				-1, COMPUTER_TAB,	"Clear Escort List", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{					             SDLK_e,				-1, TARGET_TAB,	"Target Next Escort Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{ KEY_ALTED	|					 SDLK_r,				-1, TARGET_TAB,	"Target Closest Repair Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED |	             SDLK_E,				-1, COMPUTER_TAB,	"Add or Remove Escort", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED | KEY_SHIFTED | SDLK_E,				-1, COMPUTER_TAB,	"Clear Escort List", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{					             SDLK_E,				-1, TARGET_TAB,	"Target Next Escort Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED	|					 SDLK_R,				-1, TARGET_TAB,	"Target Closest Repair Ship", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{                           SDLK_u,				-1, TARGET_TAB,	"Target Next Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_u,				-1, TARGET_TAB,	"Target Previous Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{									 SDLK_n,				-1, TARGET_TAB,	"Target Newest Ship In Area", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{                           SDLK_k,				-1, TARGET_TAB,	"Target Next Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_k,				-1, TARGET_TAB,	"Target Previous Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_U,				-1, TARGET_TAB,	"Target Next Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_U,				-1, TARGET_TAB,	"Target Previous Uninspected Cargo", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_N,				-1, TARGET_TAB,	"Target Newest Ship In Area", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{                           SDLK_K,				-1, TARGET_TAB,	"Target Next Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_K,				-1, TARGET_TAB,	"Target Previous Live Turret", CC_TYPE_TRIGGER, -1, -1, 0 },
 
-	{									 SDLK_b,				-1, TARGET_TAB,	"Target Next Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
-	{             KEY_SHIFTED | SDLK_b,				-1, TARGET_TAB,	"Target Previous Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_B,				-1, TARGET_TAB,	"Target Next Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{             KEY_SHIFTED | SDLK_B,				-1, TARGET_TAB,	"Target Previous Hostile Bomb or Bomber", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 	// multiplayer messaging keys
 	{									 SDLK_1,				-1, COMPUTER_TAB,	"(Multiplayer) Message All", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 SDLK_2,				-1, COMPUTER_TAB, "(Multiplayer) Message Friendly", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 SDLK_3,				-1, COMPUTER_TAB, "(Multiplayer) Message Hostile", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 	{									 SDLK_4,				-1, COMPUTER_TAB, "(Multiplayer) Message Target", CC_TYPE_CONTINUOUS, -1, -1, 0 },
-	{ KEY_ALTED	|					 SDLK_x,				-1, COMPUTER_TAB, "(Multiplayer) Observer zoom to target", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{ KEY_ALTED	|					 SDLK_X,				-1, COMPUTER_TAB, "(Multiplayer) Observer zoom to target", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 
 	{             KEY_SHIFTED | SDLK_PERIOD,		-1, COMPUTER_TAB,	"Increase time compression", CC_TYPE_TRIGGER, -1, -1, 0 },
@@ -553,10 +553,10 @@ config_item Control_config[CCFG_MAX + 1] = {
 	{									 -1,					35, COMPUTER_TAB, "View Right", CC_TYPE_CONTINUOUS, -1, -1, 0 },
 #endif
 #ifndef MAKE_FS1
-	{									 SDLK_l,				-1, COMPUTER_TAB, "Toggle high HUD contrast", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{									 SDLK_L,				-1, COMPUTER_TAB, "Toggle high HUD contrast", CC_TYPE_TRIGGER, -1, -1, 0 },
 
 #ifndef FS2_DEMO
-	{				  KEY_SHIFTED | SDLK_n,				-1, COMPUTER_TAB, "(Multiplayer) Toggle network info", CC_TYPE_TRIGGER, -1, -1, 0 },
+	{				  KEY_SHIFTED | SDLK_N,				-1, COMPUTER_TAB, "(Multiplayer) Toggle network info", CC_TYPE_TRIGGER, -1, -1, 0 },
 	{				  KEY_SHIFTED | SDLK_END,			-1, COMPUTER_TAB, "(Multiplayer) Self destruct", CC_TYPE_TRIGGER, -1, -1, 0 },
 #endif
 #endif
@@ -1034,7 +1034,7 @@ int translate_key_to_index(const char *key)
 	if (*key) {
 		for (i=0; i<max_scan_codes; i++)
 			if (!SDL_strcasecmp(key, Scan_code_text[i])) {
-				index = SDL_GetKeyFromScancode((SDL_Scancode)i);
+				index = SDL_GetKeyFromScancode((SDL_Scancode)i, SDL_KMOD_NONE, false);
 				break;
 			}
 
@@ -1114,7 +1114,7 @@ const char *textify_scancode(int code)
 		}
 	}
 
-	code = SDL_GetScancodeFromKey(code & KEY_MASK);
+	code = SDL_GetScancodeFromKey(code & KEY_MASK, nullptr);
 
 	SDL_strlcat(text, Scan_code_text[code], SDL_arraysize(text));
 	return text;
@@ -1129,10 +1129,10 @@ void control_config_common_init()
 		Joy_button_text = Joy_button_text_german;
 		
 		// swap init bindings for y and z keys
-	//	Control_config[TARGET_SHIP_IN_RETICLE].key_default = SDLK_z;
-	//	Control_config[TARGET_LAST_TRANMISSION_SENDER].key_default = KEY_ALTED | SDLK_z;
-	//	Control_config[REVERSE_THRUST].key_default = SDLK_y;
-	//	Control_config[DISARM_MESSAGE].key_default = KEY_SHIFTED | SDLK_y;
+	//	Control_config[TARGET_SHIP_IN_RETICLE].key_default = SDLK_Z;
+	//	Control_config[TARGET_LAST_TRANMISSION_SENDER].key_default = KEY_ALTED | SDLK_Z;
+	//	Control_config[REVERSE_THRUST].key_default = SDLK_Y;
+	//	Control_config[DISARM_MESSAGE].key_default = KEY_SHIFTED | SDLK_Y;
 	} else if(Lcl_fr){
 		Scan_code_text = Scan_code_text_french;
 		Joy_button_text = Joy_button_text_french;

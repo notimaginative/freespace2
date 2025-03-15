@@ -620,11 +620,9 @@ void game_load_palette(){}
 float Freespace_gamma;
 int set_cdrom_path(int){return 0;}
 int find_freespace_cd(char*){return 0;}
-void get_version_string(){}
 void game_do_state_common(int, int){}
 void game_set_frametime(int){}
 void game_increase_skill_level(){}
-void get_version_string(char*){}
 int Show_target_weapons;
 int Show_target_debug_info;
 int Game_do_state_should_skip;
@@ -637,7 +635,6 @@ void game_shudder_apply(int, float){}
 int game_hacked_data(){return 0;}
 int game_single_step;
 int last_single_step;
-void get_version_string_short(char *){}
 void game_tst_mark(struct object *, struct ship *){}
 int tst;
 int game_do_cd_mission_check(char *){return 1;}

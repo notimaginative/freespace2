@@ -175,6 +175,7 @@
 #include "ui.h"
 #include "bmpman.h"
 #include "animplay.h"
+#include "osapi.h"
 
 // constructor
 UI_GADGET::UI_GADGET()
@@ -482,7 +483,7 @@ void UI_GADGET::set_focus()
 	my_wnd->selected_gadget = this;
 
 	if (kind == UI_KIND_INPUTBOX) {
-		SDL_StartTextInput();
+		SDL_StartTextInput(os_get_window());
 	}
 }
 
@@ -493,7 +494,7 @@ void UI_GADGET::clear_focus()
 	my_wnd->selected_gadget = NULL;
 
 	if (kind == UI_KIND_INPUTBOX) {
-		SDL_StopTextInput();
+		SDL_StopTextInput(os_get_window());
 	}
 }
 

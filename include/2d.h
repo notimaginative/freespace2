@@ -538,16 +538,17 @@ typedef struct screen {
 //--------------------------------------
 // Call this at application startup
 
-#define GR_OPENGL				(100)		// OpenGL (generic)
-#define GR_WXGL					(101)		// OpenGL for use with wxWidgets toolkit
-#define GR_STUB					(102)		// Stubbed out for standalone server
+#define GR_OPENGL				(100)		// OpenGL 1.2 ("safe mode")
+#define GR_GLES2				(101)		// OpenGL ES 2
+#define GR_WXGL					(103)		// OpenGL for use with wxWidgets toolkit
+#define GR_STUB					(104)		// Stubbed out for standalone server
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
 #define GR_NUM_RESOLUTIONS			2
 #define GR_640							0		// 640 x 480
 #define GR_1024						1		// 1024 x 768
 
-extern int gr_init();
+extern int gr_init(bool safe_mode = false);
 
 // Call this when your app ends.
 extern void gr_close();
@@ -572,7 +573,7 @@ int gr_init_font( const char * typeface );
 extern void __cdecl gr_printf( int x, int y, const char * format, ... );
 
 // Returns the size of the string in pixels in w and h
-extern void gr_get_string_size( int *w, int *h, const char * text, int len = 9999 );
+extern void gr_get_string_size( int *w, int *h, const char * text, size_t len = 9999 );
 
 // Returns the height of the current font
 extern int gr_get_font_height();
@@ -584,11 +585,6 @@ extern void gr_set_palette(const char *name, ubyte *palette, int restrict_to_128
 void gr_get_string_size_win(int *w, int *h, const char *text);
 void gr_string_win(int x, int y, const char *s );
 
-// set the mouse pointer to a specific bitmap, used for animating cursors
-#define GR_CURSOR_LOCK		1
-#define GR_CURSOR_UNLOCK	2
-void gr_set_cursor_bitmap(int n, int lock = 0);
-int gr_get_cursor_bitmap();
 extern int Web_cursor_bitmap;
 
 // Called by OS when application gets/looses focus

@@ -362,7 +362,18 @@ void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
 	// escape spaces in path
 	epath.Replace(wxT(" "), wxT("\\ "));
 
-	wxExecute(epath, wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER);
+	// hide window (in case we can't exit yet)
+	this->Hide();
+
+	int flags = wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER;
+
+	// if running as an appimage then we can't exit the launcher until the game
+	// exits or else the appimage terminates on launcher close
+	if ( wxGetEnv("APPIMAGE", nullptr) ) {
+		flags |= (wxEXEC_SYNC & ~wxEXEC_ASYNC);
+	}
+
+	wxExecute(epath, flags);
 
 	this->Close();
 }

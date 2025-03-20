@@ -2394,6 +2394,10 @@ void game_init()
 
 	gr_init();
 
+	// short delay, then check for window events (viewport sizing, etc.)
+	SDL_Delay(10);
+	os_poll();
+
 	os_set_icon();
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD)

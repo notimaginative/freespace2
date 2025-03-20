@@ -947,11 +947,6 @@ void gr_opengl_init()
 		gr_force_fullscreen();
 	}
 
-	// if fullscreen or using resizable window then poll for window events
-	if ( gr_screen.fullscreen || (window_flags & SDL_WINDOW_RESIZABLE) ) {
-		os_poll();
-	}
-
 	switch (bpp) {
 		case 15:
 		case 16:

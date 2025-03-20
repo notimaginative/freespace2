@@ -494,7 +494,6 @@ void cf_search_root_path(int root_index)
 				file->pack_offset = 0;			// Mark as a non-packed file
 
 				// mprintf(( "Found file '%s'\n", file->name_ext ));
-				printf("Found file '%s'\n", file->name_ext);
 			}
 		}
 

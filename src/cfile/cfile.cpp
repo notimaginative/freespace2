@@ -363,6 +363,7 @@ int cfile_in_root_dir(char *exe_path)
 //
 int cfile_init()
 {
+	char extras_dir[MAX_PATH_LEN] = { 0 };
 	int i;
 
 	// initialize encryption
@@ -380,10 +381,15 @@ int cfile_init()
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
 
-		const char *extras_dir = os_config_read_string(NULL, "ExtrasPath", NULL);
+		const char *edir = os_config_read_string(NULL, "ExtrasPath", NULL);
 
-		if ( extras_dir && (SDL_strlen(extras_dir) >= MAX_PATH_LEN) ) {
-			extras_dir = NULL;
+		if (edir && (SDL_strlen(edir) < SDL_arraysize(extras_dir))) {
+			SDL_strlcpy(extras_dir, edir, SDL_arraysize(extras_dir));
+
+			// make sure it has a trailing slash
+			if (extras_dir[SDL_strlen(extras_dir)-1] != DIR_SEPARATOR_CHAR) {
+				SDL_strlcat(extras_dir, DIR_SEPARATOR_STR, SDL_arraysize(extras_dir));
+			}
 		}
 
 		cf_build_secondary_filelist(extras_dir);

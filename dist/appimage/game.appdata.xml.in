@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>@APP_ID@</id>
+
+	<name>@APP_NAME@</name>
+	<summary>A space combat simulation game</summary>
+	<url type="homepage">https://icculus.org/freespace2</url>
+
+	<categories>
+		<category>Game</category>
+		<category>Simulation</category>
+	</categories>
+
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>LicenseRef-proprietary</project_license>
+
+	<content_rating type="oars-1.1">
+		<content_attribute id="violence-fantasy">mild</content_attribute>
+		<content_attribute id="language-profanity">mild</content_attribute>
+		<content_attribute id="social-chat">intense</content_attribute>
+		<content_attribute id="social-audio">intense</content_attribute>
+	</content_rating>
+
+	<description>
+		@APP_DESCRIPTION@
+	</description>
+
+	<launchable type="desktop-id">@APP_ID@.desktop</launchable>
+
+	<supports>
+		<internet>offline-only</internet>
+	</supports>
+
+	<provides>
+		<id>@APP_ID@.desktop</id>
+		<binary>@EXE_BINARY@</binary>
+	</provides>
+</component>

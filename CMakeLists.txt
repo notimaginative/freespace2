@@ -16,23 +16,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-include(CreateSourceGroups)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
+
+include(CreateSourceGroups)
 
 # ##############################################################################
 
-# build everything by default
-set(GAME_ONLY 0)
+if(EMSCRIPTEN)
+  set(GAME_ONLY ON CACHE FORCE) # just the game
+  set(DEMO ON CACHE FORCE) # only build demo
+else()
+  option(GAME_ONLY "Just build the game engine; no launcher, no tools" OFF)
+  option(DEMO "Create demo build" OFF)
+endif()
 
 option(FS1 "Build original FreeSpace" OFF)
 
-if(EMSCRIPTEN)
-  # only build for demo with emscripten
-  set(DEMO 1)
-else()
-  option(DEMO "Create demo build" OFF)
-endif()
+set(DEMO_GAME_DATA "" CACHE PATH "Path to demo data files used when packaging")
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to 'RelWithDebInfo' as none was specified.")
@@ -60,15 +60,10 @@ else()
 endif()
 
 if(EMSCRIPTEN)
-  set(GAME_ONLY 1)  # don't build launcher or toolset
   add_definitions(-s USE_SDL=2)
   add_definitions(-s FULL_ES2=1)
 
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
-endif()
-
-if(NOT EMSCRIPTEN)
-  add_definitions(-DLEGACY_GL)
 endif()
 
 # use SDL's builtin GLES functions
@@ -118,6 +113,10 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
+set(FS_BINARY "fs${BIN_SUFFIX}")
+set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
+
+set(APP_ID "org.icculus.freespace2.${FS_BINARY}")
 
 # ##############################################################################
 #
@@ -251,6 +250,11 @@ target_link_libraries(
   ${LIBWEBSOCKETS_LIBRARIES}
 )
 
+target_compile_definitions(code
+  PUBLIC
+  APP_ID="${APP_ID}"
+)
+
 CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
 
 add_dependencies(code
@@ -260,8 +264,6 @@ add_dependencies(code
 #
 # the game itself
 #
-
-set(FS_BINARY "fs${BIN_SUFFIX}")
 
 add_executable(${FS_BINARY}
   WIN32
@@ -365,9 +367,9 @@ if(EMSCRIPTEN)
 endif(EMSCRIPTEN)
 
 if(FS1)
-  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace")
+  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "FreeSpace")
 else()
-  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "Freespace2")
+  set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "FreeSpace2")
 endif()
 
 #
@@ -375,8 +377,6 @@ endif()
 #
 
 if(NOT GAME_ONLY)
-  set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
-
   add_executable(${LAUNCHER_BINARY}
     WIN32
     ${launcher_SOURCE}
@@ -385,6 +385,11 @@ if(NOT GAME_ONLY)
 
   add_dependencies(${LAUNCHER_BINARY}
     buildver
+  )
+
+  target_compile_definitions(${LAUNCHER_BINARY}
+    PUBLIC
+    APP_ID="${APP_ID}"
   )
 
   CreateSourceGroups(${launcher_SOURCE})
@@ -658,4 +663,6 @@ endif(NOT GAME_ONLY AND NOT DEMO)
 
 if(APPLE)
   include(CreateMacOSBundle)
+elseif(LINUX)
+  include(CreateAppImage)
 endif()

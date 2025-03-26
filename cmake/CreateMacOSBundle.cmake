@@ -1,10 +1,10 @@
 #
 # Build an app bundle on macOS.
 #
-# Define cmake variable "GAME_DATA" at configure time as the full path to the
-# demo install location for the build variant (FS1 or FS2). If *not* specified
-# it will default to using "~/games/freespacedemo" or "~/games/freespace2demo"
-# depending on the configuration.
+# If packaging a demo, define cmake variable "DEMO_GAME_DATA" at configure time
+# as the path to the demo install location for the build variant (FS1 or FS2).
+# If *not* specified it will default to using "~/games/freespacedemo" or
+# "~/games/freespace2demo" depending on the configuration.
 #
 
 if(NOT APPLE)
@@ -105,36 +105,42 @@ install(PROGRAMS
 	OPTIONAL
 )
 
-# extra stuff for fonttool
+# extra stuff for fonttool (if it was built)
 install(FILES
-	"${CMAKE_SOURCE_DIR}/src/fonttool/fonttool.pcx"
+	"${CMAKE_BINARY_DIR}/src/fonttool/fonttool.pcx"
 	DESTINATION "${APP_PATH}/Contents/Resources/Data/Interface"
 	OPTIONAL
 )
 
 # install game data for demo versions, if possible
 if(DEMO)
-	if(NOT GAME_DATA)
+	if(NOT DEMO_GAME_DATA)
 		if(NOT FS1)
-			set(GAME_DATA "$ENV{HOME}/games/freespace2demo")
+			set(DEMO_GAME_DATA "$ENV{HOME}/games/freespace2demo")
 		else()
-			set(GAME_DATA "$ENV{HOME}/games/freespacedemo")
+			set(DEMO_GAME_DATA "$ENV{HOME}/games/freespacedemo")
 		endif()
 	endif()
 
+	if(NOT EXISTS "${DEMO_GAME_DATA}")
+		message(WARNING "Demo game data path not found!")
+		message(WARNING "Proper demo packaging will not be possible!")
+		message(WARNING "Please check value of DEMO_GAME_DATA")
+	endif()
+
 	file(GLOB DEMO_FILES
-		RELATIVE "${GAME_DATA}"
-		"${GAME_DATA}/*.[vV][pP]"
-		"${GAME_DATA}/[dD]ata/*.[vV][pP]"
-		"${GAME_DATA}/*.[tT][xX][tT]"
-		"${GAME_DATA}/*.[rR][tT][fF]"
+		RELATIVE "${DEMO_GAME_DATA}"
+		"${DEMO_GAME_DATA}/*.[vV][pP]"
+		"${DEMO_GAME_DATA}/[dD]ata/*.[vV][pP]"
+		"${DEMO_GAME_DATA}/*.[tT][xX][tT]"
+		"${DEMO_GAME_DATA}/*.[rR][tT][fF]"
 	)
 
 	foreach(item ${DEMO_FILES})
 		get_filename_component(dir "${item}" DIRECTORY)
 
 		install(FILES
-			"${GAME_DATA}/${item}"
+			"${DEMO_GAME_DATA}/${item}"
 			DESTINATION "${APP_PATH}/Contents/Resources/${dir}"
 		)
 	endforeach()

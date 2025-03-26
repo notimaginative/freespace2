@@ -1,0 +1,16 @@
+#!/bin/sh
+HERE="$(dirname "$(readlink -f "${0}")")"
+export PATH="${HERE}"/opt/@APP_NAME_SAFE@/:"${PATH}"
+export LD_LIBRARY_PATH="${HERE}"/opt/@APP_NAME_SAFE@:"${LD_LIBRARY_PATH}"
+EXEC=$(grep -e '^Exec=.*' "${HERE}"/*.desktop | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 1)
+
+if [ ! -z $APPIMAGE ] ; then
+  BINARY_NAME="$(basename "$ARGV0")"
+  if [ -e "${HERE}"/opt/@APP_NAME_SAFE@/"${BINARY_NAME}" ] ; then
+    exec "${BINARY_NAME}" $@
+  else
+    exec "${EXEC}" $@
+  fi
+else
+  exec "${EXEC}" $@
+fi

@@ -19,28 +19,24 @@
 #include <ctype.h>
 
 const char *Osreg_company_name = "Volition";
+const char *Osreg_app_id = APP_ID;
 #if defined(FS1_DEMO)
-const char *Osreg_app_id = "org.icculus.freespace2.fsdemo";
 const char *Osreg_app_name = "FreeSpaceDemo";
 const char *Osreg_title = "FreeSpace Demo";
 #define PROFILE_NAME "FreeSpaceDemo.ini"
 #elif defined(FS2_DEMO)
-const char *Osreg_app_id = "org.icculus.freespace2.fs2demo";
 const char *Osreg_app_name = "FreeSpace2Demo";
 const char *Osreg_title = "FreeSpace 2 Demo";
 #define PROFILE_NAME "FreeSpace2Demo.ini"
 #elif defined(OEM_BUILD)
-const char *Osreg_app_id = "org.icculus.freespace2.fsoem";
 const char *Osreg_app_name = "FreeSpace2OEM";
 const char *Osreg_title = "FreeSpace 2 OEM";
 #define PROFILE_NAME "FreeSpace2OEM.ini"
 #elif defined(MAKE_FS1)
-const char *Osreg_app_id = "org.icculus.freespace2.fs";
 const char *Osreg_app_name = "FreeSpace";
 const char *Osreg_title = "FreeSpace";
 #define PROFILE_NAME "FreeSpace.ini"
 #else
-const char *Osreg_app_id = "org.icculus.freespace2.fs2";
 const char *Osreg_app_name = "FreeSpace2";
 const char *Osreg_title = "FreeSpace 2";
 #define PROFILE_NAME "FreeSpace2.ini"

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=@APP_NAME@
+Comment=A space combat simulation game
+Icon=@APP_ID@
+Exec=@EXE_BINARY@
+Categories=Game;

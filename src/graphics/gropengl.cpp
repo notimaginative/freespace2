@@ -938,7 +938,7 @@ void gr_opengl_init()
 			 a, r, g, b, bpp, FSAA));
 	mprintf(("\n"));
 
-    SDL_StopTextInput(os_get_window());
+	SDL_StopTextInput(os_get_window());
 	SDL_DisableScreenSaver();
 
 	// maybe go fullscreen - should be done *after* main GL init

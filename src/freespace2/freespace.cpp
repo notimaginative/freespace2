@@ -2398,6 +2398,11 @@ void game_init()
 	SDL_Delay(10);
 	os_poll();
 
+	if ( !Is_standalone ) {
+		// try to make sure we've got focus
+		SDL_RaiseWindow(os_get_window());
+	}
+
 	os_set_icon();
 
 #if defined(FS2_DEMO) || defined(OEM_BUILD)

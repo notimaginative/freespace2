@@ -4482,7 +4482,7 @@ void game_set_frametime(int state)
 
 #ifndef __EMSCRIPTEN__
 	// Cap the framerate so it doesn't get too high.
-	{
+	if ( !Cmdline_no_frame_cap ) {
 		fix cap;
 
 		cap = F1_0/frame_cap;

@@ -947,6 +947,10 @@ void gr_opengl_init()
 		gr_force_fullscreen();
 	}
 
+	if (Cmdline_no_vsync) {
+		SDL_GL_SetSwapInterval(0);
+	}
+
 	switch (bpp) {
 		case 15:
 		case 16:

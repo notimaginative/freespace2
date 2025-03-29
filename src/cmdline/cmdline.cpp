@@ -264,6 +264,8 @@ cmdline_parm help("-help", "-h", NULL);
 cmdline_parm fs_version("-version", "-v", NULL);
 cmdline_parm no_movies("-nomovies", "-n", NULL);
 cmdline_parm std_daemon("-daemon", NULL, NULL);
+cmdline_parm no_vsync("-no_vsync", NULL, NULL);
+cmdline_parm no_frame_cap("-no_frame_cap", NULL, NULL);
 
 
 int Cmdline_multi_stream_chat_to_file = 0;
@@ -292,6 +294,8 @@ int Cmdline_timeout = -1;
 int Cmdline_play_movies = 1;
 int Cmdline_fullscreen = 0;
 int Cmdline_window = 0;
+int Cmdline_no_vsync = 0;
+int Cmdline_no_frame_cap = 0;
 
 static cmdline_parm Parm_list(NULL, NULL, NULL);
 
@@ -781,6 +785,14 @@ int parse_cmdline(const char *cmdline)
 	// play movies?
 	if(no_movies.found()){
 		Cmdline_play_movies = 0;
+	}
+
+	if ( no_vsync.found() ) {
+		Cmdline_no_vsync = 1;
+	}
+
+	if ( no_frame_cap.found() ) {
+		Cmdline_no_frame_cap = 1;
 	}
 
 	// display game version

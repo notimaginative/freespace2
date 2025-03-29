@@ -190,6 +190,8 @@ extern int Cmdline_timeout;
 extern int Cmdline_play_movies;
 extern int Cmdline_fullscreen;
 extern int Cmdline_window;
+extern int Cmdline_no_vsync;
+extern int Cmdline_no_frame_cap;
 
 #endif
 

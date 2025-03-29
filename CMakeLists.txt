@@ -189,6 +189,9 @@ if(NOT EMSCRIPTEN)
 
   set(wxWidgets_USE_DEBUG 0 CACHE BOOL "")
   set(wxUSE_LIBSDL OFF CACHE BOOL "")
+  if(WIN32)
+    set(wxBUILD_SHARED OFF CACHE BOOL "")   # build static lib on Windows
+  endif()
 
   FetchContent_Declare(
     wxWidgets

@@ -14,6 +14,7 @@
 
 #include "wx/valnum.h"
 #include "wx/access.h"
+#include "wx/textfile.h"
 
 
 wxBEGIN_EVENT_TABLE(LauncherSetup, wxDialog)
@@ -24,10 +25,16 @@ wxEND_EVENT_TABLE()
 
 LauncherSetup::LauncherSetup( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize(370, -1), wxDefaultSize );
+	this->SetSizeHints( wxSize(400, -1), wxDefaultSize );
 
+	wxSize notebookSize = wxDefaultSize;
 
-	wxNotebook *nbook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+#ifdef SDL_PLATFORM_APPLE
+	// fix sizing issue on Mac where window must be resized to see all tabs
+	notebookSize = wxSize(410, -1);
+#endif
+
+	wxNotebook *nbook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, notebookSize, 0 );
 
 	initTab_Video(nbook);
 	initTab_Audio(nbook);
@@ -35,6 +42,7 @@ LauncherSetup::LauncherSetup( wxWindow* parent, wxWindowID id, const wxString& t
 	initTab_Speed(nbook);
 	initTab_Network(nbook);
 	initTab_PXO(nbook);
+	initTab_Misc(nbook);
 
 	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
 	bSizer->Add( nbook, 0, wxALL|wxEXPAND, 5 );
@@ -522,6 +530,7 @@ void LauncherSetup::initTab_Network(wxNotebook* parent)
 	fgSizer_port->Add( txt_port, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	m_Network_Port = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_Network_Port->SetMaxLength(5);
 	fgSizer_port->Add( m_Network_Port, 0, wxALL|wxEXPAND, 5 );
 
 	m_port_validate = 0;
@@ -586,6 +595,7 @@ void LauncherSetup::initTab_PXO(wxNotebook *parent)
 {
 	const char *conf_ptr = NULL;
 	unsigned int val = 0;
+	wxSize textCtrl(225, -1);
 
 	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 
@@ -605,7 +615,7 @@ void LauncherSetup::initTab_PXO(wxNotebook *parent)
 	m_staticText3->Wrap( -1 );
 	fgSizer2->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	m_PXO_Login = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_PXO_Login = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, textCtrl, 0 );
 	m_PXO_Login->SetMaxLength( 31 );
 
 	fgSizer2->Add( m_PXO_Login, 0, wxALL|wxEXPAND, 5 );
@@ -621,7 +631,7 @@ void LauncherSetup::initTab_PXO(wxNotebook *parent)
 	m_staticText4->Wrap( -1 );
 	fgSizer2->Add( m_staticText4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	m_PXO_Password = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_PXO_Password = new wxTextCtrl( panel, wxID_ANY, wxEmptyString, wxDefaultPosition, textCtrl, 0 );
 	m_PXO_Password->SetMaxLength( 16 );
 
 	fgSizer2->Add( m_PXO_Password, 0, wxALL|wxEXPAND, 5 );
@@ -686,6 +696,151 @@ void LauncherSetup::saveTab_PXO()
 	os_config_write_uint("PXO", "PXOBanners", val);
 }
 
+static bool read_cmdline_cfg(wxString &options)
+{
+	options.Clear();
+
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
+
+	if ( !u_path ) {
+		return false;
+	}
+
+	wxString path = u_path;
+	path.append("Data");
+	path.append(wxFILE_SEP_PATH);
+	path.append("cmdline.cfg");
+
+	SDL_free(u_path);
+	u_path = nullptr;
+
+	wxTextFile cfg(path);
+
+	if ( !cfg.Exists() ) {
+		return false;
+	}
+
+	cfg.Open();
+
+	auto line_count = cfg.GetLineCount();
+
+	for (size_t idx = 0; idx < line_count; ++idx) {
+		wxString line = cfg.GetLine(idx);
+
+		options.append(line);
+		options.append(wxT(" "));
+	}
+
+	cfg.Close();
+
+	options.Trim();
+
+	return true;
+}
+
+static bool save_cmdline_cfg(wxString &options)
+{
+	wxString line;
+
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
+
+	if ( !u_path ) {
+		return false;
+	}
+
+	wxString path = u_path;
+	path.append("Data");
+	path.append(wxFILE_SEP_PATH);
+	path.append("cmdline.cfg");
+
+	SDL_free(u_path);
+	u_path = nullptr;
+
+	options.Trim(false);	// trim left
+	options.Trim(true);		// trim right
+
+	// if no options then remove file and exit
+	if ( options.IsEmpty() ) {
+		if ( wxFileExists(path) ) {
+			wxRemoveFile(path);
+		}
+
+		return true;
+	}
+
+	wxTextFile cfg(path);
+
+	if ( !cfg.Create() ) {
+		cfg.Open();
+	}
+
+	cfg.Clear();
+
+	cfg.AddLine(options);
+
+	cfg.Write(wxTextFileType_Unix);
+	cfg.Close();
+
+	return true;
+}
+
+void LauncherSetup::initTab_Misc(wxNotebook *parent)
+{
+	const char *conf_ptr = nullptr;
+
+	wxPanel* panel = new wxPanel( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+
+	wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+
+	// Extras Path
+	wxStaticBoxSizer* sbSizer1 = new wxStaticBoxSizer( new wxStaticBox( panel, wxID_ANY, wxT("Extra Data Path") ), wxVERTICAL );
+
+	m_ExtrasPath = new wxDirPickerCtrl( sbSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxT("Select a folder"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL );
+	sbSizer1->Add( m_ExtrasPath, 0, wxALL|wxEXPAND, 5 );
+
+	conf_ptr = os_config_read_string(nullptr, "ExtrasPath", nullptr);
+
+	if (conf_ptr) {
+		m_ExtrasPath->SetPath(conf_ptr);
+	}
+
+	bSizer->Add( sbSizer1, 0, wxALL|wxEXPAND, 5 );
+
+	// Comdline options
+	wxStaticBoxSizer* sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( panel, wxID_ANY, wxT("Optional Command Line") ), wxVERTICAL );
+
+	m_Cmdline = new wxTextCtrl( sbSizer2->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	sbSizer2->Add( m_Cmdline, 0, wxALL|wxEXPAND, 5 );
+
+	wxString options;
+	read_cmdline_cfg(options);
+	m_Cmdline->SetValue(options);
+
+	bSizer->Add( sbSizer2, 0, wxALL|wxEXPAND, 5 );
+
+
+	panel->SetSizer( bSizer );
+	panel->Layout();
+
+	bSizer->Fit( panel );
+
+	parent->AddPage( panel, wxT("Misc"), false );
+}
+
+void LauncherSetup::saveTab_Misc()
+{
+	wxString value;
+
+	value = m_ExtrasPath->GetPath();
+
+	os_config_write_string(nullptr, "ExtrasPath", value.c_str());
+
+	value = m_Cmdline->GetValue();
+
+	save_cmdline_cfg(value);
+}
+
 void LauncherSetup::save_settings()
 {
 	const char *ptr = NULL;
@@ -733,6 +888,9 @@ void LauncherSetup::save_settings()
 
 	// 'PXO' section
 	saveTab_PXO();
+
+	// 'Misc' section
+	saveTab_Misc();
 }
 
 void LauncherSetup::onOk(wxCommandEvent& WXUNUSED(event))

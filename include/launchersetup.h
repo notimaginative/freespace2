@@ -17,6 +17,7 @@
 #endif
 
 #include "wx/notebook.h"
+#include "wx/filepicker.h"
 
 
 class LauncherSetup : public wxDialog
@@ -28,6 +29,7 @@ class LauncherSetup : public wxDialog
 		void initTab_Speed(wxNotebook* parent);
 		void initTab_Network(wxNotebook* parent);
 		void initTab_PXO(wxNotebook* parent);
+		void initTab_Misc(wxNotebook* parent);
 
 		void saveTab_Video();
 		void saveTab_Audio();
@@ -35,6 +37,7 @@ class LauncherSetup : public wxDialog
 		void saveTab_Speed();
 		void saveTab_Network();
 		void saveTab_PXO();
+		void saveTab_Misc();
 
 		void save_settings();
 
@@ -71,12 +74,15 @@ class LauncherSetup : public wxDialog
 		wxTextCtrl* m_Network_Port;
 		unsigned short m_port_validate;
 
+		wxDirPickerCtrl* m_ExtrasPath;
+		wxTextCtrl* m_Cmdline;
+
 		void onOk(wxCommandEvent& event);
 		void onToggleMSAA(wxCommandEvent& event);
 
 	public:
 
-		LauncherSetup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Setup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		LauncherSetup( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Setup"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
 		~LauncherSetup();
 
 };

@@ -161,12 +161,12 @@ static int mouse_middle_up = 0;
 static int Mouse_x;
 static int Mouse_y;
 // total mouse delta motion each game frame
-static int Mouse_dx = 0;
-static int Mouse_dy = 0;
-static int Mouse_dz = 0;
+static float Mouse_dx = 0;
+static float Mouse_dy = 0;
+static float Mouse_dz = 0;
 // accumulation of mouse delta motion during each game frame
-static int Mouse_dx_inc = 0;
-static int Mouse_dy_inc = 0;
+static float Mouse_dx_inc = 0;
+static float Mouse_dy_inc = 0;
 
 int Mouse_sensitivity = 4;
 int Use_mouse_to_fly = 0;
@@ -384,8 +384,8 @@ void mouse_flush()
 		return;
 
 	mouse_eval_deltas();
-	Mouse_dx = Mouse_dy = Mouse_dz = 0;
-	Mouse_dx_inc = Mouse_dy_inc = 0;
+	Mouse_dx = Mouse_dy = Mouse_dz = 0.0f;
+	Mouse_dx_inc = Mouse_dy_inc = 0.0f;
 	mouse_left_pressed = 0;
 	mouse_right_pressed = 0;
 	mouse_middle_pressed = 0;
@@ -511,11 +511,11 @@ float mouse_down_time(int btn)
 void mouse_get_delta(int *dx, int *dy, int *dz)
 {
 	if (dx)
-		*dx = Mouse_dx;
+		*dx = fl2i(Mouse_dx);
 	if (dy)
-		*dy = Mouse_dy;
+		*dy = fl2i(Mouse_dy);
 	if (dz)
-		*dz = Mouse_dz;
+		*dz = fl2i(Mouse_dz);
 }
 
 // Forces the actual windows cursor to be at (x,y).  This may be independent of our tracked (x,y) mouse pos.
@@ -561,7 +561,7 @@ void mouse_eval_deltas()
 	Mouse_dx = Mouse_dx_inc;
 	Mouse_dy = Mouse_dy_inc;
 
-	Mouse_dx_inc = Mouse_dy_inc = 0;
+	Mouse_dx_inc = Mouse_dy_inc = 0.0f;
 
 	// make sure mouse is bound to window if we're flying with it
 	if (Keep_mouse_centered && !mouse_is_visible()) {
@@ -629,12 +629,12 @@ void mouse_update_pos(float x, float y, float dx, float dy)
 	Mouse_x = x1;
 	Mouse_y = y1;
 
-	Mouse_dx_inc += fl2i(dx);
-	Mouse_dy_inc += fl2i(dy);
+	Mouse_dx_inc += dx;
+	Mouse_dy_inc += dy;
 }
 
 // update mouse with position which is already scaled for max_w/max_h
-void mouse_update_pos_scaled(int x, int y, int dx, int dy)
+void mouse_update_pos_scaled(int x, int y, float dx, float dy)
 {
 	CAP(x, 0, gr_screen.max_w-1);
 	CAP(y, 0, gr_screen.max_h-1);

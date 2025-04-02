@@ -116,19 +116,24 @@ void gamepad_update_mouse_pos()
 	}
 
 	// we poll directly here in order to get smooth movement
-	int dx = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTX) / 8000;
-	int dy = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTY) / 8000;
+	int gx = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTX);
+	int gy = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTY);
 
-	if ( !dx && !dy ) {
+	int dead_zone = 65536 * Dead_zone_size / 100;
+
+	CAP(dead_zone, 1000, 8000);
+
+	// ignore possible stick drift
+	if (abs(gx) < dead_zone) gx = 0;
+	if (abs(gy) < dead_zone) gy = 0;
+
+	if ( !gx && !gy ) {
 		return;
 	}
 
-	// negative numbers move a little faster so we need to even things out for positives
-	if (dx > 0) dx += 1;
-	if (dy > 0) dy += 1;
-
-	CAP(dx, -4, 4);
-	CAP(dy, -4, 4);
+	// scale to -4..4
+	float dx = gx * 4 / 32768.0f;
+	float dy = gy * 4 / 32768.0f;
 
 	int x = 0;
 	int y = 0;
@@ -138,7 +143,7 @@ void gamepad_update_mouse_pos()
 	// update deltas (x/y should be the same as current)
 	mouse_update_pos_scaled(x, y, dx, dy);
 	// now change position
-	mouse_set_pos(x+dx, y+dy);
+	mouse_set_pos(fl2i(x+dx), fl2i(y+dy));
 }
 
 void gamepad_mark_mouse_button(int button, bool down)

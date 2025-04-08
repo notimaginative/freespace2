@@ -780,6 +780,7 @@ int gr_init(bool safe_mode)
 	gr_screen.max_w = max_w;
 	gr_screen.max_h = max_h;
 	gr_screen.use_sections = 1;
+	gr_screen.use_nondark = 0;
 	gr_screen.aspect = 1.0f;			// Normal PC screen
 	gr_screen.offset_x = 0;
 	gr_screen.offset_y = 0;

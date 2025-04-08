@@ -49,7 +49,9 @@ typedef enum {
 	PROG_TEX_FOG = 2,
 	PROG_COLOR = 3,
 	PROG_COLOR_FOG = 4,
-	PROG_WINDOW = 5
+	PROG_WINDOW = 5,
+	PROG_NONDARK = 6,
+	PROG_NONDARK_FOG = 7,
 } sdr_prog_t;
 
 // shader variable indexes

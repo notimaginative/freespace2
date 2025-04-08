@@ -39,6 +39,8 @@ extern volatile int GL_deactivate;
 extern SDL_Window *GL_window;
 extern SDL_GLContext GL_context;
 
+extern int GL_version;
+
 extern int GL_viewport_x;
 extern int GL_viewport_y;
 extern int GL_viewport_w;
@@ -50,6 +52,17 @@ extern int GL_max_texture_width;
 extern int GL_min_texture_height;
 extern int GL_max_texture_height;
 
+#ifndef NDEBUG
+	#define CHECK_FOR_ERRORS()	\
+		do {	\
+			GLenum error = glGetError();	\
+			if (error != GL_NO_ERROR) {	\
+				printf("!!DEBUG!! OpenGL Error: %d\n", error);	\
+			}	\
+		} while(false)
+#else
+	#define CHECK_FOR_ERRORS()
+#endif
 
 void opengl_set_variables();
 void opengl_init_viewport();
@@ -126,6 +139,8 @@ void gr_opengl_stream_stop();
 void gr_opengl_set_viewport(int width, int height);
 void gr_opengl_release_texture(int handle);
 
-
+// GL function prototypes
+extern PFNGLACTIVETEXTUREPROC pglActiveTexture;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC pglClientActiveTexture;
 
 #endif	// _OPENGLINTERNAL_H

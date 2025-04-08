@@ -535,6 +535,10 @@ static int opengl_create_texture(int bitmap_handle, int bitmap_type, tcache_slot
 			flags |= BMP_TEX_OTHER;
 			cull_size = true;
 			break;
+		case TCACHE_TYPE_NONDARKENING:
+			flags |= BMP_TEX_NONDARK;
+			cull_size = true;
+			break;
 		case TCACHE_TYPE_BITMAP_INTERFACE:
 		case TCACHE_TYPE_XPARENT:
 			flags |= BMP_TEX_XPARENT;
@@ -687,6 +691,20 @@ int opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_s
 					}
 				}
 			}
+		}
+
+		// for second stage addition of nondark pixels (assumed to be switched to GL_TEXTURE1)
+		if (force && (bitmap_type == TCACHE_TYPE_NONDARKENING)) {
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, t->texture_handle);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 		}
 
 		*u_scale = t->u_scale;

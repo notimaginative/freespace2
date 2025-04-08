@@ -344,6 +344,13 @@ static int gles2_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_
 			break;
 		}
 
+		case TCACHE_TYPE_NONDARKENING: {
+			flags |= BMP_TEX_NONDARK;
+			cull_size = true;
+
+			break;
+		}
+
 		case TCACHE_TYPE_BITMAP_INTERFACE:
 		case TCACHE_TYPE_XPARENT: {
 			flags |= BMP_TEX_XPARENT;
@@ -377,7 +384,10 @@ static int gles2_create_texture(int bitmap_handle, int bitmap_type, tcache_slot_
 		max_h /= val;
 	}
 
-	if ( (bitmap_type == TCACHE_TYPE_NORMAL) || (bitmap_type == TCACHE_TYPE_XPARENT) ) {
+	if ( (bitmap_type == TCACHE_TYPE_NORMAL) ||
+		(bitmap_type == TCACHE_TYPE_XPARENT) ||
+		(bitmap_type == TCACHE_TYPE_NONDARKENING) )
+	{
 		if ( !is_pow2(max_w) || !is_pow2(max_h) ) {
 			resize = true;
 

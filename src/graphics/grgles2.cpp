@@ -180,6 +180,7 @@ static bool gles2_set_variables()
 	GLES2_max_texture_height = GLES2_max_texture_width;
 
 	gr_screen.use_sections = 0;
+	gr_screen.use_nondark = 1;
 
 	// we don't support sections here, so if that's a problem then fail
 	return (GLES2_max_texture_width >= 1024);

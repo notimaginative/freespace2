@@ -80,12 +80,16 @@ static void gles2_tmapper_internal(int nv, vertex **verts, uint flags, int is_sc
 		}
 	}
 
+	bool nondarkening = ((flags & TMAP_FLAG_NONDARKENING) && gr_screen.use_nondark);
+
 	if (flags & TMAP_FLAG_BITMAP_SECTION) {
 		SDL_assert( !(flags & TMAP_FLAG_BITMAP_INTERFACE) );
 		tmap_type = TCACHE_TYPE_BITMAP_SECTION;
 	} else if (flags & TMAP_FLAG_BITMAP_INTERFACE) {
 		SDL_assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
 		tmap_type = TCACHE_TYPE_BITMAP_INTERFACE;
+	} else if (nondarkening) {
+		tmap_type = TCACHE_TYPE_NONDARKENING;
 	}
 
 	if (flags & TMAP_FLAG_TEXTURED) {
@@ -223,7 +227,7 @@ static void gles2_tmapper_internal(int nv, vertex **verts, uint flags, int is_sc
 	sdr_prog_t program = PROG_COLOR;
 
 	if (flags & TMAP_FLAG_TEXTURED) {
-		program = PROG_TEX;
+		program = nondarkening ? PROG_NONDARK : PROG_TEX;
 	}
 
 	if (flags & TMAP_FLAG_PIXEL_FOG) {

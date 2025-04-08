@@ -183,12 +183,16 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 		}
 	}
 
+	bool nondarkening = ((flags & TMAP_FLAG_NONDARKENING) && gr_screen.use_nondark);
+
 	if (flags & TMAP_FLAG_BITMAP_SECTION) {
 		SDL_assert( !(flags & TMAP_FLAG_BITMAP_INTERFACE) );
 		tmap_type = TCACHE_TYPE_BITMAP_SECTION;
 	} else if (flags & TMAP_FLAG_BITMAP_INTERFACE) {
 		SDL_assert( !(flags & TMAP_FLAG_BITMAP_SECTION) );
 		tmap_type = TCACHE_TYPE_BITMAP_INTERFACE;
+	} else if (nondarkening) {
+		tmap_type = TCACHE_TYPE_NONDARKENING;
 	}
 
 	if (flags & TMAP_FLAG_TEXTURED) {
@@ -313,9 +317,50 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 		++rb_offset;
 	}
 
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
 	if (flags & TMAP_FLAG_TEXTURED) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
+
+		if (nondarkening) {
+			glPushAttrib(GL_TEXTURE_BIT);
+
+			// base texture
+			GLfloat ones[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ones[0]);
+
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_CONSTANT);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PRIMARY_COLOR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+			// add glowy bits
+			pglClientActiveTexture(GL_TEXTURE1);
+			pglActiveTexture(GL_TEXTURE1);
+
+			// force set texture, since it's already active this frame and will
+			// skip setup steps otherwise
+			opengl_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale,
+							  &v_scale, 0, -1, -1, 1);
+
+			// FIXME: this doesn't appear to work for some reason
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
+		}
 	}
 
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -326,10 +371,11 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
 
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	if (nondarkening) {
+		glPopAttrib();
+	}
+
+	glPopClientAttrib();
 }
 
 void gr_opengl_rect(int x,int y,int w,int h)

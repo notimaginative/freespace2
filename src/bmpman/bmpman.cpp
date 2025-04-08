@@ -1405,6 +1405,7 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 
 	// some sanity checks on flags
 	SDL_assert(!((flags & BMP_AABITMAP) && (flags & BMP_TEX_ANY)));						// no aabitmap textures
+	SDL_assert(!((flags & BMP_TEX_XPARENT) && (flags & BMP_TEX_NONDARK)));		// can't be a transparent texture and a nondarkening texture
 
 	if(bpp == 8){
 		int pcx_error=pcx_read_bitmap_8bpp( be->filename, data, palette );
@@ -1419,6 +1420,8 @@ void bm_lock_pcx( int handle, int bitmapnum, bitmap_entry *be, bitmap *bmp, ubyt
 		// load types
 		if(flags & BMP_AABITMAP){
 			pcx_error = pcx_read_bitmap_16bpp_aabitmap( be->filename, data );
+		} else if(flags & BMP_TEX_NONDARK){
+			pcx_error = pcx_read_bitmap_16bpp_nondark( be->filename, data );
 		} else {
 			pcx_error = pcx_read_bitmap_16bpp( be->filename, data );
 		}
@@ -1696,6 +1699,12 @@ bitmap * bm_lock( int handle, ubyte bpp, ubyte flags )
 		} else {
 			SDL_assert( bpp == 16 );
 		}
+	}
+
+	// if we got nondark but don't support it, switch over
+	if ( (flags & BMP_TEX_NONDARK) && !gr_screen.use_nondark ) {
+		flags &= ~BMP_TEX_NONDARK;
+		flags |= BMP_TEX_OTHER;
 	}
 
 	be = &bm_bitmaps[bitmapnum];
@@ -2056,6 +2065,27 @@ void bm_page_in_texture( int bitmapnum, int nframes )
 	}
 }
 
+// Marks a texture as being used for this level
+// If num_frames is passed, assume this is an animation
+void bm_page_in_nondarkening_texture( int bitmapnum, int nframes )
+{
+	int i, flags;
+
+	if (bitmapnum < 0) {
+		return;
+	}
+
+	flags = gr_screen.use_nondark ? BMP_TEX_NONDARK : BMP_TEX_OTHER;
+
+	for (i=0; i<nframes;i++ )	{
+		int n = bitmapnum % MAX_BITMAPS;
+
+		bm_bitmaps[n+i].preloaded = 4;
+
+		bm_bitmaps[n+i].used_flags = flags;
+	}
+}
+
 // marks a texture as being a transparent textyre used for this level
 // Marks a texture as being used for this level
 // If num_frames is passed, assume this is an animation
@@ -2226,49 +2256,27 @@ void bm_24_to_16(int bit_24, ushort *bit_16)
 
 void (*bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a) = NULL;
 
-void bm_set_components_argb_16_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+static void bm_set_components_argb_16(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
+	// rgba
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	if(*av == 0){				
-		*((ushort*)pixel) = (ushort)Gr_current_green->mask;
-	}			
+	*((ushort*)pixel) &= ~(Gr_current_alpha->mask);
+	if(*av){
+		*((ushort*)pixel) |= (ushort)(Gr_current_alpha->mask);
+	}
 }
 
-void bm_set_components_argb_32_screen(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+static void bm_set_components_argb_32(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
 {
+	// rgba
 	*((uint*)pixel) |= (uint)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((uint*)pixel) |= (uint)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
 	*((uint*)pixel) |= (uint)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	if(*av == 0){				
-		*((uint*)pixel) = (uint)Gr_current_green->mask;		
-	}
-}
-
-void bm_set_components_argb_16_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
-{
-	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	*((ushort*)pixel) &= ~(Gr_current_alpha->mask);
+	*((uint*)pixel) &= ~(Gr_current_alpha->mask);
 	if(*av){
-		*((ushort*)pixel) |= (ushort)(Gr_current_alpha->mask);
-	} else {
-		*((ushort*)pixel) = 0;
-	}
-}
-
-void bm_set_components_argb_32_tex(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
-{
-	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
-	*((ushort*)pixel) |= (ushort)(( (int)*bv / Gr_current_blue->scale ) << Gr_current_blue->shift);
-	*((ushort*)pixel) &= ~(Gr_current_alpha->mask);
-	if(*av){
-		*((ushort*)pixel) |= (ushort)(Gr_current_alpha->mask);
-	} else {
-		*((ushort*)pixel) = 0;
+		*((uint*)pixel) |= (uint)(Gr_current_alpha->mask);
 	}
 }
 
@@ -2282,9 +2290,9 @@ void BM_SELECT_SCREEN_FORMAT()
 
 	// setup pointers
 	if ( gr_is_32bit() ) {
-		bm_set_components = bm_set_components_argb_32_screen;
+		bm_set_components = bm_set_components_argb_32;
 	} else {
-		bm_set_components = bm_set_components_argb_16_screen;
+		bm_set_components = bm_set_components_argb_16;
 	}
 }
 
@@ -2296,11 +2304,7 @@ void BM_SELECT_TEX_FORMAT()
 	Gr_current_alpha = &Gr_t_alpha;
 
 	// setup pointers
-	if ( gr_is_32bit() ) {
-		bm_set_components = bm_set_components_argb_32_tex;
-	} else {
-		bm_set_components = bm_set_components_argb_16_tex;
-	}
+	bm_set_components = bm_set_components_argb_16;
 }
 
 void BM_SELECT_ALPHA_TEX_FORMAT()
@@ -2311,11 +2315,7 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 	Gr_current_alpha = &Gr_ta_alpha;
 
 	// setup pointers
-	if ( gr_is_32bit() ) {
-		bm_set_components = bm_set_components_argb_32_tex;
-	} else {
-		bm_set_components = bm_set_components_argb_16_tex;
-	}
+	bm_set_components = bm_set_components_argb_16;
 }
 
 // set the rgba components of a pixel, any of the parameters can be -1

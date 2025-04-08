@@ -179,7 +179,7 @@ void gr_wxgl_init()
 
 	sscanf(gl_version, "%d.%d", &v_major, &v_minor);
 
-	int GL_version = (v_major * 10) + v_minor;
+	GL_version = (v_major * 10) + v_minor;
 
 	// version check, require 1.2+ for sake of simplicity
 	if (GL_version < 12) {

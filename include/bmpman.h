@@ -303,6 +303,10 @@ extern "C" void bm_page_in_stop();
 // If num_frames is passed, assume this is an animation
 void bm_page_in_texture( int bitmapnum, int num_frames=1 );
 
+// Marks a texture as being used for this level
+// If num_frames is passed, assume this is an animation
+void bm_page_in_nondarkening_texture( int bitmap, int num_frames=1 );
+
 // marks a texture as being a transparent textyre used for this level
 // Marks a texture as being used for this level
 // If num_frames is passed, assume this is an animation
@@ -329,12 +333,6 @@ void bm_24_to_16(int bit_24, ushort *bit_16);
 
 // set the rgba components of a pixel, any of the parameters can be NULL
 extern void (*bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
-void bm_set_components_argb(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
-void bm_set_components_d3d(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
-void bm_set_components_argb_d3d_16_screen(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
-void bm_set_components_argb_d3d_32_screen(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
-void bm_set_components_argb_d3d_16_tex(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
-void bm_set_components_argb_d3d_32_tex(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
 
 // get the rgba components of a pixel, any of the parameters can be NULL
 void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);

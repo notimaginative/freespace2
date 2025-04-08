@@ -377,6 +377,7 @@ typedef struct screen {
 	int	res;					// GR_640 or GR_1024
 	int	mode;					// What mode gr_init was called with.
 	int use_sections;			// whether to use bitmap sections or not
+	int use_nondark;			// whether to use nondark textures or not
 	float	aspect;				// Aspect ratio
 	int	bits_per_pixel;	// How many bits per pixel it is. (7,8,15,16,24,32)
 	int	bytes_per_pixel;	// How many bytes per pixel (1,2,3,4)

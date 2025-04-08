@@ -30,6 +30,8 @@ SDL_GLContext GL_context;
 volatile int GL_activate = 0;
 volatile int GL_deactivate = 0;
 
+int GL_version = 0;
+
 int GL_viewport_x = 0;
 int GL_viewport_y = 0;
 int GL_viewport_w = 640;
@@ -46,6 +48,10 @@ static size_t render_buffer_size = 0;
 
 static GLuint GL_stream_tex = 0;
 static GLuint Gr_saved_screen_tex = 0;
+
+// GL function prototypes
+PFNGLACTIVETEXTUREPROC pglActiveTexture = nullptr;
+PFNGLCLIENTACTIVETEXTUREARBPROC pglClientActiveTexture = nullptr;
 
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
@@ -91,6 +97,10 @@ void opengl_set_variables()
 	if (GL_max_texture_width >= 1024) {
 		gr_screen.use_sections = 0;
 	}
+
+	// FIXME: set this properly when rendering is fixed
+//	gr_screen.use_nondark = (GL_version >= 13) ? 1 : 0;
+	gr_screen.use_nondark = 0;
 }
 
 void opengl_init_viewport()
@@ -247,6 +257,25 @@ static void opengl_init_func_pointers()
 	gr_screen.gf_activate = gr_opengl_activate;
 
 	gr_screen.gf_release_texture = gr_opengl_release_texture;
+}
+
+static bool opengl_init_prototypes()
+{
+	#define GET_PROC(type, func)	\
+		do {	\
+			p##func = reinterpret_cast<type>(SDL_GL_GetProcAddress(#func));	\
+			if ( !(p##func) ) {	\
+				mprintf(("  Couldn't load OpenGL function %s: %s", #func, SDL_GetError()));	\
+			return false;	\
+		}	\
+	} while(false);
+
+	if ( (GL_version >= 13) || SDL_GL_ExtensionSupported("GL_ARB_multitexture") ) {
+		GET_PROC(PFNGLACTIVETEXTUREPROC, glActiveTexture)
+		GET_PROC(PFNGLCLIENTACTIVETEXTUREARBPROC, glClientActiveTexture)
+	}
+
+	return true;
 }
 
 void gr_opengl_flip()
@@ -891,9 +920,24 @@ void gr_opengl_init()
 		Error(LOCATION, "Couldn't create OpenGL context: %s\n", SDL_GetError());
 	}
 
+	auto gl_version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+	int v_major = 0, v_minor = 0;
+
+	SDL_sscanf(gl_version, "%d.%d", &v_major, &v_minor);
+
+	GL_version = (v_major * 10) + v_minor;
+
 	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
 	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
-	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
+	mprintf(("  Version  : %s\n", gl_version));
+
+	// we need OpenGL packed pixel formats, so check for core support or EXT
+	if ( (GL_version < 12) && !SDL_GL_ExtensionSupported("GL_EXT_packed_pixels") ) {
+		Error(LOCATION, "Minimum required OpenGL version is 1.2!");
+	}
+
+	// set GL function prototypes
+	opengl_init_prototypes();
 
 	// set up generic variables
 	opengl_set_variables();

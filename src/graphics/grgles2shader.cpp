@@ -16,6 +16,8 @@
 
 static GLuint tex_prog = 0;
 static GLuint fog_tex_prog = 0;
+static GLuint nondark_prog = 0;
+static GLuint fog_nondark_prog = 0;
 static GLuint aabitmap_prog = 0;
 static GLuint color_prog = 0;
 static GLuint fog_color_prog = 0;
@@ -111,6 +113,33 @@ static const char f_fog_tex_src[] =
 	"	gl_FragColor = vec4(mix(secColorVar.rgb, base_color.rgb, 1.0 - secColorVar.a), base_color.a);\n"
 	"}\n";
 
+static const char f_nondark_src[] =
+	"precision mediump float;\n"
+	"uniform sampler2D texture;\n"
+	"varying vec4 colorVar;\n"
+	"varying vec2 texCoordVar;\n"
+	"void main()\n"
+	"{\n"
+	"	vec4 tex_color = texture2D(texture, texCoordVar);\n"
+	"	vec4 base_color = colorVar * vec4(tex_color.rgb, 1.0);\n"
+	"	base_color.rgb += tex_color.rgb * tex_color.a;\n"
+	" 	gl_FragColor = base_color;\n"
+	"}\n";
+
+static const char f_fog_nondark_src[] =
+	"precision mediump float;\n"
+	"uniform sampler2D texture;\n"
+	"varying vec4 colorVar;\n"
+	"varying vec4 secColorVar;\n"
+	"varying vec2 texCoordVar;\n"
+	"void main()\n"
+	"{\n"
+	"	vec4 tex_color = texture2D(texture, texCoordVar);\n"
+	"	vec4 base_color = colorVar * vec4(tex_color.rgb, 1.0);\n"
+	"	base_color.rgb += tex_color.rgb * tex_color.a;\n"
+	"	gl_FragColor = vec4(mix(secColorVar.rgb, base_color.rgb, 1.0 - secColorVar.a), base_color.a);\n"
+	"}\n";
+
 static const char f_aabitmap_src[] =
 	"precision mediump float;\n"
 	"uniform sampler2D texture;\n"
@@ -151,41 +180,41 @@ static const char f_window_src[] =
 
 static GLuint gles2_create_shader(const char *src, GLenum type)
 {
-	GLuint shader;
+	GLuint sdr;
 	GLint compiled;
 
-	shader = pglCreateShader(type);
+	sdr = pglCreateShader(type);
 
-	if ( !shader ) {
+	if ( !sdr ) {
 		return 0;
 	}
 
-	pglShaderSource(shader, 1, &src, NULL);
+	pglShaderSource(sdr, 1, &src, NULL);
 
-	pglCompileShader(shader);
+	pglCompileShader(sdr);
 
-	pglGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	pglGetShaderiv(sdr, GL_COMPILE_STATUS, &compiled);
 
 	if ( !compiled ) {
 		GLint len = 0;
 
-		pglGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+		pglGetShaderiv(sdr, GL_INFO_LOG_LENGTH, &len);
 
 		if (len > 1) {
 			char *log = (char *) malloc(sizeof(char) * len);
 
-			pglGetShaderInfoLog(shader, len, NULL, log);
+			pglGetShaderInfoLog(sdr, len, NULL, log);
 			nprintf(("OpenGL", "Error compiling shader:\n%s\n", log));
 
 			free(log);
 		}
 
-		pglDeleteShader(shader);
+		pglDeleteShader(sdr);
 
 		return 0;
 	}
 
-	return shader;
+	return sdr;
 }
 
 static GLuint gles2_create_program(GLuint vert, GLuint frag)
@@ -246,6 +275,10 @@ void gles2_shader_use(sdr_prog_t prog)
 			pglUseProgram(tex_prog);
 			break;
 
+		case PROG_NONDARK:
+			pglUseProgram(nondark_prog);
+			break;
+
 		case PROG_AABITMAP:
 			pglUseProgram(aabitmap_prog);
 			break;
@@ -260,6 +293,10 @@ void gles2_shader_use(sdr_prog_t prog)
 
 		case PROG_TEX_FOG:
 			pglUseProgram(fog_tex_prog);
+			break;
+
+		case PROG_NONDARK_FOG:
+			pglUseProgram(fog_nondark_prog);
 			break;
 
 		case PROG_COLOR_FOG:
@@ -305,6 +342,8 @@ int gles2_shader_init()
 	GLuint f_aabitmap = gles2_create_shader(f_aabitmap_src, GL_FRAGMENT_SHADER);
 	GLuint f_tex = gles2_create_shader(f_tex_src, GL_FRAGMENT_SHADER);
 	GLuint f_fog_tex = gles2_create_shader(f_fog_tex_src, GL_FRAGMENT_SHADER);
+	GLuint f_nondark = gles2_create_shader(f_nondark_src, GL_FRAGMENT_SHADER);
+	GLuint f_fog_nondark = gles2_create_shader(f_fog_nondark_src, GL_FRAGMENT_SHADER);
 	GLuint f_color = gles2_create_shader(f_color_src, GL_FRAGMENT_SHADER);
 	GLuint f_fog_color = gles2_create_shader(f_fog_color_src, GL_FRAGMENT_SHADER);
 	GLuint f_window = gles2_create_shader(f_window_src, GL_FRAGMENT_SHADER);
@@ -312,6 +351,8 @@ int gles2_shader_init()
 	aabitmap_prog = gles2_create_program(v_tex, f_aabitmap);
 	tex_prog = gles2_create_program(v_tex, f_tex);
 	fog_tex_prog = gles2_create_program(v_fog_tex, f_fog_tex);
+	nondark_prog = gles2_create_program(v_tex, f_nondark);
+	fog_nondark_prog = gles2_create_program(v_fog_tex, f_fog_nondark);
 	color_prog = gles2_create_program(v_color, f_color);
 	fog_color_prog = gles2_create_program(v_fog_color, f_fog_color);
 	window_prog = gles2_create_program(v_window, f_window);
@@ -353,6 +394,14 @@ int gles2_shader_init()
 	loc = pglGetUniformLocation(tex_prog, "vOrtho");
 	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
+	gles2_shader_use(PROG_NONDARK);
+	loc = pglGetUniformLocation(nondark_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+
+	gles2_shader_use(PROG_NONDARK_FOG);
+	loc = pglGetUniformLocation(fog_nondark_prog, "vOrtho");
+	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+
 	gles2_shader_update();
 
 	return 1;
@@ -388,5 +437,15 @@ void gles2_shader_cleanup()
 	if (window_prog) {
 		pglDeleteProgram(window_prog);
 		window_prog = 0;
+	}
+
+	if (nondark_prog) {
+		pglDeleteProgram(nondark_prog);
+		nondark_prog = 0;
+	}
+
+	if (fog_nondark_prog) {
+		pglDeleteProgram(fog_nondark_prog);
+		fog_nondark_prog = 0;
 	}
 }

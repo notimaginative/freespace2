@@ -3379,7 +3379,7 @@ void weapons_page_in()
 						int bitmap_num = pm->original_textures[j];
 
 						if ( bitmap_num > -1 )	{
-							bm_page_in_texture( bitmap_num );
+							bm_page_in_nondarkening_texture( bitmap_num );
 						}
 					}
 				}

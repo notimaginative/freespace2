@@ -2255,7 +2255,7 @@ void asteroid_page_in()
 					int bitmap_num = asip->modelp[k]->original_textures[j];
 
 					if ( bitmap_num > -1 )	{
-						bm_page_in_texture( bitmap_num );
+						bm_page_in_nondarkening_texture( bitmap_num );
 					}					
 				}
 

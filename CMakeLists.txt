@@ -364,9 +364,9 @@ if(EMSCRIPTEN)
     set(GAME_TITLE "FreeSpace 2 Demo")
   endif()
 
-  configure_file(${CMAKE_SOURCE_DIR}/dist/demo_shell.html.in ${CMAKE_BINARY_DIR}/dist/demo_shell.html @ONLY)
-  configure_file(${CMAKE_SOURCE_DIR}/dist/demo-play.css.in ${CMAKE_BINARY_DIR}/dist/demo-play.css @ONLY)
-  configure_file(${CMAKE_SOURCE_DIR}/dist/demo-play.js.in ${CMAKE_BINARY_DIR}/dist/demo-play.js @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/dist/emscripten/demo_shell.html.in ${CMAKE_BINARY_DIR}/dist/demo_shell.html @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/dist/emscripten/demo-play.css.in ${CMAKE_BINARY_DIR}/dist/demo-play.css @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/dist/emscripten/demo-play.js.in ${CMAKE_BINARY_DIR}/dist/demo-play.js @ONLY)
 endif(EMSCRIPTEN)
 
 if(FS1)

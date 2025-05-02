@@ -751,10 +751,6 @@ int gr_init(bool safe_mode)
 
 #ifdef __EMSCRIPTEN__
 	mode = GR_GLES2;
-#elif defined(SDL_PLATFORM_WINDOWS)
-	// FIXME: force regular GL to get around bug #11482
-	// https://github.com/libsdl-org/SDL/issues/11482
-	mode = GR_OPENGL;
 #endif
 
 	if (Fred_running || Pofview_running) {

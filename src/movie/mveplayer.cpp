@@ -319,6 +319,17 @@ void mve_audio_play()
 	}
 }
 
+static void mve_audio_pause(bool paused)
+{
+	if (mve_audio_canplay && mve_audio_playing) {
+		if (paused) {
+			alSourcePause(mas->chan->source_id);
+		} else {
+			alSourcePlay(mas->chan->source_id);
+		}
+	}
+}
+
 // call this in shutdown to stop and close audio
 static void mve_audio_stop()
 {
@@ -590,12 +601,19 @@ void mve_play(MVESTREAM *mve)
 {
 	int init_timer = 0, timer_error = 0;
 	int cont = 1;
+	bool mve_paused = false;
+	int k = -1;
 
 	if (!timer_started)
 		mve_timer_start();
 
 	while (cont && mve_playing && !timer_error) {
-		cont = mve_play_next_chunk(mve);
+		if (mve_paused) {
+			// just redraw current frame while paused
+			mve_video_display();
+		} else {
+			cont = mve_play_next_chunk(mve);
+		}
 
 		if (micro_frame_delay && !init_timer) {
 			mve_timer_start();
@@ -606,8 +624,13 @@ void mve_play(MVESTREAM *mve)
 
 		os_poll();
 
-		if (key_inkey() == SDLK_ESCAPE || gamepad_action_or_cancel()) {
+		k = key_inkey();
+
+		if (k == SDLK_ESCAPE || k == SDLK_RETURN || gamepad_action_or_cancel()) {
 			mve_playing = 0;
+		} else if (k == SDLK_SPACE) {
+			mve_paused = !mve_paused;
+			mve_audio_pause(mve_paused);
 		}
 	}
 }

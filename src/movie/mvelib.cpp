@@ -333,7 +333,7 @@ int mve_play_next_chunk(MVESTREAM *stream)
 					mve_audio_createbuf(minor, data);
 					break;
 				case 0x04:
-					mve_audio_play();
+					//mve_audio_play();
 					break;
 				case 0x05:
 					if (!mve_video_createbuf(minor, data))

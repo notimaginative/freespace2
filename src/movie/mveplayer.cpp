@@ -42,9 +42,6 @@
 #include "osapi.h"
 #include "timer.h"
 #include "sound.h"
-#include "bmpman.h"
-#include "osregistry.h"
-#include "oal.h"
 #include <vector>
 
 static int mve_playing;
@@ -59,31 +56,13 @@ static Uint64 micro_timer_start = 0;
 static Uint64 micro_timer_freq = 0;
 
 // audio variables
-#define MVE_AUDIO_BUFFERS 8  // total buffers to interact with stream
-
-static std::vector<ALuint> mve_audio_bufl_free;
+static SDL_AudioStream *mve_audio_stream = nullptr;
 static ubyte *mve_audio_buf = NULL;
-static int mve_audio_buf_size = 0;
-static int mve_audio_buf_offset = 0;
 
 static int mve_audio_playing = 0;
 static int mve_audio_canplay = 0;
 static int mve_audio_compressed = 0;
 static int audiobuf_created = 0;
-
-// struct for the audio stream information
-struct mve_audio_t {
-	sound_channel *chan;
-	ALenum format;
-	int sample_rate;
-	int bytes_per_sec;
-	int channels;
-	int bitsize;
-	ALuint buffers[MVE_AUDIO_BUFFERS];
-};
-
-mve_audio_t *mas = NULL;  // mve_audio_stream
-
 
 
 // video variables
@@ -195,45 +174,30 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 	}
 
-	int flags, desired_buffer, sample_rate;
+	int flags = mve_get_ushort(data + 2);
+	int sample_rate = mve_get_ushort(data + 4);
+	int desired_buffer = mve_get_int(data + 6);
 
-	mas = (mve_audio_t *) malloc ( sizeof(mve_audio_t) );
+	int channels = (flags & 0x0001) ? 2 : 1;
+	int bitsize = (flags & 0x0002) ? 16 : 8;
 
-	if (mas == NULL) {
-		mve_audio_canplay = 0;
-		audiobuf_created = 1;
-		return;
+	if (desired_buffer <= 0) {
+		desired_buffer = sample_rate * channels * (bitsize >> 3);
 	}
-
-	memset(mas, 0, sizeof(mve_audio_t));
-
-	mas->format = AL_INVALID;
-
-	flags = mve_get_ushort(data + 2);
-	sample_rate = mve_get_ushort(data + 4);
-	desired_buffer = mve_get_int(data + 6);
 
 	if (desired_buffer > 0) {
 		mve_audio_buf = (ubyte*) malloc (desired_buffer);
 
-		if (mve_audio_buf == NULL) {
+		if (mve_audio_buf == nullptr) {
 			mve_audio_canplay = 0;
 			audiobuf_created = 1;
 			return;
 		}
-
-		mve_audio_buf_size = desired_buffer;
-		mve_audio_buf_offset = 0;
 	} else {
 		mve_audio_canplay = 0;
 		audiobuf_created = 1;
 		return;
 	}
-
-	mas->channels = (flags & 0x0001) ? 2 : 1;
-	mas->bitsize = (flags & 0x0002) ? 16 : 8;
-
-	mas->sample_rate = sample_rate;
 
 	if (minor > 0) {
 		mve_audio_compressed = flags & 0x0004 ? 1 : 0;
@@ -241,58 +205,30 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		mve_audio_compressed = 0;
 	}
 
-	if (mas->bitsize == 16) {
-		if (mas->channels == 2) {
-			mas->format = AL_FORMAT_STEREO16;
-		} else if (mas->channels == 1) {
-			mas->format = AL_FORMAT_MONO16;
-		}
-	} else if (mas->bitsize == 8) {
-		if (mas->channels == 2) {
-			mas->format = AL_FORMAT_STEREO8;
-		} else if (mas->channels == 1) {
-			mas->format = AL_FORMAT_MONO8;
-		}
-	}
-
-	// somethings wrong, bail now
-	if (mas->format == AL_INVALID) {
+	if ( !SDL_InitSubSystem(SDL_INIT_AUDIO) ) {
 		mve_audio_canplay = 0;
 		audiobuf_created = 1;
 		return;
 	}
 
-	oal_check_for_errors("mve_audio_createbuf() begin");
+	SDL_AudioSpec spec{};
 
-	for (int i = 0; i < MVE_AUDIO_BUFFERS; i++) {
-		alGenBuffers(1, &mas->buffers[i]);
+	spec.channels = channels;
+	spec.format = (bitsize == 16) ? SDL_AUDIO_S16LE : SDL_AUDIO_U8;
+	spec.freq = sample_rate;
 
-		if ( !mas->buffers[i] ) {
-			mve_audio_canplay = 0;
-			audiobuf_created = 1;
-			return;
-		}
-	}
+	mve_audio_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+												 &spec, nullptr, nullptr);
 
-	mve_audio_bufl_free.assign(mas->buffers, mas->buffers+MVE_AUDIO_BUFFERS);
-
-	mas->chan = oal_get_free_channel(1.0f, -1, SND_PRIORITY_MUST_PLAY);
-
-	if (mas->chan == NULL) {
+	if ( !mve_audio_stream ) {
 		mve_audio_canplay = 0;
 		audiobuf_created = 1;
 		return;
 	}
 
-	alSourcef(mas->chan->source_id, AL_GAIN, 1.0f);
-	alSource3f(mas->chan->source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
-	alSource3f(mas->chan->source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-	alSource3f(mas->chan->source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
-	alSourcef(mas->chan->source_id, AL_ROLLOFF_FACTOR, 0.0f);
-	alSourcei(mas->chan->source_id, AL_SOURCE_RELATIVE, AL_TRUE);
-	alSourcei(mas->chan->source_id, AL_LOOPING, AL_FALSE);
+	SDL_ResumeAudioStreamDevice(mve_audio_stream);
 
-	oal_check_for_errors("mve_audio_createbuf() end");
+	mve_audio_playing = 1;
 
 	audiobuf_created = 1;
 	mve_audio_canplay = 1;
@@ -301,33 +237,19 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 // play and stream the audio
 void mve_audio_play()
 {
-	if (mve_audio_canplay) {
-		ALint queued = 0;
-		ALint status = AL_INVALID;
-
-		oal_check_for_errors("mve_audio_play() begin");
-
-		alGetSourcei(mas->chan->source_id, AL_BUFFERS_QUEUED, &queued);
-		alGetSourcei(mas->chan->source_id, AL_SOURCE_STATE, &status);
-
-		if ( (status != AL_PLAYING) && (queued > 0) ) {
-			alSourcePlay(mas->chan->source_id);
-			mve_audio_playing = 1;
-		}
-
-		oal_check_for_errors("mve_audio_play() end");
-	}
+	// not needed with SDL audio stream
 }
 
 static void mve_audio_pause(bool paused)
 {
 	if (mve_audio_canplay && mve_audio_playing) {
 		if (paused) {
-			alSourcePause(mas->chan->source_id);
+			SDL_PauseAudioStreamDevice(mve_audio_stream);
 		} else {
-			alSourcePlay(mas->chan->source_id);
+			SDL_ResumeAudioStreamDevice(mve_audio_stream);
 		}
 	}
+
 }
 
 // call this in shutdown to stop and close audio
@@ -336,45 +258,23 @@ static void mve_audio_stop()
 	if (!audiobuf_created)
 		return;
 
-	oal_check_for_errors("mve_audio_stop() begin");
-
 	mve_audio_playing = 0;
 	mve_audio_canplay = 0;
 	mve_audio_compressed = 0;
 
 	audiobuf_created = 0;
 
-	mve_audio_bufl_free.clear();
-
-	if (mas) {
-		if (mas->chan) {
-			alSourceStop(mas->chan->source_id);
-
-			// detach buffers from source so that we can delete them
-			alSourcei(mas->chan->source_id, AL_BUFFER, 0);
-		}
-
-		for (int i = 0; i < MVE_AUDIO_BUFFERS; i++) {
-			if ( alIsBuffer(mas->buffers[i]) ) {
-				alDeleteBuffers(1, &mas->buffers[i]);
-			}
-		}
-	}
-
-	if (mas != NULL) {
-		free(mas);
-		mas = NULL;
-	}
-
-	if (mve_audio_buf != NULL) {
+	if (mve_audio_buf != nullptr) {
 		free(mve_audio_buf);
-		mve_audio_buf = NULL;
+		mve_audio_buf = nullptr;
 	}
 
-	mve_audio_buf_size = 0;
-	mve_audio_buf_offset = 0;
+	if (mve_audio_stream) {
+		SDL_DestroyAudioStream(mve_audio_stream);
+		mve_audio_stream = nullptr;
 
-	oal_check_for_errors("mve_audio_stop() end");
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	}
 }
 
 int mve_audio_data(ubyte major, ubyte *data)
@@ -382,63 +282,30 @@ int mve_audio_data(ubyte major, ubyte *data)
 	static const int selected_chan = 1;
 	int chan;
 	int nsamp;
-	ALint processed = 0;
-	ALuint bid;
 
 	if (mve_audio_canplay) {
 		chan = mve_get_ushort(data + 2);
 		nsamp = mve_get_ushort(data + 4);
 
 		if (chan & selected_chan) {
-			oal_check_for_errors("mve_audio_data() begin");
+			if (major == 8) {
+				if (mve_audio_compressed) {
+					/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
+					nsamp += 4;
 
-			if ( (mve_audio_buf_offset+nsamp+4) <= mve_audio_buf_size ) {
-				if (major == 8) {
-					if (mve_audio_compressed) {
-						/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
-						nsamp += 4;
-
-						mveaudio_uncompress(mve_audio_buf+mve_audio_buf_offset, data, -1);
-					} else {
-						nsamp -= 8;
-						data += 8;
-
-						memcpy(mve_audio_buf+mve_audio_buf_offset, data, nsamp);
-					}
+					mveaudio_uncompress(mve_audio_buf, data, -1);
 				} else {
-					// silence
-					memset(mve_audio_buf+mve_audio_buf_offset, 0, nsamp);
+					nsamp -= 8;
+					data += 8;
+
+					memcpy(mve_audio_buf, data, nsamp);
 				}
-
-				mve_audio_buf_offset += nsamp;
 			} else {
-				mprintf(("MVE audio_buf overrun!!\n"));
+				// silence
+				memset(mve_audio_buf, 0, nsamp);
 			}
 
-			alGetSourcei(mas->chan->source_id, AL_BUFFERS_PROCESSED, &processed);
-
-			while (processed) {
-				alSourceUnqueueBuffers(mas->chan->source_id, 1, &bid);
-
-				mve_audio_bufl_free.push_back(bid);
-				--processed;
-			}
-
-			if ( !mve_audio_bufl_free.empty() ) {
-				bid = mve_audio_bufl_free.back();
-
-				alBufferData(bid, mas->format, mve_audio_buf, mve_audio_buf_offset, mas->sample_rate);
-				alSourceQueueBuffers(mas->chan->source_id, 1, &bid);
-
-				mve_audio_buf_offset = 0;
-				mve_audio_bufl_free.pop_back();
-			}
-
-			if ( !mve_audio_playing ) {
-				mve_audio_play();
-			}
-
-			oal_check_for_errors("mve_audio_data() end");
+			SDL_PutAudioStreamData(mve_audio_stream, mve_audio_buf, nsamp);
 		}
 	}
 
@@ -589,7 +456,6 @@ void mve_init(MVESTREAM *mve)
 	mve_audio_playing = 0;
 	mve_audio_canplay = 0;
 	mve_audio_compressed = 0;
-	mve_audio_buf_offset = 0;
 	audiobuf_created = 0;
 
 	videobuf_created = 0;

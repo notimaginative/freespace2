@@ -552,7 +552,10 @@ void gr_gles2_init()
 	gles2_tcache_init();
 
 	if ( !gles2_shader_init() ) {
-		Error(LOCATION, "GLES2 shader init failure!");
+		mprintf(("  Shader initialization failed!\n"));
+		mprintf(("  Restarting graphics in safe mode...\n"));
+		gr_init(true);	// will call _cleanup() for us
+		return;
 	}
 
 	if ( !gles2_create_framebuffer() ) {
@@ -840,7 +843,7 @@ void gr_gles2_print_screen(const char *filename)
 		return;
 	}
 
-	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
+	CFILE *f = cfopen(tmp, "wb", CF_TYPE_ROOT);
 
 	if (f == NULL) {
 		free(buf);

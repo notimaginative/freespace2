@@ -345,9 +345,9 @@
 
 #define CF_EOF (-1)
 
-#define CF_SEEK_SET (0)
-#define CF_SEEK_CUR (1)
-#define CF_SEEK_END (2)
+#define CF_SEEK_SET SDL_IO_SEEK_SET
+#define CF_SEEK_CUR SDL_IO_SEEK_CUR
+#define CF_SEEK_END SDL_IO_SEEK_END
 
 typedef struct CFILE {
 	int		id;			// Index into cfile.cpp specific structure
@@ -401,14 +401,12 @@ typedef struct {
 #define CF_TYPE_DEMOS					33
 #define CF_TYPE_CBANIMS					34
 #define CF_TYPE_INTEL_ANIMS			35
+#define CF_TYPE_SHADERS				36
 
-#define CF_MAX_PATH_TYPES				36			// Can be as high as you'd like
+#define CF_MAX_PATH_TYPES				37			// Can be as high as you'd like
 
 // TRUE if type is specified and valid
 #define CF_TYPE_SPECIFIED(path_type) (((path_type)>CF_TYPE_INVALID) && ((path_type)<CF_MAX_PATH_TYPES))
-
-// #define's for the type parameter in cfopen.  
-#define CFILE_NORMAL				0			// open file normally
 
 #define CF_SORT_NONE	0
 #define CF_SORT_NAME 1
@@ -438,10 +436,20 @@ int cf_get_dir_type(CFILE *cfile);
 
 // Opens the file.  If no path is given, use the extension to look into the
 // default path.  If mode is NULL, delete the file.  
-CFILE *cfopen(const char *filename, const char *mode, int type = CFILE_NORMAL, int dir_type = CF_TYPE_ANY, bool localize = false);
+CFILE *cfopen(const char *filename, const char *mode, int dir_type = CF_TYPE_ANY, bool localize = false);
+
+/// Opens a file for use with SDL3 IO stream
+/// - Parameters:
+///   - file_path: name of file to open (may be path+name)
+///   - mode: how the file should be opened (see fopen())
+///   - type: CFILE_NORMAL
+///   - dir_type: location option (one of CF_TYPE_* defines)
+///   - localize: get localized version of file
+/// - Returns: SDL_IOStream ptr on success or nullptr on failure
+SDL_IOStream *cfopen_io(const char *file_path, const char *mode, int dir_type = CF_TYPE_ANY, bool localize = false);
 
 // Flush the open file buffer
-int cflush(CFILE *cfile);
+bool cflush(CFILE *cfile);
 
 // version number of opened file.  Will be 0 unless you put something else here after you
 // open a file.  Once set, you can use minimum version numbers with the read functions.
@@ -460,7 +468,7 @@ int cf_exist( const char *filename, int dir_type );
 CFILE *ctmpfile();
 
 // Closes the file
-int cfclose(CFILE *cfile);
+bool cfclose(CFILE *cfile);
 
 // Returns size of file...
 int cfilelength(CFILE *fp);
@@ -476,13 +484,13 @@ int cfread_compressed(void *buf, int elsize, int nelem, CFILE *cfile);
 int cfwrite_compressed(void *param_buf, int param_elsize, int param_nelem, CFILE *cfile);
 
 // Moves the file pointer
-int cfseek(CFILE *fp, int offset, int where);
+bool cfseek(CFILE *fp, int64_t offset, int where);
 
 // Returns current position of file.
 int cftell(CFILE *fp);
 
 // cfputc() writes a character to a file
-int cfputc(int c, CFILE *cfile);
+bool cfputc(int c, CFILE *cfile);
 
 // cfputs() writes a string to a file
 int cfputs(const char *str, CFILE *cfile);
@@ -494,7 +502,7 @@ int cfgetc(CFILE *cfile);
 char *cfgets(char *buf, int n, CFILE *cfile);
 
 // cfeof() Tests for end-of-file on a stream
-int cfeof(CFILE *cfile);
+bool cfeof(CFILE *cfile);
 
 // get the 2 byte checksum of the passed filename - return 0 if operation failed, 1 if succeeded
 int cf_chksum_short(const char *filename, ushort *chksum, int max_size = -1, int cf_type = CF_TYPE_ANY );
@@ -533,6 +541,8 @@ int cf_rename(const char *old_name, const char *name, int type = CF_TYPE_ANY );
 // NOTE : WILL NOT DELETE READ-ONLY FILES
 int cfile_flush_dir(int type);
 
+void *cf_load_file(const char *file_path, const char *mode, int dir_type = CF_TYPE_ANY);
+
 // functions for reading from cfile
 // These are all high level, built up from
 // cfread.
@@ -552,6 +562,8 @@ void cfread_string(char *buf, int n, CFILE *file);
 // Read a fixed length that is null-terminatedm, and has the length
 // stored in file
 void cfread_string_len(char *buf, int n, CFILE *file);
+
+void *cfread_file(CFILE *file);
 
 // functions for writing cfiles
 int cfwrite_char(char c, CFILE *file);

@@ -292,7 +292,7 @@ int demo_start_record(const char *file)
 	// open the outfile
 	SDL_strlcpy(full_name, file, SDL_arraysize(full_name));
 	cf_add_ext(full_name, ".fsd");
-	Demo_file = cfopen(full_name, "wb", CFILE_NORMAL, CF_TYPE_DEMOS);
+	Demo_file = cfopen(full_name, "wb", CF_TYPE_DEMOS);
 	if(Demo_file == NULL){
 		Int3();
 		Demo_error = DEMO_ERROR_DISK_ACCESS;
@@ -336,7 +336,7 @@ int demo_start_playback(const char *file)
 	// open the outfile
 	SDL_strlcpy(full_name, file, SDL_arraysize(full_name));
 	cf_add_ext(full_name, ".fsd");
-	Demo_file = cfopen(full_name, "rb", CFILE_NORMAL, CF_TYPE_DEMOS);
+	Demo_file = cfopen(full_name, "rb", CF_TYPE_DEMOS);
 	if(Demo_file == NULL){
 		DEMO_ERROR(DEMO_ERROR_DISK_ACCESS);
 		return 0;

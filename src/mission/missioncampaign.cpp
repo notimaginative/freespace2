@@ -715,7 +715,7 @@ int mission_campaign_savefile_save()
 	// single player : *.csg
 	SDL_strlcat( filename, NOX("csg"), SDL_arraysize(filename) );
 
-	fp = cfopen(filename,"wb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
+	fp = cfopen(filename,"wb", CF_TYPE_SINGLE_PLAYERS);
 
 	if (!fp)
 		return errno;
@@ -785,7 +785,7 @@ int mission_campaign_savefile_save()
 	// single player : *.csg
 	SDL_strlcat( filename, NOX("css"), SDL_arraysize(filename) );
 
-	fp = cfopen(filename,"wb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
+	fp = cfopen(filename,"wb", CF_TYPE_SINGLE_PLAYERS);
 
 	if (!fp)
 		return errno;
@@ -917,7 +917,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 	else
 		SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.csg"), Player->callsign, base );
 
-	fp = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS );
+	fp = cfopen(filename, "rb", CF_TYPE_SINGLE_PLAYERS );
 	if ( !fp )
 		return;
 
@@ -1040,7 +1040,7 @@ void mission_campaign_savefile_load( const char *cfilename )
 	// it, then simply return
 	SDL_snprintf( filename, SDL_arraysize(filename), NOX("%s.%s.css"), Player->callsign, base );
 
-	fp = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS );
+	fp = cfopen(filename, "rb", CF_TYPE_SINGLE_PLAYERS );
 	if ( !fp )
 		return;
 

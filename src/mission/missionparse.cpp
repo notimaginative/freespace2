@@ -3838,7 +3838,7 @@ int parse_main(const char *mission_name, int flags)
 	// open localization
 	lcl_ext_open();
 
-	CFILE *ftemp = cfopen(mission_name, "rt", CFILE_NORMAL, CF_TYPE_MISSIONS);
+	CFILE *ftemp = cfopen(mission_name, "rt", CF_TYPE_MISSIONS);
 	// fail situation.
 	if (!ftemp) {
 		if (!Fred_running)

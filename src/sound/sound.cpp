@@ -430,7 +430,7 @@ void snd_spew_info()
 {
 	int idx;
 	char txt[512] = "";
-	CFILE *out = cfopen("sounds.txt", "wt", CFILE_NORMAL, CF_TYPE_DATA);
+	CFILE *out = cfopen("sounds.txt", "wt", CF_TYPE_DATA);
 	if(out == NULL){
 		return;
 	}

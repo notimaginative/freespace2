@@ -233,6 +233,8 @@
 #include "osapi.h"
 #include "osregistry.h"
 
+#include "embedvp.h"
+
 char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
 char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
 
@@ -244,7 +246,7 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	// What type this is          Path                             Extensions              Parent type
 	{ CF_TYPE_INVALID,				NULL,										NULL,							CF_TYPE_INVALID },
 	// Root must be index 1!!	
-	{ CF_TYPE_ROOT,					"",										".mve",							CF_TYPE_ROOT	},
+	{ CF_TYPE_ROOT,					"",										".mve .png",						CF_TYPE_ROOT	},
 	{ CF_TYPE_DATA,					"Data",									".cfg .log .txt",			CF_TYPE_ROOT	},
 	{ CF_TYPE_MAPS,					"Data" DIR_SEPARATOR_STR "Maps",							".pcx .ani .tga",			CF_TYPE_DATA	},
 	{ CF_TYPE_TEXT,					"Data" DIR_SEPARATOR_STR "Text",							".txt .net",				CF_TYPE_DATA	},
@@ -298,6 +300,7 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	{ CF_TYPE_DEMOS,					"Data" DIR_SEPARATOR_STR "Demos",							".fsd",						CF_TYPE_DATA	},
 	{ CF_TYPE_CBANIMS,				"Data" DIR_SEPARATOR_STR "CBAnims",						".ani",						CF_TYPE_DATA	},
 	{ CF_TYPE_INTEL_ANIMS,			"Data" DIR_SEPARATOR_STR "IntelAnims",					".ani",						CF_TYPE_DATA	},
+	{ CF_TYPE_SHADERS,				"Data" DIR_SEPARATOR_STR "Shaders",			".glsl",		CF_TYPE_DATA	},
 };
 
 
@@ -312,8 +315,8 @@ CFILE Cfile_list[MAX_CFILE_BLOCKS];
 // Function prototypes for internally-called functions
 //
 int cfget_cfile_block();
-CFILE *cf_open_fill_cfblock(FILE * fp, int type);
-CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size);
+CFILE *cf_open_fill_cfblock(SDL_IOStream * fp, int type);
+CFILE *cf_open_packed_cfblock(SDL_IOStream *fp, int type, int offset, int size);
 void cf_chksum_long_init();
 
 void cfile_close()
@@ -483,13 +486,7 @@ void cf_delete( const char *filename, int dir_type )
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
-	FILE *fp = fopen(longname, "rb");
-	if (fp) {
-		// delete the file
-		fclose(fp);
-		unlink(longname);
-	}
-
+	SDL_RemovePath(longname);
 }
 
 
@@ -515,74 +512,37 @@ int cf_exist( const char *filename, int dir_type )
 
 	cf_create_default_path_string( longname, dir_type, filename );
 
-	FILE *fp = fopen(longname, "rb");
-	if (fp) {
-		fclose(fp);
-		return 1;
-	}
-
-	return 0;
+	return SDL_GetPathInfo(longname, nullptr) ? 1 : 0;
 }
 
 int cf_rename(const char *old_name, const char *name, int dir_type)
 {
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
-	int ret_code;
 	char old_longname[MAX_PATH_LEN];
 	char new_longname[MAX_PATH_LEN];
 	
 	cf_create_default_path_string( old_longname, dir_type, old_name );
 	cf_create_default_path_string( new_longname, dir_type, name );
 
-	ret_code = rename(old_longname, new_longname );		
-	if(ret_code != 0){
-		switch(errno){
-		case EACCES :
-			return CF_RENAME_FAIL_ACCESS;
-		case ENOENT :
-		default:
-			return CF_RENAME_FAIL_EXIST;
-		}
-	}
+	bool val = SDL_RenamePath(old_longname, new_longname);
 
-	return CF_RENAME_SUCCESS;
-	
-
+	return val ? CF_RENAME_SUCCESS : CF_RENAME_FAIL_ACCESS;
 }
 
 // Creates the directory path if it doesn't exist. Even creates all its
 // parent paths.
 void cf_create_directory( int dir_type )
 {
-	int num_dirs = 0;
-	int dir_tree[CF_MAX_PATH_TYPES];
 	char longname[MAX_PATH_LEN];
 
 	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
 
-	int current_dir = dir_type;
+	cf_create_default_path_string(longname, dir_type, nullptr);
 
-	do {
-		SDL_assert( num_dirs < CF_MAX_PATH_TYPES );		// Invalid Pathtypes data?
-
-		dir_tree[num_dirs++] = current_dir;
-		current_dir = Pathtypes[current_dir].parent_index;
-
-	} while( current_dir != CF_TYPE_ROOT );
-
-	
-	int i;
-
-	for (i=num_dirs-1; i>=0; i-- )	{
-		cf_create_default_path_string( longname, dir_tree[i], NULL );
-
-		if ( mkdir(longname, 0700) == 0 )	{
-			mprintf(( "CFILE: Created new directory '%s'\n", longname ));
-		}
+	if (SDL_CreateDirectory(longname)) {
+//		mprintf(( "CFILE: Created new directory '%s'\n", longname ));
 	}
-
-
 }
 
 
@@ -591,7 +551,6 @@ void cf_create_directory( int dir_type )
 // parameters:  *filepath ==> name of file to open (may be path+name)
 //              *mode     ==> specifies how file should be opened (eg "rb" for read binary)
 //                            passing NULL to mode deletes the file if it exists and returns NULL
-//               type     ==> CFILE_NORMAL
 //					  dir_type	=>	override extension check, value is one of CF_TYPE* #defines
 //
 //               NOTE: type parameter is an optional parameter.  The default value is CFILE_NORMAL
@@ -601,9 +560,9 @@ void cf_create_directory( int dir_type )
 //					error   ==> NULL
 //
 
-CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, bool localize)
+CFILE *cfopen(const char *file_path, const char *mode, int dir_type, bool localize)
 {
-	char longname[MAX_PATH_LEN];
+	char longname[MAX_PATH_LEN] = { 0 };
 
 //	nprintf(("CFILE", "CFILE -- trying to open %s\n", file_path ));
 // #if !defined(MULTIPLAYER_BETA_BUILD) && !defined(FS2_DEMO)
@@ -625,7 +584,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 #endif
 
 		// For write-only files, require a full path or a path type
-		if ( strpbrk(file_path, toks) ) {
+		if ( SDL_strpbrk(file_path, toks) ) {
 			// Full path given?
 			SDL_strlcpy(longname, file_path, SDL_arraysize(longname));
 		} else {
@@ -640,7 +599,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 
 		// JOHN: TODO, you should create the path if it doesn't exist.
 				
-		FILE *fp = fopen(longname, mode);
+		auto fp = SDL_IOFromFile(longname, mode);
 		if (fp)	{
 			return cf_open_fill_cfblock(fp, dir_type);
  		}
@@ -651,14 +610,19 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 	//================================================
 	// Search for file on disk, on cdrom, or in a packfile
 
-	int offset, size;
-	char copy_file_path[MAX_PATH_LEN];  // FIX change in memory from cf_find_file_location
-	SDL_strlcpy(copy_file_path, file_path, SDL_arraysize(copy_file_path));
+	int offset = 0, size = 0;
 
-
-	if ( cf_find_file_location( copy_file_path, dir_type, longname, &size, &offset, localize ) )	{
+	if ( cf_find_file_location(file_path, dir_type, longname, &size, &offset, localize) ) {
 		// Fount it, now create a cfile out of it
-		FILE *fp = fopen( longname, "rb" );
+		SDL_IOStream *fp = nullptr;
+
+		// check if special embed VP or use something on filesystem
+		if ( offset && !SDL_strcmp(longname, "embed") ) {
+			fp = SDL_IOFromConstMem(embedvp::data, embedvp::size);
+		} else {
+			fp = SDL_IOFromFile(longname, "rb");
+			SDL_assert(fp != nullptr);
+		}
 
 		if ( fp )	{
 			if ( offset )	{
@@ -674,7 +638,6 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 	return NULL;
 }
 
-
 // ------------------------------------------------------------------------
 // ctmpfile() 
 //
@@ -686,11 +649,14 @@ CFILE *cfopen(const char *file_path, const char *mode, int type, int dir_type, b
 //
 CFILE *ctmpfile()
 {
+	// FIXME: this doesn't appear to be used, but revisit it later
+#if 0
 	FILE	*fp;
 	fp = tmpfile();
 	if ( fp )
 		return cf_open_fill_cfblock(fp, 0);
 	else
+#endif
 		return NULL;
 }
 
@@ -725,28 +691,33 @@ int cfget_cfile_block()
 
 // cfclose() closes the file
 //
-// returns:   success ==> 0
-//				  failure ==> EOF
+// returns:   success ==> true
+//			  failure ==> false
 //
-int cfclose( CFILE * cfile )
+bool cfclose( CFILE * cfile )
 {
-	int result;
+	bool result;
 
 	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	result = 0;
+	result = true;
 
-	if (cb->fp != NULL) {
-		SDL_assert(cb->fp != NULL);
-		result = fclose(cb->fp);
+	if (cb->fp != nullptr) {
+		result = SDL_CloseIO(cb->fp);
 	} else {
+		printf("doing nothing!\n");
 		// VP  do nothing
 	}
 
+	cb->lib_offset = 0;
+	cb->raw_position = 0;
+	cb->size = 0;
+
 	cb->type = CFILE_BLOCK_UNUSED;
+	cb->fp = nullptr;
 	return result;
 }
 
@@ -759,7 +730,7 @@ int cfclose( CFILE * cfile )
 // returns:   success ==> ptr to CFILE structure.  
 //            error   ==> NULL
 //
-CFILE *cf_open_fill_cfblock(FILE *fp, int type)
+CFILE *cf_open_fill_cfblock(SDL_IOStream *fp, int type)
 {
 	int cfile_block_index;
 
@@ -775,8 +746,8 @@ CFILE *cf_open_fill_cfblock(FILE *fp, int type)
 		cfp->version = 0;
 		cfbp->fp = fp;
 		cfbp->dir_type = type;
-		
-		cf_init_lowlevel_read_code(cfp,0,filelength(fileno(fp)) );
+
+		cf_init_lowlevel_read_code(cfp, 0, SDL_GetIOSize(fp));
 
 		return cfp;
 	}
@@ -789,7 +760,7 @@ CFILE *cf_open_fill_cfblock(FILE *fp, int type)
 // returns:   success ==> ptr to CFILE structure.  
 //            error   ==> NULL
 //
-CFILE *cf_open_packed_cfblock(FILE *fp, int type, int offset, int size)
+CFILE *cf_open_packed_cfblock(SDL_IOStream *fp, int type, int offset, int size)
 {
 	// Found it in a pack file
 	int cfile_block_index;
@@ -986,6 +957,32 @@ void cfread_string_len(char *buf,int n, CFILE *file)
 	buf[len] = 0;
 }
 
+void *cfread_file(CFILE *file)
+{
+	if ( !file ) {
+		return nullptr;
+	}
+
+	auto size = cfilelength(file);
+
+	if (size < 1) {
+		return nullptr;
+	}
+
+	auto content = reinterpret_cast<uint8_t *>(malloc(size+1));
+
+	if ( !content ) {
+		return nullptr;
+	}
+
+	auto rc = cfread(content, 1, size, file);
+	SDL_assert(rc == size);
+
+	content[rc] = '\0';
+
+	return content;
+}
+
 // equivalent write functions of above read functions follow
 
 int cfwrite_float(float f, CFILE *file)
@@ -1087,7 +1084,7 @@ int cfilelength( CFILE * cfile )
 	SDL_assert(cb->fp != NULL);
 
 	// cb->size gets set at cfopen
-	return cb->size;
+	return static_cast<int>(cb->size);
 }
 
 // cfwrite() writes to the file
@@ -1110,14 +1107,14 @@ int cfwrite(const void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 
 	SDL_assert(cb->fp != NULL);
 	SDL_assert(cb->lib_offset == 0 );
-	auto bytes_written = fwrite(buf, 1, size, cb->fp);
+	auto bytes_written = SDL_WriteIO(cb->fp, buf, size);
 
 	if (bytes_written > 0) {
 		cb->raw_position += bytes_written;
 	}
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-		int tmp_offset = ftell(cb->fp) - cb->lib_offset;
+		int tmp_offset = SDL_TellIO(cb->fp) - cb->lib_offset;
 		SDL_assert(tmp_offset == cb->raw_position);
 	#endif
 
@@ -1127,22 +1124,21 @@ int cfwrite(const void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 
 // cfputc() writes a character to a file
 //
-// returns:   success ==> returns character written
-//				  error   ==> EOF
+// returns:   success ==> true
+//			  error   ==> false
 //
-int cfputc(int c, CFILE *cfile)
+bool cfputc(int c, CFILE *cfile)
 {
-	int result = 0;
-
 	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
 	SDL_assert(cb->fp != NULL);
-	result = fputc(c, cb->fp);
 
-	return result;	
+	const auto ch = static_cast<uint8_t>(c);
+
+	return SDL_WriteU8(cb->fp, ch);
 }
 
 
@@ -1218,17 +1214,19 @@ int cfputs(const char *str, CFILE *cfile)
 	SDL_assert(cfile != NULL);
 	SDL_assert(str != NULL);
 
+	if ( !SDL_strlen(str) ) {
+		return -1;
+	}
+
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int result = 0;
-
 	// cfputs() not supported for memory-mapped files
 	SDL_assert(cb->fp != NULL);
-	result = fputs(str, cb->fp);
+	auto bytes = SDL_IOprintf(cb->fp, "%s", str);
 
-	return result;	
+	return bytes ? static_cast<int>(bytes) : -1;
 }
 
 
@@ -1362,7 +1360,7 @@ int cf_chksum_short(const char *filename, ushort *chksum, int max_size, int cf_t
 	*chksum = 0;
 
 	// attempt to open the file
-	cfile = cfopen(filename,"rt",CFILE_NORMAL,cf_type);
+	cfile = cfopen(filename,"rt",cf_type);
 	if(cfile == NULL){		
 		return 0;
 	}
@@ -1383,16 +1381,15 @@ int cf_chksum_short(const char *filename, ushort *chksum, int max_size, int cf_t
 int cf_chksum_short(CFILE *file, ushort *chksum, int max_size)
 {
 	int ret_code;
-	int start_pos;
-	
+
 	// Returns current position of file.
-	start_pos = cftell(file);
+	auto start_pos = cftell(file);
 	if(start_pos == -1){
 		return 0;
 	}
 	
 	// move to the beginning of the file
-	if(cfseek(file, 0, CF_SEEK_SET)){
+	if ( !cfseek(file, 0, CF_SEEK_SET) ) {
 		return 0;
 	}
 	ret_code = cf_chksum_do(file, chksum, NULL, max_size);
@@ -1412,7 +1409,7 @@ int cf_chksum_long(const char *filename, uint *chksum, int max_size, int cf_type
 	*chksum = 0;
 
 	// attempt to open the file
-	cfile = cfopen(filename,"rt",CFILE_NORMAL,cf_type);
+	cfile = cfopen(filename,"rt",cf_type);
 	if(cfile == NULL){		
 		return 0;
 	}
@@ -1433,16 +1430,15 @@ int cf_chksum_long(const char *filename, uint *chksum, int max_size, int cf_type
 int cf_chksum_long(CFILE *file, uint *chksum, int max_size)
 {
 	int ret_code;
-	int start_pos;
-	
+
 	// Returns current position of file.
-	start_pos = cftell(file);
+	auto start_pos = cftell(file);
 	if(start_pos == -1){
 		return 0;
 	}
 	
 	// move to the beginning of the file
-	if(cfseek(file, 0, CF_SEEK_SET)){
+	if ( !cfseek(file, 0, CF_SEEK_SET) ) {
 		return 0;
 	}
 	ret_code = cf_chksum_do(file, NULL, chksum, max_size);
@@ -1455,9 +1451,9 @@ int cf_chksum_long(CFILE *file, uint *chksum, int max_size)
 
 // Flush the open file buffer
 //
-// exit: 0 - success
-//			1 - failure
-int cflush(CFILE *cfile)
+// returns:   success ==> true
+//			  failure ==> false
+bool cflush(CFILE *cfile)
 {
 	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
@@ -1465,7 +1461,22 @@ int cflush(CFILE *cfile)
 	cb = &Cfile_block_list[cfile->id];	
 
 	SDL_assert(cb->fp != NULL);
-	return fflush(cb->fp);
+	return SDL_FlushIO(cb->fp);
+}
+
+void *cf_load_file(const char *file_path, const char *mode, int dir_type)
+{
+	auto file = cfopen(file_path, mode, dir_type);
+
+	if ( !file ) {
+		return nullptr;
+	}
+
+	auto content = cfread_file(file);
+
+	cfclose(file);
+
+	return content;
 }
 
 // fill in Cfile_root_dir[] and Cfile_user_dir[]

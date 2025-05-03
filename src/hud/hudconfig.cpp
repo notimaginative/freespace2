@@ -1975,7 +1975,7 @@ void hud_config_as_player()
 void hud_config_color_save(const char *name)
 {
 	int idx;
-	CFILE *out = cfopen(name, "wt", CFILE_NORMAL, CF_TYPE_PLAYERS);
+	CFILE *out = cfopen(name, "wt", CF_TYPE_PLAYERS);
 	char vals[255] = "";
 
 	// bad

@@ -1,0 +1,12 @@
+
+#include "embedvp.h"
+
+namespace embedvp {
+
+const uint8_t data[] = {
+ @EMBED_HEX@
+};
+
+const size_t size = sizeof(data);
+
+}

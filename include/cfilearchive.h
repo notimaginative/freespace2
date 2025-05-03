@@ -60,11 +60,11 @@
 typedef struct Cfile_block {
 	int		type;				// CFILE_BLOCK_UNUSED, CFILE_BLOCK_USED
 	int		dir_type;		// directory location
-	FILE		*fp;				// File pointer if opening an individual file
-	int		lib_offset;
-	int		raw_position;
-	int		size;				// for packed files
-	
+	SDL_IOStream	*fp;				// Pointer to file/memory io stream
+	int64_t		lib_offset;
+	int64_t		raw_position;
+	int64_t		size;				// for packed files
+
 } Cfile_block;
 
 #define MAX_CFILE_BLOCKS	64
@@ -72,7 +72,7 @@ extern Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 extern CFILE Cfile_list[MAX_CFILE_BLOCKS];
 
 // Called once to setup the low-level reading code.
-void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size );
+void cf_init_lowlevel_read_code(CFILE * cfile, int64_t offset, int64_t size);
 
 #endif
 

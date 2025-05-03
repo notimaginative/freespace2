@@ -509,7 +509,7 @@ void palette_write_cached1( const char *name )
 	
 //	mprintf(( "Writing palette cache file '%s'\n", new_name ));
 
-	fp = cfopen( new_name, "wb", CFILE_NORMAL, CF_TYPE_CACHE );
+	fp = cfopen( new_name, "wb", CF_TYPE_CACHE );
 	if ( !fp ) return;
 	
 	cfwrite_uint( PAL_ID, fp );
@@ -554,7 +554,7 @@ int palette_read_cached( const char *name )
 
 //	mprintf(( "Reading palette '%s'\n", name ));
 	
-	fp = cfopen( new_name, "rb", CFILE_NORMAL, CF_TYPE_CACHE );
+	fp = cfopen( new_name, "rb", CF_TYPE_CACHE );
 
 	// Couldn't find file
 	if ( !fp ) {

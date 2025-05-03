@@ -421,7 +421,7 @@ void gr_opengl_print_screen(const char *filename)
 		return;
 	}
 
-	CFILE *f = cfopen(tmp, "wb", CFILE_NORMAL, CF_TYPE_ROOT);
+	CFILE *f = cfopen(tmp, "wb", CF_TYPE_ROOT);
 
 	if (f == NULL) {
 		free(buf);

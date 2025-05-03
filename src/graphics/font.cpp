@@ -564,7 +564,7 @@ int gr_create_font(const char * typeface)
 	
 	bool localize = true;
 
-	fp = cfopen( typeface, "rb", CFILE_NORMAL, CF_TYPE_ANY, localize );
+	fp = cfopen( typeface, "rb", CF_TYPE_ANY, localize );
 	if ( fp == NULL ) return -1;
 
 	SDL_strlcpy( fnt->filename, typeface, MAX_FILENAME_LEN );

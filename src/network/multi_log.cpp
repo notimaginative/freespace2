@@ -153,7 +153,7 @@ void multi_log_init()
 	}
 
 	// attempt to open the file
-	Multi_log_out = cfopen(lname, "wt", CFILE_NORMAL, CF_TYPE_DATA);
+	Multi_log_out = cfopen(lname, "wt", CF_TYPE_DATA);
 
 	// if we successfully opened the file, write the header
 	if(Multi_log_out != NULL){

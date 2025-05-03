@@ -1267,7 +1267,7 @@ int read_model_file(polymodel * pm, const char *filename, int n_subsystems, mode
 
 		base_filename(filename, bname, SDL_arraysize(bname));
 		SDL_snprintf(debug_name, SDL_arraysize(debug_name), "%s.subsystems", bname);
-		ss_fp = cfopen(debug_name, "wb", CFILE_NORMAL, CF_TYPE_TABLES );
+		ss_fp = cfopen(debug_name, "wb", CF_TYPE_TABLES );
 		if ( !ss_fp )	{
 			mprintf(( "Can't open debug file for writing subsystems for %s\n", filename));
 		} else {

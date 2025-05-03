@@ -93,7 +93,7 @@
 
 // Called once to setup the low-level reading code.
 
-void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
+void cf_init_lowlevel_read_code(CFILE * cfile, int64_t offset, int64_t size)
 {
 	SDL_assert(cfile != NULL);
 
@@ -107,11 +107,11 @@ void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
 
 	if ( cb->fp )	{
 		if ( cb->lib_offset )	{
-			fseek( cb->fp, cb->lib_offset, SEEK_SET );
+			SDL_SeekIO(cb->fp, cb->lib_offset, SDL_IO_SEEK_SET);
 		}
 
 		#if defined(CHECK_POSITION) && !defined(NDEBUG)
-			auto raw_position = ftell(cb->fp) - cb->lib_offset;
+			auto raw_position = SDL_TellIO(cb->fp) - cb->lib_offset;
 			SDL_assert(raw_position == cb->raw_position);
 		#endif
 	}
@@ -125,7 +125,7 @@ void cf_init_lowlevel_read_code( CFILE * cfile, int offset, int size )
 // past the end of the file. It returns 0 if the current position is not end of file.
 // There is no error return.
 
-int cfeof(CFILE *cfile)
+bool cfeof(CFILE *cfile)
 {
 	SDL_assert(cfile != NULL);
 
@@ -133,22 +133,14 @@ int cfeof(CFILE *cfile)
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	int result = 0;
-
 	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-	auto raw_position = ftell(cb->fp) - cb->lib_offset;
+	auto raw_position = SDL_TellIO(cb->fp) - cb->lib_offset;
 	SDL_assert(raw_position == cb->raw_position);
 	#endif
 		
-	if (cb->raw_position >= cb->size ) {
-		result = 1;
-	} else {
-		result = 0;
-	}
-
-	return result;	
+	return (cb->raw_position >= cb->size);
 }
 
 // cftell() returns offset into file
@@ -166,36 +158,36 @@ int cftell( CFILE * cfile )
 	SDL_assert(cb->fp != NULL);
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-	auto raw_position = ftell(cb->fp) - cb->lib_offset;
+	auto raw_position = SDL_TellIO(cb->fp) - cb->lib_offset;
 	SDL_assert(raw_position == cb->raw_position);
 	#endif
 
-	return cb->raw_position;
+	return static_cast<int>(cb->raw_position);
 }
 
 
 // cfseek() moves the file pointer
 //
-// returns:   success ==> 0
-//            error   ==> non-zero
+// returns:   success ==> true
+//            error   ==> false
 //
-int cfseek( CFILE *cfile, int offset, int where )
+bool cfseek( CFILE *cfile, int64_t offset, int where )
 {
 
 	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
-	cb = &Cfile_block_list[cfile->id];	
+	cb = &Cfile_block_list[cfile->id];
 
 	SDL_assert( cb->fp != NULL );
-	
-	int goal_position;
+
+	int64_t goal_position;
 
 	switch( where )	{
 	case CF_SEEK_SET:
 		goal_position = offset+cb->lib_offset;
 		break;
-	case CF_SEEK_CUR:	
+	case CF_SEEK_CUR:
 		{
 			goal_position = cb->raw_position+offset+cb->lib_offset;
 		}
@@ -205,18 +197,21 @@ int cfseek( CFILE *cfile, int offset, int where )
 		break;
 	default:
 		Int3();
-		return 1;
-	}	
+		return false;
+	}
 
-	int result = fseek(cb->fp, goal_position, SEEK_SET );
-	cb->raw_position = goal_position - cb->lib_offset;
+	auto result = SDL_SeekIO(cb->fp, goal_position, SDL_IO_SEEK_SET);
+
+	if (result != -1) {
+		cb->raw_position = goal_position - cb->lib_offset;
+	}
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-		auto tmp_offset = ftell(cb->fp) - cb->lib_offset;
+		auto tmp_offset = SDL_TellIO(cb->fp) - cb->lib_offset;
 		SDL_assert(tmp_offset==cb->raw_position);
 	#endif
 
-	return result;	
+	return (result != -1);
 }
 
 
@@ -250,17 +245,17 @@ int cfread(void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 		//mprintf(( "CFILE: EOF encountered in file\n" ));
 	}
 
-	auto bytes_read = fread(buf, 1, size, cb->fp);
+	auto bytes_read = SDL_ReadIO(cb->fp, buf, size);
+
 	if ( bytes_read > 0 )	{
 		cb->raw_position += bytes_read;
 	}		
 
 	#if defined(CHECK_POSITION) && !defined(NDEBUG)
-		auto tmp_offset = ftell(cb->fp) - cb->lib_offset;
+		auto tmp_offset = SDL_TellIO(cb->fp) - cb->lib_offset;
 		SDL_assert(tmp_offset==cb->raw_position);
 	#endif
 
 	return static_cast<int>(bytes_read / elsize);
 
 }
-

@@ -12,6 +12,7 @@
 #include "grinternal.h"
 #include "grgles2.h"
 #include "grgles2internal.h"
+#include "cfile.h"
 
 
 static GLuint tex_prog = 0;
@@ -22,160 +23,6 @@ static GLuint aabitmap_prog = 0;
 static GLuint color_prog = 0;
 static GLuint fog_color_prog = 0;
 static GLuint window_prog = 0;
-
-
-static const char v_tex_src[] =
-	"uniform mat4 vOrtho;\n"
-	"attribute vec4 vPosition;\n"
-	"attribute vec4 vColor;\n"
-	"attribute vec2 vTexCoord;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vOrtho * vPosition;\n"
-	"	colorVar = vColor;\n"
-	"	texCoordVar = vTexCoord;\n"
-	"}\n";
-
-static const char v_fog_tex_src[] =
-	"uniform mat4 vOrtho;\n"
-	"attribute vec4 vPosition;\n"
-	"attribute vec4 vColor;\n"
-	"attribute vec4 vSecColor;\n"
-	"attribute vec2 vTexCoord;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec4 secColorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vOrtho * vPosition;\n"
-	"	colorVar = vColor;\n"
-	"	secColorVar = vSecColor;\n"
-	"	texCoordVar = vTexCoord;\n"
-	"}\n";
-
-static const char v_color_src[] =
-	"uniform mat4 vOrtho;\n"
-	"attribute vec4 vPosition;\n"
-	"attribute vec4 vColor;\n"
-	"varying vec4 colorVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vOrtho * vPosition;\n"
-	"	colorVar = vColor;\n"
-	"}\n";
-
-static const char v_fog_color_src[] =
-	"uniform mat4 vOrtho;\n"
-	"attribute vec4 vPosition;\n"
-	"attribute vec4 vColor;\n"
-	"attribute vec4 vSecColor;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec4 secColorVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vOrtho * vPosition;\n"
-	"	colorVar = vColor;\n"
-	"	secColorVar = vSecColor;\n"
-	"}\n";
-
-static const char v_window_src[] =
-	"uniform mat4 vOrtho;\n"
-	"attribute vec4 vPosition;\n"
-	"attribute vec2 vTexCoord;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vOrtho * vPosition;\n"
-	"	texCoordVar = vTexCoord;\n"
-	"}\n";
-
-static const char f_tex_src[] =
-	"precision mediump float;\n"
-	"uniform sampler2D texture;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_FragColor = colorVar * texture2D(texture, texCoordVar);\n"
-	"}\n";
-
-static const char f_fog_tex_src[] =
-	"precision mediump float;\n"
-	"uniform sampler2D texture;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec4 secColorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 base_color = colorVar * texture2D(texture, texCoordVar);\n"
-	"	gl_FragColor = vec4(mix(secColorVar.rgb, base_color.rgb, 1.0 - secColorVar.a), base_color.a);\n"
-	"}\n";
-
-static const char f_nondark_src[] =
-	"precision mediump float;\n"
-	"uniform sampler2D texture;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 tex_color = texture2D(texture, texCoordVar);\n"
-	"	vec4 base_color = colorVar * vec4(tex_color.rgb, 1.0);\n"
-	"	base_color.rgb += tex_color.rgb * tex_color.a;\n"
-	" 	gl_FragColor = base_color;\n"
-	"}\n";
-
-static const char f_fog_nondark_src[] =
-	"precision mediump float;\n"
-	"uniform sampler2D texture;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec4 secColorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 tex_color = texture2D(texture, texCoordVar);\n"
-	"	vec4 base_color = colorVar * vec4(tex_color.rgb, 1.0);\n"
-	"	base_color.rgb += tex_color.rgb * tex_color.a;\n"
-	"	gl_FragColor = vec4(mix(secColorVar.rgb, base_color.rgb, 1.0 - secColorVar.a), base_color.a);\n"
-	"}\n";
-
-static const char f_aabitmap_src[] =
-	"precision mediump float;\n"
-	"uniform sampler2D texture;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	float alpha1 = texture2D(texture, texCoordVar).a;\n"
-	"	gl_FragColor = vec4(colorVar.rgb, mix(0.0, colorVar.a, alpha1));\n"
-	"}\n";
-
-static const char f_color_src[] =
-	"precision mediump float;\n"
-	"varying vec4 colorVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_FragColor = colorVar;\n"
-	"}\n";
-
-static const char f_fog_color_src[] =
-	"precision mediump float;\n"
-	"varying vec4 colorVar;\n"
-	"varying vec4 secColorVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_FragColor = vec4(mix(secColorVar.rgb, colorVar.rgb, 1.0 - secColorVar.a), colorVar.a);\n"
-	"}\n";
-
-static const char f_window_src[] =
-	"precision mediump float;\n"
-	"uniform sampler2D texture;\n"
-	"varying vec2 texCoordVar;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_FragColor = texture2D(texture, texCoordVar);\n"
-	"}\n";
 
 
 static GLuint gles2_create_shader(const char *src, GLenum type)
@@ -217,6 +64,37 @@ static GLuint gles2_create_shader(const char *src, GLenum type)
 	return sdr;
 }
 
+static GLuint gles2_load_shader(const char *name)
+{
+	GLenum shader_type = 0;
+
+	if (SDL_strstr(name, "-vs")) {
+		shader_type = GL_VERTEX_SHADER;
+	} else if (SDL_strstr(name, "-fs")) {
+		shader_type = GL_FRAGMENT_SHADER;
+	}
+
+	if (shader_type == 0) {
+		throw "Unknown shader type!";
+	}
+
+	auto shader_source = reinterpret_cast<char *>(cf_load_file(name, "rt", CF_TYPE_SHADERS));
+
+	if ( !shader_source ) {
+		throw "Unable to read shader file!";
+	}
+
+	auto rval = gles2_create_shader(shader_source, shader_type);
+
+	free(shader_source);
+
+	if ( !rval ) {
+		throw "Unable to create shader!";
+	}
+
+	return rval;
+}
+
 static GLuint gles2_create_program(GLuint vert, GLuint frag)
 {
 	GLuint program;
@@ -225,7 +103,7 @@ static GLuint gles2_create_program(GLuint vert, GLuint frag)
 	program = pglCreateProgram();
 
 	if ( !program ) {
-		return 0;
+		throw "Shader program creation failed!";
 	}
 
 	pglAttachShader(program, vert);
@@ -256,7 +134,7 @@ static GLuint gles2_create_program(GLuint vert, GLuint frag)
 
 		pglDeleteProgram(program);
 
-		return 0;
+		throw "Shader program linking failed!";
 	}
 
 	return program;
@@ -333,29 +211,36 @@ void gles2_shader_update()
 
 int gles2_shader_init()
 {
-	GLuint v_tex = gles2_create_shader(v_tex_src, GL_VERTEX_SHADER);
-	GLuint v_fog_tex = gles2_create_shader(v_fog_tex_src, GL_VERTEX_SHADER);
-	GLuint v_color = gles2_create_shader(v_color_src, GL_VERTEX_SHADER);
-	GLuint v_fog_color = gles2_create_shader(v_fog_color_src, GL_VERTEX_SHADER);
-	GLuint v_window = gles2_create_shader(v_window_src, GL_VERTEX_SHADER);
+	try {
+		GLuint v_tex = gles2_load_shader("tex-vs.glsl");
+		GLuint v_fog_tex = gles2_load_shader("tex_fog-vs.glsl");
+		GLuint v_color = gles2_load_shader("color-vs.glsl");
+		GLuint v_fog_color = gles2_load_shader("color_fog-vs.glsl");
+		GLuint v_window = gles2_load_shader("window-vs.glsl");
 
-	GLuint f_aabitmap = gles2_create_shader(f_aabitmap_src, GL_FRAGMENT_SHADER);
-	GLuint f_tex = gles2_create_shader(f_tex_src, GL_FRAGMENT_SHADER);
-	GLuint f_fog_tex = gles2_create_shader(f_fog_tex_src, GL_FRAGMENT_SHADER);
-	GLuint f_nondark = gles2_create_shader(f_nondark_src, GL_FRAGMENT_SHADER);
-	GLuint f_fog_nondark = gles2_create_shader(f_fog_nondark_src, GL_FRAGMENT_SHADER);
-	GLuint f_color = gles2_create_shader(f_color_src, GL_FRAGMENT_SHADER);
-	GLuint f_fog_color = gles2_create_shader(f_fog_color_src, GL_FRAGMENT_SHADER);
-	GLuint f_window = gles2_create_shader(f_window_src, GL_FRAGMENT_SHADER);
+		GLuint f_aabitmap = gles2_load_shader("aabitmap-fs.glsl");
+		GLuint f_tex = gles2_load_shader("tex-fs.glsl");
+		GLuint f_fog_tex = gles2_load_shader("tex_fog-fs.glsl");
+		GLuint f_nondark = gles2_load_shader("nondark-fs.glsl");
+		GLuint f_fog_nondark = gles2_load_shader("nondark_fog-fs.glsl");
+		GLuint f_color = gles2_load_shader("color-fs.glsl");
+		GLuint f_fog_color = gles2_load_shader("color_fog-fs.glsl");
+		GLuint f_window = gles2_load_shader("window-fs.glsl");
 
-	aabitmap_prog = gles2_create_program(v_tex, f_aabitmap);
-	tex_prog = gles2_create_program(v_tex, f_tex);
-	fog_tex_prog = gles2_create_program(v_fog_tex, f_fog_tex);
-	nondark_prog = gles2_create_program(v_tex, f_nondark);
-	fog_nondark_prog = gles2_create_program(v_fog_tex, f_fog_nondark);
-	color_prog = gles2_create_program(v_color, f_color);
-	fog_color_prog = gles2_create_program(v_fog_color, f_fog_color);
-	window_prog = gles2_create_program(v_window, f_window);
+		aabitmap_prog = gles2_create_program(v_tex, f_aabitmap);
+		tex_prog = gles2_create_program(v_tex, f_tex);
+		fog_tex_prog = gles2_create_program(v_fog_tex, f_fog_tex);
+		nondark_prog = gles2_create_program(v_tex, f_nondark);
+		fog_nondark_prog = gles2_create_program(v_fog_tex, f_fog_nondark);
+		color_prog = gles2_create_program(v_color, f_color);
+		fog_color_prog = gles2_create_program(v_fog_color, f_fog_color);
+		window_prog = gles2_create_program(v_window, f_window);
+	} catch (const char *err) {
+		nprintf(("OpenGL", "Shader ERROR: %s\n", err));
+		gles2_shader_cleanup();
+		return 0;
+	}
+
 
 
 	// set up orthographic projection var

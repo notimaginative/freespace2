@@ -566,14 +566,11 @@ OPEN_DONE:
 bool WaveFile::Cue()
 {
 	bool fRtn = true;    // assume success
-	int rval = -1;
 
 	m_total_uncompressed_bytes_read = 0;
 	m_max_uncompressed_bytes_to_read = AS_HIGHEST_MAX;
 
-	rval = cfseek(cfp, m_data_offset, CF_SEEK_SET);
-
-	if (rval) {
+	if ( !cfseek(cfp, m_data_offset, CF_SEEK_SET) ) {
 		fRtn = false;
 	}
 

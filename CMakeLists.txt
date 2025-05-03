@@ -217,6 +217,8 @@ include_directories(
 add_subdirectory(src)
 add_subdirectory(include)
 
+add_subdirectory(tools)	# tools needed for building
+
 
 # ##############################################################################
 #
@@ -244,10 +246,12 @@ add_library(code
   ${code_HEADERS}
   ${platform_SOURCE}
   ${platform_HEADERS}
+  ${ext_HEADERS}
 )
 
 target_link_libraries(
   code
+  embedvp
   SDL3::SDL3
   OpenAL::OpenAL
   ${LIBWEBSOCKETS_LIBRARIES}

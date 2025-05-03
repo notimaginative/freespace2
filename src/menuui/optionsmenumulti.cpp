@@ -1503,7 +1503,7 @@ void options_multi_protocol_load_ip_file()
 	Om_num_ips = 0;
 
 	// attempt to open the ip list file
-	file = cfopen(IP_CONFIG_FNAME,"rt",CFILE_NORMAL,CF_TYPE_DATA);	
+	file = cfopen(IP_CONFIG_FNAME,"rt",CF_TYPE_DATA);
 	if(file == NULL){
 		nprintf(("Network","Error loading tcp.cfg file!\n"));
 		return;
@@ -1546,7 +1546,7 @@ void options_multi_protocol_save_ip_file()
 	CFILE *file = NULL;
 
 	// attempt to open the ip list file for writing
-	file = cfopen(IP_CONFIG_FNAME,"wt",CFILE_NORMAL,CF_TYPE_DATA );
+	file = cfopen(IP_CONFIG_FNAME,"wt",CF_TYPE_DATA );
 	if(file == NULL){
 		nprintf(("Network","Error loading tcp.cfg file\n"));
 		return;

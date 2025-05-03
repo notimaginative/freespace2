@@ -156,6 +156,7 @@
 #include "cmdline.h"
 #include "gamepad.h"
 #include "version.h"
+#include "bmpman.h"
 
 
 // ----------------------------------------------------------------------------------------------------
@@ -245,17 +246,15 @@ void os_cleanup()
 
 void os_set_icon()
 {
-	#include "app_icon.h"
-
 	if ( !Os_window ) {
 		return;
 	}
 
-	SDL_Surface *icon = SDL_CreateSurfaceFrom(app_icon.width,
-											  app_icon.height,
-											  SDL_PIXELFORMAT_RGBA32,
-											  (void*)app_icon.pixel_data,
-											  app_icon.bytes_per_pixel*app_icon.width);
+	auto icon = bm_image_to_surface("app_icon.png", CF_TYPE_ROOT);
+
+	if ( !icon ) {
+		return;
+	}
 
 	SDL_SetWindowIcon(Os_window, icon);
 

@@ -10,9 +10,11 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/anim/animplay.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/anim/packunpack.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/asteroid/asteroid.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/bmpman/bm_image.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/bmpman/bmpman.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cfile/cfile.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cfile/cfilearchive.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/cfile/cfileio.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cfile/cfilelist.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cfile/cfilesystem.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cmdline/cmdline.cpp

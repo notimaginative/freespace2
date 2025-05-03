@@ -1153,7 +1153,7 @@ void read_file_text(const char *filename, int mode)
 		throw PARSE_ERROR_EMPTY_FILENAME;
 
 	SDL_strlcpy(Current_filename, filename, SDL_arraysize(Current_filename));
-	mf = cfopen(filename, "rb", CFILE_NORMAL, mode);
+	mf = cfopen(filename, "rb", mode);
 	if (mf == NULL) {
 		nprintf(("Error", "Wokka!  Error opening mission.txt!\n"));
 		throw PARSE_ERROR_FILE_NOT_FOUND;

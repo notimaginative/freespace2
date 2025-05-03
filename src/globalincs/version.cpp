@@ -71,7 +71,7 @@ int version_compare(const char *filename, int *u_major, int *u_minor, int *u_bui
 	int latest_major, latest_minor, latest_build;
 
 	// open file and try backup, if needed
-	CFILE *f = cfopen(filename, "rt", CFILE_NORMAL, CF_TYPE_DATA);
+	CFILE *f = cfopen(filename, "rt", CF_TYPE_DATA);
 	if (f == NULL) {
 		return -1;		
 	}

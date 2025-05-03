@@ -275,7 +275,7 @@ void multi_options_read_config()
 	char *tok = NULL;
 
 	// read in the config file
-	in = cfopen(MULTI_CFG_FILE, "rt", CFILE_NORMAL, CF_TYPE_DATA);
+	in = cfopen(MULTI_CFG_FILE, "rt", CF_TYPE_DATA);
 	
 	// if we failed to open the config file, user default settings
 	if(in == NULL){
@@ -466,7 +466,7 @@ void multi_options_read_config_fs1()
 	SDL_zero(str);
 
 	// read in the pxo config file
-	in = cfopen("pxo.cfg", "rt", CFILE_NORMAL, CF_TYPE_DATA);
+	in = cfopen("pxo.cfg", "rt", CF_TYPE_DATA);
 
 	if (in != NULL) {
 		// first line should be user tracker
@@ -524,7 +524,7 @@ void multi_options_read_config_fs1()
 	// maybe read standalone config
 	if (Is_standalone) {
 		// read in the config file
-		in = cfopen("std.cfg", "rt", CFILE_NORMAL, CF_TYPE_DATA);
+		in = cfopen("std.cfg", "rt", CF_TYPE_DATA);
 
 		if (in != NULL) {
 			while(!cfeof(in)){

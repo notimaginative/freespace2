@@ -132,9 +132,12 @@
 #include "cfilesystem.h"
 #include "localize.h"
 
+#include "embedvp.h"
+
 
 #define CF_ROOTTYPE_PATH 0
 #define CF_ROOTTYPE_PACK 1
+#define CF_ROOTTYPE_EMBED 2
 
 //  Created by:
 //    specifying hard drive tree
@@ -420,6 +423,14 @@ void cf_build_root_list(const char *extras_dir)
 		// Next, check any VP files in the CD-ROM directory.
 		cf_build_pack_list(root);
 	}
+
+	//======================================================
+	// And lastly, check embedded VP archive
+	if (embedvp::size > 0) {
+		root = cf_create_root();
+		SDL_strlcpy(root->path, "embed", SDL_arraysize(root->path));
+		root->roottype = CF_ROOTTYPE_EMBED;
+	}
 }
 
 // Given a lower case list of file extensions 
@@ -427,11 +438,7 @@ void cf_build_root_list(const char *extras_dir)
 // not in the list.
 int is_ext_in_list( const char *ext_list, char *ext )
 {
-	char tmp_ext[128];
-
-	SDL_strlcpy( tmp_ext, ext, SDL_arraysize(tmp_ext) );
-	SDL_strlwr(tmp_ext);
-	if ( strstr(ext_list, tmp_ext ))	{
+	if ( SDL_strcasestr(ext_list, ext) ) {
 		return 1;
 	}	
 
@@ -459,7 +466,7 @@ void cf_search_root_path(int root_index)
 
 		SDL_PathInfo pinfo;
 
-		auto results = SDL_GlobDirectory(search_path, "*.*", 0, nullptr);
+		auto results = SDL_GlobDirectory(search_path, "*", 0, nullptr);
 
 		if ( !results ) {
 			continue;
@@ -520,26 +527,33 @@ void cf_search_root_pack(int root_index)
 {
 	size_t rc = 0;
 	int i;
+	SDL_IOStream *fp = nullptr;
 
 	cf_root *root = cf_get_root(root_index);
 
 	//mprintf(( "Searching root pack '%s'\n", root->path ));
 
 	// Open data
-		
-	FILE *fp = fopen( root->path, "rb" );
-	// Read the file header
+
+	if (root->roottype == CF_ROOTTYPE_PACK) {
+		fp = SDL_IOFromFile(root->path, "rb");
+	} else if (root->roottype == CF_ROOTTYPE_EMBED) {
+		fp = SDL_IOFromConstMem(embedvp::data, embedvp::size);
+	}
+
 	if (!fp) {
 		return;
 	}
 
+	// Read the file header
+
 	VP_FILE_HEADER VP_header;
 
 	SDL_assert( sizeof(VP_header) == 16 );
-	rc = fread(&VP_header, 1, sizeof(VP_header), fp);
+	rc = SDL_ReadIO(fp, &VP_header, sizeof(VP_header));
 
 	if (rc != sizeof(VP_header)) {
-		fclose(fp);
+		SDL_CloseIO(fp);
 		return;
 	}
 
@@ -548,7 +562,7 @@ void cf_search_root_pack(int root_index)
     VP_header.num_files = INTEL_INT( VP_header.num_files);
         
 	// Read index info
-	fseek(fp, VP_header.index_offset, SEEK_SET);
+	SDL_SeekIO(fp, VP_header.index_offset, SDL_IO_SEEK_SET);
 
 	char search_path[CF_MAX_PATHNAME_LENGTH];
 
@@ -558,7 +572,7 @@ void cf_search_root_pack(int root_index)
 	for (i=0; i<VP_header.num_files; i++ )	{
 		VP_FILE find;
 
-		rc = fread( &find, 1, sizeof(VP_FILE), fp );
+		rc = SDL_ReadIO(fp, &find, sizeof(VP_FILE));
 
 		if (rc != sizeof(VP_FILE)) {
 			break;
@@ -614,7 +628,8 @@ void cf_search_root_pack(int root_index)
 
 		}
 	}
-	fclose(fp);
+
+	SDL_CloseIO(fp);
 }
 
 
@@ -629,7 +644,7 @@ void cf_build_file_list()
 		cf_root	*root = cf_get_root(i);
 		if ( root->roottype == CF_ROOTTYPE_PATH )	{
 			cf_search_root_path(i);
-		} else if ( root->roottype == CF_ROOTTYPE_PACK )	{
+		} else if (root->roottype == CF_ROOTTYPE_PACK || root->roottype == CF_ROOTTYPE_EMBED) {
 			cf_search_root_pack(i);
 		}
 	}
@@ -709,6 +724,7 @@ void cf_free_secondary_filelist()
 // Returns: If not found returns 0.
 int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize )
 {
+	SDL_PathInfo pinfo;
 	int i;
 
 	SDL_assert(filespec && SDL_strlen(filespec));
@@ -726,16 +742,15 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 #endif
 
 	// NOTE: full path should also include localization, if so desired
-	if ( strpbrk(filespec, toks) ) {		// do we have a full path already?
-		FILE *fp = fopen(filespec, "rb" );
-		if (fp)	{
-			if ( size ) *size = filelength(fileno(fp));
+	if ( SDL_strpbrk(filespec, toks) ) {		// do we have a full path already?
+		if (SDL_GetPathInfo(filespec, &pinfo)) {
+			if ( size ) *size = static_cast<int>(pinfo.size);
 			if ( offset ) *offset = 0;
 			if ( pack_filename ) {
 				SDL_strlcpy( pack_filename, filespec, MAX_PATH_LEN );
-			}				
-			fclose(fp);
-			return 1;		
+			}
+
+			return 1;
 		}
 
 		return 0;		// If they give a full path, fail if not found.
@@ -760,15 +775,14 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 
 		cf_create_default_path_string( longname, search_order[i], filespec, localize );
 
-		FILE *fp = fopen(longname, "rb" );
-		if (fp)	{
-			if ( size ) *size = filelength(fileno(fp));
+		if (SDL_GetPathInfo(longname, &pinfo))	{
+			if ( size ) *size = static_cast<int>(pinfo.size);
 			if ( offset ) *offset = 0;
 			if ( pack_filename ) {
 				SDL_strlcpy( pack_filename, longname, MAX_PATH_LEN );
-			}				
-			fclose(fp);
-			return 1;		
+			}
+
+			return 1;
 		}
 	} 
 
@@ -1159,7 +1173,7 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 	const char *toks = "/\\:";
 #endif
 
-	if ( filename && strpbrk(filename, toks) ) {
+	if ( filename && SDL_strpbrk(filename, toks) ) {
 		// Already has full path
 		SDL_strlcpy( path, filename, MAX_PATH_LEN );
 	} else {
@@ -1192,10 +1206,7 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 				lcl_add_dir_to_path_with_filename(path, MAX_PATH_LEN);
 
 				// verify localized path
-				FILE *fp = fopen(path, "rb");
-				if (fp) {
-					fclose(fp);
-				} else {
+				if ( !SDL_GetPathInfo(path, nullptr) ) {
 					SDL_strlcpy(path, temp_path, SDL_arraysize(temp_path));
 				}
 			}

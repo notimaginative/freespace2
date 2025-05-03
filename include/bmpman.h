@@ -344,5 +344,12 @@ void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
 // given a bitmap and a section, return the size (w, h)
 void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h);
 
+//============================================================================
+// bm_image loader functions
+//============================================================================
+
+SDL_Surface *bm_image_to_surface(const char *filename, int dir_type = -1 /* CF_TYPE_ANY */);
+SDL_Surface *bm_image_to_surface(int bitmapnum, int bpp, int flags);
+
 #endif
 

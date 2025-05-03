@@ -183,40 +183,16 @@ void mouse_force_pos(int x, int y);
 // or the cursor object on success (which must be released with SDL_DestroyCursor!).
 SDL_Cursor *mouse_create_cursor(int bmap_id)
 {
-	if (bmap_id < 0) {
-		return nullptr;
-	}
-
-	SDL_Surface *surface = nullptr;
-	auto bmp = bm_lock(bmap_id, 16, BMP_TEX_XPARENT);
-
-	if ( !bmp ) {
-		return nullptr;
-	}
-
-	auto w_2 = bmp->w * 2;
-	auto h_2 = bmp->h * 2;
-
-	auto surfaceOrig = SDL_CreateSurfaceFrom(bmp->w, bmp->h,
-											 SDL_PIXELFORMAT_RGBA5551,
-											 reinterpret_cast<void *>(bmp->data),
-											 bmp->rowsize * 2);
-
-	// convert to 32-bit
-	if (surfaceOrig) {
-		surface = SDL_ConvertSurface(surfaceOrig, SDL_PIXELFORMAT_ARGB8888);
-		SDL_DestroySurface(surfaceOrig);
-		surfaceOrig = nullptr;
-	}
-
-	bm_unlock(bmap_id);
-	bmp = nullptr;
+	auto surface = bm_image_to_surface(bmap_id, 16, BMP_TEX_XPARENT);
 
 	if ( !surface ) {
 		return nullptr;
 	}
 
-	// create alternate x2 version for hi-dpi
+	auto w_2 = surface->w * 2;
+	auto h_2 = surface->h * 2;
+
+	// create alternate x2 version for high-dpi
 	auto surfaceScaled = SDL_ScaleSurface(surface, w_2, h_2, SDL_SCALEMODE_LINEAR);
 
 	if (surfaceScaled) {

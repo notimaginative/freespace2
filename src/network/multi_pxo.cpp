@@ -4156,7 +4156,7 @@ void multi_pxo_set_end_of_motd()
 	
 	// write out the motd for next time
 	if(SDL_strlen(Pxo_motd)){
-		CFILE *out = cfopen("oldmotd.txt", "wb", CFILE_NORMAL, CF_TYPE_DATA);
+		CFILE *out = cfopen("oldmotd.txt", "wb", CF_TYPE_DATA);
 		if(out != NULL){
 			// write all the text
 			cfwrite_uint(new_chksum, out);
@@ -5297,7 +5297,7 @@ void multi_pxo_help_load()
 
 	// read in the text file
 	in = NULL;
-	in = cfopen(MULTI_PXO_HELP_FILE,"rt",CFILE_NORMAL,CF_TYPE_DATA);			
+	in = cfopen(MULTI_PXO_HELP_FILE,"rt",CF_TYPE_DATA);			
 	SDL_assert(in != NULL);
 	if(in == NULL){
 		return;
@@ -5609,7 +5609,7 @@ void multi_pxo_ban_parse_banner_file(int choose_existing)
 	int exists[10];
 	int exist_count;
 	int num_banners, idx;
-	CFILE *in = cfopen(PXO_BANNERS_CONFIG_FILE, "rt", CFILE_NORMAL, CF_TYPE_MULTI_CACHE);
+	CFILE *in = cfopen(PXO_BANNERS_CONFIG_FILE, "rt", CF_TYPE_MULTI_CACHE);
 
 	SDL_zero(Multi_pxo_banner);
 	Multi_pxo_banner.ban_bitmap = -1;

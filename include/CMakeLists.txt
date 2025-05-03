@@ -246,6 +246,11 @@ set(platform_HEADERS
   PARENT_SCOPE
 )
 
+set(ext_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/ext/stb_image.h
+  PARENT_SCOPE
+)
+
 #
 # the game itself
 #

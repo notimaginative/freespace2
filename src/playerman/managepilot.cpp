@@ -213,7 +213,6 @@
  *
 */
 
-#include <errno.h>
 #include "managepilot.h"
 #include "2d.h"
 #include "freespace.h"
@@ -345,9 +344,9 @@ int verify_pilot_file(const char *filename, int single, int *rank)
 	filename = cf_add_ext(filename, NOX(".plr"));
 	
 	if (single){
-		file = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
+		file = cfopen(filename, "rb", CF_TYPE_SINGLE_PLAYERS);
 	} else {
-		file = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_MULTI_PLAYERS);
+		file = cfopen(filename, "rb", CF_TYPE_MULTI_PLAYERS);
 	}
 
 	if (!file){
@@ -742,8 +741,8 @@ void pilot_read_loadout(CFILE *file)
 //
 // returns 0 - file read in correctly
 //        -1 - .PLR file doesn't exist or file not compatible
-//        >0 - errno from fopen error
-// if single == 1, look for players in the single players directory, otherwise look in the 
+//         1 - file open/close error
+// if single == 1, look for players in the single players directory, otherwise look in the
 // multiplayers directory
 int read_pilot_file(const char *callsign, int single, player *p)
 {
@@ -774,13 +773,13 @@ int read_pilot_file(const char *callsign, int single, player *p)
 	
 	// see comments at the beginning of function
 	if (single) {
-		file = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
+		file = cfopen(filename, "rb", CF_TYPE_SINGLE_PLAYERS);
 	} else {
-		file = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_MULTI_PLAYERS);
+		file = cfopen(filename, "rb", CF_TYPE_MULTI_PLAYERS);
 	}
 
 	if (!file) {
-		return errno;
+		return -1;
 	}
 
 	id = cfread_uint(file);
@@ -1024,8 +1023,9 @@ int read_pilot_file(const char *callsign, int single, player *p)
 		Dead_zone_size = cfread_int(file);
 	}
 
-	if (cfclose(file))
-		return errno;
+	if ( !cfclose(file) ) {
+		return 1;
+	}
 
 	// restore the callsign into the Player structure
 	SDL_strlcpy(p->callsign, callsign, SDL_arraysize(p->callsign));
@@ -1187,13 +1187,13 @@ int write_pilot_file_core(player *p)
 
 	// see above
 	if ( !is_multi ){
-		file = cfopen(filename, "wb", CFILE_NORMAL, CF_TYPE_SINGLE_PLAYERS);
+		file = cfopen(filename, "wb", CF_TYPE_SINGLE_PLAYERS);
 	} else {
-		file = cfopen(filename, "wb", CFILE_NORMAL, CF_TYPE_MULTI_PLAYERS);
+		file = cfopen(filename, "wb", CF_TYPE_MULTI_PLAYERS);
 	}
 
 	if (!file){
-		return errno;
+		return 1;
 	}
 
 	// Write out player's info
@@ -1349,10 +1349,10 @@ int write_pilot_file_core(player *p)
 	cfwrite_int(Joy_sensitivity, file);
 	cfwrite_int(Dead_zone_size, file);
 
-	if (!cfclose(file))
+	if (cfclose(file))
 		return 0;
 
-	return errno;
+	return 1;
 }
 
 static player *callback_player = NULL;

@@ -593,7 +593,7 @@ int targa_read_bitmap(char *real_filename, ubyte *image_data, ubyte *palette, in
 
 	// skip the Image ID field -- should not be needed
 	if(header.id_length>0) {
-		if(cfseek(targa_file, header.id_length, CF_SEEK_SET)) {
+		if ( !cfseek(targa_file, header.id_length, CF_SEEK_SET) ) {
 			cfclose(targa_file);
 			return TARGA_ERROR_READING;
 		}

@@ -2341,7 +2341,7 @@ void game_init()
 	s2 = timer_get_milliseconds();	
 	CFILE *whee;
 	for(int idx=0; idx<10000; idx++){
-		whee = cfopen("capital01.pof", "rb", CFILE_NORMAL, CF_TYPE_MODELS);
+		whee = cfopen("capital01.pof", "rb", CF_TYPE_MODELS);
 		if(whee != NULL){
 			cfclose(whee);
 		}
@@ -6659,7 +6659,7 @@ void game_spew_pof_info()
 	}
 
 	// go
-	out = cfopen("pofspew.txt", "wt", CFILE_NORMAL, CF_TYPE_DATA);
+	out = cfopen("pofspew.txt", "wt", CF_TYPE_DATA);
 	if(out == NULL){
 		BAIL();
 	}	

@@ -140,7 +140,7 @@ static char *trim_string(char *str)
 
 static Profile *profile_read(const char *file)
 {
-	CFILE *fp = cfopen(file, "rt", CFILE_NORMAL, CF_TYPE_ROOT);
+	CFILE *fp = cfopen(file, "rt", CF_TYPE_ROOT);
 	if (fp == NULL)
 		return NULL;
 	
@@ -351,7 +351,7 @@ static void profile_save(Profile *profile, const char *file)
 	if (profile == NULL)
 		return;
 		
-	fp = cfopen(file, "wt", CFILE_NORMAL, CF_TYPE_ROOT);
+	fp = cfopen(file, "wt", CF_TYPE_ROOT);
 	if (fp == NULL)
 		return;
 	

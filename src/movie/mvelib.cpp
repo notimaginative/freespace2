@@ -72,20 +72,11 @@ MVEFILE *mvefile_open(const char *filename)
 	file->cur_fill = 0;
 	file->next_segment = 0;
 
-	// NOTE: CF_TYPE *must* be ANY to get movies off of the CDs
+	file->stream = cfopen(filename, "rb", CF_TYPE_MOVIES);
 
-	// lower case filename check - off of HD/CD-ROM
-	file->stream = cfopen(filename, "rb", CFILE_NORMAL, CF_TYPE_MOVIES);
-
-	// upper case filename check - off of CD-ROM (or HD if case not changed)
 	if ( !file->stream ) {
-		char upper_name[MAX_FILENAME_LEN];
-
-		// upper case filename for checking
-		SDL_strlcpy(upper_name, filename, SDL_arraysize(upper_name));
-		SDL_strupr(upper_name);
-
-		file->stream = cfopen(upper_name, "rb", CFILE_NORMAL, CF_TYPE_ANY);
+		// NOTE: CF_TYPE must be ANY to get movies off of the FS2 CDs
+		file->stream = cfopen(filename, "rb", CF_TYPE_ANY);
 	}
 
 	if ( !file->stream ) {

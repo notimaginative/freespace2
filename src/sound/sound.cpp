@@ -409,6 +409,12 @@ int snd_init()
 
 	snd_clear();
 
+	// Init SDL audio subsystem
+	if ( !SDL_InitSubSystem(SDL_INIT_AUDIO) ) {
+		nprintf(("Sound", "SOUND => Failed to initialize SDL audio!\n"));
+		return 0;
+	}
+
 	// Init OpenAL
 	rval = oal_init();
 
@@ -670,6 +676,8 @@ void snd_close(void)
 	oal_capture_close();	// Close Capture
 
 	oal_close();
+
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 // ---------------------------------------------------------------------------------------

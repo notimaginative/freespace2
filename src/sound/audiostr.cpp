@@ -82,14 +82,11 @@
 
 #include "pstypes.h"
 #include "audiostr.h"
-#include "oal.h"
 #include "acm.h"
 #include "cfile.h"
 #include "sound.h"
 #include "timer.h"
 
-
-#define MAX_STREAM_BUFFERS 4
 
 // Constants
 #define BIGBUF_SIZE					180000			// This can be reduced to 88200 once we don't use any stereo
@@ -113,6 +110,8 @@ static ubyte *Compressed_service_buffer = NULL;	// Used to read in compressed da
 
 static int Audiostream_inited = 0;
 
+static SDL_AudioDeviceID Audiostream_device = 0;
+static SDL_AudioSpec Audiostream_spec;
 
 class Timer
 {
@@ -161,11 +160,6 @@ public:
 		return m_nBytesPlayed;
 	}
 
-	ALenum GetOALFormat()
-	{
-		return m_oal_format;
-	}
-
 	WAVE_chunk m_wfmt;					// format of wave file
 	WAVE_chunk *m_pwfmt_original;	// foramt of wave file from actual wave source
 	uint m_total_uncompressed_bytes_read;
@@ -177,7 +171,6 @@ protected:
 	int  m_data_bytes_left;
 	CFILE *cfp;
 
-	ALenum m_oal_format;
 	uint m_wave_format;						// format of wave source (ie WAVE_FORMAT_PCM, WAVE_FORMAT_ADPCM)
 	uint m_nBlockAlign;						// wave data block alignment spec
 	uint m_nUncompressedAvgDataRate;		// average wave data rate
@@ -250,9 +243,7 @@ protected:
 	bool ServiceBuffer();
 	static bool TimerCallback(uintptr_t dwUser);
 
-	ALuint m_source_id;   // name of openAL source
-	ALuint m_buffer_ids[MAX_STREAM_BUFFERS]; //names of buffers
-	int m_play_buffer_id;
+	SDL_AudioStream *m_audio_stream;
 
 	Timer m_timer;              // ptr to Timer object
 	WaveFile *m_pwavefile;        // ptr to WaveFile object
@@ -510,23 +501,6 @@ bool WaveFile::Open(const char *pszFilename)
 	m_wfmt.extra_size = 0;
 	m_wfmt.block_align = (ushort)(( m_wfmt.num_channels * m_wfmt.bits_per_sample ) / 8);
 	m_wfmt.bytes_per_second = m_wfmt.block_align * m_wfmt.sample_rate;
-
-	// set OpenAL format
-	m_oal_format = AL_FORMAT_MONO8;
-
-	if (m_wfmt.num_channels == 1) {
-		if (m_wfmt.bits_per_sample == 8) {
-			m_oal_format = AL_FORMAT_MONO8;
-		} else if (m_wfmt.bits_per_sample == 16) {
-			m_oal_format = AL_FORMAT_MONO16;
-		}
-	} else if (m_wfmt.num_channels == 2) {
-		if (m_wfmt.bits_per_sample == 8) {
-			m_oal_format = AL_FORMAT_STEREO8;
-		} else if (m_wfmt.bits_per_sample == 16) {
-			m_oal_format = AL_FORMAT_STEREO16;
-		}
-	}
 
 	// Init some member data from format chunk
 	m_nBlockAlign = m_pwfmt_original->block_align;
@@ -797,6 +771,8 @@ AudioStream::~AudioStream()
 
 void AudioStream::Init_Data()
 {
+	m_audio_stream = nullptr;
+
 	m_bLooping = false;
 	m_bFade = false;
 	m_fade_timer_id = 0;
@@ -820,10 +796,6 @@ void AudioStream::Init_Data()
 	m_cbBufSize = 0;
 	m_nBufService = DefBufferServiceInterval;
 	m_nTimeStarted = 0;
-
-	memset(m_buffer_ids, 0, sizeof(m_buffer_ids));
-	m_source_id = 0;
-	m_play_buffer_id = 0;
 }
 
 // Create
@@ -862,7 +834,6 @@ bool AudioStream::Create(const char *pszFilename)
 		// Buffer size is average data rate times length of buffer
 		// No need for buffer to be larger than wave data though
 		m_cbBufSize = (m_nBufLength/1000) * (m_pwavefile->m_wfmt.bits_per_sample/8) * m_pwavefile->m_wfmt.num_channels * m_pwavefile->m_wfmt.sample_rate;
-		m_cbBufSize /= MAX_STREAM_BUFFERS;
 		// align buffer to format
 		m_cbBufSize += m_cbBufSize % ((m_pwavefile->m_wfmt.bits_per_sample/8) * m_pwavefile->m_wfmt.num_channels);
 		// if the requested buffer size is too big then cap it
@@ -871,9 +842,17 @@ bool AudioStream::Create(const char *pszFilename)
 //		nprintf(("SOUND", "SOUND => Stream buffer created using %d bytes\n", m_cbBufSize));
 
 		// Create sound buffer
-		alGenBuffers(MAX_STREAM_BUFFERS, m_buffer_ids);
+		if ( !m_audio_stream ) {
+			SDL_AudioSpec spec{};
 
-		Snd_sram += m_cbBufSize * MAX_STREAM_BUFFERS;
+			spec.format = (m_pwavefile->m_wfmt.bits_per_sample == 16) ? SDL_AUDIO_S16LE : SDL_AUDIO_U8;
+			spec.channels = m_pwavefile->m_wfmt.num_channels;
+			spec.freq = m_pwavefile->m_wfmt.sample_rate;
+
+			m_audio_stream = SDL_CreateAudioStream(&spec, &Audiostream_spec);
+		}
+
+		Snd_sram += m_cbBufSize;
 	} else {
 		// Error opening file
 		nprintf(("SOUND", "SOUND => Failed to open wave file: %s\n\r", pszFilename));
@@ -896,7 +875,8 @@ bool AudioStream::Destroy()
 	Stop();
 
 	// Release sound buffer
-	alDeleteBuffers(MAX_STREAM_BUFFERS, m_buffer_ids);
+	SDL_DestroyAudioStream(m_audio_stream);
+	m_audio_stream = nullptr;
 
 	Snd_sram -= m_cbBufSize;
 
@@ -927,7 +907,7 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 		return true;
 	}
 
-	if ( (m_buffer_ids[0] == 0) || !m_pwavefile ) {
+	if ( !m_audio_stream || !m_pwavefile ) {
 		return true;
 	}
 
@@ -943,57 +923,22 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 
 	int num_bytes_read = 0;
 
-	oal_check_for_errors("AudioStream::WriteWaveData() begin");
+	num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize, service);
 
-	if ( !service ) {
-		for (int ib = 0; ib < MAX_STREAM_BUFFERS; ib++) {
-			num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize, service);
-
-			// if looping then maybe reset wavefile and keep going
-			if ( (num_bytes_read < 0) && m_bLooping) {
-				m_pwavefile->Cue();
-				num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize);
-			}
-
-			if (num_bytes_read < 0) {
-				m_bReadingDone = 1;
-				break;
-			} else if (num_bytes_read > 0) {
-				alBufferData(m_buffer_ids[ib], m_pwavefile->GetOALFormat(), uncompressed_wave_data, num_bytes_read, m_pwavefile->m_wfmt.sample_rate);
-				alSourceQueueBuffers(m_source_id, 1, &m_buffer_ids[ib]);
-				*num_bytes_written += num_bytes_read;
-			}
-		}
-	} else {
-		ALint buffers_processed = 0;
-		ALuint buffer_id = 0;
-
-		alGetSourcei(m_source_id, AL_BUFFERS_PROCESSED, &buffers_processed);
-
-		while (buffers_processed) {
-			alSourceUnqueueBuffers(m_source_id, 1, &buffer_id);
-
-			num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize, service);
-
-			// if looping then maybe reset wavefile and keep going
-			if ( (num_bytes_read < 0) && m_bLooping) {
-				m_pwavefile->Cue();
-				num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize);
-			}
-
-			if (num_bytes_read < 0) {
-				m_bReadingDone = 1;
-			} else if (num_bytes_read > 0) {
-				alBufferData(buffer_id, m_pwavefile->GetOALFormat(), uncompressed_wave_data, num_bytes_read, m_pwavefile->m_wfmt.sample_rate);
-				alSourceQueueBuffers(m_source_id, 1, &buffer_id);
-				*num_bytes_written += num_bytes_read;
-			}
-
-			buffers_processed--;
-		}
+	// if looping then maybe reset wavefile and keep going
+	if ( (num_bytes_read < 0) && m_bLooping) {
+		m_pwavefile->Cue();
+		num_bytes_read = m_pwavefile->Read(uncompressed_wave_data, m_cbBufSize);
 	}
 
-	oal_check_for_errors("AudioStream::WriteWaveData() end");
+	if (num_bytes_read < 0) {
+		m_bReadingDone = 1;
+		// we're done adding more data so let SDL know to use all that's left
+		SDL_FlushAudioStream(m_audio_stream);
+	} else if (num_bytes_read > 0) {
+		SDL_PutAudioStreamData(m_audio_stream, uncompressed_wave_data, num_bytes_read);
+		*num_bytes_written += num_bytes_read;
+	}
 
 	if ( service ) {
 		SDL_UnlockMutex(Global_service_lock);
@@ -1009,20 +954,11 @@ bool AudioStream::WriteWaveData(uint size, uint *num_bytes_written, int service)
 uint AudioStream::GetMaxWriteSize()
 {
 	uint dwMaxSize = m_cbBufSize;
-	ALint n = 0, q = 0;
 
-	oal_check_for_errors("AudioStream::GetMaxWriteSize() begin");
-
-	alGetSourcei(m_source_id, AL_BUFFERS_PROCESSED, &n);
-
-	alGetSourcei(m_source_id, AL_BUFFERS_QUEUED, &q);
-
-	if ( !n && (q >= MAX_STREAM_BUFFERS) ) {
-		//all buffers queued
+	if (SDL_GetAudioStreamQueued(m_audio_stream) >= m_cbBufSize/2) {
+		// don't need more right now
 		dwMaxSize = 0;
 	}
-
-	oal_check_for_errors("AudioStream::GetMaxWriteSize() end");
 
 	//	nprintf(("Alan","Max write size: %d\n", dwMaxSize));
 	return dwMaxSize;
@@ -1099,11 +1035,7 @@ bool AudioStream::ServiceBuffer()
 			}
 
 			// see if we're done
-			ALint state = 0;
-
-			alGetSourcei(m_source_id, AL_SOURCE_STATE, &state);
-
-			if ( m_bReadingDone && (state != AL_PLAYING) ) {
+			if ( m_bReadingDone && (SDL_GetAudioStreamQueued(m_audio_stream) < 1) ) {
 				if ( m_bDestroy_when_faded == true ) {
 					Destroy();
 					// Reset reentrancy semaphore
@@ -1150,16 +1082,7 @@ void AudioStream::Cue()
 		m_pwavefile->Cue();
 
 		// Unqueue all buffers
-		ALint buffers_processed = 0;
-		ALuint buffer_id = 0;
-
-		alGetSourcei(m_source_id, AL_BUFFERS_PROCESSED, &buffers_processed);
-
-		while (buffers_processed) {
-			alSourceUnqueueBuffers(m_source_id, 1, &buffer_id);
-
-			buffers_processed--;
-		}
+		SDL_ClearAudioStream(m_audio_stream);
 
 		// Fill buffer with wave data
 		WriteWaveData(m_cbBufSize, &num_bytes_written, 0);
@@ -1171,61 +1094,54 @@ void AudioStream::Cue()
 // Play
 void AudioStream::Play(float volume, int looping)
 {
-	if ( m_buffer_ids[0] ) {
-		oal_check_for_errors("AudioStream::Play() begin");
-
-		// If playing, stop
-		if (m_fPlaying) {
-			if ( m_bIsPaused == false)
-				Stop_and_Rewind();
-		}
-
-		// get source id if we don't have one
-		if ( !m_source_id ) {
-			sound_channel *chan = oal_get_free_channel(1.0f, -1, SND_PRIORITY_MUST_PLAY);
-
-			if (chan) {
-				m_source_id = chan->source_id;
-			} else {
-				return;
-			}
-		}
-
-		if (looping == 1) {
-			m_bLooping = true;
-		} else {
-			m_bLooping = false;
-		}
-
-		// Cue for playback if necessary
-		if (!m_fCued) {
-			Cue ();
-		}
-
-		m_nTimeStarted = timer_get_milliseconds();
-		Set_Volume(volume);
-
-		// Kick off timer to service buffer
-		m_timer.constructor();
-
-		m_timer.Create(m_nBufService, (uintptr_t)this, TimerCallback);
-
-		alSourcef(m_source_id, AL_GAIN, m_lVolume);
-		alSource3f(m_source_id, AL_POSITION, 0.0f, 0.0f, 0.0f);
-		alSource3f(m_source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-		alSource3f(m_source_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
-		alSourcef(m_source_id, AL_ROLLOFF_FACTOR, 0.0f);
-		alSourcei(m_source_id, AL_SOURCE_RELATIVE, AL_TRUE);
-		alSourcei(m_source_id, AL_LOOPING, AL_FALSE);
-
-		alSourcePlay(m_source_id);
-
-		// Playback begun, no longer cued
-		m_fPlaying = true;
-		m_bIsPaused = false;
-
-		oal_check_for_errors("AudioStream::Play() end");
+	// If playing, stop
+	if (m_fPlaying) {
+		if ( m_bIsPaused == false)
+			Stop_and_Rewind();
 	}
+
+	// create stream if we don't have one
+	if ( !m_audio_stream ) {
+		SDL_AudioSpec spec{};
+
+		spec.format = (m_pwavefile->m_wfmt.bits_per_sample == 16) ? SDL_AUDIO_S16LE : SDL_AUDIO_U8;
+		spec.channels = m_pwavefile->m_wfmt.num_channels;
+		spec.freq = m_pwavefile->m_wfmt.sample_rate;
+
+		m_audio_stream = SDL_CreateAudioStream(&spec, &Audiostream_spec);
+
+		if ( !m_audio_stream ) {
+			return;
+		}
+	}
+
+	if (looping == 1) {
+		m_bLooping = true;
+	} else {
+		m_bLooping = false;
+	}
+
+	// Cue for playback if necessary
+	if (!m_fCued) {
+		Cue ();
+	}
+
+	m_nTimeStarted = timer_get_milliseconds();
+	Set_Volume(volume);
+
+	// Kick off timer to service buffer
+	m_timer.constructor();
+
+	m_timer.Create(m_nBufService, (uintptr_t)this, TimerCallback);
+
+	SDL_SetAudioStreamGain(m_audio_stream, m_lVolume);
+
+	// once bound it should start playing immediately
+	SDL_BindAudioStream(Audiostream_device, m_audio_stream);
+
+	// Playback begun, no longer cued
+	m_fPlaying = true;
+	m_bIsPaused = false;
 }
 
 // Timer callback for Timer object created by ::Play method.
@@ -1272,12 +1188,10 @@ void AudioStream::Fade_and_Stop()
 void AudioStream::Stop(bool paused)
 {
 	if (m_fPlaying) {
-		if (paused) {
-			alSourcePause(m_source_id);
-		} else {
-			alSourceStop(m_source_id);
-			alSourcei(m_source_id, AL_BUFFER, 0);
-			m_source_id = 0;
+		SDL_UnbindAudioStream(m_audio_stream);
+
+		if ( !paused ) {
+			SDL_ClearAudioStream(m_audio_stream);
 		}
 
 		m_fPlaying = false;
@@ -1293,9 +1207,8 @@ void AudioStream::Stop_and_Rewind()
 {
 	if (m_fPlaying) {
 		// Stop playback
-		alSourceStop(m_source_id);
-		alSourcei(m_source_id, AL_BUFFER, 0);
-		m_source_id = 0;
+		SDL_UnbindAudioStream(m_audio_stream);
+		SDL_ClearAudioStream(m_audio_stream);
 
 		// Delete Timer object
 		m_timer.destructor();
@@ -1310,9 +1223,7 @@ void AudioStream::Stop_and_Rewind()
 // Set_Volume
 void AudioStream::Set_Volume(float vol)
 {
-	if (m_fPlaying) {
-		alSourcef(m_source_id, AL_GAIN, vol);
-	}
+	SDL_SetAudioStreamGain(m_audio_stream, vol);
 
 	m_lVolume = vol;
 }
@@ -1334,6 +1245,21 @@ void audiostream_init()
 	if (Audiostream_inited) {
 		return;
 	}
+
+	// request a format that matches the best possible quality we'll play
+	Audiostream_spec.freq = 22050;
+	Audiostream_spec.channels = 2;
+	Audiostream_spec.format = SDL_AUDIO_S16LE;
+
+	Audiostream_device = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+											 &Audiostream_spec);
+
+	if ( !Audiostream_device ) {
+		return;
+	}
+
+	// now get actual format
+	SDL_GetAudioDeviceFormat(Audiostream_device, &Audiostream_spec, nullptr);
 
 	// Allocate memory for the buffer which holds the uncompressed wave data that is streamed from the
 	// disk during a load/cue
@@ -1458,6 +1384,11 @@ void audiostream_close()
 	}
 
 	SDL_DestroyMutex( Global_service_lock );
+
+	if (Audiostream_device) {
+		SDL_CloseAudioDevice(Audiostream_device);
+		Audiostream_device = 0;
+	}
 
 	Audiostream_inited = 0;
 
@@ -1766,19 +1697,11 @@ void audiostream_pause(int i)
 
 void audiostream_pause_all()
 {
-	int i;
-
 	if ( !Audiostream_inited ) {
 		return;
 	}
 
-	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
-		if (Audio_streams[i].status == ASF_FREE) {
-			continue;
-		}
-
-		audiostream_pause(i);
-	}
+	SDL_PauseAudioDevice(Audiostream_device);
 }
 
 void audiostream_unpause(int i)
@@ -1807,17 +1730,9 @@ void audiostream_unpause(int i)
 
 void audiostream_unpause_all()
 {
-	int i;
-
 	if ( !Audiostream_inited ) {
 		return;
 	}
 
-	for (i = 0; i < MAX_AUDIO_STREAMS; i++) {
-		if (Audio_streams[i].status == ASF_FREE) {
-			continue;
-		}
-
-		audiostream_unpause(i);
-	}
+	SDL_ResumeAudioDevice(Audiostream_device);
 }

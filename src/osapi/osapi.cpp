@@ -250,7 +250,7 @@ void os_set_icon()
 		return;
 	}
 
-	auto icon = bm_image_to_surface("app_icon.png", CF_TYPE_ROOT);
+	auto icon = bm_image_to_surface("app_icon.png", CF_TYPE_ROOT, SDL_PIXELFORMAT_ARGB8888);
 
 	if ( !icon ) {
 		return;

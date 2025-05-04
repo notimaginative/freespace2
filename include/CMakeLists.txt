@@ -18,7 +18,6 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ailocal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/alphacolors.h
   ${CMAKE_CURRENT_SOURCE_DIR}/animplay.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/app_icon.h
   ${CMAKE_CURRENT_SOURCE_DIR}/asteroid.h
   ${CMAKE_CURRENT_SOURCE_DIR}/audiostr.h
   ${CMAKE_CURRENT_SOURCE_DIR}/awacs.h

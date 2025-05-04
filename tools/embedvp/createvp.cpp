@@ -11,6 +11,7 @@
 
 #include <SDL3/SDL.h>
 #include <cstdio>
+#include <cstdlib>
 #include <vector>
 
 

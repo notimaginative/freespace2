@@ -43,9 +43,12 @@ int movie_play(const char *filename)
 		cutscene_mark_viewable(filename);
 	}
 
-	if ( !Cmdline_play_movies ) {
-		mprintf(("Movies are disabled, skipping playback of '%s'...\n", filename));
-		return 1;
+	// always allow movies to play in cutscene viewer
+	if (gameseq_get_state() != GS_STATE_VIEW_CUTSCENES) {
+		if ( !Cmdline_play_movies ) {
+			mprintf(("Movies are disabled, skipping playback of '%s'...\n", filename));
+			return 1;
+		}
 	}
 
 	MVESTREAM *movie = NULL;

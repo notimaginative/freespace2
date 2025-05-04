@@ -209,7 +209,6 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/sound/acm.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sound/audiostr.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sound/oal.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sound/oal_capture.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sound/oal_efx.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sound/rtvoice.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/sound/sound.cpp

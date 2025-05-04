@@ -13,18 +13,29 @@
 #include "pstypes.h"
 #include "oal.h"
 #include "oal_efx.h"
-#include "oal_capture.h"
 #include "cfile.h"
 #include "sound.h"
 #include "acm.h"
 #include "osregistry.h"
 
+#include "AL/alext.h"
+
 
 static int OAL_inited = 0;
 
-static ALCdevice *al_device = NULL;
-static ALCcontext *al_context = NULL;
+typedef struct oal_info {
+	SDL_AudioStream *stream;
 
+	ALCdevice *device;
+	ALCcontext *context;
+
+	void *render_buffer;
+	size_t render_buffer_size;
+
+	int frame_size;
+} oal_info;
+
+static oal_info Info;
 
 struct sound_buffer {
 	ALuint buf_id;		// OpenAL buffer id
@@ -49,6 +60,10 @@ static int channel_next_sig = 1;
 
 extern void oal_efx_attach(ALuint source_id);
 
+static LPALCLOOPBACKOPENDEVICESOFT alcLoopbackOpenDeviceSOFT = nullptr;
+static LPALCISRENDERFORMATSUPPORTEDSOFT alcIsRenderFormatSupportedSOFT = nullptr;
+static LPALCRENDERSAMPLESSOFT alcRenderSamplesSOFT = nullptr;
+
 
 bool oal_check_for_errors(const char *location)
 {
@@ -70,6 +85,32 @@ bool oal_check_for_errors(const char *location)
 	return false;
 }
 
+static void SDLCALL oal_render_samples(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
+{
+	oal_info *info = reinterpret_cast<oal_info *>(userdata);
+
+	if (additional_amount < 0) {
+		additional_amount = total_amount;
+	}
+
+	if (additional_amount <= 0) {
+		return;
+	}
+
+	if (additional_amount > info->render_buffer_size) {
+		if (info->render_buffer) {
+			free(info->render_buffer);
+		}
+
+		info->render_buffer = malloc(additional_amount);
+		info->render_buffer_size = additional_amount;
+	}
+
+	alcRenderSamplesSOFT(info->device, info->render_buffer, additional_amount / info->frame_size);
+
+	SDL_PutAudioStreamData(info->stream, info->render_buffer, additional_amount);
+}
+
 static void oal_init_channels()
 {
 	const int MAX_SOURCES = 32;
@@ -89,67 +130,196 @@ static void oal_init_channels()
 	}
 }
 
-int oal_init()
+static bool oal_init_prototypes()
+{
+	// for ALC funcs!!
+	#define GET_PROC2(type, func)	\
+		do {	\
+			(func) = reinterpret_cast<type>(alcGetProcAddress(nullptr, #func));	\
+			if ( !(func) ) {	\
+				mprintf(("  Couldn't load OpenAL function %s!", #func));	\
+				return false;	\
+			}	\
+		} while(false);
+
+	GET_PROC2(LPALCLOOPBACKOPENDEVICESOFT, alcLoopbackOpenDeviceSOFT);
+	GET_PROC2(LPALCISRENDERFORMATSUPPORTEDSOFT, alcIsRenderFormatSupportedSOFT);
+	GET_PROC2(LPALCRENDERSAMPLESSOFT, alcRenderSamplesSOFT);
+
+	return true;
+}
+
+static bool oal_init_loopback(std::string &Device)
+{
+	SDL_AudioSpec spec;
+	ALCint attrs[16];
+
+	if ( !alcIsExtensionPresent(nullptr, "ALC_SOFT_loopback") ) {
+		mprintf(("  ERROR: Loopback extension not present!\n"));
+		return false;
+	}
+
+	if ( !oal_init_prototypes() ) {
+		return false;
+	}
+
+	Info.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+												nullptr, oal_render_samples,
+												&Info);
+
+	if ( !Info.stream ) {
+		mprintf(("  ERROR: Unable to create audio stream!\n"));
+		return false;
+	}
+
+	SDL_GetAudioStreamFormat(Info.stream, &spec, nullptr);
+
+	attrs[0] = ALC_FORMAT_CHANNELS_SOFT;
+
+	if (spec.channels == 1) {
+		attrs[1] = ALC_MONO_SOFT;
+	} else if (spec.channels == 2) {
+		attrs[1] = ALC_STEREO_SOFT;
+	} else if (spec.channels == 4) {
+		attrs[1] = ALC_QUAD_SOFT;
+	} else if (spec.channels == 6) {
+		attrs[1] = ALC_5POINT1_SOFT;
+	} else if (spec.channels == 7) {
+		attrs[1] = ALC_6POINT1_SOFT;
+	} else if (spec.channels == 8) {
+		attrs[1] = ALC_7POINT1_SOFT;
+	} else {
+		mprintf(("  ERROR: Unsupported channel setup!\n"));
+		return false;
+	}
+
+	attrs[2] = ALC_FORMAT_TYPE_SOFT;
+
+	if (spec.format == SDL_AUDIO_U8) {
+		attrs[3] = ALC_UNSIGNED_BYTE_SOFT;
+	} else if (spec.format == SDL_AUDIO_S8) {
+		attrs[3] = ALC_BYTE_SOFT;
+	} else if (spec.format == SDL_AUDIO_S16) {
+		attrs[3] = ALC_SHORT_SOFT;
+	} else if (spec.format == SDL_AUDIO_S32) {
+		attrs[3] = ALC_INT_SOFT;
+	} else if (spec.format == SDL_AUDIO_F32) {
+		attrs[3] = ALC_FLOAT_SOFT;
+	} else {
+		mprintf(("  ERROR: Unsupported format type!\n"));
+		return false;
+	}
+
+	attrs[4] = ALC_FREQUENCY;
+	attrs[5] = spec.freq;
+
+	attrs[6] = 0;	// end
+
+	Info.frame_size = spec.channels * SDL_AUDIO_BYTESIZE(spec.format);
+
+	// init loopback device
+	Info.device = alcLoopbackOpenDeviceSOFT(nullptr);
+
+	if ( !Info.device ) {
+		mprintf(("  ERROR: Unable to open loopback device!\n"));
+		return false;
+	}
+
+	// check that format is actually supported
+	if (alcIsRenderFormatSupportedSOFT(Info.device, attrs[5], attrs[1], attrs[3]) == AL_FALSE) {
+		mprintf(("  ERROR: Audio render format not supported!\n"));
+		return false;
+	}
+
+	Info.context = alcCreateContext(Info.device, attrs);
+
+	if ( !Info.context ) {
+		mprintf(("  ERROR: Unable to create OpenAL context!\n"));
+		return false;
+	}
+
+	Device = "SDL3 (loopback)";
+
+	alcMakeContextCurrent(Info.context);
+
+	return true;
+}
+
+static bool oal_init_fallback(std::string &Device)
 {
 	ALint ver_major = 0, ver_minor = 0;
-	std::string PlaybackDevice;
-	const char *ptr = NULL;
+	const char *ptr = nullptr;
 
+	alcGetIntegerv(nullptr, ALC_MAJOR_VERSION, 1, &ver_major);
+	alcGetIntegerv(nullptr, ALC_MINOR_VERSION, 1, &ver_minor);
+
+	if ( (ver_major < 1) || (ver_minor < 1) ) {
+		mprintf(("  ERROR: Minimum supported OpenAL version is 1.1!\n"));
+		return false;
+	}
+
+	ptr = os_config_read_string("Audio", "PlaybackDevice", "default");
+
+	if ( ptr && !SDL_strcasecmp(ptr, "default") ) {
+		ptr = nullptr;
+	}
+
+	Info.device = alcOpenDevice(ptr);
+
+	if (Info.device == nullptr) {
+		Info.device = alcOpenDevice(nullptr);
+
+		if (Info.device == NULL) {
+			mprintf(("  ERROR: Unable to open fallback device!\n"));
+			return false;
+		}
+	}
+
+	if ( alcIsExtensionPresent(Info.device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE ) {
+		ptr = alcGetString(Info.device, ALC_ALL_DEVICES_SPECIFIER);
+	} else {
+		ptr = alcGetString(Info.device, ALC_DEVICE_SPECIFIER);
+	}
+
+	if (ptr) {
+		Device = ptr;
+	} else {
+		Device = "OpenAL (fallback)";
+	}
+
+	Info.context = alcCreateContext(Info.device, NULL);
+
+	if (Info.context == NULL) {
+		mprintf(("  ERROR: Unable to create fallback context!\n"));
+		return false;
+	}
+
+	alcMakeContextCurrent(Info.context);
+
+	return true;
+}
+
+int oal_init()
+{
 	if (OAL_inited) {
 		return 0;
 	}
 
 	mprintf(("Initializing OpenAL audio device...\n"));
 
-	alcGetIntegerv(NULL, ALC_MAJOR_VERSION, 1, &ver_major);
-	alcGetIntegerv(NULL, ALC_MINOR_VERSION, 1, &ver_minor);
+	SDL_zero(Info);
 
-	if ( (ver_major < 1) || (ver_minor < 1) ) {
-		Warning(LOCATION, "Minimum supported OpenAL version is 1.1!");
-		return -1;
-	}
+	std::string PlaybackDevice;
 
-	ptr = os_config_read_string("Audio", "PlaybackDevice", "default");
+	if ( !oal_init_loopback(PlaybackDevice) ) {
+		oal_close();
 
-	if ( ptr && !SDL_strcasecmp(ptr, "default") ) {
-		ptr = NULL;
-	}
+		if ( !oal_init_fallback(PlaybackDevice) ) {
+			oal_close();
 
-	al_device = alcOpenDevice(ptr);
-
-	if (al_device == NULL) {
-		al_device = alcOpenDevice(NULL);
-
-		if (al_device == NULL) {
-			nprintf(("Sound", "SOUND ==> Unable to open device!\n"));
-			nprintf(("Sound", "SOUND ==>    %s", alcGetString(al_device, alcGetError(al_device))));
 			return -1;
 		}
 	}
-
-	if ( alcIsExtensionPresent(al_device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE ) {
-		ptr = alcGetString(al_device, ALC_ALL_DEVICES_SPECIFIER);
-	} else {
-		ptr = alcGetString(al_device, ALC_DEVICE_SPECIFIER);
-	}
-
-	SDL_assert( ptr );
-
-	PlaybackDevice = ptr;
-
-	al_context = alcCreateContext(al_device, NULL);
-
-	if (al_context == NULL) {
-		nprintf(("Sound", "SOUND ==> Unable to create context!\n"));
-		nprintf(("Sound", "SOUND ==>    %s", alcGetString(al_device, alcGetError(al_device))));
-
-		alcCloseDevice(al_device);
-		al_device = NULL;
-
-		return -1;
-	}
-
-	alcMakeContextCurrent(al_context);
 
 	OAL_inited = 1;
 
@@ -173,24 +343,22 @@ int oal_init()
 
 	mprintf(("  Channels : %d\n", Channels.size()));
 	mprintf(("  Playback device : %s\n", PlaybackDevice.c_str()));
-
-	oal_capture_init();
-
 	mprintf(("\n"));
 
+	// start stream (if we can)
+	if (Info.stream) {
+		SDL_ResumeAudioStreamDevice(Info.stream);
+	}
 
 	oal_check_for_errors("oal_init() end");
 
 	return 0;
 }
 
+// NOTE: this function needs to be safe to run even if oal isn't inited
 void oal_close()
 {
-	if ( !OAL_inited ) {
-		return;
-	}
-
-	oal_check_for_errors("oal_close() begin");
+//	oal_check_for_errors("oal_close() begin");
 
 	while ( !Channels.empty() ) {
 		ALuint sid = Channels.back().source_id;
@@ -216,17 +384,28 @@ void oal_close()
 
 	oal_efx_close();
 
-	oal_check_for_errors("oal_close() end");
+//	oal_check_for_errors("oal_close() end");
 
 	Channels.clear();
 	Buffers.clear();
 
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(al_context);
-	alcCloseDevice(al_device);
+	alcMakeContextCurrent(nullptr);
 
-	al_context = NULL;
-	al_device = NULL;
+	if (Info.stream) {
+		SDL_DestroyAudioStream(Info.stream);
+	}
+
+	if (Info.context) {
+		alcDestroyContext(Info.context);
+	}
+
+	if (Info.device) {
+		alcCloseDevice(Info.device);
+	}
+
+	Info.stream = nullptr;
+	Info.context = nullptr;
+	Info.device = nullptr;
 
 	OAL_inited = 0;
 }

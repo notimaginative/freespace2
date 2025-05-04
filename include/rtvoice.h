@@ -83,6 +83,9 @@ int	rtvoice_init_playback();
 void	rtvoice_close_playback();
 int	rtvoice_get_decode_buffer_size();
 
+int rtvoice_get_playback_position(int index);
+bool rtvoice_is_playback_active(int index);
+
 int	rtvoice_create_playback_buffer();
 void	rtvoice_free_playback_buffer(int index);
 

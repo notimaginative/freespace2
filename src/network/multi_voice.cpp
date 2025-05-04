@@ -1592,20 +1592,7 @@ int multi_voice_get_stream(int stream_id)
 // is the given sound stream playing (compares uncompressed sound size with current playback position)
 int multi_voice_stream_playing(int stream_index)
 {
-	// if the handle is invalid, it can't be playing
-	/*
-	if(Multi_voice_stream[stream_index].stream_snd_handle < 0){
-		return 0;
-	}
-
-	// if the sound is playing and the buffer is past the uncompressed size, its effectively done	
-	if(ds_get_play_position(ds_get_channel(Multi_voice_stream[stream_index].stream_snd_handle)) >= (DWORD)Multi_voice_stream[stream_index].stream_uc_size){
-		return 1;
-	}
-	*/
-
-	// not done yet
-	return 0;
+	return rtvoice_is_playback_active(stream_index) ? 1 : 0;
 }
 
 // tack on pre and post sounds to a sound stream (pass -1 for either if no sound is wanted)

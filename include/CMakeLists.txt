@@ -167,7 +167,6 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/neb.h
   ${CMAKE_CURRENT_SOURCE_DIR}/neblightning.h
   ${CMAKE_CURRENT_SOURCE_DIR}/nebula.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/oal_capture.h
   ${CMAKE_CURRENT_SOURCE_DIR}/oal_efx.h
   ${CMAKE_CURRENT_SOURCE_DIR}/oal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/objcollide.h

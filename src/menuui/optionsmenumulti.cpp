@@ -224,7 +224,6 @@
 #include "bmpman.h"
 #include "cfile.h"
 #include "key.h"
-#include "oal.h"
 #include "font.h"
 #include "gamesnd.h"
 #include "freespace.h"
@@ -241,6 +240,7 @@
 #include "timer.h"
 #include "gamesequence.h"  // needed for FS1
 #include "ptrack.h"
+#include "audiostr.h"
 
 
 // general data section ------------------------------------------------
@@ -2246,10 +2246,8 @@ void options_multi_vox_do()
 	case OM_VOX_TEST_PLAYBACK:			
 		// if we were playing a sound back, but now the sound is done
 		if (Om_vox_playback_handle != -1) {
-			int channel = oal_get_channel(Om_vox_playback_handle);
-
 			// channel will be -1 if sound has already stopped playing
-			if ( (channel == -1) || (oal_get_play_position(channel) >= Om_vox_voice_comp_size) ) {
+			if ( !rtvoice_is_playback_active(Om_vox_playback_handle) ) {
 				// flush all playing sounds safely
 				rtvoice_stop_playback_all();
 
@@ -2262,6 +2260,9 @@ void options_multi_vox_do()
 
 				// free the status up
 				Om_vox_test_status = OM_VOX_TEST_NONE;
+
+				// restart background audio
+				audiostream_unpause_all();
 			}
 		}
 		break;
@@ -2346,6 +2347,10 @@ void options_multi_vox_button_pressed(int n)
 				// clear the comp buffer
 				memset(Om_vox_comp_buffer,128,OM_VOX_COMP_SIZE);
 
+				// kill all background sounds
+				snd_stop_all();
+				audiostream_pause_all();
+
 				Om_vox_test_status = OM_VOX_TEST_RECORDING;
 				multi_voice_test_record_start();
 			}
@@ -2415,7 +2420,7 @@ void options_multi_vox_process_waveform()
 
 	case OM_VOX_TEST_PLAYBACK:
 		// get the offset into the playing direct sound buffer
-		buf_offset = oal_get_play_position(oal_get_channel(Om_vox_playback_handle));
+		buf_offset = rtvoice_get_playback_position(Om_vox_playback_handle);
 
 		// get the # of samples we'll average for one line
 		avg_len = (int)((float)OM_VOX_RECORD_INT * ((1024.0f * 11.0f) / 1000.0f)) / c_width;				
@@ -2619,6 +2624,11 @@ void options_multi_close()
 
 	// stop any playing voice
 	rtvoice_stop_playback_all();
+
+	// close out the multiplayer voice recording system
+	if( !((Net_player != NULL) && (Net_player->flags & NETINFO_FLAG_CONNECTED)) ){
+		multi_voice_close();
+	}
 
 	// unset the screen mode
 	Om_mode = OM_MODE_NONE;

@@ -342,7 +342,6 @@
 #include "alphacolors.h"
 
 #include "oal.h"
-#include "oal_capture.h"
 #include "oal_efx.h"
 #include "acm.h"
 
@@ -672,8 +671,6 @@ void snd_close(void)
 
 	snd_stop_all();
 	snd_unload_all();		// free the sound data stored in secondary buffers
-
-	oal_capture_close();	// Close Capture
 
 	oal_close();
 

@@ -111,48 +111,24 @@
 
 #include "pstypes.h"
 #include "sound.h"
-#include "oal.h"
-#include "oal_capture.h"
 #include "codec1.h"
 #include "rtvoice.h"
 
-typedef struct rtv_format
-{
-	int nchannels;
-	int bits_per_sample;
-	int frequency;
-} rtv_format;
+static const SDL_AudioSpec Rtv_audiospec = { SDL_AUDIO_U8, 1, 11025 };
 
+static SDL_AudioStream *Rtv_recording_stream = nullptr;
+static SDL_AudioStream *Rtv_playback_stream = nullptr;
 
-#define MAX_RTV_FORMATS	5
-static rtv_format Rtv_formats[MAX_RTV_FORMATS] = 
-{
-	{1,	8,		11025},
-	{1,	16,	11025},
-	{1,	8,		22050},
-	{1,	16,	22050},
-	{1,	8,		44100},
-};
-
-static int Rtv_do_compression=1;					// flag to indicate whether compression should be done		
-static int Rtv_recording_format;					// recording format, index into Rtv_formats[]
-static int Rtv_playback_format;					// playback format, index into Rtv_formats[]
+static const int Rtv_do_compression=1;					// flag to indicate whether compression should be done
 
 #define RTV_BUFFER_TIME		8						// length of buffer in seconds	
 
 static int Rtv_recording_inited=0;				// The input stream has been inited
 static int Rtv_playback_inited=0;				// The output stream has been inited
 
-static int Rtv_recording=0;						// Voice is currently being recorded
+static int Rtv_playback_data_size = 0;				// To help determine playback position
 
-#define MAX_RTV_OUT_BUFFERS	1
-#define RTV_OUT_FLAG_USED		(1<<0)
-typedef struct rtv_out_buffer
-{
-	int buf_handle;		// handle to sound buffer
-	int flags;			// see RTV_OUT_FLAG_ #defines above
-} rtv_out_buffer;
-static rtv_out_buffer Rtv_output_buffers[MAX_RTV_OUT_BUFFERS];		// data for output buffers
+static int Rtv_recording=0;						// Voice is currently being recorded
 
 static struct	t_CodeInfo Rtv_code_info;		// Parms will need to be transmitted with packets
 
@@ -204,29 +180,6 @@ Uint32 SDLCALL TimeProc(void *userdata, SDL_TimerID timerID, Uint32 interval)
 	}
 }
 
-// Try to pick the most appropriate recording format
-//
-// exit:	0	=>		success
-//			!0	=>		failure
-int rtvoice_pick_record_format()
-{
-	int i;
-
-	for (i=0; i<MAX_RTV_FORMATS; i++) {
-		if ( oal_capture_create_buffer(Rtv_formats[i].frequency, Rtv_formats[i].bits_per_sample, 1, RTV_BUFFER_TIME) == 0 ) {
-			oal_capture_release_buffer();
-			Rtv_recording_format=i;
-			break;
-		}
-	}
-
-	if ( i == MAX_RTV_FORMATS ) {
-		return -1;
-	}
-
-	return 0;
-}
-
 // input:	qos => new quality of service (1..10)
 void rtvoice_set_qos(int qos)
 {
@@ -240,19 +193,19 @@ void rtvoice_set_qos(int qos)
 int rtvoice_init_recording(int qos)
 {
 	if ( !Rtv_recording_inited ) {
-		if ( rtvoice_pick_record_format() ) {
+		Rtv_recording_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_RECORDING,
+														 &Rtv_audiospec,
+														 nullptr, nullptr);
+
+		if ( !Rtv_recording_stream ) {
 			return -1;
 		}
 
-		Rtv_capture_raw_buffer_size = Rtv_formats[Rtv_recording_format].frequency * (RTV_BUFFER_TIME) * fl2i(Rtv_formats[Rtv_recording_format].bits_per_sample/8.0f);
+		Rtv_capture_raw_buffer_size = Rtv_audiospec.freq * (RTV_BUFFER_TIME) * SDL_AUDIO_BYTESIZE(Rtv_audiospec.format);
 
 		if ( Encode_buffer1 ) {
 			free(Encode_buffer1);
 			Encode_buffer1=NULL;
-		}
-
-		if ( oal_capture_create_buffer(Rtv_formats[Rtv_recording_format].frequency, Rtv_formats[Rtv_recording_format].bits_per_sample, 1, RTV_BUFFER_TIME) ) {
-			return -1;
 		}
 
 		Encode_buffer1 = (unsigned char*)malloc(Rtv_capture_raw_buffer_size);
@@ -294,7 +247,7 @@ void rtvoice_stop_recording()
 		return;
 	}
 
-	oal_capture_stop_record();
+	SDL_PauseAudioStreamDevice(Rtv_recording_stream);
 
 	if ( Rtv_record_timer_id ) {
 		SDL_RemoveTimer(Rtv_record_timer_id);
@@ -331,7 +284,10 @@ void rtvoice_close_recording()
 		Rtv_capture_compressed_buffer=NULL;
 	}
 
-	oal_capture_release_buffer();
+	if (Rtv_recording_stream) {
+		SDL_DestroyAudioStream(Rtv_recording_stream);
+		Rtv_recording_stream = nullptr;
+	}
 
 	Rtv_recording_inited=0;
 }
@@ -341,17 +297,17 @@ void rtvoice_close_recording()
 //			!0	=>	failure
 int rtvoice_start_recording( void (*user_callback)(), int callback_time ) 
 {
-	if ( !oal_capture_supported() ) {
+	if ( !Rtv_recording_inited ) {
 		return -1;
 	}
-
-	SDL_assert(Rtv_recording_inited);
 
 	if ( Rtv_recording ) {
 		return -1;
 	}
 
-	if ( oal_capture_start_record() ) {
+	SDL_ClearAudioStream(Rtv_recording_stream);
+
+	if ( !SDL_ResumeAudioStreamDevice(Rtv_recording_stream) ) {
 		return -1;
 	}
 
@@ -359,7 +315,7 @@ int rtvoice_start_recording( void (*user_callback)(), int callback_time )
 		Rtv_record_timer_id = SDL_AddTimer(callback_time, TimeProc, NULL);
 
 		if ( !Rtv_record_timer_id ) {
-			oal_capture_stop_record();
+			SDL_PauseAudioStreamDevice(Rtv_recording_stream);
 			return -1;
 		}
 		Rtv_callback = user_callback;
@@ -377,7 +333,7 @@ int rtvoice_start_recording( void (*user_callback)(), int callback_time )
 int rtvoice_compress(unsigned char *data_in, int size_in, unsigned char *data_out, int size_out)
 {
 	int		compressed_size;
-	
+
 	Rtv_code_info.Code = e_cCodec1;
 	Rtv_code_info.Gain = 0;
 
@@ -393,79 +349,6 @@ int rtvoice_compress(unsigned char *data_in, int size_in, unsigned char *data_ou
 	return compressed_size;
 }
 
-// For 8-bit formats (unsigned, 0 to 255)
-// For 16-bit formats (signed, -32768 to 32767)
-int rtvoice_16to8(unsigned char *data, int size)
-{
-	int i;
-	unsigned short	sample16;
-	unsigned char	sample8, *dest, *src;
-
-	SDL_assert(size%2 == 0);
-
-	dest = data;
-	src = data;
-
-	for (i=0; i<size; i+=2) {
-		sample16  = src[0];
-		sample16 |= src[1] << 8;
-
-		sample16 += 32768;
-		sample8 = (unsigned char)(sample16>>8);
-
-		*dest++ = sample8;
-		src += 2;
-	}
-
-	return (size>>1);
-}
-
-// Convert voice sample from 22KHz to 11KHz
-int rtvoice_22to11(unsigned char *data, int size)
-{
-	int i, new_size=0;
-	unsigned char *dest, *src;
-
-	dest=data;
-	src=data;
-
-	for (i=0; i<size; i+=2) {
-		*(dest+new_size) = *(src+i);
-		new_size++;
-	}
-
-	return new_size; 
-}
-
-// Convert voice data to 8bit, 11KHz if necessary
-int rtvoice_maybe_convert_data(unsigned char *data, int size)
-{
-	int new_size=size;
-	switch ( Rtv_recording_format ) {
-	case 0:
-		// do nothing
-		break;
-	case 1:
-		// convert samples to 8 bit from 16 bit
-		new_size = rtvoice_16to8(data,new_size);
-		break;
-	case 2:
-		// convert to 11KHz
-		new_size = rtvoice_22to11(data,new_size);
-		break;
-	case 3:
-		// convert to 11Khz, 8 bit
-		new_size = rtvoice_16to8(data,new_size);
-		new_size = rtvoice_22to11(data,new_size);
-		break;
-	default:
-		Int3();	// should never happen
-		break;
-	}
-
-	return new_size;
-}
-
 // Retrieve the recorded voice data
 // input:	outbuf					=>		output parameter, recorded voice stored here
 //				compressed_size		=>		output parameter, size in bytes of recorded voice after compression
@@ -477,29 +360,23 @@ int rtvoice_maybe_convert_data(unsigned char *data, int size)
 // NOTE: function converts voice data into compressed format
 void rtvoice_get_data(unsigned char **outbuf, int *compressed_size, int *uncompressed_size, double *gain, unsigned char **outbuf_raw, int *outbuf_size_raw)
 {
-	int max_size, raw_size, csize;
-	max_size = oal_capture_max_buffersize();
+	int raw_size, csize;
 
 	*compressed_size=0;
 	*uncompressed_size=0;
 	*outbuf=NULL;
 
-	if ( max_size < 0 ) {
-		return;
-	}	
-	
-	raw_size = oal_capture_get_raw_data(Rtv_capture_raw_buffer, max_size);
+	raw_size = SDL_GetAudioStreamData(Rtv_recording_stream, Rtv_capture_raw_buffer,
+									  Rtv_capture_raw_buffer_size);
 
-	// convert data to 8bit, 11KHz if necessary
-	raw_size = rtvoice_maybe_convert_data(Rtv_capture_raw_buffer, raw_size);
-	*uncompressed_size=raw_size;
+	*uncompressed_size = raw_size;
 
 	// compress voice data
 	if ( Rtv_do_compression ) {
 		csize = rtvoice_compress(Rtv_capture_raw_buffer, raw_size, Rtv_capture_compressed_buffer, Rtv_capture_compressed_buffer_size);
 		*gain = Rtv_code_info.Gain;
 		*compressed_size = csize;
-		*outbuf = Rtv_capture_compressed_buffer;		
+		*outbuf = Rtv_capture_compressed_buffer;
 	} else {
 		*gain = Rtv_code_info.Gain;
 		*compressed_size = raw_size;
@@ -531,8 +408,12 @@ int rtvoice_get_decode_buffer_size()
 // uncompress the data into PCM format
 void rtvoice_uncompress(unsigned char *data_in, int size_in, double gain, unsigned char *data_out, int size_out)
 {
-	Rtv_code_info.Gain = gain;
-	Decode(&Rtv_code_info, data_in, data_out, size_in, size_out);
+	if (Rtv_do_compression) {
+		Rtv_code_info.Gain = gain;
+		Decode(&Rtv_code_info, data_in, data_out, size_in, size_out);
+	} else {
+		SDL_memcpy(data_out, data_in, SDL_min(size_in, size_out));
+	}
 }
 
 // Close down the real-time voice playback system
@@ -548,18 +429,12 @@ void rtvoice_close_playback()
 		Rtv_playback_uncompressed_buffer=NULL;
 	}
 
-	Rtv_playback_inited=0;
-}
-
-// Clear out the Rtv_output_buffers[] array
-void rtvoice_reset_out_buffers()
-{
-	int i;
-	
-	for ( i=0; i<MAX_RTV_OUT_BUFFERS; i++ ) {
-		Rtv_output_buffers[i].flags=0;
-		Rtv_output_buffers[i].buf_handle=-1;
+	if (Rtv_playback_stream) {
+		SDL_DestroyAudioStream(Rtv_playback_stream);
+		Rtv_playback_stream = nullptr;
 	}
+
+	Rtv_playback_inited=0;
 }
 
 // Init the playback portion of the real-time voice system
@@ -567,15 +442,16 @@ void rtvoice_reset_out_buffers()
 //			!0	=>	failure, playback not possible
 int rtvoice_init_playback()
 {
-	rtv_format	*rtvf=NULL;
-
 	if ( !Rtv_playback_inited ) {
+		Rtv_playback_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+														&Rtv_audiospec,
+														nullptr, nullptr);
 
-		rtvoice_reset_out_buffers();
+		if ( !Rtv_playback_stream ) {
+			return -1;
+		}
 
-		Rtv_playback_format=0;
-		rtvf = &Rtv_formats[Rtv_playback_format];
-		Decode_buffer_size = rtvf->frequency * (RTV_BUFFER_TIME) * fl2i(rtvf->bits_per_sample/8.0f);
+		Decode_buffer_size = Rtv_audiospec.freq * (RTV_BUFFER_TIME) * SDL_AUDIO_BYTESIZE(Rtv_audiospec.format);
 
 		if ( Decode_buffer ) {
 			free(Decode_buffer);
@@ -602,93 +478,52 @@ int rtvoice_init_playback()
 	return 0;
 }
 
+bool rtvoice_is_playback_active(int /* index */)
+{
+	return (SDL_GetAudioStreamQueued(Rtv_playback_stream) > 0);
+}
+
+int rtvoice_get_playback_position(int /* index */)
+{
+	int offset = Rtv_playback_data_size - SDL_GetAudioStreamQueued(Rtv_playback_stream);
+
+	// NEVER return a negative value from here
+	return (offset > 0) ? offset : 0;
+}
+
 int rtvoice_find_free_output_buffer()
 {
-	int i;
-
-	for ( i=0; i<MAX_RTV_OUT_BUFFERS; i++ ) {
-		if ( !(Rtv_output_buffers[i].flags & RTV_OUT_FLAG_USED) ) {
-			break;
-		}
-	}
-
-	if ( i == MAX_RTV_OUT_BUFFERS ) {
-		return -1;
-	}
-
-	Rtv_output_buffers[i].flags |= RTV_OUT_FLAG_USED;
-	return i;
-	 
+	return 0;
 }
 
 // Open a stream for real-time voice output
 int rtvoice_create_playback_buffer()
 {
-	int			index;
-	rtv_format	*rtvf=NULL;
-
-	rtvf = &Rtv_formats[Rtv_playback_format];
-	index = rtvoice_find_free_output_buffer();
-
-	if ( index == -1 ) {
-		Int3();
-		return -1;
-	}
-	
-	Rtv_output_buffers[index].buf_handle = oal_create_buffer(rtvf->frequency, rtvf->bits_per_sample, 1, RTV_BUFFER_TIME);
-	if ( Rtv_output_buffers[index].buf_handle == -1 ) {
-		return -1;
-	}
-
-	return 0;
+	return Rtv_playback_stream ? 0 : -1;
 }
 
-void rtvoice_stop_playback(int index)
+void rtvoice_stop_playback(int /* index */)
 {
-	SDL_assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
-
-	if ( Rtv_output_buffers[index].flags & RTV_OUT_FLAG_USED ) {
-		if ( Rtv_output_buffers[index].buf_handle != -1 ) {
-			oal_stop_buffer(Rtv_output_buffers[index].buf_handle);
-		}
-	}
+	SDL_ClearAudioStream(Rtv_playback_stream);
 }
 
 void rtvoice_stop_playback_all()
 {
-	int i;
-
-	for ( i = 0; i < MAX_RTV_OUT_BUFFERS; i++ ) {
-		rtvoice_stop_playback(i);
-	}
+	rtvoice_stop_playback(0);
 }
 
 // Close a stream that was opened for real-time voice output
-void rtvoice_free_playback_buffer(int index)
+void rtvoice_free_playback_buffer(int /* index */)
 {
-	SDL_assert(index >=0 && index < MAX_RTV_OUT_BUFFERS);
-
-	if ( Rtv_output_buffers[index].flags & RTV_OUT_FLAG_USED ) {
-		Rtv_output_buffers[index].flags=0;
-		if ( Rtv_output_buffers[index].buf_handle != -1 ) {
-			oal_stop_buffer(Rtv_output_buffers[index].buf_handle);
-			oal_unload_buffer(Rtv_output_buffers[index].buf_handle);
-		}
-		Rtv_output_buffers[index].buf_handle=-1;
-	}
 }
 
 // Play compressed sound data
 // exit:	>=0	=>	handle to playing sound
 //			-1		=>	error, voice not played
-int rtvoice_play_compressed(int index, unsigned char *data, int size, int uncompressed_size, double gain)
+int rtvoice_play_compressed(int /* index */, unsigned char *data, int size, int uncompressed_size, double gain)
 {
-	int buf_handle, rval;
-
-	buf_handle = Rtv_output_buffers[index].buf_handle;
-
 	// Stop any currently playing voice output
-	oal_stop_buffer(buf_handle);
+	rtvoice_stop_playback_all();
 
 	SDL_assert(uncompressed_size <= Rtv_playback_uncompressed_buffer_size);
 
@@ -697,35 +532,35 @@ int rtvoice_play_compressed(int index, unsigned char *data, int size, int uncomp
 		rtvoice_uncompress(data, size, gain, Rtv_playback_uncompressed_buffer, uncompressed_size);
 	}
 
-	// lock the data in
-	if ( oal_lock_data(buf_handle, Rtv_playback_uncompressed_buffer, uncompressed_size) ) {
-		return -1;
-	}
+	SDL_SetAudioStreamGain(Rtv_playback_stream, Master_voice_volume);
 
-	// play the voice
-	rval = oal_play(buf_handle, -1, SND_PRIORITY_MUST_PLAY, Master_voice_volume, 0.0f, 0);
-	return rval;
+	SDL_PutAudioStreamData(Rtv_playback_stream, Rtv_playback_uncompressed_buffer, uncompressed_size);
+	SDL_FlushAudioStream(Rtv_playback_stream);	// no more data will be added
+
+	Rtv_playback_data_size = uncompressed_size;
+
+	SDL_ResumeAudioStreamDevice(Rtv_playback_stream);
+
+	return 0;
 }
 
 // Play uncompressed (raw) sound data
 // exit:	>=0	=>	handle to playing sound
 //			-1		=>	error, voice not played
-int rtvoice_play_uncompressed(int index, unsigned char *data, int size)
+int rtvoice_play_uncompressed(int /* index */, unsigned char *data, int size)
 {
-	int buf_handle, rval;
-
-	buf_handle = Rtv_output_buffers[index].buf_handle;
-
 	// Stop any currently playing voice output
-	oal_stop_buffer(buf_handle);
+	rtvoice_stop_playback_all();
 
-	// lock the data in
-	if ( oal_lock_data(buf_handle, data, size) ) {
-		return -1;
-	}
+	SDL_SetAudioStreamGain(Rtv_playback_stream, Master_voice_volume);
 
-	// play the voice
-	rval = oal_play(buf_handle, -1, SND_PRIORITY_MUST_PLAY, Master_voice_volume, 0.0f, 0);
-	return rval;
+	SDL_PutAudioStreamData(Rtv_playback_stream, data, size);
+	SDL_FlushAudioStream(Rtv_playback_stream);	// no more data will be added
+
+	Rtv_playback_data_size = size;
+
+	SDL_ResumeAudioStreamDevice(Rtv_playback_stream);
+
+	return 0;
 }
 

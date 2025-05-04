@@ -18,21 +18,21 @@
 
 
 // effects
-LPALGENEFFECTS alGenEffects;
-LPALDELETEEFFECTS alDeleteEffects;
-LPALEFFECTI alEffecti;
-LPALEFFECTF alEffectf;
-LPALEFFECTFV alEffectfv;
-LPALGETEFFECTF alGetEffectf;
+static LPALGENEFFECTS alGenEffects = nullptr;
+static LPALDELETEEFFECTS alDeleteEffects = nullptr;
+static LPALEFFECTI alEffecti = nullptr;
+static LPALEFFECTF alEffectf = nullptr;
+static LPALEFFECTFV alEffectfv = nullptr;
+static LPALGETEFFECTF alGetEffectf = nullptr;
 
 // aux effect slots
-LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
-LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
-LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
-LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
-LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv;
-LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
-LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
+static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = nullptr;
+static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = nullptr;
+static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot = nullptr;
+static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = nullptr;
+static LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv = nullptr;
+static LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf = nullptr;
+static LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv = nullptr;
 
 static uint EFX_active_environment = SND_ENV_GENERIC;
 static EFXEAXREVERBPROPERTIES EFX_env_properties = EFX_REVERB_PRESET_GENERIC;
@@ -222,7 +222,37 @@ static void oal_efx_set_environment(uint id)
 
 	EFX_active_environment = n_id;
 }
-#endif
+
+static bool oal_efx_init_prototypes()
+{
+	#define GET_PROC(type, func)	\
+		do {	\
+			(func) = reinterpret_cast<type>(alGetProcAddress(#func));	\
+			if ( !(func) ) {	\
+				mprintf(("  Couldn't load OpenAL function %s!", #func));	\
+				return false;	\
+			}	\
+		} while(false);
+
+	GET_PROC(LPALGENEFFECTS, alGenEffects);
+	GET_PROC(LPALDELETEEFFECTS, alDeleteEffects);
+	GET_PROC(LPALEFFECTI, alEffecti);
+	GET_PROC(LPALEFFECTF, alEffectf);
+	GET_PROC(LPALEFFECTFV, alEffectfv);
+	GET_PROC(LPALGETEFFECTF, alGetEffectf);
+
+	GET_PROC(LPALGENAUXILIARYEFFECTSLOTS, alGenAuxiliaryEffectSlots);
+	GET_PROC(LPALDELETEAUXILIARYEFFECTSLOTS, alDeleteAuxiliaryEffectSlots);
+	GET_PROC(LPALISAUXILIARYEFFECTSLOT, alIsAuxiliaryEffectSlot);
+	GET_PROC(LPALAUXILIARYEFFECTSLOTI, alAuxiliaryEffectSloti);
+	GET_PROC(LPALAUXILIARYEFFECTSLOTIV, alAuxiliaryEffectSlotiv);
+	GET_PROC(LPALAUXILIARYEFFECTSLOTF, alAuxiliaryEffectSlotf);
+	GET_PROC(LPALAUXILIARYEFFECTSLOTFV, alAuxiliaryEffectSlotfv);
+
+	return true;
+}
+#endif	// !__EMSCRIPTEN__
+
 
 int oal_efx_init()
 {
@@ -240,38 +270,9 @@ int oal_efx_init()
 		return -1;
 	}
 
-	// effects
-	alGenEffects = (LPALGENEFFECTS) alGetProcAddress("alGenEffects");
-	alDeleteEffects = (LPALDELETEEFFECTS) alGetProcAddress("alDeleteEffects");
-	alEffecti = (LPALEFFECTI) alGetProcAddress("alEffecti");
-	alEffectf = (LPALEFFECTF) alGetProcAddress("alEffectf");
-	alEffectfv = (LPALEFFECTFV) alGetProcAddress("alEffectfv");
-	alGetEffectf = (LPALGETEFFECTF) alGetProcAddress("alGetEffectf");
-
-	SDL_assert_release( alGenEffects != NULL );
-	SDL_assert_release( alDeleteEffects != NULL );
-	SDL_assert_release( alEffecti != NULL );
-	SDL_assert_release( alEffectf != NULL );
-	SDL_assert_release( alEffectfv != NULL );
-	SDL_assert_release( alGetEffectf != NULL );
-
-	// aux effect slots
-	alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS) alGetProcAddress("alGenAuxiliaryEffectSlots");
-	alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS) alGetProcAddress("alDeleteAuxiliaryEffectSlots");
-	alIsAuxiliaryEffectSlot = (LPALISAUXILIARYEFFECTSLOT) alGetProcAddress("alIsAuxiliaryEffectSlot");
-	alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI) alGetProcAddress("alAuxiliaryEffectSloti");
-	alAuxiliaryEffectSlotiv = (LPALAUXILIARYEFFECTSLOTIV) alGetProcAddress("alAuxiliaryEffectSlotiv");
-	alAuxiliaryEffectSlotf = (LPALAUXILIARYEFFECTSLOTF) alGetProcAddress("alAuxiliaryEffectSlotf");
-	alAuxiliaryEffectSlotfv = (LPALAUXILIARYEFFECTSLOTFV) alGetProcAddress("alAuxiliaryEffectSlotfv");
-
-	SDL_assert_release( alGenAuxiliaryEffectSlots != NULL );
-	SDL_assert_release( alDeleteAuxiliaryEffectSlots != NULL );
-	SDL_assert_release( alIsAuxiliaryEffectSlot != NULL );
-	SDL_assert_release( alAuxiliaryEffectSloti != NULL );
-	SDL_assert_release( alAuxiliaryEffectSlotiv != NULL );
-	SDL_assert_release( alAuxiliaryEffectSlotf != NULL );
-	SDL_assert_release( alAuxiliaryEffectSlotfv != NULL );
-
+	if ( !oal_efx_init_prototypes() ) {
+		return -1;
+	}
 
 	EFX_active_environment = SND_ENV_GENERIC;
 	EFX_env_properties = EFX_ENV_Generic;

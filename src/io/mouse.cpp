@@ -183,17 +183,17 @@ void mouse_force_pos(int x, int y);
 // or the cursor object on success (which must be released with SDL_DestroyCursor!).
 SDL_Cursor *mouse_create_cursor(int bmap_id)
 {
-	auto surface = bm_image_to_surface(bmap_id, 16, BMP_TEX_XPARENT);
+	auto surface = bm_image_to_surface(bmap_id, 16, BMP_TEX_XPARENT,
+									   SDL_PIXELFORMAT_ARGB8888);
 
 	if ( !surface ) {
 		return nullptr;
 	}
 
-	auto w_2 = surface->w * 2;
-	auto h_2 = surface->h * 2;
-
-	// create alternate x2 version for high-dpi
-	auto surfaceScaled = SDL_ScaleSurface(surface, w_2, h_2, SDL_SCALEMODE_LINEAR);
+	// create alternate 2x version for high-dpi
+	auto surfaceScaled = SDL_ScaleSurface(surface,
+										  surface->w * 2, surface->h * 2,
+										  SDL_SCALEMODE_LINEAR);
 
 	if (surfaceScaled) {
 		SDL_AddSurfaceAlternateImage(surface, surfaceScaled);

@@ -55,9 +55,10 @@ static stbi_io_callbacks cfile_callbacks =
 };
 
 
-SDL_Surface *bm_image_to_surface(const char *filename, int dir_type)
+SDL_Surface *bm_image_to_surface(const char *filename, int dir_type, SDL_PixelFormat sformat)
 {
 	int x = 0, y = 0, bpp = 0;
+	SDL_Surface *surface = nullptr;
 
 	auto filep = cfopen(filename, "rb", dir_type);
 
@@ -75,15 +76,24 @@ SDL_Surface *bm_image_to_surface(const char *filename, int dir_type)
 		return nullptr;
 	}
 
-	auto surface = SDL_CreateSurfaceFrom(x, y, SDL_PIXELFORMAT_RGBA32,
-										 image, y * bpp);
+	auto temp = SDL_CreateSurfaceFrom(x, y, SDL_PIXELFORMAT_RGBA32, image, y * bpp);
+
+	// convert surface format if needed
+	if (sformat != SDL_PIXELFORMAT_RGBA32) {
+		surface = SDL_ConvertSurface(temp, sformat);
+
+		SDL_DestroySurface(temp);
+		temp = nullptr;
+	} else {
+		surface = temp;
+	}
 
 	free(image);
 
 	return surface;
 }
 
-SDL_Surface *bm_image_to_surface(int bitmapnum, int bpp, int flags)
+SDL_Surface *bm_image_to_surface(int bitmapnum, int bpp, int flags, SDL_PixelFormat sformat)
 {
 	SDL_Surface *surface = nullptr;
 
@@ -93,7 +103,7 @@ SDL_Surface *bm_image_to_surface(int bitmapnum, int bpp, int flags)
 		return nullptr;
 	}
 
-	auto bmp = bm_lock(bitmapnum, bpp, flags);
+	auto bmp = bm_lock(bitmapnum, static_cast<ubyte>(bpp), static_cast<ubyte>(flags));
 
 	if ( !bmp ) {
 		return nullptr;
@@ -106,7 +116,7 @@ SDL_Surface *bm_image_to_surface(int bitmapnum, int bpp, int flags)
 
 	if (temp) {
 		// convert to 32-bit for final surface
-		surface = SDL_ConvertSurface(temp, SDL_PIXELFORMAT_RGBA32);
+		surface = SDL_ConvertSurface(temp, sformat);
 
 		SDL_DestroySurface(temp);
 		temp = nullptr;

@@ -197,6 +197,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/readyroom.h
   ${CMAKE_CURRENT_SOURCE_DIR}/rect.h
   ${CMAKE_CURRENT_SOURCE_DIR}/redalert.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/renderbuffer.h
   ${CMAKE_CURRENT_SOURCE_DIR}/resource.h
   ${CMAKE_CURRENT_SOURCE_DIR}/rtvoice.h
   ${CMAKE_CURRENT_SOURCE_DIR}/scoring.h

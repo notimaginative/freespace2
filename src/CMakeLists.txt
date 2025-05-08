@@ -47,6 +47,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gropengltexture.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grstub.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grwxgl.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/renderbuffer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hud.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hudartillery.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hudbrackets.cpp

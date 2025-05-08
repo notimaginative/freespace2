@@ -73,15 +73,6 @@ extern int GLES2_max_texture_width;
 extern int GLES2_min_texture_height;
 extern int GLES2_max_texture_height;
 
-typedef struct rb_t {
-	float x, y, z, w;
-	float u, v;
-	ubyte r, g, b, a;
-	ubyte sr, sg, sb, sa;
-} rb_t;
-
-rb_t *gles2_get_render_buffer(size_t num_elems);
-
 int gles2_shader_init();
 void gles2_shader_cleanup();
 void gles2_shader_use(sdr_prog_t prog);

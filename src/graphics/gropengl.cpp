@@ -20,6 +20,7 @@
 #include "osapi.h"
 #include "bmpman.h"
 #include "cfile.h"
+#include "renderbuffer.h"
 
 
 bool OGL_inited = false;
@@ -43,8 +44,7 @@ int GL_max_texture_width = 0;
 int GL_min_texture_height = 0;
 int GL_max_texture_height = 0;
 
-rb_t *render_buffer = NULL;
-static size_t render_buffer_size = 0;
+
 
 static GLuint GL_stream_tex = 0;
 static GLuint Gr_saved_screen_tex = 0;
@@ -58,32 +58,6 @@ static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
 
 static void opengl_set_viewport();
 
-void opengl_alloc_render_buffer(unsigned int nelems)
-{
-	if (nelems < 1) {
-		nelems = 1;
-	}
-
-	if ( render_buffer && (nelems <= render_buffer_size) ) {
-		return;
-	}
-
-	if (render_buffer) {
-		free(render_buffer);
-	}
-
-	render_buffer = (rb_t*) malloc(sizeof(rb_t) * nelems);
-	render_buffer_size = nelems;
-}
-
-void opengl_free_render_buffer()
-{
-	if (render_buffer) {
-		free(render_buffer);
-		render_buffer = NULL;
-		render_buffer_size = 0;
-	}
-}
 
 void opengl_set_variables()
 {
@@ -577,7 +551,7 @@ void gr_opengl_dump_frame()
 static int GL_stream_w = 0;
 static int GL_stream_h = 0;
 
-static rb_t GL_stream[4];
+static renderbuffer_t GL_stream[4];
 
 static void opengl_stream_set_viewport()
 {
@@ -690,10 +664,10 @@ void gr_opengl_stream_frame(ubyte *frame)
 	gr_opengl_clear();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &GL_stream[0].x);
+	glVertexPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &GL_stream[0].x);
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &GL_stream[0].u);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &GL_stream[0].u);
 
 	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
 
@@ -853,8 +827,6 @@ void gr_opengl_cleanup()
 		SDL_GL_DestroyContext(GL_context);
 		GL_context = nullptr;
 	}
-
-	opengl_free_render_buffer();
 
 	if (GL_window) {
 		os_set_window(nullptr);

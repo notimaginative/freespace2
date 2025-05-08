@@ -482,6 +482,7 @@
 #include "cfile.h"
 #include "cfilesystem.h"
 #include "mouse.h"
+#include "renderbuffer.h"
 
 // Includes for different rendering systems
 #include "gropengl.h"
@@ -547,6 +548,8 @@ void gr_close()
 			Int3();		// Invalid graphics mode
 			break;
 	}
+
+	gr_destroy_render_buffer();
 
 	Gr_textures_in = 0;
 

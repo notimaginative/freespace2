@@ -158,8 +158,6 @@ void gr_wxgl_cleanup()
 {
 	opengl_tcache_cleanup();
 
-	opengl_free_render_buffer();
-
 	OGL_inited = false;
 }
 

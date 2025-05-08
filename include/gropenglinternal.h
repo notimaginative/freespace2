@@ -69,18 +69,6 @@ void opengl_init_viewport();
 
 void opengl_stuff_fog_value(float z, float *f_val);
 
-void opengl_alloc_render_buffer(unsigned int nelems);
-void opengl_free_render_buffer();
-
-typedef struct rb_t {
-	float x, y, z, w;
-	float u, v;
-	ubyte r, g, b, a;
-	ubyte sr, sg, sb, sa;
-} rb_t;
-
-extern rb_t *render_buffer;
-
 
 void opengl_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt);
 void opengl_set_texture_state(gr_texture_source ts);

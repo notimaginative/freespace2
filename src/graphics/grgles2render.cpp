@@ -18,6 +18,7 @@
 #include "neb.h"
 #include "line.h"
 #include "palman.h"
+#include "renderbuffer.h"
 
 
 #define NEBULA_COLORS	20
@@ -144,7 +145,7 @@ static void gles2_tmapper_internal(int nv, vertex **verts, uint flags, int is_sc
 		gr_gles2_fog_set(GR_FOGMODE_FOG, ra, ga, ba, gr_screen.fog_near, gr_screen.fog_far);
 	}
 
-	auto render_buffer = gles2_get_render_buffer(nv);
+	auto render_buffer = gr_get_render_buffer(nv);
 
 	int rb_offset = 0;
 
@@ -238,19 +239,19 @@ static void gles2_tmapper_internal(int nv, vertex **verts, uint flags, int is_sc
 	gles2_shader_use(program);
 
 	if (flags & TMAP_FLAG_TEXTURED) {
-		pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+		pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].u);
 		pglEnableVertexAttribArray(SDRI_TEXCOORD);
 	}
 
 	if (flags & TMAP_FLAG_PIXEL_FOG) {
-		pglVertexAttribPointer(SDRI_SEC_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].sr);
+		pglVertexAttribPointer(SDRI_SEC_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(renderbuffer_t), &render_buffer[0].sr);
 		pglEnableVertexAttribArray(SDRI_SEC_COLOR);
 	}
 
-	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
+	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(renderbuffer_t), &render_buffer[0].r);
 	pglEnableVertexAttribArray(SDRI_COLOR);
 
-	pglVertexAttribPointer(SDRI_POSITION, 4, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 4, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
@@ -271,7 +272,7 @@ void gles2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 
 	gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
 
-	auto render_buffer = gles2_get_render_buffer(4);
+	auto render_buffer = gr_get_render_buffer(4);
 
 	render_buffer[0].x = i2fl(x);
 	render_buffer[0].y = i2fl(y);
@@ -293,7 +294,7 @@ void gles2_rect_internal(int x, int y, int w, int h, int r, int g, int b, int a)
 
 	pglVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -341,7 +342,7 @@ void gles2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 	y2 = i2fl(y+h+gr_screen.offset_y);
 
 
-	auto render_buffer = gles2_get_render_buffer(4);
+	auto render_buffer = gr_get_render_buffer(4);
 
 	render_buffer[0].x = x1;
 	render_buffer[0].y = y1;
@@ -369,10 +370,10 @@ void gles2_aabitmap_ex_internal(int x, int y, int w, int h, int sx, int sy)
 	gr_get_colorf(&r, &g, &b, &a);
 	pglVertexAttrib4f(SDRI_COLOR, r, g, b, a);
 
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	pglEnableVertexAttribArray(SDRI_POSITION);
 
-	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].u);
 	pglEnableVertexAttribArray(SDRI_TEXCOORD);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -458,18 +459,18 @@ void gr_gles2_string(int sx, int sy, const char *s)
 
 	// don't want to create a super huge buffer size (i.e. credits text)
 	const int alocsize = 320;	// 80 characters max per render call
-	auto render_buffer = gles2_get_render_buffer(alocsize);
+	auto render_buffer = gr_get_render_buffer(alocsize);
 
 	gles2_shader_use(PROG_AABITMAP);
 
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	float r, g, b, a;
 	gr_get_colorf(&r, &g, &b, &a);
 	pglVertexAttrib4f(SDRI_COLOR, r, g, b, a);
 
-	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].u);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].u);
 	pglEnableVertexAttribArray(SDRI_TEXCOORD);
 
 
@@ -596,11 +597,11 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 	sx2 = i2fl(x2 + gr_screen.offset_x) + 0.5f;
 	sy2 = i2fl(y2 + gr_screen.offset_y) + 0.5f;
 
-	auto render_buffer = gles2_get_render_buffer(2);
+	auto render_buffer = gr_get_render_buffer(2);
 
 	gles2_shader_use(PROG_COLOR);
 
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	float r, g, b, a;
@@ -690,7 +691,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		}
 	}
 
-	auto render_buffer = gles2_get_render_buffer(2);
+	auto render_buffer = gr_get_render_buffer(2);
 
 	render_buffer[0].r = gr_screen.current_color.red;
 	render_buffer[0].g = gr_screen.current_color.green;
@@ -710,10 +711,10 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 
 	gles2_shader_use(PROG_COLOR);
 
-	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(rb_t), &render_buffer[0].r);
+	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(renderbuffer_t), &render_buffer[0].r);
 	pglEnableVertexAttribArray(SDRI_COLOR);
 
-	pglVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	pglEnableVertexAttribArray(SDRI_POSITION);
 
 	glDrawArrays(GL_LINES, 0, 2);
@@ -789,7 +790,7 @@ void gr_gles2_flash(int r, int g, int b)
 		x2 = i2fl(gr_screen.clip_right+gr_screen.offset_x);
 		y2 = i2fl(gr_screen.clip_bottom+gr_screen.offset_y);
 
-		auto render_buffer = gles2_get_render_buffer(4);
+		auto render_buffer = gr_get_render_buffer(4);
 
 		render_buffer[0].x = x1;
 		render_buffer[0].y = y1;
@@ -811,7 +812,7 @@ void gr_gles2_flash(int r, int g, int b)
 
 		pglVertexAttrib4f(SDRI_COLOR, r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
 
-		pglVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(rb_t), &render_buffer[0].x);
+		pglVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 		pglEnableVertexAttribArray(SDRI_POSITION);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

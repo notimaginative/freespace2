@@ -20,6 +20,7 @@
 #include "neb.h"
 #include "line.h"
 #include "palman.h"
+#include "renderbuffer.h"
 
 
 #define NEBULA_COLORS 20
@@ -35,7 +36,7 @@ static void opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b
 
 	opengl_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
 
-	opengl_alloc_render_buffer(4);
+	auto render_buffer = gr_get_render_buffer(4);
 
 	render_buffer[0].x = i2fl(x);
 	render_buffer[0].y = i2fl(y);
@@ -57,7 +58,7 @@ static void opengl_rect_internal(int x, int y, int w, int h, int r, int g, int b
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+	glVertexPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -110,7 +111,7 @@ static void opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green,
 			gr_screen.current_color.blue,gr_screen.current_color.alpha);
 
-	opengl_alloc_render_buffer(4);
+	auto render_buffer = gr_get_render_buffer(4);
 
 	render_buffer[0].x = x1;
 	render_buffer[0].y = y1;
@@ -135,8 +136,8 @@ static void opengl_aabitmap_ex_internal(int x,int y,int w,int h,int sx,int sy)
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
-	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].u);
+	glVertexPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -249,7 +250,7 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 		gr_opengl_fog_set(GR_FOGMODE_FOG, ra, ga, ba, -1.0f, -1.0f);
 	}
 
-	opengl_alloc_render_buffer(nv);
+	auto render_buffer = gr_get_render_buffer(nv);
 
 	int rb_offset = 0;
 
@@ -321,7 +322,7 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 
 	if (flags & TMAP_FLAG_TEXTURED) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].u);
 
 		if (nondarkening) {
 			glPushAttrib(GL_TEXTURE_BIT);
@@ -359,15 +360,15 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].u);
 		}
 	}
 
 	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].r);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(renderbuffer_t), &render_buffer[0].r);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(4, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+	glVertexPointer(4, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, rb_offset);
 
@@ -456,7 +457,7 @@ void gr_opengl_string( int sx, int sy, const char *s )
 
 	// don't want to create a super huge buffer size (i.e. credits text)
 	const int alocsize = 320;	// 80 characters max per render call
-	opengl_alloc_render_buffer(alocsize);
+	auto render_buffer = gr_get_render_buffer(alocsize);
 
 	glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green,
 			gr_screen.current_color.blue, gr_screen.current_color.alpha);
@@ -464,8 +465,8 @@ void gr_opengl_string( int sx, int sy, const char *s )
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(rb_t), &render_buffer[0].u);
+	glVertexPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].u);
 
 	y = sy;
 
@@ -590,7 +591,7 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 	sx2 = i2fl(x2 + gr_screen.offset_x)+0.5f;
 	sy2 = i2fl(y2 + gr_screen.offset_y)+0.5f;
 
-	opengl_alloc_render_buffer(2);
+	auto render_buffer = gr_get_render_buffer(2);
 
 	if ( x1 == x2 && y1 == y2 ) {
 		render_buffer[0].x = sx1;
@@ -601,7 +602,7 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 				gr_screen.current_color.blue, gr_screen.current_color.alpha);
 
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+		glVertexPointer(3, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 		glDrawArrays(GL_POINTS, 0, 1);
 
@@ -636,7 +637,7 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 			gr_screen.current_color.blue, gr_screen.current_color.alpha);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+	glVertexPointer(3, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 	glDrawArrays(GL_LINES, 0, 2);
 
@@ -687,7 +688,7 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 		}
 	}
 
-	opengl_alloc_render_buffer(2);
+	auto render_buffer = gr_get_render_buffer(2);
 
 	render_buffer[0].r = gr_screen.current_color.red;
 	render_buffer[0].g = gr_screen.current_color.green;
@@ -706,10 +707,10 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 	render_buffer[1].z = -0.99f;
 
 	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(rb_t), &render_buffer[0].r);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(renderbuffer_t), &render_buffer[0].r);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+	glVertexPointer(3, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 	glDrawArrays(GL_LINES, 0, 2);
 
@@ -789,7 +790,7 @@ void gr_opengl_flash(int r, int g, int b)
 
 		glColor4ub((GLubyte)r, (GLubyte)g, (GLubyte)b, 255);
 
-		opengl_alloc_render_buffer(4);
+		auto render_buffer = gr_get_render_buffer(4);
 
 		render_buffer[0].x = x1;
 		render_buffer[0].y = y1;
@@ -808,7 +809,7 @@ void gr_opengl_flash(int r, int g, int b)
 		render_buffer[3].z = -0.99f;
 
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(rb_t), &render_buffer[0].x);
+		glVertexPointer(3, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

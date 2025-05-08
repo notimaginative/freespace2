@@ -19,6 +19,7 @@
 #include "cfile.h"
 #include "osapi.h"
 #include "cmdline.h"
+#include "renderbuffer.h"
 
 
 static bool GLES2_inited = false;
@@ -46,9 +47,6 @@ int GLES2_min_texture_width = 0;
 int GLES2_max_texture_width = 0;
 int GLES2_min_texture_height = 0;
 int GLES2_max_texture_height = 0;
-
-static rb_t *render_buffer = nullptr;
-static size_t render_buffer_size = 0;
 
 // GLES2 function prototypes
 PFNGLBINDBUFFERPROC pglBindFramebuffer = nullptr;
@@ -139,35 +137,6 @@ void gles2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt
 		}
 
 		GL_current_zbuffer_type = zt;
-	}
-}
-
-rb_t *gles2_get_render_buffer(size_t num_elems)
-{
-	if (num_elems < 1) {
-		num_elems = 1;
-	}
-
-	if ( render_buffer && (num_elems <= render_buffer_size) ) {
-		return render_buffer;
-	}
-
-	if (render_buffer) {
-		free(render_buffer);
-	}
-
-	render_buffer = reinterpret_cast<rb_t *>(malloc(sizeof(rb_t) * num_elems));
-	render_buffer_size = num_elems;
-
-	return render_buffer;
-}
-
-static void gles2_free_render_buffer()
-{
-	if (render_buffer) {
-		free(render_buffer);
-		render_buffer = nullptr;
-		render_buffer_size = 0;
 	}
 }
 
@@ -449,8 +418,6 @@ void gr_gles2_cleanup()
 
 	gles2_tcache_cleanup();
 	gles2_shader_cleanup();
-
-	gles2_free_render_buffer();
 
 	if (GLES2_context) {
 		SDL_GL_DestroyContext(GLES2_context);
@@ -999,7 +966,7 @@ void gr_gles2_dump_frame()
 static int GL_stream_w = 0;
 static int GL_stream_h = 0;
 
-static rb_t GL_stream[4];
+static renderbuffer_t GL_stream[4];
 
 void gr_gles2_stream_start(int x, int y, int w, int h)
 {
@@ -1084,10 +1051,10 @@ void gr_gles2_stream_frame(ubyte *frame)
 	pglVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
 
 	pglEnableVertexAttribArray(SDRI_POSITION);
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].x);
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].x);
 
 	pglEnableVertexAttribArray(SDRI_TEXCOORD);
-	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(rb_t), &GL_stream[0].u);
+	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].u);
 
 	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
 

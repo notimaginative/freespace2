@@ -68,9 +68,9 @@ static GLuint gles2_load_shader(const char *name)
 {
 	GLenum shader_type = 0;
 
-	if (SDL_strstr(name, "-vs")) {
+	if (SDL_strstr(name, ".vert")) {
 		shader_type = GL_VERTEX_SHADER;
-	} else if (SDL_strstr(name, "-fs")) {
+	} else if (SDL_strstr(name, ".frag")) {
 		shader_type = GL_FRAGMENT_SHADER;
 	}
 

@@ -37,19 +37,19 @@ add_custom_command(
 		# add all embed files we need to track changes for below
 		${DIST_DIR}/images/FS.png
 		${DIST_DIR}/images/FS2.png
-		${DIST_DIR}/embed_root/data/shaders/aabitmap-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/color_fog-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/color_fog-vs.glsl
-		${DIST_DIR}/embed_root/data/shaders/color-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/color-vs.glsl
-		${DIST_DIR}/embed_root/data/shaders/nondark_fog-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/nondark-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex_fog-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex_fog-vs.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex-vs.glsl
-		${DIST_DIR}/embed_root/data/shaders/window-fs.glsl
-		${DIST_DIR}/embed_root/data/shaders/window-vs.glsl
+		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/color.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/color.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/nondark.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/window.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/window.vert.glsl
 	COMMENT "Creating embed.vp ..."
 	VERBATIM
 )

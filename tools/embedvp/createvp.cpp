@@ -80,11 +80,18 @@ void add_file(const char *filespec, const char *filename, const SDL_PathInfo &pi
 	VP_FILE item{};
 	size_t nbytes;
 
+	// skip if zero-byte
 	if (pinfo.size == 0) {
 		return;
 	}
 
+	// skip if filename too long for VP
 	if (SDL_strlen(filename) > 31) {
+		return;
+	}
+
+	// skip if filename starts with dot (hidden files, Mac junk, etc.)
+	if (filename[0] == '.') {
 		return;
 	}
 

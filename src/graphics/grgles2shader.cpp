@@ -212,20 +212,20 @@ void gles2_shader_update()
 int gles2_shader_init()
 {
 	try {
-		GLuint v_tex = gles2_load_shader("tex-vs.glsl");
-		GLuint v_fog_tex = gles2_load_shader("tex_fog-vs.glsl");
-		GLuint v_color = gles2_load_shader("color-vs.glsl");
-		GLuint v_fog_color = gles2_load_shader("color_fog-vs.glsl");
-		GLuint v_window = gles2_load_shader("window-vs.glsl");
+		GLuint v_tex = gles2_load_shader("tex.vert.glsl");
+		GLuint v_fog_tex = gles2_load_shader("tex_fog.vert.glsl");
+		GLuint v_color = gles2_load_shader("color.vert.glsl");
+		GLuint v_fog_color = gles2_load_shader("color_fog.vert.glsl");
+		GLuint v_window = gles2_load_shader("window.vert.glsl");
 
-		GLuint f_aabitmap = gles2_load_shader("aabitmap-fs.glsl");
-		GLuint f_tex = gles2_load_shader("tex-fs.glsl");
-		GLuint f_fog_tex = gles2_load_shader("tex_fog-fs.glsl");
-		GLuint f_nondark = gles2_load_shader("nondark-fs.glsl");
-		GLuint f_fog_nondark = gles2_load_shader("nondark_fog-fs.glsl");
-		GLuint f_color = gles2_load_shader("color-fs.glsl");
-		GLuint f_fog_color = gles2_load_shader("color_fog-fs.glsl");
-		GLuint f_window = gles2_load_shader("window-fs.glsl");
+		GLuint f_aabitmap = gles2_load_shader("aabitmap.frag.glsl");
+		GLuint f_tex = gles2_load_shader("tex.frag.glsl");
+		GLuint f_fog_tex = gles2_load_shader("tex_fog.frag.glsl");
+		GLuint f_nondark = gles2_load_shader("nondark.frag.glsl");
+		GLuint f_fog_nondark = gles2_load_shader("nondark_fog.frag.glsl");
+		GLuint f_color = gles2_load_shader("color.frag.glsl");
+		GLuint f_fog_color = gles2_load_shader("color_fog.frag.glsl");
+		GLuint f_window = gles2_load_shader("window.frag.glsl");
 
 		aabitmap_prog = gles2_create_program(v_tex, f_aabitmap);
 		tex_prog = gles2_create_program(v_tex, f_tex);

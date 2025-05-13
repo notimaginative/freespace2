@@ -605,7 +605,7 @@ void cf_search_root_pack(int root_index)
 
 				if ( !SDL_strcasecmp( search_path, Pathtypes[j].path ))	{
 
-					char *ext = SDL_strchr( find.filename, '.' );
+					char *ext = SDL_strrchr( find.filename, '.' );
 					if ( ext )	{
 						if ( is_ext_in_list( Pathtypes[j].extensions, ext ) )	{
 							// Found a file!!!!
@@ -850,13 +850,13 @@ int cf_matches_spec(const char *filespec, const char *filename)
 {
 	const char *src_ext, *dst_ext;
 
-	src_ext = SDL_strchr(filespec, '.');
+	src_ext = SDL_strrchr(filespec, '.');
 	if (!src_ext)
 		return 1;
 	if (*src_ext == '*')
 		return 1;
 
-	dst_ext = SDL_strchr(filename, '.');
+	dst_ext = SDL_strrchr(filename, '.');
 	if (!dst_ext)
 		return 1;
 	
@@ -873,7 +873,7 @@ int cf_file_already_in_list( int num_files, char **list, char *filename )
 	char name_no_extension[MAX_PATH_LEN];
 
 	SDL_strlcpy(name_no_extension, filename, SDL_arraysize(name_no_extension));
-	char *p = SDL_strchr( name_no_extension, '.' );
+	char *p = SDL_strrchr( name_no_extension, '.' );
 	if ( p ) *p = 0;
 
 	for (i=0; i<num_files; i++ )	{
@@ -1018,7 +1018,7 @@ int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME
 	char name_no_extension[MAX_PATH_LEN];
 
 	SDL_strlcpy(name_no_extension, filename, SDL_arraysize(name_no_extension));
-	char *p = SDL_strchr( name_no_extension, '.' );
+	char *p = SDL_strrchr( name_no_extension, '.' );
 	if ( p ) *p = 0;
 
 	for (i=0; i<num_files; i++ )	{

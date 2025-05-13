@@ -190,14 +190,17 @@ void gles2_shader_use(sdr_prog_t prog)
 }
 
 // update window ortho coords
-void gles2_shader_update()
+void gles2_shader_update(int width, int height)
 {
 	GLfloat ortho[16];
 
 	SDL_zero(ortho);
 
-	ortho[0] = 2.0f / GLES2_viewport_w;
-	ortho[5] = 2.0f / -GLES2_viewport_h;
+	if ( !width ) width = GLES2_viewport_w;
+	if ( !height ) height = GLES2_viewport_h;
+
+	ortho[0] = 2.0f / width;
+	ortho[5] = 2.0f / -height;
 	ortho[10] = -2.0f / 1.0f;
 	ortho[12] = -1.0f;
 	ortho[13] = 1.0f;

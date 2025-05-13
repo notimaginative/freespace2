@@ -963,16 +963,70 @@ void gr_gles2_dump_frame()
 
 }
 
+static renderbuffer_t GL_stream[4];
 static int GL_stream_w = 0;
 static int GL_stream_h = 0;
 
-static renderbuffer_t GL_stream[4];
+static void gles2_stream_set_viewport()
+{
+	int window_w, window_h;
+
+	SDL_GetWindowSizeInPixels(os_get_window(), &window_w, &window_h);
+
+	float ratio = GL_stream_w / i2fl(GL_stream_h);
+
+	int w = window_w;
+	int h = fl2i((window_w / ratio) + 0.5f);
+
+	if (h > window_h) {
+		h = window_h;
+		w = fl2i((window_h * ratio) + 0.5f);
+	}
+
+	glViewport((window_w - w) / 2,
+			   (window_h - h) / 2,
+			   w,
+			   h
+	);
+
+	// set quad to entire window and let viewport fix aspect ratio
+	GL_stream[0].x = 0.0f;
+	GL_stream[0].y = 0.0f;
+	GL_stream[0].u = 0.0f;
+	GL_stream[0].v = 0.0f;
+
+	GL_stream[1].x = 0.0f;
+	GL_stream[1].y = i2fl(window_h);
+	GL_stream[1].u = 0.0f;
+	GL_stream[1].v = 1.0f;
+
+	GL_stream[2].x = i2fl(window_w);
+	GL_stream[2].y = 0.0f;
+	GL_stream[2].u = 1.0f;
+	GL_stream[2].v = 0.0f;
+
+	GL_stream[3].x = i2fl(window_w);
+	GL_stream[3].y = i2fl(window_h);
+	GL_stream[3].u = 1.0f;
+	GL_stream[3].v = 1.0f;
+
+	gles2_shader_update(window_w, window_h);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+}
 
 void gr_gles2_stream_start(int x, int y, int w, int h)
 {
 	if (GL_stream_tex) {
 		return;
 	}
+
+	// render directly so we can make use of entire window size more easily
+	pglBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	gr_gles2_reset_clip();
+
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glGenTextures(1, &GL_stream_tex);
 
@@ -983,72 +1037,26 @@ void gr_gles2_stream_start(int x, int y, int w, int h)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB,
+				 GL_UNSIGNED_SHORT_5_6_5, NULL);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	uint scale = os_config_read_uint("Video", "ScaleMovies", 1);
-
-	int sx, sy;
-	int sw, sh;
-
-	if (x < 0) {
-		sx = scale ? 0 : ((gr_screen.max_w - w) / 2);
-	} else {
-		sx = x;
-	}
-
-	float h_factor = scale ? (gr_screen.max_w / i2fl(w)) : 1.0f;
-
-	if (y < 0) {
-		sy = (gr_screen.max_h - fl2i(h * h_factor)) / 2;
-	} else {
-		sy = y;
-	}
 
 	GL_stream_w = w;
 	GL_stream_h = h;
 
-	if (scale) {
-		sw = gr_screen.max_w - (sx * 2);
-		sh = gr_screen.max_h - (sy * 2);
-	} else {
-		sw = w;
-		sh = h;
-	}
-
-	GL_stream[0].x = i2fl(sx);
-	GL_stream[0].y = i2fl(sy);
-	GL_stream[0].u = 0.0f;
-	GL_stream[0].v = 0.0f;
-
-	GL_stream[1].x = i2fl(sx);
-	GL_stream[1].y = i2fl(sy + sh);
-	GL_stream[1].u = 0.0f;
-	GL_stream[1].v = 1.0f;
-
-	GL_stream[2].x = i2fl(sx + sw);
-	GL_stream[2].y = i2fl(sy);
-	GL_stream[2].u = 1.0f;
-	GL_stream[2].v = 0.0f;
-
-	GL_stream[3].x = i2fl(sx + sw);
-	GL_stream[3].y = i2fl(sy + sh);
-	GL_stream[3].u = 1.0f;
-	GL_stream[3].v = 1.0f;
+	gles2_stream_set_viewport();
 
 	glDisable(GL_DEPTH_TEST);
 }
 
-void gr_gles2_stream_frame(ubyte *frame)
+void gr_gles2_stream_frame(const SDL_Surface *frame)
 {
 	if ( !GL_stream_tex ) {
 		return;
 	}
 
-	gles2_shader_use(PROG_TEX);
-
-	pglVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+	gles2_shader_use(PROG_WINDOW);
 
 	pglEnableVertexAttribArray(SDRI_POSITION);
 	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].x);
@@ -1058,7 +1066,8 @@ void gr_gles2_stream_frame(ubyte *frame)
 
 	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
 
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GL_stream_w, GL_stream_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, frame);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame->w, frame->h, GL_RGB,
+					GL_UNSIGNED_SHORT_5_6_5, frame->pixels);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -1066,6 +1075,8 @@ void gr_gles2_stream_frame(ubyte *frame)
 
 	pglDisableVertexAttribArray(SDRI_TEXCOORD);
 	pglDisableVertexAttribArray(SDRI_POSITION);
+
+	SDL_GL_SwapWindow(GLES2_window);
 }
 
 void gr_gles2_stream_stop()
@@ -1077,6 +1088,13 @@ void gr_gles2_stream_stop()
 
 		glEnable(GL_DEPTH_TEST);
 	}
+
+	pglBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+
+	// reset viewport to game screen size
+	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+
+	gles2_shader_update();
 }
 
 void gr_gles2_set_viewport(int width, int height)
@@ -1110,4 +1128,9 @@ void gr_gles2_set_viewport(int width, int height)
 	gr_screen.viewport_scale_factor_y = 1.0f / GLES2_viewport_scale_h;
 
 	gles2_shader_update();
+
+	// if playing movie then adjust viewport for that
+	if (GL_stream_tex) {
+		gles2_stream_set_viewport();
+	}
 }

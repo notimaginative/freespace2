@@ -495,7 +495,7 @@ typedef struct screen {
 	void (*gf_stream_start)(int x, int y, int w, int h);
 
 	// Process frame of video stream
-	void (*gf_stream_frame)(ubyte *frame);
+	void (*gf_stream_frame)(const SDL_Surface *frame);
 
 	// Stop video stream
 	void (*gf_stream_stop)();

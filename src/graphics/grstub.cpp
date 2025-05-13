@@ -82,7 +82,7 @@ static int stub_preload(int, int)
 	return 1;
 }
 
-static void stub_stream_frame(ubyte *)
+static void stub_stream_frame(const SDL_Surface *)
 {
 }
 

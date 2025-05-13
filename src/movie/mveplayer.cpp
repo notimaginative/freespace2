@@ -69,7 +69,7 @@ static int audiobuf_created = 0;
 int g_width, g_height;
 void *g_vBuffers = NULL;
 void *g_vBackBuf1, *g_vBackBuf2;
-ushort *pixelbuf = NULL;
+static SDL_Surface *pixelbuf = nullptr;
 static ubyte *g_pCurMap=NULL;
 static int g_nMapLength=0;
 static int videobuf_created;
@@ -343,15 +343,7 @@ int mve_video_createbuf(ubyte minor, ubyte *data)
 	memset(g_vBackBuf1, 0, g_width * g_height * 4);
 
 	// DDOI - Allocate RGB565 pixel buffer
-	pixelbuf = (ushort *)malloc (g_width * g_height * 2);
-
-	if (pixelbuf == NULL) {
-		mprintf(("MVE-ERROR: Can't allocate memory for pixelbuf\n"));
-		videobuf_created = 1;
-		return 0;
-	}
-
-	memset(pixelbuf, 0, g_width * g_height * 2);
+	pixelbuf = SDL_CreateSurface(g_width, g_height, SDL_PIXELFORMAT_RGB565);
 
 	gr_stream_start(-1, -1, g_width, g_height);
 
@@ -367,23 +359,24 @@ static void mve_convert_and_draw()
 	ushort *pixels = (ushort *)g_vBackBuf1;
 	ushort px;
 	int x, y;
-	ubyte r, g, b, a;
+	ubyte r, g, b;
 
 	pSrcs = pixels;
 
-	pDests = pixelbuf;
+	pDests = reinterpret_cast<ushort *>(pixelbuf->pixels);
 
 	for (y=0; y<g_height; y++) {
 		for (x = 0; x < g_width; x++) {
-			// convert from abgr to rgba
-			px = (1<<15)|*pSrcs;
+			// convert from abgr to rgb565
+			px = (*pSrcs) | 0x8000;
 
-			r = ubyte((px & 0x7C00) >> 10);
-			g = ubyte((px & 0x3E0) >> 5);
-			b = ubyte((px & 0x1F) >> 0);
-			a = ubyte((px & 0x8000) >> 15);
+			r = (px >> 10) & 0x1F;
+			g = (px >> 5) & 0x1F;
+			b = (px >> 0) & 0x1F;
+			// upscale green to 6 bits
+			g = (g << 1) | (g >> 4);
 
-			pDests[x] = (r << 11) | (g << 6) | (b << 1) | (a << 0);
+			pDests[x] = (r << 11) | (g << 5) | b;
 
 			pSrcs++;
 		}
@@ -409,9 +402,7 @@ void mve_video_display()
 
 	mve_convert_and_draw();
 
-	gr_stream_frame( (ubyte*)pixelbuf );
-
-	gr_flip();
+	gr_stream_frame(pixelbuf);
 
 	fix t2 = timer_get_fixed_seconds();
 
@@ -507,9 +498,9 @@ void mve_shutdown()
 
 	mve_timer_stop();
 
-	if (pixelbuf != NULL) {
-		free(pixelbuf);
-		pixelbuf = NULL;
+	if (pixelbuf) {
+		SDL_DestroySurface(pixelbuf);
+		pixelbuf = nullptr;
 	}
 
 	if (g_vBuffers != NULL) {

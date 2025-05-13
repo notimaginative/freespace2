@@ -76,7 +76,7 @@ extern int GLES2_max_texture_height;
 int gles2_shader_init();
 void gles2_shader_cleanup();
 void gles2_shader_use(sdr_prog_t prog);
-void gles2_shader_update();
+void gles2_shader_update(int width = 0, int height = 0);
 
 void gr_gles2_flip();
 void gr_gles2_set_clip(int x, int y, int w, int h);
@@ -94,7 +94,7 @@ void gr_gles2_dump_frame_start(int first_frame, int frames_between_dumps);
 void gr_gles2_dump_frame_stop();
 void gr_gles2_dump_frame();
 void gr_gles2_stream_start(int x, int y, int w, int h);
-void gr_gles2_stream_frame(ubyte *frame);
+void gr_gles2_stream_frame(const SDL_Surface *frame);
 void gr_gles2_stream_stop();
 void gr_gles2_set_viewport(int width, int height);
 void gr_gles2_preload_init();

@@ -122,7 +122,7 @@ void gr_opengl_dump_frame_start(int first_frame, int frames_between_dumps);
 void gr_opengl_dump_frame_stop();
 void gr_opengl_dump_frame();
 void gr_opengl_stream_start(int x, int y, int w, int h);
-void gr_opengl_stream_frame(ubyte *frame);
+void gr_opengl_stream_frame(const SDL_Surface *frame);
 void gr_opengl_stream_stop();
 void gr_opengl_set_viewport(int width, int height);
 void gr_opengl_release_texture(int handle);

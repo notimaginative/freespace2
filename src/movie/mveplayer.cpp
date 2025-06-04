@@ -57,7 +57,9 @@ static Uint64 micro_timer_freq = 0;
 
 // audio variables
 static SDL_AudioStream *mve_audio_stream = nullptr;
-static ubyte *mve_audio_buf = NULL;
+static ubyte *mve_audio_buf = nullptr;
+static int mve_audio_buf_size = 0;
+static int mve_audio_buf_offset = 0;
 
 static int mve_audio_playing = 0;
 static int mve_audio_canplay = 0;
@@ -193,6 +195,9 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 			audiobuf_created = 1;
 			return;
 		}
+
+		mve_audio_buf_size = desired_buffer;
+		mve_audio_buf_offset = 0;
 	} else {
 		mve_audio_canplay = 0;
 		audiobuf_created = 1;
@@ -226,9 +231,7 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 	}
 
-	SDL_ResumeAudioStreamDevice(mve_audio_stream);
-
-	mve_audio_playing = 1;
+	mve_audio_playing = 0;
 
 	audiobuf_created = 1;
 	mve_audio_canplay = 1;
@@ -237,7 +240,19 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 // play and stream the audio
 void mve_audio_play()
 {
-	// not needed with SDL audio stream
+	if ( !mve_audio_canplay ) {
+		return;
+	}
+
+	if (mve_audio_buf_offset > 0) {
+		SDL_PutAudioStreamData(mve_audio_stream, mve_audio_buf, mve_audio_buf_offset);
+		mve_audio_buf_offset = 0;
+	}
+
+	if ( !mve_audio_playing ) {
+		SDL_ResumeAudioStreamDevice(mve_audio_stream);
+		mve_audio_playing = 1;
+	}
 }
 
 static void mve_audio_pause(bool paused)
@@ -249,7 +264,6 @@ static void mve_audio_pause(bool paused)
 			SDL_ResumeAudioStreamDevice(mve_audio_stream);
 		}
 	}
-
 }
 
 // call this in shutdown to stop and close audio
@@ -268,6 +282,9 @@ static void mve_audio_stop()
 		free(mve_audio_buf);
 		mve_audio_buf = nullptr;
 	}
+
+	mve_audio_buf_size = 0;
+	mve_audio_buf_offset = 0;
 
 	if (mve_audio_stream) {
 		SDL_DestroyAudioStream(mve_audio_stream);
@@ -288,24 +305,30 @@ int mve_audio_data(ubyte major, ubyte *data)
 		nsamp = mve_get_ushort(data + 4);
 
 		if (chan & selected_chan) {
+			// if we're going to overrun then go ahead and offload the buffer
+			if ((mve_audio_buf_offset+nsamp+4) >= mve_audio_buf_size) {
+				SDL_PutAudioStreamData(mve_audio_stream, mve_audio_buf, mve_audio_buf_offset);
+				mve_audio_buf_offset = 0;
+			}
+
 			if (major == 8) {
 				if (mve_audio_compressed) {
 					/* HACK: +4 mveaudio_uncompress adds 4 more bytes */
 					nsamp += 4;
 
-					mveaudio_uncompress(mve_audio_buf, data, -1);
+					mveaudio_uncompress(mve_audio_buf+mve_audio_buf_offset, data, -1);
 				} else {
 					nsamp -= 8;
 					data += 8;
 
-					memcpy(mve_audio_buf, data, nsamp);
+					memcpy(mve_audio_buf+mve_audio_buf_offset, data, nsamp);
 				}
 			} else {
 				// silence
-				memset(mve_audio_buf, 0, nsamp);
+				memset(mve_audio_buf+mve_audio_buf_offset, 0, nsamp);
 			}
 
-			SDL_PutAudioStreamData(mve_audio_stream, mve_audio_buf, nsamp);
+			mve_audio_buf_offset += nsamp;
 		}
 	}
 

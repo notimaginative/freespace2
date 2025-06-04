@@ -1339,6 +1339,11 @@ INIT_ERROR:
 		Audio_streams = NULL;
 	}
 
+	if (Audiostream_device) {
+		SDL_CloseAudioDevice(Audiostream_device);
+		Audiostream_device = 0;
+	}
+
 	Audiostream_inited = 0;
 }
 

@@ -92,14 +92,6 @@
  */
 
 
-#include "wx/wxprec.h"
-
-#ifndef WX_PRECOMP
-#include "wx/wx.h"
-#endif
-
-#include "wx/filedlg.h"
-
 #include "pstypes.h"
 #include "2d.h"
 #include "3d.h"
@@ -186,17 +178,6 @@ int Neb_created = 0;
 int Nebedit_running = 1;
 
 extern void project_2d_onto_sphere(vector *, float, float);
-
-class NebeditApp: public wxApp
-{
-public:
-	virtual bool OnInit();
-};
-
-bool NebeditApp::OnInit()
-{
-	return false;
-}
 
 
 void create_default_neb()
@@ -338,34 +319,50 @@ void nebedit_close()
 	save_nebula_sub( a_path );
 }
 
-void save_nebula()
+static void SDLCALL save_callback(void *userdata, const char * const *filelist, int filter)
 {
-	wxFileDialog saveFileDialog(NULL, _("Save Nebula File"), wxEmptyString,
-								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
-								wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
-
-	if (saveFileDialog.ShowModal() == wxID_OK) {
-		save_nebula_sub(saveFileDialog.GetPath().ToAscii());
+	if ( !filelist || !(*filelist) ) {
+		return;
 	}
+
+	save_nebula_sub(*filelist);
 }
 
-void load_nebula()
+void save_nebula()
 {
-	int create_default = 1;
+	const SDL_DialogFileFilter filters[] = {
+		{ "Nebula files",   "neb" }
+	};
 
-	wxFileDialog openFileDialog(NULL, _("Open Nebula File"), wxEmptyString,
-								wxEmptyString, _("Nebula Files (*.neb)|*.neb"),
-								wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	SDL_ShowSaveFileDialog(save_callback, nullptr, os_get_window(), filters,
+						   SDL_arraysize(filters), nullptr);
+}
 
-	if (openFileDialog.ShowModal() == wxID_OK) {
-		create_default = !load_nebula_sub(openFileDialog.GetPath().ToAscii());
+static void SDLCALL load_callback(void *userdata, const char * const *filelist, int filter)
+{
+	if ( !filelist || !(*filelist) ) {
+		return;
 	}
 
-	if ( create_default )	{
+	int create_default = 1;
+
+	create_default = !load_nebula_sub(*filelist);
+
+	if (create_default) {
 		create_default_neb();
 	}
 
 	Neb_created = 1;
+}
+
+void load_nebula()
+{
+	const SDL_DialogFileFilter filters[] = {
+		{ "Nebula files",   "neb" }
+	};
+
+	SDL_ShowOpenFileDialog(load_callback, nullptr, os_get_window(), filters,
+						   SDL_arraysize(filters), nullptr, false);
 }
 
 void nebula_init()
@@ -891,10 +888,6 @@ int main(int argc, char *argv[])
 
 	nebula_init();
 
-	wxApp::SetInstance( new NebeditApp() );
-
-	wxEntryStart(argc, argv);
-
 	//bool some_selected = false;
 
 	while(1)	{
@@ -1023,8 +1016,6 @@ int main(int argc, char *argv[])
 	}
 
 	nebedit_close();
-
-	wxEntryCleanup();
 
 	return 0;
 }

@@ -563,9 +563,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
     ${OPENGL_LIBRARIES}
     SDL3::SDL3
     OpenAL::OpenAL
-    wx::core
-    wx::base
-    wx::gl
     ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )

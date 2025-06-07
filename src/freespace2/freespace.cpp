@@ -754,9 +754,6 @@ int	Game_skill_level = DEFAULT_SKILL_LEVEL;
 #define	VIEWER_ZOOM_DEFAULT 0.75f			//	Default viewer zoom, 0.625 as per multi-lateral agreement on 3/24/97
 float Viewer_zoom = VIEWER_ZOOM_DEFAULT;
 
-#define EXE_FNAME	("fs2.exe")
-#define LAUNCHER_FNAME	("freespace2.exe")
-
 
 // JAS: Code for warphole camera.
 // Needs to be cleaned up.

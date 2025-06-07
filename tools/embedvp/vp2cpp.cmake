@@ -9,18 +9,16 @@ endif()
 
 set(EMBED_HEX)	# variable used in configure_file
 
-file(READ ${EMBED_FILE} content HEX)
-string(REGEX MATCHALL "([A-Fa-f0-9][A-Fa-f0-9])" SEPARATED_HEX ${content})
+file(READ ${EMBED_FILE} hexString HEX)
 
-set(counter 0)
-foreach(hex IN LISTS SEPARATED_HEX)
-	string(APPEND EMBED_HEX " 0x${hex},")
-	MATH(EXPR counter "${counter}+1")
-	if(counter GREATER 11)
-		string(APPEND EMBED_HEX "\n ")
-		set(counter 0)
-	endif()
-endforeach()
+# wrap at column 32 (16 bytes)
+string(REPEAT "[0-9a-f]" 32 column_pattern)
+string(REGEX REPLACE "(${column_pattern})" "\\1\n" arrayValues "${hexString}")
+
+# adds '0x' prefix and comma suffix before and after every byte respectively
+string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " arrayValues ${arrayValues})
+# removes trailing comma
+string(REGEX REPLACE ", $" "" EMBED_HEX ${arrayValues})
 
 configure_file(${SOURCE_DIR}/embedvp.h.in ${BINARY_DIR}/embedvp.h @ONLY)
 configure_file(${SOURCE_DIR}/embedvp.cpp.in ${BINARY_DIR}/embedvp.cpp @ONLY)

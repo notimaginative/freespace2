@@ -83,7 +83,10 @@ static bool cf_io_close(void *userdata)
 	auto filep = reinterpret_cast<CFILE *>(userdata);
 
 	if (filep) {
-		return cfclose(filep);
+		bool rval = cfclose(filep);
+		SDL_free(userdata);
+
+		return rval;
 	}
 
 	return false;
@@ -99,12 +102,17 @@ static bool cf_io_close(void *userdata)
 SDL_IOStream *cfopen_io(const char *file_path, const char *mode, int dir_type, bool localize)
 {
 	SDL_IOStreamInterface iface;
+	CFILE *userdata = nullptr;
 
 	auto filep = cfopen(file_path, mode, dir_type, localize);
 
 	if ( !filep ) {
 		return nullptr;
 	}
+
+	userdata = reinterpret_cast<CFILE*>(SDL_malloc(sizeof(CFILE)));
+
+	SDL_memcpy(userdata, filep, sizeof(CFILE));
 
 	SDL_zero(iface);
 	SDL_INIT_INTERFACE(&iface);
@@ -116,10 +124,11 @@ SDL_IOStream *cfopen_io(const char *file_path, const char *mode, int dir_type, b
 	iface.flush = cf_io_flush;
 	iface.close = cf_io_close;
 
-	auto stream = SDL_OpenIO(&iface, &filep);
+	auto stream = SDL_OpenIO(&iface, userdata);
 
 	if ( !stream ) {
 		cfclose(filep);
+		SDL_free(userdata);
 		return nullptr;
 	}
 

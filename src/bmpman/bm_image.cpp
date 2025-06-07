@@ -66,7 +66,7 @@ SDL_Surface *bm_image_to_surface(const char *filename, int dir_type, SDL_PixelFo
 		return nullptr;
 	}
 
-	// prefer RGBA when it's for SDL surface usage (i.e., the "4")
+	// prefer RGBA (i.e., the "4")
 	auto image = stbi_load_from_callbacks(&cfile_callbacks, filep,
 										  &x, &y, &bpp, 4);
 
@@ -76,16 +76,20 @@ SDL_Surface *bm_image_to_surface(const char *filename, int dir_type, SDL_PixelFo
 		return nullptr;
 	}
 
-	auto temp = SDL_CreateSurfaceFrom(x, y, SDL_PIXELFORMAT_RGBA32, image, y * bpp);
+	auto temp = SDL_CreateSurface(x, y, SDL_PIXELFORMAT_RGBA32);
 
-	// convert surface format if needed
-	if (sformat != SDL_PIXELFORMAT_RGBA32) {
-		surface = SDL_ConvertSurface(temp, sformat);
+	if (temp) {
+		SDL_memcpy(temp->pixels, image, x * y * 4);
 
-		SDL_DestroySurface(temp);
-		temp = nullptr;
-	} else {
-		surface = temp;
+		// convert surface format if needed
+		if (sformat != SDL_PIXELFORMAT_RGBA32) {
+			surface = SDL_ConvertSurface(temp, sformat);
+
+			SDL_DestroySurface(temp);
+			temp = nullptr;
+		} else {
+			surface = temp;
+		}
 	}
 
 	free(image);

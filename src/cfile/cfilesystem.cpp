@@ -125,6 +125,7 @@
 #include <errno.h>
 #ifndef PLAT_UNIX
 #include <io.h>
+#include <shlwapi.h>	// for PathIsRealtive()
 #endif
 
 #include "pstypes.h"
@@ -714,6 +715,19 @@ void cf_free_secondary_filelist()
 	Num_files = 0;
 }
 
+static bool is_absolute_path(const char *path)
+{
+	if ( !path || !strlen(path) ) {
+		return false;
+	}
+
+#ifndef PLAT_UNIX
+	return (PathIsRelative(path) == FALSE);
+#else
+	return (*path == '/');
+#endif
+}
+
 // Searches for a file.   Follows all rules and precedence and searches
 // CD's and pack files.
 // Input:  filespace   - Filename & extension
@@ -735,14 +749,8 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 	// fails, then we will open the file based on the extension
 	// of the file
 
-#ifdef PLAT_UNIX
-	const char *toks = "/";
-#else
-	const char *toks = "/\\:";
-#endif
-
 	// NOTE: full path should also include localization, if so desired
-	if ( SDL_strpbrk(filespec, toks) ) {		// do we have a full path already?
+	if ( is_absolute_path(filespec) ) {		// do we have a full path already?
 		if (SDL_GetPathInfo(filespec, &pinfo)) {
 			if ( size ) *size = static_cast<int>(pinfo.size);
 			if ( offset ) *offset = 0;
@@ -1167,13 +1175,7 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 // Output:  path      - Fully qualified pathname.
 void cf_create_default_path_string( char *path, int pathtype, const char *filename, bool localize )
 {
-#ifdef PLAT_UNIX
-	const char *toks = "/";
-#else
-	const char *toks = "/\\:";
-#endif
-
-	if ( filename && SDL_strpbrk(filename, toks) ) {
+	if ( is_absolute_path(filename) ) {
 		// Already has full path
 		SDL_strlcpy( path, filename, MAX_PATH_LEN );
 	} else {

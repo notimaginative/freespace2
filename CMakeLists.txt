@@ -26,7 +26,7 @@ if(EMSCRIPTEN)
   set(GAME_ONLY ON CACHE FORCE) # just the game
   set(DEMO ON CACHE FORCE) # only build demo
 else()
-  option(GAME_ONLY "Just build the game engine; no launcher, no tools" OFF)
+  option(GAME_ONLY "Just build the game engine; no tools" OFF)
   option(DEMO "Create demo build" OFF)
 endif()
 
@@ -88,7 +88,8 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og")
 else()
   set(PLATFORM_LIBRARIES
-    ws2_32.lib
+    ws2_32
+    shlwapi
   )
 
   add_definitions(/D _CRT_SECURE_NO_WARNINGS)
@@ -113,8 +114,7 @@ if(DEMO)
 	set(BIN_SUFFIX "${BIN_SUFFIX}demo")
 endif()
 
-set(FS_BINARY "fs${BIN_SUFFIX}")
-set(LAUNCHER_BINARY "freespace${BIN_SUFFIX}")
+set(FS_BINARY "freespace${BIN_SUFFIX}")
 
 set(APP_ID "org.icculus.freespace2.${FS_BINARY}")
 
@@ -216,6 +216,7 @@ include_directories(
 
 add_subdirectory(src)
 add_subdirectory(include)
+add_subdirectory(lib)
 
 add_subdirectory(tools)	# tools needed for building
 
@@ -276,13 +277,16 @@ add_executable(${FS_BINARY}
   WIN32
   ${freespace_SOURCE}
   ${freespace_HEADERS}
+  ${launcher_SOURCE}
+  ${launcher_HEADERS}
 )
 
-CreateSourceGroups(${freespace_SOURCE})
+CreateSourceGroups(${freespace_SOURCE} ${launcher_SOURCE})
 
 target_link_libraries(
   ${FS_BINARY}
   code
+  imgui
   ${OPENGL_LIBRARIES}
   OpenAL::OpenAL
   SDL3::SDL3
@@ -378,41 +382,6 @@ if(FS1)
 else()
   set_target_properties(${FS_BINARY} PROPERTIES PROJECT_LABEL "FreeSpace2")
 endif()
-
-#
-# launcher
-#
-
-if(NOT GAME_ONLY)
-  add_executable(${LAUNCHER_BINARY}
-    WIN32
-    ${launcher_SOURCE}
-    ${launcher_HEADERS}
-  )
-
-  add_dependencies(${LAUNCHER_BINARY}
-    buildver
-  )
-
-  target_compile_definitions(${LAUNCHER_BINARY}
-    PUBLIC
-    APP_ID="${APP_ID}"
-  )
-
-  CreateSourceGroups(${launcher_SOURCE})
-
-  target_link_libraries(
-    ${LAUNCHER_BINARY}
-    ${OPENGL_LIBRARIES}
-    SDL3::SDL3
-    OpenAL::OpenAL
-    wx::core
-    wx::base
-    ${PLATFORM_LIBRARIES}
-  )
-
-  set_target_properties(${LAUNCHER_BINARY} PROPERTIES PROJECT_LABEL "Launcher")
-endif(NOT GAME_ONLY)
 
 #
 # standalone server GUI

@@ -277,8 +277,8 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	{ CF_TYPE_VOICE_TRAINING,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Training",			".wav",						CF_TYPE_VOICE	},
 	{ CF_TYPE_MUSIC,					"Data" DIR_SEPARATOR_STR "Music",							".wav",						CF_TYPE_VOICE	},
 	{ CF_TYPE_MOVIES,					"Data" DIR_SEPARATOR_STR "Movies",						".mve .msb",				CF_TYPE_DATA	},
-	{ CF_TYPE_INTERFACE,				"Data" DIR_SEPARATOR_STR "Interface",					".pcx .ani .tga",			CF_TYPE_DATA	},
-	{ CF_TYPE_FONT,					"Data" DIR_SEPARATOR_STR "Fonts",							".vf",						CF_TYPE_DATA	},
+	{ CF_TYPE_INTERFACE,				"Data" DIR_SEPARATOR_STR "Interface",					".pcx .ani .tga .png",			CF_TYPE_DATA	},
+	{ CF_TYPE_FONT,					"Data" DIR_SEPARATOR_STR "Fonts",							".vf .ttf",						CF_TYPE_DATA	},
 	{ CF_TYPE_EFFECTS,				"Data" DIR_SEPARATOR_STR "Effects",						".ani .pcx .neb .tga",	CF_TYPE_DATA	},
 	{ CF_TYPE_HUD,						"Data" DIR_SEPARATOR_STR "Hud",							".ani .pcx .tga",			CF_TYPE_DATA	},
 	{ CF_TYPE_PLAYER_MAIN,			"Data" DIR_SEPARATOR_STR "Players",						"",							CF_TYPE_DATA	},
@@ -322,6 +322,7 @@ void cf_chksum_long_init();
 void cfile_close()
 {
 	cf_free_secondary_filelist();
+	cfile_inited = 0;
 }
 
 // determine if the given path is in a root directory (c:\  or  c:\freespace2.exe  or  c:\fred2.exe   etc)

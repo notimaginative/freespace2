@@ -266,7 +266,7 @@ set(freespace_HEADERS
 
 set(launcher_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/launchersetup.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher_internal.h
   PARENT_SCOPE
 )
 

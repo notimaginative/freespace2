@@ -10,6 +10,7 @@
 
 #include <SDL3/SDL_main.h>
 #include "pstypes.h"
+#include "launcher.h"
 
 #ifdef PLAT_UNIX
 #include <sys/types.h>
@@ -123,7 +124,9 @@ int main(int argc, char *argv[])
 	}
 
 	try {
-		retr = game_main(argptr);
+		if ( launcher_run() ) {
+			retr = game_main(argptr);
+		}
 	} catch(const std::exception &e) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", e.what(), NULL);
 	} catch(...) {

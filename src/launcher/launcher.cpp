@@ -6,592 +6,332 @@
  * the source.
  */
 
-#include "launcher.h"
-#include "launchersetup.h"
-
-#include "wx/filename.h"
-#include "wx/stdpaths.h"
-#include "wx/access.h"
-
 #include "pstypes.h"
-#include "osregistry.h"
+#include "launcher.h"
+#include "launcher_internal.h"
 #include "cfile.h"
+#include "cfilesystem.h"
+#include "osregistry.h"
+#include "osapi.h"
+#include "bmpman.h"
 
-#ifndef MAKE_FS1
-#include "res/fs2_background.xpm"
-#include "res/fs2_btn_help.xpm"
-#include "res/fs2_btn_help-hover.xpm"
-#include "res/fs2_btn_help-click.xpm"
-#include "res/fs2_btn_play.xpm"
-#include "res/fs2_btn_play-hover.xpm"
-#include "res/fs2_btn_play-click.xpm"
-#include "res/fs2_btn_pxo.xpm"
-#include "res/fs2_btn_pxo-hover.xpm"
-#include "res/fs2_btn_pxo-click.xpm"
-#include "res/fs2_btn_quit.xpm"
-#include "res/fs2_btn_quit-hover.xpm"
-#include "res/fs2_btn_quit-click.xpm"
-#include "res/fs2_btn_readme.xpm"
-#include "res/fs2_btn_readme-hover.xpm"
-#include "res/fs2_btn_readme-click.xpm"
-#include "res/fs2_btn_setup.xpm"
-#include "res/fs2_btn_setup-hover.xpm"
-#include "res/fs2_btn_setup-click.xpm"
-// #include "res/fs2_btn_uninstall.xpm"
-// #include "res/fs2_btn_uninstall-hover.xpm"
-// #include "res/fs2_btn_uninstall-click.xpm"
-// #include "res/fs2_btn_update.xpm"
-// #include "res/fs2_btn_update-hover.xpm"
-// #include "res/fs2_btn_update-click.xpm"
-#include "res/fs2_btn_volition.xpm"
-#include "res/fs2_btn_volition-hover.xpm"
-#include "res/fs2_btn_volition-click.xpm"
-#ifdef FS2_DEMO
-#include "res/fs2demo_help_txt.h"
-#else
-#include "res/fs2_help_txt.h"
-#endif
-#include "res/fs2_snd_hover_wav.h"
-#include "res/fs2_snd_click_wav.h"
-#else
-#include "res/freespace_img.xpm"
-#include "res/volition_img.xpm"
-#endif
-#include "res/launcher_ico.h"
+#include <string>
+
+#include <imgui.h>
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_sdlrenderer3.h>
 
 
+static SDL_Window *Window = nullptr;
+static SDL_Renderer *Renderer = nullptr;
+static SDL_Texture *Background = nullptr;
+static ImGuiContext *Context = nullptr;
 
-class LauncherApp: public wxApp
+
+SDL_Renderer *launcher_get_renderder()
 {
-	public:
-		virtual bool OnInit();
-};
+	return Renderer;
+}
 
-
-IMPLEMENT_APP(LauncherApp)
-
-bool LauncherApp::OnInit()
+SDL_Window *launcher_get_window()
 {
-#ifdef PLAT_UNIX
-	// make sure we create files with user access only
-	umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	return Window;
+}
+
+static void launcher_close()
+{
+	launcher_help_close();
+	launcher_setup_close();
+
+	if (Context) {
+		ImGui::SetCurrentContext(Context);
+		ImGui_ImplSDLRenderer3_Shutdown();
+		ImGui_ImplSDL3_Shutdown();
+		ImGui::DestroyContext(Context);
+		Context = nullptr;
+	}
+
+#ifdef MAKE_FS1
+	launcher_close_fs1();
+#else
+	launcher_close_fs2();
 #endif
 
-	wxImage::AddHandler(new wxPNGHandler());
+	if (Background) {
+		SDL_DestroyTexture(Background);
+		Background = nullptr;
+	}
 
-	Launcher *frame = new Launcher(NULL);
+	if (Renderer) {
+		SDL_DestroyRenderer(Renderer);
+		Renderer = nullptr;
+	}
 
-	frame->Show();
-	SetTopWindow(frame);
+	if (Window) {
+		SDL_DestroyWindow(Window);
+		Window = nullptr;
+	}
 
-	frame->JumpToSetup();
+	extern void cfile_close();
+	cfile_close();
+
+	SDL_QuitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMEPAD);
+}
+
+static bool launcher_init()
+{
+	const std::string title = Osreg_title + std::string(" Launcher");
+
+#ifdef MAKE_FS1
+	const int window_width = 495;
+	const int window_height = 463;
+#else
+	const int window_width = 375;
+	const int window_height = 440;
+#endif
+
+	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMEPAD) ) {
+		return false;
+	}
+
+	Uint32 window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+	Window = SDL_CreateWindow(title.c_str(),
+								 window_width,
+								 window_height,
+								 window_flags);
+
+	if ( !Window ) {
+		return false;
+	}
+
+	Renderer = SDL_CreateRenderer(Window, nullptr);
+
+	if ( !Renderer ) {
+		return false;
+	}
+
+	SDL_SetRenderVSync(Renderer, 1);
+
+	cfile_init();
+
+	os_set_icon(Window);
+
+	SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	SDL_ShowWindow(Window);
 
 	return true;
 }
 
-bool wxBackgroundBitmap::ProcessEvent(wxEvent &Event)
+void launcher_open_readme()
 {
-	if (Event.GetEventType() == wxEVT_ERASE_BACKGROUND) {
-		wxEraseEvent &EraseEvent = dynamic_cast<wxEraseEvent &>(Event);
-		wxDC *DC = EraseEvent.GetDC();
-		DC->DrawBitmap(Bitmap, 0, 0, false);
+	std::string readme_path;
+	bool readme_found = false;
 
-		return true;
-	} else {
-		return Inherited::ProcessEvent(Event);
+	auto base = SDL_GetBasePath();
+
+	if (base) {
+		auto results = SDL_GlobDirectory(base, "readme.txt", SDL_GLOB_CASEINSENSITIVE, nullptr);
+
+		if (results) {
+			for (int i = 0; results[i]; ++i) {
+				readme_found = true;
+				readme_path = base;
+				readme_path += results[i];
+				break;
+			}
+
+			SDL_free(results);
+		}
 	}
-}
 
+	if ( !readme_found ) {
+		auto extras = os_config_read_string(nullptr, "ExtrasPath", nullptr);
 
-wxBEGIN_EVENT_TABLE(wxLauncherButton, wxStaticBitmap)
-	EVT_LEFT_DOWN(wxLauncherButton::onMouseDown)
-	EVT_LEFT_UP(wxLauncherButton::onMouseUp)
-	EVT_MOTION(wxLauncherButton::onMouseEnter)
-wxEND_EVENT_TABLE()
+		if (extras) {
+			auto results = SDL_GlobDirectory(extras, "readme.txt", SDL_GLOB_CASEINSENSITIVE, nullptr);
 
-
-wxLauncherButton::wxLauncherButton(wxWindow *parent, wxWindowID id, const wxBitmap& label, const wxPoint& pos, const wxSize& size)
-{
-	this->Create(parent, id, label, pos, size);
-
-	parent->Connect(wxEVT_MOTION, wxMouseEventHandler(wxLauncherButton::onMouseLeave), NULL, this);
-
-	m_bitmap = label;
-
-	m_in_hover = false;
-}
-
-wxLauncherButton::~wxLauncherButton()
-{
-}
-
-void wxLauncherButton::onMouseEnter(wxMouseEvent& event)
-{
-	if ( !m_in_hover ) {
-		this->SetBitmap(m_bitmap_hover);
-
-		((Launcher*)GetGrandParent())->SndPlayHover();
-
-		m_in_hover = true;
-
-		// hack to toggle off certain buttons that don't get the onMouseLeave
-		// call due to placement/overlap
-		{
-			wxMouseEvent mv;
-
-			const wxWindowList wl = GetParent()->GetChildren();
-
-			wxWindowList::compatibility_iterator node = wl.GetFirst();
-
-			while (node) {
-				wxLauncherButton *cur = (wxLauncherButton*)node->GetData();
-
-				if ( cur->GetId() != event.GetId() ) {
-					cur->onMouseLeave(mv);
+			if (results) {
+				for (int i = 0; results[i]; ++i) {
+					readme_found = true;
+					readme_path = extras;
+					if (readme_path.back() != DIR_SEPARATOR_CHAR) {
+						readme_path.push_back(DIR_SEPARATOR_CHAR);
+					}
+					readme_path += results[i];
+					break;
 				}
 
-				node = node->GetNext();
+				SDL_free(results);
 			}
 		}
 	}
 
-	event.Skip();
+	if (readme_found) {
+		std::string readme_uri = "file:///";
+		readme_uri += readme_path;
+
+		SDL_OpenURL(readme_uri.c_str());
+	}
 }
 
-void wxLauncherButton::onMouseLeave(wxMouseEvent& event)
+void launcher_init_background(const char *filename)
 {
-	if (m_in_hover) {
-		this->SetBitmap(m_bitmap);
-
-		m_in_hover = false;
+	if ( !filename ) {
+		return;
 	}
 
-	event.Skip();
+	auto surface = bm_image_to_surface(filename, CF_TYPE_INTERFACE);
+
+	if (surface) {
+		Background = SDL_CreateTextureFromSurface(launcher_get_renderder(), surface);
+
+		SDL_DestroySurface(surface);
+	}
 }
 
-void wxLauncherButton::onMouseDown(wxMouseEvent& event)
+// explicitly use VM_* versions here, for safety
+static void *MallocWrapper(size_t size, void* user_data)
 {
-	this->SetBitmap(m_bitmap_pressed);
-
-	((Launcher*)GetGrandParent())->SndPlayPressed();
-
-	event.Skip();
+	IM_UNUSED(user_data);
+	return VM_MALLOC(size);
 }
 
-void wxLauncherButton::onMouseUp(wxMouseEvent& event)
+static void FreeWrapper(void* ptr, void* user_data)
 {
-	this->SetBitmap(m_bitmap_hover);
-
-	wxCommandEvent ev(wxEVT_COMMAND_BUTTON_CLICKED, event.GetId());
-	GetGrandParent()->GetEventHandler()->ProcessEvent(ev);
-
-	event.Skip();
+	IM_UNUSED(user_data);
+	VM_FREE(ptr);
 }
 
-
-wxBEGIN_EVENT_TABLE(Launcher, wxDialog)
-	EVT_CLOSE(Launcher::OnClose)
-	EVT_BUTTON(ID_B_PLAY, Launcher::OnPlay)
-	EVT_BUTTON(ID_B_SETUP, Launcher::OnSetup)
-	EVT_BUTTON(ID_B_README, Launcher::OnReadme)
-	// EVT_BUTTON(ID_B_UPDATE, Launcher::OnUpdate)
-	EVT_BUTTON(ID_B_HELP, Launcher::OnHelp)
-	// EVT_BUTTON(ID_B_UNINSTALL, Launcher::OnUninstall)
-	EVT_BUTTON(ID_B_VOLITION, Launcher::OnVolition)
-	EVT_BUTTON(ID_B_PXO, Launcher::OnPXO)
-	EVT_BUTTON(ID_B_QUIT, Launcher::OnQuit)
-wxEND_EVENT_TABLE()
-
-
-Launcher::Launcher( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style )
-	: wxDialog( parent, id, title, pos, size, style )
+static bool launcher_do()
 {
-	this->SetBackgroundColour( wxColour( 0, 0, 0 ) );
+	bool rval = true;
+	bool done = false;
+	SDL_Event event;
 
-	use_sound = false;
+	// setup imgui
+	IMGUI_CHECKVERSION();
+	Context = ImGui::CreateContext();
+	ImGui::SetCurrentContext(Context);
+	ImGui::SetAllocatorFunctions(MallocWrapper, FreeWrapper, nullptr);
+	ImGuiIO &io = ImGui::GetIO(); (void)io;
+	io.IniFilename = nullptr;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-	wxIcon icon;
-	icon.CopyFromBitmap( wxBITMAP_PNG_FROM_DATA(launcher_ico) );
-	this->SetIcon( icon );
+	ImGui::StyleColorsDark();
 
-#ifndef MAKE_FS1
-	this->SetClientSize(375, 440);
-#ifdef FS2_DEMO
-	this->SetTitle( wxT("FreeSpace 2 Demo Launcher") );
+	auto fontFile = cfopen("DroidSans.ttf", "rb", CF_TYPE_FONT);
+
+	if (fontFile) {
+		auto fontSize = cfilelength(fontFile);
+		auto font = cfread_file(fontFile);
+
+		cfclose(fontFile);
+		fontFile = nullptr;
+
+		if (font) {
+			io.Fonts->Clear();
+			io.Fonts->AddFontFromMemoryTTF(font, fontSize, 16);
+		}
+	}
+
+	ImGui_ImplSDL3_InitForSDLRenderer(Window, Renderer);
+	ImGui_ImplSDLRenderer3_Init(Renderer);
+
+#ifdef MAKE_FS1
+	launcher_init_style_fs1();
 #else
-	this->SetTitle( wxT("FreeSpace 2 Launcher") );
+	launcher_init_style_fs2();
 #endif
 
-	init_sound();
+	while ( !done ) {
+		ImGui::SetCurrentContext(Context);
 
+		while (SDL_PollEvent(&event)) {
+			ImGui_ImplSDL3_ProcessEvent(&event);
+			launcher_setup_event(event);
+			launcher_help_event(event);
 
-	p_background = new wxBackgroundBitmap(fs2_background_xpm);
+			switch (event.type) {
+				case SDL_EVENT_QUIT:
+					done = true;
+					rval = false;
+					break;
+				case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+					if (event.window.windowID == SDL_GetWindowID(Window)) {
+						done = true;
+						rval = false;
+					}
+					break;
+				default:
+					break;
+			}
+		}
 
-	m_panel = new wxPanel(this);
-	m_panel->PushEventHandler(p_background);
+		if (SDL_GetWindowFlags(Window) & SDL_WINDOW_MINIMIZED) {
+			SDL_Delay(10);
+			continue;
+		}
 
+		ImGui_ImplSDLRenderer3_NewFrame();
+		ImGui_ImplSDL3_NewFrame();
+		ImGui::NewFrame();
 
-	m_btn_Play = new wxLauncherButton( m_panel, ID_B_PLAY, wxBitmap(fs2_btn_play_xpm), wxPoint(45, 102), wxSize(131, 58) );
-	m_btn_Play->SetBitmapHover( wxBitmap(fs2_btn_play_hover_xpm) );
-	m_btn_Play->SetBitmapPressed( wxBitmap(fs2_btn_play_click_xpm) );
-
-	m_btn_Setup = new wxLauncherButton( m_panel, ID_B_SETUP, wxBitmap(fs2_btn_setup_xpm), wxPoint(199, 102), wxSize(131, 58) );
-	m_btn_Setup->SetBitmapHover( wxBitmap(fs2_btn_setup_hover_xpm) );
-	m_btn_Setup->SetBitmapPressed( wxBitmap(fs2_btn_setup_click_xpm) );
-
-	m_btn_Readme = new wxLauncherButton( m_panel, ID_B_README, wxBitmap(fs2_btn_readme_xpm), wxPoint(45, 175), wxSize(131, 58) );
-	m_btn_Readme->SetBitmapHover( wxBitmap(fs2_btn_readme_hover_xpm) );
-	m_btn_Readme->SetBitmapPressed( wxBitmap(fs2_btn_readme_click_xpm) );
-
-	// m_btn_Update = new wxLauncherButton( m_panel, ID_B_UPDATE, wxBitmap(fs2_btn_update_xpm), wxPoint(199, 175), wxSize(131, 58) );
-	// m_btn_Update->SetBitmapHover( wxBitmap(fs2_btn_update_hover_xpm) );
-	// m_btn_Update->SetBitmapPressed( wxBitmap(fs2_btn_update_click_xpm) );
-
-	m_btn_Help = new wxLauncherButton( m_panel, ID_B_HELP, wxBitmap(fs2_btn_help_xpm), wxPoint(45, 247), wxSize(131, 58) );
-	m_btn_Help->SetBitmapHover( wxBitmap(fs2_btn_help_hover_xpm) );
-	m_btn_Help->SetBitmapPressed( wxBitmap(fs2_btn_help_click_xpm) );
-
-	// m_btn_Uninstall = new wxLauncherButton( m_panel, ID_B_UNINSTALL, wxBitmap(fs2_btn_uninstall_xpm), wxPoint(199, 247), wxSize(131, 58) );
-	// m_btn_Uninstall->SetBitmapHover( wxBitmap(fs2_btn_uninstall_hover_xpm) );
-	// m_btn_Uninstall->SetBitmapPressed( wxBitmap(fs2_btn_uninstall_click_xpm) );
-
-	m_btn_Volition = new wxLauncherButton( m_panel, ID_B_VOLITION, wxBitmap(fs2_btn_volition_xpm), wxPoint(15, 304), wxSize(90, 108) );
-	m_btn_Volition->SetBitmapHover( wxBitmap(fs2_btn_volition_hover_xpm) );
-	m_btn_Volition->SetBitmapPressed( wxBitmap(fs2_btn_volition_click_xpm) );
-
-	m_btn_PXO = new wxLauncherButton( m_panel, ID_B_PXO, wxBitmap(fs2_btn_pxo_xpm), wxPoint(249, 305), wxSize(114, 113) );
-	m_btn_PXO->SetBitmapHover( wxBitmap(fs2_btn_pxo_hover_xpm) );
-	m_btn_PXO->SetBitmapPressed( wxBitmap(fs2_btn_pxo_click_xpm) );
-
-	m_btn_Quit = new wxLauncherButton( m_panel, ID_B_QUIT, wxBitmap(fs2_btn_quit_xpm), wxPoint(116, 339), wxSize(131, 58) );
-	m_btn_Quit->SetBitmapHover( wxBitmap(fs2_btn_quit_hover_xpm) );
-	m_btn_Quit->SetBitmapPressed( wxBitmap(fs2_btn_quit_click_xpm) );
+		// draw ui
+#ifdef MAKE_FS1
+		launcher_draw_fs1(&done, &rval);
 #else
-	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
-#ifdef FS1_DEMO
-	this->SetTitle( wxT("FreeSpace Demo Launcher") );
-#else
-	this->SetTitle( wxT("FreeSpace Launcher") );
+		launcher_draw_fs2(&done, &rval);
 #endif
 
-	wxBoxSizer* bSizer3;
-	bSizer3 = new wxBoxSizer( wxVERTICAL );
+		// render
+		ImGui::Render();
+		SDL_SetRenderScale(Renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+		SDL_SetRenderDrawColorFloat(Renderer, 0.0f, 0.0f, 0.0f, 1.0f);
+		SDL_RenderClear(Renderer);
 
-	wxStaticBitmap *m_bitmap1 = new wxStaticBitmap( this, wxID_ANY, wxBitmap( freespace_img_xpm ), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer3->Add( m_bitmap1, 0, wxALIGN_LEFT|wxALIGN_TOP|wxALL, 5 );
+		if (Background) {
+			SDL_RenderTexture(Renderer, Background, nullptr, nullptr);
+		}
 
-	wxFlexGridSizer* fgSizer3;
-	fgSizer3 = new wxFlexGridSizer( 0, 2, 0, 0 );
-	fgSizer3->SetFlexibleDirection( wxBOTH );
-	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+		ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), Renderer);
+		SDL_RenderPresent(Renderer);
 
-	wxStaticBitmap *m_bitmap2 = new wxStaticBitmap( this, wxID_ANY, wxBitmap( volition_img_xpm ), wxDefaultPosition, wxDefaultSize, 0 );
-	fgSizer3->Add( m_bitmap2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-	wxBoxSizer* bSizer5;
-	bSizer5 = new wxBoxSizer( wxVERTICAL );
-
-	m_btn_Play = new wxButton( this, ID_B_PLAY, wxT("Play FreeSpace"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_btn_Play->SetDefault();
-	bSizer5->Add( m_btn_Play, 0, wxALL|wxEXPAND, 5 );
-
-	m_btn_Setup = new wxButton( this, ID_B_SETUP, wxT("Setup"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer5->Add( m_btn_Setup, 0, wxALL|wxEXPAND, 5 );
-
-	m_btn_Readme = new wxButton( this, ID_B_README, wxT("View README"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer5->Add( m_btn_Readme, 0, wxALL|wxEXPAND, 5 );
-
-	// m_btn_Update = new wxButton( this, ID_B_UPDATE, wxT("Update FreeSpace"), wxDefaultPosition, wxDefaultSize, 0 );
-	// bSizer5->Add( m_btn_Update, 0, wxALL|wxEXPAND, 5 );
-
-	m_btn_Volition = new wxButton( this, ID_B_VOLITION, wxT("FreeSpace Webpage"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer5->Add( m_btn_Volition, 0, wxALL|wxEXPAND, 5 );
-
-	// m_btn_Uninstall = new wxButton( this, ID_B_UNINSTALL, wxT("Uninstall"), wxDefaultPosition, wxDefaultSize, 0 );
-	// bSizer5->Add( m_btn_Uninstall, 0, wxALL|wxEXPAND, 5 );
-
-	m_btn_Quit = new wxButton( this, ID_B_QUIT, wxT("Quit"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer5->Add( m_btn_Quit, 0, wxALL|wxEXPAND, 5 );
-
-	fgSizer3->Add( bSizer5, 1, wxALIGN_CENTER|wxALL, 10 );
-
-	bSizer3->Add( fgSizer3, 1, /*wxALIGN_BOTTOM|wxALIGN_RIGHT|*/wxEXPAND, 5 );
-
-	this->SetSizer( bSizer3 );
-	this->Layout();
-	bSizer3->Fit( this );
-#endif
-
-
-	this->Centre( wxBOTH );
-}
-
-Launcher::~Launcher()
-{
-	close_sound();
-}
-
-void Launcher::OnClose( wxCloseEvent& WXUNUSED(event) )
-{
-#ifndef MAKE_FS1
-	m_panel->RemoveEventHandler(p_background);
-	delete p_background;
-#endif
-
-	Destroy();
-}
-
-void Launcher::OnPlay( wxCommandEvent& WXUNUSED(event) )
-{
-	wxString epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
-
-	epath.Append( wxT("fs") );
+		if (launcher_setup_is_active()) {
+			launcher_setup_draw();
+		} else if (launcher_help_is_active()) {
+			launcher_help_draw();
+		}
+	}
 
 #ifndef MAKE_FS1
-	epath.Append( wxT("2") );
+	// give FS2 a little extra time to play launcher sounds
+	if (Launcher_sounds) {
+		SDL_Delay(170);	// click sound is 160ms long
+	}
 #endif
 
-#if defined(FS1_DEMO) || defined(FS2_DEMO)
-	epath.Append( wxT("demo") );
-#endif
+	return rval;
+}
 
-#ifdef _WIN32
-	epath.Append( wxT(".exe") );
-#endif
+bool launcher_run()
+{
+	bool rval = false;
 
-	// escape spaces in path
-	epath.Replace(wxT(" "), wxT("\\ "));
+	SDL_Delay(1000);
 
-	// hide window (in case we can't exit yet)
-	this->Hide();
-
-	int flags = wxEXEC_ASYNC | wxEXEC_MAKE_GROUP_LEADER;
-
-	// if running as an appimage then we can't exit the launcher until the game
-	// exits or else the appimage terminates on launcher close
-	if ( wxGetEnv("APPIMAGE", nullptr) ) {
-		flags |= (wxEXEC_SYNC & ~wxEXEC_ASYNC);
+	if ( !launcher_init() ) {
+		launcher_close();
+		return false;
 	}
 
-	wxExecute(epath, flags);
+	rval = launcher_do();
 
-	this->Close();
+	// shutdown and return to game (to play or exit)
+	launcher_close();
+
+	return rval;
 }
 
-void Launcher::OnSetup( wxCommandEvent& WXUNUSED(event) )
-{
-	LauncherSetup setup(this);
 
-	setup.ShowModal();
-}
-
-void Launcher::OnReadme( wxCommandEvent& WXUNUSED(event) )
-{
-	wxString epath;
-
-	if (wxStandardPaths::Get().GetExecutablePath().Contains(wxT(".app/Contents"))) {
-		epath = wxStandardPaths::Get().GetResourcesDir().append("/");
-	} else {
-		epath = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath(true);
-	}
-
-	epath.Append( wxT("readme.txt") );
-
-	wxLaunchDefaultApplication(epath);
-}
-
-void Launcher::OnUpdate( wxCommandEvent& WXUNUSED(event) )
-{
-	wxMessageBox( wxT("Not implemented") );
-}
-
-void Launcher::OnHelp( wxCommandEvent& WXUNUSED(event) )
-{
-#ifndef MAKE_FS1
-	wxDialog *help = new wxDialog(this, wxID_ANY, wxT("Launcher Help"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxSYSTEM_MENU);
-
-	wxBoxSizer* bSizer;
-	bSizer = new wxBoxSizer( wxVERTICAL );
-
-	// stupid
-	wxSize txtsize = help->GetTextExtent( wxT("  This opens a Help document containing information about the LauncherWWWW") );
-	txtsize.SetHeight(420);
-
-	wxTextCtrl *m_help_txt = new wxTextCtrl( help, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
-	m_help_txt->SetMinSize(txtsize);
-#ifdef FS2_DEMO
-	m_help_txt->AppendText(fs2demo_help_txt);
-#else
-	m_help_txt->AppendText(fs2_help_txt);
-#endif
-	m_help_txt->SetInsertionPoint(0);
-	bSizer->Add( m_help_txt, 0, wxALL|wxEXPAND, 5 );
-
-	wxButton *m_b_Ok = new wxButton( help, wxID_OK, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer->Add( m_b_Ok, 0, wxALIGN_RIGHT|wxALL, 5 );
-
-	help->SetSizer( bSizer );
-	help->Layout();
-	bSizer->Fit(help);
-
-	help->Centre( wxBOTH );
-
-	help->ShowModal();
-
-	help->Destroy();
-#endif
-}
-
-void Launcher::OnUninstall( wxCommandEvent& WXUNUSED(event) )
-{
-	wxMessageBox( wxT("Not implemented") );
-}
-
-void Launcher::OnVolition( wxCommandEvent& WXUNUSED(event) )
-{
-	wxLaunchDefaultBrowser( wxT("http://www.volition-inc.com") );
-}
-
-void Launcher::OnPXO( wxCommandEvent& WXUNUSED(event) )
-{
-	wxLaunchDefaultBrowser( wxT("https://pxo.nottheeye.com") );
-}
-
-void Launcher::OnQuit( wxCommandEvent& WXUNUSED(event) )
-{
-	this->Close();
-}
-
-void Launcher::JumpToSetup()
-{
-	if ( !os_config_read_uint(NULL, "StraightToSetup", 1) ) {
-		return;
-	}
-
-	// set initial defaults properly
-	os_init_registry_stuff();
-
-	// FS1 doesn't do a setup jump so just go with what the user sets up
-	// and/or what the game binary will set
-
-#ifndef MAKE_FS1
-	wxString title( wxT("Welcome to FreeSpace 2!") );
-
-	wxString message( wxT("Since this is your first time running FreeSpace2, ")
-					  wxT("you will now be automatically taken to the Setup ")
-					  wxT("window.") );
-
-	wxString ext_message( wxT("NOTE TO USER:\n")
-						  wxT("It is important that you view each section of ")
-						  wxT("the Setup window and configure it to your ")
-						  wxT("liking. Press the Help button if you have ")
-						  wxT("questions about a particular section. Once you ")
-						  wxT("are satisfied with your settings, select the OK ")
-						  wxT("button at the bottom of the Setup window to ")
-						  wxT("save them.") );
-
-	wxMessageDialog prompt(this, message, title, wxOK | wxICON_INFORMATION);
-	prompt.SetExtendedMessage(ext_message);
-
-	prompt.ShowModal();
-
-	// now jump to setup dialog
-	LauncherSetup setup(this);
-
-	setup.ShowModal();
-#endif
-}
-
-void Launcher::SndPlayHover()
-{
-	if (use_sound) {
-		alSourcePlay(m_snd_hover_source_id);
-	}
-}
-
-void Launcher::SndPlayPressed()
-{
-	if (use_sound) {
-		alSourcePlay(m_snd_click_source_id);
-	}
-}
-
-void Launcher::SndEnable(bool enabled)
-{
-	if (enabled) {
-		init_sound();
-	} else {
-		close_sound();
-	}
-}
-
-void Launcher::init_sound()
-{
-#ifndef MAKE_FS1
-	if (use_sound) {
-		return;
-	}
-
-	if ( os_config_read_uint("Audio", "LauncherSoundEnabled", 1) == 0 ) {
-		return;
-	}
-
-	al_device = alcOpenDevice(NULL);
-
-	if (al_device == NULL) {
-		return;
-	}
-
-	al_context = alcCreateContext(al_device, NULL);
-
-	if (al_context == NULL) {
-		alcCloseDevice(al_device);
-		return;
-	}
-
-	alcMakeContextCurrent(al_context);
-
-	// 'hover' sound
-	alGenBuffers(1, &m_snd_hover_buf_id);
-	alBufferData(m_snd_hover_buf_id, AL_FORMAT_MONO8, fs2_snd_hover_wav, sizeof(fs2_snd_hover_wav), 22050);
-
-	alGenSources(1, &m_snd_hover_source_id);
-	alSourcef(m_snd_hover_source_id, AL_GAIN, 1.0f);
-	alSourcei(m_snd_hover_source_id, AL_BUFFER, m_snd_hover_buf_id);
-
-	// 'click' sound
-	alGenBuffers(1, &m_snd_click_buf_id);
-	alBufferData(m_snd_click_buf_id, AL_FORMAT_MONO8, fs2_snd_click_wav, sizeof(fs2_snd_click_wav), 22050);
-
-	alGenSources(1, &m_snd_click_source_id);
-	alSourcef(m_snd_click_source_id, AL_GAIN, 1.0f);
-	alSourcei(m_snd_click_source_id, AL_BUFFER, m_snd_click_buf_id);
-
-	use_sound = true;
-#endif
-}
-
-void Launcher::close_sound()
-{
-	if ( !use_sound ) {
-		return;
-	}
-
-	alSourceStop(m_snd_click_source_id);
-
-	alSourcei(m_snd_click_source_id, AL_BUFFER, 0);
-	alDeleteSources(1, &m_snd_click_source_id);
-	alDeleteBuffers(1, &m_snd_click_buf_id);
-
-	alSourceStop(m_snd_hover_source_id);
-
-	alSourcei(m_snd_hover_source_id, AL_BUFFER, 0);
-	alDeleteSources(1, &m_snd_hover_source_id);
-	alDeleteBuffers(1, &m_snd_hover_buf_id);
-
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(al_context);
-	alcCloseDevice(al_device);
-
-	use_sound = false;
-}

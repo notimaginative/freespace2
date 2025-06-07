@@ -37,19 +37,105 @@ add_custom_command(
 		# add all embed files we need to track changes for below
 		${DIST_DIR}/images/FS.png
 		${DIST_DIR}/images/FS2.png
+		${DIST_DIR}/embed_root/data/fonts/Cousine-Regular.ttf
+		${DIST_DIR}/embed_root/data/fonts/DroidSans.ttf
+		${DIST_DIR}/embed_root/data/interface/launch_fs1_bg.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_bg.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_help.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_help1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_help2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_play.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_play1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_play2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_pxo.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_pxo1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_pxo2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_quit.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_quit1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_quit2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_readme.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_readme1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_readme2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_setup.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_setup1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_setup2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_uninstall.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_uninstall1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_uninstall2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_update.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_update1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_update2.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_volition.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_volition1.png
+		${DIST_DIR}/embed_root/data/interface/launch_fs2_volition2.png
+		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.json
+		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.json
+		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.json
+		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.msl
+		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.spv
+		${DIST_DIR}/embed_root/data/shaders/color.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/color.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/color.frag.json
+		${DIST_DIR}/embed_root/data/shaders/color.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/color.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/color.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/color.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/color.vert.json
+		${DIST_DIR}/embed_root/data/shaders/color.vert.msl
+		${DIST_DIR}/embed_root/data/shaders/color.vert.spv
+		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.json
+		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/nondark.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/nondark.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/nondark.frag.json
+		${DIST_DIR}/embed_root/data/shaders/nondark.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/nondark.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.json
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.json
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.msl
+		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.spv
+		${DIST_DIR}/embed_root/data/shaders/tex.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex.frag.json
+		${DIST_DIR}/embed_root/data/shaders/tex.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/tex.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/tex.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/tex.vert.json
+		${DIST_DIR}/embed_root/data/shaders/tex.vert.msl
+		${DIST_DIR}/embed_root/data/shaders/tex.vert.spv
+		${DIST_DIR}/embed_root/data/shaders/window.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/window.frag.glsl
+		${DIST_DIR}/embed_root/data/shaders/window.frag.json
+		${DIST_DIR}/embed_root/data/shaders/window.frag.msl
+		${DIST_DIR}/embed_root/data/shaders/window.frag.spv
+		${DIST_DIR}/embed_root/data/shaders/window.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/window.vert.glsl
+		${DIST_DIR}/embed_root/data/shaders/window.vert.json
+		${DIST_DIR}/embed_root/data/shaders/window.vert.msl
+		${DIST_DIR}/embed_root/data/shaders/window.vert.spv
+		${DIST_DIR}/embed_root/data/sounds/launch_fs2_hover.wav
+		${DIST_DIR}/embed_root/data/sounds/launch_fs2_click.wav
+		${DIST_DIR}/embed_root/data/text/launch_help.txt
 	COMMENT "Creating embed.vp ..."
 	VERBATIM
 )

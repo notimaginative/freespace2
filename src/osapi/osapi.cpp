@@ -244,9 +244,13 @@ void os_cleanup()
 #endif
 }
 
-void os_set_icon()
+void os_set_icon(SDL_Window *window)
 {
-	if ( !Os_window ) {
+	if ( !window ) {
+		window = Os_window;
+	}
+
+	if ( !window ) {
 		return;
 	}
 
@@ -256,7 +260,7 @@ void os_set_icon()
 		return;
 	}
 
-	SDL_SetWindowIcon(Os_window, icon);
+	SDL_SetWindowIcon(window, icon);
 
 	SDL_DestroySurface(icon);
 }

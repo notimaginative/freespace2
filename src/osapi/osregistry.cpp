@@ -440,7 +440,6 @@ void os_config_write_uint(const char *section, const char *name, unsigned int va
 
 // set default config options
 // NOTE: this will * RESET CURRENT OPTIONS TO THEIR DEFAULTS *
-// (changes here should be mirrored in launcherini.cpp!!)
 void os_init_registry_stuff()
 {
 	// NOTE: commented options are for reference to hidden/debug settings

@@ -14,7 +14,7 @@ endif()
 
 set(APP_NAME "FreeSpace")
 set(ICON_FILE "FS")
-set(EXE_BINARY ${LAUNCHER_BINARY})
+set(EXE_BINARY ${FS_BINARY})
 
 if(NOT FS1)
 	string(APPEND APP_NAME " 2") # has space
@@ -23,10 +23,6 @@ endif()
 
 if(DEMO)
 	string(APPEND APP_NAME " Demo") # has space
-endif()
-
-if(GAME_ONLY)
-	set(EXE_BINARY ${FS_BINARY})
 endif()
 
 set(DIST_DIR "${CMAKE_SOURCE_DIR}/dist/macos")
@@ -77,13 +73,6 @@ install(PROGRAMS
 	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FS_BINARY}"
 	DESTINATION "${APP_PATH}/Contents/MacOS"
 )
-
-if(LAUNCHER_BINARY)
-	install(PROGRAMS
-		"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${LAUNCHER_BINARY}"
-		DESTINATION "${APP_PATH}/Contents/MacOS"
-	)
-endif()
 
 if(STANDALONE_BINARY)
 	install(PROGRAMS

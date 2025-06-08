@@ -442,10 +442,10 @@ int cfile_flush_dir(int dir_type)
 			}
 
 			// delete the file
-			cf_delete(results[i], dir_type);
-
-			// increment the deleted count
-			++del_count;
+			if ( SDL_RemovePath(fn) ) {
+				// increment the deleted count
+				++del_count;
+			}
 		}
 
 		SDL_free(results);

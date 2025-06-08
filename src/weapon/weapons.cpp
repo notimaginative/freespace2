@@ -1980,7 +1980,11 @@ void weapon_home(object *obj, int num, float frame_time)
 	hobjp = Weapons[num].homing_object;
 
 	//	If not 1/2 second gone by, don't home yet.
+#ifdef MAKE_FS1
+	if ((hobjp == &obj_used_list) || ( f2fl(Missiontime - wp->creation_time) < 0.5f )) {
+#else
 	if ((hobjp == &obj_used_list) || ( f2fl(Missiontime - wp->creation_time) < 0.25f )) {
+#endif
 		//	If this is a heat seeking homing missile and 1/2 second has elapsed since firing
 		//	and we don't have a target (else we wouldn't be inside the IF), find a new target.
 		if (wip->wi_flags & WIF_HOMING_HEAT)
@@ -2225,7 +2229,11 @@ void weapon_home(object *obj, int num, float frame_time)
 
 		//	Only lead target if more than one second away.  Otherwise can miss target.  I think this
 		//	is what's causing Harbingers to miss the super destroyer. -- MK, 4/15/98
+#ifdef MAKE_FS1
+		if ((wip->wi_flags & WIF_HOMING_ASPECT) && (old_dot > 0.1f))
+#else
 		if ((wip->wi_flags & WIF_HOMING_ASPECT) && (old_dot > 0.1f) && (time_to_target > 0.1f))
+#endif
 			vm_vec_scale_add2(&target_pos, &hobjp->phys_info.vel, SDL_min(time_to_target, 2.0f));
 
 		//nprintf(("AI", "Dot = %7.3f, dist = %7.3f, time_to = %6.3f, deg/sec = %7.3f\n", old_dot, dist_to_target, time_to_target, angles/flFrametime));
@@ -2254,9 +2262,15 @@ void weapon_home(object *obj, int num, float frame_time)
 		//	Control speed based on dot product to goal.  If close to straight ahead, move
 		//	at max speed, else move slower based on how far from ahead.
 		if (old_dot < 0.90f) {
+#ifdef MAKE_FS1
+			obj->phys_info.speed = SDL_max(0.2f, fabsf(old_dot));
+			if (obj->phys_info.speed < wip->max_speed*0.25f)
+				obj->phys_info.speed = wip->max_speed*0.25f;
+#else
 			obj->phys_info.speed = SDL_max(0.2f, old_dot* (float) fabs(old_dot));
 			if (obj->phys_info.speed < wip->max_speed*0.75f)
 				obj->phys_info.speed = wip->max_speed*0.75f;
+#endif
 		} else
 			obj->phys_info.speed = wip->max_speed;
 
@@ -2284,12 +2298,14 @@ void weapon_home(object *obj, int num, float frame_time)
 
 		}
 
-/*		//	If this weapon shot past its target, make it detonate.
+#ifdef MAKE_FS1
+		//	If this weapon shot past its target, make it detonate.
 		if ((old_dot < 0.0f) && (dist_to_target < 50.0f)) {
 			if (wp->lifeleft > 0.01f)
 				wp->lifeleft = 0.01f;
 		}
-*/	}
+#endif
+	}
 }
 
 // as Mike K did with ships -- break weapon into process_pre and process_post for code to execute

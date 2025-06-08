@@ -649,6 +649,39 @@ void gr_opengl_aaline(vertex *v1, vertex *v2)
 	gr_opengl_line( fl2i(v1->sx), fl2i(v1->sy), fl2i(v2->sx), fl2i(v2->sy) );
 }
 
+void gr_opengl_aalines(vertex *verts, int count)
+{
+	// count must be a multiple of 2
+	if ((count < 2) || (count % 2)) {
+		return;
+	}
+
+	auto render_buffer = gr_get_render_buffer(count);
+
+	for (int i = 0; i < count; ++i) {
+		render_buffer[i].x = verts[i].sx;
+		render_buffer[i].y = verts[i].sy;
+
+		render_buffer[i].r = verts[i].r;
+		render_buffer[i].g = verts[i].g;
+		render_buffer[i].b = verts[i].b;
+		render_buffer[i].a = verts[i].a;
+	}
+
+	opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
+
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(renderbuffer_t), &render_buffer[0].r);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
+
+	glDrawArrays(GL_LINES, 0, count);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+}
+
 void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 {
 	int swapped=0;

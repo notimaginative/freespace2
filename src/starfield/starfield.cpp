@@ -1159,7 +1159,10 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 
 	if (show_stars && ( Game_detail_flags & DETAIL_FLAG_STARS) && !(The_mission.flags & MISSION_FLAG_FULLNEB) && (supernova_active() < 3))	{
 		//Num_stars = 1;
-	
+		#define STAR_BUFFER_SIZE 200	// room for 100 stars, MUST BE MULTIPLE OF 2!!
+		vertex StarBuffer[STAR_BUFFER_SIZE];
+		int star_count = 0;
+
 		star *sp;
 
 		if ( !last_stars_filled )	{
@@ -1182,21 +1185,22 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 		}
 		
 		for (sp=Stars,i=0; i<tmp_num_stars; i++, sp++ ) {
-			vertex p1, p2;			
-			int can_draw = 1;			
+			vertex *p1 = &StarBuffer[star_count];
+			vertex *p2 = &StarBuffer[star_count+1];
+			int can_draw = 1;
 
-			memset(&p1, 0, sizeof(vertex));
+			SDL_zerop(p1);
 
 			// This makes a star look "proper" by not translating the
 			// point around the viewer's eye before rotation.  In other
 			// words, when the ship translates, the stars do not change.
 
-			g3_rotate_faraway_vertex(&p2, &sp->pos);
-			if ( p2.codes )	{
+			g3_rotate_faraway_vertex(p2, &sp->pos);
+			if ( p2->codes )	{
 				can_draw = 0;
 			} else {
-				g3_project_vertex(&p2);
-				if ( p2.flags & PF_OVERFLOW )	{
+				g3_project_vertex(p2);
+				if ( p2->flags & PF_OVERFLOW )	{
 					can_draw = 0;
 				}
 			}
@@ -1205,7 +1209,7 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 
 			if ( can_draw && (Star_flags & (STAR_FLAG_TAIL|STAR_FLAG_DIM)) )	{
 
-				dist = vm_vec_dist_quick( &sp->last_star_pos, (vector *)&p2.x );
+				dist = vm_vec_dist_quick( &sp->last_star_pos, (vector *)&p2->x );
 
 				float ratio;
 				if ( dist > Star_max_length )	{
@@ -1216,26 +1220,26 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				}
 				ratio *= Star_amount;
 
-				p1.x = p2.x + (sp->last_star_pos.xyz.x-p2.x)*ratio;
-				p1.y = p2.y + (sp->last_star_pos.xyz.y-p2.y)*ratio;
-				p1.z = p2.z + (sp->last_star_pos.xyz.z-p2.z)*ratio;
+				p1->x = p2->x + (sp->last_star_pos.xyz.x-p2->x)*ratio;
+				p1->y = p2->y + (sp->last_star_pos.xyz.y-p2->y)*ratio;
+				p1->z = p2->z + (sp->last_star_pos.xyz.z-p2->z)*ratio;
 
-				p1.flags = 0;	// not projected
-				g3_code_vertex( &p1 );
+				p1->flags = 0;	// not projected
+				g3_code_vertex(p1);
 
-				if ( p1.codes )	{
+				if (p1->codes) {
 					can_draw = 0;
 				} else {
-					g3_project_vertex(&p1);
-					if ( p1.flags & PF_OVERFLOW )	{
+					g3_project_vertex(p1);
+					if (p1->flags & PF_OVERFLOW) {
 						can_draw = 0;
 					}
 				}
 			}
 
-			sp->last_star_pos.xyz.x = p2.x;
-			sp->last_star_pos.xyz.y = p2.y;
-			sp->last_star_pos.xyz.z = p2.z;
+			sp->last_star_pos.xyz.x = p2->x;
+			sp->last_star_pos.xyz.y = p2->y;
+			sp->last_star_pos.xyz.z = p2->z;
 
 			if ( !can_draw )	continue;
 
@@ -1254,14 +1258,26 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				color = i & 7;
 			}
 
-			gr_set_color_fast( &star_aacolors[color] );
+			p1->r = p2->r = star_aacolors[color].red;
+			p1->g = p2->g = star_aacolors[color].green;
+			p1->b = p2->b = star_aacolors[color].blue;
+			p1->a = p2->a = star_aacolors[color].alpha;
 
 			// if the two points are the same, fudge it, since some D3D cards (G200 and G400) are lame.
-			if ( (fl2i(p1.sx) == fl2i(p2.sx)) && (fl2i(p1.sy) == fl2i(p2.sy)) ) {
-				p1.sx += 1.0f;
+			if ( (fl2i(p1->sx) == fl2i(p2->sx)) && (fl2i(p1->sy) == fl2i(p2->sy)) ) {
+				p1->sx += 1.0f;
 			}
 
-			gr_aaline(&p1,&p2);
+			star_count += 2;
+
+			if (star_count >= STAR_BUFFER_SIZE) {
+				gr_aalines(StarBuffer, star_count);
+				star_count = 0;
+			}
+		}
+
+		if (star_count) {
+			gr_aalines(StarBuffer, star_count);
 		}
 	}
 

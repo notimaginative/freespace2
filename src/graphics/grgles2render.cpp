@@ -652,6 +652,41 @@ void gr_gles2_aaline(vertex *v1, vertex *v2)
 	gr_gles2_line( fl2i(v1->sx), fl2i(v1->sy), fl2i(v2->sx), fl2i(v2->sy) );
 }
 
+void gr_gles2_aalines(vertex *verts, int count)
+{
+	// count must be a multiple of 2
+	if ((count < 2) || (count % 2)) {
+		return;
+	}
+
+	auto render_buffer = gr_get_render_buffer(count);
+
+	for (int i = 0; i < count; ++i) {
+		render_buffer[i].x = verts[i].sx;
+		render_buffer[i].y = verts[i].sy;
+
+		render_buffer[i].r = verts[i].r;
+		render_buffer[i].g = verts[i].g;
+		render_buffer[i].b = verts[i].b;
+		render_buffer[i].a = verts[i].a;
+	}
+
+	gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+	gles2_shader_use(PROG_COLOR);
+
+	pglVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(renderbuffer_t), &render_buffer[0].r);
+	pglEnableVertexAttribArray(SDRI_COLOR);
+
+	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
+	pglEnableVertexAttribArray(SDRI_POSITION);
+
+	glDrawArrays(GL_LINES, 0, count);
+
+	pglDisableVertexAttribArray(SDRI_POSITION);
+	pglDisableVertexAttribArray(SDRI_COLOR);
+}
+
 void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 {
 	int swapped = 0;

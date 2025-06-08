@@ -108,6 +108,7 @@ void gr_gles2_aabitmap(int x, int y);
 void gr_gles2_string(int sx, int sy, const char *s);
 void gr_gles2_line(int x1, int y1, int x2, int y2);
 void gr_gles2_aaline(vertex *v1, vertex *v2);
+void gr_gles2_aalines(vertex *verts, int count);
 void gr_gles2_gradient(int x1, int y1, int x2, int y2);
 void gr_gles2_circle(int xc, int yc, int d);
 void gr_gles2_pixel(int x, int y);

@@ -230,6 +230,7 @@ static void gles2_init_func_pointers()
 
 	gr_screen.gf_line = gr_gles2_line;
 	gr_screen.gf_aaline = gr_gles2_aaline;
+	gr_screen.gf_aalines = gr_gles2_aalines;
 	gr_screen.gf_pixel = gr_gles2_pixel;
 	gr_screen.gf_scaler = gr_gles2_scaler;
 	gr_screen.gf_tmapper = gr_gles2_tmapper;

@@ -332,7 +332,9 @@ void BM_SELECT_ALPHA_TEX_FORMAT();
 void bm_24_to_16(int bit_24, ushort *bit_16);
 
 // set the rgba components of a pixel, any of the parameters can be NULL
-extern void (*bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
+extern void (*_bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a, bool nondark);
+#define bm_set_components(p, r, g, b, a)	_bm_set_components(p, r, g, b, a, false)
+#define bm_set_components_nondark(p, r, g, b, a)	_bm_set_components(p, r, g, b, a, true)
 
 // get the rgba components of a pixel, any of the parameters can be NULL
 void bm_get_components(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a);
@@ -348,8 +350,10 @@ void bm_get_section_size(int bitmapnum, int sx, int sy, int *w, int *h);
 // bm_image loader functions
 //============================================================================
 
+uint8_t *bm_image_to_raw(const char *filename, int dir_type, int *_width, int *_height, int *_bpp);
 SDL_Surface *bm_image_to_surface(const char *filename, int dir_type = -1 /* CF_TYPE_ANY */, SDL_PixelFormat sformat = SDL_PIXELFORMAT_RGBA32);
 SDL_Surface *bm_image_to_surface(int bitmapnum, int bpp, int flags, SDL_PixelFormat sformat = SDL_PIXELFORMAT_RGBA32);
+
 
 #endif
 

@@ -605,8 +605,8 @@ int pcx_read_bitmap_16bpp_nondark( char * real_filename, ubyte *org_data )
 
 				// set the pixel
 				bit_16 = 0;
-				bm_set_components((ubyte*)&bit_16, &r, &g, &b, &al);					
-				
+				bm_set_components_nondark((ubyte*)&bit_16, &r, &g, &b, &al);
+
 				// stuff the pixel
 				*((ushort*)pixdata) = bit_16;				
 				pixdata += 2;

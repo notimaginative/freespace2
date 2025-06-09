@@ -2251,13 +2251,18 @@ void bm_24_to_16(int bit_24, ushort *bit_16)
 	ubyte *pixel = (ubyte*)&bit_24;
 	ubyte alpha = 1;
 
-	bm_set_components((ubyte*)bit_16, (ubyte*)&pixel[0], (ubyte*)&pixel[1], (ubyte*)&pixel[2], &alpha);	
+	bm_set_components((ubyte*)bit_16, (ubyte*)&pixel[0], (ubyte*)&pixel[1], (ubyte*)&pixel[2], &alpha);
 }
 
-void (*bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a) = NULL;
+void (*_bm_set_components)(ubyte *pixel, ubyte *r, ubyte *g, ubyte *b, ubyte *a, bool nondark) = NULL;
 
-static void bm_set_components_argb_16(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+static void bm_set_components_argb_16(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av, bool nondark)
 {
+	if ( !nondark && !(*av) ) {
+		*((ushort*)pixel) = 0;
+		return;
+	}
+
 	// rgba
 	*((ushort*)pixel) |= (ushort)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
 	*((ushort*)pixel) |= (ushort)(( (int)*gv / Gr_current_green->scale ) << Gr_current_green->shift);
@@ -2268,7 +2273,7 @@ static void bm_set_components_argb_16(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte 
 	}
 }
 
-static void bm_set_components_argb_32(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av)
+static void bm_set_components_argb_32(ubyte *pixel, ubyte *rv, ubyte *gv, ubyte *bv, ubyte *av, bool nondark)
 {
 	// rgba
 	*((uint*)pixel) |= (uint)(( (int)*rv / Gr_current_red->scale ) << Gr_current_red->shift);
@@ -2290,9 +2295,9 @@ void BM_SELECT_SCREEN_FORMAT()
 
 	// setup pointers
 	if ( gr_is_32bit() ) {
-		bm_set_components = bm_set_components_argb_32;
+		_bm_set_components = bm_set_components_argb_32;
 	} else {
-		bm_set_components = bm_set_components_argb_16;
+		_bm_set_components = bm_set_components_argb_16;
 	}
 }
 
@@ -2304,7 +2309,7 @@ void BM_SELECT_TEX_FORMAT()
 	Gr_current_alpha = &Gr_t_alpha;
 
 	// setup pointers
-	bm_set_components = bm_set_components_argb_16;
+	_bm_set_components = bm_set_components_argb_16;
 }
 
 void BM_SELECT_ALPHA_TEX_FORMAT()
@@ -2315,7 +2320,7 @@ void BM_SELECT_ALPHA_TEX_FORMAT()
 	Gr_current_alpha = &Gr_ta_alpha;
 
 	// setup pointers
-	bm_set_components = bm_set_components_argb_16;
+	_bm_set_components = bm_set_components_argb_16;
 }
 
 // set the rgba components of a pixel, any of the parameters can be -1

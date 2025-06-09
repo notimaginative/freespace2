@@ -271,15 +271,6 @@ set(launcher_HEADERS
 )
 
 #
-# standalone server GUI
-#
-
-set(standalone_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/stand_gui.h
-  PARENT_SCOPE
-)
-
-#
 # ##############################################################################
 
 # ##############################################################################

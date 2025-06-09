@@ -212,13 +212,6 @@ install(PROGRAMS
 	DESTINATION "${APPDIR_PATH}/opt/${APP_NAME_SAFE}"
 )
 
-if(STANDALONE_BINARY)
-	install(PROGRAMS
-		"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${STANDALONE_BINARY}"
-		DESTINATION "${APPDIR_PATH}/opt/${APP_NAME_SAFE}"
-	)
-endif()
-
 
 # and do tools, if any exist
 install(PROGRAMS

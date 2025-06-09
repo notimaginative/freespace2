@@ -74,13 +74,6 @@ install(PROGRAMS
 	DESTINATION "${APP_PATH}/Contents/MacOS"
 )
 
-if(STANDALONE_BINARY)
-	install(PROGRAMS
-		"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${STANDALONE_BINARY}"
-		DESTINATION "${APP_PATH}/Contents/MacOS"
-	)
-endif()
-
 # and do tools, if any exist
 install(PROGRAMS
 	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ac"

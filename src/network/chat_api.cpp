@@ -19,10 +19,10 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
-
-#define WSAGetLastError()  (errno)
 #else
 #include <winsock2.h>
+// disable warnings for argument conversion in net commands
+#pragma warning(disable : 4267 4244 4245)
 #endif
 
 #include "pstypes.h"

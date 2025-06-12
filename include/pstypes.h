@@ -315,37 +315,6 @@ typedef struct vertex {
 	}
 } vertex;
 
-#define	BMP_AABITMAP		(1<<0)				// antialiased bitmap
-#define	BMP_TEX_XPARENT		(1<<1)				// transparent texture
-#define	BMP_TEX_NONDARK		(1<<2)				// nondarkening texture
-#define	BMP_TEX_OTHER		(1<<3)				// so we can identify all "normal" textures
-
-// any texture type
-#define	BMP_TEX_ANY				( BMP_TEX_XPARENT | BMP_TEX_NONDARK | BMP_TEX_OTHER )
-
-// max res == 1024x768. max texture size == 256
-#define MAX_BMAP_SECTIONS_X				4
-#define MAX_BMAP_SECTIONS_Y				3
-#define MAX_BMAP_SECTION_SIZE				256
-typedef struct bitmap_section_info {
-	ushort sx[MAX_BMAP_SECTIONS_X];		// x offset of each section
-	ushort sy[MAX_BMAP_SECTIONS_Y];		// y offset of each section
-
-	ubyte num_x, num_y;						// number of x and y sections
-} bitmap_section_info;
-
-typedef struct bitmap {
-	short	w, h;		// Width and height
-	short	rowsize;	// What you need to add to go to next row
-	ubyte	bpp;		// How many bits per pixel it is. (7,8,15,16,24,32)
-	ubyte	flags;	// See the BMP_???? defines for values
-	uintptr_t	data;	// Pointer to data, or maybe offset into VRAM.
-	ubyte *palette;	// If bpp==8, this is pointer to palette.   If the BMP_NO_PALETTE_MAP flag
-							// is not set, this palette just points to the screen palette. (gr_palette)
-
-	bitmap_section_info sections;
-} bitmap;
-
 //This are defined in MainWin.c
 extern void __cdecl Error( const char * filename, int line, const char * format, ... );
 extern void __cdecl Warning( const char * filename, int line, const char * format, ... );

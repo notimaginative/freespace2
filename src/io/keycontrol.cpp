@@ -407,7 +407,7 @@ extern int Countermeasures_enabled;
 
 extern fix Game_time_compression;
 
-extern float do_subobj_hit_stuff(object *ship_obj, object *other_obj, vector *hitpos, float damage);
+extern float do_subobj_hit_stuff(object *ship_objp, object *other_obj, vector *hitpos, float damage);
 
 extern void mission_goal_mark_all_true( int type );
 

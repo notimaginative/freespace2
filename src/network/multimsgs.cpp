@@ -7222,11 +7222,11 @@ void send_homing_weapon_info( int weapon_num )
 	// homing signature.
 	homing_signature = 0;
 	homing_object = wp->homing_object;
+	t_subsys = -1;
 	if ( homing_object != NULL ) {
 		homing_signature = homing_object->net_signature;
 
 		// get the subsystem index.
-		t_subsys = -1;
 		if ( (homing_object->type == OBJ_SHIP) && (wp->homing_subsys != NULL) ) {
 			int s_index;
 

@@ -237,7 +237,7 @@ int cfread(void *buf, size_t elsize, size_t nelem, CFILE *cfile)
 	SDL_assert(elsize > 0);
 	SDL_assert(size > 0);
 
-	if ( (cb->raw_position+size) > cb->size ) {
+	if ( (cb->raw_position+size) > static_cast<uint64_t>(cb->size) ) {
 		size = cb->size - cb->raw_position;
 		if ( size < 1 ) {
 			return 0;

@@ -266,27 +266,6 @@ void key_turn_on_numlock()
 {
 }
 
-// checks if a keycode is ASCII printable or not
-// returns true if ASCII, false if not
-bool key_is_ascii(int keycode)
-{
-	// bail on non-printable keycodes
-	if (keycode & SDLK_SCANCODE_MASK) {
-		return false;
-	}
-
-	keycode &= KEY_MASK;
-
-	// this is definitely never come back to bite me in the ass
-	if ( ((keycode >= SDLK_SPACE) && (keycode <= SDLK_AT))
-			|| ((keycode >= SDLK_LEFTBRACKET) && (keycode <= SDLK_Z)) )
-	{
-		return true;
-	}
-
-	return false;
-}
-
 //	Flush the keyboard buffer.
 //	Clear the keyboard array (keyd_pressed).
 void key_flush()

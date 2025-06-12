@@ -97,7 +97,7 @@ static void SDLCALL oal_render_samples(void *userdata, SDL_AudioStream *stream, 
 		return;
 	}
 
-	if (additional_amount > info->render_buffer_size) {
+	if (static_cast<size_t>(additional_amount) > info->render_buffer_size) {
 		if (info->render_buffer) {
 			free(info->render_buffer);
 		}

@@ -291,10 +291,10 @@ float neb2_get_alpha_offscreen(float sx, float sy, float incoming_alpha);
 void neb2_pre_render(vector *eye_pos, matrix *eye_orient);
 
 // fill in the position of the eye for this frame
-void neb2_get_eye_pos(vector *eye);
+void neb2_get_eye_pos(vector *vec);
 
 // fill in the eye orient for this frame
-void neb2_get_eye_orient(matrix *eye);
+void neb2_get_eye_orient(matrix *mat);
 
 // get a (semi) random bitmap to use for a poof
 int neb2_get_bitmap();
@@ -1344,15 +1344,15 @@ void neb2_set_backg_color(int r, int g, int b)
 }
 
 // fill in the position of the eye for this frame
-void neb2_get_eye_pos(vector *eye)
+void neb2_get_eye_pos(vector *vec)
 {
-	*eye = Eye_position;
+	*vec = Eye_position;
 }
 
 // fill in the eye orient for this frame
-void neb2_get_eye_orient(matrix *eye)
+void neb2_get_eye_orient(matrix *mat)
 {
-	*eye = Eye_matrix;
+	*mat = Eye_matrix;
 }
 
 // get a (semi) random bitmap to use for a poof

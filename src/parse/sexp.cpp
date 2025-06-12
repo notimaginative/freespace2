@@ -9343,7 +9343,7 @@ const char *sexp_error_message(int num)
 	return Sexp_error_text;
 }
 
-int query_sexp_ai_goal_valid(int sexp_ai_goal, int ship)
+int query_sexp_ai_goal_valid(int sexp_ai_goal, int ship_index)
 {
 	int i, op;
 
@@ -9357,7 +9357,7 @@ int query_sexp_ai_goal_valid(int sexp_ai_goal, int ship)
 			break;
 
 	SDL_assert(i < Num_sexp_ai_goal_links);
-	return ai_query_goal_valid(ship, Sexp_ai_goal_links[i].ai_goal);
+	return ai_query_goal_valid(ship_index, Sexp_ai_goal_links[i].ai_goal);
 }
 
 // Takes an Sexp_node.text pointing to a variable (of form "Sexp_variables[xx]=string" or "Sexp_variables[xx]=number")

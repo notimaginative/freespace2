@@ -36,6 +36,9 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <netdb.h>
+#else
+// disable warnings for argument conversion in net commands
+#pragma warning(disable : 4267 4244)
 #endif
 
 #include "pstypes.h"

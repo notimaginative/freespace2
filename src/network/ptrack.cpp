@@ -14,6 +14,9 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <netdb.h>
+#else
+// disable warnings for argument conversion in net commands
+#pragma warning(disable : 4267 4244)
 #endif
 
 #include "pstypes.h"
@@ -470,7 +473,7 @@ int SendFSPilotData(vmt_stats_struct *fs_pilot)
 		}
 
 	}
-	else if(fs_pilot == (vmt_stats_struct*)0xffffffff)
+	else if(fs_pilot == (vmt_stats_struct*)UINTPTR_MAX)
 	{
 		if(FSWriteState == STATE_IDLE)
 		{
@@ -560,7 +563,7 @@ int SendSWData(squad_war_result *sw_res, squad_war_response *sw_resp)
 
 			return -1;
 		}		
-	} else if(sw_res == (squad_war_result*)0xffffffff){
+	} else if(sw_res == (squad_war_result*)UINTPTR_MAX){
 		if(SWWriteState == STATE_IDLE){
 			return -3;
 		} else {
@@ -642,7 +645,7 @@ int GetFSPilotData(vmt_stats_struct *fs_pilot, const char *pilot_name, const cha
 		}
 
 	}
-	else if(fs_pilot == (vmt_stats_struct*)0xffffffff)
+	else if(fs_pilot == (vmt_stats_struct*)UINTPTR_MAX)
 	{
 		if(FSReadState == STATE_IDLE)
 		{

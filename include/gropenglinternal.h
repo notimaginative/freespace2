@@ -33,9 +33,6 @@ typedef enum gr_zbuffer_type {
 		ZBUFFER_TYPE_FULL,
 } gr_zbuffer_type;
 
-extern volatile int GL_activate;
-extern volatile int GL_deactivate;
-
 extern SDL_Window *GL_window;
 extern SDL_GLContext GL_context;
 

@@ -2597,15 +2597,15 @@ int subobj_find_2d_bound(float radius ,matrix *orient, vector * pos,int *x1, int
 // Given a vector that is in sub_model_num's frame of
 // reference, and given the object's orient and position,
 // return the vector in the model's frame of reference.
-void model_find_obj_dir(vector *w_vec, vector *m_vec, object *ship_obj, int sub_model_num)
+void model_find_obj_dir(vector *w_vec, vector *m_vec, object *ship_objp, int sub_model_num)
 {
 	vector tvec, vec;
 	matrix m;
 	int mn;
 
-	SDL_assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_objp->type == OBJ_SHIP);
 
-	polymodel *pm = model_get(Ships[ship_obj->instance].modelnum);
+	polymodel *pm = model_get(Ships[ship_objp->instance].modelnum);
 	vec = *m_vec;
 	mn = sub_model_num;
 
@@ -2620,7 +2620,7 @@ void model_find_obj_dir(vector *w_vec, vector *m_vec, object *ship_obj, int sub_
 	}
 
 	// now instance for the entire object
-	vm_vec_unrotate(w_vec, &vec, &ship_obj->orient);
+	vm_vec_unrotate(w_vec, &vec, &ship_objp->orient);
 }
 
 

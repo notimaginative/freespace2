@@ -1344,20 +1344,20 @@ void hud_config_set_gauge_flags(int gauge_index, int on_flag, int popup_flag)
 	}
 }
 
-void hud_config_record_color(int color)
+void hud_config_record_color(int clr)
 {
-	HUD_config.main_color = color;
-	HUD_color_red = HC_colors[color].r;
-	HUD_color_green = HC_colors[color].g;
-	HUD_color_blue = HC_colors[color].b;
+	HUD_config.main_color = clr;
+	HUD_color_red = HC_colors[clr].r;
+	HUD_color_green = HC_colors[clr].g;
+	HUD_color_blue = HC_colors[clr].b;
 }
 
 // Set the HUD color
-void hud_config_set_color(int color)
+void hud_config_set_color(int clr)
 {
 	int idx;	
 
-	hud_config_record_color(color);
+	hud_config_record_color(clr);
 
 #ifdef MAKE_FS1
 	game_load_palette();
@@ -1367,7 +1367,7 @@ void hud_config_set_color(int color)
 
 	// apply the color to all gauges
 	for(idx=0; idx<NUM_HUD_GAUGES; idx++){
-		gr_init_alphacolor(&HUD_config.clr[idx], HC_colors[color].r, HC_colors[color].g, HC_colors[color].b, (HUD_color_alpha+1)*16, AC_TYPE_HUD);
+		gr_init_alphacolor(&HUD_config.clr[idx], HC_colors[clr].r, HC_colors[clr].g, HC_colors[clr].b, (HUD_color_alpha+1)*16, AC_TYPE_HUD);
 	}
 }
 

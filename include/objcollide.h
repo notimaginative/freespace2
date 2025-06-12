@@ -175,7 +175,7 @@ void obj_check_all_collisions();
 // If it can it predicts how long until these two objects need
 // to be checked and fills the time in in current_pair.
 // CODE is locatated in CollideGeneral.cpp
-int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pair );
+int weapon_will_never_hit( object *weapon_objp, object *other, obj_pair * current_pair );
 
 
 //	See if two lines intersect by doing recursive subdivision.
@@ -197,7 +197,7 @@ int collide_weapon_weapon( obj_pair * pair );
 // Returns 1 if all future collisions between these can be ignored
 // CODE is locatated in CollideShipWeapon.cpp
 int collide_ship_weapon( obj_pair * pair );
-void ship_weapon_do_hit_stuff(object *ship_obj, object *weapon_obj, vector *world_hitpos, vector *hitpos, int quadrant_num, int submodel_num = -1);
+void ship_weapon_do_hit_stuff(object *ship_objp, object *weapon_obj, vector *world_hitpos, vector *hitpos, int quadrant_num, int submodel_num = -1);
 
 // Checks debris-weapon collisions.  pair->a is debris and pair->b is weapon.
 // Returns 1 if all future collisions between these can be ignored

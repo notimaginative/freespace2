@@ -615,82 +615,82 @@ void ai_post_process_mission()
 }
 
 // function which determines is a goal is valid for a particular type of ship
-int ai_query_goal_valid( int ship, int ai_goal )
+int ai_query_goal_valid( int ship_index, int goal )
 {
 	int accepted;
 
-	if (ai_goal == AI_GOAL_NONE)
+	if (goal == AI_GOAL_NONE)
 		return 1;  // anything can have no orders.
 
 	accepted = 0;
-	switch (Ship_info[Ships[ship].ship_info_index].flags & SIF_ALL_SHIP_TYPES) {
+	switch (Ship_info[Ships[ship_index].ship_info_index].flags & SIF_ALL_SHIP_TYPES) {
 	case SIF_CARGO:
 		if (!Fred_running)
 			Int3();			// get Hoffoss or Allender -- cargo containers shouldn't have a goal!!!
 		break;
 
 	case SIF_FIGHTER:
-		if ( ai_goal & AI_GOAL_ACCEPT_FIGHTER ){
+		if ( goal & AI_GOAL_ACCEPT_FIGHTER ){
 			accepted = 1;
 		}
 		break;
 	case SIF_BOMBER:
-		if ( ai_goal & AI_GOAL_ACCEPT_BOMBER ){
+		if ( goal & AI_GOAL_ACCEPT_BOMBER ){
 			accepted = 1;
 		}
 		break;
 	case SIF_CRUISER:
-		if ( ai_goal & AI_GOAL_ACCEPT_CRUISER ){
+		if ( goal & AI_GOAL_ACCEPT_CRUISER ){
 			accepted = 1;
 		}
 		break;
 	case SIF_FREIGHTER:
-		if ( ai_goal & AI_GOAL_ACCEPT_FREIGHTER ){
+		if ( goal & AI_GOAL_ACCEPT_FREIGHTER ){
 			accepted = 1;
 		}
 		break;
 	case SIF_CAPITAL:
-		if ( ai_goal & AI_GOAL_ACCEPT_CAPITAL ){
+		if ( goal & AI_GOAL_ACCEPT_CAPITAL ){
 			accepted = 1;
 		}
 		break;
 	case SIF_TRANSPORT:
-		if ( ai_goal & AI_GOAL_ACCEPT_TRANSPORT ){
+		if ( goal & AI_GOAL_ACCEPT_TRANSPORT ){
 			accepted = 1;
 		}
 		break;
 	case SIF_SUPPORT:
-		if ( ai_goal & AI_GOAL_ACCEPT_SUPPORT ){
+		if ( goal & AI_GOAL_ACCEPT_SUPPORT ){
 			accepted = 1;
 		}
 		break;
 	case SIF_ESCAPEPOD:
-		if ( ai_goal & AI_GOAL_ACCEPT_ESCAPEPOD ){
+		if ( goal & AI_GOAL_ACCEPT_ESCAPEPOD ){
 			accepted = 1;
 		}
 		break;
 	case SIF_SUPERCAP:
-		if ( ai_goal & AI_GOAL_ACCEPT_SUPERCAP ){
+		if ( goal & AI_GOAL_ACCEPT_SUPERCAP ){
 			accepted = 1;
 		}
 		break;
 	case SIF_STEALTH:
-		if ( ai_goal & AI_GOAL_ACCEPT_STEALTH ){
+		if ( goal & AI_GOAL_ACCEPT_STEALTH ){
 			accepted = 1;
 		}
 		break;		
 	case SIF_CORVETTE:
-		if ( ai_goal & AI_GOAL_ACCEPT_CORVETTE ){
+		if ( goal & AI_GOAL_ACCEPT_CORVETTE ){
 			accepted = 1;
 		}
 		break;
 	case SIF_GAS_MINER:
-		if ( ai_goal & AI_GOAL_ACCEPT_GAS_MINER ){
+		if ( goal & AI_GOAL_ACCEPT_GAS_MINER ){
 			accepted = 1;
 		}
 		break;
 	case SIF_AWACS:
-		if ( ai_goal & AI_GOAL_ACCEPT_AWACS ){
+		if ( goal & AI_GOAL_ACCEPT_AWACS ){
 			accepted = 1;
 		}
 		break;
@@ -1743,9 +1743,10 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 			return AI_GOAL_NOT_KNOWN;
 		else if ( status == SHIP_STATUS_GONE )
 			return AI_GOAL_NOT_ACHIEVABLE;
-		else if ( status == SHIP_STATUS_UNKNOWN )
-			return AI_GOAL_NOT_KNOWN;
+		else if ( status == SHIP_STATUS_UNKNOWN ) {
 			Int3();		// get allender -- bad logic
+			return AI_GOAL_NOT_KNOWN;
+		}
 		break;
 
 	// for rearm repair ships, a goal is only achievable if the support ship isn't repairing anything

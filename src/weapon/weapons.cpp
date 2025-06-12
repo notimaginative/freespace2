@@ -3144,30 +3144,30 @@ int weapon_area_calc_damage(object *objp, vector *pos, float inner_rad, float ou
 //				blast					=>		force of blast
 //				make_shockwave		=>		boolean, whether to create a shockwave or not
 //
-void weapon_area_apply_blast(vector *force_apply_pos, object *ship_obj, vector *blast_pos, float blast, int make_shockwave)
+void weapon_area_apply_blast(vector *force_apply_pos, object *ship_objp, vector *blast_pos, float blast, int make_shockwave)
 {
 	#define	SHAKE_CONST 3000
 	vector		force, vec_blast_to_ship, vec_ship_to_impact;
 	polymodel		*pm;
 
 	// apply blast force based on distance from center of explosion
-	vm_vec_sub(&vec_blast_to_ship, &ship_obj->pos, blast_pos);
+	vm_vec_sub(&vec_blast_to_ship, &ship_objp->pos, blast_pos);
 	vm_vec_normalize_safe(&vec_blast_to_ship);
 	vm_vec_copy_scale(&force, &vec_blast_to_ship, blast );
 
 
-	vm_vec_sub(&vec_ship_to_impact, blast_pos, &ship_obj->pos);
+	vm_vec_sub(&vec_ship_to_impact, blast_pos, &ship_objp->pos);
 
-	pm = model_get(Ships[ship_obj->instance].modelnum);
+	pm = model_get(Ships[ship_objp->instance].modelnum);
 	SDL_assert ( pm != NULL );
 
 	if (make_shockwave) {
-		physics_apply_shock (&force, blast, &ship_obj->phys_info, &ship_obj->orient, &pm->mins, &pm->maxs, pm->rad);
-		if (ship_obj == Player_obj) {
+		physics_apply_shock (&force, blast, &ship_objp->phys_info, &ship_objp->orient, &pm->mins, &pm->maxs, pm->rad);
+		if (ship_objp == Player_obj) {
 			joy_ff_play_vector_effect(&vec_blast_to_ship, blast * 2.0f);
 		}
 	} else {
-		ship_apply_whack( &force, &vec_ship_to_impact, ship_obj);
+		ship_apply_whack( &force, &vec_ship_to_impact, ship_objp);
 	}
 }
 

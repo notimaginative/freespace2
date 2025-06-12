@@ -148,6 +148,8 @@
 #include <winsock2.h>
 #include <ras.h>
 #include <raserror.h>
+ // disable warnings for argument conversion in net commands
+#pragma warning(disable : 4267 4244)
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -2727,9 +2727,9 @@ void hud_add_issued_order(const char *name, int order, const char *target)
 
 int hud_query_order_issued(const char *name, const char *order, const char *target)
 {
-	int i, o=-1, ship, t;
+	int i, o=-1, ship_idx, t;
 
-	ship = get_parse_name_index(name);
+	ship_idx = get_parse_name_index(name);
 	t = -1;
 	if (target)
 		t = get_parse_name_index(target);
@@ -2741,7 +2741,7 @@ int hud_query_order_issued(const char *name, const char *order, const char *targ
 	SDL_assert(i < MAX_SHIP_ORDERS);
 	for (i=0; i<SQUADMSG_HISTORY_MAX; i++)
 		if (Squadmsg_history[i].order == o)
-			if (ship == Squadmsg_history[i].ship)
+			if (ship_idx == Squadmsg_history[i].ship)
 				if (Squadmsg_history[i].target == t)
 					return 1;
 

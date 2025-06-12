@@ -669,7 +669,7 @@ extern void ai_set_evade_object(object *objp, object *other_objp);
 extern void ai_set_guard_wing(object *objp, int wingnum);
 extern void ai_warp_out(object *objp, vector *vp);
 extern void ai_attack_wing(object *attacker, int wingnum, int priority);
-extern void ai_deathroll_start(object *ship_obj);
+extern void ai_deathroll_start(object *ship_objp);
 extern void ai_fly_in_formation(int wing_num);		//	Force wing to fly in formation.
 extern void ai_disband_formation(int wing_num);		//	Force wing to disband formation flying.
 extern object *ai_find_docked_object( object *objp );	// returns object that objp is docked to

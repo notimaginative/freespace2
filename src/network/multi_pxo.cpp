@@ -4782,7 +4782,7 @@ int multi_pxo_pinfo_cond()
 		SDL_strlcpy(Multi_pxo_pinfo.tracker_id, Multi_pxo_retrieve_id, SDL_arraysize(Multi_pxo_pinfo.tracker_id));
 
 		// make the initial call to the API
-		GetFSPilotData((vmt_stats_struct*)0xffffffff,NULL,NULL,0);
+		GetFSPilotData((vmt_stats_struct*)UINTPTR_MAX,NULL,NULL,0);
 		if(GetFSPilotData(&Multi_pxo_pinfo,Multi_pxo_retrieve_name,Multi_pxo_retrieve_id,0) != 0){
 			return 2;
 		}

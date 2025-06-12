@@ -290,7 +290,7 @@ int g3_draw_rod(vector *p0,float width1,vector *p1,float width2, vertex * verts,
 int g3_draw_bitmap(vertex *pos,int orient, float radius, uint tmap_flags);
 
 // get bitmap dims onscreen as if g3_draw_bitmap() had been called
-int g3_get_bitmap_dims(int bitmap, vertex *pos, float radius, int *x, int *y, int *w, int *h, int *size);
+int g3_get_bitmap_dims(int bitmapnum, vertex *pos, float radius, int *x, int *y, int *w, int *h, int *size);
 
 //draw a sortof sphere - i.e., the 2d radius is proportional to the 3d
 //radius, but not to the distance from the eye.  Uses the current 2d color.

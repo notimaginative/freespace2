@@ -278,7 +278,7 @@
 #define PLR_MAX_SHIP_TYPES_OLD			75
 #define PLR_MAX_WEAPON_TYPES_OLD		44
 
-extern void hud_config_set_color(int color);
+extern void hud_config_set_color(int clr);
 #endif
 
 // Current content of a .PLR file

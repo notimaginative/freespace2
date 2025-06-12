@@ -86,24 +86,24 @@ int collide_debris_weapon( obj_pair * pair )
 	vector	hitpos;
 	int		hit;
 	object *pdebris = pair->a;
-	object *weapon = pair->b;
+	object *pweapon = pair->b;
 
 	SDL_assert( pdebris->type == OBJ_DEBRIS );
-	SDL_assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( pweapon->type == OBJ_WEAPON );
 
 	// first check the bounding spheres of the two objects.
-	hit = fvi_segment_sphere(&hitpos, &weapon->last_pos, &weapon->pos, &pdebris->pos, pdebris->radius);
+	hit = fvi_segment_sphere(&hitpos, &pweapon->last_pos, &pweapon->pos, &pdebris->pos, pdebris->radius);
 	if (hit) {
-		hit = debris_check_collision(pdebris, weapon, &hitpos );
+		hit = debris_check_collision(pdebris, pweapon, &hitpos );
 		if ( !hit )
 			return 0;
 
-		weapon_hit( weapon, pdebris, &hitpos );
-		debris_hit( pdebris, weapon, &hitpos, Weapon_info[Weapons[weapon->instance].weapon_info_index].damage );
+		weapon_hit( pweapon, pdebris, &hitpos );
+		debris_hit( pdebris, pweapon, &hitpos, Weapon_info[Weapons[pweapon->instance].weapon_info_index].damage );
 		return 0;
 
 	} else {
-		return weapon_will_never_hit( weapon, pdebris, pair );
+		return weapon_will_never_hit( pweapon, pdebris, pair );
 	}
 }				
 
@@ -121,24 +121,24 @@ int collide_asteroid_weapon( obj_pair * pair )
 	vector	hitpos;
 	int		hit;
 	object	*pasteroid = pair->a;
-	object	*weapon = pair->b;
+	object	*pweapon = pair->b;
 
 	SDL_assert( pasteroid->type == OBJ_ASTEROID);
-	SDL_assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( pweapon->type == OBJ_WEAPON );
 
 	// first check the bounding spheres of the two objects.
-	hit = fvi_segment_sphere(&hitpos, &weapon->last_pos, &weapon->pos, &pasteroid->pos, pasteroid->radius);
+	hit = fvi_segment_sphere(&hitpos, &pweapon->last_pos, &pweapon->pos, &pasteroid->pos, pasteroid->radius);
 	if (hit) {
-		hit = asteroid_check_collision(pasteroid, weapon, &hitpos );
+		hit = asteroid_check_collision(pasteroid, pweapon, &hitpos );
 		if ( !hit )
 			return 0;
 
-		weapon_hit( weapon, pasteroid, &hitpos );
-		asteroid_hit( pasteroid, weapon, &hitpos, Weapon_info[Weapons[weapon->instance].weapon_info_index].damage );
+		weapon_hit( pweapon, pasteroid, &hitpos );
+		asteroid_hit( pasteroid, pweapon, &hitpos, Weapon_info[Weapons[pweapon->instance].weapon_info_index].damage );
 		return 0;
 
 	} else {
-		return weapon_will_never_hit( weapon, pasteroid, pair );
+		return weapon_will_never_hit( pweapon, pasteroid, pair );
 	}
 
 #else

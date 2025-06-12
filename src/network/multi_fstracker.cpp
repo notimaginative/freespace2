@@ -883,7 +883,7 @@ int multi_fs_validate_process()
 			Multi_tracker_id = atoi(Multi_tracker_id_string);			
 			SDL_assert(Multi_tracker_id != -1);
 
-			GetFSPilotData((vmt_stats_struct*)0xffffffff,NULL,NULL,0);
+			GetFSPilotData((vmt_stats_struct*)UINTPTR_MAX,NULL,NULL,0);
 			GetFSPilotData(&Multi_tracker_fs_pilot,Player->callsign,Multi_tracker_id_string,1);
 				
 			// set to mode 1
@@ -962,7 +962,7 @@ int multi_fs_store_stats_do()
 			Net_players[Multi_store_stats_player_index].s_info.tracker_checksum = 0;
 
 			// send the request itself
-			GetFSPilotData((vmt_stats_struct*)0xffffffff, NULL, NULL,0);
+			GetFSPilotData((vmt_stats_struct*)UINTPTR_MAX, NULL, NULL,0);
 			memset(&Multi_store_stats_stats, 0, sizeof(Multi_store_stats_stats));
 			if(GetFSPilotData(&Multi_store_stats_stats, Net_players[Multi_store_stats_player_index].player->callsign,tracker_id_string,1) != 0){
 				Int3();
@@ -1072,7 +1072,7 @@ int multi_fs_store_stats_do()
 			Multi_store_stats_stats.checksum = Net_players[Multi_store_stats_player_index].s_info.tracker_checksum;
 				
 			// send the request
-			SendFSPilotData((vmt_stats_struct*)0xffffffff);
+			SendFSPilotData((vmt_stats_struct*)UINTPTR_MAX);
 			if(SendFSPilotData(&Multi_store_stats_stats) != 0){
 				Int3();
 
@@ -1368,7 +1368,7 @@ int multi_fs_tracker_validate_mission_normal()
 // return an MVALID_STATUS_* (see multiui.h) value, or -2 if the user has "cancelled"
 int multi_fs_tracker_validate_mission(char *filename)
 {	
-	vmt_validate_mission_req_struct mission;	
+	vmt_validate_mission_req_struct missionreq;	
 	char popup_string[512] = "";
 
 	if(!Multi_fs_tracker_inited){
@@ -1376,14 +1376,14 @@ int multi_fs_tracker_validate_mission(char *filename)
 	}
 	
 	// get the checksum of the local file	
-	memset(&mission, 0, sizeof(mission));
-	SDL_strlcpy(mission.file_name, filename, SDL_arraysize(mission.file_name));
-	if(!cf_chksum_long(mission.file_name, (uint*)&mission.checksum)){
+	memset(&missionreq, 0, sizeof(missionreq));
+	SDL_strlcpy(missionreq.file_name, filename, SDL_arraysize(missionreq.file_name));
+	if(!cf_chksum_long(missionreq.file_name, (uint*)&missionreq.checksum)){
 		return MVALID_STATUS_UNKNOWN;
 	}	
 
 	// try and validate the mission
-	if(ValidateMission(&mission) != 0){
+	if(ValidateMission(&missionreq) != 0){
 		return MVALID_STATUS_UNKNOWN;
 	}
 
@@ -1632,7 +1632,7 @@ int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply, const i
 	char popup_string[512] = "";
 
 	// clear any old requests
-	SendSWData((squad_war_result*)0xffffffff, NULL);
+	SendSWData((squad_war_result*)UINTPTR_MAX, NULL);
 
 	// send this new request
 	SendSWData(sw_res, &Multi_tracker_sw_response);

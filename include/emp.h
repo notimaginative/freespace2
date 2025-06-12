@@ -124,7 +124,7 @@ void emp_apply(vector *pos, float inner_radius, float outer_radius, float emp_in
 
 // start the emp effect for the passed ship (setup lightning arcs, timestamp, etc)
 // NOTE : if this ship is also me, I should call emp_start_local() as well
-void emp_start_ship(object *ship_obj, float intensity, float time);
+void emp_start_ship(object *ship_objp, float intensity, float time);
 
 // process a ship for this frame
 void emp_process_ship(ship *shipp);

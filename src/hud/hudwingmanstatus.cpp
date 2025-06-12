@@ -548,7 +548,7 @@ void hud_wingman_status_update()
 
 void hud_wingman_status_blit_left_frame(int num_wings_to_draw)
 {
-	int sx, sy, bitmap;
+	int sx, sy, bmap;
 
 	// draw left side of frame
 	if((num_wings_to_draw < 1) || (num_wings_to_draw > 5)){
@@ -557,10 +557,10 @@ void hud_wingman_status_blit_left_frame(int num_wings_to_draw)
 	}
 	sx = HUD_wingman_left_coords[gr_screen.res][num_wings_to_draw - 1][0];	
 	sy = HUD_wingman_left_coords[gr_screen.res][num_wings_to_draw - 1][1];		
-	bitmap = Wingman_status_frames[BACKGROUND_LEFT].first_frame;
+	bmap = Wingman_status_frames[BACKGROUND_LEFT].first_frame;
 
-	if ( bitmap > -1 ) {
-		GR_AABITMAP(bitmap, sx, sy);
+	if ( bmap > -1 ) {
+		GR_AABITMAP(bmap, sx, sy);
 		// gr_set_bitmap(bitmap);
 		// gr_aabitmap(sx, sy);
 	}
@@ -571,11 +571,11 @@ void hud_wingman_status_blit_left_frame(int num_wings_to_draw)
 
 void hud_wingman_status_blit_middle_frame(int num_wings_to_draw)
 {
-	int sx, sy, bitmap;
+	int sx, sy, bmap;
 	int idx;
 
-	bitmap = Wingman_status_frames[BACKGROUND_MIDDLE].first_frame;
-	if ( bitmap < 0 ) {
+	bmap = Wingman_status_frames[BACKGROUND_MIDDLE].first_frame;
+	if ( bmap < 0 ) {
 		return;
 	}
 
@@ -593,13 +593,13 @@ void hud_wingman_status_blit_middle_frame(int num_wings_to_draw)
 	for(idx=num_wings_to_draw; idx>=3; idx--){
 		sx = HUD_wingman_middle_coords[gr_screen.res][idx - 1][0];	
 		sy = HUD_wingman_middle_coords[gr_screen.res][idx - 1][1];		
-		GR_AABITMAP(bitmap, sx, sy);	
+		GR_AABITMAP(bmap, sx, sy);	
 	}	
 }
 
 void hud_wingman_status_blit_right_frame(int num_wings_to_draw)
 {
-	int sx, sy, bitmap;
+	int sx, sy, bmap;
 
 	// draw left side of frame
 	if((num_wings_to_draw < 1) || (num_wings_to_draw > 5)){
@@ -609,16 +609,16 @@ void hud_wingman_status_blit_right_frame(int num_wings_to_draw)
 
 	sx = HUD_wingman_right_coords[gr_screen.res][num_wings_to_draw - 1][0];	
 	sy = HUD_wingman_right_coords[gr_screen.res][num_wings_to_draw - 1][1];			
-	bitmap = Wingman_status_frames[BACKGROUND_RIGHT].first_frame;
+	bmap = Wingman_status_frames[BACKGROUND_RIGHT].first_frame;
 
-	if ( bitmap > -1 ) {
-		GR_AABITMAP(bitmap, sx, sy);		
+	if ( bmap > -1 ) {
+		GR_AABITMAP(bmap, sx, sy);		
 	}
 }
 
 void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wings_to_draw)
 {
-	int i, sx, sy, is_bright, bitmap = -1, screen_pos;
+	int i, sx, sy, is_bright, bmap = -1, screen_pos;
 
 	/* // Uh - DDOI
 	Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame;
@@ -646,7 +646,7 @@ void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wing
 		switch( HUD_wingman_status[wing_index].status[i] ) {
 
 		case HUD_WINGMAN_STATUS_ALIVE:
-			bitmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame;
+			bmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame;
 			if ( HUD_wingman_status[wing_index].hull[i] > 0.5f ) {
 #ifdef MAKE_FS1
 				 gr_set_color_fast(&IFF_colors[IFF_COLOR_FRIENDLY][is_bright]);
@@ -661,17 +661,17 @@ void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wing
 
 		case HUD_WINGMAN_STATUS_DEAD:
 			gr_set_color_fast(&IFF_colors[IFF_COLOR_HOSTILE][0]);
-			bitmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame+1;
+			bmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame+1;
 			break;
 
 		case HUD_WINGMAN_STATUS_NOT_HERE:
 			// gr_set_color_fast(&IFF_colors[IFF_COLOR_FRIENDLY][0]);
 			hud_set_gauge_color(HUD_WINGMEN_STATUS, is_bright ? HUD_C_BRIGHT : HUD_C_NORMAL);
-			bitmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame+1;
+			bmap = Wingman_status_frames[WINGMAN_STATUS_DOTS].first_frame+1;
 			break;
 
 		default:
-			bitmap=-1;
+			bmap=-1;
 			break;
 
 		}	// end swtich
@@ -684,13 +684,13 @@ void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wing
 			sy = HUD_wingman_status_coords[gr_screen.res][screen_pos][i][1]; 
 		}
 
-		if ( bitmap > -1 ) {
-			GR_AABITMAP(bitmap, sx, sy);			
+		if ( bmap > -1 ) {
+			GR_AABITMAP(bmap, sx, sy);			
 		}
 	}
 
 	// draw wing name
-	bitmap = Wingman_status_frames[WINGMAN_STATUS_NAMES].first_frame + wing_index;
+	bmap = Wingman_status_frames[WINGMAN_STATUS_NAMES].first_frame + wing_index;
 
 	if ( num_wings_to_draw == 1 ) {
 		sx = HUD_wingman_status_single_coords[gr_screen.res][0][0] - 8;
@@ -702,9 +702,9 @@ void hud_wingman_status_blit_dots(int wing_index, int screen_index, int num_wing
 
 	// hud_set_default_color();
 	hud_set_gauge_color(HUD_WINGMEN_STATUS);
-	if ( bitmap > -1 ) {
-		GR_AABITMAP(bitmap, sx, sy);
-		// gr_set_bitmap(bitmap);
+	if ( bmap > -1 ) {
+		GR_AABITMAP(bmap, sx, sy);
+		// gr_set_bitmap(bmap);
 		// gr_aabitmap(sx, sy);
 	}
 

@@ -955,7 +955,7 @@ uint AudioStream::GetMaxWriteSize()
 {
 	uint dwMaxSize = m_cbBufSize;
 
-	if (SDL_GetAudioStreamQueued(m_audio_stream) >= m_cbBufSize/2) {
+	if (SDL_GetAudioStreamQueued(m_audio_stream) >= static_cast<int>(m_cbBufSize/2)) {
 		// don't need more right now
 		dwMaxSize = 0;
 	}

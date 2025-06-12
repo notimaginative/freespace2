@@ -253,7 +253,7 @@ void hud_init_brackets()
 // find IFF color index for brackets based on team
 int hud_brackets_get_iff_color(int team)
 {
-	int color=IFF_COLOR_FRIENDLY;
+	int clr=IFF_COLOR_FRIENDLY;
 
 	switch ( team ) {
 	case TEAM_FRIENDLY:
@@ -262,37 +262,37 @@ int hud_brackets_get_iff_color(int team)
 	case TEAM_TRAITOR:
 	case TEAM_UNKNOWN:
 		if ( (team == Player_ship->team) && (team != TEAM_TRAITOR) ) {
-			color = IFF_COLOR_FRIENDLY;
+			clr = IFF_COLOR_FRIENDLY;
 		} else {
 			switch (team) {
 			case TEAM_NEUTRAL:
-				color = IFF_COLOR_NEUTRAL;
+				clr = IFF_COLOR_NEUTRAL;
 				break;
 			case TEAM_UNKNOWN:
-				color = IFF_COLOR_UNKNOWN;
+				clr = IFF_COLOR_UNKNOWN;
 				break;
 			case TEAM_HOSTILE:
 			case TEAM_FRIENDLY:
 			case TEAM_TRAITOR:
-				color = IFF_COLOR_HOSTILE;
+				clr = IFF_COLOR_HOSTILE;
 				break;
 			}
 		}
 		break;
 	case SELECTION_SET:
-		color = IFF_COLOR_SELECTION;
+		clr = IFF_COLOR_SELECTION;
 		break;
 		
 	case MESSAGE_SENDER:
-		color = IFF_COLOR_MESSAGE;
+		clr = IFF_COLOR_MESSAGE;
 		break;
 
 	default:
-		color = IFF_COLOR_UNKNOWN;
+		clr = IFF_COLOR_UNKNOWN;
 		Int3();
 	} // end switch
 
-	return color;
+	return clr;
 }
 
 

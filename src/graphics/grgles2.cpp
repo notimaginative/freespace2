@@ -34,8 +34,8 @@ static GLuint FB_rb_id = 0;
 static GLuint GL_saved_screen_tex = 0;
 static GLuint GL_stream_tex = 0;
 
-static volatile int GLES2_activate = 0;
-static volatile int GLES2_deactivate = 0;
+static int GLES2_activate = 0;
+static int GLES2_deactivate = 0;
 
 int GLES2_viewport_x = 0;
 int GLES2_viewport_y = 0;

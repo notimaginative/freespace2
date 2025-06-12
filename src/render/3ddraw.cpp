@@ -632,14 +632,14 @@ int g3_draw_bitmap(vertex *pnt,int orient, float rad,uint tmap_flags)
 }
 
 // get bitmap dims onscreen as if g3_draw_bitmap() had been called
-int g3_get_bitmap_dims(int bitmap, vertex *pnt, float rad, int *x, int *y, int *w, int *h, int *size)
+int g3_get_bitmap_dims(int bitmapnum, vertex *pnt, float rad, int *x, int *y, int *w, int *h, int *size)
 {	
 	float t;
 	float width, height;
 	
 	int bw, bh;
 
-	bm_get_info( bitmap, &bw, &bh, NULL );
+	bm_get_info( bitmapnum, &bw, &bh, NULL );
 
 	if ( bw < bh )	{
 		width = rad*2.0f;

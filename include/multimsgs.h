@@ -496,7 +496,7 @@ void send_netgame_descript_packet(net_addr_t *addr, int code);
 void send_object_update_packet(int force_all = 0);
 
 // send a packet indicating a ship has been killed
-void send_ship_kill_packet( object *ship_obj, object *other_objp, float percent_killed, int self_destruct );
+void send_ship_kill_packet( object *ship_objp, object *other_objp, float percent_killed, int self_destruct );
 
 // send a packet indicating a wing of ships should be created
 void send_wing_create_packet( wing *wingp, int num_to_create, int pre_create_count );

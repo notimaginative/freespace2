@@ -911,7 +911,7 @@ int model_get_dock_types(int modelnum);
 // Given a vector that is in sub_model_num's frame of
 // reference, and given the object's orient and position,
 // return the vector in the model's frame of reference.
-void model_find_obj_dir(vector *w_vec, vector *m_vec, object *ship_obj, int sub_model_num);
+void model_find_obj_dir(vector *w_vec, vector *m_vec, object *ship_objp, int sub_model_num);
 
 
 // This is the interface to model_check_collision.  Rather than passing all these
@@ -1011,7 +1011,7 @@ typedef struct mc_info {
 	}
 */
 
-int model_collide(mc_info * mc_info);
+int model_collide(mc_info * mc_infop);
 
 // Sets the submodel instance data in a submodel
 // If show_damaged is true it shows only damaged submodels.
@@ -1094,7 +1094,7 @@ void model_set_alpha(float alpha);
 void model_set_forced_texture(int bmap);
 
 // see if the given texture is used by the passed model. 0 if not used, 1 if used, -1 on error
-int model_find_texture(int model_num, int bitmap);
+int model_find_texture(int model_num, int bitmapnum);
 
 // find closest point on extended bounding box (the bounding box plus all the planes that make it up)
 // returns closest distance to extended box

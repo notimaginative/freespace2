@@ -1528,7 +1528,7 @@ void hud_target_missile(object *source_obj, int next_flag)
 		}
 
 		for (so=advance_ship(start, next_flag); so!=start; so=advance_ship(so, next_flag)) {
-			object *ship_obj = &Objects[so->objnum];
+			object *ship_objp = &Objects[so->objnum];
 
 			// don't look at header
 			if (so == &Ship_obj_list) {
@@ -1536,27 +1536,27 @@ void hud_target_missile(object *source_obj, int next_flag)
 			}
 
 			// only allow targeting of hostile bombs
-			if ( (obj_team(ship_obj) == Player_ship->team) && (Player_ship->team != TEAM_TRAITOR) ) {
+			if ( (obj_team(ship_objp) == Player_ship->team) && (Player_ship->team != TEAM_TRAITOR) ) {
 				continue;
 			}
 
-			if(hud_target_invalid_awacs(ship_obj)){
+			if(hud_target_invalid_awacs(ship_objp)){
 				continue;
 			}
 
 			// check if ship type is bomber
-			if ( !(Ship_info[Ships[ship_obj->instance].ship_info_index].flags & SIF_BOMBER) ) {
+			if ( !(Ship_info[Ships[ship_objp->instance].ship_info_index].flags & SIF_BOMBER) ) {
 				continue;
 			}
 
 			// check if ignore
-			if ( Ships[ship_obj->instance].flags & TARGET_SHIP_IGNORE_FLAGS ){
+			if ( Ships[ship_objp->instance].flags & TARGET_SHIP_IGNORE_FLAGS ){
 				continue;
 			}
 
 			// found a good one
 			target_found = TRUE;
-			set_target_objnum( aip, OBJ_INDEX(ship_obj) );
+			set_target_objnum( aip, OBJ_INDEX(ship_objp) );
 			break;
 		}
 	}
@@ -2107,29 +2107,29 @@ typedef struct esct
 // evaluate a ship (and maybe turrets) as a potential target
 // check if shipp (or its turrets) is attacking attacked_objnum
 // special case for player trying to select target (don't check if turrets are aimed at player)
-void evaluate_ship_as_closest_target(esct *esct)
+void evaluate_ship_as_closest_target(esct *esctp)
 {
 	int targeting_player, turret_is_attacking;
 	ship_subsys *ss;
 	float new_distance;
 
 	// initialize
-	esct->min_distance = FLT_MAX;
-	esct->check_nearest_turret = FALSE;
+	esctp->min_distance = FLT_MAX;
+	esctp->check_nearest_turret = FALSE;
 	turret_is_attacking = FALSE;
 
 
-	object *objp = &Objects[esct->shipp->objnum];
+	object *objp = &Objects[esctp->shipp->objnum];
 	SDL_assert(objp->type == OBJ_SHIP);
 	if (objp->type != OBJ_SHIP) {
 		return;
 	}
 
 	// player being targeted, so we will want closest distance from player
-	targeting_player = (esct->attacked_objnum == OBJ_INDEX(Player_obj));
+	targeting_player = (esctp->attacked_objnum == OBJ_INDEX(Player_obj));
 
 	// filter on team, except in multiplayer
-	if ( !hud_team_matches_filter(esct->team, esct->shipp->team) ) {
+	if ( !hud_team_matches_filter(esctp->team, esctp->shipp->team) ) {
 		// if we're in multiplayer dogfight, ignore this
 		if(!((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT))){
 			return;
@@ -2137,37 +2137,37 @@ void evaluate_ship_as_closest_target(esct *esct)
 	}
 
 	// check if player or ignore ship
-	if ( (esct->shipp->objnum == OBJ_INDEX(Player_obj)) || (esct->shipp->flags & TARGET_SHIP_IGNORE_FLAGS) ) {
+	if ( (esctp->shipp->objnum == OBJ_INDEX(Player_obj)) || (esctp->shipp->flags & TARGET_SHIP_IGNORE_FLAGS) ) {
 		return;
 	}
 
 	// bail if harmless
-	if ( Ship_info[esct->shipp->ship_info_index].flags & SIF_HARMLESS ) {
+	if ( Ship_info[esctp->shipp->ship_info_index].flags & SIF_HARMLESS ) {
 		return;
 	}
 
 	// only look at targets that are AWACS valid
-	if (hud_target_invalid_awacs(&Objects[esct->shipp->objnum])) {
+	if (hud_target_invalid_awacs(&Objects[esctp->shipp->objnum])) {
 		return;
 	}
 
 	// If filter is set, only target fighters and bombers
-	if ( esct->filter ) {
-		if ( !(Ship_info[esct->shipp->ship_info_index].flags & (SIF_FIGHTER | SIF_BOMBER)) ) {
+	if ( esctp->filter ) {
+		if ( !(Ship_info[esctp->shipp->ship_info_index].flags & (SIF_FIGHTER | SIF_BOMBER)) ) {
 			return;
 		}
 	}
 
 	// find closest turret to player if BIG or HUGE ship
-	if (Ship_info[esct->shipp->ship_info_index].flags & (SIF_BIG_SHIP|SIF_HUGE_SHIP)) {
-		for (ss=GET_FIRST(&esct->shipp->subsys_list); ss!=END_OF_LIST(&esct->shipp->subsys_list); ss=GET_NEXT(ss)) {
+	if (Ship_info[esctp->shipp->ship_info_index].flags & (SIF_BIG_SHIP|SIF_HUGE_SHIP)) {
+		for (ss=GET_FIRST(&esctp->shipp->subsys_list); ss!=END_OF_LIST(&esctp->shipp->subsys_list); ss=GET_NEXT(ss)) {
 			if ( (ss->system_info->type == SUBSYSTEM_TURRET) && (ss->current_hits > 0) ) {
 
-				if (esct->check_all_turrets || (ss->turret_enemy_objnum == esct->attacked_objnum)) {
+				if (esctp->check_all_turrets || (ss->turret_enemy_objnum == esctp->attacked_objnum)) {
 					turret_is_attacking = 1;
-					esct->check_nearest_turret = TRUE;
+					esctp->check_nearest_turret = TRUE;
 
-					if ( !esct->turret_attacking_target || (esct->turret_attacking_target && (ss->turret_enemy_objnum == esct->attacked_objnum)) ) {
+					if ( !esctp->turret_attacking_target || (esctp->turret_attacking_target && (ss->turret_enemy_objnum == esctp->attacked_objnum)) ) {
 						vector gsubpos;
 						// get world pos of subsystem
 						vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &objp->orient);
@@ -2184,8 +2184,8 @@ void evaluate_ship_as_closest_target(esct *esct)
 						} */
 
 						// get the closest distance
-						if (new_distance <= esct->min_distance) {
-							esct->min_distance = new_distance;
+						if (new_distance <= esctp->min_distance) {
+							esctp->min_distance = new_distance;
 						}
 					}
 				}
@@ -2196,9 +2196,9 @@ void evaluate_ship_as_closest_target(esct *esct)
 	// If no turret is attacking, check if objp is actually targetting attacked_objnum
 	// dont bail if targeting is for player
 	if ( !targeting_player && !turret_is_attacking ) {
-		ai_info *aip = &Ai_info[esct->shipp->ai_index];
+		ai_info *aip = &Ai_info[esctp->shipp->ai_index];
 
-		if (aip->target_objnum != esct->attacked_objnum) {
+		if (aip->target_objnum != esctp->attacked_objnum) {
 			return;
 		}
 
@@ -2212,9 +2212,9 @@ void evaluate_ship_as_closest_target(esct *esct)
 		//new_distance = hud_find_target_distance(objp, Player_obj);
 		new_distance = vm_vec_dist_quick(&objp->pos, &Player_obj->pos);
 			
-		if (new_distance <= esct->min_distance) {
-			esct->min_distance = new_distance;
-			esct->check_nearest_turret = FALSE;
+		if (new_distance <= esctp->min_distance) {
+			esctp->min_distance = new_distance;
+			esctp->check_nearest_turret = FALSE;
 		}
 	}
 }
@@ -2228,7 +2228,7 @@ int hud_target_closest(int team, int attacked_objnum, int play_fail_snd, int fil
 	int		check_nearest_turret = FALSE;
 
 	// evaluate ship closest target struct
-	esct		esct;
+	esct		closest_target;
 
 	float		min_distance = FLT_MAX;
 	int		target_found = FALSE;	
@@ -2255,11 +2255,11 @@ int hud_target_closest(int team, int attacked_objnum, int play_fail_snd, int fil
 	}
 
 	// check all turrets if for player.
-	esct.check_all_turrets = (attacked_objnum == player_obj_index);
-	esct.filter = filter;
-	esct.team = team;
-	esct.attacked_objnum = attacked_objnum;
-	esct.turret_attacking_target = get_closest_turret_attacking_player;
+	closest_target.check_all_turrets = (attacked_objnum == player_obj_index);
+	closest_target.filter = filter;
+	closest_target.team = team;
+	closest_target.attacked_objnum = attacked_objnum;
+	closest_target.turret_attacking_target = get_closest_turret_attacking_player;
 
 	for ( so=GET_FIRST(&Ship_obj_list); so!=END_OF_LIST(&Ship_obj_list); so=GET_NEXT(so) ) {
 
@@ -2267,15 +2267,15 @@ int hud_target_closest(int team, int attacked_objnum, int play_fail_snd, int fil
 		shipp = &Ships[A->instance];	// get a pointer to the ship information
 
 		// fill in rest of esct
-		esct.shipp = shipp;
+		closest_target.shipp = shipp;
 
 		// check each shipp on list and update nearest obj and subsys
-		evaluate_ship_as_closest_target(&esct);
-		if (esct.min_distance < min_distance) {
+		evaluate_ship_as_closest_target(&closest_target);
+		if (closest_target.min_distance < min_distance) {
 			target_found = TRUE;
-			min_distance = esct.min_distance;
+			min_distance = closest_target.min_distance;
 			nearest_obj = A;
-			check_nearest_turret = esct.check_nearest_turret;
+			check_nearest_turret = closest_target.check_nearest_turret;
 		}
 	}
 
@@ -3165,9 +3165,9 @@ void hud_show_remote_detonate_missile()
 
 					if ( bound_rval == 0 ) {
 						// draw brackets and distance
-						int color;
-						color = hud_brackets_get_iff_color(MESSAGE_SENDER);
-						gr_set_color_fast(&IFF_colors[color][1]);
+						int clr;
+						clr = hud_brackets_get_iff_color(MESSAGE_SENDER);
+						gr_set_color_fast(&IFF_colors[clr][1]);
 						draw_bounding_brackets(x1-5,y1-5,x2+5,y2+5,0,0, distance, OBJ_INDEX(mobjp));
 					}
 
@@ -3234,9 +3234,9 @@ void hud_show_message_sender()
 		}
 
 		if ( bound_rval == 0 ) {
-			int color;
-			color = hud_brackets_get_iff_color(MESSAGE_SENDER);
-			gr_set_color_fast(&IFF_colors[color][1]);
+			int clr;
+			clr = hud_brackets_get_iff_color(MESSAGE_SENDER);
+			gr_set_color_fast(&IFF_colors[clr][1]);
 			draw_bounding_brackets(x1-5,y1-5,x2+5,y2+5,10,10);
 		}
 	}
@@ -3488,14 +3488,14 @@ void hud_show_brackets(object *targetp, vertex *projected_v)
 
 		if ( draw_box == TRUE ) {
 			float distance;
-			int color;
-			color = hud_brackets_get_iff_color(team);
+			int clr;
+			clr = hud_brackets_get_iff_color(team);
 			// maybe color as tagged
 			if ( ship_is_tagged(targetp) ) {
-				color = IFF_COLOR_TAGGED;
+				clr = IFF_COLOR_TAGGED;
 			}
 			distance = hud_find_target_distance( targetp, Player_obj );
-			gr_set_color_fast(&IFF_colors[color][1]);
+			gr_set_color_fast(&IFF_colors[clr][1]);
 			draw_bounding_brackets(x1-5,y1-5,x2+5,y2+5,0,0,distance, OBJ_INDEX(targetp));
 		}
 

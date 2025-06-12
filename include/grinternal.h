@@ -141,6 +141,7 @@
 
 #include "font.h"
 #include "2d.h"
+#include "bmpman.h"
 
 extern ubyte Gr_original_palette[768];		// The palette 
 extern ubyte Gr_current_palette[768];

@@ -2266,22 +2266,22 @@ int is_ignore_object(ai_info *aip, int objnum)
 // -----------------------------------------------------------------------------
 
 // given a ship with bounding box and a point, find the closest point on the bbox
-int get_nearest_bbox_point(object *ship_obj, vector *start, vector *box_pt)
+int get_nearest_bbox_point(object *ship_objp, vector *start, vector *box_pt)
 {
 	vector temp, rf_start;
 	polymodel *pm;
-	pm = model_get(Ship_info[Ships[ship_obj->instance].ship_info_index].modelnum);
+	pm = model_get(Ship_info[Ships[ship_objp->instance].ship_info_index].modelnum);
 
 	// get start in ship rf
-	vm_vec_sub(&temp, start, &ship_obj->pos);
-	vm_vec_rotate(&rf_start, &temp, &ship_obj->orient);
+	vm_vec_sub(&temp, start, &ship_objp->pos);
+	vm_vec_rotate(&rf_start, &temp, &ship_objp->orient);
 
 	// find box_pt
 	int inside = project_point_onto_bbox(&pm->mins, &pm->maxs, &rf_start, &temp);
 
 	// get box_pt in world rf
-	vm_vec_unrotate(box_pt, &temp, &ship_obj->orient);
-	vm_vec_add2(box_pt, &ship_obj->pos);
+	vm_vec_unrotate(box_pt, &temp, &ship_objp->orient);
+	vm_vec_add2(box_pt, &ship_objp->pos);
 
 	return inside;
 }
@@ -6071,7 +6071,7 @@ int might_hit_teammate(object *firing_objp)
 
 void render_all_ship_bay_paths(object *objp)
 {
-	int		i,j,color;
+	int		i,j,clr;
 	ship		*sp = &Ships[objp->instance];
 	polymodel	*pm;
 	model_path	*mp;
@@ -6090,10 +6090,10 @@ void render_all_ship_bay_paths(object *objp)
 			vm_vec_unrotate(&global_path_point, &mp->verts[j].pos, &objp->orient);
 			vm_vec_add2(&global_path_point, &objp->pos);
 			g3_rotate_vertex(&v, &global_path_point);
-			color = 255 - j*50;
-			if ( color < 50 ) 
-				color = 100;
-			gr_set_color(0, color, 0);
+			clr = 255 - j*50;
+			if ( clr < 50 ) 
+				clr = 100;
+			gr_set_color(0, clr, 0);
 
 			if ( j == mp->nverts-1 ) {
 				gr_set_color(255, 0, 0);
@@ -6113,7 +6113,7 @@ void render_all_ship_bay_paths(object *objp)
 // debug function to show all path points associated with an object
 void render_all_subsys_paths(object *objp)
 {
-	int		i,j,color;
+	int		i,j,clr;
 	ship		*sp = &Ships[objp->instance];
 	polymodel	*pm;
 	model_path	*mp;
@@ -6131,10 +6131,10 @@ void render_all_subsys_paths(object *objp)
 			vm_vec_unrotate(&global_path_point, &mp->verts[j].pos, &objp->orient);
 			vm_vec_add2(&global_path_point, &objp->pos);
 			g3_rotate_vertex(&v, &global_path_point);
-			color = 255 - j*50;
-			if ( color < 50 ) 
-				color = 100;
-			gr_set_color(0, color, 0);
+			clr = 255 - j*50;
+			if ( clr < 50 ) 
+				clr = 100;
+			gr_set_color(0, clr, 0);
 
 			if ( j == mp->nverts-1 ) {
 				gr_set_color(255, 0, 0);
@@ -14572,9 +14572,9 @@ void big_ship_collide_recover_start(object *objp, object *big_objp, vector *coll
 
 float max_lethality = 0.0f;
 
-void ai_update_lethality(object *ship_obj, object *other_obj, float damage)
+void ai_update_lethality(object *ship_objp, object *other_obj, float damage)
 {
-	SDL_assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_objp->type == OBJ_SHIP);
 	SDL_assert(other_obj->type == OBJ_WEAPON || other_obj->type == OBJ_SHOCKWAVE);
 	int dont_count = FALSE;
 
@@ -14583,7 +14583,7 @@ void ai_update_lethality(object *ship_obj, object *other_obj, float damage)
 		if (Objects[parent].signature == other_obj->parent_sig) {
 
 			// check damage done to enemy team
-			if (Ships[ship_obj->instance].team != Ships[Objects[parent].instance].team) {
+			if (Ships[ship_objp->instance].team != Ships[Objects[parent].instance].team) {
 
 				// other is weapon
 				if (other_obj->type == OBJ_WEAPON) {
@@ -15025,20 +15025,20 @@ void ai_warp_out(object *objp, vector *vp)
 
 
 //	Do stuff at start of deathroll.
-void ai_deathroll_start(object *ship_obj)
+void ai_deathroll_start(object *ship_objp)
 {
 	ai_info	*aip;
 	ship		*shipp, *other_ship;
 
-	shipp = &Ships[ship_obj->instance];
+	shipp = &Ships[ship_objp->instance];
 	aip = &Ai_info[shipp->ai_index];
 
 	// mark object we are docked with so we can do damage and separate during deathroll
 	// keep dock_objnum_when_dead from being changed if already set (only allow to be set when -1)
-	if (Ships[ship_obj->instance].dock_objnum_when_dead == -1) {
-		Ships[ship_obj->instance].dock_objnum_when_dead = aip->dock_objnum;
+	if (Ships[ship_objp->instance].dock_objnum_when_dead == -1) {
+		Ships[ship_objp->instance].dock_objnum_when_dead = aip->dock_objnum;
 		// set other_ship dock_objnum_when_dead, if other_ship exits.
-		if (Ships[ship_obj->instance].dock_objnum_when_dead != -1) {
+		if (Ships[ship_objp->instance].dock_objnum_when_dead != -1) {
 			other_ship = &Ships[Objects[aip->dock_objnum].instance];
 			other_ship->dock_objnum_when_dead = shipp->objnum;
 		}

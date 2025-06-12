@@ -1123,7 +1123,7 @@ extern void ship_add_ship_type_kill_count( int ship_info_flag );
 
 
 extern int ship_get_default_orders_accepted( ship_info *sip );
-extern int ship_query_general_type(int ship);
+extern int ship_query_general_type(int ship_index);
 extern int ship_query_general_type(ship *shipp);
 extern int ship_docking_valid(int docker, int dockee);
 extern int get_quadrant(vector *hit_pnt);						//	Return quadrant num of last hit ponit.
@@ -1237,7 +1237,7 @@ int ship_get_by_signature(int sig);
 int ship_get_reinforcement_team(int r_index);
 
 // determine if the given texture is used by a ship type. return ship info index, or -1 if not used by a ship
-int ship_get_texture(int bitmap);
+int ship_get_texture(int bitmapnum);
 
 // update artillery lock info
 void ship_update_artillery_lock();

@@ -348,36 +348,36 @@ void radar_init()
 // determine what color the object blip should be drawn as
 int radar_blip_color(object *objp)
 {
-	int	color = 0;
+	int	clr = 0;
 	ship	*shipp = NULL;
 
 	switch(objp->type) {
 	case OBJ_SHIP:
 		shipp = &Ships[objp->instance];
 		if ( shipp->flags & SF_ARRIVING_STAGE_1 )	{
-			color = RCOL_WARPING_SHIP;
+			clr = RCOL_WARPING_SHIP;
 		} else if ( ship_is_tagged(objp) ) {
-			color = RCOL_TAGGED;
+			clr = RCOL_TAGGED;
 		} else if ( Ship_info[shipp->ship_info_index].flags & (SIF_NAVBUOY|SIF_CARGO) ) {
-			color = RCOL_NAVBUOYS;
+			clr = RCOL_NAVBUOYS;
 		} else {
 			if ( (Player_ship->team == shipp->team) && (Player_ship->team != TEAM_TRAITOR) ) {
-				color = RCOL_FRIENDLY;
+				clr = RCOL_FRIENDLY;
 			} else {
 				switch (shipp->team) {
 				case TEAM_FRIENDLY:
 				case TEAM_HOSTILE:
 				case TEAM_TRAITOR:
-					color = RCOL_HOSTILE;
+					clr = RCOL_HOSTILE;
 					break;
 				case TEAM_NEUTRAL:
-					color = RCOL_NEUTRAL;
+					clr = RCOL_NEUTRAL;
 					break;
 				case TEAM_UNKNOWN:
-					color = RCOL_UNKNOWN;
+					clr = RCOL_UNKNOWN;
 					break;
 				default:
-					color = RCOL_HOSTILE;
+					clr = RCOL_HOSTILE;
 					Int3();	//	Bogus team id in shipp->team
 					break;
 				}
@@ -385,17 +385,17 @@ int radar_blip_color(object *objp)
 		}
 		break;
 	case OBJ_WEAPON:
-		color = RCOL_BOMB;
+		clr = RCOL_BOMB;
 		break;
 	case OBJ_JUMP_NODE:
-		color = RCOL_JUMP_NODE;
+		clr = RCOL_JUMP_NODE;
 		break;
 	default:
 		Error(LOCATION, "Illegal ship type in radar.");
 		break;
 	}
 
-	return color;
+	return clr;
 }
 
 int See_all = FALSE;
@@ -405,7 +405,7 @@ void radar_plot_object( object *objp )
 {
 	vector	pos, tempv;
 	float		dist, rscale, zdist, max_radar_dist;
-	int		xpos, ypos, color=0;
+	int		xpos, ypos, clr=0;
 	vector	*world_pos = &objp->pos;	
 	float		awacs_level;
 
@@ -520,7 +520,7 @@ void radar_plot_object( object *objp )
 	xpos = fl2i( Radar_center[gr_screen.res][0] + new_x_dist );
 	ypos = fl2i( Radar_center[gr_screen.res][1] - new_y_dist );
 
-	color = radar_blip_color(objp);
+	clr = radar_blip_color(objp);
 
 	// Determine the distance at which we will dim the radar blip
 	if ( timestamp_elapsed(Radar_calc_dim_dist_timer) ) {
@@ -554,9 +554,9 @@ void radar_plot_object( object *objp )
 	}
 
 	if ( blip_dim ) {
-		list_append( &Blip_dim_list[color], b );
+		list_append( &Blip_dim_list[clr], b );
 	} else {
-		list_append( &Blip_bright_list[color], b );
+		list_append( &Blip_bright_list[clr], b );
 	}
 
 	b->x = xpos;
@@ -700,7 +700,7 @@ void radar_blip_draw_flicker(blip *b)
 }
 
 // Draw all the active radar blips
-void draw_radar_blips(int rcol, int is_dim, int distort)
+void draw_radar_blips(int clr, int is_dim, int distort)
 {
 	blip	*b=NULL;
 	blip	*blip_head=NULL;
@@ -709,19 +709,19 @@ void draw_radar_blips(int rcol, int is_dim, int distort)
 	gr_set_font(FONT1);
 
 	if ( is_dim ) {
-		blip_head = &Blip_dim_list[rcol];
+		blip_head = &Blip_dim_list[clr];
 	} else {
-		blip_head = &Blip_bright_list[rcol];
+		blip_head = &Blip_bright_list[clr];
 	}
 
 	for ( b = GET_FIRST(blip_head); b !=END_OF_LIST(blip_head); b = GET_NEXT(b) )	{
 
-		SDL_assert((rcol >= 0) && (rcol < MAX_RADAR_COLORS));
+		SDL_assert((clr >= 0) && (clr < MAX_RADAR_COLORS));
 
 		if ( is_dim ) {
-			gr_set_color_fast( &Radar_colors[RADAR_BLIP_DIM][rcol] );
+			gr_set_color_fast( &Radar_colors[RADAR_BLIP_DIM][clr] );
 		} else {
-			gr_set_color_fast( &Radar_colors[RADAR_BLIP_BRIGHT][rcol] );
+			gr_set_color_fast( &Radar_colors[RADAR_BLIP_BRIGHT][clr] );
 		}
 
 		if (b->flags & BLIP_CURRENT_TARGET) {

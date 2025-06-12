@@ -467,10 +467,10 @@ void interp_clear_instance()
 }
 
 // Scales the engines thrusters by this much
-void model_set_thrust( int model_num, float length, int bitmap, int glow_bitmap, float glow_noise )
+void model_set_thrust( int model_num, float length, int bitmapnum, int glow_bitmap, float glow_noise )
 {
 	Interp_thrust_scale = length;
-	Interp_thrust_bitmap = bitmap;
+	Interp_thrust_bitmap = bitmapnum;
 	Interp_thrust_glow_bitmap = glow_bitmap;
 	Interp_thrust_glow_noise = glow_noise;
 
@@ -2526,7 +2526,7 @@ void model_set_alpha(float alpha)
 }
 
 // see if the given texture is used by the passed model. 0 if not used, 1 if used, -1 on error
-int model_find_texture(int model_num, int bitmap)
+int model_find_texture(int model_num, int bitmapnum)
 {
 	polymodel * pm;	
 	int idx;
@@ -2539,7 +2539,7 @@ int model_find_texture(int model_num, int bitmap)
 
 	// find the texture
 	for(idx=0; idx<pm->n_textures; idx++){
-		if(pm->textures[idx] == bitmap){
+		if(pm->textures[idx] == bitmapnum){
 			return 1;
 		}
 	}

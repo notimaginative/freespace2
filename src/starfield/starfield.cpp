@@ -1243,7 +1243,7 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 
 			if ( !can_draw )	continue;
 
-			int color;
+			int clr;
 
 			if ( Star_flags & STAR_FLAG_DIM )	{
 
@@ -1252,16 +1252,16 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 				if ( colorf < Star_cap )
 					colorf = Star_cap;
 
-				color = (fl2i(colorf)*(i&7))/256;
+				clr = (fl2i(colorf)*(i&7))/256;
 
 			} else {
-				color = i & 7;
+				clr = i & 7;
 			}
 
-			p1->r = p2->r = star_aacolors[color].red;
-			p1->g = p2->g = star_aacolors[color].green;
-			p1->b = p2->b = star_aacolors[color].blue;
-			p1->a = p2->a = star_aacolors[color].alpha;
+			p1->r = p2->r = star_aacolors[clr].red;
+			p1->g = p2->g = star_aacolors[clr].green;
+			p1->b = p2->b = star_aacolors[clr].blue;
+			p1->a = p2->a = star_aacolors[clr].alpha;
 
 			// if the two points are the same, fudge it, since some D3D cards (G200 and G400) are lame.
 			if ( (fl2i(p1->sx) == fl2i(p2->sx)) && (fl2i(p1->sy) == fl2i(p2->sy)) ) {

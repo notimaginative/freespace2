@@ -636,7 +636,7 @@ void scoring_level_close(int accepted)
 }
 
 // STATS damage, assists recording stuff
-void scoring_add_damage(object *ship_obj,object *other_obj,float damage)
+void scoring_add_damage(object *ship_objp,object *other_obj,float damage)
 {
 	int found_slot, signature;
 	int lowest_index,idx;
@@ -670,16 +670,16 @@ void scoring_add_damage(object *ship_obj,object *other_obj,float damage)
 	}
 	
 	// don't count damage done to a ship by himself
-	if(use_obj == ship_obj){
+	if(use_obj == ship_objp){
 		return;
 	}
 
 	// get a pointer to the ship and add the actual amount of damage done to it
 	// get the ship object, and determine the _actual_ amount of damage done
-	sp = &Ships[ship_obj->instance];
+	sp = &Ships[ship_objp->instance];
 	// see comments at beginning of function
-	if(ship_obj->hull_strength < 0.0f){
-		actual_damage = damage + ship_obj->hull_strength;
+	if(ship_objp->hull_strength < 0.0f){
+		actual_damage = damage + ship_objp->hull_strength;
 	} else {
 		actual_damage = damage;
 	}
@@ -698,7 +698,7 @@ void scoring_add_damage(object *ship_obj,object *other_obj,float damage)
 
 	// only evaluate possible kill/assist numbers if the hitting object (use_obj) is a piloted ship (ie, ignore asteroids, etc)
 	// don't store damage a ship may do to himself
-	if((ship_obj->type == OBJ_SHIP) && (use_obj->type == OBJ_SHIP)){
+	if((ship_objp->type == OBJ_SHIP) && (use_obj->type == OBJ_SHIP)){
 		found_slot = 0;
 		// try and find an open slot
 		for(idx=0;idx<MAX_DAMAGE_SLOTS;idx++){
@@ -734,7 +734,7 @@ void scoring_add_damage(object *ship_obj,object *other_obj,float damage)
 char Scoring_debug_text[4096];
 
 // evaluate a kill on a ship
-void scoring_eval_kill(object *ship_obj)
+void scoring_eval_kill(object *ship_objp)
 {		
 	float max_damage_pct;		// the pct% of total damage the max damage object did
 	int max_damage_index;		// the index into the dying ship's damage_ship[] array corresponding the greatest amount of damage
@@ -752,26 +752,26 @@ void scoring_eval_kill(object *ship_obj)
 	}
 
 	// we don't evaluate kills on anything except ships
-	if(ship_obj->type != OBJ_SHIP){
+	if(ship_objp->type != OBJ_SHIP){
 		return;	
 	}
-	if((ship_obj->instance < 0) || (ship_obj->instance >= MAX_SHIPS)){
+	if((ship_objp->instance < 0) || (ship_objp->instance >= MAX_SHIPS)){
 		return;
 	}
 
 	// assign the dead ship
-	dead_ship = &Ships[ship_obj->instance];
+	dead_ship = &Ships[ship_objp->instance];
 
 	// evaluate player deaths
 	if(Game_mode & GM_MULTIPLAYER){
-		net_player_num = multi_find_player_by_object(ship_obj);
+		net_player_num = multi_find_player_by_object(ship_objp);
 		if(net_player_num != -1){
 			Net_players[net_player_num].player->stats.m_player_deaths++;
 			nprintf(("Network","Setting player %s deaths to %d\n",Net_players[net_player_num].player->callsign,Net_players[net_player_num].player->stats.m_player_deaths));
 			dead_plr = &Net_players[net_player_num];
 		}
 	} else {
-		if(ship_obj == Player_obj){
+		if(ship_objp == Player_obj){
 			Player->stats.m_player_deaths++;
 		}
 	}
@@ -880,7 +880,7 @@ void scoring_eval_kill(object *ship_obj)
 			// otherwise increment his valid kill count and score
 			else {
 				// dogfight mode
-				if((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT) && (multi_find_player_by_object(ship_obj) < 0)){
+				if((Game_mode & GM_MULTIPLAYER) && (Netgame.type_flags & NG_TYPE_DOGFIGHT) && (multi_find_player_by_object(ship_objp) < 0)){
 					// don't add a kill for dogfight kills on non-players
 				} else {
 					plr->stats.m_okKills[si_index]++;		
@@ -935,7 +935,7 @@ void scoring_eval_kill(object *ship_obj)
 				// send appropriate stats
 				if(Netgame.type_flags & NG_TYPE_DOGFIGHT){
 					// evaluate dogfight kills
-					multi_df_eval_kill(&Net_players[net_player_num], ship_obj);
+					multi_df_eval_kill(&Net_players[net_player_num], ship_objp);
 
 					// update stats
 					send_player_stats_block_packet(&Net_players[net_player_num], STATS_DOGFIGHT_KILLS);

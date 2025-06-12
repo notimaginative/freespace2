@@ -788,35 +788,35 @@ int vector_object_collision(vector *start_pos, vector *end_pos, object *objp, fl
 // Returns TRUE if the weapon will never hit the other object.
 // If it can it predicts how long until these two objects need
 // to be checked and fills the time in in current_pair.
-int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pair )
+int weapon_will_never_hit( object *weapon_objp, object *other, obj_pair * current_pair )
 {
 
-	SDL_assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( weapon_objp->type == OBJ_WEAPON );
 
 //	mprintf(( "Frame: %d,  Weapon=%d, Other=%d, pair=$%08x\n", G3_frame_count, OBJ_INDEX(weapon), OBJ_INDEX(other), current_pair ));
 	
 
 	// Do some checks for weapons that don't turn
-	if ( !(Weapon_info[Weapons[weapon->instance].weapon_info_index].wi_flags & WIF_TURNS) )	{
+	if ( !(Weapon_info[Weapons[weapon_objp->instance].weapon_info_index].wi_flags & WIF_TURNS) )	{
 
 		// This first check is to see if a weapon is behind an object, and they
 		// are heading in opposite directions.   If so, we don't need to ever check	
 		// them again.   This is only valid for weapons that don't turn. 
 
 		float vdot;
-		if (Weapon_info[Weapons[weapon->instance].weapon_info_index].subtype == WP_LASER) {
+		if (Weapon_info[Weapons[weapon_objp->instance].weapon_info_index].subtype == WP_LASER) {
 			vector velocity_rel_weapon;
-			vm_vec_sub(&velocity_rel_weapon, &weapon->phys_info.vel, &other->phys_info.vel);
-			vdot = -vm_vec_dot(&velocity_rel_weapon, &weapon->orient.v.fvec);
+			vm_vec_sub(&velocity_rel_weapon, &weapon_objp->phys_info.vel, &other->phys_info.vel);
+			vdot = -vm_vec_dot(&velocity_rel_weapon, &weapon_objp->orient.v.fvec);
 		} else {
-			vdot = vm_vec_dot( &other->phys_info.vel, &weapon->phys_info.vel);
+			vdot = vm_vec_dot( &other->phys_info.vel, &weapon_objp->phys_info.vel);
 		}
 		if ( vdot <= 0.0f )	{
 			// They're heading in opposite directions...
 			// check their positions
 			vector weapon2other;
-			vm_vec_sub( &weapon2other, &other->pos, &weapon->pos );
-			float pdot = vm_vec_dot( &weapon->orient.v.fvec, &weapon2other );
+			vm_vec_sub( &weapon2other, &other->pos, &weapon_objp->pos );
+			float pdot = vm_vec_dot( &weapon_objp->orient.v.fvec, &weapon2other );
 			if ( pdot <= -other->radius )	{
 				// The other object is behind the weapon by more than
 				// its radius, so it will never hit...
@@ -845,7 +845,7 @@ int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pai
 		//vector	max_vel;			//maximum foward velocity in x,y,z
 
 		float max_vel_weapon, max_vel_other;
-		max_vel_weapon = weapon->phys_info.max_vel.xyz.z;
+		max_vel_weapon = weapon_objp->phys_info.max_vel.xyz.z;
 		max_vel_other = other->phys_info.max_vel.xyz.z;
 		if (max_vel_other < 10.0f) {
 			if ( vm_vec_mag_squared( &other->phys_info.vel ) > 100 ) {
@@ -860,13 +860,13 @@ int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pai
 		// compare (weeapon) ray with expanding sphere (ship) to find earliest possible collision time
 		// look for two time solutions to Xw = Xs, where Xw = Xw0 + Vwt*t  Xs = Xs + Vs*(t+dt), where Vs*dt = radius of ship 
 		// Since direction of Vs is unknown, solve for (Vs*t) and find norm of both sides
-		if ( !(Weapon_info[Weapons[weapon->instance].weapon_info_index].wi_flags & WIF_TURNS) ) {
+		if ( !(Weapon_info[Weapons[weapon_objp->instance].weapon_info_index].wi_flags & WIF_TURNS) ) {
 			vector delta_x, laser_vel;
 			float a,b,c, delta_x_dot_vl, delta_t;
 			float root1, root2, root, earliest_time;
 
-			vm_vec_sub( &delta_x, &weapon->pos, &other->pos );
-			vm_vec_copy_scale( &laser_vel, &weapon->orient.v.fvec, max_vel_weapon );
+			vm_vec_sub( &delta_x, &weapon_objp->pos, &other->pos );
+			vm_vec_copy_scale( &laser_vel, &weapon_objp->orient.v.fvec, max_vel_weapon );
 			delta_t = (other->radius + 10.0f) / max_vel_other;		// time to get from center to radius of other obj
 			delta_x_dot_vl = vm_vec_dotprod( &delta_x, &laser_vel );
 
@@ -905,7 +905,7 @@ int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pai
 
 
 			// check if possible collision occurs after weapon expires
-			if ( earliest_time > 1000*Weapons[weapon->instance].lifeleft )
+			if ( earliest_time > 1000*Weapons[weapon_objp->instance].lifeleft )
 				return 1;
 
 			// Allow one worst case frametime to elapse (~5 fps)
@@ -926,13 +926,13 @@ int weapon_will_never_hit( object *weapon, object *other, obj_pair * current_pai
 			max_vel = max_vel_weapon + max_vel_other;
 
 			// suggest that fudge factor for other radius be changed to other_radius + const (~10)
-			dist = vm_vec_dist( &other->pos, &weapon->pos ) - (other->radius + 10.0f);
+			dist = vm_vec_dist( &other->pos, &weapon_objp->pos ) - (other->radius + 10.0f);
 			if ( dist > 0.0f )	{
 				time = (dist*1000.0f) / max_vel;
 				int time_ms = fl2i(time);
 
 				// check if possible collision occurs after weapon expires
-				if ( time_ms > 1000*Weapons[weapon->instance].lifeleft )
+				if ( time_ms > 1000*Weapons[weapon_objp->instance].lifeleft )
 					return 1;
 
 				time_ms -= 200;	// Allow at least one worst case frametime to elapse (~5 fps)

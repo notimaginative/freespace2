@@ -1342,7 +1342,7 @@ void ship_select_blit_ship_info()
 	int y_start;
 	ship_info *sip;
 	char str[100];
-	color *header = &Color_white;
+	color *title = &Color_white;
 	color *text = &Color_green;
 
 
@@ -1360,7 +1360,7 @@ void ship_select_blit_ship_info()
 	memset(str,0,100);
 
 	// blit the ship class (name)
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Class",739));
 	y_start += 10;
 	if(SDL_strlen(sip->name)){
@@ -1370,7 +1370,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the ship type
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Type",740));
 	y_start += 10;
 	if((sip->type_str != NULL) && SDL_strlen(sip->type_str)){
@@ -1380,7 +1380,7 @@ void ship_select_blit_ship_info()
 	y_start+=10;
 
 	// blit the ship length
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Length",741));
 	y_start += 10;
 	if((sip->ship_length != NULL) && SDL_strlen(sip->ship_length)){
@@ -1397,7 +1397,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the max velocity
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Max Velocity",742));	
 	y_start += 10;
 	SDL_snprintf(str,SDL_arraysize(str),XSTR("%d m/s",743),(int)sip->max_vel.xyz.z);
@@ -1406,7 +1406,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the maneuverability
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Maneuverability",744));
 	y_start += 10;
 	if((sip->maneuverability_str != NULL) && SDL_strlen(sip->maneuverability_str)){
@@ -1416,7 +1416,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the armor
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Armor",745));
 	y_start += 10;
 	if((sip->armor_str != NULL) && SDL_strlen(sip->armor_str)){
@@ -1426,7 +1426,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the gun mounts 
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Gun Mounts",746));
 	y_start += 10;
 	if((sip->gun_mounts != NULL) && SDL_strlen(sip->gun_mounts)){
@@ -1436,7 +1436,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the missile banke
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Missile Banks",747));
 	y_start += 10;
 	if((sip->missile_banks != NULL) && SDL_strlen(sip->missile_banks)){
@@ -1446,7 +1446,7 @@ void ship_select_blit_ship_info()
 	y_start += 10;
 
 	// blit the manufacturer
-	gr_set_color_fast(header);
+	gr_set_color_fast(title);
 	gr_string(Ship_info_coords[gr_screen.res][SHIP_SELECT_X_COORD], y_start,XSTR("Manufacturer",748));
 	y_start += 10;
 	if((sip->manufacturer_str != NULL) && SDL_strlen(sip->manufacturer_str)){

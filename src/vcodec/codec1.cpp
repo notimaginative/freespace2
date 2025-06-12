@@ -960,8 +960,8 @@ static void InitEncoder1(int QoS)
     FUDGE = (12 - QoS) / 2;
     
     // initilize log-base-2 lookup table
-    for (i = 1; i < 256; i++)
-        Log2[i] = log((double)i) / log(2.0);
+	for (i = 1; i < 256; i++)
+		Log2[i] = log((double)i) / log(2.0);
 
 	for (table = 7; table >= 0; table--)
 	{

@@ -112,7 +112,7 @@ extern void do_subobj_destroyed_stuff( ship *ship_p, ship_subsys *subsys, vector
 // This assumes that whoever called this knows if the shield got hit or not.
 // hitpos is in world coordinates.
 // if shield_quadrant is not -1, then that part of the shield takes damage properly.
-void ship_apply_local_damage(object *ship_obj, object *other_obj, vector *hitpos, float damage, int shield_quadrant, bool create_spark=true, int submodel_num=-1, vector *hit_normal=NULL);
+void ship_apply_local_damage(object *ship_objp, object *other_obj, vector *hitpos, float damage, int shield_quadrant, bool create_spark=true, int submodel_num=-1, vector *hit_normal=NULL);
 
 // This gets called to apply damage when a damaging force hits a ship, but at no 
 // point in particular.  Like from a shockwave.   This routine will see if the
@@ -120,13 +120,13 @@ void ship_apply_local_damage(object *ship_obj, object *other_obj, vector *hitpos
 // You can pass force_center==NULL if you the damage doesn't come from anywhere,
 // like for debug keys to damage an object or something.  It will 
 // assume damage is non-directional and will apply it correctly.   
-void ship_apply_global_damage(object *ship_obj, object *other_obj, vector *force_center, float damage );
+void ship_apply_global_damage(object *ship_objp, object *other_obj, vector *force_center, float damage );
 
 // like above, but does not apply damage to shields
-void ship_apply_wash_damage(object *ship_obj, object *other_obj, float damage);
+void ship_apply_wash_damage(object *ship_objp, object *other_obj, float damage);
 
 // next routine needed for multiplayer
-void ship_hit_kill( object *ship_obj, object *other_obj, float percent_killed, int self_destruct);
+void ship_hit_kill( object *ship_objp, object *other_obj, float percent_killed, int self_destruct);
 
 void ship_self_destruct( object *objp );
 
@@ -135,14 +135,14 @@ void ship_self_destruct( object *objp );
 void ship_apply_whack(vector *force, vector *new_pos, object *objp);
 
 // externed for code in missionparse to create sparks on a ship with < 100% hull integrity.
-void ship_hit_sparks_no_rotate(object *ship_obj, vector *hitpos);
+void ship_hit_sparks_no_rotate(object *ship_objp, vector *hitpos);
 
 // externed so that ships which self destruct have the proper things done to them in multiplayer
 void ship_generic_kill_stuff( object *objp, float percent_killed );
 
 // find the max number of sparks allowed for ship
 // limited for fighter by hull % others by radius.
-int get_max_sparks(object* ship_obj);
+int get_max_sparks(object* ship_objp);
 
 // player pain
 void ship_hit_pain(float damage);

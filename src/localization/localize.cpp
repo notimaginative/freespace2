@@ -860,7 +860,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 
 	// if the string is < 9 chars, it can't be an XSTR("",) tag, so just copy it
 	if(str_len < 9){
-		if(str_len > max_len){
+		if(str_len > static_cast<size_t>(max_len)){
 			error_display(0, "Token too long: [%s].  Length = %i.  Max is %i.\n", in, str_len, max_len);
 			return;
 		}		
@@ -876,7 +876,7 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	SDL_strlcpy(first_four, in, SDL_arraysize(first_four));
 	if(SDL_strcasecmp(first_four, "XSTR")){
 		// NOT an XSTR() tag
-		if(str_len > max_len){
+		if(str_len > static_cast<size_t>(max_len)){
 			error_display(0, "Token too long: [%s].  Length = %i.  Max is %i.\n", in, str_len, max_len);
 			return;
 		}		
@@ -916,9 +916,9 @@ void lcl_ext_localize(char *in, char *out, int max_len, int *id)
 	// attempt to find the string
 	if(lcl_ext_lookup(lookup_str, SDL_arraysize(lookup_str), str_id)){
 		// copy to the outgoing string
-		SDL_assert(SDL_strlen(lookup_str) <= (unsigned int)(max_len - 1));
+		SDL_assert(SDL_strlen(lookup_str) <= static_cast<size_t>(max_len - 1));
 
-		if (SDL_strlen(lookup_str) > (unsigned int)(max_len-1)) {
+		if (SDL_strlen(lookup_str) > static_cast<size_t>(max_len-1)) {
 			// be safe and truncate string to fit
 			SDL_strlcpy(out, lookup_str, max_len);
 		} else {
@@ -1005,8 +1005,8 @@ int lcl_ext_get_text(char *xstr, char *out)
 		str_start = p - xstr + 1;		
 	}
 	// make sure we're not about to walk past the end of the string
-	if((p - xstr) >= str_len){
-		error_display(0, "Error parsing XSTR() tag %s\n", xstr);		
+	if(static_cast<size_t>(p - xstr) >= str_len){
+		error_display(0, "Error parsing XSTR() tag %s\n", xstr);
 		return 0;
 	}
 
@@ -1048,7 +1048,7 @@ int lcl_ext_get_id(char *xstr, int *out)
 		return 0;
 	}
 	// make sure we're not about to walk off the end of the string
-	if((p - xstr) >= str_len){
+	if(static_cast<size_t>(p - xstr) >= str_len){
 		error_display(0, "Error parsing id# in XSTR() tag %s\n", xstr);
 		return 0;
 	}
@@ -1079,7 +1079,7 @@ int lcl_ext_get_id(char *xstr, int *out)
 		return 0;
 	}
 	// make sure we're not about to walk off the end of the string
-	if((pnext - xstr) >= str_len){
+	if(static_cast<size_t>(pnext - xstr) >= str_len){
 		error_display(0, "Error parsing id# in XSTR() tag %s\n", xstr);
 		return 0;
 	}
@@ -1167,8 +1167,8 @@ int lcl_ext_lookup_sub(char *text, char *out, const int max_out, int id)
 {
 	char *p;					// current ptr
 	auto len = SDL_strlen(text);
-	int count;
-	char text_copy[1024];	
+	size_t count;
+	char text_copy[1024];
 	char *tok;
 	int found_new_string_id = 0;
 

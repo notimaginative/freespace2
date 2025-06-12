@@ -108,7 +108,6 @@ void key_flush();
 // Routines/data you can access:
 float key_down_timef(int keycode);
 
-bool key_is_ascii(int keycode);
 int key_inkey();
 
 int key_get_text_input();

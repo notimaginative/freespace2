@@ -212,7 +212,7 @@ int	hud_config_popup_flag_is_set(int i);
 void	hud_config_popup_flag_set(int i);
 void	hud_config_popup_flag_clear(int i);
 
-void hud_config_record_color(int color);
+void hud_config_record_color(int clr);
 
 // load up the given hcf file
 void hud_config_color_load(const char *name);

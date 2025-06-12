@@ -3187,6 +3187,7 @@ int Show_viewing_from_self = 0;
 void say_view_target()
 {
 	object	*view_target;
+	char	jump_node_name[128];
 
 	if ((Viewer_mode & VM_OTHER_SHIP) && (Player_ai->target_objnum != -1))
 		view_target = &Objects[Player_ai->target_objnum];
@@ -3211,7 +3212,6 @@ void say_view_target()
 				Viewer_mode &= ~VM_OTHER_SHIP;
 				break;
 			case OBJ_JUMP_NODE: {
-				char	jump_node_name[128];
 				SDL_strlcpy(jump_node_name, XSTR( "jump node", 184), SDL_arraysize(jump_node_name));
 				view_target_name = jump_node_name;
 				Viewer_mode &= ~VM_OTHER_SHIP;

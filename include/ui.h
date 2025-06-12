@@ -337,6 +337,7 @@
 #include <SDL3/SDL.h>
 
 #include "2d.h"
+#include "bmpman.h"
 
 #define UI_KIND_BUTTON				1
 #define UI_KIND_KEYTRAP				2

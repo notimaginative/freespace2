@@ -163,20 +163,20 @@
 
 
 extern float ai_endangered_time(object *ship_objp, object *weapon_objp);
-int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *pair );
-float estimate_ship_speed_upper_limit( object *ship, float time );
+int check_inside_radius_for_big_ships( object *ship_objp, object *weapon_objp, obj_pair *pair );
+float estimate_ship_speed_upper_limit( object *ship_objp, float time );
 extern float flFrametime;
 
 
 //	If weapon_obj is likely to hit ship_obj sooner than current aip->danger_weapon_objnum,
 //	then update danger_weapon_objnum.
-void update_danger_weapon(object *ship_obj, object *weapon_obj)
+void update_danger_weapon(object *ship_objp, object *weapon_obj)
 {
 	ai_info	*aip;
 
-	SDL_assert(ship_obj->type == OBJ_SHIP);
+	SDL_assert(ship_objp->type == OBJ_SHIP);
 
-	aip = &Ai_info[Ships[ship_obj->instance].ai_index];
+	aip = &Ai_info[Ships[ship_objp->instance].ai_index];
 
 	if (aip->danger_weapon_objnum == -1) {
 		aip->danger_weapon_objnum = OBJ_INDEX(weapon_obj);
@@ -184,8 +184,8 @@ void update_danger_weapon(object *ship_obj, object *weapon_obj)
 	} else if (aip->danger_weapon_signature == Objects[aip->danger_weapon_objnum].signature) {
 		float	danger_old_time, danger_new_time;
 
-		danger_old_time = ai_endangered_time(ship_obj, &Objects[aip->danger_weapon_objnum]);
-		danger_new_time = ai_endangered_time(ship_obj, weapon_obj);
+		danger_old_time = ai_endangered_time(ship_objp, &Objects[aip->danger_weapon_objnum]);
+		danger_new_time = ai_endangered_time(ship_objp, weapon_obj);
 
 		if (danger_new_time < danger_old_time) {
 			aip->danger_weapon_objnum = OBJ_INDEX(weapon_obj);
@@ -196,16 +196,16 @@ void update_danger_weapon(object *ship_obj, object *weapon_obj)
 
 // function to actually deal with weapon-ship hit stuff.  separated from check_collision routine below
 // because of multiplayer reasons.
-void ship_weapon_do_hit_stuff(object *ship_obj, object *weapon_obj, vector *world_hitpos, vector *hitpos, int quadrant_num, int submodel_num)
+void ship_weapon_do_hit_stuff(object *ship_objp, object *weapon_obj, vector *world_hitpos, vector *hitpos, int quadrant_num, int submodel_num)
 {
 	weapon	*wp = &Weapons[weapon_obj->instance];
 	weapon_info	*wip = &Weapon_info[wp->weapon_info_index];
-	ship *shipp = &Ships[ship_obj->instance];	
+	ship *shipp = &Ships[ship_objp->instance];	
 	float damage;
 	vector force;		
 
 	// Apply hit & damage & stuff to weapon
-	weapon_hit(weapon_obj, ship_obj,  world_hitpos);
+	weapon_hit(weapon_obj, ship_objp,  world_hitpos);
 
 	damage = wip->damage;
 
@@ -215,21 +215,21 @@ void ship_weapon_do_hit_stuff(object *ship_obj, object *weapon_obj, vector *worl
 
 	// send player pain packet
 	if ( (MULTIPLAYER_MASTER) && !(shipp->flags & SF_DYING) ){
-		int np_index = multi_find_player_by_object(ship_obj);
+		int np_index = multi_find_player_by_object(ship_objp);
 
 		// if this is a player ship
 		if((np_index >= 0) && (np_index != MY_NET_PLAYER_NUM) && (wip->subtype == WP_LASER)){
-			send_player_pain_packet(&Net_players[np_index], wp->weapon_info_index, wip->damage * weapon_get_damage_scale(wip, weapon_obj, ship_obj), &force, hitpos);
+			send_player_pain_packet(&Net_players[np_index], wp->weapon_info_index, wip->damage * weapon_get_damage_scale(wip, weapon_obj, ship_objp), &force, hitpos);
 		}
 	}	
 
-	ship_apply_local_damage(ship_obj, weapon_obj, world_hitpos, damage, quadrant_num, CREATE_SPARKS, submodel_num);
+	ship_apply_local_damage(ship_objp, weapon_obj, world_hitpos, damage, quadrant_num, CREATE_SPARKS, submodel_num);
 
 	// let the hud shield gauge know when Player or Player target is hit
-	hud_shield_quadrant_hit(ship_obj, quadrant_num);
+	hud_shield_quadrant_hit(ship_objp, quadrant_num);
 
 	// Let wingman status gauge know a wingman ship was hit
-	if ( (Ships[ship_obj->instance].wing_status_wing_index >= 0) && ((Ships[ship_obj->instance].wing_status_wing_pos >= 0)) ) {
+	if ( (Ships[ship_objp->instance].wing_status_wing_index >= 0) && ((Ships[ship_objp->instance].wing_status_wing_pos >= 0)) ) {
 		hud_wingman_status_start_flash(shipp->wing_status_wing_index, shipp->wing_status_wing_pos);
 	}
 
@@ -238,13 +238,13 @@ void ship_weapon_do_hit_stuff(object *ship_obj, object *weapon_obj, vector *worl
 	// don't apply whack for multiplayer_client from laser - will occur with pain packet
 	if( !((wip->subtype == WP_LASER) && MULTIPLAYER_CLIENT) ) {		
 		// apply a whack		
-		ship_apply_whack( &force, hitpos, ship_obj );
+		ship_apply_whack( &force, hitpos, ship_objp );
 	}
 }
 
 extern int Framecount;
 
-int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float time_limit = 0.0f, int *next_hit=NULL)
+int ship_weapon_check_collision(object * ship_objp, object * weapon_obj, float time_limit = 0.0f, int *next_hit=NULL)
 {
 	mc_info mc;
 	int	num;
@@ -252,12 +252,12 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 	weapon	*wp = &Weapons[weapon_obj->instance];
 	weapon_info	*wip = &Weapon_info[wp->weapon_info_index];
 
-	SDL_assert( ship_obj->type == OBJ_SHIP );
+	SDL_assert( ship_objp->type == OBJ_SHIP );
 	SDL_assert( weapon_obj->type == OBJ_WEAPON );
 
-	num = ship_obj->instance;
+	num = ship_objp->instance;
 	SDL_assert( num >= 0 );
-	SDL_assert( Ships[num].objnum == OBJ_INDEX(ship_obj));
+	SDL_assert( Ships[num].objnum == OBJ_INDEX(ship_objp));
 
 	shipp = &Ships[num];
 
@@ -275,12 +275,12 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 
 	//	Return information for AI to detect incoming fire.
 	//	Could perhaps be done elsewhere at lower cost --MK, 11/7/97
-	float	dist = vm_vec_dist_quick(&ship_obj->pos, &weapon_obj->pos);
+	float	dist = vm_vec_dist_quick(&ship_objp->pos, &weapon_obj->pos);
 	if (dist < weapon_obj->phys_info.speed) {
-		update_danger_weapon(ship_obj, weapon_obj);
+		update_danger_weapon(ship_objp, weapon_obj);
 	}
 	
-	ship_model_start(ship_obj);
+	ship_model_start(ship_objp);
 
 	int	valid_hit_occured = 0;				// If this is set, then hitpos is set
 	int	do_model_check = 1;					// Assume we need to check the model
@@ -292,8 +292,8 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 
 	memset(&mc, -1, sizeof(mc_info));
 	mc.model_num = shipp->modelnum;			// Fill in the model to check
-	mc.orient = &ship_obj->orient;			// The object's orient
-	mc.pos = &ship_obj->pos;					// The object's position
+	mc.orient = &ship_objp->orient;			// The object's orient
+	mc.pos = &ship_objp->pos;					// The object's position
 	mc.p0 = &weapon_obj->last_pos;			// Point 1 of ray to check
 	mc.p1 = &weapon_end_pos;					// Point 2 of ray to check
 
@@ -301,7 +301,7 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 
 	// Check the shields for an impact if necessary
 #ifndef NDEBUG
-	if (!(ship_obj->flags & OF_NO_SHIELDS) && New_shield_system && (pm->shield.ntris > 0)) {
+	if (!(ship_objp->flags & OF_NO_SHIELDS) && New_shield_system && (pm->shield.ntris > 0)) {
 #else
 	if (!(ship_obj->flags & OF_NO_SHIELDS) &&  (pm->shield.ntris > 0)) {
 #endif
@@ -315,7 +315,7 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 			//		2. Currently (8/9/97), apply_damage_to_shield() passes lefer damage to hull, which might not make sense.  If
 			//			wouldn't have collided with hull, shouldn't do damage.  Once this is fixed, the code below needs to cast the
 			//			vector through to the hull if there is leftover damage.
-			if (!(shipp->flags & SF_DYING) && ship_is_shield_up(ship_obj,quadrant_num) ) {
+			if (!(shipp->flags & SF_DYING) && ship_is_shield_up(ship_objp,quadrant_num) ) {
 
 				// AL 1-14-97: "Puncture" doesn't mean penetrate shield anymore, it means that it punctures
 				//					hull do inflict maximum subsystem damage
@@ -329,7 +329,7 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 */
 				valid_hit_occured = 1;
 				// shield effect
-				add_shield_point(OBJ_INDEX(ship_obj), mc.shield_hit_tri, &mc.hit_point);
+				add_shield_point(OBJ_INDEX(ship_objp), mc.shield_hit_tri, &mc.hit_point);
 				do_model_check = 0;	// since we hit the shield, no need to check the model
 
 			} else {
@@ -348,7 +348,7 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 	}
 
 	//nprintf(("AI", "Frame %i, Hit tri = %i\n", Framecount, mc.shield_hit_tri));
-	ship_model_stop(ship_obj);
+	ship_model_stop(ship_objp);
 
 	// deal with predictive collisions.  Find their actual hit time and see if they occured in current frame
 	if (next_hit && valid_hit_occured) {
@@ -360,18 +360,18 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 	}
 
 	if ( valid_hit_occured )	{
-		ship_weapon_do_hit_stuff(ship_obj, weapon_obj, &mc.hit_point_world, &mc.hit_point, quadrant_num, mc.hit_submodel);
-	} else if ((Missiontime - wp->creation_time > F1_0/2) && (wip->wi_flags & WIF_HOMING) && (wp->homing_object == ship_obj)) {
+		ship_weapon_do_hit_stuff(ship_objp, weapon_obj, &mc.hit_point_world, &mc.hit_point, quadrant_num, mc.hit_submodel);
+	} else if ((Missiontime - wp->creation_time > F1_0/2) && (wip->wi_flags & WIF_HOMING) && (wp->homing_object == ship_objp)) {
 		if (dist < wip->inner_radius) {
 			vector	vec_to_ship;
 
-			vm_vec_normalized_dir(&vec_to_ship, &ship_obj->pos, &weapon_obj->pos);
+			vm_vec_normalized_dir(&vec_to_ship, &ship_objp->pos, &weapon_obj->pos);
 
 			if (vm_vec_dot(&vec_to_ship, &weapon_obj->orient.v.fvec) < 0.0f) {
 				// check if we're colliding against "invisible" ship
 				if (!(Ship_info[shipp->ship_info_index].flags & SIF_DONT_COLLIDE_INVIS)) {
 					wp->lifeleft = 0.001f;
-					if (ship_obj == Player_obj) {
+					if (ship_objp == Player_obj) {
 						nprintf(("Jim", "Frame %i: Weapon %i set to detonate, dist = %7.3f.\n", Framecount, weapon_obj-Objects, dist));
 					}
 					valid_hit_occured = 1;
@@ -391,15 +391,15 @@ int ship_weapon_check_collision(object * ship_obj, object * weapon_obj, float ti
 int collide_ship_weapon( obj_pair * pair )
 {
 	int		did_hit;
-	object *ship = pair->a;
-	object *weapon = pair->b;
+	object *ship_objp = pair->a;
+	object *weapon_objp = pair->b;
 	
-	SDL_assert( ship->type == OBJ_SHIP );
-	SDL_assert( weapon->type == OBJ_WEAPON );
+	SDL_assert( ship_objp->type == OBJ_SHIP );
+	SDL_assert( weapon_objp->type == OBJ_WEAPON );
 
 	// Don't check collisions for player if past first warpout stage.
 	if ( Player->control_mode > PCM_WARPOUT_STAGE1)	{
-		if ( ship == Player_obj )
+		if ( ship_objp == Player_obj )
 			return 0;
 	}
 
@@ -407,24 +407,24 @@ int collide_ship_weapon( obj_pair * pair )
 	// If it does hit, don't check the pair until about 200 ms before collision.  
 	// If it does not hit and is within error tolerance, cull the pair.
 
-	if ( (Ship_info[Ships[ship->instance].ship_info_index].flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) && (Weapon_info[Weapons[weapon->instance].weapon_info_index].subtype == WP_LASER) ) {
+	if ( (Ship_info[Ships[ship_objp->instance].ship_info_index].flags & (SIF_BIG_SHIP | SIF_HUGE_SHIP)) && (Weapon_info[Weapons[weapon_objp->instance].weapon_info_index].subtype == WP_LASER) ) {
 //	if (  (ship->radius > 50) && (Weapon_info[Weapons[weapon->instance].weapon_info_index].subtype == WP_LASER) ) {
 		// Check when within ~1.1 radii.  
 		// This allows good transition between sphere checking (leaving the laser about 200 ms from radius) and checking
 		// within the sphere with little time between.  There may be some time for "small" big ships
-		if ( vm_vec_dist_squared(&ship->pos, &weapon->pos) < (1.2f*ship->radius*ship->radius) ) {
-			return check_inside_radius_for_big_ships( ship, weapon, pair );
+		if ( vm_vec_dist_squared(&ship_objp->pos, &weapon_objp->pos) < (1.2f*ship_objp->radius*ship_objp->radius) ) {
+			return check_inside_radius_for_big_ships( ship_objp, weapon_objp, pair );
 		}
 	}
 
 
 //	demo_do_rand_test();
-	did_hit = ship_weapon_check_collision( ship, weapon );
+	did_hit = ship_weapon_check_collision( ship_objp, weapon_objp );
 //	demo_do_rand_test();
 	if ( !did_hit )	{
 		// Since we didn't hit, check to see if we can disable all future collisions
 		// between these two.
-		return weapon_will_never_hit( weapon, ship, pair );
+		return weapon_will_never_hit( weapon_objp, ship_objp, pair );
 	}
 
 	return 0;
@@ -432,22 +432,22 @@ int collide_ship_weapon( obj_pair * pair )
 
 // ----------------------------------------------------------------------------
 // upper limit estimate ship speed at end of time
-float estimate_ship_speed_upper_limit( object *ship, float time ) 
+float estimate_ship_speed_upper_limit( object *ship_objp, float time )
 {
 	float exponent;
 	float delta_v;
 	float factor;
 
-	delta_v = Ship_info[Ships[ship->instance].ship_info_index].max_vel.xyz.z - ship->phys_info.speed;
-	if (ship->phys_info.forward_accel_time_const == 0) {
-		return ship->phys_info.speed;
+	delta_v = Ship_info[Ships[ship_objp->instance].ship_info_index].max_vel.xyz.z - ship_objp->phys_info.speed;
+	if (ship_objp->phys_info.forward_accel_time_const == 0) {
+		return ship_objp->phys_info.speed;
 	}
-	exponent = time / ship->phys_info.forward_accel_time_const;
+	exponent = time / ship_objp->phys_info.forward_accel_time_const;
 	//SDL_assert( exponent >= 0);
 
 
 	factor = 1.0f - (float)exp( -exponent );
-	return ship->phys_info.speed + factor*delta_v;
+	return ship_objp->phys_info.speed + factor*delta_v;
 }
 
 // maximum error allowed in detecting collisions between laser and big ship inside the radius
@@ -461,23 +461,23 @@ float estimate_ship_speed_upper_limit( object *ship, float time )
 // determine the time when pair should next be checked
 // return 1 if pair can be culled
 // return 0 if pair can not be culled
-int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *pair )
+int check_inside_radius_for_big_ships( object *ship_objp, object *weapon_objp, obj_pair *pair )
 {
 	vector error_vel;		// vel perpendicular to laser
 	float error_vel_mag;	// magnitude of error_vel
 	float time_to_max_error, time_to_exit_sphere;
 	float ship_speed_at_exit_sphere, error_at_exit_sphere;	
-	float max_error = (float) ERROR_STD / 150.0f * ship->radius;
+	float max_error = (float) ERROR_STD / 150.0f * ship_objp->radius;
 	if (max_error < 2)
 		max_error = 2.0f;
 
-	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon->pos)) / (weapon->phys_info.max_vel.xyz.z - ship->phys_info.max_vel.xyz.z);
-	ship_speed_at_exit_sphere = estimate_ship_speed_upper_limit( ship, time_to_exit_sphere );
+	time_to_exit_sphere = (ship_objp->radius + vm_vec_dist(&ship_objp->pos, &weapon_objp->pos)) / (weapon_objp->phys_info.max_vel.xyz.z - ship_objp->phys_info.max_vel.xyz.z);
+	ship_speed_at_exit_sphere = estimate_ship_speed_upper_limit( ship_objp, time_to_exit_sphere );
 	// update estimated time to exit sphere
-	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon->pos)) / (weapon->phys_info.max_vel.xyz.z - ship_speed_at_exit_sphere);
-	vm_vec_scale_add( &error_vel, &ship->phys_info.vel, &weapon->orient.v.fvec, -vm_vec_dotprod(&ship->phys_info.vel, &weapon->orient.v.fvec) );
+	time_to_exit_sphere = (ship_objp->radius + vm_vec_dist(&ship_objp->pos, &weapon_objp->pos)) / (weapon_objp->phys_info.max_vel.xyz.z - ship_speed_at_exit_sphere);
+	vm_vec_scale_add( &error_vel, &ship_objp->phys_info.vel, &weapon_objp->orient.v.fvec, -vm_vec_dotprod(&ship_objp->phys_info.vel, &weapon_objp->orient.v.fvec) );
 	error_vel_mag = vm_vec_mag_quick( &error_vel );
-	error_vel_mag += 0.5f * (ship->phys_info.max_vel.xyz.z - error_vel_mag)*(time_to_exit_sphere/ship->phys_info.forward_accel_time_const);
+	error_vel_mag += 0.5f * (ship_objp->phys_info.max_vel.xyz.z - error_vel_mag)*(time_to_exit_sphere/ship_objp->phys_info.forward_accel_time_const);
 	// error_vel_mag is now average velocity over period
 	error_at_exit_sphere = error_vel_mag * time_to_exit_sphere;
 	time_to_max_error = max_error / error_at_exit_sphere * time_to_exit_sphere;
@@ -487,17 +487,17 @@ int check_inside_radius_for_big_ships( object *ship, object *weapon, obj_pair *p
 	// if ship_weapon_check_collision comes back with a hit_time > error limit, ok
 	// if ship_weapon_check_collision comes finds no collision, next check time based on error time
 	float limit_time;		// furthest time to check (either lifetime or exit sphere)
-	if ( time_to_exit_sphere < Weapons[weapon->instance].lifeleft ) {
+	if ( time_to_exit_sphere < Weapons[weapon_objp->instance].lifeleft ) {
 		limit_time = time_to_exit_sphere;
 	} else {
-		limit_time = Weapons[weapon->instance].lifeleft;
+		limit_time = Weapons[weapon_objp->instance].lifeleft;
 	}
 
 	// Note:  when estimated hit time is less than 200 ms, look at every frame
 	int hit_time = 0;	// estimated time of hit in ms
 
 	// modify ship_weapon_check_collision to do damage if hit_time is negative (ie, hit occurs in this frame)
-	if ( ship_weapon_check_collision( ship, weapon, limit_time, &hit_time ) ) {
+	if ( ship_weapon_check_collision( ship_objp, weapon_objp, limit_time, &hit_time ) ) {
 		// hit occured in while in sphere
 		if (hit_time < 0) {
 			// hit occured in the frame

@@ -28,8 +28,8 @@ bool OGL_inited = false;
 SDL_Window *GL_window = NULL;
 SDL_GLContext GL_context;
 
-volatile int GL_activate = 0;
-volatile int GL_deactivate = 0;
+static int GL_activate = 0;
+static int GL_deactivate = 0;
 
 int GL_version = 0;
 

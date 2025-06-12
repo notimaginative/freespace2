@@ -2082,7 +2082,7 @@ void bm_page_in_nondarkening_texture( int bitmapnum, int nframes )
 
 		bm_bitmaps[n+i].preloaded = 4;
 
-		bm_bitmaps[n+i].used_flags = flags;
+		bm_bitmaps[n+i].used_flags = static_cast<ubyte>(flags);
 	}
 }
 

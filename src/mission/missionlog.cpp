@@ -669,7 +669,7 @@ int mission_log_get_time( int type, const char *pname, const char *sname, fix *t
 	return mission_log_get_time_indexed( type, pname, sname, 1, time );
 }
 
-void message_log_add_seg(int n, int x, int color, const char *text, int flags = 0)
+void message_log_add_seg(int n, int x, int clr, const char *text, int flags = 0)
 {
 	log_text_seg *seg, **parent;
 
@@ -683,14 +683,14 @@ void message_log_add_seg(int n, int x, int color, const char *text, int flags = 
 	seg = (log_text_seg *) malloc(sizeof(log_text_seg));
 	SDL_assert(seg);
 	seg->text = strdup(text);
-	seg->color = color;
+	seg->color = clr;
 	seg->x = x;
 	seg->flags = flags;
 	seg->next = NULL;
 	*parent = seg;
 }
 
-void message_log_add_segs(const char *text, int color, int flags = 0)
+void message_log_add_segs(const char *text, int clr, int flags = 0)
 {
 	char *log_text = NULL, *log_text_ptr = NULL;
 	char *ptr;
@@ -724,7 +724,7 @@ void message_log_add_segs(const char *text, int color, int flags = 0)
 			ptr = split_str_once(log_text_ptr, P_width - X);
 
 		if (ptr != log_text_ptr)
-			message_log_add_seg(Num_log_lines, X, color, log_text_ptr, flags);
+			message_log_add_seg(Num_log_lines, X, clr, log_text_ptr, flags);
 
 		if (!ptr) {
 			gr_get_string_size(&w, NULL, log_text_ptr);

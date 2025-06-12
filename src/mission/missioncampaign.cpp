@@ -1296,24 +1296,24 @@ void mission_campaign_eval_next_mission()
 void mission_campaign_store_goals_and_events()
 {
 	int cur, i;
-	cmission *mission;
+	cmission *missionp;
 
 	cur = Campaign.current_mission;
 
-	mission = &Campaign.missions[cur];
+	missionp = &Campaign.missions[cur];
 
 	// first we must save the status of the current missions goals in the campaign mission structure.
 	// After that, we can determine which mission is tagged as the next mission.  Finally, we
 	// can save the campaign save file
 	// we might have goal and event status if the player replayed a mission
-	if ( mission->num_goals > 0 ) {
-		free( mission->goals );
+	if ( missionp->num_goals > 0 ) {
+		free( missionp->goals );
 	}
 
-	mission->num_goals = Num_goals;
-	if ( mission->num_goals > 0 ) {
-		mission->goals = (mgoal *)malloc( sizeof(mgoal) * Num_goals );
-		SDL_assert( mission->goals != NULL );
+	missionp->num_goals = Num_goals;
+	if ( missionp->num_goals > 0 ) {
+		missionp->goals = (mgoal *)malloc( sizeof(mgoal) * Num_goals );
+		SDL_assert( missionp->goals != NULL );
 	}
 
 	// copy the needed info from the Mission_goal struct to our internal structure
@@ -1323,23 +1323,23 @@ void mission_campaign_store_goals_and_events()
 
 			SDL_snprintf(name, SDL_arraysize(name), NOX("Goal #%d"), i);
 			//Warning(LOCATION, "Mission goal in mission %s must have a +Name field! using %s for campaign save file\n", mission->name, name);
-			SDL_strlcpy( mission->goals[i].name, name, SDL_arraysize(mission->goals[0].name));
+			SDL_strlcpy( missionp->goals[i].name, name, SDL_arraysize(missionp->goals[0].name));
 		} else
-			SDL_strlcpy( mission->goals[i].name, Mission_goals[i].name, SDL_arraysize(mission->goals[0].name) );
+			SDL_strlcpy( missionp->goals[i].name, Mission_goals[i].name, SDL_arraysize(missionp->goals[0].name) );
 		SDL_assert ( Mission_goals[i].satisfied != GOAL_INCOMPLETE );		// should be true or false at this point!!!
-		mission->goals[i].status = (char)Mission_goals[i].satisfied;
+		missionp->goals[i].status = (char)Mission_goals[i].satisfied;
 	}
 
 	// do the same thing for events as we did for goals
 	// we might have goal and event status if the player replayed a mission
-	if ( mission->num_events > 0 ) {
-		free( mission->events );
+	if ( missionp->num_events > 0 ) {
+		free( missionp->events );
 	}
 
-	mission->num_events = Num_mission_events;
-	if ( mission->num_events > 0 ) {
-		mission->events = (mevent *)malloc( sizeof(mevent) * Num_mission_events );
-		SDL_assert( mission->events != NULL );
+	missionp->num_events = Num_mission_events;
+	if ( missionp->num_events > 0 ) {
+		missionp->events = (mevent *)malloc( sizeof(mevent) * Num_mission_events );
+		SDL_assert( missionp->events != NULL );
 	}
 
 	// copy the needed info from the Mission_goal struct to our internal structure
@@ -1348,10 +1348,10 @@ void mission_campaign_store_goals_and_events()
 			char name[NAME_LENGTH];
 
 			SDL_snprintf(name, SDL_arraysize(name), NOX("Event #%d"), i);
-			nprintf(("Warning", "Mission goal in mission %s must have a +Name field! using %s for campaign save file\n", mission->name, name));
-			SDL_strlcpy( mission->events[i].name, name, SDL_arraysize(mission->events[0].name));
+			nprintf(("Warning", "Mission goal in mission %s must have a +Name field! using %s for campaign save file\n", missionp->name, name));
+			SDL_strlcpy( missionp->events[i].name, name, SDL_arraysize(missionp->events[0].name));
 		} else
-			SDL_strlcpy( mission->events[i].name, Mission_events[i].name, SDL_arraysize(mission->events[0].name) );
+			SDL_strlcpy( missionp->events[i].name, Mission_events[i].name, SDL_arraysize(missionp->events[0].name) );
 
 		// getting status for the events is a little different.  If the formula value for the event entry
 		// is -1, then we know the value of the result field will never change.  If the formula is
@@ -1359,9 +1359,9 @@ void mission_campaign_store_goals_and_events()
 		// event evaluation
 		if ( Mission_events[i].formula == -1 ) {
 			if ( Mission_events[i].result )
-				mission->events[i].status = EVENT_SATISFIED;
+				missionp->events[i].status = EVENT_SATISFIED;
 			else
-				mission->events[i].status = EVENT_FAILED;
+				missionp->events[i].status = EVENT_FAILED;
 		} else
 			Int3();
 	}
@@ -1373,7 +1373,7 @@ void mission_campaign_store_goals_and_events()
 void mission_campaign_mission_over()
 {
 	int mission_num, i;
-	cmission *mission;
+	cmission *missionp;
 
 	// I don't think that we should have a record for these -- maybe we might??????  If we do,
 	// then we should free them
@@ -1383,7 +1383,7 @@ void mission_campaign_mission_over()
 
 	mission_num = Campaign.current_mission;
 	SDL_assert( mission_num != -1 );
-	mission = &Campaign.missions[mission_num];
+	missionp = &Campaign.missions[mission_num];
 
 	// determine if any ships/weapons were granted this mission
 	for ( i=0; i<Num_granted_ships; i++ ){
@@ -1399,9 +1399,9 @@ void mission_campaign_mission_over()
 	//	mission_campaign_eval_next_mission(1);
 
 	// update campaign.mission stats (used to allow backout inRedAlert)
-	memcpy( &mission->stats, &Player->stats, sizeof(Player->stats) );
+	memcpy( &missionp->stats, &Player->stats, sizeof(Player->stats) );
 	if(!(Game_mode & GM_MULTIPLAYER)){
-		scoring_backout_accept( &mission->stats );
+		scoring_backout_accept( &missionp->stats );
 	}
 
 	// if we are moving to a new mission, then change our data.  If we are staying on the same mission,
@@ -1422,13 +1422,13 @@ void mission_campaign_mission_over()
 	} else {
 		// free up the goals and events which were just malloced.  It's kind of like erasing any fact
 		// that the player played this mission in the campaign.
-		free( mission->goals );
-		mission->num_goals = 0;
+		free( missionp->goals );
+		missionp->num_goals = 0;
 
-		free( mission->events );
-		mission->num_events = 0;
+		free( missionp->events );
+		missionp->num_events = 0;
 
-		Sexp_nodes[mission->formula].value = SEXP_UNKNOWN;
+		Sexp_nodes[missionp->formula].value = SEXP_UNKNOWN;
 	}
 
 	SDL_assert(Player);
@@ -1687,7 +1687,7 @@ int mission_campaign_find_mission( const char *name )
 
 void mission_campaign_maybe_play_movie(int type)
 {
-	int mission;
+	int mission_idx;
 	char *filename;
 
 	// only support pre mission movies for now.
@@ -1696,15 +1696,15 @@ void mission_campaign_maybe_play_movie(int type)
 	if ( !(Game_mode & GM_CAMPAIGN_MODE) )
 		return;
 
-	mission = Campaign.current_mission;
-	SDL_assert( mission != -1 );
+	mission_idx = Campaign.current_mission;
+	SDL_assert( mission_idx != -1 );
 
 	// get a possible filename for a movie to play.
 	filename = NULL;
 	switch( type ) {
 	case CAMPAIGN_MOVIE_PRE_MISSION:
-		if ( SDL_strlen(Campaign.missions[mission].briefing_cutscene) )
-			filename = Campaign.missions[mission].briefing_cutscene;
+		if ( SDL_strlen(Campaign.missions[mission_idx].briefing_cutscene) )
+			filename = Campaign.missions[mission_idx].briefing_cutscene;
 		break;
 
 	default:

@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	}
 
 	try {
-		if ( launcher_run() ) {
+		if ( launcher_run(argptr) ) {
 			retr = game_main(argptr);
 		}
 	} catch(const std::exception &e) {

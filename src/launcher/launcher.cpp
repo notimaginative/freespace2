@@ -14,6 +14,7 @@
 #include "osregistry.h"
 #include "osapi.h"
 #include "bmpman.h"
+#include "version.h"
 
 #include <string>
 
@@ -43,6 +44,12 @@ static void launcher_close()
 	launcher_help_close();
 	launcher_setup_close();
 
+#ifdef MAKE_FS1
+	launcher_close_fs1();
+#else
+	launcher_close_fs2();
+#endif
+
 	if (Context) {
 		ImGui::SetCurrentContext(Context);
 		ImGui_ImplSDLRenderer3_Shutdown();
@@ -50,12 +57,6 @@ static void launcher_close()
 		ImGui::DestroyContext(Context);
 		Context = nullptr;
 	}
-
-#ifdef MAKE_FS1
-	launcher_close_fs1();
-#else
-	launcher_close_fs2();
-#endif
 
 	if (Background) {
 		SDL_DestroyTexture(Background);
@@ -80,6 +81,10 @@ static void launcher_close()
 
 static bool launcher_init()
 {
+	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMEPAD) ) {
+		return false;
+	}
+
 	const std::string title = Osreg_title + std::string(" Launcher");
 
 #ifdef MAKE_FS1
@@ -90,16 +95,9 @@ static bool launcher_init()
 	const int window_height = 440;
 #endif
 
-	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMEPAD) ) {
-		return false;
-	}
-
 	Uint32 window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
-	Window = SDL_CreateWindow(title.c_str(),
-								 window_width,
-								 window_height,
-								 window_flags);
+	Window = SDL_CreateWindow(title.c_str(), window_width, window_height, window_flags);
 
 	if ( !Window ) {
 		return false;
@@ -315,11 +313,32 @@ static bool launcher_do()
 	return rval;
 }
 
-bool launcher_run()
+bool launcher_run(const char *szCmdline)
 {
 	bool rval = false;
 
 	SDL_Delay(1000);
+
+	SDL_SetAppMetadata(Osreg_title, version_get_string_full(), Osreg_app_id);
+
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
+							   "Copyright (C) Volition, Inc. 1999.  All rights reserved.");
+
+	// do some first-run stuff if needed
+	if (os_config_read_uint(nullptr, "StraightToSetup", 1) == 1) {
+		// set some sane config defaults
+		os_init_registry_stuff();
+
+		// unset first-run flag
+		os_config_write_uint(nullptr, "StraightToSetup", 0);
+	}
+
+	// bypass launcher if the user doesn't want to see it
+	// NOTE: cmdline options haven't been parsed yet, so we can't check that way
+	if (szCmdline && SDL_strstr(szCmdline, "-skip_launcher")) {
+		return true;
+	}
 
 	if ( !launcher_init() ) {
 		launcher_close();

@@ -68,71 +68,19 @@ add_custom_command(
 		${DIST_DIR}/embed_root/data/interface/launch_fs2_volition.png
 		${DIST_DIR}/embed_root/data/interface/launch_fs2_volition1.png
 		${DIST_DIR}/embed_root/data/interface/launch_fs2_volition2.png
-		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.json
-		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/aabitmap.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.json
-		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/color_fog.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.glsl
-		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.json
-		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.msl
-		${DIST_DIR}/embed_root/data/shaders/color_fog.vert.spv
-		${DIST_DIR}/embed_root/data/shaders/color.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/color.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/color.frag.json
-		${DIST_DIR}/embed_root/data/shaders/color.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/color.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/color.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/color.vert.glsl
-		${DIST_DIR}/embed_root/data/shaders/color.vert.json
-		${DIST_DIR}/embed_root/data/shaders/color.vert.msl
-		${DIST_DIR}/embed_root/data/shaders/color.vert.spv
-		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.json
-		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/nondark_fog.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/nondark.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/nondark.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/nondark.frag.json
-		${DIST_DIR}/embed_root/data/shaders/nondark.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/nondark.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.json
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.json
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.msl
-		${DIST_DIR}/embed_root/data/shaders/tex_fog.vert.spv
-		${DIST_DIR}/embed_root/data/shaders/tex.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex.frag.json
-		${DIST_DIR}/embed_root/data/shaders/tex.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/tex.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/tex.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/tex.vert.glsl
-		${DIST_DIR}/embed_root/data/shaders/tex.vert.json
-		${DIST_DIR}/embed_root/data/shaders/tex.vert.msl
-		${DIST_DIR}/embed_root/data/shaders/tex.vert.spv
-		${DIST_DIR}/embed_root/data/shaders/window.frag.dxil
 		${DIST_DIR}/embed_root/data/shaders/window.frag.glsl
-		${DIST_DIR}/embed_root/data/shaders/window.frag.json
-		${DIST_DIR}/embed_root/data/shaders/window.frag.msl
-		${DIST_DIR}/embed_root/data/shaders/window.frag.spv
-		${DIST_DIR}/embed_root/data/shaders/window.vert.dxil
 		${DIST_DIR}/embed_root/data/shaders/window.vert.glsl
-		${DIST_DIR}/embed_root/data/shaders/window.vert.json
-		${DIST_DIR}/embed_root/data/shaders/window.vert.msl
-		${DIST_DIR}/embed_root/data/shaders/window.vert.spv
 		${DIST_DIR}/embed_root/data/sounds/launch_fs2_hover.wav
 		${DIST_DIR}/embed_root/data/sounds/launch_fs2_click.wav
 		${DIST_DIR}/embed_root/data/text/launch_help.txt

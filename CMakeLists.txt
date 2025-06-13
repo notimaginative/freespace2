@@ -10,13 +10,22 @@ endif()
 
 project(freespace2 LANGUAGES ${FS_LANGS})
 
+if(APPLE)
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
+
+if(WINDOWS)
+  # place dependency dlls in runtime directory on Windows
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
+endif()
+
 # we need c++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 
 include(CreateSourceGroups)
 

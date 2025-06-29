@@ -303,7 +303,7 @@ int ship_weapon_check_collision(object * ship_objp, object * weapon_obj, float t
 #ifndef NDEBUG
 	if (!(ship_objp->flags & OF_NO_SHIELDS) && New_shield_system && (pm->shield.ntris > 0)) {
 #else
-	if (!(ship_obj->flags & OF_NO_SHIELDS) &&  (pm->shield.ntris > 0)) {
+	if (!(ship_objp->flags & OF_NO_SHIELDS) &&  (pm->shield.ntris > 0)) {
 #endif
 
 		mc.flags = MC_CHECK_SHIELD;

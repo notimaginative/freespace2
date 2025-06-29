@@ -338,7 +338,7 @@ int ACM_convert_ADPCM_to_PCM(WAVE_chunk *pwfxSrc, ubyte *src, int src_len, ubyte
 		goto Fail;
 	}
 
-	SDL_zero(fmt);
+	SDL_zerop(fmt);
 
 	// wav header info (WAVE_chunk)
 	fmt->adpcm.wav.code = pwfxSrc->code;
@@ -441,7 +441,7 @@ int ACM_stream_open(WAVE_chunk *pwfxSrc, WAVE_chunk *pwfxDest, void **stream, in
 		goto Fail;
 	}
 
-	SDL_zero(fmt);
+	SDL_zerop(fmt);
 
 	// wav header info (WAVE_chunk)
 	fmt->adpcm.wav.code = pwfxSrc->code;

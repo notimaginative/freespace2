@@ -75,9 +75,6 @@ if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
-# use SDL's builtin GLES functions
-add_definitions(-DSDL_USE_BUILTIN_OPENGL_DEFINITIONS)
-
 if(APPLE)
   SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
   set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
@@ -133,12 +130,6 @@ set(APP_ID "org.icculus.freespace2.${FS_BINARY}")
 #
 
 include(FetchContent)
-
-#
-# OpenGL
-#
-
-find_package(OpenGL REQUIRED)
 
 #
 # SDL3

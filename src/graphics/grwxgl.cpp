@@ -8,6 +8,9 @@
 
 #ifndef __EMSCRIPTEN__
 
+#define SDL_OPENGL_1_NO_PROTOTYPES
+#define SDL_OPENGL_1_FUNCTION_TYPEDEFS
+
 #include <SDL3/SDL_opengl.h>
 
 #include "pstypes.h"
@@ -96,22 +99,22 @@ static void wxgl_init_func_pointers()
 
 static void wxgl_init()
 {
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_DITHER);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	glHint(GL_FOG_HINT, GL_NICEST);
+	GL_ctx.glShadeModel(GL_SMOOTH);
+	GL_ctx.glEnable(GL_DITHER);
+	GL_ctx.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	GL_ctx.glHint(GL_FOG_HINT, GL_NICEST);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	GL_ctx.glEnable(GL_DEPTH_TEST);
+	GL_ctx.glEnable(GL_BLEND);
 
-	glEnable(GL_TEXTURE_2D);
+	GL_ctx.glEnable(GL_TEXTURE_2D);
 
-	glDepthRange(0.0, 1.0);
+	GL_ctx.glDepthRange(0.0, 1.0);
 
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	GL_ctx.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	GL_ctx.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	glFlush();
+	GL_ctx.glFlush();
 
 	wxgl_init_func_pointers();
 	opengl_tcache_init();
@@ -123,7 +126,7 @@ static void wxgl_init()
 void gr_wxgl_flip()
 {
 #ifndef NDEBUG
-	GLenum error = glGetError();
+	GLenum error = GL_ctx.glGetError();
 
 	if (error != GL_NO_ERROR) {
 		mprintf(("!!DEBUG!! OpenGL Error: %d\n", error));
@@ -140,14 +143,14 @@ void gr_wxgl_set_viewport(int width, int height)
 	GL_viewport_scale_w = 1.0f;
 	GL_viewport_scale_h = 1.0f;
 
-	glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
+	GL_ctx.glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, GL_viewport_w, GL_viewport_h, 0, 0.0, 1.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
+	GL_ctx.glMatrixMode(GL_PROJECTION);
+	GL_ctx.glLoadIdentity();
+	GL_ctx.glOrtho(0, GL_viewport_w, GL_viewport_h, 0, 0.0, 1.0);
+	GL_ctx.glMatrixMode(GL_MODELVIEW);
+	GL_ctx.glLoadIdentity();
+	GL_ctx.glScalef(GL_viewport_scale_w, GL_viewport_scale_h, 1.0f);
 
 	// update gr_screen, which will deal with view scaling too
 	gr_screen.max_w = width;
@@ -170,9 +173,14 @@ void gr_wxgl_init()
 
 	mprintf(( "Setting up OpenGL for wxWidgets...\n" ));
 
+	// set GL function prototypes
+	if ( !opengl_init_prototypes() ) {
+		Error(LOCATION, "Failed to initialize OpenGL functions!\n");
+	}
+
 	OGL_inited = true;
 
-	const char *gl_version = (const char*)glGetString(GL_VERSION);
+	const char *gl_version = (const char*)GL_ctx.glGetString(GL_VERSION);
 	int v_major = 0, v_minor = 0;
 
 	sscanf(gl_version, "%d.%d", &v_major, &v_minor);
@@ -184,8 +192,8 @@ void gr_wxgl_init()
 		Error(LOCATION, "Minimum OpenGL version is 1.2!");
 	}
 
-	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
-	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
+	mprintf(("  Vendor   : %s\n", GL_ctx.glGetString(GL_VENDOR)));
+	mprintf(("  Renderer : %s\n", GL_ctx.glGetString(GL_RENDERER)));
 	mprintf(("  Version  : %s\n", gl_version));
 
 	// initial viewport setup

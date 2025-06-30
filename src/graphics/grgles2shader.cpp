@@ -6,6 +6,7 @@
  * the source.
  */
 
+#define SDL_USE_BUILTIN_OPENGL_DEFINITIONS
 #include <SDL3/SDL_opengles2.h>
 
 #include "pstypes.h"
@@ -30,33 +31,33 @@ static GLuint gles2_create_shader(const char *src, GLenum type)
 	GLuint sdr;
 	GLint compiled;
 
-	sdr = pglCreateShader(type);
+	sdr = GLES2_ctx.glCreateShader(type);
 
 	if ( !sdr ) {
 		return 0;
 	}
 
-	pglShaderSource(sdr, 1, &src, NULL);
+	GLES2_ctx.glShaderSource(sdr, 1, &src, NULL);
 
-	pglCompileShader(sdr);
+	GLES2_ctx.glCompileShader(sdr);
 
-	pglGetShaderiv(sdr, GL_COMPILE_STATUS, &compiled);
+	GLES2_ctx.glGetShaderiv(sdr, GL_COMPILE_STATUS, &compiled);
 
 	if ( !compiled ) {
 		GLint len = 0;
 
-		pglGetShaderiv(sdr, GL_INFO_LOG_LENGTH, &len);
+		GLES2_ctx.glGetShaderiv(sdr, GL_INFO_LOG_LENGTH, &len);
 
 		if (len > 1) {
 			char *log = (char *) malloc(sizeof(char) * len);
 
-			pglGetShaderInfoLog(sdr, len, NULL, log);
+			GLES2_ctx.glGetShaderInfoLog(sdr, len, NULL, log);
 			nprintf(("OpenGL", "Error compiling shader:\n%s\n", log));
 
 			free(log);
 		}
 
-		pglDeleteShader(sdr);
+		GLES2_ctx.glDeleteShader(sdr);
 
 		return 0;
 	}
@@ -100,39 +101,39 @@ static GLuint gles2_create_program(GLuint vert, GLuint frag)
 	GLuint program;
 	GLint linked;
 
-	program = pglCreateProgram();
+	program = GLES2_ctx.glCreateProgram();
 
 	if ( !program ) {
 		throw "Shader program creation failed!";
 	}
 
-	pglAttachShader(program, vert);
-	pglAttachShader(program, frag);
+	GLES2_ctx.glAttachShader(program, vert);
+	GLES2_ctx.glAttachShader(program, frag);
 
-	pglBindAttribLocation(program, SDRI_POSITION, "vPosition");
-	pglBindAttribLocation(program, SDRI_COLOR, "vColor");
-	pglBindAttribLocation(program, SDRI_SEC_COLOR, "vSecColor");
-	pglBindAttribLocation(program, SDRI_TEXCOORD, "vTexCoord");
+	GLES2_ctx.glBindAttribLocation(program, SDRI_POSITION, "vPosition");
+	GLES2_ctx.glBindAttribLocation(program, SDRI_COLOR, "vColor");
+	GLES2_ctx.glBindAttribLocation(program, SDRI_SEC_COLOR, "vSecColor");
+	GLES2_ctx.glBindAttribLocation(program, SDRI_TEXCOORD, "vTexCoord");
 
-	pglLinkProgram(program);
+	GLES2_ctx.glLinkProgram(program);
 
-	pglGetProgramiv(program, GL_LINK_STATUS, &linked);
+	GLES2_ctx.glGetProgramiv(program, GL_LINK_STATUS, &linked);
 
 	if ( !linked ) {
 		GLint len = 0;
 
-		pglGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+		GLES2_ctx.glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
 
 		if (len > 1) {
 			char *log = (char *) malloc(sizeof(char) * len);
 
-			pglGetProgramInfoLog(program, len, NULL, log);
+			GLES2_ctx.glGetProgramInfoLog(program, len, NULL, log);
 			nprintf(("OpenGL", "Error linking program:\n%s\n", log));
 
 			free(log);
 		}
 
-		pglDeleteProgram(program);
+		GLES2_ctx.glDeleteProgram(program);
 
 		throw "Shader program linking failed!";
 	}
@@ -150,35 +151,35 @@ void gles2_shader_use(sdr_prog_t prog)
 
 	switch (prog) {
 		case PROG_TEX:
-			pglUseProgram(tex_prog);
+			GLES2_ctx.glUseProgram(tex_prog);
 			break;
 
 		case PROG_NONDARK:
-			pglUseProgram(nondark_prog);
+			GLES2_ctx.glUseProgram(nondark_prog);
 			break;
 
 		case PROG_AABITMAP:
-			pglUseProgram(aabitmap_prog);
+			GLES2_ctx.glUseProgram(aabitmap_prog);
 			break;
 
 		case PROG_COLOR:
-			pglUseProgram(color_prog);
+			GLES2_ctx.glUseProgram(color_prog);
 			break;
 
 		case PROG_WINDOW:
-			pglUseProgram(window_prog);
+			GLES2_ctx.glUseProgram(window_prog);
 			break;
 
 		case PROG_TEX_FOG:
-			pglUseProgram(fog_tex_prog);
+			GLES2_ctx.glUseProgram(fog_tex_prog);
 			break;
 
 		case PROG_NONDARK_FOG:
-			pglUseProgram(fog_nondark_prog);
+			GLES2_ctx.glUseProgram(fog_nondark_prog);
 			break;
 
 		case PROG_COLOR_FOG:
-			pglUseProgram(fog_color_prog);
+			GLES2_ctx.glUseProgram(fog_color_prog);
 			break;
 
 		default:
@@ -208,8 +209,8 @@ void gles2_shader_update(int width, int height)
 	ortho[15] = 1.0f;
 
 	gles2_shader_use(PROG_WINDOW);
-	GLint loc = pglGetUniformLocation(window_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	GLint loc = GLES2_ctx.glGetUniformLocation(window_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 }
 
 int gles2_shader_init()
@@ -263,32 +264,32 @@ int gles2_shader_init()
 	GLint loc;
 
 	gles2_shader_use(PROG_COLOR_FOG);
-	loc = pglGetUniformLocation(fog_color_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(fog_color_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_COLOR);
-	loc = pglGetUniformLocation(color_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(color_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_TEX_FOG);
-	loc = pglGetUniformLocation(fog_tex_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(fog_tex_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_AABITMAP);
-	loc = pglGetUniformLocation(aabitmap_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(aabitmap_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_TEX);
-	loc = pglGetUniformLocation(tex_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(tex_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_NONDARK);
-	loc = pglGetUniformLocation(nondark_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(nondark_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_use(PROG_NONDARK_FOG);
-	loc = pglGetUniformLocation(fog_nondark_prog, "vOrtho");
-	pglUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
+	loc = GLES2_ctx.glGetUniformLocation(fog_nondark_prog, "vOrtho");
+	GLES2_ctx.glUniformMatrix4fv(loc, 1, GL_FALSE, ortho);
 
 	gles2_shader_update();
 
@@ -298,42 +299,42 @@ int gles2_shader_init()
 void gles2_shader_cleanup()
 {
 	if (tex_prog) {
-		pglDeleteProgram(tex_prog);
+		GLES2_ctx.glDeleteProgram(tex_prog);
 		tex_prog = 0;
 	}
 
 	if (fog_tex_prog) {
-		pglDeleteProgram(fog_tex_prog);
+		GLES2_ctx.glDeleteProgram(fog_tex_prog);
 		fog_tex_prog = 0;
 	}
 
 	if (aabitmap_prog) {
-		pglDeleteProgram(aabitmap_prog);
+		GLES2_ctx.glDeleteProgram(aabitmap_prog);
 		aabitmap_prog = 0;
 	}
 
 	if (color_prog) {
-		pglDeleteProgram(color_prog);
+		GLES2_ctx.glDeleteProgram(color_prog);
 		color_prog = 0;
 	}
 
 	if (fog_color_prog) {
-		pglDeleteProgram(fog_color_prog);
+		GLES2_ctx.glDeleteProgram(fog_color_prog);
 		fog_color_prog = 0;
 	}
 
 	if (window_prog) {
-		pglDeleteProgram(window_prog);
+		GLES2_ctx.glDeleteProgram(window_prog);
 		window_prog = 0;
 	}
 
 	if (nondark_prog) {
-		pglDeleteProgram(nondark_prog);
+		GLES2_ctx.glDeleteProgram(nondark_prog);
 		nondark_prog = 0;
 	}
 
 	if (fog_nondark_prog) {
-		pglDeleteProgram(fog_nondark_prog);
+		GLES2_ctx.glDeleteProgram(fog_nondark_prog);
 		fog_nondark_prog = 0;
 	}
 }

@@ -6,6 +6,7 @@
  * the source.
  */
 
+#define SDL_USE_BUILTIN_OPENGL_DEFINITIONS
 #include <SDL3/SDL_opengles2.h>
 
 #include "grgles2.h"
@@ -37,6 +38,8 @@ static GLuint GL_stream_tex = 0;
 static int GLES2_activate = 0;
 static int GLES2_deactivate = 0;
 
+GLES2_func_context GLES2_ctx;
+
 int GLES2_viewport_x = 0;
 int GLES2_viewport_y = 0;
 int GLES2_viewport_w = 640;
@@ -48,41 +51,6 @@ int GLES2_max_texture_width = 0;
 int GLES2_min_texture_height = 0;
 int GLES2_max_texture_height = 0;
 
-// GLES2 function prototypes
-PFNGLBINDBUFFERPROC pglBindFramebuffer = nullptr;
-PFNGLBINDRENDERBUFFERPROC pglBindRenderbuffer = nullptr;
-PFNGLBLENDFUNCSEPARATEPROC pglBlendFuncSeparate = nullptr;
-PFNGLCHECKFRAMEBUFFERSTATUSPROC pglCheckFramebufferStatus = nullptr;
-PFNGLDELETEFRAMEBUFFERSPROC pglDeleteFramebuffers = nullptr;
-PFNGLDELETERENDERBUFFERSPROC pglDeleteRenderbuffers = nullptr;
-PFNGLDEPTHRANGEFPROC pglDepthRangef = nullptr;
-PFNGLDISABLEVERTEXATTRIBARRAYPROC pglDisableVertexAttribArray = nullptr;
-PFNGLENABLEVERTEXATTRIBARRAYPROC pglEnableVertexAttribArray = nullptr;
-PFNGLFRAMEBUFFERRENDERBUFFERPROC pglFramebufferRenderbuffer = nullptr;
-PFNGLFRAMEBUFFERTEXTURE2DPROC pglFramebufferTexture2D = nullptr;
-PFNGLGENFRAMEBUFFERSPROC pglGenFramebuffers = nullptr;
-PFNGLGENRENDERBUFFERSPROC pglGenRenderbuffers = nullptr;
-PFNGLRENDERBUFFERSTORAGEPROC pglRenderbufferStorage = nullptr;
-PFNGLVERTEXATTRIB4FPROC pglVertexAttrib4f = nullptr;
-PFNGLVERTEXATTRIBPOINTERPROC pglVertexAttribPointer = nullptr;
-PFNGLGENERATEMIPMAPPROC pglGenerateMipmap = nullptr;
-PFNGLATTACHSHADERPROC pglAttachShader = nullptr;
-PFNGLBINDATTRIBLOCATIONPROC pglBindAttribLocation = nullptr;
-PFNGLCOMPILESHADERPROC pglCompileShader = nullptr;
-PFNGLCREATEPROGRAMPROC pglCreateProgram = nullptr;
-PFNGLCREATESHADERPROC pglCreateShader = nullptr;
-PFNGLDELETEPROGRAMPROC pglDeleteProgram = nullptr;
-PFNGLDELETESHADERPROC pglDeleteShader = nullptr;
-PFNGLGETPROGRAMIVPROC pglGetProgramiv = nullptr;
-PFNGLGETPROGRAMINFOLOGPROC pglGetProgramInfoLog = nullptr;
-PFNGLGETSHADERIVPROC pglGetShaderiv = nullptr;
-PFNGLGETSHADERINFOLOGPROC pglGetShaderInfoLog = nullptr;
-PFNGLGETUNIFORMLOCATIONPROC pglGetUniformLocation = nullptr;
-PFNGLLINKPROGRAMPROC pglLinkProgram = nullptr;
-PFNGLSHADERSOURCEPROC pglShaderSource = nullptr;
-PFNGLUNIFORMMATRIX4FVPROC pglUniformMatrix4fv = nullptr;
-PFNGLUSEPROGRAMPROC pglUseProgram = nullptr;
-
 static gr_alpha_blend GL_current_alpha_blend = (gr_alpha_blend) -1;
 static gr_zbuffer_type GL_current_zbuffer_type = (gr_zbuffer_type) -1;
 
@@ -93,19 +61,19 @@ void gles2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt
 	if (ab != GL_current_alpha_blend) {
 		switch (ab) {
 			case ALPHA_BLEND_NONE:			// 1*SrcPixel + 0*DestPixel
-				glBlendFunc(GL_ONE, GL_ZERO);
+				GLES2_ctx.glBlendFunc(GL_ONE, GL_ZERO);
 				break;
 			case ALPHA_BLEND_ADDITIVE:		// 1*SrcPixel + 1*DestPixel
-				glBlendFunc(GL_ONE, GL_ONE);
+				GLES2_ctx.glBlendFunc(GL_ONE, GL_ONE);
 				break;
 			case ALPHA_BLEND_ALPHA_ADDITIVE:	// Alpha*SrcPixel + 1*DestPixel
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				GLES2_ctx.glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				break;
 			case ALPHA_BLEND_ALPHA_BLEND_ALPHA:	// Alpha*SrcPixel + (1-Alpha)*DestPixel
-				pglBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				GLES2_ctx.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				break;
 			case ALPHA_BLEND_ALPHA_BLEND_SRC_COLOR:	// Alpha*SrcPixel + (1-SrcPixel)*DestPixel
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
+				GLES2_ctx.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
 				break;
 			default:
 				break;
@@ -117,20 +85,20 @@ void gles2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt
 	if (zt != GL_current_zbuffer_type) {
 		switch (zt) {
 			case ZBUFFER_TYPE_NONE:
-				glDepthFunc(GL_ALWAYS);
-				glDepthMask(GL_FALSE);
+				GLES2_ctx.glDepthFunc(GL_ALWAYS);
+				GLES2_ctx.glDepthMask(GL_FALSE);
 				break;
 			case ZBUFFER_TYPE_READ:
-				glDepthFunc(GL_LESS);
-				glDepthMask(GL_FALSE);
+				GLES2_ctx.glDepthFunc(GL_LESS);
+				GLES2_ctx.glDepthMask(GL_FALSE);
 				break;
 			case ZBUFFER_TYPE_WRITE:
-				glDepthFunc(GL_ALWAYS);
-				glDepthMask(GL_TRUE);
+				GLES2_ctx.glDepthFunc(GL_ALWAYS);
+				GLES2_ctx.glDepthMask(GL_TRUE);
 				break;
 			case ZBUFFER_TYPE_FULL:
-				glDepthFunc(GL_LESS);
-				glDepthMask(GL_TRUE);
+				GLES2_ctx.glDepthFunc(GL_LESS);
+				GLES2_ctx.glDepthMask(GL_TRUE);
 				break;
 			default:
 				break;
@@ -145,7 +113,7 @@ static bool gles2_set_variables()
 	GLES2_min_texture_height = 16;
 	GLES2_min_texture_width = 16;
 
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GLES2_max_texture_width);
+	GLES2_ctx.glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GLES2_max_texture_width);
 	GLES2_max_texture_height = GLES2_max_texture_width;
 
 	gr_screen.use_sections = 0;
@@ -158,51 +126,51 @@ static bool gles2_set_variables()
 static int gles2_create_framebuffer()
 {
 	// create texture
-	glGenTextures(1, &FB_texture);
-	glBindTexture(GL_TEXTURE_2D, FB_texture);
+	GLES2_ctx.glGenTextures(1, &FB_texture);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, FB_texture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gr_screen.max_w, gr_screen.max_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gr_screen.max_w, gr_screen.max_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
 	// create renderbuffer
-	pglGenRenderbuffers(1, &FB_rb_id);
-	pglBindRenderbuffer(GL_RENDERBUFFER, FB_rb_id);
+	GLES2_ctx.glGenRenderbuffers(1, &FB_rb_id);
+	GLES2_ctx.glBindRenderbuffer(GL_RENDERBUFFER, FB_rb_id);
 
-	pglRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
+	GLES2_ctx.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
 
-	pglBindRenderbuffer(GL_RENDERBUFFER, 0);
+	GLES2_ctx.glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// create framebuffer
-	pglGenFramebuffers(1, &FB_id);
-	pglBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+	GLES2_ctx.glGenFramebuffers(1, &FB_id);
+	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
 
 	// attach texture and renderbuffer
-	pglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FB_texture, 0);
-	pglFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, FB_rb_id);
+	GLES2_ctx.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FB_texture, 0);
+	GLES2_ctx.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, FB_rb_id);
 
-	GLenum status = pglCheckFramebufferStatus(GL_FRAMEBUFFER);
+	GLenum status = GLES2_ctx.glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-	pglBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		if (FB_texture) {
-			glDeleteTextures(1, &FB_texture);
+			GLES2_ctx.glDeleteTextures(1, &FB_texture);
 			FB_texture = 0;
 		}
 
 		if (FB_rb_id) {
-			pglDeleteRenderbuffers(1, &FB_rb_id);
+			GLES2_ctx.glDeleteRenderbuffers(1, &FB_rb_id);
 			FB_rb_id = 0;
 		}
 
 		if (FB_id) {
-			pglDeleteFramebuffers(1, &FB_id);
+			GLES2_ctx.glDeleteFramebuffers(1, &FB_id);
 			FB_id = 0;
 		}
 
@@ -286,46 +254,72 @@ static bool gles2_init_prototypes()
 {
 	#define GET_PROC(type, func)	\
 		do {	\
-			p##func = reinterpret_cast<type>(SDL_GL_GetProcAddress(#func));	\
-			if ( !(p##func) ) {	\
+			GLES2_ctx.func = reinterpret_cast<type>(SDL_GL_GetProcAddress(#func));	\
+			if ( !(GLES2_ctx.func) ) {	\
 				mprintf(("  Couldn't load GLES2 function %s: %s", #func, SDL_GetError()));	\
 				return false;	\
 			}	\
 		} while(false);
-	
-	GET_PROC(PFNGLBINDBUFFERPROC, glBindFramebuffer)
-	GET_PROC(PFNGLBINDRENDERBUFFERPROC, glBindRenderbuffer)
-	GET_PROC(PFNGLBLENDFUNCSEPARATEPROC, glBlendFuncSeparate)
-	GET_PROC(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus)
-	GET_PROC(PFNGLDELETEFRAMEBUFFERSPROC, glDeleteFramebuffers)
-	GET_PROC(PFNGLDELETERENDERBUFFERSPROC, glDeleteRenderbuffers)
-	GET_PROC(PFNGLDEPTHRANGEFPROC, glDepthRangef)
-	GET_PROC(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glDisableVertexAttribArray)
-	GET_PROC(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)
-	GET_PROC(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glFramebufferRenderbuffer)
-	GET_PROC(PFNGLFRAMEBUFFERTEXTURE2DPROC, glFramebufferTexture2D)
-	GET_PROC(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers)
-	GET_PROC(PFNGLGENRENDERBUFFERSPROC, glGenRenderbuffers)
-	GET_PROC(PFNGLRENDERBUFFERSTORAGEPROC, glRenderbufferStorage)
-	GET_PROC(PFNGLVERTEXATTRIB4FPROC, glVertexAttrib4f)
-	GET_PROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer)
-	GET_PROC(PFNGLGENERATEMIPMAPPROC, glGenerateMipmap)
+
+
 	GET_PROC(PFNGLATTACHSHADERPROC, glAttachShader)
 	GET_PROC(PFNGLBINDATTRIBLOCATIONPROC, glBindAttribLocation)
+	GET_PROC(PFNGLBINDBUFFERPROC, glBindFramebuffer)
+	GET_PROC(PFNGLBINDRENDERBUFFERPROC, glBindRenderbuffer)
+	GET_PROC(PFNGLBINDTEXTUREPROC, glBindTexture)
+	GET_PROC(PFNGLBLENDFUNCPROC, glBlendFunc);
+	GET_PROC(PFNGLBLENDFUNCSEPARATEPROC, glBlendFuncSeparate)
+	GET_PROC(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus)
+	GET_PROC(PFNGLCLEARCOLORPROC, glClearColor)
+	GET_PROC(PFNGLCLEARPROC, glClear)
 	GET_PROC(PFNGLCOMPILESHADERPROC, glCompileShader)
+	GET_PROC(PFNGLCOPYTEXIMAGE2DPROC, glCopyTexImage2D)
 	GET_PROC(PFNGLCREATEPROGRAMPROC, glCreateProgram)
 	GET_PROC(PFNGLCREATESHADERPROC, glCreateShader)
+	GET_PROC(PFNGLDELETEFRAMEBUFFERSPROC, glDeleteFramebuffers)
 	GET_PROC(PFNGLDELETEPROGRAMPROC, glDeleteProgram)
+	GET_PROC(PFNGLDELETERENDERBUFFERSPROC, glDeleteRenderbuffers)
 	GET_PROC(PFNGLDELETESHADERPROC, glDeleteShader)
-	GET_PROC(PFNGLGETPROGRAMIVPROC, glGetProgramiv)
+	GET_PROC(PFNGLDELETETEXTURESPROC, glDeleteTextures)
+	GET_PROC(PFNGLDEPTHFUNCPROC, glDepthFunc);
+	GET_PROC(PFNGLDEPTHMASKPROC, glDepthMask);
+	GET_PROC(PFNGLDEPTHRANGEFPROC, glDepthRangef)
+	GET_PROC(PFNGLDISABLEPROC, glDisable)
+	GET_PROC(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glDisableVertexAttribArray)
+	GET_PROC(PFNGLDRAWARRAYSPROC, glDrawArrays)
+	GET_PROC(PFNGLENABLEPROC, glEnable)
+	GET_PROC(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)
+	GET_PROC(PFNGLFLUSHPROC, glFlush)
+	GET_PROC(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glFramebufferRenderbuffer)
+	GET_PROC(PFNGLFRAMEBUFFERTEXTURE2DPROC, glFramebufferTexture2D)
+	GET_PROC(PFNGLFRONTFACEPROC, glFrontFace)
+	GET_PROC(PFNGLGENERATEMIPMAPPROC, glGenerateMipmap)
+	GET_PROC(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers)
+	GET_PROC(PFNGLGENRENDERBUFFERSPROC, glGenRenderbuffers)
+	GET_PROC(PFNGLGENTEXTURESPROC, glGenTextures)
+	GET_PROC(PFNGLGETERRORPROC, glGetError)
+	GET_PROC(PFNGLGETINTEGERVPROC, glGetIntegerv)
 	GET_PROC(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)
-	GET_PROC(PFNGLGETSHADERIVPROC, glGetShaderiv)
+	GET_PROC(PFNGLGETPROGRAMIVPROC, glGetProgramiv)
 	GET_PROC(PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog)
+	GET_PROC(PFNGLGETSHADERIVPROC, glGetShaderiv)
+	GET_PROC(PFNGLGETSTRINGPROC, glGetString)
 	GET_PROC(PFNGLGETUNIFORMLOCATIONPROC, glGetUniformLocation)
 	GET_PROC(PFNGLLINKPROGRAMPROC, glLinkProgram)
+	GET_PROC(PFNGLPIXELSTOREIPROC, glPixelStorei)
+	GET_PROC(PFNGLPOLYGONOFFSETPROC, glPolygonOffset)
+	GET_PROC(PFNGLREADPIXELSPROC, glReadPixels)
+	GET_PROC(PFNGLRENDERBUFFERSTORAGEPROC, glRenderbufferStorage)
+	GET_PROC(PFNGLSCISSORPROC, glScissor)
 	GET_PROC(PFNGLSHADERSOURCEPROC, glShaderSource)
+	GET_PROC(PFNGLTEXIMAGE2DPROC, glTexImage2D)
+	GET_PROC(PFNGLTEXPARAMETERIPROC, glTexParameteri)
+	GET_PROC(PFNGLTEXSUBIMAGE2DPROC, glTexSubImage2D)
 	GET_PROC(PFNGLUNIFORMMATRIX4FVPROC, glUniformMatrix4fv)
 	GET_PROC(PFNGLUSEPROGRAMPROC, glUseProgram)
+	GET_PROC(PFNGLVERTEXATTRIB4FPROC, glVertexAttrib4f)
+	GET_PROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer)
+	GET_PROC(PFNGLVIEWPORTPROC, glViewport)
 
 	return true;
 }
@@ -341,7 +335,7 @@ void gr_gles2_reset_clip()
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
 
-	glDisable(GL_SCISSOR_TEST);
+	GLES2_ctx.glDisable(GL_SCISSOR_TEST);
 }
 
 uint gr_gles2_lock()
@@ -355,31 +349,31 @@ void gr_gles2_unlock()
 
 void gr_gles2_clear()
 {
-	glClearColor(gr_screen.current_clear_color.red / 255.0f,
+	GLES2_ctx.glClearColor(gr_screen.current_clear_color.red / 255.0f,
 		gr_screen.current_clear_color.green / 255.0f,
 		gr_screen.current_clear_color.blue / 255.0f, 1.0f);
 
-	glClear( GL_COLOR_BUFFER_BIT );
+	GLES2_ctx.glClear( GL_COLOR_BUFFER_BIT );
 }
 
 
 void gr_gles2_zbias(int bias)
 {
 	if (bias) {
-		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0.0f, GLfloat(-bias));
+		GLES2_ctx.glEnable(GL_POLYGON_OFFSET_FILL);
+		GLES2_ctx.glPolygonOffset(0.0f, GLfloat(-bias));
 	} else {
-		glDisable(GL_POLYGON_OFFSET_FILL);
+		GLES2_ctx.glDisable(GL_POLYGON_OFFSET_FILL);
 	}
 }
 
 void gr_gles2_set_cull(int cull)
 {
 	if (cull) {
-		glEnable (GL_CULL_FACE);
-		glFrontFace (GL_CCW);
+		GLES2_ctx.glEnable (GL_CULL_FACE);
+		GLES2_ctx.glFrontFace (GL_CCW);
 	} else {
-		glDisable (GL_CULL_FACE);
+		GLES2_ctx.glDisable (GL_CULL_FACE);
 	}
 }
 
@@ -398,22 +392,22 @@ void gr_gles2_cleanup()
 		return;
 	}
 
-	if (GLES2_window && pglBindFramebuffer) {
-		pglBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (GLES2_window && GLES2_ctx.glBindFramebuffer) {
+		GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	if (FB_texture) {
-		glDeleteTextures(1, &FB_texture);
+		GLES2_ctx.glDeleteTextures(1, &FB_texture);
 		FB_texture = 0;
 	}
 
 	if (FB_rb_id) {
-		pglDeleteRenderbuffers(1, &FB_rb_id);
+		GLES2_ctx.glDeleteRenderbuffers(1, &FB_rb_id);
 		FB_rb_id = 0;
 	}
 
 	if (FB_id) {
-		pglDeleteFramebuffers(1, &FB_id);
+		GLES2_ctx.glDeleteFramebuffers(1, &FB_id);
 		FB_id = 0;
 	}
 
@@ -495,10 +489,6 @@ void gr_gles2_init()
 		return;
 	}
 
-	mprintf(("  Vendor   : %s\n", glGetString(GL_VENDOR)));
-	mprintf(("  Renderer : %s\n", glGetString(GL_RENDERER)));
-	mprintf(("  Version  : %s\n", glGetString(GL_VERSION)));
-
 	// first thing after context is ready, init gles2 function prototypes
 	if ( !gles2_init_prototypes() ) {
 		mprintf(("  Restarting graphics in safe mode...\n"));
@@ -512,6 +502,10 @@ void gr_gles2_init()
 		gr_init(true);	// will call _cleanup() for us
 		return;
 	}
+
+	mprintf(("  Vendor   : %s\n", GLES2_ctx.glGetString(GL_VENDOR)));
+	mprintf(("  Renderer : %s\n", GLES2_ctx.glGetString(GL_RENDERER)));
+	mprintf(("  Version  : %s\n", GLES2_ctx.glGetString(GL_VERSION)));
 
 	// initial viewport setup
 	gr_gles2_set_viewport(gr_screen.max_w, gr_screen.max_h);
@@ -530,17 +524,17 @@ void gr_gles2_init()
 		Error(LOCATION, "GLES2 framebuffer init failure!");
 	}
 
-	glEnable(GL_DITHER);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
+	GLES2_ctx.glEnable(GL_DITHER);
+	GLES2_ctx.glEnable(GL_DEPTH_TEST);
+	GLES2_ctx.glEnable(GL_BLEND);
+	GLES2_ctx.glEnable(GL_TEXTURE_2D);
 
-	pglDepthRangef(0.0f, 1.0f);
+	GLES2_ctx.glDepthRangef(0.0f, 1.0f);
 
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	GLES2_ctx.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	GLES2_ctx.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	glFlush();
+	GLES2_ctx.glFlush();
 
 	gr_gles2_clear();
 	gr_gles2_set_cull(1);
@@ -688,14 +682,14 @@ void gr_gles2_flip()
 		return;
 	}
 
-	pglBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	gr_gles2_reset_clip();
 
 	// set viewport to window size
-	glViewport(GLES2_viewport_x, GLES2_viewport_y, GLES2_viewport_w, GLES2_viewport_h);
+	GLES2_ctx.glViewport(GLES2_viewport_x, GLES2_viewport_y, GLES2_viewport_w, GLES2_viewport_h);
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	GLES2_ctx.glClear(GL_COLOR_BUFFER_BIT);
 
 	{
 		float x = 0.0f;
@@ -708,26 +702,26 @@ void gr_gles2_flip()
 
 		gles2_shader_use(PROG_WINDOW);
 
-		pglEnableVertexAttribArray(SDRI_POSITION);
-		pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+		GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
+		GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
 
-		pglEnableVertexAttribArray(SDRI_TEXCOORD);
-		pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+		GLES2_ctx.glEnableVertexAttribArray(SDRI_TEXCOORD);
+		GLES2_ctx.glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
 
-		glBindTexture(GL_TEXTURE_2D, FB_texture);
+		GLES2_ctx.glBindTexture(GL_TEXTURE_2D, FB_texture);
 
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		GLES2_ctx.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
-		pglDisableVertexAttribArray(SDRI_TEXCOORD);
-		pglDisableVertexAttribArray(SDRI_POSITION);
+		GLES2_ctx.glDisableVertexAttribArray(SDRI_TEXCOORD);
+		GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);
 	}
 
 	mouse_eval_deltas();
 
 #ifndef NDEBUG
-	GLenum error = glGetError();
+	GLenum error = GLES2_ctx.glGetError();
 
 	if (error != GL_NO_ERROR) {
 		mprintf(("!!DEBUG!! OpenGL Error: %d\n", error));
@@ -738,10 +732,10 @@ void gr_gles2_flip()
 
 	gles2_tcache_frame();
 
-	pglBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
 
 	// set viewport to game screen size
-	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+	GLES2_ctx.glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 }
 
 void gr_gles2_set_clip(int x, int y, int w, int h)
@@ -761,8 +755,8 @@ void gr_gles2_set_clip(int x, int y, int w, int h)
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
 
-	glEnable(GL_SCISSOR_TEST);
-	glScissor(x, gr_screen.max_h-y-h, w, h);
+	GLES2_ctx.glEnable(GL_SCISSOR_TEST);
+	GLES2_ctx.glScissor(x, gr_screen.max_h-y-h, w, h);
 }
 
 void gr_gles2_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
@@ -787,7 +781,7 @@ void gr_gles2_zbuffer_clear(int mode)
 		Gr_global_zbuffering = 1;
 
 		gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_NONE, ZBUFFER_TYPE_FULL);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		GLES2_ctx.glClear(GL_DEPTH_BUFFER_BIT);
 	} else {
 		Gr_zbuffering = 0;
 		Gr_zbuffering_mode = GR_ZBUFF_NONE;
@@ -834,7 +828,7 @@ void gr_gles2_print_screen(const char *filename)
 
 	memset(buf, 0, b_size * 4);
 
-	glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	GLES2_ctx.glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_RGBA, GL_UNSIGNED_BYTE, buf);
 
 	int b_offset = 0;
 
@@ -870,7 +864,7 @@ void gr_gles2_get_region(int, int w, int h, ubyte *data)
 {
 	gles2_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
 
-	glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	GLES2_ctx.glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 int gr_gles2_save_screen()
@@ -882,24 +876,24 @@ int gr_gles2_save_screen()
 		return -1;
 	}
 
-	glGenTextures(1, &GL_saved_screen_tex);
+	GLES2_ctx.glGenTextures(1, &GL_saved_screen_tex);
 
 	if ( !GL_saved_screen_tex ) {
 		mprintf(( "Couldn't create texture for saved screen!\n" ));
 		return -1;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
-			gr_screen.max_w, gr_screen.max_h, 0);
+	GLES2_ctx.glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
+							   gr_screen.max_w, gr_screen.max_h, 0);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
 	return 0;
 }
@@ -923,28 +917,28 @@ void gr_gles2_restore_screen(int)
 
 	gles2_shader_use(PROG_TEX);
 
-	pglVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+	GLES2_ctx.glVertexAttrib4f(SDRI_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
 
-	pglEnableVertexAttribArray(SDRI_POSITION);
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
+	GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
+	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, 0, &ver_coord);
 
-	pglEnableVertexAttribArray(SDRI_TEXCOORD);
-	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
+	GLES2_ctx.glEnableVertexAttribArray(SDRI_TEXCOORD);
+	GLES2_ctx.glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 0, &tex_coord);
 
-	glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, GL_saved_screen_tex);
 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	GLES2_ctx.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
-	pglDisableVertexAttribArray(SDRI_TEXCOORD);
-	pglDisableVertexAttribArray(SDRI_POSITION);
+	GLES2_ctx.glDisableVertexAttribArray(SDRI_TEXCOORD);
+	GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);
 }
 
 void gr_gles2_free_screen(int)
 {
 	if (GL_saved_screen_tex) {
-		glDeleteTextures(1, &GL_saved_screen_tex);
+		GLES2_ctx.glDeleteTextures(1, &GL_saved_screen_tex);
 		GL_saved_screen_tex = 0;
 	}
 }
@@ -984,11 +978,9 @@ static void gles2_stream_set_viewport()
 		w = fl2i((window_h * ratio) + 0.5f);
 	}
 
-	glViewport((window_w - w) / 2,
-			   (window_h - h) / 2,
-			   w,
-			   h
-	);
+	GLES2_ctx.glViewport((window_w - w) / 2,
+						 (window_h - h) / 2,
+						 w, h);
 
 	// set quad to entire window and let viewport fix aspect ratio
 	GL_stream[0].x = 0.0f;
@@ -1012,8 +1004,6 @@ static void gles2_stream_set_viewport()
 	GL_stream[3].v = 1.0f;
 
 	gles2_shader_update(window_w, window_h);
-
-	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void gr_gles2_stream_start(int x, int y, int w, int h)
@@ -1023,32 +1013,32 @@ void gr_gles2_stream_start(int x, int y, int w, int h)
 	}
 
 	// render directly so we can make use of entire window size more easily
-	pglBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	gr_gles2_reset_clip();
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	GLES2_ctx.glClear(GL_COLOR_BUFFER_BIT);
 
-	glGenTextures(1, &GL_stream_tex);
+	GLES2_ctx.glGenTextures(1, &GL_stream_tex);
 
-	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB,
-				 GL_UNSIGNED_SHORT_5_6_5, NULL);
+	GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB,
+						   GL_UNSIGNED_SHORT_5_6_5, nullptr);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
 	GL_stream_w = w;
 	GL_stream_h = h;
 
 	gles2_stream_set_viewport();
 
-	glDisable(GL_DEPTH_TEST);
+	GLES2_ctx.glDisable(GL_DEPTH_TEST);
 }
 
 void gr_gles2_stream_frame(const SDL_Surface *frame)
@@ -1057,25 +1047,27 @@ void gr_gles2_stream_frame(const SDL_Surface *frame)
 		return;
 	}
 
+	GLES2_ctx.glClear(GL_COLOR_BUFFER_BIT);
+
 	gles2_shader_use(PROG_WINDOW);
 
-	pglEnableVertexAttribArray(SDRI_POSITION);
-	pglVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].x);
+	GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
+	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].x);
 
-	pglEnableVertexAttribArray(SDRI_TEXCOORD);
-	pglVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].u);
+	GLES2_ctx.glEnableVertexAttribArray(SDRI_TEXCOORD);
+	GLES2_ctx.glVertexAttribPointer(SDRI_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &GL_stream[0].u);
 
-	glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, GL_stream_tex);
 
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame->w, frame->h, GL_RGB,
-					GL_UNSIGNED_SHORT_5_6_5, frame->pixels);
+	GLES2_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame->w, frame->h, GL_RGB,
+							  GL_UNSIGNED_SHORT_5_6_5, frame->pixels);
 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	GLES2_ctx.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
-	pglDisableVertexAttribArray(SDRI_TEXCOORD);
-	pglDisableVertexAttribArray(SDRI_POSITION);
+	GLES2_ctx.glDisableVertexAttribArray(SDRI_TEXCOORD);
+	GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);
 
 	SDL_GL_SwapWindow(GLES2_window);
 }
@@ -1083,17 +1075,17 @@ void gr_gles2_stream_frame(const SDL_Surface *frame)
 void gr_gles2_stream_stop()
 {
 	if (GL_stream_tex) {
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDeleteTextures(1, &GL_stream_tex);
+		GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
+		GLES2_ctx.glDeleteTextures(1, &GL_stream_tex);
 		GL_stream_tex = 0;
 
-		glEnable(GL_DEPTH_TEST);
+		GLES2_ctx.glEnable(GL_DEPTH_TEST);
 	}
 
-	pglBindFramebuffer(GL_FRAMEBUFFER, FB_id);
+	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
 
 	// reset viewport to game screen size
-	glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+	GLES2_ctx.glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
 
 	gles2_shader_update();
 }

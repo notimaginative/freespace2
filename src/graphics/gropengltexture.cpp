@@ -8,6 +8,9 @@
 
 #ifndef __EMSCRIPTEN__
 
+#define SDL_OPENGL_1_NO_PROTOTYPES
+#define SDL_OPENGL_1_FUNCTION_TYPEDEFS
+
 #include <SDL3/SDL_opengl.h>
 
 #include "pstypes.h"
@@ -65,18 +68,18 @@ void opengl_set_texture_state(gr_texture_source ts)
 	if (ts == TEXTURE_SOURCE_NONE) {
 		GL_bound_texture = NULL;
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		GL_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 		opengl_tcache_set(-1, -1, NULL, NULL, 0, -1, -1, 0 );
 	} else if (GL_bound_texture &&
 		GL_bound_texture->texture_mode != ts) {
 		switch (ts) {
 			case TEXTURE_SOURCE_DECAL:
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				GL_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				GL_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				break;
 			case TEXTURE_SOURCE_NO_FILTERING:
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				GL_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				GL_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				break;
 			default:
 				break;
@@ -178,7 +181,7 @@ static int opengl_free_texture ( tcache_slot_opengl *t )
 
 		// ok, now we know its legal to free everything safely
 		t->texture_mode = (gr_texture_source) -1;
-		glDeleteTextures (1, &t->texture_handle);
+		GL_ctx.glDeleteTextures (1, &t->texture_handle);
 		t->texture_handle = 0;
 
 		if ( GL_last_bitmap_id == t->bitmap_id )       {
@@ -354,7 +357,7 @@ static int opengl_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap 
 			return 0;
 		}
 
-		glGenTextures(1, &t->texture_handle);
+		GL_ctx.glGenTextures(1, &t->texture_handle);
 
 		if ( !t->texture_handle ) {
 			nprintf(("Error", "!!DEBUG!! t->texture_handle == 0"));
@@ -382,15 +385,15 @@ static int opengl_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap 
 
 	t->texture_mode = TEXTURE_SOURCE_NO_FILTERING;
 
-	glBindTexture(GL_TEXTURE_2D, t->texture_handle);
+	GL_ctx.glBindTexture(GL_TEXTURE_2D, t->texture_handle);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	GL_ctx.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	ubyte *bmp_data = (ubyte*)bmp->data;
 	ubyte *texmem = NULL, *texmemp;
@@ -415,9 +418,9 @@ static int opengl_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap 
 			size = tex_w * tex_h;
 
 			if (reload) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				GL_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				GL_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
 			}
 
 			free (texmem);
@@ -448,9 +451,9 @@ static int opengl_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap 
 			size = tex_w * tex_h * 2;
 
 			if (reload) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				GL_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				GL_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
 			if (texmem) {
@@ -490,9 +493,9 @@ static int opengl_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap 
 			size = tex_w * tex_h * 2;
 
 			if (reload) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				GL_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				GL_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
 			if (texmem) {
@@ -695,16 +698,16 @@ int opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_s
 
 		// for second stage addition of nondark pixels (assumed to be switched to GL_TEXTURE1)
 		if (force && (bitmap_type == TCACHE_TYPE_NONDARKENING)) {
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, t->texture_handle);
+			GL_ctx.glEnable(GL_TEXTURE_2D);
+			GL_ctx.glBindTexture(GL_TEXTURE_2D, t->texture_handle);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			GL_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+			GL_ctx.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 		}
 
 		*u_scale = t->u_scale;
@@ -770,7 +773,7 @@ int opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_s
 
 		GL_bound_texture = t;
 
-		glBindTexture (GL_TEXTURE_2D, t->texture_handle );
+		GL_ctx.glBindTexture (GL_TEXTURE_2D, t->texture_handle );
 
 		GL_last_bitmap_id = t->bitmap_id;
 		GL_last_bitmap_type = bitmap_type;
@@ -789,7 +792,7 @@ int opengl_tcache_set(int bitmap_id, int bitmap_type, float *u_scale, float *v_s
 
 		GL_bound_texture = NULL;
 
-		glBindTexture (GL_TEXTURE_2D, 0);	// test - DDOI
+		GL_ctx.glBindTexture (GL_TEXTURE_2D, 0);	// test - DDOI
 		return 0;
 	}
 

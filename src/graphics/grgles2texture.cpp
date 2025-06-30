@@ -6,6 +6,7 @@
  * the source.
  */
 
+#define SDL_USE_BUILTIN_OPENGL_DEFINITIONS
 #include <SDL3/SDL_opengles2.h>
 
 #include "pstypes.h"
@@ -54,23 +55,23 @@ void gles2_set_texture_state(gr_texture_source ts)
 	if (ts == TEXTURE_SOURCE_NONE) {
 		GL_bound_texture = NULL;
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 		gles2_tcache_set(-1, -1);
 	} else if (GL_bound_texture && GL_bound_texture->texture_mode != ts) {
 		switch (ts) {
 			case TEXTURE_SOURCE_DECAL:
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				GLES2_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				GLES2_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				break;
 
 			case TEXTURE_SOURCE_NO_FILTERING: {
 				if (GL_bound_texture->is_mipmaped) {
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+					GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 				} else {
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				}
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 				break;
 			}
@@ -119,7 +120,7 @@ static int gles2_free_texture(tcache_slot_opengl2 *t)
 		return 0;
 	}
 
-	glDeleteTextures(1, &t->texture_handle);
+	GLES2_ctx.glDeleteTextures(1, &t->texture_handle);
 
 	if (GL_last_bitmap_id == t->bitmap_id) {
 		GL_last_bitmap_id = -1;
@@ -194,7 +195,7 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 			return 0;
 		}
 
-		glGenTextures(1, &t->texture_handle);
+		GLES2_ctx.glGenTextures(1, &t->texture_handle);
 
 		if ( !t->texture_handle ) {
 			nprintf(("Error", "!!DEBUG!! t->texture_handle == 0"));
@@ -204,12 +205,12 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 
 	t->texture_mode = TEXTURE_SOURCE_NO_FILTERING;
 
-	glBindTexture(GL_TEXTURE_2D, t->texture_handle);
+	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, t->texture_handle);
 
 	GLint wrap_mode = GL_CLAMP_TO_EDGE;
 
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	GLES2_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	GLES2_ctx.glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	ubyte *bmp_data = (ubyte*)bmp->data;
 	ubyte *texmem = NULL, *texmemp;
@@ -233,9 +234,9 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 			size = tex_w * tex_h;
 
 			if (reload) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				GLES2_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
+				GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tex_w, tex_h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texmem);
 			}
 
 			free(texmem);
@@ -248,9 +249,9 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 			size = tex_w * tex_h * 2;
 
 			if (reload) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, bmp_data);
+				GLES2_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, bmp_data);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, bmp_data);
+				GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, bmp_data);
 			}
 
 			break;
@@ -285,18 +286,18 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 			}
 
 			if (reload) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				GLES2_ctx.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_w, tex_h, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
+				GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1, (resize) ? texmem : bmp_data);
 			}
 
 			if (texmem) {
 				free(texmem);
 			}
 
-			pglGenerateMipmap(GL_TEXTURE_2D);
+			GLES2_ctx.glGenerateMipmap(GL_TEXTURE_2D);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 			t->is_mipmaped = 1;
 
 			size = fl2i(tex_w * tex_h * 2.0f * 1.3333333f);
@@ -305,8 +306,8 @@ static int gles2_create_texture_sub(int bitmap_handle, int bitmap_type, bitmap *
 		}
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_mode);
+	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_mode);
 
 	t->bitmap_id = bitmap_handle;
 	t->time_created = GL_frame_count;
@@ -452,7 +453,7 @@ int gles2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 	}
 
 	if (ret_val && t->texture_handle && !vram_full) {
-		glBindTexture(GL_TEXTURE_2D, t->texture_handle);
+		GLES2_ctx.glBindTexture(GL_TEXTURE_2D, t->texture_handle);
 
 		GL_bound_texture = t;
 
@@ -466,7 +467,7 @@ int gles2_tcache_set(int bitmap_id, int bitmap_type, int fail_on_full)
 
 		GL_bound_texture = NULL;
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
 		return 0;
 	}

@@ -61,6 +61,7 @@ extern int GL_max_texture_height;
 	#define CHECK_FOR_ERRORS()
 #endif
 
+bool opengl_init_prototypes();
 void opengl_set_variables();
 void opengl_init_viewport();
 
@@ -126,7 +127,61 @@ void gr_opengl_set_viewport(int width, int height);
 void gr_opengl_release_texture(int handle);
 
 // GL function prototypes
-extern PFNGLACTIVETEXTUREPROC pglActiveTexture;
-extern PFNGLCLIENTACTIVETEXTUREARBPROC pglClientActiveTexture;
+typedef struct GL_func_context {
+	PFNGLACTIVETEXTUREPROC glActiveTexture;
+	PFNGLBINDTEXTUREPROC glBindTexture;
+	PFNGLBLENDFUNCPROC glBlendFunc;
+	PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
+	PFNGLCLEARCOLORPROC glClearColor;
+	PFNGLCLEARPROC glClear;
+	PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture;
+	PFNGLCOLOR4UBPROC glColor4ub;
+	PFNGLCOLORPOINTERPROC glColorPointer;
+	PFNGLCOPYTEXIMAGE2DPROC glCopyTexImage2D;
+	PFNGLDELETETEXTURESPROC glDeleteTextures;
+	PFNGLDEPTHFUNCPROC glDepthFunc;
+	PFNGLDEPTHMASKPROC glDepthMask;
+	PFNGLDEPTHRANGEPROC glDepthRange;
+	PFNGLDISABLECLIENTSTATEPROC glDisableClientState;
+	PFNGLDISABLEPROC glDisable;
+	PFNGLDRAWARRAYSPROC glDrawArrays;
+	PFNGLENABLECLIENTSTATEPROC glEnableClientState;
+	PFNGLENABLEPROC glEnable;
+	PFNGLFLUSHPROC glFlush;
+	PFNGLFOGFPROC glFogf;
+	PFNGLFOGFVPROC glFogfv;
+	PFNGLFOGIPROC glFogi;
+	PFNGLFRONTFACEPROC glFrontFace;
+	PFNGLGENTEXTURESPROC glGenTextures;
+	PFNGLGETERRORPROC glGetError;
+	PFNGLGETINTEGERVPROC glGetIntegerv;
+	PFNGLGETSTRINGPROC glGetString;
+	PFNGLHINTPROC glHint;
+	PFNGLLOADIDENTITYPROC glLoadIdentity;
+	PFNGLMATRIXMODEPROC glMatrixMode;
+	PFNGLORTHOPROC glOrtho;
+	PFNGLPIXELSTOREIPROC glPixelStorei;
+	PFNGLPOLYGONOFFSETPROC glPolygonOffset;
+	PFNGLPOPATTRIBPROC glPopAttrib;
+	PFNGLPOPCLIENTATTRIBPROC glPopClientAttrib;
+	PFNGLPUSHATTRIBPROC glPushAttrib;
+	PFNGLPUSHCLIENTATTRIBPROC glPushClientAttrib;
+	PFNGLREADBUFFERPROC glReadBuffer;
+	PFNGLREADPIXELSPROC glReadPixels;
+	PFNGLSCALEFPROC glScalef;
+	PFNGLSCISSORPROC glScissor;
+	PFNGLSHADEMODELPROC glShadeModel;
+	PFNGLTEXCOORDPOINTERPROC glTexCoordPointer;
+	PFNGLTEXENVFPROC glTexEnvf;
+	PFNGLTEXENVFVPROC glTexEnvfv;
+	PFNGLTEXENVIPROC glTexEnvi;
+	PFNGLTEXIMAGE2DPROC glTexImage2D;
+	PFNGLTEXPARAMETERIPROC glTexParameteri;
+	PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
+	PFNGLVERTEXPOINTERPROC glVertexPointer;
+	PFNGLVIEWPORTPROC glViewport;
+} GL_func_context;
+
+extern GL_func_context GL_ctx;
 
 #endif	// _OPENGLINTERNAL_H

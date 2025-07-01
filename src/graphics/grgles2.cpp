@@ -467,13 +467,19 @@ void gr_gles2_init()
 									gr_screen.max_h,
 									window_flags);
 
+	extern bool Gr_allow_fallback;
+
 	if ( !GLES2_window ) {
-		// This will generally happen when the GLES2 library isn't available. In
-		// which case we should automatically fall back to "safe mode".
-		mprintf(("  Window creation failed! \n    %s\n", SDL_GetError()));
-		mprintf(("  Restarting graphics in safe mode...\n"));
-		gr_init(true);	// will call _cleanup() for us
-		return;
+		if (Gr_allow_fallback) {
+			// This will generally happen when the GLES2 library isn't available. In
+			// which case we should automatically fall back to "safe mode".
+			mprintf(("  Window creation failed! \n    %s\n", SDL_GetError()));
+			mprintf(("  Restarting graphics in safe mode...\n"));
+			gr_init(true);	// will call _cleanup() for us
+			return;
+		} else {
+			Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
+		}
 	}
 
 	os_set_window(GLES2_window);
@@ -483,24 +489,36 @@ void gr_gles2_init()
 	GLES2_context = SDL_GL_CreateContext(GLES2_window);
 
 	if ( !GLES2_context ) {
-		mprintf(("  GLES2 context creation failed! \n    %s\n", SDL_GetError()));
-		mprintf(("  Restarting graphics in safe mode...\n"));
-		gr_init(true);	// will call _cleanup() for us
-		return;
+		if (Gr_allow_fallback) {
+			mprintf(("  GLES2 context creation failed! \n    %s\n", SDL_GetError()));
+			mprintf(("  Restarting graphics in safe mode...\n"));
+			gr_init(true);	// will call _cleanup() for us
+			return;
+		} else {
+			Error(LOCATION, "Couldn't create OpenGL ES 2 context: %s\n", SDL_GetError());
+		}
 	}
 
 	// first thing after context is ready, init gles2 function prototypes
 	if ( !gles2_init_prototypes() ) {
-		mprintf(("  Restarting graphics in safe mode...\n"));
-		gr_init(true);	// will call _cleanup() for us
-		return;
+		if (Gr_allow_fallback) {
+			mprintf(("  Restarting graphics in safe mode...\n"));
+			gr_init(true);	// will call _cleanup() for us
+			return;
+		} else {
+			Error(LOCATION, "Failed to initialize OpenGL ES 2 functions!\n");
+		}
 	}
 
 	if ( !gles2_set_variables() ) {
-		mprintf(("  Hardware/Software requirements not met!\n"));
-		mprintf(("  Restarting graphics in safe mode...\n"));
-		gr_init(true);	// will call _cleanup() for us
-		return;
+		if (Gr_allow_fallback) {
+			mprintf(("  Hardware/Software requirements not met!\n"));
+			mprintf(("  Restarting graphics in safe mode...\n"));
+			gr_init(true);	// will call _cleanup() for us
+			return;
+		} else {
+			Error(LOCATION, "Failed to initialize OpenGL ES 2!\n");
+		}
 	}
 
 	mprintf(("  Vendor   : %s\n", GLES2_ctx.glGetString(GL_VENDOR)));
@@ -514,10 +532,14 @@ void gr_gles2_init()
 	gles2_tcache_init();
 
 	if ( !gles2_shader_init() ) {
-		mprintf(("  Shader initialization failed!\n"));
-		mprintf(("  Restarting graphics in safe mode...\n"));
-		gr_init(true);	// will call _cleanup() for us
-		return;
+		if (Gr_allow_fallback) {
+			mprintf(("  Shader initialization failed!\n"));
+			mprintf(("  Restarting graphics in safe mode...\n"));
+			gr_init(true);	// will call _cleanup() for us
+			return;
+		} else {
+			Error(LOCATION, "Failed to initialize OpenGL ES 2 shaders!\n");
+		}
 	}
 
 	if ( !gles2_create_framebuffer() ) {

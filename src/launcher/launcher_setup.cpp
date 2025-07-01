@@ -52,7 +52,7 @@ SDL_COMPILE_TIME_ASSERT(Fonts_size, SDL_arraysize(Fonts) == FONT_COUNT);
 
 struct config {
 	// video
-	std::string renderer;
+	int renderer;
 	int msaa;
 	bool fullscreen;
 	bool show_fps;
@@ -90,6 +90,10 @@ static config Config;
 
 static const int MSAA[] = {
 	0, 2, 4, 8, 16
+};
+
+static const char *VideoRenderers[] = {
+	nullptr, "GLES2", "OpenGL",
 };
 
 static const char *NetworkConnections[] = {
@@ -259,8 +263,21 @@ static void launcher_setup_load_config()
 	int i_val;
 
 	// Video
-//	ptr = os_config_read_string("Video", "Renderer", nullptr);
-//	if (ptr) Config.renderer = ptr;
+	ptr = os_config_read_string("Video", "Renderer", nullptr);
+	Config.renderer = 0;
+
+	if (ptr) {
+		for (int i = 0; i < static_cast<int>(SDL_arraysize(VideoRenderers)); ++i) {
+			if ( !VideoRenderers[i] ) {
+				continue;
+			}
+
+			if ( !SDL_strcasecmp(VideoRenderers[i], ptr) ) {
+				Config.renderer = i;
+				break;
+			}
+		}
+	}
 
 	Config.fullscreen = (os_config_read_uint("Video", "Fullscreen", 1) == 1);
 	Config.show_fps = (os_config_read_uint("Video", "ShowFPS", 0) == 1);
@@ -361,6 +378,7 @@ static void launcher_setup_load_config()
 static void launcher_setup_save_config()
 {
 	// Video
+	os_config_write_string("Video", "Renderer", VideoRenderers[Config.renderer]);
 	os_config_write_uint("Video", "Fullscreen", Config.fullscreen ? 1 : 0);
 	os_config_write_uint("Video", "ShowFPS", Config.show_fps ? 1 : 0);
 	os_config_write_uint("Video", "AntiAlias", MSAA[Config.msaa]);
@@ -414,8 +432,11 @@ static void tabVideo()
 
 	ImGui::SeparatorText("Renderer");
 
-	int unused_i = 0;
-	ImGui::Combo("##renderer", &unused_i, "Default\0");
+	const char *renderers[] = {
+		"Automatic", "OpenGL ES 2", "OpenGL (safe mode)"
+	};
+
+	ImGui::Combo("##renderer", &Config.renderer, renderers, SDL_arraysize(renderers));
 
 	ImGui::SeparatorText("Options");
 

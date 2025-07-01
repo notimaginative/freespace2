@@ -507,6 +507,8 @@ int Gr_zbuffering = 0;
 int Gr_zbuffering_mode = 0;
 int Gr_global_zbuffering = 0;
 
+bool Gr_allow_fallback = true;
+
 // cursor stuff
 static SDL_Cursor *Gr_cursor = nullptr;
 int Web_cursor_bitmap = -1;
@@ -748,12 +750,26 @@ int gr_init(bool safe_mode)
 
 	Gr_inited = 1;
 
-	if (safe_mode) {
-		mode = GR_OPENGL;
-	}
-
 #ifdef __EMSCRIPTEN__
 	mode = GR_GLES2;
+	Gr_allow_fallback = false;
+#else
+	if (safe_mode) {
+		mode = GR_OPENGL;
+	} else {
+		const char *video_str = os_config_read_string("Video", "Renderer", nullptr);
+
+		if (video_str) {
+			if ( !SDL_strcasecmp(video_str, "GLES2") ) {
+				mode = GR_GLES2;
+				Gr_allow_fallback = false;
+			} else if ( !SDL_strcasecmp(video_str, "OpenGL") ) {
+				mode = GR_OPENGL;
+				Gr_allow_fallback = false;
+
+			}
+		}
+	}
 #endif
 
 	if (Fred_running || Pofview_running) {

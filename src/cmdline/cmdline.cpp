@@ -266,6 +266,7 @@ cmdline_parm no_movies("-nomovies", "-n", NULL);
 cmdline_parm std_daemon("-daemon", NULL, NULL);
 cmdline_parm no_vsync("-no_vsync", NULL, NULL);
 cmdline_parm no_frame_cap("-no_frame_cap", NULL, NULL);
+cmdline_parm skip_launcher("-skip_launcher", nullptr, nullptr);	// just here to prevent invalid option
 
 
 int Cmdline_multi_stream_chat_to_file = 0;

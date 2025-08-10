@@ -594,7 +594,7 @@ void joy_ff_play_primary_shoot(int gain)
 	CAP(gain, 1, 10000);
 
 	if (joystick_is_gamepad()) {
-		ushort freq = 0x7fff * ushort(gain / 10000.0f);
+		ushort freq = ushort(0x7fff * (gain / 10000.0f));
 		SDL_RumbleGamepad(gamepad, freq, freq/2, 100);
 
 		return;
@@ -628,7 +628,7 @@ void joy_ff_play_secondary_shoot(int gain)
 	CAP(gain, 1, 10000);
 
 	if (joystick_is_gamepad()) {
-		ushort freq = 0xffff * ushort(gain / 10000.0f);
+		ushort freq = ushort(0xffff * (gain / 10000.0f));
 		int duration = (150000 + gain * 25) / 1000;
 		SDL_RumbleGamepad(gamepad, freq, freq/2, duration);
 

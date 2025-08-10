@@ -336,8 +336,10 @@ bool launcher_run(const char *szCmdline)
 
 	// bypass launcher if the user doesn't want to see it
 	// NOTE: cmdline options haven't been parsed yet, so we can't check that way
-	if (szCmdline && SDL_strstr(szCmdline, "-skip_launcher")) {
-		return true;
+	if (szCmdline) {
+		if (SDL_strstr(szCmdline, "-skip_launcher") || SDL_strstr(szCmdline, "-standalone")) {
+			return true;
+		}
 	}
 
 	if ( !launcher_init() ) {

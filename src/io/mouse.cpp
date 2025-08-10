@@ -228,12 +228,12 @@ bool mouse_set_cursor(SDL_Cursor *cursor, int lock)
 		}
 
 		rval = true;
-	} else {
-		locked = false;
 	}
 
 	if (lock == MOUSE_CURSOR_LOCK) {
 		locked = true;
+	} else if (lock == MOUSE_CURSOR_UNLOCK) {
+		locked = false;
 	}
 
 	return rval;

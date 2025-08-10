@@ -640,7 +640,11 @@ void UI_BUTTON::maybe_show_custom_cursor()
 	if (disabled_flag)
 		return;
 
-	// set the mouseover cursor 
+	if (previous_cursor) {
+		return;
+	}
+
+	// set the mouseover cursor
 	if (custom_cursor && is_mouse_on()) {
 		previous_cursor = SDL_GetCursor();
 		mouse_set_cursor(custom_cursor, MOUSE_CURSOR_LOCK);
@@ -649,7 +653,8 @@ void UI_BUTTON::maybe_show_custom_cursor()
 
 void UI_BUTTON::restore_previous_cursor()
 {
-	if (previous_cursor) {
+	if (previous_cursor && !is_mouse_on()) {
 		mouse_set_cursor(previous_cursor, MOUSE_CURSOR_UNLOCK);
+		previous_cursor = nullptr;
 	}
 }

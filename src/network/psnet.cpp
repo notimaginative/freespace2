@@ -2161,16 +2161,16 @@ int psnet_is_valid_ip_string( char *ip_string, int allow_port )
 		*c = '\0';
 	}	
 
-	addr.s_addr = inet_addr(ip_string);
+	addr.s_addr = inet_addr(str);
 	if ( addr.s_addr != INADDR_NONE ){
 		// make sure the ip string is a valid format string
-		if(psnet_is_valid_numeric_ip(ip_string)){
+		if(psnet_is_valid_numeric_ip(str)){
 			return 1;
 		}
 	}
 
 	// try name resolution
-	host_ent = gethostbyname( ip_string );
+	host_ent = gethostbyname( str );
 	if ( !host_ent ){
 		return 0;
 	}

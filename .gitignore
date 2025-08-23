@@ -1,6 +1,12 @@
-custom.cmake
-
+# macOS junk
 ._*
 .DS_Store
+
+# Editor stuff
 .vscode
+.zed
+.cache
+compile_commands.json
+
+# Temp files
 *.diff

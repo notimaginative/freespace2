@@ -697,20 +697,15 @@ int cfget_cfile_block()
 //
 bool cfclose( CFILE * cfile )
 {
-	bool result;
+	bool result = true;
 
 	SDL_assert(cfile != NULL);
 	Cfile_block *cb;
 	SDL_assert(cfile->id >= 0 && cfile->id < MAX_CFILE_BLOCKS);
 	cb = &Cfile_block_list[cfile->id];	
 
-	result = true;
-
 	if (cb->fp != nullptr) {
 		result = SDL_CloseIO(cb->fp);
-	} else {
-		printf("doing nothing!\n");
-		// VP  do nothing
 	}
 
 	cb->lib_offset = 0;

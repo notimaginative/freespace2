@@ -21,6 +21,9 @@ if(WINDOWS)
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 endif()
 
+# set external dependencies first so they don't inherit our build flags
+include(cmake/dependencies.cmake)
+
 # we need c++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -28,6 +31,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(CreateSourceGroups)
+
+# save out some info for editors
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ##############################################################################
 
@@ -124,95 +130,14 @@ set(FS_BINARY "freespace${BIN_SUFFIX}")
 
 set(APP_ID "org.icculus.freespace2.${FS_BINARY}")
 
-# ##############################################################################
-#
-# External dependencies
-#
-
-include(FetchContent)
-
-#
-# SDL3
-#
-
-FetchContent_Declare(
-  SDL3
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL
-  GIT_TAG main
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-#  FIND_PACKAGE_ARGS
-)
-
-FetchContent_MakeAvailable(SDL3)
-
-#
-# OpenAL (openal-soft)
-#
-
-set(ALSOFT_UTILS OFF CACHE BOOL "")
-set(ALSOFT_EXAMPLES OFF CACHE BOOL "")
-
-FetchContent_Declare(
-  OpenAL
-  GIT_REPOSITORY https://github.com/kcat/openal-soft
-  GIT_TAG master
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-#  FIND_PACKAGE_ARGS
-)
-
-FetchContent_MakeAvailable(OpenAL)
-
-if(NOT EMSCRIPTEN)
-  #
-  # libwebsockets
-  #
-
-  set(LWS_WITH_SSL OFF CACHE BOOL "")
-  set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "")
-
-  FetchContent_Declare(
-    libwebsockets
-    GIT_REPOSITORY https://github.com/warmcat/libwebsockets
-    GIT_TAG main
-    GIT_SHALLOW ON
-    EXCLUDE_FROM_ALL
-#    FIND_PACKAGE_ARGS
-  )
-
-  FetchContent_MakeAvailable(LibWebSockets)
-
-  #
-  # wxWidgets
-  #
-
-  set(wxWidgets_USE_DEBUG 0 CACHE BOOL "")
-  set(wxUSE_LIBSDL OFF CACHE BOOL "")
-  if(WIN32)
-    set(wxBUILD_SHARED OFF CACHE BOOL "")   # build static lib on Windows
-  endif()
-
-  FetchContent_Declare(
-    wxWidgets
-    GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets
-    GIT_TAG v3.2.6
-    GIT_SHALLOW ON
-    EXCLUDE_FROM_ALL
-#    FIND_PACKAGE_ARGS COMPONENTS core base gl net
-  )
-
-  FetchContent_MakeAvailable(wxWidgets)
-endif()
-
-
-# ##############################################################################
-
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${CMAKE_BINARY_DIR}/include
 )
+
+# ##############################################################################
+
 
 add_subdirectory(src)
 add_subdirectory(include)
@@ -437,6 +362,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${ac_SOURCE})
 
+  set_target_properties(ac PROPERTIES
+    FOLDER "Tools"
+  )
+
   target_link_libraries(
     ac
     code
@@ -458,6 +387,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${cfileutil_SOURCE})
 
+  set_target_properties(cfileutil PROPERTIES
+    FOLDER "Tools"
+  )
+
   target_link_libraries(
     cfileutil
     SDL3::Headers
@@ -474,6 +407,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${cryptstring_SOURCE})
 
+  set_target_properties(cryptstring PROPERTIES
+    FOLDER "Tools"
+  )
+
   #
   # NEBEDIT: FS1 style nebula editor/creator
   #
@@ -485,6 +422,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
   )
 
   CreateSourceGroups(${nebedit_SOURCE})
+
+  set_target_properties(nebedit PROPERTIES
+    FOLDER "Tools"
+  )
 
   target_link_libraries(
     nebedit
@@ -500,27 +441,31 @@ if(NOT GAME_ONLY AND NOT DEMO)
   # POFVIEW: model viewer
   #
 
-  add_executable(pofview
-    EXCLUDE_FROM_ALL
-    WIN32
-    ${pofview_SOURCE}
-    ${pofview_HEADERS}
-  )
+  #add_executable(pofview
+  #  EXCLUDE_FROM_ALL
+  #  WIN32
+  #  ${pofview_SOURCE}
+  #  ${pofview_HEADERS}
+  #)
 
-  CreateSourceGroups(${pofview_SOURCE})
+  #CreateSourceGroups(${pofview_SOURCE})
 
-  target_link_libraries(
-    pofview
-    code
-    ${OPENGL_LIBRARIES}
-    SDL3::SDL3
-    OpenAL::OpenAL
-    wx::core
-    wx::base
-    wx::gl
-    ${LIBWEBSOCKETS_LIBRARIES}
-    ${PLATFORM_LIBRARIES}
-  )
+  #set_target_properties(pofview PROPERTIES
+  #  FOLDER "Tools"
+  #)
+
+  #target_link_libraries(
+  #  pofview
+  #  code
+  #  ${OPENGL_LIBRARIES}
+  #  SDL3::SDL3
+  #  OpenAL::OpenAL
+  #  wx::core
+  #  wx::base
+  #  wx::gl
+  #  ${LIBWEBSOCKETS_LIBRARIES}
+  #  ${PLATFORM_LIBRARIES}
+  #)
 
   #
   # SCRAMBLE: file-based encryption for TBLs
@@ -539,6 +484,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${scramble_SOURCE})
 
+  set_target_properties(scramble PROPERTIES
+    FOLDER "Tools"
+  )
+
   #
   # FONTTOOL: create font files / edit kerning data
   #
@@ -550,6 +499,10 @@ if(NOT GAME_ONLY AND NOT DEMO)
   )
 
   CreateSourceGroups(${fonttool_SOURCE})
+
+  set_target_properties(fonttool PROPERTIES
+    FOLDER "Tools"
+  )
 
   # background setup, to allow running from build location without installing
   add_custom_command(TARGET fonttool
@@ -572,15 +525,19 @@ if(NOT GAME_ONLY AND NOT DEMO)
   # custom target to build all tools in one pass
   #
 
-  add_custom_target(tools)
+  add_custom_target(toolset)
 
-  add_dependencies(tools
+  set_target_properties(toolset PROPERTIES
+    FOLDER "Tools"
+  )
+
+  add_dependencies(toolset
     ac
     cfileutil
     cryptstring
     fonttool
     nebedit
-    pofview
+  #  pofview
     scramble
   )
 

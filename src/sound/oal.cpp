@@ -238,61 +238,7 @@ static bool oal_init_loopback(std::string &Device)
 		return false;
 	}
 
-	Device = "SDL3 (loopback)";
-
-	alcMakeContextCurrent(Info.context);
-
-	return true;
-}
-
-static bool oal_init_fallback(std::string &Device)
-{
-	ALint ver_major = 0, ver_minor = 0;
-	const char *ptr = nullptr;
-
-	alcGetIntegerv(nullptr, ALC_MAJOR_VERSION, 1, &ver_major);
-	alcGetIntegerv(nullptr, ALC_MINOR_VERSION, 1, &ver_minor);
-
-	if ( (ver_major < 1) || (ver_minor < 1) ) {
-		mprintf(("  ERROR: Minimum supported OpenAL version is 1.1!\n"));
-		return false;
-	}
-
-	ptr = os_config_read_string("Audio", "PlaybackDevice", "default");
-
-	if ( ptr && !SDL_strcasecmp(ptr, "default") ) {
-		ptr = nullptr;
-	}
-
-	Info.device = alcOpenDevice(ptr);
-
-	if (Info.device == nullptr) {
-		Info.device = alcOpenDevice(nullptr);
-
-		if (Info.device == NULL) {
-			mprintf(("  ERROR: Unable to open fallback device!\n"));
-			return false;
-		}
-	}
-
-	if ( alcIsExtensionPresent(Info.device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE ) {
-		ptr = alcGetString(Info.device, ALC_ALL_DEVICES_SPECIFIER);
-	} else {
-		ptr = alcGetString(Info.device, ALC_DEVICE_SPECIFIER);
-	}
-
-	if (ptr) {
-		Device = ptr;
-	} else {
-		Device = "OpenAL (fallback)";
-	}
-
-	Info.context = alcCreateContext(Info.device, NULL);
-
-	if (Info.context == NULL) {
-		mprintf(("  ERROR: Unable to create fallback context!\n"));
-		return false;
-	}
+	Device = "SDL3 (auto)";
 
 	alcMakeContextCurrent(Info.context);
 
@@ -313,12 +259,7 @@ int oal_init()
 
 	if ( !oal_init_loopback(PlaybackDevice) ) {
 		oal_close();
-
-		if ( !oal_init_fallback(PlaybackDevice) ) {
-			oal_close();
-
-			return -1;
-		}
+		return -1;
 	}
 
 	OAL_inited = 1;

@@ -628,7 +628,7 @@ void std_connect_set_gamename(const char *name)
 		} else {
 			SDL_strlcpy(Netgame.name, XSTR("Standalone Server", 916), SDL_arraysize(Netgame.name));
 		}
-	} else {
+	} else if (name != Netgame.name) {
 		SDL_strlcpy(Netgame.name, name, SDL_arraysize(Netgame.name));
 	}
 

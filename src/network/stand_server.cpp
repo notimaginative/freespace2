@@ -609,7 +609,7 @@ void std_do_gui_frame()
 		lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);
 	}
 
-	lws_service(stand_context, 0);
+	lws_service(stand_context, -1);
 }
 
 void std_debug_set_standalone_state_string(const char *str)
@@ -1057,7 +1057,7 @@ void std_gen_set_text(const char *str, int field_num)
 
 	// force ws write since do_frame() may not happen until popup is done
 	lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);
-	lws_service(stand_context, 0);
+	lws_service(stand_context, -1);
 }
 
 void std_tracker_notify_login_fail()

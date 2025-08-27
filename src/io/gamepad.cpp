@@ -17,6 +17,8 @@
 static SDL_Gamepad *Gamepad = nullptr;
 static bool Swap_action_cancel = false;
 
+static_assert(GAMEPAD_BUTTON_RIGHT_TRIGGER < JOY_NUM_BUTTONS, "Special gamepad buttons exceed max buttons!");
+
 
 void gamepad_setup(SDL_JoystickID id)
 {
@@ -62,12 +64,9 @@ bool gamepad_action_or_cancel()
 	return (gamepad_action() || gamepad_cancel());
 }
 
-#define IS_AXIS_DOWN(x)	(((x >= 0) && (x < JOY_NUM_AXES) && (axes[int(x)] > 5000)) ? true : false)
-
 int gamepad_get_key()
 {
 	static Uint64 key_check_time = 0;
-	int axes[JOY_NUM_AXES] = { 0 };
 	int k = 0;
 
 	if ( !Gamepad || !mouse_is_visible() ) {
@@ -77,8 +76,6 @@ int gamepad_get_key()
 	if (SDL_GetTicks() < key_check_time) {
 		return 0;
 	}
-
-	joystick_read_raw_axis(JOY_NUM_AXES, axes);
 
 	if (gamepad_cancel()) {
 		k = SDLK_ESCAPE;
@@ -94,15 +91,32 @@ int gamepad_get_key()
 		k = KEY_SHIFTED | SDLK_TAB;
 	} else if (joy_down(int(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER))) {
 		k = SDLK_TAB;
-	} else if (IS_AXIS_DOWN(SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) {
+	} else if (joy_down(int(GAMEPAD_BUTTON_LEFT_TRIGGER))) {
 		k = SDLK_PAGEDOWN;
-	} else if (IS_AXIS_DOWN(SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) {
+	} else if (joy_down(int(GAMEPAD_BUTTON_RIGHT_TRIGGER))) {
 		k = SDLK_PAGEUP;
 	}
 
 	key_check_time = SDL_GetTicks() + 150;
 
 	return k;
+}
+
+// map trigger buttons to axes here for control conflict detection
+int gamepad_get_button_axis(int btn)
+{
+	if ( !Gamepad ) {
+		return -1;
+	}
+
+	int offset = btn - SDL_GAMEPAD_BUTTON_COUNT;
+	int axis = SDL_GAMEPAD_AXIS_LEFT_TRIGGER + offset;
+
+	if ((offset < 0) || (axis >= SDL_GAMEPAD_AXIS_COUNT)) {
+		return -1;
+	}
+
+	return axis;
 }
 
 void gamepad_update_mouse_pos()

@@ -583,5 +583,15 @@ void joystick_update_axis(int axis, int value)
 {
 	if (axis < JOY_NUM_AXES) {
 		joystick.axis_current[axis] = value;
+
+		if (joystick_is_gamepad() && (axis >= SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) {
+			int down = (value >= 16384) ? 1 : 0;
+			int btn = (axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ?
+						GAMEPAD_BUTTON_LEFT_TRIGGER : GAMEPAD_BUTTON_RIGHT_TRIGGER;
+
+			if ( !down || !joy_buttons[btn].state ) {
+				joy_mark_button(btn, down);
+			}
+		}
 	}
 }

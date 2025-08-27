@@ -327,6 +327,7 @@
 #include "mouse.h"
 #include "ui.h"
 #include "joy.h"
+#include "gamepad.h"
 #include "bmpman.h"
 #include "sound.h"
 #include "gamesnd.h"
@@ -857,6 +858,22 @@ void control_config_conflict_check()
 				Conflicts_axes[j] = i;
 				Conflicts_tabs[SHIP_TAB] = 1;
  			}
+		}
+	}
+
+	// also check gamepad triggers, which can be both a button and an axis
+	if (joystick_is_gamepad()) {
+		for (i = 0; i < NUM_JOY_AXIS_ACTIONS; ++i) {
+			if (Axis_map_to[i] >= 0) {
+				for (j = 0; j < CCFG_MAX; ++j) {
+					if (Axis_map_to[i] == gamepad_get_button_axis(Control_config[j].joy_id)) {
+						Conflicts_axes[i] = i;	// largely ignored, just need it set
+						Conflicts[j].joy = i | JOY_AXIS;	// point button conflict at axis
+						Conflicts_tabs[SHIP_TAB] = 1;
+						Conflicts_tabs[ (int)Control_config[j].tab ] = 1;
+					}
+				}
+			}
 		}
 	}
 }
@@ -1784,7 +1801,8 @@ void control_config_do_frame(float frametime)
 					bind = 1;
 
 				for (i=0; i<JOY_TOTAL_BUTTONS; i++)
-					if (joy_down_count(i))
+					// skip gamepad triggers (conflicts with axis check)
+					if (joy_down_count(i) && (gamepad_get_button_axis(i) < 0))
 						bind = 1;
 
 				if (bind) {
@@ -1870,7 +1888,14 @@ void control_config_do_frame(float frametime)
 						SDL_assert(!(z & JOY_AXIS));
 						control_config_bind_joy(z, i);
 
-						SDL_strlcpy(bound_string, Joy_button_text[i], SDL_arraysize(bound_string));
+						int axis = gamepad_get_button_axis(i);
+
+						if (axis < 0) {
+							SDL_strlcpy(bound_string, Joy_button_text[i], SDL_arraysize(bound_string));
+						} else {
+							SDL_strlcpy(bound_string, Joy_axis_text[axis], SDL_arraysize(bound_string));
+						}
+
 						gr_force_fit_string(bound_string, 39, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 						bound_timestamp = timestamp(2500);
 						control_config_conflict_check();
@@ -2239,7 +2264,13 @@ void control_config_do_frame(float frametime)
 		gr_get_string_size(&w, NULL, str);
 		gr_printf(x - w / 2, y - font_height, str);
 
-		SDL_strlcpy(buf, XSTR(Control_config[i].text, CONTROL_CONFIG_XSTR + i), SDL_arraysize(buf));
+		// if the conflict is with an axis then use proper text
+		if (i & JOY_AXIS) {
+			SDL_strlcpy(buf, Joy_axis_action_text[i & ~JOY_AXIS], SDL_arraysize(buf));
+		} else {
+			SDL_strlcpy(buf, XSTR(Control_config[i].text, CONTROL_CONFIG_XSTR + i), SDL_arraysize(buf));
+		}
+
 		gr_force_fit_string(buf, 255, Conflict_wnd_coords[gr_screen.res][CONTROL_W_COORD]);
 		gr_get_string_size(&w, NULL, buf);
 		gr_printf(x - w / 2, y, buf);
@@ -2334,7 +2365,14 @@ void control_config_do_frame(float frametime)
 				}
 
 				if (j >= 0) {
-					SDL_strlcpy(buf, Joy_button_text[j], SDL_arraysize(buf));
+					int axis = gamepad_get_button_axis(j);
+
+					if (axis < 0) {
+						SDL_strlcpy(buf, Joy_button_text[j], SDL_arraysize(buf));
+					} else {
+						SDL_strlcpy(buf, Joy_axis_text[axis], SDL_arraysize(buf));
+					}
+
 					if (Conflicts[z].joy >= 0) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);

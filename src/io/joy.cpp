@@ -483,11 +483,9 @@ int joy_init()
 		return 0;
 	}
 
-	int num_sticks = joy_init_internal(0);
+	Joy_inited = 1;
 
-	if (num_sticks > 0) {
-		Joy_inited = 1;
-	}
+	int num_sticks = joy_init_internal(0);
 
 	return num_sticks;
 }
@@ -558,6 +556,10 @@ int joystick_read_raw_axis(int num_axes, int *axis)
 	int i;
 
 	if ( !Joy_inited ) {
+		for (i = 0; i < num_axes; ++i) {
+			axis[i] = 0;
+		}
+
 		return 0;
 	}
 

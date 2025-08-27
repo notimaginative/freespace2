@@ -29,7 +29,7 @@ static SDL_Texture *Background = nullptr;
 static ImGuiContext *Context = nullptr;
 
 
-SDL_Renderer *launcher_get_renderder()
+SDL_Renderer *launcher_get_renderer()
 {
 	return Renderer;
 }
@@ -182,7 +182,7 @@ void launcher_init_background(const char *filename)
 	auto surface = bm_image_to_surface(filename, CF_TYPE_INTERFACE);
 
 	if (surface) {
-		Background = SDL_CreateTextureFromSurface(launcher_get_renderder(), surface);
+		Background = SDL_CreateTextureFromSurface(launcher_get_renderer(), surface);
 
 		SDL_DestroySurface(surface);
 	}

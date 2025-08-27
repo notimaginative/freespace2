@@ -141,7 +141,7 @@ void launcher_init_style_fs2()
 		auto surface = bm_image_to_surface(Buttons[i].name, CF_TYPE_INTERFACE);
 
 		if (surface) {
-			Buttons[i].texture = SDL_CreateTextureFromSurface(launcher_get_renderder(), surface);
+			Buttons[i].texture = SDL_CreateTextureFromSurface(launcher_get_renderer(), surface);
 			SDL_DestroySurface(surface);
 		}
 	}

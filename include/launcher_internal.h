@@ -9,7 +9,7 @@
 #ifndef _LAUNCHER_INTERNAL_H
 #define _LAUNCHER_INTERNAL_H
 
-SDL_Renderer *launcher_get_renderder();
+SDL_Renderer *launcher_get_renderer();
 SDL_Window *launcher_get_window();
 
 void launcher_open_readme();

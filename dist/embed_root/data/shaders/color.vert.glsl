@@ -6,5 +6,6 @@ varying vec4 colorVar;
 void main()
 {
 	gl_Position = vOrtho * vPosition;
+	gl_PointSize = 1.5;
 	colorVar = vColor;
 }

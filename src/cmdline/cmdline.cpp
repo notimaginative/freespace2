@@ -431,15 +431,7 @@ static void print_instructions()
 	printf("Support - FAQ: http://icculus.org/lgfaq\n");
 	printf("          Web: http://bugzilla.icculus.org\n\n");
 
-#if defined(FS1_DEMO)
-	printf("Usage: fsdemo [options]\n");
-#elif defined(FS2_DEMO)
-	printf("Usage: fs2demo [options]\n");
-#elif defined(MAKE_FS1)
-	printf("Usage: fs [options]\n");
-#else
-	printf("Usage: fs2 [options]\n");
-#endif
+	printf("Usage: " FS_BINARY " [options]\n");
 	printf("\n");
 	printf("  General:\n");
 	printf("     [-h | --help]           Show this help message\n");

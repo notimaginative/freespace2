@@ -186,6 +186,7 @@ target_link_libraries(
 target_compile_definitions(code
   PUBLIC
   APP_ID="${APP_ID}"
+  FS_BINARY="${FS_BINARY}"
 )
 
 CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})

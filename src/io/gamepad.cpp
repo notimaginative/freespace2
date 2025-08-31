@@ -12,6 +12,7 @@
 #include "gamepad.h"
 #include "key.h"
 #include "timer.h"
+#include "osapi.h"
 
 
 static SDL_Gamepad *Gamepad = nullptr;
@@ -135,8 +136,6 @@ void gamepad_update_mouse_pos()
 
 	int dead_zone = 65536 * Dead_zone_size / 100;
 
-	CAP(dead_zone, 1000, 8000);
-
 	// ignore possible stick drift
 	if (abs(gx) < dead_zone) gx = 0;
 	if (abs(gy) < dead_zone) gy = 0;
@@ -154,10 +153,14 @@ void gamepad_update_mouse_pos()
 
 	mouse_get_real_pos(&x, &y);
 
-	// update deltas (x/y should be the same as current)
-	mouse_update_pos_scaled(x, y, dx, dy);
+	// update pos and deltas
+	mouse_update_pos_scaled(x+dx, y+dy, dx, dy);
+
 	// now change position
-	mouse_set_pos(fl2i(x+dx), fl2i(y+dy));
+	SDL_HideCursor();		// prevents cursor getting stuck as non-game one
+	SDL_WarpMouseInWindow(os_get_window(), x+dx, y+dy);
+	SDL_ShowCursor();
+
 }
 
 void gamepad_mark_mouse_button(int button, bool down)

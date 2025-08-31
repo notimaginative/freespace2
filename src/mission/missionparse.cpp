@@ -2776,8 +2776,9 @@ void parse_wing(mission *pm)
 
 		// this will assign the goals to the wings as well as to any ships in the wing that have been
 		// already created.
-		for ( sexp = CDR(wing_goals); sexp != -1; sexp = CDR(sexp) )
+		for ( sexp = CDR(wing_goals); sexp != -1; sexp = CDR(sexp) ) {
 			ai_add_wing_goal_sexp(sexp, AIG_TYPE_EVENT_WING, wingnum);  // used by Fred
+		}
 
 		//if (Fred_running)
 			free_sexp2(wing_goals);  // free up sexp nodes for reused, since they aren't needed anymore.

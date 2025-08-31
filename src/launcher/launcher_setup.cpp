@@ -80,10 +80,14 @@ struct config {
 	// misc
 	std::string extras_path;
 	std::string cmdline;
+	bool nosound;
+	bool nomusic;
+	bool nomovies;
 
 	config(): msaa(0), fullscreen(true), show_fps(false), efx(false), launcher_sounds(true),
 			  haptic(false), direct_force(true), detail_level(2), network_connection(2),
-			  network_speed(5), port(0), pxo_skip_version_check(true), pxo_banners(true)
+			  network_speed(5), port(0), pxo_skip_version_check(true), pxo_banners(true),
+			  nosound(false), nomusic(false), nomovies(false)
 			  {}
 };
 
@@ -285,6 +289,16 @@ void launcher_setup_close()
 	}
 }
 
+static std::string trim(const std::string& str) {
+	auto start = str.begin();
+	while (start != str.end() && std::isspace(*start)) ++start;
+
+	auto end = str.end();
+	do { --end; } while (end != start && std::isspace(*end));
+
+	return std::string(start, end + 1);
+}
+
 static void launcher_setup_load_config()
 {
 	const char *ptr;
@@ -401,6 +415,55 @@ static void launcher_setup_load_config()
 		Config.cmdline = cfg;
 		SDL_free(cfg);
 	}
+
+	// search for quick options in cmdline and remove entries if found
+	// we'll add them back later as needed when saving
+	// (single character options need trailing space!!)
+	const char *nosound_opts[] = { "--nosound", "-nosound", "-s " };
+	const char *nomusic_opts[] = { "--nomusic", "-nomusic" };
+	const char *nomovies_opts[] = { "--nomovies", "-nomovies", "-n " };
+
+	if ( !Config.cmdline.empty() ) {
+		// add trailing space for easier option parsing
+		Config.cmdline += " ";
+
+		// no sound
+		for (size_t i = 0; i < SDL_arraysize(nosound_opts); ++i) {
+			auto pos = Config.cmdline.find(nosound_opts[i]);
+
+			if (pos != std::string::npos) {
+				Config.nosound = true;
+				// strip option from cmdline, including extra space
+				Config.cmdline.erase(pos, SDL_strlen(nosound_opts[i]) + 1);
+			}
+		}
+
+		// no music
+		for (size_t i = 0; i < SDL_arraysize(nomusic_opts); ++i) {
+			auto pos = Config.cmdline.find(nomusic_opts[i]);
+
+			if (pos != std::string::npos) {
+				Config.nomusic = true;
+				// strip option from cmdline, including extra space
+				Config.cmdline.erase(pos, SDL_strlen(nomusic_opts[i]) + 1);
+			}
+		}
+
+		// no movies
+		for (size_t i = 0; i < SDL_arraysize(nomovies_opts); ++i) {
+			auto pos = Config.cmdline.find(nomovies_opts[i]);
+
+			if (pos != std::string::npos) {
+				Config.nomovies = true;
+				// strip option from cmdline, including extra space
+				Config.cmdline.erase(pos, SDL_strlen(nomovies_opts[i]) + 1);
+			}
+		}
+
+		// clean whitespace
+		auto temp = trim(Config.cmdline);
+		Config.cmdline = temp;
+	}
 }
 
 static void launcher_setup_save_config()
@@ -442,13 +505,27 @@ static void launcher_setup_save_config()
 
 	os_config_write_string(nullptr, "ExtrasPath", Config.extras_path.c_str());
 
+	if (Config.nosound) {
+		Config.cmdline.append(" --nosound"); // with leading space
+	}
+
+	if (Config.nomusic) {
+		Config.cmdline.append(" --nomusic"); // with leading space
+	}
+
+	if (Config.nomovies) {
+		Config.cmdline.append(" --nomovies"); // with leading space
+	}
+
 	char cmdline_cfg[MAX_PATH_LEN];
 	cf_create_default_path_string(cmdline_cfg, CF_TYPE_DATA, "cmdline.cfg");
 
-	if (Config.cmdline.empty()) {
+	auto cmdline = trim(Config.cmdline);
+
+	if (cmdline.empty()) {
 		SDL_RemovePath(cmdline_cfg);
 	} else {
-		SDL_SaveFile(cmdline_cfg, Config.cmdline.c_str(), Config.cmdline.size());
+		SDL_SaveFile(cmdline_cfg, cmdline.c_str(), cmdline.size());
 	}
 }
 
@@ -716,6 +793,12 @@ static void tabMisc()
 		Config.cmdline = cmdline_str;
 	}
 	ImGui::PopFont();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, SpecialPadding);
+	ImGui::Checkbox("Disable all audio", &Config.nosound);
+	ImGui::Checkbox("Disable music", &Config.nomusic);
+	ImGui::Checkbox("Disable movies", &Config.nomovies);
+	ImGui::PopStyleVar();
 
 	ImGui::EndTabItem();
 }

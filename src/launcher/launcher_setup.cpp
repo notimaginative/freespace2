@@ -198,7 +198,8 @@ void launcher_setup_open()
 	ImGuiIO &io = ImGui::GetIO(); (void)io;
 	io.IniFilename = nullptr;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	// FIXME: gamepad events trigger on all windows, breaking setup/help
+//	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
 	ImGui::StyleColorsDark();
 

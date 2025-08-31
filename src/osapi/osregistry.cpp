@@ -452,7 +452,7 @@ void os_init_registry_stuff()
 //	os_config_write_uint(NULL, "LowMem", 0);
 
 	// 'Video' section
-	os_config_write_string("Video", "Renderer", "OpenGL");
+	os_config_write_string("Video", "Renderer", "");
 	os_config_write_uint("Video", "AntiAlias", 0);
 	os_config_write_uint("Video", "Fullscreen", 1);
 	os_config_write_string("Video", "Gamma", "1.8");

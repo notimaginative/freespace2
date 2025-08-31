@@ -22,6 +22,7 @@
 static SDL_Window *Window = nullptr;
 static SDL_Renderer *Renderer = nullptr;
 static ImGuiContext *Context = nullptr;
+static LauncherScale *WindowScale = nullptr;
 
 static char *HelpText = nullptr;
 
@@ -79,6 +80,11 @@ void launcher_help_event(const SDL_Event &event)
 				launcher_help_close();
 			}
 			break;
+		case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+			if (event.window.windowID == SDL_GetWindowID(Window)) {
+				WindowScale->update();
+			}
+			break;
 		default:
 			break;
 	}
@@ -90,12 +96,21 @@ void launcher_help_open()
 {
 	Uint32 window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
 
+	WindowScale = new (std::nothrow) LauncherScale;
+
+	if ( !WindowScale ) {
+		launcher_help_close();
+		return;
+	}
+
 	Window = SDL_CreateWindow("Launcher Help", 590, 420, window_flags);
 
 	if ( !Window ) {
 		launcher_help_close();
 		return;
 	}
+
+	WindowScale->init(Window);
 
 	SDL_SetWindowParent(Window, launcher_get_window());
 	SDL_SetWindowModal(Window, true);
@@ -126,6 +141,9 @@ void launcher_help_open()
 	ImGui::StyleColorsDark();
 
 	io.Fonts->Clear();
+	ImFontConfig fontConfig = {};
+
+	fontConfig.RasterizerDensity = WindowScale->getCoordScale();
 
 	for (int i = 0; i < FONT_COUNT; ++i) {
 		auto file = cfopen(Fonts[i].filename, "rb", CF_TYPE_FONT);
@@ -138,7 +156,9 @@ void launcher_help_open()
 			file = nullptr;
 
 			if (font) {
-				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size, Fonts[i].size);
+				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size,
+															  WindowScale->get(Fonts[i].size),
+															  &fontConfig);
 			}
 		}
 	}
@@ -162,6 +182,8 @@ void launcher_help_open()
 	style.Colors[ImGuiCol_ButtonHovered] = ImColor(90, 140, 100);
 	style.Colors[ImGuiCol_ButtonActive] = ImColor(45, 70, 140);
 	style.Colors[ImGuiCol_WindowBg] = ImColor(25, 25, 25);
+
+	WindowScale->setStyle(Context);
 
 	ImGui::SetCurrentContext(savedContext);
 }
@@ -193,6 +215,11 @@ void launcher_help_close()
 	if (Window) {
 		SDL_DestroyWindow(Window);
 		Window = nullptr;
+	}
+
+	if (WindowScale) {
+		delete WindowScale;
+		WindowScale = nullptr;
 	}
 }
 
@@ -227,15 +254,15 @@ void launcher_help_draw()
 	ImGui::Begin("Help", nullptr, window_flags);
 
 	ImGui::PushFont(Fonts[FONT_MONO].ptr);
-	ImGui::SetNextWindowSize(ImVec2(0.f, i2fl(h) - 75.f));
+	ImGui::SetNextWindowSize(ImVec2(0.f, i2fl(h) - WindowScale->get(75.f)));
 	ImGui::BeginChild("text");
 	ImGui::TextUnformatted(HelpText ? HelpText : "No help available.");
 	ImGui::EndChild();
 	ImGui::PopFont();
 
 	// center button group
-	const int button_width = 100;
-	AlignForWidth(float(button_width));
+	const float button_width = WindowScale->get(100.f);
+	AlignForWidth(button_width);
 
 	if (ImGui::Button("Close", ImVec2(button_width, 0))) {
 		close_window();

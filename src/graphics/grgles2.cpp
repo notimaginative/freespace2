@@ -484,7 +484,7 @@ void gr_gles2_init()
 
 	os_set_window(GLES2_window);
 
-	SDL_SetWindowMinimumSize(GLES2_window, 640, 480);
+	SDL_SetWindowMinimumSize(GLES2_window, gr_screen.max_w, gr_screen.max_h);
 
 	GLES2_context = SDL_GL_CreateContext(GLES2_window);
 

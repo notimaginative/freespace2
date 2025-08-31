@@ -27,6 +27,79 @@ static SDL_Window *Window = nullptr;
 static SDL_Renderer *Renderer = nullptr;
 static SDL_Texture *Background = nullptr;
 static ImGuiContext *Context = nullptr;
+static LauncherScale *WindowScale = nullptr;
+
+
+void LauncherScale::init(SDL_Window *win)
+{
+	window = win;
+
+	if ( !window ) {
+		return;
+	}
+
+	coord_scale = 1.0f;
+	content_scale = 1.0f;
+	scale_factor = 1.0f;
+
+	context = nullptr;
+
+	SDL_GetWindowSize(window, &unscaled_w, &unscaled_h);
+
+	update();
+}
+
+void LauncherScale::update()
+{
+	if ( !window ) {
+		return;
+	}
+
+	const float old_scale_factor = scale_factor;
+
+	int window_w, window_h;
+	int framebuffer_w, framebuffer_h;
+
+	SDL_GetWindowSize(window, &window_w, &window_h);
+	SDL_GetWindowSizeInPixels(window, &framebuffer_w, &framebuffer_h);
+
+	float sx = framebuffer_w / static_cast<float>(window_w);
+	float sy = framebuffer_h / static_cast<float>(window_h);
+
+	coord_scale = std::max(sx, sy);
+	content_scale = SDL_GetWindowDisplayScale(window);
+	scale_factor = content_scale / coord_scale;
+
+	bool resize = ((scale_factor != old_scale_factor) &&
+				   ((scale_factor > 1.0f) || (old_scale_factor > 1.0f)));
+
+	if (resize) {
+		SDL_SetWindowSize(window, get(unscaled_w), get(unscaled_h));
+
+		if (context) {
+			auto oldCtx = ImGui::GetCurrentContext();
+
+			ImGui::SetCurrentContext(context);
+			ImGui::GetStyle() = styleOrig;
+			ImGui::GetStyle().ScaleAllSizes(scale_factor);
+
+			ImGui::SetCurrentContext(oldCtx);
+		}
+	}
+}
+
+void LauncherScale::setStyle(ImGuiContext *ctx) {
+	context = ctx;
+
+	if (context) {
+		auto oldCtx = ImGui::GetCurrentContext();
+
+		styleOrig = ImGui::GetStyle();
+		ImGui::GetStyle().ScaleAllSizes(scale_factor);
+
+		ImGui::SetCurrentContext(oldCtx);
+	}
+}
 
 
 SDL_Renderer *launcher_get_renderer()
@@ -73,6 +146,11 @@ static void launcher_close()
 		Window = nullptr;
 	}
 
+	if (WindowScale) {
+		delete WindowScale;
+		WindowScale = nullptr;
+	}
+
 	extern void cfile_close();
 	cfile_close();
 
@@ -95,6 +173,12 @@ static bool launcher_init()
 	const int window_height = 440;
 #endif
 
+	WindowScale = new (std::nothrow) LauncherScale;
+
+	if ( !WindowScale ) {
+		return false;
+	}
+
 	Uint32 window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
 	Window = SDL_CreateWindow(title.c_str(), window_width, window_height, window_flags);
@@ -102,6 +186,8 @@ static bool launcher_init()
 	if ( !Window ) {
 		return false;
 	}
+
+	WindowScale->init(Window);
 
 	Renderer = SDL_CreateRenderer(Window, nullptr);
 
@@ -220,6 +306,9 @@ static bool launcher_do()
 	ImGui::StyleColorsDark();
 
 	auto fontFile = cfopen("DroidSans.ttf", "rb", CF_TYPE_FONT);
+	ImFontConfig fontConfig = {};
+
+	fontConfig.RasterizerDensity = WindowScale->getCoordScale();
 
 	if (fontFile) {
 		auto fontSize = cfilelength(fontFile);
@@ -230,7 +319,9 @@ static bool launcher_do()
 
 		if (font) {
 			io.Fonts->Clear();
-			io.Fonts->AddFontFromMemoryTTF(font, fontSize, 16);
+			io.Fonts->AddFontFromMemoryTTF(font, fontSize,
+										   WindowScale->get(16.f),
+										   &fontConfig);
 		}
 	}
 
@@ -242,6 +333,8 @@ static bool launcher_do()
 #else
 	launcher_init_style_fs2();
 #endif
+
+	WindowScale->setStyle(Context);
 
 	while ( !done ) {
 		ImGui::SetCurrentContext(Context);
@@ -262,6 +355,11 @@ static bool launcher_do()
 						rval = false;
 					}
 					break;
+				case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+					if (event.window.windowID == SDL_GetWindowID(Window)) {
+						WindowScale->update();
+					}
+					break;
 				default:
 					break;
 			}
@@ -278,9 +376,9 @@ static bool launcher_do()
 
 		// draw ui
 #ifdef MAKE_FS1
-		launcher_draw_fs1(&done, &rval);
+		launcher_draw_fs1(&done, &rval, WindowScale);
 #else
-		launcher_draw_fs2(&done, &rval);
+		launcher_draw_fs2(&done, &rval, WindowScale);
 #endif
 
 		// render

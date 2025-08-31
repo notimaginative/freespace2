@@ -45,9 +45,13 @@ void launcher_init_style_fs1()
 	style.Colors[ImGuiCol_ButtonActive] = ImColor(45, 70, 140);
 }
 
-void launcher_draw_fs1(bool *done, bool *play_game)
+void launcher_draw_fs1(bool *done, bool *play_game, LauncherScale *WindowScale)
 {
-	ImGui::SetNextWindowPos(ImVec2(295, 200));
+	if ( !WindowScale ) {
+		return;
+	}
+
+	ImGui::SetNextWindowPos(WindowScale->get(295, 200));
 	ImGui::SetNextWindowBgAlpha(0);
 
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove
@@ -56,7 +60,7 @@ void launcher_draw_fs1(bool *done, bool *play_game)
 
 	ImGui::Begin("Buttons", nullptr, window_flags);
 
-	auto buttonSize = ImVec2(175, 0);
+	auto buttonSize = WindowScale->get(175.0f, 0.f);
 
 	if (ImGui::Button("Play FreeSpace", buttonSize)) {
 		*done = true;

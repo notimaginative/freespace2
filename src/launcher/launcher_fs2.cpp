@@ -175,11 +175,15 @@ void launcher_init_style_fs2()
 	style.Colors[ImGuiCol_ButtonActive] = ImColor(0, 0, 0, 0);
 }
 
-void launcher_draw_fs2(bool *done, bool *play_game)
+void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale)
 {
 	int btn_id = 0;
 	const fs2_buttons *btn;
 	bool do_click = false;
+
+	if ( !WindowScale ) {
+		return;
+	}
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowBgAlpha(0);
@@ -193,160 +197,160 @@ void launcher_draw_fs2(bool *done, bool *play_game)
 	btn_id = BTN_PLAY;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("play", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("play", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		*done = true;
 		*play_game = true;
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 	btn_id = BTN_SETUP;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("setup", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("setup", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		launcher_setup_open();
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 	btn_id = BTN_README;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("readme", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("readme", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		launcher_open_readme();
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 #if 0
 	btn_id = BTN_UPDATE;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("update", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("update", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		printf("update!\n");
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 #endif
 
 	btn_id = BTN_HELP;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("help", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("help", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		launcher_help_open();
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 #if 0
 	btn_id = BTN_UNINSTALL;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("uninstall", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("uninstall", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		printf("uninstall!\n");
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 #endif
 
 	btn_id = BTN_VOLITION;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("volition", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("volition", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		SDL_OpenURL("https://web.archive.org/web/20040331091342/http://volition-inc.com/");
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 	btn_id = BTN_PXO;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("pxo", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("pxo", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		SDL_OpenURL("https://pxo.nottheeye.com");
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 	btn_id = BTN_QUIT;
 	btn = &Buttons[btn_id];
 
-	ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-	if (ImGui::ImageButton("quit", (ImTextureID)(intptr_t)Buttons[btn_id].texture, { btn->w, btn->h })) {
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("quit", (ImTextureID)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		*done = true;
 		*play_game = false;
 	}
 
 	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
 		do_click = true;
 	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(ImVec2(btn->x, btn->y));
-		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, { btn->w, btn->h });
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureID)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
 	}
 
 	// ------------------------------------------------

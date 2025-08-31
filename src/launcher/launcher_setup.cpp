@@ -25,6 +25,7 @@
 static SDL_Window *Window = nullptr;
 static SDL_Renderer *Renderer = nullptr;
 static ImGuiContext *Context = nullptr;
+static LauncherScale *WindowScale = nullptr;
 
 static void launcher_setup_load_config();
 
@@ -141,6 +142,11 @@ void launcher_setup_event(const SDL_Event &event)
 		case SDL_EVENT_JOYSTICK_REMOVED:
 			// TODO: enumerate joysticks
 			break;
+		case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+			if (event.window.windowID == SDL_GetWindowID(Window)) {
+				WindowScale->update();
+			}
+			break;
 		default:
 			break;
 	}
@@ -152,12 +158,21 @@ void launcher_setup_open()
 {
 	Uint32 window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
+	WindowScale = new (std::nothrow) LauncherScale;
+
+	if ( !WindowScale ) {
+		launcher_setup_close();
+		return;
+	}
+
 	Window = SDL_CreateWindow("FreeSpace Setup", 400, 460, window_flags);
 
 	if ( !Window ) {
 		launcher_setup_close();
 		return;
 	}
+
+	WindowScale->init(Window);
 
 	SDL_SetWindowParent(Window, launcher_get_window());
 	SDL_SetWindowModal(Window, true);
@@ -188,6 +203,9 @@ void launcher_setup_open()
 	ImGui::StyleColorsDark();
 
 	io.Fonts->Clear();
+	ImFontConfig fontConfig = {};
+
+	fontConfig.RasterizerDensity = WindowScale->getCoordScale();
 
 	for (int i = 0; i < FONT_COUNT; ++i) {
 		auto file = cfopen(Fonts[i].filename, "rb", CF_TYPE_FONT);
@@ -200,7 +218,9 @@ void launcher_setup_open()
 			file = nullptr;
 
 			if (font) {
-				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size, Fonts[i].size);
+				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size,
+															  WindowScale->get(Fonts[i].size),
+															  &fontConfig);
 			}
 		}
 	}
@@ -229,6 +249,8 @@ void launcher_setup_open()
 	style.Colors[ImGuiCol_TabSelected] = ImColor(45, 70, 140);
 	style.Colors[ImGuiCol_TabHovered] = ImColor(90, 140, 100);
 
+	WindowScale->setStyle(Context);
+
 	ImGui::SetCurrentContext(savedContext);
 }
 
@@ -254,6 +276,11 @@ void launcher_setup_close()
 	if (Window) {
 		SDL_DestroyWindow(Window);
 		Window = nullptr;
+	}
+
+	if (WindowScale) {
+		delete WindowScale;
+		WindowScale = nullptr;
 	}
 }
 
@@ -452,7 +479,7 @@ static void tabVideo()
 	ImGui::AlignTextToFramePadding();
 	ImGui::Text("Anti-Alias");
 	ImGui::SameLine();
-	ImGui::PushItemWidth(100.f);
+	ImGui::PushItemWidth(WindowScale->get(100.f));
 	ImGui::Combo("##msaa", &Config.msaa, antialias, SDL_arraysize(antialias));
 	ImGui::PopItemWidth();
 
@@ -581,7 +608,7 @@ static void tabNetwork()
 		SDL_snprintf(port_buf, SDL_arraysize(port_buf), "%u", Config.port);
 	}
 
-	ImGui::PushItemWidth(75.f);
+	ImGui::PushItemWidth(WindowScale->get(75.f));
 	ImGui::PushFont(Fonts[FONT_MONO].ptr);
 	if (ImGui::InputText("##port", port_buf, SDL_arraysize(port_buf), ImGuiInputTextFlags_CharsDecimal)) {
 		if ( !SDL_strlen(port_buf) ) {
@@ -737,7 +764,7 @@ void launcher_setup_draw()
 	}
 
 	// center button group
-	const int button_width = 100;
+	const float button_width = WindowScale->get(100.f);
 	ImGuiStyle& style = ImGui::GetStyle();
 	float width = button_width * 2.0f;	// two buttons
 	width += style.ItemSpacing.x;

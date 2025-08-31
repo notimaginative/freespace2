@@ -924,9 +924,9 @@ void gr_opengl_init()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
 	GL_window = SDL_CreateWindow(os_get_title(),
-                                 gr_screen.max_w,
-                                 gr_screen.max_h,
-                                 window_flags);
+								 gr_screen.max_w,
+								 gr_screen.max_h,
+								 window_flags);
 
 	if ( !GL_window ) {
 		Error(LOCATION, "Couldn't create window: %s\n", SDL_GetError());
@@ -934,7 +934,7 @@ void gr_opengl_init()
 
 	os_set_window(GL_window);
 
-	SDL_SetWindowMinimumSize(GL_window, 640, 480);
+	SDL_SetWindowMinimumSize(GL_window, gr_screen.max_w, gr_screen.max_h);
 
 	GL_context = SDL_GL_CreateContext(GL_window);
 

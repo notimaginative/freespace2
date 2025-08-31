@@ -9,6 +9,33 @@
 #ifndef _LAUNCHER_INTERNAL_H
 #define _LAUNCHER_INTERNAL_H
 
+#include <imgui.h>
+
+class LauncherScale {
+private:
+	SDL_Window *window;
+	int unscaled_w;
+	int unscaled_h;
+	float content_scale;
+	float coord_scale;
+	float scale_factor;
+
+	ImGuiContext *context;
+	ImGuiStyle styleOrig;
+
+public:
+	void init(SDL_Window *win);
+	void update();
+
+	void setStyle(ImGuiContext *ctx);
+
+	float getCoordScale() { return coord_scale; }
+
+	ImVec2 get(float x, float y) { return ImVec2(x * scale_factor, y * scale_factor); }
+	float get(float x) { return (x * scale_factor); }
+	int get(int x) { return static_cast<int>(x * scale_factor); }
+};
+
 SDL_Renderer *launcher_get_renderer();
 SDL_Window *launcher_get_window();
 
@@ -28,11 +55,11 @@ void launcher_setup_draw();
 void launcher_setup_event(const SDL_Event &event);
 
 void launcher_init_style_fs1();
-void launcher_draw_fs1(bool *done, bool *play_game);
+void launcher_draw_fs1(bool *done, bool *play_game, LauncherScale *WindowScale);
 void launcher_close_fs1();
 
 void launcher_init_style_fs2();
-void launcher_draw_fs2(bool *done, bool *play_game);
+void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale);
 void launcher_close_fs2();
 
 extern bool Launcher_sounds;

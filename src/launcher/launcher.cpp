@@ -411,6 +411,16 @@ static bool launcher_do()
 	return rval;
 }
 
+// cmdline options that should skip the launcher ui
+static const char *skip_options[] = {
+	"-skip_launcher",
+	"-standalone",
+	"-version",
+	"-v ",	// extra space!
+	"-help",
+	"-h ",	// extra space!
+};
+
 bool launcher_run(const char *szCmdline)
 {
 	bool rval = false;
@@ -435,8 +445,10 @@ bool launcher_run(const char *szCmdline)
 	// bypass launcher if the user doesn't want to see it
 	// NOTE: cmdline options haven't been parsed yet, so we can't check that way
 	if (szCmdline) {
-		if (SDL_strstr(szCmdline, "-skip_launcher") || SDL_strstr(szCmdline, "-standalone")) {
-			return true;
+		for (size_t i = 0; i < SDL_arraysize(skip_options); ++i) {
+			if (SDL_strstr(szCmdline, skip_options[i])) {
+				return true;
+			}
 		}
 	}
 

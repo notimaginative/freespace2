@@ -426,8 +426,6 @@ bool launcher_run(const char *szCmdline)
 {
 	bool rval = false;
 
-	SDL_Delay(1000);
-
 	SDL_SetAppMetadata(Osreg_title, version_get_string_full(), Osreg_app_id);
 
 	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");

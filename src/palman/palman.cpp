@@ -275,9 +275,16 @@ void palman_load_pixels()
 		while(!optional_string("#END")){
 			// nondarkening pixel
 			if(required_string("+ND")){
-				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][0]);
-				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default][1]);
-				stuff_byte(&Palman_non_darkening_default[Palman_num_nondarkening_default++][2]);
+				ubyte nr, ng, nb;
+				stuff_byte(&nr);
+				stuff_byte(&ng);
+				stuff_byte(&nb);
+
+				if (Palman_num_nondarkening_default < MAX_NONDARK_COLORS) {
+					Palman_non_darkening_default[Palman_num_nondarkening_default][0] = nr;
+					Palman_non_darkening_default[Palman_num_nondarkening_default][1] = ng;
+					Palman_non_darkening_default[Palman_num_nondarkening_default++][2] = nb;
+				}
 			}
 		}
 	} catch (parse_error_t rval) {

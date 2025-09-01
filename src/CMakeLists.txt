@@ -265,8 +265,6 @@ set(freespace_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/levelpaging.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/res/freespace.rc
-  ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/res/fs2.ico
-  ${CMAKE_CURRENT_SOURCE_DIR}/freespace2/res/fs.ico
   PARENT_SCOPE
 )
 

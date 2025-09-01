@@ -289,7 +289,12 @@ void launcher_setup_close()
 	}
 }
 
-static std::string trim(const std::string& str) {
+static std::string trim(const std::string& str)
+{
+	if (str.empty()) {
+		return str;
+	}
+
 	auto start = str.begin();
 	while (start != str.end() && std::isspace(*start)) ++start;
 

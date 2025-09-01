@@ -2171,6 +2171,9 @@ void bm_page_in_stop()
 		if ( bm_bitmaps[i].type != BM_TYPE_NONE )	{
 			if ( bm_bitmaps[i].preloaded )	{
 #ifdef BMPMAN_SPECIAL_NONDARK
+#ifdef MAKE_FS1
+				palman_set_nondarkening(Palman_non_darkening_default, Palman_num_nondarkening_default);
+#else
 				// if this is a texture, check to see if a ship uses it
 				ship_info_index = ship_get_texture(bm_bitmaps[i].handle);
 				// use the colors from this ship
@@ -2183,7 +2186,8 @@ void bm_page_in_stop()
 					// mprintf(("Using default pixels\n"));
 					palman_set_nondarkening(Palman_non_darkening_default, Palman_num_nondarkening_default);
 				}
-#endif
+#endif	// MAKE_FS1
+#endif	// BMPMAN_SPECIAL_NONDARK
 
 				// if preloaded == 3, load it as an xparent texture				
 				if(bm_bitmaps[i].used_flags == BMP_AABITMAP){

@@ -136,6 +136,8 @@ void gamepad_update_mouse_pos()
 
 	int dead_zone = 65536 * Dead_zone_size / 100;
 
+	CAP(dead_zone, 1000, 8000);
+
 	// ignore possible stick drift
 	if (abs(gx) < dead_zone) gx = 0;
 	if (abs(gy) < dead_zone) gy = 0;

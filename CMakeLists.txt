@@ -1,17 +1,17 @@
 
-cmake_minimum_required(VERSION 3.28)
-cmake_policy(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22...4.0)
 
-set(FS_LANGS C CXX)
+# these need to be set before project() is called
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS/iOS deployment target")
+# (currently broken for OpenAL, it must build each separately)
+#set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "macOS/iOS build architecture(s)")
+
+project(freespace2)
+
+enable_language(C CXX)
 
 if(APPLE)
-  set(FS_LANGS ${FS_LANGS} OBJC OBJCXX)
-endif()
-
-project(freespace2 LANGUAGES ${FS_LANGS})
-
-if(APPLE)
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+  enable_language(OBJC OBJCXX)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
@@ -79,11 +79,6 @@ if(EMSCRIPTEN)
   add_definitions(-s FULL_ES2=1)
 
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
-endif()
-
-if(APPLE)
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
-  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
 endif()
 
 if(NOT WIN32)

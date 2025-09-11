@@ -27,6 +27,7 @@ FetchContent_Declare(
   URL https://github.com/libsdl-org/SDL/releases/download/release-3.2.20/SDL3-3.2.20.zip
   EXCLUDE_FROM_ALL
   SYSTEM
+  DOWNLOAD_EXTRACT_TIMESTAMP OFF
 )
 
 FetchContent_MakeAvailable(SDL3)
@@ -43,6 +44,7 @@ FetchContent_Declare(
   URL https://github.com/kcat/openal-soft/archive/refs/tags/1.24.3.zip
   EXCLUDE_FROM_ALL
   SYSTEM
+  DOWNLOAD_EXTRACT_TIMESTAMP OFF
 )
 
 set(ALSOFT_UTILS OFF CACHE BOOL "")
@@ -73,6 +75,7 @@ if(NOT EMSCRIPTEN)
     URL https://github.com/warmcat/libwebsockets/archive/refs/tags/v4.3.5.zip
     EXCLUDE_FROM_ALL
     SYSTEM
+    DOWNLOAD_EXTRACT_TIMESTAMP OFF
   )
 
   set(LWS_WITH_SSL OFF CACHE BOOL "")

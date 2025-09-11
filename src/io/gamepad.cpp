@@ -13,6 +13,7 @@
 #include "key.h"
 #include "timer.h"
 #include "osapi.h"
+#include "2d.h"
 
 
 static SDL_Gamepad *Gamepad = nullptr;
@@ -159,8 +160,10 @@ void gamepad_update_mouse_pos()
 	mouse_update_pos_scaled(x+dx, y+dy, dx, dy);
 
 	// now change position
+	float fx = (x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;
+	float fy = (y / gr_screen.viewport_scale_factor_y) + gr_screen.viewport_offset_y;
 	SDL_HideCursor();		// prevents cursor getting stuck as non-game one
-	SDL_WarpMouseInWindow(os_get_window(), x+dx, y+dy);
+	SDL_WarpMouseInWindow(os_get_window(), fx+dx, fy+dy);
 	SDL_ShowCursor();
 
 }

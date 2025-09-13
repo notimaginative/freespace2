@@ -8987,6 +8987,7 @@ void ship_page_in()
 		}
 	}
 
+	(void)num_ship_types_used;
 	nprintf(( "Paging", "There are %d ship classes used in this mission.\n", num_ship_types_used ));
 	mprintf(( "This mission requires %d Ship_subsystems. See #define MAX_SHIP_SUBOBJECTS.\n", num_subsystems_needed ));
 

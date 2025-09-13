@@ -2866,6 +2866,7 @@ void game_set_view_clip()
 
 void show_debug_stuff()
 {
+#ifndef NDEBUG
 	int	i;
 	int	laser_count = 0, missile_count = 0;
 
@@ -2880,6 +2881,7 @@ void show_debug_stuff()
 	}
 
 	nprintf(("Mike", "Frame: %i Lasers: %4i, Missiles: %4i\n", Framecount, laser_count, missile_count));
+#endif
 }
 
 extern int Tool_enabled;

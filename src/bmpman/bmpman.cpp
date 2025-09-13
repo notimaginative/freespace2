@@ -2172,6 +2172,7 @@ void bm_page_in_stop()
 			if ( bm_bitmaps[i].preloaded )	{
 #ifdef BMPMAN_SPECIAL_NONDARK
 #ifdef MAKE_FS1
+				(void)ship_info_index;
 				palman_set_nondarkening(Palman_non_darkening_default, Palman_num_nondarkening_default);
 #else
 				// if this is a texture, check to see if a ship uses it
@@ -2215,6 +2216,7 @@ void bm_page_in_stop()
 		}
 		game_busy();
 	}
+	(void)n;
 	nprintf(( "BmpInfo","BMPMAN: Loaded %d bitmaps that are marked as used for this level.\n", n ));
 
 	int total_bitmaps = 0;
@@ -2227,6 +2229,7 @@ void bm_page_in_stop()
 		}
 	}	
 
+	(void)total_bitmaps;
 	mprintf(( "Bmpman: %d/%d bitmap slots in use.\n", total_bitmaps, MAX_BITMAPS ));
 	//mprintf(( "Bmpman: Usage went from %d KB to %d KB.\n", usage_before/1024, usage_after/1024 ));
 

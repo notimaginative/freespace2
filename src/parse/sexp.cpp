@@ -736,6 +736,7 @@ int count_free_sexp_nodes()
 	}
 
 	if (MAX_SEXP_NODES - f > Sexp_hwm) {
+		(void)p;
 		nprintf(("Sexp", "Sexp nodes: Free=%d, Used=%d, Persistent=%d\n", f, MAX_SEXP_NODES - f, p));
 		Sexp_hwm = MAX_SEXP_NODES - f;
 	}

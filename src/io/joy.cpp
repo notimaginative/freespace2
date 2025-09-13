@@ -439,6 +439,7 @@ static int joy_init_internal(SDL_JoystickID with_id)
 
 	JoystickID = Cur_joystick;
 
+	(void)joy_name;
 	mprintf(("  Name    : %s\n", joy_name ? joy_name : "<unknown>"));
 	mprintf(("  Gamepad : %s\n", joystick_is_gamepad() ? "Yes" : "No"));
 	mprintf(("  Axes    : %d\n", SDL_GetNumJoystickAxes(sdljoy)));

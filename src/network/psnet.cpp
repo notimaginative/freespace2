@@ -1667,6 +1667,7 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 		}
 	} while ( length > 0 );
 
+	(void)total_sent;
 #ifndef NDEBUG
 	psnet_bytes_written_frame += total_sent;
 

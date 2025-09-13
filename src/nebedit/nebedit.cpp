@@ -92,6 +92,7 @@
  */
 
 
+#include <SDL3/SDL_main.h>
 #include "pstypes.h"
 #include "2d.h"
 #include "3d.h"

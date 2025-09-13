@@ -67,7 +67,7 @@ void game_increase_skill_level(){}
 int Test_begin;
 int Game_time_compression;
 int Framerate_delay;
-char *Game_current_mission_filename;
+char Game_current_mission_filename[MAX_FILENAME_LEN];
 int Warpout_forced;
 float Warpout_time;
 extern "C" int game_start_mission(void){return 0;}

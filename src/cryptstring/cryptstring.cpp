@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 char *jcrypt (char *plainstring)
 {
-	int i,t,len;
+	size_t i,t,len;
 	static char cryptstring[CRYPT_STRING_LENGTH + 1];
 
 	len=strlen (plainstring);
@@ -84,4 +84,3 @@ char *jcrypt (char *plainstring)
 	cryptstring[i]=0;
 	return ((char *)cryptstring);
 }
-

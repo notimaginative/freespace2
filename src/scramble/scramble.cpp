@@ -55,6 +55,8 @@
  *
 */
 
+#include "pstypes.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef SDL_PLATFORM_WINDOWS
@@ -64,9 +66,6 @@
 #endif
 #include <string.h>
 
-#define SDL_MAIN_HANDLED
-
-#include "pstypes.h"
 #include "encrypt.h"
 #include "scramble.h"
 
@@ -84,7 +83,7 @@ int _filelength (int fd)
 	if (fstat (fd, &buf) == -1)
 		return -1;
 
-	return buf.st_size;
+	return static_cast<int>(buf.st_size);
 }
 #endif
 
@@ -100,7 +99,8 @@ void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
 	char	line[MAX_LINE_LEN+1];
 	char	token_line[MAX_LINE_LEN+1];
 	char	*dest;
-	int	line_len, discard_line = 1, keep_all_lines = 0, post_discard = 0;
+	int discard_line = 1, keep_all_lines = 0, post_discard = 0;
+	size_t	line_len;
 	char	seps[]   = " ,\t\n";
 	char	*token;
 
@@ -151,7 +151,7 @@ void scramble_read_ships_tbl(char **text, int *text_len, FILE *fp)
 		} 
 	}
 
-	*text_len = dest - *text;
+	*text_len = static_cast<int>(dest - *text);
 }
 
 // strip out any weapons tbl data not used in demo (ie entries without @ preceding name)
@@ -160,7 +160,8 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 	char	line[MAX_LINE_LEN+1];
 	char	token_line[MAX_LINE_LEN+1];
 	char	*dest;
-	int	line_len, discard_line = 1, keep_all_lines = 0, post_discard = 0;
+	int	discard_line = 1, keep_all_lines = 0, post_discard = 0;
+	size_t	line_len;
 	char	seps[]   = " ,\t\n";
 	char	*token = NULL;
 
@@ -206,7 +207,7 @@ void scramble_read_weapons_tbl(char **text, int *text_len, FILE *fp)
 		} 
 	}
 
-	*text_len = dest - *text;
+	*text_len = static_cast<int>(dest - *text);
 }
 
 void scramble_read_default(char **text, int *text_len, FILE *fp)
@@ -384,4 +385,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-

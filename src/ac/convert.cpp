@@ -1120,7 +1120,7 @@ int convert_frames_to_anim(char *filename)
 	strcpy(name, filename);
 	strcpy(ani_filename, filename);
 	strcpy(ani_filename + strlen(ani_filename) - 8, ".ani");
-	pos = strlen(name) - 8;
+	pos = static_cast<int>(strlen(name) - 8);
 	frame = first = atoi(&name[pos]);
 	force_key_frame -= frame;
 

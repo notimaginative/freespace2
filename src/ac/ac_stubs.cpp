@@ -110,7 +110,7 @@ int Test_begin;
 int Game_time_compression;
 int Framerate_delay;
 int game_poll() {return 0;}
-char *Game_current_mission_filename;
+char Game_current_mission_filename[MAX_FILENAME_LEN];
 void game_process_event(int, int){}
 void game_increase_skill_level(){}
 int Warpout_forced;

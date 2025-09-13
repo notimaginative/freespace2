@@ -67,6 +67,10 @@ if(NOT EMSCRIPTEN)
   # libwebsockets
   #
 
+  # old cmake file in project but policy 3.10 appears to work just fine
+  set(MIN_POLICY_save ${CMAKE_POLICY_VERSION_MINIMUM})
+  set(CMAKE_POLICY_VERSION_MINIMUM "3.10")
+
   FetchContent_Declare(
     libwebsockets
     #GIT_REPOSITORY https://github.com/warmcat/libwebsockets
@@ -82,6 +86,8 @@ if(NOT EMSCRIPTEN)
   set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "")
 
   FetchContent_MakeAvailable(LibWebSockets)
+
+  set(CMAKE_POLICY_VERSION_MINIMUM ${MIN_POLICY_save})
 endif()
 
 

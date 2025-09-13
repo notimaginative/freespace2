@@ -226,7 +226,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <winsock2.h>
 #else
 #include <sys/types.h>
@@ -3431,7 +3431,7 @@ void multi_make_fake_players(int count)
 // PACK UNPACK STUFF
 //
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", off)
 #endif
 
@@ -4112,6 +4112,6 @@ int multi_pack_unpack_desired_rotvel( int write, ubyte *data, matrix *orient, ve
 	}
 }
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", on)
 #endif

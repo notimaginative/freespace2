@@ -12,7 +12,7 @@
 #include "pstypes.h"
 #include "launcher.h"
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -24,7 +24,7 @@
 extern "C" int game_main(const char *szCmdLine);
 
 
-#if defined(PLAT_UNIX) && !defined(__EMSCRIPTEN__)
+#if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
 static void daemonize()
 {
 	pid_t pid = fork();
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	size_t len = 0;
 	int retr = 0;
 
-#if defined(PLAT_UNIX) && !defined(__EMSCRIPTEN__)
+#if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
 	// if we are standalone headless, daemonize
 	bool daemon = false;
 	bool standalone = false;

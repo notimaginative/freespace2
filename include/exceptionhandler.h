@@ -36,10 +36,6 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
-#pragma once		// Include this file only once
-#endif
-
 #ifndef __EXCEPTION_HANDLER_H
 #define __EXCEPTION_HANDLER_H
 

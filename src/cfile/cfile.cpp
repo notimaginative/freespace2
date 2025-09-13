@@ -213,7 +213,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <direct.h>
 #include <io.h>
 #else
@@ -578,7 +578,7 @@ CFILE *cfopen(const char *file_path, const char *mode, int dir_type, bool locali
 	// the harddisk.  No fancy packfile stuff here!
 	
 	if ( SDL_strchr(mode,'w') )	{
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 		const char *toks = "/";
 #else
 		const char *toks = "/\\:";

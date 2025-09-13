@@ -6,7 +6,7 @@
  * the source.
  */
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 
 #include <stdlib.h>
 #include <errno.h>

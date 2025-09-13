@@ -486,7 +486,7 @@
 #include "awacs.h"
 #include "fvi.h"
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", off)
 #pragma auto_inline(off)
 #endif

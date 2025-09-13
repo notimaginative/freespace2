@@ -8,7 +8,7 @@
 */
 
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -441,7 +441,7 @@ int Encode(t_Sample* bufIn, t_Sample* bufOut, int sizeIn, int sizeOut,
 // theoretically evil but is not really all that dangerous in practice...
 
 // disable compiler padding of structures
-#if !defined(PLAT_UNIX) || defined(__INTEL_COMPILER)
+#if defined(SDL_PLATFORM_WINDOWS) || defined(__INTEL_COMPILER)
 #pragma pack(push, packet_declarations)
 #pragma pack(1)
 #define PACKED
@@ -544,7 +544,7 @@ struct t_PacketMF0
 } PACKED;
 
 // restore state of compiler padding of structures
-#if !defined(PLAT_UNIX) || defined(__INTEL_COMPILER)
+#if defined(SDL_PLATFORM_WINDOWS) || defined(__INTEL_COMPILER)
 #pragma pack(pop, packet_declarations)
 #endif
 #undef PACKED

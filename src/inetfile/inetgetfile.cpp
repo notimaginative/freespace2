@@ -55,7 +55,7 @@
  */
 
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <winsock2.h>
 #endif
 

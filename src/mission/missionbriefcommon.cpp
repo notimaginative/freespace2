@@ -1047,7 +1047,7 @@ void brief_init_map()
 	Num_fade_icons=0;
 }
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", off)
 #endif
 
@@ -1378,7 +1378,7 @@ void brief_render_icon(int stage_num, int icon_num, float frametime, int selecte
 	}  // end if vertex is projected
 }
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", on)
 #endif
 

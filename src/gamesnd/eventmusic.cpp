@@ -143,7 +143,7 @@
 #include "missiongoals.h"
 #include "localize.h"
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", off)
 #endif
 
@@ -1541,6 +1541,6 @@ void event_music_hostile_ship_destroyed()
 	Battle_over_timestamp = timestamp(BATTLE_CHECK_INTERVAL);
 }
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", on)
 #endif

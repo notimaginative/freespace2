@@ -102,7 +102,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <io.h>
 #include <conio.h>
 #endif
@@ -627,4 +627,3 @@ void fonttool_edit_kerning(char *fname1)
 
 	exit(0);
 }
-

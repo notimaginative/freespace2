@@ -49,7 +49,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <io.h>
 #include <conio.h>
 #endif

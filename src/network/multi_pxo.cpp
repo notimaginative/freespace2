@@ -307,7 +307,7 @@
  */
 
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <netinet/in.h>
 #endif
 
@@ -5764,4 +5764,3 @@ void multi_pxo_ban_clicked()
 		multi_pxo_url(Multi_pxo_banner.ban_url);
 	}
 }
-

@@ -144,7 +144,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <winsock2.h>
 #include <ras.h>
 #include <raserror.h>
@@ -219,7 +219,7 @@ ushort	Psnet_default_port;
 // the naked packet.
 #define MAX_PACKET_BUFFERS		75
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma pack(push, 2)
 #endif
 
@@ -248,7 +248,7 @@ typedef struct network_packet_buffer_list {
 	int psnet_highest_id;
 } network_packet_buffer_list;
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma pack(pop)
 #endif
 
@@ -283,7 +283,7 @@ int Nettimeout = NETTIMEOUT;
 #define RNT_HEARTBEAT		6				// Heartbeat -- send every NETHEARTBEATTIME
 #define RNT_I_AM_HERE		7
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma pack(push,r_udp)
 #pragma pack(1)
 #define PACKED
@@ -352,7 +352,7 @@ float Last_sent_iamhere = 0;
 
 unsigned int Serverconn = 0xffffffff;
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma pack(pop,r_udp)
 #endif
 #undef PACKED
@@ -553,7 +553,7 @@ void PSNET_TOP_LAYER_PROCESS()
 void psnet_init( int protocol, int port_num )
 {	
 	const char *internet_connection;
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	WSADATA wsa_data; 		
 #endif
 	int idx;
@@ -587,7 +587,7 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	Network_status = NETWORK_STATUS_NO_WINSOCK;
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	if (WSAStartup(0x101, &wsa_data )){
 		return;
 	}
@@ -658,7 +658,7 @@ void psnet_close()
 		return;
 	}
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	WSACancelBlockingCall();		
 #endif
 
@@ -669,7 +669,7 @@ void psnet_close()
 		closesocket( TCP_socket );
 	}
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	if (WSACleanup())	{
 		//Warning( LOCATION, "Error closing wsock!\n" );
 	}
@@ -2028,7 +2028,7 @@ int psnet_is_valid_numeric_ip(char *ip)
 
 // function called from high level FreeSpace code to determine the status of the networking
 // code returns one of a handful of macros
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 DWORD (__stdcall *pRasEnumConnections)(LPRASCONN lprasconn, LPDWORD lpcb, LPDWORD lpcConnections) = NULL;
 DWORD (__stdcall *pRasGetConnectStatus)(HRASCONN hrasconn, LPRASCONNSTATUS lprasconnstatus ) = NULL;
 DWORD (__stdcall *pRasGetProjectionInfo)(HRASCONN hrasconn, RASPROJECTION rasprojection, LPVOID lpprojection, LPDWORD lpcb ) = NULL;

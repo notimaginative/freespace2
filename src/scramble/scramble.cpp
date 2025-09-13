@@ -57,7 +57,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <io.h>
 #else
 #include <sys/stat.h>
@@ -74,7 +74,7 @@
 #undef free
 #undef strdup
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #define strncasecmp strnicmp
 #define strcasecmp stricmp
 #else

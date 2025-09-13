@@ -122,7 +122,7 @@
  */
 
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <winsock2.h>
 #include <ras.h>
 #include <raserror.h>
@@ -396,7 +396,7 @@ int psnet_get_network_status()
 	return NETWORK_ERROR_NONE;
 }
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 DWORD (__stdcall *pRasEnumConnections)(LPRASCONN lprasconn, LPDWORD lpcb, LPDWORD lpcConnections) = NULL;
 DWORD (__stdcall *pRasGetConnectStatus)(HRASCONN hrasconn, LPRASCONNSTATUS lprasconnstatus ) = NULL;
 DWORD (__stdcall *pRasGetProjectionInfo)(HRASCONN hrasconn, RASPROJECTION rasprojection, LPVOID lpprojection, LPDWORD lpcb ) = NULL;
@@ -405,7 +405,7 @@ DWORD (__stdcall *pRasGetProjectionInfo)(HRASCONN hrasconn, RASPROJECTION raspro
 // functions to get the status of a RAS connection
 void psnet_ras_status()
 {
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	int rval;
 	unsigned long size, num_connections, i;
 	RASCONN rasbuffer[25];
@@ -591,7 +591,7 @@ void psnet_close()
 	if ( Network_status != NETWORK_STATUS_RUNNING )
 		return;
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	WSACancelBlockingCall();
 #endif
 
@@ -610,7 +610,7 @@ void psnet_close()
 		closesocket( TCP_socket );
 	}
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	if (WSACleanup())	{
 		//Warning( LOCATION, "Error closing wsock!\n" );
 	}
@@ -749,7 +749,7 @@ void psnet_socket_options( SOCKET sock )
 void psnet_init( int protocol, int port_num )
 {	
 	const char *internet_connection;
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	WSADATA wsa_data;
 #endif
 
@@ -785,7 +785,7 @@ void psnet_init( int protocol, int port_num )
 
 	Network_status = NETWORK_STATUS_NO_WINSOCK;
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	if (WSAStartup(0x101, &wsa_data )){
 		return;
 	}

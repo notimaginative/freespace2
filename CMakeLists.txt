@@ -16,7 +16,7 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 
-if(WINDOWS)
+if(WIN32)
   # place dependency dlls in runtime directory on Windows
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 endif()
@@ -81,19 +81,7 @@ if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
-if(NOT WIN32)
-  set(PLATFORM_LIBRARIES "")
-
-  add_definitions(-DPLAT_UNIX)
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
-
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g -Os -DRELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -DRELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og")
-else()
+if(WIN32)
   set(PLATFORM_LIBRARIES
     ws2_32
     shlwapi
@@ -109,6 +97,16 @@ else()
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT /D RELEASE_REAL")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /D RELEASE_REAL")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+else()
+  set(PLATFORM_LIBRARIES "")
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
+
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g -Os -DRELEASE_REAL")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -DRELEASE_REAL")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og")
 endif()
 
 set(BIN_SUFFIX "")
@@ -184,6 +182,11 @@ target_compile_definitions(code
   FS_BINARY="${FS_BINARY}"
 )
 
+target_precompile_headers(code
+   PRIVATE
+     include/pstypes.h
+)
+
 CreateSourceGroups(${code_SOURCE} ${platform_SOURCE})
 
 add_dependencies(code
@@ -201,6 +204,8 @@ add_executable(${FS_BINARY}
   ${launcher_SOURCE}
   ${launcher_HEADERS}
 )
+
+target_precompile_headers(${FS_BINARY} REUSE_FROM code)
 
 CreateSourceGroups(${freespace_SOURCE} ${launcher_SOURCE})
 
@@ -356,6 +361,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
     ${ac_HEADERS}
   )
 
+  target_precompile_headers(ac REUSE_FROM code)
+
   CreateSourceGroups(${ac_SOURCE})
 
   set_target_properties(ac PROPERTIES
@@ -416,6 +423,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
     WIN32
     ${nebedit_SOURCE}
   )
+
+  target_precompile_headers(nebedit REUSE_FROM code)
 
   CreateSourceGroups(${nebedit_SOURCE})
 
@@ -493,6 +502,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
     ${fonttool_SOURCE}
     ${fonttool_HEADERS}
   )
+
+  target_precompile_headers(fonttool REUSE_FROM code)
 
   CreateSourceGroups(${fonttool_SOURCE})
 

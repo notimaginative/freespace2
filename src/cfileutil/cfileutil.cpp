@@ -24,7 +24,7 @@
 #include <sstream>
 #include <iomanip>
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <dirent.h>
 #endif
 

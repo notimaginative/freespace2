@@ -123,7 +123,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <io.h>
 #include <shlwapi.h>	// for PathIsRealtive()
 #endif
@@ -721,7 +721,7 @@ static bool is_absolute_path(const char *path)
 		return false;
 	}
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 	return (PathIsRelative(path) == FALSE);
 #else
 	return (*path == '/');

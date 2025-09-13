@@ -375,7 +375,7 @@ void PollPTrackNet();
 #define PXO_SENDTO(a, b, c, d, e, f, g) SENDTO(a, b, c, d, e, f, g)
 #else
 #define PXO_SELECT(a, b, c, d, e, f) select(a, b, c, d, e)
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #define PXO_RECVFROM(a, b, c, d, e, f, g) static_cast<int>(recvfrom(a, b, c, d, e, (socklen_t*)f))
 #else
 #define PXO_RECVFROM(a, b, c, d, e, f, g) recvfrom(a, b, c, d, e, f)

@@ -367,9 +367,7 @@
  */
 
 #include <limits.h>
-#ifndef PLAT_UNIX
-#include <io.h>         // for findfirst/findnext, etc
-#endif
+
 #include "osapi.h"
 #include "multimsgs.h"
 #include "multiutil.h"

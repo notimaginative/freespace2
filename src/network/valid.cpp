@@ -11,7 +11,7 @@
 //Validate tracker user class
 
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <errno.h>

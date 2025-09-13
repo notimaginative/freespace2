@@ -115,7 +115,7 @@
  * $NoKeywords: $
  */
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #include <winsock2.h>
 #endif
 #include "multi_update.h"
@@ -317,4 +317,3 @@ int multi_update_gobaby()
 	
 	return my_code;		
 }
-

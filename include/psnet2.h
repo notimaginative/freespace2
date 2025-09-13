@@ -71,7 +71,7 @@
 #define _PSNET2_H
 
 /* sigh */
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -170,7 +170,7 @@ extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send 
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
 //
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 struct sockaddr;
 struct fd_set;
 struct timeval;

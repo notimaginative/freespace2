@@ -254,7 +254,7 @@
  */
 
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include <netinet/in.h>
 #endif
 
@@ -1663,4 +1663,3 @@ int multi_fs_tracker_store_sw(squad_war_result *sw_res, char *bad_reply, const i
 	// failure
 	return 0;
 }
-

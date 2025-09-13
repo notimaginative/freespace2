@@ -377,7 +377,7 @@
 #include "shiphit.h"
 #include "missionparse.h"
 
-#ifndef PLAT_UNIX
+#ifdef SDL_PLATFORM_WINDOWS
 #pragma optimize("", off)
 #pragma auto_inline(off)
 #endif

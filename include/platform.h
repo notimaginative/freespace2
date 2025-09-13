@@ -11,7 +11,7 @@
 #include <malloc.h>
 #endif
 
-#ifdef PLAT_UNIX
+#ifndef SDL_PLATFORM_WINDOWS
 #include "unix.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>

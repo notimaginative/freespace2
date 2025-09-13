@@ -1,0 +1,61 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "defaults",
+			"hidden": true,
+			"generator": "Ninja Multi-Config",
+			"binaryDir": "${sourceDir}/build/presets/${presetName}"
+		},
+		{
+			"name": "fs2",
+			"inherits": "defaults",
+			"cacheVariables": {
+				"DEMO": false,
+				"FS1": false
+			}
+		},
+		{
+			"name": "fs2demo",
+			"inherits": "defaults",
+			"cacheVariables": {
+				"DEMO": true,
+				"FS1": false
+			}
+		},
+		{
+			"name": "fs1",
+			"inherits": "defaults",
+			"cacheVariables": {
+				"DEMO": false,
+				"FS1": true
+			}
+		},
+		{
+			"name": "fs1demo",
+			"inherits": "defaults",
+			"cacheVariables": {
+				"DEMO": true,
+				"FS1": true
+			}
+		}
+	],
+	"buildPresets": [
+  	{
+  		"name": "fs2",
+  		"configurePreset": "fs2"
+  	},
+		{
+			"name": "fs2demo",
+			"configurePreset": "fs2demo"
+		},
+		{
+			"name": "fs1",
+			"configurePreset": "fs1"
+		},
+		{
+			"name": "fs1demo",
+			"configurePreset": "fs1demo"
+		}
+	]
+}

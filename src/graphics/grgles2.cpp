@@ -442,7 +442,7 @@ void gr_gles2_init()
 		Error(LOCATION, "Couldn't init SDL: %s", SDL_GetError());
 	}
 
-	Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
 
 	int a = 1, r = 5, g = 5, b = 5, bpp = 16;
 	int FSAA = os_config_read_uint("Video", "AntiAlias", 0);
@@ -483,8 +483,6 @@ void gr_gles2_init()
 	}
 
 	os_set_window(GLES2_window);
-
-	SDL_SetWindowMinimumSize(GLES2_window, gr_screen.max_w, gr_screen.max_h);
 
 	GLES2_context = SDL_GL_CreateContext(GLES2_window);
 
@@ -1112,9 +1110,12 @@ void gr_gles2_stream_stop()
 	gles2_shader_update();
 }
 
-void gr_gles2_set_viewport(int width, int height)
+void gr_gles2_set_viewport(int /*width*/, int /*height*/)
 {
+	int width, height;
 	int w, h, x, y;
+
+	SDL_GetWindowSizeInPixels(GLES2_window, &width, &height);
 
 	float ratio = gr_screen.max_w / i2fl(gr_screen.max_h);
 

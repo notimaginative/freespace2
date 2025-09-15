@@ -710,6 +710,7 @@ void gr_set_clear_color(int r, int g, int b);
 
 #define gr_release_texture	GR_CALL(gr_screen.gf_release_texture)
 
+void gr_present_window(bool center = false);
 void gr_force_fullscreen();
 void gr_force_windowed();
 void gr_toggle_fullscreen();

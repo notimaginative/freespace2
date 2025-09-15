@@ -745,9 +745,12 @@ void gr_opengl_stream_stop()
 	opengl_set_viewport();
 }
 
-void gr_opengl_set_viewport(int width, int height)
+void gr_opengl_set_viewport(int /*width*/, int /*height*/)
 {
+	int width, height;
 	int w, h, x, y;
+
+	SDL_GetWindowSizeInPixels(GL_window, &width, &height);
 
 	float ratio = gr_screen.max_w / i2fl(gr_screen.max_h);
 
@@ -903,7 +906,7 @@ void gr_opengl_init()
 		Error(LOCATION, "Couldn't init SDL: %s", SDL_GetError());
 	}
 
-	Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
 
 	int a = 1, r = 5, g = 5, b = 5, bpp = 16;
 	int FSAA = os_config_read_uint("Video", "AntiAlias", 0);
@@ -933,8 +936,6 @@ void gr_opengl_init()
 	}
 
 	os_set_window(GL_window);
-
-	SDL_SetWindowMinimumSize(GL_window, gr_screen.max_w, gr_screen.max_h);
 
 	GL_context = SDL_GL_CreateContext(GL_window);
 

@@ -502,6 +502,12 @@ void os_poll()
 				mouse_grab(0);
 				break;
 
+			case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+				if (e.window.windowID == SDL_GetWindowID(os_get_window())) {
+					gr_present_window();
+				}
+				break;
+
 			case SDL_EVENT_WINDOW_FOCUS_LOST:
 				fAppActive = 0;
 				// io stuff

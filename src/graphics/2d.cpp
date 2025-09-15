@@ -835,6 +835,8 @@ int gr_init(bool safe_mode)
 			break;
 	}
 
+	gr_present_window(true);
+
 	memmove( Gr_current_palette, Gr_original_palette, 768 );
 	gr_set_palette_internal(Gr_current_palette_name, Gr_current_palette,0);	
 
@@ -879,6 +881,39 @@ int gr_init(bool safe_mode)
 	gr_set_shader(NULL);
 
 	return 0;
+}
+
+void gr_present_window(bool center)
+{
+	int window_w, window_h;
+	int framebuffer_w, framebuffer_h;
+
+	auto window = os_get_window();
+
+	if ( !window ) {
+		return;
+	}
+
+	SDL_GetWindowSize(window, &window_w, &window_h);
+	SDL_GetWindowSizeInPixels(window, &framebuffer_w, &framebuffer_h);
+
+	float sx = framebuffer_w / static_cast<float>(window_w);
+	float sy = framebuffer_h / static_cast<float>(window_h);
+
+	float coord_scale = SDL_max(sx, sy);
+	float content_scale = SDL_GetWindowDisplayScale(window);
+	float scale_factor = content_scale / coord_scale;
+
+	int max_w = fl2i(gr_screen.max_w * scale_factor);
+	int max_h = fl2i(gr_screen.max_h * scale_factor);
+
+	SDL_SetWindowSize(window, max_w,max_h);
+	SDL_SetWindowMinimumSize(window, max_w, max_h);
+
+	if (center) {
+		SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		SDL_ShowWindow(window);
+	}
 }
 
 void gr_force_windowed()

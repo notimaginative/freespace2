@@ -83,11 +83,12 @@ struct config {
 	bool nosound;
 	bool nomusic;
 	bool nomovies;
+	bool nodpiscaling;
 
 	config(): msaa(0), fullscreen(true), show_fps(false), efx(false), launcher_sounds(true),
 			  haptic(false), direct_force(true), detail_level(2), network_connection(2),
 			  network_speed(5), port(0), pxo_skip_version_check(true), pxo_banners(true),
-			  nosound(false), nomusic(false), nomovies(false)
+			  nosound(false), nomusic(false), nomovies(false), nodpiscaling(false)
 			  {}
 };
 
@@ -427,6 +428,7 @@ static void launcher_setup_load_config()
 	const char *nosound_opts[] = { "--nosound", "-nosound", "-s " };
 	const char *nomusic_opts[] = { "--nomusic", "-nomusic" };
 	const char *nomovies_opts[] = { "--nomovies", "-nomovies", "-n " };
+	const char *nodpiscale_opts[] = { "--no_dpi_scaling", "-no_dpi_scaling" };
 
 	if ( !Config.cmdline.empty() ) {
 		// add trailing space for easier option parsing
@@ -462,6 +464,17 @@ static void launcher_setup_load_config()
 				Config.nomovies = true;
 				// strip option from cmdline, including extra space
 				Config.cmdline.erase(pos, SDL_strlen(nomovies_opts[i]) + 1);
+			}
+		}
+
+		// no dpi scaling
+		for (size_t i = 0; i < SDL_arraysize(nodpiscale_opts); ++i) {
+			auto pos = Config.cmdline.find(nodpiscale_opts[i]);
+
+			if (pos != std::string::npos) {
+				Config.nodpiscaling = true;
+				// strip option from cmdline, including extra space
+				Config.cmdline.erase(pos, SDL_strlen(nodpiscale_opts[i]) + 1);
 			}
 		}
 
@@ -520,6 +533,10 @@ static void launcher_setup_save_config()
 
 	if (Config.nomovies) {
 		Config.cmdline.append(" --nomovies"); // with leading space
+	}
+
+	if (Config.nodpiscaling) {
+		Config.cmdline.append(" --no_dpi_scaling");	// with leading space
 	}
 
 	char cmdline_cfg[MAX_PATH_LEN];
@@ -803,6 +820,7 @@ static void tabMisc()
 	ImGui::Checkbox("Disable all audio", &Config.nosound);
 	ImGui::Checkbox("Disable music", &Config.nomusic);
 	ImGui::Checkbox("Disable movies", &Config.nomovies);
+	ImGui::Checkbox("Disable DPI scaling", &Config.nodpiscaling);
 	ImGui::PopStyleVar();
 
 	ImGui::EndTabItem();

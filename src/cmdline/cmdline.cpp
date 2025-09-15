@@ -267,6 +267,7 @@ cmdline_parm std_daemon("-daemon", NULL, NULL);
 cmdline_parm no_vsync("-no_vsync", NULL, NULL);
 cmdline_parm no_frame_cap("-no_frame_cap", NULL, NULL);
 cmdline_parm skip_launcher("-skip_launcher", nullptr, nullptr);	// just here to prevent invalid option
+cmdline_parm no_dpi_scaling("-no_dpi_scaling", nullptr, nullptr);
 
 
 int Cmdline_multi_stream_chat_to_file = 0;
@@ -297,6 +298,7 @@ int Cmdline_fullscreen = 0;
 int Cmdline_window = 0;
 int Cmdline_no_vsync = 0;
 int Cmdline_no_frame_cap = 0;
+bool Cmdline_no_dpi_scaling = false;
 
 static cmdline_parm Parm_list(NULL, NULL, NULL);
 
@@ -786,6 +788,10 @@ int parse_cmdline(const char *cmdline)
 
 	if ( no_frame_cap.found() ) {
 		Cmdline_no_frame_cap = 1;
+	}
+
+	if (no_dpi_scaling.found()) {
+		Cmdline_no_dpi_scaling = true;
 	}
 
 	// display game version

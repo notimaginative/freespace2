@@ -885,8 +885,7 @@ int gr_init(bool safe_mode)
 
 void gr_present_window(bool center)
 {
-	int window_w, window_h;
-	int framebuffer_w, framebuffer_h;
+	float scale_factor = 1.0f;
 
 	auto window = os_get_window();
 
@@ -894,15 +893,18 @@ void gr_present_window(bool center)
 		return;
 	}
 
-	SDL_GetWindowSize(window, &window_w, &window_h);
-	SDL_GetWindowSizeInPixels(window, &framebuffer_w, &framebuffer_h);
+	if ( !Cmdline_no_dpi_scaling ) {
+		int window_w = 1, window_h = 1;
+		int framebuffer_w = 1, framebuffer_h = 1;
 
-	float sx = framebuffer_w / static_cast<float>(window_w);
-	float sy = framebuffer_h / static_cast<float>(window_h);
+		SDL_GetWindowSize(window, &window_w, &window_h);
+		SDL_GetWindowSizeInPixels(window, &framebuffer_w, &framebuffer_h);
 
-	float coord_scale = SDL_max(sx, sy);
-	float content_scale = SDL_GetWindowDisplayScale(window);
-	float scale_factor = content_scale / coord_scale;
+		float sx = framebuffer_w / static_cast<float>(window_w);
+		float sy = framebuffer_h / static_cast<float>(window_h);
+
+		scale_factor = SDL_GetWindowDisplayScale(window) / SDL_max(sx, sy);
+	}
 
 	int max_w = fl2i(gr_screen.max_w * scale_factor);
 	int max_h = fl2i(gr_screen.max_h * scale_factor);

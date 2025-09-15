@@ -192,6 +192,7 @@ extern int Cmdline_fullscreen;
 extern int Cmdline_window;
 extern int Cmdline_no_vsync;
 extern int Cmdline_no_frame_cap;
+extern bool Cmdline_no_dpi_scaling;
 
 #endif
 

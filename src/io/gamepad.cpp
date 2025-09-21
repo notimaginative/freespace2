@@ -157,7 +157,7 @@ void gamepad_update_mouse_pos()
 	mouse_get_real_pos(&x, &y);
 
 	// update pos and deltas
-	mouse_update_pos_scaled(x+dx, y+dy, dx, dy);
+	mouse_update_pos_scaled(static_cast<int>(x+dx), static_cast<int>(y+dy), dx, dy);
 
 	// now change position
 	float fx = (x / gr_screen.viewport_scale_factor_x) + gr_screen.viewport_offset_x;

@@ -207,6 +207,11 @@ static bool launcher_init()
 	return true;
 }
 
+#ifdef SDL_PLATFORM_WINDOWS
+#pragma warning( push )
+#pragma warning( disable : 4702)	// unreachable code (for-loops)
+#endif
+
 void launcher_open_readme()
 {
 	std::string readme_path;
@@ -258,6 +263,10 @@ void launcher_open_readme()
 		SDL_OpenURL(readme_uri.c_str());
 	}
 }
+
+#ifdef SDL_PLATFORM_WINDOWS
+#pragma warning( pop )
+#endif
 
 void launcher_init_background(const char *filename)
 {

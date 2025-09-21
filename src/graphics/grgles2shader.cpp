@@ -240,6 +240,7 @@ int gles2_shader_init()
 		fog_color_prog = gles2_create_program(v_fog_color, f_fog_color);
 		window_prog = gles2_create_program(v_window, f_window);
 	} catch (const char *err) {
+		(void)err;
 		nprintf(("OpenGL", "Shader ERROR: %s\n", err));
 		gles2_shader_cleanup();
 		return 0;

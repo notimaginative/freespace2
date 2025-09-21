@@ -383,23 +383,21 @@ if(NOT GAME_ONLY AND NOT DEMO)
   # CFILEUTIL: work with VP file archives
   #
 
-  if(NOT WIN32)
-    add_executable(cfileutil
-      EXCLUDE_FROM_ALL
-      ${cfileutil_SOURCE}
-    )
+  add_executable(cfileutil
+    EXCLUDE_FROM_ALL
+    ${cfileutil_SOURCE}
+  )
 
-    CreateSourceGroups(${cfileutil_SOURCE})
+  CreateSourceGroups(${cfileutil_SOURCE})
 
-    set_target_properties(cfileutil PROPERTIES
-      FOLDER "Tools"
-    )
+  set_target_properties(cfileutil PROPERTIES
+    FOLDER "Tools"
+  )
 
-    target_link_libraries(
-      cfileutil
-      SDL3::Headers
-    )
-  endif()
+  target_link_libraries(
+    cfileutil
+    SDL3::Headers
+  )
 
   #
   # CRYPTSTRING: string encryption (for embedded cheat codes)
@@ -542,18 +540,13 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   add_dependencies(toolset
     ac
+    cfileutil
     cryptstring
     fonttool
     nebedit
   #  pofview
     scramble
   )
-
-  if(NOT WIN32)
-    add_dependencies(toolset
-      cfileutil
-    )
-  endif()
 
 endif(NOT GAME_ONLY AND NOT DEMO)
 

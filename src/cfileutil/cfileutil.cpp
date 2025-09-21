@@ -6,8 +6,7 @@
  * the source.
  */
 
-#define SDL_MAIN_HANDLED
-
+#include <SDL3/SDL_platform_defines.h>
 #include <SDL3/SDL_endian.h>
 
 #include <cstdio>
@@ -23,9 +22,15 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <array>
 
-#ifndef SDL_PLATFORM_WINDOWS
+#ifdef SDL_PLATFORM_WINDOWS
+#include <io.h>
+#include <direct.h>
+const char PATH_SEP = '\\';
+#else
 #include <dirent.h>
+const char PATH_SEP = '/';
 #endif
 
 // from cfile.h
@@ -72,7 +77,7 @@ class vp {
 			int32_t offset;
 			int32_t file_size;
 			int32_t write_time;
-			std::string file_name;
+			std::string file_name;	// 32 bytes in file
 
 			// *not* part of VP, only used here
 			std::string file_path;
@@ -81,6 +86,8 @@ class vp {
 		const int32_t VP_VERSION = 2;
 		const int32_t VP_ID = 0x50565056;
 		const int32_t VP_HEADER_SIZE = 16;
+
+		std::array<uint8_t, 1024*1024> m_data_block;
 
 		FILE *archive;
 
@@ -197,18 +204,22 @@ bool vp::CreatePath(const std::string &path)
 	std::string sub_path;
 	std::string::size_type pos;
 
-	pos = path.find('/', 1);
+	pos = path.find(PATH_SEP, 1);
 
 	while (pos != std::string::npos) {
 		sub_path = path.substr(0, pos);
 
+#ifdef SDL_PLATFORM_WINDOWS
+		int status = _mkdir(sub_path.c_str());
+#else
 		int status = mkdir(sub_path.c_str(), 0755);
+#endif
 
 		if (status && (errno != EEXIST)) {
 			return false;
 		}
 
-		pos = path.find('/', pos+1);
+		pos = path.find(PATH_SEP, pos+1);
 	}
 
 	return true;
@@ -295,14 +306,15 @@ void vp::read_index()
 
 		if (m_lower_case) {
 			std::transform(vpinfo.file_name.begin(), vpinfo.file_name.end(),
-						   vpinfo.file_name.begin(), ::tolower);
+						   vpinfo.file_name.begin(), [](char c) {
+							return static_cast<char>(std::tolower(c)); });
 		}
 
 		// check if it's a directory and if so then create a path to use for files
 		if (vpinfo.file_size == 0) {
 			// if we get a ".." then drop down in the path
 			if ( !vpinfo.file_name.compare("..") ) {
-				std::string::size_type pos = path.find_last_of('/');
+				std::string::size_type pos = path.find_last_of(PATH_SEP);
 
 				if (pos != std::string::npos) {
 					path.erase(pos);
@@ -311,7 +323,7 @@ void vp::read_index()
 			// otherwise add it to the path
 			else {
 				if ( !path.empty() ) {
-					path.push_back('/');
+					path.push_back(PATH_SEP);
 				}
 
 				path.append(vpinfo.file_name);
@@ -341,30 +353,139 @@ void vp::write_index()
 	}
 }
 
+#ifdef SDL_PLATFORM_WINDOWS
+
+void vp::pack_directory(const std::string *pack_dir)
+{
+	intptr_t find_handle;
+	_finddata_t find;
+	std::string source_path, path, tmppath;
+
+	std::string fullpath = m_sourcedir;
+
+	if (pack_dir != nullptr) {
+		source_path = *pack_dir;
+
+		fullpath.append(source_path);
+	}
+
+	if (fullpath.back() == PATH_SEP) {
+		fullpath.pop_back();
+	}
+
+	tmppath = fullpath + PATH_SEP + "*";
+	find_handle = _findfirst(tmppath.c_str(), &find);
+
+	if (find_handle == -1) {
+		int err = errno;
+		std::ostringstream errmsg;
+
+		errmsg << "error opening path '" << fullpath << "': " << std::strerror(err);
+		throw std::runtime_error(errmsg.str());
+	}
+
+	if (source_path.empty()) {
+		std::cout << "  Scanning ...\n";
+	} else {
+		std::cout << "  Scanning '" << source_path << "' ...\n";
+	}
+
+	add_directory(source_path);
+
+	do {
+		std::string name = find.name;
+
+		if ( !name.compare(".") || !name.compare("..") ) {
+			continue;
+		}
+
+		if (name.length() >= CF_MAX_FILENAME_LENGTH) {
+			size_t half_len = std::min(name.length() / 2, static_cast<size_t>(12));
+			std::string first_half = name.substr(0, half_len);
+			std::string last_half = name.substr(name.length() - half_len);
+
+			std::cout << "  Skipping '" << source_path << "/" << first_half
+			<< "..." << last_half << "' ... Name too long (> "
+			<< CF_MAX_FILENAME_LENGTH-1 << " characters)\n";
+			continue;
+		} else if (name.length() > 2) {
+			std::string ext = name.substr(name.length()-3);
+			std::transform(ext.begin(), ext.end(), ext.begin(), [](char c) {
+				return static_cast<char>(std::tolower(c)); });
+
+			if ( !ext.compare(".vp") ) {
+				continue;
+			}
+		}
+
+		path = source_path;
+
+		if ( !path.empty() ) {
+			path.push_back(PATH_SEP);
+		}
+
+		path.append(find.name);
+
+		tmppath = m_sourcedir + PATH_SEP + path;
+
+		if (find.size > INT32_MAX) {
+			std::cout << "  Skipping '" << tmppath
+			<< "' ... Size is too large (> " << INT32_MAX << " bytes)\n";
+			continue;
+		}
+
+		if (find.attrib & _A_SUBDIR) {
+			// recurse into new directory
+			pack_directory(&path);
+		} else {
+			if (find.size > 0) {
+				add_file(path, find.size, find.time_write);
+			}
+		}
+	} while ( !_findnext(find_handle, &find) );
+
+	_findclose(find_handle);
+
+	// add a final directory root
+	add_directory(std::string(".."));
+}
+
+#else // SDL_PLATFORM_WINDOWS
+
 void vp::pack_directory(const std::string *pack_dir)
 {
 	DIR *dirp;
 	struct dirent *dir;
 	struct stat buf;
-	std::string source_path, path;
+	std::string source_path, path, tmppath;
+
+	std::string fullpath = m_sourcedir;
 
 	if (pack_dir != nullptr) {
 		source_path = *pack_dir;
-	} else {
-		source_path = m_sourcedir;
+
+		fullpath.append(source_path);
 	}
 
-	dirp = opendir(source_path.c_str());
+	if (fullpath.back() == PATH_SEP) {
+		fullpath.pop_back();
+	}
+
+	dirp = opendir(fullpath.c_str());
 
 	if (dirp == nullptr) {
 		int err = errno;
 		std::ostringstream errmsg;
 
-		errmsg << "error opening path '" << source_path << "': " << std::strerror(err);
+		errmsg << "error opening path '" << fullpath << "': " << std::strerror(err);
 		throw std::runtime_error(errmsg.str());
 	}
 
-	std::cout << "  Scanning '" << source_path << "' ...\n";
+	if (source_path.empty()) {
+		std::cout << "  Scanning ...\n";
+	} else {
+		std::cout << "  Scanning '" << source_path << "' ...\n";
+	}
 
 	add_directory(source_path);
 
@@ -386,7 +507,8 @@ void vp::pack_directory(const std::string *pack_dir)
 			continue;
 		} else if (name.length() > 2) {
 			std::string ext = name.substr(name.length()-3);
-			std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+			std::transform(ext.begin(), ext.end(), ext.begin(), [](char c) {
+				return static_cast<char>(std::tolower(c)); });
 
 			if ( !ext.compare(".vp") ) {
 				continue;
@@ -395,15 +517,20 @@ void vp::pack_directory(const std::string *pack_dir)
 
 		path = source_path;
 
-		path.push_back('/');
+		if ( !path.empty() ) {
+			path.push_back(PATH_SEP);
+		}
+
 		path.append(dir->d_name);
 
-		if ( stat(path.c_str(), &buf) == -1 ) {
+		tmppath = m_sourcedir + PATH_SEP + path;
+
+		if ( stat(tmppath.c_str(), &buf) == -1 ) {
 			continue;
 		}
 
 		if (buf.st_size > INT32_MAX) {
-			std::cout << "  Skipping '" << source_path << "/" << name
+			std::cout << "  Skipping '" << tmppath
 					  << "' ... Size is too large (> " << INT32_MAX << " bytes)\n";
 			continue;
 		}
@@ -424,9 +551,15 @@ void vp::pack_directory(const std::string *pack_dir)
 	add_directory(std::string(".."));
 }
 
+#endif // SDL_PLATFORM_WINDOWS
+
 void vp::add_directory(const std::string &a_dir)
 {
 	vp_fileindex vpinfo;
+
+	if (a_dir.empty()) {
+		return;
+	}
 
 	vpinfo.offset = static_cast<int32_t>(ftell(archive));
 	vpinfo.file_size = 0;
@@ -434,7 +567,7 @@ void vp::add_directory(const std::string &a_dir)
 	vpinfo.file_name = a_dir;
 
 	// stip extra path from directory name
-	std::string::size_type pos = vpinfo.file_name.find_last_of('/');
+	std::string::size_type pos = vpinfo.file_name.find_last_of(PATH_SEP);
 
 	if (pos != std::string::npos) {
 		vpinfo.file_name = vpinfo.file_name.substr(pos+1);
@@ -445,6 +578,7 @@ void vp::add_directory(const std::string &a_dir)
 
 void vp::add_file(const std::string &a_file, const long fsize, const time_t ftime)
 {
+	const std::string filespec = m_sourcedir + PATH_SEP + a_file;
 	vp_fileindex vpinfo;
 
 	// add file info to index...
@@ -454,7 +588,7 @@ void vp::add_file(const std::string &a_file, const long fsize, const time_t ftim
 	vpinfo.file_name = a_file;
 
 	// strip extra path from file name
-	std::string::size_type pos = vpinfo.file_name.find_last_of('/');
+	std::string::size_type pos = vpinfo.file_name.find_last_of(PATH_SEP);
 
 	if (pos != std::string::npos) {
 		vpinfo.file_name = vpinfo.file_name.substr(pos+1);
@@ -463,28 +597,25 @@ void vp::add_file(const std::string &a_file, const long fsize, const time_t ftim
 	m_index.push_back(vpinfo);
 
 	// add the file data to archive...
-	FILE *infile = fopen(a_file.c_str(), "rb");
+	FILE *infile = fopen(filespec.c_str(), "rb");
 
 	if (infile == nullptr) {
 		int err = errno;
 		std::ostringstream errmsg;
 
-		errmsg << "error opening input file '" << a_file << "': " << std::strerror(err);
+		errmsg << "error opening input file '" << filespec << "': " << std::strerror(err);
 		throw std::runtime_error(errmsg.str());
 	}
 
 	std::cout << "    Adding '" << a_file << "' ... ";
 
-	const size_t BLOCK_SIZE = 1024*1024;
-
-	char data_block[BLOCK_SIZE];
 	size_t total_bytes = 0, num_bytes;
 
 	do {
-		num_bytes = fread(data_block, 1, BLOCK_SIZE, infile);
+		num_bytes = fread(m_data_block.data(), sizeof(uint8_t), m_data_block.size(), infile);
 
 		if (num_bytes > 0) {
-			fwrite(data_block, 1, num_bytes, archive);
+			fwrite(m_data_block.data(), sizeof(uint8_t), num_bytes, archive);
 			total_bytes += num_bytes;
 		}
 	} while (num_bytes > 0);
@@ -530,7 +661,7 @@ void vp::setOutputDirectory(const char *val)
 
 	m_outdir = val;
 
-	if (m_outdir.back() == '/') {
+	if (m_outdir.back() == PATH_SEP) {
 		m_outdir.pop_back();
 	}
 }
@@ -543,24 +674,8 @@ void vp::setSourceDirectory(const char *val)
 
 	m_sourcedir = val;
 
-	if (m_sourcedir.back() == '/') {
-		m_sourcedir.pop_back();
-	}
-
-	// make sure that it's named 'data', case insensitive
-	std::string is_data;
-	std::string::size_type pos = m_sourcedir.find_last_of('/');
-
-	if (pos != std::string::npos) {
-		is_data = m_sourcedir.substr(pos+1);
-	} else {
-		is_data = m_sourcedir;
-	}
-
-	std::transform(is_data.begin(), is_data.end(), is_data.begin(), ::tolower);
-
-	if (is_data.compare("data") ) {
-		throw std::runtime_error("source directory must be named 'data'");
+	if (m_sourcedir.back() != PATH_SEP) {
+		m_sourcedir.push_back(PATH_SEP);
 	}
 }
 
@@ -607,7 +722,10 @@ void vp::list()
 		write_time = it->write_time;
 		rel_path = it->file_path;
 
-		rel_path.push_back('/');
+		if ( !rel_path.empty() ) {
+			rel_path.push_back(PATH_SEP);
+		}
+
 		rel_path.append(it->file_name);
 
 		if ( m_filtering && !std::regex_search(rel_path, match, m_regex) ) {
@@ -643,7 +761,8 @@ void vp::create()
 
 	if (m_filename.length() > 3) {
 		ext = m_filename.substr(m_filename.length()-3);
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		std::transform(ext.begin(), ext.end(), ext.begin(), [](char c) {
+			return static_cast<char>(std::tolower(c)); });
 	}
 
 	if ( ext.compare(".vp") ) {
@@ -709,21 +828,21 @@ void vp::extract()
 
 	std::cout << "Extracting '" << m_filename << "' ...\n";
 
-	const size_t BLOCK_SIZE = 1024*1024;
-
 	std::vector<vp_fileindex>::iterator it;
 	std::string path, rel_path;
 	FILE *outfile;
-	int32_t bytes_remaining;
+	size_t bytes_remaining;
 	size_t rval;
-	char data_block[BLOCK_SIZE];
 	size_t ex_count = 0;
 	std::smatch match;
 
 	for (it = m_index.begin(); it != m_index.end(); ++it) {
 		rel_path = it->file_path;
 
-		rel_path.push_back('/');
+		if ( !rel_path.empty() ) {
+			rel_path.push_back(PATH_SEP);
+		}
+
 		rel_path.append(it->file_name);
 
 		if ( m_filtering && !std::regex_search(rel_path, match, m_regex) ) {
@@ -735,7 +854,7 @@ void vp::extract()
 		path = m_outdir;
 
 		if ( !m_outdir.empty() ) {
-			path.push_back('/');
+			path.push_back(PATH_SEP);
 		}
 
 		path.append(rel_path);
@@ -757,10 +876,12 @@ void vp::extract()
 		bytes_remaining = it->file_size;
 
 		while (bytes_remaining > 0) {
-			rval = fread(data_block, 1, std::min(BLOCK_SIZE, static_cast<size_t>(bytes_remaining)), archive);
+			rval = fread(m_data_block.data(), sizeof(uint8_t),
+						 std::min(m_data_block.size(), bytes_remaining),
+						 archive);
 
 			if (rval > 0) {
-				fwrite(data_block, 1, rval, outfile);
+				fwrite(m_data_block.data(), 1, rval, outfile);
 				bytes_remaining -= rval;
 			}
 		}

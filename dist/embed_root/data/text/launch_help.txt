@@ -1,11 +1,11 @@
 
-            ----------------------------------------------
-             The FreeSpace 2 Launcher
-            ----------------------------------------------
+        ----------------------------------------------
+        The FreeSpace 2 Launcher
+        ----------------------------------------------
 
 The Launcher's buttons enable you to set up and play FreeSpace 2,
-customize your hardware settings, get updated versions of the game,
-and access the FreeSpace 2 web pages at Volition, Inc.
+customize your hardware settings, get updated versions of the
+game, and access the FreeSpace 2 web pages at Volition, Inc.
 Here's what each button does:
 
 
@@ -15,47 +15,40 @@ PLAY
 
 SETUP
   Under Setup, you'll see tabs for Video, Audio, Joystick, Speed,
-and Network.
+  and Network.
 
   * Video - You must have a 3D Accelerator card supporting OpenGL
-to play FreeSpace 2. Unselect 'Fullscreen' to run the game in a window.
+    to play FreeSpace 2. Unselect 'Fullscreen' to run the game in
+    a window.
 
   * Audio - FreeSpace 2 supports OpenAL. You can choose a specific
-device for use by OpenAL by selecting it from the dropdown box or
-just use the default. Evironmental effects can be enabled with the
-'EFX / EAX Reverb' option. You can enable Launcher sounds
-from here as well.
+    device for use by OpenAL by selecting it from the dropdown box
+    or just use the default. Evironmental effects can be enabled
+    with the 'EFX / EAX Reverb' option. You can enable Launcher
+    sounds from here as well.
 
-  * Joystick - Enables you to set up or change the joystick used by
-FreeSpace 2. Also lets you toggle Force Feedback support on or off.
+  * Joystick - Enables you to set up or change the joystick used
+    by FreeSpace 2. Also lets you toggle Force Feedback support
+    on or off.
 
-  * Speed - This setting determines the default Detail Level used in
-FreeSpace 2 when new pilots are created. You may manually change this
-default if you wish, but it may adversely affect your gameplay speed.
+  * Speed - This setting determines the default Detail Level used
+    in FreeSpace 2 when new pilots are created. You may manually
+    change this default if you wish, but it may adversely affect
+    your gameplay speed.
 
   * Network - Here you choose your connection type and speed for
-multiplayer games. The 'Force Local Port' option enables the user to run
-a local copy of the game on a different network port than the
-default (which is 7808).
+    multiplayer games. The 'Force Local Port' option enables the
+    user to run a local copy of the game on a different network
+    port than the default (which is 7808).
 
 
 VIEW README
   Opens the readme.txt file for FreeSpace 2.
 
 
-UPDATE
-  This button enables you to see if a new version of FreeSpace 2 is
-available for downloading. If one is available, you can choose to
-update your version by clicking on OK. The process is automated.
-
-
 HELP
-  This opens a Help document containing information about the Launcher
-buttons.
-
-
-UNINSTALL
-  Uninstalls FreeSpace 2 from your computer.
+  This opens a Help document containing information about the
+  Launcher buttons.
 
 
 QUIT
@@ -67,7 +60,7 @@ VOLITION LOGO
 
 
 PXO LOGO
-  This takes you to the Internet home page for Parallax Online, a free
-multiplayer service for Volition and Outrage games.
+  This takes you to the Internet home page for Parallax Online, a
+  free multiplayer service for Volition and Outrage games.
 
 

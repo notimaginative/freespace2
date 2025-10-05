@@ -103,7 +103,7 @@ void launcher_help_open()
 		return;
 	}
 
-	Window = SDL_CreateWindow("Launcher Help", 590, 420, window_flags);
+	Window = SDL_CreateWindow("Launcher Help", 620, 420, window_flags);
 
 	if ( !Window ) {
 		launcher_help_close();

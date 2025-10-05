@@ -4210,7 +4210,7 @@ int sexp_cap_subsys_cargo_known_delay(int n)
 
 
 // return object index of waypoint or -1 if no such waypoint
-int waypoint_lookup(char *name)
+int waypoint_lookup(const char *name)
 {
 	char buf[128];
 	int i;

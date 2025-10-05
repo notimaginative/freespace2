@@ -631,7 +631,7 @@ void wing_editor::initialize_data_safe(int full_update)
 		for (i=0; i<Wings[cur_wing].wave_count; i++)
 			ptr->AddString(Ships[Wings[cur_wing].ship_index[i]].ship_name);
 
-		m_threshold_spin.SetRange(0, Wings[cur_wing].wave_count - 1);
+		m_threshold_spin.SetRange(0, static_cast<short>(Wings[cur_wing].wave_count - 1));
 		for (i=0; i<Num_reinforcements; i++)
 			if (!stricmp(Reinforcements[i].name, Wings[cur_wing].name))
 				break;
@@ -925,7 +925,7 @@ void wing_editor::update_data_safe()
 	if (m_waves < 1) {
 		m_waves = 1;
 		if (!bypass_errors)
-			sprintf(buf, "Number of waves illegal.  Has been set to 1.", (int) m_waves);
+			sprintf(buf, "Number of waves illegal (%d).  Has been set to 1.", (int) m_waves);
 
 		MessageBox(buf);
 	}
@@ -948,7 +948,7 @@ void wing_editor::update_data_safe()
 	MODIFY(Wings[cur_wing].wave_delay_max, m_arrival_delay_max);
 	MODIFY(Wings[cur_wing].arrival_distance, m_arrival_dist);
 	if (m_arrival_target >= 0) {
-		i = ((CComboBox *) GetDlgItem(IDC_ARRIVAL_TARGET)) -> GetItemData(m_arrival_target);
+		i = static_cast<int>(((CComboBox *) GetDlgItem(IDC_ARRIVAL_TARGET)) -> GetItemData(m_arrival_target));
 		MODIFY(Wings[cur_wing].arrival_anchor, i);
 
 		// when arriving near or in front of a ship, be sure that we are far enough away from it!!!
@@ -971,7 +971,7 @@ void wing_editor::update_data_safe()
 		}
 	}
 
-	i = ((CComboBox*)GetDlgItem(IDC_DEPARTURE_TARGET))->GetItemData(m_departure_target);
+	i = static_cast<int>(((CComboBox*)GetDlgItem(IDC_DEPARTURE_TARGET))->GetItemData(m_departure_target));
 	MODIFY(Wings[cur_wing].departure_anchor,  i);
 
 	MODIFY(Wings[cur_wing].departure_delay, m_departure_delay);

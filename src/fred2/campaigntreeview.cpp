@@ -22,15 +22,15 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-LOCAL int Bx, By, Mission_dragging = -1, Mission_dropping = -1, Context_mission;
+static int Bx, By, Mission_dragging = -1, Mission_dropping = -1, Context_mission;
 int Total_links = 0;
 int CTV_button_down = 0;
 int Level_counts[MAX_LEVELS];
 int Sorted[MAX_CAMPAIGN_MISSIONS];
 campaign_tree_element Elements[MAX_CAMPAIGN_MISSIONS];
 campaign_tree_link Links[MAX_CAMPAIGN_TREE_LINKS];
-LOCAL CRect Dragging_rect;
-LOCAL CSize Rect_offset, Last_draw_size;
+static CRect Dragging_rect;
+static CSize Rect_offset, Last_draw_size;
 
 /////////////////////////////////////////////////////////////////////////////
 // campaign_tree_view
@@ -149,13 +149,13 @@ void campaign_tree_view::OnDraw(CDC* pDC)
   
 		strcpy(str, Campaign.missions[i].name);
 		str[strlen(str) - 4] = 0;  // strip extension from filename
-		GetTextExtentPoint32(pDC->m_hDC, str, strlen(str), &size);
+		GetTextExtentPoint32(pDC->m_hDC, str, static_cast<int>(strlen(str)), &size);
 		if (size.cx > CELL_TEXT_WIDTH) {
 			strcpy(str + strlen(str) - 1, "...");
-			GetTextExtentPoint32(pDC->m_hDC, str, strlen(str), &size);
+			GetTextExtentPoint32(pDC->m_hDC, str, static_cast<int>(strlen(str)), &size);
 			while (size.cx > CELL_TEXT_WIDTH) {
 				strcpy(str + strlen(str) - 4, "...");
-				GetTextExtentPoint32(pDC->m_hDC, str, strlen(str), &size);
+				GetTextExtentPoint32(pDC->m_hDC, str, static_cast<int>(strlen(str)), &size);
 			}
 		}
 
@@ -168,7 +168,7 @@ void campaign_tree_view::OnDraw(CDC* pDC)
 			pDC->Draw3dRect(x - Bx / 2, y - By / 2, Bx, By, RGB(255, 255, 255), RGB(0, 0, 0));
 		}
 
-		pDC->TextOut(x, y - By / 2 + 2, str, strlen(str));
+		pDC->TextOut(x, y - By / 2 + 2, str, static_cast<int>(strlen(str)));
 	}
 
 	for (i=0; i<Total_links; i++) {

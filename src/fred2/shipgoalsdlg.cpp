@@ -787,7 +787,7 @@ void ShipGoalsDlg::set_item(int item, int init)
 		return;
 	}
 
-	mode = m_behavior_box[item] -> GetItemData(m_behavior[item]);
+	mode = static_cast<int>(m_behavior_box[item] -> GetItemData(m_behavior[item]));
 	m_priority_box[item] -> EnableWindow(TRUE);
 	if ((mode == AI_GOAL_CHASE_ANY) || (mode == AI_GOAL_UNDOCK) || (mode == AI_GOAL_KEEP_SAFE_DISTANCE) || (mode == AI_GOAL_PLAY_DEAD) || (mode == AI_GOAL_WARP) ) {
 		m_object_box[item] -> EnableWindow(FALSE);
@@ -1088,8 +1088,8 @@ void ShipGoalsDlg::update_item(int item, int multi)
 		else
 			m_behavior[item] = 0;
 	}
-
-	mode = m_behavior_box[item] -> GetItemData(m_behavior[item]);
+		
+	mode = static_cast<int>(m_behavior_box[item] -> GetItemData(m_behavior[item]));
 	switch (mode) {
 		case AI_GOAL_NONE:
 		case AI_GOAL_CHASE_ANY:
@@ -1254,12 +1254,12 @@ void ShipGoalsDlg::OnOK()
 	UpdateData(TRUE);
 
 	for (i=0; i<ED_MAX_GOALS; i++) {
-		mode = m_behavior_box[i] -> GetItemData(m_behavior[i]);
+		mode = static_cast<int>(m_behavior_box[i] -> GetItemData(m_behavior[i]));
 		if ((mode != AI_GOAL_NONE) && (mode != AI_GOAL_CHASE_ANY) && (mode != AI_GOAL_UNDOCK) && (mode != AI_GOAL_KEEP_SAFE_DISTANCE) && (mode != AI_GOAL_PLAY_DEAD) && (mode != AI_GOAL_WARP) ) {
 			if (!m_object_box[i] -> GetCount())  // no valid objects?
 				m_behavior[i] = 0;
 			else
-				m_data[i] = m_object_box[i] -> GetItemData(m_object[i]);
+				m_data[i] = static_cast<int>(m_object_box[i] -> GetItemData(m_object[i]));
 		}
 	}
 
@@ -1354,11 +1354,11 @@ void ShipGoalsDlg::set_object(int item)
 	ship_subsys *subsys;
 
 	if (m_behavior[item] > 0) {
-		mode = m_behavior_box[item] -> GetItemData(m_behavior[item]);
+		mode = static_cast<int>(m_behavior_box[item] -> GetItemData(m_behavior[item]));
 		if (!m_object_box[item] -> GetCount())
 			m_behavior[item] = m_data[item] = 0;
 		else
-			m_data[item] = m_object_box[item] -> GetItemData(m_object[item]);
+			m_data[item] = static_cast<int>(m_object_box[item] -> GetItemData(m_object[item]));
 
 		if ((mode == AI_GOAL_DOCK) && (m_data[item] >= 0)) {
 			num = get_docking_list(Ships[m_data[item] & DATA_MASK].modelnum);

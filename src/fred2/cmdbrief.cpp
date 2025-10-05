@@ -60,7 +60,6 @@
  */
 
 #include "stdafx.h"
-#include <mmsystem.h>
 #include "fred.h"
 #include "cmdbrief.h"
 #include "cfile.h"
@@ -208,18 +207,21 @@ void cmd_brief_dlg::update_data(int update)
 
 void cmd_brief_dlg::OnOK()
 {
+	theApp.stop_audio();
 	update_data();
 	CDialog::OnOK();
 }
 
 void cmd_brief_dlg::OnNext() 
 {
+	theApp.stop_audio();
 	m_cur_stage++;
 	update_data();
 }
 
 void cmd_brief_dlg::OnPrev() 
 {
+	theApp.stop_audio();
 	m_cur_stage--;
 	update_data();
 }
@@ -231,6 +233,7 @@ void cmd_brief_dlg::OnAddStage()
 	if (Cur_cmd_brief->num_stages >= CMD_BRIEF_STAGES_MAX)
 		return;
 
+	theApp.stop_audio();
 	m_cur_stage = i = Cur_cmd_brief->num_stages++;
 	copy_stage(i - 1, i);
 	update_data(1);
@@ -248,6 +251,7 @@ void cmd_brief_dlg::OnInsertStage()
 		return;
 	}
 
+	theApp.stop_audio();
 	z = m_cur_stage;
 	m_cur_stage = -1;
 	update_data(1);
@@ -266,7 +270,8 @@ void cmd_brief_dlg::OnDeleteStage()
 
 	if (m_cur_stage < 0)
 		return;
-	
+
+	theApp.stop_audio();
 	SDL_assert(Cur_cmd_brief->num_stages);
 	z = m_cur_stage;
 	m_cur_stage = -1;
@@ -338,18 +343,15 @@ void cmd_brief_dlg::OnBrowseWave()
 
 BOOL cmd_brief_dlg::DestroyWindow() 
 {
+	theApp.stop_audio();
 	m_play_bm.DeleteObject();
 	return CDialog::DestroyWindow();
 }
 
 void cmd_brief_dlg::OnPlay() 
 {
-	char path[MAX_PATH_LEN + 1];
 	GetDlgItem(IDC_WAVE_FILENAME)->GetWindowText(m_wave_filename);
 
-	int size, offset;
-	cf_find_file_location((char *) (LPCSTR) m_wave_filename, CF_TYPE_ANY, path, &size, &offset );
-
-	PlaySound(path, NULL, SND_ASYNC | SND_FILENAME);
+	theApp.play_audio(m_wave_filename);
 }
 

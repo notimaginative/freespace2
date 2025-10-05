@@ -116,6 +116,7 @@ void gr_gles2_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, f
 void gr_gles2_flash(int r, int g, int b);
 void gr_gles2_tmapper(int nverts, vertex **verts, uint flags);
 void gr_gles2_scaler(vertex *va, vertex *vb);
+void gr_gles2_aascaler(vertex *va, vertex *vb);
 void gr_gles2_set_cull(int cull);
 void gr_gles2_clear();
 void gr_gles2_zbias(int bias);

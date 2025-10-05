@@ -964,3 +964,8 @@ void gr_gles2_scaler(vertex *va, vertex *vb)
 
 	gles2_tmapper_internal( 4, vl, TMAP_FLAG_TEXTURED, 1 );
 }
+
+void gr_gles2_aascaler(vertex *va, vertex *vb)
+{
+	STUB_FUNCTION;
+}

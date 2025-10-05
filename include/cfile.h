@@ -531,11 +531,24 @@ uint cf_add_chksum_long(uint seed, const char *buffer, int size);
 //================= HIGH LEVEL FUNCTIONS ==================
 int cfexist(const char *filename);	// Returns true if file exists on disk (1) or in hog (2).
 
+// changes the attributes of a file
+void cf_attrib(const char *name, int set, int clear, int type);
+
 // rename a file, utilizing the extension to determine where file is.
 #define CF_RENAME_SUCCESS				0					// successfully renamed the file
 #define CF_RENAME_FAIL_ACCESS			1					// new name could not be created
 #define CF_RENAME_FAIL_EXIST			2					// old name does not exist
 int cf_rename(const char *old_name, const char *name, int type = CF_TYPE_ANY );
+
+// Functions to change directories
+int cfile_chdir(const char *dir);
+int cfile_chdrive(int DriveNum, int flag);
+
+// push current directory on a 'stack' (so we can restore it) and change the directory
+int cfile_push_chdir(int type);
+
+// restore directory on top of the stack
+int cfile_pop_dir();
 
 // flush (delete all files in) the passed directory (by type), return the # of files deleted
 // NOTE : WILL NOT DELETE READ-ONLY FILES

@@ -237,6 +237,8 @@
 #include "campaigntreewnd.h"
 #include "campaigntreeview.h"
 #include "campaigneditordlg.h"
+#include "sound.h"
+#include "audiostr.h"
 
 #ifdef NDEBUG
 #ifndef FRED
@@ -302,6 +304,7 @@ END_MESSAGE_MAP()
 CFREDApp::CFREDApp()
 {
 	app_init = 0;
+	m_audio_id = -1;
 
 	#ifndef NDEBUG
 	outwnd_init();
@@ -529,7 +532,8 @@ void show_control_mode(void)
 #define	MAX_PENDING_MESSAGES	16
 
 typedef struct {
-	int	frame_to_process, hwnd, id, wparam, lparam;
+	HWND hwnd;
+	int	frame_to_process, id, wparam, lparam;
 } pending_message;
 
 pending_message Pending_messages[MAX_PENDING_MESSAGES];
@@ -543,7 +547,7 @@ void process_pending_messages(void)
 		if (Pending_messages[i].frame_to_process != -1)
 			if (Pending_messages[i].frame_to_process <= FrameCount) {
 				pending_message	*pmp = &Pending_messages[i];
-				PostMessage((HWND) pmp->hwnd, pmp->id, pmp->wparam, pmp->lparam);
+				PostMessage(pmp->hwnd, pmp->id, pmp->wparam, pmp->lparam);
 				Pending_messages[i].frame_to_process = -1;
 			}
 }
@@ -556,7 +560,7 @@ void add_pending_message(HWND hwnd, int id, int wparam, int lparam, int skip_cou
 
 	for (i=0; i<MAX_PENDING_MESSAGES; i++)
 		if (Pending_messages[i].frame_to_process == -1) {
-			Pending_messages[i].hwnd = (int) hwnd;
+			Pending_messages[i].hwnd = hwnd;
 			Pending_messages[i].id = id;
 			Pending_messages[i].wparam = wparam;
 			Pending_messages[i].lparam = lparam;
@@ -604,7 +608,8 @@ void draw_render_window(CDC* pDC)
 	h = gr_screen.clip_height;
 	gr_screen.clip_width = gr_screen.max_w;
 	gr_screen.clip_height = gr_screen.max_h;
-	gr_flip_window((uint) pDC->m_hDC, 0, 0, gr_screen.max_w, gr_screen.max_h);
+	SwapBuffers(pDC->m_hDC);
+	gr_flip();
 	gr_screen.clip_width = w;
 	gr_screen.clip_height = h;
 }
@@ -665,10 +670,10 @@ BOOL CFREDApp::OnIdle(LONG lCount)
 	if (!Update_window)
 		return FALSE;
 
-	render_frame();	// "do the rendering!"  Renders image to offscreen buffer
-
 	CFREDView* pFV = CFREDView::GetView();
 	CDC* pDC = pFV->GetDC();
+
+	render_frame();	// "do the rendering!"  Renders image to offscreen buffer
 
 	// gr_surface_flip();
 
@@ -700,10 +705,10 @@ void update_map_window()
 	if (!pFV)
 		return;
 
-	render_frame();	// "do the rendering!"
-
 	CDC* pDC = pFV->GetDC();
 	SDL_assert(pDC);
+
+	render_frame();	// "do the rendering!"
 
 	draw_render_window(pDC);
 	if ( Update_window > 0 )
@@ -760,6 +765,32 @@ void CFREDApp::write_ini_file(int degree)
 		write_window("Asteroid window", &Asteroid_wnd_data);
 		write_window("Mission notes window", &Mission_notes_wnd_data);
 	}
+}
+
+void CFREDApp::play_audio(const char *filename)
+{
+	if ( !filename ) {
+		return;
+	}
+
+	if ( !snd_is_inited() ) {
+		snd_init();
+	}
+
+	if (m_audio_id >= 0) {
+		stop_audio();
+		return;
+	}
+
+	m_audio_id = audiostream_open(filename, ASF_EVENTMUSIC);
+
+	audiostream_play(m_audio_id, 1.0f, 0);
+}
+
+void CFREDApp::stop_audio()
+{
+	audiostream_close_file(m_audio_id, 0);
+	m_audio_id = -1;
 }
 
 void CFREDApp::write_window(char *name, window_data *wndd)

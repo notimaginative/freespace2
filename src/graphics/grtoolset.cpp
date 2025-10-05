@@ -15,7 +15,7 @@
 
 #include "pstypes.h"
 #include "2d.h"
-#include "grwxgl.h"
+#include "grtoolset.h"
 #include "gropengl.h"
 #include "gropenglinternal.h"
 #include "grinternal.h"
@@ -28,9 +28,9 @@ extern void opengl_set_variables();
 extern void opengl_init_viewport();
 
 
-static void wxgl_init_func_pointers()
+static void toolset_init_func_pointers()
 {
-	gr_screen.gf_flip = gr_wxgl_flip;
+	gr_screen.gf_flip = gr_toolset_flip;
 	gr_screen.gf_set_clip = gr_opengl_set_clip;
 	gr_screen.gf_reset_clip = gr_opengl_reset_clip;
 
@@ -46,8 +46,10 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_line = gr_opengl_line;
 	gr_screen.gf_aaline = gr_opengl_aaline;
+	gr_screen.gf_aalines = gr_opengl_aalines;
 	gr_screen.gf_pixel = gr_opengl_pixel;
 	gr_screen.gf_scaler = gr_opengl_scaler;
+	gr_screen.gf_aascaler = gr_opengl_aascaler;
 	gr_screen.gf_tmapper = gr_opengl_tmapper;
 
 	gr_screen.gf_gradient = gr_opengl_gradient;
@@ -90,14 +92,14 @@ static void wxgl_init_func_pointers()
 
 	gr_screen.gf_zbias = gr_opengl_zbias;
 
-	gr_screen.gf_set_viewport = gr_wxgl_set_viewport;
+	gr_screen.gf_set_viewport = gr_toolset_set_viewport;
 
 	gr_screen.gf_activate = gr_opengl_activate;
 
 	gr_screen.gf_release_texture = gr_opengl_release_texture;
 }
 
-static void wxgl_init()
+static void toolset_init()
 {
 	GL_ctx.glShadeModel(GL_SMOOTH);
 	GL_ctx.glEnable(GL_DITHER);
@@ -116,15 +118,17 @@ static void wxgl_init()
 
 	GL_ctx.glFlush();
 
-	wxgl_init_func_pointers();
+	toolset_init_func_pointers();
 	opengl_tcache_init();
 
 	gr_opengl_clear();
 	gr_opengl_set_cull(1);
 }
 
-void gr_wxgl_flip()
+void gr_toolset_flip()
 {
+	opengl_tcache_frame();
+
 #ifndef NDEBUG
 	GLenum error = GL_ctx.glGetError();
 
@@ -134,7 +138,7 @@ void gr_wxgl_flip()
 #endif
 }
 
-void gr_wxgl_set_viewport(int width, int height)
+void gr_toolset_set_viewport(int width, int height)
 {
 	GL_viewport_x = 0;
 	GL_viewport_y = 0;
@@ -157,14 +161,14 @@ void gr_wxgl_set_viewport(int width, int height)
 	gr_screen.max_h = height;
 }
 
-void gr_wxgl_cleanup()
+void gr_toolset_cleanup()
 {
 	opengl_tcache_cleanup();
 
 	OGL_inited = false;
 }
 
-void gr_wxgl_init()
+void gr_toolset_init()
 {
 	if ( OGL_inited )	{
 		gr_opengl_cleanup();
@@ -203,7 +207,7 @@ void gr_wxgl_init()
 	opengl_set_variables();
 
 	// main GL init
-	wxgl_init();
+	toolset_init();
 
 	mprintf(("\n"));
 
@@ -282,19 +286,19 @@ void gr_wxgl_init()
 
 #else
 
-void gr_wxgl_init()
+void gr_toolset_init()
 {
 }
 
-void gr_wxgl_cleanup()
+void gr_toolset_cleanup()
 {
 }
 
-void gr_wxgl_flip()
+void gr_toolset_flip()
 {
 }
 
-void gr_wxgl_set_viewport(int width, int height)
+void gr_toolset_set_viewport(int width, int height)
 {
 }
 

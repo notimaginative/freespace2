@@ -201,6 +201,7 @@ static void gles2_init_func_pointers()
 	gr_screen.gf_aalines = gr_gles2_aalines;
 	gr_screen.gf_pixel = gr_gles2_pixel;
 	gr_screen.gf_scaler = gr_gles2_scaler;
+	gr_screen.gf_aascaler = gr_gles2_aascaler;
 	gr_screen.gf_tmapper = gr_gles2_tmapper;
 
 	gr_screen.gf_gradient = gr_gles2_gradient;

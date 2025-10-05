@@ -271,7 +271,7 @@ void initial_status::initialize_docker_points()
 	m_docker_point = i;
 	if (i < 0) {
 		m_docker_point = 0;
-		m_docker_index = box->GetItemData(0);
+		m_docker_index = static_cast<int>(box->GetItemData(0));
 	}
 }
 
@@ -298,7 +298,7 @@ void initial_status::initialize_dockee_points()
 	m_dockee_point = i;
 	if (i < 0) {
 		m_dockee_point = 0;
-		m_dockee_index = box->GetItemData(0);
+		m_dockee_index = static_cast<int>(box->GetItemData(0));
 	}
 }
 
@@ -320,8 +320,8 @@ void initial_status::change_subsys()
 		if (strlen(m_cargo_name) > 0) {
 			cargo_index = string_lookup(m_cargo_name, Cargo_names, Num_cargo);
 			if (cargo_index == -1) {
-				if (Num_cargo < MAX_CARGO);
-				cargo_index = Num_cargo++;
+				if (Num_cargo < MAX_CARGO)
+					cargo_index = Num_cargo++;
 				strcpy(Cargo_names[cargo_index], m_cargo_name);
 				ptr->subsys_cargo_name = cargo_index;
 			} else {
@@ -447,9 +447,9 @@ void initial_status::OnOK()
 			// set of rules to possibly set an arrival cue to false
 			o1 = &Objects[Ships[m_ship].objnum];
 			o2 = &Objects[Ships[m_docked_with].objnum];
-			m_docker_index = ((CComboBox *) GetDlgItem(IDC_DOCKER_POINT)) -> GetItemData(m_docker_point);
+			m_docker_index = static_cast<int>(((CComboBox *) GetDlgItem(IDC_DOCKER_POINT)) -> GetItemData(m_docker_point));
 			MODIFY(Ai_info[Ships[m_ship].ai_index].dock_index, m_docker_index);
-			m_dockee_index = ((CComboBox *) GetDlgItem(IDC_DOCKEE_POINT)) -> GetItemData(m_dockee_point);
+			m_dockee_index = static_cast<int>(((CComboBox *) GetDlgItem(IDC_DOCKEE_POINT)) -> GetItemData(m_dockee_point));
 			MODIFY(Ai_info[Ships[m_ship].ai_index].dockee_index, m_dockee_index);
 
 			// based on the types of the two ships docked, set the arrival cue of the "smaller" ship
@@ -544,7 +544,7 @@ void initial_status::OnSelchangeDocked()
 		GetDlgItem(IDC_DOCKER_POINT)->EnableWindow(TRUE);
 		GetDlgItem(IDC_DOCKEE_POINT)->EnableWindow(TRUE);
 
-		m_docked_with = ((CComboBox *) GetDlgItem(IDC_DOCKED)) -> GetItemData(m_docked);
+		m_docked_with = static_cast<int>(((CComboBox *) GetDlgItem(IDC_DOCKED)) -> GetItemData(m_docked));
 		initialize_docker_points();
 		initialize_dockee_points();
 

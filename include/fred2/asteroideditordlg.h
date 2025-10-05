@@ -43,8 +43,8 @@ public:
 	CString			m_min_y;
 	CString			m_min_z;
 	BOOL				m_enable_inner_bounds;
-	field_type		m_field_type;		// active or passive
-	debris_genre	m_debris_genre;		// ship or asteroid
+	field_type_t		m_field_type;		// active or passive
+	debris_genre_t	m_debris_genre;		// ship or asteroid
 	int				m_field_debris_type[3];	// species and size of ship debris
 	CString			m_box_max_x;
 	CString			m_box_max_y;

@@ -87,16 +87,16 @@ class sexp_list_item
 public:
 	int type;
 	int op;
-	char *text;
+	const char *text;
 	int flags;
 	sexp_list_item *next;
 
 	sexp_list_item() : flags(0), next(NULL) {}
 	void set_op(int op_num);
-	void set_data(char *str, int t = (SEXPT_STRING | SEXPT_VALID));
+	void set_data(const char *str, int t = (SEXPT_STRING | SEXPT_VALID));
 	void add_op(int op_num);
-	void add_data(char *str, int t = (SEXPT_STRING | SEXPT_VALID));
-	void add_data_dup(char *str, int t = (SEXPT_STRING | SEXPT_VALID));
+	void add_data(const char *str, int t = (SEXPT_STRING | SEXPT_VALID));
+	void add_data_dup(const char *str, int t = (SEXPT_STRING | SEXPT_VALID));
 	void add_list(sexp_list_item *list);
 	void destroy();
 };
@@ -104,7 +104,7 @@ public:
 class sexp_tree : public CTreeCtrl
 {
 public:
-	int sexp_tree::find_text(char *text, int *find);
+	int sexp_tree::find_text(const char *text, int *find);
 	int query_restricted_opf_range(int opf);
 	void verify_and_fix_arguments(int node);
 	void post_load();
@@ -116,7 +116,7 @@ public:
 	void setup(CEdit *ptr = NULL);
 	int query_false(int node = -1);
 	int add_default_operator(int op, int argnum);
-	int get_default_value(sexp_list_item *item, int op, int i);
+	int get_default_value(sexp_list_item *item, int op, int i, char *text_buf);
 	int query_default_argument_available(int op);
 	int query_default_argument_available(int op, int i);
 	void swap_roots(HTREEITEM one, HTREEITEM two);
@@ -126,8 +126,8 @@ public:
 	void setup_selected(HTREEITEM h = NULL);
 	void add_or_replace_operator(int op, int replace_flag = 0);
 	void replace_one_arg_operator(char *op, char *data, int type);
-	void replace_operator(char *op);
-	void replace_data(char *data, int type);
+	void replace_operator(const char *op);
+	void replace_data(const char *data, int type);
 	void replace_variable_data(int var_idx, int type);
 	void link_modified(int *ptr);
 	sexp_tree();
@@ -136,14 +136,14 @@ public:
 	void expand_branch(HTREEITEM h);
 	void expand_operator(int node);
 	void merge_operator(int node);
-	int end_label_edit(HTREEITEM h, char *str);
+	int end_label_edit(HTREEITEM h, const char *str);
 	int edit_label(HTREEITEM h);
 	int identify_arg_type(int node);
 	int count_args(int node);
 	void right_clicked(int mode = 0);
 	int ctree_size;
 	virtual void build_tree();
-	void set_node(int index, int type, char *text);
+	void set_node(int index, int type, const char *text);
 	void free_node(int node, int cascade = 0);
 	int allocate_node(int parent, int after = -1);
 	int allocate_node();
@@ -152,13 +152,13 @@ public:
 	int save_tree(int node = -1);
 	void load_tree(int index, char *deflt = "true");
 	void add_one_arg_operator(char *op, char *data, int type);
-	void add_operator(char *op, HTREEITEM h = TVI_ROOT);
-	int add_data(char *data, int type);
-	int add_variable_data(char *data, int type);
+	void add_operator(const char *op, HTREEITEM h = TVI_ROOT);
+	int add_data(const char *data, int type);
+	int add_variable_data(const char *data, int type);
 	void add_sub_tree(int node, HTREEITEM root);
 	void hilite_item(int node);
 	int check_operator_validity(int op, int type);
-	char *match_closest_operator(char *str, int node);
+	const char *match_closest_operator(const char *str, int node);
 	void delete_sexp_tree_variable(const char *var_name);
 	void modify_sexp_tree_variable(const char *old_name, int sexp_var_index);
 	int get_item_index_to_var_index();

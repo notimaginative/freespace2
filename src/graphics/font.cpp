@@ -463,17 +463,7 @@ void gr_get_string_size(int *w1, int *h1, const char *text, size_t len)
 MONITOR( FontChars );	
 
 
-void gr_string_win(int x, int y, const char *s)
-{
-	STUB_FUNCTION;
-}
-
-void gr_get_string_size_win(int *w, int *h, const char *text)
-{
-	STUB_FUNCTION;
-}
-
-char grx_printf_text[2048];	
+static char grx_printf_text[2048];
 
 void __cdecl gr_printf( int x, int y, const char * format, ... )
 {

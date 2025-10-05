@@ -214,6 +214,8 @@
 #include <stdio.h>
 #include <errno.h>
 #ifdef SDL_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <direct.h>
 #include <io.h>
 #else
@@ -307,6 +309,9 @@ cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 #define CFILE_STACK_MAX	8
 
 int cfile_inited = 0;
+static int Cfile_stack_pos = 0;
+
+static char Cfile_stack[MAX_PATH_LEN][CFILE_STACK_MAX];
 
 Cfile_block Cfile_block_list[MAX_CFILE_BLOCKS];
 CFILE Cfile_list[MAX_CFILE_BLOCKS];
@@ -407,6 +412,114 @@ int cfile_init()
 	}
 
 	return 0;
+}
+
+// Changes to a drive if valid.. 1=A, 2=B, etc
+// If flag, then changes to it.
+// Returns 0 if not-valid, 1 if valid.
+int cfile_chdrive( int DriveNum, int flag )
+{
+#ifdef SDL_PLATFORM_WINDOWS
+	int n, org;
+	int Valid = 0;
+
+	org = -1;
+	if (!flag)
+		org = _getdrive();
+
+	_chdrive( DriveNum );
+	n = _getdrive();
+
+
+	if (n == DriveNum )
+		Valid = 1;
+
+	if ( (!flag) && (n != org) )
+		_chdrive( org );
+
+	return Valid;
+#else
+	return 1;
+#endif
+}
+
+// push current directory on a 'stack' (so we can restore it) and change the directory
+int cfile_push_chdir(int type)
+{
+	int e;
+	char dir[MAX_PATH_LEN];
+
+	SDL_assert(Cfile_stack_pos < CFILE_STACK_MAX);
+
+	auto cwd = SDL_GetCurrentDirectory();
+
+	if ( !cwd ) {
+		return 1;
+	}
+
+	SDL_assert(SDL_strlen(cwd) < MAX_PATH_LEN);
+
+	cf_create_default_path_string(dir, type, nullptr);
+
+	if ((e = cfile_chdir(dir)) != 0) {
+		SDL_free(cwd);
+		return e;
+	}
+
+	// everything worked, so now push old directory to stack
+	SDL_strlcpy(Cfile_stack[Cfile_stack_pos++], cwd, SDL_arraysize(Cfile_stack[0]));
+	SDL_free(cwd);
+
+	return 0;
+}
+
+
+int cfile_chdir(const char *dir)
+{
+	int e;
+	const char *Drive, *Path;
+	const char NoDir[] = "\\.";
+
+	auto cwd = SDL_GetCurrentDirectory();
+
+	if ( !cwd ) {
+		return 1;
+	}
+
+	Drive = SDL_strchr(dir, ':');
+	if (Drive)	{
+		if ( !cfile_chdrive(SDL_tolower(*(Drive - 1)) - 'a' + 1, 1) ) {
+			SDL_free(cwd);
+			return 1;
+		}
+
+		Path = Drive+1;
+	} else {
+		Path = dir;
+	}
+
+	if ( !(*Path) ) {
+		Path = NoDir;
+	}
+
+	// This chdir might get a critical error!
+	e = chdir(Path);
+	if (e) {
+		cfile_chdrive(SDL_tolower(cwd[0]) - 'a' + 1, 1);
+		SDL_free(cwd);
+		return 2;
+	}
+
+	SDL_free(cwd);
+
+	return 0;
+}
+
+int cfile_pop_dir()
+{
+	SDL_assert(Cfile_stack_pos);
+	Cfile_stack_pos--;
+	return cfile_chdir(Cfile_stack[Cfile_stack_pos]);
 }
 
 
@@ -514,6 +627,25 @@ int cf_exist( const char *filename, int dir_type )
 	cf_create_default_path_string( longname, dir_type, filename );
 
 	return SDL_GetPathInfo(longname, nullptr) ? 1 : 0;
+}
+
+void cf_attrib(const char *filename, int set, int clear, int dir_type)
+{
+#ifdef SDL_PLATFORM_WINDOWS
+	char longname[MAX_PATH_LEN];
+
+	SDL_assert( CF_TYPE_SPECIFIED(dir_type) );
+
+	cf_create_default_path_string(longname, dir_type, filename);
+
+	FILE *fp = fopen(longname, "rb");
+	if (fp) {
+		fclose(fp);
+
+		auto z = GetFileAttributes(longname);
+		SetFileAttributes(longname, z | (set & ~clear));
+	}
+#endif
 }
 
 int cf_rename(const char *old_name, const char *name, int dir_type)

@@ -340,13 +340,11 @@ extern int Nmodel_bitmap;
 
 void string_copy(char *dest, CString &src, int max_len, int modify)
 {
-	int len;
-
 	if (modify)
 		if (strcmp(src, dest))
 			set_modified();
 
-	len = strlen(src);
+	auto len = strlen(src);
 	if (len >= max_len)
 		len = max_len - 1;
 
@@ -359,7 +357,7 @@ void string_copy(char *dest, CString &src, int max_len, int modify)
 CString convert_multiline_string(char *src)
 {
 	char *ptr, buf[256];
-	int i;
+	size_t i;
 	static CString str;
 
 	str = _T("");
@@ -496,15 +494,10 @@ void fred_init()
    srand( (unsigned) time(NULL) );
 	init_pending_messages();
 
-	// initialize registry stuff
-	os_init_registry_stuff(Osreg_company_name, Osreg_app_name, NULL);
-
 	timer_init();
 
-	SDL_assert(strlen(Fred_exe_dir) > 0);
-	
 	// doh
-	if(cfile_init(Fred_exe_dir)){
+	if(cfile_init()){
 		exit(1);
 	}
 
@@ -518,7 +511,8 @@ void fred_init()
 	load_filter_info();
 	#endif
 
-	gr_init(GR_640, GR_SOFTWARE, 8);
+	gr_init();
+	gr_set_viewport(640, 480);
 	gr_set_gamma(3.0f);
 
 	sprintf(palette_filename, "gamepalette%d-%02d", 1, 1);
@@ -576,14 +570,14 @@ void fred_init()
 void set_physics_controls()
 {
 	physics_init(&view_physics);
-	view_physics.max_vel.x *= physics_speed / 3.0f;
-	view_physics.max_vel.y *= physics_speed / 3.0f;
-	view_physics.max_vel.z *= physics_speed / 3.0f;
+	view_physics.max_vel.xyz.x *= physics_speed / 3.0f;
+	view_physics.max_vel.xyz.y *= physics_speed / 3.0f;
+	view_physics.max_vel.xyz.z *= physics_speed / 3.0f;
 	view_physics.max_rear_vel *= physics_speed / 3.0f;
 
-	view_physics.max_rotvel.x *= physics_rot / 30.0f;
-	view_physics.max_rotvel.y *= physics_rot / 30.0f;
-	view_physics.max_rotvel.z *= physics_rot / 30.0f;
+	view_physics.max_rotvel.xyz.x *= physics_rot / 30.0f;
+	view_physics.max_rotvel.xyz.y *= physics_rot / 30.0f;
+	view_physics.max_rotvel.xyz.z *= physics_rot / 30.0f;
 	view_physics.flags |= PF_ACCELERATES | PF_SLIDE_ENABLED;
 	theApp.write_ini_file(1);
 }
@@ -596,7 +590,7 @@ int create_object_on_grid(int list)
 
 	g3_point_to_vec_delayed(&dir, marking_box.x2, marking_box.y2);
 
-	rval = fvi_ray_plane(&pos, &The_grid->center, &The_grid->gmatrix.uvec, &view_pos, &dir, 0.0f);
+	rval = fvi_ray_plane(&pos, &The_grid->center, &The_grid->gmatrix.v.uvec, &view_pos, &dir, 0.0f);
 
 	if (rval>=0.0f) {
 		unmark_all();
@@ -1635,8 +1629,8 @@ void add_ship_to_wing()
 	
 	} else {
 		Objects[cur_object_index] = Objects[org_object];
-		Objects[cur_object_index].pos.x += 3.0f;
-		Objects[cur_object_index].pos.y += 3.0f;
+		Objects[cur_object_index].pos.xyz.x += 3.0f;
+		Objects[cur_object_index].pos.xyz.y += 3.0f;
 		physics_init(&Objects[cur_object_index].phys_info);
 		Objects[cur_object_index].orient = Objects[org_object].orient;
 	}

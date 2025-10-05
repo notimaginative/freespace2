@@ -68,7 +68,7 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/gropengl.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gropenglinternal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/grstub.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/grwxgl.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/grtoolset.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gtrack.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helpeddoc.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helped.h
@@ -198,11 +198,9 @@ set(code_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/rect.h
   ${CMAKE_CURRENT_SOURCE_DIR}/redalert.h
   ${CMAKE_CURRENT_SOURCE_DIR}/renderbuffer.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/resource.h
   ${CMAKE_CURRENT_SOURCE_DIR}/rtvoice.h
   ${CMAKE_CURRENT_SOURCE_DIR}/scoring.h
   ${CMAKE_CURRENT_SOURCE_DIR}/sexp.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/sexp_tree.h
   ${CMAKE_CURRENT_SOURCE_DIR}/shipcontrails.h
   ${CMAKE_CURRENT_SOURCE_DIR}/shipfx.h
   ${CMAKE_CURRENT_SOURCE_DIR}/ship.h
@@ -312,6 +310,46 @@ set(scramble_HEADERS
 
 set(fonttool_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/fonttool.h
+  PARENT_SCOPE
+)
+
+#
+# FRED
+#
+
+set(fred_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/addvariabledlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/adjustgriddlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/asteroideditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/bgbitmapdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/briefingeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaigneditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/createwingdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/debriefingeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/eventeditor.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fred.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/freddoc.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredrender.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredview.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/ignoreordersdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/mainfrm.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/management.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/messageeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missiongoalsdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missionnotesdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/modifyvariabledlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/prefsdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/reinforcementeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/resource.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/sexp_tree.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shieldsysdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipclasseditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipflagsdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipgoalsdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/textviewdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/waypointpathdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/weaponeditordlg.h
   PARENT_SCOPE
 )
 

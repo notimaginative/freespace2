@@ -100,7 +100,6 @@
  */
 
 #include "stdafx.h"
-#include <mmsystem.h>
 #include "fred.h"
 #include "debriefingeditordlg.h"
 #include "freddoc.h"
@@ -320,12 +319,14 @@ void debriefing_editor_dlg::update_data(int update)
 
 void debriefing_editor_dlg::OnNext() 
 {
+	theApp.stop_audio();
 	m_cur_stage++;
 	update_data();
 }
 
 void debriefing_editor_dlg::OnPrev() 
 {
+	theApp.stop_audio();
 	m_cur_stage--;
 	update_data();
 }
@@ -361,6 +362,7 @@ void debriefing_editor_dlg::OnAddStage()
 	if (Debriefing->num_stages >= MAX_DEBRIEF_STAGES)
 		return;
 
+	theApp.stop_audio();
 	m_cur_stage = i = Debriefing->num_stages++;
 	copy_stage(i - 1, i, 1);
 	update_data(1);
@@ -372,7 +374,8 @@ void debriefing_editor_dlg::OnDeleteStage()
 
 	if (m_cur_stage < 0)
 		return;
-	
+
+	theApp.stop_audio();
 	SDL_assert(Debriefing->num_stages);
 	z = m_cur_stage;
 	m_cur_stage = -1;
@@ -401,6 +404,7 @@ void debriefing_editor_dlg::OnInsertStage()
 		return;
 	}
 
+	theApp.stop_audio();
 	z = m_cur_stage;
 	m_cur_stage = -1;
 	update_data(1);
@@ -462,6 +466,7 @@ void debriefing_editor_dlg::OnEndlabeleditTree(NMHDR* pNMHDR, LRESULT* pResult)
 
 void debriefing_editor_dlg::OnClose() 
 {
+	theApp.stop_audio();
 	m_cur_stage = -1;
 	update_data(1);
 	CDialog::OnClose();
@@ -505,12 +510,8 @@ BOOL debriefing_editor_dlg::DestroyWindow()
 
 void debriefing_editor_dlg::OnPlay() 
 {
-	char path[MAX_PATH_LEN + 1];
 	GetDlgItem(IDC_VOICE)->GetWindowText(m_voice);
 
-	int size, offset;
-	cf_find_file_location((char *) (LPCSTR) m_voice, CF_TYPE_ANY, path, &size, &offset );
-
-	PlaySound(path, NULL, SND_ASYNC | SND_FILENAME);
+	theApp.play_audio(m_voice);
 }
 

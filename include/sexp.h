@@ -815,7 +815,7 @@ extern int count_free_sexp_nodes();
 // functions to change the attributes of an sexpression tree to persistent or not persistent
 extern void sexp_unmark_persistent( int n );
 extern void sexp_mark_persistent( int n );
-extern int waypoint_lookup(char *name);
+extern int waypoint_lookup(const char *name);
 extern int verify_sexp_tree(int node);
 extern int query_sexp_ai_goal_valid(int sexp_ai_goal, int ship_index);
 int query_node_in_sexp(int node, int sexp);

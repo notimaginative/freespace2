@@ -144,17 +144,17 @@ int asteroid_editor::query_modified()
 			return 1;
 		if (vm_vec_dist_quick(&a_field[i].vel, &Asteroid_field.vel) == 0.0f)
 			return 1;
-		if (a_field[i].min_bound.x != Asteroid_field.min_bound.x)
+		if (a_field[i].min_bound.xyz.x != Asteroid_field.min_bound.xyz.x)
 			return 1;
-		if (a_field[i].min_bound.y != Asteroid_field.min_bound.y)
+		if (a_field[i].min_bound.xyz.y != Asteroid_field.min_bound.xyz.y)
 			return 1;
-		if (a_field[i].min_bound.z != Asteroid_field.min_bound.z)
+		if (a_field[i].min_bound.xyz.z != Asteroid_field.min_bound.xyz.z)
 			return 1;
-		if (a_field[i].max_bound.x != Asteroid_field.max_bound.x)
+		if (a_field[i].max_bound.xyz.x != Asteroid_field.max_bound.xyz.x)
 			return 1;
-		if (a_field[i].max_bound.y != Asteroid_field.max_bound.y)
+		if (a_field[i].max_bound.xyz.y != Asteroid_field.max_bound.xyz.y)
 			return 1;
-		if (a_field[i].max_bound.z != Asteroid_field.max_bound.z)
+		if (a_field[i].max_bound.xyz.z != Asteroid_field.max_bound.xyz.z)
 			return 1;
 
 
@@ -165,22 +165,22 @@ int asteroid_editor::query_modified()
 			return 1;
 
 		if (a_field[i].has_inner_bound) {
-			if (a_field[i].inner_max_bound.x != Asteroid_field.inner_max_bound.x)
+			if (a_field[i].inner_max_bound.xyz.x != Asteroid_field.inner_max_bound.xyz.x)
 				return 1;
 
-			if (a_field[i].inner_max_bound.y != Asteroid_field.inner_max_bound.y)
+			if (a_field[i].inner_max_bound.xyz.y != Asteroid_field.inner_max_bound.xyz.y)
 				return 1;
 
-			if (a_field[i].inner_max_bound.z != Asteroid_field.inner_max_bound.z)
+			if (a_field[i].inner_max_bound.xyz.z != Asteroid_field.inner_max_bound.xyz.z)
 				return 1;
 
-			if (a_field[i].inner_min_bound.x != Asteroid_field.inner_min_bound.x)
+			if (a_field[i].inner_min_bound.xyz.x != Asteroid_field.inner_min_bound.xyz.x)
 				return 1;
 
-			if (a_field[i].inner_min_bound.y != Asteroid_field.inner_min_bound.y)
+			if (a_field[i].inner_min_bound.xyz.y != Asteroid_field.inner_min_bound.xyz.y)
 				return 1;
 
-			if (a_field[i].inner_min_bound.z != Asteroid_field.inner_min_bound.z)
+			if (a_field[i].inner_min_bound.xyz.z != Asteroid_field.inner_min_bound.xyz.z)
 				return 1;
 		}
 
@@ -196,69 +196,69 @@ int asteroid_editor::validate_data()
 		return 1;
 	} else {
 		// check x
-		if (a_field[0].max_bound.x < a_field[0].min_bound.x) {
+		if (a_field[0].max_bound.xyz.x < a_field[0].min_bound.xyz.x) {
 			MessageBox("Asteroid x min is greater than max");
 			return 0;
 		}
 
 		// check y
-		if (a_field[0].max_bound.y < a_field[0].min_bound.y) {
+		if (a_field[0].max_bound.xyz.y < a_field[0].min_bound.xyz.y) {
 			MessageBox("Asteroid y min is greater than max");
 			return 0;
 		}
 
 		// check z
-		if (a_field[0].max_bound.z < a_field[0].min_bound.z) {
+		if (a_field[0].max_bound.xyz.z < a_field[0].min_bound.xyz.z) {
 			MessageBox("Asteroid z min is greater than max");
 			return 0;
 		}
 
 		// check if inner bounds enabled
 		if (a_field[0].has_inner_bound) {
-			if (a_field[0].inner_max_bound.x < a_field[0].inner_min_bound.x) {
+			if (a_field[0].inner_max_bound.xyz.x < a_field[0].inner_min_bound.xyz.x) {
 				MessageBox("Asteroid x inner min is greater than inner max");
 				return 0;
 			}
 
-			if (a_field[0].inner_max_bound.y < a_field[0].inner_min_bound.y) {
+			if (a_field[0].inner_max_bound.xyz.y < a_field[0].inner_min_bound.xyz.y) {
 				MessageBox("Asteroid y inner min is greater than inner max");
 				return 0;
 			}
 
-			if (a_field[0].inner_max_bound.z < a_field[0].inner_min_bound.z) {
+			if (a_field[0].inner_max_bound.xyz.z < a_field[0].inner_min_bound.xyz.z) {
 				MessageBox("Asteroid z inner min is greater than inner max");
 				return 0;
 			}
 
 			// check x thickness
-			if (a_field[0].inner_min_bound.x - MIN_BOX_THICKNESS < a_field[0].min_bound.x) {
+			if (a_field[0].inner_min_bound.xyz.x - MIN_BOX_THICKNESS < a_field[0].min_bound.xyz.x) {
 				MessageBox("Asteroid x thickness from outer box to inner box must be > 400");
 				return 0;
 			}
 
-			if (a_field[0].inner_max_bound.x + MIN_BOX_THICKNESS > a_field[0].max_bound.x) {
+			if (a_field[0].inner_max_bound.xyz.x + MIN_BOX_THICKNESS > a_field[0].max_bound.xyz.x) {
 				MessageBox("Asteroid x thickness from outer box to inner box must be > 400");
 				return 0;
 			}
 
 			// check y thickness
-			if (a_field[0].inner_min_bound.y - MIN_BOX_THICKNESS < a_field[0].min_bound.y) {
+			if (a_field[0].inner_min_bound.xyz.y - MIN_BOX_THICKNESS < a_field[0].min_bound.xyz.y) {
 				MessageBox("Asteroid y thickness from outer box to inner box must be > 400");
 				return 0;
 			}
 
-			if (a_field[0].inner_max_bound.y + MIN_BOX_THICKNESS > a_field[0].max_bound.y) {
+			if (a_field[0].inner_max_bound.xyz.y + MIN_BOX_THICKNESS > a_field[0].max_bound.xyz.y) {
 				MessageBox("Asteroid y thickness from outer box to inner box must be > 400");
 				return 0;
 			}
 
 			// check z thickness
-			if (a_field[0].inner_min_bound.z - MIN_BOX_THICKNESS < a_field[0].min_bound.z) {
+			if (a_field[0].inner_min_bound.xyz.z - MIN_BOX_THICKNESS < a_field[0].min_bound.xyz.z) {
 				MessageBox("Asteroid z thickness from outer box to inner box must be > 400");
 				return 0;
 			}
 
-			if (a_field[0].inner_max_bound.z + MIN_BOX_THICKNESS > a_field[0].max_bound.z) {
+			if (a_field[0].inner_max_bound.xyz.z + MIN_BOX_THICKNESS > a_field[0].max_bound.xyz.z) {
 				MessageBox("Asteroid z thickness from outer box to inner box must be > 400");
 				return 0;
 			}
@@ -338,16 +338,16 @@ void asteroid_editor::update_init()
 		vector	vel_vec = {1.0f, 0.0f, 0.0f};
 		vm_vec_scale(&vel_vec, (float) m_avg_speed);
 
-		MODIFY(a_field[last_field].vel.x, vel_vec.x);
-		MODIFY(a_field[last_field].vel.y, vel_vec.y);
-		MODIFY(a_field[last_field].vel.z, vel_vec.z);
+		MODIFY(a_field[last_field].vel.xyz.x, vel_vec.xyz.x);
+		MODIFY(a_field[last_field].vel.xyz.y, vel_vec.xyz.y);
+		MODIFY(a_field[last_field].vel.xyz.z, vel_vec.xyz.z);
 
-		MODIFY(a_field[last_field].min_bound.x, (float) atof(m_min_x));
-		MODIFY(a_field[last_field].min_bound.y, (float) atof(m_min_y));
-		MODIFY(a_field[last_field].min_bound.z, (float) atof(m_min_z));
-		MODIFY(a_field[last_field].max_bound.x, (float) atof(m_max_x));
-		MODIFY(a_field[last_field].max_bound.y, (float) atof(m_max_y));
-		MODIFY(a_field[last_field].max_bound.z, (float) atof(m_max_z));
+		MODIFY(a_field[last_field].min_bound.xyz.x, (float) atof(m_min_x));
+		MODIFY(a_field[last_field].min_bound.xyz.y, (float) atof(m_min_y));
+		MODIFY(a_field[last_field].min_bound.xyz.z, (float) atof(m_min_z));
+		MODIFY(a_field[last_field].max_bound.xyz.x, (float) atof(m_max_x));
+		MODIFY(a_field[last_field].max_bound.xyz.y, (float) atof(m_max_y));
+		MODIFY(a_field[last_field].max_bound.xyz.z, (float) atof(m_max_z));
 
 		// type of field
 		MODIFY(a_field[last_field].field_type, m_field_type);
@@ -358,7 +358,7 @@ void asteroid_editor::update_init()
 				// loop over combo boxes, store the item data of the cur selection, -1 in no cur selection
 				int cur_sel = ((CComboBox*)GetDlgItem(Dlg_id[idx]))->GetCurSel();
 				if (cur_sel != CB_ERR) {
-					cur_choice = ((CComboBox*)GetDlgItem(Dlg_id[idx]))->GetItemData(cur_sel);
+					cur_choice = static_cast<int>(((CComboBox*)GetDlgItem(Dlg_id[idx]))->GetItemData(cur_sel));
 				} else {
 					cur_choice = -1;
 				}
@@ -393,12 +393,12 @@ void asteroid_editor::update_init()
 
 		MODIFY(a_field[last_field].has_inner_bound, m_enable_inner_bounds);
 
-		MODIFY(a_field[last_field].inner_min_bound.x, (float) atof(m_box_min_x));
-		MODIFY(a_field[last_field].inner_min_bound.y, (float) atof(m_box_min_y));
-		MODIFY(a_field[last_field].inner_min_bound.z, (float) atof(m_box_min_z));
-		MODIFY(a_field[last_field].inner_max_bound.x, (float) atof(m_box_max_x));
-		MODIFY(a_field[last_field].inner_max_bound.y, (float) atof(m_box_max_y));
-		MODIFY(a_field[last_field].inner_max_bound.z, (float) atof(m_box_max_z));
+		MODIFY(a_field[last_field].inner_min_bound.xyz.x, (float) atof(m_box_min_x));
+		MODIFY(a_field[last_field].inner_min_bound.xyz.y, (float) atof(m_box_min_y));
+		MODIFY(a_field[last_field].inner_min_bound.xyz.z, (float) atof(m_box_min_z));
+		MODIFY(a_field[last_field].inner_max_bound.xyz.x, (float) atof(m_box_max_x));
+		MODIFY(a_field[last_field].inner_max_bound.xyz.y, (float) atof(m_box_max_y));
+		MODIFY(a_field[last_field].inner_max_bound.xyz.z, (float) atof(m_box_max_z));
 	}
 
 	SDL_assert(cur_field >= 0);
@@ -415,19 +415,19 @@ void asteroid_editor::update_init()
 //	m_debris_species = a_field[cur_field].debris_species;
 
 	m_avg_speed = (int) vm_vec_mag(&a_field[cur_field].vel);
-	m_min_x.Format("%.1f", a_field[cur_field].min_bound.x);
-	m_min_y.Format("%.1f", a_field[cur_field].min_bound.y);
-	m_min_z.Format("%.1f", a_field[cur_field].min_bound.z);
-	m_max_x.Format("%.1f", a_field[cur_field].max_bound.x);
-	m_max_y.Format("%.1f", a_field[cur_field].max_bound.y);
-	m_max_z.Format("%.1f", a_field[cur_field].max_bound.z);
+	m_min_x.Format("%.1f", a_field[cur_field].min_bound.xyz.x);
+	m_min_y.Format("%.1f", a_field[cur_field].min_bound.xyz.y);
+	m_min_z.Format("%.1f", a_field[cur_field].min_bound.xyz.z);
+	m_max_x.Format("%.1f", a_field[cur_field].max_bound.xyz.x);
+	m_max_y.Format("%.1f", a_field[cur_field].max_bound.xyz.y);
+	m_max_z.Format("%.1f", a_field[cur_field].max_bound.xyz.z);
 
-	m_box_min_x.Format("%.1f", a_field[cur_field].inner_min_bound.x);
-	m_box_min_y.Format("%.1f", a_field[cur_field].inner_min_bound.y);
-	m_box_min_z.Format("%.1f", a_field[cur_field].inner_min_bound.z);
-	m_box_max_x.Format("%.1f", a_field[cur_field].inner_max_bound.x);
-	m_box_max_y.Format("%.1f", a_field[cur_field].inner_max_bound.y);
-	m_box_max_z.Format("%.1f", a_field[cur_field].inner_max_bound.z);
+	m_box_min_x.Format("%.1f", a_field[cur_field].inner_min_bound.xyz.x);
+	m_box_min_y.Format("%.1f", a_field[cur_field].inner_min_bound.xyz.y);
+	m_box_min_z.Format("%.1f", a_field[cur_field].inner_min_bound.xyz.z);
+	m_box_max_x.Format("%.1f", a_field[cur_field].inner_max_bound.xyz.x);
+	m_box_max_y.Format("%.1f", a_field[cur_field].inner_max_bound.xyz.y);
+	m_box_max_z.Format("%.1f", a_field[cur_field].inner_max_bound.xyz.z);
 
 	// set up combo boxes
 	int box_index;
@@ -471,7 +471,7 @@ void asteroid_editor::update_init()
 		if (a_field[cur_field].field_debris_type[idx] != -1) {
 			box_count = ((CComboBox*)GetDlgItem(Dlg_id[idx]))->GetCount();
 			for (box_index=0; box_index<box_count; box_index++) {
-				cur_box_data = ((CComboBox*)GetDlgItem(Dlg_id[idx]))->GetItemData(box_index);
+				cur_box_data = static_cast<int>(((CComboBox*)GetDlgItem(Dlg_id[idx]))->GetItemData(box_index));
 				if (cur_box_data == a_field[cur_field].field_debris_type[idx]) {
 					// set cur sel
 					((CComboBox*)GetDlgItem(Dlg_id[idx]))->SetCurSel(box_index);

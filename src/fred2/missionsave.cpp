@@ -217,7 +217,7 @@ int CFred_mission_save::save_mission_file(char *pathname)
 
 	reset_parse();
 	fred_parse_flag = 0;
-	fp = cfopen(savepath, "wt", CFILE_NORMAL);
+	fp = cfopen(savepath, "wt");
 	if (!fp)	{
 		nprintf(("Error", "Can't open mission file to save.\n"));
 		return -1;
@@ -289,7 +289,8 @@ int CFred_mission_save::save_mission_file(char *pathname)
 int CFred_mission_save::autosave_mission_file(char *pathname)
 {
 	char backup_name[256], name2[256];
-	int i, len;
+	int i;
+	size_t len;
 	CTime t;
 	
 	t = CTime::GetCurrentTime();
@@ -309,7 +310,7 @@ int CFred_mission_save::autosave_mission_file(char *pathname)
 	strcpy(backup_name + len, ".001");
 	reset_parse();
 	fred_parse_flag = 0;
-	fp = cfopen(backup_name, "wt", CFILE_NORMAL, CF_TYPE_MISSIONS);
+	fp = cfopen(backup_name, "wt", CF_TYPE_MISSIONS);
 	if (!fp)	{
 		nprintf(("Error", "Can't open mission file to save.\n"));
 		return -1;
@@ -694,7 +695,7 @@ int CFred_mission_save::save_briefing()
 
 			required_string_fred("$Formula:");
 			parse_comments();
-			convert_sexp_to_string(bs->formula, out, SEXP_SAVE_MODE);
+			convert_sexp_to_string(bs->formula, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 			fout(" %s", out);
 
 			for ( j = 0; j < bs->num_icons; j++ ) {
@@ -784,7 +785,7 @@ int CFred_mission_save::save_debriefing()
 		for (i=0; i<Debriefing->num_stages; i++) {
 			required_string_fred("$Formula:");
 			parse_comments(2);
-			convert_sexp_to_string(Debriefing->stages[i].formula, out, SEXP_SAVE_MODE);
+			convert_sexp_to_string(Debriefing->stages[i].formula, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 			fout(" %s", out);
 
 			// XSTR
@@ -1053,7 +1054,7 @@ int CFred_mission_save::save_objects()
 
 		required_string_fred("$Arrival Cue:");
 		parse_comments();
-		convert_sexp_to_string(Ships[i].arrival_cue, out, SEXP_SAVE_MODE);
+		convert_sexp_to_string(Ships[i].arrival_cue, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 		fout(" %s", out);
 
 		required_string_fred("$Departure Location:");
@@ -1084,7 +1085,7 @@ int CFred_mission_save::save_objects()
 
 		required_string_fred("$Departure Cue:");
 		parse_comments();
-		convert_sexp_to_string(Ships[i].departure_cue, out, SEXP_SAVE_MODE);
+		convert_sexp_to_string(Ships[i].departure_cue, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 		fout(" %s", out);
 
 		required_string_fred("$Determination:");
@@ -1395,7 +1396,7 @@ int CFred_mission_save::save_common_object_data(object *objp, ship *shipp)
 		}
 
 		if (ptr->system_info->type == SUBSYSTEM_TURRET)
-			save_turret_info(ptr, shipp - Ships);
+			save_turret_info(ptr, SHIP_INDEX(shipp));
 
 		ptr = GET_NEXT(ptr);
 	}
@@ -1486,7 +1487,7 @@ int CFred_mission_save::save_wings()
 
 		required_string_fred("$Arrival Cue:");
 		parse_comments();
-		convert_sexp_to_string(Wings[i].arrival_cue, out, SEXP_SAVE_MODE);
+		convert_sexp_to_string(Wings[i].arrival_cue, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 		fout(" %s", out);
 
 		required_string_fred("$Departure Location:");
@@ -1514,7 +1515,7 @@ int CFred_mission_save::save_wings()
 
 		required_string_fred("$Departure Cue:");
 		parse_comments();
-		convert_sexp_to_string(Wings[i].departure_cue, out, SEXP_SAVE_MODE);
+		convert_sexp_to_string(Wings[i].departure_cue, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 		fout(" %s", out);
 
 		required_string_fred("$Ships:");
@@ -1627,7 +1628,7 @@ int CFred_mission_save::save_goals()
 
 		required_string_fred("$Formula:");
 		parse_comments();
-		convert_sexp_to_string(Mission_goals[i].formula, out, SEXP_SAVE_MODE);
+		convert_sexp_to_string(Mission_goals[i].formula, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 		fout(" %s", out);
 
 		if ( Mission_goals[i].type & INVALID_GOAL ) {
@@ -1716,7 +1717,7 @@ int CFred_mission_save::save_waypoint_list(waypoint_list &w)
 	int i;
 
 	for (i=0; i<w.count; i++)
-		fout("\t( %f, %f, %f )\n", w.waypoints[i].x, w.waypoints[i].y, w.waypoints[i].z);
+		fout("\t( %f, %f, %f )\n", w.waypoints[i].xyz.x, w.waypoints[i].xyz.y, w.waypoints[i].xyz.z);
 
 	return 0;
 }
@@ -1787,15 +1788,15 @@ int CFred_mission_save::save_messages()
 
 int CFred_mission_save::save_vector(vector &v)
 {
-	fout(" %f, %f, %f", v.x, v.y, v.z);
+	fout(" %f, %f, %f", v.xyz.x, v.xyz.y, v.xyz.z);
 	return 0;
 }
 
 int CFred_mission_save::save_matrix(matrix &m)
 {
-	fout("\n\t%f, %f, %f,\n", m.rvec.x, m.rvec.y, m.rvec.z);
-	fout("\t%f, %f, %f,\n", m.uvec.x, m.uvec.y, m.uvec.z);
-	fout("\t%f, %f, %f", m.fvec.x, m.fvec.y, m.fvec.z);
+	fout("\n\t%f, %f, %f,\n", m.v.rvec.xyz.x, m.v.rvec.xyz.y, m.v.rvec.xyz.z);
+	fout("\t%f, %f, %f,\n", m.v.uvec.xyz.x, m.v.uvec.xyz.y, m.v.uvec.xyz.z);
+	fout("\t%f, %f, %f", m.v.fvec.xyz.x, m.v.fvec.xyz.y, m.v.fvec.xyz.z);
 	return 0;
 }
 
@@ -2096,7 +2097,7 @@ int CFred_mission_save::save_events()
 		required_string_either_fred("$Formula:", "#Goals");
 		required_string_fred("$Formula:");
 		parse_comments(i ? 2 : 1);
-		convert_sexp_to_string(Mission_events[i].formula, out, SEXP_SAVE_MODE);
+		convert_sexp_to_string(Mission_events[i].formula, out, SDL_arraysize(out), SEXP_SAVE_MODE);
 		fout(" %s", out);
 
 		if (*Mission_events[i].name) {
@@ -2384,7 +2385,7 @@ int CFred_mission_save::save_asteroid_fields()
 
 		// field_debris_type (only if ship genre)
 		if (Asteroid_field.debris_genre == DG_SHIP) {
-			for (int idx=0; idx<3; idx++) {
+			for (idx=0; idx<3; idx++) {
 				if (Asteroid_field.field_debris_type[idx] != -1) {
 					if (optional_string_fred("+Field Debris Type:")){
 						parse_comments();
@@ -2545,7 +2546,7 @@ int CFred_mission_save::save_campaign_file(char *pathname)
 	fred_parse_flag = 0;
 
 	pathname = cf_add_ext(pathname, FS_CAMPAIGN_FILE_EXT);
-	fp = cfopen(pathname, "wt", CFILE_NORMAL, CF_TYPE_MISSIONS);
+	fp = cfopen(pathname, "wt", CF_TYPE_MISSIONS);
 	if (!fp)	{
 		nprintf(("Error", "Can't open campaign file to save.\n"));
 		return -1;

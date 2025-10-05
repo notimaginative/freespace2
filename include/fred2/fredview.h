@@ -240,6 +240,8 @@ class CFREDView : public CView
 {
 private:
 	CGrid*		m_pGDlg;
+	SDL_Window	*m_window;
+	SDL_GLContext	m_gl_context;
 	int global_error_check_player_wings(int multi);
 
 protected: // create from serialization only
@@ -259,7 +261,7 @@ public:
 
 	static CFREDView *GetView();
 	
-LONG OnGoodbye(UINT wParam, LONG lParam);
+LRESULT OnGoodbye(WPARAM wParam, LPARAM lParam);
 // LONG OnMenuPopupShips(CWnd *pWnd, CPoint point);
 // LONG OnMenuPopupShips(UINT wParam, LONG lParam);
 
@@ -308,6 +310,8 @@ protected:
 	afx_msg void OnUpdateViewWaypoints(CCmdUI* pCmdUI);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnEditorsShips();
+	afx_msg void OnDestroy();
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
@@ -478,8 +482,8 @@ protected:
 	afx_msg void OnSetGroup(UINT nID);
 
 // LONG OnMenuPopupShips(CWnd *pWnd, CPoint point);
-LONG OnMenuPopupShips(UINT wParam, LONG lParam);
-LONG OnMenuPopupEdit(UINT wParam, LONG lParam);
+LRESULT OnMenuPopupShips(WPARAM wParam, LPARAM lParam);
+LRESULT OnMenuPopupEdit(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
 };

@@ -430,6 +430,8 @@
 #include "stdafx.h"
 #include "fred.h"
 
+#include <SDL3/SDL.h>
+
 #include "freddoc.h"
 #include "fredview.h"
 #include "fredrender.h"
@@ -468,6 +470,9 @@
 #include "cmdbrief.h"
 #include "jumpnode.h"
 #include "dumpstats.h"
+#include "osapi.h"
+#include "sound.h"
+#include "audiostr.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -489,7 +494,7 @@ int expire_game;
 #define REDUCER				100.0f
 #define DUP_DRAG_OF_WING	2
 
-LOCAL int Duped_wing;
+static int Duped_wing;
 
 int Autosave_disabled = 0;
 int Show_sexp_help = 1;
@@ -553,6 +558,8 @@ BEGIN_MESSAGE_MAP(CFREDView, CView)
 	ON_UPDATE_COMMAND_UI(ID_SHOW_WAYPOINTS, OnUpdateViewWaypoints)
 	ON_WM_LBUTTONDOWN()
 	ON_COMMAND(ID_EDITORS_SHIPS, OnEditorsShips)
+	ON_WM_DESTROY()
+	ON_WM_CREATE()
 	ON_WM_KEYDOWN()
 	ON_WM_KEYUP()
 	ON_WM_SETFOCUS()
@@ -744,7 +751,10 @@ CFREDView::CFREDView()
 	
 	m_pGDlg = new CGrid(this);
 
-	fred_init();
+	m_window = nullptr;
+	m_gl_context = nullptr;
+
+//	fred_init();
 
 	//if (!(int errno = gr_init(640, 480, 32)))
 	//	Error(LOCATION, "Hey, gr_init failed! Error code = %i", errno);
@@ -755,10 +765,24 @@ CFREDView::~CFREDView()
 {
 	delete m_pGDlg;
 
+	audiostream_close();
+	snd_close();
+
 	gr_close();
+
+	if (m_gl_context) {
+		SDL_GL_DestroyContext(m_gl_context);
+		m_gl_context = nullptr;
+	}
+
+	if (m_window) {
+		os_set_window(nullptr);
+		SDL_DestroyWindow(m_window);
+		m_window = nullptr;
+	}
 }
 
-void CALLBACK expire_game_proc( HWND wnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void CALLBACK expire_game_proc( HWND wnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
 	KillTimer(wnd, 1);
 	if ( expire_game == EXPIRE_BAD_CHECKSUM )
@@ -781,6 +805,51 @@ BOOL CFREDView::PreCreateWindow(CREATESTRUCT& cs)
 	return casperl;
 }
 
+void CFREDView::OnDestroy()
+{
+	CView::OnDestroy();
+}
+
+int CFREDView::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	auto hWnd = this->GetSafeHwnd();
+
+	SDL_SetHint("SDL_WINDOWS_DPI_AWARENESS", "unaware");
+
+	SDL_InitSubSystem(SDL_INIT_VIDEO);
+
+	auto props = SDL_CreateProperties();
+
+	SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_HWND_POINTER, hWnd);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, false);
+
+	m_window = SDL_CreateWindowWithProperties(props);
+
+	SDL_DestroyProperties(props);
+
+	if ( !m_window ) {
+		Warning(LOCATION, "Unable to create SDL window!\n");
+		return -1;
+	}
+
+	os_set_window(m_window);
+
+	m_gl_context = SDL_GL_CreateContext(m_window);
+
+	if ( !m_gl_context ) {
+		Warning(LOCATION, "Unable to create OpenGL context!\n");
+		return -1;
+	}
+
+	fred_init();
+
+	return 0;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CFREDView drawing
 
@@ -799,8 +868,7 @@ void CFREDView::OnDraw(CDC* pDC)
 	gr_set_clip(clip.left, clip.top, clip.right - clip.left + 1, clip.bottom - clip.top + 1);
 	SDL_assert(clip.left <= clip.right);
 	SDL_assert(clip.top <= clip.bottom);
-	gr_flip_window((uint) pDC->m_hDC, clip.left, clip.top,
-		clip.right - clip.left + 1, clip.bottom - clip.top + 1);
+	gr_flip();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -998,7 +1066,7 @@ int drag_objects()
 		vector tmpAnticonstraint = Anticonstraint;
 		vector tmpObject = obj;
 
-		tmpAnticonstraint.x = 0.0f;
+		tmpAnticonstraint.xyz.x = 0.0f;
 		r = fvi_ray_plane(&int_pnt, &tmpObject, &tmpAnticonstraint, &view_pos, &cursor_dir, 0.0f);
 
 		//	If intersected behind viewer, don't move.  Too confusing, not what user wants.
@@ -1007,9 +1075,9 @@ int drag_objects()
 		if ((r>=0.0f) && (vm_vec_dot(&vec1, &vec2) >= 0.0f))	{
 			vector tmp1;
 			vm_vec_sub( &tmp1, &int_pnt, &obj );
-			tmp1.x *= Constraint.x;
-			tmp1.y *= Constraint.y;
-			tmp1.z *= Constraint.z;
+			tmp1.xyz.x *= Constraint.xyz.x;
+			tmp1.xyz.y *= Constraint.xyz.y;
+			tmp1.xyz.z *= Constraint.xyz.z;
 			vm_vec_add( &int_pnt, &obj, &tmp1 );
 				
 			distance_moved = vm_vec_dist(&obj, &int_pnt);
@@ -1116,21 +1184,21 @@ int drag_rotate_objects()
 
 	memset(&a, 0, sizeof(angles));
 	if (Single_axis_constraint) {
-		if (Constraint.x)
+		if (Constraint.xyz.x)
 			a.p = mouse_dy / REDUCER;
-		else if (Constraint.y)
+		else if (Constraint.xyz.y)
 			a.h = mouse_dx / REDUCER;
-		else if (Constraint.z)
+		else if (Constraint.xyz.z)
 			a.b = -mouse_dx / REDUCER;
 
 	} else {
-		if (!Constraint.x) {				// yz
+		if (!Constraint.xyz.x) {				// yz
 			a.b = -mouse_dx / REDUCER;
 			a.h = mouse_dy / REDUCER;
-		} else if (!Constraint.y) {	// xz
+		} else if (!Constraint.xyz.y) {	// xz
 			a.p = mouse_dy / REDUCER;
 			a.b = -mouse_dx / REDUCER;
-		} else if (!Constraint.z) {	// xy
+		} else if (!Constraint.xyz.z) {	// xy
 			a.p = mouse_dy / REDUCER;
 			a.h = mouse_dx / REDUCER;
 		}
@@ -1243,9 +1311,9 @@ void cancel_drag()
 				if (objp->flags & OF_MARKED) {
 					int obj_index = OBJ_INDEX(objp);
 
-					if(!IS_VEC_NULL(&rotation_backup[obj_index].orient.rvec) && 
-						!IS_VEC_NULL(&rotation_backup[obj_index].orient.uvec) && 
-						!IS_VEC_NULL(&rotation_backup[obj_index].orient.fvec)){
+					if(!IS_VEC_NULL(&rotation_backup[obj_index].orient.v.rvec) && 
+						!IS_VEC_NULL(&rotation_backup[obj_index].orient.v.uvec) && 
+						!IS_VEC_NULL(&rotation_backup[obj_index].orient.v.fvec)){
 
 						objp->pos = rotation_backup[obj_index].pos;
 						objp->orient = rotation_backup[obj_index].orient;
@@ -1483,7 +1551,7 @@ void CFREDView::OnLButtonUp(UINT nFlags, CPoint point)
 //	This function never gets called because nothing causes
 //	the WM_GOODBYE event to occur.
 // False! When you close the Ship Dialog, this function is called! --MK, 8/30/96
-LONG CFREDView::OnGoodbye(UINT wParam, LONG lParam)
+LRESULT CFREDView::OnGoodbye(WPARAM wParam, LPARAM lParam)
 {
 	Ship_editor_dialog.DestroyWindow();
 	Wing_editor_dialog.DestroyWindow();
@@ -1507,24 +1575,172 @@ void CFREDView::OnEditorsShips()
 	Ship_editor_dialog.ShowWindow(SW_RESTORE);
 }
 
-void CFREDView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT lParam)
+struct fs_keycode_t {
+	uint16_t win_code;
+	SDL_Scancode sdl_code;
+};
+
+static const fs_keycode_t keycode_lookup[] = {
+	{ /* KEY_0 */           0x0B,	SDL_SCANCODE_0			},
+	{ /* KEY_1 */           0x02,	SDL_SCANCODE_1			},
+	{ /* KEY_2 */           0x03,	SDL_SCANCODE_2			},
+	{ /* KEY_3 */           0x04,	SDL_SCANCODE_3			},
+	{ /* KEY_4 */           0x05,	SDL_SCANCODE_4			},
+	{ /* KEY_5 */           0x06,	SDL_SCANCODE_5			},
+	{ /* KEY_6 */           0x07,	SDL_SCANCODE_6			},
+	{ /* KEY_7 */           0x08,	SDL_SCANCODE_7			},
+	{ /* KEY_8 */           0x09,	SDL_SCANCODE_8			},
+	{ /* KEY_9 */           0x0A,	SDL_SCANCODE_9			},
+	{ /* KEY_A */           0x1E,	SDL_SCANCODE_A			},
+	{ /* KEY_B */           0x30,	SDL_SCANCODE_B			},
+	{ /* KEY_C */           0x2E,	SDL_SCANCODE_C			},
+	{ /* KEY_D */           0x20,	SDL_SCANCODE_D			},
+	{ /* KEY_E */           0x12,	SDL_SCANCODE_E			},
+	{ /* KEY_F */           0x21,	SDL_SCANCODE_F			},
+	{ /* KEY_G */           0x22,	SDL_SCANCODE_G			},
+	{ /* KEY_H */           0x23,	SDL_SCANCODE_H			},
+	{ /* KEY_I */           0x17,	SDL_SCANCODE_I			},
+	{ /* KEY_J */           0x24,	SDL_SCANCODE_J			},
+	{ /* KEY_K */           0x25,	SDL_SCANCODE_K			},
+	{ /* KEY_L */           0x26,	SDL_SCANCODE_L			},
+	{ /* KEY_M */           0x32,	SDL_SCANCODE_M			},
+	{ /* KEY_N */           0x31,	SDL_SCANCODE_N			},
+	{ /* KEY_O */           0x18,	SDL_SCANCODE_O			},
+	{ /* KEY_P */           0x19,	SDL_SCANCODE_P			},
+	{ /* KEY_Q */           0x10,	SDL_SCANCODE_Q			},
+	{ /* KEY_R */           0x13,	SDL_SCANCODE_R			},
+	{ /* KEY_S */           0x1F,	SDL_SCANCODE_S			},
+	{ /* KEY_T */           0x14,	SDL_SCANCODE_T			},
+	{ /* KEY_U */           0x16,	SDL_SCANCODE_U			},
+	{ /* KEY_V */           0x2F,	SDL_SCANCODE_V			},
+	{ /* KEY_W */           0x11,	SDL_SCANCODE_W			},
+	{ /* KEY_X */           0x2D,	SDL_SCANCODE_X			},
+	{ /* KEY_Y */           0x15,	SDL_SCANCODE_Y			},
+	{ /* KEY_Z */           0x2C,	SDL_SCANCODE_Z			},
+	{ /* KEY_MINUS */       0x0C,	SDL_SCANCODE_MINUS		},
+	{ /* KEY_EQUAL */       0x0D,	SDL_SCANCODE_EQUALS		},
+	{ /* KEY_DIVIDE */      0x35,	SDL_SCANCODE_SLASH		},
+	{ /* KEY_SLASH */       0x2B,	SDL_SCANCODE_BACKSLASH	},
+	{ /* KEY_SLASH_UK */    0x56,	SDL_SCANCODE_BACKSLASH	},
+	{ /* KEY_COMMA */       0x33,	SDL_SCANCODE_COMMA		},
+	{ /* KEY_PERIOD */      0x34,	SDL_SCANCODE_PERIOD		},
+	{ /* KEY_SEMICOL */     0x27,	SDL_SCANCODE_SEMICOLON	},
+	{ /* KEY_LBRACKET */    0x1A,	SDL_SCANCODE_LEFTBRACKET	},
+	{ /* KEY_RBRACKET */    0x1B,	SDL_SCANCODE_RIGHTBRACKET	},
+	{ /* KEY_RAPOSTRO */    0x28,	SDL_SCANCODE_APOSTROPHE		},
+	{ /* KEY_LAPOSTRO */    0x29,	SDL_SCANCODE_GRAVE	},
+	{ /* KEY_ESC */         0x01,	SDL_SCANCODE_ESCAPE		},
+	{ /* KEY_ENTER */       0x1C,	SDL_SCANCODE_RETURN		},
+	{ /* KEY_BACKSP */      0x0E,	SDL_SCANCODE_BACKSPACE	},
+	{ /* KEY_TAB */         0x0F,	SDL_SCANCODE_TAB		},
+	{ /* KEY_SPACEBAR */    0x39,	SDL_SCANCODE_SPACE		},
+	{ /* KEY_NUMLOCK */     0x61,	SDL_SCANCODE_NUMLOCKCLEAR	},
+	{ /* KEY_SCROLLOCK */   0x46,	SDL_SCANCODE_SCROLLLOCK	},
+	{ /* KEY_CAPSLOCK */    0x3A,	SDL_SCANCODE_CAPSLOCK	},
+	{ /* KEY_LSHIFT */      0x2A,	SDL_SCANCODE_LSHIFT		},
+	{ /* KEY_RSHIFT */      0x36,	SDL_SCANCODE_RSHIFT		},
+	{ /* KEY_LALT */        0x38,	SDL_SCANCODE_LALT		},
+	{ /* KEY_RALT */        0xB8,	SDL_SCANCODE_RALT		},
+	{ /* KEY_LCTRL */       0x1D,	SDL_SCANCODE_LCTRL		},
+	{ /* KEY_RCTRL */       0x9D,	SDL_SCANCODE_RCTRL		},
+	{ /* KEY_F1 */          0x3B,	SDL_SCANCODE_F1			},
+	{ /* KEY_F2 */          0x3C,	SDL_SCANCODE_F2			},
+	{ /* KEY_F3 */          0x3D,	SDL_SCANCODE_F3			},
+	{ /* KEY_F4 */          0x3E,	SDL_SCANCODE_F4			},
+	{ /* KEY_F5 */          0x3F,	SDL_SCANCODE_F5			},
+	{ /* KEY_F6 */          0x40,	SDL_SCANCODE_F6			},
+	{ /* KEY_F7 */          0x41,	SDL_SCANCODE_F7			},
+	{ /* KEY_F8 */          0x42,	SDL_SCANCODE_F8			},
+	{ /* KEY_F9 */          0x43,	SDL_SCANCODE_F9			},
+	{ /* KEY_F10 */         0x44,	SDL_SCANCODE_F10		},
+	{ /* KEY_F11 */         0x57,	SDL_SCANCODE_F11		},
+	{ /* KEY_F12 */         0x58,	SDL_SCANCODE_F12		},
+	{ /* KEY_PAD0 */        0x52,	SDL_SCANCODE_KP_0		},
+	{ /* KEY_PAD1 */        0x4F,	SDL_SCANCODE_KP_1		},
+	{ /* KEY_PAD2 */        0x50,	SDL_SCANCODE_KP_2		},
+	{ /* KEY_PAD3 */        0x51,	SDL_SCANCODE_KP_3		},
+	{ /* KEY_PAD4 */        0x4B,	SDL_SCANCODE_KP_4		},
+	{ /* KEY_PAD5 */        0x4C,	SDL_SCANCODE_KP_5		},
+	{ /* KEY_PAD6 */        0x4D,	SDL_SCANCODE_KP_6		},
+	{ /* KEY_PAD7 */        0x47,	SDL_SCANCODE_KP_7		},
+	{ /* KEY_PAD8 */        0x48,	SDL_SCANCODE_KP_8		},
+	{ /* KEY_PAD9 */        0x49,	SDL_SCANCODE_KP_9		},
+	{ /* KEY_PADMINUS */    0x4A,	SDL_SCANCODE_KP_MINUS	},
+	{ /* KEY_PADPLUS */     0x4E,	SDL_SCANCODE_KP_PLUS	},
+	{ /* KEY_PADPERIOD */   0x53,	SDL_SCANCODE_KP_PERIOD	},
+	{ /* KEY_PADDIVIDE */   0xB5,	SDL_SCANCODE_KP_DIVIDE	},
+	{ /* KEY_PADMULTIPLY */ 0x37,	SDL_SCANCODE_KP_MULTIPLY	},
+	{ /* KEY_PADENTER */    0x9C,	SDL_SCANCODE_KP_ENTER	},
+	{ /* KEY_INSERT */      0xD2,	SDL_SCANCODE_INSERT		},
+	{ /* KEY_HOME */        0xC7,	SDL_SCANCODE_HOME		},
+	{ /* KEY_PAGEUP */      0xC9,	SDL_SCANCODE_PAGEUP		},
+	{ /* KEY_DELETE */      0xd3,	SDL_SCANCODE_DELETE		},
+	{ /* KEY_END */         0xCF,	SDL_SCANCODE_END		},
+	{ /* KEY_PAGEDOWN */    0xD1,	SDL_SCANCODE_PAGEDOWN	},
+	{ /* KEY_UP */          0xC8,	SDL_SCANCODE_UP			},
+	{ /* KEY_DOWN */        0xD0,	SDL_SCANCODE_DOWN		},
+	{ /* KEY_LEFT */        0xCB,	SDL_SCANCODE_LEFT		},
+	{ /* KEY_RIGHT */       0xCD,	SDL_SCANCODE_RIGHT		},
+	{ /* KEY_PRINT_SCRN */  0xB7,	SDL_SCANCODE_PRINTSCREEN	},
+	{ /* KEY_PAUSE */       0x45,	SDL_SCANCODE_PAUSE		},
+	{ /* KEY_BREAK */       0xc6,	SDL_SCANCODE_PAUSE		}
+};
+
+static SDL_Scancode translate_key_to_sdl(UINT lParam, SDL_Keymod *mod)
 {
+	SDL_Scancode scancode = SDL_SCANCODE_UNKNOWN;
 	uint lKeyData;
 
-	lKeyData = lParam & 255;          // key data 
-	if (lParam & 256) lKeyData += 0x80;
-	key_mark(lKeyData, 1, 0);
-	
+	lKeyData = lParam & 255;
+
+	if (lParam & 256) {
+		lKeyData += 0x80;
+	}
+
+	for (size_t idx = 0; idx < SDL_arraysize(keycode_lookup); idx++) {
+		if (lKeyData == keycode_lookup[idx].win_code) {
+			scancode = keycode_lookup[idx].sdl_code;
+			break;
+		}
+	}
+
+	if (key_check(SDLK_LSHIFT) || key_check(SDLK_RSHIFT)) {
+		*mod |= SDL_KMOD_SHIFT;
+	}
+
+	if (key_check(SDLK_LALT) || key_check(SDLK_RALT)) {
+		*mod |= SDL_KMOD_ALT;
+	}
+
+	if (key_check(SDLK_LCTRL) || key_check(SDLK_RCTRL)) {
+		*mod |= SDL_KMOD_CTRL;
+	}
+
+	return scancode;
+}
+
+void CFREDView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT lParam)
+{
+	SDL_Keymod mod = 0;
+
+	auto key = translate_key_to_sdl(lParam, &mod);
+
+	if (key != SDL_SCANCODE_UNKNOWN) {
+		key_mark(key, 0, mod, 0);
+	}
+
 	CView::OnKeyDown(nChar, nRepCnt, lParam);
 }
 
 void CFREDView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT lParam) 
 {
-	uint lKeyData;
+	SDL_Keymod mod = 0;
 
-	lKeyData = lParam & 255;          // key data 
-	if (lParam & 256) lKeyData += 0x80;
-	key_mark(lKeyData, 0, 0);
+	auto key = translate_key_to_sdl(lParam, &mod);
+
+	if (key != SDL_SCANCODE_UNKNOWN) {
+		key_mark(key, 0, mod, 0);
+	}
 
 	CView::OnKeyUp(nChar, nRepCnt, lParam);
 }
@@ -1596,7 +1812,7 @@ void CFREDView::OnSize(UINT nType, int cx, int cy)
 	CView::OnSize(nType, cx, cy);
 	
 	if ((cx > 0) && (cy > 0)) {
-		gr_init(GR_640, GR_SOFTWARE, 8, cx, cy);
+		gr_set_viewport(cx, cy);
 	}
 }
 
@@ -1707,7 +1923,7 @@ void select_objects()
 	Update_ship = Update_wing = 1;
 }
 
-LONG CFREDView::OnMenuPopupShips(UINT wParam, LONG lParam)
+LRESULT CFREDView::OnMenuPopupShips(WPARAM wParam, LPARAM lParam)
 {
 	CMenu	menu;
 	CPoint	point;
@@ -1723,7 +1939,7 @@ LONG CFREDView::OnMenuPopupShips(UINT wParam, LONG lParam)
 	return 0L;
 }
 
-LONG CFREDView::OnMenuPopupEdit(UINT wParam, LONG lParam)
+LRESULT CFREDView::OnMenuPopupEdit(WPARAM wParam, LPARAM lParam)
 {
 	CMenu	menu;
 	CPoint	point;
@@ -1821,7 +2037,7 @@ void CFREDView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 			for (i=0; i<MAX_SPECIES_NAMES; i++) {
 				species_submenu[i].CreatePopupMenu();
 				shipPopup.AppendMenu(MF_STRING | MF_POPUP | MF_ENABLED,
-					(UINT) species_submenu[i].m_hMenu, Species_names[i]);
+					(UINT_PTR) species_submenu[i].m_hMenu, Species_names[i]);
 			}
 
 			for (i=0; i<Num_ship_types; i++)
@@ -1829,7 +2045,7 @@ void CFREDView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 					MF_ENABLED, SHIP_TYPES + i, Ship_info[i].name);
 
 			pPopup->AppendMenu(MF_STRING | MF_POPUP | MF_ENABLED,
-				(UINT) shipPopup.m_hMenu, "New Object Type");
+				(UINT_PTR) shipPopup.m_hMenu, "New Object Type");
 
 			CWnd::DrawMenuBar();	// AppendMenu documentation says to do this.
 			pPopup->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, AfxGetMainWnd());
@@ -2263,7 +2479,7 @@ void CFREDView::OnConstrainX()
 
 void CFREDView::OnUpdateConstrainX(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetRadio(Constraint.x && !Constraint.y && !Constraint.z);
+	pCmdUI->SetRadio(Constraint.xyz.x && !Constraint.xyz.y && !Constraint.xyz.z);
 }
 
 void CFREDView::OnConstrainY() 
@@ -2275,7 +2491,7 @@ void CFREDView::OnConstrainY()
 
 void CFREDView::OnUpdateConstrainY(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetRadio(!Constraint.x && Constraint.y && !Constraint.z);
+	pCmdUI->SetRadio(!Constraint.xyz.x && Constraint.xyz.y && !Constraint.xyz.z);
 }
 
 void CFREDView::OnConstrainZ() 
@@ -2287,7 +2503,7 @@ void CFREDView::OnConstrainZ()
 
 void CFREDView::OnUpdateConstrainZ(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetRadio(!Constraint.x && !Constraint.y && Constraint.z);
+	pCmdUI->SetRadio(!Constraint.xyz.x && !Constraint.xyz.y && Constraint.xyz.z);
 }
 
 void CFREDView::OnConstrainXz() 
@@ -2299,7 +2515,7 @@ void CFREDView::OnConstrainXz()
 
 void CFREDView::OnUpdateConstrainXz(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetRadio(Constraint.x && !Constraint.y && Constraint.z);
+	pCmdUI->SetRadio(Constraint.xyz.x && !Constraint.xyz.y && Constraint.xyz.z);
 }
 
 void CFREDView::OnConstrainXy()
@@ -2311,7 +2527,7 @@ void CFREDView::OnConstrainXy()
 
 void CFREDView::OnUpdateConstrainXy(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetRadio(Constraint.x && Constraint.y && !Constraint.z);
+	pCmdUI->SetRadio(Constraint.xyz.x && Constraint.xyz.y && !Constraint.xyz.z);
 }
 
 void CFREDView::OnConstrainYz() 
@@ -2323,7 +2539,7 @@ void CFREDView::OnConstrainYz()
 
 void CFREDView::OnUpdateConstrainYz(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetRadio(!Constraint.x && Constraint.y && Constraint.z);
+	pCmdUI->SetRadio(!Constraint.xyz.x && Constraint.xyz.y && Constraint.xyz.z);
 }
 
 void CFREDView::OnSelectionLock() 
@@ -2435,26 +2651,26 @@ void view_universe(int just_marked)
 	else
 		ptr = GET_FIRST(&obj_used_list);
 
-	p1.x = p2.x = ptr->pos.x;
-	p1.y = p2.y = ptr->pos.y;
-	p1.z = p2.z = ptr->pos.z;
+	p1.xyz.x = p2.xyz.x = ptr->pos.xyz.x;
+	p1.xyz.y = p2.xyz.y = ptr->pos.xyz.y;
+	p1.xyz.z = p2.xyz.z = ptr->pos.xyz.z;
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (!just_marked || (ptr->flags & OF_MARKED)) {
 			center = ptr->pos;
-			if (center.x < p1.x)
-				p1.x = center.x;
-			if (center.x > p2.x)
-				p2.x = center.x;
-			if (center.y < p1.y)
-				p1.y = center.y;
-			if (center.y > p2.y)
-				p2.y = center.y;
-			if (center.z < p1.z)
-				p1.z = center.z;
-			if (center.z > p2.z)
-				p2.z = center.z;
+			if (center.xyz.x < p1.xyz.x)
+				p1.xyz.x = center.xyz.x;
+			if (center.xyz.x > p2.xyz.x)
+				p2.xyz.x = center.xyz.x;
+			if (center.xyz.y < p1.xyz.y)
+				p1.xyz.y = center.xyz.y;
+			if (center.xyz.y > p2.xyz.y)
+				p2.xyz.y = center.xyz.y;
+			if (center.xyz.z < p1.xyz.z)
+				p1.xyz.z = center.xyz.z;
+			if (center.xyz.z > p2.xyz.z)
+				p2.xyz.z = center.xyz.z;
 		}
 		
 		ptr = GET_NEXT(ptr);
@@ -2477,7 +2693,7 @@ void view_universe(int just_marked)
 	}
 
 	dist = fl_sqrt(largest) + 1.0f;
-	vm_vec_scale_add(&view_pos, &center, &view_orient.fvec, -dist);
+	vm_vec_scale_add(&view_pos, &center, &view_orient.v.fvec, -dist);
 	g3_set_view_matrix(&view_pos, &view_orient, 0.5f);
 
 	ptr = GET_FIRST(&obj_used_list);
@@ -2490,7 +2706,7 @@ void view_universe(int just_marked)
 
 			while (v.codes & CC_OFF) {  // is point off screen?
 				dist += 5.0f;  // zoom out a little and check again.
-				vm_vec_scale_add(&view_pos, &center, &view_orient.fvec, -dist);
+				vm_vec_scale_add(&view_pos, &center, &view_orient.v.fvec, -dist);
 				g3_set_view_matrix(&view_pos, &view_orient, 0.5f);
 				g3_rotate_vertex(&v, &ptr->pos);
 				if (g3_project_vertex(&v) & PF_OVERFLOW)
@@ -2502,7 +2718,7 @@ void view_universe(int just_marked)
 	}
 
 	dist *= 1.1f;
-	vm_vec_scale_add(&view_pos, &center, &view_orient.fvec, -dist);
+	vm_vec_scale_add(&view_pos, &center, &view_orient.v.fvec, -dist);
 	g3_set_view_matrix(&view_pos, &view_orient, 0.5f);
 	Update_window = 1;
 }
@@ -2510,19 +2726,19 @@ void view_universe(int just_marked)
 void CFREDView::cycle_constraint()
 {
 	if (Single_axis_constraint) {
-		if (Constraint.x)
+		if (Constraint.xyz.x)
 			OnConstrainY();
-		else if (Constraint.y)
+		else if (Constraint.xyz.y)
 			OnConstrainZ();
-		else if (Constraint.z)
+		else if (Constraint.xyz.z)
 			OnConstrainXz();
 
 	} else {
-		if (!Constraint.x)
+		if (!Constraint.xyz.x)
 			OnConstrainXy();
-		else if (!Constraint.y)
+		else if (!Constraint.xyz.y)
 			OnConstrainYz();
-		else if (!Constraint.z)
+		else if (!Constraint.xyz.z)
 			OnConstrainX();
 	}
 }
@@ -2538,7 +2754,7 @@ void CFREDView::OnZoomSelected()
 		if (Marked > 1)
 			view_universe(1);
 		else
-			vm_vec_scale_add(&view_pos, &Objects[cur_object_index].pos, &view_orient.fvec, Objects[cur_object_index].radius * -3.0f);
+			vm_vec_scale_add(&view_pos, &Objects[cur_object_index].pos, &view_orient.v.fvec, Objects[cur_object_index].radius * -3.0f);
 	}
 
 	Update_window = 1;
@@ -3632,7 +3848,7 @@ int CFREDView::fred_check_sexp(int sexp, int type, char *msg, ...)
 	if (!z)
 		return 0;
 
-	convert_sexp_to_string(sexp, buf2, SEXP_ERROR_CHECK_MODE);
+	convert_sexp_to_string(sexp, buf2, SDL_arraysize(buf2), SEXP_ERROR_CHECK_MODE);
 	sprintf(buf3, "Error in %s: %s\n\nIn sexpression: %s\n(Error appears to be: %s)",
 		buf, sexp_error_message(z), buf2, Sexp_nodes[faulty_node].text);
 
@@ -4282,7 +4498,7 @@ void CFREDView::OnRestoreCamera()
 
 void CFREDView::OnUpdateRestoreCamera(CCmdUI* pCmdUI) 
 {
-	pCmdUI->Enable(!IS_VEC_NULL(&saved_cam_orient.fvec));
+	pCmdUI->Enable(!IS_VEC_NULL(&saved_cam_orient.v.fvec));
 }
 
 void CFREDView::OnShowSexpHelp() 
@@ -4319,7 +4535,7 @@ void CFREDView::OnLookatObj()
 		loc = Objects[cur_object_index].pos;
 		vm_vec_sub(&v, &loc, &view_pos);
 
-		if (v.x || v.y || v.z) {
+		if (v.xyz.x || v.xyz.y || v.xyz.z) {
 			vm_vector_2_matrix(&m, &v, NULL, NULL);
 			view_orient = m;
 		}
@@ -4405,11 +4621,13 @@ void CFREDView::OnInitialUpdate()
 		ptr = &stamp[0];
 		ptr += 4;
 		if ( memcmp( ptr, DEFAULT_TIME_STRING, strlen(DEFAULT_TIME_STRING)) ) {
-			int expire_time, current_time;
+			int expire_time;
+			time_t current_time;
 
 			// not the default time -- check against the current time
+			// NOTE: it's 4 bytes, so 'expire_time' should be an int
 			memcpy( &expire_time, ptr, sizeof(expire_time) );
-			time( (long *)&current_time );
+			time( &current_time );
 			if ( current_time > expire_time )
 				expire_game = EXPIRE_BAD_TIME;
 		}

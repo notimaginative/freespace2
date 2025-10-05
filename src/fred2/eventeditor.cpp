@@ -150,7 +150,6 @@
  */
 
 #include "stdafx.h"
-#include <mmsystem.h>
 #include "fred.h"
 #include "freddoc.h"
 #include "eventeditor.h"
@@ -761,7 +760,7 @@ void event_editor::update_cur_message()
 	UpdateData(FALSE);
 }
 
-int event_editor::handler(int code, int node, char *str)
+int event_editor::handler(int code, int node, const char *str)
 {
 	int i;
 
@@ -917,6 +916,8 @@ void event_editor::OnClose()
 {
 	int z;
 
+	theApp.stop_audio();
+
 	if (query_modified()) {
 		z = MessageBox("Do you want to keep your changes?", "Close", MB_ICONQUESTION | MB_YESNOCANCEL);
 		if (z == IDCANCEL){
@@ -1049,7 +1050,7 @@ void event_editor::OnSelchangedEventTree(NMHDR* pNMHDR, LRESULT* pResult)
 		h = h2;
 	}
 
-	z = m_event_tree.GetItemData(h);
+	z = static_cast<int>(m_event_tree.GetItemData(h));
 	for (i=0; i<m_num_events; i++){
 		if (m_events[i].formula == z){
 			break;
@@ -1220,7 +1221,7 @@ void event_editor::OnChained()
 
 void event_editor::OnSelchangeMessageList() 
 {	
-	static flag = 0;
+	static int flag = 0;
 
 	if (flag)
 		return;
@@ -1496,13 +1497,9 @@ BOOL event_editor::DestroyWindow()
 
 void event_editor::OnPlay() 
 {
-	char path[MAX_PATH_LEN + 1];
 	GetDlgItem(IDC_WAVE_FILENAME)->GetWindowText(m_wave_filename);
 
-	int size, offset;
-	cf_find_file_location((char *)(LPCSTR)m_wave_filename, CF_TYPE_ANY, path, &size, &offset );
-
-	PlaySound(path, NULL, SND_ASYNC | SND_FILENAME);
+	theApp.play_audio(m_wave_filename);
 }
 
 void event_editor::OnUpdate() 

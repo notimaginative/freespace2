@@ -94,16 +94,16 @@ END_MESSAGE_MAP()
 
 BOOL adjust_grid_dlg::OnInitDialog() 
 {
-	m_x = (int) The_grid->center.x;
-	m_y = (int) The_grid->center.y;
-	m_z = (int) The_grid->center.z;
+	m_x = (int) The_grid->center.xyz.x;
+	m_y = (int) The_grid->center.xyz.y;
+	m_z = (int) The_grid->center.xyz.z;
 	CDialog::OnInitDialog();
-	if (The_grid->gmatrix.uvec.y) {
+	if (The_grid->gmatrix.v.uvec.xyz.y) {
 		((CButton *) GetDlgItem(IDC_XZ_PLANE))->SetCheck(TRUE);
 		GetDlgItem(IDC_EDIT_X)->EnableWindow(FALSE);
 		GetDlgItem(IDC_EDIT_Z)->EnableWindow(FALSE);
 
-	} else if (The_grid->gmatrix.uvec.z) {
+	} else if (The_grid->gmatrix.v.uvec.xyz.z) {
 		((CButton *) GetDlgItem(IDC_XY_PLANE))->SetCheck(TRUE);
 		GetDlgItem(IDC_EDIT_X)->EnableWindow(FALSE);
 		GetDlgItem(IDC_EDIT_Y)->EnableWindow(FALSE);
@@ -114,30 +114,30 @@ BOOL adjust_grid_dlg::OnInitDialog()
 		GetDlgItem(IDC_EDIT_Z)->EnableWindow(FALSE);
 	}
 
-	m_spinx.SetRange(99999, -99999);
-	m_spiny.SetRange(99999, -99999);
-	m_spinz.SetRange(99999, -99999);
+	m_spinx.SetRange(-9999, 9999);
+	m_spiny.SetRange(-9999, 9999);
+	m_spinz.SetRange(-9999, 9999);
 	return TRUE;
 }
 
 void adjust_grid_dlg::OnOK()
 {
 	UpdateData(TRUE);
-	The_grid->center.x = (float) m_x;
-	The_grid->center.y = (float) m_y;
-	The_grid->center.z = (float) m_z;
+	The_grid->center.xyz.x = (float) m_x;
+	The_grid->center.xyz.y = (float) m_y;
+	The_grid->center.xyz.z = (float) m_z;
 
 	if (((CButton *) GetDlgItem(IDC_XY_PLANE)) -> GetCheck()) {
-		The_grid->gmatrix.fvec = vmd_x_vector;
-		The_grid->gmatrix.rvec = vmd_y_vector;
+		The_grid->gmatrix.v.fvec = vmd_x_vector;
+		The_grid->gmatrix.v.rvec = vmd_y_vector;
 
 	} else if (((CButton *) GetDlgItem(IDC_YZ_PLANE)) -> GetCheck()) {
-		The_grid->gmatrix.fvec = vmd_y_vector;
-		The_grid->gmatrix.rvec = vmd_z_vector;
+		The_grid->gmatrix.v.fvec = vmd_y_vector;
+		The_grid->gmatrix.v.rvec = vmd_z_vector;
 
 	} else {  // XZ plane
-		The_grid->gmatrix.fvec = vmd_x_vector;
-		The_grid->gmatrix.rvec = vmd_z_vector;
+		The_grid->gmatrix.v.fvec = vmd_x_vector;
+		The_grid->gmatrix.v.rvec = vmd_z_vector;
 	}
 
 	modify_grid(The_grid);

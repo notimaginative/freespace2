@@ -123,9 +123,9 @@ orient_editor::orient_editor(CWnd* pParent /*=NULL*/)
 	//}}AFX_DATA_INIT
 	SDL_assert(query_valid_object());
 	pos = Objects[cur_object_index].pos;
-	m_position_x.Format("%.1f", pos.x);
-	m_position_y.Format("%.1f", pos.y);
-	m_position_z.Format("%.1f", pos.z);
+	m_position_x.Format("%.1f", pos.xyz.x);
+	m_position_y.Format("%.1f", pos.xyz.y);
+	m_position_z.Format("%.1f", pos.xyz.z);
 }
 
 void orient_editor::DoDataExchange(CDataExchange* pDX)
@@ -209,15 +209,15 @@ BOOL orient_editor::OnInitDialog()
 		m_object_index = 0;
 	}
 
-	m_spin1.SetRange(99999, -99999);
+	m_spin1.SetRange(-9999, 9999);
 	m_spin1.SetPos((int) convert(m_position_x));
-	m_spin2.SetRange(99999, -99999);
+	m_spin2.SetRange(-9999, 9999);
 	m_spin2.SetPos((int) convert(m_position_y));
-	m_spin3.SetRange(99999, -99999);
+	m_spin3.SetRange(-9999, 9999);
 	m_spin3.SetPos((int) convert(m_position_z));
-	m_spin4.SetRange(99999, -99999);
-	m_spin5.SetRange(99999, -99999);
-	m_spin6.SetRange(99999, -99999);
+	m_spin4.SetRange(-9999, 9999);
+	m_spin5.SetRange(-9999, 9999);
+	m_spin6.SetRange(-9999, 9999);
 	UpdateData(FALSE);
 	return TRUE;
 }
@@ -226,13 +226,13 @@ int orient_editor::query_modified()
 {
 	float dif;
 
-	dif = Objects[cur_object_index].pos.x - convert(m_position_x);
+	dif = Objects[cur_object_index].pos.xyz.x - convert(m_position_x);
 	if ((dif > PREC) || (dif < -PREC))
 		return 1;
-	dif = Objects[cur_object_index].pos.y - convert(m_position_y);
+	dif = Objects[cur_object_index].pos.xyz.y - convert(m_position_y);
 	if ((dif > PREC) || (dif < -PREC))
 		return 1;
-	dif = Objects[cur_object_index].pos.z - convert(m_position_z);
+	dif = Objects[cur_object_index].pos.xyz.z - convert(m_position_z);
 	if ((dif > PREC) || (dif < -PREC))
 		return 1;
 
@@ -248,16 +248,16 @@ void orient_editor::OnOK()
 	object *ptr;
 
 	UpdateData(TRUE);
-	pos.x = convert(m_position_x);
-	pos.y = convert(m_position_y);
-	pos.z = convert(m_position_z);
+	pos.xyz.x = convert(m_position_x);
+	pos.xyz.y = convert(m_position_y);
+	pos.xyz.z = convert(m_position_z);
 
 	if ((((CButton *) GetDlgItem(IDC_POINT_TO_OBJECT))->GetCheck() == 1) ||
 		(((CButton *) GetDlgItem(IDC_POINT_TO_LOCATION))->GetCheck() == 1))
 			set_modified();
 
 	vm_vec_sub(&delta, &pos, &Objects[cur_object_index].pos);
-	if (delta.x || delta.y || delta.z)
+	if (delta.xyz.x || delta.xyz.y || delta.xyz.z)
 		set_modified();
 
 	ptr = GET_FIRST(&obj_used_list);
@@ -289,9 +289,9 @@ void orient_editor::update_object(object *ptr)
 		matrix m;
 
 		memset(&v, 0, sizeof(vector));
-		loc.x = convert(m_location_x);
-		loc.y = convert(m_location_y);
-		loc.z = convert(m_location_z);
+		loc.xyz.x = convert(m_location_x);
+		loc.xyz.y = convert(m_location_y);
+		loc.xyz.z = convert(m_location_z);
 		if (((CButton *) GetDlgItem(IDC_POINT_TO_OBJECT))->GetCheck() == 1) {
 			v = Objects[index[m_object_index]].pos;
 			vm_vec_sub2(&v, &ptr->pos);
@@ -303,7 +303,7 @@ void orient_editor::update_object(object *ptr)
 			SDL_assert(0);  // neither radio button is checked.
 		}
 
-		if (!v.x && !v.y && !v.z){
+		if (!v.xyz.x && !v.xyz.y && !v.xyz.z){
 			return;  // can't point to itself.
 		}
 
@@ -315,7 +315,7 @@ void orient_editor::update_object(object *ptr)
 float orient_editor::convert(CString &str)
 {
 	char buf[256];
-	int i, j, len;
+	size_t i, j, len;
 
 	string_copy(buf, str, 255);
 	len = strlen(buf);

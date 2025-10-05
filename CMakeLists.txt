@@ -213,7 +213,6 @@ target_link_libraries(
   ${FS_BINARY}
   code
   imgui
-  ${OPENGL_LIBRARIES}
   OpenAL::OpenAL
   SDL3::SDL3
   ${LIBWEBSOCKETS_LIBRARIES}
@@ -372,7 +371,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     ac
     code
-    ${OPENGL_LIBRARIES}
     SDL3::SDL3
     OpenAL::OpenAL
     ${LIBWEBSOCKETS_LIBRARIES}
@@ -435,7 +433,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     nebedit
     code
-    ${OPENGL_LIBRARIES}
     SDL3::SDL3
     OpenAL::OpenAL
     ${LIBWEBSOCKETS_LIBRARIES}
@@ -521,12 +518,47 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_link_libraries(
     fonttool
     code
-    ${OPENGL_LIBRARIES}
     SDL3::SDL3
     OpenAL::OpenAL
     ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
+
+  #
+  # FRED
+  #
+
+  if(WIN32 AND NOT FS1)
+    set(FRED_BINARY "fred2")
+
+    add_executable(${FRED_BINARY}
+        EXCLUDE_FROM_ALL
+        WIN32
+        ${fred_SOURCE}
+        ${fred_HEADERS}
+    )
+
+    CreateSourceGroups(${fred_SOURCE})
+
+    target_include_directories(${FRED_BINARY} BEFORE
+        PUBLIC ${PROJECT_SOURCE_DIR}/include/fred2
+    )
+
+    set_target_properties(${FRED_BINARY} PROPERTIES PROJECT_LABEL "FRED2")
+
+    # target Windows Vista and newer
+    target_compile_definitions(${FRED_BINARY} PUBLIC _WIN32_WINNT=0x0600 _AFXDLL)
+
+    target_link_libraries(
+        ${FRED_BINARY}
+        code
+        SDL3::SDL3
+        OpenAL::OpenAL
+        ${LIBWEBSOCKETS_LIBRARIES}
+        ${PLATFORM_LIBRARIES}
+        winmm
+    )
+  endif()
 
   #
   # custom target to build all tools in one pass
@@ -547,6 +579,12 @@ if(NOT GAME_ONLY AND NOT DEMO)
   #  pofview
     scramble
   )
+
+  if(WIN32 AND NOT FS1)
+    add_dependencies(toolset
+        fred2
+    )
+  endif()
 
 endif(NOT GAME_ONLY AND NOT DEMO)
 

@@ -450,7 +450,7 @@ float flFrametime;
 int	game_zbuffer = 1;
 int	Current_mission = 0xdeadbeef;
 char **Builtin_mission_names;
-char *Game_current_mission_filename;
+char Game_current_mission_filename[MAX_FILENAME_LEN];
 CFILE *Working_demo;
 struct beam_info;
 
@@ -588,7 +588,7 @@ void send_debris_create_packet( object *objp, ushort net_sig, int model_num, vec
 int Game_subspace_effect;
 void big_explosion_flash(float x) {};
 
-int game_do_cd_check(char *) {return 0;}
+int game_do_cd_check(const char *) {return 0;}
 
 void game_stop_looped_sounds() {}
 
@@ -599,16 +599,18 @@ int Interface_framerate;
 void game_set_view_clip(){}
 float Viewer_zoom;
 int Pofview_running = 0;
+int Nebedit_running = 0;
+int Fonttool_running = 0;
 
 int Warpout_forced = 0;
 float Warpout_time;
 vector Camera_pos;
 vector Dead_player_last_vel;
-int game_start_mission(){return 0;}
+extern "C" int game_start_mission(){return 0;}
 int Game_weapons_tbl_valid;
 int Game_ships_tbl_valid;
 void game_level_close(){}
-void game_enter_state(int, int){}
+extern "C" void game_enter_state(int, int){}
 void game_leave_state(int, int){}
 int Test_begin;
 int Debug_octant;
@@ -619,26 +621,25 @@ int game_get_default_skill_level(){return 0;}
 void game_load_palette(){}
 float Freespace_gamma;
 int set_cdrom_path(int){return 0;}
-int find_freespace_cd(char*){return 0;}
+int find_freespace_cd(const char*){return 0;}
 void game_do_state_common(int, int){}
 void game_set_frametime(int){}
 void game_increase_skill_level(){}
 int Show_target_weapons;
 int Show_target_debug_info;
 int Game_do_state_should_skip;
-long Game_time_compression;
-struct fs_builtin_mission *game_find_builtin_mission(char*){return NULL;}
-void game_format_time(long, char*){}
+int Game_time_compression;
+struct fs_builtin_mission *game_find_builtin_mission(const char*){return NULL;}
+void game_format_time(int, char*, int){}
 void game_do_state(int){}
-void game_process_event(int, int){}
+extern "C" void game_process_event(int, int){}
 void game_shudder_apply(int, float){}
 int game_hacked_data(){return 0;}
 int game_single_step;
 int last_single_step;
 void game_tst_mark(struct object *, struct ship *){}
 int tst;
-int game_do_cd_mission_check(char *){return 1;}
-int Player_multi_died_check;
+int game_do_cd_mission_check(const char *){return 1;}
+time_t Player_multi_died_check;
 
 void game_feature_not_in_demo_popup() {}
-int Nebedit_running = 0;

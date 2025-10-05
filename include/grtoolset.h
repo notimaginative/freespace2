@@ -6,12 +6,12 @@
  * the source.
  */
 
-#ifndef GRWXGL_H
-#define GRWXGL_H
+#ifndef GRTOOLSET_H
+#define GRTOOLSET_H
 
-void gr_wxgl_init();
-void gr_wxgl_cleanup();
-void gr_wxgl_flip();
-void gr_wxgl_set_viewport(int width, int height);
+void gr_toolset_init();
+void gr_toolset_cleanup();
+void gr_toolset_flip();
+void gr_toolset_set_viewport(int width, int height);
 
-#endif // GRWXGL_H
+#endif // GRTOOLSET_H

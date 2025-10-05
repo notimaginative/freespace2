@@ -255,6 +255,8 @@
 #include "lighting.h"
 #include "asteroid.h"
 #include "jumpnode.h"
+#include "font.h"
+#include "osapi.h"
 
 extern float flFrametime;
 extern subsys_to_render Render_subsys;
@@ -335,8 +337,8 @@ void fred_render_init()
 	vector f, u, r;
 
 	physics_init(&view_physics);
-	view_physics.max_vel.z = 5.0f;		//forward/backward
-	view_physics.max_rotvel.x = 1.5f;		//pitch	
+	view_physics.max_vel.xyz.z = 5.0f;		//forward/backward
+	view_physics.max_rotvel.xyz.x = 1.5f;		//pitch
 	memset(&view_controls, 0, sizeof(control_info));
 
 	vm_vec_make(&view_pos, 0.0f, 150.0f, -200.0f);
@@ -354,16 +356,16 @@ void level_object(matrix *orient)
 {
 	vector u;
 
-	u = orient->uvec = The_grid->gmatrix.uvec;
-	if (u.x)  // y-z plane
+	u = orient->v.uvec = The_grid->gmatrix.v.uvec;
+	if (u.xyz.x)  // y-z plane
 	{
-		orient->fvec.x = orient->rvec.x = 0.0f;
+		orient->v.fvec.xyz.x = orient->v.rvec.xyz.x = 0.0f;
 
-	} else if (u.y) {  // x-z plane
-		orient->fvec.y = orient->rvec.y = 0.0f;
+	} else if (u.xyz.y) {  // x-z plane
+		orient->v.fvec.xyz.y = orient->v.rvec.xyz.y = 0.0f;
 
-	} else if (u.z) {  // x-y plane
-		orient->fvec.z = orient->rvec.z = 0.0f;
+	} else if (u.xyz.z) {  // x-y plane
+		orient->v.fvec.xyz.z = orient->v.rvec.xyz.z = 0.0f;
 	}
 
 	vm_fix_matrix(orient);
@@ -428,32 +430,32 @@ void align_vector_to_axis(vector *v)
 {
 	float x, y, z;
 
-	x = v->x;
+	x = v->xyz.x;
 	if (x < 0)
 		x = -x;
 
-	y = v->y;
+	y = v->xyz.y;
 	if (y < 0)
 		y = -y;
 
-	z = v->z;
+	z = v->xyz.z;
 	if (z < 0)
 		z = -z;
 
 	if ((x > y) && (x > z)) {  // x axis
-		if (v->x < 0)  // negative x
+		if (v->xyz.x < 0)  // negative x
 			vm_vec_make(v, -1.0f, 0.0f, 0.0f);
 		else  // positive x
 			vm_vec_make(v, 1.0f, 0.0f, 0.0f);
 
 	} else if (y > z) {  // y axis
-		if (v->y < 0)  // negative y
+		if (v->xyz.y < 0)  // negative y
 			vm_vec_make(v, 0.0f, -1.0f, 0.0f);
 		else  // positive y
 			vm_vec_make(v, 0.0f, 1.0f, 0.0f);
 
 	} else {  // z axis
-		if (v->z < 0)  // negative z
+		if (v->xyz.z < 0)  // negative z
 			vm_vec_make(v, 0.0f, 0.0f, -1.0f);
 		else  // positive z
 			vm_vec_make(v, 0.0f, 0.0f, 1.0f);
@@ -462,9 +464,9 @@ void align_vector_to_axis(vector *v)
 
 void verticalize_object(matrix *orient)
 {
-	align_vector_to_axis(&orient->fvec);
-	align_vector_to_axis(&orient->uvec);
-	align_vector_to_axis(&orient->rvec);
+	align_vector_to_axis(&orient->v.fvec);
+	align_vector_to_axis(&orient->v.uvec);
+	align_vector_to_axis(&orient->v.rvec);
 	vm_fix_matrix(orient);  // just in case something odd occurs.
 }
 
@@ -544,7 +546,7 @@ void move_mouse( int btn, int mdx, int mdy )
 	}
 
 	if ( btn & 2 )	{
-		my_pos.z += (float)dy;
+		my_pos.xyz.z += (float)dy;
 	}
 }
 
@@ -553,24 +555,23 @@ void process_system_keys(int key)
 {
 //	mprintf(("Key = %d\n", key));
 	switch (key) {
+		case SDLK_GRAVE:
+			CFREDView::GetView()->cycle_constraint();
+			break;
 
-	case KEY_LAPOSTRO:
-		CFREDView::GetView()->cycle_constraint();
-		break;
+		case SDLK_R:  // for some stupid reason, an accelerator for 'R' doesn't work.
+			Editing_mode = 2;
+			break;
 
-	case KEY_R:  // for some stupid reason, an accelerator for 'R' doesn't work.
-		Editing_mode = 2;
-		break;
+		case SDLK_SPACE:
+			Selection_lock = !Selection_lock;
+			break;
 
-	case KEY_SPACEBAR:
-		Selection_lock = !Selection_lock;
-		break;
+		case SDLK_ESCAPE:
+			if (button_down)
+				cancel_drag();
 
-	case KEY_ESC:
-		if (button_down)
-			cancel_drag();
-
-		break;
+			break;
 	}
 }
 
@@ -701,7 +702,7 @@ void display_active_ship_subsystem()
 					gr_line(x2, y1, x1, y1);  gr_line(x2, y1-1, x1, y1-1);
 
 					// draw text
-					gr_string_win( (x1+x2)/2,  y2 + 10, buf);
+					gr_string((x1+x2)/2,  y2 + 10, buf);
 				}
 			}
 		}
@@ -884,7 +885,7 @@ void display_distances()
 					if (!(v.codes & CC_BEHIND))
 						if (!(g3_project_vertex(&v) & PF_OVERFLOW))	{
 							sprintf(buf, "%.1f", vm_vec_dist(&objp->pos, &o2->pos));
-							gr_string_win((int) v.sx, (int) v.sy, buf);
+							gr_string((int) v.sx, (int) v.sy, buf);
 						}
 				}
 
@@ -972,7 +973,7 @@ void display_ship_info()
 
 				if (Show_coordinates)
 				{
-					sprintf(pos, "( %.0f , %.0f , %.0f )", objp->pos.x, objp->pos.y, objp->pos.z);
+					sprintf(pos, "( %.0f , %.0f , %.0f )", objp->pos.xyz.x, objp->pos.xyz.y, objp->pos.xyz.z);
 					if (*buf)
 						strcat(buf, "\n");
 
@@ -986,7 +987,7 @@ void display_ship_info()
 					else
 						gr_set_color(160, 160, 160);
 
-					gr_string_win((int) v.sx, (int) v.sy, buf);
+					gr_string((int) v.sx, (int) v.sy, buf);
 				}
 			}
 
@@ -1007,10 +1008,10 @@ void draw_orient_sphere(object *obj, int r, int g, int b)
 
 	if ((obj->type != OBJ_WAYPOINT) && (obj->type != OBJ_POINT))
 	{
-		flag = (vm_vec_dotprod(&eye_orient.fvec, &obj->orient.fvec) < 0.0f);
+		flag = (vm_vec_dotprod(&eye_orient.v.fvec, &obj->orient.v.fvec) < 0.0f);
 		v1 = v2 = obj->pos;
-		vm_vec_scale_add2(&v1, &obj->orient.fvec, size);
-		vm_vec_scale_add2(&v2, &obj->orient.fvec, size * 1.5f);
+		vm_vec_scale_add2(&v1, &obj->orient.v.fvec, size);
+		vm_vec_scale_add2(&v2, &obj->orient.v.fvec, size * 1.5f);
 
 		if (!flag)	{
 			gr_set_color(192, 192, 192);
@@ -1043,11 +1044,11 @@ void draw_orient_sphere2(int col, object *obj, int r, int g, int b)
 
 	if ((obj->type != OBJ_WAYPOINT) && (obj->type != OBJ_POINT))
 	{
-		flag = (vm_vec_dotprod(&eye_orient.fvec, &obj->orient.fvec) < 0.0f);
+		flag = (vm_vec_dotprod(&eye_orient.v.fvec, &obj->orient.v.fvec) < 0.0f);
 
 		v1 = v2 = obj->pos;
-		vm_vec_scale_add2(&v1, &obj->orient.fvec, size);
-		vm_vec_scale_add2(&v2, &obj->orient.fvec, size * 1.5f);
+		vm_vec_scale_add2(&v1, &obj->orient.v.fvec, size);
+		vm_vec_scale_add2(&v2, &obj->orient.v.fvec, size * 1.5f);
 
 		if (!flag)	{
 			gr_set_color(192, 192, 192);
@@ -1082,15 +1083,15 @@ void render_model_x(vector *pos, grid *gridp, int col_scheme)
 	if (!Show_grid_positions)
 		return;
 
-	tplane.A = gridp->gmatrix.uvec.x;
-	tplane.B = gridp->gmatrix.uvec.y;
-	tplane.C = gridp->gmatrix.uvec.z;
+	tplane.A = gridp->gmatrix.v.uvec.xyz.x;
+	tplane.B = gridp->gmatrix.v.uvec.xyz.y;
+	tplane.C = gridp->gmatrix.v.uvec.xyz.z;
 	tplane.D = gridp->planeD;
 
 	compute_point_on_plane(&gpos, &tplane, pos);
 	dxz = vm_vec_dist(pos, &gpos)/8.0f;
-	gv = &gridp->gmatrix.uvec;
-	if (gv->x * pos->x + gv->y * pos->y + gv->z * pos->z < -gridp->planeD)
+	gv = &gridp->gmatrix.v.uvec;
+	if (gv->xyz.x * pos->xyz.x + gv->xyz.y * pos->xyz.y + gv->xyz.z * pos->xyz.z < -gridp->planeD)
 		gr_set_color(0, 127, 0);
 	else
 		gr_set_color(192, 192, 192);
@@ -1100,16 +1101,16 @@ void render_model_x(vector *pos, grid *gridp, int col_scheme)
 
 	tpos = gpos;
 
-	vm_vec_scale_add2(&gpos, &gridp->gmatrix.rvec, -dxz/2);
-	vm_vec_scale_add2(&gpos, &gridp->gmatrix.fvec, -dxz/2);
+	vm_vec_scale_add2(&gpos, &gridp->gmatrix.v.rvec, -dxz/2);
+	vm_vec_scale_add2(&gpos, &gridp->gmatrix.v.fvec, -dxz/2);
 	
-	vm_vec_scale_add2(&tpos, &gridp->gmatrix.rvec, dxz/2);
-	vm_vec_scale_add2(&tpos, &gridp->gmatrix.fvec, dxz/2);
+	vm_vec_scale_add2(&tpos, &gridp->gmatrix.v.rvec, dxz/2);
+	vm_vec_scale_add2(&tpos, &gridp->gmatrix.v.fvec, dxz/2);
 	
 	rpd_line(&gpos, &tpos);
 
-	vm_vec_scale_add2(&gpos, &gridp->gmatrix.rvec, dxz);
-	vm_vec_scale_add2(&tpos, &gridp->gmatrix.rvec, -dxz);
+	vm_vec_scale_add2(&gpos, &gridp->gmatrix.v.rvec, dxz);
+	vm_vec_scale_add2(&tpos, &gridp->gmatrix.v.rvec, -dxz);
 
 	rpd_line(&gpos, &tpos);
 }
@@ -1130,9 +1131,9 @@ void process_movement_keys(int key, vector *mvec, angles *angs)
 {
 	int	raw_key;
 
-	mvec->x = 0.0f;
-	mvec->y = 0.0f;
-	mvec->z = 0.0f;
+	mvec->xyz.x = 0.0f;
+	mvec->xyz.y = 0.0f;
+	mvec->xyz.z = 0.0f;
 	angs->p = 0.0f;
 	angs->b = 0.0f;
 	angs->h = 0.0f;
@@ -1140,19 +1141,18 @@ void process_movement_keys(int key, vector *mvec, angles *angs)
 	raw_key = key & 0xff;
 
 	switch (raw_key) {
-	case KEY_PAD1:		mvec->x += -1.0f;	break;
-	case KEY_PAD3:		mvec->x += +1.0f;	break;
-	case KEY_PADPLUS:	mvec->y += -1.0f;	break;
-	case KEY_PADMINUS:	mvec->y += +1.0f;	break;
-	case KEY_A:			mvec->z += +1.0f;	break;
-	case KEY_Z:			mvec->z += -1.0f;	break;
-	case KEY_PAD4:		angs->h += -0.1f;	break;
-	case KEY_PAD6:		angs->h += +0.1f;	break;
-	case KEY_PAD8:		angs->p += -0.1f;	break;
-	case KEY_PAD2:		angs->p += +0.1f;	break;
-	case KEY_PAD7:		angs->b += -0.1f;	break;
-	case KEY_PAD9:		angs->b += +0.1f;	break;
-
+		case SDLK_KP_1:		mvec->xyz.x += -1.0f;	break;
+		case SDLK_KP_3:		mvec->xyz.x += +1.0f;	break;
+		case SDLK_KP_PLUS:	mvec->xyz.y += -1.0f;	break;
+		case SDLK_KP_MINUS:	mvec->xyz.y += +1.0f;	break;
+		case SDLK_A:		mvec->xyz.z += +1.0f;	break;
+		case SDLK_Z:		mvec->xyz.z += -1.0f;	break;
+		case SDLK_KP_4:		angs->h += -0.1f;	break;
+		case SDLK_KP_6:		angs->h += +0.1f;	break;
+		case SDLK_KP_8:		angs->p += -0.1f;	break;
+		case SDLK_KP_2:		angs->p += +0.1f;	break;
+		case SDLK_KP_7:		angs->b += -0.1f;	break;
+		case SDLK_KP_9:		angs->b += +0.1f;	break;
 	}
 
 	if (key & KEY_SHIFTED) {
@@ -1216,8 +1216,8 @@ void fred_render_grid(grid *gridp)
 	if ( !Fred_grid_colors_inited )	{
 		Fred_grid_colors_inited = 1;
 
-		gr_init_alphacolor( &Fred_grid_dark_aa, 64, 64, 64, 255 );
-		gr_init_alphacolor( &Fred_grid_bright_aa, 128, 128, 128, 255 );
+		gr_init_alphacolor( &Fred_grid_dark_aa, 64, 64, 64, 255, AC_TYPE_HUD );
+		gr_init_alphacolor( &Fred_grid_bright_aa, 128, 128, 128, 255, AC_TYPE_HUD );
 		gr_init_color( &Fred_grid_dark, 64, 64, 64 );
 		gr_init_color( &Fred_grid_bright, 128, 128, 128 );
 	}
@@ -1342,24 +1342,24 @@ void render_frame()
 			vm_extract_angles_matrix(&a, &Objects[Cursor_over].orient);
 			sprintf(buf, "%s\n%s\n( %.1f , %.1f , %.1f )\nHeading: %.2f\nPitch: %.2f\nBank: %.2f",
 				Ships[inst].ship_name, Ship_info[Ships[inst].ship_info_index].short_name,
-				pos.x, pos.y, pos.z, a.h, a.p, a.b);
+				pos.xyz.x, pos.xyz.y, pos.xyz.z, a.h, a.p, a.b);
 
 		} else if (Objects[Cursor_over].type == OBJ_WAYPOINT) {
 			sprintf(buf, "%s\nWaypoint %d\n( %.1f , %.1f , %.1f )",
-				Waypoint_lists[inst / 65536].name, (inst & 0xffff) + 1, pos.x, pos.y, pos.z);
+				Waypoint_lists[inst / 65536].name, (inst & 0xffff) + 1, pos.xyz.x, pos.xyz.y, pos.xyz.z);
 
 		} else if (Objects[Cursor_over].type == OBJ_POINT) {
-			sprintf(buf, "Briefing icon\n( %.1f , %.1f , %.1f )", pos.x, pos.y, pos.z);
+			sprintf(buf, "Briefing icon\n( %.1f , %.1f , %.1f )", pos.xyz.x, pos.xyz.y, pos.xyz.z);
 
 		} else
-			sprintf(buf, "( %.1f , %.1f , %.1f )", pos.x, pos.y, pos.z);
+			sprintf(buf, "( %.1f , %.1f , %.1f )", pos.xyz.x, pos.xyz.y, pos.xyz.z);
 
 		g3_rotate_vertex(&v, &pos);
 		if (!(v.codes & CC_BEHIND))
 			if (!(g3_project_vertex(&v) & PF_OVERFLOW))	{
 				x = (int) v.sx;
 				y = (int) v.sy + 20;
-				gr_get_string_size_win(&w, &h, buf);
+				gr_get_string_size(&w, &h, buf);
 				gr_set_color(192, 192, 192);
 				gr_rect(x-1, y-1, w+2, h+2);
 				gr_set_color(255, 255, 255);
@@ -1369,17 +1369,17 @@ void render_frame()
 				gr_line(x-2, y+h+1, x+w+1, y+h+1);
 
 				gr_set_color(0, 0, 0);
-				gr_string_win(x, y, buf);
+				gr_string(x, y, buf);
 			}
 	}
 
 	gr_set_color(0, 160, 0);
 	jumpnode_render_all();
 
-	sprintf(buf, "( %.1f , %.1f , %.1f )", eye_pos.x, eye_pos.y, eye_pos.z);
-	gr_get_string_size_win(&w, &h, buf);
+	sprintf(buf, "( %.1f , %.1f , %.1f )", eye_pos.xyz.x, eye_pos.xyz.y, eye_pos.xyz.z);
+	gr_get_string_size(&w, &h, buf);
 	gr_set_color(192, 192, 192);
-	gr_string_win(gr_screen.max_w - w - 2, 2, buf);
+	gr_string(gr_screen.max_w - w - 2, 2, buf);
 
 	g3_end_frame();
 	render_compass();
@@ -1400,8 +1400,8 @@ void game_do_frame()
 
 	inc_mission_time();
 
-	viewer_position = my_orient.fvec;
-	vm_vec_scale(&viewer_position,my_pos.z);
+	viewer_position = my_orient.v.fvec;
+	vm_vec_scale(&viewer_position,my_pos.xyz.z);
 
 	if ((viewpoint == 1) && !query_valid_object(view_obj))
 		viewpoint = 0;
@@ -1513,7 +1513,7 @@ void game_do_frame()
 		float dist;
 
 		dist = vm_vec_dist(&view_pos, &Objects[cur_object_index].pos);
-		vm_vec_scale_add(&view_pos, &Objects[cur_object_index].pos, &view_orient.fvec, -dist);
+		vm_vec_scale_add(&view_pos, &Objects[cur_object_index].pos, &view_orient.v.fvec, -dist);
 	}
 
 	switch (viewpoint)
@@ -1590,12 +1590,12 @@ void draw_asteroid_field()
 
 	for (i=0; i<1 /*MAX_ASTEROID_FIELDS*/; i++)
 		if (Asteroid_field.num_initial_asteroids) {
-			p[0].x = p[2].x = p[4].x = p[6].x = Asteroid_field.min_bound.x;
-			p[1].x = p[3].x = p[5].x = p[7].x = Asteroid_field.max_bound.x;
-			p[0].y = p[1].y = p[4].y = p[5].y = Asteroid_field.min_bound.y;
-			p[2].y = p[3].y = p[6].y = p[7].y = Asteroid_field.max_bound.y;
-			p[0].z = p[1].z = p[2].z = p[3].z = Asteroid_field.min_bound.z;
-			p[4].z = p[5].z = p[6].z = p[7].z = Asteroid_field.max_bound.z;
+			p[0].xyz.x = p[2].xyz.x = p[4].xyz.x = p[6].xyz.x = Asteroid_field.min_bound.xyz.x;
+			p[1].xyz.x = p[3].xyz.x = p[5].xyz.x = p[7].xyz.x = Asteroid_field.max_bound.xyz.x;
+			p[0].xyz.y = p[1].xyz.y = p[4].xyz.y = p[5].xyz.y = Asteroid_field.min_bound.xyz.y;
+			p[2].xyz.y = p[3].xyz.y = p[6].xyz.y = p[7].xyz.y = Asteroid_field.max_bound.xyz.y;
+			p[0].xyz.z = p[1].xyz.z = p[2].xyz.z = p[3].xyz.z = Asteroid_field.min_bound.xyz.z;
+			p[4].xyz.z = p[5].xyz.z = p[6].xyz.z = p[7].xyz.z = Asteroid_field.max_bound.xyz.z;
 
 			for (j=0; j<8; j++)
 				g3_rotate_vertex(&v[j], &p[j]);
@@ -1619,12 +1619,12 @@ void draw_asteroid_field()
 
 				gr_set_color(16, 192, 92);
 
-				ip[0].x = ip[2].x = ip[4].x = ip[6].x = Asteroid_field.inner_min_bound.x;
-				ip[1].x = ip[3].x = ip[5].x = ip[7].x = Asteroid_field.inner_max_bound.x;
-				ip[0].y = ip[1].y = ip[4].y = ip[5].y = Asteroid_field.inner_min_bound.y;
-				ip[2].y = ip[3].y = ip[6].y = ip[7].y = Asteroid_field.inner_max_bound.y;
-				ip[0].z = ip[1].z = ip[2].z = ip[3].z = Asteroid_field.inner_min_bound.z;
-				ip[4].z = ip[5].z = ip[6].z = ip[7].z = Asteroid_field.inner_max_bound.z;
+				ip[0].xyz.x = ip[2].xyz.x = ip[4].xyz.x = ip[6].xyz.x = Asteroid_field.inner_min_bound.xyz.x;
+				ip[1].xyz.x = ip[3].xyz.x = ip[5].xyz.x = ip[7].xyz.x = Asteroid_field.inner_max_bound.xyz.x;
+				ip[0].xyz.y = ip[1].xyz.y = ip[4].xyz.y = ip[5].xyz.y = Asteroid_field.inner_min_bound.xyz.y;
+				ip[2].xyz.y = ip[3].xyz.y = ip[6].xyz.y = ip[7].xyz.y = Asteroid_field.inner_max_bound.xyz.y;
+				ip[0].xyz.z = ip[1].xyz.z = ip[2].xyz.z = ip[3].xyz.z = Asteroid_field.inner_min_bound.xyz.z;
+				ip[4].xyz.z = ip[5].xyz.z = ip[6].xyz.z = ip[7].xyz.z = Asteroid_field.inner_max_bound.xyz.z;
 
 				for (j=0; j<8; j++)
 					g3_rotate_vertex(&iv[j], &ip[j]);
@@ -1733,7 +1733,7 @@ int select_object(int cx, int cy)
 	g3_point_to_vec(&v, cx, cy);
 
 //	g3_end_frame();
-	if (!v.x && !v.y && !v.z)  // zero vector
+	if (!v.xyz.x && !v.xyz.y && !v.xyz.z)  // zero vector
 		return -1;
 
 	p0 = view_pos;
@@ -1743,10 +1743,10 @@ int select_object(int cx, int cy)
 	while (ptr != END_OF_LIST(&obj_used_list))
 	{
 		if (object_check_collision(ptr, &p0, &p1, &hitpos))	{
-			hitpos.x = ptr->pos.x - view_pos.x;
-			hitpos.y = ptr->pos.y - view_pos.y;
-			hitpos.z = ptr->pos.z - view_pos.z;
-			dist = hitpos.x * hitpos.x + hitpos.y * hitpos.y + hitpos.z * hitpos.z;
+			hitpos.xyz.x = ptr->pos.xyz.x - view_pos.xyz.x;
+			hitpos.xyz.y = ptr->pos.xyz.y - view_pos.xyz.y;
+			hitpos.xyz.z = ptr->pos.xyz.z - view_pos.xyz.z;
+			dist = hitpos.xyz.x * hitpos.xyz.x + hitpos.xyz.y * hitpos.xyz.y + hitpos.xyz.z * hitpos.xyz.z;
 			if (dist < best_dist) {
 				best = OBJ_INDEX(ptr);
 				best_dist = dist;
@@ -1765,9 +1765,9 @@ int select_object(int cx, int cy)
 		g3_rotate_vertex(&vt, &ptr->pos);
 		if (!(vt.codes & CC_BEHIND))
 			if (!(g3_project_vertex(&vt) & PF_OVERFLOW)) {
-				hitpos.x = vt.sx - cx;
-				hitpos.y = vt.sy - cy;
-				dist = hitpos.x * hitpos.x + hitpos.y * hitpos.y;
+				hitpos.xyz.x = vt.sx - cx;
+				hitpos.xyz.y = vt.sy - cy;
+				dist = hitpos.xyz.x * hitpos.xyz.x + hitpos.xyz.y * hitpos.xyz.y;
 				if ((dist < 8) && (dist < best_dist)) {
 					best = OBJ_INDEX(ptr);
 					best_dist = dist;
@@ -1789,27 +1789,27 @@ void render_compass(void)
 
 	gr_set_clip(gr_screen.max_w - 100, 0, 100, 100);
 	g3_start_frame(0);   // required !!!
-	vm_vec_scale_add2(&eye, &eye_orient.fvec, -1.5f);
+	vm_vec_scale_add2(&eye, &eye_orient.v.fvec, -1.5f);
 	g3_set_view_matrix(&eye, &eye_orient, 1.0f);
 
-	v.x = 1.0f;
-	v.y = v.z = 0.0f;
+	v.xyz.x = 1.0f;
+	v.xyz.y = v.xyz.z = 0.0f;
 	if (vm_vec_dotprod(&eye, &v) < 0.0f)
 		gr_set_color(159, 20, 20);
 	else
 		gr_set_color(255, 32, 32);
 	draw_compass_arrow(&v);
 
-	v.y = 1.0f;
-	v.x = v.z = 0.0f;
+	v.xyz.y = 1.0f;
+	v.xyz.x = v.xyz.z = 0.0f;
 	if (vm_vec_dotprod(&eye, &v) < 0.0f)
 		gr_set_color(20, 159, 20);
 	else
 		gr_set_color(32, 255, 32);
 	draw_compass_arrow(&v);
 
-	v.z = 1.0f;
-	v.x = v.y = 0.0f;
+	v.xyz.z = 1.0f;
+	v.xyz.x = v.xyz.y = 0.0f;
 	if (vm_vec_dotprod(&eye, &v) < 0.0f)
 		gr_set_color(20, 20, 159);
 	else

@@ -487,7 +487,7 @@
 // Includes for different rendering systems
 #include "gropengl.h"
 #include "grgles2.h"
-#include "grwxgl.h"
+#include "grtoolset.h"
 #include "grstub.h"
 
 
@@ -539,8 +539,8 @@ void gr_close()
 			gr_opengl_cleanup();
 			break;
 
-		case GR_WXGL:
-			gr_wxgl_cleanup();
+		case GR_TOOLSET:
+			gr_toolset_cleanup();
 			break;
 
 		case GR_STUB:
@@ -736,8 +736,8 @@ int gr_init(bool safe_mode)
 				gr_opengl_cleanup();
 				break;
 
-			case GR_WXGL:
-				gr_wxgl_cleanup();
+			case GR_TOOLSET:
+				gr_toolset_cleanup();
 
 			case GR_STUB:
 				break;
@@ -773,7 +773,7 @@ int gr_init(bool safe_mode)
 #endif
 
 	if (Fred_running || Pofview_running) {
-		mode = GR_WXGL;
+		mode = GR_TOOLSET;
 	} else if (Is_standalone) {
 		mode = GR_STUB;
 	}
@@ -821,9 +821,9 @@ int gr_init(bool safe_mode)
 			gr_opengl_init();
 			break;
 
-		case GR_WXGL:
+		case GR_TOOLSET:
 			SDL_assert( Pofview_running || Fred_running );
-			gr_wxgl_init();
+			gr_toolset_init();
 			break;
 
 		case GR_STUB:

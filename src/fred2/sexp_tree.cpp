@@ -1532,7 +1532,7 @@ int sexp_tree::save_tree(int node)
 // get variable name from sexp_tree node .text
 void var_name_from_sexp_tree_text(char *var_name, const char *text)
 {
-	int var_name_length = strcspn(text, "(");
+	size_t var_name_length = strcspn(text, "(");
 	SDL_assert(var_name_length < TOKEN_LENGTH - 1);
 
 	strncpy(var_name, text, var_name_length);
@@ -1690,7 +1690,7 @@ void sexp_tree::free_node2(int node)
 }
 
 // initialize the data for a node.  Should be called right after a new node is allocated.
-void sexp_tree::set_node(int node, int type, char *text)
+void sexp_tree::set_node(int node, int type, const char *text)
 {
 	SDL_assert(type != SEXPT_UNUSED);
 	SDL_assert(nodes[node].type != SEXPT_UNUSED);
@@ -1893,9 +1893,9 @@ void sexp_tree::right_clicked(int mode)
 			add_op_submenu[i].CreatePopupMenu();
 			replace_op_submenu[i].CreatePopupMenu();
 			insert_op_submenu[i].CreatePopupMenu();
-			add_op_menu->AppendMenu(MF_POPUP, (UINT) add_op_submenu[i].m_hMenu, op_menu[i].name);
-			replace_op_menu->AppendMenu(MF_POPUP, (UINT) replace_op_submenu[i].m_hMenu, op_menu[i].name);
-			insert_op_menu->AppendMenu(MF_POPUP, (UINT) insert_op_submenu[i].m_hMenu, op_menu[i].name);
+			add_op_menu->AppendMenu(MF_POPUP, (UINT_PTR) add_op_submenu[i].m_hMenu, op_menu[i].name);
+			replace_op_menu->AppendMenu(MF_POPUP, (UINT_PTR) replace_op_submenu[i].m_hMenu, op_menu[i].name);
+			insert_op_menu->AppendMenu(MF_POPUP, (UINT_PTR) insert_op_submenu[i].m_hMenu, op_menu[i].name);
 		}
 
 		// get rid of the placeholders we needed to ensure popup menus stayed popup menus,
@@ -1983,12 +1983,12 @@ void sexp_tree::right_clicked(int mode)
 										Modify_variable = 0;
 									}
 
-									char buf[128];
+									char tmp[128];
 									// append list of variable names and values
 									// set id as ID_VARIABLE_MENU + idx
-									sprintf(buf, "%s(%s)", Sexp_variables[idx].variable_name, Sexp_variables[idx].text);
+									sprintf(tmp, "%s(%s)", Sexp_variables[idx].variable_name, Sexp_variables[idx].text);
 
-									replace_variable_menu->AppendMenu(flag, (ID_VARIABLE_MENU + idx), buf);
+									replace_variable_menu->AppendMenu(flag, (ID_VARIABLE_MENU + idx), tmp);
 								}
 							}
 						}
@@ -2482,9 +2482,9 @@ int sexp_tree::edit_label(HTREEITEM h)
 */
 }
 
-int sexp_tree::end_label_edit(HTREEITEM h, char *str)
+int sexp_tree::end_label_edit(HTREEITEM h, const char *str)
 {
-	int len, node, r = 1;
+	int node, r = 1;
 
 	*modified = 1;
 	if (!str)
@@ -2496,7 +2496,7 @@ int sexp_tree::end_label_edit(HTREEITEM h, char *str)
 
 	if (node == MAX_SEXP_TREE_SIZE) {
 		if (m_mode == MODE_EVENTS) {
-			item_index = GetItemData(h);
+			item_index = static_cast<int>(GetItemData(h));
 			SDL_assert(Event_editor_dlg);
 			node = Event_editor_dlg->handler(ROOT_RENAMED, item_index, str);
 			return 1;
@@ -2515,7 +2515,7 @@ int sexp_tree::end_label_edit(HTREEITEM h, char *str)
 	}
 
 	// Error checking would not hurt here
-	len = strlen(str);
+	auto len = strlen(str);
 	if (len >= TOKEN_LENGTH)
 		len = TOKEN_LENGTH - 1;
 
@@ -2566,10 +2566,10 @@ int sexp_tree::check_operator_validity(int op, int type)
 // number of it.  What operators are valid is determined by 'node', and an operator is valid
 // if it is allowed to fit at position 'node'
 //
-char *sexp_tree::match_closest_operator(char *str, int node)
+const char *sexp_tree::match_closest_operator(const char *str, int node)
 {
 	int z, n, i, op, arg_num, type;
-	char *sub_best = NULL, *best = NULL;
+	const char *sub_best = nullptr, *best = nullptr;
 
 	z = nodes[node].parent;
 	if (z < 0) {
@@ -2647,7 +2647,6 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 		if ( dlg.m_create ) {
 
 			// set type
-			int type;
 			if ( dlg.m_type_number ) {
 				type = SEXP_VARIABLE_NUMBER;
 			} else {
@@ -2706,7 +2705,6 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			strcpy(old_name, Sexp_variables[sexp_var_index].variable_name);
 
 			// set type
-			int type;
 			if (dlg.m_type_number) {
 				type = SEXP_VARIABLE_NUMBER;
 			} else {
@@ -2741,7 +2739,7 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 		int var_idx = id - ID_VARIABLE_MENU;
 		SDL_assert( (var_idx >= 0) && (var_idx < MAX_SEXP_VARIABLES) );
 
-		int type = get_type(item_handle);
+		type = get_type(item_handle);
 		SDL_assert( (type & SEXPT_NUMBER) || (type & SEXPT_STRING) );
 
 		// dont do type check for modify-variable
@@ -3007,7 +3005,7 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			HTREEITEM h;
 
 			if ((m_mode & ST_ROOT_DELETABLE) && (item_index == -1)) {
-				item_index = GetItemData(item_handle);
+				item_index = static_cast<int>(GetItemData(item_handle));
 				if (m_mode == MODE_GOALS) {
 					SDL_assert(Goal_editor_dlg);
 					node = Goal_editor_dlg->handler(ROOT_DELETED, item_index);
@@ -3112,7 +3110,7 @@ void sexp_list_item::set_op(int op_num)
 // initialize node, type data
 // Defaults: t = SEXPT_STRING
 //
-void sexp_list_item::set_data(char *str, int t)
+void sexp_list_item::set_data(const char *str, int t)
 {
 	op = -1;
 	text = str;
@@ -3137,7 +3135,7 @@ void sexp_list_item::add_op(int op_num)
 // add a node to end of list
 // Defaults: t = SEXPT_STRING
 //
-void sexp_list_item::add_data(char *str, int t)
+void sexp_list_item::add_data(const char *str, int t)
 {
 	sexp_list_item *item, *ptr;
 
@@ -3153,7 +3151,7 @@ void sexp_list_item::add_data(char *str, int t)
 // add a node to end of list, allocating memory for the text
 // Defaults: t = SEXPT_STRING
 //
-void sexp_list_item::add_data_dup(char *str, int t)
+void sexp_list_item::add_data_dup(const char *str, int t)
 {
 	sexp_list_item *item, *ptr;
 
@@ -3190,7 +3188,7 @@ void sexp_list_item::destroy()
 	while (ptr) {
 		ptr2 = ptr->next;
 		if (ptr->flags & SEXP_ITEM_F_DUP)
-			free(ptr->text);
+			free(const_cast<char*>(ptr->text));
 
 		delete ptr;
 		ptr = ptr2;
@@ -3207,7 +3205,7 @@ int sexp_tree::add_default_operator(int op, int argnum)
 	h = item_handle;
 	index = item_index;
 	item.text = buf;
-	if (get_default_value(&item, op, argnum))
+	if (get_default_value(&item, op, argnum, buf))
 		return -1;
 
 	if (item.type & SEXPT_OPERATOR) {
@@ -3241,13 +3239,13 @@ int sexp_tree::add_default_operator(int op, int argnum)
 				SDL_assert(argnum == 1);
 				sexp_list_item temp_item;
 				temp_item.text = buf2;
-				get_default_value(&temp_item, op, 0);
+				get_default_value(&temp_item, op, 0, buf2);
 				int sexp_var_index = get_index_sexp_variable_name(temp_item.text);
 				SDL_assert(sexp_var_index != -1);
 
 				// from name get type
 				int temp_type = Sexp_variables[sexp_var_index].type;
-				int type;
+				int type = 0;
 				if (temp_type & SEXP_VARIABLE_NUMBER) {
 					type = SEXPT_VALID | SEXPT_NUMBER;
 				} else if (temp_type & SEXP_VARIABLE_STRING) {
@@ -3265,7 +3263,7 @@ int sexp_tree::add_default_operator(int op, int argnum)
 	return 0;
 }
 
-int sexp_tree::get_default_value(sexp_list_item *item, int op, int i)
+int sexp_tree::get_default_value(sexp_list_item *item, int op, int i, char *text_buf)
 {
 	char *str = NULL;
 	int type, index;
@@ -3303,12 +3301,10 @@ int sexp_tree::get_default_value(sexp_list_item *item, int op, int i)
 
 	list = get_listing_opf(type, index, i);
 	if (list) {
-		char *ptr;
-
-		ptr = item->text;
 		*item = *list;
-		item->text = ptr;
-		strcpy(item->text, list->text);
+
+		strcpy(text_buf, list->text);
+		item->text = text_buf;
 
 		list->destroy();
 		return 0;
@@ -3594,7 +3590,7 @@ void sexp_tree::merge_operator(int node)
 }
 
 // add a data node under operator pointed to by item_index
-int sexp_tree::add_data(char *data, int type)
+int sexp_tree::add_data(const char *data, int type)
 {
 	int node;
 
@@ -3608,7 +3604,7 @@ int sexp_tree::add_data(char *data, int type)
 }
 
 // add a (variable) data node under operator pointed to by item_index
-int sexp_tree::add_variable_data(char *data, int type)
+int sexp_tree::add_variable_data(const char *data, int type)
 {
 	int node;
 
@@ -3625,7 +3621,7 @@ int sexp_tree::add_variable_data(char *data, int type)
 
 // add an operator under operator pointed to by item_index.  Updates item_index to point
 // to this new operator.
-void sexp_tree::add_operator(char *op, HTREEITEM h)
+void sexp_tree::add_operator(const char *op, HTREEITEM h)
 {
 	int node;
 	
@@ -3871,7 +3867,6 @@ void sexp_tree::link_modified(int *ptr)
 
 void get_variable_default_text_from_variable_text(char *text, char *default_text)
 {
-	int len;
 	char *start;
 
 	// find '('
@@ -3880,7 +3875,7 @@ void get_variable_default_text_from_variable_text(char *text, char *default_text
 	start++;
 
 	// get length and copy all but last char ")"
-	len = strlen(start);
+	auto len = strlen(start);
 	strncpy(default_text, start, len-1);
 
 	// add null termination
@@ -3889,8 +3884,7 @@ void get_variable_default_text_from_variable_text(char *text, char *default_text
 
 void get_variable_name_from_sexp_tree_node_text(const char *text, char *var_name)
 {
-	int length;
-	length = strcspn(text, "(");
+	auto length = strcspn(text, "(");
 
 	strncpy(var_name, text, length);
 	var_name[length] = '\0';
@@ -3899,7 +3893,7 @@ void get_variable_name_from_sexp_tree_node_text(const char *text, char *var_name
 int sexp_tree::get_modify_variable_type()
 {
 	SDL_assert(item_index > -1);
-	int sexp_var_index;
+	int sexp_var_index = 0;
 
 	// get arg
 	int parent = nodes[item_index].parent;
@@ -4032,7 +4026,7 @@ void sexp_tree::verify_and_fix_arguments(int node)
 	flag--;
 }
 
-void sexp_tree::replace_data(char *data, int type)
+void sexp_tree::replace_data(const char *data, int type)
 {
 	int node;
 	HTREEITEM h;
@@ -4095,7 +4089,7 @@ void sexp_tree::replace_variable_data(int var_idx, int type)
 
 
 
-void sexp_tree::replace_operator(char *op)
+void sexp_tree::replace_operator(const char *op)
 {
 	int node;
 	HTREEITEM h;
@@ -4337,8 +4331,8 @@ void sexp_tree::OnLButtonUp(UINT nFlags, CPoint point)
 
 		if (m_h_drop && m_h_drag != m_h_drop) {
 			SDL_assert(m_h_drag);
-			index1 = GetItemData(m_h_drag);
-			index2 = GetItemData(m_h_drop);
+			index1 = static_cast<int>(GetItemData(m_h_drag));
+			index2 = static_cast<int>(GetItemData(m_h_drop));
 			swap_roots(m_h_drag, m_h_drop);
 			if (m_mode == MODE_GOALS) {
 				SDL_assert(Goal_editor_dlg);
@@ -4557,7 +4551,7 @@ void sexp_tree::update_help(HTREEITEM h)
 
 // find list of sexp_tree nodes with text
 // stuff node indices into find[]
-int sexp_tree::find_text(char *text, int *find)
+int sexp_tree::find_text(const char *text, int *find)
 {
 	int i, find_count;
 
@@ -4730,13 +4724,13 @@ sexp_list_item *sexp_tree::get_listing_opf(int opf, int parent_node, int arg_ind
 			return get_listing_opf_variable_names();
 
 		case OPF_AMBIGUOUS:
-			return NULL();
+			return nullptr;
 
 		default:
 			Int3();  // unknown OPF code
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 sexp_list_item *sexp_tree::get_listing_opf_null()
@@ -5001,7 +4995,7 @@ sexp_list_item *sexp_tree::get_listing_opf_iff()
 	sexp_list_item head;
 
 	for (i=0; i<Num_team_names; i++)
-		head.add_data(Team_names[i]);
+		head.add_data((char*)Team_names[i]);
 
 	return head.next;
 }
@@ -5236,7 +5230,7 @@ sexp_list_item *sexp_tree::get_listing_opf_ship_type()
 	sexp_list_item head;
 
 	for (i=0; i<MAX_SHIP_TYPE_COUNTS; i++){
-		head.add_data(Ship_type_names[i]);
+		head.add_data((char*)Ship_type_names[i]);
 	}
 
 	return head.next;
@@ -5249,7 +5243,7 @@ sexp_list_item *sexp_tree::get_listing_opf_keypress()
 
 	for (i=0; i<CCFG_MAX; i++) {
 		if (Control_config[i].key_default > 0) {
-			head.add_data_dup(textify_scancode(Control_config[i].key_default));
+			head.add_data_dup((char*)textify_scancode(Control_config[i].key_default));
 		}
 	}
 
@@ -5306,7 +5300,7 @@ sexp_list_item *sexp_tree::get_listing_opf_skill_level()
 	sexp_list_item head;
 
 	for (i=0; i<NUM_SKILL_LEVELS; i++)
-		head.add_data(Skill_level_names(i, 0));
+		head.add_data((char*)Skill_level_names(i, 0));
 
 	return head.next;
 }
@@ -5354,7 +5348,7 @@ sexp_list_item *sexp_tree::get_listing_opf_hud_gauge_name()
 	sexp_list_item head;
 
 	for (i=0; i<NUM_HUD_GAUGES; i++)
-		head.add_data(HUD_gauge_text[i]);
+		head.add_data((char*)HUD_gauge_text[i]);
 
 	return head.next;
 }
@@ -5511,7 +5505,7 @@ int sexp_tree::get_tree_name_to_sexp_variable_index(const char *tree_name)
 {
 	char var_name[TOKEN_LENGTH];
 
-	int chars_to_copy = strcspn(tree_name, "(");
+	auto chars_to_copy = strcspn(tree_name, "(");
 	SDL_assert(chars_to_copy < TOKEN_LENGTH - 1);
 
 	// Copy up to '(' and add null termination

@@ -961,4 +961,116 @@ void gr_opengl_scaler(vertex *va, vertex *vb )
 	opengl_tmapper_internal( 4, vl, TMAP_FLAG_TEXTURED, 1 );
 }
 
+void gr_opengl_aascaler(vertex *va, vertex *vb)
+{
+	float x0, y0, x1, y1;
+	float u0, v0, u1, v1;
+	float clipped_x0, clipped_y0, clipped_x1, clipped_y1;
+	float clipped_u0, clipped_v0, clipped_u1, clipped_v1;
+	float xmin, xmax, ymin, ymax;
+	int dx0, dy0, dx1, dy1;
+
+	//============= CLIP IT =====================
+
+	x0 = va->sx; y0 = va->sy;
+	x1 = vb->sx; y1 = vb->sy;
+
+	xmin = i2fl(gr_screen.clip_left); ymin = i2fl(gr_screen.clip_top);
+	xmax = i2fl(gr_screen.clip_right); ymax = i2fl(gr_screen.clip_bottom);
+
+	u0 = va->u; v0 = va->v;
+	u1 = vb->u; v1 = vb->v;
+
+	// Check for obviously offscreen bitmaps...
+	if ( (y1<=y0) || (x1<=x0) ) return;
+	if ( (x1<xmin ) || (x0>xmax) ) return;
+	if ( (y1<ymin ) || (y0>ymax) ) return;
+
+	clipped_u0 = u0; clipped_v0 = v0;
+	clipped_u1 = u1; clipped_v1 = v1;
+
+	clipped_x0 = x0; clipped_y0 = y0;
+	clipped_x1 = x1; clipped_y1 = y1;
+
+	// Clip the left, moving u0 right as necessary
+	if ( x0 < xmin ) 	{
+		clipped_u0 = FIND_SCALED_NUM(xmin,x0,x1,u0,u1);
+		clipped_x0 = xmin;
+	}
+
+	// Clip the right, moving u1 left as necessary
+	if ( x1 > xmax )	{
+		clipped_u1 = FIND_SCALED_NUM(xmax,x0,x1,u0,u1);
+		clipped_x1 = xmax;
+	}
+
+	// Clip the top, moving v0 down as necessary
+	if ( y0 < ymin ) 	{
+		clipped_v0 = FIND_SCALED_NUM(ymin,y0,y1,v0,v1);
+		clipped_y0 = ymin;
+	}
+
+	// Clip the bottom, moving v1 up as necessary
+	if ( y1 > ymax ) 	{
+		clipped_v1 = FIND_SCALED_NUM(ymax,y0,y1,v0,v1);
+		clipped_y1 = ymax;
+	}
+
+	dx0 = fl2i(clipped_x0); dx1 = fl2i(clipped_x1);
+	dy0 = fl2i(clipped_y0); dy1 = fl2i(clipped_y1);
+
+	if (dx1<=dx0) return;
+	if (dy1<=dy0) return;
+
+	//============= DRAW IT =====================
+
+	float u_scale, v_scale;
+
+	if ( !opengl_tcache_set(gr_screen.current_bitmap, TCACHE_TYPE_AABITMAP,
+							&u_scale, &v_scale, 0, -1, -1, 0) )
+	{
+		// Couldn't set texture
+		mprintf(( "WARNING: Error setting aabitmap texture!\n" ));
+		return;
+	}
+
+	opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+	GL_ctx.glColor4ub(gr_screen.current_color.red, gr_screen.current_color.green,
+					  gr_screen.current_color.blue,gr_screen.current_color.alpha);
+
+	auto render_buffer = gr_get_render_buffer(4);
+
+	render_buffer[0].x = clipped_x0;
+	render_buffer[0].y = clipped_y0;
+	render_buffer[0].u = clipped_u0;
+	render_buffer[0].v = clipped_v0;
+
+	render_buffer[1].x = clipped_x0;
+	render_buffer[1].y = clipped_y1;
+	render_buffer[1].u = clipped_u0;
+	render_buffer[1].v = clipped_v1;
+
+	render_buffer[2].x = clipped_x1;
+	render_buffer[2].y = clipped_y0;
+	render_buffer[2].u = clipped_u1;
+	render_buffer[2].v = clipped_v0;
+
+	render_buffer[3].x = clipped_x1;
+	render_buffer[3].y = clipped_y1;
+	render_buffer[3].u = clipped_u1;
+	render_buffer[3].v = clipped_v1;
+
+	GL_ctx.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	GL_ctx.glEnableClientState(GL_VERTEX_ARRAY);
+
+	GL_ctx.glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].u);
+	GL_ctx.glVertexPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].x);
+
+	GL_ctx.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	GL_ctx.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	GL_ctx.glDisableClientState(GL_VERTEX_ARRAY);
+}
+
 #endif	// !__EMSCRIPTEN__

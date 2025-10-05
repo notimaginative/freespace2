@@ -415,7 +415,7 @@ void stars_init()
 
 					// if fred is running we should lock the bitmap now
 					if(Fred_running && (bm->bitmap >= 0)){
-						bm_lock(bm->bitmap, 8, BMP_TEX_OTHER);
+						bm_lock(bm->bitmap, 16, BMP_TEX_OTHER);
 						bm_unlock(bm->bitmap);
 					}
 				}
@@ -432,7 +432,7 @@ void stars_init()
 
 					// if fred is running we should lock as a 0, 255, 0 bitmap now
 					if(Fred_running && (bm->bitmap >= 0)){
-						bm_lock(bm->bitmap, 8, BMP_TEX_XPARENT);
+						bm_lock(bm->bitmap, 16, BMP_TEX_XPARENT);
 						bm_unlock(bm->bitmap);
 					}
 				}
@@ -473,11 +473,11 @@ void stars_init()
 					// if fred is running we should lock the bitmap now
 					if(Fred_running){
 						if(bm->bitmap >= 0){
-							bm_lock(bm->bitmap, 8, BMP_TEX_OTHER);
+							bm_lock(bm->bitmap, 16, BMP_TEX_OTHER);
 							bm_unlock(bm->bitmap);
 						}
 						if(bm->glow_bitmap >= 0){
-							bm_lock(bm->glow_bitmap, 8, BMP_TEX_OTHER);
+							bm_lock(bm->glow_bitmap, 16, BMP_TEX_OTHER);
 							bm_unlock(bm->glow_bitmap);
 						}
 					}

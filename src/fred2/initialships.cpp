@@ -151,7 +151,7 @@ void InitialShips::OnOK()
 		if ( m_initial_list.GetCheck(i) ) {
 			// this item is checked.  Get the index into either the ship info array or the weapons
 			// array
-			index = m_initial_list.GetItemData(i);
+			index = static_cast<int>(m_initial_list.GetItemData(i));
 			if ( m_initial_items == INITIAL_SHIPS ) {
 				Campaign.ships_allowed[index] = 1;
 			} else if ( m_initial_items == INITIAL_WEAPONS ) {

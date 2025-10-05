@@ -398,7 +398,7 @@ BOOL CFREDDoc::OnNewDocument()
 BOOL CFREDDoc::OnOpenDocument(LPCTSTR pathname)
 {
 	char name[1024];
-	int i, len;
+	size_t i, len;
 
 	if (pathname)
 		strcpy(mission_pathname, pathname);
@@ -406,8 +406,8 @@ BOOL CFREDDoc::OnOpenDocument(LPCTSTR pathname)
 	if (Briefing_dialog)
 		Briefing_dialog->icon_select(-1);  // clean things up first
 
-	len = strlen(mission_pathname);
-	strcpy(name, mission_pathname);
+	len = SDL_strlen(mission_pathname);
+	SDL_strlcpy(name, mission_pathname, SDL_arraysize(name));
 	if (name[len - 4] == '.')
 		len -= 4;
 
@@ -417,7 +417,7 @@ BOOL CFREDDoc::OnOpenDocument(LPCTSTR pathname)
 		if ((name[i] == '\\') || (name[i] == ':'))
 			break;
 
-	strcpy(Mission_filename, name + i + 1);
+	SDL_strlcpy(Mission_filename, name + i + 1, SDL_arraysize(Mission_filename));
 //	for (i=1; i<=BACKUP_DEPTH; i++) {
 //		sprintf(name + len, ".%.3d", i);
 //		unlink(name);
@@ -439,11 +439,10 @@ BOOL CFREDDoc::OnSaveDocument(LPCTSTR pathname)
 {
 	CFred_mission_save save;
 	char name[1024];
-	int len;
 	DWORD attrib;
 	FILE *fp;
 
-	len = strlen(pathname);
+	auto len = strlen(pathname);
 	strcpy(name, pathname);
 	if (name[len - 4] == '.')
 		len -= 4;
@@ -547,7 +546,7 @@ int CFREDDoc::autosave(char *desc)
 int CFREDDoc::autoload()
 {
 	char name[256], backup_name[256];
-	int i, r, len;
+	int i, r;
 	FILE *fp;
 
 	strcpy(name, MISSION_BACKUP_NAME);
@@ -565,7 +564,7 @@ int CFREDDoc::autoload()
 	Update_window = 1;
 
 	strcpy(backup_name, MISSION_BACKUP_NAME);
-	len = strlen(backup_name);
+	auto len = strlen(backup_name);
 	strcat(backup_name, ".001");
 	cf_delete(backup_name, CF_TYPE_MISSIONS);
 
@@ -683,7 +682,7 @@ int CFREDDoc::load_mission(char *pathname)
 	while (objp != END_OF_LIST(&obj_used_list)) {
 		// if this is a ship, check it, and mark its possible alternate name down in the auxiliary array
 		if(((objp->type == OBJ_SHIP) || (objp->type == OBJ_START)) && (objp->instance >= 0) && (Ships[objp->instance].alt_type_index >= 0)){
-			mission_parse_lookup_alt_index(Ships[objp->instance].alt_type_index, Fred_alt_names[objp->instance]);
+			mission_parse_lookup_alt_index(Ships[objp->instance].alt_type_index, Fred_alt_names[objp->instance], SDL_arraysize(Fred_alt_names[0]));
 
 			// also zero it
 			Ships[objp->instance].alt_type_index = -1;

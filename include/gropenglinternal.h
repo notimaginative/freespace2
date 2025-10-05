@@ -103,6 +103,7 @@ void gr_opengl_cross_fade(int bmap1, int bmap2, int x1, int y1, int x2, int y2, 
 void gr_opengl_flash(int r, int g, int b);
 void gr_opengl_tmapper( int nverts, vertex **verts, uint flags );
 void gr_opengl_scaler(vertex *va, vertex *vb );
+void gr_opengl_aascaler(vertex *va, vertex *vb);
 void gr_opengl_set_gamma(float gamma);
 void gr_opengl_preload_init();
 int gr_opengl_preload(int bitmap_num, int is_aabitmap);

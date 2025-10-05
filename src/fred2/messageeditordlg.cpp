@@ -444,7 +444,7 @@ int CMessageEditorDlg::find_event()
 void CMessageEditorDlg::OnSelchangeMessageList() 
 {
 	int old = m_cur_msg;
-	static flag = 0;
+	static int flag = 0;
 
 	if (flag)
 		return;

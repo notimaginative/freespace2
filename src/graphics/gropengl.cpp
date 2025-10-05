@@ -184,6 +184,7 @@ static void opengl_init_func_pointers()
 	gr_screen.gf_aalines = gr_opengl_aalines;
 	gr_screen.gf_pixel = gr_opengl_pixel;
 	gr_screen.gf_scaler = gr_opengl_scaler;
+	gr_screen.gf_aascaler = gr_opengl_aascaler;
 	gr_screen.gf_tmapper = gr_opengl_tmapper;
 
 	gr_screen.gf_gradient = gr_opengl_gradient;

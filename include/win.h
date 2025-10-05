@@ -12,6 +12,7 @@
 #define unlink _unlink
 #define access _access
 #define stat _stat
+#define chdir _chdir
 
 #define SOCKLEN_T int
 

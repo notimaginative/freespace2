@@ -151,6 +151,7 @@ typedef struct window_data {
 class CFREDApp : public CWinApp
 {
 	int app_init;
+	int m_audio_id;
 
 public:
 	void record_window_data(window_data *wndd, CWnd *wnd);
@@ -158,6 +159,8 @@ public:
 	void read_window(char *name, window_data *wndd);
 	void write_window(char *name, window_data *wndd);
 	void write_ini_file(int degree = 0);
+	void play_audio(const char *filename);
+	void stop_audio();
 	CFREDApp();
 
 	// Overrides

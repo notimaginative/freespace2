@@ -156,7 +156,6 @@
  */
 
 #include "stdafx.h"
-#include <mmsystem.h>
 #include "fred.h"
 #include "briefingeditordlg.h"
 #include "freddoc.h"
@@ -377,6 +376,8 @@ void briefing_editor_dlg::OnClose()
 	int bs, i, j, s, t, dup = 0;
 	briefing_editor_dlg *ptr;
 	brief_stage *sp;
+
+	theApp.stop_audio();
 
 	m_cur_stage = -1;
 	update_data(1);
@@ -807,6 +808,7 @@ int briefing_editor_dlg::calc_num_lines_for_icons(int num)
 
 void briefing_editor_dlg::OnNext()
 {
+	theApp.stop_audio();
 	m_cur_stage++;
 	m_cur_icon = -1;
 	update_data();
@@ -815,6 +817,7 @@ void briefing_editor_dlg::OnNext()
 
 void briefing_editor_dlg::OnPrev()
 {
+	theApp.stop_audio();
 	m_cur_stage--;
 	m_cur_icon = -1;
 	update_data();
@@ -852,6 +855,7 @@ void briefing_editor_dlg::OnAddStage()
 	if (Briefing->num_stages >= MAX_BRIEF_STAGES)
 		return;
 
+	theApp.stop_audio();
 	m_cur_stage = i = Briefing->num_stages++;
 	copy_stage(i - 1, i);
 	update_data(1);
@@ -863,7 +867,8 @@ void briefing_editor_dlg::OnDeleteStage()
 
 	if (m_cur_stage < 0)
 		return;
-	
+
+	theApp.stop_audio();
 	SDL_assert(Briefing->num_stages);
 	z = m_cur_stage;
 	m_cur_stage = -1;
@@ -920,6 +925,7 @@ void briefing_editor_dlg::OnInsertStage()
 		return;
 	}
 
+	theApp.stop_audio();
 	z = m_cur_stage;
 	m_cur_stage = -1;
 	update_data(1);
@@ -972,7 +978,7 @@ void briefing_editor_dlg::update_positions()
 	for (i=0; i<Briefing->stages[m_cur_stage].num_icons; i++) {
 		v1 = Briefing->stages[m_cur_stage].icons[i].pos;
 		v2 = Objects[icon_obj[i]].pos;
-		if ((v1.x != v2.x) || (v1.y != v2.y) || (v1.z != v2.z)) {
+		if ((v1.xyz.x != v2.xyz.x) || (v1.xyz.y != v2.xyz.y) || (v1.xyz.z != v2.xyz.z)) {
 			Briefing->stages[m_cur_stage].icons[i].pos = Objects[icon_obj[i]].pos;
 			if (!m_change_local)  // propagate changes through rest of stages..
 				for (s=m_cur_stage+1; s<Briefing->num_stages; s++) {
@@ -987,7 +993,7 @@ void briefing_editor_dlg::update_positions()
 void briefing_editor_dlg::OnMakeIcon() 
 {
 	char *name;
-	int z, len, team, ship, waypoint, jump_node, count = -1;
+	int z, team, ship, waypoint, jump_node, count = -1;
 	int cargo = 0, cargo_count = 0, freighter_count = 0;
 	object *ptr;
 	vector min, max, pos;
@@ -1006,18 +1012,18 @@ void briefing_editor_dlg::OnMakeIcon()
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (ptr->flags & OF_MARKED) {
-			if (ptr->pos.x < min.x)
-				min.x = ptr->pos.x;
-			if (ptr->pos.x > max.x)
-				max.x = ptr->pos.x;
-			if (ptr->pos.y < min.y)
-				min.y = ptr->pos.y;
-			if (ptr->pos.y > max.y)
-				max.y = ptr->pos.y;
-			if (ptr->pos.z < min.z)
-				min.z = ptr->pos.z;
-			if (ptr->pos.z > max.z)
-				max.z = ptr->pos.z;
+			if (ptr->pos.xyz.x < min.xyz.x)
+				min.xyz.x = ptr->pos.xyz.x;
+			if (ptr->pos.xyz.x > max.xyz.x)
+				max.xyz.x = ptr->pos.xyz.x;
+			if (ptr->pos.xyz.y < min.xyz.y)
+				min.xyz.y = ptr->pos.xyz.y;
+			if (ptr->pos.xyz.y > max.xyz.y)
+				max.xyz.y = ptr->pos.xyz.y;
+			if (ptr->pos.xyz.z < min.xyz.z)
+				min.xyz.z = ptr->pos.xyz.z;
+			if (ptr->pos.xyz.z > max.xyz.z)
+				max.xyz.z = ptr->pos.xyz.z;
 			
 			switch (ptr->type) {
 				case OBJ_SHIP:
@@ -1075,7 +1081,7 @@ void briefing_editor_dlg::OnMakeIcon()
 	else
 		return;
 
-	len = strlen(name);
+	auto len = strlen(name);
 	if (len >= MAX_LABEL_LEN - 1)
 		len = MAX_LABEL_LEN - 1;
 
@@ -1410,13 +1416,9 @@ BOOL briefing_editor_dlg::DestroyWindow()
 
 void briefing_editor_dlg::OnPlay() 
 {
-	char path[MAX_PATH_LEN + 1];
 	GetDlgItem(IDC_VOICE)->GetWindowText(m_voice);
 
-	int size, offset;
-	cf_find_file_location((char *) (LPCSTR) m_voice, CF_TYPE_ANY, path, &size, &offset );
-
-	PlaySound(path, NULL, SND_ASYNC | SND_FILENAME);
+	theApp.play_audio(m_voice);
 }
 
 void briefing_editor_dlg::OnCopyView() 

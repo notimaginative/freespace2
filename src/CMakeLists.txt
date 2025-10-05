@@ -46,7 +46,7 @@ set(code_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gropenglrender.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gropengltexture.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grstub.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grwxgl.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/graphics/grtoolset.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/graphics/renderbuffer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hud.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hud/hudartillery.cpp
@@ -374,5 +374,113 @@ set(fonttool_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/fonttool/fontkern.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fonttool/fontkerncopy.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fonttool/fonttool.cpp
+  PARENT_SCOPE
+)
+
+#
+# FRED: mission creator/editory
+#
+
+set(fred_SOURCE
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/addvariabledlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/adjustgriddlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/asteroideditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/bgbitmapdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/briefingeditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaigneditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaignfilelistbox.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaigntreeview.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaigntreewnd.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/cmdbrief.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/createwingdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/debriefingeditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/dialog1.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/dumpstats.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/eventeditor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fred.aps
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fred.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fred.rc
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/freddoc.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredrender.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredstubs.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredview.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/grid.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/ignoreordersdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/initialships.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/initialstatus.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/mainfrm.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/makehelp.bat
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/management.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/messageeditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missiongoalsdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missionnotesdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missionsave.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/modifyvariabledlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/operatorargtypeselect.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/orienteditor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/playerstarteditor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/prefsdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/reinforcementeditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/resource.hm
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/sexp_tree.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shieldsysdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/ship_select.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipchecklistbox.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipclasseditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipeditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipflagsdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipgoalsdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipspecialdamage.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/starfieldeditor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/stdafx.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/textviewdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/waypointpathdlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/weaponeditordlg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/wing.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/wing_editor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/bitmap1.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/black_do.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/bmp00001.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/chained.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/chained_directive.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/cursor1.cur
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/cursor2.cur
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/data.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/fred.ico
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/fred.rc2
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/freddoc.ico
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/green_do.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/root.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/root_directive.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/toolbar.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/toolbar1.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/res/variable.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/afxcore.rtf
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/afxhelp.hm
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/afxprint.rtf
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/appexit.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/bullet.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/curarw2.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/curarw4.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/curhelp.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/editcopy.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/editcut.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/editpast.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/editundo.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/filenew.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/fileopen.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/fileprnt.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/filesave.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/fred.hm
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/fred.hpj
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/hlpsbar.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/hlptbar.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/recfirst.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/reclast.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/recnext.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/recprev.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/scmax.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/scmenu.bmp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/hlp/scmin.bmp
   PARENT_SCOPE
 )

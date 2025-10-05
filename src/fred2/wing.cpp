@@ -627,13 +627,13 @@ void initialize_wings(void)
 
 	Wing_formations[0].num_vectors = 2;
 	
-	Wing_formations[0].offsets[0].x = -5.0f;
-	Wing_formations[0].offsets[0].y = +1.0f;
-	Wing_formations[0].offsets[0].z = -5.0f;
+	Wing_formations[0].offsets[0].xyz.x = -5.0f;
+	Wing_formations[0].offsets[0].xyz.y = +1.0f;
+	Wing_formations[0].offsets[0].xyz.z = -5.0f;
 
-	Wing_formations[0].offsets[1].x = +5.0f;
-	Wing_formations[0].offsets[1].y = +1.0f;
-	Wing_formations[0].offsets[1].z = -5.0f;
+	Wing_formations[0].offsets[1].xyz.x = +5.0f;
+	Wing_formations[0].offsets[1].xyz.y = +1.0f;
+	Wing_formations[0].offsets[1].xyz.z = -5.0f;
 }
 
 void create_wings_from_objects(void)

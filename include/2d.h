@@ -543,7 +543,7 @@ typedef struct screen {
 
 #define GR_OPENGL				(100)		// OpenGL 1.2 ("safe mode")
 #define GR_GLES2				(101)		// OpenGL ES 2
-#define GR_WXGL					(103)		// OpenGL for use with wxWidgets toolkit
+#define GR_TOOLSET				(103)		// OpenGL for use with wxWidgets toolkit
 #define GR_STUB					(104)		// Stubbed out for standalone server
 
 // resolution constants   - always keep resolutions in ascending order and starting from 0  
@@ -583,10 +583,6 @@ extern int gr_get_font_height();
 
 extern void gr_set_palette(const char *name, ubyte *palette, int restrict_to_128 = 0);
 
-// These two functions use a Windows mono font.  Only for use
-// in the editor, please.
-void gr_get_string_size_win(int *w, int *h, const char *text);
-void gr_string_win(int x, int y, const char *s );
 
 extern int Web_cursor_bitmap;
 

@@ -2551,12 +2551,18 @@ void generate_weaponry_usage_list(int *arr, int wing)
 	while (i--) {
 		swp = &Ships[Wings[wing].ship_index[i]].weapons;
 		j = swp->num_primary_banks;
-		while (j--)
-			arr[swp->primary_bank_weapons[j]]++;
+		while (j--) {
+			if ((swp->primary_bank_weapons[j] >= 0) && (swp->primary_bank_weapons[j] < Num_weapon_types)) {
+				arr[swp->primary_bank_weapons[j]]++;
+			}
+		}
 
 		j = swp->num_secondary_banks;
-		while (j--)
-			arr[swp->secondary_bank_weapons[j]] += int(ceil(swp->secondary_bank_ammo[j] * swp->secondary_bank_capacity[j] / 100 / Weapon_info[swp->secondary_bank_weapons[j]].cargo_size));
+		while (j--) {
+			if ((swp->primary_bank_weapons[j] >= 0) && (swp->primary_bank_weapons[j] < Num_weapon_types)) {
+				arr[swp->secondary_bank_weapons[j]] += int(ceil(swp->secondary_bank_ammo[j] * swp->secondary_bank_capacity[j] / 100 / Weapon_info[swp->secondary_bank_weapons[j]].cargo_size));
+			}
+		}
 	}
 }
 

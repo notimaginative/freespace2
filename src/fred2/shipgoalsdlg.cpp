@@ -1154,9 +1154,9 @@ void ShipGoalsDlg::update_item(int item, int multi)
 			if (!multi || (m_data[item] && (m_dock2[item] >= 0)))
 				dockee = (char *) m_dock2_box[item] -> GetItemDataPtr(m_dock2[item]);
 
-			if (docker == (char *) 0xffffffff)
+			if (docker == (char *)UINTPTR_MAX)
 				docker = NULL;
-			if (dockee == (char *) 0xffffffff)
+			if (dockee == (char *)UINTPTR_MAX)
 				dockee = NULL;
 
 			if (!docker || !dockee) {

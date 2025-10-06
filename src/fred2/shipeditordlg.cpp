@@ -510,8 +510,6 @@ BOOL CShipEditorDlg::Create()
 
 	for ( i = 0; i < Num_personas; i++ ) {
 		if ( Personas[i].flags & PERSONA_FLAG_WINGMAN ) {
-			int index;
-
 			// don't bother putting any vasudan personas on the list -- done automatically by code
 //			if ( Personas[i].flags & PERSONA_FLAG_VASUDAN ){
 //				continue;

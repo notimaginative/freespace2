@@ -2651,14 +2651,14 @@ void CFREDView::OnSelectList()
 // position camera to view all objects on the screen at once.  Doesn't change orientation.
 void view_universe(int just_marked)
 {
-	int i, max = 0, flags[MAX_OBJECTS];
+	int i, max = 0, vflags[MAX_OBJECTS];
 	float dist, largest = 20.0f;
 	vector center, p1, p2;		// center of all the objects collectively
 	vertex v;
 	object *ptr;
 
 	for (i=0; i<MAX_OBJECTS; i++)
-		flags[i] = 0;
+		vflags[i] = 0;
 
 	if (just_marked)
 		ptr = &Objects[cur_object_index];
@@ -2698,7 +2698,7 @@ void view_universe(int just_marked)
 			if (dist > largest)
 				largest = dist;
 
-			flags[OBJ_INDEX(ptr)] = 1;  // flag object as needing on-screen check
+			vflags[OBJ_INDEX(ptr)] = 1;  // flag object as needing on-screen check
 			if (OBJ_INDEX(ptr) > max)
 				max = OBJ_INDEX(ptr);
 		}

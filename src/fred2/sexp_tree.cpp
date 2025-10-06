@@ -1927,7 +1927,7 @@ void sexp_tree::right_clicked(int mode)
 			// check not root (-1)
 			if (item_index >= 0) {
 				// get type of sexp_tree item clicked on
-				int type = get_type(h);
+				type = get_type(h);
 
 				int parent = nodes[item_index].parent;
 				if (parent >= 0) {
@@ -1961,24 +1961,24 @@ void sexp_tree::right_clicked(int mode)
 
 							for (int idx=0; idx<max_sexp_vars; idx++) {
 								if (Sexp_variables[idx].type & SEXP_VARIABLE_SET) {
-									UINT flag = MF_STRING | MF_GRAYED;
+									_flags = MF_STRING | MF_GRAYED;
 									// maybe gray flag MF_GRAYED
 
 									// get type -- gray "string" or number accordingly
 									if ( type & SEXPT_STRING ) {
 										if ( Sexp_variables[idx].type & SEXP_VARIABLE_STRING ) {
-											flag &= ~MF_GRAYED;
+											_flags &= ~MF_GRAYED;
 										}
 									} else if ( type & SEXPT_NUMBER ) {
 										if ( Sexp_variables[idx].type & SEXP_VARIABLE_NUMBER ) {
-											flag &= ~MF_GRAYED;
+											_flags &= ~MF_GRAYED;
 										}
 									}
 
 									// if modify-variable and changing variable, enable all variables
 									if (op_type == OPF_VARIABLE_NAME) {
 										Modify_variable = 1;
-										flag &= ~MF_GRAYED;
+										_flags &= ~MF_GRAYED;
 									} else {
 										Modify_variable = 0;
 									}
@@ -1988,7 +1988,7 @@ void sexp_tree::right_clicked(int mode)
 									// set id as ID_VARIABLE_MENU + idx
 									sprintf(tmp, "%s(%s)", Sexp_variables[idx].variable_name, Sexp_variables[idx].text);
 
-									replace_variable_menu->AppendMenu(flag, (ID_VARIABLE_MENU + idx), tmp);
+									replace_variable_menu->AppendMenu(_flags, (ID_VARIABLE_MENU + idx), tmp);
 								}
 							}
 						}
@@ -2975,16 +2975,12 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			return 1;
 
 		case ID_ADD_STRING:	{
-			int node;
-			
 			node = add_data("string", (SEXPT_STRING | SEXPT_VALID));
 			EditLabel(nodes[node].handle);
 			return 1;
 		}
 
 		case ID_ADD_NUMBER:	{
-			int node;
-
 			node = add_data("number", (SEXPT_NUMBER | SEXPT_VALID));
 			EditLabel(nodes[node].handle);
 			return 1;
@@ -3001,8 +2997,7 @@ BOOL sexp_tree::OnCommand(WPARAM wParam, LPARAM lParam)
 			// fall through to ID_DELETE case.
 
 		case ID_DELETE:	{
-			int parent, node;
-			HTREEITEM h;
+			int parent;
 
 			if ((m_mode & ST_ROOT_DELETABLE) && (item_index == -1)) {
 				item_index = static_cast<int>(GetItemData(item_handle));
@@ -3921,13 +3916,13 @@ int sexp_tree::get_modify_variable_type()
 void sexp_tree::verify_and_fix_arguments(int node)
 {
 	int op, arg_num, type, tmp;
-	static int flag = 0;
+	static int vflag = 0;
 	sexp_list_item *list, *ptr;
 
-	if (flag)
+	if (vflag)
 		return;
 
-	flag++;
+	vflag++;
 	op = identify_operator(nodes[node].text);
 	if (op < 0)
 		return;
@@ -3950,7 +3945,7 @@ void sexp_tree::verify_and_fix_arguments(int node)
 			if (!list && (arg_num >= Operators[op].min)) {
 				free_node(item_index, 1);
 				item_index = tmp;
-				flag--;
+				vflag--;
 				return;
 			}
 
@@ -4023,7 +4018,7 @@ void sexp_tree::verify_and_fix_arguments(int node)
 	}
 
 	item_index = tmp;
-	flag--;
+	vflag--;
 }
 
 void sexp_tree::replace_data(const char *data, int type)

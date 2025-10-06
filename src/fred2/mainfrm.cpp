@@ -446,7 +446,7 @@ void CMainFrame::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	Global_point2 = point;
 
-	PostMessage(WM_MENU_POPUP_TEST, nFlags, (int) &Global_point2);
+	PostMessage(WM_MENU_POPUP_TEST, nFlags, (LPARAM) &Global_point2);
 	CFrameWnd::OnRButtonDown(nFlags, point);
 }
 
@@ -665,34 +665,10 @@ void CMainFrame::OnInitMenu(CMenu* pMenu)
 }
 
 
-void url_launch(char *url)
+void url_launch(const char *url)
 {
-	int r;
-
-	r = (int) ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOW);
-	if (r < 32) {
-		const char *txt = NULL;
-
-		switch (r) {
-			case 0:	txt = XSTR("The operating system is out of memory or resources.", 1107); break;
-			case ERROR_BAD_FORMAT: txt = XSTR("The .EXE file is invalid (non-Win32 .EXE or error in .EXE image).", 1108); break;
-			case SE_ERR_ACCESSDENIED: txt = XSTR("The operating system denied access to the specified file. ", 1109); break;
-			case SE_ERR_ASSOCINCOMPLETE: txt = XSTR("The filename association is incomplete or invalid.\r\n(You need to have a default Internet browser installed)", 1110); break;
-			case SE_ERR_DDEBUSY: txt = XSTR("The DDE transaction could not be completed because other DDE transactions were being processed.", 1111); break;
-			case SE_ERR_DDEFAIL: txt = XSTR("The DDE transaction failed.", 1112); break;
-			case SE_ERR_DDETIMEOUT: txt = XSTR("The DDE transaction could not be completed because the request timed out.", 1113); break;
-			case SE_ERR_DLLNOTFOUND: txt = XSTR("The specified dynamic-link library was not found.", 1114); break;
-			case SE_ERR_OOM: txt = XSTR("There was not enough memory to complete the operation.", 1115); break;
-			case SE_ERR_SHARE: txt = XSTR("A sharing violation occurred.", 1116); break;
-
-			// No browser installed message
-			case SE_ERR_NOASSOC:
-			case ERROR_FILE_NOT_FOUND:
-			case ERROR_PATH_NOT_FOUND: txt =	XSTR("\r\nUnable to locate Fred Help file: \\data\\freddocs\\index.html\r\n", 1479); break;
-
-			default: txt = XSTR("Unknown error occurred.", 1118); break;
-		}
-		AfxMessageBox(txt, MB_OK | MB_ICONERROR);
+	if ( !SDL_OpenURL(url) ) {
+		AfxMessageBox(XSTR("Unknown error occurred.", 1118), MB_OK | MB_ICONERROR);
 	}
 }
 

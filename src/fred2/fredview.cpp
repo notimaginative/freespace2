@@ -474,6 +474,10 @@
 #include "sound.h"
 #include "audiostr.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_opengl2.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -844,6 +848,16 @@ int CFREDView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		Warning(LOCATION, "Unable to create OpenGL context!\n");
 		return -1;
 	}
+
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.IniFilename = nullptr;
+
+	io.Fonts->Clear();
+	io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arialbd.ttf", 14.0f);
+
+	ImGui_ImplSDL3_InitForOpenGL(m_window, m_gl_context);
+	ImGui_ImplOpenGL2_Init();
 
 	fred_init();
 

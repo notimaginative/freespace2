@@ -552,11 +552,13 @@ if(NOT GAME_ONLY AND NOT DEMO)
     target_link_libraries(
         ${FRED_BINARY}
         code
+        imgui
         SDL3::SDL3
         OpenAL::OpenAL
         ${LIBWEBSOCKETS_LIBRARIES}
         ${PLATFORM_LIBRARIES}
         winmm
+        opengl32
     )
   endif()
 

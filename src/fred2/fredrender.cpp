@@ -258,6 +258,10 @@
 #include "font.h"
 #include "osapi.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_opengl2.h>
+
 extern float flFrametime;
 extern subsys_to_render Render_subsys;
 
@@ -329,6 +333,40 @@ void render_one_model(object *objp);
 void inc_mission_time();
 void draw_asteroid_field();
 void hilight_bitmap();
+
+void gr_string_fred(int x, int y, const char *text)
+{
+	if ( !text ) {
+		return;
+	}
+
+	ImGui_ImplOpenGL2_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+
+	ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
+
+	auto col = IM_COL32(gr_screen.current_color.red, gr_screen.current_color.green,
+						gr_screen.current_color.blue, gr_screen.current_color.alpha);
+
+	draw_list->AddText(ImVec2(static_cast<float>(x), static_cast<float>(y)), col, text);
+
+	ImGui::Render();
+	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+}
+
+void gr_get_string_size_fred(int *w, int *h, char *text)
+{
+	if ( !text ) {
+		if (w) *w = 0;
+		if (h) *h = 0;
+	}
+
+	auto size = ImGui::CalcTextSize(text);
+
+	if (w) *w = static_cast<int>(size.x);
+	if (h) *h = static_cast<int>(size.y);
+}
 
 // Called every time a new mission is created (and erasing old mission from memory).
 // New mission should be blank at this point.
@@ -702,7 +740,7 @@ void display_active_ship_subsystem()
 					gr_line(x2, y1, x1, y1);  gr_line(x2, y1-1, x1, y1-1);
 
 					// draw text
-					gr_string((x1+x2)/2,  y2 + 10, buf);
+					gr_string_fred((x1+x2)/2,  y2 + 10, buf);
 				}
 			}
 		}
@@ -885,7 +923,7 @@ void display_distances()
 					if (!(v.codes & CC_BEHIND))
 						if (!(g3_project_vertex(&v) & PF_OVERFLOW))	{
 							sprintf(buf, "%.1f", vm_vec_dist(&objp->pos, &o2->pos));
-							gr_string((int) v.sx, (int) v.sy, buf);
+							gr_string_fred((int) v.sx, (int) v.sy, buf);
 						}
 				}
 
@@ -987,7 +1025,7 @@ void display_ship_info()
 					else
 						gr_set_color(160, 160, 160);
 
-					gr_string((int) v.sx, (int) v.sy, buf);
+					gr_string_fred((int) v.sx, (int) v.sy, buf);
 				}
 			}
 
@@ -1359,7 +1397,7 @@ void render_frame()
 			if (!(g3_project_vertex(&v) & PF_OVERFLOW))	{
 				x = (int) v.sx;
 				y = (int) v.sy + 20;
-				gr_get_string_size(&w, &h, buf);
+				gr_get_string_size_fred(&w, &h, buf);
 				gr_set_color(192, 192, 192);
 				gr_rect(x-1, y-1, w+2, h+2);
 				gr_set_color(255, 255, 255);
@@ -1369,7 +1407,7 @@ void render_frame()
 				gr_line(x-2, y+h+1, x+w+1, y+h+1);
 
 				gr_set_color(0, 0, 0);
-				gr_string(x, y, buf);
+				gr_string_fred(x, y, buf);
 			}
 	}
 
@@ -1377,9 +1415,9 @@ void render_frame()
 	jumpnode_render_all();
 
 	sprintf(buf, "( %.1f , %.1f , %.1f )", eye_pos.xyz.x, eye_pos.xyz.y, eye_pos.xyz.z);
-	gr_get_string_size(&w, &h, buf);
+	gr_get_string_size_fred(&w, &h, buf);
 	gr_set_color(192, 192, 192);
-	gr_string(gr_screen.max_w - w - 2, 2, buf);
+	gr_string_fred(gr_screen.max_w - w - 2, 2, buf);
 
 	g3_end_frame();
 	render_compass();

@@ -527,10 +527,10 @@ const char *Icon_names[MAX_BRIEF_ICONS] = {
 
 //	Translate team mask values like TEAM_FRIENDLY to indices in Team_names array.
 //	-1 means an illegal value.
-int	Team_names_index_xlate[MAX_TEAM_NAMES_INDEX+1] = {-1, 0, 1, -1, 2, -1, -1, -1, 3};
+int	Team_names_index_xlate[MAX_TEAM_NAMES_INDEX+1] = {-1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4};
 
 const char *Team_names[MAX_TEAM_NAMES] = {
-	"Hostile", "Friendly", "Neutral", "Unknown",
+	"Hostile", "Friendly", "Neutral", "Unknown", "Traitor",
 };
 
 const char *Status_desc_names[MAX_STATUS_NAMES] = {

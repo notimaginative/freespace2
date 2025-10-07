@@ -772,6 +772,10 @@ CFREDView::~CFREDView()
 	audiostream_close();
 	snd_close();
 
+	ImGui_ImplOpenGL2_Shutdown();
+	ImGui_ImplSDL3_Shutdown();
+	ImGui::DestroyContext();
+
 	gr_close();
 
 	if (m_gl_context) {

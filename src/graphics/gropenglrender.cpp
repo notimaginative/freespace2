@@ -330,40 +330,19 @@ static void opengl_tmapper_internal( int nv, vertex ** verts, uint flags, int is
 		if (nondarkening) {
 			GL_ctx.glPushAttrib(GL_TEXTURE_BIT);
 
-			// base texture
-			GLfloat ones[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-			GL_ctx.glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &ones[0]);
-
+			// base texture * primary color
 			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_CONSTANT);
+			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PRIMARY_COLOR);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+			// pass through primary color alpha
+			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
-			// add glowy bits
-			GL_ctx.glClientActiveTexture(GL_TEXTURE1);
-			GL_ctx.glActiveTexture(GL_TEXTURE1);
-
-			// force set texture, since it's already active this frame and will
-			// skip setup steps otherwise
-			opengl_tcache_set(gr_screen.current_bitmap, tmap_type, &u_scale,
-							  &v_scale, 0, -1, -1, 1);
-
-			// FIXME: this doesn't appear to work for some reason
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-			GL_ctx.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-			GL_ctx.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			GL_ctx.glTexCoordPointer(2, GL_FLOAT, sizeof(renderbuffer_t), &render_buffer[0].u);
+			// TODO: glowing bits??
 		}
 	}
 

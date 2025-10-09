@@ -71,9 +71,15 @@ void opengl_set_variables()
 		gr_screen.use_sections = 0;
 	}
 
-	// FIXME: set this properly when rendering is fixed
-//	gr_screen.use_nondark = (GL_version >= 13) ? 1 : 0;
+	// see if we can use nondark pixels
 	gr_screen.use_nondark = 0;
+
+	if (GL_version >= 13) {
+		GLint max_tex_units = 0;
+		GL_ctx.glGetIntegerv(GL_MAX_TEXTURE_UNITS, &max_tex_units);
+
+		gr_screen.use_nondark = (max_tex_units > 2) ? 1 : 0;
+	}
 }
 
 void opengl_init_viewport()

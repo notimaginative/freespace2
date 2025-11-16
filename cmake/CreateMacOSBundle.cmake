@@ -74,6 +74,14 @@ install(PROGRAMS
 	DESTINATION "${APP_PATH}/Contents/MacOS"
 )
 
+# also install ANGLE libs
+install(PROGRAMS
+	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libEGL.dylib"
+	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libGLESv2.dylib"
+	DESTINATION "${APP_PATH}/Contents/Frameworks"
+	OPTIONAL
+)
+
 # and do tools, if any exist
 install(PROGRAMS
 	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ac"

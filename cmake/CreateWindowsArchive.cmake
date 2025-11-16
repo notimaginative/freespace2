@@ -61,6 +61,15 @@ install(FILES
 	DESTINATION "${APP_PATH}"
 )
 
+# install ANGLE libs
+install(FILES
+	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/d3dcompiler_47.dll"
+	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libEGL.dll"
+	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libGLESv2.dll"
+	DESTINATION "${APP_PATH}"
+	OPTIONAL
+)
+
 # install main binaries
 install(PROGRAMS
 	"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FS_BINARY}.exe"

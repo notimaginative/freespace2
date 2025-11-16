@@ -207,6 +207,12 @@ add_executable(${FS_BINARY}
 
 target_precompile_headers(${FS_BINARY} REUSE_FROM code)
 
+if(TARGET ANGLE_LIBS)
+  add_dependencies(${FS_BINARY}
+    ANGLE_LIBS
+  )
+endif()
+
 CreateSourceGroups(${freespace_SOURCE} ${launcher_SOURCE})
 
 target_link_libraries(

@@ -385,7 +385,7 @@ const char *Mission_icon_bitmap_filenames[NUM_MISSION_ICONS] = {
 //XSTR:ON
 void sim_room_load_mission_icons();
 void sim_room_unload_mission_icons();
-void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb = NULL, int is_md = 0);
+static void sim_room_blit_icons(int line_index, int y_start);
 
 // Finds a hash value for mission filename
 //
@@ -1413,12 +1413,12 @@ void sim_room_do_frame(float frametime)
 			gr_printf(list_x2, Mission_list_coords[gr_screen.res][1], buf);		
 
 			// blit the proper icons if necessary
-			char full_name[256];
-			SDL_strlcpy(full_name, cf_add_ext(Campaign.filename,FS_CAMPAIGN_FILE_EXT), SDL_arraysize(full_name));
-			fs_builtin_mission *fb = game_find_builtin_mission(full_name);
-			if(fb != NULL){
-				// sim_room_blit_icons(0, Mission_list_coords[gr_screen.res][1], fb, 0);
-			}
+//			char full_name[256];
+//			SDL_strlcpy(full_name, cf_add_ext(Campaign.filename,FS_CAMPAIGN_FILE_EXT), SDL_arraysize(full_name));
+//			fs_builtin_mission *fb = game_find_builtin_mission(full_name);
+//			if(fb != NULL){
+//				// sim_room_blit_icons(0, Mission_list_coords[gr_screen.res][1], fb, 0);
+//			}
 		}
 	}
 
@@ -1466,22 +1466,13 @@ void sim_room_do_frame(float frametime)
 	gr_flip();
 }
 
-void sim_room_blit_icons(int line_index, int y_start, fs_builtin_mission *fb, int is_md)
+static void sim_room_blit_icons(int line_index, int y_start)
 {
-	int is_from_volition = 0;	
-
 	// determine icon status
-	if(fb == NULL){
-		is_from_volition = (sim_room_lines[line_index].flags & READYROOM_FLAG_FROM_VOLITION) ? 1 : 0;		
+	const bool is_from_volition = (sim_room_lines[line_index].flags & READYROOM_FLAG_FROM_VOLITION) ? true : false;
 #ifdef MAKE_FS1
-		is_md = (sim_room_lines[line_index].flags & READYROOM_FLAG_FROM_MDISK) ? 1 : 0;
+	const bool is_md = (sim_room_lines[line_index].flags & READYROOM_FLAG_FROM_MDISK) ? true : false;
 #endif
-	} else {
-		is_from_volition = (fb->flags & FSB_FROM_VOLITION) ? 1 : 0;		
-#ifdef MAKE_FS1
-		is_md = (fb->flags & FSB_FROM_MDISK) ? 1 : 0;
-#endif
-	}
 
 	// if the line is flagged as a volition file
 	if(is_from_volition && (Mission_icon_bitmaps[MISSION_ICON_VOLITION] >= 0)){		

@@ -618,7 +618,11 @@ void hud_show_throttle()
 	}
 
 	if ( Player_obj->phys_info.flags & PF_AFTERBURNER_ON ) {
+#ifdef MAKE_FS1
+		desired_y_pos = 245;
+#else
 		desired_y_pos = 240;
+#endif
 	}
 
 	// draw left arc (the dark portion of the throttle gauge)

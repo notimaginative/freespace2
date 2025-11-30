@@ -96,6 +96,7 @@ void gr_opengl_string( int sx, int sy, const char *s );
 void gr_opengl_line(int x1,int y1,int x2,int y2);
 void gr_opengl_aaline(vertex *v1, vertex *v2);
 void gr_opengl_aalines(vertex *verts, int count);
+void gr_opengl_points(vertex *verts, int count);
 void gr_opengl_gradient(int x1,int y1,int x2,int y2);
 void gr_opengl_circle( int xc, int yc, int d );
 void gr_opengl_pixel(int x, int y);
@@ -161,6 +162,7 @@ typedef struct GL_func_context {
 	PFNGLMATRIXMODEPROC glMatrixMode;
 	PFNGLORTHOPROC glOrtho;
 	PFNGLPIXELSTOREIPROC glPixelStorei;
+	PFNGLPOINTSIZEPROC glPointSize;
 	PFNGLPOLYGONOFFSETPROC glPolygonOffset;
 	PFNGLPOPATTRIBPROC glPopAttrib;
 	PFNGLPOPCLIENTATTRIBPROC glPopClientAttrib;

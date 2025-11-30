@@ -47,6 +47,7 @@ static void toolset_init_func_pointers()
 	gr_screen.gf_line = gr_opengl_line;
 	gr_screen.gf_aaline = gr_opengl_aaline;
 	gr_screen.gf_aalines = gr_opengl_aalines;
+	gr_screen.gf_points = gr_opengl_points;
 	gr_screen.gf_pixel = gr_opengl_pixel;
 	gr_screen.gf_scaler = gr_opengl_scaler;
 	gr_screen.gf_aascaler = gr_opengl_aascaler;

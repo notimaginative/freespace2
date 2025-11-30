@@ -188,6 +188,7 @@ static void opengl_init_func_pointers()
 	gr_screen.gf_line = gr_opengl_line;
 	gr_screen.gf_aaline = gr_opengl_aaline;
 	gr_screen.gf_aalines = gr_opengl_aalines;
+	gr_screen.gf_points = gr_opengl_points;
 	gr_screen.gf_pixel = gr_opengl_pixel;
 	gr_screen.gf_scaler = gr_opengl_scaler;
 	gr_screen.gf_aascaler = gr_opengl_aascaler;
@@ -286,6 +287,7 @@ bool opengl_init_prototypes()
 	GET_PROC(PFNGLMATRIXMODEPROC, glMatrixMode);
 	GET_PROC(PFNGLORTHOPROC, glOrtho);
 	GET_PROC(PFNGLPIXELSTOREIPROC, glPixelStorei);
+	GET_PROC(PFNGLPOINTSIZEPROC, glPointSize);
 	GET_PROC(PFNGLPOLYGONOFFSETPROC, glPolygonOffset);
 	GET_PROC(PFNGLPOPATTRIBPROC, glPopAttrib);
 	GET_PROC(PFNGLPOPCLIENTATTRIBPROC, glPopClientAttrib);
@@ -990,6 +992,7 @@ void gr_opengl_init()
 	GL_ctx.glEnable(GL_TEXTURE_2D);
 
 	GL_ctx.glDepthRange(0.0, 1.0);
+	GL_ctx.glPointSize(1.25f);
 
 	GL_ctx.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	GL_ctx.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -1012,6 +1015,10 @@ void gr_opengl_init()
 	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, AA %d\n",
 			 a, r, g, b, bpp, FSAA));
 	mprintf(("\n"));
+
+	if (FSAA) {
+		GL_ctx.glEnable(GL_MULTISAMPLE);
+	}
 
 	SDL_StopTextInput(os_get_window());
 	SDL_DisableScreenSaver();

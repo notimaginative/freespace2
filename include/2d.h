@@ -450,6 +450,7 @@ typedef struct screen {
 	void (*gf_aaline)(vertex *v1, vertex *v2);
 
 	void (*gf_aalines)(vertex *verts, int count);
+	void (*gf_points)(vertex *verts, int count);
 
 	void (*gf_pixel)( int x, int y );
 
@@ -647,6 +648,7 @@ void gr_set_shader(shader *shade);
 #define gr_line				GR_CALL(gr_screen.gf_line)
 #define gr_aaline				GR_CALL(gr_screen.gf_aaline)
 #define gr_aalines			GR_CALL(gr_screen.gf_aalines)
+#define gr_points			GR_CALL(gr_screen.gf_points)
 #define gr_pixel				GR_CALL(gr_screen.gf_pixel)
 #define gr_scaler				GR_CALL(gr_screen.gf_scaler)
 #define gr_aascaler			GR_CALL(gr_screen.gf_aascaler)

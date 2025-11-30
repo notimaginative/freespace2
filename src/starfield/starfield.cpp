@@ -1160,8 +1160,11 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 	if (show_stars && ( Game_detail_flags & DETAIL_FLAG_STARS) && !(The_mission.flags & MISSION_FLAG_FULLNEB) && (supernova_active() < 3))	{
 		//Num_stars = 1;
 		#define STAR_BUFFER_SIZE 200	// room for 100 stars, MUST BE MULTIPLE OF 2!!
+		#define POINT_BUFFER_SIZE STAR_BUFFER_SIZE/2
 		vertex StarBuffer[STAR_BUFFER_SIZE];
+		vertex PointBuffer[POINT_BUFFER_SIZE];
 		int star_count = 0;
+		int point_count = 0;
 
 		star *sp;
 
@@ -1263,17 +1266,28 @@ void stars_draw( int show_stars, int show_suns, int show_nebulas, int show_subsp
 			p1->b = p2->b = star_aacolors[clr].blue;
 			p1->a = p2->a = star_aacolors[clr].alpha;
 
-			// if the two points are the same, fudge it, since some D3D cards (G200 and G400) are lame.
+			// if this could be better drawn as just a point then do so
 			if ( (fl2i(p1->sx) == fl2i(p2->sx)) && (fl2i(p1->sy) == fl2i(p2->sy)) ) {
-				p1->sx += 1.0f;
-			}
+				PointBuffer[point_count++] = *p2;
 
-			star_count += 2;
-
-			if (star_count >= STAR_BUFFER_SIZE) {
-				gr_aalines(StarBuffer, star_count);
-				star_count = 0;
+				if (point_count >= POINT_BUFFER_SIZE) {
+					gr_points(PointBuffer, point_count);
+					point_count = 0;
+				}
 			}
+			// otherwise we do a line
+			else {
+				star_count += 2;
+
+				if (star_count >= STAR_BUFFER_SIZE) {
+					gr_aalines(StarBuffer, star_count);
+					star_count = 0;
+				}
+			}
+		}
+
+		if (point_count) {
+			gr_points(PointBuffer, point_count);
 		}
 
 		if (star_count) {

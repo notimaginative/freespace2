@@ -38,6 +38,8 @@ static GLuint GL_stream_tex = 0;
 static int GLES2_activate = 0;
 static int GLES2_deactivate = 0;
 
+static int GLES2_res_scale = 0;
+
 GLES2_func_context GLES2_ctx;
 
 int GLES2_viewport_x = 0;
@@ -108,8 +110,81 @@ void gles2_set_state(gr_texture_source ts, gr_alpha_blend ab, gr_zbuffer_type zt
 	}
 }
 
+int gles2_res_scale(int val)
+{
+	if (GLES2_res_scale > 0) {
+		return val * GLES2_res_scale;
+	}
+
+	return val;
+}
+
+float gles2_res_scale(float val)
+{
+	if (GLES2_res_scale > 0) {
+		return val * GLES2_res_scale;
+	}
+
+	return val;
+}
+
+bool gles2_need_res_scale()
+{
+	return (GLES2_res_scale > 1);
+}
+
+static bool gles2_init_res_scale()
+{
+	int AA = os_config_read_uint("Video", "AntiAlias", 0);
+
+	// set default first thing
+	GLES2_res_scale = 0;
+
+	if (AA < 2) {
+		return false;
+	}
+
+	switch (AA) {
+		case 2:
+			GLES2_res_scale = 2;
+			break;
+		case 4:
+			GLES2_res_scale = 3;
+			break;
+		case 8:
+			GLES2_res_scale = 4;
+			break;
+		case 16:
+			GLES2_res_scale = 5;
+			break;
+		default:
+			return false;
+	}
+
+	// make sure we aren't scaling beyond the hardware/driver limits
+	int tex_max_size = 0, rb_max_size = 0;
+
+	GLES2_ctx.glGetIntegerv(GL_MAX_TEXTURE_SIZE, &tex_max_size);
+	GLES2_ctx.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &rb_max_size);
+
+	int max_size = SDL_min(tex_max_size, rb_max_size);
+
+	while ((gr_screen.max_w * GLES2_res_scale) > max_size) {
+		--GLES2_res_scale;
+	}
+
+	if (GLES2_res_scale < 2) {
+		GLES2_res_scale = 0;
+		return false;
+	}
+
+	return true;
+}
+
 static bool gles2_set_variables()
 {
+	gles2_init_res_scale();
+
 	GLES2_min_texture_height = 16;
 	GLES2_min_texture_width = 16;
 
@@ -134,7 +209,9 @@ static int gles2_create_framebuffer()
 	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gr_screen.max_w, gr_screen.max_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	GLES2_ctx.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gles2_res_scale(gr_screen.max_w),
+						   gles2_res_scale(gr_screen.max_h), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+						   NULL);
 
 	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -142,7 +219,9 @@ static int gles2_create_framebuffer()
 	GLES2_ctx.glGenRenderbuffers(1, &FB_rb_id);
 	GLES2_ctx.glBindRenderbuffer(GL_RENDERBUFFER, FB_rb_id);
 
-	GLES2_ctx.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, gr_screen.max_w, gr_screen.max_h);
+	GLES2_ctx.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
+									gles2_res_scale(gr_screen.max_w),
+									gles2_res_scale(gr_screen.max_h));
 
 	GLES2_ctx.glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -199,6 +278,7 @@ static void gles2_init_func_pointers()
 	gr_screen.gf_line = gr_gles2_line;
 	gr_screen.gf_aaline = gr_gles2_aaline;
 	gr_screen.gf_aalines = gr_gles2_aalines;
+	gr_screen.gf_points = gr_gles2_points;
 	gr_screen.gf_pixel = gr_gles2_pixel;
 	gr_screen.gf_scaler = gr_gles2_scaler;
 	gr_screen.gf_aascaler = gr_gles2_aascaler;
@@ -299,6 +379,7 @@ static bool gles2_init_prototypes()
 	GET_PROC(PFNGLGENRENDERBUFFERSPROC, glGenRenderbuffers)
 	GET_PROC(PFNGLGENTEXTURESPROC, glGenTextures)
 	GET_PROC(PFNGLGETERRORPROC, glGetError)
+	GET_PROC(PFNGLGETFLOATVPROC, glGetFloatv)
 	GET_PROC(PFNGLGETINTEGERVPROC, glGetIntegerv)
 	GET_PROC(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)
 	GET_PROC(PFNGLGETPROGRAMIVPROC, glGetProgramiv)
@@ -318,6 +399,7 @@ static bool gles2_init_prototypes()
 	GET_PROC(PFNGLTEXSUBIMAGE2DPROC, glTexSubImage2D)
 	GET_PROC(PFNGLUNIFORMMATRIX4FVPROC, glUniformMatrix4fv)
 	GET_PROC(PFNGLUSEPROGRAMPROC, glUseProgram)
+	GET_PROC(PFNGLVERTEXATTRIB1FPROC, glVertexAttrib1f)
 	GET_PROC(PFNGLVERTEXATTRIB4FPROC, glVertexAttrib4f)
 	GET_PROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer)
 	GET_PROC(PFNGLVIEWPORTPROC, glViewport)
@@ -446,18 +528,12 @@ void gr_gles2_init()
 	Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
 
 	int a = 1, r = 5, g = 5, b = 5, bpp = 16;
-	int FSAA = os_config_read_uint("Video", "AntiAlias", 0);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, g);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, b);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, a);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, bpp);
-
-	if (FSAA) {
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, FSAA);
-	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -560,18 +636,24 @@ void gr_gles2_init()
 	gr_gles2_clear();
 	gr_gles2_set_cull(1);
 
-	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d, AA %d\n",
-			 a, r, g, b, bpp, FSAA));
+	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d\n",
+			 a, r, g, b, bpp));
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
 	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
 	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
-	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
 
-	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, AA %d\n",
-			 a, r, g, b, bpp, FSAA));
+	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d\n",
+			 a, r, g, b, bpp));
+
+	if (GLES2_res_scale < 2) {
+		mprintf(("  Resolution scaling   : disabled\n"));
+	} else {
+		mprintf(("  Resolution scaling   : %dx\n", GLES2_res_scale));
+	}
+
 	mprintf(("\n"));
 
 	SDL_StopTextInput(os_get_window());
@@ -756,7 +838,8 @@ void gr_gles2_flip()
 	GLES2_ctx.glBindFramebuffer(GL_FRAMEBUFFER, FB_id);
 
 	// set viewport to game screen size
-	GLES2_ctx.glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+	GLES2_ctx.glViewport(0, 0, gles2_res_scale(gr_screen.max_w),
+						 gles2_res_scale(gr_screen.max_h));
 }
 
 void gr_gles2_set_clip(int x, int y, int w, int h)
@@ -777,7 +860,8 @@ void gr_gles2_set_clip(int x, int y, int w, int h)
 	gr_screen.clip_height = h;
 
 	GLES2_ctx.glEnable(GL_SCISSOR_TEST);
-	GLES2_ctx.glScissor(x, gr_screen.max_h-y-h, w, h);
+	GLES2_ctx.glScissor(gles2_res_scale(x), gles2_res_scale(gr_screen.max_h-y-h),
+						gles2_res_scale(w), gles2_res_scale(h));
 }
 
 void gr_gles2_fog_set(int fog_mode, int r, int g, int b, float fog_near, float fog_far)
@@ -912,7 +996,8 @@ int gr_gles2_save_screen()
 	GLES2_ctx.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	GLES2_ctx.glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
-							   gr_screen.max_w, gr_screen.max_h, 0);
+							   gles2_res_scale(gr_screen.max_w),
+							   gles2_res_scale(gr_screen.max_h), 0);
 
 	GLES2_ctx.glBindTexture(GL_TEXTURE_2D, 0);
 

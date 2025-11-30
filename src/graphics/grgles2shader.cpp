@@ -114,6 +114,7 @@ static GLuint gles2_create_program(GLuint vert, GLuint frag)
 	GLES2_ctx.glBindAttribLocation(program, SDRI_COLOR, "vColor");
 	GLES2_ctx.glBindAttribLocation(program, SDRI_SEC_COLOR, "vSecColor");
 	GLES2_ctx.glBindAttribLocation(program, SDRI_TEXCOORD, "vTexCoord");
+	GLES2_ctx.glBindAttribLocation(program, SDRI_POINT_SIZE, "vPointSize");
 
 	GLES2_ctx.glLinkProgram(program);
 

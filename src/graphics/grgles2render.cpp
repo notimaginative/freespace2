@@ -583,6 +583,10 @@ void gr_gles2_string(int sx, int sy, const char *s)
 	GLES2_ctx.glDisableVertexAttribArray(SDRI_TEXCOORD);
 }
 
+
+#define NORMALIZE(XX, YY) \
+	{ float ilen = 1.0f / sqrtf(XX*XX + YY*YY); XX *= ilen; YY *= ilen; } (void)0
+
 void gr_gles2_line(int x1, int y1, int x2, int y2)
 {
 	gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
@@ -598,16 +602,19 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 	sx2 = i2fl(x2 + gr_screen.offset_x) + 0.5f;
 	sy2 = i2fl(y2 + gr_screen.offset_y) + 0.5f;
 
-	auto render_buffer = gr_get_render_buffer(2);
+	auto render_buffer = gr_get_render_buffer(4);
 
 	gles2_shader_use(PROG_COLOR);
 
-	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
+	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE,
+									sizeof(renderbuffer_t), &render_buffer[0].x);
 	GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
 
 	float r, g, b, a;
 	gr_get_colorf(&r, &g, &b, &a);
 	GLES2_ctx.glVertexAttrib4f(SDRI_COLOR, r, g, b, a);
+
+	GLES2_ctx.glVertexAttrib1f(SDRI_POINT_SIZE, gles2_res_scale(1.25f));
 
 	if ( (x1 == x2) && (y1 == y2) ) {
 		render_buffer[0].x = sx1;
@@ -635,15 +642,45 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 		}
 	}
 
-	render_buffer[0].x = sx2;
-	render_buffer[0].y = sy2;
-	render_buffer[0].z = -0.99f;
+	if (gles2_need_res_scale()) {
+		const float half_width = 0.5f;
 
-	render_buffer[1].x = sx1;
-	render_buffer[1].y = sy1;
-	render_buffer[1].z = -0.99f;
+		float dx = sx2 - sx1;
+		float dy = sy2 - sy1;
 
-	GLES2_ctx.glDrawArrays(GL_LINES, 0, 2);
+		NORMALIZE(dx, dy);
+
+		float vx = -dy * half_width;
+		float vy = dx * half_width;
+
+		render_buffer[0].x = sx2 + vx;
+		render_buffer[0].y = sy2 + vy;
+		render_buffer[0].z = -0.99f;
+
+		render_buffer[1].x = sx2 - vx;
+		render_buffer[1].y = sy2 - vy;
+		render_buffer[1].z = -0.99f;
+
+		render_buffer[2].x = sx1 + vx;
+		render_buffer[2].y = sy1 + vy;
+		render_buffer[2].z = -0.99f;
+
+		render_buffer[3].x = sx1 - vx;
+		render_buffer[3].y = sy1 - vy;
+		render_buffer[3].z = -0.99f;
+
+		GLES2_ctx.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	} else {
+		render_buffer[0].x = sx2;
+		render_buffer[0].y = sy2;
+		render_buffer[0].z = -0.99f;
+
+		render_buffer[1].x = sx1;
+		render_buffer[1].y = sy1;
+		render_buffer[1].z = -0.99f;
+
+		GLES2_ctx.glDrawArrays(GL_LINES, 0, 2);
+	}
 
 	GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);
 }
@@ -653,10 +690,104 @@ void gr_gles2_aaline(vertex *v1, vertex *v2)
 	gr_gles2_line( fl2i(v1->sx), fl2i(v1->sy), fl2i(v2->sx), fl2i(v2->sy) );
 }
 
+#define STAR_SIZE	1.25f
+
 void gr_gles2_aalines(vertex *verts, int count)
 {
+	int r_count = count;
+	GLenum r_mode = GL_LINES;
+
 	// count must be a multiple of 2
 	if ((count < 2) || (count % 2)) {
+		return;
+	}
+
+	if (gles2_need_res_scale()) {
+		r_count *= 3;	// gives us 6 points per "line"
+		r_mode = GL_TRIANGLES;
+	}
+
+	auto render_buffer = gr_get_render_buffer(r_count);
+
+	if (gles2_need_res_scale()) {
+		const float half_width = STAR_SIZE * 0.5f;
+
+		for (int i = 0, r = 0; i < count; i += 2, r += 6 ) {
+			float sx1 = verts[i].sx;
+			float sy1 = verts[i].sy;
+
+			float sx2 = verts[i+1].sx;
+			float sy2 = verts[i+1].sy;
+
+			float dx = sx2 - sx1;
+			float dy = sy2 - sy1;
+
+			NORMALIZE(dx, dy);
+
+			float vx = -dy * half_width;
+			float vy = dx * half_width;
+
+			// tri 1
+			render_buffer[r].x = sx2 + vx;
+			render_buffer[r].y = sy2 + vy;
+			render_buffer[r].z = -0.99f;
+			render_buffer[r+1].x = sx2 - vx;
+			render_buffer[r+1].y = sy2 - vy;
+			render_buffer[r+1].z = -0.99f;
+			render_buffer[r+2].x = sx1 + vx;
+			render_buffer[r+2].y = sy1 + vy;
+			render_buffer[r+2].z = -0.99f;
+
+			// tri 2
+			render_buffer[r+3].x = sx1 - vx;
+			render_buffer[r+3].y = sy1 - vy;
+			render_buffer[r+3].z = -0.99f;
+			render_buffer[r+4].x = sx1 + vx;
+			render_buffer[r+4].y = sy1 + vy;
+			render_buffer[r+4].z = -0.99f;
+			render_buffer[r+5].x = sx2 - vx;
+			render_buffer[r+5].y = sy2 - vy;
+			render_buffer[r+5].z = -0.99f;
+
+			for (int x = r; x < 6; ++x) {
+				render_buffer[x].r = verts[i].r;
+				render_buffer[x].g = verts[i].g;
+				render_buffer[x].b = verts[i].b;
+				render_buffer[x].a = verts[i].a;
+			}
+		}
+	} else {
+		for (int i = 0; i < count; ++i) {
+			render_buffer[i].x = verts[i].sx;
+			render_buffer[i].y = verts[i].sy;
+			render_buffer[i].z = -0.99f;
+
+			render_buffer[i].r = verts[i].r;
+			render_buffer[i].g = verts[i].g;
+			render_buffer[i].b = verts[i].b;
+			render_buffer[i].a = verts[i].a;
+		}
+	}
+
+	gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
+
+	gles2_shader_use(PROG_COLOR);
+
+	GLES2_ctx.glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(renderbuffer_t), &render_buffer[0].r);
+	GLES2_ctx.glEnableVertexAttribArray(SDRI_COLOR);
+
+	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
+	GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
+
+	GLES2_ctx.glDrawArrays(r_mode, 0, r_count);
+
+	GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);
+	GLES2_ctx.glDisableVertexAttribArray(SDRI_COLOR);
+}
+
+void gr_gles2_points(vertex *verts, int count)
+{
+	if (count < 1) {
 		return;
 	}
 
@@ -665,6 +796,7 @@ void gr_gles2_aalines(vertex *verts, int count)
 	for (int i = 0; i < count; ++i) {
 		render_buffer[i].x = verts[i].sx;
 		render_buffer[i].y = verts[i].sy;
+		render_buffer[i].z = -0.99f;
 
 		render_buffer[i].r = verts[i].r;
 		render_buffer[i].g = verts[i].g;
@@ -676,13 +808,15 @@ void gr_gles2_aalines(vertex *verts, int count)
 
 	gles2_shader_use(PROG_COLOR);
 
+	GLES2_ctx.glVertexAttrib1f(SDRI_POINT_SIZE, gles2_res_scale(STAR_SIZE));
+
 	GLES2_ctx.glVertexAttribPointer(SDRI_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(renderbuffer_t), &render_buffer[0].r);
 	GLES2_ctx.glEnableVertexAttribArray(SDRI_COLOR);
 
-	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
+	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
 
-	GLES2_ctx.glDrawArrays(GL_LINES, 0, count);
+	GLES2_ctx.glDrawArrays(GL_POINTS, 0, count);
 
 	GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);
 	GLES2_ctx.glDisableVertexAttribArray(SDRI_COLOR);

@@ -59,7 +59,8 @@ enum {
 	SDRI_POSITION = 1,
 	SDRI_COLOR = 2,
 	SDRI_SEC_COLOR = 3,
-	SDRI_TEXCOORD = 4
+	SDRI_TEXCOORD = 4,
+	SDRI_POINT_SIZE = 5,
 };
 
 extern int GLES2_viewport_x;
@@ -77,6 +78,10 @@ int gles2_shader_init();
 void gles2_shader_cleanup();
 void gles2_shader_use(sdr_prog_t prog);
 void gles2_shader_update(int width = 0, int height = 0);
+
+int gles2_res_scale(int val);
+float gles2_res_scale(float val);
+bool gles2_need_res_scale();
 
 void gr_gles2_flip();
 void gr_gles2_set_clip(int x, int y, int w, int h);
@@ -109,6 +114,7 @@ void gr_gles2_string(int sx, int sy, const char *s);
 void gr_gles2_line(int x1, int y1, int x2, int y2);
 void gr_gles2_aaline(vertex *v1, vertex *v2);
 void gr_gles2_aalines(vertex *verts, int count);
+void gr_gles2_points(vertex *verts, int count);
 void gr_gles2_gradient(int x1, int y1, int x2, int y2);
 void gr_gles2_circle(int xc, int yc, int d);
 void gr_gles2_pixel(int x, int y);
@@ -162,6 +168,7 @@ typedef struct GLES2_func_context {
 	PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 	PFNGLGENTEXTURESPROC glGenTextures;
 	PFNGLGETERRORPROC glGetError;
+	PFNGLGETFLOATVPROC glGetFloatv;
 	PFNGLGETINTEGERVPROC glGetIntegerv;
 	PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 	PFNGLGETPROGRAMIVPROC glGetProgramiv;
@@ -181,6 +188,7 @@ typedef struct GLES2_func_context {
 	PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
 	PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 	PFNGLUSEPROGRAMPROC glUseProgram;
+	PFNGLVERTEXATTRIB1FPROC glVertexAttrib1f;
 	PFNGLVERTEXATTRIB4FPROC glVertexAttrib4f;
 	PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 	PFNGLVIEWPORTPROC glViewport;

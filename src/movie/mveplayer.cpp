@@ -92,16 +92,17 @@ void mve_end_movie()
  * timer handlers
  *************************/
 
-int mve_timer_create(ubyte *data)
+void mve_timer_create(ubyte *data)
 {
+	if (timer_created)
+		return;
+
 	micro_frame_delay = mve_get_int(data) * (int)mve_get_short(data+4);
 
 	micro_timer_start = SDL_GetPerformanceCounter();
 	micro_timer_freq = SDL_GetPerformanceFrequency();
 
 	timer_created = 1;
-
-	return 1;
 }
 
 static unsigned int mve_timer_get_microseconds()

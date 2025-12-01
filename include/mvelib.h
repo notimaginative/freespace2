@@ -97,7 +97,7 @@ void mve_video_display();
 // misc
 void mve_end_movie();
 void mve_end_chunk();
-int mve_timer_create(ubyte *data);
+void mve_timer_create(ubyte *data);
 
 // special audio functions
 void mveaudio_uncompress(unsigned char *buffer, unsigned char *data, int length);

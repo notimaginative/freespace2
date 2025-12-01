@@ -54,6 +54,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(SDL3)
 
+target_set_folder(SDL3-shared "External")
+target_set_folder(SDL3_test "External")
+target_set_folder(SDL_uclibc "External")
+
 #
 # OpenAL (openal-soft)
 #
@@ -116,6 +120,12 @@ endif()
 
 FetchContent_MakeAvailable(OpenAL)
 
+target_set_folder(OpenAL "External")
+target_set_folder(alsoft.common "External")
+target_set_folder(alsoft.excommon "External")
+target_set_folder(alsoft.fmt "External")
+target_set_folder(clang-tidy-check "External")
+
 if(NOT EMSCRIPTEN)
 
   #
@@ -130,10 +140,17 @@ if(NOT EMSCRIPTEN)
     SYSTEM
   )
 
+  set(BUILD_TESTING OFF CACHE BOOL "")
   set(LWS_WITH_SSL OFF CACHE BOOL "")
+  set(LWS_WITH_MINIMAL_EXAMPLES OFF CACHE BOOL "")
+  set(LWS_WITHOUT_CLIENT ON CACHE BOOL "")
   set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "")
 
   FetchContent_MakeAvailable(LibWebSockets)
+
+  target_set_folder(websockets "External")
+  target_set_folder(websockets_shared "External")
+  target_set_folder(GENHDR "External")
 
   if((APPLE OR WIN32) AND IS_64BIT)
     #
@@ -156,6 +173,8 @@ if(NOT EMSCRIPTEN)
     FetchContent_MakeAvailable(ANGLE)
 
     add_custom_target(ANGLE_LIBS)
+
+    target_set_folder(ANGLE_LIBS "External")
 
     if(APPLE)
       set(angle_src "${FETCHCONTENT_BASE_DIR}/angle-src/lib")

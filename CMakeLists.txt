@@ -1,6 +1,8 @@
 
 cmake_minimum_required(VERSION 3.22...4.0)
 
+include(cmake/utils.cmake)
+
 # these need to be set before project() is called
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS/iOS deployment target")
 # (currently broken for OpenAL, it must build each separately)

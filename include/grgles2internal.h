@@ -91,6 +91,8 @@ void gr_gles2_zbuffer_clear(int mode);
 void gr_gles2_print_screen(const char *filename);
 void gr_gles2_fade_in(int instantaneous);
 void gr_gles2_fade_out(int instantaneous);
+void gr_gles2_push_unscaled_viewport();
+void gr_gles2_pop_unscaled_viewport();
 void gr_gles2_get_region(int front, int w, int h, ubyte *data);
 int gr_gles2_save_screen();
 void gr_gles2_restore_screen(int);
@@ -167,6 +169,7 @@ typedef struct GLES2_func_context {
 	PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
 	PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 	PFNGLGENTEXTURESPROC glGenTextures;
+	PFNGLGETBOOLEANVPROC glGetBooleanv;
 	PFNGLGETERRORPROC glGetError;
 	PFNGLGETFLOATVPROC glGetFloatv;
 	PFNGLGETINTEGERVPROC glGetIntegerv;

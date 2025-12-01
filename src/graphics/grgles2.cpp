@@ -313,6 +313,8 @@ static void gles2_init_func_pointers()
 
 	gr_screen.gf_fog_set = gr_gles2_fog_set;
 
+	gr_screen.gf_push_unscaled_viewport = gr_gles2_push_unscaled_viewport;
+	gr_screen.gf_pop_unscaled_viewport = gr_gles2_pop_unscaled_viewport;
 	gr_screen.gf_get_region = gr_gles2_get_region;
 
 	gr_screen.gf_set_cull = gr_gles2_set_cull;
@@ -378,6 +380,7 @@ static bool gles2_init_prototypes()
 	GET_PROC(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers)
 	GET_PROC(PFNGLGENRENDERBUFFERSPROC, glGenRenderbuffers)
 	GET_PROC(PFNGLGENTEXTURESPROC, glGenTextures)
+	GET_PROC(PFNGLGETBOOLEANVPROC, glGetBooleanv)
 	GET_PROC(PFNGLGETERRORPROC, glGetError)
 	GET_PROC(PFNGLGETFLOATVPROC, glGetFloatv)
 	GET_PROC(PFNGLGETINTEGERVPROC, glGetIntegerv)
@@ -965,6 +968,46 @@ void gr_gles2_fade_out(int instantaneous)
 
 }
 
+static bool viewport_scissor_test_reset = false;
+
+void gr_gles2_push_unscaled_viewport()
+{
+	GLboolean val = GL_FALSE;
+
+	if ( !gles2_need_res_scale() ) {
+		return;
+	}
+
+	GLES2_ctx.glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+
+	// Disabling the scissor test is easier than changing and then resetting it
+	// for the viewport change. But with the current single use case in the
+	// fullneb code that shouldn't be a problem.
+	GLES2_ctx.glGetBooleanv(GL_SCISSOR_TEST, &val);
+
+	if (val) {
+		GLES2_ctx.glDisable(GL_SCISSOR_TEST);
+	}
+
+	viewport_scissor_test_reset = (val == GL_TRUE);
+}
+
+void gr_gles2_pop_unscaled_viewport()
+{
+	if ( !gles2_need_res_scale() ) {
+		return;
+	}
+
+	GLES2_ctx.glViewport(0, 0, gles2_res_scale(gr_screen.max_w),
+						 gles2_res_scale(gr_screen.max_h));
+
+	if (viewport_scissor_test_reset) {
+		GLES2_ctx.glEnable(GL_SCISSOR_TEST);
+	}
+}
+
+// NOTE: This should only be called between push/pop unscaled_viewport() calls
+//       due to the rest of the code not really knowing about true viewport size
 void gr_gles2_get_region(int, int w, int h, ubyte *data)
 {
 	gles2_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);

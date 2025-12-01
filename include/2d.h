@@ -511,6 +511,11 @@ typedef struct screen {
 	uint (*gf_lock)();
 	void (*gf_unlock)();
 
+	// set and reset viewport to be standard max_w/max_h size so that get_region()
+	// will work properly
+	void (*gf_push_unscaled_viewport)();
+	void (*gf_pop_unscaled_viewport)();
+
 	// grab a region of the screen. assumes data is large enough
 	void (*gf_get_region)(int front, int w, int h, ubyte *data);
 
@@ -688,6 +693,8 @@ void gr_set_gamma(float gamma);
 #define gr_lock				GR_CALL(gr_screen.gf_lock)
 #define gr_unlock				GR_CALL(gr_screen.gf_unlock)
 
+#define gr_push_unscaled_viewport	GR_CALL(gr_screen.gf_push_unscaled_viewport)
+#define gr_pop_unscaled_viewport	GR_CALL(gr_screen.gf_pop_unscaled_viewport)
 #define gr_get_region		GR_CALL(gr_screen.gf_get_region)
 
 #define gr_fog_set			GR_CALL(gr_screen.gf_fog_set)

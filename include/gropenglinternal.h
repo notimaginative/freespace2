@@ -115,6 +115,8 @@ void gr_opengl_zbuffer_clear(int mode);
 void gr_opengl_print_screen(const char *filename);
 void gr_opengl_fade_in(int instantaneous);
 void gr_opengl_fade_out(int instantaneous);
+void gr_opengl_push_unscaled_viewport();
+void gr_opengl_pop_unscaled_viewport();
 void gr_opengl_get_region(int front, int w, int h, ubyte *data);
 int gr_opengl_save_screen();
 void gr_opengl_restore_screen(int id);
@@ -154,6 +156,7 @@ typedef struct GL_func_context {
 	PFNGLFOGIPROC glFogi;
 	PFNGLFRONTFACEPROC glFrontFace;
 	PFNGLGENTEXTURESPROC glGenTextures;
+	PFNGLGETBOOLEANVPROC glGetBooleanv;
 	PFNGLGETERRORPROC glGetError;
 	PFNGLGETINTEGERVPROC glGetIntegerv;
 	PFNGLGETSTRINGPROC glGetString;

@@ -1174,6 +1174,8 @@ void neb2_pre_render(vector *eye_pos, matrix *eye_orient)
 	g3_set_view_matrix(eye_pos, eye_orient, Viewer_zoom);
 	gr_set_clip(0, 0, this_esize, this_esize);		
 
+	gr_push_unscaled_viewport();
+
 	// render the background properly
 	// hack - turn off nebula stuff
 	int neb_save = Neb2_render_mode;
@@ -1196,12 +1198,12 @@ void neb2_pre_render(vector *eye_pos, matrix *eye_orient)
 	}
 #endif
 
-	// maybe do some swizzling
-	
+	// reset view
+	gr_clear();
+	gr_pop_unscaled_viewport();
+
 	// end the frame
 	g3_end_frame();
-	
-	gr_clear();	
 
 	// if the size has changed between frames, make a new bitmap
 	if(this_esize != last_esize){

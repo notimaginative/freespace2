@@ -223,6 +223,8 @@ static void opengl_init_func_pointers()
 
 	gr_screen.gf_fog_set = gr_opengl_fog_set;
 
+	gr_screen.gf_push_unscaled_viewport = gr_opengl_push_unscaled_viewport;
+	gr_screen.gf_pop_unscaled_viewport = gr_opengl_pop_unscaled_viewport;
 	gr_screen.gf_get_region = gr_opengl_get_region;
 
 	gr_screen.gf_set_cull = gr_opengl_set_cull;
@@ -279,6 +281,7 @@ bool opengl_init_prototypes()
 	GET_PROC(PFNGLFOGIPROC, glFogi);
 	GET_PROC(PFNGLFRONTFACEPROC, glFrontFace);
 	GET_PROC(PFNGLGENTEXTURESPROC, glGenTextures);
+	GET_PROC(PFNGLGETBOOLEANVPROC, glGetBooleanv);
 	GET_PROC(PFNGLGETERRORPROC, glGetError);
 	GET_PROC(PFNGLGETINTEGERVPROC, glGetIntegerv);
 	GET_PROC(PFNGLGETSTRINGPROC, glGetString);
@@ -498,6 +501,43 @@ void gr_opengl_fade_out(int instantaneous)
 	// Empty - DDOI
 }
 
+static bool viewport_scissor_test_reset = false;
+
+void gr_opengl_push_unscaled_viewport()
+{
+	GLboolean val = GL_FALSE;
+
+	if ( (GL_viewport_w == gr_screen.max_w) && (GL_viewport_h == gr_screen.max_h) ) {
+		return;
+	}
+
+	GL_ctx.glViewport(0, 0, gr_screen.max_w, gr_screen.max_h);
+
+	// Disabling the scissor test is easier than changing and then resetting it
+	// for the viewport change. But with the current single use case in the
+	// fullneb code that shouldn't be a problem.
+	GL_ctx.glGetBooleanv(GL_SCISSOR_TEST, &val);
+
+	if (val) {
+		GL_ctx.glDisable(GL_SCISSOR_TEST);
+	}
+
+	viewport_scissor_test_reset = (val == GL_TRUE);
+}
+
+void gr_opengl_pop_unscaled_viewport()
+{
+	if ( (GL_viewport_w == gr_screen.max_w) && (GL_viewport_h == gr_screen.max_h) ) {
+		return;
+	}
+
+	GL_ctx.glViewport(GL_viewport_x, GL_viewport_y, GL_viewport_w, GL_viewport_h);
+
+	if (viewport_scissor_test_reset) {
+		GL_ctx.glEnable(GL_SCISSOR_TEST);
+	}
+}
+
 void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 {
 	opengl_set_state(TEXTURE_SOURCE_NO_FILTERING, ALPHA_BLEND_NONE, ZBUFFER_TYPE_NONE);
@@ -510,7 +550,7 @@ void gr_opengl_get_region(int front, int w, int h, ubyte *data)
 
 	GL_ctx.glReadBuffer( (front) ? GL_FRONT : GL_BACK );
 
-	GL_ctx.glReadPixels(GL_viewport_x, (GL_viewport_y+GL_viewport_h)-h-1, w, h, GL_RGBA, pxtype, data);
+	GL_ctx.glReadPixels(0, gr_screen.max_h-h-1, w, h, GL_RGBA, pxtype, data);
 }
 
 int gr_opengl_save_screen()

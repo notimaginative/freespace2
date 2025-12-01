@@ -861,23 +861,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		}
 	}
 
-	auto render_buffer = gr_get_render_buffer(2);
-
-	render_buffer[0].r = gr_screen.current_color.red;
-	render_buffer[0].g = gr_screen.current_color.green;
-	render_buffer[0].b = gr_screen.current_color.blue;
-	render_buffer[0].a = ba;
-	render_buffer[0].x = sx2;
-	render_buffer[0].y = sy2;
-	render_buffer[0].z = -0.99f;
-
-	render_buffer[1].r = gr_screen.current_color.red;
-	render_buffer[1].g = gr_screen.current_color.green;
-	render_buffer[1].b = gr_screen.current_color.blue;
-	render_buffer[1].a = aa;
-	render_buffer[1].x = sx1;
-	render_buffer[1].y = sy1;
-	render_buffer[1].z = -0.99f;
+	auto render_buffer = gr_get_render_buffer(4);
 
 	gles2_shader_use(PROG_COLOR);
 
@@ -887,7 +871,69 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 	GLES2_ctx.glVertexAttribPointer(SDRI_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(renderbuffer_t), &render_buffer[0].x);
 	GLES2_ctx.glEnableVertexAttribArray(SDRI_POSITION);
 
-	GLES2_ctx.glDrawArrays(GL_LINES, 0, 2);
+	if (gles2_need_res_scale()) {
+		const float half_width = 0.5f;
+
+		float dx = sx2 - sx1;
+		float dy = sy2 - sy1;
+
+		NORMALIZE(dx, dy);
+
+		float vx = -dy * half_width;
+		float vy = dx * half_width;
+
+		render_buffer[0].r = gr_screen.current_color.red;
+		render_buffer[0].g = gr_screen.current_color.green;
+		render_buffer[0].b = gr_screen.current_color.blue;
+		render_buffer[0].a = ba;
+		render_buffer[0].x = sx2 + vx;
+		render_buffer[0].y = sy2 + vy;
+		render_buffer[0].z = -0.99f;
+
+		render_buffer[1].r = gr_screen.current_color.red;
+		render_buffer[1].g = gr_screen.current_color.green;
+		render_buffer[1].b = gr_screen.current_color.blue;
+		render_buffer[1].a = ba;
+		render_buffer[1].x = sx2 - vx;
+		render_buffer[1].y = sy2 - vy;
+		render_buffer[1].z = -0.99f;
+
+		render_buffer[2].r = gr_screen.current_color.red;
+		render_buffer[2].g = gr_screen.current_color.green;
+		render_buffer[2].b = gr_screen.current_color.blue;
+		render_buffer[2].a = aa;
+		render_buffer[2].x = sx1 + vx;
+		render_buffer[2].y = sy1 + vy;
+		render_buffer[2].z = -0.99f;
+
+		render_buffer[3].r = gr_screen.current_color.red;
+		render_buffer[3].g = gr_screen.current_color.green;
+		render_buffer[3].b = gr_screen.current_color.blue;
+		render_buffer[3].a = aa;
+		render_buffer[3].x = sx1 - vx;
+		render_buffer[3].y = sy1 - vy;
+		render_buffer[3].z = -0.99f;
+
+		GLES2_ctx.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	} else {
+		render_buffer[0].r = gr_screen.current_color.red;
+		render_buffer[0].g = gr_screen.current_color.green;
+		render_buffer[0].b = gr_screen.current_color.blue;
+		render_buffer[0].a = ba;
+		render_buffer[0].x = sx2;
+		render_buffer[0].y = sy2;
+		render_buffer[0].z = -0.99f;
+
+		render_buffer[1].r = gr_screen.current_color.red;
+		render_buffer[1].g = gr_screen.current_color.green;
+		render_buffer[1].b = gr_screen.current_color.blue;
+		render_buffer[1].a = aa;
+		render_buffer[1].x = sx1;
+		render_buffer[1].y = sy1;
+		render_buffer[1].z = -0.99f;
+
+		GLES2_ctx.glDrawArrays(GL_LINES, 0, 2);
+	}
 
 	GLES2_ctx.glDisableVertexAttribArray(SDRI_COLOR);
 	GLES2_ctx.glDisableVertexAttribArray(SDRI_POSITION);

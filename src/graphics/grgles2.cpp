@@ -905,7 +905,10 @@ void gr_gles2_print_screen(const char *filename)
 	SDL_strlcpy( tmp, filename, SDL_arraysize(tmp) );
 	SDL_strlcat( tmp, NOX(".tga"), SDL_arraysize(tmp) );
 
-	int b_size = gr_screen.max_w * gr_screen.max_h;
+	const int width = gles2_res_scale(gr_screen.max_w);
+	const int height = gles2_res_scale(gr_screen.max_h);
+
+	const int b_size = width * height;
 
 	buf = (ubyte*)malloc(b_size * 4);
 
@@ -929,14 +932,14 @@ void gr_gles2_print_screen(const char *filename)
 	cfwrite_ubyte( 0, f );	// CMapDepth;
 	cfwrite_ushort( 0, f );	//	XOffset;
 	cfwrite_ushort( 0, f );	//	YOffset;
-	cfwrite_ushort( (ushort)gr_screen.max_w, f );	//	Width;
-	cfwrite_ushort( (ushort)gr_screen.max_h, f );	//	Height;
+	cfwrite_ushort( (ushort)width, f );	//	Width;
+	cfwrite_ushort( (ushort)height, f );	//	Height;
 	cfwrite_ubyte( 24, f );	//PixelDepth;
 	cfwrite_ubyte( 0, f );	//ImageDesc;
 
 	memset(buf, 0, b_size * 4);
 
-	GLES2_ctx.glReadPixels(0, 0, gr_screen.max_w, gr_screen.max_h, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	GLES2_ctx.glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buf);
 
 	int b_offset = 0;
 

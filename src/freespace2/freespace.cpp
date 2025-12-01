@@ -4990,11 +4990,7 @@ void game_process_event( int current_state, int event )
 
 		case GS_EVENT_DEBRIEF:
 			// did we end the campaign in the main freespace 2 single player campaign?
-#ifdef MAKE_FS1
-			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !SDL_strcasecmp(Campaign.filename, "freespace")) {
-#else
 			if(Campaign_ended_in_mission && (Game_mode & GM_CAMPAIGN_MODE) && !SDL_strcasecmp(Campaign.filename, "freespace2")) {
-#endif
 				gameseq_post_event(GS_EVENT_END_CAMPAIGN);
 			} else {
 				gameseq_set_state(GS_STATE_DEBRIEF);		

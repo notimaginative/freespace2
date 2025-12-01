@@ -1791,6 +1791,10 @@ void mission_campaign_end_do()
 	event_music_level_close();
 	mission_goal_fail_incomplete();
 	scoring_level_close();
+#ifdef MAKE_FS1
+	// we need to eval last mission in campaign so that it can acutally end
+	mission_campaign_eval_next_mission();
+#endif
 	mission_campaign_mission_over();
 
 #ifdef MAKE_FS1
@@ -1807,8 +1811,6 @@ void mission_campaign_end_do()
 
 #if defined(FS2_DEMO) || defined(FS1_DEMO)
 	gameseq_post_event( GS_EVENT_END_DEMO );
-#elif defined(MAKE_FS1)
-	gameseq_post_event( GS_STATE_END_OF_CAMPAIGN );
 #else
 	gameseq_post_event( GS_EVENT_MAIN_MENU );
 #endif

@@ -1783,7 +1783,7 @@ void set_accel_for_target_speed(object *objp, float tspeed)
 
 	max_speed = Ships[objp->instance].current_max_speed;
 
-	AI_ci.forward = tspeed/max_speed;
+	AI_ci.forward = (max_speed > 0.0f) ? tspeed/max_speed : 0.0f;
 	aip->prev_accel = AI_ci.forward;
 
 	adjust_accel_for_docking(aip);

@@ -778,6 +778,7 @@ int	frame_int = -1;
 float frametimes[FRAME_FILTER];
 float frametotal = 0.0f;
 float flFrametime;
+static float flRealFrametime;
 
 #ifdef RELEASE_REAL
 	int	Show_framerate = 0;
@@ -2527,8 +2528,8 @@ void game_get_framerate()
 		frame_int = 0;
 	}
 	frametotal -= frametimes[frame_int];
-	frametotal += flFrametime;
-	frametimes[frame_int] = flFrametime;
+	frametotal += flRealFrametime;
+	frametimes[frame_int] = flRealFrametime;
 	frame_int = (frame_int + 1 ) % FRAME_FILTER;
 
 	if ( frametotal != 0.0 )	{
@@ -2544,7 +2545,8 @@ void game_get_framerate()
 
 	if (Show_framerate)	{
 		gr_set_color_fast(&HUD_color_debug);
-		gr_string( 570, 2, text );
+		// 74 = 72 for "FPS: 120.0", +2 for padding
+		gr_string( gr_screen.max_w-74, 2, text );
 	}
 }
 
@@ -2691,8 +2693,8 @@ void game_show_standalone_framerate()
 		frame_int = 0;
 	}
 	frametotal -= frametimes[frame_int];
-	frametotal += flFrametime;
-	frametimes[frame_int] = flFrametime;
+	frametotal += flRealFrametime;
+	frametimes[frame_int] = flRealFrametime;
 	frame_int = (frame_int + 1 ) % FRAME_FILTER;
 
 	if ( frametotal != 0.0 )	{
@@ -4502,6 +4504,8 @@ void game_set_frametime(int state)
 #endif
 		Frametime = MAX_FRAMETIME;
 	}
+
+	flRealFrametime = f2fl(Frametime); // fametime w/o time compression factored in
 
 	Frametime = fixmul(Frametime, Game_time_compression);
 

@@ -66,6 +66,7 @@ struct config {
 	std::string controller;
 	bool haptic;
 	bool direct_force;
+	bool swap_action_cancel;
 	// speed
 	int detail_level;
 	// network
@@ -86,9 +87,10 @@ struct config {
 	bool nodpiscaling;
 
 	config(): msaa(0), fullscreen(true), show_fps(false), efx(false), launcher_sounds(true),
-			  haptic(false), direct_force(true), detail_level(2), network_connection(2),
-			  network_speed(5), port(0), pxo_skip_version_check(true), pxo_banners(true),
-			  nosound(false), nomusic(false), nomovies(false), nodpiscaling(false)
+			  haptic(false), direct_force(true), swap_action_cancel(false),
+			  detail_level(2), network_connection(2), network_speed(5), port(0),
+			  pxo_skip_version_check(true), pxo_banners(true), nosound(false),
+			  nomusic(false), nomovies(false), nodpiscaling(false)
 			  {}
 };
 
@@ -354,6 +356,7 @@ static void launcher_setup_load_config()
 
 	Config.haptic = (os_config_read_uint("Controls", "EnableJoystickFF", 0) == 1);
 	Config.direct_force = (os_config_read_uint("Controls", "EnableHitEffect", 0) == 1);
+	Config.swap_action_cancel = (os_config_read_uint("Controls", "SwapActionCancel", 0) == 1);
 
 	// Speed
 	Config.detail_level = os_config_read_uint(nullptr, "ComputerSpeed", 2);
@@ -501,6 +504,7 @@ static void launcher_setup_save_config()
 	os_config_write_string("Controls", "CurrentJoystick", Config.controller.c_str());
 	os_config_write_uint("Controls", "EnableJoystickFF", Config.haptic ? 1 : 0);
 	os_config_write_uint("Controls", "EnableHitEffect", Config.direct_force ? 1 : 0);
+	os_config_write_uint("Controls", "SwapActionCancel", Config.swap_action_cancel ? 1 : 0);
 
 	// Speed
 	os_config_write_uint(nullptr, "ComputerSpeed", Config.detail_level);
@@ -630,6 +634,7 @@ static void tabControls()
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, SpecialPadding);
 	ImGui::Checkbox("Enable Force Feedback / Rumble", &Config.haptic);
 	ImGui::Checkbox("Enable Directional Hit Effect", &Config.direct_force);
+	ImGui::Checkbox("Swap Gamepad Action/Cancel Buttons", &Config.swap_action_cancel);
 	ImGui::PopStyleVar();
 
 	ImGui::EndTabItem();

@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "osapi.h"
 #include "2d.h"
+#include "osregistry.h"
 
 
 static SDL_Gamepad *Gamepad = nullptr;
@@ -29,8 +30,7 @@ void gamepad_setup(SDL_JoystickID id)
 		return;
 	}
 
-	// TODO: figure out how to set this properly (ini?, flag?, detect somehow?)
-	// Swap_action_cancel = true;
+	Swap_action_cancel = (os_config_read_uint("Controls", "SwapActionCancel", 0) == 1);
 
 	Gamepad = SDL_GetGamepadFromID(id);
 }

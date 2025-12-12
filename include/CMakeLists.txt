@@ -324,32 +324,44 @@ set(fred_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/bgbitmapdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/briefingeditordlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaigneditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/campaigntreewnd.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/cmdbrief.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/createwingdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/debriefingeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/dialog1.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/eventeditor.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fred.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/freddoc.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredrender.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/fredview.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/grid.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/ignoreordersdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/mainfrm.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/management.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/messageeditordlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missiongoalsdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missionnotesdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/missionsave.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/modifyvariabledlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/operatorargtypeselect.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/orienteditor.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/prefsdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/reinforcementeditordlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/resource.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/sexp_tree.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shieldsysdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/ship_select.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipchecklistbox.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipclasseditordlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipeditordlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipflagsdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/shipgoalsdlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/starfieldeditor.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/textviewdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/waypointpathdlg.h
   ${CMAKE_CURRENT_SOURCE_DIR}/fred2/weaponeditordlg.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/wing.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/fred2/wing_editor.h
   PARENT_SCOPE
 )
 

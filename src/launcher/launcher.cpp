@@ -29,6 +29,24 @@ static SDL_Texture *Background = nullptr;
 static ImGuiContext *Context = nullptr;
 static LauncherScale *WindowScale = nullptr;
 
+enum {
+	FONT_SANS = 0,
+	FONT_MONO,
+
+	FONT_COUNT,
+};
+
+struct fonts {
+	const char *filename;
+	const float size;
+	ImFont *ptr;
+};
+
+static fonts Fonts[] = {
+	{ "DroidSans.ttf", 16.f, nullptr },
+	{ "Cousine-Regular.ttf", 12.f, nullptr },
+};
+
 
 void LauncherScale::init(SDL_Window *win)
 {
@@ -283,6 +301,25 @@ void launcher_init_background(const char *filename)
 	}
 }
 
+static void launcher_show_version()
+{
+	const int padding = 2;
+	auto draw_list = ImGui::GetBackgroundDrawList();
+
+	int window_w, window_h;
+	SDL_GetWindowSize(Window, &window_w, &window_h);
+
+	// NOTE: the font size *must* be specified here or else it will be wrong!!
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	auto text_size = ImGui::CalcTextSize(version_get_string_full());
+
+	// align version string to top right corner of window
+	draw_list->AddText(ImVec2(window_w - text_size.x - padding, padding),
+					   IM_COL32_WHITE, version_get_string_full());
+
+	ImGui::PopFont();
+}
+
 // explicitly use VM_* versions here, for safety
 static void *MallocWrapper(size_t size, void* user_data)
 {
@@ -315,23 +352,26 @@ static bool launcher_do()
 
 	ImGui::StyleColorsDark();
 
-	auto fontFile = cfopen("DroidSans.ttf", "rb", CF_TYPE_FONT);
+	io.Fonts->Clear();
 	ImFontConfig fontConfig = {};
 
 	fontConfig.RasterizerDensity = WindowScale->getCoordScale();
 
-	if (fontFile) {
-		auto fontSize = cfilelength(fontFile);
-		auto font = cfread_file(fontFile);
+	for (int i = 0; i < FONT_COUNT; ++i) {
+		auto file = cfopen(Fonts[i].filename, "rb", CF_TYPE_FONT);
 
-		cfclose(fontFile);
-		fontFile = nullptr;
+		if (file) {
+			auto size = cfilelength(file);
+			auto font = cfread_file(file);
 
-		if (font) {
-			io.Fonts->Clear();
-			io.Fonts->AddFontFromMemoryTTF(font, fontSize,
-										   WindowScale->get(16.f),
-										   &fontConfig);
+			cfclose(file);
+			file = nullptr;
+
+			if (font) {
+				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size,
+															  WindowScale->get(Fonts[i].size),
+															  &fontConfig);
+			}
 		}
 	}
 
@@ -390,6 +430,8 @@ static bool launcher_do()
 #else
 		launcher_draw_fs2(&done, &rval, WindowScale);
 #endif
+
+		launcher_show_version();
 
 		// render
 		ImGui::Render();

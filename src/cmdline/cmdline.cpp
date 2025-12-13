@@ -465,11 +465,7 @@ static void print_instructions()
 	printf("\n");
 #endif
 
-	printf("%s v%d.%02d", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
-#ifdef GIT_INFO
-	printf(" ~ %s:%s", GIT_COMMIT_DATE, GIT_COMMIT_HASH);
-#endif
-	printf("\n");
+	printf("%s %s\n", Osreg_title, version_get_string_full());
 
 	exit(0);
 }
@@ -796,11 +792,7 @@ int parse_cmdline(const char *cmdline)
 
 	// display game version
 	if(fs_version.found()){
-		printf("%s version:  %d.%02d", Osreg_title, FS_VERSION_MAJOR, FS_VERSION_MINOR);
-#ifdef GIT_INFO
-		printf(" ~ %s:%s", GIT_COMMIT_DATE, GIT_COMMIT_HASH);
-#endif
-		printf("\n");
+		printf("%s %s\n", Osreg_title, version_get_string_full());
 		exit(0);
 	}
 

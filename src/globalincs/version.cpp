@@ -186,7 +186,7 @@ const char *version_get_string_full(char *str, size_t str_len)
 		if ( FS_VERSION_BUILD == 0 ) {
 			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 		} else {
-			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d.%02d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
+			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d.%d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
 		}
 #endif
 		

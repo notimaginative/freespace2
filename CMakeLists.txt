@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 3.22...4.0)
 include(cmake/utils.cmake)
 
 # these need to be set before project() is called
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS/iOS deployment target")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS deployment target")
 # (currently broken for OpenAL, it must build each separately)
-#set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "macOS/iOS build architecture(s)")
+#set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "macOS build architecture(s)")
 
 project(freespace2)
 
@@ -60,18 +60,13 @@ endif()
 
 
 if(FS1)
-  set(VERSION "1.06")
   add_definitions(-DMAKE_FS1)
 
   if(DEMO)
-    set(VERSION "1.20")
     add_definitions(-DDEMO -DFS1_DEMO)
   endif()
 else()
-  set(VERSION "1.20")
-
   if(DEMO)
-    set(VERSION "1.10")
     add_definitions(-DFS2_DEMO)
   endif()
 endif()
@@ -124,6 +119,8 @@ endif()
 set(FS_BINARY "freespace${BIN_SUFFIX}")
 
 set(APP_ID "org.icculus.freespace2.${FS_BINARY}")
+
+include(cmake/version.cmake)
 
 
 include_directories(

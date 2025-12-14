@@ -85,12 +85,13 @@ struct config {
 	bool nomusic;
 	bool nomovies;
 	bool nodpiscaling;
+	bool nobriefanim;
 
 	config(): msaa(0), fullscreen(true), show_fps(false), efx(false), launcher_sounds(true),
 			  haptic(false), direct_force(true), swap_action_cancel(false),
 			  detail_level(2), network_connection(2), network_speed(5), port(0),
 			  pxo_skip_version_check(true), pxo_banners(true), nosound(false),
-			  nomusic(false), nomovies(false), nodpiscaling(false)
+			  nomusic(false), nomovies(false), nodpiscaling(false), nobriefanim(false)
 			  {}
 };
 
@@ -491,6 +492,8 @@ static void launcher_setup_load_config()
 		auto temp = trim(Config.cmdline);
 		Config.cmdline = temp;
 	}
+
+	Config.nobriefanim = (os_config_read_uint("Video", "BriefingAnimation", 1) == 0);
 }
 
 static void launcher_setup_save_config()
@@ -559,6 +562,8 @@ static void launcher_setup_save_config()
 	} else {
 		SDL_SaveFile(cmdline_cfg, cmdline.c_str(), cmdline.size());
 	}
+
+	os_config_write_uint("Video", "BriefingAnimation", Config.nobriefanim ? 0 : 1);
 }
 
 static void tabVideo()
@@ -832,6 +837,9 @@ static void tabMisc()
 	ImGui::Checkbox("Disable music", &Config.nomusic);
 	ImGui::Checkbox("Disable movies", &Config.nomovies);
 	ImGui::Checkbox("Disable DPI scaling", &Config.nodpiscaling);
+#ifdef MAKE_FS1
+	ImGui::Checkbox("Disable briefing animation", &Config.nobriefanim);
+#endif
 	ImGui::PopStyleVar();
 
 	ImGui::EndTabItem();

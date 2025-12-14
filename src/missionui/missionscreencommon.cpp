@@ -335,6 +335,7 @@
 #include "multi_endgame.h"
 #include "uidefs.h"
 #include "animplay.h"
+#include "osregistry.h"
 
 //////////////////////////////////////////////////////////////////
 // Game Globals
@@ -718,7 +719,10 @@ void common_select_init()
 	#ifndef DEMO // not for FS2_DEMO
 
 #ifdef MAKE_FS1
-	if ( current_detail_level() >= (NUM_DEFAULT_DETAIL_LEVELS-2) ) {
+	const bool play_anim = (current_detail_level() >= (NUM_DEFAULT_DETAIL_LEVELS-2))
+							&& os_config_read_uint("Video", "BriefingAnimation", 1);
+
+	if (play_anim) {
 
 		anim_play_struct aps;
 

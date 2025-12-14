@@ -154,6 +154,12 @@ void launcher_setup_event(const SDL_Event &event)
 				WindowScale->update();
 			}
 			break;
+		case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+			break;
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+			break;
 		default:
 			break;
 	}

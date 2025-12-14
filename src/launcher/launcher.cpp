@@ -301,6 +301,21 @@ void launcher_init_background(const char *filename)
 	}
 }
 
+static void launcher_enable_gamepad_nav_safe()
+{
+	// already enabled
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) {
+		return;
+	}
+
+	// window doesn't have keyboard focus
+	if (SDL_GetKeyboardFocus() != Window) {
+		return;
+	}
+
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+}
+
 static void launcher_show_version()
 {
 	const int padding = 2;
@@ -347,8 +362,6 @@ static bool launcher_do()
 	ImGuiIO &io = ImGui::GetIO(); (void)io;
 	io.IniFilename = nullptr;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	// FIXME: gamepad events trigger on all windows, breaking setup/help
-//	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
 	ImGui::StyleColorsDark();
 
@@ -410,6 +423,12 @@ static bool launcher_do()
 						WindowScale->update();
 					}
 					break;
+				case SDL_EVENT_WINDOW_FOCUS_GAINED:
+					// not safe to enable gamepad nav here!!
+					break;
+				case SDL_EVENT_WINDOW_FOCUS_LOST:
+					ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+					break;
 				default:
 					break;
 			}
@@ -423,6 +442,9 @@ static bool launcher_do()
 		ImGui_ImplSDLRenderer3_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
 		ImGui::NewFrame();
+
+		// gamepad nav hack (to avoid events from recently closed windows)
+		launcher_enable_gamepad_nav_safe();
 
 		// draw ui
 #ifdef MAKE_FS1

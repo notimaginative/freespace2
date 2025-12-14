@@ -85,6 +85,12 @@ void launcher_help_event(const SDL_Event &event)
 				WindowScale->update();
 			}
 			break;
+		case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+			break;
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+			break;
 		default:
 			break;
 	}
@@ -136,8 +142,6 @@ void launcher_help_open()
 	ImGuiIO &io = ImGui::GetIO(); (void)io;
 	io.IniFilename = nullptr;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	// FIXME: gamepad events trigger on all windows, breaking setup/help
-//	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
 	ImGui::StyleColorsDark();
 

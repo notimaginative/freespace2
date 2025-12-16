@@ -121,8 +121,12 @@ int gamepad_get_button_axis(int btn)
 	return axis;
 }
 
+static const uint POS_UPDATE_INTERVAL_MS = 20;
+
 void gamepad_update_mouse_pos()
 {
+	static Uint64 next_update = 0;
+
 	if ( !Gamepad ) {
 		return;
 	}
@@ -131,15 +135,20 @@ void gamepad_update_mouse_pos()
 		return;
 	}
 
+	// limit updates so that we aren't zooming all over the place at higher fps
+	if (next_update > SDL_GetTicks()) {
+		return;
+	}
+
+	next_update = SDL_GetTicks() + POS_UPDATE_INTERVAL_MS;
+
 	// we poll directly here in order to get smooth movement
 	int gx = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTX);
 	int gy = SDL_GetGamepadAxis(Gamepad, SDL_GAMEPAD_AXIS_LEFTY);
 
-	int dead_zone = 65536 * Dead_zone_size / 100;
-
-	CAP(dead_zone, 1000, 8000);
-
 	// ignore possible stick drift
+	const int dead_zone = 8000;
+
 	if (abs(gx) < dead_zone) gx = 0;
 	if (abs(gy) < dead_zone) gy = 0;
 
@@ -147,9 +156,11 @@ void gamepad_update_mouse_pos()
 		return;
 	}
 
-	// scale to -4..4
-	float dx = gx * 4 / 32768.0f;
-	float dy = gy * 4 / 32768.0f;
+	// limit range to roughly -6..6
+	const int sensitivity = 5000;	// change based on update interval
+
+	float dx = gx / sensitivity;
+	float dy = gy / sensitivity;
 
 	int x = 0;
 	int y = 0;

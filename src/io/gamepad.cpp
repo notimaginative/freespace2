@@ -156,8 +156,8 @@ void gamepad_update_mouse_pos()
 		return;
 	}
 
-	// limit range to roughly -6..6
-	const int sensitivity = 5000;	// change based on update interval
+	// limit range to roughly -6..6, relative to update interval, and adjusting for viewport size
+	const float sensitivity = 5000.0f * gr_screen.viewport_scale_factor_x;
 
 	float dx = gx / sensitivity;
 	float dy = gy / sensitivity;

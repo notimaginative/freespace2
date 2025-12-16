@@ -1515,7 +1515,11 @@ int Cr_info_coords[GR_NUM_RESOLUTIONS][4] = {
 	},
 };
 
+#ifdef MAKE_FS1
+#define CR_NUM_BUTTONS					8
+#else
 #define CR_NUM_BUTTONS					6
+#endif
 
 #define CR_SCROLL_UP_BUTTON			0
 #define CR_SCROLL_DOWN_BUTTON			1
@@ -1523,6 +1527,10 @@ int Cr_info_coords[GR_NUM_RESOLUTIONS][4] = {
 #define CR_SCROLL_INFO_DOWN_BUTTON	3
 #define CR_RESET_BUTTON					4
 #define CR_COMMIT_BUTTON				5
+#ifdef MAKE_FS1
+#define CR_HELP_BUTTON					6
+#define CR_OPTIONS_BUTTON				7
+#endif
 
 #define MAX_INFO_LINES		20
 
@@ -1537,6 +1545,8 @@ ui_button_info Cr_buttons[GR_NUM_RESOLUTIONS][CR_NUM_BUTTONS] = {
 		ui_button_info("CAB_03",	17,		307,	-1,	-1,	3),		// info scroll down
 		ui_button_info("CAB_07",	545,	323,	-1,	-1,	7),		// reset
 		ui_button_info("CAB_04",	561,	411,	-1,	-1,	4),		// select
+		ui_button_info("CAB_05",	469,	429,	-1,	-1,	5),		// help
+		ui_button_info("CAB_06",	447,	452,	-1,	-1,	6),		// options
 #else
 		ui_button_info("CAB_00",	2,		42,	-1,	-1,	0),
 		ui_button_info("CAB_01",	2,		89,	-1,	-1,	1),
@@ -1553,6 +1563,11 @@ ui_button_info Cr_buttons[GR_NUM_RESOLUTIONS][CR_NUM_BUTTONS] = {
 		ui_button_info("2_CAB_03",	3,		520,	-1,	-1,	3),
 		ui_button_info("2_CAB_04",	927,	565,	-1,	-1,	4),
 		ui_button_info("2_CAB_05",	920,	694,	-1,	-1,	5),
+#ifdef MAKE_FS1
+		// filler
+		ui_button_info("2_CAB_00",	3,		68,	-1,	-1,	0),
+		ui_button_info("2_CAB_00",	3,		68,	-1,	-1,	0),
+#endif
 	}
 };
 
@@ -1740,7 +1755,7 @@ int campaign_room_button_pressed(int n)
 			campaign_room_commit();
 			break;
 
-		/*
+#ifdef MAKE_FS1
 		case CR_HELP_BUTTON:
 			launch_context_help();
 			gamesnd_play_iface(SND_HELP_PRESSED);
@@ -1750,7 +1765,7 @@ int campaign_room_button_pressed(int n)
 			gamesnd_play_iface(SND_SWITCH_SCREENS);
 			gameseq_post_event(GS_EVENT_OPTIONS_MENU);
 			return 1;
-		*/
+#endif
 
 		case CR_RESET_BUTTON:
 			if ( (Active_campaign_index < 0) || (Active_campaign_index >= Num_campaigns) )
@@ -1808,7 +1823,9 @@ void campaign_room_init()
 	Cr_buttons[gr_screen.res][CR_SCROLL_DOWN_BUTTON].button.set_hotkey(SDLK_PAGEDOWN);
 	Cr_buttons[gr_screen.res][CR_RESET_BUTTON].button.set_hotkey(SDLK_DELETE);
 	Cr_buttons[gr_screen.res][CR_COMMIT_BUTTON].button.set_hotkey(KEY_CTRLED | SDLK_RETURN);
-	// Cr_buttons[gr_screen.res][CR_HELP_BUTTON].button.set_hotkey(KEY_F2);
+#ifdef MAKE_FS1
+	 Cr_buttons[gr_screen.res][CR_HELP_BUTTON].button.set_hotkey(SDLK_F2);
+#endif
 
 	Background_bitmap = bm_load(Campaign_filename[gr_screen.res]);
 
@@ -1910,7 +1927,9 @@ void campaign_room_do_frame(float frametime)
 	int select_tease_line = -1;  // line mouse is down on, but won't be selected until button released
 
 	if ( help_overlay_active(CAMPAIGN_ROOM_OVERLAY) ) {
-		// Cr_buttons[gr_screen.res][CR_HELP_BUTTON].button.reset_status();
+#ifdef MAKE_FS1
+		Cr_buttons[gr_screen.res][CR_HELP_BUTTON].button.reset_status();
+#endif
 		Ui_window.set_ignore_gadgets(1);
 	}
 

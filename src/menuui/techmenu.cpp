@@ -502,17 +502,19 @@ static techroom_buttons Buttons[GR_NUM_RESOLUTIONS][NUM_BUTTONS] = {
 		techroom_buttons("2_TDB_08",	1,		507,	-1,	-1,	8,	SHIPS_DATA_MODE, REPEAT),			// next data entry
 		techroom_buttons("2_TDB_09",	1,		649,	-1,	-1,	9,	SHIPS_DATA_MODE, REPEAT),			// prev data entry
 		techroom_buttons("2_TDB_10",	1,		716,	-1,	-1,	10,	SHIPS_DATA_MODE, REPEAT),		// next data entry
+		//techroom_buttons("2_TDB_11",	893,	436,	-1,	-1,	11,	WEAPONS_SPECIES_DATA_MODE),	// prev data entry
+		//techroom_buttons("2_TDB_12",	970,	436,	-1,	-1,	12,	WEAPONS_SPECIES_DATA_MODE),	// next data entry
+		techroom_buttons("2_TDB_11a",	895,	518,	-1,	-1,	11,	SHIPS_DATA_MODE, REPEAT),		// prev data entry
+		techroom_buttons("2_TDB_12a",	974,	518,	-1,	-1,	12,	SHIPS_DATA_MODE, REPEAT),		// next data entry
+		techroom_buttons("2_TDB_13",	854,	681,	800,	704,	13,	-1),									// help
+		techroom_buttons("2_TDB_14",	854,	728,	780,	743,	14,	-1),									// options
+		techroom_buttons("2_TDB_15a",	914,	681,	930,	660,	15,	-1),									// exit
 #ifdef MAKE_FS1
 		// filler
 		techroom_buttons("2_TDB_11",	893,	436,	-1,	-1,	11,	WEAPONS_SPECIES_DATA_MODE),	// prev data entry
 		techroom_buttons("2_TDB_12",	970,	436,	-1,	-1,	12,	WEAPONS_SPECIES_DATA_MODE),	// next data entry
 #endif
-		techroom_buttons("2_TDB_11a",	895,	518,	-1,	-1,	11,	SHIPS_DATA_MODE, REPEAT),		// prev data entry
-		techroom_buttons("2_TDB_12a",	974,	518,	-1,	-1,	12,	SHIPS_DATA_MODE, REPEAT),		// next data entry
-		techroom_buttons("2_TDB_13",	854,	681,	800,	704,	13,	-1),									// help
-		techroom_buttons("2_TDB_14",	854,	728,	780,	743,	14,	-1),									// options
-		techroom_buttons("2_TDB_15a",	914,	681,	930,	660,	15,	-1),									// exit		
-	}, 
+	},
 };
 
 static UI_WINDOW Ui_window;

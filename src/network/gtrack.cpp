@@ -281,6 +281,7 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 		}
 
 		default:
+			offset += (data_size - offset);
 			break;
 	}
 

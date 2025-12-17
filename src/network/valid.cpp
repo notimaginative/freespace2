@@ -219,6 +219,7 @@ static void DeserializeValidatePacket(const ubyte *data, const int data_size, ud
 		}
 
 		default:
+			offset += (data_size - offset);
 			break;
 	}
 

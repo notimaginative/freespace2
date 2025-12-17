@@ -350,6 +350,7 @@ static void DeserializePilotPacket(const ubyte *data, const int data_size, udp_p
 		}
 
 		default:
+			offset += (data_size - offset);
 			break;
 	}
 

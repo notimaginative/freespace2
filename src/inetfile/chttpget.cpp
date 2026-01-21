@@ -721,7 +721,8 @@ int http_Asyncgethostbyname(in_addr_t *ip,int command, char *hostname)
 		http_lastaslu = newaslu;
 		httpaslu.done = false;
 
-		SDL_CreateThread(http_gethostbynameworker, "GetHostByNameWorker", newaslu);
+		auto thread = SDL_CreateThread(http_gethostbynameworker, "GetHostByNameWorker", newaslu);
+		SDL_DetachThread(thread);
 
 		return 1;
 	}

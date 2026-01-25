@@ -59,7 +59,8 @@ SDL_COMPILE_TIME_ASSERT(freespace_net_game_data, sizeof(freespace_net_game_data)
 #endif
 SDL_COMPILE_TIME_ASSERT(game_list, sizeof(game_list) == 384);
 SDL_COMPILE_TIME_ASSERT(filter_game_list_struct, sizeof(filter_game_list_struct) == 40);
-
+SDL_COMPILE_TIME_ASSERT(hole_punch_addr, sizeof(hole_punch_addr) == 6);
+SDL_COMPILE_TIME_ASSERT(hole_punch_addr_ip6, sizeof(hole_punch_addr_ip6) == 18);
 
 
 //Variables
@@ -97,6 +98,8 @@ unsigned int FirstGameOverPacket;
 int SendingGameOver;
 //End New 7-9-98
 
+static void SendClientHolePunch(sockaddr_in *addr);
+
 
 static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 {
@@ -121,6 +124,7 @@ static int SerializeGamePacket(const game_packet_header *gph, ubyte *data)
 		// these have no other data
 		case GNT_CLIENT_ACK:
 		case GNT_GAMEOVER:
+		case GNT_NAT_HOLE_PUNCH_ACK:
 			break;
 
 		// this one may or may not have extra data
@@ -276,6 +280,23 @@ static void DeserializeGamePacket(const ubyte *data, const int data_size, game_p
 
 			memcpy(gph->data, &n_users, sizeof(int));
 			memcpy(gph->data+sizeof(int), channel, SDL_strlen(channel)+1);
+
+			break;
+		}
+
+		case GNT_NAT_HOLE_PUNCH_REQ: {
+			// using data_size here since gph.len hasn't been adjusted yet
+			if (data_size == (GAME_HEADER_ONLY_SIZE+sizeof(hole_punch_addr_ip6))) {
+				auto ipv6 = reinterpret_cast<hole_punch_addr_ip6 *>(&gph->data);
+
+				PXO_GET_DATA(ipv6->addr);
+				PXO_GET_USHORT(ipv6->port);
+			} else {
+				auto ipv4 = reinterpret_cast<hole_punch_addr *>(&gph->data);
+
+				PXO_GET_UINT(ipv4->addr);
+				PXO_GET_USHORT(ipv4->port);
+			}
 
 			break;
 		}
@@ -528,6 +549,21 @@ void IdleGameTracker()
 				// send it to the PXO screen				
 				multi_pxo_channel_count_update(channel,num_servers);
 				break;
+
+			case GNT_NAT_HOLE_PUNCH_REQ:
+				// we're only handling the IPv4 version of this
+				if (inpacket.len == (GAME_HEADER_ONLY_SIZE+sizeof(hole_punch_addr))) {
+					auto ipv4 = reinterpret_cast<hole_punch_addr *>(&inpacket.data);
+					sockaddr_in nataddr;
+
+					nataddr.sin_family = AF_INET;
+					nataddr.sin_addr.s_addr = ipv4->addr;
+					nataddr.sin_port = ipv4->port;
+
+					SendClientHolePunch(&nataddr);
+				}
+
+				break;
 			}
 			AckPacket(inpacket.sig);			
 		}
@@ -699,4 +735,23 @@ void RequestGameCountWithFilter(void *filter)
 
 	packet_length = SerializeGamePacket(&GameCountReq, packet_data);
 	PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)&gtrackaddr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
+}
+
+static void SendClientHolePunch(sockaddr_in *addr)
+{
+	game_packet_header HolePunchAck;
+	ubyte packet_data[sizeof(game_packet_header)];
+	int packet_length = 0;
+
+#ifdef MAKE_FS1
+	HolePunchAck.game_type = GT_FREESPACE;
+#else
+	HolePunchAck.game_type = GT_FREESPACE2;
+#endif
+	HolePunchAck.type = GNT_NAT_HOLE_PUNCH_ACK;
+	HolePunchAck.len = GAME_HEADER_ONLY_SIZE;
+	HolePunchAck.sig = 0; // to make sure tracker ignores this packet when it's ACK'd there
+
+	packet_length = SerializeGamePacket(&HolePunchAck, packet_data);
+	PXO_SENDTO(GAMESOCK, (char *)&packet_data, packet_length, 0, (struct sockaddr *)addr, sizeof(struct sockaddr_in), PSNET_TYPE_GAME_TRACKER);
 }

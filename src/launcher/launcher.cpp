@@ -215,8 +215,6 @@ static bool launcher_init()
 
 	SDL_SetRenderVSync(Renderer, 1);
 
-	cfile_init();
-
 	os_set_icon(Window);
 
 	SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -504,6 +502,10 @@ bool launcher_run(const char *szCmdline)
 	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
 	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
 							   "Copyright (C) Volition, Inc. 1999.  All rights reserved.");
+
+	if (cfile_init()) {
+		return false;
+	}
 
 	// do some first-run stuff if needed
 	if (os_config_read_uint(nullptr, "StraightToSetup", 1) == 1) {

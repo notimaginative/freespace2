@@ -334,8 +334,8 @@ void cfile_close()
 int cfile_in_root_dir(char *exe_path)
 {
 	int token_count = 0;
-	char path_copy[2048] = "";
-	char *tok;
+	char path_copy[MAX_PATH_LEN] = "";
+	char *p;
 
 	// bogus
 	if(exe_path == NULL){
@@ -343,19 +343,16 @@ int cfile_in_root_dir(char *exe_path)
 	}
 
 	// copy the path
-	memset(path_copy, 0, 2048);
 	SDL_strlcpy(path_copy, exe_path, SDL_arraysize(path_copy));
 
 	// count how many slashes there are in the path
-	tok = strtok(path_copy, DIR_SEPARATOR_STR);
-	if(tok == NULL){
-		return 1;
-	}	
-	do {
-		token_count++;
-		tok = strtok(NULL, DIR_SEPARATOR_STR);
-	} while(tok != NULL);
-		
+	p = path_copy;
+
+	while ((p = SDL_strchr(p, DIR_SEPARATOR_CHAR)) != nullptr) {
+		++p;
+		++token_count;
+	}
+
 	// root directory if we have <= 1 slash
 	if(token_count <= 1){
 		return 1;

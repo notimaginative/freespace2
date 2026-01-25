@@ -44,15 +44,15 @@ enum {
 	BTN_HELP,
 	BTN_HELP_HL,
 	BTN_HELP_CK,
+	BTN_QUIT,
+	BTN_QUIT_HL,
+	BTN_QUIT_CK,
 	BTN_VOLITION,
 	BTN_VOLITION_HL,
 	BTN_VOLITION_CK,
 	BTN_PXO,
 	BTN_PXO_HL,
 	BTN_PXO_CK,
-	BTN_QUIT,
-	BTN_QUIT_HL,
-	BTN_QUIT_CK,
 	//BTN_UPDATE,
 	//BTN_UPDATE_HL,
 	//BTN_UPDATE_CK,
@@ -63,7 +63,7 @@ enum {
 	BTN_COUNT,
 };
 
-fs2_buttons Buttons[] = {
+static fs2_buttons Buttons[] = {
 	{ "launch_fs2_play.png", nullptr, 45, 102, 131, 58, },
 	{ "launch_fs2_play1.png", nullptr, 45, 102, 131, 58, },
 	{ "launch_fs2_play2.png", nullptr, 45, 102, 131, 58, },
@@ -76,15 +76,15 @@ fs2_buttons Buttons[] = {
 	{ "launch_fs2_help.png", nullptr, 45, 247, 131, 58, },
 	{ "launch_fs2_help1.png", nullptr, 45, 247, 131, 58, },
 	{ "launch_fs2_help2.png", nullptr, 45, 247, 131, 58, },
+	{ "launch_fs2_quit.png", nullptr, 116, 339, 131, 58, },
+	{ "launch_fs2_quit1.png", nullptr, 116, 339, 131, 58, },
+	{ "launch_fs2_quit2.png", nullptr, 116, 339, 131, 58, },
 	{ "launch_fs2_volition.png", nullptr, 15, 304, 90, 108, },
 	{ "launch_fs2_volition1.png", nullptr, 15, 304, 90, 108, },
 	{ "launch_fs2_volition2.png", nullptr, 15, 304, 90, 108, },
 	{ "launch_fs2_pxo.png", nullptr, 249, 305, 114, 113, },
 	{ "launch_fs2_pxo1.png", nullptr, 249, 305, 114, 113, },
 	{ "launch_fs2_pxo2.png", nullptr, 249, 305, 114, 113, },
-	{ "launch_fs2_quit.png", nullptr, 116, 339, 131, 58, },
-	{ "launch_fs2_quit1.png", nullptr, 116, 339, 131, 58, },
-	{ "launch_fs2_quit2.png", nullptr, 116, 339, 131, 58, },
 //	{ "launch_fs2_update.png", nullptr, 199, 175, 131, 58, },
 //	{ "launch_fs2_update1.png", nullptr, 199, 175, 131, 58, },
 //	{ "launch_fs2_update2.png", nullptr, 199, 175, 131, 58, },
@@ -173,6 +173,7 @@ void launcher_init_style_fs2()
 
 	style.Colors[ImGuiCol_ButtonHovered] = ImColor(0, 0, 0, 0);
 	style.Colors[ImGuiCol_ButtonActive] = ImColor(0, 0, 0, 0);
+	style.Colors[ImGuiCol_NavCursor] = ImColor(0, 0, 0, 0);
 }
 
 void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale)
@@ -301,6 +302,24 @@ void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale)
 	}
 #endif
 
+	btn_id = BTN_QUIT;
+	btn = &Buttons[btn_id];
+
+	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+	if (ImGui::ImageButton("quit", (ImTextureRef)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
+		*done = true;
+		*play_game = false;
+	}
+
+	if (ImGui::IsItemActive()) {
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureRef)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
+		do_click = true;
+	} else if (ImGui::IsItemHovered()) {
+		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
+		ImGui::Image((ImTextureRef)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
+	}
+
 	btn_id = BTN_VOLITION;
 	btn = &Buttons[btn_id];
 
@@ -324,24 +343,6 @@ void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale)
 	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
 	if (ImGui::ImageButton("pxo", (ImTextureRef)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
 		SDL_OpenURL("https://pxo.nottheeye.com");
-	}
-
-	if (ImGui::IsItemActive()) {
-		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
-		ImGui::Image((ImTextureRef)(intptr_t)Buttons[btn_id+2].texture, WindowScale->get(btn->w, btn->h));
-		do_click = true;
-	} else if (ImGui::IsItemHovered()) {
-		ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
-		ImGui::Image((ImTextureRef)(intptr_t)Buttons[btn_id+1].texture, WindowScale->get(btn->w, btn->h));
-	}
-
-	btn_id = BTN_QUIT;
-	btn = &Buttons[btn_id];
-
-	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
-	if (ImGui::ImageButton("quit", (ImTextureRef)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
-		*done = true;
-		*play_game = false;
 	}
 
 	if (ImGui::IsItemActive()) {

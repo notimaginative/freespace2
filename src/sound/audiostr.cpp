@@ -79,6 +79,7 @@
 
 
 #include <vector>
+#include <climits>
 
 #include "pstypes.h"
 #include "audiostr.h"

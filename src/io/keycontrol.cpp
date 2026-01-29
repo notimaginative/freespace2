@@ -1662,8 +1662,6 @@ void game_process_cheats(int k)
 		return;
 	}
 
-	k = key_get_text_input();
-
 	if ( (k < 0) || (k > 255) ) {
 		return;
 	}

@@ -103,6 +103,7 @@ void key_lost_focus();
 void key_got_focus();
 void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency );
 int key_getch();
+int key_to_ascii(int keycode);
 void key_flush();
 
 // Routines/data you can access:

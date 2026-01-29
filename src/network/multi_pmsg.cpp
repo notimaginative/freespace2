@@ -328,6 +328,7 @@ void multi_msg_eval_text_msg()
 int multi_msg_text_process(int k)
 {
 	char str[2];
+	int ascii;
 
 	// keep eating keys for a short period of time
 	if((Multi_msg_eat_stamp != -1) && !timestamp_elapsed(Multi_msg_eat_stamp)){
@@ -368,16 +369,17 @@ int multi_msg_text_process(int k)
 		break;
 
 	// stick other printable characters onto the text
-	default :					
+	default :
+		ascii = key_to_ascii(k);
+
+		// make sure it's actually a printable character
+		if (ascii == 255) {
+			break;
+		}
+
 		// if we're not already at the maximum length
 		if(SDL_strlen(Multi_msg_text) < MULTI_MSG_MAX_LEN){
-			int key_text = key_get_text_input();
-
-			if (key_text < 0) {
-				break;
-			}
-
-			str[0] = (char)key_text;
+			str[0] = (char)ascii;
 			str[1] = '\0';
 			SDL_strlcat(Multi_msg_text, str, SDL_arraysize(Multi_msg_text));
 		}

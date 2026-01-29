@@ -185,7 +185,7 @@ int				keyd_time_when_last_pressed;
 static bool		keyd_pressed[SDL_SCANCODE_COUNT];
 
 typedef struct keyboard	{
-	ushort			keybuffer[KEY_BUFFER_SIZE];
+	SDL_Keycode			keybuffer[KEY_BUFFER_SIZE];
 	uint				time_pressed[KEY_BUFFER_SIZE];
 	uint				TimeKeyWentDown[SDL_SCANCODE_COUNT];
 	uint				TimeKeyHeldDown[SDL_SCANCODE_COUNT];
@@ -209,8 +209,6 @@ int key_inited = 0;
 #define MAX_FILTER_KEYS 64
 int Num_filter_keys;
 int Key_filter[MAX_FILTER_KEYS];
-
-static int Key_numlock_was_on = 0;	// Flag to indicate whether NumLock is on at start
 
 int Cheats_enabled = 0;
 int Key_normal_game = 0;
@@ -248,22 +246,36 @@ bool key_pressed(int keycode)
 	return keyd_pressed[scancode];
 }
 
-int key_numlock_is_on()
+int key_to_ascii(int keycode)
 {
-	auto state = SDL_GetKeyboardState(nullptr);
-	if ( state[SDL_SCANCODE_NUMLOCKCLEAR] ) {
-		return 1;
+	if ( !keycode || (keycode & SDLK_EXTENDED_MASK) ) {
+		return 255;
 	}
 
-	return 0;
-}
+	bool shifted = keycode & KEY_SHIFTED;
+	keycode &= KEY_MASK;
 
-void key_turn_off_numlock()
-{
-}
+	// SDLK_SPACE returns the key name, not an actual space
+	if (keycode == SDLK_SPACE) {
+		return 0x20;
+	}
 
-void key_turn_on_numlock()
-{
+	// skip keys that aren't directly printable
+	if ((keycode < SDLK_EXCLAIM) || (keycode > SDLK_TILDE)) {
+		return 255;
+	}
+
+	auto text = SDL_GetKeyName(keycode);
+
+	if (SDL_strlen(text) == 1) {
+		if ( !shifted ) {
+			return tolower(*text);
+		} else {
+			return *text;
+		}
+	}
+
+	return 255;
 }
 
 //	Flush the keyboard buffer.
@@ -279,7 +291,7 @@ void key_flush()
 
 	//Clear the keyboard buffer
 	for (i=0; i<KEY_BUFFER_SIZE; i++ )	{
-		key_data.keybuffer[i] = 0;
+		key_data.keybuffer[i] = SDLK_UNKNOWN;
 		key_data.time_pressed[i] = 0;
 	}
 	
@@ -329,24 +341,14 @@ int key_checkch()
 //	Reads keys out of the key buffer and updates keyhead.
 int key_inkey()
 {
-	SDL_Scancode scancode = SDL_SCANCODE_UNKNOWN;
-	int mod, keycode;
-
-	if ( !key_inited )
-		return 0;
+	SDL_Keycode keycode = SDLK_UNKNOWN;
 
 	if (key_data.keytail != key_data.keyhead) {
-		scancode = (SDL_Scancode)key_data.keybuffer[key_data.keyhead];
+		keycode = key_data.keybuffer[key_data.keyhead];
 		key_data.keyhead = add_one(key_data.keyhead);
-	} else {
-		return 0;
 	}
 
-	// need to strip key mod state for keycode lookup
-	mod = (scancode & 0xf900);
-	keycode = SDL_GetKeyFromScancode((SDL_Scancode)(scancode & KEY_MASK), SDL_KMOD_NONE, false);
-
-	return (keycode | mod);
+	return keycode;
 }
 
 // If not installed, uses BIOS and returns getch();
@@ -494,7 +496,6 @@ int key_check(int keycode)
 void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 {
 	uint breakbit, temp, event_time;
-	ushort keycode;
 
 	if ( !key_inited ) return;
 
@@ -542,7 +543,12 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 //				Int3();
 		} 
 
-		keycode = (unsigned short)scancode;
+		// try to stop special keys (like pressing option on macOS for unicode chars)
+		const bool no_kmod = (kmod & SDL_KMOD_ALT);
+
+		SDL_Keycode keycode = SDL_GetKeyFromScancode(scancode,
+													 no_kmod ? SDL_KMOD_NONE : kmod,
+													 false);;
 
 		if (kmod & SDL_KMOD_SHIFT)
 			keycode |= KEY_SHIFTED;
@@ -603,11 +609,6 @@ void key_close()
 {
 	if ( !key_inited )
 		return;
-
-	if ( Key_numlock_was_on ) {
-		key_turn_on_numlock();
-		Key_numlock_was_on = 0;
-	}
 
 	key_inited = 0;
 }

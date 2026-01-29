@@ -296,11 +296,10 @@ int snazzy_menu_do(ubyte *data, int mask_w, int mask_h, int num_regions, MENU_RE
 
 		default:
 			if ( k ) {
-				int key_text = tolower(key_get_text_input());
 				for (i=0; i<num_regions; i++) {
 					if ( !regions[i].key )
 						continue;
-					if ( tolower(regions[i].key) == key_text ) {
+					if (regions[i].key == k) {
 						choice = regions[i].mask;
 						if ( regions[i].click_sound != -1 ) {
 							snd_play( &Snds_iface[regions[i].click_sound], 0.0f );
@@ -442,7 +441,7 @@ void read_menu_tbl(const char* menu_name, char* bkg_filename, const int max_bkg_
 				
 				// get the hot key character
 				token = strtok( NULL, seps );
-				regions[*num_regions].key = token[0];
+				regions[*num_regions].key = SDL_GetKeyFromName(token);
 
 				// stuff default click sound (not in menu.tbl)
 				if ( play_sound ) {

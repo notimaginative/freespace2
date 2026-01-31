@@ -1545,6 +1545,10 @@ void audiostream_unpause_all()
 
 void audiostream_do_frame()
 {
+	if ( !Audiostream_inited ) {
+		return;
+	}
+
 	for (int i = 0; i < MAX_AUDIO_STREAMS; i++) {
 		if (Audio_streams[i].status == ASF_USED) {
 			Audio_streams[i].Do_Frame();

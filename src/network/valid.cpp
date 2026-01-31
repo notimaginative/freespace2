@@ -353,7 +353,7 @@ int ValidateUser(validate_id_request *valid_id, char *trackerid)
 
 				udp_packet_header inpacket;
 				addrsize = sizeof(struct sockaddr_in);
-				PXO_RECVFROM(VALIDSOCKET, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+				(void)PXO_RECVFROM(VALIDSOCKET, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
 			}
 			Psztracker_id = trackerid;
 
@@ -603,7 +603,7 @@ int ValidateMission(vmt_validate_mission_req_struct *valid_msn)
 
 				udp_packet_header inpacket;
 				addrsize = sizeof(struct sockaddr_in);
-				PXO_RECVFROM(VALIDSOCKET, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+				(void)PXO_RECVFROM(VALIDSOCKET, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
 				FD_ZERO(&read_fds);
 				FD_SET(VALIDSOCKET, &read_fds);
 			}
@@ -693,7 +693,7 @@ int ValidateSquadWar(squad_war_request *sw_req, squad_war_response *sw_resp)
 
 				udp_packet_header inpacket;
 				addrsize = sizeof(struct sockaddr_in);
-				PXO_RECVFROM(VALIDSOCKET, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
+				(void)PXO_RECVFROM(VALIDSOCKET, (char *)&inpacket,sizeof(udp_packet_header),0,(struct sockaddr *)&fromaddr,&addrsize, PSNET_TYPE_VALIDATION);
 				FD_ZERO(&read_fds);
 				FD_SET(VALIDSOCKET, &read_fds);
 			}

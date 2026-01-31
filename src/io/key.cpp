@@ -261,7 +261,7 @@ int key_to_ascii(int keycode)
 	}
 
 	// skip keys that aren't directly printable
-	if ((keycode < SDLK_EXCLAIM) || (keycode > SDLK_TILDE)) {
+	if ((keycode < (int)SDLK_EXCLAIM) || (keycode > (int)SDLK_TILDE)) {
 		return 255;
 	}
 
@@ -589,7 +589,7 @@ void key_mark(SDL_Scancode scancode, int state, ushort kmod, uint latency )
 				// been explicity set up via key_set_filter()
 				for ( i = 0; i < Num_filter_keys; i++ ) {
 					accept_key = 0;
-					if ( Key_filter[i] == keycode ) {
+					if ( Key_filter[i] == (int)keycode ) {
 						accept_key = 1;
 						break;
 					}

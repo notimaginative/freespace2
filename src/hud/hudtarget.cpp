@@ -1755,8 +1755,11 @@ void hud_target_live_turret(int next_flag, int auto_advance, int only_player_tar
 	int num_live_turrets = 0;
 
 	// make sure we're targeting a ship
-	if (Player_ai->target_objnum == -1 && !auto_advance) {
-		snd_play(&Snds[SND_TARGET_FAIL]);
+	if ((Player_ai->target_objnum < 0) || (Player_ai->target_objnum >= MAX_OBJECTS)) {
+		if ( !auto_advance ) {
+			snd_play(&Snds[SND_TARGET_FAIL]);
+		}
+
 		return;
 	}
 	

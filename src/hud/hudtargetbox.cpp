@@ -1352,6 +1352,7 @@ void hud_render_target_debris(object *target_objp)
 	vector	orient_vec, up_vector;
 	int		base_index;
 	float		factor;	
+	char	temp_name[NAME_LENGTH];
 
 	debrisp = &Debris[target_objp->instance];
 
@@ -1391,7 +1392,6 @@ void hud_render_target_debris(object *target_objp)
 	// print out ship class that debris came from
 	char *printable_ship_class = Ship_info[base_index].name;
 	if ( strstr(Ship_info[base_index].name, NOX("#")) ) {
-		char temp_name[NAME_LENGTH];
 		SDL_strlcpy(temp_name, Ship_info[base_index].name, SDL_arraysize(temp_name));
 		hud_end_string_at_first_hash_symbol(temp_name);
 		printable_ship_class = temp_name;

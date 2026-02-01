@@ -419,11 +419,6 @@ typedef struct {
 // to add file to list, or 0 to not add it.
 extern int (*Get_file_list_filter)(const char *filename);
 
-// cfile directory. valid after cfile_init() returns successfully
-#define CFILE_ROOT_DIRECTORY_LEN			256
-extern char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN];
-extern char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN];
-
 //================= LOW-LEVEL FUNCTIONS ==================
 // Call this once at the beginning of the program
 int cfile_init();
@@ -611,7 +606,7 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info = NUL
 int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize = false);
 
 // initializes Cfile_root_dir[] and Cfile_user_dir[]
-int cfile_init_paths();
+bool cfile_init_paths();
 
 // Creates the directory path if it doesn't exist. Even creates all its
 // parent paths.

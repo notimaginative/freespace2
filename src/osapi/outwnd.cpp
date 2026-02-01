@@ -203,11 +203,11 @@ void load_filter_info(void)
 	outwnd_filter_loaded = 1;
 	outwnd_filter_count = 0;
 
-	if ( cfile_init_paths() ) {
+	if ( !cfile_init_paths() ) {
 		return;
 	}
 
-	SDL_snprintf(pathname, SDL_arraysize(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	cf_create_default_path_string(pathname, CF_TYPE_DATA, "debug_filter.cfg");
 
 	fp = fopen(pathname, "rt");
 	if (!fp)	{
@@ -282,11 +282,11 @@ void save_filter_info(void)
 		return;	// No file, don't save
 	}
 
-	if ( cfile_init_paths() ) {
+	if ( !cfile_init_paths() ) {
 		return;
 	}
 
-	SDL_snprintf(pathname, SDL_arraysize(pathname), "%s%s%sdebug_filter.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	cf_create_default_path_string(pathname, CF_TYPE_DATA, "debug_filter.cfg");
 
 	fp = fopen(pathname, "wt");
 	if (fp)
@@ -397,7 +397,7 @@ void outwnd_print(const char *id, const char *tmp)
 
 void outwnd_init(int display_under_freespace_window)
 {
-	if ( cfile_init_paths() ) {
+	if ( !cfile_init_paths() ) {
 		return;
 	}
 
@@ -405,7 +405,7 @@ void outwnd_init(int display_under_freespace_window)
 
 	char pathname[512];
 
-	SDL_snprintf(pathname, SDL_arraysize(pathname), "%s%s%s%s", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR, Freespace_logfilename);
+	cf_create_default_path_string(pathname, CF_TYPE_DATA, Freespace_logfilename);
 	cf_create_directory(CF_TYPE_DATA);
 
 	if ( Log_fp == NULL ) {

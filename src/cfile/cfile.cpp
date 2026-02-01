@@ -237,8 +237,6 @@
 
 #include "embedvp.h"
 
-char Cfile_root_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
-char Cfile_user_dir[CFILE_ROOT_DIRECTORY_LEN] = "";
 
 // During cfile_init, verify that Pathtypes[n].index == n for each item
 // Each path must have a valid parent that can be tracable all the way back to the root 
@@ -330,37 +328,7 @@ void cfile_close()
 	cfile_inited = 0;
 }
 
-// determine if the given path is in a root directory (c:\  or  c:\freespace2.exe  or  c:\fred2.exe   etc)
-int cfile_in_root_dir(char *exe_path)
-{
-	int token_count = 0;
-	char path_copy[MAX_PATH_LEN] = "";
-	char *p;
 
-	// bogus
-	if(exe_path == NULL){
-		return 1;
-	}
-
-	// copy the path
-	SDL_strlcpy(path_copy, exe_path, SDL_arraysize(path_copy));
-
-	// count how many slashes there are in the path
-	p = path_copy;
-
-	while ((p = SDL_strchr(p, DIR_SEPARATOR_CHAR)) != nullptr) {
-		++p;
-		++token_count;
-	}
-
-	// root directory if we have <= 1 slash
-	if(token_count <= 1){
-		return 1;
-	}
-
-	// not-root directory
-	return 0;
-}
 
 // cfile_init() initializes the cfile system.  Called once at application start.
 //
@@ -377,7 +345,7 @@ int cfile_init()
 
 	if ( !cfile_inited ) {
 		// initialize root and user paths (may have been done already)
-		if ( cfile_init_paths() ) {
+		if ( !cfile_init_paths() ) {
 			return 1;
 		}
 
@@ -1602,136 +1570,4 @@ void *cf_load_file(const char *file_path, const char *mode, int dir_type)
 	cfclose(file);
 
 	return content;
-}
-
-// fill in Cfile_root_dir[] and Cfile_user_dir[]
-// this can be called at any time, even before cfile_init()
-//  returns: non-zero on error
-int cfile_init_paths()
-{
-	if ( SDL_strlen(Cfile_root_dir) && SDL_strlen(Cfile_user_dir) ) {
-		return 0;
-	}
-
-#ifndef __EMSCRIPTEN__
-	const char *t_path = SDL_GetBasePath();
-
-	// make sure we have something
-	if (t_path == NULL) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine executable directory!", NULL);
-		return 1;
-	}
-
-	// size check
-	if ( SDL_strlen(t_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Executable path is too long!", NULL);
-		return 1;
-	}
-
-	// set root directory
-	SDL_strlcpy(Cfile_root_dir, t_path, SDL_arraysize(Cfile_root_dir));
-
-	// are we in a root directory?
-	if ( cfile_in_root_dir(Cfile_root_dir) ) {
-#ifndef MAKE_FS1
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
-#else
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace/Fred cannot be run from a drive root directory!", NULL);
-#endif
-		return 1;
-	}
-
-	// now for the user/pref directory, the writable location
-	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
-
-	// make sure we have something
-	if (u_path == NULL) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine preferences directory!", NULL);
-		return 1;
-	}
-
-	// size check
-	if ( SDL_strlen(u_path) >= CFILE_ROOT_DIRECTORY_LEN ) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Preferences path is too long!", NULL);
-		return 1;
-	}
-
-	// set user/pref directory
-	SDL_strlcpy(Cfile_user_dir, u_path, SDL_arraysize(Cfile_user_dir));
-	// free SDL copy
-	SDL_free(u_path);
-	u_path = NULL;
-#else
-	const char *root_path = "/Game";
-	const char *user_path = "/User";
-
-	SDL_snprintf(Cfile_root_dir, SDL_arraysize(Cfile_root_dir), "%s/", root_path);
-	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "%s/", user_path);
-
-	EM_ASM({
-		const user_path = UTF8ToString($0);
-
-		FS.mkdir(user_path);
-		FS.mount(IDBFS, { name: UTF8ToString($1) }, user_path);
-
-		Module.sync_in_progress = 1;
-
-		if (Module['setStatus']) {
-			Module['setStatus']('Syncing user data...');
-		}
-
-		FS.syncfs(true, function(err) {
-			if (err && err.code !== 'EEXIST') {
-				console.log('FS.syncfs() load error: ' + err);
-			} else {
-				Module.sync_in_progress = 0;
-
-				// remove initial loading screen
-				var loading = document.getElementById('loading');
-				loading.hidden = true;
-			}
-		});
-	}, user_path, Osreg_app_name);
-#endif
-
-	// see if CF_TYPE_DATA exists for user and if not populate user path
-	// with full directory tree
-	char pathname[MAX_PATH_LEN];
-
-	SDL_strlcpy(pathname, Cfile_user_dir, MAX_PATH_LEN);
-	SDL_strlcat(pathname, Pathtypes[CF_TYPE_DATA].path, MAX_PATH_LEN);
-
-	if ( !SDL_GetPathInfo(pathname, nullptr) ) {
-		cf_create_directory(CF_TYPE_MAPS);
-		cf_create_directory(CF_TYPE_TEXT);
-		cf_create_directory(CF_TYPE_MISSIONS);
-		cf_create_directory(CF_TYPE_MODELS);
-		cf_create_directory(CF_TYPE_TABLES);
-		cf_create_directory(CF_TYPE_SOUNDS_8B22K);
-		cf_create_directory(CF_TYPE_SOUNDS_16B11K);
-		cf_create_directory(CF_TYPE_VOICE_BRIEFINGS);
-		cf_create_directory(CF_TYPE_VOICE_CMD_BRIEF);
-		cf_create_directory(CF_TYPE_VOICE_DEBRIEFINGS);
-		cf_create_directory(CF_TYPE_VOICE_PERSONAS);
-		cf_create_directory(CF_TYPE_VOICE_SPECIAL);
-		cf_create_directory(CF_TYPE_VOICE_TRAINING);
-		cf_create_directory(CF_TYPE_MUSIC);
-		cf_create_directory(CF_TYPE_MOVIES);
-		cf_create_directory(CF_TYPE_INTERFACE);
-		cf_create_directory(CF_TYPE_FONT);
-		cf_create_directory(CF_TYPE_EFFECTS);
-		cf_create_directory(CF_TYPE_HUD);
-		cf_create_directory(CF_TYPE_PLAYER_IMAGES_MAIN);
-		cf_create_directory(CF_TYPE_CACHE);
-		cf_create_directory(CF_TYPE_SINGLE_PLAYERS);
-		cf_create_directory(CF_TYPE_MULTI_PLAYERS);
-		cf_create_directory(CF_TYPE_MULTI_CACHE);
-		cf_create_directory(CF_TYPE_CONFIG);
-		cf_create_directory(CF_TYPE_SQUAD_IMAGES_MAIN);
-		cf_create_directory(CF_TYPE_DEMOS);
-		cf_create_directory(CF_TYPE_CBANIMS);
-		cf_create_directory(CF_TYPE_INTEL_ANIMS);
-	}
-
-	return 0;
 }

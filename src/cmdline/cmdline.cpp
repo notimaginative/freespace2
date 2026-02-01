@@ -515,22 +515,15 @@ static void os_init_cmdline(const char *cmdline)
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
 	// the command line will take precedence
 
-	if ( cfile_init_paths() ) {
+	if ( !cfile_init_paths() ) {
 		exit(-2);
 	}
 
 	mprintf(("Command line: "));
 
-	SDL_snprintf(cmdname, SDL_arraysize(cmdname), "%s%s%scmdline.cfg", Cfile_user_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
+	cf_create_default_path_string(cmdname, CF_TYPE_DATA, "cmdline.cfg");
 
 	fp = fopen (cmdname, "rt");
-
-	if ( !fp ) {
-		// if not already found check exec directory
-		SDL_snprintf(cmdname, SDL_arraysize(cmdname), "%s%s%scmdline.cfg", Cfile_root_dir, Pathtypes[CF_TYPE_DATA].path, DIR_SEPARATOR_STR);
-
-		fp = fopen (cmdname, "rt");
-	}
 
 	// if the file exists, get a single line, and deal with it
 	if ( fp ) {

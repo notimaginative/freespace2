@@ -119,8 +119,10 @@
  * $NoKeywords: $
  */
 
+#include <string>
+#include <cstring>
+
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #ifdef SDL_PLATFORM_WINDOWS
@@ -132,6 +134,7 @@
 #include "cfile.h"
 #include "cfilesystem.h"
 #include "localize.h"
+#include "osregistry.h"
 
 #include "embedvp.h"
 
@@ -139,6 +142,10 @@
 #define CF_ROOTTYPE_PATH 0
 #define CF_ROOTTYPE_PACK 1
 #define CF_ROOTTYPE_EMBED 2
+
+static std::string Cfile_root_dir;
+static std::string Cfile_exec_dir;
+static std::string Cfile_user_dir;
 
 //  Created by:
 //    specifying hard drive tree
@@ -385,7 +392,7 @@ void cf_build_root_list(const char *extras_dir)
 	// ================================================================
 	// have user's writable directory as default for loading and saving files
 	root = cf_create_root();
-	SDL_strlcpy( root->path, Cfile_user_dir, SDL_arraysize(root->path) );
+	SDL_strlcpy( root->path, Cfile_user_dir.c_str(), SDL_arraysize(root->path) );
 
 	// do we already have a slash? as in the case of a root directory install
 	if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
@@ -398,9 +405,10 @@ void cf_build_root_list(const char *extras_dir)
 	cf_build_pack_list(root);
 
 	//======================================================
-	// Next, use the executable's directory for game data
+	// Next, use the executable's directory for game data. This could be inside
+	// the .app bundle on macOS or inside the AppImage root on Linux.
 	root = cf_create_root();
-	SDL_strlcpy( root->path, Cfile_root_dir, SDL_arraysize(root->path) );
+	SDL_strlcpy( root->path, Cfile_root_dir.c_str(), SDL_arraysize(root->path) );
 
 	// do we already have a slash? as in the case of a root directory install
 	if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
@@ -409,8 +417,27 @@ void cf_build_root_list(const char *extras_dir)
 	root->roottype = CF_ROOTTYPE_PATH;
 
 	//======================================================
-	// then check any VP files under the current directory.
+	// then check any VP files under the directory.
 	cf_build_pack_list(root);
+
+	//======================================================
+	// Next we check the *actual* executable directory, in case we're running from
+	// an installation. Gets skipped if it matches Cfile_root_dir or doesn't have
+	// any .vp files in it.
+	if ( !Cfile_exec_dir.empty() ) {
+		root = cf_create_root();
+		SDL_strlcpy( root->path, Cfile_exec_dir.c_str(), SDL_arraysize(root->path) );
+
+		// do we already have a slash? as in the case of a root directory install
+		if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
+			SDL_strlcat(root->path, DIR_SEPARATOR_STR, SDL_arraysize(root->path));		// put trailing backslash on for easier path construction
+		}
+		root->roottype = CF_ROOTTYPE_PATH;
+
+		//======================================================
+		// then check any VP files under the directory.
+		cf_build_pack_list(root);
+	}
 
 
 	//======================================================
@@ -690,6 +717,13 @@ void cf_build_secondary_filelist(const char *extras_dir)
 	cf_build_file_list();
 
 	mprintf(( "Found %d roots and %d files.\n", Num_roots, Num_files ));
+
+	// it should be safe to clear Cfile_root_dir/Cfile_exec_dir now
+	// (DO NOT CLEAR Cfile_user_dir HERE!!)
+	Cfile_root_dir.clear();
+	Cfile_root_dir.shrink_to_fit();
+	Cfile_exec_dir.clear();
+	Cfile_exec_dir.shrink_to_fit();
 }
 
 void cf_free_secondary_filelist()
@@ -1179,14 +1213,13 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 		// Already has full path
 		SDL_strlcpy( path, filename, MAX_PATH_LEN );
 	} else {
-		if ( cfile_init_paths() ) {
-			SDL_strlcpy(path, (filename) ? filename : "", MAX_PATH_LEN);
-			return;
+		if ( !cfile_init_paths() ) {
+			exit(EXIT_FAILURE);
 		}
 
 		SDL_assert(CF_TYPE_SPECIFIED(pathtype));
 
-		SDL_strlcpy(path, Cfile_user_dir, MAX_PATH_LEN);
+		SDL_strlcpy(path, Cfile_user_dir.c_str(), MAX_PATH_LEN);
 		SDL_strlcat(path, Pathtypes[pathtype].path, MAX_PATH_LEN);
 
 		// Don't add slash for root directory
@@ -1261,4 +1294,243 @@ bool cf_has_packfile(const char *fn)
 	}
 
 	return false;
+}
+
+// determine if the given path is in a root directory (c:\  or  c:\freespace2.exe  or  c:\fred2.exe   etc)
+static bool cfile_in_root_dir(const std::string &exe_path)
+{
+	int token_count = 0;
+	char path_copy[MAX_PATH_LEN] = "";
+	char *p;
+
+	// bogus
+	if (exe_path.empty()) {
+		return true;
+	}
+
+	// copy the path
+	SDL_strlcpy(path_copy, exe_path.c_str(), SDL_arraysize(path_copy));
+
+	// count how many slashes there are in the path
+	p = path_copy;
+
+	while ((p = SDL_strchr(p, DIR_SEPARATOR_CHAR)) != nullptr) {
+		++p;
+		++token_count;
+	}
+
+	// root directory if we have <= 1 slash
+	if(token_count <= 1){
+		return true;
+	}
+
+	// not-root directory
+	return false;
+}
+
+// checks for presence of root vp in path
+static bool cfile_has_game_files(const std::string &path)
+{
+	int count = 0;
+
+#if defined(FS1_DEMO)
+	auto ignore = SDL_GlobDirectory(path.c_str(), "data/freespace.vp", SDL_GLOB_CASEINSENSITIVE, &count);
+
+	if (ignore) {
+		SDL_free(ignore);
+	}
+
+	return (count > 0);
+#elif defined(MAKE_FS1)
+	auto ignore = SDL_GlobDirectory(path.c_str(), "root.vp", SDL_GLOB_CASEINSENSITIVE, &count);
+
+	if (ignore) {
+		SDL_free(ignore);
+	}
+
+	return (count > 0);
+#else
+	// this is true for both full game and demo
+	auto ignore = SDL_GlobDirectory(path.c_str(), "root_fs2.vp", SDL_GLOB_CASEINSENSITIVE, &count);
+
+	if (ignore) {
+		SDL_free(ignore);
+	}
+
+	return (count > 0);
+#endif
+}
+
+// fill in Cfile_root_dir[] and Cfile_user_dir[]
+// this can be called at any time, even before cfile_init()
+//  returns: true on success, false on error
+bool cfile_init_paths()
+{
+	if (cfile_inited || (!Cfile_root_dir.empty() && !Cfile_user_dir.empty())) {
+		return true;
+	}
+
+#ifndef __EMSCRIPTEN__
+	const char *t_path = SDL_GetBasePath();
+
+	// make sure we have something
+	if (t_path == NULL) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine executable directory!", NULL);
+		return false;
+	}
+
+	// size check
+	if ( SDL_strlen(t_path) >= CF_MAX_PATHNAME_LENGTH ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Executable path is too long!", NULL);
+		return false;
+	}
+
+	// set root directory
+	Cfile_root_dir = t_path;
+
+	// are we in a root directory?
+	if ( cfile_in_root_dir(Cfile_root_dir) ) {
+#ifndef MAKE_FS1
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace2/Fred2 cannot be run from a drive root directory!", NULL);
+#else
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Freespace/Fred cannot be run from a drive root directory!", NULL);
+#endif
+		return false;
+	}
+
+	// set exec directory, if:
+	//	* it's in some sort of app bundle/container
+	//	* it doesn't match Cfile_root_dir
+	//	* it contains required .vp's
+	// (Note: Cfile_exec_dir should be left empty if it fails required checks)
+#if defined(SDL_PLATFORM_LINUX)
+	auto appimage = SDL_getenv("APPIMAGE");
+
+	if (appimage) {
+		Cfile_exec_dir = appimage;
+
+		auto pos = Cfile_exec_dir.rfind(DIR_SEPARATOR_CHAR);
+
+		if (pos != std::string::npos) {
+			Cfile_exec_dir.resize(pos+1);
+		}
+
+		if (cfile_in_root_dir(Cfile_exec_dir) ||
+			!Cfile_exec_dir.compare(Cfile_root_dir) ||
+			!cfile_has_game_files(Cfile_exec_dir) )
+		{
+			Cfile_exec_dir.clear();
+			Cfile_exec_dir.shrink_to_fit();
+		}
+	}
+#elif defined(SDL_PLATFORM_APPLE)
+	// root should be in Resources of bundle by default
+	auto app_pos = Cfile_root_dir.rfind(".app/Contents/Resources");
+
+	if (app_pos != std::string::npos) {
+		auto pos = Cfile_root_dir.rfind(DIR_SEPARATOR_CHAR, app_pos);
+
+		Cfile_exec_dir = Cfile_root_dir.substr(0, pos+1);
+
+		if (cfile_in_root_dir(Cfile_exec_dir) ||
+			!Cfile_exec_dir.compare(Cfile_root_dir) ||
+			!cfile_has_game_files(Cfile_exec_dir) )
+		{
+			Cfile_exec_dir.clear();
+			Cfile_exec_dir.shrink_to_fit();
+		}
+	}
+#endif
+
+	// now for the user/pref directory, the writable location
+	char *u_path = SDL_GetPrefPath(Osreg_company_name, Osreg_app_name);
+
+	// make sure we have something
+	if (u_path == NULL) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error trying to determine preferences directory!", NULL);
+		return false;
+	}
+
+	// size check
+	if ( SDL_strlen(u_path) >= CF_MAX_PATHNAME_LENGTH ) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Preferences path is too long!", NULL);
+		return false;
+	}
+
+	// set user/pref directory
+	Cfile_user_dir = u_path;
+	// free SDL copy
+	SDL_free(u_path);
+	u_path = nullptr;
+#else
+	const char *root_path = "/Game";
+	const char *user_path = "/User";
+
+	SDL_snprintf(Cfile_root_dir, SDL_arraysize(Cfile_root_dir), "%s/", root_path);
+	SDL_snprintf(Cfile_user_dir, SDL_arraysize(Cfile_user_dir), "%s/", user_path);
+
+	EM_ASM({
+		const user_path = UTF8ToString($0);
+
+		FS.mkdir(user_path);
+		FS.mount(IDBFS, { name: UTF8ToString($1) }, user_path);
+
+		Module.sync_in_progress = 1;
+
+		if (Module['setStatus']) {
+			Module['setStatus']('Syncing user data...');
+		}
+
+		FS.syncfs(true, function(err) {
+			if (err && err.code !== 'EEXIST') {
+				console.log('FS.syncfs() load error: ' + err);
+			} else {
+				Module.sync_in_progress = 0;
+
+				// remove initial loading screen
+				var loading = document.getElementById('loading');
+				loading.hidden = true;
+			}
+		});
+	}, user_path, Osreg_app_name);
+#endif
+
+	// see if CF_TYPE_DATA exists for user and if not populate user path
+	// with full directory tree
+	std::string pathname = Cfile_user_dir;
+	pathname += Pathtypes[CF_TYPE_DATA].path;
+
+	if ( !SDL_GetPathInfo(pathname.c_str(), nullptr) ) {
+		cf_create_directory(CF_TYPE_MAPS);
+		cf_create_directory(CF_TYPE_TEXT);
+		cf_create_directory(CF_TYPE_MISSIONS);
+		cf_create_directory(CF_TYPE_MODELS);
+		cf_create_directory(CF_TYPE_TABLES);
+		cf_create_directory(CF_TYPE_SOUNDS_8B22K);
+		cf_create_directory(CF_TYPE_SOUNDS_16B11K);
+		cf_create_directory(CF_TYPE_VOICE_BRIEFINGS);
+		cf_create_directory(CF_TYPE_VOICE_CMD_BRIEF);
+		cf_create_directory(CF_TYPE_VOICE_DEBRIEFINGS);
+		cf_create_directory(CF_TYPE_VOICE_PERSONAS);
+		cf_create_directory(CF_TYPE_VOICE_SPECIAL);
+		cf_create_directory(CF_TYPE_VOICE_TRAINING);
+		cf_create_directory(CF_TYPE_MUSIC);
+		cf_create_directory(CF_TYPE_MOVIES);
+		cf_create_directory(CF_TYPE_INTERFACE);
+		cf_create_directory(CF_TYPE_FONT);
+		cf_create_directory(CF_TYPE_EFFECTS);
+		cf_create_directory(CF_TYPE_HUD);
+		cf_create_directory(CF_TYPE_PLAYER_IMAGES_MAIN);
+		cf_create_directory(CF_TYPE_CACHE);
+		cf_create_directory(CF_TYPE_SINGLE_PLAYERS);
+		cf_create_directory(CF_TYPE_MULTI_PLAYERS);
+		cf_create_directory(CF_TYPE_MULTI_CACHE);
+		cf_create_directory(CF_TYPE_CONFIG);
+		cf_create_directory(CF_TYPE_SQUAD_IMAGES_MAIN);
+		cf_create_directory(CF_TYPE_DEMOS);
+		cf_create_directory(CF_TYPE_CBANIMS);
+		cf_create_directory(CF_TYPE_INTEL_ANIMS);
+	}
+
+	return true;
 }

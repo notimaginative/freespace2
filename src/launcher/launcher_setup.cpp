@@ -234,7 +234,7 @@ void launcher_setup_open()
 
 			if (font) {
 				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size,
-															  WindowScale->get(Fonts[i].size),
+															  Fonts[i].size,
 															  &fontConfig);
 			}
 		}
@@ -725,7 +725,7 @@ static void tabNetwork()
 	}
 
 	ImGui::PushItemWidth(WindowScale->get(75.f));
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	if (ImGui::InputText("##port", port_buf, SDL_arraysize(port_buf), ImGuiInputTextFlags_CharsDecimal)) {
 		if ( !SDL_strlen(port_buf) ) {
 			Config.port = 0;
@@ -757,7 +757,7 @@ static void tabPXO()
 	ImGui::AlignTextToFramePadding();
 	ImGui::Text("Login");
 	ImGui::SameLine();
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	SDL_strlcpy(login_buf, Config.pxo_login.c_str(), SDL_arraysize(login_buf));
 	if (ImGui::InputText("##login", login_buf, SDL_arraysize(login_buf), ImGuiInputTextFlags_CharsDecimal)) {
 		Config.pxo_login = login_buf;
@@ -767,7 +767,7 @@ static void tabPXO()
 	ImGui::AlignTextToFramePadding();
 	ImGui::Text("Password");
 	ImGui::SameLine();
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	SDL_strlcpy(pass_buf, Config.pxo_pass.c_str(), SDL_arraysize(pass_buf));
 	if (ImGui::InputText("##password", pass_buf, SDL_arraysize(pass_buf), ImGuiInputTextFlags_CharsNoBlank)) {
 		Config.pxo_pass = pass_buf;
@@ -812,7 +812,7 @@ static void tabMisc()
 		SDL_strlcpy(extras_str, Config.extras_path.c_str(), SDL_arraysize(extras_str));
 	}
 
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 	if (ImGui::InputText("##extras", extras_str, SDL_arraysize(extras_str))) {
@@ -824,7 +824,7 @@ static void tabMisc()
 
 	char cmdline_str[1024] = "";
 
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 	SDL_strlcpy(cmdline_str, Config.cmdline.c_str(), SDL_arraysize(cmdline_str));
 	if (ImGui::InputText("##cmdline", cmdline_str, SDL_arraysize(cmdline_str))) {

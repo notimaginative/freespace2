@@ -100,6 +100,8 @@ void LauncherScale::update()
 			ImGui::SetCurrentContext(context);
 			ImGui::GetStyle() = styleOrig;
 			ImGui::GetStyle().ScaleAllSizes(scale_factor);
+			ImGui::GetStyle().FontScaleDpi = scale_factor;
+
 
 			ImGui::SetCurrentContext(oldCtx);
 		}
@@ -114,6 +116,7 @@ void LauncherScale::setStyle(ImGuiContext *ctx) {
 
 		styleOrig = ImGui::GetStyle();
 		ImGui::GetStyle().ScaleAllSizes(scale_factor);
+		ImGui::GetStyle().FontScaleDpi = scale_factor;
 
 		ImGui::SetCurrentContext(oldCtx);
 	}
@@ -323,7 +326,7 @@ static void launcher_show_version()
 	SDL_GetWindowSize(Window, &window_w, &window_h);
 
 	// NOTE: the font size *must* be specified here or else it will be wrong!!
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	auto text_size = ImGui::CalcTextSize(version_get_string_full());
 
 	// align version string to top right corner of window
@@ -380,7 +383,7 @@ static bool launcher_do()
 
 			if (font) {
 				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size,
-															  WindowScale->get(Fonts[i].size),
+															  Fonts[i].size,
 															  &fontConfig);
 			}
 		}

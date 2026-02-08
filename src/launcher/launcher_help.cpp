@@ -162,7 +162,7 @@ void launcher_help_open()
 
 			if (font) {
 				Fonts[i].ptr = io.Fonts->AddFontFromMemoryTTF(font, size,
-															  WindowScale->get(Fonts[i].size),
+															  Fonts[i].size,
 															  &fontConfig);
 			}
 		}
@@ -258,7 +258,7 @@ void launcher_help_draw()
 
 	ImGui::Begin("Help", nullptr, window_flags);
 
-	ImGui::PushFont(Fonts[FONT_MONO].ptr, WindowScale->get(Fonts[FONT_MONO].size));
+	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
 	ImGui::SetNextWindowSize(ImVec2(0.f, i2fl(h) - WindowScale->get(75.f)));
 	ImGui::BeginChild("text");
 	ImGui::TextUnformatted(HelpText ? HelpText : "No help available.");

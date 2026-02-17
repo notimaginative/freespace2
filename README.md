@@ -30,6 +30,12 @@ There are three basic options for how to install game data. Please choose the on
 2. Install the game binary wherever you like and run it once, then Quit. Copy your game data (`*.vp` and `data` folder) to your users data path (Linux: `~/.local/share/Volition/<game>`, macOS: `~/Library/Application Support/Volition/<game>`, Windows: `C:\Users\<you>\AppData\Roaming\Volition\<game>`)
 3. Place the extracted binary package in the same location as your game data (***WARNING:** may overwrite retail files!!*)
 
+## Tool Set
+
+A basic set of command line and GUI tools is provided to help create new content for FreeSpace 2. This includes tools such as *FRED*, the GUI mission editor, and `cfileutil`, a command line utility for creating `.vp` archives.
+
+Please see [README-toolset](README-toolset.md) for information about the tools, what they do, and how to use them.
+
 ## Links
 
 - Purchase **FreeSpace 2**: [Steam](https://store.steampowered.com/app/273620/Freespace_2/), [GOG](https://www.gog.com/game/freespace_2)
@@ -42,23 +48,23 @@ There are three basic options for how to install game data. Please choose the on
 
 ## Project Status
 
-What works:
-- Full featured OpenGL ES 2 renderer
-- Cross-platform multiplayer over LAN and Internet
-- PXO multiplayer support
-- Original movies
-- Gamepad support
-- Haptic and Rumble support
-- Sound and music
+What works (all of the basic game, including):
+- [x] Full featured OpenGL ES 2 renderer
+- [x] Cross-platform multiplayer over LAN and Internet
+- [x] PXO multiplayer support
+- [x] Original movies
+- [x] Gamepad support
+- [x] Haptic and Rumble support
+- [x] Sound and music
 
 What doesn't work:
 - **Descent: FreeSpace** multiplayer is not compatible with retail version
 - No IPv6 support (breaks compatibility with retail version)
 
 In progress:
-- FRED (for **Descent: FreeSpace**)
-- FRED2 running under Wine as packaged app for Linux/macOS
-- PofView imgui rewrite (model viewer, part of toolset)
-- Emscripten port of demo versions
-- New standalone server web UI
-- Multicast for LAN games
+- [ ] FRED (for **Descent: FreeSpace**)
+- [ ] FRED2 running under Wine as packaged app for Linux/macOS
+- [ ] PofView imgui rewrite (model viewer, part of tool set)
+- [ ] Emscripten port of demo versions
+- [ ] New standalone server web UI
+- [ ] Multicast for LAN games

@@ -58,17 +58,6 @@
 void cf_build_secondary_filelist( const char *extras_path );
 void cf_free_secondary_filelist();
 
-// Internal stuff
-typedef struct cf_pathtype {
-	int		index;					// To verify that the CF_TYPE define is correctly indexed into this array
-	const char	*path;					// Path relative to Freespace root, has ending backslash.
-	const char	*extensions;			// Extensions used in this pathtype, separated by spaces
-	int		parent_index;			// Index of this directory's parent.  Used for creating directories when writing.
-} cf_pathtype;
-
-// During cfile_init, verify that Pathtypes[n].index == n for each item
-extern cf_pathtype Pathtypes[CF_MAX_PATH_TYPES];
-
 // Returns the default storage path for files given a 
 // particular pathtype.   In other words, the path to 
 // the unpacked, non-cd'd, stored on hard drive path.

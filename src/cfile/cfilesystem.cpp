@@ -121,6 +121,7 @@
 
 #include <string>
 #include <cstring>
+#include <algorithm>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -137,6 +138,79 @@
 #include "osregistry.h"
 
 #include "embedvp.h"
+
+
+typedef struct cf_pathtype {
+	int		index;					// To verify that the CF_TYPE define is correctly indexed into this array
+	const char	*path;					// Path relative to Freespace root, has ending backslash.
+	const char	*extensions;			// Extensions used in this pathtype, separated by spaces
+	int		parent_index;			// Index of this directory's parent.  Used for creating directories when writing.
+} cf_pathtype;
+
+// During cfile_init, verify that Pathtypes[n].index == n for each item
+// Each path must have a valid parent that can be tracable all the way back to the root
+// so that we can create directories when we need to.
+//
+static cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
+	// What type this is          Path                             Extensions              Parent type
+	{ CF_TYPE_INVALID,				NULL,										NULL,				CF_TYPE_INVALID },
+	// Root must be index 1!!
+	{ CF_TYPE_ROOT,					"",											".mve .png",			CF_TYPE_ROOT	},
+	{ CF_TYPE_DATA,					"Data",										".cfg .txt",			CF_TYPE_ROOT	},
+	{ CF_TYPE_MAPS,					"Data" DIR_SEPARATOR_STR "Maps",			".pcx .ani .tga",		CF_TYPE_DATA	},
+	{ CF_TYPE_TEXT,					"Data" DIR_SEPARATOR_STR "Text",			".txt .net",			CF_TYPE_DATA	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_MISSIONS,				"Data" DIR_SEPARATOR_STR "Missions",		".fsm .fsc .ntl .ssv",	CF_TYPE_DATA	},
+#else
+	{ CF_TYPE_MISSIONS,				"Data" DIR_SEPARATOR_STR "Missions",		".fs2 .fc2 .ntl .ssv",	CF_TYPE_DATA	},
+#endif
+	{ CF_TYPE_MODELS,				"Data" DIR_SEPARATOR_STR "Models",			".pof",					CF_TYPE_DATA	},
+	{ CF_TYPE_TABLES,				"Data" DIR_SEPARATOR_STR "Tables",			".tbl",					CF_TYPE_DATA	},
+	{ CF_TYPE_SOUNDS,				"Data" DIR_SEPARATOR_STR "Sounds",			".wav",					CF_TYPE_DATA	},
+	{ CF_TYPE_SOUNDS_8B22K,			"Data" DIR_SEPARATOR_STR "Sounds" DIR_SEPARATOR_STR "8b22k",			".wav",	CF_TYPE_SOUNDS	},
+	{ CF_TYPE_SOUNDS_16B11K,		"Data" DIR_SEPARATOR_STR "Sounds" DIR_SEPARATOR_STR "16b11k",			".wav",	CF_TYPE_SOUNDS	},
+	{ CF_TYPE_VOICE,				"Data" DIR_SEPARATOR_STR "Voice",			"",						CF_TYPE_DATA	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_VOICE_BRIEFINGS,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Briefings",			".wav",	CF_TYPE_VOICE	},
+#else
+	{ CF_TYPE_VOICE_BRIEFINGS,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Briefing",			".wav",	CF_TYPE_VOICE	},
+#endif
+	{ CF_TYPE_VOICE_CMD_BRIEF,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Command_briefings",	".wav",	CF_TYPE_VOICE	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Debriefings",		".wav",	CF_TYPE_VOICE	},
+#else
+	{ CF_TYPE_VOICE_DEBRIEFINGS,	"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Debriefing",		".wav",	CF_TYPE_VOICE	},
+#endif
+	{ CF_TYPE_VOICE_PERSONAS,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Personas",			".wav",	CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_SPECIAL,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Special",			".wav",	CF_TYPE_VOICE	},
+	{ CF_TYPE_VOICE_TRAINING,		"Data" DIR_SEPARATOR_STR "Voice" DIR_SEPARATOR_STR "Training",			".wav",	CF_TYPE_VOICE	},
+	{ CF_TYPE_MUSIC,				"Data" DIR_SEPARATOR_STR "Music",			".wav",					CF_TYPE_VOICE	},
+	{ CF_TYPE_MOVIES,				"Data" DIR_SEPARATOR_STR "Movies",			".mve .msb",			CF_TYPE_DATA	},
+	{ CF_TYPE_INTERFACE,			"Data" DIR_SEPARATOR_STR "Interface",		".pcx .ani .tga .png",	CF_TYPE_DATA	},
+	{ CF_TYPE_FONT,					"Data" DIR_SEPARATOR_STR "Fonts",			".vf .ttf",				CF_TYPE_DATA	},
+	{ CF_TYPE_EFFECTS,				"Data" DIR_SEPARATOR_STR "Effects",			".ani .pcx .neb .tga",	CF_TYPE_DATA	},
+	{ CF_TYPE_HUD,					"Data" DIR_SEPARATOR_STR "Hud",				".ani .pcx .tga",		CF_TYPE_DATA	},
+	{ CF_TYPE_PLAYER_MAIN,			"Data" DIR_SEPARATOR_STR "Players",			"",						CF_TYPE_DATA	},
+	{ CF_TYPE_PLAYER_IMAGES_MAIN,	"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Images",			".pcx",	CF_TYPE_PLAYER_MAIN	},
+#ifdef MAKE_FS1
+	{ CF_TYPE_CACHE,				"Cache",									".clr .tmp",			CF_TYPE_DATA	}, 	//clr=cached color
+	{ CF_TYPE_PLAYERS,				"Players",									".hcf",					CF_TYPE_ROOT	},
+	{ CF_TYPE_SINGLE_PLAYERS,		"Players" DIR_SEPARATOR_STR "Single",		".plr .csg .css",		CF_TYPE_PLAYERS	},
+	{ CF_TYPE_MULTI_PLAYERS,		"Players" DIR_SEPARATOR_STR "Multi",		".plr",					CF_TYPE_PLAYERS	},
+#else
+	{ CF_TYPE_CACHE,				"Data" DIR_SEPARATOR_STR "Cache",			".clr .tmp",			CF_TYPE_DATA	}, 	//clr=cached color
+	{ CF_TYPE_PLAYERS,				"Data" DIR_SEPARATOR_STR "Players",			".hcf",					CF_TYPE_DATA	},
+	{ CF_TYPE_SINGLE_PLAYERS,		"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Single",			".plr .csg .css",	CF_TYPE_PLAYERS	},
+	{ CF_TYPE_MULTI_PLAYERS,		"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Multi",			".plr",	CF_TYPE_DATA	},
+#endif
+	{ CF_TYPE_MULTI_CACHE,			"Data" DIR_SEPARATOR_STR "MultiData",		".pcx .fs2",			CF_TYPE_DATA	},
+	{ CF_TYPE_CONFIG,				"Data" DIR_SEPARATOR_STR "Config",			".cfg",					CF_TYPE_DATA	},
+	{ CF_TYPE_SQUAD_IMAGES_MAIN,	"Data" DIR_SEPARATOR_STR "Players" DIR_SEPARATOR_STR "Squads",			".pcx",	CF_TYPE_DATA	},
+	{ CF_TYPE_DEMOS,				"Data" DIR_SEPARATOR_STR "Demos",			".fsd",					CF_TYPE_DATA	},
+	{ CF_TYPE_CBANIMS,				"Data" DIR_SEPARATOR_STR "CBAnims",			".ani",					CF_TYPE_DATA	},
+	{ CF_TYPE_INTEL_ANIMS,			"Data" DIR_SEPARATOR_STR "IntelAnims",		".ani",					CF_TYPE_DATA	},
+	{ CF_TYPE_SHADERS,				"Data" DIR_SEPARATOR_STR "Shaders",			".glsl",				CF_TYPE_DATA	},
+};
 
 
 #define CF_ROOTTYPE_PATH 0
@@ -178,7 +252,8 @@ static cf_root_block  *Root_blocks[CF_MAX_ROOT_BLOCKS];
 
 // Created by searching all roots in order.   This means Files is then sorted by precedence.
 typedef struct cf_file {
-	char		name_ext[CF_MAX_FILENAME_LENGTH];		// Filename and extension
+	std::string	name_ext;								// Filename and extension
+	std::string	subpath;								// subdirectory where file was found
 	int		root_index;										// Where in Roots this is located
 	int		pathtype_index;								// Where in Paths this is located
 	time_t	write_time;										// When it was last written
@@ -213,7 +288,7 @@ cf_file *cf_create_file()
 	int offset = Num_files % CF_NUM_FILES_PER_BLOCK;
 	
 	if ( File_blocks[block] == NULL )	{
-		File_blocks[block] = (cf_file_block *)malloc( sizeof(cf_file_block) );
+		File_blocks[block] = new(std::nothrow) cf_file_block;
 		SDL_assert( File_blocks[block] != NULL);
 	}
 
@@ -253,24 +328,44 @@ cf_root *cf_create_root()
 	return &Root_blocks[block]->roots[offset];
 }
 
+static bool cf_build_glob_pattern(std::string &pattern, int pathtype, const char *filter)
+{
+	if ( !filter || !CF_TYPE_SPECIFIED(pathtype) ) {
+		Int3();
+		pattern.clear();
+
+		return false;
+	}
+
+	pattern = Pathtypes[pathtype].path;
+
+	// SDL_GlobDirectory() requires directories have '/' separators
+	if (DIR_SEPARATOR_CHAR == '\\') {
+		std::replace(pattern.begin(), pattern.end(), '\\', '/');
+	}
+
+	if (pathtype != CF_TYPE_ROOT) {
+		pattern += '/';
+	}
+
+	pattern += filter;
+
+	return true;
+}
+
 // return the # of packfiles which exist
 int cf_get_packfile_count(cf_root *root)
 {
-	char filespec[MAX_PATH_LEN];
 	int i;
 	int packfile_count = 0;
 	int count;
+	std::string pattern;
 
 	// count up how many packfiles we're gonna have
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
-		SDL_strlcpy( filespec, root->path, SDL_arraysize(filespec) );
+		cf_build_glob_pattern(pattern, i, "*.vp");
 
-		if(SDL_strlen(Pathtypes[i].path)){
-			SDL_strlcat( filespec, Pathtypes[i].path, SDL_arraysize(filespec) );
-			SDL_strlcat( filespec, DIR_SEPARATOR_STR, SDL_arraysize(filespec) );
-		}
-
-		auto results = SDL_GlobDirectory(filespec, "*.vp", SDL_GLOB_CASEINSENSITIVE, &count);
+		auto results = SDL_GlobDirectory(root->path, pattern.c_str(), SDL_GLOB_CASEINSENSITIVE, &count);
 
 		if (results) {
 			SDL_free(results);
@@ -301,10 +396,12 @@ int cf_packfile_sort_func(const void *elem1, const void *elem2)
 // Go through a root and look for pack files
 void cf_build_pack_list( cf_root *root )
 {
-	char filespec[MAX_PATH_LEN];
 	int i;
 	cf_root_sort *temp_roots_sort, *rptr_sort;
 	int temp_root_count, root_index;
+	SDL_PathInfo pinfo;
+	std::string pattern;
+	char rpath[MAX_PATH_LEN];
 
 	// determine how many packfiles there are
 	temp_root_count = cf_get_packfile_count(root);
@@ -322,25 +419,16 @@ void cf_build_pack_list( cf_root *root )
 	// now just setup all the root info
 	root_index = 0;
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
-		SDL_strlcpy( filespec, root->path, SDL_arraysize(filespec) );
+		cf_build_glob_pattern(pattern, i, "*.vp");
 
-		if(SDL_strlen(Pathtypes[i].path)){
-			SDL_strlcat( filespec, Pathtypes[i].path, SDL_arraysize(filespec) );
-			SDL_strlcat( filespec, DIR_SEPARATOR_STR, SDL_arraysize(filespec) );
-		}
-
-		SDL_PathInfo pinfo;
-
-		auto results = SDL_GlobDirectory(filespec, "*.vp", SDL_GLOB_CASEINSENSITIVE, nullptr);
+		auto results = SDL_GlobDirectory(root->path, pattern.c_str(), SDL_GLOB_CASEINSENSITIVE, nullptr);
 
 		if ( !results ) {
 			continue;
 		}
 
 		for (int ridx = 0; results[ridx]; ridx++) {
-			char rpath[MAX_PATH_LEN];
-
-			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", filespec, results[ridx]);
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", root->path, results[ridx]);
 
 			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
 				continue;
@@ -476,34 +564,36 @@ int is_ext_in_list( const char *ext_list, char *ext )
 void cf_search_root_path(int root_index)
 {
 	int i;
+	SDL_PathInfo pinfo;
+	std::string pattern;
+	char rpath[MAX_PATH_LEN];
 
 	cf_root *root = cf_get_root(root_index);
 
 	mprintf(( "Searching root '%s'\n", root->path ));
 
-	char search_path[CF_MAX_PATHNAME_LENGTH];
-
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
+		switch (i) {
+			case CF_TYPE_SINGLE_PLAYERS:
+			case CF_TYPE_MULTI_PLAYERS:
+			case CF_TYPE_MULTI_CACHE:
+				// avoid indexting locations with a lot of writing
+				continue;
 
-		SDL_strlcpy( search_path, root->path, SDL_arraysize(search_path) );
-
-		if(SDL_strlen(Pathtypes[i].path)){
-			SDL_strlcat( search_path, Pathtypes[i].path, SDL_arraysize(search_path) );
-			SDL_strlcat( search_path, DIR_SEPARATOR_STR, SDL_arraysize(search_path) );
+			default:
+				break;
 		}
 
-		SDL_PathInfo pinfo;
+		cf_build_glob_pattern(pattern, i, "*");
 
-		auto results = SDL_GlobDirectory(search_path, "*", 0, nullptr);
+		auto results = SDL_GlobDirectory(root->path, pattern.c_str(), SDL_GLOB_CASEINSENSITIVE, nullptr);
 
 		if ( !results ) {
 			continue;
 		}
 
 		for (int ridx = 0; results[ridx]; ridx++) {
-			char rpath[MAX_PATH_LEN];
-
-			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", search_path, results[ridx]);
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", root->path, results[ridx]);
 
 			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
 				continue;
@@ -519,7 +609,16 @@ void cf_search_root_path(int root_index)
 				// Found a file!!!!
 				cf_file *file = cf_create_file();
 
-				SDL_strlcpy( file->name_ext, results[ridx], SDL_arraysize(file->name_ext) );
+				file->name_ext = results[ridx];
+
+				auto pos = file->name_ext.rfind(DIR_SEPARATOR_CHAR);
+
+				// if result is in a subfolder then move that info to file->subpath
+				if (pos != std::string::npos) {
+					file->subpath = file->name_ext.substr(0, pos+1);	// include trailing slash
+					file->name_ext.erase(0, pos+1);
+				}
+
 				file->root_index = root_index;
 				file->pathtype_index = i;
 
@@ -639,7 +738,7 @@ void cf_search_root_pack(int root_index)
 							// Found a file!!!!
 							cf_file *file = cf_create_file();
 							
-							SDL_strlcpy( file->name_ext, find.filename, SDL_arraysize(file->name_ext) );
+							file->name_ext = find.filename;
 							file->root_index = root_index;
 							file->pathtype_index = j;
 							file->write_time = find.write_time;
@@ -668,7 +767,7 @@ void cf_build_file_list()
 	Num_files = 0;
 
 	// For each root, find all files...
-	for (i=1; i<Num_roots; i++ )	{
+	for (i=0; i<Num_roots; i++) {
 		cf_root	*root = cf_get_root(i);
 		if ( root->roottype == CF_ROOTTYPE_PATH )	{
 			cf_search_root_path(i);
@@ -691,11 +790,6 @@ void cf_build_secondary_filelist(const char *extras_dir)
 	// Init the path types
 	for (i=0; i<CF_MAX_PATH_TYPES; i++ )	{
 		SDL_assert( Pathtypes[i].index == i );
-#if 0 /* they are already lowercased -- SBF */
-		if ( Pathtypes[i].extensions )	{
-			SDL_strlwr(Pathtypes[i].extensions);
-		}
-#endif		
 	}
 	
 	// Init the root blocks
@@ -742,7 +836,7 @@ void cf_free_secondary_filelist()
 	// Init the file blocks	
 	for (i=0; i<CF_MAX_FILE_BLOCKS; i++ )	{
 		if ( File_blocks[i] )	{
-			free( File_blocks[i] );
+			delete File_blocks[i];
 			File_blocks[i] = NULL;
 		}
 	}
@@ -799,15 +893,14 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 	}
 
 	// Search the hard drive for files first.
+	// NOTE: This is a case-sensitive check!!
 	int num_search_dirs = 0;
 	int search_order[CF_MAX_PATH_TYPES];
 
 	if ( CF_TYPE_SPECIFIED(pathtype) )	{
 		search_order[num_search_dirs++] = pathtype;
-	}
-
-	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++)	{
-		if ( i != pathtype )	{
+	} else {
+		for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++)	{
 			search_order[num_search_dirs++] = i;
 		}
 	}
@@ -828,7 +921,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 		}
 	} 
 
-	// Search the pak files and CD-ROM.
+	// Search indexed files from filesystem, pak files, and CD-ROM.
 
 		for (i=0; i<Num_files; i++ )	{
 			cf_file * f = cf_get_file(i);
@@ -844,7 +937,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 				SDL_strlcpy(loc_filespec, filespec, SDL_arraysize(loc_filespec));
 				lcl_add_dir_to_path_with_filename(loc_filespec, sizeof(loc_filespec));
 			
-				if ( !SDL_strcasecmp(loc_filespec, f->name_ext) )	{
+				if ( !SDL_strcasecmp(loc_filespec, f->name_ext.c_str()) )	{
 					if ( size ) *size = f->size;
 					if ( offset ) *offset = f->pack_offset;
 					if ( pack_filename ) {
@@ -852,9 +945,8 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 
 						SDL_strlcpy( pack_filename, r->path, MAX_PATH_LEN );
 						if ( f->pack_offset < 1 )	{
-							SDL_strlcat( pack_filename, Pathtypes[f->pathtype_index].path, MAX_PATH_LEN );
-							SDL_strlcat( pack_filename, DIR_SEPARATOR_STR, MAX_PATH_LEN );
-							SDL_strlcat( pack_filename, f->name_ext, MAX_PATH_LEN );
+							SDL_strlcat( pack_filename, f->subpath.c_str(), MAX_PATH_LEN );
+							SDL_strlcat( pack_filename, f->name_ext.c_str(), MAX_PATH_LEN );
 						}
 					}				
 					return 1;		
@@ -862,7 +954,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 			}
 
 			// file either not localized or localized version not found
-			if ( !SDL_strcasecmp(filespec, f->name_ext) )	{
+			if ( !SDL_strcasecmp(filespec, f->name_ext.c_str()) )	{
 				if ( size ) *size = f->size;
 				if ( offset ) *offset = f->pack_offset;
 				if ( pack_filename ) {
@@ -870,13 +962,8 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 
 					SDL_strlcpy( pack_filename, r->path, MAX_PATH_LEN );
 					if ( f->pack_offset < 1 )	{
-
-						if(SDL_strlen(Pathtypes[f->pathtype_index].path)){
-							SDL_strlcat( pack_filename, Pathtypes[f->pathtype_index].path, MAX_PATH_LEN );
-							SDL_strlcat( pack_filename, DIR_SEPARATOR_STR, MAX_PATH_LEN );
-						}
-
-						SDL_strlcat( pack_filename, f->name_ext, MAX_PATH_LEN );
+						SDL_strlcat( pack_filename, f->subpath.c_str(), MAX_PATH_LEN );
+						SDL_strlcat( pack_filename, f->name_ext.c_str(), MAX_PATH_LEN );
 					}
 				}				
 				return 1;		
@@ -888,7 +975,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 
 
 // Returns true if filename matches filespec, else zero if not
-int cf_matches_spec(const char *filespec, const char *filename)
+static int cf_matches_spec(const char *filespec, const char *filename)
 {
 	const char *src_ext, *dst_ext;
 
@@ -908,7 +995,7 @@ int cf_matches_spec(const char *filespec, const char *filename)
 int (*Get_file_list_filter)(const char *filename) = NULL;
 int Skip_packfile_search = 0;
 
-int cf_file_already_in_list( int num_files, char **list, char *filename )
+static int cf_file_already_in_list( int num_files, char **list, const char *filename )
 {
 	int i;
 
@@ -938,7 +1025,7 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 	int i, num_files = 0, own_flag = 0;
 	size_t l;
 
-	if (max < 1) {
+	if ((max < 1) || (filter == nullptr) || !CF_TYPE_SPECIFIED(pathtype)) {
 		Get_file_list_filter = NULL;
 		return 0;
 	}
@@ -951,18 +1038,17 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 	}
 
 	char filespec[MAX_PATH_LEN];
+	char rpath[MAX_PATH_LEN];
+	SDL_PathInfo pinfo;
 
 	// Search the default directories
+	// NOTE: This is a case-sensitive subfolder check!!
 	cf_create_default_path_string(filespec, pathtype, nullptr);
-
-	SDL_PathInfo pinfo;
 
 	auto results = SDL_GlobDirectory(filespec, filter, SDL_GLOB_CASEINSENSITIVE, nullptr);
 
 	if (results) {
 		for (int ridx = 0; results[ridx]; ridx++) {
-			char rpath[MAX_PATH_LEN];
-			
 			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", filespec, results[ridx]);
 			
 			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
@@ -996,7 +1082,7 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 		SDL_free(results);
 	}
 
-	// Search all the packfiles and CD.
+	// Search indexed filesystem and all the packfiles and CD.
 	if ( !Skip_packfile_search )	{
 		for (i=0; i<Num_files; i++ )	{
 			cf_file * f = cf_get_file(i);
@@ -1009,26 +1095,28 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 			if (num_files >= max)
 				break;
 
-			if ( !cf_matches_spec( filter,f->name_ext))	{
+			if ( !cf_matches_spec(filter, f->name_ext.c_str()) ) {
 				continue;
 			}
 
-			if ( cf_file_already_in_list(num_files,list,f->name_ext))	{
+			if ( cf_file_already_in_list(num_files,list, f->name_ext.c_str()) ) {
 				continue;
 			}
 
-			if ( !Get_file_list_filter || (*Get_file_list_filter)(f->name_ext) ) {
+			if ( !Get_file_list_filter || (*Get_file_list_filter)(f->name_ext.c_str()) ) {
 
 				//mprintf(( "Found '%s' in root %d path %d\n", f->name_ext, f->root_index, f->pathtype_index ));
 
-					ptr = strrchr(f->name_ext, '.');
-					if (ptr)
-						l = ptr - f->name_ext;
-					else
-						l = SDL_strlen(f->name_ext);
+				auto pos = f->name_ext.rfind('.');
 
-					list[num_files] = (char *)malloc(l + 1);
-					SDL_strlcpy(list[num_files], f->name_ext, l+1);
+				if (pos != std::string::npos) {
+					l = pos;
+				} else {
+					l = f->name_ext.length();
+				}
+
+				list[num_files] = (char *)malloc(l + 1);
+				SDL_strlcpy(list[num_files], f->name_ext.c_str(), l+1);
 
 				if (info)	{
 					info[num_files].write_time = f->write_time;
@@ -1053,7 +1141,7 @@ int cf_get_file_list( int max, char **list, int pathtype, const char *filter, in
 	return num_files;
 }
 
-int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME_LEN], const char *filename )
+static int cf_file_already_in_list_preallocated( int num_files, char arr[][MAX_FILENAME_LEN], const char *filename )
 {
 	int i;
 
@@ -1081,7 +1169,7 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 {
 	int i, num_files = 0, own_flag = 0;
 
-	if (max < 1) {
+	if ((max < 1) || (filter == nullptr) || !CF_TYPE_SPECIFIED(pathtype)) {
 		Get_file_list_filter = NULL;
 		return 0;
 	}
@@ -1100,18 +1188,17 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 	}
 
 	char filespec[MAX_PATH_LEN];
+	char rpath[MAX_PATH_LEN];
+	SDL_PathInfo pinfo;
 
 	// Search the default directories
+	// NOTE: This is a case-sensitive subfolder check!!
 	cf_create_default_path_string(filespec, pathtype, nullptr);
-
-	SDL_PathInfo pinfo;
 
 	auto results = SDL_GlobDirectory(filespec, filter, SDL_GLOB_CASEINSENSITIVE, nullptr);
 
 	if (results) {
 		for (int ridx = 0; results[ridx]; ridx++) {
-			char rpath[MAX_PATH_LEN];
-
 			if (num_files >= max) {
 				break;
 			}
@@ -1158,19 +1245,19 @@ int cf_get_file_list_preallocated( int max, char arr[][MAX_FILENAME_LEN], char *
 			if (num_files >= max)
 				break;
 
-			if ( !cf_matches_spec( filter,f->name_ext))	{
+			if ( !cf_matches_spec( filter,f->name_ext.c_str()))	{
 				continue;
 			}
 
-			if ( cf_file_already_in_list_preallocated( num_files, arr, f->name_ext ))	{
+			if ( cf_file_already_in_list_preallocated( num_files, arr, f->name_ext.c_str() ))	{
 				continue;
 			}
 
-			if ( !Get_file_list_filter || (*Get_file_list_filter)(f->name_ext) ) {
+			if ( !Get_file_list_filter || (*Get_file_list_filter)(f->name_ext.c_str()) ) {
 
 				//mprintf(( "Found '%s' in root %d path %d\n", f->name_ext, f->root_index, f->pathtype_index ));
 
-				SDL_strlcpy(arr[num_files], f->name_ext, MAX_FILENAME_LEN);
+				SDL_strlcpy(arr[num_files], f->name_ext.c_str(), MAX_FILENAME_LEN);
 				char *ptr = strrchr(arr[num_files], '.');
 				if ( ptr ) {
 					*ptr = 0;
@@ -1220,10 +1307,9 @@ void cf_create_default_path_string( char *path, int pathtype, const char *filena
 		SDL_assert(CF_TYPE_SPECIFIED(pathtype));
 
 		SDL_strlcpy(path, Cfile_user_dir.c_str(), MAX_PATH_LEN);
-		SDL_strlcat(path, Pathtypes[pathtype].path, MAX_PATH_LEN);
 
-		// Don't add slash for root directory
-		if (Pathtypes[pathtype].path[0] != '\0') {
+		if (pathtype > CF_TYPE_ROOT) {
+			SDL_strlcat(path, Pathtypes[pathtype].path, MAX_PATH_LEN);
 			SDL_strlcat(path, DIR_SEPARATOR_STR, MAX_PATH_LEN);
 		}
 

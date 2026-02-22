@@ -471,6 +471,41 @@ void cf_build_pack_list( cf_root *root )
 }
 
 
+// Builds a list of special roots for GOG/Steam compatibility
+//
+// These installs have numbered data folders (data1, data2, data3) which represent
+// the CDs. Some of those files will be duplicates, some will not, but we've got to
+// index them as normal roots to catch the full installation of files.
+static void cf_build_root_list_special()
+{
+	for (int i = 0; i < Num_roots; ++i) {
+		const auto root = cf_get_root(i);
+
+		if (root->roottype == CF_ROOTTYPE_PATH) {
+			auto results = SDL_GlobDirectory(root->path, "data?", SDL_GLOB_CASEINSENSITIVE, nullptr);
+
+			if ( !results ) {
+				continue;
+			}
+
+			for (int ridx = 0; results[ridx]; ridx++) {
+				// add special root
+				auto sr = cf_create_root();
+
+				SDL_snprintf(sr->path, SDL_arraysize(sr->path), "%s%s%c",
+							 root->path, results[ridx], DIR_SEPARATOR_CHAR);
+
+				sr->roottype = CF_ROOTTYPE_PATH;
+
+				// then check any VP files under it
+				cf_build_pack_list(sr);
+			}
+
+			SDL_free(results);
+		}
+	}
+}
+
 void cf_build_root_list(const char *extras_dir)
 {
 	Num_roots = 0;
@@ -481,11 +516,6 @@ void cf_build_root_list(const char *extras_dir)
 	// have user's writable directory as default for loading and saving files
 	root = cf_create_root();
 	SDL_strlcpy( root->path, Cfile_user_dir.c_str(), SDL_arraysize(root->path) );
-
-	// do we already have a slash? as in the case of a root directory install
-	if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
-		SDL_strlcat(root->path, DIR_SEPARATOR_STR, SDL_arraysize(root->path));		// put trailing backslash on for easier path construction
-	}
 	root->roottype = CF_ROOTTYPE_PATH;
 
 	//======================================================
@@ -497,11 +527,6 @@ void cf_build_root_list(const char *extras_dir)
 	// the .app bundle on macOS or inside the AppImage root on Linux.
 	root = cf_create_root();
 	SDL_strlcpy( root->path, Cfile_root_dir.c_str(), SDL_arraysize(root->path) );
-
-	// do we already have a slash? as in the case of a root directory install
-	if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
-		SDL_strlcat(root->path, DIR_SEPARATOR_STR, SDL_arraysize(root->path));		// put trailing backslash on for easier path construction
-	}
 	root->roottype = CF_ROOTTYPE_PATH;
 
 	//======================================================
@@ -515,11 +540,6 @@ void cf_build_root_list(const char *extras_dir)
 	if ( !Cfile_exec_dir.empty() ) {
 		root = cf_create_root();
 		SDL_strlcpy( root->path, Cfile_exec_dir.c_str(), SDL_arraysize(root->path) );
-
-		// do we already have a slash? as in the case of a root directory install
-		if(SDL_strlen(root->path) && (root->path[SDL_strlen(root->path)-1] != DIR_SEPARATOR_CHAR)){
-			SDL_strlcat(root->path, DIR_SEPARATOR_STR, SDL_arraysize(root->path));		// put trailing backslash on for easier path construction
-		}
 		root->roottype = CF_ROOTTYPE_PATH;
 
 		//======================================================
@@ -541,12 +561,17 @@ void cf_build_root_list(const char *extras_dir)
 	}
 
 	//======================================================
+	// We also need to handle the GOG/Steam setup they use for additional CDs
+	cf_build_root_list_special();
+
+	//======================================================
 	// And lastly, check embedded VP archive
 	if (embedvp::size > 0) {
 		root = cf_create_root();
 		SDL_strlcpy(root->path, "embed", SDL_arraysize(root->path));
 		root->roottype = CF_ROOTTYPE_EMBED;
 	}
+
 }
 
 // Given a lower case list of file extensions 
@@ -635,9 +660,10 @@ void cf_search_root_path(int root_index)
 	}
 }
 
+static const int32_t VP_ID = 0x50565056;
 
 typedef struct VP_FILE_HEADER {
-	char id[4];
+	int id;
 	int version;
 	int index_offset;
 	int num_files;
@@ -649,6 +675,9 @@ typedef struct VP_FILE {
 	char	filename[32];
 	fs_time_t write_time;
 } VP_FILE;
+
+SDL_COMPILE_TIME_ASSERT(VP_FILE_HEADER, sizeof(VP_FILE_HEADER) == 16);
+SDL_COMPILE_TIME_ASSERT(VP_FILE, sizeof(VP_FILE) == 44);
 
 void cf_search_root_pack(int root_index)
 {
@@ -672,11 +701,10 @@ void cf_search_root_pack(int root_index)
 		return;
 	}
 
-	// Read the file header
+	// Read and validate the file header
 
 	VP_FILE_HEADER VP_header;
 
-	SDL_assert( sizeof(VP_header) == 16 );
 	rc = SDL_ReadIO(fp, &VP_header, sizeof(VP_header));
 
 	if (rc != sizeof(VP_header)) {
@@ -684,10 +712,23 @@ void cf_search_root_pack(int root_index)
 		return;
 	}
 
-    VP_header.version = INTEL_INT( VP_header.version);
-    VP_header.index_offset = INTEL_INT( VP_header.index_offset);
-    VP_header.num_files = INTEL_INT( VP_header.num_files);
-        
+	VP_header.id = INTEL_INT(VP_header.id);
+	VP_header.version = INTEL_INT(VP_header.version);
+	VP_header.index_offset = INTEL_INT(VP_header.index_offset);
+	VP_header.num_files = INTEL_INT(VP_header.num_files);
+
+	// verify ID
+	if (VP_header.id != VP_ID) {
+		SDL_CloseIO(fp);
+		return;
+	}
+
+	// verify size
+	if (SDL_GetIOSize(fp) != (VP_header.index_offset + (VP_header.num_files * sizeof(VP_FILE)))) {
+		SDL_CloseIO(fp);
+		return;
+	}
+
 	// Read index info
 	SDL_SeekIO(fp, VP_header.index_offset, SDL_IO_SEEK_SET);
 
@@ -705,8 +746,8 @@ void cf_search_root_pack(int root_index)
 			break;
 		}
 
-        find.offset = INTEL_INT( find.offset );
-        find.size = INTEL_INT( find.size );
+		find.offset = INTEL_INT(find.offset);
+		find.size = INTEL_INT(find.size);
 		find.write_time = INTEL_INT(find.write_time);
 
 		if ( find.size == 0 )	{
@@ -1498,7 +1539,7 @@ bool cfile_init_paths()
 		auto pos = Cfile_exec_dir.rfind(DIR_SEPARATOR_CHAR);
 
 		if (pos != std::string::npos) {
-			Cfile_exec_dir.resize(pos+1);
+			Cfile_exec_dir.resize(pos+1);	// include path separator
 		}
 
 		if (cfile_in_root_dir(Cfile_exec_dir) ||
@@ -1516,7 +1557,7 @@ bool cfile_init_paths()
 	if (app_pos != std::string::npos) {
 		auto pos = Cfile_root_dir.rfind(DIR_SEPARATOR_CHAR, app_pos);
 
-		Cfile_exec_dir = Cfile_root_dir.substr(0, pos+1);
+		Cfile_exec_dir = Cfile_root_dir.substr(0, pos+1);	// include path separator
 
 		if (cfile_in_root_dir(Cfile_exec_dir) ||
 			!Cfile_exec_dir.compare(Cfile_root_dir) ||

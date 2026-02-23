@@ -6,8 +6,6 @@
 #define DIR_SEPARATOR_CHAR '\\'
 #define DIR_SEPARATOR_STR "\\"
 
-#define mkdir(A,B) _mkdir(A)
-
 #define isnan _isnan
 #define unlink _unlink
 #define access _access

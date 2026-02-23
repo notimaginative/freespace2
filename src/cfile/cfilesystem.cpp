@@ -478,31 +478,46 @@ void cf_build_pack_list( cf_root *root )
 // index them as normal roots to catch the full installation of files.
 static void cf_build_root_list_special()
 {
+	char rpath[MAX_PATH_LEN];
+	SDL_PathInfo pinfo;
+
 	for (int i = 0; i < Num_roots; ++i) {
 		const auto root = cf_get_root(i);
 
-		if (root->roottype == CF_ROOTTYPE_PATH) {
-			auto results = SDL_GlobDirectory(root->path, "data?", SDL_GLOB_CASEINSENSITIVE, nullptr);
+		if (root->roottype != CF_ROOTTYPE_PATH) {
+			continue;
+		}
 
-			if ( !results ) {
+		auto results = SDL_GlobDirectory(root->path, "data?", SDL_GLOB_CASEINSENSITIVE, nullptr);
+
+		if ( !results ) {
+			continue;
+		}
+
+		for (int ridx = 0; results[ridx]; ridx++) {
+			SDL_snprintf(rpath, SDL_arraysize(rpath), "%s%s", root->path, results[ridx]);
+
+			if ( !SDL_GetPathInfo(rpath, &pinfo) ) {
 				continue;
 			}
 
-			for (int ridx = 0; results[ridx]; ridx++) {
-				// add special root
-				auto sr = cf_create_root();
-
-				SDL_snprintf(sr->path, SDL_arraysize(sr->path), "%s%s%c",
-							 root->path, results[ridx], DIR_SEPARATOR_CHAR);
-
-				sr->roottype = CF_ROOTTYPE_PATH;
-
-				// then check any VP files under it
-				cf_build_pack_list(sr);
+			if (pinfo.type != SDL_PATHTYPE_DIRECTORY) {
+				continue;
 			}
 
-			SDL_free(results);
+			// add special root
+			auto sr = cf_create_root();
+
+			SDL_snprintf(sr->path, SDL_arraysize(sr->path), "%s%s%c",
+						 root->path, results[ridx], DIR_SEPARATOR_CHAR);
+
+			sr->roottype = CF_ROOTTYPE_PATH;
+
+			// then check any VP files under it
+			cf_build_pack_list(sr);
 		}
+
+		SDL_free(results);
 	}
 }
 
@@ -546,7 +561,6 @@ void cf_build_root_list(const char *extras_dir)
 		// then check any VP files under the directory.
 		cf_build_pack_list(root);
 	}
-
 
 	//======================================================
 	// Check the real CD if one...
@@ -602,7 +616,7 @@ void cf_search_root_path(int root_index)
 			case CF_TYPE_SINGLE_PLAYERS:
 			case CF_TYPE_MULTI_PLAYERS:
 			case CF_TYPE_MULTI_CACHE:
-				// avoid indexting locations with a lot of writing
+				// avoid indexing locations with a lot of writing
 				continue;
 
 			default:
@@ -724,7 +738,7 @@ void cf_search_root_pack(int root_index)
 	}
 
 	// verify size
-	if (SDL_GetIOSize(fp) != (VP_header.index_offset + (VP_header.num_files * sizeof(VP_FILE)))) {
+	if (SDL_GetIOSize(fp) != static_cast<Sint64>(VP_header.index_offset + (VP_header.num_files * sizeof(VP_FILE)))) {
 		SDL_CloseIO(fp);
 		return;
 	}

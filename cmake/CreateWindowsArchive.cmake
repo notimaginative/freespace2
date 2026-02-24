@@ -24,8 +24,8 @@ if(DEMO)
 endif()
 
 set(DIST_DIR "${CMAKE_SOURCE_DIR}/dist/windows")
-set(APP_PATH "${CMAKE_BINARY_DIR}/install/${APP_NAME}")
-set(ZIP_PATH "${CMAKE_BINARY_DIR}/install/${APP_NAME}.zip")
+set(APP_PATH "${CMAKE_BINARY_DIR}/install/$<CONFIG>/${APP_NAME}")
+set(ZIP_PATH "${CMAKE_BINARY_DIR}/install/$<CONFIG>/${APP_NAME}.zip")
 
 # clear existing app
 install(CODE "
@@ -129,7 +129,7 @@ install(CODE "
 		OUTPUT \"${APP_NAME}.zip\"
 		PATHS \"${APP_NAME}\"
 		FORMAT \"zip\"
-		WORKING_DIRECTORY \"${CMAKE_BINARY_DIR}/install\"
+		WORKING_DIRECTORY \"${CMAKE_BINARY_DIR}/install/$<CONFIG>\"
 	)
 	message(CHECK_PASS \"done\")
 ")

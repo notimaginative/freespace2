@@ -26,7 +26,7 @@ if(DEMO)
 endif()
 
 set(DIST_DIR "${CMAKE_SOURCE_DIR}/dist/macos")
-set(APP_PATH "${CMAKE_BINARY_DIR}/install/${APP_NAME}.app")
+set(APP_PATH "${CMAKE_BINARY_DIR}/install/$<CONFIG>/${APP_NAME}.app")
 
 # clear existing app
 install(CODE "

@@ -243,13 +243,8 @@ extern vector	Dead_camera_pos, Original_vec_to_deader;
 #define	PDS_EJECTED	3
 
 #ifdef NDEBUG
-	#ifdef FRED
-		#define	MAX_SHIPS					100			// max number of ship instances there can be.
-		#define	SHIPS_LIMIT					100			// what MAX_SHIPS will be at release time (for error checking in debug mode)
-	#else
-		#define	MAX_SHIPS					150			// max number of ship instances there can be.
-		#define	SHIPS_LIMIT					150			// what MAX_SHIPS will be at release time (for error checking in debug mode)
-	#endif
+#define	MAX_SHIPS					150			// max number of ship instances there can be.
+#define	SHIPS_LIMIT					150			// what MAX_SHIPS will be at release time (for error checking in debug mode)
 #else
 #define	MAX_SHIPS					200			// max number of ship instances there can be.
 #define	SHIPS_LIMIT					200			// what MAX_SHIPS will be at release time (for error checking in debug mode)

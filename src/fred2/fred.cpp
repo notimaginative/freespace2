@@ -240,11 +240,6 @@
 #include "sound.h"
 #include "audiostr.h"
 
-#ifdef NDEBUG
-#ifndef FRED
-#error macro FRED is not defined when trying to build release Fred.  Please define FRED macro in build settings in all Fred projects
-#endif
-#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

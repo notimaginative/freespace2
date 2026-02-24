@@ -702,11 +702,6 @@
 #include "missionloopbrief.h"
 #include "gamepad.h"
 
-#ifdef NDEBUG
-#ifdef FRED
-#error macro FRED is defined when trying to build release Fred.  Please undefine FRED macro in build settings
-#endif
-#endif
 
 //	Revision history.
 //	Full version:

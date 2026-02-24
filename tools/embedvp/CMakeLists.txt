@@ -10,9 +10,13 @@ target_link_libraries(
 	SDL3::SDL3
 )
 
-# override runtime output path so we don't polute the real one with build tools
+# override runtime output path so we don't pollute the real one with build tools
 set_target_properties(createvp PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+)
+
+set_target_properties(createvp PROPERTIES
+  FOLDER "Build Tools"
 )
 
 set(DIST_DIR "${CMAKE_SOURCE_DIR}/dist")
@@ -122,6 +126,10 @@ add_library(
 
 set_target_properties(embedvp PROPERTIES
 	ADDITIONAL_CLEAN_FILES "${EMBED_ROOT};${EMBED_FILE}"
+)
+
+set_target_properties(embedvp PROPERTIES
+  FOLDER "Build Tools"
 )
 
 target_include_directories(embedvp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

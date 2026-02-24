@@ -154,6 +154,10 @@ add_custom_target(buildver
   SOURCES ${CMAKE_SOURCE_DIR}/cmake/GitInfo.cmake
 )
 
+set_target_properties(buildver PROPERTIES
+  FOLDER "Build Tools"
+)
+
 #
 # main code/game library
 #

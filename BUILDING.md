@@ -1,12 +1,18 @@
 # Building the Project
 
-Building requires [CMake](https://cmake.org) v3.25 or newer. All other dependencies will be satisfied as part of the configure process, which requires an active Internet connection.
+Building requires:
+- [CMake](https://cmake.org) v3.25+
+- Compiler supporting C++17 or better
+
+All other dependencies will be satisfied as part of the configure process, which requires an active Internet connection.
+
+> NOTE: C++17 requirement is for OpenAL Soft dependency, the game engine itself requires C++11
 
 The project officially supports x64 and arm64 architectures for: Linux, macOS 11 or above, and Windows 10 or above. Other platforms may also work, but only those listed have been tested.
 
 ## Using Presets
 
-Using CMake presets is the easiest way to configure and build the project. Presets require [Ninja](https://ninja-build.org).
+Using CMake presets is the easiest way to configure and build the project. Presets require [Ninja](https://ninja-build.org) to be installed, unless another [CMake generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html) is specified.
 
 ### Available Presets
 
@@ -42,7 +48,7 @@ cmake --preset <preset>
 cmake --build --preset <preset> --config <build-type>
 ```
 
-### Build the tool set (*optional*)
+### Build the toolset (*optional*)
 
 ```bash
 cmake --build --preset <preset>  --target toolset --config <build-type>
@@ -82,11 +88,11 @@ You can use the following configure options with CMake's `-D` flag to control th
 Using your package manager install the basic requirements, `cmake` and `ninja-build`. SDL has additional development packages which should be installed as well. Please see [README-linux](https://wiki.libsdl.org/SDL3/README-linux) from the SDL wiki for the needed dependencies.
 
 > [!TIP]
-> To aid in building on Linux a Dockerfile is provided with the project (under `dist/docker/`) which includes all of the dependencies required. Please refer to the [README](dist/docker/README.md) for additional information.
+> To aid in building on Linux a [Dockerfile](dist/docker/Dockerfile) is provided with the project which includes all of the dependencies required. Please refer to the [README](dist/docker/README.md) for additional information.
 
 The `cmake --install ...` step will create an AppImage in `build/presets/<preset>/install/`. The `appimagetool` utility will be downloaded automatically if a system version wasn't found.
 
-If you built the tool set as well then those files will also be included in the AppImage. Creating a symlink with the name of the tool pointing to the AppImage will allow easy use of each tool (e.g., `ln -s <game>.AppImage cfileutil`, then run `./cfileutil` to use the `.vp` archive utility).
+If you built the toolset as well then those files will also be included in the AppImage. Creating a symlink with the name of the tool pointing to the AppImage will allow easy use of each tool (e.g., `ln -s <game>.AppImage cfileutil`, then run `./cfileutil` to use the `.vp` archive utility).
 
 ### macOS
 
@@ -97,10 +103,12 @@ By default a build will be created for your current architecture (Intel or Apple
 
 The `cmake --install ...` step will create an app bundle in `build/presets/<preset>/install/`. The app bundle will be signed with an ad-hoc signature.
 
-If you built the tool set as well then those files will also be included in the bundle.
+If you built the toolset as well then those files will also be included in the bundle.
 
 ### Windows
 
+Install *Visual Studio 17 2022* or newer, [CMake](https://cmake.org), and [Ninja](https://ninja-build.org). To use presets open **x64 Native Tools Command Promopt for VS 2022** (for x64 build) or **ARM64 Native Tools Command Prompt for VS 2022** (for ARM64 build) and run the preset commands to configure and build the project.
+
 The `cmake --install ...` step will create a zip archive in `build/presets/<preset>/install/`.
 
-If you built the tool set as well then those files will also be included in the archive. If using the `fs2` preset, the FRED2 mission editor will also be built as part of the tool set.
+If you built the toolset as well then those files will also be included in the archive. If using the `fs2` preset, the FRED2 mission editor will also be built as part of the toolset.

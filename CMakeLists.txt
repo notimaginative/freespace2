@@ -579,7 +579,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   add_custom_target(toolset)
 
   set_target_properties(toolset PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   add_dependencies(toolset

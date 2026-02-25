@@ -1,4 +1,4 @@
-# FreeSpace 2 Tool Set
+# FreeSpace 2 Toolset
 
 A set of tools is included with the FreeSpace 2 source code that can be used to work with game files or create new content. Some of these tools are of very limited use, have been replaced by more featured versions or rewritten for cross-platform support, and some tools have far superior replacements created by the modding community.
 
@@ -24,7 +24,7 @@ This command line utility can be used to convert AVI files to ANI for use in the
 CFileUtil is a command line utility that can be used to create, extract, or list the contents of VP archives (`.vp`). This is a new utility which replaces the original `cfilearchiver` which was included with the original source code release and only supported creating VP archives.
 
 > [!TIP]
-> Several GUI based tools for working with VP archives which were created by the modding community are also available.
+> Several GUI based tools created by the modding community for working with VP archives are also available.
 
 ### `cryptstring`
 

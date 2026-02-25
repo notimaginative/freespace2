@@ -30,7 +30,7 @@ There are three basic options for how to install game data. Please choose the on
 2. Install the game binary wherever you like and run it once, then Quit. Copy your game data (`*.vp` and `data` folder) to your users data path (Linux: `~/.local/share/Volition/<game>`, macOS: `~/Library/Application Support/Volition/<game>`, Windows: `C:\Users\<you>\AppData\Roaming\Volition\<game>`)
 3. Place the extracted binary package in the same location as your game data (***WARNING:** may overwrite retail files!!*)
 
-## Tool Set
+## Toolset
 
 A basic set of command line and GUI tools is provided to help create new content for FreeSpace 2. This includes tools such as *FRED*, the GUI mission editor, and `cfileutil`, a command line utility for creating `.vp` archives.
 
@@ -64,7 +64,7 @@ What doesn't work:
 In progress:
 - [ ] FRED (for **Descent: FreeSpace**)
 - [ ] FRED2 running under Wine as packaged app for Linux/macOS
-- [ ] PofView imgui rewrite (model viewer, part of tool set)
+- [ ] PofView imgui rewrite (model viewer, part of toolset)
 - [ ] Emscripten port of demo versions
 - [ ] New standalone server web UI
 - [ ] Multicast for LAN games

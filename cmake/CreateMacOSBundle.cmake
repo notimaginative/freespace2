@@ -136,6 +136,30 @@ if(DEMO)
 	endforeach()
 endif()
 
+# download and install FS2 high-quality texture pack (if enabled)
+if(FS2_TEX_PACK AND NOT FS1 AND NOT DEMO)
+  install(CODE "
+    set(CMAKE_BINARY_DIR \"${CMAKE_BINARY_DIR}\")
+    set(APP_PATH \"${APP_PATH}\")
+  ")
+
+  install(CODE [[
+    message(STATUS "Downloading HQ texture pack...")
+
+    file(DOWNLOAD
+      "https://pxo.nottheeye.com/files/freespace2/hqtexpack.zip"
+      "${CMAKE_BINARY_DIR}/install/hqtexpack.zip"
+    )
+
+    message(STATUS "Installing HQ texture pack...")
+
+    file(ARCHIVE_EXTRACT
+      INPUT "${CMAKE_BINARY_DIR}/install/hqtexpack.zip"
+      DESTINATION "${APP_PATH}/Contents/Resources/"
+    )
+  ]])
+endif()
+
 # fixup bundle
 install(CODE "
 	include(BundleUtilities)

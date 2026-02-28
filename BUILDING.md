@@ -6,7 +6,7 @@ Building requires:
 
 All other dependencies will be satisfied as part of the configure process, which requires an active Internet connection.
 
-> NOTE: C++17 requirement is for OpenAL Soft dependency, the game engine itself requires C++11
+> NOTE: C++17 requirement is for OpenAL Soft dependency, the game engine itself requires C++11.
 
 The project officially supports x64 and arm64 architectures for: Linux, macOS 11 or above, and Windows 10 or above. Other platforms may also work, but only those listed have been tested.
 
@@ -80,6 +80,11 @@ You can use the following configure options with CMake's `-D` flag to control th
 | `FS1`            | OFF           | Build ***Descent: FreeSpace***           |
 | `DEMO`           | OFF           | Build the demo version                   |
 | `DEMO_GAME_DATA` | *unset*       | Path to demo data for use when packaging |
+| `FS2_TEX_PACK`   | OFF           | As part of bundle/installer step, download higher quality texture pack for FreeSpace 2 |
+
+> [!NOTE]
+> The high quality texture pack is a selection of model textures from *Descent: FreeSpace* which were of better quality and higher resolution than what was included in *FreeSpace 2*. It also enables the glowy parts of models that were broken with the lower resolution textures in *FreeSpace 2*. This texture pack is an extra 4 MiB download, but only during the bundle/installer step.  
+> (*This feature is not available with the FreeSpace 2 demo.*)
 
 ## Platform Specific Notes
 

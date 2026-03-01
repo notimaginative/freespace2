@@ -375,7 +375,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   CreateSourceGroups(${ac_SOURCE})
 
   set_target_properties(ac PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   target_link_libraries(
@@ -399,7 +399,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   CreateSourceGroups(${cfileutil_SOURCE})
 
   set_target_properties(cfileutil PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   target_link_libraries(
@@ -419,7 +419,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   CreateSourceGroups(${cryptstring_SOURCE})
 
   set_target_properties(cryptstring PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   #
@@ -437,7 +437,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   CreateSourceGroups(${nebedit_SOURCE})
 
   set_target_properties(nebedit PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   target_link_libraries(
@@ -463,7 +463,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   #CreateSourceGroups(${pofview_SOURCE})
 
   #set_target_properties(pofview PROPERTIES
-  #  FOLDER "Tools"
+  #  FOLDER "Toolset"
   #)
 
   #target_link_libraries(
@@ -497,7 +497,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   CreateSourceGroups(${scramble_SOURCE})
 
   set_target_properties(scramble PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   #
@@ -515,7 +515,7 @@ if(NOT GAME_ONLY AND NOT DEMO)
   CreateSourceGroups(${fonttool_SOURCE})
 
   set_target_properties(fonttool PROPERTIES
-    FOLDER "Tools"
+    FOLDER "Toolset"
   )
 
   # background setup, to allow running from build location without installing

@@ -36,11 +36,24 @@ public:
 	int get(int x) { return static_cast<int>(x * scale_factor); }
 };
 
+enum class LauncherSetupTab {
+	unset,
+	Video,
+	Audio,
+	Controls,
+	Speed,
+	Network,
+	PXO,
+	Misc
+};
+
 SDL_Renderer *launcher_get_renderer();
 SDL_Window *launcher_get_window();
 
 void launcher_open_readme();
 void launcher_init_background(const char *filename);
+bool launcher_ready_to_play();
+void launcher_data_missing_error();
 
 bool launcher_help_is_active();
 void launcher_help_open();
@@ -49,7 +62,7 @@ void launcher_help_draw();
 void launcher_help_event(const SDL_Event &event);
 
 bool launcher_setup_is_active();
-void launcher_setup_open();
+void launcher_setup_open(const LauncherSetupTab initial_tab = LauncherSetupTab::unset, bool tab_locked = false);
 void launcher_setup_close();
 void launcher_setup_draw();
 void launcher_setup_event(const SDL_Event &event);

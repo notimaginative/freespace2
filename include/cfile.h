@@ -423,6 +423,11 @@ extern int (*Get_file_list_filter)(const char *filename);
 // Call this once at the beginning of the program
 int cfile_init();
 
+// Call this if pack files got added or removed or the
+// cdrom changed.  This will refresh the list of filenames
+// stored in packfiles and on the cdrom.
+void cfile_refresh(const char *path = nullptr);
+
 // add an extension to a filename if it doesn't already have it
 char *cf_add_ext(const char *filename, const char *ext);
 
@@ -602,8 +607,8 @@ void cf_sort_filenames( int n, char **list, int sort, file_list_info *info = NUL
 // Output: pack_filename - Absolute path and filename of this file.   Could be a packfile or the actual file.
 //         size        - File size
 //         offset      - Offset into pack file.  0 if not a packfile.
-// Returns: If not found returns 0.
-int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize = false);
+// Returns: If not found returns false.
+bool cf_find_file_location( const char *filespec, int pathtype, char *pack_filename = nullptr, int *size = nullptr, int *offset = nullptr, bool localize = false);
 
 // initializes Cfile_root_dir[] and Cfile_user_dir[]
 bool cfile_init_paths();

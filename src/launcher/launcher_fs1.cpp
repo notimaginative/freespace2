@@ -63,8 +63,12 @@ void launcher_draw_fs1(bool *done, bool *play_game, LauncherScale *WindowScale)
 	auto buttonSize = WindowScale->get(175.0f, 0.f);
 
 	if (ImGui::Button("Play FreeSpace", buttonSize)) {
-		*done = true;
-		*play_game = true;
+		if (launcher_ready_to_play()) {
+			*done = true;
+			*play_game = true;
+		} else {
+			launcher_data_missing_error();
+		}
 	}
 
 	if (ImGui::Button("Setup", buttonSize)) {

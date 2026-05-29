@@ -210,7 +210,7 @@
 #define _CFILE_INTERNAL 
 
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <stdio.h>
 #include <errno.h>
 #ifdef SDL_PLATFORM_WINDOWS
@@ -223,6 +223,7 @@
 #endif
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string>
 
 #include "pstypes.h"
 #include "cfile.h"
@@ -271,7 +272,7 @@ void cfile_close()
 //
 int cfile_init()
 {
-	char extras_dir[MAX_PATH_LEN] = { 0 };
+	std::string extras;
 	int i;
 
 	// initialize encryption
@@ -289,18 +290,20 @@ int cfile_init()
 			Cfile_block_list[i].type = CFILE_BLOCK_UNUSED;
 		}
 
-		const char *edir = os_config_read_string(NULL, "ExtrasPath", NULL);
+		auto epath = os_config_read_string(nullptr, "ExtrasPath", nullptr);
 
-		if (edir && (SDL_strlen(edir) < SDL_arraysize(extras_dir))) {
-			SDL_strlcpy(extras_dir, edir, SDL_arraysize(extras_dir));
+		if (epath) {
+			extras = epath;
 
 			// make sure it has a trailing slash
-			if (extras_dir[SDL_strlen(extras_dir)-1] != DIR_SEPARATOR_CHAR) {
-				SDL_strlcat(extras_dir, DIR_SEPARATOR_STR, SDL_arraysize(extras_dir));
+			if (extras.back() != DIR_SEPARATOR_CHAR) {
+				extras += DIR_SEPARATOR_CHAR;
 			}
+
+			epath = extras.c_str();
 		}
 
-		cf_build_secondary_filelist(extras_dir);
+		cf_build_secondary_filelist(epath);
 
 		// 32 bit CRC table init
 		cf_chksum_long_init();
@@ -311,6 +314,30 @@ int cfile_init()
 	}
 
 	return 0;
+}
+
+// Call this if pack files got added or removed or the
+// cdrom changed.  This will refresh the list of filenames
+// stored in packfiles and on the cdrom.
+void cfile_refresh(const char *path)
+{
+	std::string extras;
+
+	auto epath = path ? path : os_config_read_string(nullptr, "ExtrasPath", nullptr);
+
+	if (epath) {
+		extras = epath;
+
+		// make sure it has a trailing slash
+		if (extras.back() != DIR_SEPARATOR_CHAR) {
+			extras += DIR_SEPARATOR_CHAR;
+		}
+
+		epath = extras.c_str();
+	}
+
+	cf_free_secondary_filelist();
+	cf_build_secondary_filelist(epath);
 }
 
 // Changes to a drive if valid.. 1=A, 2=B, etc

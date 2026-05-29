@@ -918,8 +918,8 @@ static bool is_absolute_path(const char *path)
 // Output: pack_filename - Absolute path and filename of this file.   Could be a packfile or the actual file.
 //         size        - File size
 //         offset      - Offset into pack file.  0 if not a packfile.
-// Returns: If not found returns 0.
-int cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize )
+// Returns: If not found returns false.
+bool cf_find_file_location( const char *filespec, int pathtype, char *pack_filename, int *size, int *offset, bool localize )
 {
 	SDL_PathInfo pinfo;
 	int i;
@@ -941,10 +941,10 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 				SDL_strlcpy( pack_filename, filespec, MAX_PATH_LEN );
 			}
 
-			return 1;
+			return true;
 		}
 
-		return 0;		// If they give a full path, fail if not found.
+		return false;		// If they give a full path, fail if not found.
 	}
 
 	// Search the hard drive for files first.
@@ -972,7 +972,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 				SDL_strlcpy( pack_filename, longname, MAX_PATH_LEN );
 			}
 
-			return 1;
+			return true;
 		}
 	} 
 
@@ -1004,7 +1004,7 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 							SDL_strlcat( pack_filename, f->name_ext.c_str(), MAX_PATH_LEN );
 						}
 					}				
-					return 1;		
+					return true;
 				}
 			}
 
@@ -1021,11 +1021,11 @@ int cf_find_file_location( const char *filespec, int pathtype, char *pack_filena
 						SDL_strlcat( pack_filename, f->name_ext.c_str(), MAX_PATH_LEN );
 					}
 				}				
-				return 1;		
+				return true;
 			}
 		}
 	
-	return 0;
+	return false;
 }
 
 

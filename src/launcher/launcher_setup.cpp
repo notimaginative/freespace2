@@ -31,6 +31,25 @@ static void launcher_setup_load_config();
 
 static const ImVec2 SpecialPadding(3, 3);
 
+static LauncherSetupTab SelectedTab = LauncherSetupTab::unset;
+static bool SelectedTabLocked = false;	// prevents changing from SelectedTab if true
+
+enum class Valid {
+	unset,
+	True,
+	False,
+};
+
+struct extra_t {
+	char path[MAX_PATH_LEN];
+	Valid valid;
+	bool changed;
+
+	extra_t() : path{}, valid(Valid::unset), changed(false) {}
+};
+
+static extra_t *extrasData = nullptr;
+
 enum {
 	FONT_SANS = 0,
 	FONT_MONO,
@@ -168,7 +187,7 @@ void launcher_setup_event(const SDL_Event &event)
 	ImGui::SetCurrentContext(savedContext);
 }
 
-void launcher_setup_open()
+void launcher_setup_open(const LauncherSetupTab initial_tab, bool tab_locked)
 {
 	Uint32 window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
@@ -267,6 +286,9 @@ void launcher_setup_open()
 	WindowScale->setStyle(Context);
 
 	ImGui::SetCurrentContext(savedContext);
+
+	SelectedTab = initial_tab;
+	SelectedTabLocked = tab_locked;
 }
 
 void launcher_setup_close()
@@ -296,6 +318,11 @@ void launcher_setup_close()
 	if (WindowScale) {
 		delete WindowScale;
 		WindowScale = nullptr;
+	}
+
+	if (extrasData) {
+		delete extrasData;
+		extrasData = nullptr;
 	}
 }
 
@@ -566,9 +593,20 @@ static void launcher_setup_save_config()
 	os_config_write_uint("Video", "BriefingAnimation", Config.nobriefanim ? 0 : 1);
 }
 
+static ImGuiTabItemFlags get_tab_flags(const LauncherSetupTab tab)
+{
+	ImGuiTabItemFlags flags = 0;
+
+	if (tab == SelectedTab) {
+		flags |= ImGuiTabItemFlags_SetSelected;
+	}
+
+	return flags;
+}
+
 static void tabVideo()
 {
-	if ( !ImGui::BeginTabItem("Video") ) {
+	if ( !ImGui::BeginTabItem("Video", nullptr, get_tab_flags(LauncherSetupTab::Video)) ) {
 		return;
 	}
 
@@ -603,7 +641,7 @@ static void tabVideo()
 
 static void tabAudio()
 {
-	if ( !ImGui::BeginTabItem("Audio") ) {
+	if ( !ImGui::BeginTabItem("Audio", nullptr, get_tab_flags(LauncherSetupTab::Audio)) ) {
 		return;
 	}
 
@@ -631,7 +669,7 @@ static void tabAudio()
 
 static void tabControls()
 {
-	if ( !ImGui::BeginTabItem("Controls") ) {
+	if ( !ImGui::BeginTabItem("Controls", nullptr, get_tab_flags(LauncherSetupTab::Controls)) ) {
 		return;
 	}
 
@@ -653,7 +691,7 @@ static void tabControls()
 
 static void tabSpeed()
 {
-	if ( !ImGui::BeginTabItem("Speed") ) {
+	if ( !ImGui::BeginTabItem("Speed", nullptr, get_tab_flags(LauncherSetupTab::Speed)) ) {
 		return;
 	}
 
@@ -670,7 +708,7 @@ static void tabSpeed()
 
 static void tabNetwork()
 {
-	if ( !ImGui::BeginTabItem("Network") ) {
+	if ( !ImGui::BeginTabItem("Network", nullptr, get_tab_flags(LauncherSetupTab::Network)) ) {
 		return;
 	}
 
@@ -742,7 +780,7 @@ static void tabNetwork()
 
 static void tabPXO()
 {
-	if ( !ImGui::BeginTabItem("PXO") ) {
+	if ( !ImGui::BeginTabItem("PXO", nullptr, get_tab_flags(LauncherSetupTab::PXO)) ) {
 		return;
 	}
 
@@ -784,41 +822,80 @@ static void tabPXO()
 	ImGui::EndTabItem();
 }
 
-static void SDLCALL extras_folder_callback(void *userdata, const char * const *filelist, int filter)
+static void update_extras_path()
 {
-	if ( !filelist || !(*filelist) ) {
+	SDL_PathInfo pinfo;
+
+	if ( !extrasData ) {
 		return;
 	}
 
-	Config.extras_path = *filelist;
+	// verify new path is usable before setting it
+	if ( !SDL_GetPathInfo(extrasData->path, &pinfo) ) {
+		extrasData->valid = Valid::False;
+		return;
+	}
+
+	if (pinfo.type != SDL_PATHTYPE_DIRECTORY) {
+		extrasData->valid = Valid::False;
+		return;
+	}
+
+	// update config info
+	Config.extras_path = extrasData->path;
+
+	// and check if it's a valid install location
+	cfile_refresh(extrasData->path);
+	extrasData->valid = launcher_ready_to_play() ? Valid::True : Valid::False;
+}
+
+static void SDLCALL extras_folder_callback(void *userdata, const char * const *filelist, int filter)
+{
+	extra_t *extra = reinterpret_cast<extra_t *>(userdata);
+
+	if (filelist && extra) {
+		SDL_strlcpy(extra->path, *filelist, SDL_arraysize(extra->path));
+		extra->changed = true;
+	}
 }
 
 static void tabMisc()
 {
-	if ( !ImGui::BeginTabItem("Misc") ) {
+	if ( !ImGui::BeginTabItem("Misc", nullptr, get_tab_flags(LauncherSetupTab::Misc)) ) {
 		return;
+	}
+
+	ImVec4 valid(0.f, 1.f, 0.f, .25f);
+	ImVec4 invalid(1.f, 0.f, 0.f, .25f);
+
+	if ( !extrasData ) {
+		extrasData = new extra_t;
+
+		SDL_strlcpy(extrasData->path, Config.extras_path.c_str(), SDL_arraysize(extrasData->path));
+		extrasData->valid = launcher_ready_to_play() ? Valid::True : Valid::False;
 	}
 
 	ImGui::SeparatorText("Extras Path");
 
-	char extras_str[MAX_PATH_LEN] = "";
-
 	if (ImGui::Button("Select")) {
-		SDL_ShowOpenFolderDialog(extras_folder_callback, nullptr, Window,
-								 nullptr, false);
-	}
-
-	if ( !Config.extras_path.empty() ) {
-		SDL_strlcpy(extras_str, Config.extras_path.c_str(), SDL_arraysize(extras_str));
+		SDL_ShowOpenFolderDialog(extras_folder_callback, extrasData, Window,
+								 extrasData->path, false);
 	}
 
 	ImGui::PushFont(Fonts[FONT_MONO].ptr, Fonts[FONT_MONO].size);
+	ImGui::PushStyleColor(ImGuiCol_FrameBg, extrasData->valid == Valid::True ? valid : invalid);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-	if (ImGui::InputText("##extras", extras_str, SDL_arraysize(extras_str))) {
-		Config.extras_path = extras_str;
+	if (ImGui::InputText("##extras", extrasData->path, SDL_arraysize(extrasData->path))) {
+		extrasData->changed = true;
 	}
+	ImGui::PopStyleColor();
 	ImGui::PopFont();
+
+	if (extrasData->changed) {
+		update_extras_path();
+		extrasData->changed = false;
+	}
 
 	ImGui::SeparatorText("Optional Command Line");
 
@@ -927,4 +1004,8 @@ void launcher_setup_draw()
 	SDL_RenderPresent(Renderer);
 
 	ImGui::SetCurrentContext(savedContext);
+
+	if ( !SelectedTabLocked ) {
+		SelectedTab = LauncherSetupTab::unset;
+	}
 }

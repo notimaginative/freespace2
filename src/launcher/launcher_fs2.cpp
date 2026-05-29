@@ -200,8 +200,12 @@ void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale)
 
 	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
 	if (ImGui::ImageButton("play", (ImTextureRef)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
-		*done = true;
-		*play_game = true;
+		if (launcher_ready_to_play()) {
+			*done = true;
+			*play_game = true;
+		} else {
+			launcher_data_missing_error();
+		}
 	}
 
 	if (ImGui::IsItemActive()) {

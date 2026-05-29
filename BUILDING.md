@@ -112,7 +112,7 @@ If you built the toolset as well then those files will also be included in the b
 
 ### Windows
 
-Install *Visual Studio 17 2022* or newer, [CMake](https://cmake.org), and [Ninja](https://ninja-build.org). To use presets open **x64 Native Tools Command Promopt for VS 2022** (for x64 build) or **ARM64 Native Tools Command Prompt for VS 2022** (for ARM64 build) and run the preset commands to configure and build the project.
+Install *Visual Studio 17 2022* or newer, [CMake](https://cmake.org), and [Ninja](https://ninja-build.org). To use presets open **x64 Native Tools Command Prompt** (for x64 build) or **ARM64 Native Tools Command Prompt** (for ARM64 build) and run the preset commands to configure and build the project.
 
 The `cmake --install ...` step will create a zip archive in `build/presets/<preset>/install/`.
 

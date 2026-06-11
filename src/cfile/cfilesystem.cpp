@@ -866,13 +866,6 @@ void cf_build_secondary_filelist(const char *extras_dir)
 	cf_build_file_list();
 
 	mprintf(( "Found %d roots and %d files.\n", Num_roots, Num_files ));
-
-	// it should be safe to clear Cfile_root_dir/Cfile_exec_dir now
-	// (DO NOT CLEAR Cfile_user_dir HERE!!)
-	Cfile_root_dir.clear();
-	Cfile_root_dir.shrink_to_fit();
-	Cfile_exec_dir.clear();
-	Cfile_exec_dir.shrink_to_fit();
 }
 
 void cf_free_secondary_filelist()

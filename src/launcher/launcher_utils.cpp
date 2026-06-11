@@ -77,12 +77,12 @@ static std::string steam_get_root()
 	return "";
 }
 
-static std::string steam_get_game_path(const int app_id)
+static bool steam_get_game_path(std::string &location, const uint32_t app_id)
 {
 	auto steamPath = steam_get_root();
 
 	if (steamPath.empty()) {
-		return "";
+		return false;
 	}
 
 	// first, locate possible steam library locations
@@ -90,7 +90,7 @@ static std::string steam_get_game_path(const int app_id)
 	fix_dir_seps(libraryVDF);
 
 	if ( !SDL_GetPathInfo(libraryVDF.c_str(), nullptr) ) {
-		return "";
+		return false;
 	}
 
 	try {
@@ -98,11 +98,11 @@ static std::string steam_get_game_path(const int app_id)
 		auto root = tyti::vdf::read(file);
 
 		if (root.name != "libraryfolders") {
-			return "";
+			return false;
 		}
 
 		// next, check each library for the app manifest of the game
-		std::string manifestPath = "/steamapps/appmanifest_" + std::to_string(app_id) + ".acf";
+		const std::string manifestPath = "/steamapps/appmanifest_" + std::to_string(app_id) + ".acf";
 
 		for (auto &child : root.childs) {
 			try {
@@ -122,24 +122,73 @@ static std::string steam_get_game_path(const int app_id)
 					std::string full_path = libraryPath + "/steamapps/common/" + installdir;
 					fix_dir_seps(full_path);
 
-					return full_path;
+					// verify path exists
+					if ( !SDL_GetPathInfo(full_path.c_str(), nullptr) ) {
+						return false;
+					}
+
+					location = std::move(full_path);
+					return true;
 				}
 			} catch(...) {}
 		}
 	} catch(...) {}
 
-	return "";
+	return false;
 }
 
-static std::string steam_locator()
+static bool steam_locator(std::string &location)
 {
 #ifdef MAKE_FS1
-	const int app_id = 273600;
+	const uint32_t app_id = 273600;
 #else
-	const int app_id = 273620;
+	const uint32_t app_id = 273620;
 #endif
 
-	return steam_get_game_path(app_id);
+	return steam_get_game_path(location, app_id);
+}
+
+
+//
+// GOG helper to locate game installation path, if it exists
+//
+
+static bool gog_get_game_path(std::string &location)
+{
+#if defined(SDL_PLATFORM_WINDOWS)
+	HKEY hKey;
+	char path[1024] = {};
+	DWORD pathSize = static_cast<DWORD>(sizeof(path));
+
+#ifdef MAKE_FS1
+	const char *subkey = "SOFTWARE\\WOW6432Node\\GOG.com\\GOGFREESPACE";
+#else
+	const char *subkey = "SOFTWARE\\WOW6432Node\\GOG.com\\Games\\5";
+#endif
+
+	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, subkey, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+		auto rval = RegQueryValueExA(hKey, "PATH", nullptr, nullptr,
+									 reinterpret_cast<LPBYTE>(path), &pathSize);
+		RegCloseKey(hKey);
+
+		if (rval == ERROR_SUCCESS) {
+			// verify path exists
+			if ( !SDL_GetPathInfo(path, nullptr) ) {
+				return false;
+			}
+
+			location = path;
+			return true;
+		}
+	}
+#endif
+
+	return false;
+}
+
+static bool gog_locator(std::string &location)
+{
+	return gog_get_game_path(location);
 }
 
 
@@ -151,8 +200,11 @@ static bool data_locator()
 {
 	std::string location;
 
-	location = steam_locator();
+	if ( !steam_locator(location) && !gog_locator(location) ) {
+		return false;
+	}
 
+	// just to be extra safe
 	if (location.empty()) {
 		return false;
 	}

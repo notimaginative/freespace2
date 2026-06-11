@@ -26,8 +26,8 @@ endif()
 # set external dependencies first so they don't inherit our build flags
 include(cmake/dependencies.cmake)
 
-# we need c++11
-set(CMAKE_CXX_STANDARD 11)
+# we need c++14
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -223,6 +223,7 @@ target_link_libraries(
   ${FS_BINARY}
   code
   imgui
+  ValveFileVDF
   OpenAL::OpenAL
   SDL3::SDL3
   ${LIBWEBSOCKETS_LIBRARIES}

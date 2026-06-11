@@ -278,6 +278,7 @@ set(launcher_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcher_fs2.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcher_help.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcher_setup.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/launcher/launcher_utils.cpp
   PARENT_SCOPE
 )
 

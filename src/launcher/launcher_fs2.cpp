@@ -200,7 +200,7 @@ void launcher_draw_fs2(bool *done, bool *play_game, LauncherScale *WindowScale)
 
 	ImGui::SetCursorScreenPos(WindowScale->get(btn->x, btn->y));
 	if (ImGui::ImageButton("play", (ImTextureRef)(intptr_t)Buttons[btn_id].texture, WindowScale->get(btn->w, btn->h))) {
-		if (launcher_ready_to_play()) {
+		if (launcher_ready_to_play(true)) {
 			*done = true;
 			*play_game = true;
 		} else {

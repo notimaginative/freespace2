@@ -52,7 +52,7 @@ SDL_Window *launcher_get_window();
 
 void launcher_open_readme();
 void launcher_init_background(const char *filename);
-bool launcher_ready_to_play();
+bool launcher_ready_to_play(const bool run_locator = false);
 void launcher_data_missing_error();
 
 bool launcher_help_is_active();

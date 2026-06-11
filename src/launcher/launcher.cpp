@@ -302,37 +302,6 @@ void launcher_init_background(const char *filename)
 	}
 }
 
-bool launcher_ready_to_play()
-{
-	// check for two different types of files that are in all versions of the game
-	bool base_game = cf_find_file_location("ships.tbl", CF_TYPE_TABLES) &&
-					 cf_find_file_location("ChoosePilot.pcx", CF_TYPE_INTERFACE);
-
-	if ( !base_game ) {
-		return false;
-	}
-
-	// mainhall.tbl is only in FS2, so use that to differentiate between FS1 and FS2
-	bool mainhall_tbl = cf_find_file_location("mainhall.tbl", CF_TYPE_TABLES);
-
-#ifdef MAKE_FS1
-	return !mainhall_tbl;
-#else
-	return mainhall_tbl;
-#endif
-}
-
-void launcher_data_missing_error()
-{
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Game data not found!",
-							 "A working game installation was not found. Please "
-							 "set the Extras Path in Setup to the location "
-							 "where your game is installed.",
-							 launcher_get_window());
-
-	launcher_setup_open(LauncherSetupTab::Misc, true);
-}
-
 static void launcher_enable_gamepad_nav_safe()
 {
 	// already enabled

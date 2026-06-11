@@ -830,6 +830,13 @@ static void update_extras_path()
 		return;
 	}
 
+	// if the path is empty then reset everything and bail
+	if ( !SDL_strlen(extrasData->path) ) {
+		extrasData->valid = Valid::unset;
+		Config.extras_path.clear();
+		return;
+	}
+
 	// verify new path is usable before setting it
 	if ( !SDL_GetPathInfo(extrasData->path, &pinfo) ) {
 		extrasData->valid = Valid::False;

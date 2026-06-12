@@ -48,6 +48,7 @@ else()
 endif()
 
 option(FS1 "Build original FreeSpace" OFF)
+option(FS2_TEX_PACK "Download HQ texture pack for FreeSpace 2" ON)
 
 set(DEMO_GAME_DATA "" CACHE PATH "Path to demo data files used when packaging")
 

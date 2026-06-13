@@ -22,6 +22,8 @@
 #include "cmdline.h"
 #include "renderbuffer.h"
 
+#include <string>
+
 
 static bool GLES2_inited = false;
 
@@ -514,6 +516,50 @@ void gr_gles2_cleanup()
 	GLES2_inited = false;
 }
 
+// When running via Steam we need to explicity declare our GLES2 and EGL
+// libraries to stop it from screwing things up. This may only be necessary on
+// macOS (initial Windows and Linux tests were fine)
+void gles2_set_opengl_library()
+{
+#ifdef SDL_PLATFORM_MACOS
+	SDL_PathInfo pinfo;
+
+	// if not running via Steam then we can probably skip this
+	if ( !SDL_getenv("SteamEnv") ) {
+		return;
+	}
+
+	auto base = SDL_GetBasePath();
+
+	if ( !base ) {
+		return;
+	}
+
+	std::string glesPath, eglPath;
+
+	std::string libPath = base;
+
+	if (libPath.rfind(".app/Contents/Resources") != std::string::npos) {
+		libPath.erase(libPath.length() - 10);	// remove "Resources/"
+		libPath += "Frameworks/";
+	}
+
+	glesPath = libPath + "libGLESv2.dylib";
+	eglPath = libPath + "libEGL.dylib";
+
+	if ( !SDL_GetPathInfo(glesPath.c_str(), &pinfo) ) {
+		return;
+	}
+
+	if (pinfo.type != SDL_PATHTYPE_FILE) {
+		return;
+	}
+
+	SDL_SetHint(SDL_HINT_OPENGL_LIBRARY, glesPath.c_str());
+	SDL_SetHint(SDL_HINT_EGL_LIBRARY, eglPath.c_str());
+#endif
+}
+
 void gr_gles2_init()
 {
 	if (GLES2_inited) {
@@ -542,12 +588,17 @@ void gr_gles2_init()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
+	gles2_set_opengl_library();
+
 	GLES2_window = SDL_CreateWindow(os_get_title(),
 									gr_screen.max_w,
 									gr_screen.max_h,
 									window_flags);
 
 	extern bool Gr_allow_fallback;
+
+	SDL_ResetHint(SDL_HINT_OPENGL_LIBRARY);
+	SDL_ResetHint(SDL_HINT_EGL_LIBRARY);
 
 	if ( !GLES2_window ) {
 		if (Gr_allow_fallback) {

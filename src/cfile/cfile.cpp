@@ -322,8 +322,13 @@ int cfile_init()
 void cfile_refresh(const char *path)
 {
 	std::string extras;
+	const char *epath = nullptr;
 
-	auto epath = path ? path : os_config_read_string(nullptr, "ExtrasPath", nullptr);
+	if ( !path ) {
+		epath = os_config_read_string(nullptr, "ExtrasPath", nullptr);
+	} else if (SDL_strlen(path) > 1) {
+		epath = path;
+	}
 
 	if (epath) {
 		extras = epath;

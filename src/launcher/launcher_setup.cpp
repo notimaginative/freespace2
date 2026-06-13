@@ -834,6 +834,7 @@ static void update_extras_path()
 	if ( !SDL_strlen(extrasData->path) ) {
 		extrasData->valid = Valid::unset;
 		Config.extras_path.clear();
+		cfile_refresh("");
 		return;
 	}
 

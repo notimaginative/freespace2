@@ -1331,15 +1331,17 @@ void main_hall_do(float frametime)
 #ifndef NDEBUG
 	gr_set_color_fast(&Color_white);
 
+	gr_string(12, gr_screen.max_h - 12, (gr_screen.mode == GR_GLES2) ? "GLES2" : "OpenGL");
+
 	// d3d
-	gr_string(320, gr_screen.max_h - 10, "ARGB");
+//	gr_string(320, gr_screen.max_h - 10, "ARGB");
 
 	//	extern int D3D_fog_mode;
 	//	extern int D3D_zbias;
 
-	if ( gr_is_32bit() ) {
-		gr_string(320, gr_screen.max_h - 30, "32bit");
-	}
+//	if ( gr_is_32bit() ) {
+//		gr_string(320, gr_screen.max_h - 30, "32bit");
+//	}
 	//	gr_printf(320, gr_screen.max_h - 40, "Fog : %d", D3D_fog_mode);
 	//	gr_printf(320, gr_screen.max_h - 50, "Zbias : %d", D3D_zbias);
 	// extern void d3d_test();

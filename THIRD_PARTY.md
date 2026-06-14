@@ -2,10 +2,11 @@
 
 This project directly incorporates some third-party libraries to provide functionality:
 
-| Library   | License             | Project Link                     |
-| :-------- | :------------------ | :------------------------------- |
-| imgui     | MIT                 | https://github.com/ocornut/imgui |
-| stb_image | Public Domain / MIT | https://github.com/nothings/stb  |
+| Library      | License             | Project Link                              |
+| :----------- | :------------------ | :---------------------------------------- |
+| imgui        | MIT                 | https://github.com/ocornut/imgui          |
+| stb_image    | Public Domain / MIT | https://github.com/nothings/stb           |
+| ValveFileVDF | MIT                 | https://github.com/TinyTinni/ValveFileVDF |
 
 And relies upon these third-party libraries and tools:
 

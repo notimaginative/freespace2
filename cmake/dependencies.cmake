@@ -1,7 +1,7 @@
 include(FetchContent)
 
 # preferred versions
-set(SDL_VERSION "3.2.26")
+set(SDL_VERSION "3.2.30")
 set(OAL_VERSION "1.24.3")
 set(LWS_VERSION "4.4.1")
 set(ANGLE_VERSION "angle-ebd9856")

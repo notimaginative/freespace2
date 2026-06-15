@@ -6,9 +6,7 @@
  * the source.
  */
 
-
-#define SDL_MAIN_HANDLED
-
+#include <SDL3/SDL_main.h>
 #include <SDL3/SDL.h>
 #include <cstdio>
 #include <cstdlib>
@@ -200,7 +198,6 @@ bool data_specified(const char *filespec)
 	return false;
 }
 
-extern "C"
 int main(int argc, char *argv[])
 {
 	SDL_PathInfo pinfo{};

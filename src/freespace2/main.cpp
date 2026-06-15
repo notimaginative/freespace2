@@ -8,7 +8,9 @@
 
 #include <exception>
 
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+
 #include "pstypes.h"
 #include "launcher.h"
 
@@ -66,7 +68,6 @@ static void daemonize()
 #endif
 
 
-extern "C"
 int main(int argc, char *argv[])
 {
 	char *argptr = NULL;

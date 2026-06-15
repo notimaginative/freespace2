@@ -187,6 +187,10 @@ target_compile_definitions(code
   FS_BINARY="${FS_BINARY}"
 )
 
+set_target_properties(code PROPERTIES
+  STATIC_LIBRARY_OPTIONS "-no_warning_for_no_symbols"
+)
+
 target_precompile_headers(code
    PRIVATE
      include/pstypes.h

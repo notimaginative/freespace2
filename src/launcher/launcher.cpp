@@ -180,9 +180,11 @@ static void launcher_close()
 
 static bool launcher_init()
 {
-	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMEPAD) ) {
+	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO|SDL_INIT_GAMEPAD) ) {
 		return false;
 	}
+
+	SDL_InitSubSystem(SDL_INIT_AUDIO);
 
 	const std::string title = Osreg_title + std::string(" Launcher");
 

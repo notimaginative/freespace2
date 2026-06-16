@@ -613,6 +613,9 @@ bool cf_find_file_location( const char *filespec, int pathtype, char *pack_filen
 // initializes Cfile_root_dir[] and Cfile_user_dir[]
 bool cfile_init_paths();
 
+// log basic cfile status post-init (from freespace.cpp only!!)
+void cfile_log_info();
+
 // Creates the directory path if it doesn't exist. Even creates all its
 // parent paths.
 void cf_create_directory( int dir_type );

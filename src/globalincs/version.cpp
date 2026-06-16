@@ -189,11 +189,16 @@ const char *version_get_string_full(char *str, size_t str_len)
 			SDL_snprintf(version_string, SDL_arraysize(version_string), "v%d.%02d.%d", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD );
 		}
 #endif
-		
-#if !defined(NDEBUG) && defined(GIT_INFO)
-		SDL_strlcat(version_string, "~" GIT_COMMIT_HASH, SDL_arraysize(version_string));
+
+#ifdef GIT_INFO
+#ifdef GIT_TAG
+		SDL_strlcat(version_string, " " GIT_COMMIT_DATE ":" GIT_TAG, SDL_arraysize(version_string));
+#else
+		SDL_strlcat(version_string, " " GIT_COMMIT_DATE "~" GIT_BRANCH ":" GIT_COMMIT_HASH,
+					SDL_arraysize(version_string));
 #endif
-		
+#endif
+
 #if defined (FS2_DEMO)
 		SDL_strlcat(version_string, " D", SDL_arraysize(version_string));
 #elif defined (OEM_BUILD)

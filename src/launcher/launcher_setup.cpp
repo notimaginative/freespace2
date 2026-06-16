@@ -14,6 +14,7 @@
 #include "osapi.h"
 #include "osregistry.h"
 #include "systemvars.h"
+#include "cmdline.h"
 
 #include <string>
 
@@ -105,6 +106,11 @@ struct config {
 	bool nomovies;
 	bool nodpiscaling;
 	bool nobriefanim;
+
+	int cmd_initial_sound;
+	int cmd_initial_music;
+	int cmd_initial_movies;
+	bool cmd_initial_dpiscaling;
 
 	config(): msaa(0), fullscreen(true), show_fps(false), efx(false), launcher_sounds(true),
 			  haptic(false), direct_force(true), swap_action_cancel(false),
@@ -521,6 +527,14 @@ static void launcher_setup_load_config()
 	}
 
 	Config.nobriefanim = (os_config_read_uint("Video", "BriefingAnimation", 1) == 0);
+
+	// save current cmdline variables so we can restore the true value, not just
+	// what is contained in the cfg file
+	Config.cmd_initial_sound = Cmdline_freespace_no_sound;
+	Config.cmd_initial_music = Cmdline_freespace_no_music;
+	Config.cmd_initial_movies = Cmdline_play_movies;
+	Config.cmd_initial_dpiscaling = Cmdline_no_dpi_scaling;
+
 }
 
 static void launcher_setup_save_config()
@@ -565,18 +579,34 @@ static void launcher_setup_save_config()
 
 	if (Config.nosound) {
 		Config.cmdline.append(" --nosound"); // with leading space
+		// make option active
+		Cmdline_freespace_no_sound = 1;
+	} else {
+		Cmdline_freespace_no_sound = Config.cmd_initial_sound;
 	}
 
 	if (Config.nomusic) {
 		Config.cmdline.append(" --nomusic"); // with leading space
+		// make option active
+		Cmdline_freespace_no_music = 1;
+	} else {
+		Cmdline_freespace_no_music = Config.cmd_initial_music;
 	}
 
 	if (Config.nomovies) {
 		Config.cmdline.append(" --nomovies"); // with leading space
+		// make option active
+		Cmdline_play_movies = 0;
+	} else {
+		Cmdline_play_movies = Config.cmd_initial_movies;
 	}
 
 	if (Config.nodpiscaling) {
 		Config.cmdline.append(" --no_dpi_scaling");	// with leading space
+		// make option active
+		Cmdline_no_dpi_scaling = true;
+	} else {
+		Cmdline_no_dpi_scaling = Config.cmd_initial_dpiscaling;
 	}
 
 	char cmdline_cfg[MAX_PATH_LEN];

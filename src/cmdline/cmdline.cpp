@@ -206,9 +206,11 @@
  * $NoKeywords: $
  */
 
-#include <string.h>
-#include <stdlib.h>
+#include <string>
+#include <cstring>
+#include <cstdlib>
 #include <new>
+
 #include "cmdline.h"
 #include "linklist.h"
 #include "systemvars.h"
@@ -299,6 +301,8 @@ int Cmdline_window = 0;
 int Cmdline_no_vsync = 0;
 int Cmdline_no_frame_cap = 0;
 bool Cmdline_no_dpi_scaling = false;
+bool Cmdline_skip_launcher = false;
+bool Cmdline_daemon = false;
 
 static cmdline_parm Parm_list(NULL, NULL, NULL);
 
@@ -340,7 +344,7 @@ static char *drop_extra_chars(char *str)
 
 
 // internal function - copy the value for a parameter agruement into the cmdline_parm arg field
-static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
+static void parm_stuff_args(cmdline_parm *parm, const char *cmdline)
 {
 	char buffer[1024] = { 0 };
 	char *dest = buffer;
@@ -373,16 +377,19 @@ static void parm_stuff_args(cmdline_parm *parm, char *cmdline)
 
 // internal function - parse the command line, extracting parameter arguements if they exist
 // cmdline - command line string passed to the application
-static void os_parse_parms(char *cmdline)
+static void os_parse_parms(const char *cmdline)
 {
 	// locate command line parameters
 	cmdline_parm *parmp;
-	char *cmdline_offset = NULL;
+	const char *cmdline_offset = nullptr;
 	char pname[33] = { 0 };
+	bool alt = false;
 
 	if ( !cmdline || (SDL_strlen(cmdline) <= 1) ) {
 		return;
 	}
+
+	SDL_Log("Command line:");
 
 	for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
 		// check with space to make sure we get the correct option name
@@ -391,6 +398,7 @@ static void os_parse_parms(char *cmdline)
 
 		if (cmdline_offset) {
 			cmdline_offset += SDL_strlen(parmp->name);
+			alt = false;
 		} else if (parmp->name2 != NULL) {
 			// check with space to make sure we get the correct option name
 			SDL_snprintf(pname, SDL_arraysize(pname), "%s ", parmp->name2);
@@ -398,12 +406,16 @@ static void os_parse_parms(char *cmdline)
 
 			if (cmdline_offset) {
 				cmdline_offset += SDL_strlen(parmp->name2);
+				alt = true;
 			}
 		}
 
 		if (cmdline_offset) {
 			parmp->name_found = 1;
 			parm_stuff_args(parmp, cmdline_offset);
+
+			SDL_Log("  %s %s", alt ? parmp->name2 : parmp->name,
+					parmp->args ? parmp->args : "");
 		}
 	}
 }
@@ -427,11 +439,15 @@ static bool os_find_parm(const cmdline_parm *parmp, const char *token)
 }
 
 // help for available cmdline options
-static void print_instructions()
+static void print_instructions(const char *unrecognized = nullptr)
 {
 	printf("http://icculus.org/freespace2\n");
 	printf("Support - FAQ: http://icculus.org/lgfaq\n");
 	printf("          Web: http://bugzilla.icculus.org\n\n");
+
+	if (unrecognized) {
+		printf("Error: unrecognized option... \"%s\"\n\n", unrecognized);
+	}
 
 	printf("Usage: " FS_BINARY " [options]\n");
 	printf("\n");
@@ -471,19 +487,26 @@ static void print_instructions()
 }
 
 // validate the command line parameters.  Display an error if an unrecognized parameter is located.
-static void os_validate_parms(char *cmdline)
+static void os_validate_parms(const char *cmdline)
 {
 	cmdline_parm *parmp;
 	char seps[] = " ,\t\n";
 	char *token;
 	int parm_found;
+	char *cmdline_copy = nullptr;
 
-	if ( !cmdline || (SDL_strlen(cmdline) <= 1) ) {
+	if ( !cmdline || (SDL_strlen(cmdline) <= 2) ) {
 		return;
 	}
 
-   token = strtok(cmdline, seps);
-   while(token != NULL) {
+	cmdline_copy = SDL_strdup(cmdline);
+
+	if ( !cmdline_copy ) {
+		return;
+	}
+
+	token = strtok(cmdline_copy, seps);
+	while(token != nullptr) {
 		if (token[0] == '-') {
 			parm_found = 0;
 			for (parmp = GET_FIRST(&Parm_list); parmp !=END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp) ) {
@@ -494,22 +517,25 @@ static void os_validate_parms(char *cmdline)
 			}
 
 			if (parm_found == 0) {
-				print_instructions();
+				print_instructions(token);
 			}
 		}
 
 		token = strtok(NULL, seps);
 	}
+
+	SDL_free(cmdline_copy);
 }
 
 
 // Call once to initialize the command line system
 //
 // cmdline - command line string passed to the application
-static void os_init_cmdline(const char *cmdline)
+static void os_init_cmdline(int argc = 0, char *argv[] = nullptr)
 {
 	FILE *fp = NULL;
 	char cmdname[1024] = { 0 };
+	std::string cmdline;
 
 	// read the cmdline.cfg file from the data folder, and pass the command line arguments to
 	// the the parse_parms and validate_parms line.  Read these first so anything actually on
@@ -519,7 +545,8 @@ static void os_init_cmdline(const char *cmdline)
 		exit(-2);
 	}
 
-	mprintf(("Command line: "));
+	// we always want a leading and trailing space on the cmdline
+	cmdline = " ";
 
 	cf_create_default_path_string(cmdname, CF_TYPE_DATA, "cmdline.cfg");
 
@@ -535,38 +562,29 @@ static void os_init_cmdline(const char *cmdline)
 				*p = '\0';
 			}
 
-			// make sure that we have a trailing space for option finding to
-			// work properly with single args
-			SDL_strlcat(buf, " ", SDL_arraysize(buf));
-
-			mprintf(("%s", buf));
-
-			os_parse_parms(buf);
-			os_validate_parms(buf);
+			cmdline += buf;
+			cmdline += " ";
 		}
 
 		fclose(fp);
 	}
 
-	if ( cmdline && SDL_strlen(cmdline) ) {
-		mprintf(("%s", cmdline));
-
-		// for proper arg handling make sure cmdline has trailing space
-		auto len = SDL_strlen(cmdline) + 2;
-		char *m_cmdline = (char*) malloc(len);
-
-		if (m_cmdline) {
-			SDL_strlcpy(m_cmdline, cmdline, len);
-			SDL_strlcat(m_cmdline, " ", len);
-
-			os_parse_parms(m_cmdline);
-			os_validate_parms(m_cmdline);
-
-			free(m_cmdline);
-		}
+	// options specified as args should override what's in the cfg
+	for (int i = 1; i < argc; ++i) {
+		cmdline += argv[i];
+		cmdline += " ";
 	}
 
-	mprintf(("\n"));
+	// cmdline must be at least 4 chars to contain anything useful
+	if (cmdline.size() > 3) {
+		os_validate_parms(cmdline.c_str());
+		os_parse_parms(cmdline.c_str());
+	} else {
+		SDL_Log("Command line: <none>");
+	}
+
+	cmdline.clear();
+	cmdline.shrink_to_fit();
 }
 
 // arg constructor
@@ -632,12 +650,12 @@ char *cmdline_parm::str()
 }
 
 // external entry point into this modules
-int parse_cmdline(const char *cmdline)
+int parse_cmdline(int argc, char *argv[])
 {
-	os_init_cmdline(cmdline);
+	os_init_cmdline(argc, argv);
 
 	if ( std_daemon.found() ) {
-		// ignored (handled in main() already)
+		Cmdline_daemon = true;
 	}
 
 #ifndef FS1_DEMO
@@ -783,6 +801,10 @@ int parse_cmdline(const char *cmdline)
 		Cmdline_no_dpi_scaling = true;
 	}
 
+	if (skip_launcher.found()) {
+		Cmdline_skip_launcher = true;
+	}
+
 	// display game version
 	if(fs_version.found()){
 		printf("%s %s\n", Osreg_title, version_get_string_full());
@@ -800,6 +822,7 @@ int parse_cmdline(const char *cmdline)
 	Cmdline_play_movies = 0;
 	Cmdline_fullscreen = 0;
 	Cmdline_window = 1;
+	Cmdline_skip_launcher = true;
 #endif
 
 	return 1;

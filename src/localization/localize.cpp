@@ -696,7 +696,7 @@ void lcl_set_language(int lang)
 {
 	Lcl_current_lang = lang;
 
-	nprintf(("General", "Setting language to %s\n", Lcl_languages[lang].lang_name));
+	SDL_Log("Setting language to %s", Lcl_languages[lang].lang_name);
 
 	// flag the proper language as being active
 	Lcl_fr = 0;

@@ -748,8 +748,6 @@ int gr_init(bool safe_mode)
 		}
 	}
 
-	Gr_inited = 1;
-
 #ifdef __EMSCRIPTEN__
 	mode = GR_GLES2;
 	Gr_allow_fallback = false;
@@ -784,8 +782,12 @@ int gr_init(bool safe_mode)
 	// get best available resolution
 	res = gr_get_best_res(&max_w, &max_h);
 
-	mprintf(("Using %s-res graphics\n", (res == GR_1024) ? "high" : "low" ));
+	if ( !Gr_inited ) {
+		SDL_Log("Initializing video...");
+		SDL_Log("  Using %s-res graphics", (res == GR_1024) ? "high" : "low");
+	}
 
+	Gr_inited = 1;
 
 	memset( &gr_screen, 0, sizeof(screen) );
 

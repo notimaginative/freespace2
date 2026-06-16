@@ -137,7 +137,7 @@ static bool oal_init_prototypes()
 		do {	\
 			(func) = reinterpret_cast<type>(alcGetProcAddress(nullptr, #func));	\
 			if ( !(func) ) {	\
-				mprintf(("  Couldn't load OpenAL function %s!", #func));	\
+				SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Couldn't load OpenAL function %s!", #func);	\
 				return false;	\
 			}	\
 		} while(false);
@@ -149,13 +149,13 @@ static bool oal_init_prototypes()
 	return true;
 }
 
-static bool oal_init_loopback(std::string &Device)
+static bool oal_init_loopback()
 {
 	SDL_AudioSpec spec;
 	ALCint attrs[16];
 
 	if ( !alcIsExtensionPresent(nullptr, "ALC_SOFT_loopback") ) {
-		mprintf(("  ERROR: Loopback extension not present!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Loopback extension not present!");
 		return false;
 	}
 
@@ -168,7 +168,8 @@ static bool oal_init_loopback(std::string &Device)
 												&Info);
 
 	if ( !Info.stream ) {
-		mprintf(("  ERROR: Unable to create audio stream!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to create audio stream!  %s",
+					 SDL_GetError());
 		return false;
 	}
 
@@ -189,7 +190,7 @@ static bool oal_init_loopback(std::string &Device)
 	} else if (spec.channels == 8) {
 		attrs[1] = ALC_7POINT1_SOFT;
 	} else {
-		mprintf(("  ERROR: Unsupported channel setup!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unsupported channel setup!");
 		return false;
 	}
 
@@ -206,7 +207,7 @@ static bool oal_init_loopback(std::string &Device)
 	} else if (spec.format == SDL_AUDIO_F32) {
 		attrs[3] = ALC_FLOAT_SOFT;
 	} else {
-		mprintf(("  ERROR: Unsupported format type!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unsupported format type!");
 		return false;
 	}
 
@@ -221,24 +222,22 @@ static bool oal_init_loopback(std::string &Device)
 	Info.device = alcLoopbackOpenDeviceSOFT(nullptr);
 
 	if ( !Info.device ) {
-		mprintf(("  ERROR: Unable to open loopback device!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to open loopback device!");
 		return false;
 	}
 
 	// check that format is actually supported
 	if (alcIsRenderFormatSupportedSOFT(Info.device, attrs[5], attrs[1], attrs[3]) == AL_FALSE) {
-		mprintf(("  ERROR: Audio render format not supported!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Audio render format not supported!");
 		return false;
 	}
 
 	Info.context = alcCreateContext(Info.device, attrs);
 
 	if ( !Info.context ) {
-		mprintf(("  ERROR: Unable to create OpenAL context!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to create OpenAL context!");
 		return false;
 	}
-
-	Device = "SDL3 (auto)";
 
 	alcMakeContextCurrent(Info.context);
 
@@ -251,13 +250,9 @@ int oal_init()
 		return 0;
 	}
 
-	mprintf(("Initializing OpenAL audio device...\n"));
-
 	SDL_zero(Info);
 
-	std::string PlaybackDevice;
-
-	if ( !oal_init_loopback(PlaybackDevice) ) {
+	if ( !oal_init_loopback() ) {
 		oal_close();
 		return -1;
 	}
@@ -268,23 +263,21 @@ int oal_init()
 
 	Buffers.reserve(64);
 
-	mprintf(("  Vendor   : %s\n", alGetString(AL_VENDOR)));
-	mprintf(("  Renderer : %s\n", alGetString(AL_RENDERER)));
-	mprintf(("  Version  : %s\n", alGetString(AL_VERSION)));
+	SDL_Log("  Vendor   : %s", alGetString(AL_VENDOR));
+	SDL_Log("  Renderer : %s", alGetString(AL_RENDERER));
+	SDL_Log("  Version  : %s", alGetString(AL_VERSION));
 
 	if ( os_config_read_uint("Audio", "EFX", 0) ) {
 		if (oal_efx_init() < 0) {
-			mprintf(("  EFX      : Not Supported\n"));
+			SDL_Log("  EFX      : Not Supported");
 		} else {
-			mprintf(("  EFX      : Enabled\n"));
+			SDL_Log("  EFX      : Enabled");
 		}
 	} else {
-		mprintf(("  EFX      : Disabled\n"));
+		SDL_Log("  EFX      : Disabled");
 	}
 
-	mprintf(("  Channels : %d\n", Channels.size()));
-	mprintf(("  Playback device : %s\n", PlaybackDevice.c_str()));
-	mprintf(("\n"));
+	SDL_Log("  Channels : %d", static_cast<int>(Channels.size()));
 
 	// start stream (if we can)
 	if (Info.stream) {

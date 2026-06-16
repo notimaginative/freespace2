@@ -229,7 +229,7 @@ static bool oal_efx_init_prototypes()
 		do {	\
 			(func) = reinterpret_cast<type>(alGetProcAddress(#func));	\
 			if ( !(func) ) {	\
-				mprintf(("  Couldn't load OpenAL function %s!", #func));	\
+				SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Couldn't load OpenAL function %s!", #func);	\
 				return false;	\
 			}	\
 		} while(false);

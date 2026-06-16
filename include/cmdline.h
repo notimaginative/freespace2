@@ -156,7 +156,7 @@
 #ifndef FS_CMDLINE_HEADER_FILE
 #define FS_CMDLINE_HEADER_FILE
 
-int parse_cmdline(const char *cmdline = 0);
+int parse_cmdline(int argc = 0, char *argv[] = nullptr);
 
 // COMMAND LINE SETTINGS
 // This section is for reference by all the *_init() functions. For example, the multiplayer init function
@@ -193,6 +193,8 @@ extern int Cmdline_window;
 extern int Cmdline_no_vsync;
 extern int Cmdline_no_frame_cap;
 extern bool Cmdline_no_dpi_scaling;
+extern bool Cmdline_skip_launcher;
+extern bool Cmdline_daemon;
 
 #endif
 

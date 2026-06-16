@@ -28,6 +28,28 @@ static void fix_dir_seps(std::string &path)
 #endif
 }
 
+static void log_anonymized_game_path(const char *path, const char *type)
+{
+	SDL_assert(path);
+	SDL_assert(type);
+
+	auto home = SDL_GetUserFolder(SDL_FOLDER_HOME);
+	const size_t home_len = home ? SDL_strlen(home) : 0;
+
+	if ( !home || !home_len ) {
+		return;
+	}
+
+	std::string sanitizer = path;
+
+	if (sanitizer.find(home) == 0) {
+		sanitizer.replace(0, home_len-1, "<HOME>");
+	}
+
+	SDL_Log("Found %s install located at:", type);
+	SDL_Log("  %s", sanitizer.c_str());
+}
+
 //
 // Steam helper to locate game installation path, if it exists
 //
@@ -127,6 +149,8 @@ static bool steam_get_game_path(std::string &location, const uint32_t app_id)
 						return false;
 					}
 
+					log_anonymized_game_path(full_path.c_str(), "Steam");
+
 					location = std::move(full_path);
 					return true;
 				}
@@ -177,6 +201,8 @@ static bool gog_get_game_path(std::string &location)
 				return false;
 			}
 
+			log_anonymized_game_path(path, "GOG");
+
 			location = path;
 			return true;
 		}
@@ -200,12 +226,16 @@ static bool data_locator()
 {
 	std::string location;
 
+	SDL_Log("Launcher running data locator...");
+
 	if ( !steam_locator(location) && !gog_locator(location) ) {
+		SDL_Log("No game data found.");
 		return false;
 	}
 
 	// just to be extra safe
 	if (location.empty()) {
+		SDL_Log("No game valid data found.");
 		return false;
 	}
 

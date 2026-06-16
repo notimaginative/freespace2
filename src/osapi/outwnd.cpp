@@ -156,8 +156,6 @@
  * $NoKeywords: $
  */
 
-#ifndef NDEBUG
-
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -170,29 +168,30 @@
 #include "cfilesystem.h"
 
 
+static FILE *Log_fp = nullptr;
+static const char *Log_filename = "game.log";
+
+static bool outwnd_inited = false;
+
+#ifndef NDEBUG
+
 void outwnd_print(const char *id, const char *tmp);
 
 #define MAX_FILTERS 48
 #define MAX_LINE_WIDTH	128
 
-bool outwnd_inited = false;
-bool outwnd_disabled = true;
-bool OutputActive = false;
-int Outwnd_no_filter_file = 0;		// 0 = .cfg file found, 1 = not found and warning not printed yet, 2 = not found and warning printed
+//static bool outwnd_disabled = true;
+//static bool OutputActive = false;
+static int Outwnd_no_filter_file = 0;		// 0 = .cfg file found, 1 = not found and warning not printed yet, 2 = not found and warning printed
 
 struct outwnd_filter_struct {
 	char name[FILTER_NAME_LENGTH];
 	int state;
 } *outwnd_filter[MAX_FILTERS], real_outwnd_filter[MAX_FILTERS];
 
+static int outwnd_filter_count = 0;
+static int outwnd_filter_loaded = 0;
 
-int outwnd_filter_count = 0;
-int outwnd_filter_loaded = 0;
-
-// used for file logging
-int Log_debug_output_to_file = 1;
-FILE *Log_fp;
-const char *Freespace_logfilename = "fs_debug.log";
 
 void load_filter_info(void)
 {
@@ -325,11 +324,8 @@ void outwnd_print(const char *id, const char *tmp)
 	int i;
 	outwnd_filter_struct *temp;
 
-  	if (!outwnd_inited) {
-  		fputs("outwnd not initialized yet...  ", stdout);
-		fputs(tmp, stdout);
-		fflush(stdout);
-  		return;
+	if ( !outwnd_inited ) {
+		return;
 	}
 
 	if ( Outwnd_no_filter_file == 1 )	{
@@ -383,45 +379,90 @@ void outwnd_print(const char *id, const char *tmp)
 	if (!outwnd_filter[i]->state)
 		return;
 
-	if ( Log_debug_output_to_file ) {
-		if ( Log_fp != NULL ) {
-			fputs(tmp, Log_fp);	
-			fflush(Log_fp);
-		}
-	} else {
-		fputs(tmp, stdout);
-		fflush(stdout);
-	}
+	SDL_Log("%s", tmp);
 }
 
+#endif
 
-void outwnd_init(int display_under_freespace_window)
+
+static void SDLCALL outwnd_log_output(void *userdata, int category, SDL_LogPriority priority, const char *message)
 {
+	FILE *log = reinterpret_cast<FILE *>(userdata);
+
+	if ( !log ) {
+		return;
+	}
+
+	fprintf(log, "%s\n", message);
+	fflush(log);
+}
+
+void outwnd_init()
+{
+	char str[100] = {};
+
+	if (outwnd_inited) {
+		return;
+	}
+
 	if ( !cfile_init_paths() ) {
 		return;
 	}
 
-	outwnd_inited = TRUE;
+	atexit(outwnd_close);
+
+	if (Log_fp) {
+		fclose(Log_fp);
+		Log_fp = nullptr;
+	}
+
+	outwnd_inited = true;
 
 	char pathname[512];
 
-	cf_create_default_path_string(pathname, CF_TYPE_DATA, Freespace_logfilename);
+	cf_create_default_path_string(pathname, CF_TYPE_DATA, Log_filename);
 	cf_create_directory(CF_TYPE_DATA);
 
-	if ( Log_fp == NULL ) {
-		Log_fp = fopen(pathname, "wb");
-		if ( Log_fp == NULL ) {
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning!", "Unable to open debug log file. Debug output will not be saved.", NULL);
-		}
+	Log_fp = fopen(pathname, "wb");
+
+	SDL_SetLogOutputFunction(outwnd_log_output, Log_fp);
+
+	// print log header message first thing
+	auto timer = time(nullptr);
+	auto timestr = gmtime(&timer);
+
+	if (timestr) {
+		strftime(str, SDL_arraysize(str), "%a, %b %d, %Y at %H:%M", timestr);
 	}
+
+	SDL_Log("%s log opened - %s", Osreg_title, str);
+	SDL_Log("~~~~~");
 }
 
 void outwnd_close()
 {
-	if ( Log_fp != NULL ) {
-		fclose(Log_fp);
-		Log_fp = NULL;
+	if ( !outwnd_inited ) {
+		return;
 	}
+
+	char str[100] = {};
+
+	// print log footer message
+	auto timer = time(nullptr);
+	auto timestr = gmtime(&timer);
+
+	if (timestr) {
+		strftime(str, SDL_arraysize(str), "%a, %b %d, %Y at %H:%M", timestr);
+	}
+
+	SDL_Log("~~~~~");
+	SDL_Log("Log closed - %s", str);
+
+	if (Log_fp) {
+		fclose(Log_fp);
+		Log_fp = nullptr;
+	}
+
+	outwnd_inited = false;
 }
 
-#endif // NDEBUG

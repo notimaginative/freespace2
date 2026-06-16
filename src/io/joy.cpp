@@ -382,7 +382,7 @@ static int joy_init_internal(SDL_JoystickID with_id)
 				SDL_free(joysticks);
 			}
 
-			mprintf(("  No joysticks found\n\n"));
+			SDL_Log("  No joysticks found");
 			return 0;
 		}
 
@@ -417,7 +417,9 @@ static int joy_init_internal(SDL_JoystickID with_id)
 		SDL_Gamepad *sdlcon = SDL_OpenGamepad(Cur_joystick);
 
 		if (sdlcon == nullptr) {
-			mprintf(("  Unable to init gamepad %d (%s)\n\n", Cur_joystick, SDL_GetGamepadNameForID(Cur_joystick)));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to init gamepad %d (%s)...",
+						 Cur_joystick, SDL_GetGamepadNameForID(Cur_joystick));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "   %s", SDL_GetError());
 			return 0;
 		}
 
@@ -430,7 +432,9 @@ static int joy_init_internal(SDL_JoystickID with_id)
 		sdljoy = SDL_OpenJoystick(Cur_joystick);
 
 		if (sdljoy == nullptr) {
-			mprintf(("  Unable to init joystick %d (%s)\n\n", Cur_joystick, SDL_GetJoystickNameForID(Cur_joystick)));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to init joystick %d (%s)...",
+						 Cur_joystick, SDL_GetJoystickNameForID(Cur_joystick));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "   %s", SDL_GetError());
 			return 0;
 		}
 
@@ -439,17 +443,13 @@ static int joy_init_internal(SDL_JoystickID with_id)
 
 	JoystickID = Cur_joystick;
 
-	(void)joy_name;
-	mprintf(("  Name    : %s\n", joy_name ? joy_name : "<unknown>"));
-	mprintf(("  Gamepad : %s\n", joystick_is_gamepad() ? "Yes" : "No"));
-	mprintf(("  Axes    : %d\n", SDL_GetNumJoystickAxes(sdljoy)));
-	mprintf(("  Buttons : %d\n", SDL_GetNumJoystickButtons(sdljoy)));
-	mprintf(("  Hats    : %d\n", SDL_GetNumJoystickHats(sdljoy)));
-	mprintf(("  Haptic  : %s\n", SDL_IsJoystickHaptic(sdljoy) ? "Yes" : "No"));
+	SDL_Log("  Name    : %s", joy_name ? joy_name : "<unknown>");
+	SDL_Log("  Gamepad : %s", joystick_is_gamepad() ? "Yes" : "No");
+	SDL_Log("  Axes    : %d", SDL_GetNumJoystickAxes(sdljoy));
+	SDL_Log("  Buttons : %d", SDL_GetNumJoystickButtons(sdljoy));
+	SDL_Log("  Hats    : %d", SDL_GetNumJoystickHats(sdljoy));
 
 	joy_ff_init();
-
-	mprintf(("\n"));
 
 	joystick.num_axes = SDL_GetNumJoystickAxes(sdljoy);
 
@@ -477,10 +477,10 @@ int joy_init()
 		return 0;
 	}
 
-	mprintf(("Initializing Joystick...\n"));
+	SDL_Log("Initializing controllers...");
 
 	if ( !SDL_InitSubSystem(SDL_INIT_GAMEPAD) ) {
-		mprintf(("  Could not initialize joystick subsystem\n\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Could not initialize joystick subsystem!!");
 		return 0;
 	}
 
@@ -518,7 +518,7 @@ void joy_reinit(SDL_JoystickID with_id)
 	JoystickID = 0;
 
 	// attempt to get a new joystick to use...
-	mprintf(("Re-Initializing Joystick...\n"));
+	SDL_Log("Re-Initializing controllers...");
 
 	joy_init_internal(with_id);
 }

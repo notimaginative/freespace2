@@ -239,9 +239,6 @@ const char *os_get_title()
 // call at program end
 void os_cleanup()
 {
-#ifndef NDEBUG
-		outwnd_close();
-#endif
 }
 
 void os_set_icon(SDL_Window *window)

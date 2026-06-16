@@ -41,7 +41,7 @@
 #include "gamepad.h"
 #include "osapi.h"
 #include "timer.h"
-#include "sound.h"
+#include "cmdline.h"
 #include <vector>
 
 static int mve_playing;
@@ -171,7 +171,7 @@ void mve_audio_createbuf(ubyte minor, ubyte *data)
 		return;
 
 	// if game sound disabled don't try and play movie audio
-	if ( !Sound_enabled ) {
+	if (Cmdline_freespace_no_sound) {
 		mve_audio_canplay = 0;
 		audiobuf_created = 1;
 		return;

@@ -867,7 +867,7 @@ void model_free_all()
 		return;
 	}
 
-	mprintf(( "Freeing all existing models...\n" ));
+	SDL_Log("Freeing all existing models...");
 
 	for (i=0;i<MAX_POLYGON_MODELS;i++) {
 		model_unload(i);		
@@ -2090,7 +2090,7 @@ int model_load(const char *filename, int n_subsystems, model_subsystem *subsyste
 		return -1;
 	}	
 
-	mprintf(( "Loading model '%s'\n", filename ));
+	SDL_Log("Loading model '%s'", filename);
 
 	polymodel * pm = (polymodel *)malloc( sizeof(polymodel) );
 	

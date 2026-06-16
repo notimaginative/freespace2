@@ -69,6 +69,7 @@
 #include "multi_options.h"
 #include "cmdline.h"
 #include "cfile.h"
+#include "cfilesystem.h"
 #include "systemvars.h"
 
 
@@ -84,19 +85,19 @@
 #define MULTI_STD_LOGFILE_NAME					"multi.%d.log"
 
 // echo all ml_printf's to the debug window
-#define MULTI_LOGFILE_ECHO_TO_DEBUG
+//#define MULTI_LOGFILE_ECHO_TO_DEBUG
 
 // how often we'll write an update to the logfile (in seconds)
 #define MULTI_LOGFILE_UPDATE_TIME			2520			// every 42 minutes
 
 // outfile itself
-CFILE *Multi_log_out = NULL;
+static FILE *Multi_log_out = nullptr;
 
 // time when the logfile was opened
-time_t Multi_log_open_systime = -1;
+static time_t Multi_log_open_systime = -1;
 
 // time when we last updated the logfile
-time_t Multi_log_update_systime = -1;
+static time_t Multi_log_update_systime = -1;
 
 // ----------------------------------------------------------------------------------------------------
 // MULTI LOGFILE FUNCTIONS
@@ -109,9 +110,16 @@ void multi_log_write_header()
 	time_t timer;	
 
 	// header message
-	timer = time(NULL);	
-	strftime(str, 1024, "Freespace Multi Log - Opened %a, %b %d, %Y  at %I:%M%p\n----\n----\n----\n\n", localtime(&timer));
-	ml_string(str, 0);	
+	timer = time(NULL);
+	auto timestr = gmtime(&timer);
+
+	if ( !timestr ) {
+		Int3();
+		return;
+	}
+
+	strftime(str, 1024, "Freespace Multi Log - Opened %a, %b %d, %Y  at %H:%M\n----\n----\n----\n\n", timestr);
+	ml_string(str, 0);
 }
 
 // write the standard shutdown trailer
@@ -122,8 +130,14 @@ void multi_log_write_trailer()
 
 	// header message
 	timer = time(NULL);
-	strftime(str, 1024, "\n\n----\n----\n----\nFreespace Multi Log - Closing on %a, %b %d, %Y  at %I:%M%p", localtime(&timer));
-	ml_string(str, 0);	
+	auto timestr = gmtime(&timer);
+
+	if ( !timestr ) {
+		return;
+	}
+
+	strftime(str, 1024, "\n\n----\n----\n----\nFreespace Multi Log - Closing on %a, %b %d, %Y  at %H:%M", timestr);
+	ml_string(str, 0);
 }
 
 // write out some info about stuff
@@ -152,8 +166,13 @@ void multi_log_init()
 		SDL_strlcpy(lname, MULTI_LOGFILE_NAME, SDL_arraysize(lname));
 	}
 
+	char pathname[512];
+
+	cf_create_default_path_string(pathname, CF_TYPE_DATA, lname);
+	cf_create_directory(CF_TYPE_DATA);
+
 	// attempt to open the file
-	Multi_log_out = cfopen(lname, "wt", CF_TYPE_DATA);
+	Multi_log_out = fopen(pathname, "wb");
 
 	// if we successfully opened the file, write the header
 	if(Multi_log_out != NULL){
@@ -174,7 +193,7 @@ void multi_log_close()
 	if(Multi_log_out != NULL){
 		multi_log_write_trailer();
 
-		cfclose(Multi_log_out);
+		fclose(Multi_log_out);
 		Multi_log_out = NULL;
 	}
 }
@@ -219,9 +238,7 @@ void ml_printf(const char *format, ...)
 // string print function
 void ml_string(const char *string, int add_time)
 {
-	char tmp[MAX_LOGFILE_LINE_LEN*4];
 	char time_str[128];
-	time_t timer;	
 
 	// if we don't have a valid logfile do nothing
 	if(Multi_log_out == NULL){
@@ -229,25 +246,25 @@ void ml_string(const char *string, int add_time)
 	}
 
 	// if the passed string is NULL, do nothing
-	if(string == NULL){
+	if ( !string || !SDL_strlen(string) ) {
 		return;
 	}
 
 	// maybe add the time
 	if(add_time){
-		timer = time(NULL);
+		auto timer = time(nullptr);
+		auto timestr = gmtime(&timer);
 
-		strftime(time_str, 128, "%m/%d %H:%M:%S~   ", localtime(&timer));
-		SDL_strlcpy(tmp, time_str, SDL_arraysize(tmp));
-		SDL_strlcat(tmp, string, SDL_arraysize(tmp));
-	} else{
-		SDL_strlcpy(tmp, string, SDL_arraysize(tmp));
+		if (timestr) {
+			strftime(time_str, 128, "%m/%d %H:%M:%S~   ", timestr);
+		} else {
+			add_time = 0;
+		}
 	}
-	SDL_strlcat(tmp, "\n", SDL_arraysize(tmp));
 
-	// now print it to the logfile if necessary	
-	cfputs(tmp, Multi_log_out);
-	cflush(Multi_log_out);
+	// now print it to the logfile if necessary
+	fprintf(Multi_log_out, "%s%s\n", add_time ? time_str : "", string);
+	fflush(Multi_log_out);
 
 #if defined(MULTI_LOGFILE_ECHO_TO_DEBUG)
 	// nprintf(("Network","%s\n",tmp));

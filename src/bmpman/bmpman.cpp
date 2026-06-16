@@ -739,9 +739,9 @@ void bm_init()
 {
 	int i;
 
-	mprintf(( "Size of bitmap info = %d KB\n", sizeof( bm_bitmaps )/1024 ));
-	mprintf(( "Size of bitmap extra info = %d bytes\n", sizeof( bm_extra_info ) ));
-	
+	SDL_Log("Size of bitmap info = %d KB\n", static_cast<int>(sizeof(bm_bitmaps)/1024));
+	SDL_Log("Size of bitmap extra info = %d bytes\n", static_cast<int>(sizeof(bm_extra_info)));
+
 	if (!bm_inited)	{
 		bm_inited = 1;
 		atexit(bm_close);
@@ -2154,7 +2154,7 @@ void bm_page_in_stop()
 	int i;	
 	int ship_info_index;
 
-	nprintf(( "BmpInfo","BMPMAN: Loading all used bitmaps.\n" ));
+	SDL_Log("Loading all used bitmaps...");
 
 	// Load all the ones that are supposed to be loaded for this level.
 	int n = 0;
@@ -2200,7 +2200,7 @@ void bm_page_in_stop()
 
 				if ( d3d_preloading )	{
 					if ( !gr_preload(bm_bitmaps[i].handle, (bm_bitmaps[i].preloaded==2) ) )	{
-						mprintf(( "Out of VRAM.  Done preloading.\n" ));
+						SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Out of VRAM.  Done preloading.");
 						d3d_preloading = 0;
 					}
 				}
@@ -2216,8 +2216,8 @@ void bm_page_in_stop()
 		}
 		game_busy();
 	}
-	(void)n;
-	nprintf(( "BmpInfo","BMPMAN: Loaded %d bitmaps that are marked as used for this level.\n", n ));
+
+	SDL_Log("Loaded %d bitmaps that are marked as used for this level.", n);
 
 	int total_bitmaps = 0;
 	for (i = 0; i < MAX_BITMAPS; i++)	{
@@ -2229,8 +2229,7 @@ void bm_page_in_stop()
 		}
 	}	
 
-	(void)total_bitmaps;
-	mprintf(( "Bmpman: %d/%d bitmap slots in use.\n", total_bitmaps, MAX_BITMAPS ));
+	SDL_Log("BMPMAN: %d/%d bitmap slots in use.", total_bitmaps, MAX_BITMAPS);
 	//mprintf(( "Bmpman: Usage went from %d KB to %d KB.\n", usage_before/1024, usage_after/1024 ));
 
 	Bm_paging = 0;

@@ -62,40 +62,51 @@ int joy_ff_init()
 		gamepad = SDL_GetGamepadFromID(joystick_get_id());
 
 		if ( !gamepad ) {
-			mprintf(("  ERROR: Unable to get gamepad\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to get gamepad!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "   %s", SDL_GetError());
 			return -1;
 		}
 
 		auto props = SDL_GetGamepadProperties(gamepad);
 
-		if ( !SDL_GetBooleanProperty(props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false) ) {
+		const auto has_rumble = SDL_GetBooleanProperty(props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
+
+		SDL_Log("  Rumble  : %s", has_rumble ? "Yes" : "No");
+
+		if ( !has_rumble ) {
 			gamepad = nullptr;
 			return 0;
 		}
 	} else {
 		SDL_Joystick *sdljoy = SDL_GetJoystickFromID(joystick_get_id());
 
-		if ( !SDL_IsJoystickHaptic(sdljoy) ) {
+		const auto has_haptic = SDL_IsJoystickHaptic(sdljoy);
+
+		SDL_Log("  Haptic  : %s", has_haptic ? "Yes" : "No");
+
+		if ( !has_haptic ) {
 			return 0;
 		}
 
 		if ( !SDL_InitSubSystem(SDL_INIT_HAPTIC) ) {
-			mprintf(("  ERROR: Unable to initialize haptic subsystem\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to initialize haptic subsystem!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "   %s", SDL_GetError());
 			return -1;
 		}
 
 		haptic = SDL_OpenHapticFromJoystick(sdljoy);
 
 		if (haptic == nullptr) {
-			mprintf(("  ERROR: Unable to open haptic joystick\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Unable to open haptic joystick!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "   %s", SDL_GetError());
 			SDL_QuitSubSystem(SDL_INIT_HAPTIC);
 			return -1;
 		}
 
-		mprintf(("  Haptic Axes  : %d\n", SDL_GetNumHapticAxes(haptic)));
-		mprintf(("  Max effects     : %d\n", SDL_GetMaxHapticEffects(haptic)));
-		mprintf(("  Running effects : %d\n", SDL_GetMaxHapticEffectsPlaying(haptic)));
-		
+		SDL_Log("  Haptic Axes     : %d", SDL_GetNumHapticAxes(haptic));
+		SDL_Log("  Max effects     : %d", SDL_GetMaxHapticEffects(haptic));
+		SDL_Log("  Running effects : %d", SDL_GetMaxHapticEffectsPlaying(haptic));
+
 		joy_ff_create_effects();
 	}
 

@@ -1799,7 +1799,7 @@ void game_load_palette()
 		SDL_snprintf( palette_filename, SDL_arraysize(palette_filename), NOX("gamepalette%d-%02d"), HUD_config.main_color+1, Mission_palette+1 );
 	}
 
-	mprintf(( "Loading palette %s\n", palette_filename ));
+	SDL_Log("Loading palette %s", palette_filename);
 
 	palette_load_table(palette_filename);
 #else
@@ -1951,15 +1951,11 @@ void game_loading_callback_close()
 	// Make sure bar shows all the way over.
 	game_loading_callback(COUNT_ESTIMATE);
 
-#ifndef NDEBUG
 	int real_count = game_busy_callback( NULL );
 
-	mprintf(( "=================== ENDING LOAD ================\n" ));
-	mprintf(( "Real count = %d,  Estimated count = %d\n", real_count, COUNT_ESTIMATE ));
-	mprintf(( "================================================\n" ));
-#else
-	game_busy_callback( NULL );
-#endif
+	SDL_Log("=================== ENDING LOAD ============================");
+	SDL_Log("Real count = %d,  Estimated count = %d", real_count, COUNT_ESTIMATE);
+	SDL_Log("============================================================");
 
 	mouse_show_cursor();
 
@@ -2030,7 +2026,7 @@ void freespace_mission_load_stuff()
 	// IE : we _don't_ want to load any sounds or bitmap/texture info on this machine.
 	if(!(Game_mode & GM_STANDALONE_SERVER)){	
 	
-		mprintf(( "=================== STARTING LEVEL DATA LOAD ==================\n" ));
+		SDL_Log("=================== STARTING LEVEL DATA LOAD ===============");
 
 		game_loading_callback_init();
 		
@@ -2077,8 +2073,8 @@ time_t load_mission_stuff;
 extern "C"
 int game_start_mission()
 {	
-	mprintf(( "=================== STARTING LEVEL LOAD ==================\n" ));
-	
+	SDL_Log("=================== STARTING LEVEL LOAD ====================");
+
 	load_gl_init = time(NULL);
 	game_level_init();
 	load_gl_init = time(NULL) - load_gl_init;
@@ -2110,8 +2106,8 @@ int game_start_mission()
 
 	// the standalone server in multiplayer doesn't do any rendering, so we will not even bother loading the palette
 	if ( !(Game_mode & GM_STANDALONE_SERVER) ) {
-		mprintf(( "=================== LOADING GAME PALETTE ================\n" ));
 #ifdef MAKE_FS1
+		SDL_Log("=================== LOADING GAME PALETTE ===================");
 		game_load_palette();
 #endif
 	}
@@ -2149,7 +2145,6 @@ DCF_BOOL( player_attacking, Player_attacking_enabled )
 DCF_BOOL( show_waypoints, Show_waypoints )
 DCF_BOOL( show_area_effect, Show_area_effect )
 DCF_BOOL( show_net_stats, Show_net_stats )
-DCF_BOOL( log, Log_debug_output_to_file )
 DCF_BOOL( training_msg_method, Training_msg_method )
 DCF_BOOL( show_player_pos, Show_player_pos )
 DCF_BOOL(i_framerate, Interface_framerate )
@@ -2325,6 +2320,8 @@ void game_init()
 		exit(1);
 	}
 
+	cfile_log_info();
+
 #ifndef NDEBUG
 	e1 = timer_get_milliseconds();
 #endif
@@ -2407,10 +2404,10 @@ void game_init()
 
 	// If less than 48MB of RAM, use low memory model.
 	if ( (Freespace_total_ram < 48) || Use_low_mem )	{
-		mprintf(( "Using normal memory settings...\n" ));
+		SDL_Log("Using normal memory settings");
 		bm_set_low_mem(1);		// Use every other frame of bitmaps
 	} else {
-		mprintf(( "Using high memory settings...\n" ));
+		SDL_Log("Using high memory settings");
 		bm_set_low_mem(0);		// Use all frames of bitmaps
 	}
 
@@ -2485,8 +2482,8 @@ void game_init()
 		std_init_standalone();
 	}
 
-	nprintf(("General", "Ships.tbl is : %s\n", Game_ships_tbl_valid ? "VALID" : "INVALID!!!!"));
-	nprintf(("General", "Weapons.tbl is : %s\n", Game_weapons_tbl_valid ? "VALID" : "INVALID!!!!"));
+	SDL_Log("Ships.tbl is : %s\n", Game_ships_tbl_valid ? "VALID" : "INVALID!!!!");
+	SDL_Log("Weapons.tbl is : %s\n", Game_weapons_tbl_valid ? "VALID" : "INVALID!!!!");
 
 	mprintf(("cfile_init() took %d\n", e1 - s1));
 	// mprintf(("1000 cfopens() took %d\n", e2 - s2));	
@@ -4822,7 +4819,7 @@ int game_poll()
 
 				SDL_snprintf( tmp_name, SDL_arraysize(tmp_name), NOX("screen%02d"), counter );
 				counter++;
-				mprintf(( "Dumping screen to '%s'\n", tmp_name ));
+				SDL_Log("Dumping screen to '%s'", tmp_name);
 				gr_print_screen(tmp_name);
 
 				game_start_time();
@@ -4950,7 +4947,7 @@ void end_demo_campaign_do()
 extern "C"
 void game_process_event( int current_state, int event )
 {
-	mprintf(("Got event %s in state %s\n", GS_event_text[event], GS_state_text[current_state]));
+	SDL_Log("Got event %s in state %s", GS_event_text[event], GS_state_text[current_state]);
 
 	switch (event) {
 		case GS_EVENT_SIMULATOR_ROOM:
@@ -5032,7 +5029,7 @@ void game_process_event( int current_state, int event )
 
 			Start_time = f2fl(timer_get_approx_seconds());
 			//Framecount = 0;
-			mprintf(("Entering game at time = %7.3f\n", Start_time));
+			SDL_Log("Entering game at time = %7.3f", Start_time);
 			break;
 
 
@@ -5314,7 +5311,7 @@ void game_process_event( int current_state, int event )
 			break;
 
 		case GS_EVENT_PLAYER_WARPOUT_DONE:	// player ship got through the warp effect
-			mprintf(( "Player warped out.  Going to debriefing!\n" ));
+			SDL_Log("Player warped out.  Going to debriefing!");
 			Player->control_mode = PCM_NORMAL;
 			Viewer_mode = Player->saved_viewer_mode;
 			Warpout_sound = -1;
@@ -6761,7 +6758,7 @@ void game_loop_caller()
 #endif
 
 extern "C"
-int game_main(const char *szCmdLine)
+int game_main()
 {
 	// Find out how much RAM is on this machine
 #ifdef __EMSCRIPTEN__
@@ -6793,27 +6790,6 @@ int game_main(const char *szCmdLine)
 		windebug_memwatch_init();
 	}
 	#endif
-
-#ifndef NDEBUG
-	outwnd_init(1);
-#endif
-
-	mprintf(("Platform: %s\n", SDL_GetPlatform()));
-	mprintf(("CPU: %d %s\n", SDL_GetNumLogicalCPUCores(), (SDL_GetNumLogicalCPUCores() == 1) ? "core" : "cores"));
-	mprintf(("Memory: %d MB\n", Freespace_total_ram));
-	mprintf(("Build: %d-bit, %s-endian\n", sizeof(void*) * 8, (SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big"));
-
-#ifdef GIT_INFO
-	mprintf(("Build ID: %s~%s:%s", GIT_COMMIT_DATE, GIT_BRANCH, GIT_COMMIT_HASH));
-#ifdef GIT_TAG
-	mprintf((" (%s)", GIT_TAG));
-#endif
-	mprintf(("\n"));
-#endif
-
-	parse_cmdline(szCmdLine);
-
-	mprintf(("--------------------------------------------------------------------------\n"));
 
 #ifdef STANDALONE_ONLY_BUILD
 	Is_standalone = 1;

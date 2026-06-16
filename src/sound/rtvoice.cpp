@@ -167,7 +167,6 @@ Uint32 SDLCALL TimeProc(void *userdata, SDL_TimerID timerID, Uint32 interval)
 		return 0;
 	}
 
-	nprintf(("Alan","In callback\n"));
 	Rtv_callback();
 
 	if (Rtv_callback_time) {

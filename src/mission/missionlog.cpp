@@ -205,6 +205,8 @@
 #include "alphacolors.h"
 #include "localize.h"
 
+#include <string>
+
 #define MAX_LOG_ENTRIES		700
 #define MAX_LOG_LINES		1000
 
@@ -251,6 +253,8 @@ static int Log_line_timestamps[MAX_LOG_LINES];
 
 log_entry log_entries[MAX_LOG_ENTRIES];	// static array because John says....
 int last_entry;
+
+static void mission_log_log_entry(const log_entry *entry);
 
 void mission_log_init()
 {
@@ -561,6 +565,8 @@ void mission_log_add_entry(int type, const char *pname, const char *sname, int i
 	}
 
 	entry->timestamp = Missiontime;
+
+	mission_log_log_entry(entry);
 
 	// if in multiplayer and I am the master, send this log entry to everyone
 	if ( (Game_mode & GM_MULTIPLAYER) && (Net_player->flags & NETINFO_FLAG_AM_MASTER) ){
@@ -1035,3 +1041,152 @@ void mission_log_scrollback(int line, int list_x, int list_y, int list_w, int li
 	}
 }
 
+static void mission_log_log_entry(const log_entry *entry)
+{
+	if ( !entry || (entry->flags & MLF_HIDDEN) ) {
+		return;
+	}
+
+	std::string line;
+	line.reserve(200);
+
+	// TODO: Localize these strings?
+
+	line += entry->pname;
+
+	switch (entry->type) {
+		case LOG_SHIP_DESTROYED:
+		case LOG_WING_DESTROYED: {
+			line += " Destroyed";
+
+			if (entry->type == LOG_SHIP_DESTROYED) {
+				if (SDL_strlen(entry->sname)) {
+					line += "  Kill: ";
+					line += entry->sname;
+
+					if (entry->index >= 0) {
+						line += " (" + std::to_string(entry->index) + "%)";
+					}
+				}
+			}
+
+			break;
+		}
+
+		case LOG_SELF_DESTRUCT:
+			line += " Self Destructed";
+			break;
+
+		case LOG_SHIP_ARRIVE:
+		case LOG_WING_ARRIVE: {
+			line += " Arrived";
+
+			if (entry->type == LOG_WING_ARRIVE) {
+				if (entry->index > 1) {
+					line += " (wave " + std::to_string(entry->index) + ")";
+				}
+			}
+
+			break;
+		}
+
+		case LOG_SHIP_DEPART:
+		case LOG_WING_DEPART:
+			line += " Departed";
+			break;
+
+		case LOG_SHIP_DOCK:
+			line += " docked with ";
+			line += entry->sname;
+			break;
+
+
+		case LOG_SHIP_SUBSYS_DESTROYED: {
+			int si_index, model_index;
+
+			si_index = (int)((entry->index >> 16) & 0xffff);
+			model_index = (int)(entry->index & 0xffff);
+
+			line += " Subsystem ";
+
+			const char *subsys_name = Ship_info[si_index].subsystems[model_index].name;
+			if (Ship_info[si_index].subsystems[model_index].type == SUBSYSTEM_TURRET) {
+				subsys_name = "Turret";
+			}
+
+			line += subsys_name;
+			line += " destroyed";
+
+			break;
+		}
+
+		case LOG_SHIP_UNDOCK:
+			line += " Undocked with ";
+			line += entry->sname;
+			break;
+
+		case LOG_SHIP_DISABLED:
+			line += " Disabled";
+			break;
+
+		case LOG_SHIP_DISARMED:
+			line += " Disarmed";
+			break;
+
+		case LOG_PLAYER_REARM:
+			line += " called for rearm";
+			break;
+
+		case LOG_PLAYER_REARM_ABORT:
+			line += " aborted rearm";
+			break;
+
+		case LOG_PLAYER_REINFORCEMENT:
+			line += " Called in as reinforcement";
+			break;
+
+		case LOG_CARGO_REVEALED:
+			SDL_assert( entry->index != -1 );
+			line += " Cargo revealed: ";
+			line += Cargo_names[entry->index];
+			break;
+
+		case LOG_CAP_SUBSYS_CARGO_REVEALED:
+			SDL_assert( entry->index != -1 );
+			line += entry->sname;
+			line += " subsystem cargo revealed: ";
+			line += Cargo_names[entry->index];
+			break;
+
+
+		case LOG_GOAL_SATISFIED:
+		case LOG_GOAL_FAILED: {
+			auto type = Mission_goals[entry->index].type & GOAL_TYPE_MASK;
+
+			// don't display failed bonus goals
+			if ((type == BONUS_GOAL) && (entry->type == LOG_GOAL_FAILED)) {
+				return;
+			}
+
+			line += ": ";
+			line += Goal_type_text(type);
+
+			if (entry->type == LOG_GOAL_SATISFIED) {
+				line += " objective satisfied.";
+			} else {
+				line += " objective failed.";
+			}
+
+			break;
+		}
+
+		default:
+			return;
+	}
+
+	int timestamp = static_cast<int>(f2fl(entry->timestamp * 1000.f));
+
+	SDL_Log("Mission event at %0.1d:%0.2d:%0.2d -- %s",
+			(timestamp / 3600000) % 10, (timestamp / 60000) % 60,
+			(timestamp / 1000) % 60, line.c_str());
+}

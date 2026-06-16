@@ -3051,7 +3051,7 @@ void parse_messages(mission *pm)
 {
 	required_string("#Messages");
 
-	mprintf(("Starting mission message count : %d\n", Num_message_waves));
+	SDL_Log("Starting mission message count : %d", Num_message_waves);
 
 	// the message_parse function can be found in MissionMessage.h.  The format in the
 	// mission file takes the same format as the messages in messages,tbl.  Make parsing
@@ -3060,7 +3060,7 @@ void parse_messages(mission *pm)
 		message_parse();		// call the message parsing system
 	}
 
-	mprintf(("Ending mission message count : %d\n", Num_message_waves));
+	SDL_Log("Ending mission message count : %d", Num_message_waves);
 }
 
 void parse_reinforcement(mission *pm)
@@ -3810,7 +3810,8 @@ int get_mission_info(char *filename, mission *mission_p)
 		init_parse();
 		parse_mission_info(mission_p);
 	} catch (parse_error_t rval) {
-		nprintf(("Error", "Error abort!  Code = %d", (int)rval));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Parse error (%s)!   Code = %d",
+					 filename, static_cast<int>(rval));
 		return (int)rval;
 	}
 
@@ -3866,7 +3867,8 @@ int parse_main(const char *mission_name, int flags)
 		parse_mission(&The_mission, flags);
 		display_parse_diagnostics();
 	} catch (parse_error_t rval) {
-		nprintf(("Error", "Error abort!  Code = %i.", (int)rval));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Parse error (%s)!  Code = %d",
+					 mission_name, static_cast<int>(rval));
 		SDL_zero(Mission_filename);
 		return (int)rval;
 	}

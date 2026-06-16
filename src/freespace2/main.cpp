@@ -13,20 +13,24 @@
 
 #include "pstypes.h"
 #include "launcher.h"
+#include "version.h"
+#include "osregistry.h"
+#include "outwnd.h"
+#include "cmdline.h"
+#include "systemvars.h"
 
-#ifndef SDL_PLATFORM_WINDOWS
+
+extern "C" int game_main();
+
+
+#if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
-#endif
 
-
-extern "C" int game_main(const char *szCmdLine);
-
-
-#if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
 static void daemonize()
 {
 	pid_t pid = fork();
@@ -70,33 +74,41 @@ static void daemonize()
 
 int main(int argc, char *argv[])
 {
-	char *argptr = NULL;
-	int i;
-	size_t len = 0;
 	int retr = 0;
+	auto sdl_ver = SDL_GetVersion();
+
+	outwnd_init();
+
+	SDL_SetAppMetadata(Osreg_title, version_get_string_full(), Osreg_app_id);
+
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
+							   "Copyright (C) Volition, Inc. 1999.  All rights reserved.");
+
+	SDL_Log("Platform: %s", SDL_GetPlatform());
+	SDL_Log("CPU: %d %s", SDL_GetNumLogicalCPUCores(), (SDL_GetNumLogicalCPUCores() == 1) ? "core" : "cores");
+	SDL_Log("Memory: %d MiB", SDL_GetSystemRAM());
+	SDL_Log("SDL version: %d.%d.%d (%d.%d.%d)", SDL_VERSIONNUM_MAJOR(sdl_ver),
+			SDL_VERSIONNUM_MINOR(sdl_ver), SDL_VERSIONNUM_MICRO(sdl_ver),
+			SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
+	SDL_Log("Build: %d-bit, %s-endian", static_cast<int>(sizeof(void*)) * 8,
+			(SDL_BYTEORDER == SDL_LIL_ENDIAN) ? "little" : "big");
+
+#ifdef GIT_INFO
+#ifdef GIT_TAG
+	SDL_Log("Build ID: %s:%s", GIT_COMMIT_DATE, GIT_TAG);
+#else
+	SDL_Log("Build ID: %s~%s:%s", GIT_COMMIT_DATE, GIT_BRANCH, GIT_COMMIT_HASH);
+#endif
+#endif
+
+	parse_cmdline(argc, argv);
+
+	SDL_Log("");
 
 #if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
 	// if we are standalone headless, daemonize
-	bool daemon = false;
-	bool standalone = false;
-
-	for (i = 1; i < argc; i++) {
-		if ( !daemon && SDL_strstr(argv[i], "-daemon") ) {
-			daemon = true;
-		}
-
-		if ( !standalone ) {
-			if ( SDL_strstr(argv[i], "-standalone") ) {
-				standalone = true;
-			}
-
-			if ( !SDL_strcmp(argv[i], "-b") ) {
-				standalone = true;
-			}
-		}
-	}
-
-	if (standalone && daemon) {
+	if (Is_standalone && Cmdline_daemon) {
 		daemonize();
 	}
 
@@ -104,29 +116,9 @@ int main(int argc, char *argv[])
 	umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 #endif
 
-	for (i = 1; i < argc; i++) {
-		len += strlen(argv[i]) + 1;
-	}
-
-	if (len > 0) {
-		argptr = (char *)SDL_malloc(len+5);
-
-		if (argptr == NULL) {
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Ran out of memory in main()!", NULL);
-			exit(1);
-		}
-
-		memset(argptr, 0, len+5);
-
-		for (i = 1; i < argc; i++) {
-			SDL_strlcat(argptr, argv[i], len+5);
-			SDL_strlcat(argptr, " ", len+5);
-		}
-	}
-
 	try {
-		if ( launcher_run(argptr) ) {
-			retr = game_main(argptr);
+		if ( launcher_run() ) {
+			retr = game_main();
 		}
 	} catch(const std::exception &e) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", e.what(), NULL);
@@ -134,9 +126,5 @@ int main(int argc, char *argv[])
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error!", "Exception caught in main()!", NULL);
 	}
 
-	if (argptr) {
-		SDL_free(argptr);
-	}
-
-	return retr;	
+	return retr;
 }

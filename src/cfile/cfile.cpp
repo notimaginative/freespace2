@@ -281,6 +281,7 @@ int cfile_init()
 	if ( !cfile_inited ) {
 		// initialize root and user paths (may have been done already)
 		if ( !cfile_init_paths() ) {
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "CFile failed to init paths!");
 			return 1;
 		}
 

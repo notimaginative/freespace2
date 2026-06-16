@@ -84,7 +84,7 @@ extern "C"
 void level_page_in()
 {
 
-	mprintf(( "Beginning level bitmap paging...\n" ));
+	SDL_Log("Beginning level bitmap paging...");
 
 	if(!(Game_mode & GM_STANDALONE_SERVER)){		
 		bm_page_in_start();
@@ -114,7 +114,7 @@ void level_page_in()
 		bm_page_in_stop();
 	}
 
-	mprintf(( "Ending level bitmap paging...\n" ));
+	SDL_Log("Ending level bitmap paging...");
 
 }
 

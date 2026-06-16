@@ -271,7 +271,7 @@ int mission_load()
 {
 	char filename[128], *ext;	
 
-	mprintf(("MISSION LOAD: '%s'\n", Game_current_mission_filename));
+	SDL_Log("MISSION LOAD: '%s'", Game_current_mission_filename);
 
 	SDL_strlcpy(filename, Game_current_mission_filename, SDL_arraysize(filename));
 	ext = SDL_strchr(filename, '.');

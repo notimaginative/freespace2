@@ -398,34 +398,39 @@ int snd_init()
 {
 	int rval = 0;
 
-	if ( Cmdline_freespace_no_sound )
-		return 0;
-
 	if (Sound_enabled) {
-		nprintf(( "Sound", "SOUND => Sound is already initialized!\n" ));
 		return 1;
+	}
+
+	SDL_Log("Initializing audio...");
+
+	if (Cmdline_freespace_no_sound) {
+		SDL_Log("  Audio is disabled!");
+		return 0;
 	}
 
 	snd_clear();
 
 	// Init SDL audio subsystem
 	if ( !SDL_InitSubSystem(SDL_INIT_AUDIO) ) {
-		nprintf(("Sound", "SOUND => Failed to initialize SDL audio!\n"));
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Failed to initialize SDL audio!");
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "   %s", SDL_GetError());
 		return 0;
 	}
+
+	Sound_enabled = 1;
 
 	// Init OpenAL
 	rval = oal_init();
 
 	if (rval < 0) {
-		nprintf(( "Sound", "SOUND => Direct Sound init unsuccessful, continuing without sound.\n" ));
-		return 0;
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Failed to initialize OpenAL!");
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Sound effects will be disabled!");
+		Sound_enabled = 0;
 	}
 
 	// Init the audio streaming stuff
 	audiostream_init();
-			
-	Sound_enabled = 1;
 
 	return 1;
 }

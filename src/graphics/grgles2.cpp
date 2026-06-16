@@ -566,8 +566,6 @@ void gr_gles2_init()
 		return;
 	}
 
-	mprintf(( "Initializing OpenGL ES2 graphics device...\n" ));
-
 	GLES2_inited = true;
 
 	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
@@ -604,8 +602,9 @@ void gr_gles2_init()
 		if (Gr_allow_fallback) {
 			// This will generally happen when the GLES2 library isn't available. In
 			// which case we should automatically fall back to "safe mode".
-			mprintf(("  Window creation failed! \n    %s\n", SDL_GetError()));
-			mprintf(("  Restarting graphics in safe mode...\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Window creation failed!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "    %s", SDL_GetError());
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Restarting graphics in safe mode...");
 			gr_init(true);	// will call _cleanup() for us
 			return;
 		} else {
@@ -619,8 +618,9 @@ void gr_gles2_init()
 
 	if ( !GLES2_context ) {
 		if (Gr_allow_fallback) {
-			mprintf(("  GLES2 context creation failed! \n    %s\n", SDL_GetError()));
-			mprintf(("  Restarting graphics in safe mode...\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  GLES2 context creation failed!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "    %s", SDL_GetError());
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Restarting graphics in safe mode...");
 			gr_init(true);	// will call _cleanup() for us
 			return;
 		} else {
@@ -631,7 +631,7 @@ void gr_gles2_init()
 	// first thing after context is ready, init gles2 function prototypes
 	if ( !gles2_init_prototypes() ) {
 		if (Gr_allow_fallback) {
-			mprintf(("  Restarting graphics in safe mode...\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Restarting graphics in safe mode...");
 			gr_init(true);	// will call _cleanup() for us
 			return;
 		} else {
@@ -641,8 +641,8 @@ void gr_gles2_init()
 
 	if ( !gles2_set_variables() ) {
 		if (Gr_allow_fallback) {
-			mprintf(("  Hardware/Software requirements not met!\n"));
-			mprintf(("  Restarting graphics in safe mode...\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Hardware/Software requirements not met!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Restarting graphics in safe mode...");
 			gr_init(true);	// will call _cleanup() for us
 			return;
 		} else {
@@ -650,9 +650,9 @@ void gr_gles2_init()
 		}
 	}
 
-	mprintf(("  Vendor   : %s\n", GLES2_ctx.glGetString(GL_VENDOR)));
-	mprintf(("  Renderer : %s\n", GLES2_ctx.glGetString(GL_RENDERER)));
-	mprintf(("  Version  : %s\n", GLES2_ctx.glGetString(GL_VERSION)));
+	SDL_Log("  Vendor   : %s", GLES2_ctx.glGetString(GL_VENDOR));
+	SDL_Log("  Renderer : %s", GLES2_ctx.glGetString(GL_RENDERER));
+	SDL_Log("  Version  : %s", GLES2_ctx.glGetString(GL_VERSION));
 
 	// initial viewport setup
 	gr_gles2_set_viewport(gr_screen.max_w, gr_screen.max_h);
@@ -662,8 +662,8 @@ void gr_gles2_init()
 
 	if ( !gles2_shader_init() ) {
 		if (Gr_allow_fallback) {
-			mprintf(("  Shader initialization failed!\n"));
-			mprintf(("  Restarting graphics in safe mode...\n"));
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Shader initialization failed!");
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "  Restarting graphics in safe mode...");
 			gr_init(true);	// will call _cleanup() for us
 			return;
 		} else {
@@ -690,8 +690,7 @@ void gr_gles2_init()
 	gr_gles2_clear();
 	gr_gles2_set_cull(1);
 
-	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d\n",
-			 a, r, g, b, bpp));
+	SDL_Log("  Attributes requested : ARGB %d%d%d%d, BPP %d", a, r, g, b, bpp);
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
@@ -699,16 +698,13 @@ void gr_gles2_init()
 	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
 
-	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d\n",
-			 a, r, g, b, bpp));
+	SDL_Log("  Attributes received  : ARGB %d%d%d%d, BPP %d", a, r, g, b, bpp);
 
 	if (GLES2_res_scale < 2) {
-		mprintf(("  Resolution scaling   : disabled\n"));
+		SDL_Log("  Resolution scaling   : disabled");
 	} else {
-		mprintf(("  Resolution scaling   : %dx\n", GLES2_res_scale));
+		SDL_Log("  Resolution scaling   : %dx", GLES2_res_scale);
 	}
-
-	mprintf(("\n"));
 
 	SDL_StopTextInput(os_get_window());
 	SDL_DisableScreenSaver();

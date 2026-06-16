@@ -9,6 +9,6 @@
 #ifndef _LAUNCHER_H
 #define _LAUNCHER_H
 
-bool launcher_run(const char *szCmdline = nullptr);
+bool launcher_run();
 
 #endif	// !_LAUNCHER_H

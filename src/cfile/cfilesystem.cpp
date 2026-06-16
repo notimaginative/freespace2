@@ -609,7 +609,7 @@ void cf_search_root_path(int root_index)
 
 	cf_root *root = cf_get_root(root_index);
 
-	mprintf(( "Searching root '%s'\n", root->path ));
+//	mprintf(( "Searching root '%s'\n", root->path ));
 
 	for (i=CF_TYPE_ROOT; i<CF_MAX_PATH_TYPES; i++ )	{
 		switch (i) {
@@ -857,7 +857,7 @@ void cf_build_secondary_filelist(const char *extras_dir)
 		File_blocks[i] = NULL;
 	}
 
-	mprintf(( "Building file index...\n" ));
+//	mprintf(( "Building file index...\n" ));
 	
 	// build the list of searchable roots
 	cf_build_root_list(extras_dir);
@@ -865,7 +865,7 @@ void cf_build_secondary_filelist(const char *extras_dir)
 	// build the list of files themselves
 	cf_build_file_list();
 
-	mprintf(( "Found %d roots and %d files.\n", Num_roots, Num_files ));
+//	mprintf(( "Found %d roots and %d files.\n", Num_roots, Num_files ));
 }
 
 void cf_free_secondary_filelist()
@@ -1667,4 +1667,34 @@ bool cfile_init_paths()
 	}
 
 	return true;
+}
+
+void cfile_log_info()
+{
+	if ( !cfile_inited ) {
+		return;
+	}
+
+	auto home = SDL_GetUserFolder(SDL_FOLDER_HOME);
+	const size_t home_len = home ? SDL_strlen(home) : 0;
+
+	SDL_Log("CFile: Found %d roots with %d files...", Num_roots, Num_files);
+
+	for (int i = 0; i < Num_roots; ++i) {
+		cf_root	*root = cf_get_root(i);
+
+		if (root->roottype == CF_ROOTTYPE_EMBED) {
+			continue;
+		}
+
+		std::string path = root->path;
+
+		if (home && home_len) {
+			if (path.find(home) == 0) {
+				path.replace(0, home_len-1, "<HOME>");
+			}
+		}
+
+		SDL_Log("  %s", path.c_str());
+	}
 }

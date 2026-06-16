@@ -946,8 +946,6 @@ void gr_opengl_init()
 		gr_opengl_cleanup();
 	}
 
-	mprintf(( "Initializing OpenGL graphics device...\n" ));
-
 	OGL_inited = true;
 
 	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) ) {
@@ -1003,9 +1001,9 @@ void gr_opengl_init()
 
 	GL_version = (v_major * 10) + v_minor;
 
-	mprintf(("  Vendor   : %s\n", GL_ctx.glGetString(GL_VENDOR)));
-	mprintf(("  Renderer : %s\n", GL_ctx.glGetString(GL_RENDERER)));
-	mprintf(("  Version  : %s\n", gl_version));
+	SDL_Log("  Vendor   : %s", GL_ctx.glGetString(GL_VENDOR));
+	SDL_Log("  Renderer : %s", GL_ctx.glGetString(GL_RENDERER));
+	SDL_Log("  Version  : %s", gl_version);
 
 	// we need OpenGL packed pixel formats, so check for core support or EXT
 	if ( (GL_version < 12) && !SDL_GL_ExtensionSupported("GL_EXT_packed_pixels") ) {
@@ -1042,8 +1040,8 @@ void gr_opengl_init()
 	gr_opengl_clear();
 	gr_opengl_set_cull(1);
 
-	mprintf(("  Attributes requested : ARGB %d%d%d%d, BPP %d, AA %d\n",
-			 a, r, g, b, bpp, FSAA));
+	SDL_Log("  Attributes requested : ARGB %d%d%d%d, BPP %d, AA %d", a, r, g, b,
+			bpp, FSAA);
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
@@ -1052,9 +1050,8 @@ void gr_opengl_init()
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &bpp);
 	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &FSAA);
 
-	mprintf(("  Attributes received  : ARGB %d%d%d%d, BPP %d, AA %d\n",
-			 a, r, g, b, bpp, FSAA));
-	mprintf(("\n"));
+	SDL_Log("  Attributes received  : ARGB %d%d%d%d, BPP %d, AA %d", a, r, g, b,
+			bpp, FSAA);
 
 	if (FSAA) {
 		GL_ctx.glEnable(GL_MULTISAMPLE);

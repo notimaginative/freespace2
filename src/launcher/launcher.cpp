@@ -15,6 +15,7 @@
 #include "osapi.h"
 #include "bmpman.h"
 #include "version.h"
+#include "cmdline.h"
 
 #include <string>
 
@@ -181,6 +182,8 @@ static void launcher_close()
 static bool launcher_init()
 {
 	if ( !SDL_InitSubSystem(SDL_INIT_VIDEO|SDL_INIT_GAMEPAD) ) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Launcher failed to init SDL: %s",
+					 SDL_GetError());
 		return false;
 	}
 
@@ -199,6 +202,7 @@ static bool launcher_init()
 	WindowScale = new (std::nothrow) LauncherScale;
 
 	if ( !WindowScale ) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Launcher failed to create scaler!");
 		return false;
 	}
 
@@ -207,6 +211,8 @@ static bool launcher_init()
 	Window = SDL_CreateWindow(title.c_str(), window_width, window_height, window_flags);
 
 	if ( !Window ) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Launcher failed to create window: %s",
+					 SDL_GetError());
 		return false;
 	}
 
@@ -215,8 +221,13 @@ static bool launcher_init()
 	Renderer = SDL_CreateRenderer(Window, nullptr);
 
 	if ( !Renderer ) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Launcher failed to create renderer: %s",
+					 SDL_GetError());
 		return false;
 	}
+
+	auto rname = SDL_GetRendererName(Renderer);
+	SDL_Log("Launcher initialized with %s renderer", rname ? rname : "<unknown>");
 
 	SDL_SetRenderVSync(Renderer, 1);
 
@@ -488,27 +499,17 @@ static bool launcher_do()
 	return rval;
 }
 
-// cmdline options that should skip the launcher ui
-static const char *skip_options[] = {
-	"-skip_launcher",
-	"-standalone",
-	"-version",
-	"-v ",	// extra space!
-	"-help",
-	"-h ",	// extra space!
-};
-
-bool launcher_run(const char *szCmdline)
+bool launcher_run()
 {
 	bool rval = false;
 
-	SDL_SetAppMetadata(Osreg_title, version_get_string_full(), Osreg_app_id);
-
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
-							   "Copyright (C) Volition, Inc. 1999.  All rights reserved.");
+	// bypass launcher if the user doesn't want to see it
+	if (Cmdline_skip_launcher) {
+		return true;
+	}
 
 	if (cfile_init()) {
+		// Note: failure is logged in cfile
 		return false;
 	}
 
@@ -521,16 +522,6 @@ bool launcher_run(const char *szCmdline)
 		os_config_write_uint(nullptr, "StraightToSetup", 0);
 	}
 
-	// bypass launcher if the user doesn't want to see it
-	// NOTE: cmdline options haven't been parsed yet, so we can't check that way
-	if (szCmdline) {
-		for (size_t i = 0; i < SDL_arraysize(skip_options); ++i) {
-			if (SDL_strstr(szCmdline, skip_options[i])) {
-				return true;
-			}
-		}
-	}
-
 	if ( !launcher_init() ) {
 		launcher_close();
 		return false;
@@ -540,6 +531,8 @@ bool launcher_run(const char *szCmdline)
 
 	// shutdown and return to game (to play or exit)
 	launcher_close();
+
+	SDL_Log("Launcher set to %s...", rval ? "play" : "quit");
 
 	return rval;
 }

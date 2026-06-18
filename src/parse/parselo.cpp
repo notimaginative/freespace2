@@ -171,9 +171,13 @@ void ignore_gray_space()
 //		 "abc \t"   becomes "abc"
 void drop_trailing_white_space(char *str)
 {
-	size_t i;
-	
-	i = SDL_strlen(str) - 1;
+	auto len = SDL_strlen(str);
+
+	if ( !len ) {
+		return;
+	}
+
+	int i = static_cast<int>(len - 1);
 
 	while ((i >= 0) && is_white_space(str[i]))
 		i--;
@@ -199,24 +203,9 @@ void drop_leading_white_space(char *str)
 // eliminates all leading and trailing white space from a string.  Returns pointer passed in.
 char *drop_white_space(char *str)
 {
-	size_t s, e;
+	drop_trailing_white_space(str);
+	drop_leading_white_space(str);
 
-	s = 0;
-	while (str[s] && is_white_space(str[s]))
-		s++;
-
-	e = SDL_strlen(str) - 1;
-	while (e > s) {
-		if (!is_white_space(str[e]))
-			break;
-
-		e--;
-	}
-
-	if (e > s)
-		memmove(str, str + s, e - s + 1);
-
-	str[e - s + 1] = 0;
 	return str;
 }
 

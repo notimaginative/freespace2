@@ -562,9 +562,6 @@ void gr_opengl_line(int x1,int y1,int x2,int y2)
 {
 	opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
 
-	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,
-			gr_screen.clip_right,gr_screen.clip_bottom,return,void(),void());
-
 	float sx1, sy1;
 	float sx2, sy2;
 
@@ -698,20 +695,12 @@ void gr_opengl_points(vertex *verts, int count)
 
 void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 {
-	int swapped=0;
-
 	if ( !gr_screen.current_color.is_alphacolor )   {
 		gr_line( x1, y1, x2, y2 );
 		return;
 	}
 
-	INT_CLIPLINE(x1,y1,x2,y2,gr_screen.clip_left,gr_screen.clip_top,
-			gr_screen.clip_right,gr_screen.clip_bottom,return,void(),swapped=1);
-
 	opengl_set_state( TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE );
-
-	int aa = swapped ? 0 : gr_screen.current_color.alpha;
-	int ba = swapped ? gr_screen.current_color.alpha : 0;
 
 	float sx1, sy1;
 	float sx2, sy2;
@@ -740,7 +729,7 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 	render_buffer[0].r = gr_screen.current_color.red;
 	render_buffer[0].g = gr_screen.current_color.green;
 	render_buffer[0].b = gr_screen.current_color.blue;
-	render_buffer[0].a = (ubyte)ba;
+	render_buffer[0].a = 0;
 	render_buffer[0].x = sx2;
 	render_buffer[0].y = sy2;
 	render_buffer[0].z = -0.99f;
@@ -748,7 +737,7 @@ void gr_opengl_gradient(int x1,int y1,int x2,int y2)
 	render_buffer[1].r = gr_screen.current_color.red;
 	render_buffer[1].g = gr_screen.current_color.green;
 	render_buffer[1].b = gr_screen.current_color.blue;
-	render_buffer[1].a = (ubyte)aa;
+	render_buffer[1].a = gr_screen.current_color.alpha;
 	render_buffer[1].x = sx1;
 	render_buffer[1].y = sy1;
 	render_buffer[1].z = -0.99f;

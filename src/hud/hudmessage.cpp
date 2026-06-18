@@ -1003,7 +1003,7 @@ void hud_sourced_print(int source, char *msg)
 	int sw, t, x, offset = 0;
 	//int fudge = (gr_screen.res == GR_640) ? 15 : 50;		// prevents string from running off screen
 
-	if ( !SDL_strlen(msg) ) {
+	if ( !msg || !SDL_strlen(msg) ) {
 		nprintf(("Warning", "HUD ==> attempt to print a 0 length string in msg window\n"));
 		return;
 	}
@@ -1011,8 +1011,9 @@ void hud_sourced_print(int source, char *msg)
 	// add message to the scrollback log first
 	hud_add_msg_to_scrollback(msg, source, timestamp());
 
-	ptr = strstr(msg, NOX(": ")) + 2;
+	ptr = strstr(msg, NOX(": "));
 	if (ptr) {
+		ptr += 2;	// skip ": "
 		gr_get_string_size(&sw, NULL, msg, ptr - msg);			// get width of the speaker field
 		//if (sw < MSG_WINDOW_WIDTH - 20)
 		offset = sw;

@@ -1595,6 +1595,11 @@ int ai_mission_goal_achievable( int objnum, ai_goal *aigp )
 	// the if statement.
 	if ( (aigp->ai_mode == AI_GOAL_CHASE_WING) || (aigp->ai_mode == AI_GOAL_GUARD_WING) ) {
 		int num = wing_name_lookup( aigp->ship_name );
+
+		if (num < 0) {
+			return AI_GOAL_NOT_KNOWN;
+		}
+
 		wing *wingp = &Wings[num];
 
 		if ( wingp->flags & WF_WING_GONE )

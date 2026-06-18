@@ -1028,6 +1028,11 @@ void hud_render_target_ship_info(object *target_objp)
 	// print out the targeted sub-system and % integrity
 	if (Player_ai->targeted_subsys != NULL) {
 		shield_strength = Player_ai->targeted_subsys->current_hits/Player_ai->targeted_subsys->system_info->max_hits *100.0f;
+
+		if (SDL_isnanf(shield_strength)) {
+			shield_strength = 0.0f;
+		}
+
 		screen_integrity = fl2i(shield_strength+0.5f);
 
 		if ( screen_integrity < 0 ) {

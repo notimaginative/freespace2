@@ -591,9 +591,6 @@ void gr_gles2_line(int x1, int y1, int x2, int y2)
 {
 	gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
 
-	INT_CLIPLINE(x1, y1, x2, y2, gr_screen.clip_left, gr_screen.clip_top,
-		gr_screen.clip_right, gr_screen.clip_bottom, return, void(), void());
-
 	float sx1, sy1;
 	float sx2, sy2;
 
@@ -824,20 +821,12 @@ void gr_gles2_points(vertex *verts, int count)
 
 void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 {
-	int swapped = 0;
-
 	if ( !gr_screen.current_color.is_alphacolor ) {
 		gr_gles2_line(x1, y1, x2, y2);
 		return;
 	}
 
-	INT_CLIPLINE(x1, y1, x2, y2, gr_screen.clip_left, gr_screen.clip_top,
-			gr_screen.clip_right, gr_screen.clip_bottom, return, void(), swapped=1);
-
 	gles2_set_state(TEXTURE_SOURCE_NONE, ALPHA_BLEND_ALPHA_BLEND_ALPHA, ZBUFFER_TYPE_NONE);
-
-	ubyte aa = swapped ? 0 : gr_screen.current_color.alpha;
-	ubyte ba = swapped ? gr_screen.current_color.alpha : 0;
 
 	float sx1, sy1;
 	float sx2, sy2;
@@ -885,7 +874,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		render_buffer[0].r = gr_screen.current_color.red;
 		render_buffer[0].g = gr_screen.current_color.green;
 		render_buffer[0].b = gr_screen.current_color.blue;
-		render_buffer[0].a = ba;
+		render_buffer[0].a = 0;
 		render_buffer[0].x = sx2 + vx;
 		render_buffer[0].y = sy2 + vy;
 		render_buffer[0].z = -0.99f;
@@ -893,7 +882,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		render_buffer[1].r = gr_screen.current_color.red;
 		render_buffer[1].g = gr_screen.current_color.green;
 		render_buffer[1].b = gr_screen.current_color.blue;
-		render_buffer[1].a = ba;
+		render_buffer[1].a = 0;
 		render_buffer[1].x = sx2 - vx;
 		render_buffer[1].y = sy2 - vy;
 		render_buffer[1].z = -0.99f;
@@ -901,7 +890,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		render_buffer[2].r = gr_screen.current_color.red;
 		render_buffer[2].g = gr_screen.current_color.green;
 		render_buffer[2].b = gr_screen.current_color.blue;
-		render_buffer[2].a = aa;
+		render_buffer[2].a = gr_screen.current_color.alpha;
 		render_buffer[2].x = sx1 + vx;
 		render_buffer[2].y = sy1 + vy;
 		render_buffer[2].z = -0.99f;
@@ -909,7 +898,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		render_buffer[3].r = gr_screen.current_color.red;
 		render_buffer[3].g = gr_screen.current_color.green;
 		render_buffer[3].b = gr_screen.current_color.blue;
-		render_buffer[3].a = aa;
+		render_buffer[3].a = gr_screen.current_color.alpha;
 		render_buffer[3].x = sx1 - vx;
 		render_buffer[3].y = sy1 - vy;
 		render_buffer[3].z = -0.99f;
@@ -919,7 +908,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		render_buffer[0].r = gr_screen.current_color.red;
 		render_buffer[0].g = gr_screen.current_color.green;
 		render_buffer[0].b = gr_screen.current_color.blue;
-		render_buffer[0].a = ba;
+		render_buffer[0].a = 0;
 		render_buffer[0].x = sx2;
 		render_buffer[0].y = sy2;
 		render_buffer[0].z = -0.99f;
@@ -927,7 +916,7 @@ void gr_gles2_gradient(int x1, int y1, int x2, int y2)
 		render_buffer[1].r = gr_screen.current_color.red;
 		render_buffer[1].g = gr_screen.current_color.green;
 		render_buffer[1].b = gr_screen.current_color.blue;
-		render_buffer[1].a = aa;
+		render_buffer[1].a = gr_screen.current_color.alpha;
 		render_buffer[1].x = sx1;
 		render_buffer[1].y = sy1;
 		render_buffer[1].z = -0.99f;

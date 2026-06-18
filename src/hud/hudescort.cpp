@@ -898,7 +898,6 @@ void hud_remove_ship_from_escort(int objnum)
 // is, then start timers to flash the name hull/shield icon for that ship.
 void hud_escort_ship_hit(object *objp, int quadrant)
 {
-	int					num, i;
 	shield_hit_info	*shi;
 
 	// no ships on the escort list in multiplayer dogfight
@@ -906,13 +905,12 @@ void hud_escort_ship_hit(object *objp, int quadrant)
 		return;
 	}
 
-	for ( i = 0; i < Num_escort_ships; i++ ) {
+	for ( int i = 0; i < Num_escort_ships; i++ ) {
 		if ( Escort_ships[i].objnum == OBJ_INDEX(objp) ) {
 			shi = &Escort_ships[i].hit_info;
-			num = Quadrant_xlate[quadrant];
 			hud_gauge_popup_start(HUD_ESCORT_VIEW);
 			if ( quadrant >= 0 ) {
-				shi->shield_hit_timers[num] = timestamp(SHIELD_HIT_DURATION);
+				shi->shield_hit_timers[Quadrant_xlate[quadrant]] = timestamp(SHIELD_HIT_DURATION);
 			} else {
 				shi->shield_hit_timers[HULL_HIT_OFFSET] = timestamp(SHIELD_HIT_DURATION);
 			}

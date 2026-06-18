@@ -2071,6 +2071,7 @@ static void ship_do_damage(object *ship_objp, object *other_obj, vector *hitpos,
 {
 	ship *shipp;	
 	float subsystem_damage = damage;			// damage to be applied to subsystems
+	weapon_info *other_wip = nullptr;
 
 	SDL_assert(ship_objp->instance >= 0);
 	SDL_assert(ship_objp->type == OBJ_SHIP);
@@ -2087,9 +2088,15 @@ static void ship_do_damage(object *ship_objp, object *other_obj, vector *hitpos,
 		ai_update_lethality(ship_objp, other_obj, damage);
 	}
 
+	if (other_obj && (other_obj->type == OBJ_WEAPON) && (other_obj->instance >= 0)
+		&& (Weapons[other_obj->instance].weapon_info_index >= 0))
+	{
+		other_wip = &Weapon_info[Weapons[other_obj->instance].weapon_info_index];
+	}
+
 	// if this is a weapon
-	if((other_obj != NULL) && (other_obj->type == OBJ_WEAPON) && (other_obj->instance >= 0) && (other_obj->instance < MAX_WEAPONS)){
-		damage *= weapon_get_damage_scale(&Weapon_info[Weapons[other_obj->instance].weapon_info_index], other_obj, ship_objp);
+	if (other_wip) {
+		damage *= weapon_get_damage_scale(other_wip, other_obj, ship_objp);
 	}
 
 	MONITOR_INC( ShipHits, 1 );
@@ -2115,7 +2122,9 @@ static void ship_do_damage(object *ship_objp, object *other_obj, vector *hitpos,
 
 	// if this is not a laser, or i'm not a multiplayer client
 	// apply pain to me
-	if((other_obj != NULL) && ((Weapon_info[Weapons[other_obj->instance].weapon_info_index].subtype != WP_LASER) || !MULTIPLAYER_CLIENT) && (Player_obj != NULL) && (ship_objp == Player_obj)){
+	if (((other_wip && (other_wip->subtype != WP_LASER)) || !MULTIPLAYER_CLIENT)
+		&& Player_obj && (ship_objp == Player_obj))
+	{
 		ship_hit_pain(damage);
 	}	
 

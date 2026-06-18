@@ -276,7 +276,7 @@ void unencrypt(char *scrambled_text, int scrambled_len, char *text, int *text_le
 		}
 
 		text[byte_offset] = (char)((scrambled_text[scramble_offset] >> 2) & 0x3f);
-		text[byte_offset] |= ( (scrambled_text[scramble_offset-1] << 6) & 0x40 );
+		text[byte_offset] |= ( static_cast<char>((static_cast<ubyte>(scrambled_text[scramble_offset-1]) << 6)) & 0x40 );
 		byte_offset++;
 		scramble_offset++;
 
@@ -285,7 +285,7 @@ void unencrypt(char *scrambled_text, int scrambled_len, char *text, int *text_le
 		}
 
 		text[byte_offset] = (char)((scrambled_text[scramble_offset] >> 3) & 0x1f);
-		text[byte_offset] |= ( (scrambled_text[scramble_offset-1] << 5) & 0x60 );
+		text[byte_offset] |= ( static_cast<char>((static_cast<ubyte>(scrambled_text[scramble_offset-1]) << 5)) & 0x60 );
 		byte_offset++;
 		scramble_offset++;
 
@@ -294,7 +294,7 @@ void unencrypt(char *scrambled_text, int scrambled_len, char *text, int *text_le
 		}
 
 		text[byte_offset] = (char)((scrambled_text[scramble_offset] >> 4) & 0x0f);
-		text[byte_offset] |= ( (scrambled_text[scramble_offset-1] << 4) & 0x70 );
+		text[byte_offset] |= ( static_cast<char>((static_cast<ubyte>(scrambled_text[scramble_offset-1]) << 4)) & 0x70 );
 		byte_offset++;
 		scramble_offset++;
 
@@ -303,7 +303,7 @@ void unencrypt(char *scrambled_text, int scrambled_len, char *text, int *text_le
 		}
 
 		text[byte_offset] = (char)((scrambled_text[scramble_offset] >> 5) & 0x07);
-		text[byte_offset] |= ( (scrambled_text[scramble_offset-1] << 3) & 0x78 );
+		text[byte_offset] |= ( static_cast<char>((static_cast<ubyte>(scrambled_text[scramble_offset-1]) << 3)) & 0x78 );
 		byte_offset++;
 		scramble_offset++;
 
@@ -312,7 +312,7 @@ void unencrypt(char *scrambled_text, int scrambled_len, char *text, int *text_le
 		}
 
 		text[byte_offset] = (char)((scrambled_text[scramble_offset] >> 6) & 0x03);
-		text[byte_offset] |= ( (scrambled_text[scramble_offset-1] << 2) & 0x7c );
+		text[byte_offset] |= ( static_cast<char>((static_cast<ubyte>(scrambled_text[scramble_offset-1]) << 2)) & 0x7c );
 		byte_offset++;
 		scramble_offset++;
 
@@ -321,7 +321,7 @@ void unencrypt(char *scrambled_text, int scrambled_len, char *text, int *text_le
 		}
 
 		text[byte_offset] = (char)((scrambled_text[scramble_offset] >> 7) & 0x01);
-		text[byte_offset] |= ( (scrambled_text[scramble_offset-1] << 1) & 0x7e );
+		text[byte_offset] |= ( static_cast<char>((static_cast<ubyte>(scrambled_text[scramble_offset-1]) << 1)) & 0x7e );
 		byte_offset++;
 
 		maybe_last = (char)(scrambled_text[scramble_offset] & 0x7f);

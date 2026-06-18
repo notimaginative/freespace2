@@ -1819,7 +1819,7 @@ void main_hall_handle_random_intercom_sounds()
 	if((Main_hall_next_intercom_sound_stamp == -1) && (Main_hall_intercom_sound_handle == -1)){
 		Main_hall_next_intercom_sound_stamp = timestamp((int)(((float)myrand()/(float)MY_RAND_MAX) * 
 			                                            (float)(Main_hall->intercom_delay[Main_hall_next_intercom_sound][1]
-																	  - Main_hall->intercom_delay[Main_hall_intercom_sound_handle][0])) );		
+																	  - Main_hall->intercom_delay[Main_hall_next_intercom_sound][0])) );
 	}
 
 	// if the there is no sound playing

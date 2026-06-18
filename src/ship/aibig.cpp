@@ -882,7 +882,7 @@ void ai_big_chase_attack(ai_info *aip, ship_info *sip, vector *enemy_pos, float 
 			object *objp;
 			for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
 				if ((objp->type == OBJ_WEAPON) && (Weapons[objp->instance].team != Ships[Pl_objp->instance].team))
-					if (Weapon_info[objp->instance].subtype == WP_LASER) {
+					if (Weapon_info[Weapons[objp->instance].weapon_info_index].subtype == WP_LASER) {
 						vector	in_vec;
 						float		dist;
 
@@ -1043,10 +1043,14 @@ void ai_big_maybe_fire_weapons(float dist_to_enemy, float dot_to_enemy, vector *
 
 					ai_choose_secondary_weapon(Pl_objp, aip, En_objp);
 					int current_bank = tswp->current_secondary_bank;
-					weapon_info	*swip = &Weapon_info[tswp->secondary_bank_weapons[current_bank]];
+					weapon_info	*swip = nullptr;
+
+					if ((current_bank >= 0) && (tswp->secondary_bank_weapons[current_bank] >= 0)) {
+						swip = &Weapon_info[tswp->secondary_bank_weapons[current_bank]];
+					}
 
 					//	If ship is protected and very low on hits, don't fire missiles.
-					if ((current_bank > -1) &&  (!(En_objp->flags & OF_PROTECTED) || (En_objp->hull_strength > 10*swip->damage))) {
+					if (swip && (!(En_objp->flags & OF_PROTECTED) || (En_objp->hull_strength > 10*swip->damage))) {
 						if (aip->ai_flags & AIF_UNLOAD_SECONDARIES) {
 							if (timestamp_until(swp->next_secondary_fire_stamp[current_bank]) > swip->fire_wait*1000.0f) {
 								swp->next_secondary_fire_stamp[current_bank] = timestamp((int) (swip->fire_wait*1000.0f));

@@ -446,7 +446,7 @@ int Encode(t_Sample* bufIn, t_Sample* bufOut, int sizeIn, int sizeOut,
 #pragma pack(1)
 #define PACKED
 #else
-#define PACKED __attribute__((packed, aligned(2)))
+#define PACKED __attribute__((packed, aligned(1)))
 #endif
 
 // most general notion of a packet pair
@@ -458,6 +458,7 @@ struct t_PacketPair
     unsigned int Mode0   : 3;
     unsigned int Mode0Ex : 1;
     unsigned int Data0   : 8;
+	unsigned int _align  : 8;
 } PACKED;
 
 // nominal packet pair
@@ -521,6 +522,7 @@ struct t_PacketHF0
 	unsigned int Data0   : 3; // absolute sample data
 	unsigned int DataT   : 3; // absolute sample data or lookup table number
 	unsigned int Unused  : 1;
+	unsigned int _align  : 8;
 } PACKED;
 
 // medium-frequency packet, case 1
@@ -1730,6 +1732,7 @@ static double AutoGain1(t_Sample* bufIn, t_Sample* bufOut, int size)
 		 i--)
 		sum += hist[i];
 
+	if (i < 0) i = 0;
 	int significant_data_above_this = i << BUCKET_SIZE;
 
   #if LOGARITHMIC_GAIN
@@ -1816,8 +1819,10 @@ static void InitLowPassFilter(int QoS, double LPF_Coef[LPF_NUM_POINTS],
                         ( sin(PI * (k-kshift) / (double)N) * N );
         else
             LPF_Coef[k] = ((double)K) / N;
-        for (int i = 0; i < 256; i++)
-            LPF_CoefTimesSample[k][i] = (char)(LPF_Coef[k] * i + .5);
+		for (int i = 0; i < 256; i++) {
+			auto val = static_cast<int>(LPF_Coef[k] * i + .5);
+			LPF_CoefTimesSample[k][i] = static_cast<char>(val);
+		}
     }
 }
 

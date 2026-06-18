@@ -1242,21 +1242,23 @@ void message_play_anim( message_q *q )
 			SDL_strlcpy( ani_name, COMMAND_HEAD_PREFIX, SDL_arraysize(ani_name) );
 		}
 
-		if ( Personas[persona_index].flags & (PERSONA_FLAG_WINGMAN | PERSONA_FLAG_SUPPORT) ) {
-			// get a random head -- it's one of two.
-			if ( q->builtin_type == MESSAGE_WINGMAN_SCREAM ) {
-				rand_index=2;	// 3rd version is always death animation
-				is_death_scream=1;
-			} else {
-				rand_index = (Missiontime % MAX_WINGMAN_HEADS);
+		if (persona_index >= 0) {
+			if ( Personas[persona_index].flags & (PERSONA_FLAG_WINGMAN | PERSONA_FLAG_SUPPORT) ) {
+				// get a random head -- it's one of two.
+				if ( q->builtin_type == MESSAGE_WINGMAN_SCREAM ) {
+					rand_index=2;	// 3rd version is always death animation
+					is_death_scream=1;
+				} else {
+					rand_index = (Missiontime % MAX_WINGMAN_HEADS);
+				}
+				SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
+				subhead_selected = TRUE;
+			} else if ( Personas[persona_index].flags & (PERSONA_FLAG_COMMAND | PERSONA_FLAG_LARGE) ) {
+				// get a random head -- it's one of two.
+				rand_index = (Missiontime % MAX_COMMAND_HEADS);
+				SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
+				subhead_selected = TRUE;
 			}
-			SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
-			subhead_selected = TRUE;
-		} else if ( Personas[persona_index].flags & (PERSONA_FLAG_COMMAND | PERSONA_FLAG_LARGE) ) {
-			// get a random head -- it's one of two.
-			rand_index = (Missiontime % MAX_COMMAND_HEADS);
-			SDL_snprintf(ani_name, SDL_arraysize(ani_name), "%s%c", ani_name, 'a'+rand_index);
-			subhead_selected = TRUE;
 		}
 		if (!subhead_selected) {
 			// choose between a and b

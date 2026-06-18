@@ -107,11 +107,6 @@ struct config {
 	bool nodpiscaling;
 	bool nobriefanim;
 
-	int cmd_initial_sound;
-	int cmd_initial_music;
-	int cmd_initial_movies;
-	bool cmd_initial_dpiscaling;
-
 	config(): msaa(0), fullscreen(true), show_fps(false), efx(false), launcher_sounds(true),
 			  haptic(false), direct_force(true), swap_action_cancel(false),
 			  detail_level(2), network_connection(2), network_speed(5), port(0),
@@ -387,6 +382,8 @@ static void launcher_setup_load_config()
 //	ptr = os_config_read_string("Audio", "CaptureDevice", nullptr);
 //	if (ptr) Config.capture_device = ptr;
 
+	Config.nosound = (os_config_read_uint("Audio", "SoundEnabled", 1) == 0);
+	Config.nomusic = (os_config_read_uint("Audio", "MusicEnabled", 1) == 0);
 	Config.efx = (os_config_read_uint("Audio", "EFX", 0) == 1);
 	Config.launcher_sounds = (os_config_read_uint("Audio", "LauncherSoundEnabled", 1) == 1);
 
@@ -465,76 +462,10 @@ static void launcher_setup_load_config()
 		SDL_free(cfg);
 	}
 
-	// search for quick options in cmdline and remove entries if found
-	// we'll add them back later as needed when saving
-	// (single character options need trailing space!!)
-	const char *nosound_opts[] = { "--nosound", "-nosound", "-s " };
-	const char *nomusic_opts[] = { "--nomusic", "-nomusic" };
-	const char *nomovies_opts[] = { "--nomovies", "-nomovies", "-n " };
-	const char *nodpiscale_opts[] = { "--no_dpi_scaling", "-no_dpi_scaling" };
-
-	if ( !Config.cmdline.empty() ) {
-		// add trailing space for easier option parsing
-		Config.cmdline += " ";
-
-		// no sound
-		for (size_t i = 0; i < SDL_arraysize(nosound_opts); ++i) {
-			auto pos = Config.cmdline.find(nosound_opts[i]);
-
-			if (pos != std::string::npos) {
-				Config.nosound = true;
-				// strip option from cmdline, including extra space
-				Config.cmdline.erase(pos, SDL_strlen(nosound_opts[i]) + 1);
-			}
-		}
-
-		// no music
-		for (size_t i = 0; i < SDL_arraysize(nomusic_opts); ++i) {
-			auto pos = Config.cmdline.find(nomusic_opts[i]);
-
-			if (pos != std::string::npos) {
-				Config.nomusic = true;
-				// strip option from cmdline, including extra space
-				Config.cmdline.erase(pos, SDL_strlen(nomusic_opts[i]) + 1);
-			}
-		}
-
-		// no movies
-		for (size_t i = 0; i < SDL_arraysize(nomovies_opts); ++i) {
-			auto pos = Config.cmdline.find(nomovies_opts[i]);
-
-			if (pos != std::string::npos) {
-				Config.nomovies = true;
-				// strip option from cmdline, including extra space
-				Config.cmdline.erase(pos, SDL_strlen(nomovies_opts[i]) + 1);
-			}
-		}
-
-		// no dpi scaling
-		for (size_t i = 0; i < SDL_arraysize(nodpiscale_opts); ++i) {
-			auto pos = Config.cmdline.find(nodpiscale_opts[i]);
-
-			if (pos != std::string::npos) {
-				Config.nodpiscaling = true;
-				// strip option from cmdline, including extra space
-				Config.cmdline.erase(pos, SDL_strlen(nodpiscale_opts[i]) + 1);
-			}
-		}
-
-		// clean whitespace
-		auto temp = trim(Config.cmdline);
-		Config.cmdline = temp;
-	}
-
 	Config.nobriefanim = (os_config_read_uint("Video", "BriefingAnimation", 1) == 0);
+	Config.nodpiscaling = (os_config_read_uint("Video", "DPIScaling", 1) == 0);
 
-	// save current cmdline variables so we can restore the true value, not just
-	// what is contained in the cfg file
-	Config.cmd_initial_sound = Cmdline_freespace_no_sound;
-	Config.cmd_initial_music = Cmdline_freespace_no_music;
-	Config.cmd_initial_movies = Cmdline_play_movies;
-	Config.cmd_initial_dpiscaling = Cmdline_no_dpi_scaling;
-
+	Config.nomovies = (os_config_read_uint(nullptr, "PlayMovies", 1) == 0);
 }
 
 static void launcher_setup_save_config()
@@ -546,6 +477,8 @@ static void launcher_setup_save_config()
 	os_config_write_uint("Video", "AntiAlias", MSAA[Config.msaa]);
 
 	// Audio
+	os_config_write_uint("Audio", "SoundEnabled", Config.nosound ? 0 : 1);
+	os_config_write_uint("Audio", "MusicEnabled", Config.nomusic ? 0 : 1);
 	os_config_write_uint("Audio", "EFX", Config.efx ? 1 : 0);
 	os_config_write_uint("Audio", "LauncherSoundEnabled", Config.launcher_sounds ? 1 : 0);
 	Launcher_sounds = Config.launcher_sounds;
@@ -577,38 +510,6 @@ static void launcher_setup_save_config()
 
 	os_config_write_string(nullptr, "ExtrasPath", Config.extras_path.c_str());
 
-	if (Config.nosound) {
-		Config.cmdline.append(" --nosound"); // with leading space
-		// make option active
-		Cmdline_freespace_no_sound = 1;
-	} else {
-		Cmdline_freespace_no_sound = Config.cmd_initial_sound;
-	}
-
-	if (Config.nomusic) {
-		Config.cmdline.append(" --nomusic"); // with leading space
-		// make option active
-		Cmdline_freespace_no_music = 1;
-	} else {
-		Cmdline_freespace_no_music = Config.cmd_initial_music;
-	}
-
-	if (Config.nomovies) {
-		Config.cmdline.append(" --nomovies"); // with leading space
-		// make option active
-		Cmdline_play_movies = 0;
-	} else {
-		Cmdline_play_movies = Config.cmd_initial_movies;
-	}
-
-	if (Config.nodpiscaling) {
-		Config.cmdline.append(" --no_dpi_scaling");	// with leading space
-		// make option active
-		Cmdline_no_dpi_scaling = true;
-	} else {
-		Cmdline_no_dpi_scaling = Config.cmd_initial_dpiscaling;
-	}
-
 	char cmdline_cfg[MAX_PATH_LEN];
 	cf_create_default_path_string(cmdline_cfg, CF_TYPE_DATA, "cmdline.cfg");
 
@@ -621,6 +522,9 @@ static void launcher_setup_save_config()
 	}
 
 	os_config_write_uint("Video", "BriefingAnimation", Config.nobriefanim ? 0 : 1);
+	os_config_write_uint("Video", "DPIScaling", Config.nodpiscaling ? 0 : 1);
+
+	os_config_write_uint(nullptr, "PlayMovies", Config.nomovies ? 0 : 1);
 }
 
 static ImGuiTabItemFlags get_tab_flags(const LauncherSetupTab tab)
@@ -692,6 +596,8 @@ static void tabAudio()
 #ifndef MAKE_FS1
 	ImGui::Checkbox("Enable Launcher Sounds", &Config.launcher_sounds);
 #endif
+	ImGui::Checkbox("Disable music", &Config.nomusic);
+	ImGui::Checkbox("Disable all audio", &Config.nosound);
 	ImGui::PopStyleVar();
 
 	ImGui::EndTabItem();
@@ -948,8 +854,6 @@ static void tabMisc()
 	ImGui::PopFont();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, SpecialPadding);
-	ImGui::Checkbox("Disable all audio", &Config.nosound);
-	ImGui::Checkbox("Disable music", &Config.nomusic);
 	ImGui::Checkbox("Disable movies", &Config.nomovies);
 	ImGui::Checkbox("Disable DPI scaling", &Config.nodpiscaling);
 #ifdef MAKE_FS1

@@ -770,6 +770,11 @@ int gr_init(bool safe_mode)
 	}
 #endif
 
+	// DPI scaling is enabled by default, but verify that with ini setting
+	if ( !Cmdline_no_dpi_scaling ) {
+		Cmdline_no_dpi_scaling = os_config_read_uint("Video", "DPIScaling", 1) ? 0 : 1;
+	}
+
 	if (Fred_running || Pofview_running) {
 		mode = GR_TOOLSET;
 	} else if (Is_standalone) {

@@ -2365,6 +2365,11 @@ void game_init()
 	// show the FPS counter if the config file says so
 	Show_framerate = os_config_read_uint( "Video", "ShowFPS", Show_framerate );
 
+	// movie playback is enabled by default, but verify that with ini setting
+	if (Cmdline_play_movies) {
+		Cmdline_play_movies = os_config_read_uint(nullptr, "PlayMovies", 1);
+	}
+
 #if !(defined(FS2_DEMO) || defined(FS1_DEMO))
 	Asteroids_enabled = 1;		
 #endif
@@ -2372,6 +2377,15 @@ void game_init()
 /////////////////////////////
 // SOUND INIT START
 /////////////////////////////
+
+	// sound and music are enabled by default, but verify that with ini settings
+	if ( !Cmdline_freespace_no_sound ) {
+		Cmdline_freespace_no_sound = (os_config_read_uint("Audio", "SoundEnabled", 1) ? 0 : 1);
+	}
+
+	if ( !Cmdline_freespace_no_music ) {
+		Cmdline_freespace_no_music = (os_config_read_uint("Audio", "MusicEnabled", 1) ? 0 : 1);
+	}
 
 	if (!Is_standalone) {
 		snd_init();

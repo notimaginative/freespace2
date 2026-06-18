@@ -450,6 +450,7 @@ void os_init_registry_stuff()
 	os_config_write_uint(NULL, "ComputerSpeed", 2);
 	os_config_write_string(NULL, "ExtrasPath", "");
 //	os_config_write_uint(NULL, "LowMem", 0);
+//	os_config_write_uint(NULL, "PlayMovies", 1);
 
 	// 'Video' section
 	os_config_write_string("Video", "Renderer", "");
@@ -460,10 +461,13 @@ void os_init_registry_stuff()
 //	os_config_write_uint("Video", "LowRes", 0);
 //	os_config_write_uint("Video", "PreloadTextures", 1);
 //	os_config_write_uint("Video", "ScaleMovies", 1);
+//	os_config_write_uint("Video", "DPIScaling", 1);
 
 	// 'Audio' section
 	os_config_write_string("Audio", "PlaybackDevice", "");
 	os_config_write_string("Audio", "CaptureDevice", "");
+	os_config_write_uint("Audio", "SoundEnabled", 1);
+	os_config_write_uint("Audio", "MusicEnabled", 1);
 	os_config_write_uint("Audio", "EFX", 0);
 //	os_config_write_uint("Audio", "LauncherSoundEnabled", 1);
 

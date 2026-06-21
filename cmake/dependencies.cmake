@@ -126,9 +126,11 @@ target_set_folder(alsoft.excommon "External")
 target_set_folder(alsoft.fmt "External")
 target_set_folder(clang-tidy-check "External")
 
-set_target_properties(alsoft.common PROPERTIES
-  STATIC_LIBRARY_OPTIONS "-no_warning_for_no_symbols"
-)
+if(XCODE)
+  set_target_properties(alsoft.common PROPERTIES
+    STATIC_LIBRARY_OPTIONS "-no_warning_for_no_symbols"
+  )
+endif()
 
 if(NOT EMSCRIPTEN)
 

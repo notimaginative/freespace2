@@ -9,6 +9,7 @@
 
 #include "pstypes.h"
 #include "2d.h"
+#include "grinternal.h"
 
 
 static void stub_void_void()
@@ -154,4 +155,39 @@ void gr_stub_init()
 	gr_screen.gf_activate = stub_void_int;
 
 	gr_screen.gf_release_texture = stub_void_int;
+
+
+	gr_screen.bits_per_pixel = 8;
+	gr_screen.bytes_per_pixel = 1;
+
+	// screen values
+	Gr_red.bits = 8;
+	Gr_red.shift = 16;
+	Gr_red.scale = 1;
+	Gr_red.mask = 0xff0000;
+	Gr_t_red = Gr_ta_red = Gr_red;
+
+	Gr_green.bits = 8;
+	Gr_green.shift = 8;
+	Gr_green.scale = 1;
+	Gr_green.mask = 0xff00;
+	Gr_t_green = Gr_ta_green = Gr_green;
+
+	Gr_blue.bits = 8;
+	Gr_blue.shift = 0;
+	Gr_blue.scale = 1;
+	Gr_blue.mask = 0xff;
+	Gr_t_blue = Gr_ta_blue = Gr_blue;
+
+	Gr_alpha.bits = 0;
+	Gr_alpha.shift = 0;
+	Gr_alpha.scale = 0;
+	Gr_alpha.mask = 0;
+	Gr_t_alpha = Gr_ta_alpha = Gr_alpha;
+
+	// default to screen
+	Gr_current_red = &Gr_red;
+	Gr_current_blue = &Gr_blue;
+	Gr_current_green = &Gr_green;
+	Gr_current_alpha = &Gr_alpha;
 }

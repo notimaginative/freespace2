@@ -297,17 +297,6 @@ void save_filter_info(void)
 	}
 }
 
-void outwnd_printf2(const char *format, ...)
-{
-	char tmp[MAX_LINE_WIDTH*4];
-	va_list args;
-	
-	va_start(args, format);
-	SDL_vsnprintf(tmp, SDL_arraysize(tmp), format, args);
-	va_end(args);
-	outwnd_print("General", tmp);
-}
-
 void outwnd_printf(const char *id, const char *format, ...)
 {
 	char tmp[MAX_LINE_WIDTH*4];

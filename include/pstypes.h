@@ -324,7 +324,7 @@ extern void __cdecl Warning( const char * filename, int line, const char * forma
 // To debug printf do this:
 // mprintf(( "Error opening %s\n", filename ));
 #ifndef NDEBUG
-#define mprintf(args) outwnd_printf2 args
+#define mprintf(args) SDL_Log args
 #define nprintf(args) outwnd_printf args
 #else
 #define mprintf(args) 

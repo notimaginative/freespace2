@@ -23,55 +23,6 @@
 extern "C" int game_main();
 
 
-#if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <signal.h>
-#include <fcntl.h>
-
-static void daemonize()
-{
-	pid_t pid = fork();
-
-	if (pid == -1) {
-		exit(EXIT_FAILURE);
-	} else if (pid != 0) {
-		_exit(0);
-	}
-
-	if (setsid() == -1) {
-		exit(EXIT_FAILURE);
-	}
-
-	signal(SIGHUP, SIG_IGN);
-
-	pid = fork();
-
-	if (pid == -1) {
-		exit(EXIT_FAILURE);
-	} else if (pid != 0) {
-		_exit(0);
-	}
-
-	if (chdir("/") == -1) {
-		exit(EXIT_FAILURE);
-	}
-
-	umask(0);
-
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-
-	open("/dev/null", O_RDONLY);
-	open("/dev/null", O_WRONLY);
-	open("/dev/null", O_RDWR);
-}
-#endif
-
-
 int main(int argc, char *argv[])
 {
 	int retr = 0;
@@ -105,16 +56,6 @@ int main(int argc, char *argv[])
 	parse_cmdline(argc, argv);
 
 	SDL_Log("");
-
-#if !defined(SDL_PLATFORM_WINDOWS) && !defined(__EMSCRIPTEN__)
-	// if we are standalone headless, daemonize
-	if (Is_standalone && Cmdline_daemon) {
-		daemonize();
-	}
-
-	// make sure we create files with user access only
-	umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-#endif
 
 	try {
 		if ( launcher_run() ) {

@@ -265,7 +265,6 @@ cmdline_parm d3d_fullscreen("-fullscreen", "-f", NULL);
 cmdline_parm help("-help", "-h", NULL);
 cmdline_parm fs_version("-version", "-v", NULL);
 cmdline_parm no_movies("-nomovies", "-n", NULL);
-cmdline_parm std_daemon("-daemon", NULL, NULL);
 cmdline_parm no_vsync("-no_vsync", NULL, NULL);
 cmdline_parm no_frame_cap("-no_frame_cap", NULL, NULL);
 cmdline_parm skip_launcher("-skip_launcher", nullptr, nullptr);	// just here to prevent invalid option
@@ -302,7 +301,6 @@ int Cmdline_no_vsync = 0;
 int Cmdline_no_frame_cap = 0;
 bool Cmdline_no_dpi_scaling = false;
 bool Cmdline_skip_launcher = false;
-bool Cmdline_daemon = false;
 
 static cmdline_parm Parm_list(NULL, NULL, NULL);
 
@@ -653,10 +651,6 @@ char *cmdline_parm::str()
 int parse_cmdline(int argc, char *argv[])
 {
 	os_init_cmdline(argc, argv);
-
-	if ( std_daemon.found() ) {
-		Cmdline_daemon = true;
-	}
 
 #ifndef FS1_DEMO
 	// is this a standalone server??

@@ -194,7 +194,6 @@ extern int Cmdline_no_vsync;
 extern int Cmdline_no_frame_cap;
 extern bool Cmdline_no_dpi_scaling;
 extern bool Cmdline_skip_launcher;
-extern bool Cmdline_daemon;
 
 #endif
 

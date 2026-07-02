@@ -1648,7 +1648,7 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 	retries = 0;
 	total_sent = 0;
 	do {
-		num_sent = static_cast<int>(send(socket, (char *)rsend_buffer, length+sizeof(s_length), 0));
+		num_sent = static_cast<int>(send(socket, (char *)rsend_buffer, length+sizeof(s_length), MSG_NOSIGNAL));
 		if ( num_sent == SOCKET_ERROR ) {
 			error = WSAGetLastError();
 			if ( !NETCALL_WOULDBLOCK(error) || (retries > MAX_SEND_RETRIES) )	{		// means that we would block on send -- not really an error

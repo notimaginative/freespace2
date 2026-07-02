@@ -326,7 +326,7 @@ void ChttpGet::WorkerThread()
 		return;
 	}
 	SDL_snprintf(szCommand,SDL_arraysize(szCommand),"GET %s%s HTTP/1.1\nAccept: */*\nAccept-Encoding: deflate\nHost: %s\n\n\n",m_ProxyEnabled?"":"/",m_ProxyEnabled?m_URL:m_szDir,m_szHost);
-	send(m_DataSock,szCommand,SDL_strlen(szCommand),0);
+	send(m_DataSock,szCommand,SDL_strlen(szCommand),MSG_NOSIGNAL);
 	p = GetHTTPLine();
 	if(SDL_strncasecmp("HTTP/",p,5)==0)
 	{

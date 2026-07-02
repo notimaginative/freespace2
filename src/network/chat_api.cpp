@@ -319,7 +319,7 @@ const char * SendChatString(const char *line,int raw)
 		{
 			SDL_strlcpy(szTarget, GetWordNum(1,line+1), SDL_arraysize(szTarget));
 			SDL_snprintf(szCmd, SDL_arraysize(szCmd), NOX("PRIVMSG %s :%s\n\r"), szTarget, line+SDL_strlen(NOX("/msg "))+SDL_strlen(szTarget)+1);
-			send(Chatsock,szCmd,SDL_strlen(szCmd),0);
+			send(Chatsock,szCmd,SDL_strlen(szCmd),MSG_NOSIGNAL);
 			szCmd[SDL_strlen(szCmd)-2]='\0';
 			return ParseIRCMessage(szCmd,MSG_LOCAL);
 
@@ -336,19 +336,19 @@ const char * SendChatString(const char *line,int raw)
 		{
 			//Special command to send raw irc commands
 			SDL_snprintf(szCmd, SDL_arraysize(szCmd), "%s\n\r", line+SDL_strlen(NOX("/xyz ")));
-			send(Chatsock,szCmd,SDL_strlen(szCmd),0);
+			send(Chatsock,szCmd,SDL_strlen(szCmd),MSG_NOSIGNAL);
 			return NULL;
 		}
 		if(SDL_strcasecmp(szCmd,NOX("list"))==0)
 		{
 			SDL_snprintf(szCmd, SDL_arraysize(szCmd), "%s\n\r", line+1);
-			send(Chatsock,szCmd,SDL_strlen(szCmd),0);
+			send(Chatsock,szCmd,SDL_strlen(szCmd),MSG_NOSIGNAL);
 			return NULL;
 		}
 		if(raw)
 		{
 			SDL_snprintf(szCmd, SDL_arraysize(szCmd), "%s\n\r", line+1);
-			send(Chatsock,szCmd,SDL_strlen(szCmd),0);
+			send(Chatsock,szCmd,SDL_strlen(szCmd),MSG_NOSIGNAL);
 			return NULL;
 		}
 		return XSTR("Unrecognized command",634);
@@ -367,7 +367,7 @@ const char * SendChatString(const char *line,int raw)
 			*/
 
 			SDL_snprintf(szCmd, SDL_arraysize(szCmd), NOX("PRIVMSG %s :%s\n\r"), szChat_channel, line);
-			send(Chatsock,szCmd,SDL_strlen(szCmd),0);			
+			send(Chatsock,szCmd,SDL_strlen(szCmd),MSG_NOSIGNAL);
 			if(SDL_strlen(szCmd) >= 2){
 				szCmd[SDL_strlen(szCmd)-2] = '\0';
 				return ParseIRCMessage(szCmd,MSG_LOCAL);

@@ -16,6 +16,8 @@
 
 #define NETCALL_WOULDBLOCK(err)	(err == WSAEWOULDBLOCK)
 
+#define MSG_NOSIGNAL 0
+
 typedef unsigned long in_addr_t;
 
 #if defined(_MSC_VER)

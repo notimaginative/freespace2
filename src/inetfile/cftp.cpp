@@ -515,7 +515,7 @@ unsigned int CFtpGet::SendFTPCommand(char *command)
 
 	FlushControlChannel();
 	// Send the FTP command
-	if (SOCKET_ERROR ==(send(m_ControlSock,command,SDL_strlen(command), 0)))
+	if (SOCKET_ERROR ==(send(m_ControlSock,command,SDL_strlen(command), MSG_NOSIGNAL)))
 		{
 			// int iWinsockErr = WSAGetLastError();
 		  // Return 999 to indicate an error has occurred

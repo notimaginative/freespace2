@@ -1841,6 +1841,12 @@ void techroom_tab_setup(int set_palette)
 			Buttons[gr_screen.res][i].button.unhide();
 	}
 
+	// disable some stuff in multiplayer
+	if (Player->flags & PLAYER_FLAGS_IS_MULTI) {
+		Buttons[gr_screen.res][SIMULATOR_TAB].button.disable();
+		Buttons[gr_screen.res][CUTSCENES_TAB].button.disable();
+	}
+
 	// do other special processing
 	switch (Tab) {
 		case SHIPS_DATA_TAB:

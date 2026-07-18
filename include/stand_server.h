@@ -69,14 +69,6 @@ void std_multi_update_netgame_info_controls();
 
 
 // ---------------------------------------------------------------------------------------
-// player info page/tab functions
-//
-
-// start displaying info for the passed player on this page
-void std_pinfo_display_player_info(net_player *p);
-
-
-// ---------------------------------------------------------------------------------------
 // debug page/tab functions
 //
 
@@ -132,6 +124,9 @@ int std_player_is_banned(const char *name);
 
 // add a callsign to the ban list
 void std_add_ban(const char *name);
+
+// add a line from the multi log
+void std_multilog_add_line(const char *line);
 
 #endif
 

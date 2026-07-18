@@ -135,6 +135,7 @@ typedef struct multi_global_options {
 	char		std_passwd[STD_PASSWD_LEN];							// standalone host password
 	char		std_pname[STD_NAME_LEN];								// permanent name for the standalone - if any
 	int		std_framecap;												// standalone frame cap
+	char	std_listen_addr[MULTI_OPTIONS_STRING_LEN];					// standalone websocket listen address
 } multi_global_options;
 
 extern multi_global_options Multi_options_g;

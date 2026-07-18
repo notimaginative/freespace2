@@ -1194,7 +1194,7 @@ int psnet_same( net_addr_t * a1, net_addr_t * a2 )
 //
 //
 
-char* psnet_addr_to_string( char * text, const int max_textlen, net_addr_t * address )
+char* psnet_addr_to_string( char * text, const int max_textlen, const net_addr_t * address )
 {
 
 	if ( Network_status != NETWORK_STATUS_RUNNING )		{

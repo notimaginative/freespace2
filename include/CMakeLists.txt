@@ -245,6 +245,7 @@ set(platform_HEADERS
 
 set(ext_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ext/stb_image.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ext/json.hpp
   PARENT_SCOPE
 )
 

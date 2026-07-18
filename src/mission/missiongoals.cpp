@@ -1289,7 +1289,8 @@ void mission_maybe_play_directive_success_sound()
 
 void mission_eval_goals()
 {
-	int i, result;//, goal_changed = 0;
+	int i, result;
+	bool goal_changed = false;
 
 	// before checking whether or not we should evaluate goals, we should run through the events and
 	// process any whose timestamp is valid and has expired.  This would catch repeating events only
@@ -1318,11 +1319,11 @@ void mission_eval_goals()
 		if (Mission_goals[i].satisfied == GOAL_INCOMPLETE) {
 			result = eval_sexp(Mission_goals[i].formula);
 			if ( Sexp_nodes[Mission_goals[i].formula].value == SEXP_KNOWN_FALSE ) {
-			//	goal_changed = 1;
+				goal_changed = true;
 				mission_goal_status_change( i, GOAL_FAILED );
 
 			} else if (result) {
-			//	goal_changed = 1;
+				goal_changed = true;
 				mission_goal_status_change(i, GOAL_COMPLETE );
 			} // end if result
 			
@@ -1356,7 +1357,7 @@ void mission_eval_goals()
 	}
 
    // update goal status if playing on a multiplayer standalone server
-	if (Game_mode & GM_STANDALONE_SERVER){
+	if (goal_changed && (Game_mode & GM_STANDALONE_SERVER)){
 		std_multi_update_goals();
 	}
 }

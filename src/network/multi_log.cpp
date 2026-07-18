@@ -71,6 +71,9 @@
 #include "cfile.h"
 #include "cfilesystem.h"
 #include "systemvars.h"
+#include "stand_server.h"
+
+#include <string>
 
 
 // ----------------------------------------------------------------------------------------------------
@@ -239,6 +242,7 @@ void ml_printf(const char *format, ...)
 void ml_string(const char *string, int add_time)
 {
 	char time_str[128];
+	std::string line;
 
 	// if we don't have a valid logfile do nothing
 	if(Multi_log_out == NULL){
@@ -257,13 +261,18 @@ void ml_string(const char *string, int add_time)
 
 		if (timestr) {
 			strftime(time_str, 128, "%m/%d %H:%M:%S~   ", timestr);
-		} else {
-			add_time = 0;
+			line = time_str;
 		}
 	}
 
+	line += string;
+
+	if (Is_standalone) {
+		std_multilog_add_line(line.c_str());
+	}
+
 	// now print it to the logfile if necessary
-	fprintf(Multi_log_out, "%s%s\n", add_time ? time_str : "", string);
+	fprintf(Multi_log_out, "%s\n", line.c_str());
 	fflush(Multi_log_out);
 
 #if defined(MULTI_LOGFILE_ECHO_TO_DEBUG)

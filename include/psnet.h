@@ -289,7 +289,7 @@ extern int psnet_rel_check();
 extern int psnet_get_network_status();
 
 extern void psnet_whoami( net_addr_t * my_address );
-extern char* psnet_addr_to_string( char * text, const int max_textlen, net_addr_t * address );
+extern char* psnet_addr_to_string( char * text, const int max_textlen, const net_addr_t * address );
 extern void psnet_string_to_addr( net_addr_t * address, char * text, const int max_textlen );
 extern int psnet_same( net_addr_t * a1, net_addr_t * a2 );
 

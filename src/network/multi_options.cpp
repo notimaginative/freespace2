@@ -268,6 +268,7 @@ void multi_options_read_config()
 	memset(Multi_options_g.std_passwd, 0, STD_PASSWD_LEN);
 	memset(Multi_options_g.std_pname, 0, STD_NAME_LEN);
 	Multi_options_g.std_framecap = 60;
+	SDL_zero(Multi_options_g.std_listen_addr);
 
 #ifndef MAKE_FS1
 	CFILE *in;
@@ -359,7 +360,14 @@ void multi_options_read_config()
 			if(SETTING("+lan_update")){
 				// set standalone to high updates
 				Multi_options_g.std_datarate = OBJ_UPDATE_LAN;
-			} 
+			} else
+			if(SETTING("+listen_address")){
+				// set standalone websocket listen address/interface
+				NEXT_TOKEN();
+				if(tok != NULL){
+					SDL_strlcpy(Multi_options_g.std_listen_addr, tok, SDL_arraysize(Multi_options_g.std_listen_addr));
+				}
+			}
 		}
 
 		if (tok == NULL) {

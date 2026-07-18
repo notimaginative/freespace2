@@ -770,7 +770,7 @@ int psnet_get_network_status()
 }
 
 // convert a net_addr to a string
-char* psnet_addr_to_string( char * text, const int max_textlen, net_addr_t * address )
+char* psnet_addr_to_string( char * text, const int max_textlen, const net_addr_t * address )
 {
 
 	if ( Network_status != NETWORK_STATUS_RUNNING )		{

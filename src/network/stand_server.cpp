@@ -17,11 +17,11 @@
 #include "osregistry.h"
 #include "multi_options.h"
 #include "gamesequence.h"
-#include "timer.h"
 #include "version.h"
 #include "multi_pmsg.h"
 #include "multi_endgame.h"
 #include "multimsgs.h"
+#include "multiui.h"
 #include "multiutil.h"
 #include "freespace.h"
 #include "missiongoals.h"
@@ -29,241 +29,320 @@
 #include "multi_kick.h"
 #include "multi_fstracker.h"
 #include "osregistry.h"
-#include "standalone_html.h"
+#include "multi_log.h"
+
+#include "ext/json.hpp"
 
 #include <libwebsockets.h>
 #include <string>
 #include <vector>
 #include <list>
+#include <deque>
+#include <atomic>
 
+#include <iostream>
 
-struct std_state {
-	std::string title;
-	std::string debug_txt;
-	std::string popup_title;
-	std::string popup_field1;
-	std::string popup_field2;
+using json = nlohmann::json;
 
-	std::string active_player;
-};
+// Define this to use standalone ui in a seperate thread
+//#define STD_THREADED
 
-static std_state Standalone_state;
+#ifdef STD_THREADED
+#include <thread>
 
-static std::list<std::string> Standalone_send_buf;
-
+static std::thread Standalone_thread;
+#endif
 
 #define STANDALONE_MAX_BAN		50
 static std::vector<std::string> Standalone_ban_list;
 
-#define STD_STATS_UPDATE_TIME		500		// ms between updating player stats
-#define STD_NG_UPDATE_TIME			1500	// ms between updating netgame information
-#define STD_PING_UPDATE_TIME		1000	// ms between updating pings
-#define STD_FPS_UPDATE_TIME			250		// ms between fps updates
+enum UpdateTimes {
+	stats			= 1500,
+	netgame			= 2500,
+	mission_time	= 10000,
+};
 
-static int Standalone_stats_stamp = -1;
-static int Standalone_ng_stamp = -1;
-static int Standalone_ping_stamp = -1;
-static int Standalone_fps_stamp = -1;
+struct chatlog_item {
+	std::string id;
+	std::string message;
+};
 
-static lws_context *stand_context = NULL;
+struct Standalone_client {
+	uint32_t m_id;
+	struct lws *m_wsi;
 
-static int startup_reset_stamp;
-static struct lws *active_wsi = NULL;
+	std::list<std::string> m_send_buffer;
+
+	short m_active_player;
+	bool m_multilog_enabled;
+
+	uint64_t m_stats_timestamp;
+	uint64_t m_netgame_timestamp;
+	uint64_t m_mission_time_timestamp;
+
+	Standalone_client(uint32_t id, struct lws *wsi) :
+		m_id(id), m_wsi(wsi), m_active_player(-1), m_multilog_enabled(true),
+		m_stats_timestamp(0), m_netgame_timestamp(0), m_mission_time_timestamp(0)
+		{};
+
+	~Standalone_client() {};
+};
+
+class StandaloneUI {
+private:
+	lws_context *m_lws_context;
+	std::string m_interface;
+	time_t m_start_time;
+
+	const struct lws_protocols m_lws_protocols[3] = {
+		{ "http", lws_callback_http_dummy, 0, 0 },
+		{ "standalone", ext_callback_standalone, sizeof(uint32_t), 0, 1, this },
+		{ nullptr, nullptr, 0, 0 }		// terminator
+	};
+
+	struct lws_http_mount *m_lws_mounts;
+
+	std::string m_title;
+	std::string m_state_text;
+	json m_popup;
+
+	uint32_t m_next_client_id;
+
+	float m_mission_time;
+
+	static constexpr size_t MAX_MULTILOG_LINES = 100;
+	std::deque<std::string> m_multilog;
+
+	static constexpr size_t MAX_CHATLOG_LINES = 50;
+	std::deque<chatlog_item> m_chatlog;
+
+	static constexpr size_t MAX_STD_CLIENTS = 5;
+	std::list<Standalone_client *> m_clients;
+
+	Standalone_client *m_active_client;
+
+	uint32_t getNewClientId() {
+		uint32_t next = m_next_client_id++;
+
+		if ( !m_next_client_id ) {
+			m_next_client_id = 1;
+		}
+
+		return next;
+	}
+
+	bool add_message(const json &msg);
+	void update_connections();
+
+	void do_frame();
+
+	lws_callback_function callback_standalone;
+
+public:
+	StandaloneUI();
+	~StandaloneUI();
+
+	static int ext_callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) {
+		return reinterpret_cast<StandaloneUI*>(lws_get_protocol(wsi)->user)->callback_standalone(wsi, reason, user, in, len);
+	}
+
+	void process();
+	void shutdown();
+
+	void reset_all();
+	void reset();
+	void reset_timestamps();
+
+	void server_set_state(const char *str);
+	void server_update_vals();
+
+	void netgame_set_name();
+	void netgame_update();
+
+	void player_add(const net_player *p);
+	void player_update(const net_player *p);
+	void player_info(const net_player *p);
+	void player_remove(const net_player *p);
+
+	void chat_add_text(const char *text, int player_index, int add_id);
+	void chat_send_text(const std::string &id, const std::string &text);
+	void chat_refresh();
+
+	void multilog_add_line(const char *line);
+	void multilog_refresh();
+
+	void popup_open(const char *title);
+	void popup_set_text(const char *str, int field_num);
+	void popup_close();
+
+	void mission_set_time(float mission_time);
+	void mission_update_time();
+	void mission_set_goals();
+};
 
 
-static int callback_http(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+static StandaloneUI *Standalone = nullptr;
+static std::atomic<bool> Standalone_terminate(false);
+
+static void std_lws_logger(int level, const char *line)
 {
-	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + standalone_html_len + LWS_SEND_BUFFER_POST_PADDING];
-	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-	unsigned char *start = p;
-	unsigned char *end = p + standalone_html_len;
-	bool try_reuse = false;
-	int rval;
-	int size;
-	static unsigned int sent = 0;
-
-	switch (reason) {
-		case LWS_CALLBACK_HTTP: {
-			if (len < 1) {
-				lws_return_http_status(wsi, HTTP_STATUS_BAD_REQUEST, NULL);
-				try_reuse = true;
-
-				break;
-			}
-
-			// no favicon so return 404
-			if ( in && !SDL_strcmp((const char *)in, "/favicon.ico") ) {
-				lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, NULL);
-				try_reuse = true;
-
-				break;
-			}
-
-			// any other request will get our basic html ...
-
-#ifndef NDEBUG
-			FILE *html = fopen("./standalone.html", "rb");
-
-			if (html) {
-				fclose(html);
-
-				rval = lws_serve_http_file(wsi, "./standalone.html", "text/html", NULL, 0);
-
-				if ( (rval < 0) || ((rval > 0) && lws_http_transaction_completed(wsi)) ) {
-					// error or can't reuse connection, close the socket
-					return -1;
-				}
-			} else
-#endif
-			{
-				if ( lws_add_http_header_status(wsi, 200, &p, end) ) {
-					return 1;
-				}
-
-				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_SERVER, (unsigned char *)"libwebsockets", 13, &p, end) ) {
-					return 1;
-				}
-
-				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_TYPE, (unsigned char *)"text/html", 9, &p, end) ) {
-					return 1;
-				}
-
-				if ( lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_ENCODING, (unsigned char *)"gzip", 4, &p, end) ) {
-					return 1;
-				}
-
-				if ( lws_add_http_header_content_length(wsi, standalone_html_len, &p, end) ) {
-					return 1;
-				}
-
-				if ( lws_finalize_http_header(wsi, &p, end) ) {
-					return 1;
-				}
-
-				rval = lws_write(wsi, start, p - start, LWS_WRITE_HTTP_HEADERS);
-
-				if (rval != (p - start)) {
-					return -1;
-				}
-
-				sent = 0;
-
-				lws_callback_on_writable(wsi);
-			}
-
-			break;
-		}
-
-		case LWS_CALLBACK_HTTP_BODY_COMPLETION: {
-			lws_return_http_status(wsi, HTTP_STATUS_OK, NULL);
-			try_reuse = true;
-
-			break;
-		}
-
-		case LWS_CALLBACK_HTTP_FILE_COMPLETION: {
-			try_reuse = true;
-
-			break;
-		}
-
-		case LWS_CALLBACK_HTTP_WRITEABLE: {
-			while ( !lws_send_pipe_choked(wsi) && (sent < standalone_html_len) ) {
-				size = standalone_html_len - sent;
-
-				int pwa = static_cast<int>(lws_get_peer_write_allowance(wsi));
-
-				if (pwa == 0) {
-					lws_callback_on_writable(wsi);
-
-					break;
-				}
-
-				if ( (pwa != -1) && (pwa < size) ) {
-					size = pwa;
-				}
-
-				memcpy(p, standalone_html + sent, size);
-
-				rval = lws_write(wsi, p, size, LWS_WRITE_HTTP);
-
-				if (rval < 0) {
-					return -1;
-				}
-
-				if (rval) {
-					// while still active, extent timeout
-					lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);
-				}
-
-				sent += rval;
-			}
-
-			try_reuse = true;
-
-			break;
-		}
-
-		default:
-			break;
+	if (level & LLL_WARN) {
+		SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "StandaloneUI: %s", line);
+	} else if (level & LLL_ERR) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "StandaloneUI: %s", line);
+	} else if (level & LLL_NOTICE) {
+		nprintf(("lws", "STD: %s", line));
 	}
-
-	if (try_reuse) {
-		if (lws_http_transaction_completed(wsi)) {
-			return -1;
-		}
-	}
-
-	return 0;
 }
 
-static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+
+StandaloneUI::StandaloneUI()
 {
-	#define MAX_BUF_SIZE	1024
-	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + MAX_BUF_SIZE + LWS_SEND_BUFFER_POST_PADDING];
-	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-	int rval;
-	int size;
+	struct lws_context_creation_info info;
+
+	SDL_zero(info);
+
+	// only needs the single mount
+	m_lws_mounts = new struct lws_http_mount;
+
+	SDL_zerop(m_lws_mounts);
+
+	m_lws_mounts->mountpoint = "/";
+	m_lws_mounts->mountpoint_len = 1;
+	m_lws_mounts->origin = "./standalone-web";
+	m_lws_mounts->origin_protocol = LWSMPRO_FILE;
+	m_lws_mounts->def = "index.html";
+
+	if ( !SDL_strlen(Multi_options_g.std_listen_addr) ) {
+		// this option is to get around a libwebsockets bug that prevented binding
+		// to a IPv4 iface address properly
+		info.options |= LWS_SERVER_OPTION_DISABLE_IPV6;
+		info.iface = "127.0.0.1";
+		m_interface = "127.0.0.1";
+	} else {
+		info.iface = Multi_options_g.std_listen_addr;
+		m_interface = Multi_options_g.std_listen_addr;
+	}
+
+	m_interface += std::string(":") + std::to_string(Multi_options_g.port);
+
+	info.port = Multi_options_g.port;
+	info.protocols = m_lws_protocols;
+	info.mounts = m_lws_mounts;
+
+	info.gid = static_cast<gid_t>(-1);
+	info.uid = static_cast<uid_t>(-1);
+
+	lws_set_log_level(LLL_ERR|LLL_WARN|LLL_NOTICE, std_lws_logger);
+
+	m_lws_context = lws_create_context(&info);
+
+	if (m_lws_context == nullptr) {
+		Error(LOCATION, "Unable to initialize standalone server!");
+	}
+
+	m_start_time = time(nullptr);
+
+	char title[64];
+	SDL_snprintf(title, SDL_arraysize(title), "%s %d.%02d.%02d", XSTR("FreeSpace Standalone", 935), FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
+	m_title = title;
+
+	m_next_client_id = 1;
+
+	m_active_client = nullptr;
+
+	m_mission_time = 0.0f;
+}
+
+StandaloneUI::~StandaloneUI()
+{
+	shutdown();
+}
+
+int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+{
+	#define MAX_BUF_SIZE	2048
+	unsigned char buf[LWS_PRE + MAX_BUF_SIZE];
+	unsigned char *p = &buf[LWS_PRE];
+	int exit_val = 0;
+
+	uint32_t *client_id = reinterpret_cast<uint32_t *>(user);
+
+	if (client_id && *client_id) {
+		for (auto &cl : m_clients) {
+			if (cl->m_id == *client_id) {
+				m_active_client = cl;
+				break;
+			}
+		}
+	}
 
 	switch (reason) {
 		case LWS_CALLBACK_ESTABLISHED: {
-			active_wsi = wsi;
+			SDL_assert(m_active_client == nullptr);
 
-			if ( timestamp_elapsed(startup_reset_stamp) ) {
-				std_reset_standalone_gui();
-			}
+			uint32_t cid = getNewClientId();
+
+			Standalone_client *new_client = new Standalone_client(cid, wsi);
+			m_clients.push_back(new_client);
+
+			*client_id = cid;
+			m_active_client = new_client;
+
+			reset();
 
 			break;
 		}
 
 		case LWS_CALLBACK_CLOSED: {
-			active_wsi = NULL;
+			if ( !m_active_client ) {
+				break;
+			}
+
+			for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
+				if ((*it)->m_id == m_active_client->m_id) {
+					m_clients.erase(it);
+					break;
+				}
+			}
 
 			break;
 		}
 
 		case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION: {
-			if (active_wsi) {
-				return -1;
+			if (m_clients.size() >= MAX_STD_CLIENTS) {
+				exit_val = -1;
 			}
 
 			break;
 		}
 
 		case LWS_CALLBACK_SERVER_WRITEABLE: {
-			while ( !Standalone_send_buf.empty() ) {
-				size = static_cast<int>(SDL_strlcpy((char *)p, Standalone_send_buf.front().c_str(), MAX_BUF_SIZE));
+			if ( !m_active_client ) {
+				break;
+			}
 
-				rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
+			while ( !m_active_client->m_send_buffer.empty() ) {
+				if (m_active_client->m_send_buffer.front().size() >= MAX_BUF_SIZE) {
+					lwsl_warn("Message size (%zu) exceeds buffer size (%d)!  Discarding...\n", m_active_client->m_send_buffer.size(), MAX_BUF_SIZE);
+					m_active_client->m_send_buffer.pop_front();
 
-				if (rval < size) {
+					continue;
+				}
+
+				auto size = SDL_strlcpy((char *)p, m_active_client->m_send_buffer.front().c_str(), MAX_BUF_SIZE);
+
+				auto rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
+
+				if (rval < static_cast<int>(size)) {
 					lwsl_err("ERROR sending buffer!\n");
 					lws_close_reason(wsi, LWS_CLOSE_STATUS_UNEXPECTED_CONDITION, (unsigned char *)"write error", 11);
 
-					return -1;
+					exit_val = -1;
+					break;
 				}
 
-				Standalone_send_buf.pop_front();
+				m_active_client->m_send_buffer.pop_front();
 
 				if ( lws_send_pipe_choked(wsi) ) {
 					lws_callback_on_writable(wsi);
@@ -276,107 +355,156 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 		}
 
 		case LWS_CALLBACK_RECEIVE: {
-			if (in != NULL && len > 0) {
-				const char *msg = (const char *)in;
-				char mtype = msg[0];
+			if ( !len || !in ) {
+				break;
+			}
 
-				if ( !SDL_strcmp(msg, "shutdown") ) {
-					gameseq_post_event(GS_EVENT_QUIT_GAME);
+			try {
+				std::string str(reinterpret_cast<const char *>(in), len);
+				json msg = json::parse(str);
+
+				if ( msg.find("shutdown") != msg.end() ) {
 					lws_close_reason(wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
+					gameseq_post_event(GS_EVENT_QUIT_GAME);
+					Standalone_terminate = true;
 
-					return -1;
+					exit_val = -1;
+					break;
 				}
 
-				if ( !SDL_strcmp(msg, "reset") ) {
+				if ( msg.find("reset_all") != msg.end() ) {
 					multi_quit_game(PROMPT_NONE);
-					std_reset_standalone_gui();
+					reset_all();
 
 					break;
 				}
 
-				// server tab
-				if (mtype == 'S') {
-					if (len >= 7) {
-						if ( !SDL_strncmp(msg+2, "name ", 5) ) {
-							SDL_strlcpy(Netgame.name, msg+7, SDL_arraysize(Netgame.name));
-							SDL_strlcpy(Multi_options_g.std_pname, Netgame.name, SDL_arraysize(Multi_options_g.std_pname));
-						} else if ( !SDL_strncmp(msg+2, "pass ", 5) ) {
-							SDL_strlcpy(Multi_options_g.std_passwd, msg+7, SDL_arraysize(Multi_options_g.std_passwd));
-						} else if ( !SDL_strncmp(msg+2, "kick ", 5) ) {
-							char ip_string[60];
+				// name
+				auto name_key = msg.find("server_name");
 
-							for (int i = 0; i < MAX_PLAYERS; i++) {
-								if ( MULTI_CONNECTED(Net_players[i]) ) {
-									psnet_addr_to_string(ip_string, SDL_arraysize(ip_string), &Net_players[i].p_info.addr);
+				if ( name_key != msg.end() ) {
+					std::string name = *name_key;
 
-									if ( !SDL_strcmp(msg+7, ip_string) ) {
-										multi_kick_player(i, 0);
+					if ( name.empty() ) {
+						name = XSTR("Standalone Server", 916);
+					}
 
-										break;
-									}
-								}
-							}
-						}
+					SDL_strlcpy(Multi_options_g.std_pname, name.c_str(), SDL_arraysize(Multi_options_g.std_pname));
+
+					// if no host is connected then set as netgame name too
+					if ( !Netgame.host ) {
+						SDL_strlcpy(Netgame.name, name.c_str(), SDL_arraysize(Netgame.name));
+					}
+
+				}
+
+				// password
+				auto password_key = msg.find("server_password");
+
+				if ( password_key != msg.end() ) {
+					std::string pass = *password_key;
+					SDL_strlcpy(Multi_options_g.std_passwd, pass.c_str(), SDL_arraysize(Multi_options_g.std_passwd));
+				}
+
+				// allow voice
+				auto voice_key = msg.find("server_voice");
+
+				if ( voice_key != msg.end() ) {
+					bool voice = *voice_key;
+					Multi_options_g.std_voice = voice ? 1 : 0;
+				}
+
+				// server update rate
+				auto update_rate_key = msg.find("server_update_rate");
+
+				if ( update_rate_key != msg.end() ) {
+					int obj_update = *update_rate_key;
+
+					if ( (obj_update >= 0) && (obj_update < MAX_OBJ_UPDATE_LEVELS) ) {
+						Multi_options_g.std_datarate = obj_update;
+						Net_player->p_info.options.obj_update_level = obj_update;
 					}
 				}
-				// multi-player tab
-				else if (mtype == 'M') {
-					if (len >= 6) {
-						if ( !SDL_strncmp(msg+2, "fps ", 4) ) {
-							int fps = SDL_atoi(msg+6);
-							CAP(fps, 10, 120);
 
-							Multi_options_g.std_framecap = fps;
-						}
+				// max players
+				auto max_players_key = msg.find("server_max_players");
+
+				if ( max_players_key != msg.end() ) {
+					int max_players = *max_players_key;
+
+					if ( (max_players == -1) || !((max_players < 1) || (max_players > MAX_PLAYERS)) ) {
+						Multi_options_g.std_max_players = max_players;
 					}
 				}
-				// player info tab
-				else if (mtype == 'P') {
-					if (len >= 7) {
-						if ( !SDL_strncmp(msg+2, "info ", 5) ) {
-							int i;
 
-							for (i = 0; i < MAX_PLAYERS; i++) {
-								net_player *np = &Net_players[i];
+				// kick player
+				auto kick_key = msg.find("player_kick");
 
-								if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
-									if ( !SDL_strcmp(msg+7, np->player->callsign) ) {
-										Standalone_state.active_player = msg+7;
-										std_pinfo_display_player_info(np);
+				if ( kick_key != msg.end() ) {
+					short player_id = *kick_key;
+					int idx = find_player_id(player_id);
 
-										break;
-									}
-								}
-							}
+					multi_kick_player(idx, 0);
+				}
 
-							if (i == MAX_PLAYERS) {
-								Standalone_state.active_player.clear();
-							}
-						}
+				// player info/stats
+				auto info_key = msg.find("player_info");
+
+				if ( info_key != msg.end() ) {
+					short player_id = *info_key;
+					int idx = find_player_id(player_id);
+
+					if (idx >= 0) {
+						player_info(&Net_players[idx]);
+						m_active_client->m_active_player = player_id;
+					} else {
+						m_active_client->m_active_player = -1;
 					}
 				}
-				// god stuff tab
-				else if (mtype == 'G') {
-					if (len >= 7) {
-						if ( !SDL_strncmp(msg+2, "smsg ", 5) ) {
-							char txt[256];
 
-							SDL_strlcpy(txt, msg+7, SDL_arraysize(txt));
+				// fps
+				auto fps_key = msg.find("fps");
 
-							if (SDL_strlen(txt) > 0) {
-								send_game_chat_packet(Net_player, txt, MULTI_MSG_ALL, NULL);
+				if ( fps_key != msg.end() ) {
+					int fps = *fps_key;
+					CAP(fps, 10, 120);
 
-								std_add_chat_text(txt, MY_NET_PLAYER_NUM, 1);
-							}
-						} else if ( !SDL_strcmp(msg+2, "mrefresh") ) {
-							if (MULTI_IS_TRACKER_GAME) {
-								cf_delete(MULTI_VALID_MISSION_FILE, CF_TYPE_DATA);
+					Multi_options_g.std_framecap = fps;
+				}
 
-								multi_update_valid_missions();
-							}
-						}
+				// chat
+				auto chat_key = msg.find("chat");
+
+				if ( chat_key != msg.end() ) {
+					std::string txt = *chat_key;
+
+					if ( !txt.empty() ) {
+						send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
+
+						std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
 					}
 				}
+
+				// revalidate missions/tables
+				if ( msg.find("validate") != msg.end() ) {
+					cf_delete(MULTI_VALID_MISSION_FILE, CF_TYPE_DATA);
+
+					multi_update_valid_missions();
+				}
+
+				// enable/disable sending of multi log (per client)
+				auto multilog_key = msg.find("multilog");
+
+				if ( multilog_key != msg.end() ) {
+					bool enabled = *multilog_key;
+
+					m_active_client->m_multilog_enabled = enabled ? true : false;
+
+					// if we are enabling the multilog then send all that we have to the client
+					multilog_refresh();
+				}
+			} catch (json::exception &e) {
+				ml_printf("STD => Exception caught handling client message: %s", e.what());
 			}
 
 			break;
@@ -386,242 +514,830 @@ static int callback_standalone(struct lws *wsi, enum lws_callback_reasons reason
 			break;
 	}
 
-	return 0;
+	m_active_client = nullptr;
+
+	return exit_val;
 }
 
-static struct lws_protocols stand_protocols[] = {
-	{
-		"http-only",
-		callback_http,
-		0,
-		0
-	},
-	{
-		"standalone",
-		callback_standalone,
-		0,
-		0
-	},
-	// terminator
-	{
-		NULL,
-		NULL,
-		0,
-		0
-	}
-};
-
-static void std_lws_logger(int level, const char *line)
+bool StandaloneUI::add_message(const json &msg)
 {
-	if (level & (LLL_WARN|LLL_ERR)) {
-		mprintf(("STD: %s", line));
-	} else if (level & LLL_NOTICE) {
-		nprintf(("lws", "STD: %s", line));
+	// if no client then don't add messages
+	if (m_clients.empty()) {
+		return false;
+	}
+
+	const std::string msg_str = msg.dump();
+
+	if (m_active_client) {
+		m_active_client->m_send_buffer.push_back(msg_str);
+	} else {
+		for (auto &client : m_clients) {
+			client->m_send_buffer.push_back(msg_str);
+		}
+	}
+
+	return true;
+}
+
+void StandaloneUI::update_connections()
+{
+	for (int i = 0; i < MAX_PLAYERS; i++) {
+		net_player *np = &Net_players[i];
+
+		if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
+			player_add(np);
+		}
 	}
 }
 
-
-
-static void std_add_ws_message(const char *id, const char *val)
+void StandaloneUI::shutdown()
 {
-	std::string msg;
+	if (m_lws_context) {
+		lws_cancel_service(m_lws_context);
+		SDL_Delay(1000);
+		lws_context_destroy(m_lws_context);
+		m_lws_context = nullptr;
+	}
+}
 
-	// if no client, and startup stamp elapsed, then don't add more messages
-	if ( (active_wsi == NULL) && timestamp_elapsed(startup_reset_stamp) ) {
+void StandaloneUI::process()
+{
+#ifdef STD_THREADED
+	do {
+		do_frame();
+
+		lws_service(m_lws_context, -1);
+
+		SDL_Delay(1000/30);
+	} while ( !Standalone_terminate );
+
+	shutdown();
+#else
+	do_frame();
+
+	lws_service(m_lws_context, -1);
+#endif
+}
+
+void StandaloneUI::do_frame()
+{
+	if (m_clients.empty()) {
 		return;
 	}
 
-	msg.assign(id);
+	const uint64_t cur_time_ms = SDL_GetTicks();
 
-	if (val) {
-		msg.append(val);
+	auto prev_client = m_active_client;
+
+	// update client specific stuff
+	for (auto &client : m_clients) {
+		m_active_client = client;
+
+		// maybe update netgame info
+		if (multi_num_connections()) {
+			if ( !client->m_netgame_timestamp || (cur_time_ms > client->m_netgame_timestamp) ) {
+				client->m_netgame_timestamp = cur_time_ms + UpdateTimes::netgame;
+
+				netgame_update();
+			}
+		}
+
+		// maybe update mission time
+		if (m_mission_time != 0.0f) {
+			if ( !client->m_mission_time_timestamp || (cur_time_ms > client->m_mission_time_timestamp) ) {
+				client->m_mission_time_timestamp = cur_time_ms + UpdateTimes::mission_time;
+
+				mission_update_time();
+			}
+		}
+
+		// maybe update selected player stats
+		if (client->m_active_player != -1) {
+			if ( !client->m_stats_timestamp || (cur_time_ms > client->m_stats_timestamp) ) {
+				client->m_stats_timestamp = cur_time_ms + UpdateTimes::stats;
+
+				int player_idx = find_player_id(client->m_active_player);
+
+				if (player_idx >= 0) {
+					player_info(&Net_players[player_idx]);
+				}
+			}
+		}
+
+		if ( !client->m_send_buffer.empty() ) {
+			lws_callback_on_writable(client->m_wsi);
+		}
 	}
 
-	Standalone_send_buf.push_back(msg);
+	m_active_client = prev_client;
 }
+
+void StandaloneUI::server_set_state(const char *str)
+{
+	m_state_text = str;
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["server_info"]["state"] = str;
+
+	add_message(msg);
+}
+
+void StandaloneUI::server_update_vals()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	if ( SDL_strlen(Multi_options_g.std_pname) ) {
+		msg["server"]["name"] = Multi_options_g.std_pname;
+	} else {
+		msg["server"]["name"] = XSTR("Standalone Server", 916);
+	}
+
+	msg["server"]["password"] = Multi_options_g.std_passwd;
+	msg["server"]["max_players"] = Multi_options_g.std_max_players;
+	msg["server"]["voice"] = Multi_options_g.std_voice;
+	msg["server"]["update_rate"] = Multi_options_g.std_datarate;
+	msg["server"]["framecap"] = Multi_options_g.std_framecap;
+	msg["server"]["pxo"] = Multi_options_g.pxo;
+	msg["server"]["pxo_channel"] = Multi_fs_tracker_channel;
+
+	add_message(msg);
+}
+
+void StandaloneUI::netgame_set_name()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	// use netgame name if it's from host, otherwise trigger field reset
+	msg["netgame"]["name"] = Netgame.host ? Netgame.name : "";
+
+	add_message(msg);
+}
+
+void StandaloneUI::netgame_update()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+	std::string mode;
+	std::string type;
+	std::string state;
+
+	switch (Netgame.mode) {
+		case NG_MODE_OPEN:
+			mode = XSTR("Open", 1322);
+			break;
+		case NG_MODE_CLOSED:
+			mode = XSTR("Closed", 1323);
+			break;
+		case NG_MODE_PASSWORD:
+			mode = XSTR("Password Protected", 1325);
+			break;
+		case NG_MODE_RESTRICTED:
+			mode = XSTR("Restricted", 1324);
+			break;
+		case NG_MODE_RANK_ABOVE:
+		case NG_MODE_RANK_BELOW:
+			mode = "Rank Limited";
+			break;
+	}
+
+	if (Netgame.type_flags & NG_TYPE_COOP) {
+		type = XSTR("Coop", 1257);
+	} else if (Netgame.type_flags & NG_TYPE_TEAM) {
+		type = XSTR("Team", 1258);
+
+		if (Netgame.type_flags & NG_TYPE_SW) {
+			type.append(" (SquadWar)");
+		}
+	} else if (Netgame.type_flags & NG_TYPE_DOGFIGHT) {
+		type = XSTR("Dogfight", 1259);
+	}
+
+	switch (Netgame.game_state) {
+		case NETGAME_STATE_FORMING:
+			state = XSTR("Forming", 764);
+			break;
+		case NETGAME_STATE_BRIEFING:
+			state = XSTR("Briefing", 765);
+			break;
+		case NETGAME_STATE_DEBRIEF:
+		case NETGAME_STATE_ENDGAME:
+			state = XSTR("Debrief", 766);
+			break;
+		case NETGAME_STATE_PAUSED:
+			state = XSTR("Paused", 767);
+			break;
+		case NETGAME_STATE_IN_MISSION:
+		case NETGAME_STATE_MISSION_SYNC:
+			state = XSTR("Playing", 768);
+			break;
+		default:
+			state = XSTR("Unknown", 769);
+	}
+
+	msg["netgame"]["mission_name"] = Netgame.mission_name;
+	msg["netgame"]["mission_title"] = Netgame.title;
+
+	if (Netgame.campaign_mode) {
+		msg["netgame"]["campaign_name"] = Netgame.campaign_name;
+	} else {
+		msg["netgame"]["campaign_name"] = "";
+	}
+
+	msg["netgame"]["mode"] = mode;
+	msg["netgame"]["type"] = type;
+	msg["netgame"]["state"] = state;
+
+	msg["netgame"]["max_players"] = Netgame.max_players;
+	msg["netgame"]["max_observers"] = Netgame.options.max_observers;
+	msg["netgame"]["max_respawns"] = Netgame.respawn;
+
+	add_message(msg);
+}
+
+void StandaloneUI::player_add(const net_player *p)
+{
+	SDL_assert(p);
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	char ip_address[INET_ADDRSTRLEN];
+	json msg;
+
+	msg["player"]["add"]["id"] = p->player_id;
+	msg["player"]["add"]["name"] = p->player->callsign;
+	msg["player"]["add"]["ping"] = p->s_info.ping.ping_avg;
+
+	msg["player"]["add"]["host"] = MULTI_HOST((*p)) != 0;
+	msg["player"]["add"]["observer"] = MULTI_OBSERVER((*p)) != 0;
+
+	psnet_addr_to_string(ip_address, SDL_arraysize(ip_address), &p->p_info.addr);
+
+	std::string address = ip_address;
+	address += std::string(":") + std::to_string(p->p_info.addr.port);
+
+	msg["player"]["add"]["address"] = address;
+
+	add_message(msg);
+}
+
+void StandaloneUI::player_update(const net_player *p)
+{
+	SDL_assert(p);
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["player"]["update"]["id"] = p->player_id;
+	msg["player"]["update"]["ping"] = p->s_info.ping.ping_avg;
+
+	msg["player"]["update"]["host"] = MULTI_HOST((*p)) != 0;
+	msg["player"]["update"]["observer"] = MULTI_OBSERVER((*p)) != 0;
+
+	add_message(msg);
+}
+
+void StandaloneUI::player_info(const net_player *p)
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+	json info;
+	char temp_str[50];
+
+	info["id"] = p->player_id;
+	info["name"] = p->player->callsign;
+	info["ping"] = p->s_info.ping.ping_avg;
+
+	// ip address
+	psnet_addr_to_string(temp_str, SDL_arraysize(temp_str), &p->p_info.addr);
+
+	std::string address = temp_str;
+	address += std::string(":") + std::to_string(p->p_info.addr.port);
+
+	info["address"] = address;
+
+	// ship type
+	info["ship"] = Ship_info[p->p_info.ship_class].name;
+
+	// rank
+	multi_sg_rank_build_name(Ranks[p->player->stats.rank].name, temp_str, SDL_arraysize(temp_str));
+	info["rank"] = temp_str;
+
+	// flight time
+	game_format_time(p->player->stats.missions_flown, temp_str, SDL_arraysize(temp_str));
+	info["flight_time"] = temp_str;
+
+	// missions
+	info["missions_flown"] = p->player->stats.missions_flown;
+
+	// stats
+	scoring_struct *ptr = &p->player->stats;
+	std::vector<unsigned int> stats;
+
+	stats.reserve(7);
+
+	// all-time
+	stats.push_back(ptr->kill_count);
+	stats.push_back(ptr->kill_count - ptr->kill_count_ok);
+	stats.push_back(ptr->assists);
+	stats.push_back(ptr->p_shots_fired);
+	stats.push_back(ptr->p_shots_fired ? (unsigned int)(100.0f * ((float)ptr->p_shots_hit / (float)ptr->p_shots_fired)) : 0);
+	stats.push_back(ptr->s_shots_fired);
+	stats.push_back(ptr->s_shots_fired ? (unsigned int)(100.0f * ((float)ptr->s_shots_hit / (float)ptr->s_shots_fired)) : 0);
+
+	info["stats"]["all-time"] = stats;
+
+	stats.clear();
+
+	// mission
+	stats.push_back(ptr->m_kill_count);
+	stats.push_back(ptr->m_kill_count - ptr->m_kill_count_ok);
+	stats.push_back(ptr->m_assists);
+	stats.push_back(ptr->mp_shots_fired);
+	stats.push_back(ptr->mp_shots_fired ? (unsigned int)(100.0f * ((float)ptr->mp_shots_hit / (float)ptr->mp_shots_fired)) : 0);
+	stats.push_back(ptr->ms_shots_fired);
+	stats.push_back(ptr->ms_shots_fired ? (unsigned int)(100.0f * ((float)ptr->ms_shots_hit / (float)ptr->ms_shots_fired)) : 0);
+
+	info["stats"]["mission"] = stats;
+
+	// final msg layout
+
+	msg["player"]["info"] = info;
+
+	add_message(msg);
+}
+
+void StandaloneUI::player_remove(const net_player *p)
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["player"]["remove"]["id"] = p->player_id;
+
+	add_message(msg);
+
+	// clear active player, client should reset if needed
+	for (auto &client : m_clients) {
+		if (client->m_active_player == p->player_id) {
+			client->m_active_player = -1;
+			client->m_stats_timestamp = 0;
+		}
+	}
+}
+
+void StandaloneUI::chat_add_text(const char *text, int player_index, int add_id)
+{
+	SDL_assert( (player_index >= 0) && (player_index < MAX_PLAYERS) );
+
+	if ( !text ) {
+		return;
+	}
+
+	chatlog_item item;
+
+	item.message = text;
+
+	if (add_id) {
+		if ( MULTI_STANDALONE(Net_players[player_index]) ) {
+			item.id = XSTR("<SERVER> %s", 924);
+
+			size_t idx = item.id.find(">");
+
+			if (idx != std::string::npos) {
+				item.id.erase(idx+1, std::string::npos);
+			}
+		} else {
+			item.id = Net_players[player_index].player->callsign;
+		}
+	}
+
+	m_chatlog.emplace_back(std::move(item));
+
+	if (m_chatlog.size() > MAX_CHATLOG_LINES) {
+		m_chatlog.pop_front();
+	}
+
+	chat_send_text(m_chatlog.back().id, m_chatlog.back().message);
+}
+
+void StandaloneUI::chat_send_text(const std::string &id, const std::string &message)
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["chat"]["id"] = id;
+	msg["chat"]["message"] = message;
+
+	add_message(msg);
+}
+
+void StandaloneUI::chat_refresh()
+{
+	// active client only
+	if ( !m_active_client ) {
+		return;
+	}
+
+	json msg;
+
+	for (auto &item : m_chatlog) {
+		chat_send_text(item.id, item.message);
+	}
+}
+
+void StandaloneUI::reset_all()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	// we should clear chat log here and start fresh
+	m_chatlog.clear();
+	m_chatlog.shrink_to_fit();
+
+	Standalone_client *prev_client = m_active_client;
+
+	for (auto &client : m_clients) {
+		m_active_client = client;
+		reset();
+	}
+
+	m_active_client = prev_client;
+}
+
+void StandaloneUI::reset()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	if (m_active_client) {
+		m_active_client->m_send_buffer.clear();
+	}
+
+	json msg;
+	std::string build;
+
+	// send gui reset
+	msg["reset_gui"] = true;
+
+	add_message(msg);
+
+	// basic server information
+	msg.clear();
+	msg["server_info"]["address"] = m_interface;
+	msg["server_info"]["start_time"] = m_start_time;
+	msg["server_info"]["title"] = m_title;
+	msg["server_info"]["state"] = m_state_text;
+	msg["server_info"]["multi_version"] = MULTI_FS_SERVER_VERSION;
+
+	build = Osreg_title;
+	build += " ";
+	build += version_get_string_full();
+
+	msg["server_info"]["build"] = build.c_str();
+
+	add_message(msg);
+
+	server_update_vals();
+
+	// refresh various ui elements
+	chat_refresh();
+
+	mission_set_time(0.0f);
+	mission_update_time();
+	mission_set_goals();
+
+	// refresh netgame data
+	netgame_set_name();
+	netgame_update();
+
+	// refresh connections
+	update_connections();
+
+	// popup - only if active
+	if ( !m_popup.empty() ) {
+		msg.clear();
+		msg["popup"] = m_popup;
+
+		add_message(msg);
+	}
+
+	// refresh client-side state
+	if (m_active_client) {
+		m_active_client->m_netgame_timestamp = 0;
+		m_active_client->m_stats_timestamp = 0;
+		m_active_client->m_active_player = -1;
+	}
+}
+
+void StandaloneUI::reset_timestamps()
+{
+	for (auto &client : m_clients) {
+		client->m_netgame_timestamp = 0;
+		client->m_stats_timestamp = 0;
+	}
+}
+
+void StandaloneUI::multilog_add_line(const char *line)
+{
+	SDL_assert(line);
+
+	m_multilog.push_back(line);
+
+	if (m_multilog.size() > MAX_MULTILOG_LINES) {
+		m_multilog.pop_front();
+	}
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	auto prev_client = m_active_client;
+
+	for (auto &client : m_clients) {
+		m_active_client = client;
+
+		if (client->m_multilog_enabled) {
+			msg["multilog"] = line;
+
+			add_message(msg);
+		}
+	}
+
+	m_active_client = prev_client;
+}
+
+void StandaloneUI::multilog_refresh()
+{
+	// active client only
+	if ( !m_active_client || !m_active_client->m_multilog_enabled ) {
+		return;
+	}
+
+	json msg;
+
+	for (auto &line : m_multilog) {
+		msg["multilog"] = line;
+
+		add_message(msg);
+	}
+}
+
+void StandaloneUI::popup_open(const char *title)
+{
+	SDL_assert(title);
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	m_popup["title"] = title;
+
+	m_popup["field1"] = "";
+	m_popup["field2"] = "";
+
+	json msg;
+
+	msg["popup"] = m_popup;
+
+	if ( add_message(msg) ) {
+		// trigger write callback so we send this message quickly
+		for (auto &client : m_clients) {
+			lws_callback_on_writable(client->m_wsi);
+		}
+
+		lws_service(m_lws_context, -1);
+	}
+}
+
+void StandaloneUI::popup_set_text(const char *str, int field_num)
+{
+	SDL_assert(str);
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	switch (field_num) {
+		case 0:
+			m_popup["title"] = str;
+			break;
+
+		case 1:
+			m_popup["field1"] = str;
+			break;
+
+		case 2:
+			m_popup["field2"] = str;
+			break;
+
+		default:
+			return;
+	}
+
+
+	json msg;
+
+	msg["popup"] = m_popup;
+
+	if ( add_message(msg) ) {
+		// trigger write callback so we send this message quickly
+		for (auto &client : m_clients) {
+			lws_callback_on_writable(client->m_wsi);
+		}
+
+		lws_service(m_lws_context, -1);
+	}
+}
+
+void StandaloneUI::popup_close()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg = {{ "popup", false }};
+
+	m_popup.clear();
+
+	if ( add_message(msg) ) {
+		// trigger write callback so we send this message quickly
+		for (auto &client : m_clients) {
+			lws_callback_on_writable(client->m_wsi);
+		}
+
+		lws_service(m_lws_context, -1);
+	}
+}
+
+void StandaloneUI::mission_set_time(float mission_time)
+{
+	m_mission_time = mission_time;
+}
+
+void StandaloneUI::mission_update_time()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["mission"]["time"] = m_mission_time;
+
+	add_message(msg);
+}
+
+void StandaloneUI::mission_set_goals()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	if ( !Num_goals ) {
+		json msg;
+
+		msg["mission"]["reset_goals"] = true;
+
+		add_message(msg);
+		return;
+	}
+
+	json primary;
+	json secondary;
+	json bonus;
+
+	for (int i = 0; i < Num_goals; i++) {
+		switch (Mission_goals[i].type & GOAL_TYPE_MASK) {
+			case PRIMARY_GOAL: {
+				primary.push_back({ { "name", Mission_goals[i].name }, { "status", Mission_goals[i].satisfied } });
+				break;
+			}
+
+			case SECONDARY_GOAL: {
+				secondary.push_back({ { "name", Mission_goals[i].name }, { "status", Mission_goals[i].satisfied } });
+				break;
+			}
+
+			case BONUS_GOAL: {
+				bonus.push_back({ { "name", Mission_goals[i].name }, { "status", Mission_goals[i].satisfied } });
+				break;
+			}
+
+			default:
+				break;
+		}
+	}
+
+	json msg;
+
+	if ( !primary.empty() ) {
+		msg["mission"]["goals"]["primary"] = primary;
+	}
+
+	if ( !secondary.empty() ) {
+		msg["mission"]["goals"]["secondary"] = secondary;
+	}
+
+	if ( !bonus.empty() ) {
+		msg["mission"]["goals"]["bonus"] = bonus;
+	}
+
+	if ( !msg.empty() ) {
+		add_message(msg);
+	}
+}
+
 
 void std_deinit_standalone()
 {
-	if (stand_context) {
-		lws_cancel_service(stand_context);
-		lws_context_destroy(stand_context);
-		stand_context = NULL;
+	Standalone_terminate = true;
+
+#ifdef STD_THREADED
+	if ( Standalone_thread.joinable() ) {
+		Standalone_thread.join();
+	}
+#endif
+
+	if (Standalone) {
+		delete Standalone;
+		Standalone = nullptr;
 	}
 }
 
 void std_init_standalone()
 {
-	struct lws_context_creation_info info;
-
-	if (stand_context) {
+	if (Standalone) {
 		return;
 	}
-
-	SDL_zero(info);
-
-	// basic security measure for admin interface
-	//   "1" bind to loopback iface only *default*
-	//   "0" bind to any/all
-	//   any other value should be ip or iface name to bind
-	//   (invalid values will trigger error)
-
-	const char *stand_iface = os_config_read_string("Network", "RestrictStandAdmin", "1");
-
-	if ( !SDL_strcmp(stand_iface, "1") ) {
-		info.iface = "127.0.0.1";
-	} else if ( !SDL_strcmp(stand_iface, "0") ) {
-		info.iface = NULL;
-	} else {
-		info.iface = stand_iface;
-	}
-
-	info.port = Multi_options_g.port;
-
-	info.protocols = stand_protocols;
-
-	info.gid = static_cast<gid_t>(-1);
-	info.uid = static_cast<uid_t>(-1);
-
-	lws_set_log_level(LLL_ERR|LLL_WARN|LLL_NOTICE, std_lws_logger);
-
-	stand_context = lws_create_context(&info);
-
-	if (stand_context == NULL) {
-		Error(LOCATION, "Unable to initialize standalone server!");
-	}
-
-	atexit(std_deinit_standalone);
 
 	// turn off all sound and music
 	Cmdline_freespace_no_sound = 1;
 	Cmdline_freespace_no_music = 1;
 
-	char title[64];
-	SDL_snprintf(title, SDL_arraysize(title), "%s %d.%02d.%02d", XSTR("FreeSpace Standalone", 935), FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
-	Standalone_state.title = title;
+	Standalone = new StandaloneUI();
 
-	// connections > 5 sec after startup should get gui reset
-	startup_reset_stamp = timestamp(5000);
+#ifdef STD_THREADED
+	Standalone_thread = std::thread(&StandaloneUI::process, Standalone);
+#endif
 
-	std_reset_standalone_gui();
-
-	std_multi_update_netgame_info_controls();
+	atexit(std_deinit_standalone);
 }
 
-static void std_update_ping_all()
-{
-	std::string ping_upd;
-	char ping_str[10];
-
-	for (int i = 0, idx = 0; i < MAX_PLAYERS; i++) {
-		net_player *np = &Net_players[i];
-
-		if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
-			if (np->s_info.ping.ping_avg > -1) {
-				if (np->s_info.ping.ping_avg >= 1000) {
-					SDL_snprintf(ping_str, SDL_arraysize(ping_str), "%s", XSTR("> 1 sec", 914));
-				} else {
-					SDL_snprintf(ping_str, SDL_arraysize(ping_str), "%d%s", np->s_info.ping.ping_avg, XSTR(" ms", 915));
-				}
-			} else {
-				SDL_zero(ping_str);
-			}
-
-			// append separator if not first
-			if (idx++) {
-				ping_upd.append(",");
-			}
-
-			ping_upd.append(ping_str);
-		}
-	}
-
-	if ( !ping_upd.empty() ) {
-		std_add_ws_message("S:ping ", ping_upd.c_str());
-	}
-}
-
-static void std_update_connections()
-{
-	std::string conn_str;
-	char ip_address[60];
-
-	conn_str.reserve(1024);
-
-	for (int i = 0, idx = 0; i < MAX_PLAYERS; i++) {
-		net_player *np = &Net_players[i];
-
-		if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
-			// append seperator if not first
-			if (idx++) {
-				conn_str.append(";");
-			}
-
-			conn_str.append(np->player->callsign);
-			conn_str.append(",");
-
-			psnet_addr_to_string(ip_address, SDL_arraysize(ip_address), &np->p_info.addr);
-			conn_str.append(ip_address);
-		}
-	}
-
-	SDL_assert(conn_str.length() < 1024);
-
-	if ( !conn_str.empty() ) {
-		std_add_ws_message("S:conn ", conn_str.c_str());
-	}
-}
 
 void std_do_gui_frame()
 {
-	// maybe update selected player stats
-	if ( ((Standalone_stats_stamp == -1) || timestamp_elapsed(Standalone_stats_stamp)) && !Standalone_state.active_player.empty() ) {
-		Standalone_stats_stamp = timestamp(STD_STATS_UPDATE_TIME);
-
-		for (int i = 0; i < MAX_PLAYERS; i++) {
-			net_player *np = &Net_players[i];
-
-			if ( MULTI_CONNECTED((*np)) && (Net_player != np) ) {
-				if ( !SDL_strcmp(Standalone_state.active_player.c_str(), np->player->callsign) ) {
-					std_pinfo_display_player_info(np);
-
-					break;
-				}
-			}
-		}
+#ifndef STD_THREADED
+	if (Standalone) {
+		Standalone->process();
 	}
-
-	// maybe update netgame info
-	if ( (Standalone_ng_stamp == -1) || timestamp_elapsed(Standalone_ng_stamp) ) {
-		Standalone_ng_stamp = timestamp(STD_NG_UPDATE_TIME);
-
-		std_multi_update_netgame_info_controls();
-	}
-
-	// update connection ping times
-	if ( ((Standalone_ping_stamp == -1) || timestamp_elapsed(Standalone_ping_stamp)) ) {
-		Standalone_ping_stamp = timestamp(STD_PING_UPDATE_TIME);
-
-		std_update_ping_all();
-	}
-
-	if ( !Standalone_send_buf.empty() ) {
-		lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);
-	}
-
-	lws_service(stand_context, -1);
+#endif
 }
 
 void std_debug_set_standalone_state_string(const char *str)
 {
-	Standalone_state.debug_txt = str;
+	if ( !Standalone ) {
+		return;
+	}
 
-	std_add_ws_message("D:", str);
+	Standalone->server_set_state(str);
 }
 
 void std_connect_set_gamename(const char *name)
 {
-	if (name == NULL) {
+	if (name == nullptr) {
 		// if a	permanent name exists, use that instead of the default
 		if ( SDL_strlen(Multi_options_g.std_pname) ) {
 			SDL_strlcpy(Netgame.name, Multi_options_g.std_pname, SDL_arraysize(Netgame.name));
@@ -632,49 +1348,37 @@ void std_connect_set_gamename(const char *name)
 		SDL_strlcpy(Netgame.name, name, SDL_arraysize(Netgame.name));
 	}
 
-	std_add_ws_message("S:name ", Netgame.name);
+	if ( !Standalone ) {
+		return;
+	}
+
+	Standalone->netgame_set_name();
 }
 
 int std_connect_set_connect_count()
 {
-	int count = 0;
-
-	for (int i = 0; i < MAX_PLAYERS; i++) {
-		if (MULTI_CONNECTED(Net_players[i]) && (Net_player != &Net_players[i]) ) {
-			count++;
-		}
-	}
-
-	return count;
+	return 0;
 }
 
 void std_add_player(net_player *p)
 {
-	std_update_connections();
+	if ( !p || !Standalone ) {
+		return;
+	}
 
-	// clear active player, client should reset if needed
-	Standalone_state.active_player.clear();
-
-	// check to see if this guy is the host
-	std_connect_set_host_connect_status();
+	Standalone->player_add(p);
 }
 
 int std_remove_player(net_player *p)
 {
-	int count;
+	if ( !p || !Standalone ) {
+		return 0;
+	}
 
-	std_update_connections();
+	Standalone->player_remove(p);
 
-	// clear active player, client should reset if needed
-	Standalone_state.active_player.clear();
-
-	// update the host connect count
-	std_connect_set_host_connect_status();
-
-	// update the currently connected players
-	count = std_connect_set_connect_count();
-
-	if (count == 0) {
+	// if all players are gone then reset
+	if ( !multi_num_connections() ) {
 		multi_quit_game(PROMPT_NONE);
 		return 1;
 	}
@@ -684,147 +1388,38 @@ int std_remove_player(net_player *p)
 
 void std_update_player_ping(net_player *p)
 {
-}
-
-void std_pinfo_display_player_info(net_player *p)
-{
-	char sml_ping[30];
-	std::string pinfo;
-
-	pinfo.reserve(256);
-
-	// ship type
-	pinfo.append(Ship_info[p->p_info.ship_class].name);
-	pinfo.append(";");
-
-	// avg ping time
-	if (p->s_info.ping.ping_avg > 1000) {
-		SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%s", XSTR("> 1 sec", 914));
-	} else {
-		SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d%s", p->s_info.ping.ping_avg, XSTR(" ms", 915));
+	if ( !p || !Standalone ) {
+		return;
 	}
 
-	pinfo.append(sml_ping);
-	pinfo.append(";");
-
-	scoring_struct *ptr = &p->player->stats;
-
-	// all-time stats
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_fired);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_hit);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_bonehead_hits);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_fired ? (int)(100.0f * ((float)ptr->p_shots_hit / (float)ptr->p_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->p_shots_fired ? (int)(100.0f * ((float)ptr->p_bonehead_hits / (float)ptr->p_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_fired);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_hit);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_bonehead_hits);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_fired ? (int)(100.0f * ((float)ptr->s_shots_hit / (float)ptr->s_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->s_shots_fired ? (int)(100.0f * ((float)ptr->s_bonehead_hits / (float)ptr->s_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->assists);
-	pinfo.append(sml_ping);
-	pinfo.append(";");	// <- end of block
-
-	// mission stats
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_fired);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_hit);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_bonehead_hits);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_fired ? (int)(100.0f * ((float)ptr->mp_shots_hit / (float)ptr->mp_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->mp_shots_fired ? (int)(100.0f * ((float)ptr->mp_bonehead_hits / (float)ptr->mp_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_fired);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_hit);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_bonehead_hits);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_fired ? (int)(100.0f * ((float)ptr->ms_shots_hit / (float)ptr->ms_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->ms_shots_fired ? (int)(100.0f * ((float)ptr->ms_bonehead_hits / (float)ptr->ms_shots_fired)) : 0);
-	pinfo.append(sml_ping);
-	pinfo.append(",");
-	SDL_snprintf(sml_ping, SDL_arraysize(sml_ping), "%d", ptr->m_assists);
-	pinfo.append(sml_ping);
-
-	std_add_ws_message("P:info ", pinfo.c_str());
+	Standalone->player_update(p);
 }
 
 void std_add_chat_text(const char *text, int player_index, int add_id)
 {
-	char id[32];
-	std::string msg;
-
 	if ( (player_index < 0) || (player_index >= MAX_PLAYERS) ) {
 		return;
 	}
 
-	// format the chat text nicely
-	if (add_id) {
-		if ( MULTI_STANDALONE(Net_players[player_index]) ) {
-			SDL_snprintf(id, SDL_arraysize(id), XSTR("<SERVER> %s", 924), "");
-		} else {
-			SDL_snprintf(id, SDL_arraysize(id), "%s: ", Net_players[player_index].player->callsign);
-		}
-
-		msg.append(id);
+	if ( !Standalone ) {
+		return;
 	}
 
-	msg.append(text);
-	msg.append("\n");
-
-	std_add_ws_message("G:mesg ", msg.c_str());
+	Standalone->chat_add_text(text, player_index, add_id);
 }
 
 void std_reset_timestamps()
 {
-	// reset the stats update stamp
-	Standalone_stats_stamp = timestamp(STD_STATS_UPDATE_TIME);
+	if ( !Standalone ) {
+		return;
+	}
 
-	// reset the netgame controls update timestamp
-	Standalone_ng_stamp = timestamp(STD_NG_UPDATE_TIME);
-
-	// reset the ping update stamp
-	Standalone_ping_stamp = timestamp(STD_PING_UPDATE_TIME);
-
-	// reset fps update stamp
-	Standalone_fps_stamp = timestamp(STD_FPS_UPDATE_TIME);
+	Standalone->reset_timestamps();
 }
 
 void std_add_ban(const char *name)
 {
-	if ( (name == NULL) || !SDL_strlen(name) ) {
+	if ( (name == nullptr) || !SDL_strlen(name) ) {
 		return;
 	}
 
@@ -857,124 +1452,31 @@ int std_is_host_passwd()
 
 void std_multi_set_standalone_mission_name(const char *mission_name)
 {
-	std_add_ws_message("M:name ", mission_name);
 }
 
 void std_multi_set_standalone_missiontime(float mission_time)
 {
-	char txt[80];
-	char timestr[50];
-	fix m_time = fl2f(mission_time);
-
-	// format the time string and set the text
-	game_format_time(m_time, timestr, SDL_arraysize(timestr));
-	SDL_snprintf(txt, SDL_arraysize(txt), "%s  :  %.1f", timestr, mission_time);
-
-	std_add_ws_message("M:time ", txt);
+	if (Standalone) {
+		Standalone->mission_set_time(mission_time);
+	}
 }
 
 void std_multi_update_netgame_info_controls()
 {
-	char nginfo[50];
-
-	SDL_snprintf(nginfo, SDL_arraysize(nginfo), "%d,%d,%d,%d", Netgame.max_players, Netgame.options.max_observers, Netgame.security, Netgame.respawn);
-
-	std_add_ws_message("M:info ", nginfo);
+	if (Standalone) {
+		Standalone->netgame_update();
+	}
 }
 
 void std_set_standalone_fps(float fps)
 {
-	if ( (Standalone_fps_stamp == -1) || timestamp_elapsed(Standalone_fps_stamp) ) {
-		Standalone_fps_stamp = timestamp(STD_FPS_UPDATE_TIME);
-
-		char rfps[10];
-
-		SDL_snprintf(rfps, SDL_arraysize(rfps), "%.1f", fps);
-
-		std_add_ws_message("M:rfps ", rfps);
-	}
 }
 
 void std_multi_setup_goal_tree()
 {
-	std::string mission_goals;
-	std::string primary;
-	std::string secondary;
-	std::string bonus;
-	std::string status;
-
-	for (int i = 0; i < Num_goals; i++) {
-		switch (Mission_goals[i].satisfied) {
-			case GOAL_FAILED: {
-				status = "f ";
-				break;
-			}
-
-			case GOAL_COMPLETE: {
-				status = "c ";
-				break;
-			}
-
-			case GOAL_INCOMPLETE:
-			default: {
-				status = "i ";
-				break;
-			}
-		}
-
-		switch (Mission_goals[i].type & GOAL_TYPE_MASK) {
-			case PRIMARY_GOAL: {
-				primary.append(status);
-				primary.append(Mission_goals[i].name);
-				primary.append(",");
-
-				break;
-			}
-
-			case SECONDARY_GOAL: {
-				secondary.append(status);
-				secondary.append(Mission_goals[i].name);
-				secondary.append(",");
-
-				break;
-			}
-
-			case BONUS_GOAL: {
-				bonus.append(status);
-				bonus.append(Mission_goals[i].name);
-				bonus.append(",");
-
-				break;
-			}
-
-			default:
-				break;
-		}
+	if (Standalone) {
+		Standalone->mission_set_goals();
 	}
-
-	if ( primary.empty() ) {
-		mission_goals.append("i none");
-	} else {
-		mission_goals.append(primary.substr(0, primary.size()-1));
-	}
-
-	mission_goals.append(";");
-
-	if ( secondary.empty() ) {
-		mission_goals.append("i none");
-	} else {
-		mission_goals.append(secondary.substr(0, secondary.size()-1));
-	}
-
-	mission_goals.append(";");
-
-	if ( bonus.empty() ) {
-		mission_goals.append("i none");
-	} else {
-		mission_goals.append(bonus.substr(0, bonus.size()-1));
-	}
-
-	std_add_ws_message("M:goal ", mission_goals.c_str());
 }
 
 void std_multi_add_goals()
@@ -989,80 +1491,40 @@ void std_multi_update_goals()
 
 void std_reset_standalone_gui()
 {
-	Standalone_send_buf.clear();
+	if ( !Standalone ) {
+		return;
+	}
 
-	std_add_ws_message("reset", NULL);
-
-	std_add_ws_message("T:", Standalone_state.title.c_str());
-	std_add_ws_message("D:", Standalone_state.debug_txt.c_str());
-
-	std_add_ws_message("S:name ", Netgame.name);
-	std_add_ws_message("S:pass ", Multi_options_g.std_passwd);
-
-	std_update_connections();
-	std_set_standalone_fps(0.0f);
-	std_multi_set_standalone_missiontime(0.0f);
-	std_multi_update_netgame_info_controls();
-
-	Standalone_fps_stamp = -1;
-	Standalone_ng_stamp = -1;
-	Standalone_ping_stamp = -1;
-	Standalone_stats_stamp = -1;
-
-	Standalone_state.active_player.clear();
+	Standalone->reset_all();
 }
-
 
 void std_create_gen_dialog(const char *title)
 {
-	Standalone_state.popup_title = title;
+	if ( !title || !Standalone ) {
+		return;
+	}
 
-	Standalone_state.popup_field1 = "";
-	Standalone_state.popup_field2 = "";
+	Standalone->popup_open(title);
 }
 
 void std_destroy_gen_dialog()
 {
-	std_add_ws_message("popup ", NULL);
+	if (Standalone) {
+		Standalone->popup_close();
+	}
 }
 
 void std_gen_set_text(const char *str, int field_num)
 {
-	std::string popup_str;
-
-	switch (field_num) {
-		case 0:
-			Standalone_state.popup_title = str;
-			break;
-
-		case 1:
-			Standalone_state.popup_field1 = str;
-			break;
-
-		case 2:
-			Standalone_state.popup_field2 = str;
-			break;
-
-		default:
-			break;
+	if ( !str || !Standalone ) {
+		return;
 	}
 
-	popup_str.append(Standalone_state.popup_title);
-	popup_str.append(";");
-	popup_str.append(Standalone_state.popup_field1);
-	popup_str.append(";");
-	popup_str.append(Standalone_state.popup_field2);
-
-	std_add_ws_message("popup ", popup_str.c_str());
-
-	// force ws write since do_frame() may not happen until popup is done
-	lws_callback_on_writable_all_protocol(stand_context, &stand_protocols[1]);
-	lws_service(stand_context, -1);
+	Standalone->popup_set_text(str, field_num);
 }
 
 void std_tracker_notify_login_fail()
 {
-
 }
 
 void std_tracker_login()
@@ -1085,7 +1547,20 @@ void std_connect_set_host_connect_status()
 {
 }
 
-#else	// __EMSCRIPTEN__
+void std_multilog_add_line(const char *line)
+{
+	if ( !line || !line[0] ) {
+		return;
+	}
+
+	if ( !Standalone ) {
+		return;
+	}
+
+	Standalone->multilog_add_line(line);
+}
+
+#else
 
 void std_init_standalone(){}
 void std_do_gui_frame(){}
@@ -1095,7 +1570,6 @@ int std_connect_set_connect_count(){return 0;}
 void std_add_player(net_player *){}
 int std_remove_player(net_player *){return 0;}
 void std_update_player_ping(net_player *){}
-void std_pinfo_display_player_info(net_player *){}
 void std_add_chat_text(const char *, int , int ){}
 void std_reset_timestamps(){}
 void std_add_ban(const char *){}
@@ -1115,5 +1589,6 @@ void std_gen_set_text(const char *, int ){}
 void std_tracker_notify_login_fail(){}
 void std_tracker_login(){}
 void std_connect_set_host_connect_status(){}
+void std_multilog_add_line(const char *line){};
 
-#endif	// !__EMSCRIPTEN__
+#endif

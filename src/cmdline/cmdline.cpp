@@ -656,6 +656,7 @@ int parse_cmdline(int argc, char *argv[])
 	// is this a standalone server??
 	if (standalone_arg.found()) {
 		Is_standalone = 1;
+		Cmdline_skip_launcher = true;
 	}
 #endif
 

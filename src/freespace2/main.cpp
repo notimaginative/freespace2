@@ -26,9 +26,22 @@ extern "C" int game_main();
 int main(int argc, char *argv[])
 {
 	int retr = 0;
-	auto sdl_ver = SDL_GetVersion();
+	const auto sdl_ver = SDL_GetVersion();
+	bool server = false;
+	ushort port = DEFAULT_GAME_PORT;
 
-	outwnd_init();
+	// figure out if we're running standalone to use special log file
+	for (int i = 1; i < argc; ++i) {
+		if (SDL_strstr(argv[i], "-standalone") || !SDL_strcmp(argv[i], "-d")) {
+			server = true;
+		} else if (SDL_strstr(argv[i], "-port") || !SDL_strcmp(argv[i], "-o")) {
+			if (i < argc-1) {
+				port = static_cast<ushort>(SDL_atoi(argv[i+1]));
+			}
+		}
+	}
+
+	outwnd_init(server, port);
 
 	SDL_SetAppMetadata(Osreg_title, version_get_string_full(), Osreg_app_id);
 

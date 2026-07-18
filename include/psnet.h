@@ -209,12 +209,6 @@
 #define PSNET_FLAG_CHECKSUM	(1<<0)		// this packet is checksummed
 #define PSNET_FLAG_RAW			(1<<1)		// send or receive raw data. don't do any checksumming, sequencing, etc
 
-#ifndef MAKE_FS1
-#define DEFAULT_GAME_PORT	7802
-#else
-#define DEFAULT_GAME_PORT	4000
-#endif
-
 typedef struct net_addr	{
 	uint	type;			// See NET_ defines above
 	ubyte addr[4];		// address (first 4 used when IP, all 6 used when IPX)

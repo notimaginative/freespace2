@@ -287,6 +287,14 @@ extern int Is_standalone;
 extern int Interface_framerate;				// show interface framerate during flips
 extern int Interface_last_tick;				// last timer tick on flip
 
+#if defined(MAKE_FS1)
+#define DEFAULT_GAME_PORT	4000
+#elif defined(FS2_DEMO)
+#define DEFAULT_GAME_PORT 7802
+#else
+#define DEFAULT_GAME_PORT 7808
+#endif
+
 // for notifying players of unknown ship types
 extern int Fred_found_unknown_ship_during_parsing;
 

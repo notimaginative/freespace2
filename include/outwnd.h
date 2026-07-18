@@ -12,10 +12,9 @@
 #define FILTER_NAME_LENGTH 30
 
 void load_filter_info(void);
-void outwnd_init();
+void outwnd_init(bool server = false, ushort port = 0);
 void outwnd_close();
 void outwnd_printf(const char *id, const char *format, ...);
-void outwnd_printf2(const char *format, ...);
 
 #endif
 

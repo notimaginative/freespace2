@@ -170,6 +170,7 @@
 
 static FILE *Log_fp = nullptr;
 static const char *Log_filename = "game.log";
+static const char *Server_log_filename = "server.%d.log";
 
 static bool outwnd_inited = false;
 
@@ -386,7 +387,7 @@ static void SDLCALL outwnd_log_output(void *userdata, int category, SDL_LogPrior
 	fflush(log);
 }
 
-void outwnd_init()
+void outwnd_init(bool server, ushort port)
 {
 	char str[100] = {};
 
@@ -409,7 +410,13 @@ void outwnd_init()
 
 	char pathname[512];
 
-	cf_create_default_path_string(pathname, CF_TYPE_DATA, Log_filename);
+	if (server) {
+		SDL_snprintf(str, SDL_arraysize(str), Server_log_filename, port);
+		cf_create_default_path_string(pathname, CF_TYPE_DATA, str);
+	} else {
+		cf_create_default_path_string(pathname, CF_TYPE_DATA, Log_filename);
+	}
+
 	cf_create_directory(CF_TYPE_DATA);
 
 	Log_fp = fopen(pathname, "wb");

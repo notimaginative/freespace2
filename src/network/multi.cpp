@@ -1630,7 +1630,7 @@ float frame_time = (float)1.0/(float)30.0;
 
 void standalone_main_init()
 {
-   std_debug_set_standalone_state_string("Main Init");   
+	std_debug_set_standalone_state_string("Main Init");
 
 	Game_mode = (GM_STANDALONE_SERVER | GM_MULTIPLAYER);	
 
@@ -1737,10 +1737,13 @@ void standalone_main_init()
 	psnet_flush();
 	game_flush();
 	ship_init();
+	mission_init_goals();
 
 	// login to game tracker
 	std_tracker_login();
 
+	// reset the gui
+	std_reset_standalone_gui();
 	std_debug_set_standalone_state_string("Main Do");
 	std_set_standalone_fps((float)0);
 	std_multi_set_standalone_missiontime((float)0);

@@ -108,7 +108,7 @@ private:
 
 	uint32_t m_next_client_id;
 
-	float m_mission_time;
+	int m_mission_time;
 
 	static constexpr size_t MAX_MULTILOG_LINES = 100;
 	std::deque<std::string> m_multilog;
@@ -137,6 +137,9 @@ private:
 	void do_frame();
 
 	lws_callback_function callback_standalone;
+
+	void msg_handler_server(const json &msg);
+	void msg_handler_player(const json &msg);
 
 public:
 	StandaloneUI();
@@ -251,7 +254,7 @@ StandaloneUI::StandaloneUI()
 
 	m_active_client = nullptr;
 
-	m_mission_time = 0.0f;
+	m_mission_time = -1;
 }
 
 StandaloneUI::~StandaloneUI()
@@ -363,7 +366,8 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 				std::string str(reinterpret_cast<const char *>(in), len);
 				json msg = json::parse(str);
 
-				if ( msg.find("shutdown") != msg.end() ) {
+				// "final" messages - if it exists, do and bail
+				if (msg.contains("shutdown")) {
 					lws_close_reason(wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
 					gameseq_post_event(GS_EVENT_QUIT_GAME);
 					Standalone_terminate = true;
@@ -372,136 +376,42 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 					break;
 				}
 
-				if ( msg.find("reset_all") != msg.end() ) {
+				if (msg.contains("reset_all")) {
 					multi_quit_game(PROMPT_NONE);
 					reset_all();
 
 					break;
 				}
 
-				// name
-				auto name_key = msg.find("server_name");
-
-				if ( name_key != msg.end() ) {
-					std::string name = *name_key;
-
-					if ( name.empty() ) {
-						name = XSTR("Standalone Server", 916);
+				// all other messages
+				for (auto it = msg.begin(); it != msg.end(); ++it) {
+					if (it.key() == "server") {
+						json server_msg = it.value();
+						msg_handler_server(server_msg);
+					} else if (it.key() == "player") {
+						json player_msg = it.value();
+						msg_handler_player(player_msg);
 					}
+					// in-game chat box messages from server
+					else if (it.key() == "chat") {
+						auto txt = it.value().get<std::string>();
 
-					SDL_strlcpy(Multi_options_g.std_pname, name.c_str(), SDL_arraysize(Multi_options_g.std_pname));
-
-					// if no host is connected then set as netgame name too
-					if ( !Netgame.host ) {
-						SDL_strlcpy(Netgame.name, name.c_str(), SDL_arraysize(Netgame.name));
+						if ( !txt.empty() ) {
+							send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
+							std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
+						}
 					}
+					// enable/disable sending of multi log (per client)
+					else if (it.key() == "multilog") {
+						auto enabled = it.value().get<bool>();
 
-				}
+						if (m_active_client) {
+							m_active_client->m_multilog_enabled = enabled;
 
-				// password
-				auto password_key = msg.find("server_password");
-
-				if ( password_key != msg.end() ) {
-					std::string pass = *password_key;
-					SDL_strlcpy(Multi_options_g.std_passwd, pass.c_str(), SDL_arraysize(Multi_options_g.std_passwd));
-				}
-
-				// allow voice
-				auto voice_key = msg.find("server_voice");
-
-				if ( voice_key != msg.end() ) {
-					bool voice = *voice_key;
-					Multi_options_g.std_voice = voice ? 1 : 0;
-				}
-
-				// server update rate
-				auto update_rate_key = msg.find("server_update_rate");
-
-				if ( update_rate_key != msg.end() ) {
-					int obj_update = *update_rate_key;
-
-					if ( (obj_update >= 0) && (obj_update < MAX_OBJ_UPDATE_LEVELS) ) {
-						Multi_options_g.std_datarate = obj_update;
-						Net_player->p_info.options.obj_update_level = obj_update;
+							// if we are enabling the multilog then send all that we have to the client
+							multilog_refresh();
+						}
 					}
-				}
-
-				// max players
-				auto max_players_key = msg.find("server_max_players");
-
-				if ( max_players_key != msg.end() ) {
-					int max_players = *max_players_key;
-
-					if ( (max_players == -1) || !((max_players < 1) || (max_players > MAX_PLAYERS)) ) {
-						Multi_options_g.std_max_players = max_players;
-					}
-				}
-
-				// kick player
-				auto kick_key = msg.find("player_kick");
-
-				if ( kick_key != msg.end() ) {
-					short player_id = *kick_key;
-					int idx = find_player_id(player_id);
-
-					multi_kick_player(idx, 0);
-				}
-
-				// player info/stats
-				auto info_key = msg.find("player_info");
-
-				if ( info_key != msg.end() ) {
-					short player_id = *info_key;
-					int idx = find_player_id(player_id);
-
-					if (idx >= 0) {
-						player_info(&Net_players[idx]);
-						m_active_client->m_active_player = player_id;
-					} else {
-						m_active_client->m_active_player = -1;
-					}
-				}
-
-				// fps
-				auto fps_key = msg.find("fps");
-
-				if ( fps_key != msg.end() ) {
-					int fps = *fps_key;
-					CAP(fps, 10, 120);
-
-					Multi_options_g.std_framecap = fps;
-				}
-
-				// chat
-				auto chat_key = msg.find("chat");
-
-				if ( chat_key != msg.end() ) {
-					std::string txt = *chat_key;
-
-					if ( !txt.empty() ) {
-						send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
-
-						std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
-					}
-				}
-
-				// revalidate missions/tables
-				if ( msg.find("validate") != msg.end() ) {
-					cf_delete(MULTI_VALID_MISSION_FILE, CF_TYPE_DATA);
-
-					multi_update_valid_missions();
-				}
-
-				// enable/disable sending of multi log (per client)
-				auto multilog_key = msg.find("multilog");
-
-				if ( multilog_key != msg.end() ) {
-					bool enabled = *multilog_key;
-
-					m_active_client->m_multilog_enabled = enabled ? true : false;
-
-					// if we are enabling the multilog then send all that we have to the client
-					multilog_refresh();
 				}
 			} catch (json::exception &e) {
 				ml_printf("STD => Exception caught handling client message: %s", e.what());
@@ -517,6 +427,130 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 	m_active_client = nullptr;
 
 	return exit_val;
+}
+
+void StandaloneUI::msg_handler_server(const json &msg)
+{
+	for (auto it = msg.begin(); it != msg.end(); ++it) {
+		// name
+		if (it.key() == "name") {
+			auto name = it.value().get<std::string>();
+
+			if ( name.empty() ) {
+				name = XSTR("Standalone Server", 916);
+			}
+
+			SDL_strlcpy(Multi_options_g.std_pname, name.c_str(), SDL_arraysize(Multi_options_g.std_pname));
+
+			// if no host is connected then set as netgame name too
+			if ( !Netgame.host ) {
+				SDL_strlcpy(Netgame.name, name.c_str(), SDL_arraysize(Netgame.name));
+			}
+
+		}
+
+		// password
+		else if (it.key() == "password") {
+			auto pass = it.value().get<std::string>();
+			SDL_strlcpy(Multi_options_g.std_passwd, pass.c_str(), SDL_arraysize(Multi_options_g.std_passwd));
+		}
+
+		// allow voice
+		else if (it.key() == "voice") {
+			auto voice = it.value().get<bool>();
+			Multi_options_g.std_voice = voice ? 1 : 0;
+		}
+
+		// server update rate
+		else if (it.key() == "update_rate") {
+			auto obj_update = it.value().get<int>();
+
+			if ( (obj_update >= 0) && (obj_update < MAX_OBJ_UPDATE_LEVELS) ) {
+				Multi_options_g.std_datarate = obj_update;
+				Net_player->p_info.options.obj_update_level = obj_update;
+			}
+		}
+
+		// max players
+		else if (it.key() == "max_players") {
+			auto max_players = it.value().get<int>();
+
+			if ( (max_players == -1) || !((max_players < 1) || (max_players > MAX_PLAYERS)) ) {
+				Multi_options_g.std_max_players = max_players;
+			}
+		}
+
+		// PXO
+		else if (it.key() == "pxo") {
+			auto pxo = it.value().get<bool>();
+
+			if (Multi_options_g.pxo && !pxo) {
+				multi_fs_tracker_logout();
+				Multi_options_g.pxo = 0;
+			} else if ( !Multi_options_g.pxo && pxo ) {
+				Multi_options_g.pxo = 1;
+				std_tracker_login();
+			}
+		}
+
+		// PXO channel
+		else if (it.key() == "pxo_channel") {
+			auto channel = it.value().get<std::string>();
+
+			if ( !channel.empty() && ((channel.front() == '#') || (channel.front() == '$')) ) {
+				SDL_strlcpy(Multi_fs_tracker_channel, channel.c_str(), SDL_arraysize(Multi_fs_tracker_channel));
+
+				if (Multi_options_g.pxo && !multi_num_connections()) {
+					multi_fs_tracker_logout();
+					std_tracker_login();
+				}
+				// TODO: logout/login on reset to set changes?
+			}
+		}
+
+		// frame cap
+		else if (it.key() == "framecap") {
+			auto cap = it.value().get<int>();
+
+			CAP(cap, 15, 120);
+			Multi_options_g.std_framecap = cap;
+		}
+
+		// re-validate missions on PXO
+		else if (it.key() == "validate") {
+			if (Multi_options_g.pxo) {
+				cf_delete(MULTI_VALID_MISSION_FILE, CF_TYPE_DATA);
+
+				multi_update_valid_missions();
+			}
+		}
+	}
+}
+
+void StandaloneUI::msg_handler_player(const json &msg)
+{
+	for (auto it = msg.begin(); it != msg.end(); ++it) {
+		// kick player
+		if (it.key() == "kick") {
+			auto player_id = it.value().get<short>();
+			int idx = find_player_id(player_id);
+
+			multi_kick_player(idx, 0);
+		}
+
+		// player info/stats
+		else if (it.key() == "info") {
+			auto player_id = it.value().get<short>();
+			int idx = find_player_id(player_id);
+
+			if (idx >= 0) {
+				player_info(&Net_players[idx]);
+				m_active_client->m_active_player = player_id;
+			} else {
+				m_active_client->m_active_player = -1;
+			}
+		}
+	}
 }
 
 bool StandaloneUI::add_message(const json &msg)
@@ -603,7 +637,7 @@ void StandaloneUI::do_frame()
 		}
 
 		// maybe update mission time
-		if (m_mission_time != 0.0f) {
+		if (m_mission_time != -1) {
 			if ( !client->m_mission_time_timestamp || (cur_time_ms > client->m_mission_time_timestamp) ) {
 				client->m_mission_time_timestamp = cur_time_ms + UpdateTimes::mission_time;
 
@@ -984,7 +1018,7 @@ void StandaloneUI::reset_all()
 	m_chatlog.clear();
 	m_chatlog.shrink_to_fit();
 
-	Standalone_client *prev_client = m_active_client;
+	auto prev_client = m_active_client;
 
 	for (auto &client : m_clients) {
 		m_active_client = client;
@@ -1056,6 +1090,7 @@ void StandaloneUI::reset()
 	if (m_active_client) {
 		m_active_client->m_netgame_timestamp = 0;
 		m_active_client->m_stats_timestamp = 0;
+		m_active_client->m_mission_time_timestamp = 0;
 		m_active_client->m_active_player = -1;
 	}
 }
@@ -1065,6 +1100,7 @@ void StandaloneUI::reset_timestamps()
 	for (auto &client : m_clients) {
 		client->m_netgame_timestamp = 0;
 		client->m_stats_timestamp = 0;
+		client->m_mission_time_timestamp = 0;
 	}
 }
 
@@ -1204,7 +1240,11 @@ void StandaloneUI::popup_close()
 
 void StandaloneUI::mission_set_time(float mission_time)
 {
-	m_mission_time = mission_time;
+	if (mission_time > 0.0f) {
+		m_mission_time = static_cast<int>(SDL_roundf(mission_time));
+	} else {
+		m_mission_time = -1;	// disable timer in ui
+	}
 }
 
 void StandaloneUI::mission_update_time()

@@ -2465,7 +2465,7 @@ void vm_forward_interpolate(vector *goal_f, matrix *orient, vector *w_in, float 
 
 	// find theta to goal
 	vm_vec_copy_scale(&theta_goal, &local_rot_axis, theta);
-	SDL_assert(fl_abs(theta_goal.xyz.z) < 0.001f);		// check for proper rotation
+	SDL_assert_paranoid(fl_abs(theta_goal.xyz.z) < 0.001f);		// check for proper rotation
 
 	theta_end = vmd_zero_vector;
 	float delta_theta;

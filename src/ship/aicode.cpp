@@ -13870,7 +13870,7 @@ void ai_frame(int objnum)
 	}
 
 	if ((En_objp != NULL) && (En_objp->pos.xyz.x == Pl_objp->pos.xyz.x) && (En_objp->pos.xyz.y == Pl_objp->pos.xyz.y) && (En_objp->pos.xyz.z == Pl_objp->pos.xyz.z)) {
-		mprintf(("Warning: Object and its enemy have same position.  Object #%i\n", Pl_objp-Objects));
+		mprintf(("Warning: Object and its enemy have same position.  Object #%li\n", Pl_objp-Objects));
 		En_objp = NULL;
 	}
 

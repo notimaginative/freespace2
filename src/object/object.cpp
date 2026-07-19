@@ -1733,7 +1733,7 @@ void obj_render(object *obj)
 	switch( obj->type )	{
 	case OBJ_NONE:
 		#ifndef NDEBUG
-		mprintf(( "ERROR!!!! Bogus obj %d is rendering!\n", obj-Objects ));
+		mprintf(( "ERROR!!!! Bogus obj %ld is rendering!\n", obj-Objects ));
 		Int3();
 		#endif
 		break;

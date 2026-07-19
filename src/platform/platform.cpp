@@ -75,7 +75,7 @@ void vm_free(void* ptr)
 	size_t actual_size = MALLOC_SIZE(ptr);
 
 	if (Watch_malloc) {
-		mprintf(( "Free %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
+		mprintf(( "Free %zu bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
 	}
 
 	TotalRam -= static_cast<int>(actual_size);
@@ -103,7 +103,7 @@ void *vm_malloc(size_t size)
 	size_t actual_size = MALLOC_SIZE(ptr);
 
 	if ( Watch_malloc )	{
-		mprintf(( "Malloc %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
+		mprintf(( "Malloc %zu bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
 	}
 
 	TotalRam += static_cast<int>(actual_size);
@@ -131,7 +131,7 @@ char *vm_strdup(char const* str)
 	size_t actual_size = MALLOC_SIZE(ptr);
 
 	if ( Watch_malloc )	{
-		mprintf(( "Strdup %d bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
+		mprintf(( "Strdup %zu bytes [%s(%d)]\n", actual_size, clean_filename(file), line ));
 	}
 
 	TotalRam += static_cast<int>(actual_size);

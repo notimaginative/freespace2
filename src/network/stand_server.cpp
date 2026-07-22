@@ -62,6 +62,12 @@ enum UpdateTimes {
 	mission_time	= 10000,
 };
 
+enum class PopupTypes {
+	Status,
+	Notice,
+	Alert
+};
+
 struct chatlog_item {
 	std::string id;
 	std::string message;
@@ -104,7 +110,7 @@ private:
 
 	std::string m_title;
 	std::string m_state_text;
-	json m_popup;
+	json m_status_popup;
 
 	uint32_t m_next_client_id;
 
@@ -174,9 +180,9 @@ public:
 	void multilog_add_line(const char *line);
 	void multilog_refresh();
 
-	void popup_open(const char *title);
-	void popup_set_text(const char *str, int field_num);
-	void popup_close();
+	void popup(PopupTypes type, const char *title = nullptr, const char *msg = nullptr);
+	void popup_set_text(const char *str, int field_num);	// for status popup only
+	void popup_close();	// for status popup only
 
 	void mission_set_time(float mission_time);
 	void mission_update_time();
@@ -1233,9 +1239,9 @@ void StandaloneUI::reset()
 	update_connections();
 
 	// popup - only if active
-	if ( !m_popup.empty() ) {
+	if ( !m_status_popup.empty() ) {
 		msg.clear();
-		msg["popup"] = m_popup;
+		msg["popup"]["status"] = m_status_popup;
 
 		add_message(msg);
 	}
@@ -1305,22 +1311,42 @@ void StandaloneUI::multilog_refresh()
 	}
 }
 
-void StandaloneUI::popup_open(const char *title)
+void StandaloneUI::popup(PopupTypes type, const char *title, const char *message)
 {
-	SDL_assert(title);
-
 	if (m_clients.empty()) {
 		return;
 	}
 
-	m_popup["title"] = title;
-
-	m_popup["field1"] = "";
-	m_popup["field2"] = "";
-
 	json msg;
 
-	msg["popup"] = m_popup;
+	if (type == PopupTypes::Status) {
+		SDL_assert(title);
+
+		m_status_popup["title"] = title;
+
+		m_status_popup["field1"] = "";
+		m_status_popup["field2"] = "";
+
+		msg["popup"]["status"] = m_status_popup;
+	} else if (type == PopupTypes::Notice) {
+		if ( !message ) {
+			Int3();
+			return;
+		}
+
+		msg["popup"]["notice"]["title"] = title ? title : "Notice";
+		msg["popup"]["notice"]["message"] = message;
+	} else if (type == PopupTypes::Alert) {
+		if ( !message ) {
+			Int3();
+			return;
+		}
+
+		msg["popup"]["alert"]["title"] = title ? title : "Alert!";
+		msg["popup"]["alert"]["message"] = message;
+	} else {
+		return;
+	}
 
 	if ( add_message(msg) ) {
 		// trigger write callback so we send this message quickly
@@ -1342,15 +1368,15 @@ void StandaloneUI::popup_set_text(const char *str, int field_num)
 
 	switch (field_num) {
 		case 0:
-			m_popup["title"] = str;
+			m_status_popup["title"] = str;
 			break;
 
 		case 1:
-			m_popup["field1"] = str;
+			m_status_popup["field1"] = str;
 			break;
 
 		case 2:
-			m_popup["field2"] = str;
+			m_status_popup["field2"] = str;
 			break;
 
 		default:
@@ -1360,7 +1386,7 @@ void StandaloneUI::popup_set_text(const char *str, int field_num)
 
 	json msg;
 
-	msg["popup"] = m_popup;
+	msg["popup"]["status"] = m_status_popup;
 
 	if ( add_message(msg) ) {
 		// trigger write callback so we send this message quickly
@@ -1378,9 +1404,11 @@ void StandaloneUI::popup_close()
 		return;
 	}
 
-	json msg = {{ "popup", false }};
+	json msg;
 
-	m_popup.clear();
+	m_status_popup.clear();
+
+	msg["popup"]["status"] = false;
 
 	if ( add_message(msg) ) {
 		// trigger write callback so we send this message quickly
@@ -1698,7 +1726,7 @@ void std_create_gen_dialog(const char *title)
 		return;
 	}
 
-	Standalone->popup_open(title);
+	Standalone->popup(PopupTypes::Status, title);
 }
 
 void std_destroy_gen_dialog()

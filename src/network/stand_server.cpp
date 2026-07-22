@@ -716,13 +716,18 @@ void StandaloneUI::msg_handler_player(const json &msg)
 		// player info/stats
 		else if (it.key() == "info") {
 			auto player_id = it.value().get<short>();
-			int idx = find_player_id(player_id);
 
-			if (idx >= 0) {
-				player_info(&Net_players[idx]);
-				m_active_client->m_active_player = player_id;
-			} else {
+			if ((player_id < 0) || (m_active_client->m_active_player == player_id)) {
 				m_active_client->m_active_player = -1;
+			} else {
+				int idx = find_player_id(player_id);
+
+				if (idx >= 0) {
+					player_info(&Net_players[idx]);
+					m_active_client->m_active_player = player_id;
+				} else {
+					m_active_client->m_active_player = -1;
+				}
 			}
 		}
 	}

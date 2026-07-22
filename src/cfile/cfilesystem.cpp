@@ -1684,6 +1684,7 @@ void cfile_log_info()
 		cf_root	*root = cf_get_root(i);
 
 		if (root->roottype == CF_ROOTTYPE_EMBED) {
+			SDL_Log("  <binary>::embed.vp");
 			continue;
 		}
 
@@ -1691,7 +1692,7 @@ void cfile_log_info()
 
 		if (home && home_len) {
 			if (path.find(home) == 0) {
-				path.replace(0, home_len-1, "<HOME>");
+				path.replace(0, home_len-1, "<User>");
 			}
 		}
 

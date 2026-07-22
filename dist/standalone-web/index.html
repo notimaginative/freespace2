@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="application-name" content="FreeSpace Standalone">
+	<meta name="color-scheme" content="dark">
+	<title>FreeSpace Standalone</title>
+	<script src="standalone.js" defer></script>
+	<link rel="icon" href="favicon.ico" sizes="any">
+	<link rel="stylesheet" href="standalone.css">
+</head>
+<body>
+	<header>
+		<nav class="primary-nav" aria-label="Primary Navigation">
+			<div class="primary-nav__front">
+				<button class="btn--icon" type="button" title="Settings" aria-controls="server" aria-pressed="false" aria-expanded="false" onclick="toggleNav(this)">
+					<span class="sr-only">Settings</span>
+					<svg aria-hidden="true" role="presentation">
+						<use xlink:href="icons.svg#cog"></use>
+					</svg>
+				</button>
+				<button class="btn--icon" type="button" title="Information" aria-controls="server-info" aria-pressed="false" aria-expanded="false" onclick="toggleNav(this)">
+					<span class="sr-only">Server Information</span>
+					<svg aria-hidden="true" role="presentation">
+						<use xlink:href="icons.svg#information-circle"></use>
+					</svg>
+				</button>
+			</div>
+
+			<ul id="server" class="primary-nav__menu" role="list" aria-hidden="true">
+				<li>
+					<label class="setting">
+						<span>Server Name</span>
+						<input data-server-name type="text" autocomplete="off" maxlength="31" disabled tabindex="-1"></input>
+					</label>
+				</li>
+				<li>
+					<label class="setting">
+						<span>Host Password</span>
+						<input data-server-password type="text" autocomplete="off" maxlength="15" disabled tabindex="-1"></input>
+					</label>
+				</li>
+				<li>
+					<label class="setting">
+						<span>Object Update</span>
+						<select data-server-update_rate disabled tabindex="-1">
+							<option value="0">Low</option>
+							<option value="1">Medium</option>
+							<option value="2">High</option>
+							<option value="3">LAN (no limit)</option>
+						</select>
+					</label>
+				</li>
+				<li>
+					<label class="setting">
+						<span>Max Players</span>
+						<select data-server-max_players disabled tabindex="-1">
+							<option value="-1" default>(default)</option>
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+							<option value="6">6</option>
+							<option value="7">7</option>
+							<option value="8">8</option>
+							<option value="9">9</option>
+							<option value="10">10</option>
+							<option value="11">11</option>
+						</select>
+					</label>
+				</li>
+				<li>
+					<label class="setting">
+						<span>Framecap</span>
+						<input data-server-framecap class="ff-mono" type="number" min="15" max="120" disabled tabindex="-1">
+					</label>
+				</li>
+				<li>
+					<label class="setting toggle">
+						<span>PXO</span>
+						<input data-server-pxo type="checkbox" disabled tabindex="-1">
+					</label>
+				</li>
+				<li>
+					<label class="setting">
+						<span>PXO Channel</span>
+						<input data-server-pxo_channel type="text" minlength="2" maxlength="31" disabled tabindex="-1">
+					</label>
+				</li>
+				<li>
+					<label class="setting toggle">
+						<span>Allow Voice</span>
+						<input data-server-voice type="checkbox" disabled tabindex="-1">
+					</label>
+				</li>
+			</ul>
+
+			<ul id="server-info" class="primary-nav__menu" role="list" aria-hidden="true">
+				<li>
+					<span class="fs-300 uppercase ls-1 text-400">Build</span>
+					<div class="text-100" data-server-info-build></div>
+				</li>
+				<li>
+					<span class="fs-300 uppercase ls-1 text-400">Multi Version</span>
+					<div class="text-100 ff-mono" data-server-info-multi_version></div>
+				</li>
+				<li>
+					<span class="fs-300 uppercase ls-1 text-400">Server State</span>
+					<div class="text-100 ff-mono" data-server-info-state></div>
+				</li>
+				<li>
+					<span class="fs-300 uppercase ls-1 text-400">Uptime</span>
+					<div class="text-100 ff-mono" data-server-info-uptime></div>
+				</li>
+				<li>
+					<span class="fs-300 uppercase ls-1 text-400">Listen Address</span>
+					<div class="text-100 ff-mono" data-server-info-address></div>
+				</li>
+				<li class="m-auto--top">
+					<button class="btn--icon btn--icon-text text-200" type="button" onclick="Server.validate()" tabindex="-1">
+						<svg aria-hiddden="true" role="presentation">
+							<use xlink:href="icons.svg#badge-check"></use>
+						</svg>
+						Revalidate Data
+					</button>
+				</li>
+				<li>
+					<button class="btn--icon btn--icon-text text-200" type="button" onclick="Server.reset_all()" tabindex="-1">
+						<svg aria-hiddden="true" role="presentation">
+							<use xlink:href="icons.svg#refresh"></use>
+						</svg>
+						Reset Server
+					</button>
+				</li>
+				<li>
+					<button class="btn--icon btn--icon-text text-200" type="button" onclick="Server.shutdown()" tabindex="-1">
+						<svg aria-hiddden="true" role="presentation">
+							<use xlink:href="icons.svg#logout"></use>
+						</svg>
+						Shutdown
+					</button>
+				</li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		<div id="conn-status" class="fs-800 text-300">
+			Connecting to server...
+		</div>
+
+		<div id="main-content" class="content hidden">
+			<section class="panel col-2" id="multilog">
+				<h2 class="panel__title">Multi Log</h2>
+				<div class="panel__body">
+					<label class="setting toggle-sm">
+						<span>Multilog</span>
+						<input type="checkbox" data-multilog-enable checked>
+					</label>
+					<div data-multilog class="output-box" tabindex="0"></div>
+				</div>
+			</section>
+
+			<section class="panel col-2" id="chatBox">
+				<h2 class="panel__title">Chatbox</h2>
+				<div class="panel__body">
+					<div id="chatbox" class="output-box" tabindex="0"></div>
+					<input type="text" id="chatMessage" autocomplete="off">
+				</div>
+			</section>
+
+			<section class="panel" id="netgame">
+				<h2 class="panel__title">Netgame</h2>
+				<div class="panel__body">
+					<table>
+						<caption>Info</caption>
+						<tbody>
+							<tr>
+								<th scope="row">Name</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="name"></td>
+							</tr>
+							<tr>
+								<th scope="row"><div>Mission Title</div></th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="mission_title"></td>
+							</tr>
+							<tr>
+								<th scope="row"><div>Mission</div></th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="mission_name"></td>
+							</tr>
+							<tr>
+								<th scope="row"><div>Campaign</div></th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="campaign_name"></td>
+							</tr>
+						</tbody>
+					</table>
+					<table>
+						<caption>Status</caption>
+						<tbody>
+							<tr>
+								<th scope="row">Mode</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="mode"></td>
+							</tr>
+							<tr>
+								<th scope="row">Type</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="type"></td>
+							</tr>
+							<tr>
+								<th scope="row">State</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="state"></td>
+							</tr>
+						</tbody>
+					</table>
+					<table>
+						<caption>Settings</caption>
+						<tbody>
+							<tr>
+								<th scope="row">Max Players</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="max_players"></td>
+							</tr>
+							<tr>
+								<th scope="row">Max Observers</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="max_observers"></td>
+							</tr>
+							<tr>
+								<th scope="row">Max Respawns</th>
+								<td class="fs-500 text-200 ff-mono" data-netgame="max_respawns"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="panel">
+				<h2 class="panel__title">Players</h2>
+				<div class="panel__body">
+					<table id="players">
+						<thead>
+							<tr>
+								<th scope="col">Id</th>
+								<th scope="col">Name</th>
+								<th scope="col">Address</th>
+								<th scope="col">Ping</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="panel" id="playerInfo">
+				<h2 class="panel__title">Player Info</h2>
+				<div class="panel__body">
+					<table>
+						<tbody>
+							<tr>
+								<th scope="row">Id</th>
+								<td class="fs-500 text-200 ff-mono" data-info-id></td>
+							</tr>
+							<tr>
+								<th scope="row">Name</th>
+								<td class="fs-500 text-200 ff-mono" data-info-name></td>
+							</tr>
+							<tr>
+								<th scope="row">Ping</th>
+								<td class="fs-500 text-200 ff-mono" data-info-ping></td>
+							</tr>
+							<tr>
+								<th scope="row">Address</th>
+								<td class="fs-500 text-200 ff-mono" data-info-address></td>
+							</tr>
+							<tr>
+								<th scope="row">Ship</th>
+								<td class="fs-500 text-200 ff-mono" data-info-ship></td>
+							</tr>
+							<tr>
+								<th scope="row">Rank</th>
+								<td class="fs-500 text-200 ff-mono" data-info-rank></td>
+							</tr>
+							<tr>
+								<th scope="row">Flight Time</th>
+								<td class="fs-500 text-200 ff-mono" data-info-flight_time></td>
+							</tr>
+							<tr>
+								<th scope="row">Missions Flown</th>
+								<td class="fs-500 text-200 ff-mono" data-info-missions_flown></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="panel" id="playerStatsAllTime">
+				<h2 class="panel__title">All-Time Stats</h2>
+				<div class="panel__body">
+					<table>
+						<tbody>
+							<tr>
+								<th scope="row">Kills</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-kills></td>
+							</tr>
+							<tr>
+								<th scope="row">Friendly kills</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-friendly_kills></td>
+							</tr>
+							<tr>
+								<th scope="row">Assists</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-assists></td>
+							</tr>
+							<tr>
+								<th scope="row">Primary shots fired</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-primary_shots_fired></td>
+							</tr>
+							<tr>
+								<th scope="row">Primary hit %</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-primary_hit_pct></td>
+							</tr>
+							<tr>
+								<th scope="row">Secondary shots fired</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-secondary_shots_fired></td>
+							</tr>
+							<tr>
+								<th scope="row">Secondary hit %</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-secondary_hit_pct></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="panel" id="playerStatsMission">
+				<h2 class="panel__title">Mission Stats</h2>
+				<div class="panel__body">
+					<table>
+						<tbody>
+							<tr>
+								<th scope="row">Kills</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-kills></td>
+							</tr>
+							<tr>
+								<th scope="row">Friendly kills</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-friendly_kills></td>
+							</tr>
+							<tr>
+								<th scope="row">Assists</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-assists></td>
+							</tr>
+							<tr>
+								<th scope="row">Primary shots fired</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-primary_shots_fired></td>
+							</tr>
+							<tr>
+								<th scope="row">Primary hit %</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-primary_hit_pct></td>
+							</tr>
+							<tr>
+								<th scope="row">Secondary shots fired</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-secondary_shots_fired></td>
+							</tr>
+							<tr>
+								<th scope="row">Secondary hit %</th>
+								<td class="fs-500 text-200 ff-mono" data-stats-secondary_hit_pct></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="panel" id="mission">
+				<h2 class="panel__title">Mission</h2>
+				<div class="panel__body gap--none">
+					<table>
+						<tbody>
+							<tr>
+								<th scope="row">Time</th>
+								<td class="fs-500 text-200 ff-mono" data-mission-time></td>
+							</tr>
+						</tbody>
+					</table>
+					<section id="missionGoals">
+						<h3 class="fs-300 text-300 uppercase ls-1 fw-regular">Goals</h3>
+						<table id="primaryGoals" class="hidden">
+							<caption>Primary</caption>
+							<tbody>
+							</tbody>
+						</table>
+						<table id="secondaryGoals" class="hidden">
+							<caption>Secondary</caption>
+							<tbody>
+							</tbody>
+						</table>
+						<table id="bonusGoals" class="hidden">
+							<caption>Bonus</caption>
+							<tbody>
+							</tbody>
+						</table>
+					</section>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<!-- Alert footer -->
+
+	<footer>
+		<div id="alerts"></div>
+	</footer>
+
+	<!-- Templates -->
+
+	<template data-template="output_line">
+		<div class="message_id"></div>
+		<div class="message"></div>
+	</template>
+
+	<template data-alert-box>
+		<div class="alert-box">
+			<span data-alert-msg></span>
+			<button class="btn--icon" data-close-btn>
+				<span class="sr-only">Close</span>
+				<!-- This svg must be inline (can't reference external resource here -- icons.svg#x) -->
+				<svg aria-hidden="true" role="presentation" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+		</div>
+	</template>
+</body>
+</html>

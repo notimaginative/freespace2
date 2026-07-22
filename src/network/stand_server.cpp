@@ -112,6 +112,11 @@ private:
 	std::string m_state_text;
 	json m_status_popup;
 
+	bool m_pxo_refresh_state;
+	bool m_pxo_enabled;
+
+	void pxo_refresh();
+
 	uint32_t m_next_client_id;
 
 	int m_mission_time;
@@ -402,6 +407,9 @@ StandaloneUI::StandaloneUI()
 	SDL_snprintf(title, SDL_arraysize(title), "%s %d.%02d.%02d", XSTR("FreeSpace Standalone", 935), FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
 	m_title = title;
 
+	m_pxo_refresh_state = false;
+	m_pxo_enabled = (Multi_options_g.pxo == 1);
+
 	m_next_client_id = 1;
 
 	m_active_client = nullptr;
@@ -645,12 +653,23 @@ void StandaloneUI::msg_handler_server(const json &msg)
 			auto pxo = it.value().get<bool>();
 
 			if (Multi_options_g.pxo && !pxo) {
-				multi_fs_tracker_logout();
-				Multi_options_g.pxo = 0;
+				m_pxo_refresh_state = true;
+				m_pxo_enabled = false;
 			} else if ( !Multi_options_g.pxo && pxo ) {
-				Multi_options_g.pxo = 1;
-				std_tracker_login();
+				m_pxo_refresh_state = true;
+				m_pxo_enabled = true;
+			} else {
+				// if we reverted to the original state then abort the refresh
+				m_pxo_refresh_state = false;
 			}
+
+			// if we can't do this immediately then notify the client of that fact
+			if (m_pxo_refresh_state && multi_num_connections()) {
+				popup(PopupTypes::Notice, nullptr,
+					  "PXO state change will take affect at the conclusion of the current game.");
+			}
+
+			pxo_refresh();
 		}
 
 		// PXO channel
@@ -659,12 +678,8 @@ void StandaloneUI::msg_handler_server(const json &msg)
 
 			if ( !channel.empty() && ((channel.front() == '#') || (channel.front() == '$')) ) {
 				SDL_strlcpy(Multi_fs_tracker_channel, channel.c_str(), SDL_arraysize(Multi_fs_tracker_channel));
-
-				if (Multi_options_g.pxo && !multi_num_connections()) {
-					multi_fs_tracker_logout();
-					std_tracker_login();
-				}
-				// TODO: logout/login on reset to set changes?
+				m_pxo_refresh_state = true;
+				pxo_refresh();
 			}
 		}
 
@@ -860,7 +875,7 @@ void StandaloneUI::server_update_vals()
 	msg["server"]["voice"] = Multi_options_g.std_voice;
 	msg["server"]["update_rate"] = Multi_options_g.std_datarate;
 	msg["server"]["framecap"] = Multi_options_g.std_framecap;
-	msg["server"]["pxo"] = Multi_options_g.pxo;
+	msg["server"]["pxo"] = m_pxo_enabled;	// use intended value, not actual
 	msg["server"]["pxo_channel"] = Multi_fs_tracker_channel;
 
 	add_message(msg);
@@ -1168,15 +1183,36 @@ void StandaloneUI::chat_refresh()
 	}
 }
 
-void StandaloneUI::reset_all()
+void StandaloneUI::pxo_refresh()
 {
-	if (m_clients.empty()) {
+	// bail if we don't need to be here or if it's not safe to switch pxo state
+	if ( !m_pxo_refresh_state || multi_num_connections() ) {
 		return;
 	}
+
+	m_pxo_refresh_state = false;
+
+	multi_fs_tracker_logout();
+
+	Multi_options_g.pxo = (m_pxo_enabled ? 1 : 0);
+
+	if (m_pxo_enabled) {
+		std_tracker_login();
+	}
+}
+
+void StandaloneUI::reset_all()
+{
+	// refresh PXO state if it's safe to do so
+	pxo_refresh();
 
 	// we should clear chat log here and start fresh
 	m_chatlog.clear();
 	m_chatlog.shrink_to_fit();
+
+	if (m_clients.empty()) {
+		return;
+	}
 
 	auto prev_client = m_active_client;
 

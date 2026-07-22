@@ -189,13 +189,124 @@ static std::atomic<bool> Standalone_terminate(false);
 
 static void std_lws_logger(int level, const char *line)
 {
-	if (level & LLL_WARN) {
-		SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "StandaloneUI: %s", line);
-	} else if (level & LLL_ERR) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "StandaloneUI: %s", line);
-	} else if (level & LLL_NOTICE) {
+	if (level & LLL_ERR) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "STD: %s", line);
+	} else if (level & (LLL_WARN|LLL_NOTICE)) {
 		nprintf(("lws", "STD: %s", line));
 	}
+}
+
+static lws_fop_fd_t std_lws_cfopen(const struct lws_plat_file_ops *fops_own,
+								const struct lws_plat_file_ops *fops,
+								const char *filename, const char *vpath,
+								lws_fop_flags_t *flags)
+{
+	if ( !filename || !SDL_strlen(filename) ) {
+		return nullptr;
+	}
+
+	auto filep = cfopen(filename, "rb", CF_TYPE_ROOT);
+
+	if ( !filep ) {
+		return nullptr;
+	}
+
+	auto fop_fd = new lws_fop_fd;
+
+	SDL_zerop(fop_fd);
+
+	fop_fd->fd = 1;
+	fop_fd->fops = fops;
+	fop_fd->flags = *flags;
+	fop_fd->len = static_cast<lws_filepos_t>(cfilelength(filep));
+	fop_fd->pos = 0;
+
+	fop_fd->filesystem_priv = new CFILE;
+
+	SDL_memcpy(fop_fd->filesystem_priv, filep, sizeof(CFILE));
+
+	// prevent lws from trying to stat file since it will almost always result
+	// in a failure or incorrect/invalid info
+	// (shouldn't be on *our* flags though, so make sure we set that already)
+	*flags |= LWS_FOP_FLAG_VIRTUAL;
+
+	return fop_fd;
+}
+
+static int std_lws_cfclose(lws_fop_fd_t *fop_fd)
+{
+	if (fop_fd && *fop_fd) {
+		auto filep = reinterpret_cast<CFILE *>((*fop_fd)->filesystem_priv);
+
+		if (filep) {
+			cfclose(filep);
+			delete filep;
+		}
+
+		delete *fop_fd;
+		*fop_fd = nullptr;
+	}
+
+	return 0;
+}
+
+static lws_fileofs_t std_lws_cfseek_cur(lws_fop_fd_t fop_fd, lws_fileofs_t offset)
+{
+	auto filep = reinterpret_cast<CFILE *>(fop_fd->filesystem_priv);
+
+	if ( !filep ) {
+		return -1;
+	}
+
+	if ((offset > 0) &&
+		(offset > static_cast<lws_fileofs_t>(fop_fd->len - fop_fd->pos)))
+	{
+		offset = static_cast<lws_fileofs_t>(fop_fd->len - fop_fd->pos);
+	}
+
+	if (static_cast<lws_fileofs_t>(fop_fd->pos + offset) < 0) {
+		offset = static_cast<lws_fileofs_t>(-fop_fd->pos);
+	}
+
+	if (cfseek(filep, offset, CF_SEEK_CUR)) {
+		auto rval = static_cast<lws_fileofs_t>(cftell(filep));
+		fop_fd->pos = rval;
+
+		return rval;
+	}
+
+	return -1;
+}
+
+static int std_lws_cfread(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
+					   uint8_t *buf, lws_filepos_t len)
+{
+	auto filep = reinterpret_cast<CFILE *>(fop_fd->filesystem_priv);
+
+	if ( !filep ) {
+		return -1;
+	}
+
+	auto bytes_read = cfread(buf, 1, len, filep);
+
+	if ( len && !bytes_read ) {
+		*amount = 0;
+		return -1;
+	}
+
+	fop_fd->pos += static_cast<lws_filepos_t>(bytes_read);
+
+	*amount = static_cast<lws_filepos_t>(bytes_read);
+
+	return 0;
+}
+
+static int std_lws_cfwrite(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
+						   uint8_t *buf, lws_filepos_t len)
+{
+	*amount = 0;
+
+	return -1;
 }
 
 
@@ -205,20 +316,48 @@ StandaloneUI::StandaloneUI()
 
 	SDL_zero(info);
 
-	// only needs the single mount
 	m_lws_mounts = new struct lws_http_mount;
 
 	SDL_zerop(m_lws_mounts);
 
 	m_lws_mounts->mountpoint = "/";
 	m_lws_mounts->mountpoint_len = 1;
-	m_lws_mounts->origin = "./standalone-web";
+	m_lws_mounts->origin = "standalone-web.zip";
 	m_lws_mounts->origin_protocol = LWSMPRO_FILE;
 	m_lws_mounts->def = "index.html";
 
+#ifndef NDEBUG
+	// add special developer mount for easier frontend work
+	auto dev_mount = new struct lws_http_mount;
+
+	SDL_zerop(dev_mount);
+
+	static std::string webdir;	// must be available for lifetime of the process
+
+	auto cwd = SDL_GetCurrentDirectory();
+
+	if (cwd) {
+		webdir = cwd;
+
+		SDL_free(cwd);
+		cwd = nullptr;
+	}
+
+	webdir += "standalone-web";
+
+	dev_mount->mountpoint = "/dev";
+	dev_mount->mountpoint_len = 4;
+	dev_mount->origin = webdir.c_str();
+	dev_mount->origin_protocol = LWSMPRO_FILE;
+	dev_mount->def = "index.html";
+
+	// add dev mount to list
+	m_lws_mounts->mount_next = dev_mount;
+#endif
+
 	if ( !SDL_strlen(Multi_options_g.std_listen_addr) ) {
-		// this option is to get around a libwebsockets bug that prevented binding
-		// to a IPv4 iface address properly
+		// this option is to get around a libwebsockets bug that prevented
+		// binding to a IPv4 iface address properly
 		info.options |= LWS_SERVER_OPTION_DISABLE_IPV6;
 		info.iface = "127.0.0.1";
 		m_interface = "127.0.0.1";
@@ -244,6 +383,13 @@ StandaloneUI::StandaloneUI()
 		Error(LOCATION, "Unable to initialize standalone server!");
 	}
 
+	// use our file ops
+	lws_get_fops(m_lws_context)->open = std_lws_cfopen;
+	lws_get_fops(m_lws_context)->close = std_lws_cfclose;
+	lws_get_fops(m_lws_context)->seek_cur = std_lws_cfseek_cur;
+	lws_get_fops(m_lws_context)->read = std_lws_cfread;
+	lws_get_fops(m_lws_context)->write = std_lws_cfwrite;
+
 	m_start_time = time(nullptr);
 
 	char title[64];
@@ -260,6 +406,14 @@ StandaloneUI::StandaloneUI()
 StandaloneUI::~StandaloneUI()
 {
 	shutdown();
+
+	if (m_lws_mounts) {
+		if (m_lws_mounts->mount_next) {
+			delete m_lws_mounts->mount_next;
+		}
+
+		delete m_lws_mounts;
+	}
 }
 
 int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)

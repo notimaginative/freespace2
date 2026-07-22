@@ -155,7 +155,7 @@ static cf_pathtype Pathtypes[CF_MAX_PATH_TYPES]  = {
 	// What type this is          Path                             Extensions              Parent type
 	{ CF_TYPE_INVALID,				NULL,										NULL,				CF_TYPE_INVALID },
 	// Root must be index 1!!
-	{ CF_TYPE_ROOT,					"",											".mve .png",			CF_TYPE_ROOT	},
+	{ CF_TYPE_ROOT,					"",											".mve .png .zip",		CF_TYPE_ROOT	},
 	{ CF_TYPE_DATA,					"Data",										".cfg .txt",			CF_TYPE_ROOT	},
 	{ CF_TYPE_MAPS,					"Data" DIR_SEPARATOR_STR "Maps",			".pcx .ani .tga",		CF_TYPE_DATA	},
 	{ CF_TYPE_TEXT,					"Data" DIR_SEPARATOR_STR "Text",			".txt .net",			CF_TYPE_DATA	},

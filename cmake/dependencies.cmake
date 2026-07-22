@@ -4,6 +4,7 @@ include(FetchContent)
 set(SDL_VERSION "3.2.30")
 set(OAL_VERSION "1.24.3")
 set(LWS_VERSION "4.4.1")
+set(ZLIB_VERSION "1.3.2")
 set(ANGLE_VERSION "angle-ebd9856")
 
 
@@ -135,6 +136,30 @@ endif()
 if(NOT EMSCRIPTEN)
 
   #
+  # zlib (libwebsockets dependency)
+  #
+
+  # setup zlib first so we have proper targets and variables for lws to use
+  FetchContent_Declare(
+    ZLIB
+    URL https://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP OFF
+    OVERRIDE_FIND_PACKAGE
+    EXCLUDE_FROM_ALL
+    SYSTEM
+  )
+
+  set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+  set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+  set(ZLIB_BUILD_STATIC ON CACHE BOOL "" FORCE)
+  set(ZLIB_INSTALL ON CACHE BOOL "" FORCE)
+
+  FetchContent_MakeAvailable(ZLIB)
+
+  target_set_folder(zlib "External")
+  target_set_folder(zlibstatic "External")
+
+  #
   # libwebsockets
   #
 
@@ -146,13 +171,24 @@ if(NOT EMSCRIPTEN)
     SYSTEM
   )
 
-  set(BUILD_TESTING OFF CACHE BOOL "")
-  set(LWS_WITH_SSL OFF CACHE BOOL "")
-  set(LWS_WITH_MINIMAL_EXAMPLES OFF CACHE BOOL "")
-  set(LWS_WITHOUT_CLIENT ON CACHE BOOL "")
-  set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "")
+  set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+  set(LWS_WITH_SSL OFF CACHE BOOL "" FORCE)
+  set(LWS_WITH_MINIMAL_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(LWS_WITHOUT_CLIENT ON CACHE BOOL "" FORCE)
+  set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "" FORCE)
+  set(LWS_WITH_SHARED ON CACHE BOOL "" FORCE)
+  set(LWS_WITH_STATIC OFF CACHE BOOL "" FORCE)
+  # enable ZIP file ops for standalone web ui
+  set(LWS_WITH_ZIP_FOPS ON CACHE BOOL "" FORCE)
+  set(LWS_WITH_ZLIB ON CACHE BOOL "" FORCE)
+  # disable bundled zlib on Windows
+  set(LWS_WITH_BUNDLED_ZLIB OFF CACHE BOOL "" FORCE)
 
   FetchContent_MakeAvailable(LibWebSockets)
+
+  # lws doesn't find non-system zlib properly, so force it to build/link here (🤮)
+  find_package(ZLIB CONFIG COMPONENTS static REQUIRED)
+  target_link_libraries(websockets_shared PRIVATE ZLIB::ZLIBSTATIC)
 
   target_set_folder(websockets "External")
   target_set_folder(websockets_shared "External")

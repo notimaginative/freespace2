@@ -41,6 +41,10 @@ add_custom_command(
 		# add all embed files we need to track changes for below
 		${DIST_DIR}/images/FS.png
 		${DIST_DIR}/images/FS2.png
+		${DIST_DIR}/standalone-web/icons.svg
+		${DIST_DIR}/standalone-web/index.html
+		${DIST_DIR}/standalone-web/standalone.css
+		${DIST_DIR}/standalone-web/standalone.js
 		${DIST_DIR}/embed_root/data/fonts/Cousine-Regular.ttf
 		${DIST_DIR}/embed_root/data/fonts/DroidSans.ttf
 		${DIST_DIR}/embed_root/data/interface/launch_fs1_bg.png

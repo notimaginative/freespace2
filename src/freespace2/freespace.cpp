@@ -775,11 +775,7 @@ float frametotal = 0.0f;
 float flFrametime;
 static float flRealFrametime;
 
-#ifdef RELEASE_REAL
-	int	Show_framerate = 0;
-#else 
-	int	Show_framerate = 1;
-#endif
+static int Show_framerate = 0;
 
 int	Framerate_cap = 120;
 int	Show_mem = 0;
@@ -3633,13 +3629,9 @@ void game_render_frame( vector * eye_pos, matrix * eye_orient )
 
 #ifndef NDEBUG
 	ai_debug_render_stuff();
-#endif
 
-#ifndef RELEASE_REAL
 	// game_framerate_check();
-#endif
 
-#ifndef NDEBUG
 	extern void snd_spew_debug_info();
 	snd_spew_debug_info();
 #endif

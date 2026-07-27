@@ -5719,26 +5719,19 @@ int multi_create_ok_to_commit()
 #ifndef MAKE_FS1
 			// don't allow squad war matches to continue
 			if(Netgame.type_flags & NG_TYPE_SW){
-#ifdef RELEASE_REAL
-				// if this is squad war, don't allow it to continue			
+				// if this is squad war, don't allow it to continue
 				popup(PF_USE_AFFIRMATIVE_ICON, 1, POPUP_OK, XSTR("One or more players has hacked data files. You cannot play a SquadWar match unless all clients have legal data", 1272));
 
 				return 0;
+			} else
 #endif
-			}
 			// otherwise, warn the players that stats will not saved
-			else {
+			{
 				// if this is squad war, don't allow it to continue			
 				if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
 					return 0;
 				}
 			}
-#else
-			// warn the players that stats will not saved
-			if(popup_sync(PF_USE_AFFIRMATIVE_ICON | PF_USE_NEGATIVE_ICON, 2, XSTR("&Back", 995), XSTR("&Continue", 780), XSTR("One or more players has hacked data files. If you continue, stats will not be stored at the end of the mission", 1273)) <= 0){
-				return 0;
-			}
-#endif
 		}
 		// non-pxo, just give a notice
 		else {

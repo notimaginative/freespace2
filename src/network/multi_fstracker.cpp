@@ -576,7 +576,6 @@ int multi_fs_tracker_store_stats()
 		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_DONE);
 	}
 
-#ifdef RELEASE_REAL
 	// if playing with an invalid ships.tbl
 	if(!Game_ships_tbl_valid){
 		send_game_chat_packet(Net_player, XSTR("<Server detected a hacked ships.tbl. Stats will not be saved>", 1044), MULTI_MSG_ALL, NULL, NULL, 1);	
@@ -621,7 +620,6 @@ int multi_fs_tracker_store_stats()
 		Multi_fs_tracker_busy = 0;
 		return 0;
 	}
-#endif
 
 	popup_till_condition(multi_fs_store_stats_do,XSTR("&Cancel",667), XSTR("Sending player stats requests ...",676));	
 
@@ -669,7 +667,6 @@ int multi_fs_std_tracker_store_stats()
 		Net_players[idx].flags &= ~(NETINFO_FLAG_MT_DONE);
 	}
 
-#ifdef RELEASE_REAL
 	// if playing with an invalid ships.tbl
 	if(!Game_ships_tbl_valid){	
 		send_game_chat_packet(Net_player, XSTR("<Server detected a hacked ships.tbl. Stats will not be saved>", 1044), MULTI_MSG_ALL, NULL, NULL, 1);	
@@ -711,7 +708,6 @@ int multi_fs_std_tracker_store_stats()
 		Multi_fs_tracker_busy = 0;
 		return 0;
 	}
-#endif
 	
 	// multi_fs_store_stats_do() will handle all details of negotiating stats transfer with the tracker
 	do {		

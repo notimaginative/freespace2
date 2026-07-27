@@ -230,12 +230,6 @@
 // uncomment this #define for DVD version (makes popups say DVD instead of CD 2 or whatever): JCF 5/10/2000
 // #define DVD_MESSAGE_HACK
 
-
-#if defined(MULTIPLAYER_BETA_BUILD) || defined(E3_BUILD) || defined(RELEASE_REAL)
-	#define GAME_CD_CHECK
-#endif
-
-
 #include <SDL3/SDL.h>
 
 #include "platform.h"

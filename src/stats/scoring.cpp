@@ -899,7 +899,7 @@ void scoring_eval_kill(object *ship_objp)
 								if (MULTI_CONNECTED(Net_players[i]) && (Net_players[i].p_info.team == net_plr->p_info.team) && (&Net_players[i] != net_plr)) {
 									Net_players[i].player->stats.m_score += (int)(dead_ship->score * scoring_get_scale_factor() * 0.5f);
 /*
-#if !defined(RELEASE_REAL)
+#if !defined(NDEBUG)
 									// DEBUG CODE TO TEST NEW SCORING
 									char score_text[1024] = "";
 									sprintf(score_text, "You get %d pts for the helping kill the big ship", (int)(dead_ship->score * scoring_get_scale_factor() * 0.5f));							
@@ -959,7 +959,7 @@ void scoring_eval_kill(object *ship_objp)
 
 /*
 	// debug code
-#if !defined(RELEASE_REAL)
+#if !defined(NDEBUG)
 	if (Game_mode & GM_MULTIPLAYER) {
 		char buf[256];
 		sprintf(Scoring_debug_text, "%s killed.\nDamage by ship:\n\n", Ship_info[dead_ship->ship_info_index].name);

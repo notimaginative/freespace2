@@ -8,6 +8,22 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS deployment target")
 # (currently broken for OpenAL, it must build each separately)
 #set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "macOS build architecture(s)")
 
+# disable Xcode Scheme generation and we'll enable it for specific targets
+set(CMAKE_XCODE_GENERATE_SCHEME OFF)
+
+get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+set(FS_BUILD_TYPES RelWithDebInfo Debug Release MinSizeRel)
+
+if(is_multi_config)
+  set(CMAKE_CONFIGURATION_TYPES "${FS_BUILD_TYPES}" CACHE STRING "Configuration types" FORCE)
+elseif(NOT DEFINED CMAKE_BUILD_TYPE)
+  message(STATUS "CMAKE_BUILD_TYPE not set -- using RelWithDebInfo")
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "${FS_BUILD_TYPES}")
+endif()
+
 project(freespace2)
 
 enable_language(C CXX)
@@ -52,13 +68,6 @@ option(FS2_TEX_PACK "Download HQ texture pack for FreeSpace 2" ON)
 
 set(DEMO_GAME_DATA "" CACHE PATH "Path to demo data files used when packaging")
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to 'RelWithDebInfo' as none was specified.")
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "RelWithDebInfo" "Release" "Debug")
-endif()
-
 
 if(FS1)
   add_definitions(-DMAKE_FS1)
@@ -92,20 +101,12 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4127") # conditional expression is constant: do { } while (0)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996") # deprecated functions: fopen, fileno, ...
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4505") # unreferenced function with internal linkage
-
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MD /D RELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /D RELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 else()
   set(PLATFORM_LIBRARIES "")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
-
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g -Os -DRELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -DRELEASE_REAL")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 endif()
 
 set(BIN_SUFFIX "")
@@ -225,6 +226,8 @@ if(TARGET ANGLE_LIBS)
 endif()
 
 CreateSourceGroups(${freespace_SOURCE} ${launcher_SOURCE})
+
+generate_scheme(${FS_BINARY})
 
 target_link_libraries(
   ${FS_BINARY}
@@ -382,6 +385,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${ac_SOURCE})
 
+  generate_scheme(ac)
+
   set_target_properties(ac PROPERTIES
     FOLDER "Toolset"
   )
@@ -406,6 +411,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${cfileutil_SOURCE})
 
+  generate_scheme(cfileutil)
+
   set_target_properties(cfileutil PROPERTIES
     FOLDER "Toolset"
   )
@@ -426,6 +433,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${cryptstring_SOURCE})
 
+  generate_scheme(cryptstring)
+
   set_target_properties(cryptstring PROPERTIES
     FOLDER "Toolset"
   )
@@ -443,6 +452,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_precompile_headers(nebedit REUSE_FROM code)
 
   CreateSourceGroups(${nebedit_SOURCE})
+
+  generate_scheme(nebedit)
 
   set_target_properties(nebedit PROPERTIES
     FOLDER "Toolset"
@@ -504,6 +515,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
   CreateSourceGroups(${scramble_SOURCE})
 
+  generate_scheme(scramble)
+
   set_target_properties(scramble PROPERTIES
     FOLDER "Toolset"
   )
@@ -521,6 +534,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
   target_precompile_headers(fonttool REUSE_FROM code)
 
   CreateSourceGroups(${fonttool_SOURCE})
+
+  generate_scheme(fonttool)
 
   set_target_properties(fonttool PROPERTIES
     FOLDER "Toolset"
@@ -558,6 +573,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
 
     CreateSourceGroups(${fred_SOURCE})
 
+    generate_scheme(${FRED_BINARY})
+
     target_include_directories(${FRED_BINARY} BEFORE
         PUBLIC ${PROJECT_SOURCE_DIR}/include/fred2
     )
@@ -589,6 +606,8 @@ if(NOT GAME_ONLY AND NOT DEMO)
   set_target_properties(toolset PROPERTIES
     FOLDER "Toolset"
   )
+
+  generate_scheme(toolset)
 
   add_dependencies(toolset
     ac

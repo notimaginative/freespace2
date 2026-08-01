@@ -193,6 +193,7 @@ if(NOT EMSCRIPTEN)
   target_set_folder(websockets "External")
   target_set_folder(websockets_shared "External")
   target_set_folder(GENHDR "External")
+  target_set_folder(dist "External")
 
   if((APPLE OR WIN32) AND IS_64BIT)
     #

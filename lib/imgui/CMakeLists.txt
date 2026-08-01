@@ -24,6 +24,8 @@ set(imgui_SOURCE
 
 add_library(imgui STATIC ${imgui_SOURCE})
 
+target_set_folder(imgui "External")
+
 target_include_directories(imgui SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3)

@@ -341,7 +341,7 @@ const Server = Object.freeze({
 		let channel = this.elements.panel.querySelector('[data-server-pxo_channel]').value.trim()
 
 		// make sure it's a proper irc channel type
-		if (channel.length && !(channel[0] == '#' || channel[0] == '+')) {
+		if (channel.length && !(channel === "global" || channel[0] == '#' || channel[0] == '+')) {
 			channel = '#' + channel
 			document.querySelector('#server [data-server-pxo_channel]').value = channel
 		}

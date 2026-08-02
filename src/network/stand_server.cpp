@@ -676,7 +676,7 @@ void StandaloneUI::msg_handler_server(const json &msg)
 		else if (it.key() == "pxo_channel") {
 			auto channel = it.value().get<std::string>();
 
-			if ( !channel.empty() && ((channel.front() == '#') || (channel.front() == '$')) ) {
+			if ( !channel.empty() && ((channel == "global") || (channel.front() == '#') || (channel.front() == '$')) ) {
 				SDL_strlcpy(Multi_fs_tracker_channel, channel.c_str(), SDL_arraysize(Multi_fs_tracker_channel));
 				m_pxo_refresh_state = true;
 				pxo_refresh();

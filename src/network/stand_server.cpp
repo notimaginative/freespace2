@@ -42,19 +42,22 @@
 
 #include <iostream>
 
+
+namespace {
+
 using json = nlohmann::json;
 
-// Define this to use standalone ui in a seperate thread
+// Define this to use standalone ui in a separate thread
 //#define STD_THREADED
 
 #ifdef STD_THREADED
 #include <thread>
 
-static std::thread Standalone_thread;
+std::thread Standalone_thread;
 #endif
 
 #define STANDALONE_MAX_BAN		50
-static std::vector<std::string> Standalone_ban_list;
+std::vector<std::string> Standalone_ban_list;
 
 enum UpdateTimes {
 	stats			= 1500,
@@ -195,10 +198,10 @@ public:
 };
 
 
-static StandaloneUI *Standalone = nullptr;
-static std::atomic<bool> Standalone_terminate(false);
+StandaloneUI *Standalone = nullptr;
+std::atomic<bool> Standalone_terminate(false);
 
-static void std_lws_logger(int level, const char *line)
+void std_lws_logger(int level, const char *line)
 {
 	if (level & LLL_ERR) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "STD: %s", line);
@@ -207,10 +210,10 @@ static void std_lws_logger(int level, const char *line)
 	}
 }
 
-static lws_fop_fd_t std_lws_cfopen(const struct lws_plat_file_ops *fops_own,
-								const struct lws_plat_file_ops *fops,
-								const char *filename, const char *vpath,
-								lws_fop_flags_t *flags)
+lws_fop_fd_t std_lws_cfopen(const struct lws_plat_file_ops *fops_own,
+							const struct lws_plat_file_ops *fops,
+							const char *filename, const char *vpath,
+							lws_fop_flags_t *flags)
 {
 	if ( !filename || !SDL_strlen(filename) ) {
 		return nullptr;
@@ -244,7 +247,7 @@ static lws_fop_fd_t std_lws_cfopen(const struct lws_plat_file_ops *fops_own,
 	return fop_fd;
 }
 
-static int std_lws_cfclose(lws_fop_fd_t *fop_fd)
+int std_lws_cfclose(lws_fop_fd_t *fop_fd)
 {
 	if (fop_fd && *fop_fd) {
 		auto filep = reinterpret_cast<CFILE *>((*fop_fd)->filesystem_priv);
@@ -261,7 +264,7 @@ static int std_lws_cfclose(lws_fop_fd_t *fop_fd)
 	return 0;
 }
 
-static lws_fileofs_t std_lws_cfseek_cur(lws_fop_fd_t fop_fd, lws_fileofs_t offset)
+lws_fileofs_t std_lws_cfseek_cur(lws_fop_fd_t fop_fd, lws_fileofs_t offset)
 {
 	auto filep = reinterpret_cast<CFILE *>(fop_fd->filesystem_priv);
 
@@ -289,8 +292,8 @@ static lws_fileofs_t std_lws_cfseek_cur(lws_fop_fd_t fop_fd, lws_fileofs_t offse
 	return -1;
 }
 
-static int std_lws_cfread(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
-					   uint8_t *buf, lws_filepos_t len)
+int std_lws_cfread(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
+				   uint8_t *buf, lws_filepos_t len)
 {
 	auto filep = reinterpret_cast<CFILE *>(fop_fd->filesystem_priv);
 
@@ -312,8 +315,8 @@ static int std_lws_cfread(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
 	return 0;
 }
 
-static int std_lws_cfwrite(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
-						   uint8_t *buf, lws_filepos_t len)
+int std_lws_cfwrite(lws_fop_fd_t fop_fd, lws_filepos_t *amount,
+					uint8_t *buf, lws_filepos_t len)
 {
 	*amount = 0;
 
@@ -404,7 +407,9 @@ StandaloneUI::StandaloneUI()
 	m_start_time = time(nullptr);
 
 	char title[64];
-	SDL_snprintf(title, SDL_arraysize(title), "%s %d.%02d.%02d", XSTR("FreeSpace Standalone", 935), FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
+	SDL_snprintf(title, SDL_arraysize(title), "%s %d.%02d.%02d",
+				 XSTR("FreeSpace Standalone", 935),
+				 FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
 	m_title = title;
 
 	m_pxo_refresh_state = false;
@@ -432,7 +437,8 @@ StandaloneUI::~StandaloneUI()
 
 int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
-	#define MAX_BUF_SIZE	2048
+	constexpr size_t MAX_BUF_SIZE = 2048;
+
 	unsigned char buf[LWS_PRE + MAX_BUF_SIZE];
 	unsigned char *p = &buf[LWS_PRE];
 	int exit_val = 0;
@@ -495,7 +501,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 			while ( !m_active_client->m_send_buffer.empty() ) {
 				if (m_active_client->m_send_buffer.front().size() >= MAX_BUF_SIZE) {
-					lwsl_warn("Message size (%zu) exceeds buffer size (%d)!  Discarding...\n", m_active_client->m_send_buffer.size(), MAX_BUF_SIZE);
+					lwsl_warn("Message size (%zu) exceeds buffer size (%zu)!  Discarding...\n", m_active_client->m_send_buffer.size(), MAX_BUF_SIZE);
 					m_active_client->m_send_buffer.pop_front();
 
 					continue;
@@ -1151,7 +1157,7 @@ void StandaloneUI::chat_add_text(const char *text, int player_index, int add_id)
 		}
 	}
 
-	m_chatlog.emplace_back(std::move(item));
+	m_chatlog.push_back(std::move(item));
 
 	if (m_chatlog.size() > MAX_CHATLOG_LINES) {
 		m_chatlog.pop_front();
@@ -1542,6 +1548,8 @@ void StandaloneUI::mission_set_goals()
 		add_message(msg);
 	}
 }
+
+} // namespace <anon>
 
 
 void std_deinit_standalone()

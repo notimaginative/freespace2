@@ -132,7 +132,7 @@ private:
 	std::deque<chatlog_item> m_chatlog;
 
 	static constexpr size_t MAX_STD_CLIENTS = 5;
-	std::list<Standalone_client *> m_clients;
+	std::list<std::unique_ptr<Standalone_client>> m_clients;
 
 	Standalone_client *m_active_client;
 
@@ -449,9 +449,9 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 	uint32_t *client_id = reinterpret_cast<uint32_t *>(user);
 
 	if (client_id && *client_id) {
-		for (auto &cl : m_clients) {
-			if (cl->m_id == *client_id) {
-				m_active_client = cl;
+		for (auto &client : m_clients) {
+			if (client->m_id == *client_id) {
+				m_active_client = client.get();
 				break;
 			}
 		}
@@ -463,11 +463,10 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 			uint32_t cid = getNewClientId();
 
-			Standalone_client *new_client = new Standalone_client(cid, wsi);
-			m_clients.push_back(new_client);
+			m_clients.emplace_back(new Standalone_client(cid, wsi));
 
 			*client_id = cid;
-			m_active_client = new_client;
+			m_active_client = m_clients.back().get();
 
 			reset();
 
@@ -814,7 +813,7 @@ void StandaloneUI::do_frame()
 
 	// update client specific stuff
 	for (auto &client : m_clients) {
-		m_active_client = client;
+		m_active_client = client.get();
 
 		// maybe update netgame info
 		if (multi_num_connections()) {
@@ -1231,7 +1230,7 @@ void StandaloneUI::reset_all()
 	auto prev_client = m_active_client;
 
 	for (auto &client : m_clients) {
-		m_active_client = client;
+		m_active_client = client.get();
 		reset();
 	}
 
@@ -1333,7 +1332,7 @@ void StandaloneUI::multilog_add_line(const char *line)
 	auto prev_client = m_active_client;
 
 	for (auto &client : m_clients) {
-		m_active_client = client;
+		m_active_client = client.get();
 
 		if (client->m_multilog_enabled) {
 			msg["multilog"] = line;

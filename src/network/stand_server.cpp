@@ -40,19 +40,20 @@
 #include <deque>
 #include <atomic>
 
-#include <iostream>
-
-
-namespace {
-
-using json = nlohmann::json;
 
 // Define this to use standalone ui in a separate thread
 //#define STD_THREADED
 
 #ifdef STD_THREADED
 #include <thread>
+#endif
 
+
+namespace {
+
+using json = nlohmann::json;
+
+#ifdef STD_THREADED
 std::thread Standalone_thread;
 #endif
 

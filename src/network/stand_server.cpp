@@ -61,8 +61,8 @@ std::thread Standalone_thread;
 std::vector<std::string> Standalone_ban_list;
 
 enum UpdateTimes {
-	stats			= 1500,
-	netgame			= 2500,
+	stats			= 3000,
+	netgame			= 5000,
 	mission_time	= 10000,
 };
 

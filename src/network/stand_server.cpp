@@ -199,7 +199,7 @@ public:
 
 
 StandaloneUI *Standalone = nullptr;
-std::atomic<bool> Standalone_terminate(false);
+std::atomic<bool> Standalone_running(false);
 
 void std_lws_logger(int level, const char *line)
 {
@@ -420,6 +420,8 @@ StandaloneUI::StandaloneUI()
 	m_active_client = nullptr;
 
 	m_mission_time = -1;
+
+	Standalone_running.store(true, std::memory_order_relaxed);
 }
 
 StandaloneUI::~StandaloneUI()
@@ -544,7 +546,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 				if (msg.contains("shutdown")) {
 					lws_close_reason(wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
 					gameseq_post_event(GS_EVENT_QUIT_GAME);
-					Standalone_terminate = true;
+					Standalone_running.store(false, std::memory_order_relaxed);
 
 					exit_val = -1;
 					break;
@@ -783,13 +785,13 @@ void StandaloneUI::shutdown()
 void StandaloneUI::process()
 {
 #ifdef STD_THREADED
-	do {
+	while (Standalone_running.load(std::memory_order_relaxed)) {
 		do_frame();
 
 		lws_service(m_lws_context, -1);
 
 		SDL_Delay(1000/30);
-	} while ( !Standalone_terminate );
+	}
 
 	shutdown();
 #else
@@ -1554,7 +1556,7 @@ void StandaloneUI::mission_set_goals()
 
 void std_deinit_standalone()
 {
-	Standalone_terminate = true;
+	Standalone_running.store(false, std::memory_order_relaxed);
 
 #ifdef STD_THREADED
 	if ( Standalone_thread.joinable() ) {

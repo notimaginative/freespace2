@@ -188,7 +188,7 @@ if(NOT EMSCRIPTEN)
 
   # lws doesn't find non-system zlib properly, so force it to build/link here (🤮)
   find_package(ZLIB CONFIG COMPONENTS static REQUIRED)
-  target_link_libraries(websockets_shared PRIVATE ZLIB::ZLIBSTATIC)
+  target_link_libraries(websockets_shared $<BUILD_LOCAL_INTERFACE:ZLIB::ZLIBSTATIC>)
 
   target_set_folder(websockets "External")
   target_set_folder(websockets_shared "External")

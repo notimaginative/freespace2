@@ -1,7 +1,7 @@
 # Building the Project
 
 Building requires:
-- [CMake](https://cmake.org) v3.25+
+- [CMake](https://cmake.org) v3.26+
 - Compiler supporting C++17 or better
 
 All other dependencies will be satisfied as part of the configure process, which requires an active Internet connection.

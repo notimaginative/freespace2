@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.22...4.0)
+cmake_minimum_required(VERSION 3.26...4.0)
 
 include(cmake/utils.cmake)
 

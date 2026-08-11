@@ -173,11 +173,12 @@ if(NOT EMSCRIPTEN)
 
   set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
   set(LWS_WITH_SSL OFF CACHE BOOL "" FORCE)
+  set(LWS_WITH_LIBCAP OFF CACHE BOOL "" FORCE)
   set(LWS_WITH_MINIMAL_EXAMPLES OFF CACHE BOOL "" FORCE)
   set(LWS_WITHOUT_CLIENT ON CACHE BOOL "" FORCE)
   set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "" FORCE)
-  set(LWS_WITH_SHARED ON CACHE BOOL "" FORCE)
-  set(LWS_WITH_STATIC OFF CACHE BOOL "" FORCE)
+  set(LWS_WITH_SHARED OFF CACHE BOOL "" FORCE)
+  set(LWS_WITH_STATIC ON CACHE BOOL "" FORCE)
   # enable ZIP file ops for standalone web ui
   set(LWS_WITH_ZIP_FOPS ON CACHE BOOL "" FORCE)
   set(LWS_WITH_ZLIB ON CACHE BOOL "" FORCE)
@@ -188,7 +189,7 @@ if(NOT EMSCRIPTEN)
 
   # lws doesn't find non-system zlib properly, so force it to build/link here (🤮)
   find_package(ZLIB CONFIG COMPONENTS static REQUIRED)
-  target_link_libraries(websockets_shared $<BUILD_LOCAL_INTERFACE:ZLIB::ZLIBSTATIC>)
+  target_link_libraries(websockets $<BUILD_LOCAL_INTERFACE:ZLIB::ZLIBSTATIC>)
 
   target_set_folder(websockets "External")
   target_set_folder(websockets_shared "External")
@@ -230,7 +231,7 @@ if(NOT EMSCRIPTEN)
       "${angle_src}/*"
     )
 
-    add_custom_command(TARGET ANGLE_LIBS PRE_BUILD
+    add_custom_command(TARGET ANGLE_LIBS POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy
         ${angle_lib_files}
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}

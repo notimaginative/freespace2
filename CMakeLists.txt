@@ -174,12 +174,11 @@ add_library(code
   ${ext_HEADERS}
 )
 
-target_link_libraries(
-  code
+target_link_libraries(code
   embedvp
+  websockets
   SDL3::SDL3
   OpenAL::OpenAL
-  ${LIBWEBSOCKETS_LIBRARIES}
 )
 
 target_compile_definitions(code
@@ -236,7 +235,6 @@ target_link_libraries(
   ValveFileVDF
   OpenAL::OpenAL
   SDL3::SDL3
-  ${LIBWEBSOCKETS_LIBRARIES}
   ${PLATFORM_LIBRARIES}
 )
 
@@ -464,7 +462,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
     code
     SDL3::SDL3
     OpenAL::OpenAL
-    ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
 
@@ -494,7 +491,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
   #  wx::core
   #  wx::base
   #  wx::gl
-  #  ${LIBWEBSOCKETS_LIBRARIES}
   #  ${PLATFORM_LIBRARIES}
   #)
 
@@ -553,7 +549,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
     code
     SDL3::SDL3
     OpenAL::OpenAL
-    ${LIBWEBSOCKETS_LIBRARIES}
     ${PLATFORM_LIBRARIES}
   )
 
@@ -590,7 +585,6 @@ if(NOT GAME_ONLY AND NOT DEMO)
         imgui
         SDL3::SDL3
         OpenAL::OpenAL
-        ${LIBWEBSOCKETS_LIBRARIES}
         ${PLATFORM_LIBRARIES}
         winmm
         opengl32

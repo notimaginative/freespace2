@@ -1,5 +1,5 @@
 
-find_package(Git)
+find_package(Git QUIET)
 
 if(Git_FOUND)
   execute_process(
@@ -33,12 +33,6 @@ if(Git_FOUND)
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-
-  if(${GIT_TAG})
-    message("Building for Git version: ${GIT_COMMIT_DATE}~${GIT_BRANCH}:${GIT_COMMIT_HASH} (${GIT_TAG})")
-  else()
-    message("Building for Git version: ${GIT_COMMIT_DATE}~${GIT_BRANCH}:${GIT_COMMIT_HASH}")
-  endif()
 endif()
 
 configure_file(

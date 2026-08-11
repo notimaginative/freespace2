@@ -1186,7 +1186,7 @@ static void mission_log_log_entry(const log_entry *entry)
 
 	int timestamp = static_cast<int>(f2fl(entry->timestamp * 1000.f));
 
-	SDL_Log("Mission event at %0.1d:%0.2d:%0.2d -- %s",
+	SDL_Log("Mission event at %1d:%02d:%02d -- %s",
 			(timestamp / 3600000) % 10, (timestamp / 60000) % 60,
 			(timestamp / 1000) % 60, line.c_str());
 }

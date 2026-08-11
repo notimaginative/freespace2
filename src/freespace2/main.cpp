@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
 	parse_cmdline(argc, argv);
 
-	SDL_Log("");
+	SDL_Log("\n");
 
 	try {
 		if ( launcher_run() ) {

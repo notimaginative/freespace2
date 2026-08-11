@@ -230,7 +230,7 @@ lws_fop_fd_t std_lws_cfopen(const struct lws_plat_file_ops *fops_own,
 
 	SDL_zerop(fop_fd);
 
-	fop_fd->fd = 1;
+	fop_fd->fd = reinterpret_cast<lws_filefd_type>(1);	// unused, but shouldn't be 0/null
 	fop_fd->fops = fops;
 	fop_fd->flags = *flags;
 	fop_fd->len = static_cast<lws_filepos_t>(cfilelength(filep));
@@ -271,16 +271,6 @@ lws_fileofs_t std_lws_cfseek_cur(lws_fop_fd_t fop_fd, lws_fileofs_t offset)
 
 	if ( !filep ) {
 		return -1;
-	}
-
-	if ((offset > 0) &&
-		(offset > static_cast<lws_fileofs_t>(fop_fd->len - fop_fd->pos)))
-	{
-		offset = static_cast<lws_fileofs_t>(fop_fd->len - fop_fd->pos);
-	}
-
-	if (static_cast<lws_fileofs_t>(fop_fd->pos + offset) < 0) {
-		offset = static_cast<lws_fileofs_t>(-fop_fd->pos);
 	}
 
 	if (cfseek(filep, offset, CF_SEEK_CUR)) {

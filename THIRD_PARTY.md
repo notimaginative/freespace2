@@ -17,3 +17,5 @@ And relies upon these third-party libraries and tools:
 | OpenAL Soft   | LGPLv2  | https://openal-soft.org                  |
 | appimagetool  | MIT     | https://github.com/AppImage/appimagetool |
 | build-angle   | MIT     | https://github.com/jeremyfa/build-angle  |
+| zlib          | Zlib    | https://zlib.net                         |
+

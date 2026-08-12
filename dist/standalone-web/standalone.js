@@ -410,7 +410,8 @@ const Popup = Object.freeze({
 	// messages from server
 	//
 	messages: Object.freeze({
-		status: function (msg) {
+		status: function(msg) {
+			/*
 			if ( !msg ) {
 				if (Popup.elements.status_box) {
 					setTimeout(() => {
@@ -450,6 +451,7 @@ const Popup = Object.freeze({
 			} else {
 				Popup.elements.status_box = showAlert(message, alertTypes.info, 0)
 			}
+			*/
 		},
 		notice: function(msg) {
 			if ( !msg['message'] ) {
@@ -530,6 +532,15 @@ const ServerInfo = Object.freeze({
 		start_time: function(value) {
 			ServerInfo.settings.start_time = parseInt(value, 10)
 			ServerInfo.calc_uptime()
+		},
+		realized_fps: function(value) {
+			// console.log(`Realized fps: ${value}`)
+		},
+		host_connected: function(value) {
+			// console.log(`Host connected: ${value}`)
+		},
+		num_players: function(value) {
+			// console.log(`Num players: ${value}`)
 		}
 	})
 	//

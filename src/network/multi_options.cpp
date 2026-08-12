@@ -223,7 +223,13 @@
 #define MULTI_OPTION_MISSION						3				// host's mission selection stuff on a standalone server
 
 // global options
+#ifndef MAKE_FS1
 #define MULTI_CFG_FILE								NOX("multi.cfg")
+#define MULTI_CFG_FILE_SPECIAL						NOX("multi.%d.cfg")
+#else
+#define MULTI_CFG_FILE								NOX("std.cfg")
+#define MULTI_CFG_FILE_SPECIAL						NOX("std.%d.cfg")
+#endif
 multi_global_options Multi_options_g;
 
 char Multi_options_proxy[512] = "";
@@ -233,61 +239,29 @@ ushort Multi_options_proxy_port = 0;
 // MULTI OPTIONS FUNCTIONS
 //
 
-#ifdef MAKE_FS1
-void multi_options_read_config_fs1();
-#endif
-
 // load in the config file
 #define NEXT_TOKEN()						do { tok = strtok(NULL, "\n"); if(tok != NULL){ drop_leading_white_space(tok); drop_trailing_white_space(tok); } } while(0);
 #define SETTING(s)						( !SDL_strcasecmp(tok, s) )
-void multi_options_read_config()
+
+static bool multi_options_read_config_file(const char *cfg_name)
 {
-	// set default value for the global multi options
-	memset(&Multi_options_g, 0, sizeof(multi_global_options));
-	Multi_options_g.protocol = NET_TCP;
-	Multi_options_g.pxo = 0;
-
-	// do we have a forced port via commandline or registry?
-	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
-	Multi_options_g.port = (Cmdline_network_port >= 0) ? (ushort)Cmdline_network_port : forced_port == 0 ? (ushort)DEFAULT_GAME_PORT : forced_port;
-
-	Multi_options_g.log = (Cmdline_multi_log) ? 1 : 0;
-	Multi_options_g.datarate_cap = OO_HIGH_RATE_DEFAULT;
-	SDL_strlcpy(Multi_options_g.user_tracker_ip, MULTI_PXO_USER_TRACKER_IP, SDL_arraysize(Multi_options_g.user_tracker_ip));
-	SDL_strlcpy(Multi_options_g.game_tracker_ip, MULTI_PXO_GAME_TRACKER_IP, SDL_arraysize(Multi_options_g.game_tracker_ip));
-	SDL_strlcpy(Multi_options_g.pxo_ip, MULTI_PXO_CHAT_IP, SDL_arraysize(Multi_options_g.pxo_ip));
-	SDL_strlcpy(Multi_options_g.pxo_rank_url, MULTI_PXO_RANKINGS_URL, SDL_arraysize(Multi_options_g.pxo_rank_url));
-	SDL_strlcpy(Multi_options_g.pxo_create_url, MULTI_PXO_CREATE_URL, SDL_arraysize(Multi_options_g.pxo_create_url));
-	SDL_strlcpy(Multi_options_g.pxo_verify_url, MULTI_PXO_VERIFY_URL, SDL_arraysize(Multi_options_g.pxo_verify_url));
-	SDL_strlcpy(Multi_options_g.pxo_banner_url, MULTI_PXO_BANNER_URL, SDL_arraysize(Multi_options_g.pxo_banner_url));
-
-	// standalone values
-	Multi_options_g.std_max_players = -1;
-	Multi_options_g.std_datarate = OBJ_UPDATE_LAN;
-	Multi_options_g.std_voice = 1;
-	memset(Multi_options_g.std_passwd, 0, STD_PASSWD_LEN);
-	memset(Multi_options_g.std_pname, 0, STD_NAME_LEN);
-	Multi_options_g.std_framecap = 60;
-	SDL_zero(Multi_options_g.std_listen_addr);
-
-#ifndef MAKE_FS1
-	CFILE *in;
-	char str[512];
-	char *tok = NULL;
-
-	// read in the config file
-	in = cfopen(MULTI_CFG_FILE, "rt", CF_TYPE_DATA);
-	
-	// if we failed to open the config file, user default settings
-	if(in == NULL){
-		nprintf(("Network","Failed to open network config file, using default settings\n"));		
-		return;
+	if ( !cfg_name ) {
+		return false;
 	}
 
-	while(!cfeof(in)){
+	auto cfp = cfopen(cfg_name, "rt", CF_TYPE_DATA);
+
+	if ( !cfp ) {
+		return false;
+	}
+
+	char str[512] = {};
+	char *tok = nullptr;
+
+	while ( !cfeof(cfp) ) {
 		// read in the game info
 		memset(str,0,512);
-		cfgets(str,512,in);
+		cfgets(str,512,cfp);
 
 		// parse the first line
 		tok = strtok(str," \t");
@@ -310,7 +284,15 @@ void multi_options_read_config()
 				if(tok != NULL){
 					SDL_strlcpy(Multi_fs_tracker_channel, tok, SDL_arraysize(Multi_fs_tracker_channel));
 				}
-			} else 
+			} else
+			if(SETTING("-pxo")){
+				// disable PXO mode
+				Multi_options_g.pxo = 0;
+				NEXT_TOKEN();
+				if(tok != NULL){
+					SDL_strlcpy(Multi_fs_tracker_channel, tok, SDL_arraysize(Multi_fs_tracker_channel));
+				}
+			} else
 			if(SETTING("+name")){
 				// set the standalone server's permanent name
 				NEXT_TOKEN();
@@ -370,6 +352,7 @@ void multi_options_read_config()
 			}
 		}
 
+#ifndef MAKE_FS1
 		if (tok == NULL) {
 			continue;
 		}
@@ -449,22 +432,19 @@ void multi_options_read_config()
 				}
 			}
 		}
+#endif
 	}
 
-	// close the config file
-	cfclose(in);
-	in = NULL;
-#else
-	multi_options_read_config_fs1();
-#endif
+	cfclose(cfp);
+
+	return true;
 }
 
 #ifdef MAKE_FS1
-void multi_options_read_config_fs1()
+static void multi_options_read_pxo_config()
 {
 	CFILE *in;
 	char str[512];
-	char *tok = NULL;
 
 #ifdef FS1_DEMO
 	// FS1 demo is single-player only, so don't bother with this
@@ -476,148 +456,108 @@ void multi_options_read_config_fs1()
 	// read in the pxo config file
 	in = cfopen("pxo.cfg", "rt", CF_TYPE_DATA);
 
-	if (in != NULL) {
-		// first line should be user tracker
-		if ( cfgets(str, 512, in) ) {
-			drop_leading_white_space(str);
-			drop_trailing_white_space(str);
-
-			SDL_strlcpy(Multi_options_g.user_tracker_ip, str, SDL_arraysize(Multi_options_g.user_tracker_ip));
-		}
-
-		// next line should be game tracker
-		if ( cfgets(str, 512, in) ) {
-			drop_leading_white_space(str);
-			drop_trailing_white_space(str);
-
-			SDL_strlcpy(Multi_options_g.game_tracker_ip, str, SDL_arraysize(Multi_options_g.game_tracker_ip));
-		}
-
-		// next, irc/chat server
-		if ( cfgets(str, 512, in) ) {
-			drop_leading_white_space(str);
-			drop_trailing_white_space(str);
-
-			SDL_strlcpy(Multi_options_g.pxo_ip, str, SDL_arraysize(Multi_options_g.pxo_ip));
-		}
-
-		// web link: rankings
-		if ( cfgets(str, 512, in) ) {
-			drop_leading_white_space(str);
-			drop_trailing_white_space(str);
-
-			SDL_strlcpy(Multi_options_g.pxo_rank_url, str, SDL_arraysize(Multi_options_g.pxo_rank_url));
-		}
-
-		// web link: register/create account
-		if ( cfgets(str, 512, in) ) {
-			drop_leading_white_space(str);
-			drop_trailing_white_space(str);
-
-			SDL_strlcpy(Multi_options_g.pxo_create_url, str, SDL_arraysize(Multi_options_g.pxo_create_url));
-		}
-
-		// web link: verify account/user
-		if ( cfgets(str, 512, in) ) {
-			drop_leading_white_space(str);
-			drop_trailing_white_space(str);
-
-			SDL_strlcpy(Multi_options_g.pxo_verify_url, str, SDL_arraysize(Multi_options_g.pxo_verify_url));
-		}
-
-		cfclose(in);
-		in = NULL;
+	if ( !in ) {
+		return;
 	}
 
-	// maybe read standalone config
-	if (Is_standalone) {
-		// read in the config file
-		in = cfopen("std.cfg", "rt", CF_TYPE_DATA);
+	// first line should be user tracker
+	if ( cfgets(str, SDL_arraysize(str), in) ) {
+		drop_leading_white_space(str);
+		drop_trailing_white_space(str);
 
-		if (in != NULL) {
-			while(!cfeof(in)){
-				// read in the game info
-				memset(str,0,512);
-				cfgets(str,512,in);
-
-				// parse the first line
-				tok = strtok(str," \t");
-
-				// check the token
-				if(tok != NULL){
-					drop_leading_white_space(tok);
-					drop_trailing_white_space(tok);
-				} else {
-					continue;
-				}
-
-				if(SETTING("+pxo")){
-					// setup PXO mode
-					NEXT_TOKEN();
-					if(tok != NULL){
-						// whee!
-					}
-				} else
-				if(SETTING("+name")){
-					// set the standalone server's permanent name
-					NEXT_TOKEN();
-					if(tok != NULL){
-						SDL_strlcpy(Multi_options_g.std_pname, tok, STD_NAME_LEN);
-					}
-				} else
-				if(SETTING("+no_voice")){
-					// standalone won't allow voice transmission
-					Multi_options_g.std_voice = 0;
-				} else
-				if(SETTING("+max_players")){
-					// set the max # of players on the standalone
-					NEXT_TOKEN();
-					if(tok != NULL){
-						if(!((atoi(tok) < 1) || (atoi(tok) > MAX_PLAYERS))){
-							Multi_options_g.std_max_players = atoi(tok);
-						}
-					}
-				} else
-				if(SETTING("+ban")){
-					// ban a player
-					NEXT_TOKEN();
-					if(tok != NULL){
-						std_add_ban(tok);
-					}
-				} else
-				if(SETTING("+passwd")){
-					// set the standalone host password
-					NEXT_TOKEN();
-					if(tok != NULL){
-						SDL_strlcpy(Multi_options_g.std_passwd, tok, STD_PASSWD_LEN);
-
-						STUB_FUNCTION;
-					}
-				} else
-				if(SETTING("+low_update")){
-					// set standalone to low updates
-					Multi_options_g.std_datarate = OBJ_UPDATE_LOW;
-				} else
-				if(SETTING("+med_update")){
-					// set standalone to medium updates
-					Multi_options_g.std_datarate = OBJ_UPDATE_MEDIUM;
-				} else
-				if(SETTING("+high_update")){
-					// set standalone to high updates
-					Multi_options_g.std_datarate = OBJ_UPDATE_HIGH;
-				} else
-				if(SETTING("+lan_update")){
-					// set standalone to high updates
-					Multi_options_g.std_datarate = OBJ_UPDATE_LAN;
-				}
-			}
-		}
-
-		cfclose(in);
-		in = NULL;
+		SDL_strlcpy(Multi_options_g.user_tracker_ip, str, SDL_arraysize(Multi_options_g.user_tracker_ip));
 	}
+
+	// next line should be game tracker
+	if ( cfgets(str, 512, in) ) {
+		drop_leading_white_space(str);
+		drop_trailing_white_space(str);
+
+		SDL_strlcpy(Multi_options_g.game_tracker_ip, str, SDL_arraysize(Multi_options_g.game_tracker_ip));
+	}
+
+	// next, irc/chat server
+	if ( cfgets(str, 512, in) ) {
+		drop_leading_white_space(str);
+		drop_trailing_white_space(str);
+
+		SDL_strlcpy(Multi_options_g.pxo_ip, str, SDL_arraysize(Multi_options_g.pxo_ip));
+	}
+
+	// web link: rankings
+	if ( cfgets(str, 512, in) ) {
+		drop_leading_white_space(str);
+		drop_trailing_white_space(str);
+
+		SDL_strlcpy(Multi_options_g.pxo_rank_url, str, SDL_arraysize(Multi_options_g.pxo_rank_url));
+	}
+
+	// web link: register/create account
+	if ( cfgets(str, 512, in) ) {
+		drop_leading_white_space(str);
+		drop_trailing_white_space(str);
+
+		SDL_strlcpy(Multi_options_g.pxo_create_url, str, SDL_arraysize(Multi_options_g.pxo_create_url));
+	}
+
+	// web link: verify account/user
+	if ( cfgets(str, 512, in) ) {
+		drop_leading_white_space(str);
+		drop_trailing_white_space(str);
+
+		SDL_strlcpy(Multi_options_g.pxo_verify_url, str, SDL_arraysize(Multi_options_g.pxo_verify_url));
+	}
+
+	cfclose(in);
 }
 #endif
+
+void multi_options_read_config()
+{
+	// set default value for the global multi options
+	memset(&Multi_options_g, 0, sizeof(multi_global_options));
+	Multi_options_g.protocol = NET_TCP;
+	Multi_options_g.pxo = 0;
+
+	// do we have a forced port via commandline or registry?
+	ushort forced_port = (ushort)os_config_read_uint("Network", "ForcePort", 0);
+	Multi_options_g.port = (Cmdline_network_port >= 0) ? (ushort)Cmdline_network_port : forced_port == 0 ? (ushort)DEFAULT_GAME_PORT : forced_port;
+
+	Multi_options_g.log = (Cmdline_multi_log) ? 1 : 0;
+	Multi_options_g.datarate_cap = OO_HIGH_RATE_DEFAULT;
+	SDL_strlcpy(Multi_options_g.user_tracker_ip, MULTI_PXO_USER_TRACKER_IP, SDL_arraysize(Multi_options_g.user_tracker_ip));
+	SDL_strlcpy(Multi_options_g.game_tracker_ip, MULTI_PXO_GAME_TRACKER_IP, SDL_arraysize(Multi_options_g.game_tracker_ip));
+	SDL_strlcpy(Multi_options_g.pxo_ip, MULTI_PXO_CHAT_IP, SDL_arraysize(Multi_options_g.pxo_ip));
+	SDL_strlcpy(Multi_options_g.pxo_rank_url, MULTI_PXO_RANKINGS_URL, SDL_arraysize(Multi_options_g.pxo_rank_url));
+	SDL_strlcpy(Multi_options_g.pxo_create_url, MULTI_PXO_CREATE_URL, SDL_arraysize(Multi_options_g.pxo_create_url));
+	SDL_strlcpy(Multi_options_g.pxo_verify_url, MULTI_PXO_VERIFY_URL, SDL_arraysize(Multi_options_g.pxo_verify_url));
+	SDL_strlcpy(Multi_options_g.pxo_banner_url, MULTI_PXO_BANNER_URL, SDL_arraysize(Multi_options_g.pxo_banner_url));
+
+	// standalone values
+	Multi_options_g.std_max_players = -1;
+	Multi_options_g.std_datarate = OBJ_UPDATE_LAN;
+	Multi_options_g.std_voice = 1;
+	memset(Multi_options_g.std_passwd, 0, STD_PASSWD_LEN);
+	memset(Multi_options_g.std_pname, 0, STD_NAME_LEN);
+	Multi_options_g.std_framecap = 60;
+	SDL_zero(Multi_options_g.std_listen_addr);
+
+	// check primary multi cfg first
+	if ( !multi_options_read_config_file(MULTI_CFG_FILE) ) {
+		nprintf(("Network","Failed to open primary network config file, using default settings\n"));
+	}
+
+	// now check port-specific cfg file for any special settings
+	char fname[128];
+
+	SDL_snprintf(fname, SDL_arraysize(fname), MULTI_CFG_FILE_SPECIAL, Multi_options_g.port);
+
+	multi_options_read_config_file(fname);
+
+#ifdef MAKE_FS1
+	multi_options_read_pxo_config();
+#endif
+}
 
 // set netgame defaults 
 // NOTE : should be used when creating a newpilot

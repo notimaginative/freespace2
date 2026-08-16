@@ -585,7 +585,7 @@ void multi_check_listen()
 		// the connection was accepted in check_for_listen.  Find the netplayer whose address we connected
 		// with and assign the socket descriptor
 		for (i = 0; i < MAX_PLAYERS; i++ ) {
-			if ( (Net_players[i].flags & NETINFO_FLAG_CONNECTED) && (!memcmp(&(addr.addr), &(Net_players[i].p_info.addr.addr), IP_ADDRESS_LENGTH)) ) {
+			if ( (Net_players[i].flags & NETINFO_FLAG_CONNECTED) && psnet_same(&Net_players[i].p_info.addr, &addr) ) {
 				// mark this flag so we know he's "fully" connected
 				Net_players[i].flags |= NETINFO_FLAG_RELIABLE_CONNECTED;
 				Net_players[i].reliable_socket = sock;

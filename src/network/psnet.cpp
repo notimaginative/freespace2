@@ -1525,6 +1525,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int flags, int reliab
 	if(send_sock == Unreliable_socket){
 		port = who_to->port;
 	} else if(send_sock == Reliable_socket){
+		// FIXME: Surely this is wrong? Should be: Psnet_default_port-1??
 		port = DEFAULT_GAME_PORT + 1;
 	} else {
 		port = who_to->port;
@@ -1702,6 +1703,11 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 	short read_len;
 	ubyte rread_buffer[2];
 
+	// ignore attempts to grab data before connection is fully established
+	if (psocket == INVALID_SOCKET) {
+		return 0;
+	}
+
 	socket = (SOCKET)psocket;
 
 	// see if there is data to be read
@@ -1854,12 +1860,14 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 
 	if ( select(static_cast<int>(Listen_socket+1), &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
 		nprintf(("Network", "Error %d doing select on listen socket\n", WSAGetLastError() ));
-		return 0;
+		return INVALID_SOCKET;
 	}
 
 	// check to see if Listen_socket has something -- if not, return
 	if ( !FD_ISSET(Listen_socket, &rfds) )
 		return INVALID_SOCKET;
+
+	from_addr->type = Socket_type;
 
 	sock = INVALID_SOCKET;
 	switch ( Socket_type ) {
@@ -3006,7 +3014,7 @@ void psnet_reliable_send_ack(net_addr_t *addr,ushort id_num)
 	memcpy(data+2,&id_num,sizeof(ushort));
 
 	// send the data
-	psnet_send(addr,data,4,PSNET_FLAG_RAW,Reliable_socket);
+	psnet_send(addr,data,4,PSNET_FLAG_RAW,1);
 }
 
 // wrappers around select() and recvfrom() for lagging/losing data, and for sorting through different packet types

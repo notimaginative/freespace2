@@ -121,6 +121,7 @@ typedef uint PSNET_SOCKET_RELIABLE;
 #define NETWORK_ERROR_RELIABLE			-4
 #define NETWORK_ERROR_CONNECT_TO_ISP	-5
 #define NETWORK_ERROR_LAN_AND_RAS		-6
+#define NETWORK_ERROR_ADDR_IN_USE		-7
 
 // psnet packet types
 #define PSNET_NUM_TYPES						5

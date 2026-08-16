@@ -245,6 +245,7 @@ typedef struct net_addr	{
 #define NETWORK_ERROR_RELIABLE			-4
 #define NETWORK_ERROR_CONNECT_TO_ISP	-5
 #define NETWORK_ERROR_LAN_AND_RAS		-6
+#define NETWORK_ERROR_ADDR_IN_USE		-7
 
 extern net_addr_t Psnet_my_addr;							// address information of this machine
 extern uint Psnet_my_ip;

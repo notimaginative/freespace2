@@ -768,7 +768,11 @@ void main_hall_do_multi_ready()
 
 	// if our selected protocol is not active
 	if ( !Tcp_active ) {
-		popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362));
+		if (error == NETWORK_ERROR_ADDR_IN_USE) {
+			popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected TCP/IP for multiplayer Freespace, but the selected port (%d) is in use by another process.", -1), Psnet_default_port);
+		} else {
+			popup( PF_NO_NETWORKING, 1, POPUP_OK, XSTR( "You have selected TCP/IP for multiplayer Freespace, but the TCP/IP protocol was not detected on your machine.", 362));
+		}
 		return;
 	} 
 

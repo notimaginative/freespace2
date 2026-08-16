@@ -749,6 +749,10 @@ int psnet_get_network_status()
 		return NETWORK_ERROR_NO_WINSOCK;
 
 	if ( Network_status == NETWORK_STATUS_NO_PROTOCOL ){
+		if (Tcp_failure_code == WSAEADDRINUSE) {
+			return NETWORK_ERROR_ADDR_IN_USE;
+		}
+
 		return NETWORK_ERROR_NO_PROTOCOL;
 	}
 	
@@ -2300,6 +2304,9 @@ int psnet_init_tcp()
 	if ( bind(TCP_socket, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 		Tcp_failure_code = WSAGetLastError();
 		ml_printf("Couldn't bind TCP socket (%d)! Invalidating TCP", Tcp_failure_code );
+		if (Tcp_failure_code == WSAEADDRINUSE) {
+			ml_printf("Port %d in use by another process", Psnet_default_port);
+		}
 		return 0;
 	}
 

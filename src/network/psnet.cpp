@@ -376,9 +376,14 @@ int psnet_get_network_status()
 	if ( Network_status == NETWORK_STATUS_NO_WINSOCK )
 		return NETWORK_ERROR_NO_WINSOCK;
 
-	if ( Network_status == NETWORK_STATUS_NO_PROTOCOL )
+	if ( Network_status == NETWORK_STATUS_NO_PROTOCOL ) {
+		if (Tcp_failure_code == WSAEADDRINUSE) {
+			return NETWORK_ERROR_ADDR_IN_USE;
+		}
+
 		return NETWORK_ERROR_NO_PROTOCOL;
-	
+	}
+
 	// network is running -- be sure that the RAS people know to connect if they currently cannot.
 	
 	if ( Psnet_connection == NETWORK_CONNECTION_DIALUP ) {
@@ -656,6 +661,9 @@ SOCKET psnet_init_reliable(ushort port, int should_listen, int type)
 	sockaddr.sin_port = htons( port );
 	if ( bind(sock, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 		nprintf(("Network", "Unable to bind reliable socket on port %d (%d)!\n"  , port, WSAGetLastError() ));
+		if (Tcp_failure_code == WSAEADDRINUSE) {
+			ml_printf("Port %d in use by another process", Psnet_default_port);
+		}
 		return INVALID_SOCKET;
 	}
 
@@ -825,7 +833,10 @@ void psnet_init( int protocol, int port_num )
 	sockaddr.sin_port = htons( Psnet_default_port );
 	if ( bind(TCP_socket, (struct sockaddr*)&sockaddr, sizeof (sockaddr)) == SOCKET_ERROR) {
 		Tcp_failure_code = WSAGetLastError();
-		nprintf(( "Network", "Couldn't bind TCP socket (%d)! Invalidating TCP\n", Tcp_failure_code )); 
+		ml_printf("Couldn't bind TCP socket (%d)! Invalidating TCP\n", Tcp_failure_code);
+		if (Tcp_failure_code == WSAEADDRINUSE) {
+			ml_printf("Port %d in use by another process", Psnet_default_port);
+		}
 		return;
 	}
 
@@ -834,14 +845,17 @@ void psnet_init( int protocol, int port_num )
 	TCP_reliable_socket = psnet_init_reliable( 0, 0, NET_TCP );
 	if ( TCP_reliable_socket == (SOCKET)INVALID_SOCKET ) {
 		Tcp_failure_code = WSAGetLastError();
-		nprintf(( "Network", "Couldn't initialize TCP reliable socket (OLD SCHOOL) (%d)! Invalidating TCP\n", Tcp_failure_code )); 
+		ml_printf("Couldn't initialize TCP reliable socket (OLD SCHOOL) (%d)! Invalidating TCP", Tcp_failure_code);
 		return;
 	}
 
 	TCP_listen_socket = psnet_init_reliable( (u_short)(Psnet_default_port-1), 1, NET_TCP );
 	if ( TCP_listen_socket == (SOCKET)INVALID_SOCKET ) {
 		Tcp_failure_code = WSAGetLastError();
-		nprintf(( "Network", "Couldn't initialize TCP listen socket (OLD SCHOOL) (%d)! Invalidating TCP\n", Tcp_failure_code )); 
+		ml_printf("Couldn't initialize TCP listen socket (OLD SCHOOL) (%d)! Invalidating TCP", Tcp_failure_code);
+		if (Tcp_failure_code == WSAEADDRINUSE) {
+			ml_printf("Port %d in use by another process", Psnet_default_port-1);
+		}
 		return;
 	}
 #endif

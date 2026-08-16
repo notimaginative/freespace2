@@ -720,10 +720,10 @@ void common_select_init()
 
 #ifdef MAKE_FS1
 	const bool play_anim = (current_detail_level() >= (NUM_DEFAULT_DETAIL_LEVELS-2))
+							&& !(Game_mode == GM_MULTIPLAYER)
 							&& os_config_read_uint("Video", "BriefingAnimation", 1);
 
 	if (play_anim) {
-
 		anim_play_struct aps;
 
 		// Load in the background transition anim

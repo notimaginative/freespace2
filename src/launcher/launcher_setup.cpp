@@ -392,7 +392,7 @@ static void launcher_setup_load_config()
 	if (ptr) Config.controller = ptr;
 
 	Config.haptic = (os_config_read_uint("Controls", "EnableJoystickFF", 0) == 1);
-	Config.direct_force = (os_config_read_uint("Controls", "EnableHitEffect", 0) == 1);
+	Config.direct_force = (os_config_read_uint("Controls", "EnableHitEffect", 1) == 1);
 	Config.swap_action_cancel = (os_config_read_uint("Controls", "SwapActionCancel", 0) == 1);
 
 	// Speed
@@ -400,7 +400,7 @@ static void launcher_setup_load_config()
 	Config.detail_level = SDL_clamp(Config.detail_level, 0, NUM_DEFAULT_DETAIL_LEVELS-1);
 
 	// Network
-	ptr = os_config_read_string("Network", "NetworkConnection", nullptr);
+	ptr = os_config_read_string("Network", "NetworkConnection", "LAN");
 	Config.network_connection = 0;	// start with none
 
 	if (ptr) {
@@ -416,7 +416,7 @@ static void launcher_setup_load_config()
 		}
 	}
 
-	ptr = os_config_read_string("Network", "ConnectionSpeed", nullptr);
+	ptr = os_config_read_string("Network", "ConnectionSpeed", "Fast");
 	Config.network_speed = 0;	// start with none
 
 	if (ptr) {

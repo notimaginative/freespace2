@@ -451,6 +451,7 @@ void os_init_registry_stuff()
 	os_config_write_string(NULL, "ExtrasPath", "");
 //	os_config_write_uint(NULL, "LowMem", 0);
 //	os_config_write_uint(NULL, "PlayMovies", 1);
+//	os_config_write_uint(NULL, "StraightToSetup", 1);
 
 	// 'Video' section
 	os_config_write_string("Video", "Renderer", "");
@@ -462,6 +463,7 @@ void os_init_registry_stuff()
 //	os_config_write_uint("Video", "PreloadTextures", 1);
 //	os_config_write_uint("Video", "ScaleMovies", 1);
 //	os_config_write_uint("Video", "DPIScaling", 1);
+//	os_config_write_uint("Video", "BriefingAnimation", 1);	// FS1 only
 
 	// 'Audio' section
 	os_config_write_string("Audio", "PlaybackDevice", "");
@@ -474,13 +476,14 @@ void os_init_registry_stuff()
 	// 'Controls' section
 	os_config_write_string("Controls", "CurrentJoystick", "");
 	os_config_write_uint("Controls", "EnableJoystickFF", 0);
-	os_config_write_uint("Controls", "EnableHitEffect", 0);
+	os_config_write_uint("Controls", "EnableHitEffect", 1);
+//	os_config_write_uint("Controls", "SwapActionCancel", 0);
 
 	// 'Network' section
 	os_config_write_string("Network", "NetworkConnection", "LAN");
 	os_config_write_string("Network", "ConnectionSpeed", "Fast");
 	os_config_write_uint("Network", "ForcePort", 0);
-	os_config_write_string("Network", "RestrictStandAdmin", "1");
+//	os_config_write_string("Network", "RestrictStandAdmin", "1");
 
 	// 'PXO' section
 	os_config_write_string("PXO", "Login", "");

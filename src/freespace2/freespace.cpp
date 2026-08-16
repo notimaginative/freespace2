@@ -6209,10 +6209,7 @@ void game_enter_state( int old_state, int new_state )
 
 		case GS_STATE_PXO:
 			if (old_state != GS_STATE_PXO_HELP) {
-				STUB_FUNCTION;
-				// TODO: use_last_channel?
-
-				multi_pxo_init(0);
+				multi_pxo_init(old_state == GS_STATE_MULTI_JOIN_GAME);
 			}
 			break;
 

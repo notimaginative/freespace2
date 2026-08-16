@@ -362,7 +362,10 @@ StandaloneUI::StandaloneUI()
 	m_lws_mount_root->mount_next = m_lws_mount_dev.get();
 #endif
 
-	if ( !SDL_strlen(Multi_options_g.std_listen_addr) ) {
+	if (os_config_read_uint("Network", "RestrictStandAdmin", 1) == 0) {
+		info.iface = nullptr;
+		m_interface = "<all>";
+	} else if ( !SDL_strlen(Multi_options_g.std_listen_addr) ) {
 		// this option is to get around a libwebsockets bug that prevented
 		// binding to a IPv4 iface address properly
 		info.options |= LWS_SERVER_OPTION_DISABLE_IPV6;

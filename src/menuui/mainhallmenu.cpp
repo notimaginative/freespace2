@@ -742,6 +742,9 @@ void main_hall_do_multi_ready()
 {
 	int error;
 
+	// initialize the networking code
+	psnet_init(Multi_options_g.protocol, Multi_options_g.port);
+
 	error = psnet_get_network_status();
 	switch( error ) {
 	case NETWORK_ERROR_NO_TYPE:

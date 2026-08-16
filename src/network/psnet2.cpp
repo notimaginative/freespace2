@@ -178,24 +178,6 @@
 // PSNET 2 DEFINES/VARS
 //
 
-int		Psnet_my_addr_valid;
-net_addr_t Psnet_my_addr;
-
-const ubyte Null_address[4] = { 0x00, 0x00, 0x00, 0x00 };
-
-int Socket_type;
-int Can_broadcast;			// can we do broadcasting on our socket?
-int Tcp_can_broadcast = 0;
-
-int Tcp_active = 0;
-
-int Network_status;
-int Tcp_failure_code = 0;
-int Ras_connected;
-int Psnet_connection;
-
-ushort	Psnet_default_port;
-
 // specified their internet connnection type
 #define NETWORK_CONNECTION_NONE			1
 #define NETWORK_CONNECTION_DIALUP		2
@@ -207,6 +189,24 @@ ushort	Psnet_default_port;
 #define NETWORK_STATUS_NO_PROTOCOL		3			// TCP/IP doesn't appear to be loaded
 #define NETWORK_STATUS_NO_RELIABLE		4
 #define NETWORK_STATUS_RUNNING			5			// everything should be running
+
+int		Psnet_my_addr_valid = 0;
+net_addr_t Psnet_my_addr{};
+
+const ubyte Null_address[4] = { 0x00, 0x00, 0x00, 0x00 };
+
+int Socket_type = NET_NONE;
+int Can_broadcast = 0;			// can we do broadcasting on our socket?
+int Tcp_can_broadcast = 0;
+
+int Tcp_active = 0;
+
+int Network_status = NETWORK_STATUS_NO_PROTOCOL;
+int Tcp_failure_code = 0;
+int Ras_connected = 0;
+int Psnet_connection = NETWORK_CONNECTION_NONE;
+
+ushort	Psnet_default_port = DEFAULT_GAME_PORT;
 
 // defintion of structures that actually leave this machine.  psnet_send give us only
 // the data that we want to send.  We will add a header onto this data (packet sequence
@@ -334,10 +334,10 @@ typedef struct {
 	float mean_ping;	
 } reliable_socket;
 
-reliable_socket Reliable_sockets[MAXRELIABLESOCKETS];
+reliable_socket Reliable_sockets[MAXRELIABLESOCKETS]{};
 
 // socket TCP (unreliable)
-SOCKET TCP_socket;
+SOCKET TCP_socket = INVALID_SOCKET;
 
 // the sockets that the game will use when selecting network type
 SOCKET Unreliable_socket = INVALID_SOCKET;
@@ -553,13 +553,9 @@ void PSNET_TOP_LAYER_PROCESS()
 void psnet_init( int protocol, int port_num )
 {	
 	const char *internet_connection;
-#ifdef SDL_PLATFORM_WINDOWS
-	WSADATA wsa_data; 		
-#endif
 	int idx;
-	Tcp_active = 0;
 
-#if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
+#if defined(DEMO) || defined(OEM_BUILD) // not for FS1_DEMO
 	return;
 #endif
 
@@ -568,6 +564,8 @@ void psnet_init( int protocol, int port_num )
 		ml_string("Skipping psnet_init() because network already running");
 		return;
 	}
+
+	Tcp_active = 0;
 
 	// 'lan' should be a safe default in 2015
 	internet_connection = os_config_read_string("Network", "NetworkConnection", "LAN");
@@ -587,7 +585,10 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	Network_status = NETWORK_STATUS_NO_WINSOCK;
+
 #ifdef SDL_PLATFORM_WINDOWS
+	WSADATA wsa_data;
+
 	if (WSAStartup(0x101, &wsa_data )){
 		return;
 	}
@@ -614,12 +615,7 @@ void psnet_init( int protocol, int port_num )
 	}
 
 	// clear reliable sockets
-	reliable_socket *rsocket;
-	int j;	
-	for(j=0; j<MAXRELIABLESOCKETS; j++){
-		rsocket=&Reliable_sockets[j];
-		memset(rsocket,0,sizeof(reliable_socket));
-	}
+	SDL_zero(Reliable_sockets);
 
 	// determine if we've successfully initialized the protocol we want
 	if ( !Tcp_active ) {

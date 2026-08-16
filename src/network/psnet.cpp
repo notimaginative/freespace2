@@ -153,36 +153,6 @@
 // old style packet buffering
 // #define PSNET_BUFFER_OLD_SCHOOL
 
-// sockets for TCP
-SOCKET TCP_socket;
-SOCKET TCP_reliable_socket;
-SOCKET TCP_listen_socket;
-
-// the sockets that the game will use when selecting network type
-SOCKET Unreliable_socket = INVALID_SOCKET;
-SOCKET Reliable_socket = INVALID_SOCKET;
-SOCKET Listen_socket = INVALID_SOCKET;
-
-int		Psnet_my_addr_valid;
-net_addr_t Psnet_my_addr;
-
-ubyte Null_address[IP_ADDRESS_LENGTH];
-
-int Socket_type;
-int Can_broadcast;			// can we do broadcasting on our socket?
-int Tcp_can_broadcast = 0;
-
-int Tcp_active = 0;
-
-int Network_status;
-int Tcp_failure_code = 0;
-int Ras_connected;
-int Psnet_connection;
-
-ushort	Psnet_default_port;
-
-unsigned int Serverconn = 0xffffffff;
-
 // specified their internet connnection type
 #define NETWORK_CONNECTION_NONE			1
 #define NETWORK_CONNECTION_DIALUP		2
@@ -194,6 +164,36 @@ unsigned int Serverconn = 0xffffffff;
 #define NETWORK_STATUS_NO_PROTOCOL		3			// specified protocol doesn't appear to be loaded
 #define NETWORK_STATUS_NO_RELIABLE		4
 #define NETWORK_STATUS_RUNNING			5			// everything should be running
+
+// sockets for TCP
+SOCKET TCP_socket = INVALID_SOCKET;
+SOCKET TCP_reliable_socket = INVALID_SOCKET;
+SOCKET TCP_listen_socket = INVALID_SOCKET;
+
+// the sockets that the game will use when selecting network type
+SOCKET Unreliable_socket = INVALID_SOCKET;
+SOCKET Reliable_socket = INVALID_SOCKET;
+SOCKET Listen_socket = INVALID_SOCKET;
+
+int Psnet_my_addr_valid = 0;
+net_addr_t Psnet_my_addr{};
+
+ubyte Null_address[IP_ADDRESS_LENGTH]{};
+
+int Socket_type = NET_NONE;
+int Can_broadcast = 0;			// can we do broadcasting on our socket?
+int Tcp_can_broadcast = 0;
+
+int Tcp_active = 0;
+
+int Network_status = NETWORK_STATUS_NO_PROTOCOL;
+int Tcp_failure_code = 0;
+int Ras_connected = 0;
+int Psnet_connection = NETWORK_CONNECTION_NONE;
+
+ushort Psnet_default_port = DEFAULT_GAME_PORT;
+
+unsigned int Serverconn = 0xffffffff;
 
 // defintion of structures that actually leave this machine.  psnet_send give us only
 // the data that we want to send.  We will add a header onto this data (packet sequence
@@ -237,9 +237,9 @@ typedef struct network_packet_buffer
 #define MAX_PACKET_BUFFERS		96
 
 #ifdef PSNET_BUFFER_OLD_SCHOOL
-	static network_packet_buffer packet_buffers[MAX_PACKET_BUFFERS];		// buffer to hold packets sent to us
-	static short packet_free_list[MAX_PACKET_BUFFERS];							// contains id's of free packet buffers
-	static Num_packet_buffers;
+	static network_packet_buffer packet_buffers[MAX_PACKET_BUFFERS]{};		// buffer to hold packets sent to us
+	static short packet_free_list[MAX_PACKET_BUFFERS]{};							// contains id's of free packet buffers
+	static Num_packet_buffers = 0;
 	static int Largest_packet_index = 0;
 
 	int	Next_packet_id;
@@ -264,8 +264,8 @@ typedef struct {
 	SOCKET			socket;
 } socket_xlate;
 
-net_stats Psnet_stats[MAX_NET_STATS];
-socket_xlate Psnet_socket_addr[MAX_NET_STATS];
+net_stats Psnet_stats[MAX_NET_STATS]{};
+socket_xlate Psnet_socket_addr[MAX_NET_STATS]{};
 
 int	psnet_bytes_read_frame;			// running count of bytes read this frame
 int	psnet_bytes_written_frame;		// running count of bytes written this frame
@@ -273,8 +273,8 @@ int	psnet_bytes_written_frame;		// running count of bytes written this frame
 int	Psnet_bytes_read;					// globally available numbers for printing on the hud
 int	Psnet_bytes_written;
 
-int	psnet_read_sizes[PSNET_FRAME_FILTER];
-int	psnet_write_sizes[PSNET_FRAME_FILTER];
+int	psnet_read_sizes[PSNET_FRAME_FILTER]{};
+int	psnet_write_sizes[PSNET_FRAME_FILTER]{};
 
 int	psnet_read_total;
 int	psnet_write_total;
@@ -756,14 +756,9 @@ void psnet_socket_options( SOCKET sock )
 void psnet_init( int protocol, int port_num )
 {	
 	const char *internet_connection;
-#ifdef SDL_PLATFORM_WINDOWS
-	WSADATA wsa_data;
-#endif
 
 	// UDP/TCP socket structure
 	struct sockaddr_in sockaddr;
-
-	Tcp_active = 0;
 
 #if defined(DEMO) || defined(OEM_BUILD) // not for FS2_DEMO
 	return;
@@ -772,6 +767,8 @@ void psnet_init( int protocol, int port_num )
 	// GAME PORT INITIALIZATION STUFF
 	if ( Network_status == NETWORK_STATUS_RUNNING )
 		return;
+
+	Tcp_active = 0;
 
 	// 'lan' should be a safe default in 2015
 	internet_connection = os_config_read_string("Network", "NetworkConnection", "LAN");
@@ -793,6 +790,8 @@ void psnet_init( int protocol, int port_num )
 	Network_status = NETWORK_STATUS_NO_WINSOCK;
 
 #ifdef SDL_PLATFORM_WINDOWS
+	WSADATA wsa_data;
+
 	if (WSAStartup(0x101, &wsa_data )){
 		return;
 	}

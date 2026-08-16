@@ -1583,6 +1583,9 @@ void std_init_standalone()
 	Cmdline_freespace_no_sound = 1;
 	Cmdline_freespace_no_music = 1;
 
+	// initialize low-level networking
+	psnet_init(Multi_options_g.protocol, Multi_options_g.port);
+
 	try {
 		Standalone = std::make_unique<StandaloneUI>();
 

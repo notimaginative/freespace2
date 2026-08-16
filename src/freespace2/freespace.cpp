@@ -2461,8 +2461,6 @@ void game_init()
 //	navmap_init();						// init the navigation map system
 	context_help_init();			
 	techroom_intel_init();			// parse species.tbl, load intel info	
-	// initialize psnet
-	psnet_init( Multi_options_g.protocol, Multi_options_g.port );						// initialize the networking code		
 	init_animating_pointer();	
 	asteroid_init();
 	mission_brief_common_init();	// Mark all the briefing structures as empty.		

@@ -35,6 +35,8 @@
 	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>@APP_NAME@ searches for multiplayer games on your local network when not using PXO.</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>@CMAKE_OSX_DEPLOYMENT_TARGET@</string>
 	<key>NSPrincipalClass</key>

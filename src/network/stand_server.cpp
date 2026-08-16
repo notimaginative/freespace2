@@ -31,7 +31,10 @@
 #include "osregistry.h"
 #include "multi_log.h"
 
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_SHADOW
 #include "ext/json.hpp"
+DISABLE_WARNING_POP
 
 #include <libwebsockets.h>
 #include <string>

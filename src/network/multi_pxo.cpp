@@ -5447,13 +5447,9 @@ void multi_pxo_ban_init()
 // process http download details
 void multi_pxo_ban_process()
 {
+#ifndef MAKE_FS1
 	char url_string[512] = "";
 	char local_file[MAX_PATH_LEN] = "";
-
-#ifdef MAKE_FS1
-	// no banners here
-	return;
-#endif
 
 	// process stuff
 	switch(Multi_pxo_ban_mode){
@@ -5581,6 +5577,7 @@ void multi_pxo_ban_process()
 		Multi_pxo_ban_mode = PXO_BAN_MODE_IMAGES_DONE;
 		break;
 	}
+#endif	// !MAKE_FS1
 }
 
 // close

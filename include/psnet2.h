@@ -164,12 +164,6 @@ extern SOCKET Unreliable_socket;	// all PXO API modules should use this to send 
 // PSNET 2 TOP LAYER FUNCTIONS - these functions simply buffer and store packets based upon type (see PSNET_TYPE_* defines)
 //
 
-#ifdef SDL_PLATFORM_WINDOWS
-struct sockaddr;
-struct fd_set;
-struct timeval;
-#endif
-
 // wrappers around select() and recvfrom() for lagging/losing data, and for sorting through different packet types
 int RECVFROM(SOCKET s, char * buf, int len, int flags, sockaddr *from, int *fromlen, int psnet_type);
 int SELECT(int nfds, fd_set *readfds, fd_set *writefds, fd_set*exceptfds, struct timeval* timeout, int psnet_type);

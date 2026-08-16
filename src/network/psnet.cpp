@@ -457,7 +457,6 @@ void psnet_ras_status()
 	for (i = 0; i < num_connections; i++ ) {
 		RASCONNSTATUS status;
 		RASPPPIP projection;
-		unsigned long size;
 
 		nprintf(("Network", "Connection %d:\n", i));
 		nprintf(("Network", "Entry Name: %s\n", rasbuffer[i].szEntryName));
@@ -637,7 +636,7 @@ int psnet_init_stream( SOCKET *s, int type )
 }
 
 // called by psnet_init to initialize the listen socket used by a host/server
-int psnet_init_reliable(ushort port, int should_listen, int type)
+SOCKET psnet_init_reliable(ushort port, int should_listen, int type)
 {
 	SOCKET sock = 0;		// JAS: Get rid of optimized warning
 	struct sockaddr_in sockaddr;		// UDP/TCP socket structure
@@ -1125,7 +1124,7 @@ void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr_t *server_addr
 				timeout.tv_sec = 0;
 				timeout.tv_usec = 500000;			//500000 micro seconds is 1/2 second
 
-				is_set = select( Reliable_socket+1, NULL, &wfds, NULL, &timeout);
+				is_set = select(static_cast<int>(Reliable_socket+1), NULL, &wfds, NULL, &timeout);
 
 				// check for error on select first
 				if ( is_set == SOCKET_ERROR ) {
@@ -1157,7 +1156,7 @@ void psnet_rel_connect_to_server( PSNET_SOCKET *psocket, net_addr_t *server_addr
 			return;
 		}
 
-		Serverconn = *socket;
+		Serverconn = static_cast<unsigned int>(*socket);
 	}
 }
 
@@ -1318,7 +1317,7 @@ void psnet_get_socket_data(SOCKET socket, int flags = PSNET_FLAG_RAW)
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 0;
 
-		if ( select( socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+		if ( select(static_cast<int>(socket+1), &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
 			nprintf(("Network", "Error %d doing a socket select on read\n", WSAGetLastError()));
 			break;
 		}
@@ -1565,7 +1564,7 @@ int psnet_send( net_addr_t * who_to, void * data, int len, int flags, int reliab
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
-	if ( select( send_sock+1, NULL, &wfds, NULL, &timeout) == SOCKET_ERROR ) {
+	if ( select(static_cast<int>(send_sock+1), NULL, &wfds, NULL, &timeout) == SOCKET_ERROR ) {
 		nprintf(("Network", "Error on blocking select for write %d\n", WSAGetLastError() ));
 		return 0;
 	}
@@ -1657,7 +1656,7 @@ int psnet_rel_send( PSNET_SOCKET psocket, ubyte *data, int length, int flags )
 				if ( NETCALL_WOULDBLOCK(error) )
 					error = WSAECONNABORTED;
 
-				multi_eval_socket_error(socket, error);
+				multi_eval_socket_error(psocket, error);
 				return 0;
 			}
 			retries++;											// keep a try count
@@ -1697,7 +1696,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
-	if ( select( socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+	if ( select(static_cast<int>(socket+1), &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
 		nprintf(("Network", "Error on select for read reliable: %d\n", WSAGetLastError() ));
 		return 0;
 	}
@@ -1717,7 +1716,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 		// this condition here.
 		if ( from_len == 0 ) {
 			nprintf(("Network", "Dumping player because recv returned 0\n"));
-			multi_eval_socket_error( socket, WSAECONNRESET );		// this error drops player from game.
+			multi_eval_socket_error( psocket, WSAECONNRESET );		// this error drops player from game.
 			return 0;
 		}
 
@@ -1726,7 +1725,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 		else if ( from_len == SOCKET_ERROR ) {
 			error = WSAGetLastError();
 			if ( !NETCALL_WOULDBLOCK(error) )
-				multi_eval_socket_error( socket, error );
+				multi_eval_socket_error( psocket, error );
 			return 0;		// get it next frame?
 		}
 
@@ -1748,7 +1747,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 		// this condition here.
 		if ( from_len == 0 ) {
 			nprintf(("Network", "Dumping player because recv returned 0\n"));
-			multi_eval_socket_error( socket, WSAECONNRESET );		// this error drops player from game.
+			multi_eval_socket_error( psocket, WSAECONNRESET );		// this error drops player from game.
 			return 0;
 		}
 
@@ -1757,7 +1756,7 @@ int psnet_rel_get( PSNET_SOCKET psocket, ubyte *buffer, int max_len, int flags)
 		else if ( from_len == SOCKET_ERROR ) {
 			error = WSAGetLastError();
 			if ( !NETCALL_WOULDBLOCK(error) ) {
-				multi_eval_socket_error( socket, error );
+				multi_eval_socket_error( psocket, error );
 				return 0;
 			}
 			continue;
@@ -1839,7 +1838,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
-	if ( select(Listen_socket+1, &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
+	if ( select(static_cast<int>(Listen_socket+1), &rfds, NULL, NULL, &timeout) == SOCKET_ERROR ) {
 		nprintf(("Network", "Error %d doing select on listen socket\n", WSAGetLastError() ));
 		return 0;
 	}
@@ -1878,7 +1877,7 @@ int psnet_rel_check_for_listen(net_addr_t *from_addr)
 		}
 	}
 
-	return sock;
+	return static_cast<int>(sock);
 
 }
 

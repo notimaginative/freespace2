@@ -6341,7 +6341,7 @@ void send_player_stats_block_packet(net_player *pl, int stats_code, net_player *
 	case STATS_ALLTIME:	
 		// alltime kills
 		for(idx=0;idx<MAX_SHIP_TYPES;idx++){
-			u_tmp = sc->kills[idx];
+			u_tmp = static_cast<ushort>(sc->kills[idx]);
 			ADD_USHORT(u_tmp);
 		}
 		// medal information
@@ -6372,8 +6372,8 @@ void send_player_stats_block_packet(net_player *pl, int stats_code, net_player *
 	case STATS_MISSION:	
 		// mission OKkills		
 		for(idx=0;idx<MAX_SHIP_TYPES;idx++){
-			u_tmp = sc->m_okKills[idx];
-			ADD_USHORT(u_tmp);			
+			u_tmp = static_cast<ushort>(sc->m_okKills[idx]);
+			ADD_USHORT(u_tmp);
 		}
 	
 		ADD_INT(sc->m_score);

@@ -9517,7 +9517,7 @@ int ship_get_species_by_type(int ship_info_index)
 {
 #ifdef MAKE_FS1
 	return 0;
-#endif
+#else
 
 	// sanity
 	if((ship_info_index < 0) || (ship_info_index >= Num_ship_types)){
@@ -9526,6 +9526,7 @@ int ship_get_species_by_type(int ship_info_index)
 
 	// return species
 	return Ship_info[ship_info_index].species;
+#endif
 }
 
 // return the length of a ship

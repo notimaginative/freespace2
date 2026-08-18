@@ -120,7 +120,7 @@ void std_add_chat_text(const char *text, int player_index, int add_id);
 int std_is_host_passwd();
 
 // if the given callsign is banned from the server
-int std_player_is_banned(const char *name);
+int std_player_is_banned(const char *name, int tracker_id = -1);
 
 // add a callsign to the ban list
 void std_add_ban(const char *name);

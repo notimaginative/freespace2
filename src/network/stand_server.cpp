@@ -60,8 +60,8 @@ using json = nlohmann::json;
 std::thread Standalone_thread;
 #endif
 
-#define STANDALONE_MAX_BAN		50
-std::vector<std::string> Standalone_ban_list;
+#define STANDALONE_MAX_BAN		100
+std::vector<std::pair<std::string, int>> Standalone_ban_list;
 
 enum UpdateTimes {
 	info			= 3000,
@@ -1705,6 +1705,13 @@ void std_reset_timestamps()
 	}
 }
 
+static bool is_number(const char *name)
+{
+	auto p = name;
+	while (p && *p && SDL_isdigit(*p)) ++p;
+	return (p && !(*p));
+}
+
 void std_add_ban(const char *name)
 {
 	if ( !name || !name[0] ) {
@@ -1715,17 +1722,35 @@ void std_add_ban(const char *name)
 		return;
 	}
 
-	Standalone_ban_list.push_back(name);
+	int tracker_id = -1;
+
+	auto len = SDL_strlen(name);
+
+	// tracker_id is at least 4 digits and most 9
+	if ((len > 3) && (len < 10) && is_number(name)) {
+		tracker_id = SDL_atoi(name);
+		SDL_assert(tracker_id > 0);
+	}
+
+	Standalone_ban_list.emplace_back(name, tracker_id);
 }
 
-int std_player_is_banned(const char *name)
+int std_player_is_banned(const char *name, int tracker_id)
 {
 	if (Standalone_ban_list.empty()) {
 		return 0;
 	}
 
+	if (MULTI_IS_TRACKER_GAME && tracker_id > 0) {
+		for (const auto &item : Standalone_ban_list) {
+			if (item.second == tracker_id) {
+				return 1;
+			}
+		}
+	}
+
 	for (const auto &item : Standalone_ban_list) {
-		if ( !SDL_strcasecmp(name, item.c_str()) ) {
+		if ( !SDL_strcasecmp(name, item.first.c_str()) ) {
 			return 1;
 		}
 	}

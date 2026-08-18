@@ -2151,7 +2151,7 @@ int multi_eval_join_request(join_request *jr,net_addr_t *addr)
 	// the standalone has some oddball situations which we must handle seperately
 	if(Game_mode & GM_STANDALONE_SERVER){		
 		// if the player was banned by the standalone
-		if(std_player_is_banned(jr->callsign)){
+		if(std_player_is_banned(jr->callsign, jr->tracker_id)){
 			return JOIN_DENY_JR_BANNED;
 		}
 

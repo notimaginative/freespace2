@@ -2139,19 +2139,24 @@ int multi_eval_join_request(join_request *jr,net_addr_t *addr)
 	if(Netgame.game_state != NETGAME_STATE_FORMING){
 		return JOIN_DENY_JR_STATE;
 	}
-	
+
+	// check to see if this is a tracker game, and if so make sure this is a valid MT player
+	// we probably eventually want to make sure he's not passing us a fake tracker id#
+	if (MULTI_IS_TRACKER_GAME) {
+		if(jr->tracker_id < 0){
+			return JOIN_DENY_JR_TRACKER_INVAL;
+		}
+	}
+
 	// the standalone has some oddball situations which we must handle seperately
 	if(Game_mode & GM_STANDALONE_SERVER){		
+		// if the player was banned by the standalone
+		if(std_player_is_banned(jr->callsign)){
+			return JOIN_DENY_JR_BANNED;
+		}
+
 		// if this is the first connection, he will be the host so we must always accept him
 		if(multi_num_players() == 0){
-			// check to see if this is a tracker game, and if so make sure this is a valid MT player	
-			// we probably eventually want to make sure he's not passing us a fake tracker id#
-			if (MULTI_IS_TRACKER_GAME) {
-				if(jr->tracker_id < 0){
-					return JOIN_DENY_JR_TRACKER_INVAL;
-				}			
-			}			
-
 			// if we're password protected		
 			if(std_is_host_passwd() && strcmp(jr->passwd, Multi_options_g.std_passwd)){
 				return JOIN_DENY_JR_PASSWD;
@@ -2180,14 +2185,6 @@ int multi_eval_join_request(join_request *jr,net_addr_t *addr)
 
 		// we're full buddy - sorry
 		return JOIN_DENY_JR_FULL;
-	}
-	
-	// check to see if this is a tracker game, and if so make sure this is a valid MT player	
-	// we probably eventually want to make sure he's not passing us a fake tracker id#
-	if (MULTI_IS_TRACKER_GAME) {
-		if(jr->tracker_id < 0){
-			return JOIN_DENY_JR_TRACKER_INVAL;
-		}			
 	}
 
 	// check to see if the player is trying to ingame join in a closed game
@@ -2218,11 +2215,6 @@ int multi_eval_join_request(join_request *jr,net_addr_t *addr)
 	// can't ingame join a non-dogfight game
 	if((Netgame.game_state != NETGAME_STATE_FORMING) && !(Netgame.type_flags & NG_TYPE_DOGFIGHT)){
 		return JOIN_DENY_JR_TYPE;
-	}	
-
-	// if the player was banned by the standalone
-	if((Game_mode & GM_STANDALONE_SERVER) && std_player_is_banned(jr->callsign)){
-		return JOIN_DENY_JR_BANNED;
 	}
 
 	// if the game is in-mission, make sure there are ships available

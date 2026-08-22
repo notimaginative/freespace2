@@ -163,7 +163,7 @@ private:
 
 	lws_callback_function callback_standalone;
 
-	void msg_handler_server(const json &msg);
+	void msg_handler_server_config(const json &msg);
 	void msg_handler_player(const json &msg);
 
 public:
@@ -543,9 +543,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 					exit_val = -1;
 					break;
-				}
-
-				if (msg.contains("reset_all")) {
+				} else if (msg.contains("reset_all")) {
 					multi_quit_game(PROMPT_NONE);
 					reset_all();
 
@@ -554,9 +552,9 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 				// all other messages
 				for (auto it = msg.begin(); it != msg.end(); ++it) {
-					if (it.key() == "server") {
+					if (it.key() == "server_config") {
 						json server_msg = it.value();
-						msg_handler_server(server_msg);
+						msg_handler_server_config(server_msg);
 					} else if (it.key() == "player") {
 						json player_msg = it.value();
 						msg_handler_player(player_msg);
@@ -598,7 +596,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 	return exit_val;
 }
 
-void StandaloneUI::msg_handler_server(const json &msg)
+void StandaloneUI::msg_handler_server_config(const json &msg)
 {
 	for (auto it = msg.begin(); it != msg.end(); ++it) {
 		// name
@@ -615,7 +613,6 @@ void StandaloneUI::msg_handler_server(const json &msg)
 			if ( !Netgame.host ) {
 				SDL_strlcpy(Netgame.name, name.c_str(), SDL_arraysize(Netgame.name));
 			}
-
 		}
 
 		// password
@@ -898,18 +895,18 @@ void StandaloneUI::server_update_vals()
 
 	// settings / options
 	if ( SDL_strlen(Multi_options_g.std_pname) ) {
-		msg["server"]["name"] = Multi_options_g.std_pname;
+		msg["server_config"]["name"] = Multi_options_g.std_pname;
 	} else {
-		msg["server"]["name"] = XSTR("Standalone Server", 916);
+		msg["server_config"]["name"] = XSTR("Standalone Server", 916);
 	}
 
-	msg["server"]["password"] = Multi_options_g.std_passwd;
-	msg["server"]["max_players"] = Multi_options_g.std_max_players;
-	msg["server"]["voice"] = Multi_options_g.std_voice;
-	msg["server"]["update_rate"] = Multi_options_g.std_datarate;
-	msg["server"]["framecap"] = Multi_options_g.std_framecap;
-	msg["server"]["pxo"] = m_pxo_enabled;	// use intended value, not actual
-	msg["server"]["pxo_channel"] = Multi_fs_tracker_channel;
+	msg["server_config"]["password"] = Multi_options_g.std_passwd;
+	msg["server_config"]["max_players"] = Multi_options_g.std_max_players;
+	msg["server_config"]["voice"] = Multi_options_g.std_voice;
+	msg["server_config"]["update_rate"] = Multi_options_g.std_datarate;
+	msg["server_config"]["framecap"] = Multi_options_g.std_framecap;
+	msg["server_config"]["pxo"] = m_pxo_enabled;	// use intended value, not actual
+	msg["server_config"]["pxo_channel"] = Multi_fs_tracker_channel;
 
 	add_message(msg);
 }

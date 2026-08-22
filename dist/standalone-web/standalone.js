@@ -123,7 +123,7 @@ const Utils = {
 // msg type dispatcher
 //
 const msg_handler = Object.freeze({
-	server: (msg) => Server.parse_msg(msg),
+	server_config: (msg) => ServerConfig.parse_msg(msg),
 	netgame: (msg) => Netgame.parse_msg(msg),
 	popup: (msg) => Popup.parse_msg(msg),
 	reset_gui: (msg) => GUI.parse_msg(msg),
@@ -138,17 +138,12 @@ const msg_handler = Object.freeze({
 // Server (websocket and config)
 //
 const Server = Object.freeze({
-	elements: {
-		panel: undefined
-	},
 	data: {
 		ws: undefined,
 		uptime_timer: undefined,
 		msg_buffer: []
 	},
 	init: function() {
-		this.elements.panel = document.getElementById('server')
-
 		this.data.ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host, "standalone")
 
 		this.data.ws.addEventListener('error', e => {
@@ -198,15 +193,6 @@ const Server = Object.freeze({
 				console.log(`Error parsing message from server! Message was: ${e.data}`)
 			}
 		})
-
-		this.elements.panel.querySelector('[data-server-name]').addEventListener('change', () => this.set_name())
-		this.elements.panel.querySelector('[data-server-password]').addEventListener('change', () => this.set_password())
-		this.elements.panel.querySelector('[data-server-update_rate]').addEventListener('change', () => this.set_update_rate())
-		this.elements.panel.querySelector('[data-server-max_players]').addEventListener('change', () => this.set_max_players())
-		this.elements.panel.querySelector('[data-server-framecap]').addEventListener('change', () => this.set_framecap())
-		this.elements.panel.querySelector('[data-server-pxo]').addEventListener('change', () => this.set_pxo())
-		this.elements.panel.querySelector('[data-server-pxo_channel]').addEventListener('change', () => this.set_pxo_channel())
-		this.elements.panel.querySelector('[data-server-voice]').addEventListener('change', () => this.set_voice())
 	},
 	isConnected: function() {
 		return (this.data.ws && this.data.ws.readyState == 1)
@@ -230,128 +216,10 @@ const Server = Object.freeze({
 			console.error(e)
 		}
 	},
-	parse_msg: function(msg) {
-		for (const [key, value] of Object.entries(msg)) {
-			if ( !this.messages[key] ) {
-				console.warn(`Unhandled server message type '${key}' => `, value)
-				continue
-			}
-
-			this.messages[key](value)
-		}
-	},
-	// --------------------------------------------------------------
-	// messages from server
-	//
-	messages: Object.freeze({
-		name: function(value) {
-			if ( !value || value.length > 31) return
-
-			const elem = Server.elements.panel.querySelector('[data-server-name]')
-
-			elem.value = value
-			elem.disabled = false
-		},
-		password: function(value) {
-			if (value.length > 15) return
-
-			const elem = Server.elements.panel.querySelector('[data-server-password]')
-
-			elem.value = value
-			elem.disabled = false
-		},
-		update_rate: function(value) {
-			if (value < 0 || value > 3) return
-	
-			const elem = Server.elements.panel.querySelector('[data-server-update_rate]')
-	
-			elem.value = value
-			elem.disabled = false
-		},
-		max_players: function(value) {
-			// -1 sets default
-			// max players is 12, but server counts as 1
-			if ( !value || value != -1 || value >= 11) return
-	
-			const elem = Server.elements.panel.querySelector('[data-server-max_players]')
-	
-			elem.value = value
-			elem.disabled = false
-		},
-		framecap: function(value) {
-			if (value < 15 || value > 120) return
-
-			const elem = Server.elements.panel.querySelector('[data-server-framecap]')
-
-			elem.value = value
-			elem.disabled = false
-		},
-		voice: function(value) {
-			const elem = Server.elements.panel.querySelector('[data-server-voice]')
-
-			elem.checked = value ? true : false
-			elem.disabled = false
-		},
-		pxo: function(value) {
-			const elem = Server.elements.panel.querySelector('[data-server-pxo]')
-
-			elem.checked = value ? true : false
-			elem.disabled = false
-		},
-		pxo_channel: function(value) {
-			if (value.length > 31) return
-
-			const elem = Server.elements.panel.querySelector('[data-server-pxo_channel]')
-
-			elem.value = value
-			elem.disabled = false
-		}
-	}),
-	//
-	// --------------------------------------------------------------
 
 	// --------------------------------------------------------------
 	// messags to server
 	//
-	set_name: function() {
-		const name = this.elements.panel.querySelector('[data-server-name]').value.trim()
-		this.send_msg({ "server": { "name": name } })
-	},
-	set_password: function() {
-		const pass = this.elements.panel.querySelector('[data-server-password]').value.trim()
-		this.send_msg({ "server": { "password": pass } })
-	},
-	set_voice: function() {
-		const checked = this.elements.panel.querySelector('[data-server-voice]').checked
-		this.send_msg({ "server": { "voice": checked } })
-	},
-	set_update_rate: function() {
-		const selected = this.elements.panel.querySelector('[data-server-update_rate]').value
-		this.send_msg({ "server": { "update_rate": parseInt(selected, 10) } })
-	},
-	set_max_players: function() {
-		const m_players = parseInt(this.elements.panel.querySelector('[data-server-max_players]').value, 10)
-		this.send_msg({ "server": { "max_players": m_players } })
-	},
-	set_pxo: function() {
-		const checked = this.elements.panel.querySelector('[data-server-pxo]').checked
-		this.send_msg({ "server": { "pxo": checked } })
-	},
-	set_pxo_channel: function() {
-		let channel = this.elements.panel.querySelector('[data-server-pxo_channel]').value.trim()
-
-		// make sure it's a proper irc channel type
-		if (channel.length && !(channel === "global" || channel[0] == '#' || channel[0] == '+')) {
-			channel = '#' + channel
-			document.querySelector('#server [data-server-pxo_channel]').value = channel
-		}
-
-		this.send_msg({ "server": { "pxo_channel": channel } })
-	},
-	set_framecap: function() {
-		const framecap = this.elements.panel.querySelector('[data-server-framecap]').value
-		this.send_msg({ "server": { "framecap": parseInt(framecap, 10) } })
-	},
 	// re-validate missions with PXO server
 	validate: function() {
 		this.send_msg({ "server": { "validate": true } })
@@ -372,6 +240,154 @@ const Server = Object.freeze({
 })
 
 Server.init()
+
+//
+// Server Config
+//
+const ServerConfig = Object.freeze({
+	elements: {
+		panel: undefined
+	},
+	init: function() {
+		this.elements.panel = document.getElementById('server')
+
+		this.elements.panel.querySelector('[data-server-name]').addEventListener('change', () => this.set_name())
+		this.elements.panel.querySelector('[data-server-password]').addEventListener('change', () => this.set_password())
+		this.elements.panel.querySelector('[data-server-update_rate]').addEventListener('change', () => this.set_update_rate())
+		this.elements.panel.querySelector('[data-server-max_players]').addEventListener('change', () => this.set_max_players())
+		this.elements.panel.querySelector('[data-server-framecap]').addEventListener('change', () => this.set_framecap())
+		this.elements.panel.querySelector('[data-server-pxo]').addEventListener('change', () => this.set_pxo())
+		this.elements.panel.querySelector('[data-server-pxo_channel]').addEventListener('change', () => this.set_pxo_channel())
+		this.elements.panel.querySelector('[data-server-voice]').addEventListener('change', () => this.set_voice())
+	},
+	parse_msg: function(msg) {
+		for (const [key, value] of Object.entries(msg)) {
+			if ( !this.messages[key] ) {
+				console.warn(`Unhandled server_config message type '${key}' => `, value)
+				continue
+			}
+
+			this.messages[key](value)
+		}
+	},
+
+	// --------------------------------------------------------------
+	// messages from server
+	//
+	messages: Object.freeze({
+		name: function(value) {
+			if ( !value || value.length > 31) return
+
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-name]')
+
+			elem.value = value
+			elem.disabled = false
+		},
+		password: function(value) {
+			if (value.length > 15) return
+
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-password]')
+
+			elem.value = value
+			elem.disabled = false
+		},
+		update_rate: function(value) {
+			if (value < 0 || value > 3) return
+	
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-update_rate]')
+	
+			elem.value = value
+			elem.disabled = false
+		},
+		max_players: function(value) {
+			// -1 sets default
+			// max players is 12, but server counts as 1
+			if ( !value || value != -1 || value >= 11) return
+	
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-max_players]')
+	
+			elem.value = value
+			elem.disabled = false
+		},
+		framecap: function(value) {
+			if (value < 15 || value > 120) return
+
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-framecap]')
+
+			elem.value = value
+			elem.disabled = false
+		},
+		voice: function(value) {
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-voice]')
+
+			elem.checked = value ? true : false
+			elem.disabled = false
+		},
+		pxo: function(value) {
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-pxo]')
+
+			elem.checked = value ? true : false
+			elem.disabled = false
+		},
+		pxo_channel: function(value) {
+			if (value.length > 31) return
+
+			const elem = ServerConfig.elements.panel.querySelector('[data-server-pxo_channel]')
+
+			elem.value = value
+			elem.disabled = false
+		}
+	}),
+	//
+	// --------------------------------------------------------------
+
+	// --------------------------------------------------------------
+	// messags to server
+	//
+	set_name: function() {
+		const name = this.elements.panel.querySelector('[data-server-name]').value.trim()
+		Server.send_msg({ "server_config": { "name": name } })
+	},
+	set_password: function() {
+		const pass = this.elements.panel.querySelector('[data-server-password]').value.trim()
+		Server.send_msg({ "server_config": { "password": pass } })
+	},
+	set_voice: function() {
+		const checked = this.elements.panel.querySelector('[data-server-voice]').checked
+		Server.send_msg({ "server_config": { "voice": checked } })
+	},
+	set_update_rate: function() {
+		const selected = this.elements.panel.querySelector('[data-server-update_rate]').value
+		Server.send_msg({ "server_config": { "update_rate": parseInt(selected, 10) } })
+	},
+	set_max_players: function() {
+		const m_players = parseInt(this.elements.panel.querySelector('[data-server-max_players]').value, 10)
+		Server.send_msg({ "server_config": { "max_players": m_players } })
+	},
+	set_pxo: function() {
+		const checked = this.elements.panel.querySelector('[data-server-pxo]').checked
+		Server.send_msg({ "server_config": { "pxo": checked } })
+	},
+	set_pxo_channel: function() {
+		let channel = this.elements.panel.querySelector('[data-server-pxo_channel]').value.trim()
+
+		// make sure it's a proper irc channel type
+		if (channel.length && !(channel === "global" || channel[0] == '#' || channel[0] == '+')) {
+			channel = '#' + channel
+			document.querySelector('#server [data-server-pxo_channel]').value = channel
+		}
+
+		Server.send_msg({ "server_config": { "pxo_channel": channel } })
+	},
+	set_framecap: function() {
+		const framecap = this.elements.panel.querySelector('[data-server-framecap]').value
+		Server.send_msg({ "server_config": { "framecap": parseInt(framecap, 10) } })
+	},
+	//
+	// --------------------------------------------------------------
+})
+
+ServerConfig.init()
 
 //
 // GUI init/reset

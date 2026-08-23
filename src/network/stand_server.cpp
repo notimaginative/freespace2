@@ -165,6 +165,8 @@ private:
 
 	void msg_handler_server_config(const json &msg);
 	void msg_handler_player(const json &msg);
+	void msg_handler_chat(const json &msg);
+	void msg_handler_multilog(const json &msg);
 
 public:
 	StandaloneUI();
@@ -558,26 +560,12 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 					} else if (it.key() == "player") {
 						json player_msg = it.value();
 						msg_handler_player(player_msg);
-					}
-					// in-game chat box messages from server
-					else if (it.key() == "chat") {
-						auto txt = it.value().get<std::string>();
-
-						if ( !txt.empty() ) {
-							send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
-							std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
-						}
-					}
-					// enable/disable sending of multi log (per client)
-					else if (it.key() == "multilog") {
-						auto enabled = it.value().get<bool>();
-
-						if (m_active_client) {
-							m_active_client->m_multilog_enabled = enabled;
-
-							// if we are enabling the multilog then send all that we have to the client
-							multilog_refresh();
-						}
+					} else if (it.key() == "chat") {
+						json chat_msg = it.value();
+						msg_handler_chat(chat_msg);
+					} else if (it.key() == "multilog") {
+						json multilog_msg = it.value();
+						msg_handler_multilog(multilog_msg);
 					}
 				}
 			} catch (json::exception &e) {
@@ -598,6 +586,10 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 void StandaloneUI::msg_handler_server_config(const json &msg)
 {
+	if ( !msg.is_object() ) {
+		return;
+	}
+
 	for (auto it = msg.begin(); it != msg.end(); ++it) {
 		// name
 		if (it.key() == "name") {
@@ -702,6 +694,10 @@ void StandaloneUI::msg_handler_server_config(const json &msg)
 
 void StandaloneUI::msg_handler_player(const json &msg)
 {
+	if ( !msg.is_object() ) {
+		return;
+	}
+
 	for (auto it = msg.begin(); it != msg.end(); ++it) {
 		// kick player
 		if (it.key() == "kick") {
@@ -729,6 +725,37 @@ void StandaloneUI::msg_handler_player(const json &msg)
 			}
 		}
 	}
+}
+
+void StandaloneUI::msg_handler_chat(const json &msg)
+{
+	if ( !msg.is_string() ) {
+		return;
+	}
+
+	const auto txt = msg.get<std::string>();
+
+	if ( !txt.empty() ) {
+		send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
+		std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
+	}
+}
+
+void StandaloneUI::msg_handler_multilog(const json &msg)
+{
+	if ( !msg.is_boolean() ) {
+		return;
+	}
+
+	// this only applies to the active client
+	if ( !m_active_client ) {
+		return;
+	}
+
+	m_active_client->m_multilog_enabled = msg.get<bool>();
+
+	// if we are enabling the multilog then send all that we have to the client
+	multilog_refresh();
 }
 
 bool StandaloneUI::add_message(const json &msg)

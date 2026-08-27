@@ -49,6 +49,7 @@ DISABLE_WARNING_POP
 
 #ifdef STD_THREADED
 #include <thread>
+#include <mutex>
 #endif
 
 
@@ -58,10 +59,11 @@ using json = nlohmann::json;
 
 #ifdef STD_THREADED
 std::thread Standalone_thread;
+std::mutex Standalone_ban_lock;
 #endif
 
-#define STANDALONE_MAX_BAN		100
-std::vector<std::pair<std::string, int>> Standalone_ban_list;
+constexpr size_t MAX_STANDALONE_BANS = 50;
+std::list<std::pair<std::string, int>> Standalone_ban_list;
 
 enum UpdateTimes {
 	info			= 3000,
@@ -99,6 +101,16 @@ struct Standalone_client {
 		{};
 
 	~Standalone_client() {};
+
+	void shutdown(uint32_t active_id = 0) {
+		lws_close_reason(m_wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
+
+		// the active client will close via callback, everyone else has to be
+		// gracefully booted via forced shutdown
+		if (active_id != m_id) {
+			lws_set_timeout(m_wsi, PENDING_TIMEOUT_SHUTDOWN_FLUSH, LWS_TO_KILL_SYNC);
+		}
+	}
 };
 
 class StandaloneUI {
@@ -126,12 +138,10 @@ private:
 	bool m_pxo_refresh_state;
 	bool m_pxo_enabled;
 
-	void pxo_refresh();
-
 	uint32_t m_next_client_id;
 
 	int m_mission_time;
-	int m_realized_fps;
+	int m_mission_fps;
 	bool m_host_connected;
 	int m_num_players;
 
@@ -156,17 +166,31 @@ private:
 		return next;
 	}
 
-	bool add_message(const json &msg);
-	void update_connections();
-
 	void do_frame();
 
 	lws_callback_function callback_standalone;
 
+	void msg_handler_server(const json &msg, int &exit_val);
 	void msg_handler_server_config(const json &msg);
 	void msg_handler_player(const json &msg);
 	void msg_handler_chat(const json &msg);
 	void msg_handler_multilog(const json &msg);
+
+	bool add_message(const json &msg);
+
+	void server_info_send();
+	void server_config_send();
+	void server_config_send_ban_list();
+	void server_config_update_ban_list(const std::string &user, bool remove = false);
+
+	void chat_send_text(const std::string &id, const std::string &text);
+	void chat_refresh();
+
+	void multilog_refresh();
+	void pxo_refresh();
+
+	void update_connections();
+	void mission_update_time();
 
 public:
 	StandaloneUI();
@@ -179,15 +203,13 @@ public:
 	void process();
 	void shutdown();
 
-	void reset_all();
-	void reset();
-	void reset_timestamps();
+	void reset_server();
+	void reset_client();
+	void reset_client_timestamps();
 
 	void server_set_state(const char *str);
-	void server_set_realized_fps(int fps) { m_realized_fps = fps; }
 	void server_set_host_status(bool connected) { m_host_connected = connected; }
 	void server_set_num_players(int count) { m_num_players = count; }
-	void server_update_vals();
 
 	void netgame_set_name();
 	void netgame_update();
@@ -198,18 +220,15 @@ public:
 	void player_remove(const net_player *p);
 
 	void chat_add_text(const char *text, int player_index, int add_id);
-	void chat_send_text(const std::string &id, const std::string &text);
-	void chat_refresh();
 
 	void multilog_add_line(const char *line);
-	void multilog_refresh();
 
 	void popup(PopupTypes type, const char *title = nullptr, const char *msg = nullptr);
 	void popup_set_text(const char *str, int field_num);	// for status popup only
 	void popup_close();	// for status popup only
 
 	void mission_set_time(float mission_time);
-	void mission_update_time();
+	void mission_set_fps(int fps) { m_mission_fps = fps; }
 	void mission_set_goals();
 };
 
@@ -421,7 +440,7 @@ StandaloneUI::StandaloneUI()
 	m_active_client = nullptr;
 
 	m_mission_time = -1;
-	m_realized_fps = 0;
+	m_mission_fps = 0;
 	m_host_connected = false;
 	m_num_players = 0;
 
@@ -435,13 +454,13 @@ StandaloneUI::~StandaloneUI()
 
 int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
-	constexpr size_t MAX_BUF_SIZE = 2048;
+	constexpr size_t MAX_BUF_SIZE = 3096;
 
 	unsigned char buf[LWS_PRE + MAX_BUF_SIZE];
 	unsigned char *p = &buf[LWS_PRE];
 	int exit_val = 0;
 
-	uint32_t *client_id = reinterpret_cast<uint32_t *>(user);
+	auto client_id = reinterpret_cast<uint32_t *>(user);
 
 	if (client_id && *client_id) {
 		for (auto &client : m_clients) {
@@ -456,14 +475,14 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 		case LWS_CALLBACK_ESTABLISHED: {
 			SDL_assert(m_active_client == nullptr);
 
-			uint32_t cid = getNewClientId();
+			auto cid = getNewClientId();
 
 			m_clients.emplace_back(std::make_unique<Standalone_client>(cid, wsi));
 
 			*client_id = cid;
 			m_active_client = m_clients.back().get();
 
-			reset();
+			reset_client();
 
 			break;
 		}
@@ -498,7 +517,8 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 			while ( !m_active_client->m_send_buffer.empty() ) {
 				if (m_active_client->m_send_buffer.front().size() >= MAX_BUF_SIZE) {
-					lwsl_warn("Message size (%zu) exceeds buffer size (%zu)!  Discarding...\n", m_active_client->m_send_buffer.size(), MAX_BUF_SIZE);
+					lwsl_warn("Message size (%zu) exceeds buffer size (%zu)!  Discarding...\n",
+							  m_active_client->m_send_buffer.size(), MAX_BUF_SIZE);
 					m_active_client->m_send_buffer.pop_front();
 
 					continue;
@@ -533,43 +553,31 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 				break;
 			}
 
-			try {
-				std::string str(reinterpret_cast<const char *>(in), len);
-				json msg = json::parse(str);
+			// NOTE: 'in' isn't guaranteed to be null terminated (or even a string)
+			const std::string str(reinterpret_cast<const char *>(in), len);
+			const json msg = json::parse(str, nullptr, false);	// don't throw
 
-				// "final" messages - if it exists, do and bail
-				if (msg.contains("shutdown")) {
-					lws_close_reason(wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
-					gameseq_post_event(GS_EVENT_QUIT_GAME);
-					Standalone_running.store(false, std::memory_order_relaxed);
+			if (msg.is_discarded()) {
+				break;
+			}
 
-					exit_val = -1;
-					break;
-				} else if (msg.contains("reset_all")) {
-					multi_quit_game(PROMPT_NONE);
-					reset_all();
+			for (auto &item : msg.items()) {
+				if (item.key() == "server") {
+					msg_handler_server(item.value(), exit_val);
 
-					break;
-				}
-
-				// all other messages
-				for (auto it = msg.begin(); it != msg.end(); ++it) {
-					if (it.key() == "server_config") {
-						json server_msg = it.value();
-						msg_handler_server_config(server_msg);
-					} else if (it.key() == "player") {
-						json player_msg = it.value();
-						msg_handler_player(player_msg);
-					} else if (it.key() == "chat") {
-						json chat_msg = it.value();
-						msg_handler_chat(chat_msg);
-					} else if (it.key() == "multilog") {
-						json multilog_msg = it.value();
-						msg_handler_multilog(multilog_msg);
+					// non-zero exit value means we bail
+					if (exit_val) {
+						break;
 					}
+				} else if (item.key() == "server_config") {
+					msg_handler_server_config(item.value());
+				} else if (item.key() == "player") {
+					msg_handler_player(item.value());
+				} else if (item.key() == "chat") {
+					msg_handler_chat(item.value());
+				} else if (item.key() == "multilog") {
+					msg_handler_multilog(item.value());
 				}
-			} catch (json::exception &e) {
-				ml_printf("STD => Exception caught handling client message: %s", e.what());
 			}
 
 			break;
@@ -584,111 +592,181 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 	return exit_val;
 }
 
-void StandaloneUI::msg_handler_server_config(const json &msg)
+void StandaloneUI::msg_handler_server(const json &msg, int &exit_val)
 {
 	if ( !msg.is_object() ) {
 		return;
 	}
 
-	for (auto it = msg.begin(); it != msg.end(); ++it) {
-		// name
-		if (it.key() == "name") {
-			auto name = it.value().get<std::string>();
+	try {
+		// shut down the server
+		if (msg.contains("shutdown")) {
+			gameseq_post_event(GS_EVENT_QUIT_GAME);
+			exit_val = -1;
 
-			if ( name.empty() ) {
-				name = XSTR("Standalone Server", 916);
+			for (auto &client : m_clients) {
+				client->shutdown(m_active_client->m_id);
 			}
 
-			SDL_strlcpy(Multi_options_g.std_pname, name.c_str(), SDL_arraysize(Multi_options_g.std_pname));
-
-			// if no host is connected then set as netgame name too
-			if ( !Netgame.host ) {
-				SDL_strlcpy(Netgame.name, name.c_str(), SDL_arraysize(Netgame.name));
-			}
+			return;
 		}
 
-		// password
-		else if (it.key() == "password") {
-			auto pass = it.value().get<std::string>();
-			SDL_strlcpy(Multi_options_g.std_passwd, pass.c_str(), SDL_arraysize(Multi_options_g.std_passwd));
+		// quit any active game and reset the server
+		if (msg.contains("reset")) {
+			multi_quit_game(PROMPT_NONE);
+			reset_server();
 		}
-
-		// allow voice
-		else if (it.key() == "voice") {
-			auto voice = it.value().get<bool>();
-			Multi_options_g.std_voice = voice ? 1 : 0;
+		// re-validate missions on PXO
+		else if (msg.contains("validate") && Multi_options_g.pxo) {
+			cf_delete(MULTI_VALID_MISSION_FILE, CF_TYPE_DATA);
+			multi_update_valid_missions();
 		}
+	} catch (const json::exception &e) {
+		ml_printf("STD => JSON error processing server message: %s", e.what());
+	}
+}
 
-		// server update rate
-		else if (it.key() == "update_rate") {
-			auto obj_update = it.value().get<int>();
+void StandaloneUI::msg_handler_server_config(const json &msg)
+{
+	if (msg.is_boolean() && msg.get<bool>()) {
+		server_config_send();
+		return;
+	}
 
-			if ( (obj_update >= 0) && (obj_update < MAX_OBJ_UPDATE_LEVELS) ) {
-				Multi_options_g.std_datarate = obj_update;
-				Net_player->p_info.options.obj_update_level = obj_update;
-			}
-		}
+	if ( !msg.is_object() ) {
+		return;
+	}
 
-		// max players
-		else if (it.key() == "max_players") {
-			auto max_players = it.value().get<int>();
+	try {
+		for (auto &item : msg.items()) {
+			// name
+			if (item.key() == "name") {
+				auto name = item.value().get<std::string>();
 
-			if ( (max_players == -1) || !((max_players < 1) || (max_players > MAX_PLAYERS)) ) {
-				Multi_options_g.std_max_players = max_players;
-			}
-		}
+				if ( name.empty() ) {
+					name = XSTR("Standalone Server", 916);
+				}
 
-		// PXO
-		else if (it.key() == "pxo") {
-			auto pxo = it.value().get<bool>();
+				SDL_strlcpy(Multi_options_g.std_pname, name.c_str(), SDL_arraysize(Multi_options_g.std_pname));
 
-			if (Multi_options_g.pxo && !pxo) {
-				m_pxo_refresh_state = true;
-				m_pxo_enabled = false;
-			} else if ( !Multi_options_g.pxo && pxo ) {
-				m_pxo_refresh_state = true;
-				m_pxo_enabled = true;
-			} else {
-				// if we reverted to the original state then abort the refresh
-				m_pxo_refresh_state = false;
+				// if no host is connected then set as netgame name too
+				if ( !Netgame.host ) {
+					SDL_strlcpy(Netgame.name, name.c_str(), SDL_arraysize(Netgame.name));
+				}
 			}
 
-			// if we can't do this immediately then notify the client of that fact
-			if (m_pxo_refresh_state && m_num_players) {
-				popup(PopupTypes::Notice, nullptr,
-					  "PXO state change will take affect at the conclusion of the current game.");
+			// password
+			else if (item.key() == "password") {
+				auto pass = item.value().get<std::string>();
+				SDL_strlcpy(Multi_options_g.std_passwd, pass.c_str(), SDL_arraysize(Multi_options_g.std_passwd));
 			}
 
-			pxo_refresh();
-		}
+			// allow voice
+			else if (item.key() == "voice") {
+				auto voice = item.value().get<bool>();
+				Multi_options_g.std_voice = voice ? 1 : 0;
+			}
 
-		// PXO channel
-		else if (it.key() == "pxo_channel") {
-			auto channel = it.value().get<std::string>();
+			// server update rate
+			else if (item.key() == "update_rate") {
+				auto obj_update = item.value().get<int>();
 
-			if ( !channel.empty() && ((channel == "global") || (channel.front() == '#') || (channel.front() == '$')) ) {
-				SDL_strlcpy(Multi_fs_tracker_channel, channel.c_str(), SDL_arraysize(Multi_fs_tracker_channel));
-				m_pxo_refresh_state = true;
+				if ( (obj_update >= 0) && (obj_update < MAX_OBJ_UPDATE_LEVELS) ) {
+					Multi_options_g.std_datarate = obj_update;
+					Net_player->p_info.options.obj_update_level = obj_update;
+				}
+			}
+
+			// max players
+			else if (item.key() == "max_players") {
+				auto max_players = item.value().get<int>();
+
+				if ( (max_players == -1) || !((max_players < 1) || (max_players > MAX_PLAYERS)) ) {
+					Multi_options_g.std_max_players = max_players;
+				}
+			}
+
+			// PXO
+			else if (item.key() == "pxo") {
+				auto pxo = item.value().get<bool>();
+
+				if (Multi_options_g.pxo && !pxo) {
+					m_pxo_refresh_state = true;
+					m_pxo_enabled = false;
+				} else if ( !Multi_options_g.pxo && pxo ) {
+					m_pxo_refresh_state = true;
+					m_pxo_enabled = true;
+				} else {
+					// if we reverted to the original state then abort the refresh
+					m_pxo_refresh_state = false;
+				}
+
+				// if we can't do this immediately then notify the client of that fact
+				if (m_pxo_refresh_state && m_num_players) {
+					popup(PopupTypes::Notice, nullptr,
+						  "PXO state change will take affect at the conclusion of the current game.");
+				}
+
 				pxo_refresh();
 			}
-		}
 
-		// frame cap
-		else if (it.key() == "framecap") {
-			auto cap = it.value().get<int>();
+			// PXO channel
+			else if (item.key() == "pxo_channel") {
+				auto channel = item.value().get<std::string>();
 
-			CAP(cap, 15, 120);
-			Multi_options_g.std_framecap = cap;
-		}
+				if ( !channel.empty() && ((channel == "global") || (channel.front() == '#') || (channel.front() == '$')) ) {
+					SDL_strlcpy(Multi_fs_tracker_channel, channel.c_str(), SDL_arraysize(Multi_fs_tracker_channel));
+					m_pxo_refresh_state = true;
+					pxo_refresh();
+				}
+			}
 
-		// re-validate missions on PXO
-		else if (it.key() == "validate") {
-			if (Multi_options_g.pxo) {
-				cf_delete(MULTI_VALID_MISSION_FILE, CF_TYPE_DATA);
+			// frame cap
+			else if (item.key() == "framecap") {
+				auto cap = item.value().get<int>();
 
-				multi_update_valid_missions();
+				CAP(cap, 15, 120);
+				Multi_options_g.std_framecap = cap;
+			}
+
+			// banned users
+			else if (item.key() == "ban_list") {
+				json banmsg = item.value();
+
+				for (auto bi = banmsg.begin(); bi != banmsg.end(); ++bi) {
+					// add user to ban list
+					if (bi.key() == "add") {
+						auto user = bi.value().get<std::string>();
+						server_config_update_ban_list(user);
+					}
+
+					// remove user from ban list
+					else if (bi.key() == "remove") {
+						auto user = bi.value().get<std::string>();
+						server_config_update_ban_list(user, true);
+					}
+				}
 			}
 		}
+	} catch (const json::exception &e) {
+		ml_printf("STD => JSON error processing server_config message: %s", e.what());
+		return;
+	}
+
+	// send changes to all clients (except current one)
+	if (m_clients.size() > 1) {
+		auto prev_client = m_active_client;
+
+		for (auto &client : m_clients) {
+			if (prev_client->m_id == client->m_id) {
+				continue;
+			}
+
+			m_active_client = client.get();
+			server_config_send();
+		}
+
+		m_active_client = prev_client;
 	}
 }
 
@@ -698,32 +776,51 @@ void StandaloneUI::msg_handler_player(const json &msg)
 		return;
 	}
 
-	for (auto it = msg.begin(); it != msg.end(); ++it) {
-		// kick player
-		if (it.key() == "kick") {
-			auto player_id = it.value().get<short>();
-			int idx = find_player_id(player_id);
-
-			multi_kick_player(idx, 0);
-		}
-
-		// player info/stats
-		else if (it.key() == "info") {
-			auto player_id = it.value().get<short>();
-
-			if ((player_id < 0) || (m_active_client->m_active_player == player_id)) {
-				m_active_client->m_active_player = -1;
-			} else {
+	try {
+		for (auto &item : msg.items()) {
+			// kick player
+			if (item.key() == "kick") {
+				auto player_id = item.value().get<short>();
 				int idx = find_player_id(player_id);
 
-				if (idx >= 0) {
-					player_info(&Net_players[idx]);
-					m_active_client->m_active_player = player_id;
-				} else {
+				// make sure we can't kick ourselves (standalone always idx 0)
+				if (idx > 0) {
+					multi_kick_player(idx, 0);
+				}
+			}
+
+			// kick & ban player
+			else if (item.key() == "ban") {
+				auto player_id = item.value().get<short>();
+				int idx = find_player_id(player_id);
+
+				// make sure we can't kick ourselves (standalone always idx 0)
+				if (idx > 0) {
+					std_add_ban(&Net_players[idx]);	// ban player here
+					multi_kick_player(idx, 1);		// then kick with temp addr ban
+				}
+			}
+
+			// player info/stats
+			else if (item.key() == "info") {
+				auto player_id = item.value().get<short>();
+
+				if ((player_id < 0) || (m_active_client->m_active_player == player_id)) {
 					m_active_client->m_active_player = -1;
+				} else {
+					int idx = find_player_id(player_id);
+
+					if (idx >= 0) {
+						player_info(&Net_players[idx]);
+						m_active_client->m_active_player = player_id;
+					} else {
+						m_active_client->m_active_player = -1;
+					}
 				}
 			}
 		}
+	} catch (const json::exception &e) {
+		ml_printf("STD => JSON error processing player message: %s", e.what());
 	}
 }
 
@@ -733,11 +830,15 @@ void StandaloneUI::msg_handler_chat(const json &msg)
 		return;
 	}
 
-	const auto txt = msg.get<std::string>();
+	try {
+		const auto txt = msg.get<std::string>();
 
-	if ( !txt.empty() ) {
-		send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
-		std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
+		if ( !txt.empty() ) {
+			send_game_chat_packet(Net_player, txt.c_str(), MULTI_MSG_ALL, nullptr);
+			std_add_chat_text(txt.c_str(), MY_NET_PLAYER_NUM, 1);
+		}
+	} catch (const json::exception &e) {
+		ml_printf("STD => JSON error processing chat message: %s", e.what());
 	}
 }
 
@@ -752,7 +853,12 @@ void StandaloneUI::msg_handler_multilog(const json &msg)
 		return;
 	}
 
-	m_active_client->m_multilog_enabled = msg.get<bool>();
+	try {
+		m_active_client->m_multilog_enabled = msg.get<bool>();
+	} catch (const json::exception &e) {
+		ml_printf("STD => JSON error processing multilog message: %s", e.what());
+		return;
+	}
 
 	// if we are enabling the multilog then send all that we have to the client
 	multilog_refresh();
@@ -765,10 +871,10 @@ bool StandaloneUI::add_message(const json &msg)
 		return false;
 	}
 
-	const std::string msg_str = msg.dump();
+	const std::string msg_str = msg.dump(-1, ' ', false, json::error_handler_t::replace);
 
 	if (m_active_client) {
-		m_active_client->m_send_buffer.push_back(msg_str);
+		m_active_client->m_send_buffer.push_back(std::move(msg_str));
 	} else {
 		for (auto &client : m_clients) {
 			client->m_send_buffer.push_back(msg_str);
@@ -848,17 +954,19 @@ void StandaloneUI::do_frame()
 			}
 		}
 
-		// maybe update server/player info
+		// maybe update server/mission/player info
 		if (m_num_players) {
 			if ( !client->m_info_timestamp || (cur_time_ms > client->m_info_timestamp) ) {
 				client->m_info_timestamp = cur_time_ms + UpdateTimes::info;
 
-				// server info
 				json msg;
 
-				msg["server_info"]["realized_fps"] = m_realized_fps;
+				// server info
 				msg["server_info"]["host_connected"] = m_host_connected;
 				msg["server_info"]["num_players"] = m_num_players;
+
+				// mission info
+				msg["mission"]["fps"] = m_mission_fps;
 
 				add_message(msg);
 
@@ -896,7 +1004,7 @@ void StandaloneUI::server_set_state(const char *str)
 	add_message(msg);
 }
 
-void StandaloneUI::server_update_vals()
+void StandaloneUI::server_info_send()
 {
 	if (m_clients.empty()) {
 		return;
@@ -917,8 +1025,18 @@ void StandaloneUI::server_update_vals()
 	msg["server_info"]["state"] = m_state_text;
 	msg["server_info"]["multi_version"] = MULTI_FS_SERVER_VERSION;
 	msg["server_info"]["host_connected"] = m_host_connected;
-	msg["server_info"]["realized_fps"] = m_realized_fps;
 	msg["server_info"]["num_players"] = m_num_players;
+
+	add_message(msg);
+}
+
+void StandaloneUI::server_config_send()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
 
 	// settings / options
 	if ( SDL_strlen(Multi_options_g.std_pname) ) {
@@ -929,13 +1047,65 @@ void StandaloneUI::server_update_vals()
 
 	msg["server_config"]["password"] = Multi_options_g.std_passwd;
 	msg["server_config"]["max_players"] = Multi_options_g.std_max_players;
-	msg["server_config"]["voice"] = Multi_options_g.std_voice;
+	msg["server_config"]["voice"] = (Multi_options_g.std_voice == 1);
 	msg["server_config"]["update_rate"] = Multi_options_g.std_datarate;
 	msg["server_config"]["framecap"] = Multi_options_g.std_framecap;
 	msg["server_config"]["pxo"] = m_pxo_enabled;	// use intended value, not actual
 	msg["server_config"]["pxo_channel"] = Multi_fs_tracker_channel;
 
 	add_message(msg);
+
+	// send bans separately, may push message size over limit otherwise
+	server_config_send_ban_list();
+}
+
+void StandaloneUI::server_config_send_ban_list()
+{
+	if ( !m_active_client ) {
+		return;
+	}
+
+	std::vector<std::string> ban_list;
+	json msg;
+
+#ifdef STD_THREADED
+	std::lock_guard<std::mutex> guard(Standalone_ban_lock);
+#endif
+
+	ban_list.reserve(Standalone_ban_list.size());
+
+	for (auto &item : Standalone_ban_list) {
+		ban_list.push_back(item.first);
+	}
+
+	msg["server_config"]["ban_list"] = ban_list;
+
+	add_message(msg);
+}
+
+void StandaloneUI::server_config_update_ban_list(const std::string &user, bool remove)
+{
+	if (user.empty()) {
+		return;
+	}
+
+	if (remove) {
+#ifdef STD_THREADED
+		std::lock_guard<std::mutex> guard(Standalone_ban_lock);
+#endif
+
+		for (auto it = Standalone_ban_list.begin(); it != Standalone_ban_list.end(); ++it) {
+			if (user == it->first) {
+				Standalone_ban_list.erase(it);
+				break;
+			}
+		}
+	} else {
+		std_add_ban(user.c_str());
+	}
+
+	// send updated ban list to client
+	server_config_send_ban_list();
 }
 
 void StandaloneUI::netgame_set_name()
@@ -1258,7 +1428,7 @@ void StandaloneUI::pxo_refresh()
 	}
 }
 
-void StandaloneUI::reset_all()
+void StandaloneUI::reset_server()
 {
 	// refresh PXO state if it's safe to do so
 	pxo_refresh();
@@ -1275,13 +1445,13 @@ void StandaloneUI::reset_all()
 
 	for (auto &client : m_clients) {
 		m_active_client = client.get();
-		reset();
+		reset_client();
 	}
 
 	m_active_client = prev_client;
 }
 
-void StandaloneUI::reset()
+void StandaloneUI::reset_client()
 {
 	if (m_clients.empty()) {
 		return;
@@ -1294,12 +1464,12 @@ void StandaloneUI::reset()
 	json msg;
 
 	// send gui reset
-	msg["reset_gui"] = true;
+	msg["server"]["reset_gui"] = true;
 
 	add_message(msg);
 
 	// refresh server information
-	server_update_vals();
+	server_info_send();
 
 	// refresh various ui elements
 	chat_refresh();
@@ -1332,7 +1502,7 @@ void StandaloneUI::reset()
 	}
 }
 
-void StandaloneUI::reset_timestamps()
+void StandaloneUI::reset_client_timestamps()
 {
 	for (auto &client : m_clients) {
 		client->m_netgame_timestamp = 0;
@@ -1525,12 +1695,12 @@ void StandaloneUI::mission_set_goals()
 		return;
 	}
 
+	json msg;
+
 	if ( !Num_goals ) {
-		json msg;
-
 		msg["mission"]["reset_goals"] = true;
-
 		add_message(msg);
+
 		return;
 	}
 
@@ -1559,8 +1729,6 @@ void StandaloneUI::mission_set_goals()
 				break;
 		}
 	}
-
-	json msg;
 
 	if ( !primary.empty() ) {
 		msg["mission"]["goals"]["primary"] = primary;
@@ -1725,7 +1893,7 @@ void std_add_chat_text(const char *text, int player_index, int add_id)
 void std_reset_timestamps()
 {
 	if (Standalone) {
-		Standalone->reset_timestamps();
+		Standalone->reset_client_timestamps();
 	}
 }
 
@@ -1742,25 +1910,54 @@ void std_add_ban(const char *name)
 		return;
 	}
 
-	if (Standalone_ban_list.size() >= STANDALONE_MAX_BAN) {
-		return;
-	}
-
 	int tracker_id = -1;
 
 	auto len = SDL_strlen(name);
 
-	// tracker_id is at least 4 digits and most 9
+	if (len >= CALLSIGN_LEN) {
+		return;
+	}
+
+	// tracker_id is at least 4 digits and at most 9
 	if ((len > 3) && (len < 10) && is_number(name)) {
 		tracker_id = SDL_atoi(name);
 		SDL_assert(tracker_id > 0);
 	}
 
+#ifdef STD_THREADED
+	std::lock_guard<std::mutex> guard(Standalone_ban_lock);
+#endif
+
 	Standalone_ban_list.emplace_back(name, tracker_id);
+
+	if (Standalone_ban_list.size() >= MAX_STANDALONE_BANS) {
+		Standalone_ban_list.pop_front();
+	}
+}
+
+void std_add_ban(const net_player *np)
+{
+	if ( !np || !np->player || (np == Net_player) || !MULTI_CONNECTED((*np)) ) {
+		return;
+	}
+
+#ifdef STD_THREADED
+	std::lock_guard<std::mutex> guard(Standalone_ban_lock);
+#endif
+
+	Standalone_ban_list.emplace_back(np->player->callsign, np->tracker_player_id);
+
+	if (Standalone_ban_list.size() >= MAX_STANDALONE_BANS) {
+		Standalone_ban_list.pop_front();
+	}
 }
 
 int std_player_is_banned(const char *name, int tracker_id)
 {
+#ifdef STD_THREADED
+	std::lock_guard<std::mutex> guard(Standalone_ban_lock);
+#endif
+
 	if (Standalone_ban_list.empty()) {
 		return 0;
 	}
@@ -1810,7 +2007,7 @@ void std_multi_update_netgame_info_controls()
 void std_set_standalone_fps(float fps)
 {
 	if (Standalone) {
-		Standalone->server_set_realized_fps(static_cast<int>(fps));
+		Standalone->mission_set_fps(static_cast<int>(fps));
 	}
 }
 
@@ -1834,7 +2031,7 @@ void std_multi_update_goals()
 void std_reset_standalone_gui()
 {
 	if (Standalone) {
-		Standalone->reset_all();
+		Standalone->reset_server();
 	}
 }
 

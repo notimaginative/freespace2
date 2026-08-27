@@ -123,15 +123,15 @@ const Utils = {
 // msg type dispatcher
 //
 const msg_handler = Object.freeze({
+	server: (msg) => Server.parse_msg(msg),
+	server_info: (msg) => ServerInfo.parse_msg(msg),
 	server_config: (msg) => ServerConfig.parse_msg(msg),
-	netgame: (msg) => Netgame.parse_msg(msg),
 	popup: (msg) => Popup.parse_msg(msg),
-	reset_gui: (msg) => GUI.parse_msg(msg),
+	netgame: (msg) => Netgame.parse_msg(msg),
+	player: (msg) => Player.parse_msg(msg),
 	mission: (msg) => Mission.parse_msg(msg),
-	chat: (msg) => Chat.parse_msg(msg),
-	player: (msg) => Players.parse_msg(msg),
 	multilog: (msg) => Multilog.parse_msg(msg),
-	server_info: (msg) => ServerInfo.parse_msg(msg)
+	chat: (msg) => Chat.parse_msg(msg),
 })
 
 //
@@ -178,7 +178,9 @@ const Server = Object.freeze({
 			try {
 				const msg = JSON.parse(e.data)
 
-				console.log(msg)
+				// ///////////////////////////////////////////
+				console.log(msg)	// REMOVE ME!!!!!!
+				// ///////////////////////////////////////////
 
 				for (const [key, value] of Object.entries(msg)) {
 					if ( !msg_handler[key] ) {
@@ -216,6 +218,30 @@ const Server = Object.freeze({
 			console.error(e)
 		}
 	},
+	parse_msg: function(msg) {
+		for (const [key, value] of Object.entries(msg)) {
+			if ( !this.messages[key] ) {
+				console.warn(`Unhandled server_config message type '${key}' => `, value)
+				continue
+			}
+
+			this.messages[key](value)
+		}
+	},
+
+	// --------------------------------------------------------------
+	// messages from server
+	//
+	messages: Object.freeze({
+		reset_gui: function() {
+			Netgame.reset()
+			Player.reset()
+			Mission.reset()
+			Chat.reset()
+		},
+	}),
+	//
+	// --------------------------------------------------------------
 
 	// --------------------------------------------------------------
 	// messags to server
@@ -227,12 +253,12 @@ const Server = Object.freeze({
 	},
 	// shutdown standalone server
 	shutdown: function() {
-		this.send_msg({ "shutdown": true })
+		this.send_msg({ "server": { "shutdown": true } })
 		closeNavs()
 	},
 	// reset standalone to main state (quits active mission!!!)
 	reset_all: function() {
-		this.send_msg({ "reset_all": true })
+		this.send_msg({ "server": { "reset": true } })
 		closeNavs()
 	},
 	//
@@ -240,6 +266,78 @@ const Server = Object.freeze({
 })
 
 Server.init()
+
+//
+// Server Info
+//
+const ServerInfo = Object.freeze({
+	settings: {
+		start_time: 0
+	},
+	parse_msg: function(msg) {
+		for (const [key, value] of Object.entries(msg)) {
+			if ( !this.messages[key] ) {
+				console.warn(`Unhandled server_info message type '${key}' => `, value)
+				continue
+			}
+
+			this.messages[key](value)
+		}
+	},
+	calc_uptime: function() {
+		const serverUptime = document.querySelector('#server-info [data-server-info-uptime]')
+
+		if ( !ServerInfo.settings.start_time ) {
+			serverUptime.textContent = '~'
+			return
+		}
+
+		const seconds = Math.floor(Date.now() / 1000) - ServerInfo.settings.start_time
+		const days = Math.floor(seconds / 86400)
+		const hours = Math.floor(seconds / 3600) % 24
+		const minutes = Utils.pad(Math.floor(seconds / 60) % 60)
+
+		let uptime = `${hours}:${minutes}`
+
+		if (days == 1) uptime = `${days} day, ${uptime}`
+		else if (days > 1) uptime = `${days} days, ${uptime}`
+
+		serverUptime.textContent = uptime
+	},
+
+	// --------------------------------------------------------------
+	// messages from server
+	//
+	messages: Object.freeze({
+		title: function(value) {
+			document.title = value
+		},
+		build: function(value) {
+			document.querySelector('#server-info [data-server-info-build]').textContent = value
+		},
+		multi_version: function(value) {
+			document.querySelector('#server-info [data-server-info-multi_version]').textContent = value
+		},
+		state: function(value) {
+			document.querySelector('#server-info [data-server-info-state]').textContent = value
+		},
+		address: function(value) {
+			document.querySelector('#server-info [data-server-info-address]').textContent = value
+		},
+		start_time: function(value) {
+			ServerInfo.settings.start_time = parseInt(value, 10)
+			ServerInfo.calc_uptime()
+		},
+		host_connected: function(value) {
+			// console.log(`Host connected: ${value}`)
+		},
+		num_players: function(value) {
+			// console.log(`Num players: ${value}`)
+		}
+	})
+	//
+	// --------------------------------------------------------------
+})
 
 //
 // Server Config
@@ -259,6 +357,8 @@ const ServerConfig = Object.freeze({
 		this.elements.panel.querySelector('[data-server-pxo]').addEventListener('change', () => this.set_pxo())
 		this.elements.panel.querySelector('[data-server-pxo_channel]').addEventListener('change', () => this.set_pxo_channel())
 		this.elements.panel.querySelector('[data-server-voice]').addEventListener('change', () => this.set_voice())
+
+		Server.send_msg({ "server_config": true })
 	},
 	parse_msg: function(msg) {
 		for (const [key, value] of Object.entries(msg)) {
@@ -302,7 +402,7 @@ const ServerConfig = Object.freeze({
 		max_players: function(value) {
 			// -1 sets default
 			// max players is 12, but server counts as 1
-			if ( !value || value != -1 || value >= 11) return
+			if ((value != -1) && (value < 1 || value > 10)) return
 	
 			const elem = ServerConfig.elements.panel.querySelector('[data-server-max_players]')
 	
@@ -336,6 +436,10 @@ const ServerConfig = Object.freeze({
 
 			elem.value = value
 			elem.disabled = false
+		},
+		ban_list: function(value) {
+			if ( !Array.isArray(value) || !value.length ) return
+			console.log(value)
 		}
 	}),
 	//
@@ -388,21 +492,6 @@ const ServerConfig = Object.freeze({
 })
 
 ServerConfig.init()
-
-//
-// GUI init/reset
-//
-const GUI = Object.freeze({
-	parse_msg: function(msg) {
-		this.reset()
-	},
-	reset: function() {
-		Netgame.reset()
-		Players.reset()
-		Mission.reset()
-		Chat.reset()
-	}
-})
 
 //
 // Popup
@@ -489,81 +578,6 @@ const Popup = Object.freeze({
 })
 
 //
-// Server Info
-//
-const ServerInfo = Object.freeze({
-	settings: {
-		start_time: 0
-	},
-	parse_msg: function(msg) {
-		for (const [key, value] of Object.entries(msg)) {
-			if ( !this.messages[key] ) {
-				console.warn(`Unhandled server_info message type '${key}' => `, value)
-				continue
-			}
-
-			this.messages[key](value)
-		}
-	},
-	calc_uptime: function() {
-		const serverUptime = document.querySelector('#server-info [data-server-info-uptime]')
-
-		if ( !ServerInfo.settings.start_time ) {
-			serverUptime.textContent = '~'
-			return
-		}
-
-		const seconds = Math.floor(Date.now() / 1000) - ServerInfo.settings.start_time
-		const days = Math.floor(seconds / 86400)
-		const hours = Math.floor(seconds / 3600) % 24
-		const minutes = Utils.pad(Math.floor(seconds / 60) % 60)
-
-		let uptime = `${hours}:${minutes}`
-
-		if (days == 1) uptime = `${days} day, ${uptime}`
-		else if (days > 1) uptime = `${days} days, ${uptime}`
-
-		serverUptime.textContent = uptime
-	},
-
-	// --------------------------------------------------------------
-	// messages from server
-	//
-	messages: Object.freeze({
-		title: function(value) {
-			document.title = value
-		},
-		build: function(value) {
-			document.querySelector('#server-info [data-server-info-build]').textContent = value
-		},
-		multi_version: function(value) {
-			document.querySelector('#server-info [data-server-info-multi_version]').textContent = value
-		},
-		state: function(value) {
-			document.querySelector('#server-info [data-server-info-state]').textContent = value
-		},
-		address: function(value) {
-			document.querySelector('#server-info [data-server-info-address]').textContent = value
-		},
-		start_time: function(value) {
-			ServerInfo.settings.start_time = parseInt(value, 10)
-			ServerInfo.calc_uptime()
-		},
-		realized_fps: function(value) {
-			// console.log(`Realized fps: ${value}`)
-		},
-		host_connected: function(value) {
-			// console.log(`Host connected: ${value}`)
-		},
-		num_players: function(value) {
-			// console.log(`Num players: ${value}`)
-		}
-	})
-	//
-	// --------------------------------------------------------------
-})
-
-//
 // Netgame
 //
 const Netgame = Object.freeze({
@@ -622,9 +636,9 @@ const Netgame = Object.freeze({
 })
 
 //
-// Players
+// Player
 //
-const Players = Object.freeze({
+const Player = Object.freeze({
 	parse_msg: function(msg) {
 		for (const [key, value] of Object.entries(msg)) {
 			if ( !this.messages[key] ) {
@@ -673,7 +687,7 @@ const Players = Object.freeze({
 			})
 
 			row.addEventListener('click', () => {
-				Players.get_info(player.id)
+				Player.get_info(player.id)
 			})
 		},
 		remove: function(player) {
@@ -764,6 +778,9 @@ const Players = Object.freeze({
 	},
 	kick: function(player_id) {
 		Server.send_msg({ "player": { "kick": player_id } })
+	},
+	ban: function(player_id) {
+		Server.send_msg({ "player": { "ban": player_id } })
 	}
 	//
 	// --------------------------------------------------------------
@@ -798,6 +815,9 @@ const Mission = Object.freeze({
 
 		const missionTime = document.querySelector('#mission [data-mission-time]')
 		missionTime.textContent = ''
+
+		const missionFps = document.querySelector('#mission [data-mission-fps]')
+		missionFps.textContent = ''
 
 		this.reset_goals()
 	},
@@ -858,10 +878,14 @@ const Mission = Object.freeze({
 	// messages from server
 	//
 	messages: Object.freeze({
-		time: function (mtime) {
+		time: function(mtime) {
 			Mission.data.time_sync = true
 			Mission.data.mission_time = Math.floor(mtime)
 			Mission.update_time()
+		},
+		fps: function(fps) {
+			const missionFps = document.querySelector('#mission [data-mission-fps]')
+			missionFps.textContent = fps || ''
 		},
 		goals: function(goals) {
 			const goalTypes = ['primary', 'secondary', 'bonus']

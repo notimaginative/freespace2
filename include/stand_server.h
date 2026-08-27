@@ -125,6 +125,9 @@ int std_player_is_banned(const char *name, int tracker_id = -1);
 // add a callsign to the ban list
 void std_add_ban(const char *name);
 
+// add a player to the ban list
+void std_add_ban(const net_player *np);
+
 // add a line from the multi log
 void std_multilog_add_line(const char *line);
 

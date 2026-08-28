@@ -224,7 +224,9 @@ void multi_campaign_start(char *filename)
 	Netgame.campaign_mode = MP_CAMPAIGN;		
 	
 	// set the campaign filename
-	SDL_strlcpy(Netgame.campaign_name, filename, SDL_arraysize(Netgame.campaign_name));
+	if (filename != Netgame.campaign_name) {
+		SDL_strlcpy(Netgame.campaign_name, filename, SDL_arraysize(Netgame.campaign_name));
+	}
 
 	// add the campaign mode flag
 	Game_mode |= GM_CAMPAIGN_MODE;
@@ -233,12 +235,11 @@ void multi_campaign_start(char *filename)
 	if(Net_player->flags & NETINFO_FLAG_AM_MASTER){	
 		// start the campaign, passing 0 so we do _not_ load the savefile. this is only for starting
 		// new campaigns
-		mission_campaign_load(filename);
+		mission_campaign_load(filename, 0);
 		mission_campaign_next_mission();
 			
 		// setup various filenames and mission names
 		SDL_strlcpy(Netgame.mission_name ,Campaign.missions[Campaign.current_mission].name, SDL_arraysize(Netgame.mission_name));
-		SDL_strlcpy(Netgame.campaign_name, filename, SDL_arraysize(Netgame.campaign_name));
 		SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 
 		// if we're the standalone server, set the mission and campaign names
@@ -251,7 +252,7 @@ void multi_campaign_start(char *filename)
 		}
 
 		// maybe override the Netgame.respawn setting
-	//	max_players = mission_parse_get_multi_mission_info( Netgame.mission_name );
+		mission_parse_get_multi_mission_info( Netgame.mission_name );
 		Netgame.respawn = The_mission.num_respawns;
 		nprintf(("Network","MULTI CAMPAIGN : overriding respawn setting with mission max %d\n",The_mission.num_respawns));		
 

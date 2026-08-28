@@ -1283,7 +1283,7 @@ void StandaloneUI::player_info(const net_player *p)
 	info["rank"] = temp_str;
 
 	// flight time
-	game_format_time(p->player->stats.missions_flown, temp_str, SDL_arraysize(temp_str));
+	game_format_time(p->player->stats.flight_time, temp_str, SDL_arraysize(temp_str));
 	info["flight_time"] = temp_str;
 
 	// missions

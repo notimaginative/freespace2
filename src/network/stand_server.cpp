@@ -227,6 +227,7 @@ public:
 	void mission_set_time(float mission_time);
 	void mission_set_fps(int fps);
 	void mission_set_goals();
+	void mission_reset_goals();
 };
 
 
@@ -1723,12 +1724,8 @@ void StandaloneUI::mission_set_goals()
 		return;
 	}
 
-	json msg;
-
 	if ( !Num_goals ) {
-		msg["mission"]["reset_goals"] = true;
-		add_message(msg);
-
+		mission_reset_goals();
 		return;
 	}
 
@@ -1758,6 +1755,8 @@ void StandaloneUI::mission_set_goals()
 		}
 	}
 
+	json msg;
+
 	if ( !primary.empty() ) {
 		msg["mission"]["goals"]["primary"] = primary;
 	}
@@ -1773,6 +1772,19 @@ void StandaloneUI::mission_set_goals()
 	if ( !msg.empty() ) {
 		add_message(msg);
 	}
+}
+
+void StandaloneUI::mission_reset_goals()
+{
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["mission"]["goals"] = false;
+
+	add_message(msg);
 }
 
 } // namespace <anon>
@@ -2042,18 +2054,22 @@ void std_set_standalone_fps(float fps)
 void std_multi_setup_goal_tree()
 {
 	if (Standalone) {
-		Standalone->mission_set_goals();
+		Standalone->mission_reset_goals();
 	}
 }
 
 void std_multi_add_goals()
 {
-	std_multi_setup_goal_tree();
+	if (Standalone) {
+		Standalone->mission_set_goals();
+	}
 }
 
 void std_multi_update_goals()
 {
-	std_multi_setup_goal_tree();
+	if (Standalone) {
+		Standalone->mission_set_goals();
+	}
 }
 
 void std_reset_standalone_gui()

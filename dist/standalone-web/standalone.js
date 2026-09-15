@@ -855,6 +855,8 @@ const Mission = Object.freeze({
 
 			Mission.reset_goals()
 
+			if (typeof goals !== 'object' ) return
+
 			for (const type of goalTypes) {
 				if (!Array.isArray(goals[type])) continue
 				if (!goals[type].length) continue
@@ -879,9 +881,6 @@ const Mission = Object.freeze({
 					table.classList.remove('hidden')
 				} catch(e) {}
 			}
-		},
-		reset_goals: function () {
-			Mission.reset_goals()
 		}
 	})
 	//

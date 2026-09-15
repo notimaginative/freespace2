@@ -697,6 +697,7 @@ void StandaloneUI::msg_handler_server_config(const json &msg)
 				} else {
 					// if we reverted to the original state then abort the refresh
 					m_pxo_refresh_state = false;
+					m_pxo_enabled = (Multi_options_g.pxo == 1);
 				}
 
 				// if we can't do this immediately then notify the client of that fact

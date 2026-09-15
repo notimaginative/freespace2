@@ -2928,6 +2928,9 @@ void multi_flush_mission_stuff()
 	// standalone servers should clear their goal trees now
 	if(Game_mode & GM_STANDALONE_SERVER){
 		std_multi_setup_goal_tree();
+
+		std_set_standalone_fps((float)0);
+		std_multi_set_standalone_missiontime((float)0);
 	}
 	
 	// object signatures

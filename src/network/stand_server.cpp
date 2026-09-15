@@ -66,8 +66,8 @@ constexpr size_t MAX_STANDALONE_BANS = 50;
 std::list<std::pair<std::string, int>> Standalone_ban_list;
 
 enum UpdateTimes {
-	info			= 3000,
-	netgame			= 5000,
+	netgame			= 3000,
+	player_info		= 5000,
 };
 
 enum class PopupTypes {
@@ -90,12 +90,12 @@ struct Standalone_client {
 	short m_active_player;
 	bool m_multilog_enabled;
 
-	uint64_t m_info_timestamp;
 	uint64_t m_netgame_timestamp;
+	uint64_t m_player_info_timestamp;
 
 	Standalone_client(uint32_t id, struct lws *wsi) :
 		m_id(id), m_wsi(wsi), m_active_player(-1), m_multilog_enabled(true),
-		m_info_timestamp(0), m_netgame_timestamp(0) {};
+		m_netgame_timestamp(0), m_player_info_timestamp(0) {};
 
 	~Standalone_client() {};
 
@@ -205,8 +205,8 @@ public:
 	void reset_client_timestamps();
 
 	void server_set_state(const char *str);
-	void server_set_host_status(bool connected) { m_host_connected = connected; }
-	void server_set_num_players(int count) { m_num_players = count; }
+	void server_set_host_status(bool connected);
+	void server_set_num_players(int count);
 
 	void netgame_set_name();
 	void netgame_update();
@@ -225,7 +225,7 @@ public:
 	void popup_close();	// for status popup only
 
 	void mission_set_time(float mission_time);
-	void mission_set_fps(int fps) { m_mission_fps = fps; }
+	void mission_set_fps(int fps);
 	void mission_set_goals();
 };
 
@@ -942,21 +942,10 @@ void StandaloneUI::do_frame()
 			}
 		}
 
-		// maybe update server/mission/player info
+		// maybe update player info
 		if (m_num_players) {
-			if ( !client->m_info_timestamp || (cur_time_ms > client->m_info_timestamp) ) {
-				client->m_info_timestamp = cur_time_ms + UpdateTimes::info;
-
-				json msg;
-
-				// server info
-				msg["server_info"]["host_connected"] = m_host_connected;
-				msg["server_info"]["num_players"] = m_num_players;
-
-				// mission info
-				msg["mission"]["fps"] = m_mission_fps;
-
-				add_message(msg);
+			if ( !client->m_player_info_timestamp || (cur_time_ms > client->m_player_info_timestamp) ) {
+				client->m_player_info_timestamp = cur_time_ms + UpdateTimes::player_info;
 
 				// player info
 				if (client->m_active_player != -1) {
@@ -988,6 +977,36 @@ void StandaloneUI::server_set_state(const char *str)
 	json msg;
 
 	msg["server_info"]["state"] = str;
+
+	add_message(msg);
+}
+
+void StandaloneUI::server_set_host_status(bool connected)
+{
+	m_host_connected = connected;
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["server_info"]["host_connected"] = m_host_connected;
+
+	add_message(msg);
+}
+
+void StandaloneUI::server_set_num_players(int count)
+{
+	m_num_players = count;
+
+	if (m_clients.empty()) {
+		return;
+	}
+
+	json msg;
+
+	msg["server_info"]["num_players"] = m_num_players;
 
 	add_message(msg);
 }
@@ -1330,7 +1349,7 @@ void StandaloneUI::player_remove(const net_player *p)
 	for (auto &client : m_clients) {
 		if (client->m_active_player == p->player_id) {
 			client->m_active_player = -1;
-			client->m_info_timestamp = 0;
+			client->m_player_info_timestamp = 0;
 		}
 	}
 }
@@ -1483,7 +1502,7 @@ void StandaloneUI::reset_client()
 	// refresh client-side state
 	if (m_active_client) {
 		m_active_client->m_netgame_timestamp = 0;
-		m_active_client->m_info_timestamp = 0;
+		m_active_client->m_player_info_timestamp = 0;
 		m_active_client->m_active_player = -1;
 	}
 }
@@ -1492,7 +1511,7 @@ void StandaloneUI::reset_client_timestamps()
 {
 	for (auto &client : m_clients) {
 		client->m_netgame_timestamp = 0;
-		client->m_info_timestamp = 0;
+		client->m_player_info_timestamp = 0;
 	}
 }
 
@@ -1676,6 +1695,24 @@ void StandaloneUI::mission_update_time()
 	json msg;
 
 	msg["mission"]["time"] = m_mission_time;
+
+	add_message(msg);
+}
+
+void StandaloneUI::mission_set_fps(int fps)
+{
+	// fps should rarely change, but give it some room to fluctuate anyway
+	const bool needs_update = (abs(m_mission_fps - fps) > 5);
+
+	m_mission_fps = fps;
+
+	if ( !needs_update || m_clients.empty() ) {
+		return;
+	}
+
+	json msg;
+
+	msg["mission"]["fps"] = m_mission_fps;
 
 	add_message(msg);
 }

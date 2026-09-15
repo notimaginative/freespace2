@@ -208,7 +208,6 @@ public:
 	void server_set_host_status(bool connected);
 	void server_set_num_players(int count);
 
-	void netgame_set_name();
 	void netgame_update();
 
 	void player_add(const net_player *p);
@@ -1117,20 +1116,6 @@ void StandaloneUI::server_config_update_ban_list(const std::string &user, bool r
 	server_config_send_ban_list();
 }
 
-void StandaloneUI::netgame_set_name()
-{
-	if (m_clients.empty()) {
-		return;
-	}
-
-	json msg;
-
-	// use netgame name if it's from host, otherwise trigger field reset
-	msg["netgame"]["name"] = Netgame.host ? Netgame.name : "";
-
-	add_message(msg);
-}
-
 void StandaloneUI::netgame_update()
 {
 	if (m_clients.empty()) {
@@ -1195,14 +1180,11 @@ void StandaloneUI::netgame_update()
 			state = XSTR("Unknown", 769);
 	}
 
-	msg["netgame"]["mission_name"] = Netgame.mission_name;
-	msg["netgame"]["mission_title"] = Netgame.title;
+	msg["netgame"]["name"] = Netgame.host ? Netgame.name : "";;
+	msg["netgame"]["title"] = Netgame.title;
 
-	if (Netgame.campaign_mode) {
-		msg["netgame"]["campaign_name"] = Netgame.campaign_name;
-	} else {
-		msg["netgame"]["campaign_name"] = "";
-	}
+	msg["netgame"]["mission_name"] = Netgame.mission_name;
+	msg["netgame"]["campaign_name"] = Netgame.campaign_mode ? Netgame.campaign_name : "";
 
 	msg["netgame"]["mode"] = mode;
 	msg["netgame"]["type"] = type;
@@ -1487,7 +1469,6 @@ void StandaloneUI::reset_client()
 	mission_set_goals();
 
 	// refresh netgame data
-	netgame_set_name();
 	netgame_update();
 
 	// refresh connections
@@ -1852,19 +1833,16 @@ void std_debug_set_standalone_state_string(const char *str)
 
 void std_connect_set_gamename(const char *name)
 {
-	if (name == nullptr) {
-		// if a	permanent name exists, use that instead of the default
-		if ( SDL_strlen(Multi_options_g.std_pname) ) {
-			SDL_strlcpy(Netgame.name, Multi_options_g.std_pname, SDL_arraysize(Netgame.name));
-		} else {
-			SDL_strlcpy(Netgame.name, XSTR("Standalone Server", 916), SDL_arraysize(Netgame.name));
-		}
-	} else if (name != Netgame.name) {
-		SDL_strlcpy(Netgame.name, name, SDL_arraysize(Netgame.name));
+	// we only need to deal with the case where name is null
+	if (name) {
+		return;
 	}
 
-	if (Standalone) {
-		Standalone->netgame_set_name();
+	// if a	permanent name exists, use that instead of the default
+	if ( SDL_strlen(Multi_options_g.std_pname) ) {
+		SDL_strlcpy(Netgame.name, Multi_options_g.std_pname, SDL_arraysize(Netgame.name));
+	} else {
+		SDL_strlcpy(Netgame.name, XSTR("Standalone Server", 916), SDL_arraysize(Netgame.name));
 	}
 }
 

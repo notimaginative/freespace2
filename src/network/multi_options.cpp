@@ -775,7 +775,6 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 	ubyte code;	
 	multi_local_options bogus;
 	int idx,player_index;
-	char str[255];
 	int offset = HEADER_LENGTH;
 
 	// find out who is sending this data	
@@ -807,10 +806,6 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 			GET_INT(Netgame.rank_base);
 			break;
 		}
-
-		// update standalone stuff
-		std_connect_set_gamename(Netgame.name);
-		std_multi_update_netgame_info_controls();
 		break;
 
 	// get mission choice options
@@ -837,55 +832,51 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		// new respawn count
 		GET_UINT(Netgame.respawn);
 
-		// name string
-		SDL_zero(str);
-
 		GET_DATA(code);
 		// campaign mode
 		if(code){
 			GET_STRING(ng.campaign_name);
+
+			// clear name from mission mode
+			SDL_zero(Netgame.mission_name);
 
 			// set the netgame max players here if the filename has changed
 			if(strcmp(Netgame.campaign_name,ng.campaign_name)){
 				SDL_zero(title);
 				if(!mission_campaign_get_info(ng.campaign_name,title,&campaign_type,&max_players)){
 					Netgame.max_players = 0;
+					SDL_zero(Netgame.title);
 				} else {
 					Netgame.max_players = max_players;
+					SDL_strlcpy(Netgame.title, title, SDL_arraysize(Netgame.title));
 				}
 
 				SDL_strlcpy(Netgame.campaign_name, ng.campaign_name, SDL_arraysize(Netgame.campaign_name));
 			}
 
 			Netgame.campaign_mode = 1;
-
-			// put brackets around the campaign name
-			if(Game_mode & GM_STANDALONE_SERVER){
-				SDL_snprintf(str, SDL_arraysize(str), "(%s)", Netgame.campaign_name);
-				std_multi_set_standalone_mission_name(str);
-			}
 		}
 		// non-campaign mode
 		else {
 			GET_STRING(ng.mission_name);
 
+			// clear name from campaign mode
+			SDL_zero(Netgame.campaign_name);
+
 			if(strcmp(Netgame.mission_name,ng.mission_name)){
 				if(SDL_strlen(ng.mission_name)){
 					Netgame.max_players = mission_parse_get_multi_mission_info( ng.mission_name );
+					SDL_strlcpy(Netgame.title, The_mission.name, SDL_arraysize(Netgame.title));
 				} else {
 					// setting this to -1 will prevent us from being seen on the network
 					Netgame.max_players = -1;				
+					SDL_zero(Netgame.title);
 				}
 				SDL_strlcpy(Netgame.mission_name, ng.mission_name, SDL_arraysize(Netgame.mission_name));
 				SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 			}			
 
 			Netgame.campaign_mode = 0;
-
-			// set the mission name
-			if(Game_mode & GM_STANDALONE_SERVER){
-				std_multi_set_standalone_mission_name(Netgame.mission_name);			
-			}
 		}
 		
 		send_netgame_update_packet();	   
@@ -946,6 +937,11 @@ void multi_options_process_packet(unsigned char *data, header *hinfo)
 		break;
 	}
 	PACKET_SET_SIZE();
+
+	// update standalone gui with any changes
+	if (Game_mode & GM_STANDALONE_SERVER) {
+		std_multi_update_netgame_info_controls();
+	}
 }
 
 

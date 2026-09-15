@@ -217,9 +217,6 @@ int Multi_campaign_accept_flags[MAX_PLAYERS];
 // load a new campaign file or notify the standalone if we're not the server
 void multi_campaign_start(char *filename)
 {
-//	int max_players;
-	char str[255];
-	
 	// set the netgame mode
 	Netgame.campaign_mode = MP_CAMPAIGN;		
 	
@@ -242,19 +239,13 @@ void multi_campaign_start(char *filename)
 		SDL_strlcpy(Netgame.mission_name ,Campaign.missions[Campaign.current_mission].name, SDL_arraysize(Netgame.mission_name));
 		SDL_strlcpy(Game_current_mission_filename, Netgame.mission_name, SDL_arraysize(Game_current_mission_filename));
 
-		// if we're the standalone server, set the mission and campaign names
-		if(Game_mode & GM_STANDALONE_SERVER){
-			memset(str,0,255);
-			SDL_snprintf(str, SDL_arraysize(str), "%s (%s)", Netgame.mission_name,Netgame.campaign_name );
-
-			// set the control on the stand_gui
-			std_multi_set_standalone_mission_name(str);
-		}
-
 		// maybe override the Netgame.respawn setting
 		mission_parse_get_multi_mission_info( Netgame.mission_name );
 		Netgame.respawn = The_mission.num_respawns;
 		nprintf(("Network","MULTI CAMPAIGN : overriding respawn setting with mission max %d\n",The_mission.num_respawns));		
+
+		// update mission/campaign title
+		SDL_strlcpy(Netgame.title, The_mission.name, SDL_arraysize(Netgame.title));
 
 		// send a "start campaign" packet
 		multi_campaign_send_start();
@@ -273,8 +264,6 @@ void multi_campaign_client_start()
 // move everything and eveyrone into the next mission state
 void multi_campaign_next_mission()
 {
-	char str[255];
-
 	// flush the important data
 	multi_campaign_flush_data();
 
@@ -287,14 +276,12 @@ void multi_campaign_next_mission()
 		SDL_strlcpy(Game_current_mission_filename, Campaign.missions[Campaign.current_mission].name, SDL_arraysize(Game_current_mission_filename));
 		SDL_strlcpy(Netgame.mission_name, Game_current_mission_filename, SDL_arraysize(Netgame.mission_name));
 
-		// if we're the standalone server, set the mission and campaign names
-		if(Game_mode & GM_STANDALONE_SERVER){
-			memset(str,0,255);
-			SDL_snprintf(str, SDL_arraysize(str), "%s (%s)", Netgame.mission_name, Netgame.campaign_name);
+		// maybe override the Netgame.respawn setting
+		mission_parse_get_multi_mission_info( Netgame.mission_name );
+		Netgame.respawn = The_mission.num_respawns;
+		nprintf(("Network","MULTI CAMPAIGN : overriding respawn setting with mission max %d\n",The_mission.num_respawns));
 
-			// set the control on the stand_gui
-			std_multi_set_standalone_mission_name(str);
-		}
+		SDL_strlcpy(Netgame.title, The_mission.name, SDL_arraysize(Netgame.title));
 
 	}
 }

@@ -603,8 +603,8 @@ const Netgame = Object.freeze({
 		name: function(value) {
 			document.querySelector('#netgame [data-netgame=name').textContent = value
 		},
-		mission_title: function(value) {
-			document.querySelector('#netgame [data-netgame=mission_title').textContent = value
+		title: function(value) {
+			document.querySelector('#netgame [data-netgame=title').textContent = value
 		},
 		mission_name: function(value) {
 			document.querySelector('#netgame [data-netgame=mission_name').textContent = value

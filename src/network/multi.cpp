@@ -1625,9 +1625,6 @@ void multi_pause_do_frame()
 // standalone_main_init()  the standalone equivalent of the main menu
 //
 
-extern int sock_inited;
-float frame_time = (float)1.0/(float)30.0;
-
 void standalone_main_init()
 {
 	std_debug_set_standalone_state_string("Main Init");

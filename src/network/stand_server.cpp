@@ -68,7 +68,6 @@ std::list<std::pair<std::string, int>> Standalone_ban_list;
 enum UpdateTimes {
 	info			= 3000,
 	netgame			= 5000,
-	mission_time	= 10000,
 };
 
 enum class PopupTypes {
@@ -93,12 +92,10 @@ struct Standalone_client {
 
 	uint64_t m_info_timestamp;
 	uint64_t m_netgame_timestamp;
-	uint64_t m_mission_time_timestamp;
 
 	Standalone_client(uint32_t id, struct lws *wsi) :
 		m_id(id), m_wsi(wsi), m_active_player(-1), m_multilog_enabled(true),
-		m_info_timestamp(0), m_netgame_timestamp(0), m_mission_time_timestamp(0)
-		{};
+		m_info_timestamp(0), m_netgame_timestamp(0) {};
 
 	~Standalone_client() {};
 
@@ -945,15 +942,6 @@ void StandaloneUI::do_frame()
 			}
 		}
 
-		// maybe update mission time
-		if (m_mission_time != -1) {
-			if ( !client->m_mission_time_timestamp || (cur_time_ms > client->m_mission_time_timestamp) ) {
-				client->m_mission_time_timestamp = cur_time_ms + UpdateTimes::mission_time;
-
-				mission_update_time();
-			}
-		}
-
 		// maybe update server/mission/player info
 		if (m_num_players) {
 			if ( !client->m_info_timestamp || (cur_time_ms > client->m_info_timestamp) ) {
@@ -1474,7 +1462,6 @@ void StandaloneUI::reset_client()
 	// refresh various ui elements
 	chat_refresh();
 
-	mission_set_time(0.0f);
 	mission_update_time();
 	mission_set_goals();
 
@@ -1497,7 +1484,6 @@ void StandaloneUI::reset_client()
 	if (m_active_client) {
 		m_active_client->m_netgame_timestamp = 0;
 		m_active_client->m_info_timestamp = 0;
-		m_active_client->m_mission_time_timestamp = 0;
 		m_active_client->m_active_player = -1;
 	}
 }
@@ -1507,7 +1493,6 @@ void StandaloneUI::reset_client_timestamps()
 	for (auto &client : m_clients) {
 		client->m_netgame_timestamp = 0;
 		client->m_info_timestamp = 0;
-		client->m_mission_time_timestamp = 0;
 	}
 }
 
@@ -1669,10 +1654,16 @@ void StandaloneUI::popup_close()
 
 void StandaloneUI::mission_set_time(float mission_time)
 {
+	const int last_time = m_mission_time;
+
 	if (mission_time > 0.0f) {
-		m_mission_time = static_cast<int>(SDL_roundf(mission_time));
+		m_mission_time = static_cast<int>(SDL_floorf(mission_time));
 	} else {
 		m_mission_time = -1;	// disable timer in ui
+	}
+
+	if (m_mission_time != last_time) {
+		mission_update_time();
 	}
 }
 

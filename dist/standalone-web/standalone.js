@@ -790,11 +790,6 @@ const Player = Object.freeze({
 // Mission
 //
 const Mission = Object.freeze({
-	data: {
-		time_sync: false,
-		mission_time: -1,
-		mission_time_timer: undefined,
-	},
 	parse_msg: function(msg) {
 		for (const [key, value] of Object.entries(msg)) {
 			if ( !this.messages[key] ) {
@@ -806,13 +801,6 @@ const Mission = Object.freeze({
 		}
 	},
 	reset: function () {
-		this.data.mission_time = -1
-
-		if (this.data.mission_time_timer) {
-			clearInterval(this.data.mission_time_timer)
-			this.data.mission_time_timer = undefined
-		}
-
 		const missionTime = document.querySelector('#mission [data-mission-time]')
 		missionTime.textContent = ''
 
@@ -832,56 +820,30 @@ const Mission = Object.freeze({
 			while (elem.tBodies[0].firstChild) elem.tBodies[0].firstChild.remove()
 		}
 	},
-	update_time: function () {
-		const missionTime = document.querySelector('#mission [data-mission-time]')
-
-		if (this.data.mission_time == -1) {
-			missionTime.textContent = ''
-
-			if (this.data.mission_time_timer) {
-				clearInterval(this.data.mission_time_timer)
-				this.data.mission_time_timer = undefined
-			}
-
-			this.data.time_sync = false
-
-			return
-		}
-
-		const hours = Math.floor(this.data.mission_time / 3600)
-		const minutes = Utils.pad(Math.floor(this.data.mission_time / 60) % 60)
-		const seconds = Utils.pad(this.data.mission_time % 60)
-
-		let time = `${minutes}:${seconds}`
-
-		if (hours > 0) {
-			time = `${hours}:${time}`
-		}
-
-		missionTime.textContent = time
-
-		this.data.time_sync = false
-		// the time message is rate limited so we use an interval to keep it in
-		// sync between updates
-		if ( !this.data.mission_time_timer ) {
-			this.data.mission_time_timer = setInterval(() => {
-				// don't try to update while we're doing a server sync
-				if (Mission.data.time_sync) return
-
-				Mission.data.mission_time += 1
-				Mission.update_time()
-			}, 1000)
-		}
-	},
 
 	// --------------------------------------------------------------
 	// messages from server
 	//
 	messages: Object.freeze({
-		time: function(mtime) {
-			Mission.data.time_sync = true
-			Mission.data.mission_time = Math.floor(mtime)
-			Mission.update_time()
+		time: function(mission_time) {
+			const missionTime = document.querySelector('#mission [data-mission-time]')
+
+			if (mission_time < 0) {
+				missionTime.textContent = ''
+				return
+			}
+
+			const hours = Math.floor(mission_time / 3600)
+			const minutes = Utils.pad(Math.floor(mission_time / 60) % 60)
+			const seconds = Utils.pad(mission_time % 60)
+
+			let time = `${minutes}:${seconds}`
+
+			if (hours > 0) {
+				time = `${hours}:${time}`
+			}
+
+			missionTime.textContent = time
 		},
 		fps: function(fps) {
 			const missionFps = document.querySelector('#mission [data-mission-fps]')

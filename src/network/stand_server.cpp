@@ -62,7 +62,7 @@ std::thread Standalone_thread;
 std::mutex Standalone_ban_lock;
 #endif
 
-constexpr size_t MAX_STANDALONE_BANS = 50;
+constexpr size_t MAX_STANDALONE_BANS = 50;	// Must fit in callback buffer. Don't change!!
 std::list<std::pair<std::string, int>> Standalone_ban_list;
 
 enum UpdateTimes {
@@ -81,34 +81,99 @@ struct chatlog_item {
 	std::string message;
 };
 
-struct Standalone_client {
+class Standalone_client {
+private:
 	uint32_t m_id;
 	struct lws *m_wsi;
-
-	std::list<std::string> m_send_buffer;
-
-	short m_active_player;
-	bool m_multilog_enabled;
 
 	uint64_t m_netgame_timestamp;
 	uint64_t m_player_info_timestamp;
 
+	short m_active_player;
+	bool m_multilog_enabled;
+
+public:
+	std::list<std::string> messages;
+
 	Standalone_client(uint32_t id, struct lws *wsi) :
-		m_id(id), m_wsi(wsi), m_active_player(-1), m_multilog_enabled(true),
-		m_netgame_timestamp(0), m_player_info_timestamp(0) {};
+		m_id(id), m_wsi(wsi), m_netgame_timestamp(0), m_player_info_timestamp(0),
+		m_active_player(-1), m_multilog_enabled(true) {}
 
-	~Standalone_client() {};
+	~Standalone_client() {}
 
-	void shutdown(uint32_t active_id = 0) {
-		lws_close_reason(m_wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
+	uint32_t id() { return m_id; }
 
-		// the active client will close via callback, everyone else has to be
-		// gracefully booted via forced shutdown
-		if (active_id != m_id) {
-			lws_set_timeout(m_wsi, PENDING_TIMEOUT_SHUTDOWN_FLUSH, LWS_TO_KILL_SYNC);
-		}
-	}
+	void shutdown(uint32_t active_id = 0);
+
+	void update();
+	void reset_state();
+
+	short active_player() { return m_active_player; }
+	void set_active_player(short pid = -1) { m_active_player = pid; }
+
+	bool multilog() { return m_multilog_enabled; }
+	void set_multilog(bool enabled) { m_multilog_enabled = enabled; }
+
+	void reset_timestamps();
+	bool timestamp_netgame(const uint64_t cur_time_ms);
+	bool timestamp_player_info(const uint64_t cur_time_ms);
 };
+
+void Standalone_client::shutdown(uint32_t active_id)
+{
+	lws_close_reason(m_wsi, LWS_CLOSE_STATUS_GOINGAWAY, (unsigned char *)"shutdown", 8);
+
+	// the active client will close via callback, everyone else has to be
+	// gracefully booted via forced shutdown
+	if (active_id != m_id) {
+		lws_set_timeout(m_wsi, PENDING_TIMEOUT_SHUTDOWN_FLUSH, LWS_TO_KILL_SYNC);
+	}
+}
+
+void Standalone_client::update()
+{
+	if ( !messages.empty() ) {
+		lws_callback_on_writable(m_wsi);
+	}
+}
+
+void Standalone_client::reset_state()
+{
+	reset_timestamps();
+	m_active_player = -1;
+}
+
+void Standalone_client::reset_timestamps()
+{
+	m_netgame_timestamp = 0;
+	m_player_info_timestamp = 0;
+}
+
+bool Standalone_client::timestamp_netgame(const uint64_t cur_time_ms)
+{
+	if ( !m_netgame_timestamp || (cur_time_ms > m_netgame_timestamp) ) {
+		m_netgame_timestamp = cur_time_ms + UpdateTimes::netgame;
+		return true;
+	}
+
+	return false;
+}
+
+bool Standalone_client::timestamp_player_info(const uint64_t cur_time_ms)
+{
+	// always consider this false if there is no player to evaluate
+	if (m_active_player < 0) {
+		return false;
+	}
+
+	if ( !m_player_info_timestamp || (cur_time_ms > m_player_info_timestamp) ) {
+		m_player_info_timestamp = cur_time_ms + UpdateTimes::player_info;
+		return true;
+	}
+
+	return false;
+}
+
 
 class StandaloneUI {
 private:
@@ -461,7 +526,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 
 	if (client_id && *client_id) {
 		for (auto &client : m_clients) {
-			if (client->m_id == *client_id) {
+			if (client->id() == *client_id) {
 				m_active_client = client.get();
 				break;
 			}
@@ -490,7 +555,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 			}
 
 			for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
-				if ((*it)->m_id == m_active_client->m_id) {
+				if ((*it)->id() == m_active_client->id()) {
 					m_clients.erase(it);
 					break;
 				}
@@ -512,16 +577,16 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 				break;
 			}
 
-			while ( !m_active_client->m_send_buffer.empty() ) {
-				if (m_active_client->m_send_buffer.front().size() >= MAX_BUF_SIZE) {
+			while ( !m_active_client->messages.empty() ) {
+				if (m_active_client->messages.front().size() >= MAX_BUF_SIZE) {
 					lwsl_warn("Message size (%zu) exceeds buffer size (%zu)!  Discarding...\n",
-							  m_active_client->m_send_buffer.size(), MAX_BUF_SIZE);
-					m_active_client->m_send_buffer.pop_front();
+							  m_active_client->messages.size(), MAX_BUF_SIZE);
+					m_active_client->messages.pop_front();
 
 					continue;
 				}
 
-				auto size = SDL_strlcpy((char *)p, m_active_client->m_send_buffer.front().c_str(), MAX_BUF_SIZE);
+				auto size = SDL_strlcpy((char *)p, m_active_client->messages.front().c_str(), MAX_BUF_SIZE);
 
 				auto rval = lws_write(wsi, p, size, LWS_WRITE_TEXT);
 
@@ -533,7 +598,7 @@ int StandaloneUI::callback_standalone(struct lws *wsi, enum lws_callback_reasons
 					break;
 				}
 
-				m_active_client->m_send_buffer.pop_front();
+				m_active_client->messages.pop_front();
 
 				if ( lws_send_pipe_choked(wsi) ) {
 					lws_callback_on_writable(wsi);
@@ -602,7 +667,7 @@ void StandaloneUI::msg_handler_server(const json &msg, int &exit_val)
 			exit_val = -1;
 
 			for (auto &client : m_clients) {
-				client->shutdown(m_active_client->m_id);
+				client->shutdown(m_active_client->id());
 			}
 
 			return;
@@ -756,7 +821,7 @@ void StandaloneUI::msg_handler_server_config(const json &msg)
 		auto prev_client = m_active_client;
 
 		for (auto &client : m_clients) {
-			if (prev_client->m_id == client->m_id) {
+			if (prev_client->id() == client->id()) {
 				continue;
 			}
 
@@ -803,16 +868,16 @@ void StandaloneUI::msg_handler_player(const json &msg)
 			else if (item.key() == "info") {
 				auto player_id = item.value().get<short>();
 
-				if ((player_id < 0) || (m_active_client->m_active_player == player_id)) {
-					m_active_client->m_active_player = -1;
+				if ((player_id < 0) || (m_active_client->active_player() == player_id)) {
+					m_active_client->set_active_player();
 				} else {
 					int idx = find_player_id(player_id);
 
 					if (idx >= 0) {
 						player_info(&Net_players[idx]);
-						m_active_client->m_active_player = player_id;
+						m_active_client->set_active_player(player_id);
 					} else {
-						m_active_client->m_active_player = -1;
+						m_active_client->set_active_player();
 					}
 				}
 			}
@@ -852,7 +917,7 @@ void StandaloneUI::msg_handler_multilog(const json &msg)
 	}
 
 	try {
-		m_active_client->m_multilog_enabled = msg.get<bool>();
+		m_active_client->set_multilog(msg.get<bool>());
 	} catch (const json::exception &e) {
 		ml_printf("STD => JSON error processing multilog message: %s", e.what());
 		return;
@@ -872,10 +937,10 @@ bool StandaloneUI::add_message(const json &msg)
 	const std::string msg_str = msg.dump(-1, ' ', false, json::error_handler_t::replace);
 
 	if (m_active_client) {
-		m_active_client->m_send_buffer.push_back(std::move(msg_str));
+		m_active_client->messages.push_back(std::move(msg_str));
 	} else {
 		for (auto &client : m_clients) {
-			client->m_send_buffer.push_back(msg_str);
+			client->messages.push_back(msg_str);
 		}
 	}
 
@@ -934,34 +999,24 @@ void StandaloneUI::do_frame()
 	for (auto &client : m_clients) {
 		m_active_client = client.get();
 
-		// maybe update netgame info
 		if (m_num_players) {
-			if ( !client->m_netgame_timestamp || (cur_time_ms > client->m_netgame_timestamp) ) {
-				client->m_netgame_timestamp = cur_time_ms + UpdateTimes::netgame;
-
+			// maybe update netgame info
+			if (client->timestamp_netgame(cur_time_ms)) {
 				netgame_update();
 			}
-		}
 
-		// maybe update player info
-		if (m_num_players) {
-			if ( !client->m_player_info_timestamp || (cur_time_ms > client->m_player_info_timestamp) ) {
-				client->m_player_info_timestamp = cur_time_ms + UpdateTimes::player_info;
+			// maybe update player info
+			if (client->timestamp_player_info(cur_time_ms)) {
+				int player_idx = find_player_id(client->active_player());
 
-				// player info
-				if (client->m_active_player != -1) {
-					int player_idx = find_player_id(client->m_active_player);
-
-					if (player_idx >= 0) {
-						player_info(&Net_players[player_idx]);
-					}
+				if (player_idx >= 0) {
+					player_info(&Net_players[player_idx]);
 				}
 			}
 		}
 
-		if ( !client->m_send_buffer.empty() ) {
-			lws_callback_on_writable(client->m_wsi);
-		}
+		// send any buffered messages
+		client->update();
 	}
 
 	m_active_client = prev_client;
@@ -1331,9 +1386,8 @@ void StandaloneUI::player_remove(const net_player *p)
 
 	// clear active player, client should reset if needed
 	for (auto &client : m_clients) {
-		if (client->m_active_player == p->player_id) {
-			client->m_active_player = -1;
-			client->m_player_info_timestamp = 0;
+		if (client->active_player() == p->player_id) {
+			client->set_active_player();
 		}
 	}
 }
@@ -1449,7 +1503,7 @@ void StandaloneUI::reset_client()
 	}
 
 	if (m_active_client) {
-		m_active_client->m_send_buffer.clear();
+		m_active_client->messages.clear();
 	}
 
 	json msg;
@@ -1484,17 +1538,14 @@ void StandaloneUI::reset_client()
 
 	// refresh client-side state
 	if (m_active_client) {
-		m_active_client->m_netgame_timestamp = 0;
-		m_active_client->m_player_info_timestamp = 0;
-		m_active_client->m_active_player = -1;
+		m_active_client->reset_state();
 	}
 }
 
 void StandaloneUI::reset_client_timestamps()
 {
 	for (auto &client : m_clients) {
-		client->m_netgame_timestamp = 0;
-		client->m_player_info_timestamp = 0;
+		client->reset_timestamps();
 	}
 }
 
@@ -1519,7 +1570,7 @@ void StandaloneUI::multilog_add_line(const char *line)
 	for (auto &client : m_clients) {
 		m_active_client = client.get();
 
-		if (client->m_multilog_enabled) {
+		if (client->multilog()) {
 			msg["multilog"] = line;
 
 			add_message(msg);
@@ -1532,7 +1583,7 @@ void StandaloneUI::multilog_add_line(const char *line)
 void StandaloneUI::multilog_refresh()
 {
 	// active client only
-	if ( !m_active_client || !m_active_client->m_multilog_enabled ) {
+	if ( !m_active_client || !m_active_client->multilog() ) {
 		return;
 	}
 
@@ -1585,7 +1636,7 @@ void StandaloneUI::popup(PopupTypes type, const char *title, const char *message
 	if ( add_message(msg) ) {
 		// trigger write callback so we send this message quickly
 		for (auto &client : m_clients) {
-			lws_callback_on_writable(client->m_wsi);
+			client->update();
 		}
 
 		lws_service(m_lws_context, -1);
@@ -1625,7 +1676,7 @@ void StandaloneUI::popup_set_text(const char *str, int field_num)
 	if ( add_message(msg) ) {
 		// trigger write callback so we send this message quickly
 		for (auto &client : m_clients) {
-			lws_callback_on_writable(client->m_wsi);
+			client->update();
 		}
 
 		lws_service(m_lws_context, -1);
@@ -1647,7 +1698,7 @@ void StandaloneUI::popup_close()
 	if ( add_message(msg) ) {
 		// trigger write callback so we send this message quickly
 		for (auto &client : m_clients) {
-			lws_callback_on_writable(client->m_wsi);
+			client->update();
 		}
 
 		lws_service(m_lws_context, -1);
